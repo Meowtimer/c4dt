@@ -28,6 +28,10 @@ public class ClonkPerspective implements IPerspectiveFactory {
 		 // Bottom right: Task List view
 		 layout.addView(IPageLayout.ID_TASK_LIST, IPageLayout.BOTTOM, 0.66f, editorArea);
 
+		 layout.addNewWizardShortcut("net.arctics.clonk.wizards.NewC4Object");
+//		 layout.ad
+		 layout.addNewWizardShortcut("net.arctics.clonk.newClonkProject");
+		 
 	}
 
 }
