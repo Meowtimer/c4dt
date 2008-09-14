@@ -25,13 +25,11 @@ public class ClonkExportResourcePage extends WizardExportResourcesPage {
 		this.selection = selection;
 	}
 
-	@Override
 	public void handleEvent(Event event) {
 		System.out.print("event");
 	}
 
 
-	@SuppressWarnings("unchecked")
 	public List<IResource> getResources() {
 		return getSelectedResources();
 	}
@@ -39,14 +37,12 @@ public class ClonkExportResourcePage extends WizardExportResourcesPage {
 	/* (non-Javadoc)
 	 * @see org.eclipse.ui.dialogs.WizardDataTransferPage#createOptionsGroup(org.eclipse.swt.widgets.Composite)
 	 */
-	@Override
 	protected void createOptionsGroup(Composite parent) {
 		// TODO Auto-generated method stub
 		//super.createOptionsGroup(parent);
 		
 	}
 
-	@Override
 	protected void createDestinationGroup(Composite parent) {
 		Label lab= new Label(parent,SWT.NONE);
 		if (selection.getFirstElement() instanceof IFolder) {

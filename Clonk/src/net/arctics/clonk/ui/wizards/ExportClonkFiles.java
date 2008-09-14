@@ -27,7 +27,6 @@ public class ExportClonkFiles extends Wizard implements IExportWizard {
 
 	}
 	
-	@Override
 	public boolean performFinish() {
 		if (selection.getFirstElement() instanceof IFolder) {
 			IFolder folder = (IFolder) selection.getFirstElement();
@@ -49,7 +48,6 @@ public class ExportClonkFiles extends Wizard implements IExportWizard {
 		}
 	}
 
-	@Override
 	public void init(IWorkbench workbench, IStructuredSelection selection) {
         this.selection = selection;
 		exportPage = new ClonkExportResourcePage("Export to Clonk directory", selection);
