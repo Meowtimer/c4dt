@@ -47,7 +47,6 @@ public class ClonkIndexer {
 	public void indexClonkDirectory(File dir) {
 		clonkDir = dir;
 		File[] files = clonkDir.listFiles(new FileFilter() {
-			 @Override
 			public boolean accept(File pathname) {
 				String fileName = pathname.getName();
 				if (fileName.endsWith(".c4d") || fileName.endsWith(".c4s") || fileName.endsWith(".c4g")) return true;

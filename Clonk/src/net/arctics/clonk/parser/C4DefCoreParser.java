@@ -29,7 +29,6 @@ public class C4DefCoreParser implements IResourceVisitor {
 		return data.get(file);
 	}
 	
-	@Override
 	public boolean visit(IResource resource) throws CoreException {
 		if (resource instanceof IFile) {
 			if (!data.containsKey(resource)) {
