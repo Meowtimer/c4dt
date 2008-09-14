@@ -2,9 +2,11 @@ package net.arctics.clonk;
 
 import java.beans.XMLDecoder;
 import java.io.BufferedInputStream;
+import java.io.ByteArrayInputStream;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -54,20 +56,23 @@ public class ClonkCore extends AbstractUIPlugin {
 		super.start(context);
 		plugin = this;
 		
-		java.beans.XMLDecoder decoder = new XMLDecoder(new BufferedInputStream(new FileInputStream("engine.xml")));
-		try {
-			while (true) {
-				Object obj = decoder.readObject();
-				if (obj instanceof C4Function) {
-					ENGINE_FUNCTIONS.add((C4Function)obj);
-				}
-				else {
-					System.out.println("Read unknown object from engine.xml: " + obj.getClass().getName());
+		URL engineIndex = getBundle().getEntry("res/engine.xml");
+		if (engineIndex != null) {
+			java.beans.XMLDecoder decoder = new XMLDecoder(new BufferedInputStream(new ByteArrayInputStream(engineIndex.getFile().getBytes())));
+			try {
+				while (true) {
+					Object obj = decoder.readObject();
+					if (obj instanceof C4Function) {
+						ENGINE_FUNCTIONS.add((C4Function)obj);
+					}
+					else {
+						System.out.println("Read unknown object from engine.xml: " + obj.getClass().getName());
+					}
 				}
 			}
-		}
-		catch(ArrayIndexOutOfBoundsException e) {
-			// finished
+			catch(ArrayIndexOutOfBoundsException e) {
+				// finished
+			}
 		}
 		
 		
