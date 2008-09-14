@@ -1,0 +1,17 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: Clonk Plug-in
+Bundle-SymbolicName: net.arctics.clonk;singleton:=true
+Bundle-Version: 1.0.0
+Bundle-Activator: net.arctics.clonk.ClonkCore
+Require-Bundle: org.eclipse.ui,
+ org.eclipse.core.runtime,
+ org.eclipse.ui.editors,
+ org.eclipse.ui.views,
+ org.eclipse.core.filesystem,
+ org.eclipse.ui.ide,
+ org.eclipse.ui.navigator,
+ org.eclipse.jface.text,
+ org.eclipse.core.resources;bundle-version="3.4.0"
+Bundle-ActivationPolicy: lazy
+Bundle-RequiredExecutionEnvironment: JavaSE-1.6
