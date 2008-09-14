@@ -5,8 +5,6 @@ import java.util.ResourceBundle;
 import net.arctics.clonk.ui.editors.actions.IndexClonkDir;
 
 import org.eclipse.core.resources.IResource;
-import org.eclipse.core.runtime.IConfigurationElement;
-import org.eclipse.core.runtime.IStatus;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.ui.ISharedImages;
 import org.eclipse.ui.PlatformUI;

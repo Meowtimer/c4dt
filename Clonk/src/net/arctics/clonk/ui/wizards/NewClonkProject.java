@@ -3,6 +3,7 @@ package net.arctics.clonk.ui.wizards;
 import org.eclipse.core.internal.resources.ProjectDescription;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IProjectDescription;
+import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.wizard.Wizard;
@@ -15,15 +16,14 @@ public class NewClonkProject extends Wizard implements INewWizard {
 	protected WizardNewProjectCreationPage page;
 	
 	public boolean performFinish() {
-		IProject proj = page.getProjectHandle();
-		
-		IProjectDescription desc = new ProjectDescription();
 		try {
+			IProject proj = page.getProjectHandle();
+			IProjectDescription desc = ResourcesPlugin.getWorkspace().newProjectDescription(page.getProjectName());
 			desc.setNatureIds(new String[] { "net.arctics.clonk.clonknature" });
-			proj.create(null);
+			proj.create(desc,null);
+			proj.open(null);
 			return true;
 		} catch (CoreException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		return false;
