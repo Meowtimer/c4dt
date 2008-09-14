@@ -122,7 +122,6 @@ public class ClonkCompletionProposal implements ICompletionProposal, ICompletion
 		return fAdditionalProposalInfo;
 	}
 
-	@Override
 	public StyledString getStyledDisplayString() {
 		StyledString result = new StyledString(fDisplayString);
 		result.append(fPostInfo, StyledString.QUALIFIER_STYLER);

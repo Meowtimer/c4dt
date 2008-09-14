@@ -190,7 +190,6 @@ public class C4Group implements C4GroupItem {
         }
     }
 
-	@Override
 	public boolean hasChildren() {
 		return hasChildren;
 	}
@@ -200,7 +199,6 @@ public class C4Group implements C4GroupItem {
      * @param stream
      * @throws InvalidDataException
      */
-	@Override
 	public void open(boolean recursively) throws InvalidDataException {
 		
 		if (parentGroup != null && parentGroup.getChildEntries().get(0) != this) {
@@ -270,7 +268,6 @@ public class C4Group implements C4GroupItem {
 	/**
 	 * Returns Object.c4d
 	 */
-	@Override
 	public String getName() {
 		return entryName;
 	}
@@ -284,7 +281,6 @@ public class C4Group implements C4GroupItem {
 		return entryName.substring(split + 1) + "." + entryName.substring(0,split);
 	}
 
-	@Override
 	public boolean isCompleted() {
 		return completed;
 	}
@@ -310,7 +306,6 @@ public class C4Group implements C4GroupItem {
 		return header;
 	}
 
-	@Override
 	public C4Group getParentGroup() {
 		return parentGroup;
 	}
@@ -325,7 +320,6 @@ public class C4Group implements C4GroupItem {
 		}
 	}
 
-	@Override
 	public int computeSize() {
 		if (entryHeader == null) {
 			int size = 0;
@@ -337,12 +331,10 @@ public class C4Group implements C4GroupItem {
 		else return entryHeader.getSize();
 	}
 
-	@Override
 	public C4EntryHeader getEntryHeader() {
 		return entryHeader;
 	}
 
-	@Override
 	public void writeTo(OutputStream stream) throws FileNotFoundException {
 		try {
 			header.writeTo(stream); // group header

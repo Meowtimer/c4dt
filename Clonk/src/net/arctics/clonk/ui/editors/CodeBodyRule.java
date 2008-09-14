@@ -14,7 +14,6 @@ public class CodeBodyRule implements IPredicateRule {
 		successToken = token;
 	}
 	
-	@Override
 	public IToken evaluate(ICharacterScanner scanner, boolean resume) {
 		if (resume) {
 			if (scanner instanceof ClonkPartitionScanner) {
@@ -56,12 +55,10 @@ public class CodeBodyRule implements IPredicateRule {
 		return getSuccessToken();
 	}
 
-	@Override
 	public IToken getSuccessToken() {
 		return successToken;
 	}
 
-	@Override
 	public IToken evaluate(ICharacterScanner scanner) {
 		return evaluate(scanner, false);
 	}

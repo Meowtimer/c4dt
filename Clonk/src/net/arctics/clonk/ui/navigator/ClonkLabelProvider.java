@@ -24,7 +24,6 @@ public class ClonkLabelProvider extends LabelProvider implements IStyledLabelPro
 	/* (non-Javadoc)
 	 * @see org.eclipse.jface.viewers.LabelProvider#getImage(java.lang.Object)
 	 */
-	@Override
 	public Image getImage(Object element) {
 		ImageRegistry reg = ClonkCore.getDefault().getImageRegistry();
 
@@ -101,7 +100,6 @@ public class ClonkLabelProvider extends LabelProvider implements IStyledLabelPro
 		return null;
 	}
 
-	@Override
 	public String getText(Object element) {
 		if (element instanceof IProject) {
 			return ((IProject)element).getName();
@@ -112,7 +110,6 @@ public class ClonkLabelProvider extends LabelProvider implements IStyledLabelPro
 		return super.getText(element);
 	}
 
-	@Override
 	public StyledString getStyledText(Object element) {
 		
 		if (element instanceof IFolder) {
@@ -142,25 +139,21 @@ public class ClonkLabelProvider extends LabelProvider implements IStyledLabelPro
 		return new StyledString(getText(element));
 	}
 
-	@Override
 	public void addListener(ILabelProviderListener listener) {
 		// TODO Auto-generated method stub
 		
 	}
 
-	@Override
 	public void dispose() {
 		// TODO Auto-generated method stub
 		
 	}
 
-	@Override
 	public boolean isLabelProperty(Object element, String property) {
 		// TODO Auto-generated method stub
 		return false;
 	}
 
-	@Override
 	public void removeListener(ILabelProviderListener listener) {
 		// TODO Auto-generated method stub
 		

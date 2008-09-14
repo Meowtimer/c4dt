@@ -50,7 +50,6 @@ public class C4Entry implements C4GroupItem {
     	return entry;
     }
     
-	@Override
 	public void open(boolean recursively) throws InvalidDataException {
 		if (completed) return;
 		
@@ -163,12 +162,10 @@ public class C4Entry implements C4GroupItem {
 		return contents;
 	}
 
-	@Override
 	public String getName() {
 		return header.getEntryName();
 	}
 
-	@Override
 	public C4Group getParentGroup() {
 		return parentGroup;
 	}
@@ -180,7 +177,6 @@ public class C4Entry implements C4GroupItem {
 		this.contents = contents;
 	}
 
-	@Override
 	public void extractToFilesystem(IContainer parent) throws CoreException {
 		extractToFilesystem(parent, null);
 	}
@@ -196,18 +192,15 @@ public class C4Entry implements C4GroupItem {
 		}
 	}
 
-	@Override
 	public int computeSize() {
 		if (completed) return contents.length;
 		else return header.getSize();
 	}
 
-	@Override
 	public C4EntryHeader getEntryHeader() {
 		return header;
 	}
 
-	@Override
 	public void writeTo(OutputStream stream) throws FileNotFoundException {
 		InputStream inStream = new java.io.FileInputStream(exportFromFile);
 		byte[] buffer = new byte[1024];

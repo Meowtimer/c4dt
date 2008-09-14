@@ -38,22 +38,18 @@ public class ClonkProjectNature implements IProjectNature {
 		indexer.indexFolder((IFolder)file.getParent(), file.getParent().getFullPath(), false);
 	}
 	
-	@Override
 	public void configure() throws CoreException {
 		
 	}
 
-	@Override
 	public void deconfigure() throws CoreException {
 		
 	}
 
-	@Override
 	public IProject getProject() {
 		return project;
 	}
 
-	@Override
 	public void setProject(IProject project) {
 		this.project = project;
 	}

@@ -47,7 +47,6 @@ public class CodeBodyCompletionProcessor implements IContentAssistProcessor {
 
 	}
 
-	@Override
 	public ICompletionProposal[] computeCompletionProposals(ITextViewer viewer,	int offset) {
 //		viewer.addTextInputListener(compiler);
 		
@@ -181,7 +180,6 @@ public class CodeBodyCompletionProcessor implements IContentAssistProcessor {
 		
 		Arrays.sort(result, new Comparator<ClonkCompletionProposal>() {
 
-			@Override
 			public int compare(ClonkCompletionProposal arg0,
 					ClonkCompletionProposal arg1) {
 				return (arg0.getDisplayString().compareTo(arg1.getDisplayString()));
@@ -213,7 +211,6 @@ public class CodeBodyCompletionProcessor implements IContentAssistProcessor {
 		else return null;
 	}
 	
-	@Override
 	public IContextInformation[] computeContextInformation(ITextViewer viewer,
 			int offset) {
 //		String context = viewer.getDocument().get();
@@ -223,23 +220,19 @@ public class CodeBodyCompletionProcessor implements IContentAssistProcessor {
 		return result;
 	}
 
-	@Override
 	public char[] getCompletionProposalAutoActivationCharacters() {
 		return null;
 	}
 
-	@Override
 	public char[] getContextInformationAutoActivationCharacters() {
 		return new char[] {'('};
 	}
 
-	@Override
 	public IContextInformationValidator getContextInformationValidator() { // called when proposal is selected and about to be inserted
 		// TODO Auto-generated method stub
 		return null; // null means, that processor is unable to compute context information
 	}
 
-	@Override
 	public String getErrorMessage() {
 		return null;
 //		return "No proposals available";

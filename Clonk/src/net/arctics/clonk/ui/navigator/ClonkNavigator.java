@@ -14,7 +14,6 @@ import org.eclipse.jface.viewers.Viewer;
 
 public class ClonkNavigator implements ITreeContentProvider {
 
-	@Override
 	public Object[] getChildren(Object parentElement) {
 		return null;
 //		if (parentElement instanceof IProject) {
@@ -64,13 +63,11 @@ public class ClonkNavigator implements ITreeContentProvider {
 //		return null;
 	}
 
-	@Override
 	public Object getParent(Object element) {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
-	@Override
 	public boolean hasChildren(Object element) {
 		if (element instanceof IProject) {
 			if (((IProject)element).isOpen()) return true;
@@ -102,12 +99,10 @@ public class ClonkNavigator implements ITreeContentProvider {
 		return false;
 	}
 
-	@Override
 	public Object[] getElements(Object inputElement) {
 		if (inputElement instanceof IWorkspaceRoot) {
 			File file = new File(((IWorkspaceRoot)inputElement).getLocationURI());
 			FilenameFilter filter = new FilenameFilter() {
-				@Override
 				public boolean accept(File dir, String name) {
 					if (name.endsWith(".c4d")) return true;
 					else return false;
@@ -125,34 +120,14 @@ public class ClonkNavigator implements ITreeContentProvider {
 		return null;
 	}
 
-	@Override
 	public void dispose() {
 		// TODO Auto-generated method stub
 		
 	}
 
-	@Override
 	public void inputChanged(Viewer viewer, Object oldInput, Object newInput) {
 		// TODO Auto-generated method stub
 		
 	}
-
-//	@Override
-//	public Object[] getElements(Saveable saveable) {
-//		// TODO Auto-generated method stub
-//		return null;
-//	}
-//
-//	@Override
-//	public Saveable getSaveable(Object element) {
-//		// TODO Auto-generated method stub
-//		return null;
-//	}
-//
-//	@Override
-//	public Saveable[] getSaveables() {
-//		// TODO Auto-generated method stub
-//		return null;
-//	}
 
 }

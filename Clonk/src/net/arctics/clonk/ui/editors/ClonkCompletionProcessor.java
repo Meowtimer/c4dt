@@ -46,7 +46,6 @@ public class ClonkCompletionProcessor implements IContentAssistProcessor {
 
 	}
 	
-	@Override
 	public ICompletionProposal[] computeCompletionProposals(ITextViewer viewer,
 			int offset) {
 		
@@ -233,8 +232,6 @@ public class ClonkCompletionProcessor implements IContentAssistProcessor {
 		ClonkCompletionProposal[] result = proposals.toArray(new ClonkCompletionProposal[] {});
 		
 		Arrays.sort(result, new Comparator<ClonkCompletionProposal>() {
-
-			@Override
 			public int compare(ClonkCompletionProposal arg0,
 					ClonkCompletionProposal arg1) {
 				return (arg0.getDisplayString().compareToIgnoreCase(arg1.getDisplayString()));
@@ -262,32 +259,27 @@ public class ClonkCompletionProcessor implements IContentAssistProcessor {
 		}
 	}
 	
-	@Override
 	public IContextInformation[] computeContextInformation(ITextViewer viewer,
 			int offset) {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
-	@Override
 	public char[] getCompletionProposalAutoActivationCharacters() {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
-	@Override
 	public char[] getContextInformationAutoActivationCharacters() {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
-	@Override
 	public IContextInformationValidator getContextInformationValidator() {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
-	@Override
 	public String getErrorMessage() {
 		// TODO Auto-generated method stub
 		return null;

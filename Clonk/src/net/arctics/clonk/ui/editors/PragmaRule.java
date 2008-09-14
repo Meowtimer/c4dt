@@ -18,7 +18,6 @@ public class PragmaRule implements IPredicateRule {
 		}
 	}
 
-	@Override
 	public IToken evaluate(ICharacterScanner scanner, boolean resume) {
 		
 		int c = scanner.read();
@@ -47,12 +46,10 @@ public class PragmaRule implements IPredicateRule {
 		return Token.UNDEFINED;
 	}
 
-	@Override
 	public IToken getSuccessToken() {
 		return successToken;
 	}
 
-	@Override
 	public IToken evaluate(ICharacterScanner scanner) {
 		return evaluate(scanner, false);
 	}
