@@ -114,7 +114,10 @@
 	</extension>
 
 <extension point="org.eclipse.ui.newWizards">
-	<category id="net.arctics.clonk.clonkProjects" name="Clonk">
+	<category
+       id="net.arctics.clonk.clonkProjects"
+       name="Clonk"
+       parentCategory="org.eclipse.ui.Basic">
 	</category>
 	<wizard id="net.arctics.clonk.newClonkProject" name="Clonk Project"
 		category="net.arctics.clonk.clonkProjects"
