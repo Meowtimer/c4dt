@@ -30,9 +30,11 @@ public class ClonkSourceViewerConfiguration extends SourceViewerConfiguration {
 		this.colorManager = colorManager;
 		this.textEditor = textEditor;
 	}
+	
 	public String[] getConfiguredContentTypes(ISourceViewer sourceViewer) {
 		return ClonkPartitionScanner.C4S_PARTITIONS;
 	}
+	
 	public ITextDoubleClickStrategy getDoubleClickStrategy(
 		ISourceViewer sourceViewer,
 		String contentType) {
@@ -90,6 +92,7 @@ public class ClonkSourceViewerConfiguration extends SourceViewerConfiguration {
 		
 		assistant.enablePrefixCompletion(false);
 		assistant.enableAutoInsert(true);
+		assistant.enableAutoActivation(true);
 		
 		assistant.enableColoredLabels(true);
 		

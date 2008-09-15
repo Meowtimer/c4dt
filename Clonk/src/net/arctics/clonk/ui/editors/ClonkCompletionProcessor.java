@@ -27,6 +27,8 @@ import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.ITextViewer;
 import org.eclipse.jface.text.contentassist.CompletionProposal;
 import org.eclipse.jface.text.contentassist.ContentAssistant;
+import org.eclipse.jface.text.contentassist.ContextInformation;
+import org.eclipse.jface.text.contentassist.ContextInformationValidator;
 import org.eclipse.jface.text.contentassist.ICompletionProposal;
 import org.eclipse.jface.text.contentassist.IContentAssistProcessor;
 import org.eclipse.jface.text.contentassist.IContextInformation;
@@ -263,8 +265,9 @@ public class ClonkCompletionProcessor implements IContentAssistProcessor {
 	
 	public IContextInformation[] computeContextInformation(ITextViewer viewer,
 			int offset) {
-		// TODO Auto-generated method stub
-		return null;
+		IContextInformation info = new ContextInformation("contextdisplay String", "information String");
+		
+		return new IContextInformation[] { info };
 	}
 
 	public char[] getCompletionProposalAutoActivationCharacters() {
@@ -273,13 +276,11 @@ public class ClonkCompletionProcessor implements IContentAssistProcessor {
 	}
 
 	public char[] getContextInformationAutoActivationCharacters() {
-		// TODO Auto-generated method stub
-		return null;
+		return new char[] { '(' };
 	}
 
 	public IContextInformationValidator getContextInformationValidator() {
-		// TODO Auto-generated method stub
-		return null;
+		return new ContextInformationValidator(this);
 	}
 
 	public String getErrorMessage() {

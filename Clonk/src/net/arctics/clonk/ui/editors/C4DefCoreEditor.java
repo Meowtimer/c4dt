@@ -1,5 +1,7 @@
 package net.arctics.clonk.ui.editors;
 
+import java.util.ResourceBundle;
+
 import net.arctics.clonk.parser.C4DefCoreParser;
 import net.arctics.clonk.ui.editors.actions.IndexClonkDir;
 import net.arctics.clonk.ui.navigator.ClonkLabelProvider;
@@ -25,7 +27,7 @@ public class C4DefCoreEditor extends TextEditor {
 	@Override
 	protected void createActions() {
 		super.createActions();
-		IAction action = new IndexClonkDir(this); 
+		IAction action = new IndexClonkDir(ResourceBundle.getBundle("net.arctics.clonk.ui.editors.Messages"),"IndexClonkDir.",this); 
 		action.setToolTipText("Index Clonk directory");
 		action.setActionDefinitionId(C4ScriptEditor.ACTION_INDEX_CLONK_DIR);
 		action.setDisabledImageDescriptor(PlatformUI.getWorkbench().getSharedImages().getImageDescriptor(ISharedImages.IMG_TOOL_NEW_WIZARD_DISABLED));

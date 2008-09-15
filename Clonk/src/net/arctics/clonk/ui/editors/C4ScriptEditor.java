@@ -28,7 +28,6 @@ public class C4ScriptEditor extends TextEditor {
 	/* (non-Javadoc)
 	 * @see org.eclipse.ui.part.WorkbenchPart#getPartName()
 	 */
-	@Override
 	public String getPartName() {
 		// TODO Auto-generated method stub
 //		String part = super.getPartName();
@@ -37,7 +36,6 @@ public class C4ScriptEditor extends TextEditor {
 		return res.getParent().getName() + "/" + super.getPartName();
 	}
 
-	@Override
 	public Object getAdapter(Class adapter) {
 		if (IContentOutlinePage.class.equals(adapter)) {
 			IContentOutlinePage outliner = new ClonkContentOutlinePage();
@@ -55,12 +53,18 @@ public class C4ScriptEditor extends TextEditor {
 		super.createActions();
 		IAction action= new ContentAssistAction(ResourceBundle.getBundle("net.arctics.clonk.ui.editors.Messages"),"ClonkContentAssist.",this);
 		action.setActionDefinitionId(ITextEditorActionDefinitionIds.CONTENT_ASSIST_PROPOSALS);
+		
 		setAction(ITextEditorActionDefinitionIds.CONTENT_ASSIST_PROPOSALS, action); //$NON-NLS-1$
+		
 //		markAsStateDependentAction(ITextEditorActionDefinitionIds.CONTENT_ASSIST_PROPOSALS, true); //$NON-NLS-1$
 //		PlatformUI.getWorkbench().getHelpSystem().setHelp(action, helpContextId);
 		
 		
-		action = new IndexClonkDir(this); 
+		action = new ContentAssistAction(ResourceBundle.getBundle("net.arctics.clonk.ui.editors.Messages"),"ClonkContentAssist.",this);
+		action.setActionDefinitionId(ITextEditorActionDefinitionIds.CONTENT_ASSIST_CONTEXT_INFORMATION);
+		setAction(ITextEditorActionDefinitionIds.CONTENT_ASSIST_CONTEXT_INFORMATION, action);
+		
+		action = new IndexClonkDir(ResourceBundle.getBundle("net.arctics.clonk.ui.editors.Messages"),"IndexClonkDir.",this); 
 		action.setToolTipText("Index Clonk directory");
 		action.setActionDefinitionId(ACTION_INDEX_CLONK_DIR);
 		action.setDisabledImageDescriptor(PlatformUI.getWorkbench().getSharedImages().getImageDescriptor(ISharedImages.IMG_TOOL_NEW_WIZARD_DISABLED));
