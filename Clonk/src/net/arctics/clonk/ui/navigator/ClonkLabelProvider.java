@@ -13,7 +13,6 @@ import org.eclipse.core.runtime.FileLocator;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.resource.ImageRegistry;
-import org.eclipse.jface.viewers.ILabelProviderListener;
 import org.eclipse.jface.viewers.LabelProvider;
 import org.eclipse.jface.viewers.LabelProviderChangedEvent;
 import org.eclipse.jface.viewers.StyledString;
@@ -21,7 +20,11 @@ import org.eclipse.jface.viewers.DelegatingStyledCellLabelProvider.IStyledLabelP
 import org.eclipse.swt.graphics.Image;
 
 public class ClonkLabelProvider extends LabelProvider implements IStyledLabelProvider {
-
+	
+	public ClonkLabelProvider() {
+		instance = this;
+	}
+	
 	/* (non-Javadoc)
 	 * @see org.eclipse.jface.viewers.LabelProvider#getImage(java.lang.Object)
 	 */
@@ -139,10 +142,8 @@ public class ClonkLabelProvider extends LabelProvider implements IStyledLabelPro
 		return new StyledString(getText(element));
 	}
 
-	public void addListener(ILabelProviderListener listener) {
-		super.addListener(listener);
-	}
-
+	
+	
 	public void dispose() {
 		super.dispose();
 	}
@@ -151,10 +152,11 @@ public class ClonkLabelProvider extends LabelProvider implements IStyledLabelPro
 		// TODO Auto-generated method stub
 		return true;
 	}
-
-	public void removeListener(ILabelProviderListener listener) {
-		super.removeListener(listener);
-		
+	
+	public void testRefresh() {
+		fireLabelProviderChanged(new LabelProviderChangedEvent(this));
 	}
+	
+	public static ClonkLabelProvider instance;
 	
 }

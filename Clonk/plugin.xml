@@ -14,10 +14,7 @@
             <contentTypeBinding contentTypeId="net.arctics.clonk.c4script">
             </contentTypeBinding>
       </editor>
-   </extension>
-   
-   <extension
-         point="org.eclipse.ui.editors">
+
       <editor
             name="C4DefCore Editor"
             icon="icons/c4scriptIcon.png"

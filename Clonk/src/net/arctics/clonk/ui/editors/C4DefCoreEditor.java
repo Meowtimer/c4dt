@@ -1,11 +1,18 @@
 package net.arctics.clonk.ui.editors;
 
-import org.eclipse.core.runtime.Platform;
-import org.eclipse.jface.viewers.LabelProvider;
+import net.arctics.clonk.parser.C4DefCoreParser;
+import net.arctics.clonk.ui.editors.actions.IndexClonkDir;
+import net.arctics.clonk.ui.navigator.ClonkLabelProvider;
+
+import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IResource;
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.jface.action.IAction;
+import org.eclipse.ui.ISharedImages;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.editors.text.TextEditor;
-import org.eclipse.ui.internal.Workbench;
-import org.eclipse.ui.model.WorkbenchContentProvider;
+import org.eclipse.ui.part.FileEditorInput;
+import org.eclipse.ui.texteditor.ITextEditor;
 
 public class C4DefCoreEditor extends TextEditor {
 
@@ -15,12 +22,41 @@ public class C4DefCoreEditor extends TextEditor {
 	}
 
 	/* (non-Javadoc)
+	 * @see org.eclipse.ui.editors.text.TextEditor#createActions()
+	 */
+	@Override
+	protected void createActions() {
+		super.createActions();
+		IAction action = new IndexClonkDir(this); 
+		action.setToolTipText("Index Clonk directory");
+		action.setActionDefinitionId(C4ScriptEditor.ACTION_INDEX_CLONK_DIR);
+		action.setDisabledImageDescriptor(PlatformUI.getWorkbench().getSharedImages().getImageDescriptor(ISharedImages.IMG_TOOL_NEW_WIZARD_DISABLED));
+		action.setImageDescriptor(PlatformUI.getWorkbench().getSharedImages().getImageDescriptor(ISharedImages.IMG_LCL_LINKTO_HELP));
+		setAction(C4ScriptEditor.ACTION_INDEX_CLONK_DIR, action);
+	}
+
+	/* (non-Javadoc)
 	 * @see org.eclipse.ui.texteditor.AbstractTextEditor#editorSaved()
 	 */
 	@Override
 	protected void editorSaved() {
 		super.editorSaved();
-		PlatformUI.getWorkbench().getViewRegistry().find("net.arctics.clonk.navigator.resourceContent");
+		try {
+			C4DefCoreParser.getInstance().update(getEditingFile());
+		} catch (CoreException e) {
+			e.printStackTrace();
+		}
+		ClonkLabelProvider.instance.testRefresh();
+		
 	}
+	
+	protected IFile getEditingFile() {
+		if (getEditorInput() instanceof FileEditorInput) {
+			return ((FileEditorInput)getEditorInput()).getFile();
+		}
+		else return null;
+	}
+	
+	
 
 }

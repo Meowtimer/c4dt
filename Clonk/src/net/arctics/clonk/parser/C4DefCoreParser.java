@@ -29,32 +29,38 @@ public class C4DefCoreParser implements IResourceVisitor {
 		return data.get(file);
 	}
 	
+	public void update(IResource resource) throws CoreException {
+		if (resource instanceof IFile) {
+			IFile file = (IFile)resource;
+			C4DefCoreData defCore = new C4DefCoreData(file);
+			InputStream stream = file.getContents();
+			BufferedReader blub = new BufferedReader(new InputStreamReader(stream));
+			String line;
+			try {
+				while((line = blub.readLine()) != null) {
+					if (line.matches("^id=([\\w\\d_]+)$")) {
+						String[] parts = line.split("=");
+						defCore.setId(C4ID.getID(parts[1]));
+						break;
+					}
+				}
+				/*
+				 * [DefCore]
+	id=CVLA
+				 */
+				data.put(file, defCore);
+				stream.close();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+	}
+	
 	public boolean visit(IResource resource) throws CoreException {
 		if (resource instanceof IFile) {
 			if (!data.containsKey(resource)) {
-				IFile file = (IFile)resource;
-				C4DefCoreData defCore = new C4DefCoreData(file);
-				InputStream stream = file.getContents();
-				BufferedReader blub = new BufferedReader(new InputStreamReader(stream));
-				String line;
-				try {
-					while((line = blub.readLine()) != null) {
-						if (line.matches("^id=([\\w\\d_]+)$")) {
-							String[] parts = line.split("=");
-							defCore.setId(C4ID.getID(parts[1]));
-							break;
-						}
-					}
-					/*
-					 * [DefCore]
-	id=CVLA
-					 */
-					data.put(file, defCore);
-					stream.close();
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
+				update(resource);
 			}
 			return false;
 		}
