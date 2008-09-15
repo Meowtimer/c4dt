@@ -77,7 +77,9 @@ public class ClonkCompletionProcessor implements IContentAssistProcessor {
 		if (nature.isIndexed()) {
 			statusMessages.add("Project files");
 		}
-		statusMessages.add("Engine functions");
+		if (ClonkCore.ENGINE_FUNCTIONS.size() > 0) {
+			statusMessages.add("Engine functions");
+		}
 		
 		if (!isInCodeBody(doc, offset)) {
 		

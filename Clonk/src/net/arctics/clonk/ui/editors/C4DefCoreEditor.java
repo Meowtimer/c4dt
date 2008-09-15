@@ -5,14 +5,12 @@ import net.arctics.clonk.ui.editors.actions.IndexClonkDir;
 import net.arctics.clonk.ui.navigator.ClonkLabelProvider;
 
 import org.eclipse.core.resources.IFile;
-import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.ui.ISharedImages;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.editors.text.TextEditor;
 import org.eclipse.ui.part.FileEditorInput;
-import org.eclipse.ui.texteditor.ITextEditor;
 
 public class C4DefCoreEditor extends TextEditor {
 
