@@ -15,6 +15,7 @@ import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.resource.ImageRegistry;
 import org.eclipse.jface.viewers.ILabelProviderListener;
 import org.eclipse.jface.viewers.LabelProvider;
+import org.eclipse.jface.viewers.LabelProviderChangedEvent;
 import org.eclipse.jface.viewers.StyledString;
 import org.eclipse.jface.viewers.DelegatingStyledCellLabelProvider.IStyledLabelProvider;
 import org.eclipse.swt.graphics.Image;
@@ -124,7 +125,6 @@ public class ClonkLabelProvider extends LabelProvider implements IStyledLabelPro
 						buf.append(" ["+ C4DefCoreParser.getInstance().getDefFor((IFile)res).getId().getName() + "]",StyledString.DECORATIONS_STYLER);
 						return buf;
 					} catch (CoreException e) {
-						// TODO Auto-generated catch block
 						e.printStackTrace();
 						return new StyledString(folder.getName().substring(4) + "|error");
 					}
@@ -140,22 +140,20 @@ public class ClonkLabelProvider extends LabelProvider implements IStyledLabelPro
 	}
 
 	public void addListener(ILabelProviderListener listener) {
-		// TODO Auto-generated method stub
-		
+		super.addListener(listener);
 	}
 
 	public void dispose() {
-		// TODO Auto-generated method stub
-		
+		super.dispose();
 	}
 
 	public boolean isLabelProperty(Object element, String property) {
 		// TODO Auto-generated method stub
-		return false;
+		return true;
 	}
 
 	public void removeListener(ILabelProviderListener listener) {
-		// TODO Auto-generated method stub
+		super.removeListener(listener);
 		
 	}
 	

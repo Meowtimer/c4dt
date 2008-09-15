@@ -58,7 +58,7 @@ public class ClonkCore extends AbstractUIPlugin {
 		
 		URL engineIndex = getBundle().getEntry("res/engine.xml");
 		if (engineIndex != null) {
-			java.beans.XMLDecoder decoder = new XMLDecoder(new BufferedInputStream(new ByteArrayInputStream(engineIndex.getFile().getBytes())));
+			java.beans.XMLDecoder decoder = new XMLDecoder(new BufferedInputStream(engineIndex.openStream()));
 			try {
 				while (true) {
 					Object obj = decoder.readObject();
