@@ -194,8 +194,10 @@ public class C4Function implements Serializable {
 					string.append(' ');
 				}
 			}
-			if (string.charAt(string.length() - 1) == ' ') {
-				string.delete(string.length() - 2,string.length());
+			if (string.length() > 0) {
+				if (string.charAt(string.length() - 1) == ' ') {
+					string.delete(string.length() - 2,string.length());
+				}
 			}
 		}
 		if (withFuncName) string.append(")");
