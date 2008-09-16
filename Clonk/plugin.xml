@@ -68,7 +68,7 @@
       <perspective
             name="Clonk"
             icon="icons/Clonk_C4.png"
-            class="net.arctics.clonk.ui.editors.ClonkPerspective"
+            class="net.arctics.clonk.ui.ClonkPerspective"
             id="net.arctics.clonk.clonkPerspective">
       </perspective>
 </extension>
@@ -148,7 +148,7 @@
        hasPages="true"
        icon="icons/C4Object.png"
        id="net.arctics.clonk.wizards.NewC4Object"
-       name="Objectdefinition"
+       name="Object definition"
        project="false">
  </wizard>
 </extension>

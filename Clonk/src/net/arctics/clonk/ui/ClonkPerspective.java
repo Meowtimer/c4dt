@@ -1,4 +1,4 @@
-package net.arctics.clonk.ui.editors;
+package net.arctics.clonk.ui;
 
 import org.eclipse.ui.IFolderLayout;
 import org.eclipse.ui.IPageLayout;
