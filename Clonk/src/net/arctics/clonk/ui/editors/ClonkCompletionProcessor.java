@@ -28,7 +28,6 @@ import org.eclipse.jface.text.ITextViewer;
 import org.eclipse.jface.text.contentassist.CompletionProposal;
 import org.eclipse.jface.text.contentassist.ContentAssistant;
 import org.eclipse.jface.text.contentassist.ContextInformation;
-import org.eclipse.jface.text.contentassist.ContextInformationValidator;
 import org.eclipse.jface.text.contentassist.ICompletionProposal;
 import org.eclipse.jface.text.contentassist.IContentAssistProcessor;
 import org.eclipse.jface.text.contentassist.IContextInformation;
@@ -166,7 +165,11 @@ public class ClonkCompletionProcessor implements IContentAssistProcessor {
 							}
 							int replacementLength = 0;
 							if (prefix != null) replacementLength = prefix.length();
-							ClonkCompletionProposal prop = new ClonkCompletionProposal(func.getName(),offset,replacementLength,func.getName().length(), reg.get("func_global") , displayString.toString().trim(),null,null," - " + obj.getName());
+							
+							String contextInfoString = func.getLongParameterString(false);
+							IContextInformation contextInformation = new ContextInformation(func.getName() + "()",contextInfoString); 
+							
+							ClonkCompletionProposal prop = new ClonkCompletionProposal(func.getName(),offset,replacementLength,func.getName().length(), reg.get("func_global") , displayString.toString().trim(),contextInformation,null," - " + obj.getName());
 							proposals.add(prop);
 						}
 					}
