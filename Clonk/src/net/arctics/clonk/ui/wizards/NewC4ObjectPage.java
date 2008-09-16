@@ -1,8 +1,13 @@
 package net.arctics.clonk.ui.wizards;
 
+import net.arctics.clonk.parser.C4ID;
+import net.arctics.clonk.resource.ClonkProjectNature;
+
 import org.eclipse.core.resources.IContainer;
+import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
@@ -31,6 +36,10 @@ public class NewC4ObjectPage extends WizardPage {
 
 	private Text fileText;
 
+	private Text c4idText;
+	
+	private IProject project;
+	
 	private ISelection selection;
 
 	/**
@@ -84,6 +93,21 @@ public class NewC4ObjectPage extends WizardPage {
 				dialogChanged();
 			}
 		});
+		
+		label = new Label(container, SWT.NULL);
+		label.setText("");
+		
+		label = new Label(container, SWT.NULL);
+		label.setText("Object &ID:");
+		
+		c4idText = new Text(container, SWT.BORDER | SWT.SINGLE);
+		gd = new GridData(GridData.FILL_HORIZONTAL);
+		c4idText.setLayoutData(gd);
+		c4idText.addModifyListener(new ModifyListener() {
+			public void modifyText(ModifyEvent e) {
+				dialogChanged();
+			}
+		});
 		initialize();
 		dialogChanged();
 		setControl(container);
@@ -107,9 +131,11 @@ public class NewC4ObjectPage extends WizardPage {
 				else
 					container = ((IResource) obj).getParent();
 				containerText.setText(container.getFullPath().toString());
+				project = ((IResource)obj).getProject();
 			}
 		}
 		fileText.setText("NewObjectName");
+		c4idText.setText("AAAA");
 	}
 
 	/**
@@ -159,14 +185,23 @@ public class NewC4ObjectPage extends WizardPage {
 			updateStatus("Object name must be valid");
 			return;
 		}
-//		int dotLoc = fileName.lastIndexOf('.');
-//		if (dotLoc != -1) {
-//			String ext = fileName.substring(dotLoc + 1);
-//			if (ext.equalsIgnoreCase("mpe") == false) {
-//				updateStatus("File extension must be \"mpe\"");
-//				return;
-//			}
-//		}
+		if (c4idText.getText().length() != 4) {
+			updateStatus("Object ID must be valid");
+			return;
+		}
+		else {
+			try {
+				ClonkProjectNature nature = (ClonkProjectNature)project.getNature("net.arctics.clonk.clonknature");
+				if (nature != null) {
+					if (nature.getIndexer().getObjects().containsKey(C4ID.getID(c4idText.getText()))) {
+						updateStatus("Object ID is already in use.");
+						return;
+					}
+				}
+			} catch (CoreException e) {
+				// ignore
+			}
+		}
 		updateStatus(null);
 	}
 
@@ -181,5 +216,9 @@ public class NewC4ObjectPage extends WizardPage {
 
 	public String getFileName() {
 		return "c4d." + fileText.getText();
+	}
+	
+	public String getObjectID() {
+		return c4idText.getText();
 	}
 }

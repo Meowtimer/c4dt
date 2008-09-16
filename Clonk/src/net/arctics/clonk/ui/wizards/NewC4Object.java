@@ -17,7 +17,6 @@ import org.eclipse.core.runtime.CoreException;
 import java.io.*;
 
 import org.eclipse.ui.*;
-import org.eclipse.ui.ide.IDE;
 
 /**
  * This is a sample new wizard. Its role is to create a new file 
@@ -59,10 +58,11 @@ public class NewC4Object extends Wizard implements INewWizard {
 	public boolean performFinish() {
 		final String containerName = page.getContainerName();
 		final String fileName = page.getFileName();
+		final String objectID = page.getObjectID().toUpperCase();
 		IRunnableWithProgress op = new IRunnableWithProgress() {
 			public void run(IProgressMonitor monitor) throws InvocationTargetException {
 				try {
-					doFinish(containerName, fileName, monitor);
+					doFinish(containerName, fileName, objectID, monitor);
 				} catch (CoreException e) {
 					throw new InvocationTargetException(e);
 				} finally {
@@ -91,6 +91,7 @@ public class NewC4Object extends Wizard implements INewWizard {
 	private void doFinish(
 		String containerName,
 		String fileName,
+		String objectID,
 		IProgressMonitor monitor)
 		throws CoreException {
 		// create a sample file
@@ -108,7 +109,7 @@ public class NewC4Object extends Wizard implements INewWizard {
 				subContainer.create(IResource.NONE,true,monitor);
 //				file.create(stream, true, monitor);
 			}
-			stream = initialDefCoreStream();
+			stream = initialDefCoreStream(fileName, objectID);
 			subContainer.getFile("DefCore.txt").create(stream, true, monitor);
 			stream.close();
 			stream = initialDescDEStream();
@@ -153,11 +154,11 @@ public class NewC4Object extends Wizard implements INewWizard {
 		return new ByteArrayInputStream(contents.getBytes());
 	}
 	
-	private InputStream initialDefCoreStream() {
+	private InputStream initialDefCoreStream(String fileName, String objectID) {
 		String contents =
 			"[DefCore]" + "\r\n" +
-			"id=_NEW" + "\r\n" +
-			"Name=New Object" + "\r\n" +
+			"id=" + objectID + "\r\n" +
+			"Name=" + fileName.substring(4) + "\r\n" +
 			"Version=4,9,5" + "\r\n" +
 			"Category=18960" + "\r\n" +
 			"MaxUserSelect=10" + "\r\n" +
@@ -166,7 +167,7 @@ public class NewC4Object extends Wizard implements INewWizard {
 			"Offset=-3,-3" + "\r\n" +
 			"Value=10" + "\r\n" +
 			"Mass=10" + "\r\n" +
-			"Components=_NEW=1;" + "\r\n" +
+			"Components=" + objectID + "=1;" + "\r\n" +
 			"Picture=6,0,64,64" + "\r\n" +
 			"Vertices=1" + "\r\n" +
 			"VertexY=1" + "\r\n" +
@@ -195,19 +196,17 @@ public class NewC4Object extends Wizard implements INewWizard {
 	}
 	
 	private InputStream initialGraphicsStream() {
-		byte[] contents = new byte[100];
 		try {
 			return ClonkCore.getDefault().getBundle().getEntry("res/StdGraphics.png").openStream();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 		return null;
-//		return new ByteArrayInputStream(contents.getBytes());
 	}
 	
 	private InputStream initialScriptStream() {
 		String contents =
-			"/*-- Neues Objekt --*/\r\n\r\n#strict\r\n\r\nfunc Initialize() {\r\n  return(1);\r\n}";
+			"/*-- Neues Objekt --*/\r\n\r\n#strict 2\r\n\r\nfunc Initialize() {\r\n  return(1);\r\n}";
 		return new ByteArrayInputStream(contents.getBytes());
 	}
 	
