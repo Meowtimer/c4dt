@@ -168,4 +168,37 @@ public class C4Function implements Serializable {
 			return C4FunctionScope.FUNC_PUBLIC;
 		}
 	}
+	
+	/**
+	 * Generates a function string in the form of
+	 * function(int parName1, int parName2)
+	 * if withFuncName is true, else
+	 * int parName1, int parName2
+	 * 
+	 * @param withFuncName
+	 * @return
+	 */
+	public String getLongParameterString(boolean withFuncName) {
+		StringBuilder string = new StringBuilder();
+		if (withFuncName) {
+			string.append(getName());
+			string.append("(");
+		}
+		if (getParameter().size() > 0) {
+			for(C4Variable par : getParameter()) {
+				if (par.getType() != C4Type.UNKNOWN && par.getType() != null) {
+					string.append(par.getType().toString());
+					string.append(' ');
+					string.append(par.getName());
+					string.append(',');
+					string.append(' ');
+				}
+			}
+			if (string.charAt(string.length() - 1) == ' ') {
+				string.delete(string.length() - 2,string.length());
+			}
+		}
+		if (withFuncName) string.append(")");
+		return string.toString();
+	}
 }

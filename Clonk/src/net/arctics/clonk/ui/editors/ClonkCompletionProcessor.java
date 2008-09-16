@@ -182,26 +182,14 @@ public class ClonkCompletionProcessor implements IContentAssistProcessor {
 					if (reg.get("func_global") == null) {
 						reg.put("func_global", ImageDescriptor.createFromURL(FileLocator.find(ClonkCore.getDefault().getBundle(), new Path("icons/global.png"), null)));
 					}
-					StringBuilder displayString = new StringBuilder(func.getName());
-					displayString.append("(");
-					if (func.getParameter().size() > 0) {
-						for(C4Variable par : func.getParameter()) {
-							if (par.getType() != C4Type.UNKNOWN && par.getType() != null) {
-								displayString.append(par.getType().toString());
-								displayString.append(' ');
-								displayString.append(par.getName());
-								displayString.append(',');
-								displayString.append(' ');
-							}
-						}
-					}
-					if (displayString.charAt(displayString.length() - 1) == ' ') {
-						displayString.delete(displayString.length() - 2,displayString.length());
-					}
-					displayString.append(")");
+					String displayString = func.getLongParameterString(true);
 					int replacementLength = 0;
 					if (prefix != null) replacementLength = prefix.length();
-					ClonkCompletionProposal prop = new ClonkCompletionProposal(func.getName(),offset,replacementLength,func.getName().length(), reg.get("func_global") , displayString.toString().trim(),null,func.getDescription()," - Engine");
+					
+					String contextInfoString = func.getLongParameterString(false);
+					IContextInformation contextInformation = new ContextInformation(func.getName() + "()",contextInfoString); 
+					
+					ClonkCompletionProposal prop = new ClonkCompletionProposal(func.getName() + "()",offset,replacementLength,func.getName().length() + 1, reg.get("func_global") , displayString.trim(),contextInformation,func.getDescription()," - Engine");
 					proposals.add(prop);
 				}
 			}
@@ -265,7 +253,33 @@ public class ClonkCompletionProcessor implements IContentAssistProcessor {
 	
 	public IContextInformation[] computeContextInformation(ITextViewer viewer,
 			int offset) {
-		IContextInformation info = new ContextInformation("contextdisplay String", "information String");
+		
+		int wordOffset = offset - 2;
+		WordScanner scanner = new WordScanner();
+		IDocument doc = viewer.getDocument();
+		String prefix = null;
+		try {
+			while (scanner.isWordPart(doc.getChar(wordOffset))) {
+				wordOffset--;
+			}
+			wordOffset++;
+			if (wordOffset < offset-1) {
+				prefix = doc.get(wordOffset, offset-1 - wordOffset);
+				
+				offset = wordOffset;
+			}
+		} catch (BadLocationException e) {
+			prefix = null;
+		}
+		IContextInformation info = null;
+		for(C4Function func : ClonkCore.ENGINE_FUNCTIONS) {
+			if (func.getName().equalsIgnoreCase(prefix)) {
+				String displayString = func.getLongParameterString(false).trim();
+				info = new ContextInformation(func.getName() + "()",displayString); 
+			}
+		}
+		
+//		IContextInformation info = new ContextInformation("contextdisplay String", "information String");
 		
 		return new IContextInformation[] { info };
 	}
@@ -280,7 +294,7 @@ public class ClonkCompletionProcessor implements IContentAssistProcessor {
 	}
 
 	public IContextInformationValidator getContextInformationValidator() {
-		return new ContextInformationValidator(this);
+		return new ClonkContextInformationValidator();
 	}
 
 	public String getErrorMessage() {
