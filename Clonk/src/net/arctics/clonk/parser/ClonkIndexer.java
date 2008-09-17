@@ -314,9 +314,6 @@ public class ClonkIndexer {
 			if (isCommented(comments, m)) continue;
 			
 			C4Variable var = new C4Variable(m.group(2), m.group(1));
-			{//if (parent.getId().getName().equals("CLNK")) {
-				System.out.println("var in " + parent.getId().getName() + ": " + var.getName());
-			}
 			// TODO: extended variable type recognition
 			parent.getDefinedVariables().add(var);
 		}

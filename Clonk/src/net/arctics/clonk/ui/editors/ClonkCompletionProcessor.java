@@ -69,6 +69,8 @@ public class ClonkCompletionProcessor implements IContentAssistProcessor {
 				
 				offset = wordOffset;
 			}
+			if (prefix != null)
+				prefix = prefix.toLowerCase();
 		} catch (BadLocationException e) {
 			prefix = null;
 		}
@@ -93,7 +95,7 @@ public class ClonkCompletionProcessor implements IContentAssistProcessor {
 				if (viewer.getDocument().get(offset - 5, 5).equalsIgnoreCase("func ")) {
 					for(String callback : BuiltInDefinitions.OBJECT_CALLBACKS) {
 						if (prefix != null) {
-							if (!callback.toLowerCase().startsWith(prefix.toLowerCase())) continue;
+							if (!callback.toLowerCase().startsWith(prefix)) continue;
 						}
 						ImageRegistry reg = ClonkCore.getDefault().getImageRegistry();
 						if (reg.get("callback") == null) {
@@ -112,7 +114,7 @@ public class ClonkCompletionProcessor implements IContentAssistProcessor {
 			
 			for(String declarator : BuiltInDefinitions.DECLARATORS) {
 				if (prefix != null) {
-					if (!declarator.toLowerCase().startsWith(prefix.toLowerCase())) continue;
+					if (!declarator.toLowerCase().startsWith(prefix)) continue;
 				}
 				ImageRegistry reg = ClonkCore.getDefault().getImageRegistry();
 				if (reg.get("declarator") == null) {
@@ -126,7 +128,7 @@ public class ClonkCompletionProcessor implements IContentAssistProcessor {
 			
 			for(String directive : BuiltInDefinitions.DIRECTIVES) {
 				if (prefix != null) {
-					if (!directive.toLowerCase().startsWith(prefix.toLowerCase())) continue;
+					if (!directive.toLowerCase().startsWith(prefix)) continue;
 				}
 				ImageRegistry reg = ClonkCore.getDefault().getImageRegistry();
 				if (reg.get("directive") == null) {
@@ -146,7 +148,7 @@ public class ClonkCompletionProcessor implements IContentAssistProcessor {
 					for (C4Function func : obj.getDefinedFunctions()) {
 						if (currentObj || func.getVisibility() == C4FunctionScope.FUNC_GLOBAL) {
 							if (prefix != null) {
-								if (!func.getName().toLowerCase().startsWith(prefix.toLowerCase())) continue;
+								if (!func.getName().toLowerCase().startsWith(prefix)) continue;
 							}
 							
 							StringBuilder displayString = new StringBuilder(func.getName());
@@ -183,6 +185,8 @@ public class ClonkCompletionProcessor implements IContentAssistProcessor {
 					if (currentObj) {
 						ImageRegistry reg = ClonkCore.getDefault().getImageRegistry();
 						for (C4Variable var : obj.getDefinedVariables()) {
+							if (prefix != null && !var.getName().toLowerCase().startsWith(prefix))
+								continue;
 							String iconName = getIconNameForVarScope(var.getScope());
 							if (reg.get(iconName) == null) {
 								reg.put(iconName, ImageDescriptor.createFromURL(FileLocator.find(ClonkCore.getDefault().getBundle(), new Path("icons/"+iconName+".png"), null)));
@@ -192,7 +196,8 @@ public class ClonkCompletionProcessor implements IContentAssistProcessor {
 							if (prefix != null)
 								replacementLength = prefix.length();
 							ClonkCompletionProposal prop = new ClonkCompletionProposal(
-								var.getName(), offset, replacementLength, var.getName().length(), reg.get(iconName), displayString, null, var.getAdditionalProposalInfo(), " - " + obj.getName()
+								var.getName(), offset, replacementLength, var.getName().length(), reg.get(iconName), displayString, 
+								null, var.getAdditionalProposalInfo(), " - " + obj.getName()
 							);
 							proposals.add(prop);
 						}
@@ -203,7 +208,7 @@ public class ClonkCompletionProcessor implements IContentAssistProcessor {
 			if (ClonkCore.ENGINE_FUNCTIONS.size() > 0) {
 				for(C4Function func : ClonkCore.ENGINE_FUNCTIONS) {
 					if (prefix != null) {
-						if (!func.getName().toLowerCase().startsWith(prefix.toLowerCase())) continue;
+						if (!func.getName().toLowerCase().startsWith(prefix)) continue;
 					}
 					ImageRegistry reg = ClonkCore.getDefault().getImageRegistry();
 					if (reg.get("func_global") == null) {
@@ -223,7 +228,7 @@ public class ClonkCompletionProcessor implements IContentAssistProcessor {
 			
 			for(String keyword : BuiltInDefinitions.KEYWORDS) {
 				if (prefix != null) {
-					if (!keyword.toLowerCase().startsWith(prefix.toLowerCase())) continue;
+					if (!keyword.toLowerCase().startsWith(prefix)) continue;
 				}
 				ImageRegistry reg = ClonkCore.getDefault().getImageRegistry();
 				if (reg.get("keyword") == null) {
