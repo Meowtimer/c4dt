@@ -38,8 +38,9 @@ public class C4ScriptEditor extends TextEditor {
 
 	public Object getAdapter(Class adapter) {
 		if (IContentOutlinePage.class.equals(adapter)) {
-			IContentOutlinePage outliner = new ClonkContentOutlinePage();
-			return outliner;
+			ClonkContentOutlinePage page = new ClonkContentOutlinePage();
+			page.setEditor(this);
+			return page;
 		}
 		else return super.getAdapter(adapter);
 	}

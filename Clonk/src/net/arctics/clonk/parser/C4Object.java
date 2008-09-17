@@ -2,10 +2,10 @@ package net.arctics.clonk.parser;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.lang.ref.WeakReference;
 import org.eclipse.core.resources.IResource;
+import org.eclipse.jface.viewers.*;
 
-public class C4Object {
+public class C4Object implements ITreeContentProvider, IBaseLabelProvider {
 	private String name;
 	private C4ID id;
 	private String fullName;
@@ -24,18 +24,6 @@ public class C4Object {
 	public void setScript(IResource s) {
 		script = s;
 	}
-	
-//	private WeakReference<IResource> script;
-//	
-//	public IResource getScript() {
-//		return script == null ? null : script.get();
-//	}
-//	
-//	public void setScript(IResource value) {
-//		if (getScript() != value) {
-//			script = new WeakReference<IResource>(value);
-//		}
-//	}
 	
 	public C4Object(C4ID id, String name, boolean isRooted) {
 		this.id = id;
@@ -123,6 +111,74 @@ public class C4Object {
 	 */
 	public void setFullName(String fullName) {
 		this.fullName = fullName;
+	}
+
+	/* (non-Javadoc)
+	 * @see org.eclipse.jface.viewers.ITreeContentProvider#getChildren(java.lang.Object)
+	 */
+	public Object[] getChildren(Object arg0) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	/* (non-Javadoc)
+	 * @see org.eclipse.jface.viewers.ITreeContentProvider#getParent(java.lang.Object)
+	 */
+	public Object getParent(Object arg0) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	/* (non-Javadoc)
+	 * @see org.eclipse.jface.viewers.ITreeContentProvider#hasChildren(java.lang.Object)
+	 */
+	public boolean hasChildren(Object arg0) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	/* (non-Javadoc)
+	 * @see org.eclipse.jface.viewers.IStructuredContentProvider#getElements(java.lang.Object)
+	 */
+	public Object[] getElements(Object arg0) {
+		return definedFunctions.toArray();
+	}
+
+	/* (non-Javadoc)
+	 * @see org.eclipse.jface.viewers.IContentProvider#dispose()
+	 */
+	public void dispose() {
+		// TODO Auto-generated method stub
+		
+	}
+
+	/* (non-Javadoc)
+	 * @see org.eclipse.jface.viewers.IContentProvider#inputChanged(org.eclipse.jface.viewers.Viewer, java.lang.Object, java.lang.Object)
+	 */
+	public void inputChanged(Viewer arg0, Object arg1, Object arg2) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	public void addListener(ILabelProviderListener arg0) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	public boolean isLabelProperty(Object arg0, String arg1) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	public void removeListener(ILabelProviderListener arg0) {
+		// TODO Auto-generated method stub
+		
+	}
+	
+	public String getText(Object element) {
+		if (element instanceof C4Function)
+			return ((C4Function)element).getName();
+		return element.toString();
 	}
 	
 }

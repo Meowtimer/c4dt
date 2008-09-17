@@ -15,10 +15,9 @@ import net.arctics.clonk.parser.ClonkIndexer;
 import net.arctics.clonk.parser.C4Function.C4FunctionScope;
 import net.arctics.clonk.parser.C4Variable.C4VariableScope;
 import net.arctics.clonk.resource.ClonkProjectNature;
+import net.arctics.clonk.Utilities;
 
 import org.eclipse.core.resources.IFile;
-import org.eclipse.core.resources.IProjectNature;
-import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.FileLocator;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.jface.resource.ImageDescriptor;
@@ -33,7 +32,6 @@ import org.eclipse.jface.text.contentassist.ICompletionProposal;
 import org.eclipse.jface.text.contentassist.IContentAssistProcessor;
 import org.eclipse.jface.text.contentassist.IContextInformation;
 import org.eclipse.jface.text.contentassist.IContextInformationValidator;
-import org.eclipse.ui.part.FileEditorInput;
 import org.eclipse.ui.texteditor.ITextEditor;
 
 public class ClonkCompletionProcessor implements IContentAssistProcessor {
@@ -75,7 +73,7 @@ public class ClonkCompletionProcessor implements IContentAssistProcessor {
 			prefix = null;
 		}
 		
-		ClonkProjectNature nature = getProject(editor);
+		ClonkProjectNature nature = net.arctics.clonk.Utilities.getProject(editor);
 		List<String> statusMessages = new ArrayList<String>(4);
 		List<ClonkCompletionProposal> proposals = new ArrayList<ClonkCompletionProposal>();
 		ClonkIndexer indexer = nature.getIndexer();
@@ -141,7 +139,7 @@ public class ClonkCompletionProcessor implements IContentAssistProcessor {
 			}
 		}
 		else {
-			IFile scriptFile = getEditingFile(editor);
+			IFile scriptFile = Utilities.getEditingFile(editor);
 			if (indexer.getObjects().size() > 0) {
 				for (C4Object obj : indexer.getObjects().values()) {
 					boolean currentObj = scriptFile.equals(obj.getScript());
@@ -168,17 +166,13 @@ public class ClonkCompletionProcessor implements IContentAssistProcessor {
 								displayString.delete(displayString.length() - 2,displayString.length());
 							}
 							displayString.append(")");
-							ImageRegistry reg = ClonkCore.getDefault().getImageRegistry();
-							if (reg.get("func_global") == null) {
-								reg.put("func_global", ImageDescriptor.createFromURL(FileLocator.find(ClonkCore.getDefault().getBundle(), new Path("icons/global.png"), null)));
-							}
 							int replacementLength = 0;
 							if (prefix != null) replacementLength = prefix.length();
 							
 							String contextInfoString = func.getLongParameterString(false);
 							IContextInformation contextInformation = new ContextInformation(func.getName() + "()",contextInfoString); 
 							
-							ClonkCompletionProposal prop = new ClonkCompletionProposal(func.getName(),offset,replacementLength,func.getName().length(), reg.get("func_global") , displayString.toString().trim(),contextInformation,null," - " + obj.getName());
+							ClonkCompletionProposal prop = new ClonkCompletionProposal(func.getName(),offset,replacementLength,func.getName().length(), Utilities.getIconForFunction(func), displayString.toString().trim(),contextInformation,null," - " + obj.getName());
 							proposals.add(prop);
 						}
 					}
@@ -332,27 +326,6 @@ public class ClonkCompletionProcessor implements IContentAssistProcessor {
 	public String getErrorMessage() {
 		// TODO Auto-generated method stub
 		return null;
-	}
-
-	protected ClonkProjectNature getProject(ITextEditor editor) {
-		try {
-			if (editor.getEditorInput() instanceof FileEditorInput) {
-				IProjectNature clonkProj = ((FileEditorInput)editor.getEditorInput()).getFile().getProject().getNature("net.arctics.clonk.clonknature");
-				if (clonkProj instanceof ClonkProjectNature) {
-					return (ClonkProjectNature)clonkProj;
-				}
-			}
-		} catch (CoreException e) {
-			e.printStackTrace();
-		}
-		return null;
-	}
-	
-	protected IFile getEditingFile(ITextEditor editor) {
-		if (editor.getEditorInput() instanceof FileEditorInput) {
-			return ((FileEditorInput)editor.getEditorInput()).getFile();
-		}
-		else return null;
 	}
 	
 }

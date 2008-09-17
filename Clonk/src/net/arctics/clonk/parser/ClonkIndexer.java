@@ -44,6 +44,14 @@ public class ClonkIndexer {
 //		objects.put(C4ID.GLOBAL, new C4Object(C4ID.GLOBAL,"<Global>",true));
 	}
 	
+	public C4Object getObjectForScript(IFile script) {
+		for (C4Object obj : objects.values()) {
+			if (obj.getScript().equals(script))
+				return obj;
+		}
+		return null;
+	}
+	
 	public void indexClonkDirectory(File dir) {
 		clonkDir = dir;
 		File[] files = clonkDir.listFiles(new FileFilter() {
@@ -281,9 +289,9 @@ public class ClonkIndexer {
 		m = functionSearch.matcher(contents);
 		while(m.find()) {
 			if (isCommented(comments, m)) continue;
-			if (isObjectCallback(m.group(2))) continue; // TODO: notice object callback overload
 			
 			C4Function func = new C4Function(m.group(2), parent,m.group(1));
+			func.setCallback(isObjectCallback(m.group(2)));
 			Matcher pm = parameterSearch.matcher(m.group(3));
 			while(pm.find()) {
 				C4Variable var = new C4Variable(pm.group(2), C4VariableScope.VAR_VAR);

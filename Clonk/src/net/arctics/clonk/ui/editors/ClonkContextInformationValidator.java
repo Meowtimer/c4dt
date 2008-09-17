@@ -234,7 +234,7 @@ public class ClonkContextInformationValidator implements
 	private int[] computeCommaPositions(String code) {
 		final int length= code.length();
 	    int pos= 0;
-		List positions= new ArrayList();
+		List<Integer> positions= new ArrayList<Integer>();
 		positions.add(new Integer(-1));
 		while (pos < length && pos != -1) {
 			char ch= code.charAt(pos);

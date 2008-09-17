@@ -14,6 +14,7 @@ public class C4Function implements Serializable {
 	private List<C4Variable> parameter;
 	private C4Type returnType;
 	private String description;
+	private boolean isCallback;
 	
 	/**
 	 * Do NOT use this constructor! Its for engine-functions only.
@@ -202,5 +203,19 @@ public class C4Function implements Serializable {
 		}
 		if (withFuncName) string.append(")");
 		return string.toString();
+	}
+
+	/**
+	 * @param isCallback the isCallback to set
+	 */
+	public void setCallback(boolean isCallback) {
+		this.isCallback = isCallback;
+	}
+
+	/**
+	 * @return the isCallback
+	 */
+	public boolean isCallback() {
+		return isCallback;
 	}
 }
