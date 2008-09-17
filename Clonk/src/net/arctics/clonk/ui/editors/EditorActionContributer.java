@@ -2,7 +2,6 @@ package net.arctics.clonk.ui.editors;
 
 import java.util.ResourceBundle;
 
-import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IWorkbenchActionConstants;

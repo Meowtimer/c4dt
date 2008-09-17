@@ -207,17 +207,34 @@
   </description>
   </filter>
  </extension>
- 
  <!--<extension
+       point="org.eclipse.ui.actionSets">
+    <actionSet
+          id="Clonk.actionSet1"
+          label="ClonkAction"
+          visible="true">
+         <action
+               definitionId="net.arctics.clonk.indexClonkCommand"
+               label="Test ProjectItem"
+               retarget="false"
+               class="net.arctics.clonk.ui.editors.actions.IndexClonkDir"
+               menubarPath="project/additions"
+               id="indexClonkDir">
+         </action>
+    </actionSet>
+ </extension>-->
+ 
+ <extension
        point="org.eclipse.ui.commands">
     <command
-          categoryId="org.eclipse.ui.category.edit"
-          defaultHandler="net.arctics.clonk.ui.ContentAssistCommand"
-          description="Content Assistant"
-          id="net.arctics.clonk.sampleCommand"
-          name="C4 Content Assist">
+          categoryId="org.eclipse.ui.category.project"
+          defaultHandler="net.arctics.clonk.ui.editors.actions.IndexClonkDir"
+          description="Starts the indexer"
+          id="net.arctics.clonk.indexClonkCommand"
+          name="Index Clonk directory">
+          
     </command>
- </extension>-->
+ </extension>
  <!--<extension
        point="org.eclipse.ui.actionSets">
     <actionSet

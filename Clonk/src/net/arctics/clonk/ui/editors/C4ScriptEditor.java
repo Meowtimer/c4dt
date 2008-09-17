@@ -59,6 +59,9 @@ public class C4ScriptEditor extends TextEditor {
 //		markAsStateDependentAction(ITextEditorActionDefinitionIds.CONTENT_ASSIST_PROPOSALS, true); //$NON-NLS-1$
 //		PlatformUI.getWorkbench().getHelpSystem().setHelp(action, helpContextId);
 		
+		action = new ContentAssistAction(ResourceBundle.getBundle("net.arctics.clonk.ui.editors.Messages"),"ClonkContentAssist.",this);
+		action.setActionDefinitionId(ITextEditorActionDefinitionIds.SHOW_INFORMATION);
+		setAction(ITextEditorActionDefinitionIds.SHOW_INFORMATION, action);
 		
 		action = new ContentAssistAction(ResourceBundle.getBundle("net.arctics.clonk.ui.editors.Messages"),"ClonkContentAssist.",this);
 		action.setActionDefinitionId(ITextEditorActionDefinitionIds.CONTENT_ASSIST_CONTEXT_INFORMATION);
