@@ -119,8 +119,8 @@ public class C4Variable implements Serializable {
 	/**
 	 * generates a string describing the variable (including name and type)
 	 */
-	public String getDescriptionString() {
-		return getName() + "  (" + (getType() != null ? getType().toString() : "any") + ")";
+	public String getAdditionalProposalInfo() {
+		return getName() + "  (" + (getType() != null ? getType().toString() : "any") + ")" + (description != null && description.length() > 0 ? (": " + description) : "");
 	}
 
 	/**

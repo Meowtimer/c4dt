@@ -191,10 +191,8 @@ public class ClonkCompletionProcessor implements IContentAssistProcessor {
 							int replacementLength = 0;
 							if (prefix != null)
 								replacementLength = prefix.length();
-							String contextInfoString = var.getDescriptionString();
-							IContextInformation contextInformation = new ContextInformation(var.getName(),contextInfoString);
 							ClonkCompletionProposal prop = new ClonkCompletionProposal(
-								var.getName(), offset, replacementLength, var.getName().length(), reg.get(iconName), displayString, contextInformation, null, " - " + obj.getName()
+								var.getName(), offset, replacementLength, var.getName().length(), reg.get(iconName), displayString, null, var.getAdditionalProposalInfo(), " - " + obj.getName()
 							);
 							proposals.add(prop);
 						}
