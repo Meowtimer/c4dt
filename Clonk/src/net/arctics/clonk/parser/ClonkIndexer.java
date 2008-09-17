@@ -35,7 +35,7 @@ public class ClonkIndexer {
 	private static final Pattern commentSearch = Pattern.compile("/\\*.*\\*/",Pattern.DOTALL);
 	private static final Pattern singleLineCommentSearch = Pattern.compile("//.*");
 	private static final Pattern directiveSearch = Pattern.compile("#((?:strict)|(?:include)|(?:appendto))\\s+([\\w\\d_]+)",Pattern.CASE_INSENSITIVE);
-	private static final Pattern functionSearch = Pattern.compile("(?:((?:public)|(?:protected)|(?:private)|(?:global))\\s+)?func\\s*([\\w\\d_]+)\\s*\\(([\\w\\d_\\s,]+)\\)",Pattern.CASE_INSENSITIVE);
+	private static final Pattern functionSearch = Pattern.compile("(?:((?:public)|(?:protected)|(?:private)|(?:global))\\s+)?func\\s+([\\w\\d_]+)\\s*\\(([\\w\\d_\\s,]+)\\)",Pattern.CASE_INSENSITIVE);
 	private static final Pattern oldFunctionSearch = Pattern.compile("(?:((?:public)|(?:protected)|(?:private)|(?:global))\\s+)?([\\w\\d_]+):",Pattern.CASE_INSENSITIVE); // find old function declarations (property like | basic like)
 	private static final Pattern parameterSearch = Pattern.compile("\\s*((?:any)|(?:int)|(?:id)|(?:string)|(?:bool)|(?:array)|(?:object))?\\s+([\\w\\d_]+)\\s*",Pattern.CASE_INSENSITIVE);
 	private static final Pattern variableSearch = Pattern.compile("((?:local)|(?:static))\\s+([\\w\\d_])\\s*(?:(?:,)|(?:;)|(?:=))",Pattern.CASE_INSENSITIVE); 
@@ -50,7 +50,7 @@ public class ClonkIndexer {
 			public boolean accept(File pathname) {
 				String fileName = pathname.getName();
 				if (fileName.endsWith(".c4d") || fileName.endsWith(".c4s") || fileName.endsWith(".c4g")) return true;
-//				if (pathname.isDirectory()) return true; // TODO: support directorys
+//				if (pathname.isDirectory()) return true; // TODO: support directories
 				return false;
 			}
 		});
@@ -81,7 +81,7 @@ public class ClonkIndexer {
 		try {
 			IResource[] members = folder.members();
 			for(IResource resource : members) {
-				if (folder.getName().startsWith("c4d.")) {
+				if (folder.getName().startsWith("c4d.") || folder.getName().startsWith("c4s.")) {
 					if (resource instanceof IFile) {
 						IFile file = ((IFile)resource);
 						if (file.getName().equals("DefCore.txt")) {
@@ -145,6 +145,7 @@ public class ClonkIndexer {
 					
 					if (!objects.containsKey(id)) {
 						parent = new C4Object(id, folder.getFullPath().toString().substring(folder.getProject().getName().length() + 2),path.segmentCount() == 0 || path.segment(0).startsWith("c4d.") || path.segment(0).startsWith("c4g."));
+						parent.setScript(script);
 						objects.put(id, parent);
 					}
 					else {

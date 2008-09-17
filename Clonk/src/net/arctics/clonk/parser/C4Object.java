@@ -2,6 +2,8 @@ package net.arctics.clonk.parser;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.lang.ref.WeakReference;
+import org.eclipse.core.resources.IResource;
 
 public class C4Object {
 	private String name;
@@ -13,6 +15,27 @@ public class C4Object {
 	private List<C4Variable> definedVariables = new ArrayList<C4Variable>();
 	private List<C4Directive> definedDirectives = new ArrayList<C4Directive>();
 	
+	private IResource script;
+	
+	public IResource getScript() {
+		return script;
+	}
+	
+	public void setScript(IResource s) {
+		script = s;
+	}
+	
+//	private WeakReference<IResource> script;
+//	
+//	public IResource getScript() {
+//		return script == null ? null : script.get();
+//	}
+//	
+//	public void setScript(IResource value) {
+//		if (getScript() != value) {
+//			script = new WeakReference<IResource>(value);
+//		}
+//	}
 	
 	public C4Object(C4ID id, String name, boolean isRooted) {
 		this.id = id;

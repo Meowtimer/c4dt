@@ -115,6 +115,13 @@ public class C4Variable implements Serializable {
 	public void setScope(C4VariableScope scope) {
 		this.scope = scope;
 	}
+	
+	/**
+	 * generates a string describing the variable (including name and type)
+	 */
+	public String getDescriptionString() {
+		return getName() + "  (" + getType().toString() + ")";
+	}
 
 	/**
 	 * The scope of a variable
