@@ -13,11 +13,11 @@ import net.arctics.clonk.parser.C4Type;
 import net.arctics.clonk.parser.C4Variable;
 import net.arctics.clonk.parser.ClonkIndexer;
 import net.arctics.clonk.parser.C4Function.C4FunctionScope;
+import net.arctics.clonk.parser.C4Variable.C4VariableScope;
 import net.arctics.clonk.resource.ClonkProjectNature;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProjectNature;
-import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.FileLocator;
 import org.eclipse.core.runtime.Path;
@@ -33,8 +33,6 @@ import org.eclipse.jface.text.contentassist.ICompletionProposal;
 import org.eclipse.jface.text.contentassist.IContentAssistProcessor;
 import org.eclipse.jface.text.contentassist.IContextInformation;
 import org.eclipse.jface.text.contentassist.IContextInformationValidator;
-import org.eclipse.ui.IEditorInput;
-import org.eclipse.ui.IFileEditorInput;
 import org.eclipse.ui.part.FileEditorInput;
 import org.eclipse.ui.texteditor.ITextEditor;
 
@@ -48,6 +46,10 @@ public class ClonkCompletionProcessor implements IContentAssistProcessor {
 		this.editor = editor;
 		this.assistant = assistant;
 
+	}
+	
+	public String getIconNameForVarScope(C4VariableScope scope) {
+		return scope.toString().toLowerCase();
 	}
 	
 	public ICompletionProposal[] computeCompletionProposals(ITextViewer viewer,
@@ -137,17 +139,11 @@ public class ClonkCompletionProcessor implements IContentAssistProcessor {
 			}
 		}
 		else {
-			IFile scriptFile = ((IFileEditorInput)editor.getEditorInput().getAdapter(IFileEditorInput.class)).getFile();
-			System.out.println("Editor input: " + scriptFile.toString());
-			System.out.println("Input full path: " + scriptFile.getFullPath().toString());
+			IFile scriptFile = getEditingFile(editor);
 			if (indexer.getObjects().size() > 0) {
 				for (C4Object obj : indexer.getObjects().values()) {
 					boolean currentObj = scriptFile.equals(obj.getScript());
-					if (currentObj)
-						System.out.println("object: " + obj.getScript().getFullPath().toString());
 					for (C4Function func : obj.getDefinedFunctions()) {
-						if (currentObj)
-							System.out.println("	func:" + func.getName());
 						if (currentObj || func.getVisibility() == C4FunctionScope.FUNC_GLOBAL) {
 							if (prefix != null) {
 								if (!func.getName().toLowerCase().startsWith(prefix.toLowerCase())) continue;
@@ -185,14 +181,21 @@ public class ClonkCompletionProcessor implements IContentAssistProcessor {
 						}
 					}
 					if (currentObj) {
+						ImageRegistry reg = ClonkCore.getDefault().getImageRegistry();
 						for (C4Variable var : obj.getDefinedVariables()) {
+							String iconName = getIconNameForVarScope(var.getScope());
+							if (reg.get(iconName) == null) {
+								reg.put(iconName, ImageDescriptor.createFromURL(FileLocator.find(ClonkCore.getDefault().getBundle(), new Path("icons/"+iconName+".png"), null)));
+							}
 							String displayString = var.getName();
 							int replacementLength = 0;
 							if (prefix != null)
 								replacementLength = prefix.length();
 							String contextInfoString = var.getDescriptionString();
 							IContextInformation contextInformation = new ContextInformation(var.getName(),contextInfoString);
-							ClonkCompletionProposal prop = new ClonkCompletionProposal(var.getName(),offset,replacementLength,var.getName().length(),null,displayString,contextInformation,null," - " + obj.getName());
+							ClonkCompletionProposal prop = new ClonkCompletionProposal(
+								var.getName(), offset, replacementLength, var.getName().length(), reg.get(iconName), displayString, contextInformation, null, " - " + obj.getName()
+							);
 							proposals.add(prop);
 						}
 					}
