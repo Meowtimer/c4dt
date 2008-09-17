@@ -32,7 +32,7 @@ public class ClonkIndexer {
 	private File clonkDir;
 	private boolean clonkDirIndexed = false;
 	
-	private static final Pattern commentSearch = Pattern.compile("/\\*.*\\*/",Pattern.DOTALL);
+	private static final Pattern commentSearch = Pattern.compile("/\\*.*?\\*/",Pattern.DOTALL);
 	private static final Pattern singleLineCommentSearch = Pattern.compile("//.*");
 	private static final Pattern directiveSearch = Pattern.compile("#((?:strict)|(?:include)|(?:appendto))\\s+([\\w\\d_]+)",Pattern.CASE_INSENSITIVE);
 	private static final Pattern functionSearch = Pattern.compile("(?:((?:public)|(?:protected)|(?:private)|(?:global))\\s+)?func\\s+([\\w\\d_]+)\\s*\\(([\\w\\d_\\s,]+)\\)",Pattern.CASE_INSENSITIVE);
