@@ -38,7 +38,7 @@ public class ClonkIndexer {
 	private static final Pattern functionSearch = Pattern.compile("(?:((?:public)|(?:protected)|(?:private)|(?:global))\\s+)?func\\s+([\\w\\d_]+)\\s*\\(([\\w\\d_\\s,]+)\\)",Pattern.CASE_INSENSITIVE);
 	private static final Pattern oldFunctionSearch = Pattern.compile("(?:((?:public)|(?:protected)|(?:private)|(?:global))\\s+)?([\\w\\d_]+):",Pattern.CASE_INSENSITIVE); // find old function declarations (property like | basic like)
 	private static final Pattern parameterSearch = Pattern.compile("\\s*((?:any)|(?:int)|(?:id)|(?:string)|(?:bool)|(?:array)|(?:object))?\\s+([\\w\\d_]+)\\s*",Pattern.CASE_INSENSITIVE);
-	private static final Pattern variableSearch = Pattern.compile("((?:local)|(?:static))\\s+([\\w\\d_])\\s*(?:(?:,)|(?:;)|(?:=))",Pattern.CASE_INSENSITIVE); 
+	private static final Pattern variableSearch = Pattern.compile("((?:local)|(?:static))\\s+([\\w\\d_]+)\\s*(?:(?:,)|(?:;)|(?:=))",Pattern.CASE_INSENSITIVE); 
 	
 	public ClonkIndexer() {
 //		objects.put(C4ID.GLOBAL, new C4Object(C4ID.GLOBAL,"<Global>",true));
