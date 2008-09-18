@@ -7,6 +7,7 @@ import java.util.Map;
 
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.BuiltInDefinitions;
+import net.arctics.clonk.parser.C4Type;
 
 import org.eclipse.jface.text.rules.*;
 import org.eclipse.jface.text.*;
@@ -124,6 +125,7 @@ public class ClonkCodeScanner extends RuleBasedScanner {
 	static String[] fgKeywords= {
 		"break", 
 		"continue",
+		"const",
 		"do", 
 		"else",
 		"for", "func", 
@@ -139,7 +141,7 @@ public class ClonkCodeScanner extends RuleBasedScanner {
 
 	private static final String RETURN= "return"; //$NON-NLS-1$
 
-	private static String[] fgTypes= { "any", "array", "bool", "id", "int", "object", "string" }; //$NON-NLS-1$ //$NON-NLS-5$ //$NON-NLS-7$ //$NON-NLS-6$ //$NON-NLS-8$ //$NON-NLS-9$  //$NON-NLS-10$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-2$
+	private static String[] fgTypes= { "any", "array", "bool", "dword", "id", "int", "object", "string" }; //$NON-NLS-1$ //$NON-NLS-5$ //$NON-NLS-7$ //$NON-NLS-6$ //$NON-NLS-8$ //$NON-NLS-9$  //$NON-NLS-10$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-2$
 
 	private static String[] fgConstants= { "false", "null", "true" }; //$NON-NLS-3$ //$NON-NLS-2$ //$NON-NLS-1$
 
@@ -154,6 +156,7 @@ public class ClonkCodeScanner extends RuleBasedScanner {
 	public ClonkCodeScanner(ColorManager manager) {
 		
 		
+
 		
 		IToken defaultToken = new Token(new TextAttribute(manager.getColor(IClonkColorConstants.DEFAULT)));
 		
@@ -194,17 +197,24 @@ public class ClonkCodeScanner extends RuleBasedScanner {
 
 		// Add word rule for keywords, types, and constants.
 		CombinedWordRule.WordMatcher wordRule= new CombinedWordRule.WordMatcher();
-		for (int i=0; i<fgKeywords.length; i++)
-			wordRule.addWord(fgKeywords[i], keyword);
-		for (int i=0; i<fgTypes.length; i++)
-			wordRule.addWord(fgTypes[i], type);
+//		for (int i=0; i<fgKeywords.length; i++)
+//			wordRule.addWord(fgKeywords[i], keyword);
+		for (String c4keyword : BuiltInDefinitions.KEYWORDS)
+			wordRule.addWord(c4keyword.trim(), keyword);
+		for (String c4keyword : BuiltInDefinitions.DECLARATORS)
+			wordRule.addWord(c4keyword.trim(), keyword);
+//		for (int i=0; i<fgTypes.length; i++)
+//			wordRule.addWord(fgTypes[i], type);
+		for (C4Type c4type : C4Type.values()) 
+			wordRule.addWord(c4type.name().trim(), type);
 		for (int i=0; i<fgConstants.length; i++)
 			wordRule.addWord(fgConstants[i], type);
 		for (int i=0; i<ClonkCore.ENGINE_FUNCTIONS.size(); i++)
 			wordRule.addWord(ClonkCore.ENGINE_FUNCTIONS.get(i).getName(), engineFunction);
 		for (int i=0; i<BuiltInDefinitions.OBJECT_CALLBACKS.length; i++)
 			wordRule.addWord(BuiltInDefinitions.OBJECT_CALLBACKS[i], objCallbackFunction);
-
+		
+		
 		combinedWordRule.addWordMatcher(wordRule);
 		
 		rules.add(combinedWordRule);
