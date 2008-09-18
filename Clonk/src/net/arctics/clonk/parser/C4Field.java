@@ -22,4 +22,8 @@ public class C4Field {
 	public SourceLocation getLocation() {
 		return location;
 	}
+	public int sortCategory() {
+		// TODO Auto-generated method stub
+		return 0;
+	}
 }

@@ -135,4 +135,8 @@ public class C4Variable extends C4Field implements Serializable {
 		}
 	}
 	
+	public int sortCategory() {
+		return scope.ordinal();
+	}
+	
 }

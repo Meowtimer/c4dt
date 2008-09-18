@@ -17,6 +17,7 @@ import org.eclipse.ui.views.contentoutline.IContentOutlinePage;
 public class C4ScriptEditor extends TextEditor {
 
 	private ColorManager colorManager;
+	private ClonkContentOutlinePage outlinePage;
 	public static final String ACTION_INDEX_CLONK_DIR = "net.arctics.clonk.indexclonkdir";
 	
 	public C4ScriptEditor() {
@@ -36,14 +37,20 @@ public class C4ScriptEditor extends TextEditor {
 		if (res == null) return super.getPartName();
 		return res.getParent().getName() + "/" + super.getPartName();
 	}
+	
+	public ClonkContentOutlinePage getOutlinePage() {
+		if (outlinePage == null) {
+			outlinePage = new ClonkContentOutlinePage();
+			outlinePage.setEditor(this);
+		}
+		return outlinePage;
+	}
 
 	public Object getAdapter(Class adapter) {
 		if (IContentOutlinePage.class.equals(adapter)) {
-			ClonkContentOutlinePage page = new ClonkContentOutlinePage();
-			page.setEditor(this);
-			return page;
+			return getOutlinePage();
 		}
-		else return super.getAdapter(adapter);
+		return super.getAdapter(adapter);
 	}
 
 	public void dispose() {

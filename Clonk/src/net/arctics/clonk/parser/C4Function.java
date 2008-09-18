@@ -225,4 +225,9 @@ public class C4Function extends C4Field implements Serializable {
 	public SourceLocation getBody() {
 		return body;
 	}
+	
+	public int sortCategory() {
+		return C4Variable.C4VariableScope.values().length + visibility.ordinal();
+	}
+	
 }

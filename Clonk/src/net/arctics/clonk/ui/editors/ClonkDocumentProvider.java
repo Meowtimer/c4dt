@@ -42,6 +42,9 @@ public class ClonkDocumentProvider extends FileDocumentProvider {
 		// TODO Auto-generated method stub
 		super.changed(element);
 		getProject(editor).index(getEditingFile(editor));
+		if (editor instanceof C4ScriptEditor) {
+			((C4ScriptEditor)editor).getOutlinePage().refresh();
+		}
 	}
 	
 	protected ClonkProjectNature getProject(ITextEditor editor) {

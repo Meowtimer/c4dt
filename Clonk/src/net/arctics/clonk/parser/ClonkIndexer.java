@@ -36,7 +36,7 @@ public class ClonkIndexer {
 	private static final Pattern commentSearch = Pattern.compile("/\\*.*?\\*/",Pattern.DOTALL);
 	private static final Pattern singleLineCommentSearch = Pattern.compile("//.*");
 	private static final Pattern directiveSearch = Pattern.compile("#((?:strict)|(?:include)|(?:appendto))\\s+([\\w\\d_]+)",Pattern.CASE_INSENSITIVE);
-	private static final Pattern functionSearch = Pattern.compile("(?:((?:public)|(?:protected)|(?:private)|(?:global))\\s+)?func\\s+([\\w\\d_]+)\\s*\\(([\\w\\d_\\s,]+)\\)",Pattern.CASE_INSENSITIVE);
+	private static final Pattern functionSearch = Pattern.compile("(?:((?:public)|(?:protected)|(?:private)|(?:global))\\s+)?func\\s+([\\w\\d_]+)\\s*\\(([\\w\\d_\\s,]*)\\)",Pattern.CASE_INSENSITIVE);
 	private static final Pattern oldFunctionSearch = Pattern.compile("(?:((?:public)|(?:protected)|(?:private)|(?:global))\\s+)?([\\w\\d_]+):",Pattern.CASE_INSENSITIVE); // find old function declarations (property like | basic like)
 	private static final Pattern parameterSearch = Pattern.compile("\\s*((?:any)|(?:int)|(?:id)|(?:string)|(?:bool)|(?:array)|(?:object)|(?:dword))?\\s+([\\w\\d_]+)\\s*",Pattern.CASE_INSENSITIVE);
 	//private static final Pattern variableSearch = Pattern.compile("((?:local)|(static const)|(?:static))\\s+([\\w\\d_, ]+)(?(2)\\s*=\\s*([^;]+))\\s*;",Pattern.CASE_INSENSITIVE); // 1=scope 3=names [5=value|"static const" only]
@@ -313,28 +313,37 @@ public class ClonkIndexer {
 			parent.getDefinedFunctions().add(func);
 		}
 		
-		for (C4Function func : parent.getDefinedFunctions()) {
-			Scanner scanner = new Scanner(contents);
-			int bracketDepth = 0;
-			int start = 0;
-			int end = 0;
-			while (scanner.hasNext()) {
-				String token = scanner.next();
-				if (token.equals("{")) {
-					if (bracketDepth == 0) {
-						start = scanner.match().start();
-					}
-					bracketDepth++;
-				} else if (token.equals("}")) {
-					bracketDepth--;
-					if (bracketDepth == 0) {
-						end = scanner.match().end()+1;
-						break;
-					}
-				}
-			}
-			func.setBody(new SourceLocation(start,end));
-		}
+//		for (C4Function func : parent.getDefinedFunctions()) {
+//			Scanner scanner = new Scanner(contents);
+//			int bracketDepth = -1;
+//			int start = 0;
+//			int end = 0;
+//			while (scanner.hasNext()) {
+//				String token = scanner.next();
+//				// D:<
+//				if (bracketDepth == -1) {
+//					if (scanner.match().end() >= func.getLocation().getEnd())
+//						bracketDepth = 0;
+//					else
+//						continue;
+//				}
+//		
+//				if (token.equals("{")) {
+//					if (bracketDepth == 0) {
+//						start = scanner.match().start();
+//					}
+//					bracketDepth++;
+//				} else if (token.equals("}")) {
+//					bracketDepth--;
+//					if (bracketDepth == 0) {
+//						end = scanner.match().end()+1;
+//						break;
+//					}
+//				}
+//			}
+//			scanner.close();
+//			func.setBody(new SourceLocation(start,end));
+//		}
 		
 		m = oldFunctionSearch.matcher(contents);
 		while(m.find()) {

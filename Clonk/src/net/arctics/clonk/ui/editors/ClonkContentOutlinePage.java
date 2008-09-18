@@ -2,6 +2,7 @@ package net.arctics.clonk.ui.editors;
 
 import org.eclipse.swt.graphics.Image;
 
+import net.arctics.clonk.parser.C4Function;
 import net.arctics.clonk.parser.C4Object;
 import net.arctics.clonk.parser.C4Field;
 import net.arctics.clonk.Utilities;
@@ -35,8 +36,7 @@ public class ClonkContentOutlinePage extends ContentOutlinePage {
 					treeViewer.setInput(obj);
 					treeViewer.setSorter(new ViewerSorter() {
 						public int category(Object element) {
-							Image img = Utilities.getIconForObject(element);
-							return img != null ? img.hashCode() : 0;
+							return ((C4Field)element).sortCategory();
 						}
 					});
 					treeViewer.addSelectionChangedListener(new ISelectionChangedListener() {
@@ -65,6 +65,10 @@ public class ClonkContentOutlinePage extends ContentOutlinePage {
 	 */
 	public C4ScriptEditor getEditor() {
 		return editor;
+	}
+
+	public void refresh() {
+		getTreeViewer().refresh();
 	}
 
 	
