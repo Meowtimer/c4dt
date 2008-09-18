@@ -6,6 +6,7 @@ package net.arctics.clonk.ui.editors;
 import net.arctics.clonk.Utilities;
 import net.arctics.clonk.parser.C4Function;
 import net.arctics.clonk.parser.C4Object;
+import net.arctics.clonk.parser.C4Variable;
 
 import org.eclipse.jface.viewers.IBaseLabelProvider;
 import org.eclipse.jface.viewers.ILabelProvider;
@@ -58,7 +59,11 @@ public class ClonkContentOutlineLabelAndContentProvider implements IBaseLabelPro
 	public Object[] getElements(Object root) {
 		if (root instanceof C4Object) {
 			C4Object obj = (C4Object)root;
-			return obj.getDefinedFunctions().toArray();
+		
+			Object[] result = new Object[obj.getDefinedFunctions().size()+obj.getDefinedVariables().size()];
+			System.arraycopy(obj.getDefinedFunctions().toArray(), 0, result, 0, obj.getDefinedFunctions().size());
+			System.arraycopy(obj.getDefinedVariables().toArray(), 0, result, obj.getDefinedFunctions().size(), obj.getDefinedVariables().size());
+			return result;
 		}
 		return null;
 	}
@@ -68,7 +73,6 @@ public class ClonkContentOutlineLabelAndContentProvider implements IBaseLabelPro
 	 */
 	public void inputChanged(Viewer arg0, Object arg1, Object arg2) {
 		// TODO Auto-generated method stub
-		
 	}
 
 	/* (non-Javadoc)
@@ -96,15 +100,15 @@ public class ClonkContentOutlineLabelAndContentProvider implements IBaseLabelPro
 	}
 
 	public Image getImage(Object element) {
-		if (element instanceof C4Function) {
-			return Utilities.getIconForFunction((C4Function)element);
-		}
-		return null;
+		return Utilities.getIconForObject(element);
 	}
 
 	public String getText(Object element) {
 		if (element instanceof C4Function) {
 			return ((C4Function)element).getName();
+		}
+		if (element instanceof C4Variable) {
+			return ((C4Variable)element).getName();
 		}
 		return element.toString();
 	}

@@ -10,6 +10,7 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Scanner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -301,26 +302,49 @@ public class ClonkIndexer {
 			
 			C4Function func = new C4Function(m.group(2), parent,m.group(1));
 			func.setCallback(isObjectCallback(m.group(2)));
+			func.setLocation(new SourceLocation(m));
 			Matcher pm = parameterSearch.matcher(m.group(3));
 			while(pm.find()) {
 				C4Variable var = new C4Variable(pm.group(2), C4VariableScope.VAR_VAR);
 				if (pm.group(1) != null) var.setType(C4Type.makeType(pm.group(1)));
 				func.getParameter().add(var);
 			}
-//			if (func.getVisibility() == C4FunctionScope.FUNC_GLOBAL)
-//				System.out.println(func.getName() + " in " + parent.getName());
 			// TODO: function return type recognition
 			parent.getDefinedFunctions().add(func);
+		}
+		
+		for (C4Function func : parent.getDefinedFunctions()) {
+			Scanner scanner = new Scanner(contents);
+			int bracketDepth = 0;
+			int start = 0;
+			int end = 0;
+			while (scanner.hasNext()) {
+				String token = scanner.next();
+				if (token.equals("{")) {
+					if (bracketDepth == 0) {
+						start = scanner.match().start();
+					}
+					bracketDepth++;
+				} else if (token.equals("}")) {
+					bracketDepth--;
+					if (bracketDepth == 0) {
+						end = scanner.match().end()+1;
+						break;
+					}
+				}
+			}
+			func.setBody(new SourceLocation(start,end));
 		}
 		
 		m = oldFunctionSearch.matcher(contents);
 		while(m.find()) {
 			if (isCommented(comments, m)) continue;
-			if (isObjectCallback(m.group(2))) continue;  // TODO: notice object callback overload
 			
 			if ("case".equalsIgnoreCase(m.group(2))) continue;
 			
 			C4Function func = new C4Function(m.group(2), parent, m.group(1));
+			func.setCallback(isObjectCallback(m.group(2)));
+			func.setLocation(new SourceLocation(m));
 			// TODO: parameter recognition in old function declarations?
 			parent.getDefinedFunctions().add(func);
 		}
@@ -335,13 +359,20 @@ public class ClonkIndexer {
 			String vars = m.group(3);
 			if (vars.contains(",")) {
 				String[] varsArray = vars.split(",");
+				int offset = m.start(3);
 				for(String variable : varsArray) {
 					var = new C4Variable(variable.trim(), m.group(1));
+					int start = offset;
+					for (int i = 0; i < variable.length() && Character.isWhitespace(variable.charAt(i)); i++)
+						start++;
+					var.setLocation(new SourceLocation(start,start+var.getName().length()));
+					offset += variable.length()+1; // ","
 					parent.getDefinedVariables().add(var);
 				}
 			}
 			else {
 				var = new C4Variable(vars.trim(), m.group(1));
+				var.setLocation(new SourceLocation(m));
 				parent.getDefinedVariables().add(var);
 			}
 		}

@@ -2,6 +2,7 @@ package net.arctics.clonk.ui.editors;
 
 import java.util.ResourceBundle;
 
+import net.arctics.clonk.parser.SourceLocation;
 import net.arctics.clonk.ui.editors.actions.IndexClonkDir;
 
 import org.eclipse.core.resources.IResource;
@@ -75,6 +76,10 @@ public class C4ScriptEditor extends TextEditor {
 		action.setImageDescriptor(PlatformUI.getWorkbench().getSharedImages().getImageDescriptor(ISharedImages.IMG_LCL_LINKTO_HELP));
 		setAction(ACTION_INDEX_CLONK_DIR, action);
 		
+	}
+
+	public void moveCursorTo(SourceLocation location) {
+		this.selectAndReveal(location.getStart(), location.getEnd() - location.getStart());
 	}
 
 }

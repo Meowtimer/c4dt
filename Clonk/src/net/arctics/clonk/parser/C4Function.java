@@ -4,10 +4,9 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class C4Function implements Serializable {
+public class C4Function extends C4Field implements Serializable {
 
 	private static final long serialVersionUID = 3848213897251037684L;
-	private String name;
 	private C4FunctionScope visibility; 
 	private List<C4Variable> localVars;
 	private C4Object parentObject;
@@ -15,6 +14,7 @@ public class C4Function implements Serializable {
 	private C4Type returnType;
 	private String description;
 	private boolean isCallback;
+	private SourceLocation body;
 	
 	/**
 	 * Do NOT use this constructor! Its for engine-functions only.
@@ -91,13 +91,6 @@ public class C4Function implements Serializable {
 	 */
 	public void setReturnType(C4Type returnType) {
 		this.returnType = returnType;
-	}
-	
-	/**
-	 * @return the name
-	 */
-	public String getName() {
-		return name;
 	}
 
 	/**
@@ -217,5 +210,19 @@ public class C4Function implements Serializable {
 	 */
 	public boolean isCallback() {
 		return isCallback;
+	}
+
+	/**
+	 * @param body the body to set
+	 */
+	public void setBody(SourceLocation body) {
+		this.body = body;
+	}
+
+	/**
+	 * @return the body
+	 */
+	public SourceLocation getBody() {
+		return body;
 	}
 }

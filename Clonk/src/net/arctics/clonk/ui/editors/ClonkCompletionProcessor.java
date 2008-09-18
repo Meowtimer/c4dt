@@ -46,10 +46,6 @@ public class ClonkCompletionProcessor implements IContentAssistProcessor {
 
 	}
 	
-	public String getIconNameForVarScope(C4VariableScope scope) {
-		return scope.toString().toLowerCase();
-	}
-	
 	public ICompletionProposal[] computeCompletionProposals(ITextViewer viewer,
 			int offset) {
 		
@@ -181,16 +177,12 @@ public class ClonkCompletionProcessor implements IContentAssistProcessor {
 						for (C4Variable var : obj.getDefinedVariables()) {
 							if (prefix != null && !var.getName().toLowerCase().startsWith(prefix))
 								continue;
-							String iconName = getIconNameForVarScope(var.getScope());
-							if (reg.get(iconName) == null) {
-								reg.put(iconName, ImageDescriptor.createFromURL(FileLocator.find(ClonkCore.getDefault().getBundle(), new Path("icons/"+iconName+".png"), null)));
-							}
 							String displayString = var.getName();
 							int replacementLength = 0;
 							if (prefix != null)
 								replacementLength = prefix.length();
 							ClonkCompletionProposal prop = new ClonkCompletionProposal(
-								var.getName(), offset, replacementLength, var.getName().length(), reg.get(iconName), displayString, 
+								var.getName(), offset, replacementLength, var.getName().length(), Utilities.getIconForVariable(var), displayString, 
 								null, var.getAdditionalProposalInfo(), " - " + obj.getName()
 							);
 							proposals.add(prop);

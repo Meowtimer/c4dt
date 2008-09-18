@@ -7,10 +7,9 @@ import java.io.Serializable;
  * @author ZokRadonh
  *
  */
-public class C4Variable implements Serializable {
+public class C4Variable extends C4Field implements Serializable {
 
 	private static final long serialVersionUID = -2350345359769750230L;
-	private String name;
 	private C4VariableScope scope;
 	private C4Type type;
 	private C4Object expectedContent; // mostly null - only set when type=object
@@ -72,13 +71,6 @@ public class C4Variable implements Serializable {
 	 */
 	public void setExpectedContent(C4Object expectedContent) {
 		this.expectedContent = expectedContent;
-	}
-
-	/**
-	 * @return the name
-	 */
-	public String getName() {
-		return name;
 	}
 
 	/**

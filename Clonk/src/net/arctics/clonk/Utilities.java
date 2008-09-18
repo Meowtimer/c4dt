@@ -1,6 +1,7 @@
 package net.arctics.clonk;
 
 import net.arctics.clonk.parser.C4Function;
+import net.arctics.clonk.parser.C4Variable;
 import net.arctics.clonk.resource.ClonkProjectNature;
 
 import org.eclipse.core.resources.IFile;
@@ -45,10 +46,22 @@ public class Utilities {
 		reg.put(iconName, ImageDescriptor.createFromURL(FileLocator.find(ClonkCore.getDefault().getBundle(), new Path("icons/"+iconName+".png"), null)));
 		return reg.get(iconName);
 	}
+	
+	public static Image getIconForVariable(C4Variable variable) {
+		String iconName = variable.getScope().toString().toLowerCase();
+		ImageRegistry reg = ClonkCore.getDefault().getImageRegistry();
+		Image img = reg.get(iconName);
+		if (img != null)
+			return img;
+		reg.put(iconName, ImageDescriptor.createFromURL(FileLocator.find(ClonkCore.getDefault().getBundle(), new Path("icons/"+iconName+".png"), null)));
+		return reg.get(iconName);
+	}
 
 	public static Image getIconForObject(Object element) {
 		if (element instanceof C4Function)
 			return getIconForFunction((C4Function)element);
+		if (element instanceof C4Variable)
+			return getIconForVariable((C4Variable)element);
 		return null;
 	}
 }

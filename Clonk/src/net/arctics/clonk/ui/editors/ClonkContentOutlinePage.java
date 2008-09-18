@@ -3,8 +3,12 @@ package net.arctics.clonk.ui.editors;
 import org.eclipse.swt.graphics.Image;
 
 import net.arctics.clonk.parser.C4Object;
+import net.arctics.clonk.parser.C4Field;
 import net.arctics.clonk.Utilities;
 
+import org.eclipse.jface.viewers.ISelectionChangedListener;
+import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.jface.viewers.ViewerSorter;
 import org.eclipse.swt.widgets.Composite;
@@ -33,6 +37,15 @@ public class ClonkContentOutlinePage extends ContentOutlinePage {
 						public int category(Object element) {
 							Image img = Utilities.getIconForObject(element);
 							return img != null ? img.hashCode() : 0;
+						}
+					});
+					treeViewer.addSelectionChangedListener(new ISelectionChangedListener() {
+						public void selectionChanged(SelectionChangedEvent event) {
+							if (event.getSelection().isEmpty()) {
+								return;
+							} else if (event.getSelection() instanceof IStructuredSelection) {
+								editor.moveCursorTo(((C4Field)((IStructuredSelection)event.getSelection()).getFirstElement()).getLocation());
+							}
 						}
 					});
 				}
