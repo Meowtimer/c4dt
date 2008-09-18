@@ -13,7 +13,8 @@ public enum C4Type {
 	STRING,
 	ARRAY,
 	OBJECT,
-	UNKNOWN;
+	DWORD, /** @since 18.09.08 */
+	UNKNOWN; 
 	
 	public String toString() {
 		return super.toString().toLowerCase();
@@ -27,6 +28,7 @@ public enum C4Type {
 		if (arg.equalsIgnoreCase("string")) return C4Type.STRING;
 		if (arg.equalsIgnoreCase("array")) return C4Type.ARRAY;
 		if (arg.equalsIgnoreCase("object")) return C4Type.OBJECT;
+		if (arg.equalsIgnoreCase("dword")) return C4Type.DWORD;
 		return C4Type.UNKNOWN;
 	}
 }

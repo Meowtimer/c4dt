@@ -131,12 +131,14 @@ public class C4Variable implements Serializable {
 	public enum C4VariableScope implements Serializable {
 		VAR_STATIC,
 		VAR_LOCAL,
-		VAR_VAR;
+		VAR_VAR,
+		VAR_CONST;
 		
 		public static C4VariableScope makeScope(String scopeString) {
 			if (scopeString.equalsIgnoreCase("var")) return C4VariableScope.VAR_VAR;
 			if (scopeString.equalsIgnoreCase("local")) return C4VariableScope.VAR_LOCAL;
 			if (scopeString.equalsIgnoreCase("static")) return C4VariableScope.VAR_STATIC;
+			if (scopeString.equalsIgnoreCase("static const")) return C4VariableScope.VAR_CONST;
 			else return null;
 		}
 	}

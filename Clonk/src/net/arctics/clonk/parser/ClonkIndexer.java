@@ -37,8 +37,10 @@ public class ClonkIndexer {
 	private static final Pattern directiveSearch = Pattern.compile("#((?:strict)|(?:include)|(?:appendto))\\s+([\\w\\d_]+)",Pattern.CASE_INSENSITIVE);
 	private static final Pattern functionSearch = Pattern.compile("(?:((?:public)|(?:protected)|(?:private)|(?:global))\\s+)?func\\s+([\\w\\d_]+)\\s*\\(([\\w\\d_\\s,]+)\\)",Pattern.CASE_INSENSITIVE);
 	private static final Pattern oldFunctionSearch = Pattern.compile("(?:((?:public)|(?:protected)|(?:private)|(?:global))\\s+)?([\\w\\d_]+):",Pattern.CASE_INSENSITIVE); // find old function declarations (property like | basic like)
-	private static final Pattern parameterSearch = Pattern.compile("\\s*((?:any)|(?:int)|(?:id)|(?:string)|(?:bool)|(?:array)|(?:object))?\\s+([\\w\\d_]+)\\s*",Pattern.CASE_INSENSITIVE);
-	private static final Pattern variableSearch = Pattern.compile("((?:local)|(?:static))\\s+([\\w\\d_]+)\\s*(?:(?:,)|(?:;)|(?:=))",Pattern.CASE_INSENSITIVE); 
+	private static final Pattern parameterSearch = Pattern.compile("\\s*((?:any)|(?:int)|(?:id)|(?:string)|(?:bool)|(?:array)|(?:object)|(?:dword))?\\s+([\\w\\d_]+)\\s*",Pattern.CASE_INSENSITIVE);
+	//private static final Pattern variableSearch = Pattern.compile("((?:local)|(static const)|(?:static))\\s+([\\w\\d_, ]+)(?(2)\\s*=\\s*([^;]+))\\s*;",Pattern.CASE_INSENSITIVE); // 1=scope 3=names [5=value|"static const" only]
+	// Java: immer wieder enttäuschend: conditional patterns are not supported
+	private static final Pattern variableSearch = Pattern.compile("((?:local)|(static const)|(?:static))\\s+([\\w\\d_, ]+)(?:\\s*=\\s*([^;]+))?\\s*;",Pattern.CASE_INSENSITIVE); // 1=scope 3=names [4=value|"static const" only]
 	
 	public ClonkIndexer() {
 //		objects.put(C4ID.GLOBAL, new C4Object(C4ID.GLOBAL,"<Global>",true));
@@ -157,8 +159,15 @@ public class ClonkIndexer {
 						objects.put(id, parent);
 					}
 					else {
-						// TODO create marker to report error (c4id declared twice)
-						return;
+						parent = objects.get(id);
+						if (parent.getScript().equals(script)) {
+							parent.getDefinedVariables().clear();
+							parent.getDefinedFunctions().clear();
+							parent.getDefinedDirectives().clear();
+						}
+						else {
+							return;
+						}
 //						throw new CompilerException("Object with ID " + id + " is declared twice! (" + objects.get(id).getName() + " and " + group.getName() + ")");
 					}
 					
@@ -321,9 +330,20 @@ public class ClonkIndexer {
 		while(m.find()) {
 			if (isCommented(comments, m)) continue;
 			
-			C4Variable var = new C4Variable(m.group(2), m.group(1));
 			// TODO: extended variable type recognition
-			parent.getDefinedVariables().add(var);
+			C4Variable var;
+			String vars = m.group(3);
+			if (vars.contains(",")) {
+				String[] varsArray = vars.split(",");
+				for(String variable : varsArray) {
+					var = new C4Variable(variable.trim(), m.group(1));
+					parent.getDefinedVariables().add(var);
+				}
+			}
+			else {
+				var = new C4Variable(vars.trim(), m.group(1));
+				parent.getDefinedVariables().add(var);
+			}
 		}
 		
 		// find directives
