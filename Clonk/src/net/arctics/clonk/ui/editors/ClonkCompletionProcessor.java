@@ -46,6 +46,23 @@ public class ClonkCompletionProcessor implements IContentAssistProcessor {
 
 	}
 	
+	public void proposalForFunc(C4Function func,String prefix,int offset,List<ClonkCompletionProposal> proposals,C4Object obj) {
+		if (prefix != null) {
+			if (!func.getName().toLowerCase().startsWith(prefix))
+				return;
+		}
+		String displayString = func.getLongParameterString(true);
+		int replacementLength = 0;
+		if (prefix != null) replacementLength = prefix.length();
+		
+		String contextInfoString = func.getLongParameterString(false);
+		IContextInformation contextInformation = new ContextInformation(func.getName() + "()",contextInfoString); 
+		
+		ClonkCompletionProposal prop = new ClonkCompletionProposal(func.getName() + "()",offset,replacementLength,func.getName().length()+1,
+				Utilities.getIconForFunction(func), displayString.trim(),contextInformation,null," - " + ((obj != null) ? obj.getName() : "Engine"));
+		proposals.add(prop);
+	}
+	
 	public ICompletionProposal[] computeCompletionProposals(ITextViewer viewer,
 			int offset) {
 		
@@ -141,39 +158,10 @@ public class ClonkCompletionProcessor implements IContentAssistProcessor {
 					boolean currentObj = scriptFile.equals(obj.getScript());
 					for (C4Function func : obj.getDefinedFunctions()) {
 						if (currentObj || func.getVisibility() == C4FunctionScope.FUNC_GLOBAL) {
-							if (prefix != null) {
-								if (!func.getName().toLowerCase().startsWith(prefix)) continue;
-							}
-							
-							StringBuilder displayString = new StringBuilder(func.getName());
-							displayString.append("(");
-							if (func.getParameter().size() > 0) {
-								for(C4Variable par : func.getParameter()) {
-									if (par.getType() != C4Type.UNKNOWN && par.getType() != null) {
-										displayString.append(par.getType().toString());
-										displayString.append(' ');
-										displayString.append(par.getName());
-										displayString.append(',');
-										displayString.append(' ');
-									}
-								}
-							}
-							if (displayString.charAt(displayString.length() - 1) == ' ') {
-								displayString.delete(displayString.length() - 2,displayString.length());
-							}
-							displayString.append(")");
-							int replacementLength = 0;
-							if (prefix != null) replacementLength = prefix.length();
-							
-							String contextInfoString = func.getLongParameterString(false);
-							IContextInformation contextInformation = new ContextInformation(func.getName() + "()",contextInfoString); 
-							
-							ClonkCompletionProposal prop = new ClonkCompletionProposal(func.getName(),offset,replacementLength,func.getName().length(), Utilities.getIconForFunction(func), displayString.toString().trim(),contextInformation,null," - " + obj.getName());
-							proposals.add(prop);
+							proposalForFunc(func, prefix, offset, proposals, obj);
 						}
 					}
 					if (currentObj) {
-						ImageRegistry reg = ClonkCore.getDefault().getImageRegistry();
 						for (C4Variable var : obj.getDefinedVariables()) {
 							if (prefix != null && !var.getName().toLowerCase().startsWith(prefix))
 								continue;
@@ -193,22 +181,7 @@ public class ClonkCompletionProcessor implements IContentAssistProcessor {
 			
 			if (ClonkCore.ENGINE_FUNCTIONS.size() > 0) {
 				for(C4Function func : ClonkCore.ENGINE_FUNCTIONS) {
-					if (prefix != null) {
-						if (!func.getName().toLowerCase().startsWith(prefix)) continue;
-					}
-					ImageRegistry reg = ClonkCore.getDefault().getImageRegistry();
-					if (reg.get("func_global") == null) {
-						reg.put("func_global", ImageDescriptor.createFromURL(FileLocator.find(ClonkCore.getDefault().getBundle(), new Path("icons/global.png"), null)));
-					}
-					String displayString = func.getLongParameterString(true);
-					int replacementLength = 0;
-					if (prefix != null) replacementLength = prefix.length();
-					
-					String contextInfoString = func.getLongParameterString(false);
-					IContextInformation contextInformation = new ContextInformation(func.getName() + "()",contextInfoString); 
-					
-					ClonkCompletionProposal prop = new ClonkCompletionProposal(func.getName() + "()",offset,replacementLength,func.getName().length() + 1, reg.get("func_global") , displayString.trim(),contextInformation,func.getDescription()," - Engine");
-					proposals.add(prop);
+					proposalForFunc(func, prefix, offset, proposals, null);
 				}
 			}
 			
