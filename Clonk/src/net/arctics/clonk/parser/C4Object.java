@@ -2,11 +2,28 @@ package net.arctics.clonk.parser;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import net.arctics.clonk.ClonkCore;
+import net.arctics.clonk.parser.C4Directive.C4DirectiveType;
+
 import org.eclipse.core.resources.IResource;
 import org.eclipse.jface.viewers.*;
 
-public class C4Object implements ITreeContentProvider, IBaseLabelProvider {
-	private String name;
+public class C4Object extends C4Field {
+	
+	public class FindFieldInfo {
+		private ClonkIndexer indexer;
+		private int recursion;
+		/**
+		 * @param indexer the indexer to be passed to the info
+		 */
+		public FindFieldInfo(ClonkIndexer indexer) {
+			super();
+			this.indexer = indexer;
+		}
+		
+	}
+	
 	private C4ID id;
 	private String fullName;
 	private boolean rooted;
@@ -16,6 +33,45 @@ public class C4Object implements ITreeContentProvider, IBaseLabelProvider {
 	private List<C4Directive> definedDirectives = new ArrayList<C4Directive>();
 	
 	private IResource script;
+	
+	public C4Object[] getIncludes(ClonkIndexer indexer) {
+		List<C4Object> result = new ArrayList<C4Object>();
+		for (C4Directive d : definedDirectives) {
+			if (d.getType() == C4DirectiveType.INCLUDE) {
+				C4Object obj = indexer.getObjects().get(C4ID.getID(d.getContent()));
+				if (obj != null)
+					result.add(obj);
+			}
+		}
+		return (C4Object[])result.toArray();
+	}
+	
+	public C4Field findField(String name, FindFieldInfo info) {
+		if (id.getName().equals(name))
+			return this;
+		for (C4Function f : definedFunctions) {
+			if (f.getName().equals(name))
+				return f;
+		}
+		for (C4Variable v : definedVariables) {
+			if (v.getName().equals(name))
+				return v;
+		}
+		info.recursion++;
+		for (C4Object o : getIncludes(info.indexer)) {
+			C4Field result = o.findField(name, info);
+			if (result != null)
+				return result;
+		}
+		info.recursion--;
+		if (info.recursion == 0) {
+			for (C4Function f : ClonkCore.ENGINE_FUNCTIONS) {
+				if (f.getName().equals(name))
+					return f;
+			}
+		}
+		return null;
+	}
 	
 	public IResource getScript() {
 		return script;
@@ -37,14 +93,6 @@ public class C4Object implements ITreeContentProvider, IBaseLabelProvider {
 	
 	protected void setName(String newName) {
 		name = newName;
-	}
-	
-	/**
-	 * If present, the name declared in Names.txt, otherwise the filename without .c4d
-	 * @return the name
-	 */
-	public String getName() {
-		return name;
 	}
 	
 	/**
@@ -111,68 +159,6 @@ public class C4Object implements ITreeContentProvider, IBaseLabelProvider {
 	 */
 	public void setFullName(String fullName) {
 		this.fullName = fullName;
-	}
-
-	/* (non-Javadoc)
-	 * @see org.eclipse.jface.viewers.ITreeContentProvider#getChildren(java.lang.Object)
-	 */
-	public Object[] getChildren(Object arg0) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	/* (non-Javadoc)
-	 * @see org.eclipse.jface.viewers.ITreeContentProvider#getParent(java.lang.Object)
-	 */
-	public Object getParent(Object arg0) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	/* (non-Javadoc)
-	 * @see org.eclipse.jface.viewers.ITreeContentProvider#hasChildren(java.lang.Object)
-	 */
-	public boolean hasChildren(Object arg0) {
-		// TODO Auto-generated method stub
-		return false;
-	}
-
-	/* (non-Javadoc)
-	 * @see org.eclipse.jface.viewers.IStructuredContentProvider#getElements(java.lang.Object)
-	 */
-	public Object[] getElements(Object arg0) {
-		return definedFunctions.toArray();
-	}
-
-	/* (non-Javadoc)
-	 * @see org.eclipse.jface.viewers.IContentProvider#dispose()
-	 */
-	public void dispose() {
-		// TODO Auto-generated method stub
-		
-	}
-
-	/* (non-Javadoc)
-	 * @see org.eclipse.jface.viewers.IContentProvider#inputChanged(org.eclipse.jface.viewers.Viewer, java.lang.Object, java.lang.Object)
-	 */
-	public void inputChanged(Viewer arg0, Object arg1, Object arg2) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	public void addListener(ILabelProviderListener arg0) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	public boolean isLabelProperty(Object arg0, String arg1) {
-		// TODO Auto-generated method stub
-		return false;
-	}
-
-	public void removeListener(ILabelProviderListener arg0) {
-		// TODO Auto-generated method stub
-		
 	}
 	
 	public String getText(Object element) {
