@@ -122,26 +122,26 @@ public class ClonkCodeScanner extends RuleBasedScanner {
 	}
 	
 	public static Map<String,IToken> fTokenMap= new HashMap<String, IToken>();
-	static String[] fgKeywords= {
-		"break", 
-		"continue",
-		"const",
-		"do", 
-		"else",
-		"for", "func", 
-		"global",
-		"if",
-		"local",
-		"private", "protected", "public", 
-		"static",
-		"this",
-		"var",
-		"while"
-	};
+//	static String[] fgKeywords= {
+//		"break", 
+//		"continue",
+//		"const",
+//		"do", 
+//		"else",
+//		"for", "func", 
+//		"global",
+//		"if",
+//		"local",
+//		"private", "protected", "public", 
+//		"static",
+//		"this",
+//		"var",
+//		"while"
+//	};
 
 	private static final String RETURN= "return"; //$NON-NLS-1$
 
-	private static String[] fgTypes= { "any", "array", "bool", "dword", "id", "int", "object", "string" }; //$NON-NLS-1$ //$NON-NLS-5$ //$NON-NLS-7$ //$NON-NLS-6$ //$NON-NLS-8$ //$NON-NLS-9$  //$NON-NLS-10$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-2$
+//	private static String[] fgTypes= { "any", "array", "bool", "dword", "id", "int", "object", "string" }; //$NON-NLS-1$ //$NON-NLS-5$ //$NON-NLS-7$ //$NON-NLS-6$ //$NON-NLS-8$ //$NON-NLS-9$  //$NON-NLS-10$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-2$
 
 	private static String[] fgConstants= { "false", "null", "true" }; //$NON-NLS-3$ //$NON-NLS-2$ //$NON-NLS-1$
 
@@ -206,7 +206,7 @@ public class ClonkCodeScanner extends RuleBasedScanner {
 //		for (int i=0; i<fgTypes.length; i++)
 //			wordRule.addWord(fgTypes[i], type);
 		for (C4Type c4type : C4Type.values()) 
-			wordRule.addWord(c4type.name().trim(), type);
+			wordRule.addWord(c4type.name().trim().toLowerCase(), type);
 		for (int i=0; i<fgConstants.length; i++)
 			wordRule.addWord(fgConstants[i], type);
 		for (int i=0; i<ClonkCore.ENGINE_FUNCTIONS.size(); i++)
