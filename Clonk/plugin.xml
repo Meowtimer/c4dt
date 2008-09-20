@@ -235,6 +235,7 @@
           
     </command>
  </extension>
+ 
  <!--<extension
        point="org.eclipse.ui.actionSets">
     <actionSet

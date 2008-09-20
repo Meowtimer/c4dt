@@ -11,7 +11,7 @@ import org.eclipse.jface.viewers.*;
 
 public class C4Object extends C4Field {
 	
-	public class FindFieldInfo {
+	static public class FindFieldInfo {
 		private ClonkIndexer indexer;
 		private int recursion;
 		/**
@@ -43,7 +43,7 @@ public class C4Object extends C4Field {
 					result.add(obj);
 			}
 		}
-		return (C4Object[])result.toArray();
+		return result.toArray(new C4Object[]{}); // lolz?
 	}
 	
 	public C4Field findField(String name, FindFieldInfo info) {
@@ -71,6 +71,14 @@ public class C4Object extends C4Field {
 			}
 		}
 		return null;
+	}
+	
+	public void addField(C4Field field) {
+		field.setObject(this);
+		if (field instanceof C4Function)
+			definedFunctions.add((C4Function)field);
+		else if (field instanceof C4Variable)
+			definedVariables.add((C4Variable)field);
 	}
 	
 	public IResource getScript() {

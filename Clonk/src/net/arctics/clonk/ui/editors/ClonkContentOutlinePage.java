@@ -26,7 +26,7 @@ public class ClonkContentOutlinePage extends ContentOutlinePage {
 	public void createControl(Composite parent) {
 		super.createControl(parent);
 		if (editor != null) {
-			C4Object obj = Utilities.getProject(editor).getIndexer().getObjectForScript(Utilities.getEditingFile(editor));
+			C4Object obj = Utilities.getObjectForEditor(editor);
 			if (obj != null) {
 				TreeViewer treeViewer = this.getTreeViewer();
 				if (treeViewer != null) {

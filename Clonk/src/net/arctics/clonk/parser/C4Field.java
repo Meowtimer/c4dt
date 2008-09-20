@@ -3,6 +3,7 @@ package net.arctics.clonk.parser;
 public class C4Field {
 	protected String name;
 	protected SourceLocation location;
+	private C4Object object;
 
 	/**
 	 * @return the name
@@ -25,5 +26,17 @@ public class C4Field {
 	public int sortCategory() {
 		// TODO Auto-generated method stub
 		return 0;
+	}
+	/**
+	 * @param object the object to set
+	 */
+	public void setObject(C4Object object) {
+		this.object = object;
+	}
+	/**
+	 * @return the object
+	 */
+	public C4Object getObject() {
+		return object;
 	}
 }

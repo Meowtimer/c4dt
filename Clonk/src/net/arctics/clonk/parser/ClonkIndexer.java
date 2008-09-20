@@ -315,7 +315,7 @@ public class ClonkIndexer {
 				func.getParameter().add(var);
 			}
 			// TODO: function return type recognition
-			parent.getDefinedFunctions().add(func);
+			parent.addField(func);
 		}
 		
 //		for (C4Function func : parent.getDefinedFunctions()) {
@@ -360,7 +360,7 @@ public class ClonkIndexer {
 			func.setCallback(isObjectCallback(m.group(2)));
 			func.setLocation(new SourceLocation(m));
 			// TODO: parameter recognition in old function declarations?
-			parent.getDefinedFunctions().add(func);
+			parent.addField(func);
 		}
 		
 		// find variables
@@ -381,13 +381,13 @@ public class ClonkIndexer {
 						start++;
 					var.setLocation(new SourceLocation(start,start+var.getName().length()));
 					offset += variable.length()+1; // ","
-					parent.getDefinedVariables().add(var);
+					parent.addField(var);
 				}
 			}
 			else {
 				var = new C4Variable(vars.trim(), m.group(1));
 				var.setLocation(new SourceLocation(m));
-				parent.getDefinedVariables().add(var);
+				parent.addField(var);
 			}
 		}
 		

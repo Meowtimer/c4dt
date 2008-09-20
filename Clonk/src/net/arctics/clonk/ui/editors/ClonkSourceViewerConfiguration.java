@@ -2,15 +2,23 @@ package net.arctics.clonk.ui.editors;
 
 import java.awt.font.TextHitInfo;
 
+import net.arctics.clonk.Utilities;
+import net.arctics.clonk.parser.C4Field;
+import net.arctics.clonk.parser.C4Object;
+
+import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.DefaultInformationControl;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IInformationControl;
 import org.eclipse.jface.text.IInformationControlCreator;
+import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.ITextDoubleClickStrategy;
 import org.eclipse.jface.text.ITextHover;
+import org.eclipse.jface.text.ITextViewer;
 import org.eclipse.jface.text.TextAttribute;
 import org.eclipse.jface.text.contentassist.ContentAssistant;
 import org.eclipse.jface.text.contentassist.IContentAssistant;
+import org.eclipse.jface.text.hyperlink.IHyperlink;
 import org.eclipse.jface.text.hyperlink.IHyperlinkDetector;
 import org.eclipse.jface.text.presentation.IPresentationReconciler;
 import org.eclipse.jface.text.presentation.PresentationReconciler;
@@ -22,8 +30,84 @@ import org.eclipse.jface.text.source.ISourceViewer;
 import org.eclipse.jface.text.source.SourceViewerConfiguration;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.texteditor.ITextEditor;
+import org.eclipse.jface.text.Region;
 
 public class ClonkSourceViewerConfiguration extends SourceViewerConfiguration {
+	
+	private class HyperlinkDetector implements IHyperlinkDetector {
+		
+		private ClonkSourceViewerConfiguration configuration;
+
+		/**
+		 * @param configuration
+		 */
+		public HyperlinkDetector(ClonkSourceViewerConfiguration configuration) {
+			super();
+			this.configuration = configuration;
+		}
+
+		public IHyperlink[] detectHyperlinks(ITextViewer viewer, IRegion region, boolean canShowMultipleHyperlinks) {
+			IDocument doc = viewer.getDocument();
+			IRegion lineInfo;
+			String line;
+			try {
+				lineInfo = doc.getLineInformationOfOffset(region.getOffset());
+				line = doc.get(lineInfo.getOffset(),lineInfo.getLength());
+			} catch (BadLocationException e) {
+				return null;
+			}
+			int localOffset = region.getOffset() - lineInfo.getOffset();
+			int start,end;
+			for (start = localOffset; start > 0 && Character.isJavaIdentifierPart(line.charAt(start-1)); start--);
+			for (end = localOffset; end < line.length() && Character.isJavaIdentifierPart(line.charAt(end)); end++);
+			String ident = line.substring(start, end);
+			ITextEditor editor = this.configuration.getEditor();
+			C4Object obj = Utilities.getObjectForEditor(editor);
+			C4Field field = obj.findField(ident, new C4Object.FindFieldInfo(Utilities.getProject(editor).getIndexer()));
+			if (field != null) {
+				return new IHyperlink[] {
+					new C4ScriptHyperlink(new Region(lineInfo.getOffset()+start,ident.length()),field)
+				};
+			} else {
+				return null;
+			}
+		}
+		
+	}
+	
+	private class C4ScriptHyperlink implements IHyperlink {
+
+		private IRegion region;
+		private C4Field target;
+		
+		/**
+		 * @param region
+		 * @param target
+		 */
+		public C4ScriptHyperlink(IRegion region, C4Field target) {
+			super();
+			this.region = region;
+			this.target = target;
+		}
+
+		public IRegion getHyperlinkRegion() {
+			return region;
+		}
+
+		public String getHyperlinkText() {
+			return target.getName();
+		}
+
+		public String getTypeLabel() {
+			return "C4Script Hyperlink";
+		}
+
+		public void open() {
+			// ???
+		}
+		
+	}
+	
 	private ClonkDoubleClickStrategy doubleClickStrategy;
 	private ClonkCodeScanner scanner;
 	private ClonkCommentScanner commentScanner;
@@ -161,7 +245,9 @@ public class ClonkSourceViewerConfiguration extends SourceViewerConfiguration {
 	@Override
 	public IHyperlinkDetector[] getHyperlinkDetectors(ISourceViewer sourceViewer) {
 		// TODO Auto-generated method stub
-		return super.getHyperlinkDetectors(sourceViewer);
+		return new IHyperlinkDetector[] {
+				new HyperlinkDetector(this)
+		};
 	}
 
 	/* (non-Javadoc)
