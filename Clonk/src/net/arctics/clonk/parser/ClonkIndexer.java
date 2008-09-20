@@ -349,7 +349,7 @@ public class ClonkIndexer {
 		while(m.find()) {
 			if (isCommented(comments, m)) continue;
 			
-			if ("case".equalsIgnoreCase(m.group(2))) continue;
+//			if ("case".equalsIgnoreCase(m.group(2))) continue; // nonsense
 			
 			C4Function func = new C4Function(m.group(2), parent, m.group(1));
 			func.setCallback(isObjectCallback(m.group(2)));
