@@ -6,6 +6,7 @@ import java.util.List;
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.C4Directive.C4DirectiveType;
 
+import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.jface.viewers.*;
 
@@ -32,7 +33,7 @@ public class C4Object extends C4Field {
 	private List<C4Variable> definedVariables = new ArrayList<C4Variable>();
 	private List<C4Directive> definedDirectives = new ArrayList<C4Directive>();
 	
-	private IResource script;
+	private IFile script;
 	
 	public C4Object[] getIncludes(ClonkIndexer indexer) {
 		List<C4Object> result = new ArrayList<C4Object>();
@@ -81,11 +82,11 @@ public class C4Object extends C4Field {
 			definedVariables.add((C4Variable)field);
 	}
 	
-	public IResource getScript() {
+	public IFile getScript() {
 		return script;
 	}
 	
-	public void setScript(IResource s) {
+	public void setScript(IFile s) {
 		script = s;
 	}
 	

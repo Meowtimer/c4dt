@@ -2,7 +2,9 @@ package net.arctics.clonk.parser;
 
 import java.util.regex.Matcher;
 
-public class SourceLocation {
+import org.eclipse.jface.text.IRegion;
+
+public class SourceLocation implements IRegion {
 	private int start, end;
 	public SourceLocation(int start,int end) {
 		this.setStart(start);
@@ -35,5 +37,11 @@ public class SourceLocation {
 	 */
 	public int getEnd() {
 		return end;
+	}
+	public int getLength() {
+		return getEnd()-getStart();
+	}
+	public int getOffset() {
+		return getStart();
 	}
 }

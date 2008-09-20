@@ -85,7 +85,7 @@ public class C4ScriptEditor extends TextEditor {
 		
 	}
 
-	public void moveCursorTo(SourceLocation location) {
+	public void selectAndReveal(SourceLocation location) {
 		this.selectAndReveal(location.getStart(), location.getEnd() - location.getStart());
 	}
 

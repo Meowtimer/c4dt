@@ -1,11 +1,10 @@
 package net.arctics.clonk.ui.editors;
 
-import java.awt.font.TextHitInfo;
-
 import net.arctics.clonk.Utilities;
 import net.arctics.clonk.parser.C4Field;
 import net.arctics.clonk.parser.C4Object;
 
+import org.eclipse.core.resources.IFile;
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.DefaultInformationControl;
 import org.eclipse.jface.text.IDocument;
@@ -29,8 +28,16 @@ import org.eclipse.jface.text.rules.Token;
 import org.eclipse.jface.text.source.ISourceViewer;
 import org.eclipse.jface.text.source.SourceViewerConfiguration;
 import org.eclipse.swt.widgets.Shell;
+import org.eclipse.ui.IEditorPart;
+import org.eclipse.ui.IEditorReference;
+import org.eclipse.ui.IWorkbench;
+import org.eclipse.ui.IWorkbenchPage;
+import org.eclipse.ui.PartInitException;
+import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.part.FileEditorInput;
 import org.eclipse.ui.texteditor.ITextEditor;
 import org.eclipse.jface.text.Region;
+import org.eclipse.ui.ide.*;
 
 public class ClonkSourceViewerConfiguration extends SourceViewerConfiguration {
 	
@@ -103,7 +110,21 @@ public class ClonkSourceViewerConfiguration extends SourceViewerConfiguration {
 		}
 
 		public void open() {
-			// ???
+			IWorkbench workbench = PlatformUI.getWorkbench();
+			IWorkbenchPage workbenchPage = workbench.getActiveWorkbenchWindow().getActivePage();
+			try {
+				C4Object obj = target.getObject();
+				if (obj!= null) {
+					IEditorPart editor = workbenchPage.openEditor(new FileEditorInput(obj.getScript()), "clonk.editors.C4ScriptEditor");
+					C4ScriptEditor scriptEditor = (C4ScriptEditor)editor;
+					scriptEditor.selectAndReveal(target.getLocation());
+				} else {
+					// TODO: provide some info about global function or something
+				}
+			} catch (PartInitException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		}
 		
 	}
