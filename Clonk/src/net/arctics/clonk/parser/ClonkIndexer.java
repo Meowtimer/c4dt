@@ -21,6 +21,7 @@ import net.arctics.clonk.resource.c4group.InvalidDataException;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
+import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
@@ -166,6 +167,11 @@ public class ClonkIndexer {
 							parent.getDefinedDirectives().clear();
 						}
 						else {
+							IMarker marker = folder.createMarker(IMarker.PROBLEM);
+							marker.setAttribute(IMarker.TRANSIENT, true);
+							marker.setAttribute(IMarker.SEVERITY, IMarker.SEVERITY_ERROR);
+//							marker.setAttribute(IMarker.LOCATION, value)
+							marker.setAttribute(IMarker.MESSAGE, "This object redefines C4ID " + id.getName());
 							return;
 						}
 //						throw new CompilerException("Object with ID " + id + " is declared twice! (" + objects.get(id).getName() + " and " + group.getName() + ")");

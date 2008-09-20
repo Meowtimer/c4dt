@@ -45,6 +45,7 @@ public class ClonkDocumentProvider extends FileDocumentProvider {
 		if (editor instanceof C4ScriptEditor) {
 			((C4ScriptEditor)editor).getOutlinePage().refresh();
 		}
+		
 	}
 	
 	protected ClonkProjectNature getProject(ITextEditor editor) {
