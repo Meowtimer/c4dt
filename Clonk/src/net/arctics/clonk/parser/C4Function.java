@@ -187,6 +187,11 @@ public class C4Function extends C4Field implements Serializable {
 					string.append(',');
 					string.append(' ');
 				}
+				else {
+					string.append(par.getName());
+					string.append(',');
+					string.append(' ');
+				}
 			}
 			if (string.length() > 0) {
 				if (string.charAt(string.length() - 1) == ' ') {

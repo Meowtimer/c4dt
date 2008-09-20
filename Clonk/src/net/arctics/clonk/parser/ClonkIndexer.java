@@ -37,7 +37,7 @@ public class ClonkIndexer {
 	private static final Pattern directiveSearch = Pattern.compile("#((?:strict)|(?:include)|(?:appendto))\\s+([\\w\\d_]+)",Pattern.CASE_INSENSITIVE);
 	private static final Pattern functionSearch = Pattern.compile("(?:((?:public)|(?:protected)|(?:private)|(?:global))\\s+)?func\\s+([\\w\\d_]+)\\s*\\(([\\w\\d_\\s,]*)\\)",Pattern.CASE_INSENSITIVE);
 	private static final Pattern oldFunctionSearch = Pattern.compile("(?:((?:public)|(?:protected)|(?:private)|(?:global))\\s+)?([\\w\\d_]+):",Pattern.CASE_INSENSITIVE); // find old function declarations (property like | basic like)
-	private static final Pattern parameterSearch = Pattern.compile("\\s*((?:any)|(?:int)|(?:id)|(?:string)|(?:bool)|(?:array)|(?:object)|(?:dword))?\\s+([\\w\\d_]+)\\s*",Pattern.CASE_INSENSITIVE);
+	private static final Pattern parameterSearch = Pattern.compile("\\s*((?:any)|(?:int)|(?:id)|(?:string)|(?:bool)|(?:array)|(?:object)|(?:dword))?\\s*([\\w\\d_]+)\\s*",Pattern.CASE_INSENSITIVE);
 	//private static final Pattern variableSearch = Pattern.compile("((?:local)|(static const)|(?:static))\\s+([\\w\\d_, ]+)(?(2)\\s*=\\s*([^;]+))\\s*;",Pattern.CASE_INSENSITIVE); // 1=scope 3=names [5=value|"static const" only]
 	// Java: immer wieder enttäuschend: conditional patterns are not supported
 	private static final Pattern variableSearch = Pattern.compile("((?:local)|(static const)|(?:static))\\s+([\\w\\d_, ]+)(?:\\s*=\\s*([^;]+))?\\s*;",Pattern.CASE_INSENSITIVE); // 1=scope 3=names [4=value|"static const" only]
@@ -302,7 +302,6 @@ public class ClonkIndexer {
 			C4Function func = new C4Function(m.group(2), parent,m.group(1));
 			func.setCallback(isObjectCallback(m.group(2)));
 			func.setLocation(new SourceLocation(m));
-			// FIXME: parms without type do not work
 			Matcher pm = parameterSearch.matcher(m.group(3));
 			while(pm.find()) {
 				C4Variable var = new C4Variable(pm.group(2), C4VariableScope.VAR_VAR);
