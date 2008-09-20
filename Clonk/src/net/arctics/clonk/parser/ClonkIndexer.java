@@ -307,7 +307,7 @@ public class ClonkIndexer {
 			
 			C4Function func = new C4Function(m.group(2), parent,m.group(1));
 			func.setCallback(isObjectCallback(m.group(2)));
-			func.setLocation(new SourceLocation(m));
+			func.setLocation(new SourceLocation(m.start(2),m.end(2)));
 			Matcher pm = parameterSearch.matcher(m.group(3));
 			while(pm.find()) {
 				C4Variable var = new C4Variable(pm.group(2), C4VariableScope.VAR_VAR);
@@ -386,7 +386,7 @@ public class ClonkIndexer {
 			}
 			else {
 				var = new C4Variable(vars.trim(), m.group(1));
-				var.setLocation(new SourceLocation(m));
+				var.setLocation(new SourceLocation(m.start(3),m.end(3)));
 				parent.addField(var);
 			}
 		}
