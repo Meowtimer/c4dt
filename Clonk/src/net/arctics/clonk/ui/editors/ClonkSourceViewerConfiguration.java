@@ -4,7 +4,6 @@ import net.arctics.clonk.Utilities;
 import net.arctics.clonk.parser.C4Field;
 import net.arctics.clonk.parser.C4Object;
 
-import org.eclipse.core.resources.IFile;
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.DefaultInformationControl;
 import org.eclipse.jface.text.IDocument;
@@ -29,7 +28,6 @@ import org.eclipse.jface.text.source.ISourceViewer;
 import org.eclipse.jface.text.source.SourceViewerConfiguration;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IEditorPart;
-import org.eclipse.ui.IEditorReference;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.PartInitException;
@@ -37,43 +35,73 @@ import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.part.FileEditorInput;
 import org.eclipse.ui.texteditor.ITextEditor;
 import org.eclipse.jface.text.Region;
-import org.eclipse.ui.ide.*;
 
 public class ClonkSourceViewerConfiguration extends SourceViewerConfiguration {
 	
-	private class HyperlinkDetector implements IHyperlinkDetector {
+	/**
+	 * Encapsulates information about an identifier in a document and the field it refers to
+	 * @author madeen
+	 *
+	 */
+	private class IdentInfo {
+		private String line;
+		private IRegion lineInfo,identRegion;
+		private C4Field field;
 		
-		private ClonkSourceViewerConfiguration configuration;
-
-		/**
-		 * @param configuration
-		 */
-		public HyperlinkDetector(ClonkSourceViewerConfiguration configuration) {
-			super();
-			this.configuration = configuration;
-		}
-
-		public IHyperlink[] detectHyperlinks(ITextViewer viewer, IRegion region, boolean canShowMultipleHyperlinks) {
-			IDocument doc = viewer.getDocument();
-			IRegion lineInfo;
-			String line;
+		public IdentInfo(IDocument doc, IRegion region) {
 			try {
 				lineInfo = doc.getLineInformationOfOffset(region.getOffset());
 				line = doc.get(lineInfo.getOffset(),lineInfo.getLength());
 			} catch (BadLocationException e) {
-				return null;
+				return;
 			}
 			int localOffset = region.getOffset() - lineInfo.getOffset();
 			int start,end;
 			for (start = localOffset; start > 0 && Character.isJavaIdentifierPart(line.charAt(start-1)); start--);
 			for (end = localOffset; end < line.length() && Character.isJavaIdentifierPart(line.charAt(end)); end++);
-			String ident = line.substring(start, end);
-			ITextEditor editor = this.configuration.getEditor();
+			identRegion = new Region(lineInfo.getOffset()+start,end-start);
+			String ident = line.substring(start,end);
+			ITextEditor editor = getEditor();
 			C4Object obj = Utilities.getObjectForEditor(editor);
-			C4Field field = obj.findField(ident, new C4Object.FindFieldInfo(Utilities.getProject(editor).getIndexer()));
-			if (field != null) {
+			field = obj.findField(ident, new C4Object.FindFieldInfo(Utilities.getProject(editor).getIndexer()));
+		}
+		
+		/**
+		 * @return the line
+		 */
+		public String getLine() {
+			return line;
+		}
+
+		/**
+		 * @return the identRegion
+		 */
+		public IRegion getIdentRegion() {
+			return identRegion;
+		}
+
+		/**
+		 * @return the field
+		 */
+		public C4Field getField() {
+			return field;
+		}
+
+		/**
+		 * @return the lineInfo
+		 */
+		public IRegion getLineInfo() {
+			return lineInfo;
+		}
+	}
+	
+	private class HyperlinkDetector implements IHyperlinkDetector {
+
+		public IHyperlink[] detectHyperlinks(ITextViewer viewer, IRegion region, boolean canShowMultipleHyperlinks) {
+			IdentInfo i = new IdentInfo(viewer.getDocument(),region);
+			if (i.getField() != null) {
 				return new IHyperlink[] {
-					new C4ScriptHyperlink(new Region(lineInfo.getOffset()+start,ident.length()),field)
+					new C4ScriptHyperlink(i.getIdentRegion(),i.getField())
 				};
 			} else {
 				return null;
@@ -82,7 +110,7 @@ public class ClonkSourceViewerConfiguration extends SourceViewerConfiguration {
 		
 	}
 	
-	private class C4ScriptHyperlink implements IHyperlink {
+	private static class C4ScriptHyperlink implements IHyperlink {
 
 		private IRegion region;
 		private C4Field target;
@@ -113,18 +141,43 @@ public class ClonkSourceViewerConfiguration extends SourceViewerConfiguration {
 			IWorkbench workbench = PlatformUI.getWorkbench();
 			IWorkbenchPage workbenchPage = workbench.getActiveWorkbenchWindow().getActivePage();
 			try {
-				C4Object obj = target.getObject();
+				C4Object obj = target instanceof C4Object ? (C4Object)target : target.getObject();
 				if (obj!= null) {
 					IEditorPart editor = workbenchPage.openEditor(new FileEditorInput(obj.getScript()), "clonk.editors.C4ScriptEditor");
 					C4ScriptEditor scriptEditor = (C4ScriptEditor)editor;
-					scriptEditor.selectAndReveal(target.getLocation());
+					if (target != obj)
+						scriptEditor.selectAndReveal(target.getLocation());
 				} else {
-					// TODO: provide some info about global function or something
+					// TODO: provide some info about global functions or something
 				}
 			} catch (PartInitException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
+		}
+		
+	}
+	
+	private class TextHover implements ITextHover {
+
+		private IdentInfo identInfo;
+		
+		private IdentInfo getIdentInfo(ITextViewer viewer, IRegion region) {
+			if (identInfo == null) {
+				identInfo = new IdentInfo(viewer.getDocument(), region);
+			}
+			return identInfo;
+		}
+		
+		public String getHoverInfo(ITextViewer viewer, IRegion region) {
+			IdentInfo i = getIdentInfo(viewer, region);
+			return i.getField() != null
+				? i.getField().getShortInfo()
+				: null;
+		}
+
+		public IRegion getHoverRegion(ITextViewer viewer, int offset) {
+			return getIdentInfo(viewer, new Region(offset,0)).getIdentRegion();
 		}
 		
 	}
@@ -264,10 +317,9 @@ public class ClonkSourceViewerConfiguration extends SourceViewerConfiguration {
 	 * @see org.eclipse.jface.text.source.SourceViewerConfiguration#getHyperlinkDetectors(org.eclipse.jface.text.source.ISourceViewer)
 	 */
 	@Override
-	public IHyperlinkDetector[] getHyperlinkDetectors(ISourceViewer sourceViewer) {
-		// TODO Auto-generated method stub
+	public IHyperlinkDetector[] getHyperlinkDetectors(ISourceViewer sourceViewer) { 
 		return new IHyperlinkDetector[] {
-				new HyperlinkDetector(this)
+				new HyperlinkDetector()
 		};
 	}
 
@@ -275,10 +327,8 @@ public class ClonkSourceViewerConfiguration extends SourceViewerConfiguration {
 	 * @see org.eclipse.jface.text.source.SourceViewerConfiguration#getTextHover(org.eclipse.jface.text.source.ISourceViewer, java.lang.String, int)
 	 */
 	@Override
-	public ITextHover getTextHover(ISourceViewer sourceViewer,
-			String contentType, int stateMask) {
-		// TODO Auto-generated method stub
-		return super.getTextHover(sourceViewer, contentType, stateMask);
+	public ITextHover getTextHover(ISourceViewer sourceViewer, String contentType, int stateMask) {
+		return new TextHover();
 	}
 
 }

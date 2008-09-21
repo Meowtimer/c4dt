@@ -39,4 +39,7 @@ public class C4Field {
 	public C4Object getObject() {
 		return object;
 	}
+	public String getShortInfo() {
+		return getName();
+	}
 }
