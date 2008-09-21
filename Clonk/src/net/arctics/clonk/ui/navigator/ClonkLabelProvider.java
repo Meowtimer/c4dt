@@ -29,7 +29,7 @@ public class ClonkLabelProvider extends LabelProvider implements IStyledLabelPro
 	
 	public Image getImage(Object element) {
 		ImageRegistry reg = ClonkCore.getDefault().getImageRegistry();
-		if (element != null) return super.getImage(element); // FIXME this line is always executed
+		if (element != null) return super.getImage(element); // FIXME this line is always executed in order to avoid this image provider
 		if (element instanceof IProject) {
 			return super.getImage(element);
 		}
