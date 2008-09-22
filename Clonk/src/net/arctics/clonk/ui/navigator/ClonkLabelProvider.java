@@ -115,7 +115,7 @@ public class ClonkLabelProvider extends LabelProvider implements IStyledLabelPro
 		return new StyledString(getText(element));
 	}
 
-	protected Image computeImage(String registryKey, String iconPath, IResource element) {
+	public Image computeImage(String registryKey, String iconPath, IResource element) {
 		ImageRegistry reg = ClonkCore.getDefault().getImageRegistry();
 		try {
 			if (reg.get(registryKey) == null) {
@@ -188,6 +188,10 @@ public class ClonkLabelProvider extends LabelProvider implements IStyledLabelPro
 	
 	public static ClonkLabelProvider instance;
 
+	public static ClonkLabelProvider getInstance() {
+		return instance;
+	}
+	
 	public void addListener(ILabelProviderListener listener) {
 		// TODO Auto-generated method stub
 		

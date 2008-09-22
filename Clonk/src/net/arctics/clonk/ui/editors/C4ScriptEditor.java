@@ -2,11 +2,14 @@ package net.arctics.clonk.ui.editors;
 
 import java.util.ResourceBundle;
 
+import net.arctics.clonk.Utilities;
 import net.arctics.clonk.parser.SourceLocation;
 import net.arctics.clonk.ui.editors.actions.IndexClonkDir;
+import net.arctics.clonk.ui.navigator.ClonkLabelProvider;
 
 import org.eclipse.core.resources.IResource;
 import org.eclipse.jface.action.IAction;
+import org.eclipse.swt.graphics.Image;
 import org.eclipse.ui.ISharedImages;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.editors.text.TextEditor;
@@ -25,6 +28,14 @@ public class C4ScriptEditor extends TextEditor {
 		colorManager = new ColorManager();
 		setSourceViewerConfiguration(new ClonkSourceViewerConfiguration(colorManager,this));
 		setDocumentProvider(new ClonkDocumentProvider(this));
+	}
+
+	/* (non-Javadoc)
+	 * @see org.eclipse.ui.part.WorkbenchPart#getTitleImage()
+	 */
+	@Override
+	public Image getTitleImage() {
+		return ClonkLabelProvider.getInstance().computeImage("c4script", "icons/c4scriptIcon.png",	Utilities.getEditingFile(this));
 	}
 
 	/* (non-Javadoc)

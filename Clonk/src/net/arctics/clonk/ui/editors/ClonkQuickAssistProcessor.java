@@ -13,8 +13,7 @@ public class ClonkQuickAssistProcessor implements IQuickAssistProcessor  {
 	}
 
 	public boolean canFix(Annotation annotation) {
-		// TODO Auto-generated method stub
-		return true;
+		return false;
 	}
 
 	public ICompletionProposal[] computeQuickAssistProposals(
