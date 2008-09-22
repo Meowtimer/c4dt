@@ -37,7 +37,7 @@ public class ClonkIndexer {
 	private static final Pattern singleLineCommentSearch = Pattern.compile("//.*");
 	private static final Pattern directiveSearch = Pattern.compile("#((?:strict)|(?:include)|(?:appendto))\\s+([\\w\\d_]+)",Pattern.CASE_INSENSITIVE);
 	private static final Pattern functionSearch = Pattern.compile("(?:((?:public)|(?:protected)|(?:private)|(?:global))\\s+)?func\\s+([\\w\\d_]+)\\s*\\(([\\w\\d_\\s,]*)\\)",Pattern.CASE_INSENSITIVE);
-	private static final Pattern oldFunctionSearch = Pattern.compile("(?:((?:public)|(?:protected)|(?:private)|(?:global))\\s+)?([\\w\\d_]+):",Pattern.CASE_INSENSITIVE); // find old function declarations (property like | basic like)
+	private static final Pattern oldFunctionSearch = Pattern.compile("(?:((?:public)|(?:protected)|(?:private)|(?:global))\\s+)([\\w\\d_]+):[^:]",Pattern.CASE_INSENSITIVE); // find old function declarations (property like | basic like)
 	private static final Pattern parameterSearch = Pattern.compile("\\s*((?:any)|(?:int)|(?:id)|(?:string)|(?:bool)|(?:array)|(?:object)|(?:dword))?\\s*([\\w\\d_]+)\\s*",Pattern.CASE_INSENSITIVE);
 	//private static final Pattern variableSearch = Pattern.compile("((?:local)|(static const)|(?:static))\\s+([\\w\\d_, ]+)(?(2)\\s*=\\s*([^;]+))\\s*;",Pattern.CASE_INSENSITIVE); // 1=scope 3=names [5=value|"static const" only]
 	// Java: immer wieder enttäuschend: conditional patterns are not supported
@@ -359,6 +359,21 @@ public class ClonkIndexer {
 			C4Function func = new C4Function(m.group(2), parent, m.group(1));
 			func.setCallback(isObjectCallback(m.group(2)));
 			func.setLocation(new SourceLocation(m));
+			
+			if (parent.getScript() != null) {
+				try {
+					IMarker marker = parent.getScript().createMarker(IMarker.PROBLEM);
+					marker.setAttribute(IMarker.SEVERITY, IMarker.SEVERITY_WARNING);
+
+					marker.setAttribute(IMarker.TRANSIENT, true);
+					marker.setAttribute(IMarker.CHAR_START, m.start());
+					marker.setAttribute(IMarker.CHAR_END, m.end());
+					marker.setAttribute(IMarker.MESSAGE, "This is an old function declaration. Do not use them anymore!");
+				} catch (CoreException e) {
+					e.printStackTrace();
+				}
+			}
+			
 			// TODO: parameter recognition in old function declarations?
 			parent.addField(func);
 		}

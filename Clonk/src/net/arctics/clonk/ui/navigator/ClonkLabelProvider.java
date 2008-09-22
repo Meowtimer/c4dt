@@ -1,11 +1,14 @@
 package net.arctics.clonk.ui.navigator;
 
 import net.arctics.clonk.ClonkCore;
+import net.arctics.clonk.Utilities;
 import net.arctics.clonk.parser.C4DefCoreParser;
 import net.arctics.clonk.resource.c4group.C4Entry;
+import net.arctics.clonk.ui.OverlayIcon;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
+import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
@@ -13,13 +16,13 @@ import org.eclipse.core.runtime.FileLocator;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.resource.ImageRegistry;
-import org.eclipse.jface.viewers.DecoratingLabelProvider;
 import org.eclipse.jface.viewers.ILabelProviderListener;
 import org.eclipse.jface.viewers.LabelProvider;
 import org.eclipse.jface.viewers.LabelProviderChangedEvent;
 import org.eclipse.jface.viewers.StyledString;
 import org.eclipse.jface.viewers.DelegatingStyledCellLabelProvider.IStyledLabelProvider;
 import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.graphics.Point;
 
 public class ClonkLabelProvider extends LabelProvider implements IStyledLabelProvider {
 	
@@ -28,77 +31,48 @@ public class ClonkLabelProvider extends LabelProvider implements IStyledLabelPro
 	}
 	
 	public Image getImage(Object element) {
-		ImageRegistry reg = ClonkCore.getDefault().getImageRegistry();
-		if (element != null) return super.getImage(element); // FIXME this line is always executed in order to avoid this image provider
 		if (element instanceof IProject) {
 			return super.getImage(element);
 		}
 		else if (element instanceof IFile) {
 			if (element.toString().endsWith(".c")) {
-				if (reg.get("c4script") == null) {
-					reg.put("c4script", ImageDescriptor.createFromURL(FileLocator.find(ClonkCore.getDefault().getBundle(), new Path("icons/c4scriptIcon.png"), null)));
-				}
-				return reg.get("c4script");
+				return computeImage("c4script","icons/c4scriptIcon.png",(IResource)element);
 			}
 			if (element.toString().endsWith(".txt")) {
-				if (reg.get("c4txt") == null) {
-					reg.put("c4txt", ImageDescriptor.createFromURL(FileLocator.find(ClonkCore.getDefault().getBundle(), new Path("icons/text.png"), null)));
-				}
-				return reg.get("c4txt");
+				return computeImage("c4txt","icons/text.png",(IResource)element);
 			}
 			if (element.toString().endsWith(".c4m")) {
-				if (reg.get("c4material") == null) {
-					reg.put("c4material", ImageDescriptor.createFromURL(FileLocator.find(ClonkCore.getDefault().getBundle(), new Path("icons/Clonk_C4.png"), null)));
-				}
-				return reg.get("c4material");
+				return computeImage("c4material","icons/Clonk_C4.png",(IResource)element);
 			}
 		}
 		else if (element instanceof IFolder) {
 			IFolder folder = (IFolder)element;
 			if (folder.getName().startsWith("c4f")) {
-				if (reg.get("c4folder") == null) {
-					reg.put("c4folder", ImageDescriptor.createFromURL(FileLocator.find(ClonkCore.getDefault().getBundle(), new Path("icons/Clonk_folder.png"), null)));
-				}
-				return reg.get("c4folder");
+				return computeImage("c4folder","icons/Clonk_folder.png",(IResource)element);
 			}
 			else if (folder.getName().startsWith("c4d")) {
-				if (reg.get("c4object") == null) {
-					reg.put("c4object", ImageDescriptor.createFromURL(FileLocator.find(ClonkCore.getDefault().getBundle(), new Path("icons/C4Object.png"), null)));
-				}
-				return reg.get("c4object");
+				return computeImage("c4object","icons/C4Object.png",(IResource)element);
 			}
 			else if (folder.getName().startsWith("c4s")) {
-				if (reg.get("c4scenario") == null) {
-					reg.put("c4scenario", ImageDescriptor.createFromURL(FileLocator.find(ClonkCore.getDefault().getBundle(), new Path("icons/Clonk_scenario.png"), null)));
-				}
-				return reg.get("c4scenario");
+				return computeImage("c4scenario","icons/Clonk_scenario.png",(IResource)element);
 			}
 			else if (folder.getName().startsWith("c4g")) {
-				if (reg.get("c4datafolder") == null) {
-					reg.put("c4datafolder", ImageDescriptor.createFromURL(FileLocator.find(ClonkCore.getDefault().getBundle(), new Path("icons/Clonk_datafolder.png"), null)));
-				}
-				return reg.get("c4datafolder");
+				return computeImage("c4datafolder","icons/Clonk_datafolder.png",(IResource)element);
 			}
 		}
-		if (element instanceof C4Entry) {
-			C4Entry entry = (C4Entry)element;
-			if (entry.getName().endsWith(".txt")) {
-				if (reg.get("c4txt") == null) {
-					reg.put("c4txt", ImageDescriptor.createFromURL(FileLocator.find(ClonkCore.getDefault().getBundle(), new Path("icons/text.png"), null)));
-				}
-				return reg.get("c4txt");
-			}
-			else if (entry.getName().endsWith(".png")) {
-				
-				return super.getImage(element.toString());
-			}
-			else if (entry.getName().endsWith(".c")) {
-				if (reg.get("c4script") == null) {
-					reg.put("c4script", ImageDescriptor.createFromURL(FileLocator.find(ClonkCore.getDefault().getBundle(), new Path("icons/c4scriptIcon.png"), null)));
-				}
-				return reg.get("c4script");
-			}
-		}
+//		if (element instanceof C4Entry) {
+//			
+//			C4Entry entry = (C4Entry)element;
+//			if (entry.getName().endsWith(".txt")) {
+//				return computeImage("c4txt","icons/text.png",(IResource)element);
+//			}
+//			else if (entry.getName().endsWith(".png")) {
+//				return super.getImage(element.toString());
+//			}
+//			else if (entry.getName().endsWith(".c")) {
+//				return computeImage("c4script","icons/c4scriptIcon.png",(IResource)element);
+//			}
+//		}
 		
 		return null;
 	}
@@ -141,8 +115,64 @@ public class ClonkLabelProvider extends LabelProvider implements IStyledLabelPro
 		return new StyledString(getText(element));
 	}
 
+	protected Image computeImage(String registryKey, String iconPath, IResource element) {
+		ImageRegistry reg = ClonkCore.getDefault().getImageRegistry();
+		try {
+			if (reg.get(registryKey) == null) {
+				reg.put(registryKey, Utilities.getIconDescriptor(iconPath));
+			}
+			if (element.findMarkers(IMarker.PROBLEM, true, IResource.DEPTH_INFINITE).length > 0) {
+				return decorateImage(reg.getDescriptor(registryKey), element).createImage();
+			}
+			return reg.get(registryKey);
+		}
+		catch (CoreException e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
 	
+	protected ImageDescriptor decorateImage(ImageDescriptor input,
+			Object element) {
+		return new OverlayIcon(input,computeOverlays(element),new Point(22,16));
+	}
 	
+	protected ImageDescriptor[][] computeOverlays(Object element) {
+		ImageDescriptor[][] result = new ImageDescriptor[4][1];
+		if (element instanceof IResource) {
+			IResource res = (IResource)element;
+			try {
+				IMarker[] markers = res.findMarkers(IMarker.PROBLEM, true, IResource.DEPTH_INFINITE);
+				if (markers.length > 0) {
+					for(IMarker marker : markers) {
+						if (marker.getAttribute(IMarker.SEVERITY, IMarker.SEVERITY_INFO) == IMarker.SEVERITY_ERROR) {
+							result[2][0] = Utilities.getIconDescriptor("icons/error_co.gif");
+							break;
+						}
+						if (marker.getAttribute(IMarker.SEVERITY, IMarker.SEVERITY_INFO) == IMarker.SEVERITY_WARNING) {
+							result[2][0] = Utilities.getIconDescriptor("icons/warning_co.gif");
+						}
+					}
+				}
+			} catch (CoreException e) {
+				e.printStackTrace();
+				return null;
+			}
+		}
+		return result;
+	}
+//
+//
+//	protected String decorateText(String input, Object element) {
+//		if (element instanceof IProject) {
+//			return ((IProject)element).getName();
+//		}
+//		else if (element instanceof IFile) {
+//			return ((IFile)element).getName();
+//		}
+//		return super.decorateText(input, element);
+//	}
+
 	public void dispose() {
 		super.dispose();
 	}

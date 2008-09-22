@@ -4,7 +4,6 @@ import net.arctics.clonk.parser.C4Function;
 import net.arctics.clonk.parser.C4Object;
 import net.arctics.clonk.parser.C4Variable;
 import net.arctics.clonk.resource.ClonkProjectNature;
-import net.arctics.clonk.ui.editors.C4ScriptEditor;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProjectNature;
@@ -65,6 +64,10 @@ public class Utilities {
 		if (element instanceof C4Variable)
 			return getIconForVariable((C4Variable)element);
 		return null;
+	}
+	
+	public static ImageDescriptor getIconDescriptor(String path) {
+		return ImageDescriptor.createFromURL(FileLocator.find(ClonkCore.getDefault().getBundle(), new Path(path), null));
 	}
 
 	public static C4Object getObjectForEditor(ITextEditor editor) {
