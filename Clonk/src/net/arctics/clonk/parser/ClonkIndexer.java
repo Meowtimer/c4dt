@@ -129,6 +129,7 @@ public class ClonkIndexer {
 				InputStream stream = defCore.getContents();
 				byte[] defCoreBytes = new byte[2048];
 				int read = stream.read(defCoreBytes);
+				int idStartOffset = 0;
 				boolean searchId = false;
 				// fast DefCore searcher
 				for(int i = 0;i < read;i++) {
@@ -146,6 +147,7 @@ public class ClonkIndexer {
 						}
 						if (c == 'i' && (char)defCoreBytes[i+1] == 'd' && (char)defCoreBytes[i+2] == '=') {
 							i += 3;
+							idStartOffset = i;
 							id = C4ID.getID(new String(defCoreBytes,i,4));
 							break;
 						}
@@ -167,11 +169,12 @@ public class ClonkIndexer {
 							parent.getDefinedDirectives().clear();
 						}
 						else {
-							IMarker marker = folder.createMarker(IMarker.PROBLEM);
+							IMarker marker = defCore.createMarker(IMarker.PROBLEM);
 							marker.setAttribute(IMarker.TRANSIENT, true);
+							marker.setAttribute(IMarker.CHAR_START, idStartOffset);
+							marker.setAttribute(IMarker.CHAR_END, idStartOffset + 4);
 							marker.setAttribute(IMarker.SEVERITY, IMarker.SEVERITY_ERROR);
-//							marker.setAttribute(IMarker.LOCATION, value)
-							marker.setAttribute(IMarker.MESSAGE, "This object redefines C4ID " + id.getName());
+							marker.setAttribute(IMarker.MESSAGE, "This object redefines " + id.getName() + " previously defined in '" + parent.getName() + "'");
 							return;
 						}
 //						throw new CompilerException("Object with ID " + id + " is declared twice! (" + objects.get(id).getName() + " and " + group.getName() + ")");

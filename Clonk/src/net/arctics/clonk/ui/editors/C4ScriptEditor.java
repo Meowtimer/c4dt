@@ -35,7 +35,7 @@ public class C4ScriptEditor extends TextEditor {
 	 */
 	@Override
 	public Image getTitleImage() {
-		return ClonkLabelProvider.getInstance().computeImage("c4script", "icons/c4scriptIcon.png",	Utilities.getEditingFile(this));
+		return ClonkLabelProvider.computeImage("c4script", "icons/c4scriptIcon.png",	Utilities.getEditingFile(this));
 	}
 
 	/* (non-Javadoc)

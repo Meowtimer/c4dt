@@ -115,7 +115,7 @@ public class ClonkLabelProvider extends LabelProvider implements IStyledLabelPro
 		return new StyledString(getText(element));
 	}
 
-	public Image computeImage(String registryKey, String iconPath, IResource element) {
+	public static Image computeImage(String registryKey, String iconPath, IResource element) {
 		ImageRegistry reg = ClonkCore.getDefault().getImageRegistry();
 		try {
 			if (reg.get(registryKey) == null) {
@@ -132,12 +132,12 @@ public class ClonkLabelProvider extends LabelProvider implements IStyledLabelPro
 		}
 	}
 	
-	protected ImageDescriptor decorateImage(ImageDescriptor input,
+	protected static ImageDescriptor decorateImage(ImageDescriptor input,
 			Object element) {
 		return new OverlayIcon(input,computeOverlays(element),new Point(22,16));
 	}
 	
-	protected ImageDescriptor[][] computeOverlays(Object element) {
+	protected static ImageDescriptor[][] computeOverlays(Object element) {
 		ImageDescriptor[][] result = new ImageDescriptor[4][1];
 		if (element instanceof IResource) {
 			IResource res = (IResource)element;
