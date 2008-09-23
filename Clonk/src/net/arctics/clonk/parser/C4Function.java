@@ -166,7 +166,7 @@ public class C4Function extends C4Field implements Serializable {
 	/**
 	 * Generates a function string in the form of
 	 * function(int parName1, int parName2)
-	 * if withFuncName is true, else
+	 * if <code>withFuncName</code> is true, else
 	 * int parName1, int parName2
 	 * 
 	 * @param withFuncName
