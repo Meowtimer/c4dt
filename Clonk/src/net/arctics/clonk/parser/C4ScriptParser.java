@@ -204,7 +204,9 @@ public class C4ScriptParser {
 		try {
 			while(!fReader.reachedEOF()) {
 				if (parseDeclaration(offset)) offset = fReader.getPosition();
-				if (parseComment(offset)) offset = fReader.getPosition();
+				eatWhitespace(offset); // this eats comments too
+				offset = fReader.getPosition();
+//				if (parseComment(offset)) offset = fReader.getPosition();
 			}
 		}
 		catch (ParsingException e) {
@@ -247,6 +249,12 @@ public class C4ScriptParser {
 		// local iVar, iX;
 		// static pObj = parseValue;
 		return false;
+	}
+	
+	@SuppressWarnings("unused")
+	private boolean parseFunctionDeclaration(int offset) throws ParsingException {
+		fReader.seek(offset);
+		return parseFunctionDeclaration(fReader.readWord(),fReader.getPosition());
 	}
 	
 	/**
@@ -373,12 +381,6 @@ public class C4ScriptParser {
 	private boolean parseID(int offset) {
 		// CLNK
 		return false;
-	}
-
-	@SuppressWarnings("unused")
-	private boolean parseFunction(int offset) throws ParsingException {
-		fReader.seek(offset);
-		return parseFunctionDeclaration(fReader.readWord(),fReader.getPosition());
 	}
 
 	private boolean parseParameter(int offset, C4Function function) throws ParsingException {
