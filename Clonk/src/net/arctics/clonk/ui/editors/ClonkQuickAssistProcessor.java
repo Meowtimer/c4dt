@@ -4,6 +4,7 @@ import org.eclipse.jface.text.contentassist.ICompletionProposal;
 import org.eclipse.jface.text.quickassist.IQuickAssistInvocationContext;
 import org.eclipse.jface.text.quickassist.IQuickAssistProcessor;
 import org.eclipse.jface.text.source.Annotation;
+import org.eclipse.ui.texteditor.MarkerAnnotation;
 
 public class ClonkQuickAssistProcessor implements IQuickAssistProcessor  {
 
@@ -13,6 +14,7 @@ public class ClonkQuickAssistProcessor implements IQuickAssistProcessor  {
 	}
 
 	public boolean canFix(Annotation annotation) {
+		//MarkerAnnotation markerA = (MarkerAnnotation)annotation;
 		return false;
 	}
 

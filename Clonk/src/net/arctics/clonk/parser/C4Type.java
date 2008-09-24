@@ -14,6 +14,7 @@ public enum C4Type {
 	ARRAY,
 	OBJECT,
 	DWORD, /** @since 18.09.08 */
+	REFERENCE, /** @since 23.09.08 */
 	UNKNOWN; 
 	
 	public String toString() {

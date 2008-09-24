@@ -13,11 +13,12 @@ import org.eclipse.swt.graphics.Image;
 import org.eclipse.ui.ISharedImages;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.editors.text.TextEditor;
+import org.eclipse.ui.texteditor.AbstractDecoratedTextEditor;
 import org.eclipse.ui.texteditor.ContentAssistAction;
 import org.eclipse.ui.texteditor.ITextEditorActionDefinitionIds;
 import org.eclipse.ui.views.contentoutline.IContentOutlinePage;
 
-public class C4ScriptEditor extends TextEditor {
+public class C4ScriptEditor extends AbstractDecoratedTextEditor {
 
 	private ColorManager colorManager;
 	private ClonkContentOutlinePage outlinePage;
@@ -30,13 +31,13 @@ public class C4ScriptEditor extends TextEditor {
 		setDocumentProvider(new ClonkDocumentProvider(this));
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.ui.part.WorkbenchPart#getTitleImage()
-	 */
-	@Override
-	public Image getTitleImage() {
-		return ClonkLabelProvider.computeImage("c4script", "icons/c4scriptIcon.png",	Utilities.getEditingFile(this));
-	}
+//	/* (non-Javadoc)
+//	 * @see org.eclipse.ui.part.WorkbenchPart#getTitleImage()
+//	 */
+//	@Override
+//	public Image getTitleImage() {
+//		return ClonkLabelProvider.computeImage("c4script", "icons/c4scriptIcon.png",	Utilities.getEditingFile(this));
+//	}
 
 	/* (non-Javadoc)
 	 * @see org.eclipse.ui.part.WorkbenchPart#getPartName()
