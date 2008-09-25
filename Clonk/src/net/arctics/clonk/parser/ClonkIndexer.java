@@ -173,7 +173,7 @@ public class ClonkIndexer {
 							marker.setAttribute(IMarker.TRANSIENT, true);
 							marker.setAttribute(IMarker.CHAR_START, idStartOffset);
 							marker.setAttribute(IMarker.CHAR_END, idStartOffset + 4);
-							marker.setAttribute(IMarker.SEVERITY, IMarker.SEVERITY_ERROR);
+							marker.setAttribute(IMarker.SEVERITY, IMarker.SEVERITY_WARNING);
 							marker.setAttribute(IMarker.MESSAGE, "This object redefines " + id.getName() + " previously defined in '" + parent.getName() + "'");
 							return;
 						}
