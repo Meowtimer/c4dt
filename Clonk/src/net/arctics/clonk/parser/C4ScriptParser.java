@@ -322,7 +322,9 @@ public class C4ScriptParser implements IResourceDeltaVisitor {
 			throw new ParsingException(problem);
 		}
 		eatWhitespace();
-		parseCode(fReader.getPosition());
+		offset = fReader.getPosition();
+		if (parseFunctionDescription(offset)) offset = fReader.getPosition();
+		parseCode(offset);
 		eatWhitespace();
 		if (fReader.read() != '}') {
 			String problem = "Syntax error: expected '}'";
@@ -342,33 +344,226 @@ public class C4ScriptParser implements IResourceDeltaVisitor {
 		return false;
 	}
 	
-	private boolean parseCall(int offset) {
+	private boolean parseCall(int offset) throws ParsingException {
+		fReader.seek(offset);
+		String funcName = fReader.readWord();
+		if (funcName.length() == 0) {
+			return false;
+		}
+		else {
+			eatWhitespace();
+			if (fReader.read() != '(') return false;
+			offset = fReader.getPosition();
+			boolean forceValue = false;
+			do {
+				if (parseValue(offset)) {
+					eatWhitespace();
+					int readByte = fReader.read();
+					if (readByte == ',') {
+						offset = fReader.getPosition();
+						forceValue = true; // now another value must come
+						continue;
+					}
+					else if (readByte == ')') {
+						break;
+					}
+					else {
+						String problem = "Syntax error: expected ',' or ')' instead of '" + new String(new int[] { readByte },0,1) + "'";
+						createErrorMarker(fReader.getPosition() - 1, fReader.getPosition() + 1, problem);
+						throw new ParsingException(problem);
+					}
+				}
+				else {
+					if (!forceValue) break; // this call has no parameters
+					else {
+						String problem = "Syntax error: expected another parameter";
+						createErrorMarker(fReader.getPosition() - 1, fReader.getPosition() + 1, problem);
+						throw new ParsingException(problem);
+					}
+				}
+			} while(!fReader.reachedEOF());
+			return true;
+		}
 		// parse all parameter with parseValue
 		// do type checking where possible
-		return false;
 	}
 	
-	private boolean parseValue(int offset) {
+	private boolean parseValue(int offset) throws ParsingException {
+		fReader.seek(offset);
+		if (
+				parseParenthesisGroup(offset) ||
+				parseCall(offset) ||
+				parseString(offset) ||
+				parseVariable(offset) )
+		{
+			fReader.seek(offset);
+			eatWhitespace();
+			offset = fReader.getPosition();
+			if (parseOperator(offset)) {
+				eatWhitespace();
+				offset = fReader.getPosition();
+				if (parseValue(offset)) {
+					return true;
+				}
+				else {
+					String problem = "Syntax error: expected an expression after operator";
+					createErrorMarker(fReader.getPosition() - 1, fReader.getPosition() + 1, problem);
+					throw new ParsingException(problem);
+				}
+			}
+			else {
+				return true; // this seems to be the last sub value in the parent value
+			}
+		}
+		else {
+			return false; // there is no value at the specified offset
+		}
 		
-		// try parseCall || parseString || parseVariable
-		// now parseOperator has to be successful or end of value.
+		// try parseParenthesisGroup || parseCall || parseString || parseVariable
+		//   if fail return fail
+		//   else:
+		// now parseOperator has to be successful
+		//   if fail return success
+		//   else:
 		// now try parseValue again
-		// think of: ()-groupings
+		//   if fail throw syntax error
+		//   else return success
 
 		// recursive
 		// calls parseCall
 		// calls parseString
 		// calls parseVariable
 		// calls parseOperator
-		return false;
+		// calls parseParenthesisGroup
 	}
 	
-	private boolean parseVariable(int offset) {
+	private boolean parseParenthesisGroup(int offset) throws ParsingException {
+		fReader.seek(offset);
+		if (fReader.read() != '(') return false;
+		eatWhitespace();
+		parseValue(fReader.getPosition());
+		eatWhitespace();
+		if (fReader.read() != ')') {
+			String problem = "Syntax error: expected ')'";
+			createErrorMarker(fReader.getPosition() - 1, fReader.getPosition() + 1, problem);
+			throw new ParsingException(problem);
+		}
+		else {
+			return true;
+		}
+	}
+	
+	private boolean parseVariable(int offset) throws ParsingException {
+		fReader.seek(offset);
+		
+		parsePrefixOperator(offset);
+		eatWhitespace();
+		String varName = fReader.readWord();
+		if (varName.length() == 0) {
+//			fReader.seek(offset);
+			return false;
+		}
+		eatWhitespace();
+		parsePostfixOperator(offset);
+		return true;
 		// iVar
 		// think of post- and prefixes: iVar++
 		// think of: -iVar
 		// think of: !bVar
-		return false;
+	}
+	
+	private boolean parsePostfixOperator(int offset) throws ParsingException {
+		fReader.seek(offset);
+		int readByte = fReader.read();
+		if (readByte == '-' || readByte == '+') {
+			int secondByte = fReader.read();
+			if (secondByte == '-' || secondByte == '+') {
+				if (readByte != secondByte) {
+					String problem = "Syntax error: postfix operators are either -- or ++";
+					createErrorMarker(fReader.getPosition() - 2, fReader.getPosition(), problem);
+					throw new ParsingException(problem);
+				}
+				else {
+					return true;
+				}
+			}
+			else if (secondByte == '>') {
+				if (readByte == '+') {
+					String problem = "Syntax error: invalid operator '+>'";
+					createErrorMarker(fReader.getPosition() - 2, fReader.getPosition(), problem);
+					throw new ParsingException(problem);
+				}
+				else {
+					int thirdByte = fReader.read();
+					if (thirdByte == '~') {
+						if (!parseValue(fReader.getPosition())) {
+							String problem = "Syntax error: expected a method name";
+							createErrorMarker(fReader.getPosition(), fReader.getPosition() + 2, problem);
+							throw new ParsingException(problem);
+						}
+						return true;
+					}
+					else {
+						fReader.unread();
+						if (!parseValue(fReader.getPosition())) {
+							String problem = "Syntax error: expected a method name";
+							createErrorMarker(fReader.getPosition(), fReader.getPosition() + 2, problem);
+							throw new ParsingException(problem);
+						}
+						return true;
+					}
+				}
+			}
+			else {
+				return false;
+			}
+		}
+		else if (readByte == ':') {
+			int secondByte = fReader.read();
+			if (secondByte == ':') {
+				if (!parseValue(fReader.getPosition())) {
+					String problem = "Syntax error: expected a method name";
+					createErrorMarker(fReader.getPosition(), fReader.getPosition() + 2, problem);
+					throw new ParsingException(problem);
+				}
+				return true;
+			}
+			else {
+				String problem = "Syntax error: expected ':";
+				createErrorMarker(fReader.getPosition() - 1, fReader.getPosition(), problem);
+				throw new ParsingException(problem);
+			}
+		}
+		else {
+			return false;
+		}
+		// this is either ++ or -- or -> or ->~ or ::
+	}
+	
+	private boolean parsePrefixOperator(int offset) throws ParsingException {
+		fReader.seek(offset);
+		int readByte = fReader.read();
+		if (readByte == '-' || readByte == '+') {
+			int secondByte = fReader.read();
+			if (secondByte == '-' || secondByte == '+') {
+				if (readByte != secondByte) {
+					String problem = "Syntax error: prefix operators are either -- or ++";
+					createErrorMarker(fReader.getPosition() - 2, fReader.getPosition(), problem);
+					throw new ParsingException(problem);
+				}
+				return true;
+			}
+			else {
+				fReader.unread();
+				return true;
+			}
+		}
+		else if (readByte == '!') {
+			return true;
+		}
+		else {
+			return false;
+		}
 	}
 	
 	private boolean parseOperator(int offset) {
