@@ -1,0 +1,23 @@
+Intern:
+- c4parser
+-- > neue indexierungsquelle
+-- > neue markerquelle
+- einbindung des parsers in einen inkrementellen build
+
+- indexierte Daten des Clonk-Verzeichnisses per java.beans speichern. (genau wie engine.xml)
+-- wo? im projekt verzeichnis? in irgendeinen workspace->plugin ordner (gibts sowas?)?
+
+
+GUI:
+-  New-Project-Wizard
+-- fehlende Texte erg‰nzen
+-- fehlende Optionsfelder erg‰nzen (wenn welche fehlen)
+
+- New-Object-Wizard
+-- Namen in die entsprechenden Dateien einflieﬂen lassen.
+-- Vielleicht schon nach deutsch/englisch ‹bersetzung nachfragen.
+
++ New-Objectcontainer-Wizard
++ New-Scenario-Wizard
++ New-*-Wizard ... blablabla
+
