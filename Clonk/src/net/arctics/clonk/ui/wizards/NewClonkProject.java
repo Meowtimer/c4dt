@@ -1,5 +1,6 @@
 package net.arctics.clonk.ui.wizards;
 
+import org.eclipse.core.resources.ICommand;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IProjectDescription;
 import org.eclipse.core.resources.ResourcesPlugin;
@@ -19,6 +20,9 @@ public class NewClonkProject extends Wizard implements INewWizard {
 			IProject proj = page.getProjectHandle();
 			IProjectDescription desc = ResourcesPlugin.getWorkspace().newProjectDescription(page.getProjectName());
 			desc.setNatureIds(new String[] { "net.arctics.clonk.clonknature" });
+			ICommand command = desc.newCommand();
+			command.setBuilderName("net.arctics.clonk.builder");
+			desc.setBuildSpec(new ICommand[] { command });
 			proj.create(desc,null);
 			proj.open(null);
 			return true;

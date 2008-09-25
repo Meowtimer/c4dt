@@ -35,6 +35,7 @@
 		<run class="net.arctics.clonk.resource.ClonkProjectNature">
 		</run>
 	</runtime>
+	<builder id="net.arctics.clonk.builder"/>
 </extension>
    
   <extension point="org.eclipse.core.runtime.contentTypes">
@@ -224,7 +225,14 @@
     </actionSet>
  </extension>-->
  
- <extension
+    <extension id="builder" name="C4 Builder" point="org.eclipse.core.resources.builders"> 
+      <builder hasNature="true"> 
+         <run class="net.arctics.clonk.resource.ClonkBuilder"> 
+         </run> 
+      </builder> 
+   </extension> 
+ 
+<extension
        point="org.eclipse.ui.commands">
     <command
           categoryId="org.eclipse.ui.category.project"
@@ -234,7 +242,7 @@
           name="Index Clonk directory">
           
     </command>
- </extension>
+ </extension> 
  
  <!--<extension
        point="org.eclipse.ui.actionSets">

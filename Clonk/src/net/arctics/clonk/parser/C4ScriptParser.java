@@ -11,10 +11,15 @@ import net.arctics.clonk.parser.C4Directive.C4DirectiveType;
 import net.arctics.clonk.parser.C4Function.C4FunctionScope;
 
 import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IMarker;
+import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.IResourceDelta;
+import org.eclipse.core.resources.IResourceDeltaVisitor;
 import org.eclipse.core.runtime.CoreException;
 
-public class C4ScriptParser {
+public class C4ScriptParser implements IResourceDeltaVisitor {
 	
 	protected static class BufferedScanner {
 		
@@ -199,6 +204,10 @@ public class C4ScriptParser {
 		fReader = new BufferedScanner(fScript);
 	}
 	
+	public C4ScriptParser() {
+		
+	}
+	
 	public void parse() {
 		int offset = 0;
 		try {
@@ -340,6 +349,12 @@ public class C4ScriptParser {
 	}
 	
 	private boolean parseValue(int offset) {
+		
+		// try parseCall || parseString || parseVariable
+		// now parseOperator has to be successful or end of value.
+		// now try parseValue again
+		// think of: ()-groupings
+
 		// recursive
 		// calls parseCall
 		// calls parseString
@@ -351,13 +366,14 @@ public class C4ScriptParser {
 	private boolean parseVariable(int offset) {
 		// iVar
 		// think of post- and prefixes: iVar++
+		// think of: -iVar
+		// think of: !bVar
 		return false;
 	}
 	
 	private boolean parseOperator(int offset) {
 		// + - S= * % ... all operators that combines 2 values to 1
 		// not: =
-		// think of: return(-iVar);
 		return false;
 	}
 	
@@ -506,5 +522,26 @@ public class C4ScriptParser {
 	 */
 	public List<C4Variable> getVariables() {
 		return variables;
+	}
+	
+	@SuppressWarnings("unused")
+	public boolean visit(IResourceDelta delta) throws CoreException {
+		if (delta == null) 
+			return false;
+		
+		IResourceDelta[] deltas = delta.getAffectedChildren();
+		IResource res = delta.getResource();
+		int flags = delta.getFlags();
+		int kind = delta.getKind();
+		if (delta.getResource() instanceof IFile)
+			try {
+				new C4ScriptParser((IFile) delta.getResource());
+			} catch (CompilerException e) {
+				e.printStackTrace();
+			}
+		if (delta.getResource() instanceof IFolder || delta.getResource() instanceof IProject)
+			return true;
+		else
+			return false;
 	}
 }
