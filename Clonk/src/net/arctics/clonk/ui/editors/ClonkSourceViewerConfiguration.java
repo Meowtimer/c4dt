@@ -12,12 +12,16 @@ import org.eclipse.jface.text.IInformationControlCreator;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.ITextDoubleClickStrategy;
 import org.eclipse.jface.text.ITextHover;
+import org.eclipse.jface.text.ITextHoverExtension;
 import org.eclipse.jface.text.ITextViewer;
 import org.eclipse.jface.text.TextAttribute;
+import org.eclipse.jface.text.TextPresentation;
+import org.eclipse.jface.text.DefaultInformationControl.IInformationPresenter;
 import org.eclipse.jface.text.contentassist.ContentAssistant;
 import org.eclipse.jface.text.contentassist.IContentAssistant;
 import org.eclipse.jface.text.hyperlink.IHyperlink;
 import org.eclipse.jface.text.hyperlink.IHyperlinkDetector;
+import org.eclipse.jface.text.hyperlink.URLHyperlinkDetector;
 import org.eclipse.jface.text.presentation.IPresentationReconciler;
 import org.eclipse.jface.text.presentation.PresentationReconciler;
 import org.eclipse.jface.text.quickassist.IQuickAssistAssistant;
@@ -25,18 +29,19 @@ import org.eclipse.jface.text.quickassist.QuickAssistAssistant;
 import org.eclipse.jface.text.rules.DefaultDamagerRepairer;
 import org.eclipse.jface.text.rules.Token;
 import org.eclipse.jface.text.source.ISourceViewer;
-import org.eclipse.jface.text.source.SourceViewerConfiguration;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.editors.text.TextSourceViewerConfiguration;
 import org.eclipse.ui.part.FileEditorInput;
 import org.eclipse.ui.texteditor.ITextEditor;
 import org.eclipse.jface.text.Region;
 
-public class ClonkSourceViewerConfiguration extends SourceViewerConfiguration {
+public class ClonkSourceViewerConfiguration extends TextSourceViewerConfiguration {
 	
 	/**
 	 * Encapsulates information about an identifier in a document and the field it refers to
@@ -95,11 +100,11 @@ public class ClonkSourceViewerConfiguration extends SourceViewerConfiguration {
 		}
 	}
 	
-	private class HyperlinkDetector implements IHyperlinkDetector {
+	private class C4ScriptHyperlinkDetector implements IHyperlinkDetector {
 
 		public IHyperlink[] detectHyperlinks(ITextViewer viewer, IRegion region, boolean canShowMultipleHyperlinks) {
 			IdentInfo i = new IdentInfo(viewer.getDocument(),region);
-			if (i.getField() != null) {
+			if (i.getField() != null && (i.getField().getObject() != null || i.getField() instanceof C4Object)) {
 				return new IHyperlink[] {
 					new C4ScriptHyperlink(i.getIdentRegion(),i.getField())
 				};
@@ -151,33 +156,56 @@ public class ClonkSourceViewerConfiguration extends SourceViewerConfiguration {
 					// TODO: provide some info about global functions or something
 				}
 			} catch (PartInitException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		}
 		
 	}
 	
-	private class TextHover implements ITextHover {
+	private class C4ScriptTextHover implements ITextHover, ITextHoverExtension {
 
 		private IdentInfo identInfo;
+		private IInformationControlCreator informationControLCreator;
 		
-		private IdentInfo getIdentInfo(ITextViewer viewer, IRegion region) {
-			if (identInfo == null) {
-				identInfo = new IdentInfo(viewer.getDocument(), region);
-			}
-			return identInfo;
+		public C4ScriptTextHover() {
+			super();
+			informationControLCreator = new IInformationControlCreator() {
+				
+				private IInformationPresenter presenter = new DefaultInformationControl.IInformationPresenter() {
+
+					public String updatePresentation(Display display, String infoText, TextPresentation presentation, int maxWidth, int maxHeight) {
+						return infoText;
+					}
+
+				};
+
+				public IInformationControl createInformationControl(Shell shell) {
+					return new DefaultInformationControl(shell, presenter) {
+
+						@Override
+						public void setInformation(String content) {
+							super.setInformation("<b>"+content+"</b>");
+						}
+						
+					};
+				}
+				
+			};
 		}
 		
 		public String getHoverInfo(ITextViewer viewer, IRegion region) {
-			IdentInfo i = getIdentInfo(viewer, region);
-			return i.getField() != null
-				? i.getField().getShortInfo()
+			return identInfo != null && identInfo.getField() != null
+				? identInfo.getField().getShortInfo()
 				: null;
 		}
 
 		public IRegion getHoverRegion(ITextViewer viewer, int offset) {
-			return getIdentInfo(viewer, new Region(offset,0)).getIdentRegion();
+			identInfo = new IdentInfo(viewer.getDocument(), new Region(offset, 0));
+			return identInfo.getIdentRegion();
+		}
+
+		public IInformationControlCreator getHoverControlCreator() {
+			return informationControLCreator;
 		}
 		
 	}
@@ -272,7 +300,6 @@ public class ClonkSourceViewerConfiguration extends SourceViewerConfiguration {
 	
 	@Override
 	public IQuickAssistAssistant getQuickAssistAssistant(ISourceViewer sourceViewer) {
-		
 		IQuickAssistAssistant assistant = new QuickAssistAssistant();
 		assistant.setQuickAssistProcessor(new ClonkQuickAssistProcessor());
 		return assistant;
@@ -319,7 +346,8 @@ public class ClonkSourceViewerConfiguration extends SourceViewerConfiguration {
 	@Override
 	public IHyperlinkDetector[] getHyperlinkDetectors(ISourceViewer sourceViewer) { 
 		return new IHyperlinkDetector[] {
-				new HyperlinkDetector()
+				new C4ScriptHyperlinkDetector(),
+				new URLHyperlinkDetector()
 		};
 	}
 
@@ -328,7 +356,7 @@ public class ClonkSourceViewerConfiguration extends SourceViewerConfiguration {
 	 */
 	@Override
 	public ITextHover getTextHover(ISourceViewer sourceViewer, String contentType, int stateMask) {
-		return new TextHover();
+		return new C4ScriptTextHover();
 	}
 
 }

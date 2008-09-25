@@ -1,8 +1,5 @@
 package net.arctics.clonk.ui.editors;
 
-import org.eclipse.swt.graphics.Image;
-
-import net.arctics.clonk.parser.C4Function;
 import net.arctics.clonk.parser.C4Object;
 import net.arctics.clonk.parser.C4Field;
 import net.arctics.clonk.Utilities;

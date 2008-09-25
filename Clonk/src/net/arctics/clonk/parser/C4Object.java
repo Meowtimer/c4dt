@@ -7,8 +7,6 @@ import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.C4Directive.C4DirectiveType;
 
 import org.eclipse.core.resources.IFile;
-import org.eclipse.core.resources.IResource;
-import org.eclipse.jface.viewers.*;
 
 public class C4Object extends C4Field {
 	

@@ -234,5 +234,10 @@ public class C4Function extends C4Field implements Serializable {
 	public int sortCategory() {
 		return C4Variable.C4VariableScope.values().length + visibility.ordinal();
 	}
+
+	// to be called on engine functions
+	public String getDocumentationURL() {
+		return String.format("http://www.clonk.de/docs/de/sdk/script/fn/%s.html",getName());
+	}
 	
 }
