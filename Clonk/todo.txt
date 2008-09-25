@@ -7,6 +7,7 @@ Intern:
 - indexierte Daten des Clonk-Verzeichnisses per java.beans speichern. (genau wie engine.xml)
 -- wo? im projekt verzeichnis? in irgendeinen workspace->plugin ordner (gibts sowas?)?
 
+-Eclipse distro multiplatform compatible
 
 GUI:
 -  New-Project-Wizard
