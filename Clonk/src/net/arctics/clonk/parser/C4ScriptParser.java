@@ -368,6 +368,32 @@ public class C4ScriptParser implements IResourceDeltaVisitor {
 		return false;
 	}
 	
+	/**
+	 * Parses { parseCodeBlock } or parseCode
+	 * @param offset
+	 * @return
+	 * @throws ParsingException 
+	 */
+	private boolean parseCodeSegment(int offset) throws ParsingException {
+		if (fReader.read() == '{') { // if has block
+			eatWhitespace();
+			offset = fReader.getPosition();
+			if (!parseCodeBlock(fReader.getPosition())) fReader.seek(offset);
+			eatWhitespace();
+			if (fReader.read() != '}') {
+				String problem = "Syntax error: expected '}', code blocks have to be closed by '}'"; 
+				createErrorMarker(fReader.getPosition() - 1, fReader.getPosition(), problem);
+				throw new ParsingException(problem);
+			}
+			return true;
+		}
+		else {
+			eatWhitespace();
+			if (parseCode(offset)) return true;
+			else return false;
+		}
+	}
+	
 	private boolean parseCall(int offset) throws ParsingException {
 		fReader.seek(offset);
 		String funcName = fReader.readWord();
@@ -535,7 +561,7 @@ public class C4ScriptParser implements IResourceDeltaVisitor {
 		offset = fReader.getPosition();
 		eatWhitespace();
 		if (parseArrayAccess(offset)) offset = fReader.getPosition();
-		eatWhitespace();
+		eatWhitespace(offset);
 		if (!parsePostfixOperator(offset)) // entweder
 			parseObjectCall(offset);       // oder
 				
@@ -716,24 +742,30 @@ public class C4ScriptParser implements IResourceDeltaVisitor {
 		return false;
 	}
 	
+	/**
+	 * Parses [Function description|IMGC|canDisplayMenuItem()]
+	 * @param offset
+	 * @return
+	 * @throws ParsingException
+	 */
 	private boolean parseFunctionDescription(int offset) throws ParsingException {
 		fReader.seek(offset);
 		if (fReader.read() != '[') return false;
-		String desc = fReader.readStringUntil(new char[] { '|' });
+		fReader.readStringUntil(new char[] { '|' }); // description text
 		if (fReader.read() != '|') {
 			fReader.unread();
 			if (fReader.read() == ']') return true;
 			else return false;
 		}
 		int idStart = fReader.getPosition();
-		String id = fReader.readStringUntil(new char[] { '|' });
+		String id = fReader.readStringUntil(new char[] { '|' }); // description ID for icon
 		if (id.length() != 4) {
 			String problem = "Syntax error: expected an ID";
 			createErrorMarker(idStart, idStart + 4, problem);
 			throw new ParsingException(problem);
 		}
 		if (fReader.read() == '|') {
-			parseValue(fReader.getPosition());
+			parseValue(fReader.getPosition());  // menu item condition
 		}
 		if (fReader.read() == ']') {
 			return true;
@@ -820,16 +852,32 @@ public class C4ScriptParser implements IResourceDeltaVisitor {
 				throw new ParsingException(problem);
 			}
 			eatWhitespace();
-			if (fReader.read() == '{') { // if has block
-				eatWhitespace();
-				parseCodeBlock(fReader.getPosition());
-				eatWhitespace();
-				if (fReader.read() != '}') {
-					String problem = "Syntax error: expected '}', code blocks have to be closed by '}'"; 
-					createErrorMarker(fReader.getPosition() - 1, fReader.getPosition(), problem);
+			offset = fReader.getPosition();
+			if (!parseCodeSegment(fReader.getPosition())) {
+				String problem = "Syntax error: expected a command"; 
+				createErrorMarker(offset, offset + 4, problem);
+				throw new ParsingException(problem);
+			}
+			offset = fReader.getPosition();
+			String nextWord = fReader.readWord();
+			if (nextWord.equalsIgnoreCase("else")) {
+				if (!nextWord.equals(nextWord.toLowerCase())) {
+					String problem = "Syntax error: you should only use lower case letters in keywords. ('" + nextWord.toLowerCase() + "' instead of '" + nextWord + "')"; 
+					createErrorMarker(fReader.getPosition() - nextWord.length(), fReader.getPosition(), problem);
 					throw new ParsingException(problem);
 				}
+				eatWhitespace();
+				offset = fReader.getPosition();
+				if (!parseCodeSegment(fReader.getPosition())) {
+					String problem = "Syntax error: expected a command"; 
+					createErrorMarker(offset, offset + 4, problem);
+					throw new ParsingException(problem);
+				}	
 			}
+			else {
+				fReader.seek(offset);
+			}
+			return true;
 		}
 		
 		// if (parseValue) { parseCode } else if (parseValue) { parseCode } else { parseCode }
@@ -893,7 +941,7 @@ public class C4ScriptParser implements IResourceDeltaVisitor {
 		String sequence = fReader.readString(2);
 		if (sequence.equals("//")) {
 			fReader.moveUntil(BufferedScanner.NEWLINE_DELIMITERS);
-			eatWhitespace(fReader.getPosition());
+			fReader.eat(BufferedScanner.NEWLINE_DELIMITERS);
 			return true;
 		}
 		else if (sequence.equals("/*")) {
@@ -917,14 +965,14 @@ public class C4ScriptParser implements IResourceDeltaVisitor {
 	
 	protected void eatWhitespace() {
 		fReader.eat(BufferedScanner.WHITESPACE_DELIMITERS);
-		if (parseComment(fReader.getPosition()))
+		while (parseComment(fReader.getPosition()))
 			fReader.eat(BufferedScanner.WHITESPACE_DELIMITERS);
 	}
 	
 	protected void eatWhitespace(int offset) {
 		fReader.seek(offset);
 		fReader.eat(BufferedScanner.WHITESPACE_DELIMITERS);
-		if (parseComment(fReader.getPosition()))
+		while (parseComment(fReader.getPosition()))
 			fReader.eat(BufferedScanner.WHITESPACE_DELIMITERS);
 	}
 	
