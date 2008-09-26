@@ -324,7 +324,7 @@ public class C4ScriptParser implements IResourceDeltaVisitor {
 		eatWhitespace();
 		offset = fReader.getPosition();
 		if (parseFunctionDescription(offset)) offset = fReader.getPosition();
-		parseCode(offset);
+		parseCodeBlock(offset);
 		eatWhitespace();
 		if (fReader.read() != '}') {
 			String problem = "Syntax error: expected '}'";
@@ -336,7 +336,31 @@ public class C4ScriptParser implements IResourceDeltaVisitor {
 		return false;
 	}
 	
+	/**
+	 * Parses one command
+	 * i.e. if (condition) <code>parseCode</code>
+	 * @param offset
+	 * @return
+	 */
 	private boolean parseCode(int offset) {
+		// a complete code block without reading { }
+		// function call
+		// zuweisung
+		// post-prefix
+		return false;
+	}
+	
+	/**
+	 * Parses all commands
+	 * For use in keyword() { <code>parseCodeBlock<code> }
+	 * @param offset
+	 * @return
+	 */
+	private boolean parseCodeBlock(int offset) {
+		fReader.seek(offset);
+		while(parseCode(fReader.getPosition())) {
+			eatWhitespace();
+		}
 		// a complete code block without reading { }
 		// function call
 		// zuweisung
@@ -365,6 +389,7 @@ public class C4ScriptParser implements IResourceDeltaVisitor {
 						continue;
 					}
 					else if (readByte == ')') {
+						fReader.unread();
 						break;
 					}
 					else {
@@ -382,7 +407,18 @@ public class C4ScriptParser implements IResourceDeltaVisitor {
 					}
 				}
 			} while(!fReader.reachedEOF());
-			return true;
+			if (fReader.read() == ')') {
+				offset = fReader.getPosition();
+				if (parseArrayAccess(fReader.getPosition())) offset = fReader.getPosition(); 
+				parseObjectCall(offset);
+				return true;
+			}
+			else {
+				String problem = "Syntax error: expected ')'";
+				createErrorMarker(fReader.getPosition() - 1, fReader.getPosition(), problem);
+				throw new ParsingException(problem);
+			}
+			
 		}
 		// parse all parameter with parseValue
 		// do type checking where possible
@@ -392,9 +428,12 @@ public class C4ScriptParser implements IResourceDeltaVisitor {
 		fReader.seek(offset);
 		if (
 				parseParenthesisGroup(offset) ||
+				parseNumber(offset) ||
 				parseCall(offset) ||
 				parseString(offset) ||
-				parseVariable(offset) )
+				parseID(offset) ||
+				parseVariable(offset) ||
+				parseArray(offset))
 		{
 			fReader.seek(offset);
 			eatWhitespace();
@@ -453,6 +492,36 @@ public class C4ScriptParser implements IResourceDeltaVisitor {
 		}
 	}
 	
+	private boolean parseNumber(int offset) throws ParsingException {
+		fReader.seek(offset);
+		int count = 0;
+		do {
+			int readByte = fReader.read();
+			if (0x30 < readByte && readByte < 0x39) {
+				count++;
+				continue;
+			}
+			else if ((0x41 < readByte && readByte < 0x5a) || (0x61 < readByte && readByte < 0x7a)) {
+				if (count == 0) return false; // well, this seems not to be a number at all
+				String problem = "Syntax error: erroneous Ident";
+				createErrorMarker(offset, fReader.getPosition(), problem);
+				throw new ParsingException(problem);
+			}
+			else {
+				if (count == 0) return false; // well, this seems not to be a number at all
+				return true;
+			}
+		} while(!fReader.reachedEOF());
+		return true; // TODO correct number finish?
+	}
+	
+	/**
+	 * Parses iVar inclusive all post- and prefixes
+	 * Parses iVar->call() (implies iVar->call()->call()->call()...)
+	 * @param offset
+	 * @return
+	 * @throws ParsingException
+	 */
 	private boolean parseVariable(int offset) throws ParsingException {
 		fReader.seek(offset);
 		
@@ -463,8 +532,13 @@ public class C4ScriptParser implements IResourceDeltaVisitor {
 //			fReader.seek(offset);
 			return false;
 		}
+		offset = fReader.getPosition();
 		eatWhitespace();
-		parsePostfixOperator(offset);
+		if (parseArrayAccess(offset)) offset = fReader.getPosition();
+		eatWhitespace();
+		if (!parsePostfixOperator(offset)) // entweder
+			parseObjectCall(offset);       // oder
+				
 		return true;
 		// iVar
 		// think of post- and prefixes: iVar++
@@ -472,60 +546,129 @@ public class C4ScriptParser implements IResourceDeltaVisitor {
 		// think of: !bVar
 	}
 	
+	/**
+	 * Parses ->call(...)
+	 * @param offset
+	 * @return
+	 * @throws ParsingException
+	 */
+	private boolean parseObjectCall(int offset) throws ParsingException {
+		if (parseObjectFieldOperator(offset)) {
+			eatWhitespace();
+			offset = fReader.getPosition();
+			if (!parseCall(offset)) {
+				String problem = "Syntax error: expected a method name";
+				createErrorMarker(fReader.getPosition(), fReader.getPosition() + 2, problem);
+				throw new ParsingException(problem);
+			}
+			return true;
+		}
+		return false;
+	}
+	
 	private boolean parsePostfixOperator(int offset) throws ParsingException {
 		fReader.seek(offset);
-		int readByte = fReader.read();
-		if (readByte == '-' || readByte == '+') {
-			int secondByte = fReader.read();
-			if (secondByte == '-' || secondByte == '+') {
-				if (readByte != secondByte) {
-					String problem = "Syntax error: postfix operators are either -- or ++";
-					createErrorMarker(fReader.getPosition() - 2, fReader.getPosition(), problem);
-					throw new ParsingException(problem);
+		String next = fReader.readString(2);
+		if (next.equals("--") || next.equals("++")) {
+			return true;
+		}
+		return false;
+	}
+	
+//	private boolean parsePostfixOperator(int offset) throws ParsingException {
+//		fReader.seek(offset);
+//		int readByte = fReader.read();
+//		if (readByte == '-' || readByte == '+') {
+//			int secondByte = fReader.read();
+//			if (secondByte == '-' || secondByte == '+') {
+//				if (readByte != secondByte) {
+//					String problem = "Syntax error: postfix operators are either -- or ++";
+//					createErrorMarker(fReader.getPosition() - 2, fReader.getPosition(), problem);
+//					throw new ParsingException(problem);
+//				}
+//				else {
+//					return true;
+//				}
+//			}
+//			else if (secondByte == '>') {
+//				if (readByte == '+') {
+//					String problem = "Syntax error: invalid operator '+>'";
+//					createErrorMarker(fReader.getPosition() - 2, fReader.getPosition(), problem);
+//					throw new ParsingException(problem);
+//				}
+//				else {
+//					int thirdByte = fReader.read();
+//					if (thirdByte == '~') {
+//						if (!parseValue(fReader.getPosition())) {
+//							String problem = "Syntax error: expected a method name";
+//							createErrorMarker(fReader.getPosition(), fReader.getPosition() + 2, problem);
+//							throw new ParsingException(problem);
+//						}
+//						return true;
+//					}
+//					else {
+//						fReader.unread();
+//						if (!parseValue(fReader.getPosition())) {
+//							String problem = "Syntax error: expected a method name";
+//							createErrorMarker(fReader.getPosition(), fReader.getPosition() + 2, problem);
+//							throw new ParsingException(problem);
+//						}
+//						return true;
+//					}
+//				}
+//			}
+//			else {
+//				return false;
+//			}
+//		}
+//		else if (readByte == ':') {
+//			int secondByte = fReader.read();
+//			if (secondByte == ':') {
+//				if (!parseValue(fReader.getPosition())) {
+//					String problem = "Syntax error: expected a method name";
+//					createErrorMarker(fReader.getPosition(), fReader.getPosition() + 2, problem);
+//					throw new ParsingException(problem);
+//				}
+//				return true;
+//			}
+//			else {
+//				String problem = "Syntax error: expected ':";
+//				createErrorMarker(fReader.getPosition() - 1, fReader.getPosition(), problem);
+//				throw new ParsingException(problem);
+//			}
+//		}
+//		else {
+//			return false;
+//		}
+//		// this is either ++ or --
+//	}
+	
+	private boolean parseObjectFieldOperator(int offset) {
+		fReader.seek(offset);
+		if (fReader.read() == '-') {
+			if (fReader.read() == '>') {
+				if (fReader.read() != '~') {
+					fReader.unread();
 				}
-				else {
-					return true;
-				}
-			}
-			else if (secondByte == '>') {
-				if (readByte == '+') {
-					String problem = "Syntax error: invalid operator '+>'";
-					createErrorMarker(fReader.getPosition() - 2, fReader.getPosition(), problem);
-					throw new ParsingException(problem);
-				}
-				else {
-					int thirdByte = fReader.read();
-					if (thirdByte == '~') {
-						if (!parseValue(fReader.getPosition())) {
-							String problem = "Syntax error: expected a method name";
-							createErrorMarker(fReader.getPosition(), fReader.getPosition() + 2, problem);
-							throw new ParsingException(problem);
-						}
-						return true;
-					}
-					else {
-						fReader.unread();
-						if (!parseValue(fReader.getPosition())) {
-							String problem = "Syntax error: expected a method name";
-							createErrorMarker(fReader.getPosition(), fReader.getPosition() + 2, problem);
-							throw new ParsingException(problem);
-						}
-						return true;
-					}
-				}
+				return true;
 			}
 			else {
 				return false;
 			}
 		}
-		else if (readByte == ':') {
-			int secondByte = fReader.read();
-			if (secondByte == ':') {
-				if (!parseValue(fReader.getPosition())) {
-					String problem = "Syntax error: expected a method name";
-					createErrorMarker(fReader.getPosition(), fReader.getPosition() + 2, problem);
-					throw new ParsingException(problem);
-				}
+		else {
+			return false;
+		}
+	}
+	
+	/**
+	 * Finds :: function calls
+	 * @deprecated :: operator does not exist?!
+	 */
+	private boolean parseStaticFieldOperator(int offset) throws ParsingException {
+		fReader.seek(offset);
+		if (fReader.read() == ':') {
+			if (fReader.read() == ':') {
 				return true;
 			}
 			else {
@@ -534,10 +677,7 @@ public class C4ScriptParser implements IResourceDeltaVisitor {
 				throw new ParsingException(problem);
 			}
 		}
-		else {
-			return false;
-		}
-		// this is either ++ or -- or -> or ->~ or ::
+		return false;
 	}
 	
 	private boolean parsePrefixOperator(int offset) throws ParsingException {
@@ -561,37 +701,157 @@ public class C4ScriptParser implements IResourceDeltaVisitor {
 		else if (readByte == '!') {
 			return true;
 		}
+		else if (readByte == '~') {
+			return true;
+		}
 		else {
 			return false;
 		}
 	}
 	
 	private boolean parseOperator(int offset) {
+		
 		// + - S= * % ... all operators that combines 2 values to 1
 		// not: =
 		return false;
 	}
 	
-	private boolean parseFunctionDescription(int offset) {
+	private boolean parseFunctionDescription(int offset) throws ParsingException {
+		fReader.seek(offset);
+		if (fReader.read() != '[') return false;
+		String desc = fReader.readStringUntil(new char[] { '|' });
+		if (fReader.read() != '|') {
+			fReader.unread();
+			if (fReader.read() == ']') return true;
+			else return false;
+		}
+		int idStart = fReader.getPosition();
+		String id = fReader.readStringUntil(new char[] { '|' });
+		if (id.length() != 4) {
+			String problem = "Syntax error: expected an ID";
+			createErrorMarker(idStart, idStart + 4, problem);
+			throw new ParsingException(problem);
+		}
+		if (fReader.read() == '|') {
+			parseValue(fReader.getPosition());
+		}
+		if (fReader.read() == ']') {
+			return true;
+		}
+		else {
+			String problem = "Syntax error: expected ']";
+			createErrorMarker(fReader.getPosition() -1,fReader.getPosition(), problem);
+			throw new ParsingException(problem);
+		}
 		// [blublu|IMGC|...]
-		return false;
 	}
 	
-	private boolean parseString(int offset) {
-		// "hallo fritz */*/* "
-		return false;
+	private boolean parseArray(int offset) throws ParsingException {
+		fReader.seek(offset);
+		if (fReader.read() != '[') return false;
+		int readByte = 0;
+		do {
+			eatWhitespace();
+			parseValue(fReader.getPosition());
+			eatWhitespace();
+			readByte = fReader.read();
+			if (readByte == ']') {
+				return true;
+			}
+			if (readByte == ',') {
+				continue;
+			}
+			String problem = "Syntax error: expected ',' or ']'";
+			createErrorMarker(fReader.getPosition() - 1, fReader.getPosition(), problem);
+			throw new ParsingException(problem);
+		} while(!fReader.reachedEOF());
+		return true;
 	}
 	
-	private boolean parseKeyword(int offset) {
+	private boolean parseArrayAccess(int offset) throws ParsingException {
+		fReader.seek(offset);
+		if (fReader.read() != '[') return false;
+		eatWhitespace();
+		parseValue(fReader.getPosition());
+		eatWhitespace();
+		if (fReader.read() != ']') {
+			String problem = "Syntax error: expected ']'";
+			createErrorMarker(fReader.getPosition() - 1, fReader.getPosition(), problem);
+			throw new ParsingException(problem);
+		}
+		return true;
+	}
+	
+	private boolean parseString(int offset) throws ParsingException {
+		fReader.seek(offset);
+		if (fReader.read() != '"') return false;
+		StringBuilder builder = new StringBuilder();
+		do {
+			if (builder.length() > 0) builder.append(fReader.readString(1));
+			builder.append(fReader.readStringUntil(new char[] { '"' }));
+		} while ((builder.charAt(builder.length() - 1) == '\\'));
+		if (fReader.read() != '"') {
+			throw new ParsingException("Internal parsing error.");
+		}
+		return true;
+	}
+	
+	private boolean parseKeyword(int offset) throws ParsingException {
+		fReader.seek(offset);
+		String readWord = fReader.readWord();
+		if (readWord.equalsIgnoreCase("if")) {
+			if (!readWord.equals(readWord.toLowerCase())) {
+				String problem = "Syntax error: you should only use lower case letters in keywords. ('" + readWord.toLowerCase() + "' instead of '" + readWord + "')"; 
+				createErrorMarker(fReader.getPosition() - readWord.length(), fReader.getPosition(), problem);
+				throw new ParsingException(problem);
+			}
+			eatWhitespace();
+			if (fReader.read() != '(') {
+				String problem = "Syntax error: expected '('"; 
+				createErrorMarker(fReader.getPosition() - 1, fReader.getPosition(), problem);
+				throw new ParsingException(problem);
+			}
+			eatWhitespace();
+			parseValue(fReader.getPosition()); // if () is valid
+			eatWhitespace();
+			if (fReader.read() != ')') {
+				String problem = "Syntax error: expected ')'"; 
+				createErrorMarker(fReader.getPosition() - 1, fReader.getPosition(), problem);
+				throw new ParsingException(problem);
+			}
+			eatWhitespace();
+			if (fReader.read() == '{') { // if has block
+				eatWhitespace();
+				parseCodeBlock(fReader.getPosition());
+				eatWhitespace();
+				if (fReader.read() != '}') {
+					String problem = "Syntax error: expected '}', code blocks have to be closed by '}'"; 
+					createErrorMarker(fReader.getPosition() - 1, fReader.getPosition(), problem);
+					throw new ParsingException(problem);
+				}
+			}
+		}
+		
 		// if (parseValue) { parseCode } else if (parseValue) { parseCode } else { parseCode }
 		// while (parseValue) { parseCode }
 		// for ( ; ; ) { parseCode } // that is special
 		return false;
 	}
 	
-	private boolean parseID(int offset) {
-		// CLNK
-		return false;
+	private boolean parseID(int offset) throws ParsingException {
+		fReader.seek(offset);
+		for(int i = 0; i < 4;i++) {
+			if ((0x41 < i && i < 0x5a) ||
+					(0x30 < i && i < 0x39) ||
+					(i == '_')) {
+				continue;
+			}
+			else {
+				return false;
+			}
+		}
+		parseObjectCall(fReader.getPosition());
+		return true;
 	}
 
 	private boolean parseParameter(int offset, C4Function function) throws ParsingException {
