@@ -341,13 +341,23 @@ public class C4ScriptParser implements IResourceDeltaVisitor {
 	 * i.e. if (condition) <code>parseCode</code>
 	 * @param offset
 	 * @return
+	 * @throws ParsingException 
 	 */
-	private boolean parseCode(int offset) {
-		// a complete code block without reading { }
-		// function call
-		// zuweisung
-		// post-prefix
-		return false;
+	private boolean parseCode(int offset) throws ParsingException {
+		
+		if (parseCall(offset) || parseAssignment(offset) || parseVariable(offset)) {
+			if (fReader.read() == ';') {
+				return true;
+			}
+			else {
+				String problem = "Syntax error: expected ';'"; 
+				createErrorMarker(fReader.getPosition() - 1, fReader.getPosition(), problem);
+				throw new ParsingException(problem);
+			}
+		}
+		else {
+			return false;
+		}
 	}
 	
 	/**
@@ -355,8 +365,9 @@ public class C4ScriptParser implements IResourceDeltaVisitor {
 	 * For use in keyword() { <code>parseCodeBlock<code> }
 	 * @param offset
 	 * @return
+	 * @throws ParsingException 
 	 */
-	private boolean parseCodeBlock(int offset) {
+	private boolean parseCodeBlock(int offset) throws ParsingException {
 		fReader.seek(offset);
 		while(parseCode(fReader.getPosition())) {
 			eatWhitespace();
@@ -392,6 +403,25 @@ public class C4ScriptParser implements IResourceDeltaVisitor {
 			if (parseCode(offset)) return true;
 			else return false;
 		}
+	}
+	
+	private boolean parseAssignment(int offset) throws ParsingException {
+		eatWhitespace();
+		String varName = fReader.readWord();
+		if (varName.length() == 0) {
+//			fReader.seek(offset);
+			return false;
+		}
+		eatWhitespace();
+		if (fReader.read() != '=') return false;
+		eatWhitespace();
+		offset = fReader.getPosition();
+		if (!parseValue(fReader.getPosition())) {
+			String problem = "Syntax error: expected a value after '='";
+			createErrorMarker(offset, offset + 3, problem);
+			throw new ParsingException(problem);
+		}
+		return true;
 	}
 	
 	private boolean parseCall(int offset) throws ParsingException {
@@ -879,11 +909,84 @@ public class C4ScriptParser implements IResourceDeltaVisitor {
 			}
 			return true;
 		}
-		
+		else if (readWord.equalsIgnoreCase("while")) {
+			if (!readWord.equals(readWord.toLowerCase())) {
+				String problem = "Syntax error: you should only use lower case letters in keywords. ('" + readWord.toLowerCase() + "' instead of '" + readWord + "')"; 
+				createErrorMarker(fReader.getPosition() - readWord.length(), fReader.getPosition(), problem);
+				throw new ParsingException(problem);
+			}
+			eatWhitespace();
+			if (fReader.read() != '(') {
+				String problem = "Syntax error: expected '('"; 
+				createErrorMarker(fReader.getPosition() - 1, fReader.getPosition(), problem);
+				throw new ParsingException(problem);
+			}
+			eatWhitespace();
+			parseValue(fReader.getPosition()); // while () is valid
+			eatWhitespace();
+			if (fReader.read() != ')') {
+				String problem = "Syntax error: expected ')'"; 
+				createErrorMarker(fReader.getPosition() - 1, fReader.getPosition(), problem);
+				throw new ParsingException(problem);
+			}
+			eatWhitespace();
+			offset = fReader.getPosition();
+			if (!parseCodeSegment(fReader.getPosition())) {
+				String problem = "Syntax error: expected a command"; 
+				createErrorMarker(offset, offset + 4, problem);
+				throw new ParsingException(problem);
+			}
+			return true;
+		}
+		else if (readWord.equalsIgnoreCase("for")) {
+			if (!readWord.equals(readWord.toLowerCase())) {
+				String problem = "Syntax error: you should only use lower case letters in keywords. ('" + readWord.toLowerCase() + "' instead of '" + readWord + "')"; 
+				createErrorMarker(fReader.getPosition() - readWord.length(), fReader.getPosition(), problem);
+				throw new ParsingException(problem);
+			}
+			eatWhitespace();
+			if (fReader.read() != '(') {
+				String problem = "Syntax error: expected '('"; 
+				createErrorMarker(fReader.getPosition() - 1, fReader.getPosition(), problem);
+				throw new ParsingException(problem);
+			}
+			eatWhitespace();
+			if (!parseCode(fReader.getPosition())) {
+				// throw? find ;?
+			}
+			eatWhitespace();
+			if (!parseValue(fReader.getPosition())) {
+				// throw?
+			}
+			eatWhitespace();
+			if (fReader.read() != ';') {
+				// throw
+			}
+			eatWhitespace();
+			if (!parseCode(fReader.getPosition())) {
+				// throw?
+			}
+			eatWhitespace();
+			if (fReader.read() != ')') {
+				String problem = "Syntax error: expected ')'"; 
+				createErrorMarker(fReader.getPosition() - 1, fReader.getPosition(), problem);
+				throw new ParsingException(problem);
+			}
+			eatWhitespace();
+			offset = fReader.getPosition();
+			if (!parseCodeSegment(fReader.getPosition())) {
+				String problem = "Syntax error: expected a command"; 
+				createErrorMarker(offset, offset + 4, problem);
+				throw new ParsingException(problem);
+			}
+			return true;
+		}
+		else {
+			return false;
+		}
 		// if (parseValue) { parseCode } else if (parseValue) { parseCode } else { parseCode }
 		// while (parseValue) { parseCode }
 		// for ( ; ; ) { parseCode } // that is special
-		return false;
 	}
 	
 	private boolean parseID(int offset) throws ParsingException {
