@@ -428,7 +428,8 @@ public class C4ScriptParser implements IResourceDeltaVisitor {
 	 */
 	private boolean parseCode(int offset) throws ParsingException {
 		fReader.seek(offset);
-		if (parseKeyword(offset) || parseCall(offset) || parseAssignment(offset) || parseVariable(offset)) {
+		if (parseKeyword(offset)) return true;
+		if (parseCall(offset) || parseAssignment(offset) || parseVariable(offset)) {
 			if (fReader.read() == ';') {
 				return true;
 			}
@@ -622,7 +623,10 @@ public class C4ScriptParser implements IResourceDeltaVisitor {
 	
 	private boolean parseParenthesisGroup(int offset) throws ParsingException {
 		fReader.seek(offset);
-		if (fReader.read() != '(') return false;
+		if (fReader.read() != '(') {
+			fReader.unread();
+			return false;
+		}
 		eatWhitespace();
 		parseValue(fReader.getPosition());
 		eatWhitespace();
@@ -670,11 +674,11 @@ public class C4ScriptParser implements IResourceDeltaVisitor {
 	private boolean parseVariable(int offset) throws ParsingException {
 		fReader.seek(offset);
 		
-		parsePrefixOperator(offset);
-		eatWhitespace();
+		if (parsePrefixOperator(offset)) offset = fReader.getPosition();
+		eatWhitespace(offset);
 		String varName = fReader.readWord();
 		if (varName.length() == 0) {
-//			fReader.seek(offset);
+			fReader.seek(offset);
 			return false;
 		}
 		offset = fReader.getPosition();
@@ -682,8 +686,9 @@ public class C4ScriptParser implements IResourceDeltaVisitor {
 		if (parseArrayAccess(offset)) offset = fReader.getPosition();
 		eatWhitespace(offset);
 		if (!parsePostfixOperator(offset)) // entweder
-			parseObjectCall(offset);       // oder
-				
+			if (parseObjectCall(offset)) offset = fReader.getPosition();       // oder
+		
+		fReader.seek(offset);
 		return true;
 		// iVar
 		// think of post- and prefixes: iVar++
@@ -709,6 +714,7 @@ public class C4ScriptParser implements IResourceDeltaVisitor {
 			}
 			return true;
 		}
+		fReader.seek(offset);
 		return false;
 	}
 	
@@ -851,6 +857,7 @@ public class C4ScriptParser implements IResourceDeltaVisitor {
 			return true;
 		}
 		else {
+			fReader.unread();
 			return false;
 		}
 	}
@@ -872,6 +879,7 @@ public class C4ScriptParser implements IResourceDeltaVisitor {
 		for(char singleChar : singleChars) {
 			if (readChar == singleChar) return true;
 		}
+		fReader.seek(offset);
 		// + - S= * % ... all operators that combines 2 values to 1
 		// no assignments: =, *=, ...
 		return false;
@@ -915,24 +923,30 @@ public class C4ScriptParser implements IResourceDeltaVisitor {
 	
 	private boolean parseArray(int offset) throws ParsingException {
 		fReader.seek(offset);
-		if (fReader.read() != '[') return false;
+		if (fReader.read() != '[') {
+			fReader.unread();
+			return false;
+		}
 		int readByte = 0;
 		do {
 			eatWhitespace();
-			parseValue(fReader.getPosition());
+			if (!parseValue(fReader.getPosition())) {
+				String problem = "Syntax error: expected value";
+				createErrorMarker(fReader.getPosition() - 1, fReader.getPosition(), problem);
+				throw new ParsingException(problem);
+			}
 			eatWhitespace();
 			readByte = fReader.read();
 			if (readByte == ']') {
 				return true;
 			}
-			if (readByte == ',') {
-				continue;
+			if (readByte != ',') {
+				String problem = "Syntax error: expected ',' or ']'";
+				createErrorMarker(fReader.getPosition() - 1, fReader.getPosition(), problem);
+				throw new ParsingException(problem);
 			}
-			String problem = "Syntax error: expected ',' or ']'";
-			createErrorMarker(fReader.getPosition() - 1, fReader.getPosition(), problem);
-			throw new ParsingException(problem);
 		} while(!fReader.reachedEOF());
-		return true;
+		return false;
 	}
 	
 	private boolean parseArrayAccess(int offset) throws ParsingException {
