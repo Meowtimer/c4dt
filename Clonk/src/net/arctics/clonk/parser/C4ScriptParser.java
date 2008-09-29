@@ -428,7 +428,7 @@ public class C4ScriptParser implements IResourceDeltaVisitor {
 	 */
 	private boolean parseCode(int offset) throws ParsingException {
 		fReader.seek(offset);
-		if (parseCall(offset) || parseAssignment(offset) || parseVariable(offset)) {
+		if (parseKeyword(offset) || parseCall(offset) || parseAssignment(offset) || parseVariable(offset)) {
 			if (fReader.read() == ';') {
 				return true;
 			}
