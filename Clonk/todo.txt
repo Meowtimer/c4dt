@@ -22,3 +22,8 @@ GUI:
 + New-Scenario-Wizard
 + New-*-Wizard ... blablabla
 
++ Konfigurationseditor (DefCore, ActMap etc.)
++ Mšglichkeit, Szenario per Engine zu testen (Run Command)
+
+-  C4ScriptEditor
+-- sollte auch Skripte aus System.c4g šffnen (szenarienlokale Zusatzskripte zB)

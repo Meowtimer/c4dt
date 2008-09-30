@@ -4,11 +4,14 @@ import net.arctics.clonk.Utilities;
 import net.arctics.clonk.parser.C4Field;
 import net.arctics.clonk.parser.C4Object;
 
+import org.eclipse.jface.internal.text.html.BrowserInformationControl;
+import org.eclipse.jface.text.AbstractReusableInformationControlCreator;
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.DefaultInformationControl;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IInformationControl;
 import org.eclipse.jface.text.IInformationControlCreator;
+import org.eclipse.jface.text.IInputChangedListener;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.ITextDoubleClickStrategy;
 import org.eclipse.jface.text.ITextHover;
@@ -29,6 +32,7 @@ import org.eclipse.jface.text.quickassist.QuickAssistAssistant;
 import org.eclipse.jface.text.rules.DefaultDamagerRepairer;
 import org.eclipse.jface.text.rules.Token;
 import org.eclipse.jface.text.source.ISourceViewer;
+import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IEditorPart;
@@ -162,35 +166,32 @@ public class ClonkSourceViewerConfiguration extends TextSourceViewerConfiguratio
 		
 	}
 	
+	private class C4ScriptTextHoverCreator extends AbstractReusableInformationControlCreator {
+		
+		@SuppressWarnings("restriction")
+		@Override
+		protected IInformationControl doCreateInformationControl(Shell parent) {
+			if (BrowserInformationControl.isAvailable(parent)) {
+				final BrowserInformationControl iControl= new BrowserInformationControl(parent, "Arial", false);
+				iControl.setSize(500, 500);
+				//addLinkListener(iControl);
+				return iControl;
+			} else {
+				return new DefaultInformationControl(parent);
+			}
+
+		}
+		
+	}
+	
 	private class C4ScriptTextHover implements ITextHover, ITextHoverExtension {
 
 		private IdentInfo identInfo;
-		private IInformationControlCreator informationControLCreator;
+		private IInformationControlCreator informationControlCreator;
 		
 		public C4ScriptTextHover() {
 			super();
-			informationControLCreator = new IInformationControlCreator() {
-				
-				private IInformationPresenter presenter = new DefaultInformationControl.IInformationPresenter() {
-
-					public String updatePresentation(Display display, String infoText, TextPresentation presentation, int maxWidth, int maxHeight) {
-						return infoText;
-					}
-
-				};
-
-				public IInformationControl createInformationControl(Shell shell) {
-					return new DefaultInformationControl(shell, presenter) {
-
-						@Override
-						public void setInformation(String content) {
-							super.setInformation("<b>"+content+"</b>");
-						}
-						
-					};
-				}
-				
-			};
+			informationControlCreator = new C4ScriptTextHoverCreator();
 		}
 		
 		public String getHoverInfo(ITextViewer viewer, IRegion region) {
@@ -205,7 +206,7 @@ public class ClonkSourceViewerConfiguration extends TextSourceViewerConfiguratio
 		}
 
 		public IInformationControlCreator getHoverControlCreator() {
-			return informationControLCreator;
+			return informationControlCreator;
 		}
 		
 	}

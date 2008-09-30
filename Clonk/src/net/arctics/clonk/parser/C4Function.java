@@ -241,5 +241,14 @@ public class C4Function extends C4Field implements Serializable {
 	public String getDocumentationURL() {
 		return String.format("http://www.clonk.de/docs/de/sdk/script/fn/%s.html",getName());
 	}
+
+	@Override
+	public String getShortInfo() {
+		if (getObject() == null) {
+			// engine function
+			return String.format("<html><head><title>Blub</title></head><body><b>%s</b><br>%s<br><a href='%s'>Online Dokumentation</a></body></html>", getName(), getDescription(), getDocumentationURL());
+		}
+		return super.getShortInfo();
+	}
 	
 }

@@ -139,4 +139,11 @@ public class C4Variable extends C4Field implements Serializable {
 		return scope.ordinal();
 	}
 	
+	@Override
+	public String getShortInfo() {
+		return getDescription() != null
+			? super.getShortInfo() + ": " + getDescription()
+			: super.getShortInfo();
+	}
+	
 }

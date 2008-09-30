@@ -21,10 +21,7 @@ public class IndexClonkDir extends TextEditorAction {
 	public IndexClonkDir(ResourceBundle bundle, String prefix,
 			ITextEditor editor) {
 		super(bundle, prefix, editor);
-		this.editor = editor;
 	}
-
-	protected ITextEditor editor;
 	
 
 	/* (non-Javadoc)
@@ -32,7 +29,7 @@ public class IndexClonkDir extends TextEditorAction {
 	 */
 	@Override
 	public void run() {
-		IEditorInput input = (IEditorInput)editor.getEditorInput();
+		IEditorInput input = (IEditorInput)getTextEditor().getEditorInput();
 		IResource adapt = (IResource) input.getAdapter(IResource.class);
 		IProject project = adapt.getProject();
 		if (project != null) {

@@ -22,7 +22,7 @@ public class C4ScriptEditor extends AbstractDecoratedTextEditor {
 
 	private ColorManager colorManager;
 	private ClonkContentOutlinePage outlinePage;
-	public static final String ACTION_INDEX_CLONK_DIR = "net.arctics.clonk.indexclonkdir";
+	public static final String ACTION_INDEX_CLONK_DIR = "net.arctics.clonk.indexClonkCommand";
 	
 	public C4ScriptEditor() {
 		super();

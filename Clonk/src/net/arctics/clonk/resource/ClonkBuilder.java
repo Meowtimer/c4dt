@@ -26,7 +26,8 @@ import org.eclipse.core.runtime.IProgressMonitor;
 public class ClonkBuilder extends IncrementalProjectBuilder implements IResourceDeltaVisitor, IResourceVisitor {
 
 	public ClonkBuilder() {
-		// TODO Auto-generated constructor stub
+		super();
+		// intentionally left blank
 	}
 
 	protected IProject[] build(int kind, Map args, IProgressMonitor monitor)
