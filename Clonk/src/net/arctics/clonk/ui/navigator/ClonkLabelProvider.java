@@ -3,6 +3,7 @@ package net.arctics.clonk.ui.navigator;
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.Utilities;
 import net.arctics.clonk.parser.C4DefCoreParser;
+import net.arctics.clonk.parser.C4DefCoreParser.C4DefCoreData;
 import net.arctics.clonk.resource.c4group.C4Entry;
 import net.arctics.clonk.ui.OverlayIcon;
 
@@ -27,7 +28,7 @@ import org.eclipse.swt.graphics.Point;
 public class ClonkLabelProvider extends LabelProvider implements IStyledLabelProvider {
 	
 	public ClonkLabelProvider() {
-		instance = this;
+//		instance = this;
 	}
 	
 	public Image getImage(Object element) {
@@ -95,15 +96,17 @@ public class ClonkLabelProvider extends LabelProvider implements IStyledLabelPro
 			if (folder.getName().startsWith("c4d.")) {
 				IResource res = folder.findMember("DefCore.txt");
 				if (res != null && res instanceof IFile) {
-					try {
-						((IFile)res).accept(C4DefCoreParser.getInstance());
+//					try {
+//						((IFile)res).accept(C4DefCoreParser.getInstance());
 						buf.append(folder.getName().substring(4));
-						buf.append(" ["+ C4DefCoreParser.getInstance().getDefFor((IFile)res).getId().getName() + "]",StyledString.DECORATIONS_STYLER);
+						C4DefCoreData data = C4DefCoreParser.getInstance().getDefFor((IFile)res);
+						if (data != null)
+							buf.append(" ["+ data.getId().getName() + "]",StyledString.DECORATIONS_STYLER);
 						return buf;
-					} catch (CoreException e) {
-						e.printStackTrace();
-						return new StyledString(folder.getName().substring(4) + "|error");
-					}
+//					} catch (CoreException e) {
+//						e.printStackTrace();
+//						return new StyledString(folder.getName().substring(4) + "|error");
+//					}
 				}
 				else {
 					return new StyledString(folder.getName().substring(4));
@@ -186,11 +189,11 @@ public class ClonkLabelProvider extends LabelProvider implements IStyledLabelPro
 		fireLabelProviderChanged(new LabelProviderChangedEvent(this));
 	}
 	
-	public static ClonkLabelProvider instance;
-
-	public static ClonkLabelProvider getInstance() {
-		return instance;
-	}
+//	public static ClonkLabelProvider instance;
+//
+//	public static ClonkLabelProvider getInstance() {
+//		return instance;
+//	}
 	
 	public void addListener(ILabelProviderListener listener) {
 		// TODO Auto-generated method stub

@@ -38,17 +38,17 @@ public class C4DefCoreEditor extends TextEditor {
 	/* (non-Javadoc)
 	 * @see org.eclipse.ui.texteditor.AbstractTextEditor#editorSaved()
 	 */
-	@Override
-	protected void editorSaved() {
-		super.editorSaved();
-		try {
-			C4DefCoreParser.getInstance().update(getEditingFile());
-		} catch (CoreException e) {
-			e.printStackTrace();
-		}
-		ClonkLabelProvider.instance.testRefresh();
-		
-	}
+//	@Override
+//	protected void editorSaved() {
+//		super.editorSaved();
+//		try {
+//			C4DefCoreParser.getInstance().update(getEditingFile());
+//		} catch (CoreException e) {
+//			e.printStackTrace();
+//		}
+//		ClonkLabelProvider.instance.testRefresh();
+//		
+//	}
 	
 	protected IFile getEditingFile() {
 		if (getEditorInput() instanceof FileEditorInput) {

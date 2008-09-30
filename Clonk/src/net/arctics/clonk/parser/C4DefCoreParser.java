@@ -9,10 +9,9 @@ import java.util.Map;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
-import org.eclipse.core.resources.IResourceVisitor;
 import org.eclipse.core.runtime.CoreException;
 
-public class C4DefCoreParser implements IResourceVisitor {
+public class C4DefCoreParser {
 	private static C4DefCoreParser instance;
 	private Map<IFile,C4DefCoreData> data;
 	

@@ -37,6 +37,8 @@ public class C4Function extends C4Field implements Serializable {
 	}
 	
 	public C4Function() {
+		parameter = new ArrayList<C4Variable>();
+		localVars = new ArrayList<C4Variable>();
 	}
 	
 	public C4Function(String name, C4Object parent, C4FunctionScope scope) {

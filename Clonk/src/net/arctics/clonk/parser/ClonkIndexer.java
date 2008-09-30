@@ -169,6 +169,7 @@ public class ClonkIndexer {
 							parent.getDefinedDirectives().clear();
 						}
 						else {
+							defCore.deleteMarkers(IMarker.PROBLEM, true, IResource.DEPTH_ONE);
 							IMarker marker = defCore.createMarker(IMarker.PROBLEM);
 							marker.setAttribute(IMarker.TRANSIENT, true);
 							marker.setAttribute(IMarker.CHAR_START, idStartOffset);

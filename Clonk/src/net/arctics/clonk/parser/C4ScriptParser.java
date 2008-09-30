@@ -10,6 +10,7 @@ import java.util.List;
 import net.arctics.clonk.parser.C4Directive.C4DirectiveType;
 import net.arctics.clonk.parser.C4Function.C4FunctionScope;
 
+import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IMarker;
@@ -17,9 +18,10 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IResourceDelta;
 import org.eclipse.core.resources.IResourceDeltaVisitor;
+import org.eclipse.core.resources.IResourceVisitor;
 import org.eclipse.core.runtime.CoreException;
 
-public class C4ScriptParser implements IResourceDeltaVisitor {
+public class C4ScriptParser {
 	
 	protected static class BufferedScanner {
 		
@@ -336,6 +338,48 @@ public class C4ScriptParser implements IResourceDeltaVisitor {
 		return false;
 	}
 	
+	private boolean parseVarVariableDeclaration(int offset) throws ParsingException {
+		fReader.seek(offset);
+		
+		String word = fReader.readWord();
+		if (word.equalsIgnoreCase("var")) {
+			if (!word.equals("var")) {
+				String problem = "Syntax error: write '" + word.toLowerCase() + "' instead of '" + word + "'";
+				createErrorMarker(offset, fReader.getPosition(), problem);
+				throw new ParsingException(problem);
+			}
+			do {
+				eatWhitespace();
+				String varName = fReader.readWord();
+				// FIXME save function local variables
+				eatWhitespace();
+				if (fReader.read() == '=') {
+					eatWhitespace();
+					offset = fReader.getPosition();
+					if (!parseValue(offset)) {
+						String problem = "Syntax error: value expected";
+						createErrorMarker(fReader.getPosition() - 1, fReader.getPosition(), problem);
+						throw new ParsingException(problem);
+					}
+				}
+				else {
+					fReader.unread();
+				}
+			} while(fReader.read() == ',');
+			fReader.unread();
+//			if (fReader.read() != ';') {
+//				String problem = "Syntax error: expected ';' or ','";
+//				createErrorMarker(fReader.getPosition() - 1, fReader.getPosition(), problem);
+//				throw new ParsingException(problem);
+//			}
+			return true;
+		}
+		else {
+			fReader.seek(offset);
+			return false;
+		}
+	}
+	
 	@SuppressWarnings("unused")
 	private boolean parseFunctionDeclaration(int offset) throws ParsingException {
 		fReader.seek(offset);
@@ -429,7 +473,7 @@ public class C4ScriptParser implements IResourceDeltaVisitor {
 	private boolean parseCode(int offset) throws ParsingException {
 		fReader.seek(offset);
 		if (parseKeyword(offset)) return true;
-		if (parseCall(offset) || parseAssignment(offset) || parseVariable(offset)) {
+		if (parseVarVariableDeclaration(offset) || parseCall(offset) || parseAssignment(offset) || parseVariable(offset)) {
 			if (fReader.read() == ';') {
 				return true;
 			}
@@ -511,6 +555,10 @@ public class C4ScriptParser implements IResourceDeltaVisitor {
 	
 	private boolean parseCall(int offset) throws ParsingException {
 		fReader.seek(offset);
+		
+		if (parsePrefixOperator(offset)) offset = fReader.getPosition();
+		eatWhitespace(offset);
+		
 		String funcName = fReader.readWord();
 		if (funcName.length() == 0) {
 			return false;
@@ -573,6 +621,7 @@ public class C4ScriptParser implements IResourceDeltaVisitor {
 		if (
 				parseParenthesisGroup(offset) ||
 				parseNumber(offset) ||
+				parseAssignment(offset) ||
 				parseCall(offset) ||
 				parseString(offset) ||
 				parseID(offset) ||
@@ -628,7 +677,7 @@ public class C4ScriptParser implements IResourceDeltaVisitor {
 			return false;
 		}
 		eatWhitespace();
-		parseValue(fReader.getPosition());
+		if (!parseValue(fReader.getPosition())) return false;
 		eatWhitespace();
 		if (fReader.read() != ')') {
 			String problem = "Syntax error: expected ')'";
@@ -685,8 +734,13 @@ public class C4ScriptParser implements IResourceDeltaVisitor {
 		eatWhitespace();
 		if (parseArrayAccess(offset)) offset = fReader.getPosition();
 		eatWhitespace(offset);
-		if (!parsePostfixOperator(offset)) // entweder
+		if (!parsePostfixOperator(offset))  {// entweder
 			if (parseObjectCall(offset)) offset = fReader.getPosition();       // oder
+		}
+		else {
+			offset = fReader.getPosition();
+		}
+			
 		
 		fReader.seek(offset);
 		return true;
@@ -965,12 +1019,15 @@ public class C4ScriptParser implements IResourceDeltaVisitor {
 	
 	private boolean parseString(int offset) throws ParsingException {
 		fReader.seek(offset);
-		if (fReader.read() != '"') return false;
+		if (fReader.read() != '"') {
+			fReader.unread();
+			return false;
+		}
 		StringBuilder builder = new StringBuilder();
 		do {
 			if (builder.length() > 0) builder.append(fReader.readString(1));
 			builder.append(fReader.readStringUntil(new char[] { '"' }));
-		} while ((builder.charAt(builder.length() - 1) == '\\'));
+		} while (builder.length() != 0 && (builder.charAt(builder.length() - 1) == '\\'));
 		if (fReader.read() != '"') {
 			throw new ParsingException("Internal parsing error.");
 		}
@@ -1277,5 +1334,23 @@ public class C4ScriptParser implements IResourceDeltaVisitor {
 			return true;
 		else
 			return false;
+	}
+
+	public boolean visit(IResource resource) throws CoreException {
+		if (resource == null)
+			return false;
+		if (resource instanceof IFile) {
+			if (resource.getName().endsWith(".c")) {
+				try {
+					C4ScriptParser parser = new C4ScriptParser((IFile) resource);
+					parser.parse();
+				} catch (CompilerException e) {
+					e.printStackTrace();
+				}
+			}
+			return false;
+		}
+		if (resource instanceof IContainer) return true;
+		else return false;
 	}
 }
