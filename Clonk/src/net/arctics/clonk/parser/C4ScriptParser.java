@@ -473,7 +473,7 @@ public class C4ScriptParser {
 	private boolean parseCode(int offset) throws ParsingException {
 		fReader.seek(offset);
 		if (parseKeyword(offset)) return true;
-		if (parseVarVariableDeclaration(offset) || parseCall(offset) || parseAssignment(offset) || parseVariable(offset)) {
+		if (parseReturn(offset) || parseVarVariableDeclaration(offset) || parseCall(offset) || parseAssignment(offset) || parseVariable(offset)) {
 			if (fReader.read() == ';') {
 				return true;
 			}
@@ -542,13 +542,68 @@ public class C4ScriptParser {
 			return false;
 		}
 		eatWhitespace();
-		if (fReader.read() != '=') return false;
+		int readByte = fReader.read();
+		if (readByte != '=') {
+			int secondByte = fReader.read();
+			if (secondByte == '=' && ((0x2A <= readByte && readByte <= 0x2F && readByte != 0x2C && readByte != 0x2E) || readByte == '%')) {
+				
+			}
+			else {
+				fReader.unread();
+				fReader.unread();
+				return false;
+			}
+		}
 		eatWhitespace();
 		offset = fReader.getPosition();
 		if (!parseValue(fReader.getPosition())) {
 			String problem = "Syntax error: expected a value after '='";
 			createErrorMarker(offset, offset + 3, problem);
 			throw new ParsingException(problem);
+		}
+		// *= /= %= += -= =
+		return true;
+	}
+	
+	private boolean parseReturn(int offset) throws ParsingException {
+		fReader.seek(offset);
+		String word = fReader.readWord();
+		if (!word.equals("return")) {
+			fReader.seek(offset);
+			return false;
+		}
+		eatWhitespace();
+		int next = fReader.read();
+		if (next == ';') {
+			fReader.unread();
+		}
+		else if (next == '(') {
+			eatWhitespace();
+			offset = fReader.getPosition();
+			if (!parseValue(offset)) {
+				createWarningMarker(offset, offset + 1, "Discouraged syntax: use 'return;' instead of 'return();' (since CR, #strict 2))");
+			}
+			else {
+				offset = fReader.getPosition();
+			}
+			fReader.seek(offset);
+			eatWhitespace();
+			int readByte = fReader.read();
+			// FIXME throw warning or error when ',' occurs
+			if (readByte != ')') {
+				String problem = "Syntax error: ')' expected";
+				createErrorMarker(fReader.getPosition() - 1, fReader.getPosition(), problem);
+				throw new ParsingException(problem);
+			}
+		}
+		else {
+			fReader.unread();
+			offset = fReader.getPosition();
+			if (!parseValue(offset)) {
+				String problem = "Syntax error: value expected";
+				createErrorMarker(fReader.getPosition() - 1, fReader.getPosition(), problem);
+				throw new ParsingException(problem);
+			}
 		}
 		return true;
 	}
