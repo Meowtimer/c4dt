@@ -61,7 +61,7 @@ public class ClonkLabelProvider extends LabelProvider implements IStyledLabelPro
 			else if (groupType == C4GroupType.ScenarioGroup) {
 				return computeImage("c4scenario","icons/Clonk_scenario.png",(IResource)element);
 			}
-			else if (groupType == C4GroupType.ResourceGroup) {
+			else if (groupType == C4GroupType.FolderGroup) {
 				return computeImage("c4datafolder","icons/Clonk_datafolder.png",(IResource)element);
 			}
 		}
