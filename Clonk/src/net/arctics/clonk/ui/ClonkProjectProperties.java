@@ -41,31 +41,13 @@ public class ClonkProjectProperties extends PropertyPage {
 		layout.numColumns= 2;
 		comp.setLayout(layout);
 		
-//		Table table = new Table(comp, SWT.SINGLE | SWT.FULL_SELECTION);
-//		table.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
-//		table.setLinesVisible(true);
-//		table.setHeaderVisible(true);
-		
 		Label lab = new Label(comp, SWT.LEFT);
 		lab.setText("Clonk path:");
 		
 		text = new Text(comp, SWT.SINGLE | SWT.BORDER);
 		text.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
 		text.setText(path);
-//		text.setLayoutData(new org.eclipse.swt.layout.RowData(300,50));
 		text.setSize(200, 25);
-//		text.addModifyListener(new ModifyListener() {
-//
-//			@Override
-//			public void modifyText(ModifyEvent e) {
-//				prefs.put("clonkpath", text.getText());
-//			}
-//			
-//		});
-		
-//		for (int i = 0; i < table.getColumnCount(); i++) {
-//			table.getColumn(i).pack();
-//		}
 		return comp;
 	}
 

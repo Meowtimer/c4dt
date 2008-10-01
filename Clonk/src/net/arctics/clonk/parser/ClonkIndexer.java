@@ -18,6 +18,7 @@ import net.arctics.clonk.resource.c4group.C4Entry;
 import net.arctics.clonk.resource.c4group.C4Group;
 import net.arctics.clonk.resource.c4group.C4GroupItem;
 import net.arctics.clonk.resource.c4group.InvalidDataException;
+import net.arctics.clonk.resource.c4group.C4Group.C4GroupType;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
@@ -49,7 +50,7 @@ public class ClonkIndexer {
 	
 	public C4Object getObjectForScript(IFile script) {
 		for (C4Object obj : objects.values()) {
-			if (obj.getScript().equals(script))
+			if (obj.getScript() != null && obj.getScript().equals(script))
 				return obj;
 		}
 		return null;
@@ -80,6 +81,10 @@ public class ClonkIndexer {
 		clonkDirIndexed = true;
 	}
 	
+	public static boolean c4FilenameExtensionIs(String filename, String ext) {
+		return filename.endsWith(ext);
+	}
+	
 	/**
 	 * Indexes a project folder
 	 * @param folder
@@ -89,10 +94,11 @@ public class ClonkIndexer {
 		IFile defCore = null, script = null;
 		C4Object parent = null;
 		C4ID id = null;
+		C4GroupType groupType = groupTypeFromFolderName(folder.getName());
 		try {
 			IResource[] members = folder.members();
 			for(IResource resource : members) {
-				if (folder.getName().startsWith("c4d.") || folder.getName().startsWith("c4s.")) {
+				if (groupType == C4GroupType.DefinitionGroup || groupType == C4GroupType.ScenarioGroup) {
 					if (resource instanceof IFile) {
 						IFile file = ((IFile)resource);
 						if (file.getName().equals("DefCore.txt")) {
@@ -103,18 +109,14 @@ public class ClonkIndexer {
 						}
 					}
 				}
-				else if (folder.getName().startsWith("c4g.")) {
+				else if (groupType == C4GroupType.ResourceGroup) {
 					if (parent == null) {
-						if (!objects.containsKey(folder.getName())) {
-							objects.put(C4ID.getSpecialID(folder.getFullPath().toString()),
-									new C4Object(C4ID.getSpecialID(folder.getFullPath().toString()),folder.getFullPath().toString().substring(folder.getProject().getName().length() + 2),path.segmentCount() == 0 || path.segment(0).startsWith("c4d.") || path.segment(0).startsWith("c4g.")));
-						}
-						parent = objects.get(C4ID.getSpecialID(folder.getFullPath().toString()));
+						parent = createObjectFromFolder(folder.getFullPath().toString(), path, null);
 					}
 					if (resource instanceof IFile) {
 						if (resource.getName().endsWith(".c")) {
 							script = (IFile)resource;
-							// TODO implement powerful parser
+							// TODO implement powerful parser aka insert usage of powerful parser here when it's ready for prime time
 							InputStream stream = ((IFile)resource).getContents();
 							indexScript(resource.getFullPath(), parent, getStringFromStream(stream));
 							stream.close();
@@ -155,11 +157,9 @@ public class ClonkIndexer {
 				}
 				stream.close();
 				if (id != null) { // if this DefCore.txt has an id or is global c4g
-					
 					if (!objects.containsKey(id)) {
-						parent = new C4Object(id, folder.getFullPath().toString().substring(folder.getProject().getName().length() + 2),path.segmentCount() == 0 || path.segment(0).startsWith("c4d.") || path.segment(0).startsWith("c4g."));
+						parent = createObjectFromFolder(folder.getFullPath().toString(), path, id);
 						parent.setScript(script);
-						objects.put(id, parent);
 					}
 					else {
 						parent = objects.get(id);
@@ -202,6 +202,28 @@ public class ClonkIndexer {
 			e.printStackTrace();
 		}
 	}
+
+	public static C4GroupType groupTypeFromFolderName(String name) {
+		C4GroupType result = C4Group.extensionToGroupTypeMap.get(name.substring(name.lastIndexOf(".")+1));
+		if (result == null)
+			result = C4Group.extensionToGroupTypeMap.get(name.substring(0,3)); // legacy
+		if (result != null)
+			return result;
+		return C4GroupType.OtherGroup;
+	}
+
+	private C4Object createObjectFromFolder(String folderPath, IPath path, C4ID id) {
+		if (id == null)
+			id = C4ID.getSpecialID(folderPath.toString());
+		C4Object newObject = new C4Object(
+				id,
+				folderPath,
+				// TODO: folderPath.substring(folder.getProject().getName().length() + 2),
+				path.segmentCount() == 0 || c4FilenameExtensionIs(path.segment(0), "c4d") ||  c4FilenameExtensionIs(path.segment(0), "c4g")
+		); 
+		objects.put(id, newObject);
+		return newObject;
+	}
 	
 	protected void indexGroup(C4Group group, IPath path) throws InvalidDataException, CompilerException {
 		group.open(false);
@@ -209,9 +231,10 @@ public class ClonkIndexer {
 		C4Entry defCore = null, script = null;
 		C4Object parent = null;
 		C4ID id = null;
+		C4GroupType groupType = group.getGroupType();
 		// get important files
 		for(int i = 0; i < items.size();i++) {
-			if (group.getName().endsWith(".c4d")) {
+			if (groupType == C4GroupType.DefinitionGroup) {
 				if (items.get(i) instanceof C4Entry) {
 					if (items.get(i).getName().equals("DefCore.txt")) {
 						defCore = (C4Entry)items.get(i);
@@ -221,12 +244,9 @@ public class ClonkIndexer {
 					}
 				}
 			}
-			else if (group.getName().endsWith(".c4g")) {
+			else if (groupType == C4GroupType.ResourceGroup) {
 				if (parent == null) {
-					if (!objects.containsKey(group.getName())) {
-						objects.put(C4ID.getSpecialID(group.getName()),new C4Object(C4ID.getSpecialID(group.getName()),group.getName(),path.segmentCount() == 0 || path.segment(0).startsWith("c4d.") || path.segment(0).startsWith("c4g.")));
-					}
-					parent = objects.get(C4ID.getSpecialID(group.getName()));
+					parent = createObjectFromFolder(group.getName(), path, null);
 				}
 				if (items.get(i) instanceof C4Entry) {
 					if (items.get(i).getName().endsWith(".c")) {
@@ -271,8 +291,7 @@ public class ClonkIndexer {
 			if (id != null) { // if this DefCore.txt has an id or is global c4g
 				
 				if (!objects.containsKey(id)) {
-					parent = new C4Object(id, path.toString().substring(1) + (path.hasTrailingSeparator() ? "" : "/") + group.getName(),path.segmentCount() == 0 || path.segment(0).startsWith("c4d.") || path.segment(0).startsWith("c4g."));
-					objects.put(id, parent);
+					parent = createObjectFromFolder(path.toString().substring(1) + (path.hasTrailingSeparator() ? "" : "/") + group.getName(), path, id);
 				}
 				else {
 					// TODO create marker to report error (c4id declared twice)

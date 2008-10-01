@@ -11,8 +11,10 @@ import java.io.RandomAccessFile;
 import java.security.InvalidParameterException;
 import java.util.ArrayList;
 import java.util.GregorianCalendar;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Pattern;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
@@ -31,6 +33,25 @@ import org.eclipse.core.runtime.IProgressMonitor;
  *
  */
 public class C4Group implements C4GroupItem {
+	
+	public enum C4GroupType {
+		OtherGroup,
+		DefinitionGroup,
+		ResourceGroup,
+		ScenarioGroup,
+		FolderGroup
+	}
+	
+	private static Map<String, C4GroupType> getExtensionToGroupTypeMap() {
+		Map<String, C4GroupType> result = new HashMap<String, C4GroupType>(C4GroupType.values().length);
+		result.put("c4d", C4GroupType.DefinitionGroup);
+		result.put("c4g", C4GroupType.ResourceGroup);
+		result.put("c4s", C4GroupType.ScenarioGroup);
+		result.put("c4f", C4GroupType.FolderGroup);
+		return result;
+	}
+	
+	public static final Map<String, C4GroupType> extensionToGroupTypeMap = getExtensionToGroupTypeMap();
 
 	private String entryName;
 	private List<C4GroupItem> childEntries;
@@ -194,6 +215,17 @@ public class C4Group implements C4GroupItem {
 		return hasChildren;
 	}
 	
+	public static C4GroupType getGroupType(String groupName) {
+		C4GroupType result = extensionToGroupTypeMap.get(groupName.substring(groupName.lastIndexOf(".")));
+		if (result != null)
+			return result;
+		return C4GroupType.OtherGroup;
+	}
+	
+	public C4GroupType getGroupType() {
+		return getGroupType(getName());
+	}
+	
     /**
      * Fetches and parses the index of a container file
      * @param stream
@@ -277,8 +309,7 @@ public class C4Group implements C4GroupItem {
 	 * @return
 	 */
 	public String getExtractedName() {
-		int split = entryName.lastIndexOf(".");
-		return entryName.substring(split + 1) + "." + entryName.substring(0,split);
+		return entryName; // C:
 	}
 
 	public boolean isCompleted() {

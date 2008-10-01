@@ -3,8 +3,10 @@ package net.arctics.clonk.ui.navigator;
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.Utilities;
 import net.arctics.clonk.parser.C4DefCoreParser;
+import net.arctics.clonk.parser.ClonkIndexer;
 import net.arctics.clonk.parser.C4DefCoreParser.C4DefCoreData;
 import net.arctics.clonk.resource.c4group.C4Entry;
+import net.arctics.clonk.resource.c4group.C4Group.C4GroupType;
 import net.arctics.clonk.ui.OverlayIcon;
 
 import org.eclipse.core.resources.IFile;
@@ -48,16 +50,18 @@ public class ClonkLabelProvider extends LabelProvider implements IStyledLabelPro
 		}
 		else if (element instanceof IFolder) {
 			IFolder folder = (IFolder)element;
-			if (folder.getName().startsWith("c4f")) {
+			C4GroupType groupType = ClonkIndexer.groupTypeFromFolderName(folder.getName());
+			
+			if (groupType == C4GroupType.ResourceGroup) {
 				return computeImage("c4folder","icons/Clonk_folder.png",(IResource)element);
 			}
-			else if (folder.getName().startsWith("c4d")) {
+			else if (groupType == C4GroupType.DefinitionGroup) {
 				return computeImage("c4object","icons/C4Object.png",(IResource)element);
 			}
-			else if (folder.getName().startsWith("c4s")) {
+			else if (groupType == C4GroupType.ScenarioGroup) {
 				return computeImage("c4scenario","icons/Clonk_scenario.png",(IResource)element);
 			}
-			else if (folder.getName().startsWith("c4g")) {
+			else if (groupType == C4GroupType.ResourceGroup) {
 				return computeImage("c4datafolder","icons/Clonk_datafolder.png",(IResource)element);
 			}
 		}
@@ -88,18 +92,23 @@ public class ClonkLabelProvider extends LabelProvider implements IStyledLabelPro
 		return super.getText(element);
 	}
 
+	public static String stringWithoutExtension(String s) {
+		return s.substring(0,s.lastIndexOf("."));
+	}
+	
 	public StyledString getStyledText(Object element) {
 		
 		if (element instanceof IFolder) {
-			StyledString buf = new StyledString();
 			IFolder folder = (IFolder)element;
-			if (folder.getName().startsWith("c4d.")) {
-				IResource res = folder.findMember("DefCore.txt");
-				if (res != null && res instanceof IFile) {
+			C4GroupType groupType = ClonkIndexer.groupTypeFromFolderName(folder.getName());
+			if (groupType == C4GroupType.DefinitionGroup) {
+				IResource defCoreFile = folder.findMember("DefCore.txt");
+				if (defCoreFile != null && defCoreFile instanceof IFile) {
 //					try {
+						StyledString buf = new StyledString();
 //						((IFile)res).accept(C4DefCoreParser.getInstance());
-						buf.append(folder.getName().substring(4));
-						C4DefCoreData data = C4DefCoreParser.getInstance().getDefFor((IFile)res);
+						buf.append(stringWithoutExtension(folder.getName()));
+						C4DefCoreData data = C4DefCoreParser.getInstance().getDefFor((IFile)defCoreFile);
 						if (data != null)
 							buf.append(" ["+ data.getId().getName() + "]",StyledString.DECORATIONS_STYLER);
 						return buf;
@@ -109,11 +118,12 @@ public class ClonkLabelProvider extends LabelProvider implements IStyledLabelPro
 //					}
 				}
 				else {
-					return new StyledString(folder.getName().substring(4));
+					return new StyledString(stringWithoutExtension(folder.getName()));
 				}
 			}
-			if (folder.getName().startsWith("c4f.") || folder.getName().startsWith("c4s.") || folder.getName().startsWith("c4g."))
-				return new StyledString(folder.getName().substring(4));
+			if (groupType == C4GroupType.FolderGroup || groupType == C4GroupType.ScenarioGroup || groupType == C4GroupType.ResourceGroup)
+				return new StyledString(folder.getName().substring(0,folder.getName().lastIndexOf(".")));
+				//return new StyledString(folder.getName().substring(4));
 		}
 		return new StyledString(getText(element));
 	}

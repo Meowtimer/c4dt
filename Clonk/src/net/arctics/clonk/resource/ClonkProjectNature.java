@@ -1,6 +1,8 @@
 package net.arctics.clonk.resource;
 
 import net.arctics.clonk.parser.ClonkIndexer;
+import net.arctics.clonk.resource.c4group.C4Group;
+import net.arctics.clonk.resource.c4group.C4Group.C4GroupType;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
@@ -23,7 +25,8 @@ public class ClonkProjectNature implements IProjectNature {
 		try {
 			for(IResource res : project.members()) {
 				if (res instanceof IFolder) {
-					if (res.getName().startsWith("c4d.") || res.getName().startsWith("c4g."))
+					C4GroupType groupType = ClonkIndexer.groupTypeFromFolderName(res.getName());
+					if (groupType != C4GroupType.OtherGroup)
 						indexer.indexFolder((IFolder)res, project.getFullPath(), true);
 				}
 			}
