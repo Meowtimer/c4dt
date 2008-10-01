@@ -11,19 +11,19 @@ Intern:
 
 GUI:
 -  New-Project-Wizard
--- fehlende Texte erg‰nzen
--- fehlende Optionsfelder erg‰nzen (wenn welche fehlen)
+-- fehlende Texte erg√§nzen
+-- fehlende Optionsfelder ergÔøΩ√§nzen (wenn welche fehlen)
 
 - New-Object-Wizard
--- Namen in die entsprechenden Dateien einflieﬂen lassen.
--- Vielleicht schon nach deutsch/englisch ‹bersetzung nachfragen.
+-- Namen in die entsprechenden Dateien einflie√üen lassen.
+-- Vielleicht schon nach deutsch/englisch √úbersetzung nachfragen.
 
 + New-Objectcontainer-Wizard
 + New-Scenario-Wizard
 + New-*-Wizard ... blablabla
 
 + Konfigurationseditor (DefCore, ActMap etc.)
-+ Möglichkeit, Szenario per Engine zu testen (Run Command)
++ M√∂glichkeit, Szenario per Engine zu testen (Run Command)
 
 -  C4ScriptEditor
--- sollte auch Skripte aus System.c4g öffnen (szenarienlokale Zusatzskripte zB)
+-- sollte auch Skripte aus System.c4g √∂ffnen (szenarienlokale Zusatzskripte zB)
