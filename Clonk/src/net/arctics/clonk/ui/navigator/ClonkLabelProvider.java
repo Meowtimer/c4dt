@@ -52,7 +52,7 @@ public class ClonkLabelProvider extends LabelProvider implements IStyledLabelPro
 			IFolder folder = (IFolder)element;
 			C4GroupType groupType = ClonkIndexer.groupTypeFromFolderName(folder.getName());
 			
-			if (groupType == C4GroupType.ResourceGroup) {
+			if (groupType == C4GroupType.FolderGroup) {
 				return computeImage("c4folder","icons/Clonk_folder.png",(IResource)element);
 			}
 			else if (groupType == C4GroupType.DefinitionGroup) {
@@ -61,7 +61,7 @@ public class ClonkLabelProvider extends LabelProvider implements IStyledLabelPro
 			else if (groupType == C4GroupType.ScenarioGroup) {
 				return computeImage("c4scenario","icons/Clonk_scenario.png",(IResource)element);
 			}
-			else if (groupType == C4GroupType.FolderGroup) {
+			else if (groupType == C4GroupType.ResourceGroup) {
 				return computeImage("c4datafolder","icons/Clonk_datafolder.png",(IResource)element);
 			}
 		}
