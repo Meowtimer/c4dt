@@ -3,7 +3,9 @@ package net.arctics.clonk.ui.editors;
 import net.arctics.clonk.Utilities;
 import net.arctics.clonk.parser.C4Field;
 import net.arctics.clonk.parser.C4Object;
+import net.arctics.clonk.parser.C4ObjectIntern;
 
+import org.eclipse.core.resources.IFile;
 import org.eclipse.jface.internal.text.html.BrowserInformationControl;
 import org.eclipse.jface.text.AbstractReusableInformationControlCreator;
 import org.eclipse.jface.text.BadLocationException;
@@ -11,15 +13,13 @@ import org.eclipse.jface.text.DefaultInformationControl;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IInformationControl;
 import org.eclipse.jface.text.IInformationControlCreator;
-import org.eclipse.jface.text.IInputChangedListener;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.ITextDoubleClickStrategy;
 import org.eclipse.jface.text.ITextHover;
 import org.eclipse.jface.text.ITextHoverExtension;
 import org.eclipse.jface.text.ITextViewer;
+import org.eclipse.jface.text.Region;
 import org.eclipse.jface.text.TextAttribute;
-import org.eclipse.jface.text.TextPresentation;
-import org.eclipse.jface.text.DefaultInformationControl.IInformationPresenter;
 import org.eclipse.jface.text.contentassist.ContentAssistant;
 import org.eclipse.jface.text.contentassist.IContentAssistant;
 import org.eclipse.jface.text.hyperlink.IHyperlink;
@@ -32,8 +32,6 @@ import org.eclipse.jface.text.quickassist.QuickAssistAssistant;
 import org.eclipse.jface.text.rules.DefaultDamagerRepairer;
 import org.eclipse.jface.text.rules.Token;
 import org.eclipse.jface.text.source.ISourceViewer;
-import org.eclipse.swt.graphics.Point;
-import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IWorkbench;
@@ -43,7 +41,6 @@ import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.editors.text.TextSourceViewerConfiguration;
 import org.eclipse.ui.part.FileEditorInput;
 import org.eclipse.ui.texteditor.ITextEditor;
-import org.eclipse.jface.text.Region;
 
 public class ClonkSourceViewerConfiguration extends TextSourceViewerConfiguration {
 	
@@ -72,7 +69,7 @@ public class ClonkSourceViewerConfiguration extends TextSourceViewerConfiguratio
 			String ident = line.substring(start,end);
 			ITextEditor editor = getEditor();
 			C4Object obj = Utilities.getObjectForEditor(editor);
-			field = obj.findField(ident, new C4Object.FindFieldInfo(Utilities.getProject(editor).getIndexer()));
+			field = obj.findField(ident, new C4Object.FindFieldInfo(Utilities.getProject(editor).getIndexedData()));
 		}
 		
 		/**
@@ -152,10 +149,17 @@ public class ClonkSourceViewerConfiguration extends TextSourceViewerConfiguratio
 			try {
 				C4Object obj = target instanceof C4Object ? (C4Object)target : target.getObject();
 				if (obj!= null) {
-					IEditorPart editor = workbenchPage.openEditor(new FileEditorInput(obj.getScript()), "clonk.editors.C4ScriptEditor");
-					C4ScriptEditor scriptEditor = (C4ScriptEditor)editor;
-					if (target != obj)
-						scriptEditor.selectAndReveal(target.getLocation());
+					if (obj instanceof C4ObjectIntern) {
+						IEditorPart editor = workbenchPage.openEditor(new FileEditorInput((IFile) obj.getScript()), "clonk.editors.C4ScriptEditor");
+						C4ScriptEditor scriptEditor = (C4ScriptEditor)editor;
+						if (target != obj)
+							scriptEditor.selectAndReveal(target.getLocation());
+					}
+					else {
+						// TODO open readonly editor for C4ObjectExtern files
+						return;
+//						throw new CoreException));
+					}
 				} else {
 					// TODO: provide some info about global functions or something
 				}

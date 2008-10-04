@@ -1,6 +1,9 @@
 package net.arctics.clonk.ui.wizards;
 
+import java.util.List;
+
 import net.arctics.clonk.parser.C4ID;
+import net.arctics.clonk.parser.C4Object;
 import net.arctics.clonk.resource.ClonkProjectNature;
 
 import org.eclipse.core.resources.IContainer;
@@ -193,7 +196,8 @@ public class NewC4ObjectPage extends WizardPage {
 			try {
 				ClonkProjectNature nature = (ClonkProjectNature)project.getNature("net.arctics.clonk.clonknature");
 				if (nature != null) {
-					if (nature.getIndexer().getObjects().containsKey(C4ID.getID(c4idText.getText()))) {
+					List<C4Object> objects = nature.getIndexedData().getObjects(C4ID.getID(c4idText.getText()));
+					if (objects != null && !objects.isEmpty()) {
 						updateStatus("Object ID is already in use.");
 						return;
 					}

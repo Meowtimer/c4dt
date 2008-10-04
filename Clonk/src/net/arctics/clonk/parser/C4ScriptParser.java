@@ -4,21 +4,14 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
-import java.util.LinkedList;
-import java.util.List;
 
 import net.arctics.clonk.parser.C4Directive.C4DirectiveType;
 import net.arctics.clonk.parser.C4Function.C4FunctionScope;
+import net.arctics.clonk.parser.C4Variable.C4VariableScope;
 
-import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
-import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IMarker;
-import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
-import org.eclipse.core.resources.IResourceDelta;
-import org.eclipse.core.resources.IResourceDeltaVisitor;
-import org.eclipse.core.resources.IResourceVisitor;
 import org.eclipse.core.runtime.CoreException;
 
 public class C4ScriptParser {
@@ -46,6 +39,21 @@ public class C4ScriptParser {
 				contents.read(buffer);
 			} catch (CoreException e) {
 				e.printStackTrace();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+		
+		public BufferedScanner(InputStream stream, long fileSize) throws CompilerException {
+			try {
+				contents = stream;
+				if (fileSize > Integer.MAX_VALUE) {
+					throw new CompilerException("Script file is too large. Unable to parse such a file");
+				}
+				size = (int)fileSize;
+				offset = 0;
+				buffer = new byte[size];
+				contents.read(buffer);
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
@@ -206,19 +214,43 @@ public class C4ScriptParser {
 	}
 	
 	private BufferedScanner fReader;
-	private IFile fScript;
+	private IFile fScript; // for project intern files
+	private C4Object container;
 	
-	private List<C4Directive> directives = new LinkedList<C4Directive>();
-	private List<C4Function> functions = new LinkedList<C4Function>();
-	private List<C4Variable> variables = new LinkedList<C4Variable>();
+	private InputStream stream; // for extern files
 	
-	public C4ScriptParser(IFile script) throws CompilerException {
+//	private List<C4Directive> directives = new LinkedList<C4Directive>();
+//	private List<C4Function> functions = new LinkedList<C4Function>();
+//	private List<C4Variable> variables = new LinkedList<C4Variable>();
+	
+	private C4Function activeFunc;
+	
+	/**
+	 * Creates a C4Script parser object.
+	 * Results are stored in <code>object</code>
+	 * @param script
+	 * @param obj
+	 * @throws CompilerException
+	 */
+	public C4ScriptParser(IFile script, C4Object object) throws CompilerException {
 		fScript = script;
 		fReader = new BufferedScanner(fScript);
+		container = object;
 	}
 	
-	public C4ScriptParser() {
-		
+	/**
+	 * Creates a C4Script parser object for extern files.
+	 * Results are stored in <code>object</code>
+	 * @param stream
+	 * @param size
+	 * @param object
+	 * @throws CompilerException
+	 */
+	public C4ScriptParser(InputStream stream, long size, C4Object object) throws CompilerException {
+		fScript = null;
+		this.stream = stream;
+		fReader = new BufferedScanner(this.stream, size);
+		container = object;
 	}
 	
 	public void parse() {
@@ -255,7 +287,7 @@ public class C4ScriptParser {
 			}
 			else {
 				String content = fReader.readStringUntil(BufferedScanner.NEWLINE_DELIMITERS);
-				directives.add(new C4Directive(type, content));
+				container.definedDirectives.add(new C4Directive(type, content));
 				return true;
 			}
 		}
@@ -301,8 +333,14 @@ public class C4ScriptParser {
 						createErrorMarker(fReader.getPosition() - 1, fReader.getPosition(), problem);
 						throw new ParsingException(problem);
 					}
+					C4Variable var = new C4Variable(constName,C4VariableScope.VAR_STATIC);
+					var.setObject(container);
+//					var.setType(C4Type.)
+					container.definedVariables.add(var);
 				}
-				// FIXME save global variables
+				else {
+					container.definedVariables.add(new C4Variable(varName,C4VariableScope.VAR_STATIC));
+				}
 				eatWhitespace();
 			} while(fReader.read() == ',');
 			fReader.unread();
@@ -322,7 +360,7 @@ public class C4ScriptParser {
 			do {
 				eatWhitespace();
 				String varName = fReader.readWord();
-				// FIXME save local variables
+				container.definedVariables.add(new C4Variable(varName,C4VariableScope.VAR_LOCAL));
 				eatWhitespace();
 			} while(fReader.read() == ',');
 			fReader.unread();
@@ -351,7 +389,11 @@ public class C4ScriptParser {
 			do {
 				eatWhitespace();
 				String varName = fReader.readWord();
-				// FIXME save function local variables
+				// construct C4Variable object and register it
+				C4Variable var = new C4Variable(varName,C4VariableScope.VAR_VAR);
+				var.setObject(container);
+				activeFunc.getLocalVars().add(var);
+				// check if there is initial content
 				eatWhitespace();
 				if (fReader.read() == '=') {
 					eatWhitespace();
@@ -396,9 +438,10 @@ public class C4ScriptParser {
 	private boolean parseFunctionDeclaration(String firstWord, int offset) throws ParsingException {
 		fReader.seek(offset);
 		eatWhitespace();
-		C4Function func = new C4Function();
+		activeFunc = new C4Function();
+		activeFunc.setObject(container);
 		if (!firstWord.equals("func")) {
-			func.setVisibility(C4FunctionScope.makeScope(firstWord));
+			activeFunc.setVisibility(C4FunctionScope.makeScope(firstWord));
 			if (!fReader.readWord().equalsIgnoreCase("func")) {
 				String problem = "Syntax error: expected 'func'";
 				createErrorMarker(offset, fReader.getPosition(), problem);
@@ -406,20 +449,20 @@ public class C4ScriptParser {
 			}
 		}
 		else {
-			func.setVisibility(C4FunctionScope.FUNC_PUBLIC);
-			// FIXME warning on function declaration without public/protected... ?
+			activeFunc.setVisibility(C4FunctionScope.FUNC_PUBLIC);
+			createWarningMarker(offset - firstWord.length(), fReader.getPosition(), "Function declarations should define a scope. (public,protected,private,global)");
 		}
 		eatWhitespace();
 		// get function name
 		int funcNameStart = fReader.getPosition();
 		String funcName = fReader.readWord();
-		for(C4Function otherFunc : functions) {
+		for(C4Function otherFunc : container.definedFunctions) {
 			if (otherFunc.getName().equalsIgnoreCase(funcName)) {
 				createWarningMarker(funcNameStart, fReader.getPosition(), "Function overload: this function is already declared in this script");
 				break;
 			}
 		}
-		func.setName(funcName);
+		activeFunc.setName(funcName);
 		eatWhitespace();
 		if (fReader.read() != '(') {
 			String problem = "Syntax error: expected '('";
@@ -430,7 +473,7 @@ public class C4ScriptParser {
 		do {
 			eatWhitespace();
 			offset = fReader.getPosition();
-			if (parseParameter(offset, func)) offset = fReader.getPosition(); 
+			if (parseParameter(offset, activeFunc)) offset = fReader.getPosition(); 
 			eatWhitespace(offset);
 			int readByte = fReader.read();
 			if (readByte == ')') break; // all parameter parsed
@@ -459,7 +502,8 @@ public class C4ScriptParser {
 			throw new ParsingException(problem);
 		}
 		// finish up
-		functions.add(func);
+		container.definedFunctions.add(activeFunc);
+//		functions.add(func);
 		return false;
 	}
 	
@@ -1182,20 +1226,32 @@ public class C4ScriptParser {
 				throw new ParsingException(problem);
 			}
 			eatWhitespace();
+			offset = fReader.getPosition();
 			if (!parseCode(fReader.getPosition())) {
-				// throw? find ;?
+				String problem = "Syntax error: expected code"; 
+				createErrorMarker(offset, fReader.getPosition(), problem);
+				throw new ParsingException(problem);
 			}
 			eatWhitespace();
+			offset = fReader.getPosition();
 			if (!parseValue(fReader.getPosition())) {
-				// throw?
+				String problem = "Syntax error: expected condition"; 
+				createErrorMarker(offset, fReader.getPosition(), problem);
+				throw new ParsingException(problem);
 			}
 			eatWhitespace();
+			offset = fReader.getPosition();
 			if (fReader.read() != ';') {
-				// throw
+				String problem = "Syntax error: expected ';'"; 
+				createErrorMarker(offset, fReader.getPosition(), problem);
+				throw new ParsingException(problem);
 			}
 			eatWhitespace();
-			if (!parseCode(fReader.getPosition())) {
-				// throw?
+			offset = fReader.getPosition();
+			if (!parseCall(offset) && !parseAssignment(offset) && !parseVariable(offset)) {
+				String problem = "Syntax error: expected call or assignment or identifier"; 
+				createErrorMarker(offset, fReader.getPosition(), problem);
+				throw new ParsingException(problem);
 			}
 			eatWhitespace();
 			if (fReader.read() != ')') {
@@ -1319,10 +1375,11 @@ public class C4ScriptParser {
 	}
 	
 	private IMarker createErrorMarker(int start, int end, String message) {
+		if (fScript == null) return null;
 		try {
 			IMarker marker = fScript.createMarker(IMarker.PROBLEM);
 			marker.setAttribute(IMarker.SEVERITY, IMarker.SEVERITY_ERROR);
-			marker.setAttribute(IMarker.TRANSIENT, true);
+			marker.setAttribute(IMarker.TRANSIENT, false);
 			marker.setAttribute(IMarker.MESSAGE, message);
 			marker.setAttribute(IMarker.CHAR_START, start);
 			marker.setAttribute(IMarker.CHAR_END, end);
@@ -1334,10 +1391,11 @@ public class C4ScriptParser {
 	}
 	
 	private IMarker createWarningMarker(int start, int end, String message) {
+		if (fScript == null) return null;
 		try {
 			IMarker marker = fScript.createMarker(IMarker.PROBLEM);
 			marker.setAttribute(IMarker.SEVERITY, IMarker.SEVERITY_WARNING);
-			marker.setAttribute(IMarker.TRANSIENT, true);
+			marker.setAttribute(IMarker.TRANSIENT, false);
 			marker.setAttribute(IMarker.MESSAGE, message);
 			marker.setAttribute(IMarker.CHAR_START, start);
 			marker.setAttribute(IMarker.CHAR_END, end);
@@ -1348,64 +1406,63 @@ public class C4ScriptParser {
 		return null;
 	}
 
-	/**
-	 * @return the directives
-	 */
-	public List<C4Directive> getDirectives() {
-		return directives;
-	}
-
-	/**
-	 * @return the functions
-	 */
-	public List<C4Function> getFunctions() {
-		return functions;
-	}
-
-	/**
-	 * @return the variables
-	 */
-	public List<C4Variable> getVariables() {
-		return variables;
-	}
+//	/**
+//	 * @return the directives
+//	 */
+//	public List<C4Directive> getDirectives() {
+//		return directives;
+//	}
+//
+//	/**
+//	 * @return the functions
+//	 */
+//	public List<C4Function> getFunctions() {
+//		return functions;
+//	}
+//
+//	/**
+//	 * @return the variables
+//	 */
+//	public List<C4Variable> getVariables() {
+//		return variables;
+//	}
 	
-	@SuppressWarnings("unused")
-	public boolean visit(IResourceDelta delta) throws CoreException {
-		if (delta == null) 
-			return false;
-		
-		IResourceDelta[] deltas = delta.getAffectedChildren();
-		IResource res = delta.getResource();
-		int flags = delta.getFlags();
-		int kind = delta.getKind();
-		if (delta.getResource() instanceof IFile)
-			try {
-				C4ScriptParser parser = new C4ScriptParser((IFile) delta.getResource());
-				parser.parse();
-			} catch (CompilerException e) {
-				e.printStackTrace();
-			}
-		if (delta.getResource() instanceof IFolder || delta.getResource() instanceof IProject)
-			return true;
-		else
-			return false;
-	}
-
-	public boolean visit(IResource resource) throws CoreException {
-		if (resource == null)
-			return false;
-		if (resource instanceof IFile) {
-			if (resource.getName().endsWith(".c")) {
-				try {
-					C4ScriptParser parser = new C4ScriptParser((IFile) resource);
-					parser.parse();
-				} catch (CompilerException e) {
-					e.printStackTrace();
-				}
-			}
-			return false;
-		}
-		if (resource instanceof IContainer) return true;
-		else return false;
-	}
+//	public boolean visit(IResourceDelta delta) throws CoreException {
+//		if (delta == null) 
+//			return false;
+//		
+//		IResourceDelta[] deltas = delta.getAffectedChildren();
+//		IResource res = delta.getResource();
+//		int flags = delta.getFlags();
+//		int kind = delta.getKind();
+//		if (delta.getResource() instanceof IFile)
+//			try {
+//				C4ScriptParser parser = new C4ScriptParser((IFile) delta.getResource());
+//				parser.parse();
+//			} catch (CompilerException e) {
+//				e.printStackTrace();
+//			}
+//		if (delta.getResource() instanceof IFolder || delta.getResource() instanceof IProject)
+//			return true;
+//		else
+//			return false;
+//	}
+//
+//	public boolean visit(IResource resource) throws CoreException {
+//		if (resource == null)
+//			return false;
+//		if (resource instanceof IFile) {
+//			if (resource.getName().endsWith(".c")) {
+//				try {
+//					C4ScriptParser parser = new C4ScriptParser((IFile) resource);
+//					parser.parse();
+//				} catch (CompilerException e) {
+//					e.printStackTrace();
+//				}
+//			}
+//			return false;
+//		}
+//		if (resource instanceof IContainer) return true;
+//		else return false;
+//	}
 }

@@ -28,7 +28,11 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Path;
 
-public class ClonkIndexer {
+/**
+ * 
+ * @deprecated 
+ */
+public class ClonkIndexerd {
 
 	private Map<C4ID, C4Object> objects = new HashMap<C4ID, C4Object>();
 	private File clonkDir;
@@ -41,7 +45,7 @@ public class ClonkIndexer {
 	private static final Pattern oldFunctionSearch = Pattern.compile("(?:((?:public)|(?:protected)|(?:private)|(?:global))\\s+)([\\w\\d_]+):[^:]",Pattern.CASE_INSENSITIVE); // find old function declarations (property like | basic like)
 	private static final Pattern parameterSearch = Pattern.compile("\\s*((?:any)|(?:int)|(?:id)|(?:string)|(?:bool)|(?:array)|(?:object)|(?:dword))?\\s*([\\w\\d_]+)\\s*",Pattern.CASE_INSENSITIVE);
 	//private static final Pattern variableSearch = Pattern.compile("((?:local)|(static const)|(?:static))\\s+([\\w\\d_, ]+)(?(2)\\s*=\\s*([^;]+))\\s*;",Pattern.CASE_INSENSITIVE); // 1=scope 3=names [5=value|"static const" only]
-	// Java: immer wieder enttäuschend: conditional patterns are not supported
+	// Java: immer wieder enttÃ¤uschend: conditional patterns are not supported
 	private static final Pattern variableSearch = Pattern.compile("((?:local)|(static const)|(?:static))\\s+([\\w\\d_, ]+)(?:\\s*=\\s*([^;]+))?\\s*;",Pattern.CASE_INSENSITIVE); // 1=scope 3=names [4=value|"static const" only]
 	
 	public ClonkIndexer() {
@@ -81,145 +85,137 @@ public class ClonkIndexer {
 		clonkDirIndexed = true;
 	}
 	
-	public static boolean c4FilenameExtensionIs(String filename, String ext) {
-		return filename.endsWith(ext);
-	}
-	
-	/**
-	 * Indexes a project folder
-	 * @param folder
-	 * @param path
-	 */
-	public void indexFolder(IFolder folder, IPath path, boolean recursively) {
-		IFile defCore = null, script = null;
-		C4Object parent = null;
-		C4ID id = null;
-		C4GroupType groupType = groupTypeFromFolderName(folder.getName());
-		try {
-			IResource[] members = folder.members();
-			for(IResource resource : members) {
-				if (groupType == C4GroupType.DefinitionGroup || groupType == C4GroupType.ScenarioGroup) {
-					if (resource instanceof IFile) {
-						IFile file = ((IFile)resource);
-						if (file.getName().equals("DefCore.txt")) {
-							defCore = file;
-						}
-						else if (file.getName().equals("Script.c")) {
-							script = file;
-						}
-					}
-				}
-				else if (groupType == C4GroupType.ResourceGroup) {
-					if (parent == null) {
-						parent = createObjectFromFolder(folder.getFullPath().toString(), path, null);
-					}
-					if (resource instanceof IFile) {
-						if (resource.getName().endsWith(".c")) {
-							script = (IFile)resource;
-							// TODO implement powerful parser aka insert usage of powerful parser here when it's ready for prime time
-							InputStream stream = ((IFile)resource).getContents();
-							indexScript(resource.getFullPath(), parent, getStringFromStream(stream));
-							stream.close();
-						}
-					}
-				}
-				if (resource instanceof IFolder) {
-					if (recursively) indexFolder((IFolder)resource, resource.getFullPath(), true); // recursive pre-call -> sub items are indexed before parent
-				}
-			}
-			if (script != null && defCore != null) {
-				InputStream stream = defCore.getContents();
-				byte[] defCoreBytes = new byte[2048];
-				int read = stream.read(defCoreBytes);
-				int idStartOffset = 0;
-				boolean searchId = false;
-				// fast DefCore searcher
-				for(int i = 0;i < read;i++) {
-					char c = (char)defCoreBytes[i];
-					if (!searchId && c == '[') {
-						if (new String(defCoreBytes,i,9).equalsIgnoreCase("[DefCore]")) {
-							i += 9;
-							searchId = true;
-							c = (char)defCoreBytes[i];
-						}
-					}
-					if (searchId && (c == '\n' || c == '\r')) {
-						while(c == '\n' || c == '\r') { // skip new line characters
-							c = (char)defCoreBytes[++i];
-						}
-						if (c == 'i' && (char)defCoreBytes[i+1] == 'd' && (char)defCoreBytes[i+2] == '=') {
-							i += 3;
-							idStartOffset = i;
-							id = C4ID.getID(new String(defCoreBytes,i,4));
-							break;
-						}
-					}
-				}
-				stream.close();
-				if (id != null) { // if this DefCore.txt has an id or is global c4g
-					if (!objects.containsKey(id)) {
-						parent = createObjectFromFolder(folder.getFullPath().toString(), path, id);
-						parent.setScript(script);
-					}
-					else {
-						parent = objects.get(id);
-						if (parent.getScript().equals(script)) {
-							parent.getDefinedVariables().clear();
-							parent.getDefinedFunctions().clear();
-							parent.getDefinedDirectives().clear();
-						}
-						else {
-							defCore.deleteMarkers(IMarker.PROBLEM, true, IResource.DEPTH_ONE);
-							IMarker marker = defCore.createMarker(IMarker.PROBLEM);
-							marker.setAttribute(IMarker.TRANSIENT, true);
-							marker.setAttribute(IMarker.CHAR_START, idStartOffset);
-							marker.setAttribute(IMarker.CHAR_END, idStartOffset + 4);
-							marker.setAttribute(IMarker.SEVERITY, IMarker.SEVERITY_WARNING);
-							marker.setAttribute(IMarker.MESSAGE, "This object redefines " + id.getName() + " previously defined in '" + parent.getName() + "'");
-							return;
-						}
-//						throw new CompilerException("Object with ID " + id + " is declared twice! (" + objects.get(id).getName() + " and " + group.getName() + ")");
-					}
-					
-//					System.out.println("Indexed object " + parent.getName());
-					InputStream scriptStream = script.getContents();
-					if (scriptStream.available() == 0) 
-						throw new InvalidDataException("Script file empty");
-					char[] bytes = new char[scriptStream.available()];
-					new InputStreamReader(scriptStream).read(bytes,0,scriptStream.available());
-					String contents = new String(bytes);
-					scriptStream.close();
-					indexScript(path, parent, contents);
-				}
-			}
-		}
-		catch (CoreException e) {
-			e.printStackTrace();
-		}
-		catch (IOException e) {
-			e.printStackTrace();
-		} catch (InvalidDataException e) {
-			e.printStackTrace();
-		}
-	}
 
-	public static C4GroupType groupTypeFromFolderName(String name) {
-		C4GroupType result = C4Group.extensionToGroupTypeMap.get(name.substring(name.lastIndexOf(".")+1));
-		if (result == null)
-			result = C4Group.extensionToGroupTypeMap.get(name.substring(0,3)); // legacy
-		if (result != null)
-			return result;
-		return C4GroupType.OtherGroup;
-	}
+	
+//	/**
+//	 * Indexes a project folder
+//	 * @param folder
+//	 * @param path
+//	 * @deprecated this method is replaced by the complete C4ScriptParser
+//	 */
+//	public void indexFolder(IFolder folder, IPath path, boolean recursively) {
+//		IFile defCore = null, script = null;
+//		C4Object parent = null;
+//		C4ID id = null;
+//		C4GroupType groupType = groupTypeFromFolderName(folder.getName());
+//		try {
+//			IResource[] members = folder.members();
+//			for(IResource resource : members) {
+//				if (groupType == C4GroupType.DefinitionGroup || groupType == C4GroupType.ScenarioGroup) {
+//					if (resource instanceof IFile) {
+//						IFile file = ((IFile)resource);
+//						if (file.getName().equals("DefCore.txt")) {
+//							defCore = file;
+//						}
+//						else if (file.getName().equals("Script.c")) {
+//							script = file;
+//						}
+//					}
+//				}
+//				else if (groupType == C4GroupType.ResourceGroup) {
+//					if (parent == null) {
+//						parent = createObjectFromFolder(folder.getFullPath().toString(), path, null);
+//					}
+//					if (resource instanceof IFile) {
+//						if (resource.getName().endsWith(".c")) {
+//							script = (IFile)resource;
+//							// TODO implement powerful parser aka insert usage of powerful parser here when it's ready for prime time
+//							InputStream stream = ((IFile)resource).getContents();
+//							indexScript(resource.getFullPath(), parent, getStringFromStream(stream));
+//							stream.close();
+//						}
+//					}
+//				}
+//				if (resource instanceof IFolder) {
+//					if (recursively) indexFolder((IFolder)resource, resource.getFullPath(), true); // recursive pre-call -> sub items are indexed before parent
+//				}
+//			}
+//			if (script != null && defCore != null) {
+//				InputStream stream = defCore.getContents();
+//				byte[] defCoreBytes = new byte[2048];
+//				int read = stream.read(defCoreBytes);
+//				int idStartOffset = 0;
+//				boolean searchId = false;
+//				// fast DefCore searcher
+//				for(int i = 0;i < read;i++) {
+//					char c = (char)defCoreBytes[i];
+//					if (!searchId && c == '[') {
+//						if (new String(defCoreBytes,i,9).equalsIgnoreCase("[DefCore]")) {
+//							i += 9;
+//							searchId = true;
+//							c = (char)defCoreBytes[i];
+//						}
+//					}
+//					if (searchId && (c == '\n' || c == '\r')) {
+//						while(c == '\n' || c == '\r') { // skip new line characters
+//							c = (char)defCoreBytes[++i];
+//						}
+//						if (c == 'i' && (char)defCoreBytes[i+1] == 'd' && (char)defCoreBytes[i+2] == '=') {
+//							i += 3;
+//							idStartOffset = i;
+//							id = C4ID.getID(new String(defCoreBytes,i,4));
+//							break;
+//						}
+//					}
+//				}
+//				stream.close();
+//				if (id != null) { // if this DefCore.txt has an id or is global c4g
+//					if (!objects.containsKey(id)) {
+//						parent = createObjectFromFolder(folder.getFullPath().toString(), path, id);
+//						parent.setScript(script);
+//					}
+//					else {
+//						parent = objects.get(id);
+//						if (parent.getScript().equals(script)) {
+//							parent.getDefinedVariables().clear();
+//							parent.getDefinedFunctions().clear();
+//							parent.getDefinedDirectives().clear();
+//						}
+//						else {
+//							defCore.deleteMarkers(IMarker.PROBLEM, true, IResource.DEPTH_ONE);
+//							IMarker marker = defCore.createMarker(IMarker.PROBLEM);
+//							marker.setAttribute(IMarker.TRANSIENT, true);
+//							marker.setAttribute(IMarker.CHAR_START, idStartOffset);
+//							marker.setAttribute(IMarker.CHAR_END, idStartOffset + 4);
+//							marker.setAttribute(IMarker.SEVERITY, IMarker.SEVERITY_WARNING);
+//							marker.setAttribute(IMarker.MESSAGE, "This object redefines " + id.getName() + " previously defined in '" + parent.getName() + "'");
+//							return;
+//						}
+////						throw new CompilerException("Object with ID " + id + " is declared twice! (" + objects.get(id).getName() + " and " + group.getName() + ")");
+//					}
+//					
+////					System.out.println("Indexed object " + parent.getName());
+//					InputStream scriptStream = script.getContents();
+//					if (scriptStream.available() == 0) 
+//						throw new InvalidDataException("Script file empty");
+//					char[] bytes = new char[scriptStream.available()];
+//					new InputStreamReader(scriptStream).read(bytes,0,scriptStream.available());
+//					String contents = new String(bytes);
+//					scriptStream.close();
+//					indexScript(path, parent, contents);
+//				}
+//			}
+//		}
+//		catch (CoreException e) {
+//			e.printStackTrace();
+//		}
+//		catch (IOException e) {
+//			e.printStackTrace();
+//		} catch (InvalidDataException e) {
+//			e.printStackTrace();
+//		}
+//	}
 
 	private C4Object createObjectFromFolder(String folderPath, IPath path, C4ID id) {
 		if (id == null)
 			id = C4ID.getSpecialID(folderPath.toString());
 		C4Object newObject = new C4Object(
 				id,
-				folderPath,
+				folderPath
 				// TODO: folderPath.substring(folder.getProject().getName().length() + 2),
-				path.segmentCount() == 0 || c4FilenameExtensionIs(path.segment(0), "c4d") ||  c4FilenameExtensionIs(path.segment(0), "c4g")
+				// das brauch keine sau:
+//				path.segmentCount() == 0 || c4FilenameExtensionIs(path.segment(0), "c4d") ||  c4FilenameExtensionIs(path.segment(0), "c4g")
+				
 		); 
 		objects.put(id, newObject);
 		return newObject;
@@ -229,7 +225,7 @@ public class ClonkIndexer {
 		group.open(false);
 		List<C4GroupItem> items = group.getChildEntries();
 		C4Entry defCore = null, script = null;
-		C4Object parent = null;
+//		C4Object parent = null;
 		C4ID id = null;
 		C4GroupType groupType = group.getGroupType();
 		// get important files

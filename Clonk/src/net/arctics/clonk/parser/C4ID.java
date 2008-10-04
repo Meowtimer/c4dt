@@ -1,9 +1,11 @@
 package net.arctics.clonk.parser;
 
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
-public class C4ID {
+public class C4ID implements Serializable {
+	private static final long serialVersionUID = 833007356188766488L;
 	private String name;
 	private static Map<String, C4ID> idPool = new HashMap<String, C4ID>();
 //	public static final C4ID GLOBAL = new C4ID("GLOBAL");

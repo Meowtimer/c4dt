@@ -2,7 +2,7 @@ package net.arctics.clonk.ui.editors;
 
 import java.util.ResourceBundle;
 
-import net.arctics.clonk.parser.C4DefCoreParser;
+import net.arctics.clonk.parser.C4DefCoreWrapper;
 import net.arctics.clonk.ui.editors.actions.IndexClonkDir;
 import net.arctics.clonk.ui.navigator.ClonkLabelProvider;
 

@@ -10,7 +10,7 @@ import net.arctics.clonk.parser.BuiltInDefinitions;
 import net.arctics.clonk.parser.C4Function;
 import net.arctics.clonk.parser.C4Object;
 import net.arctics.clonk.parser.C4Variable;
-import net.arctics.clonk.parser.ClonkIndexer;
+import net.arctics.clonk.parser.ClonkIndex;
 import net.arctics.clonk.parser.C4Function.C4FunctionScope;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.Utilities;
@@ -44,7 +44,7 @@ public class ClonkCompletionProcessor implements IContentAssistProcessor {
 
 	}
 	
-	public void proposalForFunc(C4Function func,String prefix,int offset,List<ClonkCompletionProposal> proposals,C4Object obj) {
+	public void proposalForFunc(C4Function func,String prefix,int offset,List<ClonkCompletionProposal> proposals,String parentName) {
 		if (prefix != null) {
 			if (!func.getName().toLowerCase().startsWith(prefix))
 				return;
@@ -57,7 +57,7 @@ public class ClonkCompletionProcessor implements IContentAssistProcessor {
 		IContextInformation contextInformation = new ContextInformation(func.getName() + "()",contextInfoString); 
 		
 		ClonkCompletionProposal prop = new ClonkCompletionProposal(func.getName() + "()",offset,replacementLength,func.getName().length()+1,
-				Utilities.getIconForFunction(func), displayString.trim(),contextInformation,null," - " + ((obj != null) ? obj.getName() : "Engine"));
+				Utilities.getIconForFunction(func), displayString.trim(),contextInformation,null," - " + parentName);
 		proposals.add(prop);
 	}
 	
@@ -87,14 +87,15 @@ public class ClonkCompletionProcessor implements IContentAssistProcessor {
 		ClonkProjectNature nature = net.arctics.clonk.Utilities.getProject(editor);
 		List<String> statusMessages = new ArrayList<String>(4);
 		List<ClonkCompletionProposal> proposals = new ArrayList<ClonkCompletionProposal>();
-		ClonkIndexer indexer = nature.getIndexer();
-		if (indexer.isClonkDirIndexed()) {
-			statusMessages.add("Clonk directory");
-		}
+		ClonkIndex index = nature.getIndexedData();
+//		if (indexer.) {
+//			statusMessages.add("Clonk directory");
+//		}
+		// TODO implement Clonk directory indexing status indicator
 		if (nature.isIndexed()) {
 			statusMessages.add("Project files");
 		}
-		if (ClonkCore.ENGINE_FUNCTIONS.size() > 0) {
+		if (ClonkCore.ENGINE_OBJECT != null) {
 			statusMessages.add("Engine functions");
 		}
 		
@@ -151,35 +152,28 @@ public class ClonkCompletionProcessor implements IContentAssistProcessor {
 		}
 		else {
 			IFile scriptFile = Utilities.getEditingFile(editor);
-			if (indexer.getObjects().size() > 0) {
-				for (C4Object obj : indexer.getObjects().values()) {
-					boolean currentObj = scriptFile.equals(obj.getScript());
-					for (C4Function func : obj.getDefinedFunctions()) {
-						if (currentObj || func.getVisibility() == C4FunctionScope.FUNC_GLOBAL) {
-							proposalForFunc(func, prefix, offset, proposals, obj);
-						}
-					}
-					if (currentObj) {
-						for (C4Variable var : obj.getDefinedVariables()) {
-							if (prefix != null && !var.getName().toLowerCase().startsWith(prefix))
-								continue;
-							String displayString = var.getName();
-							int replacementLength = 0;
-							if (prefix != null)
-								replacementLength = prefix.length();
-							ClonkCompletionProposal prop = new ClonkCompletionProposal(
-								var.getName(), offset, replacementLength, var.getName().length(), Utilities.getIconForVariable(var), displayString, 
-								null, var.getAdditionalProposalInfo(), " - " + obj.getName()
-							);
-							proposals.add(prop);
-						}
-					}
+			if (!index.isEmpty()) {
+				for (C4Function func : index.getGlobalFunctions()) {
+					proposalForFunc(func, prefix, offset, proposals, func.getObject().getName());
+				}
+				for (C4Variable var : index.getStaticVariables()) {
+					if (prefix != null && !var.getName().toLowerCase().startsWith(prefix))
+						continue;
+					String displayString = var.getName();
+					int replacementLength = 0;
+					if (prefix != null)
+						replacementLength = prefix.length();
+					ClonkCompletionProposal prop = new ClonkCompletionProposal(
+						var.getName(), offset, replacementLength, var.getName().length(), Utilities.getIconForVariable(var), displayString, 
+						null, var.getAdditionalProposalInfo(), " - " + var.getObject().getName()
+					);
+					proposals.add(prop);
 				}
 			}
 			
-			if (ClonkCore.ENGINE_FUNCTIONS.size() > 0) {
-				for(C4Function func : ClonkCore.ENGINE_FUNCTIONS) {
-					proposalForFunc(func, prefix, offset, proposals, null);
+			if (ClonkCore.ENGINE_OBJECT != null) {
+				for(C4Function func : ClonkCore.ENGINE_OBJECT.getDefinedFunctions()) {
+					proposalForFunc(func, prefix, offset, proposals, ClonkCore.ENGINE_OBJECT.getName());
 				}
 			}
 			
@@ -261,7 +255,7 @@ public class ClonkCompletionProcessor implements IContentAssistProcessor {
 			prefix = null;
 		}
 		IContextInformation info = null;
-		for(C4Function func : ClonkCore.ENGINE_FUNCTIONS) {
+		for(C4Function func : ClonkCore.ENGINE_OBJECT.getDefinedFunctions()) {
 			if (func.getName().equalsIgnoreCase(prefix)) {
 				String displayString = func.getLongParameterString(false).trim();
 				info = new ContextInformation(func.getName() + "()",displayString); 
@@ -279,7 +273,8 @@ public class ClonkCompletionProcessor implements IContentAssistProcessor {
 	}
 
 	public char[] getContextInformationAutoActivationCharacters() {
-		return new char[] { '(' };
+		return null;
+//		return new char[] { '(' };
 	}
 
 	public IContextInformationValidator getContextInformationValidator() {

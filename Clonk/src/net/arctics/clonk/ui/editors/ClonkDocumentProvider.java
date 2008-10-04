@@ -30,7 +30,7 @@ public class ClonkDocumentProvider extends FileDocumentProvider {
 			partitioner.connect(document);
 			document.setDocumentPartitioner(partitioner);
 		}
-		if (!getProject(editor).isIndexed()) getProject(editor).indexAll();
+//		if (!getProject(editor).isIndexed()) getProject(editor).indexAll();
 		return document;
 	}
 	
@@ -39,13 +39,12 @@ public class ClonkDocumentProvider extends FileDocumentProvider {
 	 */
 	@Override
 	public void changed(Object element) {
-		// TODO Auto-generated method stub
 		super.changed(element);
-		getProject(editor).index(getEditingFile(editor));
-		if (editor instanceof C4ScriptEditor) {
-			((C4ScriptEditor)editor).getOutlinePage().refresh();
-		}
-		
+//		getProject(editor).index(getEditingFile(editor));
+//		if (editor instanceof C4ScriptEditor) {
+//			((C4ScriptEditor)editor).getOutlinePage().refresh();
+//		}
+		// FIXME does the outline refresh on build events?
 	}
 	
 	protected ClonkProjectNature getProject(ITextEditor editor) {

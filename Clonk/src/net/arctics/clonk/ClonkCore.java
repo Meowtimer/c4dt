@@ -10,10 +10,16 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
+import net.arctics.clonk.parser.C4Field;
 import net.arctics.clonk.parser.C4Function;
+import net.arctics.clonk.parser.C4ID;
 import net.arctics.clonk.parser.C4Object;
+import net.arctics.clonk.parser.C4ObjectExtern;
 import net.arctics.clonk.parser.C4Variable;
 
+import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.core.runtime.Path;
+import org.eclipse.core.runtime.QualifiedName;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.osgi.framework.BundleContext;
@@ -25,8 +31,12 @@ public class ClonkCore extends AbstractUIPlugin {
 
 	// The plug-in ID
 	public static final String PLUGIN_ID = "net.arctics.clonk";
+	public static final QualifiedName FOLDER_C4ID_PROPERTY_ID = new QualifiedName("net.arctics.clonk","c4id");
+	public static final QualifiedName C4OBJECT_PROPERTY_ID = new QualifiedName("net.arctics.clonk","c4object");
 	
-	public static final List<C4Function> ENGINE_FUNCTIONS = new ArrayList<C4Function>(505);
+//	public static final List<C4Function> ENGINE_FUNCTIONS = new ArrayList<C4Function>(505);
+	
+	public static final C4ObjectExtern ENGINE_OBJECT = new C4ObjectExtern(C4ID.getSpecialID("Engine"),"Engine",Path.EMPTY);
 	
 	// The shared instance
 	private static ClonkCore plugin;
@@ -63,7 +73,10 @@ public class ClonkCore extends AbstractUIPlugin {
 				while (true) {
 					Object obj = decoder.readObject();
 					if (obj instanceof C4Function) {
-						ENGINE_FUNCTIONS.add((C4Function)obj);
+						C4Field field = (C4Field)obj;
+						field.setObject(ENGINE_OBJECT);
+						ENGINE_OBJECT.addField(field);
+//						ENGINE_FUNCTIONS.add((C4Function)obj);
 					}
 					else {
 						System.out.println("Read unknown object from engine.xml: " + obj.getClass().getName());

@@ -4,9 +4,13 @@ import net.arctics.clonk.parser.C4Function;
 import net.arctics.clonk.parser.C4Object;
 import net.arctics.clonk.parser.C4Variable;
 import net.arctics.clonk.resource.ClonkProjectNature;
+import net.arctics.clonk.resource.c4group.C4Group;
+import net.arctics.clonk.resource.c4group.C4Group.C4GroupType;
 
 import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IProjectNature;
+import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.FileLocator;
 import org.eclipse.core.runtime.Path;
@@ -16,7 +20,7 @@ import org.eclipse.swt.graphics.Image;
 import org.eclipse.ui.part.FileEditorInput;
 import org.eclipse.ui.texteditor.ITextEditor;
 
-public class Utilities {
+public abstract class Utilities {
 	public static ClonkProjectNature getProject(ITextEditor editor) {
 		try {
 			if (editor.getEditorInput() instanceof FileEditorInput) {
@@ -29,6 +33,19 @@ public class Utilities {
 			e.printStackTrace();
 		}
 		return null;
+	}
+	
+	public static ClonkProjectNature getProject(IResource res) {
+		if (res == null) return null;
+		IProject project = res.getProject();
+		if (project == null) return null;
+		try {
+			IProjectNature clonkProj = project.getNature("net.arctics.clonk.clonknature");
+			return (ClonkProjectNature) clonkProj;
+		} catch (CoreException e) {
+			e.printStackTrace();
+			return null;
+		}
 	}
 	
 	public static IFile getEditingFile(ITextEditor editor) {
@@ -71,6 +88,25 @@ public class Utilities {
 	}
 
 	public static C4Object getObjectForEditor(ITextEditor editor) {
-		 return getProject(editor).getIndexer().getObjectForScript(getEditingFile(editor));
+		try {
+			return (C4Object)getEditingFile(editor).getParent().getSessionProperty(ClonkCore.C4OBJECT_PROPERTY_ID);
+		} catch (CoreException e) {
+			e.printStackTrace();
+			return null;
+		}
+//		 return getProject(editor).getIndexer().getObjectForScript(getEditingFile(editor));
+	}
+	
+	public static C4GroupType groupTypeFromFolderName(String name) {
+		C4GroupType result = C4Group.extensionToGroupTypeMap.get(name.substring(name.lastIndexOf(".")+1));
+		if (result == null)
+			result = C4Group.extensionToGroupTypeMap.get(name.substring(0,3)); // legacy
+		if (result != null)
+			return result;
+		return C4GroupType.OtherGroup;
+	}
+	
+	public static boolean c4FilenameExtensionIs(String filename, String ext) {
+		return filename.endsWith(ext);
 	}
 }

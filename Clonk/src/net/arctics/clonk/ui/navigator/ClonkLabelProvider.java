@@ -2,10 +2,6 @@ package net.arctics.clonk.ui.navigator;
 
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.Utilities;
-import net.arctics.clonk.parser.C4DefCoreParser;
-import net.arctics.clonk.parser.ClonkIndexer;
-import net.arctics.clonk.parser.C4DefCoreParser.C4DefCoreData;
-import net.arctics.clonk.resource.c4group.C4Entry;
 import net.arctics.clonk.resource.c4group.C4Group.C4GroupType;
 import net.arctics.clonk.ui.OverlayIcon;
 
@@ -15,8 +11,6 @@ import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.FileLocator;
-import org.eclipse.core.runtime.Path;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.resource.ImageRegistry;
 import org.eclipse.jface.viewers.ILabelProviderListener;
@@ -50,7 +44,7 @@ public class ClonkLabelProvider extends LabelProvider implements IStyledLabelPro
 		}
 		else if (element instanceof IFolder) {
 			IFolder folder = (IFolder)element;
-			C4GroupType groupType = ClonkIndexer.groupTypeFromFolderName(folder.getName());
+			C4GroupType groupType = Utilities.groupTypeFromFolderName(folder.getName());
 			
 			if (groupType == C4GroupType.FolderGroup) {
 				return computeImage("c4folder","icons/Clonk_folder.png",(IResource)element);
@@ -97,33 +91,31 @@ public class ClonkLabelProvider extends LabelProvider implements IStyledLabelPro
 	}
 	
 	public StyledString getStyledText(Object element) {
-		
+
 		if (element instanceof IFolder) {
 			IFolder folder = (IFolder)element;
-			C4GroupType groupType = ClonkIndexer.groupTypeFromFolderName(folder.getName());
+			C4GroupType groupType = Utilities.groupTypeFromFolderName(folder.getName());
 			if (groupType == C4GroupType.DefinitionGroup) {
-				IResource defCoreFile = folder.findMember("DefCore.txt");
-				if (defCoreFile != null && defCoreFile instanceof IFile) {
-//					try {
-						StyledString buf = new StyledString();
-//						((IFile)res).accept(C4DefCoreParser.getInstance());
-						buf.append(stringWithoutExtension(folder.getName()));
-						C4DefCoreData data = C4DefCoreParser.getInstance().getDefFor((IFile)defCoreFile);
-						if (data != null)
-							buf.append(" ["+ data.getId().getName() + "]",StyledString.DECORATIONS_STYLER);
-						return buf;
-//					} catch (CoreException e) {
-//						e.printStackTrace();
-//						return new StyledString(folder.getName().substring(4) + "|error");
-//					}
+				// add [C4ID] to .c4d folders
+				StyledString buf = new StyledString();
+				buf.append(stringWithoutExtension(folder.getName()));
+				try {
+					String c4id = folder.getPersistentProperty(ClonkCore.FOLDER_C4ID_PROPERTY_ID);
+					if (c4id != null) {
+						buf.append(" [",StyledString.DECORATIONS_STYLER);
+						buf.append(c4id,StyledString.DECORATIONS_STYLER);
+						buf.append("]",StyledString.DECORATIONS_STYLER);
+					}
+					//C4Object obj = Utilities.getProject(folder.getProject()).getIndexedObjects().get(C4ID.getID(c4id));
+
+				} catch (CoreException e) {
+					e.printStackTrace();
 				}
-				else {
-					return new StyledString(stringWithoutExtension(folder.getName()));
-				}
+
+				return buf;
 			}
 			if (groupType == C4GroupType.FolderGroup || groupType == C4GroupType.ScenarioGroup || groupType == C4GroupType.ResourceGroup)
 				return new StyledString(folder.getName().substring(0,folder.getName().lastIndexOf(".")));
-				//return new StyledString(folder.getName().substring(4));
 		}
 		return new StyledString(getText(element));
 	}

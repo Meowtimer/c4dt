@@ -7,6 +7,7 @@ import java.util.Map;
 
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.BuiltInDefinitions;
+import net.arctics.clonk.parser.C4Function;
 import net.arctics.clonk.parser.C4Type;
 
 import org.eclipse.jface.text.rules.*;
@@ -154,10 +155,7 @@ public class ClonkCodeScanner extends RuleBasedScanner {
 	private IRule[] currentRules;
 	
 	public ClonkCodeScanner(ColorManager manager) {
-		
-		
 
-		
 		IToken defaultToken = new Token(new TextAttribute(manager.getColor(IClonkColorConstants.DEFAULT)));
 		
 		IToken operator = new Token(new TextAttribute(manager.getColor(IClonkColorConstants.OPERATOR)));
@@ -209,8 +207,8 @@ public class ClonkCodeScanner extends RuleBasedScanner {
 			wordRule.addWord(c4type.name().trim().toLowerCase(), type);
 		for (int i=0; i<fgConstants.length; i++)
 			wordRule.addWord(fgConstants[i], type);
-		for (int i=0; i<ClonkCore.ENGINE_FUNCTIONS.size(); i++)
-			wordRule.addWord(ClonkCore.ENGINE_FUNCTIONS.get(i).getName(), engineFunction);
+		for(C4Function func : ClonkCore.ENGINE_OBJECT.getDefinedFunctions())
+			wordRule.addWord(func.getName(), engineFunction);
 		for (int i=0; i<BuiltInDefinitions.OBJECT_CALLBACKS.length; i++)
 			wordRule.addWord(BuiltInDefinitions.OBJECT_CALLBACKS[i], objCallbackFunction);
 		
