@@ -44,4 +44,11 @@ public class SourceLocation implements IRegion {
 	public int getOffset() {
 		return getStart();
 	}
+	
+	public boolean equals(Object obj) {
+		if (obj == null) return false;
+		if (!(obj instanceof SourceLocation)) return false;
+		SourceLocation cmp = (SourceLocation) obj;
+		return (cmp.getStart() == start && cmp.getEnd() == end);
+	}
 }

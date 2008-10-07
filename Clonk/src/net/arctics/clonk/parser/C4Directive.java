@@ -1,6 +1,6 @@
 package net.arctics.clonk.parser;
 
-public class C4Directive {
+public class C4Directive extends C4Field {
 	public enum C4DirectiveType {
 		STRICT,
 		INCLUDE,

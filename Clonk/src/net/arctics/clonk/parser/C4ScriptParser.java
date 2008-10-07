@@ -440,6 +440,7 @@ public class C4ScriptParser {
 		eatWhitespace();
 		activeFunc = new C4Function();
 		activeFunc.setObject(container);
+		int startName, endName, startBody, endBody;
 		if (!firstWord.equals("func")) {
 			activeFunc.setVisibility(C4FunctionScope.makeScope(firstWord));
 			if (!fReader.readWord().equalsIgnoreCase("func")) {
@@ -453,9 +454,11 @@ public class C4ScriptParser {
 			createWarningMarker(offset - firstWord.length(), fReader.getPosition(), "Function declarations should define a scope. (public,protected,private,global)");
 		}
 		eatWhitespace();
+		startName = fReader.getPosition();
 		// get function name
 		int funcNameStart = fReader.getPosition();
 		String funcName = fReader.readWord();
+		endName = fReader.getPosition();
 		for(C4Function otherFunc : container.definedFunctions) {
 			if (otherFunc.getName().equalsIgnoreCase(funcName)) {
 				createWarningMarker(funcNameStart, fReader.getPosition(), "Function overload: this function is already declared in this script");
@@ -494,7 +497,12 @@ public class C4ScriptParser {
 		eatWhitespace();
 		offset = fReader.getPosition();
 		if (parseFunctionDescription(offset)) offset = fReader.getPosition();
-		parseCodeBlock(offset);
+		startBody = offset;
+		if (parseCodeBlock(offset)) {
+		}
+		else { // nonsense since parseCodeBlock is always true
+		}
+		endBody = fReader.getPosition();
 		eatWhitespace();
 		if (fReader.read() != '}') {
 			String problem = "Syntax error: expected '}'";
@@ -502,9 +510,11 @@ public class C4ScriptParser {
 			throw new ParsingException(problem);
 		}
 		// finish up
-		container.definedFunctions.add(activeFunc);
+		activeFunc.setLocation(new SourceLocation(startName,endName));
+		activeFunc.setBody(new SourceLocation(startBody,endBody));
+		container.addField(activeFunc);
 //		functions.add(func);
-		return false;
+		return true;
 	}
 	
 	/**
@@ -579,16 +589,20 @@ public class C4ScriptParser {
 	
 	private boolean parseAssignment(int offset) throws ParsingException {
 		fReader.seek(offset);
-		eatWhitespace();
-		String varName = fReader.readWord();
-		if (varName.length() == 0) {
-//			fReader.seek(offset);
-			return false;
+		if (!parseCall(offset)) {
+			fReader.seek(offset);
+			String varName = fReader.readWord();
+			if (varName.length() == 0) {
+//				fReader.seek(offset);
+				return false;
+			}
 		}
 		eatWhitespace();
+		
 		int readByte = fReader.read();
+		int secondByte = fReader.read();
 		if (readByte != '=') {
-			int secondByte = fReader.read();
+			
 			if (secondByte == '=' && ((0x2A <= readByte && readByte <= 0x2F && readByte != 0x2C && readByte != 0x2E) || readByte == '%')) {
 				
 			}
@@ -597,6 +611,9 @@ public class C4ScriptParser {
 				fReader.unread();
 				return false;
 			}
+		}
+		else {
+			
 		}
 		eatWhitespace();
 		offset = fReader.getPosition();
@@ -1015,6 +1032,11 @@ public class C4ScriptParser {
 		}
 	}
 	
+	/**
+	 * Trys to find an operator that is not an assignment operator
+	 * @param offset
+	 * @return
+	 */
 	private boolean parseOperator(int offset) {
 		fReader.seek(offset);
 		
@@ -1028,6 +1050,7 @@ public class C4ScriptParser {
 				if (charPair[1] == secondChar) return true;
 			}
 		}
+		if (secondChar == '=') return false; // assigment
 		fReader.unread();
 		for(char singleChar : singleChars) {
 			if (readChar == singleChar) return true;
@@ -1047,22 +1070,12 @@ public class C4ScriptParser {
 	private boolean parseFunctionDescription(int offset) throws ParsingException {
 		fReader.seek(offset);
 		if (fReader.read() != '[') return false;
-		fReader.readStringUntil(new char[] { '|' }); // description text
-		if (fReader.read() != '|') {
-			fReader.unread();
-			if (fReader.read() == ']') return true;
-			else return false;
+		String descriptionString = fReader.readStringUntil(new char[] { ']' });
+		if (descriptionString == null) {
+			fReader.seek(offset);
+			return false;
 		}
-		int idStart = fReader.getPosition();
-		String id = fReader.readStringUntil(new char[] { '|' }); // description ID for icon
-		if (id.length() != 4) {
-			String problem = "Syntax error: expected an ID";
-			createErrorMarker(idStart, idStart + 4, problem);
-			throw new ParsingException(problem);
-		}
-		if (fReader.read() == '|') {
-			parseValue(fReader.getPosition());  // menu item condition
-		}
+		
 		if (fReader.read() == ']') {
 			return true;
 		}
@@ -1071,6 +1084,26 @@ public class C4ScriptParser {
 			createErrorMarker(fReader.getPosition() -1,fReader.getPosition(), problem);
 			throw new ParsingException(problem);
 		}
+//		fReader.readStringUntil(new char[] { '|' }); // description text
+//		if (fReader.read() != '|') {
+//			fReader.unread();
+//			if (fReader.read() == ']') return true;
+//			else return false;
+//		}
+//		int idStart = fReader.getPosition();
+//		String id = fReader.readStringUntil(new char[] { '|' }); // description ID for icon
+//		if (id != null) { // char not found
+//			if (id.length() != 4) {
+//				String problem = "Syntax error: expected an ID";
+//				createErrorMarker(idStart, idStart + 4, problem);
+//				throw new ParsingException(problem);
+//			}
+//			if (fReader.read() == '|') {
+//				parseValue(fReader.getPosition());  // menu item condition
+//			}
+//		}
+//
+
 		// [blublu|IMGC|...]
 	}
 	
@@ -1163,6 +1196,7 @@ public class C4ScriptParser {
 				createErrorMarker(offset, offset + 4, problem);
 				throw new ParsingException(problem);
 			}
+			eatWhitespace();
 			offset = fReader.getPosition();
 			String nextWord = fReader.readWord();
 			if (nextWord.equalsIgnoreCase("else")) {
@@ -1278,15 +1312,20 @@ public class C4ScriptParser {
 	
 	private boolean parseID(int offset) throws ParsingException {
 		fReader.seek(offset);
+		String word = fReader.readWord();
+		if (word != null && word.length() != 4) {
+			fReader.seek(offset);
+			return false;
+		}
 		for(int i = 0; i < 4;i++) {
-			int readChar = fReader.read();
+			int readChar = word.charAt(i);
 			if ((0x41 <= readChar && readChar <= 0x5a) ||
 					(0x30 <= readChar && readChar <= 0x39) ||
 					(readChar == '_')) {
 				continue;
 			}
 			else {
-				fReader.unread();
+				fReader.seek(offset);
 				return false;
 			}
 		}

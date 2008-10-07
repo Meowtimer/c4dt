@@ -1,14 +1,10 @@
 package net.arctics.clonk.parser;
 
-import java.beans.ExceptionListener;
 import java.beans.XMLDecoder;
 import java.beans.XMLEncoder;
 import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.OutputStreamWriter;
-import java.io.StringReader;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -23,9 +19,8 @@ import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
-import org.xml.sax.SAXParseException;
 
-public class ClonkIndex {
+public class ClonkIndex implements IC4ObjectListener {
 	
 	private Map<C4ID,List<C4Object>> projectObjects;
 	
@@ -206,5 +201,20 @@ public class ClonkIndex {
 				e.printStackTrace();
 			}
 		}
+	}
+
+	public void fieldAdded(C4Object obj, C4Field field) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	public void fieldChanged(C4Object obj, C4Field field) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	public void fieldRemoved(C4Object obj, C4Field field) {
+		// TODO Auto-generated method stub
+		
 	}
 }

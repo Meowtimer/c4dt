@@ -2,7 +2,6 @@ package net.arctics.clonk.parser;
 
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
 
 public class C4Function extends C4Field implements Serializable {
@@ -16,9 +15,6 @@ public class C4Function extends C4Field implements Serializable {
 	private String description;
 	private boolean isCallback;
 	private SourceLocation body;
-	
-	
-	private List<IC4FunctionListener> listeners = new LinkedList<IC4FunctionListener>();
 	
 	/**
 	 * Do NOT use this constructor! Its for engine-functions only.
@@ -253,18 +249,6 @@ public class C4Function extends C4Field implements Serializable {
 			return String.format("<html><head><title>Blub</title></head><body><b>%s</b><br>%s<br><a href='%s'>Online Dokumentation</a></body></html>", getName(), getDescription(), getDocumentationURL());
 		}
 		return super.getShortInfo();
-	}
-	
-	public void addListener(IC4FunctionListener listener) {
-		listeners.add(listener);
-	}
-	
-	public void removeListener(IC4FunctionListener listener) {
-		listeners.remove(listener);
-	}
-	
-	public static class C4FunctionChangedEvent {
-		
 	}
 	
 }
