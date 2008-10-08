@@ -11,6 +11,7 @@ import net.arctics.clonk.parser.C4ObjectParser;
 import net.arctics.clonk.parser.C4ScriptParser;
 import net.arctics.clonk.parser.CompilerException;
 
+import org.eclipse.core.internal.resources.ResourceException;
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
@@ -35,26 +36,30 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 
 	protected IProject[] build(int kind, Map args, IProgressMonitor monitor)
 			throws CoreException {
-		
-		IProject proj = getProject();
-		monitor.beginTask("Build project " + proj.getName(), 1);
-		switch(kind) {
-		case AUTO_BUILD:
-		case INCREMENTAL_BUILD:
-			IResourceDelta delta = getDelta(proj);
-			if (delta != null)
-				delta.accept(this);
-			delta.getResource().touch(monitor);
-			break;
-		case FULL_BUILD:
-		case CLEAN_BUILD:
-			if (proj != null) {
-				proj.accept(this);
+		try {
+			IProject proj = getProject();
+			monitor.beginTask("Build project " + proj.getName(), 1);
+			switch(kind) {
+			case AUTO_BUILD:
+			case INCREMENTAL_BUILD:
+				IResourceDelta delta = getDelta(proj);
+				if (delta != null)
+					delta.accept(this);
+				delta.getResource().touch(monitor);
+				break;
+			case FULL_BUILD:
+			case CLEAN_BUILD:
+				if (proj != null) {
+					proj.accept(this);
+				}
+				proj.touch(monitor);
 			}
-			proj.touch(monitor);
+			monitor.done();
+			return new IProject[] { proj };
+		} catch (Exception e) {
+			e.printStackTrace();
+			return null;
 		}
-		monitor.done();
-		return null;
 	}
 
 	public boolean visit(IResourceDelta delta) throws CoreException {
@@ -63,17 +68,22 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 
 		if (delta.getResource() instanceof IFile)
 			if (delta.getKind() != IResourceDelta.REMOVED) {
-				C4Object container = (C4Object) delta.getResource().getParent().getSessionProperty(ClonkCore.C4OBJECT_PROPERTY_ID);
-				try {
-					if (delta.getResource().getName().endsWith(".c")) {
-						new C4ScriptParser((IFile) delta.getResource(), container).parse();
+//				C4Object container = (C4Object) delta.getResource().getParent().getSessionProperty(ClonkCore.C4OBJECT_PROPERTY_ID);
+				C4Object container = Utilities.getProject(delta.getResource()).getIndexedData().getObject(delta.getResource().getParent());
+				if (container != null) {
+					try {
+						if (delta.getResource().getName().endsWith(".c")) {
+							new C4ScriptParser((IFile) delta.getResource(), container).parse();
+						}
+						else if (delta.getResource().getName().equals("DefCore.txt")) {
+							new C4DefCoreWrapper((IFile) delta.getResource()).parse();
+						}
+					} catch (CompilerException e) {
+						// TODO display CompilerException messages
+						e.printStackTrace();
 					}
-					else if (delta.getResource().getName().equals("DefCore.txt")) {
-						new C4DefCoreWrapper((IFile) delta.getResource()).parse();
-					}
-				} catch (CompilerException e) {
-					// TODO display CompilerException messages
-					e.printStackTrace();
+				} else {
+					/// ???
 				}
 			}
 		if (delta.getResource() instanceof IContainer)

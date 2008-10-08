@@ -118,8 +118,8 @@ public class ClonkSourceViewerConfiguration extends TextSourceViewerConfiguratio
 	
 	private static class C4ScriptHyperlink implements IHyperlink {
 
-		private IRegion region;
-		private C4Field target;
+		private final IRegion region;
+		private final C4Field target;
 		
 		/**
 		 * @param region

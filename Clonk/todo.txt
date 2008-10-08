@@ -12,7 +12,7 @@ Intern:
 GUI:
 -  New-Project-Wizard
 -- fehlende Texte ergänzen
--- fehlende Optionsfelder erg�änzen (wenn welche fehlen)
+-- fehlende Optionsfelder ergänzen (wenn welche fehlen)
 
 - New-Object-Wizard
 -- Namen in die entsprechenden Dateien einfließen lassen.

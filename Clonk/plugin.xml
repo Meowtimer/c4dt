@@ -10,7 +10,7 @@
             contributorClass="net.arctics.clonk.ui.editors.EditorActionContributer"
             class="net.arctics.clonk.ui.editors.C4ScriptEditor"
             id="clonk.editors.C4ScriptEditor"
-            filenames="Script.c">
+            filenames="*.c">
             <contentTypeBinding contentTypeId="net.arctics.clonk.c4script">
             </contentTypeBinding>
       </editor>
@@ -208,22 +208,6 @@
   </description>
   </filter>
  </extension>
- <!--<extension
-       point="org.eclipse.ui.actionSets">
-    <actionSet
-          id="Clonk.actionSet1"
-          label="ClonkAction"
-          visible="true">
-         <action
-               definitionId="net.arctics.clonk.indexClonkCommand"
-               label="Test ProjectItem"
-               retarget="false"
-               class="net.arctics.clonk.ui.editors.actions.IndexClonkDir"
-               menubarPath="project/additions"
-               id="indexClonkDir">
-         </action>
-    </actionSet>
- </extension>-->
  
     <extension id="builder" name="C4 Builder" point="org.eclipse.core.resources.builders"> 
       <builder hasNature="true"> 
@@ -243,36 +227,4 @@
           
     </command>
  </extension> 
- 
- <!--<extension
-       point="org.eclipse.ui.actionSets">
-    <actionSet
-          id="Clonk.actionSet1"
-          label="C5 Content Assist"
-          visible="true">
-         <action
-               definitionId="org.eclipse.jdt.ui.generate.javadoc"
-               label="Test ProjectItem"
-               class="net.arctics.clonk.ui.editors.actions.IndexClonkDirDelegate"
-               menubarPath="project/additions"
-               id="indexClonkDir">
-         </action>
-    </actionSet>
- </extension>-->
- <!--<extension
-       point="org.eclipse.ui.handlers">
-    <handler
-          class="net.arctics.clonk.ui.ContentAssistCommand"
-          commandId="net.arctics.clonk.commands.sampleCommand">
-    </handler>
- </extension>--><!--
- <extension
-       point="org.eclipse.ui.bindings">
-    <key
-          commandId="net.arctics.clonk.commands.sampleCommand"
-          contextId="org.eclipse.ui.textEditorScope"
-          schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
-          sequence="M1+6">
-    </key>
- </extension>-->
 </plugin>

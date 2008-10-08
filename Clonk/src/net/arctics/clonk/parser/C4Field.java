@@ -1,6 +1,6 @@
 package net.arctics.clonk.parser;
 
-public class C4Field  {
+public abstract class C4Field  {
 	protected String name;
 	protected SourceLocation location;
 	private C4Object object;

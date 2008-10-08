@@ -119,12 +119,10 @@ public abstract class C4Object extends C4Field  {
 	}
 	
 	public void clearFields() {
-		for(C4Function func : definedFunctions) {
-			removeField(func);
-		}
-		for(C4Variable var : definedVariables) {
-			removeField(var);
-		}
+		while (definedFunctions.size() > 0)
+			removeField(definedFunctions.get(definedFunctions.size()-1));
+		while (definedVariables.size() > 0)
+			removeField(definedVariables.get(definedVariables.size()-1));
 	}
 
 //	/**

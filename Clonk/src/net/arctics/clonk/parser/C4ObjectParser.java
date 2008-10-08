@@ -56,12 +56,15 @@ public class C4ObjectParser {
 						object.setId(defCoreWrapper.getObjectID());
 						index.addObject(object);
 					}
-					if (!object.getName().equals(defCoreWrapper.getName())) {
+//					if (!object.getName().equals(defCoreWrapper.getName())) {
 						object.setName(defCoreWrapper.getName(), false);
-					}
+//					}
 				}
 			}
-			if (script != null) new C4ScriptParser(script, object).parse();
+			if (script != null) {
+				C4ScriptParser p = new C4ScriptParser(script, object);
+				p.parse();
+			}
 		} catch (CoreException e) {
 			e.printStackTrace();
 		}

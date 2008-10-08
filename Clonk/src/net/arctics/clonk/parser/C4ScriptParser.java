@@ -4,6 +4,10 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
+import java.util.AbstractSet;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Vector;
 
 import net.arctics.clonk.parser.C4Directive.C4DirectiveType;
 import net.arctics.clonk.parser.C4Function.C4FunctionScope;
@@ -15,17 +19,17 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 
 public class C4ScriptParser {
-	
+
 	protected static class BufferedScanner {
-		
+
 		public static final char[] WHITESPACE_DELIMITERS = new char[] { ' ', '	', '\n', '\r' };
 		public static final char[] NEWLINE_DELIMITERS = new char[] { '\n', '\r' };
-		
+
 		private byte[] buffer;
 		private int size;
 		private InputStream contents;
 		private int offset;
-		
+
 		public BufferedScanner(IFile file) throws CompilerException {
 			try {
 				contents = file.getContents();
@@ -43,7 +47,7 @@ public class C4ScriptParser {
 				e.printStackTrace();
 			}
 		}
-		
+
 		public BufferedScanner(InputStream stream, long fileSize) throws CompilerException {
 			try {
 				contents = stream;
@@ -58,20 +62,20 @@ public class C4ScriptParser {
 				e.printStackTrace();
 			}
 		}
-		
+
 		public int read() {
 			if (offset >= size) return -1;
 			return buffer[offset++];
 		}
-		
+
 		public void unread() {
 			offset--;
 		}
-		
-	    public String readString(int length) {
-	    	if (offset+length >= size) 
-	    		return null;
-	    	try {
+
+		public String readString(int length) {
+			if (offset+length >= size) 
+				return null;
+			try {
 				String result = new String(buffer,offset,length,"ISO-8859-1");
 				offset += length;
 				return result;
@@ -79,152 +83,164 @@ public class C4ScriptParser {
 				e.printStackTrace();
 				return "Encoding 'ISO-8859-1' is not available on this system.";
 			}
-	    }
-	    
-	    /**
-	     * Reads a code-word. (like regexp class [0-9a-zA-Z_])
-	     * @return the code-word
-	     */
-	    public String readWord() {
-	    	int start = offset;
-	    	int length = 0;
-	    	do {
-	    		int readByte = read();
-	    		if (
-	    				(0x30 <= readByte && readByte <= 0x39) ||
-	    				(0x41 <= readByte && readByte <= 0x5a) ||
-	    				(0x61 <= readByte && readByte <= 0x7a) ||
-	    				(readByte == '_')) {
-	    			length++;
-	    		}
-	    		else {
-	    			seek(start);
-	    			return readString(length);
-	    		}
-	    	} while(!reachedEOF());
-	    	return null;
-	    }
-	    
-	    /**
-	     * Reads a string until a char from <code>delimiters</code> occurs
-	     * @param delimiters
-	     * @return string sequence, without delimiter char
-	     */
-	    public String readStringUntil(char[] delimiters) {
-	    	int start = offset;
-	    	int i = 0;
-	    	do {
-	    		int readByte = read();
-	    		for(i = 0; i < delimiters.length;i++) {
-	    			if (readByte == delimiters[i]) {
-	    				i = offset - start - 1; // variable reuse
-	    				seek(start);
-	    				return readString(i);
-	    			}
-	    		}
-	    	} while(!reachedEOF());
-	    	return null;
-	    }
-	    
-	    /**
-	     * Moves offset until a char from <code>delimiters</code> occurs
-	     * @param delimiters
-	     */
-	    public void moveUntil(char[] delimiters) {
-	    	do {
-	    		int readByte = read();
-	    		for(int i = 0; i < delimiters.length;i++) {
-	    			if (readByte == delimiters[i]) {
-	    				return;
-	    			}
-	    		}
-	    	} while(!reachedEOF());
-	    }
-	    
-	    /**
-	     * Moves offset until any other char than <code>delimiters</code> occurs
-	     * @param delimiters
-	     */
-	    public void eat(char[] delimiters) {
-	    	do {
-	    		int readByte = read();
-	    		boolean isDelimiter = true;
-	    		for(int i = 0; i < delimiters.length;i++) {
-	    			if (readByte != delimiters[i]) {
-	    				isDelimiter = false;
-	    			}
-	    			else {
-	    				isDelimiter = true;
-	    				break;
-	    			}
-	    		}
-	    		if (!isDelimiter) {
-	    			unread();
-	    			return;
-	    		}
-	    	} while(!reachedEOF());
-	    }
-	    
-	    /**
-	     * Absolute offset manipulation
-	     * @param newPos
-	     * @return new offset
-	     */
-	    public int seek(int newPos) {
-	    	offset = newPos;
-	    	if (offset >= size) offset = size - 1;
-	    	return offset;
-	    }
-	    
-	    /**
-	     * Relative offset manipulation
-	     * @param distance
-	     * @return new offset
-	     */
-	    public int move(int distance) {
-	    	offset += distance;
-	    	if (offset >= size) offset = size - 1;
-	    	return offset;
-	    }
-	    
-	    /**
-	     * If end of file reached
-	     * @return whether eof reached
-	     */
-	    public boolean reachedEOF() {
-	    	return (offset >= size-1);
-	    }
-	    
-	    /**
-	     * Current offset
-	     * @return offset
-	     */
-	    public int getPosition() {
-	    	return offset;
-	    }
+		}
+
+		/**
+		 * Reads a code-word. (like regexp class [0-9a-zA-Z_])
+		 * @return the code-word
+		 */
+		public String readWord() {
+			int start = offset;
+			int length = 0;
+			do {
+				int readByte = read();
+				if (
+						('0' <= readByte && readByte <= '9') ||
+						('A' <= readByte && readByte <= 'Z') ||
+						('a'<= readByte && readByte <= 'z') ||
+						(readByte == '_')) {
+					length++;
+				}
+				else {
+					seek(start);
+					return readString(length);
+				}
+			} while(!reachedEOF());
+			return null;
+		}
+
+		/**
+		 * Reads a string until a char from <code>delimiters</code> occurs
+		 * @param delimiters
+		 * @return string sequence, without delimiter char
+		 */
+		public String readStringUntil(char[] delimiters) {
+			int start = offset;
+			int i = 0;
+			do {
+				int readByte = read();
+				for(i = 0; i < delimiters.length;i++) {
+					if (readByte == delimiters[i]) {
+						i = offset - start - 1; // variable reuse
+						seek(start);
+						return readString(i);
+					}
+				}
+			} while(!reachedEOF());
+			return null;
+		}
+
+		/**
+		 * Moves offset until a char from <code>delimiters</code> occurs
+		 * @param delimiters
+		 */
+		public void moveUntil(char[] delimiters) {
+			do {
+				int readByte = read();
+				for(int i = 0; i < delimiters.length;i++) {
+					if (readByte == delimiters[i]) {
+						return;
+					}
+				}
+			} while(!reachedEOF());
+		}
+
+		/**
+		 * Moves offset until any other char than <code>delimiters</code> occurs
+		 * @param delimiters
+		 */
+		public void eat(char[] delimiters) {
+			do {
+				int readByte = read();
+				boolean isDelimiter = true;
+				for(int i = 0; i < delimiters.length;i++) {
+					if (readByte != delimiters[i]) {
+						isDelimiter = false;
+					}
+					else {
+						isDelimiter = true;
+						break;
+					}
+				}
+				if (!isDelimiter) {
+					unread();
+					return;
+				}
+			} while(!reachedEOF());
+		}
+
+		public void eatWhitespace() {
+			eat(WHITESPACE_DELIMITERS);
+		}
+
+		/**
+		 * Absolute offset manipulation
+		 * @param newPos
+		 * @return new offset
+		 */
+		public int seek(int newPos) {
+			offset = newPos;
+			if (offset >= size) offset = size - 1;
+			return offset;
+		}
+
+		/**
+		 * Relative offset manipulation
+		 * @param distance
+		 * @return new offset
+		 */
+		public int move(int distance) {
+			offset += distance;
+			if (offset >= size) offset = size - 1;
+			return offset;
+		}
+
+		/**
+		 * If end of file reached
+		 * @return whether eof reached
+		 */
+		public boolean reachedEOF() {
+			return (offset >= size-1);
+		}
+
+		/**
+		 * Current offset
+		 * @return offset
+		 */
+		public int getPosition() {
+			return offset;
+		}
+
+		public Object readStringAt(int start, int end) {
+			int p = getPosition();
+			seek(start);
+			String result = readString(end-start);
+			seek(p);
+			return result;
+		}
 	}
-	
+
 	public static class ParsingException extends Exception {
-		
+
 		private static final long serialVersionUID = 5596886615974079864L;
 
 		public ParsingException(String msg) {
 			super(msg);
 		}
 	}
-	
+
 	private BufferedScanner fReader;
 	private IFile fScript; // for project intern files
 	private C4Object container;
-	
+
 	private InputStream stream; // for extern files
-	
-//	private List<C4Directive> directives = new LinkedList<C4Directive>();
-//	private List<C4Function> functions = new LinkedList<C4Function>();
-//	private List<C4Variable> variables = new LinkedList<C4Variable>();
-	
+
+	//	private List<C4Directive> directives = new LinkedList<C4Directive>();
+	//	private List<C4Function> functions = new LinkedList<C4Function>();
+	//	private List<C4Variable> variables = new LinkedList<C4Variable>();
+
 	private C4Function activeFunc;
-	
+
 	/**
 	 * Creates a C4Script parser object.
 	 * Results are stored in <code>object</code>
@@ -237,7 +253,7 @@ public class C4ScriptParser {
 		fReader = new BufferedScanner(fScript);
 		container = object;
 	}
-	
+
 	/**
 	 * Creates a C4Script parser object for extern files.
 	 * Results are stored in <code>object</code>
@@ -252,13 +268,14 @@ public class C4ScriptParser {
 		fReader = new BufferedScanner(this.stream, size);
 		container = object;
 	}
-	
+
 	public void parse() {
 		try {
 			fScript.deleteMarkers(IMarker.PROBLEM, true, IResource.DEPTH_ONE);
 		} catch (CoreException e1) {
 			e1.printStackTrace();
 		}
+		container.clearFields(); // guess it's a good place to delete old stuff
 		int offset = 0;
 		fReader.seek(offset);
 		try {
@@ -272,7 +289,7 @@ public class C4ScriptParser {
 			return;
 		}
 	}
-	
+
 	protected boolean parseDeclaration(int offset) throws ParsingException {
 		fReader.seek(offset);
 		int readByte = fReader.read();
@@ -303,10 +320,10 @@ public class C4ScriptParser {
 		}
 		return false;
 	}
-	
+
 	private boolean parseVariableDeclaration(int offset) throws ParsingException {
 		fReader.seek(offset);
-		
+
 		String word = fReader.readWord();
 		if (word.equalsIgnoreCase("static")) {
 			if (!word.equals("static")) {
@@ -335,7 +352,7 @@ public class C4ScriptParser {
 					}
 					C4Variable var = new C4Variable(constName,C4VariableScope.VAR_STATIC);
 					var.setObject(container);
-//					var.setType(C4Type.)
+					//					var.setType(C4Type.)
 					container.definedVariables.add(var);
 				}
 				else {
@@ -375,10 +392,10 @@ public class C4ScriptParser {
 		// static const pObj = parseValue, iMat = 2;
 		return false;
 	}
-	
+
 	private boolean parseVarVariableDeclaration(int offset) throws ParsingException {
 		fReader.seek(offset);
-		
+
 		String word = fReader.readWord();
 		if (word.equalsIgnoreCase("var")) {
 			if (!word.equals("var")) {
@@ -409,11 +426,11 @@ public class C4ScriptParser {
 				}
 			} while(fReader.read() == ',');
 			fReader.unread();
-//			if (fReader.read() != ';') {
-//				String problem = "Syntax error: expected ';' or ','";
-//				createErrorMarker(fReader.getPosition() - 1, fReader.getPosition(), problem);
-//				throw new ParsingException(problem);
-//			}
+			//			if (fReader.read() != ';') {
+			//				String problem = "Syntax error: expected ';' or ','";
+			//				createErrorMarker(fReader.getPosition() - 1, fReader.getPosition(), problem);
+			//				throw new ParsingException(problem);
+			//			}
 			return true;
 		}
 		else {
@@ -421,13 +438,13 @@ public class C4ScriptParser {
 			return false;
 		}
 	}
-	
+
 	@SuppressWarnings("unused")
 	private boolean parseFunctionDeclaration(int offset) throws ParsingException {
 		fReader.seek(offset);
 		return parseFunctionDeclaration(fReader.readWord(),fReader.getPosition());
 	}
-	
+
 	/**
 	 * for optimization reasons
 	 * @param firstWord
@@ -513,10 +530,10 @@ public class C4ScriptParser {
 		activeFunc.setLocation(new SourceLocation(startName,endName));
 		activeFunc.setBody(new SourceLocation(startBody,endBody));
 		container.addField(activeFunc);
-//		functions.add(func);
+		//		functions.add(func);
 		return true;
 	}
-	
+
 	/**
 	 * Parses one command
 	 * i.e. if (condition) <code>parseCode</code>
@@ -527,7 +544,7 @@ public class C4ScriptParser {
 	private boolean parseCode(int offset) throws ParsingException {
 		fReader.seek(offset);
 		if (parseKeyword(offset)) return true;
-		if (parseReturn(offset) || parseVarVariableDeclaration(offset) || parseCall(offset) || parseAssignment(offset) || parseVariable(offset)) {
+		if (parseReturn(offset) || parseVarVariableDeclaration(offset) || parseValue(offset)) {
 			if (fReader.read() == ';') {
 				return true;
 			}
@@ -541,7 +558,7 @@ public class C4ScriptParser {
 			return false;
 		}
 	}
-	
+
 	/**
 	 * Parses all commands
 	 * For use in keyword() { <code>parseCodeBlock<code> }
@@ -560,7 +577,7 @@ public class C4ScriptParser {
 		// post-prefix
 		return true;
 	}
-	
+
 	/**
 	 * Parses { parseCodeBlock } or parseCode
 	 * @param offset
@@ -586,25 +603,25 @@ public class C4ScriptParser {
 			else return false;
 		}
 	}
-	
+
 	private boolean parseAssignment(int offset) throws ParsingException {
 		fReader.seek(offset);
 		if (!parseCall(offset)) {
 			fReader.seek(offset);
 			String varName = fReader.readWord();
 			if (varName.length() == 0) {
-//				fReader.seek(offset);
+				//				fReader.seek(offset);
 				return false;
 			}
 		}
 		eatWhitespace();
-		
+
 		int readByte = fReader.read();
 		int secondByte = fReader.read();
 		if (readByte != '=') {
-			
+
 			if (secondByte == '=' && ((0x2A <= readByte && readByte <= 0x2F && readByte != 0x2C && readByte != 0x2E) || readByte == '%')) {
-				
+
 			}
 			else {
 				fReader.unread();
@@ -613,7 +630,7 @@ public class C4ScriptParser {
 			}
 		}
 		else {
-			
+
 		}
 		eatWhitespace();
 		offset = fReader.getPosition();
@@ -625,7 +642,7 @@ public class C4ScriptParser {
 		// *= /= %= += -= =
 		return true;
 	}
-	
+
 	private boolean parseReturn(int offset) throws ParsingException {
 		fReader.seek(offset);
 		String word = fReader.readWord();
@@ -668,13 +685,13 @@ public class C4ScriptParser {
 		}
 		return true;
 	}
-	
+
 	private boolean parseCall(int offset) throws ParsingException {
 		fReader.seek(offset);
-		
+
 		if (parsePrefixOperator(offset)) offset = fReader.getPosition();
 		eatWhitespace(offset);
-		
+
 		String funcName = fReader.readWord();
 		if (funcName.length() == 0) {
 			return false;
@@ -726,48 +743,55 @@ public class C4ScriptParser {
 				createErrorMarker(fReader.getPosition() - 1, fReader.getPosition(), problem);
 				throw new ParsingException(problem);
 			}
-			
+
 		}
 		// parse all parameter with parseValue
 		// do type checking where possible
 	}
-	
+
 	private boolean parseValue(int offset) throws ParsingException {
 		fReader.seek(offset);
-		if (
-				parseParenthesisGroup(offset) ||
-				parseNumber(offset) ||
-				parseAssignment(offset) ||
-				parseCall(offset) ||
-				parseString(offset) ||
-				parseID(offset) ||
-				parseVariable(offset) ||
-				parseArray(offset))
-		{
-//			fReader.seek(offset);
-			eatWhitespace();
-			offset = fReader.getPosition();
-			if (parseOperator(offset)) {
-				eatWhitespace();
-				offset = fReader.getPosition();
-				if (parseValue(offset)) {
-					return true;
-				}
-				else {
-					String problem = "Syntax error: expected an expression after operator";
-					createErrorMarker(fReader.getPosition() - 1, fReader.getPosition() + 1, problem);
-					throw new ParsingException(problem);
-				}
-			}
-			else {
-				fReader.seek(offset);
-				return true; // this seems to be the last sub value in the parent value
-			}
+		ExprElm elm = parseExpression(offset);
+		if (elm != null) {
+			StringBuilder output = new StringBuilder();
+			elm.print(output);
+			System.out.println(output.toString());
 		}
-		else {
-			return false; // there is no value at the specified offset
-		}
-		
+		return elm != null;
+		//		if (
+		//				parseParenthesisGroup(offset) ||
+		//				parseNumber(offset) ||
+		//				parseAssignment(offset) ||
+		//				parseCall(offset) ||
+		//				parseString(offset) ||
+		//				parseID(offset) ||
+		//				parseVariable(offset) ||
+		//				parseArray(offset))
+		//		{
+		////			fReader.seek(offset);
+		//			eatWhitespace();
+		//			offset = fReader.getPosition();
+		//			if (parseOperator(offset)) {
+		//				eatWhitespace();
+		//				offset = fReader.getPosition();
+		//				if (parseValue(offset)) {
+		//					return true;
+		//				}
+		//				else {
+		//					String problem = "Syntax error: expected an expression after operator";
+		//					createErrorMarker(fReader.getPosition() - 1, fReader.getPosition() + 1, problem);
+		//					throw new ParsingException(problem);
+		//				}
+		//			}
+		//			else {
+		//				fReader.seek(offset);
+		//				return true; // this seems to be the last sub value in the parent value
+		//			}
+		//		}
+		//		else {
+		//			return false; // there is no value at the specified offset
+		//		}
+
 		// try parseParenthesisGroup || parseCall || parseString || parseVariable
 		//   if fail return fail
 		//   else:
@@ -785,7 +809,7 @@ public class C4ScriptParser {
 		// calls parseOperator
 		// calls parseParenthesisGroup
 	}
-	
+
 	private boolean parseParenthesisGroup(int offset) throws ParsingException {
 		fReader.seek(offset);
 		if (fReader.read() != '(') {
@@ -804,31 +828,40 @@ public class C4ScriptParser {
 			return true;
 		}
 	}
-	
+
+	private int parsedNumber;
+
 	private boolean parseNumber(int offset) throws ParsingException {
 		fReader.seek(offset);
 		int count = 0;
 		do {
 			int readByte = fReader.read();
-			if (0x30 <= readByte && readByte <= 0x39) {
+			if ('0' <= readByte && readByte <= '9') {
 				count++;
 				continue;
 			}
-//			else if ((0x41 <= readByte && readByte <= 0x5a) || (0x61 <= readByte && readByte <= 0x7a)) {
-//				if (count == 0) return false; // well, this seems not to be a number at all
-//				String problem = "Syntax error: erroneous Ident";
-//				createErrorMarker(offset, fReader.getPosition(), problem);
-//				throw new ParsingException(problem);
-//			}
+			//			else if ((0x41 <= readByte && readByte <= 0x5a) || (0x61 <= readByte && readByte <= 0x7a)) {
+			//				if (count == 0) return false; // well, this seems not to be a number at all
+			//				String problem = "Syntax error: erroneous Ident";
+			//				createErrorMarker(offset, fReader.getPosition(), problem);
+			//				throw new ParsingException(problem);
+			//			}
 			else {
 				fReader.unread();
-				if (count == 0) return false; // well, this seems not to be a number at all
+				if (count > 0) {
+					fReader.seek(offset);
+					parsedNumber = Integer.parseInt(fReader.readString(count));
+					fReader.seek(offset+count);
+				} else {
+					parsedNumber = -1; // unlikely to be parsed
+					return false; // well, this seems not to be a number at all
+				} 
 				return true;
 			}
 		} while(!fReader.reachedEOF());
 		return true; // TODO correct number finish?
 	}
-	
+
 	/**
 	 * Parses iVar inclusive all post- and prefixes
 	 * Parses iVar->call() (implies iVar->call()->call()->call()...)
@@ -838,7 +871,7 @@ public class C4ScriptParser {
 	 */
 	private boolean parseVariable(int offset) throws ParsingException {
 		fReader.seek(offset);
-		
+
 		if (parsePrefixOperator(offset)) offset = fReader.getPosition();
 		eatWhitespace(offset);
 		String varName = fReader.readWord();
@@ -856,8 +889,8 @@ public class C4ScriptParser {
 		else {
 			offset = fReader.getPosition();
 		}
-			
-		
+
+
 		fReader.seek(offset);
 		return true;
 		// iVar
@@ -865,7 +898,7 @@ public class C4ScriptParser {
 		// think of: -iVar
 		// think of: !bVar
 	}
-	
+
 	/**
 	 * Parses ->call(...)
 	 * @param offset
@@ -887,7 +920,7 @@ public class C4ScriptParser {
 		fReader.seek(offset);
 		return false;
 	}
-	
+
 	private boolean parsePostfixOperator(int offset) throws ParsingException {
 		fReader.seek(offset);
 		String next = fReader.readString(2);
@@ -896,93 +929,95 @@ public class C4ScriptParser {
 		}
 		return false;
 	}
-	
-//	private boolean parsePostfixOperator(int offset) throws ParsingException {
-//		fReader.seek(offset);
-//		int readByte = fReader.read();
-//		if (readByte == '-' || readByte == '+') {
-//			int secondByte = fReader.read();
-//			if (secondByte == '-' || secondByte == '+') {
-//				if (readByte != secondByte) {
-//					String problem = "Syntax error: postfix operators are either -- or ++";
-//					createErrorMarker(fReader.getPosition() - 2, fReader.getPosition(), problem);
-//					throw new ParsingException(problem);
-//				}
-//				else {
-//					return true;
-//				}
-//			}
-//			else if (secondByte == '>') {
-//				if (readByte == '+') {
-//					String problem = "Syntax error: invalid operator '+>'";
-//					createErrorMarker(fReader.getPosition() - 2, fReader.getPosition(), problem);
-//					throw new ParsingException(problem);
-//				}
-//				else {
-//					int thirdByte = fReader.read();
-//					if (thirdByte == '~') {
-//						if (!parseValue(fReader.getPosition())) {
-//							String problem = "Syntax error: expected a method name";
-//							createErrorMarker(fReader.getPosition(), fReader.getPosition() + 2, problem);
-//							throw new ParsingException(problem);
-//						}
-//						return true;
-//					}
-//					else {
-//						fReader.unread();
-//						if (!parseValue(fReader.getPosition())) {
-//							String problem = "Syntax error: expected a method name";
-//							createErrorMarker(fReader.getPosition(), fReader.getPosition() + 2, problem);
-//							throw new ParsingException(problem);
-//						}
-//						return true;
-//					}
-//				}
-//			}
-//			else {
-//				return false;
-//			}
-//		}
-//		else if (readByte == ':') {
-//			int secondByte = fReader.read();
-//			if (secondByte == ':') {
-//				if (!parseValue(fReader.getPosition())) {
-//					String problem = "Syntax error: expected a method name";
-//					createErrorMarker(fReader.getPosition(), fReader.getPosition() + 2, problem);
-//					throw new ParsingException(problem);
-//				}
-//				return true;
-//			}
-//			else {
-//				String problem = "Syntax error: expected ':";
-//				createErrorMarker(fReader.getPosition() - 1, fReader.getPosition(), problem);
-//				throw new ParsingException(problem);
-//			}
-//		}
-//		else {
-//			return false;
-//		}
-//		// this is either ++ or --
-//	}
+
+	//	private boolean parsePostfixOperator(int offset) throws ParsingException {
+	//		fReader.seek(offset);
+	//		int readByte = fReader.read();
+	//		if (readByte == '-' || readByte == '+') {
+	//			int secondByte = fReader.read();
+	//			if (secondByte == '-' || secondByte == '+') {
+	//				if (readByte != secondByte) {
+	//					String problem = "Syntax error: postfix operators are either -- or ++";
+	//					createErrorMarker(fReader.getPosition() - 2, fReader.getPosition(), problem);
+	//					throw new ParsingException(problem);
+	//				}
+	//				else {
+	//					return true;
+	//				}
+	//			}
+	//			else if (secondByte == '>') {
+	//				if (readByte == '+') {
+	//					String problem = "Syntax error: invalid operator '+>'";
+	//					createErrorMarker(fReader.getPosition() - 2, fReader.getPosition(), problem);
+	//					throw new ParsingException(problem);
+	//				}
+	//				else {
+	//					int thirdByte = fReader.read();
+	//					if (thirdByte == '~') {
+	//						if (!parseValue(fReader.getPosition())) {
+	//							String problem = "Syntax error: expected a method name";
+	//							createErrorMarker(fReader.getPosition(), fReader.getPosition() + 2, problem);
+	//							throw new ParsingException(problem);
+	//						}
+	//						return true;
+	//					}
+	//					else {
+	//						fReader.unread();
+	//						if (!parseValue(fReader.getPosition())) {
+	//							String problem = "Syntax error: expected a method name";
+	//							createErrorMarker(fReader.getPosition(), fReader.getPosition() + 2, problem);
+	//							throw new ParsingException(problem);
+	//						}
+	//						return true;
+	//					}
+	//				}
+	//			}
+	//			else {
+	//				return false;
+	//			}
+	//		}
+	//		else if (readByte == ':') {
+	//			int secondByte = fReader.read();
+	//			if (secondByte == ':') {
+	//				if (!parseValue(fReader.getPosition())) {
+	//					String problem = "Syntax error: expected a method name";
+	//					createErrorMarker(fReader.getPosition(), fReader.getPosition() + 2, problem);
+	//					throw new ParsingException(problem);
+	//				}
+	//				return true;
+	//			}
+	//			else {
+	//				String problem = "Syntax error: expected ':";
+	//				createErrorMarker(fReader.getPosition() - 1, fReader.getPosition(), problem);
+	//				throw new ParsingException(problem);
+	//			}
+	//		}
+	//		else {
+	//			return false;
+	//		}
+	//		// this is either ++ or --
+	//	}
+
+	private String parsedObjectFieldOperator;
 	
 	private boolean parseObjectFieldOperator(int offset) {
 		fReader.seek(offset);
-		if (fReader.read() == '-') {
-			if (fReader.read() == '>') {
-				if (fReader.read() != '~') {
-					fReader.unread();
-				}
-				return true;
-			}
-			else {
-				return false;
-			}
-		}
-		else {
+		parsedObjectFieldOperator = fReader.readString(3);
+		if (parsedObjectFieldOperator == null) {
 			return false;
 		}
+		if (parsedObjectFieldOperator.length() == 3) {
+			if (parsedObjectFieldOperator.equals("->~"))
+				return true;
+			fReader.unread();
+		}
+		parsedObjectFieldOperator = parsedObjectFieldOperator.substring(0, 2);
+		if (parsedObjectFieldOperator.equals("->"))
+			return true;
+		fReader.seek(offset);
+		return false;
 	}
-	
+
 	/**
 	 * Finds :: function calls
 	 * @deprecated :: operator does not exist?!
@@ -1001,7 +1036,7 @@ public class C4ScriptParser {
 		}
 		return false;
 	}
-	
+
 	private boolean parsePrefixOperator(int offset) throws ParsingException {
 		fReader.seek(offset);
 		int readByte = fReader.read();
@@ -1031,7 +1066,7 @@ public class C4ScriptParser {
 			return false;
 		}
 	}
-	
+
 	/**
 	 * Trys to find an operator that is not an assignment operator
 	 * @param offset
@@ -1039,10 +1074,10 @@ public class C4ScriptParser {
 	 */
 	private boolean parseOperator(int offset) {
 		fReader.seek(offset);
-		
+
 		final char[] singleChars = new char[] { '~','!','/','*','%','-','+','<','>','&','^','|'};
 		final char[][] doubleChars = new char[][] { { '-','-'}, {'+','+'}, {'*','*'}, {'<','<'}, {'>','>'}, {'<','='}, {'>','='}, {'=','='}, {'!','='}, {'S','='}, {'e','q'}, {'n','e'}, {'&','&'}, {'|','|'} };
-		
+
 		char readChar = (char)fReader.read();
 		char secondChar = (char)fReader.read();
 		for(char[] charPair : doubleChars) {
@@ -1059,6 +1094,824 @@ public class C4ScriptParser {
 		// + - S= * % ... all operators that combines 2 values to 1
 		// no assignments: =, *=, ...
 		return false;
+	}
+
+	/**
+	 * 
+	 * @author madeen
+	 * an operator
+	 */
+	private enum Operator {
+		Tilde,
+		Not,
+
+		Divide,
+		Multiply,
+		Modulo,
+		Subtract,
+		Add,
+
+		Smaller,
+		SmallerEqual,
+		Larger,
+		LargerEqual,
+
+		Equal,
+		NotEqual,
+		StringEqual,
+		eq,
+		ne,
+
+		And,
+		Or,
+		BitAnd,
+		BitNot,
+		BitOr,
+
+		Decrement,
+		Increment,
+
+		ShiftLeft,
+		ShiftRight,
+
+		Assign,
+		AssignAdd,
+		AssignSubtract,
+		AssignMultiply,
+		AssignDivide,
+		AssignModulo,
+		AssignOr,
+		AssignAnd;
+
+		public boolean isUnary() {
+			return this == Not || this == Increment || this == Decrement || this == Add || this == Subtract;
+		}
+
+		public boolean isBinary() {
+			return !isUnary() || this == Add || this == Subtract; // :D
+		}
+
+		public boolean isPostfix() {
+			return this == Increment || this == Decrement;
+		}
+		public boolean isPrefix() {
+			return this == Increment || this == Decrement || this == Not || this == Add || this == Subtract;
+		}
+		public int priority() {
+			int o = this.ordinal();
+			if (o >= 0 && o <= 1)
+				return 6;
+			if (o >= 2 && o <= 4)
+				return 13;
+			if (o >= 5 && o <= 6)
+				return 12;
+			if (o >= 7 && o <= 10)
+				return 10;
+			if (o >= 11 && o <= 15)
+				return 9;
+			if (o >= 16 && o <= 20)
+				return 6;
+			if (o >= 21 && o <= 22)
+				return -1000;
+			if (o >= 23 && o <= 24)
+				return 11;
+			if (o >= 25 && o <= 32)
+				return 2;
+			return 3;
+		}
+
+		public boolean rightAssociative() {
+			int o = ordinal();
+			// assignment operators
+			return (o >= 25 && o <= 32);
+		}
+
+		public String operatorName() {
+			return operatorToStringMap.get(this);
+		}
+	}
+
+	private static HashMap<String, Operator> createOperatorHashMap(String[] operatorNames) {
+		HashMap<String, Operator> result = new HashMap<String, Operator>(Operator.values().length);
+		for (int i = 0 ; i < operatorNames.length; i++) {
+			result.put(operatorNames[i], Operator.values()[i]);
+		}
+		return result;
+	}
+
+	private static final HashMap<String, Operator> stringToOperatorMap;
+	private static final HashMap<Operator, String> operatorToStringMap;
+	
+	static {
+		stringToOperatorMap = createOperatorHashMap(new String[] {
+				"~",
+				"!",
+				"/",
+				"*",
+				"%",
+				"-",
+				"+",
+				"<",
+				"<=",
+				">",
+				">=",
+				"==",
+				"!=",
+				"S=",
+				"eq",
+				"ne",
+				"&&",
+				"||",
+				"&",
+				"^",
+				"|",
+				"--",
+				"++",
+				"<<",
+				">>",
+				"=",
+				"+=",
+				"-=",
+				"*=",
+				"/=",
+				"%="
+		});
+		// i want both directions!
+		operatorToStringMap = new HashMap<Operator, String>();
+		for (String s : stringToOperatorMap.keySet()) {
+			operatorToStringMap.put(stringToOperatorMap.get(s), s);
+		}
+	} 
+
+	/**
+	 * read operator at some location
+	 * @param offset
+	 * @return the operator referenced in the code at offset
+	 */
+	private Operator parseOperator_(int offset) {
+		fReader.seek(offset);
+
+		final char[] chars = new char[] { (char)fReader.read(), (char)fReader.read()  };
+		String s = new String(chars);
+
+		Operator result = stringToOperatorMap.get(s);
+		if (result != null)
+			return result;
+
+		s = s.substring(0, 1);
+		result = stringToOperatorMap.get(s);
+		if (result != null) {
+			fReader.unread();
+			return result;
+		}
+
+		fReader.seek(offset);
+		return null;
+	}
+	
+	// classes to build an object representation of an expression
+
+	/**
+	 * @author madeen
+	 * base class for making expression trees
+	 */
+	public abstract static class ExprElm {
+		private ExprElm parent;
+
+		public ExprElm getParent() {
+			return parent;
+		}
+
+		public void setParent(ExprElm parent) {
+			this.parent = parent;
+		}
+
+		public void print(StringBuilder output) {
+			output.append("Implement me");
+		}
+
+		public boolean checkValidInSequence(ExprElm predecessor) {
+			return true;
+		}
+		public C4Type getType() {
+			return C4Type.UNKNOWN;
+		}
+
+	}
+
+	public class ExprObjectCall extends ExprElm {
+		private boolean hasTilde;
+		private C4ID id;
+
+		public ExprObjectCall(boolean hasTilde, C4ID id) {
+			super();
+			this.hasTilde = hasTilde;
+			this.id = id;
+		}
+
+		public void print(StringBuilder output) {
+			if (hasTilde)
+				output.append("->~");
+			else
+				output.append("->");
+			if (id != null) {
+				output.append(id.getName());
+				output.append("::");
+			}
+		}
+
+		public C4ID getId() {
+			return id;
+		}
+
+		public void setId(C4ID id) {
+			this.id = id;
+		}
+
+		@Override
+		public boolean checkValidInSequence(ExprElm predecessor) {
+			return predecessor != null && (predecessor.getType() != C4Type.ARRAY && predecessor.getType() != null && predecessor.getType() != C4Type.UNKNOWN);
+		}
+
+		@Override
+		public C4Type getType() {
+			return null; // invalid as an expression
+		}
+		
+	}
+	
+	public abstract static class ExprValue extends ExprElm {
+
+		@Override
+		public C4Type getType() {
+			return C4Type.ANY;
+		}
+		
+	}
+
+	public static class ExprSequence extends ExprValue {
+		protected final ExprElm[] elements;
+		public ExprSequence(ExprElm[] elms) {
+			elements = elms;
+		}
+		public void print(StringBuilder output) {
+			for (ExprElm e : elements) {
+				e.print(output);
+			}
+		}
+		public C4Type getType() {
+			return (elements == null || elements.length == 0) ? C4Type.UNKNOWN : elements[elements.length-1].getType();
+		}
+
+	}
+
+	public static class ExprAccessField extends ExprValue {
+		private C4Field field;
+		protected final String fieldName;
+
+		public ExprAccessField(String fieldName) {
+			this.fieldName = fieldName;
+		}
+		public void print(StringBuilder output) {
+			output.append(fieldName);
+		}
+	}
+
+	public static class ExprAccessVar extends ExprAccessField {
+		public ExprAccessVar(String varName) {
+			super(varName);
+		}
+
+		@Override
+		public boolean checkValidInSequence(ExprElm predecessor) {
+			if (predecessor == null)
+				return true;
+			return false;
+		}
+		
+
+	}
+
+	public static class ExprCallFunc extends ExprAccessField {
+		private final ExprElm[] params;
+		public ExprCallFunc(String funcName, ExprElm[] parms) {
+			super(funcName);
+			params = parms;
+		}
+		public void print(StringBuilder output) {
+			super.print(output);
+			output.append("(");
+			for (int i = 0; i < params.length; i++) {
+				if (params[i] != null)
+					params[i].print(output);
+				if (i < params.length-1)
+					output.append(", ");
+			}
+			output.append(")");
+		}
+	}
+
+	public static class ExprOperator extends ExprValue {
+		private final Operator operator;
+
+		public ExprOperator(Operator operator) {
+			super();
+			this.operator = operator;
+		}
+
+		public Operator getOperator() {
+			return operator;
+		}
+
+	}
+
+	public static class ExprBinaryOp extends ExprOperator {
+		private ExprElm leftSide, rightSide;
+
+		public ExprBinaryOp(Operator operator, ExprElm leftSide, ExprElm rightSide) {
+			super(operator);
+			setLeftSide(leftSide);
+			setRightSide(rightSide);
+		}
+
+		public ExprBinaryOp(Operator op) {
+			super(op);
+		}
+
+		public ExprElm getLeftSide() {
+			return leftSide;
+		}
+
+		public ExprElm getRightSide() {
+			return rightSide;
+		}
+
+		public void setLeftSide(ExprElm leftSide) {
+			this.leftSide = leftSide;
+			leftSide.setParent(this);
+		}
+
+		public void setRightSide(ExprElm rightSide) {
+			this.rightSide = rightSide;
+			rightSide.setParent(this);
+		}
+
+		public void print(StringBuilder output) {
+			leftSide.print(output);
+			output.append(" ");
+			output.append(getOperator().operatorName());
+			output.append(" ");
+			rightSide.print(output);
+		}
+
+	}
+	
+	public static class ExprParenthesized extends ExprValue {
+		private ExprElm innerExpr;
+
+		public ExprParenthesized(ExprElm innerExpr) {
+			super();
+			this.innerExpr = innerExpr;
+		}
+		public void print(StringBuilder output) {
+			output.append("(");
+			innerExpr.print(output);
+			output.append(")");
+		}
+		public C4Type getType() {
+			return innerExpr.getType();
+		}
+	}
+	
+	public static class ExprUnaryOp extends ExprOperator {
+		
+		public enum Placement {
+			Prefix,
+			Postfix
+		}
+		
+		private final Placement placement;
+		private final ExprElm argument;
+		
+		public ExprUnaryOp(Operator operator, Placement placement, ExprElm argument) {
+			super(operator);
+			this.placement = placement;
+			this.argument = argument;
+			this.argument.setParent(this);
+		}
+		
+		public void print(StringBuilder output) {
+			if (placement == Placement.Postfix) {
+				argument.print(output);
+				output.append(getOperator().operatorName());
+			} else {
+				output.append(getOperator().operatorName());
+				argument.print(output);
+			}
+		}
+
+		public ExprElm getArgument() {
+			return argument;
+		}
+		
+	}
+	
+	public static class ExprLiteral<T> extends ExprValue {
+		private final T literal;
+
+		public ExprLiteral(T literal) {
+			super();
+			this.literal = literal;
+		}
+
+		public T getLiteral() {
+			return literal;
+		}
+		
+	}
+	
+	public static class ExprNumber extends ExprLiteral<Integer> {
+
+		public ExprNumber(int value) {
+			super(new Integer(value));
+		}
+		
+		public int intValue() {
+			return getLiteral().intValue();
+		}
+		
+		public void print(StringBuilder output) {
+			output.append(intValue());
+		}
+		
+		public C4Type getType() {
+			return C4Type.INT;
+		}
+		
+	}
+	
+	public static final class ExprString extends ExprLiteral<String> {
+		public ExprString(String literal) {
+			super(literal);
+		}
+
+		public String stringValue() {
+			return getLiteral();
+		}
+		public void print(StringBuilder output) {
+			output.append("\"");
+			output.append(stringValue());
+			output.append("\"");
+		}
+
+		@Override
+		public C4Type getType() {
+			return C4Type.STRING;
+		}
+		
+	}
+	
+	public static final class ExprID extends ExprLiteral<C4ID> {
+		public ExprID(C4ID literal) {
+			super(literal);
+		}
+
+		public C4ID idValue() {
+			return getLiteral();
+		}
+		
+		public void print(StringBuilder output) {
+			output.append(idValue().getName());
+		}
+
+		@Override
+		public C4Type getType() {
+			return C4Type.ID;
+		}
+		
+	}
+	
+	public static final class ExprArrayAccess extends ExprUnaryOp {
+
+		public ExprArrayAccess(ExprElm argument) {
+			super(null, Placement.Postfix, argument);
+			// TODO Auto-generated constructor stub
+		}
+		
+		public void print(StringBuilder output) {
+			output.append("[");
+			getArgument().print(output);
+			output.append("]");
+		}
+
+		@Override
+		public boolean checkValidInSequence(ExprElm predecessor) {
+			return predecessor != null;
+		}
+	
+	}
+	
+	public static class ExprArray extends ExprSequence {
+		public ExprArray(ExprElm[] elms) {
+			super(elms);
+		}
+
+		public void print(StringBuilder output) {
+			output.append("[");
+			for (int i = 0; i < elements.length; i++) {
+				if (elements[i] != null)
+					elements[i].print(output);
+				if (i < elements.length-1)
+					output.append(", ");
+			}
+			output.append("]");
+		}
+		
+		@Override
+		public C4Type getType() {
+			return C4Type.ARRAY;
+		}
+
+		@Override
+		public boolean checkValidInSequence(ExprElm predecessor) {
+			return predecessor == null;
+		}
+		
+		
+	}
+	
+	public enum ErrorCode {
+		TokenExpected, NotAllowedHere, MissingClosingBracket, InvalidExpression,
+	}
+	
+	private static String[] errorStrings = new String[] {
+		"'%s' expected",
+		"'%s' not allowed here",
+		"Missing '%s'",
+		"Invalid expression"
+	};
+	
+	private void errorWithCode(ErrorCode code, int errorStart, int errorEnd, Object... args) throws ParsingException {
+		String problem = String.format(errorStrings[code.ordinal()], args);
+		createErrorMarker(errorStart, errorEnd, problem);
+		throw new ParsingException(problem);
+	}
+	
+	private boolean parseStaticFieldOperator_(int offset) {
+		fReader.seek(offset);
+		String o = fReader.readString(2);
+		if (o.equals("::"))
+			return true;
+		fReader.seek(offset);
+		return false;
+	}
+	
+	private ExprElm parseExpressionWithoutOperators(int offset) throws ParsingException {
+		fReader.seek(offset);
+		fReader.eatWhitespace();
+		Operator preop = parseOperator_(fReader.offset);
+		if (preop != null && preop.isPrefix()) {
+			return new ExprUnaryOp(preop, ExprUnaryOp.Placement.Prefix, parseExpressionWithoutOperators(fReader.offset));
+		}
+		if (parseNumber(fReader.offset)) {
+			return new ExprNumber(parsedNumber);
+		}
+		if (parseID(fReader.offset)) {
+			return new ExprID(parsedID);
+		}
+		if (parseString(fReader.getPosition())) {
+			return new ExprString(parsedString);
+		}
+		Vector<ExprElm> elements = new Vector<ExprElm>(5);
+		ExprElm elm;
+		ExprElm prevElm = null;
+		int sequenceStart = fReader.getPosition();
+		do {
+			elm = null;
+			
+			int elmStart = fReader.getPosition();
+
+			// variable or function
+			String word = fReader.readWord();
+			if (word != null && word.length() > 0) {
+				fReader.eatWhitespace();
+				if (fReader.read() == '(') {
+					// function call
+					Vector<ExprElm> args = new Vector<ExprElm>();
+					boolean expectingComma = false;
+					while (!fReader.reachedEOF()) {
+						fReader.eatWhitespace();
+						int c = fReader.read();
+						if (c == ')') {
+							if (!expectingComma)
+								args.add(null);
+							break;
+						} else if (c == ',') {
+							if (!expectingComma) {
+								args.add(null);
+							}
+							expectingComma = false;
+						} else {
+							fReader.unread();
+							args.add(parseExpression(fReader.getPosition()));
+							expectingComma = true;
+						}
+					}
+					elm = new ExprCallFunc(word, args.toArray(new ExprElm[0]));
+				} else {
+					fReader.unread();
+					// variable
+					elm = new ExprAccessVar(word);
+				}
+			}
+			
+			// array
+			if (elm == null) {
+				int c = fReader.read();
+				if (c == '[') {
+					if (prevElm != null) {
+						// array access
+						ExprElm arg = parseExpression(fReader.getPosition());
+						fReader.eatWhitespace();
+						if (fReader.read() != ']') {
+							errorWithCode(ErrorCode.TokenExpected, fReader.getPosition()-1, fReader.getPosition(), "]");
+						}
+						elm = new ExprArrayAccess(arg);
+					} else {
+						// array creation
+						Vector<ExprElm> arrayElms = new Vector<ExprElm>(10);
+						boolean properlyClosed = false;
+						boolean expectingComma = false;
+						while (!fReader.reachedEOF()) {
+							fReader.eatWhitespace();
+							c = fReader.read();
+							if (c == ',') {
+								if (!expectingComma)
+									arrayElms.add(null);
+								expectingComma = false;
+							} else if (c == ']') {
+								properlyClosed = true;
+								break;
+							} else {
+								fReader.unread();
+								arrayElms.add(parseExpression(fReader.getPosition(), COMMA_OR_CLOSE_BRACKET));
+								expectingComma = true;
+							}
+						}
+						if (!properlyClosed) {
+							errorWithCode(ErrorCode.MissingClosingBracket, fReader.getPosition()-1, fReader.getPosition(), "]");
+						}
+						elm = new ExprArray(arrayElms.toArray(new ExprElm[0]));
+						
+					}
+				} else { 
+					fReader.unread();
+				}
+			}
+		
+			// ->
+			if (elm == null) {
+				if (parseObjectFieldOperator(fReader.getPosition())) {
+					elm = new ExprObjectCall(parsedObjectFieldOperator.length() == 3, null);
+					if (parseID(fReader.getPosition())) {
+						((ExprObjectCall)elm).setId(parsedID);
+						if (!parseStaticFieldOperator_(fReader.getPosition())) {
+							errorWithCode(ErrorCode.TokenExpected, fReader.getPosition(), fReader.getPosition()+2, "::");
+						}
+					}
+				}
+			}
+			
+			// (<expr>)
+			if (elm == null) {
+				int c = fReader.read();
+				if (c == '(') {
+					elm = new ExprParenthesized(parseExpression(fReader.getPosition()));
+					c = fReader.read();
+					if (c != ')')
+						errorWithCode(ErrorCode.TokenExpected, fReader.getPosition()-1, fReader.getPosition(), ")");
+				} else {
+					fReader.unread();
+				}
+			}
+			
+			// check if sequence is valid (CreateObject(BLUB)->localvar is not)
+			if (elm != null) {
+				if (!elm.checkValidInSequence(prevElm)) {
+					errorWithCode(ErrorCode.NotAllowedHere, elmStart, fReader.getPosition(), fReader.readStringAt(elmStart, fReader.getPosition()));
+				}
+				elements.add(elm);
+				prevElm = elm;
+			}
+
+		} while (elm != null);
+		if (elements.size() > 0) {
+			ExprElm seq = new ExprSequence(elements.toArray(new ExprElm[0]));
+			if (seq.getType() == null) {
+				errorWithCode(ErrorCode.InvalidExpression, sequenceStart, fReader.getPosition(), fReader.readStringAt(sequenceStart, fReader.getPosition()));
+			}
+			fReader.eatWhitespace();
+			int saved = fReader.getPosition();
+			Operator postop = parseOperator_(fReader.getPosition());
+			if (postop != null) {
+				if (postop.isPostfix()) {
+					return new ExprUnaryOp(postop, ExprUnaryOp.Placement.Postfix, seq);
+				} else {
+					// a binary operator following this sequence
+					fReader.seek(saved);
+				}
+			}
+			return seq;
+		} else {
+			return null;
+		}
+	}
+	
+	private ExprElm parseExpression(int offset, char[] delimiters) throws ParsingException {
+		final int START = 0;
+		final int OPERATOR = 1;
+		final int SECONDOPERAND = 2;
+		final int DONE = 3;
+		
+		ExprElm root = null;
+		ExprElm current = null;
+		ExprBinaryOp lastOp = null;
+		
+		fReader.seek(offset);
+		for (int state = START; state != DONE;) {
+			fReader.eatWhitespace();
+			switch (state) {
+			case START:
+				root = parseExpressionWithoutOperators(fReader.getPosition());
+				current = root;
+				state = OPERATOR;
+				break;
+			case OPERATOR:
+				
+				// end of expression?
+				int c = fReader.read();
+				for (int i = 0; i < delimiters.length; i++) {
+					if (delimiters[i] == c) {
+						state = DONE;
+						fReader.unread();
+						break;
+					}
+				}
+
+				if (state != DONE) {
+					fReader.unread();
+
+					Operator op = parseOperator_(fReader.getPosition());
+					if (op != null) {
+						int prior = op.priority();
+						ExprElm newLeftSide = null;
+						if (lastOp == null || prior > lastOp.getOperator().priority() || (prior == lastOp.getOperator().priority() && op.rightAssociative())) {
+							newLeftSide = current;
+							current = new ExprBinaryOp(op);
+							if (newLeftSide.getParent() != null)
+								((ExprBinaryOp)newLeftSide.getParent()).setRightSide(current);
+							else
+								root = current;
+							if (lastOp != null)
+								lastOp.setRightSide(current);
+							lastOp = (ExprBinaryOp)current;
+						} else {
+							newLeftSide = lastOp;
+							lastOp = new ExprBinaryOp(op);
+							if (newLeftSide.getParent() != null)
+								((ExprBinaryOp)newLeftSide.getParent()).setRightSide(lastOp);
+							else
+								root = lastOp;
+							current = lastOp;
+						}
+						lastOp.setLeftSide(newLeftSide);
+						state = SECONDOPERAND;
+					} else
+						state = DONE;
+				}
+				break;
+			case SECONDOPERAND:
+				ExprElm rightSide = parseExpressionWithoutOperators(fReader.getPosition());
+				if (rightSide == null)
+					errorWithCode(ErrorCode.InvalidExpression, fReader.getPosition()-1, fReader.getPosition());
+				((ExprBinaryOp)current).setRightSide(rightSide);
+				lastOp = (ExprBinaryOp)current;
+				current = rightSide;
+				state = OPERATOR;
+				break;
+				
+			}
+		}
+		
+		return root;
+		
+	}
+	
+	private static final char[] SEMICOLON_DELIMITER = new char[] { ';' };
+	private static final char[] COMMA_OR_CLOSE_BRACKET = new char[] { ',', ']' };
+	
+	private ExprElm parseExpression(int offset) throws ParsingException {
+		return parseExpression(offset, SEMICOLON_DELIMITER);
 	}
 	
 	/**
@@ -1149,6 +2002,8 @@ public class C4ScriptParser {
 		return true;
 	}
 	
+	private String parsedString;
+	
 	private boolean parseString(int offset) throws ParsingException {
 		fReader.seek(offset);
 		if (fReader.read() != '"') {
@@ -1163,6 +2018,7 @@ public class C4ScriptParser {
 		if (fReader.read() != '"') {
 			throw new ParsingException("Internal parsing error.");
 		}
+		parsedString = builder.toString();
 		return true;
 	}
 	
@@ -1282,7 +2138,7 @@ public class C4ScriptParser {
 			}
 			eatWhitespace();
 			offset = fReader.getPosition();
-			if (!parseCall(offset) && !parseAssignment(offset) && !parseVariable(offset)) {
+			if (!parseValue(offset)) {
 				String problem = "Syntax error: expected call or assignment or identifier"; 
 				createErrorMarker(offset, fReader.getPosition(), problem);
 				throw new ParsingException(problem);
@@ -1310,6 +2166,8 @@ public class C4ScriptParser {
 		// for ( ; ; ) { parseCode } // that is special
 	}
 	
+	private C4ID parsedID;
+	
 	private boolean parseID(int offset) throws ParsingException {
 		fReader.seek(offset);
 		String word = fReader.readWord();
@@ -1319,8 +2177,8 @@ public class C4ScriptParser {
 		}
 		for(int i = 0; i < 4;i++) {
 			int readChar = word.charAt(i);
-			if ((0x41 <= readChar && readChar <= 0x5a) ||
-					(0x30 <= readChar && readChar <= 0x39) ||
+			if (('A' <= readChar && readChar <= 'Z') ||
+					('0' <= readChar && readChar <= '9') ||
 					(readChar == '_')) {
 				continue;
 			}
@@ -1329,6 +2187,7 @@ public class C4ScriptParser {
 				return false;
 			}
 		}
+		parsedID = C4ID.getID(word);
 		offset = fReader.getPosition();
 		if (parseObjectCall(fReader.getPosition())) offset = fReader.getPosition();
 		fReader.seek(offset);
