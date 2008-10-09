@@ -214,7 +214,7 @@ public class C4ScriptParser {
 			return offset;
 		}
 
-		public Object readStringAt(int start, int end) {
+		public String readStringAt(int start, int end) {
 			int p = getPosition();
 			seek(start);
 			String result = readString(end-start);
@@ -1385,6 +1385,13 @@ public class C4ScriptParser {
 			return C4Type.UNKNOWN;
 		}
 
+		@Override
+		public String toString() {
+			StringBuilder b = new StringBuilder();
+			print(b);
+			return b.toString();
+		}
+
 	}
 
 	public class ExprObjectCall extends ExprElm {
@@ -1735,7 +1742,7 @@ public class C4ScriptParser {
 		}
 		
 		public void print(StringBuilder output) {
-			output.append(",,,");
+			output.append("...");
 		}
 		
 	}
