@@ -60,7 +60,7 @@ public abstract class C4Object extends C4Field  {
 	}
 	
 	public C4Field findField(String name, FindFieldInfo info) {
-		if (id.getName().equals(name))
+		if (id != null && id.getName().equals(name))
 			return this;
 		for (C4Function f : definedFunctions) {
 			if (f.getName().equals(name))
