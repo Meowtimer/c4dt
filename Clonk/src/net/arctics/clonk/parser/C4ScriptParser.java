@@ -2244,9 +2244,13 @@ public class C4ScriptParser {
 				throw new ParsingException(problem);
 			}
 			eatWhitespace();
+			
+			// initialization
 			offset = fReader.getPosition();
+			boolean noInitialization = false;
 			if (fReader.read() == ';') {
 				// any of the for statements is optional
+				noInitialization = true;
 			} else {
 				fReader.unread();
 				if (!(parseVarVariableDeclaration(fReader.getPosition()) || parseValue(fReader.getPosition()))) {
@@ -2255,9 +2259,22 @@ public class C4ScriptParser {
 					throw new ParsingException(problem);
 				}
 			}
+			
+			// determine loop type
 			eatWhitespace();
 			offset = fReader.getPosition();
-			String w = fReader.readWord();
+			String w;
+			if (!noInitialization) {
+				if (fReader.read() == ';') { // initialization finished regularly with ';'
+					offset = fReader.getPosition();
+					w = null; // implies there can be no 'in'
+				} else {
+					fReader.unread();
+					w = fReader.readWord();
+				}
+			}
+			else
+				w = null; // if there is no initialization statement at all there can also be no 'in'
 			if (w != null && w.equals("in")) {
 				// it's a for (x in array) loop!
 				eatWhitespace();
@@ -2265,7 +2282,8 @@ public class C4ScriptParser {
 					errorWithCode(ErrorCode.ExpressionExpected, offset, fReader.getPosition()+1);
 				}
 			} else {
-				fReader.seek(offset);
+				
+				fReader.seek(offset); // if a word !equaling("in") was read
 
 				if (fReader.read() == ';') {
 					// any " optional "
