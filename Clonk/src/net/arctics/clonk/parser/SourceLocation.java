@@ -51,4 +51,6 @@ public class SourceLocation implements IRegion {
 		SourceLocation cmp = (SourceLocation) obj;
 		return (cmp.getStart() == start && cmp.getEnd() == end);
 	}
+	
+	// TODO: hashcode() implementation
 }
