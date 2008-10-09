@@ -803,11 +803,11 @@ public class C4ScriptParser {
 	private boolean parseValue(int offset) throws ParsingException {
 		fReader.seek(offset);
 		ExprElm elm = parseExpression(offset);
-		if (elm != null) {
-			StringBuilder output = new StringBuilder();
-			elm.print(output);
-			System.out.println(output.toString());
-		}
+//		if (elm != null) {
+//			StringBuilder output = new StringBuilder();
+//			elm.print(output);
+//			System.out.println(output.toString());
+//		}
 		return elm != null;
 		//		if (
 		//				parseParenthesisGroup(offset) ||
@@ -1062,18 +1062,19 @@ public class C4ScriptParser {
 	
 	private boolean parseObjectFieldOperator(int offset) {
 		fReader.seek(offset);
-		parsedObjectFieldOperator = fReader.readString(3);
+		parsedObjectFieldOperator = fReader.readString(2);
 		if (parsedObjectFieldOperator == null) {
 			return false;
 		}
-		if (parsedObjectFieldOperator.length() == 3) {
-			if (parsedObjectFieldOperator.equals("->~"))
-				return true;
-			fReader.unread();
-		}
-		parsedObjectFieldOperator = parsedObjectFieldOperator.substring(0, 2);
-		if (parsedObjectFieldOperator.equals("->"))
+		if (parsedObjectFieldOperator.equals("->")) {
+			offset = fReader.getPosition();
+			eatWhitespace();
+			if (fReader.read() == '~')
+				parsedObjectFieldOperator = parsedObjectFieldOperator + "~";
+			else
+				fReader.seek(offset);
 			return true;
+		}
 		fReader.seek(offset);
 		return false;
 	}
