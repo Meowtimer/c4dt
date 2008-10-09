@@ -1202,10 +1202,7 @@ public class C4ScriptParser {
 		AssignDivide,
 		AssignModulo,
 		AssignOr,
-		AssignAnd,
-		
-		// for (blub in array)
-		In;
+		AssignAnd;
 
 		public boolean isUnary() {
 			return this == Not || this == Increment || this == Decrement || this == Add || this == Subtract;
@@ -1319,8 +1316,7 @@ public class C4ScriptParser {
 				"-=",
 				"*=",
 				"/=",
-				"%=",
-				"in"
+				"%="
 		});
 		// i want both directions!
 		operatorToStringMap = new HashMap<Operator, String>();
@@ -1792,6 +1788,7 @@ public class C4ScriptParser {
 		ExprElm elm;
 		ExprElm prevElm = null;
 		int sequenceStart = fReader.getPosition();
+		boolean dontCheckForPostOp = false;
 		do {
 			elm = null;
 			
@@ -1918,10 +1915,14 @@ public class C4ScriptParser {
 			// check if sequence is valid (CreateObject(BLUB)->localvar is not)
 			if (elm != null) {
 				if (!elm.checkValidInSequence(prevElm)) {
-					errorWithCode(ErrorCode.NotAllowedHere, elmStart, fReader.getPosition(), fReader.readStringAt(elmStart, fReader.getPosition()));
+					elm = null; // blub blub <- first blub is var; second blub is not part of the sequence -.-
+					fReader.seek(elmStart);
+					dontCheckForPostOp = true;
+					//errorWithCode(ErrorCode.NotAllowedHere, elmStart, fReader.getPosition(), fReader.readStringAt(elmStart, fReader.getPosition()));
+				} else {
+					elements.add(elm);
+					prevElm = elm;
 				}
-				elements.add(elm);
-				prevElm = elm;
 			}
 
 		} while (elm != null);
@@ -1930,15 +1931,17 @@ public class C4ScriptParser {
 			if (seq.getType() == null) {
 				errorWithCode(ErrorCode.InvalidExpression, sequenceStart, fReader.getPosition(), fReader.readStringAt(sequenceStart, fReader.getPosition()));
 			}
-			this.eatWhitespace();
-			int saved = fReader.getPosition();
-			Operator postop = parseOperator_(fReader.getPosition());
-			if (postop != null) {
-				if (postop.isPostfix()) {
-					return new ExprUnaryOp(postop, ExprUnaryOp.Placement.Postfix, seq);
-				} else {
-					// a binary operator following this sequence
-					fReader.seek(saved);
+			if (!dontCheckForPostOp) {
+				this.eatWhitespace();
+				int saved = fReader.getPosition();
+				Operator postop = parseOperator_(fReader.getPosition());
+				if (postop != null) {
+					if (postop.isPostfix()) {
+						return new ExprUnaryOp(postop, ExprUnaryOp.Placement.Postfix, seq);
+					} else {
+						// a binary operator following this sequence
+						fReader.seek(saved);
+					}
 				}
 			}
 			return seq;
@@ -2242,31 +2245,59 @@ public class C4ScriptParser {
 			}
 			eatWhitespace();
 			offset = fReader.getPosition();
-			if (!parseCode(fReader.getPosition())) {
-				String problem = "Syntax error: expected code"; 
-				createErrorMarker(offset, fReader.getPosition(), problem);
-				throw new ParsingException(problem);
+			if (fReader.read() == ';') {
+				// any of the for statements is optional
+			} else {
+				fReader.unread();
+				if (!(parseVarVariableDeclaration(fReader.getPosition()) || parseValue(fReader.getPosition()))) {
+					String problem = "Syntax error: expected code"; 
+					createErrorMarker(offset, fReader.getPosition(), problem);
+					throw new ParsingException(problem);
+				}
 			}
 			eatWhitespace();
 			offset = fReader.getPosition();
-			if (!parseValue(fReader.getPosition())) {
-				String problem = "Syntax error: expected condition"; 
-				createErrorMarker(offset, fReader.getPosition(), problem);
-				throw new ParsingException(problem);
-			}
-			eatWhitespace();
-			offset = fReader.getPosition();
-			if (fReader.read() != ';') {
-				String problem = "Syntax error: expected ';'"; 
-				createErrorMarker(offset, fReader.getPosition(), problem);
-				throw new ParsingException(problem);
-			}
-			eatWhitespace();
-			offset = fReader.getPosition();
-			if (!parseValue(offset)) {
-				String problem = "Syntax error: expected call or assignment or identifier"; 
-				createErrorMarker(offset, fReader.getPosition(), problem);
-				throw new ParsingException(problem);
+			String w = fReader.readWord();
+			if (w != null && w.equals("in")) {
+				// it's a for (x in array) loop!
+				eatWhitespace();
+				if (!parseValue(fReader.getPosition())) {
+					errorWithCode(ErrorCode.ExpressionExpected, offset, fReader.getPosition()+1);
+				}
+			} else {
+				fReader.seek(offset);
+
+				if (fReader.read() == ';') {
+					// any " optional "
+					fReader.unread(); // is expected
+				} else {
+					fReader.unread();
+					if (!parseValue(fReader.getPosition())) {
+						String problem = "Syntax error: expected condition"; 
+						createErrorMarker(offset, fReader.getPosition(), problem);
+						throw new ParsingException(problem);
+					}
+				}
+				eatWhitespace();
+				offset = fReader.getPosition();
+				if (fReader.read() != ';') {
+					String problem = "Syntax error: expected ';'"; 
+					createErrorMarker(offset, fReader.getPosition(), problem);
+					throw new ParsingException(problem);
+				}
+				eatWhitespace();
+				offset = fReader.getPosition();
+				if (fReader.read() == ')') {
+					// " optional "
+					fReader.unread(); // is expected
+				} else {
+					fReader.unread();
+					if (!parseValue(offset)) {
+						String problem = "Syntax error: expected call or assignment or identifier"; 
+						createErrorMarker(offset, fReader.getPosition()+1, problem);
+						throw new ParsingException(problem);
+					}
+				}
 			}
 			eatWhitespace();
 			if (fReader.read() != ')') {
