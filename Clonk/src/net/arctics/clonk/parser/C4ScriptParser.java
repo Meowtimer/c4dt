@@ -95,10 +95,10 @@ public class C4ScriptParser {
 			do {
 				int readByte = read();
 				if (
-						('0' <= readByte && readByte <= '9') ||
 						('A' <= readByte && readByte <= 'Z') ||
 						('a'<= readByte && readByte <= 'z') ||
-						(readByte == '_')) {
+						(readByte == '_') ||
+						(length > 0 && '0' <= readByte && readByte <= '9')) {
 					length++;
 				}
 				else {
@@ -461,6 +461,17 @@ public class C4ScriptParser {
 		fReader.seek(offset);
 		return parseFunctionDeclaration(fReader.readWord(),fReader.getPosition());
 	}
+	
+	private C4Type parseFunctionReturnType(int offset) {
+		fReader.seek(offset);
+		eatWhitespace();
+		int readByte = fReader.read();
+		if (readByte == '&') {
+			return C4Type.REFERENCE;
+		}
+		fReader.seek(offset);
+		return C4Type.ANY;
+	}
 
 	/**
 	 * for optimization reasons
@@ -485,13 +496,16 @@ public class C4ScriptParser {
 		}
 		else {
 			activeFunc.setVisibility(C4FunctionScope.FUNC_PUBLIC);
-			createWarningMarker(offset - firstWord.length(), fReader.getPosition(), "Function declarations should define a scope. (public,protected,private,global)");
+			createWarningMarker(fReader.getPosition() - firstWord.length(), fReader.getPosition(), "Function declarations should define a scope. (public,protected,private,global)");
 		}
+		C4Type retType = parseFunctionReturnType(fReader.getPosition());
 		eatWhitespace();
 		startName = fReader.getPosition();
 		// get function name
 		int funcNameStart = fReader.getPosition();
 		String funcName = fReader.readWord();
+		if (funcName == null || funcName.length() == 0)
+			errorWithCode(ErrorCode.NameExpected, fReader.getPosition()-1, fReader.getPosition());
 		endName = fReader.getPosition();
 		for(C4Function otherFunc : container.definedFunctions) {
 			if (otherFunc.getName().equalsIgnoreCase(funcName)) {
@@ -500,6 +514,7 @@ public class C4ScriptParser {
 			}
 		}
 		activeFunc.setName(funcName);
+		activeFunc.setReturnType(retType);
 		eatWhitespace();
 		if (fReader.read() != '(') {
 			String problem = "Syntax error: expected '('";
@@ -718,11 +733,24 @@ public class C4ScriptParser {
 			fReader.seek(offset);
 			eatWhitespace();
 			int readByte = fReader.read();
-			// FIXME throw warning or error when ',' occurs
 			if (readByte != ')') {
 				String problem = "Syntax error: ')' expected";
-				createErrorMarker(fReader.getPosition() - 1, fReader.getPosition(), problem);
-				throw new ParsingException(problem);
+				createWarningMarker(fReader.getPosition() - 1, fReader.getPosition(), problem);
+				// legacy: return treated as function
+				while (readByte == ',') {
+					if (!parseValue(fReader.getPosition())) {
+						errorWithCode(ErrorCode.ExpressionExpected, fReader.getPosition(), fReader.getPosition()+1);
+					}
+					eatWhitespace();
+					readByte = fReader.read();
+					if (readByte == ')') {
+						return true;
+					}
+					if (fReader.reachedEOF()) {
+						errorWithCode(ErrorCode.UnexpectedEnd, fReader.getPosition()-1, fReader.getPosition());
+					}
+				}
+				//throw new ParsingException(problem);
 			}
 		}
 		else {
@@ -1748,7 +1776,7 @@ public class C4ScriptParser {
 	}
 	
 	public enum ErrorCode {
-		TokenExpected, NotAllowedHere, MissingClosingBracket, InvalidExpression, InternalError, ExpressionExpected,
+		TokenExpected, NotAllowedHere, MissingClosingBracket, InvalidExpression, InternalError, ExpressionExpected, UnexpectedEnd, NameExpected,
 	}
 	
 	private static String[] errorStrings = new String[] {
@@ -1757,7 +1785,9 @@ public class C4ScriptParser {
 		"Missing '%s'",
 		"Invalid expression",
 		"Internal error: %s",
-		"Expression expected"
+		"Expression expected",
+		"Unexpected end of script",
+		"Name expected"
 	};
 	
 	private void errorWithCode(ErrorCode code, int errorStart, int errorEnd, Object... args) throws ParsingException {
