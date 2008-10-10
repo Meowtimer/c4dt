@@ -1438,7 +1438,7 @@ public class C4ScriptParser {
 			output.append("Implement me");
 		}
 
-		public boolean checkValidInSequence(ExprElm predecessor) {
+		public boolean isValidInSequence(ExprElm predecessor) {
 			return true;
 		}
 		public C4Type getType() {
@@ -1513,7 +1513,7 @@ public class C4ScriptParser {
 		}
 
 		@Override
-		public boolean checkValidInSequence(ExprElm predecessor) {
+		public boolean isValidInSequence(ExprElm predecessor) {
 			return predecessor != null && (predecessor.getType() != C4Type.ARRAY && predecessor.getType() != null && predecessor.getType() != C4Type.UNKNOWN);
 		}
 
@@ -1571,7 +1571,7 @@ public class C4ScriptParser {
 		}
 
 		@Override
-		public boolean checkValidInSequence(ExprElm predecessor) {
+		public boolean isValidInSequence(ExprElm predecessor) {
 			if (predecessor == null)
 				return true;
 			return false;
@@ -1832,7 +1832,7 @@ public class C4ScriptParser {
 		}
 
 		@Override
-		public boolean checkValidInSequence(ExprElm predecessor) {
+		public boolean isValidInSequence(ExprElm predecessor) {
 			return predecessor != null;
 		}
 	
@@ -1860,7 +1860,7 @@ public class C4ScriptParser {
 		}
 
 		@Override
-		public boolean checkValidInSequence(ExprElm predecessor) {
+		public boolean isValidInSequence(ExprElm predecessor) {
 			return predecessor == null;
 		}
 
@@ -1884,7 +1884,7 @@ public class C4ScriptParser {
 	}
 	
 	public enum ErrorCode {
-		TokenExpected, NotAllowedHere, MissingClosingBracket, InvalidExpression, InternalError, ExpressionExpected, UnexpectedEnd, NameExpected, ReturnAsFunction, ExpressionNotModifiable,
+		TokenExpected, NotAllowedHere, MissingClosingBracket, InvalidExpression, InternalError, ExpressionExpected, UnexpectedEnd, NameExpected, ReturnAsFunction, ExpressionNotModifiable, OperatorNeedsRightSide,
 	}
 	
 	private static String[] errorStrings = new String[] {
@@ -1897,7 +1897,8 @@ public class C4ScriptParser {
 		"Unexpected end of script",
 		"Name expected",
 		"return should not be treated as function",
-		"Expression cannot be modified"
+		"Expression cannot be modified",
+		"Operator has no right side"
 	};
 	
 	private void warningWithCode(ErrorCode code, int errorStart, int errorEnd, Object... args) {
@@ -2091,7 +2092,7 @@ public class C4ScriptParser {
 			
 			// check if sequence is valid (CreateObject(BLUB)->localvar is not)
 			if (elm != null) {
-				if (!elm.checkValidInSequence(prevElm)) {
+				if (!elm.isValidInSequence(prevElm)) {
 					elm = null; // blub blub <- first blub is var; second blub is not part of the sequence -.-
 					fReader.seek(elmStart);
 					dontCheckForPostOp = true;
@@ -2205,6 +2206,7 @@ public class C4ScriptParser {
 							current = lastOp;
 						}
 						lastOp.setLeftSide(newLeftSide);
+						lastOp.setExprRegion(operatorPos, fReader.getPosition());
 						state = SECONDOPERAND;
 					} else {
 						fReader.seek(operatorPos); // in case there was an operator but not a binary one
@@ -2215,7 +2217,7 @@ public class C4ScriptParser {
 			case SECONDOPERAND:
 				ExprElm rightSide = parseExpressionWithoutOperators(fReader.getPosition());
 				if (rightSide == null)
-					errorWithCode(ErrorCode.InvalidExpression, fReader.getPosition()-1, fReader.getPosition());
+					errorWithCode(ErrorCode.OperatorNeedsRightSide, lastOp);
 				((ExprBinaryOp)current).setRightSide(rightSide);
 				lastOp = (ExprBinaryOp)current;
 				current = rightSide;
