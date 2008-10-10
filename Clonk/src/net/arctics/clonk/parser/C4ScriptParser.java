@@ -17,6 +17,7 @@ import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.jface.text.IRegion;
 
 public class C4ScriptParser {
 
@@ -85,6 +86,13 @@ public class C4ScriptParser {
 			}
 		}
 
+		public static boolean isWordPart(int character) {
+			return ('A' <= character && character <= 'Z') ||
+			('a'<= character && character <= 'z') ||
+			(character == '_') ||
+			(/*length > 0 &&*/ '0' <= character && character <= '9');
+		}
+		
 		/**
 		 * Reads a code-word. (like regexp class [0-9a-zA-Z_])
 		 * @return the code-word
@@ -94,11 +102,7 @@ public class C4ScriptParser {
 			int length = 0;
 			do {
 				int readByte = read();
-				if (
-						('A' <= readByte && readByte <= 'Z') ||
-						('a'<= readByte && readByte <= 'z') ||
-						(readByte == '_') ||
-						(length > 0 && '0' <= readByte && readByte <= '9')) {
+				if (isWordPart(readByte)) {
 					length++;
 				}
 				else {
@@ -594,20 +598,26 @@ public class C4ScriptParser {
 		this.eatWhitespace();
 		offset = fReader.getPosition();
 		try {
-		if (parseKeyword(offset)) return true;
-		if (parseReturn(offset) || parseVarVariableDeclaration(offset) || parseValue(offset)) {
-			if (fReader.read() == ';') {
+			int readByte = fReader.read();
+			if (readByte == ';') {
+				// empty statement
 				return true;
 			}
-			else {
-				String problem = "Syntax error: expected ';'"; 
-				createErrorMarker(fReader.getPosition() - 1, fReader.getPosition(), problem);
-				throw new ParsingException(problem);
+			fReader.unread();
+			if (parseKeyword(offset)) return true;
+			if (parseReturn(offset) || parseVarVariableDeclaration(offset) || parseValue(offset)) {
+				if (fReader.read() == ';') {
+					return true;
+				}
+				else {
+					String problem = "Syntax error: expected ';'"; 
+					createErrorMarker(fReader.getPosition() - 1, fReader.getPosition(), problem);
+					throw new ParsingException(problem);
+				}
 			}
-		}
-		else {
-			return false;
-		}
+			else {
+				return false;
+			}
 		} catch (Exception e) {
 			// something exceptional happened
 			if (!(e instanceof ParsingException)) {
@@ -662,7 +672,7 @@ public class C4ScriptParser {
 			blockDepth--;
 			return true;
 		} else if (c == ';') {
-				return true; // empty statement
+			return true; // empty statement
 		} else {
 			eatWhitespace();
 			if (parseCode(offset)) return true;
@@ -734,8 +744,7 @@ public class C4ScriptParser {
 			eatWhitespace();
 			int readByte = fReader.read();
 			if (readByte != ')') {
-				String problem = "Syntax error: ')' expected";
-				createWarningMarker(fReader.getPosition() - 1, fReader.getPosition(), problem);
+				warningWithCode(ErrorCode.ReturnAsFunction, fReader.getPosition()-1, fReader.getPosition());
 				// legacy: return treated as function
 				while (readByte == ',') {
 					if (!parseValue(fReader.getPosition())) {
@@ -831,11 +840,9 @@ public class C4ScriptParser {
 	private boolean parseValue(int offset) throws ParsingException {
 		fReader.seek(offset);
 		ExprElm elm = parseExpression(offset);
-//		if (elm != null) {
-//			StringBuilder output = new StringBuilder();
-//			elm.print(output);
-//			System.out.println(output.toString());
-//		}
+		if (elm != null) {
+			System.out.println(elm.toString());
+		}
 		return elm != null;
 		//		if (
 		//				parseParenthesisGroup(offset) ||
@@ -1191,9 +1198,11 @@ public class C4ScriptParser {
 	 * an operator
 	 */
 	private enum Operator {
-		Tilde,
 		Not,
+		BitNot,
 
+		Power,
+		
 		Divide,
 		Multiply,
 		Modulo,
@@ -1214,7 +1223,7 @@ public class C4ScriptParser {
 		And,
 		Or,
 		BitAnd,
-		BitNot,
+		BitXOr,
 		BitOr,
 
 		Decrement,
@@ -1230,7 +1239,8 @@ public class C4ScriptParser {
 		AssignDivide,
 		AssignModulo,
 		AssignOr,
-		AssignAnd;
+		AssignAnd,
+		AssignXOr;
 
 		public boolean isUnary() {
 			return this == Not || this == Increment || this == Decrement || this == Add || this == Subtract;
@@ -1243,28 +1253,36 @@ public class C4ScriptParser {
 		public boolean isPostfix() {
 			return this == Increment || this == Decrement;
 		}
+		
 		public boolean isPrefix() {
-			return this == Increment || this == Decrement || this == Not || this == Add || this == Subtract;
+			return this == Increment || this == Decrement || this == Not || this == Add || this == Subtract || this == BitNot;
 		}
+		
+		public boolean modifiesArgument() {
+			return this == Increment || this == Decrement || this.name().startsWith("Assign");
+		}
+		
 		public int priority() {
 			int o = this.ordinal();
-			if (o >= 0 && o <= 1)
-				return 6;
-			if (o >= 2 && o <= 4)
-				return 13;
-			if (o >= 5 && o <= 6)
-				return 12;
-			if (o >= 7 && o <= 10)
-				return 10;
-			if (o >= 11 && o <= 15)
-				return 9;
-			if (o >= 16 && o <= 20)
-				return 6;
-			if (o >= 21 && o <= 22)
+			if (o >= Not.ordinal() && o <= BitNot.ordinal())
 				return -1000;
-			if (o >= 23 && o <= 24)
+			if (o == Power.ordinal())
+				return 14;
+			if (o >= Divide.ordinal() && o <= Modulo.ordinal())
+				return 13;
+			if (o >= Subtract.ordinal() && o <= Add.ordinal())
+				return 12;
+			if (o >= Smaller.ordinal() && o <= LargerEqual.ordinal())
+				return 10;
+			if (o >= Equal.ordinal() && o <= ne.ordinal())
+				return 9;
+			if (o >= And.ordinal() && o <= BitOr.ordinal())
+				return 6;
+			if (o >= Decrement.ordinal() && o <= Increment.ordinal())
+				return -1000;
+			if (o >= ShiftLeft.ordinal() && o <= ShiftRight.ordinal())
 				return 11;
-			if (o >= 25 && o <= 32)
+			if (o >= Assign.ordinal() && o <= AssignXOr.ordinal())
 				return 2;
 			return 0;
 		}
@@ -1278,6 +1296,53 @@ public class C4ScriptParser {
 		public String operatorName() {
 			return operatorToStringMap.get(this);
 		}
+		
+		public static final HashMap<String, Operator> stringToOperatorMap;
+		public static final HashMap<Operator, String> operatorToStringMap;
+		
+		static {
+			stringToOperatorMap = createOperatorHashMap(new String[] {
+					"!",
+					"~",
+					"**",
+					"/",
+					"*",
+					"%",
+					"-",
+					"+",
+					"<",
+					"<=",
+					">",
+					">=",
+					"==",
+					"!=",
+					"S=",
+					"eq",
+					"ne",
+					"&&",
+					"||",
+					"&",
+					"^",
+					"|",
+					"--",
+					"++",
+					"<<",
+					">>",
+					"=",
+					"+=",
+					"-=",
+					"*=",
+					"/=",
+					"%=",
+					"^="
+			});
+			assert(stringToOperatorMap.size() == Operator.values().length);
+			// i want both directions!
+			operatorToStringMap = new HashMap<Operator, String>();
+			for (String s : stringToOperatorMap.keySet()) {
+				operatorToStringMap.put(stringToOperatorMap.get(s), s);
+			}
+		} 
 	}
 	
 	public enum Token {
@@ -1309,50 +1374,6 @@ public class C4ScriptParser {
 		return result;
 	}
 
-	private static final HashMap<String, Operator> stringToOperatorMap;
-	private static final HashMap<Operator, String> operatorToStringMap;
-	
-	static {
-		stringToOperatorMap = createOperatorHashMap(new String[] {
-				"~",
-				"!",
-				"/",
-				"*",
-				"%",
-				"-",
-				"+",
-				"<",
-				"<=",
-				">",
-				">=",
-				"==",
-				"!=",
-				"S=",
-				"eq",
-				"ne",
-				"&&",
-				"||",
-				"&",
-				"^",
-				"|",
-				"--",
-				"++",
-				"<<",
-				">>",
-				"=",
-				"+=",
-				"-=",
-				"*=",
-				"/=",
-				"%="
-		});
-		// i want both directions!
-		operatorToStringMap = new HashMap<Operator, String>();
-		for (String s : stringToOperatorMap.keySet()) {
-			operatorToStringMap.put(stringToOperatorMap.get(s), s);
-		}
-	} 
-
 	/**
 	 * read operator at some location
 	 * @param offset
@@ -1370,12 +1391,22 @@ public class C4ScriptParser {
 			return null;
 		}
 
-		Operator result = stringToOperatorMap.get(s);
-		if (result != null)
+		Operator result = Operator.stringToOperatorMap.get(s);
+		if (result != null) {
+			// new_variable should not be parsed as ne w_variable -.-
+			if (result == Operator.ne || result == Operator.eq) {
+				int followingChar = fReader.read();
+				if (BufferedScanner.isWordPart(followingChar)) {
+					fReader.seek(offset);
+					return null;
+				} else
+					fReader.unread();
+			}
 			return result;
+		}
 
 		s = s.substring(0, 1);
-		result = stringToOperatorMap.get(s);
+		result = Operator.stringToOperatorMap.get(s);
 		if (result != null) {
 			fReader.unread();
 			return result;
@@ -1391,7 +1422,8 @@ public class C4ScriptParser {
 	 * @author madeen
 	 * base class for making expression trees
 	 */
-	public abstract static class ExprElm {
+	public abstract static class ExprElm implements IRegion {
+		private int exprStart, exprEnd;
 		private ExprElm parent;
 
 		public ExprElm getParent() {
@@ -1412,12 +1444,37 @@ public class C4ScriptParser {
 		public C4Type getType() {
 			return C4Type.UNKNOWN;
 		}
+		
+		public boolean modifiable() {
+			return true;
+		}
 
 		@Override
 		public String toString() {
 			StringBuilder b = new StringBuilder();
 			print(b);
 			return b.toString();
+		}
+		
+		public int getLength() {
+			return exprEnd-exprStart;
+		}
+
+		public int getOffset() {
+			return exprStart;
+		}
+
+		public int getExprEnd() {
+			return exprEnd;
+		}
+
+		public int getExprStart() {
+			return exprStart;
+		}
+
+		public void setExprRegion(int start, int end) {
+			this.exprStart = start;
+			this.exprEnd   = end;
 		}
 
 	}
@@ -1484,6 +1541,10 @@ public class C4ScriptParser {
 		}
 		public C4Type getType() {
 			return (elements == null || elements.length == 0) ? C4Type.UNKNOWN : elements[elements.length-1].getType();
+		}
+		@Override
+		public boolean modifiable() {
+			return elements != null && elements.length > 0 && elements[elements.length-1].modifiable();
 		}
 
 	}
@@ -1587,6 +1648,11 @@ public class C4ScriptParser {
 			rightSide.print(output);
 		}
 
+		@Override
+		public boolean modifiable() {
+			return false;
+		}
+
 	}
 	
 	public static class ExprParenthesized extends ExprValue {
@@ -1604,6 +1670,11 @@ public class C4ScriptParser {
 		public C4Type getType() {
 			return innerExpr.getType();
 		}
+		@Override
+		public boolean modifiable() {
+			return innerExpr.modifiable();
+		}
+		
 	}
 	
 	public static class ExprUnaryOp extends ExprOperator {
@@ -1626,9 +1697,13 @@ public class C4ScriptParser {
 		public void print(StringBuilder output) {
 			if (placement == Placement.Postfix) {
 				argument.print(output);
+				if (argument instanceof ExprUnaryOp)
+					output.append(" "); // - -5 -.-
 				output.append(getOperator().operatorName());
 			} else {
 				output.append(getOperator().operatorName());
+				if (argument instanceof ExprUnaryOp)
+					output.append(" "); // - -5 -.-
 				argument.print(output);
 			}
 		}
@@ -1651,9 +1726,14 @@ public class C4ScriptParser {
 			return literal;
 		}
 		
+		@Override
+		public boolean modifiable() {
+			return false;
+		}
+		
 	}
 	
-	public static class ExprNumber extends ExprLiteral<Integer> {
+	public static final class ExprNumber extends ExprLiteral<Integer> {
 
 		public ExprNumber(int value) {
 			super(new Integer(value));
@@ -1759,7 +1839,11 @@ public class C4ScriptParser {
 		public boolean checkValidInSequence(ExprElm predecessor) {
 			return predecessor == null;
 		}
-		
+
+		@Override
+		public boolean modifiable() {
+			return false;
+		}
 		
 	}
 	
@@ -1776,7 +1860,7 @@ public class C4ScriptParser {
 	}
 	
 	public enum ErrorCode {
-		TokenExpected, NotAllowedHere, MissingClosingBracket, InvalidExpression, InternalError, ExpressionExpected, UnexpectedEnd, NameExpected,
+		TokenExpected, NotAllowedHere, MissingClosingBracket, InvalidExpression, InternalError, ExpressionExpected, UnexpectedEnd, NameExpected, ReturnAsFunction, ExpressionNotModifiable,
 	}
 	
 	private static String[] errorStrings = new String[] {
@@ -1787,8 +1871,21 @@ public class C4ScriptParser {
 		"Internal error: %s",
 		"Expression expected",
 		"Unexpected end of script",
-		"Name expected"
+		"Name expected",
+		"return should not be treated as function",
+		"Expression cannot be modified"
 	};
+	
+	private void warningWithCode(ErrorCode code, int errorStart, int errorEnd, Object... args) {
+		String problem = String.format(errorStrings[code.ordinal()], args);
+		createWarningMarker(errorStart, errorEnd, problem);
+	}
+	
+	private void errorWithCode(ErrorCode code, IRegion errorRegion, Object... args) throws ParsingException {
+		String problem = String.format(errorStrings[code.ordinal()], args);
+		createErrorMarker(errorRegion.getOffset(), errorRegion.getOffset()+errorRegion.getLength(), problem);
+		throw new ParsingException(problem);
+	}
 	
 	private void errorWithCode(ErrorCode code, int errorStart, int errorEnd, Object... args) throws ParsingException {
 		String problem = String.format(errorStrings[code.ordinal()], args);
@@ -1808,10 +1905,19 @@ public class C4ScriptParser {
 	private ExprElm parseExpressionWithoutOperators(int offset) throws ParsingException {
 		fReader.seek(offset);
 		this.eatWhitespace();
+		offset = fReader.getPosition();
 		Operator preop = parseOperator_(fReader.offset);
 		if (preop != null && preop.isPrefix()) {
-			return new ExprUnaryOp(preop, ExprUnaryOp.Placement.Prefix, parseExpressionWithoutOperators(fReader.offset));
-		}
+			ExprElm followingExpr = parseExpressionWithoutOperators(fReader.offset);
+			if (followingExpr == null) {
+				errorWithCode(ErrorCode.ExpressionExpected, fReader.getPosition(), fReader.getPosition()+1);
+			}
+//			if (preop.modifiesArgument() && !followingExpr.modifiable()) {
+//				errorWithCode(ErrorCode.ExpressionNotModifiable, followingExpr);
+//			}
+			return new ExprUnaryOp(preop, ExprUnaryOp.Placement.Prefix, followingExpr);
+		} else
+			fReader.seek(offset); // don't skip operators that aren't prefixy
 		if (parseNumber(fReader.offset)) {
 			return new ExprNumber(parsedNumber);
 		}
@@ -1826,9 +1932,11 @@ public class C4ScriptParser {
 		ExprElm prevElm = null;
 		int sequenceStart = fReader.getPosition();
 		boolean dontCheckForPostOp = false;
+		int noWhitespaceEating = sequenceStart;
 		do {
 			elm = null;
 			
+			noWhitespaceEating = fReader.getPosition();
 			this.eatWhitespace();
 			int elmStart = fReader.getPosition();
 
@@ -1966,7 +2074,7 @@ public class C4ScriptParser {
 		if (elements.size() > 0) {
 			ExprElm seq = new ExprSequence(elements.toArray(new ExprElm[0]));
 			if (seq.getType() == null) {
-				errorWithCode(ErrorCode.InvalidExpression, sequenceStart, fReader.getPosition(), fReader.readStringAt(sequenceStart, fReader.getPosition()));
+				errorWithCode(ErrorCode.InvalidExpression, sequenceStart, noWhitespaceEating);
 			}
 			if (!dontCheckForPostOp) {
 				this.eatWhitespace();
@@ -1974,6 +2082,8 @@ public class C4ScriptParser {
 				Operator postop = parseOperator_(fReader.getPosition());
 				if (postop != null) {
 					if (postop.isPostfix()) {
+						if (postop.modifiesArgument() && !seq.modifiable())
+							errorWithCode(ErrorCode.ExpressionNotModifiable, seq);
 						return new ExprUnaryOp(postop, ExprUnaryOp.Placement.Postfix, seq);
 					} else {
 						// a binary operator following this sequence
@@ -2003,13 +2113,15 @@ public class C4ScriptParser {
 		}
 		
 		fReader.seek(offset);
+		//this.eatWhitespace();
+		int exprStart = fReader.getPosition();
 		for (int state = START; state != DONE;) {
 			this.eatWhitespace();
 			switch (state) {
 			case START:
 				root = parseExpressionWithoutOperators(fReader.getPosition());
 				current = root;
-				state = OPERATOR;
+				state = current != null ? OPERATOR : DONE;
 				break;
 			case OPERATOR:
 				
@@ -2026,8 +2138,9 @@ public class C4ScriptParser {
 				if (state != DONE) {
 					fReader.unread();
 
+					int operatorPos = fReader.getPosition();
 					Operator op = parseOperator_(fReader.getPosition());
-					if (op != null) {
+					if (op != null && op.isBinary()) {
 						int prior = op.priority();
 						ExprElm newLeftSide = null;
 						if (lastOp == null || prior > lastOp.getOperator().priority() || (prior == lastOp.getOperator().priority() && op.rightAssociative())) {
@@ -2051,8 +2164,10 @@ public class C4ScriptParser {
 						}
 						lastOp.setLeftSide(newLeftSide);
 						state = SECONDOPERAND;
-					} else
+					} else {
+						fReader.seek(operatorPos); // in case there was an operator but not a binary one
 						state = DONE;
+					}
 				}
 				break;
 			case SECONDOPERAND:
@@ -2067,6 +2182,8 @@ public class C4ScriptParser {
 				
 			}
 		}
+		if (root != null)
+			root.setExprRegion(exprStart, fReader.getPosition());
 		
 		return root;
 		
