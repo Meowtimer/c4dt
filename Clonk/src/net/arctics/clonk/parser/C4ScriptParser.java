@@ -605,7 +605,7 @@ public class C4ScriptParser {
 			}
 			fReader.unread();
 			if (parseKeyword(offset)) return true;
-			if (parseReturn(offset) || parseVarVariableDeclaration(offset) || parseValue(offset)) {
+			if (parseReturn(offset) || parseVarVariableDeclaration(offset) || parseStatement(offset)) {
 				if (fReader.read() == ';') {
 					return true;
 				}
@@ -835,6 +835,19 @@ public class C4ScriptParser {
 		}
 		// parse all parameter with parseValue
 		// do type checking where possible
+	}
+	
+	private boolean parseStatement(int offset) throws ParsingException {
+		fReader.seek(offset);
+		ExprElm elm = parseExpression(offset);
+		if (elm != null) {
+			if (elm instanceof ExprBinaryOp) {
+				((ExprBinaryOp)elm).checkTopLevelAssignment(this);
+			} else
+				elm.warnIfNoSideEffects(this);
+			return true;
+		}
+		return false;
 	}
 
 	private boolean parseValue(int offset) throws ParsingException {
@@ -1191,6 +1204,15 @@ public class C4ScriptParser {
 		// no assignments: =, *=, ...
 		return false;
 	}
+	
+	/**
+	 * loop types
+	 */
+	private enum LoopType {
+		For,
+		IterateArray, // for (x in y)
+		While
+	}
 
 	/**
 	 * 
@@ -1430,6 +1452,11 @@ public class C4ScriptParser {
 			return parent;
 		}
 
+		public void warnIfNoSideEffects(C4ScriptParser parser) {
+			if (!hasSideEffects())
+				parser.warningWithCode(ErrorCode.NoSideEffects, this);
+		}
+
 		public void setParent(ExprElm parent) {
 			this.parent = parent;
 		}
@@ -1447,6 +1474,10 @@ public class C4ScriptParser {
 		
 		public boolean modifiable() {
 			return true;
+		}
+		
+		public boolean hasSideEffects() {
+			return false;
 		}
 
 		@Override
@@ -1597,6 +1628,15 @@ public class C4ScriptParser {
 			}
 			output.append(")");
 		}
+		@Override
+		public boolean hasSideEffects() {
+			return true;
+		}
+		@Override
+		public void reportErrors(C4ScriptParser parser) throws ParsingException {
+			if (fieldName.equals("return" ))
+				parser.warningWithCode(ErrorCode.ReturnAsFunction, this);
+		}
 	}
 
 	public static class ExprOperator extends ExprValue {
@@ -1611,6 +1651,11 @@ public class C4ScriptParser {
 			return operator;
 		}
 
+		@Override
+		public boolean hasSideEffects() {
+			return getOperator().modifiesArgument();
+		}
+
 	}
 
 	public static class ExprBinaryOp extends ExprOperator {
@@ -1620,6 +1665,11 @@ public class C4ScriptParser {
 			super(operator);
 			setLeftSide(leftSide);
 			setRightSide(rightSide);
+		}
+
+		public void checkTopLevelAssignment(C4ScriptParser parser) throws ParsingException {
+			if (!getOperator().modifiesArgument())
+				parser.warningWithCode(ErrorCode.NoAssignment, this);
 		}
 
 		public ExprBinaryOp(Operator op) {
@@ -1661,6 +1711,8 @@ public class C4ScriptParser {
 		public void reportErrors(C4ScriptParser parser) throws ParsingException {
 			getLeftSide().reportErrors(parser);
 			getRightSide().reportErrors(parser);
+			// sanity
+			setExprRegion(getLeftSide().getExprStart(), getRightSide().getExprEnd());
 			// i'm an assigned operator and i can't modify my left side :C
 			if (getOperator().modifiesArgument() && !getLeftSide().modifiable()) {
 //				System.out.println(getLeftSide().toString() + " does not behave");
@@ -1688,6 +1740,10 @@ public class C4ScriptParser {
 		@Override
 		public boolean modifiable() {
 			return innerExpr.modifiable();
+		}
+		@Override
+		public boolean hasSideEffects() {
+			return innerExpr.hasSideEffects();
 		}
 		
 	}
@@ -1884,7 +1940,7 @@ public class C4ScriptParser {
 	}
 	
 	public enum ErrorCode {
-		TokenExpected, NotAllowedHere, MissingClosingBracket, InvalidExpression, InternalError, ExpressionExpected, UnexpectedEnd, NameExpected, ReturnAsFunction, ExpressionNotModifiable, OperatorNeedsRightSide,
+		TokenExpected, NotAllowedHere, MissingClosingBracket, InvalidExpression, InternalError, ExpressionExpected, UnexpectedEnd, NameExpected, ReturnAsFunction, ExpressionNotModifiable, OperatorNeedsRightSide, NoAssignment, NoSideEffects, KeywordInWrongPlace,
 	}
 	
 	private static String[] errorStrings = new String[] {
@@ -1898,12 +1954,20 @@ public class C4ScriptParser {
 		"Name expected",
 		"return should not be treated as function",
 		"Expression cannot be modified",
-		"Operator has no right side"
+		"Operator has no right side",
+		"There is no toplevel-assignment in this expression",
+		"Expression has no side effects",
+		"Keyword '%s' misplaced"
 	};
 	
 	private void warningWithCode(ErrorCode code, int errorStart, int errorEnd, Object... args) {
 		String problem = String.format(errorStrings[code.ordinal()], args);
 		createWarningMarker(errorStart, errorEnd, problem);
+	}
+	
+	private void warningWithCode(ErrorCode code, IRegion errorRegion, Object... args) {
+		String problem = String.format(errorStrings[code.ordinal()], args);
+		createWarningMarker(errorRegion.getOffset(), errorRegion.getOffset()+errorRegion.getLength(), problem);
 	}
 	
 	private void errorWithCode(ErrorCode code, IRegion errorRegion, Object... args) throws ParsingException {
@@ -2350,44 +2414,32 @@ public class C4ScriptParser {
 		parsedString = builder.toString();
 		return true;
 	}
-	
+
+	private LoopType currentLoop;
+
 	private boolean parseKeyword(int offset) throws ParsingException {
-		fReader.seek(offset);
-		String readWord = fReader.readWord();
-		if (readWord.equalsIgnoreCase("if")) {
-			if (!readWord.equals(readWord.toLowerCase())) {
-				String problem = "Syntax error: you should only use lower case letters in keywords. ('" + readWord.toLowerCase() + "' instead of '" + readWord + "')"; 
-				createErrorMarker(fReader.getPosition() - readWord.length(), fReader.getPosition(), problem);
-				throw new ParsingException(problem);
-			}
-			eatWhitespace();
-			if (fReader.read() != '(') {
-				String problem = "Syntax error: expected '('"; 
-				createErrorMarker(fReader.getPosition() - 1, fReader.getPosition(), problem);
-				throw new ParsingException(problem);
-			}
-			eatWhitespace();
-			parseValue(fReader.getPosition()); // if () is valid
-			eatWhitespace();
-			if (fReader.read() != ')') {
-				String problem = "Syntax error: expected ')'"; 
-				createErrorMarker(fReader.getPosition() - 1, fReader.getPosition(), problem);
-				throw new ParsingException(problem);
-			}
-			eatWhitespace();
-			offset = fReader.getPosition();
-			if (!parseCodeSegment(fReader.getPosition())) {
-				String problem = "Syntax error: expected a command"; 
-				createErrorMarker(offset, offset + 4, problem);
-				throw new ParsingException(problem);
-			}
-			eatWhitespace();
-			offset = fReader.getPosition();
-			String nextWord = fReader.readWord();
-			if (nextWord.equalsIgnoreCase("else")) {
-				if (!nextWord.equals(nextWord.toLowerCase())) {
-					String problem = "Syntax error: you should only use lower case letters in keywords. ('" + nextWord.toLowerCase() + "' instead of '" + nextWord + "')"; 
-					createErrorMarker(fReader.getPosition() - nextWord.length(), fReader.getPosition(), problem);
+		LoopType savedLoop = currentLoop;
+		try {
+			fReader.seek(offset);
+			String readWord = fReader.readWord();
+			if (readWord.equalsIgnoreCase("if")) {
+				if (!readWord.equals(readWord.toLowerCase())) {
+					String problem = "Syntax error: you should only use lower case letters in keywords. ('" + readWord.toLowerCase() + "' instead of '" + readWord + "')"; 
+					createErrorMarker(fReader.getPosition() - readWord.length(), fReader.getPosition(), problem);
+					throw new ParsingException(problem);
+				}
+				eatWhitespace();
+				if (fReader.read() != '(') {
+					String problem = "Syntax error: expected '('"; 
+					createErrorMarker(fReader.getPosition() - 1, fReader.getPosition(), problem);
+					throw new ParsingException(problem);
+				}
+				eatWhitespace();
+				parseValue(fReader.getPosition()); // if () is valid
+				eatWhitespace();
+				if (fReader.read() != ')') {
+					String problem = "Syntax error: expected ')'"; 
+					createErrorMarker(fReader.getPosition() - 1, fReader.getPosition(), problem);
 					throw new ParsingException(problem);
 				}
 				eatWhitespace();
@@ -2396,151 +2448,186 @@ public class C4ScriptParser {
 					String problem = "Syntax error: expected a command"; 
 					createErrorMarker(offset, offset + 4, problem);
 					throw new ParsingException(problem);
-				}	
+				}
+				eatWhitespace();
+				offset = fReader.getPosition();
+				String nextWord = fReader.readWord();
+				if (nextWord.equalsIgnoreCase("else")) {
+					if (!nextWord.equals(nextWord.toLowerCase())) {
+						String problem = "Syntax error: you should only use lower case letters in keywords. ('" + nextWord.toLowerCase() + "' instead of '" + nextWord + "')"; 
+						createErrorMarker(fReader.getPosition() - nextWord.length(), fReader.getPosition(), problem);
+						throw new ParsingException(problem);
+					}
+					eatWhitespace();
+					offset = fReader.getPosition();
+					if (!parseCodeSegment(fReader.getPosition())) {
+						String problem = "Syntax error: expected a command"; 
+						createErrorMarker(offset, offset + 4, problem);
+						throw new ParsingException(problem);
+					}	
+				}
+				else {
+					fReader.seek(offset);
+				}
+				return true;
 			}
-			else {
-				fReader.seek(offset);
-			}
-			return true;
-		}
-		else if (readWord.equalsIgnoreCase("while")) {
-			if (!readWord.equals(readWord.toLowerCase())) {
-				String problem = "Syntax error: you should only use lower case letters in keywords. ('" + readWord.toLowerCase() + "' instead of '" + readWord + "')"; 
-				createErrorMarker(fReader.getPosition() - readWord.length(), fReader.getPosition(), problem);
-				throw new ParsingException(problem);
-			}
-			eatWhitespace();
-			if (fReader.read() != '(') {
-				String problem = "Syntax error: expected '('"; 
-				createErrorMarker(fReader.getPosition() - 1, fReader.getPosition(), problem);
-				throw new ParsingException(problem);
-			}
-			eatWhitespace();
-			parseValue(fReader.getPosition()); // while () is valid
-			eatWhitespace();
-			if (fReader.read() != ')') {
-				String problem = "Syntax error: expected ')'"; 
-				createErrorMarker(fReader.getPosition() - 1, fReader.getPosition(), problem);
-				throw new ParsingException(problem);
-			}
-			eatWhitespace();
-			offset = fReader.getPosition();
-			if (!parseCodeSegment(fReader.getPosition())) {
-				String problem = "Syntax error: expected a command"; 
-				createErrorMarker(offset, offset + 4, problem);
-				throw new ParsingException(problem);
-			}
-			return true;
-		}
-		else if (readWord.equalsIgnoreCase("for")) {
-			if (!readWord.equals(readWord.toLowerCase())) {
-				String problem = "Syntax error: you should only use lower case letters in keywords. ('" + readWord.toLowerCase() + "' instead of '" + readWord + "')"; 
-				createErrorMarker(fReader.getPosition() - readWord.length(), fReader.getPosition(), problem);
-				throw new ParsingException(problem);
-			}
-			eatWhitespace();
-			if (fReader.read() != '(') {
-				String problem = "Syntax error: expected '('"; 
-				createErrorMarker(fReader.getPosition() - 1, fReader.getPosition(), problem);
-				throw new ParsingException(problem);
-			}
-			eatWhitespace();
-			
-			// initialization
-			offset = fReader.getPosition();
-			boolean noInitialization = false;
-			if (fReader.read() == ';') {
-				// any of the for statements is optional
-				noInitialization = true;
-			} else {
-				fReader.unread();
-				if (!(parseVarVariableDeclaration(fReader.getPosition()) || parseValue(fReader.getPosition()))) {
-					String problem = "Syntax error: expected code"; 
-					createErrorMarker(offset, fReader.getPosition(), problem);
+			else if (readWord.equalsIgnoreCase("while")) {
+				currentLoop = LoopType.While;
+				if (!readWord.equals(readWord.toLowerCase())) {
+					String problem = "Syntax error: you should only use lower case letters in keywords. ('" + readWord.toLowerCase() + "' instead of '" + readWord + "')"; 
+					createErrorMarker(fReader.getPosition() - readWord.length(), fReader.getPosition(), problem);
 					throw new ParsingException(problem);
 				}
-			}
-			
-			// determine loop type
-			eatWhitespace();
-			offset = fReader.getPosition();
-			String w;
-			if (!noInitialization) {
-				if (fReader.read() == ';') { // initialization finished regularly with ';'
-					offset = fReader.getPosition();
-					w = null; // implies there can be no 'in'
-				} else {
-					fReader.unread();
-					w = fReader.readWord();
-				}
-			}
-			else
-				w = null; // if there is no initialization statement at all there can also be no 'in'
-			if (w != null && w.equals("in")) {
-				// it's a for (x in array) loop!
 				eatWhitespace();
-				if (!parseValue(fReader.getPosition())) {
-					errorWithCode(ErrorCode.ExpressionExpected, offset, fReader.getPosition()+1);
+				if (fReader.read() != '(') {
+					String problem = "Syntax error: expected '('"; 
+					createErrorMarker(fReader.getPosition() - 1, fReader.getPosition(), problem);
+					throw new ParsingException(problem);
 				}
-			} else {
-				
-				fReader.seek(offset); // if a word !equaling("in") was read
+				eatWhitespace();
+				parseValue(fReader.getPosition()); // while () is valid
+				eatWhitespace();
+				if (fReader.read() != ')') {
+					String problem = "Syntax error: expected ')'"; 
+					createErrorMarker(fReader.getPosition() - 1, fReader.getPosition(), problem);
+					throw new ParsingException(problem);
+				}
+				eatWhitespace();
+				offset = fReader.getPosition();
+				if (!parseCodeSegment(fReader.getPosition())) {
+					String problem = "Syntax error: expected a command"; 
+					createErrorMarker(offset, offset + 4, problem);
+					throw new ParsingException(problem);
+				}
+				return true;
+			}
+			else if (readWord.equalsIgnoreCase("for")) {
+				if (!readWord.equals(readWord.toLowerCase())) {
+					String problem = "Syntax error: you should only use lower case letters in keywords. ('" + readWord.toLowerCase() + "' instead of '" + readWord + "')"; 
+					createErrorMarker(fReader.getPosition() - readWord.length(), fReader.getPosition(), problem);
+					throw new ParsingException(problem);
+				}
+				eatWhitespace();
+				if (fReader.read() != '(') {
+					String problem = "Syntax error: expected '('"; 
+					createErrorMarker(fReader.getPosition() - 1, fReader.getPosition(), problem);
+					throw new ParsingException(problem);
+				}
+				eatWhitespace();
 
+				// initialization
+				offset = fReader.getPosition();
+				boolean noInitialization = false;
 				if (fReader.read() == ';') {
-					// any " optional "
-					fReader.unread(); // is expected
+					// any of the for statements is optional
+					noInitialization = true;
 				} else {
 					fReader.unread();
-					if (!parseValue(fReader.getPosition())) {
-						String problem = "Syntax error: expected condition"; 
+					if (!(parseVarVariableDeclaration(fReader.getPosition()) || parseValue(fReader.getPosition()))) {
+						String problem = "Syntax error: expected code"; 
 						createErrorMarker(offset, fReader.getPosition(), problem);
 						throw new ParsingException(problem);
 					}
 				}
+
+				// determine loop type
 				eatWhitespace();
 				offset = fReader.getPosition();
-				if (fReader.read() != ';') {
-					String problem = "Syntax error: expected ';'"; 
-					createErrorMarker(offset, fReader.getPosition(), problem);
+				String w;
+				if (!noInitialization) {
+					if (fReader.read() == ';') { // initialization finished regularly with ';'
+						offset = fReader.getPosition();
+						w = null; // implies there can be no 'in'
+					} else {
+						fReader.unread();
+						w = fReader.readWord();
+					}
+				}
+				else
+					w = null; // if there is no initialization statement at all there can also be no 'in'
+				if (w != null && w.equals("in")) {
+					// it's a for (x in array) loop!
+					currentLoop = LoopType.IterateArray;
+					eatWhitespace();
+					if (!parseValue(fReader.getPosition())) {
+						errorWithCode(ErrorCode.ExpressionExpected, offset, fReader.getPosition()+1);
+					}
+				} else {
+					currentLoop = LoopType.For;
+					fReader.seek(offset); // if a word !equaling("in") was read
+
+					if (fReader.read() == ';') {
+						// any " optional "
+						fReader.unread(); // is expected
+					} else {
+						fReader.unread();
+						if (!parseValue(fReader.getPosition())) {
+							String problem = "Syntax error: expected condition"; 
+							createErrorMarker(offset, fReader.getPosition(), problem);
+							throw new ParsingException(problem);
+						}
+					}
+					eatWhitespace();
+					offset = fReader.getPosition();
+					if (fReader.read() != ';') {
+						String problem = "Syntax error: expected ';'"; 
+						createErrorMarker(offset, fReader.getPosition(), problem);
+						throw new ParsingException(problem);
+					}
+					eatWhitespace();
+					offset = fReader.getPosition();
+					if (fReader.read() == ')') {
+						// " optional "
+						fReader.unread(); // is expected
+					} else {
+						fReader.unread();
+						if (!parseValue(offset)) {
+							String problem = "Syntax error: expected call or assignment or identifier"; 
+							createErrorMarker(offset, fReader.getPosition()+1, problem);
+							throw new ParsingException(problem);
+						}
+					}
+				}
+				eatWhitespace();
+				if (fReader.read() != ')') {
+					String problem = "Syntax error: expected ')'"; 
+					createErrorMarker(fReader.getPosition() - 1, fReader.getPosition(), problem);
 					throw new ParsingException(problem);
 				}
 				eatWhitespace();
 				offset = fReader.getPosition();
-				if (fReader.read() == ')') {
-					// " optional "
-					fReader.unread(); // is expected
-				} else {
-					fReader.unread();
-					if (!parseValue(offset)) {
-						String problem = "Syntax error: expected call or assignment or identifier"; 
-						createErrorMarker(offset, fReader.getPosition()+1, problem);
-						throw new ParsingException(problem);
-					}
+				if (!parseCodeSegment(fReader.getPosition())) {
+					String problem = "Syntax error: expected a command"; 
+					createErrorMarker(offset, offset + 4, problem);
+					throw new ParsingException(problem);
 				}
+				return true;
 			}
-			eatWhitespace();
-			if (fReader.read() != ')') {
-				String problem = "Syntax error: expected ')'"; 
-				createErrorMarker(fReader.getPosition() - 1, fReader.getPosition(), problem);
-				throw new ParsingException(problem);
+			else if (readWord.equals("continue") || readWord.equals("break")) {
+				if (currentLoop == null)
+					errorWithCode(ErrorCode.KeywordInWrongPlace, fReader.getPosition()-readWord.length(), fReader.getPosition(), readWord);
+				checkForSemicolon();
+				return true;
 			}
-			eatWhitespace();
-			offset = fReader.getPosition();
-			if (!parseCodeSegment(fReader.getPosition())) {
-				String problem = "Syntax error: expected a command"; 
-				createErrorMarker(offset, offset + 4, problem);
-				throw new ParsingException(problem);
+			else {
+				return false;
 			}
-			return true;
+			// if (parseValue) { parseCode } else if (parseValue) { parseCode } else { parseCode }
+			// while (parseValue) { parseCode }
+			// for ( ; ; ) { parseCode } // that is special
+		} finally {
+			currentLoop = savedLoop;
 		}
-		else {
-			return false;
-		}
-		// if (parseValue) { parseCode } else if (parseValue) { parseCode } else { parseCode }
-		// while (parseValue) { parseCode }
-		// for ( ; ; ) { parseCode } // that is special
 	}
 	
+	private void checkForSemicolon() throws ParsingException {
+		eatWhitespace();
+		int readChar = fReader.read();
+		if (readChar != ';')
+			errorWithCode(ErrorCode.TokenExpected, fReader.getPosition()-1, fReader.getPosition(), ";");
+		
+	}
+
 	private C4ID parsedID;
 	
 	private boolean parseID(int offset) throws ParsingException {
