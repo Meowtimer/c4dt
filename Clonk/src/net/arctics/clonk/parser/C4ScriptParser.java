@@ -1663,7 +1663,7 @@ public class C4ScriptParser {
 			getRightSide().reportErrors(parser);
 			// i'm an assigned operator and i can't modify my left side :C
 			if (getOperator().modifiesArgument() && !getLeftSide().modifiable()) {
-				System.out.println(getLeftSide().toString() + " does not behave");
+//				System.out.println(getLeftSide().toString() + " does not behave");
 				parser.errorWithCode(ErrorCode.ExpressionNotModifiable, getLeftSide());
 			}
 		}
@@ -1731,7 +1731,7 @@ public class C4ScriptParser {
 		public void reportErrors(C4ScriptParser parser) throws ParsingException {
 			getArgument().reportErrors(parser);
 			if (getOperator().modifiesArgument() && !getArgument().modifiable()) {
-				System.out.println(getArgument().toString() + " does not behave");
+//				System.out.println(getArgument().toString() + " does not behave");
 				parser.errorWithCode(ErrorCode.ExpressionNotModifiable, getArgument());
 			}
 		}
@@ -1931,7 +1931,7 @@ public class C4ScriptParser {
 		this.eatWhitespace();
 		int sequenceStart = fReader.getPosition();
 		Operator preop = parseOperator_(fReader.offset);
-		ExprElm simpleResult = null;
+		ExprElm result = null;
 		if (preop != null && preop.isPrefix()) {
 			ExprElm followingExpr = parseExpressionWithoutOperators(fReader.offset);
 			if (followingExpr == null) {
@@ -1941,23 +1941,23 @@ public class C4ScriptParser {
 //			if (preop.modifiesArgument() && !followingExpr.modifiable()) {
 //				errorWithCode(ErrorCode.ExpressionNotModifiable, followingExpr);
 //			}
-			simpleResult = new ExprUnaryOp(preop, ExprUnaryOp.Placement.Prefix, followingExpr);
+			result = new ExprUnaryOp(preop, ExprUnaryOp.Placement.Prefix, followingExpr);
 		} else
 			fReader.seek(sequenceStart); // don't skip operators that aren't prefixy
-		if (simpleResult == null) {
+		if (result == null) {
 			if (parseNumber(fReader.offset)) {
-				simpleResult = new ExprNumber(parsedNumber);
+				result = new ExprNumber(parsedNumber);
 			}
 			else if (parseID(fReader.offset)) {
-				simpleResult = new ExprID(parsedID);
+				result = new ExprID(parsedID);
 			}
 			else if (parseString(fReader.getPosition())) {
-				simpleResult = new ExprString(parsedString);
+				result = new ExprString(parsedString);
 			}
 		}
-		if (simpleResult != null) {
-			simpleResult.setExprRegion(sequenceStart, fReader.getPosition());
-			return simpleResult;
+		if (result != null) {
+			result.setExprRegion(sequenceStart, fReader.getPosition());
+			return result;
 		}
 		Vector<ExprElm> elements = new Vector<ExprElm>(5);
 		ExprElm elm;
@@ -2104,32 +2104,39 @@ public class C4ScriptParser {
 
 		} while (elm != null);
 		fReader.seek(noWhitespaceEating);
-		if (elements.size() > 0) {
-			ExprElm seq = new ExprSequence(elements.toArray(new ExprElm[0]));
-			seq.setExprRegion(sequenceStart, fReader.getPosition());
-			if (seq.getType() == null) {
-				errorWithCode(ErrorCode.InvalidExpression, sequenceStart, noWhitespaceEating);
-			}
-			if (!dontCheckForPostOp) {
-				this.eatWhitespace();
-				int saved = fReader.getPosition();
-				Operator postop = parseOperator_(fReader.getPosition());
-				if (postop != null) {
-					if (postop.isPostfix()) {
-						// leave *bla*
-//						if (postop.modifiesArgument() && !seq.modifiable())
-//							errorWithCode(ErrorCode.ExpressionNotModifiable, seq);
-						return new ExprUnaryOp(postop, ExprUnaryOp.Placement.Postfix, seq);
-					} else {
-						// a binary operator following this sequence
-						fReader.seek(saved);
-					}
-				}
-			}
-			return seq;
+		if (elements.size() == 1) {
+			// no need for sequences containing one element
+			result = elements.elementAt(elements.size()-1);
+		}
+		else if (elements.size() > 1) {
+			result = new ExprSequence(elements.toArray(new ExprElm[0]));
 		} else {
 			return null;
 		}
+		
+		result.setExprRegion(sequenceStart, fReader.getPosition());
+		if (result.getType() == null) {
+			errorWithCode(ErrorCode.InvalidExpression, result);
+		}
+		
+		if (!dontCheckForPostOp) {
+			this.eatWhitespace();
+			int saved = fReader.getPosition();
+			Operator postop = parseOperator_(fReader.getPosition());
+			if (postop != null) {
+				if (postop.isPostfix()) {
+					// leave *bla*
+//					if (postop.modifiesArgument() && !result.modifiable())
+//						errorWithCode(ErrorCode.ExpressionNotModifiable, result);
+					return new ExprUnaryOp(postop, ExprUnaryOp.Placement.Postfix, result);
+				} else {
+					// a binary operator following this sequence
+					fReader.seek(saved);
+				}
+			}
+		}
+		return result;
+		
 	}
 	
 	private ExprElm parseExpression(int offset, char[] delimiters) throws ParsingException {
