@@ -4,6 +4,7 @@ Intern:
 -- > neue markerquelle
 - einbindung des parsers in einen inkrementellen build
 
+- engine.xml überarbeiten (NO_OWNER als konstanten etc.)
 - indexierte Daten des Clonk-Verzeichnisses per java.beans speichern. (genau wie engine.xml)
 -- wo? im projekt verzeichnis? in irgendeinen workspace->plugin ordner (gibts sowas?)?
 

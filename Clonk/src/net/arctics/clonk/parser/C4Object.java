@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.eclipse.jface.text.IRegion;
+
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.C4Directive.C4DirectiveType;
 
@@ -12,12 +14,30 @@ public abstract class C4Object extends C4Field  {
 	static public class FindFieldInfo {
 		private ClonkIndex index;
 		private int recursion;
+		private Class<? extends C4Field> fieldClass;
+		private C4Function context;
 		/**
 		 * @param indexer the indexer to be passed to the info
 		 */
 		public FindFieldInfo(ClonkIndex clonkIndex) {
 			super();
 			index = clonkIndex;
+		}
+		public FindFieldInfo(ClonkIndex clonkIndex, C4Function ctx) {
+			this(clonkIndex);
+			setContext(ctx);
+		}
+		public Class<? extends C4Field> getFieldClass() {
+			return fieldClass;
+		}
+		public void setFieldClass(Class<?extends C4Field> fieldClass) {
+			this.fieldClass = fieldClass;
+		}
+		public void setContext(C4Function ctx) {
+			context = ctx;
+		}
+		public C4Function getContext() {
+			return context;
 		}
 		
 	}
@@ -41,35 +61,61 @@ public abstract class C4Object extends C4Field  {
 		this.name = name;
 	}
 	
+	public int strictLevel() {
+		int level = 0;
+		for (C4Directive d : this.definedDirectives) {
+			if (d.getType() == C4DirectiveType.STRICT) {
+				level = Math.max(level, Integer.parseInt(d.getContent()));
+			}
+		}
+		return level;
+	}
+	
 	public C4Object[] getIncludes(ClonkIndex index) {
 		List<C4Object> result = new ArrayList<C4Object>();
 		for (C4Directive d : definedDirectives) {
 			if (d.getType() == C4DirectiveType.INCLUDE) {
-				List<C4Object> objs = index.getObjects(C4ID.getID(d.getContent()));
-				if (objs != null) {
-					if (objs instanceof LinkedList) { // due to performance
-						result.add(((LinkedList<C4Object>)objs).getLast());
-					}
-					else {
-						result.add(objs.get(objs.size()-1));
-					}
-				}
+				C4Object obj = index.getLastObjectWithId(C4ID.getID(d.getContent()));
+				if (obj != null)
+					result.add(obj);
 			}
 		}
 		return result.toArray(new C4Object[]{}); // lolz?
 	}
 	
 	public C4Field findField(String name, FindFieldInfo info) {
-		if (id != null && id.getName().equals(name))
-			return this;
-		for (C4Function f : definedFunctions) {
-			if (f.getName().equals(name))
-				return f;
+		
+		// local variable?
+		if (info.recursion == 0) {
+			if (info.getContext() != null) {
+				C4Field v = info.getContext().findVar(name);
+				if (v != null)
+					return v;
+			}
 		}
-		for (C4Variable v : definedVariables) {
-			if (v.getName().equals(name))
-				return v;
+		
+		// this object?
+		if (info.getFieldClass() == null || info.getFieldClass() == C4Object.class) {
+			if (id != null && id.getName().equals(name))
+				return this;
 		}
+		
+		// a function defined in this object
+		if (info.getFieldClass() == null || info.getFieldClass() == C4Function.class) {
+			for (C4Function f : definedFunctions) {
+				if (f.getName().equals(name))
+					return f;
+			}
+		}
+		// a variable
+		if (info.getFieldClass() == null || info.getFieldClass() == C4Variable.class) {
+			for (C4Variable v : definedVariables) {
+				if (v.getName().equals(name))
+					return v;
+			}
+		}
+		
+		// search in included definitions
 		info.recursion++;
 		for (C4Object o : getIncludes(info.index)) {
 			C4Field result = o.findField(name, info);
@@ -77,10 +123,14 @@ public abstract class C4Object extends C4Field  {
 				return result;
 		}
 		info.recursion--;
+		
+		// finally look if it's a global function
 		if (info.recursion == 0) {
-			for (C4Function f : ClonkCore.ENGINE_OBJECT.definedFunctions) {
-				if (f.getName().equals(name))
-					return f;
+			if (info.getFieldClass() == null || info.getFieldClass() == C4Function.class) {
+				for (C4Function f : ClonkCore.ENGINE_OBJECT.definedFunctions) {
+					if (f.getName().equals(name))
+						return f;
+				}
 			}
 		}
 		return null;
@@ -204,7 +254,26 @@ public abstract class C4Object extends C4Field  {
 		changeListeners.remove(listener);
 	}
 	
-	public abstract Object getScript(); 
+	public abstract Object getScript();
+
+	public C4Function findFunction(String functionName, FindFieldInfo info) {
+		info.setFieldClass(C4Function.class);
+		return (C4Function) findField(functionName, info);
+	}
+	
+	public C4Variable findVariable(String varName, FindFieldInfo info) {
+		info.setFieldClass(C4Variable.class);
+		return (C4Variable) findField(varName, info);
+	}
+
+	public C4Function funcAt(IRegion region) {
+		// from name to end of body should be enough... ?
+		for (C4Function f : definedFunctions) {
+			if (f.getLocation().getOffset() <= region.getOffset() && region.getOffset()+region.getLength() <= f.getBody().getOffset()+f.getBody().getLength())
+				return f;
+		}
+		return null;
+	}
 	
 //	public String getText(Object element) {
 //		if (element instanceof C4Function)

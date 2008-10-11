@@ -69,7 +69,7 @@ public class ClonkSourceViewerConfiguration extends TextSourceViewerConfiguratio
 			String ident = line.substring(start,end);
 			ITextEditor editor = getEditor();
 			C4Object obj = Utilities.getObjectForEditor(editor);
-			field = obj.findField(ident, new C4Object.FindFieldInfo(Utilities.getProject(editor).getIndexedData()));
+			field = obj.findField(ident, new C4Object.FindFieldInfo(Utilities.getProject(editor).getIndexedData(), obj.funcAt(region)));
 		}
 		
 		/**

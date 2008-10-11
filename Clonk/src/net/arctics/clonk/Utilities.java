@@ -48,6 +48,10 @@ public abstract class Utilities {
 		}
 	}
 	
+	public static ClonkProjectNature getProject(C4Object obj) {
+		return getProject((IResource)obj.getScript());
+	}
+	
 	public static IFile getEditingFile(ITextEditor editor) {
 		if (editor.getEditorInput() instanceof FileEditorInput) {
 			return ((FileEditorInput)editor.getEditorInput()).getFile();

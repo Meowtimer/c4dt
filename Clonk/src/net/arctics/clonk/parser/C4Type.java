@@ -30,6 +30,7 @@ public enum C4Type {
 		if (arg.equalsIgnoreCase("array")) return C4Type.ARRAY;
 		if (arg.equalsIgnoreCase("object")) return C4Type.OBJECT;
 		if (arg.equalsIgnoreCase("dword")) return C4Type.DWORD;
+		if (arg.equalsIgnoreCase("&")) return C4Type.REFERENCE;
 		return C4Type.UNKNOWN;
 	}
 }

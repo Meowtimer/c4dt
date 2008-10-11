@@ -217,4 +217,17 @@ public class ClonkIndex implements IC4ObjectListener {
 		// TODO Auto-generated method stub
 		
 	}
+
+	public C4Object getLastObjectWithId(C4ID id) {
+		List<C4Object> objs = getObjects(id);
+		if (objs != null) {
+			if (objs instanceof LinkedList) { // due to performance
+				return ((LinkedList<C4Object>)objs).getLast();
+			}
+			else {
+				return objs.get(objs.size()-1);
+			}
+		}
+		return null;
+	}
 }

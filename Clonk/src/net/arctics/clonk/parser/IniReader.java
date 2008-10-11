@@ -41,14 +41,14 @@ public class IniReader {
 	public String[] nextEntry() {
 		try {
 			String line;
+			int splitPos;
 			do {
 				line = reader.readLine();
 				if (line == null) return null;
 				line = line.trim();
-			} while(line.indexOf('=') == -1);
-			int splitPos = line.indexOf('=');
+			} while((splitPos = line.indexOf('=')) == -1);
 			String[] result = new String[2];
-			result[0] = line.substring(0,splitPos - 1);
+			result[0] = line.substring(0,splitPos);
 			result[1] = line.substring(splitPos + 1);
 			return result;
 		}
