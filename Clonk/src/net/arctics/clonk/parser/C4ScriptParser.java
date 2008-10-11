@@ -276,15 +276,9 @@ public class C4ScriptParser {
 		container = object;
 	}
 	
-	// TODO: in clean build, have to passes: 1. parse all declarations 2. check function code (so that all static variables/global functions and included stuff can be found)
+	// TODO: in clean build, have two passes: 1. parse all declarations 2. check function code (so that all static variables/global functions and included stuff can be found)
 	public void parse() {
-		try {
-			fScript.deleteMarkers(IMarker.PROBLEM, true, IResource.DEPTH_ONE);
-		} catch (CoreException e1) {
-			e1.printStackTrace();
-		}
-		container.clearFields(); // guess it's a good place to delete old stuff
-		
+		clean();
 		parseDeclarations();
 		parseFunctionCode();
 	}
@@ -527,7 +521,7 @@ public class C4ScriptParser {
 		}
 		else {
 			activeFunc.setVisibility(C4FunctionScope.FUNC_PUBLIC);
-			createWarningMarker(fReader.getPosition() - firstWord.length(), fReader.getPosition(), "Function declarations should define a scope. (public,protected,private,global)");
+			createWarningMarker(offset - firstWord.length(), offset, "Function declarations should define a scope. (public,protected,private,global)");
 		}
 		C4Type retType = parseFunctionReturnType(fReader.getPosition());
 		eatWhitespace();
@@ -2907,6 +2901,15 @@ public class C4ScriptParser {
 			e.printStackTrace();
 		}
 		return null;
+	}
+
+	public void clean() {
+		try {
+			fScript.deleteMarkers(IMarker.PROBLEM, true, IResource.DEPTH_ONE);
+		} catch (CoreException e1) {
+			e1.printStackTrace();
+		}
+		container.clearFields();
 	}
 
 //	/**

@@ -4,9 +4,12 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.eclipse.core.resources.IContainer;
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jface.text.IRegion;
 
 import net.arctics.clonk.ClonkCore;
+import net.arctics.clonk.Utilities;
 import net.arctics.clonk.parser.C4Directive.C4DirectiveType;
 
 public abstract class C4Object extends C4Field  {
@@ -83,6 +86,10 @@ public abstract class C4Object extends C4Field  {
 		return result.toArray(new C4Object[]{}); // lolz?
 	}
 	
+	public C4Field findField(String name) {
+		return findField(name, new FindFieldInfo(Utilities.getProject(this).getIndexedData()));
+	}
+	
 	public C4Field findField(String name, FindFieldInfo info) {
 		
 		// local variable?
@@ -125,13 +132,16 @@ public abstract class C4Object extends C4Field  {
 		info.recursion--;
 		
 		// finally look if it's a global function
-		if (info.recursion == 0) {
-			if (info.getFieldClass() == null || info.getFieldClass() == C4Function.class) {
-				for (C4Function f : ClonkCore.ENGINE_OBJECT.definedFunctions) {
-					if (f.getName().equals(name))
-						return f;
-				}
-			}
+		if (info.recursion == 0 && this != ClonkCore.ENGINE_OBJECT) { // .-.
+			C4Field f;
+			// global stuff defined in project
+			f = info.index.findGlobalField(name);
+			// engine
+			if (f == null)
+				f = ClonkCore.ENGINE_OBJECT.findField(name, info);
+
+			if (f != null && (info.fieldClass == null || info.fieldClass.isAssignableFrom(f.getClass())))
+				return f;
 		}
 		return null;
 	}
@@ -273,6 +283,14 @@ public abstract class C4Object extends C4Field  {
 				return f;
 		}
 		return null;
+	}
+	
+	public static C4Object objectCorrespondingTo(IContainer folder) {
+		try {
+			return (folder != null) ? (C4Object)folder.getSessionProperty(ClonkCore.C4OBJECT_PROPERTY_ID) : null;
+		} catch (CoreException e) {
+			return null;
+		}
 	}
 	
 //	public String getText(Object element) {

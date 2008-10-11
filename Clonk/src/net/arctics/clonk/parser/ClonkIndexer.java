@@ -1,33 +1,5 @@
 package net.arctics.clonk.parser;
 
-import java.io.File;
-import java.io.FileFilter;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import net.arctics.clonk.parser.C4Variable.C4VariableScope;
-import net.arctics.clonk.resource.c4group.C4Entry;
-import net.arctics.clonk.resource.c4group.C4Group;
-import net.arctics.clonk.resource.c4group.C4GroupItem;
-import net.arctics.clonk.resource.c4group.InvalidDataException;
-import net.arctics.clonk.resource.c4group.C4Group.C4GroupType;
-
-import org.eclipse.core.resources.IFile;
-import org.eclipse.core.resources.IFolder;
-import org.eclipse.core.resources.IMarker;
-import org.eclipse.core.resources.IResource;
-import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.IPath;
-import org.eclipse.core.runtime.Path;
-
 /**
  * 
  * @deprecated 

@@ -2,17 +2,12 @@ package net.arctics.clonk.ui.editors;
 
 import java.util.ResourceBundle;
 
-import net.arctics.clonk.Utilities;
 import net.arctics.clonk.parser.SourceLocation;
 import net.arctics.clonk.ui.editors.actions.IndexClonkDir;
-import net.arctics.clonk.ui.navigator.ClonkLabelProvider;
-
 import org.eclipse.core.resources.IResource;
 import org.eclipse.jface.action.IAction;
-import org.eclipse.swt.graphics.Image;
 import org.eclipse.ui.ISharedImages;
 import org.eclipse.ui.PlatformUI;
-import org.eclipse.ui.editors.text.TextEditor;
 import org.eclipse.ui.texteditor.AbstractDecoratedTextEditor;
 import org.eclipse.ui.texteditor.ContentAssistAction;
 import org.eclipse.ui.texteditor.ITextEditorActionDefinitionIds;
@@ -58,6 +53,7 @@ public class C4ScriptEditor extends AbstractDecoratedTextEditor {
 		return outlinePage;
 	}
 
+	@SuppressWarnings("unchecked")
 	public Object getAdapter(Class adapter) {
 		if (IContentOutlinePage.class.equals(adapter)) {
 			return getOutlinePage();

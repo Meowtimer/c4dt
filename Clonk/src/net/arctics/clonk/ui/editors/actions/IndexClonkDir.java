@@ -1,17 +1,7 @@
 package net.arctics.clonk.ui.editors.actions;
 
-import java.io.File;
 import java.util.ResourceBundle;
 
-import net.arctics.clonk.ClonkCore;
-import net.arctics.clonk.resource.ClonkProjectNature;
-
-import org.eclipse.core.resources.IProject;
-import org.eclipse.core.resources.IResource;
-import org.eclipse.core.resources.ProjectScope;
-import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.preferences.IEclipsePreferences;
-import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.texteditor.ITextEditor;
 import org.eclipse.ui.texteditor.TextEditorAction;
 

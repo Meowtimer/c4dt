@@ -230,4 +230,16 @@ public class ClonkIndex implements IC4ObjectListener {
 		}
 		return null;
 	}
+	
+	public C4Field findGlobalField(String fieldName) {
+		for (C4Function func : getGlobalFunctions()) {
+			if (func.getName().equals(fieldName))
+				return func;
+		}
+		for (C4Variable var : getStaticVariables()) {
+			if (var.getName().equals(fieldName))
+				return var;
+		}
+		return null;
+	}
 }

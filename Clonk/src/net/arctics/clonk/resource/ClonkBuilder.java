@@ -2,16 +2,14 @@ package net.arctics.clonk.resource;
 
 import java.util.Map;
 
-import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.Utilities;
 import net.arctics.clonk.parser.C4DefCoreWrapper;
-import net.arctics.clonk.parser.C4ID;
 import net.arctics.clonk.parser.C4Object;
 import net.arctics.clonk.parser.C4ObjectParser;
 import net.arctics.clonk.parser.C4ScriptParser;
+import net.arctics.clonk.parser.ClonkIndex;
 import net.arctics.clonk.parser.CompilerException;
 
-import org.eclipse.core.internal.resources.ResourceException;
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
@@ -30,10 +28,13 @@ import org.eclipse.core.runtime.IProgressMonitor;
  */
 public class ClonkBuilder extends IncrementalProjectBuilder implements IResourceDeltaVisitor, IResourceVisitor {
 	
+	private int buildPhase;
+	
 	public ClonkBuilder() {
 		super();
 	}
 
+	@SuppressWarnings("unchecked")
 	protected IProject[] build(int kind, Map args, IProgressMonitor monitor)
 			throws CoreException {
 		try {
@@ -50,7 +51,8 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 			case FULL_BUILD:
 			case CLEAN_BUILD:
 				if (proj != null) {
-					proj.accept(this);
+					for (buildPhase = 0; buildPhase < 2; buildPhase++)
+						proj.accept(this);
 				}
 				proj.touch(monitor);
 			}
@@ -68,12 +70,15 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 
 		if (delta.getResource() instanceof IFile)
 			if (delta.getKind() != IResourceDelta.REMOVED) {
-//				C4Object container = (C4Object) delta.getResource().getParent().getSessionProperty(ClonkCore.C4OBJECT_PROPERTY_ID);
-				C4Object container = Utilities.getProject(delta.getResource()).getIndexedData().getObject(delta.getResource().getParent());
+				C4Object container = C4Object.objectCorrespondingTo(delta.getResource().getParent());
 				if (container != null) {
 					try {
 						if (delta.getResource().getName().endsWith(".c")) {
+							// remove and add object to refresh globalFunctions/staticVariables
+							ClonkIndex index = Utilities.getProject(delta.getResource()).getIndexedData();
+							index.removeObject(container);
 							new C4ScriptParser((IFile) delta.getResource(), container).parse();
+							index.addObject(container);
 						}
 						else if (delta.getResource().getName().equals("DefCore.txt")) {
 							new C4DefCoreWrapper((IFile) delta.getResource()).parse();
@@ -111,16 +116,34 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 //			return false;
 //		}
 		if (resource instanceof IContainer) {
-			C4ObjectParser parser = C4ObjectParser.create((IContainer) resource);
-			if (parser != null) { // is complete c4d (with DefCore.txt Script.c and Graphics)
-				try {
-					parser.parse();
-				} catch (CompilerException e) {
-					// TODO display CompilerException messages
-					e.printStackTrace();
+			switch (buildPhase) {
+			case 0:
+				// first phase: just gather declarations
+				C4ObjectParser parser = C4ObjectParser.create((IContainer) resource);
+				if (parser != null) { // is complete c4d (with DefCore.txt Script.c and Graphics)
+					try {
+						parser.parse();
+					} catch (CompilerException e) {
+						// TODO display CompilerException messages
+						e.printStackTrace();
+					}
 				}
+				return true;
+			case 1:
+				// check correctness of function code (or compile into bytecodes ;D)
+				ClonkIndex index = Utilities.getProject(resource).getIndexedData();
+				C4Object obj = index.getObject((IContainer)resource);
+				if (obj != null && obj.getScript() != null) {
+					try {
+						new C4ScriptParser((IFile)obj.getScript(), obj).parseFunctionCode();
+					} catch (CompilerException e) {
+						e.printStackTrace();
+					} 
+				}
+				return true;
+			default:
+				return false; // :C ?
 			}
-			return true;
 		}
 		else return false;
 	}

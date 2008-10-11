@@ -43,28 +43,28 @@ public class C4ObjectParser {
 		try {
 			C4ObjectIntern object = (C4ObjectIntern) objectFolder.getSessionProperty(ClonkCore.C4OBJECT_PROPERTY_ID);
 			
+			ClonkIndex index = Utilities.getProject(objectFolder).getIndexedData();
 			if (defCore != null) {
 				C4DefCoreWrapper defCoreWrapper = new C4DefCoreWrapper(defCore);
 				defCoreWrapper.parse();
-				ClonkIndex index = Utilities.getProject(objectFolder).getIndexedData();
 				if (object == null) {
 					object = new C4ObjectIntern(defCoreWrapper.getObjectID(),defCoreWrapper.getName(),objectFolder);
-					index.addObject(object);
 				}
 				else {
-					if (object.getId() != defCoreWrapper.getObjectID()) { // new C4ID set
-						index.removeObject(object);
+					//if (object.getId() != defCoreWrapper.getObjectID()) { // new C4ID set
+						index.removeObject(object); // also removes old global functions and static variables
 						object.setId(defCoreWrapper.getObjectID());
-						index.addObject(object);
-					}
-//					if (!object.getName().equals(defCoreWrapper.getName())) {
-						object.setName(defCoreWrapper.getName(), false);
-//					}
+					//}
+					object.setName(defCoreWrapper.getName(), false);
 				}
 			}
 			if (script != null) {
 				C4ScriptParser p = new C4ScriptParser(script, object);
-				p.parse();
+				p.clean();
+				p.parseDeclarations();
+			}
+			if (object != null) {
+				index.addObject(object);
 			}
 		} catch (CoreException e) {
 			e.printStackTrace();
