@@ -1236,7 +1236,7 @@ public class C4ScriptParser {
 	/**
 	 * loop types
 	 */
-	private enum LoopType {
+	public enum LoopType {
 		For,
 		IterateArray, // for (x in y)
 		While
@@ -1247,7 +1247,7 @@ public class C4ScriptParser {
 	 * @author madeen
 	 * an operator
 	 */
-	private enum Operator {
+	public enum Operator {
 		Not,
 		BitNot,
 

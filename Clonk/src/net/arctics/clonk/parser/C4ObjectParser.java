@@ -46,12 +46,13 @@ public class C4ObjectParser {
 			if (defCore != null) {
 				C4DefCoreWrapper defCoreWrapper = new C4DefCoreWrapper(defCore);
 				defCoreWrapper.parse();
+				ClonkIndex index = Utilities.getProject(objectFolder).getIndexedData();
 				if (object == null) {
 					object = new C4ObjectIntern(defCoreWrapper.getObjectID(),defCoreWrapper.getName(),objectFolder);
+					index.addObject(object);
 				}
 				else {
 					if (object.getId() != defCoreWrapper.getObjectID()) { // new C4ID set
-						ClonkIndex index = Utilities.getProject(objectFolder).getIndexedData(); 
 						index.removeObject(object);
 						object.setId(defCoreWrapper.getObjectID());
 						index.addObject(object);
