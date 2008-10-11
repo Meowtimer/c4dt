@@ -7,6 +7,7 @@ import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
 import java.util.Vector;
 
+import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.Utilities;
 import net.arctics.clonk.parser.C4Directive.C4DirectiveType;
 import net.arctics.clonk.parser.C4Function.C4FunctionScope;
@@ -275,6 +276,7 @@ public class C4ScriptParser {
 		container = object;
 	}
 	
+	// TODO: in clean build, have to passes: 1. parse all declarations 2. check function code (so that all static variables/global functions and included stuff can be found)
 	public void parse() {
 		try {
 			fScript.deleteMarkers(IMarker.PROBLEM, true, IResource.DEPTH_ONE);
@@ -282,11 +284,12 @@ public class C4ScriptParser {
 			e1.printStackTrace();
 		}
 		container.clearFields(); // guess it's a good place to delete old stuff
-		firstPass();
-		secondPass();
+		
+		parseDeclarations();
+		parseFunctionCode();
 	}
 
-	public void firstPass() {
+	public void parseDeclarations() {
 		int offset = 0;
 		fReader.seek(offset);
 		try {
@@ -301,7 +304,7 @@ public class C4ScriptParser {
 		}
 	}
 	
-	public void secondPass() {
+	public void parseFunctionCode() {
 		for (C4Function function : container.definedFunctions) {
 			activeFunc = function;
 			try {
@@ -1671,8 +1674,32 @@ public class C4ScriptParser {
 		@Override
 		public void reportErrors(C4ScriptParser parser) throws ParsingException {
 			super.reportErrors(parser);
+			
+			ClonkIndex index = Utilities.getProject(parser.container).getIndexedData();
+			
 			// FIXME: built-in constants like true/false: where to put them?
-			field = parser.container.findVariable(fieldName, new C4Object.FindFieldInfo(Utilities.getProject(parser.container).getIndexedData(), parser.activeFunc));
+			if (fieldName.equals("true") || fieldName.equals("false"))
+				return;
+			
+			// find inside this script (and included objects)
+			field = parser.container.findVariable(fieldName, new C4Object.FindFieldInfo(index, parser.activeFunc));
+			
+			// find static/global stuff
+			if (field == null) {
+				field = index.findGlobalField(fieldName);
+				if (field instanceof C4Function)
+					field = null; // FIXME?
+			}
+			
+			// engine-defined
+			if (field == null) {
+				C4Field f = ClonkCore.ENGINE_OBJECT.findField(fieldName, new C4Object.FindFieldInfo(index));
+				// global constant-like functions
+				if (f != null && f instanceof C4Function &&  ((C4Function)f).getParameter().size() == 0)
+					field = f;
+			}
+			
+			// nope
 			if (field == null)
 				parser.warningWithCode(ErrorCode.UndeclaredIdentifier, getExprStart(), getExprStart()+fieldName.length(), fieldName);
 		}
