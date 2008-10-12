@@ -110,7 +110,7 @@ public class C4ScriptParser {
 					return readString(length);
 				}
 			} while(!reachedEOF());
-			return null;
+			return readStringAt(start, start+length);
 		}
 
 		/**
@@ -336,14 +336,27 @@ public class C4ScriptParser {
 		else {
 			fReader.seek(offset);
 			String word = fReader.readWord();
-			if (word.equalsIgnoreCase("public") || word.equalsIgnoreCase("protected") || word.equalsIgnoreCase("private") || word.equalsIgnoreCase("global") || word.equals("func")) {
+			if (looksLikeStartOfFunction(word)) {
 				if (parseFunctionDeclaration(word, fReader.getPosition())) return true;
 			}
 			else if (word.equalsIgnoreCase("static") || word.equalsIgnoreCase("local")) {
 				if (parseVariableDeclaration(offset)) return true;
 			}
+			else {
+				// old-style function declaration without visibility
+				eatWhitespace();
+				if (fReader.read() == ':') {
+					fReader.seek(offset); // just let parseFunctionDeclaration parse the name again
+					if (parseFunctionDeclaration("public", offset)) // just assume public
+						return true;
+				}
+			}
 		}
 		return false;
+	}
+
+	private boolean looksLikeStartOfFunction(String word) {
+		return word.equalsIgnoreCase("public") || word.equalsIgnoreCase("protected") || word.equalsIgnoreCase("private") || word.equalsIgnoreCase("global") || word.equals("func");
 	}
 
 	private boolean parseVariableDeclaration(int offset) throws ParsingException {
@@ -435,6 +448,8 @@ public class C4ScriptParser {
 		fReader.seek(offset);
 
 		String word = fReader.readWord();
+		if (word == null)
+			return false;
 		if (word.equals("var")) {
 			// there is a function called Var
 //			if (!word.equals("var")) {
@@ -510,98 +525,139 @@ public class C4ScriptParser {
 		eatWhitespace();
 		activeFunc = new C4Function();
 		activeFunc.setObject(container);
-		int startName, endName, startBody, endBody;
+		int startName = 0, endName = 0, startBody, endBody;
+		boolean suspectOldStyle = false;
+		String funcName = null;
+		C4Type retType = C4Type.ANY;
 		if (!firstWord.equals("func")) {
 			activeFunc.setVisibility(C4FunctionScope.makeScope(firstWord));
-			if (!fReader.readWord().equalsIgnoreCase("func")) {
-				String problem = "Syntax error: expected 'func'";
-				createErrorMarker(offset, fReader.getPosition(), problem);
-				throw new ParsingException(problem);
+			startName = fReader.getPosition();
+			String shouldBeFunc = fReader.readWord();
+			if (!shouldBeFunc.equals("func")) {
+//				String problem = "Syntax error: expected 'func'";
+//				createErrorMarker(offset, fReader.getPosition(), problem);
+//				throw new ParsingException(problem);
+				suspectOldStyle = true; // suspicious
+				funcName = shouldBeFunc;
+				endName = fReader.getPosition();
+				warningWithCode(ErrorCode.OldStyleFunc, startName, endName);
 			}
 		}
 		else {
 			activeFunc.setVisibility(C4FunctionScope.FUNC_PUBLIC);
 			createWarningMarker(offset - firstWord.length(), offset, "Function declarations should define a scope. (public,protected,private,global)");
 		}
-		C4Type retType = parseFunctionReturnType(fReader.getPosition());
-		eatWhitespace();
-		startName = fReader.getPosition();
-		// get function name
-		int funcNameStart = fReader.getPosition();
-		String funcName = fReader.readWord();
-		if (funcName == null || funcName.length() == 0)
-			errorWithCode(ErrorCode.NameExpected, fReader.getPosition()-1, fReader.getPosition());
-		endName = fReader.getPosition();
+		if (!suspectOldStyle) {
+			retType = parseFunctionReturnType(fReader.getPosition());
+			eatWhitespace();
+			startName = fReader.getPosition();
+			funcName = fReader.readWord();
+			if (funcName == null || funcName.length() == 0)
+				errorWithCode(ErrorCode.NameExpected, fReader.getPosition()-1, fReader.getPosition());
+			endName = fReader.getPosition();
+		}
 		for(C4Function otherFunc : container.definedFunctions) {
 			if (otherFunc.getName().equalsIgnoreCase(funcName)) {
-				createWarningMarker(funcNameStart, fReader.getPosition(), "Function overload: this function is already declared in this script");
+				createWarningMarker(startName, fReader.getPosition(), "Function overload: this function is already declared in this script");
 				break;
 			}
 		}
 		activeFunc.setName(funcName);
 		activeFunc.setReturnType(retType);
+		activeFunc.setOldStyle(suspectOldStyle);
 		eatWhitespace();
-		if (fReader.read() != '(') {
-			String problem = "Syntax error: expected '('";
-			createErrorMarker(fReader.getPosition() - 1, fReader.getPosition(), problem);
-			throw new ParsingException(problem);
-		}
-		// get parameter
-		do {
-			eatWhitespace();
-			offset = fReader.getPosition();
-			if (parseParameter(offset, activeFunc)) offset = fReader.getPosition(); 
-			eatWhitespace(offset);
-			int readByte = fReader.read();
-			if (readByte == ')') break; // all parameter parsed
-			else if (readByte == ',') continue; // parse another parameter
-			else {
-				String problem = "Syntax error: expected ')' or ','";
+		int shouldBeBracket = fReader.read();
+		if (shouldBeBracket != '(') {
+			if (suspectOldStyle && shouldBeBracket == ':') {
+				// old style funcs have no named parameters
+			} else {
+				String problem = "Syntax error: expected '('";
 				createErrorMarker(fReader.getPosition() - 1, fReader.getPosition(), problem);
 				throw new ParsingException(problem);
 			}
-		} while(!fReader.reachedEOF());
+		} else {
+			// get parameter
+			do {
+				eatWhitespace();
+				offset = fReader.getPosition();
+				if (parseParameter(offset, activeFunc)) offset = fReader.getPosition(); 
+				eatWhitespace(offset);
+				int readByte = fReader.read();
+				if (readByte == ')') break; // all parameter parsed
+				else if (readByte == ',') continue; // parse another parameter
+				else {
+					String problem = "Syntax error: expected ')' or ','";
+					createErrorMarker(fReader.getPosition() - 1, fReader.getPosition(), problem);
+					throw new ParsingException(problem);
+				}
+			} while(!fReader.reachedEOF());
+		}
 		eatWhitespace();
 		// parse code block
 		if (fReader.read() != '{') {
-			String problem = "Syntax error: expected '{'";
-			createErrorMarker(fReader.getPosition() - 1, fReader.getPosition(), problem);
-			throw new ParsingException(problem);
-		}
-		blockDepth = 0;
-		eatWhitespace();
-		offset = fReader.getPosition();
-		if (parseFunctionDescription(offset)) offset = fReader.getPosition();
-		startBody = offset;
-//		try {
-//			if (parseCodeBlock(offset)) {
-//			}
-//			else { // nonsense since parseCodeBlock is always true
-//			}
-//		} catch (ParsingException e) {
-		// in case of errors inside the body still try to find the end of the function so that the rest of the script can be parsed
-		
-		// new two pass strategy to be able to check if functions and variables exist
-		// first pass: skip the code, just remember where it is
-		do {
-			if (parseToken(fReader.getPosition()) == null) {
-				int c = fReader.read();
-				if (c == '}')
-					blockDepth--;
-				else if (c == '{')
-					blockDepth++;
+			if (suspectOldStyle) {
+				fReader.unread();
+				parseFunctionDescription(fReader.getPosition());
+				startBody = fReader.getPosition();
+				// body goes from here to start of next function...
+				do {
+					endBody = fReader.getPosition();
+					eatWhitespace();
+					String word = fReader.readWord();
+					if (word != null && word.length() > 0) {
+						if (looksLikeStartOfFunction(word)) {
+							fReader.seek(endBody);
+							break;
+						} else {
+							eatWhitespace();
+							if (fReader.read() == ':') {
+								fReader.seek(endBody);
+								break;
+							} else
+								fReader.unread();
+						}
+					} else {
+						// just move on
+						if (parseToken(fReader.getPosition()) == null)
+							fReader.read();
+					}
+					endBody = fReader.getPosition(); // blub
+				} while (!fReader.reachedEOF());
+			} else {
+				String problem = "Syntax error: expected '{'";
+				createErrorMarker(fReader.getPosition() - 1, fReader.getPosition(), problem);
+				throw new ParsingException(problem);
 			}
-		} while (blockDepth > -1 && !fReader.reachedEOF());
-		if (!fReader.reachedEOF())
-			fReader.unread(); // go back to last '}'
-//		}
-		endBody = fReader.getPosition();
-		eatWhitespace();
-		if (fReader.read() != '}') {
-			System.out.println(activeFunc.getName());
-			String problem = "Syntax error: expected '}'";
-			createErrorMarker(fReader.getPosition() - 1, fReader.getPosition(), problem);
-			throw new ParsingException(problem);
+		} else {
+			// body in {...}
+			blockDepth = 0;
+			eatWhitespace();
+			offset = fReader.getPosition();
+			if (parseFunctionDescription(offset)) offset = fReader.getPosition();
+			startBody = offset;
+
+			// new two pass strategy to be able to check if functions and variables exist
+			// first pass: skip the code, just remember where it is
+			do {
+				if (parseToken(fReader.getPosition()) == null) {
+					int c = fReader.read();
+					if (c == '}')
+						blockDepth--;
+					else if (c == '{')
+						blockDepth++;
+				}
+			} while (blockDepth > -1 && !fReader.reachedEOF());
+			if (!fReader.reachedEOF())
+				fReader.unread(); // go back to last '}'
+
+			endBody = fReader.getPosition();
+			eatWhitespace();
+			if (fReader.read() != '}') {
+				System.out.println(activeFunc.getName());
+				String problem = "Syntax error: expected '}'";
+				createErrorMarker(fReader.getPosition() - 1, fReader.getPosition(), problem);
+				throw new ParsingException(problem);
+			}
 		}
 		// finish up
 		activeFunc.setLocation(new SourceLocation(startName,endName));
@@ -663,7 +719,7 @@ public class C4ScriptParser {
 	 */
 	private boolean parseCodeBlock(int offset) throws ParsingException {
 		fReader.seek(offset);
-		while(parseCode(fReader.getPosition())) {
+		while(!fReader.reachedEOF() && fReader.getPosition() <= activeFunc.getBody().getEnd() && parseCode(fReader.getPosition())) {
 			eatWhitespace();
 		}
 		// a complete code block without reading { }
@@ -747,7 +803,7 @@ public class C4ScriptParser {
 	private boolean parseReturn(int offset) throws ParsingException {
 		fReader.seek(offset);
 		String word = fReader.readWord();
-		if (!word.equals("return")) {
+		if (word == null || !word.equals("return")) {
 			fReader.seek(offset);
 			return false;
 		}
@@ -2058,7 +2114,7 @@ public class C4ScriptParser {
 	}
 	
 	public enum ErrorCode {
-		TokenExpected, NotAllowedHere, MissingClosingBracket, InvalidExpression, InternalError, ExpressionExpected, UnexpectedEnd, NameExpected, ReturnAsFunction, ExpressionNotModifiable, OperatorNeedsRightSide, NoAssignment, NoSideEffects, KeywordInWrongPlace, UndeclaredIdentifier,
+		TokenExpected, NotAllowedHere, MissingClosingBracket, InvalidExpression, InternalError, ExpressionExpected, UnexpectedEnd, NameExpected, ReturnAsFunction, ExpressionNotModifiable, OperatorNeedsRightSide, NoAssignment, NoSideEffects, KeywordInWrongPlace, UndeclaredIdentifier, OldStyleFunc,
 	}
 	
 	private static String[] errorStrings = new String[] {
@@ -2076,7 +2132,8 @@ public class C4ScriptParser {
 		"There is no toplevel-assignment in this expression",
 		"Expression has no side effects",
 		"Keyword '%s' misplaced",
-		"Undeclared identifier '%s'"
+		"Undeclared identifier '%s'",
+		"Old-style function"
 	};
 	
 	private void warningWithCode(ErrorCode code, int errorStart, int errorEnd, Object... args) {
@@ -2545,6 +2602,8 @@ public class C4ScriptParser {
 		try {
 			fReader.seek(offset);
 			String readWord = fReader.readWord();
+			if (readWord == null)
+				return false;
 			if (readWord.equalsIgnoreCase("if")) {
 				if (!readWord.equals(readWord.toLowerCase())) {
 					String problem = "Syntax error: you should only use lower case letters in keywords. ('" + readWord.toLowerCase() + "' instead of '" + readWord + "')"; 
@@ -2760,22 +2819,14 @@ public class C4ScriptParser {
 			fReader.seek(offset);
 			return false;
 		}
-		for(int i = 0; i < 4;i++) {
-			int readChar = word.charAt(i);
-			if (('A' <= readChar && readChar <= 'Z') ||
-					('0' <= readChar && readChar <= '9') ||
-					(readChar == '_')) {
-				continue;
-			}
-			else {
-				fReader.seek(offset);
-				return false;
-			}
+		if (!Utilities.looksLikeID(word)) {
+			fReader.seek(offset);
+			return false;
 		}
 		parsedID = C4ID.getID(word);
-		offset = fReader.getPosition();
-		if (parseObjectCall(fReader.getPosition())) offset = fReader.getPosition();
-		fReader.seek(offset);
+//		offset = fReader.getPosition();
+//		if (parseObjectCall(fReader.getPosition())) offset = fReader.getPosition();
+//		fReader.seek(offset);
 		return true;
 	}
 

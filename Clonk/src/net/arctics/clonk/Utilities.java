@@ -113,4 +113,21 @@ public abstract class Utilities {
 	public static boolean c4FilenameExtensionIs(String filename, String ext) {
 		return filename.endsWith(ext);
 	}
+
+	public static boolean looksLikeID(String word) {
+		if (word == null || word.length() < 4)
+			return false;
+		for(int i = 0; i < 4;i++) {
+			int readChar = word.charAt(i);
+			if (('A' <= readChar && readChar <= 'Z') ||
+					('0' <= readChar && readChar <= '9') ||
+					(readChar == '_')) {
+				continue;
+			}
+			else {
+				return false;
+			}
+		}
+		return true;
+	}
 }

@@ -131,14 +131,18 @@ public abstract class C4Object extends C4Field  {
 		}
 		info.recursion--;
 		
-		// finally look if it's a global function
+		// finally look if it's something global
 		if (info.recursion == 0 && this != ClonkCore.ENGINE_OBJECT) { // .-.
 			C4Field f;
 			// global stuff defined in project
 			f = info.index.findGlobalField(name);
-			// engine
+			// engine function
 			if (f == null)
 				f = ClonkCore.ENGINE_OBJECT.findField(name, info);
+			
+			if (f == null && Utilities.looksLikeID(name)) {
+				f = info.index.getLastObjectWithId(C4ID.getID(name));
+			}
 
 			if (f != null && (info.fieldClass == null || info.fieldClass.isAssignableFrom(f.getClass())))
 				return f;

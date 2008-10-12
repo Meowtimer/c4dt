@@ -8,6 +8,7 @@ import java.util.List;
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.BuiltInDefinitions;
 import net.arctics.clonk.parser.C4Function;
+import net.arctics.clonk.parser.C4Object;
 import net.arctics.clonk.parser.C4Variable;
 import net.arctics.clonk.parser.ClonkIndex;
 import net.arctics.clonk.resource.ClonkProjectNature;
@@ -21,6 +22,7 @@ import org.eclipse.jface.resource.ImageRegistry;
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.ITextViewer;
+import org.eclipse.jface.text.Region;
 import org.eclipse.jface.text.contentassist.CompletionProposal;
 import org.eclipse.jface.text.contentassist.ContentAssistant;
 import org.eclipse.jface.text.contentassist.ContextInformation;
@@ -216,20 +218,8 @@ public class ClonkCompletionProcessor implements IContentAssistProcessor {
 	}
 
 	protected boolean isInCodeBody(IDocument document, int offset) {
-		try {
-			int openBrackets = 0;
-			int closeBrackets = 0;
-			String content = document.get(0, offset);
-			for(int i = 0; i < content.length();i++) {
-				char c = content.charAt(i);
-				if (c == '{') openBrackets++;
-				else if (c == '}') closeBrackets++;
-			}
-			if (openBrackets > closeBrackets) return true;
-			else return false;
-		} catch (BadLocationException e) {
-			return false;
-		}
+		C4Object thisObj = Utilities.getObjectForEditor(editor);
+		return thisObj != null && thisObj.funcAt(new Region(offset,1)) != null;
 	}
 	
 	public IContextInformation[] computeContextInformation(ITextViewer viewer,

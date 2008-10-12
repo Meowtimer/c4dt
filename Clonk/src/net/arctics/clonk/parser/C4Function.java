@@ -14,6 +14,7 @@ public class C4Function extends C4Field implements Serializable {
 	private C4Type returnType;
 	private String description;
 	private boolean isCallback;
+	private boolean isOldStyle;
 	private SourceLocation body;
 	
 	/**
@@ -157,10 +158,10 @@ public class C4Function extends C4Field implements Serializable {
 		
 		public static C4FunctionScope makeScope(String scopeString) {
 			if (scopeString == null) return C4FunctionScope.FUNC_PUBLIC;
-			if (scopeString.equalsIgnoreCase("public")) return C4FunctionScope.FUNC_PUBLIC;
-			if (scopeString.equalsIgnoreCase("protected")) return C4FunctionScope.FUNC_PROTECTED;
-			if (scopeString.equalsIgnoreCase("private")) return C4FunctionScope.FUNC_PRIVATE;
-			if (scopeString.equalsIgnoreCase("global")) return C4FunctionScope.FUNC_GLOBAL;
+			if (scopeString.equals("public")) return C4FunctionScope.FUNC_PUBLIC;
+			if (scopeString.equals("protected")) return C4FunctionScope.FUNC_PROTECTED;
+			if (scopeString.equals("private")) return C4FunctionScope.FUNC_PRIVATE;
+			if (scopeString.equals("global")) return C4FunctionScope.FUNC_GLOBAL;
 			return C4FunctionScope.FUNC_PUBLIC;
 		}
 	}
@@ -261,6 +262,14 @@ public class C4Function extends C4Field implements Serializable {
 				return p;
 		}
 		return null;
+	}
+
+	public boolean isOldStyle() {
+		return isOldStyle;
+	}
+
+	public void setOldStyle(boolean isOldStyle) {
+		this.isOldStyle = isOldStyle;
 	}
 	
 }
