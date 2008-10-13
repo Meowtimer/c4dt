@@ -1,0 +1,63 @@
+package net.arctics.clonk.resource;
+
+import org.eclipse.core.resources.IContainer;
+import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.IResourceDelta;
+import org.eclipse.core.resources.IResourceDeltaVisitor;
+import org.eclipse.core.resources.IResourceVisitor;
+import org.eclipse.core.runtime.CoreException;
+
+public class ResourceCounter implements IResourceVisitor, IResourceDeltaVisitor {
+	
+	private int count;
+	private int flags;
+	
+	public final static int COUNT_CONTAINER = 1;
+	public final static int COUNT_FILE = 2;
+	
+	public ResourceCounter(int countFlags) {
+		count = 0;
+		flags = countFlags;
+	}
+	
+	/**
+	 * @return the count
+	 */
+	public int getCount() {
+		return count;
+	}
+
+	public boolean visit(IResource resource) throws CoreException {
+		if ((flags & COUNT_CONTAINER) > 0) {
+			if (resource instanceof IContainer) {
+				count++;
+				return true;
+			}
+		}
+		if ((flags & COUNT_FILE) > 0) {
+			if (resource instanceof IFile) {
+				count++;
+				return false;
+			}
+		}
+		return false;
+	}
+
+	public boolean visit(IResourceDelta delta) throws CoreException {
+		if ((flags & COUNT_CONTAINER) > 0) {
+			if (delta.getResource() instanceof IContainer) {
+				count++;
+				return true;
+			}
+		}
+		if ((flags & COUNT_FILE) > 0) {
+			if (delta.getResource() instanceof IFile) {
+				count++;
+				return false;
+			}
+		}
+		return false;
+	}
+
+}

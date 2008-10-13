@@ -29,38 +29,68 @@ import org.eclipse.core.runtime.IProgressMonitor;
 public class ClonkBuilder extends IncrementalProjectBuilder implements IResourceDeltaVisitor, IResourceVisitor {
 	
 	private int buildPhase;
+	private IProgressMonitor monitor;
 	
 	public ClonkBuilder() {
 		super();
 	}
-
+	
+	public void worked(int count) {
+		monitor.worked(count);
+	}
+	
 	@SuppressWarnings("unchecked")
 	protected IProject[] build(int kind, Map args, IProgressMonitor monitor)
 			throws CoreException {
 		try {
 			IProject proj = getProject();
-			monitor.beginTask("Build project " + proj.getName(), 1);
+			this.monitor = monitor;
 			switch(kind) {
 			case AUTO_BUILD:
 			case INCREMENTAL_BUILD:
 				IResourceDelta delta = getDelta(proj);
-				if (delta != null)
+				if (delta != null) {
+					
+					// count num of resources to build
+					ResourceCounter counter = new ResourceCounter(ResourceCounter.COUNT_CONTAINER);
+					delta.accept(counter);
+					
+					// initialize progress monitor
+					monitor.beginTask("Build project " + proj.getName(), counter.getCount());
+					// parse
 					delta.accept(this);
-				delta.getResource().touch(monitor);
-				Utilities.getProject(proj).getIndexedData().refreshCache();
+					
+					// fire change event
+					delta.getResource().touch(monitor);
+					
+					// refresh global func and static var cache
+					Utilities.getProject(proj).getIndexedData().refreshCache();
+				}
 				break;
 			case FULL_BUILD:
 			case CLEAN_BUILD:
 				if (proj != null) {
+					// count num of resources to build
+					ResourceCounter counter = new ResourceCounter(ResourceCounter.COUNT_CONTAINER);
+					proj.accept(counter);
+					
+					// initialize progress monitor
+					monitor.beginTask("Build project " + proj.getName(), counter.getCount() * 2);
+					
+					// parse declarations
 					buildPhase = 0;
 					proj.accept(this);
 					Utilities.getProject(proj).getIndexedData().refreshCache();
+					
+					// parse code bodies
 					buildPhase = 1;
 					proj.accept(this);
 				}
 				proj.touch(monitor);
 			}
-			//Utilities.getProject(proj).getIndexedData().refreshCache();
+			// saves all objects persistent
+			Utilities.getProject(proj).getIndexedData().saveIndexData();
+
 			monitor.done();
 			return new IProject[] { proj };
 		} catch (Exception e) {
@@ -73,7 +103,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 		if (delta == null) 
 			return false;
 
-		if (delta.getResource() instanceof IFile)
+		if (delta.getResource() instanceof IFile) {
 			if (delta.getKind() != IResourceDelta.REMOVED) {
 				C4Object container = C4Object.objectCorrespondingTo(delta.getResource().getParent());
 				if (container != null) {
@@ -96,6 +126,8 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 					/// ???
 				}
 			}
+			if (monitor != null) monitor.worked(1);
+		}
 		if (delta.getResource() instanceof IContainer)
 			return true;
 		else
@@ -133,6 +165,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 						e.printStackTrace();
 					}
 				}
+				if (monitor != null) monitor.worked(1);
 				return true;
 			case 1:
 				// check correctness of function code (or compile into bytecodes ;D)
@@ -145,8 +178,10 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 						e.printStackTrace();
 					} 
 				}
+				if (monitor != null) monitor.worked(1);
 				return true;
 			default:
+				assert(false); // soft exception
 				return false; // :C ?
 			}
 		}

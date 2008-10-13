@@ -28,7 +28,6 @@ public class C4ObjectSerializer implements Serializable {
 	protected C4ObjectSerializer() {	
 	}
 	
-	@SuppressWarnings("deprecation")
 	public static C4ObjectSerializer fromC4Object(C4Object obj) {
 		C4ObjectSerializer serial = new C4ObjectSerializer();
 		serial.id = obj.getId().getName();
@@ -40,9 +39,9 @@ public class C4ObjectSerializer implements Serializable {
 		else {
 			serial.path = ((C4ObjectExtern)obj).getPath().toPortableString();
 		}
-		serial.definedDirectives = obj.getDefinedDirectives();
-		serial.definedVariables = obj.getDefinedVariables();
-		serial.definedFunctions = obj.getDefinedFunctions();
+		serial.definedDirectives = obj.definedDirectives;
+		serial.definedVariables = obj.definedVariables;
+		serial.definedFunctions = obj.definedFunctions;
 		
 		return serial;
 	}
@@ -51,7 +50,6 @@ public class C4ObjectSerializer implements Serializable {
 	 * Reconstructs the old C4Object and assigns it to the referenced IFolder
 	 * @return the reconstructed C4Object or <code>null</code> if referenced IFolder does not exist
 	 */
-	@SuppressWarnings("deprecation")
 	public C4Object reconstruct() {
 		C4Object obj;
 		// create object
@@ -64,9 +62,12 @@ public class C4ObjectSerializer implements Serializable {
 			obj = new C4ObjectExtern(C4ID.getID(id),fullName, Path.fromPortableString(path));
 		}
 		// set indexed data
-		obj.setDefinedDirectives(definedDirectives);
-		obj.setDefinedFunctions(definedFunctions);
-		obj.setDefinedVariables(definedVariables);
+		obj.definedDirectives = definedDirectives;
+		obj.definedFunctions = definedFunctions;
+		obj.definedVariables = definedVariables;
+//		obj.setDefinedDirectives(definedDirectives);
+//		obj.setDefinedFunctions(definedFunctions);
+//		obj.setDefinedVariables(definedVariables);
 		return obj;
 	}
 }

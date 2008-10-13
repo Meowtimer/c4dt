@@ -5,6 +5,10 @@ import java.beans.XMLEncoder;
 import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.io.ObjectOutputStream;
+import java.io.OutputStream;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -77,8 +81,13 @@ public class ClonkIndex implements IC4ObjectListener {
 	}
 	
 	public void refreshCache() {
+		// delete old cache
 		if (globalFunctions != null) globalFunctions.clear();
+		else globalFunctions = new LinkedList<C4Function>();
 		if (staticVariables != null) staticVariables.clear();
+		else staticVariables = new LinkedList<C4Variable>();
+		
+		// save cachable items
 		for(List<C4Object> objects : getIndexedObjects().values()) {
 			for(C4Object obj : objects) {
 				for(C4Function func : obj.definedFunctions) {
@@ -193,6 +202,31 @@ public class ClonkIndex implements IC4ObjectListener {
 	private Map<C4ID, List<C4Object>> getIndexedObjects() {
 		if (projectObjects == null) loadIndexData();
 		return projectObjects;
+	}
+	
+	public void saveIndexData() {
+		IFile index = project.getFile("indexdata.xml");
+		ByteArrayOutputStream out = new ByteArrayOutputStream();
+		XMLEncoder encoder = new XMLEncoder(out);
+		
+		for (List<C4Object> objects : getIndexedObjects().values()) {
+			for(C4Object obj : objects) {
+				encoder.writeObject(obj);
+			}
+		}
+
+		ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
+		
+		try {
+			if (!index.exists()) {
+				index.create(in, IResource.DERIVED | IResource.HIDDEN, null);
+			}
+			else {
+				index.setContents(in, true, false, null);
+			}
+		} catch (CoreException e) {
+			e.printStackTrace();
+		}
 	}
 	
 	private void loadIndexData() {
