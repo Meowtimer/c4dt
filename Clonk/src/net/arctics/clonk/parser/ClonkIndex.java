@@ -77,8 +77,8 @@ public class ClonkIndex implements IC4ObjectListener {
 	}
 	
 	public void refreshCache() {
-		globalFunctions.clear();
-		staticVariables.clear();
+		if (globalFunctions != null) globalFunctions.clear();
+		if (staticVariables != null) staticVariables.clear();
 		for(List<C4Object> objects : getIndexedObjects().values()) {
 			for(C4Object obj : objects) {
 				for(C4Function func : obj.definedFunctions) {
