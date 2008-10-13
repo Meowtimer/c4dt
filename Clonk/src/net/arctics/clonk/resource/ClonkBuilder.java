@@ -56,6 +56,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 				}
 				proj.touch(monitor);
 			}
+			Utilities.getProject(proj).getIndexedData().refreshCache();
 			monitor.done();
 			return new IProject[] { proj };
 		} catch (Exception e) {
