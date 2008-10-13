@@ -51,7 +51,7 @@ public abstract class C4Object extends C4Field  {
 	protected List<C4Variable> definedVariables = new ArrayList<C4Variable>(); // default capacity of 10 is ok
 	protected List<C4Directive> definedDirectives = new ArrayList<C4Directive>(4); // mostly 4 are enough
 	
-	private List<IC4ObjectListener> changeListeners = new LinkedList<IC4ObjectListener>();
+//	private List<IC4ObjectListener> changeListeners = new LinkedList<IC4ObjectListener>();
 	
 	/**
 	 * Creates a new C4Object and assigns it to <code>container</code>
@@ -154,15 +154,15 @@ public abstract class C4Object extends C4Field  {
 		field.setObject(this);
 		if (field instanceof C4Function) {
 			definedFunctions.add((C4Function)field);
-			for(IC4ObjectListener listener : changeListeners) {
-				listener.fieldAdded(this, field);
-			}
+//			for(IC4ObjectListener listener : changeListeners) {
+//				listener.fieldAdded(this, field);
+//			}
 		}
 		else if (field instanceof C4Variable) {
 			definedVariables.add((C4Variable)field);
-			for(IC4ObjectListener listener : changeListeners) {
-				listener.fieldAdded(this, field);
-			}
+//			for(IC4ObjectListener listener : changeListeners) {
+//				listener.fieldAdded(this, field);
+//			}
 		}
 	}
 	
@@ -170,15 +170,15 @@ public abstract class C4Object extends C4Field  {
 		if (field.getObject() != this) field.setObject(this);
 		if (field instanceof C4Function) {
 			definedFunctions.remove((C4Function)field);
-			for(IC4ObjectListener listener : changeListeners) {
-				listener.fieldRemoved(this, field);
-			}
+//			for(IC4ObjectListener listener : changeListeners) {
+//				listener.fieldRemoved(this, field);
+//			}
 		}
 		else if (field instanceof C4Variable) {
 			definedVariables.remove((C4Variable)field);
-			for(IC4ObjectListener listener : changeListeners) {
-				listener.fieldRemoved(this, field);
-			}
+//			for(IC4ObjectListener listener : changeListeners) {
+//				listener.fieldRemoved(this, field);
+//			}
 		}
 	}
 	
@@ -260,13 +260,13 @@ public abstract class C4Object extends C4Field  {
 		this.name = name;
 	}
 
-	public void addListener(IC4ObjectListener listener) {
-		changeListeners.add(listener);
-	}
-	
-	public void removeListener(IC4ObjectListener listener) {
-		changeListeners.remove(listener);
-	}
+//	public void addListener(IC4ObjectListener listener) {
+//		changeListeners.add(listener);
+//	}
+//	
+//	public void removeListener(IC4ObjectListener listener) {
+//		changeListeners.remove(listener);
+//	}
 	
 	public abstract Object getScript();
 

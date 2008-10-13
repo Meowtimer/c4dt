@@ -45,7 +45,6 @@ public class ClonkIndex implements IC4ObjectListener {
 		try {
 			return (C4Object) folder.getSessionProperty(ClonkCore.C4OBJECT_PROPERTY_ID);
 		} catch (CoreException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 			return null;
 		}
@@ -55,10 +54,11 @@ public class ClonkIndex implements IC4ObjectListener {
 		if (globalFunctions == null) {
 			globalFunctions = new LinkedList<C4Function>();
 			
-			for(List<C4Object> objects : getIndexedObjects().values()) {
-				for(C4Object obj : objects)
-					addToGlobalFunctionCache(obj);
-			}
+			refreshCache();
+//			for(List<C4Object> objects : getIndexedObjects().values()) {
+//				for(C4Object obj : objects)
+//					addToGlobalFunctionCache(obj);
+//			}
 		}
 		return globalFunctions;
 	}
@@ -67,14 +67,39 @@ public class ClonkIndex implements IC4ObjectListener {
 		if (staticVariables == null) {
 			staticVariables = new LinkedList<C4Variable>();
 			
-			for(List<C4Object> objects : getIndexedObjects().values()) {
-				for(C4Object obj : objects)
-					addToStaticVariableCache(obj);
-			}
+			refreshCache();
+//			for(List<C4Object> objects : getIndexedObjects().values()) {
+//				for(C4Object obj : objects)
+//					addToStaticVariableCache(obj);
+//			}
 		}
 		return staticVariables;
 	}
 	
+	public void refreshCache() {
+		globalFunctions.clear();
+		staticVariables.clear();
+		for(List<C4Object> objects : getIndexedObjects().values()) {
+			for(C4Object obj : objects) {
+				for(C4Function func : obj.definedFunctions) {
+					if (func.getVisibility() == C4FunctionScope.FUNC_GLOBAL) {
+						globalFunctions.add(func);
+					}
+				}
+				for(C4Variable var : obj.definedVariables) {
+					if (var.getScope() == C4VariableScope.VAR_STATIC) {
+						staticVariables.add(var);
+					}
+				}
+			}
+		}
+	}
+	
+	/**
+	 * Adds an C4Object to the index.<br>
+	 * Take care of the global function and static variable cache. You have to call <tt>refreshCache()</tt> after modifying the index.
+	 * @param obj
+	 */
 	public void addObject(C4Object obj) {
 		List<C4Object> alreadyDefinedObjects = getIndexedObjects().get(obj.getId());
 		if (alreadyDefinedObjects == null) {
@@ -83,18 +108,18 @@ public class ClonkIndex implements IC4ObjectListener {
 		}
 		alreadyDefinedObjects.add(obj);
 		
-		// take care of cached functions
-		if (globalFunctions != null) {
-			addToGlobalFunctionCache(obj);
-		}
-		if (staticVariables != null) {
-			addToStaticVariableCache(obj);
-		}
+//		if (globalFunctions != null) {
+//			addToGlobalFunctionCache(obj);
+//		}
+//		if (staticVariables != null) {
+//			addToStaticVariableCache(obj);
+//		}
 	}
 	
 	/**
 	 * Removes this object from index.<br>
-	 * The object may still exist in IContainer.sessionProperty
+	 * The object may still exist in IContainer.sessionProperty<br>
+	 * Take care of the global function and static variable cache. You have to call <tt>refreshCache()</tt> after modifying the index.
 	 * @param obj
 	 */
 	public void removeObject(C4Object obj) {
@@ -106,12 +131,12 @@ public class ClonkIndex implements IC4ObjectListener {
 			}
 		}
 		
-		if (globalFunctions != null) {
-			removeFromGlobalFunctionCache(obj);
-		}
-		if (staticVariables != null) {
-			removeFromStaticVariableCache(obj);
-		}
+//		if (globalFunctions != null) {
+//			removeFromGlobalFunctionCache(obj);
+//		}
+//		if (staticVariables != null) {
+//			removeFromStaticVariableCache(obj);
+//		}
 	}
 	
 	/**
@@ -200,6 +225,7 @@ public class ClonkIndex implements IC4ObjectListener {
 			} catch (CoreException e) {
 				e.printStackTrace();
 			}
+			refreshCache();
 		}
 	}
 
