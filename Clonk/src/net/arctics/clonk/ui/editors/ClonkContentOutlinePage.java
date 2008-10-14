@@ -4,9 +4,9 @@ import net.arctics.clonk.parser.C4Object;
 import net.arctics.clonk.parser.C4Field;
 import net.arctics.clonk.Utilities;
 
-import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
+import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.jface.viewers.ViewerSorter;
 import org.eclipse.swt.widgets.Composite;
@@ -36,17 +36,17 @@ public class ClonkContentOutlinePage extends ContentOutlinePage {
 							return ((C4Field)element).sortCategory();
 						}
 					});
-					treeViewer.addSelectionChangedListener(new ISelectionChangedListener() {
-						public void selectionChanged(SelectionChangedEvent event) {
-							if (event.getSelection().isEmpty()) {
-								return;
-							} else if (event.getSelection() instanceof IStructuredSelection) {
-								editor.selectAndReveal(((C4Field)((IStructuredSelection)event.getSelection()).getFirstElement()).getLocation());
-							}
-						}
-					});
 				}
 			}
+		}
+	}
+
+	@Override
+	public void selectionChanged(SelectionChangedEvent event) {
+		if (event.getSelection().isEmpty()) {
+			return;
+		} else if (event.getSelection() instanceof IStructuredSelection) {
+			editor.selectAndReveal(((C4Field)((IStructuredSelection)event.getSelection()).getFirstElement()).getLocation());
 		}
 	}
 
@@ -67,6 +67,15 @@ public class ClonkContentOutlinePage extends ContentOutlinePage {
 	public void refresh() {
 		getTreeViewer().refresh();
 	}
-
+	
+	public void select(C4Field field) {
+		TreeViewer viewer = getTreeViewer();
+		viewer.removeSelectionChangedListener(this);
+		try {
+			this.setSelection(new StructuredSelection(field));
+		} finally {
+			viewer.addSelectionChangedListener(this);
+		}
+	}
 	
 }

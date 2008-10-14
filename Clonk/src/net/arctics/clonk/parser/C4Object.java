@@ -11,6 +11,7 @@ import net.arctics.clonk.parser.C4Directive.C4DirectiveType;
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jface.text.IRegion;
+import org.eclipse.jface.text.ITextSelection;
 
 public abstract class C4Object extends C4Field {
 
@@ -281,6 +282,16 @@ public abstract class C4Object extends C4Field {
 	}
 
 	public C4Function funcAt(IRegion region) {
+		// from name to end of body should be enough... ?
+		for (C4Function f : definedFunctions) {
+			if (f.getLocation().getOffset() <= region.getOffset() && region.getOffset()+region.getLength() <= f.getBody().getOffset()+f.getBody().getLength())
+				return f;
+		}
+		return null;
+	}
+	
+	// OMG, IRegion <-> ITextSelection
+	public C4Function funcAt(ITextSelection region) {
 		// from name to end of body should be enough... ?
 		for (C4Function f : definedFunctions) {
 			if (f.getLocation().getOffset() <= region.getOffset() && region.getOffset()+region.getLength() <= f.getBody().getOffset()+f.getBody().getLength())

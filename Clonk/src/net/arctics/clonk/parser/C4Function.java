@@ -271,5 +271,15 @@ public class C4Function extends C4Field implements Serializable {
 	public void setOldStyle(boolean isOldStyle) {
 		this.isOldStyle = isOldStyle;
 	}
+
+	@Override
+	public boolean hasChildFields() {
+		return getLocalVars() != null && getLocalVars().size() > 0;
+	}
+
+	@Override
+	public Object[] getChildFields() {
+		return getLocalVars().toArray();
+	}
 	
 }

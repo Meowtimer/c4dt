@@ -11,6 +11,7 @@ import net.arctics.clonk.parser.C4ObjectParser;
 import net.arctics.clonk.parser.C4ScriptParser;
 import net.arctics.clonk.parser.ClonkIndex;
 import net.arctics.clonk.parser.CompilerException;
+import net.arctics.clonk.ui.editors.C4ScriptEditor;
 
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
@@ -22,6 +23,12 @@ import org.eclipse.core.resources.IResourceVisitor;
 import org.eclipse.core.resources.IncrementalProjectBuilder;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.swt.widgets.Display;
+import org.eclipse.ui.IEditorPart;
+import org.eclipse.ui.IEditorReference;
+import org.eclipse.ui.IWorkbench;
+import org.eclipse.ui.IWorkbenchPage;
+import org.eclipse.ui.PlatformUI;
 
 /**
  * An incremental builder for all project data.
@@ -90,6 +97,23 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 				}
 				proj.touch(monitor);
 			}
+			
+			Display.getDefault().asyncExec(new Runnable() {
+				public void run() {
+					IWorkbench w = PlatformUI.getWorkbench();
+					if (w == null)
+						return;
+					IWorkbenchPage page = w.getActiveWorkbenchWindow().getActivePage();
+					for (IEditorReference ref : page.getEditorReferences()) {
+						IEditorPart part = ref.getEditor(false);
+						if (part != null && part instanceof C4ScriptEditor) {
+							C4ScriptEditor scriptEd = (C4ScriptEditor)part;
+							scriptEd.getOutlinePage().refresh();
+						}
+					}
+				}
+			});
+			
 			// saves all objects persistent
 			Utilities.getProject(proj).getIndexedData().saveIndexData();
 

@@ -42,4 +42,10 @@ public abstract class C4Field  {
 	public String getShortInfo() {
 		return getName();
 	}
+	public Object[] getChildFields() {
+		return null;
+	}
+	public boolean hasChildFields() {
+		return false;
+	}
 }

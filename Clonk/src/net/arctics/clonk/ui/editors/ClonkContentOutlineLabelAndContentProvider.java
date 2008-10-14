@@ -4,6 +4,7 @@
 package net.arctics.clonk.ui.editors;
 
 import net.arctics.clonk.Utilities;
+import net.arctics.clonk.parser.C4Field;
 import net.arctics.clonk.parser.C4Function;
 import net.arctics.clonk.parser.C4Object;
 import net.arctics.clonk.parser.C4Variable;
@@ -32,9 +33,8 @@ public class ClonkContentOutlineLabelAndContentProvider implements IBaseLabelPro
 	/* (non-Javadoc)
 	 * @see org.eclipse.jface.viewers.ITreeContentProvider#getChildren(java.lang.Object)
 	 */
-	public Object[] getChildren(Object arg0) {
-		// TODO Auto-generated method stub
-		return null;
+	public Object[] getChildren(Object obj) {
+		return ((C4Field)obj).getChildFields();
 	}
 
 	/* (non-Javadoc)
@@ -48,9 +48,8 @@ public class ClonkContentOutlineLabelAndContentProvider implements IBaseLabelPro
 	/* (non-Javadoc)
 	 * @see org.eclipse.jface.viewers.ITreeContentProvider#hasChildren(java.lang.Object)
 	 */
-	public boolean hasChildren(Object arg0) {
-		// TODO Auto-generated method stub
-		return false;
+	public boolean hasChildren(Object field) {
+		return ((C4Field)field).hasChildFields();
 	}
 
 	/* (non-Javadoc)

@@ -2,10 +2,16 @@ package net.arctics.clonk.ui.editors;
 
 import java.util.ResourceBundle;
 
+import net.arctics.clonk.Utilities;
+import net.arctics.clonk.parser.C4Function;
+import net.arctics.clonk.parser.C4Object;
 import net.arctics.clonk.parser.SourceLocation;
 import net.arctics.clonk.ui.editors.actions.IndexClonkDir;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.jface.action.IAction;
+import org.eclipse.jface.text.ITextSelection;
+import org.eclipse.jface.viewers.ISelection;
+import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.ui.ISharedImages;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.texteditor.AbstractDecoratedTextEditor;
@@ -95,6 +101,16 @@ public class C4ScriptEditor extends AbstractDecoratedTextEditor {
 
 	public void selectAndReveal(SourceLocation location) {
 		this.selectAndReveal(location.getStart(), location.getEnd() - location.getStart());
+	}
+
+	@Override
+	protected void doSetSelection(ISelection selection) {
+		super.doSetSelection(selection);
+		C4Object obj = Utilities.getObjectForEditor(this);
+		if (obj != null) {
+			C4Function func = obj.funcAt((ITextSelection)selection);
+			outlinePage.select(func);
+		}
 	}
 
 }
