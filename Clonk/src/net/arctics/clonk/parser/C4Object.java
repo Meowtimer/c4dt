@@ -4,15 +4,15 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
-import org.eclipse.core.resources.IContainer;
-import org.eclipse.core.runtime.CoreException;
-import org.eclipse.jface.text.IRegion;
-
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.Utilities;
 import net.arctics.clonk.parser.C4Directive.C4DirectiveType;
 
-public abstract class C4Object extends C4Field  {
+import org.eclipse.core.resources.IContainer;
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.jface.text.IRegion;
+
+public abstract class C4Object extends C4Field {
 
 	static public class FindFieldInfo {
 		private ClonkIndex index;
@@ -290,11 +290,12 @@ public abstract class C4Object extends C4Field  {
 	}
 	
 	public static C4Object objectCorrespondingTo(IContainer folder) {
-		try {
-			return (folder != null) ? (C4Object)folder.getSessionProperty(ClonkCore.C4OBJECT_PROPERTY_ID) : null;
-		} catch (CoreException e) {
-			return null;
-		}
+//		try {
+			return (Utilities.getIndex(folder) != null) ? Utilities.getIndex(folder).getObject(folder) : null;
+//			return (folder != null) ? (C4Object)folder.getSessionProperty(ClonkCore.C4OBJECT_PROPERTY_ID) : null;
+//		} catch (CoreException e) {
+//			return null;
+//		}
 	}
 	
 //	public String getText(Object element) {

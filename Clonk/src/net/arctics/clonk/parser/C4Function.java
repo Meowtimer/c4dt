@@ -150,7 +150,7 @@ public class C4Function extends C4Field implements Serializable {
 	 * @author ZokRadonh
 	 *
 	 */
-	public enum C4FunctionScope implements Serializable {
+	public enum C4FunctionScope {
 		FUNC_GLOBAL,
 		FUNC_PUBLIC,
 		FUNC_PROTECTED,

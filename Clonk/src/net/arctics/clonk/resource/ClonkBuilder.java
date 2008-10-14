@@ -2,9 +2,11 @@ package net.arctics.clonk.resource;
 
 import java.util.Map;
 
+import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.Utilities;
 import net.arctics.clonk.parser.C4DefCoreWrapper;
 import net.arctics.clonk.parser.C4Object;
+import net.arctics.clonk.parser.C4ObjectIntern;
 import net.arctics.clonk.parser.C4ObjectParser;
 import net.arctics.clonk.parser.C4ScriptParser;
 import net.arctics.clonk.parser.ClonkIndex;
@@ -116,7 +118,12 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 							index.addObject(container);
 						}
 						else if (delta.getResource().getName().equals("DefCore.txt")) {
-							new C4DefCoreWrapper((IFile) delta.getResource()).parse();
+							C4DefCoreWrapper defCore = new C4DefCoreWrapper((IFile) delta.getResource());
+							defCore.parse();
+							container.setId(defCore.getObjectID());
+							if (container instanceof C4ObjectIntern) {
+								((C4ObjectIntern)container).getObjectFolder().setPersistentProperty(ClonkCore.FOLDER_C4ID_PROPERTY_ID, defCore.getObjectID().getName());
+							}
 						}
 					} catch (CompilerException e) {
 						// TODO display CompilerException messages

@@ -1,20 +1,25 @@
 package net.arctics.clonk.parser;
 
+import java.beans.BeanInfo;
+import java.beans.DefaultPersistenceDelegate;
+import java.beans.Encoder;
+import java.beans.ExceptionListener;
+import java.beans.Expression;
+import java.beans.IntrospectionException;
+import java.beans.Introspector;
+import java.beans.PropertyDescriptor;
 import java.beans.XMLDecoder;
 import java.beans.XMLEncoder;
 import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.FileOutputStream;
-import java.io.InputStream;
-import java.io.ObjectOutputStream;
-import java.io.OutputStream;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
 import net.arctics.clonk.ClonkCore;
+import net.arctics.clonk.parser.C4Directive.C4DirectiveType;
 import net.arctics.clonk.parser.C4Function.C4FunctionScope;
 import net.arctics.clonk.parser.C4Variable.C4VariableScope;
 
@@ -24,7 +29,7 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 
-public class ClonkIndex implements IC4ObjectListener {
+public class ClonkIndex {
 	
 	private Map<C4ID,List<C4Object>> projectObjects;
 	
@@ -41,13 +46,30 @@ public class ClonkIndex implements IC4ObjectListener {
 	}
 	
 	/**
-	 * You can use IContainer.getSessionProperty(ClonkCore.C4OBJECT_PROPERTY_ID) instead of this
+	 * You should use IContainer.getSessionProperty(ClonkCore.C4OBJECT_PROPERTY_ID) instead of this
 	 * @param folder
 	 * @return
 	 */
 	public C4Object getObject(IContainer folder) {
 		try {
-			return (C4Object) folder.getSessionProperty(ClonkCore.C4OBJECT_PROPERTY_ID);
+			// fetch from session cache
+			if (folder.getSessionProperty(ClonkCore.C4OBJECT_PROPERTY_ID) != null)
+				return (C4Object) folder.getSessionProperty(ClonkCore.C4OBJECT_PROPERTY_ID);
+			
+			// create session cache
+			if (folder.getPersistentProperty(ClonkCore.FOLDER_C4ID_PROPERTY_ID) == null) return null;
+			List<C4Object> objects = getObjects(C4ID.getID(folder.getPersistentProperty(ClonkCore.FOLDER_C4ID_PROPERTY_ID)));
+			if (objects != null) {
+				for(C4Object obj : objects) {
+					if ((obj instanceof C4ObjectIntern)) {
+						if (((C4ObjectIntern)obj).relativePath.equalsIgnoreCase(folder.getProjectRelativePath().toPortableString())) {
+							folder.setSessionProperty(ClonkCore.C4OBJECT_PROPERTY_ID, obj);
+							return obj;
+						}
+					}
+				}
+			}
+			return null;
 		} catch (CoreException e) {
 			e.printStackTrace();
 			return null;
@@ -205,15 +227,92 @@ public class ClonkIndex implements IC4ObjectListener {
 	}
 	
 	public void saveIndexData() {
-		IFile index = project.getFile("indexdata.xml");
+		final IFile index = project.getFile("indexdata.xml");
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
 		XMLEncoder encoder = new XMLEncoder(out);
+		
+		encoder.setExceptionListener(new ExceptionListener() {
+			public void exceptionThrown(Exception e) {
+				e.printStackTrace();
+			}
+		});
+		
+		try {
+			BeanInfo info = Introspector.getBeanInfo(C4ObjectIntern.class);
+	        for (PropertyDescriptor desc : info.getPropertyDescriptors())
+	            if (desc.getName().equals("objectFolder"))
+	               desc.setValue("transient", Boolean.TRUE);
+		} catch (IntrospectionException e1) {
+			e1.printStackTrace();
+		}
+		
+		encoder.setPersistenceDelegate(C4ObjectIntern.class, new DefaultPersistenceDelegate() {
+			@Override
+			protected Expression instantiate(Object oldInstance, Encoder out) {
+				C4ObjectIntern intern = (C4ObjectIntern) oldInstance;
+				if (intern.relativePath == null) {
+					System.out.println(intern.getName() + intern.getId().getName());
+				}
+				return new Expression(oldInstance,C4ObjectIntern.class, "fromSerialize", new Object[] { intern.getId(), intern.getName(), intern.relativePath });
+			}
+		});
+
+		encoder.setPersistenceDelegate(C4ID.class, new DefaultPersistenceDelegate() {
+			@Override
+			protected Expression instantiate(Object oldInstance, Encoder out) {
+				return new Expression(oldInstance, C4ID.class, "getID", new Object[] { ((C4ID)oldInstance).getName() });
+			}
+		});
+		
+		encoder.setPersistenceDelegate(C4Type.class, new DefaultPersistenceDelegate() {
+			@Override
+			protected Expression instantiate(Object oldInstance, Encoder out) {
+				return new Expression(oldInstance, C4Type.class, "makeType", new Object[] { ((C4Type)oldInstance).toString() });
+			}
+		});
+		
+		encoder.setPersistenceDelegate(SourceLocation.class, new DefaultPersistenceDelegate() {
+			@Override
+			protected Expression instantiate(Object oldInstance, Encoder out) {
+				return new Expression(oldInstance, SourceLocation.class, "new", new Object[] { ((SourceLocation)oldInstance).getStart(), ((SourceLocation)oldInstance).getStart() });
+			}
+		});
+		
+		encoder.setPersistenceDelegate(C4FunctionScope.class, new DefaultPersistenceDelegate() {
+			@Override
+			protected Expression instantiate(Object oldInstance, Encoder out) {
+				return new Expression(oldInstance, C4FunctionScope.class, "valueOf", new Object[] { ((C4FunctionScope)oldInstance).toString() });
+			}
+		});
+		
+		encoder.setPersistenceDelegate(C4VariableScope.class, new DefaultPersistenceDelegate() {
+			@Override
+			protected Expression instantiate(Object oldInstance, Encoder out) {
+				return new Expression(oldInstance, C4VariableScope.class, "valueOf", new Object[] { ((C4VariableScope)oldInstance).toString() });
+			}
+		});
+		
+		encoder.setPersistenceDelegate(C4DirectiveType.class, new DefaultPersistenceDelegate() {
+			@Override
+			protected Expression instantiate(Object oldInstance, Encoder out) {
+				return new Expression(oldInstance, C4DirectiveType.class, "valueOf", new Object[] { ((C4DirectiveType)oldInstance).toString() });
+			}
+		});
+		
+		encoder.setPersistenceDelegate(C4Directive.class, new DefaultPersistenceDelegate() {
+			@Override
+			protected Expression instantiate(Object oldInstance, Encoder out) {
+				return new Expression(oldInstance, C4Directive.class, "new", new Object[] { ((C4Directive)oldInstance).getType(), ((C4Directive)oldInstance).getContent() });
+			}
+		});
 		
 		for (List<C4Object> objects : getIndexedObjects().values()) {
 			for(C4Object obj : objects) {
 				encoder.writeObject(obj);
 			}
 		}
+		
+		encoder.close();
 
 		ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
 		
@@ -227,14 +326,20 @@ public class ClonkIndex implements IC4ObjectListener {
 		} catch (CoreException e) {
 			e.printStackTrace();
 		}
+
 	}
 	
 	private void loadIndexData() {
+		
+		long start = System.currentTimeMillis();
+		
 		IFile index = project.getFile("indexdata.xml");
 		projectObjects = new HashMap<C4ID, List<C4Object>>();
 		if (!index.exists()) {
 			try {
 				ByteArrayOutputStream out = new ByteArrayOutputStream();
+//				ObjectOutputStream objOutput = new ObjectOutputStream(out);
+//				objOutput.close();
 				XMLEncoder encoder = new XMLEncoder(out);
 				encoder.close();
 				index.create(new ByteArrayInputStream(out.toByteArray()), IResource.DERIVED | IResource.HIDDEN, null);
@@ -244,6 +349,7 @@ public class ClonkIndex implements IC4ObjectListener {
 		}
 		else {
 			try {
+//				ObjectInputStream decoder = new ObjectInputStream(new BufferedInputStream(index.getContents()));
 				java.beans.XMLDecoder decoder = new XMLDecoder(new BufferedInputStream(index.getContents()));
 				while (true) {
 					Object obj = decoder.readObject();
@@ -261,21 +367,10 @@ public class ClonkIndex implements IC4ObjectListener {
 			}
 			refreshCache();
 		}
-	}
-
-	public void fieldAdded(C4Object obj, C4Field field) {
-		// TODO Auto-generated method stub
 		
-	}
-
-	public void fieldChanged(C4Object obj, C4Field field) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	public void fieldRemoved(C4Object obj, C4Field field) {
-		// TODO Auto-generated method stub
-		
+		long end = System.currentTimeMillis();
+		long span = end - start;
+		System.out.println(String.format("Span: %d",span));
 	}
 
 	public C4Object getLastObjectWithId(C4ID id) {

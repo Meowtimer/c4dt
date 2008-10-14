@@ -2,6 +2,7 @@ package net.arctics.clonk.ui.navigator;
 
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.Utilities;
+import net.arctics.clonk.parser.C4Object;
 import net.arctics.clonk.resource.c4group.C4Group.C4GroupType;
 import net.arctics.clonk.ui.OverlayIcon;
 
@@ -106,7 +107,10 @@ public class ClonkLabelProvider extends LabelProvider implements IStyledLabelPro
 						buf.append(c4id,StyledString.DECORATIONS_STYLER);
 						buf.append("]",StyledString.DECORATIONS_STYLER);
 					}
-					//C4Object obj = Utilities.getProject(folder.getProject()).getIndexedObjects().get(C4ID.getID(c4id));
+					// FIXME stop activation of lazy loading:
+					if (folder.getSessionProperty(ClonkCore.C4OBJECT_PROPERTY_ID) == null) {
+						C4Object.objectCorrespondingTo(folder);
+					}
 
 				} catch (CoreException e) {
 					e.printStackTrace();

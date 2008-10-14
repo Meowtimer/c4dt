@@ -3,6 +3,7 @@ package net.arctics.clonk;
 import net.arctics.clonk.parser.C4Function;
 import net.arctics.clonk.parser.C4Object;
 import net.arctics.clonk.parser.C4Variable;
+import net.arctics.clonk.parser.ClonkIndex;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.resource.c4group.C4Group;
 import net.arctics.clonk.resource.c4group.C4Group.C4GroupType;
@@ -52,6 +53,16 @@ public abstract class Utilities {
 		return getProject((IResource)obj.getScript());
 	}
 	
+	public static ClonkIndex getIndex(IResource res) {
+		if (res != null) {
+			ClonkProjectNature nature = getProject(res);
+			if (nature != null) {
+				return nature.getIndexedData();
+			}
+		}
+		return null;
+	}
+	
 	public static IFile getEditingFile(ITextEditor editor) {
 		if (editor.getEditorInput() instanceof FileEditorInput) {
 			return ((FileEditorInput)editor.getEditorInput()).getFile();
@@ -92,12 +103,13 @@ public abstract class Utilities {
 	}
 
 	public static C4Object getObjectForEditor(ITextEditor editor) {
-		try {
-			return (C4Object)getEditingFile(editor).getParent().getSessionProperty(ClonkCore.C4OBJECT_PROPERTY_ID);
-		} catch (CoreException e) {
-			e.printStackTrace();
-			return null;
-		}
+//		try {
+			return C4Object.objectCorrespondingTo(getEditingFile(editor).getParent());
+//			return (C4Object)getEditingFile(editor).getParent().getSessionProperty(ClonkCore.C4OBJECT_PROPERTY_ID);
+//		} catch (CoreException e) {
+//			e.printStackTrace();
+//			return null;
+//		}
 //		 return getProject(editor).getIndexer().getObjectForScript(getEditingFile(editor));
 	}
 	

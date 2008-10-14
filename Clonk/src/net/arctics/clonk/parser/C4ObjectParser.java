@@ -49,14 +49,16 @@ public class C4ObjectParser {
 				defCoreWrapper.parse();
 				if (object == null) {
 					object = new C4ObjectIntern(defCoreWrapper.getObjectID(),defCoreWrapper.getName(),objectFolder);
+					objectFolder.setSessionProperty(ClonkCore.C4OBJECT_PROPERTY_ID, object);
 				}
 				else {
 					//if (object.getId() != defCoreWrapper.getObjectID()) { // new C4ID set
-						index.removeObject(object); // also removes old global functions and static variables
+//						index.removeObject(object); // also removes old global functions and static variables
 						object.setId(defCoreWrapper.getObjectID());
 					//}
 					object.setName(defCoreWrapper.getName(), false);
 				}
+				objectFolder.setPersistentProperty(ClonkCore.FOLDER_C4ID_PROPERTY_ID, object.getId().getName());
 			}
 			if (script != null) {
 				C4ScriptParser p = new C4ScriptParser(script, object);

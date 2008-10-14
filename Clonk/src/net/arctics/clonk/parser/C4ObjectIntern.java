@@ -1,5 +1,7 @@
 package net.arctics.clonk.parser;
 
+import java.io.IOException;
+import java.io.Serializable;
 import java.security.InvalidParameterException;
 
 import net.arctics.clonk.ClonkCore;
@@ -8,14 +10,20 @@ import net.arctics.clonk.Utilities;
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.Path;
 
-public class C4ObjectIntern extends C4Object {
+public class C4ObjectIntern extends C4Object implements Serializable {
 
-	private IContainer objectFolder;
+	private static final long serialVersionUID = -7978767061460505544L;
+	
+	protected IContainer objectFolder;
+	protected String relativePath;
 	
 	public C4ObjectIntern(C4ID id, String name, IContainer container) {
 		super(id, name);
+		relativePath = container.getFullPath().toPortableString();
 		if (container.exists()) {
 			try {
 				objectFolder = container;
@@ -24,8 +32,15 @@ public class C4ObjectIntern extends C4Object {
 				e.printStackTrace();
 			}
 		}
+		else { // shouldn't occur
+//			System.out.println("container does not exist: " + container.getProjectRelativePath().toPortableString());
+		}
 	}
 
+	public static C4ObjectIntern fromSerialize(C4ID id, String name, String path) {
+		return new C4ObjectIntern(id, name, ResourcesPlugin.getWorkspace().getRoot().getFolder(Path.fromPortableString(path)));
+	}
+	
 	/**
 	 * Resets the name of this object
 	 * @param newName
@@ -53,6 +68,8 @@ public class C4ObjectIntern extends C4Object {
 		}
 	}
 	
+
+	
 	/**
 	 * The member <tt>Script.c</tt>
 	 * @return IFile object of <tt>Script.c</tt> file or null if it does not exist
@@ -78,5 +95,5 @@ public class C4ObjectIntern extends C4Object {
 	public void delete() {
 		Utilities.getProject(objectFolder.getProject()).getIndexedData().removeObject(this);
 	}
-	
+
 }
