@@ -90,12 +90,12 @@ public class C4ScriptEditor extends AbstractDecoratedTextEditor {
 		action.setActionDefinitionId(ITextEditorActionDefinitionIds.CONTENT_ASSIST_CONTEXT_INFORMATION);
 		setAction(ITextEditorActionDefinitionIds.CONTENT_ASSIST_CONTEXT_INFORMATION, action);
 		
-		action = new IndexClonkDir(ResourceBundle.getBundle("net.arctics.clonk.ui.editors.Messages"),"IndexClonkDir.",this); 
-		action.setToolTipText("Index Clonk directory");
-		action.setActionDefinitionId(ACTION_INDEX_CLONK_DIR);
-		action.setDisabledImageDescriptor(PlatformUI.getWorkbench().getSharedImages().getImageDescriptor(ISharedImages.IMG_TOOL_NEW_WIZARD_DISABLED));
-		action.setImageDescriptor(PlatformUI.getWorkbench().getSharedImages().getImageDescriptor(ISharedImages.IMG_LCL_LINKTO_HELP));
-		setAction(ACTION_INDEX_CLONK_DIR, action);
+//		action = new IndexClonkDir(ResourceBundle.getBundle("net.arctics.clonk.ui.editors.Messages"),"IndexClonkDir.",this); 
+//		action.setToolTipText("Index Clonk directory");
+//		action.setActionDefinitionId(ACTION_INDEX_CLONK_DIR);
+//		action.setDisabledImageDescriptor(PlatformUI.getWorkbench().getSharedImages().getImageDescriptor(ISharedImages.IMG_TOOL_NEW_WIZARD_DISABLED));
+//		action.setImageDescriptor(PlatformUI.getWorkbench().getSharedImages().getImageDescriptor(ISharedImages.IMG_LCL_LINKTO_HELP));
+//		setAction(ACTION_INDEX_CLONK_DIR, action);
 		
 	}
 
@@ -109,7 +109,7 @@ public class C4ScriptEditor extends AbstractDecoratedTextEditor {
 		C4Object obj = Utilities.getObjectForEditor(this);
 		if (obj != null) {
 			C4Function func = obj.funcAt((ITextSelection)selection);
-			outlinePage.select(func);
+			getOutlinePage().select(func);
 		}
 	}
 

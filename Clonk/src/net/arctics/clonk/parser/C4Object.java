@@ -69,7 +69,12 @@ public abstract class C4Object extends C4Field {
 		int level = 0;
 		for (C4Directive d : this.definedDirectives) {
 			if (d.getType() == C4DirectiveType.STRICT) {
-				level = Math.max(level, Integer.parseInt(d.getContent()));
+				try {
+					level = Math.max(level, Integer.parseInt(d.getContent()));
+				}
+				catch (NumberFormatException e) {
+					level = 1;
+				}
 			}
 		}
 		return level;

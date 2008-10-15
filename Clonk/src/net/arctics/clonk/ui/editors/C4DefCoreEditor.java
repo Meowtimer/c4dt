@@ -23,12 +23,12 @@ public class C4DefCoreEditor extends TextEditor {
 	@Override
 	protected void createActions() {
 		super.createActions();
-		IAction action = new IndexClonkDir(ResourceBundle.getBundle("net.arctics.clonk.ui.editors.Messages"),"IndexClonkDir.",this); 
-		action.setToolTipText("Index Clonk directory");
-		action.setActionDefinitionId(C4ScriptEditor.ACTION_INDEX_CLONK_DIR);
-		action.setDisabledImageDescriptor(PlatformUI.getWorkbench().getSharedImages().getImageDescriptor(ISharedImages.IMG_TOOL_NEW_WIZARD_DISABLED));
-		action.setImageDescriptor(PlatformUI.getWorkbench().getSharedImages().getImageDescriptor(ISharedImages.IMG_LCL_LINKTO_HELP));
-		setAction(C4ScriptEditor.ACTION_INDEX_CLONK_DIR, action);
+//		IAction action = new IndexClonkDir(ResourceBundle.getBundle("net.arctics.clonk.ui.editors.Messages"),"IndexClonkDir.",this); 
+//		action.setToolTipText("Index Clonk directory");
+//		action.setActionDefinitionId(C4ScriptEditor.ACTION_INDEX_CLONK_DIR);
+//		action.setDisabledImageDescriptor(PlatformUI.getWorkbench().getSharedImages().getImageDescriptor(ISharedImages.IMG_TOOL_NEW_WIZARD_DISABLED));
+//		action.setImageDescriptor(PlatformUI.getWorkbench().getSharedImages().getImageDescriptor(ISharedImages.IMG_LCL_LINKTO_HELP));
+//		setAction(C4ScriptEditor.ACTION_INDEX_CLONK_DIR, action);
 	}
 
 	/* (non-Javadoc)

@@ -370,7 +370,7 @@ public class ClonkIndex {
 		
 		long end = System.currentTimeMillis();
 		long span = end - start;
-		System.out.println(String.format("Span: %d",span));
+		System.out.println(String.format("Time to read persistent build data: %d",span));
 	}
 
 	public C4Object getLastObjectWithId(C4ID id) {

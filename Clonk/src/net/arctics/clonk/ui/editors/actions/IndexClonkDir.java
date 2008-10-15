@@ -7,6 +7,10 @@ import org.eclipse.ui.texteditor.TextEditorAction;
 
 public class IndexClonkDir extends TextEditorAction {
 
+	public IndexClonkDir() {
+		super(null, null, null);
+	}
+	
 	public IndexClonkDir(ResourceBundle bundle, String prefix,
 			ITextEditor editor) {
 		super(bundle, prefix, editor);

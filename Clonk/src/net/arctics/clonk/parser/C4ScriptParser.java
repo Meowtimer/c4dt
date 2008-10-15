@@ -816,7 +816,8 @@ public class C4ScriptParser {
 			eatWhitespace();
 			offset = fReader.getPosition();
 			if (!parseValue(offset)) {
-				createWarningMarker(offset, offset + 1, "Discouraged syntax: use 'return;' instead of 'return();' (since CR, #strict 2))");
+				if (container != null && container.strictLevel() == 2)
+					createWarningMarker(offset, offset + 1, "Discouraged syntax: use 'return;' instead of 'return();' (since CR, #strict 2))");
 			}
 			else {
 				offset = fReader.getPosition();
