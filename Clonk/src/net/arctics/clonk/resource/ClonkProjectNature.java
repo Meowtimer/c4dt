@@ -12,6 +12,7 @@ import net.arctics.clonk.parser.ClonkIndex;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IProjectNature;
+import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 
 public class ClonkProjectNature implements IProjectNature {
@@ -105,7 +106,7 @@ public class ClonkProjectNature implements IProjectNature {
 			if (index.exists()) {
 				index.setContents(in, true, false, null);
 			} else {
-				index.create(in, true, null);
+				index.create(in, IResource.DERIVED | IResource.HIDDEN | IResource.FORCE, null);
 			}
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
