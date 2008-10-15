@@ -1,10 +1,16 @@
 package net.arctics.clonk.parser;
 
+import java.io.Serializable;
 import java.util.regex.Matcher;
 
 import org.eclipse.jface.text.IRegion;
 
-public class SourceLocation implements IRegion {
+public class SourceLocation implements IRegion, Serializable {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+	
 	private int start, end;
 	public SourceLocation(int start,int end) {
 		this.setStart(start);

@@ -1,6 +1,12 @@
 package net.arctics.clonk.parser;
 
-public abstract class C4Field  {
+import java.io.Serializable;
+
+public abstract class C4Field implements Serializable  {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 	protected String name;
 	protected SourceLocation location;
 	private C4Object object;

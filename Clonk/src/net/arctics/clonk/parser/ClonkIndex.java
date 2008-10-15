@@ -13,13 +13,18 @@ import java.beans.XMLEncoder;
 import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
 import net.arctics.clonk.ClonkCore;
-import net.arctics.clonk.parser.C4Directive.C4DirectiveType;
 import net.arctics.clonk.parser.C4Function.C4FunctionScope;
 import net.arctics.clonk.parser.C4Variable.C4VariableScope;
 
@@ -28,12 +33,20 @@ import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IPath;
+import org.eclipse.core.runtime.Path;
 
-public class ClonkIndex {
+public class ClonkIndex implements Serializable {
 	
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+
 	private Map<C4ID,List<C4Object>> projectObjects;
 	
-	private IProject project;
+	@SuppressWarnings("unused")
+	private transient IProject project;
 	private List<C4Function> globalFunctions;
 	private List<C4Variable> staticVariables;
 	
@@ -41,8 +54,28 @@ public class ClonkIndex {
 		this.project = project;
 	}
 	
+	public void setProject(IProject proj) {
+		project = proj;
+	}
+	
 	public List<C4Object> getObjects(C4ID id) {
 		return getIndexedObjects().get(id);
+	}
+	
+	public void fixReferences() throws CoreException {
+		for (List<C4Object> list : getIndexedObjects().values()) {
+			for (C4Object obj : list) {
+				obj.fixReferencesAfterSerialization();
+				if (obj instanceof C4ObjectIntern) {
+					C4ObjectIntern objIntern = (C4ObjectIntern)obj;
+					Path path = new Path(objIntern.relativePath);
+					IPath projectPath = path.removeFirstSegments(1);
+					IResource res = project.findMember(projectPath);
+					if (res instanceof IContainer)
+						((C4ObjectIntern)obj).setCorrespondingFolder((IContainer)res);
+				}
+			}
+		}
 	}
 	
 	/**
@@ -222,112 +255,154 @@ public class ClonkIndex {
 	}
 	
 	private Map<C4ID, List<C4Object>> getIndexedObjects() {
-		if (projectObjects == null) loadIndexData();
+		if (projectObjects == null) {
+			projectObjects = new HashMap<C4ID, List<C4Object>>();
+		}
+	//	if (projectObjects == null) loadIndexData();
 		return projectObjects;
 	}
 	
-	public void saveIndexData() {
-		final IFile index = project.getFile("indexdata.xml");
-		ByteArrayOutputStream out = new ByteArrayOutputStream();
-		XMLEncoder encoder = new XMLEncoder(out);
-		
-		encoder.setExceptionListener(new ExceptionListener() {
-			public void exceptionThrown(Exception e) {
-				e.printStackTrace();
-			}
-		});
-		
-		try {
-			BeanInfo info = Introspector.getBeanInfo(C4ObjectIntern.class);
-	        for (PropertyDescriptor desc : info.getPropertyDescriptors())
-	            if (desc.getName().equals("objectFolder"))
-	               desc.setValue("transient", Boolean.TRUE);
-		} catch (IntrospectionException e1) {
-			e1.printStackTrace();
-		}
-		
-		encoder.setPersistenceDelegate(C4ObjectIntern.class, new DefaultPersistenceDelegate() {
-			@Override
-			protected Expression instantiate(Object oldInstance, Encoder out) {
-				C4ObjectIntern intern = (C4ObjectIntern) oldInstance;
-				if (intern.relativePath == null) {
-					System.out.println(intern.getName() + intern.getId().getName());
-				}
-				return new Expression(oldInstance,C4ObjectIntern.class, "fromSerialize", new Object[] { intern.getId(), intern.getName(), intern.relativePath });
-			}
-		});
-
-		encoder.setPersistenceDelegate(C4ID.class, new DefaultPersistenceDelegate() {
-			@Override
-			protected Expression instantiate(Object oldInstance, Encoder out) {
-				return new Expression(oldInstance, C4ID.class, "getID", new Object[] { ((C4ID)oldInstance).getName() });
-			}
-		});
-		
-		encoder.setPersistenceDelegate(C4Type.class, new DefaultPersistenceDelegate() {
-			@Override
-			protected Expression instantiate(Object oldInstance, Encoder out) {
-				return new Expression(oldInstance, C4Type.class, "makeType", new Object[] { ((C4Type)oldInstance).toString() });
-			}
-		});
-		
-		encoder.setPersistenceDelegate(SourceLocation.class, new DefaultPersistenceDelegate() {
-			@Override
-			protected Expression instantiate(Object oldInstance, Encoder out) {
-				return new Expression(oldInstance, SourceLocation.class, "new", new Object[] { ((SourceLocation)oldInstance).getStart(), ((SourceLocation)oldInstance).getStart() });
-			}
-		});
-		
-		encoder.setPersistenceDelegate(C4FunctionScope.class, new DefaultPersistenceDelegate() {
-			@Override
-			protected Expression instantiate(Object oldInstance, Encoder out) {
-				return new Expression(oldInstance, C4FunctionScope.class, "valueOf", new Object[] { ((C4FunctionScope)oldInstance).toString() });
-			}
-		});
-		
-		encoder.setPersistenceDelegate(C4VariableScope.class, new DefaultPersistenceDelegate() {
-			@Override
-			protected Expression instantiate(Object oldInstance, Encoder out) {
-				return new Expression(oldInstance, C4VariableScope.class, "valueOf", new Object[] { ((C4VariableScope)oldInstance).toString() });
-			}
-		});
-		
-		encoder.setPersistenceDelegate(C4DirectiveType.class, new DefaultPersistenceDelegate() {
-			@Override
-			protected Expression instantiate(Object oldInstance, Encoder out) {
-				return new Expression(oldInstance, C4DirectiveType.class, "valueOf", new Object[] { ((C4DirectiveType)oldInstance).toString() });
-			}
-		});
-		
-		encoder.setPersistenceDelegate(C4Directive.class, new DefaultPersistenceDelegate() {
-			@Override
-			protected Expression instantiate(Object oldInstance, Encoder out) {
-				return new Expression(oldInstance, C4Directive.class, "new", new Object[] { ((C4Directive)oldInstance).getType(), ((C4Directive)oldInstance).getContent() });
-			}
-		});
-		
-		for (List<C4Object> objects : getIndexedObjects().values()) {
-			for(C4Object obj : objects) {
-				encoder.writeObject(obj);
-			}
-		}
-		
-		encoder.close();
-
-		ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
-		
-		try {
-			if (!index.exists()) {
-				index.create(in, IResource.DERIVED | IResource.HIDDEN, null);
-			}
-			else {
-				index.setContents(in, true, false, null);
-			}
-		} catch (CoreException e) {
-			e.printStackTrace();
-		}
-
-	}
+//	private static final String indexDataFile = "indexdata.xml";
+//	
+//	public void saveIndexData() {
+//		final IFile index = project.getFile(indexDataFile);
+//		ByteArrayOutputStream out = new ByteArrayOutputStream();
+//		try {
+//			ObjectOutputStream objStream = new ObjectOutputStream(out);
+//			objStream.writeObject(this);
+//			objStream.close();
+//			ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
+//			if (index.exists()) {
+//				index.setContents(in, true, false, null);
+//			} else {
+//				index.create(in, true, null);
+//			}
+//		} catch (IOException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		} catch (CoreException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
+//	}
+//	
+//	public void loadIndexData() {
+//		final IFile index = project.getFile(indexDataFile);
+//		try {
+//			InputStream in = index.getContents();
+//			ObjectInputStream objStream = new ObjectInputStream(in);
+//	//		objStream.readObject();
+//		} catch (CoreException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		} catch (IOException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
+//	}
+	
+//	public void saveIndexData() {
+//		final IFile index = project.getFile("indexdata.xml");
+//		ByteArrayOutputStream out = new ByteArrayOutputStream();
+//		XMLEncoder encoder = new XMLEncoder(out);
+//		
+//		encoder.setExceptionListener(new ExceptionListener() {
+//			public void exceptionThrown(Exception e) {
+//				e.printStackTrace();
+//			}
+//		});
+//		
+//		try {
+//			BeanInfo info = Introspector.getBeanInfo(C4ObjectIntern.class);
+//	        for (PropertyDescriptor desc : info.getPropertyDescriptors())
+//	            if (desc.getName().equals("objectFolder"))
+//	               desc.setValue("transient", Boolean.TRUE);
+//		} catch (IntrospectionException e1) {
+//			e1.printStackTrace();
+//		}
+//		
+//		encoder.setPersistenceDelegate(C4ObjectIntern.class, new DefaultPersistenceDelegate() {
+//			@Override
+//			protected Expression instantiate(Object oldInstance, Encoder out) {
+//				C4ObjectIntern intern = (C4ObjectIntern) oldInstance;
+//				if (intern.relativePath == null) {
+//					System.out.println(intern.getName() + intern.getId().getName());
+//				}
+//				return new Expression(oldInstance,C4ObjectIntern.class, "fromSerialize", new Object[] { intern.getId(), intern.getName(), intern.relativePath });
+//			}
+//		});
+//
+//		encoder.setPersistenceDelegate(C4ID.class, new DefaultPersistenceDelegate() {
+//			@Override
+//			protected Expression instantiate(Object oldInstance, Encoder out) {
+//				return new Expression(oldInstance, C4ID.class, "getID", new Object[] { ((C4ID)oldInstance).getName() });
+//			}
+//		});
+//		
+//		encoder.setPersistenceDelegate(C4Type.class, new DefaultPersistenceDelegate() {
+//			@Override
+//			protected Expression instantiate(Object oldInstance, Encoder out) {
+//				return new Expression(oldInstance, C4Type.class, "makeType", new Object[] { ((C4Type)oldInstance).toString() });
+//			}
+//		});
+//		
+//		encoder.setPersistenceDelegate(SourceLocation.class, new DefaultPersistenceDelegate() {
+//			@Override
+//			protected Expression instantiate(Object oldInstance, Encoder out) {
+//				return new Expression(oldInstance, SourceLocation.class, "new", new Object[] { ((SourceLocation)oldInstance).getStart(), ((SourceLocation)oldInstance).getStart() });
+//			}
+//		});
+//		
+//		encoder.setPersistenceDelegate(C4FunctionScope.class, new DefaultPersistenceDelegate() {
+//			@Override
+//			protected Expression instantiate(Object oldInstance, Encoder out) {
+//				return new Expression(oldInstance, C4FunctionScope.class, "valueOf", new Object[] { ((C4FunctionScope)oldInstance).toString() });
+//			}
+//		});
+//		
+//		encoder.setPersistenceDelegate(C4VariableScope.class, new DefaultPersistenceDelegate() {
+//			@Override
+//			protected Expression instantiate(Object oldInstance, Encoder out) {
+//				return new Expression(oldInstance, C4VariableScope.class, "valueOf", new Object[] { ((C4VariableScope)oldInstance).toString() });
+//			}
+//		});
+//		
+//		encoder.setPersistenceDelegate(C4DirectiveType.class, new DefaultPersistenceDelegate() {
+//			@Override
+//			protected Expression instantiate(Object oldInstance, Encoder out) {
+//				return new Expression(oldInstance, C4DirectiveType.class, "valueOf", new Object[] { ((C4DirectiveType)oldInstance).toString() });
+//			}
+//		});
+//		
+//		encoder.setPersistenceDelegate(C4Directive.class, new DefaultPersistenceDelegate() {
+//			@Override
+//			protected Expression instantiate(Object oldInstance, Encoder out) {
+//				return new Expression(oldInstance, C4Directive.class, "new", new Object[] { ((C4Directive)oldInstance).getType(), ((C4Directive)oldInstance).getContent() });
+//			}
+//		});
+//		
+//		for (List<C4Object> objects : getIndexedObjects().values()) {
+//			for(C4Object obj : objects) {
+//				encoder.writeObject(obj);
+//			}
+//		}
+//		
+//		encoder.close();
+//
+//		ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
+//		
+//		try {
+//			if (!index.exists()) {
+//				index.create(in, IResource.DERIVED | IResource.HIDDEN, null);
+//			}
+//			else {
+//				index.setContents(in, true, false, null);
+//			}
+//		} catch (CoreException e) {
+//			e.printStackTrace();
+//		}
+//
+//	}
 	
 	private void loadIndexData() {
 		

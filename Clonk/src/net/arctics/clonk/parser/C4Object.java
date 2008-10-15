@@ -1,5 +1,8 @@
 package net.arctics.clonk.parser;
 
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
@@ -14,6 +17,11 @@ import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.ITextSelection;
 
 public abstract class C4Object extends C4Field {
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 
 	static public class FindFieldInfo {
 		private ClonkIndex index;
@@ -46,7 +54,7 @@ public abstract class C4Object extends C4Field {
 		
 	}
 	
-	protected C4ID id;
+	protected transient C4ID id;
 	
 	protected List<C4Function> definedFunctions = new LinkedList<C4Function>();
 	protected List<C4Variable> definedVariables = new ArrayList<C4Variable>(); // default capacity of 10 is ok
@@ -313,11 +321,26 @@ public abstract class C4Object extends C4Field {
 //			return null;
 //		}
 	}
+
+	public void fixReferencesAfterSerialization() {
+		if (id != null)
+			id = C4ID.getID(id.toString());
+	}
 	
 //	public String getText(Object element) {
 //		if (element instanceof C4Function)
 //			return ((C4Function)element).getName();
 //		return element.toString();
+//	}
+	
+//	private void writeObject(ObjectOutputStream stream) throws IOException {
+//		stream.defaultWriteObject();
+//		stream.writeChars(getId().getName());
+//	}
+//	
+//	private void readObject(ObjectInputStream stream) throws IOException, ClassNotFoundException {
+//		stream.defaultReadObject();
+//		setId(stream.read)
 //	}
 	
 }

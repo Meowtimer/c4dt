@@ -115,7 +115,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 			});
 			
 			// saves all objects persistent
-			Utilities.getProject(proj).getIndexedData().saveIndexData();
+			Utilities.getProject(proj).saveIndexData();
 
 			monitor.done();
 			return new IProject[] { proj };

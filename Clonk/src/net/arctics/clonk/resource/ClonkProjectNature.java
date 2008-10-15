@@ -1,12 +1,22 @@
 package net.arctics.clonk.resource;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+
 import net.arctics.clonk.parser.ClonkIndex;
 
+import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IProjectNature;
 import org.eclipse.core.runtime.CoreException;
 
 public class ClonkProjectNature implements IProjectNature {
+
+	private static final String indexDataFile = "indexdata.xml";
 	
 //	private ClonkIndexer indexer; // the root c4d file (e.g. Objects.c4d)
 	private IProject project;
@@ -79,8 +89,50 @@ public class ClonkProjectNature implements IProjectNature {
 	 * @return the indexedData
 	 */
 	public ClonkIndex getIndexedData() {
-		if (indexedData == null) indexedData = new ClonkIndex(project);
+		if (indexedData == null)
+			loadIndexData();
 		return indexedData;
+	}
+	
+	public void saveIndexData() {
+		final IFile index = project.getFile(indexDataFile);
+		ByteArrayOutputStream out = new ByteArrayOutputStream();
+		try {
+			ObjectOutputStream objStream = new ObjectOutputStream(out);
+			objStream.writeObject(getIndexedData());
+			objStream.close();
+			ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
+			if (index.exists()) {
+				index.setContents(in, true, false, null);
+			} else {
+				index.create(in, true, null);
+			}
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (CoreException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	
+	private void loadIndexData() {
+		final IFile index = project.getFile(indexDataFile);
+		if (!index.exists()) {
+			indexedData = new ClonkIndex(project);
+			return;
+		}
+		try {
+			InputStream in = index.getContents();
+			ObjectInputStream objStream = new ObjectInputStream(in);
+			indexedData = (ClonkIndex)objStream.readObject();
+			indexedData.setProject(getProject());
+			indexedData.fixReferences();
+		} catch (Exception e) {
+			e.printStackTrace();
+			// somehow failed - ignore
+			indexedData = new ClonkIndex(project);
+		}
 	}
 
 

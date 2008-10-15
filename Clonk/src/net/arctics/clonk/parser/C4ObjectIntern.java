@@ -1,6 +1,8 @@
 package net.arctics.clonk.parser;
 
 import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.security.InvalidParameterException;
 
@@ -18,7 +20,7 @@ public class C4ObjectIntern extends C4Object implements Serializable {
 
 	private static final long serialVersionUID = -7978767061460505544L;
 	
-	protected IContainer objectFolder;
+	protected transient IContainer objectFolder;
 	protected String relativePath;
 	
 	public C4ObjectIntern(C4ID id, String name, IContainer container) {
@@ -68,8 +70,6 @@ public class C4ObjectIntern extends C4Object implements Serializable {
 		}
 	}
 	
-
-	
 	/**
 	 * The member <tt>Script.c</tt>
 	 * @return IFile object of <tt>Script.c</tt> file or null if it does not exist
@@ -94,6 +94,12 @@ public class C4ObjectIntern extends C4Object implements Serializable {
 	 */
 	public void delete() {
 		Utilities.getProject(objectFolder.getProject()).getIndexedData().removeObject(this);
+	}
+	
+	public void setCorrespondingFolder(IContainer folder) throws CoreException {
+		if (folder != null)
+			folder.setSessionProperty(ClonkCore.C4OBJECT_PROPERTY_ID, this);
+		objectFolder = folder;
 	}
 
 }
