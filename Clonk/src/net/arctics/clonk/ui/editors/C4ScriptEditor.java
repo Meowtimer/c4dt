@@ -106,11 +106,11 @@ public class C4ScriptEditor extends AbstractDecoratedTextEditor {
 	@Override
 	protected void doSetSelection(ISelection selection) {
 		super.doSetSelection(selection);
-		C4Object obj = Utilities.getObjectForEditor(this);
-		if (obj != null) {
-			C4Function func = obj.funcAt((ITextSelection)selection);
-			getOutlinePage().select(func);
-		}
+//		C4Object obj = Utilities.getObjectForEditor(this);
+//		if (obj != null) {
+//			C4Function func = obj.funcAt((ITextSelection)selection);
+//			getOutlinePage().select(func);
+//		}
 	}
 
 }
