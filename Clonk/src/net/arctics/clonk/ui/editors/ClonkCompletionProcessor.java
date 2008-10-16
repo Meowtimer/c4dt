@@ -1,5 +1,7 @@
 package net.arctics.clonk.ui.editors;
 
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -9,12 +11,15 @@ import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.BuiltInDefinitions;
 import net.arctics.clonk.parser.C4Function;
 import net.arctics.clonk.parser.C4Object;
+import net.arctics.clonk.parser.C4ScriptParser;
 import net.arctics.clonk.parser.C4Variable;
 import net.arctics.clonk.parser.ClonkIndex;
+import net.arctics.clonk.parser.CompilerException;
+import net.arctics.clonk.parser.C4ScriptParser.ExprElm;
+import net.arctics.clonk.parser.C4ScriptParser.ParsingException;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.Utilities;
 
-import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.FileLocator;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.jface.resource.ImageDescriptor;
@@ -151,7 +156,6 @@ public class ClonkCompletionProcessor implements IContentAssistProcessor {
 			}
 		}
 		else {
-			IFile scriptFile = Utilities.getEditingFile(editor);
 			if (!index.isEmpty()) {
 				for (C4Function func : index.getGlobalFunctions()) {
 					proposalForFunc(func, prefix, offset, proposals, func.getObject().getName());
@@ -172,8 +176,37 @@ public class ClonkCompletionProcessor implements IContentAssistProcessor {
 			}
 			
 			if (ClonkCore.ENGINE_OBJECT != null) {
-				for(C4Function func : ClonkCore.ENGINE_OBJECT.getDefinedFunctions()) {
+				for (C4Function func : ClonkCore.ENGINE_OBJECT.getDefinedFunctions()) {
 					proposalForFunc(func, prefix, offset, proposals, ClonkCore.ENGINE_OBJECT.getName());
+				}
+			}
+			
+			C4Object contextObj = Utilities.getObjectForEditor(editor);
+			if (contextObj != null) {
+				try {
+					int off = Utilities.getStartOfExpression(doc, offset);
+					String expr = doc.get(off,offset-off+1);
+					InputStream stream = new ByteArrayInputStream(expr.getBytes());
+					C4ScriptParser parser = new C4ScriptParser(stream,  expr.length(), contextObj);
+					ExprElm e = parser.parseExpressionWithoutOperators(0);
+					C4Object guessedType = e.guessObjectType(parser);
+					if (guessedType != null)
+						contextObj = guessedType;
+				} catch (BadLocationException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (CompilerException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (ParsingException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+			
+			if (contextObj != null) {
+				for (C4Function func : contextObj.getDefinedFunctions()) {
+					proposalForFunc(func, prefix, offset, proposals, contextObj.getName());
 				}
 			}
 			

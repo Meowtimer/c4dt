@@ -1,5 +1,7 @@
 package net.arctics.clonk;
 
+import javax.swing.text.BadLocationException;
+
 import net.arctics.clonk.parser.C4Function;
 import net.arctics.clonk.parser.C4Object;
 import net.arctics.clonk.parser.C4Variable;
@@ -17,6 +19,7 @@ import org.eclipse.core.runtime.FileLocator;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.resource.ImageRegistry;
+import org.eclipse.jface.text.IDocument;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.ui.part.FileEditorInput;
 import org.eclipse.ui.texteditor.ITextEditor;
@@ -142,4 +145,13 @@ public abstract class Utilities {
 		}
 		return true;
 	}
+	
+	public static int getStartOfExpression(IDocument doc, int offset) throws org.eclipse.jface.text.BadLocationException {
+		for (int off = offset-1; off >= 0; off--) {
+			if (doc.getChar(off) == ';')
+				return off+1;
+		}
+		return offset;
+	}
+	
 }

@@ -17,7 +17,7 @@ import org.eclipse.core.runtime.CoreException;
 
 public class ClonkProjectNature implements IProjectNature {
 
-	private static final String indexDataFile = "indexdata.xml";
+	private static final String indexDataFile = "indexdata";
 	
 //	private ClonkIndexer indexer; // the root c4d file (e.g. Objects.c4d)
 	private IProject project;

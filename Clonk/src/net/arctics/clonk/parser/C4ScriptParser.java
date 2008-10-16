@@ -1555,7 +1555,7 @@ public class C4ScriptParser {
 			return C4Type.UNKNOWN;
 		}
 		
-		public C4Object guessObjectType() {
+		public C4Object guessObjectType(C4ScriptParser context) {
 			return null; // no idea, dude
 		}
 		
@@ -1647,6 +1647,11 @@ public class C4ScriptParser {
 		public C4Type getType() {
 			return null; // invalid as an expression
 		}
+
+		@Override
+		public C4Object guessObjectType(C4ScriptParser context) {
+			return getPredecessorInSequence() != null ? getPredecessorInSequence().guessObjectType(context) : super.guessObjectType(context);
+		}
 		
 	}
 	
@@ -1678,8 +1683,8 @@ public class C4ScriptParser {
 		public C4Type getType() {
 			return (elements == null || elements.length == 0) ? C4Type.UNKNOWN : elements[elements.length-1].getType();
 		}
-		public C4Object guessObjectType() {
-			return (elements == null || elements.length == 0) ? super.guessObjectType() : elements[elements.length-1].guessObjectType();
+		public C4Object guessObjectType(C4ScriptParser context) {
+			return (elements == null || elements.length == 0) ? super.guessObjectType(context) : elements[elements.length-1].guessObjectType(context);
 		}
 		@Override
 		public boolean modifiable() {
@@ -1766,11 +1771,13 @@ public class C4ScriptParser {
 		public void print(StringBuilder output) {
 			super.print(output);
 			output.append("(");
-			for (int i = 0; i < params.length; i++) {
-				if (params[i] != null)
-					params[i].print(output);
-				if (i < params.length-1)
-					output.append(", ");
+			if (params != null) {
+				for (int i = 0; i < params.length; i++) {
+					if (params[i] != null)
+						params[i].print(output);
+					if (i < params.length-1)
+						output.append(", ");
+				}
 			}
 			output.append(")");
 		}
@@ -1786,13 +1793,7 @@ public class C4ScriptParser {
 				ExprElm p = getPredecessorInSequence();
 				C4Object lookIn = parser.container;
 				if (p != null) {
-					if (p instanceof ExprObjectCall) {
-						ExprObjectCall oc = (ExprObjectCall)p;
-						if (oc.getId() != null) {
-							lookIn = Utilities.getProject(parser.container).getIndexedData().getLastObjectWithId(oc.getId());
-						} else
-							lookIn = null;
-					}
+					lookIn = p.guessObjectType(parser);
 				}
 				if (lookIn != null) {
 					field = lookIn.findFunction(fieldName, new C4Object.FindFieldInfo(Utilities.getProject(lookIn).getIndexedData()));
@@ -1802,9 +1803,14 @@ public class C4ScriptParser {
 			}
 		}
 		@Override
-		public C4Object guessObjectType() {
-			// TODO if it's a constructor like CreateObject and it's first parameter is a plain id you can return the object corresponding to this id (CreateObject(CLNK) returns a Clonk)
-			return super.guessObjectType();
+		public C4Object guessObjectType(C4ScriptParser context) {
+			if (params != null && fieldName.startsWith("Create")) {
+				if (params.length == 1 && params[0] instanceof ExprID) {
+					ExprID id = (ExprID)params[0];
+					return context.container.getProject().getIndexedData().getLastObjectWithId(id.idValue());
+				}
+			}
+			return super.guessObjectType(context);
 		}
 	}
 
@@ -2148,12 +2154,16 @@ public class C4ScriptParser {
 	}
 	
 	private void errorWithCode(ErrorCode code, IRegion errorRegion, Object... args) throws ParsingException {
+		if (fScript == null)
+			return; // parser used for other purposes -> no errors
 		String problem = String.format(errorStrings[code.ordinal()], args);
 		createErrorMarker(errorRegion.getOffset(), errorRegion.getOffset()+errorRegion.getLength(), problem);
 		throw new ParsingException(problem);
 	}
 	
 	private void errorWithCode(ErrorCode code, int errorStart, int errorEnd, Object... args) throws ParsingException {
+		if (fScript == null)
+			return; // parser used for other purposes -> no errors
 		String problem = String.format(errorStrings[code.ordinal()], args);
 		createErrorMarker(errorStart, errorEnd, problem);
 		throw new ParsingException(problem);
@@ -2168,7 +2178,7 @@ public class C4ScriptParser {
 		return false;
 	}
 	
-	private ExprElm parseExpressionWithoutOperators(int offset) throws ParsingException {
+	public ExprElm parseExpressionWithoutOperators(int offset) throws ParsingException {
 		fReader.seek(offset);
 		this.eatWhitespace();
 		int sequenceStart = fReader.getPosition();
@@ -2179,10 +2189,6 @@ public class C4ScriptParser {
 			if (followingExpr == null) {
 				errorWithCode(ErrorCode.ExpressionExpected, fReader.getPosition(), fReader.getPosition()+1);
 			}
-			// leave it to the exprelms to check themselves
-//			if (preop.modifiesArgument() && !followingExpr.modifiable()) {
-//				errorWithCode(ErrorCode.ExpressionNotModifiable, followingExpr);
-//			}
 			result = new ExprUnaryOp(preop, ExprUnaryOp.Placement.Prefix, followingExpr);
 		} else
 			fReader.seek(sequenceStart); // don't skip operators that aren't prefixy
@@ -2368,9 +2374,6 @@ public class C4ScriptParser {
 			Operator postop = parseOperator_(fReader.getPosition());
 			if (postop != null) {
 				if (postop.isPostfix()) {
-					// leave *bla*
-//					if (postop.modifiesArgument() && !result.modifiable())
-//						errorWithCode(ErrorCode.ExpressionNotModifiable, result);
 					return new ExprUnaryOp(postop, ExprUnaryOp.Placement.Postfix, result);
 				} else {
 					// a binary operator following this sequence

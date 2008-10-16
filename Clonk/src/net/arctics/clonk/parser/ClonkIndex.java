@@ -45,7 +45,6 @@ public class ClonkIndex implements Serializable {
 
 	private Map<C4ID,List<C4Object>> projectObjects;
 	
-	@SuppressWarnings("unused")
 	private transient IProject project;
 	private List<C4Function> globalFunctions;
 	private List<C4Variable> staticVariables;

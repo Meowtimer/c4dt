@@ -4,12 +4,14 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.Utilities;
 import net.arctics.clonk.parser.C4Directive.C4DirectiveType;
+import net.arctics.clonk.resource.ClonkProjectNature;
 
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.runtime.CoreException;
@@ -283,6 +285,10 @@ public abstract class C4Object extends C4Field {
 //	}
 	
 	public abstract Object getScript();
+	
+	public ClonkProjectNature getProject() {
+		return Utilities.getProject(this);
+	}
 
 	public C4Function findFunction(String functionName, FindFieldInfo info) {
 		info.setFieldClass(C4Function.class);
