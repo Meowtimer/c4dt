@@ -189,7 +189,7 @@ public class ClonkCompletionProcessor implements IContentAssistProcessor {
 					InputStream stream = new ByteArrayInputStream(expr.getBytes());
 					C4ScriptParser parser = new C4ScriptParser(stream,  expr.length(), contextObj);
 					ExprElm e = parser.parseExpressionWithoutOperators(0);
-					C4Object guessedType = e.guessObjectType(parser);
+					C4Object guessedType = (e == null) ? null : e.guessObjectType(parser);
 					if (guessedType != null)
 						contextObj = guessedType;
 				} catch (BadLocationException e) {
@@ -251,8 +251,24 @@ public class ClonkCompletionProcessor implements IContentAssistProcessor {
 	}
 
 	protected boolean isInCodeBody(IDocument document, int offset) {
-		C4Object thisObj = Utilities.getObjectForEditor(editor);
-		return thisObj != null && thisObj.funcAt(new Region(offset,1)) != null;
+		// needs refresh
+//		C4Object thisObj = Utilities.getObjectForEditor(editor);
+//		return thisObj != null && thisObj.funcAt(new Region(offset,1)) != null;
+		// restored
+		try {
+			int openBrackets = 0;
+			int closeBrackets = 0;
+			String content = document.get(0, offset);
+			for(int i = 0; i < content.length();i++) {
+				char c = content.charAt(i);
+				if (c == '{') openBrackets++;
+				else if (c == '}') closeBrackets++;
+			}
+			if (openBrackets > closeBrackets) return true;
+			else return false;
+		} catch (BadLocationException e) {
+			return false;
+		}
 	}
 	
 	public IContextInformation[] computeContextInformation(ITextViewer viewer,
