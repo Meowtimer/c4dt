@@ -220,7 +220,7 @@
        <page
              class="net.arctics.clonk.preferences.ClonkPreferencePage"
              id="net.arctics.clonk.preferences.ClonkPreferencePage"
-             name="Clonk Preferences">
+             name="Clonk">
        </page>
     </extension>
     <extension

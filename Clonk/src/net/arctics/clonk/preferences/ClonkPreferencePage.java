@@ -45,7 +45,7 @@ public class ClonkPreferencePage
 	public void createFieldEditors() {
 		addField(new DirectoryFieldEditor(PreferenceConstants.GAME_PATH, 
 				"&Clonk game path:", getFieldEditorParent()));
-		addField(new ListEditor(PreferenceConstants.STANDARD_EXT_LIBS,"label",getFieldEditorParent()) {
+		addField(new ListEditor(PreferenceConstants.STANDARD_EXT_LIBS,"External objects and scripts:",getFieldEditorParent()) {
 		
 			@Override
 			protected String[] parseString(String stringList) {
