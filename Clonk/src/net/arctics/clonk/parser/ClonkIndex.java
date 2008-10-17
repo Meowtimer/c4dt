@@ -27,10 +27,7 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Path;
-import org.eclipse.core.runtime.Preferences.IPropertyChangeListener;
-import org.eclipse.core.runtime.Preferences.PropertyChangeEvent;
-import org.eclipse.core.runtime.preferences.IEclipsePreferences.IPreferenceChangeListener;
-import org.eclipse.core.runtime.preferences.IEclipsePreferences.PreferenceChangeEvent;
+import org.eclipse.jface.util.IPropertyChangeListener;
 
 public class ClonkIndex implements Serializable, IPropertyChangeListener {
 	
@@ -467,8 +464,17 @@ public class ClonkIndex implements Serializable, IPropertyChangeListener {
 		}
 		return null;
 	}
-	
-	public void propertyChange(PropertyChangeEvent event) {
+
+	private boolean isIn(String item, String[] array) {
+		for(String newLib : array) {
+			if (newLib.equals(item)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	public void propertyChange(org.eclipse.jface.util.PropertyChangeEvent event) {
 		if (event.getProperty().equals(PreferenceConstants.STANDARD_EXT_LIBS)) {
 			String oldValue = (String) event.getOldValue();
 			String newValue = (String) event.getNewValue();
@@ -499,14 +505,5 @@ public class ClonkIndex implements Serializable, IPropertyChangeListener {
 				}
 			}
 		}
-	}
-	
-	private boolean isIn(String item, String[] array) {
-		for(String newLib : array) {
-			if (newLib.equals(item)) {
-				return true;
-			}
-		}
-		return false;
 	}
 }
