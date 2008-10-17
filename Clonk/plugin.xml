@@ -214,7 +214,21 @@
          <run class="net.arctics.clonk.resource.ClonkBuilder"> 
          </run> 
       </builder> 
-   </extension> 
+   </extension>
+    <extension
+          point="org.eclipse.ui.preferencePages">
+       <page
+             class="net.arctics.clonk.preferences.ClonkPreferencePage"
+             id="net.arctics.clonk.preferences.ClonkPreferencePage"
+             name="Clonk Preferences">
+       </page>
+    </extension>
+    <extension
+          point="org.eclipse.core.runtime.preferences">
+       <initializer
+             class="net.arctics.clonk.preferences.PreferenceInitializer">
+       </initializer>
+    </extension> 
  
 <!--<extension
        point="org.eclipse.ui.commands">

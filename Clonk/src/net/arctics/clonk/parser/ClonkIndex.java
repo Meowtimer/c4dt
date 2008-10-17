@@ -1,23 +1,12 @@
 package net.arctics.clonk.parser;
 
-import java.beans.BeanInfo;
-import java.beans.DefaultPersistenceDelegate;
-import java.beans.Encoder;
-import java.beans.ExceptionListener;
-import java.beans.Expression;
-import java.beans.IntrospectionException;
-import java.beans.Introspector;
-import java.beans.PropertyDescriptor;
 import java.beans.XMLDecoder;
 import java.beans.XMLEncoder;
 import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -27,6 +16,9 @@ import java.util.Map;
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.C4Function.C4FunctionScope;
 import net.arctics.clonk.parser.C4Variable.C4VariableScope;
+import net.arctics.clonk.preferences.PreferenceConstants;
+import net.arctics.clonk.resource.c4group.C4Group;
+import net.arctics.clonk.resource.c4group.InvalidDataException;
 
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
@@ -35,8 +27,12 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Path;
+import org.eclipse.core.runtime.Preferences.IPropertyChangeListener;
+import org.eclipse.core.runtime.Preferences.PropertyChangeEvent;
+import org.eclipse.core.runtime.preferences.IEclipsePreferences.IPreferenceChangeListener;
+import org.eclipse.core.runtime.preferences.IEclipsePreferences.PreferenceChangeEvent;
 
-public class ClonkIndex implements Serializable {
+public class ClonkIndex implements Serializable, IPropertyChangeListener {
 	
 	/**
 	 * 
@@ -470,5 +466,47 @@ public class ClonkIndex implements Serializable {
 				return var;
 		}
 		return null;
+	}
+	
+	public void propertyChange(PropertyChangeEvent event) {
+		if (event.getProperty().equals(PreferenceConstants.STANDARD_EXT_LIBS)) {
+			String oldValue = (String) event.getOldValue();
+			String newValue = (String) event.getNewValue();
+			String[] oldLibs = oldValue.split("<>");
+			String[] newLibs = newValue.split("<>");
+			for(String lib : oldLibs) {
+				if (!isIn(lib, newLibs)) { 
+					// lib deselected
+					// TODO: remove all objects in lib
+				}
+			}
+			for(String lib : newLibs) {
+				if (!isIn(lib, oldLibs)) {
+					// new lib selected
+					// TODO: create new externobjects and add to index
+					File libFile = new File(lib);
+					try {
+						C4Group group = C4Group.OpenFile(libFile);
+						
+					} catch (FileNotFoundException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					} catch (InvalidDataException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+					
+				}
+			}
+		}
+	}
+	
+	private boolean isIn(String item, String[] array) {
+		for(String newLib : array) {
+			if (newLib.equals(item)) {
+				return true;
+			}
+		}
+		return false;
 	}
 }

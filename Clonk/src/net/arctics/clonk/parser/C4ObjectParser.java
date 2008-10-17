@@ -2,6 +2,8 @@ package net.arctics.clonk.parser;
 
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.Utilities;
+import net.arctics.clonk.resource.c4group.C4Entry;
+import net.arctics.clonk.resource.c4group.C4Group;
 
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
@@ -14,11 +16,19 @@ public class C4ObjectParser {
 	private IFile defCore;
 	private IFile actMap;
 	
+	private C4Group group;
+	private C4Entry extScript;
+	private C4Entry extDefCore;
+	
 	private C4ObjectParser(IContainer folder) {
 		objectFolder = folder;
 		script = (IFile) folder.findMember("Script.c");
 		defCore = (IFile) folder.findMember("DefCore.txt");
 		actMap = (IFile) folder.findMember("ActMap.txt");
+	}
+	
+	private C4ObjectParser(C4Group group) {
+		this.group = group;
 	}
 	
 	/**
@@ -36,6 +46,10 @@ public class C4ObjectParser {
 			return parser;
 		}
 		return null;
+	}
+	
+	public static C4ObjectParser create(C4Group group) {
+		return new C4ObjectParser(group);
 	}
 	
 	public void parse() throws CompilerException {
