@@ -69,7 +69,7 @@ public class ClonkCore extends AbstractUIPlugin {
 			try {
 				while (true) {
 					Object obj = decoder.readObject();
-					if (obj instanceof C4Function) {
+					if (obj instanceof C4Field) {
 						C4Field field = (C4Field)obj;
 						field.setObject(ENGINE_OBJECT);
 						ENGINE_OBJECT.addField(field);

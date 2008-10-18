@@ -148,7 +148,7 @@ public abstract class Utilities {
 	
 	public static int getStartOfExpression(IDocument doc, int offset) throws org.eclipse.jface.text.BadLocationException {
 		for (int off = offset-1; off >= 0; off--) {
-			if (doc.getChar(off) == ';')
+			if (doc.getChar(off) == ';' || doc.getChar(off) == '{')
 				return off+1;
 		}
 		return offset;

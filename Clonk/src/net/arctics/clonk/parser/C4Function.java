@@ -4,6 +4,8 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
+import net.arctics.clonk.ClonkCore;
+
 public class C4Function extends C4Field implements Serializable {
 
 	private static final long serialVersionUID = 3848213897251037684L;
@@ -245,9 +247,10 @@ public class C4Function extends C4Field implements Serializable {
 
 	@Override
 	public String getShortInfo() {
-		if (getObject() == null) {
+		if (getObject() == ClonkCore.ENGINE_OBJECT) {
+			//return String.format("<b>%s</b><br>%s<br><i><a href='%s'>Online Documentation</a></i>", getName(), getDescription(), getDocumentationURL());
 			// engine function
-			return String.format("<html><head><title>Blub</title></head><body><b>%s</b><br>%s<br><a href='%s'>Online Dokumentation</a></body></html>", getName(), getDescription(), getDocumentationURL());
+			return String.format("<b>%s</b><br>%s<br><a href='%s'>Online Dokumentation</a>", getName(), getDescription(), getDocumentationURL());
 		}
 		return super.getShortInfo();
 	}

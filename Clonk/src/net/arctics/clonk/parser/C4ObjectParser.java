@@ -7,6 +7,7 @@ import net.arctics.clonk.resource.c4group.C4Group;
 
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 
 public class C4ObjectParser {
@@ -15,6 +16,7 @@ public class C4ObjectParser {
 	private IFile script;
 	private IFile defCore;
 	private IFile actMap;
+	private IFile scenario;
 	
 	private C4Group group;
 	private C4Entry extScript;
@@ -25,6 +27,7 @@ public class C4ObjectParser {
 		script = (IFile) folder.findMember("Script.c");
 		defCore = (IFile) folder.findMember("DefCore.txt");
 		actMap = (IFile) folder.findMember("ActMap.txt");
+		scenario = (IFile) folder.findMember("Scenario.txt");
 	}
 	
 	private C4ObjectParser(C4Group group) {
@@ -39,9 +42,10 @@ public class C4ObjectParser {
 	 */
 	public static C4ObjectParser create(IContainer folder) {
 		if (folder.findMember("Script.c") != null && 
-				folder.findMember("DefCore.txt") != null &&
+				(folder.findMember("DefCore.txt") != null &&
 				(folder.findMember("Graphics.png") != null ||
-				folder.findMember("Graphics.bmp") != null)) {
+				folder.findMember("Graphics.bmp") != null) ||
+				folder.findMember("Scenario.txt") != null)) {
 			C4ObjectParser parser = new C4ObjectParser(folder);
 			return parser;
 		}
@@ -73,6 +77,12 @@ public class C4ObjectParser {
 					object.setName(defCoreWrapper.getName(), false);
 				}
 				objectFolder.setPersistentProperty(ClonkCore.FOLDER_C4ID_PROPERTY_ID, object.getId().getName());
+			}
+			else if (scenario != null) {
+				if (object == null) {
+					object = new C4Scenario(null, objectFolder.getName(), objectFolder);
+					objectFolder.setSessionProperty(ClonkCore.C4OBJECT_PROPERTY_ID, object);
+				}
 			}
 			if (script != null) {
 				C4ScriptParser p = new C4ScriptParser(script, object);

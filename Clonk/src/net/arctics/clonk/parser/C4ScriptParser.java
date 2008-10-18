@@ -74,7 +74,7 @@ public class C4ScriptParser {
 		}
 
 		public String readString(int length) {
-			if (offset+length >= size) 
+			if (offset+length > size) 
 				return null;
 			try {
 				String result = new String(buffer,offset,length,"ISO-8859-1");
@@ -207,7 +207,7 @@ public class C4ScriptParser {
 		 * @return whether eof reached
 		 */
 		public boolean reachedEOF() {
-			return (offset >= size-1);
+			return (offset >= size);
 		}
 
 		/**
@@ -369,16 +369,20 @@ public class C4ScriptParser {
 				createErrorMarker(offset, fReader.getPosition(), problem);
 				throw new ParsingException(problem);
 			}
+			eatWhitespace();
+			int pos = fReader.getPosition();
+			boolean constDecl = false; 
+			if (fReader.readWord().equals("const")) {
+				constDecl = true;
+			} else {
+				fReader.seek(pos);
+			}
 			do {
 				eatWhitespace();
 				int s = fReader.getPosition();
 				String varName = fReader.readWord();
 				int e = fReader.getPosition();
-				if (varName.equals("const")) {
-					eatWhitespace();
-					s = fReader.getPosition();
-					String constName = fReader.readWord();
-					e = fReader.getPosition();
+				if (constDecl) {
 					eatWhitespace();
 					if (fReader.read() != '=') {
 						String problem = "Syntax error: '=' expected";
@@ -392,7 +396,7 @@ public class C4ScriptParser {
 						createErrorMarker(fReader.getPosition() - 1, fReader.getPosition(), problem);
 						throw new ParsingException(problem);
 					}
-					C4Variable var = new C4Variable(constName,C4VariableScope.VAR_STATIC);
+					C4Variable var = new C4Variable(varName,C4VariableScope.VAR_STATIC);
 					var.setLocation(new SourceLocation(s, e));
 					var.setObject(container);
 					//					var.setType(C4Type.)
@@ -655,7 +659,8 @@ public class C4ScriptParser {
 			if (fReader.read() != '}') {
 				System.out.println(activeFunc.getName());
 				String problem = "Syntax error: expected '}'";
-				createErrorMarker(fReader.getPosition() - 1, fReader.getPosition(), problem);
+				int pos = Math.min(fReader.getPosition()-1, fReader.size-2);
+				createErrorMarker(pos, pos+1, problem);
 				throw new ParsingException(problem);
 			}
 		}
@@ -1640,7 +1645,12 @@ public class C4ScriptParser {
 
 		@Override
 		public boolean isValidInSequence(ExprElm predecessor) {
-			return predecessor != null && (predecessor.getType() != C4Type.ARRAY && predecessor.getType() != null && predecessor.getType() != C4Type.UNKNOWN);
+			if (predecessor != null) {
+				C4Type t = predecessor.getType();
+				if (t == null || t == C4Type.ARRAY || t == C4Type.STRING || t == C4Type.UNKNOWN)
+					return false;
+			}
+			return true;
 		}
 
 		@Override
@@ -1986,6 +1996,11 @@ public class C4ScriptParser {
 			return false;
 		}
 		
+		@Override
+		public boolean isValidInSequence(ExprElm predecessor) {
+			return predecessor == null;
+		}
+		
 	}
 	
 	public static final class ExprNumber extends ExprLiteral<Integer> {
@@ -2045,6 +2060,12 @@ public class C4ScriptParser {
 		@Override
 		public C4Type getType() {
 			return C4Type.ID;
+		}
+
+		@Override
+		public C4Object guessObjectType(C4ScriptParser context) {
+			// FIXME: does not actually return an object of type idValue but the id itself :/
+			return context.container.getProject().getIndexedData().getLastObjectWithId(idValue());
 		}
 		
 	}
@@ -2192,17 +2213,6 @@ public class C4ScriptParser {
 			result = new ExprUnaryOp(preop, ExprUnaryOp.Placement.Prefix, followingExpr);
 		} else
 			fReader.seek(sequenceStart); // don't skip operators that aren't prefixy
-		if (result == null) {
-			if (parseNumber(fReader.offset)) {
-				result = new ExprNumber(parsedNumber);
-			}
-			else if (parseID(fReader.offset)) {
-				result = new ExprID(parsedID);
-			}
-			else if (parseString(fReader.getPosition())) {
-				result = new ExprString(parsedString);
-			}
-		}
 		if (result != null) {
 			result.setExprRegion(sequenceStart, fReader.getPosition());
 			return result;
@@ -2225,43 +2235,60 @@ public class C4ScriptParser {
 				break;
 			}
 			
+			// id
+			if (parseID(fReader.offset)) {
+				elm = new ExprID(parsedID);
+			}
+			
+			// number
+			if (elm == null && parseNumber(fReader.offset)) {
+				elm = new ExprNumber(parsedNumber);
+			}
+			
+			// string
+			if (elm == null && parseString(fReader.getPosition())) {
+				elm = new ExprString(parsedString);
+			}
+			
 			// variable or function
-			String word = fReader.readWord();
-			if (word != null && word.length() > 0) {
-				this.eatWhitespace();
-				if (fReader.read() == '(') {
-					// function call
-					Vector<ExprElm> args = new Vector<ExprElm>();
-					boolean expectingComma = false;
-					while (!fReader.reachedEOF()) {
-						this.eatWhitespace();
-						int c = fReader.read();
-						if (c == ')') {
-							if (!expectingComma)
-								args.add(null);
-							break;
-						} else if (c == ',') {
-							if (!expectingComma) {
-								args.add(null);
+			if (elm == null) {
+				String word = fReader.readWord();
+				if (word != null && word.length() > 0) {
+					this.eatWhitespace();
+					if (fReader.read() == '(') {
+						// function call
+						Vector<ExprElm> args = new Vector<ExprElm>();
+						boolean expectingComma = false;
+						while (!fReader.reachedEOF()) {
+							this.eatWhitespace();
+							int c = fReader.read();
+							if (c == ')') {
+								if (!expectingComma)
+									args.add(null);
+								break;
+							} else if (c == ',') {
+								if (!expectingComma) {
+									args.add(null);
+								}
+								expectingComma = false;
+							} else {
+								fReader.unread();
+								if (args.size() > 100)
+									errorWithCode(ErrorCode.InternalError, fReader.getPosition(), fReader.getPosition(), "Way too much");
+								ExprElm arg = parseExpression(fReader.getPosition());
+								if (arg == null)
+									errorWithCode(ErrorCode.ExpressionExpected, fReader.getPosition(), fReader.getPosition()+1);
+								else
+									args.add(arg);
+								expectingComma = true;
 							}
-							expectingComma = false;
-						} else {
-							fReader.unread();
-							if (args.size() > 100)
-								errorWithCode(ErrorCode.InternalError, fReader.getPosition(), fReader.getPosition(), "Way too much");
-							ExprElm arg = parseExpression(fReader.getPosition());
-							if (arg == null)
-								errorWithCode(ErrorCode.ExpressionExpected, fReader.getPosition(), fReader.getPosition()+1);
-							else
-								args.add(arg);
-							expectingComma = true;
 						}
+						elm = new ExprCallFunc(word, args.toArray(new ExprElm[0]));
+					} else {
+						fReader.unread();
+						// variable
+						elm = new ExprAccessVar(word);
 					}
-					elm = new ExprCallFunc(word, args.toArray(new ExprElm[0]));
-				} else {
-					fReader.unread();
-					// variable
-					elm = new ExprAccessVar(word);
 				}
 			}
 			
@@ -2583,14 +2610,15 @@ public class C4ScriptParser {
 	
 	private boolean parseString(int offset) throws ParsingException {
 		fReader.seek(offset);
-		if (fReader.read() != '"') {
+		int delimiter = fReader.read();
+		if (delimiter != '"' && delimiter != '$') {
 			fReader.unread();
 			return false;
 		}
 		StringBuilder builder = new StringBuilder();
 		do {
 			if (builder.length() > 0) builder.append(fReader.readString(1));
-			builder.append(fReader.readStringUntil(new char[] { '"' }));
+			builder.append(fReader.readStringUntil(new char[] { (char) delimiter }));
 		} while (builder.length() != 0 && (builder.charAt(builder.length() - 1) == '\\'));
 		if (fReader.read() != '"') {
 			throw new ParsingException("Internal parsing error.");
@@ -2608,12 +2636,13 @@ public class C4ScriptParser {
 			String readWord = fReader.readWord();
 			if (readWord == null)
 				return false;
-			if (readWord.equalsIgnoreCase("if")) {
-				if (!readWord.equals(readWord.toLowerCase())) {
-					String problem = "Syntax error: you should only use lower case letters in keywords. ('" + readWord.toLowerCase() + "' instead of '" + readWord + "')"; 
-					createErrorMarker(fReader.getPosition() - readWord.length(), fReader.getPosition(), problem);
-					throw new ParsingException(problem);
-				}
+			if (readWord.equals("if")) {
+				// there are people naming their variables iF >.>
+//				if (!readWord.equals(readWord.toLowerCase())) {
+//					String problem = "Syntax error: you should only use lower case letters in keywords. ('" + readWord.toLowerCase() + "' instead of '" + readWord + "')"; 
+//					createErrorMarker(fReader.getPosition() - readWord.length(), fReader.getPosition(), problem);
+//					throw new ParsingException(problem);
+//				}
 				eatWhitespace();
 				if (fReader.read() != '(') {
 					String problem = "Syntax error: expected '('"; 
@@ -2657,13 +2686,13 @@ public class C4ScriptParser {
 				}
 				return true;
 			}
-			else if (readWord.equalsIgnoreCase("while")) {
+			else if (readWord.equals("while")) {
 				currentLoop = LoopType.While;
-				if (!readWord.equals(readWord.toLowerCase())) {
-					String problem = "Syntax error: you should only use lower case letters in keywords. ('" + readWord.toLowerCase() + "' instead of '" + readWord + "')"; 
-					createErrorMarker(fReader.getPosition() - readWord.length(), fReader.getPosition(), problem);
-					throw new ParsingException(problem);
-				}
+//				if (!readWord.equals(readWord.toLowerCase())) {
+//					String problem = "Syntax error: you should only use lower case letters in keywords. ('" + readWord.toLowerCase() + "' instead of '" + readWord + "')"; 
+//					createErrorMarker(fReader.getPosition() - readWord.length(), fReader.getPosition(), problem);
+//					throw new ParsingException(problem);
+//				}
 				eatWhitespace();
 				if (fReader.read() != '(') {
 					String problem = "Syntax error: expected '('"; 
@@ -2687,12 +2716,12 @@ public class C4ScriptParser {
 				}
 				return true;
 			}
-			else if (readWord.equalsIgnoreCase("for")) {
-				if (!readWord.equals(readWord.toLowerCase())) {
-					String problem = "Syntax error: you should only use lower case letters in keywords. ('" + readWord.toLowerCase() + "' instead of '" + readWord + "')"; 
-					createErrorMarker(fReader.getPosition() - readWord.length(), fReader.getPosition(), problem);
-					throw new ParsingException(problem);
-				}
+			else if (readWord.equals("for")) {
+//				if (!readWord.equals(readWord.toLowerCase())) {
+//					String problem = "Syntax error: you should only use lower case letters in keywords. ('" + readWord.toLowerCase() + "' instead of '" + readWord + "')"; 
+//					createErrorMarker(fReader.getPosition() - readWord.length(), fReader.getPosition(), problem);
+//					throw new ParsingException(problem);
+//				}
 				eatWhitespace();
 				if (fReader.read() != '(') {
 					String problem = "Syntax error: expected '('"; 
