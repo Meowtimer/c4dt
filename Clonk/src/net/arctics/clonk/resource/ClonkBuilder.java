@@ -95,7 +95,9 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 				String[] libs = optionString.split("<>");
 				for(String lib : libs) {
 					if (new File(lib).exists()) {
-						C4Group.OpenFile(new File(lib)).accept(this);
+						C4Group group = C4Group.OpenFile(new File(lib));
+						group.open(true);
+						group.accept(this);
 					}
 					else  {
 						// FIXME create global problem marker that an extern lib does not exist
