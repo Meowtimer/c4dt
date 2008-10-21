@@ -6,6 +6,7 @@ import net.arctics.clonk.parser.C4Object;
 import net.arctics.clonk.parser.C4ObjectIntern;
 
 import org.eclipse.core.resources.IFile;
+import org.eclipse.jface.internal.text.html.HTMLTextPresenter;
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.DefaultInformationControl;
 import org.eclipse.jface.text.IDocument;
@@ -40,7 +41,6 @@ import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.editors.text.TextSourceViewerConfiguration;
 import org.eclipse.ui.part.FileEditorInput;
 import org.eclipse.ui.texteditor.ITextEditor;
-import org.eclipse.wst.sse.ui.internal.derived.HTMLTextPresenter;
 
 public class ClonkSourceViewerConfiguration extends TextSourceViewerConfiguration {
 	

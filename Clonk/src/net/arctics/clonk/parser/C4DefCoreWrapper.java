@@ -21,6 +21,7 @@ public class C4DefCoreWrapper {
 //	private Map<IFile,C4DefCoreData> data;
 	
 	private IFile defCoreFile;
+	private InputStream stream;
 	private C4ID objectID = null;
 	private String name;
 	private Map<String,String> defCoreProperties = new HashMap<String, String>(7);
@@ -29,6 +30,11 @@ public class C4DefCoreWrapper {
 	public C4DefCoreWrapper(IFile file) {
 		defCoreFile = file;
 //		data = new HashMap<IFile, C4DefCoreData>(100);
+	}
+	
+	public C4DefCoreWrapper(InputStream stream) {
+		this.stream = stream;
+		defCoreFile = null;
 	}
 	
 //	public static C4DefCoreParser getInstance() {
@@ -42,16 +48,23 @@ public class C4DefCoreWrapper {
 	
 	public void parse() throws CompilerException {
 		try {
-			defCoreFile.deleteMarkers(IMarker.PROBLEM, true, IResource.DEPTH_ONE);
-			InputStream stream = defCoreFile.getContents();
+			if (defCoreFile != null) {
+				defCoreFile.deleteMarkers(IMarker.PROBLEM, true, IResource.DEPTH_ONE);
+				stream = defCoreFile.getContents();
+			}
 			IniReader reader = new IniReader(stream);
 			String section = reader.nextSection();
 			if (section == null) {
-				String problem = "This file does not have a [DefCore] section!";
-				IMarker marker = defCoreFile.createMarker(IMarker.PROBLEM);
-				marker.setAttribute(IMarker.SEVERITY, IMarker.SEVERITY_ERROR);
-				marker.setAttribute(IMarker.TRANSIENT, false);
-				marker.setAttribute(IMarker.MESSAGE, problem);
+				if (defCoreFile != null) {
+					String problem = "This file does not have a [DefCore] section!";
+					IMarker marker = defCoreFile.createMarker(IMarker.PROBLEM);
+					marker.setAttribute(IMarker.SEVERITY, IMarker.SEVERITY_ERROR);
+					marker.setAttribute(IMarker.TRANSIENT, false);
+					marker.setAttribute(IMarker.MESSAGE, problem);
+				}
+				else {
+//					TODO warnings for external object problems?
+				}
 				return;
 			}
 			if (section.equals("DefCore")) {

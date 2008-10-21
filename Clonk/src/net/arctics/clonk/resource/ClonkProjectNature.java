@@ -15,7 +15,6 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IProjectNature;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
-import org.eclipse.jface.util.IPropertyChangeListener;
 
 public class ClonkProjectNature implements IProjectNature {
 
@@ -52,7 +51,7 @@ public class ClonkProjectNature implements IProjectNature {
 //	}
 	
 	public void configure() throws CoreException {
-		
+//		ClonkCore.getDefault().getPreferenceStore().addPropertyChangeListener(builder);		
 	}
 
 	public void deconfigure() throws CoreException {
@@ -123,7 +122,6 @@ public class ClonkProjectNature implements IProjectNature {
 		final IFile index = project.getFile(indexDataFile);
 		if (!index.exists()) {
 			indexedData = new ClonkIndex(project);
-			ClonkCore.getDefault().getPreferenceStore().addPropertyChangeListener((IPropertyChangeListener) indexedData);
 			return;
 		}
 		try {

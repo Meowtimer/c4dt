@@ -377,7 +377,20 @@ public class C4Group implements C4GroupItem {
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
+		}		
+	}
+	
+	public void accept(IC4GroupVisitor visitor) {
+		accept(visitor,getGroupType());
+	}
+	
+	private void accept(IC4GroupVisitor visitor, C4GroupType type) {
+		for(C4GroupItem item : childEntries) {
+			if (visitor.visit(item, type)) {
+				if (item instanceof C4Group) {
+					((C4Group)item).accept(visitor, type);
+				}
+			}
 		}
-		
 	}
 }

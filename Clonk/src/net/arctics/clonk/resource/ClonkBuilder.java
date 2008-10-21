@@ -1,16 +1,28 @@
 package net.arctics.clonk.resource;
 
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.util.List;
 import java.util.Map;
 
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.Utilities;
 import net.arctics.clonk.parser.C4DefCoreWrapper;
 import net.arctics.clonk.parser.C4Object;
+import net.arctics.clonk.parser.C4ObjectExtern;
 import net.arctics.clonk.parser.C4ObjectIntern;
 import net.arctics.clonk.parser.C4ObjectParser;
 import net.arctics.clonk.parser.C4ScriptParser;
 import net.arctics.clonk.parser.ClonkIndex;
 import net.arctics.clonk.parser.CompilerException;
+import net.arctics.clonk.preferences.PreferenceConstants;
+import net.arctics.clonk.resource.c4group.C4Entry;
+import net.arctics.clonk.resource.c4group.C4Group;
+import net.arctics.clonk.resource.c4group.C4GroupItem;
+import net.arctics.clonk.resource.c4group.IC4GroupVisitor;
+import net.arctics.clonk.resource.c4group.InvalidDataException;
+import net.arctics.clonk.resource.c4group.C4Group.C4GroupType;
 import net.arctics.clonk.ui.editors.C4ScriptEditor;
 
 import org.eclipse.core.resources.IContainer;
@@ -23,6 +35,7 @@ import org.eclipse.core.resources.IResourceVisitor;
 import org.eclipse.core.resources.IncrementalProjectBuilder;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.jface.util.IPropertyChangeListener;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IEditorReference;
@@ -35,7 +48,7 @@ import org.eclipse.ui.PlatformUI;
  * This builder launches the parser that indexes all c4objects and highlights syntax errors.
  * @author ZokRadonh
  */
-public class ClonkBuilder extends IncrementalProjectBuilder implements IResourceDeltaVisitor, IResourceVisitor {
+public class ClonkBuilder extends IncrementalProjectBuilder implements IResourceDeltaVisitor, IResourceVisitor, IC4GroupVisitor, IPropertyChangeListener {
 	
 	private int buildPhase;
 	private IProgressMonitor monitor;
@@ -78,6 +91,16 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 				break;
 			case FULL_BUILD:
 			case CLEAN_BUILD:
+				String optionString = ClonkCore.getDefault().getPreferenceStore().getString(PreferenceConstants.STANDARD_EXT_LIBS);
+				String[] libs = optionString.split("<>");
+				for(String lib : libs) {
+					if (new File(lib).exists()) {
+						C4Group.OpenFile(new File(lib)).accept(this);
+					}
+					else  {
+						// FIXME create global problem marker that an extern lib does not exist
+					}
+				}
 				if (proj != null) {
 					// count num of resources to build
 					ResourceCounter counter = new ResourceCounter(ResourceCounter.COUNT_CONTAINER);
@@ -217,6 +240,93 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 			}
 		}
 		else return false;
+	}
+
+	public boolean visit(C4GroupItem item, C4GroupType packageType) {
+		if (item instanceof C4Group) {
+			C4Group group = (C4Group) item;
+			if (group.getGroupType() == C4GroupType.DefinitionGroup) { // is .c4d
+				C4Entry defCore = null, script = null;
+				for(C4GroupItem child : group.getChildEntries()) {
+					if (!(child instanceof C4Entry)) continue;
+					if (child.getName().equals("DefCore.txt")) {
+						defCore = (C4Entry) child;
+					}
+					else if (child.getName().equals("Script.c")) {
+						script = (C4Entry) child;
+					}
+				}
+				if (defCore != null && script != null) {
+					C4DefCoreWrapper defCoreWrapper = new C4DefCoreWrapper(new ByteArrayInputStream(defCore.getContents()));
+					try {
+						defCoreWrapper.parse();
+						C4Object obj = new C4ObjectExtern(defCoreWrapper.getObjectID(),item.getName(),group);
+						C4ScriptParser parser = new C4ScriptParser(new ByteArrayInputStream(script.getContents()),script.computeSize(),obj);
+						parser.parse();
+					} catch (CompilerException e) {
+						e.printStackTrace();
+					}
+				}
+			}
+		}
+		else if (item instanceof C4Entry) {
+			if (packageType == C4GroupType.ResourceGroup) { // System.c4g like
+				if (item.getName().endsWith(".c")) {
+					byte[] content = ((C4Entry)item).getContents();
+					try {
+						C4ScriptParser parser = new C4ScriptParser(new ByteArrayInputStream(content),((C4Entry)item).computeSize(),null);
+						parser.parse();
+					} catch (CompilerException e) {
+						e.printStackTrace();
+					}
+				}				
+			}
+		}
+		if (item instanceof C4Group)
+			return true;
+		else
+			return false;
+	}
+	
+	private boolean isIn(String item, String[] array) {
+		for(String newLib : array) {
+			if (newLib.equals(item)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	public void propertyChange(org.eclipse.jface.util.PropertyChangeEvent event) {
+		if (event.getProperty().equals(PreferenceConstants.STANDARD_EXT_LIBS)) {
+			String oldValue = (String) event.getOldValue();
+			String newValue = (String) event.getNewValue();
+			String[] oldLibs = oldValue.split("<>");
+			String[] newLibs = newValue.split("<>");
+			for(String lib : oldLibs) {
+				if (!isIn(lib, newLibs)) { 
+					// lib deselected
+					// TODO: remove all objects in lib
+				}
+			}
+			for(String lib : newLibs) {
+				if (!isIn(lib, oldLibs)) {
+					// new lib selected
+					// TODO: create new externobjects and add to index
+					File libFile = new File(lib);
+					try {
+						C4Group group = C4Group.OpenFile(libFile);
+						group.open(true);
+						group.accept(this);
+					} catch (FileNotFoundException e) {
+						e.printStackTrace();
+					} catch (InvalidDataException e) {
+						e.printStackTrace();
+					}
+					
+				}
+			}
+		}
 	}
 
 }

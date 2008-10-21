@@ -18,7 +18,9 @@ import net.arctics.clonk.parser.C4Function.C4FunctionScope;
 import net.arctics.clonk.parser.C4Variable.C4VariableScope;
 import net.arctics.clonk.preferences.PreferenceConstants;
 import net.arctics.clonk.resource.c4group.C4Group;
+import net.arctics.clonk.resource.c4group.C4GroupItem;
 import net.arctics.clonk.resource.c4group.InvalidDataException;
+import net.arctics.clonk.resource.c4group.C4Group.C4GroupType;
 
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
@@ -29,7 +31,7 @@ import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.jface.util.IPropertyChangeListener;
 
-public class ClonkIndex implements Serializable, IPropertyChangeListener {
+public class ClonkIndex implements Serializable {
 	
 	/**
 	 * 
@@ -463,47 +465,5 @@ public class ClonkIndex implements Serializable, IPropertyChangeListener {
 				return var;
 		}
 		return null;
-	}
-
-	private boolean isIn(String item, String[] array) {
-		for(String newLib : array) {
-			if (newLib.equals(item)) {
-				return true;
-			}
-		}
-		return false;
-	}
-
-	public void propertyChange(org.eclipse.jface.util.PropertyChangeEvent event) {
-		if (event.getProperty().equals(PreferenceConstants.STANDARD_EXT_LIBS)) {
-			String oldValue = (String) event.getOldValue();
-			String newValue = (String) event.getNewValue();
-			String[] oldLibs = oldValue.split("<>");
-			String[] newLibs = newValue.split("<>");
-			for(String lib : oldLibs) {
-				if (!isIn(lib, newLibs)) { 
-					// lib deselected
-					// TODO: remove all objects in lib
-				}
-			}
-			for(String lib : newLibs) {
-				if (!isIn(lib, oldLibs)) {
-					// new lib selected
-					// TODO: create new externobjects and add to index
-					File libFile = new File(lib);
-					try {
-						C4Group group = C4Group.OpenFile(libFile);
-						
-					} catch (FileNotFoundException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					} catch (InvalidDataException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
-					
-				}
-			}
-		}
 	}
 }
