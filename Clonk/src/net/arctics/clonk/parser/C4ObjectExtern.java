@@ -40,7 +40,7 @@ public class C4ObjectExtern extends C4Object {
 	public Object getScript() {
 		List<C4GroupItem> children = group.getChildEntries();
 		for(C4GroupItem item : children) {
-			if (item.getName().endsWith("Script.c")) {
+			if (item.getName().endsWith(".c")) {
 				return item;
 			}
 		}

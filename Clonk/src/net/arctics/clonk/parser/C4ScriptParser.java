@@ -2989,7 +2989,7 @@ public class C4ScriptParser {
 
 	public void clean() {
 		try {
-			fScript.deleteMarkers(IMarker.PROBLEM, true, IResource.DEPTH_ONE);
+			if (fScript != null) fScript.deleteMarkers(IMarker.PROBLEM, true, IResource.DEPTH_ONE);
 		} catch (CoreException e1) {
 			e1.printStackTrace();
 		}

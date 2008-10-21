@@ -216,7 +216,8 @@ public class C4Group implements C4GroupItem {
 	}
 	
 	public static C4GroupType getGroupType(String groupName) {
-		C4GroupType result = extensionToGroupTypeMap.get(groupName.substring(groupName.lastIndexOf(".")));
+		String ext = groupName.substring(groupName.lastIndexOf(".") + 1);
+		C4GroupType result = extensionToGroupTypeMap.get(ext);
 		if (result != null)
 			return result;
 		return C4GroupType.OtherGroup;

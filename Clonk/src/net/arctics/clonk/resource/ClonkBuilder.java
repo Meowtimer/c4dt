@@ -9,6 +9,7 @@ import java.util.Map;
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.Utilities;
 import net.arctics.clonk.parser.C4DefCoreWrapper;
+import net.arctics.clonk.parser.C4ID;
 import net.arctics.clonk.parser.C4Object;
 import net.arctics.clonk.parser.C4ObjectExtern;
 import net.arctics.clonk.parser.C4ObjectIntern;
@@ -276,8 +277,10 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 				if (item.getName().endsWith(".c")) {
 					byte[] content = ((C4Entry)item).getContents();
 					try {
-						C4ScriptParser parser = new C4ScriptParser(new ByteArrayInputStream(content),((C4Entry)item).computeSize(),null);
+						C4ObjectExtern externSystemc4g = new C4ObjectExtern(C4ID.getSpecialID("System.c4g"),"System.c4g",item.getParentGroup());
+						C4ScriptParser parser = new C4ScriptParser(new ByteArrayInputStream(content),((C4Entry)item).computeSize(),externSystemc4g);
 						parser.parse();
+						Utilities.getProject(getProject()).getIndexedData().addObject(externSystemc4g);
 					} catch (CompilerException e) {
 						e.printStackTrace();
 					}
