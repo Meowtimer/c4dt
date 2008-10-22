@@ -282,6 +282,14 @@ public class C4ScriptParser {
 		parseDeclarations();
 		parseFunctionCode();
 	}
+	
+	/**
+	 * Parses in two steps without a clean()
+	 */
+	public void parseAdditional() {
+		parseDeclarations();
+		parseFunctionCode();
+	}
 
 	public void parseDeclarations() {
 		int offset = 0;
@@ -1740,34 +1748,35 @@ public class C4ScriptParser {
 		@Override
 		public void reportErrors(C4ScriptParser parser) throws ParsingException {
 			super.reportErrors(parser);
+			if (!(parser.container instanceof C4ObjectExtern)) { // C4ObjectExtern objects are not connected to an index
+				ClonkIndex index = Utilities.getProject(parser.container).getIndexedData();
+				
+				// FIXME: built-in constants like true/false: where to put them?
+				if (fieldName.equals("true") || fieldName.equals("false"))
+					return;
+				
+				// find inside this script (and included objects)
+				field = parser.container.findVariable(fieldName, new C4Object.FindFieldInfo(index, parser.activeFunc));
+				
+				// find static/global stuff
+				if (field == null) {
+					field = index.findGlobalField(fieldName);
+					if (field instanceof C4Function)
+						field = null; // FIXME?
+				}
+				
+				// engine-defined
+				if (field == null) {
+					C4Field f = ClonkCore.ENGINE_OBJECT.findField(fieldName, new C4Object.FindFieldInfo(index));
+					// global constant-like functions
+					if (f != null && f instanceof C4Function &&  ((C4Function)f).getParameter().size() == 0)
+						field = f;
+				}
 			
-			ClonkIndex index = Utilities.getProject(parser.container).getIndexedData();
-			
-			// FIXME: built-in constants like true/false: where to put them?
-			if (fieldName.equals("true") || fieldName.equals("false"))
-				return;
-			
-			// find inside this script (and included objects)
-			field = parser.container.findVariable(fieldName, new C4Object.FindFieldInfo(index, parser.activeFunc));
-			
-			// find static/global stuff
-			if (field == null) {
-				field = index.findGlobalField(fieldName);
-				if (field instanceof C4Function)
-					field = null; // FIXME?
+				// nope
+				if (field == null)
+					parser.warningWithCode(ErrorCode.UndeclaredIdentifier, getExprStart(), getExprStart()+fieldName.length(), fieldName);
 			}
-			
-			// engine-defined
-			if (field == null) {
-				C4Field f = ClonkCore.ENGINE_OBJECT.findField(fieldName, new C4Object.FindFieldInfo(index));
-				// global constant-like functions
-				if (f != null && f instanceof C4Function &&  ((C4Function)f).getParameter().size() == 0)
-					field = f;
-			}
-			
-			// nope
-			if (field == null)
-				parser.warningWithCode(ErrorCode.UndeclaredIdentifier, getExprStart(), getExprStart()+fieldName.length(), fieldName);
 		}
 
 	}
@@ -1805,8 +1814,23 @@ public class C4ScriptParser {
 				if (p != null) {
 					lookIn = p.guessObjectType(parser);
 				}
-				if (lookIn != null) {
+				if (lookIn != null && !(lookIn instanceof C4ObjectExtern)) {
+					// search in project index
 					field = lookIn.findFunction(fieldName, new C4Object.FindFieldInfo(Utilities.getProject(lookIn).getIndexedData()));
+					
+					// search in extern lib
+					if (field == null) {
+						if (ClonkCore.EXTERN_LIBS.definedFunctions != null) { // FIXME only globals
+							for(C4Function func : ClonkCore.EXTERN_LIBS.definedFunctions) {
+								if (func.getName() == fieldName) {
+									field = func;
+									break;
+								}
+							}
+						}
+					}
+					
+					// nothing found
 					if (field == null)
 						parser.warningWithCode(ErrorCode.UndeclaredIdentifier, getExprStart(), getExprStart()+fieldName.length(), fieldName);
 				}

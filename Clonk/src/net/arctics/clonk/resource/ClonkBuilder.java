@@ -117,11 +117,23 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 					proj.accept(this);
 					Utilities.getProject(proj).getIndexedData().refreshCache();
 					
+					if (monitor.isCanceled()) {
+						monitor.done();
+						return null;
+					}
 					// parse code bodies
 					buildPhase = 1;
 					proj.accept(this);
+					
+					// fire update event
+					proj.touch(monitor);
 				}
-				proj.touch(monitor);
+				
+			}
+			
+			if (monitor.isCanceled()) {
+				monitor.done();
+				return null;
 			}
 			
 			Display.getDefault().asyncExec(new Runnable() {
@@ -277,10 +289,11 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 				if (item.getName().endsWith(".c")) {
 					byte[] content = ((C4Entry)item).getContents();
 					try {
-						C4ObjectExtern externSystemc4g = new C4ObjectExtern(C4ID.getSpecialID("System.c4g"),"System.c4g",item.getParentGroup());
-						C4ScriptParser parser = new C4ScriptParser(new ByteArrayInputStream(content),((C4Entry)item).computeSize(),externSystemc4g);
-						parser.parse();
-						Utilities.getProject(getProject()).getIndexedData().addObject(externSystemc4g);
+						
+//						C4ObjectExtern externSystemc4g = new C4ObjectExtern(C4ID.getSpecialID("System.c4g"),"System.c4g",item.getParentGroup());
+						C4ScriptParser parser = new C4ScriptParser(new ByteArrayInputStream(content),((C4Entry)item).computeSize(),ClonkCore.EXTERN_LIBS);
+						parser.parseAdditional();
+//						Utilities.getProject(getProject()).getIndexedData().addObject(externSystemc4g);
 					} catch (CompilerException e) {
 						e.printStackTrace();
 					}

@@ -53,6 +53,7 @@ public abstract class Utilities {
 	}
 	
 	public static ClonkProjectNature getProject(C4Object obj) {
+		if (obj == null) return null;
 		return getProject((IResource)obj.getScript());
 	}
 	

@@ -38,6 +38,7 @@ public class C4ObjectExtern extends C4Object {
 
 	@Override
 	public Object getScript() {
+		if (group == null) return null;
 		List<C4GroupItem> children = group.getChildEntries();
 		for(C4GroupItem item : children) {
 			if (item.getName().endsWith(".c")) {
