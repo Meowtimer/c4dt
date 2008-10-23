@@ -150,14 +150,16 @@ public class ClonkIndex implements Serializable {
 		}
 		
 		// cache extern lib
-		for(C4Function func : ClonkCore.EXTERN_LIBS.definedFunctions) {
-			if (func.getVisibility() == C4FunctionScope.FUNC_GLOBAL) {
-				globalFunctions.add(func);
+		for(C4ObjectExtern ext : ClonkCore.EXTERN_LIBS) {
+			for(C4Function func : ext.definedFunctions) {
+				if (func.getVisibility() == C4FunctionScope.FUNC_GLOBAL) {
+					globalFunctions.add(func);
+				}
 			}
-		}
-		for(C4Variable var : ClonkCore.EXTERN_LIBS.definedVariables) {
-			if (var.getScope() == C4VariableScope.VAR_STATIC) {
-				staticVariables.add(var);
+			for(C4Variable var : ext.definedVariables) {
+				if (var.getScope() == C4VariableScope.VAR_STATIC) {
+					staticVariables.add(var);
+				}
 			}
 		}
 		

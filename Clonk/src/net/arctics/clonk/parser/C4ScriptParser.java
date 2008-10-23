@@ -1820,8 +1820,9 @@ public class C4ScriptParser {
 					
 					// search in extern lib
 					if (field == null) {
-						if (ClonkCore.EXTERN_LIBS.definedFunctions != null) { // FIXME only globals
-							for(C4Function func : ClonkCore.EXTERN_LIBS.definedFunctions) {
+						for(C4ObjectExtern ext : ClonkCore.EXTERN_LIBS) {
+							for(C4Function func : ext.definedFunctions) {
+								if (func.getVisibility() != C4FunctionScope.FUNC_GLOBAL) continue;
 								if (func.getName() == fieldName) {
 									field = func;
 									break;

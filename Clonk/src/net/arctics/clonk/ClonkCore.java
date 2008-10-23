@@ -35,7 +35,7 @@ public class ClonkCore extends AbstractUIPlugin {
 	
 	public static final C4ObjectExtern ENGINE_OBJECT = new C4ObjectExtern(C4ID.getSpecialID("Engine"),"Engine",null);
 	
-	public static final C4ObjectExtern EXTERN_LIBS = new C4ObjectExtern(C4ID.getSpecialID("System"),"Extern",null);
+	public static final List<C4ObjectExtern> EXTERN_LIBS = new ArrayList<C4ObjectExtern>();
 	
 	// The shared instance
 	private static ClonkCore plugin;

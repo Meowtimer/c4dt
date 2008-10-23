@@ -11,7 +11,7 @@ public class C4ObjectExtern extends C4Object {
 
 	private static final long serialVersionUID = -4964785375712432236L;
 //	protected IPath path;
-	protected C4Group group;
+	protected transient C4Group group;
 	
 	public C4ObjectExtern(C4ID id, String name, C4Group group) {
 		super(id, name);
