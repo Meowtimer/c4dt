@@ -16,7 +16,9 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import javax.xml.transform.stream.StreamResult;
 
@@ -38,6 +40,7 @@ import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.QualifiedName;
 import org.eclipse.jface.resource.ImageDescriptor;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.osgi.framework.BundleContext;
 
@@ -263,9 +266,18 @@ public class ClonkCore extends AbstractUIPlugin implements IResourceChangeListen
 		return imageDescriptorFromPlugin(PLUGIN_ID, path);
 	}
 
+	private transient Set<ClonkProjectNature> gatheredNatures;
 	public void resourceChanged(IResourceChangeEvent event) {
 		try {
+			gatheredNatures = new HashSet<ClonkProjectNature>();
 			event.getDelta().accept(this);
+			Display.getDefault().asyncExec(new Runnable() {
+				public void run() {
+					for (ClonkProjectNature nature : gatheredNatures)
+						nature.saveIndexData(); // resave indexdata
+					gatheredNatures = null;	
+				}
+			});
 		} catch (CoreException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -275,6 +287,7 @@ public class ClonkCore extends AbstractUIPlugin implements IResourceChangeListen
 	public boolean visit(IResourceDelta delta) throws CoreException {
 		if (delta.getKind() == IResourceDelta.REMOVED) {
 			ClonkProjectNature proj = Utilities.getProject(delta.getResource());
+			gatheredNatures.add(proj);
 			if (proj != null && delta.getResource() instanceof IFolder) {
 				C4Object obj = C4Object.objectCorrespondingTo((IFolder)delta.getResource());
 				if (obj != null)
