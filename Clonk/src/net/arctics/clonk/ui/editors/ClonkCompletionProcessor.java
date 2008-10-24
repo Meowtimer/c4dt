@@ -66,6 +66,20 @@ public class ClonkCompletionProcessor implements IContentAssistProcessor {
 		proposals.add(prop);
 	}
 	
+	public ClonkCompletionProposal proposalForVar(C4Variable var, String prefix, int offset) {
+		if (prefix != null && !var.getName().toLowerCase().startsWith(prefix))
+			return null;
+		String displayString = var.getName();
+		int replacementLength = 0;
+		if (prefix != null)
+			replacementLength = prefix.length();
+		ClonkCompletionProposal prop = new ClonkCompletionProposal(
+			var.getName(), offset, replacementLength, var.getName().length(), Utilities.getIconForVariable(var), displayString, 
+			null, var.getAdditionalProposalInfo(), " - " + var.getObject().getName()
+		);
+		return prop;
+	}
+	
 	public ICompletionProposal[] computeCompletionProposals(ITextViewer viewer,
 			int offset) {
 		
@@ -96,7 +110,10 @@ public class ClonkCompletionProcessor implements IContentAssistProcessor {
 //		if (indexer.) {
 //			statusMessages.add("Clonk directory");
 //		}
-		// TODO implement Clonk directory indexing status indicator
+
+		if (ClonkCore.EXTERN_LIBS.size() > 0) {
+			statusMessages.add("Extern libs");
+		}
 		if (nature.isIndexed()) {
 			statusMessages.add("Project files");
 		}
@@ -161,23 +178,20 @@ public class ClonkCompletionProcessor implements IContentAssistProcessor {
 					proposalForFunc(func, prefix, offset, proposals, func.getObject().getName());
 				}
 				for (C4Variable var : index.getStaticVariables()) {
-					if (prefix != null && !var.getName().toLowerCase().startsWith(prefix))
-						continue;
-					String displayString = var.getName();
-					int replacementLength = 0;
-					if (prefix != null)
-						replacementLength = prefix.length();
-					ClonkCompletionProposal prop = new ClonkCompletionProposal(
-						var.getName(), offset, replacementLength, var.getName().length(), Utilities.getIconForVariable(var), displayString, 
-						null, var.getAdditionalProposalInfo(), " - " + var.getObject().getName()
-					);
-					proposals.add(prop);
+					ClonkCompletionProposal prop = proposalForVar(var,prefix,offset);
+					if (prop != null)
+						proposals.add(prop);
 				}
 			}
 			
 			if (ClonkCore.ENGINE_OBJECT != null) {
 				for (C4Function func : ClonkCore.ENGINE_OBJECT.getDefinedFunctions()) {
 					proposalForFunc(func, prefix, offset, proposals, ClonkCore.ENGINE_OBJECT.getName());
+				}
+				for (C4Variable var : ClonkCore.ENGINE_OBJECT.getDefinedVariables()) {
+					ClonkCompletionProposal prop = proposalForVar(var,prefix,offset);
+					if (prop != null)
+						proposals.add(prop);
 				}
 			}
 			

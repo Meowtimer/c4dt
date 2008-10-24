@@ -3,17 +3,22 @@ package net.arctics.clonk;
 import java.beans.XMLDecoder;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
+import java.io.BufferedReader;
+import java.io.DataInputStream;
 import java.io.EOFException;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+
+import javax.xml.transform.stream.StreamResult;
 
 import net.arctics.clonk.parser.C4Field;
 import net.arctics.clonk.parser.C4Function;
@@ -21,6 +26,7 @@ import net.arctics.clonk.parser.C4ID;
 import net.arctics.clonk.parser.C4Object;
 import net.arctics.clonk.parser.C4ObjectExtern;
 import net.arctics.clonk.parser.C4Variable;
+import net.arctics.clonk.parser.C4Variable.C4VariableScope;
 import net.arctics.clonk.resource.ClonkProjectNature;
 
 import org.eclipse.core.resources.IFolder;
@@ -88,6 +94,17 @@ public class ClonkCore extends AbstractUIPlugin implements IResourceChangeListen
 			}
 			catch(EOFException e) {
 				// finished
+			}
+		}
+		
+		URL engineConstants = getBundle().getEntry("res/constants.txt");
+		if (engineConstants != null) {
+			BufferedReader reader = new BufferedReader(new InputStreamReader(engineConstants.openStream()));
+			String line;
+			while((line = reader.readLine()) != null) {
+				C4Variable var = new C4Variable(line,C4VariableScope.VAR_CONST);
+				var.setObject(ENGINE_OBJECT);
+				ENGINE_OBJECT.addField(var);
 			}
 		}
 		
