@@ -158,7 +158,7 @@ public class NewC4Object extends Wizard implements INewWizard {
 		String contents =
 			"[DefCore]" + "\r\n" +
 			"id=" + objectID + "\r\n" +
-			"Name=" + fileName.substring(4) + "\r\n" +
+			"Name=" + fileName.substring(0, fileName.lastIndexOf('.')) + "\r\n" +
 			"Version=4,9,5" + "\r\n" +
 			"Category=18960" + "\r\n" +
 			"MaxUserSelect=10" + "\r\n" +

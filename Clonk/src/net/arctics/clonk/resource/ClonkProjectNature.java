@@ -7,7 +7,6 @@ import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 
-import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.ClonkIndex;
 
 import org.eclipse.core.resources.IFile;
@@ -20,42 +19,18 @@ public class ClonkProjectNature implements IProjectNature {
 
 	private static final String indexDataFile = "indexdata";
 	
-//	private ClonkIndexer indexer; // the root c4d file (e.g. Objects.c4d)
 	private IProject project;
 	private boolean isIndexed = false;
 	
 	private ClonkIndex indexedData = null;
 	
 	public ClonkProjectNature() {
-//		indexer = new ClonkIndexer();
 	}
 	
-//	public void indexAll() {
-//		try {
-//			for(IResource res : project.members()) {
-//				if (res instanceof IFolder) {
-//					C4GroupType groupType = ClonkIndexer.groupTypeFromFolderName(res.getName());
-//					if (groupType != C4GroupType.OtherGroup)
-//						indexer.indexFolder((IFolder)res, project.getFullPath(), true);
-//				}
-//			}
-//			isIndexed = true;
-//		}
-//		catch (CoreException e) {
-//			e.printStackTrace();
-//		}
-//	}
-//	
-//	public void index(IFile file) {
-//		indexer.indexFolder((IFolder)file.getParent(), file.getParent().getFullPath(), false);
-//	}
-	
 	public void configure() throws CoreException {
-//		ClonkCore.getDefault().getPreferenceStore().addPropertyChangeListener(builder);		
 	}
 
 	public void deconfigure() throws CoreException {
-		
 	}
 
 	public IProject getProject() {
@@ -65,20 +40,6 @@ public class ClonkProjectNature implements IProjectNature {
 	public void setProject(IProject project) {
 		this.project = project;
 	}
-	
-//	/**
-//	 * @return the compiler
-//	 */
-//	public ClonkIndexer getIndexer() {
-//		return indexer;
-//	}
-//
-//	/**
-//	 * @param compiler the compiler to set
-//	 */
-//	public void setIndexer(ClonkIndexer compiler) {
-//		this.indexer = compiler;
-//	}
 
 	/**
 	 * @return the isIndexed
@@ -136,6 +97,5 @@ public class ClonkProjectNature implements IProjectNature {
 			indexedData = new ClonkIndex(project);
 		}
 	}
-
 
 }

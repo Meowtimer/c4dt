@@ -320,12 +320,7 @@ public abstract class C4Object extends C4Field {
 	}
 	
 	public static C4Object objectCorrespondingTo(IContainer folder) {
-//		try {
-			return (Utilities.getIndex(folder) != null) ? Utilities.getIndex(folder).getObject(folder) : null;
-//			return (folder != null) ? (C4Object)folder.getSessionProperty(ClonkCore.C4OBJECT_PROPERTY_ID) : null;
-//		} catch (CoreException e) {
-//			return null;
-//		}
+		return (Utilities.getIndex(folder) != null) ? Utilities.getIndex(folder).getObject(folder) : null;
 	}
 
 	public void fixReferencesAfterSerialization() {

@@ -22,15 +22,16 @@ public enum C4Type {
 	}
 	
 	public static C4Type makeType(String arg) {
-		if (arg.equalsIgnoreCase("any")) return C4Type.ANY;
-		if (arg.equalsIgnoreCase("bool")) return C4Type.BOOL;
-		if (arg.equalsIgnoreCase("int")) return C4Type.INT;
-		if (arg.equalsIgnoreCase("id")) return C4Type.ID;
-		if (arg.equalsIgnoreCase("string")) return C4Type.STRING;
-		if (arg.equalsIgnoreCase("array")) return C4Type.ARRAY;
-		if (arg.equalsIgnoreCase("object")) return C4Type.OBJECT;
-		if (arg.equalsIgnoreCase("dword")) return C4Type.DWORD;
-		if (arg.equalsIgnoreCase("&")) return C4Type.REFERENCE;
+		// ID, Id.. all variable names
+		if (arg.equals("any")) return C4Type.ANY;
+		if (arg.equals("bool")) return C4Type.BOOL;
+		if (arg.equals("int")) return C4Type.INT;
+		if (arg.equals("id")) return C4Type.ID;
+		if (arg.equals("string")) return C4Type.STRING;
+		if (arg.equals("array")) return C4Type.ARRAY;
+		if (arg.equals("object")) return C4Type.OBJECT;
+		if (arg.equals("dword")) return C4Type.DWORD;
+		if (arg.equals("&")) return C4Type.REFERENCE;
 		return C4Type.UNKNOWN;
 	}
 }

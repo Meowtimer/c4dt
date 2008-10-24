@@ -97,6 +97,10 @@ public class C4ObjectIntern extends C4Object implements Serializable {
 	}
 	
 	public void setCorrespondingFolder(IContainer folder) throws CoreException {
+		if (objectFolder == folder)
+			return;
+		if (objectFolder != null)
+			objectFolder.setSessionProperty(ClonkCore.C4OBJECT_PROPERTY_ID, null);
 		if (folder != null)
 			folder.setSessionProperty(ClonkCore.C4OBJECT_PROPERTY_ID, this);
 		objectFolder = folder;

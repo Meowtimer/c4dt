@@ -14,8 +14,15 @@ import net.arctics.clonk.parser.C4ID;
 import net.arctics.clonk.parser.C4Object;
 import net.arctics.clonk.parser.C4ObjectExtern;
 import net.arctics.clonk.parser.C4Variable;
+import net.arctics.clonk.resource.ClonkProjectNature;
 
-import org.eclipse.core.runtime.Path;
+import org.eclipse.core.resources.IFolder;
+import org.eclipse.core.resources.IResourceChangeEvent;
+import org.eclipse.core.resources.IResourceChangeListener;
+import org.eclipse.core.resources.IResourceDelta;
+import org.eclipse.core.resources.IResourceDeltaVisitor;
+import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.QualifiedName;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
@@ -24,7 +31,7 @@ import org.osgi.framework.BundleContext;
 /**
  * The activator class controls the plug-in life cycle
  */
-public class ClonkCore extends AbstractUIPlugin {
+public class ClonkCore extends AbstractUIPlugin implements IResourceChangeListener, IResourceDeltaVisitor {
 
 	// The plug-in ID
 	public static final String PLUGIN_ID = "net.arctics.clonk";
@@ -75,6 +82,8 @@ public class ClonkCore extends AbstractUIPlugin {
 				// finished
 			}
 		}
+		
+		ResourcesPlugin.getWorkspace().addResourceChangeListener(this);
 		
 		
 //		FileInputStream file = new FileInputStream("javadata.txt");
@@ -200,6 +209,7 @@ public class ClonkCore extends AbstractUIPlugin {
 	 * @see org.eclipse.ui.plugin.AbstractUIPlugin#stop(org.osgi.framework.BundleContext)
 	 */
 	public void stop(BundleContext context) throws Exception {
+		ResourcesPlugin.getWorkspace().removeResourceChangeListener(this);
 		plugin = null;
 		super.stop(context);
 	}
@@ -222,5 +232,26 @@ public class ClonkCore extends AbstractUIPlugin {
 	 */
 	public static ImageDescriptor getImageDescriptor(String path) {
 		return imageDescriptorFromPlugin(PLUGIN_ID, path);
+	}
+
+	public void resourceChanged(IResourceChangeEvent event) {
+		try {
+			event.getDelta().accept(this);
+		} catch (CoreException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+
+	public boolean visit(IResourceDelta delta) throws CoreException {
+		if (delta.getKind() == IResourceDelta.REMOVED) {
+			ClonkProjectNature proj = Utilities.getProject(delta.getResource());
+			if (proj != null && delta.getResource() instanceof IFolder) {
+				C4Object obj = C4Object.objectCorrespondingTo((IFolder)delta.getResource());
+				if (obj != null)
+					proj.getIndexedData().removeObject(obj);
+			}
+		}
+		return true;
 	}
 }

@@ -26,6 +26,9 @@ import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.IResourceChangeEvent;
+import org.eclipse.core.resources.IResourceDelta;
+import org.eclipse.core.resources.IResourceDeltaVisitor;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Path;
@@ -96,7 +99,17 @@ public class ClonkIndex implements Serializable {
 			}
 			return null;
 		} catch (CoreException e) {
-			e.printStackTrace();
+			// likely due to getSessionProperty being called on non-existant resources
+			for (List<C4Object> list : getIndexedObjects().values()) {
+				for (C4Object obj : list) {
+					if (obj instanceof C4ObjectIntern) {
+						C4ObjectIntern intern = (C4ObjectIntern)obj;
+						if (intern.getObjectFolder() == folder)
+							return intern;
+					}
+				}
+			}
+			//e.printStackTrace();
 			return null;
 		}
 	}
@@ -479,4 +492,5 @@ public class ClonkIndex implements Serializable {
 		}
 		return null;
 	}
+
 }
