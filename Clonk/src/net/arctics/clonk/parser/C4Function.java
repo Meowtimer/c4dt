@@ -250,7 +250,7 @@ public class C4Function extends C4Field implements Serializable {
 		if (getObject() == ClonkCore.ENGINE_OBJECT) {
 			//return String.format("<b>%s</b><br>%s<br><i><a href='%s'>Online Documentation</a></i>", getName(), getDescription(), getDocumentationURL());
 			// engine function
-			return String.format("<b>%s</b><br>%s<br><a href='%s'>Online Dokumentation</a>", getName(), getDescription(), getDocumentationURL());
+			return String.format("<b>%s</b><br>%s<br><a href=\"%s\">Online Dokumentation</a>", getName(), getDescription(), getDocumentationURL());
 		}
 		return super.getShortInfo();
 	}

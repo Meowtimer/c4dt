@@ -95,7 +95,7 @@ public class NewC4Object extends Wizard implements INewWizard {
 		IProgressMonitor monitor)
 		throws CoreException {
 		// create a sample file
-		monitor.beginTask("Creating c4d." + fileName, 1);
+		monitor.beginTask("Creating " + fileName, 1);
 		IWorkspaceRoot root = ResourcesPlugin.getWorkspace().getRoot();
 		IResource resource = root.findMember(new Path(containerName));
 		if (!resource.exists() || !(resource instanceof IContainer)) {

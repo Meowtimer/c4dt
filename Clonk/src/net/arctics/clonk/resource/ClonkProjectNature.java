@@ -129,7 +129,7 @@ public class ClonkProjectNature implements IProjectNature {
 			ObjectInputStream objStream = new ObjectInputStream(in);
 			indexedData = (ClonkIndex)objStream.readObject();
 			indexedData.setProject(getProject());
-			indexedData.fixReferences();
+			indexedData.fixReferencesAfterSerialization();
 		} catch (Exception e) {
 			e.printStackTrace();
 			// somehow failed - ignore

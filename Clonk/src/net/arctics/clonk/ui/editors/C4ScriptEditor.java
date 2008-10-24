@@ -113,4 +113,8 @@ public class C4ScriptEditor extends AbstractDecoratedTextEditor {
 //		}
 	}
 
+	public void refreshOutline() {
+		outlinePage.refresh();
+	}
+
 }

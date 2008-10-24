@@ -312,11 +312,13 @@ public class C4ScriptParser {
 			try {
 				parseCodeBlock(function.getBody().getStart());
 			} catch (ParsingException e) {
-				System.out.println("ParsingException in " + activeFunc.getName());
+				System.out.println(String.format("ParsingException in %s (%s)", activeFunc.getName(), container.getName()));
+				e.printStackTrace();
 				// not very exceptional
 			} catch (Exception e) {
 				// errorWithCode throws ^^;
 				warningWithCode(ErrorCode.InternalError, fReader.getPosition(), fReader.getPosition()+1, e.getMessage());
+				e.printStackTrace();
 			}
 		}
 	}

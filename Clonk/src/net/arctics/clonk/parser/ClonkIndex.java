@@ -38,8 +38,8 @@ public class ClonkIndex implements Serializable {
 	private Map<C4ID,List<C4Object>> projectObjects;
 	
 	private transient IProject project;
-	private List<C4Function> globalFunctions;
-	private List<C4Variable> staticVariables;
+	private transient List<C4Function> globalFunctions;
+	private transient List<C4Variable> staticVariables;
 	
 	public ClonkIndex(IProject project) {
 		this.project = project;
@@ -53,7 +53,7 @@ public class ClonkIndex implements Serializable {
 		return getIndexedObjects().get(id);
 	}
 	
-	public void fixReferences() throws CoreException {
+	public void fixReferencesAfterSerialization() throws CoreException {
 		for (List<C4Object> list : getIndexedObjects().values()) {
 			for (C4Object obj : list) {
 				obj.fixReferencesAfterSerialization();
@@ -67,6 +67,7 @@ public class ClonkIndex implements Serializable {
 				}
 			}
 		}
+		refreshCache();
 	}
 	
 	/**

@@ -25,20 +25,24 @@ public class ClonkContentOutlinePage extends ContentOutlinePage {
 		if (editor != null) {
 			C4Object obj = Utilities.getObjectForEditor(editor);
 			if (obj != null) {
-				TreeViewer treeViewer = this.getTreeViewer();
-				if (treeViewer != null) {
-					ClonkContentOutlineLabelAndContentProvider provider = new ClonkContentOutlineLabelAndContentProvider();
-					treeViewer.setLabelProvider(provider);
-					treeViewer.setContentProvider(provider);
-					treeViewer.setInput(obj);
-					treeViewer.setSorter(new ViewerSorter() {
-						public int category(Object element) {
-							return ((C4Field)element).sortCategory();
-						}
-					});
-				}
+				setTreeViewerInput(obj);
 			}
 		}
+	}
+
+	private void setTreeViewerInput(C4Object obj) {
+		TreeViewer treeViewer = this.getTreeViewer();
+		if (treeViewer == null)
+			return;
+		ClonkContentOutlineLabelAndContentProvider provider = new ClonkContentOutlineLabelAndContentProvider();
+		treeViewer.setLabelProvider(provider);
+		treeViewer.setContentProvider(provider);
+		treeViewer.setInput(obj);
+		treeViewer.setSorter(new ViewerSorter() {
+			public int category(Object element) {
+				return ((C4Field)element).sortCategory();
+			}
+		});
 	}
 
 	@Override
@@ -65,7 +69,10 @@ public class ClonkContentOutlinePage extends ContentOutlinePage {
 	}
 
 	public void refresh() {
-		getTreeViewer().refresh();
+		if (getTreeViewer().getInput() == null)
+			setTreeViewerInput(Utilities.getObjectForEditor(editor));
+		else
+			getTreeViewer().refresh();
 	}
 	
 	public void select(C4Field field) {

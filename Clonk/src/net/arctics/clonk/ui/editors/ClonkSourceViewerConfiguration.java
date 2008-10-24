@@ -192,13 +192,10 @@ public class ClonkSourceViewerConfiguration extends TextSourceViewerConfiguratio
 		}
 
 		public IInformationControlCreator getHoverControlCreator() {
-			// TODO Auto-generated method stub
 			return new IInformationControlCreator() {
-
 				public IInformationControl createInformationControl(Shell parent) {
-					return new DefaultInformationControl(parent, SWT.NONE, new HTMLTextPresenter(true));
+					return new DefaultInformationControl(parent, new HTMLTextPresenter(true));
 				}
-				
 			};
 		}
 		

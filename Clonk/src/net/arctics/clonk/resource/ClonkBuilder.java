@@ -145,8 +145,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 					for (IEditorReference ref : page.getEditorReferences()) {
 						IEditorPart part = ref.getEditor(false);
 						if (part != null && part instanceof C4ScriptEditor) {
-							C4ScriptEditor scriptEd = (C4ScriptEditor)part;
-							scriptEd.getOutlinePage().refresh();
+							((C4ScriptEditor)part).refreshOutline();
 						}
 					}
 				}

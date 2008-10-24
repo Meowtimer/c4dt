@@ -219,7 +219,7 @@ public class NewC4ObjectPage extends WizardPage {
 	}
 
 	public String getFileName() {
-		return "c4d." + fileText.getText();
+		return fileText.getText() + ".c4d";
 	}
 	
 	public String getObjectID() {
