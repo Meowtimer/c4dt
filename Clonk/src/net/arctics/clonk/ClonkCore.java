@@ -2,8 +2,15 @@ package net.arctics.clonk;
 
 import java.beans.XMLDecoder;
 import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.EOFException;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
@@ -61,9 +68,10 @@ public class ClonkCore extends AbstractUIPlugin implements IResourceChangeListen
 		super.start(context);
 		plugin = this;
 		
-		URL engineIndex = getBundle().getEntry("res/engine.xml");
+		URL engineIndex = getBundle().getEntry("res/engine");
 		if (engineIndex != null) {
-			java.beans.XMLDecoder decoder = new XMLDecoder(new BufferedInputStream(engineIndex.openStream()));
+			ObjectInputStream decoder = new ObjectInputStream(new BufferedInputStream(engineIndex.openStream()));
+//			java.beans.XMLDecoder decoder = new XMLDecoder(new BufferedInputStream(engineIndex.openStream()));
 			try {
 				while (true) {
 					Object obj = decoder.readObject();
@@ -74,26 +82,30 @@ public class ClonkCore extends AbstractUIPlugin implements IResourceChangeListen
 //						ENGINE_FUNCTIONS.add((C4Function)obj);
 					}
 					else {
-						System.out.println("Read unknown object from engine.xml: " + obj.getClass().getName());
+						System.out.println("Read unknown object from engine: " + obj.getClass().getName());
 					}
 				}
 			}
-			catch(ArrayIndexOutOfBoundsException e) {
+			catch(EOFException e) {
 				// finished
 			}
 		}
 		
 		ResourcesPlugin.getWorkspace().addResourceChangeListener(this);
-		
-		
-//		FileInputStream file = new FileInputStream("javadata.txt");
-//		java.beans.XMLEncoder encoder = new XMLEncoder(new BufferedOutputStream(new FileOutputStream("engine.xml")));
-//		C4Function func = null;
-//		while((func = parseFunction(file)) != null) {
-//			encoder.writeObject(func);
+//		try {
+//			FileInputStream file = new FileInputStream("javadata.txt");
+//			ObjectOutputStream encoder = new ObjectOutputStream(new BufferedOutputStream(new FileOutputStream("engine.dat")));
+//	//		java.beans.XMLEncoder encoder = new XMLEncoder(new BufferedOutputStream(new FileOutputStream("engine.xml")));
+//			C4Function func = null;
+//			while((func = parseFunction(file)) != null) {
+//				encoder.writeObject(func);
+//			}
+//			encoder.flush();
+//			encoder.close();
 //		}
-//		encoder.flush();
-//		encoder.close();
+//		catch (FileNotFoundException e) {
+//			e.printStackTrace();
+//		}
 	}
 	
 	private C4Function parseFunction(InputStream stream) throws IOException {
