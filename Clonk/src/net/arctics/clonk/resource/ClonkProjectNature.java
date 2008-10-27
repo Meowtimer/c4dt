@@ -7,6 +7,7 @@ import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 
+import net.arctics.clonk.parser.C4ID;
 import net.arctics.clonk.parser.ClonkIndex;
 
 import org.eclipse.core.resources.IFile;
@@ -79,6 +80,26 @@ public class ClonkProjectNature implements IProjectNature {
 		}
 	}
 	
+	private class InputStreamRespectingUniqueIDs extends ObjectInputStream {
+
+		public InputStreamRespectingUniqueIDs(InputStream input)
+				throws IOException {
+			super(input);
+			enableResolveObject(true);
+		}
+
+		@Override
+		protected Object resolveObject(Object obj) throws IOException {
+			if (obj instanceof C4ID) {
+				System.out.println(obj.toString());
+				return C4ID.getID(((C4ID)obj).getName());
+			}
+			// TODO Auto-generated method stub
+			return super.resolveObject(obj);
+		}
+		
+	}
+	
 	private void loadIndexData() {
 		final IFile index = project.getFile(indexDataFile);
 		if (!index.exists()) {
@@ -87,7 +108,7 @@ public class ClonkProjectNature implements IProjectNature {
 		}
 		try {
 			InputStream in = index.getContents();
-			ObjectInputStream objStream = new ObjectInputStream(in);
+			ObjectInputStream objStream = new InputStreamRespectingUniqueIDs(in);
 			indexedData = (ClonkIndex)objStream.readObject();
 			indexedData.setProject(getProject());
 			indexedData.fixReferencesAfterSerialization();
