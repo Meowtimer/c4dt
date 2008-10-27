@@ -823,6 +823,7 @@ public class C4ScriptParser {
 			return false;
 		}
 		eatWhitespace();
+		int returnExprStart = fReader.getPosition();
 		int next = fReader.read();
 		if (next == ';') {
 			fReader.unread();
@@ -858,6 +859,16 @@ public class C4ScriptParser {
 				}
 				//throw new ParsingException(problem);
 			}
+			int afterBracket = fReader.getPosition();
+			eatWhitespace();
+			if (fReader.read() != ';') {
+				// brackets might be part of expression (return (50+3)/3;)
+				fReader.seek(returnExprStart);
+				if (!parseValue(fReader.getPosition())) {
+					errorWithCode(ErrorCode.ValueExpected, returnExprStart, fReader.getPosition());
+				}
+			} else
+				fReader.seek(afterBracket);
 		}
 		else {
 			fReader.unread();
@@ -2169,7 +2180,7 @@ public class C4ScriptParser {
 	}
 	
 	public enum ErrorCode {
-		TokenExpected, NotAllowedHere, MissingClosingBracket, InvalidExpression, InternalError, ExpressionExpected, UnexpectedEnd, NameExpected, ReturnAsFunction, ExpressionNotModifiable, OperatorNeedsRightSide, NoAssignment, NoSideEffects, KeywordInWrongPlace, UndeclaredIdentifier, OldStyleFunc,
+		TokenExpected, NotAllowedHere, MissingClosingBracket, InvalidExpression, InternalError, ExpressionExpected, UnexpectedEnd, NameExpected, ReturnAsFunction, ExpressionNotModifiable, OperatorNeedsRightSide, NoAssignment, NoSideEffects, KeywordInWrongPlace, UndeclaredIdentifier, OldStyleFunc, ValueExpected,
 	}
 	
 	private static String[] errorStrings = new String[] {
@@ -2188,7 +2199,8 @@ public class C4ScriptParser {
 		"Expression has no side effects",
 		"Keyword '%s' misplaced",
 		"Undeclared identifier '%s'",
-		"Old-style function"
+		"Old-style function",
+		"Value expected"
 	};
 	
 	private void warningWithCode(ErrorCode code, int errorStart, int errorEnd, Object... args) {
