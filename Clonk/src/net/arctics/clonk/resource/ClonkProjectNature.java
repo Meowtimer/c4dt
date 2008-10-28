@@ -91,7 +91,8 @@ public class ClonkProjectNature implements IProjectNature {
 		@Override
 		protected Object resolveObject(Object obj) throws IOException {
 			if (obj instanceof C4ID) {
-				System.out.println(obj.toString());
+				//System.out.println(obj.toString());
+				// FIXME: perhaps try to recycle instance?
 				return C4ID.getID(((C4ID)obj).getName());
 			}
 			// TODO Auto-generated method stub

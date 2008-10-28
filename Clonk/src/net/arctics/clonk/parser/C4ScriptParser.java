@@ -5,6 +5,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Vector;
 
 import net.arctics.clonk.ClonkCore;
@@ -828,122 +830,137 @@ public class C4ScriptParser {
 		if (next == ';') {
 			fReader.unread();
 		}
-		else if (next == '(') {
-			eatWhitespace();
-			offset = fReader.getPosition();
-			if (!parseValue(offset)) {
-				if (container != null && container.strictLevel() == 2)
-					createWarningMarker(offset, offset + 1, "Discouraged syntax: use 'return;' instead of 'return();' (since CR, #strict 2))");
-			}
-			else {
-				offset = fReader.getPosition();
-			}
-			fReader.seek(offset);
-			eatWhitespace();
-			int readByte = fReader.read();
-			if (readByte != ')') {
-				warningWithCode(ErrorCode.ReturnAsFunction, fReader.getPosition()-1, fReader.getPosition());
-				// legacy: return treated as function
-				while (readByte == ',') {
-					if (!parseValue(fReader.getPosition())) {
-						errorWithCode(ErrorCode.ExpressionExpected, fReader.getPosition(), fReader.getPosition()+1);
-					}
-					eatWhitespace();
-					readByte = fReader.read();
-					if (readByte == ')') {
-						return true;
-					}
-					if (fReader.reachedEOF()) {
-						errorWithCode(ErrorCode.UnexpectedEnd, fReader.getPosition()-1, fReader.getPosition());
-					}
-				}
-				//throw new ParsingException(problem);
-			}
-			int afterBracket = fReader.getPosition();
-			eatWhitespace();
-			if (fReader.read() != ';') {
-				// brackets might be part of expression (return (50+3)/3;)
-				fReader.seek(returnExprStart);
-				if (!parseValue(fReader.getPosition())) {
-					errorWithCode(ErrorCode.ValueExpected, returnExprStart, fReader.getPosition());
-				}
-			} else
-				fReader.seek(afterBracket);
-		}
+//		else if (next == '(') {
+//			eatWhitespace();
+//			offset = fReader.getPosition();
+//			if (!parseValue(offset)) {
+//				if (container != null && container.strictLevel() == 2)
+//					createWarningMarker(offset, offset + 1, "Discouraged syntax: use 'return;' instead of 'return();' (since CR, #strict 2))");
+//			}
+//			else {
+//				offset = fReader.getPosition();
+//			}
+//			fReader.seek(offset);
+//			eatWhitespace();
+//			int readByte = fReader.read();
+//			if (readByte != ')') {
+//				warningWithCode(ErrorCode.ReturnAsFunction, fReader.getPosition()-1, fReader.getPosition());
+//				// legacy: return treated as function
+//				while (readByte == ',') {
+//					if (!parseValue(fReader.getPosition())) {
+//						errorWithCode(ErrorCode.ExpressionExpected, fReader.getPosition(), fReader.getPosition()+1);
+//					}
+//					eatWhitespace();
+//					readByte = fReader.read();
+//					if (readByte == ')') {
+//						return true;
+//					}
+//					if (fReader.reachedEOF()) {
+//						errorWithCode(ErrorCode.UnexpectedEnd, fReader.getPosition()-1, fReader.getPosition());
+//					}
+//				}
+//				//throw new ParsingException(problem);
+//			}
+//			int afterBracket = fReader.getPosition();
+//			eatWhitespace();
+//			if (fReader.read() != ';') {
+//				// brackets might be part of expression (return (50+3)/3;)
+//				fReader.seek(returnExprStart);
+//				if (!parseValue(fReader.getPosition())) {
+//					errorWithCode(ErrorCode.ValueExpected, returnExprStart, fReader.getPosition());
+//				}
+//			} else
+//				fReader.seek(afterBracket);
+//		}
 		else {
 			fReader.unread();
 			offset = fReader.getPosition();
-			if (!parseValue(offset)) {
-				String problem = "Syntax error: value expected";
-				createErrorMarker(fReader.getPosition() - 1, fReader.getPosition(), problem);
-				throw new ParsingException(problem);
+			tuplesAllowed++;
+			ExprElm returnExpr = parseExpression(fReader.getPosition());
+			if (returnExpr == null) {
+				errorWithCode(ErrorCode.ValueExpected, fReader.getPosition() - 1, fReader.getPosition());				
 			}
+			warnAboutTupleInReturnExpr(returnExpr, false);
+			tuplesAllowed--;
 		}
 		return true;
 	}
 
-	private boolean parseCall(int offset) throws ParsingException {
-		fReader.seek(offset);
-
-		if (parsePrefixOperator(offset)) offset = fReader.getPosition();
-		eatWhitespace(offset);
-
-		String funcName = fReader.readWord();
-		if (funcName.length() == 0) {
-			return false;
+	private void warnAboutTupleInReturnExpr(ExprElm expr, boolean tupleIsError) throws ParsingException {
+		if (expr instanceof ExprTuple) {
+			if (tupleIsError)
+				errorWithCode(ErrorCode.TuplesNotAllowed, expr);
+			else
+				warningWithCode(ErrorCode.ReturnAsFunction, expr);
 		}
-		else {
-			eatWhitespace();
-			if (fReader.read() != '(') return false;
-			offset = fReader.getPosition();
-			boolean forceValue = false;
-			do {
-				eatWhitespace(offset);
-				if (parseValue(fReader.getPosition())) {
-					eatWhitespace();
-					int readByte = fReader.read();
-					if (readByte == ',') {
-						offset = fReader.getPosition();
-						forceValue = true; // now another value must come
-						continue;
-					}
-					else if (readByte == ')') {
-						fReader.unread();
-						break;
-					}
-					else {
-						String problem = "Syntax error: expected ',' or ')' instead of '" + new String(new int[] { readByte },0,1) + "'";
-						createErrorMarker(fReader.getPosition() - 1, fReader.getPosition(), problem);
-						throw new ParsingException(problem);
-					}
-				}
-				else {
-					fReader.seek(offset);
-					if (!forceValue) break; // this call has no parameters
-					else {
-						String problem = "Syntax error: expected another parameter";
-						createErrorMarker(fReader.getPosition() - 1, fReader.getPosition() + 1, problem);
-						throw new ParsingException(problem);
-					}
-				}
-			} while(!fReader.reachedEOF());
-			if (fReader.read() == ')') {
-				offset = fReader.getPosition();
-				if (parseArrayAccess(fReader.getPosition())) offset = fReader.getPosition(); 
-				if (parseObjectCall(offset)) offset = fReader.getPosition();
-				fReader.seek(offset);
-				return true;
-			}
-			else {
-				String problem = "Syntax error: expected ')'";
-				createErrorMarker(fReader.getPosition() - 1, fReader.getPosition(), problem);
-				throw new ParsingException(problem);
-			}
-
+		ExprElm[] subElms = expr.getSubElements();
+		for (ExprElm e : subElms) {
+			warnAboutTupleInReturnExpr(e, true);
 		}
-		// parse all parameter with parseValue
-		// do type checking where possible
 	}
+
+//	private boolean parseCall(int offset) throws ParsingException {
+//		fReader.seek(offset);
+//
+//		if (parsePrefixOperator(offset)) offset = fReader.getPosition();
+//		eatWhitespace(offset);
+//
+//		String funcName = fReader.readWord();
+//		if (funcName.length() == 0) {
+//			return false;
+//		}
+//		else {
+//			eatWhitespace();
+//			if (fReader.read() != '(') return false;
+//			offset = fReader.getPosition();
+//			boolean forceValue = false;
+//			do {
+//				eatWhitespace(offset);
+//				if (parseValue(fReader.getPosition())) {
+//					eatWhitespace();
+//					int readByte = fReader.read();
+//					if (readByte == ',') {
+//						offset = fReader.getPosition();
+//						forceValue = true; // now another value must come
+//						continue;
+//					}
+//					else if (readByte == ')') {
+//						fReader.unread();
+//						break;
+//					}
+//					else {
+//						String problem = "Syntax error: expected ',' or ')' instead of '" + new String(new int[] { readByte },0,1) + "'";
+//						createErrorMarker(fReader.getPosition() - 1, fReader.getPosition(), problem);
+//						throw new ParsingException(problem);
+//					}
+//				}
+//				else {
+//					fReader.seek(offset);
+//					if (!forceValue) break; // this call has no parameters
+//					else {
+//						String problem = "Syntax error: expected another parameter";
+//						createErrorMarker(fReader.getPosition() - 1, fReader.getPosition() + 1, problem);
+//						throw new ParsingException(problem);
+//					}
+//				}
+//			} while(!fReader.reachedEOF());
+//			if (fReader.read() == ')') {
+//				offset = fReader.getPosition();
+//				if (parseArrayAccess(fReader.getPosition())) offset = fReader.getPosition(); 
+//				if (parseObjectCall(offset)) offset = fReader.getPosition();
+//				fReader.seek(offset);
+//				return true;
+//			}
+//			else {
+//				String problem = "Syntax error: expected ')'";
+//				createErrorMarker(fReader.getPosition() - 1, fReader.getPosition(), problem);
+//				throw new ParsingException(problem);
+//			}
+//
+//		}
+//		// parse all parameter with parseValue
+//		// do type checking where possible
+//	}
 	
 	private boolean parseStandaloneExpression(int offset) throws ParsingException {
 		fReader.seek(offset);
@@ -1112,21 +1129,21 @@ public class C4ScriptParser {
 	 * @return
 	 * @throws ParsingException
 	 */
-	private boolean parseObjectCall(int offset) throws ParsingException {
-		fReader.seek(offset);
-		if (parseObjectFieldOperator(offset)) {
-			eatWhitespace();
-			offset = fReader.getPosition();
-			if (!parseCall(offset)) {
-				String problem = "Syntax error: expected a method name";
-				createErrorMarker(fReader.getPosition(), fReader.getPosition() + 2, problem);
-				throw new ParsingException(problem);
-			}
-			return true;
-		}
-		fReader.seek(offset);
-		return false;
-	}
+//	private boolean parseObjectCall(int offset) throws ParsingException {
+//		fReader.seek(offset);
+//		if (parseObjectFieldOperator(offset)) {
+//			eatWhitespace();
+//			offset = fReader.getPosition();
+//			if (!parseCall(offset)) {
+//				String problem = "Syntax error: expected a method name";
+//				createErrorMarker(fReader.getPosition(), fReader.getPosition() + 2, problem);
+//				throw new ParsingException(problem);
+//			}
+//			return true;
+//		}
+//		fReader.seek(offset);
+//		return false;
+//	}
 
 //	private boolean parsePostfixOperator(int offset) throws ParsingException {
 //		fReader.seek(offset);
@@ -1632,6 +1649,10 @@ public class C4ScriptParser {
 		public ExprElm getPredecessorInSequence() {
 			return predecessorInSequence;
 		}
+		
+		public ExprElm[] getSubElements() {
+			return new ExprElm[0];
+		}
 
 	}
 
@@ -1883,6 +1904,11 @@ public class C4ScriptParser {
 
 	public static class ExprBinaryOp extends ExprOperator {
 		private ExprElm leftSide, rightSide;
+		
+		@Override
+		public ExprElm[] getSubElements() {
+			return new ExprElm[] {leftSide, rightSide};
+		}
 
 		public ExprBinaryOp(Operator operator, ExprElm leftSide, ExprElm rightSide) {
 			super(operator);
@@ -1988,6 +2014,11 @@ public class C4ScriptParser {
 			this.argument.setParent(this);
 		}
 		
+		@Override
+		public ExprElm[] getSubElements() {
+			return new ExprElm[] {argument};
+		}
+
 		public void print(StringBuilder output) {
 			if (placement == Placement.Postfix) {
 				argument.print(output);
@@ -2167,6 +2198,29 @@ public class C4ScriptParser {
 		
 	}
 	
+	public static class ExprTuple extends ExprSequence {
+
+		public ExprTuple(ExprElm[] elms) {
+			super(elms);
+			// TODO Auto-generated constructor stub
+		}
+
+		@Override
+		public void print(StringBuilder output) {
+			output.append('(');
+			if (elements != null) {
+				for (int i = 0; i < elements.length; i++) {
+					if (elements[i] != null)
+						elements[i].print(output);
+					if (i < elements.length-1)
+						output.append(", ");
+				}
+			}
+			output.append(')');
+		}
+		
+	}
+	
 	public static class ExprEllipsis extends ExprElm {
 
 		public ExprEllipsis() {
@@ -2180,7 +2234,7 @@ public class C4ScriptParser {
 	}
 	
 	public enum ErrorCode {
-		TokenExpected, NotAllowedHere, MissingClosingBracket, InvalidExpression, InternalError, ExpressionExpected, UnexpectedEnd, NameExpected, ReturnAsFunction, ExpressionNotModifiable, OperatorNeedsRightSide, NoAssignment, NoSideEffects, KeywordInWrongPlace, UndeclaredIdentifier, OldStyleFunc, ValueExpected,
+		TokenExpected, NotAllowedHere, MissingClosingBracket, InvalidExpression, InternalError, ExpressionExpected, UnexpectedEnd, NameExpected, ReturnAsFunction, ExpressionNotModifiable, OperatorNeedsRightSide, NoAssignment, NoSideEffects, KeywordInWrongPlace, UndeclaredIdentifier, OldStyleFunc, ValueExpected, TuplesNotAllowed,
 	}
 	
 	private static String[] errorStrings = new String[] {
@@ -2200,7 +2254,8 @@ public class C4ScriptParser {
 		"Keyword '%s' misplaced",
 		"Undeclared identifier '%s'",
 		"Old-style function",
-		"Value expected"
+		"Value expected",
+		"Tuples not allowed here"
 	};
 	
 	private void warningWithCode(ErrorCode code, int errorStart, int errorEnd, Object... args) {
@@ -2237,6 +2292,8 @@ public class C4ScriptParser {
 		fReader.seek(offset);
 		return false;
 	}
+	
+	private int tuplesAllowed = 0;
 	
 	public ExprElm parseExpressionWithoutOperators(int offset) throws ParsingException {
 		fReader.seek(offset);
@@ -2296,32 +2353,8 @@ public class C4ScriptParser {
 					this.eatWhitespace();
 					if (fReader.read() == '(') {
 						// function call
-						Vector<ExprElm> args = new Vector<ExprElm>();
-						boolean expectingComma = false;
-						while (!fReader.reachedEOF()) {
-							this.eatWhitespace();
-							int c = fReader.read();
-							if (c == ')') {
-								if (!expectingComma)
-									args.add(null);
-								break;
-							} else if (c == ',') {
-								if (!expectingComma) {
-									args.add(null);
-								}
-								expectingComma = false;
-							} else {
-								fReader.unread();
-								if (args.size() > 100)
-									errorWithCode(ErrorCode.InternalError, fReader.getPosition(), fReader.getPosition(), "Way too much");
-								ExprElm arg = parseExpression(fReader.getPosition());
-								if (arg == null)
-									errorWithCode(ErrorCode.ExpressionExpected, fReader.getPosition(), fReader.getPosition()+1);
-								else
-									args.add(arg);
-								expectingComma = true;
-							}
-						}
+						List<ExprElm> args = new LinkedList<ExprElm>();
+						parseRestOfTuple(fReader.getPosition(), args);
 						elm = new ExprCallFunc(word, args.toArray(new ExprElm[0]));
 					} else {
 						fReader.unread();
@@ -2394,9 +2427,21 @@ public class C4ScriptParser {
 			if (elm == null) {
 				int c = fReader.read();
 				if (c == '(') {
-					elm = new ExprParenthesized(parseExpression(fReader.getPosition()));
+					ExprElm firstExpr = parseExpression(fReader.getPosition());
 					c = fReader.read();
-					if (c != ')')
+					if (c == ')')
+						elm = new ExprParenthesized(firstExpr);
+					else if (c == ',') {
+						if (tuplesAllowed < 1)
+							errorWithCode(ErrorCode.TuplesNotAllowed, fReader.getPosition()-1, fReader.getPosition());
+						tuplesAllowed--;
+						// tuple (just for multiple parameters for return)
+						List<ExprElm> tupleElms = new LinkedList<ExprElm>();
+						tupleElms.add(firstExpr);
+						parseRestOfTuple(fReader.getPosition(), tupleElms);
+						elm = new ExprTuple(tupleElms.toArray(new ExprElm[0]));
+						tuplesAllowed++;
+					} else
 						errorWithCode(ErrorCode.TokenExpected, fReader.getPosition()-1, fReader.getPosition(), ")");
 				} else {
 					fReader.unread();
@@ -2449,6 +2494,35 @@ public class C4ScriptParser {
 		}
 		return result;
 		
+	}
+
+	private void parseRestOfTuple(int offset, List<ExprElm> listToAddElementsTo) throws ParsingException {
+		fReader.seek(offset);
+		boolean expectingComma = false;
+		while (!fReader.reachedEOF()) {
+			this.eatWhitespace();
+			int c = fReader.read();
+			if (c == ')') {
+				if (!expectingComma)
+					listToAddElementsTo.add(null);
+				break;
+			} else if (c == ',') {
+				if (!expectingComma) {
+					listToAddElementsTo.add(null);
+				}
+				expectingComma = false;
+			} else {
+				fReader.unread();
+				if (listToAddElementsTo.size() > 100)
+					errorWithCode(ErrorCode.InternalError, fReader.getPosition(), fReader.getPosition(), "Way too much");
+				ExprElm arg = parseExpression(fReader.getPosition());
+				if (arg == null)
+					errorWithCode(ErrorCode.ExpressionExpected, fReader.getPosition(), fReader.getPosition()+1);
+				else
+					listToAddElementsTo.add(arg);
+				expectingComma = true;
+			}
+		}
 	}
 	
 	private ExprElm parseExpression(int offset, char[] delimiters) throws ParsingException {
