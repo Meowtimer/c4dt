@@ -157,7 +157,7 @@ public abstract class C4Object extends C4Field {
 				f = ClonkCore.ENGINE_OBJECT.findField(name, info);
 			
 			if (f == null && Utilities.looksLikeID(name)) {
-				f = info.index.getLastObjectWithId(C4ID.getID(name));
+				f = info.index.getObjectWithIDPreferringInterns(C4ID.getID(name));
 			}
 
 			if (f != null && (info.fieldClass == null || info.fieldClass.isAssignableFrom(f.getClass())))

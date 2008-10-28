@@ -481,6 +481,19 @@ public class ClonkIndex implements Serializable {
 		return null;
 	}
 	
+	public C4Object getObjectWithIDPreferringInterns(C4ID id) {
+		List<C4Object> objs = getObjects(id);
+		if (objs != null) {
+			C4Object best = null;
+			for (C4Object obj : objs) {
+				if (best == null || obj instanceof C4ObjectIntern)
+					best = obj;
+			}
+			return best;
+		}
+		return null;
+	}
+	
 	public C4Field findGlobalField(String fieldName) {
 		for (C4Function func : getGlobalFunctions()) {
 			if (func.getName().equals(fieldName))

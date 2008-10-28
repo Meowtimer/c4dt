@@ -16,6 +16,15 @@ public class C4ID implements Serializable {
 		idPool.put(id, this);
 	}
 	
+	public C4ID makeSpecial() {
+		C4ID special = idPool.get(name);
+		if (special == null) {
+			idPool.put(name, this);
+			return this;
+		}
+		return special;
+	}
+	
 	public static C4ID getSpecialID(String infoText) {
 		if (idPool.containsKey(infoText)) {
 			return idPool.get(infoText);
