@@ -5,8 +5,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 import java.util.Vector;
 
 import net.arctics.clonk.ClonkCore;
@@ -561,7 +563,8 @@ public class C4ScriptParser {
 		}
 		else {
 			activeFunc.setVisibility(C4FunctionScope.FUNC_PUBLIC);
-			createWarningMarker(offset - firstWord.length(), offset, "Function declarations should define a scope. (public,protected,private,global)");
+			// well, so common it can hardly be worth a warning
+			//createWarningMarker(offset - firstWord.length(), offset, "Function declarations should define a scope. (public,protected,private,global)");
 		}
 		if (!suspectOldStyle) {
 			retType = parseFunctionReturnType(fReader.getPosition());
@@ -875,13 +878,15 @@ public class C4ScriptParser {
 		else {
 			fReader.unread();
 			offset = fReader.getPosition();
-			tuplesAllowed++;
+			disableError(ErrorCode.TuplesNotAllowed);
+			disableError(ErrorCode.EmptyParentheses);
 			ExprElm returnExpr = parseExpression(fReader.getPosition());
 			if (returnExpr == null) {
 				errorWithCode(ErrorCode.ValueExpected, fReader.getPosition() - 1, fReader.getPosition());				
 			}
 			warnAboutTupleInReturnExpr(returnExpr, false);
-			tuplesAllowed--;
+			enableError(ErrorCode.TuplesNotAllowed);
+			enableError(ErrorCode.EmptyParentheses);
 		}
 		return true;
 	}
@@ -1653,6 +1658,8 @@ public class C4ScriptParser {
 		public ExprElm[] getSubElements() {
 			return new ExprElm[0];
 		}
+		
+		public static final ExprElm NULL_EXPR = new ExprElm() {};
 
 	}
 
@@ -2134,7 +2141,7 @@ public class C4ScriptParser {
 		@Override
 		public C4Object guessObjectType(C4ScriptParser context) {
 			// FIXME: does not actually return an object of type idValue but the id itself :/
-			return context.container.getProject().getIndexedData().getLastObjectWithId(idValue());
+			return context.container.getProject().getIndexedData().getObjectWithIDPreferringInterns(idValue());
 		}
 		
 	}
@@ -2234,7 +2241,7 @@ public class C4ScriptParser {
 	}
 	
 	public enum ErrorCode {
-		TokenExpected, NotAllowedHere, MissingClosingBracket, InvalidExpression, InternalError, ExpressionExpected, UnexpectedEnd, NameExpected, ReturnAsFunction, ExpressionNotModifiable, OperatorNeedsRightSide, NoAssignment, NoSideEffects, KeywordInWrongPlace, UndeclaredIdentifier, OldStyleFunc, ValueExpected, TuplesNotAllowed,
+		TokenExpected, NotAllowedHere, MissingClosingBracket, InvalidExpression, InternalError, ExpressionExpected, UnexpectedEnd, NameExpected, ReturnAsFunction, ExpressionNotModifiable, OperatorNeedsRightSide, NoAssignment, NoSideEffects, KeywordInWrongPlace, UndeclaredIdentifier, OldStyleFunc, ValueExpected, TuplesNotAllowed, EmptyParentheses
 	}
 	
 	private static String[] errorStrings = new String[] {
@@ -2255,8 +2262,23 @@ public class C4ScriptParser {
 		"Undeclared identifier '%s'",
 		"Old-style function",
 		"Value expected",
-		"Tuples not allowed here"
+		"Tuples not allowed here",
+		"Empty parentheses"
 	};
+	
+	private static Set<ErrorCode> disabledErrors = new HashSet<ErrorCode>();
+	
+	private static void disableError(ErrorCode error) {
+		disabledErrors.add(error);
+	}
+	
+	private static void enableError(ErrorCode error) {
+		disabledErrors.remove(error);
+	}
+	
+	public static boolean errorDisabled(ErrorCode error) {
+		return disabledErrors.contains(error);
+	}
 	
 	private void warningWithCode(ErrorCode code, int errorStart, int errorEnd, Object... args) {
 		String problem = String.format(errorStrings[code.ordinal()], args);
@@ -2271,6 +2293,8 @@ public class C4ScriptParser {
 	private void errorWithCode(ErrorCode code, IRegion errorRegion, Object... args) throws ParsingException {
 		if (fScript == null)
 			return; // parser used for other purposes -> no errors
+		if (errorDisabled(code))
+			return;
 		String problem = String.format(errorStrings[code.ordinal()], args);
 		createErrorMarker(errorRegion.getOffset(), errorRegion.getOffset()+errorRegion.getLength(), problem);
 		throw new ParsingException(problem);
@@ -2279,6 +2303,8 @@ public class C4ScriptParser {
 	private void errorWithCode(ErrorCode code, int errorStart, int errorEnd, Object... args) throws ParsingException {
 		if (fScript == null)
 			return; // parser used for other purposes -> no errors
+		if (errorDisabled(code))
+			return;
 		String problem = String.format(errorStrings[code.ordinal()], args);
 		createErrorMarker(errorStart, errorEnd, problem);
 		throw new ParsingException(problem);
@@ -2292,8 +2318,6 @@ public class C4ScriptParser {
 		fReader.seek(offset);
 		return false;
 	}
-	
-	private int tuplesAllowed = 0;
 	
 	public ExprElm parseExpressionWithoutOperators(int offset) throws ParsingException {
 		fReader.seek(offset);
@@ -2428,19 +2452,21 @@ public class C4ScriptParser {
 				int c = fReader.read();
 				if (c == '(') {
 					ExprElm firstExpr = parseExpression(fReader.getPosition());
+					if (firstExpr == null) {
+						firstExpr = ExprElm.NULL_EXPR;
+						// might be disabled
+						errorWithCode(ErrorCode.EmptyParentheses, fReader.getPosition()-1, fReader.getPosition());
+					}
 					c = fReader.read();
 					if (c == ')')
 						elm = new ExprParenthesized(firstExpr);
 					else if (c == ',') {
-						if (tuplesAllowed < 1)
-							errorWithCode(ErrorCode.TuplesNotAllowed, fReader.getPosition()-1, fReader.getPosition());
-						tuplesAllowed--;
+						errorWithCode(ErrorCode.TuplesNotAllowed, fReader.getPosition()-1, fReader.getPosition());
 						// tuple (just for multiple parameters for return)
 						List<ExprElm> tupleElms = new LinkedList<ExprElm>();
 						tupleElms.add(firstExpr);
 						parseRestOfTuple(fReader.getPosition(), tupleElms);
 						elm = new ExprTuple(tupleElms.toArray(new ExprElm[0]));
-						tuplesAllowed++;
 					} else
 						errorWithCode(ErrorCode.TokenExpected, fReader.getPosition()-1, fReader.getPosition(), ")");
 				} else {
