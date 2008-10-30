@@ -10,48 +10,22 @@ import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.C4Function.C4FunctionScope;
 import net.arctics.clonk.parser.C4Variable.C4VariableScope;
 import org.eclipse.core.resources.IContainer;
-import org.eclipse.core.resources.IProject;
-import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.IPath;
-import org.eclipse.core.runtime.Path;
 
 public class ClonkIndex implements Serializable {
 	
 	private static final long serialVersionUID = 1L;
 
-	private Map<C4ID,List<C4Object>> projectObjects;
+	private Map<C4ID,List<C4Object>> indexedObjects;
 	
-	private transient IProject project;
 	private transient List<C4Function> globalFunctions;
 	private transient List<C4Variable> staticVariables;
-	
-	public ClonkIndex(IProject project) {
-		this.project = project;
-	}
-	
-	public void setProject(IProject proj) {
-		project = proj;
-	}
 	
 	public List<C4Object> getObjects(C4ID id) {
 		return getIndexedObjects().get(id);
 	}
 	
 	public void fixReferencesAfterSerialization() throws CoreException {
-		for (List<C4Object> list : getIndexedObjects().values()) {
-			for (C4Object obj : list) {
-				if (obj instanceof C4ObjectIntern) {
-					C4ObjectIntern objIntern = (C4ObjectIntern)obj;
-					Path path = new Path(objIntern.relativePath);
-					IPath projectPath = path.removeFirstSegments(1);
-					IResource res = project.findMember(projectPath);
-					if (res instanceof IContainer)
-						((C4ObjectIntern)obj).setCorrespondingFolder((IContainer)res);
-				}
-			}
-		}
-		refreshCache();
 	}
 	
 	/**
@@ -80,7 +54,7 @@ public class ClonkIndex implements Serializable {
 			}
 			return null;
 		} catch (CoreException e) {
-			// likely due to getSessionProperty being called on non-existant resources
+			// likely due to getSessionProperty being called on non-existent resources
 			for (List<C4Object> list : getIndexedObjects().values()) {
 				for (C4Object obj : list) {
 					if (obj instanceof C4ObjectIntern) {
@@ -100,10 +74,6 @@ public class ClonkIndex implements Serializable {
 			globalFunctions = new LinkedList<C4Function>();
 			
 			refreshCache();
-//			for(List<C4Object> objects : getIndexedObjects().values()) {
-//				for(C4Object obj : objects)
-//					addToGlobalFunctionCache(obj);
-//			}
 		}
 		return globalFunctions;
 	}
@@ -111,12 +81,7 @@ public class ClonkIndex implements Serializable {
 	public List<C4Variable> getStaticVariables() {
 		if (staticVariables == null) {
 			staticVariables = new LinkedList<C4Variable>();
-			
 			refreshCache();
-//			for(List<C4Object> objects : getIndexedObjects().values()) {
-//				for(C4Object obj : objects)
-//					addToStaticVariableCache(obj);
-//			}
 		}
 		return staticVariables;
 	}
@@ -144,20 +109,6 @@ public class ClonkIndex implements Serializable {
 			}
 		}
 		
-		// cache extern lib
-		for(C4ObjectExtern ext : ClonkCore.EXTERN_LIBS) {
-			for(C4Function func : ext.definedFunctions) {
-				if (func.getVisibility() == C4FunctionScope.FUNC_GLOBAL) {
-					globalFunctions.add(func);
-				}
-			}
-			for(C4Variable var : ext.definedVariables) {
-				if (var.getScope() == C4VariableScope.VAR_STATIC) {
-					staticVariables.add(var);
-				}
-			}
-		}
-		
 	}
 	
 	/**
@@ -169,16 +120,9 @@ public class ClonkIndex implements Serializable {
 		List<C4Object> alreadyDefinedObjects = getIndexedObjects().get(obj.getId());
 		if (alreadyDefinedObjects == null) {
 			alreadyDefinedObjects = new LinkedList<C4Object>();
-			projectObjects.put(obj.getId(), alreadyDefinedObjects);
+			indexedObjects.put(obj.getId(), alreadyDefinedObjects);
 		}
 		alreadyDefinedObjects.add(obj);
-		
-//		if (globalFunctions != null) {
-//			addToGlobalFunctionCache(obj);
-//		}
-//		if (staticVariables != null) {
-//			addToStaticVariableCache(obj);
-//		}
 	}
 	
 	/**
@@ -192,16 +136,9 @@ public class ClonkIndex implements Serializable {
 		if (alreadyDefinedObjects != null) {
 			alreadyDefinedObjects.remove(obj);
 			if (alreadyDefinedObjects.size() == 0) { // if there are no more objects with this C4ID
-				projectObjects.remove(obj.getId());
+				indexedObjects.remove(obj.getId());
 			}
 		}
-		
-//		if (globalFunctions != null) {
-//			removeFromGlobalFunctionCache(obj);
-//		}
-//		if (staticVariables != null) {
-//			removeFromStaticVariableCache(obj);
-//		}
 	}
 	
 	/**
@@ -210,204 +147,17 @@ public class ClonkIndex implements Serializable {
 	 */
 	public boolean isEmpty() {
 		if (getIndexedObjects() != null) {
-			return projectObjects.isEmpty();
+			return indexedObjects.isEmpty();
 		}
 		return true;
 	}
 	
-	private Map<C4ID, List<C4Object>> getIndexedObjects() {
-		if (projectObjects == null) {
-			projectObjects = new HashMap<C4ID, List<C4Object>>();
+	protected Map<C4ID, List<C4Object>> getIndexedObjects() {
+		if (indexedObjects == null) {
+			indexedObjects = new HashMap<C4ID, List<C4Object>>();
 		}
-	//	if (projectObjects == null) loadIndexData();
-		return projectObjects;
+		return indexedObjects;
 	}
-	
-//	private static final String indexDataFile = "indexdata.xml";
-//	
-//	public void saveIndexData() {
-//		final IFile index = project.getFile(indexDataFile);
-//		ByteArrayOutputStream out = new ByteArrayOutputStream();
-//		try {
-//			ObjectOutputStream objStream = new ObjectOutputStream(out);
-//			objStream.writeObject(this);
-//			objStream.close();
-//			ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
-//			if (index.exists()) {
-//				index.setContents(in, true, false, null);
-//			} else {
-//				index.create(in, true, null);
-//			}
-//		} catch (IOException e) {
-//			// TODO Auto-generated catch block
-//			e.printStackTrace();
-//		} catch (CoreException e) {
-//			// TODO Auto-generated catch block
-//			e.printStackTrace();
-//		}
-//	}
-//	
-//	public void loadIndexData() {
-//		final IFile index = project.getFile(indexDataFile);
-//		try {
-//			InputStream in = index.getContents();
-//			ObjectInputStream objStream = new ObjectInputStream(in);
-//	//		objStream.readObject();
-//		} catch (CoreException e) {
-//			// TODO Auto-generated catch block
-//			e.printStackTrace();
-//		} catch (IOException e) {
-//			// TODO Auto-generated catch block
-//			e.printStackTrace();
-//		}
-//	}
-	
-//	public void saveIndexData() {
-//		final IFile index = project.getFile("indexdata.xml");
-//		ByteArrayOutputStream out = new ByteArrayOutputStream();
-//		XMLEncoder encoder = new XMLEncoder(out);
-//		
-//		encoder.setExceptionListener(new ExceptionListener() {
-//			public void exceptionThrown(Exception e) {
-//				e.printStackTrace();
-//			}
-//		});
-//		
-//		try {
-//			BeanInfo info = Introspector.getBeanInfo(C4ObjectIntern.class);
-//	        for (PropertyDescriptor desc : info.getPropertyDescriptors())
-//	            if (desc.getName().equals("objectFolder"))
-//	               desc.setValue("transient", Boolean.TRUE);
-//		} catch (IntrospectionException e1) {
-//			e1.printStackTrace();
-//		}
-//		
-//		encoder.setPersistenceDelegate(C4ObjectIntern.class, new DefaultPersistenceDelegate() {
-//			@Override
-//			protected Expression instantiate(Object oldInstance, Encoder out) {
-//				C4ObjectIntern intern = (C4ObjectIntern) oldInstance;
-//				if (intern.relativePath == null) {
-//					System.out.println(intern.getName() + intern.getId().getName());
-//				}
-//				return new Expression(oldInstance,C4ObjectIntern.class, "fromSerialize", new Object[] { intern.getId(), intern.getName(), intern.relativePath });
-//			}
-//		});
-//
-//		encoder.setPersistenceDelegate(C4ID.class, new DefaultPersistenceDelegate() {
-//			@Override
-//			protected Expression instantiate(Object oldInstance, Encoder out) {
-//				return new Expression(oldInstance, C4ID.class, "getID", new Object[] { ((C4ID)oldInstance).getName() });
-//			}
-//		});
-//		
-//		encoder.setPersistenceDelegate(C4Type.class, new DefaultPersistenceDelegate() {
-//			@Override
-//			protected Expression instantiate(Object oldInstance, Encoder out) {
-//				return new Expression(oldInstance, C4Type.class, "makeType", new Object[] { ((C4Type)oldInstance).toString() });
-//			}
-//		});
-//		
-//		encoder.setPersistenceDelegate(SourceLocation.class, new DefaultPersistenceDelegate() {
-//			@Override
-//			protected Expression instantiate(Object oldInstance, Encoder out) {
-//				return new Expression(oldInstance, SourceLocation.class, "new", new Object[] { ((SourceLocation)oldInstance).getStart(), ((SourceLocation)oldInstance).getStart() });
-//			}
-//		});
-//		
-//		encoder.setPersistenceDelegate(C4FunctionScope.class, new DefaultPersistenceDelegate() {
-//			@Override
-//			protected Expression instantiate(Object oldInstance, Encoder out) {
-//				return new Expression(oldInstance, C4FunctionScope.class, "valueOf", new Object[] { ((C4FunctionScope)oldInstance).toString() });
-//			}
-//		});
-//		
-//		encoder.setPersistenceDelegate(C4VariableScope.class, new DefaultPersistenceDelegate() {
-//			@Override
-//			protected Expression instantiate(Object oldInstance, Encoder out) {
-//				return new Expression(oldInstance, C4VariableScope.class, "valueOf", new Object[] { ((C4VariableScope)oldInstance).toString() });
-//			}
-//		});
-//		
-//		encoder.setPersistenceDelegate(C4DirectiveType.class, new DefaultPersistenceDelegate() {
-//			@Override
-//			protected Expression instantiate(Object oldInstance, Encoder out) {
-//				return new Expression(oldInstance, C4DirectiveType.class, "valueOf", new Object[] { ((C4DirectiveType)oldInstance).toString() });
-//			}
-//		});
-//		
-//		encoder.setPersistenceDelegate(C4Directive.class, new DefaultPersistenceDelegate() {
-//			@Override
-//			protected Expression instantiate(Object oldInstance, Encoder out) {
-//				return new Expression(oldInstance, C4Directive.class, "new", new Object[] { ((C4Directive)oldInstance).getType(), ((C4Directive)oldInstance).getContent() });
-//			}
-//		});
-//		
-//		for (List<C4Object> objects : getIndexedObjects().values()) {
-//			for(C4Object obj : objects) {
-//				encoder.writeObject(obj);
-//			}
-//		}
-//		
-//		encoder.close();
-//
-//		ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
-//		
-//		try {
-//			if (!index.exists()) {
-//				index.create(in, IResource.DERIVED | IResource.HIDDEN, null);
-//			}
-//			else {
-//				index.setContents(in, true, false, null);
-//			}
-//		} catch (CoreException e) {
-//			e.printStackTrace();
-//		}
-//
-//	}
-	
-//	private void loadIndexData() {
-//		
-//		long start = System.currentTimeMillis();
-//		
-//		IFile index = project.getFile("indexdata.xml");
-//		projectObjects = new HashMap<C4ID, List<C4Object>>();
-//		if (!index.exists()) {
-//			try {
-//				ByteArrayOutputStream out = new ByteArrayOutputStream();
-////				ObjectOutputStream objOutput = new ObjectOutputStream(out);
-////				objOutput.close();
-//				XMLEncoder encoder = new XMLEncoder(out);
-//				encoder.close();
-//				index.create(new ByteArrayInputStream(out.toByteArray()), IResource.DERIVED | IResource.HIDDEN, null);
-//			} catch (CoreException e) {
-//				e.printStackTrace();
-//			}
-//		}
-//		else {
-//			try {
-////				ObjectInputStream decoder = new ObjectInputStream(new BufferedInputStream(index.getContents()));
-//				java.beans.XMLDecoder decoder = new XMLDecoder(new BufferedInputStream(index.getContents()));
-//				while (true) {
-//					Object obj = decoder.readObject();
-//					if (obj instanceof C4Object) {
-//						addObject((C4Object)obj);
-//					}
-//					else {
-//						System.out.println("Read unknown object from indexdata.xml: " + obj.getClass().getName());
-//					}
-//				}
-//			} catch(ArrayIndexOutOfBoundsException e) {
-//				// finished
-//			} catch (CoreException e) {
-//				e.printStackTrace();
-//			}
-//			refreshCache();
-//		}
-//		
-//		long end = System.currentTimeMillis();
-//		long span = end - start;
-//		System.out.println(String.format("Time to read persistent build data: %d",span));
-//	}
 
 	public C4Object getLastObjectWithId(C4ID id) {
 		List<C4Object> objs = getObjects(id);
@@ -445,6 +195,11 @@ public class ClonkIndex implements Serializable {
 				return var;
 		}
 		return null;
+	}
+
+	public void clear() {
+		getIndexedObjects().clear();
+		refreshCache();
 	}
 
 }

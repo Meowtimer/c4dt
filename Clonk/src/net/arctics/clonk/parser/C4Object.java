@@ -153,20 +153,13 @@ public abstract class C4Object extends C4Field {
 				f = ClonkCore.ENGINE_OBJECT.findField(name, info);
 			// function in extern lib
 			if (f == null) {
-				for(C4ObjectExtern ext : ClonkCore.EXTERN_LIBS) {
-					for(C4Function func : ext.definedFunctions) {
-						if (func.getVisibility() != C4FunctionScope.FUNC_GLOBAL) continue;
-						if (func.getName().equals(name)) {
-							f = func;
-							break;
-						}
-					}
-				}
-
+				f = ClonkCore.EXTERN_INDEX.findGlobalField(name);
 			}
 			// definition
 			if (f == null && Utilities.looksLikeID(name)) {
-				f = info.index.getObjectWithIDPreferringInterns(C4ID.getID(name));
+				f = info.index.getLastObjectWithId(C4ID.getID(name));
+				if (f == null)
+					f = ClonkCore.EXTERN_INDEX.getLastObjectWithId(C4ID.getID(name));
 			}
 			
 			if (f != null && (info.fieldClass == null || info.fieldClass.isAssignableFrom(f.getClass())))

@@ -1,10 +1,13 @@
 package net.arctics.clonk.ui.editors;
 
+import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.Utilities;
 import net.arctics.clonk.parser.C4Field;
 import net.arctics.clonk.parser.C4Object;
 import net.arctics.clonk.parser.C4ObjectExtern;
 import net.arctics.clonk.parser.C4ObjectIntern;
+import net.arctics.clonk.parser.ClonkIndex;
+import net.arctics.clonk.resource.ClonkProjectNature;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.jface.internal.text.html.HTMLTextPresenter;
@@ -69,7 +72,9 @@ public class ClonkSourceViewerConfiguration extends TextSourceViewerConfiguratio
 			String ident = line.substring(start,end);
 			ITextEditor editor = getEditor();
 			C4Object obj = Utilities.getObjectForEditor(editor);
-			field = obj.findField(ident, new C4Object.FindFieldInfo(Utilities.getProject(editor).getIndexedData(), obj.funcAt(region)));
+			ClonkProjectNature nature = Utilities.getProject(editor);
+			ClonkIndex index = nature != null ? nature.getIndexedData() : ClonkCore.EXTERN_INDEX;
+			field = obj.findField(ident, new C4Object.FindFieldInfo(index, obj.funcAt(region)));
 		}
 		
 		/**

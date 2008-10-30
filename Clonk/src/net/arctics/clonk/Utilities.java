@@ -7,6 +7,7 @@ import net.arctics.clonk.parser.ClonkIndex;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.resource.c4group.C4Group;
 import net.arctics.clonk.resource.c4group.C4Group.C4GroupType;
+import net.arctics.clonk.ui.editors.ObjectExternEditorInput;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
@@ -106,6 +107,9 @@ public abstract class Utilities {
 
 	public static C4Object getObjectForEditor(ITextEditor editor) {
 //		try {
+			if (editor.getEditorInput() instanceof ObjectExternEditorInput) {
+				return ((ObjectExternEditorInput)editor.getEditorInput()).getObject();
+			}
 			return C4Object.objectCorrespondingTo(getEditingFile(editor).getParent());
 //			return (C4Object)getEditingFile(editor).getParent().getSessionProperty(ClonkCore.C4OBJECT_PROPERTY_ID);
 //		} catch (CoreException e) {

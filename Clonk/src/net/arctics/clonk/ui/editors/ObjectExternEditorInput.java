@@ -1,5 +1,6 @@
 package net.arctics.clonk.ui.editors;
 
+import net.arctics.clonk.parser.C4Object;
 import net.arctics.clonk.parser.C4ObjectExtern;
 import net.arctics.clonk.resource.c4group.C4GroupItem;
 
@@ -61,6 +62,10 @@ public class ObjectExternEditorInput implements IEditorInput, IPathEditorInput, 
 	public IStorage getStorage() throws CoreException {
 		C4GroupItem scriptEntry = object.getGroup().findEntry("Script.c");
 		return (IStorage)scriptEntry;
+	}
+
+	public C4Object getObject() {
+		return object;
 	}
 
 }

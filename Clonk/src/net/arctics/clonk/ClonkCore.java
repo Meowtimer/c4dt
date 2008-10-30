@@ -16,6 +16,7 @@ import net.arctics.clonk.parser.C4ID;
 import net.arctics.clonk.parser.C4Object;
 import net.arctics.clonk.parser.C4ObjectExtern;
 import net.arctics.clonk.parser.C4Variable;
+import net.arctics.clonk.parser.ClonkIndex;
 import net.arctics.clonk.parser.C4Variable.C4VariableScope;
 import net.arctics.clonk.resource.ClonkProjectNature;
 
@@ -45,8 +46,7 @@ public class ClonkCore extends AbstractUIPlugin implements IResourceChangeListen
 //	public static final List<C4Function> ENGINE_FUNCTIONS = new ArrayList<C4Function>(505);
 	
 	public static final C4ObjectExtern ENGINE_OBJECT = new C4ObjectExtern(C4ID.getSpecialID("Engine"),"Engine",null);
-	
-	public static final List<C4ObjectExtern> EXTERN_LIBS = new ArrayList<C4ObjectExtern>();
+	public static final ClonkIndex EXTERN_INDEX = new ClonkIndex();
 	
 	// The shared instance
 	private static ClonkCore plugin;

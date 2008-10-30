@@ -110,7 +110,7 @@ public class ClonkCompletionProcessor implements IContentAssistProcessor {
 //			statusMessages.add("Clonk directory");
 //		}
 
-		if (ClonkCore.EXTERN_LIBS.size() > 0) {
+		if (!ClonkCore.EXTERN_INDEX.isEmpty()) {
 			statusMessages.add("Extern libs");
 		}
 		if (nature.isIndexed()) {

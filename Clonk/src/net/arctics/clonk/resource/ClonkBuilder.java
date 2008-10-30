@@ -150,10 +150,10 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 		}
 	}
 
-	private void readExternalLIbs() throws InvalidDataException,
-			FileNotFoundException {
+	private void readExternalLIbs() throws InvalidDataException, FileNotFoundException {
 		String optionString = ClonkCore.getDefault().getPreferenceStore().getString(PreferenceConstants.STANDARD_EXT_LIBS);
 		String[] libs = optionString.split("<>");
+		ClonkCore.EXTERN_INDEX.clear();
 		for(String lib : libs) {
 			if (new File(lib).exists()) {
 				C4Group group = C4Group.OpenFile(new File(lib));
@@ -164,6 +164,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 				// FIXME create global problem marker that an extern lib does not exist
 			}
 		}
+		ClonkCore.EXTERN_INDEX.refreshCache();
 	}
 
 	public boolean visit(IResourceDelta delta) throws CoreException {
@@ -281,7 +282,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 						C4ObjectExtern obj = new C4ObjectExtern(defCoreWrapper.getObjectID(),item.getName(),group);
 						C4ScriptParser parser = new C4ScriptParser(new ByteArrayInputStream(script.getContentsAsArray()),script.computeSize(),obj);
 						parser.parse();
-						ClonkCore.EXTERN_LIBS.add(obj);
+						ClonkCore.EXTERN_INDEX.addObject(obj);
 					} catch (CompilerException e) {
 						e.printStackTrace();
 					}
@@ -297,7 +298,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 						C4ObjectExtern externObj = new C4ObjectExtern(C4ID.getSpecialID("System"),"System",item.getParentGroup());
 						C4ScriptParser parser = new C4ScriptParser(new ByteArrayInputStream(content),((C4Entry)item).computeSize(),externObj);
 						parser.parse();
-						ClonkCore.EXTERN_LIBS.add(externObj);
+						ClonkCore.EXTERN_INDEX.addObject(externObj);
 //						Utilities.getProject(getProject()).getIndexedData().addObject(externSystemc4g);
 					} catch (CompilerException e) {
 						e.printStackTrace();

@@ -9,6 +9,7 @@ import java.io.ObjectOutputStream;
 
 import net.arctics.clonk.parser.C4ID;
 import net.arctics.clonk.parser.ClonkIndex;
+import net.arctics.clonk.parser.ProjectIndex;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
@@ -23,7 +24,7 @@ public class ClonkProjectNature implements IProjectNature {
 	private IProject project;
 	private boolean isIndexed = false;
 	
-	private ClonkIndex indexedData = null;
+	private ProjectIndex indexedData = null;
 	
 	public ClonkProjectNature() {
 	}
@@ -103,19 +104,19 @@ public class ClonkProjectNature implements IProjectNature {
 	private void loadIndexData() {
 		final IFile index = project.getFile(indexDataFile);
 		if (!index.exists()) {
-			indexedData = new ClonkIndex(project);
+			indexedData = new ProjectIndex(project);
 			return;
 		}
 		try {
 			InputStream in = index.getContents();
 			ObjectInputStream objStream = new InputStreamRespectingUniqueIDs(in);
-			indexedData = (ClonkIndex)objStream.readObject();
+			indexedData = (ProjectIndex)objStream.readObject();
 			indexedData.setProject(getProject());
 			indexedData.fixReferencesAfterSerialization();
 		} catch (Exception e) {
 			e.printStackTrace();
 			// somehow failed - ignore
-			indexedData = new ClonkIndex(project);
+			indexedData = new ProjectIndex(project);
 		}
 	}
 
