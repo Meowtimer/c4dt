@@ -1,7 +1,5 @@
 package net.arctics.clonk;
 
-import javax.swing.text.BadLocationException;
-
 import net.arctics.clonk.parser.C4Function;
 import net.arctics.clonk.parser.C4Object;
 import net.arctics.clonk.parser.C4Variable;

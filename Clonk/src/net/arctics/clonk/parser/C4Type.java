@@ -18,6 +18,8 @@ public enum C4Type {
 	UNKNOWN; 
 	
 	public String toString() {
+		if (this == REFERENCE)
+			return "&";
 		return super.toString().toLowerCase();
 	}
 	

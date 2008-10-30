@@ -1,20 +1,16 @@
 package net.arctics.clonk.parser;
 
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.Utilities;
 import net.arctics.clonk.parser.C4Directive.C4DirectiveType;
+import net.arctics.clonk.parser.C4Function.C4FunctionScope;
 import net.arctics.clonk.resource.ClonkProjectNature;
 
 import org.eclipse.core.resources.IContainer;
-import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.ITextSelection;
 
@@ -155,11 +151,24 @@ public abstract class C4Object extends C4Field {
 			// engine function
 			if (f == null)
 				f = ClonkCore.ENGINE_OBJECT.findField(name, info);
-			
+			// function in extern lib
+			if (f == null) {
+				for(C4ObjectExtern ext : ClonkCore.EXTERN_LIBS) {
+					for(C4Function func : ext.definedFunctions) {
+						if (func.getVisibility() != C4FunctionScope.FUNC_GLOBAL) continue;
+						if (func.getName().equals(name)) {
+							f = func;
+							break;
+						}
+					}
+				}
+
+			}
+			// definition
 			if (f == null && Utilities.looksLikeID(name)) {
 				f = info.index.getObjectWithIDPreferringInterns(C4ID.getID(name));
 			}
-
+			
 			if (f != null && (info.fieldClass == null || info.fieldClass.isAssignableFrom(f.getClass())))
 				return f;
 		}
@@ -321,11 +330,6 @@ public abstract class C4Object extends C4Field {
 	
 	public static C4Object objectCorrespondingTo(IContainer folder) {
 		return (Utilities.getIndex(folder) != null) ? Utilities.getIndex(folder).getObject(folder) : null;
-	}
-
-	public void fixReferencesAfterSerialization() {
-		if (id != null)
-			id = C4ID.getID(id.toString());
 	}
 	
 //	public String getText(Object element) {

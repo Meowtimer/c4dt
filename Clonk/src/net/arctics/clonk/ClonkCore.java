@@ -1,29 +1,17 @@
 package net.arctics.clonk;
 
-import java.beans.XMLDecoder;
 import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
-import java.io.DataInputStream;
 import java.io.EOFException;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import javax.xml.transform.stream.StreamResult;
-
 import net.arctics.clonk.parser.C4Field;
-import net.arctics.clonk.parser.C4Function;
 import net.arctics.clonk.parser.C4ID;
 import net.arctics.clonk.parser.C4Object;
 import net.arctics.clonk.parser.C4ObjectExtern;
@@ -128,113 +116,113 @@ public class ClonkCore extends AbstractUIPlugin implements IResourceChangeListen
 //		}
 	}
 	
-	private C4Function parseFunction(InputStream stream) throws IOException {
-		if (stream.read() == 'F') {
-			char[] buffer = new char[256];
-			String funcName = null, returnType = null, desc = null;
-			List<C4Variable> vars = new ArrayList<C4Variable>(5);
-			int i = 0;
-			int read = 0;
-			while((read = stream.read()) >= 0) {
-				if (read == '(') {
-					funcName = new String(buffer,0,i);
-					break;
-				}
-				else buffer[i++] = (char)read;
-			}
-			do {
-				C4Variable var;
-				var = parseParameter(stream);
-				if(var != null) vars.add(var);
-				else break;
-			} while(true);
-			
-//			if (stream.read() != ')') System.out.println("There should be a ) right now");
-			i = 0;
-			read = 0;
-			while((read = stream.read()) >= 0) {
-				if (read == ':') {
-					returnType = new String(buffer,0,i);
-					break;
-				}
-				else buffer[i++] = (char)read;
-			}
-			buffer = new char[4096];
-			i = 0;
-			read = 0;
-			while((read = stream.read()) >= 0) {
-				if (read == ';') {
-					int c2 = stream.read();
-					int c3 = stream.read();
-					if (c2 == ';' && c3 == ';') {
-						desc = new String(buffer,0,i);
-						break;
-					}
-					else {
-						buffer[i++] = (char)read;
-						buffer[i++] = (char)c2;
-						buffer[i++] = (char)c3;
-					}
-				}
-				else buffer[i++] = (char)read;
-			}
-			
-			return new C4Function(funcName,returnType,desc,vars.toArray(new C4Variable[] { }));
-		}
-		else {
-			return null;
-		}
-	}
+//	private C4Function parseFunction(InputStream stream) throws IOException {
+//		if (stream.read() == 'F') {
+//			char[] buffer = new char[256];
+//			String funcName = null, returnType = null, desc = null;
+//			List<C4Variable> vars = new ArrayList<C4Variable>(5);
+//			int i = 0;
+//			int read = 0;
+//			while((read = stream.read()) >= 0) {
+//				if (read == '(') {
+//					funcName = new String(buffer,0,i);
+//					break;
+//				}
+//				else buffer[i++] = (char)read;
+//			}
+//			do {
+//				C4Variable var;
+//				var = parseParameter(stream);
+//				if(var != null) vars.add(var);
+//				else break;
+//			} while(true);
+//			
+////			if (stream.read() != ')') System.out.println("There should be a ) right now");
+//			i = 0;
+//			read = 0;
+//			while((read = stream.read()) >= 0) {
+//				if (read == ':') {
+//					returnType = new String(buffer,0,i);
+//					break;
+//				}
+//				else buffer[i++] = (char)read;
+//			}
+//			buffer = new char[4096];
+//			i = 0;
+//			read = 0;
+//			while((read = stream.read()) >= 0) {
+//				if (read == ';') {
+//					int c2 = stream.read();
+//					int c3 = stream.read();
+//					if (c2 == ';' && c3 == ';') {
+//						desc = new String(buffer,0,i);
+//						break;
+//					}
+//					else {
+//						buffer[i++] = (char)read;
+//						buffer[i++] = (char)c2;
+//						buffer[i++] = (char)c3;
+//					}
+//				}
+//				else buffer[i++] = (char)read;
+//			}
+//			
+//			return new C4Function(funcName,returnType,desc,vars.toArray(new C4Variable[] { }));
+//		}
+//		else {
+//			return null;
+//		}
+//	}
 	
-	private C4Variable parseParameter(InputStream stream) throws IOException {
-		if (stream.read() == 'P') {
-			char[] buffer = new char[256];
-			String varType = null, parName = null, desc = null;;
-			int i = 0;
-			int read = 0;
-			while((read = stream.read()) >= 0) {
-				if (read == ' ') {
-					varType = new String(buffer,0,i);
-					break;
-				}
-				else buffer[i++] = (char)read;
-			}
-			i = 0;
-			read = 0;
-			while((read = stream.read()) >= 0) {
-				if (read == ':') {
-					parName = new String(buffer,0,i);
-					break;
-				}
-				else buffer[i++] = (char)read;
-			}
-			
-			buffer = new char[4096];
-			i = 0;
-			read = 0;
-			while((read = stream.read()) >= 0) {
-				if (read == ';') {
-					int c2 = stream.read();
-					int c3 = stream.read();
-					if (c2 == ';' && c3 == ';') {
-						desc = new String(buffer,0,i);
-						break;
-					}
-					else {
-						buffer[i++] = (char)read;
-						buffer[i++] = (char)c2;
-						buffer[i++] = (char)c3;
-					}
-				}
-				else buffer[i++] = (char)read;
-			}
-			
-			return new C4Variable(parName,varType,desc);
-		}
-		else {
-			return null;
-		}
-	}
+//	private C4Variable parseParameter(InputStream stream) throws IOException {
+//		if (stream.read() == 'P') {
+//			char[] buffer = new char[256];
+//			String varType = null, parName = null, desc = null;;
+//			int i = 0;
+//			int read = 0;
+//			while((read = stream.read()) >= 0) {
+//				if (read == ' ') {
+//					varType = new String(buffer,0,i);
+//					break;
+//				}
+//				else buffer[i++] = (char)read;
+//			}
+//			i = 0;
+//			read = 0;
+//			while((read = stream.read()) >= 0) {
+//				if (read == ':') {
+//					parName = new String(buffer,0,i);
+//					break;
+//				}
+//				else buffer[i++] = (char)read;
+//			}
+//			
+//			buffer = new char[4096];
+//			i = 0;
+//			read = 0;
+//			while((read = stream.read()) >= 0) {
+//				if (read == ';') {
+//					int c2 = stream.read();
+//					int c3 = stream.read();
+//					if (c2 == ';' && c3 == ';') {
+//						desc = new String(buffer,0,i);
+//						break;
+//					}
+//					else {
+//						buffer[i++] = (char)read;
+//						buffer[i++] = (char)c2;
+//						buffer[i++] = (char)c3;
+//					}
+//				}
+//				else buffer[i++] = (char)read;
+//			}
+//			
+//			return new C4Variable(parName,varType,desc);
+//		}
+//		else {
+//			return null;
+//		}
+//	}
 
 	/*
 	 * (non-Javadoc)

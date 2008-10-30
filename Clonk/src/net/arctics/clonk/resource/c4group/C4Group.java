@@ -394,4 +394,13 @@ public class C4Group implements C4GroupItem {
 			}
 		}
 	}
+
+	public C4GroupItem findEntry(String entryName) {
+		for (C4GroupItem entry : getChildEntries()) {
+			if (entry.getName().equalsIgnoreCase(entryName)) {
+				return entry;
+			}
+		}
+		return null;
+	}
 }

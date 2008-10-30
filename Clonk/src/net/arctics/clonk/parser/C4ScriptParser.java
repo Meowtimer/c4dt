@@ -828,7 +828,6 @@ public class C4ScriptParser {
 			return false;
 		}
 		eatWhitespace();
-		int returnExprStart = fReader.getPosition();
 		int next = fReader.read();
 		if (next == ';') {
 			fReader.unread();
@@ -1257,84 +1256,6 @@ public class C4ScriptParser {
 		return false;
 	}
 
-	/**
-	 * Finds :: function calls
-	 * @deprecated :: operator does not exist?!
-	 */
-//	private boolean parseStaticFieldOperator(int offset) throws ParsingException {
-//		fReader.seek(offset);
-//		if (fReader.read() == ':') {
-//			if (fReader.read() == ':') {
-//				return true;
-//			}
-//			else {
-//				String problem = "Syntax error: expected ':";
-//				createErrorMarker(fReader.getPosition() - 1, fReader.getPosition(), problem);
-//				throw new ParsingException(problem);
-//			}
-//		}
-//		return false;
-//	}
-
-	private boolean parsePrefixOperator(int offset) throws ParsingException {
-		fReader.seek(offset);
-		int readByte = fReader.read();
-		if (readByte == '-' || readByte == '+') {
-			int secondByte = fReader.read();
-			if (secondByte == '-' || secondByte == '+') {
-				if (readByte != secondByte) {
-					String problem = "Syntax error: prefix operators are either -- or ++";
-					createErrorMarker(fReader.getPosition() - 2, fReader.getPosition(), problem);
-					throw new ParsingException(problem);
-				}
-				return true;
-			}
-			else {
-				fReader.unread();
-				return true;
-			}
-		}
-		else if (readByte == '!') {
-			return true;
-		}
-		else if (readByte == '~') {
-			return true;
-		}
-		else {
-			fReader.unread();
-			return false;
-		}
-	}
-
-	/**
-	 * Trys to find an operator that is not an assignment operator
-	 * @param offset
-	 * @return
-	 */
-//	private boolean parseOperator(int offset) {
-//		fReader.seek(offset);
-//
-//		final char[] singleChars = new char[] { '~','!','/','*','%','-','+','<','>','&','^','|'};
-//		final char[][] doubleChars = new char[][] { { '-','-'}, {'+','+'}, {'*','*'}, {'<','<'}, {'>','>'}, {'<','='}, {'>','='}, {'=','='}, {'!','='}, {'S','='}, {'e','q'}, {'n','e'}, {'&','&'}, {'|','|'} };
-//
-//		char readChar = (char)fReader.read();
-//		char secondChar = (char)fReader.read();
-//		for(char[] charPair : doubleChars) {
-//			if (charPair[0] == readChar) {
-//				if (charPair[1] == secondChar) return true;
-//			}
-//		}
-//		if (secondChar == '=') return false; // assigment
-//		fReader.unread();
-//		for(char singleChar : singleChars) {
-//			if (readChar == singleChar) return true;
-//		}
-//		fReader.seek(offset);
-//		// + - S= * % ... all operators that combines 2 values to 1
-//		// no assignments: =, *=, ...
-//		return false;
-//	}
-	
 	/**
 	 * loop types
 	 */
@@ -1858,19 +1779,6 @@ public class C4ScriptParser {
 				if (lookIn != null && !(lookIn instanceof C4ObjectExtern)) {
 					// search in project index
 					field = lookIn.findFunction(fieldName, new C4Object.FindFieldInfo(Utilities.getProject(lookIn).getIndexedData()));
-					
-					// search in extern lib
-					if (field == null) {
-						for(C4ObjectExtern ext : ClonkCore.EXTERN_LIBS) {
-							for(C4Function func : ext.definedFunctions) {
-								if (func.getVisibility() != C4FunctionScope.FUNC_GLOBAL) continue;
-								if (func.getName() == fieldName) {
-									field = func;
-									break;
-								}
-							}
-						}
-					}
 					
 					// nothing found
 					if (field == null)
@@ -2731,20 +2639,6 @@ public class C4ScriptParser {
 //		return false;
 //	}
 	
-	private boolean parseArrayAccess(int offset) throws ParsingException {
-		fReader.seek(offset);
-		if (fReader.read() != '[') return false;
-		eatWhitespace();
-		parseValue(fReader.getPosition());
-		eatWhitespace();
-		if (fReader.read() != ']') {
-			String problem = "Syntax error: expected ']'";
-			createErrorMarker(fReader.getPosition() - 1, fReader.getPosition(), problem);
-			throw new ParsingException(problem);
-		}
-		return true;
-	}
-	
 	private String parsedString;
 	
 	private boolean parseString(int offset) throws ParsingException {
@@ -3019,6 +2913,7 @@ public class C4ScriptParser {
 		C4Type type = C4Type.makeType(firstWord);
 		var.setType(type);
 		if (type == C4Type.UNKNOWN) {
+			var.setType(C4Type.ANY);
 			var.setName(firstWord);
 		}
 		else {

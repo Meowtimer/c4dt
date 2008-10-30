@@ -49,6 +49,8 @@ public class C4Variable extends C4Field implements Serializable {
 	 * @return the type
 	 */
 	public C4Type getType() {
+		if (type == null)
+			type = C4Type.ANY;
 		return type;
 	}
 
@@ -141,9 +143,15 @@ public class C4Variable extends C4Field implements Serializable {
 	
 	@Override
 	public String getShortInfo() {
-		return getDescription() != null
-			? super.getShortInfo() + ": " + getDescription()
-			: super.getShortInfo();
+		StringBuilder builder = new StringBuilder();
+		builder.append(getType().toString());
+		builder.append(" ");
+		builder.append(getName());
+		if (getDescription() != null && getDescription().length() > 0) {
+			builder.append(": ");
+			builder.append(getDescription());
+		}
+		return builder.toString();
 	}
 	
 }

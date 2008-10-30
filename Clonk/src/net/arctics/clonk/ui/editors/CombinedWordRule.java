@@ -49,7 +49,7 @@ public class CombinedWordRule implements IRule {
 	public static class WordMatcher {
 
 		/** The table of predefined words and token for this matcher */
-		private Map fWords= new HashMap();
+		private Map<CharacterBuffer, IToken> fWords= new HashMap<CharacterBuffer, IToken>();
 
 		/**
 		 * Adds a word and the token to be returned if it is detected.
@@ -235,7 +235,7 @@ public class CombinedWordRule implements IRule {
 	private CharacterBuffer fBuffer= new CharacterBuffer(16);
 
 	/** List of word matchers */
-	private List fMatchers= new ArrayList();
+	private List<WordMatcher> fMatchers= new ArrayList<WordMatcher>();
 
 	/**
 	 * Creates a rule which, with the help of an word detector, will return the token

@@ -3,7 +3,6 @@ package net.arctics.clonk.resource;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.util.List;
 import java.util.Map;
 
 import net.arctics.clonk.ClonkCore;
@@ -92,18 +91,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 				break;
 			case FULL_BUILD:
 			case CLEAN_BUILD:
-				String optionString = ClonkCore.getDefault().getPreferenceStore().getString(PreferenceConstants.STANDARD_EXT_LIBS);
-				String[] libs = optionString.split("<>");
-				for(String lib : libs) {
-					if (new File(lib).exists()) {
-						C4Group group = C4Group.OpenFile(new File(lib));
-						group.open(true);
-						group.accept(this);
-					}
-					else  {
-						// FIXME create global problem marker that an extern lib does not exist
-					}
-				}
+				readExternalLIbs();
 				if (proj != null) {
 					// count num of resources to build
 					ResourceCounter counter = new ResourceCounter(ResourceCounter.COUNT_CONTAINER);
@@ -159,6 +147,22 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 		} catch (Exception e) {
 			e.printStackTrace();
 			return null;
+		}
+	}
+
+	private void readExternalLIbs() throws InvalidDataException,
+			FileNotFoundException {
+		String optionString = ClonkCore.getDefault().getPreferenceStore().getString(PreferenceConstants.STANDARD_EXT_LIBS);
+		String[] libs = optionString.split("<>");
+		for(String lib : libs) {
+			if (new File(lib).exists()) {
+				C4Group group = C4Group.OpenFile(new File(lib));
+				group.open(true);
+				group.accept(this);
+			}
+			else  {
+				// FIXME create global problem marker that an extern lib does not exist
+			}
 		}
 	}
 
@@ -271,12 +275,13 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 					}
 				}
 				if (defCore != null && script != null) {
-					C4DefCoreWrapper defCoreWrapper = new C4DefCoreWrapper(new ByteArrayInputStream(defCore.getContents()));
+					C4DefCoreWrapper defCoreWrapper = new C4DefCoreWrapper(new ByteArrayInputStream(defCore.getContentsAsArray()));
 					try {
 						defCoreWrapper.parse();
-						C4Object obj = new C4ObjectExtern(defCoreWrapper.getObjectID(),item.getName(),group);
-						C4ScriptParser parser = new C4ScriptParser(new ByteArrayInputStream(script.getContents()),script.computeSize(),obj);
+						C4ObjectExtern obj = new C4ObjectExtern(defCoreWrapper.getObjectID(),item.getName(),group);
+						C4ScriptParser parser = new C4ScriptParser(new ByteArrayInputStream(script.getContentsAsArray()),script.computeSize(),obj);
 						parser.parse();
+						ClonkCore.EXTERN_LIBS.add(obj);
 					} catch (CompilerException e) {
 						e.printStackTrace();
 					}
@@ -286,7 +291,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 		else if (item instanceof C4Entry) {
 			if (packageType == C4GroupType.ResourceGroup) { // System.c4g like
 				if (item.getName().endsWith(".c")) {
-					byte[] content = ((C4Entry)item).getContents();
+					byte[] content = ((C4Entry)item).getContentsAsArray();
 					try {
 						
 						C4ObjectExtern externObj = new C4ObjectExtern(C4ID.getSpecialID("System"),"System",item.getParentGroup());

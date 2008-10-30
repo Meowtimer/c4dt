@@ -1,6 +1,10 @@
 package net.arctics.clonk.parser;
 
 public class C4Directive extends C4Field {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 	public enum C4DirectiveType {
 		STRICT,
 		INCLUDE,

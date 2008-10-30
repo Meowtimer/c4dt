@@ -1,12 +1,5 @@
 package net.arctics.clonk.parser;
 
-import java.beans.XMLDecoder;
-import java.beans.XMLEncoder;
-import java.io.BufferedInputStream;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -16,23 +9,12 @@ import java.util.Map;
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.C4Function.C4FunctionScope;
 import net.arctics.clonk.parser.C4Variable.C4VariableScope;
-import net.arctics.clonk.preferences.PreferenceConstants;
-import net.arctics.clonk.resource.c4group.C4Group;
-import net.arctics.clonk.resource.c4group.C4GroupItem;
-import net.arctics.clonk.resource.c4group.InvalidDataException;
-import net.arctics.clonk.resource.c4group.C4Group.C4GroupType;
-
 import org.eclipse.core.resources.IContainer;
-import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
-import org.eclipse.core.resources.IResourceChangeEvent;
-import org.eclipse.core.resources.IResourceDelta;
-import org.eclipse.core.resources.IResourceDeltaVisitor;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Path;
-import org.eclipse.jface.util.IPropertyChangeListener;
 
 public class ClonkIndex implements Serializable {
 	
@@ -59,7 +41,6 @@ public class ClonkIndex implements Serializable {
 	public void fixReferencesAfterSerialization() throws CoreException {
 		for (List<C4Object> list : getIndexedObjects().values()) {
 			for (C4Object obj : list) {
-				obj.fixReferencesAfterSerialization();
 				if (obj instanceof C4ObjectIntern) {
 					C4ObjectIntern objIntern = (C4ObjectIntern)obj;
 					Path path = new Path(objIntern.relativePath);
@@ -234,46 +215,6 @@ public class ClonkIndex implements Serializable {
 		return true;
 	}
 	
-	private void addToGlobalFunctionCache(C4Object obj) {
-		if (obj.definedFunctions != null) {
-			for(C4Function func : obj.definedFunctions) {
-				if (func.getVisibility() == C4FunctionScope.FUNC_GLOBAL) {
-					globalFunctions.add(func);
-				}
-			}
-		}
-	}
-
-	private void removeFromGlobalFunctionCache(C4Object obj) {
-		if (obj.definedFunctions != null) {
-			for(C4Function func : obj.definedFunctions) {
-				if (func.getVisibility() == C4FunctionScope.FUNC_GLOBAL) {
-					globalFunctions.remove(func);
-				}
-			}
-		}
-	}
-	
-	private void addToStaticVariableCache(C4Object obj) {
-		if (obj.definedVariables != null) {
-			for(C4Variable var : obj.definedVariables) {
-				if (var.getScope() == C4VariableScope.VAR_STATIC) {
-					staticVariables.add(var);
-				}
-			}
-		}
-	}
-
-	private void removeFromStaticVariableCache(C4Object obj) {
-		if (obj.definedVariables != null) {
-			for(C4Variable var : obj.definedVariables) {
-				if (var.getScope() == C4VariableScope.VAR_STATIC) {
-					staticVariables.remove(var);
-				}
-			}
-		}
-	}
-	
 	private Map<C4ID, List<C4Object>> getIndexedObjects() {
 		if (projectObjects == null) {
 			projectObjects = new HashMap<C4ID, List<C4Object>>();
@@ -424,49 +365,49 @@ public class ClonkIndex implements Serializable {
 //
 //	}
 	
-	private void loadIndexData() {
-		
-		long start = System.currentTimeMillis();
-		
-		IFile index = project.getFile("indexdata.xml");
-		projectObjects = new HashMap<C4ID, List<C4Object>>();
-		if (!index.exists()) {
-			try {
-				ByteArrayOutputStream out = new ByteArrayOutputStream();
-//				ObjectOutputStream objOutput = new ObjectOutputStream(out);
-//				objOutput.close();
-				XMLEncoder encoder = new XMLEncoder(out);
-				encoder.close();
-				index.create(new ByteArrayInputStream(out.toByteArray()), IResource.DERIVED | IResource.HIDDEN, null);
-			} catch (CoreException e) {
-				e.printStackTrace();
-			}
-		}
-		else {
-			try {
-//				ObjectInputStream decoder = new ObjectInputStream(new BufferedInputStream(index.getContents()));
-				java.beans.XMLDecoder decoder = new XMLDecoder(new BufferedInputStream(index.getContents()));
-				while (true) {
-					Object obj = decoder.readObject();
-					if (obj instanceof C4Object) {
-						addObject((C4Object)obj);
-					}
-					else {
-						System.out.println("Read unknown object from indexdata.xml: " + obj.getClass().getName());
-					}
-				}
-			} catch(ArrayIndexOutOfBoundsException e) {
-				// finished
-			} catch (CoreException e) {
-				e.printStackTrace();
-			}
-			refreshCache();
-		}
-		
-		long end = System.currentTimeMillis();
-		long span = end - start;
-		System.out.println(String.format("Time to read persistent build data: %d",span));
-	}
+//	private void loadIndexData() {
+//		
+//		long start = System.currentTimeMillis();
+//		
+//		IFile index = project.getFile("indexdata.xml");
+//		projectObjects = new HashMap<C4ID, List<C4Object>>();
+//		if (!index.exists()) {
+//			try {
+//				ByteArrayOutputStream out = new ByteArrayOutputStream();
+////				ObjectOutputStream objOutput = new ObjectOutputStream(out);
+////				objOutput.close();
+//				XMLEncoder encoder = new XMLEncoder(out);
+//				encoder.close();
+//				index.create(new ByteArrayInputStream(out.toByteArray()), IResource.DERIVED | IResource.HIDDEN, null);
+//			} catch (CoreException e) {
+//				e.printStackTrace();
+//			}
+//		}
+//		else {
+//			try {
+////				ObjectInputStream decoder = new ObjectInputStream(new BufferedInputStream(index.getContents()));
+//				java.beans.XMLDecoder decoder = new XMLDecoder(new BufferedInputStream(index.getContents()));
+//				while (true) {
+//					Object obj = decoder.readObject();
+//					if (obj instanceof C4Object) {
+//						addObject((C4Object)obj);
+//					}
+//					else {
+//						System.out.println("Read unknown object from indexdata.xml: " + obj.getClass().getName());
+//					}
+//				}
+//			} catch(ArrayIndexOutOfBoundsException e) {
+//				// finished
+//			} catch (CoreException e) {
+//				e.printStackTrace();
+//			}
+//			refreshCache();
+//		}
+//		
+//		long end = System.currentTimeMillis();
+//		long span = end - start;
+//		System.out.println(String.format("Time to read persistent build data: %d",span));
+//	}
 
 	public C4Object getLastObjectWithId(C4ID id) {
 		List<C4Object> objs = getObjects(id);

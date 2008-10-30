@@ -42,8 +42,9 @@ public class ClonkPreferencePage
 	 * restore itself.
 	 */
 	public void createFieldEditors() {
-		addField(new DirectoryFieldEditor(PreferenceConstants.GAME_PATH, 
-				"&Clonk game path:", getFieldEditorParent()));
+		final DirectoryFieldEditor clonkPathEditor = new DirectoryFieldEditor(PreferenceConstants.GAME_PATH, 
+				"&Clonk game path:", getFieldEditorParent());
+		addField(clonkPathEditor);
 		addField(new ListEditor(PreferenceConstants.STANDARD_EXT_LIBS,"External objects and scripts:",getFieldEditorParent()) {
 		
 			@Override
@@ -55,6 +56,10 @@ public class ClonkPreferencePage
 			@Override
 			protected String getNewInputObject() {
 				String gamePath = getPreferenceStore().getString(PreferenceConstants.GAME_PATH);
+				// not yet saved -> look in field editor
+				if (gamePath == null || gamePath.length() == 0) {
+					gamePath = clonkPathEditor.getStringValue();
+				}
 				if (gamePath == null || !new File(gamePath).exists()) {
 					gamePath = "C:\\";
 				}

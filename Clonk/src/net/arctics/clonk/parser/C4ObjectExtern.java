@@ -5,8 +5,6 @@ import java.util.List;
 import net.arctics.clonk.resource.c4group.C4Group;
 import net.arctics.clonk.resource.c4group.C4GroupItem;
 
-import org.eclipse.core.runtime.IPath;
-
 public class C4ObjectExtern extends C4Object {
 
 	private static final long serialVersionUID = -4964785375712432236L;
@@ -17,6 +15,10 @@ public class C4ObjectExtern extends C4Object {
 		super(id, name);
 //		this.path = path;
 		this.group = group;
+	}
+	
+	public C4Group getGroup() {
+		return group;
 	}
 
 	/**

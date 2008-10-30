@@ -1,12 +1,6 @@
 package net.arctics.clonk.ui.editors;
 
-import java.util.ResourceBundle;
-
-import net.arctics.clonk.ui.editors.actions.IndexClonkDir;
 import org.eclipse.core.resources.IFile;
-import org.eclipse.jface.action.IAction;
-import org.eclipse.ui.ISharedImages;
-import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.editors.text.TextEditor;
 import org.eclipse.ui.part.FileEditorInput;
 

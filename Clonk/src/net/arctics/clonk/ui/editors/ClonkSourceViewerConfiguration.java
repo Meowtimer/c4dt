@@ -3,6 +3,7 @@ package net.arctics.clonk.ui.editors;
 import net.arctics.clonk.Utilities;
 import net.arctics.clonk.parser.C4Field;
 import net.arctics.clonk.parser.C4Object;
+import net.arctics.clonk.parser.C4ObjectExtern;
 import net.arctics.clonk.parser.C4ObjectIntern;
 
 import org.eclipse.core.resources.IFile;
@@ -31,7 +32,6 @@ import org.eclipse.jface.text.quickassist.QuickAssistAssistant;
 import org.eclipse.jface.text.rules.DefaultDamagerRepairer;
 import org.eclipse.jface.text.rules.Token;
 import org.eclipse.jface.text.source.ISourceViewer;
-import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IWorkbench;
@@ -155,10 +155,11 @@ public class ClonkSourceViewerConfiguration extends TextSourceViewerConfiguratio
 						if (target != obj)
 							scriptEditor.selectAndReveal(target.getLocation());
 					}
-					else {
-						// TODO open readonly editor for C4ObjectExtern files
-						return;
-//						throw new CoreException));
+					else if (obj instanceof C4ObjectExtern) {
+						IEditorPart editor = workbenchPage.openEditor(new ObjectExternEditorInput((C4ObjectExtern)obj), "clonk.editors.C4ScriptEditor");
+						C4ScriptEditor scriptEditor = (C4ScriptEditor)editor;
+						if (target != obj)
+							scriptEditor.selectAndReveal(target.getLocation());
 					}
 				} else {
 					// TODO: provide some info about global functions or something
@@ -193,6 +194,7 @@ public class ClonkSourceViewerConfiguration extends TextSourceViewerConfiguratio
 
 		public IInformationControlCreator getHoverControlCreator() {
 			return new IInformationControlCreator() {
+				@SuppressWarnings("restriction")
 				public IInformationControl createInformationControl(Shell parent) {
 					return new DefaultInformationControl(parent, new HTMLTextPresenter(true));
 				}

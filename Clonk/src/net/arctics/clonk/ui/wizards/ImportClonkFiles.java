@@ -13,6 +13,7 @@ import org.eclipse.ui.IImportWizard;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.internal.WorkbenchPlugin;
 
+@SuppressWarnings("restriction")
 public class ImportClonkFiles extends Wizard implements IImportWizard {
     private IWorkbench workbench;
 

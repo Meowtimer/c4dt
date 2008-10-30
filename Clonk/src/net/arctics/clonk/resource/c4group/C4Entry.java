@@ -1,26 +1,31 @@
 package net.arctics.clonk.resource.c4group;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Calendar;
+import java.util.LinkedList;
 
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.IStorage;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.Path;
 
 /**
  * Represents one entry in a C4Group file.
  * @author ZokRadonh
  *
  */
-public class C4Entry implements C4GroupItem {
+public class C4Entry implements C4GroupItem, IStorage {
 	
 	private C4EntryHeader header;
     private C4Group parentGroup;
@@ -158,7 +163,7 @@ public class C4Entry implements C4GroupItem {
 	/**
 	 * @return the contents
 	 */
-	public byte[] getContents() {
+	public byte[] getContentsAsArray() {
 		return contents;
 	}
 
@@ -212,5 +217,33 @@ public class C4Entry implements C4GroupItem {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+	}
+
+	public InputStream getContents() throws CoreException {
+		return new ByteArrayInputStream(getContentsAsArray());
+	}
+
+	public IPath getFullPath() {
+		LinkedList<String> pathSegments = new LinkedList<String>();
+		for (C4GroupItem item = this; item != null; item = item.getParentGroup()) {
+			pathSegments.addFirst(item.getName());
+		}
+		StringBuilder pathBuilder = new StringBuilder();
+		for (String pathSegment : pathSegments) {
+			if (pathBuilder.length() > 0)
+				pathBuilder.append('/');
+			pathBuilder.append(pathSegment);
+		}
+		return new Path(pathBuilder.toString());
+	}
+
+	public boolean isReadOnly() {
+		return true;
+	}
+
+	public Object getAdapter(Class cls) {
+		if (cls == C4Entry.class)
+			return this;
+		return null;
 	}
 }
