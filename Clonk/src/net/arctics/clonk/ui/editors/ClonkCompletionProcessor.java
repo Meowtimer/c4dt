@@ -27,6 +27,7 @@ import org.eclipse.jface.resource.ImageRegistry;
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.ITextViewer;
+import org.eclipse.jface.text.Region;
 import org.eclipse.jface.text.contentassist.CompletionProposal;
 import org.eclipse.jface.text.contentassist.ContentAssistant;
 import org.eclipse.jface.text.contentassist.ContextInformation;
@@ -34,6 +35,7 @@ import org.eclipse.jface.text.contentassist.ICompletionProposal;
 import org.eclipse.jface.text.contentassist.IContentAssistProcessor;
 import org.eclipse.jface.text.contentassist.IContextInformation;
 import org.eclipse.jface.text.contentassist.IContextInformationValidator;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.texteditor.ITextEditor;
 
 public class ClonkCompletionProcessor implements IContentAssistProcessor {
@@ -65,6 +67,23 @@ public class ClonkCompletionProcessor implements IContentAssistProcessor {
 		proposals.add(prop);
 	}
 	
+	public void proposalForObject(C4Object obj,String prefix,int offset,List<ClonkCompletionProposal> proposals) {
+		if (prefix != null) {
+			if (!(obj.getName().toLowerCase().startsWith(prefix) || obj.getId().getName().toLowerCase().startsWith(prefix)))
+				return;
+		}
+		String displayString = obj.getName();
+		int replacementLength = 0;
+		if (prefix != null) replacementLength = prefix.length();
+		
+		String contextInfoString = obj.getName();
+		IContextInformation contextInformation = new ContextInformation(obj.getId().getName(),contextInfoString); 
+		
+		ClonkCompletionProposal prop = new ClonkCompletionProposal(obj.getId().getName(),offset,replacementLength,obj.getId().getName().length(),
+				Utilities.getIconForObject(obj), displayString.trim(),contextInformation,null," - " + obj.getId().getName());
+		proposals.add(prop);
+	}
+	
 	public ClonkCompletionProposal proposalForVar(C4Variable var, String prefix, int offset) {
 		if (prefix != null && !var.getName().toLowerCase().startsWith(prefix))
 			return null;
@@ -77,6 +96,23 @@ public class ClonkCompletionProcessor implements IContentAssistProcessor {
 			null, var.getAdditionalProposalInfo(), " - " + var.getObject().getName()
 		);
 		return prop;
+	}
+	
+	private void proposalForIndex(ClonkIndex index, int offset, int wordOffset, String prefix,
+			List<ClonkCompletionProposal> proposals) {
+		if (!index.isEmpty()) {
+			for (C4Function func : index.getGlobalFunctions()) {
+				proposalForFunc(func, prefix, offset, proposals, func.getObject().getName());
+			}
+			for (C4Variable var : index.getStaticVariables()) {
+				ClonkCompletionProposal prop = proposalForVar(var,prefix,offset);
+				if (prop != null)
+					proposals.add(prop);
+			}
+			for (List<C4Object> objs : index.getIndexedObjects().values()) {
+				proposalForObject(objs.get(objs.size()-1), prefix, wordOffset, proposals);
+			}
+		}
 	}
 	
 	public ICompletionProposal[] computeCompletionProposals(ITextViewer viewer,
@@ -172,16 +208,8 @@ public class ClonkCompletionProcessor implements IContentAssistProcessor {
 			}
 		}
 		else {
-			if (!index.isEmpty()) {
-				for (C4Function func : index.getGlobalFunctions()) {
-					proposalForFunc(func, prefix, offset, proposals, func.getObject().getName());
-				}
-				for (C4Variable var : index.getStaticVariables()) {
-					ClonkCompletionProposal prop = proposalForVar(var,prefix,offset);
-					if (prop != null)
-						proposals.add(prop);
-				}
-			}
+			proposalForIndex(index, offset, wordOffset, prefix, proposals);
+			proposalForIndex(ClonkCore.EXTERN_INDEX, offset, wordOffset, prefix, proposals);
 			
 			if (ClonkCore.ENGINE_OBJECT != null) {
 				for (C4Function func : ClonkCore.ENGINE_OBJECT.getDefinedFunctions()) {
@@ -264,24 +292,29 @@ public class ClonkCompletionProcessor implements IContentAssistProcessor {
 	}
 
 	protected boolean isInCodeBody(IDocument document, int offset) {
-		// needs refresh
-//		C4Object thisObj = Utilities.getObjectForEditor(editor);
-//		return thisObj != null && thisObj.funcAt(new Region(offset,1)) != null;
-		// restored
 		try {
-			int openBrackets = 0;
-			int closeBrackets = 0;
-			String content = document.get(0, offset);
-			for(int i = 0; i < content.length();i++) {
-				char c = content.charAt(i);
-				if (c == '{') openBrackets++;
-				else if (c == '}') closeBrackets++;
-			}
-			if (openBrackets > closeBrackets) return true;
-			else return false;
-		} catch (BadLocationException e) {
-			return false;
+			((C4ScriptEditor)editor).reparseWithDocumentContents(null);
+		} catch (CompilerException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
+		C4Object thisObj = Utilities.getObjectForEditor(editor);
+		return thisObj != null && thisObj.funcAt(new Region(offset,1)) != null;
+		// restored
+//		try {
+//			int openBrackets = 0;
+//			int closeBrackets = 0;
+//			String content = document.get(0, offset);
+//			for(int i = 0; i < content.length();i++) {
+//				char c = content.charAt(i);
+//				if (c == '{') openBrackets++;
+//				else if (c == '}') closeBrackets++;
+//			}
+//			if (openBrackets > closeBrackets) return true;
+//			else return false;
+//		} catch (BadLocationException e) {
+//			return false;
+//		}
 	}
 	
 	public IContextInformation[] computeContextInformation(ITextViewer viewer,

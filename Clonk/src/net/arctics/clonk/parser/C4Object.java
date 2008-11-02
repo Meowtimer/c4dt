@@ -90,7 +90,10 @@ public abstract class C4Object extends C4Field {
 		List<C4Object> result = new ArrayList<C4Object>();
 		for (C4Directive d : definedDirectives) {
 			if (d.getType() == C4DirectiveType.INCLUDE) {
-				C4Object obj = index.getLastObjectWithId(C4ID.getID(d.getContent()));
+				C4ID id = C4ID.getID(d.getContent());
+				C4Object obj = index.getLastObjectWithId(id);
+				if (obj == null)
+					obj = ClonkCore.EXTERN_INDEX.getLastObjectWithId(id);
 				if (obj != null)
 					result.add(obj);
 			}

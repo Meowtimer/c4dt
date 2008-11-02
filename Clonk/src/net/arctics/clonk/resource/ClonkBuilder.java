@@ -91,7 +91,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 				break;
 			case FULL_BUILD:
 			case CLEAN_BUILD:
-				readExternalLIbs();
+				readExternalLibs();
 				if (proj != null) {
 					// count num of resources to build
 					ResourceCounter counter = new ResourceCounter(ResourceCounter.COUNT_CONTAINER);
@@ -124,6 +124,12 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 				return null;
 			}
 			
+			// saves all objects persistent
+			Utilities.getProject(proj).saveIndexData();
+
+			monitor.done();
+			
+			// refresh outlines
 			Display.getDefault().asyncExec(new Runnable() {
 				public void run() {
 					IWorkbench w = PlatformUI.getWorkbench();
@@ -139,10 +145,6 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 				}
 			});
 			
-			// saves all objects persistent
-			Utilities.getProject(proj).saveIndexData();
-
-			monitor.done();
 			return new IProject[] { proj };
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -150,7 +152,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 		}
 	}
 
-	private void readExternalLIbs() throws InvalidDataException, FileNotFoundException {
+	private void readExternalLibs() throws InvalidDataException, FileNotFoundException {
 		String optionString = ClonkCore.getDefault().getPreferenceStore().getString(PreferenceConstants.STANDARD_EXT_LIBS);
 		String[] libs = optionString.split("<>");
 		ClonkCore.EXTERN_INDEX.clear();
@@ -281,7 +283,9 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 						defCoreWrapper.parse();
 						C4ObjectExtern obj = new C4ObjectExtern(defCoreWrapper.getObjectID(),item.getName(),group);
 						C4ScriptParser parser = new C4ScriptParser(new ByteArrayInputStream(script.getContentsAsArray()),script.computeSize(),obj);
-						parser.parse();
+						// we only need declarations
+						parser.clean();
+						parser.parseDeclarations();
 						ClonkCore.EXTERN_INDEX.addObject(obj);
 					} catch (CompilerException e) {
 						e.printStackTrace();

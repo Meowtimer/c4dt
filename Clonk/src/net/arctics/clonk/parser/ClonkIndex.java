@@ -109,6 +109,13 @@ public class ClonkIndex implements Serializable {
 			}
 		}
 		
+//		System.out.println("Functions added to cache:");
+//		for (C4Function func : globalFunctions)
+//			System.out.println("\t"+func.getName());
+//		System.out.println("Variables added to cache");
+//		for (C4Variable var : staticVariables)
+//			System.out.println("\t"+var.getName());
+		
 	}
 	
 	/**
@@ -121,6 +128,9 @@ public class ClonkIndex implements Serializable {
 		if (alreadyDefinedObjects == null) {
 			alreadyDefinedObjects = new LinkedList<C4Object>();
 			indexedObjects.put(obj.getId(), alreadyDefinedObjects);
+		} else {
+			if (alreadyDefinedObjects.contains(obj))
+				return;
 		}
 		alreadyDefinedObjects.add(obj);
 	}
@@ -152,7 +162,7 @@ public class ClonkIndex implements Serializable {
 		return true;
 	}
 	
-	protected Map<C4ID, List<C4Object>> getIndexedObjects() {
+	public Map<C4ID, List<C4Object>> getIndexedObjects() {
 		if (indexedObjects == null) {
 			indexedObjects = new HashMap<C4ID, List<C4Object>>();
 		}

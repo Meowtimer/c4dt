@@ -25,6 +25,10 @@ import org.eclipse.jface.text.IRegion;
 
 public class C4ScriptParser {
 
+	public interface IExpressionNotifiee {
+		public void parsedToplevelExpression(ExprElm expression);
+	}
+	
 	protected static class BufferedScanner {
 
 		public static final char[] WHITESPACE_DELIMITERS = new char[] { ' ', '	', '\n', '\r', '\t' };
@@ -158,6 +162,8 @@ public class C4ScriptParser {
 		 * @param delimiters
 		 */
 		public int eat(char[] delimiters) {
+			if (reachedEOF())
+				return 0; // no unreading() when already reached EOF
 			int result = 0;
 			do {
 				int readByte = read();
@@ -191,7 +197,7 @@ public class C4ScriptParser {
 		 */
 		public int seek(int newPos) {
 			offset = newPos;
-			if (offset >= size) offset = size - 1;
+			//if (offset >= size) offset = size - 1;
 			return offset;
 		}
 
@@ -238,6 +244,16 @@ public class C4ScriptParser {
 		public ParsingException(String msg) {
 			super(msg);
 		}
+	}
+	
+	private IExpressionNotifiee expressionNotifiee;
+
+	public IExpressionNotifiee getExpressionNotifiee() {
+		return expressionNotifiee;
+	}
+
+	public void setExpressionNotifiee(IExpressionNotifiee expressionNotifiee) {
+		this.expressionNotifiee = expressionNotifiee;
 	}
 
 	private BufferedScanner fReader;
@@ -620,8 +636,8 @@ public class C4ScriptParser {
 				startBody = fReader.getPosition();
 				// body goes from here to start of next function...
 				do {
-					endBody = fReader.getPosition();
 					eatWhitespace();
+					endBody = fReader.getPosition();
 					String word = fReader.readWord();
 					if (word != null && word.length() > 0) {
 						if (looksLikeStartOfFunction(word)) {
@@ -739,7 +755,7 @@ public class C4ScriptParser {
 	 */
 	private boolean parseCodeBlock(int offset) throws ParsingException {
 		fReader.seek(offset);
-		while(!fReader.reachedEOF() && fReader.getPosition() <= activeFunc.getBody().getEnd() && parseCode(fReader.getPosition())) {
+		while(!fReader.reachedEOF() && fReader.getPosition() < activeFunc.getBody().getEnd() && parseCode(fReader.getPosition())) {
 			eatWhitespace();
 		}
 		// a complete code block without reading { }
@@ -891,6 +907,8 @@ public class C4ScriptParser {
 	}
 
 	private void warnAboutTupleInReturnExpr(ExprElm expr, boolean tupleIsError) throws ParsingException {
+		if (expr == null)
+			return;
 		if (expr instanceof ExprTuple) {
 			if (tupleIsError)
 				errorWithCode(ErrorCode.TuplesNotAllowed, expr);
@@ -1335,6 +1353,20 @@ public class C4ScriptParser {
 			return this == Increment || this == Decrement || this.name().startsWith("Assign");
 		}
 		
+		public String oldStyleFunction() {
+			if (this == And || this == Or)
+				return toString();
+			return null;
+		}
+		
+		public static Operator oldStyleFunctionReplacement(String funcName) {
+			for (Operator o : values()) {
+				if (o.oldStyleFunction().equals(funcName))
+					return o;
+			}
+			return null;
+		}
+		
 		public int priority() {
 			int o = this.ordinal();
 			if (o >= Not.ordinal() && o <= BitNot.ordinal())
@@ -1580,6 +1612,27 @@ public class C4ScriptParser {
 			return new ExprElm[0];
 		}
 		
+		public void setSubElements(ExprElm[] elms) {
+			// ...
+		}
+		
+		public ExprElm newStyleReplacement() throws CloneNotSupportedException {
+			ExprElm[] subElms = getSubElements();
+			ExprElm[] newSubElms = new ExprElm[subElms.length];
+			boolean differentSubElms = false;
+			for (int i = 0; i < subElms.length; i++) {
+				newSubElms[i] = subElms[i].newStyleReplacement();
+				if (newSubElms[i] != subElms[i])
+					differentSubElms = true;
+			}
+			if (differentSubElms) {
+				ExprElm replacement = (ExprElm)this.clone();
+				replacement.setSubElements(newSubElms);
+				return replacement;
+			}
+			return this; // nothing to be changed
+		}
+		
 		public static final ExprElm NULL_EXPR = new ExprElm() {};
 
 	}
@@ -1645,7 +1698,7 @@ public class C4ScriptParser {
 	}
 
 	public static class ExprSequence extends ExprValue {
-		protected final ExprElm[] elements;
+		protected ExprElm[] elements;
 		public ExprSequence(ExprElm[] elms) {
 			elements = elms;
 			ExprElm prev = null;
@@ -1654,6 +1707,14 @@ public class C4ScriptParser {
 				e.setParent(this);
 				prev = e;
 			}
+		}
+		@Override
+		public ExprElm[] getSubElements() {
+			return elements;
+		}
+		@Override
+		public void setSubElements(ExprElm[] elms) {
+			elements = elms;
 		}
 		public void print(StringBuilder output) {
 			for (ExprElm e : elements) {
@@ -1744,7 +1805,7 @@ public class C4ScriptParser {
 	}
 
 	public static class ExprCallFunc extends ExprAccessField {
-		private final ExprElm[] params;
+		private ExprElm[] params;
 		public ExprCallFunc(String funcName, ExprElm[] parms) {
 			super(funcName);
 			params = parms;
@@ -1787,6 +1848,14 @@ public class C4ScriptParser {
 			}
 		}
 		@Override
+		public ExprElm[] getSubElements() {
+			return params;
+		}
+		@Override
+		public void setSubElements(ExprElm[] elms) {
+			params = elms;
+		}
+		@Override
 		public C4Object guessObjectType(C4ScriptParser context) {
 			if (params != null && fieldName.startsWith("Create")) {
 				if (params.length == 1 && params[0] instanceof ExprID) {
@@ -1795,6 +1864,15 @@ public class C4ScriptParser {
 				}
 			}
 			return super.guessObjectType(context);
+		}
+		@Override
+		public ExprElm newStyleReplacement() throws CloneNotSupportedException {
+			Operator replOperator = Operator.oldStyleFunctionReplacement(fieldName);
+			// TODO: for more than two arguments
+			if (replOperator != null && params.length == 2) {
+				return new ExprBinaryOp(replOperator, params[0].newStyleReplacement(), params[1].newStyleReplacement());
+			}
+			return super.newStyleReplacement();
 		}
 	}
 
@@ -1823,6 +1901,12 @@ public class C4ScriptParser {
 		@Override
 		public ExprElm[] getSubElements() {
 			return new ExprElm[] {leftSide, rightSide};
+		}
+		
+		@Override
+		public void setSubElements(ExprElm[] elements) {
+			leftSide  = elements[0];
+			rightSide = elements[1];
 		}
 
 		public ExprBinaryOp(Operator operator, ExprElm leftSide, ExprElm rightSide) {
@@ -1920,7 +2004,7 @@ public class C4ScriptParser {
 		}
 		
 		private final Placement placement;
-		private final ExprElm argument;
+		private ExprElm argument;
 		
 		public ExprUnaryOp(Operator operator, Placement placement, ExprElm argument) {
 			super(operator);
@@ -1932,6 +2016,11 @@ public class C4ScriptParser {
 		@Override
 		public ExprElm[] getSubElements() {
 			return new ExprElm[] {argument};
+		}
+		
+		@Override
+		public void setSubElements(ExprElm[] elements) {
+			argument = elements[0];
 		}
 
 		public void print(StringBuilder output) {
@@ -2459,99 +2548,109 @@ public class C4ScriptParser {
 		}
 	}
 	
+	private int parseExpressionRecursion;
 	private ExprElm parseExpression(int offset, char[] delimiters) throws ParsingException {
 		final int START = 0;
 		final int OPERATOR = 1;
 		final int SECONDOPERAND = 2;
 		final int DONE = 3;
-		
-		ExprElm root = null;
-		ExprElm current = null;
-		ExprBinaryOp lastOp = null;
-		
-		// magical thingie to pass all parameters to inherited
-		if (parseEllipsis(offset)) {
-			return new ExprEllipsis();
-		}
-		
-		fReader.seek(offset);
-		//this.eatWhitespace();
-		int exprStart = fReader.getPosition();
-		for (int state = START; state != DONE;) {
-			this.eatWhitespace();
-			switch (state) {
-			case START:
-				root = parseExpressionWithoutOperators(fReader.getPosition());
-				current = root;
-				state = current != null ? OPERATOR : DONE;
-				break;
-			case OPERATOR:
-				
-				// end of expression?
-				int c = fReader.read();
-				for (int i = 0; i < delimiters.length; i++) {
-					if (delimiters[i] == c) {
-						state = DONE;
-						fReader.unread();
-						break;
-					}
-				}
 
-				if (state != DONE) {
-					fReader.unread();
+		parseExpressionRecursion++;
+		try {
 
-					int operatorPos = fReader.getPosition();
-					Operator op = parseOperator_(fReader.getPosition());
-					if (op != null && op.isBinary()) {
-						int prior = op.priority();
-						ExprElm newLeftSide = null;
-						if (lastOp == null || prior > lastOp.getOperator().priority() || (prior == lastOp.getOperator().priority() && op.rightAssociative())) {
-							newLeftSide = current;
-							current = new ExprBinaryOp(op);
-							if (newLeftSide.getParent() != null)
-								((ExprBinaryOp)newLeftSide.getParent()).setRightSide(current);
-							else
-								root = current;
-							if (lastOp != null)
-								lastOp.setRightSide(current);
-							lastOp = (ExprBinaryOp)current;
-						} else {
-							newLeftSide = lastOp;
-							lastOp = new ExprBinaryOp(op);
-							if (newLeftSide.getParent() != null)
-								((ExprBinaryOp)newLeftSide.getParent()).setRightSide(lastOp);
-							else
-								root = lastOp;
-							current = lastOp;
-						}
-						lastOp.setLeftSide(newLeftSide);
-						lastOp.setExprRegion(operatorPos, fReader.getPosition());
-						state = SECONDOPERAND;
-					} else {
-						fReader.seek(operatorPos); // in case there was an operator but not a binary one
-						state = DONE;
-					}
-				}
-				break;
-			case SECONDOPERAND:
-				ExprElm rightSide = parseExpressionWithoutOperators(fReader.getPosition());
-				if (rightSide == null)
-					errorWithCode(ErrorCode.OperatorNeedsRightSide, lastOp);
-				((ExprBinaryOp)current).setRightSide(rightSide);
-				lastOp = (ExprBinaryOp)current;
-				current = rightSide;
-				state = OPERATOR;
-				break;
-				
+			ExprElm root = null;
+			ExprElm current = null;
+			ExprBinaryOp lastOp = null;
+
+			// magical thingie to pass all parameters to inherited
+			if (parseEllipsis(offset)) {
+				return new ExprEllipsis();
 			}
+
+			fReader.seek(offset);
+			//this.eatWhitespace();
+			int exprStart = fReader.getPosition();
+			for (int state = START; state != DONE;) {
+				this.eatWhitespace();
+				switch (state) {
+				case START:
+					root = parseExpressionWithoutOperators(fReader.getPosition());
+					current = root;
+					state = current != null ? OPERATOR : DONE;
+					break;
+				case OPERATOR:
+
+					// end of expression?
+					int c = fReader.read();
+					for (int i = 0; i < delimiters.length; i++) {
+						if (delimiters[i] == c) {
+							state = DONE;
+							fReader.unread();
+							break;
+						}
+					}
+
+					if (state != DONE) {
+						fReader.unread();
+
+						int operatorPos = fReader.getPosition();
+						Operator op = parseOperator_(fReader.getPosition());
+						if (op != null && op.isBinary()) {
+							int prior = op.priority();
+							ExprElm newLeftSide = null;
+							if (lastOp == null || prior > lastOp.getOperator().priority() || (prior == lastOp.getOperator().priority() && op.rightAssociative())) {
+								newLeftSide = current;
+								current = new ExprBinaryOp(op);
+								if (newLeftSide.getParent() != null)
+									((ExprBinaryOp)newLeftSide.getParent()).setRightSide(current);
+								else
+									root = current;
+								if (lastOp != null)
+									lastOp.setRightSide(current);
+								lastOp = (ExprBinaryOp)current;
+							} else {
+								newLeftSide = lastOp;
+								lastOp = new ExprBinaryOp(op);
+								if (newLeftSide.getParent() != null)
+									((ExprBinaryOp)newLeftSide.getParent()).setRightSide(lastOp);
+								else
+									root = lastOp;
+								current = lastOp;
+							}
+							lastOp.setLeftSide(newLeftSide);
+							lastOp.setExprRegion(operatorPos, fReader.getPosition());
+							state = SECONDOPERAND;
+						} else {
+							fReader.seek(operatorPos); // in case there was an operator but not a binary one
+							state = DONE;
+						}
+					}
+					break;
+				case SECONDOPERAND:
+					ExprElm rightSide = parseExpressionWithoutOperators(fReader.getPosition());
+					if (rightSide == null)
+						errorWithCode(ErrorCode.OperatorNeedsRightSide, lastOp);
+					((ExprBinaryOp)current).setRightSide(rightSide);
+					lastOp = (ExprBinaryOp)current;
+					current = rightSide;
+					state = OPERATOR;
+					break;
+
+				}
+			}
+			if (root != null) {
+				root.setExprRegion(exprStart, fReader.getPosition());
+				// potentially throwing exceptions and stuff
+				root.reportErrors(this);
+				if (expressionNotifiee != null && parseExpressionRecursion == 1)
+					expressionNotifiee.parsedToplevelExpression(root);
+			}
+			
+			return root;
+
+		} finally {
+			parseExpressionRecursion--;
 		}
-		if (root != null) {
-			root.setExprRegion(exprStart, fReader.getPosition());
-			// potentially throwing exceptions and stuff
-			root.reportErrors(this);
-		}
-		
-		return root;
 		
 	}
 	

@@ -39,30 +39,33 @@
 </extension>
    
   <extension point="org.eclipse.core.runtime.contentTypes">
+     <content-type
+           base-type="net.arctics.clonk.c4files"
+           file-names="Script.c"
+           id="net.arctics.clonk.c4script"
+           name="C4Script files"
+           priority="high">
+     </content-type>
 	<content-type id="net.arctics.clonk.c4files" name="Clonk files" 
 		priority="normal"/>
+ <content-type
+       base-type="net.arctics.clonk.c4files"
+       file-names="DefCore.txt"
+       id="net.arctics.clonk.c4defcore"
+       name="C4Object definitions"
+       priority="high">
+ </content-type>
+ <content-type
+       base-type="net.arctics.clonk.c4files"
+       file-names="ActMap.txt"
+       id="net.arctics.clonk.c4actmap"
+       name="C4Object actions"
+       priority="high">
+ </content-type>
 </extension>
    
-<extension point="org.eclipse.core.runtime.contentTypes">
-	<content-type id="net.arctics.clonk.c4script" name="C4Script files" 
-		base-type="net.arctics.clonk.c4files"
-		priority="high"				
-		file-names="Script.c"/>
-</extension>
 
-<extension point="org.eclipse.core.runtime.contentTypes">
-	<content-type id="net.arctics.clonk.c4defcore" name="C4Object definitions" 
-		base-type="net.arctics.clonk.c4files"
-		priority="high"				
-		file-names="DefCore.txt"/>
-</extension>
 
-<extension point="org.eclipse.core.runtime.contentTypes">
-	<content-type id="net.arctics.clonk.c4actmap" name="C4Object actions" 
-		base-type="net.arctics.clonk.c4files"
-		priority="high"				
-		file-names="ActMap.txt"/>
-</extension>
 
 <extension
          point="org.eclipse.ui.perspectives">
@@ -228,6 +231,30 @@
        <initializer
              class="net.arctics.clonk.preferences.PreferenceInitializer">
        </initializer>
+    </extension>
+    <extension
+          point="org.eclipse.ui.commands">
+       <category
+             description="Additional actions for the script editor"
+             id="net.arctics.clonk.editors.ui.editorActions"
+             name="Editor Actions">
+       </category>
+       <command
+             categoryId="org.eclipse.ui.category.textEditor"
+             defaultHandler="net.arctics.clonk.ui.editors.actions.ConvertOldCodeToNewCodeHandler"
+             id="clonk.ConvertOldCodeToNewCodeCommand"
+             name="Convert Old Code To New Code">
+       </command>
+    </extension>
+    <extension
+          point="org.eclipse.ui.menus">
+       <menuContribution
+             locationURI="popup:clonk.editors.C4ScriptEditor">
+          <menu
+                commandId="clonk.ConvertOldCodeToNewCodeCommand"
+                label="Convert Old Code To New Code">
+          </menu>
+       </menuContribution>
     </extension> 
  
 <!--<extension

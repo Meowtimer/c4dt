@@ -32,7 +32,7 @@ public class ObjectExternEditorInput implements IEditorInput, IPathEditorInput, 
 	}
 
 	public String getName() {
-		return object.getName();
+		return "[" + object.getName() + "]";
 	}
 
 	public IPersistableElement getPersistable() {
@@ -50,8 +50,13 @@ public class ObjectExternEditorInput implements IEditorInput, IPathEditorInput, 
 	}
 
 	public IPath getPath() {
-		// TODO Auto-generated method stub
-		return null;
+		try {
+			return getStorage().getFullPath();
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return null;
+		}
 	}
 	@Override
 

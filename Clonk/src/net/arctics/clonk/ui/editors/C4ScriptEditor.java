@@ -1,14 +1,30 @@
 package net.arctics.clonk.ui.editors;
 
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+import java.util.LinkedList;
 import java.util.ResourceBundle;
 
+import net.arctics.clonk.Utilities;
+import net.arctics.clonk.parser.C4ScriptParser;
+import net.arctics.clonk.parser.CompilerException;
 import net.arctics.clonk.parser.SourceLocation;
+import net.arctics.clonk.parser.C4ScriptParser.ExprElm;
+import net.arctics.clonk.parser.C4ScriptParser.IExpressionNotifiee;
+
 import org.eclipse.core.resources.IResource;
+import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IAction;
+import org.eclipse.jface.text.IDocument;
+import org.eclipse.jface.text.ITextSelection;
 import org.eclipse.jface.viewers.ISelection;
+import org.eclipse.ui.IEditorActionDelegate;
+import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.texteditor.AbstractDecoratedTextEditor;
 import org.eclipse.ui.texteditor.ContentAssistAction;
+import org.eclipse.ui.texteditor.ITextEditor;
 import org.eclipse.ui.texteditor.ITextEditorActionDefinitionIds;
+import org.eclipse.ui.texteditor.TextEditorAction;
 import org.eclipse.ui.views.contentoutline.IContentOutlinePage;
 
 public class C4ScriptEditor extends AbstractDecoratedTextEditor {
@@ -66,28 +82,19 @@ public class C4ScriptEditor extends AbstractDecoratedTextEditor {
 	
 	protected void createActions() {
 		super.createActions();
-		IAction action= new ContentAssistAction(ResourceBundle.getBundle("net.arctics.clonk.ui.editors.Messages"),"ClonkContentAssist.",this);
+		ResourceBundle messagesBundle = ResourceBundle.getBundle("net.arctics.clonk.ui.editors.Messages"); //$NON-NLS-1$
+		
+		IAction action= new ContentAssistAction(messagesBundle,"ClonkContentAssist.",this); //$NON-NLS-1$
 		action.setActionDefinitionId(ITextEditorActionDefinitionIds.CONTENT_ASSIST_PROPOSALS);
+		setAction(ITextEditorActionDefinitionIds.CONTENT_ASSIST_PROPOSALS, action);
 		
-		setAction(ITextEditorActionDefinitionIds.CONTENT_ASSIST_PROPOSALS, action); //$NON-NLS-1$
-		
-//		markAsStateDependentAction(ITextEditorActionDefinitionIds.CONTENT_ASSIST_PROPOSALS, true); //$NON-NLS-1$
-//		PlatformUI.getWorkbench().getHelpSystem().setHelp(action, helpContextId);
-		
-		action = new ContentAssistAction(ResourceBundle.getBundle("net.arctics.clonk.ui.editors.Messages"),"ClonkContentAssist.",this);
+		action = new ContentAssistAction(messagesBundle,"ClonkContentAssist.",this); //$NON-NLS-1$
 		action.setActionDefinitionId(ITextEditorActionDefinitionIds.SHOW_INFORMATION);
 		setAction(ITextEditorActionDefinitionIds.SHOW_INFORMATION, action);
 		
-		action = new ContentAssistAction(ResourceBundle.getBundle("net.arctics.clonk.ui.editors.Messages"),"ClonkContentAssist.",this);
+		action = new ContentAssistAction(messagesBundle,"ClonkContentAssist.",this); //$NON-NLS-1$
 		action.setActionDefinitionId(ITextEditorActionDefinitionIds.CONTENT_ASSIST_CONTEXT_INFORMATION);
 		setAction(ITextEditorActionDefinitionIds.CONTENT_ASSIST_CONTEXT_INFORMATION, action);
-		
-//		action = new IndexClonkDir(ResourceBundle.getBundle("net.arctics.clonk.ui.editors.Messages"),"IndexClonkDir.",this); 
-//		action.setToolTipText("Index Clonk directory");
-//		action.setActionDefinitionId(ACTION_INDEX_CLONK_DIR);
-//		action.setDisabledImageDescriptor(PlatformUI.getWorkbench().getSharedImages().getImageDescriptor(ISharedImages.IMG_TOOL_NEW_WIZARD_DISABLED));
-//		action.setImageDescriptor(PlatformUI.getWorkbench().getSharedImages().getImageDescriptor(ISharedImages.IMG_LCL_LINKTO_HELP));
-//		setAction(ACTION_INDEX_CLONK_DIR, action);
 		
 	}
 
@@ -107,6 +114,17 @@ public class C4ScriptEditor extends AbstractDecoratedTextEditor {
 
 	public void refreshOutline() {
 		outlinePage.refresh();
+	}
+
+	public void reparseWithDocumentContents(IExpressionNotifiee exprNotifiee) throws CompilerException {
+		IDocument document = getDocumentProvider().getDocument(getEditorInput());
+		byte[] documentBytes = document.get().getBytes();
+		InputStream scriptStream = new ByteArrayInputStream(documentBytes);
+		C4ScriptParser parser = new C4ScriptParser(scriptStream, documentBytes.length, Utilities.getObjectForEditor(this));
+		parser.setExpressionNotifiee(exprNotifiee);
+		parser.clean();
+		parser.parseDeclarations();
+		refreshOutline();
 	}
 
 }
