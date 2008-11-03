@@ -240,21 +240,33 @@
              name="Editor Actions">
        </category>
        <command
-             categoryId="org.eclipse.ui.category.textEditor"
+             categoryId="net.arctics.clonk.editors.ui.editorActions"
              defaultHandler="net.arctics.clonk.ui.editors.actions.ConvertOldCodeToNewCodeHandler"
              id="clonk.ConvertOldCodeToNewCodeCommand"
              name="Convert Old Code To New Code">
        </command>
     </extension>
     <extension
-          point="org.eclipse.ui.menus">
-       <menuContribution
-             locationURI="popup:clonk.editors.C4ScriptEditor">
+          point="org.eclipse.ui.popupMenus">
+       <viewerContribution
+             id="clonk.popups.EditorPopupContribution"
+             targetID="clonk.editors.C4ScriptEditor">
           <menu
-                commandId="clonk.ConvertOldCodeToNewCodeCommand"
-                label="Convert Old Code To New Code">
+                id="clonk.menus.EditorMenu"
+                label="Editor Menu"
+                path="additions">
+             <separator
+                   name="group1">
+             </separator>
           </menu>
-       </menuContribution>
+          <action
+                class="net.arctics.clonk.ui.editors.actions.ConvertOldCodeToNewCodeHandler"
+                definitionId="clonk.ConvertOldCodeToNewCodeCommand"
+                id="clonk.actions.ConvertOldCodeToNewCode"
+                label="Convert old code to new code"
+                menubarPath="clonk.menus.EditorMenu/group1">
+          </action>
+       </viewerContribution>
     </extension> 
  
 <!--<extension

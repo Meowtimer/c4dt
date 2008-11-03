@@ -9,12 +9,12 @@ import net.arctics.clonk.Utilities;
 import net.arctics.clonk.parser.C4ScriptParser;
 import net.arctics.clonk.parser.CompilerException;
 import net.arctics.clonk.parser.SourceLocation;
-import net.arctics.clonk.parser.C4ScriptParser.ExprElm;
 import net.arctics.clonk.parser.C4ScriptParser.IExpressionNotifiee;
 
 import org.eclipse.core.resources.IResource;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IAction;
+import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.ITextSelection;
 import org.eclipse.jface.viewers.ISelection;

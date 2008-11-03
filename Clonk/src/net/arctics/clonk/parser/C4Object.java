@@ -7,7 +7,6 @@ import java.util.List;
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.Utilities;
 import net.arctics.clonk.parser.C4Directive.C4DirectiveType;
-import net.arctics.clonk.parser.C4Function.C4FunctionScope;
 import net.arctics.clonk.resource.ClonkProjectNature;
 
 import org.eclipse.core.resources.IContainer;
@@ -52,7 +51,7 @@ public abstract class C4Object extends C4Field {
 		
 	}
 	
-	protected transient C4ID id;
+	protected C4ID id;
 	
 	protected List<C4Function> definedFunctions = new LinkedList<C4Function>();
 	protected List<C4Variable> definedVariables = new ArrayList<C4Variable>(); // default capacity of 10 is ok

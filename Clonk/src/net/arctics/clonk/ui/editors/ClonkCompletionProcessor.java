@@ -11,12 +11,13 @@ import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.BuiltInDefinitions;
 import net.arctics.clonk.parser.C4Function;
 import net.arctics.clonk.parser.C4Object;
+import net.arctics.clonk.parser.C4ObjectIntern;
 import net.arctics.clonk.parser.C4ScriptParser;
 import net.arctics.clonk.parser.C4Variable;
 import net.arctics.clonk.parser.ClonkIndex;
 import net.arctics.clonk.parser.CompilerException;
-import net.arctics.clonk.parser.C4ScriptParser.ExprElm;
 import net.arctics.clonk.parser.C4ScriptParser.ParsingException;
+import net.arctics.clonk.parser.ExprTree.ExprElm;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.Utilities;
 
@@ -68,8 +69,15 @@ public class ClonkCompletionProcessor implements IContentAssistProcessor {
 	}
 	
 	public void proposalForObject(C4Object obj,String prefix,int offset,List<ClonkCompletionProposal> proposals) {
+		if (obj == null || obj.getId() == null)
+			return;
+		
 		if (prefix != null) {
-			if (!(obj.getName().toLowerCase().startsWith(prefix) || obj.getId().getName().toLowerCase().startsWith(prefix)))
+			if (!(
+					obj.getName().toLowerCase().startsWith(prefix) ||
+					obj.getId().getName().toLowerCase().startsWith(prefix) ||
+					(obj instanceof C4ObjectIntern && ((C4ObjectIntern)obj).getObjectFolder() != null && ((C4ObjectIntern)obj).getObjectFolder().getName().startsWith(prefix))
+			))
 				return;
 		}
 		String displayString = obj.getName();
