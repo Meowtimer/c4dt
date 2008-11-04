@@ -92,7 +92,7 @@ public class ClonkCompletionProcessor implements IContentAssistProcessor {
 		proposals.add(prop);
 	}
 	
-	public ClonkCompletionProposal proposalForVar(C4Variable var, String prefix, int offset) {
+	public ClonkCompletionProposal proposalForVar(C4Variable var, String prefix, int offset, List<ClonkCompletionProposal> proposals) {
 		if (prefix != null && !var.getName().toLowerCase().startsWith(prefix))
 			return null;
 		String displayString = var.getName();
@@ -103,6 +103,7 @@ public class ClonkCompletionProcessor implements IContentAssistProcessor {
 			var.getName(), offset, replacementLength, var.getName().length(), Utilities.getIconForVariable(var), displayString, 
 			null, var.getAdditionalProposalInfo(), " - " + var.getObject().getName()
 		);
+		proposals.add(prop);
 		return prop;
 	}
 	
@@ -113,7 +114,7 @@ public class ClonkCompletionProcessor implements IContentAssistProcessor {
 				proposalForFunc(func, prefix, offset, proposals, func.getObject().getName());
 			}
 			for (C4Variable var : index.getStaticVariables()) {
-				ClonkCompletionProposal prop = proposalForVar(var,prefix,offset);
+				ClonkCompletionProposal prop = proposalForVar(var,prefix,offset,proposals);
 				if (prop != null)
 					proposals.add(prop);
 			}
@@ -224,9 +225,7 @@ public class ClonkCompletionProcessor implements IContentAssistProcessor {
 					proposalForFunc(func, prefix, offset, proposals, ClonkCore.ENGINE_OBJECT.getName());
 				}
 				for (C4Variable var : ClonkCore.ENGINE_OBJECT.getDefinedVariables()) {
-					ClonkCompletionProposal prop = proposalForVar(var,prefix,offset);
-					if (prop != null)
-						proposals.add(prop);
+					proposalForVar(var,prefix,offset,proposals);
 				}
 			}
 			
@@ -237,7 +236,7 @@ public class ClonkCompletionProcessor implements IContentAssistProcessor {
 					String expr = doc.get(off,offset-off+1);
 					InputStream stream = new ByteArrayInputStream(expr.getBytes());
 					C4ScriptParser parser = new C4ScriptParser(stream,  expr.length(), contextObj);
-					ExprElm e = parser.parseExpressionWithoutOperators(0);
+					ExprElm e = parser.parseExpressionWithoutOperators(0, false);
 					C4Object guessedType = (e == null) ? null : e.guessObjectType(parser);
 					if (guessedType != null)
 						contextObj = guessedType;
@@ -256,6 +255,9 @@ public class ClonkCompletionProcessor implements IContentAssistProcessor {
 			if (contextObj != null) {
 				for (C4Function func : contextObj.getDefinedFunctions()) {
 					proposalForFunc(func, prefix, offset, proposals, contextObj.getName());
+				}
+				for (C4Variable var : contextObj.getDefinedVariables()) {
+					proposalForVar(var, prefix, wordOffset, proposals);
 				}
 			}
 			

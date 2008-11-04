@@ -10,13 +10,22 @@ import net.arctics.clonk.ui.editors.C4ScriptEditor;
 import org.eclipse.core.commands.AbstractHandler;
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
+import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.text.ITextSelection;
+import org.eclipse.jface.viewers.ISelection;
+import org.eclipse.ui.IEditorActionDelegate;
+import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.handlers.HandlerUtil;
 
-public class ConvertOldCodeToNewCodeHandler extends AbstractHandler {
+public class ConvertOldCodeToNewCodeAction implements IEditorActionDelegate {
 
-	public Object execute(ExecutionEvent event) throws ExecutionException {
-		C4ScriptEditor editor = (C4ScriptEditor)HandlerUtil.getActiveWorkbenchWindow(event).getActivePage().getActiveEditor();
+	private C4ScriptEditor editor;
+
+	public void setActiveEditor(IAction action, IEditorPart editorPart) {
+		editor = (C4ScriptEditor)editorPart;
+	}
+
+	public void run(IAction action) {
 		ITextSelection selection = (ITextSelection)editor.getSelectionProvider().getSelection();
 		final LinkedList<ExprElm> expressions = new LinkedList<ExprElm>();
 		try {
@@ -32,7 +41,10 @@ public class ConvertOldCodeToNewCodeHandler extends AbstractHandler {
 		for (ExprElm e : expressions) {
 			System.out.println(e.toString());
 		}
-		return null;
+	}
+
+	public void selectionChanged(IAction arg0, ISelection arg1) {
+		// blub
 	}
 	
 }

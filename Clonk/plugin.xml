@@ -241,8 +241,8 @@
        </category>
        <command
              categoryId="net.arctics.clonk.editors.ui.editorActions"
-             defaultHandler="net.arctics.clonk.ui.editors.actions.ConvertOldCodeToNewCodeHandler"
-             id="clonk.ConvertOldCodeToNewCodeCommand"
+             defaultHandler="net.arctics.clonk.ui.editors.actions.ConvertOldCodeToNewCodeAction"
+             id="clonk.commands.ConvertOldCodeToNewCode"
              name="Convert Old Code To New Code">
        </command>
     </extension>
@@ -251,20 +251,12 @@
        <viewerContribution
              id="clonk.popups.EditorPopupContribution"
              targetID="clonk.editors.C4ScriptEditor">
-          <menu
-                id="clonk.menus.EditorMenu"
-                label="Editor Menu"
-                path="additions">
-             <separator
-                   name="group1">
-             </separator>
-          </menu>
           <action
-                class="net.arctics.clonk.ui.editors.actions.ConvertOldCodeToNewCodeHandler"
-                definitionId="clonk.ConvertOldCodeToNewCodeCommand"
+                class="net.arctics.clonk.ui.editors.actions.ConvertOldCodeToNewCodeAction"
+                definitionId="clonk.commands.ConvertOldCodeToNewCode"
                 id="clonk.actions.ConvertOldCodeToNewCode"
                 label="Convert old code to new code"
-                menubarPath="clonk.menus.EditorMenu/group1">
+                menubarPath="additions">
           </action>
        </viewerContribution>
     </extension> 
