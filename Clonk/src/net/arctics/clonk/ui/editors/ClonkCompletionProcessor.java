@@ -165,7 +165,15 @@ public class ClonkCompletionProcessor implements IContentAssistProcessor {
 			statusMessages.add("Engine functions");
 		}
 		
-		if (!isInCodeBody(doc, offset)) {
+		// refresh to find about whether caret is inside a function and to get all the declarations
+		try {
+			((C4ScriptEditor)editor).reparseWithDocumentContents(null);
+		} catch (CompilerException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		C4Function activeFunc = isInCodeBody(doc, offset);
+		if (activeFunc == null) {
 		
 			try {
 				if (viewer.getDocument().get(offset - 5, 5).equalsIgnoreCase("func ")) {
@@ -226,6 +234,15 @@ public class ClonkCompletionProcessor implements IContentAssistProcessor {
 				}
 				for (C4Variable var : ClonkCore.ENGINE_OBJECT.getDefinedVariables()) {
 					proposalForVar(var,prefix,offset,proposals);
+				}
+			}
+			
+			if (activeFunc != null) {
+				for (C4Variable v : activeFunc.getParameter()) {
+					proposalForVar(v, prefix, wordOffset, proposals);
+				}
+				for (C4Variable v : activeFunc.getLocalVars()) {
+					proposalForVar(v, prefix, wordOffset, proposals);
 				}
 			}
 			
@@ -301,15 +318,9 @@ public class ClonkCompletionProcessor implements IContentAssistProcessor {
 		return result;
 	}
 
-	protected boolean isInCodeBody(IDocument document, int offset) {
-		try {
-			((C4ScriptEditor)editor).reparseWithDocumentContents(null);
-		} catch (CompilerException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+	protected C4Function isInCodeBody(IDocument document, int offset) {
 		C4Object thisObj = Utilities.getObjectForEditor(editor);
-		return thisObj != null && thisObj.funcAt(new Region(offset,1)) != null;
+		return thisObj != null ? thisObj.funcAt(new Region(offset,1)) : null;
 		// restored
 //		try {
 //			int openBrackets = 0;

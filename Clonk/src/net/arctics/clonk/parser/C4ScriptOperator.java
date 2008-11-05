@@ -1,0 +1,228 @@
+package net.arctics.clonk.parser;
+
+import java.util.HashMap;
+
+/**
+ * 
+ * @author madeen
+ * an operator
+ */
+public enum C4ScriptOperator {
+	Not,
+	BitNot,
+
+	Power,
+	
+	Divide,
+	Multiply,
+	Modulo,
+	Subtract,
+	Add,
+
+	Smaller,
+	SmallerEqual,
+	Larger,
+	LargerEqual,
+
+	Equal,
+	NotEqual,
+	StringEqual,
+	eq,
+	ne,
+
+	And,
+	Or,
+	BitAnd,
+	BitXOr,
+	BitOr,
+
+	Decrement,
+	Increment,
+
+	ShiftLeft,
+	ShiftRight,
+
+	Assign,
+	AssignAdd,
+	AssignSubtract,
+	AssignMultiply,
+	AssignDivide,
+	AssignModulo,
+	AssignOr,
+	AssignAnd,
+	AssignXOr;
+	
+	// enums can have fields! cool
+	C4Type firstArgType, secondArgType, resultType;
+	String operatorName;
+	int priority;
+	
+	public static final HashMap<String, C4ScriptOperator> stringToOperatorMap;
+	
+	private void setOperatorName(String opName) {
+		operatorName = opName;
+	}
+	
+	public String getOperatorName() {
+		return operatorName;
+	}
+	
+	private void setArgTypesAndResult(C4Type f, C4Type s, C4Type r) {
+		firstArgType  = f;
+		secondArgType = s;
+		resultType    = r;
+	}
+	
+	private void setArgTypeAndResult(C4Type f, C4Type r) {
+		firstArgType = f;
+		resultType   = r;
+	}
+	
+	public C4Type getFirstArgType() {
+		return firstArgType;
+	}
+	
+	public C4Type getSecondArgType() {
+		return secondArgType;
+	}
+	
+	public C4Type getResultType() {
+		return resultType;
+	}
+	
+	// bla bla
+	private static final C4ScriptOperator[] ops(C4ScriptOperator... args) {
+		return args;
+	}
+	
+	static {
+		Not.setOperatorName("!");
+		BitNot.setOperatorName("~");
+		Power.setOperatorName("**");
+		Divide.setOperatorName("/");
+		Multiply.setOperatorName("*");
+		Modulo.setOperatorName("%");
+		Subtract.setOperatorName("-");
+		Add.setOperatorName("+");
+		Smaller.setOperatorName("<");
+		SmallerEqual.setOperatorName("<=");
+		Larger.setOperatorName(">");
+		LargerEqual.setOperatorName(">=");
+		Equal.setOperatorName("==");
+		NotEqual.setOperatorName("!=");
+		StringEqual.setOperatorName("S=");
+		eq.setOperatorName("eq");
+		ne.setOperatorName("ne");
+		And.setOperatorName("&&");
+		Or.setOperatorName("||");
+		BitAnd.setOperatorName("&");
+		BitXOr.setOperatorName("^");
+		BitOr.setOperatorName("|");
+		Decrement.setOperatorName("--");
+		Increment.setOperatorName("++");
+		ShiftLeft.setOperatorName("<<");
+		ShiftRight.setOperatorName(">>");
+		Assign.setOperatorName("=");
+		AssignAdd.setOperatorName("+=");
+		AssignSubtract.setOperatorName("-=");
+		AssignMultiply.setOperatorName("*=");
+		AssignDivide.setOperatorName("/=");
+		AssignModulo.setOperatorName("%=");
+		AssignOr.setOperatorName("|=");
+		AssignAnd.setOperatorName("&=");
+		AssignXOr.setOperatorName("^=");
+		stringToOperatorMap = new HashMap<String, C4ScriptOperator>(C4ScriptOperator.values().length);
+		for (C4ScriptOperator o : values()) {
+			stringToOperatorMap.put(o.getOperatorName(), o);
+		}
+		
+		for (C4ScriptOperator o : ops(Not, BitNot)) {
+			o.setPriority(-1000);
+			o.setArgTypeAndResult(C4Type.BOOL, C4Type.BOOL);
+		}
+		Power.setPriority(14);
+		Power.setArgTypesAndResult(C4Type.INT, C4Type.INT, C4Type.INT);
+		for (C4ScriptOperator o : ops(Divide, Multiply, Modulo)) {
+			o.setPriority(13);
+			o.setArgTypesAndResult(C4Type.INT, C4Type.INT, C4Type.INT);
+		}
+		for (C4ScriptOperator o : ops(Subtract, Add)) {
+			o.setPriority(12);
+			o.setArgTypesAndResult(C4Type.INT, C4Type.INT, C4Type.INT);
+		}
+		for (C4ScriptOperator o : ops(Smaller, SmallerEqual, Larger, LargerEqual)) {
+			o.setPriority(10);
+			o.setArgTypesAndResult(C4Type.INT, C4Type.INT, C4Type.BOOL);
+		}
+		for (C4ScriptOperator o : ops(Equal, NotEqual, StringEqual, eq, ne))
+			o.setPriority(9);
+		for (C4ScriptOperator o : ops(Equal, NotEqual))
+			o.setArgTypesAndResult(C4Type.ANY, C4Type.ANY, C4Type.BOOL);
+		for (C4ScriptOperator o : ops(StringEqual, eq, ne))
+			o.setArgTypesAndResult(C4Type.STRING, C4Type.STRING, C4Type.BOOL);
+		for (C4ScriptOperator o : ops(And, Or, BitAnd, BitXOr, BitOr))
+			o.setPriority(6);
+		for (C4ScriptOperator o : ops(And, Or))
+			o.setArgTypesAndResult(C4Type.BOOL, C4Type.BOOL, C4Type.BOOL);
+		for (C4ScriptOperator o : ops(BitAnd, BitXOr, BitOr, ShiftLeft, ShiftRight))
+			o.setArgTypesAndResult(C4Type.INT, C4Type.INT, C4Type.INT);
+		for (C4ScriptOperator o : ops(ShiftLeft, ShiftRight))
+			o.setPriority(11);
+		for (C4ScriptOperator o : ops(Assign, AssignAdd, AssignSubtract, AssignMultiply, AssignDivide, AssignModulo, AssignOr, AssignAnd, AssignXOr))
+			o.setPriority(2);
+		Assign.setArgTypesAndResult(C4Type.ANY, C4Type.ANY, C4Type.ANY);
+		for (C4ScriptOperator o : ops(AssignAdd, AssignSubtract, AssignMultiply, AssignDivide, AssignModulo))
+			o.setArgTypesAndResult(C4Type.INT, C4Type.INT, C4Type.INT);
+		for (C4ScriptOperator o : ops(AssignOr, AssignAnd, AssignXOr))
+			o.setArgTypesAndResult(C4Type.BOOL, C4Type.BOOL, C4Type.BOOL);
+	}
+
+	public boolean isUnary() {
+		return this == Not || this == Increment || this == Decrement || this == Add || this == Subtract;
+	}
+
+	private void setPriority(int i) {
+		priority = i;
+	}
+
+	public boolean isBinary() {
+		return !isUnary() || this == Add || this == Subtract; // :D
+	}
+
+	public boolean isPostfix() {
+		return this == Increment || this == Decrement;
+	}
+	
+	public boolean isPrefix() {
+		return this == Increment || this == Decrement || this == Not || this == Add || this == Subtract || this == BitNot;
+	}
+	
+	public boolean modifiesArgument() {
+		return this == Increment || this == Decrement || this.name().startsWith("Assign");
+	}
+	
+	public String oldStyleFunction() {
+		if (this == And || this == Or)
+			return toString();
+		return null;
+	}
+	
+	public static C4ScriptOperator oldStyleFunctionReplacement(String funcName) {
+		for (C4ScriptOperator o : values()) {
+			if (o.oldStyleFunction().equals(funcName))
+				return o;
+		}
+		return null;
+	}
+	
+	public int priority() {
+		return priority;
+	}
+
+	public boolean rightAssociative() {
+		int o = ordinal();
+		// assignment operators
+		return (o >= 25 && o <= 32);
+	}
+
+}

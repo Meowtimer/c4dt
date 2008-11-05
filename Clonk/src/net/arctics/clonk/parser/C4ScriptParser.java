@@ -31,7 +31,7 @@ public class C4ScriptParser {
 	
 	protected static class BufferedScanner {
 
-		public static final char[] WHITESPACE_DELIMITERS = new char[] { ' ', '	', '\n', '\r', '\t' };
+		public static final char[] WHITESPACE_DELIMITERS = new char[] { ' ', '\n', '\r', '\t' };
 		public static final char[] NEWLINE_DELIMITERS = new char[] { '\n', '\r' };
 
 		private byte[] buffer;
@@ -1287,173 +1287,6 @@ public class C4ScriptParser {
 		While
 	}
 
-	/**
-	 * 
-	 * @author madeen
-	 * an operator
-	 */
-	public enum Operator {
-		Not,
-		BitNot,
-
-		Power,
-		
-		Divide,
-		Multiply,
-		Modulo,
-		Subtract,
-		Add,
-
-		Smaller,
-		SmallerEqual,
-		Larger,
-		LargerEqual,
-
-		Equal,
-		NotEqual,
-		StringEqual,
-		eq,
-		ne,
-
-		And,
-		Or,
-		BitAnd,
-		BitXOr,
-		BitOr,
-
-		Decrement,
-		Increment,
-
-		ShiftLeft,
-		ShiftRight,
-
-		Assign,
-		AssignAdd,
-		AssignSubtract,
-		AssignMultiply,
-		AssignDivide,
-		AssignModulo,
-		AssignOr,
-		AssignAnd,
-		AssignXOr;
-
-		public boolean isUnary() {
-			return this == Not || this == Increment || this == Decrement || this == Add || this == Subtract;
-		}
-
-		public boolean isBinary() {
-			return !isUnary() || this == Add || this == Subtract; // :D
-		}
-
-		public boolean isPostfix() {
-			return this == Increment || this == Decrement;
-		}
-		
-		public boolean isPrefix() {
-			return this == Increment || this == Decrement || this == Not || this == Add || this == Subtract || this == BitNot;
-		}
-		
-		public boolean modifiesArgument() {
-			return this == Increment || this == Decrement || this.name().startsWith("Assign");
-		}
-		
-		public String oldStyleFunction() {
-			if (this == And || this == Or)
-				return toString();
-			return null;
-		}
-		
-		public static Operator oldStyleFunctionReplacement(String funcName) {
-			for (Operator o : values()) {
-				if (o.oldStyleFunction().equals(funcName))
-					return o;
-			}
-			return null;
-		}
-		
-		public int priority() {
-			int o = this.ordinal();
-			if (o >= Not.ordinal() && o <= BitNot.ordinal())
-				return -1000;
-			if (o == Power.ordinal())
-				return 14;
-			if (o >= Divide.ordinal() && o <= Modulo.ordinal())
-				return 13;
-			if (o >= Subtract.ordinal() && o <= Add.ordinal())
-				return 12;
-			if (o >= Smaller.ordinal() && o <= LargerEqual.ordinal())
-				return 10;
-			if (o >= Equal.ordinal() && o <= ne.ordinal())
-				return 9;
-			if (o >= And.ordinal() && o <= BitOr.ordinal())
-				return 6;
-			if (o >= Decrement.ordinal() && o <= Increment.ordinal())
-				return -1000;
-			if (o >= ShiftLeft.ordinal() && o <= ShiftRight.ordinal())
-				return 11;
-			if (o >= Assign.ordinal() && o <= AssignXOr.ordinal())
-				return 2;
-			return 0;
-		}
-
-		public boolean rightAssociative() {
-			int o = ordinal();
-			// assignment operators
-			return (o >= 25 && o <= 32);
-		}
-
-		public String operatorName() {
-			return operatorToStringMap.get(this);
-		}
-		
-		public static final HashMap<String, Operator> stringToOperatorMap;
-		public static final HashMap<Operator, String> operatorToStringMap;
-		
-		static {
-			stringToOperatorMap = createOperatorHashMap(new String[] {
-					"!",
-					"~",
-					"**",
-					"/",
-					"*",
-					"%",
-					"-",
-					"+",
-					"<",
-					"<=",
-					">",
-					">=",
-					"==",
-					"!=",
-					"S=",
-					"eq",
-					"ne",
-					"&&",
-					"||",
-					"&",
-					"^",
-					"|",
-					"--",
-					"++",
-					"<<",
-					">>",
-					"=",
-					"+=",
-					"-=",
-					"*=",
-					"/=",
-					"%=",
-					"^="
-			});
-			assert(stringToOperatorMap.size() == Operator.values().length);
-			// i want both directions!
-			operatorToStringMap = new HashMap<Operator, String>();
-			for (String s : stringToOperatorMap.keySet()) {
-				operatorToStringMap.put(stringToOperatorMap.get(s), s);
-			}
-		} 
-	}
-	
 	public enum Token {
 		String,
 		Word,
@@ -1475,10 +1308,10 @@ public class C4ScriptParser {
 		return null;
 	}
 
-	private static HashMap<String, Operator> createOperatorHashMap(String[] operatorNames) {
-		HashMap<String, Operator> result = new HashMap<String, Operator>(Operator.values().length);
+	private static HashMap<String, C4ScriptOperator> createOperatorHashMap(String[] operatorNames) {
+		HashMap<String, C4ScriptOperator> result = new HashMap<String, C4ScriptOperator>(C4ScriptOperator.values().length);
 		for (int i = 0 ; i < operatorNames.length; i++) {
-			result.put(operatorNames[i], Operator.values()[i]);
+			result.put(operatorNames[i], C4ScriptOperator.values()[i]);
 		}
 		return result;
 	}
@@ -1488,7 +1321,7 @@ public class C4ScriptParser {
 	 * @param offset
 	 * @return the operator referenced in the code at offset
 	 */
-	private Operator parseOperator_(int offset) {
+	private C4ScriptOperator parseOperator_(int offset) {
 		fReader.seek(offset);
 
 		final char[] chars = new char[] { (char)fReader.read(), (char)fReader.read()  };
@@ -1500,10 +1333,10 @@ public class C4ScriptParser {
 			return null;
 		}
 
-		Operator result = Operator.stringToOperatorMap.get(s);
+		C4ScriptOperator result = C4ScriptOperator.stringToOperatorMap.get(s);
 		if (result != null) {
 			// new_variable should not be parsed as ne w_variable -.-
-			if (result == Operator.ne || result == Operator.eq) {
+			if (result == C4ScriptOperator.ne || result == C4ScriptOperator.eq) {
 				int followingChar = fReader.read();
 				if (BufferedScanner.isWordPart(followingChar)) {
 					fReader.seek(offset);
@@ -1515,7 +1348,7 @@ public class C4ScriptParser {
 		}
 
 		s = s.substring(0, 1);
-		result = Operator.stringToOperatorMap.get(s);
+		result = C4ScriptOperator.stringToOperatorMap.get(s);
 		if (result != null) {
 			fReader.unread();
 			return result;
@@ -1615,7 +1448,7 @@ public class C4ScriptParser {
 		fReader.seek(offset);
 		this.eatWhitespace();
 		int sequenceStart = fReader.getPosition();
-		Operator preop = parseOperator_(fReader.offset);
+		C4ScriptOperator preop = parseOperator_(fReader.offset);
 		ExprElm result = null;
 		if (preop != null && preop.isPrefix()) {
 			ExprElm followingExpr = parseExpressionWithoutOperators(fReader.offset, reportErrors);
@@ -1800,7 +1633,7 @@ public class C4ScriptParser {
 		if (!dontCheckForPostOp) {
 			this.eatWhitespace();
 			int saved = fReader.getPosition();
-			Operator postop = parseOperator_(fReader.getPosition());
+			C4ScriptOperator postop = parseOperator_(fReader.getPosition());
 			if (postop != null) {
 				if (postop.isPostfix()) {
 					return new ExprUnaryOp(postop, ExprUnaryOp.Placement.Postfix, result);
@@ -1889,7 +1722,7 @@ public class C4ScriptParser {
 						fReader.unread();
 
 						int operatorPos = fReader.getPosition();
-						Operator op = parseOperator_(fReader.getPosition());
+						C4ScriptOperator op = parseOperator_(fReader.getPosition());
 						if (op != null && op.isBinary()) {
 							int prior = op.priority();
 							ExprElm newLeftSide = null;
@@ -2306,7 +2139,7 @@ public class C4ScriptParser {
 			}
 		}
 		int e = fReader.getPosition();
-		C4Variable var = new C4Variable();
+		C4Variable var = new C4Variable(null, C4VariableScope.VAR_VAR);
 		C4Type type = C4Type.makeType(firstWord);
 		var.setType(type);
 		if (type == C4Type.UNKNOWN) {

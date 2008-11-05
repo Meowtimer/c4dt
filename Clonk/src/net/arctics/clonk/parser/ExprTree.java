@@ -3,7 +3,6 @@ package net.arctics.clonk.parser;
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.Utilities;
 import net.arctics.clonk.parser.C4ScriptParser.ErrorCode;
-import net.arctics.clonk.parser.C4ScriptParser.Operator;
 import net.arctics.clonk.parser.C4ScriptParser.ParsingException;
 
 import org.eclipse.jface.text.IRegion;
@@ -360,7 +359,7 @@ public abstract class ExprTree {
 		}
 		@Override
 		public ExprElm newStyleReplacement() throws CloneNotSupportedException {
-			Operator replOperator = Operator.oldStyleFunctionReplacement(fieldName);
+			C4ScriptOperator replOperator = C4ScriptOperator.oldStyleFunctionReplacement(fieldName);
 			// TODO: for more than two arguments
 			if (replOperator != null && params.length == 2) {
 				return new ExprBinaryOp(replOperator, params[0].newStyleReplacement(), params[1].newStyleReplacement());
@@ -370,14 +369,14 @@ public abstract class ExprTree {
 	}
 
 	public static class ExprOperator extends ExprValue {
-		private final Operator operator;
+		private final C4ScriptOperator operator;
 
-		public ExprOperator(Operator operator) {
+		public ExprOperator(C4ScriptOperator operator) {
 			super();
 			this.operator = operator;
 		}
 
-		public Operator getOperator() {
+		public C4ScriptOperator getOperator() {
 			return operator;
 		}
 
@@ -402,7 +401,7 @@ public abstract class ExprTree {
 			rightSide = elements[1];
 		}
 
-		public ExprBinaryOp(Operator operator, ExprElm leftSide, ExprElm rightSide) {
+		public ExprBinaryOp(C4ScriptOperator operator, ExprElm leftSide, ExprElm rightSide) {
 			super(operator);
 			setLeftSide(leftSide);
 			setRightSide(rightSide);
@@ -413,7 +412,7 @@ public abstract class ExprTree {
 				parser.warningWithCode(ErrorCode.NoAssignment, this);
 		}
 
-		public ExprBinaryOp(Operator op) {
+		public ExprBinaryOp(C4ScriptOperator op) {
 			super(op);
 		}
 
@@ -438,7 +437,7 @@ public abstract class ExprTree {
 		public void print(StringBuilder output) {
 			leftSide.print(output);
 			output.append(" ");
-			output.append(getOperator().operatorName());
+			output.append(getOperator().getOperatorName());
 			output.append(" ");
 			rightSide.print(output);
 		}
@@ -499,7 +498,7 @@ public abstract class ExprTree {
 		private final Placement placement;
 		private ExprElm argument;
 
-		public ExprUnaryOp(Operator operator, Placement placement, ExprElm argument) {
+		public ExprUnaryOp(C4ScriptOperator operator, Placement placement, ExprElm argument) {
 			super(operator);
 			this.placement = placement;
 			this.argument = argument;
@@ -521,9 +520,9 @@ public abstract class ExprTree {
 				argument.print(output);
 				if (argument instanceof ExprUnaryOp)
 					output.append(" "); // - -5 -.-
-				output.append(getOperator().operatorName());
+				output.append(getOperator().getOperatorName());
 			} else {
-				output.append(getOperator().operatorName());
+				output.append(getOperator().getOperatorName());
 				if (argument instanceof ExprUnaryOp)
 					output.append(" "); // - -5 -.-
 				argument.print(output);
