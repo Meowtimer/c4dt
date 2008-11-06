@@ -23,6 +23,14 @@ public enum C4Type {
 		return super.toString().toLowerCase();
 	}
 	
+	public boolean canBeAssignedFrom(C4Type other) {
+		return
+			other == this ||
+			this == ANY || other == ANY ||
+			other == UNKNOWN || this == UNKNOWN || this == REFERENCE ||
+			(this == BOOL && other == INT) || (this == INT && other == ID);
+	}
+	
 	public static C4Type makeType(String arg) {
 		// ID, Id.. all variable names
 		if (arg.equals("any")) return C4Type.ANY;

@@ -7,7 +7,7 @@ import net.arctics.clonk.parser.C4ScriptParser.ParsingException;
 
 import org.eclipse.jface.text.IRegion;
 
-public abstract class ExprTree {
+public abstract class C4ScriptExprTree {
 	
 	/**
 	 * @author madeen
@@ -266,9 +266,8 @@ public abstract class ExprTree {
 			if (!(parser.getContainer() instanceof C4ObjectExtern)) { // C4ObjectExtern objects are not connected to an index
 				ClonkIndex index = Utilities.getProject(parser.getContainer()).getIndexedData();
 
-				// FIXME: built-in constants like true/false: where to put them?
-				if (fieldName.equals("true") || fieldName.equals("false"))
-					return;
+//				if (fieldName.equals("true") || fieldName.equals("false"))
+//					return;
 
 				// find inside this script (and included objects)
 				field = parser.getContainer().findVariable(fieldName, new C4Object.FindFieldInfo(index, parser.getActiveFunc()));
@@ -329,13 +328,26 @@ public abstract class ExprTree {
 				if (p != null) {
 					lookIn = p.guessObjectType(parser);
 				}
-				if (lookIn != null && !(lookIn instanceof C4ObjectExtern)) {
-					// search in project index
-					field = lookIn.findFunction(fieldName, new C4Object.FindFieldInfo(Utilities.getProject(lookIn).getIndexedData()));
+				if (lookIn != null) {
+					// search in project/extern index
+					field = lookIn.findFunction(fieldName, new C4Object.FindFieldInfo(lookIn instanceof C4ObjectIntern ? Utilities.getProject(lookIn).getIndexedData() : ClonkCore.EXTERN_INDEX));
 
 					// nothing found
 					if (field == null)
 						parser.warningWithCode(ErrorCode.UndeclaredIdentifier, getExprStart(), getExprStart()+fieldName.length(), fieldName);
+					else {
+						C4Function f = (C4Function)field;
+						int givenParam = 0;
+						for (C4Variable parm : f.getParameter()) {
+							if (givenParam >= params.length)
+								break;
+							ExprElm given = params[givenParam++];
+							if (given == null)
+								continue;
+							if (!parm.getType().canBeAssignedFrom(given.getType()))
+								parser.warningWithCode(ErrorCode.IncompatibleTypes, given, parm.getType(), given.getType());
+						}
+					}
 				}
 			}
 		}
@@ -370,6 +382,11 @@ public abstract class ExprTree {
 
 	public static class ExprOperator extends ExprValue {
 		private final C4ScriptOperator operator;
+
+		@Override
+		public C4Type getType() {
+			return operator.getResultType();
+		}
 
 		public ExprOperator(C4ScriptOperator operator) {
 			super();
@@ -453,11 +470,14 @@ public abstract class ExprTree {
 			getRightSide().reportErrors(parser);
 			// sanity
 			setExprRegion(getLeftSide().getExprStart(), getRightSide().getExprEnd());
-			// i'm an assigned operator and i can't modify my left side :C
+			// i'm an assignment operator and i can't modify my left side :C
 			if (getOperator().modifiesArgument() && !getLeftSide().modifiable()) {
-				//				System.out.println(getLeftSide().toString() + " does not behave");
 				parser.errorWithCode(ErrorCode.ExpressionNotModifiable, getLeftSide());
 			}
+			if (!getOperator().getFirstArgType().canBeAssignedFrom(getLeftSide().getType()))
+				parser.warningWithCode(ErrorCode.IncompatibleTypes, getLeftSide(), getOperator().getFirstArgType(), getLeftSide().getType());
+			if (!getOperator().getSecondArgType().canBeAssignedFrom(getRightSide().getType()))
+				parser.warningWithCode(ErrorCode.IncompatibleTypes, getRightSide(), getOperator().getSecondArgType(), getRightSide().getType());
 		}
 
 	}
@@ -634,8 +654,29 @@ public abstract class ExprTree {
 		}
 
 	}
+	
+	public static final class ExprBool extends ExprLiteral<Boolean> {
+		public boolean booleanValue() {
+			return getLiteral().booleanValue();
+		}
+		public ExprBool(boolean value) {
+			super(new Boolean(value));
+		}
+		public C4Type getType() {
+			return C4Type.BOOL;
+		}
+		@Override
+		public void print(StringBuilder output) {
+			output.append(booleanValue() ? "true" : "false");
+		}
+	}
 
 	public static final class ExprAccessArray extends ExprUnaryOp {
+
+		@Override
+		public C4Type getType() {
+			return C4Type.ANY; // not type of operator. the field is dead in this class :/
+		}
 
 		public ExprAccessArray(ExprElm argument) {
 			super(null, Placement.Postfix, argument);

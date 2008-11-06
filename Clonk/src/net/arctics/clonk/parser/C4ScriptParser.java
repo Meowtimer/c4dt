@@ -15,7 +15,7 @@ import net.arctics.clonk.Utilities;
 import net.arctics.clonk.parser.C4Directive.C4DirectiveType;
 import net.arctics.clonk.parser.C4Function.C4FunctionScope;
 import net.arctics.clonk.parser.C4Variable.C4VariableScope;
-import net.arctics.clonk.parser.ExprTree.*;
+import net.arctics.clonk.parser.C4ScriptExprTree.*;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
@@ -686,14 +686,16 @@ public class C4ScriptParser {
 
 			// new two pass strategy to be able to check if functions and variables exist
 			// first pass: skip the code, just remember where it is
+			boolean foundLast;
 			do {
 				int c = consumeFunctionCodeOrReturnReadChar(fReader.getPosition());
 				if (c == '}')
 					blockDepth--;
 				else if (c == '{')
 					blockDepth++;
-			} while (blockDepth > -1 && !fReader.reachedEOF());
-			if (!fReader.reachedEOF())
+				foundLast = blockDepth == -1;
+			} while (!(foundLast || fReader.reachedEOF()));
+			if (foundLast)
 				fReader.unread(); // go back to last '}'
 
 			endBody = fReader.getPosition();
@@ -1308,14 +1310,6 @@ public class C4ScriptParser {
 		return null;
 	}
 
-	private static HashMap<String, C4ScriptOperator> createOperatorHashMap(String[] operatorNames) {
-		HashMap<String, C4ScriptOperator> result = new HashMap<String, C4ScriptOperator>(C4ScriptOperator.values().length);
-		for (int i = 0 ; i < operatorNames.length; i++) {
-			result.put(operatorNames[i], C4ScriptOperator.values()[i]);
-		}
-		return result;
-	}
-
 	/**
 	 * read operator at some location
 	 * @param offset
@@ -1359,7 +1353,7 @@ public class C4ScriptParser {
 	}
 	
 	public enum ErrorCode {
-		TokenExpected, NotAllowedHere, MissingClosingBracket, InvalidExpression, InternalError, ExpressionExpected, UnexpectedEnd, NameExpected, ReturnAsFunction, ExpressionNotModifiable, OperatorNeedsRightSide, NoAssignment, NoSideEffects, KeywordInWrongPlace, UndeclaredIdentifier, OldStyleFunc, ValueExpected, TuplesNotAllowed, EmptyParentheses, ExpectedCode, ConstantValueExpected, CommaOrSemicolonExpected
+		TokenExpected, NotAllowedHere, MissingClosingBracket, InvalidExpression, InternalError, ExpressionExpected, UnexpectedEnd, NameExpected, ReturnAsFunction, ExpressionNotModifiable, OperatorNeedsRightSide, NoAssignment, NoSideEffects, KeywordInWrongPlace, UndeclaredIdentifier, OldStyleFunc, ValueExpected, TuplesNotAllowed, EmptyParentheses, ExpectedCode, ConstantValueExpected, CommaOrSemicolonExpected, IncompatibleTypes
 	}
 	
 	private static String[] errorStrings = new String[] {
@@ -1384,7 +1378,8 @@ public class C4ScriptParser {
 		"Empty parentheses",
 		"Code expected",
 		"Constant value expected",
-		"Comma or semicolon expected"
+		"Comma or semicolon expected",
+		"Incompatible types: %s and %s"
 	};
 	
 	private static Set<ErrorCode> disabledErrors = new HashSet<ErrorCode>();
@@ -1507,8 +1502,14 @@ public class C4ScriptParser {
 						elm = new ExprCallFunc(word, args.toArray(new ExprElm[0]));
 					} else {
 						fReader.unread();
-						// variable
-						elm = new ExprAccessVar(word);
+						// bool
+						if (word.equals("true"))
+							elm = new ExprBool(true);
+						else if (word.equals("false"))
+							elm = new ExprBool(false);
+						else
+							// variable
+							elm = new ExprAccessVar(word);
 					}
 				}
 			}
@@ -2205,21 +2206,7 @@ public class C4ScriptParser {
 			return false;
 		}
 	}
-	
-//	noticed those methods too late ^^;
-//	protected void eatWhitespace() {
-//		fReader.eat(BufferedScanner.WHITESPACE_DELIMITERS);
-//		while (parseComment(fReader.getPosition()))
-//			fReader.eat(BufferedScanner.WHITESPACE_DELIMITERS);
-//	}
-//	
-//	protected void eatWhitespace(int offset) {
-//		fReader.seek(offset);
-//		fReader.eat(BufferedScanner.WHITESPACE_DELIMITERS);
-//		while (parseComment(fReader.getPosition()))
-//			fReader.eat(BufferedScanner.WHITESPACE_DELIMITERS);
-//	}
-	
+
 	private IMarker createErrorMarker(int start, int end, String message) {
 		if (fScript == null) return null;
 		try {

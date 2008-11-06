@@ -4,18 +4,14 @@ import java.util.LinkedList;
 
 import net.arctics.clonk.parser.C4ScriptParser;
 import net.arctics.clonk.parser.CompilerException;
-import net.arctics.clonk.parser.ExprTree.ExprElm;
+import net.arctics.clonk.parser.C4ScriptExprTree.ExprElm;
 import net.arctics.clonk.ui.editors.C4ScriptEditor;
 
-import org.eclipse.core.commands.AbstractHandler;
-import org.eclipse.core.commands.ExecutionEvent;
-import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.text.ITextSelection;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.ui.IEditorActionDelegate;
 import org.eclipse.ui.IEditorPart;
-import org.eclipse.ui.handlers.HandlerUtil;
 
 public class ConvertOldCodeToNewCodeAction implements IEditorActionDelegate {
 

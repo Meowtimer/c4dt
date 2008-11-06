@@ -136,10 +136,11 @@ public enum C4ScriptOperator {
 			stringToOperatorMap.put(o.getOperatorName(), o);
 		}
 		
-		for (C4ScriptOperator o : ops(Not, BitNot)) {
-			o.setPriority(-1000);
-			o.setArgTypeAndResult(C4Type.BOOL, C4Type.BOOL);
+		for (C4ScriptOperator o : ops(Not, BitNot, Increment, Decrement)) {
+			o.setPriority(15);
 		}
+		Not.setArgTypeAndResult(C4Type.BOOL, C4Type.BOOL);
+		BitNot.setArgTypesAndResult(C4Type.INT, C4Type.INT, C4Type.INT);
 		Power.setPriority(14);
 		Power.setArgTypesAndResult(C4Type.INT, C4Type.INT, C4Type.INT);
 		for (C4ScriptOperator o : ops(Divide, Multiply, Modulo)) {
@@ -160,7 +161,10 @@ public enum C4ScriptOperator {
 			o.setArgTypesAndResult(C4Type.ANY, C4Type.ANY, C4Type.BOOL);
 		for (C4ScriptOperator o : ops(StringEqual, eq, ne))
 			o.setArgTypesAndResult(C4Type.STRING, C4Type.STRING, C4Type.BOOL);
-		for (C4ScriptOperator o : ops(And, Or, BitAnd, BitXOr, BitOr))
+		BitAnd.setPriority(8);
+		Or.setPriority(4);
+		And.setPriority(5);
+		for (C4ScriptOperator o : ops(BitOr, BitXOr))
 			o.setPriority(6);
 		for (C4ScriptOperator o : ops(And, Or))
 			o.setArgTypesAndResult(C4Type.BOOL, C4Type.BOOL, C4Type.BOOL);

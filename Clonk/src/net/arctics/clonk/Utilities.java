@@ -135,8 +135,11 @@ public abstract class Utilities {
 	public static boolean looksLikeID(String word) {
 		if (word == null || word.length() < 4)
 			return false;
+		int digits = 0;
 		for(int i = 0; i < 4;i++) {
 			int readChar = word.charAt(i);
+			if ('0' <= readChar && readChar <= '9')
+				digits++;
 			if (('A' <= readChar && readChar <= 'Z') ||
 					('0' <= readChar && readChar <= '9') ||
 					(readChar == '_')) {
@@ -146,7 +149,7 @@ public abstract class Utilities {
 				return false;
 			}
 		}
-		return true;
+		return digits != 4; // rather interpret 1000 as int
 	}
 	
 	public static int getStartOfExpression(IDocument doc, int offset) throws org.eclipse.jface.text.BadLocationException {

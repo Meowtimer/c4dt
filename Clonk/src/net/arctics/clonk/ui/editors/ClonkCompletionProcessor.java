@@ -17,7 +17,7 @@ import net.arctics.clonk.parser.C4Variable;
 import net.arctics.clonk.parser.ClonkIndex;
 import net.arctics.clonk.parser.CompilerException;
 import net.arctics.clonk.parser.C4ScriptParser.ParsingException;
-import net.arctics.clonk.parser.ExprTree.ExprElm;
+import net.arctics.clonk.parser.C4ScriptExprTree.ExprElm;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.Utilities;
 
