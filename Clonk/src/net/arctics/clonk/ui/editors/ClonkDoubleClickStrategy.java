@@ -1,5 +1,7 @@
 package net.arctics.clonk.ui.editors;
 
+import net.arctics.clonk.resource.ClonkBuilder;
+
 import org.eclipse.jface.text.*;
 
 public class ClonkDoubleClickStrategy implements ITextDoubleClickStrategy {
@@ -110,15 +112,13 @@ public class ClonkDoubleClickStrategy implements ITextDoubleClickStrategy {
 	protected boolean selectBlock(int caretPos) {
 		IDocument doc = fText.getDocument();
 		
-		try {
-			if (doc.getChar(caretPos) == '{') {
-				// TODO: find closing '}' and selectRange(caretPos, xxx);
-				return true;
-			}
-		} catch (BadLocationException x) {
+		ClonkPairMatcher matcher = new ClonkPairMatcher(new char[] { '{', '}', '(', ')' });
+		IRegion region = matcher.match(doc, caretPos+1);
+		if (region == null) {
+			return false;
 		}
-		
-		return false;
+		selectRange(region.getOffset(), region.getOffset() + region.getLength() -1);
+		return true;
 	}
 	
 	private void selectRange(int startPos, int stopPos) {
