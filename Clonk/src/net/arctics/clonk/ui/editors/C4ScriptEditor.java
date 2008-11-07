@@ -15,6 +15,7 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.text.IDocument;
+import org.eclipse.jface.text.source.DefaultCharacterPairMatcher;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.ui.texteditor.AbstractDecoratedTextEditor;
 import org.eclipse.ui.texteditor.ContentAssistAction;
@@ -27,7 +28,7 @@ public class C4ScriptEditor extends AbstractDecoratedTextEditor {
 	private ColorManager colorManager;
 	private ClonkContentOutlinePage outlinePage;
 	public static final String ACTION_INDEX_CLONK_DIR = "net.arctics.clonk.indexClonkCommand";
-	private ClonkPairMatcher fBracketMatcher = new ClonkPairMatcher(new char[] { '{', '}' });
+	private DefaultCharacterPairMatcher fBracketMatcher = new DefaultCharacterPairMatcher(new char[] { '{', '}' });
 	
 	
 	public C4ScriptEditor() {

@@ -1,8 +1,7 @@
 package net.arctics.clonk.ui.editors;
 
-import net.arctics.clonk.resource.ClonkBuilder;
-
 import org.eclipse.jface.text.*;
+import org.eclipse.jface.text.source.DefaultCharacterPairMatcher;
 
 public class ClonkDoubleClickStrategy implements ITextDoubleClickStrategy {
 	protected ITextViewer fText;
@@ -112,7 +111,7 @@ public class ClonkDoubleClickStrategy implements ITextDoubleClickStrategy {
 	protected boolean selectBlock(int caretPos) {
 		IDocument doc = fText.getDocument();
 		
-		ClonkPairMatcher matcher = new ClonkPairMatcher(new char[] { '{', '}', '(', ')' });
+		DefaultCharacterPairMatcher matcher = new DefaultCharacterPairMatcher(new char[] { '{', '}', '(', ')' });
 		IRegion region = matcher.match(doc, caretPos+1);
 		if (region == null) {
 			return false;
