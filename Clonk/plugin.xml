@@ -7,7 +7,7 @@
       <editor
             name="C4Script Editor"
             icon="icons/c4scriptIcon.png"
-            contributorClass="net.arctics.clonk.ui.editors.EditorActionContributer"
+            contributorClass="net.arctics.clonk.ui.editors.EditorActionContributor"
             class="net.arctics.clonk.ui.editors.C4ScriptEditor"
             id="clonk.editors.C4ScriptEditor"
             filenames="*.c">
@@ -18,7 +18,7 @@
       <editor
             name="C4DefCore Editor"
             icon="icons/c4scriptIcon.png"
-            contributorClass="net.arctics.clonk.ui.editors.EditorActionContributer"
+            contributorClass="net.arctics.clonk.ui.editors.EditorActionContributor"
             class="net.arctics.clonk.ui.editors.C4DefCoreEditor"
             id="clonk.editors.C4DefCoreEditor"
             filenames="DefCore.txt">
