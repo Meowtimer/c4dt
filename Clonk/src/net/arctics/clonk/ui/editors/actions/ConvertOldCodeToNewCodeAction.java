@@ -21,7 +21,18 @@ public class ConvertOldCodeToNewCodeAction extends TextEditorAction {
 		super(bundle, prefix, editor);
 	}
 
+	/* (non-Javadoc)
+	 * @see org.eclipse.jface.action.Action#run()
+	 */
+	@Override
+	public void run() {
+		// TODO Auto-generated method stub
+		super.run();
+		System.out.println("dies ding hier wird ausgeführt");
+	}
+
 	public void run(IAction action) {
+		System.out.println("und das hier natürlich nicht");
 		C4ScriptEditor editor = (C4ScriptEditor)this.getTextEditor();
 		ITextSelection selection = (ITextSelection)editor.getSelectionProvider().getSelection();
 		final LinkedList<ExprElm> expressions = new LinkedList<ExprElm>();

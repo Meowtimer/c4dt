@@ -26,8 +26,10 @@ public class EditorActionContributor extends BasicTextEditorActionContributor {
 		fContentAssist = new RetargetTextEditorAction(messagesBundle, null);
 		fContentAssist
 				.setActionDefinitionId(ITextEditorActionDefinitionIds.CONTENT_ASSIST_PROPOSALS);
-		fConvertOldCodeToNewCode = new RetargetTextEditorAction(messagesBundle, null);
-		fConvertOldCodeToNewCode.setActionDefinitionId(ClonkActionDefinitionIds.CONVERT_OLD_CODE_TO_NEW_CODE);
+//		fConvertOldCodeToNewCode = new RetargetTextEditorAction(messagesBundle, null);
+//		fConvertOldCodeToNewCode.setActionDefinitionId(ClonkActionDefinitionIds.CONVERT_OLD_CODE_TO_NEW_CODE);
+		blub = new ConvertOldCodeToNewCodeAction(messagesBundle,"ConvertOldCodeToNewCode.",(ITextEditor) this.getActiveEditorPart());
+		blub.setActionDefinitionId(ClonkActionDefinitionIds.CONVERT_OLD_CODE_TO_NEW_CODE);
 		// fIndexClonkDir = new
 		// RetargetTextEditorAction(ResourceBundle.getBundle
 		// ("net.arctics.clonk.ui.editors.Messages"),"IndexClonkDir.");
@@ -51,8 +53,9 @@ public class EditorActionContributor extends BasicTextEditorActionContributor {
 		// C4ScriptEditor.ACTION_INDEX_CLONK_DIR));
 		fContentAssist.setAction(getAction((ITextEditor) part,
 				ITextEditorActionDefinitionIds.CONTENT_ASSIST_PROPOSALS));
-		fConvertOldCodeToNewCode.setAction(getAction((ITextEditor)part, ClonkActionDefinitionIds.CONVERT_OLD_CODE_TO_NEW_CODE));
-		
+//		fConvertOldCodeToNewCode.setAction(getAction((ITextEditor)part, ClonkActionDefinitionIds.CONVERT_OLD_CODE_TO_NEW_CODE));
+		blub.setEditor((ITextEditor) part);
+		blub.update();
 		// fIndexClonkDir.setAction(getAction((ITextEditor)part,
 		// C4ScriptEditor.ACTION_INDEX_CLONK_DIR));
 	}
@@ -72,7 +75,7 @@ public class EditorActionContributor extends BasicTextEditorActionContributor {
 					.findMenuUsingPath(IWorkbenchActionConstants.M_EDIT);
 			editMenu.appendToGroup(IWorkbenchActionConstants.MB_ADDITIONS,
 					fContentAssist);
-			editMenu.appendToGroup(IWorkbenchActionConstants.MB_ADDITIONS, fConvertOldCodeToNewCode);
+//			editMenu.appendToGroup(IWorkbenchActionConstants.MB_ADDITIONS, blub);
 		}
 		// if (fIndexClonkDir != null) {
 		// IMenuManager projectMenu=

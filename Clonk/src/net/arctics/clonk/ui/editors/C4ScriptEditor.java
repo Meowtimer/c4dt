@@ -14,6 +14,7 @@ import net.arctics.clonk.ui.editors.actions.ConvertOldCodeToNewCodeAction;
 
 import org.eclipse.core.resources.IResource;
 import org.eclipse.jface.action.IAction;
+import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.ui.texteditor.AbstractDecoratedTextEditor;
@@ -94,6 +95,16 @@ public class C4ScriptEditor extends AbstractDecoratedTextEditor {
 		action.setActionDefinitionId(ClonkActionDefinitionIds.CONVERT_OLD_CODE_TO_NEW_CODE);
 		setAction(ClonkActionDefinitionIds.CONVERT_OLD_CODE_TO_NEW_CODE, action);
 		
+	}
+
+	/* (non-Javadoc)
+	 * @see org.eclipse.ui.texteditor.AbstractDecoratedTextEditor#editorContextMenuAboutToShow(org.eclipse.jface.action.IMenuManager)
+	 */
+	@Override
+	protected void editorContextMenuAboutToShow(IMenuManager menu) {
+		// TODO Auto-generated method stub
+		super.editorContextMenuAboutToShow(menu);
+		addAction(menu, ClonkActionDefinitionIds.CONVERT_OLD_CODE_TO_NEW_CODE);
 	}
 
 	public void selectAndReveal(SourceLocation location) {
