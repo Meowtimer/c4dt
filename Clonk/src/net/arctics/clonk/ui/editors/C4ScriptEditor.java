@@ -2,7 +2,6 @@ package net.arctics.clonk.ui.editors;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
-import java.util.LinkedList;
 import java.util.ResourceBundle;
 
 import net.arctics.clonk.Utilities;
@@ -20,6 +19,7 @@ import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.ui.texteditor.AbstractDecoratedTextEditor;
 import org.eclipse.ui.texteditor.ContentAssistAction;
 import org.eclipse.ui.texteditor.ITextEditorActionDefinitionIds;
+import org.eclipse.ui.texteditor.SourceViewerDecorationSupport;
 import org.eclipse.ui.views.contentoutline.IContentOutlinePage;
 
 public class C4ScriptEditor extends AbstractDecoratedTextEditor {
@@ -27,6 +27,8 @@ public class C4ScriptEditor extends AbstractDecoratedTextEditor {
 	private ColorManager colorManager;
 	private ClonkContentOutlinePage outlinePage;
 	public static final String ACTION_INDEX_CLONK_DIR = "net.arctics.clonk.indexClonkCommand";
+	private ClonkPairMatcher fBracketMatcher = new ClonkPairMatcher(new char[] { '{', '}' });
+	
 	
 	public C4ScriptEditor() {
 		super();
@@ -44,10 +46,20 @@ public class C4ScriptEditor extends AbstractDecoratedTextEditor {
 //	}
 
 	/* (non-Javadoc)
+	 * @see org.eclipse.ui.texteditor.AbstractDecoratedTextEditor#configureSourceViewerDecorationSupport(org.eclipse.ui.texteditor.SourceViewerDecorationSupport)
+	 */
+	@Override
+	protected void configureSourceViewerDecorationSupport(
+			SourceViewerDecorationSupport support) {
+		super.configureSourceViewerDecorationSupport(support);
+		support.setCharacterPairMatcher(fBracketMatcher);
+//		support.setMatchingCharacterPainterPreferenceKeys(I
+	}
+
+	/* (non-Javadoc)
 	 * @see org.eclipse.ui.part.WorkbenchPart#getPartName()
 	 */
 	public String getPartName() {
-		// TODO Auto-generated method stub
 //		String part = super.getPartName();
 		IResource res = (IResource) getEditorInput().getAdapter(IResource.class);
 		if (res == null) return super.getPartName();
