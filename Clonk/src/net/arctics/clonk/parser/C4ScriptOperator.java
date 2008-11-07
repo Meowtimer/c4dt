@@ -87,6 +87,8 @@ public enum C4ScriptOperator {
 	}
 	
 	public C4Type getResultType() {
+		if (resultType == null)
+			resultType = C4Type.ANY;
 		return resultType;
 	}
 	
@@ -141,6 +143,8 @@ public enum C4ScriptOperator {
 		}
 		Not.setArgTypeAndResult(C4Type.BOOL, C4Type.BOOL);
 		BitNot.setArgTypesAndResult(C4Type.INT, C4Type.INT, C4Type.INT);
+		Increment.setArgTypeAndResult(C4Type.INT, C4Type.INT);
+		Decrement.setArgTypeAndResult(C4Type.INT, C4Type.INT);
 		Power.setPriority(14);
 		Power.setArgTypesAndResult(C4Type.INT, C4Type.INT, C4Type.INT);
 		for (C4ScriptOperator o : ops(Divide, Multiply, Modulo)) {
