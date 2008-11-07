@@ -5,6 +5,8 @@ import org.eclipse.jface.text.*;
 public class ClonkDoubleClickStrategy implements ITextDoubleClickStrategy {
 	protected ITextViewer fText;
 
+//	protected final char[] blockStartDelimiters = new char[] { '{'
+	
 	public void doubleClicked(ITextViewer part) {
 		int pos = part.getSelectedRange().x;
 
@@ -12,9 +14,10 @@ public class ClonkDoubleClickStrategy implements ITextDoubleClickStrategy {
 			return;
 
 		fText = part;
-
-		if (!selectComment(pos)) {
-			selectWord(pos);
+		if (!selectBlock(pos)) {
+			if (!selectComment(pos)) {
+				selectWord(pos);
+			}
 		}
 	}
 	protected boolean selectComment(int caretPos) {
@@ -104,6 +107,20 @@ public class ClonkDoubleClickStrategy implements ITextDoubleClickStrategy {
 		return false;
 	}
 
+	protected boolean selectBlock(int caretPos) {
+		IDocument doc = fText.getDocument();
+		
+		try {
+			if (doc.getChar(caretPos) == '{') {
+				// TODO: find closing '}' and selectRange(caretPos, xxx);
+				return true;
+			}
+		} catch (BadLocationException x) {
+		}
+		
+		return false;
+	}
+	
 	private void selectRange(int startPos, int stopPos) {
 		int offset = startPos + 1;
 		int length = stopPos - offset;
