@@ -13,8 +13,10 @@ public enum C4Type {
 	STRING,
 	ARRAY,
 	OBJECT,
-	DWORD, /** @since 18.09.08 */
-	REFERENCE, /** @since 23.09.08 */
+	/** @since 18.09.08 */
+	DWORD, 
+	/** @since 23.09.08 */
+	REFERENCE, 
 	UNKNOWN; 
 	
 	public String toString() {
