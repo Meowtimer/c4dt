@@ -167,7 +167,7 @@ public class ClonkCompletionProcessor implements IContentAssistProcessor {
 		
 		// refresh to find about whether caret is inside a function and to get all the declarations
 		try {
-			((C4ScriptEditor)editor).reparseWithDocumentContents(null);
+			((C4ScriptEditor)editor).reparseWithDocumentContents(null,true);
 		} catch (CompilerException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

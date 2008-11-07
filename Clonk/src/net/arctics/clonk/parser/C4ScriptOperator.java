@@ -217,7 +217,7 @@ public enum C4ScriptOperator {
 	
 	public static C4ScriptOperator oldStyleFunctionReplacement(String funcName) {
 		for (C4ScriptOperator o : values()) {
-			if (o.oldStyleFunction().equals(funcName))
+			if (o.oldStyleFunction() != null && o.oldStyleFunction().equals(funcName))
 				return o;
 		}
 		return null;
