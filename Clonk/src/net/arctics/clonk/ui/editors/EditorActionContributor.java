@@ -2,6 +2,9 @@ package net.arctics.clonk.ui.editors;
 
 import java.util.ResourceBundle;
 
+import net.arctics.clonk.ClonkCore;
+import net.arctics.clonk.ui.editors.actions.ConvertOldCodeToNewCodeAction;
+
 import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IWorkbenchActionConstants;
@@ -14,13 +17,17 @@ public class EditorActionContributor extends BasicTextEditorActionContributor {
 
 	private RetargetTextEditorAction fContentAssist;
 	private RetargetTextEditorAction fIndexClonkDir;
+	private RetargetTextEditorAction fConvertOldCodeToNewCode;
+	private ConvertOldCodeToNewCodeAction blub;
 
 	//	
 	public EditorActionContributor() {
-		fContentAssist = new RetargetTextEditorAction(ResourceBundle
-				.getBundle("net.arctics.clonk.ui.editors.Messages"), null);
+		ResourceBundle messagesBundle = ResourceBundle.getBundle("net.arctics.clonk.ui.editors.Messages");
+		fContentAssist = new RetargetTextEditorAction(messagesBundle, null);
 		fContentAssist
 				.setActionDefinitionId(ITextEditorActionDefinitionIds.CONTENT_ASSIST_PROPOSALS);
+		fConvertOldCodeToNewCode = new RetargetTextEditorAction(messagesBundle, null);
+		fConvertOldCodeToNewCode.setActionDefinitionId(ClonkActionDefinitionIds.CONVERT_OLD_CODE_TO_NEW_CODE);
 		// fIndexClonkDir = new
 		// RetargetTextEditorAction(ResourceBundle.getBundle
 		// ("net.arctics.clonk.ui.editors.Messages"),"IndexClonkDir.");
@@ -44,6 +51,8 @@ public class EditorActionContributor extends BasicTextEditorActionContributor {
 		// C4ScriptEditor.ACTION_INDEX_CLONK_DIR));
 		fContentAssist.setAction(getAction((ITextEditor) part,
 				ITextEditorActionDefinitionIds.CONTENT_ASSIST_PROPOSALS));
+		fConvertOldCodeToNewCode.setAction(getAction((ITextEditor)part, ClonkActionDefinitionIds.CONVERT_OLD_CODE_TO_NEW_CODE));
+		
 		// fIndexClonkDir.setAction(getAction((ITextEditor)part,
 		// C4ScriptEditor.ACTION_INDEX_CLONK_DIR));
 	}
@@ -63,6 +72,7 @@ public class EditorActionContributor extends BasicTextEditorActionContributor {
 					.findMenuUsingPath(IWorkbenchActionConstants.M_EDIT);
 			editMenu.appendToGroup(IWorkbenchActionConstants.MB_ADDITIONS,
 					fContentAssist);
+			editMenu.appendToGroup(IWorkbenchActionConstants.MB_ADDITIONS, fConvertOldCodeToNewCode);
 		}
 		// if (fIndexClonkDir != null) {
 		// IMenuManager projectMenu=

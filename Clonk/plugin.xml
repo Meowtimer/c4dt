@@ -232,34 +232,6 @@
              class="net.arctics.clonk.preferences.PreferenceInitializer">
        </initializer>
     </extension>
-    <extension
-          point="org.eclipse.ui.commands">
-       <category
-             description="Additional actions for the script editor"
-             id="net.arctics.clonk.editors.ui.editorActions"
-             name="Editor Actions">
-       </category>
-       <command
-             categoryId="net.arctics.clonk.editors.ui.editorActions"
-             defaultHandler="net.arctics.clonk.ui.editors.actions.ConvertOldCodeToNewCodeAction"
-             id="clonk.commands.ConvertOldCodeToNewCode"
-             name="Convert Old Code To New Code">
-       </command>
-    </extension>
-    <extension
-          point="org.eclipse.ui.popupMenus">
-       <viewerContribution
-             id="clonk.popups.EditorPopupContribution"
-             targetID="clonk.editors.C4ScriptEditor">
-          <action
-                class="net.arctics.clonk.ui.editors.actions.ConvertOldCodeToNewCodeAction"
-                definitionId="clonk.commands.ConvertOldCodeToNewCode"
-                id="clonk.actions.ConvertOldCodeToNewCode"
-                label="Convert old code to new code"
-                menubarPath="additions">
-          </action>
-       </viewerContribution>
-    </extension> 
  
 <!--<extension
        point="org.eclipse.ui.commands">

@@ -1,6 +1,7 @@
 package net.arctics.clonk.ui.editors.actions;
 
 import java.util.LinkedList;
+import java.util.ResourceBundle;
 
 import net.arctics.clonk.parser.C4ScriptParser;
 import net.arctics.clonk.parser.CompilerException;
@@ -9,19 +10,19 @@ import net.arctics.clonk.ui.editors.C4ScriptEditor;
 
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.text.ITextSelection;
-import org.eclipse.jface.viewers.ISelection;
-import org.eclipse.ui.IEditorActionDelegate;
 import org.eclipse.ui.IEditorPart;
+import org.eclipse.ui.texteditor.ITextEditor;
+import org.eclipse.ui.texteditor.TextEditorAction;
 
-public class ConvertOldCodeToNewCodeAction implements IEditorActionDelegate {
+public class ConvertOldCodeToNewCodeAction extends TextEditorAction {
 
-	private C4ScriptEditor editor;
-
-	public void setActiveEditor(IAction action, IEditorPart editorPart) {
-		editor = (C4ScriptEditor)editorPart;
+	public ConvertOldCodeToNewCodeAction(ResourceBundle bundle,
+			String prefix, ITextEditor editor) {
+		super(bundle, prefix, editor);
 	}
 
 	public void run(IAction action) {
+		C4ScriptEditor editor = (C4ScriptEditor)this.getTextEditor();
 		ITextSelection selection = (ITextSelection)editor.getSelectionProvider().getSelection();
 		final LinkedList<ExprElm> expressions = new LinkedList<ExprElm>();
 		try {
@@ -37,10 +38,6 @@ public class ConvertOldCodeToNewCodeAction implements IEditorActionDelegate {
 		for (ExprElm e : expressions) {
 			System.out.println(e.toString());
 		}
-	}
-
-	public void selectionChanged(IAction arg0, ISelection arg1) {
-		// blub
 	}
 	
 }

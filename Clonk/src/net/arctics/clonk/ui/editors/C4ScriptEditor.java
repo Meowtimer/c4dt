@@ -10,6 +10,7 @@ import net.arctics.clonk.parser.C4ScriptParser;
 import net.arctics.clonk.parser.CompilerException;
 import net.arctics.clonk.parser.SourceLocation;
 import net.arctics.clonk.parser.C4ScriptParser.IExpressionNotifiee;
+import net.arctics.clonk.ui.editors.actions.ConvertOldCodeToNewCodeAction;
 
 import org.eclipse.core.resources.IResource;
 import org.eclipse.jface.action.IAction;
@@ -88,6 +89,10 @@ public class C4ScriptEditor extends AbstractDecoratedTextEditor {
 		action = new ContentAssistAction(messagesBundle,"ClonkContentAssist.",this); //$NON-NLS-1$
 		action.setActionDefinitionId(ITextEditorActionDefinitionIds.CONTENT_ASSIST_CONTEXT_INFORMATION);
 		setAction(ITextEditorActionDefinitionIds.CONTENT_ASSIST_CONTEXT_INFORMATION, action);
+		
+		action = new ConvertOldCodeToNewCodeAction(messagesBundle,"ConvertOldCodeToNewCode.",this); //$NON-NLS-1$
+		action.setActionDefinitionId(ClonkActionDefinitionIds.CONVERT_OLD_CODE_TO_NEW_CODE);
+		setAction(ClonkActionDefinitionIds.CONVERT_OLD_CODE_TO_NEW_CODE, action);
 		
 	}
 
