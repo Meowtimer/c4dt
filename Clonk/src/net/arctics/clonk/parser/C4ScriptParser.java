@@ -1495,6 +1495,7 @@ public class C4ScriptParser {
 			if (elm == null) {
 				String word = fReader.readWord();
 				if (word != null && word.length() > 0) {
+					int beforeSpace = fReader.getPosition();
 					this.eatWhitespace();
 					if (fReader.read() == '(') {
 						// function call
@@ -1502,7 +1503,7 @@ public class C4ScriptParser {
 						parseRestOfTuple(fReader.getPosition(), args);
 						elm = new ExprCallFunc(word, args.toArray(new ExprElm[0]));
 					} else {
-						fReader.unread();
+						fReader.seek(beforeSpace);
 						// bool
 						if (word.equals("true"))
 							elm = new ExprBool(true);

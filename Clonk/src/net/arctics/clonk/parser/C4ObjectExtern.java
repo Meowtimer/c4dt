@@ -2,6 +2,8 @@ package net.arctics.clonk.parser;
 
 import java.util.List;
 
+import net.arctics.clonk.ClonkCore;
+import net.arctics.clonk.Utilities;
 import net.arctics.clonk.resource.c4group.C4Group;
 import net.arctics.clonk.resource.c4group.C4GroupItem;
 
@@ -50,7 +52,12 @@ public class C4ObjectExtern extends C4Object {
 		// TODO C4ObjectExtern has to provide a method to get the Script.c
 		return null;
 	}
-	
-	
+
+	@Override
+	public ClonkIndex getIndex() {
+		if (this == ClonkCore.ENGINE_OBJECT)
+			return null;
+		return ClonkCore.EXTERN_INDEX;
+	}
 
 }

@@ -26,6 +26,7 @@ public class ClonkIndex implements Serializable {
 	}
 	
 	public void fixReferencesAfterSerialization() throws CoreException {
+		refreshCache();
 	}
 	
 	/**

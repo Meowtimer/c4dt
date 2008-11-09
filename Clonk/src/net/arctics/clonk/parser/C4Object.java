@@ -154,7 +154,7 @@ public abstract class C4Object extends C4Field {
 			if (f == null)
 				f = ClonkCore.ENGINE_OBJECT.findField(name, info);
 			// function in extern lib
-			if (f == null) {
+			if (f == null && info.index != ClonkCore.EXTERN_INDEX) {
 				f = ClonkCore.EXTERN_INDEX.findGlobalField(name);
 			}
 			// definition
@@ -326,6 +326,8 @@ public abstract class C4Object extends C4Field {
 	public static C4Object objectCorrespondingTo(IContainer folder) {
 		return (Utilities.getIndex(folder) != null) ? Utilities.getIndex(folder).getObject(folder) : null;
 	}
+	
+	public abstract ClonkIndex getIndex();
 	
 //	public String getText(Object element) {
 //		if (element instanceof C4Function)

@@ -28,9 +28,9 @@ public enum C4Type {
 	public boolean canBeAssignedFrom(C4Type other) {
 		return
 			other == this ||
-			this == ANY || other == ANY ||
-			other == UNKNOWN || this == UNKNOWN || this == REFERENCE ||
-			(this == BOOL && other == INT);
+			this == ANY || other == ANY || this == UNKNOWN || this == REFERENCE ||
+			other == UNKNOWN || other == ANY ||
+			(this == BOOL && (other == INT || other == DWORD));
 	}
 	
 	public static C4Type makeType(String arg) {

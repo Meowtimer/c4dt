@@ -246,9 +246,26 @@ public abstract class C4ScriptExprTree {
 
 	}
 
-	public static class ExprAccessField extends ExprValue {
+	public static abstract class ExprAccessField extends ExprValue {
 		protected C4Field field;
+		private boolean fieldNotFound = false;
 		protected final String fieldName;
+		
+		public final C4Field getField(C4ScriptParser parser) {
+			if (field == null && !fieldNotFound) {
+				field = getFieldImpl(parser);
+				fieldNotFound = field == null;
+			}
+			return field;
+		}
+		
+		protected abstract C4Field getFieldImpl(C4ScriptParser parser);
+
+		@Override
+		public void reportErrors(C4ScriptParser parser) throws ParsingException {
+			super.reportErrors(parser);
+			getField(parser); // find the field so subclasses can complain about missing variables/functions
+		}
 
 		public ExprAccessField(String fieldName) {
 			this.fieldName = fieldName;
@@ -271,36 +288,17 @@ public abstract class C4ScriptExprTree {
 		}
 
 		@Override
+		protected C4Field getFieldImpl(C4ScriptParser parser) {
+			FindFieldInfo info = new FindFieldInfo(parser.getContainer().getIndex());
+			info.setContext(parser.getActiveFunc());
+			return parser.getContainer().findVariable(fieldName, info);
+		}
+
+		@Override
 		public void reportErrors(C4ScriptParser parser) throws ParsingException {
 			super.reportErrors(parser);
-			if (!(parser.getContainer() instanceof C4ObjectExtern)) { // C4ObjectExtern objects are not connected to an index
-				ClonkIndex index = Utilities.getProject(parser.getContainer()).getIndexedData();
-
-//				if (fieldName.equals("true") || fieldName.equals("false"))
-//					return;
-
-				// find inside this script (and included objects)
-				field = parser.getContainer().findVariable(fieldName, new C4Object.FindFieldInfo(index, parser.getActiveFunc()));
-
-				// find static/global stuff
-				if (field == null) {
-					field = index.findGlobalField(fieldName);
-					if (field instanceof C4Function)
-						field = null; // FIXME?
-				}
-
-				// engine-defined
-				if (field == null) {
-					C4Field f = ClonkCore.ENGINE_OBJECT.findField(fieldName, new C4Object.FindFieldInfo(index));
-					// global constant-like functions
-					if (f != null && f instanceof C4Function &&  ((C4Function)f).getParameter().size() == 0)
-						field = f;
-				}
-
-				// nope
-				if (field == null)
-					parser.warningWithCode(ErrorCode.UndeclaredIdentifier, getExprStart(), getExprStart()+fieldName.length(), fieldName);
-			}
+			if (field == null)
+				parser.warningWithCode(ErrorCode.UndeclaredIdentifier, this, fieldName);
 		}
 
 	}
@@ -311,6 +309,7 @@ public abstract class C4ScriptExprTree {
 			super(funcName);
 			params = parms;
 		}
+		@Override
 		public void print(StringBuilder output) {
 			super.print(output);
 			output.append("(");
@@ -325,48 +324,59 @@ public abstract class C4ScriptExprTree {
 			output.append(")");
 		}
 		@Override
+		public boolean modifiable() {
+			return getType() == C4Type.REFERENCE;
+		}
+		@Override
 		public boolean hasSideEffects() {
 			return true;
 		}
 		@Override
+		public C4Type getType() {
+			if (field instanceof C4Function)
+				return ((C4Function)field).getReturnType();
+			return super.getType();
+		}
+		@Override
+		protected C4Field getFieldImpl(C4ScriptParser parser) {
+			if (fieldName.equals("return"))
+				return null;
+			ExprElm p = getPredecessorInSequence();
+			C4Object lookIn = p == null ? parser.getContainer() : p.guessObjectType(parser);
+			if (lookIn != null) {
+				FindFieldInfo info = new FindFieldInfo(lookIn.getIndex());
+				C4Field field = lookIn.findFunction(fieldName, info);
+				// eventually it's a variable called as a function (not after '->')
+				if (field == null && p == null)
+					field = lookIn.findVariable(fieldName, info);
+				return field;
+			}
+			return null;
+		}
+		@Override
 		public void reportErrors(C4ScriptParser parser) throws ParsingException {
+			super.reportErrors(parser);
 			if (fieldName.equals("return"))
 				parser.warningWithCode(ErrorCode.ReturnAsFunction, this);
 			else {
-				ExprElm p = getPredecessorInSequence();
-				C4Object lookIn = parser.getContainer();
-				if (p != null) {
-					lookIn = p.guessObjectType(parser);
-				}
-				if (lookIn != null) {
-					// search in project/extern index
-					FindFieldInfo info = new C4Object.FindFieldInfo(lookIn instanceof C4ObjectIntern ? Utilities.getProject(lookIn).getIndexedData() : ClonkCore.EXTERN_INDEX);
-					field = lookIn.findFunction(fieldName, info);
-
-					// nothing found
-					if (field == null) {
-						field = lookIn.findVariable(fieldName, info);
-						if (field == null) {
-							parser.warningWithCode(ErrorCode.UndeclaredIdentifier, getExprStart(), getExprStart()+fieldName.length(), fieldName);
-						} else {
-							if (params.length == 0) {
-								parser.warningWithCode(ErrorCode.VariableCalled, this, field.getName());
-							} else {
-								parser.errorWithCode(ErrorCode.VariableCalled, this, field.getName());
-							}
-						}
+				if (field instanceof C4Variable) {
+					if (params.length == 0) {
+						parser.warningWithCode(ErrorCode.VariableCalled, this, field.getName());
 					} else {
-						C4Function f = (C4Function)field;
-						int givenParam = 0;
-						for (C4Variable parm : f.getParameter()) {
-							if (givenParam >= params.length)
-								break;
-							ExprElm given = params[givenParam++];
-							if (given == null)
-								continue;
-							if (!given.validForType(parm.getType()))
-								parser.warningWithCode(ErrorCode.IncompatibleTypes, given, parm.getType(), given.getType());
-						}
+						parser.errorWithCode(ErrorCode.VariableCalled, this, field.getName());
+					}
+				}
+				else if (field instanceof C4Function) {
+					C4Function f = (C4Function)field;
+					int givenParam = 0;
+					for (C4Variable parm : f.getParameter()) {
+						if (givenParam >= params.length)
+							break;
+						ExprElm given = params[givenParam++];
+						if (given == null)
+							continue;
+						if (!given.validForType(parm.getType()))
+							parser.warningWithCode(ErrorCode.IncompatibleTypes, given, parm.getType(), given.getType());
 					}
 				}
 			}

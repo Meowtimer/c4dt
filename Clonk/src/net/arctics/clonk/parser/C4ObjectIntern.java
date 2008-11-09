@@ -102,5 +102,10 @@ public class C4ObjectIntern extends C4Object implements Serializable {
 			folder.setSessionProperty(ClonkCore.C4OBJECT_PROPERTY_ID, this);
 		objectFolder = folder;
 	}
+	
+	@Override
+	public ClonkIndex getIndex() {
+		return Utilities.getProject(this).getIndexedData();
+	}
 
 }

@@ -34,7 +34,7 @@ public class ProjectIndex extends ClonkIndex {
 				}
 			}
 		}
-		refreshCache();
+		super.fixReferencesAfterSerialization();
 	}
 
 	/**
