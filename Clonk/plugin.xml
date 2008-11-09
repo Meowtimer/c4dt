@@ -232,6 +232,20 @@
              class="net.arctics.clonk.preferences.PreferenceInitializer">
        </initializer>
     </extension>
+    <extension
+          point="org.eclipse.ui.views">
+       <category
+             id="net.arctics.clonk"
+             name="Clonk">
+       </category>
+       <view
+             category="net.arctics.clonk"
+             class="net.arctics.clonk.ui.EngineIdentifiersView"
+             icon="icons/Clonk_C4.png"
+             id="net.arctics.clonk.views.EngineIdentifiersView"
+             name="Engine identifiers">
+       </view>
+    </extension>
  
 <!--<extension
        point="org.eclipse.ui.commands">

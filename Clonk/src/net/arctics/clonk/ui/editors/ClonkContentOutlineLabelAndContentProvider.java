@@ -7,20 +7,23 @@ import net.arctics.clonk.Utilities;
 import net.arctics.clonk.parser.C4Field;
 import net.arctics.clonk.parser.C4Function;
 import net.arctics.clonk.parser.C4Object;
+import net.arctics.clonk.parser.C4Type;
 import net.arctics.clonk.parser.C4Variable;
 
 import org.eclipse.jface.viewers.IBaseLabelProvider;
 import org.eclipse.jface.viewers.ILabelProvider;
 import org.eclipse.jface.viewers.ILabelProviderListener;
 import org.eclipse.jface.viewers.ITreeContentProvider;
+import org.eclipse.jface.viewers.StyledString;
 import org.eclipse.jface.viewers.Viewer;
+import org.eclipse.jface.viewers.DelegatingStyledCellLabelProvider.IStyledLabelProvider;
 import org.eclipse.swt.graphics.Image;
 
 /**
  * @author madeen
  *
  */
-public class ClonkContentOutlineLabelAndContentProvider implements IBaseLabelProvider, ILabelProvider, ITreeContentProvider {
+public class ClonkContentOutlineLabelAndContentProvider implements IBaseLabelProvider, ILabelProvider, ITreeContentProvider, IStyledLabelProvider {
 	
 	/* (non-Javadoc)
 	 * @see org.eclipse.jface.viewers.IBaseLabelProvider#addListener(org.eclipse.jface.viewers.ILabelProviderListener)
@@ -104,12 +107,28 @@ public class ClonkContentOutlineLabelAndContentProvider implements IBaseLabelPro
 
 	public String getText(Object element) {
 		if (element instanceof C4Function) {
-			return ((C4Function)element).getName();
+			return ((C4Function)element).getLongParameterString(true);
 		}
 		if (element instanceof C4Variable) {
 			return ((C4Variable)element).getName();
 		}
 		return element.toString();
+	}
+
+	public StyledString getStyledText(Object element) {
+		if (element instanceof C4Function) {
+			C4Function func = ((C4Function)element);
+			StyledString string = new StyledString(func.getLongParameterString(true));
+			if (func.getReturnType() != null && func.getReturnType() != C4Type.UNKNOWN) {
+				string.append(" : ", StyledString.DECORATIONS_STYLER);
+				string.append(func.getReturnType().name(), StyledString.DECORATIONS_STYLER);
+			}
+			return string;
+		}
+		if (element instanceof C4Variable) {
+			return new StyledString(((C4Variable)element).getName());
+		}
+		return new StyledString(element.toString());
 	}
 
 }
