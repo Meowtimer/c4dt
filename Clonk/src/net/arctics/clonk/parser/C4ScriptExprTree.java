@@ -2,6 +2,7 @@ package net.arctics.clonk.parser;
 
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.Utilities;
+import net.arctics.clonk.parser.C4Object.FindFieldInfo;
 import net.arctics.clonk.parser.C4ScriptParser.ErrorCode;
 import net.arctics.clonk.parser.C4ScriptParser.ParsingException;
 
@@ -123,6 +124,15 @@ public abstract class C4ScriptExprTree {
 				return replacement;
 			}
 			return this; // nothing to be changed
+		}
+		
+		public boolean canBeConvertedTo(C4Type otherType) {
+			// 5555 is ID
+			return getType() == C4Type.INT && otherType == C4Type.ID;
+		}
+		
+		public boolean validForType(C4Type t) {
+			return t.canBeAssignedFrom(getType()) || canBeConvertedTo(t);
 		}
 
 		public static final ExprElm NULL_EXPR = new ExprElm() {};
@@ -330,12 +340,22 @@ public abstract class C4ScriptExprTree {
 				}
 				if (lookIn != null) {
 					// search in project/extern index
-					field = lookIn.findFunction(fieldName, new C4Object.FindFieldInfo(lookIn instanceof C4ObjectIntern ? Utilities.getProject(lookIn).getIndexedData() : ClonkCore.EXTERN_INDEX));
+					FindFieldInfo info = new C4Object.FindFieldInfo(lookIn instanceof C4ObjectIntern ? Utilities.getProject(lookIn).getIndexedData() : ClonkCore.EXTERN_INDEX);
+					field = lookIn.findFunction(fieldName, info);
 
 					// nothing found
-					if (field == null)
-						parser.warningWithCode(ErrorCode.UndeclaredIdentifier, getExprStart(), getExprStart()+fieldName.length(), fieldName);
-					else {
+					if (field == null) {
+						field = lookIn.findVariable(fieldName, info);
+						if (field == null) {
+							parser.warningWithCode(ErrorCode.UndeclaredIdentifier, getExprStart(), getExprStart()+fieldName.length(), fieldName);
+						} else {
+							if (params.length == 0) {
+								parser.warningWithCode(ErrorCode.VariableCalled, this, field.getName());
+							} else {
+								parser.errorWithCode(ErrorCode.VariableCalled, this, field.getName());
+							}
+						}
+					} else {
 						C4Function f = (C4Function)field;
 						int givenParam = 0;
 						for (C4Variable parm : f.getParameter()) {
@@ -344,7 +364,7 @@ public abstract class C4ScriptExprTree {
 							ExprElm given = params[givenParam++];
 							if (given == null)
 								continue;
-							if (!parm.getType().canBeAssignedFrom(given.getType()))
+							if (!given.validForType(parm.getType()))
 								parser.warningWithCode(ErrorCode.IncompatibleTypes, given, parm.getType(), given.getType());
 						}
 					}
@@ -474,9 +494,9 @@ public abstract class C4ScriptExprTree {
 			if (getOperator().modifiesArgument() && !getLeftSide().modifiable()) {
 				parser.errorWithCode(ErrorCode.ExpressionNotModifiable, getLeftSide());
 			}
-			if (!getOperator().getFirstArgType().canBeAssignedFrom(getLeftSide().getType()))
+			if (!getLeftSide().validForType(getOperator().getFirstArgType()))
 				parser.warningWithCode(ErrorCode.IncompatibleTypes, getLeftSide(), getOperator().getFirstArgType(), getLeftSide().getType());
-			if (!getOperator().getSecondArgType().canBeAssignedFrom(getRightSide().getType()))
+			if (!getRightSide().validForType(getOperator().getSecondArgType()))
 				parser.warningWithCode(ErrorCode.IncompatibleTypes, getRightSide(), getOperator().getSecondArgType(), getRightSide().getType());
 		}
 
@@ -604,6 +624,12 @@ public abstract class C4ScriptExprTree {
 
 		public C4Type getType() {
 			return C4Type.INT;
+		}
+
+		@Override
+		public boolean canBeConvertedTo(C4Type otherType) {
+			// 0 is the NULL object or NULL string
+			return (intValue() == 0 && (otherType == C4Type.OBJECT || otherType == C4Type.STRING)) || super.canBeConvertedTo(otherType);
 		}
 
 	}

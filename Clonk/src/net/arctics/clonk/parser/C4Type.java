@@ -30,7 +30,7 @@ public enum C4Type {
 			other == this ||
 			this == ANY || other == ANY ||
 			other == UNKNOWN || this == UNKNOWN || this == REFERENCE ||
-			(this == BOOL && other == INT) || (this == INT && other == ID);
+			(this == BOOL && other == INT);
 	}
 	
 	public static C4Type makeType(String arg) {

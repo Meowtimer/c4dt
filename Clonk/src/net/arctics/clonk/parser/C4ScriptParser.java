@@ -1353,7 +1353,7 @@ public class C4ScriptParser {
 	}
 	
 	public enum ErrorCode {
-		TokenExpected, NotAllowedHere, MissingClosingBracket, InvalidExpression, InternalError, ExpressionExpected, UnexpectedEnd, NameExpected, ReturnAsFunction, ExpressionNotModifiable, OperatorNeedsRightSide, NoAssignment, NoSideEffects, KeywordInWrongPlace, UndeclaredIdentifier, OldStyleFunc, ValueExpected, TuplesNotAllowed, EmptyParentheses, ExpectedCode, ConstantValueExpected, CommaOrSemicolonExpected, IncompatibleTypes
+		TokenExpected, NotAllowedHere, MissingClosingBracket, InvalidExpression, InternalError, ExpressionExpected, UnexpectedEnd, NameExpected, ReturnAsFunction, ExpressionNotModifiable, OperatorNeedsRightSide, NoAssignment, NoSideEffects, KeywordInWrongPlace, UndeclaredIdentifier, OldStyleFunc, ValueExpected, TuplesNotAllowed, EmptyParentheses, ExpectedCode, ConstantValueExpected, CommaOrSemicolonExpected, IncompatibleTypes, VariableCalled
 	}
 	
 	private static String[] errorStrings = new String[] {
@@ -1379,7 +1379,8 @@ public class C4ScriptParser {
 		"Code expected",
 		"Constant value expected",
 		"Comma or semicolon expected",
-		"Incompatible types: %s and %s"
+		"Incompatible types: %s and %s",
+		"Variable %s called as function"
 	};
 	
 	private static Set<ErrorCode> disabledErrors = new HashSet<ErrorCode>();
@@ -1655,12 +1656,12 @@ public class C4ScriptParser {
 			this.eatWhitespace();
 			int c = fReader.read();
 			if (c == ')') {
-				if (!expectingComma)
-					listToAddElementsTo.add(null);
+				if (!expectingComma && listToAddElementsTo.size() > 0)
+					listToAddElementsTo.add(ExprElm.NULL_EXPR);
 				break;
 			} else if (c == ',') {
 				if (!expectingComma) {
-					listToAddElementsTo.add(null);
+					listToAddElementsTo.add(ExprElm.NULL_EXPR);
 				}
 				expectingComma = false;
 			} else {
