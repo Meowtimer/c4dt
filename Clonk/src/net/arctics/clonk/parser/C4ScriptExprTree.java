@@ -325,7 +325,8 @@ public abstract class C4ScriptExprTree {
 		}
 		@Override
 		public boolean modifiable() {
-			return getType() == C4Type.REFERENCE;
+			C4Type t = getType();
+			return t == C4Type.REFERENCE || t == C4Type.ANY || t == C4Type.UNKNOWN;
 		}
 		@Override
 		public boolean hasSideEffects() {
