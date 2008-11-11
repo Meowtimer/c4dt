@@ -123,7 +123,7 @@ public class ClonkContentOutlineLabelAndContentProvider extends LabelProvider im
 		if (element instanceof C4Function) {
 			C4Function func = ((C4Function)element);
 			StyledString string = new StyledString(func.getLongParameterString(true));
-			if (func.getReturnType() != null && func.getReturnType() != C4Type.UNKNOWN) {
+			if (func.getReturnType() != null && func.getReturnType() != C4Type.UNKNOWN && func.getReturnType() != C4Type.ANY) {
 				string.append(" : ");
 				string.append(func.getReturnType().name(), StyledString.DECORATIONS_STYLER);
 			}
