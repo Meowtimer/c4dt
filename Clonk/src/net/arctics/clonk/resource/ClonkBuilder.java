@@ -27,12 +27,14 @@ import net.arctics.clonk.ui.editors.C4ScriptEditor;
 
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IResourceDelta;
 import org.eclipse.core.resources.IResourceDeltaVisitor;
 import org.eclipse.core.resources.IResourceVisitor;
 import org.eclipse.core.resources.IncrementalProjectBuilder;
+import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.util.IPropertyChangeListener;
@@ -42,6 +44,7 @@ import org.eclipse.ui.IEditorReference;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.ide.undo.DeleteMarkersOperation;
 
 /**
  * An incremental builder for all project data.
@@ -156,6 +159,11 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 		String optionString = ClonkCore.getDefault().getPreferenceStore().getString(PreferenceConstants.STANDARD_EXT_LIBS);
 		String[] libs = optionString.split("<>");
 		ClonkCore.EXTERN_INDEX.clear();
+		try {
+			ResourcesPlugin.getWorkspace().getRoot().deleteMarkers(ClonkCore.MARKER_EXTERN_LIB_ERROR, false, 0);	
+		} catch (CoreException e1) {
+			e1.printStackTrace();
+		}
 		for(String lib : libs) {
 			if (new File(lib).exists()) {
 				C4Group group = C4Group.OpenFile(new File(lib));
@@ -163,6 +171,16 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 				group.accept(this);
 			}
 			else  {
+				try {
+					IMarker marker = ResourcesPlugin.getWorkspace().getRoot().createMarker(ClonkCore.MARKER_EXTERN_LIB_ERROR);
+					marker.setAttribute(IMarker.SEVERITY, IMarker.SEVERITY_ERROR);
+					marker.setAttribute(IMarker.TRANSIENT, false);
+					marker.setAttribute(IMarker.MESSAGE, "Clonk extern library does not exist: '" + lib + "'");
+					marker.setAttribute(IMarker.SOURCE_ID, "net.arctics.clonk.externliberror");
+				} catch (CoreException e) {
+					e.printStackTrace();
+				}
+				
 				// FIXME create global problem marker that an extern lib does not exist
 			}
 		}

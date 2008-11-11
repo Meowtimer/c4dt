@@ -246,6 +246,13 @@
              name="Engine identifiers">
        </view>
     </extension>
+    <extension
+          id="net.arctics.clonk.externliberror"
+          name="Extern library error"
+          point="org.eclipse.core.resources.markers">
+          <persistent value="true"/>
+          <super type="org.eclipse.core.resources.problemmarker"/>
+    </extension>
  
 <!--<extension
        point="org.eclipse.ui.commands">
