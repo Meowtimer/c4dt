@@ -164,6 +164,7 @@ public class C4Function extends C4Field implements Serializable {
 			if (scopeString.equals("protected")) return C4FunctionScope.FUNC_PROTECTED;
 			if (scopeString.equals("private")) return C4FunctionScope.FUNC_PRIVATE;
 			if (scopeString.equals("global")) return C4FunctionScope.FUNC_GLOBAL;
+			if (C4FunctionScope.valueOf(scopeString) != null) return C4FunctionScope.valueOf(scopeString);
 			return C4FunctionScope.FUNC_PUBLIC;
 		}
 	}
@@ -259,7 +260,7 @@ public class C4Function extends C4Field implements Serializable {
 		for (C4Variable v : localVars) {
 			if (v.getName().equals(fieldName))
 				return v;
-		} 
+		}
 		for (C4Variable p : parameter) {
 			if (p.getName().equals(fieldName))
 				return p;

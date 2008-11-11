@@ -1,10 +1,15 @@
 package net.arctics.clonk;
 
 import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.EOFException;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -12,6 +17,7 @@ import java.util.List;
 import java.util.Set;
 
 import net.arctics.clonk.parser.C4Field;
+import net.arctics.clonk.parser.C4Function;
 import net.arctics.clonk.parser.C4ID;
 import net.arctics.clonk.parser.C4Object;
 import net.arctics.clonk.parser.C4ObjectExtern;
@@ -114,6 +120,26 @@ public class ClonkCore extends AbstractUIPlugin implements IResourceChangeListen
 //		catch (FileNotFoundException e) {
 //			e.printStackTrace();
 //		}
+	}
+	
+	@SuppressWarnings("deprecation")
+	public static void saveEngineObject() {
+		try {
+			ObjectOutputStream encoder = new ObjectOutputStream(new BufferedOutputStream(new FileOutputStream("res/engine")));
+			for(C4Variable var : ENGINE_OBJECT.getDefinedVariables()) {
+				encoder.writeObject(var);
+			}
+			for(C4Function func : ENGINE_OBJECT.getDefinedFunctions()) {
+				encoder.writeObject(func);
+			}
+			encoder.flush();
+			encoder.close();
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		
 	}
 	
 //	private C4Function parseFunction(InputStream stream) throws IOException {

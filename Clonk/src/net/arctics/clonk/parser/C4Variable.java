@@ -2,6 +2,8 @@ package net.arctics.clonk.parser;
 
 import java.io.Serializable;
 
+import net.arctics.clonk.parser.C4Function.C4FunctionScope;
+
 import net.arctics.clonk.parser.C4ScriptExprTree.ExprElm;
 
 /**
@@ -135,6 +137,7 @@ public class C4Variable extends C4Field implements Serializable {
 			if (scopeString.equalsIgnoreCase("local")) return C4VariableScope.VAR_LOCAL;
 			if (scopeString.equalsIgnoreCase("static")) return C4VariableScope.VAR_STATIC;
 			if (scopeString.equalsIgnoreCase("static const")) return C4VariableScope.VAR_CONST;
+			if (C4VariableScope.valueOf(scopeString) != null) return C4VariableScope.valueOf(scopeString);
 			else return null;
 		}
 	}
