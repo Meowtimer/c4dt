@@ -447,7 +447,7 @@ public abstract class C4ScriptExprTree {
 		}
 		@Override
 		public C4Object guessObjectType(C4ScriptParser context) {
-			if (params != null && (fieldName.startsWith("Create") || fieldName.startsWith("Find"))) {
+			if (params != null && getType() == C4Type.OBJECT && (fieldName.startsWith("Create") || fieldName.startsWith("Find"))) {
 				if (params.length >= 1 && params[0] instanceof ExprID) {
 					ExprID id = (ExprID)params[0];
 					C4Object obj = context.getContainer().getProject().getIndexedData().getLastObjectWithId(id.idValue());
