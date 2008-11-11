@@ -44,7 +44,6 @@ import org.eclipse.ui.IEditorReference;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.PlatformUI;
-import org.eclipse.ui.ide.undo.DeleteMarkersOperation;
 
 /**
  * An incremental builder for all project data.
@@ -180,8 +179,6 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 				} catch (CoreException e) {
 					e.printStackTrace();
 				}
-				
-				// FIXME create global problem marker that an extern lib does not exist
 			}
 		}
 		ClonkCore.EXTERN_INDEX.refreshCache();

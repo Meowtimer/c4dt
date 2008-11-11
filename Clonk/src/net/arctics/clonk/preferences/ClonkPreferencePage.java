@@ -6,6 +6,7 @@ import net.arctics.clonk.ClonkCore;
 
 import org.eclipse.jface.preference.DirectoryFieldEditor;
 import org.eclipse.jface.preference.FieldEditorPreferencePage;
+import org.eclipse.jface.preference.FileFieldEditor;
 import org.eclipse.jface.preference.ListEditor;
 import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.ui.IWorkbench;
@@ -44,7 +45,10 @@ public class ClonkPreferencePage
 	public void createFieldEditors() {
 		final DirectoryFieldEditor clonkPathEditor = new DirectoryFieldEditor(PreferenceConstants.GAME_PATH, 
 				"&Clonk game path:", getFieldEditorParent());
+		final FileFieldEditor c4groupExecutable = new FileFieldEditor(PreferenceConstants.C4GROUP_EXECUTABLE,
+				"C4&Group executable:", getFieldEditorParent());
 		addField(clonkPathEditor);
+		addField(c4groupExecutable);
 		addField(new ListEditor(PreferenceConstants.STANDARD_EXT_LIBS,"External objects and scripts:",getFieldEditorParent()) {
 		
 			@Override
