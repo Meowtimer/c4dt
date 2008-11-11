@@ -450,8 +450,9 @@ public abstract class C4ScriptExprTree {
 			if (params != null && getType() == C4Type.OBJECT && (fieldName.startsWith("Create") || fieldName.startsWith("Find"))) {
 				if (params.length >= 1 && params[0] instanceof ExprID) {
 					ExprID id = (ExprID)params[0];
-					C4Object obj = context.getContainer().getProject().getIndexedData().getLastObjectWithId(id.idValue());
-					if (obj == null)
+					ClonkIndex index = context.getContainer().getIndex();
+					C4Object obj = index.getLastObjectWithId(id.idValue());
+					if (obj == null && ClonkCore.EXTERN_INDEX != index)
 						obj = ClonkCore.EXTERN_INDEX.getLastObjectWithId(id.idValue());
 					return obj;
 				}
