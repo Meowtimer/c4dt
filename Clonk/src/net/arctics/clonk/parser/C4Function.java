@@ -259,7 +259,7 @@ public class C4Function extends C4Field implements Serializable {
 		for (C4Variable v : localVars) {
 			if (v.getName().equals(fieldName))
 				return v;
-		}
+		} 
 		for (C4Variable p : parameter) {
 			if (p.getName().equals(fieldName))
 				return p;

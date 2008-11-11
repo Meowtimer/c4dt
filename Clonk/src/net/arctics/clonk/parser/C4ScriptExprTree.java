@@ -7,8 +7,20 @@ import net.arctics.clonk.parser.C4ScriptParser.ErrorCode;
 import net.arctics.clonk.parser.C4ScriptParser.ParsingException;
 
 import org.eclipse.jface.text.IRegion;
+import org.eclipse.jface.text.Region;
 
 public abstract class C4ScriptExprTree {
+	
+	public enum TraversalContinuation {
+		Continue,
+		TraverseSubElements,
+		SkipSubElements,
+		Cancel
+	}
+	
+	public interface IExpressionListener {
+		public TraversalContinuation expressionDetected(ExprElm expression);
+	}
 	
 	/**
 	 * @author madeen
@@ -134,8 +146,37 @@ public abstract class C4ScriptExprTree {
 		public boolean validForType(C4Type t) {
 			return t.canBeAssignedFrom(getType()) || canBeConvertedTo(t);
 		}
+		
+		public TraversalContinuation traverse(IExpressionListener listener) {
+			TraversalContinuation c = listener.expressionDetected(this);
+			switch (c) {
+			case Cancel:
+				return TraversalContinuation.Cancel;
+			case Continue:
+				break;
+			case TraverseSubElements:
+				break;
+			case SkipSubElements:
+				return TraversalContinuation.Continue;
+			}
+			for (ExprElm sub : getSubElements()) {
+				switch (sub.traverse(listener)) {
+				case Cancel:
+					return TraversalContinuation.Cancel;
+				case Continue:
+					break;
+				case TraverseSubElements:
+					return TraversalContinuation.Cancel;
+				}
+			}
+			return c;
+		}
 
 		public static final ExprElm NULL_EXPR = new ExprElm() {};
+
+		public IRegion region(int offset) {
+			return new Region(offset+getExprStart(), getExprEnd()-getExprStart());
+		}
 
 	}
 
@@ -273,9 +314,18 @@ public abstract class C4ScriptExprTree {
 		public void print(StringBuilder output) {
 			output.append(fieldName);
 		}
+
+		public IRegion fieldRegion(int offset) {
+			return new Region(offset+getExprStart(), fieldName.length());
+		}
 	}
 
 	public static class ExprAccessVar extends ExprAccessField {
+		@Override
+		public C4Object guessObjectType(C4ScriptParser context) {
+			return (field != null) ? ((C4Variable)field).getExpectedContent() : super.guessObjectType(context);
+		}
+
 		public ExprAccessVar(String varName) {
 			super(varName);
 		}
@@ -299,6 +349,11 @@ public abstract class C4ScriptExprTree {
 			super.reportErrors(parser);
 			if (field == null)
 				parser.warningWithCode(ErrorCode.UndeclaredIdentifier, this, fieldName);
+		}
+
+		@Override
+		public C4Type getType() {
+			return field != null ? ((C4Variable)field).getType() : super.getType();
 		}
 
 	}
@@ -395,7 +450,10 @@ public abstract class C4ScriptExprTree {
 			if (params != null && fieldName.startsWith("Create")) {
 				if (params.length == 1 && params[0] instanceof ExprID) {
 					ExprID id = (ExprID)params[0];
-					return context.getContainer().getProject().getIndexedData().getLastObjectWithId(id.idValue());
+					C4Object obj = context.getContainer().getProject().getIndexedData().getLastObjectWithId(id.idValue());
+					if (obj == null)
+						obj = ClonkCore.EXTERN_INDEX.getLastObjectWithId(id.idValue());
+					return obj;
 				}
 			}
 			return super.guessObjectType(context);
@@ -509,6 +567,13 @@ public abstract class C4ScriptExprTree {
 				parser.warningWithCode(ErrorCode.IncompatibleTypes, getLeftSide(), getOperator().getFirstArgType(), getLeftSide().getType());
 			if (!getRightSide().validForType(getOperator().getSecondArgType()))
 				parser.warningWithCode(ErrorCode.IncompatibleTypes, getRightSide(), getOperator().getSecondArgType(), getRightSide().getType());
+			
+			if (getOperator() == C4ScriptOperator.Assign) {
+				if (getLeftSide() instanceof ExprAccessVar) {
+					C4Variable v = (C4Variable) ((ExprAccessVar)getLeftSide()).getField(parser);
+					v.inferTypeFromAssignment(getRightSide(), parser);
+				}
+			}
 		}
 
 	}
@@ -516,6 +581,10 @@ public abstract class C4ScriptExprTree {
 	public static class ExprParenthesized extends ExprValue {
 		private ExprElm innerExpr;
 
+		@Override
+		public ExprElm[] getSubElements() {
+			return new ExprElm[] {innerExpr};
+		}
 		public ExprParenthesized(ExprElm innerExpr) {
 			super();
 			this.innerExpr = innerExpr;

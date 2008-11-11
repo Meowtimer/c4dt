@@ -18,6 +18,7 @@ import org.eclipse.core.runtime.FileLocator;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.resource.ImageRegistry;
+import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.ui.part.FileEditorInput;
@@ -152,10 +153,48 @@ public abstract class Utilities {
 		return digits != 4; // rather interpret 1000 as int
 	}
 	
-	public static int getStartOfExpression(IDocument doc, int offset) throws org.eclipse.jface.text.BadLocationException {
+	public static int getStartOfStatement(IDocument doc, int offset) throws BadLocationException {
+		int bracketDepth = 0;
 		for (int off = offset-1; off >= 0; off--) {
-			if (doc.getChar(off) == ';' || doc.getChar(off) == '{')
-				return off+1;
+			switch (doc.getChar(off)) {
+			case ';': case '{': case '}': case ']': case ':':
+				if (bracketDepth <= 0)
+					return off+1;
+				break;
+			case ')':
+				bracketDepth++;
+				break;
+			case '(':
+				if (--bracketDepth < 0)
+					return off+1;
+				break;
+			}
+		}
+		return offset;
+	}
+	
+	public static int getEndOfStatement(IDocument doc, int offset) throws BadLocationException {
+		int bracketDepth = 0, blockDepth = 0;
+		for (int off = offset+1; off < doc.getLength(); off++) {
+			switch (doc.getChar(off)) {
+			case ';':
+				if (bracketDepth <= 0 && blockDepth <= 0)
+					return off+1;
+				break;
+			case '{':
+				blockDepth++;
+				break;
+			case '}':
+				if (--blockDepth <= 0)
+					return off+1;
+				break;
+			case '(':
+				bracketDepth++;
+				break;
+			case ')':
+				bracketDepth--;
+				break;
+			}
 		}
 		return offset;
 	}

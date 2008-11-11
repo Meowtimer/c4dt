@@ -5,7 +5,7 @@ import java.util.ResourceBundle;
 
 import net.arctics.clonk.parser.C4ScriptParser;
 import net.arctics.clonk.parser.CompilerException;
-import net.arctics.clonk.parser.C4ScriptExprTree.ExprElm;
+import net.arctics.clonk.parser.C4ScriptExprTree.*;
 import net.arctics.clonk.ui.editors.C4ScriptEditor;
 
 import org.eclipse.jface.text.BadLocationException;
@@ -31,9 +31,10 @@ public class ConvertOldCodeToNewCodeAction extends TextEditorAction {
 		IDocument document = editor.getDocumentProvider().getDocument(editor.getEditorInput());
 		final LinkedList<ExprElm> expressions = new LinkedList<ExprElm>();
 		try {
-			editor.reparseWithDocumentContents(new C4ScriptParser.IExpressionNotifiee() {
-				public void parsedToplevelExpression(ExprElm expression) {
+			editor.reparseWithDocumentContents(new IExpressionListener() {
+				public TraversalContinuation expressionDetected(ExprElm expression) {
 					expressions.addFirst(expression);
+					return TraversalContinuation.Continue;
 				}
 			},false);
 		} catch (CompilerException e1) {

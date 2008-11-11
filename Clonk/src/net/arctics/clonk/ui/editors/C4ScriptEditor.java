@@ -5,10 +5,10 @@ import java.io.InputStream;
 import java.util.ResourceBundle;
 
 import net.arctics.clonk.Utilities;
+import net.arctics.clonk.parser.C4ScriptExprTree;
 import net.arctics.clonk.parser.C4ScriptParser;
 import net.arctics.clonk.parser.CompilerException;
 import net.arctics.clonk.parser.SourceLocation;
-import net.arctics.clonk.parser.C4ScriptParser.IExpressionNotifiee;
 import net.arctics.clonk.ui.editors.actions.ConvertOldCodeToNewCodeAction;
 
 import org.eclipse.core.resources.IResource;
@@ -138,12 +138,12 @@ public class C4ScriptEditor extends AbstractDecoratedTextEditor {
 		outlinePage.refresh();
 	}
 
-	public void reparseWithDocumentContents(IExpressionNotifiee exprNotifiee, boolean onlyDeclarations) throws CompilerException {
+	public void reparseWithDocumentContents(C4ScriptExprTree.IExpressionListener exprListener, boolean onlyDeclarations) throws CompilerException {
 		IDocument document = getDocumentProvider().getDocument(getEditorInput());
 		byte[] documentBytes = document.get().getBytes();
 		InputStream scriptStream = new ByteArrayInputStream(documentBytes);
 		C4ScriptParser parser = new C4ScriptParser(scriptStream, documentBytes.length, Utilities.getObjectForEditor(this));
-		parser.setExpressionNotifiee(exprNotifiee);
+		parser.setExpressionListener(exprListener);
 		parser.clean();
 		parser.parseDeclarations();
 		if (!onlyDeclarations)

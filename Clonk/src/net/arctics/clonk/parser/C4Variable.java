@@ -2,6 +2,8 @@ package net.arctics.clonk.parser;
 
 import java.io.Serializable;
 
+import net.arctics.clonk.parser.C4ScriptExprTree.ExprElm;
+
 /**
  * Represents a variable.
  * @author ZokRadonh
@@ -152,6 +154,14 @@ public class C4Variable extends C4Field implements Serializable {
 			builder.append(getDescription());
 		}
 		return builder.toString();
+	}
+
+	public void inferTypeFromAssignment(ExprElm val, C4ScriptParser context) {
+		setExpectedContent(val.guessObjectType(context));
+		if (getType() == C4Type.ANY)
+			setType(val.getType());
+		else if (getType() != val.getType())
+			setType(C4Type.ANY);
 	}
 	
 }

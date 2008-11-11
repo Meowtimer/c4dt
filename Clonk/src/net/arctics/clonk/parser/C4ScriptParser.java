@@ -1,10 +1,10 @@
 package net.arctics.clonk.parser;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -21,13 +21,11 @@ import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.jface.text.BadLocationException;
+import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IRegion;
 
 public class C4ScriptParser {
-
-	public interface IExpressionNotifiee {
-		public void parsedToplevelExpression(ExprElm expression);
-	}
 	
 	protected static class BufferedScanner {
 
@@ -73,7 +71,10 @@ public class C4ScriptParser {
 		}
 
 		public int read() {
-			if (offset >= size) return -1;
+			if (offset >= size) {
+				offset++; // increment anyway so unread works as expected
+				return -1;
+			}
 			return buffer[offset++];
 		}
 
@@ -246,20 +247,19 @@ public class C4ScriptParser {
 		}
 	}
 	
-	private IExpressionNotifiee expressionNotifiee;
+	private IExpressionListener expressionNotifiee;
 
-	public IExpressionNotifiee getExpressionNotifiee() {
+	public IExpressionListener getExpressionNotifiee() {
 		return expressionNotifiee;
 	}
 
-	public void setExpressionNotifiee(IExpressionNotifiee expressionNotifiee) {
+	public void setExpressionListener(IExpressionListener expressionNotifiee) {
 		this.expressionNotifiee = expressionNotifiee;
 	}
 
 	private BufferedScanner fReader;
 	private IFile fScript; // for project intern files
 	private C4Object container;
-
 	private InputStream stream; // for extern files
 
 	//	private List<C4Directive> directives = new LinkedList<C4Directive>();
@@ -513,8 +513,14 @@ public class C4ScriptParser {
 					eatWhitespace();
 					offset = fReader.getPosition();
 					ExprElm val = parseExpression(offset, !declaration);
-					if (val == null && !declaration)
-						errorWithCode(ErrorCode.ValueExpected, fReader.getPosition()-1, fReader.getPosition());
+					if (!declaration) {
+						if (val == null)
+							errorWithCode(ErrorCode.ValueExpected, fReader.getPosition()-1, fReader.getPosition());
+						else {
+							C4Variable var = activeFunc.findVar(varName);
+							var.inferTypeFromAssignment(val, this);
+						}
+					}
 				}
 				else {
 					fReader.unread();
@@ -723,7 +729,7 @@ public class C4ScriptParser {
 	 * @return
 	 * @throws ParsingException 
 	 */
-	private boolean parseCode(int offset) throws ParsingException {
+	public boolean parseCode(int offset) throws ParsingException {
 		fReader.seek(offset);
 		this.eatWhitespace();
 		offset = fReader.getPosition();
@@ -855,48 +861,6 @@ public class C4ScriptParser {
 		if (next == ';') {
 			fReader.unread();
 		}
-//		else if (next == '(') {
-//			eatWhitespace();
-//			offset = fReader.getPosition();
-//			if (!parseValue(offset)) {
-//				if (container != null && container.strictLevel() == 2)
-//					createWarningMarker(offset, offset + 1, "Discouraged syntax: use 'return;' instead of 'return();' (since CR, #strict 2))");
-//			}
-//			else {
-//				offset = fReader.getPosition();
-//			}
-//			fReader.seek(offset);
-//			eatWhitespace();
-//			int readByte = fReader.read();
-//			if (readByte != ')') {
-//				warningWithCode(ErrorCode.ReturnAsFunction, fReader.getPosition()-1, fReader.getPosition());
-//				// legacy: return treated as function
-//				while (readByte == ',') {
-//					if (!parseValue(fReader.getPosition())) {
-//						errorWithCode(ErrorCode.ExpressionExpected, fReader.getPosition(), fReader.getPosition()+1);
-//					}
-//					eatWhitespace();
-//					readByte = fReader.read();
-//					if (readByte == ')') {
-//						return true;
-//					}
-//					if (fReader.reachedEOF()) {
-//						errorWithCode(ErrorCode.UnexpectedEnd, fReader.getPosition()-1, fReader.getPosition());
-//					}
-//				}
-//				//throw new ParsingException(problem);
-//			}
-//			int afterBracket = fReader.getPosition();
-//			eatWhitespace();
-//			if (fReader.read() != ';') {
-//				// brackets might be part of expression (return (50+3)/3;)
-//				fReader.seek(returnExprStart);
-//				if (!parseValue(fReader.getPosition())) {
-//					errorWithCode(ErrorCode.ValueExpected, returnExprStart, fReader.getPosition());
-//				}
-//			} else
-//				fReader.seek(afterBracket);
-//		}
 		else {
 			fReader.unread();
 			offset = fReader.getPosition();
@@ -1775,7 +1739,7 @@ public class C4ScriptParser {
 				if (reportErrors)
 					root.reportErrors(this);
 				if (expressionNotifiee != null && parseExpressionRecursion == 1)
-					expressionNotifiee.parsedToplevelExpression(root);
+					expressionNotifiee.expressionDetected(root);
 			}
 			
 			return root;
@@ -2248,6 +2212,26 @@ public class C4ScriptParser {
 			e1.printStackTrace();
 		}
 		container.clearFields();
+	}
+	
+	public static C4ScriptParser reportExpressionsInStatements(IDocument doc, IRegion region, C4Object context, C4Function func, IExpressionListener listener) throws BadLocationException, CompilerException, ParsingException {
+		return reportExpressionsInStatements(doc, region.getOffset(), region.getOffset()+region.getLength(), context, func, listener);
+	}
+	
+	public static C4ScriptParser reportExpressionsInStatements(IDocument doc, int statementStart, int statementEnd, C4Object context, C4Function func, IExpressionListener listener) throws BadLocationException, CompilerException, ParsingException {
+		String expr = doc.get(statementStart, statementEnd-statementStart);
+		InputStream stream = new ByteArrayInputStream(expr.getBytes());
+		C4ScriptParser parser = new C4ScriptParser(stream,  expr.length(), context);
+		parser.activeFunc = func;
+		parser.setExpressionListener(listener);
+		while (!parser.fReader.reachedEOF() && parser.parseCode(parser.fReader.getPosition())) {
+			parser.eatWhitespace();
+		}
+		return parser;
+	}
+	
+	public static C4ScriptParser reportExpressionsInStatements(IDocument doc, int offset, C4Object context, C4Function func, IExpressionListener listener) throws BadLocationException, CompilerException, ParsingException {
+		return reportExpressionsInStatements(doc, Utilities.getStartOfStatement(doc, offset), offset, context, func, listener);
 	}
 
 //	/**

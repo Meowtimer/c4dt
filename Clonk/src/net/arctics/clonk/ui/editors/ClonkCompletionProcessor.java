@@ -18,6 +18,8 @@ import net.arctics.clonk.parser.ClonkIndex;
 import net.arctics.clonk.parser.CompilerException;
 import net.arctics.clonk.parser.C4ScriptParser.ParsingException;
 import net.arctics.clonk.parser.C4ScriptExprTree.ExprElm;
+import net.arctics.clonk.parser.C4ScriptExprTree.IExpressionListener;
+import net.arctics.clonk.parser.C4ScriptExprTree.TraversalContinuation;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.Utilities;
 
@@ -43,6 +45,7 @@ public class ClonkCompletionProcessor implements IContentAssistProcessor {
 
 	private ITextEditor editor;
 	private ContentAssistant assistant;
+	private ExprElm contextExpression;
 	
 	public ClonkCompletionProcessor(ITextEditor editor,
 			ContentAssistant assistant) {
@@ -114,9 +117,7 @@ public class ClonkCompletionProcessor implements IContentAssistProcessor {
 				proposalForFunc(func, prefix, offset, proposals, func.getObject().getName());
 			}
 			for (C4Variable var : index.getStaticVariables()) {
-				ClonkCompletionProposal prop = proposalForVar(var,prefix,offset,proposals);
-				if (prop != null)
-					proposals.add(prop);
+				proposalForVar(var,prefix,offset,proposals);
 			}
 			for (List<C4Object> objs : index.getIndexedObjects().values()) {
 				proposalForObject(objs.get(objs.size()-1), prefix, wordOffset, proposals);
@@ -124,8 +125,7 @@ public class ClonkCompletionProcessor implements IContentAssistProcessor {
 		}
 	}
 	
-	public ICompletionProposal[] computeCompletionProposals(ITextViewer viewer,
-			int offset) {
+	public ICompletionProposal[] computeCompletionProposals(ITextViewer viewer, int offset) {
 		
 		int wordOffset = offset - 1;
 		WordScanner scanner = new WordScanner();
@@ -249,14 +249,18 @@ public class ClonkCompletionProcessor implements IContentAssistProcessor {
 			C4Object contextObj = Utilities.getObjectForEditor(editor);
 			if (contextObj != null) {
 				try {
-					int off = Utilities.getStartOfExpression(doc, offset);
-					String expr = doc.get(off,offset-off+1);
-					InputStream stream = new ByteArrayInputStream(expr.getBytes());
-					C4ScriptParser parser = new C4ScriptParser(stream,  expr.length(), contextObj);
-					ExprElm e = parser.parseExpressionWithoutOperators(0, false);
-					C4Object guessedType = (e == null) ? null : e.guessObjectType(parser);
-					if (guessedType != null)
-						contextObj = guessedType;
+					contextExpression = null;
+					C4ScriptParser parser = C4ScriptParser.reportExpressionsInStatements(doc, activeFunc.getBody().getOffset(), offset, contextObj, activeFunc, new IExpressionListener() {
+						public TraversalContinuation expressionDetected(ExprElm expression) {
+							contextExpression = expression;
+							return TraversalContinuation.Continue;
+						}
+					});
+					if (contextExpression != null) {
+						C4Object guessed = contextExpression.guessObjectType(parser);
+						if (guessed != null)
+							contextObj = guessed;
+					}
 				} catch (BadLocationException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
