@@ -43,6 +43,7 @@ public class ClonkContentOutlinePage extends ContentOutlinePage {
 				return ((C4Field)element).sortCategory();
 			}
 		});
+		treeViewer.refresh();
 	}
 
 	@Override
