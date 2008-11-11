@@ -4,12 +4,19 @@ import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.EOFException;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -33,10 +40,13 @@ import org.eclipse.core.resources.IResourceDelta;
 import org.eclipse.core.resources.IResourceDeltaVisitor;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IPath;
+import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.QualifiedName;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
+import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 
 /**
@@ -71,27 +81,31 @@ public class ClonkCore extends AbstractUIPlugin implements IResourceChangeListen
 		super.start(context);
 		plugin = this;
 		
-		URL engineIndex = getBundle().getEntry("res/engine");
-		if (engineIndex != null) {
-			ObjectInputStream decoder = new ObjectInputStream(new BufferedInputStream(engineIndex.openStream()));
+		InputStream engineStream;
+		if (getEngineCacheFile().toFile().exists()) {
+			engineStream = new FileInputStream(getEngineCacheFile().toFile());
+		}
+		else {
+			engineStream = getBundle().getEntry("res/engine").openStream();
+		}
+		ObjectInputStream decoder = new ObjectInputStream(new BufferedInputStream(engineStream));
 //			java.beans.XMLDecoder decoder = new XMLDecoder(new BufferedInputStream(engineIndex.openStream()));
-			try {
-				while (true) {
-					Object obj = decoder.readObject();
-					if (obj instanceof C4Field) {
-						C4Field field = (C4Field)obj;
-						field.setObject(ENGINE_OBJECT);
-						ENGINE_OBJECT.addField(field);
+		try {
+			while (true) {
+				Object obj = decoder.readObject();
+				if (obj instanceof C4Field) {
+					C4Field field = (C4Field)obj;
+					field.setObject(ENGINE_OBJECT);
+					ENGINE_OBJECT.addField(field);
 //						ENGINE_FUNCTIONS.add((C4Function)obj);
-					}
-					else {
-						System.out.println("Read unknown object from engine: " + obj.getClass().getName());
-					}
+				}
+				else {
+					System.out.println("Read unknown object from engine: " + obj.getClass().getName());
 				}
 			}
-			catch(EOFException e) {
-				// finished
-			}
+		}
+		catch(EOFException e) {
+			// finished
 		}
 		
 		URL engineConstants = getBundle().getEntry("res/constants.txt");
@@ -122,10 +136,22 @@ public class ClonkCore extends AbstractUIPlugin implements IResourceChangeListen
 //		}
 	}
 	
+	public static IPath getEngineCacheFile() {
+		IPath path = ClonkCore.getDefault().getStateLocation();
+		return path.append("engine");
+	}
+	
+	public static IPath getExternLibCacheFile() {
+		IPath path = ClonkCore.getDefault().getStateLocation();
+		return path.append("externlib");
+	}
+	
 	@SuppressWarnings("deprecation")
 	public static void saveEngineObject() {
 		try {
-			ObjectOutputStream encoder = new ObjectOutputStream(new BufferedOutputStream(new FileOutputStream("res/engine")));
+			IPath engine = getEngineCacheFile();
+			
+			ObjectOutputStream encoder = new ObjectOutputStream(new BufferedOutputStream(new FileOutputStream(engine.toFile())));
 			for(C4Variable var : ENGINE_OBJECT.getDefinedVariables()) {
 				encoder.writeObject(var);
 			}
