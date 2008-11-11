@@ -505,7 +505,8 @@ public class C4ScriptParser {
 					C4Variable var = previousDeclaration != null ? previousDeclaration : new C4Variable(varName,C4VariableScope.VAR_VAR);
 					var.setObject(container);
 					var.setLocation(new SourceLocation(nameStart, nameEnd));
-					activeFunc.getLocalVars().add(var);
+					if (previousDeclaration == null)
+						activeFunc.getLocalVars().add(var);
 				}
 				// check if there is initial content
 				eatWhitespace();

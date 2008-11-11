@@ -115,7 +115,6 @@ public class C4ScriptEditor extends AbstractDecoratedTextEditor {
 	 */
 	@Override
 	protected void editorContextMenuAboutToShow(IMenuManager menu) {
-		// TODO Auto-generated method stub
 		super.editorContextMenuAboutToShow(menu);
 		addAction(menu, ClonkActionDefinitionIds.CONVERT_OLD_CODE_TO_NEW_CODE);
 	}

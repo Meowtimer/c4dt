@@ -447,8 +447,8 @@ public abstract class C4ScriptExprTree {
 		}
 		@Override
 		public C4Object guessObjectType(C4ScriptParser context) {
-			if (params != null && fieldName.startsWith("Create")) {
-				if (params.length == 1 && params[0] instanceof ExprID) {
+			if (params != null && (fieldName.startsWith("Create") || fieldName.startsWith("Find"))) {
+				if (params.length >= 1 && params[0] instanceof ExprID) {
 					ExprID id = (ExprID)params[0];
 					C4Object obj = context.getContainer().getProject().getIndexedData().getLastObjectWithId(id.idValue());
 					if (obj == null)
@@ -756,7 +756,10 @@ public abstract class C4ScriptExprTree {
 		@Override
 		public C4Object guessObjectType(C4ScriptParser context) {
 			// FIXME: does not actually return an object of type idValue but the id itself :/
-			return context.getContainer().getProject().getIndexedData().getObjectWithIDPreferringInterns(idValue());
+			C4Object result = context.getContainer().getProject().getIndexedData().getLastObjectWithId(idValue());
+			if (result == null)
+				result = ClonkCore.EXTERN_INDEX.getLastObjectWithId(idValue());
+			return result;
 		}
 
 	}
