@@ -73,7 +73,7 @@ public class ExportClonkFiles extends Wizard implements IExportWizard {
 		exportPage = new ClonkExportResourcePage("Export to Clonk directory", selection);
 		exportPage.setWizard(this);
 		exportPage.setMessage("Choose folders to export and check output directory.");
-		exportPage.setTitle("Title");
+		exportPage.setTitle("C4Group Export");
 		exportPage.setMessage("blub", WizardPage.INFORMATION);
 		setWindowTitle("Export to Clonk directory");
 		addPage(exportPage);

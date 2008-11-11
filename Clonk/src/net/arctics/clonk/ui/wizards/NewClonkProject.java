@@ -34,7 +34,9 @@ public class NewClonkProject extends Wizard implements INewWizard {
 
 	public void init(IWorkbench workbench, IStructuredSelection selection) {
 		page = new WizardNewProjectCreationPage("newProject");
+		page.setTitle("Create a Clonk Project");
 		addPage(page);
+		setWindowTitle("New Clonk Project");
 	}
 
 }

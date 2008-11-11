@@ -223,5 +223,6 @@ public class NewC4Object extends Wizard implements INewWizard {
 	 */
 	public void init(IWorkbench workbench, IStructuredSelection selection) {
 		this.selection = selection;
+		setWindowTitle("Create new Object");
 	}
 }
