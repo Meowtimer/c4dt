@@ -71,8 +71,29 @@ public class ClonkSourceViewerConfiguration extends TextSourceViewerConfiguratio
 		public IdentInfo(IDocument doc, IRegion region) throws BadLocationException, CompilerException, ParsingException {
 			C4Object obj = Utilities.getObjectForEditor(getEditor());
 			C4Function func = obj.funcAt(region);
-			if (func == null)
+			if (func == null) {
+				// outside function, fallback to old technique
+				IRegion lineInfo;
+				String line;
+				try {
+					lineInfo = doc.getLineInformationOfOffset(region.getOffset());
+					line = doc.get(lineInfo.getOffset(),lineInfo.getLength());
+				} catch (BadLocationException e) {
+					return;
+				}
+				int localOffset = region.getOffset() - lineInfo.getOffset();
+				int start,end;
+				for (start = localOffset; start > 0 && Character.isJavaIdentifierPart(line.charAt(start-1)); start--);
+				for (end = localOffset; end < line.length() && Character.isJavaIdentifierPart(line.charAt(end)); end++);
+				identRegion = new Region(lineInfo.getOffset()+start,end-start);
+				if (identRegion.getLength() == 4) {
+					C4ID id = C4ID.getID(doc.get(identRegion.getOffset(), identRegion.getLength()));
+					field = Utilities.getObjectForEditor(getEditor()).getIndex().getLastObjectWithId(id);
+					if (field == null)
+						field = ClonkCore.EXTERN_INDEX.getLastObjectWithId(id);
+				}
 				return;
+			}
 			int statementStart = func.getBody().getOffset();
 			identRegion = new Region(region.getOffset()-statementStart,0);
 			C4ScriptParser parser = C4ScriptParser.reportExpressionsInStatements(doc, func.getBody(), obj, func, this);
