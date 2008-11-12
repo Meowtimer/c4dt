@@ -100,16 +100,16 @@ public class ClonkCore extends AbstractUIPlugin implements IResourceChangeListen
 			// finished
 		}
 		
-		URL engineConstants = getBundle().getEntry("res/constants.txt");
-		if (engineConstants != null) {
-			BufferedReader reader = new BufferedReader(new InputStreamReader(engineConstants.openStream()));
-			String line;
-			while((line = reader.readLine()) != null) {
-				C4Variable var = new C4Variable(line,C4VariableScope.VAR_CONST);
-				var.setObject(ENGINE_OBJECT);
-				ENGINE_OBJECT.addField(var);
-			}
-		}
+//		URL engineConstants = getBundle().getEntry("res/constants.txt");
+//		if (engineConstants != null) {
+//			BufferedReader reader = new BufferedReader(new InputStreamReader(engineConstants.openStream()));
+//			String line;
+//			while((line = reader.readLine()) != null) {
+//				C4Variable var = new C4Variable(line,C4VariableScope.VAR_CONST);
+//				var.setObject(ENGINE_OBJECT);
+//				ENGINE_OBJECT.addField(var);
+//			}
+//		}
 		
 		ResourcesPlugin.getWorkspace().addResourceChangeListener(this);
 //		try {
@@ -143,7 +143,11 @@ public class ClonkCore extends AbstractUIPlugin implements IResourceChangeListen
 		try {
 			IPath engine = getEngineCacheFile();
 			
-			ObjectOutputStream encoder = new ObjectOutputStream(new BufferedOutputStream(new FileOutputStream(engine.toFile())));
+			if (engine.toFile().exists()) engine.toFile().delete();
+			
+			FileOutputStream outputStream = new FileOutputStream(engine.toFile());
+			
+			ObjectOutputStream encoder = new ObjectOutputStream(new BufferedOutputStream(outputStream));
 			for(C4Variable var : ENGINE_OBJECT.getDefinedVariables()) {
 				encoder.writeObject(var);
 			}

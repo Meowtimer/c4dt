@@ -1,7 +1,15 @@
 package net.arctics.clonk.ui;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.SimpleFormatter;
 
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.C4Field;
@@ -27,9 +35,11 @@ import org.eclipse.jface.viewers.*;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.jface.action.*;
 import org.eclipse.jface.dialogs.Dialog;
+import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.dialogs.IInputValidator;
 import org.eclipse.jface.dialogs.InputDialog;
 import org.eclipse.jface.dialogs.MessageDialog;
@@ -89,6 +99,7 @@ public class EngineIdentifiersView extends ViewPart {
 		private Button newParameter;
 		private C4Field identifier;
 		private Text identifierNameField;
+		private Text descriptionField;
 		private Combo returnTypeBox;
 		private Combo scopeBox;
 		private List<ParameterCombination> parameters = new ArrayList<ParameterCombination>();
@@ -152,6 +163,7 @@ public class EngineIdentifiersView extends ViewPart {
 				func.setName(identifierNameField.getText());
 				func.setReturnType(C4Type.makeType(returnTypeBox.getItem(returnTypeBox.getSelectionIndex())));
 				func.setVisibility(C4FunctionScope.makeScope(scopeBox.getItem(scopeBox.getSelectionIndex())));
+				func.setDescription(descriptionField.getText());
 				
 				func.getParameter().clear();
 				for(ParameterCombination par : parameters) {
@@ -207,11 +219,25 @@ public class EngineIdentifiersView extends ViewPart {
 			new Label(parent, SWT.NONE).setText("Scope: ");
 			scopeBox = createComboBoxForScope(parent, func.getVisibility());
 			
+			new Label(parent, SWT.NONE).setText("Beschreibung: ");
+			descriptionField = new Text(parent, SWT.BORDER | SWT.MULTI | SWT.WRAP | SWT.V_SCROLL);
+			if (func.getDescription() != null) descriptionField.setText(func.getDescription());
+			
+			GridData gridData =
+			      new GridData(
+			        GridData.HORIZONTAL_ALIGN_FILL | GridData.VERTICAL_ALIGN_FILL);
+			    gridData.horizontalSpan = 3;
+			    gridData.grabExcessVerticalSpace = true;
+
+			descriptionField.setSize(400, 100);
+			descriptionField.setLayoutData(gridData);
+			
 			new Label(parent, SWT.NONE).setText(" "); // placeholder
 			new Label(parent, SWT.NONE).setText(" ");
-			
-			for(C4Variable par : func.getParameter()) {
-				createParameterControls(parent, par.getType(), par.getName());
+			if (func.getParameter() != null) {
+				for(C4Variable par : func.getParameter()) {
+					createParameterControls(parent, par.getType(), par.getName());
+				}
 			}
 			
 			createNewParameterButton(parent);
@@ -274,6 +300,7 @@ public class EngineIdentifiersView extends ViewPart {
 	protected TreeViewer viewer;
 	private DrillDownAdapter drillDownAdapter;
 	private Action editAction;
+	private Action deleteAction;
 	private Action saveAction;
 	private Action doubleClickAction;
 
@@ -335,12 +362,14 @@ public class EngineIdentifiersView extends ViewPart {
 
 	private void fillLocalPullDown(IMenuManager manager) {
 		manager.add(editAction);
+		manager.add(deleteAction);
 		manager.add(new Separator());
 		manager.add(saveAction);
 	}
 
 	private void fillContextMenu(IMenuManager manager) {
 		manager.add(editAction);
+		manager.add(deleteAction);
 		manager.add(saveAction);
 		manager.add(new Separator());
 		drillDownAdapter.addNavigationActions(manager);
@@ -351,6 +380,37 @@ public class EngineIdentifiersView extends ViewPart {
 	private void fillLocalToolBar(IToolBarManager manager) {
 //		manager.add(editAction);
 		manager.add(saveAction);
+		Action temp = new Action() {
+
+			/* (non-Javadoc)
+			 * @see org.eclipse.jface.action.Action#run()
+			 */
+			@Override
+			public void run() {
+				File file = new File("D:\\ZokFiles\\Desktop\\newragesourcefuncs.txt");
+				try {
+					InputStream stream = new FileInputStream(file);
+					BufferedReader reader = new BufferedReader(new InputStreamReader(stream));
+					String line = null;
+//					while ((line = reader.readLine()) != null) {
+//						C4Function func = new C4Function(line,ClonkCore.ENGINE_OBJECT,C4FunctionScope.FUNC_GLOBAL);
+//						func.setReturnType(C4Type.UNKNOWN);
+//						ClonkCore.ENGINE_OBJECT.addField(func);
+//					}
+					refresh();
+				} catch (FileNotFoundException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				
+			}
+			
+		};
+		temp.setText("baller rein den shice");
+		manager.add(temp);
 		manager.add(new Separator());
 		drillDownAdapter.addNavigationActions(manager);
 	}
@@ -364,6 +424,9 @@ public class EngineIdentifiersView extends ViewPart {
 //				viewer.editElement(data, 0);
 //				viewer.editElement(((IStructuredSelection)viewer.getSelection()).getFirstElement(), 0);
 				Dialog dialog = new EditIdentifierInputDialog(viewer.getControl().getShell());
+				dialog.create();
+				dialog.getShell().setSize(400, 600);
+				dialog.getShell().pack();
 				dialog.open();
 				refresh();
 			}
@@ -371,7 +434,25 @@ public class EngineIdentifiersView extends ViewPart {
 		editAction.setText("Edit");
 		editAction.setToolTipText("Edit this identifier");
 		editAction.setImageDescriptor(PlatformUI.getWorkbench().getSharedImages().
-			getImageDescriptor(ISharedImages.IMG_OBJS_INFO_TSK));
+				getImageDescriptor(ISharedImages.IMG_OBJS_INFO_TSK));
+		
+		deleteAction = new Action() {
+			public void run() {
+				Dialog dialog = new SimpleConfirmDialog(viewer.getControl().getShell());
+				int result = dialog.open();
+				if (result == IDialogConstants.OK_ID) {
+					Object selectedItem = viewer.getTree().getSelection()[0].getData();
+					if (selectedItem instanceof C4Field) {
+						ClonkCore.ENGINE_OBJECT.removeField((C4Field) selectedItem);
+					}
+					refresh();
+				}
+			}
+		};
+		deleteAction.setText("Delete");
+		deleteAction.setToolTipText("Delete this identifier");
+		deleteAction.setImageDescriptor(PlatformUI.getWorkbench().getSharedImages().
+				getImageDescriptor(ISharedImages.IMG_TOOL_DELETE));
 		
 		saveAction = new Action() {
 			public void run() {
