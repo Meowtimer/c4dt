@@ -380,37 +380,6 @@ public class EngineIdentifiersView extends ViewPart {
 	private void fillLocalToolBar(IToolBarManager manager) {
 //		manager.add(editAction);
 		manager.add(saveAction);
-		Action temp = new Action() {
-
-			/* (non-Javadoc)
-			 * @see org.eclipse.jface.action.Action#run()
-			 */
-			@Override
-			public void run() {
-				File file = new File("D:\\ZokFiles\\Desktop\\newragesourcefuncs.txt");
-				try {
-					InputStream stream = new FileInputStream(file);
-					BufferedReader reader = new BufferedReader(new InputStreamReader(stream));
-					String line = null;
-//					while ((line = reader.readLine()) != null) {
-//						C4Function func = new C4Function(line,ClonkCore.ENGINE_OBJECT,C4FunctionScope.FUNC_GLOBAL);
-//						func.setReturnType(C4Type.UNKNOWN);
-//						ClonkCore.ENGINE_OBJECT.addField(func);
-//					}
-					refresh();
-				} catch (FileNotFoundException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-				
-			}
-			
-		};
-		temp.setText("baller rein den shice");
-		manager.add(temp);
 		manager.add(new Separator());
 		drillDownAdapter.addNavigationActions(manager);
 	}
