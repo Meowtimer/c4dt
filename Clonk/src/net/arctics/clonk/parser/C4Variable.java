@@ -19,6 +19,8 @@ public class C4Variable extends C4Field implements Serializable {
 	private C4Object expectedContent; // mostly null - only set when type=object
 	private String description;
 	
+	public static final C4Variable THIS = new C4Variable("this", "object", "reference to the object calling the function");
+	
 	/**
 	 * Do NOT use this constructor! Its for engine-function-parameter only.
 	 * @param name
