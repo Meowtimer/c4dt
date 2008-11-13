@@ -1,4 +1,4 @@
-package net.arctics.clonk.parser;
+package net.arctics.clonk.parser.defcore;
 
 import java.io.BufferedReader;
 import java.io.IOException;

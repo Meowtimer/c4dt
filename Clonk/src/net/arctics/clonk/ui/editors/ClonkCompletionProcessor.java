@@ -1,13 +1,12 @@
 package net.arctics.clonk.ui.editors;
 
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 
 import net.arctics.clonk.ClonkCore;
+import net.arctics.clonk.Utilities;
 import net.arctics.clonk.parser.BuiltInDefinitions;
 import net.arctics.clonk.parser.C4Function;
 import net.arctics.clonk.parser.C4Object;
@@ -16,12 +15,11 @@ import net.arctics.clonk.parser.C4ScriptParser;
 import net.arctics.clonk.parser.C4Variable;
 import net.arctics.clonk.parser.ClonkIndex;
 import net.arctics.clonk.parser.CompilerException;
-import net.arctics.clonk.parser.C4ScriptParser.ParsingException;
 import net.arctics.clonk.parser.C4ScriptExprTree.ExprElm;
 import net.arctics.clonk.parser.C4ScriptExprTree.IExpressionListener;
 import net.arctics.clonk.parser.C4ScriptExprTree.TraversalContinuation;
+import net.arctics.clonk.parser.C4ScriptParser.ParsingException;
 import net.arctics.clonk.resource.ClonkProjectNature;
-import net.arctics.clonk.Utilities;
 
 import org.eclipse.core.runtime.FileLocator;
 import org.eclipse.core.runtime.Path;
@@ -38,7 +36,6 @@ import org.eclipse.jface.text.contentassist.ICompletionProposal;
 import org.eclipse.jface.text.contentassist.IContentAssistProcessor;
 import org.eclipse.jface.text.contentassist.IContextInformation;
 import org.eclipse.jface.text.contentassist.IContextInformationValidator;
-import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.texteditor.ITextEditor;
 
 public class ClonkCompletionProcessor implements IContentAssistProcessor {
@@ -126,7 +123,6 @@ public class ClonkCompletionProcessor implements IContentAssistProcessor {
 	}
 	
 	public ICompletionProposal[] computeCompletionProposals(ITextViewer viewer, int offset) {
-		
 		int wordOffset = offset - 1;
 		WordScanner scanner = new WordScanner();
 		IDocument doc = viewer.getDocument();

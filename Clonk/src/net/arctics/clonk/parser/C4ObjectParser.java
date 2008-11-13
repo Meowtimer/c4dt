@@ -2,6 +2,7 @@ package net.arctics.clonk.parser;
 
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.Utilities;
+import net.arctics.clonk.parser.defcore.C4DefCoreWrapper;
 import net.arctics.clonk.resource.c4group.C4Entry;
 import net.arctics.clonk.resource.c4group.C4Group;
 

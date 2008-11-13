@@ -1,9 +1,12 @@
-package net.arctics.clonk.parser;
+package net.arctics.clonk.parser.defcore;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
+
+import net.arctics.clonk.parser.C4ID;
+import net.arctics.clonk.parser.CompilerException;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
@@ -17,6 +20,9 @@ import org.eclipse.core.runtime.CoreException;
  *
  */
 public class C4DefCoreWrapper {
+	
+	private String[] builtInDefCoreOptions = new String[] { };
+	
 //	private static C4DefCoreParser instance;
 //	private Map<IFile,C4DefCoreData> data;
 	

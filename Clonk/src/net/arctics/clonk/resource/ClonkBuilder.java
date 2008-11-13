@@ -7,7 +7,6 @@ import java.util.Map;
 
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.Utilities;
-import net.arctics.clonk.parser.C4DefCoreWrapper;
 import net.arctics.clonk.parser.C4ID;
 import net.arctics.clonk.parser.C4Object;
 import net.arctics.clonk.parser.C4ObjectExtern;
@@ -16,6 +15,7 @@ import net.arctics.clonk.parser.C4ObjectParser;
 import net.arctics.clonk.parser.C4ScriptParser;
 import net.arctics.clonk.parser.ClonkIndex;
 import net.arctics.clonk.parser.CompilerException;
+import net.arctics.clonk.parser.defcore.C4DefCoreWrapper;
 import net.arctics.clonk.preferences.PreferenceConstants;
 import net.arctics.clonk.resource.c4group.C4Entry;
 import net.arctics.clonk.resource.c4group.C4Group;
