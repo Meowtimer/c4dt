@@ -172,7 +172,7 @@ public class ClonkCompletionProcessor implements IContentAssistProcessor {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		C4Function activeFunc = isInCodeBody(doc, offset);
+		final C4Function activeFunc = isInCodeBody(doc, offset);
 		if (activeFunc == null) {
 		
 			try {
@@ -250,10 +250,14 @@ public class ClonkCompletionProcessor implements IContentAssistProcessor {
 			if (contextObj != null) {
 				try {
 					contextExpression = null;
+					final int preservedOffset = offset;
 					C4ScriptParser parser = C4ScriptParser.reportExpressionsInStatements(doc, activeFunc.getBody().getOffset(), offset, contextObj, activeFunc, new IExpressionListener() {
 						public TraversalContinuation expressionDetected(ExprElm expression) {
-							contextExpression = expression;
-							return TraversalContinuation.Continue;
+							if (activeFunc.getBody().getOffset() + expression.getExprStart() <= preservedOffset) {
+								contextExpression = expression;
+								return TraversalContinuation.Continue;
+							}
+							return TraversalContinuation.Cancel;
 						}
 					});
 					if (contextExpression != null) {

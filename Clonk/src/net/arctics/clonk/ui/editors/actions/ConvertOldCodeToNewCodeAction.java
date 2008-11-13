@@ -26,14 +26,16 @@ public class ConvertOldCodeToNewCodeAction extends TextEditorAction {
 	 */
 	@Override
 	public void run() {
-		C4ScriptEditor editor = (C4ScriptEditor)this.getTextEditor();
-		ITextSelection selection = (ITextSelection)editor.getSelectionProvider().getSelection();
-		IDocument document = editor.getDocumentProvider().getDocument(editor.getEditorInput());
+		final C4ScriptEditor editor = (C4ScriptEditor)this.getTextEditor();
+		final ITextSelection selection = (ITextSelection)editor.getSelectionProvider().getSelection();
+		final IDocument document = editor.getDocumentProvider().getDocument(editor.getEditorInput());
 		final LinkedList<ExprElm> expressions = new LinkedList<ExprElm>();
 		try {
 			editor.reparseWithDocumentContents(new IExpressionListener() {
 				public TraversalContinuation expressionDetected(ExprElm expression) {
-					expressions.addFirst(expression);
+					if (selection == null || (expression.getExprStart() >= selection.getOffset() && expression.getExprEnd() < selection.getOffset()+selection.getLength())) {
+						expressions.addFirst(expression);
+					}
 					return TraversalContinuation.Continue;
 				}
 			},false);

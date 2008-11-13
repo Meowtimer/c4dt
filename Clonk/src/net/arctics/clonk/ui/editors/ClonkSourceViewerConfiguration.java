@@ -72,7 +72,7 @@ public class ClonkSourceViewerConfiguration extends TextSourceViewerConfiguratio
 			C4Object obj = Utilities.getObjectForEditor(getEditor());
 			C4Function func = obj.funcAt(region);
 			if (func == null) {
-				// outside function, fallback to old technique
+				// outside function, fallback to old technique (only ids)
 				IRegion lineInfo;
 				String line;
 				try {

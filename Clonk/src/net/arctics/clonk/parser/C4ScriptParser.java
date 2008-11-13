@@ -1383,8 +1383,8 @@ public class C4ScriptParser {
 	}
 	
 	private void errorWithCode(ErrorCode code, int errorStart, int errorEnd, Object... args) throws ParsingException {
-		if (fScript == null)
-			return; // parser used for other purposes -> no errors
+//		if (fScript == null)
+//			return; // parser used for other purposes -> no errors
 		if (errorDisabled(code))
 			return;
 		String problem = String.format(errorStrings[code.ordinal()], args);
@@ -1632,12 +1632,15 @@ public class C4ScriptParser {
 				expectingComma = false;
 			} else {
 				fReader.unread();
-				if (listToAddElementsTo.size() > 100)
+				if (listToAddElementsTo.size() > 100) {
 					errorWithCode(ErrorCode.InternalError, fReader.getPosition(), fReader.getPosition(), "Way too much");
+				//	break;
+				}
 				ExprElm arg = parseExpression(fReader.getPosition());
-				if (arg == null)
+				if (arg == null) {
 					errorWithCode(ErrorCode.ExpressionExpected, fReader.getPosition(), fReader.getPosition()+1);
-				else
+//					break;
+				} else
 					listToAddElementsTo.add(arg);
 				expectingComma = true;
 			}
@@ -2225,8 +2228,12 @@ public class C4ScriptParser {
 		C4ScriptParser parser = new C4ScriptParser(stream,  expr.length(), context);
 		parser.activeFunc = func;
 		parser.setExpressionListener(listener);
-		while (!parser.fReader.reachedEOF() && parser.parseCode(parser.fReader.getPosition())) {
-			parser.eatWhitespace();
+		try {
+			while (!parser.fReader.reachedEOF() && parser.parseCode(parser.fReader.getPosition())) {
+				parser.eatWhitespace();
+			}
+		} catch (Exception e) {
+			// :C
 		}
 		return parser;
 	}
