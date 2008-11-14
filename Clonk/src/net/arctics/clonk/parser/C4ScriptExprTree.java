@@ -324,7 +324,12 @@ public abstract class C4ScriptExprTree {
 	public static class ExprAccessVar extends ExprAccessField {
 		@Override
 		public C4Object guessObjectType(C4ScriptParser context) {
-			return (field != null) ? ((C4Variable)field).getExpectedContent() : super.guessObjectType(context);
+			if (field != null) {
+				if (field == C4Variable.THIS)
+					return context.getContainer();
+				return ((C4Variable)field).getExpectedContent();
+			}
+			return super.guessObjectType(context);
 		}
 
 		@Override
@@ -412,6 +417,14 @@ public abstract class C4ScriptExprTree {
 				if (field == null && p == null)
 					field = lookIn.findVariable(fieldName, info);
 				return field;
+			} else if (p != null) {
+				// find global function
+				C4Field field = parser.getContainer().getIndex().findGlobalFunction(fieldName);
+				if (field == null)
+					field = ClonkCore.EXTERN_INDEX.findGlobalField(fieldName);
+				if (field == null)
+					field = ClonkCore.ENGINE_OBJECT.findFunction(fieldName);
+				return field;
 			}
 			return null;
 		}
@@ -463,6 +476,8 @@ public abstract class C4ScriptExprTree {
 					return obj;
 				}
 			}
+			else if (params.length == 0 && fieldName.equals(C4Variable.THIS.getName()))
+				return context.getContainer();
 			return super.guessObjectType(context);
 		}
 		@Override

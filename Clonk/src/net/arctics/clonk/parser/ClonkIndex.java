@@ -196,11 +196,18 @@ public class ClonkIndex implements Serializable {
 		return null;
 	}
 	
-	public C4Field findGlobalField(String fieldName) {
+	public C4Function findGlobalFunction(String functionName) {
 		for (C4Function func : getGlobalFunctions()) {
-			if (func.getName().equals(fieldName))
+			if (func.getName().equals(functionName))
 				return func;
 		}
+		return null;
+	}
+	
+	public C4Field findGlobalField(String fieldName) {
+		C4Function f = findGlobalFunction(fieldName);
+		if (f != null)
+			return f;
 		for (C4Variable var : getStaticVariables()) {
 			if (var.getName().equals(fieldName))
 				return var;

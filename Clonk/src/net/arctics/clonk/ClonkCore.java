@@ -168,27 +168,17 @@ public class ClonkCore extends AbstractUIPlugin implements IResourceChangeListen
 		
 	}
 	
-	public static void saveExternIndex() {
-//		final File index = etExternLibCacheFile().toFile();
-//		FileOutputStream out = new FileOutputStream(index);
-//		try {
-//			ObjectOutputStream objStream = new ObjectOutputStream(out);
-//			objStream.writeObject(EXTERN_INDEX);
-//			objStream.close();
-//			ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
-//			if (index.exists()) {
-//				index.
-//				index.setContents(in, true, false, null);
-//			} else {
-//				index.create(in, IResource.DERIVED | IResource.HIDDEN | IResource.FORCE, null);
-//			}
-//		} catch (IOException e) {
-//			// TODO Auto-generated catch block
-//			e.printStackTrace();
-//		} catch (CoreException e) {
-//			// TODO Auto-generated catch block
-//			e.printStackTrace();
-//		}
+	public static void saveExternIndex() throws FileNotFoundException {
+		final File index = getExternLibCacheFile().toFile();
+		FileOutputStream out = new FileOutputStream(index);
+		try {
+			ObjectOutputStream objStream = new ObjectOutputStream(out);
+			objStream.writeObject(EXTERN_INDEX);
+			objStream.close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 	
 //	private C4Function parseFunction(InputStream stream) throws IOException {
