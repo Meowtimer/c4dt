@@ -15,10 +15,12 @@ import net.arctics.clonk.parser.C4ScriptParser;
 import net.arctics.clonk.parser.C4Variable;
 import net.arctics.clonk.parser.ClonkIndex;
 import net.arctics.clonk.parser.CompilerException;
+import net.arctics.clonk.parser.C4Function.C4FunctionScope;
 import net.arctics.clonk.parser.C4ScriptExprTree.ExprElm;
 import net.arctics.clonk.parser.C4ScriptExprTree.IExpressionListener;
 import net.arctics.clonk.parser.C4ScriptExprTree.TraversalContinuation;
 import net.arctics.clonk.parser.C4ScriptParser.ParsingException;
+import net.arctics.clonk.parser.C4Variable.C4VariableScope;
 import net.arctics.clonk.resource.ClonkProjectNature;
 
 import org.eclipse.core.runtime.FileLocator;
@@ -95,6 +97,8 @@ public class ClonkCompletionProcessor implements IContentAssistProcessor {
 	public ClonkCompletionProposal proposalForVar(C4Variable var, String prefix, int offset, List<ClonkCompletionProposal> proposals) {
 		if (prefix != null && !var.getName().toLowerCase().startsWith(prefix))
 			return null;
+		if (var.getObject() == null)
+			return null;
 		String displayString = var.getName();
 		int replacementLength = 0;
 		if (prefix != null)
@@ -111,7 +115,10 @@ public class ClonkCompletionProcessor implements IContentAssistProcessor {
 			List<ClonkCompletionProposal> proposals) {
 		if (!index.isEmpty()) {
 			for (C4Function func : index.getGlobalFunctions()) {
-				proposalForFunc(func, prefix, offset, proposals, func.getObject().getName());
+				if (func.getObject() == null)
+					System.out.println(func.getName());
+				else
+					proposalForFunc(func, prefix, offset, proposals, func.getObject().getName());
 			}
 			for (C4Variable var : index.getStaticVariables()) {
 				proposalForVar(var,prefix,offset,proposals);
@@ -275,9 +282,11 @@ public class ClonkCompletionProcessor implements IContentAssistProcessor {
 			
 			if (contextObj != null) {
 				for (C4Function func : contextObj.getDefinedFunctions()) {
-					proposalForFunc(func, prefix, offset, proposals, contextObj.getName());
+					if (func.getVisibility() != C4FunctionScope.FUNC_GLOBAL)
+						proposalForFunc(func, prefix, offset, proposals, contextObj.getName());
 				}
 				for (C4Variable var : contextObj.getDefinedVariables()) {
+					if (var.getScope() != C4VariableScope.VAR_STATIC && var.getScope() != C4VariableScope.VAR_CONST)
 					proposalForVar(var, prefix, wordOffset, proposals);
 				}
 			}
