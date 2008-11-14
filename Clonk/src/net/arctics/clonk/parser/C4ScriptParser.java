@@ -20,10 +20,13 @@ import net.arctics.clonk.parser.C4ScriptExprTree.*;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.Platform;
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IRegion;
+import org.eclipse.ui.PlatformUI;
 
 public class C4ScriptParser {
 	
@@ -92,12 +95,13 @@ public class C4ScriptParser {
 			if (offset+length > size) 
 				return null;
 			try {
-				String result = new String(buffer,offset,length,"ISO-8859-1");
+				String encoding = ResourcesPlugin.getEncoding();
+				String result = new String(buffer,offset,length,encoding);
 				offset += length;
 				return result;
 			} catch (UnsupportedEncodingException e) {
-				e.printStackTrace();
-				return "Encoding 'ISO-8859-1' is not available on this system.";
+				e.printStackTrace();;
+				return "Encoding is not available on this system.";
 			}
 		}
 
