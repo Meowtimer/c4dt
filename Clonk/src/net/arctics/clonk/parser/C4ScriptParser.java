@@ -1592,7 +1592,9 @@ public class C4ScriptParser {
 			C4ScriptOperator postop = parseOperator_(fReader.getPosition());
 			if (postop != null) {
 				if (postop.isPostfix()) {
-					return new ExprUnaryOp(postop, ExprUnaryOp.Placement.Postfix, result);
+					ExprUnaryOp op = new ExprUnaryOp(postop, ExprUnaryOp.Placement.Postfix, result);
+					op.setExprRegion(result.getExprStart(), fReader.getPosition());
+					return op;
 				} else {
 					// a binary operator following this sequence
 					fReader.seek(saved);
