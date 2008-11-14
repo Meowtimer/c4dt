@@ -97,8 +97,6 @@ public class ClonkSourceViewerConfiguration extends TextSourceViewerConfiguratio
 			int statementStart = func.getBody().getOffset();
 			identRegion = new Region(region.getOffset()-statementStart,0);
 			C4ScriptParser parser = C4ScriptParser.reportExpressionsInStatements(doc, func.getBody(), obj, func, this);
-			if (exprAtRegion != null)
-				System.out.println(exprAtRegion.toString());
 			if (exprAtRegion instanceof ExprAccessField) {
 				ExprAccessField field = (ExprAccessField) exprAtRegion;
 				this.field = field.getField(parser);
