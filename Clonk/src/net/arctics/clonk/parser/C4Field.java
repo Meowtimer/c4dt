@@ -9,7 +9,7 @@ public abstract class C4Field implements Serializable  {
 	private static final long serialVersionUID = 1L;
 	protected String name;
 	protected SourceLocation location;
-	private C4Object object;
+	protected C4Field parentField;
 
 	/**
 	 * @return the name
@@ -37,13 +37,19 @@ public abstract class C4Field implements Serializable  {
 	 * @param object the object to set
 	 */
 	public void setObject(C4Object object) {
-		this.object = object;
+		setParentField(object);
 	}
 	/**
 	 * @return the object
 	 */
 	public C4Object getObject() {
-		return object;
+		for (C4Field f = this; f != null; f = f.parentField)
+			if (f instanceof C4Object)
+				return (C4Object)f;
+		return null;
+	}
+	public void setParentField(C4Field field) {
+		this.parentField = field;
 	}
 	public String getShortInfo() {
 		return getName();
@@ -53,5 +59,10 @@ public abstract class C4Field implements Serializable  {
 	}
 	public boolean hasChildFields() {
 		return false;
+	}
+	public C4Field latestVersion() {
+		if (parentField instanceof C4Structure)
+			return ((C4Structure)parentField).findField(getName());
+		return this;
 	}
 }

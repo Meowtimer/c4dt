@@ -6,12 +6,11 @@ import java.util.List;
 
 import net.arctics.clonk.ClonkCore;
 
-public class C4Function extends C4Field implements Serializable {
+public class C4Function extends C4Structure implements Serializable {
 
 	private static final long serialVersionUID = 3848213897251037684L;
 	private C4FunctionScope visibility; 
 	private List<C4Variable> localVars;
-	private C4Object parentObject;
 	private List<C4Variable> parameter;
 	private C4Type returnType;
 	private String description;
@@ -34,7 +33,7 @@ public class C4Function extends C4Field implements Serializable {
 		for(C4Variable var : pars) {
 			parameter.add(var);
 		}
-		parentObject = null; // since engine function only
+		parentField = null; // since engine function only
 		visibility = C4FunctionScope.FUNC_GLOBAL;
 		localVars = null;
 	}
@@ -46,7 +45,7 @@ public class C4Function extends C4Field implements Serializable {
 	
 	public C4Function(String name, C4Object parent, C4FunctionScope scope) {
 		this.name = name;
-		parentObject = parent;
+		setObject(parent);
 		visibility = scope;
 		parameter = new ArrayList<C4Variable>();
 		localVars = new ArrayList<C4Variable>();
@@ -104,13 +103,6 @@ public class C4Function extends C4Field implements Serializable {
 	public C4FunctionScope getVisibility() {
 		return visibility;
 	}
-
-	/**
-	 * @return the parentObject
-	 */
-	public C4Object getParentObject() {
-		return parentObject;
-	}
 	
 	/**
 	 * @return the description
@@ -138,13 +130,6 @@ public class C4Function extends C4Field implements Serializable {
 	 */
 	public void setVisibility(C4FunctionScope visibility) {
 		this.visibility = visibility;
-	}
-
-	/**
-	 * @param parentObject the parentObject to set
-	 */
-	public void setParentObject(C4Object parentObject) {
-		this.parentObject = parentObject;
 	}
 
 	/**
@@ -253,10 +238,10 @@ public class C4Function extends C4Field implements Serializable {
 			// engine function
 			return String.format("<b>%s</b><br>%s<br><a href=\"%s\">Online Dokumentation</a>", getLongParameterString(true), getDescription(), getDocumentationURL());
 		}
-		return super.getShortInfo();
+		return getLongParameterString(true);
 	}
 
-	public C4Variable findVar(String fieldName) {
+	public C4Variable findVariable(String fieldName) {
 		if (fieldName.equals(C4Variable.THIS.getName()))
 			return C4Variable.THIS;
 		for (C4Variable v : localVars) {

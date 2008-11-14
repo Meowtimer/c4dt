@@ -5,6 +5,7 @@ import net.arctics.clonk.Utilities;
 import net.arctics.clonk.parser.C4Object.FindFieldInfo;
 import net.arctics.clonk.parser.C4ScriptParser.ErrorCode;
 import net.arctics.clonk.parser.C4ScriptParser.ParsingException;
+import net.arctics.clonk.parser.C4Variable.C4VariableScope;
 
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.Region;
@@ -51,7 +52,7 @@ public abstract class C4ScriptExprTree {
 		}
 
 		public void print(StringBuilder output) {
-			output.append("Implement me");
+			//output.append("Implement me");
 		}
 
 		public boolean isValidInSequence(ExprElm predecessor) {
@@ -326,6 +327,11 @@ public abstract class C4ScriptExprTree {
 			return (field != null) ? ((C4Variable)field).getExpectedContent() : super.guessObjectType(context);
 		}
 
+		@Override
+		public boolean modifiable() {
+			return field == null || ((C4Variable)field).getScope() != C4VariableScope.VAR_CONST;
+		}
+
 		public ExprAccessVar(String varName) {
 			super(varName);
 		}
@@ -465,6 +471,19 @@ public abstract class C4ScriptExprTree {
 			// TODO: for more than two arguments
 			if (replOperator != null && params.length == 2) {
 				return new ExprBinaryOp(replOperator, params[0].newStyleReplacement(), params[1].newStyleReplacement());
+			}
+			else if (params.length >= 2 && fieldName.equals("ObjectCall") && params[1] instanceof ExprString) {
+				// ObjectCall(ugh, "UghUgh", 5) -> ugh->UghUgh(5)
+				ExprElm[] parmsWithoutObject = new ExprElm[params.length-2];
+				for (int i = 0; i < parmsWithoutObject.length; i++)
+					parmsWithoutObject[i] = params[i+2].newStyleReplacement();
+				return new ExprSequence(new ExprElm[] {
+						params[0].newStyleReplacement(),
+						new ExprObjectCall(false, null),
+						new ExprCallFunc(((ExprString)params[1]).stringValue(), parmsWithoutObject)});
+			}
+			else if (params.length == 0 && field instanceof C4Variable) {
+				return new ExprAccessVar(fieldName);
 			}
 			return super.newStyleReplacement();
 		}
@@ -639,12 +658,12 @@ public abstract class C4ScriptExprTree {
 		public void print(StringBuilder output) {
 			if (placement == Placement.Postfix) {
 				argument.print(output);
-				if (argument instanceof ExprUnaryOp)
+				if (argument instanceof ExprUnaryOp && ((ExprUnaryOp)argument).placement == Placement.Postfix)
 					output.append(" "); // - -5 -.-
 				output.append(getOperator().getOperatorName());
 			} else {
 				output.append(getOperator().getOperatorName());
-				if (argument instanceof ExprUnaryOp)
+				if (argument instanceof ExprUnaryOp && ((ExprUnaryOp)argument).placement == Placement.Prefix)
 					output.append(" "); // - -5 -.-
 				argument.print(output);
 			}
@@ -848,8 +867,7 @@ public abstract class C4ScriptExprTree {
 	public static class ExprTuple extends ExprSequence {
 
 		public ExprTuple(ExprElm[] elms) {
-			super(elms);
-			// TODO Auto-generated constructor stub
+			super(elms);		
 		}
 
 		@Override

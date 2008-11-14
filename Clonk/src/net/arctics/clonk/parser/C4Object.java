@@ -13,7 +13,7 @@ import org.eclipse.core.resources.IContainer;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.ITextSelection;
 
-public abstract class C4Object extends C4Field {
+public abstract class C4Object extends C4Structure {
 
 	/**
 	 * 
@@ -101,7 +101,7 @@ public abstract class C4Object extends C4Field {
 	}
 	
 	public C4Field findField(String name) {
-		return findField(name, new FindFieldInfo(Utilities.getProject(this).getIndexedData()));
+		return findField(name, new FindFieldInfo(getIndex()));
 	}
 	
 	public C4Field findField(String name, FindFieldInfo info) {
@@ -109,7 +109,7 @@ public abstract class C4Object extends C4Field {
 		// local variable?
 		if (info.recursion == 0) {
 			if (info.getContext() != null) {
-				C4Field v = info.getContext().findVar(name);
+				C4Field v = info.getContext().findVariable(name);
 				if (v != null)
 					return v;
 			}
@@ -297,6 +297,16 @@ public abstract class C4Object extends C4Field {
 	public C4Function findFunction(String functionName, FindFieldInfo info) {
 		info.setFieldClass(C4Function.class);
 		return (C4Function) findField(functionName, info);
+	}
+	
+	public C4Function findFunction(String functionName) {
+		FindFieldInfo info = new FindFieldInfo(getIndex());
+		return findFunction(functionName, info);
+	}
+	
+	public C4Variable findVariable(String varName) {
+		FindFieldInfo info = new FindFieldInfo(getIndex());
+		return findVariable(varName, info);
 	}
 	
 	public C4Variable findVariable(String varName, FindFieldInfo info) {

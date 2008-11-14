@@ -103,7 +103,7 @@ public class ClonkIndex implements Serializable {
 					}
 				}
 				for(C4Variable var : obj.definedVariables) {
-					if (var.getScope() == C4VariableScope.VAR_STATIC) {
+					if (var.getScope() == C4VariableScope.VAR_STATIC || var.getScope() == C4VariableScope.VAR_CONST) {
 						staticVariables.add(var);
 					}
 				}

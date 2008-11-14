@@ -169,7 +169,7 @@ public class ClonkSourceViewerConfiguration extends TextSourceViewerConfiguratio
 	private static class C4ScriptHyperlink implements IHyperlink {
 
 		private final IRegion region;
-		private final C4Field target;
+		private C4Field target;
 		
 		/**
 		 * @param region
@@ -201,21 +201,29 @@ public class ClonkSourceViewerConfiguration extends TextSourceViewerConfiguratio
 				if (obj!= null) {
 					if (obj instanceof C4ObjectIntern) {
 						IEditorPart editor = workbenchPage.openEditor(new FileEditorInput((IFile) obj.getScript()), "clonk.editors.C4ScriptEditor");
-						C4ScriptEditor scriptEditor = (C4ScriptEditor)editor;
-						if (target != obj)
-							scriptEditor.selectAndReveal(target.getLocation());
+						C4ScriptEditor scriptEditor = (C4ScriptEditor)editor;						
+						if (target != obj) {
+							scriptEditor.reparseWithDocumentContents(null, false);
+							target = target.latestVersion();
+							if (target != null)
+								scriptEditor.selectAndReveal(target.getLocation());
+						}
 					}
 					else if (obj instanceof C4ObjectExtern) {
-						IEditorPart editor = workbenchPage.openEditor(new ObjectExternEditorInput((C4ObjectExtern)obj), "clonk.editors.C4ScriptEditor");
-						C4ScriptEditor scriptEditor = (C4ScriptEditor)editor;
-						if (target != obj)
-							scriptEditor.selectAndReveal(target.getLocation());
+						if (obj != ClonkCore.ENGINE_OBJECT) {
+							IEditorPart editor = workbenchPage.openEditor(new ObjectExternEditorInput((C4ObjectExtern)obj), "clonk.editors.C4ScriptEditor");
+							C4ScriptEditor scriptEditor = (C4ScriptEditor)editor;
+							if (target != obj)
+								scriptEditor.selectAndReveal(target.getLocation());
+						}
 					}
 				} else {
 					// TODO: provide some info about global functions or something
 				}
 			} catch (PartInitException e) {
 				e.printStackTrace();
+			} catch (CompilerException e) {
+				//e.printStackTrace();
 			}
 		}
 		

@@ -43,6 +43,13 @@ public class C4Variable extends C4Field implements Serializable {
 		type = null;
 	}
 	
+	@Override
+	public C4Field latestVersion() {
+		if (parentField instanceof C4Structure)
+			return ((C4Structure)parentField).findVariable(getName());
+		return super.latestVersion();
+	}
+
 	public C4Variable() {
 		
 	}

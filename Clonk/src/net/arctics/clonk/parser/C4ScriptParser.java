@@ -27,6 +27,12 @@ import org.eclipse.jface.text.IRegion;
 
 public class C4ScriptParser {
 	
+	protected class Keywords {
+		public static final String LOCAL = "local";
+		public static final String VAR = "var";
+		public static final String STATIC = "static";
+	}
+	
 	protected static class BufferedScanner {
 
 		public static final char[] WHITESPACE_DELIMITERS = new char[] { ' ', '\n', '\r', '\t' };
@@ -247,14 +253,14 @@ public class C4ScriptParser {
 		}
 	}
 	
-	private IExpressionListener expressionNotifiee;
+	private IExpressionListener expressionListener;
 
-	public IExpressionListener getExpressionNotifiee() {
-		return expressionNotifiee;
+	public IExpressionListener getExpressionListener() {
+		return expressionListener;
 	}
 
-	public void setExpressionListener(IExpressionListener expressionNotifiee) {
-		this.expressionNotifiee = expressionNotifiee;
+	public void setExpressionListener(IExpressionListener expressionListener) {
+		this.expressionListener = expressionListener;
 	}
 
 	private BufferedScanner fReader;
@@ -377,7 +383,7 @@ public class C4ScriptParser {
 			if (looksLikeStartOfFunction(word)) {
 				if (parseFunctionDeclaration(word, fReader.getPosition())) return true;
 			}
-			else if (word.equalsIgnoreCase("static") || word.equalsIgnoreCase("local")) {
+			else if (word.equals(Keywords.STATIC) || word.equals(Keywords.LOCAL)) {
 				if (parseVariableDeclaration(offset)) return true;
 			}
 			else {
@@ -401,12 +407,7 @@ public class C4ScriptParser {
 		fReader.seek(offset);
 
 		String word = fReader.readWord();
-		if (word.equals("static")) {
-//			if (!word.equals("static")) {
-//				String problem = "Syntax error: write '" + word.toLowerCase() + "' instead of '" + word + "'";
-//				createErrorMarker(offset, fReader.getPosition(), problem);
-//				throw new ParsingException(problem);
-//			}
+		if (word.equals(Keywords.STATIC)) {
 			eatWhitespace();
 			int pos = fReader.getPosition();
 			boolean constDecl = false; 
@@ -431,7 +432,7 @@ public class C4ScriptParser {
 					if (!(constantValue instanceof ExprLiteral)) {
 						errorWithCode(ErrorCode.ConstantValueExpected, fReader.getPosition()-1, fReader.getPosition());
 					}
-					C4Variable var = new C4Variable(varName,C4VariableScope.VAR_STATIC);
+					C4Variable var = new C4Variable(varName,C4VariableScope.VAR_CONST);
 					var.setLocation(new SourceLocation(s, e));
 					var.setObject(container);
 					//					var.setType(C4Type.)
@@ -451,12 +452,7 @@ public class C4ScriptParser {
 			}
 			return true;
 		}
-		else if (word.equals("local")) {
-//			if (!word.equals("local")) {
-//				String problem = "Syntax error: write '" + word.toLowerCase() + "' instead of '" + word + "'";
-//				createErrorMarker(offset, fReader.getPosition(), problem);
-//				throw new ParsingException(problem);
-//			}
+		else if (word.equals(Keywords.LOCAL)) {
 			do {
 				eatWhitespace();
 				int s = fReader.getPosition();
@@ -467,12 +463,10 @@ public class C4ScriptParser {
 				v.setObject(container);
 				container.addField(v);
 				eatWhitespace();
-			} while(fReader.read() == ',');
+			} while (fReader.read() == ',');
 			fReader.unread();
 			if (fReader.read() != ';') {
-				String problem = "Syntax error: expected ';' or ','";
-				createErrorMarker(fReader.getPosition() - 1, fReader.getPosition(), problem);
-				throw new ParsingException(problem);
+				errorWithCode(ErrorCode.CommaOrSemicolonExpected, fReader.getPosition()-1, fReader.getPosition());
 			}
 			return true;
 		}
@@ -488,12 +482,6 @@ public class C4ScriptParser {
 		if (word == null)
 			return false;
 		if (word.equals("var")) {
-			// there is a function called Var
-//			if (!word.equals("var")) {
-//				String problem = "Syntax error: write '" + word.toLowerCase() + "' instead of '" + word + "'";
-//				createErrorMarker(offset, fReader.getPosition(), problem);
-//				throw new ParsingException(problem);
-//			}
 			do {
 				eatWhitespace();
 				int nameStart = fReader.getPosition();
@@ -501,9 +489,9 @@ public class C4ScriptParser {
 				int nameEnd = fReader.getPosition();
 				if (declaration) {
 					// construct C4Variable object and register it
-					C4Variable previousDeclaration = activeFunc.findVar(varName); 
+					C4Variable previousDeclaration = activeFunc.findVariable(varName); 
 					C4Variable var = previousDeclaration != null ? previousDeclaration : new C4Variable(varName,C4VariableScope.VAR_VAR);
-					var.setObject(container);
+					var.setParentField(activeFunc);
 					var.setLocation(new SourceLocation(nameStart, nameEnd));
 					if (previousDeclaration == null)
 						activeFunc.getLocalVars().add(var);
@@ -518,7 +506,7 @@ public class C4ScriptParser {
 						if (val == null)
 							errorWithCode(ErrorCode.ValueExpected, fReader.getPosition()-1, fReader.getPosition());
 						else {
-							C4Variable var = activeFunc.findVar(varName);
+							C4Variable var = activeFunc.findVariable(varName);
 							var.inferTypeFromAssignment(val, this);
 						}
 					}
@@ -626,9 +614,7 @@ public class C4ScriptParser {
 			if (suspectOldStyle && shouldBeBracket == ':') {
 				// old style funcs have no named parameters
 			} else {
-				String problem = "Syntax error: expected '('";
-				createErrorMarker(fReader.getPosition() - 1, fReader.getPosition(), problem);
-				throw new ParsingException(problem);
+				errorWithCode(ErrorCode.TokenExpected, fReader.getPosition()-1, fReader.getPosition(), "(");
 			}
 		} else {
 			// get parameter
@@ -641,9 +627,7 @@ public class C4ScriptParser {
 				if (readByte == ')') break; // all parameter parsed
 				else if (readByte == ',') continue; // parse another parameter
 				else {
-					String problem = "Syntax error: expected ')' or ','";
-					createErrorMarker(fReader.getPosition() - 1, fReader.getPosition(), problem);
-					throw new ParsingException(problem);
+					errorWithCode(ErrorCode.TokenExpected, fReader.getPosition()-1, fReader.getPosition(), new String[] {")", ","});
 				}
 			} while(!fReader.reachedEOF());
 		}
@@ -660,7 +644,7 @@ public class C4ScriptParser {
 					endBody = fReader.getPosition();
 					String word = fReader.readWord();
 					if (word != null && word.length() > 0) {
-						if (looksLikeStartOfFunction(word)) {
+						if (looksLikeStartOfFunction(word) || looksLikeVarDeclaration(word)) {
 							fReader.seek(endBody);
 							break;
 						} else {
@@ -721,6 +705,10 @@ public class C4ScriptParser {
 		container.addField(activeFunc);
 		//		functions.add(func);
 		return true;
+	}
+
+	private boolean looksLikeVarDeclaration(String word) {
+		return word.equals(Keywords.STATIC) || word.equals(Keywords.LOCAL);
 	}
 
 	/**
@@ -1742,8 +1730,8 @@ public class C4ScriptParser {
 				// potentially throwing exceptions and stuff
 				if (reportErrors)
 					root.reportErrors(this);
-				if (expressionNotifiee != null && parseExpressionRecursion == 1)
-					expressionNotifiee.expressionDetected(root);
+				if (expressionListener != null && parseExpressionRecursion == 1)
+					expressionListener.expressionDetected(root);
 			}
 			
 			return root;
@@ -2133,7 +2121,7 @@ public class C4ScriptParser {
 			}
 		}
 		var.setLocation(new SourceLocation(s, e));
-		var.setObject(container);
+		var.setParentField(function);
 		function.getParameter().add(var);
 		return true;
 	}

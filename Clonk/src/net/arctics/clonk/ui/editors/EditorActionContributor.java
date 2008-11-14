@@ -18,7 +18,6 @@ public class EditorActionContributor extends BasicTextEditorActionContributor {
 	private RetargetTextEditorAction fContentAssist;
 	private RetargetTextEditorAction fIndexClonkDir;
 	private RetargetTextEditorAction fConvertOldCodeToNewCode;
-	private ConvertOldCodeToNewCodeAction blub;
 
 	//	
 	public EditorActionContributor() {
@@ -28,8 +27,6 @@ public class EditorActionContributor extends BasicTextEditorActionContributor {
 				.setActionDefinitionId(ITextEditorActionDefinitionIds.CONTENT_ASSIST_PROPOSALS);
 //		fConvertOldCodeToNewCode = new RetargetTextEditorAction(messagesBundle, null);
 //		fConvertOldCodeToNewCode.setActionDefinitionId(ClonkActionDefinitionIds.CONVERT_OLD_CODE_TO_NEW_CODE);
-		blub = new ConvertOldCodeToNewCodeAction(messagesBundle,"ConvertOldCodeToNewCode.",(ITextEditor) this.getActiveEditorPart());
-		blub.setActionDefinitionId(ClonkActionDefinitionIds.CONVERT_OLD_CODE_TO_NEW_CODE);
 		// fIndexClonkDir = new
 		// RetargetTextEditorAction(ResourceBundle.getBundle
 		// ("net.arctics.clonk.ui.editors.Messages"),"IndexClonkDir.");
@@ -54,8 +51,6 @@ public class EditorActionContributor extends BasicTextEditorActionContributor {
 		fContentAssist.setAction(getAction((ITextEditor) part,
 				ITextEditorActionDefinitionIds.CONTENT_ASSIST_PROPOSALS));
 //		fConvertOldCodeToNewCode.setAction(getAction((ITextEditor)part, ClonkActionDefinitionIds.CONVERT_OLD_CODE_TO_NEW_CODE));
-		blub.setEditor((ITextEditor) part);
-		blub.update();
 		// fIndexClonkDir.setAction(getAction((ITextEditor)part,
 		// C4ScriptEditor.ACTION_INDEX_CLONK_DIR));
 	}
