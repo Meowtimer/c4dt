@@ -100,6 +100,10 @@ public abstract class C4Object extends C4Structure {
 		return result.toArray(new C4Object[]{}); // lolz?
 	}
 	
+	public C4Object[] getIncludes() {
+		return getIncludes(getIndex());
+	}
+	
 	public C4Field findField(String name) {
 		return findField(name, new FindFieldInfo(getIndex()));
 	}

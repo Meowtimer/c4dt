@@ -1310,7 +1310,7 @@ public class C4ScriptParser {
 	}
 	
 	public enum ErrorCode {
-		TokenExpected, NotAllowedHere, MissingClosingBracket, InvalidExpression, InternalError, ExpressionExpected, UnexpectedEnd, NameExpected, ReturnAsFunction, ExpressionNotModifiable, OperatorNeedsRightSide, NoAssignment, NoSideEffects, KeywordInWrongPlace, UndeclaredIdentifier, OldStyleFunc, ValueExpected, TuplesNotAllowed, EmptyParentheses, ExpectedCode, ConstantValueExpected, CommaOrSemicolonExpected, IncompatibleTypes, VariableCalled
+		TokenExpected, NotAllowedHere, MissingClosingBracket, InvalidExpression, InternalError, ExpressionExpected, UnexpectedEnd, NameExpected, ReturnAsFunction, ExpressionNotModifiable, OperatorNeedsRightSide, NoAssignment, NoSideEffects, KeywordInWrongPlace, UndeclaredIdentifier, OldStyleFunc, ValueExpected, TuplesNotAllowed, EmptyParentheses, ExpectedCode, ConstantValueExpected, CommaOrSemicolonExpected, IncompatibleTypes, VariableCalled, TypeAsName
 	}
 	
 	private static String[] errorStrings = new String[] {
@@ -1337,7 +1337,8 @@ public class C4ScriptParser {
 		"Constant value expected",
 		"Comma or semicolon expected",
 		"Incompatible types: %s and %s",
-		"Variable %s called as function"
+		"Variable %s called as function",
+		"Typename as name: %s"
 	};
 	
 	private static Set<ErrorCode> disabledErrors = new HashSet<ErrorCode>();
@@ -2113,17 +2114,19 @@ public class C4ScriptParser {
 		}
 		else {
 			eatWhitespace();
-			s = fReader.getPosition();
+			int newStart = fReader.getPosition();
 			String secondWord = fReader.readWord();
-			e = fReader.getPosition();
 			if (secondWord.length() > 0) {
 				var.setName(secondWord);
+				s = newStart;
+				e = fReader.getPosition();
 			}
 			else {
-				errorWithCode(ErrorCode.NameExpected, offset, fReader.getPosition());
-				String problem = "Syntax error: variable name expected, '" + firstWord + "' is a type not a variable name"; 
-				createErrorMarker(offset, fReader.getPosition(), problem);
-				throw new ParsingException(problem);
+				// type is name
+				warningWithCode(ErrorCode.TypeAsName, s, e, firstWord);
+				var.setType(C4Type.ANY);
+				var.setName(firstWord);
+				fReader.seek(e);
 			}
 		}
 		var.setLocation(new SourceLocation(s, e));

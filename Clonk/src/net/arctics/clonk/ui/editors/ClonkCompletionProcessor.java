@@ -3,6 +3,7 @@ package net.arctics.clonk.ui.editors;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
 
 import net.arctics.clonk.ClonkCore;
@@ -281,14 +282,7 @@ public class ClonkCompletionProcessor implements IContentAssistProcessor {
 			}
 			
 			if (contextObj != null) {
-				for (C4Function func : contextObj.getDefinedFunctions()) {
-					if (func.getVisibility() != C4FunctionScope.FUNC_GLOBAL)
-						proposalForFunc(func, prefix, offset, proposals, contextObj.getName());
-				}
-				for (C4Variable var : contextObj.getDefinedVariables()) {
-					if (var.getScope() != C4VariableScope.VAR_STATIC && var.getScope() != C4VariableScope.VAR_CONST)
-					proposalForVar(var, prefix, wordOffset, proposals);
-				}
+				proposalsFromObject(contextObj, new HashSet<C4Object>(), prefix, offset, wordOffset, proposals);
 			}
 			
 			for(String keyword : BuiltInDefinitions.KEYWORDS) {
@@ -329,6 +323,23 @@ public class ClonkCompletionProcessor implements IContentAssistProcessor {
 		});
 		
 		return result;
+	}
+
+	private void proposalsFromObject(C4Object obj, HashSet<C4Object> loopCatcher, String prefix, int offset, int wordOffset, List<ClonkCompletionProposal> proposals) {
+		if (loopCatcher.contains(obj)) {
+			return;
+		}
+		loopCatcher.add(obj);
+		for (C4Function func : obj.getDefinedFunctions()) {
+			if (func.getVisibility() != C4FunctionScope.FUNC_GLOBAL)
+				proposalForFunc(func, prefix, offset, proposals, obj.getName());
+		}
+		for (C4Variable var : obj.getDefinedVariables()) {
+			if (var.getScope() != C4VariableScope.VAR_STATIC && var.getScope() != C4VariableScope.VAR_CONST)
+			proposalForVar(var, prefix, wordOffset, proposals);
+		}
+		for (C4Object o : obj.getIncludes())
+			proposalsFromObject(o, loopCatcher, prefix, offset, wordOffset, proposals);
 	}
 
 	protected C4Function isInCodeBody(IDocument document, int offset) {

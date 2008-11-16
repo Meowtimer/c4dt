@@ -606,7 +606,8 @@ public abstract class C4ScriptExprTree {
 			if (getOperator() == C4ScriptOperator.Assign) {
 				if (getLeftSide() instanceof ExprAccessVar) {
 					C4Variable v = (C4Variable) ((ExprAccessVar)getLeftSide()).getField(parser);
-					v.inferTypeFromAssignment(getRightSide(), parser);
+					if (v != null)
+						v.inferTypeFromAssignment(getRightSide(), parser);
 				}
 			}
 		}
