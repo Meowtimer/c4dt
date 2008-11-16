@@ -6,6 +6,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.Serializable;
 import java.util.Calendar;
 import java.util.LinkedList;
 
@@ -25,25 +26,28 @@ import org.eclipse.core.runtime.Path;
  * @author ZokRadonh
  *
  */
-public class C4Entry implements C4GroupItem, IStorage {
+public class C4Entry implements C4GroupItem, IStorage, Serializable {
+	
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 	
 	private C4EntryHeader header;
     private C4Group parentGroup;
-    private boolean completed;
+    private transient boolean completed;
 	private byte[] contents;
 	
 	private File exportFromFile;
-	
-	private InputStream stream;
     
     public C4Entry(C4Group parentGroup, C4EntryHeader header)
     {
         this.parentGroup = parentGroup;
-        stream = parentGroup.getStream();
         this.header = header;
     }
     
     protected C4Entry() {
+    	completed = true;
     }
     
     public static C4Entry makeEntry(C4Group parent, C4EntryHeader header, File exportFromFile) {
@@ -68,6 +72,7 @@ public class C4Entry implements C4GroupItem, IStorage {
     	// fetch contents
     	contents = new byte[getSize()];
     	try {
+    		InputStream stream = parentGroup.getStream();
 			int readCount = stream.read(contents);
 			while (readCount != contents.length) {
 				readCount += stream.read(contents,readCount,contents.length - readCount);
@@ -151,13 +156,6 @@ public class C4Entry implements C4GroupItem, IStorage {
 	 */
 	public int getCrc() {
 		return header.getCrc();
-	}
-
-	/**
-	 * @return the stream
-	 */
-	public InputStream getStream() {
-		return stream;
 	}
 
 	/**

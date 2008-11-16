@@ -1,6 +1,12 @@
 package net.arctics.clonk.parser;
 
+import java.io.InputStream;
+import java.io.StringBufferInputStream;
 import java.util.List;
+
+import org.eclipse.core.resources.IStorage;
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IPath;
 
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.Utilities;
@@ -11,7 +17,8 @@ public class C4ObjectExtern extends C4Object {
 
 	private static final long serialVersionUID = -4964785375712432236L;
 //	protected IPath path;
-	protected transient C4Group group;
+	protected C4Group group;
+	private String cachedScript;
 	
 	public C4ObjectExtern(C4ID id, String name, C4Group group) {
 		super(id, name);
@@ -38,7 +45,7 @@ public class C4ObjectExtern extends C4Object {
 	 */
 //	public void setPath(IPath path) {
 //		this.path = path;
-//	}
+	//	}
 
 	@Override
 	public Object getScript() {

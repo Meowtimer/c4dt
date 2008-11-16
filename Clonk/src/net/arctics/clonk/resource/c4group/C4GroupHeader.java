@@ -3,6 +3,7 @@ package net.arctics.clonk.resource.c4group;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
 
 /**
@@ -10,7 +11,11 @@ import java.io.UnsupportedEncodingException;
  * @author ZokRadonh
  *
  */
-public class C4GroupHeader {
+public class C4GroupHeader implements Serializable {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 	public static final int BINARY_TRUE = 1;
 	public static final int BINARY_FALSE = 0;
 	

@@ -3,11 +3,17 @@ package net.arctics.clonk.resource.c4group;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.Serializable;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 
-public class C4EntryHeader {
-    private String entryName; //260
+public class C4EntryHeader implements Serializable {
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+	
+	private String entryName; //260
     private boolean packed; // 4
     private boolean group;
     private int size;

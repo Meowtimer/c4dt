@@ -7,6 +7,7 @@ import net.arctics.clonk.parser.C4ScriptParser;
 import net.arctics.clonk.parser.CompilerException;
 import net.arctics.clonk.parser.C4ScriptExprTree.*;
 import net.arctics.clonk.ui.editors.C4ScriptEditor;
+import net.arctics.clonk.ui.editors.ClonkCommandIds;
 
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.IDocument;
@@ -19,6 +20,7 @@ public class ConvertOldCodeToNewCodeAction extends TextEditorAction {
 	public ConvertOldCodeToNewCodeAction(ResourceBundle bundle,
 			String prefix, ITextEditor editor) {
 		super(bundle, prefix, editor);
+		this.setId(ClonkCommandIds.CONVERT_OLD_CODE_TO_NEW_CODE);
 	}
 
 	/* (non-Javadoc)

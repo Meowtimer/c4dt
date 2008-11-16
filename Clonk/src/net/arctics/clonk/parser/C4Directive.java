@@ -11,9 +11,9 @@ public class C4Directive extends C4Field {
 		APPENDTO;
 		
 		public static C4DirectiveType makeType(String arg) {
-			if (arg.equalsIgnoreCase("strict")) return C4DirectiveType.STRICT;
-			if (arg.equalsIgnoreCase("include")) return C4DirectiveType.INCLUDE;
-			if (arg.equalsIgnoreCase("appendto")) return C4DirectiveType.APPENDTO;
+			if (arg.equals("strict")) return C4DirectiveType.STRICT;
+			if (arg.equals("include")) return C4DirectiveType.INCLUDE;
+			if (arg.equals("appendto")) return C4DirectiveType.APPENDTO;
 			return null;
 		}
 	}
@@ -26,7 +26,6 @@ public class C4Directive extends C4Field {
 		this.type = type;
 		switch (type) {
 		case INCLUDE: case APPENDTO:
-			System.out.println(content);
 			if (content != null)
 				this.content = content.substring(0, Math.min(4, content.length()));
 		}

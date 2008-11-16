@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.RandomAccessFile;
+import java.io.Serializable;
 import java.security.InvalidParameterException;
 import java.util.ArrayList;
 import java.util.GregorianCalendar;
@@ -32,8 +33,13 @@ import org.eclipse.core.runtime.IProgressMonitor;
  * @author ZokRadonh
  *
  */
-public class C4Group implements C4GroupItem {
+public class C4Group implements C4GroupItem, Serializable {
 	
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+
 	public enum C4GroupType {
 		OtherGroup,
 		DefinitionGroup,
@@ -55,7 +61,7 @@ public class C4Group implements C4GroupItem {
 
 	private String entryName;
 	private List<C4GroupItem> childEntries;
-	private InputStream stream;
+	private transient InputStream stream;
 	private boolean completed;
 	private boolean hasChildren;
 	private C4GroupHeader header;

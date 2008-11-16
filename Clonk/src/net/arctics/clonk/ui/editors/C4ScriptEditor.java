@@ -110,12 +110,11 @@ public class C4ScriptEditor extends AbstractDecoratedTextEditor {
 		setAction(ITextEditorActionDefinitionIds.CONTENT_ASSIST_CONTEXT_INFORMATION, action);
 		
 		action = new ConvertOldCodeToNewCodeAction(messagesBundle,"ConvertOldCodeToNewCode.",this); //$NON-NLS-1$
-		action.setActionDefinitionId(ClonkActionDefinitionIds.CONVERT_OLD_CODE_TO_NEW_CODE);
-		setAction(ClonkActionDefinitionIds.CONVERT_OLD_CODE_TO_NEW_CODE, action);
+		setAction(ClonkCommandIds.CONVERT_OLD_CODE_TO_NEW_CODE, action);
 		
 		action = new OpenDeclarationAction(messagesBundle,"OpenDeclarationAction.",this); //$NON-NLS-1$
-		action.setActionDefinitionId(ClonkActionDefinitionIds.OPEN_DECLARATION);
-		setAction(ClonkActionDefinitionIds.OPEN_DECLARATION, action);
+		action.setActionDefinitionId(ClonkCommandIds.OPEN_DECLARATION);
+		setAction(ClonkCommandIds.OPEN_DECLARATION, action);
 		
 	}
 
@@ -143,7 +142,8 @@ public class C4ScriptEditor extends AbstractDecoratedTextEditor {
 	@Override
 	protected void editorContextMenuAboutToShow(IMenuManager menu) {
 		super.editorContextMenuAboutToShow(menu);
-		addAction(menu, ClonkActionDefinitionIds.CONVERT_OLD_CODE_TO_NEW_CODE);
+		addAction(menu, ClonkCommandIds.CONVERT_OLD_CODE_TO_NEW_CODE);
+		addAction(menu, ClonkCommandIds.OPEN_DECLARATION);
 	}
 
 	public void selectAndReveal(SourceLocation location) {

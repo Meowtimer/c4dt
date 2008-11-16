@@ -94,6 +94,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 			case FULL_BUILD:
 			case CLEAN_BUILD:
 				readExternalLibs();
+				ClonkCore.saveExternIndex();
 				if (proj != null) {
 					// count num of resources to build
 					ResourceCounter counter = new ResourceCounter(ResourceCounter.COUNT_CONTAINER);

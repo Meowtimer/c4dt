@@ -26,6 +26,7 @@ import net.arctics.clonk.parser.C4Object;
 import net.arctics.clonk.parser.C4ObjectExtern;
 import net.arctics.clonk.parser.C4Variable;
 import net.arctics.clonk.parser.ClonkIndex;
+import net.arctics.clonk.parser.ProjectIndex;
 import net.arctics.clonk.parser.C4Variable.C4VariableScope;
 import net.arctics.clonk.resource.ClonkProjectNature;
 
@@ -43,6 +44,7 @@ import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.osgi.framework.BundleContext;
+import net.arctics.clonk.resource.InputStreamRespectingUniqueIDs;
 
 /**
  * The activator class controls the plug-in life cycle
@@ -58,13 +60,14 @@ public class ClonkCore extends AbstractUIPlugin implements IResourceChangeListen
 //	public static final List<C4Function> ENGINE_FUNCTIONS = new ArrayList<C4Function>(505);
 	
 	public static final C4ObjectExtern ENGINE_OBJECT = new C4ObjectExtern(C4ID.getSpecialID("Engine"),"Engine",null);
-	public static final ClonkIndex EXTERN_INDEX = new ClonkIndex();
+	public static ClonkIndex EXTERN_INDEX;
 	
 	// The shared instance
 	private static ClonkCore plugin;
 	
 	/**
 	 * The constructor
+	 * @throws IOException 
 	 */
 	public ClonkCore() {
 	}
@@ -77,32 +80,8 @@ public class ClonkCore extends AbstractUIPlugin implements IResourceChangeListen
 		super.start(context);
 		plugin = this;
 		
-		InputStream engineStream;
-		if (getEngineCacheFile().toFile().exists()) {
-			engineStream = new FileInputStream(getEngineCacheFile().toFile());
-		}
-		else {
-			engineStream = getBundle().getEntry("res/engine").openStream();
-		}
-		ObjectInputStream decoder = new ObjectInputStream(new BufferedInputStream(engineStream));
-//			java.beans.XMLDecoder decoder = new XMLDecoder(new BufferedInputStream(engineIndex.openStream()));
-		try {
-			while (true) {
-				Object obj = decoder.readObject();
-				if (obj instanceof C4Field) {
-					C4Field field = (C4Field)obj;
-					field.setObject(ENGINE_OBJECT);
-					ENGINE_OBJECT.addField(field);
-//						ENGINE_FUNCTIONS.add((C4Function)obj);
-				}
-				else {
-					System.out.println("Read unknown object from engine: " + obj.getClass().getName());
-				}
-			}
-		}
-		catch(EOFException e) {
-			// finished
-		}
+		loadEngineObject();
+		loadExternIndex();
 		
 //		URL engineConstants = getBundle().getEntry("res/constants.txt");
 //		if (engineConstants != null) {
@@ -130,6 +109,36 @@ public class ClonkCore extends AbstractUIPlugin implements IResourceChangeListen
 //		catch (FileNotFoundException e) {
 //			e.printStackTrace();
 //		}
+	}
+
+	private void loadEngineObject() throws FileNotFoundException, IOException,
+			ClassNotFoundException {
+		InputStream engineStream;
+		if (getEngineCacheFile().toFile().exists()) {
+			engineStream = new FileInputStream(getEngineCacheFile().toFile());
+		}
+		else {
+			engineStream = getBundle().getEntry("res/engine").openStream();
+		}
+		ObjectInputStream decoder = new ObjectInputStream(new BufferedInputStream(engineStream));
+//			java.beans.XMLDecoder decoder = new XMLDecoder(new BufferedInputStream(engineIndex.openStream()));
+		try {
+			while (true) {
+				Object obj = decoder.readObject();
+				if (obj instanceof C4Field) {
+					C4Field field = (C4Field)obj;
+					field.setObject(ENGINE_OBJECT);
+					ENGINE_OBJECT.addField(field);
+//						ENGINE_FUNCTIONS.add((C4Function)obj);
+				}
+				else {
+					System.out.println("Read unknown object from engine: " + obj.getClass().getName());
+				}
+			}
+		}
+		catch(EOFException e) {
+			// finished
+		}
 	}
 	
 	public static IPath getEngineCacheFile() {
@@ -178,6 +187,21 @@ public class ClonkCore extends AbstractUIPlugin implements IResourceChangeListen
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+		}
+	}
+	
+	public static void loadExternIndex() {
+		final File index = getExternLibCacheFile().toFile();
+		if (!index.exists()) {
+			EXTERN_INDEX = new ClonkIndex();
+		} else {
+			try {
+				FileInputStream in = new FileInputStream(index);
+				ObjectInputStream objStream = new InputStreamRespectingUniqueIDs(in);
+				EXTERN_INDEX = (ClonkIndex)objStream.readObject();
+			} catch (Exception e) {
+				EXTERN_INDEX = new ClonkIndex();
+			}
 		}
 	}
 	
@@ -294,6 +318,7 @@ public class ClonkCore extends AbstractUIPlugin implements IResourceChangeListen
 	 * @see org.eclipse.ui.plugin.AbstractUIPlugin#stop(org.osgi.framework.BundleContext)
 	 */
 	public void stop(BundleContext context) throws Exception {
+		//saveExternIndex(); clean build causes save
 		ResourcesPlugin.getWorkspace().removeResourceChangeListener(this);
 		plugin = null;
 		super.stop(context);
