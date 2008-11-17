@@ -1037,7 +1037,7 @@ public class C4ScriptParser {
 //		}
 //	}
 
-	private int parsedNumber;
+	private long parsedNumber;
 
 	private boolean parseNumber(int offset) throws ParsingException {
 		fReader.seek(offset);
@@ -1058,7 +1058,7 @@ public class C4ScriptParser {
 				fReader.unread();
 				if (count > 0) {
 					fReader.seek(offset);
-					parsedNumber = Integer.parseInt(fReader.readString(count));
+					parsedNumber = Long.parseLong(fReader.readString(count));
 					fReader.seek(offset+count);
 				} else {
 					parsedNumber = -1; // unlikely to be parsed
@@ -1309,7 +1309,7 @@ public class C4ScriptParser {
 	}
 	
 	public enum ErrorCode {
-		TokenExpected, NotAllowedHere, MissingClosingBracket, InvalidExpression, InternalError, ExpressionExpected, UnexpectedEnd, NameExpected, ReturnAsFunction, ExpressionNotModifiable, OperatorNeedsRightSide, NoAssignment, NoSideEffects, KeywordInWrongPlace, UndeclaredIdentifier, OldStyleFunc, ValueExpected, TuplesNotAllowed, EmptyParentheses, ExpectedCode, ConstantValueExpected, CommaOrSemicolonExpected, IncompatibleTypes, VariableCalled, TypeAsName, BlockNotClosed, UnknownDirective, StatementExpected, ConditionExpected
+		TokenExpected, NotAllowedHere, MissingClosingBracket, InvalidExpression, InternalError, ExpressionExpected, UnexpectedEnd, NameExpected, ReturnAsFunction, ExpressionNotModifiable, OperatorNeedsRightSide, NoAssignment, NoSideEffects, KeywordInWrongPlace, UndeclaredIdentifier, OldStyleFunc, ValueExpected, TuplesNotAllowed, EmptyParentheses, ExpectedCode, ConstantValueExpected, CommaOrSemicolonExpected, IncompatibleTypes, VariableCalled, TypeAsName, BlockNotClosed, UnknownDirective, StatementExpected, ConditionExpected, OutOfIntRange
 	}
 	
 	private static String[] errorStrings = new String[] {
@@ -1341,7 +1341,8 @@ public class C4ScriptParser {
 		"Code block not closed with '}'",
 		"Unknown directive",
 		"Statement expected",
-		"Condition expected"
+		"Condition expected",
+		"Out of integer range: %s"
 	};
 	
 	private static Set<ErrorCode> disabledErrors = new HashSet<ErrorCode>();
@@ -1444,7 +1445,9 @@ public class C4ScriptParser {
 			
 			// number
 			if (elm == null && parseNumber(fReader.offset)) {
-				elm = new ExprNumber(parsedNumber);
+				if (parsedNumber < Integer.MIN_VALUE || parsedNumber > Integer.MAX_VALUE)
+					warningWithCode(ErrorCode.OutOfIntRange, elmStart, fReader.getPosition(), String.valueOf(parsedNumber));
+				elm = new ExprNumber((int)parsedNumber);
 			}
 			
 			// string
