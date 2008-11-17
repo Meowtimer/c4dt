@@ -12,8 +12,18 @@ Require-Bundle: org.eclipse.ui,
  org.eclipse.ui.navigator,
  org.eclipse.jface.text,
  org.eclipse.core.resources;bundle-version="3.4.0",
- org.eclipse.ui.forms,
- org.eclipse.platform
+ org.eclipse.ui.forms
 Bundle-ActivationPolicy: lazy
 Bundle-RequiredExecutionEnvironment: J2SE-1.5
 Import-Package: org.eclipse.ui.forms.widgets
+Export-Package: net.arctics.clonk,
+ net.arctics.clonk.parser,
+ net.arctics.clonk.parser.defcore,
+ net.arctics.clonk.preferences,
+ net.arctics.clonk.resource,
+ net.arctics.clonk.resource.c4group,
+ net.arctics.clonk.ui,
+ net.arctics.clonk.ui.editors,
+ net.arctics.clonk.ui.editors.actions,
+ net.arctics.clonk.ui.navigator,
+ net.arctics.clonk.ui.wizards
