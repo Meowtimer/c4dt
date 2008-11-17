@@ -10,6 +10,10 @@ public class ClonkPerspective implements IPerspectiveFactory {
 //		layout.addFastView("org.eclipse.ui.navigator.ProjectExplorer", (float) 0.2);
 //		layout.addView("org.eclipse.ui.navigator.ProjectExplorer", IPageLayout.RIGHT, IPageLayout.DEFAULT_VIEW_RATIO, "navigator");
 		
+		layout.addActionSet("net.arctics.clonk.ui.actionset");
+		
+		layout.addShowViewShortcut("net.arctics.clonk.views.EngineIdentifiersView");
+		
 		// Get the editor area.
 		 String editorArea = layout.getEditorArea();
 

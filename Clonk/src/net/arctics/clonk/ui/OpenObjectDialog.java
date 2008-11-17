@@ -44,15 +44,6 @@ public class OpenObjectDialog extends FilteredItemsSelectionDialog {
 		
 	}
 	
-	/*protected class OpenObjectContentProvider extends AbstractContentProvider {
-		
-		@Override
-		public void add(Object item, ItemsFilter itemsFilter) {
-			
-		}
-		
-	}*/
-	
 	public OpenObjectDialog(Shell shell) {
 		super(shell);
 		setListLabelProvider(new OpenObjectLabelProvider());
@@ -72,10 +63,10 @@ public class OpenObjectDialog extends FilteredItemsSelectionDialog {
 			public boolean matchItem(Object item) {
 				if (!(item instanceof C4Object)) return false;
 				final C4Object obj = (C4Object) item;
-				if (obj == null || obj.getId() == null || obj.getName() == null) {
+				final String search = this.getPattern();
+				if (obj == null || obj.getId() == null || obj.getName() == null || search == null) {
 					return false;
 				}
-				final String search = this.getPattern();
 				final String objId = obj.getId().getName();
 				if (objId.contains(search) || obj.getName().contains(search))
 					return true;
