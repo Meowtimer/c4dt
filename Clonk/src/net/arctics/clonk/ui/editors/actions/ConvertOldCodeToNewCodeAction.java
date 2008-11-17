@@ -3,7 +3,6 @@ package net.arctics.clonk.ui.editors.actions;
 import java.util.LinkedList;
 import java.util.ResourceBundle;
 
-import net.arctics.clonk.parser.C4ScriptParser;
 import net.arctics.clonk.parser.CompilerException;
 import net.arctics.clonk.parser.C4ScriptExprTree.*;
 import net.arctics.clonk.ui.editors.C4ScriptEditor;
@@ -47,7 +46,7 @@ public class ConvertOldCodeToNewCodeAction extends TextEditorAction {
 		}
 		for (ExprElm e : expressions) {
 			try {
-				document.replace(e.getExprStart(), e.getExprEnd()-e.getExprStart(), e.newStyleReplacement().toString());
+				document.replace(e.getExprStart(), e.getExprEnd()-e.getExprStart(), e.exhaustiveNewStyleReplacement().toString());
 			} catch (BadLocationException e1) {
 				// TODO Auto-generated catch block
 				e1.printStackTrace();

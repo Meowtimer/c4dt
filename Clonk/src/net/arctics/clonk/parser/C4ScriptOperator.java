@@ -210,8 +210,22 @@ public enum C4ScriptOperator {
 	}
 	
 	public String oldStyleFunction() {
-		if (this == And || this == Or)
+		if (this == And || this == Or || this == Equal || this == Not || this == Add) 
 			return toString();
+		if (this == Increment)
+			return "Inc";
+		if (this == Decrement)
+			return "Dec";
+		if (this == Larger)
+			return "GreaterThan";
+		if (this == Smaller)
+			return "LessThan";
+		if (this == Multiply)
+			return "Mul";
+		if (this == Divide)
+			return "Div";
+		if (this == Subtract)
+			return "Sub";
 		return null;
 	}
 	

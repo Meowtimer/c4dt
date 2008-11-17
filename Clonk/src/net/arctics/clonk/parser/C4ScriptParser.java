@@ -22,11 +22,9 @@ import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.Platform;
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IRegion;
-import org.eclipse.ui.PlatformUI;
 
 public class C4ScriptParser {
 	
@@ -369,7 +367,7 @@ public class C4ScriptParser {
 			String directiveName = fReader.readStringUntil(BufferedScanner.WHITESPACE_DELIMITERS);
 			C4DirectiveType type = C4DirectiveType.makeType(directiveName);
 			if (type == null) {
-				createErrorMarker(offset, offset + directiveName.length(), "Unknown directive name '" + directiveName + "'.");
+				warningWithCode(ErrorCode.UnknownDirective, offset, offset + directiveName.length());
 				fReader.moveUntil(BufferedScanner.NEWLINE_DELIMITERS);
 				return true;
 			}
@@ -571,7 +569,7 @@ public class C4ScriptParser {
 		eatWhitespace();
 		activeFunc = new C4Function();
 		activeFunc.setObject(container);
-		int startName = 0, endName = 0, startBody, endBody;
+		int startName = 0, endName = 0, startBody = 0, endBody = 0;
 		boolean suspectOldStyle = false;
 		String funcName = null;
 		C4Type retType = C4Type.ANY;
@@ -631,7 +629,7 @@ public class C4ScriptParser {
 				if (readByte == ')') break; // all parameter parsed
 				else if (readByte == ',') continue; // parse another parameter
 				else {
-					errorWithCode(ErrorCode.TokenExpected, fReader.getPosition()-1, fReader.getPosition(), new String[] {")", ","});
+					errorWithCode(ErrorCode.TokenExpected, fReader.getPosition()-1, fReader.getPosition(), (Object) new String[] {")", ","});
 				}
 			} while(!fReader.reachedEOF());
 		}
@@ -667,9 +665,7 @@ public class C4ScriptParser {
 					endBody = fReader.getPosition(); // blub
 				} while (!fReader.reachedEOF());
 			} else {
-				String problem = "Syntax error: expected '{'";
-				createErrorMarker(fReader.getPosition() - 1, fReader.getPosition(), problem);
-				throw new ParsingException(problem);
+				errorWithCode(ErrorCode.TokenExpected, fReader.getPosition()-1, fReader.getPosition(), "{");
 			}
 		} else {
 			// body in {...}
@@ -697,10 +693,9 @@ public class C4ScriptParser {
 			eatWhitespace();
 			if (fReader.read() != '}') {
 //				System.out.println(activeFunc.getName());
-				String problem = "Syntax error: expected '}'";
 				int pos = Math.min(fReader.getPosition()-1, fReader.size-2);
-				createErrorMarker(pos, pos+1, problem);
-				throw new ParsingException(problem);
+				errorWithCode(ErrorCode.TokenExpected, fReader.getPosition()-1, pos, pos+1);
+				return false;
 			}
 		}
 		// finish up
@@ -788,9 +783,7 @@ public class C4ScriptParser {
 			if (!parseCodeBlock(fReader.getPosition())) fReader.seek(offset);
 			eatWhitespace();
 			if (fReader.read() != '}') {
-				String problem = "Syntax error: expected '}', code blocks have to be closed by '}'"; 
-				createErrorMarker(fReader.getPosition() - 1, fReader.getPosition(), problem);
-				throw new ParsingException(problem);
+				errorWithCode(ErrorCode.BlockNotClosed, fReader.getPosition()-1, fReader.getPosition());
 			}
 			blockDepth--;
 			return true;
@@ -1310,7 +1303,7 @@ public class C4ScriptParser {
 	}
 	
 	public enum ErrorCode {
-		TokenExpected, NotAllowedHere, MissingClosingBracket, InvalidExpression, InternalError, ExpressionExpected, UnexpectedEnd, NameExpected, ReturnAsFunction, ExpressionNotModifiable, OperatorNeedsRightSide, NoAssignment, NoSideEffects, KeywordInWrongPlace, UndeclaredIdentifier, OldStyleFunc, ValueExpected, TuplesNotAllowed, EmptyParentheses, ExpectedCode, ConstantValueExpected, CommaOrSemicolonExpected, IncompatibleTypes, VariableCalled, TypeAsName
+		TokenExpected, NotAllowedHere, MissingClosingBracket, InvalidExpression, InternalError, ExpressionExpected, UnexpectedEnd, NameExpected, ReturnAsFunction, ExpressionNotModifiable, OperatorNeedsRightSide, NoAssignment, NoSideEffects, KeywordInWrongPlace, UndeclaredIdentifier, OldStyleFunc, ValueExpected, TuplesNotAllowed, EmptyParentheses, ExpectedCode, ConstantValueExpected, CommaOrSemicolonExpected, IncompatibleTypes, VariableCalled, TypeAsName, BlockNotClosed, UnknownDirective, StatementExpected, ConditionExpected
 	}
 	
 	private static String[] errorStrings = new String[] {
@@ -1338,7 +1331,11 @@ public class C4ScriptParser {
 		"Comma or semicolon expected",
 		"Incompatible types: %s and %s",
 		"Variable %s called as function",
-		"Typename as name: %s"
+		"Typename as name: %s",
+		"Code block not closed with '}'",
+		"Unknown directive",
+		"Statement expected",
+		"Condition expected"
 	};
 	
 	private static Set<ErrorCode> disabledErrors = new HashSet<ErrorCode>();
@@ -1782,9 +1779,8 @@ public class C4ScriptParser {
 			return true;
 		}
 		else {
-			String problem = "Syntax error: expected ']";
-			createErrorMarker(fReader.getPosition() -1,fReader.getPosition(), problem);
-			throw new ParsingException(problem);
+			errorWithCode(ErrorCode.TokenExpected, fReader.getPosition()-1, fReader.getPosition(), "]");
+			return false;
 		}
 //		fReader.readStringUntil(new char[] { '|' }); // description text
 //		if (fReader.read() != '|') {
@@ -1876,40 +1872,27 @@ public class C4ScriptParser {
 //				}
 				eatWhitespace();
 				if (fReader.read() != '(') {
-					String problem = "Syntax error: expected '('"; 
-					createErrorMarker(fReader.getPosition() - 1, fReader.getPosition(), problem);
-					throw new ParsingException(problem);
+					errorWithCode(ErrorCode.TokenExpected, fReader.getPosition()-1, fReader.getPosition(), "(");
 				}
 				eatWhitespace();
 				parseValue(fReader.getPosition()); // if () is valid
 				eatWhitespace();
 				if (fReader.read() != ')') {
-					String problem = "Syntax error: expected ')'"; 
-					createErrorMarker(fReader.getPosition() - 1, fReader.getPosition(), problem);
-					throw new ParsingException(problem);
+					errorWithCode(ErrorCode.TokenExpected, fReader.getPosition()-1, fReader.getPosition(), ")");
 				}
 				eatWhitespace();
 				offset = fReader.getPosition();
 				if (!parseCodeSegment(fReader.getPosition())) {
-					String problem = "Syntax error: expected a command"; 
-					createErrorMarker(offset, offset + 4, problem);
-					throw new ParsingException(problem);
+					errorWithCode(ErrorCode.StatementExpected, offset, offset+4);
 				}
 				eatWhitespace();
 				offset = fReader.getPosition();
 				String nextWord = fReader.readWord();
 				if (nextWord.equalsIgnoreCase("else")) {
-					if (!nextWord.equals(nextWord.toLowerCase())) {
-						String problem = "Syntax error: you should only use lower case letters in keywords. ('" + nextWord.toLowerCase() + "' instead of '" + nextWord + "')"; 
-						createErrorMarker(fReader.getPosition() - nextWord.length(), fReader.getPosition(), problem);
-						throw new ParsingException(problem);
-					}
 					eatWhitespace();
 					offset = fReader.getPosition();
 					if (!parseCodeSegment(fReader.getPosition())) {
-						String problem = "Syntax error: expected a command"; 
-						createErrorMarker(offset, offset + 4, problem);
-						throw new ParsingException(problem);
+						errorWithCode(ErrorCode.StatementExpected, offset, offset+4);
 					}	
 				}
 				else {
@@ -1926,24 +1909,18 @@ public class C4ScriptParser {
 //				}
 				eatWhitespace();
 				if (fReader.read() != '(') {
-					String problem = "Syntax error: expected '('"; 
-					createErrorMarker(fReader.getPosition() - 1, fReader.getPosition(), problem);
-					throw new ParsingException(problem);
+					errorWithCode(ErrorCode.TokenExpected, fReader.getPosition()-1, fReader.getPosition(), "(");
 				}
 				eatWhitespace();
 				parseValue(fReader.getPosition()); // while () is valid
 				eatWhitespace();
 				if (fReader.read() != ')') {
-					String problem = "Syntax error: expected ')'"; 
-					createErrorMarker(fReader.getPosition() - 1, fReader.getPosition(), problem);
-					throw new ParsingException(problem);
+					errorWithCode(ErrorCode.TokenExpected, fReader.getPosition()-1, fReader.getPosition(), ")");
 				}
 				eatWhitespace();
 				offset = fReader.getPosition();
 				if (!parseCodeSegment(fReader.getPosition())) {
-					String problem = "Syntax error: expected a command"; 
-					createErrorMarker(offset, offset + 4, problem);
-					throw new ParsingException(problem);
+					errorWithCode(ErrorCode.StatementExpected, offset, offset+4);
 				}
 				return true;
 			}
@@ -1955,9 +1932,7 @@ public class C4ScriptParser {
 //				}
 				eatWhitespace();
 				if (fReader.read() != '(') {
-					String problem = "Syntax error: expected '('"; 
-					createErrorMarker(fReader.getPosition() - 1, fReader.getPosition(), problem);
-					throw new ParsingException(problem);
+					errorWithCode(ErrorCode.TokenExpected, fReader.getPosition()-1, fReader.getPosition(), "(");					
 				}
 				eatWhitespace();
 
@@ -2006,17 +1981,13 @@ public class C4ScriptParser {
 					} else {
 						fReader.unread();
 						if (!parseValue(fReader.getPosition())) {
-							String problem = "Syntax error: expected condition"; 
-							createErrorMarker(offset, fReader.getPosition(), problem);
-							throw new ParsingException(problem);
+							errorWithCode(ErrorCode.ConditionExpected, offset, fReader.getPosition());
 						}
 					}
 					eatWhitespace();
 					offset = fReader.getPosition();
 					if (fReader.read() != ';') {
-						String problem = "Syntax error: expected ';'"; 
-						createErrorMarker(offset, fReader.getPosition(), problem);
-						throw new ParsingException(problem);
+						errorWithCode(ErrorCode.TokenExpected, offset, fReader.getPosition(), ";");
 					}
 					eatWhitespace();
 					offset = fReader.getPosition();
@@ -2026,24 +1997,18 @@ public class C4ScriptParser {
 					} else {
 						fReader.unread();
 						if (!parseValue(offset)) {
-							String problem = "Syntax error: expected call or assignment or identifier"; 
-							createErrorMarker(offset, fReader.getPosition()+1, problem);
-							throw new ParsingException(problem);
+							errorWithCode(ErrorCode.ExpressionExpected, offset, fReader.getPosition()+1);
 						}
 					}
 				}
 				eatWhitespace();
 				if (fReader.read() != ')') {
-					String problem = "Syntax error: expected ')'"; 
-					createErrorMarker(fReader.getPosition() - 1, fReader.getPosition(), problem);
-					throw new ParsingException(problem);
+					errorWithCode(ErrorCode.TokenExpected, fReader.getPosition()-1, fReader.getPosition(), ")");
 				}
 				eatWhitespace();
 				offset = fReader.getPosition();
 				if (!parseCodeSegment(fReader.getPosition())) {
-					String problem = "Syntax error: expected a command"; 
-					createErrorMarker(offset, offset + 4, problem);
-					throw new ParsingException(problem);
+					errorWithCode(ErrorCode.StatementExpected, offset, offset+4);
 				}
 				return true;
 			}

@@ -17,7 +17,6 @@ import net.arctics.clonk.parser.C4ScriptExprTree.IExpressionListener;
 import net.arctics.clonk.parser.C4ScriptExprTree.TraversalContinuation;
 import net.arctics.clonk.parser.C4ScriptParser.ParsingException;
 
-import org.eclipse.core.commands.util.Tracing;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.jface.internal.text.html.HTMLTextPresenter;
 import org.eclipse.jface.text.BadLocationException;
@@ -257,7 +256,6 @@ public class ClonkSourceViewerConfiguration extends TextSourceViewerConfiguratio
 
 		public IInformationControlCreator getHoverControlCreator() {
 			return new IInformationControlCreator() {
-				@SuppressWarnings("restriction")
 				public IInformationControl createInformationControl(Shell parent) {
 					return new DefaultInformationControl(parent, new HTMLTextPresenter(true));
 				}

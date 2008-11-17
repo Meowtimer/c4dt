@@ -2,9 +2,6 @@ package net.arctics.clonk.ui.editors;
 
 import java.util.ResourceBundle;
 
-import net.arctics.clonk.ClonkCore;
-import net.arctics.clonk.ui.editors.actions.ConvertOldCodeToNewCodeAction;
-
 import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IWorkbenchActionConstants;
@@ -16,9 +13,6 @@ import org.eclipse.ui.texteditor.RetargetTextEditorAction;
 public class EditorActionContributor extends BasicTextEditorActionContributor {
 
 	private RetargetTextEditorAction fContentAssist;
-	private RetargetTextEditorAction fIndexClonkDir;
-	private RetargetTextEditorAction fConvertOldCodeToNewCode;
-
 	//	
 	public EditorActionContributor() {
 		ResourceBundle messagesBundle = ResourceBundle.getBundle("net.arctics.clonk.ui.editors.Messages");

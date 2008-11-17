@@ -2,8 +2,6 @@ package net.arctics.clonk.parser;
 
 import java.io.Serializable;
 
-import net.arctics.clonk.parser.C4Function.C4FunctionScope;
-
 import net.arctics.clonk.parser.C4ScriptExprTree.ExprElm;
 
 /**

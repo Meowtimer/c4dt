@@ -1,7 +1,6 @@
 package net.arctics.clonk.parser;
 
 import net.arctics.clonk.ClonkCore;
-import net.arctics.clonk.Utilities;
 import net.arctics.clonk.parser.C4Object.FindFieldInfo;
 import net.arctics.clonk.parser.C4ScriptParser.ErrorCode;
 import net.arctics.clonk.parser.C4ScriptParser.ParsingException;
@@ -122,6 +121,12 @@ public abstract class C4ScriptExprTree {
 			// ...
 		}
 
+		public ExprElm exhaustiveNewStyleReplacement() throws CloneNotSupportedException {
+			ExprElm repl;
+			for (ExprElm original = this; (repl = original.newStyleReplacement()) != original; original = repl);
+			return repl;
+		}
+		
 		public ExprElm newStyleReplacement() throws CloneNotSupportedException {
 			ExprElm[] subElms = getSubElements();
 			ExprElm[] newSubElms = new ExprElm[subElms.length];
@@ -484,6 +489,9 @@ public abstract class C4ScriptExprTree {
 		public ExprElm newStyleReplacement() throws CloneNotSupportedException {
 			C4ScriptOperator replOperator = C4ScriptOperator.oldStyleFunctionReplacement(fieldName);
 			// TODO: for more than two arguments
+			if (replOperator != null && params.length == 1) {
+				return new ExprUnaryOp(replOperator, replOperator.isPostfix() ? ExprUnaryOp.Placement.Postfix : ExprUnaryOp.Placement.Prefix, new ExprParenthesized(params[0].newStyleReplacement()));
+			}
 			if (replOperator != null && params.length == 2) {
 				return new ExprBinaryOp(replOperator, params[0].newStyleReplacement(), params[1].newStyleReplacement());
 			}
@@ -641,6 +649,10 @@ public abstract class C4ScriptExprTree {
 		public boolean hasSideEffects() {
 			return innerExpr.hasSideEffects();
 		}
+		
+		public ExprElm getInnerExpr() {
+			return innerExpr;
+		}
 
 	}
 
@@ -696,6 +708,20 @@ public abstract class C4ScriptExprTree {
 				//				System.out.println(getArgument().toString() + " does not behave");
 				parser.errorWithCode(ErrorCode.ExpressionNotModifiable, getArgument());
 			}
+		}
+
+		@Override
+		public ExprElm newStyleReplacement() throws CloneNotSupportedException {
+			if (getOperator() == C4ScriptOperator.Not && getArgument() instanceof ExprParenthesized) {
+				 ExprParenthesized brackets = (ExprParenthesized)getArgument();
+				 if (brackets.getInnerExpr() instanceof ExprBinaryOp) {
+					 ExprBinaryOp op = (ExprBinaryOp) brackets.getInnerExpr();
+					 if (op.getOperator() == C4ScriptOperator.Equal) {
+						 return new ExprBinaryOp(C4ScriptOperator.NotEqual, op.getLeftSide().newStyleReplacement(), op.getRightSide().newStyleReplacement());
+					 }
+				 }
+			}
+			return super.newStyleReplacement();
 		}
 
 	}

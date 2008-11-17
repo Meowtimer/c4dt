@@ -13,11 +13,7 @@ import org.eclipse.ui.part.FileEditorInput;
 import org.eclipse.ui.texteditor.ITextEditor;
 
 public class ClonkDocumentProvider extends FileDocumentProvider {
-	private ITextEditor editor;
-	// ich bin in einem geltungsbereich
-	
 	public ClonkDocumentProvider(ITextEditor textEditor) {
-		editor = textEditor;
 	}
 	
 	protected IDocument createDocument(Object element) throws CoreException {

@@ -1,11 +1,7 @@
 package net.arctics.clonk.ui.editors;
 
-import java.io.InputStream;
-
 import net.arctics.clonk.parser.C4Object;
 import net.arctics.clonk.parser.C4ObjectExtern;
-import net.arctics.clonk.resource.c4group.C4GroupItem;
-
 import org.eclipse.core.resources.IStorage;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
