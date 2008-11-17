@@ -275,6 +275,11 @@ public class C4ScriptParser {
 	//	private List<C4Variable> variables = new LinkedList<C4Variable>();
 
 	private C4Function activeFunc;
+	private int strictLevel;
+	
+	public int getStrictLevel() {
+		return strictLevel;
+	}
 	
 	public C4Function getActiveFunc() {
 		return activeFunc;
@@ -316,7 +321,7 @@ public class C4ScriptParser {
 	public void parse() {
 		clean();
 		parseDeclarations();
-		parseFunctionCode();
+		parseCodeOfFunctions();
 	}
 	
 	/**
@@ -324,7 +329,7 @@ public class C4ScriptParser {
 	 */
 	public void parseAdditional() {
 		parseDeclarations();
-		parseFunctionCode();
+		parseCodeOfFunctions();
 	}
 
 	public void parseDeclarations() {
@@ -342,7 +347,8 @@ public class C4ScriptParser {
 		}
 	}
 	
-	public void parseFunctionCode() {
+	public void parseCodeOfFunctions() {
+		strictLevel = container.strictLevel();
 		for (C4Function function : container.definedFunctions) {
 			activeFunc = function;
 			try {

@@ -164,7 +164,7 @@ public class C4ScriptEditor extends AbstractDecoratedTextEditor {
 		outlinePage.refresh();
 	}
 
-	public void reparseWithDocumentContents(C4ScriptExprTree.IExpressionListener exprListener, boolean onlyDeclarations) throws CompilerException {
+	public C4ScriptParser reparseWithDocumentContents(C4ScriptExprTree.IExpressionListener exprListener, boolean onlyDeclarations) throws CompilerException {
 		IDocument document = getDocumentProvider().getDocument(getEditorInput());
 		byte[] documentBytes = document.get().getBytes();
 		InputStream scriptStream = new ByteArrayInputStream(documentBytes);
@@ -173,8 +173,9 @@ public class C4ScriptEditor extends AbstractDecoratedTextEditor {
 		parser.clean();
 		parser.parseDeclarations();
 		if (!onlyDeclarations)
-			parser.parseFunctionCode();
+			parser.parseCodeOfFunctions();
 		refreshOutline();
+		return parser;
 	}
 
 }

@@ -3,6 +3,7 @@ package net.arctics.clonk.ui.editors.actions;
 import java.util.LinkedList;
 import java.util.ResourceBundle;
 
+import net.arctics.clonk.parser.C4ScriptParser;
 import net.arctics.clonk.parser.CompilerException;
 import net.arctics.clonk.parser.C4ScriptExprTree.*;
 import net.arctics.clonk.ui.editors.C4ScriptEditor;
@@ -31,8 +32,9 @@ public class ConvertOldCodeToNewCodeAction extends TextEditorAction {
 		final ITextSelection selection = (ITextSelection)editor.getSelectionProvider().getSelection();
 		final IDocument document = editor.getDocumentProvider().getDocument(editor.getEditorInput());
 		final LinkedList<ExprElm> expressions = new LinkedList<ExprElm>();
+		C4ScriptParser parser;
 		try {
-			editor.reparseWithDocumentContents(new IExpressionListener() {
+			parser = editor.reparseWithDocumentContents(new IExpressionListener() {
 				public TraversalContinuation expressionDetected(ExprElm expression) {
 					if (selection == null || (expression.getExprStart() >= selection.getOffset() && expression.getExprEnd() < selection.getOffset()+selection.getLength())) {
 						expressions.addFirst(expression);
@@ -41,12 +43,13 @@ public class ConvertOldCodeToNewCodeAction extends TextEditorAction {
 				}
 			},false);
 		} catch (CompilerException e1) {
+			parser = null;
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
 		for (ExprElm e : expressions) {
 			try {
-				document.replace(e.getExprStart(), e.getExprEnd()-e.getExprStart(), e.exhaustiveNewStyleReplacement().toString());
+				document.replace(e.getExprStart(), e.getExprEnd()-e.getExprStart(), e.exhaustiveNewStyleReplacement(parser).toString());
 			} catch (BadLocationException e1) {
 				// TODO Auto-generated catch block
 				e1.printStackTrace();

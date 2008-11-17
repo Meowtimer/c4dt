@@ -264,7 +264,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 				C4Object obj = index.getObject((IContainer)resource);
 				if (obj != null && obj.getScript() != null) {
 					try {
-						new C4ScriptParser((IFile)obj.getScript(), obj).parseFunctionCode();
+						new C4ScriptParser((IFile)obj.getScript(), obj).parseCodeOfFunctions();
 					} catch (CompilerException e) {
 						e.printStackTrace();
 					} 

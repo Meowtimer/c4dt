@@ -121,18 +121,18 @@ public abstract class C4ScriptExprTree {
 			// ...
 		}
 
-		public ExprElm exhaustiveNewStyleReplacement() throws CloneNotSupportedException {
+		public ExprElm exhaustiveNewStyleReplacement(C4ScriptParser context) throws CloneNotSupportedException {
 			ExprElm repl;
-			for (ExprElm original = this; (repl = original.newStyleReplacement()) != original; original = repl);
+			for (ExprElm original = this; (repl = original.newStyleReplacement(context)) != original; original = repl);
 			return repl;
 		}
 		
-		public ExprElm newStyleReplacement() throws CloneNotSupportedException {
+		public ExprElm newStyleReplacement(C4ScriptParser context) throws CloneNotSupportedException {
 			ExprElm[] subElms = getSubElements();
 			ExprElm[] newSubElms = new ExprElm[subElms.length];
 			boolean differentSubElms = false;
 			for (int i = 0; i < subElms.length; i++) {
-				newSubElms[i] = subElms[i].newStyleReplacement();
+				newSubElms[i] = subElms[i].newStyleReplacement(context);
 				if (newSubElms[i] != subElms[i])
 					differentSubElms = true;
 			}
@@ -413,6 +413,15 @@ public abstract class C4ScriptExprTree {
 		protected C4Field getFieldImpl(C4ScriptParser parser) {
 			if (fieldName.equals("return"))
 				return null;
+			if (fieldName.equals("inherited") || fieldName.equals("_inherited")) {
+				C4Object[] includes = parser.getContainer().getIncludes();
+				for (int i = includes.length-1; i >= 0; i--) {
+					C4Field field = includes[i].findFunction(parser.getActiveFunc().getName());
+					if (field != null)
+						return field;
+				}
+				return null;
+			}
 			ExprElm p = getPredecessorInSequence();
 			C4Object lookIn = p == null ? parser.getContainer() : p.guessObjectType(parser);
 			if (lookIn != null) {
@@ -486,29 +495,29 @@ public abstract class C4ScriptExprTree {
 			return super.guessObjectType(context);
 		}
 		@Override
-		public ExprElm newStyleReplacement() throws CloneNotSupportedException {
+		public ExprElm newStyleReplacement(C4ScriptParser context) throws CloneNotSupportedException {
 			C4ScriptOperator replOperator = C4ScriptOperator.oldStyleFunctionReplacement(fieldName);
 			// TODO: for more than two arguments
 			if (replOperator != null && params.length == 1) {
-				return new ExprUnaryOp(replOperator, replOperator.isPostfix() ? ExprUnaryOp.Placement.Postfix : ExprUnaryOp.Placement.Prefix, new ExprParenthesized(params[0].newStyleReplacement()));
+				return new ExprUnaryOp(replOperator, replOperator.isPostfix() ? ExprUnaryOp.Placement.Postfix : ExprUnaryOp.Placement.Prefix, new ExprParenthesized(params[0].newStyleReplacement(context)));
 			}
 			if (replOperator != null && params.length == 2) {
-				return new ExprBinaryOp(replOperator, params[0].newStyleReplacement(), params[1].newStyleReplacement());
+				return new ExprBinaryOp(replOperator, params[0].newStyleReplacement(context), params[1].newStyleReplacement(context));
 			}
 			else if (params.length >= 2 && fieldName.equals("ObjectCall") && params[1] instanceof ExprString) {
 				// ObjectCall(ugh, "UghUgh", 5) -> ugh->UghUgh(5)
 				ExprElm[] parmsWithoutObject = new ExprElm[params.length-2];
 				for (int i = 0; i < parmsWithoutObject.length; i++)
-					parmsWithoutObject[i] = params[i+2].newStyleReplacement();
+					parmsWithoutObject[i] = params[i+2].newStyleReplacement(context);
 				return new ExprSequence(new ExprElm[] {
-						params[0].newStyleReplacement(),
+						params[0].newStyleReplacement(context),
 						new ExprObjectCall(false, null),
 						new ExprCallFunc(((ExprString)params[1]).stringValue(), parmsWithoutObject)});
 			}
 			else if (params.length == 0 && field instanceof C4Variable) {
 				return new ExprAccessVar(fieldName);
 			}
-			return super.newStyleReplacement();
+			return super.newStyleReplacement(context);
 		}
 	}
 
@@ -537,6 +546,21 @@ public abstract class C4ScriptExprTree {
 	}
 
 	public static class ExprBinaryOp extends ExprOperator {
+		@Override
+		public ExprElm newStyleReplacement(C4ScriptParser context) throws CloneNotSupportedException {
+			if (context.getStrictLevel() >= 2) {
+				C4ScriptOperator op = getOperator();
+				if (op == C4ScriptOperator.StringEqual || op == C4ScriptOperator.eq)
+					op = C4ScriptOperator.Equal;
+				else if (op == C4ScriptOperator.ne)
+					op = C4ScriptOperator.NotEqual;
+				if (op != getOperator()) {
+					return new ExprBinaryOp(op, getLeftSide().newStyleReplacement(context), getRightSide().newStyleReplacement(context));
+				}
+			}
+			return super.newStyleReplacement(context);
+		}
+
 		private ExprElm leftSide, rightSide;
 
 		@Override
@@ -711,17 +735,17 @@ public abstract class C4ScriptExprTree {
 		}
 
 		@Override
-		public ExprElm newStyleReplacement() throws CloneNotSupportedException {
+		public ExprElm newStyleReplacement(C4ScriptParser context) throws CloneNotSupportedException {
 			if (getOperator() == C4ScriptOperator.Not && getArgument() instanceof ExprParenthesized) {
 				 ExprParenthesized brackets = (ExprParenthesized)getArgument();
 				 if (brackets.getInnerExpr() instanceof ExprBinaryOp) {
 					 ExprBinaryOp op = (ExprBinaryOp) brackets.getInnerExpr();
 					 if (op.getOperator() == C4ScriptOperator.Equal) {
-						 return new ExprBinaryOp(C4ScriptOperator.NotEqual, op.getLeftSide().newStyleReplacement(), op.getRightSide().newStyleReplacement());
+						 return new ExprBinaryOp(C4ScriptOperator.NotEqual, op.getLeftSide().newStyleReplacement(context), op.getRightSide().newStyleReplacement(context));
 					 }
 				 }
 			}
-			return super.newStyleReplacement();
+			return super.newStyleReplacement(context);
 		}
 
 	}
