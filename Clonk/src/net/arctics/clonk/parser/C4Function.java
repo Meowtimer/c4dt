@@ -262,6 +262,16 @@ public class C4Function extends C4Structure implements Serializable {
 	public void setOldStyle(boolean isOldStyle) {
 		this.isOldStyle = isOldStyle;
 	}
+	
+	public C4Function getInherited() {
+		C4Object[] includes = getObject().getIncludes();
+		for (int i = includes.length-1; i >= 0; i--) {
+			C4Function field = includes[i].findFunction(getName());
+			if (field != null)
+				return field;
+		}
+		return null;
+	}
 
 	@Override
 	public boolean hasChildFields() {

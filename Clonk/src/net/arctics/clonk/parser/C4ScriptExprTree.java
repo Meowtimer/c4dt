@@ -414,13 +414,7 @@ public abstract class C4ScriptExprTree {
 			if (fieldName.equals("return"))
 				return null;
 			if (fieldName.equals("inherited") || fieldName.equals("_inherited")) {
-				C4Object[] includes = parser.getContainer().getIncludes();
-				for (int i = includes.length-1; i >= 0; i--) {
-					C4Field field = includes[i].findFunction(parser.getActiveFunc().getName());
-					if (field != null)
-						return field;
-				}
-				return null;
+				return parser.getActiveFunc().getInherited();
 			}
 			ExprElm p = getPredecessorInSequence();
 			C4Object lookIn = p == null ? parser.getContainer() : p.guessObjectType(parser);
