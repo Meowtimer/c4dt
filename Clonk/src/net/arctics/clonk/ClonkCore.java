@@ -22,6 +22,8 @@ import net.arctics.clonk.parser.C4ObjectExtern;
 import net.arctics.clonk.parser.C4Variable;
 import net.arctics.clonk.parser.ClonkIndex;
 import net.arctics.clonk.resource.ClonkProjectNature;
+import net.arctics.clonk.resource.InputStreamRespectingUniqueIDs;
+import net.arctics.clonk.ui.OpenObjectDialog;
 
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IResourceChangeEvent;
@@ -32,11 +34,11 @@ import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.QualifiedName;
+import org.eclipse.jface.action.Action;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.osgi.framework.BundleContext;
-import net.arctics.clonk.resource.InputStreamRespectingUniqueIDs;
 
 /**
  * The activator class controls the plug-in life cycle
@@ -45,6 +47,7 @@ public class ClonkCore extends AbstractUIPlugin implements IResourceChangeListen
 
 	// The plug-in ID
 	public static final String PLUGIN_ID = "net.arctics.clonk";
+	public static final String CLONK_NATURE_ID = "net.arctics.clonk.clonknature";
 	public static final String MARKER_EXTERN_LIB_ERROR = PLUGIN_ID + ".externliberror";
 	public static final QualifiedName FOLDER_C4ID_PROPERTY_ID = new QualifiedName("net.arctics.clonk","c4id");
 	public static final QualifiedName C4OBJECT_PROPERTY_ID = new QualifiedName("net.arctics.clonk","c4object");

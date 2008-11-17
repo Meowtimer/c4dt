@@ -253,9 +253,35 @@
           <persistent value="true"/>
           <super type="org.eclipse.core.resources.problemmarker"/>
     </extension>
-    
-    <extension
+
+   <extension
+         point="org.eclipse.ui.actionSets">
+      <actionSet
+            label="Clonk action set"
+            description="Several Clonk specific actions"
+            visible="true"
+            id="net.arctics.clonk.ui.actionset">
+         <action
+               id="net.arctics.clonk.ui.actions.OpenObject"
+               toolbarPath="org.eclipse.search.searchActionSet/Search"
+               class="net.arctics.clonk.ui.editors.actions.OpenObject"
+               definitionId="org.eclipse.jdt.ui.navigate.open.type"
+               icon="$nl$/icons/Clonk_C4.png"
+               label="Open Object"
+               menubarPath="navigate/open.ext2"
+               tooltip="Open Object">
+         </action>
+</actionSet>
+</extension>
+
+<extension
          point="org.eclipse.ui.commands">
+      <command
+            name="Open Object"
+            description="Open Object Description"
+            categoryId="org.eclipse.ui.category.edit"
+            id="net.arctics.clonk.ui.open.object">
+      </command>
          <command
          	name="Convert old code to new code"
          	categoryId="org.eclipse.ui.category.edit"
@@ -263,8 +289,17 @@
          	id="net.arctics.clonk.ui.editors.actions.ConvertOldCodeToNewCode"
          >
          </command>
-    </extension>
- 
+</extension>
+
+   <extension
+         point="org.eclipse.ui.bindings">
+      <key
+            sequence="M1+M2+T"
+            commandId="net.arctics.clonk.ui.open.object"
+            schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"/>
+
+</extension>
+  
 <!--<extension
        point="org.eclipse.ui.commands">
     <command
