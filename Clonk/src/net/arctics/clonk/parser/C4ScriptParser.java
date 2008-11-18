@@ -1541,16 +1541,18 @@ public class C4ScriptParser {
 		
 			// ->
 			if (elm == null) {
+				int fieldOperatorStart = fReader.getPosition();
 				if (parseObjectFieldOperator(fReader.getPosition())) {
-					elm = new ExprObjectCall(parsedObjectFieldOperator.length() == 3, null);
 					eatWhitespace();
+					int idOffset = fReader.getPosition()-fieldOperatorStart;
 					if (parseID(fReader.getPosition())) {
-						((ExprObjectCall)elm).setId(parsedID);
 						eatWhitespace();
 						if (!parseStaticFieldOperator_(fReader.getPosition())) {
 							errorWithCode(ErrorCode.TokenExpected, fReader.getPosition(), fReader.getPosition()+2, "::");
 						}
-					}
+					} else
+						idOffset = 0;
+					elm = new ExprObjectCall(parsedObjectFieldOperator.length() == 3, parsedID, idOffset);
 				}
 			}
 			
@@ -2061,6 +2063,7 @@ public class C4ScriptParser {
 	private C4ID parsedID;
 	
 	private boolean parseID(int offset) throws ParsingException {
+		parsedID = null; // reset so no old parsed ids get through
 		fReader.seek(offset);
 		String word = fReader.readWord();
 		if (word != null && word.length() != 4) {

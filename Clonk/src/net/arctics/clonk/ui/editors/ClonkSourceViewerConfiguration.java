@@ -13,6 +13,7 @@ import net.arctics.clonk.parser.CompilerException;
 import net.arctics.clonk.parser.C4ScriptExprTree.ExprAccessField;
 import net.arctics.clonk.parser.C4ScriptExprTree.ExprElm;
 import net.arctics.clonk.parser.C4ScriptExprTree.ExprID;
+import net.arctics.clonk.parser.C4ScriptExprTree.FieldRegion;
 import net.arctics.clonk.parser.C4ScriptExprTree.IExpressionListener;
 import net.arctics.clonk.parser.C4ScriptExprTree.TraversalContinuation;
 import net.arctics.clonk.parser.C4ScriptParser.ParsingException;
@@ -96,16 +97,13 @@ public class ClonkSourceViewerConfiguration extends TextSourceViewerConfiguratio
 			int statementStart = func.getBody().getOffset();
 			identRegion = new Region(region.getOffset()-statementStart,0);
 			C4ScriptParser parser = C4ScriptParser.reportExpressionsInStatements(doc, func.getBody(), obj, func, this);
-			if (exprAtRegion instanceof ExprAccessField) {
-				ExprAccessField field = (ExprAccessField) exprAtRegion;
-				this.field = field.getField(parser);
-				identRegion = field.fieldRegion(statementStart);
-			} else if (exprAtRegion instanceof ExprID) {
-				C4ID id = ((ExprID)exprAtRegion).idValue();
-				this.field = Utilities.getObjectForEditor(getEditor()).getIndex().getLastObjectWithId(id);
-				if (this.field == null)
-					this.field = ClonkCore.EXTERN_INDEX.getLastObjectWithId(id);
-				identRegion = exprAtRegion.region(statementStart);
+			if (exprAtRegion != null) {
+				FieldRegion fieldRegion = exprAtRegion.fieldAt(identRegion.getOffset()-exprAtRegion.getExprStart(), parser);
+				if (fieldRegion != null) {
+					this.field = fieldRegion.getField();
+					this.identRegion = new Region(statementStart+fieldRegion.getRegion().getOffset(), fieldRegion.getRegion().getLength());
+				}
+				
 			}
 		}
 		

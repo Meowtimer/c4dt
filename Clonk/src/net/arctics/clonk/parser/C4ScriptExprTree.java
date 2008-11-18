@@ -22,6 +22,22 @@ public abstract class C4ScriptExprTree {
 		public TraversalContinuation expressionDetected(ExprElm expression);
 	}
 	
+	public final static class FieldRegion {
+		private C4Field field;
+		private IRegion region;
+		public C4Field getField() {
+			return field;
+		}
+		public FieldRegion(C4Field field, IRegion region) {
+			super();
+			this.field = field;
+			this.region = region;
+		}
+		public IRegion getRegion() {
+			return region;
+		}
+	}
+	
 	/**
 	 * @author madeen
 	 * base class for making expression trees
@@ -183,17 +199,23 @@ public abstract class C4ScriptExprTree {
 		public IRegion region(int offset) {
 			return new Region(offset+getExprStart(), getExprEnd()-getExprStart());
 		}
+		
+		public FieldRegion fieldAt(int offset, C4ScriptParser parser) {
+			return null;
+		}
 
 	}
 
 	public static class ExprObjectCall extends ExprElm {
 		private boolean hasTilde;
 		private C4ID id;
+		private int idOffset;
 
-		public ExprObjectCall(boolean hasTilde, C4ID id) {
+		public ExprObjectCall(boolean hasTilde, C4ID id, int idOffset) {
 			super();
 			this.hasTilde = hasTilde;
 			this.id = id;
+			this.idOffset = idOffset;
 		}
 
 		public void print(StringBuilder output) {
@@ -232,7 +254,19 @@ public abstract class C4ScriptExprTree {
 
 		@Override
 		public C4Object guessObjectType(C4ScriptParser context) {
+			// explicit id
+			if (id != null) {
+				return context.getContainer().getIndex().getObjectFromEverywhere(id);
+			}
+			// stuff before -> decides
 			return getPredecessorInSequence() != null ? getPredecessorInSequence().guessObjectType(context) : super.guessObjectType(context);
+		}
+
+		@Override
+		public FieldRegion fieldAt(int offset, C4ScriptParser parser) {
+			if (id != null && offset >= idOffset && offset < idOffset+4)
+				return new FieldRegion(parser.getContainer().getIndex().getObjectFromEverywhere(id), new Region(getExprStart()+idOffset, 4));
+			return null;
 		}
 
 	}
@@ -323,6 +357,11 @@ public abstract class C4ScriptExprTree {
 
 		public IRegion fieldRegion(int offset) {
 			return new Region(offset+getExprStart(), fieldName.length());
+		}
+
+		@Override
+		public FieldRegion fieldAt(int offset, C4ScriptParser parser) {
+			return new FieldRegion(getField(parser), region(0));
 		}
 	}
 
@@ -478,10 +517,7 @@ public abstract class C4ScriptExprTree {
 				if (params.length >= 1 && params[0] instanceof ExprID) {
 					ExprID id = (ExprID)params[0];
 					ClonkIndex index = context.getContainer().getIndex();
-					C4Object obj = index.getLastObjectWithId(id.idValue());
-					if (obj == null && ClonkCore.EXTERN_INDEX != index)
-						obj = ClonkCore.EXTERN_INDEX.getLastObjectWithId(id.idValue());
-					return obj;
+					return index.getObjectFromEverywhere(id.idValue());
 				}
 			}
 			else if (params.length == 0 && fieldName.equals(C4Variable.THIS.getName()))
@@ -505,13 +541,17 @@ public abstract class C4ScriptExprTree {
 					parmsWithoutObject[i] = params[i+2].newStyleReplacement(context);
 				return new ExprSequence(new ExprElm[] {
 						params[0].newStyleReplacement(context),
-						new ExprObjectCall(false, null),
+						new ExprObjectCall(false, null, 0),
 						new ExprCallFunc(((ExprString)params[1]).stringValue(), parmsWithoutObject)});
 			}
 			else if (params.length == 0 && field instanceof C4Variable) {
 				return new ExprAccessVar(fieldName);
 			}
 			return super.newStyleReplacement(context);
+		}
+		@Override
+		public FieldRegion fieldAt(int offset, C4ScriptParser parser) {
+			return new FieldRegion(getField(parser), new Region(getExprStart(), fieldName.length()));
 		}
 	}
 
@@ -838,10 +878,12 @@ public abstract class C4ScriptExprTree {
 		@Override
 		public C4Object guessObjectType(C4ScriptParser context) {
 			// FIXME: does not actually return an object of type idValue but the id itself :/
-			C4Object result = context.getContainer().getProject().getIndexedData().getLastObjectWithId(idValue());
-			if (result == null)
-				result = ClonkCore.EXTERN_INDEX.getLastObjectWithId(idValue());
-			return result;
+			return context.getContainer().getIndex().getObjectFromEverywhere(idValue());
+		}
+
+		@Override
+		public FieldRegion fieldAt(int offset, C4ScriptParser parser) {
+			return new FieldRegion(parser.getContainer().getIndex().getObjectFromEverywhere(idValue()), region(0));
 		}
 
 	}

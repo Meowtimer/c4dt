@@ -183,6 +183,18 @@ public class ClonkIndex implements Serializable {
 		return null;
 	}
 	
+	/**
+	 * Like getLastObjectWithId, but falls back to ClonkCore.EXTERN_INDEX if there is no object in this index
+	 * @param id
+	 * @return
+	 */
+	public C4Object getObjectFromEverywhere(C4ID id) {
+		C4Object result = getLastObjectWithId(id);
+		if (result == null && this != ClonkCore.EXTERN_INDEX)
+			result = ClonkCore.EXTERN_INDEX.getLastObjectWithId(id);
+		return result;
+	}
+	
 	public C4Object getObjectWithIDPreferringInterns(C4ID id) {
 		List<C4Object> objs = getObjects(id);
 		if (objs != null) {
