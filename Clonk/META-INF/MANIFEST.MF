@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Clonk Plug-in
 Bundle-SymbolicName: net.arctics.clonk;singleton:=true
-Bundle-Version: 1.0.0
+Bundle-Version: 1.0.1
 Bundle-Activator: net.arctics.clonk.ClonkCore
 Require-Bundle: org.eclipse.ui,
  org.eclipse.core.runtime,

@@ -40,7 +40,6 @@ public class ClonkDocumentProvider extends FileDocumentProvider {
 //		if (editor instanceof C4ScriptEditor) {
 //			((C4ScriptEditor)editor).getOutlinePage().refresh();
 //		}
-		// FIXME does the outline refresh on build events?
 	}
 	
 	protected ClonkProjectNature getProject(ITextEditor editor) {

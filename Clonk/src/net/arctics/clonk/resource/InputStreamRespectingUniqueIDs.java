@@ -9,6 +9,11 @@ import java.io.ObjectInputStream;
 
 import net.arctics.clonk.parser.C4ID;
 
+/**
+ * The C4ID class is somehow special and therefore needs to be deserialized in a special way
+ * @author madeen
+ *
+ */
 public class InputStreamRespectingUniqueIDs extends ObjectInputStream {
 
 	public InputStreamRespectingUniqueIDs(InputStream input)

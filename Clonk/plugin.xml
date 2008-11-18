@@ -299,6 +299,12 @@
             schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"/>
 
 </extension>
+   <extension
+         point="org.eclipse.core.runtime.products">
+         <product name="Eclipse SDK" application="C4DT" description="Eclipse SDK - C4DT"> 
+         <property name="preferenceCustomization" value="plugin_customization.ini"/>
+         </product> 
+   </extension>
   
 <!--<extension
        point="org.eclipse.ui.commands">

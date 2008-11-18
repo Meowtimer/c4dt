@@ -154,7 +154,12 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 			return null;
 		}
 	}
-
+	
+	/**
+	 * Starts indexing of all external libraries
+	 * @throws InvalidDataException
+	 * @throws FileNotFoundException
+	 */
 	private void readExternalLibs() throws InvalidDataException, FileNotFoundException {
 		String optionString = ClonkCore.getDefault().getPreferenceStore().getString(PreferenceConstants.STANDARD_EXT_LIBS);
 		String[] libs = optionString.split("<>");
@@ -243,6 +248,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 //			}
 //			return false;
 //		}
+		// TODO i think we should delete the complete index here, since we regenerate it now completely
 		if (resource instanceof IContainer) {
 			switch (buildPhase) {
 			case 0:
@@ -332,6 +338,12 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 			return false;
 	}
 	
+	/**
+	 * Simple method to check whether the String <tt>item</tt> is in <tt>array</tt>. 
+	 * @param item
+	 * @param array
+	 * @return <code>true</code> when item exists in <tt>array</tt>, false if not
+	 */
 	private boolean isIn(String item, String[] array) {
 		for(String newLib : array) {
 			if (newLib.equals(item)) {

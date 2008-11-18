@@ -21,7 +21,6 @@ public class ClonkProjectNature implements IProjectNature {
 	private static final String indexDataFile = "indexdata";
 	
 	private IProject project;
-	private boolean isIndexed = false;
 	
 	private ProjectIndex indexedData = null;
 	
@@ -43,13 +42,7 @@ public class ClonkProjectNature implements IProjectNature {
 	}
 
 	/**
-	 * @return the isIndexed
-	 */
-	public boolean isIndexed() {
-		return isIndexed;
-	}
-
-	/**
+	 * Returns the complete index of the project.
 	 * @return the indexedData
 	 */
 	public ClonkIndex getIndexedData() {
@@ -58,6 +51,9 @@ public class ClonkProjectNature implements IProjectNature {
 		return indexedData;
 	}
 	
+	/**
+	 * Saves the index persistent to disc
+	 */
 	public void saveIndexData() {
 		final IFile index = project.getFile(indexDataFile);
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
@@ -80,6 +76,9 @@ public class ClonkProjectNature implements IProjectNature {
 		}
 	}
 	
+	/**
+	 * Starts Deserialization into <tt>indexedData</tt>
+	 */
 	private void loadIndexData() {
 		final IFile index = project.getFile(indexDataFile);
 		if (!index.exists()) {
