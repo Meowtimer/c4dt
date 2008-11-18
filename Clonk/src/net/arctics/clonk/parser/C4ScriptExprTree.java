@@ -783,6 +783,8 @@ public abstract class C4ScriptExprTree {
 		}
 
 		public C4Type getType() {
+			if (longValue() == 0)
+				return C4Type.ANY; // FIXME: to prevent warnings when assigning 0 to object-variables
 			return C4Type.INT;
 		}
 

@@ -347,7 +347,12 @@ public class ClonkCore extends AbstractUIPlugin implements IResourceChangeListen
 			Display.getDefault().asyncExec(new Runnable() {
 				public void run() {
 					for (ClonkProjectNature nature : gatheredNatures)
-						nature.saveIndexData(); // resave indexdata
+						try {
+							nature.saveIndexData();
+						} catch (CoreException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						} // resave indexdata
 					gatheredNatures = null;	
 				}
 			});

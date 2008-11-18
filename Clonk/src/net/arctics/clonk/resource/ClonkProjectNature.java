@@ -2,6 +2,8 @@ package net.arctics.clonk.resource;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
@@ -51,27 +53,20 @@ public class ClonkProjectNature implements IProjectNature {
 		return indexedData;
 	}
 	
-	/**
-	 * Saves the index persistent to disc
-	 */
-	public void saveIndexData() {
-		final IFile index = project.getFile(indexDataFile);
-		ByteArrayOutputStream out = new ByteArrayOutputStream();
+	public void saveIndexData() throws CoreException {
+		final IFile eclipseFile = project.getFile(indexDataFile);
+		if (!eclipseFile.exists())
+			eclipseFile.create(new ByteArrayInputStream(new byte[] {}), IResource.HIDDEN | IResource.DERIVED, null);
+		final File index = eclipseFile.getLocation().toFile();
 		try {
+			FileOutputStream out = new FileOutputStream(index);
 			ObjectOutputStream objStream = new ObjectOutputStream(out);
 			objStream.writeObject(getIndexedData());
 			objStream.close();
-			ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
-			if (index.exists()) {
-				index.setContents(in, true, false, null);
-			} else {
-				index.create(in, IResource.DERIVED | IResource.HIDDEN | IResource.FORCE, null);
-			}
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (CoreException e) {
-			// TODO Auto-generated catch block
+			out.close();
+			eclipseFile.touch(null);
+			eclipseFile.refreshLocal(IResource.DEPTH_ZERO, null);
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
