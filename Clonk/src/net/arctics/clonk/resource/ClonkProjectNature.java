@@ -64,7 +64,6 @@ public class ClonkProjectNature implements IProjectNature {
 			objStream.writeObject(getIndexedData());
 			objStream.close();
 			out.close();
-			eclipseFile.touch(null);
 			eclipseFile.refreshLocal(IResource.DEPTH_ZERO, null);
 		} catch (Exception e) {
 			e.printStackTrace();
