@@ -42,8 +42,9 @@ public class EditorActionContributor extends BasicTextEditorActionContributor {
 		// ACTION_INDEX_CLONK_DIR) == null)
 		// getActionBars().getToolBarManager().add(getAction((ITextEditor)part,
 		// C4ScriptEditor.ACTION_INDEX_CLONK_DIR));
-		fContentAssist.setAction(getAction((ITextEditor) part,
-				ITextEditorActionDefinitionIds.CONTENT_ASSIST_PROPOSALS));
+		if ((part instanceof ITextEditor))
+			fContentAssist.setAction(getAction((ITextEditor) part,
+					ITextEditorActionDefinitionIds.CONTENT_ASSIST_PROPOSALS));
 //		fConvertOldCodeToNewCode.setAction(getAction((ITextEditor)part, ClonkActionDefinitionIds.CONVERT_OLD_CODE_TO_NEW_CODE));
 		// fIndexClonkDir.setAction(getAction((ITextEditor)part,
 		// C4ScriptEditor.ACTION_INDEX_CLONK_DIR));
