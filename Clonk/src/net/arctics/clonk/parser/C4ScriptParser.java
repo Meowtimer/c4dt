@@ -570,6 +570,8 @@ public class C4ScriptParser {
 	}
 	
 	private int consumeFunctionCodeOrReturnReadChar(int offset) throws ParsingException {
+		eatWhitespace();
+		offset = fReader.getPosition();
 		if (parseVarVariableDeclaration(offset, true))
 			return 0;
 		if (parseToken(offset) != null)
@@ -1268,7 +1270,6 @@ public class C4ScriptParser {
 	
 	public Token parseToken(int offset) throws ParsingException {
 		fReader.seek(offset);
-		eatWhitespace();
 		if (parseString(offset))
 			return Token.String;
 		if (fReader.readWord().length() > 0)
