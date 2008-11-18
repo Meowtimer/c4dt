@@ -16,6 +16,7 @@ public class C4Variable extends C4Field implements Serializable {
 	private C4Type type;
 	private C4Object expectedContent; // mostly null - only set when type=object
 	private String description;
+	private boolean byRef; // array&
 	
 	public static final C4Variable THIS = new C4Variable("this", "object", "reference to the object calling the function");
 	
@@ -172,6 +173,14 @@ public class C4Variable extends C4Field implements Serializable {
 			setType(val.getType());
 		else if (getType() != val.getType())
 			setType(C4Type.ANY);
+	}
+
+	public boolean isByRef() {
+		return byRef;
+	}
+
+	public void setByRef(boolean byRef) {
+		this.byRef = byRef;
 	}
 	
 }
