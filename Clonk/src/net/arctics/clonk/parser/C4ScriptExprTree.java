@@ -768,18 +768,18 @@ public abstract class C4ScriptExprTree {
 
 	}
 
-	public static final class ExprNumber extends ExprLiteral<Integer> {
+	public static final class ExprNumber extends ExprLiteral<Long> {
 
-		public ExprNumber(int value) {
-			super(new Integer(value));
+		public ExprNumber(long value) {
+			super(new Long(value));
 		}
 
-		public int intValue() {
-			return getLiteral().intValue();
+		public long longValue() {
+			return getLiteral().longValue();
 		}
 
 		public void print(StringBuilder output) {
-			output.append(intValue());
+			output.append(longValue());
 		}
 
 		public C4Type getType() {
@@ -789,7 +789,7 @@ public abstract class C4ScriptExprTree {
 		@Override
 		public boolean canBeConvertedTo(C4Type otherType) {
 			// 0 is the NULL object or NULL string
-			return (intValue() == 0 && (otherType == C4Type.OBJECT || otherType == C4Type.STRING)) || super.canBeConvertedTo(otherType);
+			return (longValue() == 0 && (otherType == C4Type.OBJECT || otherType == C4Type.STRING)) || super.canBeConvertedTo(otherType);
 		}
 
 	}

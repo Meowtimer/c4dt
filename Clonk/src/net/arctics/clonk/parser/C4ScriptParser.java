@@ -1,10 +1,9 @@
 package net.arctics.clonk.parser;
 
-import java.io.ByteArrayInputStream;
-import java.io.File;
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.UnsupportedEncodingException;
+import java.io.InputStreamReader;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -20,7 +19,6 @@ import net.arctics.clonk.parser.C4ScriptExprTree.*;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IResource;
-import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.IDocument;
@@ -39,22 +37,34 @@ public class C4ScriptParser {
 		public static final char[] WHITESPACE_DELIMITERS = new char[] { ' ', '\n', '\r', '\t' };
 		public static final char[] NEWLINE_DELIMITERS = new char[] { '\n', '\r' };
 
-		private byte[] buffer;
+		private String buffer;
 		private int size;
 		private InputStream contents;
 		private int offset;
 
+		private static String stringFromInputStream(InputStream stream) throws IOException {
+			BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(stream));
+			StringBuilder stringBuilder;
+			try {
+				stringBuilder = new StringBuilder();
+				char[] buffer = new char[1024];
+				int read;
+				while ((read = bufferedReader.read(buffer)) > 0) {
+					stringBuilder.append(buffer, 0, read);
+				}
+
+			} finally {
+				bufferedReader.close();
+			}
+			return stringBuilder.toString();
+		}
+		
 		public BufferedScanner(IFile file) throws CompilerException {
 			try {
 				contents = file.getContents();
-				long longSize = new File(file.getLocation().toString()).length();
-				if (longSize > Integer.MAX_VALUE) {
-					throw new CompilerException("Script file is too large. Unable to parse such a file");
-				}
-				size = (int)longSize;
 				offset = 0;
-				buffer = new byte[size];
-				contents.read(buffer);
+				buffer = stringFromInputStream(contents);
+				size = buffer.length();
 			} catch (CoreException e) {
 				e.printStackTrace();
 			} catch (IOException e) {
@@ -65,16 +75,19 @@ public class C4ScriptParser {
 		public BufferedScanner(InputStream stream, long fileSize) throws CompilerException {
 			try {
 				contents = stream;
-				if (fileSize > Integer.MAX_VALUE) {
-					throw new CompilerException("Script file is too large. Unable to parse such a file");
-				}
-				size = (int)fileSize;
 				offset = 0;
-				buffer = new byte[size];
-				contents.read(buffer);
+				buffer = stringFromInputStream(stream);
+				size = buffer.length();
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
+		}
+		
+		public BufferedScanner(String withString) {
+			contents = null;
+			offset = 0;
+			buffer = withString;
+			size = buffer.length();
 		}
 
 		public int read() {
@@ -82,7 +95,7 @@ public class C4ScriptParser {
 				offset++; // increment anyway so unread works as expected
 				return -1;
 			}
-			return buffer[offset++];
+			return buffer.charAt(offset++);
 		}
 
 		public void unread() {
@@ -92,15 +105,9 @@ public class C4ScriptParser {
 		public String readString(int length) {
 			if (offset+length > size) 
 				return null;
-			try {
-				String encoding = ResourcesPlugin.getEncoding();
-				String result = new String(buffer,offset,length,encoding);
-				offset += length;
-				return result;
-			} catch (UnsupportedEncodingException e) {
-				e.printStackTrace();;
-				return "Encoding is not available on this system.";
-			}
+			String result = buffer.substring(offset, offset+length);
+			offset += length;
+			return result;
 		}
 
 		public static boolean isWordPart(int character) {
@@ -314,6 +321,13 @@ public class C4ScriptParser {
 		fScript = null;
 		this.stream = stream;
 		fReader = new BufferedScanner(this.stream, size);
+		container = object;
+	}
+	
+	public C4ScriptParser(String withString, C4Object object) {
+		fScript = null;
+		stream = null;
+		fReader = new BufferedScanner(withString);
 		container = object;
 	}
 	
@@ -1447,7 +1461,7 @@ public class C4ScriptParser {
 			if (elm == null && parseNumber(fReader.offset)) {
 				if (parsedNumber < Integer.MIN_VALUE || parsedNumber > Integer.MAX_VALUE)
 					warningWithCode(ErrorCode.OutOfIntRange, elmStart, fReader.getPosition(), String.valueOf(parsedNumber));
-				elm = new ExprNumber((int)parsedNumber);
+				elm = new ExprNumber(parsedNumber);
 			}
 			
 			// string
@@ -1696,26 +1710,23 @@ public class C4ScriptParser {
 						int operatorPos = fReader.getPosition();
 						C4ScriptOperator op = parseOperator_(fReader.getPosition());
 						if (op != null && op.isBinary()) {
-							int prior = op.priority();
+							int priorOfNewOp = op.priority();
 							ExprElm newLeftSide = null;
-							if (lastOp == null || prior > lastOp.getOperator().priority() || (prior == lastOp.getOperator().priority() && op.rightAssociative())) {
-								newLeftSide = current;
-								current = new ExprBinaryOp(op);
-								if (newLeftSide.getParent() != null)
-									((ExprBinaryOp)newLeftSide.getParent()).setRightSide(current);
-								else
-									root = current;
-								if (lastOp != null)
-									lastOp.setRightSide(current);
-								lastOp = (ExprBinaryOp)current;
+							ExprBinaryOp theOp = null;
+							for (ExprElm opFromBottom = current.getParent(); opFromBottom instanceof ExprBinaryOp; opFromBottom = opFromBottom.getParent()) {
+								ExprBinaryOp oneOp = (ExprBinaryOp) opFromBottom;
+								if (priorOfNewOp > oneOp.getOperator().priority() || (priorOfNewOp == oneOp.getOperator().priority() && op.rightAssociative())) {
+									theOp = oneOp;
+									break;
+								}
+							}
+							if (theOp != null) {
+								newLeftSide = theOp.getRightSide();
+								current = lastOp = new ExprBinaryOp(op);
+								theOp.setRightSide(current);
 							} else {
-								newLeftSide = lastOp;
-								lastOp = new ExprBinaryOp(op);
-								if (newLeftSide.getParent() != null)
-									((ExprBinaryOp)newLeftSide.getParent()).setRightSide(lastOp);
-								else
-									root = lastOp;
-								current = lastOp;
+								newLeftSide = root;
+								current = root = lastOp = new ExprBinaryOp(op);
 							}
 							lastOp.setLeftSide(newLeftSide);
 							lastOp.setExprRegion(operatorPos, fReader.getPosition());
@@ -2195,8 +2206,7 @@ public class C4ScriptParser {
 	
 	public static C4ScriptParser reportExpressionsInStatements(IDocument doc, int statementStart, int statementEnd, C4Object context, C4Function func, IExpressionListener listener) throws BadLocationException, CompilerException, ParsingException {
 		String expr = doc.get(statementStart, statementEnd-statementStart);
-		InputStream stream = new ByteArrayInputStream(expr.getBytes());
-		C4ScriptParser parser = new C4ScriptParser(stream,  expr.length(), context);
+		C4ScriptParser parser = new C4ScriptParser(expr, context);
 		parser.activeFunc = func;
 		parser.setExpressionListener(listener);
 		try {
