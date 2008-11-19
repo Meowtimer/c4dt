@@ -1,23 +1,18 @@
 package net.arctics.clonk.ui.editors;
 
-import java.util.Vector;
-
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CTabFolder;
+import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.editors.text.TextEditor;
-import org.eclipse.ui.forms.IFormPart;
 import org.eclipse.ui.forms.IManagedForm;
 import org.eclipse.ui.forms.SectionPart;
 import org.eclipse.ui.forms.editor.FormEditor;
 import org.eclipse.ui.forms.editor.FormPage;
-import org.eclipse.ui.forms.editor.IFormPage;
 import org.eclipse.ui.forms.widgets.FormToolkit;
 import org.eclipse.ui.forms.widgets.ScrolledForm;
 import org.eclipse.ui.forms.widgets.Section;
@@ -38,15 +33,28 @@ public class C4DefCoreEditor extends FormEditor {
 
 			FormToolkit toolkit = managedForm.getToolkit();
 			ScrolledForm form = managedForm.getForm();
-			form.setText("hallo");
-			form.getBody().setLayout(new GridLayout(2,false));
+			toolkit.decorateFormHeading(form.getForm());
+			form.setText("DefCore main options");
 			
-//			SectionPart part = new SectionPart(form.getBody(),toolkit,Section.EXPANDED);
-//			managedForm.addPart(part);
+			GridLayout layout = new GridLayout(1,false);
+			form.getBody().setLayout(layout);
+			form.getBody().setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 			
-			Label lab = toolkit.createLabel(form.getBody(), "blub",SWT.LEFT);
 			
-			toolkit.createButton(form.getBody(), "test", SWT.PUSH);
+			SectionPart part = new SectionPart(form.getBody(),toolkit,Section.CLIENT_INDENT | Section.TITLE_BAR | Section.EXPANDED);
+			
+			part.getSection().setText("section text");
+			part.getSection().setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+			
+			Composite sectionComp = toolkit.createComposite(part.getSection());
+			sectionComp.setLayout(new GridLayout());
+			sectionComp.setLayoutData(new GridData(GridData.FILL_BOTH));
+			
+			part.getSection().setClient(sectionComp);
+			
+			toolkit.createLabel(sectionComp, "Title bar dingens halt");
+			
+			toolkit.createLabel(sectionComp, "blub",SWT.LEFT);
 //			lab.setText("flub");
 //			lab.setVisible(true);
 		}
@@ -80,7 +88,8 @@ public class C4DefCoreEditor extends FormEditor {
 			int index = addPage(new RawSourcePage(this, RawSourcePage.PAGE_ID,"DefCore.txt"),this.getEditorInput());
 			// editors as pages are not able to handle tab title strings
 			// so here is a dirty trick:
-			((CTabFolder)getContainer()).getItem(index).setText("DefCore.txt");
+			if (getContainer() instanceof CTabFolder)
+				((CTabFolder)getContainer()).getItem(index).setText("DefCore.txt");
 		} catch (PartInitException e) {
 			e.printStackTrace();
 		}
