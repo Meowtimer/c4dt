@@ -1,52 +1,107 @@
 package net.arctics.clonk.ui.editors;
 
-import org.eclipse.core.resources.IFile;
-import org.eclipse.ui.editors.text.TextEditor;
-import org.eclipse.ui.part.FileEditorInput;
+import java.util.Vector;
 
-public class C4DefCoreEditor extends TextEditor {
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.CTabFolder;
+import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Label;
+import org.eclipse.ui.PartInitException;
+import org.eclipse.ui.editors.text.TextEditor;
+import org.eclipse.ui.forms.IFormPart;
+import org.eclipse.ui.forms.IManagedForm;
+import org.eclipse.ui.forms.SectionPart;
+import org.eclipse.ui.forms.editor.FormEditor;
+import org.eclipse.ui.forms.editor.FormPage;
+import org.eclipse.ui.forms.editor.IFormPage;
+import org.eclipse.ui.forms.widgets.FormToolkit;
+import org.eclipse.ui.forms.widgets.ScrolledForm;
+import org.eclipse.ui.forms.widgets.Section;
+
+public class C4DefCoreEditor extends FormEditor {
 
 	public C4DefCoreEditor() {
-		super();
-		// TODO Auto-generated constructor stub
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.ui.editors.text.TextEditor#createActions()
-	 */
-	@Override
-	protected void createActions() {
-		super.createActions();
-//		IAction action = new IndexClonkDir(ResourceBundle.getBundle("net.arctics.clonk.ui.editors.Messages"),"IndexClonkDir.",this); 
-//		action.setToolTipText("Index Clonk directory");
-//		action.setActionDefinitionId(C4ScriptEditor.ACTION_INDEX_CLONK_DIR);
-//		action.setDisabledImageDescriptor(PlatformUI.getWorkbench().getSharedImages().getImageDescriptor(ISharedImages.IMG_TOOL_NEW_WIZARD_DISABLED));
-//		action.setImageDescriptor(PlatformUI.getWorkbench().getSharedImages().getImageDescriptor(ISharedImages.IMG_LCL_LINKTO_HELP));
-//		setAction(C4ScriptEditor.ACTION_INDEX_CLONK_DIR, action);
-	}
+	public static class DefCoreSectionPage extends FormPage {
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.ui.texteditor.AbstractTextEditor#editorSaved()
-	 */
-//	@Override
-//	protected void editorSaved() {
-//		super.editorSaved();
-//		try {
-//			C4DefCoreParser.getInstance().update(getEditingFile());
-//		} catch (CoreException e) {
-//			e.printStackTrace();
-//		}
-//		ClonkLabelProvider.instance.testRefresh();
-//		
-//	}
-	
-	protected IFile getEditingFile() {
-		if (getEditorInput() instanceof FileEditorInput) {
-			return ((FileEditorInput)getEditorInput()).getFile();
+		public DefCoreSectionPage(FormEditor editor, String id, String title) {
+			super(editor, id, title);
 		}
-		else return null;
+
+		protected void createFormContent(IManagedForm managedForm) {
+			super.createFormContent(managedForm);
+
+			FormToolkit toolkit = managedForm.getToolkit();
+			ScrolledForm form = managedForm.getForm();
+			form.setText("hallo");
+			form.getBody().setLayout(new GridLayout(2,false));
+			
+//			SectionPart part = new SectionPart(form.getBody(),toolkit,Section.EXPANDED);
+//			managedForm.addPart(part);
+			
+			Label lab = toolkit.createLabel(form.getBody(), "blub",SWT.LEFT);
+			
+			toolkit.createButton(form.getBody(), "test", SWT.PUSH);
+//			lab.setText("flub");
+//			lab.setVisible(true);
+		}
+	}
+
+	public static class RawSourcePage extends TextEditor {
+		
+		public static final String PAGE_ID = "rawDefCore";
+		
+		private FormEditor fEditor;
+		private String id;
+		private String title;
+		
+		public RawSourcePage(FormEditor editor, String id, String title) {
+			fEditor = editor;
+			this.id = id;
+			setPartName(title);
+			setContentDescription(title);
+			this.title = title;
+		}
+
+		public void resetPartName() {
+			setPartName(title);
+		}
 	}
 	
-	
+	@Override
+	protected void addPages() {
+		try {
+			addPage(new DefCoreSectionPage(this, "DefCore", "[DefCore]"));
+			int index = addPage(new RawSourcePage(this, RawSourcePage.PAGE_ID,"DefCore.txt"),this.getEditorInput());
+			// editors as pages are not able to handle tab title strings
+			// so here is a dirty trick:
+			((CTabFolder)getContainer()).getItem(index).setText("DefCore.txt");
+		} catch (PartInitException e) {
+			e.printStackTrace();
+		}
+	}
+
+	@Override
+	public void doSave(IProgressMonitor monitor) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public void doSaveAs() {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public boolean isSaveAsAllowed() {
+		// TODO Auto-generated method stub
+		return false;
+	}
 
 }
