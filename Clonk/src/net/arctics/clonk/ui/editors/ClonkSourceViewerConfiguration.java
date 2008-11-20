@@ -1,26 +1,10 @@
 package net.arctics.clonk.ui.editors;
 
-import net.arctics.clonk.ClonkCore;
-import net.arctics.clonk.Utilities;
 import net.arctics.clonk.parser.C4Field;
-import net.arctics.clonk.parser.C4Function;
-import net.arctics.clonk.parser.C4ID;
 import net.arctics.clonk.parser.C4Object;
-import net.arctics.clonk.parser.C4ObjectExtern;
-import net.arctics.clonk.parser.C4ObjectIntern;
-import net.arctics.clonk.parser.C4ScriptParser;
 import net.arctics.clonk.parser.CompilerException;
-import net.arctics.clonk.parser.C4ScriptExprTree.ExprAccessField;
-import net.arctics.clonk.parser.C4ScriptExprTree.ExprElm;
-import net.arctics.clonk.parser.C4ScriptExprTree.ExprID;
-import net.arctics.clonk.parser.C4ScriptExprTree.FieldRegion;
-import net.arctics.clonk.parser.C4ScriptExprTree.IExpressionListener;
-import net.arctics.clonk.parser.C4ScriptExprTree.TraversalContinuation;
-import net.arctics.clonk.parser.C4ScriptParser.ParsingException;
 
-import org.eclipse.core.resources.IFile;
 import org.eclipse.jface.internal.text.html.HTMLTextPresenter;
-import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.DefaultInformationControl;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IInformationControl;
@@ -45,109 +29,19 @@ import org.eclipse.jface.text.rules.DefaultDamagerRepairer;
 import org.eclipse.jface.text.rules.Token;
 import org.eclipse.jface.text.source.ISourceViewer;
 import org.eclipse.swt.widgets.Shell;
-import org.eclipse.ui.IEditorPart;
-import org.eclipse.ui.IWorkbench;
-import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.PartInitException;
-import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.editors.text.TextSourceViewerConfiguration;
-import org.eclipse.ui.part.FileEditorInput;
 import org.eclipse.ui.texteditor.ITextEditor;
 
 @SuppressWarnings("restriction")
 public class ClonkSourceViewerConfiguration extends TextSourceViewerConfiguration {
-	
-	/**
-	 * Encapsulates information about an identifier in a document and the field it refers to
-	 * @author madeen
-	 *
-	 */
-	private class IdentInfo implements IExpressionListener {
-		private String line;
-		private IRegion identRegion;
-		private ExprElm exprAtRegion;
-		private C4Field field;
-		
-		public IdentInfo(IDocument doc, IRegion region) throws BadLocationException, CompilerException, ParsingException {
-			C4Object obj = Utilities.getObjectForEditor(getEditor());
-			C4Function func = obj.funcAt(region);
-			if (func == null) {
-				// outside function, fallback to old technique (only ids)
-				IRegion lineInfo;
-				String line;
-				try {
-					lineInfo = doc.getLineInformationOfOffset(region.getOffset());
-					line = doc.get(lineInfo.getOffset(),lineInfo.getLength());
-				} catch (BadLocationException e) {
-					return;
-				}
-				int localOffset = region.getOffset() - lineInfo.getOffset();
-				int start,end;
-				for (start = localOffset; start > 0 && Character.isJavaIdentifierPart(line.charAt(start-1)); start--);
-				for (end = localOffset; end < line.length() && Character.isJavaIdentifierPart(line.charAt(end)); end++);
-				identRegion = new Region(lineInfo.getOffset()+start,end-start);
-				if (identRegion.getLength() == 4) {
-					C4ID id = C4ID.getID(doc.get(identRegion.getOffset(), identRegion.getLength()));
-					field = Utilities.getObjectForEditor(getEditor()).getIndex().getLastObjectWithId(id);
-					if (field == null)
-						field = ClonkCore.EXTERN_INDEX.getLastObjectWithId(id);
-				}
-				return;
-			}
-			int statementStart = func.getBody().getOffset();
-			identRegion = new Region(region.getOffset()-statementStart,0);
-			C4ScriptParser parser = C4ScriptParser.reportExpressionsInStatements(doc, func.getBody(), obj, func, this);
-			if (exprAtRegion != null) {
-				FieldRegion fieldRegion = exprAtRegion.fieldAt(identRegion.getOffset()-exprAtRegion.getExprStart(), parser);
-				if (fieldRegion != null) {
-					this.field = fieldRegion.getField();
-					this.identRegion = new Region(statementStart+fieldRegion.getRegion().getOffset(), fieldRegion.getRegion().getLength());
-				}
-				
-			}
-		}
-		
-		/**
-		 * @return the line
-		 */
-		public String getLine() {
-			return line;
-		}
-
-		/**
-		 * @return the identRegion
-		 */
-		public IRegion getIdentRegion() {
-			return identRegion;
-		}
-
-		/**
-		 * @return the field
-		 */
-		public C4Field getField() {
-			return field;
-		}
-
-		public TraversalContinuation expressionDetected(ExprElm expression) {
-			expression.traverse(new IExpressionListener() {
-				public TraversalContinuation expressionDetected(ExprElm expression) {
-					if (identRegion.getOffset() >= expression.getExprStart() && identRegion.getOffset() < expression.getExprEnd()) {
-						exprAtRegion = expression;
-						return TraversalContinuation.TraverseSubElements;
-					}
-					return TraversalContinuation.Continue;
-				}
-			});
-			return exprAtRegion != null ? TraversalContinuation.Cancel : TraversalContinuation.Continue;
-		}
-	}
 	
 	private class C4ScriptHyperlinkDetector implements IHyperlinkDetector {
 
 		public IHyperlink[] detectHyperlinks(ITextViewer viewer, IRegion region, boolean canShowMultipleHyperlinks) {
 			IdentInfo i;
 			try {
-				i = new IdentInfo(viewer.getDocument(),region);
+				i = new IdentInfo(getEditor(), viewer.getDocument(),region);
 			} catch (Exception e) {
 				e.printStackTrace();
 				i = null;
@@ -191,36 +85,14 @@ public class ClonkSourceViewerConfiguration extends TextSourceViewerConfiguratio
 		}
 
 		public void open() {
-			IWorkbench workbench = PlatformUI.getWorkbench();
-			IWorkbenchPage workbenchPage = workbench.getActiveWorkbenchWindow().getActivePage();
 			try {
-				C4Object obj = target instanceof C4Object ? (C4Object)target : target.getObject();
-				if (obj!= null) {
-					if (obj instanceof C4ObjectIntern) {
-						IEditorPart editor = workbenchPage.openEditor(new FileEditorInput((IFile) obj.getScript()), "clonk.editors.C4ScriptEditor");
-						C4ScriptEditor scriptEditor = (C4ScriptEditor)editor;						
-						if (target != obj) {
-							scriptEditor.reparseWithDocumentContents(null, false);
-							target = target.latestVersion();
-							if (target != null)
-								scriptEditor.selectAndReveal(target.getLocation());
-						}
-					}
-					else if (obj instanceof C4ObjectExtern) {
-						if (obj != ClonkCore.ENGINE_OBJECT) {
-							IEditorPart editor = workbenchPage.openEditor(new ObjectExternEditorInput((C4ObjectExtern)obj), "clonk.editors.C4ScriptEditor");
-							C4ScriptEditor scriptEditor = (C4ScriptEditor)editor;
-							if (target != obj)
-								scriptEditor.selectAndReveal(target.getLocation());
-						}
-					}
-				} else {
-					// TODO: provide some info about global functions or something
-				}
-			} catch (PartInitException e) {
-				e.printStackTrace();
-			} catch (CompilerException e) {
-				//e.printStackTrace();
+				C4ScriptEditor.openDeclaration(target);
+			} catch (PartInitException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			} catch (CompilerException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
 			}
 		}
 		
@@ -244,7 +116,7 @@ public class ClonkSourceViewerConfiguration extends TextSourceViewerConfiguratio
 
 		public IRegion getHoverRegion(ITextViewer viewer, int offset) {
 			try {
-				identInfo = new IdentInfo(viewer.getDocument(), new Region(offset, 0));
+				identInfo = new IdentInfo(getEditor(), viewer.getDocument(), new Region(offset, 0));
 			} catch (Exception e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();

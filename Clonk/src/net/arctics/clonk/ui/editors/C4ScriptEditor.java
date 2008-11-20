@@ -4,7 +4,12 @@ import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.util.ResourceBundle;
 
+import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.Utilities;
+import net.arctics.clonk.parser.C4Field;
+import net.arctics.clonk.parser.C4Object;
+import net.arctics.clonk.parser.C4ObjectExtern;
+import net.arctics.clonk.parser.C4ObjectIntern;
 import net.arctics.clonk.parser.C4ScriptExprTree;
 import net.arctics.clonk.parser.C4ScriptParser;
 import net.arctics.clonk.parser.CompilerException;
@@ -12,6 +17,7 @@ import net.arctics.clonk.parser.SourceLocation;
 import net.arctics.clonk.ui.editors.actions.ConvertOldCodeToNewCodeAction;
 import net.arctics.clonk.ui.editors.actions.OpenDeclarationAction;
 
+import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.action.IMenuManager;
@@ -22,6 +28,12 @@ import org.eclipse.jface.text.source.IVerticalRuler;
 import org.eclipse.jface.text.source.projection.ProjectionViewer;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.ui.IEditorPart;
+import org.eclipse.ui.IWorkbench;
+import org.eclipse.ui.IWorkbenchPage;
+import org.eclipse.ui.PartInitException;
+import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.part.FileEditorInput;
 import org.eclipse.ui.texteditor.AbstractDecoratedTextEditor;
 import org.eclipse.ui.texteditor.ContentAssistAction;
 import org.eclipse.ui.texteditor.ITextEditorActionDefinitionIds;
@@ -113,7 +125,6 @@ public class C4ScriptEditor extends AbstractDecoratedTextEditor {
 		setAction(ClonkCommandIds.CONVERT_OLD_CODE_TO_NEW_CODE, action);
 		
 		action = new OpenDeclarationAction(messagesBundle,"OpenDeclarationAction.",this); //$NON-NLS-1$
-		action.setActionDefinitionId(ClonkCommandIds.OPEN_DECLARATION);
 		setAction(ClonkCommandIds.OPEN_DECLARATION, action);
 		
 	}
@@ -176,6 +187,34 @@ public class C4ScriptEditor extends AbstractDecoratedTextEditor {
 			parser.parseCodeOfFunctions();
 		refreshOutline();
 		return parser;
+	}
+	
+	public static void openDeclaration(C4Field target) throws PartInitException, CompilerException {
+		IWorkbench workbench = PlatformUI.getWorkbench();
+		IWorkbenchPage workbenchPage = workbench.getActiveWorkbenchWindow().getActivePage();
+		C4Object obj = target instanceof C4Object ? (C4Object)target : target.getObject();
+		if (obj != null) {
+			if (obj instanceof C4ObjectIntern) {
+				IEditorPart editor = workbenchPage.openEditor(new FileEditorInput((IFile) obj.getScript()), "clonk.editors.C4ScriptEditor");
+				C4ScriptEditor scriptEditor = (C4ScriptEditor)editor;						
+				if (target != obj) {
+					scriptEditor.reparseWithDocumentContents(null, false);
+					target = target.latestVersion();
+					if (target != null)
+						scriptEditor.selectAndReveal(target.getLocation());
+				}
+			}
+			else if (obj instanceof C4ObjectExtern) {
+				if (obj != ClonkCore.ENGINE_OBJECT) {
+					IEditorPart editor = workbenchPage.openEditor(new ObjectExternEditorInput((C4ObjectExtern)obj), "clonk.editors.C4ScriptEditor");
+					C4ScriptEditor scriptEditor = (C4ScriptEditor)editor;
+					if (target != obj)
+						scriptEditor.selectAndReveal(target.getLocation());
+				}
+			}
+		} else {
+			// TODO: provide some info about global functions or something
+		}
 	}
 
 }

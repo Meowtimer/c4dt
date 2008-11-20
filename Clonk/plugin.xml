@@ -289,6 +289,12 @@
          	id="net.arctics.clonk.ui.editors.actions.ConvertOldCodeToNewCode"
          >
          </command>
+         <command
+               categoryId="org.eclipse.ui.category.edit"
+               description="Open Declaration"
+               id="net.arctics.clonk.ui.editors.actions.OpenDeclaration"
+               name="Open Declaration">
+         </command>
 </extension>
 
    <extension
@@ -304,6 +310,46 @@
          <product name="Eclipse SDK" application="C4DT" description="Eclipse SDK - C4DT"> 
          <property name="preferenceCustomization" value="plugin_customization.ini"/>
          </product> 
+   </extension>
+   <extension
+         id="product"
+         point="org.eclipse.core.runtime.products">
+      <product
+            application="org.eclipse.ui.ide.workbench"
+            name="Clonklipse">
+         <property
+               name="windowImages"
+               value="eclipse.gif,eclipse32.gif,eclipse48.gif,eclipse.png,eclipse32.png">
+         </property>
+         <property
+               name="aboutText"
+               value="Clonklipse Amazing Edition 5002">
+         </property>
+         <property
+               name="aboutImage"
+               value="eclipse_lg.gif">
+         </property>
+         <property
+               name="startupForegroundColor"
+               value="C8D5EA">
+         </property>
+         <property
+               name="startupProgressRect"
+               value="0,280,455,15">
+         </property>
+         <property
+               name="startupMessageRect"
+               value="7,220,441,20">
+         </property>
+         <property
+               name="appName"
+               value="Clonklipse">
+         </property>
+         <property
+               name="preferenceCustomization"
+               value="plugin_customization.ini">
+         </property>
+      </product>
    </extension>
   
 <!--<extension

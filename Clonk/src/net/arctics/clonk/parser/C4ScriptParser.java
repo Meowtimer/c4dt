@@ -1948,11 +1948,6 @@ public class C4ScriptParser {
 				return true;
 			}
 			else if (readWord.equals("for")) {
-//				if (!readWord.equals(readWord.toLowerCase())) {
-//					String problem = "Syntax error: you should only use lower case letters in keywords. ('" + readWord.toLowerCase() + "' instead of '" + readWord + "')"; 
-//					createErrorMarker(fReader.getPosition() - readWord.length(), fReader.getPosition(), problem);
-//					throw new ParsingException(problem);
-//				}
 				eatWhitespace();
 				if (fReader.read() != '(') {
 					tokenExpectedError("(");					

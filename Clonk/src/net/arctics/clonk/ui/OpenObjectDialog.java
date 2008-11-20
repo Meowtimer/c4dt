@@ -17,11 +17,9 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.dialogs.IDialogSettings;
-import org.eclipse.jface.viewers.ILabelDecorator;
 import org.eclipse.jface.viewers.LabelProvider;
 import org.eclipse.jface.viewers.StyledString;
 import org.eclipse.jface.viewers.DelegatingStyledCellLabelProvider.IStyledLabelProvider;
-import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Shell;
@@ -34,6 +32,8 @@ public class OpenObjectDialog extends FilteredItemsSelectionDialog {
 	private class OpenObjectLabelProvider extends LabelProvider implements IStyledLabelProvider {
 
 		public StyledString getStyledText(Object element) {
+			if (element == null)
+				return new StyledString("<Empty>");
 			if (!(element instanceof C4Object)) return new StyledString(element.toString());
 			C4Object obj = (C4Object) element;
 			StyledString buf = new StyledString(obj.getName());
