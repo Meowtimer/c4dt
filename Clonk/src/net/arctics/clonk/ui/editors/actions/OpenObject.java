@@ -1,13 +1,18 @@
 package net.arctics.clonk.ui.editors.actions;
 
 import net.arctics.clonk.ClonkCore;
+import net.arctics.clonk.parser.C4Object;
+import net.arctics.clonk.parser.CompilerException;
 import net.arctics.clonk.ui.OpenObjectDialog;
+import net.arctics.clonk.ui.editors.C4ScriptEditor;
 
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.viewers.ISelection;
+import org.eclipse.jface.window.Window;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.IWorkbenchWindowActionDelegate;
+import org.eclipse.ui.PartInitException;
 
 public class OpenObject extends Action implements
 		IWorkbenchWindowActionDelegate {
@@ -22,7 +27,17 @@ public class OpenObject extends Action implements
 
 	public void run() {
 		OpenObjectDialog dialog = new OpenObjectDialog(ClonkCore.getDefault().getWorkbench().getActiveWorkbenchWindow().getShell());
-		dialog.open();
+		switch (dialog.open()) {
+		case Window.OK:
+			for (C4Object o : dialog.getSelectedObjects()) {
+				try {
+					C4ScriptEditor.openDeclaration(o);
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+			break;
+		}
 	}
 
 	public void run(IAction action) {

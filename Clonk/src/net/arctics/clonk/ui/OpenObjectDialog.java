@@ -8,6 +8,7 @@ import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.Utilities;
 import net.arctics.clonk.parser.C4ID;
 import net.arctics.clonk.parser.C4Object;
+import net.arctics.clonk.parser.ClonkIndex;
 import net.arctics.clonk.resource.ClonkProjectNature;
 
 import org.eclipse.core.resources.IProject;
@@ -18,6 +19,7 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.dialogs.IDialogSettings;
 import org.eclipse.jface.viewers.LabelProvider;
+import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.viewers.StyledString;
 import org.eclipse.jface.viewers.DelegatingStyledCellLabelProvider.IStyledLabelProvider;
 import org.eclipse.swt.widgets.Composite;
@@ -90,17 +92,26 @@ public class OpenObjectDialog extends FilteredItemsSelectionDialog {
 			if (project.isOpen()) {
 				if (project.isNatureEnabled(ClonkCore.CLONK_NATURE_ID)) {
 					ClonkProjectNature nature = Utilities.getProject(project);
-					Map<C4ID,List<C4Object>> objects = nature.getIndexedData().getIndexedObjects();
-					progressMonitor.beginTask("Searching", objects.size());
-					for(List<C4Object> idObjects : objects.values()) {
-						contentProvider.add(idObjects.get(idObjects.size() - 1), itemsFilter);
-						progressMonitor.worked(1);
-					}
-					progressMonitor.done();
+					ClonkIndex index = nature.getIndexedData();
+					fillWithIndexContents(contentProvider, itemsFilter,
+							progressMonitor, index);
 				}
 			}
 		}
+		fillWithIndexContents(contentProvider, itemsFilter, progressMonitor, ClonkCore.EXTERN_INDEX);
 		
+	}
+
+	private void fillWithIndexContents(AbstractContentProvider contentProvider,
+			ItemsFilter itemsFilter, IProgressMonitor progressMonitor,
+			ClonkIndex index) {
+		Map<C4ID,List<C4Object>> objects = index.getIndexedObjects();
+		progressMonitor.beginTask("Searching", objects.size());
+		for(List<C4Object> idObjects : objects.values()) {
+			contentProvider.add(idObjects.get(idObjects.size() - 1), itemsFilter);
+			progressMonitor.worked(1);
+		}
+		progressMonitor.done();
 	}
 
 	@Override
@@ -133,6 +144,14 @@ public class OpenObjectDialog extends FilteredItemsSelectionDialog {
 	@Override
 	protected IStatus validateItem(Object item) {
 		return Status.OK_STATUS;
+	}
+	
+	public C4Object[] getSelectedObjects() {
+		Object[] objects = this.getResult();
+		C4Object[] result = new C4Object[objects.length];
+		for (int i = 0; i < result.length; i++)
+			result[i] = (C4Object) objects[i];
+		return result;
 	}
 
 }

@@ -342,6 +342,11 @@ public abstract class C4Object extends C4Structure {
 	}
 	
 	public abstract ClonkIndex getIndex();
+
+	@Override
+	public String toString() {
+		return getName() + " (" + id.toString() + ")";
+	}
 	
 //	public String getText(Object element) {
 //		if (element instanceof C4Function)
