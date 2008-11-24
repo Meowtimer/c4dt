@@ -2,6 +2,8 @@ package net.arctics.clonk.ui.wizards;
 
 
 import net.arctics.clonk.ClonkCore;
+import net.arctics.clonk.parser.C4ID;
+import net.arctics.clonk.parser.C4ObjectIntern;
 
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.wizard.Wizard;
@@ -103,12 +105,12 @@ public class NewC4Object extends Wizard implements INewWizard {
 		}
 		IContainer container = (IContainer) resource;
 		final IFolder subContainer = container.getFolder(new Path(fileName));
+		if (!subContainer.exists()) {
+			subContainer.create(IResource.NONE,true,monitor);
+		}
+		C4ObjectIntern newObject = new C4ObjectIntern(C4ID.getID(objectID), containerName, subContainer);
 		try {
-			InputStream stream = openContentStream();
-			if (!subContainer.exists()) {
-				subContainer.create(IResource.NONE,true,monitor);
-//				file.create(stream, true, monitor);
-			}
+			InputStream stream;
 			stream = initialDefCoreStream(fileName, objectID);
 			subContainer.getFile("DefCore.txt").create(stream, true, monitor);
 			stream.close();

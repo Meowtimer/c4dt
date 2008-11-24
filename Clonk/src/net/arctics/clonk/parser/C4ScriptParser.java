@@ -142,7 +142,7 @@ public class C4ScriptParser {
 		 * @param delimiters
 		 * @return string sequence, without delimiter char
 		 */
-		public String readStringUntil(char[] delimiters) {
+		public String readStringUntil(char ...delimiters) {
 			int start = offset;
 			int i = 0;
 			do {
@@ -496,8 +496,11 @@ public class C4ScriptParser {
 		// static const pObj = parseValue, iMat = 2;
 		return false;
 	}
+	
+	private C4Variable parsedVariable;
 
 	private boolean parseVarVariableDeclaration(int offset, boolean declaration) throws ParsingException {
+		parsedVariable = null;
 		fReader.seek(offset);
 
 		String word = fReader.readWord();
@@ -517,9 +520,12 @@ public class C4ScriptParser {
 					var.setLocation(new SourceLocation(nameStart, nameEnd));
 					if (previousDeclaration == null)
 						activeFunc.getLocalVars().add(var);
+					parsedVariable = var;
 				}
 				// check if there is initial content
 				eatWhitespace();
+				C4Variable var = activeFunc.findVariable(varName);
+				parsedVariable = var;
 				if (fReader.read() == '=') {
 					eatWhitespace();
 					offset = fReader.getPosition();
@@ -528,7 +534,6 @@ public class C4ScriptParser {
 						if (val == null)
 							errorWithCode(ErrorCode.ValueExpected, fReader.getPosition()-1, fReader.getPosition());
 						else {
-							C4Variable var = activeFunc.findVariable(varName);
 							var.inferTypeFromAssignment(val, this);
 						}
 					}
@@ -1583,6 +1588,10 @@ public class C4ScriptParser {
 				}
 			}
 			
+			if (elm == null && parsePlaceholderString(fReader.getPosition())) {
+				elm = new ExprPlaceholder(parsedString);
+			}
+			
 			// check if sequence is valid (CreateObject(BLUB)->localvar is not)
 			if (elm != null) {
 				if (!elm.isValidInSequence(prevElm)) {
@@ -1792,7 +1801,7 @@ public class C4ScriptParser {
 			fReader.unread();
 			return false;
 		}
-		String descriptionString = fReader.readStringUntil(new char[] { ']' });
+		String descriptionString = fReader.readStringUntil(']');
 		if (descriptionString == null) {
 			fReader.seek(offset);
 			return false;
@@ -1861,16 +1870,35 @@ public class C4ScriptParser {
 	private boolean parseString(int offset) throws ParsingException {
 		fReader.seek(offset);
 		int delimiter = fReader.read();
-		if (delimiter != '"' && delimiter != '$') {
+		if (delimiter != '"') {
 			fReader.unread();
 			return false;
 		}
 		StringBuilder builder = new StringBuilder();
 		do {
 			if (builder.length() > 0) builder.append(fReader.readString(1));
-			builder.append(fReader.readStringUntil(new char[] { (char) delimiter }));
+			builder.append(fReader.readStringUntil((char)delimiter));
 		} while (builder.length() != 0 && (builder.charAt(builder.length() - 1) == '\\'));
 		if (fReader.read() != '"') {
+			throw new ParsingException("Internal parsing error.");
+		}
+		parsedString = builder.toString();
+		return true;
+	}
+	
+	private boolean parsePlaceholderString(int offset) throws ParsingException {
+		fReader.seek(offset);
+		int delimiter = fReader.read();
+		if (delimiter != '$') {
+			fReader.unread();
+			return false;
+		}
+		StringBuilder builder = new StringBuilder();
+		do {
+			if (builder.length() > 0) builder.append(fReader.readString(1));
+			builder.append(fReader.readStringUntil((char)delimiter));
+		} while (builder.length() != 0 && (builder.charAt(builder.length() - 1) == '\\'));
+		if (fReader.read() != '$') {
 			throw new ParsingException("Internal parsing error.");
 		}
 		parsedString = builder.toString();
@@ -1957,6 +1985,7 @@ public class C4ScriptParser {
 				// initialization
 				offset = fReader.getPosition();
 				boolean noInitialization = false;
+				C4Variable loopVariable = null;
 				if (fReader.read() == ';') {
 					// any of the for statements is optional
 					noInitialization = true;
@@ -1965,6 +1994,7 @@ public class C4ScriptParser {
 					if (!(parseVarVariableDeclaration(fReader.getPosition(), false) || parseValue(fReader.getPosition()))) {
 						errorWithCode(ErrorCode.ExpectedCode, fReader.getPosition(), fReader.getPosition()+1);
 					}
+					loopVariable = parsedVariable; // let's just assume it's the right one
 				}
 
 				// determine loop type
@@ -1986,8 +2016,12 @@ public class C4ScriptParser {
 					// it's a for (x in array) loop!
 					currentLoop = LoopType.IterateArray;
 					eatWhitespace();
-					if (!parseValue(fReader.getPosition())) {
+					ExprElm arrayExpr = parseExpression(fReader.getPosition());
+					if (arrayExpr == null)
 						errorWithCode(ErrorCode.ExpressionExpected, offset, fReader.getPosition()+1);
+					else {
+						if (loopVariable != null)
+							loopVariable.inferTypeFromAssignment(arrayExpr, this);
 					}
 				} else {
 					currentLoop = LoopType.For;

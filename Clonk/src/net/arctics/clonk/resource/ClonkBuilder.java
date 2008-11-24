@@ -173,7 +173,11 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 			if (new File(lib).exists()) {
 				C4Group group = C4Group.OpenFile(new File(lib));
 				group.open(true);
-				group.accept(this);
+				try {
+					group.accept(this);
+				} finally {
+					group.close();
+				}
 			}
 			else  {
 				try {
@@ -373,7 +377,11 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 					try {
 						C4Group group = C4Group.OpenFile(libFile);
 						group.open(true);
-						group.accept(this);
+						try {
+							group.accept(this);
+						} finally {
+							group.close();
+						}
 					} catch (FileNotFoundException e) {
 						e.printStackTrace();
 					} catch (InvalidDataException e) {

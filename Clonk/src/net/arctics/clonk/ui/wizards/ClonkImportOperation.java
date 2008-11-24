@@ -29,31 +29,38 @@ public class ClonkImportOperation extends WorkspaceModifyOperation {
 
 	@Override
 	protected void execute(IProgressMonitor monitor) throws CoreException,
-			InvocationTargetException, InterruptedException {
+	InvocationTargetException, InterruptedException {
 		int totalWork = 0;
 		C4Group[] groups = new C4Group[resources.length];
 		try {
-			for(int i = 0; i < resources.length;i++) {
-				groups[i] = C4Group.OpenFile(resources[i]);
-				groups[i].open(true);
-				totalWork += groups[i].computeSize();
+			try {
+				for(int i = 0; i < resources.length;i++) {
+					groups[i] = C4Group.OpenFile(resources[i]);
+					groups[i].open(true);
+					totalWork += groups[i].computeSize();
+				}
+				monitor.beginTask("Import", totalWork);
+				for(C4Group group : groups) {
+					if (monitor.isCanceled()) break;
+					monitor.subTask(group.getName());
+					group.open(true);
+					group.extractToFilesystem(destination, monitor);
+					group.close();
+					group = null; // destruct
+					//	        	monitor.worked();
+				}
+			} catch (FileNotFoundException e) {
+				monitor.setCanceled(true);
+				throw new InvocationTargetException(e);
+			} catch (InvalidDataException e) {
+				monitor.setCanceled(true);
+				throw new InvocationTargetException(e);
 			}
-			monitor.beginTask("Import", totalWork);
-			for(C4Group group : groups) {
-				if (monitor.isCanceled()) break;
-				monitor.subTask(group.getName());
-				group.open(true);
-				group.extractToFilesystem(destination, monitor);
-				group.close();
-				group = null; // destruct
-//	        	monitor.worked();
+		} finally {
+			for (C4Group group : groups) {
+				if (group != null)
+					group.close();
 			}
-		} catch (FileNotFoundException e) {
-			monitor.setCanceled(true);
-			throw new InvocationTargetException(e);
-		} catch (InvalidDataException e) {
-			monitor.setCanceled(true);
-			throw new InvocationTargetException(e);
 		}
 		monitor.done();
 

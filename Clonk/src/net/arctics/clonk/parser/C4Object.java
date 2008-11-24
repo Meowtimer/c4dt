@@ -341,6 +341,17 @@ public abstract class C4Object extends C4Structure {
 		return (Utilities.getIndex(folder) != null) ? Utilities.getIndex(folder).getObject(folder) : null;
 	}
 	
+	public boolean includes(C4Object other) {
+		C4Object[] incs = this.getIncludes();
+		for (C4Object o : incs) {
+			if (o == other)
+				return true;
+			if (o.includes(other))
+				return true;
+		}
+		return false;
+	}
+	
 	public abstract ClonkIndex getIndex();
 
 	@Override

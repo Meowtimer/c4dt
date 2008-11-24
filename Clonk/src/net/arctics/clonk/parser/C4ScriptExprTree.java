@@ -514,14 +514,19 @@ public abstract class C4ScriptExprTree {
 		@Override
 		public C4Object guessObjectType(C4ScriptParser context) {
 			if (params != null && getType() == C4Type.OBJECT && (fieldName.startsWith("Create") || fieldName.startsWith("Find"))) {
-				if (params.length >= 1 && params[0] instanceof ExprID) {
-					ExprID id = (ExprID)params[0];
-					ClonkIndex index = context.getContainer().getIndex();
-					return index.getObjectFromEverywhere(id.idValue());
+				if (params.length >= 1) {
+					return params[0].guessObjectType(context);
 				}
 			}
-			else if (params.length == 0 && fieldName.equals(C4Variable.THIS.getName()))
+			else if (params.length == 0 && fieldName.equals(C4Variable.THIS.getName())) {
 				return context.getContainer();
+			}
+			else if (fieldName.equals("FindObjects")) {
+				return searchCriteriaAssumedResult(context);
+			}
+			else if (fieldName.equals("GetID") && params.length == 0) {
+				return context.getContainer();
+			}
 			return super.guessObjectType(context);
 		}
 		@Override
@@ -552,6 +557,32 @@ public abstract class C4ScriptExprTree {
 		@Override
 		public FieldRegion fieldAt(int offset, C4ScriptParser parser) {
 			return new FieldRegion(getField(parser), new Region(getExprStart(), fieldName.length()));
+		}
+		public C4Object searchCriteriaAssumedResult(C4ScriptParser context) {
+			C4Object result = null;
+			// parameters to FindObjects itself are also &&-ed together
+			if (fieldName.equals("Find_And") || fieldName.equals("FindObjects")) {
+				for (ExprElm parm : params) {
+					if (parm instanceof ExprCallFunc) {
+						ExprCallFunc call = (ExprCallFunc)parm;
+						C4Object t = call.searchCriteriaAssumedResult(context);
+						if (t != null) {
+							if (result == null)
+								result = t;
+							else {
+								if (t.includes(result))
+										result = t;
+							}
+						}
+					}
+				}
+			}
+			else if (fieldName.equals("Find_ID")) {
+				if (params.length > 0 && params[0] instanceof ExprID) {
+					result = ((ExprID)params[0]).guessObjectType(context);
+				}
+			}
+			return result;
 		}
 	}
 
@@ -1000,5 +1031,23 @@ public abstract class C4ScriptExprTree {
 			output.append("...");
 		}
 
+	}
+	
+	public static class ExprPlaceholder extends ExprElm {
+		private String entryName;
+		
+		public ExprPlaceholder(String entryName) {
+			this.entryName = entryName;
+		}
+		
+		public String getEntryName() {
+			return entryName;
+		}
+		@Override
+		public void print(StringBuilder builder) {
+			builder.append('$');
+			builder.append(entryName);
+			builder.append('$');
+		}
 	}
 }

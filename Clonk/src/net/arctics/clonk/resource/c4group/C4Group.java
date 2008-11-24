@@ -352,7 +352,10 @@ public class C4Group implements C4GroupItem, Serializable {
 		childEntries.clear();
 		childEntries = null;
 		try {
-			stream.close();
+			// only close stream if this group owns it
+			if (parentGroup == null)
+				stream.close();
+			stream = null; // discard stream
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
