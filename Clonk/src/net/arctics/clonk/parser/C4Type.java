@@ -28,11 +28,10 @@ public enum C4Type {
 	public boolean canBeAssignedFrom(C4Type other) {
 		return
 			other == this ||
-			this == ANY || this == UNKNOWN || this == REFERENCE ||
+			this == ANY || this == UNKNOWN || this == REFERENCE || this == BOOL ||
 			other == UNKNOWN || other == ANY || other == REFERENCE ||
-			(this == BOOL && (other == INT || other == DWORD || other == OBJECT || other == STRING)) ||
-			(this == INT && other == DWORD) ||
-			(this == DWORD && other == INT);
+			(this == INT && (other == DWORD || other == BOOL)) ||
+			(this == DWORD && (other == INT || other == BOOL));
 	}
 	
 	public static C4Type makeType(String arg) {
