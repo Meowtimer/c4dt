@@ -501,6 +501,15 @@ public abstract class C4ScriptExprTree {
 							parser.warningWithCode(ErrorCode.IncompatibleTypes, given, parm.getType(), given.getType());
 					}
 				}
+				else if (field == null && getPredecessorInSequence() == null) {
+					if (fieldName.equals("inherited")) {
+						parser.errorWithCode(ErrorCode.NoInheritedFunction, getExprStart(), getExprStart()+fieldName.length(), true, parser.getActiveFunc().getName());
+					}
+					// _inherited yields no warning or error
+					else if (!fieldName.equals("_inherited")) {
+						parser.errorWithCode(ErrorCode.UndeclaredIdentifier, getExprStart(), getExprStart()+fieldName.length(), true, fieldName);
+					}
+				}
 			}
 		}
 		@Override
@@ -962,6 +971,11 @@ public abstract class C4ScriptExprTree {
 		public void reportErrors(C4ScriptParser parser) throws ParsingException {
 			getArgument().reportErrors(parser);
 			// bleh, getOperator() returns null here FIXME: not deriving this class from ExprUnaryOp?
+		}
+		
+		@Override
+		public boolean modifiable() {
+			return true;
 		}
 
 	}

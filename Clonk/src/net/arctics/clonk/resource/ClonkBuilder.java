@@ -327,7 +327,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 						
 						C4ObjectExtern externObj = new C4ObjectExtern(C4ID.getSpecialID("System"),"System",item.getParentGroup());
 						C4ScriptParser parser = new C4ScriptParser(new ByteArrayInputStream(content),((C4Entry)item).computeSize(),externObj);
-						parser.parse();
+						parser.parseDeclarations();
 						ClonkCore.EXTERN_INDEX.addObject(externObj);
 //						Utilities.getProject(getProject()).getIndexedData().addObject(externSystemc4g);
 					} catch (CompilerException e) {

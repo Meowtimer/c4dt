@@ -1329,7 +1329,7 @@ public class C4ScriptParser {
 	}
 	
 	public enum ErrorCode {
-		TokenExpected, NotAllowedHere, MissingClosingBracket, InvalidExpression, InternalError, ExpressionExpected, UnexpectedEnd, NameExpected, ReturnAsFunction, ExpressionNotModifiable, OperatorNeedsRightSide, NoAssignment, NoSideEffects, KeywordInWrongPlace, UndeclaredIdentifier, OldStyleFunc, ValueExpected, TuplesNotAllowed, EmptyParentheses, ExpectedCode, ConstantValueExpected, CommaOrSemicolonExpected, IncompatibleTypes, VariableCalled, TypeAsName, BlockNotClosed, UnknownDirective, StatementExpected, ConditionExpected, OutOfIntRange
+		TokenExpected, NotAllowedHere, MissingClosingBracket, InvalidExpression, InternalError, ExpressionExpected, UnexpectedEnd, NameExpected, ReturnAsFunction, ExpressionNotModifiable, OperatorNeedsRightSide, NoAssignment, NoSideEffects, KeywordInWrongPlace, UndeclaredIdentifier, OldStyleFunc, ValueExpected, TuplesNotAllowed, EmptyParentheses, ExpectedCode, ConstantValueExpected, CommaOrSemicolonExpected, IncompatibleTypes, VariableCalled, TypeAsName, BlockNotClosed, UnknownDirective, StatementExpected, ConditionExpected, OutOfIntRange, NoInheritedFunction
 	}
 	
 	private static String[] errorStrings = new String[] {
@@ -1362,7 +1362,8 @@ public class C4ScriptParser {
 		"Unknown directive",
 		"Statement expected",
 		"Condition expected",
-		"Out of integer range: %s"
+		"Out of integer range: %s",
+		"No inherited version of %s found"
 	};
 	
 	private static Set<ErrorCode> disabledErrors = new HashSet<ErrorCode>();
@@ -1385,32 +1386,30 @@ public class C4ScriptParser {
 	}
 	
 	void warningWithCode(ErrorCode code, IRegion errorRegion, Object... args) {
-		String problem = String.format(errorStrings[code.ordinal()], args);
-		createWarningMarker(errorRegion.getOffset(), errorRegion.getOffset()+errorRegion.getLength(), problem);
+		warningWithCode(code, errorRegion.getOffset(), errorRegion.getOffset()+errorRegion.getLength(), args);
 	}
 	
 	void errorWithCode(ErrorCode code, IRegion errorRegion, Object... args) throws ParsingException {
-		if (fScript == null)
-			return; // parser used for other purposes -> no errors
-		if (errorDisabled(code))
-			return;
-		String problem = String.format(errorStrings[code.ordinal()], args);
-		createErrorMarker(errorRegion.getOffset(), errorRegion.getOffset()+errorRegion.getLength(), problem);
-		throw new ParsingException(problem);
+		errorWithCode(code, errorRegion.getOffset(), errorRegion.getOffset()+errorRegion.getLength(), false, args);
 	}
 	
-	private void errorWithCode(ErrorCode code, int errorStart, int errorEnd, Object... args) throws ParsingException {
+	void errorWithCode(ErrorCode code, int errorStart, int errorEnd, boolean noThrow, Object... args) throws ParsingException {
 //		if (fScript == null)
 //			return; // parser used for other purposes -> no errors
 		if (errorDisabled(code))
 			return;
 		String problem = String.format(errorStrings[code.ordinal()], args);
 		createErrorMarker(errorStart, errorEnd, problem);
-		throw new ParsingException(problem);
+		if (!noThrow)
+			throw new ParsingException(problem);
+	}
+	
+	private void errorWithCode(ErrorCode code, int errorStart, int errorEnd, Object... args) throws ParsingException {
+		errorWithCode(code, errorStart, errorEnd, false, args);
 	}
 	
 	private void tokenExpectedError(String token) throws ParsingException {
-		errorWithCode(ErrorCode.TokenExpected, fReader.getPosition()-1, fReader.getPosition(), token);
+		errorWithCode(ErrorCode.TokenExpected, fReader.getPosition()-1, fReader.getPosition(), false, token);
 	}
 	
 	private boolean parseStaticFieldOperator_(int offset) {

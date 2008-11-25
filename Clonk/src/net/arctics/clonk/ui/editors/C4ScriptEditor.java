@@ -188,13 +188,17 @@ public class C4ScriptEditor extends TextEditor {
 	protected void handleCursorPositionChanged() {
 		super.handleCursorPositionChanged();
 		C4Object obj = Utilities.getObjectForEditor(this);
+		boolean noHighlight = true;
 		if (obj != null) {
 			TextSelection sel = (TextSelection) getSelectionProvider().getSelection();
 			C4Function f = obj.funcAt(sel.getOffset());
 			if (f != null) {
 				this.setHighlightRange(f.getLocation().getOffset(), f.getBody().getOffset()-f.getLocation().getOffset() + f.getBody().getLength()+1, false);
-			}
+				noHighlight = false;
+			} 
 		}
+		if (noHighlight)
+			this.resetHighlightRange();
 	}
 
 	public C4ScriptParser reparseWithDocumentContents(C4ScriptExprTree.IExpressionListener exprListener, boolean onlyDeclarations) throws CompilerException {
