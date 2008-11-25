@@ -1489,7 +1489,7 @@ public class C4ScriptParser {
 					if (fReader.read() == '(') {
 						// function call
 						List<ExprElm> args = new LinkedList<ExprElm>();
-						parseRestOfTuple(fReader.getPosition(), args);
+						parseRestOfTuple(fReader.getPosition(), args, reportErrors);
 						elm = new ExprCallFunc(word, args.toArray(new ExprElm[0]));
 					} else {
 						fReader.seek(beforeSpace);
@@ -1584,7 +1584,7 @@ public class C4ScriptParser {
 						// tuple (just for multiple parameters for return)
 						List<ExprElm> tupleElms = new LinkedList<ExprElm>();
 						tupleElms.add(firstExpr);
-						parseRestOfTuple(fReader.getPosition(), tupleElms);
+						parseRestOfTuple(fReader.getPosition(), tupleElms, reportErrors);
 						elm = new ExprTuple(tupleElms.toArray(new ExprElm[0]));
 					} else
 						errorWithCode(ErrorCode.TokenExpected, fReader.getPosition()-1, fReader.getPosition(), ")");
@@ -1647,7 +1647,7 @@ public class C4ScriptParser {
 		
 	}
 
-	private void parseRestOfTuple(int offset, List<ExprElm> listToAddElementsTo) throws ParsingException {
+	private void parseRestOfTuple(int offset, List<ExprElm> listToAddElementsTo, boolean reportErrors) throws ParsingException {
 		fReader.seek(offset);
 		boolean expectingComma = false;
 		while (!fReader.reachedEOF()) {
@@ -1668,7 +1668,7 @@ public class C4ScriptParser {
 					errorWithCode(ErrorCode.InternalError, fReader.getPosition(), fReader.getPosition(), "Way too much");
 				//	break;
 				}
-				ExprElm arg = parseExpression(fReader.getPosition());
+				ExprElm arg = parseExpression(fReader.getPosition(), reportErrors);
 				if (arg == null) {
 					errorWithCode(ErrorCode.ExpressionExpected, fReader.getPosition(), fReader.getPosition()+1);
 //					break;
