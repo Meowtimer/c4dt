@@ -63,7 +63,7 @@ public class ObjectExternEditorInput implements IEditorInput, IPathEditorInput, 
 	}
 
 	public IStorage getStorage() throws CoreException {
-		return (IStorage)object.getScript();
+		return (IStorage)object.getScriptFile();
 	}
 
 	public C4Object getObject() {

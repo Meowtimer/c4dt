@@ -34,18 +34,18 @@ public abstract class C4Field implements Serializable  {
 		return 0;
 	}
 	/**
-	 * @param object the object to set
+	 * @param script the object to set
 	 */
-	public void setObject(C4Object object) {
-		setParentField(object);
+	public void setScript(C4ScriptBase script) {
+		setParentField(script);
 	}
 	/**
 	 * @return the object
 	 */
-	public C4Object getObject() {
+	public C4ScriptBase getScript() {
 		for (C4Field f = this; f != null; f = f.parentField)
-			if (f instanceof C4Object)
-				return (C4Object)f;
+			if (f instanceof C4ScriptBase)
+				return (C4ScriptBase)f;
 		return null;
 	}
 	public void setParentField(C4Field field) {

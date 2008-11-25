@@ -12,6 +12,7 @@ import net.arctics.clonk.parser.BuiltInDefinitions;
 import net.arctics.clonk.parser.C4Function;
 import net.arctics.clonk.parser.C4Object;
 import net.arctics.clonk.parser.C4ObjectIntern;
+import net.arctics.clonk.parser.C4ScriptBase;
 import net.arctics.clonk.parser.C4ScriptParser;
 import net.arctics.clonk.parser.C4Variable;
 import net.arctics.clonk.parser.ClonkIndex;
@@ -98,7 +99,7 @@ public class ClonkCompletionProcessor implements IContentAssistProcessor {
 	public ClonkCompletionProposal proposalForVar(C4Variable var, String prefix, int offset, List<ClonkCompletionProposal> proposals) {
 		if (prefix != null && !var.getName().toLowerCase().startsWith(prefix))
 			return null;
-		if (var.getObject() == null)
+		if (var.getScript() == null)
 			return null;
 		String displayString = var.getName();
 		int replacementLength = 0;
@@ -106,7 +107,7 @@ public class ClonkCompletionProcessor implements IContentAssistProcessor {
 			replacementLength = prefix.length();
 		ClonkCompletionProposal prop = new ClonkCompletionProposal(
 			var.getName(), offset, replacementLength, var.getName().length(), Utilities.getIconForVariable(var), displayString, 
-			null, var.getAdditionalProposalInfo(), " - " + var.getObject().getName()
+			null, var.getAdditionalProposalInfo(), " - " + var.getScript().getName()
 		);
 		proposals.add(prop);
 		return prop;
@@ -116,10 +117,10 @@ public class ClonkCompletionProcessor implements IContentAssistProcessor {
 			List<ClonkCompletionProposal> proposals) {
 		if (!index.isEmpty()) {
 			for (C4Function func : index.getGlobalFunctions()) {
-				if (func.getObject() == null)
+				if (func.getScript() == null)
 					System.out.println(func.getName());
 				else
-					proposalForFunc(func, prefix, offset, proposals, func.getObject().getName());
+					proposalForFunc(func, prefix, offset, proposals, func.getScript().getName());
 			}
 			for (C4Variable var : index.getStaticVariables()) {
 				proposalForVar(var,prefix,offset,proposals);
@@ -255,13 +256,13 @@ public class ClonkCompletionProcessor implements IContentAssistProcessor {
 				}
 			}
 			
-			C4Object contextObj = Utilities.getObjectForEditor(editor);
+			C4ScriptBase contextScript = Utilities.getScriptForEditor(editor);
 			boolean contextObjChanged = false;
-			if (contextObj != null) {
+			if (contextScript != null) {
 				try {
 					contextExpression = null;
 					final int preservedOffset = offset;
-					C4ScriptParser parser = C4ScriptParser.reportExpressionsInStatements(doc, activeFunc.getBody().getOffset(), offset, contextObj, activeFunc, new IExpressionListener() {
+					C4ScriptParser parser = C4ScriptParser.reportExpressionsInStatements(doc, activeFunc.getBody().getOffset(), offset, contextScript, activeFunc, new IExpressionListener() {
 						public TraversalContinuation expressionDetected(ExprElm expression) {
 							if (activeFunc.getBody().getOffset() + expression.getExprStart() <= preservedOffset) {
 								contextExpression = expression;
@@ -273,7 +274,7 @@ public class ClonkCompletionProcessor implements IContentAssistProcessor {
 					if (contextExpression != null) {
 						C4Object guessed = contextExpression.guessObjectType(parser);
 						if (guessed != null) {
-							contextObj = guessed;
+							contextScript = guessed;
 							contextObjChanged = true;
 						}
 					}
@@ -289,8 +290,8 @@ public class ClonkCompletionProcessor implements IContentAssistProcessor {
 				}
 			}
 			
-			if (contextObj != null) {
-				proposalsFromObject(contextObj, new HashSet<C4Object>(), prefix, offset, wordOffset, proposals, contextObjChanged);
+			if (contextScript != null) {
+				proposalsFromScript(contextScript, new HashSet<C4ScriptBase>(), prefix, offset, wordOffset, proposals, contextObjChanged);
 			}
 			
 			for(String keyword : BuiltInDefinitions.KEYWORDS) {
@@ -333,27 +334,27 @@ public class ClonkCompletionProcessor implements IContentAssistProcessor {
 		return result;
 	}
 
-	private void proposalsFromObject(C4Object obj, HashSet<C4Object> loopCatcher, String prefix, int offset, int wordOffset, List<ClonkCompletionProposal> proposals, boolean noPrivateFuncs) {
-		if (loopCatcher.contains(obj)) {
+	private void proposalsFromScript(C4ScriptBase script, HashSet<C4ScriptBase> loopCatcher, String prefix, int offset, int wordOffset, List<ClonkCompletionProposal> proposals, boolean noPrivateFuncs) {
+		if (loopCatcher.contains(script)) {
 			return;
 		}
-		loopCatcher.add(obj);
-		for (C4Function func : obj.getDefinedFunctions()) {
+		loopCatcher.add(script);
+		for (C4Function func : script.getDefinedFunctions()) {
 			if (func.getVisibility() != C4FunctionScope.FUNC_GLOBAL)
 				if (!noPrivateFuncs  || func.getVisibility() == C4FunctionScope.FUNC_PUBLIC)
-					proposalForFunc(func, prefix, offset, proposals, obj.getName());
+					proposalForFunc(func, prefix, offset, proposals, script.getName());
 		}
-		for (C4Variable var : obj.getDefinedVariables()) {
+		for (C4Variable var : script.getDefinedVariables()) {
 			if (var.getScope() != C4VariableScope.VAR_STATIC && var.getScope() != C4VariableScope.VAR_CONST)
 			proposalForVar(var, prefix, wordOffset, proposals);
 		}
-		for (C4Object o : obj.getIncludes())
-			proposalsFromObject(o, loopCatcher, prefix, offset, wordOffset, proposals, noPrivateFuncs);
+		for (C4Object o : script.getIncludes())
+			proposalsFromScript(o, loopCatcher, prefix, offset, wordOffset, proposals, noPrivateFuncs);
 	}
 
 	protected C4Function getActiveFunc(IDocument document, int offset) {
-		C4Object thisObj = Utilities.getObjectForEditor(editor);
-		return thisObj != null ? thisObj.funcAt(new Region(offset,1)) : null;
+		C4ScriptBase thisScript = Utilities.getScriptForEditor(editor);
+		return thisScript != null ? thisScript.funcAt(new Region(offset,1)) : null;
 		// restored
 //		try {
 //			int openBrackets = 0;

@@ -71,7 +71,7 @@ public class C4ObjectIntern extends C4Object implements Serializable {
 	 * The member <tt>Script.c</tt>
 	 * @return IFile object of <tt>Script.c</tt> file or null if it does not exist
 	 */
-	public IFile getScript() {
+	public IFile getScriptFile() {
 		IResource res = this.objectFolder.findMember("Script.c");
 		if (res == null || !(res instanceof IFile)) return null;
 		else return (IFile) res;
@@ -98,9 +98,9 @@ public class C4ObjectIntern extends C4Object implements Serializable {
 			return;
 		if (objectFolder != null)
 			objectFolder.setSessionProperty(ClonkCore.C4OBJECT_PROPERTY_ID, null);
+		objectFolder = folder;
 		if (folder != null)
 			folder.setSessionProperty(ClonkCore.C4OBJECT_PROPERTY_ID, this);
-		objectFolder = folder;
 	}
 	
 	@Override

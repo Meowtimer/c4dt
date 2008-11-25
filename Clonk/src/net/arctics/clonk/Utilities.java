@@ -2,6 +2,8 @@ package net.arctics.clonk;
 
 import net.arctics.clonk.parser.C4Function;
 import net.arctics.clonk.parser.C4Object;
+import net.arctics.clonk.parser.C4ScriptBase;
+import net.arctics.clonk.parser.C4StandaloneScript;
 import net.arctics.clonk.parser.C4Variable;
 import net.arctics.clonk.parser.ClonkIndex;
 import net.arctics.clonk.resource.ClonkProjectNature;
@@ -54,7 +56,7 @@ public abstract class Utilities {
 	
 	public static ClonkProjectNature getProject(C4Object obj) {
 		if (obj == null) return null;
-		return getProject((IResource)obj.getScript());
+		return getProject((IResource)obj.getScriptFile());
 	}
 	
 	public static ClonkIndex getIndex(IResource res) {
@@ -116,19 +118,24 @@ public abstract class Utilities {
 	public static ImageDescriptor getIconDescriptor(String path) {
 		return ImageDescriptor.createFromURL(FileLocator.find(ClonkCore.getDefault().getBundle(), new Path(path), null));
 	}
+	
+	public static C4ScriptBase getScriptForFile(IFile scriptFile) {
+		C4ScriptBase script;
+		try {
+			script = C4StandaloneScript.standaloneScriptCorrespondingTo(scriptFile);
+		} catch (CoreException e) {
+			script = null;
+		}
+		if (script == null)
+			script = C4Object.objectCorrespondingTo(scriptFile.getParent());
+		return script;
+	}
 
-	public static C4Object getObjectForEditor(ITextEditor editor) {
-//		try {
-			if (editor.getEditorInput() instanceof ObjectExternEditorInput) {
-				return ((ObjectExternEditorInput)editor.getEditorInput()).getObject();
-			}
-			return C4Object.objectCorrespondingTo(getEditingFile(editor).getParent());
-//			return (C4Object)getEditingFile(editor).getParent().getSessionProperty(ClonkCore.C4OBJECT_PROPERTY_ID);
-//		} catch (CoreException e) {
-//			e.printStackTrace();
-//			return null;
-//		}
-//		 return getProject(editor).getIndexer().getObjectForScript(getEditingFile(editor));
+	public static C4ScriptBase getScriptForEditor(ITextEditor editor) {
+		if (editor.getEditorInput() instanceof ObjectExternEditorInput) {
+			return ((ObjectExternEditorInput)editor.getEditorInput()).getObject();
+		}
+		return getScriptForFile(getEditingFile(editor));
 	}
 	
 	public static C4GroupType groupTypeFromFolderName(String name) {

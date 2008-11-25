@@ -274,7 +274,7 @@ public class C4ScriptParser {
 
 	private BufferedScanner fReader;
 	private IFile fScript; // for project intern files
-	private C4Object container;
+	private C4ScriptBase container;
 	private InputStream stream; // for extern files
 
 	//	private List<C4Directive> directives = new LinkedList<C4Directive>();
@@ -292,21 +292,27 @@ public class C4ScriptParser {
 		return activeFunc;
 	}
 	
-	public C4Object getContainer() {
+	public C4ScriptBase getContainer() {
 		return container;
+	}
+	
+	public C4Object getContainerObject() {
+		if (container instanceof C4Object)
+			return (C4Object) container;
+		return null;
 	}
 
 	/**
 	 * Creates a C4Script parser object.
 	 * Results are stored in <code>object</code>
-	 * @param script
+	 * @param scriptFile
 	 * @param obj
 	 * @throws CompilerException
 	 */
-	public C4ScriptParser(IFile script, C4Object object) throws CompilerException {
-		fScript = script;
+	public C4ScriptParser(IFile scriptFile, C4ScriptBase script) throws CompilerException {
+		fScript = scriptFile;
 		fReader = new BufferedScanner(fScript);
-		container = object;
+		container = script;
 	}
 
 	/**
@@ -317,18 +323,18 @@ public class C4ScriptParser {
 	 * @param object
 	 * @throws CompilerException
 	 */
-	public C4ScriptParser(InputStream stream, long size, C4Object object) throws CompilerException {
+	public C4ScriptParser(InputStream stream, long size, C4ScriptBase script) throws CompilerException {
 		fScript = null;
 		this.stream = stream;
 		fReader = new BufferedScanner(this.stream, size);
-		container = object;
+		container = script;
 	}
 	
-	public C4ScriptParser(String withString, C4Object object) {
+	public C4ScriptParser(String withString, C4ScriptBase script) {
 		fScript = null;
 		stream = null;
 		fReader = new BufferedScanner(withString);
-		container = object;
+		container = script;
 	}
 	
 	// TODO: in clean build, have two passes: 1. parse all declarations 2. check function code (so that all static variables/global functions and included stuff can be found)
@@ -456,14 +462,14 @@ public class C4ScriptParser {
 					}
 					C4Variable var = new C4Variable(varName,C4VariableScope.VAR_CONST);
 					var.setLocation(new SourceLocation(s, e));
-					var.setObject(container);
+					var.setScript(container);
 					//					var.setType(C4Type.)
 					container.addField(var);
 				}
 				else {
 					C4Variable var = new C4Variable(varName, C4VariableScope.VAR_STATIC);
 					var.setLocation(new SourceLocation(s, e));
-					var.setObject(container);
+					var.setScript(container);
 					container.addField(var);
 				}
 				eatWhitespace();
@@ -482,7 +488,7 @@ public class C4ScriptParser {
 				int e = fReader.getPosition();
 				C4Variable v = new C4Variable(varName, C4VariableScope.VAR_LOCAL);
 				v.setLocation(new SourceLocation(s, e));
-				v.setObject(container);
+				v.setScript(container);
 				container.addField(v);
 				eatWhitespace();
 			} while (fReader.read() == ',');
@@ -595,7 +601,7 @@ public class C4ScriptParser {
 		fReader.seek(offset);
 		eatWhitespace();
 		activeFunc = new C4Function();
-		activeFunc.setObject(container);
+		activeFunc.setScript(container);
 		int startName = 0, endName = 0, startBody = 0, endBody = 0;
 		boolean suspectOldStyle = false;
 		String funcName = null;
@@ -2237,11 +2243,11 @@ public class C4ScriptParser {
 		container.clearFields();
 	}
 	
-	public static C4ScriptParser reportExpressionsInStatements(IDocument doc, IRegion region, C4Object context, C4Function func, IExpressionListener listener) throws BadLocationException, CompilerException, ParsingException {
+	public static C4ScriptParser reportExpressionsInStatements(IDocument doc, IRegion region, C4ScriptBase context, C4Function func, IExpressionListener listener) throws BadLocationException, CompilerException, ParsingException {
 		return reportExpressionsInStatements(doc, region.getOffset(), region.getOffset()+region.getLength(), context, func, listener);
 	}
 	
-	public static C4ScriptParser reportExpressionsInStatements(IDocument doc, int statementStart, int statementEnd, C4Object context, C4Function func, IExpressionListener listener) throws BadLocationException, CompilerException, ParsingException {
+	public static C4ScriptParser reportExpressionsInStatements(IDocument doc, int statementStart, int statementEnd, C4ScriptBase context, C4Function func, IExpressionListener listener) throws BadLocationException, CompilerException, ParsingException {
 		String expr = doc.get(statementStart, statementEnd-statementStart);
 		C4ScriptParser parser = new C4ScriptParser(expr, context);
 		parser.activeFunc = func;

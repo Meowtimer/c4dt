@@ -82,6 +82,7 @@ public class C4ObjectParser {
 				if (object == null) {
 					object = new C4Scenario(null, objectFolder.getName(), objectFolder);
 					objectFolder.setSessionProperty(ClonkCore.C4OBJECT_PROPERTY_ID, object);
+					index.addObject(object);
 				}
 			}
 			if (script != null) {
@@ -92,7 +93,7 @@ public class C4ObjectParser {
 			if (object != null) {
 				index.addObject(object);
 			}
-		} catch (CoreException e) {
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}

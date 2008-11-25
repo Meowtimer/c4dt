@@ -11,8 +11,10 @@ import net.arctics.clonk.parser.C4Function;
 import net.arctics.clonk.parser.C4Object;
 import net.arctics.clonk.parser.C4ObjectExtern;
 import net.arctics.clonk.parser.C4ObjectIntern;
+import net.arctics.clonk.parser.C4ScriptBase;
 import net.arctics.clonk.parser.C4ScriptExprTree;
 import net.arctics.clonk.parser.C4ScriptParser;
+import net.arctics.clonk.parser.C4StandaloneScript;
 import net.arctics.clonk.parser.CompilerException;
 import net.arctics.clonk.parser.SourceLocation;
 import net.arctics.clonk.ui.editors.actions.ConvertOldCodeToNewCodeAction;
@@ -187,11 +189,11 @@ public class C4ScriptEditor extends TextEditor {
 	@Override
 	protected void handleCursorPositionChanged() {
 		super.handleCursorPositionChanged();
-		C4Object obj = Utilities.getObjectForEditor(this);
+		C4ScriptBase script = Utilities.getScriptForEditor(this);
 		boolean noHighlight = true;
-		if (obj != null) {
+		if (script != null) {
 			TextSelection sel = (TextSelection) getSelectionProvider().getSelection();
-			C4Function f = obj.funcAt(sel.getOffset());
+			C4Function f = script.funcAt(sel.getOffset());
 			if (f != null) {
 				this.setHighlightRange(f.getLocation().getOffset(), f.getBody().getOffset()-f.getLocation().getOffset() + f.getBody().getLength()+1, false);
 				noHighlight = false;
@@ -205,7 +207,7 @@ public class C4ScriptEditor extends TextEditor {
 		IDocument document = getDocumentProvider().getDocument(getEditorInput());
 		byte[] documentBytes = document.get().getBytes();
 		InputStream scriptStream = new ByteArrayInputStream(documentBytes);
-		C4ScriptParser parser = new C4ScriptParser(scriptStream, documentBytes.length, Utilities.getObjectForEditor(this));
+		C4ScriptParser parser = new C4ScriptParser(scriptStream, documentBytes.length, Utilities.getScriptForEditor(this));
 		parser.setExpressionListener(exprListener);
 		parser.clean();
 		parser.parseDeclarations();
@@ -218,23 +220,23 @@ public class C4ScriptEditor extends TextEditor {
 	public static void openDeclaration(C4Field target) throws PartInitException, CompilerException {
 		IWorkbench workbench = PlatformUI.getWorkbench();
 		IWorkbenchPage workbenchPage = workbench.getActiveWorkbenchWindow().getActivePage();
-		C4Object obj = target instanceof C4Object ? (C4Object)target : target.getObject();
-		if (obj != null) {
-			if (obj instanceof C4ObjectIntern) {
-				IEditorPart editor = workbenchPage.openEditor(new FileEditorInput((IFile) obj.getScript()), "clonk.editors.C4ScriptEditor");
+		C4ScriptBase script = target instanceof C4ScriptBase ? (C4ScriptBase)target : target.getScript();
+		if (script != null) {
+			if (script instanceof C4ObjectIntern || script instanceof C4StandaloneScript) {
+				IEditorPart editor = workbenchPage.openEditor(new FileEditorInput((IFile) script.getScriptFile()), "clonk.editors.C4ScriptEditor");
 				C4ScriptEditor scriptEditor = (C4ScriptEditor)editor;						
-				if (target != obj) {
+				if (target != script) {
 					scriptEditor.reparseWithDocumentContents(null, false);
 					target = target.latestVersion();
 					if (target != null)
 						scriptEditor.selectAndReveal(target.getLocation());
 				}
 			}
-			else if (obj instanceof C4ObjectExtern) {
-				if (obj != ClonkCore.ENGINE_OBJECT) {
-					IEditorPart editor = workbenchPage.openEditor(new ObjectExternEditorInput((C4ObjectExtern)obj), "clonk.editors.C4ScriptEditor");
+			else if (script instanceof C4ObjectExtern) {
+				if (script != ClonkCore.ENGINE_OBJECT) {
+					IEditorPart editor = workbenchPage.openEditor(new ObjectExternEditorInput((C4ObjectExtern)script), "clonk.editors.C4ScriptEditor");
 					C4ScriptEditor scriptEditor = (C4ScriptEditor)editor;
-					if (target != obj)
+					if (target != script)
 						scriptEditor.selectAndReveal(target.getLocation());
 				}
 			}

@@ -48,6 +48,7 @@ public class ClonkCore extends AbstractUIPlugin implements IResourceChangeListen
 	public static final String MARKER_EXTERN_LIB_ERROR = PLUGIN_ID + ".externliberror";
 	public static final QualifiedName FOLDER_C4ID_PROPERTY_ID = new QualifiedName("net.arctics.clonk","c4id");
 	public static final QualifiedName C4OBJECT_PROPERTY_ID = new QualifiedName("net.arctics.clonk","c4object");
+	public static final QualifiedName SCRIPT_PROPERTY_ID = new QualifiedName("net.arctics.clonk", "script");
 	
 //	public static final List<C4Function> ENGINE_FUNCTIONS = new ArrayList<C4Function>(505);
 	
@@ -119,7 +120,7 @@ public class ClonkCore extends AbstractUIPlugin implements IResourceChangeListen
 				Object obj = decoder.readObject();
 				if (obj instanceof C4Field) {
 					C4Field field = (C4Field)obj;
-					field.setObject(ENGINE_OBJECT);
+					field.setScript(ENGINE_OBJECT);
 					ENGINE_OBJECT.addField(field);
 //						ENGINE_FUNCTIONS.add((C4Function)obj);
 				}

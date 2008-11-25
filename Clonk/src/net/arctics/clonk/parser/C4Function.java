@@ -47,7 +47,7 @@ public class C4Function extends C4Structure implements Serializable {
 	
 	public C4Function(String name, C4Object parent, C4FunctionScope scope) {
 		this.name = name;
-		setObject(parent);
+		setScript(parent);
 		visibility = scope;
 		parameter = new ArrayList<C4Variable>();
 		localVars = new ArrayList<C4Variable>();
@@ -235,7 +235,7 @@ public class C4Function extends C4Structure implements Serializable {
 
 	@Override
 	public String getShortInfo() {
-		if (getObject() == ClonkCore.ENGINE_OBJECT) {
+		if (getScript() == ClonkCore.ENGINE_OBJECT) {
 			//return String.format("<b>%s</b><br>%s<br><i><a href='%s'>Online Documentation</a></i>", getName(), getDescription(), getDocumentationURL());
 			// engine function
 			return String.format("<b>%s</b><br>%s<br><a href=\"%s\">Online Dokumentation</a>", getLongParameterString(true), getDescription(), getDocumentationURL());
@@ -266,7 +266,7 @@ public class C4Function extends C4Structure implements Serializable {
 	}
 	
 	public C4Function getInherited() {
-		C4Object[] includes = getObject().getIncludes();
+		C4Object[] includes = getScript().getIncludes();
 		for (int i = includes.length-1; i >= 0; i--) {
 			C4Function field = includes[i].findFunction(getName());
 			if (field != null)

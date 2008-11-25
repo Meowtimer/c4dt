@@ -1,7 +1,7 @@
 package net.arctics.clonk.parser;
 
 import net.arctics.clonk.ClonkCore;
-import net.arctics.clonk.parser.C4Object.FindFieldInfo;
+import net.arctics.clonk.parser.C4ScriptBase.FindFieldInfo;
 import net.arctics.clonk.parser.C4ScriptParser.ErrorCode;
 import net.arctics.clonk.parser.C4ScriptParser.ParsingException;
 import net.arctics.clonk.parser.C4Variable.C4VariableScope;
@@ -369,8 +369,8 @@ public abstract class C4ScriptExprTree {
 		@Override
 		public C4Object guessObjectType(C4ScriptParser context) {
 			if (field != null) {
-				if (field == C4Variable.THIS)
-					return context.getContainer();
+				if (field == C4Variable.THIS && context.getContainer() instanceof C4Object)
+					return (C4Object) context.getContainer();
 				return ((C4Variable)field).getExpectedContent();
 			}
 			return super.guessObjectType(context);
@@ -456,7 +456,7 @@ public abstract class C4ScriptExprTree {
 				return parser.getActiveFunc().getInherited();
 			}
 			ExprElm p = getPredecessorInSequence();
-			C4Object lookIn = p == null ? parser.getContainer() : p.guessObjectType(parser);
+			C4ScriptBase lookIn = p == null ? parser.getContainer() : p.guessObjectType(parser);
 			if (lookIn != null) {
 				FindFieldInfo info = new FindFieldInfo(lookIn.getIndex());
 				C4Field field = lookIn.findFunction(fieldName, info);
@@ -528,13 +528,13 @@ public abstract class C4ScriptExprTree {
 				}
 			}
 			else if (params.length == 0 && fieldName.equals(C4Variable.THIS.getName())) {
-				return context.getContainer();
+				return context.getContainerObject();
 			}
 			else if (fieldName.equals("FindObjects")) {
 				return searchCriteriaAssumedResult(context);
 			}
 			else if (fieldName.equals("GetID") && params.length == 0) {
-				return context.getContainer();
+				return context.getContainerObject();
 			}
 			return super.guessObjectType(context);
 		}

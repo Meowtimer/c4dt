@@ -7,6 +7,7 @@ import net.arctics.clonk.Utilities;
 import net.arctics.clonk.parser.C4Field;
 import net.arctics.clonk.parser.C4Function;
 import net.arctics.clonk.parser.C4Object;
+import net.arctics.clonk.parser.C4ScriptBase;
 import net.arctics.clonk.parser.C4Type;
 import net.arctics.clonk.parser.C4Variable;
 
@@ -57,12 +58,12 @@ public class ClonkContentOutlineLabelAndContentProvider extends LabelProvider im
 	 * @see org.eclipse.jface.viewers.IStructuredContentProvider#getElements(java.lang.Object)
 	 */
 	public Object[] getElements(Object root) {
-		if (root instanceof C4Object) {
-			C4Object obj = (C4Object)root;
+		if (root instanceof C4ScriptBase) {
+			C4ScriptBase script = (C4ScriptBase)root;
 		
-			Object[] result = new Object[obj.getDefinedFunctions().size()+obj.getDefinedVariables().size()];
-			System.arraycopy(obj.getDefinedFunctions().toArray(), 0, result, 0, obj.getDefinedFunctions().size());
-			System.arraycopy(obj.getDefinedVariables().toArray(), 0, result, obj.getDefinedFunctions().size(), obj.getDefinedVariables().size());
+			Object[] result = new Object[script.getDefinedFunctions().size()+script.getDefinedVariables().size()];
+			System.arraycopy(script.getDefinedFunctions().toArray(), 0, result, 0, script.getDefinedFunctions().size());
+			System.arraycopy(script.getDefinedVariables().toArray(), 0, result, script.getDefinedFunctions().size(), script.getDefinedVariables().size());
 			return result;
 		}
 		return null;

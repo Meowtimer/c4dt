@@ -6,6 +6,7 @@ import net.arctics.clonk.parser.C4Field;
 import net.arctics.clonk.parser.C4Function;
 import net.arctics.clonk.parser.C4ID;
 import net.arctics.clonk.parser.C4Object;
+import net.arctics.clonk.parser.C4ScriptBase;
 import net.arctics.clonk.parser.C4ScriptParser;
 import net.arctics.clonk.parser.CompilerException;
 import net.arctics.clonk.parser.C4ScriptExprTree.ExprElm;
@@ -38,8 +39,8 @@ public class IdentInfo implements IExpressionListener {
 	
 	public IdentInfo(ITextEditor editor, IDocument doc, IRegion region) throws BadLocationException, CompilerException, ParsingException {
 		this.editor = editor;
-		C4Object obj = Utilities.getObjectForEditor(getEditor());
-		C4Function func = obj.funcAt(region);
+		C4ScriptBase script = Utilities.getScriptForEditor(getEditor());
+		C4Function func = script.funcAt(region);
 		if (func == null) {
 			// outside function, fallback to old technique (only ids)
 			IRegion lineInfo;
@@ -57,7 +58,7 @@ public class IdentInfo implements IExpressionListener {
 			identRegion = new Region(lineInfo.getOffset()+start,end-start);
 			if (identRegion.getLength() == 4) {
 				C4ID id = C4ID.getID(doc.get(identRegion.getOffset(), identRegion.getLength()));
-				field = Utilities.getObjectForEditor(getEditor()).getIndex().getLastObjectWithId(id);
+				field = Utilities.getScriptForEditor(getEditor()).getIndex().getLastObjectWithId(id);
 				if (field == null)
 					field = ClonkCore.EXTERN_INDEX.getLastObjectWithId(id);
 			}
@@ -65,7 +66,7 @@ public class IdentInfo implements IExpressionListener {
 		}
 		int statementStart = func.getBody().getOffset();
 		identRegion = new Region(region.getOffset()-statementStart,0);
-		C4ScriptParser parser = C4ScriptParser.reportExpressionsInStatements(doc, func.getBody(), obj, func, this);
+		C4ScriptParser parser = C4ScriptParser.reportExpressionsInStatements(doc, func.getBody(), script, func, this);
 		if (exprAtRegion != null) {
 			FieldRegion fieldRegion = exprAtRegion.fieldAt(identRegion.getOffset()-exprAtRegion.getExprStart(), parser);
 			if (fieldRegion != null) {

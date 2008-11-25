@@ -34,6 +34,15 @@ public class ProjectIndex extends ClonkIndex {
 				}
 			}
 		}
+		for (C4ScriptBase script : getIndexedScripts()) {
+			if (script instanceof C4StandaloneScript) {
+				C4StandaloneScript standalone = (C4StandaloneScript) script;
+				Path path = new Path(standalone.getScriptFilePath());
+				IPath projectPath = path.removeFirstSegments(1);
+				IResource res = project.findMember(projectPath);
+				standalone.setScriptfile(res);
+			}
+		}
 		super.fixReferencesAfterSerialization();
 	}
 

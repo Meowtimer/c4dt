@@ -46,7 +46,7 @@ public class ClonkSourceViewerConfiguration extends TextSourceViewerConfiguratio
 				e.printStackTrace();
 				i = null;
 			}
-			if (i != null && i.getField() != null && (i.getField().getObject() != null || i.getField() instanceof C4Object)) {
+			if (i != null && i.getField() != null && (i.getField().getScript() != null || i.getField() instanceof C4Object)) {
 				return new IHyperlink[] {
 					new C4ScriptHyperlink(i.getIdentRegion(),i.getField())
 				};

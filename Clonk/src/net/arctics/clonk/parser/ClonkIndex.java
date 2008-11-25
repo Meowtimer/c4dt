@@ -17,6 +17,7 @@ public class ClonkIndex implements Serializable {
 	private static final long serialVersionUID = 1L;
 
 	private Map<C4ID,List<C4Object>> indexedObjects;
+	private List<C4ScriptBase> indexedScripts;
 	
 	private transient List<C4Function> globalFunctions;
 	private transient List<C4Variable> staticVariables;
@@ -109,6 +110,18 @@ public class ClonkIndex implements Serializable {
 				}
 			}
 		}
+		for (C4ScriptBase script : getIndexedScripts()) {
+			for (C4Function func : script.definedFunctions) {
+				if (func.getVisibility() == C4FunctionScope.FUNC_GLOBAL) {
+					globalFunctions.add(func);
+				}
+			}
+			for (C4Variable var : script.definedVariables) {
+				if (var.getScope() == C4VariableScope.VAR_STATIC || var.getScope() == C4VariableScope.VAR_CONST) {
+					staticVariables.add(var);
+				}
+			}
+		}
 		
 //		System.out.println("Functions added to cache:");
 //		for (C4Function func : globalFunctions)
@@ -152,6 +165,22 @@ public class ClonkIndex implements Serializable {
 		}
 	}
 	
+	public void addScript(C4ScriptBase script) {
+		if (script instanceof C4Object)
+			addObject((C4Object)script);
+		else {
+			if (!getIndexedScripts().contains(script))
+				getIndexedScripts().add(script);
+		}
+	}
+	
+	public void removeScript(C4ScriptBase script) {
+		if (script instanceof C4Object)
+			removeObject((C4Object)script);
+		else
+			getIndexedScripts().remove(script);
+	}
+	
 	/**
 	 * Returns true if there are no objects in this index.
 	 * @return
@@ -168,6 +197,13 @@ public class ClonkIndex implements Serializable {
 			indexedObjects = new HashMap<C4ID, List<C4Object>>();
 		}
 		return indexedObjects;
+	}
+	
+	public List<C4ScriptBase> getIndexedScripts() {
+		if (indexedScripts == null) {
+			indexedScripts = new LinkedList<C4ScriptBase>();
+		}
+		return indexedScripts;
 	}
 
 	public C4Object getLastObjectWithId(C4ID id) {
@@ -229,6 +265,7 @@ public class ClonkIndex implements Serializable {
 
 	public void clear() {
 		getIndexedObjects().clear();
+		getIndexedScripts().clear();
 		refreshCache();
 	}
 

@@ -2,6 +2,7 @@ package net.arctics.clonk.ui.editors;
 
 import net.arctics.clonk.parser.C4Object;
 import net.arctics.clonk.parser.C4Field;
+import net.arctics.clonk.parser.C4ScriptBase;
 import net.arctics.clonk.Utilities;
 
 import org.eclipse.jface.viewers.IStructuredSelection;
@@ -23,14 +24,14 @@ public class ClonkContentOutlinePage extends ContentOutlinePage {
 	public void createControl(Composite parent) {
 		super.createControl(parent);
 		if (editor != null) {
-			C4Object obj = Utilities.getObjectForEditor(editor);
-			if (obj != null) {
-				setTreeViewerInput(obj);
+			C4ScriptBase script = Utilities.getScriptForEditor(editor);
+			if (script != null) {
+				setTreeViewerInput(script);
 			}
 		}
 	}
 
-	private void setTreeViewerInput(C4Object obj) {
+	private void setTreeViewerInput(C4ScriptBase obj) {
 		TreeViewer treeViewer = this.getTreeViewer();
 		if (treeViewer == null)
 			return;
@@ -71,7 +72,7 @@ public class ClonkContentOutlinePage extends ContentOutlinePage {
 
 	public void refresh() {
 		if (getTreeViewer().getInput() == null)
-			setTreeViewerInput(Utilities.getObjectForEditor(editor));
+			setTreeViewerInput(Utilities.getScriptForEditor(editor));
 		else
 			getTreeViewer().refresh();
 	}
