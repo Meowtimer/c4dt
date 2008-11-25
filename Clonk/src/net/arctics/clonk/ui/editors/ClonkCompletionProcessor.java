@@ -177,7 +177,7 @@ public class ClonkCompletionProcessor implements IContentAssistProcessor {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		final C4Function activeFunc = isInCodeBody(doc, offset);
+		final C4Function activeFunc = getActiveFunc(doc, offset);
 		if (activeFunc == null) {
 		
 			try {
@@ -228,6 +228,10 @@ public class ClonkCompletionProcessor implements IContentAssistProcessor {
 				ClonkCompletionProposal prop = new ClonkCompletionProposal(directive,offset,replacementLength,directive.length(), reg.get("directive") , directive.trim(),null,null," - Engine");
 				proposals.add(prop);
 			}
+			
+			// propose objects for #include or something
+			proposalForIndex(index, offset, wordOffset, prefix, proposals);
+			proposalForIndex(ClonkCore.EXTERN_INDEX, offset, wordOffset, prefix, proposals);
 		}
 		else {
 			proposalForIndex(index, offset, wordOffset, prefix, proposals);
@@ -347,7 +351,7 @@ public class ClonkCompletionProcessor implements IContentAssistProcessor {
 			proposalsFromObject(o, loopCatcher, prefix, offset, wordOffset, proposals, noPrivateFuncs);
 	}
 
-	protected C4Function isInCodeBody(IDocument document, int offset) {
+	protected C4Function getActiveFunc(IDocument document, int offset) {
 		C4Object thisObj = Utilities.getObjectForEditor(editor);
 		return thisObj != null ? thisObj.funcAt(new Region(offset,1)) : null;
 		// restored
