@@ -93,8 +93,21 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 					Utilities.getProject(proj).getIndexedData().refreshCache();
 				}
 				break;
-			case FULL_BUILD:
+			
 			case CLEAN_BUILD:
+				if (proj != null) {
+					Utilities.getProject(proj).getIndexedData().clear();
+					proj.accept(new IResourceVisitor() {
+						public boolean visit(IResource resource) throws CoreException {
+							if (resource.getSessionProperty(ClonkCore.C4OBJECT_PROPERTY_ID) != null) {
+								resource.setSessionProperty(ClonkCore.C4OBJECT_PROPERTY_ID, null);
+							}
+							if (resource instanceof IContainer) return true;
+							else return false;
+						}
+					});
+				}
+			case FULL_BUILD:
 				readExternalLibs();
 				ClonkCore.saveExternIndex();
 				if (proj != null) {
