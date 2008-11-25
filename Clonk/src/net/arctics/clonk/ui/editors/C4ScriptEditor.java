@@ -21,31 +21,35 @@ import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.action.IMenuManager;
+import org.eclipse.jface.preference.PreferenceConverter;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.source.DefaultCharacterPairMatcher;
 import org.eclipse.jface.text.source.ISourceViewer;
 import org.eclipse.jface.text.source.IVerticalRuler;
 import org.eclipse.jface.text.source.projection.ProjectionViewer;
 import org.eclipse.jface.viewers.ISelection;
+import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.editors.text.TextEditor;
 import org.eclipse.ui.part.FileEditorInput;
-import org.eclipse.ui.texteditor.AbstractDecoratedTextEditor;
 import org.eclipse.ui.texteditor.ContentAssistAction;
 import org.eclipse.ui.texteditor.ITextEditorActionDefinitionIds;
 import org.eclipse.ui.texteditor.SourceViewerDecorationSupport;
 import org.eclipse.ui.views.contentoutline.IContentOutlinePage;
 
-public class C4ScriptEditor extends AbstractDecoratedTextEditor {
+public class C4ScriptEditor extends TextEditor {
 
 	private ColorManager colorManager;
 	private ClonkContentOutlinePage outlinePage;
 	public static final String ACTION_INDEX_CLONK_DIR = "net.arctics.clonk.indexClonkCommand";
-	private DefaultCharacterPairMatcher fBracketMatcher = new DefaultCharacterPairMatcher(new char[] { '{', '}' });
+	private static final String ENABLE_BRACKET_HIGHLIGHT = ClonkCore.PLUGIN_ID + ".enableBracketHighlighting";
+	private static final String BRACKET_HIGHLIGHT_COLOR = ClonkCore.PLUGIN_ID + ".bracketHighlightColor";
+	private DefaultCharacterPairMatcher fBracketMatcher = new DefaultCharacterPairMatcher(new char[] { '{', '}', '(', ')' });
 	
 	
 	public C4ScriptEditor() {
@@ -69,9 +73,11 @@ public class C4ScriptEditor extends AbstractDecoratedTextEditor {
 	@Override
 	protected void configureSourceViewerDecorationSupport(
 			SourceViewerDecorationSupport support) {
-		super.configureSourceViewerDecorationSupport(support);
 		support.setCharacterPairMatcher(fBracketMatcher);
-//		support.setMatchingCharacterPainterPreferenceKeys(I
+		support.setMatchingCharacterPainterPreferenceKeys(ENABLE_BRACKET_HIGHLIGHT, BRACKET_HIGHLIGHT_COLOR);
+		getPreferenceStore().setValue(ENABLE_BRACKET_HIGHLIGHT, true);
+		PreferenceConverter.setValue(getPreferenceStore(), BRACKET_HIGHLIGHT_COLOR, new RGB(0x33,0x33,0xAA));
+		super.configureSourceViewerDecorationSupport(support);
 	}
 
 	/* (non-Javadoc)
@@ -141,6 +147,7 @@ public class C4ScriptEditor extends AbstractDecoratedTextEditor {
 		fOverviewRuler= createOverviewRuler(getSharedColors());
 
 		ISourceViewer viewer= new ProjectionViewer(parent, ruler, getOverviewRuler(), isOverviewRulerVisible(), styles);
+		
 		// ensure decoration support has been created and configured.
 		getSourceViewerDecorationSupport(viewer);
 		
@@ -173,6 +180,25 @@ public class C4ScriptEditor extends AbstractDecoratedTextEditor {
 
 	public void refreshOutline() {
 		outlinePage.refresh();
+	}
+
+	@Override
+	protected void handleCursorPositionChanged() {
+		super.handleCursorPositionChanged();
+		// TODO: mark current section in vertical ruler by setHighlightRange
+//		TextSelection sel = (TextSelection) getSelectionProvider().getSelection();
+//		resetHighlightRange();
+//		if (sel.getLength() > 0) return;
+//		IDocument doc = getDocumentProvider().getDocument(getEditorInput());
+//		try {
+//			String context = doc.get(sel.getOffset() - 1, 1);
+//			if (context.equals(")")) {
+//				setHighlightRange(sel.getOffset() - 5, 2, false); // highlights only left ruler
+//				// setHighlightRange should be used to display current function
+//			}
+//		} catch (BadLocationException e) {
+//			e.printStackTrace();
+//		}
 	}
 
 	public C4ScriptParser reparseWithDocumentContents(C4ScriptExprTree.IExpressionListener exprListener, boolean onlyDeclarations) throws CompilerException {
