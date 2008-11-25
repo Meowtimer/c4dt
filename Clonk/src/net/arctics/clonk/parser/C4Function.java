@@ -266,10 +266,20 @@ public class C4Function extends C4Structure implements Serializable {
 	}
 	
 	public C4Function getInherited() {
+		if (getVisibility() == C4FunctionScope.FUNC_GLOBAL) {
+			C4Function f = ClonkCore.ENGINE_OBJECT.findFunction(getName());
+			if (f == null)
+				f = ClonkCore.EXTERN_INDEX.findGlobalFunction(getName());
+			if (f == null)
+				f = getScript().getIndex().findGlobalFunction(getName());
+			if (f == this)
+				f = null;
+			return f;
+		}
 		C4Object[] includes = getScript().getIncludes();
 		for (int i = includes.length-1; i >= 0; i--) {
 			C4Function field = includes[i].findFunction(getName());
-			if (field != null)
+			if (field != null && field != this)
 				return field;
 		}
 		return null;
