@@ -223,7 +223,7 @@ public class ClonkSourceViewerConfiguration extends TextSourceViewerConfiguratio
 	}
 	
 	@Override
-	public IQuickAssistAssistant getQuickAssistAssistant(ISourceViewer sourceViewer) {
+	public IQuickAssistAssistant getQuickAssistAssistant(ISourceViewer sourceViewer) { // noch unnütz
 		IQuickAssistAssistant assistant = new QuickAssistAssistant();
 		assistant.setQuickAssistProcessor(new ClonkQuickAssistProcessor());
 		return assistant;

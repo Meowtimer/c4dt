@@ -5,11 +5,16 @@ import org.eclipse.jface.text.quickassist.IQuickAssistInvocationContext;
 import org.eclipse.jface.text.quickassist.IQuickAssistProcessor;
 import org.eclipse.jface.text.source.Annotation;
 
+/**
+ * Bis jetzt keine Funktion
+ * @author ZokRadonh
+ *
+ */
 public class ClonkQuickAssistProcessor implements IQuickAssistProcessor  {
 
 	public boolean canAssist(IQuickAssistInvocationContext invocationContext) {
 		// TODO Auto-generated method stub
-		return true;
+		return false;
 	}
 
 	public boolean canFix(Annotation annotation) {
