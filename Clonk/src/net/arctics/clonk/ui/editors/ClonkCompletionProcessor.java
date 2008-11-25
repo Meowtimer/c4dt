@@ -252,6 +252,7 @@ public class ClonkCompletionProcessor implements IContentAssistProcessor {
 			}
 			
 			C4Object contextObj = Utilities.getObjectForEditor(editor);
+			boolean contextObjChanged = false;
 			if (contextObj != null) {
 				try {
 					contextExpression = null;
@@ -267,8 +268,10 @@ public class ClonkCompletionProcessor implements IContentAssistProcessor {
 					});
 					if (contextExpression != null) {
 						C4Object guessed = contextExpression.guessObjectType(parser);
-						if (guessed != null)
+						if (guessed != null) {
 							contextObj = guessed;
+							contextObjChanged = true;
+						}
 					}
 				} catch (BadLocationException e) {
 					// TODO Auto-generated catch block
@@ -283,7 +286,7 @@ public class ClonkCompletionProcessor implements IContentAssistProcessor {
 			}
 			
 			if (contextObj != null) {
-				proposalsFromObject(contextObj, new HashSet<C4Object>(), prefix, offset, wordOffset, proposals);
+				proposalsFromObject(contextObj, new HashSet<C4Object>(), prefix, offset, wordOffset, proposals, contextObjChanged);
 			}
 			
 			for(String keyword : BuiltInDefinitions.KEYWORDS) {
@@ -326,21 +329,22 @@ public class ClonkCompletionProcessor implements IContentAssistProcessor {
 		return result;
 	}
 
-	private void proposalsFromObject(C4Object obj, HashSet<C4Object> loopCatcher, String prefix, int offset, int wordOffset, List<ClonkCompletionProposal> proposals) {
+	private void proposalsFromObject(C4Object obj, HashSet<C4Object> loopCatcher, String prefix, int offset, int wordOffset, List<ClonkCompletionProposal> proposals, boolean noPrivateFuncs) {
 		if (loopCatcher.contains(obj)) {
 			return;
 		}
 		loopCatcher.add(obj);
 		for (C4Function func : obj.getDefinedFunctions()) {
 			if (func.getVisibility() != C4FunctionScope.FUNC_GLOBAL)
-				proposalForFunc(func, prefix, offset, proposals, obj.getName());
+				if (!noPrivateFuncs  || func.getVisibility() == C4FunctionScope.FUNC_PUBLIC)
+					proposalForFunc(func, prefix, offset, proposals, obj.getName());
 		}
 		for (C4Variable var : obj.getDefinedVariables()) {
 			if (var.getScope() != C4VariableScope.VAR_STATIC && var.getScope() != C4VariableScope.VAR_CONST)
 			proposalForVar(var, prefix, wordOffset, proposals);
 		}
 		for (C4Object o : obj.getIncludes())
-			proposalsFromObject(o, loopCatcher, prefix, offset, wordOffset, proposals);
+			proposalsFromObject(o, loopCatcher, prefix, offset, wordOffset, proposals, noPrivateFuncs);
 	}
 
 	protected C4Function isInCodeBody(IDocument document, int offset) {

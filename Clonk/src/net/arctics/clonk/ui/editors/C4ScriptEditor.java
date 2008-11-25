@@ -7,6 +7,7 @@ import java.util.ResourceBundle;
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.Utilities;
 import net.arctics.clonk.parser.C4Field;
+import net.arctics.clonk.parser.C4Function;
 import net.arctics.clonk.parser.C4Object;
 import net.arctics.clonk.parser.C4ObjectExtern;
 import net.arctics.clonk.parser.C4ObjectIntern;
@@ -23,6 +24,7 @@ import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.preference.PreferenceConverter;
 import org.eclipse.jface.text.IDocument;
+import org.eclipse.jface.text.TextSelection;
 import org.eclipse.jface.text.source.DefaultCharacterPairMatcher;
 import org.eclipse.jface.text.source.ISourceViewer;
 import org.eclipse.jface.text.source.IVerticalRuler;
@@ -185,20 +187,14 @@ public class C4ScriptEditor extends TextEditor {
 	@Override
 	protected void handleCursorPositionChanged() {
 		super.handleCursorPositionChanged();
-		// TODO: mark current section in vertical ruler by setHighlightRange
-//		TextSelection sel = (TextSelection) getSelectionProvider().getSelection();
-//		resetHighlightRange();
-//		if (sel.getLength() > 0) return;
-//		IDocument doc = getDocumentProvider().getDocument(getEditorInput());
-//		try {
-//			String context = doc.get(sel.getOffset() - 1, 1);
-//			if (context.equals(")")) {
-//				setHighlightRange(sel.getOffset() - 5, 2, false); // highlights only left ruler
-//				// setHighlightRange should be used to display current function
-//			}
-//		} catch (BadLocationException e) {
-//			e.printStackTrace();
-//		}
+		C4Object obj = Utilities.getObjectForEditor(this);
+		if (obj != null) {
+			TextSelection sel = (TextSelection) getSelectionProvider().getSelection();
+			C4Function f = obj.funcAt(sel.getOffset());
+			if (f != null) {
+				this.setHighlightRange(f.getLocation().getOffset(), f.getBody().getOffset()-f.getLocation().getOffset() + f.getBody().getLength()+1, false);
+			}
+		}
 	}
 
 	public C4ScriptParser reparseWithDocumentContents(C4ScriptExprTree.IExpressionListener exprListener, boolean onlyDeclarations) throws CompilerException {

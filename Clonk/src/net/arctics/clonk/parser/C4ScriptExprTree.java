@@ -607,6 +607,11 @@ public abstract class C4ScriptExprTree {
 		public boolean hasSideEffects() {
 			return getOperator().modifiesArgument();
 		}
+		
+		@Override
+		public boolean modifiable() {
+			return false;
+		}
 
 	}
 
@@ -678,11 +683,6 @@ public abstract class C4ScriptExprTree {
 			output.append(getOperator().getOperatorName());
 			output.append(" ");
 			rightSide.print(output);
-		}
-
-		@Override
-		public boolean modifiable() {
-			return false;
 		}
 
 		@Override

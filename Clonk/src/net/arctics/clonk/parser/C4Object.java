@@ -12,6 +12,7 @@ import net.arctics.clonk.resource.ClonkProjectNature;
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.ITextSelection;
+import org.eclipse.jface.text.Region;
 
 public abstract class C4Object extends C4Structure {
 
@@ -318,6 +319,10 @@ public abstract class C4Object extends C4Structure {
 		return (C4Variable) findField(varName, info);
 	}
 
+	public C4Function funcAt(int offset) {
+		return funcAt(new Region(offset, 1));
+	}
+	
 	public C4Function funcAt(IRegion region) {
 		// from name to end of body should be enough... ?
 		for (C4Function f : definedFunctions) {

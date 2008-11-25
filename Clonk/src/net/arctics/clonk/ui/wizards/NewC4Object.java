@@ -146,16 +146,6 @@ public class NewC4Object extends Wizard implements INewWizard {
 //		monitor.worked(1);
 	}
 	
-	/**
-	 * We will initialize file contents with a sample text.
-	 */
-
-	private InputStream openContentStream() {
-		String contents =
-			"This is the initial file contents for *.mpe file that should be word-sorted in the Preview page of the multi-page editor";
-		return new ByteArrayInputStream(contents.getBytes());
-	}
-	
 	private InputStream initialDefCoreStream(String fileName, String objectID) {
 		String contents =
 			"[DefCore]" + "\r\n" +
