@@ -50,7 +50,8 @@ public class C4Variable extends C4Field implements Serializable {
 	}
 
 	public C4Variable() {
-		
+		name = "";
+		scope = C4VariableScope.VAR_VAR;
 	}
 	
 	public C4Variable(String name, String scope) {

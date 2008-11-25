@@ -39,6 +39,8 @@ public class C4Function extends C4Structure implements Serializable {
 	}
 	
 	public C4Function() {
+		visibility = C4FunctionScope.FUNC_GLOBAL;
+		name = "";
 		parameter = new ArrayList<C4Variable>();
 		localVars = new ArrayList<C4Variable>();
 	}

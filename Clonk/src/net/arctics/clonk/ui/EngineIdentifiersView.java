@@ -18,6 +18,7 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.part.*;
+import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.jface.viewers.*;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
@@ -86,10 +87,24 @@ public class EngineIdentifiersView extends ViewPart {
 		private Combo scopeBox;
 		private List<ParameterCombination> parameters = new ArrayList<ParameterCombination>();
 		
+		/**
+		 * Edits the currently selected identifer
+		 * @param parent
+		 */
 		public EditIdentifierInputDialog(Shell parent) {
 			super(parent);
 		}
-
+		
+		/**
+		 * Edits the specified identifier
+		 * @param parent
+		 * @param identifier
+		 */
+		public EditIdentifierInputDialog(Shell parent, C4Field identifier) {
+			super(parent);
+			this.identifier = identifier;
+		}
+		
 		/* (non-Javadoc)
 		 * @see org.eclipse.jface.dialogs.Dialog#createDialogArea(org.eclipse.swt.widgets.Composite)
 		 */
@@ -99,16 +114,18 @@ public class EngineIdentifiersView extends ViewPart {
 			Composite composite = (Composite) super.createDialogArea(parent);
 			
 			composite.setLayout(new GridLayout(2,false));
+			if (identifier == null) {
+				Object activeElement = getActiveElement();
+				if (!(activeElement instanceof C4Field)) {
+					return null;
+				}
+				identifier = (C4Field) activeElement;
+			}
 			
-			Object activeElement = getActiveElement();
-			if (!(activeElement instanceof C4Field)) {
-				return null;
+			if (identifier instanceof C4Function) {
+				createFunctionEditDialog(composite, (C4Function) identifier);
 			}
-			identifier = (C4Field) activeElement;
-			if (activeElement instanceof C4Function) {
-				createFunctionEditDialog(composite,(C4Function) identifier);
-			}
-			else if (activeElement instanceof C4Variable) {
+			else if (identifier instanceof C4Variable) {
 				createVariableEditDialog(composite, (C4Variable) identifier);
 			}
 			
@@ -283,6 +300,8 @@ public class EngineIdentifiersView extends ViewPart {
 	private DrillDownAdapter drillDownAdapter;
 	private Action editAction;
 	private Action deleteAction;
+	private Action addFunctionAction;
+	private Action addVariableAction;
 	private Action saveAction;
 	private Action doubleClickAction;
 
@@ -343,8 +362,8 @@ public class EngineIdentifiersView extends ViewPart {
 	}
 
 	private void fillLocalPullDown(IMenuManager manager) {
-		manager.add(editAction);
-		manager.add(deleteAction);
+		manager.add(addFunctionAction);
+		manager.add(addVariableAction);
 		manager.add(new Separator());
 		manager.add(saveAction);
 	}
@@ -352,7 +371,7 @@ public class EngineIdentifiersView extends ViewPart {
 	private void fillContextMenu(IMenuManager manager) {
 		manager.add(editAction);
 		manager.add(deleteAction);
-		manager.add(saveAction);
+//		manager.add(saveAction);
 		manager.add(new Separator());
 		drillDownAdapter.addNavigationActions(manager);
 		// Other plug-ins can contribute there actions here
@@ -361,12 +380,46 @@ public class EngineIdentifiersView extends ViewPart {
 	
 	private void fillLocalToolBar(IToolBarManager manager) {
 //		manager.add(editAction);
+		manager.add(addFunctionAction);
+		manager.add(addVariableAction);
 		manager.add(saveAction);
 		manager.add(new Separator());
 		drillDownAdapter.addNavigationActions(manager);
 	}
 
 	private void makeActions() {
+		addFunctionAction = new Action() {
+			public void run() {
+				C4Function func = new C4Function();
+				Dialog dialog = new EditIdentifierInputDialog(viewer.getControl().getShell(),func);
+				dialog.create();
+				dialog.getShell().setSize(400,600);
+				dialog.getShell().pack();
+				if (dialog.open() == Dialog.OK) {
+					ClonkCore.ENGINE_OBJECT.addField(func);
+				}
+				refresh();
+			}
+		};
+		addFunctionAction.setText("Add Function");
+		addFunctionAction.setToolTipText("Adds a new function to engine index");
+		
+		addVariableAction = new Action() {
+			public void run() {
+				C4Variable var = new C4Variable();
+				Dialog dialog = new EditIdentifierInputDialog(viewer.getControl().getShell(),var);
+				dialog.create();
+				dialog.getShell().setSize(400,600);
+				dialog.getShell().pack();
+				if (dialog.open() == Dialog.OK) {
+					ClonkCore.ENGINE_OBJECT.addField(var);
+				}
+				refresh();
+			}
+		};
+		addVariableAction.setText("Add Variable");
+		addVariableAction.setToolTipText("Adds a new variable to engine index");
+		
 		editAction = new Action() {
 			public void run() {
 //				Tree tree = viewer.getTree();
