@@ -8,7 +8,7 @@ import net.arctics.clonk.Utilities;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 
-public class C4StandaloneScript extends C4ScriptBase implements Serializable {
+public class C4SystemScript extends C4ScriptBase implements Serializable {
 
 	/**
 	 * 
@@ -18,7 +18,7 @@ public class C4StandaloneScript extends C4ScriptBase implements Serializable {
 	private transient IResource scriptFile;
 	private String scriptFilePath;
 	
-	public C4StandaloneScript(IResource scriptFile) throws CoreException {
+	public C4SystemScript(IResource scriptFile) throws CoreException {
 		this.name = scriptFile.getName();
 		this.scriptFile = scriptFile;
 		this.scriptFilePath = scriptFile.getFullPath().toPortableString();
@@ -49,8 +49,8 @@ public class C4StandaloneScript extends C4ScriptBase implements Serializable {
 		return scriptFilePath;
 	}
 	
-	public static C4StandaloneScript standaloneScriptCorrespondingTo(IResource resource) throws CoreException {
-		return (C4StandaloneScript) resource.getSessionProperty(ClonkCore.SCRIPT_PROPERTY_ID);
+	public static C4SystemScript scriptCorrespondingTo(IResource resource) throws CoreException {
+		return (C4SystemScript) resource.getSessionProperty(ClonkCore.SCRIPT_PROPERTY_ID);
 	}
 
 }

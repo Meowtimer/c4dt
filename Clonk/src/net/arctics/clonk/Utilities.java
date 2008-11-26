@@ -3,7 +3,7 @@ package net.arctics.clonk;
 import net.arctics.clonk.parser.C4Function;
 import net.arctics.clonk.parser.C4Object;
 import net.arctics.clonk.parser.C4ScriptBase;
-import net.arctics.clonk.parser.C4StandaloneScript;
+import net.arctics.clonk.parser.C4SystemScript;
 import net.arctics.clonk.parser.C4Variable;
 import net.arctics.clonk.parser.ClonkIndex;
 import net.arctics.clonk.resource.ClonkProjectNature;
@@ -122,7 +122,7 @@ public abstract class Utilities {
 	public static C4ScriptBase getScriptForFile(IFile scriptFile) {
 		C4ScriptBase script;
 		try {
-			script = C4StandaloneScript.standaloneScriptCorrespondingTo(scriptFile);
+			script = C4SystemScript.scriptCorrespondingTo(scriptFile);
 		} catch (CoreException e) {
 			script = null;
 		}

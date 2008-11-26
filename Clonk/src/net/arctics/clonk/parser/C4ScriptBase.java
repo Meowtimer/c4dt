@@ -73,7 +73,7 @@ public abstract class C4ScriptBase extends C4Structure {
 	public C4Object[] getIncludes(ClonkIndex index) {
 		List<C4Object> result = new ArrayList<C4Object>();
 		for (C4Directive d : definedDirectives) {
-			if (d.getType() == C4DirectiveType.INCLUDE) {
+			if (d.getType() == C4DirectiveType.INCLUDE || d.getType() == C4DirectiveType.APPENDTO) {
 				C4ID id = C4ID.getID(d.getContent());
 				C4Object obj = index.getLastObjectWithId(id);
 				if (obj == null)

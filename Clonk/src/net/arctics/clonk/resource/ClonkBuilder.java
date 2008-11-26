@@ -14,7 +14,7 @@ import net.arctics.clonk.parser.C4ObjectIntern;
 import net.arctics.clonk.parser.C4ObjectParser;
 import net.arctics.clonk.parser.C4ScriptBase;
 import net.arctics.clonk.parser.C4ScriptParser;
-import net.arctics.clonk.parser.C4StandaloneScript;
+import net.arctics.clonk.parser.C4SystemScript;
 import net.arctics.clonk.parser.ClonkIndex;
 import net.arctics.clonk.parser.CompilerException;
 import net.arctics.clonk.parser.defcore.C4DefCoreWrapper;
@@ -215,29 +215,32 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 
 		if (delta.getResource() instanceof IFile) {
 			if (delta.getKind() != IResourceDelta.REMOVED) {
-				C4ScriptBase container = Utilities.getScriptForFile((IFile) delta.getResource());
-				if (container != null) {
-					try {
-						if (delta.getResource().getName().endsWith(".c")) {
-							// remove and add object to refresh globalFunctions/staticVariables
-							ClonkIndex index = Utilities.getProject(delta.getResource()).getIndexedData();
-							new C4ScriptParser((IFile) delta.getResource(), container).parse();
-						}
-						else if (delta.getResource().getName().equals("DefCore.txt")) {
-							C4DefCoreWrapper defCore = new C4DefCoreWrapper((IFile) delta.getResource());
-							defCore.parse();
-							if (container instanceof C4Object)
-							((C4Object)container).setId(defCore.getObjectID());
-							if (container instanceof C4ObjectIntern) {
-								((C4ObjectIntern)container).getObjectFolder().setPersistentProperty(ClonkCore.FOLDER_C4ID_PROPERTY_ID, defCore.getObjectID().getName());
-							}
-						}
-					} catch (CompilerException e) {
-						// TODO display CompilerException messages
-						e.printStackTrace();
+				C4ScriptBase script = Utilities.getScriptForFile((IFile) delta.getResource());
+				if (script == null) {
+					// create if new file
+					IContainer folder = delta.getResource().getParent();
+					if (folder.getName().equals("System.c4g")) {
+						script = new C4SystemScript(delta.getResource());
 					}
-				} else {
-					/// ???
+				}
+				try {
+					if (delta.getResource().getName().endsWith(".c")) {
+						// remove and add object to refresh globalFunctions/staticVariables
+						ClonkIndex index = Utilities.getProject(delta.getResource()).getIndexedData();
+						new C4ScriptParser((IFile) delta.getResource(), script).parse();
+					}
+					else if (delta.getResource().getName().equals("DefCore.txt")) {
+						C4DefCoreWrapper defCore = new C4DefCoreWrapper((IFile) delta.getResource());
+						defCore.parse();
+						if (script instanceof C4Object)
+							((C4Object)script).setId(defCore.getObjectID());
+						if (script instanceof C4ObjectIntern) {
+							((C4ObjectIntern)script).getObjectFolder().setPersistentProperty(ClonkCore.FOLDER_C4ID_PROPERTY_ID, defCore.getObjectID().getName());
+						}
+					}
+				} catch (CompilerException e) {
+					// TODO display CompilerException messages
+					e.printStackTrace();
 				}
 			}
 			if (monitor != null) monitor.worked(1);
@@ -301,11 +304,11 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 			}
 		}
 		else if (resource.getName().endsWith(".c") && resource.getParent().getName().equals("System.c4g")) {
-			C4ScriptBase script = C4StandaloneScript.standaloneScriptCorrespondingTo(resource);
+			C4ScriptBase script = C4SystemScript.scriptCorrespondingTo(resource);
 			switch (buildPhase) {
 			case 0:
 				if (script == null) {
-					script = new C4StandaloneScript(resource);
+					script = new C4SystemScript(resource);
 				}
 				Utilities.getProject(resource).getIndexedData().addScript(script);
 				try {
@@ -367,7 +370,6 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 				if (item.getName().endsWith(".c")) {
 					byte[] content = ((C4Entry)item).getContentsAsArray();
 					try {
-						
 						C4ObjectExtern externObj = new C4ObjectExtern(C4ID.getSpecialID("System"),"System",item.getParentGroup());
 						C4ScriptParser parser = new C4ScriptParser(new ByteArrayInputStream(content),((C4Entry)item).computeSize(),externObj);
 						parser.parseDeclarations();

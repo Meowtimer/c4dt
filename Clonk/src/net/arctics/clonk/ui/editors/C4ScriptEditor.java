@@ -14,7 +14,7 @@ import net.arctics.clonk.parser.C4ObjectIntern;
 import net.arctics.clonk.parser.C4ScriptBase;
 import net.arctics.clonk.parser.C4ScriptExprTree;
 import net.arctics.clonk.parser.C4ScriptParser;
-import net.arctics.clonk.parser.C4StandaloneScript;
+import net.arctics.clonk.parser.C4SystemScript;
 import net.arctics.clonk.parser.CompilerException;
 import net.arctics.clonk.parser.SourceLocation;
 import net.arctics.clonk.ui.editors.actions.ConvertOldCodeToNewCodeAction;
@@ -222,7 +222,7 @@ public class C4ScriptEditor extends TextEditor {
 		IWorkbenchPage workbenchPage = workbench.getActiveWorkbenchWindow().getActivePage();
 		C4ScriptBase script = target instanceof C4ScriptBase ? (C4ScriptBase)target : target.getScript();
 		if (script != null) {
-			if (script instanceof C4ObjectIntern || script instanceof C4StandaloneScript) {
+			if (script instanceof C4ObjectIntern || script instanceof C4SystemScript) {
 				IEditorPart editor = workbenchPage.openEditor(new FileEditorInput((IFile) script.getScriptFile()), "clonk.editors.C4ScriptEditor");
 				C4ScriptEditor scriptEditor = (C4ScriptEditor)editor;						
 				if (target != script) {
