@@ -361,6 +361,7 @@ public class ClonkCore extends AbstractUIPlugin implements IResourceChangeListen
 	}
 
 	public boolean visit(IResourceDelta delta) throws CoreException {
+		if (!delta.getResource().getProject().isOpen()) return false;
 		if (delta.getKind() == IResourceDelta.REMOVED) {
 			ClonkProjectNature proj = Utilities.getProject(delta.getResource());
 			gatheredNatures.add(proj);
