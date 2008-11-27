@@ -215,6 +215,21 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 	public boolean visit(IResourceDelta delta) throws CoreException {
 		if (delta == null) 
 			return false;
+		
+//		for (Field f : IResourceDelta.class.getFields()) {
+//			try {
+//				if (delta.getKind() ==  f.getInt(null)) {
+//					System.out.println(f.getName() + ": " + delta.getResource().getName());
+//					break;
+//				}
+//			} catch (IllegalArgumentException e) {
+//				// TODO Auto-generated catch block
+//				e.printStackTrace();
+//			} catch (IllegalAccessException e) {
+//				// TODO Auto-generated catch block
+//				e.printStackTrace();
+//			}
+//		}
 
 		if (delta.getResource() instanceof IFile) {
 			if (delta.getKind() == IResourceDelta.CHANGED || delta.getKind() == IResourceDelta.ADDED) {
@@ -234,7 +249,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 					}
 				}
 				try {
-					if (delta.getResource().getName().endsWith(".c")) {
+					if (script != null && script.getScriptFile().equals(delta.getResource()) && delta.getResource().getName().endsWith(".c")) {
 						if (script != null) {
 							C4ScriptParser parser = new C4ScriptParser((IFile) delta.getResource(), script);
 							switch (buildPhase) {
@@ -261,33 +276,21 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 			if (monitor != null) monitor.worked(1);
 			return true;
 		}
-		else {
-			if (delta.getKind() == IResourceDelta.MOVED_FROM) {
-				System.out.println(delta.getResource().getName());
+		else if (delta.getResource() instanceof IContainer) {
+			// make sure the object has a reference to its folder (not to some obsolete deleted one)
+			if (delta.getKind() == IResourceDelta.ADDED) {
+				C4ObjectIntern object = C4ObjectIntern.objectCorrespondingTo((IContainer)delta.getResource());
+				if (object != null)
+					object.setObjectFolder((IContainer) delta.getResource());
 			}
 			return true;
 		}
+		return false;
 	}
 
 	public boolean visit(IResource resource) throws CoreException {
 		if (resource == null)
 			return false;
-//		if (resource instanceof IFile) {
-//			C4Object container = Utilities.getProject(resource).getIndexedData()
-//				.getObject(C4ID.getID(resource.getParent().getPersistentProperty(ClonkCore.FOLDER_C4ID_PROPERTY_ID)));
-//			try {
-//				if (resource.getName().endsWith(".c")) {
-//					new C4ScriptParser((IFile) resource, container).parse();
-//				}
-//				else if (resource.getName().equals("DefCore.txt")) {
-//					new C4DefCoreParser((IFile) resource).parse();
-//				}
-//			} catch (CompilerException e) {
-//				e.printStackTrace();
-//			}
-//			return false;
-//		}
-		// TODO i think we should delete the complete index here, since we regenerate it now completely
 		if (resource instanceof IContainer) {
 			switch (buildPhase) {
 			case 0:
@@ -307,9 +310,10 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 				// check correctness of function code
 				ClonkIndex index = Utilities.getProject(resource).getIndexedData();
 				C4Object obj = index.getObject((IContainer)resource);
-				if (obj != null && obj.getScriptFile() != null) {
+				IFile scriptFile = (IFile) ((obj != null) ? obj.getScriptFile() : null);
+				if (scriptFile != null) {
 					try {
-						new C4ScriptParser((IFile)obj.getScriptFile(), obj).parseCodeOfFunctions();
+						new C4ScriptParser(scriptFile, obj).parseCodeOfFunctions();
 					} catch (CompilerException e) {
 						e.printStackTrace();
 					} 

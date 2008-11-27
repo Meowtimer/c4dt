@@ -131,7 +131,10 @@ public abstract class Utilities {
 			script = null;
 		}
 		if (script == null)
-			script = C4Object.objectCorrespondingTo(scriptFile.getParent());
+			script = C4ObjectIntern.objectCorrespondingTo(scriptFile.getParent());
+		// there can only be one script oO (not ScriptDE or something)
+		if (!script.getScriptFile().equals(scriptFile))
+			return null;
 		return script;
 	}
 

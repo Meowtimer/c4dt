@@ -35,11 +35,11 @@ public class ClonkIndex implements Serializable {
 	 * @param folder
 	 * @return
 	 */
-	public C4Object getObject(IContainer folder) {
+	public C4ObjectIntern getObject(IContainer folder) {
 		try {
 			// fetch from session cache
 			if (folder.getSessionProperty(ClonkCore.C4OBJECT_PROPERTY_ID) != null)
-				return (C4Object) folder.getSessionProperty(ClonkCore.C4OBJECT_PROPERTY_ID);
+				return (C4ObjectIntern) folder.getSessionProperty(ClonkCore.C4OBJECT_PROPERTY_ID);
 			
 			// create session cache
 			if (folder.getPersistentProperty(ClonkCore.FOLDER_C4ID_PROPERTY_ID) == null) return null;
@@ -49,7 +49,7 @@ public class ClonkIndex implements Serializable {
 					if ((obj instanceof C4ObjectIntern)) {
 						if (((C4ObjectIntern)obj).relativePath.equalsIgnoreCase(folder.getProjectRelativePath().toPortableString())) {
 							folder.setSessionProperty(ClonkCore.C4OBJECT_PROPERTY_ID, obj);
-							return obj;
+							return (C4ObjectIntern) obj;
 						}
 					}
 				}
@@ -138,6 +138,8 @@ public class ClonkIndex implements Serializable {
 	 * @param obj
 	 */
 	public void addObject(C4Object obj) {
+		if (obj.getId() == null)
+			return;
 		List<C4Object> alreadyDefinedObjects = getIndexedObjects().get(obj.getId());
 		if (alreadyDefinedObjects == null) {
 			alreadyDefinedObjects = new LinkedList<C4Object>();
@@ -156,6 +158,8 @@ public class ClonkIndex implements Serializable {
 	 * @param obj
 	 */
 	public void removeObject(C4Object obj) {
+		if (obj.getId() == null)
+			return;
 		List<C4Object> alreadyDefinedObjects = getIndexedObjects().get(obj.getId());
 		if (alreadyDefinedObjects != null) {
 			alreadyDefinedObjects.remove(obj);

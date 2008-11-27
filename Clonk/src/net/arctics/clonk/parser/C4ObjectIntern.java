@@ -89,12 +89,15 @@ public class C4ObjectIntern extends C4Object implements Serializable {
 	public void setObjectFolder(IContainer folder) throws CoreException {
 		if (objectFolder == folder)
 			return;
-		if (objectFolder != null)
+		if (objectFolder != null && objectFolder.exists())
 			objectFolder.setSessionProperty(ClonkCore.C4OBJECT_PROPERTY_ID, null);
 		objectFolder = folder;
 		if (folder != null) {
 			folder.setSessionProperty(ClonkCore.C4OBJECT_PROPERTY_ID, this);
-			folder.setPersistentProperty(ClonkCore.FOLDER_C4ID_PROPERTY_ID, getId().getName());
+			if (getId() != null)
+				folder.setPersistentProperty(ClonkCore.FOLDER_C4ID_PROPERTY_ID, getId().getName());
+			else
+				folder.setPersistentProperty(ClonkCore.FOLDER_C4ID_PROPERTY_ID, null);
 			relativePath = folder.getFullPath().toPortableString();
 		}
 	}
@@ -113,6 +116,10 @@ public class C4ObjectIntern extends C4Object implements Serializable {
 			} catch (CoreException e) {
 				e.printStackTrace();
 			}
+	}
+	
+	public static C4ObjectIntern objectCorrespondingTo(IContainer folder) {
+		return (Utilities.getIndex(folder) != null) ? Utilities.getIndex(folder).getObject(folder) : null;
 	}
 
 }

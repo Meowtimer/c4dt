@@ -19,6 +19,7 @@ import net.arctics.clonk.parser.C4Function;
 import net.arctics.clonk.parser.C4ID;
 import net.arctics.clonk.parser.C4Object;
 import net.arctics.clonk.parser.C4ObjectExtern;
+import net.arctics.clonk.parser.C4ObjectIntern;
 import net.arctics.clonk.parser.C4Variable;
 import net.arctics.clonk.parser.ClonkIndex;
 import net.arctics.clonk.resource.ClonkProjectNature;
@@ -40,7 +41,7 @@ import org.osgi.framework.BundleContext;
 /**
  * The activator class controls the plug-in life cycle
  */
-public class ClonkCore extends AbstractUIPlugin implements IResourceChangeListener, IResourceDeltaVisitor {
+public class ClonkCore extends AbstractUIPlugin {
 
 	// The plug-in ID
 	public static final String PLUGIN_ID = "net.arctics.clonk";
@@ -75,33 +76,6 @@ public class ClonkCore extends AbstractUIPlugin implements IResourceChangeListen
 		
 		loadEngineObject();
 		loadExternIndex();
-		
-//		URL engineConstants = getBundle().getEntry("res/constants.txt");
-//		if (engineConstants != null) {
-//			BufferedReader reader = new BufferedReader(new InputStreamReader(engineConstants.openStream()));
-//			String line;
-//			while((line = reader.readLine()) != null) {
-//				C4Variable var = new C4Variable(line,C4VariableScope.VAR_CONST);
-//				var.setObject(ENGINE_OBJECT);
-//				ENGINE_OBJECT.addField(var);
-//			}
-//		}
-		
-		ResourcesPlugin.getWorkspace().addResourceChangeListener(this);
-//		try {
-//			FileInputStream file = new FileInputStream("javadata.txt");
-//			ObjectOutputStream encoder = new ObjectOutputStream(new BufferedOutputStream(new FileOutputStream("engine.dat")));
-//	//		java.beans.XMLEncoder encoder = new XMLEncoder(new BufferedOutputStream(new FileOutputStream("engine.xml")));
-//			C4Function func = null;
-//			while((func = parseFunction(file)) != null) {
-//				encoder.writeObject(func);
-//			}
-//			encoder.flush();
-//			encoder.close();
-//		}
-//		catch (FileNotFoundException e) {
-//			e.printStackTrace();
-//		}
 	}
 
 	private void loadEngineObject() throws FileNotFoundException, IOException,
@@ -312,7 +286,6 @@ public class ClonkCore extends AbstractUIPlugin implements IResourceChangeListen
 	 */
 	public void stop(BundleContext context) throws Exception {
 		//saveExternIndex(); clean build causes save
-		ResourcesPlugin.getWorkspace().removeResourceChangeListener(this);
 		plugin = null;
 		super.stop(context);
 	}
@@ -337,40 +310,4 @@ public class ClonkCore extends AbstractUIPlugin implements IResourceChangeListen
 		return imageDescriptorFromPlugin(PLUGIN_ID, path);
 	}
 
-	private transient Set<ClonkProjectNature> gatheredNatures;
-	public void resourceChanged(IResourceChangeEvent event) {
-		try {
-			gatheredNatures = new HashSet<ClonkProjectNature>();
-			event.getDelta().accept(this);
-			Display.getDefault().asyncExec(new Runnable() {
-				public void run() {
-					for (ClonkProjectNature nature : gatheredNatures)
-						try {
-							nature.saveIndexData();
-						} catch (CoreException e) {
-							// TODO Auto-generated catch block
-							e.printStackTrace();
-						} // resave indexdata
-					gatheredNatures = null;	
-				}
-			});
-		} catch (CoreException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-	}
-
-	public boolean visit(IResourceDelta delta) throws CoreException {
-		if (!delta.getResource().getProject().isOpen()) return false;
-		if (delta.getKind() == IResourceDelta.REMOVED) {
-			ClonkProjectNature proj = Utilities.getProject(delta.getResource());
-			gatheredNatures.add(proj);
-			if (proj != null && delta.getResource() instanceof IFolder) {
-				C4Object obj = C4Object.objectCorrespondingTo((IFolder)delta.getResource());
-				if (obj != null)
-					proj.getIndexedData().removeObject(obj);
-			}
-		}
-		return true;
-	}
 }

@@ -456,14 +456,16 @@ public class C4ScriptParser {
 					}
 					eatWhitespace();
 					offset = fReader.getPosition();
-					ExprElm constantValue = parseExpression(offset);
+					ExprElm constantValue = parseExpression(offset, false);
+					if (constantValue == null)
+						constantValue = ERROR_PLACEHOLDER_EXPR;
 					if (!(constantValue instanceof ExprLiteral)) {
-						errorWithCode(ErrorCode.ConstantValueExpected, fReader.getPosition()-1, fReader.getPosition());
+						errorWithCode(ErrorCode.ConstantValueExpected, constantValue, true);
 					}
 					C4Variable var = new C4Variable(varName,C4VariableScope.VAR_CONST);
 					var.setLocation(new SourceLocation(s, e));
 					var.setScript(container);
-					//					var.setType(C4Type.)
+					var.inferTypeFromAssignment(constantValue, this);
 					container.addField(var);
 				}
 				else {
@@ -1396,7 +1398,11 @@ public class C4ScriptParser {
 	}
 	
 	void errorWithCode(ErrorCode code, IRegion errorRegion, Object... args) throws ParsingException {
-		errorWithCode(code, errorRegion.getOffset(), errorRegion.getOffset()+errorRegion.getLength(), false, args);
+		errorWithCode(code, errorRegion, false, args);
+	}
+	
+	void errorWithCode(ErrorCode code, IRegion errorRegion, boolean noThrow, Object... args) throws ParsingException {
+		errorWithCode(code, errorRegion.getOffset(), errorRegion.getOffset()+errorRegion.getLength(), noThrow, args);
 	}
 	
 	void errorWithCode(ErrorCode code, int errorStart, int errorEnd, boolean noThrow, Object... args) throws ParsingException {
@@ -1678,6 +1684,20 @@ public class C4ScriptParser {
 			}
 		}
 	}
+	
+	/*
+	 * ERROR_PLACEHOLDER_EXPR: is always at the reader's current location
+	 */
+	private final ExprElm ERROR_PLACEHOLDER_EXPR = new ExprElm() {
+		@Override
+		public int getExprStart() {
+			return fReader.getPosition();
+		}
+		@Override
+		public int getExprEnd() {
+			return fReader.getPosition()+1;
+		}
+	};
 	
 	private int parseExpressionRecursion;
 	private ExprElm parseExpression(int offset, char[] delimiters, boolean reportErrors) throws ParsingException {

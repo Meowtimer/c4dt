@@ -97,11 +97,11 @@ public abstract class C4ScriptExprTree {
 		}
 
 		public int getLength() {
-			return exprEnd-exprStart;
+			return getExprEnd()-getExprStart();
 		}
 
 		public int getOffset() {
-			return exprStart;
+			return getExprStart();
 		}
 
 		public int getExprEnd() {

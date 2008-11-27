@@ -40,6 +40,8 @@ public class IdentInfo implements IExpressionListener {
 	public IdentInfo(ITextEditor editor, IDocument doc, IRegion region) throws BadLocationException, CompilerException, ParsingException {
 		this.editor = editor;
 		C4ScriptBase script = Utilities.getScriptForEditor(getEditor());
+		if (script == null)
+			return;
 		C4Function func = script.funcAt(region);
 		if (func == null) {
 			// outside function, fallback to old technique (only ids)

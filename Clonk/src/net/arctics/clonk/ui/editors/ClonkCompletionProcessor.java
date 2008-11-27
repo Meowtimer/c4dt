@@ -71,31 +71,36 @@ public class ClonkCompletionProcessor implements IContentAssistProcessor {
 				Utilities.getIconForFunction(func), displayString.trim(),contextInformation,null," - " + parentName);
 		proposals.add(prop);
 	}
-	
+
 	public void proposalForObject(C4Object obj,String prefix,int offset,List<ClonkCompletionProposal> proposals) {
-		if (obj == null || obj.getId() == null)
-			return;
-		
-		if (prefix != null) {
-			if (!(
-					obj.getName().toLowerCase().startsWith(prefix) ||
-					obj.getId().getName().toLowerCase().startsWith(prefix) ||
-					(obj instanceof C4ObjectIntern && ((C4ObjectIntern)obj).getObjectFolder() != null && ((C4ObjectIntern)obj).getObjectFolder().getName().startsWith(prefix))
-			))
+		try {
+			if (obj == null || obj.getId() == null)
 				return;
+
+			if (prefix != null) {
+				if (!(
+						obj.getName().toLowerCase().startsWith(prefix) ||
+						obj.getId().getName().toLowerCase().startsWith(prefix) ||
+						(obj instanceof C4ObjectIntern && ((C4ObjectIntern)obj).getObjectFolder() != null && ((C4ObjectIntern)obj).getObjectFolder().getName().startsWith(prefix))
+				))
+					return;
+			}
+			String displayString = obj.getName();
+			int replacementLength = 0;
+			if (prefix != null) replacementLength = prefix.length();
+
+			String contextInfoString = obj.getName();
+			IContextInformation contextInformation = new ContextInformation(obj.getId().getName(),contextInfoString); 
+
+			ClonkCompletionProposal prop = new ClonkCompletionProposal(obj.getId().getName(),offset,replacementLength,obj.getId().getName().length(),
+					Utilities.getIconForObject(obj), displayString.trim(),contextInformation,null," - " + obj.getId().getName());
+			proposals.add(prop);
+		} catch (Exception e) {
+			e.printStackTrace();
+			System.out.println(obj.toString());
 		}
-		String displayString = obj.getName();
-		int replacementLength = 0;
-		if (prefix != null) replacementLength = prefix.length();
-		
-		String contextInfoString = obj.getName();
-		IContextInformation contextInformation = new ContextInformation(obj.getId().getName(),contextInfoString); 
-		
-		ClonkCompletionProposal prop = new ClonkCompletionProposal(obj.getId().getName(),offset,replacementLength,obj.getId().getName().length(),
-				Utilities.getIconForObject(obj), displayString.trim(),contextInformation,null," - " + obj.getId().getName());
-		proposals.add(prop);
 	}
-	
+
 	public ClonkCompletionProposal proposalForVar(C4Variable var, String prefix, int offset, List<ClonkCompletionProposal> proposals) {
 		if (prefix != null && !var.getName().toLowerCase().startsWith(prefix))
 			return null;

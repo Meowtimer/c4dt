@@ -13,7 +13,7 @@ import org.eclipse.core.runtime.CoreException;
 public class C4ObjectParser {
 	
 	private IContainer objectFolder;
-	private IFile script;
+//	private IFile script; there are some objects without a script
 	private IFile defCore;
 	private IFile actMap;
 	private IFile scenario;
@@ -24,7 +24,7 @@ public class C4ObjectParser {
 	
 	private C4ObjectParser(IContainer folder) {
 		objectFolder = folder;
-		script = (IFile) folder.findMember("Script.c");
+//		script = (IFile) folder.findMember("Script.c");
 		defCore = (IFile) folder.findMember("DefCore.txt");
 		actMap = (IFile) folder.findMember("ActMap.txt");
 		scenario = (IFile) folder.findMember("Scenario.txt");
@@ -78,6 +78,7 @@ public class C4ObjectParser {
 					index.addObject(object);
 				}
 			}
+			IFile script = object.getScriptFile();
 			if (script != null) {
 				C4ScriptParser p = new C4ScriptParser(script, object);
 				p.clean();

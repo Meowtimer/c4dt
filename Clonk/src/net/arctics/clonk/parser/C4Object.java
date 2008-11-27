@@ -31,11 +31,6 @@ public abstract class C4Object extends C4ScriptBase {
 		return getName() + " (" + id.toString() + ")";
 	}
 	
-
-	public static C4Object objectCorrespondingTo(IContainer folder) {
-		return (Utilities.getIndex(folder) != null) ? Utilities.getIndex(folder).getObject(folder) : null;
-	}
-	
 	/**
 	 * The id of this object. (e.g. CLNK)
 	 * @return the id
