@@ -2,6 +2,7 @@ package net.arctics.clonk;
 
 import net.arctics.clonk.parser.C4Function;
 import net.arctics.clonk.parser.C4Object;
+import net.arctics.clonk.parser.C4ObjectIntern;
 import net.arctics.clonk.parser.C4ScriptBase;
 import net.arctics.clonk.parser.C4SystemScript;
 import net.arctics.clonk.parser.C4Variable;
@@ -56,7 +57,10 @@ public abstract class Utilities {
 	
 	public static ClonkProjectNature getProject(C4Object obj) {
 		if (obj == null) return null;
-		return getProject((IResource)obj.getScriptFile());
+		if (obj instanceof C4ObjectIntern)
+			return getProject(((C4ObjectIntern)obj).getObjectFolder());
+		else
+			return null;
 	}
 	
 	public static ClonkIndex getIndex(IResource res) {

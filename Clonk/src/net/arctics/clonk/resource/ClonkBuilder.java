@@ -84,6 +84,10 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 					// initialize progress monitor
 					monitor.beginTask("Build project " + proj.getName(), counter.getCount());
 					// parse
+					buildPhase = 0;
+					delta.accept(this);
+					Utilities.getProject(proj).getIndexedData().refreshCache();
+					buildPhase = 1;
 					delta.accept(this);
 					
 					// fire change event
@@ -122,7 +126,6 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 					buildPhase = 0;
 					proj.accept(this);
 					Utilities.getProject(proj).getIndexedData().refreshCache();
-					
 					if (monitor.isCanceled()) {
 						monitor.done();
 						return null;
@@ -214,20 +217,37 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 			return false;
 
 		if (delta.getResource() instanceof IFile) {
-			if (delta.getKind() == IResourceDelta.CHANGED) {
+			if (delta.getKind() == IResourceDelta.CHANGED || delta.getKind() == IResourceDelta.ADDED) {
 				C4ScriptBase script = Utilities.getScriptForFile((IFile) delta.getResource());
-				if (script == null) {
+				if (script == null && buildPhase == 0) {
 					// create if new file
 					IContainer folder = delta.getResource().getParent();
-					if (folder.getName().equals("System.c4g")) {
+					C4ObjectParser parser;
+					if (delta.getResource().getName().endsWith(".c") && folder.getName().equals("System.c4g")) {
 						script = new C4SystemScript(delta.getResource());
+					} else if ((parser = C4ObjectParser.create(folder)) != null) {
+						try {
+							script = parser.parse();
+						} catch (CompilerException e) {
+							e.printStackTrace();
+						}
 					}
 				}
 				try {
 					if (delta.getResource().getName().endsWith(".c")) {
-						new C4ScriptParser((IFile) delta.getResource(), script).parse();
+						if (script != null) {
+							C4ScriptParser parser = new C4ScriptParser((IFile) delta.getResource(), script);
+							switch (buildPhase) {
+							case 0:
+								parser.clean();
+								parser.parseDeclarations();
+								break;
+							case 1:
+								parser.parseCodeOfFunctions();
+							}
+						}
 					}
-					else if (delta.getResource().getName().equals("DefCore.txt")) {
+					else if (buildPhase == 0 && delta.getResource().getName().equals("DefCore.txt")) {
 						C4DefCoreWrapper defCore = new C4DefCoreWrapper((IFile) delta.getResource());
 						defCore.parse();
 						if (script instanceof C4Object)

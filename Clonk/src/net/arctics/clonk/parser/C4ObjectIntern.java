@@ -22,17 +22,10 @@ public class C4ObjectIntern extends C4Object implements Serializable {
 	
 	public C4ObjectIntern(C4ID id, String name, IContainer container) {
 		super(id, name);
-		relativePath = container.getFullPath().toPortableString();
-		if (container.exists()) {
-			try {
-				objectFolder = container;
-				container.setSessionProperty(ClonkCore.C4OBJECT_PROPERTY_ID, this);
-			} catch (CoreException e) {
-				e.printStackTrace();
-			}
-		}
-		else { // shouldn't occur
-//			System.out.println("container does not exist: " + container.getProjectRelativePath().toPortableString());
+		try {
+			setObjectFolder(container);
+		} catch (CoreException e1) {
+			e1.printStackTrace();
 		}
 	}
 
@@ -60,7 +53,7 @@ public class C4ObjectIntern extends C4Object implements Serializable {
 	 * @param persistent not implemented yet - set it to false always
 	 */
 	public void setId(C4ID newId, boolean persistent) {
-		id = newId;
+		setId(newId);
 		if (persistent) {
 			// TODO edit DefCore.txt
 			throw new InvalidParameterException("Parameter 'persistent' is not yet implemented");
@@ -93,14 +86,17 @@ public class C4ObjectIntern extends C4Object implements Serializable {
 		Utilities.getProject(objectFolder.getProject()).getIndexedData().removeObject(this);
 	}
 	
-	public void setCorrespondingFolder(IContainer folder) throws CoreException {
+	public void setObjectFolder(IContainer folder) throws CoreException {
 		if (objectFolder == folder)
 			return;
 		if (objectFolder != null)
 			objectFolder.setSessionProperty(ClonkCore.C4OBJECT_PROPERTY_ID, null);
 		objectFolder = folder;
-		if (folder != null)
+		if (folder != null) {
 			folder.setSessionProperty(ClonkCore.C4OBJECT_PROPERTY_ID, this);
+			folder.setPersistentProperty(ClonkCore.FOLDER_C4ID_PROPERTY_ID, getId().getName());
+			relativePath = folder.getFullPath().toPortableString();
+		}
 	}
 	
 	@Override

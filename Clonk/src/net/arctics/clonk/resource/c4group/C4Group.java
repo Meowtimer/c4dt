@@ -349,11 +349,13 @@ public class C4Group implements C4GroupItem, Serializable {
 	}
 	
 	public void close() {
-		childEntries.clear();
-		childEntries = null;
+		if (childEntries != null) {
+			childEntries.clear();
+			childEntries = null;
+		}
 		try {
 			// only close stream if this group owns it
-			if (parentGroup == null)
+			if (parentGroup == null && stream != null)
 				stream.close();
 			stream = null; // discard stream
 		} catch (IOException e) {

@@ -30,7 +30,7 @@ public class ProjectIndex extends ClonkIndex {
 					IPath projectPath = path.removeFirstSegments(1);
 					IResource res = project.findMember(projectPath);
 					if (res instanceof IContainer)
-						((C4ObjectIntern)obj).setCorrespondingFolder((IContainer)res);
+						((C4ObjectIntern)obj).setObjectFolder((IContainer)res);
 				}
 			}
 		}
