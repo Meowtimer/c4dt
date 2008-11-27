@@ -2248,7 +2248,7 @@ public class C4ScriptParser {
 	}
 	
 	public static C4ScriptParser reportExpressionsInStatements(IDocument doc, int statementStart, int statementEnd, C4ScriptBase context, C4Function func, IExpressionListener listener) throws BadLocationException, CompilerException, ParsingException {
-		String expr = doc.get(statementStart, statementEnd-statementStart);
+		String expr = doc.get(statementStart, Math.min(statementEnd-statementStart, doc.getLength()-statementStart));
 		C4ScriptParser parser = new C4ScriptParser(expr, context);
 		parser.activeFunc = func;
 		parser.setExpressionListener(listener);

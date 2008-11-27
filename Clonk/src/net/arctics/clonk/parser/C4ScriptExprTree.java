@@ -520,6 +520,9 @@ public abstract class C4ScriptExprTree {
 		public void setSubElements(ExprElm[] elms) {
 			params = elms;
 		}
+		private boolean isCriteriaSearch() {
+			return fieldName.equals("FindObjects") || fieldName.equals("FindObject2");
+		}
 		@Override
 		public C4Object guessObjectType(C4ScriptParser context) {
 			if (params != null && getType() == C4Type.OBJECT && (fieldName.startsWith("Create") || fieldName.startsWith("Find"))) {
@@ -530,7 +533,7 @@ public abstract class C4ScriptExprTree {
 			else if (params.length == 0 && fieldName.equals(C4Variable.THIS.getName())) {
 				return context.getContainerObject();
 			}
-			else if (fieldName.equals("FindObjects")) {
+			else if (isCriteriaSearch()) {
 				return searchCriteriaAssumedResult(context);
 			}
 			else if (fieldName.equals("GetID") && params.length == 0) {
@@ -570,7 +573,7 @@ public abstract class C4ScriptExprTree {
 		public C4Object searchCriteriaAssumedResult(C4ScriptParser context) {
 			C4Object result = null;
 			// parameters to FindObjects itself are also &&-ed together
-			if (fieldName.equals("Find_And") || fieldName.equals("FindObjects")) {
+			if (fieldName.equals("Find_And") || isCriteriaSearch()) {
 				for (ExprElm parm : params) {
 					if (parm instanceof ExprCallFunc) {
 						ExprCallFunc call = (ExprCallFunc)parm;

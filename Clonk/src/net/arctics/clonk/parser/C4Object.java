@@ -50,7 +50,12 @@ public abstract class C4Object extends C4ScriptBase {
 	 * @param newId
 	 */
 	public void setId(C4ID newId) {
+		if (id.equals(newId))
+			return;
+		ClonkIndex index = this.getIndex();
+		index.removeObject(this);
 		id = newId;
+		index.addObject(this);
 	}
 	
 

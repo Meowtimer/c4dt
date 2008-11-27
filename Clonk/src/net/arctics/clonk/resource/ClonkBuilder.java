@@ -214,7 +214,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 			return false;
 
 		if (delta.getResource() instanceof IFile) {
-			if (delta.getKind() != IResourceDelta.REMOVED) {
+			if (delta.getKind() == IResourceDelta.CHANGED) {
 				C4ScriptBase script = Utilities.getScriptForFile((IFile) delta.getResource());
 				if (script == null) {
 					// create if new file
@@ -225,8 +225,6 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 				}
 				try {
 					if (delta.getResource().getName().endsWith(".c")) {
-						// remove and add object to refresh globalFunctions/staticVariables
-						ClonkIndex index = Utilities.getProject(delta.getResource()).getIndexedData();
 						new C4ScriptParser((IFile) delta.getResource(), script).parse();
 					}
 					else if (delta.getResource().getName().equals("DefCore.txt")) {
@@ -234,9 +232,6 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 						defCore.parse();
 						if (script instanceof C4Object)
 							((C4Object)script).setId(defCore.getObjectID());
-						if (script instanceof C4ObjectIntern) {
-							((C4ObjectIntern)script).getObjectFolder().setPersistentProperty(ClonkCore.FOLDER_C4ID_PROPERTY_ID, defCore.getObjectID().getName());
-						}
 					}
 				} catch (CompilerException e) {
 					// TODO display CompilerException messages
@@ -244,11 +239,14 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 				}
 			}
 			if (monitor != null) monitor.worked(1);
-		}
-		if (delta.getResource() instanceof IContainer)
 			return true;
-		else
-			return false;
+		}
+		else {
+			if (delta.getKind() == IResourceDelta.MOVED_FROM) {
+				System.out.println(delta.getResource().getName());
+			}
+			return true;
+		}
 	}
 
 	public boolean visit(IResource resource) throws CoreException {
@@ -286,7 +284,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 				if (monitor != null) monitor.worked(1);
 				return true;
 			case 1:
-				// check correctness of function code (or compile into bytecodes ;D)
+				// check correctness of function code
 				ClonkIndex index = Utilities.getProject(resource).getIndexedData();
 				C4Object obj = index.getObject((IContainer)resource);
 				if (obj != null && obj.getScriptFile() != null) {

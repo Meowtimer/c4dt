@@ -107,5 +107,16 @@ public class C4ObjectIntern extends C4Object implements Serializable {
 	public ClonkIndex getIndex() {
 		return Utilities.getProject(this).getIndexedData();
 	}
+	
+	@Override
+	public void setId(C4ID newId) {
+		super.setId(newId);
+		if (objectFolder != null)
+			try {
+				objectFolder.setPersistentProperty(ClonkCore.FOLDER_C4ID_PROPERTY_ID, getId().getName());
+			} catch (CoreException e) {
+				e.printStackTrace();
+			}
+	}
 
 }
