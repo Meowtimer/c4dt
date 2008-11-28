@@ -608,7 +608,7 @@ public abstract class C4ScriptExprTree {
 								result = t;
 							else {
 								if (t.includes(result))
-										result = t;
+									result = t;
 							}
 						}
 					}

@@ -2045,6 +2045,9 @@ public class C4ScriptParser {
 					if (arrayExpr == null)
 						errorWithCode(ErrorCode.ExpressionExpected, offset, fReader.getPosition()+1);
 					else {
+						C4Type t = arrayExpr.getType();
+						if (t != C4Type.ANY && t != C4Type.ARRAY)
+							warningWithCode(ErrorCode.IncompatibleTypes, arrayExpr, C4Type.ARRAY.toString(), t.toString());
 						if (loopVariable != null)
 							loopVariable.inferTypeFromAssignment(arrayExpr.getExemplaryArrayElement(this), this);
 					}
