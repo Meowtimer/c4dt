@@ -2046,7 +2046,7 @@ public class C4ScriptParser {
 						errorWithCode(ErrorCode.ExpressionExpected, offset, fReader.getPosition()+1);
 					else {
 						if (loopVariable != null)
-							loopVariable.inferTypeFromAssignment(arrayExpr, this);
+							loopVariable.inferTypeFromAssignment(arrayExpr.getExemplaryArrayElement(this), this);
 					}
 				} else {
 					currentLoop = LoopType.For;

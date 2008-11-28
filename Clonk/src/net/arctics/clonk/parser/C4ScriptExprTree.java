@@ -80,6 +80,10 @@ public abstract class C4ScriptExprTree {
 		public C4Object guessObjectType(C4ScriptParser context) {
 			return null; // no idea, dude
 		}
+		
+		public ExprElm getExemplaryArrayElement(C4ScriptParser context) {
+			return NULL_EXPR;
+		}
 
 		public boolean modifiable() {
 			return true;
@@ -202,6 +206,27 @@ public abstract class C4ScriptExprTree {
 		
 		public FieldRegion fieldAt(int offset, C4ScriptParser parser) {
 			return null;
+		}
+		
+		public static C4Type combineTypes(C4Type first, C4Type second) {
+			if (first == C4Type.UNKNOWN)
+				return second == C4Type.ANY ? C4Type.UNKNOWN : second;
+			if (first != second)
+				return C4Type.ANY;
+			return first;
+		}
+
+		private static final ExprElm[] exprElmsForTypes = new ExprElm[C4Type.values().length];
+		public static ExprElm getExprElmForType(final C4Type type) {
+			if (exprElmsForTypes[type.ordinal()] == null) {
+				exprElmsForTypes[type.ordinal()] = new ExprElm() {
+					@Override
+					public C4Type getType() {
+						return type;
+					}
+				};
+			}
+			return exprElmsForTypes[type.ordinal()];
 		}
 
 	}
@@ -595,6 +620,23 @@ public abstract class C4ScriptExprTree {
 				}
 			}
 			return result;
+		}
+		@Override
+		public ExprElm getExemplaryArrayElement(C4ScriptParser context) {
+			final C4Object obj = searchCriteriaAssumedResult(context);
+			if (obj != null) {
+				return new ExprElm() {
+					@Override
+					public C4Type getType() {
+						return C4Type.OBJECT;
+					}
+					@Override
+					public C4Object guessObjectType(C4ScriptParser arg0) {
+						return obj;
+					}
+				};
+			}
+			return super.getExemplaryArrayElement(context);
 		}
 	}
 
@@ -1012,6 +1054,15 @@ public abstract class C4ScriptExprTree {
 		@Override
 		public boolean modifiable() {
 			return false;
+		}
+		
+		@Override
+		public ExprElm getExemplaryArrayElement(C4ScriptParser context) {
+			C4Type type = C4Type.UNKNOWN;
+			for (ExprElm e : elements) {
+				type = ExprElm.combineTypes(type, e.getType());
+			}
+			return type == C4Type.UNKNOWN ? super.getExemplaryArrayElement(context) : ExprElm.getExprElmForType(type);
 		}
 
 	}
