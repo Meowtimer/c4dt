@@ -347,6 +347,10 @@ public class ClonkCompletionProcessor implements IContentAssistProcessor {
 		}
 		
 		assistant.setStatusMessage(statusMessage.toString());
+		if (proposalCycle == SHOW_LOCAL)
+			assistant.setStatusMessage("Press 'Ctrl+Space' to show all completions");
+		else if (proposalCycle == SHOW_ALL)
+			assistant.setStatusMessage("Press 'Ctrl+Space' to show project completions");
 		
 		doCycle();
 		
