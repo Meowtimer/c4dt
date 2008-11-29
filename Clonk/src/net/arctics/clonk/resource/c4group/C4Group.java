@@ -393,13 +393,18 @@ public class C4Group implements C4GroupItem, Serializable {
 	}
 	
 	public void accept(IC4GroupVisitor visitor) {
-		accept(visitor,getGroupType());
+		accept(visitor,getGroupType(), null);
 	}
 	
-	private void accept(IC4GroupVisitor visitor, C4GroupType type) {
+	public void accept(IC4GroupVisitor visitor, C4GroupType type) {
+		accept(visitor,type, null);
+	}
+	
+	public void accept(IC4GroupVisitor visitor, C4GroupType type, IProgressMonitor monitor) {
 		for(C4GroupItem item : childEntries) {
 			if (visitor.visit(item, type)) {
 				if (item instanceof C4Group) {
+					if (monitor != null) monitor.worked(1);
 					((C4Group)item).accept(visitor, type);
 				}
 			}

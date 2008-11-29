@@ -32,6 +32,7 @@ import org.eclipse.core.resources.IResourceDeltaVisitor;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
+import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.QualifiedName;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.swt.widgets.Display;
@@ -144,17 +145,21 @@ public class ClonkCore extends AbstractUIPlugin {
 		
 	}
 	
-	public static void saveExternIndex() throws FileNotFoundException {
+	public static void saveExternIndex(IProgressMonitor monitor) throws FileNotFoundException {
+		if (monitor != null) monitor.beginTask("Saving libs", 1);
 		final File index = getExternLibCacheFile().toFile();
 		FileOutputStream out = new FileOutputStream(index);
+		
 		try {
 			ObjectOutputStream objStream = new ObjectOutputStream(out);
 			objStream.writeObject(EXTERN_INDEX);
 			objStream.close();
+			if (monitor != null) monitor.worked(1);
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		if (monitor != null) monitor.done();
 	}
 	
 	public static void loadExternIndex() {

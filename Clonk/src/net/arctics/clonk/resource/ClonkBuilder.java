@@ -39,6 +39,7 @@ import org.eclipse.core.resources.IncrementalProjectBuilder;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.SubProgressMonitor;
 import org.eclipse.jface.util.IPropertyChangeListener;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.IEditorPart;
@@ -67,6 +68,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 	
 	@Override
 	protected void clean(IProgressMonitor monitor) throws CoreException {
+		if (monitor != null) monitor.beginTask("Cleaning up", 1);
 		IProject proj = this.getProject();
 		if (proj != null) {
 			Utilities.getProject(proj).getIndexedData().clear();
@@ -79,6 +81,10 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 					else return false;
 				}
 			});
+		}
+		if (monitor != null) {
+			monitor.worked(1);
+			monitor.done();
 		}
 	}
 	
@@ -116,16 +122,44 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 				break;
 			
 			case FULL_BUILD:
-				readExternalLibs();
-				ClonkCore.saveExternIndex();
+				int[] operations = new int[4];
 				if (proj != null) {
 					// count num of resources to build
 					ResourceCounter counter = new ResourceCounter(ResourceCounter.COUNT_CONTAINER);
 					proj.accept(counter);
-					
-					// initialize progress monitor
-					monitor.beginTask("Build project " + proj.getName(), counter.getCount() * 2);
-					
+					operations[0] = counter.getCount() * 2;
+					operations[1] = counter.getCount();
+				}
+				else {
+					operations[0] = 0;
+					operations[1] = 0;
+				}
+				
+				operations[2] = 0;
+				operations[3] = 0;
+				String[] externalLibs = getExternalLibNames();
+				for(String lib : externalLibs) {
+					File file = new File(lib);
+					if (file.exists()) {
+						operations[2] += (int) (file.length() / 7000); // approximate time
+					}
+				}
+				operations[3] = operations[2] / 2; // approximate save time
+				
+				int workSum = 0;
+				for(int work : operations) workSum += work;
+				
+				// initialize progress monitor
+				monitor.beginTask("Build project " + proj.getName(), workSum);
+
+				monitor.subTask("Parsing libraries");
+				readExternalLibs(new SubProgressMonitor(monitor,operations[2]));
+				monitor.subTask("Saving libraries");
+				ClonkCore.saveExternIndex(new SubProgressMonitor(monitor,operations[3]));
+				
+				
+				if (proj != null) {
+					monitor.subTask("Index project " + proj.getName());
 					// parse declarations
 					buildPhase = 0;
 					proj.accept(this);
@@ -134,6 +168,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 						monitor.done();
 						return null;
 					}
+					monitor.subTask("Parse project " + proj.getName());
 					// parse code bodies
 					buildPhase = 1;
 					proj.accept(this);
@@ -148,7 +183,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 				monitor.done();
 				return null;
 			}
-			
+			monitor.subTask("Save data");
 			// saves all objects persistent
 			Utilities.getProject(proj).saveIndexData();
 
@@ -177,26 +212,35 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 		}
 	}
 	
+	private String[] getExternalLibNames() {
+		String optionString = ClonkCore.getDefault().getPreferenceStore().getString(PreferenceConstants.STANDARD_EXT_LIBS);
+		return optionString.split("<>");
+	}
+	
+	private void prepareExternalLibs() {
+		
+	}
+	
 	/**
 	 * Starts indexing of all external libraries
 	 * @throws InvalidDataException
 	 * @throws FileNotFoundException
 	 */
-	private void readExternalLibs() throws InvalidDataException, FileNotFoundException {
-		String optionString = ClonkCore.getDefault().getPreferenceStore().getString(PreferenceConstants.STANDARD_EXT_LIBS);
-		String[] libs = optionString.split("<>");
+	private void readExternalLibs(IProgressMonitor monitor) throws InvalidDataException, FileNotFoundException {
+		String[] libs = getExternalLibNames();
 		ClonkCore.EXTERN_INDEX.clear();
 		try {
 			ResourcesPlugin.getWorkspace().getRoot().deleteMarkers(ClonkCore.MARKER_EXTERN_LIB_ERROR, false, 0);	
 		} catch (CoreException e1) {
 			e1.printStackTrace();
 		}
+		if (monitor != null) monitor.beginTask("Parsing libs", 3);
 		for(String lib : libs) {
 			if (new File(lib).exists()) {
 				C4Group group = C4Group.OpenFile(new File(lib));
 				group.open(true);
 				try {
-					group.accept(this);
+					group.accept(this, group.getGroupType(), null);
 				} finally {
 					group.close();
 				}
@@ -212,8 +256,10 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 					e.printStackTrace();
 				}
 			}
+			if (monitor != null) monitor.worked(1);
 		}
 		ClonkCore.EXTERN_INDEX.refreshCache();
+		if (monitor != null) monitor.done();
 	}
 
 	public boolean visit(IResourceDelta delta) throws CoreException {
@@ -321,7 +367,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 						e.printStackTrace();
 					}
 				}
-				if (monitor != null) monitor.worked(1);
+				if (monitor != null) monitor.worked(2);
 				return true;
 			case 1:
 				// check correctness of function code
