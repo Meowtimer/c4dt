@@ -201,12 +201,9 @@ public class ClonkSourceViewerConfiguration extends TextSourceViewerConfiguratio
 		
 		assistant.setContextInformationPopupOrientation(IContentAssistant.CONTEXT_INFO_ABOVE);
 		
-//		try {
-//			assistant.setRepeatedInvocationTrigger(KeySequence.getInstance("Ctrl+Space"));
-			assistant.setRepeatedInvocationMode(true);
-//		} catch (ParseException e) {
-//			e.printStackTrace();
-//		}
+
+		assistant.setRepeatedInvocationMode(true);
+		// key sequence is set in constructor of ClonkCompletionProcessor
 		
 		assistant.setStatusLineVisible(true);
 		assistant.setStatusMessage("Standard proposals");

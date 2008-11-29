@@ -27,6 +27,9 @@ import net.arctics.clonk.resource.ClonkProjectNature;
 
 import org.eclipse.core.runtime.FileLocator;
 import org.eclipse.core.runtime.Path;
+import org.eclipse.jface.bindings.TriggerSequence;
+import org.eclipse.jface.bindings.keys.KeyBinding;
+import org.eclipse.jface.bindings.keys.KeySequence;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.resource.ImageRegistry;
 import org.eclipse.jface.text.BadLocationException;
@@ -38,14 +41,37 @@ import org.eclipse.jface.text.contentassist.ContentAssistEvent;
 import org.eclipse.jface.text.contentassist.ContentAssistant;
 import org.eclipse.jface.text.contentassist.ContextInformation;
 import org.eclipse.jface.text.contentassist.ICompletionListener;
+import org.eclipse.jface.text.contentassist.ICompletionListenerExtension;
 import org.eclipse.jface.text.contentassist.ICompletionProposal;
 import org.eclipse.jface.text.contentassist.IContentAssistProcessor;
 import org.eclipse.jface.text.contentassist.IContextInformation;
 import org.eclipse.jface.text.contentassist.IContextInformationValidator;
+import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.keys.IBindingService;
 import org.eclipse.ui.texteditor.ITextEditor;
+import org.eclipse.ui.texteditor.ITextEditorActionDefinitionIds;
 
 public class ClonkCompletionProcessor implements IContentAssistProcessor {
 
+	private final class ClonkCompletionListener implements ICompletionListener, ICompletionListenerExtension {
+
+		public void selectionChanged(ICompletionProposal proposal,
+				boolean smartToggle) {
+		}
+	
+		public void assistSessionStarted(ContentAssistEvent event) {
+			proposalCycle = SHOW_ALL;
+		}
+	
+		public void assistSessionEnded(ContentAssistEvent event) {
+		}
+
+		public void assistSessionRestarted(ContentAssistEvent event) {
+			proposalCycle = proposalCycle ^ 1;
+		}
+		
+	}
+	
 	private final int SHOW_ALL = 0;
 	private final int SHOW_LOCAL = 1;
 	
@@ -58,20 +84,10 @@ public class ClonkCompletionProcessor implements IContentAssistProcessor {
 			ContentAssistant assistant) {
 		this.editor = editor;
 		this.assistant = assistant;
-
-		assistant.addCompletionListener(new ICompletionListener() {
-			
-			public void selectionChanged(ICompletionProposal proposal,
-					boolean smartToggle) {
-			}
 		
-			public void assistSessionStarted(ContentAssistEvent event) {
-				proposalCycle = SHOW_ALL;
-			}
+		assistant.setRepeatedInvocationTrigger(getIterationBinding());
 		
-			public void assistSessionEnded(ContentAssistEvent event) {
-			}
-		});
+		assistant.addCompletionListener(new ClonkCompletionListener());
 		
 	}
 	
@@ -346,11 +362,15 @@ public class ClonkCompletionProcessor implements IContentAssistProcessor {
 			if (statusMessages.get(statusMessages.size() - 1) != message) statusMessage.append(", ");
 		}
 		
+		TriggerSequence sequence = getIterationBinding();
+		
 		assistant.setStatusMessage(statusMessage.toString());
 		if (proposalCycle == SHOW_LOCAL)
-			assistant.setStatusMessage("Press 'Ctrl+Space' to show all completions");
+			assistant.setStatusMessage("Press '" + sequence.format() + "' to show all completions");
 		else if (proposalCycle == SHOW_ALL)
-			assistant.setStatusMessage("Press 'Ctrl+Space' to show project completions");
+			assistant.setStatusMessage("Press '" + sequence.format() + "' to show project completions");
+		
+		
 		
 		doCycle();
 		
@@ -456,6 +476,14 @@ public class ClonkCompletionProcessor implements IContentAssistProcessor {
 		return new ClonkContextInformationValidator();
 	}
 
+	private KeySequence getIterationBinding() {
+	    final IBindingService bindingSvc= (IBindingService) PlatformUI.getWorkbench().getAdapter(IBindingService.class);
+		TriggerSequence binding= bindingSvc.getBestActiveBindingFor(ITextEditorActionDefinitionIds.CONTENT_ASSIST_PROPOSALS);
+		if (binding instanceof KeySequence)
+			return (KeySequence) binding;
+		return null;
+    }
+	
 	public String getErrorMessage() {
 		// TODO Auto-generated method stub
 		return null;
