@@ -217,10 +217,6 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 		return optionString.split("<>");
 	}
 	
-	private void prepareExternalLibs() {
-		
-	}
-	
 	/**
 	 * Starts indexing of all external libraries
 	 * @throws InvalidDataException
