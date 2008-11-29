@@ -65,6 +65,23 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 		monitor.worked(count);
 	}
 	
+	@Override
+	protected void clean(IProgressMonitor monitor) throws CoreException {
+		IProject proj = this.getProject();
+		if (proj != null) {
+			Utilities.getProject(proj).getIndexedData().clear();
+			proj.accept(new IResourceVisitor() {
+				public boolean visit(IResource resource) throws CoreException {
+					if (resource.getSessionProperty(ClonkCore.C4OBJECT_PROPERTY_ID) != null) {
+						resource.setSessionProperty(ClonkCore.C4OBJECT_PROPERTY_ID, null);
+					}
+					if (resource instanceof IContainer) return true;
+					else return false;
+				}
+			});
+		}
+	}
+	
 	@SuppressWarnings("unchecked")
 	protected IProject[] build(int kind, Map args, IProgressMonitor monitor)
 			throws CoreException {
@@ -98,19 +115,6 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 				}
 				break;
 			
-			case CLEAN_BUILD:
-				if (proj != null) {
-					Utilities.getProject(proj).getIndexedData().clear();
-					proj.accept(new IResourceVisitor() {
-						public boolean visit(IResource resource) throws CoreException {
-							if (resource.getSessionProperty(ClonkCore.C4OBJECT_PROPERTY_ID) != null) {
-								resource.setSessionProperty(ClonkCore.C4OBJECT_PROPERTY_ID, null);
-							}
-							if (resource instanceof IContainer) return true;
-							else return false;
-						}
-					});
-				}
 			case FULL_BUILD:
 				readExternalLibs();
 				ClonkCore.saveExternIndex();
@@ -249,7 +253,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 					}
 				}
 				try {
-					if (script != null && script.getScriptFile().equals(delta.getResource()) && delta.getResource().getName().endsWith(".c")) {
+					if (script != null && script.getScriptFile().equals(delta.getResource())) {
 						if (script != null) {
 							C4ScriptParser parser = new C4ScriptParser((IFile) delta.getResource(), script);
 							switch (buildPhase) {
@@ -273,6 +277,13 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 					e.printStackTrace();
 				}
 			}
+			else if (delta.getKind() == IResourceDelta.REMOVED && delta.getResource().getParent().exists()) {
+				if (buildPhase == 0) {
+					C4ScriptBase script = Utilities.getScriptForFile((IFile) delta.getResource());
+					if (script != null && delta.getResource().equals(script.getScriptFile()))
+						script.clearFields();
+				}
+			}
 			if (monitor != null) monitor.worked(1);
 			return true;
 		}
@@ -282,6 +293,12 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 				C4ObjectIntern object = C4ObjectIntern.objectCorrespondingTo((IContainer)delta.getResource());
 				if (object != null)
 					object.setObjectFolder((IContainer) delta.getResource());
+			}
+			else if (delta.getKind() == IResourceDelta.REMOVED) {
+				// removed object when folder is removed
+				C4ObjectIntern object = C4ObjectIntern.objectCorrespondingTo((IContainer)delta.getResource());
+				if (object != null)
+					object.getIndex().removeObject(object);
 			}
 			return true;
 		}

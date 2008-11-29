@@ -61,7 +61,7 @@ public class ClonkIndex implements Serializable {
 				for (C4Object obj : list) {
 					if (obj instanceof C4ObjectIntern) {
 						C4ObjectIntern intern = (C4ObjectIntern)obj;
-						if (intern.getObjectFolder() == folder)
+						if (intern.getObjectFolder().equals(folder))
 							return intern;
 					}
 				}
