@@ -70,6 +70,12 @@ public class C4ObjectIntern extends C4Object implements Serializable {
 		else return (IFile) res;
 	}
 	
+	public IFile getDefCoreFile() {
+		IResource res = this.objectFolder.findMember("DefCore.txt");
+		if (res == null || !(res instanceof IFile)) return null;
+		else return (IFile) res;
+	}
+	
 	/**
 	 * The ObjectName.c4d IResource
 	 * @return the folder object

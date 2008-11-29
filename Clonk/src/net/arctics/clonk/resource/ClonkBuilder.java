@@ -284,7 +284,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 					// create if new file
 					IContainer folder = delta.getResource().getParent();
 					C4ObjectParser parser;
-					if (delta.getResource().getName().endsWith(".c") && folder.getName().equals("System.c4g")) {
+					if (delta.getResource().getName().endsWith(".c") && folder.getName().endsWith(".c4g")) {
 						script = new C4SystemScript(delta.getResource());
 					} else if ((parser = C4ObjectParser.create(folder)) != null) {
 						try {
@@ -295,7 +295,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 					}
 				}
 				try {
-					if (script != null && script.getScriptFile().equals(delta.getResource())) {
+					if (script != null && delta.getResource().equals(script.getScriptFile().equals(delta.getResource()))) {
 						if (script != null) {
 							C4ScriptParser parser = new C4ScriptParser((IFile) delta.getResource(), script);
 							switch (buildPhase) {
@@ -384,7 +384,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 				return false; // :C ?
 			}
 		}
-		else if (resource.getName().endsWith(".c") && resource.getParent().getName().equals("System.c4g")) {
+		else if (resource.getName().endsWith(".c") && resource.getParent().getName().endsWith(".c4g")) {
 			C4ScriptBase script = C4SystemScript.scriptCorrespondingTo(resource);
 			switch (buildPhase) {
 			case 0:

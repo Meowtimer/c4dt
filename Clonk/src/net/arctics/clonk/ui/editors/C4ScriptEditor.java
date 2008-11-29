@@ -39,6 +39,7 @@ import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.editors.text.TextEditor;
+import org.eclipse.ui.ide.IDE;
 import org.eclipse.ui.part.FileEditorInput;
 import org.eclipse.ui.texteditor.ContentAssistAction;
 import org.eclipse.ui.texteditor.ITextEditorActionDefinitionIds;
@@ -225,13 +226,20 @@ public class C4ScriptEditor extends TextEditor {
 		C4ScriptBase script = target instanceof C4ScriptBase ? (C4ScriptBase)target : target.getScript();
 		if (script != null) {
 			if (script instanceof C4ObjectIntern || script instanceof C4SystemScript) {
-				IEditorPart editor = workbenchPage.openEditor(new FileEditorInput((IFile) script.getScriptFile()), "clonk.editors.C4ScriptEditor");
-				C4ScriptEditor scriptEditor = (C4ScriptEditor)editor;						
-				if (target != script) {
-					scriptEditor.reparseWithDocumentContents(null, false);
-					target = target.latestVersion();
-					if (target != null)
-						scriptEditor.selectAndReveal(target.getLocation());
+				IFile scriptFile = (IFile) script.getScriptFile();
+				if (scriptFile != null) {
+					IEditorPart editor = IDE.openEditor(workbenchPage, scriptFile, "clonk.editors.C4ScriptEditor");
+					C4ScriptEditor scriptEditor = (C4ScriptEditor)editor;						
+					if (target != script) {
+						scriptEditor.reparseWithDocumentContents(null, false);
+						target = target.latestVersion();
+						if (target != null)
+							scriptEditor.selectAndReveal(target.getLocation());
+					}
+				} else {
+					IFile defCore = ((C4ObjectIntern)script).getDefCoreFile();
+					if (defCore != null)
+						IDE.openEditor(workbenchPage, defCore);
 				}
 			}
 			else if (script instanceof C4ObjectExtern) {
