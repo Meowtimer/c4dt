@@ -34,8 +34,10 @@ import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.ITextViewer;
 import org.eclipse.jface.text.Region;
 import org.eclipse.jface.text.contentassist.CompletionProposal;
+import org.eclipse.jface.text.contentassist.ContentAssistEvent;
 import org.eclipse.jface.text.contentassist.ContentAssistant;
 import org.eclipse.jface.text.contentassist.ContextInformation;
+import org.eclipse.jface.text.contentassist.ICompletionListener;
 import org.eclipse.jface.text.contentassist.ICompletionProposal;
 import org.eclipse.jface.text.contentassist.IContentAssistProcessor;
 import org.eclipse.jface.text.contentassist.IContextInformation;
@@ -44,15 +46,38 @@ import org.eclipse.ui.texteditor.ITextEditor;
 
 public class ClonkCompletionProcessor implements IContentAssistProcessor {
 
+	private final int SHOW_ALL = 0;
+	private final int SHOW_LOCAL = 1;
+	
 	private ITextEditor editor;
 	private ContentAssistant assistant;
 	private ExprElm contextExpression;
+	private int proposalCycle = SHOW_ALL;
 	
 	public ClonkCompletionProcessor(ITextEditor editor,
 			ContentAssistant assistant) {
 		this.editor = editor;
 		this.assistant = assistant;
 
+		assistant.addCompletionListener(new ICompletionListener() {
+			
+			public void selectionChanged(ICompletionProposal proposal,
+					boolean smartToggle) {
+			}
+		
+			public void assistSessionStarted(ContentAssistEvent event) {
+				proposalCycle = SHOW_ALL;
+			}
+		
+			public void assistSessionEnded(ContentAssistEvent event) {
+			}
+		});
+		
+	}
+	
+	protected void doCycle() {
+		if (proposalCycle == SHOW_ALL) proposalCycle = SHOW_LOCAL;
+		else proposalCycle = SHOW_ALL;
 	}
 	
 	public void proposalForFunc(C4Function func,String prefix,int offset,List<ClonkCompletionProposal> proposals,String parentName) {
@@ -161,21 +186,7 @@ public class ClonkCompletionProcessor implements IContentAssistProcessor {
 		List<String> statusMessages = new ArrayList<String>(4);
 		List<ClonkCompletionProposal> proposals = new ArrayList<ClonkCompletionProposal>();
 		ClonkIndex index = nature.getIndexedData();
-//		if (indexer.) {
-//			statusMessages.add("Clonk directory");
-//		}
 
-		
-		if (!ClonkCore.EXTERN_INDEX.isEmpty()) {
-			statusMessages.add("Extern libs");
-		}
-//		if (nature.isIndexed()) {
-		statusMessages.add("Project files");
-//		}
-		if (ClonkCore.ENGINE_OBJECT != null) {
-			statusMessages.add("Engine functions");
-		}
-		
 		// refresh to find about whether caret is inside a function and to get all the declarations
 		try {
 			((C4ScriptEditor)editor).reparseWithDocumentContents(null,true);
@@ -184,6 +195,18 @@ public class ClonkCompletionProcessor implements IContentAssistProcessor {
 			e.printStackTrace();
 		}
 		final C4Function activeFunc = getActiveFunc(doc, offset);
+		
+		statusMessages.add("Project files");
+		
+		if (proposalCycle == SHOW_ALL || activeFunc == null) {
+			if (!ClonkCore.EXTERN_INDEX.isEmpty()) {
+				statusMessages.add("Extern libs");
+			}
+			if (ClonkCore.ENGINE_OBJECT != null) {
+				statusMessages.add("Engine functions");
+			}
+		}
+		
 		if (activeFunc == null) {
 		
 			try {
@@ -241,26 +264,28 @@ public class ClonkCompletionProcessor implements IContentAssistProcessor {
 		}
 		else {
 			proposalForIndex(index, offset, wordOffset, prefix, proposals);
-			proposalForIndex(ClonkCore.EXTERN_INDEX, offset, wordOffset, prefix, proposals);
 			
-			if (ClonkCore.ENGINE_OBJECT != null) {
-				for (C4Function func : ClonkCore.ENGINE_OBJECT.getDefinedFunctions()) {
-					proposalForFunc(func, prefix, offset, proposals, ClonkCore.ENGINE_OBJECT.getName());
+			if (proposalCycle == SHOW_ALL) {
+				proposalForIndex(ClonkCore.EXTERN_INDEX, offset, wordOffset, prefix, proposals);
+				
+				if (ClonkCore.ENGINE_OBJECT != null) {
+					for (C4Function func : ClonkCore.ENGINE_OBJECT.getDefinedFunctions()) {
+						proposalForFunc(func, prefix, offset, proposals, ClonkCore.ENGINE_OBJECT.getName());
+					}
+					for (C4Variable var : ClonkCore.ENGINE_OBJECT.getDefinedVariables()) {
+						proposalForVar(var,prefix,offset,proposals);
+					}
 				}
-				for (C4Variable var : ClonkCore.ENGINE_OBJECT.getDefinedVariables()) {
-					proposalForVar(var,prefix,offset,proposals);
+				
+				if (activeFunc != null) {
+					for (C4Variable v : activeFunc.getParameter()) {
+						proposalForVar(v, prefix, wordOffset, proposals);
+					}
+					for (C4Variable v : activeFunc.getLocalVars()) {
+						proposalForVar(v, prefix, wordOffset, proposals);
+					}
 				}
 			}
-			
-			if (activeFunc != null) {
-				for (C4Variable v : activeFunc.getParameter()) {
-					proposalForVar(v, prefix, wordOffset, proposals);
-				}
-				for (C4Variable v : activeFunc.getLocalVars()) {
-					proposalForVar(v, prefix, wordOffset, proposals);
-				}
-			}
-			
 			C4ScriptBase contextScript = Utilities.getScriptForEditor(editor);
 			boolean contextObjChanged = false;
 			if (contextScript != null) {
@@ -298,29 +323,32 @@ public class ClonkCompletionProcessor implements IContentAssistProcessor {
 			if (contextScript != null) {
 				proposalsFromScript(contextScript, new HashSet<C4ScriptBase>(), prefix, offset, wordOffset, proposals, contextObjChanged);
 			}
-			
-			for(String keyword : BuiltInDefinitions.KEYWORDS) {
-				if (prefix != null) {
-					if (!keyword.toLowerCase().startsWith(prefix)) continue;
+			if (proposalCycle == SHOW_ALL) {
+				for(String keyword : BuiltInDefinitions.KEYWORDS) {
+					if (prefix != null) {
+						if (!keyword.toLowerCase().startsWith(prefix)) continue;
+					}
+					ImageRegistry reg = ClonkCore.getDefault().getImageRegistry();
+					if (reg.get("keyword") == null) {
+						reg.put("keyword", ImageDescriptor.createFromURL(FileLocator.find(ClonkCore.getDefault().getBundle(), new Path("icons/keyword.png"), null)));
+					}
+					int replacementLength = 0;
+					if (prefix != null) replacementLength = prefix.length();
+					ClonkCompletionProposal prop = new ClonkCompletionProposal(keyword,offset,replacementLength,keyword.length(), reg.get("keyword") , keyword.trim(),null,null," - Engine");
+					proposals.add(prop);
 				}
-				ImageRegistry reg = ClonkCore.getDefault().getImageRegistry();
-				if (reg.get("keyword") == null) {
-					reg.put("keyword", ImageDescriptor.createFromURL(FileLocator.find(ClonkCore.getDefault().getBundle(), new Path("icons/keyword.png"), null)));
-				}
-				int replacementLength = 0;
-				if (prefix != null) replacementLength = prefix.length();
-				ClonkCompletionProposal prop = new ClonkCompletionProposal(keyword,offset,replacementLength,keyword.length(), reg.get("keyword") , keyword.trim(),null,null," - Engine");
-				proposals.add(prop);
 			}
 		}
 		
-		StringBuilder statusMessage = new StringBuilder("Indexed data: ");
+		StringBuilder statusMessage = new StringBuilder("Shown data: ");
 		for(String message : statusMessages) {
 			statusMessage.append(message);
 			if (statusMessages.get(statusMessages.size() - 1) != message) statusMessage.append(", ");
 		}
 		
 		assistant.setStatusMessage(statusMessage.toString());
+		
+		doCycle();
 		
 		if (proposals.size() == 0) {
 			return new ICompletionProposal[] { new CompletionProposal("",offset,0,0,null,"No proposals available",null,null) };
