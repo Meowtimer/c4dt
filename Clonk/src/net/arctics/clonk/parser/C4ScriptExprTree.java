@@ -3,6 +3,7 @@ package net.arctics.clonk.parser;
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.C4ScriptBase.FindFieldInfo;
 import net.arctics.clonk.parser.C4ScriptParser.ErrorCode;
+import net.arctics.clonk.parser.C4ScriptParser.Keywords;
 import net.arctics.clonk.parser.C4ScriptParser.ParsingException;
 import net.arctics.clonk.parser.C4Variable.C4VariableScope;
 
@@ -510,7 +511,7 @@ public abstract class C4ScriptExprTree {
 					if (params.length == 0) {
 						parser.warningWithCode(ErrorCode.VariableCalled, this, field.getName());
 					} else {
-						parser.errorWithCode(ErrorCode.VariableCalled, this, field.getName());
+						parser.errorWithCode(ErrorCode.VariableCalled, this, field.getName(), true);
 					}
 				}
 				else if (field instanceof C4Function) {
@@ -528,11 +529,11 @@ public abstract class C4ScriptExprTree {
 				}
 				else if (field == null && getPredecessorInSequence() == null) {
 					if (fieldName.equals("inherited")) {
-						parser.errorWithCode(ErrorCode.NoInheritedFunction, getExprStart(), getExprStart()+fieldName.length(), true, parser.getActiveFunc().getName());
+						parser.errorWithCode(ErrorCode.NoInheritedFunction, getExprStart(), getExprStart()+fieldName.length(), true, parser.getActiveFunc().getName(), true);
 					}
 					// _inherited yields no warning or error
 					else if (!fieldName.equals("_inherited")) {
-						parser.errorWithCode(ErrorCode.UndeclaredIdentifier, getExprStart(), getExprStart()+fieldName.length(), true, fieldName);
+						parser.errorWithCode(ErrorCode.UndeclaredIdentifier, getExprStart(), getExprStart()+fieldName.length(), true, fieldName, true);
 					}
 				}
 			}
@@ -747,7 +748,7 @@ public abstract class C4ScriptExprTree {
 			setExprRegion(getLeftSide().getExprStart(), getRightSide().getExprEnd());
 			// i'm an assignment operator and i can't modify my left side :C
 			if (getOperator().modifiesArgument() && !getLeftSide().modifiable()) {
-				parser.errorWithCode(ErrorCode.ExpressionNotModifiable, getLeftSide());
+				parser.errorWithCode(ErrorCode.ExpressionNotModifiable, getLeftSide(), true);
 			}
 			if (!getLeftSide().validForType(getOperator().getFirstArgType()))
 				parser.warningWithCode(ErrorCode.IncompatibleTypes, getLeftSide(), getOperator().getFirstArgType(), getLeftSide().getType());
@@ -849,7 +850,7 @@ public abstract class C4ScriptExprTree {
 			getArgument().reportErrors(parser);
 			if (getOperator().modifiesArgument() && !getArgument().modifiable()) {
 				//				System.out.println(getArgument().toString() + " does not behave");
-				parser.errorWithCode(ErrorCode.ExpressionNotModifiable, getArgument());
+				parser.errorWithCode(ErrorCode.ExpressionNotModifiable, getArgument(), true);
 			}
 		}
 
@@ -985,7 +986,7 @@ public abstract class C4ScriptExprTree {
 		}
 		@Override
 		public void print(StringBuilder output) {
-			output.append(booleanValue() ? "true" : "false");
+			output.append(booleanValue() ? Keywords.True : Keywords.False);
 		}
 	}
 

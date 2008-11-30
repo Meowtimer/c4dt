@@ -295,7 +295,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 					}
 				}
 				try {
-					if (script != null && delta.getResource().equals(script.getScriptFile().equals(delta.getResource()))) {
+					if (script != null && delta.getResource().equals(script.getScriptFile())) {
 						if (script != null) {
 							C4ScriptParser parser = new C4ScriptParser((IFile) delta.getResource(), script);
 							switch (buildPhase) {

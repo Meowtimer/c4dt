@@ -26,10 +26,39 @@ import org.eclipse.jface.text.IRegion;
 
 public class C4ScriptParser {
 	
-	protected class Keywords {
-		public static final String LOCAL = "local";
-		public static final String VAR = "var";
-		public static final String STATIC = "static";
+	public interface Keywords {
+
+		public static final String Func = "func";
+
+		public static final String Private = "private";
+		public static final String Protected = "protected";
+		public static final String Public = "public";
+		public static final String Global = "global";
+		public static final String Const = "const";
+
+		public static final String If = "if";
+		public static final String Else = "else";
+		public static final String While = "while";
+		public static final String For = "for";
+		public static final String In = "in";
+		public static final String Return = "return";
+		public static final String Par = "Par";
+		public static final String Goto = "goto";
+		public static final String Break = "break";
+		public static final String Continue = "continue";
+		public static final String Inherited = "inherited";
+		public static final String SafeInherited = "_inherited";
+
+		public static final String Image = "Image";
+		public static final String Contents = "Contents";
+		public static final String Condition = "Condition";
+
+		public static final String GlobalNamed = "static";
+		public static final String LocalNamed = "local";
+		public static final String VarNamed = "var";
+
+		public static final String True = "true";
+		public static final String False = "false";
 	}
 	
 	protected static class BufferedScanner {
@@ -284,6 +313,13 @@ public class C4ScriptParser {
 	private C4Function activeFunc;
 	private int strictLevel;
 	
+	// parse<Blub>() functions store their results in those
+	private C4ID parsedID;
+	private C4Variable parsedVariable;
+	private long parsedNumber;
+	private String parsedObjectFieldOperator;
+	private String parsedString;
+	
 	public int getStrictLevel() {
 		return strictLevel;
 	}
@@ -411,7 +447,7 @@ public class C4ScriptParser {
 			if (looksLikeStartOfFunction(word)) {
 				if (parseFunctionDeclaration(word, fReader.getPosition())) return true;
 			}
-			else if (word.equals(Keywords.STATIC) || word.equals(Keywords.LOCAL)) {
+			else if (word.equals(Keywords.GlobalNamed) || word.equals(Keywords.LocalNamed)) {
 				if (parseVariableDeclaration(offset)) return true;
 			}
 			else {
@@ -419,7 +455,7 @@ public class C4ScriptParser {
 				eatWhitespace();
 				if (fReader.read() == ':') {
 					fReader.seek(offset); // just let parseFunctionDeclaration parse the name again
-					if (parseFunctionDeclaration("public", offset)) // just assume public
+					if (parseFunctionDeclaration(Keywords.Public, offset)) // just assume public
 						return true;
 				}
 			}
@@ -428,18 +464,18 @@ public class C4ScriptParser {
 	}
 
 	private boolean looksLikeStartOfFunction(String word) {
-		return word.equalsIgnoreCase("public") || word.equalsIgnoreCase("protected") || word.equalsIgnoreCase("private") || word.equalsIgnoreCase("global") || word.equals("func");
+		return word.equalsIgnoreCase(Keywords.Public) || word.equalsIgnoreCase(Keywords.Protected) || word.equalsIgnoreCase(Keywords.Private) || word.equalsIgnoreCase(Keywords.Global) || word.equals(Keywords.Func);
 	}
 
 	private boolean parseVariableDeclaration(int offset) throws ParsingException {
 		fReader.seek(offset);
 
 		String word = fReader.readWord();
-		if (word.equals(Keywords.STATIC)) {
+		if (word.equals(Keywords.GlobalNamed)) {
 			eatWhitespace();
 			int pos = fReader.getPosition();
 			boolean constDecl = false; 
-			if (fReader.readWord().equals("const")) {
+			if (fReader.readWord().equals(Keywords.Const)) {
 				constDecl = true;
 			} else {
 				fReader.seek(pos);
@@ -482,7 +518,7 @@ public class C4ScriptParser {
 			}
 			return true;
 		}
-		else if (word.equals(Keywords.LOCAL)) {
+		else if (word.equals(Keywords.LocalNamed)) {
 			do {
 				eatWhitespace();
 				int s = fReader.getPosition();
@@ -504,8 +540,6 @@ public class C4ScriptParser {
 		// static const pObj = parseValue, iMat = 2;
 		return false;
 	}
-	
-	private C4Variable parsedVariable;
 
 	private boolean parseVarVariableDeclaration(int offset, boolean declaration) throws ParsingException {
 		parsedVariable = null;
@@ -514,7 +548,7 @@ public class C4ScriptParser {
 		String word = fReader.readWord();
 		if (word == null)
 			return false;
-		if (word.equals("var")) {
+		if (word.equals(Keywords.VarNamed)) {
 			do {
 				eatWhitespace();
 				int nameStart = fReader.getPosition();
@@ -608,11 +642,11 @@ public class C4ScriptParser {
 		boolean suspectOldStyle = false;
 		String funcName = null;
 		C4Type retType = C4Type.ANY;
-		if (!firstWord.equals("func")) {
+		if (!firstWord.equals(Keywords.Func)) {
 			activeFunc.setVisibility(C4FunctionScope.makeScope(firstWord));
 			startName = fReader.getPosition();
 			String shouldBeFunc = fReader.readWord();
-			if (!shouldBeFunc.equals("func")) {
+			if (!shouldBeFunc.equals(Keywords.Func)) {
 //				String problem = "Syntax error: expected 'func'";
 //				createErrorMarker(offset, fReader.getPosition(), problem);
 //				throw new ParsingException(problem);
@@ -638,7 +672,7 @@ public class C4ScriptParser {
 		}
 		for(C4Function otherFunc : container.definedFunctions) {
 			if (otherFunc.getName().equalsIgnoreCase(funcName)) {
-				createWarningMarker(startName, fReader.getPosition(), "Function overload: this function is already declared in this script");
+				warningWithCode(ErrorCode.FunctionRedeclared, startName, fReader.getPosition());
 				break;
 			}
 		}
@@ -742,7 +776,7 @@ public class C4ScriptParser {
 	}
 
 	private boolean looksLikeVarDeclaration(String word) {
-		return word.equals(Keywords.STATIC) || word.equals(Keywords.LOCAL);
+		return word.equals(Keywords.GlobalNamed) || word.equals(Keywords.LocalNamed);
 	}
 
 	/**
@@ -873,7 +907,7 @@ public class C4ScriptParser {
 	private boolean parseReturn(int offset) throws ParsingException {
 		fReader.seek(offset);
 		String word = fReader.readWord();
-		if (word == null || !word.equals("return")) {
+		if (word == null || !word.equals(Keywords.Return)) {
 			fReader.seek(offset);
 			return false;
 		}
@@ -912,69 +946,6 @@ public class C4ScriptParser {
 			warnAboutTupleInReturnExpr(e, true);
 		}
 	}
-
-//	private boolean parseCall(int offset) throws ParsingException {
-//		fReader.seek(offset);
-//
-//		if (parsePrefixOperator(offset)) offset = fReader.getPosition();
-//		eatWhitespace(offset);
-//
-//		String funcName = fReader.readWord();
-//		if (funcName.length() == 0) {
-//			return false;
-//		}
-//		else {
-//			eatWhitespace();
-//			if (fReader.read() != '(') return false;
-//			offset = fReader.getPosition();
-//			boolean forceValue = false;
-//			do {
-//				eatWhitespace(offset);
-//				if (parseValue(fReader.getPosition())) {
-//					eatWhitespace();
-//					int readByte = fReader.read();
-//					if (readByte == ',') {
-//						offset = fReader.getPosition();
-//						forceValue = true; // now another value must come
-//						continue;
-//					}
-//					else if (readByte == ')') {
-//						fReader.unread();
-//						break;
-//					}
-//					else {
-//						String problem = "Syntax error: expected ',' or ')' instead of '" + new String(new int[] { readByte },0,1) + "'";
-//						createErrorMarker(fReader.getPosition() - 1, fReader.getPosition(), problem);
-//						throw new ParsingException(problem);
-//					}
-//				}
-//				else {
-//					fReader.seek(offset);
-//					if (!forceValue) break; // this call has no parameters
-//					else {
-//						String problem = "Syntax error: expected another parameter";
-//						createErrorMarker(fReader.getPosition() - 1, fReader.getPosition() + 1, problem);
-//						throw new ParsingException(problem);
-//					}
-//				}
-//			} while(!fReader.reachedEOF());
-//			if (fReader.read() == ')') {
-//				offset = fReader.getPosition();
-//				if (parseArrayAccess(fReader.getPosition())) offset = fReader.getPosition(); 
-//				if (parseObjectCall(offset)) offset = fReader.getPosition();
-//				fReader.seek(offset);
-//				return true;
-//			}
-//			else {
-//				String problem = "Syntax error: expected ')'";
-//				createErrorMarker(fReader.getPosition() - 1, fReader.getPosition(), problem);
-//				throw new ParsingException(problem);
-//			}
-//
-//		}
-//		// parse all parameter with parseValue
-//		// do type checking where possible
-//	}
 	
 	private boolean parseStandaloneExpression(int offset) throws ParsingException {
 		fReader.seek(offset);
@@ -991,82 +962,8 @@ public class C4ScriptParser {
 
 	private boolean parseValue(int offset) throws ParsingException {
 		ExprElm elm = parseExpression(offset);
-//		if (elm != null) {
-//			System.out.println(elm.toString());
-//		}
 		return elm != null;
-		//		if (
-		//				parseParenthesisGroup(offset) ||
-		//				parseNumber(offset) ||
-		//				parseAssignment(offset) ||
-		//				parseCall(offset) ||
-		//				parseString(offset) ||
-		//				parseID(offset) ||
-		//				parseVariable(offset) ||
-		//				parseArray(offset))
-		//		{
-		////			fReader.seek(offset);
-		//			eatWhitespace();
-		//			offset = fReader.getPosition();
-		//			if (parseOperator(offset)) {
-		//				eatWhitespace();
-		//				offset = fReader.getPosition();
-		//				if (parseValue(offset)) {
-		//					return true;
-		//				}
-		//				else {
-		//					String problem = "Syntax error: expected an expression after operator";
-		//					createErrorMarker(fReader.getPosition() - 1, fReader.getPosition() + 1, problem);
-		//					throw new ParsingException(problem);
-		//				}
-		//			}
-		//			else {
-		//				fReader.seek(offset);
-		//				return true; // this seems to be the last sub value in the parent value
-		//			}
-		//		}
-		//		else {
-		//			return false; // there is no value at the specified offset
-		//		}
-
-		// try parseParenthesisGroup || parseCall || parseString || parseVariable
-		//   if fail return fail
-		//   else:
-		// now parseOperator has to be successful
-		//   if fail return success
-		//   else:
-		// now try parseValue again
-		//   if fail throw syntax error
-		//   else return success
-
-		// recursive
-		// calls parseCall
-		// calls parseString
-		// calls parseVariable
-		// calls parseOperator
-		// calls parseParenthesisGroup
 	}
-
-//	private boolean parseParenthesisGroup(int offset) throws ParsingException {
-//		fReader.seek(offset);
-//		if (fReader.read() != '(') {
-//			fReader.unread();
-//			return false;
-//		}
-//		eatWhitespace();
-//		if (!parseValue(fReader.getPosition())) return false;
-//		eatWhitespace();
-//		if (fReader.read() != ')') {
-//			String problem = "Syntax error: expected ')'";
-//			createErrorMarker(fReader.getPosition() - 1, fReader.getPosition() + 1, problem);
-//			throw new ParsingException(problem);
-//		}
-//		else {
-//			return true;
-//		}
-//	}
-
-	private long parsedNumber;
 
 	private boolean parseNumber(int offset) throws ParsingException {
 		fReader.seek(offset);
@@ -1077,12 +974,6 @@ public class C4ScriptParser {
 				count++;
 				continue;
 			}
-			//			else if ((0x41 <= readByte && readByte <= 0x5a) || (0x61 <= readByte && readByte <= 0x7a)) {
-			//				if (count == 0) return false; // well, this seems not to be a number at all
-			//				String problem = "Syntax error: erroneous Ident";
-			//				createErrorMarker(offset, fReader.getPosition(), problem);
-			//				throw new ParsingException(problem);
-			//			}
 			else {
 				fReader.unread();
 				if (count > 0) {
@@ -1098,144 +989,6 @@ public class C4ScriptParser {
 		} while(!fReader.reachedEOF());
 		return true; // TODO correct number finish?
 	}
-
-	/**
-	 * Parses iVar inclusive all post- and prefixes
-	 * Parses iVar->call() (implies iVar->call()->call()->call()...)
-	 * @param offset
-	 * @return
-	 * @throws ParsingException
-	 */
-//	private boolean parseVariable(int offset) throws ParsingException {
-//		fReader.seek(offset);
-//
-//		if (parsePrefixOperator(offset)) offset = fReader.getPosition();
-//		eatWhitespace(offset);
-//		String varName = fReader.readWord();
-//		if (varName.length() == 0) {
-//			fReader.seek(offset);
-//			return false;
-//		}
-//		offset = fReader.getPosition();
-//		eatWhitespace();
-//		if (parseArrayAccess(offset)) offset = fReader.getPosition();
-//		eatWhitespace(offset);
-//		if (!parsePostfixOperator(offset))  {// entweder
-//			if (parseObjectCall(offset)) offset = fReader.getPosition();       // oder
-//		}
-//		else {
-//			offset = fReader.getPosition();
-//		}
-//
-//
-//		fReader.seek(offset);
-//		return true;
-//		// iVar
-//		// think of post- and prefixes: iVar++
-//		// think of: -iVar
-//		// think of: !bVar
-//	}
-
-	/**
-	 * Parses ->call(...)
-	 * @param offset
-	 * @return
-	 * @throws ParsingException
-	 */
-//	private boolean parseObjectCall(int offset) throws ParsingException {
-//		fReader.seek(offset);
-//		if (parseObjectFieldOperator(offset)) {
-//			eatWhitespace();
-//			offset = fReader.getPosition();
-//			if (!parseCall(offset)) {
-//				String problem = "Syntax error: expected a method name";
-//				createErrorMarker(fReader.getPosition(), fReader.getPosition() + 2, problem);
-//				throw new ParsingException(problem);
-//			}
-//			return true;
-//		}
-//		fReader.seek(offset);
-//		return false;
-//	}
-
-//	private boolean parsePostfixOperator(int offset) throws ParsingException {
-//		fReader.seek(offset);
-//		String next = fReader.readString(2);
-//		if (next.equals("--") || next.equals("++")) {
-//			return true;
-//		}
-//		return false;
-//	}
-
-	//	private boolean parsePostfixOperator(int offset) throws ParsingException {
-	//		fReader.seek(offset);
-	//		int readByte = fReader.read();
-	//		if (readByte == '-' || readByte == '+') {
-	//			int secondByte = fReader.read();
-	//			if (secondByte == '-' || secondByte == '+') {
-	//				if (readByte != secondByte) {
-	//					String problem = "Syntax error: postfix operators are either -- or ++";
-	//					createErrorMarker(fReader.getPosition() - 2, fReader.getPosition(), problem);
-	//					throw new ParsingException(problem);
-	//				}
-	//				else {
-	//					return true;
-	//				}
-	//			}
-	//			else if (secondByte == '>') {
-	//				if (readByte == '+') {
-	//					String problem = "Syntax error: invalid operator '+>'";
-	//					createErrorMarker(fReader.getPosition() - 2, fReader.getPosition(), problem);
-	//					throw new ParsingException(problem);
-	//				}
-	//				else {
-	//					int thirdByte = fReader.read();
-	//					if (thirdByte == '~') {
-	//						if (!parseValue(fReader.getPosition())) {
-	//							String problem = "Syntax error: expected a method name";
-	//							createErrorMarker(fReader.getPosition(), fReader.getPosition() + 2, problem);
-	//							throw new ParsingException(problem);
-	//						}
-	//						return true;
-	//					}
-	//					else {
-	//						fReader.unread();
-	//						if (!parseValue(fReader.getPosition())) {
-	//							String problem = "Syntax error: expected a method name";
-	//							createErrorMarker(fReader.getPosition(), fReader.getPosition() + 2, problem);
-	//							throw new ParsingException(problem);
-	//						}
-	//						return true;
-	//					}
-	//				}
-	//			}
-	//			else {
-	//				return false;
-	//			}
-	//		}
-	//		else if (readByte == ':') {
-	//			int secondByte = fReader.read();
-	//			if (secondByte == ':') {
-	//				if (!parseValue(fReader.getPosition())) {
-	//					String problem = "Syntax error: expected a method name";
-	//					createErrorMarker(fReader.getPosition(), fReader.getPosition() + 2, problem);
-	//					throw new ParsingException(problem);
-	//				}
-	//				return true;
-	//			}
-	//			else {
-	//				String problem = "Syntax error: expected ':";
-	//				createErrorMarker(fReader.getPosition() - 1, fReader.getPosition(), problem);
-	//				throw new ParsingException(problem);
-	//			}
-	//		}
-	//		else {
-	//			return false;
-	//		}
-	//		// this is either ++ or --
-	//	}
-
-	private String parsedObjectFieldOperator;
 	
 	private boolean parseEllipsis(int offset) {
 		fReader.seek(offset);
@@ -1337,7 +1090,7 @@ public class C4ScriptParser {
 	}
 	
 	public enum ErrorCode {
-		TokenExpected, NotAllowedHere, MissingClosingBracket, InvalidExpression, InternalError, ExpressionExpected, UnexpectedEnd, NameExpected, ReturnAsFunction, ExpressionNotModifiable, OperatorNeedsRightSide, NoAssignment, NoSideEffects, KeywordInWrongPlace, UndeclaredIdentifier, OldStyleFunc, ValueExpected, TuplesNotAllowed, EmptyParentheses, ExpectedCode, ConstantValueExpected, CommaOrSemicolonExpected, IncompatibleTypes, VariableCalled, TypeAsName, BlockNotClosed, UnknownDirective, StatementExpected, ConditionExpected, OutOfIntRange, NoInheritedFunction
+		TokenExpected, NotAllowedHere, MissingClosingBracket, InvalidExpression, InternalError, ExpressionExpected, UnexpectedEnd, NameExpected, ReturnAsFunction, ExpressionNotModifiable, OperatorNeedsRightSide, NoAssignment, NoSideEffects, KeywordInWrongPlace, UndeclaredIdentifier, OldStyleFunc, ValueExpected, TuplesNotAllowed, EmptyParentheses, ExpectedCode, ConstantValueExpected, CommaOrSemicolonExpected, IncompatibleTypes, VariableCalled, TypeAsName, BlockNotClosed, UnknownDirective, StatementExpected, ConditionExpected, OutOfIntRange, NoInheritedFunction, FunctionRedeclared
 	}
 	
 	private static String[] errorStrings = new String[] {
@@ -1371,7 +1124,8 @@ public class C4ScriptParser {
 		"Statement expected",
 		"Condition expected",
 		"Out of integer range: %s",
-		"No inherited version of %s found"
+		"No inherited version of %s found",
+		"Function overload: this function is already declared in this script"
 	};
 	
 	private static Set<ErrorCode> disabledErrors = new HashSet<ErrorCode>();
@@ -1500,9 +1254,9 @@ public class C4ScriptParser {
 					} else {
 						fReader.seek(beforeSpace);
 						// bool
-						if (word.equals("true"))
+						if (word.equals(Keywords.True))
 							elm = new ExprBool(true);
-						else if (word.equals("false"))
+						else if (word.equals(Keywords.False))
 							elm = new ExprBool(false);
 						else
 							// variable
@@ -1862,36 +1616,6 @@ public class C4ScriptParser {
 		// [blublu|IMGC|...]
 	}
 	
-//	private boolean parseArray(int offset) throws ParsingException {
-//		fReader.seek(offset);
-//		if (fReader.read() != '[') {
-//			fReader.unread();
-//			return false;
-//		}
-//		int readByte = 0;
-//		do {
-//			eatWhitespace();
-//			if (!parseValue(fReader.getPosition())) {
-//				String problem = "Syntax error: expected value";
-//				createErrorMarker(fReader.getPosition() - 1, fReader.getPosition(), problem);
-//				throw new ParsingException(problem);
-//			}
-//			eatWhitespace();
-//			readByte = fReader.read();
-//			if (readByte == ']') {
-//				return true;
-//			}
-//			if (readByte != ',') {
-//				String problem = "Syntax error: expected ',' or ']'";
-//				createErrorMarker(fReader.getPosition() - 1, fReader.getPosition(), problem);
-//				throw new ParsingException(problem);
-//			}
-//		} while(!fReader.reachedEOF());
-//		return false;
-//	}
-	
-	private String parsedString;
-	
 	private boolean parseString(int offset) throws ParsingException {
 		fReader.seek(offset);
 		int delimiter = fReader.read();
@@ -1939,7 +1663,7 @@ public class C4ScriptParser {
 			String readWord = fReader.readWord();
 			if (readWord == null)
 				return false;
-			if (readWord.equals("if")) {
+			if (readWord.equals(Keywords.If)) {
 				// there are people naming their variables iF >.>
 //				if (!readWord.equals(readWord.toLowerCase())) {
 //					String problem = "Syntax error: you should only use lower case letters in keywords. ('" + readWord.toLowerCase() + "' instead of '" + readWord + "')"; 
@@ -1964,7 +1688,7 @@ public class C4ScriptParser {
 				eatWhitespace();
 				offset = fReader.getPosition();
 				String nextWord = fReader.readWord();
-				if (nextWord.equalsIgnoreCase("else")) {
+				if (nextWord.equalsIgnoreCase(Keywords.Else)) {
 					eatWhitespace();
 					offset = fReader.getPosition();
 					if (!parseCodeSegment(fReader.getPosition())) {
@@ -1976,7 +1700,7 @@ public class C4ScriptParser {
 				}
 				return true;
 			}
-			else if (readWord.equals("while")) {
+			else if (readWord.equals(Keywords.While)) {
 				currentLoop = LoopType.While;
 //				if (!readWord.equals(readWord.toLowerCase())) {
 //					String problem = "Syntax error: you should only use lower case letters in keywords. ('" + readWord.toLowerCase() + "' instead of '" + readWord + "')"; 
@@ -2000,7 +1724,7 @@ public class C4ScriptParser {
 				}
 				return true;
 			}
-			else if (readWord.equals("for")) {
+			else if (readWord.equals(Keywords.For)) {
 				eatWhitespace();
 				if (fReader.read() != '(') {
 					tokenExpectedError("(");					
@@ -2037,7 +1761,7 @@ public class C4ScriptParser {
 				}
 				else
 					w = null; // if there is no initialization statement at all there can also be no 'in'
-				if (w != null && w.equals("in")) {
+				if (w != null && w.equals(Keywords.In)) {
 					// it's a for (x in array) loop!
 					currentLoop = LoopType.IterateArray;
 					eatWhitespace();
@@ -2092,7 +1816,7 @@ public class C4ScriptParser {
 				}
 				return true;
 			}
-			else if (readWord.equals("continue") || readWord.equals("break")) {
+			else if (readWord.equals(Keywords.Continue) || readWord.equals(Keywords.Break)) {
 				if (currentLoop == null)
 					errorWithCode(ErrorCode.KeywordInWrongPlace, fReader.getPosition()-readWord.length(), fReader.getPosition(), readWord);
 				checkForSemicolon();
@@ -2116,8 +1840,6 @@ public class C4ScriptParser {
 			tokenExpectedError(";");
 		
 	}
-
-	private C4ID parsedID;
 	
 	private boolean parseID(int offset) throws ParsingException {
 		parsedID = null; // reset so no old parsed ids get through
@@ -2132,9 +1854,6 @@ public class C4ScriptParser {
 			return false;
 		}
 		parsedID = C4ID.getID(word);
-//		offset = fReader.getPosition();
-//		if (parseObjectCall(fReader.getPosition())) offset = fReader.getPosition();
-//		fReader.seek(offset);
 		return true;
 	}
 
@@ -2289,63 +2008,4 @@ public class C4ScriptParser {
 		return reportExpressionsInStatements(doc, Utilities.getStartOfStatement(doc, offset), offset, context, func, listener);
 	}
 
-//	/**
-//	 * @return the directives
-//	 */
-//	public List<C4Directive> getDirectives() {
-//		return directives;
-//	}
-//
-//	/**
-//	 * @return the functions
-//	 */
-//	public List<C4Function> getFunctions() {
-//		return functions;
-//	}
-//
-//	/**
-//	 * @return the variables
-//	 */
-//	public List<C4Variable> getVariables() {
-//		return variables;
-//	}
-	
-//	public boolean visit(IResourceDelta delta) throws CoreException {
-//		if (delta == null) 
-//			return false;
-//		
-//		IResourceDelta[] deltas = delta.getAffectedChildren();
-//		IResource res = delta.getResource();
-//		int flags = delta.getFlags();
-//		int kind = delta.getKind();
-//		if (delta.getResource() instanceof IFile)
-//			try {
-//				C4ScriptParser parser = new C4ScriptParser((IFile) delta.getResource());
-//				parser.parse();
-//			} catch (CompilerException e) {
-//				e.printStackTrace();
-//			}
-//		if (delta.getResource() instanceof IFolder || delta.getResource() instanceof IProject)
-//			return true;
-//		else
-//			return false;
-//	}
-//
-//	public boolean visit(IResource resource) throws CoreException {
-//		if (resource == null)
-//			return false;
-//		if (resource instanceof IFile) {
-//			if (resource.getName().endsWith(".c")) {
-//				try {
-//					C4ScriptParser parser = new C4ScriptParser((IFile) resource);
-//					parser.parse();
-//				} catch (CompilerException e) {
-//					e.printStackTrace();
-//				}
-//			}
-//			return false;
-//		}
-//		if (resource instanceof IContainer) return true;
-//		else return false;
-//	}
 }
