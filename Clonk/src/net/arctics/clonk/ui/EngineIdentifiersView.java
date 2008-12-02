@@ -17,6 +17,7 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
+import org.eclipse.swt.widgets.TreeItem;
 import org.eclipse.ui.part.*;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.jface.viewers.*;
@@ -164,11 +165,11 @@ public class EngineIdentifiersView extends ViewPart {
 				func.setVisibility(C4FunctionScope.makeScope(scopeBox.getItem(scopeBox.getSelectionIndex())));
 				func.setDescription(descriptionField.getText());
 				
-				func.getParameter().clear();
+				func.getParameters().clear();
 				for(ParameterCombination par : parameters) {
 					C4Variable var = new C4Variable(par.getName().getText(),C4VariableScope.VAR_LOCAL);
 					var.setType(getSelectedType(par.getType()));
-					func.getParameter().add(var);
+					func.getParameters().add(var);
 				}
 			}
 			else if (identifier instanceof C4Variable) {
@@ -233,8 +234,8 @@ public class EngineIdentifiersView extends ViewPart {
 			
 			new Label(parent, SWT.NONE).setText(" "); // placeholder
 			new Label(parent, SWT.NONE).setText(" ");
-			if (func.getParameter() != null) {
-				for(C4Variable par : func.getParameter()) {
+			if (func.getParameters() != null) {
+				for(C4Variable par : func.getParameters()) {
 					createParameterControls(parent, par.getType(), par.getName());
 				}
 			}
@@ -445,9 +446,12 @@ public class EngineIdentifiersView extends ViewPart {
 				Dialog dialog = new SimpleConfirmDialog(viewer.getControl().getShell());
 				int result = dialog.open();
 				if (result == IDialogConstants.OK_ID) {
-					Object selectedItem = viewer.getTree().getSelection()[0].getData();
-					if (selectedItem instanceof C4Field) {
-						ClonkCore.ENGINE_OBJECT.removeField((C4Field) selectedItem);
+					TreeItem[] selection = viewer.getTree().getSelection();
+					for (TreeItem t : selection) {
+						Object selectedItem = t.getData();
+						if (selectedItem instanceof C4Field) {
+							ClonkCore.ENGINE_OBJECT.removeField((C4Field) selectedItem);
+						}
 					}
 					refresh();
 				}

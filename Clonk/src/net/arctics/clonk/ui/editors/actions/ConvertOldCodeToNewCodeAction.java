@@ -32,11 +32,12 @@ public class ConvertOldCodeToNewCodeAction extends TextEditorAction {
 		final ITextSelection selection = (ITextSelection)editor.getSelectionProvider().getSelection();
 		final IDocument document = editor.getDocumentProvider().getDocument(editor.getEditorInput());
 		final LinkedList<ExprElm> expressions = new LinkedList<ExprElm>();
+		final int selLength = selection.getLength();
 		C4ScriptParser parser;
 		try {
 			parser = editor.reparseWithDocumentContents(new IExpressionListener() {
 				public TraversalContinuation expressionDetected(ExprElm expression) {
-					if (selection == null || (expression.getExprStart() >= selection.getOffset() && expression.getExprEnd() < selection.getOffset()+selection.getLength())) {
+					if (selLength == 0 || (expression.getExprStart() >= selection.getOffset() && expression.getExprEnd() < selection.getOffset()+selection.getLength())) {
 						expressions.addFirst(expression);
 					}
 					return TraversalContinuation.Continue;
@@ -44,12 +45,14 @@ public class ConvertOldCodeToNewCodeAction extends TextEditorAction {
 			},false);
 		} catch (CompilerException e1) {
 			parser = null;
-			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
 		for (ExprElm e : expressions) {
 			try {
-				document.replace(e.getExprStart(), e.getExprEnd()-e.getExprStart(), e.exhaustiveNewStyleReplacement(parser).toString());
+				String oldString = document.get(e.getExprStart(), e.getExprEnd()-e.getExprStart());
+				String newString = e.exhaustiveNewStyleReplacement(parser).toString();
+				if (!oldString.equals(newString))
+					document.replace(e.getExprStart(), e.getExprEnd()-e.getExprStart(), newString);
 			} catch (BadLocationException e1) {
 				// TODO Auto-generated catch block
 				e1.printStackTrace();

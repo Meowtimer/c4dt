@@ -34,7 +34,7 @@ public class SimpleConfirmDialog extends Dialog {
 	protected Control createDialogArea(Composite parent) {
 		Composite comp = (Composite) super.createDialogArea(parent);
 
-		new Label(comp,SWT.NONE).setText("Do you really want to delete this item?");
+		new Label(comp,SWT.NONE).setText("Do you really want to delete these items?");
 		
 		return comp;
 	}

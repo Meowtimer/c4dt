@@ -320,12 +320,35 @@ public class C4ScriptParser {
 	private String parsedObjectFieldOperator;
 	private String parsedString;
 	
+	public static final int MAX_PAR = 10;
+	public static final int UNKNOWN_PARAMETERNUM = MAX_PAR+1;
+	
+	/*
+	 * Number of unnamed parameters used in activeFunc (Par(5) -> 6 unnamed parameters)
+	 * If variable is passed to Par() this variable is set to UNKNOWN_PARAMETERNUM
+	 */
+	private int numUnnamedParameters;
+
+	public void unnamedParamaterUsed(ExprElm index) {
+		if (numUnnamedParameters < UNKNOWN_PARAMETERNUM) {
+			if (index instanceof ExprNumber) {
+				int number = ((ExprNumber)index).intValue();
+				numUnnamedParameters = Math.max(number+1, numUnnamedParameters);
+			} else
+				numUnnamedParameters = UNKNOWN_PARAMETERNUM;
+		}
+	}
+	
 	public int getStrictLevel() {
 		return strictLevel;
 	}
 	
 	public C4Function getActiveFunc() {
 		return activeFunc;
+	}
+	
+	public void setActiveFunc(C4Function func) {
+		activeFunc = func;
 	}
 	
 	public C4ScriptBase getContainer() {
@@ -406,18 +429,26 @@ public class C4ScriptParser {
 	public void parseCodeOfFunctions() {
 		strictLevel = container.strictLevel();
 		for (C4Function function : container.definedFunctions) {
-			activeFunc = function;
-			try {
-				parseCodeBlock(function.getBody().getStart());
-			} catch (ParsingException e) {
-				System.out.println(String.format("ParsingException in %s (%s)", activeFunc.getName(), container.getName()));
-				e.printStackTrace();
-				// not very exceptional
-			} catch (Exception e) {
-				// errorWithCode throws ^^;
-				warningWithCode(ErrorCode.InternalError, fReader.getPosition(), fReader.getPosition()+1, e.getMessage());
-				e.printStackTrace();
+			parseCodeOfFunction(function);
+		}
+	}
+
+	private void parseCodeOfFunction(C4Function function) {
+		activeFunc = function;
+		numUnnamedParameters = 0;
+		try {
+			parseCodeBlock(function.getBody().getStart());
+			if (numUnnamedParameters < UNKNOWN_PARAMETERNUM) {
+				activeFunc.createParameters(numUnnamedParameters);
 			}
+		} catch (ParsingException e) {
+			System.out.println(String.format("ParsingException in %s (%s)", activeFunc.getName(), container.getName()));
+			e.printStackTrace();
+			// not very exceptional
+		} catch (Exception e) {
+			// errorWithCode throws ^^;
+			warningWithCode(ErrorCode.InternalError, fReader.getPosition(), fReader.getPosition()+1, e.getMessage());
+			e.printStackTrace();
 		}
 	}
 
@@ -1901,7 +1932,7 @@ public class C4ScriptParser {
 		}
 		var.setLocation(new SourceLocation(s, e));
 		var.setParentField(function);
-		function.getParameter().add(var);
+		function.getParameters().add(var);
 		return true;
 	}
 	

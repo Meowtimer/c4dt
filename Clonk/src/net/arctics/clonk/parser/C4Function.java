@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import net.arctics.clonk.ClonkCore;
+import net.arctics.clonk.parser.C4Variable.C4VariableScope;
 
 public class C4Function extends C4Structure implements Serializable {
 
@@ -47,10 +48,10 @@ public class C4Function extends C4Structure implements Serializable {
 	
 	public C4Function(String name, C4Object parent, C4FunctionScope scope) {
 		this.name = name;
-		setScript(parent);
 		visibility = scope;
 		parameter = new ArrayList<C4Variable>();
 		localVars = new ArrayList<C4Variable>();
+		setScript(parent);
 	}
 	
 	public C4Function(String name, C4Object parent, String scope) {
@@ -74,7 +75,7 @@ public class C4Function extends C4Structure implements Serializable {
 	/**
 	 * @return the parameter
 	 */
-	public List<C4Variable> getParameter() {
+	public List<C4Variable> getParameters() {
 		return parameter;
 	}
 
@@ -171,8 +172,8 @@ public class C4Function extends C4Structure implements Serializable {
 			string.append(getName());
 			string.append("(");
 		}
-		if (getParameter().size() > 0) {
-			for(C4Variable par : getParameter()) {
+		if (getParameters().size() > 0) {
+			for(C4Variable par : getParameters()) {
 				if (par.getType() != C4Type.UNKNOWN && par.getType() != null) {
 					string.append(par.getType().toString());
 					string.append(' ');
@@ -293,6 +294,13 @@ public class C4Function extends C4Structure implements Serializable {
 	@Override
 	public Object[] getChildFields() {
 		return getLocalVars().toArray();
+	}
+
+	public void createParameters(int num) {
+		if (parameter.size() == 0)
+			for (int i = 0; i < num; i++) {
+				parameter.add(new C4Variable("par"+i, C4VariableScope.VAR_VAR));
+			}
 	}
 	
 }

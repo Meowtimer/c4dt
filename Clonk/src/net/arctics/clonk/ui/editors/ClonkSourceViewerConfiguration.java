@@ -8,6 +8,7 @@ import org.eclipse.jface.bindings.keys.KeySequence;
 import org.eclipse.jface.bindings.keys.ParseException;
 import org.eclipse.jface.internal.text.html.HTMLTextPresenter;
 import org.eclipse.jface.text.DefaultInformationControl;
+import org.eclipse.jface.text.IAutoEditStrategy;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IInformationControl;
 import org.eclipse.jface.text.IInformationControlCreator;
@@ -227,7 +228,7 @@ public class ClonkSourceViewerConfiguration extends TextSourceViewerConfiguratio
 	}
 	
 	@Override
-	public IQuickAssistAssistant getQuickAssistAssistant(ISourceViewer sourceViewer) { // noch unnütz
+	public IQuickAssistAssistant getQuickAssistAssistant(ISourceViewer sourceViewer) { // noch unnï¿½tz
 		IQuickAssistAssistant assistant = new QuickAssistAssistant();
 		assistant.setQuickAssistProcessor(new ClonkQuickAssistProcessor());
 		return assistant;
@@ -277,6 +278,15 @@ public class ClonkSourceViewerConfiguration extends TextSourceViewerConfiguratio
 				new C4ScriptHyperlinkDetector(),
 				new URLHyperlinkDetector()
 		};
+	}
+	
+	@Override
+	public IAutoEditStrategy[] getAutoEditStrategies(
+			ISourceViewer sourceViewer, String contentType) {
+//		return new IAutoEditStrategy[] {
+//				new ClonkAutoIndentStrategy()
+//		};
+		return super.getAutoEditStrategies(sourceViewer, contentType);
 	}
 
 	/* (non-Javadoc)

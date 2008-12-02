@@ -54,7 +54,7 @@ public enum C4ScriptOperator {
 	
 	// enums can have fields! cool
 	C4Type firstArgType, secondArgType, resultType;
-	String operatorName;
+	String operatorName, oldStyleFunctionEquivalent;
 	int priority;
 	
 	public static final HashMap<String, C4ScriptOperator> stringToOperatorMap;
@@ -183,6 +183,17 @@ public enum C4ScriptOperator {
 			o.setArgTypesAndResult(C4Type.INT, C4Type.INT, C4Type.INT);
 		for (C4ScriptOperator o : ops(AssignOr, AssignAnd, AssignXOr))
 			o.setArgTypesAndResult(C4Type.BOOL, C4Type.BOOL, C4Type.BOOL);
+		
+		for (C4ScriptOperator o : ops(And, Or, Equal, Not, Add))
+			o.setOldStyleFunctionEquivalent(o.toString());
+		Increment.setOldStyleFunctionEquivalent("Inc");
+		Decrement.setOldStyleFunctionEquivalent("Dec");
+		Larger.setOldStyleFunctionEquivalent("GreaterThan");
+		Smaller.setOldStyleFunctionEquivalent("LessThan");
+		Multiply.setOldStyleFunctionEquivalent("Mul");
+		Divide.setOldStyleFunctionEquivalent("Div");
+		Subtract.setOldStyleFunctionEquivalent("Sub");
+		StringEqual.setOldStyleFunctionEquivalent("SEqual");
 	}
 
 	public boolean isUnary() {
@@ -209,29 +220,17 @@ public enum C4ScriptOperator {
 		return this == Increment || this == Decrement || this.name().startsWith("Assign");
 	}
 	
-	public String oldStyleFunction() {
-		if (this == And || this == Or || this == Equal || this == Not || this == Add) 
-			return toString();
-		if (this == Increment)
-			return "Inc";
-		if (this == Decrement)
-			return "Dec";
-		if (this == Larger)
-			return "GreaterThan";
-		if (this == Smaller)
-			return "LessThan";
-		if (this == Multiply)
-			return "Mul";
-		if (this == Divide)
-			return "Div";
-		if (this == Subtract)
-			return "Sub";
-		return null;
+	public String getOldStyleFunctionEquivalent() {
+		return oldStyleFunctionEquivalent;
+	}
+	
+	private void setOldStyleFunctionEquivalent(String eq) {
+		oldStyleFunctionEquivalent = eq;
 	}
 	
 	public static C4ScriptOperator oldStyleFunctionReplacement(String funcName) {
 		for (C4ScriptOperator o : values()) {
-			if (o.oldStyleFunction() != null && o.oldStyleFunction().equals(funcName))
+			if (o.getOldStyleFunctionEquivalent() != null && o.getOldStyleFunctionEquivalent().equals(funcName))
 				return o;
 		}
 		return null;

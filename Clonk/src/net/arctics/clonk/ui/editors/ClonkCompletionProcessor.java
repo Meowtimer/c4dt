@@ -294,7 +294,7 @@ public class ClonkCompletionProcessor implements IContentAssistProcessor {
 				}
 				
 				if (activeFunc != null) {
-					for (C4Variable v : activeFunc.getParameter()) {
+					for (C4Variable v : activeFunc.getParameters()) {
 						proposalForVar(v, prefix, wordOffset, proposals);
 					}
 					for (C4Variable v : activeFunc.getLocalVars()) {
