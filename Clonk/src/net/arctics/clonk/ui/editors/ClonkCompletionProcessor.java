@@ -309,7 +309,7 @@ public class ClonkCompletionProcessor implements IContentAssistProcessor {
 					contextExpression = null;
 					final int preservedOffset = offset;
 					C4ScriptParser parser = C4ScriptParser.reportExpressionsInStatements(doc, activeFunc.getBody().getOffset(), offset, contextScript, activeFunc, new IExpressionListener() {
-						public TraversalContinuation expressionDetected(ExprElm expression) {
+						public TraversalContinuation expressionDetected(ExprElm expression, C4ScriptParser parser) {
 							if (activeFunc.getBody().getOffset() + expression.getExprStart() <= preservedOffset) {
 								contextExpression = expression;
 								return TraversalContinuation.Continue;

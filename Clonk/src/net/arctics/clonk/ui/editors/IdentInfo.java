@@ -100,9 +100,9 @@ public class IdentInfo implements IExpressionListener {
 		return field;
 	}
 
-	public TraversalContinuation expressionDetected(ExprElm expression) {
+	public TraversalContinuation expressionDetected(ExprElm expression, C4ScriptParser parser) {
 		expression.traverse(new IExpressionListener() {
-			public TraversalContinuation expressionDetected(ExprElm expression) {
+			public TraversalContinuation expressionDetected(ExprElm expression, C4ScriptParser parser) {
 				if (identRegion.getOffset() >= expression.getExprStart() && identRegion.getOffset() < expression.getExprEnd()) {
 					exprAtRegion = expression;
 					return TraversalContinuation.TraverseSubElements;

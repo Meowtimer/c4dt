@@ -197,7 +197,7 @@ public class C4ScriptEditor extends TextEditor {
 			C4Function f = script.funcAt(sel.getOffset());
 			if (f != null) {
 				this.setHighlightRange(f.getLocation().getOffset(), Math.min(
-						f.getBody().getOffset()-f.getLocation().getOffset() + f.getBody().getLength() + (f.isOldStyle()?1:0),
+						f.getBody().getOffset()-f.getLocation().getOffset() + f.getBody().getLength() + (f.isOldStyle()?0:1),
 						this.getDocumentProvider().getDocument(getEditorInput()).getLength()-f.getLocation().getOffset()
 				), false);
 				noHighlight = false;
