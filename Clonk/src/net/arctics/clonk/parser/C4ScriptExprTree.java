@@ -19,7 +19,7 @@ public abstract class C4ScriptExprTree {
 	}
 	
 	public interface IExpressionListener {
-		public TraversalContinuation expressionDetected(ExprElm expression);
+		public TraversalContinuation expressionDetected(ExprElm expression, C4ScriptParser parser);
 	}
 	
 	public final static class FieldRegion {
@@ -175,7 +175,11 @@ public abstract class C4ScriptExprTree {
 		}
 		
 		public TraversalContinuation traverse(IExpressionListener listener) {
-			TraversalContinuation c = listener.expressionDetected(this);
+			return traverse(listener, null);
+		}
+		
+		public TraversalContinuation traverse(IExpressionListener listener, C4ScriptParser parser) {
+			TraversalContinuation c = listener.expressionDetected(this, parser);
 			switch (c) {
 			case Cancel:
 				return TraversalContinuation.Cancel;
@@ -187,7 +191,7 @@ public abstract class C4ScriptExprTree {
 				return TraversalContinuation.Continue;
 			}
 			for (ExprElm sub : getSubElements()) {
-				switch (sub.traverse(listener)) {
+				switch (sub.traverse(listener, parser)) {
 				case Cancel:
 					return TraversalContinuation.Cancel;
 				case Continue:

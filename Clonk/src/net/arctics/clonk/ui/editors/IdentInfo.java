@@ -109,7 +109,7 @@ public class IdentInfo implements IExpressionListener {
 				}
 				return TraversalContinuation.Continue;
 			}
-		});
+		}, parser);
 		return exprAtRegion != null ? TraversalContinuation.Cancel : TraversalContinuation.Continue;
 	}
 }

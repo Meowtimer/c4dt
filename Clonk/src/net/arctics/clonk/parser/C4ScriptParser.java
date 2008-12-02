@@ -1577,7 +1577,7 @@ public class C4ScriptParser {
 				if (reportErrors)
 					root.reportErrors(this);
 				if (expressionListener != null && parseExpressionRecursion == 1)
-					expressionListener.expressionDetected(root);
+					expressionListener.expressionDetected(root, this);
 			}
 			
 			return root;
