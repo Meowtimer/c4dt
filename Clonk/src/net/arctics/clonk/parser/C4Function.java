@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import net.arctics.clonk.ClonkCore;
+import net.arctics.clonk.parser.C4ScriptParser.Keywords;
 import net.arctics.clonk.parser.C4Variable.C4VariableScope;
 
 public class C4Function extends C4Structure implements Serializable {
@@ -17,7 +18,7 @@ public class C4Function extends C4Structure implements Serializable {
 	private String description;
 	private boolean isCallback;
 	private boolean isOldStyle;
-	private SourceLocation body;
+	private SourceLocation body, header;
 	
 	/**
 	 * Do NOT use this constructor! Its for engine-functions only.
@@ -146,6 +147,8 @@ public class C4Function extends C4Structure implements Serializable {
 		FUNC_PROTECTED,
 		FUNC_PRIVATE;
 		
+		private String lowerCaseName;
+		
 		public static C4FunctionScope makeScope(String scopeString) {
 			if (scopeString == null) return C4FunctionScope.FUNC_PUBLIC;
 			if (scopeString.equals("public")) return C4FunctionScope.FUNC_PUBLIC;
@@ -154,6 +157,13 @@ public class C4Function extends C4Structure implements Serializable {
 			if (scopeString.equals("global")) return C4FunctionScope.FUNC_GLOBAL;
 			if (C4FunctionScope.valueOf(scopeString) != null) return C4FunctionScope.valueOf(scopeString);
 			return C4FunctionScope.FUNC_PUBLIC;
+		}
+		
+		@Override
+		public String toString() {
+			if (lowerCaseName == null)
+				lowerCaseName = this.name().substring(5).toLowerCase();
+			return lowerCaseName;
 		}
 	}
 	
@@ -172,29 +182,33 @@ public class C4Function extends C4Structure implements Serializable {
 			string.append(getName());
 			string.append("(");
 		}
+		printParameterString(string);
+		if (withFuncName) string.append(")");
+		return string.toString();
+	}
+
+	private void printParameterString(StringBuilder output) {
 		if (getParameters().size() > 0) {
 			for(C4Variable par : getParameters()) {
 				if (par.getType() != C4Type.UNKNOWN && par.getType() != null) {
-					string.append(par.getType().toString());
-					string.append(' ');
-					string.append(par.getName());
-					string.append(',');
-					string.append(' ');
+					output.append(par.getType().toString());
+					output.append(' ');
+					output.append(par.getName());
+					output.append(',');
+					output.append(' ');
 				}
 				else {
-					string.append(par.getName());
-					string.append(',');
-					string.append(' ');
+					output.append(par.getName());
+					output.append(',');
+					output.append(' ');
 				}
 			}
-			if (string.length() > 0) {
-				if (string.charAt(string.length() - 1) == ' ') {
-					string.delete(string.length() - 2,string.length());
+			if (output.length() > 0) {
+				if (output.charAt(output.length() - 1) == ' ') {
+					output.delete(output.length() - 2,output.length());
 				}
 			}
 		}
-		if (withFuncName) string.append(")");
-		return string.toString();
 	}
 
 	/**
@@ -301,6 +315,45 @@ public class C4Function extends C4Structure implements Serializable {
 			for (int i = 0; i < num; i++) {
 				parameter.add(new C4Variable("par"+i, C4VariableScope.VAR_VAR));
 			}
+	}
+
+	public SourceLocation getHeader() {
+		return header;
+	}
+
+	public void setHeader(SourceLocation header) {
+		this.header = header;
+	}
+	
+	public void printHeader(StringBuilder output) {
+		printHeader(output, isOldStyle());
+	}
+	
+	public void printHeader(StringBuilder output, boolean oldStyle) {
+		output.append(getVisibility().toString());
+		if (!oldStyle) {
+			output.append(" ");
+			output.append(Keywords.Func);
+		}
+		output.append(" ");
+		output.append(getName());
+		if (!oldStyle) {
+			output.append("(");
+			printParameterString(output);
+			output.append(")");
+		}
+		else
+			output.append(":");
+	}
+	
+	public String getHeaderString(boolean oldStyle) {
+		StringBuilder builder = new StringBuilder();
+		printHeader(builder, oldStyle);
+		return builder.toString();
+	}
+	
+	public String getHeaderString() {
+		return getHeaderString(isOldStyle());
 	}
 	
 }

@@ -65,4 +65,9 @@ public abstract class C4Field implements Serializable  {
 			return ((C4Structure)parentField).findField(getName());
 		return this;
 	}
+	
+	@Override
+	public String toString() {
+		return getName();
+	}
 }

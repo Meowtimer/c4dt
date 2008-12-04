@@ -1,5 +1,9 @@
 package net.arctics.clonk.parser;
 
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.C4ScriptBase.FindFieldInfo;
 import net.arctics.clonk.parser.C4ScriptParser.ErrorCode;
@@ -66,7 +70,7 @@ public abstract class C4ScriptExprTree {
 			this.parent = parent;
 		}
 
-		public void print(StringBuilder output) {
+		public void print(StringBuilder output, int depth) {
 			//output.append("Implement me");
 		}
 
@@ -91,13 +95,6 @@ public abstract class C4ScriptExprTree {
 
 		public boolean hasSideEffects() {
 			return false;
-		}
-
-		@Override
-		public String toString() {
-			StringBuilder b = new StringBuilder();
-			print(b);
-			return b.toString();
 		}
 
 		public int getLength() {
@@ -153,7 +150,7 @@ public abstract class C4ScriptExprTree {
 			ExprElm[] newSubElms = new ExprElm[subElms.length];
 			boolean differentSubElms = false;
 			for (int i = 0; i < subElms.length; i++) {
-				newSubElms[i] = subElms[i].newStyleReplacement(context);
+				newSubElms[i] = subElms[i] != null ? subElms[i].newStyleReplacement(context) : null;
 				if (newSubElms[i] != subElms[i])
 					differentSubElms = true;
 			}
@@ -191,6 +188,8 @@ public abstract class C4ScriptExprTree {
 				return TraversalContinuation.Continue;
 			}
 			for (ExprElm sub : getSubElements()) {
+				if (sub == null)
+					continue;
 				switch (sub.traverse(listener, parser)) {
 				case Cancel:
 					return TraversalContinuation.Cancel;
@@ -234,6 +233,17 @@ public abstract class C4ScriptExprTree {
 			return exprElmsForTypes[type.ordinal()];
 		}
 
+		public String toString(int depth) {
+			StringBuilder builder = new StringBuilder();
+			print(builder, depth);
+			return builder.toString();
+		}
+		
+		@Override
+		public String toString() {
+			return toString(0);
+		}
+
 	}
 
 	public static class ExprObjectCall extends ExprElm {
@@ -248,7 +258,8 @@ public abstract class C4ScriptExprTree {
 			this.idOffset = idOffset;
 		}
 
-		public void print(StringBuilder output) {
+		@Override
+		public void print(StringBuilder output, int depth) {
 			if (hasTilde)
 				output.append("->~");
 			else
@@ -329,14 +340,17 @@ public abstract class C4ScriptExprTree {
 		public void setSubElements(ExprElm[] elms) {
 			elements = elms;
 		}
-		public void print(StringBuilder output) {
+		@Override
+		public void print(StringBuilder output, int depth) {
 			for (ExprElm e : elements) {
-				e.print(output);
+				e.print(output, depth+1);
 			}
 		}
+		@Override
 		public C4Type getType() {
 			return (elements == null || elements.length == 0) ? C4Type.UNKNOWN : elements[elements.length-1].getType();
 		}
+		@Override
 		public C4Object guessObjectType(C4ScriptParser context) {
 			return (elements == null || elements.length == 0) ? super.guessObjectType(context) : elements[elements.length-1].guessObjectType(context);
 		}
@@ -381,7 +395,8 @@ public abstract class C4ScriptExprTree {
 		public ExprAccessField(String fieldName) {
 			this.fieldName = fieldName;
 		}
-		public void print(StringBuilder output) {
+		@Override
+		public void print(StringBuilder output, int depth) {
 			output.append(fieldName);
 		}
 
@@ -445,18 +460,18 @@ public abstract class C4ScriptExprTree {
 
 	public static class ExprCallFunc extends ExprAccessField {
 		private ExprElm[] params;
-		public ExprCallFunc(String funcName, ExprElm[] parms) {
+		public ExprCallFunc(String funcName, ExprElm... parms) {
 			super(funcName);
 			params = parms;
 		}
 		@Override
-		public void print(StringBuilder output) {
-			super.print(output);
+		public void print(StringBuilder output, int depth) {
+			super.print(output, depth);
 			output.append("(");
 			if (params != null) {
 				for (int i = 0; i < params.length; i++) {
 					if (params[i] != null)
-						params[i].print(output);
+						params[i].print(output, depth+1);
 					if (i < params.length-1)
 						output.append(", ");
 				}
@@ -612,6 +627,11 @@ public abstract class C4ScriptExprTree {
 					return new ExprAccessVar(parser.getActiveFunc().getParameters().get(number.intValue()).getName());
 			}
 			
+			// SetVar(5, "ugh") -> Var(5) = "ugh"
+			else if (params.length == 2 && fieldName.equals("SetVar")) {
+				return new ExprBinaryOp(C4ScriptOperator.Assign, new ExprCallFunc("Var", params[0].newStyleReplacement(parser)), params[1].newStyleReplacement(parser));
+			}
+			
 			return super.newStyleReplacement(parser);
 		}
 		@Override
@@ -754,12 +774,12 @@ public abstract class C4ScriptExprTree {
 			rightSide.setParent(this);
 		}
 
-		public void print(StringBuilder output) {
-			leftSide.print(output);
+		public void print(StringBuilder output, int depth) {
+			leftSide.print(output, depth+1);
 			output.append(" ");
 			output.append(getOperator().getOperatorName());
 			output.append(" ");
-			rightSide.print(output);
+			rightSide.print(output, depth+1);
 		}
 
 		@Override
@@ -803,9 +823,9 @@ public abstract class C4ScriptExprTree {
 			super();
 			this.innerExpr = innerExpr;
 		}
-		public void print(StringBuilder output) {
+		public void print(StringBuilder output, int depth) {
 			output.append("(");
-			innerExpr.print(output);
+			innerExpr.print(output, depth+1);
 			output.append(")");
 		}
 		public C4Type getType() {
@@ -853,9 +873,9 @@ public abstract class C4ScriptExprTree {
 			argument = elements[0];
 		}
 
-		public void print(StringBuilder output) {
+		public void print(StringBuilder output, int depth) {
 			if (placement == Placement.Postfix) {
-				argument.print(output);
+				argument.print(output, depth+1);
 				if (argument instanceof ExprUnaryOp && ((ExprUnaryOp)argument).placement == Placement.Postfix)
 					output.append(" "); // - -5 -.-
 				output.append(getOperator().getOperatorName());
@@ -863,7 +883,7 @@ public abstract class C4ScriptExprTree {
 				output.append(getOperator().getOperatorName());
 				if (argument instanceof ExprUnaryOp && ((ExprUnaryOp)argument).placement == Placement.Prefix)
 					output.append(" "); // - -5 -.-
-				argument.print(output);
+				argument.print(output, depth+1);
 			}
 		}
 
@@ -888,6 +908,9 @@ public abstract class C4ScriptExprTree {
 					 ExprBinaryOp op = (ExprBinaryOp) brackets.getInnerExpr();
 					 if (op.getOperator() == C4ScriptOperator.Equal) {
 						 return new ExprBinaryOp(C4ScriptOperator.NotEqual, op.getLeftSide().newStyleReplacement(context), op.getRightSide().newStyleReplacement(context));
+					 }
+					 else if (op.getOperator() == C4ScriptOperator.NotEqual) {
+						 return new ExprBinaryOp(C4ScriptOperator.Equal, op.getLeftSide().newStyleReplacement(context), op.getRightSide().newStyleReplacement(context));
 					 }
 				 }
 			}
@@ -934,7 +957,8 @@ public abstract class C4ScriptExprTree {
 			return (int)longValue();
 		}
 
-		public void print(StringBuilder output) {
+		@Override
+		public void print(StringBuilder output, int depth) {
 			output.append(longValue());
 		}
 
@@ -960,7 +984,8 @@ public abstract class C4ScriptExprTree {
 		public String stringValue() {
 			return getLiteral();
 		}
-		public void print(StringBuilder output) {
+		@Override
+		public void print(StringBuilder output, int depth) {
 			output.append("\"");
 			output.append(stringValue());
 			output.append("\"");
@@ -982,7 +1007,8 @@ public abstract class C4ScriptExprTree {
 			return getLiteral();
 		}
 
-		public void print(StringBuilder output) {
+		@Override
+		public void print(StringBuilder output, int depth) {
 			output.append(idValue().getName());
 		}
 
@@ -1015,7 +1041,7 @@ public abstract class C4ScriptExprTree {
 			return C4Type.BOOL;
 		}
 		@Override
-		public void print(StringBuilder output) {
+		public void print(StringBuilder output, int depth) {
 			output.append(booleanValue() ? Keywords.True : Keywords.False);
 		}
 	}
@@ -1032,9 +1058,10 @@ public abstract class C4ScriptExprTree {
 			// TODO Auto-generated constructor stub
 		}
 
-		public void print(StringBuilder output) {
+		@Override
+		public void print(StringBuilder output, int depth) {
 			output.append("[");
-			getArgument().print(output);
+			getArgument().print(output, depth+1);
 			output.append("]");
 		}
 
@@ -1061,11 +1088,11 @@ public abstract class C4ScriptExprTree {
 			super(elms);
 		}
 
-		public void print(StringBuilder output) {
+		public void print(StringBuilder output, int depth) {
 			output.append("[");
 			for (int i = 0; i < elements.length; i++) {
 				if (elements[i] != null)
-					elements[i].print(output);
+					elements[i].print(output, depth+1);
 				if (i < elements.length-1)
 					output.append(", ");
 			}
@@ -1105,12 +1132,12 @@ public abstract class C4ScriptExprTree {
 		}
 
 		@Override
-		public void print(StringBuilder output) {
+		public void print(StringBuilder output, int depth) {
 			output.append('(');
 			if (elements != null) {
 				for (int i = 0; i < elements.length; i++) {
 					if (elements[i] != null)
-						elements[i].print(output);
+						elements[i].print(output, depth+1);
 					if (i < elements.length-1)
 						output.append(", ");
 				}
@@ -1126,7 +1153,8 @@ public abstract class C4ScriptExprTree {
 			super();
 		}
 
-		public void print(StringBuilder output) {
+		@Override
+		public void print(StringBuilder output, int depth) {
 			output.append("...");
 		}
 
@@ -1143,10 +1171,465 @@ public abstract class C4ScriptExprTree {
 			return entryName;
 		}
 		@Override
-		public void print(StringBuilder builder) {
+		public void print(StringBuilder builder, int depth) {
 			builder.append('$');
 			builder.append(entryName);
 			builder.append('$');
 		}
 	}
+	
+	/**
+	 * Baseclass for statements.
+	 * @author madeen
+	 *
+	 */
+	public static abstract class Statement extends ExprElm {
+		@Override
+		public C4Type getType() {
+			return null;
+		}
+		protected void printIndent(StringBuilder builder, int indentDepth) {
+			for (int i = 0; i < indentDepth; i++)
+				builder.append("\t"); // FIXME: should be done according to user's preferences
+		}
+	}
+	
+	/**
+	 * A {} block
+	 * @author madeen
+	 *
+	 */
+	public static class Block extends Statement {
+		
+		private Statement[] statements;
+
+		public Block(List<Statement> statements) {
+			this(statements.toArray(new Statement[0]));
+		}
+		
+		public Block(Statement[] statements) {
+			super();
+			this.statements = statements;
+		}
+
+		public ExprElm[] getStatements() {
+			return statements;
+		}
+
+		public void setStatements(Statement[] statements) {
+			this.statements = statements;
+		}
+		
+		@Override
+		public void setSubElements(ExprElm[] elms) {
+			Statement[] typeAdjustedCopy = new Statement[elms.length];
+			System.arraycopy(elms, 0, typeAdjustedCopy, 0, elms.length);
+			setStatements(typeAdjustedCopy);
+		}
+		
+		@Override
+		public ExprElm[] getSubElements() {
+			return getStatements();
+		}
+		
+		@Override
+		public void print(StringBuilder builder, int depth) {
+			builder.append("{\n");
+			for (Statement statement : statements) {
+				printIndent(builder, depth+1); statement.print(builder, depth+1); builder.append("\n");
+			}
+			printIndent(builder, depth); builder.append("}");
+		}
+		
+	}
+	
+	/**
+	 * Simple statement wrapper for an expression.
+	 * @author madeen
+	 * 
+	 */
+	public static class SimpleStatement extends Statement {
+		private ExprElm expression;
+
+		public SimpleStatement(ExprElm expression) {
+			super();
+			this.expression = expression;
+		}
+
+		public ExprElm getExpression() {
+			return expression;
+		}
+
+		public void setExpression(ExprElm expression) {
+			this.expression = expression;
+		}
+		
+		@Override
+		public ExprElm[] getSubElements() {
+			return new ExprElm[] {expression};
+ 		}
+		
+		@Override
+		public void setSubElements(ExprElm[] elms) {
+			expression = elms[0];
+		}
+		
+		@Override
+		public void print(StringBuilder builder, int depth) {
+			expression.print(builder, depth+1);
+			builder.append(";");
+		}
+
+		@Override
+		public ExprElm newStyleReplacement(C4ScriptParser parser) throws CloneNotSupportedException {
+			ExprElm exprReplacement = expression.newStyleReplacement(parser);
+			if (exprReplacement instanceof Statement)
+				return exprReplacement;
+			if (exprReplacement == expression)
+				return this;
+			return new SimpleStatement(exprReplacement);
+		}
+	}
+	
+	/**
+	 * Baseclass for statements which begin with a keyword
+	 * @author madeen
+	 *
+	 */
+	public static abstract class KeywordStatement extends Statement {
+		public abstract String getKeyword();
+		@Override
+		public void print(StringBuilder builder, int depth) {
+			builder.append(getKeyword());
+			builder.append(";");
+		}
+	}
+	
+	public static class ContinueStatement extends KeywordStatement {
+		@Override
+		public String getKeyword() {
+			return Keywords.Continue;
+		}
+	}
+	
+	public static class BreakStatement extends KeywordStatement {
+		@Override
+		public String getKeyword() {
+			return Keywords.Break;
+		}
+	}
+	
+	public static class ReturnStatement extends KeywordStatement {
+		
+		private ExprElm returnExpr;
+		
+		public ReturnStatement(ExprElm returnExpr) {
+			super();
+			this.returnExpr = returnExpr;
+		}
+
+		@Override
+		public String getKeyword() {
+			return Keywords.Return;
+		}
+		
+		@Override
+		public void print(StringBuilder builder, int depth) {
+			builder.append(getKeyword());
+			if (returnExpr != null) {
+				builder.append(" ");
+				returnExpr.print(builder, depth+1);
+			}
+			builder.append(";");
+		}
+
+		public ExprElm getReturnExpr() {
+			return returnExpr;
+		}
+
+		public void setReturnExpr(ExprElm returnExpr) {
+			this.returnExpr = returnExpr;
+		}
+		
+		@Override
+		public ExprElm[] getSubElements() {
+			return new ExprElm[] {returnExpr};
+		}
+		
+		@Override
+		public void setSubElements(ExprElm[] elms) {
+			returnExpr = elms[0];
+		}
+	}
+	
+	public static abstract class ConditionalStatement extends KeywordStatement {
+		protected ExprElm condition;
+		protected ExprElm body;
+
+		public ExprElm getCondition() {
+			return condition;
+		}
+
+		public void setCondition(ExprElm condition) {
+			this.condition = condition;
+		}
+
+		public ConditionalStatement(ExprElm condition, ExprElm body) {
+			super();
+			this.condition = condition;
+			this.body = body;
+		}
+		
+		@Override
+		public void print(StringBuilder builder, int depth) {
+			builder.append(getKeyword());
+			builder.append(" (");
+			condition.print(builder, depth+1);
+			builder.append(") ");
+			body.print(builder, depth);
+		}
+
+		public ExprElm getBody() {
+			return body;
+		}
+
+		public void setBody(ExprElm body) {
+			this.body = body;
+		}
+		
+		@Override
+		public ExprElm[] getSubElements() {
+			return new ExprElm[] {condition, body};
+		}
+		
+		@Override
+		public void setSubElements(ExprElm[] elms) {
+			condition = elms[0];
+			body      = elms[1];
+		}
+		
+	}
+	
+	public static class IfStatement extends ConditionalStatement {
+		
+		private ExprElm elseExpr;
+		
+		public IfStatement(ExprElm condition, ExprElm body, ExprElm elseExpr) {
+			super(condition, body);
+			this.elseExpr = elseExpr;
+		}
+
+		@Override
+		public String getKeyword() {
+			return Keywords.If;
+		}
+		@Override
+		public void print(StringBuilder builder, int depth) {
+			builder.append(getKeyword());
+			builder.append(" (");
+			condition.print(builder, depth);
+			builder.append(")");
+			if (!(body instanceof Block)) {
+				builder.append("\n");
+				printIndent(builder, depth+1);
+			}
+			body.print(builder, depth);
+			if (elseExpr != null) {
+				builder.append(" ");
+				builder.append(Keywords.Else);
+				builder.append(" ");
+				if (!(elseExpr instanceof Block)) {
+					builder.append("\n");
+					printIndent(builder, depth+1);
+				}
+				elseExpr.print(builder, depth+1);
+			}
+		}
+		
+		@Override
+		public ExprElm[] getSubElements() {
+			return new ExprElm[] {condition, body, elseExpr};
+		}
+		
+		@Override
+		public void setSubElements(ExprElm[] elms) {
+			condition = elms[0];
+			body      = elms[1];
+			elseExpr  = elms[2];
+		}
+		
+	}
+	
+	public static class WhileStatement extends ConditionalStatement {
+		public WhileStatement(ExprElm condition, ExprElm body) {
+			super(condition, body);
+			// TODO Auto-generated constructor stub
+		}
+
+		@Override
+		public String getKeyword() {
+			return Keywords.While;
+		}
+	}
+	
+	public static class ForStatement extends ConditionalStatement {
+		private ExprElm initializer, increment;
+		public ForStatement(ExprElm initializer, ExprElm condition, ExprElm increment, ExprElm body) {
+			super(condition, body);
+			this.initializer = initializer;
+			this.increment = increment;
+		}
+		@Override
+		public String getKeyword() {
+			return Keywords.For;
+		}
+		@Override
+		public void print(StringBuilder builder, int depth) {
+			builder.append(getKeyword() + "(");
+			if (initializer != null)
+				initializer.print(builder, depth+1);
+			builder.append(" "); // no ';' since initializer is already a statement
+			if (condition != null)
+				condition.print(builder, depth+1);
+			builder.append("; ");
+			if (increment != null)
+				increment.print(builder, depth);
+			builder.append(") ");
+			body.print(builder, depth);
+		}
+		@Override
+		public ExprElm[] getSubElements() {
+			return new ExprElm[] {initializer, condition, increment, body};
+		}
+		
+		@Override
+		public void setSubElements(ExprElm[] elms) {
+			initializer = elms[0];
+			condition   = elms[1];
+			increment   = elms[2];
+			body        = elms[3];
+		}
+	}
+	
+	public static class IterateArrayStatement extends KeywordStatement {
+		private ExprElm elementExpr, arrayExpr, body;
+
+		public IterateArrayStatement(ExprElm elementExpr, ExprElm arrayExpr, ExprElm body) {
+			super();
+			this.elementExpr = elementExpr;
+			this.arrayExpr   = arrayExpr;
+			this.body        = body;
+		}
+
+		public ExprElm getArrayExpr() {
+			return arrayExpr;
+		}
+
+		public void setArrayExpr(ExprElm arrayExpr) {
+			this.arrayExpr = arrayExpr;
+		}
+
+		public ExprElm getElementExpr() {
+			return elementExpr;
+		}
+
+		public void setElementExpr(ExprElm elementExpr) {
+			this.elementExpr = elementExpr;
+		}
+
+		@Override
+		public String getKeyword() {
+			return Keywords.For;
+		}
+		
+		@Override
+		public void print(StringBuilder builder, int depth) {
+			builder.append(getKeyword() + "(");
+			elementExpr.print(builder, depth+1);
+			builder.append(" " + Keywords.In + " ");
+			arrayExpr.print(builder, depth+1);
+			builder.append(") ");
+			body.print(builder, depth);
+		}
+
+		public ExprElm getBody() {
+			return body;
+		}
+
+		public void setBody(ExprElm body) {
+			this.body = body;
+		}
+		
+		@Override
+		public ExprElm[] getSubElements() {
+			return new ExprElm[] {elementExpr, arrayExpr, body};
+		}
+		
+		@Override
+		public void setSubElements(ExprElm[] elms) {
+			elementExpr = elms[0];
+			arrayExpr   = elms[1];
+			body        = elms[2];
+		}
+	}
+	
+	public static class VarDeclarationStatement extends KeywordStatement {
+		private List<Pair<String, ExprElm>> varInitializations;
+		public VarDeclarationStatement(List<Pair<String, ExprElm>> varInitializations) {
+			super();
+			this.varInitializations = varInitializations;
+		}
+		@Override
+		public String getKeyword() {
+			return Keywords.VarNamed;
+		}
+		@Override
+		public ExprElm[] getSubElements() {
+			List<ExprElm> result = new LinkedList<ExprElm>();
+			for (Pair<String, ExprElm> initialization : varInitializations) {
+				if (initialization.getSecond() != null)
+					result.add(initialization.getSecond());
+			}
+			return result.toArray(new ExprElm[0]);
+		}
+		@Override
+		public void setSubElements(ExprElm[] elms) {
+			int j = 0;
+			for (Pair<String, ExprElm> pair : varInitializations) {
+				if (pair.getSecond() != null)
+					pair.setSecond(elms[j++]);
+			}
+		}
+		public List<Pair<String, ExprElm>> getVarInitializations() {
+			return varInitializations;
+		}
+		public void setVarInitializations(List<Pair<String, ExprElm>> varInitializations) {
+			this.varInitializations = varInitializations;
+		}
+		@Override
+		public void print(StringBuilder builder, int depth) {
+			builder.append(getKeyword());
+			builder.append(" ");
+			int counter = 0;
+			for (Pair<String, ExprElm> var : varInitializations) {
+				builder.append(var.getFirst());
+				if (var.getSecond() != null) {
+					builder.append(" = ");
+					var.getSecond().print(builder, depth+1);
+				}
+				if (++counter < varInitializations.size())
+					builder.append(", ");
+				else
+					builder.append(";");
+			}
+		}
+	}
+	
+	public static class EmptyStatement extends Statement {
+		@Override
+		public void print(StringBuilder builder, int depth) {
+			builder.append(";");
+		}
+	}
+	
 }

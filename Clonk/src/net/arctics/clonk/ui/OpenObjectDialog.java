@@ -64,12 +64,12 @@ public class OpenObjectDialog extends FilteredItemsSelectionDialog {
 			public boolean matchItem(Object item) {
 				if (!(item instanceof C4Object)) return false;
 				final C4Object obj = (C4Object) item;
-				final String search = this.getPattern();
+				final String search = this.getPattern().toUpperCase();
 				if (obj == null || obj.getId() == null || obj.getName() == null || search == null) {
 					return false;
 				}
 				final String objId = obj.getId().getName();
-				if (objId.contains(search) || obj.getName().contains(search))
+				if (objId.contains(search) || obj.getName().toUpperCase().contains(search))
 					return true;
 				return false;
 			}

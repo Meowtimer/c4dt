@@ -192,6 +192,7 @@ public enum C4ScriptOperator {
 		Smaller.setOldStyleFunctionEquivalent("LessThan");
 		Multiply.setOldStyleFunctionEquivalent("Mul");
 		Divide.setOldStyleFunctionEquivalent("Div");
+		Add.setOldStyleFunctionEquivalent("Sum");
 		Subtract.setOldStyleFunctionEquivalent("Sub");
 		StringEqual.setOldStyleFunctionEquivalent("SEqual");
 	}

@@ -3,6 +3,8 @@ package net.arctics.clonk.parser;
 import java.io.Serializable;
 import java.util.regex.Matcher;
 
+import org.eclipse.jface.text.BadLocationException;
+import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IRegion;
 
 public class SourceLocation implements IRegion, Serializable {
@@ -56,6 +58,10 @@ public class SourceLocation implements IRegion, Serializable {
 		if (!(obj instanceof SourceLocation)) return false;
 		SourceLocation cmp = (SourceLocation) obj;
 		return (cmp.getStart() == start && cmp.getEnd() == end);
+	}
+	
+	public String getString(IDocument document) throws BadLocationException {
+		return document.get(start, end-start);
 	}
 	
 	// TODO: hashcode() implementation
