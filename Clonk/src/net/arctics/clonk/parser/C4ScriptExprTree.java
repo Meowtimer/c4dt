@@ -408,6 +408,10 @@ public abstract class C4ScriptExprTree {
 		public FieldRegion fieldAt(int offset, C4ScriptParser parser) {
 			return new FieldRegion(getField(parser), region(0));
 		}
+
+		public String getFieldName() {
+			return fieldName;
+		}
 	}
 
 	public static class ExprAccessVar extends ExprAccessField {
@@ -687,6 +691,11 @@ public abstract class C4ScriptExprTree {
 			}
 			return super.getExemplaryArrayElement(context);
 		}
+		public ExprElm getReturnArg() {
+			if (params.length == 1)
+				return params[0];
+			return new ExprTuple(params);
+		}
 	}
 
 	public static class ExprOperator extends ExprValue {
@@ -719,8 +728,10 @@ public abstract class C4ScriptExprTree {
 	}
 
 	public static class ExprBinaryOp extends ExprOperator {
+		
 		@Override
 		public ExprElm newStyleReplacement(C4ScriptParser context) throws CloneNotSupportedException {
+			// #strict 2: ne -> !=, S= -> ==
 			if (context.getStrictLevel() >= 2) {
 				C4ScriptOperator op = getOperator();
 				if (op == C4ScriptOperator.StringEqual || op == C4ScriptOperator.eq)
@@ -731,6 +742,28 @@ public abstract class C4ScriptExprTree {
 					return new ExprBinaryOp(op, getLeftSide().newStyleReplacement(context), getRightSide().newStyleReplacement(context));
 				}
 			}
+			
+			if (getOperator() == C4ScriptOperator.And) {
+				List<ExprElm> leftSideArguments = new LinkedList<ExprElm>();
+				ExprBinaryOp op;
+				ExprElm r;
+				// gather left sides (must not be operators)
+				for (r = this; (op = r instanceof ExprBinaryOp ? (ExprBinaryOp)r : null) != null && op.getOperator() == C4ScriptOperator.And && !(op.getLeftSide() instanceof ExprBinaryOp); r = ((ExprBinaryOp)r).getRightSide()) {
+					leftSideArguments.add(op.getLeftSide());
+				}
+				// return at the right end signals this should rather be a block
+				if (r instanceof ExprCallFunc && ((ExprCallFunc)r).getFieldName().equals("return")) {
+					List<Statement> statements = new LinkedList<Statement>();
+					// wrap expressions in statements
+					for (ExprElm ex : leftSideArguments) {
+						statements.add(new SimpleStatement(ex.newStyleReplacement(context)));
+					}
+					// convert func call to proper return statement
+					statements.add(new ReturnStatement(((ExprCallFunc)r).getReturnArg().newStyleReplacement(context)));
+					return new Block(statements);
+				}
+			}
+			
 			return super.newStyleReplacement(context);
 		}
 
@@ -917,6 +950,12 @@ public abstract class C4ScriptExprTree {
 					 }
 					 else if (op.getOperator() == C4ScriptOperator.NotEqual) {
 						 return new ExprBinaryOp(C4ScriptOperator.Equal, op.getLeftSide().newStyleReplacement(context), op.getRightSide().newStyleReplacement(context));
+					 }
+					 else if (op.getOperator() == C4ScriptOperator.StringEqual) {
+						 return new ExprBinaryOp(C4ScriptOperator.ne, op.getLeftSide().newStyleReplacement(context), op.getRightSide().newStyleReplacement(context));
+					 }
+					 else if (op.getOperator() == C4ScriptOperator.ne) {
+						 return new ExprBinaryOp(C4ScriptOperator.StringEqual, op.getLeftSide().newStyleReplacement(context), op.getRightSide().newStyleReplacement(context));
 					 }
 				 }
 			}
@@ -1242,9 +1281,9 @@ public abstract class C4ScriptExprTree {
 		public void print(StringBuilder builder, int depth) {
 			builder.append("{\n");
 			for (Statement statement : statements) {
-				printIndent(builder, depth+1); statement.print(builder, depth+1); builder.append("\n");
+				printIndent(builder, depth); statement.print(builder, depth+1); builder.append("\n");
 			}
-			printIndent(builder, depth); builder.append("}");
+			printIndent(builder, depth-1); builder.append("}");
 		}
 		
 	}
@@ -1385,14 +1424,23 @@ public abstract class C4ScriptExprTree {
 			this.condition = condition;
 			this.body = body;
 		}
+
+		protected void printBody(StringBuilder builder, int depth) {
+			if (!(body instanceof Block)) {
+				builder.append("\n");
+				printIndent(builder, depth);
+			} else
+				builder.append(" ");
+			body.print(builder, depth+1);
+		}
 		
 		@Override
 		public void print(StringBuilder builder, int depth) {
 			builder.append(getKeyword());
 			builder.append(" (");
 			condition.print(builder, depth+1);
-			builder.append(") ");
-			body.print(builder, depth);
+			builder.append(")");
+			printBody(builder, depth);
 		}
 
 		public ExprElm getBody() {
@@ -1435,19 +1483,14 @@ public abstract class C4ScriptExprTree {
 			builder.append(" (");
 			condition.print(builder, depth);
 			builder.append(")");
-			if (!(body instanceof Block)) {
-				builder.append("\n");
-				printIndent(builder, depth+1);
-			} else
-				builder.append(" ");
-			body.print(builder, depth);
+			printBody(builder, depth);
 			if (elseExpr != null) {
 				builder.append(" ");
 				builder.append(Keywords.Else);
 				builder.append(" ");
 				if (!(elseExpr instanceof Block)) {
 					builder.append("\n");
-					printIndent(builder, depth+1);
+					printIndent(builder, depth);
 				}
 				elseExpr.print(builder, depth+1);
 			}
@@ -1502,7 +1545,7 @@ public abstract class C4ScriptExprTree {
 			if (increment != null)
 				increment.print(builder, depth);
 			builder.append(") ");
-			body.print(builder, depth);
+			printBody(builder, depth);
 		}
 		@Override
 		public ExprElm[] getSubElements() {

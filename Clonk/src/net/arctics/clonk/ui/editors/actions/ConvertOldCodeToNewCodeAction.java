@@ -30,7 +30,7 @@ public class ConvertOldCodeToNewCodeAction extends TextEditorAction {
 	
 	private void replaceExpression(IDocument document, ExprElm e, C4ScriptParser parser) throws BadLocationException, CloneNotSupportedException {
 		String oldString = document.get(e.getExprStart(), e.getExprEnd()-e.getExprStart());
-		String newString = e.exhaustiveNewStyleReplacement(parser).toString(1);
+		String newString = e.exhaustiveNewStyleReplacement(parser).toString(2);
 		if (!oldString.equals(newString))
 			document.replace(e.getExprStart(), e.getExprEnd()-e.getExprStart(), newString);
 	}
@@ -76,7 +76,7 @@ public class ConvertOldCodeToNewCodeAction extends TextEditorAction {
 						statementsInRightOrder[counter--] = s;
 					}
 					Block b = new Block(statementsInRightOrder);
-					String blockString = b.exhaustiveNewStyleReplacement(parser).toString(0);
+					String blockString = b.exhaustiveNewStyleReplacement(parser).toString(1);
 					int blockBegin = statementsInRightOrder[0].getExprStart();
 					// eat indentation
 					while (blockBegin-1 > func.getHeader().getEnd() && isIndent(document.getChar(blockBegin-1)))
