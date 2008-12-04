@@ -598,7 +598,13 @@ public abstract class C4ScriptExprTree {
 			C4ScriptOperator replOperator = C4ScriptOperator.oldStyleFunctionReplacement(fieldName);
 			// TODO: for more than two arguments
 			if (replOperator != null && params.length == 1) {
-				return new ExprUnaryOp(replOperator, replOperator.isPostfix() ? ExprUnaryOp.Placement.Postfix : ExprUnaryOp.Placement.Prefix, new ExprParenthesized(params[0].newStyleReplacement(parser)));
+				// LessThan(x) -> x < 0
+				if (replOperator.getNumArgs() == 2)
+					return new ExprBinaryOp(replOperator, params[0].newStyleReplacement(parser), new ExprNumber(0));
+				ExprElm n = params[0].newStyleReplacement(parser);
+				if (n instanceof ExprBinaryOp)
+					n = new ExprParenthesized(n);
+				return new ExprUnaryOp(replOperator, replOperator.isPostfix() ? ExprUnaryOp.Placement.Postfix : ExprUnaryOp.Placement.Prefix, n);
 			}
 			if (replOperator != null && params.length == 2) {
 				return new ExprBinaryOp(replOperator, params[0].newStyleReplacement(parser), params[1].newStyleReplacement(parser));
@@ -1432,7 +1438,8 @@ public abstract class C4ScriptExprTree {
 			if (!(body instanceof Block)) {
 				builder.append("\n");
 				printIndent(builder, depth+1);
-			}
+			} else
+				builder.append(" ");
 			body.print(builder, depth);
 			if (elseExpr != null) {
 				builder.append(" ");

@@ -92,6 +92,10 @@ public enum C4ScriptOperator {
 		return resultType;
 	}
 	
+	public int getNumArgs() {
+		return secondArgType != null ? 2 : 1;
+	}
+	
 	// bla bla
 	private static final C4ScriptOperator[] ops(C4ScriptOperator... args) {
 		return args;
