@@ -74,7 +74,6 @@ public class C4ObjectParser {
 			else if (scenario != null) {
 				if (object == null) {
 					object = new C4Scenario(null, objectFolder.getName(), objectFolder);
-					objectFolder.setSessionProperty(ClonkCore.C4OBJECT_PROPERTY_ID, object);
 					index.addObject(object);
 				}
 			}

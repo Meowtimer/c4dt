@@ -942,34 +942,6 @@ public class C4ScriptParser {
 //		return true;
 //	}
 
-	private boolean parseReturn(int offset) throws ParsingException {
-		fReader.seek(offset);
-		String word = fReader.readWord();
-		if (word == null || !word.equals(Keywords.Return)) {
-			fReader.seek(offset);
-			return false;
-		}
-		eatWhitespace();
-		int next = fReader.read();
-		if (next == ';') {
-			fReader.unread();
-		}
-		else {
-			fReader.unread();
-			offset = fReader.getPosition();
-			disableError(ErrorCode.TuplesNotAllowed);
-			disableError(ErrorCode.EmptyParentheses);
-			ExprElm returnExpr = parseExpression(fReader.getPosition());
-			if (returnExpr == null) {
-				errorWithCode(ErrorCode.ValueExpected, fReader.getPosition() - 1, fReader.getPosition());				
-			}
-			warnAboutTupleInReturnExpr(returnExpr, false);
-			enableError(ErrorCode.TuplesNotAllowed);
-			enableError(ErrorCode.EmptyParentheses);
-		}
-		return true;
-	}
-
 	private void warnAboutTupleInReturnExpr(ExprElm expr, boolean tupleIsError) throws ParsingException {
 		if (expr == null)
 			return;
@@ -985,24 +957,6 @@ public class C4ScriptParser {
 		}
 	}
 	
-	private boolean parseStandaloneExpression(int offset) throws ParsingException {
-		fReader.seek(offset);
-		ExprElm elm = parseExpression(offset);
-		if (elm != null) {
-			if (elm instanceof ExprBinaryOp) {
-				((ExprBinaryOp)elm).checkTopLevelAssignment(this);
-			} else
-				elm.warnIfNoSideEffects(this);
-			return true;
-		}
-		return false;
-	}
-
-	private boolean parseValue(int offset) throws ParsingException {
-		ExprElm elm = parseExpression(offset);
-		return elm != null;
-	}
-
 	private boolean parseNumber(int offset) throws ParsingException {
 		fReader.seek(offset);
 		int count = 0;
@@ -1166,17 +1120,17 @@ public class C4ScriptParser {
 		"Function overload: this function is already declared in this script"
 	};
 	
-	private static Set<ErrorCode> disabledErrors = new HashSet<ErrorCode>();
+	private Set<ErrorCode> disabledErrors = new HashSet<ErrorCode>();
 	
-	private static void disableError(ErrorCode error) {
+	private void disableError(ErrorCode error) {
 		disabledErrors.add(error);
 	}
 	
-	private static void enableError(ErrorCode error) {
+	private void enableError(ErrorCode error) {
 		disabledErrors.remove(error);
 	}
 	
-	public static boolean errorDisabled(ErrorCode error) {
+	public boolean errorDisabled(ErrorCode error) {
 		return disabledErrors.contains(error);
 	}
 	
@@ -1582,8 +1536,8 @@ public class C4ScriptParser {
 				// potentially throwing exceptions and stuff
 				if (reportErrors)
 					root.reportErrors(this);
-//				if (expressionListener != null && parseExpressionRecursion == 1)
-//					expressionListener.expressionDetected(root, this);
+				if (expressionListener != null && parseExpressionRecursion == 1)
+					expressionListener.expressionDetected(root, this);
 			}
 			
 			return root;
@@ -1707,7 +1661,7 @@ public class C4ScriptParser {
 			Statement result;
 			if (readWord == null || readWord.length() == 0) {
 				int read = fReader.read();
-				if (read == '{' && !initializationStatement) { // order of conditions important oO
+				if (read == '{' && !initializationStatement) {
 					List<Statement> subStatements = new LinkedList<Statement>();
 					boolean foundClosingBracket;
 					for (eatWhitespace(); !(foundClosingBracket = fReader.read() == '}') && !fReader.reachedEOF(); eatWhitespace()) {
@@ -2000,7 +1954,8 @@ public class C4ScriptParser {
 				ExprElm expression = parseExpression(fReader.getPosition());
 				if (expression != null) {
 					result = new SimpleStatement(expression);
-					checkForSemicolon();
+					if (!initializationStatement)
+						checkForSemicolon();
 				}
 				else
 					result = null;
@@ -2020,183 +1975,6 @@ public class C4ScriptParser {
 
 	}
 
-	private boolean parseKeyword(int offset) throws ParsingException {
-		LoopType savedLoop = currentLoop;
-		try {
-			fReader.seek(offset);
-			String readWord = fReader.readWord();
-			if (readWord == null)
-				return false;
-			if (readWord.equals(Keywords.If)) {
-				// there are people naming their variables iF >.>
-//				if (!readWord.equals(readWord.toLowerCase())) {
-//					String problem = "Syntax error: you should only use lower case letters in keywords. ('" + readWord.toLowerCase() + "' instead of '" + readWord + "')"; 
-//					createErrorMarker(fReader.getPosition() - readWord.length(), fReader.getPosition(), problem);
-//					throw new ParsingException(problem);
-//				}
-				eatWhitespace();
-				if (fReader.read() != '(') {
-					tokenExpectedError("(");
-				}
-				eatWhitespace();
-				parseValue(fReader.getPosition()); // if () is valid
-				eatWhitespace();
-				if (fReader.read() != ')') {
-					tokenExpectedError(")");
-				}
-				eatWhitespace();
-				offset = fReader.getPosition();
-				if (!parseCodeSegment(fReader.getPosition())) {
-					errorWithCode(ErrorCode.StatementExpected, offset, offset+4);
-				}
-				eatWhitespace();
-				offset = fReader.getPosition();
-				String nextWord = fReader.readWord();
-				if (nextWord.equalsIgnoreCase(Keywords.Else)) {
-					eatWhitespace();
-					offset = fReader.getPosition();
-					if (!parseCodeSegment(fReader.getPosition())) {
-						errorWithCode(ErrorCode.StatementExpected, offset, offset+4);
-					}	
-				}
-				else {
-					fReader.seek(offset);
-				}
-				return true;
-			}
-			else if (readWord.equals(Keywords.While)) {
-				currentLoop = LoopType.While;
-//				if (!readWord.equals(readWord.toLowerCase())) {
-//					String problem = "Syntax error: you should only use lower case letters in keywords. ('" + readWord.toLowerCase() + "' instead of '" + readWord + "')"; 
-//					createErrorMarker(fReader.getPosition() - readWord.length(), fReader.getPosition(), problem);
-//					throw new ParsingException(problem);
-//				}
-				eatWhitespace();
-				if (fReader.read() != '(') {
-					tokenExpectedError("(");
-				}
-				eatWhitespace();
-				parseValue(fReader.getPosition()); // while () is valid
-				eatWhitespace();
-				if (fReader.read() != ')') {
-					tokenExpectedError(")");
-				}
-				eatWhitespace();
-				offset = fReader.getPosition();
-				if (!parseCodeSegment(fReader.getPosition())) {
-					errorWithCode(ErrorCode.StatementExpected, offset, offset+4);
-				}
-				return true;
-			}
-			else if (readWord.equals(Keywords.For)) {
-				eatWhitespace();
-				if (fReader.read() != '(') {
-					tokenExpectedError("(");					
-				}
-				eatWhitespace();
-
-				// initialization
-				offset = fReader.getPosition();
-				boolean noInitialization = false;
-				C4Variable loopVariable = null;
-				if (fReader.read() == ';') {
-					// any of the for statements is optional
-					noInitialization = true;
-				} else {
-					fReader.unread();
-					if (!(parseVarVariableDeclaration(fReader.getPosition(), false) || parseValue(fReader.getPosition()))) {
-						errorWithCode(ErrorCode.ExpectedCode, fReader.getPosition(), fReader.getPosition()+1);
-					}
-					loopVariable = parsedVariable; // let's just assume it's the right one
-				}
-
-				// determine loop type
-				eatWhitespace();
-				offset = fReader.getPosition();
-				String w;
-				if (!noInitialization) {
-					if (fReader.read() == ';') { // initialization finished regularly with ';'
-						offset = fReader.getPosition();
-						w = null; // implies there can be no 'in'
-					} else {
-						fReader.unread();
-						w = fReader.readWord();
-					}
-				}
-				else
-					w = null; // if there is no initialization statement at all there can also be no 'in'
-				if (w != null && w.equals(Keywords.In)) {
-					// it's a for (x in array) loop!
-					currentLoop = LoopType.IterateArray;
-					eatWhitespace();
-					ExprElm arrayExpr = parseExpression(fReader.getPosition());
-					if (arrayExpr == null)
-						errorWithCode(ErrorCode.ExpressionExpected, offset, fReader.getPosition()+1);
-					else {
-						C4Type t = arrayExpr.getType();
-						if (t != C4Type.ANY && t != C4Type.ARRAY)
-							warningWithCode(ErrorCode.IncompatibleTypes, arrayExpr, C4Type.ARRAY.toString(), t.toString());
-						if (loopVariable != null)
-							loopVariable.inferTypeFromAssignment(arrayExpr.getExemplaryArrayElement(this), this);
-					}
-				} else {
-					currentLoop = LoopType.For;
-					fReader.seek(offset); // if a word !equaling("in") was read
-
-					if (fReader.read() == ';') {
-						// any " optional "
-						fReader.unread(); // is expected
-					} else {
-						fReader.unread();
-						if (!parseValue(fReader.getPosition())) {
-							errorWithCode(ErrorCode.ConditionExpected, offset, fReader.getPosition());
-						}
-					}
-					eatWhitespace();
-					offset = fReader.getPosition();
-					if (fReader.read() != ';') {
-						tokenExpectedError(";");
-					}
-					eatWhitespace();
-					offset = fReader.getPosition();
-					if (fReader.read() == ')') {
-						// " optional "
-						fReader.unread(); // is expected
-					} else {
-						fReader.unread();
-						if (!parseValue(offset)) {
-							errorWithCode(ErrorCode.ExpressionExpected, offset, fReader.getPosition()+1);
-						}
-					}
-				}
-				eatWhitespace();
-				if (fReader.read() != ')') {
-					tokenExpectedError(")");
-				}
-				eatWhitespace();
-				offset = fReader.getPosition();
-				if (!parseCodeSegment(fReader.getPosition())) {
-					errorWithCode(ErrorCode.StatementExpected, offset, offset+4);
-				}
-				return true;
-			}
-			else if (readWord.equals(Keywords.Continue) || readWord.equals(Keywords.Break)) {
-				if (currentLoop == null)
-					errorWithCode(ErrorCode.KeywordInWrongPlace, fReader.getPosition()-readWord.length(), fReader.getPosition(), readWord);
-				checkForSemicolon();
-				return true;
-			}
-			else {
-				return false;
-			}
-			// if (parseValue) { parseCode } else if (parseValue) { parseCode } else { parseCode }
-			// while (parseValue) { parseCode }
-			// for ( ; ; ) { parseCode } // that is special
-		} finally {
-			currentLoop = savedLoop;
-		}
-	}
-	
 	private void checkForSemicolon() throws ParsingException {
 		eatWhitespace();
 		int readChar = fReader.read();
@@ -2359,12 +2137,14 @@ public class C4ScriptParser {
 		C4ScriptParser parser = new C4ScriptParser(expr, context);
 		parser.activeFunc = func;
 		parser.setExpressionListener(listener);
+		parser.disableError(ErrorCode.TokenExpected);
+		parser.disableError(ErrorCode.InvalidExpression);
 		try {
 			while (!parser.fReader.reachedEOF() && parser.parseCode(parser.fReader.getPosition())) {
 				parser.eatWhitespace();
 			}
 		} catch (Exception e) {
-			// :C
+			e.printStackTrace();
 		}
 		return parser;
 	}

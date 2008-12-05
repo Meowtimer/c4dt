@@ -18,9 +18,7 @@ import net.arctics.clonk.parser.C4Variable;
 import net.arctics.clonk.parser.ClonkIndex;
 import net.arctics.clonk.parser.CompilerException;
 import net.arctics.clonk.parser.C4Function.C4FunctionScope;
-import net.arctics.clonk.parser.C4ScriptExprTree.ExprElm;
-import net.arctics.clonk.parser.C4ScriptExprTree.IExpressionListener;
-import net.arctics.clonk.parser.C4ScriptExprTree.TraversalContinuation;
+import net.arctics.clonk.parser.C4ScriptExprTree.*;
 import net.arctics.clonk.parser.C4ScriptParser.ParsingException;
 import net.arctics.clonk.parser.C4Variable.C4VariableScope;
 import net.arctics.clonk.resource.ClonkProjectNature;
@@ -310,6 +308,8 @@ public class ClonkCompletionProcessor implements IContentAssistProcessor {
 					final int preservedOffset = offset;
 					C4ScriptParser parser = C4ScriptParser.reportExpressionsInStatements(doc, activeFunc.getBody().getOffset(), offset, contextScript, activeFunc, new IExpressionListener() {
 						public TraversalContinuation expressionDetected(ExprElm expression, C4ScriptParser parser) {
+							if (expression instanceof Statement)
+								return TraversalContinuation.Continue;
 							if (activeFunc.getBody().getOffset() + expression.getExprStart() <= preservedOffset) {
 								contextExpression = expression;
 								return TraversalContinuation.Continue;

@@ -4,8 +4,6 @@ import net.arctics.clonk.parser.C4Field;
 import net.arctics.clonk.parser.C4Object;
 import net.arctics.clonk.parser.CompilerException;
 
-import org.eclipse.jface.bindings.keys.KeySequence;
-import org.eclipse.jface.bindings.keys.ParseException;
 import org.eclipse.jface.internal.text.html.HTMLTextPresenter;
 import org.eclipse.jface.text.DefaultInformationControl;
 import org.eclipse.jface.text.IAutoEditStrategy;

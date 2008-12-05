@@ -28,7 +28,7 @@ public abstract class C4Object extends C4ScriptBase {
 
 	@Override
 	public String toString() {
-		return getName() + " (" + id.toString() + ")";
+		return getName() + (id != null ? " (" + id.toString() + ")" : "");
 	}
 	
 	/**

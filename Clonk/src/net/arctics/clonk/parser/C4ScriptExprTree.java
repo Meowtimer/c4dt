@@ -1431,7 +1431,7 @@ public abstract class C4ScriptExprTree {
 				printIndent(builder, depth);
 			} else
 				builder.append(" ");
-			body.print(builder, depth+1);
+			body.print(builder, depth + ((body instanceof Block) ? 0 : 1));
 		}
 		
 		@Override
@@ -1594,8 +1594,11 @@ public abstract class C4ScriptExprTree {
 		
 		@Override
 		public void print(StringBuilder builder, int depth) {
-			builder.append(getKeyword() + "(");
+			builder.append(getKeyword() + " (");
 			elementExpr.print(builder, depth+1);
+			// remove ';' that elementExpr prints
+			if (builder.charAt(builder.length()-1) == ';')
+				builder.deleteCharAt(builder.length()-1);
 			builder.append(" " + Keywords.In + " ");
 			arrayExpr.print(builder, depth+1);
 			builder.append(") ");
