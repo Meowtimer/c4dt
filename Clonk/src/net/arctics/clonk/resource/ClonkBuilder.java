@@ -86,6 +86,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 			monitor.worked(1);
 			monitor.done();
 		}
+		System.gc();
 	}
 	
 	@SuppressWarnings("unchecked")

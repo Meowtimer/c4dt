@@ -182,17 +182,19 @@ public class C4Function extends C4Structure implements Serializable {
 			string.append(getName());
 			string.append("(");
 		}
-		printParameterString(string);
+		printParameterString(string, false);
 		if (withFuncName) string.append(")");
 		return string.toString();
 	}
 
-	private void printParameterString(StringBuilder output) {
+	private void printParameterString(StringBuilder output, boolean engineCompatible) {
 		if (getParameters().size() > 0) {
 			for(C4Variable par : getParameters()) {
 				if (par.getType() != C4Type.UNKNOWN && par.getType() != null) {
-					output.append(par.getType().toString());
-					output.append(' ');
+					if (!engineCompatible || (par.getType() != C4Type.ANY && par.getType() != C4Type.UNKNOWN)) {
+						output.append(par.getType().toString());
+						output.append(' ');
+					}
 					output.append(par.getName());
 					output.append(',');
 					output.append(' ');
@@ -339,7 +341,7 @@ public class C4Function extends C4Structure implements Serializable {
 		output.append(getName());
 		if (!oldStyle) {
 			output.append("(");
-			printParameterString(output);
+			printParameterString(output, true);
 			output.append(")");
 		}
 		else

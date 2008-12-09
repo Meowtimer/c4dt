@@ -78,7 +78,7 @@ public class ConvertOldCodeToNewCodeAction extends TextEditorAction {
 					// eat indentation
 					while (blockBegin-1 > func.getHeader().getEnd() && isIndent(document.getChar(blockBegin-1)))
 						blockBegin--;
-					int blockEnd   = statementsInRightOrder[elms.size()-1].getExprEnd() - blockBegin;
+					int blockEnd = statementsInRightOrder[elms.size()-1].getExprEnd() - blockBegin;
 					document.replace(blockBegin, blockEnd, blockString);
 					// convert old style function to new style function
 					String newHeader = func.getHeaderString(false);

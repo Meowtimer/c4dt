@@ -36,7 +36,7 @@ public enum C4Type {
 	
 	public static C4Type makeType(String arg) {
 		// ID, Id.. all variable names
-		if (arg.equals("any")) return C4Type.ANY;
+		//if (arg.equals("any")) return C4Type.ANY; engine does not like that
 		if (arg.equals("bool")) return C4Type.BOOL;
 		if (arg.equals("int")) return C4Type.INT;
 		if (arg.equals("id")) return C4Type.ID;

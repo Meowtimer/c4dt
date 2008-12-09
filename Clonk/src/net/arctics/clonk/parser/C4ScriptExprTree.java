@@ -2,8 +2,6 @@ package net.arctics.clonk.parser;
 
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
-
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.C4ScriptBase.FindFieldInfo;
 import net.arctics.clonk.parser.C4ScriptParser.ErrorCode;
@@ -531,6 +529,8 @@ public abstract class C4ScriptExprTree {
 				if (params.length > 0) {
 					parser.unnamedParamaterUsed(params[0]);
 				}
+				else
+					parser.unnamedParamaterUsed(ExprNumber.ZERO);
 			}
 			else if (fieldName.equals("return"))
 				parser.warningWithCode(ErrorCode.ReturnAsFunction, this);
@@ -631,8 +631,8 @@ public abstract class C4ScriptExprTree {
 			}
 			
 			// Par(5) -> nameOfParm6
-			else if (params.length == 1 && fieldName.equals("Par") && params[0] instanceof ExprNumber) {
-				ExprNumber number = (ExprNumber) params[0];
+			else if (params.length <= 1 && fieldName.equals("Par") && (params.length == 0 || params[0] instanceof ExprNumber)) {
+				ExprNumber number = params.length > 0 ? (ExprNumber) params[0] : ExprNumber.ZERO;
 				if (number.intValue() >= 0 && number.intValue() < parser.getActiveFunc().getParameters().size())
 					return new ExprAccessVar(parser.getActiveFunc().getParameters().get(number.intValue()).getName());
 			}
@@ -743,6 +743,7 @@ public abstract class C4ScriptExprTree {
 				}
 			}
 			
+			// blub() && blab() && return(1); -> {blub(); blab(); return(1);}
 			if (getOperator() == C4ScriptOperator.And) {
 				List<ExprElm> leftSideArguments = new LinkedList<ExprElm>();
 				ExprBinaryOp op;
@@ -814,11 +815,25 @@ public abstract class C4ScriptExprTree {
 		}
 
 		public void print(StringBuilder output, int depth) {
+			
+			// put brackets around operands in case some transformation messed up prioritization
+			boolean needsBrackets = leftSide instanceof ExprBinaryOp && getOperator().priority() > ((ExprBinaryOp)leftSide).getOperator().priority();
+			if (needsBrackets)
+				output.append("(");
 			leftSide.print(output, depth+1);
+			if (needsBrackets)
+				output.append(")");
+			
 			output.append(" ");
 			output.append(getOperator().getOperatorName());
 			output.append(" ");
+			
+			needsBrackets = rightSide instanceof ExprBinaryOp && getOperator().priority() > ((ExprBinaryOp)rightSide).getOperator().priority();
+			if (needsBrackets)
+				output.append("(");
 			rightSide.print(output, depth+1);
+			if (needsBrackets)
+				output.append(")");
 		}
 
 		@Override
@@ -941,8 +956,12 @@ public abstract class C4ScriptExprTree {
 
 		@Override
 		public ExprElm newStyleReplacement(C4ScriptParser context) throws CloneNotSupportedException {
-			if (getOperator() == C4ScriptOperator.Not && getArgument() instanceof ExprParenthesized) {
-				 ExprParenthesized brackets = (ExprParenthesized)getArgument();
+			// could happen when argument is transformed to binary operator
+			ExprElm arg = getArgument().newStyleReplacement(context);
+			if (arg instanceof ExprBinaryOp)
+				return new ExprUnaryOp(getOperator(), placement, new ExprParenthesized(arg));
+			if (getOperator() == C4ScriptOperator.Not && arg instanceof ExprParenthesized) {
+				 ExprParenthesized brackets = (ExprParenthesized)arg;
 				 if (brackets.getInnerExpr() instanceof ExprBinaryOp) {
 					 ExprBinaryOp op = (ExprBinaryOp) brackets.getInnerExpr();
 					 if (op.getOperator() == C4ScriptOperator.Equal) {
@@ -989,6 +1008,8 @@ public abstract class C4ScriptExprTree {
 	}
 
 	public static final class ExprNumber extends ExprLiteral<Long> {
+
+		public static final ExprNumber ZERO = new ExprNumber(0);
 
 		public ExprNumber(long value) {
 			super(new Long(value));
@@ -1485,14 +1506,15 @@ public abstract class C4ScriptExprTree {
 			builder.append(")");
 			printBody(builder, depth);
 			if (elseExpr != null) {
-				builder.append(" ");
+				builder.append("\n");
+				printIndent(builder, depth-1);
 				builder.append(Keywords.Else);
 				builder.append(" ");
 				if (!(elseExpr instanceof Block)) {
 					builder.append("\n");
 					printIndent(builder, depth);
 				}
-				elseExpr.print(builder, depth+1);
+				elseExpr.print(builder, depth);
 			}
 		}
 		

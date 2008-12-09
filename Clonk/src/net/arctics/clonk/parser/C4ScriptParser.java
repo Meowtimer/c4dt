@@ -399,7 +399,6 @@ public class C4ScriptParser {
 		container = script;
 	}
 	
-	// TODO: in clean build, have two passes: 1. parse all declarations 2. check function code (so that all static variables/global functions and included stuff can be found)
 	public void parse() {
 		clean();
 		parseDeclarations();
@@ -1242,7 +1241,7 @@ public class C4ScriptParser {
 						// function call
 						List<ExprElm> args = new LinkedList<ExprElm>();
 						parseRestOfTuple(fReader.getPosition(), args, reportErrors);
-						elm = new ExprCallFunc(word, args.toArray(new ExprElm[0]));
+						elm = new ExprCallFunc(word, args.toArray(new ExprElm[args.size()]));
 					} else {
 						fReader.seek(beforeSpace);
 						// bool

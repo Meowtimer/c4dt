@@ -82,7 +82,7 @@ public abstract class C4ScriptBase extends C4Structure {
 					result.add(obj);
 			}
 		}
-		return result.toArray(new C4Object[]{}); // lolz?
+		return result.toArray(new C4Object[result.size()]);
 	}
 	
 	public C4Object[] getIncludes() {
