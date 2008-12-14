@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import net.arctics.clonk.ClonkCore;
+import net.arctics.clonk.parser.C4ScriptExprTree.FunctionDescription;
 import net.arctics.clonk.parser.C4ScriptParser.Keywords;
 import net.arctics.clonk.parser.C4Variable.C4VariableScope;
 
@@ -16,6 +17,7 @@ public class C4Function extends C4Structure implements Serializable {
 	private List<C4Variable> parameter;
 	private C4Type returnType;
 	private String description;
+	private FunctionDescription funcDesc;
 	private boolean isCallback;
 	private boolean isOldStyle;
 	private SourceLocation body, header;
@@ -111,14 +113,14 @@ public class C4Function extends C4Structure implements Serializable {
 	/**
 	 * @return the description
 	 */
-	public String getDescription() {
+	public String getUserDescription() {
 		return description;
 	}
 
 	/**
 	 * @param description the description to set
 	 */
-	public void setDescription(String description) {
+	public void setUserDescription(String description) {
 		this.description = description;
 	}
 
@@ -255,7 +257,7 @@ public class C4Function extends C4Structure implements Serializable {
 		if (getScript() == ClonkCore.ENGINE_OBJECT) {
 			//return String.format("<b>%s</b><br>%s<br><i><a href='%s'>Online Documentation</a></i>", getName(), getDescription(), getDocumentationURL());
 			// engine function
-			return String.format("<b>%s</b><br>%s<br><a href=\"%s\">Online Dokumentation</a>", getLongParameterString(true), getDescription(), getDocumentationURL());
+			return String.format("<b>%s</b><br>%s<br><a href=\"%s\">Online Dokumentation</a>", getLongParameterString(true), getUserDescription(), getDocumentationURL());
 		}
 		return getLongParameterString(true);
 	}
@@ -356,6 +358,10 @@ public class C4Function extends C4Structure implements Serializable {
 	
 	public String getHeaderString() {
 		return getHeaderString(isOldStyle());
+	}
+
+	public void setFuncDesc(FunctionDescription desc) {
+		funcDesc = desc;
 	}
 	
 }

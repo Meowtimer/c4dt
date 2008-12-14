@@ -170,9 +170,15 @@ public class C4Variable extends C4Field implements Serializable {
 
 	public void inferTypeFromAssignment(ExprElm val, C4ScriptParser context) {
 		setExpectedContent(val.guessObjectType(context));
+		expectedToBeOfType(val.getType());
+	}
+	
+	public void expectedToBeOfType(C4Type t) {
 		if (getType() == C4Type.ANY)
-			setType(val.getType());
-		else if (getType() != val.getType())
+			// from any to something specific
+			setType(t);
+		else if (getType() != t)
+			// assignments of multiple types - can be anything
 			setType(C4Type.ANY);
 	}
 

@@ -1,5 +1,6 @@
 package net.arctics.clonk.parser;
 
+import java.io.Serializable;
 import java.util.LinkedList;
 import java.util.List;
 import net.arctics.clonk.ClonkCore;
@@ -52,8 +53,8 @@ public abstract class C4ScriptExprTree {
 			return super.clone();
 		}
 
-		private ExprElm parent;
-		private ExprElm predecessorInSequence;
+		private transient ExprElm parent;
+		private transient ExprElm predecessorInSequence;
 
 		public ExprElm getParent() {
 			return parent;
@@ -239,7 +240,11 @@ public abstract class C4ScriptExprTree {
 		
 		@Override
 		public String toString() {
-			return toString(0);
+			return toString(1);
+		}
+
+		public void expectedToBeOfType(C4Type type) {
+			// so what
 		}
 
 	}
@@ -431,6 +436,12 @@ public abstract class C4ScriptExprTree {
 		public ExprAccessVar(String varName) {
 			super(varName);
 		}
+		
+		@Override
+		public void expectedToBeOfType(C4Type type) {
+			if (field != null)
+				((C4Variable)field).expectedToBeOfType(type);
+		}
 
 		@Override
 		public boolean isValidInSequence(ExprElm predecessor) {
@@ -553,6 +564,7 @@ public abstract class C4ScriptExprTree {
 							continue;
 						if (!given.validForType(parm.getType()))
 							parser.warningWithCode(ErrorCode.IncompatibleTypes, given, parm.getType(), given.getType());
+						given.expectedToBeOfType(parm.getType());
 						parm.inferTypeFromAssignment(given, parser);
 					}
 				}
@@ -852,6 +864,9 @@ public abstract class C4ScriptExprTree {
 			if (!getRightSide().validForType(getOperator().getSecondArgType()))
 				parser.warningWithCode(ErrorCode.IncompatibleTypes, getRightSide(), getOperator().getSecondArgType(), getRightSide().getType());
 			
+			getLeftSide().expectedToBeOfType(getOperator().getFirstArgType());
+			getRightSide().expectedToBeOfType(getOperator().getSecondArgType());
+			
 			if (getOperator() == C4ScriptOperator.Assign) {
 				if (getLeftSide() instanceof ExprAccessVar) {
 					C4Variable v = (C4Variable) ((ExprAccessVar)getLeftSide()).getField(parser);
@@ -953,6 +968,10 @@ public abstract class C4ScriptExprTree {
 				//				System.out.println(getArgument().toString() + " does not behave");
 				parser.errorWithCode(ErrorCode.ExpressionNotModifiable, getArgument(), true);
 			}
+			if (!getArgument().validForType(getOperator().getFirstArgType())) {
+				parser.warningWithCode(ErrorCode.IncompatibleTypes, getArgument(), getOperator().getFirstArgType().toString(), getArgument().getType().toString());
+			}
+			getArgument().expectedToBeOfType(getOperator().getFirstArgType());
 		}
 
 		@Override
@@ -1558,7 +1577,7 @@ public abstract class C4ScriptExprTree {
 		}
 		@Override
 		public void print(StringBuilder builder, int depth) {
-			builder.append(getKeyword() + "(");
+			builder.append(getKeyword() + " (");
 			if (initializer != null)
 				initializer.print(builder, depth+1);
 			builder.append(" "); // no ';' since initializer is already a statement
@@ -1567,7 +1586,7 @@ public abstract class C4ScriptExprTree {
 			builder.append("; ");
 			if (increment != null)
 				increment.print(builder, depth);
-			builder.append(") ");
+			builder.append(")");
 			printBody(builder, depth);
 		}
 		@Override
@@ -1705,6 +1724,69 @@ public abstract class C4ScriptExprTree {
 		@Override
 		public void print(StringBuilder builder, int depth) {
 			builder.append(";");
+		}
+	}
+	
+	public static class Comment extends Statement {
+		private String comment;
+		private boolean multiLine;
+
+		public Comment(String comment, boolean multiLine) {
+			super();
+			this.comment = comment;
+			this.multiLine = multiLine;
+		}
+
+		public String getComment() {
+			return comment;
+		}
+
+		public void setComment(String comment) {
+			this.comment = comment;
+		}
+		
+		@Override
+		public void print(StringBuilder builder, int depth) {
+			if (isMultiLine()) {
+				builder.append("/*");
+				builder.append(comment);
+				builder.append("*/");
+			}
+			else {
+				builder.append("//");
+				builder.append(comment);
+			}
+		}
+
+		public boolean isMultiLine() {
+			return multiLine;
+		}
+
+		public void setMultiLine(boolean multiLine) {
+			this.multiLine = multiLine;
+		}
+		
+	}
+	
+	public static class FunctionDescription extends Statement implements Serializable {
+		private static final long serialVersionUID = 1L;
+		
+		private String contents;
+		public FunctionDescription(String contents) {
+			super();
+			this.contents = contents;
+		}
+		@Override
+		public void print(StringBuilder builder, int depth) {
+			builder.append('[');
+			builder.append(contents);
+			builder.append(']');
+		}
+		public String getContents() {
+			return contents;
+		}
+		public void setContents(String contents) {
+			this.contents = contents;
 		}
 	}
 	

@@ -163,7 +163,7 @@ public class EngineIdentifiersView extends ViewPart {
 				func.setName(identifierNameField.getText());
 				func.setReturnType(C4Type.makeType(returnTypeBox.getItem(returnTypeBox.getSelectionIndex())));
 				func.setVisibility(C4FunctionScope.makeScope(scopeBox.getItem(scopeBox.getSelectionIndex())));
-				func.setDescription(descriptionField.getText());
+				func.setUserDescription(descriptionField.getText());
 				
 				func.getParameters().clear();
 				for(ParameterCombination par : parameters) {
@@ -221,7 +221,7 @@ public class EngineIdentifiersView extends ViewPart {
 			
 			new Label(parent, SWT.NONE).setText("Beschreibung: ");
 			descriptionField = new Text(parent, SWT.BORDER | SWT.MULTI | SWT.WRAP | SWT.V_SCROLL);
-			if (func.getDescription() != null) descriptionField.setText(func.getDescription());
+			if (func.getUserDescription() != null) descriptionField.setText(func.getUserDescription());
 			
 			GridData gridData =
 			      new GridData(
