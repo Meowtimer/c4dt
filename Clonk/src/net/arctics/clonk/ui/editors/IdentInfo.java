@@ -5,14 +5,12 @@ import net.arctics.clonk.Utilities;
 import net.arctics.clonk.parser.C4Field;
 import net.arctics.clonk.parser.C4Function;
 import net.arctics.clonk.parser.C4ID;
-import net.arctics.clonk.parser.C4Object;
 import net.arctics.clonk.parser.C4ScriptBase;
 import net.arctics.clonk.parser.C4ScriptParser;
 import net.arctics.clonk.parser.CompilerException;
 import net.arctics.clonk.parser.C4ScriptExprTree.ExprElm;
 import net.arctics.clonk.parser.C4ScriptExprTree.FieldRegion;
 import net.arctics.clonk.parser.C4ScriptExprTree.IExpressionListener;
-import net.arctics.clonk.parser.C4ScriptExprTree.Statement;
 import net.arctics.clonk.parser.C4ScriptExprTree.TraversalContinuation;
 import net.arctics.clonk.parser.C4ScriptParser.ParsingException;
 

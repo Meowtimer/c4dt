@@ -2138,6 +2138,7 @@ public class C4ScriptParser {
 		parser.setExpressionListener(listener);
 		parser.disableError(ErrorCode.TokenExpected);
 		parser.disableError(ErrorCode.InvalidExpression);
+		parser.disableError(ErrorCode.BlockNotClosed);
 		try {
 			while (!parser.fReader.reachedEOF() && parser.parseCode(parser.fReader.getPosition())) {
 				parser.eatWhitespace();

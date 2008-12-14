@@ -188,7 +188,7 @@ public enum C4ScriptOperator {
 		for (C4ScriptOperator o : ops(AssignOr, AssignAnd, AssignXOr))
 			o.setArgTypesAndResult(C4Type.BOOL, C4Type.BOOL, C4Type.BOOL);
 		
-		for (C4ScriptOperator o : ops(And, Or, Equal, Not, Add))
+		for (C4ScriptOperator o : ops(And, Or, Equal, Not, Add, BitAnd))
 			o.setOldStyleFunctionEquivalent(o.toString());
 		Increment.setOldStyleFunctionEquivalent("Inc");
 		Decrement.setOldStyleFunctionEquivalent("Dec");

@@ -29,7 +29,8 @@ public class OpenDeclarationAction extends TextEditorAction {
 					getTextEditor(),
 					getTextEditor().getDocumentProvider().getDocument(getTextEditor().getEditorInput()),
 					r);
-			C4ScriptEditor.openDeclaration(info.getField());
+			if (info.getField() != null)
+				C4ScriptEditor.openDeclaration(info.getField());
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

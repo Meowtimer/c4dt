@@ -81,7 +81,7 @@ public abstract class Utilities {
 	}
 	
 	public static Image getIconForFunction(C4Function function) {
-		String iconName = function.getVisibility().toString().toLowerCase();
+		String iconName = function.getVisibility().name().toLowerCase();
 		ImageRegistry reg = ClonkCore.getDefault().getImageRegistry();
 		Image img = reg.get(iconName);
 		if (img != null)

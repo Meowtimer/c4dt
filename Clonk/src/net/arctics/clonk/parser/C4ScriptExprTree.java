@@ -553,6 +553,7 @@ public abstract class C4ScriptExprTree {
 							continue;
 						if (!given.validForType(parm.getType()))
 							parser.warningWithCode(ErrorCode.IncompatibleTypes, given, parm.getType(), given.getType());
+						parm.inferTypeFromAssignment(given, parser);
 					}
 				}
 				else if (field == null && getPredecessorInSequence() == null) {
