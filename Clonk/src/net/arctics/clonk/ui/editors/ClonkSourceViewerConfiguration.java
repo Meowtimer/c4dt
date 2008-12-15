@@ -140,6 +140,7 @@ public class ClonkSourceViewerConfiguration extends TextSourceViewerConfiguratio
 	private ClonkCommentScanner commentScanner;
 	private ColorManager colorManager;
 	private ITextEditor textEditor;
+	private ITextHover hover;
 
 	public ClonkSourceViewerConfiguration(ColorManager colorManager, ITextEditor textEditor) {
 		this.colorManager = colorManager;
@@ -292,7 +293,10 @@ public class ClonkSourceViewerConfiguration extends TextSourceViewerConfiguratio
 	 */
 	@Override
 	public ITextHover getTextHover(ISourceViewer sourceViewer, String contentType, int stateMask) {
-		return new C4ScriptTextHover();
+		if (hover == null) {
+			hover = new C4ScriptTextHover(); 
+		}
+		return hover;
 	}
 
 }

@@ -66,15 +66,16 @@ public class IdentInfo implements IExpressionListener {
 			return;
 		}
 		int statementStart = func.getBody().getOffset();
-		identRegion = new Region(region.getOffset()-statementStart,0);
-		C4ScriptParser parser = C4ScriptParser.reportExpressionsInStatements(doc, func.getBody(), script, func, this);
-		if (exprAtRegion != null) {
-			FieldRegion fieldRegion = exprAtRegion.fieldAt(identRegion.getOffset()-exprAtRegion.getExprStart(), parser);
-			if (fieldRegion != null) {
-				this.field = fieldRegion.getField();
-				this.identRegion = new Region(statementStart+fieldRegion.getRegion().getOffset(), fieldRegion.getRegion().getLength());
+		if (region.getOffset() >= statementStart) {
+			identRegion = new Region(region.getOffset()-statementStart,0);
+			C4ScriptParser parser = C4ScriptParser.reportExpressionsInStatements(doc, func.getBody(), script, func, this);
+			if (exprAtRegion != null) {
+				FieldRegion fieldRegion = exprAtRegion.fieldAt(identRegion.getOffset()-exprAtRegion.getExprStart(), parser);
+				if (fieldRegion != null) {
+					this.field = fieldRegion.getField();
+					this.identRegion = new Region(statementStart+fieldRegion.getRegion().getOffset(), fieldRegion.getRegion().getLength());
+				}
 			}
-			
 		}
 	}
 	
