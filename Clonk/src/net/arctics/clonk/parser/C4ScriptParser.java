@@ -281,6 +281,14 @@ public class C4ScriptParser {
 			seek(p);
 			return result;
 		}
+
+		public int peekAfterWhitespace() {
+			int pos = offset;
+			eatWhitespace();
+			int result = read();
+			seek(pos);
+			return result;
+		}
 	}
 
 	public static class ParsingException extends Exception {
@@ -866,16 +874,20 @@ public class C4ScriptParser {
 		fReader.seek(offset);
 		int endOfFunc = activeFunc.getBody().getEnd();
 		EnumSet<ParseStatementOption> options = EnumSet.of(ParseStatementOption.ExpectFuncDesc);
+		boolean lastWasReturn = false;
 		while(!fReader.reachedEOF() && fReader.getPosition() < endOfFunc) {
 			Statement statement = parseStatement(fReader.getPosition(), options);
 			if (statement == null)
 				break;
-			// after first 'real' statement don't expect function description anymore
+			if (lastWasReturn)
+				warningWithCode(ErrorCode.NeverReached, statement);
+			if (!lastWasReturn)
+				lastWasReturn = statement.isReturn();
 			if (options.contains(ParseStatementOption.ExpectFuncDesc) && statement instanceof FunctionDescription)
 				activeFunc.setFuncDesc((FunctionDescription) statement);
+			// after first 'real' statement don't expect function description anymore
 			if (!(statement instanceof Comment))
 				options.remove(ParseStatementOption.ExpectFuncDesc);
-//			eatWhitespace();
 		}
 		// a complete code block without reading { }
 		// function call
@@ -1093,7 +1105,7 @@ public class C4ScriptParser {
 	}
 	
 	public enum ErrorCode {
-		TokenExpected, NotAllowedHere, MissingClosingBracket, InvalidExpression, InternalError, ExpressionExpected, UnexpectedEnd, NameExpected, ReturnAsFunction, ExpressionNotModifiable, OperatorNeedsRightSide, NoAssignment, NoSideEffects, KeywordInWrongPlace, UndeclaredIdentifier, OldStyleFunc, ValueExpected, TuplesNotAllowed, EmptyParentheses, ExpectedCode, ConstantValueExpected, CommaOrSemicolonExpected, IncompatibleTypes, VariableCalled, TypeAsName, BlockNotClosed, UnknownDirective, StatementExpected, ConditionExpected, OutOfIntRange, NoInheritedFunction, FunctionRedeclared
+		TokenExpected, NotAllowedHere, MissingClosingBracket, InvalidExpression, InternalError, ExpressionExpected, UnexpectedEnd, NameExpected, ReturnAsFunction, ExpressionNotModifiable, OperatorNeedsRightSide, NoAssignment, NoSideEffects, KeywordInWrongPlace, UndeclaredIdentifier, OldStyleFunc, ValueExpected, TuplesNotAllowed, EmptyParentheses, ExpectedCode, ConstantValueExpected, CommaOrSemicolonExpected, IncompatibleTypes, VariableCalled, TypeAsName, BlockNotClosed, UnknownDirective, StatementExpected, ConditionExpected, OutOfIntRange, NoInheritedFunction, FunctionRedeclared, NeverReached
 	}
 	
 	private static String[] errorStrings = new String[] {
@@ -1128,7 +1140,8 @@ public class C4ScriptParser {
 		"Condition expected",
 		"Out of integer range: %s",
 		"No inherited version of %s found",
-		"Function overload: this function is already declared in this script"
+		"Function overload: this function is already declared in this script",
+		"Code never reached"
 	};
 	
 	private Set<ErrorCode> disabledErrors = new HashSet<ErrorCode>();
@@ -1971,6 +1984,10 @@ public class C4ScriptParser {
 						}
 						result = new ReturnStatement(returnExpr);
 						checkForSemicolon();
+					}
+					else if (activeFunc.isOldStyle() && (looksLikeStartOfFunction(readWord) || fReader.peekAfterWhitespace() == ':')) {
+						// whoops, too far
+						return null;
 					}
 					else
 						result = null;

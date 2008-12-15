@@ -246,6 +246,10 @@ public abstract class C4ScriptExprTree {
 		public void expectedToBeOfType(C4Type type) {
 			// so what
 		}
+		
+		public boolean isReturn() {
+			return false;
+		}
 
 	}
 
@@ -508,7 +512,7 @@ public abstract class C4ScriptExprTree {
 		}
 		@Override
 		protected C4Field getFieldImpl(C4ScriptParser parser) {
-			if (fieldName.equals("return"))
+			if (fieldName.equals(Keywords.Return))
 				return null;
 			if (fieldName.equals(Keywords.Inherited) || fieldName.equals(Keywords.SafeInherited)) {
 				return parser.getActiveFunc().getInherited();
@@ -543,7 +547,7 @@ public abstract class C4ScriptExprTree {
 				else
 					parser.unnamedParamaterUsed(ExprNumber.ZERO);
 			}
-			else if (fieldName.equals("return"))
+			else if (fieldName.equals(Keywords.Return))
 				parser.warningWithCode(ErrorCode.ReturnAsFunction, this);
 			else {
 				if (field instanceof C4Variable) {
@@ -709,6 +713,10 @@ public abstract class C4ScriptExprTree {
 				return params[0];
 			return new ExprTuple(params);
 		}
+		@Override
+		public boolean isReturn() {
+			return fieldName.equals(Keywords.Return);
+		}
 	}
 
 	public static class ExprOperator extends ExprValue {
@@ -766,7 +774,7 @@ public abstract class C4ScriptExprTree {
 					leftSideArguments.add(op.getLeftSide());
 				}
 				// return at the right end signals this should rather be a block
-				if (r instanceof ExprCallFunc && ((ExprCallFunc)r).getFieldName().equals("return")) {
+				if (r instanceof ExprCallFunc && ((ExprCallFunc)r).getFieldName().equals(Keywords.Return)) {
 					List<Statement> statements = new LinkedList<Statement>();
 					// wrap expressions in statements
 					for (ExprElm ex : leftSideArguments) {
@@ -1269,7 +1277,7 @@ public abstract class C4ScriptExprTree {
 	 * @author madeen
 	 *
 	 */
-	public static abstract class Statement extends ExprElm {
+	public static class Statement extends ExprElm {
 		@Override
 		public C4Type getType() {
 			return null;
@@ -1375,6 +1383,11 @@ public abstract class C4ScriptExprTree {
 				return this;
 			return new SimpleStatement(exprReplacement);
 		}
+		
+		@Override
+		public boolean isReturn() {
+			return expression.isReturn();
+		}
 	}
 	
 	/**
@@ -1445,6 +1458,11 @@ public abstract class C4ScriptExprTree {
 		@Override
 		public void setSubElements(ExprElm[] elms) {
 			returnExpr = elms[0];
+		}
+		
+		@Override
+		public boolean isReturn() {
+			return true;
 		}
 	}
 	
