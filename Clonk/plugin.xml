@@ -63,9 +63,6 @@
        priority="high">
  </content-type>
 </extension>
-   
-
-
 
 <extension
          point="org.eclipse.ui.perspectives">
@@ -116,6 +113,23 @@
         id="clonkActionProvider"
         priority="normal">
   </actionProvider>
+  <commonSorter
+        class="net.arctics.clonk.ui.navigator.ClonkSorter">
+        <parentExpression>
+         <or>         
+       		<instanceof 
+	           value="org.eclipse.core.resources.IWorkspaceRoot" /> 
+	          <instanceof
+	           value="org.eclipse.core.resources.IProject" /> 
+	          <instanceof 
+	           value="org.eclipse.core.resources.IResource" /> 
+	          <instanceof  
+	           value="org.eclipse.core.resources.IFolder" />
+	          <instanceof 
+	           value="org.eclipse.core.resources.IFile" /> 
+   		 </or>
+        </parentExpression>
+  </commonSorter>
 	</navigatorContent>
 </extension>
 
