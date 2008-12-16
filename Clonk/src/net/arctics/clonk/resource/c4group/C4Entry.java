@@ -33,12 +33,12 @@ public class C4Entry implements C4GroupItem, IStorage, Serializable {
 	 */
 	private static final long serialVersionUID = 1L;
 	
-	private C4EntryHeader header;
-    private C4Group parentGroup;
+	private transient C4EntryHeader header;
+    private transient C4Group parentGroup;
     private transient boolean completed;
 	private byte[] contents;
 	
-	private File exportFromFile;
+	private transient File exportFromFile;
     
     public C4Entry(C4Group parentGroup, C4EntryHeader header)
     {
