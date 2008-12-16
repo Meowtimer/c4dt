@@ -1,5 +1,8 @@
 package net.arctics.clonk.ui.navigator;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.preferences.PreferenceConstants;
 import net.arctics.clonk.resource.c4group.C4GroupExporter;
@@ -47,13 +50,13 @@ public class ClonkActionProvider extends org.eclipse.ui.navigator.CommonActionPr
 						String c4groupPath = service.getString(ClonkCore.PLUGIN_ID, PreferenceConstants.C4GROUP_EXECUTABLE, "", null);
 						String gamePath = service.getString(ClonkCore.PLUGIN_ID, PreferenceConstants.GAME_PATH, null, null);
 						try {
-							IResource[] selectedResources = project.members();
-							IContainer[] selectedContainers = new IContainer[selectedResources.length];
+							IResource[] selectedResources = project.members(IContainer.EXCLUDE_DERIVED);
+							List<IContainer> selectedContainers = new ArrayList<IContainer>();
 							for(int i = 0; i < selectedResources.length;i++) {
-								if (selectedResources[i] instanceof IContainer)
-									selectedContainers[i] = (IContainer) selectedResources[i];
+								if (selectedResources[i] instanceof IContainer && !selectedResources[i].getName().startsWith("."))
+									selectedContainers.add((IContainer) selectedResources[i]);
 							}
-							C4GroupExporter exporter = new C4GroupExporter(selectedContainers,c4groupPath,gamePath);
+							C4GroupExporter exporter = new C4GroupExporter(selectedContainers.toArray(new IContainer[selectedContainers.size()]),c4groupPath,gamePath);
 							exporter.export(null);
 						}
 						catch (CoreException ex) {
