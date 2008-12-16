@@ -287,7 +287,9 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 					C4ObjectParser parser;
 					if (delta.getResource().getName().endsWith(".c") && folder.getName().endsWith(".c4g")) {
 						script = new C4SystemScript(delta.getResource());
-					} else if ((parser = C4ObjectParser.create(folder)) != null) {
+						Utilities.getProject(delta.getResource()).getIndexedData().addScript(script);
+					}
+					else if ((parser = C4ObjectParser.create(folder)) != null) {
 						try {
 							script = parser.parse();
 						} catch (CompilerException e) {
