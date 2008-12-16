@@ -10,16 +10,11 @@ public class C4ObjectExtern extends C4Object {
 
 	private static final long serialVersionUID = -4964785375712432236L;
 //	protected IPath path;
-	protected C4Group group;
+	protected C4GroupItem script;
 	
-	public C4ObjectExtern(C4ID id, String name, C4Group group) {
+	public C4ObjectExtern(C4ID id, String name, C4GroupItem script) {
 		super(id, name);
-//		this.path = path;
-		this.group = group;
-	}
-	
-	public C4Group getGroup() {
-		return group;
+		this.script = script;
 	}
 
 	/**
@@ -41,15 +36,7 @@ public class C4ObjectExtern extends C4Object {
 
 	@Override
 	public Object getScriptFile() {
-		if (group == null) return null;
-		List<C4GroupItem> children = group.getChildEntries();
-		for(C4GroupItem item : children) {
-			if (item.getName().endsWith(".c")) {
-				return item;
-			}
-		}
-		// TODO C4ObjectExtern has to provide a method to get the Script.c
-		return null;
+		return script;
 	}
 
 	@Override

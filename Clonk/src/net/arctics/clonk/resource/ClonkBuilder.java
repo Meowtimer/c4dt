@@ -437,13 +437,16 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 					C4DefCoreWrapper defCoreWrapper = new C4DefCoreWrapper(new ByteArrayInputStream(defCore.getContentsAsArray()));
 					try {
 						defCoreWrapper.parse();
-						C4ObjectExtern obj = new C4ObjectExtern(defCoreWrapper.getObjectID(),item.getName(),group);
-						C4ScriptParser parser = new C4ScriptParser(new ByteArrayInputStream(script.getContentsAsArray()),script.computeSize(),obj);
+						C4ObjectExtern obj = new C4ObjectExtern(defCoreWrapper.getObjectID(),item.getName(),script);
+						C4ScriptParser parser = new C4ScriptParser(script.getContents(),script.computeSize(),obj);
 						// we only need declarations
 						parser.clean();
 						parser.parseDeclarations();
 						ClonkCore.EXTERN_INDEX.addObject(obj);
 					} catch (CompilerException e) {
+						e.printStackTrace();
+					} catch (CoreException e) {
+						// TODO Auto-generated catch block
 						e.printStackTrace();
 					}
 				}
@@ -452,14 +455,16 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 		else if (item instanceof C4Entry) {
 			if (packageType == C4GroupType.ResourceGroup) { // System.c4g like
 				if (item.getName().endsWith(".c")) {
-					byte[] content = ((C4Entry)item).getContentsAsArray();
 					try {
-						C4ObjectExtern externObj = new C4ObjectExtern(C4ID.getSpecialID("System"),"System",item.getParentGroup());
-						C4ScriptParser parser = new C4ScriptParser(new ByteArrayInputStream(content),((C4Entry)item).computeSize(),externObj);
+						C4ObjectExtern externObj = new C4ObjectExtern(C4ID.getSpecialID("System"),item.getName(),item);
+						C4ScriptParser parser = new C4ScriptParser(((C4Entry)item).getContents(),((C4Entry)item).computeSize(),externObj);
 						parser.parseDeclarations();
 						ClonkCore.EXTERN_INDEX.addObject(externObj);
 //						Utilities.getProject(getProject()).getIndexedData().addObject(externSystemc4g);
 					} catch (CompilerException e) {
+						e.printStackTrace();
+					} catch (CoreException e) {
+						// TODO Auto-generated catch block
 						e.printStackTrace();
 					}
 				}				
