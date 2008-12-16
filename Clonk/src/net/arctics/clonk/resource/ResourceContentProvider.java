@@ -57,6 +57,7 @@ public class ResourceContentProvider implements ITreeContentProvider {
 				List<IResource> children = new ArrayList<IResource>();
 				IResource[] members = ((IContainer)inputElement).members();
 				for(IResource member : members) {
+					if (member.getName().startsWith(".")) continue;
 					if ((member.getType() & resourceTypes) > 0) {
 						children.add(member);
 					}
