@@ -28,13 +28,14 @@ public class C4GroupExporter {
 			try {
 				if (monitor != null) monitor.subTask(toExport.getName());
 				String c4dpath = new Path(destinationPath).append(toExport.getName()).toOSString();
-				File blub = new File(new Path(destinationPath).append(toExport.getName()).toOSString());
-				blub.delete();
-				blub = null;
+				File oldFile = new File(new Path(destinationPath).append(toExport.getName()).toOSString());
+				if (oldFile.exists()) oldFile.delete();
+				
 				String cmd = "\"" + c4groupPath + "\" \"" + c4dpath + "\" /r -a \"" + new Path(toExport.getLocation().toString()).append("*").toOSString() + "\"";
 //				System.out.println(cmd);
-				Process c4group = Runtime.getRuntime().exec(cmd);
+				Process c4group = Runtime.getRuntime().exec(cmd, new String[0], oldFile.getParentFile());
 				c4group.waitFor();
+				oldFile = null;
 			} catch (IOException e1) {
 				e1.printStackTrace();
 			} catch (InterruptedException e) {
