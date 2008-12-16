@@ -30,6 +30,7 @@ public class ClonkLabelProvider extends LabelProvider implements IStyledLabelPro
 	}
 	
 	public Image getImage(Object element) {
+//		if (true) return super.getImage(element);
 		if (element instanceof IProject) {
 			return super.getImage(element);
 		}
@@ -127,19 +128,13 @@ public class ClonkLabelProvider extends LabelProvider implements IStyledLabelPro
 
 	public static Image computeImage(String registryKey, String iconPath, IResource element) {
 		ImageRegistry reg = ClonkCore.getDefault().getImageRegistry();
-		try {
-			if (reg.get(registryKey) == null) {
-				reg.put(registryKey, Utilities.getIconDescriptor(iconPath));
-			}
-			if (element.findMarkers(IMarker.PROBLEM, true, IResource.DEPTH_INFINITE).length > 0) {
-				return decorateImage(reg.getDescriptor(registryKey), element).createImage();
-			}
-			return reg.get(registryKey);
+		if (reg.get(registryKey) == null) {
+			reg.put(registryKey, Utilities.getIconDescriptor(iconPath));
 		}
-		catch (CoreException e) {
-			e.printStackTrace();
-			return null;
-		}
+//			if (element.findMarkers(IMarker.PROBLEM, true, IResource.DEPTH_INFINITE).length > 0) {
+//				return decorateImage(reg.getDescriptor(registryKey), element).createImage();
+//			}
+		return reg.get(registryKey);
 	}
 	
 	protected static ImageDescriptor decorateImage(ImageDescriptor input,
