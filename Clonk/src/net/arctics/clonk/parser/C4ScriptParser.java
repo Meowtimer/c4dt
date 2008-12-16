@@ -1377,9 +1377,9 @@ public class C4ScriptParser {
 			if (elm != null) {
 				if (!elm.isValidInSequence(prevElm)) {
 					elm = null; // blub blub <- first blub is var; second blub is not part of the sequence -.-
-					fReader.seek(elmStart);
+					//fReader.seek(elmStart);
 					dontCheckForPostOp = true;
-					//errorWithCode(ErrorCode.NotAllowedHere, elmStart, fReader.getPosition(), fReader.readStringAt(elmStart, fReader.getPosition()));
+					errorWithCode(ErrorCode.NotAllowedHere, elmStart, fReader.getPosition(), fReader.readStringAt(elmStart, fReader.getPosition()));
 				} else {
 					elm.setExprRegion(elmStart, fReader.getPosition());
 					elements.add(elm);

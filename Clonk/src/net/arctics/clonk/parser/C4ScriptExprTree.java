@@ -74,7 +74,7 @@ public abstract class C4ScriptExprTree {
 		}
 
 		public boolean isValidInSequence(ExprElm predecessor) {
-			return true;
+			return predecessor == null;
 		}
 		public C4Type getType() {
 			return C4Type.UNKNOWN;
@@ -449,9 +449,7 @@ public abstract class C4ScriptExprTree {
 
 		@Override
 		public boolean isValidInSequence(ExprElm predecessor) {
-			if (predecessor == null)
-				return true;
-			return false;
+			return predecessor == null;
 		}
 
 		@Override
@@ -509,6 +507,10 @@ public abstract class C4ScriptExprTree {
 			if (field instanceof C4Function)
 				return ((C4Function)field).getReturnType();
 			return super.getType();
+		}
+		@Override
+		public boolean isValidInSequence(ExprElm elm) {
+			return super.isValidInSequence(elm) || elm instanceof ExprObjectCall;	
 		}
 		@Override
 		protected C4Field getFieldImpl(C4ScriptParser parser) {
