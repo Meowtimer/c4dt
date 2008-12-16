@@ -1,7 +1,9 @@
 package net.arctics.clonk.resource.c4group;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStreamReader;
 
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IResource;
@@ -34,6 +36,12 @@ public class C4GroupExporter {
 //				String cmd = "\"" + c4groupPath + "\" \"" + c4dpath + "\" /r -a \"" + new Path(toExport.getLocation().toString()).append("*").toOSString() + "\"";
 //				System.out.println(cmd);
 				Process c4group = Runtime.getRuntime().exec(cmdArray, new String[0], oldFile.getParentFile());
+				
+				BufferedReader reader = new BufferedReader(new InputStreamReader(c4group.getInputStream()));
+				String line = null;
+				while((line = reader.readLine()) != null) {
+					System.out.println(line);
+				}
 				c4group.waitFor();
 				oldFile = null;
 			} catch (IOException e1) {

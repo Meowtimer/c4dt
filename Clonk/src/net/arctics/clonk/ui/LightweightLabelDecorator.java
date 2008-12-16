@@ -2,6 +2,7 @@ package net.arctics.clonk.ui;
 
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.Utilities;
+import net.arctics.clonk.resource.c4group.C4Group.C4GroupType;
 
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IMarker;
@@ -11,12 +12,9 @@ import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.resource.ImageRegistry;
 import org.eclipse.jface.viewers.DecorationContext;
 import org.eclipse.jface.viewers.IDecoration;
-import org.eclipse.jface.viewers.ILabelDecorator;
-import org.eclipse.jface.viewers.ILabelProvider;
 import org.eclipse.jface.viewers.ILabelProviderListener;
 import org.eclipse.jface.viewers.ILightweightLabelDecorator;
 import org.eclipse.ui.PlatformUI;
-import org.eclipse.ui.model.WorkbenchLabelProvider;
 
 public class LightweightLabelDecorator implements ILightweightLabelDecorator {
 
@@ -38,8 +36,19 @@ public class LightweightLabelDecorator implements ILightweightLabelDecorator {
 		if (element instanceof IResource) {
 			IResource res = (IResource) element;
 			if (res instanceof IFolder) {
-				if (res.getName().endsWith(".c4d")) {
+				C4GroupType groupType = Utilities.groupTypeFromFolderName(res.getName());
+				
+				if (groupType == C4GroupType.FolderGroup) {
+					decoration.addOverlay(Utilities.getIconDescriptor("icons/Clonk_folder.png"),IDecoration.REPLACE);
+				}
+				else if (groupType == C4GroupType.DefinitionGroup) {
 					decoration.addOverlay(Utilities.getIconDescriptor("icons/C4Object.png"),IDecoration.REPLACE);
+				}
+				else if (groupType == C4GroupType.ScenarioGroup) {
+					decoration.addOverlay(Utilities.getIconDescriptor("icons/Clonk_scenario.png"),IDecoration.REPLACE);
+				}
+				else if (groupType == C4GroupType.ResourceGroup) {
+					decoration.addOverlay(Utilities.getIconDescriptor("icons/Clonk_datafolder.png"),IDecoration.REPLACE);
 				}
 			}
 			try {
