@@ -7,7 +7,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.Serializable;
-import java.util.Calendar;
 import java.util.LinkedList;
 
 import org.eclipse.core.resources.IContainer;
@@ -59,12 +58,12 @@ public class C4Entry implements C4GroupItem, IStorage, Serializable {
     	return entry;
     }
     
-	public void open(boolean recursively) throws InvalidDataException {
+	public void open(boolean recursively, IHeaderFilter filter) throws InvalidDataException, IOException {
 		if (completed) return;
 		
 		if (parentGroup.getChildEntries().get(0) != this) {
 			C4GroupItem predecessor = parentGroup.getChildEntries().get(parentGroup.getChildEntries().indexOf(this) - 1);
-			predecessor.open(true);
+			predecessor.open(true, filter);
 		}
     	
     	completed = true;
@@ -133,7 +132,7 @@ public class C4Entry implements C4GroupItem, IStorage, Serializable {
 	/**
 	 * @return the time
 	 */
-	public Calendar getTime() {
+	public int getTime() {
 		return header.getTime();
 	}
 

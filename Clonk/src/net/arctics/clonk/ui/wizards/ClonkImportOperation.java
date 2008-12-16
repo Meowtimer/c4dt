@@ -2,6 +2,7 @@ package net.arctics.clonk.ui.wizards;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 
 import net.arctics.clonk.resource.c4group.C4Group;
@@ -55,6 +56,9 @@ public class ClonkImportOperation extends WorkspaceModifyOperation {
 			} catch (InvalidDataException e) {
 				monitor.setCanceled(true);
 				throw new InvocationTargetException(e);
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
 			}
 		} finally {
 			for (C4Group group : groups) {

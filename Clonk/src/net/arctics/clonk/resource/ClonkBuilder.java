@@ -3,6 +3,7 @@ package net.arctics.clonk.resource;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.Map;
 
 import net.arctics.clonk.ClonkCore;
@@ -20,11 +21,13 @@ import net.arctics.clonk.parser.CompilerException;
 import net.arctics.clonk.parser.defcore.C4DefCoreWrapper;
 import net.arctics.clonk.preferences.PreferenceConstants;
 import net.arctics.clonk.resource.c4group.C4Entry;
+import net.arctics.clonk.resource.c4group.C4EntryHeader;
 import net.arctics.clonk.resource.c4group.C4Group;
 import net.arctics.clonk.resource.c4group.C4GroupItem;
 import net.arctics.clonk.resource.c4group.IC4GroupVisitor;
 import net.arctics.clonk.resource.c4group.InvalidDataException;
 import net.arctics.clonk.resource.c4group.C4Group.C4GroupType;
+import net.arctics.clonk.resource.c4group.C4GroupItem.IHeaderFilter;
 import net.arctics.clonk.ui.editors.C4ScriptEditor;
 
 import org.eclipse.core.resources.IContainer;
@@ -221,9 +224,9 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 	/**
 	 * Starts indexing of all external libraries
 	 * @throws InvalidDataException
-	 * @throws FileNotFoundException
+	 * @throws IOException 
 	 */
-	private void readExternalLibs(IProgressMonitor monitor) throws InvalidDataException, FileNotFoundException {
+	private void readExternalLibs(IProgressMonitor monitor) throws InvalidDataException, IOException {
 		String[] libs = getExternalLibNames();
 		ClonkCore.EXTERN_INDEX.clear();
 		try {
@@ -235,7 +238,13 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 		for(String lib : libs) {
 			if (new File(lib).exists()) {
 				C4Group group = C4Group.OpenFile(new File(lib));
-				group.open(true);
+				group.open(true, new IHeaderFilter() {
+					public boolean accepts(C4EntryHeader header, C4Group context) {
+						String entryName = header.getEntryName();
+						// all we care about is groups, scripts and defcores
+						return header.isGroup() || entryName.endsWith(".c") || entryName.equals("DefCore.txt");
+					}
+				});
 				try {
 					group.accept(this, group.getGroupType(), null);
 				} finally {
@@ -519,6 +528,9 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 					} catch (FileNotFoundException e) {
 						e.printStackTrace();
 					} catch (InvalidDataException e) {
+						e.printStackTrace();
+					} catch (IOException e) {
+						// TODO Auto-generated catch block
 						e.printStackTrace();
 					}
 					

@@ -1,6 +1,7 @@
 package net.arctics.clonk.resource.c4group;
 
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.OutputStream;
 
 import org.eclipse.core.resources.IContainer;
@@ -8,6 +9,16 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 
 public interface C4GroupItem {
+	
+	public interface IHeaderFilter {
+		public boolean accepts(C4EntryHeader header, C4Group context);
+		public static final IHeaderFilter FILTER_NOTHING = new IHeaderFilter() {
+			public boolean accepts(C4EntryHeader header, C4Group context) {
+				return true;
+			}
+		};
+	}
+	
 	/**
 	 * Has this item children?
 	 * @return
@@ -23,8 +34,9 @@ public interface C4GroupItem {
 	/**
 	 * Read this item
 	 * @throws InvalidDataException
+	 * @throws IOException 
 	 */
-	public void open(boolean recursively) throws InvalidDataException;
+	public void open(boolean recursively, IHeaderFilter filter) throws InvalidDataException, IOException;
 	
 	/**
 	 * Writes this entry and all sub items to stream

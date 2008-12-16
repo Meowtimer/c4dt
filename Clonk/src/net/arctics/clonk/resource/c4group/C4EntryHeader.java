@@ -4,8 +4,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.Serializable;
-import java.util.Calendar;
-import java.util.GregorianCalendar;
 
 public class C4EntryHeader implements Serializable {
     /**
@@ -19,14 +17,15 @@ public class C4EntryHeader implements Serializable {
     private int size;
     private int entrySize;
 	private int offset;
-    private Calendar time;
+    //private Calendar time; seems like overkill
+	private int time;
     private boolean hasCRC;
     private int crc; // unsigned?
     
     protected C4EntryHeader() {
     }
     
-    public static C4EntryHeader createHeader(String name, boolean packed, boolean group, int size, int entrySize, int offset, Calendar time) {
+    public static C4EntryHeader createHeader(String name, boolean packed, boolean group, int size, int entrySize, int offset, int time) {
     	C4EntryHeader header = new C4EntryHeader();
     	header.entryName = name;
     	header.packed = packed;
@@ -51,7 +50,7 @@ public class C4EntryHeader implements Serializable {
     	arrayCopyTo(C4GroupHeader.int32ToByte(size),buffer,268,4);
     	arrayCopyTo(C4GroupHeader.int32ToByte(entrySize),buffer,272,4);
     	arrayCopyTo(C4GroupHeader.int32ToByte(offset),buffer,276,4);
-    	arrayCopyTo(C4GroupHeader.int32ToByte((int)time.getTimeInMillis()),buffer,280,4);
+    	arrayCopyTo(C4GroupHeader.int32ToByte(time),buffer,280,4);
     	arrayCopyTo(new byte[] {(byte) (hasCRC ? 0x2 : 0x0)},buffer,284);
     	arrayCopyTo(C4GroupHeader.int32ToByte(crc),buffer,285);
     	stream.write(buffer, 0, 316);
@@ -71,8 +70,7 @@ public class C4EntryHeader implements Serializable {
 			header.size = C4GroupHeader.byteToInt32(buffer, 268); // size that is used
 			header.entrySize = C4GroupHeader.byteToInt32(buffer, 272); // size that is always 0
 			header.offset = C4GroupHeader.byteToInt32(buffer, 276);
-			header.time = new GregorianCalendar(1970,1,1);
-			header.time.add(Calendar.SECOND, C4GroupHeader.byteToInt32(buffer, 280));
+			header.time = C4GroupHeader.byteToInt32(buffer, 280);
 			header.hasCRC = C4GroupHeader.byteToBoolean(buffer, 284);
 //			if (header.hasCRC == false) {
 //				throw new InvalidDataException("Suspicious entry header: every entry has a CRC except this one.");
@@ -85,6 +83,16 @@ public class C4EntryHeader implements Serializable {
 		}
 		return header;
     }
+    
+	
+	public void skipData(InputStream stream) throws IOException {
+		if (this.isGroup()) {
+			throw new IOException("skipData for groups not implemented");
+		}
+		else {
+			stream.skip(getSize());
+		}
+	}
     
     /**
 	 * @return the entryName
@@ -119,7 +127,7 @@ public class C4EntryHeader implements Serializable {
 	/**
 	 * @return the time
 	 */
-	public Calendar getTime() {
+	public int getTime() {
 		return time;
 	}
 	/**
@@ -140,14 +148,6 @@ public class C4EntryHeader implements Serializable {
 	 */
 	public boolean isGroup() {
 		return group;
-	}
-    
-	
-    /**
-	 * @param size the size to set
-	 */
-	public void setSize(int size) {
-		this.size = size;
 	}
 
 	/**
