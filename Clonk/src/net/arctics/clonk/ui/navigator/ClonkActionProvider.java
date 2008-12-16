@@ -40,6 +40,11 @@ public class ClonkActionProvider extends org.eclipse.ui.navigator.CommonActionPr
 			@Override
 			public void runWithEvent(Event e) {
 				super.run();
+				if (PlatformUI.getWorkbench() == null ||
+						PlatformUI.getWorkbench().getActiveWorkbenchWindow() == null ||
+						PlatformUI.getWorkbench().getActiveWorkbenchWindow().getSelectionService() == null ||
+						PlatformUI.getWorkbench().getActiveWorkbenchWindow().getSelectionService().getSelection() == null)
+					return;
 				ISelection selection = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getSelectionService().getSelection();
 				if (selection != null && selection instanceof TreeSelection) {
 					IProject project = null;
