@@ -69,7 +69,7 @@ public class ClonkPreferencePage
 				}
 				FileDialog dialog = new FileDialog(getShell());
 				dialog.setText("Choose external object");
-				dialog.setFilterExtensions(new String[] { "*.c4g;*.c4d" });
+				dialog.setFilterExtensions(new String[] { "*.c4g;*.c4d;*.c4f;*.c4s" });
 				dialog.setFilterPath(gamePath);
 				return dialog.open();
 			}
