@@ -30,10 +30,10 @@ public class C4GroupExporter {
 				String c4dpath = new Path(destinationPath).append(toExport.getName()).toOSString();
 				File oldFile = new File(new Path(destinationPath).append(toExport.getName()).toOSString());
 				if (oldFile.exists()) oldFile.delete();
-				
-				String cmd = "\"" + c4groupPath + "\" \"" + c4dpath + "\" /r -a \"" + new Path(toExport.getLocation().toString()).append("*").toOSString() + "\"";
+				String[] cmdArray = new String[] { c4groupPath, c4dpath, "/r", "-a", new Path(toExport.getLocation().toString()).append("*").toOSString() };
+//				String cmd = "\"" + c4groupPath + "\" \"" + c4dpath + "\" /r -a \"" + new Path(toExport.getLocation().toString()).append("*").toOSString() + "\"";
 //				System.out.println(cmd);
-				Process c4group = Runtime.getRuntime().exec(cmd, new String[0], oldFile.getParentFile());
+				Process c4group = Runtime.getRuntime().exec(cmdArray, new String[0], oldFile.getParentFile());
 				c4group.waitFor();
 				oldFile = null;
 			} catch (IOException e1) {
