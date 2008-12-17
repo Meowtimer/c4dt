@@ -74,7 +74,7 @@ public class C4ObjectParser {
 			else if (scenario != null) {
 				if (object == null) {
 					object = new C4Scenario(null, objectFolder.getName(), objectFolder);
-					index.addObject(object);
+					index.addScript(object);
 				}
 			}
 			IFile script = object.getScriptFile();
@@ -84,7 +84,7 @@ public class C4ObjectParser {
 				p.parseDeclarations();
 			}
 			if (object != null) {
-				index.addObject(object);
+				index.addScript(object);
 			}
 			return object;
 		} catch (Exception e) {

@@ -8,9 +8,11 @@ import net.arctics.clonk.Utilities;
 
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Path;
 
 public class C4ObjectIntern extends C4Object implements Serializable {
@@ -126,6 +128,14 @@ public class C4ObjectIntern extends C4Object implements Serializable {
 	
 	public static C4ObjectIntern objectCorrespondingTo(IContainer folder) {
 		return (Utilities.getIndex(folder) != null) ? Utilities.getIndex(folder).getObject(folder) : null;
+	}
+	
+	public void refreshFolderReference(IProject project) throws CoreException {
+		Path path = new Path(this.relativePath);
+		IPath projectPath = path.removeFirstSegments(1);
+		IResource res = project.findMember(projectPath);
+		if (res instanceof IContainer)
+			this.setObjectFolder((IContainer)res);
 	}
 
 }

@@ -25,14 +25,12 @@ public class ProjectIndex extends ClonkIndex {
 		for (List<C4Object> list : getIndexedObjects().values()) {
 			for (C4Object obj : list) {
 				if (obj instanceof C4ObjectIntern) {
-					C4ObjectIntern objIntern = (C4ObjectIntern)obj;
-					Path path = new Path(objIntern.relativePath);
-					IPath projectPath = path.removeFirstSegments(1);
-					IResource res = project.findMember(projectPath);
-					if (res instanceof IContainer)
-						((C4ObjectIntern)obj).setObjectFolder((IContainer)res);
+					((C4ObjectIntern)obj).refreshFolderReference(project);
 				}
 			}
+		}
+		for (C4Scenario scenario : getIndexedScenarios()) {
+			scenario.refreshFolderReference(project);
 		}
 		for (C4ScriptBase script : getIndexedScripts()) {
 			if (script instanceof C4SystemScript) {

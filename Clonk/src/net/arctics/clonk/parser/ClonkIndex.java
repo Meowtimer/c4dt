@@ -18,6 +18,7 @@ public class ClonkIndex implements Serializable {
 
 	private Map<C4ID,List<C4Object>> indexedObjects;
 	private List<C4ScriptBase> indexedScripts;
+	private List<C4Scenario> indexedScenarios;
 	
 	private transient List<C4Function> globalFunctions;
 	private transient List<C4Variable> staticVariables;
@@ -170,8 +171,13 @@ public class ClonkIndex implements Serializable {
 	}
 	
 	public void addScript(C4ScriptBase script) {
-		if (script instanceof C4Object)
+		if (script instanceof C4Scenario) {
+			if (!getIndexedScenarios().contains(script))
+				getIndexedScenarios().add((C4Scenario) script);
+		}
+		else if (script instanceof C4Object) {
 			addObject((C4Object)script);
+		}
 		else {
 			if (!getIndexedScripts().contains(script))
 				getIndexedScripts().add(script);
@@ -201,6 +207,13 @@ public class ClonkIndex implements Serializable {
 			indexedObjects = new HashMap<C4ID, List<C4Object>>();
 		}
 		return indexedObjects;
+	}
+	
+	public List<C4Scenario> getIndexedScenarios() {
+		if (indexedScenarios == null) {
+			indexedScenarios = new LinkedList<C4Scenario>();
+		}
+		return indexedScenarios;
 	}
 	
 	public List<C4ScriptBase> getIndexedScripts() {
