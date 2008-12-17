@@ -296,7 +296,7 @@ public class C4Group implements C4GroupItem, Serializable {
 	}
 	
 	public void open(boolean recursively) throws InvalidDataException, IOException {
-		open(recursively, IHeaderFilter.FILTER_NOTHING);
+		open(recursively, IHeaderFilter.ACCEPT_EVERYTHING);
 	}
 
 	/**

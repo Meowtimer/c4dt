@@ -145,7 +145,9 @@ public enum C4ScriptOperator {
 		for (C4ScriptOperator o : ops(Not, BitNot, Increment, Decrement)) {
 			o.setPriority(15);
 		}
-		Not.setArgTypeAndResult(C4Type.BOOL, C4Type.BOOL);
+		// not argtype bool because that makes the parser think a variable is a bool when in fact it's an object or something different
+		// that is being tested for existence
+		Not.setArgTypeAndResult(C4Type.ANY, C4Type.BOOL);
 		BitNot.setArgTypesAndResult(C4Type.INT, C4Type.INT, C4Type.INT);
 		Increment.setArgTypeAndResult(C4Type.INT, C4Type.INT);
 		Decrement.setArgTypeAndResult(C4Type.INT, C4Type.INT);

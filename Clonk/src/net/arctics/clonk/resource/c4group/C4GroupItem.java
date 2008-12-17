@@ -12,7 +12,7 @@ public interface C4GroupItem {
 	
 	public interface IHeaderFilter {
 		public boolean accepts(C4EntryHeader header, C4Group context);
-		public static final IHeaderFilter FILTER_NOTHING = new IHeaderFilter() {
+		public static final IHeaderFilter ACCEPT_EVERYTHING = new IHeaderFilter() {
 			public boolean accepts(C4EntryHeader header, C4Group context) {
 				return true;
 			}

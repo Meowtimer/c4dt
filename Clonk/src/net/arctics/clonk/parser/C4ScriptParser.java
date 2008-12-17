@@ -879,7 +879,7 @@ public class C4ScriptParser {
 			Statement statement = parseStatement(fReader.getPosition(), options);
 			if (statement == null)
 				break;
-			if (lastWasReturn)
+			if (lastWasReturn && !(statement instanceof Comment))
 				warningWithCode(ErrorCode.NeverReached, statement);
 			if (!lastWasReturn)
 				lastWasReturn = statement.isReturn();
