@@ -54,17 +54,21 @@ public class LightweightLabelDecorator implements ILightweightLabelDecorator {
 			try {
 				IMarker[] markers = res.findMarkers(IMarker.PROBLEM, true, IResource.DEPTH_INFINITE);
 				if (markers.length > 0) {
+					int severity = 0;
 					for(IMarker marker : markers) {
 						if (marker.getAttribute(IMarker.SEVERITY, IMarker.SEVERITY_INFO) == IMarker.SEVERITY_ERROR) {
-							decoration.addOverlay(getIcon("error_co.gif"),IDecoration.BOTTOM_LEFT);
+							severity = 2;
+//							decoration.addOverlay(getIcon("error_co.gif"),IDecoration.BOTTOM_LEFT);
 //							decoration.addOverlay(Utilities.getIconDescriptor("icons/error_co.gif"),IDecoration.BOTTOM_LEFT);
 							break;
 						}
 						if (marker.getAttribute(IMarker.SEVERITY, IMarker.SEVERITY_INFO) == IMarker.SEVERITY_WARNING) {
-							decoration.addOverlay(getIcon("warning_co.gif"),IDecoration.BOTTOM_LEFT);
-//							decoration.addOverlay(Utilities.getIconDescriptor("icons/warning_co.gif"),IDecoration.BOTTOM_LEFT);
+							if (severity < 2) severity = 1;
+//							decoration.addOverlay(getIcon("warning_co.gif"),IDecoration.BOTTOM_LEFT);
 						}
 					}
+					if (severity == 1) decoration.addOverlay(getIcon("warning_co.gif"),IDecoration.BOTTOM_LEFT);
+					else if (severity == 2) decoration.addOverlay(getIcon("error_co.gif"),IDecoration.BOTTOM_LEFT);
 				}
 			} catch (CoreException e) {
 				e.printStackTrace();
