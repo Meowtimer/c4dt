@@ -460,6 +460,9 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 					}
 				}
 			}
+			else if (group.getGroupType() == C4GroupType.ScenarioGroup) {
+				
+			}
 		}
 		else if (item instanceof C4Entry) {
 			if (packageType == C4GroupType.ResourceGroup) { // System.c4g like

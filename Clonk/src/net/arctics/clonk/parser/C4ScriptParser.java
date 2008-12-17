@@ -1234,10 +1234,11 @@ public class C4ScriptParser {
 			int elmStart = fReader.getPosition();
 
 			// operator always ends a sequence without operators
-			if (parseOperator_(fReader.getPosition()) != null) {
+			if (parseOperator_(fReader.getPosition()) != null || fReader.readWord().equals(Keywords.In)) {
 				fReader.seek(elmStart);
 				break;
 			}
+			fReader.seek(elmStart); // nothing special to end the sequence; make sure we start from the beginning
 			
 			// id
 			if (parseID(fReader.offset)) {
