@@ -1817,6 +1817,25 @@ public abstract class C4ScriptExprTree {
 		public void setContents(String contents) {
 			this.contents = contents;
 		}
+		@Override
+		public FieldRegion fieldAt(int offset, C4ScriptParser parser) {
+			String[] assignments = contents.split("\\|");
+			int off = 1;
+			for (String assignment : assignments) {
+				if (offset >= off && offset < off+assignment.length()) {
+					String[] nameValue = assignment.split("=");
+					if (nameValue.length == 2) {
+						String name = nameValue[0].trim();
+						String value = nameValue[1].trim();
+						if (name.equals("Condition") || name.equals("Image"))
+							return new FieldRegion(parser.getContainer().findField(value), new Region(off+nameValue[0].length()+1, value.length()));
+					}
+					break;
+				}
+				off += assignment.length()+1;
+			}
+			return null;
+		}
 	}
 	
 }

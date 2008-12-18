@@ -2225,8 +2225,13 @@ public class C4ScriptParser {
 		parser.disableError(ErrorCode.InvalidExpression);
 		parser.disableError(ErrorCode.BlockNotClosed);
 		try {
-			while (!parser.fReader.reachedEOF() && parser.parseCode(parser.fReader.getPosition())) {
-				//parser.eatWhitespace();
+			EnumSet<ParseStatementOption> options = EnumSet.of(ParseStatementOption.ExpectFuncDesc);
+			while (!parser.fReader.reachedEOF()) {
+				Statement statement = parser.parseStatement(parser.fReader.getPosition(), options);
+				if (statement == null)
+					break;
+				if (!(statement instanceof Comment))
+					options.remove(ParseStatementOption.ExpectFuncDesc);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();

@@ -1,6 +1,8 @@
 package net.arctics.clonk.parser;
 
-public class C4Directive extends C4Field {
+import java.io.Serializable;
+
+public class C4Directive implements Serializable {
 	/**
 	 * 
 	 */
@@ -15,6 +17,11 @@ public class C4Directive extends C4Field {
 			if (arg.equals("include")) return C4DirectiveType.INCLUDE;
 			if (arg.equals("appendto")) return C4DirectiveType.APPENDTO;
 			return null;
+		}
+		
+		@Override
+		public String toString() {
+			return super.name().toLowerCase();
 		}
 	}
 	
@@ -48,5 +55,11 @@ public class C4Directive extends C4Field {
 		return content;
 	}
 	
+	@Override
+	public String toString() {
+		if (content != "" && content != null)
+			return "#" + type.toString() + " " + content;
+		return "#" + type.toString();
+	}
 	
 }
