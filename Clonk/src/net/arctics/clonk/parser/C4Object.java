@@ -1,9 +1,5 @@
 package net.arctics.clonk.parser;
 
-import org.eclipse.core.resources.IContainer;
-
-import net.arctics.clonk.Utilities;
-
 public abstract class C4Object extends C4ScriptBase {
 
 	/**

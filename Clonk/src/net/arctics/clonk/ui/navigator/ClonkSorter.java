@@ -2,7 +2,6 @@ package net.arctics.clonk.ui.navigator;
 
 import java.text.Collator;
 
-import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.jface.viewers.ViewerSorter;

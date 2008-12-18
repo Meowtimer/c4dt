@@ -108,7 +108,7 @@ public class NewC4Object extends Wizard implements INewWizard {
 		if (!subContainer.exists()) {
 			subContainer.create(IResource.NONE,true,monitor);
 		}
-		C4ObjectIntern newObject = new C4ObjectIntern(C4ID.getID(objectID), containerName, subContainer);
+		new C4ObjectIntern(C4ID.getID(objectID), containerName, subContainer);
 		try {
 			InputStream stream;
 			stream = initialDefCoreStream(fileName, objectID);

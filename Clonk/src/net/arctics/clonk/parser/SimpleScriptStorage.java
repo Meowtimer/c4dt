@@ -39,6 +39,7 @@ public class SimpleScriptStorage implements IStorage, Serializable {
 		return true;
 	}
 
+	@SuppressWarnings("unchecked")
 	public Object getAdapter(Class cls) {
 		return null;
 	}

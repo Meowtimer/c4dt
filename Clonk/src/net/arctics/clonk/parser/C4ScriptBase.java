@@ -195,6 +195,8 @@ public abstract class C4ScriptBase extends C4Structure {
 	}
 	
 	public void clearFields() {
+		if (definedDirectives != null)
+			definedDirectives.clear();
 		if (definedFunctions != null)
 		while (definedFunctions.size() > 0)
 			removeField(definedFunctions.get(definedFunctions.size()-1));

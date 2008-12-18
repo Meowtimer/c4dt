@@ -36,7 +36,7 @@ public class ClonkImportOperation extends WorkspaceModifyOperation {
 		try {
 			try {
 				for(int i = 0; i < resources.length;i++) {
-					groups[i] = C4Group.OpenFile(resources[i]);
+					groups[i] = C4Group.openFile(resources[i]);
 					groups[i].open(true);
 					totalWork += groups[i].computeSize();
 				}

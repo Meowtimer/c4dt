@@ -177,7 +177,7 @@ public class C4Group implements C4GroupItem, Serializable {
 	 * @throws InvalidDataException
 	 * @throws FileNotFoundException
 	 */
-	public static C4Group OpenFile(File file) throws InvalidDataException, FileNotFoundException {
+	public static C4Group openFile(File file) throws InvalidDataException, FileNotFoundException {
 		try {
 			return new C4Group(new GZIPInputStream(new FileInputStream(file) {
 				private int timesRead = 0;

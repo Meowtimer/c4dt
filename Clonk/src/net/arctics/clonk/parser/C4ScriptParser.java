@@ -2011,8 +2011,12 @@ public class C4ScriptParser {
 
 			if (result != null) {
 				result.setExprRegion(start, fReader.getPosition());
-				if (parseStatementRecursion == 1 && expressionListener != null)
-					expressionListener.expressionDetected(result, this);
+				if (parseStatementRecursion == 1) {
+					result.warnIfNoSideEffects(this);
+					if (expressionListener != null) {
+						expressionListener.expressionDetected(result, this);
+					}
+				}
 				//System.out.println(result.toString());
 			}
 			return result;

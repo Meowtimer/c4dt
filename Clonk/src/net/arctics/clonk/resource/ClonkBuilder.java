@@ -237,7 +237,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 		if (monitor != null) monitor.beginTask("Parsing libs", 3);
 		for(String lib : libs) {
 			if (new File(lib).exists()) {
-				C4Group group = C4Group.OpenFile(new File(lib));
+				C4Group group = C4Group.openFile(new File(lib));
 				group.open(true, new IHeaderFilter() {
 					public boolean accepts(C4EntryHeader header, C4Group context) {
 						String entryName = header.getEntryName();
@@ -349,7 +349,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 					object.setObjectFolder((IContainer) delta.getResource());
 			}
 			else if (delta.getKind() == IResourceDelta.REMOVED) {
-				// removed object when folder is removed
+				// remove object when folder is removed
 				C4ObjectIntern object = C4ObjectIntern.objectCorrespondingTo((IContainer)delta.getResource());
 				if (object != null)
 					object.getIndex().removeObject(object);
@@ -518,7 +518,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 					// TODO: create new externobjects and add to index
 					File libFile = new File(lib);
 					try {
-						C4Group group = C4Group.OpenFile(libFile);
+						C4Group group = C4Group.openFile(libFile);
 						group.open(true);
 						try {
 							group.accept(this);

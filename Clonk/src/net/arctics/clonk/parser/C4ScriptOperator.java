@@ -177,7 +177,7 @@ public enum C4ScriptOperator {
 		for (C4ScriptOperator o : ops(BitOr, BitXOr))
 			o.setPriority(6);
 		for (C4ScriptOperator o : ops(And, Or))
-			o.setArgTypesAndResult(C4Type.BOOL, C4Type.BOOL, C4Type.BOOL);
+			o.setArgTypesAndResult(C4Type.ANY, C4Type.ANY, C4Type.BOOL);
 		for (C4ScriptOperator o : ops(BitAnd, BitXOr, BitOr, ShiftLeft, ShiftRight))
 			o.setArgTypesAndResult(C4Type.INT, C4Type.INT, C4Type.INT);
 		for (C4ScriptOperator o : ops(ShiftLeft, ShiftRight))

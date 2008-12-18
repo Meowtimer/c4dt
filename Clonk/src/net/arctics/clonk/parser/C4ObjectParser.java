@@ -8,7 +8,6 @@ import net.arctics.clonk.resource.c4group.C4Group;
 
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
-import org.eclipse.core.runtime.CoreException;
 
 public class C4ObjectParser {
 	

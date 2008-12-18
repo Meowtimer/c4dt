@@ -1,16 +1,11 @@
 package net.arctics.clonk.ui.wizards;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.Arrays;
-
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.preferences.PreferenceConstants;
 import net.arctics.clonk.resource.c4group.C4GroupExporter;
 
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IResource;
-import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.preferences.IPreferencesService;
 import org.eclipse.jface.viewers.IStructuredSelection;

@@ -1288,6 +1288,10 @@ public abstract class C4ScriptExprTree {
 			for (int i = 0; i < indentDepth; i++)
 				builder.append("\t"); // FIXME: should be done according to user's preferences
 		}
+		@Override
+		public boolean hasSideEffects() {
+			return true;
+		}
 	}
 	
 	/**
@@ -1389,6 +1393,11 @@ public abstract class C4ScriptExprTree {
 		@Override
 		public boolean isReturn() {
 			return expression.isReturn();
+		}
+		
+		@Override
+		public boolean hasSideEffects() {
+			return expression.hasSideEffects();
 		}
 	}
 	
