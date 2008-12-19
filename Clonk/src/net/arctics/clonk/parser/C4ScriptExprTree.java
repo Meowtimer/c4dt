@@ -614,6 +614,26 @@ public abstract class C4ScriptExprTree {
 			}
 			return super.guessObjectType(parser);
 		}
+		protected ExprBinaryOp applyOperatorTo(C4ScriptParser parser, ExprElm[] parms, C4ScriptOperator operator) throws CloneNotSupportedException {
+			ExprBinaryOp op = new ExprBinaryOp(operator);
+			ExprBinaryOp result = op;
+			for (int i = 0; i < parms.length; i++) {
+				ExprElm one = parms[i].newStyleReplacement(parser);
+				ExprElm two = i+1 < parms.length ? parms[i+1] : null;
+				if (op.getLeftSide() == null)
+					op.setLeftSide(one);
+				else if (two == null) {
+					op.setRightSide(one);
+				}
+				else {
+					ExprBinaryOp nu = new ExprBinaryOp(operator);
+					op.setRightSide(nu);
+					nu.setLeftSide(one);
+					op = nu;
+				}
+			}
+			return result;
+		}
 		@Override
 		public ExprElm newStyleReplacement(C4ScriptParser parser) throws CloneNotSupportedException {
 			
@@ -629,8 +649,8 @@ public abstract class C4ScriptExprTree {
 					n = new ExprParenthesized(n);
 				return new ExprUnaryOp(replOperator, replOperator.isPostfix() ? ExprUnaryOp.Placement.Postfix : ExprUnaryOp.Placement.Prefix, n);
 			}
-			if (replOperator != null && params.length == 2) {
-				return new ExprBinaryOp(replOperator, params[0].newStyleReplacement(parser), params[1].newStyleReplacement(parser));
+			if (replOperator != null && params.length >= 2) {
+				return applyOperatorTo(parser, params, replOperator);
 			}
 			
 			// ObjectCall(ugh, "UghUgh", 5) -> ugh->UghUgh(5)
@@ -1040,9 +1060,16 @@ public abstract class C4ScriptExprTree {
 	public static final class ExprNumber extends ExprLiteral<Long> {
 
 		public static final ExprNumber ZERO = new ExprNumber(0);
+		
+		private boolean hex;
 
-		public ExprNumber(long value) {
+		public ExprNumber(long value, boolean hex) {
 			super(new Long(value));
+			this.hex = hex;
+		}
+		
+		public ExprNumber(long value) {
+			this(value, false);
 		}
 
 		public long longValue() {
@@ -1055,7 +1082,12 @@ public abstract class C4ScriptExprTree {
 
 		@Override
 		public void print(StringBuilder output, int depth) {
-			output.append(longValue());
+			if (hex) {
+				output.append("0x");
+				output.append(Long.toHexString(longValue()).toUpperCase());
+			}
+			else
+				output.append(longValue());
 		}
 
 		public C4Type getType() {
@@ -1068,6 +1100,14 @@ public abstract class C4ScriptExprTree {
 		public boolean canBeConvertedTo(C4Type otherType) {
 			// 0 is the NULL object or NULL string
 			return (longValue() == 0 && (otherType == C4Type.OBJECT || otherType == C4Type.STRING)) || super.canBeConvertedTo(otherType);
+		}
+
+		public boolean isHex() {
+			return hex;
+		}
+
+		public void setHex(boolean hex) {
+			this.hex = hex;
 		}
 
 	}
@@ -1819,6 +1859,8 @@ public abstract class C4ScriptExprTree {
 		}
 		@Override
 		public FieldRegion fieldAt(int offset, C4ScriptParser parser) {
+			if (contents == null)
+				return null;
 			String[] assignments = contents.split("\\|");
 			int off = 1;
 			for (String assignment : assignments) {

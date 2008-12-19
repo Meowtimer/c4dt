@@ -980,6 +980,39 @@ public class C4ScriptParser {
 		}
 	}
 	
+	private boolean parseHexNumber(int offset) throws ParsingException {
+		fReader.seek(offset);
+		boolean isHex = fReader.read() == '0' && fReader.read() == 'x';
+		if (!isHex)
+			fReader.seek(offset);
+		else {
+			offset += 2;
+			int count = 0;
+			if (isHex) {
+				do {
+					int readByte = fReader.read();
+					if (('0' <= readByte && readByte <= '9') || ('A' <= readByte && readByte <= 'F') ||  ('a' <= readByte && readByte <= 'f'))  {
+						count++;
+						continue;
+					}
+					else {
+						fReader.unread();
+						if (count > 0) {
+							fReader.seek(offset);
+							parsedNumber = Long.parseLong(fReader.readString(count), 16);
+							fReader.seek(offset+count);
+						} else {
+							parsedNumber = -1; // unlikely to be parsed
+							return false; // well, this seems not to be a number at all
+						} 
+						return true;
+					}
+				} while(!fReader.reachedEOF());
+			}
+		}
+		return isHex;
+	}
+	
 	private boolean parseNumber(int offset) throws ParsingException {
 		fReader.seek(offset);
 		int count = 0;
@@ -1243,6 +1276,13 @@ public class C4ScriptParser {
 			// id
 			if (parseID(fReader.offset)) {
 				elm = new ExprID(parsedID);
+			}
+			
+			// hex number
+			if (elm == null && parseHexNumber(fReader.offset)) {
+				if (parsedNumber < Integer.MIN_VALUE || parsedNumber > Integer.MAX_VALUE)
+					warningWithCode(ErrorCode.OutOfIntRange, elmStart, fReader.getPosition(), String.valueOf(parsedNumber));
+				elm = new ExprNumber(parsedNumber, true);
 			}
 			
 			// number
@@ -2224,6 +2264,7 @@ public class C4ScriptParser {
 		parser.disableError(ErrorCode.TokenExpected);
 		parser.disableError(ErrorCode.InvalidExpression);
 		parser.disableError(ErrorCode.BlockNotClosed);
+		parser.disableError(ErrorCode.NotAllowedHere);
 		try {
 			EnumSet<ParseStatementOption> options = EnumSet.of(ParseStatementOption.ExpectFuncDesc);
 			while (!parser.fReader.reachedEOF()) {
