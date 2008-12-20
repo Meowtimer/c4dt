@@ -1,8 +1,10 @@
 package net.arctics.clonk.parser;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.Utilities;
@@ -23,12 +25,14 @@ public abstract class C4ScriptBase extends C4Structure {
 		private int recursion;
 		private Class<? extends C4Field> fieldClass;
 		private C4Function context;
+		private Set<C4ScriptBase> alreadySearched;
 		/**
 		 * @param indexer the indexer to be passed to the info
 		 */
 		public FindFieldInfo(ClonkIndex clonkIndex) {
 			super();
 			index = clonkIndex;
+			alreadySearched = new HashSet<C4ScriptBase>();
 		}
 		public FindFieldInfo(ClonkIndex clonkIndex, C4Function ctx) {
 			this(clonkIndex);
@@ -45,6 +49,9 @@ public abstract class C4ScriptBase extends C4Structure {
 		}
 		public C4Function getContext() {
 			return context;
+		}
+		public Set<C4ScriptBase> getAlreadySearched() {
+			return alreadySearched;
 		}
 		
 	}
@@ -98,6 +105,11 @@ public abstract class C4ScriptBase extends C4Structure {
 	}
 	
 	public C4Field findField(String name, FindFieldInfo info) {
+		
+		// prevent infinite recursion
+		if (info.getAlreadySearched().contains(this))
+			return null;
+		info.getAlreadySearched().add(this);
 		
 		// local variable?
 		if (info.recursion == 0) {

@@ -48,6 +48,11 @@ public abstract class C4ScriptExprTree {
 	public abstract static class ExprElm implements IRegion, Cloneable {
 		private int exprStart, exprEnd;
 		
+		protected void assignParentToSubElements() {
+			for (ExprElm e : getSubElements())
+				e.setParent(this);
+		}
+		
 		@Override
 		protected Object clone() throws CloneNotSupportedException {
 			return super.clone();
@@ -93,6 +98,10 @@ public abstract class C4ScriptExprTree {
 		}
 
 		public boolean hasSideEffects() {
+			for (ExprElm e : getSubElements()) {
+				if (e.hasSideEffects())
+					return true;
+			}
 			return false;
 		}
 
@@ -760,7 +769,7 @@ public abstract class C4ScriptExprTree {
 
 		@Override
 		public boolean hasSideEffects() {
-			return getOperator().modifiesArgument();
+			return getOperator().modifiesArgument() || super.hasSideEffects();
 		}
 		
 		@Override
@@ -787,23 +796,33 @@ public abstract class C4ScriptExprTree {
 			}
 			
 			// blub() && blab() && return(1); -> {blub(); blab(); return(1);}
-			if (getOperator() == C4ScriptOperator.And) {
-				List<ExprElm> leftSideArguments = new LinkedList<ExprElm>();
-				ExprBinaryOp op;
+			if (getOperator() == C4ScriptOperator.And && (getParent() instanceof SimpleStatement) && getRightSide().isReturn()) {
+				LinkedList<ExprElm> leftSideArguments = new LinkedList<ExprElm>();
 				ExprElm r;
+				boolean works = true;
 				// gather left sides (must not be operators)
-				for (r = this; (op = r instanceof ExprBinaryOp ? (ExprBinaryOp)r : null) != null && op.getOperator() == C4ScriptOperator.And && !(op.getLeftSide() instanceof ExprBinaryOp); r = ((ExprBinaryOp)r).getRightSide()) {
-					leftSideArguments.add(op.getLeftSide());
+				for (r = getLeftSide(); r instanceof ExprBinaryOp; r = ((ExprBinaryOp)r).getLeftSide()) {
+					ExprBinaryOp op = (ExprBinaryOp)r;
+					if (op.getOperator() != C4ScriptOperator.And) {
+						works = false;
+						break;
+					}
+					if (op.getRightSide() instanceof ExprBinaryOp) {
+						works = false;
+						break;
+					}
+					leftSideArguments.addLast(op.getRightSide());
 				}
 				// return at the right end signals this should rather be a block
-				if (r instanceof ExprCallFunc && ((ExprCallFunc)r).getFieldName().equals(Keywords.Return)) {
+				if (works) {
+					leftSideArguments.addFirst(r);
 					List<Statement> statements = new LinkedList<Statement>();
 					// wrap expressions in statements
 					for (ExprElm ex : leftSideArguments) {
 						statements.add(new SimpleStatement(ex.newStyleReplacement(context)));
 					}
 					// convert func call to proper return statement
-					statements.add(new ReturnStatement(((ExprCallFunc)r).getReturnArg().newStyleReplacement(context)));
+					statements.add(new ReturnStatement(((ExprCallFunc)getRightSide()).getReturnArg().newStyleReplacement(context)));
 					return new Block(statements);
 				}
 			}
@@ -1394,6 +1413,7 @@ public abstract class C4ScriptExprTree {
 		public SimpleStatement(ExprElm expression) {
 			super();
 			this.expression = expression;
+			assignParentToSubElements();
 		}
 
 		public ExprElm getExpression() {
@@ -1514,6 +1534,14 @@ public abstract class C4ScriptExprTree {
 		@Override
 		public boolean isReturn() {
 			return true;
+		}
+		
+		@Override
+		public ExprElm newStyleReplacement(C4ScriptParser parser)
+				throws CloneNotSupportedException {
+			if (returnExpr instanceof ExprParenthesized)
+				return new ReturnStatement(((ExprParenthesized)returnExpr).getInnerExpr().newStyleReplacement(parser));
+			return super.newStyleReplacement(parser);
 		}
 	}
 	

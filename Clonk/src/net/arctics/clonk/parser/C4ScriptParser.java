@@ -2053,6 +2053,8 @@ public class C4ScriptParser {
 				result.setExprRegion(start, fReader.getPosition());
 				if (parseStatementRecursion == 1) {
 					result.warnIfNoSideEffects(this);
+					if (result instanceof SimpleStatement && ((SimpleStatement)result).getExpression() instanceof ExprBinaryOp)
+						((ExprBinaryOp)((SimpleStatement)result).getExpression()).checkTopLevelAssignment(this);
 					if (expressionListener != null) {
 						expressionListener.expressionDetected(result, this);
 					}
@@ -2256,8 +2258,13 @@ public class C4ScriptParser {
 		return reportExpressionsInStatements(doc, region.getOffset(), region.getOffset()+region.getLength(), context, func, listener);
 	}
 	
-	public static C4ScriptParser reportExpressionsInStatements(IDocument doc, int statementStart, int statementEnd, C4ScriptBase context, C4Function func, IExpressionListener listener) throws BadLocationException, CompilerException, ParsingException {
-		String expr = doc.get(statementStart, Math.min(statementEnd-statementStart, doc.getLength()-statementStart));
+	public static C4ScriptParser reportExpressionsInStatements(IDocument doc, int statementStart, int statementEnd, C4ScriptBase context, C4Function func, IExpressionListener listener) throws CompilerException, ParsingException {
+		String expr;
+		try {
+			expr = doc.get(statementStart, Math.min(statementEnd-statementStart, doc.getLength()-statementStart));
+		} catch (BadLocationException e) {
+			expr = ""; // well...
+		}
 		C4ScriptParser parser = new C4ScriptParser(expr, context);
 		parser.activeFunc = func;
 		parser.setExpressionListener(listener);
@@ -2274,7 +2281,8 @@ public class C4ScriptParser {
 				if (!(statement instanceof Comment))
 					options.remove(ParseStatementOption.ExpectFuncDesc);
 			}
-		} catch (Exception e) {
+		} 
+		catch (Exception e) {
 			e.printStackTrace();
 		}
 		return parser;

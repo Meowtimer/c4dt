@@ -88,6 +88,19 @@ public class ClonkIndex implements Serializable {
 		}
 		return staticVariables;
 	}
+
+	private void addGlobalsFrom(C4ScriptBase script) {
+		for(C4Function func : script.definedFunctions) {
+			if (func.getVisibility() == C4FunctionScope.FUNC_GLOBAL) {
+				globalFunctions.add(func);
+			}
+		}
+		for(C4Variable var : script.definedVariables) {
+			if (var.getScope() == C4VariableScope.VAR_STATIC || var.getScope() == C4VariableScope.VAR_CONST) {
+				staticVariables.add(var);
+			}
+		}
+	}
 	
 	public void refreshCache() {
 		// delete old cache
@@ -99,29 +112,14 @@ public class ClonkIndex implements Serializable {
 		// save cachable items
 		for(List<C4Object> objects : getIndexedObjects().values()) {
 			for(C4Object obj : objects) {
-				for(C4Function func : obj.definedFunctions) {
-					if (func.getVisibility() == C4FunctionScope.FUNC_GLOBAL) {
-						globalFunctions.add(func);
-					}
-				}
-				for(C4Variable var : obj.definedVariables) {
-					if (var.getScope() == C4VariableScope.VAR_STATIC || var.getScope() == C4VariableScope.VAR_CONST) {
-						staticVariables.add(var);
-					}
-				}
+				addGlobalsFrom(obj);
 			}
 		}
 		for (C4ScriptBase script : getIndexedScripts()) {
-			for (C4Function func : script.definedFunctions) {
-				if (func.getVisibility() == C4FunctionScope.FUNC_GLOBAL) {
-					globalFunctions.add(func);
-				}
-			}
-			for (C4Variable var : script.definedVariables) {
-				if (var.getScope() == C4VariableScope.VAR_STATIC || var.getScope() == C4VariableScope.VAR_CONST) {
-					staticVariables.add(var);
-				}
-			}
+			addGlobalsFrom(script);
+		}
+		for (C4Scenario scen : getIndexedScenarios()) {
+			addGlobalsFrom(scen);
 		}
 		
 //		System.out.println("Functions added to cache:");

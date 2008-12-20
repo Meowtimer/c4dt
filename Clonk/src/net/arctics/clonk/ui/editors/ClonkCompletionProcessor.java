@@ -323,9 +323,6 @@ public class ClonkCompletionProcessor implements IContentAssistProcessor {
 							contextObjChanged = true;
 						}
 					}
-				} catch (BadLocationException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
 				} catch (CompilerException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
