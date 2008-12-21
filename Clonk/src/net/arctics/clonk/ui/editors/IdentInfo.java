@@ -43,26 +43,8 @@ public class IdentInfo implements IExpressionListener {
 			return;
 		C4Function func = script.funcAt(region);
 		if (func == null) {
-			// outside function, fallback to old technique (only ids)
-			IRegion lineInfo;
-			String line;
-			try {
-				lineInfo = doc.getLineInformationOfOffset(region.getOffset());
-				line = doc.get(lineInfo.getOffset(),lineInfo.getLength());
-			} catch (BadLocationException e) {
-				return;
-			}
-			int localOffset = region.getOffset() - lineInfo.getOffset();
-			int start,end;
-			for (start = localOffset; start > 0 && Character.isJavaIdentifierPart(line.charAt(start-1)); start--);
-			for (end = localOffset; end < line.length() && Character.isJavaIdentifierPart(line.charAt(end)); end++);
-			identRegion = new Region(lineInfo.getOffset()+start,end-start);
-			if (identRegion.getLength() == 4) {
-				C4ID id = C4ID.getID(doc.get(identRegion.getOffset(), identRegion.getLength()));
-				field = Utilities.getScriptForEditor(getEditor()).getIndex().getLastObjectWithId(id);
-				if (field == null)
-					field = ClonkCore.EXTERN_INDEX.getLastObjectWithId(id);
-			}
+			// outside function, fallback to old technique
+			simpleFindField(doc, region, script);
 			return;
 		}
 		int statementStart = func.getBody().getOffset();
@@ -77,6 +59,26 @@ public class IdentInfo implements IExpressionListener {
 				}
 			}
 		}
+		else
+			simpleFindField(doc, region, script);
+	}
+
+	private void simpleFindField(IDocument doc, IRegion region,
+			C4ScriptBase script) throws BadLocationException {
+		IRegion lineInfo;
+		String line;
+		try {
+			lineInfo = doc.getLineInformationOfOffset(region.getOffset());
+			line = doc.get(lineInfo.getOffset(),lineInfo.getLength());
+		} catch (BadLocationException e) {
+			return;
+		}
+		int localOffset = region.getOffset() - lineInfo.getOffset();
+		int start,end;
+		for (start = localOffset; start > 0 && Character.isJavaIdentifierPart(line.charAt(start-1)); start--);
+		for (end = localOffset; end < line.length() && Character.isJavaIdentifierPart(line.charAt(end)); end++);
+		identRegion = new Region(lineInfo.getOffset()+start,end-start);
+		field = script.findField(doc.get(identRegion.getOffset(),  identRegion.getLength()));
 	}
 	
 	/**

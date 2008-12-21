@@ -20,9 +20,7 @@ public class C4SystemScript extends C4ScriptBase implements Serializable {
 	
 	public C4SystemScript(IResource scriptFile) throws CoreException {
 		this.name = scriptFile.getName();
-		this.scriptFile = scriptFile;
-		this.scriptFilePath = scriptFile.getFullPath().toPortableString();
-		scriptFile.setSessionProperty(ClonkCore.SCRIPT_PROPERTY_ID, this);
+		setScriptfile(scriptFile);
 	}
 
 	@Override
@@ -31,7 +29,7 @@ public class C4SystemScript extends C4ScriptBase implements Serializable {
 	}
 
 	@Override
-	public Object getScriptFile() {
+	public IResource getScriptFile() {
 		return scriptFile;
 	}
 	
@@ -43,6 +41,7 @@ public class C4SystemScript extends C4ScriptBase implements Serializable {
 		scriptFile = f;
 		if (f != null)
 			f.setSessionProperty(ClonkCore.SCRIPT_PROPERTY_ID, this);
+		scriptFilePath = f != null ? f.getFullPath().toPortableString() : "";
 	}
 	
 	public String getScriptFilePath() {

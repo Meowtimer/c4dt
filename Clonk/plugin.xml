@@ -296,22 +296,28 @@
 <extension
         point="org.eclipse.ui.commands">
 	 <command
-	    name="Open Object"
-	    description="Open Object Description"
-	    categoryId="org.eclipse.ui.category.edit"
-	    id="net.arctics.clonk.ui.open.object">
+	 	categoryId="org.eclipse.ui.category.edit"
+	 	description="Open Object Description"
+	    id="net.arctics.clonk.ui.open.object"
+	    name="Open Object">
 	 </command>
 	 <command
-	 	name="Convert old code to new code"
 	 	categoryId="org.eclipse.ui.category.edit"
 	 	description="Converts old code to new code"
-	 	id="net.arctics.clonk.ui.editors.actions.ConvertOldCodeToNewCode">
+	 	id="net.arctics.clonk.ui.editors.actions.ConvertOldCodeToNewCode"
+	 	name="Convert old code to new code">
 	 </command>
 	 <command
 	    categoryId="org.eclipse.ui.category.edit"
 	    description="Open Declaration"
 	    id="net.arctics.clonk.ui.editors.actions.OpenDeclaration"
 	    name="Open Declaration">
+	 </command>
+	 <command
+	    categoryId="org.eclipse.ui.category.edit"
+	    description="Find References"
+	    id="net.arctics.clonk.ui.editors.actions.FindReferences"
+	    name="Find References">
 	 </command>
 </extension>
 
@@ -386,6 +392,17 @@
          </enablement>
       </decorator>
    </extension>
+   
+	<extension
+		id="ClonkSearchResultPage"
+		point="org.eclipse.search.searchResultViewPages">
+		<viewPage
+			id="net.arctics.clonk.ui.ClonkSearchResultPage"
+			searchResultClass="net.arctics.clonk.ui.search.ClonkSearchResult"
+			class="net.arctics.clonk.ui.search.ClonkSearchResultPage">
+		</viewPage>
+	</extension>
+   
   
 <!--<extension
        point="org.eclipse.ui.commands">

@@ -289,6 +289,20 @@ public class C4ScriptParser {
 			seek(pos);
 			return result;
 		}
+		
+		public static boolean isLineDelimiterChar(char c) {
+			for (int i = 0; i < NEWLINE_DELIMITERS.length; i++)
+				if (NEWLINE_DELIMITERS[i] == c)
+					return true;
+			return false;
+		}
+
+		public String getLineAt(IRegion region) {
+			int start, end;
+			for (start = region.getOffset(); start > 0 && !isLineDelimiterChar(buffer.charAt(start-1)); start--);
+			for (end = region.getOffset()+region.getLength(); end < buffer.length()-1 && !isLineDelimiterChar(buffer.charAt(end+1)); end++);
+			return buffer.substring(start, end+1).trim();
+		}
 	}
 
 	public static class ParsingException extends Exception {
@@ -461,6 +475,10 @@ public class C4ScriptParser {
 			warningWithCode(ErrorCode.InternalError, fReader.getPosition(), fReader.getPosition()+1, e.getMessage());
 			e.printStackTrace();
 		}
+	}
+	
+	public String getLineAt(IRegion region) {
+		return fReader.getLineAt(region);
 	}
 
 	protected boolean parseDeclaration(int offset) throws ParsingException {
@@ -2004,6 +2022,7 @@ public class C4ScriptParser {
 						result = new BreakStatement();
 					}
 					else if (readWord.equals(Keywords.Return)) {
+						eatWhitespace();
 						int next = fReader.read();
 						ExprElm returnExpr;
 						if (next == ';') {

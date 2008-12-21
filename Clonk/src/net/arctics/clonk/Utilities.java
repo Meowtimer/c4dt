@@ -55,10 +55,13 @@ public abstract class Utilities {
 		}
 	}
 	
-	public static ClonkProjectNature getProject(C4Object obj) {
-		if (obj == null) return null;
-		if (obj instanceof C4ObjectIntern)
-			return getProject(((C4ObjectIntern)obj).getObjectFolder());
+	public static ClonkProjectNature getProject(C4ScriptBase script) {
+		if (script == null)
+			return null;
+		if (script instanceof C4ObjectIntern)
+			return getProject(((C4ObjectIntern)script).getObjectFolder());
+		if (script instanceof C4SystemScript)
+			return getProject(((C4SystemScript)script).getScriptFile());
 		else
 			return null;
 	}

@@ -2,10 +2,14 @@ package net.arctics.clonk.ui.editors.actions;
 
 import java.util.ResourceBundle;
 
+import net.arctics.clonk.parser.C4Field;
+import net.arctics.clonk.parser.CompilerException;
+import net.arctics.clonk.parser.C4ScriptParser.ParsingException;
 import net.arctics.clonk.ui.editors.C4ScriptEditor;
 import net.arctics.clonk.ui.editors.ClonkCommandIds;
 import net.arctics.clonk.ui.editors.IdentInfo;
 
+import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.ITextSelection;
 import org.eclipse.jface.text.Region;
@@ -19,20 +23,25 @@ public class OpenDeclarationAction extends TextEditorAction {
 		super(bundle, prefix, editor);
 		this.setActionDefinitionId(ClonkCommandIds.OPEN_DECLARATION);
 	}
+	
+	protected C4Field getFieldAtSelection() throws BadLocationException, CompilerException, ParsingException {
+		ITextSelection selection = (ITextSelection) getTextEditor().getSelectionProvider().getSelection();
+		IRegion r = new Region(selection.getOffset(), selection.getLength());
+		IdentInfo info = new IdentInfo(
+				getTextEditor(),
+				getTextEditor().getDocumentProvider().getDocument(getTextEditor().getEditorInput()),
+				r);
+		return info.getField();
+	}
 
 	@Override
 	public void run() {
-		ITextSelection selection = (ITextSelection) getTextEditor().getSelectionProvider().getSelection();
-		IRegion r = new Region(selection.getOffset(), selection.getLength());
 		try {
-			IdentInfo info = new IdentInfo(
-					getTextEditor(),
-					getTextEditor().getDocumentProvider().getDocument(getTextEditor().getEditorInput()),
-					r);
-			if (info.getField() != null)
-				C4ScriptEditor.openDeclaration(info.getField());
+			C4Field field = getFieldAtSelection();
+			if (field != null)
+				C4ScriptEditor.openDeclaration(field);
 		} catch (Exception e) {
-			e.printStackTrace();
+			// so what
 		}
 	}
 }

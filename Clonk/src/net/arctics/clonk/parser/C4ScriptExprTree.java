@@ -686,8 +686,8 @@ public abstract class C4ScriptExprTree {
 			}
 			
 			// SetVar(5, "ugh") -> Var(5) = "ugh"
-			else if (params.length == 2 && fieldName.equals("SetVar")) {
-				return new ExprBinaryOp(C4ScriptOperator.Assign, new ExprCallFunc("Var", params[0].newStyleReplacement(parser)), params[1].newStyleReplacement(parser));
+			else if (params.length == 2 && (fieldName.equals("SetVar") || fieldName.equals("SetLocal"))) {
+				return new ExprBinaryOp(C4ScriptOperator.Assign, new ExprCallFunc(fieldName.substring(3), params[0].newStyleReplacement(parser)), params[1].newStyleReplacement(parser));
 			}
 			
 			return super.newStyleReplacement(parser);
@@ -1508,7 +1508,11 @@ public abstract class C4ScriptExprTree {
 			builder.append(getKeyword());
 			if (returnExpr != null) {
 				builder.append(" ");
-				returnExpr.print(builder, depth+1);
+				// return(); -> return 0;
+				if (returnExpr == ExprElm.NULL_EXPR)
+					builder.append("0");
+				else
+					returnExpr.print(builder, depth+1);
 			}
 			builder.append(";");
 		}

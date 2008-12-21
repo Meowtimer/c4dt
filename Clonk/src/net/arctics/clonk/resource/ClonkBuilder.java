@@ -80,8 +80,10 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 					if (resource.getSessionProperty(ClonkCore.C4OBJECT_PROPERTY_ID) != null) {
 						resource.setSessionProperty(ClonkCore.C4OBJECT_PROPERTY_ID, null);
 					}
-					if (resource instanceof IContainer) return true;
-					else return false;
+					if (resource.getSessionProperty(ClonkCore.SCRIPT_PROPERTY_ID) != null) {
+						resource.setSessionProperty(ClonkCore.SCRIPT_PROPERTY_ID, null);
+					}
+					return resource instanceof IContainer;
 				}
 			});
 		}

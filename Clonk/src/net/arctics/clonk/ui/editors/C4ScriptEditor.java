@@ -17,6 +17,7 @@ import net.arctics.clonk.parser.C4SystemScript;
 import net.arctics.clonk.parser.CompilerException;
 import net.arctics.clonk.parser.SourceLocation;
 import net.arctics.clonk.ui.editors.actions.ConvertOldCodeToNewCodeAction;
+import net.arctics.clonk.ui.editors.actions.FindReferencesAction;
 import net.arctics.clonk.ui.editors.actions.OpenDeclarationAction;
 
 import org.eclipse.core.resources.IFile;
@@ -40,12 +41,14 @@ import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.editors.text.TextEditor;
 import org.eclipse.ui.ide.IDE;
+import org.eclipse.ui.part.IShowInSource;
+import org.eclipse.ui.part.ShowInContext;
 import org.eclipse.ui.texteditor.ContentAssistAction;
 import org.eclipse.ui.texteditor.ITextEditorActionDefinitionIds;
 import org.eclipse.ui.texteditor.SourceViewerDecorationSupport;
 import org.eclipse.ui.views.contentoutline.IContentOutlinePage;
 
-public class C4ScriptEditor extends TextEditor {
+public class C4ScriptEditor extends TextEditor implements IShowInSource {
 
 	private ColorManager colorManager;
 	private ClonkContentOutlinePage outlinePage;
@@ -53,7 +56,6 @@ public class C4ScriptEditor extends TextEditor {
 	private static final String ENABLE_BRACKET_HIGHLIGHT = ClonkCore.PLUGIN_ID + ".enableBracketHighlighting";
 	private static final String BRACKET_HIGHLIGHT_COLOR = ClonkCore.PLUGIN_ID + ".bracketHighlightColor";
 	private DefaultCharacterPairMatcher fBracketMatcher = new DefaultCharacterPairMatcher(new char[] { '{', '}', '(', ')' });
-	
 	
 	public C4ScriptEditor() {
 		super();
@@ -106,6 +108,9 @@ public class C4ScriptEditor extends TextEditor {
 		if (IContentOutlinePage.class.equals(adapter)) {
 			return getOutlinePage();
 		}
+		if (IShowInSource.class.equals(adapter)) {
+			return this;
+		}
 		return super.getAdapter(adapter);
 	}
 
@@ -118,7 +123,7 @@ public class C4ScriptEditor extends TextEditor {
 		super.createActions();
 		ResourceBundle messagesBundle = ResourceBundle.getBundle("net.arctics.clonk.ui.editors.Messages"); //$NON-NLS-1$
 		
-		IAction action= new ContentAssistAction(messagesBundle,"ClonkContentAssist.",this); //$NON-NLS-1$
+		IAction action = new ContentAssistAction(messagesBundle,"ClonkContentAssist.",this); //$NON-NLS-1$
 		action.setActionDefinitionId(ITextEditorActionDefinitionIds.CONTENT_ASSIST_PROPOSALS);
 		setAction(ITextEditorActionDefinitionIds.CONTENT_ASSIST_PROPOSALS, action);
 		
@@ -133,8 +138,11 @@ public class C4ScriptEditor extends TextEditor {
 		action = new ConvertOldCodeToNewCodeAction(messagesBundle,"ConvertOldCodeToNewCode.",this); //$NON-NLS-1$
 		setAction(ClonkCommandIds.CONVERT_OLD_CODE_TO_NEW_CODE, action);
 		
-		action = new OpenDeclarationAction(messagesBundle,"OpenDeclarationAction.",this); //$NON-NLS-1$
+		action = new OpenDeclarationAction(messagesBundle,"OpenDeclaration.",this); //$NON-NLS-1$
 		setAction(ClonkCommandIds.OPEN_DECLARATION, action);
+		
+		action = new FindReferencesAction(messagesBundle,"FindReferences.",this); //$NON-NLS-1$
+		setAction(ClonkCommandIds.FIND_REFERENCES, action);
 		
 	}
 
@@ -165,6 +173,7 @@ public class C4ScriptEditor extends TextEditor {
 		super.editorContextMenuAboutToShow(menu);
 		addAction(menu, ClonkCommandIds.CONVERT_OLD_CODE_TO_NEW_CODE);
 		addAction(menu, ClonkCommandIds.OPEN_DECLARATION);
+		addAction(menu, ClonkCommandIds.FIND_REFERENCES);
 	}
 
 	public void selectAndReveal(SourceLocation location) {
@@ -252,6 +261,10 @@ public class C4ScriptEditor extends TextEditor {
 		} else {
 			// TODO: provide some info about global functions or something
 		}
+	}
+
+	public ShowInContext getShowInContext() {
+		return new ShowInContext(getEditorInput(), null);
 	}
 
 }

@@ -281,6 +281,7 @@ public class ClonkIndex implements Serializable {
 	public void clear() {
 		getIndexedObjects().clear();
 		getIndexedScripts().clear();
+		getIndexedScenarios().clear();
 		refreshCache();
 	}
 
