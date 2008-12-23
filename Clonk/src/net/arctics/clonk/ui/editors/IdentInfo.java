@@ -1,13 +1,12 @@
 package net.arctics.clonk.ui.editors;
 
-import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.Utilities;
 import net.arctics.clonk.parser.C4Field;
 import net.arctics.clonk.parser.C4Function;
-import net.arctics.clonk.parser.C4ID;
 import net.arctics.clonk.parser.C4ScriptBase;
 import net.arctics.clonk.parser.C4ScriptParser;
 import net.arctics.clonk.parser.CompilerException;
+import net.arctics.clonk.parser.C4ScriptBase.FindFieldInfo;
 import net.arctics.clonk.parser.C4ScriptExprTree.ExprElm;
 import net.arctics.clonk.parser.C4ScriptExprTree.FieldRegion;
 import net.arctics.clonk.parser.C4ScriptExprTree.IExpressionListener;
@@ -44,7 +43,7 @@ public class IdentInfo implements IExpressionListener {
 		C4Function func = script.funcAt(region);
 		if (func == null) {
 			// outside function, fallback to old technique
-			simpleFindField(doc, region, script);
+			simpleFindField(doc, region, script, null);
 			return;
 		}
 		int statementStart = func.getBody().getOffset();
@@ -60,11 +59,11 @@ public class IdentInfo implements IExpressionListener {
 			}
 		}
 		else
-			simpleFindField(doc, region, script);
+			simpleFindField(doc, region, script, func);
 	}
 
 	private void simpleFindField(IDocument doc, IRegion region,
-			C4ScriptBase script) throws BadLocationException {
+			C4ScriptBase script, C4Function func) throws BadLocationException {
 		IRegion lineInfo;
 		String line;
 		try {
@@ -78,7 +77,7 @@ public class IdentInfo implements IExpressionListener {
 		for (start = localOffset; start > 0 && Character.isJavaIdentifierPart(line.charAt(start-1)); start--);
 		for (end = localOffset; end < line.length() && Character.isJavaIdentifierPart(line.charAt(end)); end++);
 		identRegion = new Region(lineInfo.getOffset()+start,end-start);
-		field = script.findField(doc.get(identRegion.getOffset(),  identRegion.getLength()));
+		field = script.findField(doc.get(identRegion.getOffset(),  identRegion.getLength()), new FindFieldInfo(script.getIndex(), func));
 	}
 	
 	/**

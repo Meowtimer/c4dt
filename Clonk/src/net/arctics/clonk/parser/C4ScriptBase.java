@@ -325,11 +325,18 @@ public abstract class C4ScriptBase extends C4Structure {
 	}
 
 	public boolean includes(C4Object other) {
+		return includes(other, new HashSet<C4ScriptBase>());
+	}
+	
+	public boolean includes(C4Object other, Set<C4ScriptBase> dontRevisit) {
+		if (dontRevisit.contains(this))
+			return false;
+		dontRevisit.add(this);
 		C4Object[] incs = this.getIncludes();
 		for (C4Object o : incs) {
 			if (o == other)
 				return true;
-			if (o.includes(other))
+			if (o.includes(other, dontRevisit))
 				return true;
 		}
 		return false;

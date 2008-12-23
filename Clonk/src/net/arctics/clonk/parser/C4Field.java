@@ -2,6 +2,8 @@ package net.arctics.clonk.parser;
 
 import java.io.Serializable;
 
+import org.eclipse.core.resources.IResource;
+
 public abstract class C4Field implements Serializable  {
 	/**
 	 * 
@@ -10,6 +12,8 @@ public abstract class C4Field implements Serializable  {
 	protected String name;
 	protected SourceLocation location;
 	protected C4Field parentField;
+	
+	private static final Object[] EMPTY_SCOPE = new IResource[0];
 
 	/**
 	 * @return the name
@@ -61,6 +65,8 @@ public abstract class C4Field implements Serializable  {
 		return false;
 	}
 	public C4Field latestVersion() {
+		if (parentField != null)
+			parentField = parentField.latestVersion();
 		if (parentField instanceof C4Structure)
 			return ((C4Structure)parentField).findField(getName());
 		return this;
@@ -69,5 +75,13 @@ public abstract class C4Field implements Serializable  {
 	@Override
 	public String toString() {
 		return getName();
+	}
+	
+	public Object[] occurenceScope() {
+		C4ScriptBase script = getScript();
+		if (script instanceof C4ObjectIntern || script instanceof C4SystemScript) {
+			return new Object[] {((IResource) script.getScriptFile()).getProject()};
+		}
+		return EMPTY_SCOPE;
 	}
 }

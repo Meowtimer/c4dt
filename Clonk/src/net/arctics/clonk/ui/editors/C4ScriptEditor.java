@@ -228,7 +228,11 @@ public class C4ScriptEditor extends TextEditor implements IShowInSource {
 		return parser;
 	}
 	
-	public static void openDeclaration(C4Field target) throws PartInitException, CompilerException {
+	public static IEditorPart openDeclaration(C4Field target) throws PartInitException, CompilerException {
+		return openDeclaration(target, true);
+	}
+	
+	public static IEditorPart openDeclaration(C4Field target, boolean activate) throws PartInitException, CompilerException {
 		IWorkbench workbench = PlatformUI.getWorkbench();
 		IWorkbenchPage workbenchPage = workbench.getActiveWorkbenchWindow().getActivePage();
 		C4ScriptBase script = target instanceof C4ScriptBase ? (C4ScriptBase)target : target.getScript();
@@ -236,7 +240,7 @@ public class C4ScriptEditor extends TextEditor implements IShowInSource {
 			if (script instanceof C4ObjectIntern || script instanceof C4SystemScript) {
 				IFile scriptFile = (IFile) script.getScriptFile();
 				if (scriptFile != null) {
-					IEditorPart editor = IDE.openEditor(workbenchPage, scriptFile, "clonk.editors.C4ScriptEditor");
+					IEditorPart editor = IDE.openEditor(workbenchPage, scriptFile, "clonk.editors.C4ScriptEditor", activate);
 					C4ScriptEditor scriptEditor = (C4ScriptEditor)editor;						
 					if (target != script) {
 						scriptEditor.reparseWithDocumentContents(null, false);
@@ -244,10 +248,11 @@ public class C4ScriptEditor extends TextEditor implements IShowInSource {
 						if (target != null)
 							scriptEditor.selectAndReveal(target.getLocation());
 					}
+					return scriptEditor;
 				} else {
 					IFile defCore = ((C4ObjectIntern)script).getDefCoreFile();
 					if (defCore != null)
-						IDE.openEditor(workbenchPage, defCore);
+						return IDE.openEditor(workbenchPage, defCore, activate);
 				}
 			}
 			else if (script instanceof C4ObjectExtern) {
@@ -256,11 +261,11 @@ public class C4ScriptEditor extends TextEditor implements IShowInSource {
 					C4ScriptEditor scriptEditor = (C4ScriptEditor)editor;
 					if (target != script)
 						scriptEditor.selectAndReveal(target.getLocation());
+					return scriptEditor;
 				}
 			}
-		} else {
-			// TODO: provide some info about global functions or something
 		}
+		return null;
 	}
 
 	public ShowInContext getShowInContext() {

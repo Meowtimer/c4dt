@@ -1,6 +1,12 @@
 package net.arctics.clonk.parser;
 
 import java.io.Serializable;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Set;
+
+import org.eclipse.core.resources.IResource;
 
 import net.arctics.clonk.parser.C4ScriptExprTree.ExprElm;
 
@@ -188,6 +194,29 @@ public class C4Variable extends C4Field implements Serializable {
 
 	public void setByRef(boolean byRef) {
 		this.byRef = byRef;
+	}
+	
+	@Override
+	public Object[] occurenceScope() {
+		if (parentField instanceof C4Function)
+			return new Object[] {parentField};
+		if (!isGlobal() && parentField instanceof C4ObjectIntern) {
+			C4ObjectIntern obj = (C4ObjectIntern) parentField;
+			ClonkIndex index = obj.getIndex();
+			Set<Object> result = new HashSet<Object>();
+			result.add(obj);
+			for (C4Object o : index) {
+				if (o.includes(obj)) {
+					result.add(o);
+				}
+			}
+			return result.toArray();
+		}
+		return super.occurenceScope();
+	}
+
+	private boolean isGlobal() {
+		return scope == C4VariableScope.VAR_STATIC || scope == C4VariableScope.VAR_CONST;
 	}
 	
 }

@@ -127,13 +127,15 @@ public class ClonkLabelProvider extends LabelProvider implements IStyledLabelPro
 
 	public static Image computeImage(String registryKey, String iconPath, IResource element) {
 		ImageRegistry reg = ClonkCore.getDefault().getImageRegistry();
-		if (reg.get(registryKey) == null) {
+		Image img = reg.get(registryKey);
+		if (img == null) {
 			reg.put(registryKey, Utilities.getIconDescriptor(iconPath));
+			img = reg.get(registryKey);
 		}
 //			if (element.findMarkers(IMarker.PROBLEM, true, IResource.DEPTH_INFINITE).length > 0) {
 //				return decorateImage(reg.getDescriptor(registryKey), element).createImage();
 //			}
-		return reg.get(registryKey);
+		return img;
 	}
 	
 	protected static ImageDescriptor decorateImage(ImageDescriptor input,

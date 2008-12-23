@@ -2,6 +2,7 @@ package net.arctics.clonk.parser;
 
 import java.io.Serializable;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -12,7 +13,7 @@ import net.arctics.clonk.parser.C4Variable.C4VariableScope;
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.runtime.CoreException;
 
-public class ClonkIndex implements Serializable {
+public class ClonkIndex implements Serializable, Iterable<C4Object> {
 	
 	private static final long serialVersionUID = 1L;
 
@@ -283,6 +284,39 @@ public class ClonkIndex implements Serializable {
 		getIndexedScripts().clear();
 		getIndexedScenarios().clear();
 		refreshCache();
+	}
+	
+	private class ObjectIterator implements Iterator<C4Object> {
+
+		private Iterator<List<C4Object>> valuesIterator;
+		private Iterator<C4Object> listIterator;
+		
+		public ObjectIterator() {
+			valuesIterator = indexedObjects.values().iterator();
+		}
+		
+		public boolean hasNext() {
+			return (listIterator != null && listIterator.hasNext()) || valuesIterator.hasNext();
+		}
+
+		public C4Object next() {
+			while (listIterator == null || !listIterator.hasNext()) {
+				listIterator = null;
+				if (!valuesIterator.hasNext())
+					return null;
+				listIterator = valuesIterator.next().iterator();
+			}
+			return listIterator.next();
+		}
+
+		public void remove() {
+			// pff
+		}
+		
+	}
+
+	public Iterator<C4Object> iterator() {
+		return new ObjectIterator();
 	}
 
 }

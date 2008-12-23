@@ -15,7 +15,10 @@ Require-Bundle: org.eclipse.ui,
  org.eclipse.ui.forms
 Bundle-ActivationPolicy: lazy
 Bundle-RequiredExecutionEnvironment: J2SE-1.5
-Import-Package: org.eclipse.ui.forms.widgets
+Import-Package: org.eclipse.search.internal.ui.text,
+ org.eclipse.search.ui,
+ org.eclipse.search.ui.text,
+ org.eclipse.ui.forms.widgets
 Export-Package: net.arctics.clonk,
  net.arctics.clonk.parser,
  net.arctics.clonk.parser.defcore,

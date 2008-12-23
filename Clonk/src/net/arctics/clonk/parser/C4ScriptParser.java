@@ -24,6 +24,7 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IRegion;
+import org.eclipse.jface.text.Region;
 
 public class C4ScriptParser {
 	
@@ -298,10 +299,15 @@ public class C4ScriptParser {
 		}
 
 		public String getLineAt(IRegion region) {
+			IRegion lineRegion = getLineRegion(region);
+			return buffer.substring(lineRegion.getOffset(), lineRegion.getOffset()+lineRegion.getLength());
+		}
+		
+		public IRegion getLineRegion(IRegion regionInLine) {
 			int start, end;
-			for (start = region.getOffset(); start > 0 && !isLineDelimiterChar(buffer.charAt(start-1)); start--);
-			for (end = region.getOffset()+region.getLength(); end < buffer.length()-1 && !isLineDelimiterChar(buffer.charAt(end+1)); end++);
-			return buffer.substring(start, end+1).trim();
+			for (start = regionInLine.getOffset(); start > 0 && !isLineDelimiterChar(buffer.charAt(start-1)); start--);
+			for (end = regionInLine.getOffset()+regionInLine.getLength(); end < buffer.length()-1 && !isLineDelimiterChar(buffer.charAt(end+1)); end++);
+			return new Region(start, end-start);
 		}
 	}
 
@@ -458,7 +464,7 @@ public class C4ScriptParser {
 		}
 	}
 
-	private void parseCodeOfFunction(C4Function function) {
+	public void parseCodeOfFunction(C4Function function) {
 		activeFunc = function;
 		numUnnamedParameters = 0;
 		try {
@@ -479,6 +485,14 @@ public class C4ScriptParser {
 	
 	public String getLineAt(IRegion region) {
 		return fReader.getLineAt(region);
+	}
+	
+	public String getSubstringOfScript(IRegion region) {
+		return fReader.readStringAt(region.getOffset(), region.getOffset()+region.getLength()+1);
+	}
+	
+	public IRegion getLineRegion(IRegion regionInLine) {
+		return fReader.getLineRegion(regionInLine);
 	}
 
 	protected boolean parseDeclaration(int offset) throws ParsingException {
@@ -901,8 +915,8 @@ public class C4ScriptParser {
 				warningWithCode(ErrorCode.NeverReached, statement);
 			if (!lastWasReturn)
 				lastWasReturn = statement.isReturn();
-			if (options.contains(ParseStatementOption.ExpectFuncDesc) && statement instanceof FunctionDescription)
-				activeFunc.setFuncDesc((FunctionDescription) statement);
+//			if (options.contains(ParseStatementOption.ExpectFuncDesc) && statement instanceof FunctionDescription)
+//				activeFunc.setFuncDesc((FunctionDescription) statement);
 			// after first 'real' statement don't expect function description anymore
 			if (!(statement instanceof Comment))
 				options.remove(ParseStatementOption.ExpectFuncDesc);
@@ -2011,13 +2025,13 @@ public class C4ScriptParser {
 					}
 					else if (readWord.equals(Keywords.Continue)) {
 						if (currentLoop == null)
-							errorWithCode(ErrorCode.KeywordInWrongPlace, fReader.getPosition()-readWord.length(), fReader.getPosition(), readWord);
+							errorWithCode(ErrorCode.KeywordInWrongPlace, fReader.getPosition()-readWord.length(), fReader.getPosition(), true, readWord);
 						checkForSemicolon();
 						result = new ContinueStatement();
 					}
 					else if (readWord.equals(Keywords.Break)) {
 						if (currentLoop == null)
-							errorWithCode(ErrorCode.KeywordInWrongPlace, fReader.getPosition()-readWord.length(), fReader.getPosition(), readWord);
+							errorWithCode(ErrorCode.KeywordInWrongPlace, fReader.getPosition()-readWord.length(), fReader.getPosition(), true, readWord);
 						checkForSemicolon();
 						result = new BreakStatement();
 					}
