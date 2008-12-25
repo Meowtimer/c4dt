@@ -580,7 +580,8 @@ public abstract class C4ScriptExprTree {
 						if (!given.validForType(parm.getType()))
 							parser.warningWithCode(ErrorCode.IncompatibleTypes, given, parm.getType(), given.getType());
 						given.expectedToBeOfType(parm.getType());
-						//parm.inferTypeFromAssignment(given, parser);
+//						if (parm.getScript() != ClonkCore.ENGINE_OBJECT)
+//							parm.inferTypeFromAssignment(given, parser);
 					}
 				}
 				else if (field == null && getPredecessorInSequence() == null) {
@@ -607,10 +608,9 @@ public abstract class C4ScriptExprTree {
 		}
 		@Override
 		public C4Object guessObjectType(C4ScriptParser parser) {
-			if (params != null && getType() == C4Type.OBJECT && (fieldName.startsWith("Create") || fieldName.startsWith("Find"))) {
-				if (params.length >= 1) {
-					return params[0].guessObjectType(parser);
-				}
+			// FIXME: could lead to problems when one of those functions does not take an id as first parameter
+			if (params != null && params.length >= 1 && getType() == C4Type.OBJECT && (fieldName.startsWith("Create") || fieldName.startsWith("Find"))) {
+				return params[0].guessObjectType(parser);
 			}
 			else if (params.length == 0 && fieldName.equals(C4Variable.THIS.getName())) {
 				return parser.getContainerObject();
@@ -619,7 +619,7 @@ public abstract class C4ScriptExprTree {
 				return searchCriteriaAssumedResult(parser);
 			}
 			else if (fieldName.equals("GetID") && params.length == 0) {
-				return parser.getContainerObject();
+				return getPredecessorInSequence() == null ? parser.getContainerObject() : getPredecessorInSequence().guessObjectType(parser);
 			}
 			return super.guessObjectType(parser);
 		}
@@ -648,7 +648,6 @@ public abstract class C4ScriptExprTree {
 			
 			// And(ugh, blugh) -> ugh && blugh
 			C4ScriptOperator replOperator = C4ScriptOperator.oldStyleFunctionReplacement(fieldName);
-			// TODO: for more than two arguments
 			if (replOperator != null && params.length == 1) {
 				// LessThan(x) -> x < 0
 				if (replOperator.getNumArgs() == 2)
@@ -1210,7 +1209,6 @@ public abstract class C4ScriptExprTree {
 
 		public ExprAccessArray(ExprElm argument) {
 			super(null, Placement.Postfix, argument);
-			// TODO Auto-generated constructor stub
 		}
 
 		@Override
@@ -1547,6 +1545,12 @@ public abstract class C4ScriptExprTree {
 				return new ReturnStatement(((ExprParenthesized)returnExpr).getInnerExpr().newStyleReplacement(parser));
 			return super.newStyleReplacement(parser);
 		}
+		
+		@Override
+		public void reportErrors(C4ScriptParser parser) throws ParsingException {
+			if (returnExpr != null)
+				parser.getActiveFunc().inferTypeFromAssignment(returnExpr, parser);
+		}
 	}
 	
 	public static abstract class ConditionalStatement extends KeywordStatement {
@@ -1656,7 +1660,6 @@ public abstract class C4ScriptExprTree {
 	public static class WhileStatement extends ConditionalStatement {
 		public WhileStatement(ExprElm condition, ExprElm body) {
 			super(condition, body);
-			// TODO Auto-generated constructor stub
 		}
 
 		@Override

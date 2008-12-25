@@ -1,20 +1,25 @@
 package net.arctics.clonk.resource.c4group;
 
-import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.io.StringWriter;
+import java.io.Writer;
 
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.Path;
+import org.omg.CORBA.portable.OutputStream;
 
 public class C4GroupExporter {
 	
 	private IContainer[] definitions;
 	private String c4groupPath;
 	private String destinationPath;
+	
+	private static File scratchExecFile;
 	
 	public C4GroupExporter(IContainer[] definitions, String c4groupPath, String destinatinoPath) {
 		this.definitions = definitions;
@@ -28,22 +33,35 @@ public class C4GroupExporter {
 			if (!(res instanceof IContainer)) continue;
 			IContainer toExport = (IContainer)res;
 			try {
+				String OS = System.getProperty("os.name");
 				if (monitor != null) monitor.subTask(toExport.getName());
 				String c4dpath = new Path(destinationPath).append(toExport.getName()).toOSString();
 				File oldFile = new File(new Path(destinationPath).append(toExport.getName()).toOSString());
 				if (oldFile.exists()) oldFile.delete();
-				String[] cmdArray = new String[] { c4groupPath, c4dpath, "/r", "-a", new Path(toExport.getLocation().toString()).append("*").toOSString() };
-//				String cmd = "\"" + c4groupPath + "\" \"" + c4dpath + "\" /r -a \"" + new Path(toExport.getLocation().toString()).append("*").toOSString() + "\"";
-//				System.out.println(cmd);
-				Process c4group = Runtime.getRuntime().exec(cmdArray, new String[0], oldFile.getParentFile());
 				
-				BufferedReader reader = new BufferedReader(new InputStreamReader(c4group.getInputStream()));
-				String line = null;
-				while((line = reader.readLine()) != null) {
-					System.out.println(line);
+				// ugly hack :S create temporary file that uses /bin/sh to execute c4group 
+				if (OS.equals("Mac OS X")) {
+					if (scratchExecFile == null) {
+						// create and make executable
+						scratchExecFile = File.createTempFile("c4groupproxy", "eclipse");
+						scratchExecFile.deleteOnExit();
+						Runtime.getRuntime().exec(new String[] {"/bin/chmod", "+x", scratchExecFile.getAbsolutePath()});
+					}
+					// write command
+					Writer writer = new OutputStreamWriter(new FileOutputStream(scratchExecFile));
+					writer.write("sh -c \"" + c4groupPath + " $1 /r -a $2/*\"");
+					writer.close();
+					// exec file with destination and source as parameters
+					Runtime.getRuntime().exec(new String[] {scratchExecFile.getAbsolutePath(), c4dpath, toExport.getLocation().toOSString()}).waitFor();
 				}
-				c4group.waitFor();
-				oldFile = null;
+				else {
+					String[] cmdArray = new String[] { c4groupPath, c4dpath, "/r", "-a", new Path(toExport.getLocation().toString()).append("*").toOSString() };
+//					String cmd = "\"" + c4groupPath + "\" \"" + c4dpath + "\" /r -a \"" + new Path(toExport.getLocation().toString()).append("*").toOSString() + "\"";
+//					System.out.println(cmd);
+					Process c4group = Runtime.getRuntime().exec(cmdArray, new String[0], oldFile.getParentFile());
+					c4group.waitFor();
+					oldFile = null;
+				}
 			} catch (IOException e1) {
 				e1.printStackTrace();
 			} catch (InterruptedException e) {

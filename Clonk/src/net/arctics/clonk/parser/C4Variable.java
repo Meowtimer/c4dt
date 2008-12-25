@@ -2,11 +2,7 @@ package net.arctics.clonk.parser;
 
 import java.io.Serializable;
 import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Set;
-
-import org.eclipse.core.resources.IResource;
 
 import net.arctics.clonk.parser.C4ScriptExprTree.ExprElm;
 
@@ -15,7 +11,7 @@ import net.arctics.clonk.parser.C4ScriptExprTree.ExprElm;
  * @author ZokRadonh
  *
  */
-public class C4Variable extends C4Field implements Serializable {
+public class C4Variable extends C4Field implements Serializable, ITypedField {
 
 	private static final long serialVersionUID = -2350345359769750230L;
 	private C4VariableScope scope;
@@ -175,17 +171,11 @@ public class C4Variable extends C4Field implements Serializable {
 	}
 
 	public void inferTypeFromAssignment(ExprElm val, C4ScriptParser context) {
-		setExpectedContent(val.guessObjectType(context));
-		expectedToBeOfType(val.getType());
+		ITypedField.Default.inferTypeFromAssignment(this, val, context);
 	}
 	
 	public void expectedToBeOfType(C4Type t) {
-		if (getType() == C4Type.ANY)
-			// from any to something specific
-			setType(t);
-		else if (getType() != t)
-			// assignments of multiple types - can be anything
-			setType(C4Type.ANY);
+		ITypedField.Default.expectedToBeOfType(this, t);
 	}
 
 	public boolean isByRef() {
@@ -210,6 +200,12 @@ public class C4Variable extends C4Field implements Serializable {
 					result.add(o);
 				}
 			}
+			for (C4ScriptBase script : index.getIndexedScripts()) {
+				if (script.includes(obj)) {
+					result.add(script);
+				}
+			}
+			// scenarios... unlikely
 			return result.toArray();
 		}
 		return super.occurenceScope();

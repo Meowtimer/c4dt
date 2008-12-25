@@ -8,7 +8,6 @@ import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.ui.editors.ClonkCommandIds;
 import net.arctics.clonk.ui.search.ClonkSearchQuery;
 
-import org.eclipse.core.resources.IProject;
 import org.eclipse.search.ui.NewSearchUI;
 import org.eclipse.ui.texteditor.ITextEditor;
 
@@ -25,15 +24,13 @@ public class FindReferencesAction extends OpenDeclarationAction {
 		try {
 			C4Field field = getFieldAtSelection();
 			if (field != null) {
-				NewSearchUI.activateSearchResultView();
 				ClonkProjectNature nature = Utilities.getProject(field.getScript());				
 				if (nature == null) {
 					nature = Utilities.getProject(getTextEditor()); 
 				}
 				if (nature == null)
-					return; // FIXME:
-				IProject proj = nature.getProject();
-				NewSearchUI.runQueryInBackground(new ClonkSearchQuery(field, proj));
+					return; // FIXME
+				NewSearchUI.runQueryInBackground(new ClonkSearchQuery(field));
 			}
 		} catch (Exception e) {
 			e.printStackTrace();

@@ -357,7 +357,7 @@ public class C4ScriptParser {
 	
 	/*
 	 * Number of unnamed parameters used in activeFunc (Par(5) -> 6 unnamed parameters)
-	 * If variable is passed to Par() this variable is set to UNKNOWN_PARAMETERNUM
+	 * If a complex expression is passed to Par() this variable is set to UNKNOWN_PARAMETERNUM
 	 */
 	private int numUnnamedParameters;
 
@@ -1655,55 +1655,6 @@ public class C4ScriptParser {
 	private ExprElm parseExpression(int offset) throws ParsingException {
 		return parseExpression(offset, true);
 	}
-	
-	/**
-	 * Parses [Function description|IMGC|canDisplayMenuItem()]
-	 * @param offset
-	 * @return
-	 * @throws ParsingException
-	 */
-//	private boolean parseFunctionDescription(int offset) throws ParsingException {
-//		fReader.seek(offset);
-//		if (fReader.read() != '[') {
-//			fReader.unread();
-//			return false;
-//		}
-//		String descriptionString = fReader.readStringUntil(']');
-//		if (descriptionString == null) {
-//			fReader.seek(offset);
-//			return false;
-//		}
-//		
-//		if (fReader.read() == ']') {
-//			activeFunc.setFuncDesc(descriptionString);
-//			return true;
-//		}
-//		else {
-//			tokenExpectedError("]");
-//			return false;
-//		}
-////		fReader.readStringUntil(new char[] { '|' }); // description text
-////		if (fReader.read() != '|') {
-////			fReader.unread();
-////			if (fReader.read() == ']') return true;
-////			else return false;
-////		}
-////		int idStart = fReader.getPosition();
-////		String id = fReader.readStringUntil(new char[] { '|' }); // description ID for icon
-////		if (id != null) { // char not found
-////			if (id.length() != 4) {
-////				String problem = "Syntax error: expected an ID";
-////				createErrorMarker(idStart, idStart + 4, problem);
-////				throw new ParsingException(problem);
-////			}
-////			if (fReader.read() == '|') {
-////				parseValue(fReader.getPosition());  // menu item condition
-////			}
-////		}
-////
-//
-//		// [blublu|IMGC|...]
-//	}
 	
 	private boolean parseString(int offset) throws ParsingException {
 		fReader.seek(offset);

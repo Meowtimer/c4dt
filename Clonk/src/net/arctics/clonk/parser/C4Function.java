@@ -5,10 +5,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 import net.arctics.clonk.ClonkCore;
+import net.arctics.clonk.parser.C4ScriptExprTree.ExprElm;
 import net.arctics.clonk.parser.C4ScriptParser.Keywords;
 import net.arctics.clonk.parser.C4Variable.C4VariableScope;
 
-public class C4Function extends C4Structure implements Serializable {
+public class C4Function extends C4Structure implements Serializable, ITypedField {
 
 	private static final long serialVersionUID = 3848213897251037684L;
 	private C4FunctionScope visibility; 
@@ -19,6 +20,7 @@ public class C4Function extends C4Structure implements Serializable {
 	private boolean isCallback;
 	private boolean isOldStyle;
 	private SourceLocation body, header;
+	private C4Object expectedContent;
 	
 	/**
 	 * Do NOT use this constructor! Its for engine-functions only.
@@ -356,6 +358,30 @@ public class C4Function extends C4Structure implements Serializable {
 	
 	public String getHeaderString() {
 		return getHeaderString(isOldStyle());
+	}
+
+	public void expectedToBeOfType(C4Type t) {
+		ITypedField.Default.expectedToBeOfType(this, t);
+	}
+
+	public void inferTypeFromAssignment(ExprElm val, C4ScriptParser context) {
+		ITypedField.Default.inferTypeFromAssignment(this, val, context);
+	}
+
+	public C4Type getType() {
+		return getReturnType();
+	}
+
+	public void setType(C4Type type) {
+		setReturnType(type);
+	}
+
+	public C4Object getExpectedContent() {
+		return expectedContent;
+	}
+
+	public void setExpectedContent(C4Object object) {
+		expectedContent = object;
 	}
 	
 }
