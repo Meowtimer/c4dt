@@ -12,6 +12,11 @@ import org.eclipse.ui.IWorkbench;
 import org.eclipse.core.runtime.*;
 import org.eclipse.jface.operation.*;
 import java.lang.reflect.InvocationTargetException;
+import java.net.URL;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.Map;
+
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.core.resources.*;
@@ -34,6 +39,7 @@ import org.eclipse.ui.*;
 public class NewC4Object extends Wizard implements INewWizard {
 	private NewC4ObjectPage page;
 	private ISelection selection;
+	private Map<String, String> templateReplacements; 
 
 	/**
 	 * Constructor for NewC4Object.
@@ -52,6 +58,13 @@ public class NewC4Object extends Wizard implements INewWizard {
 		addPage(page);
 	}
 
+	protected Map<String, String> initTemplateReplacements() {
+		Map<String, String> result = new HashMap<String, String>();
+		result.put("$ID$", page.getObjectID());
+		result.put("$Name$", page.getFileName().substring(0, page.getFileName().lastIndexOf('.')));
+		return result;
+	}
+	
 	/**
 	 * This method is called when 'Finish' button is pressed in
 	 * the wizard. We will create an operation and run it
@@ -61,6 +74,7 @@ public class NewC4Object extends Wizard implements INewWizard {
 		final String containerName = page.getContainerName();
 		final String fileName = page.getFileName();
 		final String objectID = page.getObjectID().toUpperCase();
+		templateReplacements = initTemplateReplacements();
 		IRunnableWithProgress op = new IRunnableWithProgress() {
 			public void run(IProgressMonitor monitor) throws InvocationTargetException {
 				try {
@@ -90,7 +104,7 @@ public class NewC4Object extends Wizard implements INewWizard {
 	 * the editor on the newly created file.
 	 */
 
-	private void doFinish(
+	protected void doFinish(
 		String containerName,
 		String fileName,
 		String objectID,
@@ -109,27 +123,19 @@ public class NewC4Object extends Wizard implements INewWizard {
 			subContainer.create(IResource.NONE,true,monitor);
 		}
 		new C4ObjectIntern(C4ID.getID(objectID), containerName, subContainer);
+		new C4ObjectIntern(C4ID.getID(objectID), containerName, subContainer);
 		try {
-			InputStream stream;
-			stream = initialDefCoreStream(fileName, objectID);
-			subContainer.getFile("DefCore.txt").create(stream, true, monitor);
-			stream.close();
-			stream = initialDescDEStream();
-			subContainer.getFile("DescDE.txt").create(stream, true, monitor);
-			stream.close();
-			stream = initialDescUSStream();
-			subContainer.getFile("DescEN.txt").create(stream, true, monitor);
-			stream.close();
-			stream = initialNamesStream();
-			subContainer.getFile("Names.txt").create(stream, true, monitor);
-			stream.close();
-			stream = initialGraphicsStream();
-			subContainer.getFile("Graphics.png").create(stream, true, monitor);
-			stream.close();
-			stream = initialScriptStream();
-			subContainer.getFile("Script.c").create(stream, true, monitor);
-			stream.close();
+			Enumeration<URL> templates = getTemplateFiles();
+			while (templates.hasMoreElements()) {
+				URL template = templates.nextElement();
+				String templateFile = new Path(template.getFile()).lastSegment();
+				if (templateFile.startsWith("."))
+					continue;
+				InputStream stream = getTemplateStream(template, templateFile);
+				subContainer.getFile(templateFile).create(stream, true, monitor);
+			}
 		} catch (IOException e) {
+			e.printStackTrace();
 		}
 		monitor.worked(1);
 //		monitor.setTaskName("Opening file for editing...");
@@ -146,60 +152,34 @@ public class NewC4Object extends Wizard implements INewWizard {
 //		monitor.worked(1);
 	}
 	
-	private InputStream initialDefCoreStream(String fileName, String objectID) {
-		String contents =
-			"[DefCore]" + "\r\n" +
-			"id=" + objectID + "\r\n" +
-			"Name=" + fileName.substring(0, fileName.lastIndexOf('.')) + "\r\n" +
-			"Version=4,9,5" + "\r\n" +
-			"Category=18960" + "\r\n" +
-			"MaxUserSelect=10" + "\r\n" +
-			"Width=6" + "\r\n" +
-			"Height=6" + "\r\n" +
-			"Offset=-3,-3" + "\r\n" +
-			"Value=10" + "\r\n" +
-			"Mass=10" + "\r\n" +
-			"Components=" + objectID + "=1;" + "\r\n" +
-			"Picture=6,0,64,64" + "\r\n" +
-			"Vertices=1" + "\r\n" +
-			"VertexY=1" + "\r\n" +
-			"VertexFriction=20" + "\r\n" +
-			"Rebuy=1" + "\r\n" +
-			"Collectible=1";
-		return new ByteArrayInputStream(contents.getBytes());
+	@SuppressWarnings("unchecked")
+	protected Enumeration<URL> getTemplateFiles() {
+		return ClonkCore.getDefault().getBundle().findEntries("res/wizard/"+getClass().getSimpleName(), "*.*", false);
 	}
 	
-	private InputStream initialDescDEStream() {
-		String contents =
-			"Eine neue Objektdefinition.";
-		return new ByteArrayInputStream(contents.getBytes());
+	protected Map<String, String> getTemplateReplacements() {
+		return templateReplacements;
 	}
 	
-	private InputStream initialDescUSStream() {
-		String contents =
-			"A new object definition.";
-		return new ByteArrayInputStream(contents.getBytes());
-	}
-	
-	private InputStream initialNamesStream() {
-		String contents =
-			"DE:Ein neues Objekt\r\nUS:A new object";
-		return new ByteArrayInputStream(contents.getBytes());
-	}
-	
-	private InputStream initialGraphicsStream() {
-		try {
-			return ClonkCore.getDefault().getBundle().getEntry("res/StdGraphics.png").openStream();
-		} catch (IOException e) {
-			e.printStackTrace();
+	protected InputStream getTemplateStream(URL template, String fileName) throws IOException {
+		InputStream result = template.openStream();
+		if (fileName.endsWith(".txt")) {
+			Reader reader = new InputStreamReader(result);
+			StringBuilder builder = new StringBuilder();
+			char[] buffer = new char[1024];
+			int read;
+			while ((read = reader.read(buffer)) > 0) {
+				builder.append(buffer, 0, read);
+			}
+			String readString = builder.toString();
+			Map<String, String> replacements = getTemplateReplacements();
+			for (String key : replacements.keySet()) {
+				String repl = replacements.get(key);
+				readString = readString.replace(key, repl);
+			}
+			return new ByteArrayInputStream(readString.getBytes());
 		}
-		return null;
-	}
-	
-	private InputStream initialScriptStream() {
-		String contents =
-			"/*-- Neues Objekt --*/\r\n\r\n#strict 2\r\n\r\nfunc Initialize() {\r\n  return(1);\r\n}";
-		return new ByteArrayInputStream(contents.getBytes());
+		return template.openStream();
 	}
 	
 	private void throwCoreException(String message) throws CoreException {
