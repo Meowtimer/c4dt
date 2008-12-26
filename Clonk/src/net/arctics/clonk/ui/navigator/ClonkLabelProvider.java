@@ -122,7 +122,7 @@ public class ClonkLabelProvider extends LabelProvider implements IStyledLabelPro
 			if (groupType == C4GroupType.FolderGroup || groupType == C4GroupType.ScenarioGroup || groupType == C4GroupType.ResourceGroup)
 				return new StyledString(folder.getName().substring(0,folder.getName().lastIndexOf(".")));
 		}
-		return new StyledString(getText(element));
+		return new StyledString(((IResource)element).getName());
 	}
 
 	public static Image computeImage(String registryKey, String iconPath, IResource element) {

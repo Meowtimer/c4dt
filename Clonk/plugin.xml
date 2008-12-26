@@ -178,6 +178,15 @@
 		name="Scenario"
 		project="false">
 	</wizard>
+	<wizard
+		category="net.arctics.clonk.clonkProjects"
+		class="net.arctics.clonk.ui.wizards.NewParticle"
+		hasPages="true"
+		icon="icons/Clonk_Particle.png"
+		id="net.arctics.clonk.wizards.NewParticle"
+		name="Particle"
+		project="false">
+	</wizard>
 </extension>
 
 <extension point="org.eclipse.ui.importWizards">
@@ -352,11 +361,11 @@
             name="Clonklipse">
          <property
                name="windowImages"
-               value="eclipse.gif,eclipse32.gif,eclipse48.gif,eclipse.png,eclipse32.png">
+               value="res/DistroIcon.png,res/DistroIcon.png,res/DistroIcon.png,res/DistroIcon.png,res/DistroIcon.png">
          </property>
          <property
                name="aboutText"
-               value="Clonklipse Amazing Edition 5002">
+               value="Clonklipse is Eclipse+Clonk Plugin.">
          </property>
          <property
                name="aboutImage"
@@ -411,17 +420,4 @@
 			class="net.arctics.clonk.ui.search.ClonkSearchResultPage">
 		</viewPage>
 	</extension>
-   
-  
-<!--<extension
-       point="org.eclipse.ui.commands">
-    <command
-          categoryId="org.eclipse.ui.category.project"
-          defaultHandler="net.arctics.clonk.ui.editors.actions.IndexClonkDir"
-          description="Starts the indexer"
-          id="net.arctics.clonk.indexClonkCommand"
-          name="Index Clonk directory">
-          
-    </command>
- </extension> -->
 </plugin>

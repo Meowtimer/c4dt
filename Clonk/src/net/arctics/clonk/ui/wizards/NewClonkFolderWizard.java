@@ -47,7 +47,9 @@ public class NewClonkFolderWizard extends Wizard implements INewWizard {
 	}
 
 	protected Map<String, String> initTemplateReplacements() {
-		return new HashMap<String, String>();
+		Map<String, String> result = new HashMap<String, String>();
+		result.put("$Name$", page.getFileName().substring(0, page.getFileName().lastIndexOf('.')));
+		return result;
 	}
 	
 	/**

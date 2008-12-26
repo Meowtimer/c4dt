@@ -35,6 +35,7 @@ public class ClonkPerspective implements IPerspectiveFactory {
 		 layout.addNewWizardShortcut("net.arctics.clonk.wizards.NewC4Object");
 		 layout.addNewWizardShortcut("net.arctics.clonk.newClonkProject");
 		 layout.addNewWizardShortcut("net.arctics.clonk.wizards.NewScenario");
+		 layout.addNewWizardShortcut("net.arctics.clonk.wizards.NewParticle");
 //		 layout.addActionSet("Clonk.actionSet2");
 	}
 

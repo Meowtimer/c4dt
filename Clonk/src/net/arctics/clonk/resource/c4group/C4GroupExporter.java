@@ -4,14 +4,12 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
-import java.io.StringWriter;
 import java.io.Writer;
 
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.Path;
-import org.omg.CORBA.portable.OutputStream;
 
 public class C4GroupExporter {
 	
@@ -45,7 +43,7 @@ public class C4GroupExporter {
 						// create and make executable
 						scratchExecFile = File.createTempFile("c4groupproxy", "eclipse");
 						scratchExecFile.deleteOnExit();
-						Runtime.getRuntime().exec(new String[] {"/bin/chmod", "+x", scratchExecFile.getAbsolutePath()});
+						Runtime.getRuntime().exec(new String[] {"/bin/chmod", "+x", scratchExecFile.getAbsolutePath()}).waitFor();
 					}
 					// write command
 					Writer writer = new OutputStreamWriter(new FileOutputStream(scratchExecFile));

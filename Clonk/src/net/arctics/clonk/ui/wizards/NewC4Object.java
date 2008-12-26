@@ -46,7 +46,6 @@ public class NewC4Object extends NewClonkFolderWizard implements INewWizard {
 	protected Map<String, String> initTemplateReplacements() {
 		Map<String, String> result = super.initTemplateReplacements();
 		result.put("$ID$", ((NewC4ObjectPage)page).getObjectID());
-		result.put("$Name$", page.getFileName().substring(0, page.getFileName().lastIndexOf('.')));
 		return result;
 	}
 	
