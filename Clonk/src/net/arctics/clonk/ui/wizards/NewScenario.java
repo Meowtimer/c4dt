@@ -1,23 +1,9 @@
 package net.arctics.clonk.ui.wizards;
 
-import net.arctics.clonk.ClonkCore;
-import net.arctics.clonk.parser.C4ID;
-import net.arctics.clonk.parser.C4ObjectIntern;
+import java.util.Map;
 
 import org.eclipse.jface.viewers.IStructuredSelection;
-import org.eclipse.jface.wizard.Wizard;
-import org.eclipse.ui.INewWizard;
 import org.eclipse.ui.IWorkbench;
-import org.eclipse.core.runtime.*;
-import org.eclipse.jface.operation.*;
-import java.lang.reflect.InvocationTargetException;
-import org.eclipse.jface.dialogs.MessageDialog;
-import org.eclipse.jface.viewers.ISelection;
-import org.eclipse.core.resources.*;
-import org.eclipse.core.runtime.CoreException;
-import java.io.*;
-
-import org.eclipse.ui.*;
 
 /**
  * This is a sample new wizard. Its role is to create a new file 
@@ -30,6 +16,21 @@ import org.eclipse.ui.*;
  * be able to open it.
  */
 
-public class NewScenario extends NewC4Object {
-	
+public class NewScenario extends NewClonkFolderWizard {
+	@Override
+	public void init(IWorkbench workbench, IStructuredSelection selection) {
+		super.init(workbench, selection);
+		setWindowTitle("New Scenario");
+	}
+	@Override
+	public void addPages() {
+		page = new NewScenarioPage(selection);
+		addPage(page);
+	}
+	@Override
+	protected Map<String, String> initTemplateReplacements() {
+		Map<String, String> result = super.initTemplateReplacements();
+		result.put("$Title$", ((NewScenarioPage)page).getTitle());
+		return result;
+	}
 }

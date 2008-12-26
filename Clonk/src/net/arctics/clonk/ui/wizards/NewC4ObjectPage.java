@@ -14,7 +14,6 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
-import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
@@ -34,15 +33,12 @@ import org.eclipse.ui.dialogs.ContainerSelectionDialog;
  * OR with the extension that matches the expected one (mpe).
  */
 
-public class NewC4ObjectPage extends WizardPage {
+public class NewC4ObjectPage extends NewClonkFolderWizardPage {
 	private Text containerText;
-
 	private Text fileText;
-
 	private Text c4idText;
 	
 	private IProject project;
-	
 	private ISelection selection;
 
 	/**
@@ -214,10 +210,12 @@ public class NewC4ObjectPage extends WizardPage {
 		setPageComplete(message == null);
 	}
 
+	@Override
 	public String getContainerName() {
 		return containerText.getText();
 	}
 
+	@Override
 	public String getFileName() {
 		return fileText.getText() + ".c4d";
 	}

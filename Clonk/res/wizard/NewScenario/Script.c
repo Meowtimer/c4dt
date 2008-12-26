@@ -1,4 +1,4 @@
-/*-- Neues Szenario --*/
+/*-- $Title$ --*/
 
 #strict 2
 

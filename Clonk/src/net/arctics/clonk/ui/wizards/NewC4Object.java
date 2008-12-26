@@ -1,24 +1,13 @@
 package net.arctics.clonk.ui.wizards;
 
-
-import net.arctics.clonk.ClonkCore;
-import net.arctics.clonk.parser.C4ID;
-import net.arctics.clonk.parser.C4ObjectIntern;
-
 import org.eclipse.jface.viewers.IStructuredSelection;
-import org.eclipse.jface.wizard.Wizard;
 import org.eclipse.ui.INewWizard;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.core.runtime.*;
-import org.eclipse.jface.operation.*;
-import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
 import java.util.Enumeration;
-import java.util.HashMap;
 import java.util.Map;
 
-import org.eclipse.jface.dialogs.MessageDialog;
-import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.core.resources.*;
 import org.eclipse.core.runtime.CoreException;
 import java.io.*;
@@ -36,17 +25,13 @@ import org.eclipse.ui.*;
  * be able to open it.
  */
 
-public class NewC4Object extends Wizard implements INewWizard {
-	private NewC4ObjectPage page;
-	private ISelection selection;
-	private Map<String, String> templateReplacements; 
+public class NewC4Object extends NewClonkFolderWizard implements INewWizard {
 
 	/**
 	 * Constructor for NewC4Object.
 	 */
 	public NewC4Object() {
 		super();
-		setNeedsProgressMonitor(true);
 	}
 	
 	/**
@@ -59,43 +44,10 @@ public class NewC4Object extends Wizard implements INewWizard {
 	}
 
 	protected Map<String, String> initTemplateReplacements() {
-		Map<String, String> result = new HashMap<String, String>();
-		result.put("$ID$", page.getObjectID());
+		Map<String, String> result = super.initTemplateReplacements();
+		result.put("$ID$", ((NewC4ObjectPage)page).getObjectID());
 		result.put("$Name$", page.getFileName().substring(0, page.getFileName().lastIndexOf('.')));
 		return result;
-	}
-	
-	/**
-	 * This method is called when 'Finish' button is pressed in
-	 * the wizard. We will create an operation and run it
-	 * using wizard as execution context.
-	 */
-	public boolean performFinish() {
-		final String containerName = page.getContainerName();
-		final String fileName = page.getFileName();
-		final String objectID = page.getObjectID().toUpperCase();
-		templateReplacements = initTemplateReplacements();
-		IRunnableWithProgress op = new IRunnableWithProgress() {
-			public void run(IProgressMonitor monitor) throws InvocationTargetException {
-				try {
-					doFinish(containerName, fileName, objectID, monitor);
-				} catch (CoreException e) {
-					throw new InvocationTargetException(e);
-				} finally {
-					monitor.done();
-				}
-			}
-		};
-		try {
-			getContainer().run(true, false, op);
-		} catch (InterruptedException e) {
-			return false;
-		} catch (InvocationTargetException e) {
-			Throwable realException = e.getTargetException();
-			MessageDialog.openError(getShell(), "Error", realException.getMessage());
-			return false;
-		}
-		return true;
 	}
 	
 	/**
@@ -104,10 +56,10 @@ public class NewC4Object extends Wizard implements INewWizard {
 	 * the editor on the newly created file.
 	 */
 
+	@Override
 	protected void doFinish(
 		String containerName,
 		String fileName,
-		String objectID,
 		IProgressMonitor monitor)
 		throws CoreException {
 		// create a sample file
@@ -122,8 +74,6 @@ public class NewC4Object extends Wizard implements INewWizard {
 		if (!subContainer.exists()) {
 			subContainer.create(IResource.NONE,true,monitor);
 		}
-		new C4ObjectIntern(C4ID.getID(objectID), containerName, subContainer);
-		new C4ObjectIntern(C4ID.getID(objectID), containerName, subContainer);
 		try {
 			Enumeration<URL> templates = getTemplateFiles();
 			while (templates.hasMoreElements()) {
@@ -151,42 +101,6 @@ public class NewC4Object extends Wizard implements INewWizard {
 //		});
 //		monitor.worked(1);
 	}
-	
-	@SuppressWarnings("unchecked")
-	protected Enumeration<URL> getTemplateFiles() {
-		return ClonkCore.getDefault().getBundle().findEntries("res/wizard/"+getClass().getSimpleName(), "*.*", false);
-	}
-	
-	protected Map<String, String> getTemplateReplacements() {
-		return templateReplacements;
-	}
-	
-	protected InputStream getTemplateStream(URL template, String fileName) throws IOException {
-		InputStream result = template.openStream();
-		if (fileName.endsWith(".txt")) {
-			Reader reader = new InputStreamReader(result);
-			StringBuilder builder = new StringBuilder();
-			char[] buffer = new char[1024];
-			int read;
-			while ((read = reader.read(buffer)) > 0) {
-				builder.append(buffer, 0, read);
-			}
-			String readString = builder.toString();
-			Map<String, String> replacements = getTemplateReplacements();
-			for (String key : replacements.keySet()) {
-				String repl = replacements.get(key);
-				readString = readString.replace(key, repl);
-			}
-			return new ByteArrayInputStream(readString.getBytes());
-		}
-		return template.openStream();
-	}
-	
-	private void throwCoreException(String message) throws CoreException {
-		IStatus status =
-			new Status(IStatus.ERROR, "net.arctics.clonk", IStatus.OK, message, null);
-		throw new CoreException(status);
-	}
 
 	/**
 	 * We will accept the selection in the workbench to see if
@@ -194,7 +108,7 @@ public class NewC4Object extends Wizard implements INewWizard {
 	 * @see IWorkbenchWizard#init(IWorkbench, IStructuredSelection)
 	 */
 	public void init(IWorkbench workbench, IStructuredSelection selection) {
-		this.selection = selection;
+		super.init(workbench, selection);
 		setWindowTitle("Create new Object");
 	}
 }

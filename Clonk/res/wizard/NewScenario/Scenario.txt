@@ -1,6 +1,6 @@
 [Head]
 Icon=19
-Title=New Scenario
+Title=$Title$
 
 [Game]
 EnableRemoveFlag=1
