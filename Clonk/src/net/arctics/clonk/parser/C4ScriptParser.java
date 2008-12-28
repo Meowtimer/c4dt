@@ -2036,6 +2036,7 @@ public class C4ScriptParser {
 			if (result != null) {
 				result.setExprRegion(start, fReader.getPosition());
 				if (parseStatementRecursion == 1) {
+					result.reportErrors(this);
 					result.warnIfNoSideEffects(this);
 					if (result instanceof SimpleStatement && ((SimpleStatement)result).getExpression() instanceof ExprBinaryOp)
 						((ExprBinaryOp)((SimpleStatement)result).getExpression()).checkTopLevelAssignment(this);

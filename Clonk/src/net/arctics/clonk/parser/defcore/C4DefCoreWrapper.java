@@ -109,7 +109,7 @@ public class C4DefCoreWrapper {
 	 */
 	public String getName() {
 		if (name == null)
-			name = "<No name supplied>"; // FIXME: look in Names.txt
+			name = "<No name supplied>";
 		return name;
 	}
 	

@@ -227,4 +227,8 @@ public abstract class Utilities {
 		return offset;
 	}
 	
+	public static boolean isLineBreak(char c) {
+		return c == '\n' || c == '\r';
+	}
+	
 }

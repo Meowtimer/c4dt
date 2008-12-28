@@ -472,7 +472,7 @@ public abstract class C4ScriptExprTree {
 		public void reportErrors(C4ScriptParser parser) throws ParsingException {
 			super.reportErrors(parser);
 			if (field == null)
-				parser.warningWithCode(ErrorCode.UndeclaredIdentifier, this, fieldName);
+				parser.errorWithCode(ErrorCode.UndeclaredIdentifier, this, true, fieldName);
 		}
 
 		@Override
@@ -577,6 +577,7 @@ public abstract class C4ScriptExprTree {
 						ExprElm given = params[givenParam++];
 						if (given == null)
 							continue;
+						given.reportErrors(parser);
 						if (!given.validForType(parm.getType()))
 							parser.warningWithCode(ErrorCode.IncompatibleTypes, given, parm.getType(), given.getType());
 						given.expectedToBeOfType(parm.getType());
@@ -621,6 +622,8 @@ public abstract class C4ScriptExprTree {
 			else if (fieldName.equals("GetID") && params.length == 0) {
 				return getPredecessorInSequence() == null ? parser.getContainerObject() : getPredecessorInSequence().guessObjectType(parser);
 			}
+			if (field instanceof ITypedField)
+				return ((ITypedField)field).getExpectedContent();
 			return super.guessObjectType(parser);
 		}
 		protected ExprBinaryOp applyOperatorTo(C4ScriptParser parser, ExprElm[] parms, C4ScriptOperator operator) throws CloneNotSupportedException {
@@ -990,16 +993,25 @@ public abstract class C4ScriptExprTree {
 		public void setSubElements(ExprElm[] elements) {
 			argument = elements[0];
 		}
+		
+		private boolean needsSpace(ExprUnaryOp other) {
+			C4ScriptOperator a = this.getOperator();
+			C4ScriptOperator b = this.getOperator();
+			return a.spaceNeededBetweenMeAnd(b);
+		}
 
 		public void print(StringBuilder output, int depth) {
+			ExprUnaryOp unop = (argument instanceof ExprUnaryOp) ? (ExprUnaryOp)argument : null;
+			if (unop.placement != this.placement)
+				unop = null;
 			if (placement == Placement.Postfix) {
 				argument.print(output, depth+1);
-				if (argument instanceof ExprUnaryOp && ((ExprUnaryOp)argument).placement == Placement.Postfix)
+				if (unop != null && needsSpace(unop))
 					output.append(" "); // - -5 -.-
 				output.append(getOperator().getOperatorName());
 			} else {
 				output.append(getOperator().getOperatorName());
-				if (argument instanceof ExprUnaryOp && ((ExprUnaryOp)argument).placement == Placement.Prefix)
+				if (unop != null && needsSpace(unop))
 					output.append(" "); // - -5 -.-
 				argument.print(output, depth+1);
 			}
@@ -1349,6 +1361,12 @@ public abstract class C4ScriptExprTree {
 		public boolean hasSideEffects() {
 			return true;
 		}
+		@Override
+		public void reportErrors(C4ScriptParser parser) throws ParsingException {
+//			for (ExprElm elm : getSubElements())
+//				if (elm != null)
+//					elm.reportErrors(parser);
+		}
 	}
 	
 	/**
@@ -1635,7 +1653,7 @@ public abstract class C4ScriptExprTree {
 				printIndent(builder, depth-1);
 				builder.append(Keywords.Else);
 				builder.append(" ");
-				if (!(elseExpr instanceof Block)) {
+				if (!(elseExpr instanceof Block || elseExpr instanceof IfStatement)) {
 					builder.append("\n");
 					printIndent(builder, depth);
 				}

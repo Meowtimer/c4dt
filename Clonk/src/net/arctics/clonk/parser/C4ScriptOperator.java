@@ -252,5 +252,11 @@ public enum C4ScriptOperator {
 		// assignment operators
 		return (o >= 25 && o <= 32);
 	}
+	
+	public boolean spaceNeededBetweenMeAnd(C4ScriptOperator other) {
+		return
+			((this == Add || this == Increment) && (other == Add || other == Increment)) ||
+			((this == Subtract || this == Decrement) && (other == Subtract || other == Decrement));
+	}
 
 }

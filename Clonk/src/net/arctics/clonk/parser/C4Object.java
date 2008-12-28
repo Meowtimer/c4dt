@@ -1,11 +1,19 @@
 package net.arctics.clonk.parser;
 
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 public abstract class C4Object extends C4ScriptBase {
 
 	/**
 	 * 
 	 */
 	private static final long serialVersionUID = 1L;
+	
+	private Map<String, String> localizedNames;
 	
 	protected C4ID id;
 	
@@ -56,6 +64,29 @@ public abstract class C4Object extends C4ScriptBase {
 			if (id != null && id.getName().equals(name))
 				return true;
 		}
+		return false;
+	}
+	
+	public void readNames(String namesText) throws IOException {
+		Pattern langNamePair = Pattern.compile("(..):(.*)");
+		Matcher matcher = langNamePair.matcher(namesText);
+		if (localizedNames == null)
+			localizedNames = new HashMap<String, String>();
+		else
+			localizedNames.clear();
+		while (matcher.find()) {
+			localizedNames.put(matcher.group(1), matcher.group(2));
+		}
+		String engName = localizedNames.get("US");
+		if (engName != null)
+			setName(engName);
+	}
+
+	public Map<String, String> getLocalizedNames() {
+		return localizedNames;
+	}
+	
+	public boolean nameContains(String text) {
 		return false;
 	}
 	

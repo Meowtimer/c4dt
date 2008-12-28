@@ -243,8 +243,8 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 				group.open(true, new IHeaderFilter() {
 					public boolean accepts(C4EntryHeader header, C4Group context) {
 						String entryName = header.getEntryName();
-						// all we care about is groups, scripts and defcores
-						return header.isGroup() || entryName.endsWith(".c") || entryName.equals("DefCore.txt");
+						// all we care about is groups, scripts, defcores and names
+						return header.isGroup() || entryName.endsWith(".c") || entryName.equals("DefCore.txt") || entryName.equals("Names.txt");
 					}
 				});
 				try {
@@ -434,7 +434,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 		if (item instanceof C4Group) {
 			C4Group group = (C4Group) item;
 			if (group.getGroupType() == C4GroupType.DefinitionGroup) { // is .c4d
-				C4Entry defCore = null, script = null;
+				C4Entry defCore = null, script = null, names = null;
 				for(C4GroupItem child : group.getChildEntries()) {
 					if (!(child instanceof C4Entry)) continue;
 					if (child.getName().equals("DefCore.txt")) {
@@ -443,20 +443,28 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 					else if (child.getName().equals("Script.c")) {
 						script = (C4Entry) child;
 					}
+					else if (child.getName().equals("Names.txt")) {
+						names = (C4Entry) child;
+					}
 				}
 				if (defCore != null && script != null) {
 					C4DefCoreWrapper defCoreWrapper = new C4DefCoreWrapper(new ByteArrayInputStream(defCore.getContentsAsArray()));
 					try {
 						defCoreWrapper.parse();
-						C4ObjectExtern obj = new C4ObjectExtern(defCoreWrapper.getObjectID(),item.getName(),script);
+						C4ObjectExtern obj = new C4ObjectExtern(defCoreWrapper.getObjectID(),defCoreWrapper.getName(),script);
 						C4ScriptParser parser = new C4ScriptParser(script.getContents(),script.computeSize(),obj);
 						// we only need declarations
 						parser.clean();
 						parser.parseDeclarations();
 						ClonkCore.EXTERN_INDEX.addObject(obj);
+						if (names != null)
+							obj.readNames(new String(names.getContentsAsArray()));
 					} catch (CompilerException e) {
 						e.printStackTrace();
 					} catch (CoreException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					} catch (IOException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
 					}
