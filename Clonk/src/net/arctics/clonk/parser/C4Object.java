@@ -77,7 +77,7 @@ public abstract class C4Object extends C4ScriptBase {
 		while (matcher.find()) {
 			localizedNames.put(matcher.group(1), matcher.group(2));
 		}
-		String engName = localizedNames.get("US");
+		String engName = localizedNames.get("DE");
 		if (engName != null)
 			setName(engName);
 	}
@@ -87,6 +87,17 @@ public abstract class C4Object extends C4ScriptBase {
 	}
 	
 	public boolean nameContains(String text) {
+		if (getId().getName().indexOf(text) != -1)
+			return true;
+		if (getName().toUpperCase().contains(text))
+			return true;
+		if (localizedNames != null) {
+			for (String key : localizedNames.keySet()) {
+				String value = localizedNames.get(key);
+				if (value.toUpperCase().indexOf(text) != -1)
+					return true;
+			}
+		}
 		return false;
 	}
 	

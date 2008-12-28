@@ -68,10 +68,7 @@ public class OpenObjectDialog extends FilteredItemsSelectionDialog {
 				if (obj == null || obj.getId() == null || obj.getName() == null || search == null) {
 					return false;
 				}
-				final String objId = obj.getId().getName();
-				if (objId.contains(search) || obj.getName().toUpperCase().contains(search))
-					return true;
-				return false;
+				return obj.nameContains(search);
 			}
 		
 			@Override
