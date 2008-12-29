@@ -67,9 +67,10 @@ public abstract class C4Object extends C4ScriptBase {
 		return false;
 	}
 	
+	private static Pattern langNamePairPattern = Pattern.compile("(..):(.*)");
+	
 	public void readNames(String namesText) throws IOException {
-		Pattern langNamePair = Pattern.compile("(..):(.*)");
-		Matcher matcher = langNamePair.matcher(namesText);
+		Matcher matcher = langNamePairPattern.matcher(namesText);
 		if (localizedNames == null)
 			localizedNames = new HashMap<String, String>();
 		else

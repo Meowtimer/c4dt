@@ -50,7 +50,8 @@ public abstract class C4ScriptExprTree {
 		
 		protected void assignParentToSubElements() {
 			for (ExprElm e : getSubElements())
-				e.setParent(this);
+				if (e != null)
+					e.setParent(this);
 		}
 		
 		@Override
@@ -383,6 +384,9 @@ public abstract class C4ScriptExprTree {
 			for (ExprElm e : elements) {
 				e.reportErrors(parser);
 			}
+		}
+		public ExprElm[] getElements() {
+			return elements;
 		}
 
 	}
@@ -1387,7 +1391,7 @@ public abstract class C4ScriptExprTree {
 			this.statements = statements;
 		}
 
-		public ExprElm[] getStatements() {
+		public Statement[] getStatements() {
 			return statements;
 		}
 
@@ -1416,6 +1420,26 @@ public abstract class C4ScriptExprTree {
 			printIndent(builder, depth-1); builder.append("}");
 		}
 		
+	}
+	
+	static class BunchOfStatements extends Block {
+		public BunchOfStatements(List<Statement> statements) {
+			super(statements);
+		}
+
+		@Override
+		public void print(StringBuilder builder, int depth) {
+			boolean first = true;
+			for (Statement statement : getStatements()) {
+				if (first)
+					first = false;
+				else {
+					builder.append("\n");
+					printIndent(builder, depth-1);
+				}
+				statement.print(builder, depth+1);
+			}
+		}
 	}
 	
 	/**
@@ -1559,8 +1583,20 @@ public abstract class C4ScriptExprTree {
 		@Override
 		public ExprElm newStyleReplacement(C4ScriptParser parser)
 				throws CloneNotSupportedException {
+			// return (0); -> return 0;
 			if (returnExpr instanceof ExprParenthesized)
 				return new ReturnStatement(((ExprParenthesized)returnExpr).getInnerExpr().newStyleReplacement(parser));
+			// return (0, Sound("Ugh")); -> { Sound("Ugh"); return 0; }
+			if (returnExpr instanceof ExprTuple) {
+				ExprTuple tuple = (ExprTuple) returnExpr;
+				ExprElm[] tupleElements = tuple.getElements();
+				List<Statement> statements = new LinkedList<Statement>();
+				for (int i = 1; i < tupleElements.length; i++) {
+					statements.add(new SimpleStatement(tupleElements[i].newStyleReplacement(parser)));
+				}
+				statements.add(new ReturnStatement(tupleElements[0].newStyleReplacement(parser)));
+				return getParent() instanceof ConditionalStatement ? new Block(statements) : new BunchOfStatements(statements);
+			}
 			return super.newStyleReplacement(parser);
 		}
 		
@@ -1635,6 +1671,7 @@ public abstract class C4ScriptExprTree {
 		public IfStatement(ExprElm condition, ExprElm body, ExprElm elseExpr) {
 			super(condition, body);
 			this.elseExpr = elseExpr;
+			assignParentToSubElements();
 		}
 
 		@Override
