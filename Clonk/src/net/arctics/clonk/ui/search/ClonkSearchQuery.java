@@ -4,12 +4,15 @@ import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.Utilities;
 import net.arctics.clonk.parser.C4Field;
 import net.arctics.clonk.parser.C4Function;
+import net.arctics.clonk.parser.C4Scenario;
 import net.arctics.clonk.parser.C4ScriptBase;
 import net.arctics.clonk.parser.C4ScriptParser;
 import net.arctics.clonk.parser.CompilerException;
 import net.arctics.clonk.parser.C4ScriptExprTree.ExprAccessField;
+import net.arctics.clonk.parser.C4ScriptExprTree.ExprCallFunc;
 import net.arctics.clonk.parser.C4ScriptExprTree.ExprElm;
 import net.arctics.clonk.parser.C4ScriptExprTree.ExprID;
+import net.arctics.clonk.parser.C4ScriptExprTree.ExprString;
 import net.arctics.clonk.parser.C4ScriptExprTree.IExpressionListener;
 import net.arctics.clonk.parser.C4ScriptExprTree.Statement;
 import net.arctics.clonk.parser.C4ScriptExprTree.TraversalContinuation;
@@ -29,12 +32,16 @@ public class ClonkSearchQuery implements ISearchQuery {
 
 	private C4Field field;
 	private Object[] scope;
+	private C4ScriptBase declaringScript;
+	private boolean declaringScriptIsScenario;
 	
 	private ClonkSearchResult result;
 	
 	public ClonkSearchQuery(C4Field field) {
 		super();
 		this.field = field;
+		this.declaringScript = field.getScript();
+		this.declaringScriptIsScenario = declaringScript instanceof C4Scenario;
 		this.scope = field.occurenceScope();
 	}
 
@@ -60,11 +67,25 @@ public class ClonkSearchQuery implements ISearchQuery {
 	public IStatus run(IProgressMonitor monitor) throws OperationCanceledException {
 		getSearchResult(); // make sure we have one
 		final IExpressionListener searchExpression = new IExpressionListener() {
+			private boolean calledThroughGameCall(ExprElm expression) {
+				if (expression instanceof ExprCallFunc) {
+					ExprCallFunc callFunc = (ExprCallFunc) expression;
+					if (callFunc.getFieldName().equals("GameCall")) {
+						if (callFunc.getParams().length > 0 && callFunc.getParams()[0] instanceof ExprString) {
+							if (((ExprString)callFunc.getParams()[0]).stringValue().equals(field.getName()))
+								return true;
+						}
+					}
+				}
+				return false;
+			}
 			public TraversalContinuation expressionDetected(ExprElm expression,
 					C4ScriptParser parser) {
 				if (expression instanceof ExprAccessField) {
 					ExprAccessField accessField = (ExprAccessField) expression;
 					if (accessField.getField(parser) == field)
+						result.addMatch(expression, parser);
+					else if (declaringScriptIsScenario && calledThroughGameCall(expression))
 						result.addMatch(expression, parser);
 				}
 				else if (expression instanceof ExprID && field instanceof C4ScriptBase) {

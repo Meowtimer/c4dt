@@ -396,12 +396,16 @@ public abstract class C4ScriptExprTree {
 		private boolean fieldNotFound = false;
 		protected final String fieldName;
 		
-		public final C4Field getField(C4ScriptParser parser) {
+		public C4Field getField(C4ScriptParser parser) {
 			if (field == null && !fieldNotFound) {
 				field = getFieldImpl(parser);
 				fieldNotFound = field == null;
 			}
 			return field;
+		}
+		
+		public C4Field getField() {
+			return field; // return without trying to obtain it (no parser context)
 		}
 		
 		protected abstract C4Field getFieldImpl(C4ScriptParser parser);
@@ -491,6 +495,7 @@ public abstract class C4ScriptExprTree {
 		public ExprCallFunc(String funcName, ExprElm... parms) {
 			super(funcName);
 			params = parms;
+			assignParentToSubElements();
 		}
 		@Override
 		public void print(StringBuilder output, int depth) {
@@ -753,6 +758,9 @@ public abstract class C4ScriptExprTree {
 		@Override
 		public boolean isReturn() {
 			return fieldName.equals(Keywords.Return);
+		}
+		public ExprElm[] getParams() {
+			return params;
 		}
 	}
 
@@ -1164,6 +1172,22 @@ public abstract class C4ScriptExprTree {
 		@Override
 		public C4Type getType() {
 			return C4Type.STRING;
+		}
+		
+		@Override
+		public FieldRegion fieldAt(int offset, C4ScriptParser parser) {
+			if (getParent() instanceof ExprCallFunc) {
+				ExprCallFunc parentFunc = (ExprCallFunc) getParent();
+				if (parentFunc.getFieldName().equals("GameCall")) {
+					ClonkIndex index = parser.getContainer().getIndex();
+					for (C4Scenario scenario : index.getIndexedScenarios()) {
+						C4Function scenFunc = scenario.findFunction(stringValue());
+						if (scenFunc != null)
+							return new FieldRegion(scenFunc, this);
+					}
+				}
+			}
+			return null;
 		}
 
 	}
