@@ -24,6 +24,7 @@
       startupMessageRect="7,220,441,20"
       startupForegroundColor="C8D5EA" />
    <launcher>
+      <macosx icon="/Clonk/res/DistroIcon.icns"/>
       <solaris/>
       <win useIco="false">
          <bmp/>

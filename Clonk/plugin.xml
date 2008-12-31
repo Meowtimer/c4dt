@@ -358,14 +358,14 @@
          point="org.eclipse.core.runtime.products">
       <product
             application="org.eclipse.ui.ide.workbench"
-            name="Clonklipse">
+            name="Eclipse + C4DT">
          <property
                name="windowImages"
                value="res/DistroIcon.png,res/DistroIcon.png,res/DistroIcon.png,res/DistroIcon.png,res/DistroIcon.png">
          </property>
          <property
                name="aboutText"
-               value="Clonklipse is Eclipse+Clonk Plugin.">
+               value="Eclipse+Clonk Plugin.">
          </property>
          <property
                name="aboutImage"
@@ -385,7 +385,7 @@
          </property>
          <property
                name="appName"
-               value="Clonklipse">
+               value="Eclipse+Clonk">
          </property>
          <property
                name="preferenceCustomization"
