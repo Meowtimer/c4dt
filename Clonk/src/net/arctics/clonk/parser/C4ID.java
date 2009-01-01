@@ -43,6 +43,13 @@ public class C4ID implements Serializable {
 		}
 	}
 	
+	public static boolean isValidC4ID(String c4id) {
+		if (c4id == null) return false;
+		if (c4id.length() != 4) return false;
+		if (!c4id.matches("^[A-Z0-9_]{4}$")) return false;
+		return true;
+	}
+	
 	/* (non-Javadoc)
 	 * @see java.lang.Object#equals(java.lang.Object)
 	 */

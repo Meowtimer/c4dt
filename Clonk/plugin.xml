@@ -394,19 +394,27 @@
       </product>
    </extension>
    <extension
-         point="org.eclipse.ui.decorators">
+         point="org.eclipse.ui.decorators"><!--icon="icons/C4Object.png"-->
       <decorator
             adaptable="true"
             class="net.arctics.clonk.ui.LightweightLabelDecorator"
-            icon="icons/C4Object.png"
+            
             id="net.arctics.clonk.decorator"
             label="Resource Decorator"
             lightweight="true"
             state="true">
          <enablement>
+         	<or>
                <objectClass
-                     name="org.eclipse.core.resources.IResource">
-               </objectClass>            
+                     name="org.eclipse.core.resources.IFolder">
+               </objectClass>
+               <objectClass
+                     name="org.eclipse.core.resources.IFile">
+               </objectClass>
+               <objectClass
+                     name="org.eclipse.core.resources.IProject">
+               </objectClass>
+             </or>            
          </enablement>
       </decorator>
    </extension>

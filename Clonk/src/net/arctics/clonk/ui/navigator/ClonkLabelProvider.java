@@ -29,7 +29,7 @@ public class ClonkLabelProvider extends LabelProvider implements IStyledLabelPro
 	}
 	
 	public Image getImage(Object element) {
-//		if (true) return super.getImage(element);
+//		if (true) return null;
 		if (element instanceof IProject) {
 			return super.getImage(element);
 		}

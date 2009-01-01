@@ -37,6 +37,7 @@ public class ResourceContentProvider implements ITreeContentProvider {
 	public boolean hasChildren(Object element) {
 		if (element instanceof IContainer) {
 			try {
+				if (!((IResource)element).getProject().isOpen()) return false;
 				IResource[] members = ((IContainer)element).members();
 				for(IResource member : members) {
 					if ((member.getType() & resourceTypes) > 0) {

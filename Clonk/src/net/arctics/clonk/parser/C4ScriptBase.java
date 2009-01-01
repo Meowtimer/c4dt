@@ -104,6 +104,12 @@ public abstract class C4ScriptBase extends C4Structure {
 		return false;
 	}
 	
+	/**
+	 * Finds field with specified name and infos
+	 * @param name
+	 * @param info
+	 * @return the field or <tt>null</tt> if not found
+	 */
 	public C4Field findField(String name, FindFieldInfo info) {
 		
 		// prevent infinite recursion

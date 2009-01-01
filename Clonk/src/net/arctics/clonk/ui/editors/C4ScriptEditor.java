@@ -34,7 +34,9 @@ import org.eclipse.jface.text.source.projection.ProjectionViewer;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorPart;
+import org.eclipse.ui.IEditorSite;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.PartInitException;
@@ -85,16 +87,16 @@ public class C4ScriptEditor extends TextEditor implements IShowInSource {
 		super.configureSourceViewerDecorationSupport(support);
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.ui.part.WorkbenchPart#getPartName()
-	 */
-	public String getPartName() {
-//		String part = super.getPartName();
+	@Override
+	public void init(IEditorSite site, IEditorInput input)
+			throws PartInitException {
+		super.init(site, input);
 		IResource res = (IResource) getEditorInput().getAdapter(IResource.class);
-		if (res == null) return super.getPartName();
-		return res.getParent().getName() + "/" + super.getPartName();
+		if (res != null) {
+			setPartName(res.getParent().getName() + "/" + res.getName());
+		}
 	}
-	
+
 	public ClonkContentOutlinePage getOutlinePage() {
 		if (outlinePage == null) {
 			outlinePage = new ClonkContentOutlinePage();

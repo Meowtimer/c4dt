@@ -63,7 +63,7 @@ public class C4ScriptParser {
 		public static final String False = "false";
 	}
 	
-	protected static class BufferedScanner {
+	public static class BufferedScanner {
 
 		public static final char[] WHITESPACE_DELIMITERS = new char[] { ' ', '\n', '\r', '\t' };
 		public static final char[] NEWLINE_DELIMITERS = new char[] { '\n', '\r' };
@@ -187,6 +187,29 @@ public class C4ScriptParser {
 				}
 			} while(!reachedEOF());
 			return null;
+		}
+		
+		/**
+		 * Reads a string until a newline character occurs
+		 * Cursor is after newline char(s)
+		 * @return the line without newline char(s)
+		 */
+		public String readLine() {
+			String line = readStringUntil('\r','\n');
+			if (read() == '\r') {
+				if (read() != '\n')
+					unread();
+				return line;
+			}
+			else {
+				unread();
+				if (read() == '\n') {
+					if (read() != '\r')
+						unread();
+					return line;
+				}
+			}
+			return line;
 		}
 
 		/**
