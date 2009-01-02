@@ -5,6 +5,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import net.arctics.clonk.parser.C4ScriptExprTree.ExprElm;
+import net.arctics.clonk.resource.ClonkProjectNature;
 
 /**
  * Represents a variable.
@@ -187,7 +188,7 @@ public class C4Variable extends C4Field implements Serializable, ITypedField {
 	}
 	
 	@Override
-	public Object[] occurenceScope() {
+	public Object[] occurenceScope(ClonkProjectNature project) {
 		if (parentField instanceof C4Function)
 			return new Object[] {parentField};
 		if (!isGlobal() && parentField instanceof C4ObjectIntern) {
@@ -208,7 +209,7 @@ public class C4Variable extends C4Field implements Serializable, ITypedField {
 			// scenarios... unlikely
 			return result.toArray();
 		}
-		return super.occurenceScope();
+		return super.occurenceScope(project);
 	}
 
 	private boolean isGlobal() {

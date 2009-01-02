@@ -77,19 +77,34 @@ public abstract class C4ScriptBase extends C4Structure {
 		return level;
 	}
 	
+	public C4Directive[] getIncludeDirectives() {
+		List<C4Directive> result = new ArrayList<C4Directive>();
+		for (C4Directive d : definedDirectives) {
+			if (d.getType() == C4DirectiveType.INCLUDE || d.getType() == C4DirectiveType.APPENDTO) {
+				result.add(d);
+			}
+		}
+		return result.toArray(new C4Directive[result.size()]);
+	}
+	
 	public C4Object[] getIncludes(ClonkIndex index) {
 		List<C4Object> result = new ArrayList<C4Object>();
 		for (C4Directive d : definedDirectives) {
 			if (d.getType() == C4DirectiveType.INCLUDE || d.getType() == C4DirectiveType.APPENDTO) {
-				C4ID id = C4ID.getID(d.getContent());
-				C4Object obj = index.getLastObjectWithId(id);
-				if (obj == null)
-					obj = ClonkCore.EXTERN_INDEX.getLastObjectWithId(id);
+				C4Object obj = d.getIncludedObject(index);
 				if (obj != null)
 					result.add(obj);
 			}
 		}
 		return result.toArray(new C4Object[result.size()]);
+	}
+	
+	public C4Directive getIncludeDirectiveFor(C4Object obj) {
+		for (C4Directive d : getIncludeDirectives()) {
+			if (d.getIncludedObject(getIndex()) == obj)
+				return d;
+		}
+		return null;
 	}
 	
 	public C4Object[] getIncludes() {

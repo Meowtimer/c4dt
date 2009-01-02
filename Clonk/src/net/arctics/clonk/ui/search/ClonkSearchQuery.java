@@ -2,8 +2,10 @@ package net.arctics.clonk.ui.search;
 
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.Utilities;
+import net.arctics.clonk.parser.C4Directive;
 import net.arctics.clonk.parser.C4Field;
 import net.arctics.clonk.parser.C4Function;
+import net.arctics.clonk.parser.C4Object;
 import net.arctics.clonk.parser.C4Scenario;
 import net.arctics.clonk.parser.C4ScriptBase;
 import net.arctics.clonk.parser.C4ScriptParser;
@@ -16,6 +18,8 @@ import net.arctics.clonk.parser.C4ScriptExprTree.ExprString;
 import net.arctics.clonk.parser.C4ScriptExprTree.IExpressionListener;
 import net.arctics.clonk.parser.C4ScriptExprTree.Statement;
 import net.arctics.clonk.parser.C4ScriptExprTree.TraversalContinuation;
+import net.arctics.clonk.resource.ClonkProjectNature;
+
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
@@ -37,12 +41,12 @@ public class ClonkSearchQuery implements ISearchQuery {
 	
 	private ClonkSearchResult result;
 	
-	public ClonkSearchQuery(C4Field field) {
+	public ClonkSearchQuery(C4Field field, ClonkProjectNature project) {
 		super();
 		this.field = field;
 		this.declaringScript = field.getScript();
 		this.declaringScriptIsScenario = declaringScript instanceof C4Scenario;
-		this.scope = field.occurenceScope();
+		this.scope = field.occurenceScope(project);
 	}
 
 	public boolean canRerun() {
@@ -155,6 +159,11 @@ public class ClonkSearchQuery implements ISearchQuery {
 			IResource resource, C4ScriptBase script)
 			throws CompilerException {
 		C4ScriptParser parser = new C4ScriptParser((IFile) resource, script);
+		if (field instanceof C4Object) {
+			C4Directive include = script.getIncludeDirectiveFor((C4Object) field);
+			if (include != null)
+				result.addMatch(include.getExprElm(), parser);
+		}
 		parser.setExpressionListener(searchExpressions);
 		parser.parseCodeOfFunctions();
 	}

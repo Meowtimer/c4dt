@@ -30,7 +30,7 @@ public class FindReferencesAction extends OpenDeclarationAction {
 				}
 				if (nature == null)
 					return; // FIXME
-				NewSearchUI.runQueryInBackground(new ClonkSearchQuery(field));
+				NewSearchUI.runQueryInBackground(new ClonkSearchQuery(field, nature));
 			}
 		} catch (Exception e) {
 			e.printStackTrace();

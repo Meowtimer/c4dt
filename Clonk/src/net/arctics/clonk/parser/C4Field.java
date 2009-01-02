@@ -2,6 +2,8 @@ package net.arctics.clonk.parser;
 
 import java.io.Serializable;
 
+import net.arctics.clonk.resource.ClonkProjectNature;
+
 import org.eclipse.core.resources.IResource;
 
 public abstract class C4Field implements Serializable  {
@@ -77,11 +79,11 @@ public abstract class C4Field implements Serializable  {
 		return getName();
 	}
 	
-	public Object[] occurenceScope() {
+	public Object[] occurenceScope(ClonkProjectNature project) {
 		C4ScriptBase script = getScript();
 		if (script instanceof C4ObjectIntern || script instanceof C4SystemScript) {
 			return new Object[] {((IResource) script.getScriptFile()).getProject()};
 		}
-		return EMPTY_SCOPE;
+		return (project != null) ? new Object[] {project.getProject()} : EMPTY_SCOPE;
 	}
 }

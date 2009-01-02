@@ -362,10 +362,6 @@ public class C4ScriptParser {
 	private C4ScriptBase container;
 	private InputStream stream; // for extern files
 
-	//	private List<C4Directive> directives = new LinkedList<C4Directive>();
-	//	private List<C4Function> functions = new LinkedList<C4Function>();
-	//	private List<C4Variable> variables = new LinkedList<C4Variable>();
-
 	private C4Function activeFunc;
 	private int strictLevel;
 	
@@ -538,7 +534,9 @@ public class C4ScriptParser {
 				String content = fReader.readStringUntil(BufferedScanner.NEWLINE_DELIMITERS);
 				if (content != null)
 					content = content.trim();
-				container.definedDirectives.add(new C4Directive(type, content));
+				C4Directive directive = new C4Directive(type, content);
+				directive.setLocation(new SourceLocation(offset, fReader.getPosition()));
+				container.definedDirectives.add(directive);
 				return true;
 			}
 		}
