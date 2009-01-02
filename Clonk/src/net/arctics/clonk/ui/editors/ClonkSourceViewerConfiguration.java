@@ -282,10 +282,10 @@ public class ClonkSourceViewerConfiguration extends TextSourceViewerConfiguratio
 	@Override
 	public IAutoEditStrategy[] getAutoEditStrategies(
 			ISourceViewer sourceViewer, String contentType) {
-//		return new IAutoEditStrategy[] {
-//				new ClonkAutoIndentStrategy()
-//		};
-		return super.getAutoEditStrategies(sourceViewer, contentType);
+		return new IAutoEditStrategy[] {
+				new ClonkAutoIndentStrategy()
+		};
+//		return super.getAutoEditStrategies(sourceViewer, contentType);
 	}
 
 	/* (non-Javadoc)
