@@ -1,6 +1,7 @@
 package net.arctics.clonk.ui.navigator;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 import net.arctics.clonk.ClonkCore;
@@ -8,6 +9,7 @@ import net.arctics.clonk.preferences.PreferenceConstants;
 import net.arctics.clonk.resource.c4group.C4GroupExporter;
 
 import org.eclipse.core.resources.IContainer;
+import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
@@ -35,6 +37,7 @@ public class ClonkActionProvider extends org.eclipse.ui.navigator.CommonActionPr
 		super.fillContextMenu(menu);
 //		menu.appendToGroup("group.additions",new Action("Quick Export") {
 		menu.add(new Action("Quick Export") {
+			@SuppressWarnings("unchecked")
 			@Override
 			public void runWithEvent(Event e) {
 				super.run();
@@ -45,25 +48,34 @@ public class ClonkActionProvider extends org.eclipse.ui.navigator.CommonActionPr
 					return;
 				ISelection selection = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getSelectionService().getSelection();
 				if (selection != null && selection instanceof TreeSelection) {
-					IProject project = null;
 					TreeSelection tree = (TreeSelection) selection;
-					if (tree.getFirstElement() instanceof IResource) {
-						project = ((IResource)tree.getFirstElement()).getProject();
-						IPreferencesService service = Platform.getPreferencesService();
-						String c4groupPath = service.getString(ClonkCore.PLUGIN_ID, PreferenceConstants.C4GROUP_EXECUTABLE, "", null);
-						String gamePath = service.getString(ClonkCore.PLUGIN_ID, PreferenceConstants.GAME_PATH, null, null);
-						try {
-							IResource[] selectedResources = project.members(IContainer.EXCLUDE_DERIVED);
-							List<IContainer> selectedContainers = new ArrayList<IContainer>();
-							for(int i = 0; i < selectedResources.length;i++) {
-								if (selectedResources[i] instanceof IContainer && !selectedResources[i].getName().startsWith("."))
-									selectedContainers.add((IContainer) selectedResources[i]);
+					IPreferencesService service = Platform.getPreferencesService();
+					String c4groupPath = service.getString(ClonkCore.PLUGIN_ID, PreferenceConstants.C4GROUP_EXECUTABLE, "", null);
+					String gamePath = service.getString(ClonkCore.PLUGIN_ID, PreferenceConstants.GAME_PATH, null, null);
+					Iterator it = tree.iterator();
+					while (it.hasNext()) {
+						Object obj = it.next();
+						List<IContainer> selectedContainers = null;
+						if (obj instanceof IProject) {
+							try {
+								IResource[] selectedResources = ((IProject)obj).members(IContainer.EXCLUDE_DERIVED);
+								selectedContainers = new ArrayList<IContainer>();
+								for(int i = 0; i < selectedResources.length;i++) {
+									if (selectedResources[i] instanceof IContainer && !selectedResources[i].getName().startsWith("."))
+										selectedContainers.add((IContainer) selectedResources[i]);
+								}
 							}
+							catch (CoreException ex) {
+								ex.printStackTrace();
+							}
+						}
+						else if (obj instanceof IFolder) {
+							selectedContainers = new ArrayList<IContainer>(1);
+							selectedContainers.add((IContainer) obj);
+						}
+						if (selectedContainers != null) {
 							C4GroupExporter exporter = new C4GroupExporter(selectedContainers.toArray(new IContainer[selectedContainers.size()]),c4groupPath,gamePath);
 							exporter.export(null);
-						}
-						catch (CoreException ex) {
-							ex.printStackTrace();
 						}
 					}
 				}
