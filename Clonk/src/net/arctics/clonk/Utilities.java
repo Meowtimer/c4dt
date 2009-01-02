@@ -24,6 +24,7 @@ import org.eclipse.jface.resource.ImageRegistry;
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.swt.graphics.Image;
+import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.part.FileEditorInput;
 import org.eclipse.ui.texteditor.ITextEditor;
 
@@ -76,7 +77,7 @@ public abstract class Utilities {
 		return null;
 	}
 	
-	public static IFile getEditingFile(ITextEditor editor) {
+	public static IFile getEditingFile(IEditorPart editor) {
 		if (editor.getEditorInput() instanceof FileEditorInput) {
 			return ((FileEditorInput)editor.getEditorInput()).getFile();
 		}
