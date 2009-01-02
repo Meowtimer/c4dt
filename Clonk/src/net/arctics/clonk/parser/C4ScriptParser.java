@@ -195,7 +195,11 @@ public class C4ScriptParser {
 		 * @return the line without newline char(s)
 		 */
 		public String readLine() {
+			int start = offset;
 			String line = readStringUntil('\r','\n');
+			if (line == null) {
+				return readStringAt(start, offset);
+			}
 			if (read() == '\r') {
 				if (read() != '\n')
 					unread();
