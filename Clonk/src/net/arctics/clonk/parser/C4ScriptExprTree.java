@@ -1014,7 +1014,7 @@ public abstract class C4ScriptExprTree {
 
 		public void print(StringBuilder output, int depth) {
 			ExprUnaryOp unop = (argument instanceof ExprUnaryOp) ? (ExprUnaryOp)argument : null;
-			if (unop.placement != this.placement)
+			if (unop != null && unop.placement != this.placement)
 				unop = null;
 			if (placement == Placement.Postfix) {
 				argument.print(output, depth+1);
