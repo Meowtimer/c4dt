@@ -153,6 +153,21 @@ public class C4Variable extends C4Field implements Serializable, ITypedField {
 			//if (C4VariableScope.valueOf(scopeString) != null) return C4VariableScope.valueOf(scopeString);
 			else return null;
 		}
+		
+		public String toKeyword() {
+			switch (this) {
+			case VAR_CONST:
+				return "static const";
+			case VAR_STATIC:
+				return Keywords.GlobalNamed;
+			case VAR_LOCAL:
+				return Keywords.LocalNamed;
+			case VAR_VAR:
+				return Keywords.VarNamed;
+			default:
+				return null;
+			}
+		}
 	}
 	
 	public int sortCategory() {

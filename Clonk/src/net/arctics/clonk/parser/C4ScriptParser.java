@@ -1838,7 +1838,7 @@ public class C4ScriptParser {
 						initializations.add(new Pair<String, ExprElm>(varName, val));
 					} while(fReader.read() == ',');
 					fReader.unread();
-					result = new VarDeclarationStatement(initializations);
+					result = new VarDeclarationStatement(initializations, scope);
 					if (!options.contains(ParseStatementOption.InitializationStatement))
 						checkForSemicolon();
 				}

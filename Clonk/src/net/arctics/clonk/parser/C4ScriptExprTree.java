@@ -1854,13 +1854,15 @@ public abstract class C4ScriptExprTree {
 	
 	public static class VarDeclarationStatement extends KeywordStatement {
 		private List<Pair<String, ExprElm>> varInitializations;
-		public VarDeclarationStatement(List<Pair<String, ExprElm>> varInitializations) {
+		private C4VariableScope scope;
+		public VarDeclarationStatement(List<Pair<String, ExprElm>> varInitializations, C4VariableScope scope) {
 			super();
 			this.varInitializations = varInitializations;
+			this.scope = scope;
 		}
 		@Override
 		public String getKeyword() {
-			return Keywords.VarNamed;
+			return scope.toKeyword();
 		}
 		@Override
 		public ExprElm[] getSubElements() {
