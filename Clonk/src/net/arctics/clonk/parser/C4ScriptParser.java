@@ -639,15 +639,45 @@ public class C4ScriptParser {
 		// static const pObj = parseValue, iMat = 2;
 		return false;
 	}
+	
+	private C4Variable findVar(String name, C4VariableScope scope) {
+		switch (scope) {
+		case VAR_VAR:
+			return activeFunc.findVariable(name);
+		case VAR_CONST: case VAR_STATIC:
+			C4Field globalField = getContainer().getIndex().findGlobalField(name);
+			if (globalField instanceof C4Variable)
+				return (C4Variable) globalField;
+			return null;
+		case VAR_LOCAL:
+			return getContainer().findLocalVariable(name);
+		default:
+			return null;
+		}
+	}
+	
+	private C4Variable createVarInScope(String varName, C4VariableScope scope, SourceLocation location) {
+		C4Variable result = new C4Variable(varName, scope);
+		switch (scope) {
+		case VAR_VAR:
+			result.setParentField(activeFunc);
+			activeFunc.getLocalVars().add(result);
+			break;
+		case VAR_CONST: case VAR_STATIC: case VAR_LOCAL:
+			result.setParentField(getContainer());
+			getContainer().definedVariables.add(result);
+		}
+		result.setLocation(location);
+		return result;
+	}
 
 	private boolean parseVarVariableDeclaration(int offset, boolean declaration) throws ParsingException {
 		parsedVariable = null;
 		fReader.seek(offset);
 
 		String word = fReader.readWord();
-		if (word == null)
-			return false;
-		if (word.equals(Keywords.VarNamed)) {
+		C4VariableScope scope = C4VariableScope.makeScope(word);
+		if (scope != null) {
 			do {
 				eatWhitespace();
 				int nameStart = fReader.getPosition();
@@ -655,12 +685,8 @@ public class C4ScriptParser {
 				int nameEnd = fReader.getPosition();
 				if (declaration) {
 					// construct C4Variable object and register it
-					C4Variable previousDeclaration = activeFunc.findVariable(varName); 
-					C4Variable var = previousDeclaration != null ? previousDeclaration : new C4Variable(varName,C4VariableScope.VAR_VAR);
-					var.setParentField(activeFunc);
-					var.setLocation(new SourceLocation(nameStart, nameEnd));
-					if (previousDeclaration == null)
-						activeFunc.getLocalVars().add(var);
+					C4Variable previousDeclaration = findVar(varName, scope); 
+					C4Variable var = previousDeclaration != null ? previousDeclaration : createVarInScope(varName, scope, new SourceLocation(nameStart, nameEnd));
 					parsedVariable = var;
 				}
 				// check if there is initial content
@@ -1739,6 +1765,7 @@ public class C4ScriptParser {
 			fReader.eatWhitespace();
 			int start = fReader.getPosition();
 			Statement result;
+			C4VariableScope scope;
 			
 			// comment statement oO
 			result = parseCommentObject(fReader.getPosition());
@@ -1783,14 +1810,14 @@ public class C4ScriptParser {
 							result = null;
 					}
 				}
-				else if (readWord.equals(Keywords.VarNamed)) {
+				else if ((scope = C4VariableScope.makeScope(readWord)) != null) {
 					List<Pair<String, ExprElm>> initializations = new LinkedList<Pair<String, ExprElm>>();
 					do {
 						eatWhitespace();
 						String varName = fReader.readWord();
 						// check if there is initial content
 						eatWhitespace();
-						C4Variable var = activeFunc.findVariable(varName);
+						C4Variable var = findVar(varName, scope);
 						parsedVariable = var;
 						ExprElm val;
 						if (fReader.read() == '=') {
@@ -1800,6 +1827,7 @@ public class C4ScriptParser {
 							if (val == null)
 								errorWithCode(ErrorCode.ValueExpected, fReader.getPosition()-1, fReader.getPosition());
 							else {
+								// FIXME: check where var is declared
 								var.inferTypeFromAssignment(val, this);
 							}
 						}

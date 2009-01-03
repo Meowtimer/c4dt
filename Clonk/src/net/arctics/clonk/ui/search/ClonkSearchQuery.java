@@ -113,7 +113,7 @@ public class ClonkSearchQuery implements ISearchQuery {
 					C4ScriptBase script = Utilities.getScriptForFile((IFile) resource);
 					if (script != null) {
 						try {
-							searchObject(searchExpressions, resource, script);
+							searchScript(searchExpressions, resource, script);
 						} catch (CompilerException e) {
 							e.printStackTrace();
 						}
@@ -130,7 +130,7 @@ public class ClonkSearchQuery implements ISearchQuery {
 				else if (scope instanceof C4ScriptBase) {
 					C4ScriptBase script = (C4ScriptBase) scope;
 					try {
-						searchObject(searchExpressions, (IResource) script.getScriptFile(), script);
+						searchScript(searchExpressions, (IResource) script.getScriptFile(), script);
 					} catch (CompilerException e) {
 						e.printStackTrace();
 					}
@@ -154,7 +154,7 @@ public class ClonkSearchQuery implements ISearchQuery {
 		return new Status(IStatus.OK, ClonkCore.PLUGIN_ID, 0, "Okeydokey", null);
 	}
 	
-	private void searchObject(
+	private void searchScript(
 			final IExpressionListener searchExpressions,
 			IResource resource, C4ScriptBase script)
 			throws CompilerException {

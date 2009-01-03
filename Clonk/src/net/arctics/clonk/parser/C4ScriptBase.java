@@ -365,4 +365,12 @@ public abstract class C4ScriptBase extends C4Structure {
 	
 	public abstract ClonkIndex getIndex();
 
+	public C4Variable findLocalVariable(String name) {
+		for (C4Variable var : definedVariables) {
+			if (var.name.equals(name))
+				return var;
+		}
+		return null;
+	}
+
 }

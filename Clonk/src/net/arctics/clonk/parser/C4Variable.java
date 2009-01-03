@@ -5,6 +5,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import net.arctics.clonk.parser.C4ScriptExprTree.ExprElm;
+import net.arctics.clonk.parser.C4ScriptParser.Keywords;
 import net.arctics.clonk.resource.ClonkProjectNature;
 
 /**
@@ -145,11 +146,11 @@ public class C4Variable extends C4Field implements Serializable, ITypedField {
 		VAR_CONST;
 		
 		public static C4VariableScope makeScope(String scopeString) {
-			if (scopeString.equalsIgnoreCase("var")) return C4VariableScope.VAR_VAR;
-			if (scopeString.equalsIgnoreCase("local")) return C4VariableScope.VAR_LOCAL;
-			if (scopeString.equalsIgnoreCase("static")) return C4VariableScope.VAR_STATIC;
+			if (scopeString.equalsIgnoreCase(Keywords.VarNamed)) return C4VariableScope.VAR_VAR;
+			if (scopeString.equalsIgnoreCase(Keywords.LocalNamed)) return C4VariableScope.VAR_LOCAL;
+			if (scopeString.equalsIgnoreCase(Keywords.GlobalNamed)) return C4VariableScope.VAR_STATIC;
 			if (scopeString.equalsIgnoreCase("static const")) return C4VariableScope.VAR_CONST;
-			if (C4VariableScope.valueOf(scopeString) != null) return C4VariableScope.valueOf(scopeString);
+			//if (C4VariableScope.valueOf(scopeString) != null) return C4VariableScope.valueOf(scopeString);
 			else return null;
 		}
 	}
