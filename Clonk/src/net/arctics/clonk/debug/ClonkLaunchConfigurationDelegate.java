@@ -55,6 +55,9 @@ public class ClonkLaunchConfigurationDelegate implements
 			File engine = verifyClonkInstall(configuration);
 			String[] launchArgs = verifyLaunchArguments(configuration, scenario, engine);
 			
+			// Working directory (work around a bug in early Linux engines)
+			File workDirectory = engine.getParentFile();
+			
 			// Progress
 			if(monitor.isCanceled()) return;
 			monitor.worked(1);
@@ -62,7 +65,7 @@ public class ClonkLaunchConfigurationDelegate implements
 			
 			// Run the engine
 			try {
-				Process process = Runtime.getRuntime().exec(launchArgs);
+				Process process = Runtime.getRuntime().exec(launchArgs, null, workDirectory);
 				DebugPlugin.newProcess(launch, process, configuration.getName());
 			} catch(IOException e) {
 				abort(IStatus.ERROR, "Could not start engine!", e);
