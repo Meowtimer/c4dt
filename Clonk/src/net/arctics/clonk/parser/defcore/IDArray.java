@@ -5,7 +5,6 @@ import java.util.List;
 import java.util.ListIterator;
 
 import net.arctics.clonk.parser.C4ID;
-import net.arctics.clonk.parser.CompilerException;
 import net.arctics.clonk.parser.Pair;
 
 public class IDArray extends DefCoreOption {

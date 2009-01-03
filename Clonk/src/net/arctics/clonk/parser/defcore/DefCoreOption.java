@@ -1,11 +1,7 @@
 package net.arctics.clonk.parser.defcore;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
-
-import net.arctics.clonk.parser.C4ID;
-import net.arctics.clonk.parser.CompilerException;
 
 public abstract class DefCoreOption {
 
@@ -362,6 +358,24 @@ public abstract class DefCoreOption {
 		option
 				.setDescription("0 oder 1. Bei 1 wird für dieses Gebäude beim Betreten automatisch das Kontextmenü geöffnet. Ab 4.9.7.7.");
 		defCoreOptions.add(option);
+		option = new UnsignedInteger("DragImagePicture");
+		option.setDescription("0 oder 1");
+		defCoreOptions.add(option);
+		option = new UnsignedInteger("Explosive");
+		option.setDescription("0 oder 1");
+		defCoreOptions.add(option);
+		option = new UnsignedInteger("Projectile");
+		option.setDescription("0 oder 1");
+		defCoreOptions.add(option);
+		option = new UnsignedInteger("LineIntersect");
+		option.setDescription("0 oder 1");
+		defCoreOptions.add(option);
+		option = new UnsignedInteger("NeededGfxMode");
+		option.setDescription("0 oder 1");
+		defCoreOptions.add(option);
+		option = new IntegerArray("PictureFE");
+		option.setDescription("?");
+		defCoreOptions.add(option);
 		return defCoreOptions;
 	}
 
@@ -412,16 +426,19 @@ public abstract class DefCoreOption {
 		option = new SignedInteger("Float");
 		option.setDescription("0-100. Fluggeschwindigkeit.");
 		defCoreOptions.add(option);
-		option = new SignedInteger("CanScale");
+		option = new UnsignedInteger("CanScale");
 		option.setDescription("0 oder 1. Klettern.");
 		defCoreOptions.add(option);
-		option = new SignedInteger("CanHangle");
+		option = new UnsignedInteger("CanHangle");
 		option.setDescription("0 oder 1. Hangeln.");
 		defCoreOptions.add(option);
-		option = new SignedInteger("CanDig");
+		option = new UnsignedInteger("CanDig");
 		option.setDescription("0 oder 1. Graben.");
 		defCoreOptions.add(option);
-		option = new SignedInteger("CanConstruct");
+		option = new UnsignedInteger("CanChop");
+		option.setDescription("0 oder 1. Fällen.");
+		defCoreOptions.add(option);
+		option = new UnsignedInteger("CanConstruct");
 		option
 				.setDescription("0 oder 1. Bauen. Bei Werten größer 1: Prozentuale Baugeschwindigkeit (100 entspricht dem Standard;\n  50 ist halbe Standardgeschwindigkeit). Erweitert");
 		defCoreOptions.add(option);

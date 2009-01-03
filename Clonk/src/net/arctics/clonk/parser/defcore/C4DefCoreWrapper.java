@@ -1,23 +1,12 @@
 package net.arctics.clonk.parser.defcore;
 
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.ObjectOutputStream;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.ListIterator;
-import java.util.Map;
 
-import net.arctics.clonk.ClonkCore;
-import net.arctics.clonk.parser.C4Field;
 import net.arctics.clonk.parser.C4ID;
-import net.arctics.clonk.parser.C4Variable;
 import net.arctics.clonk.parser.CompilerException;
-import net.arctics.clonk.parser.Pair;
-import net.arctics.clonk.parser.C4Variable.C4VariableScope;
 import net.arctics.clonk.parser.defcore.IniReader.IniEntry;
 
 import org.eclipse.core.resources.IFile;
@@ -32,9 +21,6 @@ import org.eclipse.core.runtime.CoreException;
  *
  */
 public class C4DefCoreWrapper {
-	
-	
-	private String[] builtInDefCoreOptions = new String[] { };
 	
 //	private static C4DefCoreParser instance;
 //	private Map<IFile,C4DefCoreData> data;
@@ -79,6 +65,7 @@ public class C4DefCoreWrapper {
 				defCoreFile.deleteMarkers(IMarker.PROBLEM, true, IResource.DEPTH_ONE);
 				stream = defCoreFile.getContents();
 			}
+			
 			IniReader reader = new IniReader(stream);
 			String section = null;
 			while ((section = reader.nextSection()) != null) {
@@ -108,6 +95,17 @@ public class C4DefCoreWrapper {
 				else if (section.equals("Physical")) {
 					IniEntry readData = null;
 					while((readData = reader.nextEntry()) != null) {
+						DefCoreOption option = getPhysicalOption(readData.getKey());
+						if (option == null) {
+							createMarker(IMarker.SEVERITY_WARNING, readData.getStartPos(), readData.getStartPos() + readData.getKey().length(),"Unknown physic '" + readData.getKey() + "'");
+						}
+						else {
+							try {
+								option.setInput(readData.getValue());
+							} catch (DefCoreParserException e) {
+								createMarker(e.getSeverity(),readData.getStartPos() + readData.getKey().length() + 1,readData.getStartPos() + readData.getKey().length() + 1 + readData.getValue().length(),e.getMessage());
+							}
+						}
 //						physicalProperties.put(readData[0].trim(), readData[1].trim());
 					}
 				}
@@ -174,76 +172,76 @@ public class C4DefCoreWrapper {
 		return null;
 	}
 	
-	private Object getTypedValue(String input, DefCoreOption option) {
-		String name = option.getName();
-		Class<?> preferedType = option.getClass();
-		try { // try integer types
-			int value = Integer.parseInt(input);
-			if (preferedType == IntegerArray.class) {
-				IntegerArray array = new IntegerArray(name);
-				array.setIntegers(new int[] { value });
-				return array;
-			}
-			if (preferedType == UnsignedInteger.class) {
-				if (value >= 0) return new UnsignedInteger(name, value);
-				else return new SignedInteger(name, value);
-			}
-			return new SignedInteger(name, value);
-		}
-		catch (NumberFormatException e) {
-		}
-		
-		if (preferedType == C4ID.class) { // try C4ID
-			if (input.length() == 4) {
-				return C4ID.getID(input);
-			}
-		}
-		
-		tryComp: { // try components array
-			IDArray components;
-			String[] comps = input.split(";");
-			components = new IDArray(name);
-			for(String component : comps) {
-				String[] pair = component.split("=");
-				if (pair.length != 2) break tryComp;
-				components.add(C4ID.getID(pair[0]),Integer.parseInt(pair[1]));
-			}
-			return components;
-		}
-		
-		try { // try simple array
-			String[] parts = input.split(",");
-			if (parts.length > 1) {
-				int[] array = new int[parts.length];
-				for(int i = 0; i < parts.length;i++) {
-					array[i] = Integer.parseInt(parts[i]);
-				}
-				IntegerArray iArray = new IntegerArray(name);
-				iArray.setIntegers(array);
-				return iArray;
-			}
-		}
-		catch (NumberFormatException e) {
-		}
-		
-		if (preferedType == C4Variable[].class) {
-			String[] parts = input.split("|");
-			if (parts.length > 1) {
-				CategoriesArray array = new CategoriesArray(name);
-				for(int i = 0; i < parts.length;i++) {
-					array.add(ClonkCore.ENGINE_OBJECT.findVariable(parts[i]));
-				}
-				return array;
-			}
-			else if (preferedType == CategoriesArray.class) {
-				CategoriesArray array = new CategoriesArray(name);
-				array.add(ClonkCore.ENGINE_OBJECT.findVariable(parts[0]));
-				return array;
-			}
-		}
-		
-		return new DefCoreString(input);
-	}
+//	private Object getTypedValue(String input, DefCoreOption option) {
+//		String name = option.getName();
+//		Class<?> preferedType = option.getClass();
+//		try { // try integer types
+//			int value = Integer.parseInt(input);
+//			if (preferedType == IntegerArray.class) {
+//				IntegerArray array = new IntegerArray(name);
+//				array.setIntegers(new int[] { value });
+//				return array;
+//			}
+//			if (preferedType == UnsignedInteger.class) {
+//				if (value >= 0) return new UnsignedInteger(name, value);
+//				else return new SignedInteger(name, value);
+//			}
+//			return new SignedInteger(name, value);
+//		}
+//		catch (NumberFormatException e) {
+//		}
+//		
+//		if (preferedType == C4ID.class) { // try C4ID
+//			if (input.length() == 4) {
+//				return C4ID.getID(input);
+//			}
+//		}
+//		
+//		tryComp: { // try components array
+//			IDArray components;
+//			String[] comps = input.split(";");
+//			components = new IDArray(name);
+//			for(String component : comps) {
+//				String[] pair = component.split("=");
+//				if (pair.length != 2) break tryComp;
+//				components.add(C4ID.getID(pair[0]),Integer.parseInt(pair[1]));
+//			}
+//			return components;
+//		}
+//		
+//		try { // try simple array
+//			String[] parts = input.split(",");
+//			if (parts.length > 1) {
+//				int[] array = new int[parts.length];
+//				for(int i = 0; i < parts.length;i++) {
+//					array[i] = Integer.parseInt(parts[i]);
+//				}
+//				IntegerArray iArray = new IntegerArray(name);
+//				iArray.setIntegers(array);
+//				return iArray;
+//			}
+//		}
+//		catch (NumberFormatException e) {
+//		}
+//		
+//		if (preferedType == C4Variable[].class) {
+//			String[] parts = input.split("|");
+//			if (parts.length > 1) {
+//				CategoriesArray array = new CategoriesArray(name);
+//				for(int i = 0; i < parts.length;i++) {
+//					array.add(ClonkCore.ENGINE_OBJECT.findVariable(parts[i]));
+//				}
+//				return array;
+//			}
+//			else if (preferedType == CategoriesArray.class) {
+//				CategoriesArray array = new CategoriesArray(name);
+//				array.add(ClonkCore.ENGINE_OBJECT.findVariable(parts[0]));
+//				return array;
+//			}
+//		}
+//		
+//		return new DefCoreString(input);
+//	}
 	
 	/**
 	 * @return the objectID
