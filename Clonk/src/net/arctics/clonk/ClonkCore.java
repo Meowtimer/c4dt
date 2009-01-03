@@ -18,10 +18,15 @@ import net.arctics.clonk.parser.C4ObjectExtern;
 import net.arctics.clonk.parser.C4Variable;
 import net.arctics.clonk.parser.ClonkIndex;
 import net.arctics.clonk.resource.InputStreamRespectingUniqueIDs;
+
+import org.eclipse.core.runtime.FileLocator;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.QualifiedName;
 import org.eclipse.jface.resource.ImageDescriptor;
+import org.eclipse.jface.resource.ImageRegistry;
+import org.eclipse.swt.graphics.Image;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.osgi.framework.BundleContext;
 
@@ -191,5 +196,26 @@ public class ClonkCore extends AbstractUIPlugin {
 	public static ImageDescriptor getImageDescriptor(String path) {
 		return imageDescriptorFromPlugin(PLUGIN_ID, path);
 	}
-
+	
+	/**
+	 * Returns an icon image (uses image registry where possible). If the icon doesn't exist,
+	 * a "missing" image is returned.
+	 * 
+	 * @param iconName Name of the icon
+	 */
+	public Image getIconImage(String iconName) {
+		
+		// Already exists?
+		ImageRegistry reg = getImageRegistry();
+		Image img = reg.get(iconName);
+		if (img != null)
+			return img;
+		
+		// Create
+		ImageDescriptor descriptor = getImageDescriptor("icons/" + iconName + ".png");
+		if(descriptor == null)
+			descriptor = ImageDescriptor.getMissingImageDescriptor();
+		reg.put(iconName, img = descriptor.createImage(true));
+		return img;
+	}
 }

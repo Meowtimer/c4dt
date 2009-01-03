@@ -1,5 +1,6 @@
 package net.arctics.clonk.ui;
 
+import org.eclipse.debug.ui.IDebugUIConstants;
 import org.eclipse.ui.IFolderLayout;
 import org.eclipse.ui.IPageLayout;
 import org.eclipse.ui.IPerspectiveFactory;
@@ -11,6 +12,7 @@ public class ClonkPerspective implements IPerspectiveFactory {
 //		layout.addView("org.eclipse.ui.navigator.ProjectExplorer", IPageLayout.RIGHT, IPageLayout.DEFAULT_VIEW_RATIO, "navigator");
 		
 		layout.addActionSet("net.arctics.clonk.ui.actionset");
+        layout.addActionSet(IDebugUIConstants.LAUNCH_ACTION_SET);
 		
 		layout.addShowViewShortcut("net.arctics.clonk.views.EngineIdentifiersView");
 		

@@ -222,12 +222,15 @@ public class C4Group implements C4GroupItem, Serializable {
 		return hasChildren;
 	}
 	
-	public static C4GroupType getGroupType(String groupName) {
-		String ext = groupName.substring(groupName.lastIndexOf(".") + 1);
+	public static C4GroupType getGroupTypeExt(String ext) {
 		C4GroupType result = extensionToGroupTypeMap.get(ext);
 		if (result != null)
 			return result;
-		return C4GroupType.OtherGroup;
+		return C4GroupType.OtherGroup;		
+	}
+	
+	public static C4GroupType getGroupType(String groupName) {
+		return getGroupTypeExt(groupName.substring(groupName.lastIndexOf(".") + 1));
 	}
 	
 	public C4GroupType getGroupType() {

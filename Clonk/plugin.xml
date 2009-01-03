@@ -428,4 +428,75 @@
 			class="net.arctics.clonk.ui.search.ClonkSearchResultPage">
 		</viewPage>
 	</extension>
+	
+	<extension point="org.eclipse.debug.core.launchConfigurationTypes">	
+		<launchConfigurationType
+			id="net.arctics.clonk.debug.ClonkLaunch"
+			delegate="net.arctics.clonk.debug.ClonkLaunchConfigurationDelegate"
+			modes="run"
+			name="Clonk">
+		</launchConfigurationType>	
+	</extension>
+  
+	<extension point="org.eclipse.debug.ui.launchConfigurationTypeImages">
+		<launchConfigurationTypeImage
+			icon="icons/Clonk_engine.png"
+			configTypeID="net.arctics.clonk.debug.ClonkLaunch"
+			id="net.arctics.clonk.ui.debug.ClonkLaunchTypeImage">
+		</launchConfigurationTypeImage>        
+	</extension>
+  
+	<extension point="org.eclipse.debug.ui.launchConfigurationTabGroups">
+		<launchConfigurationTabGroup
+			type="net.arctics.clonk.debug.ClonkLaunch"
+			class="net.arctics.clonk.ui.debug.ClonkLaunchTabGroup"
+			id="net.arctics.clonk.ui.debug.ClonkLaunch" />
+	</extension>
+
+	<extension point="org.eclipse.core.expressions.propertyTesters">
+		<propertyTester
+			id="net.arctics.clonk.resource.ResourceTester"
+			namespace="net.arctics.clonk.resource"
+			properties="isScenario,isDefinition,isFolder,isResource,isInScenario"
+			type="org.eclipse.core.resources.IResource"
+			class="net.arctics.clonk.resource.ResourceTester">
+		</propertyTester>
+		<propertyTester
+			id="net.arctics.clonk.resource.ResourceTesterEditor"
+			namespace="net.arctics.clonk.resource.editor"
+			properties="isScenario,isDefinition,isFolder,isResource,isInScenario"
+			type="org.eclipse.ui.IFileEditorInput"
+			class="net.arctics.clonk.resource.ResourceTester">
+		</propertyTester>
+	</extension>
+		
+	<extension point="org.eclipse.debug.ui.launchShortcuts">
+		<shortcut
+			id="net.arctics.clonk.ui.debug.ClonkLaunchShortcut"
+			class="net.arctics.clonk.ui.debug.ClonkLaunchShortcut"
+			label="Clonk Scenario"
+			icons="$nl$/icons/Clonk_engine.png"
+			modes="run">
+			<contextualLaunch>
+				<enablement>
+					<!-- Enable only if there is only one element selected and it's a resource inside
+					     a scenario - or an editor for a resource inside a scenario -->
+					<count value="1"/>
+					<with variable="selection">
+						<iterate>
+							<or>
+								<and>
+									<instanceof value="org.eclipse.core.resources.IResource"/>
+									<test property="net.arctics.clonk.resource.isInScenario"/>
+								</and>
+								<test property="net.arctics.clonk.resource.editor.isInScenario"/>
+							</or>
+						</iterate>
+					</with>
+				</enablement>
+			</contextualLaunch>
+			<configurationType id="net.arctics.clonk.debug.ClonkLaunch" />
+		</shortcut>
+	</extension>
+	
 </plugin>

@@ -1,5 +1,8 @@
 package net.arctics.clonk;
 
+import java.util.Collection;
+import java.util.LinkedList;
+
 import net.arctics.clonk.parser.C4Function;
 import net.arctics.clonk.parser.C4Object;
 import net.arctics.clonk.parser.C4ObjectIntern;
@@ -16,6 +19,8 @@ import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IProjectNature;
 import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.IWorkspaceRoot;
+import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.FileLocator;
 import org.eclipse.core.runtime.Path;
@@ -67,6 +72,23 @@ public abstract class Utilities {
 			return null;
 	}
 	
+	/** @return All Clonk projects in the current workspace */
+	public static IProject[] getClonkProjects() {
+		IWorkspaceRoot root = ResourcesPlugin.getWorkspace().getRoot();
+		IProject[] projects = root.getProjects();
+		
+		// Filter out all projects with Clonk nature
+		Collection<IProject> c = new LinkedList<IProject>();
+		for(IProject proj : projects)
+			try {
+				proj.getNature(ClonkCore.CLONK_NATURE_ID);
+				c.add(proj);
+			}
+			catch(CoreException e) { }
+			
+		return c.toArray(new IProject [] {});
+	}
+	
 	public static ClonkIndex getIndex(IResource res) {
 		if (res != null) {
 			ClonkProjectNature nature = getProject(res);
@@ -86,22 +108,12 @@ public abstract class Utilities {
 	
 	public static Image getIconForFunction(C4Function function) {
 		String iconName = function.getVisibility().name().toLowerCase();
-		ImageRegistry reg = ClonkCore.getDefault().getImageRegistry();
-		Image img = reg.get(iconName);
-		if (img != null)
-			return img;
-		reg.put(iconName, ImageDescriptor.createFromURL(FileLocator.find(ClonkCore.getDefault().getBundle(), new Path("icons/"+iconName+".png"), null)));
-		return reg.get(iconName);
+		return ClonkCore.getDefault().getIconImage(iconName);
 	}
 	
 	public static Image getIconForVariable(C4Variable variable) {
 		String iconName = variable.getScope().toString().toLowerCase();
-		ImageRegistry reg = ClonkCore.getDefault().getImageRegistry();
-		Image img = reg.get(iconName);
-		if (img != null)
-			return img;
-		reg.put(iconName, ImageDescriptor.createFromURL(FileLocator.find(ClonkCore.getDefault().getBundle(), new Path("icons/"+iconName+".png"), null)));
-		return reg.get(iconName);
+		return ClonkCore.getDefault().getIconImage(iconName);
 	}
 
 	public static Image getIconForObject(Object element) {
