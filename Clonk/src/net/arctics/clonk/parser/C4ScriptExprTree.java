@@ -301,6 +301,7 @@ public abstract class C4ScriptExprTree {
 				C4Type t = predecessor.getType();
 				if (t == null || t == C4Type.ARRAY || t == C4Type.STRING || t == C4Type.UNKNOWN)
 					return false;
+				return true;
 			}
 			return false;
 		}
