@@ -302,7 +302,7 @@ public abstract class C4ScriptExprTree {
 				if (t == null || t == C4Type.ARRAY || t == C4Type.STRING || t == C4Type.UNKNOWN)
 					return false;
 			}
-			return true;
+			return false;
 		}
 
 		@Override
