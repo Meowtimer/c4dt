@@ -1153,11 +1153,6 @@ public abstract class C4ScriptExprTree {
 		public void setHex(boolean hex) {
 			this.hex = hex;
 		}
-		
-		@Override
-		public void setParent(ExprElm parent) {
-			// ExprNumbers don't care for their parent; additionally setParent() could be called on ZERO leading to references to parsed expressions which should be garbage-collected
-		}
 
 	}
 
