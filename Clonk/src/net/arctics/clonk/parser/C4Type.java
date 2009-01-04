@@ -19,6 +19,7 @@ public enum C4Type {
 	REFERENCE, 
 	UNKNOWN; 
 	
+	@Override
 	public String toString() {
 		if (this == REFERENCE)
 			return "&";

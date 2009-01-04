@@ -305,7 +305,7 @@ public class ClonkCompletionProcessor implements IContentAssistProcessor {
 				try {
 					contextExpression = null;
 					final int preservedOffset = offset;
-					C4ScriptParser parser = C4ScriptParser.reportExpressionsInStatements(doc, activeFunc.getBody().getOffset(), offset, contextScript, activeFunc, new IExpressionListener() {
+					C4ScriptParser parser = C4ScriptParser.reportExpressionsAndStatements(doc, activeFunc.getBody().getOffset(), offset, contextScript, activeFunc, new IExpressionListener() {
 						public TraversalContinuation expressionDetected(ExprElm expression, C4ScriptParser parser) {
 							if (expression instanceof Statement)
 								return TraversalContinuation.Continue;
@@ -399,7 +399,7 @@ public class ClonkCompletionProcessor implements IContentAssistProcessor {
 		}
 		for (C4Variable var : script.getDefinedVariables()) {
 			if (var.getScope() != C4VariableScope.VAR_STATIC && var.getScope() != C4VariableScope.VAR_CONST)
-			proposalForVar(var, prefix, wordOffset, proposals);
+				proposalForVar(var, prefix, wordOffset, proposals);
 		}
 		for (C4Object o : script.getIncludes())
 			proposalsFromScript(o, loopCatcher, prefix, offset, wordOffset, proposals, noPrivateFuncs);
@@ -449,7 +449,8 @@ public class ClonkCompletionProcessor implements IContentAssistProcessor {
 		for(C4Function func : ClonkCore.ENGINE_OBJECT.getDefinedFunctions()) {
 			if (func.getName().equalsIgnoreCase(prefix)) {
 				String displayString = func.getLongParameterString(false).trim();
-				info = new ContextInformation(func.getName() + "()",displayString); 
+				info = new ContextInformation(func.getName() + "()",displayString);
+				break;
 			}
 		}
 		

@@ -11,18 +11,15 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+
 import net.arctics.clonk.parser.C4Field;
-import net.arctics.clonk.parser.C4Function;
 import net.arctics.clonk.parser.C4ID;
 import net.arctics.clonk.parser.C4ObjectExtern;
-import net.arctics.clonk.parser.C4Variable;
 import net.arctics.clonk.parser.ClonkIndex;
 import net.arctics.clonk.resource.InputStreamRespectingUniqueIDs;
 
-import org.eclipse.core.runtime.FileLocator;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.QualifiedName;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.resource.ImageRegistry;
@@ -43,7 +40,7 @@ public class ClonkCore extends AbstractUIPlugin {
 	public static final QualifiedName C4OBJECT_PROPERTY_ID = new QualifiedName("net.arctics.clonk","c4object");
 	public static final QualifiedName SCRIPT_PROPERTY_ID = new QualifiedName("net.arctics.clonk", "script");
 	
-	public static final C4ObjectExtern ENGINE_OBJECT = new C4ObjectExtern(C4ID.getSpecialID("Engine"),"Engine",null);
+	public static C4ObjectExtern ENGINE_OBJECT;
 	public static ClonkIndex EXTERN_INDEX;
 	
 	// The shared instance
@@ -69,17 +66,9 @@ public class ClonkCore extends AbstractUIPlugin {
 		
 	}
 
-	private void loadEngineObject() throws FileNotFoundException, IOException,
-			ClassNotFoundException {
-		InputStream engineStream;
-		if (getEngineCacheFile().toFile().exists()) {
-			engineStream = new FileInputStream(getEngineCacheFile().toFile());
-		}
-		else {
-			engineStream = getBundle().getEntry("res/engine").openStream();
-		}
-		ObjectInputStream decoder = new ObjectInputStream(new BufferedInputStream(engineStream));
-//			java.beans.XMLDecoder decoder = new XMLDecoder(new BufferedInputStream(engineIndex.openStream()));
+	private void loadOld(String path) throws IOException, ClassNotFoundException {
+		ObjectInputStream decoder = new ObjectInputStream(new BufferedInputStream(new FileInputStream(new File(path))));
+		//		java.beans.XMLDecoder decoder = new XMLDecoder(new BufferedInputStream(engineIndex.openStream()));
 		try {
 			while (true) {
 				Object obj = decoder.readObject();
@@ -87,7 +76,7 @@ public class ClonkCore extends AbstractUIPlugin {
 					C4Field field = (C4Field)obj;
 					field.setScript(ENGINE_OBJECT);
 					ENGINE_OBJECT.addField(field);
-//						ENGINE_FUNCTIONS.add((C4Function)obj);
+					//					ENGINE_FUNCTIONS.add((C4Function)obj);
 				}
 				else {
 					System.out.println("Read unknown object from engine: " + obj.getClass().getName());
@@ -96,6 +85,28 @@ public class ClonkCore extends AbstractUIPlugin {
 		}
 		catch(EOFException e) {
 			// finished
+		}
+	}
+
+	private void loadEngineObject() throws FileNotFoundException, IOException,
+	ClassNotFoundException {
+		InputStream engineStream;
+		if (getEngineCacheFile().toFile().exists()) {
+			engineStream = new FileInputStream(getEngineCacheFile().toFile());
+		}
+		else {
+			engineStream = getBundle().getEntry("res/engine").openStream();
+		}
+		try {
+			ObjectInputStream objStream = new InputStreamRespectingUniqueIDs(engineStream);
+			ENGINE_OBJECT = (C4ObjectExtern)objStream.readObject();
+//			if (ENGINE_OBJECT.convertFuncsToConstsIfTheyLookLikeConsts()) {
+//				// resave if something was changed
+//				saveEngineObject();
+//			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			ENGINE_OBJECT = new C4ObjectExtern(C4ID.getSpecialID("Engine"),"Engine",null);
 		}
 	}
 	
@@ -114,18 +125,13 @@ public class ClonkCore extends AbstractUIPlugin {
 		try {
 			IPath engine = getEngineCacheFile();
 			
-			if (engine.toFile().exists()) engine.toFile().delete();
+			File engineFile = engine.toFile();
+			if (engineFile.exists())
+				engineFile.delete();
 			
-			FileOutputStream outputStream = new FileOutputStream(engine.toFile());
-			
+			FileOutputStream outputStream = new FileOutputStream(engineFile);
 			ObjectOutputStream encoder = new ObjectOutputStream(new BufferedOutputStream(outputStream));
-			for(C4Variable var : ENGINE_OBJECT.getDefinedVariables()) {
-				encoder.writeObject(var);
-			}
-			for(C4Function func : ENGINE_OBJECT.getDefinedFunctions()) {
-				encoder.writeObject(func);
-			}
-			encoder.flush();
+			encoder.writeObject(ENGINE_OBJECT);
 			encoder.close();
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();

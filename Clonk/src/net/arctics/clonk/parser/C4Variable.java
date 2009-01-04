@@ -31,11 +31,7 @@ public class C4Variable extends C4Field implements Serializable, ITypedField {
 	 * @param desc
 	 */
 	public C4Variable(String name, String type, String desc) {
-		this.name = name;
-		this.type = C4Type.makeType(type);
-		description = desc;
-		scope = C4VariableScope.VAR_VAR;
-		expectedContent = null;
+		this(name, C4Type.makeType(type), desc, C4VariableScope.VAR_VAR);
 	}
 	
 	public C4Variable(String name, C4VariableScope scope) {
@@ -44,6 +40,14 @@ public class C4Variable extends C4Field implements Serializable, ITypedField {
 		expectedContent = null;
 		description = "";
 		type = null;
+	}
+	
+	public C4Variable(String name, C4Type type, String desc, C4VariableScope scope) {
+		this.name = name;
+		this.type = type;
+		this.description = desc;
+		this.scope = scope;
+		expectedContent = null;
 	}
 	
 	@Override
@@ -102,14 +106,14 @@ public class C4Variable extends C4Field implements Serializable, ITypedField {
 	/**
 	 * @return the description
 	 */
-	public String getDescription() {
+	public String getUserDescription() {
 		return description;
 	}
 
 	/**
 	 * @param description the description to set
 	 */
-	public void setDescription(String description) {
+	public void setUserDescription(String description) {
 		this.description = description;
 	}
 
@@ -180,9 +184,9 @@ public class C4Variable extends C4Field implements Serializable, ITypedField {
 		builder.append(getType().toString());
 		builder.append(" ");
 		builder.append(getName());
-		if (getDescription() != null && getDescription().length() > 0) {
+		if (getUserDescription() != null && getUserDescription().length() > 0) {
 			builder.append(": ");
-			builder.append(getDescription());
+			builder.append(getUserDescription());
 		}
 		return builder.toString();
 	}

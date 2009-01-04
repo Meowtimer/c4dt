@@ -1,6 +1,7 @@
 package net.arctics.clonk.parser;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -9,7 +10,11 @@ import java.util.Set;
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.Utilities;
 import net.arctics.clonk.parser.C4Directive.C4DirectiveType;
+import net.arctics.clonk.parser.C4Variable.C4VariableScope;
 
+import org.eclipse.core.resources.IContainer;
+import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IResource;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.ITextSelection;
 import org.eclipse.jface.text.Region;
@@ -24,11 +29,10 @@ public abstract class C4ScriptBase extends C4Structure {
 		private ClonkIndex index;
 		private int recursion;
 		private Class<? extends C4Field> fieldClass;
-		private C4Function context;
+		private C4Function contextFunction;
 		private Set<C4ScriptBase> alreadySearched;
-		/**
-		 * @param indexer the indexer to be passed to the info
-		 */
+		private C4ScriptBase searchOrigin;
+
 		public FindFieldInfo(ClonkIndex clonkIndex) {
 			super();
 			index = clonkIndex;
@@ -36,7 +40,7 @@ public abstract class C4ScriptBase extends C4Structure {
 		}
 		public FindFieldInfo(ClonkIndex clonkIndex, C4Function ctx) {
 			this(clonkIndex);
-			setContext(ctx);
+			setContextFunction(ctx);
 		}
 		public Class<? extends C4Field> getFieldClass() {
 			return fieldClass;
@@ -44,14 +48,20 @@ public abstract class C4ScriptBase extends C4Structure {
 		public void setFieldClass(Class<?extends C4Field> fieldClass) {
 			this.fieldClass = fieldClass;
 		}
-		public void setContext(C4Function ctx) {
-			context = ctx;
+		public void setContextFunction(C4Function ctx) {
+			contextFunction = ctx;
 		}
-		public C4Function getContext() {
-			return context;
+		public C4Function getContextFunction() {
+			return contextFunction;
 		}
 		public Set<C4ScriptBase> getAlreadySearched() {
 			return alreadySearched;
+		}
+		public C4ScriptBase getSearchOrigin() {
+			return searchOrigin;
+		}
+		public void setSearchOrigin(C4ScriptBase searchOrigin) {
+			this.searchOrigin = searchOrigin;
 		}
 		
 	}
@@ -119,6 +129,31 @@ public abstract class C4ScriptBase extends C4Structure {
 		return false;
 	}
 	
+	private static boolean resourceInsideContainer(IResource resource, IContainer container) {
+		for (IContainer c = resource.getParent(); c != null; c = c.getParent())
+			if (c.equals(container))
+				return true;
+		return false;
+	}
+	
+//	private static C4Object pickNearestObject(List<C4Object> objects, C4ScriptBase origin) {
+//		if (!(origin.getScriptFile() instanceof IFile))
+//			return objects.size() > 0 ? objects.get(0) : null;
+//		IFile originFile = (IFile) origin.getScriptFile();
+//		IContainer originContainer = originFile.getParent();
+//		C4Object result = null;
+//		int foldersDistance = 0;
+//		for (C4Object o : objects) {
+//			if (!(o.getScriptFile() instanceof IFile))
+//				continue;
+//			IContainer objContainer = ((IFile)o.getScriptFile()).getParent();
+//			if (resou
+//			int i;
+//			for (i = )
+//		}
+//		return result;
+//	}
+	
 	/**
 	 * Finds field with specified name and infos
 	 * @param name
@@ -134,8 +169,8 @@ public abstract class C4ScriptBase extends C4Structure {
 		
 		// local variable?
 		if (info.recursion == 0) {
-			if (info.getContext() != null) {
-				C4Field v = info.getContext().findVariable(name);
+			if (info.getContextFunction() != null) {
+				C4Field v = info.getContextFunction().findVariable(name);
 				if (v != null)
 					return v;
 			}
@@ -184,6 +219,7 @@ public abstract class C4ScriptBase extends C4Structure {
 			}
 			// definition
 			if (f == null && Utilities.looksLikeID(name)) {
+				List<C4Object> objects = info.index.getObjects(C4ID.getID(name));
 				f = info.index.getLastObjectWithId(C4ID.getID(name));
 				if (f == null)
 					f = ClonkCore.EXTERN_INDEX.getLastObjectWithId(C4ID.getID(name));
@@ -371,6 +407,50 @@ public abstract class C4ScriptBase extends C4Structure {
 				return var;
 		}
 		return null;
+	}
+	
+	private static boolean looksLikeConstName(String name) {
+		boolean underscore = false;
+		for (int i = 0; i < name.length(); i++) {
+			char c = name.charAt(i);
+			if (c == '_') {
+				if (!underscore)
+					underscore = true;
+				else
+					return false;
+			}
+			if (!underscore) {
+				if (Character.toUpperCase(c) != c) {
+					return false;
+				}
+			}
+		}
+		return underscore || name.equals(name.toUpperCase());
+	}
+
+	public boolean convertFuncsToConstsIfTheyLookLikeConsts() {
+		boolean didSomething = false;
+		List<C4Function> toBeRemoved = new LinkedList<C4Function>();
+		for (C4Function f : definedFunctions) {
+			if (f.getParameters().size() == 0 && looksLikeConstName(f.getName())) {
+				toBeRemoved.add(f);
+				definedVariables.add(new C4Variable(f.getName(), f.getReturnType(), f.getUserDescription(), C4VariableScope.VAR_CONST));
+				didSomething = true;
+			}
+		}
+		for (C4Variable v : definedVariables) {
+			if (v.getScope() != C4VariableScope.VAR_CONST) {
+				v.setScope(C4VariableScope.VAR_CONST);
+				didSomething = true;
+			}
+			if (v.getScript() != this) {
+				v.setScript(this);
+				didSomething = true;
+			}
+		}
+		for (C4Function f : toBeRemoved)
+			definedFunctions.remove(f);
+		return didSomething;
 	}
 
 }

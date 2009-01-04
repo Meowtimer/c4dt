@@ -34,7 +34,7 @@ public class C4SystemScript extends C4ScriptBase implements Serializable {
 	}
 	
 	public void setScriptfile(IResource f) throws CoreException {
-		if (f == scriptFile)
+		if (Utilities.resourceEqual(scriptFile, f))
 			return;
 		if (scriptFile != null)
 			scriptFile.setSessionProperty(ClonkCore.SCRIPT_PROPERTY_ID, null);

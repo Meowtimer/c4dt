@@ -46,7 +46,11 @@ public abstract class C4ScriptExprTree {
 	 * base class for making expression trees
 	 */
 	public abstract static class ExprElm implements IRegion, Cloneable {
+		
+		public static final ExprElm NULL_EXPR = new ExprElm() {};
+		
 		private int exprStart, exprEnd;
+		private transient ExprElm parent, predecessorInSequence;
 		
 		protected void assignParentToSubElements() {
 			for (ExprElm e : getSubElements())
@@ -58,9 +62,6 @@ public abstract class C4ScriptExprTree {
 		protected Object clone() throws CloneNotSupportedException {
 			return super.clone();
 		}
-
-		private transient ExprElm parent;
-		private transient ExprElm predecessorInSequence;
 
 		public ExprElm getParent() {
 			return parent;
@@ -210,8 +211,6 @@ public abstract class C4ScriptExprTree {
 			}
 			return c;
 		}
-
-		public static final ExprElm NULL_EXPR = new ExprElm() {};
 
 		public IRegion region(int offset) {
 			return new Region(offset+getExprStart(), getExprEnd()-getExprStart());
@@ -473,7 +472,8 @@ public abstract class C4ScriptExprTree {
 		@Override
 		protected C4Field getFieldImpl(C4ScriptParser parser) {
 			FindFieldInfo info = new FindFieldInfo(parser.getContainer().getIndex());
-			info.setContext(parser.getActiveFunc());
+			info.setContextFunction(parser.getActiveFunc());
+			info.setSearchOrigin(parser.getContainer());
 			return parser.getContainer().findVariable(fieldName, info);
 		}
 
@@ -542,8 +542,9 @@ public abstract class C4ScriptExprTree {
 			C4ScriptBase lookIn = p == null ? parser.getContainer() : p.guessObjectType(parser);
 			if (lookIn != null) {
 				FindFieldInfo info = new FindFieldInfo(lookIn.getIndex());
+				info.setSearchOrigin(parser.getContainer());
 				C4Field field = lookIn.findFunction(fieldName, info);
-				// eventually it's a variable called as a function (not after '->')
+				// might be a variable called as a function (not after '->')
 				if (field == null && p == null)
 					field = lookIn.findVariable(fieldName, info);
 				return field;
@@ -1151,6 +1152,11 @@ public abstract class C4ScriptExprTree {
 
 		public void setHex(boolean hex) {
 			this.hex = hex;
+		}
+		
+		@Override
+		public void setParent(ExprElm parent) {
+			// ExprNumbers don't care for their parent; additionally setParent() could be called on ZERO leading to references to parsed expressions which should be garbage-collected
 		}
 
 	}

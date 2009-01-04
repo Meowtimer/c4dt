@@ -72,7 +72,7 @@ public class ClonkAutoIndentStrategy extends DefaultIndentLineAutoEditStrategy {
 	
 	private int countIndentOfLine(String line) {
 		int i = 0, indent = 0;
-		do {
+		while (i < line.length()){
 		 if (line.charAt(i) == '\t') {
 			indent++;
 			i++;
@@ -83,7 +83,7 @@ public class ClonkAutoIndentStrategy extends DefaultIndentLineAutoEditStrategy {
 		 }
 		 else
 			 break;
-		} while(i < line.length());
+		}
 		return indent;
 	}
 	

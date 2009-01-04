@@ -25,7 +25,6 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.FileLocator;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.jface.resource.ImageDescriptor;
-import org.eclipse.jface.resource.ImageRegistry;
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.swt.graphics.Image;
@@ -242,6 +241,10 @@ public abstract class Utilities {
 	
 	public static boolean isLineBreak(char c) {
 		return c == '\n' || c == '\r';
+	}
+
+	public static boolean resourceEqual(IResource a, IResource b) {
+		return (a == null && b == null) || (a != null && b != null && a.equals(b));
 	}
 	
 }

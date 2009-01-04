@@ -340,11 +340,21 @@ public class C4ScriptParser {
 
 	public static class ParsingException extends Exception {
 
-		private static final long serialVersionUID = 5596886615974079864L;
+		private static final long serialVersionUID = 1L;
 
 		public ParsingException(String msg) {
 			super(msg);
 		}
+	}
+	
+	public static class SilentParsingException extends ParsingException {
+
+		private static final long serialVersionUID = 1L;
+		
+		public SilentParsingException(String msg) {
+			super(msg);
+		}
+		
 	}
 	
 	private IExpressionListener expressionListener;
@@ -374,6 +384,7 @@ public class C4ScriptParser {
 	
 	private int parseExpressionRecursion;
 	private int parseStatementRecursion;
+	private int blockDepth;
 	
 	public static final int MAX_PAR = 10;
 	public static final int UNKNOWN_PARAMETERNUM = MAX_PAR+1;
@@ -495,11 +506,16 @@ public class C4ScriptParser {
 			if (numUnnamedParameters < UNKNOWN_PARAMETERNUM) {
 				activeFunc.createParameters(numUnnamedParameters);
 			}
-		} catch (ParsingException e) {
+		}
+		catch (SilentParsingException e) {
+			// not really an error
+		}
+		catch (ParsingException e) {
 			System.out.println(String.format("ParsingException in %s (%s)", activeFunc.getName(), container.getName()));
 			e.printStackTrace();
 			// not very exceptional
-		} catch (Exception e) {
+		}
+		catch (Exception e) {
 			// errorWithCode throws ^^;
 			warningWithCode(ErrorCode.InternalError, fReader.getPosition(), fReader.getPosition()+1, e.getMessage());
 			e.printStackTrace();
@@ -671,7 +687,7 @@ public class C4ScriptParser {
 		return result;
 	}
 
-	private boolean parseVarVariableDeclaration(int offset, boolean declaration) throws ParsingException {
+	private boolean parseVariableDeclarationInFunc(int offset, boolean declaration) throws ParsingException {
 		parsedVariable = null;
 		fReader.seek(offset);
 
@@ -744,7 +760,7 @@ public class C4ScriptParser {
 	private int consumeFunctionCodeOrReturnReadChar(int offset) throws ParsingException {
 		eatWhitespace();
 		offset = fReader.getPosition();
-		if (parseVarVariableDeclaration(offset, true))
+		if (parseVariableDeclarationInFunc(offset, true))
 			return 0;
 		if (parseToken(offset) != null)
 			return 0;
@@ -909,44 +925,6 @@ public class C4ScriptParser {
 	}
 
 	/**
-	 * Parses one command
-	 * i.e. if (condition) <code>parseCode</code>
-	 * @param offset
-	 * @return
-	 * @throws ParsingException 
-	 */
-	public boolean parseCode(int offset) throws ParsingException {
-		return parseStatement(offset) != null;
-//		fReader.seek(offset);
-//		this.eatWhitespace();
-//		offset = fReader.getPosition();
-//		try {
-//			int readByte = fReader.read();
-//			if (readByte == ';') {
-//				// empty statement
-//				return true;
-//			}
-//			fReader.unread();
-//			if (parseKeyword(offset)) return true;
-//			if (parseReturn(offset) || parseVarVariableDeclaration(offset, false) || parseStandaloneExpression(offset)) {
-//				checkForSemicolon();
-//				return true;
-//			}
-//			else {
-//				return false;
-//			}
-//		} catch (Exception e) {
-//			// something exceptional happened
-//			if (!(e instanceof ParsingException)) {
-//				e.printStackTrace();
-//				errorWithCode(ErrorCode.InternalError, offset, fReader.getPosition(), e.toString());
-//			} else
-//				throw (ParsingException)e;
-//			return false;
-//		}
-	}
-
-	/**
 	 * Parses all commands
 	 * For use in keyword() { <code>parseCodeBlock<code> }
 	 * @param offset
@@ -978,8 +956,6 @@ public class C4ScriptParser {
 		// post-prefix
 		return true;
 	}
-
-	private int blockDepth;
 	
 	/**
 	 * Parses { parseCodeBlock } or parseCode
@@ -1004,7 +980,8 @@ public class C4ScriptParser {
 			return true; // empty statement
 		} else {
 			eatWhitespace();
-			if (parseCode(offset)) return true;
+			if (parseStatement(offset) != null)
+				return true;
 			else return false;
 		}
 	}
@@ -1299,7 +1276,7 @@ public class C4ScriptParser {
 		String problem = String.format(errorStrings[code.ordinal()], args);
 		createErrorMarker(errorStart, errorEnd, problem);
 		if (!noThrow)
-			throw new ParsingException(problem);
+			throw fScript == null ? new SilentParsingException(problem) : new ParsingException(problem);
 	}
 	
 	private void errorWithCode(ErrorCode code, int errorStart, int errorEnd, Object... args) throws ParsingException {
@@ -2112,7 +2089,6 @@ public class C4ScriptParser {
 		int readChar = fReader.read();
 		if (readChar != ';')
 			tokenExpectedError(";");
-		
 	}
 	
 	private boolean parseID(int offset) throws ParsingException {
@@ -2292,11 +2268,11 @@ public class C4ScriptParser {
 		container.clearFields();
 	}
 	
-	public static C4ScriptParser reportExpressionsInStatements(IDocument doc, IRegion region, C4ScriptBase context, C4Function func, IExpressionListener listener) throws BadLocationException, CompilerException, ParsingException {
-		return reportExpressionsInStatements(doc, region.getOffset(), region.getOffset()+region.getLength(), context, func, listener);
+	public static C4ScriptParser reportExpressionsAndStatements(IDocument doc, IRegion region, C4ScriptBase context, C4Function func, IExpressionListener listener) throws BadLocationException, CompilerException, ParsingException {
+		return reportExpressionsAndStatements(doc, region.getOffset(), region.getOffset()+region.getLength(), context, func, listener);
 	}
 	
-	public static C4ScriptParser reportExpressionsInStatements(IDocument doc, int statementStart, int statementEnd, C4ScriptBase context, C4Function func, IExpressionListener listener) throws CompilerException, ParsingException {
+	public static C4ScriptParser reportExpressionsAndStatements(IDocument doc, int statementStart, int statementEnd, C4ScriptBase context, C4Function func, IExpressionListener listener) throws CompilerException, ParsingException {
 		String expr;
 		try {
 			expr = doc.get(statementStart, Math.min(statementEnd-statementStart, doc.getLength()-statementStart));
@@ -2326,8 +2302,8 @@ public class C4ScriptParser {
 		return parser;
 	}
 	
-	public static C4ScriptParser reportExpressionsInStatements(IDocument doc, int offset, C4Object context, C4Function func, IExpressionListener listener) throws BadLocationException, CompilerException, ParsingException {
-		return reportExpressionsInStatements(doc, Utilities.getStartOfStatement(doc, offset), offset, context, func, listener);
+	public static C4ScriptParser reportExpressionsAndStatements(IDocument doc, int offset, C4Object context, C4Function func, IExpressionListener listener) throws BadLocationException, CompilerException, ParsingException {
+		return reportExpressionsAndStatements(doc, Utilities.getStartOfStatement(doc, offset), offset, context, func, listener);
 	}
 
 }
