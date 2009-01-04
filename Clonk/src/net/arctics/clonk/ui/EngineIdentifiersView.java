@@ -175,7 +175,7 @@ public class EngineIdentifiersView extends ViewPart {
 				C4Variable var = (C4Variable) identifier;
 				var.setName(identifierNameField.getText());
 				var.setType(C4Type.makeType(returnTypeBox.getItem(returnTypeBox.getSelectionIndex())));
-				var.setScope(C4VariableScope.makeScope(scopeBox.getItem(scopeBox.getSelectionIndex())));
+				var.setScope(C4VariableScope.valueOf(scopeBox.getItem(scopeBox.getSelectionIndex())));
 			}
 			
 			super.okPressed();

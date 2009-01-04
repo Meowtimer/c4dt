@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import net.arctics.clonk.ClonkCore;
-import net.arctics.clonk.parser.C4Function;
 import net.arctics.clonk.parser.C4Variable;
 import net.arctics.clonk.parser.C4Variable.C4VariableScope;
 import net.arctics.clonk.ui.editors.ClonkWhitespaceDetector;
@@ -17,7 +16,6 @@ import org.eclipse.jface.text.TextAttribute;
 import org.eclipse.jface.text.rules.ICharacterScanner;
 import org.eclipse.jface.text.rules.IRule;
 import org.eclipse.jface.text.rules.IToken;
-import org.eclipse.jface.text.rules.PatternRule;
 import org.eclipse.jface.text.rules.RuleBasedScanner;
 import org.eclipse.jface.text.rules.SingleLineRule;
 import org.eclipse.jface.text.rules.Token;
