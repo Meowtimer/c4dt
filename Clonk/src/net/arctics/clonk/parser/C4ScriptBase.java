@@ -63,6 +63,10 @@ public abstract class C4ScriptBase extends C4Structure {
 		public void setSearchOrigin(C4ScriptBase searchOrigin) {
 			this.searchOrigin = searchOrigin;
 		}
+		public void resetState() {
+			alreadySearched.clear();
+			recursion = 0;
+		}
 		
 	}
 	
@@ -339,6 +343,7 @@ public abstract class C4ScriptBase extends C4Structure {
 	public abstract Object getScriptFile();
 
 	public C4Function findFunction(String functionName, FindFieldInfo info) {
+		info.resetState();
 		info.setFieldClass(C4Function.class);
 		return (C4Function) findField(functionName, info);
 	}
@@ -354,6 +359,7 @@ public abstract class C4ScriptBase extends C4Structure {
 	}
 	
 	public C4Variable findVariable(String varName, FindFieldInfo info) {
+		info.resetState();
 		info.setFieldClass(C4Variable.class);
 		return (C4Variable) findField(varName, info);
 	}
