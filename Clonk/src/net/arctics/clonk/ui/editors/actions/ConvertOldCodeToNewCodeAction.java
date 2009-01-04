@@ -64,7 +64,7 @@ public class ConvertOldCodeToNewCodeAction extends TextEditorAction {
 			try {
 				C4Function func = pair.getFirst();
 				LinkedList<Statement> elms = pair.getSecond();
-				boolean wholeFuncConversion = func.isOldStyle() && selLength == 0;
+				boolean wholeFuncConversion = selLength == 0;
 				parser.setActiveFunc(func);
 				if (wholeFuncConversion) {
 					Statement[] statementsInRightOrder = new Statement[elms.size()];
@@ -74,12 +74,23 @@ public class ConvertOldCodeToNewCodeAction extends TextEditorAction {
 					}
 					Block b = new Block(statementsInRightOrder);
 					String blockString = b.exhaustiveNewStyleReplacement(parser).toString(1);
-					int blockBegin = statementsInRightOrder[0].getExprStart();
+					int blockBegin;
+					int blockLength;
+					// eat braces if new style func
+					if (func.isOldStyle()) {
+						blockBegin = statementsInRightOrder[0].getExprStart();
+						blockLength = statementsInRightOrder[elms.size()-1].getExprEnd() - blockBegin;
+					}
+					else {
+						blockBegin  = func.getBody().getStart()-1;
+						blockLength = func.getBody().getEnd()+1 - blockBegin;
+					}
 					// eat indentation
-					while (blockBegin-1 > func.getHeader().getEnd() && isIndent(document.getChar(blockBegin-1)))
+					while (blockBegin-1 > func.getHeader().getEnd() && isIndent(document.getChar(blockBegin-1))) {
 						blockBegin--;
-					int blockEnd = statementsInRightOrder[elms.size()-1].getExprEnd() - blockBegin;
-					document.replace(blockBegin, blockEnd, blockString);
+						blockLength++;
+					}
+					document.replace(blockBegin, blockLength, blockString);
 					// convert old style function to new style function
 					String newHeader = func.getHeaderString(false);
 					document.replace(func.getHeader().getStart(), func.getHeader().getLength(), newHeader);

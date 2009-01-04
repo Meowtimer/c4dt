@@ -883,10 +883,9 @@ public class C4ScriptParser {
 		} else {
 			// body in {...}
 			blockDepth = 0;
-			eatWhitespace();
 			offset = fReader.getPosition();
-			//if (parseFunctionDescription(offset)) offset = fReader.getPosition();
 			startBody = offset;
+			eatWhitespace();
 
 			// new two pass strategy to be able to check if functions and variables exist
 			// first pass: skip the code, just remember where it is

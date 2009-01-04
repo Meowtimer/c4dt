@@ -3,15 +3,7 @@ package net.arctics.clonk.ui.wizards;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.ui.INewWizard;
 import org.eclipse.ui.IWorkbench;
-import org.eclipse.core.runtime.*;
-import java.net.URL;
-import java.util.Enumeration;
 import java.util.Map;
-
-import org.eclipse.core.resources.*;
-import org.eclipse.core.runtime.CoreException;
-import java.io.*;
-
 import org.eclipse.ui.*;
 
 /**

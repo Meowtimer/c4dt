@@ -574,7 +574,9 @@ public abstract class C4ScriptExprTree {
 			else {
 				if (field instanceof C4Variable) {
 					if (params.length == 0) {
-						parser.warningWithCode(ErrorCode.VariableCalled, this, field.getName());
+						// no warning when in #strict mode
+						if (parser.getStrictLevel() >= 2)
+							parser.warningWithCode(ErrorCode.VariableCalled, this, field.getName());
 					} else {
 						parser.errorWithCode(ErrorCode.VariableCalled, this, field.getName(), true);
 					}

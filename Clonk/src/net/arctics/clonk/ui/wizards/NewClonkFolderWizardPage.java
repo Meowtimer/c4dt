@@ -3,6 +3,7 @@ package net.arctics.clonk.ui.wizards;
 import java.lang.reflect.Field;
 
 import org.eclipse.core.resources.IContainer;
+import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.Path;
@@ -32,6 +33,7 @@ public class NewClonkFolderWizardPage extends WizardPage {
 	protected Text fileText;
 	private String folderExtension;
 	protected ISelection selection;
+	protected IProject project;
 	
 	public NewClonkFolderWizardPage(ISelection selection) {
 		super("wizardPage");
@@ -175,7 +177,7 @@ public class NewClonkFolderWizardPage extends WizardPage {
 				else
 					container = ((IResource) obj).getParent();
 				containerText.setText(container.getFullPath().toString());
-				((IResource)obj).getProject();
+				project = ((IResource)obj).getProject();
 			}
 		}
 		fileText.setText("NewFolder");
