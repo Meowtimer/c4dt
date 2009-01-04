@@ -2,9 +2,11 @@ package net.arctics.clonk.parser;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import net.arctics.clonk.ClonkCore;
@@ -13,7 +15,6 @@ import net.arctics.clonk.parser.C4Directive.C4DirectiveType;
 import net.arctics.clonk.parser.C4Variable.C4VariableScope;
 
 import org.eclipse.core.resources.IContainer;
-import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.ITextSelection;
@@ -433,6 +434,21 @@ public abstract class C4ScriptBase extends C4Structure {
 		}
 		return underscore || name.equals(name.toUpperCase());
 	}
+	
+	public boolean removeDuplicateVariables() {
+		Map<String, C4Variable> variableMap = new HashMap<String, C4Variable>();
+		Collection<C4Variable> toBeRemoved = new LinkedList<C4Variable>();
+		for (C4Variable v : definedVariables) {
+			C4Variable inHash = variableMap.get(v.getName());
+			if (inHash != null)
+				toBeRemoved.add(v);
+			else
+				variableMap.put(v.getName(), v);
+		}
+		for (C4Variable v : toBeRemoved)
+			definedVariables.remove(v);
+		return toBeRemoved.size() > 0;
+	}
 
 	public boolean convertFuncsToConstsIfTheyLookLikeConsts() {
 		boolean didSomething = false;
@@ -456,6 +472,7 @@ public abstract class C4ScriptBase extends C4Structure {
 		}
 		for (C4Function f : toBeRemoved)
 			definedFunctions.remove(f);
+		didSomething |= removeDuplicateVariables();
 		return didSomething;
 	}
 

@@ -100,10 +100,10 @@ public class ClonkCore extends AbstractUIPlugin {
 		try {
 			ObjectInputStream objStream = new InputStreamRespectingUniqueIDs(engineStream);
 			ENGINE_OBJECT = (C4ObjectExtern)objStream.readObject();
-//			if (ENGINE_OBJECT.convertFuncsToConstsIfTheyLookLikeConsts()) {
-//				// resave if something was changed
-//				saveEngineObject();
-//			}
+			if (ENGINE_OBJECT.convertFuncsToConstsIfTheyLookLikeConsts()) {
+				// resave if something was changed
+				saveEngineObject();
+			}
 		} catch (Exception e) {
 			e.printStackTrace();
 			ENGINE_OBJECT = new C4ObjectExtern(C4ID.getSpecialID("Engine"),"Engine",null);
