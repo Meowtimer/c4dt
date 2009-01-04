@@ -15,7 +15,7 @@ import org.eclipse.jface.text.IRegion;
  * <li><tt>}</tt> insertion after <tt>{</tt>+<tt>enter</tt></li>
  * <li>?automatic closing of <tt>)</tt>? this needs some really good intelligence</li>
  * <li>instead of <tt>\t</tt> always insert two spaces</li>
- * <li>complete parameter insertion when defining a object callback func(e.g. Contained* funcs)</li>
+ * <li>complete parameter insertion when defining an object callback func(e.g. Contained* funcs)</li>
  * </ul>
  * @author ZokRadonh
  *

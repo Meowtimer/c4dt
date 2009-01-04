@@ -1,7 +1,17 @@
-package net.arctics.clonk.ui.editors;
+package net.arctics.clonk.ui.editors.defcore;
 
+import net.arctics.clonk.ClonkCore;
+import net.arctics.clonk.Utilities;
+import net.arctics.clonk.parser.C4Object;
+import net.arctics.clonk.parser.C4ObjectIntern;
+import net.arctics.clonk.ui.editors.ColorManager;
+
+import org.eclipse.core.resources.IContainer;
+import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.jface.text.source.SourceViewerConfiguration;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CTabFolder;
 import org.eclipse.swt.layout.GridData;
@@ -25,7 +35,7 @@ public class C4DefCoreEditor extends FormEditor {
 	}
 
 	public static class DefCoreSectionPage extends FormPage {
-
+		
 		public DefCoreSectionPage(FormEditor editor, String id, String title) {
 			super(editor, id, title);
 		}
@@ -36,7 +46,20 @@ public class C4DefCoreEditor extends FormEditor {
 			FormToolkit toolkit = managedForm.getToolkit();
 			ScrolledForm form = managedForm.getForm();
 			toolkit.decorateFormHeading(form.getForm());
-			form.setText("DefCore main options");
+			
+			form.setText("DefCore options");
+			IFile input = Utilities.getEditingFile(getEditor());
+			if (input != null) {
+				try {
+					IContainer cont = input.getParent();
+					C4Object obj = (C4Object) input.getParent().getSessionProperty(ClonkCore.C4OBJECT_PROPERTY_ID);
+					if (obj != null) {
+						form.setText(obj.getName() + "(" + obj.getId().getName() + ") definition core");
+					}
+				} catch (CoreException e) {
+					e.printStackTrace();
+				}
+			}
 			
 			GridLayout layout = new GridLayout(1,false);
 			form.getBody().setLayout(layout);
@@ -45,7 +68,7 @@ public class C4DefCoreEditor extends FormEditor {
 			
 			SectionPart part = new SectionPart(form.getBody(),toolkit,Section.CLIENT_INDENT | Section.TITLE_BAR | Section.EXPANDED);
 			
-			part.getSection().setText("section text");
+			part.getSection().setText("General options");
 			part.getSection().setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 			
 			Composite sectionComp = toolkit.createComposite(part.getSection());
@@ -66,16 +89,20 @@ public class C4DefCoreEditor extends FormEditor {
 		
 		public static final String PAGE_ID = "rawDefCore";
 		
+		private ColorManager colorManager;
 		private FormEditor fEditor;
 		private String id;
 		private String title;
 		
 		public RawSourcePage(FormEditor editor, String id, String title) {
+			colorManager = new ColorManager();
 			fEditor = editor;
 			this.id = id;
 			setPartName(title);
 			setContentDescription(title);
 			this.title = title;
+			setSourceViewerConfiguration(new DefCoreSourceViewerConfiguration(colorManager, this));
+			setDocumentProvider(new DefCoreDocumentProvider(this));
 		}
 
 		public void resetPartName() {
