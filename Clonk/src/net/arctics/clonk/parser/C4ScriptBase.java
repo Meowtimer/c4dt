@@ -12,6 +12,7 @@ import java.util.Set;
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.Utilities;
 import net.arctics.clonk.parser.C4Directive.C4DirectiveType;
+import net.arctics.clonk.parser.C4Function.C4FunctionScope;
 import net.arctics.clonk.parser.C4Variable.C4VariableScope;
 
 import org.eclipse.core.resources.IContainer;
@@ -420,7 +421,7 @@ public abstract class C4ScriptBase extends C4Structure {
 		boolean underscore = false;
 		for (int i = 0; i < name.length(); i++) {
 			char c = name.charAt(i);
-			if (c == '_') {
+			if (i > 0 && c == '_') {
 				if (!underscore)
 					underscore = true;
 				else
@@ -472,6 +473,12 @@ public abstract class C4ScriptBase extends C4Structure {
 		}
 		for (C4Function f : toBeRemoved)
 			definedFunctions.remove(f);
+		C4Variable v = findLocalVariable("_inherited");
+		if (v != null) {
+			definedVariables.remove(v);
+			definedFunctions.add(new C4Function("_inherited", this, C4FunctionScope.FUNC_PUBLIC));
+			didSomething = true;
+		}
 		didSomething |= removeDuplicateVariables();
 		return didSomething;
 	}

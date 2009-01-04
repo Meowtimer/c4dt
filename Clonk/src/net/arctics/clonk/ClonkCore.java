@@ -66,27 +66,27 @@ public class ClonkCore extends AbstractUIPlugin {
 		
 	}
 
-	private void loadOld(String path) throws IOException, ClassNotFoundException {
-		ObjectInputStream decoder = new ObjectInputStream(new BufferedInputStream(new FileInputStream(new File(path))));
-		//		java.beans.XMLDecoder decoder = new XMLDecoder(new BufferedInputStream(engineIndex.openStream()));
-		try {
-			while (true) {
-				Object obj = decoder.readObject();
-				if (obj instanceof C4Field) {
-					C4Field field = (C4Field)obj;
-					field.setScript(ENGINE_OBJECT);
-					ENGINE_OBJECT.addField(field);
-					//					ENGINE_FUNCTIONS.add((C4Function)obj);
-				}
-				else {
-					System.out.println("Read unknown object from engine: " + obj.getClass().getName());
-				}
-			}
-		}
-		catch(EOFException e) {
-			// finished
-		}
-	}
+//	private void loadOld(String path) throws IOException, ClassNotFoundException {
+//		ObjectInputStream decoder = new ObjectInputStream(new BufferedInputStream(new FileInputStream(new File(path))));
+//		//		java.beans.XMLDecoder decoder = new XMLDecoder(new BufferedInputStream(engineIndex.openStream()));
+//		try {
+//			while (true) {
+//				Object obj = decoder.readObject();
+//				if (obj instanceof C4Field) {
+//					C4Field field = (C4Field)obj;
+//					field.setScript(ENGINE_OBJECT);
+//					ENGINE_OBJECT.addField(field);
+//					//					ENGINE_FUNCTIONS.add((C4Function)obj);
+//				}
+//				else {
+//					System.out.println("Read unknown object from engine: " + obj.getClass().getName());
+//				}
+//			}
+//		}
+//		catch(EOFException e) {
+//			// finished
+//		}
+//	}
 
 	private void loadEngineObject() throws FileNotFoundException, IOException,
 	ClassNotFoundException {
@@ -100,10 +100,10 @@ public class ClonkCore extends AbstractUIPlugin {
 		try {
 			ObjectInputStream objStream = new InputStreamRespectingUniqueIDs(engineStream);
 			ENGINE_OBJECT = (C4ObjectExtern)objStream.readObject();
-			if (ENGINE_OBJECT.convertFuncsToConstsIfTheyLookLikeConsts()) {
-				// resave if something was changed
-				saveEngineObject();
-			}
+//			if (ENGINE_OBJECT.convertFuncsToConstsIfTheyLookLikeConsts()) {
+//				// resave if something was changed
+//				saveEngineObject();
+//			}
 		} catch (Exception e) {
 			e.printStackTrace();
 			ENGINE_OBJECT = new C4ObjectExtern(C4ID.getSpecialID("Engine"),"Engine",null);
@@ -120,7 +120,6 @@ public class ClonkCore extends AbstractUIPlugin {
 		return path.append("externlib");
 	}
 	
-	@SuppressWarnings("deprecation")
 	public static void saveEngineObject() {
 		try {
 			IPath engine = getEngineCacheFile();

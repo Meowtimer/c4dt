@@ -49,7 +49,7 @@ public class C4Function extends C4Structure implements Serializable, ITypedField
 		localVars = new ArrayList<C4Variable>();
 	}
 	
-	public C4Function(String name, C4Object parent, C4FunctionScope scope) {
+	public C4Function(String name, C4ScriptBase parent, C4FunctionScope scope) {
 		this.name = name;
 		visibility = scope;
 		parameter = new ArrayList<C4Variable>();
