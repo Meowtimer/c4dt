@@ -172,9 +172,14 @@ public class C4Variable extends C4Field implements Serializable, ITypedField {
 				return null;
 			}
 		}
+		
+		public String toString() {
+			return toKeyword();
+		}
 	}
 	
 	public int sortCategory() {
+		if (scope == null) return C4VariableScope.VAR_VAR.ordinal();
 		return scope.ordinal();
 	}
 	
