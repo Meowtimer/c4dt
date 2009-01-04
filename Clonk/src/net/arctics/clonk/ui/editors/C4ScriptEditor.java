@@ -193,7 +193,8 @@ public class C4ScriptEditor extends TextEditor implements IShowInSource {
 	}
 
 	public void refreshOutline() {
-		outlinePage.refresh();
+		if (outlinePage != null) // don't start lazy loading of outlinePage
+			getOutlinePage().refresh();
 	}
 
 	@Override
