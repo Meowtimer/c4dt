@@ -4,6 +4,7 @@ import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Set;
 
+import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.C4ScriptExprTree.ExprElm;
 import net.arctics.clonk.parser.C4ScriptParser.Keywords;
 import net.arctics.clonk.resource.ClonkProjectNature;
@@ -17,6 +18,7 @@ public class C4Variable extends C4Field implements Serializable, ITypedField {
 
 	private static final long serialVersionUID = -2350345359769750230L;
 	private C4VariableScope scope;
+	private int typeMask;
 	private C4Type type;
 	private C4Object expectedContent; // mostly null - only set when type=object
 	private String description;
@@ -71,7 +73,7 @@ public class C4Variable extends C4Field implements Serializable, ITypedField {
 	 */
 	public C4Type getType() {
 		if (type == null)
-			type = C4Type.ANY;
+			type = C4Type.UNKNOWN;
 		return type;
 	}
 
@@ -197,7 +199,9 @@ public class C4Variable extends C4Field implements Serializable, ITypedField {
 	}
 	
 	public void expectedToBeOfType(C4Type t) {
-		ITypedField.Default.expectedToBeOfType(this, t);
+		// engine objects should not be altered
+		if (getScript() != ClonkCore.ENGINE_OBJECT)
+			ITypedField.Default.expectedToBeOfType(this, t);
 	}
 
 	public boolean isByRef() {

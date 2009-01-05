@@ -12,7 +12,10 @@ import net.arctics.clonk.ui.editors.C4ScriptEditor;
 import net.arctics.clonk.ui.editors.ClonkCommandIds;
 
 import org.eclipse.jface.text.BadLocationException;
+import org.eclipse.jface.text.DocumentRewriteSession;
+import org.eclipse.jface.text.DocumentRewriteSessionType;
 import org.eclipse.jface.text.IDocument;
+import org.eclipse.jface.text.IDocumentExtension4;
 import org.eclipse.jface.text.ITextSelection;
 import org.eclipse.ui.texteditor.ITextEditor;
 import org.eclipse.ui.texteditor.TextEditorAction;
@@ -23,13 +26,6 @@ public class ConvertOldCodeToNewCodeAction extends TextEditorAction {
 			String prefix, ITextEditor editor) {
 		super(bundle, prefix, editor);
 		this.setId(ClonkCommandIds.CONVERT_OLD_CODE_TO_NEW_CODE);
-	}
-	
-	private void replaceExpression(IDocument document, ExprElm e, C4ScriptParser parser) throws BadLocationException, CloneNotSupportedException {
-		String oldString = document.get(e.getExprStart(), e.getExprEnd()-e.getExprStart());
-		String newString = e.exhaustiveNewStyleReplacement(parser).toString(2);
-		if (!oldString.equals(newString))
-			document.replace(e.getExprStart(), e.getExprEnd()-e.getExprStart(), newString);
 	}
 
 	/* (non-Javadoc)
@@ -44,22 +40,41 @@ public class ConvertOldCodeToNewCodeAction extends TextEditorAction {
 		final int selLength = selection.getLength() == document.getLength() ? 0 : selection.getLength();
 		C4ScriptParser parser;
 		try {
-			parser = editor.reparseWithDocumentContents(new IExpressionListener() {
-				public TraversalContinuation expressionDetected(ExprElm expression, C4ScriptParser parser) {
-					if (!(expression instanceof Statement))
-						return TraversalContinuation.Continue; // odd
-					if (statements.size() == 0 || parser.getActiveFunc() != statements.getFirst().getFirst())
-						statements.addFirst(new Pair<C4Function, LinkedList<Statement>>(parser.getActiveFunc(), new LinkedList<Statement>()));
-					if (selLength == 0 || (expression.getExprStart() >= selection.getOffset() && expression.getExprEnd() < selection.getOffset()+selection.getLength())) {
-						statements.getFirst().getSecond().addFirst((Statement)expression);
-					}
-					return TraversalContinuation.Continue;
-				}
-			},false);
+			parser = editor.reparseWithDocumentContents(expressionCollector(selection, statements, selLength), false);
 		} catch (CompilerException e1) {
 			parser = null;
 			e1.printStackTrace();
 		}
+		runOnDocument(parser, selection, document, statements);
+	}
+
+	public static IExpressionListener expressionCollector(
+			final ITextSelection selection,
+			final LinkedList<Pair<C4Function, LinkedList<Statement>>> statements,
+			final int selLength) {
+		return new IExpressionListener() {
+			public TraversalContinuation expressionDetected(ExprElm expression, C4ScriptParser parser) {
+				if (!(expression instanceof Statement))
+					return TraversalContinuation.Continue; // odd
+				if (statements.size() == 0 || parser.getActiveFunc() != statements.getFirst().getFirst())
+					statements.addFirst(new Pair<C4Function, LinkedList<Statement>>(parser.getActiveFunc(), new LinkedList<Statement>()));
+				if (selLength == 0 || (expression.getExprStart() >= selection.getOffset() && expression.getExprEnd() < selection.getOffset()+selection.getLength())) {
+					statements.getFirst().getSecond().addFirst((Statement)expression);
+				}
+				return TraversalContinuation.Continue;
+			}
+		};
+	}
+
+	public static void runOnDocument(
+		final C4ScriptParser parser,
+		final ITextSelection selection,
+		final IDocument document,
+		final LinkedList<Pair<C4Function, LinkedList<Statement>>> statements
+	) {
+		final int selLength = selection.getLength() == document.getLength() ? 0 : selection.getLength();
+		IDocumentExtension4 ext4 = (document instanceof IDocumentExtension4) ? (IDocumentExtension4)document : null;
+		DocumentRewriteSession session = ext4 != null ? ext4.startRewriteSession(DocumentRewriteSessionType.SEQUENTIAL) : null;
 		for (Pair<C4Function, LinkedList<Statement>> pair : statements) {
 			try {
 				C4Function func = pair.getFirst();
@@ -108,10 +123,19 @@ public class ConvertOldCodeToNewCodeAction extends TextEditorAction {
 				e1.printStackTrace();
 			}
 		}
+		if (ext4 != null)
+			ext4.stopRewriteSession(session);
 	}
 
-	private boolean isIndent(char c) {
+	private static boolean isIndent(char c) {
 		return c == '\t' || c == ' ';
+	}
+	
+	private static void replaceExpression(IDocument document, ExprElm e, C4ScriptParser parser) throws BadLocationException, CloneNotSupportedException {
+		String oldString = document.get(e.getExprStart(), e.getExprEnd()-e.getExprStart());
+		String newString = e.exhaustiveNewStyleReplacement(parser).toString(2);
+		if (!oldString.equals(newString))
+			document.replace(e.getExprStart(), e.getExprEnd()-e.getExprStart(), newString);
 	}
 	
 }

@@ -1,5 +1,6 @@
 package net.arctics.clonk.ui.editors;
 
+import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.C4Object;
 import net.arctics.clonk.parser.C4ObjectExtern;
 import org.eclipse.core.resources.IStorage;
@@ -25,8 +26,7 @@ public class ObjectExternEditorInput implements IEditorInput, IPathEditorInput, 
 	}
 
 	public ImageDescriptor getImageDescriptor() {
-		// TODO Auto-generated method stub
-		return null;
+		return ClonkCore.getDefault().getIconImageDescriptor("C4Object");
 	}
 
 	public String getName() {

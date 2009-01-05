@@ -13,8 +13,8 @@ public interface ITypedField {
 	// interfaces should allow default implementations -.-
 	public abstract static class Default {
 		public static void expectedToBeOfType(ITypedField instance, C4Type type) {
-			if (instance.getType() == C4Type.ANY)
-				// from any to something specific
+			if (instance.getType() == C4Type.UNKNOWN)
+				// unknown before so now it is assumed to be of this type
 				instance.setType(type);
 			else if (instance.getType() != type)
 				// assignments of multiple types - can be anything

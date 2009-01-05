@@ -326,6 +326,13 @@ public abstract class C4ScriptExprTree {
 				return new FieldRegion(parser.getContainer().getIndex().getObjectFromEverywhere(id), new Region(getExprStart()+idOffset, 4));
 			return null;
 		}
+		
+		@Override
+		public void reportErrors(C4ScriptParser parser) throws ParsingException {
+			ExprElm pred = getPredecessorInSequence();
+			if (pred != null)
+				pred.expectedToBeOfType(C4Type.OBJECT);
+		}
 
 	}
 
@@ -678,7 +685,7 @@ public abstract class C4ScriptExprTree {
 			}
 			
 			// ObjectCall(ugh, "UghUgh", 5) -> ugh->UghUgh(5)
-			else if (params.length >= 2 && fieldName.equals("ObjectCall") && params[1] instanceof ExprString) {
+			if (params.length >= 2 && fieldName.equals("ObjectCall") && params[1] instanceof ExprString) {
 				ExprElm[] parmsWithoutObject = new ExprElm[params.length-2];
 				for (int i = 0; i < parmsWithoutObject.length; i++)
 					parmsWithoutObject[i] = params[i+2].newStyleReplacement(parser);
@@ -689,20 +696,28 @@ public abstract class C4ScriptExprTree {
 			}
 			
 			// OCF_Awesome() -> OCF_Awesome
-			else if (params.length == 0 && field instanceof C4Variable) {
+			if (params.length == 0 && field instanceof C4Variable) {
 				return new ExprAccessVar(fieldName);
 			}
 			
 			// Par(5) -> nameOfParm6
-			else if (params.length <= 1 && fieldName.equals("Par") && (params.length == 0 || params[0] instanceof ExprNumber)) {
+			if (params.length <= 1 && fieldName.equals("Par") && (params.length == 0 || params[0] instanceof ExprNumber)) {
 				ExprNumber number = params.length > 0 ? (ExprNumber) params[0] : ExprNumber.ZERO;
 				if (number.intValue() >= 0 && number.intValue() < parser.getActiveFunc().getParameters().size())
 					return new ExprAccessVar(parser.getActiveFunc().getParameters().get(number.intValue()).getName());
 			}
 			
 			// SetVar(5, "ugh") -> Var(5) = "ugh"
-			else if (params.length == 2 && (fieldName.equals("SetVar") || fieldName.equals("SetLocal"))) {
-				return new ExprBinaryOp(C4ScriptOperator.Assign, new ExprCallFunc(fieldName.substring(3), params[0].newStyleReplacement(parser)), params[1].newStyleReplacement(parser));
+			if (params.length == 2 && (fieldName.equals("SetVar") || fieldName.equals("SetLocal")) || fieldName.equals("AssignVar")) {
+				return new ExprBinaryOp(C4ScriptOperator.Assign, new ExprCallFunc(fieldName.substring(fieldName.equals("AssignVar") ? "Assign".length() : "Set".length()), params[0].newStyleReplacement(parser)), params[1].newStyleReplacement(parser));
+			}
+			
+			// Call("Func", 5, 5) -> Func(5, 5)
+			if (params.length >= 1 && fieldName.equals("Call") && params[0] instanceof ExprString) {
+				ExprElm[] parmsWithoutName = new ExprElm[params.length-1];
+				for (int i = 0; i < parmsWithoutName.length; i++)
+					parmsWithoutName[i] = params[i+1].newStyleReplacement(parser);
+				return new ExprCallFunc(((ExprString)params[0]).stringValue(), parmsWithoutName);
 			}
 			
 			return super.newStyleReplacement(parser);
@@ -1825,12 +1840,16 @@ public abstract class C4ScriptExprTree {
 		public void print(StringBuilder builder, int depth) {
 			builder.append(getKeyword() + " (");
 			elementExpr.print(builder, depth+1);
-			// remove ';' that elementExpr prints
+			// remove ';' that elementExpr (a statement) prints
 			if (builder.charAt(builder.length()-1) == ';')
 				builder.deleteCharAt(builder.length()-1);
 			builder.append(" " + Keywords.In + " ");
 			arrayExpr.print(builder, depth+1);
 			builder.append(") ");
+			if (!(body instanceof Block)) {
+				builder.append("\n");
+				printIndent(builder, depth);
+			}
 			body.print(builder, depth);
 		}
 

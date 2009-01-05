@@ -20,4 +20,8 @@ public class Pair<First, Second> {
 	public void setSecond(Second second) {
 		this.second = second;
 	}
+	@Override
+	public String toString() {
+		return "("+first.toString()+", "+second.toString()+")";
+	}
 }

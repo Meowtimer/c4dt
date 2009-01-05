@@ -217,10 +217,15 @@ public class ClonkCore extends AbstractUIPlugin {
 			return img;
 		
 		// Create
+		ImageDescriptor descriptor = getIconImageDescriptor(iconName);
+		reg.put(iconName, img = descriptor.createImage(true));
+		return img;
+	}
+
+	public ImageDescriptor getIconImageDescriptor(String iconName) {
 		ImageDescriptor descriptor = getImageDescriptor("icons/" + iconName + ".png");
 		if(descriptor == null)
 			descriptor = ImageDescriptor.getMissingImageDescriptor();
-		reg.put(iconName, img = descriptor.createImage(true));
-		return img;
+		return descriptor;
 	}
 }
