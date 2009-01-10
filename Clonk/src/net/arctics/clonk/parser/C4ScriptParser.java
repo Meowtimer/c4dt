@@ -1197,7 +1197,7 @@ public class C4ScriptParser {
 	}
 	
 	public enum ErrorCode {
-		TokenExpected, NotAllowedHere, MissingClosingBracket, InvalidExpression, InternalError, ExpressionExpected, UnexpectedEnd, NameExpected, ReturnAsFunction, ExpressionNotModifiable, OperatorNeedsRightSide, NoAssignment, NoSideEffects, KeywordInWrongPlace, UndeclaredIdentifier, OldStyleFunc, ValueExpected, TuplesNotAllowed, EmptyParentheses, ExpectedCode, ConstantValueExpected, CommaOrSemicolonExpected, IncompatibleTypes, VariableCalled, TypeAsName, BlockNotClosed, UnknownDirective, StatementExpected, ConditionExpected, OutOfIntRange, NoInheritedFunction, FunctionRedeclared, NeverReached
+		TokenExpected, NotAllowedHere, MissingClosingBracket, InvalidExpression, InternalError, ExpressionExpected, UnexpectedEnd, NameExpected, ReturnAsFunction, ExpressionNotModifiable, OperatorNeedsRightSide, NoAssignment, NoSideEffects, KeywordInWrongPlace, UndeclaredIdentifier, OldStyleFunc, ValueExpected, TuplesNotAllowed, EmptyParentheses, ExpectedCode, ConstantValueExpected, CommaOrSemicolonExpected, IncompatibleTypes, VariableCalled, TypeAsName, BlockNotClosed, UnknownDirective, StatementExpected, ConditionExpected, OutOfIntRange, NoInheritedFunction, FunctionRedeclared, NeverReached, ObsoleteOperator
 	}
 	
 	private static String[] errorStrings = new String[] {
@@ -1233,7 +1233,8 @@ public class C4ScriptParser {
 		"Out of integer range: %s",
 		"No inherited version of %s found",
 		"Function overload: this function is already declared in this script",
-		"Code never reached"
+		"Code never reached",
+		"Obsolete operator '%s'"
 	};
 	
 	private Set<ErrorCode> disabledErrors = new HashSet<ErrorCode>();

@@ -941,6 +941,9 @@ public abstract class C4ScriptExprTree {
 			if (getOperator().modifiesArgument() && !getLeftSide().modifiable()) {
 				parser.errorWithCode(ErrorCode.ExpressionNotModifiable, getLeftSide(), true);
 			}
+			if ((getOperator() == C4ScriptOperator.StringEqual || getOperator() == C4ScriptOperator.ne) && (parser.getStrictLevel() >= 2)) {
+				parser.warningWithCode(ErrorCode.ObsoleteOperator, this, getOperator().getOperatorName());
+			}
 			if (!getLeftSide().validForType(getOperator().getFirstArgType()))
 				parser.warningWithCode(ErrorCode.IncompatibleTypes, getLeftSide(), getOperator().getFirstArgType(), getLeftSide().getType());
 			if (!getRightSide().validForType(getOperator().getSecondArgType()))
