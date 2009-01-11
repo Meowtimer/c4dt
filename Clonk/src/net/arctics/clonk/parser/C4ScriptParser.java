@@ -336,6 +336,10 @@ public class C4ScriptParser {
 			for (end = regionInLine.getOffset()+regionInLine.getLength(); end < buffer.length()-1 && !isLineDelimiterChar(buffer.charAt(end+1)); end++);
 			return new Region(start, end-start);
 		}
+
+		public int getBufferLength() {
+			return buffer.length();
+		}
 	}
 
 	public static class ParsingException extends Exception {
@@ -905,8 +909,9 @@ public class C4ScriptParser {
 			eatWhitespace();
 			if (fReader.read() != '}') {
 //				System.out.println(activeFunc.getName());
-				int pos = Math.min(fReader.getPosition()-1, fReader.size-2);
-				errorWithCode(ErrorCode.TokenExpected, fReader.getPosition()-1, pos, pos+1);
+				//int pos = Math.min(fReader.getPosition()-1, fReader.getBufferLength()-1);
+				int pos = Math.min(fReader.getPosition(), fReader.getBufferLength()-1);
+				errorWithCode(ErrorCode.TokenExpected, pos, pos+1, "}");
 				return false;
 			}
 		}

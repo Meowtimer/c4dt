@@ -59,8 +59,9 @@ public class ClonkAutoIndentStrategy extends DefaultIndentLineAutoEditStrategy {
 				for(int i = 0; i < count; i++) c.text += "  ";
 				if (line.endsWith("{")) {
 					c.text += "\r\n";
-					for(int i = 0; i < count - 1; i++) c.text += "  ";
+					for(int i = 0; i < count - 1; i++) c.text += "\t";
 					c.text += "}";
+					c.caretOffset = c.offset+1;
 //					c.caretOffset = c.offset + count * 2 + originalText.length();
 				}
 			} catch (BadLocationException e) {

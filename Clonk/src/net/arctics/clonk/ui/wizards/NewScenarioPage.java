@@ -15,7 +15,6 @@ public class NewScenarioPage extends NewClonkFolderWizardPage {
 		super(selection);
 		setTitle("Create new scenario");
 		setDescription("This wizard creates a new scenario folder");
-		this.selection = selection;
 		setFolderExtension(".c4s");
 	}
 	
@@ -32,16 +31,7 @@ public class NewScenarioPage extends NewClonkFolderWizardPage {
 	public void createControl(Composite parent) {
 		super.createControl(parent);
 		
-		Composite container = (Composite) getControl();
-		Label label = new Label(container, SWT.NULL);
-		label.setText("");
-		
-		label = new Label(container, SWT.NULL);
-		label.setText("&Scenario title:");
-		titleText = new Text(container, SWT.BORDER | SWT.SINGLE);
-		GridData gd = new GridData(GridData.FILL_HORIZONTAL);
-		titleText.setLayoutData(gd);
-		
+		titleText = addTextField("&Scenario title:", null);
 		
 		initialize();
 		dialogChanged();

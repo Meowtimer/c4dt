@@ -87,6 +87,8 @@ public class ClonkSearchResultPage extends AbstractTextSearchViewPage implements
 				e.printStackTrace();
 			}
 		}
+		else
+			super.handleOpen(event);
 	}
 
 }

@@ -159,6 +159,7 @@ public class ClonkActionProvider extends org.eclipse.ui.navigator.CommonActionPr
 													ConvertOldCodeToNewCodeAction.runOnDocument(parser, new TextSelection(document, 0, 0), document, statements);
 
 												try {
+													textFileDocProvider.setEncoding(document, textFileDocProvider.getDefaultEncoding());
 													textFileDocProvider.saveDocument(null, file, document, true);
 												} catch (CoreException e) {
 													e.printStackTrace();

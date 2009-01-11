@@ -1785,6 +1785,8 @@ public abstract class C4ScriptExprTree {
 			builder.append(getKeyword() + " (");
 			if (initializer != null)
 				initializer.print(builder, depth+1);
+			else
+				builder.append(";");
 			builder.append(" "); // no ';' since initializer is already a statement
 			if (condition != null)
 				condition.print(builder, depth+1);
