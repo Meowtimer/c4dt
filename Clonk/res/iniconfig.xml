@@ -82,6 +82,12 @@
       <entry name="MoveToRange" class="net.arctics.clonk.parser.defcore.SignedInteger" description="Maximale Distanz, mit der ein Bewegungskommando einen Zielpunkt treffen muss, damit das Bewegungskommando als erfüllt gilt. Vorgabewert 5. Ab 4.95.4."/>
       <entry name="NoTransferZones" class="net.arctics.clonk.parser.defcore.SignedInteger" description="0 oder 1. Bei 1 berücksichtigt die Wegfindung des Objekts keine Transferzonen an Gebäuden. Ab 4.95.4."/>
       <entry name="AutoContextMenu" class="net.arctics.clonk.parser.defcore.SignedInteger" description="0 oder 1. Bei 1 wird für dieses Gebäude beim Betreten automatisch das Kontextmenü geöffnet. Ab 4.9.7.7."/>
+      <entry name="DragImagePicture" class="net.arctics.clonk.parser.defcore.UnsignedInteger" description="0 oder 1"/>
+      <entry name="Explosive" class="net.arctics.clonk.parser.defcore.UnsignedInteger" description="0 oder 1"/>
+      <entry name="Projectile" class="net.arctics.clonk.parser.defcore.UnsignedInteger" description="0 oder 1"/>
+      <entry name="LineIntersect" class="net.arctics.clonk.parser.defcore.UnsignedInteger" description="0 oder 1"/>
+      <entry name="NeededGfxMode" class="net.arctics.clonk.parser.defcore.UnsignedInteger" description="0 oder 1"/>
+      <entry name="PictureFE" class="net.arctics.clonk.parser.defcore.IntegerArray" description="?"/>
     </section>
     <section name="Physical">
       <entry name="Energy" class="net.arctics.clonk.parser.defcore.SignedInteger" description="0-100000. Maximale Energie bzw. Lebensenergie."/>
