@@ -107,6 +107,7 @@
       <entry name="CanHangle" class="net.arctics.clonk.parser.defcore.SignedInteger" description="0 oder 1. Hangeln."/>
       <entry name="CanDig" class="net.arctics.clonk.parser.defcore.SignedInteger" description="0 oder 1. Graben."/>
       <entry name="CanConstruct" class="net.arctics.clonk.parser.defcore.SignedInteger" description="0 oder 1. Bauen. Bei Werten größer 1: Prozentuale Baugeschwindigkeit (100 entspricht dem Standard;\n  50 ist halbe Standardgeschwindigkeit). Erweitert"/>
+      <entry name="CanChop" class="net.arctics.clonk.parser.defcore.SignedInteger" description="0 oder 1. Fällen."/>
       <entry name="CorrosionResist" class="net.arctics.clonk.parser.defcore.SignedInteger" description="0 oder 1. Legt fest, ob das Objekt Säure widersteht."/>
       <entry name="BreatheWater" class="net.arctics.clonk.parser.defcore.SignedInteger" description="0 Objekt atmet Luft, 1 Objekt atmet Wasser."/>
     </section>
