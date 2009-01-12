@@ -18,7 +18,7 @@ import net.arctics.clonk.parser.C4ScriptParser;
 import net.arctics.clonk.parser.C4SystemScript;
 import net.arctics.clonk.parser.ClonkIndex;
 import net.arctics.clonk.parser.CompilerException;
-import net.arctics.clonk.parser.defcore.C4DefCoreWrapper;
+import net.arctics.clonk.parser.defcore.DefCoreParser;
 import net.arctics.clonk.preferences.PreferenceConstants;
 import net.arctics.clonk.resource.c4group.C4Entry;
 import net.arctics.clonk.resource.c4group.C4EntryHeader;
@@ -323,7 +323,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 						}
 					}
 					else if (buildPhase == 0 && delta.getResource().getName().equals("DefCore.txt")) {
-						C4DefCoreWrapper defCore = new C4DefCoreWrapper((IFile) delta.getResource());
+						DefCoreParser defCore = new DefCoreParser((IFile) delta.getResource());
 						defCore.parse();
 						if (script instanceof C4Object)
 							((C4Object)script).setId(defCore.getObjectID());
@@ -448,7 +448,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 					}
 				}
 				if (defCore != null && script != null) {
-					C4DefCoreWrapper defCoreWrapper = new C4DefCoreWrapper(new ByteArrayInputStream(defCore.getContentsAsArray()));
+					DefCoreParser defCoreWrapper = new DefCoreParser(new ByteArrayInputStream(defCore.getContentsAsArray()));
 					try {
 						defCoreWrapper.parse();
 						C4ObjectExtern obj = new C4ObjectExtern(defCoreWrapper.getObjectID(),defCoreWrapper.getName(),script);

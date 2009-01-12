@@ -4,23 +4,30 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.ListIterator;
 
+import org.eclipse.core.resources.IMarker;
+
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.C4Variable;
+import net.arctics.clonk.parser.inireader.IEntryCreateable;
+import net.arctics.clonk.parser.inireader.IniParserException;
 
-public class CategoriesArray extends DefCoreOption {
+public class CategoriesArray implements IEntryCreateable {
 
 	private final List<C4Variable> constants = new ArrayList<C4Variable>(4);
 	private int summedValue = -1;
 	
-	public CategoriesArray(String name) {
-		super(name);
+	public CategoriesArray() {
+	}
+	
+	public CategoriesArray(String input) throws IniParserException {
+		setInput(input);
 	}
 	
 	public void add(C4Variable var) {
 		constants.add(var);
 	}
 	
-	public String getStringRepresentation() {
+	public String toString() {
 		StringBuilder builder = new StringBuilder(constants.size() * 10); // C4D_Back|
 		ListIterator<C4Variable> it = constants.listIterator();
 		while (it.hasNext()) {
@@ -35,21 +42,33 @@ public class CategoriesArray extends DefCoreOption {
 		return constants;
 	}
 
-	@Override
-	public void setInput(String input) throws DefCoreParserException {
-		String[] parts = input.split("|");
+	public void setInput(String input) throws IniParserException {
+		String[] parts = input.split("\\|");
 		if (parts.length == 1) {
-			try {
-				int categories = Integer.parseInt(parts[0]);
-				summedValue = categories;
-			} catch(NumberFormatException e) {
-				summedValue = -1;
-			}
+			tryIntegerInput(input, parts);
 		}
 		else {
-			for(int i = 0; i < parts.length;i++) {
-				add(ClonkCore.ENGINE_OBJECT.findVariable(parts[i]));
+			tryConstantInput(input, parts);
+		}
+	}
+	
+	private void tryIntegerInput(String input, String[] parts) throws IniParserException {
+		try {
+			int categories = Integer.parseInt(parts[0].trim());
+			summedValue = categories;
+		} catch(NumberFormatException e) {
+			summedValue = -1;
+			tryConstantInput(input, parts);
+		}
+	}
+	
+	private void tryConstantInput(String input, String[] parts) throws IniParserException {
+		for(int i = 0; i < parts.length;i++) {
+			C4Variable var = ClonkCore.ENGINE_OBJECT.findVariable(parts[i].trim());
+			if (var == null) {
+				throw new IniParserException(IMarker.SEVERITY_WARNING, "Unknown constant '" + parts[i].trim() + "'");
 			}
+			add(var);
 		}
 	}
 	

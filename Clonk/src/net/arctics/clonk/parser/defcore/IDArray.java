@@ -6,12 +6,17 @@ import java.util.ListIterator;
 
 import net.arctics.clonk.parser.C4ID;
 import net.arctics.clonk.parser.Pair;
+import net.arctics.clonk.parser.inireader.IEntryCreateable;
+import net.arctics.clonk.parser.inireader.IniParserException;
 
-public class IDArray extends DefCoreOption {
+public class IDArray implements IEntryCreateable {
 	private final List<Pair<C4ID,Integer>> components = new ArrayList<Pair<C4ID,Integer>>();
 	
-	public IDArray(String name) {
-		super(name);
+	public IDArray(String value) throws IniParserException {
+		setInput(value);
+	}
+	
+	public IDArray() {
 	}
 	
 	public void add(C4ID id, int num) {
@@ -21,8 +26,8 @@ public class IDArray extends DefCoreOption {
 	public List<Pair<C4ID, Integer>> getComponents() {
 		return components;
 	}
-
-	public String getStringRepresentation() {
+	
+	public String toString() {
 		StringBuilder builder = new StringBuilder(components.size() * 7); // MYID=1;
 		ListIterator<Pair<C4ID,Integer>> it = components.listIterator();
 		while (it.hasNext()) {
@@ -35,9 +40,14 @@ public class IDArray extends DefCoreOption {
 		return builder.toString();
 	}
 
-	@Override
-	public void setInput(String input) throws DefCoreParserException {
-		// TODO Auto-generated method stub
-		
+	public void setInput(String input) throws IniParserException {
+		// CLNK=1;STIN=10;
+		String[] parts = input.split(";");
+		for(String part : parts) {
+			if (part.contains("=")) {
+				String[] idAndCount = part.split("=");
+				components.add(new Pair<C4ID, Integer>(C4ID.getID(idAndCount[0].trim()),Integer.parseInt(idAndCount[1].trim())));
+			}
+		}
 	}
 }

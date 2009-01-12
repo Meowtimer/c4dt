@@ -1,31 +1,37 @@
 package net.arctics.clonk.parser.defcore;
 
+import net.arctics.clonk.parser.inireader.IEntryCreateable;
+import net.arctics.clonk.parser.inireader.IniParserException;
+
 import org.eclipse.core.resources.IMarker;
 
-public class SignedInteger extends DefCoreOption {
+public class SignedInteger implements IEntryCreateable {
 
 	private int x;
 	
-	public SignedInteger(String name) {
-		super(name);
+	public SignedInteger(String input) throws IniParserException {
+		setInput(input);
 	}
 	
-	public SignedInteger(String name, int i) {
-		super(name);
+	public SignedInteger(int i) {
 		x = i;
+	}
+	
+	public SignedInteger() {
 	}
 	
 	public String getStringRepresentation() {
 		return Integer.toString(x);
 	}
 
-	@Override
-	public void setInput(String input) throws DefCoreParserException {
+	public void setInput(String input) throws IniParserException {
 		try {
-			x = Integer.parseInt(input);
+			x = Integer.parseInt(input.trim());
 		}
 		catch(NumberFormatException e) {
-			throw new DefCoreParserException(IMarker.SEVERITY_ERROR, "Expected an integer instead of '" + input + "'");
+			IniParserException exp = new IniParserException(IMarker.SEVERITY_ERROR, "Expected an integer instead of '" + input + "'");
+			exp.setInnerException(e);
+			throw exp;
 		}
 	}
 

@@ -2,7 +2,7 @@ package net.arctics.clonk.parser;
 
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.Utilities;
-import net.arctics.clonk.parser.defcore.C4DefCoreWrapper;
+import net.arctics.clonk.parser.defcore.DefCoreParser;
 import net.arctics.clonk.resource.c4group.C4Entry;
 import net.arctics.clonk.resource.c4group.C4Group;
 
@@ -60,7 +60,7 @@ public class C4ObjectParser {
 			C4ObjectIntern object = (C4ObjectIntern) objectFolder.getSessionProperty(ClonkCore.C4OBJECT_PROPERTY_ID);
 			ClonkIndex index = Utilities.getProject(objectFolder).getIndexedData();
 			if (defCore != null) {
-				C4DefCoreWrapper defCoreWrapper = new C4DefCoreWrapper(defCore);
+				DefCoreParser defCoreWrapper = new DefCoreParser(defCore);
 				defCoreWrapper.parse();
 				if (object == null) {
 					object = new C4ObjectIntern(defCoreWrapper.getObjectID(),defCoreWrapper.getName(),objectFolder);

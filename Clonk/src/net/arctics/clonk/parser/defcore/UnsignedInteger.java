@@ -2,20 +2,25 @@ package net.arctics.clonk.parser.defcore;
 
 import java.security.InvalidParameterException;
 
+import net.arctics.clonk.parser.inireader.IEntryCreateable;
+import net.arctics.clonk.parser.inireader.IniParserException;
+
 import org.eclipse.core.resources.IMarker;
 
 
-public class UnsignedInteger extends DefCoreOption {
+public class UnsignedInteger implements IEntryCreateable {
 	
 	private int number;
 	
-	public UnsignedInteger(String name) {
-		super(name);
+	public UnsignedInteger(String input) throws IniParserException {
+		setInput(input);
 	}
 	
-	public UnsignedInteger(String name, int num) {
-		super(name);
+	public UnsignedInteger(int num) {
 		number = num;
+	}
+	
+	public UnsignedInteger() {
 	}
 
 	public int getNumber() {
@@ -31,16 +36,17 @@ public class UnsignedInteger extends DefCoreOption {
 		return Integer.toString(this.number);
 	}
 
-	@Override
-	public void setInput(String input) throws DefCoreParserException {
+	public void setInput(String input) throws IniParserException {
 		try {
 			Integer num = Integer.decode(input);
 			number = num.intValue();
 			if (num < 0)
-				throw new DefCoreParserException(IMarker.SEVERITY_WARNING, "Unsigned value expected");
+				throw new IniParserException(IMarker.SEVERITY_WARNING, "Unsigned value expected");
 		}
 		catch (NumberFormatException e) {
-			throw new DefCoreParserException(IMarker.SEVERITY_ERROR, "Invalid value('" + input + "') given for option '" + this.getName() + "'");
+			IniParserException exp = new IniParserException(IMarker.SEVERITY_ERROR, "Invalid value('" + input + "') given");
+			exp.setInnerException(e);
+			throw exp;
 		}
 	}
 	

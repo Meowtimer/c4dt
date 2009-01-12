@@ -1,0 +1,108 @@
+<clonkiniconfig>
+  <file name="DefCore.txt" factoryclass="net.arctics.clonk.parser.inireader.DefCoreFactory">
+    <section name="DefCore">
+      <entry name="id" class="net.arctics.clonk.parser.C4ID" description="Id des Objekts."/>
+      <entry name="Version" class="net.arctics.clonk.parser.defcore.IntegerArray" description="Minimale vom Objekt benötigte Engine-Version. Dieser Eintrag sollte bei jeder Änderung auf die jeweils\n  aktuelle Clonk-Version gesetzt werden, damit ersichtlich ist, zu welchem Zeitpunkt das Objekt erschienen ist."/>
+      <entry name="Name" class="java.lang.String" description="Name des Objekts. Bei Mehrsprachigkeit Names.txt nutzen."/>
+      <entry name="Category" class="net.arctics.clonk.parser.defcore.CategoriesArray" description="Kategorie des Objekts. Siehe Objektkategorien."/>
+      <entry name="MaxUserSelect" class="net.arctics.clonk.parser.defcore.SignedInteger" description="Maximale Anzahl beim Platzieren des Objekts im Menüsystem."/>
+      <entry name="TimerCall" class="java.lang.String" description="Regelmäßig aufgerufene Funktion des Objektscripts.\n  Siehe Objektscripte."/>
+      <entry name="Timer" class="net.arctics.clonk.parser.defcore.SignedInteger" description="Zeitabstand der TimerCalls in Frames. Ohne Angabe gilt der Vorgabewert 35."/>
+      <entry name="ContactCalls" class="net.arctics.clonk.parser.defcore.SignedInteger" description="0 oder 1. Legt fest, ob Kontaktaufrufe im Objektscript getätigt werden."/>
+      <entry name="Width" class="net.arctics.clonk.parser.defcore.SignedInteger" description="Breite des Objekts."/>
+      <entry name="Height" class="net.arctics.clonk.parser.defcore.SignedInteger" description="Höhe des Objekts."/>
+      <entry name="Offset" class="net.arctics.clonk.parser.defcore.IntegerArray" description="Koordinatenabstand der linken oberen Ecke zur Objektmitte."/>
+      <entry name="Value" class="net.arctics.clonk.parser.defcore.SignedInteger" description="Wert des Objekts in Geldpunkten."/>
+      <entry name="Mass" class="net.arctics.clonk.parser.defcore.SignedInteger" description="Gewicht des Objekts. Stein 10, Clonk 50, Hütte 1000, Burg 10000."/>
+      <entry name="Components" class="net.arctics.clonk.parser.defcore.IDArray" description="Elemente, aus denen das Objekt zusammen gesetzt ist.\n  Im Bau oder Wachstum befindliche Objekte enthalten nur anteilige Komponenten."/>
+      <entry name="SolidMask" class="net.arctics.clonk.parser.defcore.IntegerArray" description="Massivbereiche des Objekts. Zielrechteck aus Graphics.bmp aufs Objekt."/>
+      <entry name="TopFace" class="net.arctics.clonk.parser.defcore.IntegerArray" description="Verdeckende Oberflächen. Zielrechteck aus Graphics.bmp aufs Objekt."/>
+      <entry name="Picture" class="net.arctics.clonk.parser.defcore.IntegerArray" description="Repräsentativgrafik des Objekts. Rechteck aus Graphics.bmp."/>
+      <entry name="Vertices" class="net.arctics.clonk.parser.defcore.SignedInteger" description="Anzahl der Eckpunkte des Objekts. 1 bis 30."/>
+      <entry name="VertexX" class="net.arctics.clonk.parser.defcore.IntegerArray" description="Liste der horizontalen Koordinaten der Eckpunkte des Objekts.\n  Siehe Vertices."/>
+      <entry name="VertexY" class="net.arctics.clonk.parser.defcore.IntegerArray" description="Liste der vertikalen Koordinaten der Eckpunkte des Objekts."/>
+      <entry name="VertexCNAT" class="net.arctics.clonk.parser.defcore.IntegerArray" description="Liste der Ausrichtungsbestimmungen der Eckpunkte.\n  Siehe CNAT."/>
+      <entry name="VertexFriction" class="net.arctics.clonk.parser.defcore.IntegerArray" description="Liste der Reibungswerte der Eckpunkte, jeweils 1 bis 100."/>
+      <entry name="Entrance" class="net.arctics.clonk.parser.defcore.IntegerArray" description="Koordinaten des Eingangsbereichs des Objekts relativ zur Objektmitte."/>
+      <entry name="Collection" class="net.arctics.clonk.parser.defcore.IntegerArray" description="Koordinaten des Aufnahmebereichs des Objekts relativ zur Objektmitte."/>
+      <entry name="CollectionLimit" class="net.arctics.clonk.parser.defcore.SignedInteger" description="Anzahl der maximal aufnehmbaren Objekte, 0 für uneingeschränkt."/>
+      <entry name="FireTop" class="net.arctics.clonk.parser.defcore.SignedInteger" description="Flammenabstand zur Objektunterkante."/>
+      <entry name="Placement" class="net.arctics.clonk.parser.defcore.SignedInteger" description="Platzierung: 0 Oberfläche, 1 in Flüssigkeit, 2 in der Luft."/>
+      <entry name="Exclusive" class="net.arctics.clonk.parser.defcore.SignedInteger" description="0 oder 1. Legt fest, ob das Objekt dahinterliegende Objekte blockiert."/>
+      <entry name="ContactIncinerate" class="net.arctics.clonk.parser.defcore.SignedInteger" description="Kontaktentzündlichkeit: 0 keine, 1 (hoch) bis 5 (niedrig)"/>
+      <entry name="BlastIncinerate" class="net.arctics.clonk.parser.defcore.SignedInteger" description="Explosionsentzündlichkeit: 0 keine, sonst bei angegebenem Schadenswert"/>
+      <entry name="BurnTo" class="net.arctics.clonk.parser.C4ID" description="Definitionswechsel bei Entzündung."/>
+      <entry name="Base" class="net.arctics.clonk.parser.defcore.SignedInteger" description="0 oder 1. Legt fest, ob das Objekt Heimatbasis sein kann."/>
+      <entry name="Line" class="net.arctics.clonk.parser.defcore.CategoriesArray" description="1 Energieleitung, 2 Zuflussrohr, 3 Abflussrohr."/>
+      <entry name="LineConnect" class="net.arctics.clonk.parser.defcore.CategoriesArray" description="Anschlussfähigkeit für Leitungen.\n  Siehe LineConnect."/>
+      <entry name="Prey" class="net.arctics.clonk.parser.defcore.SignedInteger" description="0 oder 1. Legt fest, ob das Objekt ein Beutelebewesen ist."/>
+      <entry name="Edible" class="net.arctics.clonk.parser.defcore.SignedInteger" description="0 oder 1. Legt fest, ob das Objekt essbar ist (noch nicht unterstützt)."/>
+      <entry name="CrewMember" class="net.arctics.clonk.parser.defcore.SignedInteger" description="0 oder 1. Wenn 1, wird das Objekt beim Kauf der Mannschaft hinzugefügt.\n  Mit CreateObject erzeugte CrewMember-Objekte müssen mit MakeCrewMember\n  der Mannschaft eines Spielers hinzugefügt werden."/>
+      <entry name="Growth" class="net.arctics.clonk.parser.defcore.SignedInteger" description="Wachstum des Objekts. Baum 1-4, Lebewesen 15."/>
+      <entry name="Rebuy" class="net.arctics.clonk.parser.defcore.SignedInteger" description="0 oder 1. Legt fest, ob das Objekt nach Verkauf zurückgekauft werden kann."/>
+      <entry name="Construction" class="net.arctics.clonk.parser.defcore.SignedInteger" description="0 oder 1. Legt fest, ob das Objekt als Baustelle gebaut werden kann."/>
+      <entry name="ConstructTo" class="net.arctics.clonk.parser.C4ID" description="Definitionswechsel beim Bau."/>
+      <entry name="Grab" class="net.arctics.clonk.parser.defcore.SignedInteger" description="0 kein Anfassen, 1 Anfassen und Verschieben, 2 nur Anfassen."/>
+      <entry name="GrabPutGet" class="net.arctics.clonk.parser.defcore.CategoriesArray" description="Bitmaske: Bit 0 (Wert 1) Grab und Put, Bit 1 (Wert 2) Grab und Get"/>
+      <entry name="Collectible" class="net.arctics.clonk.parser.defcore.SignedInteger" description="0 oder 1. Legt fest, ob das Objekt eingesammelt werden kann."/>
+      <entry name="Rotate" class="net.arctics.clonk.parser.defcore.SignedInteger" description="0 keine Rotation, 1 volle Rotation, 2-360 eingeschränkte Rotation"/>
+      <entry name="Chop" class="net.arctics.clonk.parser.defcore.SignedInteger" description="0 oder 1. Legt fest, ob das Objekt gefällt werden kann."/>
+      <entry name="Float" class="net.arctics.clonk.parser.defcore.SignedInteger" description="Auftrieb in Flüssigkeiten: 0 kein Auftrieb, sonst Auftriebshöhe über Mitte"/>
+      <entry name="ContainBlast" class="net.arctics.clonk.parser.defcore.SignedInteger" description="0 oder 1. Legt fest, ob Explosionen im Inneren nach außen wirken."/>
+      <entry name="ColorByOwner" class="net.arctics.clonk.parser.defcore.SignedInteger" description="0 oder 1. Bei Wert 1 wird das Ausgangsblau, bzw. die Overlay.png, nach dem Besitzer gefärbt."/>
+      <entry name="ColorByMaterial" class="java.lang.String" description="Name des Materials, nach dem das Objekt gefärbt wird."/>
+      <entry name="HorizontalFix" class="net.arctics.clonk.parser.defcore.SignedInteger" description="0 oder 1. Bei Wert 1 kann das Objekt sich nur vertikal bewegen."/>
+      <entry name="BorderBound" class="net.arctics.clonk.parser.defcore.SignedInteger" description="Bitmaske: Bit 0 (1) Stop an Seiten, Bit 1 (2) Stop oben, Bit 2 (4) Stop unten"/>
+      <entry name="UprightAttach" class="net.arctics.clonk.parser.defcore.SignedInteger" description="Wenn ungleich 0 (8-10) sitzt das Objekt aufgerichtet auf Massivbereichen auf."/>
+      <entry name="StretchGrowth" class="net.arctics.clonk.parser.defcore.SignedInteger" description="0 oder 1. Bei Wert 1 wird das Objekt wie ein Lebewesen vergrößert (abhängig von der Fertigstellung.\n  Siehe GetCon)"/>
+      <entry name="Basement" class="net.arctics.clonk.parser.defcore.SignedInteger" description="0 kein Fundament, 1 Fundament, andere Werte speziell"/>
+      <entry name="NoBurnDecay" class="net.arctics.clonk.parser.defcore.SignedInteger" description="0 oder 1. Bei Wert 1 verbrennt das Objekt nicht."/>
+      <entry name="IncompleteActivity" class="net.arctics.clonk.parser.defcore.SignedInteger" description="0 oder 1. Wert 1 für Lebewesen, die auch im Wachstum aktiv sein können."/>
+      <entry name="Oversize" class="net.arctics.clonk.parser.defcore.SignedInteger" description="0 oder 1. Das Objekt kann mit DoCon auf Übergröße vergrößert werden."/>
+      <entry name="AttractLightning" class="net.arctics.clonk.parser.defcore.SignedInteger" description="0 oder 1. Das Objekt zieht Blitze an."/>
+      <entry name="Fragile" class="net.arctics.clonk.parser.defcore.SignedInteger" description="0 oder 1. Objekt sollte nicht geworfen werden."/>
+      <entry name="NoPushEnter" class="net.arctics.clonk.parser.defcore.SignedInteger" description="0 oder 1. Das Objekt kann nicht durch Anfassen und Steuerung Rauf in andere Objekte hineingeschoben werden\n  (z.B. Fahrstuhlkorb)."/>
+      <entry name="VehicleControl" class="net.arctics.clonk.parser.defcore.SignedInteger" description="Bitmaske: Bit 0 (Wert 1) das Objekt kann durch Anfassen von außen und/oder Bit 1 (Wert 2) von innen gesteuert\n  werden. Bei aktiviertem VehicleControl werden die selbständig auszuführenden Befehle (Commands) eines Clonks\n  als ControlCommand-Aufrufe an das Script des entsprechenden Fahrzeugs weitergeleitet und können von diesem\n  ausgewertet und abgefangen werden.\n  Siehe Control-Funktionen."/>
+      <entry name="Pathfinder" class="net.arctics.clonk.parser.defcore.SignedInteger" description="1 - 10. Beeinflusst die Suchtiefe des Wegfindungsalgorithmus (Standard: 1). Vorsicht: hohe Werte sind sehr rechenintensiv.\n  Mit diesem Wert setzen auch Objekte ohne CrewMember-Wert bei der Ausführung von Kommandos (z.B. MoveTo)\n  den internen Wegfindungsalgorithmus ein. Erweitert ab 4.95.4."/>
+      <entry name="NoComponentMass" class="net.arctics.clonk.parser.defcore.SignedInteger" description="0 oder 1. Bei 1 zählt der Inhalt des Objekts nicht mit zur Gesamtmasse. Dadurch lässt sich zum Beispiel\n  verhindern, dass Rucksäcke oder Köcher durch ihren Inhalt mörderische Wurfwaffen werden."/>
+      <entry name="NoStabilize" class="net.arctics.clonk.parser.defcore.SignedInteger" description="0 oder 1. Bei 1 richtet sich das Objekt nicht automatisch auf 0° Drehung auf, wenn es nur sehr leicht gedreht ist."/>
+      <entry name="ClosedContainer" class="net.arctics.clonk.parser.defcore.SignedInteger" description="0 oder 1. Bei 1 können enthaltene Clonks bei aktiviertem Fog Of War nicht herausschauen."/>
+      <entry name="SilentCommands" class="net.arctics.clonk.parser.defcore.SignedInteger" description="0 oder 1. Bei 1 werden bei fehlgeschlagenen Commands keine Meldungen ausgegeben."/>
+      <entry name="NoBurnDamage" class="net.arctics.clonk.parser.defcore.SignedInteger" description="0 oder 1. Bei 1 wird dem Objekt kein Schaden zugefügt, wenn es brennt."/>
+      <entry name="TemporaryCrew" class="net.arctics.clonk.parser.defcore.SignedInteger" description="0 oder 1. Bei 1 wird das Objekt nicht in die Dauerhafte Crew des Spielers eingetragen."/>
+      <entry name="SmokeRate" class="net.arctics.clonk.parser.defcore.SignedInteger" description="0 bis 200: Gibt die Rauchmenge an, die das Objekt im Brandfall verursacht. 0 ist kein Rauch, 100 ist die Standardmenge.\n  Bei Werten ungleich 0 wird allerdings immer die Maximalmenge Rauch produziert, wenn das Objekt in schneller Bewegung ist\n  (zum Beispiel Brandpfeile)."/>
+      <entry name="BlitMode" class="net.arctics.clonk.parser.defcore.SignedInteger" description="0 oder 1. Bei 1 wird das Objekt additiv gezeichnet."/>
+      <entry name="NoBreath" class="net.arctics.clonk.parser.defcore.SignedInteger" description="0 oder 1. Bei 1 atmet das Objekt nicht, selbst wenn es ein Lebewesen ist."/>
+      <entry name="ConSizeOff" class="net.arctics.clonk.parser.defcore.SignedInteger" description="Wert &gt;=0. Abzug des benötigten Bauplatzes von oben."/>
+      <entry name="NoSell" class="net.arctics.clonk.parser.defcore.SignedInteger" description="0 oder 1. Bei 1 kann das Objekt nicht verkauft werden."/>
+      <entry name="NoGet" class="net.arctics.clonk.parser.defcore.SignedInteger" description="0 oder 1. Bei 1 kann das Objekt nicht manuell aus anderen Objekten heraus genommen werden.01."/>
+      <entry name="NoFight" class="net.arctics.clonk.parser.defcore.SignedInteger" description="0 oder 1. Bei 1 kämpft das Objekt nicht mit anderen Lebewesen, selbst wenn es selber ein Lebewesen ist."/>
+      <entry name="LiftTop" class="net.arctics.clonk.parser.defcore.SignedInteger" description="Wird ein Objekt bei einer Action mit der Procedure 'LIFT' mehr als die angegebene Höhe\n  über der Objektmitte angehoben, wird die Funktion LiftTop im Script aufgerufen."/>
+      <entry name="RotatedEntrance" class="net.arctics.clonk.parser.defcore.SignedInteger" description="0 Eingang ist nur bei aufgerichtetem Objekt geöffnet, 1 Eingang ist immer geöffnet, 2-360 Eingang ist innerhalb des entsprechenden Bereichs geöffnet. Ab 4.95.4."/>
+      <entry name="MoveToRange" class="net.arctics.clonk.parser.defcore.SignedInteger" description="Maximale Distanz, mit der ein Bewegungskommando einen Zielpunkt treffen muss, damit das Bewegungskommando als erfüllt gilt. Vorgabewert 5. Ab 4.95.4."/>
+      <entry name="NoTransferZones" class="net.arctics.clonk.parser.defcore.SignedInteger" description="0 oder 1. Bei 1 berücksichtigt die Wegfindung des Objekts keine Transferzonen an Gebäuden. Ab 4.95.4."/>
+      <entry name="AutoContextMenu" class="net.arctics.clonk.parser.defcore.SignedInteger" description="0 oder 1. Bei 1 wird für dieses Gebäude beim Betreten automatisch das Kontextmenü geöffnet. Ab 4.9.7.7."/>
+    </section>
+    <section name="Physical">
+      <entry name="Energy" class="net.arctics.clonk.parser.defcore.SignedInteger" description="0-100000. Maximale Energie bzw. Lebensenergie."/>
+      <entry name="Breath" class="net.arctics.clonk.parser.defcore.SignedInteger" description="0-100000. Maximaler Atem."/>
+      <entry name="Walk" class="net.arctics.clonk.parser.defcore.SignedInteger" description="0-100000. Laufgeschwindigkeit."/>
+      <entry name="Jump" class="net.arctics.clonk.parser.defcore.SignedInteger" description="0-100000. Sprungkraft."/>
+      <entry name="Scale" class="net.arctics.clonk.parser.defcore.SignedInteger" description="0-100000. Klettergeschwindigkeit."/>
+      <entry name="Hangle" class="net.arctics.clonk.parser.defcore.SignedInteger" description="0-100000. Hangelgeschwindigkeit."/>
+      <entry name="Dig" class="net.arctics.clonk.parser.defcore.SignedInteger" description="0-100000. Grabgeschwindigkeit."/>
+      <entry name="Swim" class="net.arctics.clonk.parser.defcore.SignedInteger" description="0-100000. Schwimmgeschwindigkeit."/>
+      <entry name="Throw" class="net.arctics.clonk.parser.defcore.SignedInteger" description="0-100000. Wurfkraft."/>
+      <entry name="Push" class="net.arctics.clonk.parser.defcore.SignedInteger" description="0-100000. Schiebekraft."/>
+      <entry name="Fight" class="net.arctics.clonk.parser.defcore.SignedInteger" description="0-100000. Kampfkraft."/>
+      <entry name="Magic" class="net.arctics.clonk.parser.defcore.SignedInteger" description="0-100000. Maximale Zauberenergie."/>
+      <entry name="Float" class="net.arctics.clonk.parser.defcore.SignedInteger" description="0-100. Fluggeschwindigkeit."/>
+      <entry name="CanScale" class="net.arctics.clonk.parser.defcore.SignedInteger" description="0 oder 1. Klettern."/>
+      <entry name="CanHangle" class="net.arctics.clonk.parser.defcore.SignedInteger" description="0 oder 1. Hangeln."/>
+      <entry name="CanDig" class="net.arctics.clonk.parser.defcore.SignedInteger" description="0 oder 1. Graben."/>
+      <entry name="CanConstruct" class="net.arctics.clonk.parser.defcore.SignedInteger" description="0 oder 1. Bauen. Bei Werten größer 1: Prozentuale Baugeschwindigkeit (100 entspricht dem Standard;\n  50 ist halbe Standardgeschwindigkeit). Erweitert"/>
+      <entry name="CorrosionResist" class="net.arctics.clonk.parser.defcore.SignedInteger" description="0 oder 1. Legt fest, ob das Objekt Säure widersteht."/>
+      <entry name="BreatheWater" class="net.arctics.clonk.parser.defcore.SignedInteger" description="0 Objekt atmet Luft, 1 Objekt atmet Wasser."/>
+    </section>
+  </file>
+</clonkiniconfig>

@@ -1,8 +1,6 @@
 package net.arctics.clonk;
 
-import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
-import java.io.EOFException;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -12,10 +10,10 @@ import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 
-import net.arctics.clonk.parser.C4Field;
 import net.arctics.clonk.parser.C4ID;
 import net.arctics.clonk.parser.C4ObjectExtern;
 import net.arctics.clonk.parser.ClonkIndex;
+import net.arctics.clonk.parser.inireader.IniData;
 import net.arctics.clonk.resource.InputStreamRespectingUniqueIDs;
 
 import org.eclipse.core.runtime.IPath;
@@ -42,6 +40,7 @@ public class ClonkCore extends AbstractUIPlugin {
 	
 	public static C4ObjectExtern ENGINE_OBJECT;
 	public static ClonkIndex EXTERN_INDEX;
+	public static IniData INI_CONFIGURATIONS;
 	
 	// The shared instance
 	private static ClonkCore plugin;
@@ -61,9 +60,23 @@ public class ClonkCore extends AbstractUIPlugin {
 		super.start(context);
 		plugin = this;
 		
+		loadIniConfigurations();
+		
 		loadEngineObject();
 		loadExternIndex();
 		
+	}
+	
+	private void loadIniConfigurations() {
+		try {
+			IniData data = new IniData(getBundle().getEntry("res/iniconfig.xml").openStream());
+			data.parse();
+			INI_CONFIGURATIONS = data; // set this variable when parsing completed successfully
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 
 //	private void loadOld(String path) throws IOException, ClassNotFoundException {
