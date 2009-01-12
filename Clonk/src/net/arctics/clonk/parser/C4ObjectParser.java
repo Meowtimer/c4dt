@@ -3,7 +3,6 @@ package net.arctics.clonk.parser;
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.Utilities;
 import net.arctics.clonk.parser.defcore.DefCoreParser;
-import net.arctics.clonk.resource.c4group.C4Entry;
 import net.arctics.clonk.resource.c4group.C4Group;
 
 import org.eclipse.core.resources.IContainer;
@@ -11,26 +10,27 @@ import org.eclipse.core.resources.IFile;
 
 public class C4ObjectParser {
 	
+	private C4ObjectIntern object;
 	private IContainer objectFolder;
 //	private IFile script; there are some objects without a script
 	private IFile defCore;
-	private IFile actMap;
+//	private IFile actMap;
 	private IFile scenario;
 	
-	private C4Group group;
-	private C4Entry extScript;
-	private C4Entry extDefCore;
+//	private C4Group group;
+//	private C4Entry extScript;
+//	private C4Entry extDefCore;
 	
 	private C4ObjectParser(IContainer folder) {
 		objectFolder = folder;
 //		script = (IFile) folder.findMember("Script.c");
 		defCore = (IFile) folder.findMember("DefCore.txt");
-		actMap = (IFile) folder.findMember("ActMap.txt");
+//		actMap = (IFile) folder.findMember("ActMap.txt");
 		scenario = (IFile) folder.findMember("Scenario.txt");
 	}
 	
 	private C4ObjectParser(C4Group group) {
-		this.group = group;
+//		this.group = group;
 	}
 	
 	/**
@@ -55,10 +55,9 @@ public class C4ObjectParser {
 		return new C4ObjectParser(group);
 	}
 	
-	public C4ObjectIntern parse() throws CompilerException {
+	public C4ObjectIntern createObject() {
 		try {
-			C4ObjectIntern object = (C4ObjectIntern) objectFolder.getSessionProperty(ClonkCore.C4OBJECT_PROPERTY_ID);
-			ClonkIndex index = Utilities.getProject(objectFolder).getIndexedData();
+			object = (C4ObjectIntern) objectFolder.getSessionProperty(ClonkCore.C4OBJECT_PROPERTY_ID);
 			if (defCore != null) {
 				DefCoreParser defCoreWrapper = new DefCoreParser(defCore);
 				defCoreWrapper.parse();
@@ -73,17 +72,7 @@ public class C4ObjectParser {
 			else if (scenario != null) {
 				if (object == null) {
 					object = new C4Scenario(null, objectFolder.getName(), objectFolder);
-					index.addScript(object);
 				}
-			}
-			IFile script = object.getScriptFile();
-			if (script != null) {
-				C4ScriptParser p = new C4ScriptParser(script, object);
-				p.clean();
-				p.parseDeclarations();
-			}
-			if (object != null) {
-				index.addScript(object);
 			}
 			return object;
 		} catch (Exception e) {
@@ -91,4 +80,23 @@ public class C4ObjectParser {
 			return null;
 		}
 	}
+	
+	public void parseScript(C4ScriptParser scriptParser) throws CompilerException {
+		ClonkIndex index = Utilities.getProject(objectFolder).getIndexedData();
+		IFile script = object.getScriptFile();
+		if (script != null) {
+			if (scriptParser == null)
+				scriptParser = new C4ScriptParser(object);
+			scriptParser.clean();
+			scriptParser.parseDeclarations();
+		}
+		if (object != null) {
+			index.addScript(object);
+		}
+	}
+
+	public C4ObjectIntern getObject() {
+		return object;
+	}
+
 }

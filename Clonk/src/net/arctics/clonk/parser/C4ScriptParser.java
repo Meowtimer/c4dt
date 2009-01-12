@@ -70,32 +70,40 @@ public class C4ScriptParser {
 
 		private String buffer;
 		private int size;
-		private InputStream contents;
 		private int offset;
 
 		private static String stringFromInputStream(InputStream stream) throws IOException {
-			BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(stream));
+			InputStreamReader inputStreamReader = new InputStreamReader(stream);
 			StringBuilder stringBuilder;
 			try {
-				stringBuilder = new StringBuilder();
-				char[] buffer = new char[1024];
-				int read;
-				while ((read = bufferedReader.read(buffer)) > 0) {
-					stringBuilder.append(buffer, 0, read);
-				}
+				BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
+				try {
+					stringBuilder = new StringBuilder();
+					char[] buffer = new char[1024];
+					int read;
+					while ((read = bufferedReader.read(buffer)) > 0) {
+						stringBuilder.append(buffer, 0, read);
+					}
 
+				} finally {
+					bufferedReader.close();
+				}
 			} finally {
-				bufferedReader.close();
+				inputStreamReader.close();
 			}
 			return stringBuilder.toString();
 		}
-		
+
 		public BufferedScanner(IFile file) throws CompilerException {
 			try {
-				contents = file.getContents();
-				offset = 0;
-				buffer = stringFromInputStream(contents);
-				size = buffer.length();
+				InputStream contents = file.getContents();
+				try {
+					offset = 0;
+					buffer = stringFromInputStream(contents);
+					size = buffer.length();
+				} finally {
+					contents.close();
+				}
 			} catch (CoreException e) {
 				e.printStackTrace();
 			} catch (IOException e) {
@@ -105,7 +113,6 @@ public class C4ScriptParser {
 
 		public BufferedScanner(InputStream stream, long fileSize) throws CompilerException {
 			try {
-				contents = stream;
 				offset = 0;
 				buffer = stringFromInputStream(stream);
 				size = buffer.length();
@@ -115,7 +122,6 @@ public class C4ScriptParser {
 		}
 		
 		public BufferedScanner(String withString) {
-			contents = null;
 			offset = 0;
 			buffer = withString;
 			size = buffer.length();
@@ -374,8 +380,6 @@ public class C4ScriptParser {
 	private BufferedScanner fReader;
 	private IFile fScript; // for project intern files
 	private C4ScriptBase container;
-	private InputStream stream; // for extern files
-
 	private C4Function activeFunc;
 	private int strictLevel;
 	
@@ -430,6 +434,10 @@ public class C4ScriptParser {
 			return (C4Object) container;
 		return null;
 	}
+	
+	public C4ScriptParser(C4ScriptBase script) throws CompilerException {
+		this((IFile) script.getScriptFile(), script);
+	}
 
 	/**
 	 * Creates a C4Script parser object.
@@ -454,14 +462,12 @@ public class C4ScriptParser {
 	 */
 	public C4ScriptParser(InputStream stream, long size, C4ScriptBase script) throws CompilerException {
 		fScript = null;
-		this.stream = stream;
-		fReader = new BufferedScanner(this.stream, size);
+		fReader = new BufferedScanner(stream, size);
 		container = script;
 	}
 	
 	public C4ScriptParser(String withString, C4ScriptBase script) {
 		fScript = null;
-		stream = null;
 		fReader = new BufferedScanner(withString);
 		container = script;
 	}

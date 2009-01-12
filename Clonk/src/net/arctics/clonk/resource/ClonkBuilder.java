@@ -4,6 +4,7 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.Map;
 
 import net.arctics.clonk.ClonkCore;
@@ -60,6 +61,8 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 	
 	private int buildPhase;
 	private IProgressMonitor monitor;
+	// keeps of track of parsers created for specific scripts
+	private Map<C4ScriptBase, C4ScriptParser> parserMap = new HashMap<C4ScriptBase, C4ScriptParser>();
 	
 	public ClonkBuilder() {
 		super();
@@ -105,6 +108,8 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 			case INCREMENTAL_BUILD:
 				IResourceDelta delta = getDelta(proj);
 				if (delta != null) {
+
+					clearParserMap();
 					
 					// count num of resources to build
 					ResourceCounter counter = new ResourceCounter(ResourceCounter.COUNT_CONTAINER);
@@ -165,6 +170,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 				
 				
 				if (proj != null) {
+					clearParserMap();
 					monitor.subTask("Index project " + proj.getName());
 					// parse declarations
 					buildPhase = 0;
@@ -269,6 +275,17 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 		ClonkCore.EXTERN_INDEX.refreshCache();
 		if (monitor != null) monitor.done();
 	}
+	
+	private void clearParserMap() {
+		parserMap.clear();
+	}
+	
+	private C4ScriptParser getParserFor(C4ScriptBase script) throws CompilerException {
+		C4ScriptParser result = parserMap.get(script);
+		if (result == null && script.getScriptFile() instanceof IFile)
+			parserMap.put(script, result = new C4ScriptParser(script));
+		return result;
+	}
 
 	public boolean visit(IResourceDelta delta) throws CoreException {
 		if (delta == null) 
@@ -302,7 +319,8 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 					}
 					else if ((parser = C4ObjectParser.create(folder)) != null) {
 						try {
-							script = parser.parse();
+							script = parser.createObject();
+							parser.parseScript(getParserFor(script));
 						} catch (CompilerException e) {
 							e.printStackTrace();
 						}
@@ -311,7 +329,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 				try {
 					if (script != null && delta.getResource().equals(script.getScriptFile())) {
 						if (script != null) {
-							C4ScriptParser parser = new C4ScriptParser((IFile) delta.getResource(), script);
+							C4ScriptParser parser = getParserFor(script);
 							switch (buildPhase) {
 							case 0:
 								parser.clean();
@@ -370,11 +388,15 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 				// first phase: just gather declarations
 				C4ObjectParser parser = C4ObjectParser.create((IContainer) resource);
 				if (parser != null) { // is complete c4d (with DefCore.txt Script.c and Graphics)
+					C4ObjectIntern object = parser.createObject();
 					try {
-						parser.parse();
+						C4ScriptParser scriptParser = getParserFor(object);
+						if (scriptParser == null && object.getScriptFile() != null) {
+							parserMap.put(object, scriptParser = new C4ScriptParser(object));
+						}
+						parser.parseScript(scriptParser);
 					} catch (CompilerException e) {
-						// TODO display CompilerException messages
-						e.printStackTrace();
+
 					}
 				}
 				if (monitor != null) monitor.worked(2);
@@ -386,7 +408,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 				IFile scriptFile = (IFile) ((obj != null) ? obj.getScriptFile() : null);
 				if (scriptFile != null) {
 					try {
-						new C4ScriptParser(scriptFile, obj).parseCodeOfFunctions();
+						getParserFor(obj).parseCodeOfFunctions();
 					} catch (CompilerException e) {
 						e.printStackTrace();
 					} 
