@@ -28,10 +28,10 @@ public class IniReader {
 	
 	public IniReader(IFile file) {
 		try {
-			reader = new BufferedScanner(file.getContents(), 0);
-		} catch (CoreException e) {
-			e.printStackTrace();
-		} catch (CompilerException e) {
+			InputStream stream = file.getContents();
+			reader = new BufferedScanner(stream, 0);
+			stream.close();
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
 		iniFile = file;

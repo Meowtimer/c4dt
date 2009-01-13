@@ -257,7 +257,7 @@ public class C4Function extends C4Structure implements Serializable, ITypedField
 		if (getScript() == ClonkCore.ENGINE_OBJECT) {
 			//return String.format("<b>%s</b><br>%s<br><i><a href='%s'>Online Documentation</a></i>", getName(), getDescription(), getDocumentationURL());
 			// engine function
-			return String.format("<b>%s</b><br>%s<br><a href=\"%s\">Online Dokumentation</a>", getLongParameterString(true), getUserDescription(), getDocumentationURL());
+			return String.format("<b>%s</b><br>%s", getLongParameterString(true), getUserDescription());
 		}
 		return getLongParameterString(true);
 	}

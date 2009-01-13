@@ -41,8 +41,9 @@ public interface C4GroupItem {
 	/**
 	 * Writes this entry and all sub items to stream
 	 * @throws FileNotFoundException 
+	 * @throws IOException 
 	 */
-	public void writeTo(OutputStream stream) throws FileNotFoundException;
+	public void writeTo(OutputStream stream) throws FileNotFoundException, IOException;
 	
 	/**
 	 * The entry name

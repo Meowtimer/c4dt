@@ -1,5 +1,6 @@
 package net.arctics.clonk.ui.editors;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -204,7 +205,8 @@ public class ClonkCompletionProcessor implements IContentAssistProcessor {
 		try {
 			((C4ScriptEditor)editor).reparseWithDocumentContents(null,false);
 		} catch (CompilerException e) {
-			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
 			e.printStackTrace();
 		}
 		final C4Function activeFunc = getActiveFunc(doc, offset);

@@ -203,16 +203,20 @@ public class C4Entry implements C4GroupItem, IStorage, Serializable {
 		return header;
 	}
 
-	public void writeTo(OutputStream stream) throws FileNotFoundException {
+	public void writeTo(OutputStream stream) throws IOException {
 		InputStream inStream = new java.io.FileInputStream(exportFromFile);
-		byte[] buffer = new byte[1024];
-		int read = 0;
 		try {
-			while((read = inStream.read(buffer)) > 0) {
-				stream.write(buffer, 0, read);
+			byte[] buffer = new byte[1024];
+			int read = 0;
+			try {
+				while((read = inStream.read(buffer)) > 0) {
+					stream.write(buffer, 0, read);
+				}
+			} catch (IOException e) {
+				e.printStackTrace();
 			}
-		} catch (IOException e) {
-			e.printStackTrace();
+		} finally {
+			inStream.close();
 		}
 	}
 

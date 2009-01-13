@@ -1,6 +1,7 @@
 package net.arctics.clonk.ui.editors;
 
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.ResourceBundle;
 
@@ -219,11 +220,12 @@ public class C4ScriptEditor extends TextEditor implements IShowInSource, IShowIn
 			this.resetHighlightRange();
 	}
 
-	public C4ScriptParser reparseWithDocumentContents(C4ScriptExprTree.IExpressionListener exprListener, boolean onlyDeclarations) throws CompilerException {
+	public C4ScriptParser reparseWithDocumentContents(C4ScriptExprTree.IExpressionListener exprListener, boolean onlyDeclarations) throws CompilerException, IOException {
 		IDocument document = getDocumentProvider().getDocument(getEditorInput());
 		byte[] documentBytes = document.get().getBytes();
 		InputStream scriptStream = new ByteArrayInputStream(documentBytes);
 		C4ScriptParser parser = new C4ScriptParser(scriptStream, documentBytes.length, Utilities.getScriptForEditor(this));
+		scriptStream.close();
 		parser.setExpressionListener(exprListener);
 		parser.clean();
 		parser.parseDeclarations();
@@ -233,11 +235,11 @@ public class C4ScriptEditor extends TextEditor implements IShowInSource, IShowIn
 		return parser;
 	}
 	
-	public static IEditorPart openDeclaration(C4Field target) throws PartInitException, CompilerException {
+	public static IEditorPart openDeclaration(C4Field target) throws PartInitException, CompilerException, IOException {
 		return openDeclaration(target, true);
 	}
 	
-	public static IEditorPart openDeclaration(C4Field target, boolean activate) throws PartInitException, CompilerException {
+	public static IEditorPart openDeclaration(C4Field target, boolean activate) throws PartInitException, CompilerException, IOException {
 		IWorkbench workbench = PlatformUI.getWorkbench();
 		IWorkbenchPage workbenchPage = workbench.getActiveWorkbenchWindow().getActivePage();
 		C4ScriptBase script = target instanceof C4ScriptBase ? (C4ScriptBase)target : target.getScript();

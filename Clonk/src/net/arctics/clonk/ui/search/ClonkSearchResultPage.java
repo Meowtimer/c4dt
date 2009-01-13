@@ -1,5 +1,7 @@
 package net.arctics.clonk.ui.search;
 
+import java.io.IOException;
+
 import net.arctics.clonk.parser.C4ScriptBase;
 import net.arctics.clonk.parser.CompilerException;
 import net.arctics.clonk.ui.editors.C4ScriptEditor;
@@ -47,6 +49,9 @@ public class ClonkSearchResultPage extends AbstractTextSearchViewPage implements
 			C4ScriptEditor editor = (C4ScriptEditor) C4ScriptEditor.openDeclaration(clonkMatch.getScript(), activate);
 			editor.selectAndReveal(currentOffset, currentLength);
 		} catch (CompilerException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}

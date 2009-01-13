@@ -115,8 +115,11 @@ public class NewClonkFolderWizard extends Wizard implements INewWizard {
 				if (templateFile.startsWith("."))
 					continue;
 				InputStream stream = getTemplateStream(template, templateFile);
-				subContainer.getFile(templateFile).create(stream, true, monitor);
-				stream.close();
+				try {
+					subContainer.getFile(templateFile).create(stream, true, monitor);
+				} finally {
+					stream.close();
+				}
 			}
 		} catch (IOException e) {
 			e.printStackTrace();

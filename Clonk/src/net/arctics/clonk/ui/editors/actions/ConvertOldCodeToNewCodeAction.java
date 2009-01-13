@@ -1,5 +1,6 @@
 package net.arctics.clonk.ui.editors.actions;
 
+import java.io.IOException;
 import java.util.LinkedList;
 import java.util.ResourceBundle;
 
@@ -41,9 +42,9 @@ public class ConvertOldCodeToNewCodeAction extends TextEditorAction {
 		C4ScriptParser parser;
 		try {
 			parser = editor.reparseWithDocumentContents(expressionCollector(selection, statements, selLength), false);
-		} catch (CompilerException e1) {
+		} catch (Exception e) {
 			parser = null;
-			e1.printStackTrace();
+			e.printStackTrace();
 		}
 		runOnDocument(parser, selection, document, statements);
 	}

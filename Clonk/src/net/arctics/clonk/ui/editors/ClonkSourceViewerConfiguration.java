@@ -1,5 +1,7 @@
 package net.arctics.clonk.ui.editors;
 
+import java.io.IOException;
+
 import net.arctics.clonk.parser.C4Field;
 import net.arctics.clonk.parser.C4Object;
 import net.arctics.clonk.parser.CompilerException;
@@ -94,6 +96,9 @@ public class ClonkSourceViewerConfiguration extends TextSourceViewerConfiguratio
 			} catch (CompilerException e1) {
 				// TODO Auto-generated catch block
 				e1.printStackTrace();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
 			}
 		}
 		

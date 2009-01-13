@@ -79,10 +79,14 @@ public class ClonkProjectNature implements IProjectNature {
 		}
 		try {
 			InputStream in = index.getContents();
-			ObjectInputStream objStream = new InputStreamRespectingUniqueIDs(in);
-			indexedData = (ProjectIndex)objStream.readObject();
-			indexedData.setProject(getProject());
-			indexedData.fixReferencesAfterSerialization();
+			try {
+				ObjectInputStream objStream = new InputStreamRespectingUniqueIDs(in);
+				indexedData = (ProjectIndex)objStream.readObject();
+				indexedData.setProject(getProject());
+				indexedData.fixReferencesAfterSerialization();
+			} finally {
+				in.close();
+			}
 		} catch (Exception e) {
 			e.printStackTrace();
 			// somehow failed - ignore
