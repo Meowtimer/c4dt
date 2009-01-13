@@ -912,7 +912,7 @@ public abstract class C4ScriptExprTree {
 		public void print(StringBuilder output, int depth) {
 			
 			// put brackets around operands in case some transformation messed up prioritization
-			boolean needsBrackets = leftSide instanceof ExprBinaryOp && getOperator().priority() > ((ExprBinaryOp)leftSide).getOperator().priority();
+			boolean needsBrackets = leftSide instanceof ExprBinaryOp && getOperator().getPriority() > ((ExprBinaryOp)leftSide).getOperator().getPriority();
 			if (needsBrackets)
 				output.append("(");
 			leftSide.print(output, depth+1);
@@ -923,7 +923,7 @@ public abstract class C4ScriptExprTree {
 			output.append(getOperator().getOperatorName());
 			output.append(" ");
 			
-			needsBrackets = rightSide instanceof ExprBinaryOp && getOperator().priority() > ((ExprBinaryOp)rightSide).getOperator().priority();
+			needsBrackets = rightSide instanceof ExprBinaryOp && getOperator().getPriority() > ((ExprBinaryOp)rightSide).getOperator().getPriority();
 			if (needsBrackets)
 				output.append("(");
 			rightSide.print(output, depth+1);

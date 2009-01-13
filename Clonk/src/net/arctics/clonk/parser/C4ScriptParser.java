@@ -1628,12 +1628,12 @@ public class C4ScriptParser {
 						int operatorPos = fReader.getPosition();
 						C4ScriptOperator op = parseOperator_(fReader.getPosition());
 						if (op != null && op.isBinary()) {
-							int priorOfNewOp = op.priority();
+							int priorOfNewOp = op.getPriority();
 							ExprElm newLeftSide = null;
 							ExprBinaryOp theOp = null;
 							for (ExprElm opFromBottom = current.getParent(); opFromBottom instanceof ExprBinaryOp; opFromBottom = opFromBottom.getParent()) {
 								ExprBinaryOp oneOp = (ExprBinaryOp) opFromBottom;
-								if (priorOfNewOp > oneOp.getOperator().priority() || (priorOfNewOp == oneOp.getOperator().priority() && op.rightAssociative())) {
+								if (priorOfNewOp > oneOp.getOperator().getPriority() || (priorOfNewOp == oneOp.getOperator().getPriority() && op.rightAssociative())) {
 									theOp = oneOp;
 									break;
 								}

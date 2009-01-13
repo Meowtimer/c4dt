@@ -11,6 +11,7 @@ import java.io.RandomAccessFile;
 import java.io.Serializable;
 import java.security.InvalidParameterException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -54,7 +55,7 @@ public class C4Group implements C4GroupItem, Serializable {
 		result.put("c4g", C4GroupType.ResourceGroup);
 		result.put("c4s", C4GroupType.ScenarioGroup);
 		result.put("c4f", C4GroupType.FolderGroup);
-		return result;
+		return Collections.unmodifiableMap(result);
 	}
 	
 	public static final Map<String, C4GroupType> extensionToGroupTypeMap = getExtensionToGroupTypeMap();

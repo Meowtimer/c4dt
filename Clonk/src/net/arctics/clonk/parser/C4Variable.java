@@ -18,7 +18,6 @@ public class C4Variable extends C4Field implements Serializable, ITypedField {
 
 	private static final long serialVersionUID = -2350345359769750230L;
 	private C4VariableScope scope;
-	private int typeMask;
 	private C4Type type;
 	private C4Object expectedContent; // mostly null - only set when type=object
 	private String description;
