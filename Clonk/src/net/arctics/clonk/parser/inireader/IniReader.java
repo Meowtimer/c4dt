@@ -4,8 +4,8 @@ import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 
+import net.arctics.clonk.parser.BufferedScanner;
 import net.arctics.clonk.parser.CompilerException;
-import net.arctics.clonk.parser.C4ScriptParser.BufferedScanner;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;

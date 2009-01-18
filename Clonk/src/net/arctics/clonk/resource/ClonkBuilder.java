@@ -100,6 +100,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 	@SuppressWarnings("unchecked")
 	protected IProject[] build(int kind, Map args, IProgressMonitor monitor)
 			throws CoreException {
+		parserMap.clear();
 		try {
 			IProject proj = getProject();
 			this.monitor = monitor;
@@ -108,8 +109,6 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 			case INCREMENTAL_BUILD:
 				IResourceDelta delta = getDelta(proj);
 				if (delta != null) {
-
-					clearParserMap();
 					
 					// count num of resources to build
 					ResourceCounter counter = new ResourceCounter(ResourceCounter.COUNT_CONTAINER);
@@ -170,7 +169,6 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 				
 				
 				if (proj != null) {
-					clearParserMap();
 					monitor.subTask("Index project " + proj.getName());
 					// parse declarations
 					buildPhase = 0;
@@ -216,7 +214,8 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 					}
 				}
 			});
-			
+		
+			parserMap.clear();
 			return new IProject[] { proj };
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -274,10 +273,6 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 		}
 		ClonkCore.EXTERN_INDEX.refreshCache();
 		if (monitor != null) monitor.done();
-	}
-	
-	private void clearParserMap() {
-		parserMap.clear();
 	}
 	
 	private C4ScriptParser getParserFor(C4ScriptBase script) throws CompilerException {

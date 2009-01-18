@@ -35,7 +35,7 @@ public class ClonkContentOutlineLabelAndContentProvider extends LabelProvider im
 	 * @see org.eclipse.jface.viewers.ITreeContentProvider#getChildren(java.lang.Object)
 	 */
 	public Object[] getChildren(Object obj) {
-		return ((C4Field)obj).getChildFields();
+		return ((C4Field)obj).getChildFieldsForOutline();
 	}
 
 	/* (non-Javadoc)

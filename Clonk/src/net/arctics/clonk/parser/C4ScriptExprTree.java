@@ -167,6 +167,7 @@ public abstract class C4ScriptExprTree {
 			if (differentSubElms) {
 				ExprElm replacement = (ExprElm)this.clone();
 				replacement.setSubElements(newSubElms);
+				replacement.assignParentToSubElements();
 				return replacement;
 			}
 			return this; // nothing to be changed
@@ -998,6 +999,14 @@ public abstract class C4ScriptExprTree {
 		public ExprElm getInnerExpr() {
 			return innerExpr;
 		}
+		
+		@Override
+		public ExprElm newStyleReplacement(C4ScriptParser parser)
+				throws CloneNotSupportedException {
+			if (!(getParent() instanceof ExprOperator))
+				return innerExpr.newStyleReplacement(parser);
+			return super.newStyleReplacement(parser);
+		}
 
 	}
 
@@ -1429,12 +1438,13 @@ public abstract class C4ScriptExprTree {
 		private Statement[] statements;
 
 		public Block(List<Statement> statements) {
-			this(statements.toArray(new Statement[0]));
+			this(statements.toArray(new Statement[statements.size()]));
 		}
 		
 		public Block(Statement[] statements) {
 			super();
 			this.statements = statements;
+			assignParentToSubElements();
 		}
 
 		public Statement[] getStatements() {
@@ -1466,10 +1476,23 @@ public abstract class C4ScriptExprTree {
 			printIndent(builder, depth-1); builder.append("}");
 		}
 		
+		@Override
+		public ExprElm newStyleReplacement(C4ScriptParser parser)
+				throws CloneNotSupportedException {
+			if (getParent() != null && !(getParent() instanceof ConditionalStatement) && !(this instanceof BunchOfStatements)) {
+				return new BunchOfStatements(statements);
+			}
+			return super.newStyleReplacement(parser);
+		}
+		
 	}
 	
 	static class BunchOfStatements extends Block {
 		public BunchOfStatements(List<Statement> statements) {
+			super(statements);
+		}
+		
+		public BunchOfStatements(Statement... statements) {
 			super(statements);
 		}
 

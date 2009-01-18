@@ -50,6 +50,7 @@ public enum C4ScriptOperator {
 	C4Type firstArgType, secondArgType, resultType;
 	String operatorName, oldStyleFunctionEquivalent;
 	int priority;
+	boolean rightAssociative;
 	
 	public static final Map<String, C4ScriptOperator> stringToOperatorMap;
 	
@@ -70,6 +71,7 @@ public enum C4ScriptOperator {
 		this.operatorName = operatorName;
 		this.oldStyleFunctionEquivalent = oldStyleFunctionEquivalent;
 		this.priority = priority;
+		this.rightAssociative = name().startsWith("Assign");
 	}
 	
 	private C4ScriptOperator(C4Type firstArgType, C4Type secondArgType,
@@ -158,10 +160,8 @@ public enum C4ScriptOperator {
 		return priority;
 	}
 
-	public boolean rightAssociative() {
-		int o = ordinal();
-		// assignment operators
-		return (o >= 25 && o <= 32);
+	public boolean isRightAssociative() {
+		return rightAssociative;
 	}
 	
 	public boolean spaceNeededBetweenMeAnd(C4ScriptOperator other) {

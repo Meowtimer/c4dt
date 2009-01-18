@@ -60,7 +60,7 @@ public abstract class C4Field implements Serializable  {
 	public String getShortInfo() {
 		return getName();
 	}
-	public Object[] getChildFields() {
+	public Object[] getChildFieldsForOutline() {
 		return null;
 	}
 	public boolean hasChildFields() {

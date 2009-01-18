@@ -10,7 +10,6 @@ import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
-import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Path;
@@ -29,10 +28,6 @@ public class C4ObjectIntern extends C4Object implements Serializable {
 		} catch (CoreException e1) {
 			e1.printStackTrace();
 		}
-	}
-
-	public static C4ObjectIntern fromSerialize(C4ID id, String name, String path) {
-		return new C4ObjectIntern(id, name, ResourcesPlugin.getWorkspace().getRoot().getFolder(Path.fromPortableString(path)));
 	}
 	
 	/**

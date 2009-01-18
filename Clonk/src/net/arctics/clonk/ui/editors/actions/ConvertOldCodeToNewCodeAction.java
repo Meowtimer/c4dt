@@ -1,12 +1,10 @@
 package net.arctics.clonk.ui.editors.actions;
 
-import java.io.IOException;
 import java.util.LinkedList;
 import java.util.ResourceBundle;
 
 import net.arctics.clonk.parser.C4Function;
 import net.arctics.clonk.parser.C4ScriptParser;
-import net.arctics.clonk.parser.CompilerException;
 import net.arctics.clonk.parser.Pair;
 import net.arctics.clonk.parser.C4ScriptExprTree.*;
 import net.arctics.clonk.ui.editors.C4ScriptEditor;

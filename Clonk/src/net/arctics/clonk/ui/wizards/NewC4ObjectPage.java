@@ -7,7 +7,6 @@ import net.arctics.clonk.parser.C4ID;
 import net.arctics.clonk.parser.C4Object;
 import net.arctics.clonk.resource.ClonkProjectNature;
 
-import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Text;

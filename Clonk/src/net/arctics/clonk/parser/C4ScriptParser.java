@@ -1,9 +1,6 @@
 package net.arctics.clonk.parser;
 
-import java.io.BufferedReader;
-import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -24,7 +21,6 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IRegion;
-import org.eclipse.jface.text.Region;
 
 public class C4ScriptParser {
 	
@@ -63,291 +59,6 @@ public class C4ScriptParser {
 		public static final String False = "false";
 	}
 	
-	public static class BufferedScanner {
-
-		public static final char[] WHITESPACE_DELIMITERS = new char[] { ' ', '\n', '\r', '\t' };
-		public static final char[] NEWLINE_DELIMITERS = new char[] { '\n', '\r' };
-
-		private String buffer;
-		private int size;
-		private int offset;
-
-		private static String stringFromInputStream(InputStream stream) throws IOException {
-			InputStreamReader inputStreamReader = new InputStreamReader(stream);
-			StringBuilder stringBuilder;
-			try {
-				BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
-				try {
-					stringBuilder = new StringBuilder();
-					char[] buffer = new char[1024];
-					int read;
-					while ((read = bufferedReader.read(buffer)) > 0) {
-						stringBuilder.append(buffer, 0, read);
-					}
-
-				} finally {
-					bufferedReader.close();
-				}
-			} finally {
-				inputStreamReader.close();
-			}
-			return stringBuilder.toString();
-		}
-
-		public BufferedScanner(IFile file) throws CompilerException {
-			try {
-				InputStream contents = file.getContents();
-				try {
-					offset = 0;
-					buffer = stringFromInputStream(contents);
-					size = buffer.length();
-				} finally {
-					contents.close();
-				}
-			} catch (CoreException e) {
-				e.printStackTrace();
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		}
-
-		public BufferedScanner(InputStream stream, long fileSize) throws CompilerException {
-			try {
-				offset = 0;
-				buffer = stringFromInputStream(stream);
-				size = buffer.length();
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		}
-		
-		public BufferedScanner(String withString) {
-			offset = 0;
-			buffer = withString;
-			size = buffer.length();
-		}
-
-		public int read() {
-			if (offset >= size) {
-				offset++; // increment anyway so unread works as expected
-				return -1;
-			}
-			return buffer.charAt(offset++);
-		}
-
-		public void unread() {
-			offset--;
-		}
-
-		public String readString(int length) {
-			if (offset+length > size) 
-				return null;
-			String result = buffer.substring(offset, offset+length);
-			offset += length;
-			return result;
-		}
-
-		public static boolean isWordPart(int character) {
-			return ('A' <= character && character <= 'Z') ||
-			('a'<= character && character <= 'z') ||
-			(character == '_') ||
-			(/*length > 0 &&*/ '0' <= character && character <= '9');
-		}
-		
-		/**
-		 * Reads a code-word. (like regexp class [0-9a-zA-Z_])
-		 * @return the code-word
-		 */
-		public String readWord() {
-			int start = offset;
-			int length = 0;
-			do {
-				int readByte = read();
-				if (isWordPart(readByte)) {
-					length++;
-				}
-				else {
-					seek(start);
-					return readString(length);
-				}
-			} while(!reachedEOF());
-			return readStringAt(start, start+length);
-		}
-
-		/**
-		 * Reads a string until a char from <code>delimiters</code> occurs
-		 * @param delimiters
-		 * @return string sequence, without delimiter char
-		 */
-		public String readStringUntil(char ...delimiters) {
-			int start = offset;
-			int i = 0;
-			do {
-				int readByte = read();
-				for(i = 0; i < delimiters.length;i++) {
-					if (readByte == delimiters[i]) {
-						i = offset - start - 1; // variable reuse
-						seek(start);
-						return readString(i);
-					}
-				}
-			} while(!reachedEOF());
-			return null;
-		}
-		
-		/**
-		 * Reads a string until a newline character occurs
-		 * Cursor is after newline char(s)
-		 * @return the line without newline char(s)
-		 */
-		public String readLine() {
-			int start = offset;
-			String line = readStringUntil('\r','\n');
-			if (line == null) {
-				return readStringAt(start, offset);
-			}
-			if (read() == '\r') {
-				if (read() != '\n')
-					unread();
-				return line;
-			}
-			else {
-				unread();
-				if (read() == '\n') {
-					if (read() != '\r')
-						unread();
-					return line;
-				}
-			}
-			return line;
-		}
-
-		/**
-		 * Moves offset until a char from <code>delimiters</code> occurs
-		 * @param delimiters
-		 */
-		public void moveUntil(char[] delimiters) {
-			do {
-				int readByte = read();
-				for(int i = 0; i < delimiters.length;i++) {
-					if (readByte == delimiters[i]) {
-						return;
-					}
-				}
-			} while(!reachedEOF());
-		}
-
-		/**
-		 * Moves offset until any other char than <code>delimiters</code> occurs
-		 * @param delimiters
-		 */
-		public int eat(char[] delimiters) {
-			if (reachedEOF())
-				return 0; // no unreading() when already reached EOF
-			int result = 0;
-			do {
-				int readByte = read();
-				boolean isDelimiter = true;
-				for(int i = 0; i < delimiters.length;i++) {
-					if (readByte != delimiters[i]) {
-						isDelimiter = false;
-					}
-					else {
-						isDelimiter = true;
-						result++;
-						break;
-					}
-				}
-				if (!isDelimiter) {
-					unread();
-					return result;
-				}
-			} while(!reachedEOF());
-			return result;
-		}
-
-		public int eatWhitespace() {
-			return eat(WHITESPACE_DELIMITERS);
-		}
-
-		/**
-		 * Absolute offset manipulation
-		 * @param newPos
-		 * @return new offset
-		 */
-		public int seek(int newPos) {
-			offset = newPos;
-			//if (offset >= size) offset = size - 1;
-			return offset;
-		}
-
-		/**
-		 * Relative offset manipulation
-		 * @param distance
-		 * @return new offset
-		 */
-		public int move(int distance) {
-			offset += distance;
-			if (offset >= size) offset = size - 1;
-			return offset;
-		}
-
-		/**
-		 * If end of file reached
-		 * @return whether eof reached
-		 */
-		public boolean reachedEOF() {
-			return (offset >= size);
-		}
-
-		/**
-		 * Current offset
-		 * @return offset
-		 */
-		public int getPosition() {
-			return offset;
-		}
-
-		public String readStringAt(int start, int end) {
-			int p = getPosition();
-			seek(start);
-			String result = readString(end-start);
-			seek(p);
-			return result;
-		}
-
-		public int peekAfterWhitespace() {
-			int pos = offset;
-			eatWhitespace();
-			int result = read();
-			seek(pos);
-			return result;
-		}
-		
-		public static boolean isLineDelimiterChar(char c) {
-			for (int i = 0; i < NEWLINE_DELIMITERS.length; i++)
-				if (NEWLINE_DELIMITERS[i] == c)
-					return true;
-			return false;
-		}
-
-		public String getLineAt(IRegion region) {
-			IRegion lineRegion = getLineRegion(region);
-			return buffer.substring(lineRegion.getOffset(), lineRegion.getOffset()+lineRegion.getLength());
-		}
-		
-		public IRegion getLineRegion(IRegion regionInLine) {
-			int start, end;
-			for (start = regionInLine.getOffset(); start > 0 && !isLineDelimiterChar(buffer.charAt(start-1)); start--);
-			for (end = regionInLine.getOffset()+regionInLine.getLength(); end < buffer.length()-1 && !isLineDelimiterChar(buffer.charAt(end+1)); end++);
-			return new Region(start, end-start);
-		}
-
-		public int getBufferLength() {
-			return buffer.length();
-		}
-	}
-
 	public static class ParsingException extends Exception {
 
 		private static final long serialVersionUID = 1L;
@@ -737,11 +448,6 @@ public class C4ScriptParser {
 
 			} while(fReader.read() == ',');
 			fReader.unread();
-			//			if (fReader.read() != ';') {
-			//				String problem = "Syntax error: expected ';' or ','";
-			//				createErrorMarker(fReader.getPosition() - 1, fReader.getPosition(), problem);
-			//				throw new ParsingException(problem);
-			//			}
 			return true;
 		}
 		else {
@@ -996,45 +702,6 @@ public class C4ScriptParser {
 		}
 	}
 
-//	private boolean parseAssignment(int offset) throws ParsingException {
-//		fReader.seek(offset);
-//		if (!parseCall(offset)) {
-//			fReader.seek(offset);
-//			String varName = fReader.readWord();
-//			if (varName.length() == 0) {
-//				//				fReader.seek(offset);
-//				return false;
-//			}
-//		}
-//		eatWhitespace();
-//
-//		int readByte = fReader.read();
-//		int secondByte = fReader.read();
-//		if (readByte != '=') {
-//
-//			if (secondByte == '=' && ((0x2A <= readByte && readByte <= 0x2F && readByte != 0x2C && readByte != 0x2E) || readByte == '%')) {
-//
-//			}
-//			else {
-//				fReader.unread();
-//				fReader.unread();
-//				return false;
-//			}
-//		}
-//		else {
-//
-//		}
-//		eatWhitespace();
-//		offset = fReader.getPosition();
-//		if (!parseValue(fReader.getPosition())) {
-//			String problem = "Syntax error: expected a value after '='";
-//			createErrorMarker(offset, offset + 3, problem);
-//			throw new ParsingException(problem);
-//		}
-//		// *= /= %= += -= =
-//		return true;
-//	}
-
 	private void warnAboutTupleInReturnExpr(ExprElm expr, boolean tupleIsError) throws ParsingException {
 		if (expr == null)
 			return;
@@ -1208,7 +875,16 @@ public class C4ScriptParser {
 	}
 	
 	public enum ErrorCode {
-		TokenExpected, NotAllowedHere, MissingClosingBracket, InvalidExpression, InternalError, ExpressionExpected, UnexpectedEnd, NameExpected, ReturnAsFunction, ExpressionNotModifiable, OperatorNeedsRightSide, NoAssignment, NoSideEffects, KeywordInWrongPlace, UndeclaredIdentifier, OldStyleFunc, ValueExpected, TuplesNotAllowed, EmptyParentheses, ExpectedCode, ConstantValueExpected, CommaOrSemicolonExpected, IncompatibleTypes, VariableCalled, TypeAsName, BlockNotClosed, UnknownDirective, StatementExpected, ConditionExpected, OutOfIntRange, NoInheritedFunction, FunctionRedeclared, NeverReached, ObsoleteOperator
+		TokenExpected, NotAllowedHere, MissingClosingBracket, InvalidExpression, InternalError, 
+		ExpressionExpected, UnexpectedEnd, NameExpected, ReturnAsFunction, ExpressionNotModifiable,
+		OperatorNeedsRightSide, NoAssignment, NoSideEffects, KeywordInWrongPlace, UndeclaredIdentifier,
+		OldStyleFunc, ValueExpected, TuplesNotAllowed, EmptyParentheses, ExpectedCode, ConstantValueExpected,
+		CommaOrSemicolonExpected, IncompatibleTypes, VariableCalled, TypeAsName, BlockNotClosed, UnknownDirective,
+		StatementExpected, ConditionExpected, OutOfIntRange, NoInheritedFunction, FunctionRedeclared, NeverReached, ObsoleteOperator;
+		
+		public String getErrorString(Object... format) {
+			return String.format(C4ScriptParser.errorStrings[ordinal()], format);
+		}
 	}
 	
 	private static String[] errorStrings = new String[] {
@@ -1280,11 +956,9 @@ public class C4ScriptParser {
 	}
 	
 	void errorWithCode(ErrorCode code, int errorStart, int errorEnd, boolean noThrow, Object... args) throws ParsingException {
-//		if (fScript == null)
-//			return; // parser used for other purposes -> no errors
 		if (errorDisabled(code))
 			return;
-		String problem = String.format(errorStrings[code.ordinal()], args);
+		String problem = code.getErrorString(args);
 		createErrorMarker(errorStart, errorEnd, problem);
 		if (!noThrow)
 			throw fScript == null ? new SilentParsingException(problem) : new ParsingException(problem);
@@ -1311,10 +985,10 @@ public class C4ScriptParser {
 		fReader.seek(offset);
 		this.eatWhitespace();
 		int sequenceStart = fReader.getPosition();
-		C4ScriptOperator preop = parseOperator_(fReader.offset);
+		C4ScriptOperator preop = parseOperator_(fReader.getPosition());
 		ExprElm result = null;
 		if (preop != null && preop.isPrefix()) {
-			ExprElm followingExpr = parseExpressionWithoutOperators(fReader.offset, reportErrors);
+			ExprElm followingExpr = parseExpressionWithoutOperators(fReader.getPosition(), reportErrors);
 			if (followingExpr == null) {
 				errorWithCode(ErrorCode.ExpressionExpected, fReader.getPosition(), fReader.getPosition()+1);
 			}
@@ -1345,19 +1019,19 @@ public class C4ScriptParser {
 			fReader.seek(elmStart); // nothing special to end the sequence; make sure we start from the beginning
 			
 			// id
-			if (parseID(fReader.offset)) {
+			if (parseID(fReader.getPosition())) {
 				elm = new ExprID(parsedID);
 			}
 			
 			// hex number
-			if (elm == null && parseHexNumber(fReader.offset)) {
+			if (elm == null && parseHexNumber(fReader.getPosition())) {
 				if (parsedNumber < Integer.MIN_VALUE || parsedNumber > Integer.MAX_VALUE)
 					warningWithCode(ErrorCode.OutOfIntRange, elmStart, fReader.getPosition(), String.valueOf(parsedNumber));
 				elm = new ExprNumber(parsedNumber, true);
 			}
 			
 			// number
-			if (elm == null && parseNumber(fReader.offset)) {
+			if (elm == null && parseNumber(fReader.getPosition())) {
 				if (parsedNumber < Integer.MIN_VALUE || parsedNumber > Integer.MAX_VALUE)
 					warningWithCode(ErrorCode.OutOfIntRange, elmStart, fReader.getPosition(), String.valueOf(parsedNumber));
 				elm = new ExprNumber(parsedNumber);
@@ -1633,7 +1307,7 @@ public class C4ScriptParser {
 							ExprBinaryOp theOp = null;
 							for (ExprElm opFromBottom = current.getParent(); opFromBottom instanceof ExprBinaryOp; opFromBottom = opFromBottom.getParent()) {
 								ExprBinaryOp oneOp = (ExprBinaryOp) opFromBottom;
-								if (priorOfNewOp > oneOp.getOperator().getPriority() || (priorOfNewOp == oneOp.getOperator().getPriority() && op.rightAssociative())) {
+								if (priorOfNewOp > oneOp.getOperator().getPriority() || (priorOfNewOp == oneOp.getOperator().getPriority() && op.isRightAssociative())) {
 									theOp = oneOp;
 									break;
 								}
@@ -1775,7 +1449,7 @@ public class C4ScriptParser {
 						}
 						if (!foundClosingBracket)
 							errorWithCode(ErrorCode.BlockNotClosed, start, start+1);
-						result = new Block(subStatements.toArray(new Statement[subStatements.size()]));
+						result = new Block(subStatements);
 					}
 					else if (read == ';') {
 						result = new EmptyStatement();
@@ -2237,12 +1911,12 @@ public class C4ScriptParser {
 			return false;
 		}
 	}
-
-	private IMarker createErrorMarker(int start, int end, String message) {
+	
+	private IMarker createMarker(int start, int end, String message, int severity) {
 		if (fScript == null) return null;
 		try {
 			IMarker marker = fScript.createMarker(IMarker.PROBLEM);
-			marker.setAttribute(IMarker.SEVERITY, IMarker.SEVERITY_ERROR);
+			marker.setAttribute(IMarker.SEVERITY, severity);
 			marker.setAttribute(IMarker.TRANSIENT, false);
 			marker.setAttribute(IMarker.MESSAGE, message);
 			marker.setAttribute(IMarker.CHAR_START, start);
@@ -2253,21 +1927,13 @@ public class C4ScriptParser {
 		}
 		return null;
 	}
+
+	private IMarker createErrorMarker(int start, int end, String message) {
+		return createMarker(start, end, message, IMarker.SEVERITY_ERROR);
+	}
 	
 	private IMarker createWarningMarker(int start, int end, String message) {
-		if (fScript == null) return null;
-		try {
-			IMarker marker = fScript.createMarker(IMarker.PROBLEM);
-			marker.setAttribute(IMarker.SEVERITY, IMarker.SEVERITY_WARNING);
-			marker.setAttribute(IMarker.TRANSIENT, false);
-			marker.setAttribute(IMarker.MESSAGE, message);
-			marker.setAttribute(IMarker.CHAR_START, start);
-			marker.setAttribute(IMarker.CHAR_END, end);
-			return marker;
-		} catch (CoreException e) {
-			e.printStackTrace();
-		}
-		return null;
+		return createMarker(start, end, message, IMarker.SEVERITY_WARNING);
 	}
 
 	public void clean() {
