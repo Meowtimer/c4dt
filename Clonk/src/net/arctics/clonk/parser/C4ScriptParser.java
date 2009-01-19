@@ -650,7 +650,7 @@ public class C4ScriptParser {
 	private boolean parseCodeBlock(int offset) throws ParsingException {
 		fReader.seek(offset);
 		int endOfFunc = activeFunc.getBody().getEnd();
-		EnumSet<ParseStatementOption> options = EnumSet.of(ParseStatementOption.ExpectFuncDesc);
+		EnumSet<ParseStatementOption> options = EnumSet.of(ParseStatementOption.ExpectFuncDesc, ParseStatementOption.ParseEmptyLines);
 		boolean lastWasReturn = false;
 		while(!fReader.reachedEOF() && fReader.getPosition() < endOfFunc) {
 			Statement statement = parseStatement(fReader.getPosition(), options);
@@ -1411,7 +1411,8 @@ public class C4ScriptParser {
 	
 	public enum ParseStatementOption {
 		InitializationStatement,
-		ExpectFuncDesc;
+		ExpectFuncDesc,
+		ParseEmptyLines;
 		
 		public static final EnumSet<ParseStatementOption> NoOptions = EnumSet.noneOf(ParseStatementOption.class);
 	}
@@ -1431,6 +1432,16 @@ public class C4ScriptParser {
 			
 			// comment statement oO
 			result = parseCommentObject(fReader.getPosition());
+			
+			if (options.contains(ParseStatementOption.ParseEmptyLines)) {
+				int numLines = 0;
+				for (int delim = fReader.read(); BufferedScanner.isLineDelimiterChar((char) delim) ? true : !fReader.unread();) {
+					if (delim == '\n')
+						numLines++;
+				}
+				if (numLines > 0)
+					result = new EmptyLines(numLines);
+			}
 
 			if (result == null) {
 				String readWord = fReader.readWord();

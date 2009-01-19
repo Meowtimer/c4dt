@@ -1165,7 +1165,7 @@ public abstract class C4ScriptExprTree {
 
 		public C4Type getType() {
 			if (longValue() == 0)
-				return C4Type.ANY; // FIXME: to prevent warnings when assigning 0 to object-variables
+				return C4Type.UNKNOWN; // FIXME: to prevent warnings when assigning 0 to object-variables
 			return C4Type.INT;
 		}
 
@@ -2019,6 +2019,30 @@ public abstract class C4ScriptExprTree {
 			this.multiLine = multiLine;
 		}
 		
+	}
+	
+	// just some empty lines that should be preserved when converting code
+	public static class EmptyLines extends Statement {
+		private int numLines;
+
+		public int getNumLines() {
+			return numLines;
+		}
+
+		public void setNumLines(int numLines) {
+			this.numLines = numLines;
+		}
+
+		public EmptyLines(int numLines) {
+			super();
+			this.numLines = numLines;
+		}
+		
+		@Override
+		public void print(StringBuilder builder, int depth) {
+			for (int i = 0; i < numLines; i++)
+				builder.append("\n");
+		}
 	}
 	
 	public static class FunctionDescription extends Statement implements Serializable {

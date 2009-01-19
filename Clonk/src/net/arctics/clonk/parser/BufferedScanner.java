@@ -85,8 +85,9 @@ public class BufferedScanner {
 		return buffer.charAt(offset++);
 	}
 
-	public void unread() {
+	public boolean unread() {
 		offset--;
+		return true;
 	}
 
 	public String readString(int length) {

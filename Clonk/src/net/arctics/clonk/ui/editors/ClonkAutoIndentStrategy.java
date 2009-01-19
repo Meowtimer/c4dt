@@ -72,20 +72,21 @@ public class ClonkAutoIndentStrategy extends DefaultIndentLineAutoEditStrategy {
 	}
 	
 	private int countIndentOfLine(String line) {
-		int i = 0, indent = 0;
-		while (i < line.length()){
-		 if (line.charAt(i) == '\t') {
-			indent++;
-			i++;
-		 }
-		 else if (line.charAt(i) == ' ' && line.charAt(i+1) == ' ') {
-			 indent++;
-			 i += 2;
-		 }
-		 else
-			 break;
+		int indentStep = 2;
+		int whitespace = 0;
+		int indent = 0;
+		for (int i = 0; i < line.length(); i++) {
+			char c = line.charAt(i);
+			if (c == '\t') {
+				indent++;
+				i++;
+			}
+			else if (c == ' ')
+				whitespace++;
+			else
+				break;
 		}
-		return indent;
+		return indent + whitespace/indentStep;
 	}
 	
 	
