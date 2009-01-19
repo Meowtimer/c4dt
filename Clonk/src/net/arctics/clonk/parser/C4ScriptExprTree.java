@@ -1271,15 +1271,18 @@ public abstract class C4ScriptExprTree {
 		}
 	}
 
-	public static final class ExprAccessArray extends ExprUnaryOp {
+	public static final class ExprAccessArray extends ExprValue {
 
+		private ExprElm argument;
+		
 		@Override
 		public C4Type getType() {
-			return C4Type.ANY; // not type of operator. the field is dead in this class :/
+			return C4Type.ANY; // FIXME: guess type of elements
 		}
 
 		public ExprAccessArray(ExprElm argument) {
-			super(null, Placement.Postfix, argument);
+			super();
+			this.argument = argument;
 		}
 
 		@Override
@@ -1301,8 +1304,22 @@ public abstract class C4ScriptExprTree {
 		}
 		
 		@Override
+		public ExprElm[] getSubElements() {
+			return new ExprElm[] {argument};
+		}
+		
+		@Override
+		public void setSubElements(ExprElm[] subElements) {
+			argument = subElements[0];
+		}
+		
+		@Override
 		public boolean modifiable() {
 			return true;
+		}
+
+		public ExprElm getArgument() {
+			return argument;
 		}
 
 	}
