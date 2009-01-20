@@ -17,6 +17,7 @@ public class IniReader {
 	protected BufferedScanner reader;
 	protected IFile iniFile = null;
 	protected Map<String, IniEntry> entries = new HashMap<String, IniEntry>();
+	protected String defaultName;
 	
 	public IniReader(InputStream stream) {
 		try {
@@ -28,6 +29,7 @@ public class IniReader {
 	
 	public IniReader(IFile file) {
 		try {
+			defaultName = file.getParent().getName();
 			InputStream stream = file.getContents();
 			reader = new BufferedScanner(stream, 0);
 			stream.close();

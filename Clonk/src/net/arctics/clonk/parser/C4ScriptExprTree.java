@@ -299,7 +299,7 @@ public abstract class C4ScriptExprTree {
 		public boolean isValidInSequence(ExprElm predecessor) {
 			if (predecessor != null) {
 				C4Type t = predecessor.getType();
-				if (t == null || t == C4Type.ARRAY || t == C4Type.STRING || t == C4Type.UNKNOWN)
+				if (t == null || t == C4Type.ARRAY || t == C4Type.STRING)
 					return false;
 				return true;
 			}

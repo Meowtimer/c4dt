@@ -277,7 +277,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 	
 	private C4ScriptParser getParserFor(C4ScriptBase script) throws CompilerException {
 		C4ScriptParser result = parserMap.get(script);
-		if (result == null && script.getScriptFile() instanceof IFile)
+		if (result == null && script != null && script.getScriptFile() instanceof IFile)
 			parserMap.put(script, result = new C4ScriptParser(script));
 		return result;
 	}
