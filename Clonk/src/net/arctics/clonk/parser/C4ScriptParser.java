@@ -1433,6 +1433,7 @@ public class C4ScriptParser {
 			// comment statement oO
 			result = parseCommentObject(fReader.getPosition());
 			
+			/*
 			if (options.contains(ParseStatementOption.ParseEmptyLines)) {
 				int numLines = 0;
 				for (int delim = fReader.read(); BufferedScanner.isLineDelimiterChar((char) delim) ? true : !fReader.unread();) {
@@ -1441,7 +1442,7 @@ public class C4ScriptParser {
 				}
 				if (numLines > 0)
 					result = new EmptyLines(numLines);
-			}
+			}*/
 
 			if (result == null) {
 				String readWord = fReader.readWord();

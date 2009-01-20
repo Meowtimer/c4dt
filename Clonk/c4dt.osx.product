@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?pde version="3.4"?>
 
-<product name="%productName" id="net.arctics.clonk.product" application="org.eclipse.ui.ide.workbench" version="1.0.0" useFeatures="false">
+<product name="Eclipse+C4DT" id="org.eclipse.platform.ide" application="org.eclipse.ui.ide.workbench" version="1.0.3" useFeatures="false">
 
    <aboutInfo>
       <image path="eclipse_lg.gif"/>
       <text>
-         %productBlurb
+         Eclipse + Clonk Developer Tools
       </text>
    </aboutInfo>
 
@@ -23,13 +23,14 @@
       startupProgressRect="0,280,455,15"
       startupMessageRect="7,220,441,20"
       startupForegroundColor="C8D5EA" />
-   <launcher>
+   <launcher name="Eclipse">
       <macosx icon="/Clonk/res/DistroIcon.icns"/>
       <solaris/>
       <win useIco="false">
          <bmp/>
       </win>
    </launcher>
+
 
    <vm>
    </vm>
@@ -58,6 +59,8 @@
       <plugin id="org.eclipse.core.runtime.compatibility.auth"/>
       <plugin id="org.eclipse.core.runtime.compatibility.registry" fragment="true"/>
       <plugin id="org.eclipse.core.variables"/>
+      <plugin id="org.eclipse.debug.core"/>
+      <plugin id="org.eclipse.debug.ui"/>
       <plugin id="org.eclipse.equinox.app"/>
       <plugin id="org.eclipse.equinox.common"/>
       <plugin id="org.eclipse.equinox.http.jetty"/>
@@ -86,6 +89,7 @@
       <plugin id="org.eclipse.ui"/>
       <plugin id="org.eclipse.ui.carbon" fragment="true"/>
       <plugin id="org.eclipse.ui.cheatsheets"/>
+      <plugin id="org.eclipse.ui.console"/>
       <plugin id="org.eclipse.ui.editors"/>
       <plugin id="org.eclipse.ui.forms"/>
       <plugin id="org.eclipse.ui.ide"/>
