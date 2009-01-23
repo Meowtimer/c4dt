@@ -9,6 +9,8 @@ import java.io.OutputStream;
 import java.io.Serializable;
 import java.util.LinkedList;
 
+import net.arctics.clonk.resource.c4group.C4Group.C4GroupType;
+
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
@@ -246,5 +248,10 @@ public class C4Entry implements C4GroupItem, IStorage, Serializable {
 		if (cls == C4Entry.class)
 			return this;
 		return null;
+	}
+
+	public void accept(IC4GroupVisitor visitor, C4GroupType type,
+			IProgressMonitor monitor) {
+		visitor.visit(this, type);
 	}
 }

@@ -4,6 +4,8 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.OutputStream;
 
+import net.arctics.clonk.resource.c4group.C4Group.C4GroupType;
+
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -78,4 +80,10 @@ public interface C4GroupItem {
 	 * Extracts this file to hard disk with the given progress monitor
 	 */
 	public void extractToFilesystem(IContainer internPath, IProgressMonitor monitor) throws CoreException;
+	
+	/**
+	 * recursively call visitor.visit for all items in this group (including the group itself)
+	 */
+	public void accept(IC4GroupVisitor visitor, C4GroupType type, IProgressMonitor monitor);
+	
 }
