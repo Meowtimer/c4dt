@@ -15,6 +15,7 @@ import net.arctics.clonk.parser.C4ObjectExtern;
 import net.arctics.clonk.parser.C4ObjectIntern;
 import net.arctics.clonk.parser.C4ObjectParser;
 import net.arctics.clonk.parser.C4ScriptBase;
+import net.arctics.clonk.parser.C4ScriptExtern;
 import net.arctics.clonk.parser.C4ScriptParser;
 import net.arctics.clonk.parser.C4SystemScript;
 import net.arctics.clonk.parser.ClonkIndex;
@@ -493,10 +494,10 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 				for (C4GroupItem child : group.getChildEntries()) {
 					if (child.getName().endsWith(".c")) {
 						try {
-							C4ObjectExtern externObj = new C4ObjectExtern(C4ID.getSpecialID("System"),child.getName(),child);
-							C4ScriptParser parser = new C4ScriptParser(((C4Entry)child).getContents(),((C4Entry)child).computeSize(),externObj);
+							C4ScriptExtern externScript = new C4ScriptExtern(child);
+							C4ScriptParser parser = new C4ScriptParser(((C4Entry)child).getContents(),((C4Entry)child).computeSize(), externScript);
 							parser.parseDeclarations();
-							ClonkCore.EXTERN_INDEX.addObject(externObj);
+							ClonkCore.EXTERN_INDEX.addScript(externScript);
 							//						Utilities.getProject(getProject()).getIndexedData().addObject(externSystemc4g);
 						} catch (CompilerException e) {
 							e.printStackTrace();
