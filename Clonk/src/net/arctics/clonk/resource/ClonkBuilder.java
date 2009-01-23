@@ -243,8 +243,9 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 		}
 		if (monitor != null) monitor.beginTask("Parsing libs", 3);
 		for(String lib : libs) {
-			if (new File(lib).exists()) {
-				C4Group group = C4Group.openFile(new File(lib));
+			File libFile = new File(lib);
+			if (libFile.exists()) {
+				C4Group group = C4Group.openFile(libFile);
 				group.open(true, new IHeaderFilter() {
 					public boolean accepts(C4EntryHeader header, C4Group context) {
 						String entryName = header.getEntryName();
@@ -450,7 +451,8 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 	public boolean visit(C4GroupItem item, C4GroupType packageType) {
 		if (item instanceof C4Group) {
 			C4Group group = (C4Group) item;
-			if (group.getGroupType() == C4GroupType.DefinitionGroup) { // is .c4d
+			C4GroupType groupType = group.getGroupType();
+			if (groupType == C4GroupType.DefinitionGroup) { // is .c4d
 				C4Entry defCore = null, script = null, names = null;
 				for(C4GroupItem child : group.getChildEntries()) {
 					if (!(child instanceof C4Entry)) continue;
@@ -487,29 +489,27 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 					}
 				}
 			}
-		}
-		else if (item instanceof C4Entry) {
-			if (packageType == C4GroupType.ResourceGroup) { // System.c4g like
-				if (item.getName().endsWith(".c")) {
-					try {
-						C4ObjectExtern externObj = new C4ObjectExtern(C4ID.getSpecialID("System"),item.getName(),item);
-						C4ScriptParser parser = new C4ScriptParser(((C4Entry)item).getContents(),((C4Entry)item).computeSize(),externObj);
-						parser.parseDeclarations();
-						ClonkCore.EXTERN_INDEX.addObject(externObj);
-//						Utilities.getProject(getProject()).getIndexedData().addObject(externSystemc4g);
-					} catch (CompilerException e) {
-						e.printStackTrace();
-					} catch (CoreException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
+			else if (groupType == C4GroupType.ResourceGroup) { // System.c4g like
+				for (C4GroupItem child : group.getChildEntries()) {
+					if (child.getName().endsWith(".c")) {
+						try {
+							C4ObjectExtern externObj = new C4ObjectExtern(C4ID.getSpecialID("System"),child.getName(),child);
+							C4ScriptParser parser = new C4ScriptParser(((C4Entry)child).getContents(),((C4Entry)child).computeSize(),externObj);
+							parser.parseDeclarations();
+							ClonkCore.EXTERN_INDEX.addObject(externObj);
+							//						Utilities.getProject(getProject()).getIndexedData().addObject(externSystemc4g);
+						} catch (CompilerException e) {
+							e.printStackTrace();
+						} catch (CoreException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
 					}
-				}				
+				}
 			}
-		}
-		if (item instanceof C4Group)
 			return true;
-		else
-			return false;
+		}
+		return false;
 	}
 	
 	/**

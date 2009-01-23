@@ -14,6 +14,7 @@ import net.arctics.clonk.parser.C4ScriptExprTree.ExprAccessField;
 import net.arctics.clonk.parser.C4ScriptExprTree.ExprCallFunc;
 import net.arctics.clonk.parser.C4ScriptExprTree.ExprElm;
 import net.arctics.clonk.parser.C4ScriptExprTree.ExprID;
+import net.arctics.clonk.parser.C4ScriptExprTree.ExprObjectCall;
 import net.arctics.clonk.parser.C4ScriptExprTree.ExprString;
 import net.arctics.clonk.parser.C4ScriptExprTree.IExpressionListener;
 import net.arctics.clonk.parser.C4ScriptExprTree.Statement;
@@ -83,6 +84,13 @@ public class ClonkSearchQuery implements ISearchQuery {
 				}
 				return false;
 			}
+			private boolean potentiallyReferencedByObjectCall(ExprElm expression) {
+				if (expression instanceof ExprCallFunc && expression.getPredecessorInSequence() instanceof ExprObjectCall) {
+					ExprCallFunc callFunc = (ExprCallFunc) expression;
+					return callFunc.getFieldName().equals(field.getName());
+				}
+				return false;
+			}
 			public TraversalContinuation expressionDetected(ExprElm expression,
 					C4ScriptParser parser) {
 				if (expression instanceof ExprAccessField) {
@@ -90,6 +98,8 @@ public class ClonkSearchQuery implements ISearchQuery {
 					if (accessField.getField(parser) == field)
 						result.addMatch(expression, parser);
 					else if (declaringScriptIsScenario && calledThroughGameCall(expression))
+						result.addMatch(expression, parser);
+					else if (potentiallyReferencedByObjectCall(expression))
 						result.addMatch(expression, parser);
 				}
 				else if (expression instanceof ExprID && field instanceof C4ScriptBase) {
