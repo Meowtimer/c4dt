@@ -169,7 +169,7 @@ public class IniReader {
 		if (reader.read() != '=') {
 			createMarker("Parse error: expected '='", IMarker.SEVERITY_ERROR, keyStart + key.length(), reader.getPosition());
 		}
-		reader.eatWhitespace();
+		reader.eat(new char[] {' ', '\t'});
 		String value = reader.readLine();
 		IniEntry entry = new IniEntry(keyStart, key, value);
 		try {
