@@ -46,7 +46,12 @@ public class IDArray implements IEntryCreateable {
 		for(String part : parts) {
 			if (part.contains("=")) {
 				String[] idAndCount = part.split("=");
-				components.add(new Pair<C4ID, Integer>(C4ID.getID(idAndCount[0].trim()),Integer.parseInt(idAndCount[1].trim())));
+				try {
+					components.add(new Pair<C4ID, Integer>(C4ID.getID(idAndCount[0].trim()),Integer.parseInt(idAndCount[1].trim())));
+				}
+				catch(NumberFormatException e) {
+					e.printStackTrace();
+				}
 			}
 		}
 	}
