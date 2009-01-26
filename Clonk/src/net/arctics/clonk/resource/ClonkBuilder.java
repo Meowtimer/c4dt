@@ -1,17 +1,12 @@
 package net.arctics.clonk.resource;
 
-import java.io.ByteArrayInputStream;
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.Utilities;
-import net.arctics.clonk.parser.C4ID;
 import net.arctics.clonk.parser.C4Object;
-import net.arctics.clonk.parser.C4ObjectExtern;
 import net.arctics.clonk.parser.C4ObjectIntern;
 import net.arctics.clonk.parser.C4ObjectParser;
 import net.arctics.clonk.parser.C4ScriptBase;
@@ -22,30 +17,19 @@ import net.arctics.clonk.parser.ClonkIndex;
 import net.arctics.clonk.parser.CompilerException;
 import net.arctics.clonk.parser.defcore.DefCoreParser;
 import net.arctics.clonk.preferences.PreferenceConstants;
-import net.arctics.clonk.resource.c4group.C4Entry;
-import net.arctics.clonk.resource.c4group.C4EntryHeader;
-import net.arctics.clonk.resource.c4group.C4Group;
-import net.arctics.clonk.resource.c4group.C4GroupItem;
-import net.arctics.clonk.resource.c4group.IC4GroupVisitor;
-import net.arctics.clonk.resource.c4group.InvalidDataException;
-import net.arctics.clonk.resource.c4group.C4Group.C4GroupType;
-import net.arctics.clonk.resource.c4group.C4GroupItem.IHeaderFilter;
 import net.arctics.clonk.ui.editors.C4ScriptEditor;
 
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
-import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IResourceDelta;
 import org.eclipse.core.resources.IResourceDeltaVisitor;
 import org.eclipse.core.resources.IResourceVisitor;
 import org.eclipse.core.resources.IncrementalProjectBuilder;
-import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.SubProgressMonitor;
-import org.eclipse.jface.util.IPropertyChangeListener;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IEditorReference;
@@ -54,11 +38,13 @@ import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.PlatformUI;
 
 /**
- * An incremental builder for all project data.
- * This builder launches the parser that indexes all c4objects and highlights syntax errors.
+ * An incremental builder for all project data.<br>
+ * This builder launches the parser that indexes all
+ * c4objects and highlights syntax errors in one project.<br>
+ * Each project has its own ClonkBuilder instance.
  * @author ZokRadonh
  */
-public class ClonkBuilder extends IncrementalProjectBuilder implements IResourceDeltaVisitor, IResourceVisitor, IC4GroupVisitor, IPropertyChangeListener {
+public class ClonkBuilder extends IncrementalProjectBuilder implements IResourceDeltaVisitor, IResourceVisitor {
 	
 	private int buildPhase;
 	private IProgressMonitor monitor;
@@ -67,6 +53,8 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 	
 	public ClonkBuilder() {
 		super();
+		// ensure lib builder object
+		ClonkCore.getDefault().getLibBuilder();
 	}
 	
 	public void worked(int count) {
@@ -75,6 +63,10 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 	
 	@Override
 	protected void clean(IProgressMonitor monitor) throws CoreException {
+		// clean external libs - this does not rebuild
+		ClonkCore.getDefault().getLibBuilder().clean();
+		
+		// clean up this project
 		if (monitor != null) monitor.beginTask("Cleaning up", 1);
 		IProject proj = this.getProject();
 		if (proj != null) {
@@ -133,6 +125,8 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 				break;
 			
 			case FULL_BUILD:
+				
+				// calculate build duration
 				int[] operations = new int[4];
 				if (proj != null) {
 					// count num of resources to build
@@ -148,27 +142,36 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 				
 				operations[2] = 0;
 				operations[3] = 0;
-				String[] externalLibs = getExternalLibNames();
-				for(String lib : externalLibs) {
-					File file = new File(lib);
-					if (file.exists()) {
-						operations[2] += (int) (file.length() / 7000); // approximate time
+				ClonkLibBuilder libBuilder = ClonkCore.getDefault().getLibBuilder();
+				if (libBuilder.isBuildNeeded()) {
+					String[] externalLibs = getExternalLibNames();
+					for(String lib : externalLibs) {
+						File file = new File(lib);
+						if (file.exists()) {
+							operations[2] += (int) (file.length() / 7000); // approximate time
+						}
 					}
+					operations[3] = operations[2] / 2; // approximate save time
 				}
-				operations[3] = operations[2] / 2; // approximate save time
 				
 				int workSum = 0;
 				for(int work : operations) workSum += work;
 				
 				// initialize progress monitor
 				monitor.beginTask("Build project " + proj.getName(), workSum);
-
-				monitor.subTask("Parsing libraries");
-				readExternalLibs(new SubProgressMonitor(monitor,operations[2]));
-				monitor.subTask("Saving libraries");
-				ClonkCore.saveExternIndex(new SubProgressMonitor(monitor,operations[3]));
 				
 				
+				// build external lib if needed
+				if (libBuilder.isBuildNeeded()) {
+					monitor.subTask("Parsing libraries");
+					libBuilder.build(new SubProgressMonitor(monitor,operations[2]));
+					
+					monitor.subTask("Saving libraries");
+					ClonkCore.saveExternIndex(
+							new SubProgressMonitor(monitor,operations[3]));
+				}
+				
+				// build project
 				if (proj != null) {
 					monitor.subTask("Index project " + proj.getName());
 					// parse declarations
@@ -227,54 +230,6 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 	private String[] getExternalLibNames() {
 		String optionString = ClonkCore.getDefault().getPreferenceStore().getString(PreferenceConstants.STANDARD_EXT_LIBS);
 		return optionString.split("<>");
-	}
-	
-	/**
-	 * Starts indexing of all external libraries
-	 * @throws InvalidDataException
-	 * @throws IOException 
-	 */
-	private void readExternalLibs(IProgressMonitor monitor) throws InvalidDataException, IOException {
-		String[] libs = getExternalLibNames();
-		ClonkCore.EXTERN_INDEX.clear();
-		try {
-			ResourcesPlugin.getWorkspace().getRoot().deleteMarkers(ClonkCore.MARKER_EXTERN_LIB_ERROR, false, 0);	
-		} catch (CoreException e1) {
-			e1.printStackTrace();
-		}
-		if (monitor != null) monitor.beginTask("Parsing libs", 3);
-		for(String lib : libs) {
-			File libFile = new File(lib);
-			if (libFile.exists()) {
-				C4Group group = C4Group.openFile(libFile);
-				group.open(true, new IHeaderFilter() {
-					public boolean accepts(C4EntryHeader header, C4Group context) {
-						String entryName = header.getEntryName();
-						// all we care about is groups, scripts, defcores and names
-						return header.isGroup() || entryName.endsWith(".c") || entryName.equals("DefCore.txt") || entryName.equals("Names.txt");
-					}
-				});
-				try {
-					group.accept(this, group.getGroupType(), null);
-				} finally {
-					group.close();
-				}
-			}
-			else  {
-				try {
-					IMarker marker = ResourcesPlugin.getWorkspace().getRoot().createMarker(ClonkCore.MARKER_EXTERN_LIB_ERROR);
-					marker.setAttribute(IMarker.SEVERITY, IMarker.SEVERITY_ERROR);
-					marker.setAttribute(IMarker.TRANSIENT, false);
-					marker.setAttribute(IMarker.MESSAGE, "Clonk extern library does not exist: '" + lib + "'");
-					marker.setAttribute(IMarker.SOURCE_ID, "net.arctics.clonk.externliberror");
-				} catch (CoreException e) {
-					e.printStackTrace();
-				}
-			}
-			if (monitor != null) monitor.worked(1);
-		}
-		ClonkCore.EXTERN_INDEX.refreshCache();
-		if (monitor != null) monitor.done();
 	}
 	
 	private C4ScriptParser getParserFor(C4ScriptBase script) throws CompilerException {
@@ -448,124 +403,5 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 		}
 		else return false;
 	}
-
-	public boolean visit(C4GroupItem item, C4GroupType packageType) {
-		if (item instanceof C4Group) {
-			C4Group group = (C4Group) item;
-			C4GroupType groupType = group.getGroupType();
-			if (groupType == C4GroupType.DefinitionGroup) { // is .c4d
-				C4Entry defCore = null, script = null, names = null;
-				for(C4GroupItem child : group.getChildEntries()) {
-					if (!(child instanceof C4Entry)) continue;
-					if (child.getName().equals("DefCore.txt")) {
-						defCore = (C4Entry) child;
-					}
-					else if (child.getName().equals("Script.c")) {
-						script = (C4Entry) child;
-					}
-					else if (child.getName().equals("Names.txt")) {
-						names = (C4Entry) child;
-					}
-				}
-				if (defCore != null && script != null) {
-					DefCoreParser defCoreWrapper = new DefCoreParser(new ByteArrayInputStream(defCore.getContentsAsArray()));
-					try {
-						defCoreWrapper.parse();
-						C4ObjectExtern obj = new C4ObjectExtern(defCoreWrapper.getObjectID(),defCoreWrapper.getName(),script);
-						C4ScriptParser parser = new C4ScriptParser(script.getContents(),script.computeSize(),obj);
-						// we only need declarations
-						parser.clean();
-						parser.parseDeclarations();
-						ClonkCore.EXTERN_INDEX.addObject(obj);
-						if (names != null)
-							obj.readNames(new String(names.getContentsAsArray()));
-					} catch (CompilerException e) {
-						e.printStackTrace();
-					} catch (CoreException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					} catch (IOException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
-				}
-			}
-			else if (groupType == C4GroupType.ResourceGroup) { // System.c4g like
-				for (C4GroupItem child : group.getChildEntries()) {
-					if (child.getName().endsWith(".c")) {
-						try {
-							C4ScriptExtern externScript = new C4ScriptExtern(child);
-							C4ScriptParser parser = new C4ScriptParser(((C4Entry)child).getContents(),((C4Entry)child).computeSize(), externScript);
-							parser.parseDeclarations();
-							ClonkCore.EXTERN_INDEX.addScript(externScript);
-							//						Utilities.getProject(getProject()).getIndexedData().addObject(externSystemc4g);
-						} catch (CompilerException e) {
-							e.printStackTrace();
-						} catch (CoreException e) {
-							// TODO Auto-generated catch block
-							e.printStackTrace();
-						}
-					}
-				}
-			}
-			return true;
-		}
-		return false;
-	}
-	
-	/**
-	 * Simple method to check whether the String <tt>item</tt> is in <tt>array</tt>. 
-	 * @param item
-	 * @param array
-	 * @return <code>true</code> when item exists in <tt>array</tt>, false if not
-	 */
-	private boolean isIn(String item, String[] array) {
-		for(String newLib : array) {
-			if (newLib.equals(item)) {
-				return true;
-			}
-		}
-		return false;
-	}
-
-	public void propertyChange(org.eclipse.jface.util.PropertyChangeEvent event) {
-		if (event.getProperty().equals(PreferenceConstants.STANDARD_EXT_LIBS)) {
-			String oldValue = (String) event.getOldValue();
-			String newValue = (String) event.getNewValue();
-			String[] oldLibs = oldValue.split("<>");
-			String[] newLibs = newValue.split("<>");
-			for(String lib : oldLibs) {
-				if (!isIn(lib, newLibs)) { 
-					// lib deselected
-					// TODO: remove all objects in lib
-				}
-			}
-			for(String lib : newLibs) {
-				if (!isIn(lib, oldLibs)) {
-					// new lib selected
-					// TODO: create new externobjects and add to index
-					File libFile = new File(lib);
-					try {
-						C4Group group = C4Group.openFile(libFile);
-						group.open(true);
-						try {
-							group.accept(this);
-						} finally {
-							group.close();
-						}
-					} catch (FileNotFoundException e) {
-						e.printStackTrace();
-					} catch (InvalidDataException e) {
-						e.printStackTrace();
-					} catch (IOException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
-					
-				}
-			}
-		}
-	}
-
 	
 }

@@ -14,6 +14,7 @@ import net.arctics.clonk.parser.C4ID;
 import net.arctics.clonk.parser.C4ObjectExtern;
 import net.arctics.clonk.parser.ClonkIndex;
 import net.arctics.clonk.parser.inireader.IniData;
+import net.arctics.clonk.resource.ClonkLibBuilder;
 import net.arctics.clonk.resource.InputStreamRespectingUniqueIDs;
 
 import org.eclipse.core.runtime.IPath;
@@ -44,6 +45,8 @@ public class ClonkCore extends AbstractUIPlugin {
 	
 	// The shared instance
 	private static ClonkCore plugin;
+	
+	private ClonkLibBuilder libBuilder = null;
 	
 	/**
 	 * The constructor
@@ -132,6 +135,11 @@ public class ClonkCore extends AbstractUIPlugin {
 		return path.append("engine");
 	}
 	
+	public ClonkLibBuilder getLibBuilder() {
+		if (libBuilder == null) libBuilder = new ClonkLibBuilder();
+		return libBuilder;
+	}
+
 	public static IPath getExternLibCacheFile() {
 		IPath path = ClonkCore.getDefault().getStateLocation();
 		return path.append("externlib");

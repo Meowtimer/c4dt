@@ -40,6 +40,12 @@ public class C4DefCoreEditor extends FormEditor {
 			super(editor, id, title);
 		}
 
+		@Override
+		public void doSave(IProgressMonitor monitor) {
+			// TODO Auto-generated method stub
+			super.doSave(monitor);
+		}
+
 		protected void createFormContent(IManagedForm managedForm) {
 			super.createFormContent(managedForm);
 
@@ -94,6 +100,12 @@ public class C4DefCoreEditor extends FormEditor {
 		private String id;
 		private String title;
 		
+		@Override
+		public void doSave(IProgressMonitor progressMonitor) {
+			// TODO Auto-generated method stub
+			super.doSave(progressMonitor);
+		}
+
 		public RawSourcePage(FormEditor editor, String id, String title) {
 			colorManager = new ColorManager();
 			fEditor = editor;
