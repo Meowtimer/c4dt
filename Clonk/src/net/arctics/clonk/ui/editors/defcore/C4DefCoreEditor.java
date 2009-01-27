@@ -28,22 +28,33 @@ import org.eclipse.ui.forms.editor.FormPage;
 import org.eclipse.ui.forms.widgets.FormToolkit;
 import org.eclipse.ui.forms.widgets.ScrolledForm;
 import org.eclipse.ui.forms.widgets.Section;
+import org.eclipse.ui.texteditor.IDocumentProvider;
 
 public class C4DefCoreEditor extends FormEditor {
 
+	private IDocumentProvider documentProvider;
+	
 	public C4DefCoreEditor() {
 	}
 
 	public static class DefCoreSectionPage extends FormPage {
 		
-		public DefCoreSectionPage(FormEditor editor, String id, String title) {
+		private IDocumentProvider documentProvider;
+		
+		public DefCoreSectionPage(FormEditor editor, String id, String title, IDocumentProvider docProvider) {
 			super(editor, id, title);
+			documentProvider = docProvider;
 		}
 
 		@Override
 		public void doSave(IProgressMonitor monitor) {
 			// TODO Auto-generated method stub
 			super.doSave(monitor);
+			try {
+				documentProvider.saveDocument(monitor, getEditorInput(), documentProvider.getDocument(getEditorInput()), true);
+			} catch (CoreException e) {
+				e.printStackTrace();
+			}
 		}
 
 		protected void createFormContent(IManagedForm managedForm) {
@@ -56,7 +67,7 @@ public class C4DefCoreEditor extends FormEditor {
 			form.setText("DefCore options");
 			IFile input = Utilities.getEditingFile(getEditor());
 			if (input != null) {
-				try {
+				try { // XXX values should come from document - not from builder cache
 					IContainer cont = input.getParent();
 					C4Object obj = (C4Object) input.getParent().getSessionProperty(ClonkCore.C4OBJECT_PROPERTY_ID);
 					if (obj != null) {
@@ -106,7 +117,7 @@ public class C4DefCoreEditor extends FormEditor {
 			super.doSave(progressMonitor);
 		}
 
-		public RawSourcePage(FormEditor editor, String id, String title) {
+		public RawSourcePage(FormEditor editor, String id, String title, IDocumentProvider documentProvider) {
 			colorManager = new ColorManager();
 			fEditor = editor;
 			this.id = id;
@@ -114,7 +125,7 @@ public class C4DefCoreEditor extends FormEditor {
 			setContentDescription(title);
 			this.title = title;
 			setSourceViewerConfiguration(new DefCoreSourceViewerConfiguration(colorManager, this));
-			setDocumentProvider(new DefCoreDocumentProvider(this));
+			setDocumentProvider(documentProvider);
 		}
 
 		public void resetPartName() {
@@ -135,8 +146,9 @@ public class C4DefCoreEditor extends FormEditor {
 	@Override
 	protected void addPages() {
 		try {
-			addPage(new DefCoreSectionPage(this, "DefCore", "[DefCore]"));
-			int index = addPage(new RawSourcePage(this, RawSourcePage.PAGE_ID,"DefCore.txt"),this.getEditorInput());
+			documentProvider = new DefCoreDocumentProvider();
+			addPage(new DefCoreSectionPage(this, "DefCore", "[DefCore]", documentProvider));
+			int index = addPage(new RawSourcePage(this, RawSourcePage.PAGE_ID,"DefCore.txt", documentProvider),this.getEditorInput());
 			// editors as pages are not able to handle tab title strings
 			// so here is a dirty trick:
 			if (getContainer() instanceof CTabFolder)
@@ -148,8 +160,11 @@ public class C4DefCoreEditor extends FormEditor {
 
 	@Override
 	public void doSave(IProgressMonitor monitor) {
-		// TODO Auto-generated method stub
-
+		try {
+			documentProvider.saveDocument(monitor, getEditorInput(), documentProvider.getDocument(getEditorInput()), true);
+		} catch (CoreException e) {
+			e.printStackTrace();
+		}
 	}
 
 	@Override

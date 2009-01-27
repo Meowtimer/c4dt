@@ -8,7 +8,8 @@ import org.eclipse.ui.editors.text.FileDocumentProvider;
 import org.eclipse.ui.texteditor.ITextEditor;
 
 public class DefCoreDocumentProvider extends FileDocumentProvider {
-	public DefCoreDocumentProvider(ITextEditor editor) {
+	public DefCoreDocumentProvider() {
+		
 	}
 
 	@Override
