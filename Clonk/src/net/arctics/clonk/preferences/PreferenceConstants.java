@@ -11,4 +11,6 @@ public class PreferenceConstants {
 
 	public static final String C4GROUP_EXECUTABLE = "c4groupExecutable";
 	
+	public static final String SHOW_EXPORT_LOG = "showExportLog";
+	
 }

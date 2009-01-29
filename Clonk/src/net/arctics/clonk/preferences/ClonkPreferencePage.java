@@ -4,6 +4,7 @@ import java.io.File;
 
 import net.arctics.clonk.ClonkCore;
 
+import org.eclipse.jface.preference.BooleanFieldEditor;
 import org.eclipse.jface.preference.DirectoryFieldEditor;
 import org.eclipse.jface.preference.FieldEditorPreferencePage;
 import org.eclipse.jface.preference.FileFieldEditor;
@@ -87,11 +88,11 @@ public class ClonkPreferencePage
 					return null;
 			}
 		});
-//		addField(
-//			new BooleanFieldEditor(
-//				PreferenceConstants.P_BOOLEAN,
-//				"&An example of a boolean preference",
-//				getFieldEditorParent()));
+		addField(
+			new BooleanFieldEditor(
+				PreferenceConstants.SHOW_EXPORT_LOG,
+				"Show &export log in console",
+				getFieldEditorParent()));
 //
 //		addField(new RadioGroupFieldEditor(
 //				PreferenceConstants.P_CHOICE,
