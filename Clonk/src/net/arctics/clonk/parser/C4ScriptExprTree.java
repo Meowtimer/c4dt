@@ -4,7 +4,6 @@ import java.io.Serializable;
 import java.util.LinkedList;
 import java.util.List;
 import net.arctics.clonk.ClonkCore;
-import net.arctics.clonk.parser.C4ScriptBase.FindFieldInfo;
 import net.arctics.clonk.parser.C4ScriptParser.ErrorCode;
 import net.arctics.clonk.parser.C4ScriptParser.Keywords;
 import net.arctics.clonk.parser.C4ScriptParser.ParsingException;

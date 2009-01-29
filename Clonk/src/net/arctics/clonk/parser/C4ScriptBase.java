@@ -26,51 +26,6 @@ public abstract class C4ScriptBase extends C4Structure {
 	 */
 	private static final long serialVersionUID = 1L;
 
-	static public class FindFieldInfo {
-		private ClonkIndex index;
-		private int recursion;
-		private Class<? extends C4Field> fieldClass;
-		private C4Function contextFunction;
-		private Set<C4ScriptBase> alreadySearched;
-		private C4ScriptBase searchOrigin;
-
-		public FindFieldInfo(ClonkIndex clonkIndex) {
-			super();
-			index = clonkIndex;
-			alreadySearched = new HashSet<C4ScriptBase>();
-		}
-		public FindFieldInfo(ClonkIndex clonkIndex, C4Function ctx) {
-			this(clonkIndex);
-			setContextFunction(ctx);
-		}
-		public Class<? extends C4Field> getFieldClass() {
-			return fieldClass;
-		}
-		public void setFieldClass(Class<?extends C4Field> fieldClass) {
-			this.fieldClass = fieldClass;
-		}
-		public void setContextFunction(C4Function ctx) {
-			contextFunction = ctx;
-		}
-		public C4Function getContextFunction() {
-			return contextFunction;
-		}
-		public Set<C4ScriptBase> getAlreadySearched() {
-			return alreadySearched;
-		}
-		public C4ScriptBase getSearchOrigin() {
-			return searchOrigin;
-		}
-		public void setSearchOrigin(C4ScriptBase searchOrigin) {
-			this.searchOrigin = searchOrigin;
-		}
-		public void resetState() {
-			alreadySearched.clear();
-			recursion = 0;
-		}
-		
-	}
-	
 	protected List<C4Function> definedFunctions = new LinkedList<C4Function>();
 	protected List<C4Variable> definedVariables = new ArrayList<C4Variable>(); // default capacity of 10 is ok
 	protected List<C4Directive> definedDirectives = new ArrayList<C4Directive>(4); // mostly 4 are enough
@@ -277,56 +232,6 @@ public abstract class C4ScriptBase extends C4Structure {
 		if (definedVariables != null)
 		while (definedVariables.size() > 0)
 			removeField(definedVariables.get(definedVariables.size()-1));
-	}
-
-//	/**
-//	 * @param objectFolder the objectFolder to set
-//	 */
-//	public void setObjectFolder(IContainer objectFolder) {
-//		this.objectFolder = objectFolder;
-//	}
-	
-	/**
-	 * @deprecated if you use this function, you are not allowed to add or remove items
-	 * @return the definedFunctions
-	 */
-	public List<C4Function> getDefinedFunctions() {
-		return definedFunctions;
-	}
-	/**
-	 * @deprecated never use this function
-	 * @param definedFunctions the definedFunctions to set
-	 */
-	public void setDefinedFunctions(List<C4Function> definedFunctions) {
-		this.definedFunctions = definedFunctions;
-	}
-	/**
-	 * @deprecated if you use this function, you are not allowed to add or remove items
-	 * @return the definedVariables
-	 */
-	public List<C4Variable> getDefinedVariables() {
-		return definedVariables;
-	}
-	/**
-	 * @deprecated never use this function
-	 * @param definedVariables the definedVariables to set
-	 */
-	public void setDefinedVariables(List<C4Variable> definedVariables) {
-		this.definedVariables = definedVariables;
-	}
-	/**
-	 * @deprecated if you use this function, you are not allowed to add or remove items
-	 * @return the definedDirectives
-	 */
-	public List<C4Directive> getDefinedDirectives() {
-		return definedDirectives;
-	}
-	/**
-	 * @deprecated never use this function
-	 * @param definedDirectives the definedDirectives to set
-	 */
-	public void setDefinedDirectives(List<C4Directive> definedDirectives) {
-		this.definedDirectives = definedDirectives;
 	}
 	
 	public void setName(String name) {

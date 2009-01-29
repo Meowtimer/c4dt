@@ -6,7 +6,7 @@ import net.arctics.clonk.parser.C4Function;
 import net.arctics.clonk.parser.C4ScriptBase;
 import net.arctics.clonk.parser.C4ScriptParser;
 import net.arctics.clonk.parser.CompilerException;
-import net.arctics.clonk.parser.C4ScriptBase.FindFieldInfo;
+import net.arctics.clonk.parser.FindFieldInfo;
 import net.arctics.clonk.parser.C4ScriptExprTree.ExprElm;
 import net.arctics.clonk.parser.C4ScriptExprTree.FieldRegion;
 import net.arctics.clonk.parser.C4ScriptExprTree.IExpressionListener;

@@ -21,6 +21,15 @@ public class C4Function extends C4Structure implements Serializable, ITypedField
 	private boolean isOldStyle;
 	private SourceLocation body, header;
 	private C4Object expectedContent;
+
+	public C4Function(String name, C4Type type, C4Variable... pars) {
+		this.name = name;
+		this.returnType = type;
+		parameter = new ArrayList<C4Variable>(pars.length);
+		for (C4Variable var : pars)
+			parameter.add(var);
+		visibility = C4FunctionScope.FUNC_GLOBAL;
+	}
 	
 	/**
 	 * Do NOT use this constructor! Its for engine-functions only.
@@ -29,16 +38,10 @@ public class C4Function extends C4Structure implements Serializable, ITypedField
 	 * @param desc
 	 * @param pars
 	 */
-	public C4Function(String name, String type, String desc, C4Variable[] pars) {
-		this.name = name;
-		returnType = C4Type.makeType(type);
+	public C4Function(String name, String type, String desc, C4Variable... pars) {
+		this(name, C4Type.makeType(type), pars);
 		description = desc;
-		parameter = new ArrayList<C4Variable>(pars.length);
-		for(C4Variable var : pars) {
-			parameter.add(var);
-		}
 		parentField = null; // since engine function only
-		visibility = C4FunctionScope.FUNC_GLOBAL;
 		localVars = null;
 	}
 	
