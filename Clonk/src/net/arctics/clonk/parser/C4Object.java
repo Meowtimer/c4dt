@@ -78,7 +78,7 @@ public abstract class C4Object extends C4ScriptBase {
 		while (matcher.find()) {
 			localizedNames.put(matcher.group(1), matcher.group(2));
 		}
-		String engName = localizedNames.get("DE");
+		String engName = localizedNames.get("DE"); // FIXME: preference?
 		if (engName != null)
 			setName(engName);
 	}

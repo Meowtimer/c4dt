@@ -348,24 +348,18 @@
 
 </extension>
    <extension
-         point="org.eclipse.core.runtime.products">
-         <product name="Eclipse SDK" application="C4DT" description="Eclipse SDK - C4DT"> 
-         <property name="preferenceCustomization" value="plugin_customization.ini"/>
-         </product> 
-   </extension>
-   <extension
-         id="product"
+		 id="product"   		
          point="org.eclipse.core.runtime.products">
       <product
             application="org.eclipse.ui.ide.workbench"
-            name="Eclipse + C4DT">
+            name="%productName">
          <property
                name="windowImages"
-               value="res/DistroIcon.png,res/DistroIcon.png,res/DistroIcon.png,res/DistroIcon.png,res/DistroIcon.png">
+               value="eclipse.gif,eclipse32.gif,eclipse48.gif,eclipse.png,eclipse32.png">
          </property>
          <property
                name="aboutText"
-               value="Eclipse+Clonk Plugin.">
+               value="%productBlurb">
          </property>
          <property
                name="aboutImage"
@@ -385,7 +379,7 @@
          </property>
          <property
                name="appName"
-               value="Eclipse+Clonk">
+               value="%productName">
          </property>
          <property
                name="preferenceCustomization"

@@ -170,38 +170,34 @@ public class C4Group implements C4GroupItem, Serializable {
 			return null;
 		}
 	}
-	
+
 	/**
 	 * Open a C4Group file but not parse it yet
 	 * @param file
 	 * @return
 	 * @throws InvalidDataException
-	 * @throws FileNotFoundException
+	 * @throws IOException 
 	 */
-	public static C4Group openFile(File file) throws InvalidDataException, FileNotFoundException {
-		try {
-			return new C4Group(new GZIPInputStream(new FileInputStream(file) {
-				private int timesRead = 0;
-				
-				/* (non-Javadoc)
-				 * @see java.io.FileInputStream#read()
-				 */
-				@Override
-				public int read() throws IOException {
-					if (timesRead < 2) { // deface magic header
-						timesRead++;
-						int readByte = super.read();
-						if (readByte == 0x1E) return 0x1F;
-						if (readByte == 0x8C) return 0x8B;
-						return readByte;
-					}
-					return super.read();
+	public static C4Group openFile(File file) throws InvalidDataException, IOException {
+		return new C4Group(new GZIPInputStream(new FileInputStream(file) {
+			private int timesRead = 0;
+
+			/* (non-Javadoc)
+			 * @see java.io.FileInputStream#read()
+			 */
+			@Override
+			public int read() throws IOException {
+				if (timesRead < 2) { // deface magic header
+					timesRead++;
+					int readByte = super.read();
+					if (readByte == 0x1E) return 0x1F;
+					if (readByte == 0x8C) return 0x8B;
+					return readByte;
 				}
-			}),file.getName());
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		return null;
+				return super.read();
+			}
+		}),file.getName());
+
 	}
 	
     public static void MemScramble(byte[] buffer, int size)

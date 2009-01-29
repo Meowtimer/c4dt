@@ -24,6 +24,11 @@ import org.eclipse.jface.text.IRegion;
 
 public class C4ScriptParser {
 	
+	/**
+	 * Keywords of C4Script
+	 * @author madeen
+	 *
+	 */
 	public interface Keywords {
 
 		public static final String Func = "func";
@@ -114,6 +119,10 @@ public class C4ScriptParser {
 	 */
 	private int numUnnamedParameters;
 
+	/**
+	 * Informs the parser that an unnamed parameter was used by calling the Par() function with the given index expression
+	 * @param index the index expression
+	 */
 	public void unnamedParamaterUsed(ExprElm index) {
 		if (numUnnamedParameters < UNKNOWN_PARAMETERNUM) {
 			if (index instanceof ExprNumber) {
@@ -124,6 +133,10 @@ public class C4ScriptParser {
 		}
 	}
 	
+	/**
+	 * Returns the strict level of the script that was specified using the #strict directive.
+	 * @return
+	 */
 	public int getStrictLevel() {
 		return strictLevel;
 	}
@@ -151,7 +164,7 @@ public class C4ScriptParser {
 	}
 
 	/**
-	 * Creates a C4Script parser object.
+	 * Creates a C4Script parser that parses a file within the project
 	 * Results are stored in <code>object</code>
 	 * @param scriptFile
 	 * @param obj
@@ -177,6 +190,11 @@ public class C4ScriptParser {
 		container = script;
 	}
 	
+	/**
+	 * Creates a C4Script parser that parses an arbitrary string
+	 * @param withString
+	 * @param script
+	 */
 	public C4ScriptParser(String withString, C4ScriptBase script) {
 		fScript = null;
 		fReader = new BufferedScanner(withString);
@@ -185,14 +203,6 @@ public class C4ScriptParser {
 	
 	public void parse() {
 		clean();
-		parseDeclarations();
-		parseCodeOfFunctions();
-	}
-	
-	/**
-	 * Parses in two steps without a clean()
-	 */
-	public void parseAdditional() {
 		parseDeclarations();
 		parseCodeOfFunctions();
 	}
@@ -456,12 +466,6 @@ public class C4ScriptParser {
 		}
 	}
 
-	@SuppressWarnings("unused")
-	private boolean parseFunctionDeclaration(int offset) throws ParsingException {
-		fReader.seek(offset);
-		return parseFunctionDeclaration(fReader.readWord(), offset, fReader.getPosition());
-	}
-	
 	private C4Type parseFunctionReturnType(int offset) {
 		fReader.seek(offset);
 		eatWhitespace();
@@ -660,16 +664,10 @@ public class C4ScriptParser {
 				warningWithCode(ErrorCode.NeverReached, statement);
 			if (!lastWasReturn)
 				lastWasReturn = statement.isReturn();
-//			if (options.contains(ParseStatementOption.ExpectFuncDesc) && statement instanceof FunctionDescription)
-//				activeFunc.setFuncDesc((FunctionDescription) statement);
 			// after first 'real' statement don't expect function description anymore
 			if (!(statement instanceof Comment))
 				options.remove(ParseStatementOption.ExpectFuncDesc);
 		}
-		// a complete code block without reading { }
-		// function call
-		// zuweisung
-		// post-prefix
 		return true;
 	}
 	
@@ -1012,7 +1010,12 @@ public class C4ScriptParser {
 			int elmStart = fReader.getPosition();
 
 			// operator always ends a sequence without operators
-			if (parseOperator_(fReader.getPosition()) != null || fReader.readWord().equals(Keywords.In)) {
+			if (parseOperator_(fReader.getPosition()) != null) {// || fReader.readWord().equals(Keywords.In)) {
+				fReader.seek(elmStart);
+				break;
+			}
+			// kind of a hack; stop at 'in' but only if there were other things before it
+			if (elements.size() > 0 && fReader.readWord().equals(Keywords.In)) {
 				fReader.seek(elmStart);
 				break;
 			}
@@ -1025,15 +1028,15 @@ public class C4ScriptParser {
 			
 			// hex number
 			if (elm == null && parseHexNumber(fReader.getPosition())) {
-				if (parsedNumber < Integer.MIN_VALUE || parsedNumber > Integer.MAX_VALUE)
-					warningWithCode(ErrorCode.OutOfIntRange, elmStart, fReader.getPosition(), String.valueOf(parsedNumber));
+//				if (parsedNumber < Integer.MIN_VALUE || parsedNumber > Integer.MAX_VALUE)
+//					warningWithCode(ErrorCode.OutOfIntRange, elmStart, fReader.getPosition(), String.valueOf(parsedNumber));
 				elm = new ExprNumber(parsedNumber, true);
 			}
 			
 			// number
 			if (elm == null && parseNumber(fReader.getPosition())) {
-				if (parsedNumber < Integer.MIN_VALUE || parsedNumber > Integer.MAX_VALUE)
-					warningWithCode(ErrorCode.OutOfIntRange, elmStart, fReader.getPosition(), String.valueOf(parsedNumber));
+//				if (parsedNumber < Integer.MIN_VALUE || parsedNumber > Integer.MAX_VALUE)
+//					warningWithCode(ErrorCode.OutOfIntRange, elmStart, fReader.getPosition(), String.valueOf(parsedNumber));
 				elm = new ExprNumber(parsedNumber);
 			}
 			
@@ -1342,7 +1345,7 @@ public class C4ScriptParser {
 				}
 			}
 			if (root != null) {
-				root.setExprRegion(exprStart, fReader.getPosition());
+				//root.setExprRegion(exprStart, fReader.getPosition());
 				// potentially throwing exceptions and stuff
 				if (reportErrors)
 					root.reportErrors(this);
@@ -1518,12 +1521,6 @@ public class C4ScriptParser {
 				}
 				else if (!options.contains(ParseStatementOption.InitializationStatement)) {
 					if (readWord.equals(Keywords.If)) {
-						// there are people naming their variables iF >.>
-						//				if (!readWord.equals(readWord.toLowerCase())) {
-						//					String problem = "Syntax error: you should only use lower case letters in keywords. ('" + readWord.toLowerCase() + "' instead of '" + readWord + "')"; 
-						//					createErrorMarker(fReader.getPosition() - readWord.length(), fReader.getPosition(), problem);
-						//					throw new ParsingException(problem);
-						//				}
 						eatWhitespace();
 						if (fReader.read() != '(') {
 							tokenExpectedError("(");
@@ -1637,8 +1634,8 @@ public class C4ScriptParser {
 								errorWithCode(ErrorCode.ExpressionExpected, offset, fReader.getPosition()+1);
 							else {
 								C4Type t = arrayExpr.getType();
-								if (t != C4Type.ANY && t != C4Type.ARRAY)
-									warningWithCode(ErrorCode.IncompatibleTypes, arrayExpr, C4Type.ARRAY.toString(), t.toString());
+								if (!t.canBeAssignedFrom(C4Type.ARRAY))
+									warningWithCode(ErrorCode.IncompatibleTypes, arrayExpr, t.toString(), C4Type.ARRAY.toString());
 								if (loopVariable != null)
 									loopVariable.inferTypeFromAssignment(arrayExpr.getExemplaryArrayElement(this), this);
 							}
@@ -1762,16 +1759,17 @@ public class C4ScriptParser {
 
 			if (result != null) {
 				result.setExprRegion(start, fReader.getPosition());
-				if (parseStatementRecursion == 1) {
-					result.reportErrors(this);
+				result.reportErrors(this);
+				if (!options.contains(ParseStatementOption.InitializationStatement)) {
 					result.warnIfNoSideEffects(this);
 					if (result instanceof SimpleStatement && ((SimpleStatement)result).getExpression() instanceof ExprBinaryOp)
 						((ExprBinaryOp)((SimpleStatement)result).getExpression()).checkTopLevelAssignment(this);
+				}
+				if (parseStatementRecursion == 1) {
 					if (expressionListener != null) {
 						expressionListener.expressionDetected(result, this);
 					}
 				}
-				//System.out.println(result.toString());
 			}
 			return result;
 		} finally {
@@ -1985,6 +1983,9 @@ public class C4ScriptParser {
 					options.remove(ParseStatementOption.ExpectFuncDesc);
 			}
 		} 
+		catch (SilentParsingException e) {
+			// silent...
+		}
 		catch (Exception e) {
 			e.printStackTrace();
 		}

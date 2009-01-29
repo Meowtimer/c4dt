@@ -261,6 +261,15 @@ public abstract class C4ScriptExprTree {
 			return false;
 		}
 
+		public boolean containedIn(ExprElm expression) {
+			if (expression == this)
+				return true;
+			for (ExprElm e : expression.getSubElements())
+				if (this.containedIn(e))
+					return true;
+			return false;
+		}
+
 	}
 
 	public static class ExprObjectCall extends ExprElm {
@@ -692,7 +701,7 @@ public abstract class C4ScriptExprTree {
 					parmsWithoutObject[i] = params[i+2].newStyleReplacement(parser);
 				return new ExprSequence(new ExprElm[] {
 						params[0].newStyleReplacement(parser),
-						new ExprObjectCall(false, null, 0),
+						new ExprObjectCall(true, null, 0),
 						new ExprCallFunc(((ExprString)params[1]).stringValue(), parmsWithoutObject)});
 			}
 			

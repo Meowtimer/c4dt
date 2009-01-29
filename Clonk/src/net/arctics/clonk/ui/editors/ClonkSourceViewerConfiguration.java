@@ -40,7 +40,6 @@ import org.eclipse.ui.texteditor.ITextEditor;
 public class ClonkSourceViewerConfiguration extends TextSourceViewerConfiguration {
 	
 	private class C4ScriptHyperlinkDetector implements IHyperlinkDetector {
-
 		public IHyperlink[] detectHyperlinks(ITextViewer viewer, IRegion region, boolean canShowMultipleHyperlinks) {
 			IdentInfo i;
 			try {
@@ -57,7 +56,6 @@ public class ClonkSourceViewerConfiguration extends TextSourceViewerConfiguratio
 				return null;
 			}
 		}
-		
 	}
 	
 	private static class C4ScriptHyperlink implements IHyperlink {
@@ -193,9 +191,9 @@ public class ClonkSourceViewerConfiguration extends TextSourceViewerConfiguratio
 	/* (non-Javadoc)
 	 * @see org.eclipse.jface.text.source.SourceViewerConfiguration#getTabWidth(org.eclipse.jface.text.source.ISourceViewer)
 	 */
-	public int getTabWidth(ISourceViewer sourceViewer) {		
-		return 2;
-	}
+//	public int getTabWidth(ISourceViewer sourceViewer) {		
+//		return 2;
+//	}
 
 	public IContentAssistant getContentAssistant(ISourceViewer sourceViewer) {
 		ContentAssistant assistant = new ContentAssistant();
@@ -287,10 +285,10 @@ public class ClonkSourceViewerConfiguration extends TextSourceViewerConfiguratio
 	@Override
 	public IAutoEditStrategy[] getAutoEditStrategies(
 			ISourceViewer sourceViewer, String contentType) {
-		return new IAutoEditStrategy[] {
-				new ClonkAutoIndentStrategy()
-		};
-//		return super.getAutoEditStrategies(sourceViewer, contentType);
+//		return new IAutoEditStrategy[] {
+//				new ClonkAutoIndentStrategy()
+//		};
+		return super.getAutoEditStrategies(sourceViewer, contentType);
 	}
 
 	/* (non-Javadoc)

@@ -132,5 +132,10 @@ public class C4ObjectIntern extends C4Object implements Serializable {
 		if (res instanceof IContainer)
 			this.setObjectFolder((IContainer)res);
 	}
+	
+	@Override
+	public String toString() {
+		return super.toString() + " [" + relativePath + "]";
+	}
 
 }

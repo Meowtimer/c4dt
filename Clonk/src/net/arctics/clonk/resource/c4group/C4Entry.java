@@ -2,7 +2,6 @@ package net.arctics.clonk.resource.c4group;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -186,13 +185,17 @@ public class C4Entry implements C4GroupItem, IStorage, Serializable {
 	}
 	
 	public void extractToFilesystem(IContainer parent, IProgressMonitor monitor) throws CoreException {
+		IFile me = null;
 		if (parent instanceof IFolder) {
-			IFile me = ((IFolder)parent).getFile(getName());
-			me.create(new java.io.ByteArrayInputStream(contents), IResource.NONE, monitor);
+			me = ((IFolder)parent).getFile(getName());
 		}
-		else {
-			IFile me = ((IProject)parent).getFile(getName());
+		else if (parent instanceof IProject) {
+			me = ((IProject)parent).getFile(getName());
+		}
+		if (me != null) try {
 			me.create(new java.io.ByteArrayInputStream(contents), IResource.NONE, monitor);
+		} catch (CoreException e) {
+			e.printStackTrace();
 		}
 	}
 

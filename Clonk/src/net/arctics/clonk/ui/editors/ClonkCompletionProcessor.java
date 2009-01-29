@@ -128,11 +128,12 @@ public class ClonkCompletionProcessor implements IContentAssistProcessor {
 			int replacementLength = 0;
 			if (prefix != null) replacementLength = prefix.length();
 
-			String contextInfoString = obj.getName();
-			IContextInformation contextInformation = new ContextInformation(obj.getId().getName(),contextInfoString); 
+			// no need for context information
+//			String contextInfoString = obj.getName();
+//			IContextInformation contextInformation = null;// new ContextInformation(obj.getId().getName(),contextInfoString); 
 
 			ClonkCompletionProposal prop = new ClonkCompletionProposal(obj.getId().getName(),offset,replacementLength,obj.getId().getName().length(),
-					Utilities.getIconForObject(obj), displayString.trim(),contextInformation,null," - " + obj.getId().getName());
+					Utilities.getIconForObject(obj), displayString.trim(),null,null," - " + obj.getId().getName());
 			proposals.add(prop);
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -309,8 +310,11 @@ public class ClonkCompletionProcessor implements IContentAssistProcessor {
 					final int preservedOffset = offset;
 					C4ScriptParser parser = C4ScriptParser.reportExpressionsAndStatements(doc, activeFunc.getBody().getOffset(), offset, contextScript, activeFunc, new IExpressionListener() {
 						public TraversalContinuation expressionDetected(ExprElm expression, C4ScriptParser parser) {
-							if (expression instanceof Statement)
+							if (expression instanceof Statement) {
+								if (contextExpression != null && !contextExpression.containedIn(expression))
+									contextExpression = null;
 								return TraversalContinuation.Continue;
+							}
 							if (activeFunc.getBody().getOffset() + expression.getExprStart() <= preservedOffset) {
 								contextExpression = expression;
 								return TraversalContinuation.Continue;
