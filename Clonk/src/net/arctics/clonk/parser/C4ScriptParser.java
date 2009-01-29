@@ -1076,7 +1076,7 @@ public class C4ScriptParser {
 				if (c == '[') {
 					if (prevElm != null) {
 						// array access
-						ExprElm arg = parseExpression(fReader.getPosition());
+						ExprElm arg = parseExpression(fReader.getPosition(), reportErrors);
 						this.eatWhitespace();
 						if (fReader.read() != ']') {
 							tokenExpectedError("]");

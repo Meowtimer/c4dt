@@ -607,7 +607,7 @@ public abstract class C4ScriptExprTree {
 						ExprElm given = params[givenParam++];
 						if (given == null)
 							continue;
-						given.reportErrors(parser);
+						//given.reportErrors(parser); no duplicate errors
 						if (!given.validForType(parm.getType()))
 							parser.warningWithCode(ErrorCode.IncompatibleTypes, given, parm.getType(), given.getType());
 						given.expectedToBeOfType(parm.getType());
