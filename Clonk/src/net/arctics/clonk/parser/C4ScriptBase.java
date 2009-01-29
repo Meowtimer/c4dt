@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -15,8 +16,6 @@ import net.arctics.clonk.parser.C4Directive.C4DirectiveType;
 import net.arctics.clonk.parser.C4Function.C4FunctionScope;
 import net.arctics.clonk.parser.C4Variable.C4VariableScope;
 
-import org.eclipse.core.resources.IContainer;
-import org.eclipse.core.resources.IResource;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.ITextSelection;
 import org.eclipse.jface.text.Region;
@@ -135,12 +134,12 @@ public abstract class C4ScriptBase extends C4Structure {
 		return false;
 	}
 	
-	private static boolean resourceInsideContainer(IResource resource, IContainer container) {
-		for (IContainer c = resource.getParent(); c != null; c = c.getParent())
-			if (c.equals(container))
-				return true;
-		return false;
-	}
+//	private static boolean resourceInsideContainer(IResource resource, IContainer container) {
+//		for (IContainer c = resource.getParent(); c != null; c = c.getParent())
+//			if (c.equals(container))
+//				return true;
+//		return false;
+//	}
 	
 //	private static C4Object pickNearestObject(List<C4Object> objects, C4ScriptBase origin) {
 //		if (!(origin.getScriptFile() instanceof IFile))
@@ -212,23 +211,23 @@ public abstract class C4ScriptBase extends C4Structure {
 		info.recursion--;
 		
 		// finally look if it's something global
-		if (info.recursion == 0 && this != ClonkCore.ENGINE_OBJECT) { // .-.
+		if (info.recursion == 0 && this != ClonkCore.getDefault().ENGINE_OBJECT) { // .-.
 			C4Field f;
 			// global stuff defined in project
 			f = info.index.findGlobalField(name);
 			// engine function
 			if (f == null)
-				f = ClonkCore.ENGINE_OBJECT.findField(name, info);
+				f = ClonkCore.getDefault().ENGINE_OBJECT.findField(name, info);
 			// function in extern lib
-			if (f == null && info.index != ClonkCore.EXTERN_INDEX) {
-				f = ClonkCore.EXTERN_INDEX.findGlobalField(name);
+			if (f == null && info.index != ClonkCore.getDefault().EXTERN_INDEX) {
+				f = ClonkCore.getDefault().EXTERN_INDEX.findGlobalField(name);
 			}
 			// definition
 			if (f == null && Utilities.looksLikeID(name)) {
-				List<C4Object> objects = info.index.getObjects(C4ID.getID(name));
+				//List<C4Object> objects = info.index.getObjects(C4ID.getID(name));
 				f = info.index.getLastObjectWithId(C4ID.getID(name));
 				if (f == null)
-					f = ClonkCore.EXTERN_INDEX.getLastObjectWithId(C4ID.getID(name));
+					f = ClonkCore.getDefault().EXTERN_INDEX.getLastObjectWithId(C4ID.getID(name));
 			}
 			
 			if (f != null && (info.fieldClass == null || info.fieldClass.isAssignableFrom(f.getClass())))
@@ -481,6 +480,38 @@ public abstract class C4ScriptBase extends C4Structure {
 		}
 		didSomething |= removeDuplicateVariables();
 		return didSomething;
+	}
+	
+	public Iterable<C4Function> functions() {
+		return new Iterable<C4Function>() {
+			public Iterator<C4Function> iterator() {
+				return new ReadOnlyIterator<C4Function>(definedFunctions.iterator());
+			}
+		};
+	}
+	
+	public Iterable<C4Variable> variables() {
+		return new Iterable<C4Variable>() {
+			public Iterator<C4Variable> iterator() {
+				return new ReadOnlyIterator<C4Variable>(definedVariables.iterator());
+			}	
+		};
+	}
+	
+	public Iterable<C4Directive> directives() {
+		return new Iterable<C4Directive>() {
+			public Iterator<C4Directive> iterator() {
+				return new ReadOnlyIterator<C4Directive>(definedDirectives.iterator());
+			}	
+		};
+	}
+
+	public int numVariables() {
+		return definedVariables.size();
+	}
+	
+	public int numFunctions() {
+		return definedFunctions.size();
 	}
 
 }

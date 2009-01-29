@@ -64,7 +64,7 @@ public class CategoriesArray implements IEntryCreateable {
 	
 	private void tryConstantInput(String input, String[] parts) throws IniParserException {
 		for(int i = 0; i < parts.length;i++) {
-			C4Variable var = ClonkCore.ENGINE_OBJECT.findVariable(parts[i].trim());
+			C4Variable var = ClonkCore.getDefault().ENGINE_OBJECT.findVariable(parts[i].trim());
 			if (var == null) {
 				throw new IniParserException(IMarker.SEVERITY_WARNING, "Unknown constant '" + parts[i].trim() + "'");
 			}

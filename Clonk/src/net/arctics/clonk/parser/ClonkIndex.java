@@ -236,14 +236,14 @@ public class ClonkIndex implements Serializable, Iterable<C4Object> {
 	}
 	
 	/**
-	 * Like getLastObjectWithId, but falls back to ClonkCore.EXTERN_INDEX if there is no object in this index
+	 * Like getLastObjectWithId, but falls back to ClonkCore.getDefault().EXTERN_INDEX if there is no object in this index
 	 * @param id
 	 * @return
 	 */
 	public C4Object getObjectFromEverywhere(C4ID id) {
 		C4Object result = getLastObjectWithId(id);
-		if (result == null && this != ClonkCore.EXTERN_INDEX)
-			result = ClonkCore.EXTERN_INDEX.getLastObjectWithId(id);
+		if (result == null && this != ClonkCore.getDefault().EXTERN_INDEX)
+			result = ClonkCore.getDefault().EXTERN_INDEX.getLastObjectWithId(id);
 		return result;
 	}
 	

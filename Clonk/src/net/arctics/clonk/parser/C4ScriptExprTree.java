@@ -569,9 +569,9 @@ public abstract class C4ScriptExprTree {
 				// find global function
 				C4Field field = parser.getContainer().getIndex().findGlobalFunction(fieldName);
 				if (field == null)
-					field = ClonkCore.EXTERN_INDEX.findGlobalField(fieldName);
+					field = ClonkCore.getDefault().EXTERN_INDEX.findGlobalField(fieldName);
 				if (field == null)
-					field = ClonkCore.ENGINE_OBJECT.findFunction(fieldName);
+					field = ClonkCore.getDefault().ENGINE_OBJECT.findFunction(fieldName);
 				return field;
 			}
 			return null;
@@ -611,7 +611,7 @@ public abstract class C4ScriptExprTree {
 						if (!given.validForType(parm.getType()))
 							parser.warningWithCode(ErrorCode.IncompatibleTypes, given, parm.getType(), given.getType());
 						given.expectedToBeOfType(parm.getType());
-//						if (parm.getScript() != ClonkCore.ENGINE_OBJECT)
+//						if (parm.getScript() != ClonkCore.getDefault().ENGINE_OBJECT)
 //							parm.inferTypeFromAssignment(given, parser);
 					}
 				}

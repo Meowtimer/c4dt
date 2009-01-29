@@ -10,7 +10,6 @@ import net.arctics.clonk.parser.C4Object;
 import net.arctics.clonk.parser.C4ObjectIntern;
 import net.arctics.clonk.parser.C4ObjectParser;
 import net.arctics.clonk.parser.C4ScriptBase;
-import net.arctics.clonk.parser.C4ScriptExtern;
 import net.arctics.clonk.parser.C4ScriptParser;
 import net.arctics.clonk.parser.C4SystemScript;
 import net.arctics.clonk.parser.ClonkIndex;
@@ -167,7 +166,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 					libBuilder.build(new SubProgressMonitor(monitor,operations[2]));
 					
 					monitor.subTask("Saving libraries");
-					ClonkCore.saveExternIndex(
+					ClonkCore.getDefault().saveExternIndex(
 							new SubProgressMonitor(monitor,operations[3]));
 				}
 				

@@ -59,10 +59,12 @@ public class ClonkContentOutlineLabelAndContentProvider extends LabelProvider im
 	public Object[] getElements(Object root) {
 		if (root instanceof C4ScriptBase) {
 			C4ScriptBase script = (C4ScriptBase)root;
-		
-			Object[] result = new Object[script.getDefinedFunctions().size()+script.getDefinedVariables().size()];
-			System.arraycopy(script.getDefinedFunctions().toArray(), 0, result, 0, script.getDefinedFunctions().size());
-			System.arraycopy(script.getDefinedVariables().toArray(), 0, result, script.getDefinedFunctions().size(), script.getDefinedVariables().size());
+			Object[] result = new Object[script.numFunctions()+script.numVariables()];
+			int i = 0;
+			for (C4Function f : script.functions())
+				result[i++] = f;
+			for (C4Variable v : script.variables())
+				result[i++] = v;
 			return result;
 		}
 		return null;

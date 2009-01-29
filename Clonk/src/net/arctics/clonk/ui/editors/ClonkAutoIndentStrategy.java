@@ -48,7 +48,7 @@ public class ClonkAutoIndentStrategy extends DefaultIndentLineAutoEditStrategy {
 	public void customizeDocumentCommand(IDocument d, DocumentCommand c) {
 		if (c.text.contains("\n") || c.text.contains("\r")) {
 			try {
-				String originalText = c.text;
+				//String originalText = c.text;
 				IRegion reg = d.getLineInformationOfOffset(c.offset);
 				String line = d.get(reg.getOffset(),reg.getLength());
 				int count = countIndentOfLine(line);

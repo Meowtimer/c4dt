@@ -1,10 +1,7 @@
 package net.arctics.clonk.ui.wizards;
 
 import org.eclipse.jface.viewers.ISelection;
-import org.eclipse.swt.SWT;
-import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
 
 public class NewScenarioPage extends NewClonkFolderWizardPage {

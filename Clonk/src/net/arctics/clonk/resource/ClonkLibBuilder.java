@@ -6,7 +6,6 @@ import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 
 import net.arctics.clonk.ClonkCore;
-import net.arctics.clonk.parser.C4ID;
 import net.arctics.clonk.parser.C4ObjectExtern;
 import net.arctics.clonk.parser.C4ScriptExtern;
 import net.arctics.clonk.parser.C4ScriptParser;
@@ -49,7 +48,7 @@ public class ClonkLibBuilder implements IC4GroupVisitor, IPropertyChangeListener
 	}
 	
 	public void clean() {
-		ClonkCore.EXTERN_INDEX.clear();
+		ClonkCore.getDefault().EXTERN_INDEX.clear();
 		buildNeeded = true;
 		System.gc();
 	}
@@ -99,7 +98,7 @@ public class ClonkLibBuilder implements IC4GroupVisitor, IPropertyChangeListener
 	 */
 	private void readExternalLibs(IProgressMonitor monitor) throws InvalidDataException, IOException {
 		String[] libs = getExternalLibNames();
-		ClonkCore.EXTERN_INDEX.clear();
+		ClonkCore.getDefault().EXTERN_INDEX.clear();
 		try {
 			ResourcesPlugin.getWorkspace().getRoot().deleteMarkers(ClonkCore.MARKER_EXTERN_LIB_ERROR, false, 0);	
 		} catch (CoreException e1) {
@@ -109,7 +108,7 @@ public class ClonkLibBuilder implements IC4GroupVisitor, IPropertyChangeListener
 		for(String lib : libs) {
 			readExternalLib(lib, new SubProgressMonitor(monitor,1));
 		}
-		ClonkCore.EXTERN_INDEX.refreshCache();
+		ClonkCore.getDefault().EXTERN_INDEX.refreshCache();
 		if (monitor != null) monitor.done();
 	}
 	
@@ -140,7 +139,7 @@ public class ClonkLibBuilder implements IC4GroupVisitor, IPropertyChangeListener
 						// we only need declarations
 						parser.clean();
 						parser.parseDeclarations();
-						ClonkCore.EXTERN_INDEX.addObject(obj);
+						ClonkCore.getDefault().EXTERN_INDEX.addObject(obj);
 						if (names != null)
 							obj.readNames(new String(names.getContentsAsArray()));
 					} catch (CompilerException e) {
@@ -161,7 +160,7 @@ public class ClonkLibBuilder implements IC4GroupVisitor, IPropertyChangeListener
 							C4ScriptExtern externScript = new C4ScriptExtern(child);
 							C4ScriptParser parser = new C4ScriptParser(((C4Entry)child).getContents(),((C4Entry)child).computeSize(), externScript);
 							parser.parseDeclarations();
-							ClonkCore.EXTERN_INDEX.addScript(externScript);
+							ClonkCore.getDefault().EXTERN_INDEX.addScript(externScript);
 							//						Utilities.getProject(getProject()).getIndexedData().addObject(externSystemc4g);
 						} catch (CompilerException e) {
 							e.printStackTrace();
@@ -213,7 +212,7 @@ public class ClonkLibBuilder implements IC4GroupVisitor, IPropertyChangeListener
 								}
 							}
 						}
-						ClonkCore.EXTERN_INDEX.refreshCache();
+						ClonkCore.getDefault().EXTERN_INDEX.refreshCache();
 					}
 				});
 			} catch (InvocationTargetException e1) {

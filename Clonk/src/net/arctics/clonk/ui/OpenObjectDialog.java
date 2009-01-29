@@ -94,7 +94,7 @@ public class OpenObjectDialog extends FilteredItemsSelectionDialog {
 				}
 			}
 		}
-		fillWithIndexContents(contentProvider, itemsFilter, progressMonitor, ClonkCore.EXTERN_INDEX);
+		fillWithIndexContents(contentProvider, itemsFilter, progressMonitor, ClonkCore.getDefault().EXTERN_INDEX);
 		
 	}
 

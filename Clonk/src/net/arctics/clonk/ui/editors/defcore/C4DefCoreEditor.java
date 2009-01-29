@@ -3,7 +3,6 @@ package net.arctics.clonk.ui.editors.defcore;
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.Utilities;
 import net.arctics.clonk.parser.C4Object;
-import net.arctics.clonk.parser.C4ObjectIntern;
 import net.arctics.clonk.ui.editors.ColorManager;
 
 import org.eclipse.core.resources.IContainer;
@@ -11,7 +10,6 @@ import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.jface.text.source.SourceViewerConfiguration;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CTabFolder;
 import org.eclipse.swt.layout.GridData;

@@ -1278,7 +1278,7 @@ public class C4ScriptParser {
 
 			fReader.seek(offset);
 			this.eatWhitespace();
-			int exprStart = fReader.getPosition();
+			//int exprStart = fReader.getPosition();
 			for (int state = START; state != DONE;) {
 				this.eatWhitespace();
 				switch (state) {

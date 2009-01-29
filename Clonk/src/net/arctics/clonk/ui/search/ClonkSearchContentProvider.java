@@ -2,7 +2,6 @@ package net.arctics.clonk.ui.search;
 
 import org.eclipse.jface.viewers.ITreeContentProvider;
 import org.eclipse.jface.viewers.Viewer;
-import org.eclipse.search.ui.text.Match;
 
 public class ClonkSearchContentProvider implements ITreeContentProvider {
 

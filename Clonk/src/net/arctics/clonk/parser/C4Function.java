@@ -254,7 +254,7 @@ public class C4Function extends C4Structure implements Serializable, ITypedField
 
 	@Override
 	public String getShortInfo() {
-		if (getScript() == ClonkCore.ENGINE_OBJECT) {
+		if (getScript() == ClonkCore.getDefault().ENGINE_OBJECT) {
 			//return String.format("<b>%s</b><br>%s<br><i><a href='%s'>Online Documentation</a></i>", getName(), getDescription(), getDocumentationURL());
 			// engine function
 			return String.format("<b>%s</b><br>%s", getLongParameterString(true), getUserDescription());
@@ -286,9 +286,9 @@ public class C4Function extends C4Structure implements Serializable, ITypedField
 	
 	public C4Function getInherited() {
 		if (getVisibility() == C4FunctionScope.FUNC_GLOBAL) {
-			C4Function f = ClonkCore.ENGINE_OBJECT.findFunction(getName());
+			C4Function f = ClonkCore.getDefault().ENGINE_OBJECT.findFunction(getName());
 			if (f == null)
-				f = ClonkCore.EXTERN_INDEX.findGlobalFunction(getName());
+				f = ClonkCore.getDefault().EXTERN_INDEX.findGlobalFunction(getName());
 			if (f == null)
 				f = getScript().getIndex().findGlobalFunction(getName());
 			if (f == this)

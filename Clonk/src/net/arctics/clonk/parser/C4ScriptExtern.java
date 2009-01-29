@@ -17,7 +17,7 @@ public class C4ScriptExtern extends C4ScriptBase {
 	
 	@Override
 	public ClonkIndex getIndex() {
-		return ClonkCore.EXTERN_INDEX;
+		return ClonkCore.getDefault().EXTERN_INDEX;
 	}
 
 	@Override

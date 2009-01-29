@@ -208,7 +208,7 @@ public class ClonkCodeScanner extends RuleBasedScanner {
 				wordRule.addWord(c4type.name().trim().toLowerCase(), type);
 		for (int i=0; i<fgConstants.length; i++)
 			wordRule.addWord(fgConstants[i], type);
-		for(C4Function func : ClonkCore.ENGINE_OBJECT.getDefinedFunctions())
+		for (C4Function func : ClonkCore.getDefault().ENGINE_OBJECT.functions())
 			wordRule.addWord(func.getName(), engineFunction);
 		for (int i=0; i<BuiltInDefinitions.OBJECT_CALLBACKS.length; i++)
 			wordRule.addWord(BuiltInDefinitions.OBJECT_CALLBACKS[i], objCallbackFunction);

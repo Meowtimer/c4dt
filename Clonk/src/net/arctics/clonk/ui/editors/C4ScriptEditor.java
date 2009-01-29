@@ -20,8 +20,6 @@ import net.arctics.clonk.parser.SourceLocation;
 import net.arctics.clonk.ui.editors.actions.ConvertOldCodeToNewCodeAction;
 import net.arctics.clonk.ui.editors.actions.FindReferencesAction;
 import net.arctics.clonk.ui.editors.actions.OpenDeclarationAction;
-import net.arctics.clonk.ui.editors.actions.RenameFieldAction;
-
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.jface.action.IAction;
@@ -268,7 +266,7 @@ public class C4ScriptEditor extends TextEditor implements IShowInSource, IShowIn
 				}
 			}
 			else if (script instanceof C4ObjectExtern) {
-				if (script != ClonkCore.ENGINE_OBJECT) {
+				if (script != ClonkCore.getDefault().ENGINE_OBJECT) {
 					IEditorPart editor = workbenchPage.openEditor(new ObjectExternEditorInput((C4ObjectExtern)script), "clonk.editors.C4ScriptEditor");
 					C4ScriptEditor scriptEditor = (C4ScriptEditor)editor;
 					if (target != script)

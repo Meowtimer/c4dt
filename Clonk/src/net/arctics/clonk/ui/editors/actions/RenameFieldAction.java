@@ -1,6 +1,5 @@
 package net.arctics.clonk.ui.editors.actions;
 
-import java.lang.reflect.InvocationTargetException;
 import java.util.ResourceBundle;
 
 import net.arctics.clonk.parser.C4Field;

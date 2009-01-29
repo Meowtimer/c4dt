@@ -42,6 +42,7 @@ public class ObjectExternEditorInput implements IEditorInput, IPathEditorInput, 
 		return object.getName();
 	}
 
+	@SuppressWarnings("unchecked")
 	public Object getAdapter(Class cls) {
 		// TODO Auto-generated method stub
 		return null;

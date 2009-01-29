@@ -24,7 +24,7 @@ public class DefCoreParser extends IniReader {
 //	private final List<DefCoreOption> defCoreOptions = DefCoreOption.createNewDefCoreList();
 //	private final List<DefCoreOption> physicalOptions = DefCoreOption.createNewPhysicalList();
 	
-	private final IniConfiguration configuration = ClonkCore.INI_CONFIGURATIONS.getConfigurationFor("DefCore.txt");
+	private final IniConfiguration configuration = ClonkCore.getDefault().INI_CONFIGURATIONS.getConfigurationFor("DefCore.txt");
 	
 	public DefCoreParser(InputStream stream) {
 		super(stream);

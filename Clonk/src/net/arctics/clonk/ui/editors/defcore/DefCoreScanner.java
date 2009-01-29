@@ -126,7 +126,7 @@ public class DefCoreScanner extends RuleBasedScanner {
 		
 		CombinedWordRule.WordMatcher wordRule = new CombinedWordRule.WordMatcher();
 		
-		for(C4Variable var : ClonkCore.ENGINE_OBJECT.getDefinedVariables()) {
+		for(C4Variable var : ClonkCore.getDefault().ENGINE_OBJECT.variables()) {
 			if (var.getScope() == C4VariableScope.VAR_CONST)
 				wordRule.addWord(var.getName(), constant);
 		}

@@ -199,7 +199,7 @@ public class C4Variable extends C4Field implements Serializable, ITypedField {
 	
 	public void expectedToBeOfType(C4Type t) {
 		// engine objects should not be altered
-		if (getScript() != ClonkCore.ENGINE_OBJECT)
+		if (getScript() != ClonkCore.getDefault().ENGINE_OBJECT)
 			ITypedField.Default.expectedToBeOfType(this, t);
 	}
 

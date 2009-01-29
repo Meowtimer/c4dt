@@ -109,7 +109,7 @@ public class ClonkActionProvider extends org.eclipse.ui.navigator.CommonActionPr
 				ISelection selection = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getSelectionService().getSelection();
 				if (selection != null && selection instanceof TreeSelection) {
 					TreeSelection tree = (TreeSelection) selection;
-					Iterator it = tree.iterator();
+					Iterator<?> it = tree.iterator();
 					List<IContainer> selectedContainers = new LinkedList<IContainer>();
 					while (it.hasNext()) {
 						Object obj = it.next();

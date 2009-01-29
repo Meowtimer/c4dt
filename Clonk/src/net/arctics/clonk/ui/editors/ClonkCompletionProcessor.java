@@ -215,10 +215,10 @@ public class ClonkCompletionProcessor implements IContentAssistProcessor {
 		statusMessages.add("Project files");
 		
 		if (proposalCycle == SHOW_ALL || activeFunc == null) {
-			if (!ClonkCore.EXTERN_INDEX.isEmpty()) {
+			if (!ClonkCore.getDefault().EXTERN_INDEX.isEmpty()) {
 				statusMessages.add("Extern libs");
 			}
-			if (ClonkCore.ENGINE_OBJECT != null) {
+			if (ClonkCore.getDefault().ENGINE_OBJECT != null) {
 				statusMessages.add("Engine functions");
 			}
 		}
@@ -276,19 +276,19 @@ public class ClonkCompletionProcessor implements IContentAssistProcessor {
 			
 			// propose objects for #include or something
 			proposalForIndex(index, offset, wordOffset, prefix, proposals);
-			proposalForIndex(ClonkCore.EXTERN_INDEX, offset, wordOffset, prefix, proposals);
+			proposalForIndex(ClonkCore.getDefault().EXTERN_INDEX, offset, wordOffset, prefix, proposals);
 		}
 		else {
 			proposalForIndex(index, offset, wordOffset, prefix, proposals);
 			
 			if (proposalCycle == SHOW_ALL) {
-				proposalForIndex(ClonkCore.EXTERN_INDEX, offset, wordOffset, prefix, proposals);
+				proposalForIndex(ClonkCore.getDefault().EXTERN_INDEX, offset, wordOffset, prefix, proposals);
 				
-				if (ClonkCore.ENGINE_OBJECT != null) {
-					for (C4Function func : ClonkCore.ENGINE_OBJECT.getDefinedFunctions()) {
-						proposalForFunc(func, prefix, offset, proposals, ClonkCore.ENGINE_OBJECT.getName());
+				if (ClonkCore.getDefault().ENGINE_OBJECT != null) {
+					for (C4Function func : ClonkCore.getDefault().ENGINE_OBJECT.functions()) {
+						proposalForFunc(func, prefix, offset, proposals, ClonkCore.getDefault().ENGINE_OBJECT.getName());
 					}
-					for (C4Variable var : ClonkCore.ENGINE_OBJECT.getDefinedVariables()) {
+					for (C4Variable var : ClonkCore.getDefault().ENGINE_OBJECT.variables()) {
 						proposalForVar(var,prefix,offset,proposals);
 					}
 				}
@@ -398,12 +398,12 @@ public class ClonkCompletionProcessor implements IContentAssistProcessor {
 			return;
 		}
 		loopCatcher.add(script);
-		for (C4Function func : script.getDefinedFunctions()) {
+		for (C4Function func : script.functions()) {
 			if (func.getVisibility() != C4FunctionScope.FUNC_GLOBAL)
 				if (!noPrivateFuncs  || func.getVisibility() == C4FunctionScope.FUNC_PUBLIC)
 					proposalForFunc(func, prefix, offset, proposals, script.getName());
 		}
-		for (C4Variable var : script.getDefinedVariables()) {
+		for (C4Variable var : script.variables()) {
 			if (var.getScope() != C4VariableScope.VAR_STATIC && var.getScope() != C4VariableScope.VAR_CONST)
 				proposalForVar(var, prefix, wordOffset, proposals);
 		}
@@ -452,7 +452,7 @@ public class ClonkCompletionProcessor implements IContentAssistProcessor {
 			prefix = null;
 		}
 		IContextInformation info = null;
-		for(C4Function func : ClonkCore.ENGINE_OBJECT.getDefinedFunctions()) {
+		for(C4Function func : ClonkCore.getDefault().ENGINE_OBJECT.functions()) {
 			if (func.getName().equalsIgnoreCase(prefix)) {
 				String displayString = func.getLongParameterString(false).trim();
 				info = new ContextInformation(func.getName() + "()",displayString);

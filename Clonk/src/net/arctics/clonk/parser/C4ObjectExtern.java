@@ -21,9 +21,9 @@ public class C4ObjectExtern extends C4Object {
 
 	@Override
 	public ClonkIndex getIndex() {
-		if (this == ClonkCore.ENGINE_OBJECT)
+		if (this == ClonkCore.getDefault().ENGINE_OBJECT)
 			return null;
-		return ClonkCore.EXTERN_INDEX;
+		return ClonkCore.getDefault().EXTERN_INDEX;
 	}
 
 }

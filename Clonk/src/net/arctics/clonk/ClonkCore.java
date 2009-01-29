@@ -39,9 +39,9 @@ public class ClonkCore extends AbstractUIPlugin {
 	public static final QualifiedName C4OBJECT_PROPERTY_ID = new QualifiedName("net.arctics.clonk","c4object");
 	public static final QualifiedName SCRIPT_PROPERTY_ID = new QualifiedName("net.arctics.clonk", "script");
 	
-	public static C4ObjectExtern ENGINE_OBJECT;
-	public static ClonkIndex EXTERN_INDEX;
-	public static IniData INI_CONFIGURATIONS;
+	public C4ObjectExtern ENGINE_OBJECT;
+	public ClonkIndex EXTERN_INDEX;
+	public IniData INI_CONFIGURATIONS;
 	
 	// The shared instance
 	private static ClonkCore plugin;
@@ -117,6 +117,7 @@ public class ClonkCore extends AbstractUIPlugin {
 			try {
 				ObjectInputStream objStream = new InputStreamRespectingUniqueIDs(engineStream);
 				ENGINE_OBJECT = (C4ObjectExtern)objStream.readObject();
+				chanceToAddMissingThingsToEngine();
 				//			if (ENGINE_OBJECT.convertFuncsToConstsIfTheyLookLikeConsts()) {
 				//				// resave if something was changed
 				//				saveEngineObject();
@@ -130,6 +131,12 @@ public class ClonkCore extends AbstractUIPlugin {
 		}
 	}
 	
+	private int nooper;
+	
+	private void chanceToAddMissingThingsToEngine() {
+		nooper++;
+	}
+
 	public static IPath getEngineCacheFile() {
 		IPath path = ClonkCore.getDefault().getStateLocation();
 		return path.append("engine");
@@ -145,7 +152,7 @@ public class ClonkCore extends AbstractUIPlugin {
 		return path.append("externlib");
 	}
 	
-	public static void saveEngineObject() {
+	public void saveEngineObject() {
 		try {
 			IPath engine = getEngineCacheFile();
 			
@@ -165,7 +172,7 @@ public class ClonkCore extends AbstractUIPlugin {
 		
 	}
 	
-	public static void saveExternIndex(IProgressMonitor monitor) throws FileNotFoundException {
+	public void saveExternIndex(IProgressMonitor monitor) throws FileNotFoundException {
 		if (monitor != null) monitor.beginTask("Saving libs", 1);
 		final File index = getExternLibCacheFile().toFile();
 		FileOutputStream out = new FileOutputStream(index);
@@ -182,7 +189,7 @@ public class ClonkCore extends AbstractUIPlugin {
 		if (monitor != null) monitor.done();
 	}
 	
-	public static void loadExternIndex() {
+	public void loadExternIndex() {
 		final File index = getExternLibCacheFile().toFile();
 		if (!index.exists()) {
 			EXTERN_INDEX = new ClonkIndex();
