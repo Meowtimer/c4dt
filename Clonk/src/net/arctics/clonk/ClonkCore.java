@@ -9,10 +9,13 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.util.LinkedList;
+import java.util.List;
 
 import net.arctics.clonk.parser.C4Function;
 import net.arctics.clonk.parser.C4ID;
 import net.arctics.clonk.parser.C4ObjectExtern;
+import net.arctics.clonk.parser.C4ScriptExtern;
 import net.arctics.clonk.parser.C4Type;
 import net.arctics.clonk.parser.C4Variable;
 import net.arctics.clonk.parser.ClonkIndex;
@@ -71,6 +74,7 @@ public class ClonkCore extends AbstractUIPlugin {
 		
 		loadEngineObject();
 		loadExternIndex();
+		chanceToAddMissingThingsToEngine();
 		
 	}
 	
@@ -121,7 +125,6 @@ public class ClonkCore extends AbstractUIPlugin {
 			try {
 				ObjectInputStream objStream = new InputStreamRespectingUniqueIDs(engineStream);
 				ENGINE_OBJECT = (C4ObjectExtern)objStream.readObject();
-				chanceToAddMissingThingsToEngine();
 				//			if (ENGINE_OBJECT.convertFuncsToConstsIfTheyLookLikeConsts()) {
 				//				// resave if something was changed
 				//				saveEngineObject();
@@ -145,8 +148,22 @@ public class ClonkCore extends AbstractUIPlugin {
 		ENGINE_OBJECT.addField(f);
 	}
 	
+	private void removeSystemDuplicates() {
+		List<C4Function> toBeRemoved = new LinkedList<C4Function>();
+		for (C4Function f : ENGINE_OBJECT.functions()) {
+			C4Function dup = EXTERN_INDEX.findGlobalFunction(f.getName());
+			if (dup != null && dup.getScript() instanceof C4ScriptExtern)
+				toBeRemoved.add(f);
+		}
+		if (toBeRemoved.size() != 0) {
+			for (C4Function r : toBeRemoved)
+				ENGINE_OBJECT.removeField(r);
+			saveEngineObject();
+		}
+	}
+	
 	private void chanceToAddMissingThingsToEngine() {
-		nooper++; // saveEngineObject()
+		removeSystemDuplicates();
 	}
 
 	public static IPath getEngineCacheFile() {

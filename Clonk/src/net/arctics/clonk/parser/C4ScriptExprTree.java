@@ -323,7 +323,7 @@ public abstract class C4ScriptExprTree {
 		public C4Object guessObjectType(C4ScriptParser context) {
 			// explicit id
 			if (id != null) {
-				return context.getContainer().getIndex().getObjectFromEverywhere(id);
+				return context.getContainer().getNearestObjectWithId(id);
 			}
 			// stuff before -> decides
 			return getPredecessorInSequence() != null ? getPredecessorInSequence().guessObjectType(context) : super.guessObjectType(context);
@@ -332,7 +332,7 @@ public abstract class C4ScriptExprTree {
 		@Override
 		public FieldRegion fieldAt(int offset, C4ScriptParser parser) {
 			if (id != null && offset >= idOffset && offset < idOffset+4)
-				return new FieldRegion(parser.getContainer().getIndex().getObjectFromEverywhere(id), new Region(getExprStart()+idOffset, 4));
+				return new FieldRegion(parser.getContainer().getNearestObjectWithId(id), new Region(getExprStart()+idOffset, 4));
 			return null;
 		}
 		
@@ -790,6 +790,12 @@ public abstract class C4ScriptExprTree {
 		public ExprElm[] getParams() {
 			return params;
 		}
+		public int indexOfParm(ExprElm parm) {
+			for (int i = 0; i < params.length; i++)
+				if (params[i] == parm)
+					return i;
+			return -1;
+		}
 	}
 
 	public static class ExprOperator extends ExprValue {
@@ -1217,12 +1223,22 @@ public abstract class C4ScriptExprTree {
 		public FieldRegion fieldAt(int offset, C4ScriptParser parser) {
 			if (getParent() instanceof ExprCallFunc) {
 				ExprCallFunc parentFunc = (ExprCallFunc) getParent();
-				if (parentFunc.getFieldName().equals("GameCall")) {
+				int myIndex = parentFunc.indexOfParm(this);
+				// link to functions that are called indirectly
+				if (myIndex == 0 && parentFunc.getFieldName().equals("GameCall")) {
 					ClonkIndex index = parser.getContainer().getIndex();
 					for (C4Scenario scenario : index.getIndexedScenarios()) {
 						C4Function scenFunc = scenario.findFunction(stringValue());
 						if (scenFunc != null)
 							return new FieldRegion(scenFunc, this);
+					}
+				}
+				else if (myIndex == 1 && parentFunc.getFieldName().equals("ScheduleCall")) {
+					C4Object typeToLookIn = parentFunc.getParams()[0].guessObjectType(parser);
+					if (typeToLookIn != null) {
+						C4Function func = typeToLookIn.findFunction(stringValue());
+						if (func != null)
+							return new FieldRegion(func, this);
 					}
 				}
 			}
@@ -1253,12 +1269,12 @@ public abstract class C4ScriptExprTree {
 		@Override
 		public C4Object guessObjectType(C4ScriptParser context) {
 			// FIXME: does not actually return an object of type idValue but the id itself :/
-			return context.getContainer().getIndex().getObjectFromEverywhere(idValue());
+			return context.getContainer().getNearestObjectWithId(idValue());
 		}
 
 		@Override
 		public FieldRegion fieldAt(int offset, C4ScriptParser parser) {
-			return new FieldRegion(parser.getContainer().getIndex().getObjectFromEverywhere(idValue()), region(0));
+			return new FieldRegion(parser.getContainer().getNearestObjectWithId(idValue()), region(0));
 		}
 
 	}

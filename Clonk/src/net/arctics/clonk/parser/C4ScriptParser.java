@@ -1035,8 +1035,8 @@ public class C4ScriptParser {
 			
 			// number
 			if (elm == null && parseNumber(fReader.getPosition())) {
-//				if (parsedNumber < Integer.MIN_VALUE || parsedNumber > Integer.MAX_VALUE)
-//					warningWithCode(ErrorCode.OutOfIntRange, elmStart, fReader.getPosition(), String.valueOf(parsedNumber));
+				if (parsedNumber < Integer.MIN_VALUE || parsedNumber > Integer.MAX_VALUE)
+					warningWithCode(ErrorCode.OutOfIntRange, elmStart, fReader.getPosition(), String.valueOf(parsedNumber));
 				elm = new ExprNumber(parsedNumber);
 			}
 			

@@ -14,6 +14,9 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Path;
 
+/**
+ * Object definition inside a project.
+ */
 public class C4ObjectIntern extends C4Object implements Serializable {
 
 	private static final long serialVersionUID = -7978767061460505544L;
@@ -136,6 +139,11 @@ public class C4ObjectIntern extends C4Object implements Serializable {
 	@Override
 	public String toString() {
 		return super.toString() + " [" + relativePath + "]";
+	}
+	
+	@Override
+	public IResource getResource() {
+		return getObjectFolder();
 	}
 
 }

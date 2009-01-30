@@ -32,8 +32,8 @@ public class ProjectIndex extends ClonkIndex {
 			scenario.refreshFolderReference(project);
 		}
 		for (C4ScriptBase script : getIndexedScripts()) {
-			if (script instanceof C4SystemScript) {
-				C4SystemScript standalone = (C4SystemScript) script;
+			if (script instanceof C4ScriptIntern) {
+				C4ScriptIntern standalone = (C4ScriptIntern) script;
 				Path path = new Path(standalone.getScriptFilePath());
 				IPath projectPath = path.removeFirstSegments(1);
 				IResource res = project.findMember(projectPath);

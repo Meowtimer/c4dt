@@ -11,7 +11,7 @@ import net.arctics.clonk.parser.C4ObjectIntern;
 import net.arctics.clonk.parser.C4ObjectParser;
 import net.arctics.clonk.parser.C4ScriptBase;
 import net.arctics.clonk.parser.C4ScriptParser;
-import net.arctics.clonk.parser.C4SystemScript;
+import net.arctics.clonk.parser.C4ScriptIntern;
 import net.arctics.clonk.parser.ClonkIndex;
 import net.arctics.clonk.parser.CompilerException;
 import net.arctics.clonk.parser.defcore.DefCoreParser;
@@ -265,7 +265,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 					IContainer folder = delta.getResource().getParent();
 					C4ObjectParser parser;
 					if (delta.getResource().getName().endsWith(".c") && folder.getName().endsWith(".c4g")) {
-						script = new C4SystemScript(delta.getResource());
+						script = new C4ScriptIntern(delta.getResource());
 						Utilities.getProject(delta.getResource()).getIndexedData().addScript(script);
 					}
 					else if ((parser = C4ObjectParser.create(folder)) != null) {
@@ -372,11 +372,11 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 			}
 		}
 		else if (resource.getName().endsWith(".c") && resource.getParent().getName().endsWith(".c4g")) {
-			C4ScriptBase script = C4SystemScript.scriptCorrespondingTo(resource);
+			C4ScriptBase script = C4ScriptIntern.scriptCorrespondingTo(resource);
 			switch (buildPhase) {
 			case 0:
 				if (script == null) {
-					script = new C4SystemScript(resource);
+					script = new C4ScriptIntern(resource);
 				}
 				Utilities.getProject(resource).getIndexedData().addScript(script);
 				try {

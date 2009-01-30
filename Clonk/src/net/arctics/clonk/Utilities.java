@@ -7,14 +7,15 @@ import net.arctics.clonk.parser.C4Function;
 import net.arctics.clonk.parser.C4Object;
 import net.arctics.clonk.parser.C4ObjectIntern;
 import net.arctics.clonk.parser.C4ScriptBase;
-import net.arctics.clonk.parser.C4SystemScript;
+import net.arctics.clonk.parser.C4ScriptIntern;
 import net.arctics.clonk.parser.C4Variable;
 import net.arctics.clonk.parser.ClonkIndex;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.resource.c4group.C4Group;
 import net.arctics.clonk.resource.c4group.C4Group.C4GroupType;
-import net.arctics.clonk.ui.editors.ObjectExternEditorInput;
+import net.arctics.clonk.ui.editors.ScriptWithStorageEditorInput;
 
+import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IProjectNature;
@@ -65,8 +66,8 @@ public abstract class Utilities {
 			return null;
 		if (script instanceof C4ObjectIntern)
 			return getProject(((C4ObjectIntern)script).getObjectFolder());
-		if (script instanceof C4SystemScript)
-			return getProject(((C4SystemScript)script).getScriptFile());
+		if (script instanceof C4ScriptIntern)
+			return getProject(((C4ScriptIntern)script).getScriptFile());
 		else
 			return null;
 	}
@@ -141,7 +142,7 @@ public abstract class Utilities {
 	public static C4ScriptBase getScriptForFile(IFile scriptFile) {
 		C4ScriptBase script;
 		try {
-			script = C4SystemScript.scriptCorrespondingTo(scriptFile);
+			script = C4ScriptIntern.scriptCorrespondingTo(scriptFile);
 		} catch (CoreException e) {
 			script = null;
 		}
@@ -154,8 +155,8 @@ public abstract class Utilities {
 	}
 
 	public static C4ScriptBase getScriptForEditor(ITextEditor editor) {
-		if (editor.getEditorInput() instanceof ObjectExternEditorInput) {
-			return ((ObjectExternEditorInput)editor.getEditorInput()).getObject();
+		if (editor.getEditorInput() instanceof ScriptWithStorageEditorInput) {
+			return ((ScriptWithStorageEditorInput)editor.getEditorInput()).getScript();
 		}
 		return getScriptForFile(getEditingFile(editor));
 	}
@@ -245,6 +246,24 @@ public abstract class Utilities {
 
 	public static boolean resourceEqual(IResource a, IResource b) {
 		return (a == null && b == null) || (a != null && b != null && a.equals(b));
+	}
+	
+	public static boolean resourceInside(IResource resource, IContainer container) {
+		for (IContainer c = resource instanceof IContainer ? (IContainer)resource : resource.getParent(); c != null; c = c.getParent())
+			if (c.equals(container))
+				return true;
+		return false;
+	}
+	
+	public static int distanceToCommonContainer(IResource a, IResource b) {
+		IContainer c;
+		int dist = 0;
+		for (c = a instanceof IContainer ? (IContainer)a : a.getParent(); c != null; c = c.getParent()) {
+			if (resourceInside(b, c))
+				break;
+			dist++;
+		}
+		return dist;
 	}
 	
 }

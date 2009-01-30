@@ -16,6 +16,7 @@ import net.arctics.clonk.parser.C4Directive.C4DirectiveType;
 import net.arctics.clonk.parser.C4Function.C4FunctionScope;
 import net.arctics.clonk.parser.C4Variable.C4VariableScope;
 
+import org.eclipse.core.resources.IResource;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.ITextSelection;
 import org.eclipse.jface.text.Region;
@@ -61,7 +62,7 @@ public abstract class C4ScriptBase extends C4Structure {
 		List<C4Object> result = new ArrayList<C4Object>();
 		for (C4Directive d : definedDirectives) {
 			if (d.getType() == C4DirectiveType.INCLUDE || d.getType() == C4DirectiveType.APPENDTO) {
-				C4Object obj = d.getIncludedObject(index);
+				C4Object obj = getNearestObjectWithId(d.contentAsID());
 				if (obj != null)
 					result.add(obj);
 			}
@@ -71,7 +72,7 @@ public abstract class C4ScriptBase extends C4Structure {
 	
 	public C4Directive getIncludeDirectiveFor(C4Object obj) {
 		for (C4Directive d : getIncludeDirectives()) {
-			if (d.getIncludedObject(getIndex()) == obj)
+			if ((d.getType() == C4DirectiveType.INCLUDE || d.getType() == C4DirectiveType.APPENDTO) && getNearestObjectWithId(d.contentAsID()) == obj)
 				return d;
 		}
 		return null;
@@ -247,6 +248,10 @@ public abstract class C4ScriptBase extends C4Structure {
 //	}
 	
 	public abstract Object getScriptFile();
+	
+	public IResource getResource() {
+		return null;
+	}
 
 	public C4Function findFunction(String functionName, FindFieldInfo info) {
 		info.resetState();
@@ -417,6 +422,10 @@ public abstract class C4ScriptBase extends C4Structure {
 	
 	public int numFunctions() {
 		return definedFunctions.size();
+	}
+	
+	public C4Object getNearestObjectWithId(C4ID id) {
+		return getIndex().getObjectNearestTo(getResource(), id);
 	}
 
 }

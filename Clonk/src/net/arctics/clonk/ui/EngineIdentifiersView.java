@@ -470,13 +470,7 @@ public class EngineIdentifiersView extends ViewPart {
 		saveAction.setToolTipText("Save changes");
 		saveAction.setImageDescriptor(PlatformUI.getWorkbench().getSharedImages().
 				getImageDescriptor(ISharedImages.IMG_ETOOL_SAVE_EDIT));
-		doubleClickAction = new Action() {
-			public void run() {
-				ISelection selection = viewer.getSelection();
-				Object obj = ((IStructuredSelection)selection).getFirstElement();
-				showMessage("Double-click detected on "+obj.toString());
-			}
-		};
+		doubleClickAction = editAction;
 	}
 
 	private void hookDoubleClickAction() {

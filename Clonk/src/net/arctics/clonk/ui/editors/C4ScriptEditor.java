@@ -9,12 +9,11 @@ import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.Utilities;
 import net.arctics.clonk.parser.C4Field;
 import net.arctics.clonk.parser.C4Function;
-import net.arctics.clonk.parser.C4ObjectExtern;
 import net.arctics.clonk.parser.C4ObjectIntern;
 import net.arctics.clonk.parser.C4ScriptBase;
 import net.arctics.clonk.parser.C4ScriptExprTree;
 import net.arctics.clonk.parser.C4ScriptParser;
-import net.arctics.clonk.parser.C4SystemScript;
+import net.arctics.clonk.parser.C4ScriptIntern;
 import net.arctics.clonk.parser.CompilerException;
 import net.arctics.clonk.parser.SourceLocation;
 import net.arctics.clonk.ui.editors.actions.ConvertOldCodeToNewCodeAction;
@@ -22,6 +21,7 @@ import net.arctics.clonk.ui.editors.actions.FindReferencesAction;
 import net.arctics.clonk.ui.editors.actions.OpenDeclarationAction;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.IStorage;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.preference.PreferenceConverter;
@@ -247,7 +247,7 @@ public class C4ScriptEditor extends TextEditor implements IShowInSource, IShowIn
 		IWorkbenchPage workbenchPage = workbench.getActiveWorkbenchWindow().getActivePage();
 		C4ScriptBase script = target instanceof C4ScriptBase ? (C4ScriptBase)target : target.getScript();
 		if (script != null) {
-			if (script instanceof C4ObjectIntern || script instanceof C4SystemScript) {
+			if (script instanceof C4ObjectIntern || script instanceof C4ScriptIntern) {
 				IFile scriptFile = (IFile) script.getScriptFile();
 				if (scriptFile != null) {
 					IEditorPart editor = IDE.openEditor(workbenchPage, scriptFile, "clonk.editors.C4ScriptEditor", activate);
@@ -265,9 +265,9 @@ public class C4ScriptEditor extends TextEditor implements IShowInSource, IShowIn
 						return IDE.openEditor(workbenchPage, defCore, activate);
 				}
 			}
-			else if (script instanceof C4ObjectExtern) {
+			else if (script.getScriptFile() instanceof IStorage) {
 				if (script != ClonkCore.getDefault().ENGINE_OBJECT) {
-					IEditorPart editor = workbenchPage.openEditor(new ObjectExternEditorInput((C4ObjectExtern)script), "clonk.editors.C4ScriptEditor");
+					IEditorPart editor = workbenchPage.openEditor(new ScriptWithStorageEditorInput(script), "clonk.editors.C4ScriptEditor");
 					C4ScriptEditor scriptEditor = (C4ScriptEditor)editor;
 					if (target != script)
 						scriptEditor.selectAndReveal(target.getLocation());

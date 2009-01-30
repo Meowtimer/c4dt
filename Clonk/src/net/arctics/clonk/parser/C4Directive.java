@@ -2,7 +2,6 @@ package net.arctics.clonk.parser;
 
 import java.io.Serializable;
 
-import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.C4ScriptExprTree.ExprElm;
 
 public class C4Directive extends C4Field implements Serializable {
@@ -78,12 +77,8 @@ public class C4Directive extends C4Field implements Serializable {
 		};
 	}
 	
-	public C4Object getIncludedObject(ClonkIndex index) {
-		C4ID id = C4ID.getID(this.getContent());
-		C4Object obj = index.getLastObjectWithId(id);
-		if (obj == null)
-			obj = ClonkCore.getDefault().EXTERN_INDEX.getLastObjectWithId(id);
-		return obj;
+	public C4ID contentAsID() {
+		return C4ID.getID(this.getContent());
 	}
 	
 }

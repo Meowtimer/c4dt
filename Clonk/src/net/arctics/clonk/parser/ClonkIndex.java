@@ -8,9 +8,11 @@ import java.util.List;
 import java.util.Map;
 
 import net.arctics.clonk.ClonkCore;
+import net.arctics.clonk.Utilities;
 import net.arctics.clonk.parser.C4Function.C4FunctionScope;
 import net.arctics.clonk.parser.C4Variable.C4VariableScope;
 import org.eclipse.core.resources.IContainer;
+import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 
 public class ClonkIndex implements Serializable, Iterable<C4Object> {
@@ -233,6 +235,28 @@ public class ClonkIndex implements Serializable, Iterable<C4Object> {
 			}
 		}
 		return null;
+	}
+	
+	public C4Object getObjectNearestTo(IResource resource, C4ID id) {
+		List<C4Object> objs = getObjects(id);
+		if (objs == null)
+			return null;
+		int bestDist = 1000;
+		C4Object best = null;
+		for (C4Object o : objs) {
+			int newDist;
+			if (o instanceof C4ObjectIntern)
+				newDist = Utilities.distanceToCommonContainer(resource, ((C4ObjectIntern)o).getObjectFolder());
+			else
+				newDist = 100;
+			if (best == null || newDist < bestDist) {
+				best = o;
+				bestDist = newDist;
+			}
+		}
+		if (best == null)
+			best = ClonkCore.getDefault().EXTERN_INDEX.getLastObjectWithId(id);
+		return best;
 	}
 	
 	/**

@@ -1,8 +1,8 @@
 package net.arctics.clonk.ui.editors;
 
 import net.arctics.clonk.ClonkCore;
-import net.arctics.clonk.parser.C4Object;
-import net.arctics.clonk.parser.C4ObjectExtern;
+import net.arctics.clonk.parser.C4ScriptBase;
+
 import org.eclipse.core.resources.IStorage;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
@@ -12,17 +12,17 @@ import org.eclipse.ui.IPathEditorInput;
 import org.eclipse.ui.IPersistableElement;
 import org.eclipse.ui.IStorageEditorInput;
 
-public class ObjectExternEditorInput implements IEditorInput, IPathEditorInput, IStorageEditorInput {
+public class ScriptWithStorageEditorInput implements IEditorInput, IPathEditorInput, IStorageEditorInput {
 
-	private C4ObjectExtern object;
+	private C4ScriptBase script;
 	
-	public ObjectExternEditorInput(C4ObjectExtern object) {
+	public ScriptWithStorageEditorInput(C4ScriptBase object) {
 		super();
-		this.object = object;
+		this.script = object;
 	}
 
 	public boolean exists() {
-		return object != null;
+		return script != null;
 	}
 
 	public ImageDescriptor getImageDescriptor() {
@@ -30,7 +30,7 @@ public class ObjectExternEditorInput implements IEditorInput, IPathEditorInput, 
 	}
 
 	public String getName() {
-		return "[" + object.getName() + "]";
+		return "[" + script.getName() + "]";
 	}
 
 	public IPersistableElement getPersistable() {
@@ -39,7 +39,7 @@ public class ObjectExternEditorInput implements IEditorInput, IPathEditorInput, 
 	}
 
 	public String getToolTipText() {
-		return object.getName();
+		return script.getName();
 	}
 
 	@SuppressWarnings("unchecked")
@@ -60,15 +60,15 @@ public class ObjectExternEditorInput implements IEditorInput, IPathEditorInput, 
 	@Override
 
 	public boolean equals(Object obj) {
-		return (obj instanceof ObjectExternEditorInput && ((ObjectExternEditorInput)obj).object == object);
+		return (obj instanceof ScriptWithStorageEditorInput && ((ScriptWithStorageEditorInput)obj).script == script);
 	}
 
 	public IStorage getStorage() throws CoreException {
-		return (IStorage)object.getScriptFile();
+		return (IStorage)script.getScriptFile();
 	}
 
-	public C4Object getObject() {
-		return object;
+	public C4ScriptBase getScript() {
+		return script;
 	}
 
 }

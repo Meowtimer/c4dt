@@ -81,7 +81,7 @@ public abstract class C4Field implements Serializable  {
 	
 	public Object[] occurenceScope(ClonkProjectNature project) {
 		C4ScriptBase script = getScript();
-		if (script instanceof C4ObjectIntern || script instanceof C4SystemScript) {
+		if (script instanceof C4ObjectIntern || script instanceof C4ScriptIntern) {
 			return new Object[] {((IResource) script.getScriptFile()).getProject()};
 		}
 		return (project != null) ? new Object[] {project.getProject()} : EMPTY_SCOPE;
