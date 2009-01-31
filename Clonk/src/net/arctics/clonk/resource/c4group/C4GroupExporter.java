@@ -7,6 +7,7 @@ import java.io.OutputStreamWriter;
 import java.io.Writer;
 
 import net.arctics.clonk.ClonkCore;
+import net.arctics.clonk.Utilities;
 import net.arctics.clonk.preferences.PreferenceConstants;
 
 import org.eclipse.core.resources.IContainer;
@@ -41,20 +42,22 @@ public class C4GroupExporter {
 	}
 	
 	public void export(IProgressMonitor monitor) {
+//		Utilities.getDebugStream().println("Start exporting.");
 		if (monitor != null) monitor.beginTask("Export definitions", definitions.length);
 		IPreferencesService service = Platform.getPreferencesService();
 		boolean showExportLog = service.getBoolean(ClonkCore.PLUGIN_ID, PreferenceConstants.SHOW_EXPORT_LOG, false, null);
-		
+//		Utilities.getDebugStream().println("- Got Preferences.");
 		for(IResource res : definitions) {
 			if (!(res instanceof IContainer)) continue;
 			IContainer toExport = (IContainer)res;
 			try {
 				String OS = System.getProperty("os.name");
+//				Utilities.getDebugStream().println("- Got OS.");
 				if (monitor != null) monitor.subTask(toExport.getName());
 				String c4dpath = new Path(destinationPath).append(toExport.getName()).toOSString();
 				File oldFile = new File(new Path(destinationPath).append(toExport.getName()).toOSString());
 				if (oldFile.exists()) oldFile.delete();
-				
+//				Utilities.getDebugStream().println("- Got Files.");
 				// ugly hack :S create temporary file that uses /bin/sh to execute c4group 
 				if (OS.equals("Mac OS X")) {
 					if (scratchExecFile == null) {
@@ -74,25 +77,16 @@ public class C4GroupExporter {
 					MessageConsoleStream out = null;
 					if (showExportLog) {
 						// get console
-						MessageConsole myConsole = findConsole("Clonk");
+						MessageConsole myConsole = Utilities.getClonkConsole();
 						out = myConsole.newMessageStream();
-						IWorkbenchPage page = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
-						String id = IConsoleConstants.ID_CONSOLE_VIEW;
-						
-						// show console 
-						try {
-							IConsoleView view = (IConsoleView) page.showView(id);
-							view.display(myConsole);
-						} catch (PartInitException e) {
-							e.printStackTrace();
-						}
+						Utilities.displayClonkConsole();
 					}
 					
 					// create c4group command line
 					String[] cmdArray = new String[] { c4groupPath, c4dpath, "/r", "-a", new Path(toExport.getLocation().toString()).append("*").toOSString() };
 //					String cmd = "\"" + c4groupPath + "\" \"" + c4dpath + "\" /r -a \"" + new Path(toExport.getLocation().toString()).append("*").toOSString() + "\"";
 //					System.out.println(cmd);
-					
+//					Utilities.getDebugStream().println("- Constructed shell command.");
 					if (showExportLog) {
 						// show command line in console
 						StringBuilder cmdLine = new StringBuilder();
@@ -103,7 +97,7 @@ public class C4GroupExporter {
 					
 					// run c4group
 					Process c4group = Runtime.getRuntime().exec(cmdArray, new String[0], oldFile.getParentFile());
-					
+//					Utilities.getDebugStream().println("- Executed c4group.");
 					if (showExportLog) {
 						// pipe output to console
 						java.io.InputStream stream = c4group.getInputStream();
@@ -125,18 +119,8 @@ public class C4GroupExporter {
 			if (monitor != null) monitor.worked(1);
 		}
 		if (monitor != null) monitor.done();
+//		Utilities.getDebugStream().println("End exporting.");
 	}
 
-	private MessageConsole findConsole(String name) {
-		ConsolePlugin plugin = ConsolePlugin.getDefault();
-		IConsoleManager conMan = plugin.getConsoleManager();
-		IConsole[] existing = conMan.getConsoles();
-		for (int i = 0; i < existing.length; i++)
-			if (name.equals(existing[i].getName()))
-				return (MessageConsole) existing[i];
-		//no console found, so create a new one
-		MessageConsole myConsole = new MessageConsole(name, null);
-		conMan.addConsoles(new IConsole[]{myConsole});
-		return myConsole;
-	}
+
 }
