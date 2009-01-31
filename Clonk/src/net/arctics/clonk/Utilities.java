@@ -30,10 +30,24 @@ import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.ui.IEditorPart;
+import org.eclipse.ui.IWorkbenchPage;
+import org.eclipse.ui.PartInitException;
+import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.console.ConsolePlugin;
+import org.eclipse.ui.console.IConsole;
+import org.eclipse.ui.console.IConsoleConstants;
+import org.eclipse.ui.console.IConsoleManager;
+import org.eclipse.ui.console.IConsoleView;
+import org.eclipse.ui.console.MessageConsole;
+import org.eclipse.ui.console.MessageConsoleStream;
 import org.eclipse.ui.part.FileEditorInput;
 import org.eclipse.ui.texteditor.ITextEditor;
 
 public abstract class Utilities {
+	
+	private static MessageConsole clonkConsole = null;
+	private static MessageConsoleStream debugConsoleStream = null;
+	
 	public static ClonkProjectNature getProject(ITextEditor editor) {
 		try {
 			if (editor.getEditorInput() instanceof FileEditorInput) {
@@ -87,6 +101,46 @@ public abstract class Utilities {
 			catch(CoreException e) { }
 			
 		return c.toArray(new IProject [] {});
+	}
+	
+	public static MessageConsole getClonkConsole() {
+		if (clonkConsole == null) {
+			clonkConsole = getConsole("Clonk");
+		}
+		return clonkConsole;
+	}
+	
+	public static MessageConsole getConsole(String name) {
+		ConsolePlugin plugin = ConsolePlugin.getDefault();
+		IConsoleManager conMan = plugin.getConsoleManager();
+		IConsole[] existing = conMan.getConsoles();
+		for (int i = 0; i < existing.length; i++)
+			if (name.equals(existing[i].getName()))
+				return (MessageConsole) existing[i];
+		//no console found, so create a new one
+		MessageConsole console = new MessageConsole(name, null);
+		conMan.addConsoles(new IConsole[]{console});
+		return console;
+	}
+	
+	public static MessageConsoleStream getDebugStream() {
+		if (debugConsoleStream == null) {
+			debugConsoleStream = getConsole("Clonk Debug").newMessageStream();
+		}
+		return debugConsoleStream;
+	}
+	
+	public static void displayClonkConsole() {
+		IWorkbenchPage page = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
+		String id = IConsoleConstants.ID_CONSOLE_VIEW;
+		
+		// show console 
+		try {
+			IConsoleView view = (IConsoleView) page.showView(id);
+			view.display(getClonkConsole());
+		} catch (PartInitException e) {
+			e.printStackTrace();
+		}
 	}
 	
 	public static ClonkIndex getIndex(IResource res) {
