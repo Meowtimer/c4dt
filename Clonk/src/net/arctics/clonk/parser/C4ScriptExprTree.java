@@ -1520,7 +1520,7 @@ public abstract class C4ScriptExprTree {
 		@Override
 		public ExprElm newStyleReplacement(C4ScriptParser parser)
 				throws CloneNotSupportedException {
-			if (getParent() != null && !(getParent() instanceof ConditionalStatement) && !(this instanceof BunchOfStatements)) {
+			if (getParent() != null && !(getParent() instanceof KeywordStatement) && !(this instanceof BunchOfStatements)) {
 				return new BunchOfStatements(statements);
 			}
 			return super.newStyleReplacement(parser);
@@ -1733,6 +1733,7 @@ public abstract class C4ScriptExprTree {
 			super();
 			this.condition = condition;
 			this.body = body;
+			assignParentToSubElements();
 		}
 
 		protected void printBody(StringBuilder builder, int depth) {
@@ -1839,6 +1840,7 @@ public abstract class C4ScriptExprTree {
 			super(condition, body);
 			this.initializer = initializer;
 			this.increment = increment;
+			assignParentToSubElements();
 		}
 		@Override
 		public String getKeyword() {
@@ -1882,6 +1884,7 @@ public abstract class C4ScriptExprTree {
 			this.elementExpr = elementExpr;
 			this.arrayExpr   = arrayExpr;
 			this.body        = body;
+			assignParentToSubElements();
 		}
 
 		public ExprElm getArrayExpr() {

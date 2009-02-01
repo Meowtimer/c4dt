@@ -878,7 +878,8 @@ public class C4ScriptParser {
 		OperatorNeedsRightSide, NoAssignment, NoSideEffects, KeywordInWrongPlace, UndeclaredIdentifier,
 		OldStyleFunc, ValueExpected, TuplesNotAllowed, EmptyParentheses, ExpectedCode, ConstantValueExpected,
 		CommaOrSemicolonExpected, IncompatibleTypes, VariableCalled, TypeAsName, BlockNotClosed, UnknownDirective,
-		StatementExpected, ConditionExpected, OutOfIntRange, NoInheritedFunction, FunctionRedeclared, NeverReached, ObsoleteOperator;
+		StatementExpected, ConditionExpected, OutOfIntRange, NoInheritedFunction, FunctionRedeclared, NeverReached, ObsoleteOperator,
+		StringNotClosed;
 		
 		public String getErrorString(Object... format) {
 			return String.format(C4ScriptParser.errorStrings[ordinal()], format);
@@ -919,7 +920,8 @@ public class C4ScriptParser {
 		"No inherited version of %s found",
 		"Function overload: this function is already declared in this script",
 		"Code never reached",
-		"Obsolete operator '%s'"
+		"Obsolete operator '%s'",
+		"String not closed"
 	};
 	
 	private Set<ErrorCode> disabledErrors = new HashSet<ErrorCode>();
@@ -1385,7 +1387,7 @@ public class C4ScriptParser {
 			builder.append(fReader.readStringUntil((char)delimiter));
 		} while (builder.length() != 0 && (builder.charAt(builder.length() - 1) == '\\'));
 		if (fReader.read() != '"') {
-			throw new ParsingException("Internal parsing error.");
+			errorWithCode(ErrorCode.StringNotClosed, offset, fReader.getPosition()-1);
 		}
 		parsedString = builder.toString();
 		return true;

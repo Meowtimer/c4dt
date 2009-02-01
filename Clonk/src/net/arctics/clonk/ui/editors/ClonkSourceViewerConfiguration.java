@@ -157,9 +157,10 @@ public class ClonkSourceViewerConfiguration extends TextSourceViewerConfiguratio
 	public ITextDoubleClickStrategy getDoubleClickStrategy(
 		ISourceViewer sourceViewer,
 		String contentType) {
-		if (doubleClickStrategy == null)
-			doubleClickStrategy = new ClonkDoubleClickStrategy();
-		return doubleClickStrategy;
+		return super.getDoubleClickStrategy(sourceViewer, contentType);
+//		if (doubleClickStrategy == null)
+//			doubleClickStrategy = new ClonkDoubleClickStrategy();
+//		return doubleClickStrategy;
 	}
 
 	protected ITextEditor getEditor() {

@@ -6,7 +6,7 @@ import net.arctics.clonk.resource.ClonkProjectNature;
 
 import org.eclipse.core.resources.IResource;
 
-public abstract class C4Field implements Serializable  {
+public abstract class C4Field implements Serializable, IRelatedResource  {
 	/**
 	 * 
 	 */
@@ -86,4 +86,9 @@ public abstract class C4Field implements Serializable  {
 		}
 		return (project != null) ? new Object[] {project.getProject()} : EMPTY_SCOPE;
 	}
+	
+	public IResource getResource() {
+		return getScript().getResource();
+	}
+	
 }

@@ -1,6 +1,8 @@
 package net.arctics.clonk.parser;
 
 import java.io.Serializable;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -19,15 +21,23 @@ public class ClonkIndex implements Serializable, Iterable<C4Object> {
 	
 	private static final long serialVersionUID = 1L;
 
-	private Map<C4ID,List<C4Object>> indexedObjects;
-	private List<C4ScriptBase> indexedScripts;
-	private List<C4Scenario> indexedScenarios;
+	private Map<C4ID,List<C4Object>> indexedObjects = new HashMap<C4ID, List<C4Object>>();
+	private List<C4ScriptBase> indexedScripts = new LinkedList<C4ScriptBase>(); 
+	private List<C4Scenario> indexedScenarios = new LinkedList<C4Scenario>();
 	
-	private transient List<C4Function> globalFunctions;
-	private transient List<C4Variable> staticVariables;
+	private transient List<C4Function> globalFunctions = new LinkedList<C4Function>();
+	private transient List<C4Variable> staticVariables = new LinkedList<C4Variable>();
+	private transient Map<String, List<C4Field>> fieldMap = new HashMap<String, List<C4Field>>();
+	
+	public int numUniqueIds() {
+		return indexedObjects.size();
+	}
 	
 	public List<C4Object> getObjects(C4ID id) {
-		return getIndexedObjects().get(id);
+		if (indexedObjects == null)
+			return null;
+		List<C4Object> l = indexedObjects.get(id);
+		return l == null ? null : Collections.unmodifiableList(l);
 	}
 	
 	public void fixReferencesAfterSerialization() throws CoreException {
@@ -61,7 +71,7 @@ public class ClonkIndex implements Serializable, Iterable<C4Object> {
 			return null;
 		} catch (CoreException e) {
 			// likely due to getSessionProperty being called on non-existent resources
-			for (List<C4Object> list : getIndexedObjects().values()) {
+			for (List<C4Object> list : indexedObjects.values()) {
 				for (C4Object obj : list) {
 					if (obj instanceof C4ObjectIntern) {
 						C4ObjectIntern intern = (C4ObjectIntern)obj;
@@ -74,56 +84,54 @@ public class ClonkIndex implements Serializable, Iterable<C4Object> {
 			return null;
 		}
 	}
-	
-	public List<C4Function> getGlobalFunctions() {
-		if (globalFunctions == null) {
-			globalFunctions = new LinkedList<C4Function>();
-			
-			refreshCache();
-		}
-		return globalFunctions;
-	}
-	
-	public List<C4Variable> getStaticVariables() {
-		if (staticVariables == null) {
-			staticVariables = new LinkedList<C4Variable>();
-			refreshCache();
-		}
-		return staticVariables;
-	}
 
+	private void addToFieldMap(C4Field field) {
+		List<C4Field> list = fieldMap.get(field.getName());
+		if (list == null) {
+			list = new LinkedList<C4Field>();
+			fieldMap.put(field.getName(), list);
+		}
+		list.add(field);
+	}
+	
 	private void addGlobalsFrom(C4ScriptBase script) {
 		for(C4Function func : script.definedFunctions) {
 			if (func.getVisibility() == C4FunctionScope.FUNC_GLOBAL) {
 				globalFunctions.add(func);
 			}
+			addToFieldMap(func);
 		}
 		for(C4Variable var : script.definedVariables) {
 			if (var.getScope() == C4VariableScope.VAR_STATIC || var.getScope() == C4VariableScope.VAR_CONST) {
 				staticVariables.add(var);
 			}
+			addToFieldMap(var);
+		}
+	}
+	
+	private <T extends C4ScriptBase> void addGlobalsFrom(Iterable<T> scripts) {
+		for (T script : scripts) {
+			addGlobalsFrom(script);
 		}
 	}
 	
 	public void refreshCache() {
 		// delete old cache
-		if (globalFunctions != null) globalFunctions.clear();
-		else globalFunctions = new LinkedList<C4Function>();
-		if (staticVariables != null) staticVariables.clear();
-		else staticVariables = new LinkedList<C4Variable>();
+		
+		if (globalFunctions == null)
+			globalFunctions = new LinkedList<C4Function>();
+		if (staticVariables == null)
+			staticVariables = new LinkedList<C4Variable>();
+		if (fieldMap == null)
+			fieldMap = new HashMap<String, List<C4Field>>();
+		globalFunctions.clear();
+		staticVariables.clear();
+		fieldMap.clear();
 		
 		// save cachable items
-		for(List<C4Object> objects : getIndexedObjects().values()) {
-			for(C4Object obj : objects) {
-				addGlobalsFrom(obj);
-			}
-		}
-		for (C4ScriptBase script : getIndexedScripts()) {
-			addGlobalsFrom(script);
-		}
-		for (C4Scenario scen : getIndexedScenarios()) {
-			addGlobalsFrom(scen);
-		}
+		addGlobalsFrom(this);
+		addGlobalsFrom(indexedScripts);
+		addGlobalsFrom(indexedScenarios);
 		
 //		System.out.println("Functions added to cache:");
 //		for (C4Function func : globalFunctions)
@@ -142,7 +150,7 @@ public class ClonkIndex implements Serializable, Iterable<C4Object> {
 	public void addObject(C4Object obj) {
 		if (obj.getId() == null)
 			return;
-		List<C4Object> alreadyDefinedObjects = getIndexedObjects().get(obj.getId());
+		List<C4Object> alreadyDefinedObjects = indexedObjects.get(obj.getId());
 		if (alreadyDefinedObjects == null) {
 			alreadyDefinedObjects = new LinkedList<C4Object>();
 			indexedObjects.put(obj.getId(), alreadyDefinedObjects);
@@ -162,7 +170,7 @@ public class ClonkIndex implements Serializable, Iterable<C4Object> {
 	public void removeObject(C4Object obj) {
 		if (obj.getId() == null)
 			return;
-		List<C4Object> alreadyDefinedObjects = getIndexedObjects().get(obj.getId());
+		List<C4Object> alreadyDefinedObjects = indexedObjects.get(obj.getId());
 		if (alreadyDefinedObjects != null) {
 			alreadyDefinedObjects.remove(obj);
 			if (alreadyDefinedObjects.size() == 0) { // if there are no more objects with this C4ID
@@ -173,15 +181,15 @@ public class ClonkIndex implements Serializable, Iterable<C4Object> {
 	
 	public void addScript(C4ScriptBase script) {
 		if (script instanceof C4Scenario) {
-			if (!getIndexedScenarios().contains(script))
-				getIndexedScenarios().add((C4Scenario) script);
+			if (!indexedScenarios.contains(script))
+				indexedScenarios.add((C4Scenario) script);
 		}
 		else if (script instanceof C4Object) {
 			addObject((C4Object)script);
 		}
 		else {
-			if (!getIndexedScripts().contains(script))
-				getIndexedScripts().add(script);
+			if (!indexedScripts.contains(script))
+				indexedScripts.add(script);
 		}
 	}
 	
@@ -189,7 +197,7 @@ public class ClonkIndex implements Serializable, Iterable<C4Object> {
 		if (script instanceof C4Object)
 			removeObject((C4Object)script);
 		else
-			getIndexedScripts().remove(script);
+			indexedScripts.remove(script);
 	}
 	
 	/**
@@ -197,31 +205,27 @@ public class ClonkIndex implements Serializable, Iterable<C4Object> {
 	 * @return
 	 */
 	public boolean isEmpty() {
-		if (getIndexedObjects() != null) {
-			return indexedObjects.isEmpty();
-		}
-		return true;
-	}
-	
-	public Map<C4ID, List<C4Object>> getIndexedObjects() {
-		if (indexedObjects == null) {
-			indexedObjects = new HashMap<C4ID, List<C4Object>>();
-		}
-		return indexedObjects;
+		return indexedObjects.isEmpty();
 	}
 	
 	public List<C4Scenario> getIndexedScenarios() {
-		if (indexedScenarios == null) {
-			indexedScenarios = new LinkedList<C4Scenario>();
-		}
-		return indexedScenarios;
+		return Collections.unmodifiableList(indexedScenarios);
 	}
 	
 	public List<C4ScriptBase> getIndexedScripts() {
-		if (indexedScripts == null) {
-			indexedScripts = new LinkedList<C4ScriptBase>();
-		}
-		return indexedScripts;
+		return Collections.unmodifiableList(indexedScripts);
+	}
+	
+	public List<C4Function> getGlobalFunctions() {
+		return Collections.unmodifiableList(globalFunctions);
+	}
+	
+	public List<C4Variable> getStaticVariables() {
+		return Collections.unmodifiableList(staticVariables);
+	}
+	
+	public Map<String, List<C4Field>> getFieldMap() {
+		return Collections.unmodifiableMap(fieldMap);
 	}
 
 	public C4Object getLastObjectWithId(C4ID id) {
@@ -236,25 +240,32 @@ public class ClonkIndex implements Serializable, Iterable<C4Object> {
 		}
 		return null;
 	}
-	
-	public C4Object getObjectNearestTo(IResource resource, C4ID id) {
-		List<C4Object> objs = getObjects(id);
-		if (objs == null)
-			return null;
+
+	private <T extends IRelatedResource> T pickNearest(IResource resource, Collection<T> fromList) {
 		int bestDist = 1000;
-		C4Object best = null;
-		for (C4Object o : objs) {
-			int newDist;
-			if (o instanceof C4ObjectIntern)
-				newDist = Utilities.distanceToCommonContainer(resource, ((C4ObjectIntern)o).getObjectFolder());
-			else
-				newDist = 100;
-			if (best == null || newDist < bestDist) {
-				best = o;
-				bestDist = newDist;
+		T best = null;
+		if (fromList != null) {
+			for (T o : fromList) {
+				int newDist;
+				if (o instanceof C4ObjectIntern)
+					newDist = Utilities.distanceToCommonContainer(resource, ((C4ObjectIntern)o).getObjectFolder());
+				else
+					newDist = 100;
+				if (best == null || newDist < bestDist) {
+					best = o;
+					bestDist = newDist;
+				}
 			}
 		}
-		if (best == null)
+		return best;
+	}
+	
+	public C4Object getObjectNearestTo(IResource resource, C4ID id) {
+		if (resource == null)
+			return getObjectFromEverywhere(id);
+		List<C4Object> objs = getObjects(id);
+		C4Object best = pickNearest(resource, objs);
+		if (best == null && this != ClonkCore.getDefault().EXTERN_INDEX)
 			best = ClonkCore.getDefault().EXTERN_INDEX.getLastObjectWithId(id);
 		return best;
 	}
@@ -271,23 +282,20 @@ public class ClonkIndex implements Serializable, Iterable<C4Object> {
 		return result;
 	}
 	
-	public C4Object getObjectWithIDPreferringInterns(C4ID id) {
-		List<C4Object> objs = getObjects(id);
-		if (objs != null) {
-			C4Object best = null;
-			for (C4Object obj : objs) {
-				if (best == null || obj instanceof C4ObjectIntern)
-					best = obj;
-			}
-			return best;
+	public C4Function findGlobalFunction(String functionName) {
+		for (C4Function func : globalFunctions) {
+			if (func.getName().equals(functionName))
+				return func;
 		}
 		return null;
 	}
 	
-	public C4Function findGlobalFunction(String functionName) {
-		for (C4Function func : getGlobalFunctions()) {
-			if (func.getName().equals(functionName))
-				return func;
+	public C4Variable findGlobalVariable(String variableName) {
+		if (staticVariables == null)
+			return null;
+		for (C4Variable var : staticVariables) {
+			if (var.getName().equals(variableName))
+				return var;
 		}
 		return null;
 	}
@@ -296,17 +304,23 @@ public class ClonkIndex implements Serializable, Iterable<C4Object> {
 		C4Function f = findGlobalFunction(fieldName);
 		if (f != null)
 			return f;
-		for (C4Variable var : getStaticVariables()) {
-			if (var.getName().equals(fieldName))
-				return var;
+		return findGlobalVariable(fieldName);
+	}
+	
+	public C4Field findGlobalField(String fieldName, IResource pivot) {
+		if (pivot == null)
+			return findGlobalField(fieldName);
+		List<C4Field> fields = fieldMap.get(fieldName);
+		if (fields != null) {
+			return pickNearest(pivot, fields);
 		}
 		return null;
 	}
 
 	public void clear() {
-		getIndexedObjects().clear();
-		getIndexedScripts().clear();
-		getIndexedScenarios().clear();
+		indexedObjects.clear();
+		indexedScripts.clear();
+		indexedScenarios.clear();
 		refreshCache();
 	}
 	
@@ -341,6 +355,30 @@ public class ClonkIndex implements Serializable, Iterable<C4Object> {
 
 	public Iterator<C4Object> iterator() {
 		return new ObjectIterator();
+	}
+	
+	public Iterable<C4Object> objectsIgnoringRemoteDuplicates(final IResource pivot) {
+		return new Iterable<C4Object>() {
+			public Iterator<C4Object> iterator() {
+				final Iterator<List<C4Object>> listIterator = indexedObjects.values().iterator();
+				return new Iterator<C4Object>() {
+					
+					public boolean hasNext() {
+						return listIterator.hasNext();
+					}
+
+					public C4Object next() {
+						List<C4Object> nextList = listIterator.next();
+						return pickNearest(pivot, nextList);
+					}
+
+					public void remove() {
+						// ...
+					}
+					
+				};
+			}
+		};
 	}
 
 }

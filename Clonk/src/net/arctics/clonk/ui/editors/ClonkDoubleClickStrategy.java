@@ -3,7 +3,7 @@ package net.arctics.clonk.ui.editors;
 import org.eclipse.jface.text.*;
 import org.eclipse.jface.text.source.DefaultCharacterPairMatcher;
 
-public class ClonkDoubleClickStrategy implements ITextDoubleClickStrategy {
+public class ClonkDoubleClickStrategy extends DefaultTextDoubleClickStrategy {
 	protected ITextViewer fText;
 
 //	protected final char[] blockStartDelimiters = new char[] { '{'

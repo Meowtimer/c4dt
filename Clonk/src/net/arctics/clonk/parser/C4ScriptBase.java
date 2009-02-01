@@ -21,7 +21,7 @@ import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.ITextSelection;
 import org.eclipse.jface.text.Region;
 
-public abstract class C4ScriptBase extends C4Structure {
+public abstract class C4ScriptBase extends C4Structure implements IRelatedResource {
 	/**
 	 * 
 	 */
@@ -168,22 +168,20 @@ public abstract class C4ScriptBase extends C4Structure {
 		
 		// finally look if it's something global
 		if (info.recursion == 0 && this != ClonkCore.getDefault().ENGINE_OBJECT) { // .-.
-			C4Field f;
+			C4Field f = null;
+			// definition from extern index
+			if (Utilities.looksLikeID(name)) {
+				f = info.index.getObjectNearestTo(getResource(), C4ID.getID(name));
+			}
 			// global stuff defined in project
-			f = info.index.findGlobalField(name);
+			if (f == null)
+				f = info.index.findGlobalField(name);
 			// engine function
 			if (f == null)
 				f = ClonkCore.getDefault().ENGINE_OBJECT.findField(name, info);
 			// function in extern lib
 			if (f == null && info.index != ClonkCore.getDefault().EXTERN_INDEX) {
-				f = ClonkCore.getDefault().EXTERN_INDEX.findGlobalField(name);
-			}
-			// definition
-			if (f == null && Utilities.looksLikeID(name)) {
-				//List<C4Object> objects = info.index.getObjects(C4ID.getID(name));
-				f = info.index.getLastObjectWithId(C4ID.getID(name));
-				if (f == null)
-					f = ClonkCore.getDefault().EXTERN_INDEX.getLastObjectWithId(C4ID.getID(name));
+				f = ClonkCore.getDefault().EXTERN_INDEX.findGlobalField(name, getResource());
 			}
 			
 			if (f != null && (info.fieldClass == null || info.fieldClass.isAssignableFrom(f.getClass())))

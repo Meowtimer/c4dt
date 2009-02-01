@@ -21,11 +21,9 @@ public class ProjectIndex extends ClonkIndex {
 	}
 	
 	public void fixReferencesAfterSerialization() throws CoreException {
-		for (List<C4Object> list : getIndexedObjects().values()) {
-			for (C4Object obj : list) {
-				if (obj instanceof C4ObjectIntern) {
-					((C4ObjectIntern)obj).refreshFolderReference(project);
-				}
+		for (C4Object object : this) {
+			if (object instanceof C4ObjectIntern) {
+				((C4ObjectIntern)object).refreshFolderReference(project);
 			}
 		}
 		for (C4Scenario scenario : getIndexedScenarios()) {

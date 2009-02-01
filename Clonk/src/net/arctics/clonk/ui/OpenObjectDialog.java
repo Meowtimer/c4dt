@@ -101,10 +101,9 @@ public class OpenObjectDialog extends FilteredItemsSelectionDialog {
 	private void fillWithIndexContents(AbstractContentProvider contentProvider,
 			ItemsFilter itemsFilter, IProgressMonitor progressMonitor,
 			ClonkIndex index) {
-		Map<C4ID,List<C4Object>> objects = index.getIndexedObjects();
-		progressMonitor.beginTask("Searching", objects.size());
-		for(List<C4Object> idObjects : objects.values()) {
-			contentProvider.add(idObjects.get(idObjects.size() - 1), itemsFilter);
+		progressMonitor.beginTask("Searching", index.numUniqueIds());
+		for(C4Object object : index) {
+			contentProvider.add(object, itemsFilter);
 			progressMonitor.worked(1);
 		}
 		progressMonitor.done();

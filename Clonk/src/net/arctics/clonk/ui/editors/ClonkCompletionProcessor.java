@@ -170,8 +170,8 @@ public class ClonkCompletionProcessor implements IContentAssistProcessor {
 			for (C4Variable var : index.getStaticVariables()) {
 				proposalForVar(var,prefix,offset,proposals);
 			}
-			for (List<C4Object> objs : index.getIndexedObjects().values()) {
-				proposalForObject(objs.get(objs.size()-1), prefix, wordOffset, proposals);
+			for (C4Object obj : index.objectsIgnoringRemoteDuplicates(Utilities.getScriptForEditor(editor).getResource())) {
+				proposalForObject(obj, prefix, wordOffset, proposals);
 			}
 		}
 	}

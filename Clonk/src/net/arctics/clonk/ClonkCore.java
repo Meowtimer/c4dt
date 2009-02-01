@@ -163,7 +163,7 @@ public class ClonkCore extends AbstractUIPlugin {
 	}
 	
 	private void chanceToAddMissingThingsToEngine() {
-		removeSystemDuplicates();
+	//	removeSystemDuplicates();
 	}
 
 	public static IPath getEngineCacheFile() {
@@ -227,6 +227,7 @@ public class ClonkCore extends AbstractUIPlugin {
 				FileInputStream in = new FileInputStream(index);
 				ObjectInputStream objStream = new InputStreamRespectingUniqueIDs(in);
 				EXTERN_INDEX = (ClonkIndex)objStream.readObject();
+				EXTERN_INDEX.fixReferencesAfterSerialization();
 			} catch (Exception e) {
 				EXTERN_INDEX = new ClonkIndex();
 			}
