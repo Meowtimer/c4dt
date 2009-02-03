@@ -262,7 +262,7 @@ public class ClonkCompletionProcessor implements IContentAssistProcessor {
 			
 			for(String directive : BuiltInDefinitions.DIRECTIVES) {
 				if (prefix != null) {
-					if (!directive.toLowerCase().startsWith(prefix)) continue;
+					if (!directive.toLowerCase().contains(prefix)) continue;
 				}
 				ImageRegistry reg = ClonkCore.getDefault().getImageRegistry();
 				if (reg.get("directive") == null) {

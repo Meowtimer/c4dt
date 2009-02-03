@@ -74,8 +74,6 @@ public class ClonkCore extends AbstractUIPlugin {
 		
 		loadEngineObject();
 		loadExternIndex();
-		chanceToAddMissingThingsToEngine();
-		
 	}
 	
 	private void loadIniConfigurations() {
@@ -138,29 +136,29 @@ public class ClonkCore extends AbstractUIPlugin {
 		}
 	}
 	
-	private int nooper;
-	
-	private void addFunction(String name, C4Type retType, C4Type... parmTypes) {
-		C4Variable[] parms = new C4Variable[parmTypes.length];
-		for (int i = 0; i < parms.length; i++)
-			parms[i] = new C4Variable("par"+i, parmTypes[i], "", C4VariableScope.VAR_VAR);
-		C4Function f = new C4Function(name, retType, parms);
-		ENGINE_OBJECT.addField(f);
-	}
-	
-	private void removeSystemDuplicates() {
-		List<C4Function> toBeRemoved = new LinkedList<C4Function>();
-		for (C4Function f : ENGINE_OBJECT.functions()) {
-			C4Function dup = EXTERN_INDEX.findGlobalFunction(f.getName());
-			if (dup != null && dup.getScript() instanceof C4ScriptExtern)
-				toBeRemoved.add(f);
-		}
-		if (toBeRemoved.size() != 0) {
-			for (C4Function r : toBeRemoved)
-				ENGINE_OBJECT.removeField(r);
-			saveEngineObject();
-		}
-	}
+//	private int nooper;
+//	
+//	private void addFunction(String name, C4Type retType, C4Type... parmTypes) {
+//		C4Variable[] parms = new C4Variable[parmTypes.length];
+//		for (int i = 0; i < parms.length; i++)
+//			parms[i] = new C4Variable("par"+i, parmTypes[i], "", C4VariableScope.VAR_VAR);
+//		C4Function f = new C4Function(name, retType, parms);
+//		ENGINE_OBJECT.addField(f);
+//	}
+//	
+//	private void removeSystemDuplicates() {
+//		List<C4Function> toBeRemoved = new LinkedList<C4Function>();
+//		for (C4Function f : ENGINE_OBJECT.functions()) {
+//			C4Function dup = EXTERN_INDEX.findGlobalFunction(f.getName());
+//			if (dup != null && dup.getScript() instanceof C4ScriptExtern)
+//				toBeRemoved.add(f);
+//		}
+//		if (toBeRemoved.size() != 0) {
+//			for (C4Function r : toBeRemoved)
+//				ENGINE_OBJECT.removeField(r);
+//			saveEngineObject();
+//		}
+//	}
 	
 	private void chanceToAddMissingThingsToEngine() {
 	//	removeSystemDuplicates();

@@ -178,7 +178,8 @@ public class C4ScriptEditor extends TextEditor implements IShowInSource, IShowIn
 	@Override
 	protected void editorContextMenuAboutToShow(IMenuManager menu) {
 		super.editorContextMenuAboutToShow(menu);
-		addAction(menu, ClonkCommandIds.CONVERT_OLD_CODE_TO_NEW_CODE);
+		if (!(getEditorInput() instanceof ScriptWithStorageEditorInput))
+			addAction(menu, ClonkCommandIds.CONVERT_OLD_CODE_TO_NEW_CODE);
 		addAction(menu, ClonkCommandIds.OPEN_DECLARATION);
 		addAction(menu, ClonkCommandIds.FIND_REFERENCES);
 		//addAction(menu, ClonkCommandIds.RENAME_FIELD);

@@ -115,7 +115,7 @@ public class ClonkIndex implements Serializable, Iterable<C4Object> {
 		}
 	}
 	
-	public void refreshCache() {
+	public synchronized void refreshCache() {
 		// delete old cache
 		
 		if (globalFunctions == null)

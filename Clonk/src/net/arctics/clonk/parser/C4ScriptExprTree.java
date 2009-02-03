@@ -3,11 +3,13 @@ package net.arctics.clonk.parser;
 import java.io.Serializable;
 import java.util.LinkedList;
 import java.util.List;
+
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.C4ScriptParser.ErrorCode;
 import net.arctics.clonk.parser.C4ScriptParser.Keywords;
 import net.arctics.clonk.parser.C4ScriptParser.ParsingException;
 import net.arctics.clonk.parser.C4Variable.C4VariableScope;
+
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.Region;
 
@@ -1623,6 +1625,15 @@ public abstract class C4ScriptExprTree {
 			builder.append(getKeyword());
 			builder.append(";");
 		}
+		
+		protected void printBody(ExprElm body, StringBuilder builder, int depth) {
+			if (!(body instanceof Block)) {
+				builder.append("\n");
+				printIndent(builder, depth);
+			} else
+				builder.append(" ");
+			body.print(builder, depth + ((body instanceof Block) ? 0 : 1));
+		}
 	}
 	
 	public static class ContinueStatement extends KeywordStatement {
@@ -1737,12 +1748,7 @@ public abstract class C4ScriptExprTree {
 		}
 
 		protected void printBody(StringBuilder builder, int depth) {
-			if (!(body instanceof Block)) {
-				builder.append("\n");
-				printIndent(builder, depth);
-			} else
-				builder.append(" ");
-			body.print(builder, depth + ((body instanceof Block) ? 0 : 1));
+			printBody(body, builder, depth);
 		}
 		
 		@Override
@@ -1918,11 +1924,7 @@ public abstract class C4ScriptExprTree {
 			builder.append(" " + Keywords.In + " ");
 			arrayExpr.print(builder, depth+1);
 			builder.append(") ");
-			if (!(body instanceof Block)) {
-				builder.append("\n");
-				printIndent(builder, depth);
-			}
-			body.print(builder, depth);
+			printBody(body, builder, depth);
 		}
 
 		public ExprElm getBody() {

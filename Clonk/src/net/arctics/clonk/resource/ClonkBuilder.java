@@ -47,7 +47,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 	
 	private int buildPhase;
 	private IProgressMonitor monitor;
-	// keeps of track of parsers created for specific scripts
+	// keeps track of parsers created for specific scripts
 	private Map<C4ScriptBase, C4ScriptParser> parserMap = new HashMap<C4ScriptBase, C4ScriptParser>();
 	
 	public ClonkBuilder() {
@@ -241,21 +241,6 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 	public boolean visit(IResourceDelta delta) throws CoreException {
 		if (delta == null) 
 			return false;
-		
-//		for (Field f : IResourceDelta.class.getFields()) {
-//			try {
-//				if (delta.getKind() ==  f.getInt(null)) {
-//					System.out.println(f.getName() + ": " + delta.getResource().getName());
-//					break;
-//				}
-//			} catch (IllegalArgumentException e) {
-//				// TODO Auto-generated catch block
-//				e.printStackTrace();
-//			} catch (IllegalAccessException e) {
-//				// TODO Auto-generated catch block
-//				e.printStackTrace();
-//			}
-//		}
 
 		if (delta.getResource() instanceof IFile) {
 			if (delta.getKind() == IResourceDelta.CHANGED || delta.getKind() == IResourceDelta.ADDED) {
