@@ -43,13 +43,22 @@ public class IntegerArray implements IEntryCreateable {
 
 	public void setInput(String input) throws IniParserException {
 		try {
+			// empty input should be okay
+			if (input.equals("")) {
+				this.integers = new int[] {};
+				return;
+			}
 			String[] parts = input.split(",");
 			if (parts.length > 0) {
 				int[] integers = new int[parts.length];
 				for(int i = 0; i < parts.length;i++) {
 					parts[i] = parts[i].trim();
-					if (parts[i].startsWith("+")) parts[i] = parts[i].substring(1);
-					integers[i] = Integer.parseInt(parts[i].trim());
+					if (parts[i].equals(""))
+						integers[i] = 0;
+					else {
+						if (parts[i].startsWith("+")) parts[i] = parts[i].substring(1);
+						integers[i] = Integer.parseInt(parts[i].trim());
+					}
 				}
 				this.integers = integers;
 			}

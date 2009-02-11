@@ -114,6 +114,7 @@
       <entry name="CanChop" class="net.arctics.clonk.parser.defcore.SignedInteger" description="0 oder 1. Fällen."/>
       <entry name="CorrosionResist" class="net.arctics.clonk.parser.defcore.SignedInteger" description="0 oder 1. Legt fest, ob das Objekt Säure widersteht."/>
       <entry name="BreatheWater" class="net.arctics.clonk.parser.defcore.SignedInteger" description="0 Objekt atmet Luft, 1 Objekt atmet Wasser."/>
+      <entry name="CanFly" class="net.arctics.clonk.parser.defcore.SignedInteger" description="0 Objekt kann nicht fliegen, 1 Objekt kann fliegen."/>
     </section>
   </file>
 </clonkiniconfig>

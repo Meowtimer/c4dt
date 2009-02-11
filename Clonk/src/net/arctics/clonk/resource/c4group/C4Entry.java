@@ -247,6 +247,7 @@ public class C4Entry implements C4GroupItem, IStorage, Serializable {
 		return true;
 	}
 
+	@SuppressWarnings("unchecked")
 	public Object getAdapter(Class cls) {
 		if (cls == C4Entry.class)
 			return this;

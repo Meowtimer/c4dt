@@ -65,7 +65,7 @@ public class DefCoreParser extends IniReader {
 				throw e;
 			}
 		} catch (InvalidClassException e) {
-			throw new IniParserException(IMarker.SEVERITY_WARNING, "There is a bug the ini scheme. Report the following data to a C4DT developer: " + e.getMessage(),entry.getStartPos(),entry.getStartPos() + entry.getKey().length());
+			throw new IniParserException(IMarker.SEVERITY_WARNING, "There is a bug in the ini scheme. Report the following data to a C4DT developer: " + e.getMessage(),entry.getStartPos(),entry.getStartPos() + entry.getKey().length());
 		}
 	}
 

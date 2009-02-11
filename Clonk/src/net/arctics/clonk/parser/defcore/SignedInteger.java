@@ -26,7 +26,11 @@ public class SignedInteger implements IEntryCreateable {
 
 	public void setInput(String input) throws IniParserException {
 		try {
-			x = Integer.parseInt(input.trim());
+			input = input.trim();
+			if (input.equals(""))
+				x = 0;
+			else
+				x = Integer.parseInt(input.trim());
 		}
 		catch(NumberFormatException e) {
 			IniParserException exp = new IniParserException(IMarker.SEVERITY_ERROR, "Expected an integer instead of '" + input + "'");
