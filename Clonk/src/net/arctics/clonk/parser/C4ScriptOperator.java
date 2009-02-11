@@ -62,6 +62,10 @@ public enum C4ScriptOperator {
 		stringToOperatorMap = Collections.unmodifiableMap(workInProgress);
 	}
 	
+	public static C4ScriptOperator getOperator(String opName) {
+		return stringToOperatorMap.get(opName);
+	}
+	
 	private C4ScriptOperator(C4Type firstArgType, C4Type secondArgType,
 			C4Type resultType, String operatorName, int priority,
 			String oldStyleFunctionEquivalent) {

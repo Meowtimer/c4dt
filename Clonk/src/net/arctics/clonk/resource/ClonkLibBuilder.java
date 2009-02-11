@@ -10,6 +10,8 @@ import net.arctics.clonk.parser.C4ObjectExtern;
 import net.arctics.clonk.parser.C4ScriptExtern;
 import net.arctics.clonk.parser.C4ScriptParser;
 import net.arctics.clonk.parser.CompilerException;
+import net.arctics.clonk.parser.C4ObjectExternGroup;
+import net.arctics.clonk.parser.INodeWithParent;
 import net.arctics.clonk.parser.defcore.DefCoreParser;
 import net.arctics.clonk.preferences.PreferenceConstants;
 import net.arctics.clonk.resource.c4group.C4Entry;
@@ -36,6 +38,7 @@ import org.eclipse.swt.widgets.Display;
 public class ClonkLibBuilder implements IC4GroupVisitor, IPropertyChangeListener {
 	
 	private boolean buildNeeded = false;
+	private INodeWithParent currentExternNode;
 	
 	public ClonkLibBuilder() {
 		ClonkCore.getDefault().getPreferenceStore().addPropertyChangeListener(this);
@@ -134,7 +137,8 @@ public class ClonkLibBuilder implements IC4GroupVisitor, IPropertyChangeListener
 					DefCoreParser defCoreWrapper = new DefCoreParser(new ByteArrayInputStream(defCore.getContentsAsArray()));
 					try {
 						defCoreWrapper.parse();
-						C4ObjectExtern obj = new C4ObjectExtern(defCoreWrapper.getObjectID(),defCoreWrapper.getName(),script);
+						C4ObjectExtern obj = new C4ObjectExtern(defCoreWrapper.getObjectID(),defCoreWrapper.getName(),script, currentExternNode);
+						currentExternNode = obj;
 						C4ScriptParser parser = new C4ScriptParser(script.getContents(),script.computeSize(),obj);
 						// we only need declarations
 						parser.clean();
@@ -152,12 +156,15 @@ public class ClonkLibBuilder implements IC4GroupVisitor, IPropertyChangeListener
 						e.printStackTrace();
 					}
 				}
+				else
+					currentExternNode = new C4ObjectExternGroup(item.getName(), currentExternNode);
 			}
 			else if (groupType == C4GroupType.ResourceGroup) { // System.c4g like
+				currentExternNode = new C4ObjectExternGroup(item.getName(), currentExternNode);
 				for (C4GroupItem child : group.getChildEntries()) {
 					if (child.getName().endsWith(".c")) {
 						try {
-							C4ScriptExtern externScript = new C4ScriptExtern(child);
+							C4ScriptExtern externScript = new C4ScriptExtern(child, currentExternNode);
 							C4ScriptParser parser = new C4ScriptParser(((C4Entry)child).getContents(),((C4Entry)child).computeSize(), externScript);
 							parser.parseDeclarations();
 							ClonkCore.getDefault().EXTERN_INDEX.addScript(externScript);

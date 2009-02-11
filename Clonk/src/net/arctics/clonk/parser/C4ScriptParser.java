@@ -64,6 +64,10 @@ public class C4ScriptParser {
 		public static final String False = "false";
 	}
 	
+//	private interface IErrorHook {
+//		public boolean handle(ErrorCode code, Object... arguments);
+//	}
+	
 	public static class ParsingException extends Exception {
 
 		private static final long serialVersionUID = 1L;
@@ -84,6 +88,7 @@ public class C4ScriptParser {
 	}
 	
 	private IExpressionListener expressionListener;
+//	private IErrorHook errorHook;
 
 	public IExpressionListener getExpressionListener() {
 		return expressionListener;
@@ -109,6 +114,8 @@ public class C4ScriptParser {
 	private int parseExpressionRecursion;
 	private int parseStatementRecursion;
 	private int blockDepth;
+	
+	private LoopType currentLoop;
 	
 	public static final int MAX_PAR = 10;
 	public static final int UNKNOWN_PARAMETERNUM = MAX_PAR+1;
@@ -835,7 +842,7 @@ public class C4ScriptParser {
 	 * @param offset
 	 * @return the operator referenced in the code at offset
 	 */
-	private C4ScriptOperator parseOperator_(int offset) {
+	private C4ScriptOperator parseOperator(int offset) {
 		fReader.seek(offset);
 
 		final char[] chars = new char[] { (char)fReader.read(), (char)fReader.read()  };
@@ -847,7 +854,7 @@ public class C4ScriptParser {
 			return null;
 		}
 
-		C4ScriptOperator result = C4ScriptOperator.stringToOperatorMap.get(s);
+		C4ScriptOperator result = C4ScriptOperator.getOperator(s);
 		if (result != null) {
 			// new_variable should not be parsed as ne w_variable -.-
 			if (result == C4ScriptOperator.ne || result == C4ScriptOperator.eq) {
@@ -862,7 +869,7 @@ public class C4ScriptParser {
 		}
 
 		s = s.substring(0, 1);
-		result = C4ScriptOperator.stringToOperatorMap.get(s);
+		result = C4ScriptOperator.getOperator(s);
 		if (result != null) {
 			fReader.unread();
 			return result;
@@ -956,7 +963,7 @@ public class C4ScriptParser {
 	}
 	
 	void errorWithCode(ErrorCode code, int errorStart, int errorEnd, boolean noThrow, Object... args) throws ParsingException {
-		if (errorDisabled(code))
+		if (errorDisabled(code))// || (errorHook != null && errorHook.handle(code, args)))
 			return;
 		String problem = code.getErrorString(args);
 		createErrorMarker(errorStart, errorEnd, problem);
@@ -985,7 +992,7 @@ public class C4ScriptParser {
 		fReader.seek(offset);
 		this.eatWhitespace();
 		int sequenceStart = fReader.getPosition();
-		C4ScriptOperator preop = parseOperator_(fReader.getPosition());
+		C4ScriptOperator preop = parseOperator(fReader.getPosition());
 		ExprElm result = null;
 		if (preop != null && preop.isPrefix()) {
 			ExprElm followingExpr = parseExpressionWithoutOperators(fReader.getPosition(), reportErrors);
@@ -1012,7 +1019,7 @@ public class C4ScriptParser {
 			int elmStart = fReader.getPosition();
 
 			// operator always ends a sequence without operators
-			if (parseOperator_(fReader.getPosition()) != null) {// || fReader.readWord().equals(Keywords.In)) {
+			if (parseOperator(fReader.getPosition()) != null) {// || fReader.readWord().equals(Keywords.In)) {
 				fReader.seek(elmStart);
 				break;
 			}
@@ -1198,7 +1205,7 @@ public class C4ScriptParser {
 		if (!dontCheckForPostOp) {
 			this.eatWhitespace();
 			int saved = fReader.getPosition();
-			C4ScriptOperator postop = parseOperator_(fReader.getPosition());
+			C4ScriptOperator postop = parseOperator(fReader.getPosition());
 			if (postop != null) {
 				if (postop.isPostfix()) {
 					ExprUnaryOp op = new ExprUnaryOp(postop, ExprUnaryOp.Placement.Postfix, result);
@@ -1305,7 +1312,7 @@ public class C4ScriptParser {
 						fReader.unread();
 
 						int operatorPos = fReader.getPosition();
-						C4ScriptOperator op = parseOperator_(fReader.getPosition());
+						C4ScriptOperator op = parseOperator(fReader.getPosition());
 						if (op != null && op.isBinary()) {
 							int priorOfNewOp = op.getPriority();
 							ExprElm newLeftSide = null;
@@ -1411,8 +1418,6 @@ public class C4ScriptParser {
 		parsedString = builder.toString();
 		return true;
 	}
-
-	private LoopType currentLoop;
 	
 	public enum ParseStatementOption {
 		InitializationStatement,
@@ -1819,9 +1824,9 @@ public class C4ScriptParser {
 		int e = fReader.getPosition();
 		C4Variable var = new C4Variable(null, C4VariableScope.VAR_VAR);
 		C4Type type = C4Type.makeType(firstWord);
-		var.setType(type);
+		var.setType(type, type != C4Type.UNKNOWN);
 		if (type == C4Type.UNKNOWN) {
-			var.setType(C4Type.ANY);
+			//var.setType(C4Type.ANY);
 			var.setName(firstWord);
 		}
 		else {

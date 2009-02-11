@@ -22,6 +22,7 @@ public class C4Variable extends C4Field implements Serializable, ITypedField {
 	private C4Object expectedContent; // mostly null - only set when type=object
 	private String description;
 	private boolean byRef; // array&
+	private boolean typeLocked; // explicit type, not to be changed by assignments
 	
 	public static final C4Variable THIS = new C4Variable("this", "object", "reference to the object calling the function");
 	
@@ -81,6 +82,11 @@ public class C4Variable extends C4Field implements Serializable, ITypedField {
 	 */
 	public void setType(C4Type type) {
 		this.type = type;
+	}
+	
+	public void setType(C4Type type, boolean typeLocked) {
+		setType(type);
+		this.typeLocked = typeLocked;
 	}
 
 	/**
@@ -194,12 +200,14 @@ public class C4Variable extends C4Field implements Serializable, ITypedField {
 	}
 
 	public void inferTypeFromAssignment(ExprElm val, C4ScriptParser context) {
+		if (typeLocked)
+			return;
 		ITypedField.Default.inferTypeFromAssignment(this, val, context);
 	}
 	
 	public void expectedToBeOfType(C4Type t) {
 		// engine objects should not be altered
-		if (getScript() != ClonkCore.getDefault().ENGINE_OBJECT)
+		if (!typeLocked && getScript() != ClonkCore.getDefault().ENGINE_OBJECT)
 			ITypedField.Default.expectedToBeOfType(this, t);
 	}
 

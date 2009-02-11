@@ -9,17 +9,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.util.LinkedList;
-import java.util.List;
-
-import net.arctics.clonk.parser.C4Function;
 import net.arctics.clonk.parser.C4ID;
 import net.arctics.clonk.parser.C4ObjectExtern;
-import net.arctics.clonk.parser.C4ScriptExtern;
-import net.arctics.clonk.parser.C4Type;
-import net.arctics.clonk.parser.C4Variable;
 import net.arctics.clonk.parser.ClonkIndex;
-import net.arctics.clonk.parser.C4Variable.C4VariableScope;
 import net.arctics.clonk.parser.inireader.IniData;
 import net.arctics.clonk.resource.ClonkLibBuilder;
 import net.arctics.clonk.resource.InputStreamRespectingUniqueIDs;
@@ -129,7 +121,7 @@ public class ClonkCore extends AbstractUIPlugin {
 				//			}
 			} catch (Exception e) {
 				e.printStackTrace();
-				ENGINE_OBJECT = new C4ObjectExtern(C4ID.getSpecialID("Engine"),"Engine",null);
+				ENGINE_OBJECT = new C4ObjectExtern(C4ID.getSpecialID("Engine"),"Engine",null, null);
 			}
 		} finally {
 			engineStream.close();

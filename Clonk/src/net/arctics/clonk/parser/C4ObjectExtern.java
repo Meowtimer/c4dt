@@ -4,14 +4,16 @@ import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.resource.c4group.C4Entry;
 import net.arctics.clonk.resource.c4group.C4GroupItem;
 
-public class C4ObjectExtern extends C4Object {
+public class C4ObjectExtern extends C4Object implements INodeWithParent {
 
 	private static final long serialVersionUID = -4964785375712432236L;
-	protected SimpleScriptStorage script;
+	private SimpleScriptStorage script;
+	private INodeWithParent parentNode;
 	
-	public C4ObjectExtern(C4ID id, String name, C4GroupItem script) {
+	public C4ObjectExtern(C4ID id, String name, C4GroupItem script, INodeWithParent parentNode) {
 		super(id, name);
 		this.script = script != null ? new SimpleScriptStorage((C4Entry)script) : null;
+		this.parentNode = parentNode;
 	}
 
 	@Override
@@ -24,6 +26,14 @@ public class C4ObjectExtern extends C4Object {
 		if (this == ClonkCore.getDefault().ENGINE_OBJECT)
 			return null;
 		return ClonkCore.getDefault().EXTERN_INDEX;
+	}
+
+	public String nodeName() {
+		return getName();
+	}
+
+	public INodeWithParent parentNode() {
+		return parentNode;
 	}
 
 }

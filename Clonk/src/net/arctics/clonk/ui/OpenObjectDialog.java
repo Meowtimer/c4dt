@@ -1,12 +1,8 @@
 package net.arctics.clonk.ui;
 
 import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
-
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.Utilities;
-import net.arctics.clonk.parser.C4ID;
 import net.arctics.clonk.parser.C4Object;
 import net.arctics.clonk.parser.ClonkIndex;
 import net.arctics.clonk.resource.ClonkProjectNature;
