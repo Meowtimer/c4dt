@@ -154,7 +154,16 @@ public class IniReader {
 		}
 	}
 	
+	protected void skipComment() {
+		if (reader.read() == ';') {
+			reader.readStringUntil('\n');
+		}
+		else 
+			reader.unread();
+	}
+	
 	protected IniEntry parseEntry(IniSection section) {
+		skipComment();
 		int start = reader.getPosition();
 		reader.eatWhitespace();
 		if (reader.read() == '[') {
