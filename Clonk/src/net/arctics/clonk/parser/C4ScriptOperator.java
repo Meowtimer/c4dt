@@ -10,7 +10,7 @@ import java.util.Map;
  * an operator
  */
 public enum C4ScriptOperator {
-	Not(C4Type.UNKNOWN, C4Type.UNKNOWN, C4Type.BOOL, "!", 15, "Not"),
+	Not(C4Type.UNKNOWN, null, C4Type.BOOL, "!", 15, "Not"),
 	BitNot(C4Type.INT, C4Type.INT, C4Type.INT, "~", 15),
 	Power(C4Type.INT, C4Type.INT, C4Type.INT, "**", 14),
 	Divide(C4Type.INT, C4Type.INT, C4Type.INT, "/", 13, "Div"),
@@ -32,8 +32,8 @@ public enum C4ScriptOperator {
 	BitAnd(C4Type.INT, C4Type.INT, C4Type.INT, "&", 8, "BitAnd"),
 	BitXOr(C4Type.INT, C4Type.INT, C4Type.INT, "^", 6),
 	BitOr(C4Type.INT, C4Type.INT, C4Type.INT, "|", 6),
-	Decrement(C4Type.INT, C4Type.UNKNOWN, C4Type.INT, "--", 15, "Dec"),
-	Increment(C4Type.INT, C4Type.UNKNOWN, C4Type.INT, "++", 15, "Inc"),
+	Decrement(C4Type.INT, null, C4Type.INT, "--", 15, "Dec"),
+	Increment(C4Type.INT, null, C4Type.INT, "++", 15, "Inc"),
 	ShiftLeft(C4Type.INT, C4Type.INT, C4Type.INT, "<<", 11),
 	ShiftRight(C4Type.INT, C4Type.INT, C4Type.INT, ">>", 11),
 	Assign(C4Type.UNKNOWN, C4Type.UNKNOWN, C4Type.UNKNOWN, "=", 2),

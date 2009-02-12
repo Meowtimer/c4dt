@@ -32,11 +32,11 @@ public class ClonkCore extends AbstractUIPlugin {
 
 	// The plug-in ID
 	public static final String PLUGIN_ID = "net.arctics.clonk";
-	public static final String CLONK_NATURE_ID = "net.arctics.clonk.clonknature";
+	public static final String CLONK_NATURE_ID = PLUGIN_ID + ".clonknature";
 	public static final String MARKER_EXTERN_LIB_ERROR = PLUGIN_ID + ".externliberror";
-	public static final QualifiedName FOLDER_C4ID_PROPERTY_ID = new QualifiedName("net.arctics.clonk","c4id");
-	public static final QualifiedName C4OBJECT_PROPERTY_ID = new QualifiedName("net.arctics.clonk","c4object");
-	public static final QualifiedName SCRIPT_PROPERTY_ID = new QualifiedName("net.arctics.clonk", "script");
+	public static final QualifiedName FOLDER_C4ID_PROPERTY_ID = new QualifiedName(PLUGIN_ID,"c4id");
+	public static final QualifiedName C4OBJECT_PROPERTY_ID = new QualifiedName(PLUGIN_ID,"c4object");
+	public static final QualifiedName SCRIPT_PROPERTY_ID = new QualifiedName(PLUGIN_ID, "script");
 	
 	public C4ObjectExtern ENGINE_OBJECT;
 	public ClonkIndex EXTERN_INDEX;
@@ -102,8 +102,7 @@ public class ClonkCore extends AbstractUIPlugin {
 //		}
 //	}
 
-	private void loadEngineObject() throws FileNotFoundException, IOException,
-	ClassNotFoundException {
+	private void loadEngineObject() throws FileNotFoundException, IOException, ClassNotFoundException {
 		InputStream engineStream;
 		if (getEngineCacheFile().toFile().exists()) {
 			engineStream = new FileInputStream(getEngineCacheFile().toFile());
@@ -115,10 +114,6 @@ public class ClonkCore extends AbstractUIPlugin {
 			try {
 				ObjectInputStream objStream = new InputStreamRespectingUniqueIDs(engineStream);
 				ENGINE_OBJECT = (C4ObjectExtern)objStream.readObject();
-				//			if (ENGINE_OBJECT.convertFuncsToConstsIfTheyLookLikeConsts()) {
-				//				// resave if something was changed
-				//				saveEngineObject();
-				//			}
 			} catch (Exception e) {
 				e.printStackTrace();
 				ENGINE_OBJECT = new C4ObjectExtern(C4ID.getSpecialID("Engine"),"Engine",null, null);
@@ -152,9 +147,9 @@ public class ClonkCore extends AbstractUIPlugin {
 //		}
 //	}
 	
-	private void chanceToAddMissingThingsToEngine() {
-	//	removeSystemDuplicates();
-	}
+//	private void chanceToAddMissingThingsToEngine() {
+//	//	removeSystemDuplicates();
+//	}
 
 	public static IPath getEngineCacheFile() {
 		IPath path = ClonkCore.getDefault().getStateLocation();
@@ -280,4 +275,5 @@ public class ClonkCore extends AbstractUIPlugin {
 			descriptor = ImageDescriptor.getMissingImageDescriptor();
 		return descriptor;
 	}
+	
 }
