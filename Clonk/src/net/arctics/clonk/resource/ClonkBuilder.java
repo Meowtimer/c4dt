@@ -69,7 +69,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 		if (monitor != null) monitor.beginTask("Cleaning up", 1);
 		IProject proj = this.getProject();
 		if (proj != null) {
-			Utilities.getProject(proj).getIndexedData().clear();
+			Utilities.getProject(proj).getIndex().clear();
 			proj.accept(new IResourceVisitor() {
 				public boolean visit(IResource resource) throws CoreException {
 					if (resource.getSessionProperty(ClonkCore.C4OBJECT_PROPERTY_ID) != null) {
@@ -111,7 +111,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 					// parse
 					buildPhase = 0;
 					delta.accept(this);
-					Utilities.getProject(proj).getIndexedData().refreshCache();
+					Utilities.getProject(proj).getIndex().refreshCache();
 					buildPhase = 1;
 					delta.accept(this);
 					
@@ -119,7 +119,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 					delta.getResource().touch(monitor);
 					
 					// refresh global func and static var cache
-					Utilities.getProject(proj).getIndexedData().refreshCache();
+					Utilities.getProject(proj).getIndex().refreshCache();
 				}
 				break;
 			
@@ -176,7 +176,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 					// parse declarations
 					buildPhase = 0;
 					proj.accept(this);
-					Utilities.getProject(proj).getIndexedData().refreshCache();
+					Utilities.getProject(proj).getIndex().refreshCache();
 					if (monitor.isCanceled()) {
 						monitor.done();
 						return null;
@@ -251,7 +251,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 					C4ObjectParser parser;
 					if (delta.getResource().getName().endsWith(".c") && folder.getName().endsWith(".c4g")) {
 						script = new C4ScriptIntern(delta.getResource());
-						Utilities.getProject(delta.getResource()).getIndexedData().addScript(script);
+						Utilities.getProject(delta.getResource()).getIndex().addScript(script);
 					}
 					else if ((parser = C4ObjectParser.create(folder)) != null) {
 						try {
@@ -339,7 +339,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 				return true;
 			case 1:
 				// check correctness of function code
-				ClonkIndex index = Utilities.getProject(resource).getIndexedData();
+				ClonkIndex index = Utilities.getProject(resource).getIndex();
 				C4Object obj = index.getObject((IContainer)resource);
 				IFile scriptFile = (IFile) ((obj != null) ? obj.getScriptFile() : null);
 				if (scriptFile != null) {
@@ -363,7 +363,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 				if (script == null) {
 					script = new C4ScriptIntern(resource);
 				}
-				Utilities.getProject(resource).getIndexedData().addScript(script);
+				Utilities.getProject(resource).getIndex().addScript(script);
 				try {
 					C4ScriptParser parser = new C4ScriptParser((IFile)resource, script);
 					parser.clean();

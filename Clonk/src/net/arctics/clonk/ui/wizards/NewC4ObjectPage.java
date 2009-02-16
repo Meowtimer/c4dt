@@ -58,7 +58,7 @@ public class NewC4ObjectPage extends NewClonkFolderWizardPage {
 		else {
 			ClonkProjectNature nature = Utilities.getProject(project);
 			if (nature != null) {
-				List<C4Object> objects = nature.getIndexedData().getObjects(C4ID.getID(c4idText.getText()));
+				List<C4Object> objects = nature.getIndex().getObjects(C4ID.getID(c4idText.getText()));
 				if (objects != null && !objects.isEmpty()) {
 					updateStatus("Object ID is already in use.");
 					return;

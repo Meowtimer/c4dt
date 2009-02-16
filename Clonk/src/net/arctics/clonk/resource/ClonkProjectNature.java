@@ -45,7 +45,7 @@ public class ClonkProjectNature implements IProjectNature {
 	 * Returns the complete index of the project.
 	 * @return the indexedData
 	 */
-	public ClonkIndex getIndexedData() {
+	public ClonkIndex getIndex() {
 		if (indexedData == null)
 			loadIndexData();
 		return indexedData;
@@ -59,7 +59,7 @@ public class ClonkProjectNature implements IProjectNature {
 		try {
 			FileOutputStream out = new FileOutputStream(index);
 			ObjectOutputStream objStream = new ObjectOutputStream(out);
-			objStream.writeObject(getIndexedData());
+			objStream.writeObject(getIndex());
 			objStream.close();
 			out.close();
 			eclipseFile.refreshLocal(IResource.DEPTH_ZERO, null);

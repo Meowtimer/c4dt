@@ -10,7 +10,7 @@ import java.io.ObjectInputStream;
 import net.arctics.clonk.parser.C4ID;
 
 /**
- * The C4ID class is somehow special and therefore needs to be deserialized in a special way
+ * Enforces that there is only one instance of C4ID with the same value
  * @author madeen
  *
  */
@@ -24,11 +24,10 @@ public class InputStreamRespectingUniqueIDs extends ObjectInputStream {
 
 	@Override
 	protected Object resolveObject(Object obj) throws IOException {
-		if (obj instanceof C4ID) {
+		if (obj.getClass() == C4ID.class) {
 			//System.out.println(obj.toString());
 			return ((C4ID)obj).makeSpecial();
 		}
-		// TODO Auto-generated method stub
 		return super.resolveObject(obj);
 	}
 	

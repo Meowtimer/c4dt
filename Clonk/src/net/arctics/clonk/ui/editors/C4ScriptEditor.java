@@ -150,6 +150,9 @@ public class C4ScriptEditor extends TextEditor implements IShowInSource, IShowIn
 		
 //		action = new RenameFieldAction(messagesBundle, "RenameField.", this); //$NON-NLS-1$
 //		setAction(ClonkCommandIds.RENAME_FIELD, action);
+//		
+//		IBindingService service = (IBindingService) PlatformUI.getWorkbench().getService(IBindingService.class);
+//		service
 		
 	}
 

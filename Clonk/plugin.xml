@@ -323,7 +323,7 @@
 	 	categoryId="org.eclipse.ui.category.edit"
 	 	description="Converts old code to new code"
 	 	id="net.arctics.clonk.ui.editors.actions.ConvertOldCodeToNewCode"
-	 	name="Convert old code to new code">
+	 	name="Convert Old Code">
 	 </command>
 	 <command
 	    categoryId="org.eclipse.ui.category.edit"
@@ -345,6 +345,16 @@
             sequence="M1+M2+T"
             commandId="net.arctics.clonk.ui.open.object"
             schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"/>
+            
+		<key
+			sequence="F4"
+			commandId="net.arctics.clonk.ui.editors.actions.FindReferences"
+			schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"/>
+			
+		<key
+			sequence="F3"
+			commandId="net.arctics.clonk.ui.editors.actions.OpenDeclaration"
+			schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"/>
 
 </extension>
    <extension
@@ -469,7 +479,7 @@
 			id="net.arctics.clonk.ui.debug.ClonkLaunchShortcut"
 			class="net.arctics.clonk.ui.debug.ClonkLaunchShortcut"
 			label="Clonk Scenario"
-			icons="$nl$/icons/Clonk_engine.png"
+			icon="$nl$/icons/Clonk_engine.png"
 			modes="run">
 			<contextualLaunch>
 				<enablement>

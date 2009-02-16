@@ -241,7 +241,7 @@ public class ClonkIndex implements Serializable, Iterable<C4Object> {
 		return null;
 	}
 
-	private <T extends IRelatedResource> T pickNearest(IResource resource, Collection<T> fromList) {
+	public static <T extends IRelatedResource> T pickNearest(IResource resource, Collection<T> fromList) {
 		int bestDist = 1000;
 		T best = null;
 		if (fromList != null) {

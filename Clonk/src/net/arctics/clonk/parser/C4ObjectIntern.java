@@ -89,7 +89,7 @@ public class C4ObjectIntern extends C4Object implements Serializable {
 	 * The file on the harddisk is not deleted. (delete it by IResource.delete(true,null))
 	 */
 	public void delete() {
-		Utilities.getProject(objectFolder.getProject()).getIndexedData().removeObject(this);
+		Utilities.getProject(objectFolder.getProject()).getIndex().removeObject(this);
 	}
 	
 	public void setObjectFolder(IContainer folder) throws CoreException {
@@ -110,7 +110,7 @@ public class C4ObjectIntern extends C4Object implements Serializable {
 	
 	@Override
 	public ClonkIndex getIndex() {
-		return Utilities.getProject(this).getIndexedData();
+		return Utilities.getProject(this).getIndex();
 	}
 	
 	@Override

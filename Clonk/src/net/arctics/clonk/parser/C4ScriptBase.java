@@ -13,9 +13,6 @@ import java.util.Set;
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.Utilities;
 import net.arctics.clonk.parser.C4Directive.C4DirectiveType;
-import net.arctics.clonk.parser.C4Function.C4FunctionScope;
-import net.arctics.clonk.parser.C4Variable.C4VariableScope;
-
 import org.eclipse.core.resources.IResource;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.ITextSelection;
@@ -316,10 +313,24 @@ public abstract class C4ScriptBase extends C4Structure implements IRelatedResour
 	
 	public abstract ClonkIndex getIndex();
 
-	public C4Variable findLocalVariable(String name) {
+	public C4Variable findLocalVariable(String name, boolean includeIncludes) {
+		return findLocalVariable(name, includeIncludes, new HashSet<C4ScriptBase>());
+	}
+	
+	public C4Variable findLocalVariable(String name, boolean includeIncludes, HashSet<C4ScriptBase> alreadySearched) {
+		if (alreadySearched.contains(this))
+			return null;
+		alreadySearched.add(this);
 		for (C4Variable var : definedVariables) {
 			if (var.name.equals(name))
 				return var;
+		}
+		if (includeIncludes) {
+			for (C4ScriptBase script : getIncludes()) {
+				C4Variable var = script.findLocalVariable(name, includeIncludes, alreadySearched);
+				if (var != null)
+					return var;
+			}
 		}
 		return null;
 	}
@@ -358,37 +369,37 @@ public abstract class C4ScriptBase extends C4Structure implements IRelatedResour
 		return toBeRemoved.size() > 0;
 	}
 
-	public boolean convertFuncsToConstsIfTheyLookLikeConsts() {
-		boolean didSomething = false;
-		List<C4Function> toBeRemoved = new LinkedList<C4Function>();
-		for (C4Function f : definedFunctions) {
-			if (f.getParameters().size() == 0 && looksLikeConstName(f.getName())) {
-				toBeRemoved.add(f);
-				definedVariables.add(new C4Variable(f.getName(), f.getReturnType(), f.getUserDescription(), C4VariableScope.VAR_CONST));
-				didSomething = true;
-			}
-		}
-		for (C4Variable v : definedVariables) {
-			if (v.getScope() != C4VariableScope.VAR_CONST) {
-				v.setScope(C4VariableScope.VAR_CONST);
-				didSomething = true;
-			}
-			if (v.getScript() != this) {
-				v.setScript(this);
-				didSomething = true;
-			}
-		}
-		for (C4Function f : toBeRemoved)
-			definedFunctions.remove(f);
-		C4Variable v = findLocalVariable("_inherited");
-		if (v != null) {
-			definedVariables.remove(v);
-			definedFunctions.add(new C4Function("_inherited", this, C4FunctionScope.FUNC_PUBLIC));
-			didSomething = true;
-		}
-		didSomething |= removeDuplicateVariables();
-		return didSomething;
-	}
+//	public boolean convertFuncsToConstsIfTheyLookLikeConsts() {
+//		boolean didSomething = false;
+//		List<C4Function> toBeRemoved = new LinkedList<C4Function>();
+//		for (C4Function f : definedFunctions) {
+//			if (f.getParameters().size() == 0 && looksLikeConstName(f.getName())) {
+//				toBeRemoved.add(f);
+//				definedVariables.add(new C4Variable(f.getName(), f.getReturnType(), f.getUserDescription(), C4VariableScope.VAR_CONST));
+//				didSomething = true;
+//			}
+//		}
+//		for (C4Variable v : definedVariables) {
+//			if (v.getScope() != C4VariableScope.VAR_CONST) {
+//				v.setScope(C4VariableScope.VAR_CONST);
+//				didSomething = true;
+//			}
+//			if (v.getScript() != this) {
+//				v.setScript(this);
+//				didSomething = true;
+//			}
+//		}
+//		for (C4Function f : toBeRemoved)
+//			definedFunctions.remove(f);
+//		C4Variable v = findLocalVariable("_inherited", false);
+//		if (v != null) {
+//			definedVariables.remove(v);
+//			definedFunctions.add(new C4Function("_inherited", this, C4FunctionScope.FUNC_PUBLIC));
+//			didSomething = true;
+//		}
+//		didSomething |= removeDuplicateVariables();
+//		return didSomething;
+//	}
 	
 	public Iterable<C4Function> functions() {
 		return new Iterable<C4Function>() {

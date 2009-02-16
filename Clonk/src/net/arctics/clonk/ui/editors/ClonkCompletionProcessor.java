@@ -200,7 +200,7 @@ public class ClonkCompletionProcessor implements IContentAssistProcessor {
 		ClonkProjectNature nature = net.arctics.clonk.Utilities.getProject(editor);
 		List<String> statusMessages = new ArrayList<String>(4);
 		List<ClonkCompletionProposal> proposals = new ArrayList<ClonkCompletionProposal>();
-		ClonkIndex index = nature.getIndexedData();
+		ClonkIndex index = nature.getIndex();
 
 		// refresh to find about whether caret is inside a function and to get all the declarations
 		try {

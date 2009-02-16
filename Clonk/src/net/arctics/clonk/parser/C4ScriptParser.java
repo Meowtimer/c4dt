@@ -404,7 +404,7 @@ public class C4ScriptParser {
 				return (C4Variable) globalField;
 			return null;
 		case VAR_LOCAL:
-			return getContainer().findLocalVariable(name);
+			return getContainer().findLocalVariable(name, false);
 		default:
 			return null;
 		}

@@ -6,6 +6,11 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import net.arctics.clonk.ClonkCore;
+import net.arctics.clonk.preferences.PreferenceConstants;
+
+import org.eclipse.core.runtime.Platform;
+
 public abstract class C4Object extends C4ScriptBase {
 
 	/**
@@ -20,10 +25,9 @@ public abstract class C4Object extends C4ScriptBase {
 //	private List<IC4ObjectListener> changeListeners = new LinkedList<IC4ObjectListener>();
 	
 	/**
-	 * Creates a new C4Object and assigns it to <code>container</code>
+	 * Creates a new C4Object
 	 * @param id C4ID (e.g. CLNK)
-	 * @param name intern name
-	 * @param container ObjectName.c4d resource
+	 * @param name human-readable name
 	 */
 	protected C4Object(C4ID id, String name) {
 		this.id = id;
@@ -78,9 +82,9 @@ public abstract class C4Object extends C4ScriptBase {
 		while (matcher.find()) {
 			localizedNames.put(matcher.group(1), matcher.group(2));
 		}
-		String engName = localizedNames.get("DE"); // FIXME: preference?
-		if (engName != null)
-			setName(engName);
+		String preferredName = localizedNames.get(Platform.getPreferencesService().getString(ClonkCore.PLUGIN_ID, PreferenceConstants.PREFERRED_LANGID, "DE", null));
+		if (preferredName != null)
+			setName(preferredName);
 	}
 
 	public Map<String, String> getLocalizedNames() {

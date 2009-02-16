@@ -150,12 +150,26 @@ public abstract class C4ScriptExprTree {
 				System.out.println("setSubElements should be implemented when getSubElements() is implemented ("+getClass().getName()+")");
 		}
 
+		/**
+		 * Keeps applying newStyleReplacement to the expression and its modified versions until an expression and it's replacement are identical e.g. there is nothing to be modified anymore
+		 * @param context
+		 * @return
+		 * @throws CloneNotSupportedException
+		 */
 		public ExprElm exhaustiveNewStyleReplacement(C4ScriptParser context) throws CloneNotSupportedException {
 			ExprElm repl;
 			for (ExprElm original = this; (repl = original.newStyleReplacement(context)) != original; original = repl);
 			return repl;
 		}
 		
+		/**
+		 * Returns an expression that is functionally equivalent to the original expression but modified to adhere to #strict/#strict 2 rules and be more readable.
+		 * For example, And/Or function calls get replaced by operators, uses of the Call function get converted to direct function calls.
+		 * This method tries to reuse existing objects and reassigns the parents of those objects so the original ExprElm tree might be invalid in subtle ways.
+		 * @param context the script parser as a context for accessing the script the expression has been parsed in
+		 * @return a #strict/#strict 2/readability enhanced version of the original expression
+		 * @throws CloneNotSupportedException
+		 */
 		public ExprElm newStyleReplacement(C4ScriptParser context) throws CloneNotSupportedException {
 			ExprElm[] subElms = getSubElements();
 			ExprElm[] newSubElms = new ExprElm[subElms.length];
@@ -174,6 +188,11 @@ public abstract class C4ScriptExprTree {
 			return this; // nothing to be changed
 		}
 		
+		/**
+		 * Returns whether the expression can be converted to the given type
+		 * @param otherType the type to test convertability to
+		 * @return true if conversion is possible or false if not
+		 */
 		public boolean canBeConvertedTo(C4Type otherType) {
 			// 5555 is ID
 			return getType() == C4Type.INT && otherType == C4Type.ID;
@@ -187,6 +206,12 @@ public abstract class C4ScriptExprTree {
 			return traverse(listener, null);
 		}
 		
+		/**
+		 * Traverses this expression by calling expressionDetected on the supplied IExpressionListener for the root expression and its sub elements.
+		 * @param listener the expression listener
+		 * @param parser the parser as contet
+		 * @return flow control for the calling function
+		 */
 		public TraversalContinuation traverse(IExpressionListener listener, C4ScriptParser parser) {
 			TraversalContinuation c = listener.expressionDetected(this, parser);
 			switch (c) {
@@ -231,6 +256,12 @@ public abstract class C4ScriptExprTree {
 		}
 
 		private static final ExprElm[] exprElmsForTypes = new ExprElm[C4Type.values().length];
+		
+		/**
+		 * Returns a canonical ExprElm object for the given type such that its getType() returns the given type
+		 * @param type the type to return a canonical ExprElm of
+		 * @return the canonical ExprElm object
+		 */
 		public static ExprElm getExprElmForType(final C4Type type) {
 			if (exprElmsForTypes[type.ordinal()] == null) {
 				exprElmsForTypes[type.ordinal()] = new ExprElm() {
@@ -243,12 +274,17 @@ public abstract class C4ScriptExprTree {
 			return exprElmsForTypes[type.ordinal()];
 		}
 
+		/**
+		 * Returns the expression tree as a C4Script expression string
+		 * @param depth hint for indentation (only needed for statements)
+		 * @return the C4Script expression string
+		 */
 		public String toString(int depth) {
 			StringBuilder builder = new StringBuilder();
 			print(builder, depth);
 			return builder.toString();
 		}
-		
+	
 		@Override
 		public String toString() {
 			return toString(1);
@@ -846,7 +882,7 @@ public abstract class C4ScriptExprTree {
 			}
 			
 			// blub() && blab() && return(1); -> {blub(); blab(); return(1);}
-			if (getOperator() == C4ScriptOperator.And && (getParent() instanceof SimpleStatement) && getRightSide().isReturn()) {
+			if (getOperator() == C4ScriptOperator.And && (getParent() instanceof SimpleStatement)) {// && getRightSide().isReturn()) {
 				LinkedList<ExprElm> leftSideArguments = new LinkedList<ExprElm>();
 				ExprElm r;
 				boolean works = true;
@@ -872,7 +908,10 @@ public abstract class C4ScriptExprTree {
 						statements.add(new SimpleStatement(ex.newStyleReplacement(context)));
 					}
 					// convert func call to proper return statement
-					statements.add(new ReturnStatement(((ExprCallFunc)getRightSide()).getReturnArg().newStyleReplacement(context)));
+					if (getRightSide().isReturn())
+						statements.add(new ReturnStatement(((ExprCallFunc)getRightSide()).getReturnArg().newStyleReplacement(context)));
+					else
+						statements.add(new SimpleStatement(getRightSide().newStyleReplacement(context)));
 					return new Block(statements);
 				}
 			}
@@ -1226,15 +1265,21 @@ public abstract class C4ScriptExprTree {
 			if (getParent() instanceof ExprCallFunc) {
 				ExprCallFunc parentFunc = (ExprCallFunc) getParent();
 				int myIndex = parentFunc.indexOfParm(this);
-				// link to functions that are called indirectly
+				
+				//  link to functions that are called indirectly
+				
+				// GameCall: look for nearest scenario and find function in its script
 				if (myIndex == 0 && parentFunc.getFieldName().equals("GameCall")) {
 					ClonkIndex index = parser.getContainer().getIndex();
-					for (C4Scenario scenario : index.getIndexedScenarios()) {
+					C4Scenario scenario = ClonkIndex.pickNearest(parser.getContainer().getResource(), index.getIndexedScenarios());
+					if (scenario != null) {
 						C4Function scenFunc = scenario.findFunction(stringValue());
 						if (scenFunc != null)
 							return new FieldRegion(scenFunc, this);
 					}
 				}
+				
+				// ScheduleCall: second parameter is function name; first is object to call the function in
 				else if (myIndex == 1 && parentFunc.getFieldName().equals("ScheduleCall")) {
 					C4Object typeToLookIn = parentFunc.getParams()[0].guessObjectType(parser);
 					if (typeToLookIn != null) {
@@ -1243,6 +1288,21 @@ public abstract class C4ScriptExprTree {
 							return new FieldRegion(func, this);
 					}
 				}
+				
+				// LocalN: look for local var in object
+				else if (myIndex == 0 && parentFunc.getFieldName().equals("LocalN")) {
+					C4Object typeToLookIn = parentFunc.getParams().length > 1 ? parentFunc.getParams()[1].guessObjectType(parser) : null;
+					if (typeToLookIn == null && parentFunc.getPredecessorInSequence() != null)
+						typeToLookIn = parentFunc.getPredecessorInSequence().guessObjectType(parser);
+					if (typeToLookIn == null)
+						typeToLookIn = parser.getContainerObject();
+					if (typeToLookIn != null) {
+						C4Variable var = typeToLookIn.findLocalVariable(stringValue(), false);
+						if (var != null)
+							return new FieldRegion(var, this);
+					}
+				}
+				
 			}
 			return null;
 		}

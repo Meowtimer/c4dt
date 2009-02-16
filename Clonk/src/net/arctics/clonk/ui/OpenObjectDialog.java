@@ -84,7 +84,7 @@ public class OpenObjectDialog extends FilteredItemsSelectionDialog {
 			if (project.isOpen()) {
 				if (project.isNatureEnabled(ClonkCore.CLONK_NATURE_ID)) {
 					ClonkProjectNature nature = Utilities.getProject(project);
-					ClonkIndex index = nature.getIndexedData();
+					ClonkIndex index = nature.getIndex();
 					fillWithIndexContents(contentProvider, itemsFilter,
 							progressMonitor, index);
 				}
