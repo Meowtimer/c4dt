@@ -665,15 +665,19 @@ public class C4ScriptParser {
 		boolean lastWasReturn = false;
 		while(!fReader.reachedEOF() && fReader.getPosition() < endOfFunc) {
 			Statement statement = parseStatement(fReader.getPosition(), options);
+			boolean statementIsComment = statement instanceof Comment;
 			if (statement == null)
 				break;
-			if (lastWasReturn && !(statement instanceof Comment))
+			if (lastWasReturn && !statementIsComment)
 				warningWithCode(ErrorCode.NeverReached, statement);
 			if (!lastWasReturn)
 				lastWasReturn = statement.isReturn();
 			// after first 'real' statement don't expect function description anymore
-			if (!(statement instanceof Comment))
+			if (!statementIsComment) {
 				options.remove(ParseStatementOption.ExpectFuncDesc);
+				if (activeFunc.isOldStyle())
+					activeFunc.getBody().setEnd(statement.getExprEnd());
+			}
 		}
 		return true;
 	}

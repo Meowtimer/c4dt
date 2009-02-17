@@ -26,8 +26,11 @@ public class RenameFieldAction extends OpenDeclarationAction {
 		try {
 			C4Field fieldToRename = getFieldAtSelection();
 			if (fieldToRename != null) {
-				InputDialog newNameDialog = new InputDialog(getTextEditor().getSite().getWorkbenchWindow().getShell(), "Name Name Of Field", "Specify the new name here", fieldToRename.getName(), null);
-				newNameDialog.open();
+				InputDialog newNameDialog = new InputDialog(getTextEditor().getSite().getWorkbenchWindow().getShell(), "Name Of Field", "Specify the new name here", fieldToRename.getName(), null);
+				switch (newNameDialog.open()) {
+				case InputDialog.CANCEL:
+					return;
+				}
 				String newName = newNameDialog.getValue();
 				RenameRefactoring refactoring = new RenameRefactoring(new ClonkRenameFieldProcessor(fieldToRename, newName));
 				PerformChangeOperation op = new PerformChangeOperation(

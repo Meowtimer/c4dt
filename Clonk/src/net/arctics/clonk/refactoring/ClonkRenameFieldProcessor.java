@@ -4,6 +4,7 @@ import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.Utilities;
 import net.arctics.clonk.parser.C4Field;
 import net.arctics.clonk.parser.C4ScriptBase;
+import net.arctics.clonk.ui.search.ClonkSearchMatch;
 import net.arctics.clonk.ui.search.ClonkSearchQuery;
 import net.arctics.clonk.ui.search.ClonkSearchResult;
 
@@ -43,10 +44,16 @@ public class ClonkRenameFieldProcessor extends RenameProcessor {
 	@Override
 	public Change createChange(IProgressMonitor monitor) throws CoreException,
 			OperationCanceledException {
-		ClonkSearchQuery query = new ClonkSearchQuery(field, Utilities.getProject((IResource) field.getScript().getScriptFile()));
+		Object script = field.getScript().getScriptFile();
+		if (!(script instanceof IResource))
+			return null;
+		IResource declaringFile = (IResource) script;
+		ClonkSearchQuery query = new ClonkSearchQuery(field, Utilities.getProject(declaringFile));
 		query.run(monitor);
 		ClonkSearchResult searchResult = (ClonkSearchResult) query.getSearchResult();
 		Object[] elements = searchResult.getElements();
+		if (elements == null || elements.length ==  0)
+			elements = new Object[] {declaringFile};
 		CompositeChange composite = new CompositeChange("Renaming " + field.toString());
 		for (Object element : elements) {
 			IFile file;
@@ -60,11 +67,13 @@ public class ClonkRenameFieldProcessor extends RenameProcessor {
 				TextFileChange fileChange = new TextFileChange("Renaming " + field.toString() + " in " + file.getFullPath().toString(), file);
 				fileChange.setEdit(new MultiTextEdit());
 				// change declaration
-				if (file.equals(query.getDeclaringScript().getScriptFile())) {
+				if (file.equals(declaringFile)) {
 					fileChange.addEdit(new ReplaceEdit(field.getLocation().getOffset(), field.getLocation().getLength(), newName));
 				}
-				for (Match match : searchResult.getMatches(element)) {
-					fileChange.addEdit(new ReplaceEdit(match.getOffset(), match.getLength(), newName));
+				for (Match m : searchResult.getMatches(element)) {
+					ClonkSearchMatch match = (ClonkSearchMatch) m;
+					if (!match.isPotential())
+						fileChange.addEdit(new ReplaceEdit(match.getOffset(), match.getLength(), newName));
 				}
 				composite.add(fileChange);
 			}
