@@ -123,6 +123,14 @@ public abstract class C4ScriptExprTree {
 		public int getExprStart() {
 			return exprStart;
 		}
+		
+		public int getIdentifierStart() {
+			return getExprStart();
+		}
+		
+		public int getIdentifierLength() {
+			return getLength();
+		}
 
 		public void setExprRegion(int start, int end) {
 			this.exprStart = start;
@@ -489,6 +497,11 @@ public abstract class C4ScriptExprTree {
 
 		public String getFieldName() {
 			return fieldName;
+		}
+		
+		@Override
+		public int getIdentifierLength() {
+			return fieldName.length();
 		}
 	}
 

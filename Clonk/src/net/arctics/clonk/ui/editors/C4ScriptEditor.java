@@ -19,6 +19,8 @@ import net.arctics.clonk.parser.SourceLocation;
 import net.arctics.clonk.ui.editors.actions.ConvertOldCodeToNewCodeAction;
 import net.arctics.clonk.ui.editors.actions.FindReferencesAction;
 import net.arctics.clonk.ui.editors.actions.OpenDeclarationAction;
+import net.arctics.clonk.ui.editors.actions.RenameFieldAction;
+
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IStorage;
@@ -148,11 +150,8 @@ public class C4ScriptEditor extends TextEditor implements IShowInSource, IShowIn
 		action = new FindReferencesAction(messagesBundle,"FindReferences.",this); //$NON-NLS-1$
 		setAction(ClonkCommandIds.FIND_REFERENCES, action);
 		
-//		action = new RenameFieldAction(messagesBundle, "RenameField.", this); //$NON-NLS-1$
-//		setAction(ClonkCommandIds.RENAME_FIELD, action);
-//		
-//		IBindingService service = (IBindingService) PlatformUI.getWorkbench().getService(IBindingService.class);
-//		service
+		action = new RenameFieldAction(messagesBundle, "RenameField.", this);
+		setAction(ClonkCommandIds.RENAME_FIELD, action);
 		
 	}
 
@@ -185,7 +184,7 @@ public class C4ScriptEditor extends TextEditor implements IShowInSource, IShowIn
 			addAction(menu, ClonkCommandIds.CONVERT_OLD_CODE_TO_NEW_CODE);
 		addAction(menu, ClonkCommandIds.OPEN_DECLARATION);
 		addAction(menu, ClonkCommandIds.FIND_REFERENCES);
-		//addAction(menu, ClonkCommandIds.RENAME_FIELD);
+		addAction(menu, ClonkCommandIds.RENAME_FIELD);
 	}
 
 	public void selectAndReveal(SourceLocation location) {

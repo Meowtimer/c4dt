@@ -27,7 +27,6 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.jface.action.*;
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.IDialogConstants;
-import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.ui.*;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.SWT;
@@ -480,12 +479,12 @@ public class EngineIdentifiersView extends ViewPart {
 			}
 		});
 	}
-	private void showMessage(String message) {
-		MessageDialog.openInformation(
-			viewer.getControl().getShell(),
-			"Engine identifiers",
-			message);
-	}
+//	private void showMessage(String message) {
+//		MessageDialog.openInformation(
+//			viewer.getControl().getShell(),
+//			"Engine identifiers",
+//			message);
+//	}
 
 	/**
 	 * Passing the focus request to the viewer's control.

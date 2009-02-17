@@ -3,10 +3,12 @@ package net.arctics.clonk.refactoring;
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.Utilities;
 import net.arctics.clonk.parser.C4Field;
+import net.arctics.clonk.parser.C4ScriptBase;
 import net.arctics.clonk.ui.search.ClonkSearchQuery;
 import net.arctics.clonk.ui.search.ClonkSearchResult;
 
 import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.OperationCanceledException;
@@ -19,8 +21,8 @@ import org.eclipse.ltk.core.refactoring.participants.RefactoringParticipant;
 import org.eclipse.ltk.core.refactoring.participants.RenameProcessor;
 import org.eclipse.ltk.core.refactoring.participants.SharableParticipants;
 import org.eclipse.search.ui.text.Match;
+import org.eclipse.text.edits.MultiTextEdit;
 import org.eclipse.text.edits.ReplaceEdit;
-import org.eclipse.ui.texteditor.ITextEditor;
 
 public class ClonkRenameFieldProcessor extends RenameProcessor {
 	
@@ -35,26 +37,36 @@ public class ClonkRenameFieldProcessor extends RenameProcessor {
 	@Override
 	public RefactoringStatus checkInitialConditions(IProgressMonitor monitor)
 			throws CoreException, OperationCanceledException {
-		// TODO Auto-generated method stub
-		return null;
+		return RefactoringStatus.createInfoStatus("Everything awesome");
 	}
 
 	@Override
 	public Change createChange(IProgressMonitor monitor) throws CoreException,
 			OperationCanceledException {
-		ClonkSearchQuery query = new ClonkSearchQuery(field, Utilities.getProject((ITextEditor) field.getScript().getScriptFile()));
+		ClonkSearchQuery query = new ClonkSearchQuery(field, Utilities.getProject((IResource) field.getScript().getScriptFile()));
 		query.run(monitor);
 		ClonkSearchResult searchResult = (ClonkSearchResult) query.getSearchResult();
 		Object[] elements = searchResult.getElements();
 		CompositeChange composite = new CompositeChange("Renaming " + field.toString());
 		for (Object element : elements) {
-			if (element instanceof IFile) {
-				IFile file = (IFile) element;
+			IFile file;
+			if (element instanceof IFile)
+				file = (IFile)element;
+			else if (element instanceof C4ScriptBase)
+				file = (IFile) ((C4ScriptBase)element).getScriptFile();
+			else
+				file = null;
+			if (file != null) {
 				TextFileChange fileChange = new TextFileChange("Renaming " + field.toString() + " in " + file.getFullPath().toString(), file);
-				composite.add(fileChange);
+				fileChange.setEdit(new MultiTextEdit());
+				// change declaration
+				if (file.equals(query.getDeclaringScript().getScriptFile())) {
+					fileChange.addEdit(new ReplaceEdit(field.getLocation().getOffset(), field.getLocation().getLength(), newName));
+				}
 				for (Match match : searchResult.getMatches(element)) {
 					fileChange.addEdit(new ReplaceEdit(match.getOffset(), match.getLength(), newName));
 				}
+				composite.add(fileChange);
 			}
 		}
 		return composite;
@@ -64,7 +76,7 @@ public class ClonkRenameFieldProcessor extends RenameProcessor {
 	public RefactoringStatus checkFinalConditions(IProgressMonitor monitor,
 			CheckConditionsContext context) throws CoreException,
 			OperationCanceledException {
-		return null;
+		return RefactoringStatus.createInfoStatus("Everything still awesome");
 	}
 
 	@Override

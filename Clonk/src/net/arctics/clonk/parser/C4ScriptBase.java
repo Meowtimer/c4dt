@@ -335,24 +335,24 @@ public abstract class C4ScriptBase extends C4Structure implements IRelatedResour
 		return null;
 	}
 	
-	private static boolean looksLikeConstName(String name) {
-		boolean underscore = false;
-		for (int i = 0; i < name.length(); i++) {
-			char c = name.charAt(i);
-			if (i > 0 && c == '_') {
-				if (!underscore)
-					underscore = true;
-				else
-					return false;
-			}
-			if (!underscore) {
-				if (Character.toUpperCase(c) != c) {
-					return false;
-				}
-			}
-		}
-		return underscore || name.equals(name.toUpperCase());
-	}
+//	private static boolean looksLikeConstName(String name) {
+//		boolean underscore = false;
+//		for (int i = 0; i < name.length(); i++) {
+//			char c = name.charAt(i);
+//			if (i > 0 && c == '_') {
+//				if (!underscore)
+//					underscore = true;
+//				else
+//					return false;
+//			}
+//			if (!underscore) {
+//				if (Character.toUpperCase(c) != c) {
+//					return false;
+//				}
+//			}
+//		}
+//		return underscore || name.equals(name.toUpperCase());
+//	}
 	
 	public boolean removeDuplicateVariables() {
 		Map<String, C4Variable> variableMap = new HashMap<String, C4Variable>();

@@ -178,4 +178,8 @@ public class ClonkSearchQuery implements ISearchQuery {
 		parser.parseCodeOfFunctions();
 	}
 
+	public C4ScriptBase getDeclaringScript() {
+		return declaringScript;
+	}
+
 }

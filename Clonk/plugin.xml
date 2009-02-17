@@ -327,15 +327,21 @@
 	 </command>
 	 <command
 	    categoryId="org.eclipse.ui.category.edit"
-	    description="Open Declaration"
+	    description="Opens the declaration of the selected element"
 	    id="net.arctics.clonk.ui.editors.actions.OpenDeclaration"
 	    name="Open Declaration">
 	 </command>
 	 <command
 	    categoryId="org.eclipse.ui.category.edit"
-	    description="Find References"
+	    description="Finds references to the selected element"
 	    id="net.arctics.clonk.ui.editors.actions.FindReferences"
 	    name="Find References">
+	 </command>
+	 <command
+	    categoryId="org.eclipse.ui.category.edit"
+	    description="Renames the selected field"
+	    id="net.arctics.clonk.ui.editors.actions.RenameField"
+	    name="Rename Field">
 	 </command>
 </extension>
 

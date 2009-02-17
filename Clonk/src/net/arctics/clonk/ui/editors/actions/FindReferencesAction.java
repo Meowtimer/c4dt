@@ -8,9 +8,8 @@ import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.ui.editors.ClonkCommandIds;
 import net.arctics.clonk.ui.search.ClonkSearchQuery;
 
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.search.ui.NewSearchUI;
-import org.eclipse.swt.SWT;
-import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.ui.texteditor.ITextEditor;
 
 public class FindReferencesAction extends OpenDeclarationAction {
@@ -31,9 +30,7 @@ public class FindReferencesAction extends OpenDeclarationAction {
 					nature = Utilities.getProject(getTextEditor()); 
 				}
 				if (nature == null) {
-					MessageBox mb = new MessageBox(getTextEditor().getSite().getShell(), SWT.OK | SWT.ICON_ERROR);
-					mb.setMessage("Find References only works with files in your project (not external objects)");
-					mb.open();
+					MessageDialog.openError(getTextEditor().getSite().getShell(), "Find References", "Find References only works with files in your project (not external objects)");
 					return;
 				}
 				NewSearchUI.runQueryInBackground(new ClonkSearchQuery(field, nature));

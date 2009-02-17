@@ -5,7 +5,6 @@ import net.arctics.clonk.Utilities;
 import net.arctics.clonk.parser.C4Object;
 import net.arctics.clonk.ui.editors.ColorManager;
 
-import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
@@ -66,7 +65,7 @@ public class C4DefCoreEditor extends FormEditor {
 			IFile input = Utilities.getEditingFile(getEditor());
 			if (input != null) {
 				try { // XXX values should come from document - not from builder cache
-					IContainer cont = input.getParent();
+					//IContainer cont = input.getParent();
 					C4Object obj = (C4Object) input.getParent().getSessionProperty(ClonkCore.C4OBJECT_PROPERTY_ID);
 					if (obj != null) {
 						form.setText(obj.getName() + "(" + obj.getId().getName() + ") definition core");
