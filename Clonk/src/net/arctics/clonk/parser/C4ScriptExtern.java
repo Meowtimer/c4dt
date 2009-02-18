@@ -1,7 +1,7 @@
 package net.arctics.clonk.parser;
 
 import net.arctics.clonk.ClonkCore;
-import net.arctics.clonk.resource.c4group.C4Entry;
+import net.arctics.clonk.resource.c4group.C4GroupEntry;
 import net.arctics.clonk.resource.c4group.C4GroupItem;
 
 public class C4ScriptExtern extends C4ScriptBase implements INodeWithParent {
@@ -14,7 +14,7 @@ public class C4ScriptExtern extends C4ScriptBase implements INodeWithParent {
 	public C4ScriptExtern(C4GroupItem script, INodeWithParent parentNode) {
 		this.parentNode = parentNode;
 		setName(script.getName());
-		scriptStorage = new SimpleScriptStorage((C4Entry) script);
+		scriptStorage = new SimpleScriptStorage((C4GroupEntry) script);
 	}
 	
 	@Override

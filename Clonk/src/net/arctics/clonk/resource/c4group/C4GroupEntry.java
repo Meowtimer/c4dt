@@ -26,7 +26,7 @@ import org.eclipse.core.runtime.Path;
  * @author ZokRadonh
  *
  */
-public class C4Entry implements C4GroupItem, IStorage, Serializable {
+public class C4GroupEntry implements C4GroupItem, IStorage, Serializable {
 	
 	/**
 	 * 
@@ -40,18 +40,18 @@ public class C4Entry implements C4GroupItem, IStorage, Serializable {
 	
 	private transient File exportFromFile;
     
-    public C4Entry(C4Group parentGroup, C4EntryHeader header)
+    public C4GroupEntry(C4Group parentGroup, C4EntryHeader header)
     {
         this.parentGroup = parentGroup;
         this.header = header;
     }
     
-    protected C4Entry() {
+    protected C4GroupEntry() {
     	completed = true;
     }
     
-    public static C4Entry makeEntry(C4Group parent, C4EntryHeader header, File exportFromFile) {
-    	C4Entry entry = new C4Entry();
+    public static C4GroupEntry makeEntry(C4Group parent, C4EntryHeader header, File exportFromFile) {
+    	C4GroupEntry entry = new C4GroupEntry();
     	entry.parentGroup = parent;
     	entry.header = header;
     	entry.contents = null;
@@ -249,7 +249,7 @@ public class C4Entry implements C4GroupItem, IStorage, Serializable {
 
 	@SuppressWarnings("unchecked")
 	public Object getAdapter(Class cls) {
-		if (cls == C4Entry.class)
+		if (cls == C4GroupEntry.class)
 			return this;
 		return null;
 	}

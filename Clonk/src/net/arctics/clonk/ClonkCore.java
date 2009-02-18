@@ -14,8 +14,14 @@ import net.arctics.clonk.parser.C4ObjectExtern;
 import net.arctics.clonk.parser.ClonkIndex;
 import net.arctics.clonk.parser.inireader.IniData;
 import net.arctics.clonk.resource.ClonkLibBuilder;
+import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.resource.InputStreamRespectingUniqueIDs;
 
+import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.ISaveContext;
+import org.eclipse.core.resources.ISaveParticipant;
+import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.QualifiedName;
@@ -28,7 +34,7 @@ import org.osgi.framework.BundleContext;
 /**
  * The activator class controls the plug-in life cycle
  */
-public class ClonkCore extends AbstractUIPlugin {
+public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant {
 
 	// The plug-in ID
 	public static final String PLUGIN_ID = "net.arctics.clonk";
@@ -65,7 +71,9 @@ public class ClonkCore extends AbstractUIPlugin {
 		loadIniConfigurations();
 		
 		loadEngineObject();
-		loadExternIndex();
+		loadExternIndex(); 
+		
+		ResourcesPlugin.getWorkspace().addSaveParticipant(this, this);
 	}
 	
 	private void loadIniConfigurations() {
@@ -274,6 +282,39 @@ public class ClonkCore extends AbstractUIPlugin {
 		if(descriptor == null)
 			descriptor = ImageDescriptor.getMissingImageDescriptor();
 		return descriptor;
+	}
+
+	public void doneSaving(ISaveContext context) {
+	}
+
+	public void prepareToSave(ISaveContext context) throws CoreException {
+		// i don't need any preparation!1
+	}
+
+	public void rollback(ISaveContext context) {
+	}
+
+	public void saving(ISaveContext context) throws CoreException {
+		ClonkProjectNature clonkProj;
+		switch (context.getKind()) {
+		case ISaveContext.PROJECT_SAVE:
+			clonkProj = Utilities.getProject(context.getProject());
+			if (clonkProj != null) {
+				clonkProj.saveIndex();
+			}
+			break;
+		case ISaveContext.SNAPSHOT:
+		case ISaveContext.FULL_SAVE:
+			for (IProject project : ResourcesPlugin.getWorkspace().getRoot().getProjects()) {
+				if (!project.isOpen())
+					continue;
+				clonkProj = Utilities.getProject(project);
+				if (clonkProj != null) {
+					clonkProj.saveIndex();
+				}
+			}
+			break;
+		}
 	}
 	
 }

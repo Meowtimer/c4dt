@@ -281,7 +281,39 @@ public class ClonkIndex implements Serializable, Iterable<C4Object> {
 			result = ClonkCore.getDefault().EXTERN_INDEX.getLastObjectWithId(id);
 		return result;
 	}
-	
+
+	public <T extends C4Field> Iterable<T> fieldsWithName(String name, final Class<T> fieldClass) {
+		List<C4Field> nonFinalList = this.fieldMap.get(name);
+		if (nonFinalList == null)
+			nonFinalList = new LinkedList<C4Field>();
+		final List<C4Field> list = nonFinalList;
+		return new Iterable<T>() {
+			public Iterator<T> iterator() {
+				return new Iterator<T>() {
+
+					private int index = 0;
+
+					public boolean hasNext() {
+						for (; index < list.size(); index++)
+							if (fieldClass.isAssignableFrom(list.get(index).getClass()))
+								break;
+						return index < list.size();
+					}
+
+					@SuppressWarnings("unchecked")
+					public T next() {
+						return (T) list.get(index++);
+					}
+
+					public void remove() {
+						// not supported
+					}
+
+				};
+			}
+		};
+	}
+
 	public C4Function findGlobalFunction(String functionName) {
 		for (C4Function func : globalFunctions) {
 			if (func.getName().equals(functionName))

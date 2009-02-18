@@ -14,7 +14,7 @@ import net.arctics.clonk.parser.C4ObjectExternGroup;
 import net.arctics.clonk.parser.INodeWithParent;
 import net.arctics.clonk.parser.defcore.DefCoreParser;
 import net.arctics.clonk.preferences.PreferenceConstants;
-import net.arctics.clonk.resource.c4group.C4Entry;
+import net.arctics.clonk.resource.c4group.C4GroupEntry;
 import net.arctics.clonk.resource.c4group.C4EntryHeader;
 import net.arctics.clonk.resource.c4group.C4Group;
 import net.arctics.clonk.resource.c4group.C4GroupItem;
@@ -120,17 +120,17 @@ public class ClonkLibBuilder implements IC4GroupVisitor, IPropertyChangeListener
 			C4Group group = (C4Group) item;
 			C4GroupType groupType = group.getGroupType();
 			if (groupType == C4GroupType.DefinitionGroup) { // is .c4d
-				C4Entry defCore = null, script = null, names = null;
+				C4GroupEntry defCore = null, script = null, names = null;
 				for(C4GroupItem child : group.getChildEntries()) {
-					if (!(child instanceof C4Entry)) continue;
+					if (!(child instanceof C4GroupEntry)) continue;
 					if (child.getName().equals("DefCore.txt")) {
-						defCore = (C4Entry) child;
+						defCore = (C4GroupEntry) child;
 					}
 					else if (child.getName().equals("Script.c")) {
-						script = (C4Entry) child;
+						script = (C4GroupEntry) child;
 					}
 					else if (child.getName().equals("Names.txt")) {
-						names = (C4Entry) child;
+						names = (C4GroupEntry) child;
 					}
 				}
 				if (defCore != null && script != null) {
@@ -165,7 +165,7 @@ public class ClonkLibBuilder implements IC4GroupVisitor, IPropertyChangeListener
 					if (child.getName().endsWith(".c")) {
 						try {
 							C4ScriptExtern externScript = new C4ScriptExtern(child, currentExternNode);
-							C4ScriptParser parser = new C4ScriptParser(((C4Entry)child).getContents(),((C4Entry)child).computeSize(), externScript);
+							C4ScriptParser parser = new C4ScriptParser(((C4GroupEntry)child).getContents(),((C4GroupEntry)child).computeSize(), externScript);
 							parser.parseDeclarations();
 							ClonkCore.getDefault().EXTERN_INDEX.addScript(externScript);
 							//						Utilities.getProject(getProject()).getIndexedData().addObject(externSystemc4g);

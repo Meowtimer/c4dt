@@ -151,7 +151,7 @@ public class C4Group implements C4GroupItem, Serializable {
 				else if (children[i] instanceof IFile) {
 					File file = new File(((IFile)children[i]).getRawLocationURI());
 					int size = (int)file.length();
-					C4Entry entry = C4Entry.makeEntry(group, C4EntryHeader.createHeader(entryName, false, false, size, 0, 0, (int) GregorianCalendar.getInstance().getTimeInMillis()),file);
+					C4GroupEntry entry = C4GroupEntry.makeEntry(group, C4EntryHeader.createHeader(entryName, false, false, size, 0, 0, (int) GregorianCalendar.getInstance().getTimeInMillis()),file);
 					entry.getEntryHeader().setOffset(groupSize);
 					group.getChildEntries().add(entry);
 				}
@@ -266,7 +266,7 @@ public class C4Group implements C4GroupItem, Serializable {
 						entry = new C4Group(this, entryHeader.getEntryName()); // a group does not need all header information
 					}
 					else {
-						entry = new C4Entry(this, entryHeader);
+						entry = new C4GroupEntry(this, entryHeader);
 					}
 					readObjects.add(entry);
 				}

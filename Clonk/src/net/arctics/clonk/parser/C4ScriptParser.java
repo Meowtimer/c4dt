@@ -1,6 +1,7 @@
 package net.arctics.clonk.parser;
 
 import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
 import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -8,6 +9,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.Vector;
 
+import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.Utilities;
 import net.arctics.clonk.parser.C4Directive.C4DirectiveType;
 import net.arctics.clonk.parser.C4Function.C4FunctionScope;
@@ -771,17 +773,17 @@ public class C4ScriptParser {
 			else {
 				fReader.unread();
 				if (count > 0) {
-					fReader.seek(offset);
-					parsedNumber = Long.parseLong(fReader.readString(count));
-					fReader.seek(offset+count);
+					break;
 				} else {
 					parsedNumber = -1; // unlikely to be parsed
 					return false; // well, this seems not to be a number at all
 				} 
-				return true;
 			}
 		} while(!fReader.reachedEOF());
-		return true; // TODO correct number finish?
+		fReader.seek(offset);
+		parsedNumber = Long.parseLong(fReader.readString(count));
+		fReader.seek(offset+count);
+		return true;
 	}
 	
 	private boolean parseEllipsis(int offset) {
@@ -2001,6 +2003,30 @@ public class C4ScriptParser {
 			e.printStackTrace();
 		}
 		return parser;
+	}
+	
+	public static ExprElm parseStandaloneExpression(final String expression, C4ScriptBase context) throws ParsingException {
+		if (context == null)
+			context = new C4ScriptBase() {
+				private static final long serialVersionUID = 1L;
+
+				@Override
+				public ClonkIndex getIndex() {
+					return ClonkCore.getDefault().EXTERN_INDEX;
+				}
+
+				@Override
+				public Object getScriptFile() {
+					try {
+						return new SimpleScriptStorage(expression, expression);
+					} catch (UnsupportedEncodingException e) {
+						return null;
+					}
+				}
+			
+			};
+		C4ScriptParser tempParser = new C4ScriptParser(expression, context);
+		return tempParser.parseExpression(0);
 	}
 	
 	public static C4ScriptParser reportExpressionsAndStatements(IDocument doc, int offset, C4Object context, C4Function func, IExpressionListener listener) throws BadLocationException, CompilerException, ParsingException {

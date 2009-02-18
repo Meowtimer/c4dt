@@ -3,6 +3,8 @@ package net.arctics.clonk.ui.editors.actions;
 import java.util.ResourceBundle;
 
 import net.arctics.clonk.parser.C4Field;
+import net.arctics.clonk.parser.C4ScriptParser;
+import net.arctics.clonk.parser.C4ScriptExprTree.ExprElm;
 import net.arctics.clonk.refactoring.ClonkRenameFieldProcessor;
 import net.arctics.clonk.ui.editors.ClonkCommandIds;
 import org.eclipse.jface.dialogs.InputDialog;

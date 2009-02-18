@@ -16,18 +16,36 @@ import org.eclipse.core.resources.IProjectNature;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 
+/**
+ * project nature for Clonk projects
+ */
 public class ClonkProjectNature implements IProjectNature {
 
-	private static final String indexDataFile = "indexdata";
+	/**
+	 * Name of the file the index gets saved in
+	 */
+	private static final String indexFileName = "indexdata";
 	
+	/**
+	 * Reference to the project
+	 */
 	private IProject project;
 	
-	private ProjectIndex indexedData = null;
+	/**
+	 *  index of the project
+	 */
+	private ProjectIndex index = null;
+	
+	/**
+	 * Signals whether the index needs to be saved to disk
+	 */
+	private boolean indexDirty = false;
 	
 	public ClonkProjectNature() {
 	}
 	
 	public void configure() throws CoreException {
+		System.out.println("ClonkProjectNature.configure");
 	}
 
 	public void deconfigure() throws CoreException {
@@ -46,52 +64,71 @@ public class ClonkProjectNature implements IProjectNature {
 	 * @return the indexedData
 	 */
 	public ClonkIndex getIndex() {
-		if (indexedData == null)
-			loadIndexData();
-		return indexedData;
+		if (index == null)
+			loadIndex();
+		return index;
 	}
 	
-	public void saveIndexData() throws CoreException {
-		final IFile eclipseFile = project.getFile(indexDataFile);
-		if (!eclipseFile.exists())
-			eclipseFile.create(new ByteArrayInputStream(new byte[] {}), IResource.HIDDEN | IResource.DERIVED, null);
-		final File index = eclipseFile.getLocation().toFile();
-		try {
-			FileOutputStream out = new FileOutputStream(index);
-			ObjectOutputStream objStream = new ObjectOutputStream(out);
-			objStream.writeObject(getIndex());
-			objStream.close();
-			out.close();
-			eclipseFile.refreshLocal(IResource.DEPTH_ZERO, null);
-		} catch (Exception e) {
-			e.printStackTrace();
+	/**
+	 * Saves the index to disk
+	 * @throws CoreException
+	 */
+	public void saveIndex() throws CoreException {
+		if (indexDirty) {
+			getIndex(); // make sure index is loaded in the first place
+			final IFile eclipseFile = project.getFile(indexFileName);
+			if (!eclipseFile.exists())
+				eclipseFile.create(new ByteArrayInputStream(new byte[] {}), IResource.HIDDEN | IResource.DERIVED, null);
+			final File index = eclipseFile.getLocation().toFile();
+			try {
+				FileOutputStream out = new FileOutputStream(index);
+				ObjectOutputStream objStream = new ObjectOutputStream(out);
+				objStream.writeObject(getIndex());
+				objStream.close();
+				out.close();
+				eclipseFile.refreshLocal(IResource.DEPTH_ZERO, null);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+			indexDirty = false;
 		}
 	}
 	
 	/**
-	 * Starts Deserialization into <tt>indexedData</tt>
+	 * Loads the index from disk
 	 */
-	private void loadIndexData() {
-		final IFile index = project.getFile(indexDataFile);
-		if (!index.exists()) {
-			indexedData = new ProjectIndex(project);
+	private void loadIndex() {
+		final IFile indexFile = project.getFile(indexFileName);
+		if (!indexFile.exists()) {
+			index = new ProjectIndex(project);
 			return;
 		}
 		try {
-			InputStream in = index.getContents();
+			InputStream in = indexFile.getContents();
 			try {
 				ObjectInputStream objStream = new InputStreamRespectingUniqueIDs(in);
-				indexedData = (ProjectIndex)objStream.readObject();
-				indexedData.setProject(getProject());
-				indexedData.fixReferencesAfterSerialization();
+				index = (ProjectIndex)objStream.readObject();
+				index.setProject(getProject());
+				index.fixReferencesAfterSerialization();
 			} finally {
 				in.close();
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
 			// somehow failed - ignore
-			indexedData = new ProjectIndex(project);
+			index = new ProjectIndex(project);
 		}
+	}
+
+	/**
+	 * @return whether the index is dirty and needs to be resaved or not
+	 */
+	public boolean isIndexDirty() {
+		return indexDirty;
+	}
+	
+	public void markAsDirty() {
+		indexDirty = true;
 	}
 
 }

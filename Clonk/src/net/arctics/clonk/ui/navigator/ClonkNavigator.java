@@ -3,7 +3,7 @@ package net.arctics.clonk.ui.navigator;
 import java.io.File;
 import java.io.FilenameFilter;
 
-import net.arctics.clonk.resource.c4group.C4Entry;
+import net.arctics.clonk.resource.c4group.C4GroupEntry;
 import net.arctics.clonk.resource.c4group.C4Group;
 
 import org.eclipse.core.resources.IProject;
@@ -72,7 +72,7 @@ public class ClonkNavigator implements ITreeContentProvider {
 		if (element instanceof IProject) {
 			if (((IProject)element).isOpen()) return true;
 		}
-		if (element instanceof C4Entry) {
+		if (element instanceof C4GroupEntry) {
 			return false;
 //			C4Entry entry = (C4Entry)element;
 //			if (!entry.isCompleted()) {

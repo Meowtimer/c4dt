@@ -289,13 +289,17 @@ public class C4Function extends C4Structure implements Serializable, ITypedField
 	
 	public C4Function getInherited() {
 		if (getVisibility() == C4FunctionScope.FUNC_GLOBAL) {
-			C4Function f = ClonkCore.getDefault().ENGINE_OBJECT.findFunction(getName());
+			C4Function f = null;
+			for (C4Function funcWithSameName : getScript().getIndex().fieldsWithName(this.name, C4Function.class)) {
+				if (funcWithSameName == this) {
+					break;
+				}
+				f = funcWithSameName;
+			}
 			if (f == null)
 				f = ClonkCore.getDefault().EXTERN_INDEX.findGlobalFunction(getName());
 			if (f == null)
-				f = getScript().getIndex().findGlobalFunction(getName());
-			if (f == this)
-				f = null;
+				f = ClonkCore.getDefault().ENGINE_OBJECT.findFunction(getName());
 			return f;
 		}
 		C4Object[] includes = getScript().getIncludes();
