@@ -1,9 +1,6 @@
 package net.arctics.clonk.ui.editors;
 
-import net.arctics.clonk.resource.ClonkProjectNature;
-
 import org.eclipse.core.resources.IFile;
-import org.eclipse.core.resources.IProjectNature;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IDocumentPartitioner;
@@ -40,20 +37,6 @@ public class ClonkDocumentProvider extends FileDocumentProvider {
 //		if (editor instanceof C4ScriptEditor) {
 //			((C4ScriptEditor)editor).getOutlinePage().refresh();
 //		}
-	}
-	
-	protected ClonkProjectNature getProject(ITextEditor editor) {
-		try {
-			if (editor.getEditorInput() instanceof FileEditorInput) {
-				IProjectNature clonkProj = ((FileEditorInput)editor.getEditorInput()).getFile().getProject().getNature("net.arctics.clonk.clonknature");
-				if (clonkProj instanceof ClonkProjectNature) {
-					return (ClonkProjectNature)clonkProj;
-				}
-			}
-		} catch (CoreException e) {
-			e.printStackTrace();
-		}
-		return null;
 	}
 	
 	protected IFile getEditingFile(ITextEditor editor) {

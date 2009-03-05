@@ -24,6 +24,8 @@ public abstract class C4ScriptBase extends C4Structure implements IRelatedResour
 	 */
 	private static final long serialVersionUID = 1L;
 
+	private static final C4Object[] NO_INCLUDES = new C4Object[] {};
+
 	protected List<C4Function> definedFunctions = new LinkedList<C4Function>();
 	protected List<C4Variable> definedVariables = new ArrayList<C4Variable>(); // default capacity of 10 is ok
 	protected List<C4Directive> definedDirectives = new ArrayList<C4Directive>(4); // mostly 4 are enough
@@ -76,7 +78,10 @@ public abstract class C4ScriptBase extends C4Structure implements IRelatedResour
 	}
 	
 	public C4Object[] getIncludes() {
-		return getIncludes(getIndex());
+		ClonkIndex index = getIndex();
+		if (index == null)
+			return NO_INCLUDES;
+		return getIncludes(index);
 	}
 	
 	public C4Field findField(String name) {

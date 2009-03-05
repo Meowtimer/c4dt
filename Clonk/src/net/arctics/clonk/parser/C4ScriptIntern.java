@@ -4,6 +4,7 @@ import java.io.Serializable;
 
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.Utilities;
+import net.arctics.clonk.resource.ClonkProjectNature;
 
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
@@ -28,7 +29,8 @@ public class C4ScriptIntern extends C4ScriptBase implements Serializable {
 
 	@Override
 	public ClonkIndex getIndex() {
-		return Utilities.getProject(scriptFile).getIndex();
+		ClonkProjectNature nature = Utilities.getProject(scriptFile);
+		return nature != null ? nature.getIndex() : null;
 	}
 
 	@Override
