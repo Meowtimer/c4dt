@@ -48,8 +48,10 @@ public class ClonkPreferencePage
 				"&Clonk game path:", getFieldEditorParent());
 		final FileFieldEditor c4groupExecutable = new FileFieldEditor(PreferenceConstants.C4GROUP_EXECUTABLE,
 				"C4&Group executable:", getFieldEditorParent());
+		final FileFieldEditor engineExecutable = new FileFieldEditor(PreferenceConstants.ENGINE_EXECUTABLE, "Clonk Engine:", getFieldEditorParent());
 		addField(clonkPathEditor);
 		addField(c4groupExecutable);
+		addField(engineExecutable);
 		addField(new ListEditor(PreferenceConstants.STANDARD_EXT_LIBS,"External objects and scripts:",getFieldEditorParent()) {
 		
 			@Override

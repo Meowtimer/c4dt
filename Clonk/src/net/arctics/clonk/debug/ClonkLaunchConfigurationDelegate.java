@@ -3,10 +3,7 @@ package net.arctics.clonk.debug;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.LinkedList;
-import java.util.Map;
-
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.preferences.PreferenceConstants;
 
@@ -19,6 +16,7 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.NullProgressMonitor;
+import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.debug.core.DebugPlugin;
 import org.eclipse.debug.core.ILaunch;
@@ -136,19 +134,27 @@ public class ClonkLaunchConfigurationDelegate implements
 		IPreferenceStore prefs = ClonkCore.getDefault().getPreferenceStore();
 		String gamePath = prefs.getString(PreferenceConstants.GAME_PATH);
 
-		// Try some variants in an attempt to find the engine (ugh...)
-		final String[] engineNames = possibleEngineNamesAccordingToOS(System.getProperty("os.name"));
 		File enginePath = null;
-		for(String name : engineNames) {
-			File path = new File(gamePath, name);
-			if(path.exists()) {
-				enginePath = path;
-				break;
+		String enginePref = Platform.getPreferencesService().getString(ClonkCore.PLUGIN_ID, PreferenceConstants.ENGINE_EXECUTABLE, "", null);
+		if (enginePref != "") {
+			enginePath = new File(enginePref);
+			if (!enginePath.exists())
+				enginePath = null;
+		}
+		else {
+			// Try some variants in an attempt to find the engine (ugh...)
+			final String[] engineNames = possibleEngineNamesAccordingToOS(System.getProperty("os.name"));
+			for(String name : engineNames) {
+				File path = new File(gamePath, name);
+				if(path.exists()) {
+					enginePath = path;
+					break;
+				}
 			}
 		}
 		if(enginePath == null)
 			abort(IStatus.ERROR, "Could not find engine excutable!");
-		
+
 		// TODO: Do some more verification? Check engine version?
 	
 		return enginePath;

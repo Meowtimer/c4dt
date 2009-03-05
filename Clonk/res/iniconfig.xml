@@ -87,10 +87,8 @@
       <entry name="Projectile" class="net.arctics.clonk.parser.defcore.UnsignedInteger" description="0 oder 1"/>
       <entry name="LineIntersect" class="net.arctics.clonk.parser.defcore.UnsignedInteger" description="0 oder 1"/>
       <entry name="NeededGfxMode" class="net.arctics.clonk.parser.defcore.UnsignedInteger" description="0 oder 1"/>
-      <entry name="PictureFE" class="net.arctics.clonk.parser.defcore.IntegerArray" description="?"/><entry
-      	name="RotatedSolidMasks"
-      	class="net.arctics.clonk.parser.defcore.IntegerArray"
-      	description="?">
+      <entry name="PictureFE" class="net.arctics.clonk.parser.defcore.IntegerArray" description="?"/>
+      <entry name="RotatedSolidmasks" class="net.arctics.clonk.parser.defcore.IntegerArray" description="?">
 </entry>
     </section>
     <section name="Physical">

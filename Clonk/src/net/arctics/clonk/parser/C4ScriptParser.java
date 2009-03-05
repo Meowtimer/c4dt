@@ -222,7 +222,14 @@ public class C4ScriptParser {
 		try {
 			eatWhitespace();
 			while(!fReader.reachedEOF()) {
-				if (!parseDeclaration(fReader.getPosition())) return;
+				if (!parseDeclaration(fReader.getPosition())) {
+					eatWhitespace();
+					if (!fReader.reachedEOF()) {
+						int start = fReader.getPosition();
+						String tokenText = parseTokenAndReturnAsString(start);
+						errorWithCode(ErrorCode.UnexpectedToken, start, fReader.getPosition(), true, tokenText);
+					}
+				}
 				eatWhitespace();
 			}
 		}
@@ -315,6 +322,7 @@ public class C4ScriptParser {
 				}
 			}
 		}
+		fReader.seek(offset);
 		return false;
 	}
 
@@ -491,9 +499,10 @@ public class C4ScriptParser {
 		offset = fReader.getPosition();
 		if (parseVariableDeclarationInFunc(offset, true))
 			return 0;
-		if (parseToken(offset) != null)
-			return 0;
-		return fReader.read();
+		Token t = parseToken(offset);
+		if (t == Token.Symbol)
+			return parsedString.charAt(0);
+		return 0;
 	}
 
 	/**
@@ -827,20 +836,45 @@ public class C4ScriptParser {
 		String,
 		Word,
 		ID,
-		Number
+		Number,
+		Operator,
+		Symbol
 	}
 	
 	public Token parseToken(int offset) throws ParsingException {
 		fReader.seek(offset);
 		if (parseString(offset))
 			return Token.String;
-		if (fReader.readWord().length() > 0)
+		String word = fReader.readWord();
+		if (word.length() > 0) {
+			parsedString = word;
 			return Token.Word;
+		}
 		if (parseID(offset))
 			return Token.ID;
 		if (parseNumber(offset))
 			return Token.Number;
-		return null;
+		C4ScriptOperator op;
+		if ((op = parseOperator(offset)) != null) {
+			parsedString = op.getOperatorName();
+			return Token.Operator;
+		}
+		parsedString = fReader.readString(1);
+		return Token.Symbol;
+	}
+
+	public String lastTokenAsString(Token token) {
+		switch (token) {
+		case ID: return parsedID.getName();
+		case Number: return String.valueOf(parsedNumber);
+		case String: return "\""+parsedString+"\"";
+		case Word: case Symbol: case Operator: return parsedString;
+		}
+		return "";
+	}
+	
+	public String parseTokenAndReturnAsString(int offset) throws ParsingException {
+		return lastTokenAsString(parseToken(offset));
 	}
 
 	/**
@@ -892,7 +926,7 @@ public class C4ScriptParser {
 		OldStyleFunc, ValueExpected, TuplesNotAllowed, EmptyParentheses, ExpectedCode, ConstantValueExpected,
 		CommaOrSemicolonExpected, IncompatibleTypes, VariableCalled, TypeAsName, BlockNotClosed, UnknownDirective,
 		StatementExpected, ConditionExpected, OutOfIntRange, NoInheritedFunction, FunctionRedeclared, NeverReached, ObsoleteOperator,
-		StringNotClosed;
+		StringNotClosed, UnexpectedToken;
 		
 		public String getErrorString(Object... format) {
 			return String.format(C4ScriptParser.errorStrings[ordinal()], format);
@@ -934,7 +968,8 @@ public class C4ScriptParser {
 		"Function overload: this function is already declared in this script",
 		"Code never reached",
 		"Obsolete operator '%s'",
-		"String not closed"
+		"String not closed",
+		"Unexpected token: %s"
 	};
 	
 	private Set<ErrorCode> disabledErrors = new HashSet<ErrorCode>();
@@ -1557,7 +1592,7 @@ public class C4ScriptParser {
 						offset = fReader.getPosition();
 						String nextWord = fReader.readWord();
 						Statement elseStatement;
-						if (nextWord.equals(Keywords.Else)) {
+						if (nextWord != null && nextWord.equals(Keywords.Else)) {
 							eatWhitespace();
 							offset = fReader.getPosition();
 							elseStatement = parseStatement(fReader.getPosition());
@@ -1961,7 +1996,8 @@ public class C4ScriptParser {
 
 	public void clean() {
 		try {
-			if (fScript != null) fScript.deleteMarkers(IMarker.PROBLEM, true, IResource.DEPTH_ONE);
+			if (fScript != null)
+				fScript.deleteMarkers(IMarker.PROBLEM, true, IResource.DEPTH_ONE);
 		} catch (CoreException e1) {
 			e1.printStackTrace();
 		}

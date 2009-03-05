@@ -159,7 +159,7 @@ public abstract class C4ScriptExprTree {
 		}
 
 		/**
-		 * Keeps applying newStyleReplacement to the expression and its modified versions until an expression and it's replacement are identical e.g. there is nothing to be modified anymore
+		 * Keeps applying newStyleReplacement to the expression and its modified versions until an expression and its replacement are identical e.g. there is nothing to be modified anymore
 		 * @param context
 		 * @return
 		 * @throws CloneNotSupportedException
@@ -384,9 +384,11 @@ public abstract class C4ScriptExprTree {
 		
 		@Override
 		public void reportErrors(C4ScriptParser parser) throws ParsingException {
-			ExprElm pred = getPredecessorInSequence();
-			if (pred != null)
-				pred.expectedToBeOfType(C4Type.OBJECT);
+			super.reportErrors(parser);
+			// not really since -> can also be used with ids
+//			ExprElm pred = getPredecessorInSequence();			
+//			if (pred != null)
+//				pred.expectedToBeOfType(C4Type.OBJECT);
 		}
 
 	}
@@ -502,6 +504,10 @@ public abstract class C4ScriptExprTree {
 		@Override
 		public int getIdentifierLength() {
 			return fieldName.length();
+		}
+
+		public boolean indirectAccess() {
+			return field == null || !field.getName().equals(fieldName);
 		}
 	}
 

@@ -14,5 +14,7 @@ public class PreferenceConstants {
 	public static final String SHOW_EXPORT_LOG = "showExportLog";
 	
 	public static final String PREFERRED_LANGID = "preferredLangID";
+
+	public static final String ENGINE_EXECUTABLE = "engineExecutable";
 	
 }

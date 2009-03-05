@@ -1,8 +1,13 @@
 package net.arctics.clonk.refactoring;
 
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
+
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.Utilities;
 import net.arctics.clonk.parser.C4Field;
+import net.arctics.clonk.parser.C4Function;
 import net.arctics.clonk.parser.C4ScriptBase;
 import net.arctics.clonk.ui.search.ClonkSearchMatch;
 import net.arctics.clonk.ui.search.ClonkSearchQuery;
@@ -51,9 +56,18 @@ public class ClonkRenameFieldProcessor extends RenameProcessor {
 		ClonkSearchQuery query = new ClonkSearchQuery(field, Utilities.getProject(declaringFile));
 		query.run(monitor);
 		ClonkSearchResult searchResult = (ClonkSearchResult) query.getSearchResult();
-		Object[] elements = searchResult.getElements();
-		if (elements == null || elements.length ==  0)
-			elements = new Object[] {declaringFile};
+		// all references in code
+		Set<Object> elements = new HashSet<Object>(Arrays.asList(searchResult.getElements()));
+		// declaration of the selected field
+		elements.add(field.getScript());
+		// if field is a function also look for functions which inherit or are inherited from field
+		if (field instanceof C4Function) {
+			C4Function fieldAsFunc = (C4Function)field;
+			for (C4Function relatedFunc : field.getScript().getIndex().fieldsWithName(field.getName(), C4Function.class)) {
+				if (field != relatedFunc && fieldAsFunc.relatedFunction(relatedFunc) && fieldAsFunc.getScript().getScriptFile() instanceof IFile)
+					elements.add(relatedFunc);
+			}
+		}
 		CompositeChange composite = new CompositeChange("Renaming " + field.toString());
 		for (Object element : elements) {
 			IFile file;
@@ -61,6 +75,8 @@ public class ClonkRenameFieldProcessor extends RenameProcessor {
 				file = (IFile)element;
 			else if (element instanceof C4ScriptBase)
 				file = (IFile) ((C4ScriptBase)element).getScriptFile();
+			else if (element instanceof C4Function)
+				file = (IFile) ((C4Function)element).getScript().getScriptFile();
 			else
 				file = null;
 			if (file != null) {
@@ -70,9 +86,13 @@ public class ClonkRenameFieldProcessor extends RenameProcessor {
 				if (file.equals(declaringFile)) {
 					fileChange.addEdit(new ReplaceEdit(field.getLocation().getOffset(), field.getLocation().getLength(), newName));
 				}
+				if (element instanceof C4Function) {
+					C4Function relatedFunc = (C4Function)element;
+					fileChange.addEdit(new ReplaceEdit(relatedFunc.getLocation().getOffset(), relatedFunc.getLocation().getLength(), newName));
+				}
 				for (Match m : searchResult.getMatches(element)) {
 					ClonkSearchMatch match = (ClonkSearchMatch) m;
-					if (!match.isPotential())
+					if (!match.isPotential() && !match.isIndirect())
 						fileChange.addEdit(new ReplaceEdit(match.getOffset(), match.getLength(), newName));
 				}
 				composite.add(fileChange);

@@ -96,15 +96,18 @@ public class ClonkSearchQuery implements ISearchQuery {
 				if (expression instanceof ExprAccessField) {
 					ExprAccessField accessField = (ExprAccessField) expression;
 					if (accessField.getField(parser) == field)
-						result.addMatch(expression, parser, false);
+						result.addMatch(expression, parser, false, accessField.indirectAccess());
 					else if (declaringScriptIsScenario && calledThroughGameCall(expression))
-						result.addMatch(expression, parser, false);
-					else if (potentiallyReferencedByObjectCall(expression))
-						result.addMatch(expression, parser, true);
+						result.addMatch(expression, parser, false, true);
+					else if (potentiallyReferencedByObjectCall(expression)) {
+						C4Function otherFunc = (C4Function) accessField.getField();
+						boolean potential = (otherFunc == null || !((C4Function)field).relatedFunction(otherFunc));
+						result.addMatch(expression, parser, potential, accessField.indirectAccess());
+					}
 				}
 				else if (expression instanceof ExprID && field instanceof C4ScriptBase) {
 					if (expression.guessObjectType(parser) == field)
-						result.addMatch(expression, parser, false);
+						result.addMatch(expression, parser, false, false);
 				}
 				return TraversalContinuation.Continue;
 			}
@@ -172,7 +175,7 @@ public class ClonkSearchQuery implements ISearchQuery {
 		if (field instanceof C4Object) {
 			C4Directive include = script.getIncludeDirectiveFor((C4Object) field);
 			if (include != null)
-				result.addMatch(include.getExprElm(), parser, false);
+				result.addMatch(include.getExprElm(), parser, false, false);
 		}
 		parser.setExpressionListener(searchExpressions);
 		parser.parseCodeOfFunctions();

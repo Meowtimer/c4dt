@@ -391,4 +391,15 @@ public class C4Function extends C4Structure implements Serializable, ITypedField
 		expectedContent = object;
 	}
 	
+	public boolean inheritsFrom(C4Function otherFunc) {
+		for (C4Function f = this; f != null; f = f.getInherited())
+			if (otherFunc == f)
+				return true;
+		return false;
+	}
+	
+	public boolean relatedFunction(C4Function otherFunc) {
+		return this.inheritsFrom(otherFunc) || otherFunc.inheritsFrom(this);
+	}
+	
 }

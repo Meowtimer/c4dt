@@ -155,7 +155,8 @@ public class IniReader {
 	}
 	
 	protected void skipComment() {
-		if (reader.read() == ';') {
+		int r = reader.read();
+		if (r == ';' || r == '#') {
 			reader.readStringUntil('\n');
 		}
 		else 

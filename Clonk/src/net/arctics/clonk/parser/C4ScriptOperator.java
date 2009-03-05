@@ -46,7 +46,6 @@ public enum C4ScriptOperator {
 	AssignAnd(C4Type.BOOL, C4Type.BOOL, C4Type.BOOL, "&=", 2),
 	AssignXOr(C4Type.INT, C4Type.INT, C4Type.INT, "^=", 2);
 	
-	// enums can have fields! cool
 	C4Type firstArgType, secondArgType, resultType;
 	String operatorName, oldStyleFunctionEquivalent;
 	int priority;
