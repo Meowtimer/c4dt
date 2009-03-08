@@ -2,6 +2,7 @@ package net.arctics.clonk.parser;
 
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -66,10 +67,6 @@ public class C4ScriptParser {
 		public static final String False = "false";
 	}
 	
-//	private interface IErrorHook {
-//		public boolean handle(ErrorCode code, Object... arguments);
-//	}
-	
 	public static class ParsingException extends Exception {
 
 		private static final long serialVersionUID = 1L;
@@ -89,8 +86,12 @@ public class C4ScriptParser {
 		
 	}
 	
+	public static class CachedEngineFuncs {
+		public static final C4Function Par = ClonkCore.getDefault().ENGINE_OBJECT.findFunction("Par");
+		public static final C4Function Var = ClonkCore.getDefault().ENGINE_OBJECT.findFunction("Var");
+	}
+	
 	private IExpressionListener expressionListener;
-//	private IErrorHook errorHook;
 
 	public IExpressionListener getExpressionListener() {
 		return expressionListener;
@@ -120,6 +121,7 @@ public class C4ScriptParser {
 	private LoopType currentLoop;
 	
 	public static final int MAX_PAR = 10;
+	public static final int MAX_NUMVAR = 20;
 	public static final int UNKNOWN_PARAMETERNUM = MAX_PAR+1;
 	
 	/*
@@ -127,6 +129,8 @@ public class C4ScriptParser {
 	 * If a complex expression is passed to Par() this variable is set to UNKNOWN_PARAMETERNUM
 	 */
 	private int numUnnamedParameters;
+	
+	private List<Pair<C4Type, C4Object>> unnamedVarTypeInformation;
 
 	/**
 	 * Informs the parser that an unnamed parameter was used by calling the Par() function with the given index expression
@@ -143,6 +147,70 @@ public class C4ScriptParser {
 	}
 	
 	/**
+	 * Ask the parser to store type information about an expression. No guarantees whether type information will actually be stored.
+	 */
+	public void storeTypeInformation(ExprElm expression, C4Type type, C4Object objectType) {
+		if (expression instanceof ExprCallFunc) {
+			ExprCallFunc callFunc = (ExprCallFunc)expression;
+			if (callFunc.getField() == CachedEngineFuncs.Var) {
+				if (callFunc.getParams().length > 0 && callFunc.getParams()[0] instanceof ExprNumber) {
+					ExprNumber number = (ExprNumber)callFunc.getParams()[0];
+					if (number.intValue() >= 0 && number.intValue() < MAX_NUMVAR) {
+						int val = number.intValue();
+						if (unnamedVarTypeInformation == null)
+							unnamedVarTypeInformation = new ArrayList<Pair<C4Type, C4Object>>(MAX_NUMVAR);
+						while (unnamedVarTypeInformation.size() <= val)
+							unnamedVarTypeInformation.add(null);
+						if (unnamedVarTypeInformation.get(val) == null) {
+							unnamedVarTypeInformation.set(val, new Pair<C4Type, C4Object>(type, objectType));
+						}
+						else {
+							Pair<C4Type, C4Object> info = unnamedVarTypeInformation.get(val);
+							if (type != null)
+								info.setFirst(type);
+							info.setSecond(objectType);
+						}
+					}
+				}
+			}	
+		}
+	}
+	
+	public C4Type queryTypeOfExpression(ExprElm expression) {
+		if (unnamedVarTypeInformation != null && expression instanceof ExprCallFunc) {
+			ExprCallFunc callFunc = (ExprCallFunc)expression;
+			if (callFunc.getField() == CachedEngineFuncs.Var) {
+				if (callFunc.getParams().length > 0 && callFunc.getParams()[0] instanceof ExprNumber) {
+					ExprNumber number = (ExprNumber)callFunc.getParams()[0];
+					if (number.intValue() >= 0 && number.intValue() < unnamedVarTypeInformation.size()) {
+						int val = number.intValue();
+						if (unnamedVarTypeInformation.get(val) != null)
+							return unnamedVarTypeInformation.get(val).getFirst();
+					}
+				}
+			}	
+		}
+		return C4Type.UNKNOWN;
+	}
+	
+	public C4Object queryObjectTypeOfExpression(ExprElm expression) {
+		if (unnamedVarTypeInformation != null && expression instanceof ExprCallFunc) {
+			ExprCallFunc callFunc = (ExprCallFunc)expression;
+			if (callFunc.getField() == CachedEngineFuncs.Var) {
+				if (callFunc.getParams().length > 0 && callFunc.getParams()[0] instanceof ExprNumber) {
+					ExprNumber number = (ExprNumber)callFunc.getParams()[0];
+					if (number.intValue() >= 0 && number.intValue() < unnamedVarTypeInformation.size()) {
+						int val = number.intValue();
+						if (unnamedVarTypeInformation.get(val) != null)
+							return unnamedVarTypeInformation.get(val).getSecond();
+					}
+				}
+			}	
+		}
+		return null;
+	}
+	
+	/**
 	 * Returns the strict level of the script that was specified using the #strict directive.
 	 * @return
 	 */
@@ -155,7 +223,13 @@ public class C4ScriptParser {
 	}
 	
 	public void setActiveFunc(C4Function func) {
-		activeFunc = func;
+		if (func != activeFunc) {
+			activeFunc = func;
+			numUnnamedParameters = 0;
+			if (unnamedVarTypeInformation != null)
+				for (int i = 0; i < unnamedVarTypeInformation.size(); i++)
+					unnamedVarTypeInformation.set(i, null);
+		}
 	}
 	
 	public C4ScriptBase getContainer() {
@@ -168,7 +242,7 @@ public class C4ScriptParser {
 		return null;
 	}
 	
-	public C4ScriptParser(C4ScriptBase script) throws CompilerException {
+	public C4ScriptParser(C4ScriptBase script) {
 		this((IFile) script.getScriptFile(), script);
 	}
 
@@ -179,7 +253,7 @@ public class C4ScriptParser {
 	 * @param obj
 	 * @throws CompilerException
 	 */
-	public C4ScriptParser(IFile scriptFile, C4ScriptBase script) throws CompilerException {
+	public C4ScriptParser(IFile scriptFile, C4ScriptBase script) {
 		fScript = scriptFile;
 		fReader = new BufferedScanner(fScript);
 		container = script;
@@ -193,7 +267,7 @@ public class C4ScriptParser {
 	 * @param object
 	 * @throws CompilerException
 	 */
-	public C4ScriptParser(InputStream stream, long size, C4ScriptBase script) throws CompilerException {
+	public C4ScriptParser(InputStream stream, long size, C4ScriptBase script) {
 		fScript = null;
 		fReader = new BufferedScanner(stream, size);
 		container = script;
@@ -210,7 +284,7 @@ public class C4ScriptParser {
 		container = script;
 	}
 	
-	public void parse() {
+	public void parse() throws ParsingException {
 		clean();
 		parseDeclarations();
 		parseCodeOfFunctions();
@@ -238,17 +312,16 @@ public class C4ScriptParser {
 		}
 	}
 	
-	public void parseCodeOfFunctions() {
+	public void parseCodeOfFunctions() throws ParsingException {
 		strictLevel = container.strictLevel();
 		for (C4Function function : container.definedFunctions) {
 			parseCodeOfFunction(function);
 		}
 	}
 
-	public void parseCodeOfFunction(C4Function function) {
-		activeFunc = function;
-		numUnnamedParameters = 0;
+	public void parseCodeOfFunction(C4Function function) throws ParsingException {
 		try {
+			setActiveFunc(function);
 			parseCodeBlock(function.getBody().getStart());
 			if (numUnnamedParameters < UNKNOWN_PARAMETERNUM) {
 				activeFunc.createParameters(numUnnamedParameters);
@@ -264,7 +337,7 @@ public class C4ScriptParser {
 		}
 		catch (Exception e) {
 			// errorWithCode throws ^^;
-			warningWithCode(ErrorCode.InternalError, fReader.getPosition(), fReader.getPosition()+1, e.getMessage());
+			errorWithCode(ErrorCode.InternalError, fReader.getPosition(), fReader.getPosition()+1, true, e.getMessage());
 			e.printStackTrace();
 		}
 	}
@@ -2004,11 +2077,11 @@ public class C4ScriptParser {
 		container.clearFields();
 	}
 	
-	public static C4ScriptParser reportExpressionsAndStatements(IDocument doc, IRegion region, C4ScriptBase context, C4Function func, IExpressionListener listener) throws BadLocationException, CompilerException, ParsingException {
+	public static C4ScriptParser reportExpressionsAndStatements(IDocument doc, IRegion region, C4ScriptBase context, C4Function func, IExpressionListener listener) throws BadLocationException, ParsingException {
 		return reportExpressionsAndStatements(doc, region.getOffset(), region.getOffset()+region.getLength(), context, func, listener);
 	}
 	
-	public static C4ScriptParser reportExpressionsAndStatements(IDocument doc, int statementStart, int statementEnd, C4ScriptBase context, C4Function func, IExpressionListener listener) throws CompilerException, ParsingException {
+	public static C4ScriptParser reportExpressionsAndStatements(IDocument doc, int statementStart, int statementEnd, C4ScriptBase context, C4Function func, IExpressionListener listener) throws ParsingException {
 		String expr;
 		try {
 			expr = doc.get(statementStart, Math.min(statementEnd-statementStart, doc.getLength()-statementStart));
@@ -2065,7 +2138,7 @@ public class C4ScriptParser {
 		return tempParser.parseExpression(0);
 	}
 	
-	public static C4ScriptParser reportExpressionsAndStatements(IDocument doc, int offset, C4Object context, C4Function func, IExpressionListener listener) throws BadLocationException, CompilerException, ParsingException {
+	public static C4ScriptParser reportExpressionsAndStatements(IDocument doc, int offset, C4Object context, C4Function func, IExpressionListener listener) throws BadLocationException, ParsingException {
 		return reportExpressionsAndStatements(doc, Utilities.getStartOfStatement(doc, offset), offset, context, func, listener);
 	}
 

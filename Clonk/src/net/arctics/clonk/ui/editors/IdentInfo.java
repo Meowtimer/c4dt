@@ -5,7 +5,6 @@ import net.arctics.clonk.parser.C4Field;
 import net.arctics.clonk.parser.C4Function;
 import net.arctics.clonk.parser.C4ScriptBase;
 import net.arctics.clonk.parser.C4ScriptParser;
-import net.arctics.clonk.parser.CompilerException;
 import net.arctics.clonk.parser.FindFieldInfo;
 import net.arctics.clonk.parser.C4ScriptExprTree.ExprElm;
 import net.arctics.clonk.parser.C4ScriptExprTree.FieldRegion;
@@ -35,7 +34,7 @@ public class IdentInfo implements IExpressionListener {
 		return editor;
 	}
 	
-	public IdentInfo(ITextEditor editor, IDocument doc, IRegion region) throws BadLocationException, CompilerException, ParsingException {
+	public IdentInfo(ITextEditor editor, IDocument doc, IRegion region) throws BadLocationException, ParsingException {
 		this.editor = editor;
 		C4ScriptBase script = Utilities.getScriptForEditor(getEditor());
 		if (script == null)

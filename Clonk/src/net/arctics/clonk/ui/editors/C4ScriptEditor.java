@@ -14,8 +14,8 @@ import net.arctics.clonk.parser.C4ScriptBase;
 import net.arctics.clonk.parser.C4ScriptExprTree;
 import net.arctics.clonk.parser.C4ScriptParser;
 import net.arctics.clonk.parser.C4ScriptIntern;
-import net.arctics.clonk.parser.CompilerException;
 import net.arctics.clonk.parser.SourceLocation;
+import net.arctics.clonk.parser.C4ScriptParser.ParsingException;
 import net.arctics.clonk.ui.editors.actions.ConvertOldCodeToNewCodeAction;
 import net.arctics.clonk.ui.editors.actions.FindReferencesAction;
 import net.arctics.clonk.ui.editors.actions.OpenDeclarationAction;
@@ -226,7 +226,7 @@ public class C4ScriptEditor extends TextEditor implements IShowInSource, IShowIn
 			this.resetHighlightRange();
 	}
 
-	public C4ScriptParser reparseWithDocumentContents(C4ScriptExprTree.IExpressionListener exprListener, boolean onlyDeclarations) throws CompilerException, IOException {
+	public C4ScriptParser reparseWithDocumentContents(C4ScriptExprTree.IExpressionListener exprListener, boolean onlyDeclarations) throws IOException, ParsingException {
 		IDocument document = getDocumentProvider().getDocument(getEditorInput());
 		byte[] documentBytes = document.get().getBytes();
 		InputStream scriptStream = new ByteArrayInputStream(documentBytes);
@@ -241,11 +241,11 @@ public class C4ScriptEditor extends TextEditor implements IShowInSource, IShowIn
 		return parser;
 	}
 	
-	public static IEditorPart openDeclaration(C4Field target) throws PartInitException, CompilerException, IOException {
+	public static IEditorPart openDeclaration(C4Field target) throws PartInitException, IOException, ParsingException {
 		return openDeclaration(target, true);
 	}
 	
-	public static IEditorPart openDeclaration(C4Field target, boolean activate) throws PartInitException, CompilerException, IOException {
+	public static IEditorPart openDeclaration(C4Field target, boolean activate) throws PartInitException, IOException, ParsingException {
 		IWorkbench workbench = PlatformUI.getWorkbench();
 		IWorkbenchPage workbenchPage = workbench.getActiveWorkbenchWindow().getActivePage();
 		C4ScriptBase script = target instanceof C4ScriptBase ? (C4ScriptBase)target : target.getScript();

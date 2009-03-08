@@ -44,7 +44,7 @@ public class BufferedScanner {
 		return stringBuilder.toString();
 	}
 
-	public BufferedScanner(IFile file) throws CompilerException {
+	public BufferedScanner(IFile file) {
 		try {
 			InputStream contents = file.getContents();
 			try {
@@ -61,7 +61,7 @@ public class BufferedScanner {
 		}
 	}
 
-	public BufferedScanner(InputStream stream, long fileSize) throws CompilerException {
+	public BufferedScanner(InputStream stream, long fileSize) {
 		try {
 			offset = 0;
 			buffer = stringFromInputStream(stream);

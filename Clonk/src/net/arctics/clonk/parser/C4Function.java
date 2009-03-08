@@ -310,6 +310,13 @@ public class C4Function extends C4Structure implements Serializable, ITypedField
 		}
 		return null;
 	}
+	
+	public C4Function baseFunction() {
+		C4Function result = this;
+		for (C4Function f = this; f != null; f = f.getInherited())
+			result = f;
+		return result;
+	}
 
 	@Override
 	public boolean hasChildFields() {
@@ -399,7 +406,12 @@ public class C4Function extends C4Structure implements Serializable, ITypedField
 	}
 	
 	public boolean relatedFunction(C4Function otherFunc) {
-		return this.inheritsFrom(otherFunc) || otherFunc.inheritsFrom(this);
+		if (this.inheritsFrom(otherFunc))
+			return true; 
+		for (C4Function f = this; f != null; f = f.getInherited())
+			if (otherFunc.inheritsFrom(f))
+				return true;
+		return false;
 	}
 	
 }

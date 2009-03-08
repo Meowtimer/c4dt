@@ -59,15 +59,14 @@ public class C4GroupEntry implements C4GroupItem, IStorage, Serializable {
     	return entry;
     }
     
-	public void open(boolean recursively, IHeaderFilter filter) throws InvalidDataException, IOException {
+	public void open(boolean recursively, IHeaderFilter filter) throws InvalidDataException, IOException, CoreException {
 		if (completed) return;
+		completed = true;
 		
 		if (parentGroup.getChildEntries().get(0) != this) {
 			C4GroupItem predecessor = parentGroup.getChildEntries().get(parentGroup.getChildEntries().indexOf(this) - 1);
 			predecessor.open(true, filter);
 		}
-    	
-    	completed = true;
     	
     	// fetch contents
     	contents = new byte[getSize()];
@@ -80,6 +79,9 @@ public class C4GroupEntry implements C4GroupItem, IStorage, Serializable {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+		
+		// process contents (contents could be null after this call)
+		filter.processData(this);
     	
 	}
 
@@ -178,6 +180,13 @@ public class C4GroupEntry implements C4GroupItem, IStorage, Serializable {
 	 */
 	public void setContents(byte[] contents) {
 		this.contents = contents;
+	}
+	
+	/**
+	 * Release the contents of this item to preserve memory
+	 */
+	public void releaseData() {
+		setContents(null);
 	}
 
 	public void extractToFilesystem(IContainer parent) throws CoreException {

@@ -17,7 +17,6 @@ import net.arctics.clonk.parser.C4ScriptBase;
 import net.arctics.clonk.parser.C4ScriptParser;
 import net.arctics.clonk.parser.C4Variable;
 import net.arctics.clonk.parser.ClonkIndex;
-import net.arctics.clonk.parser.CompilerException;
 import net.arctics.clonk.parser.C4Function.C4FunctionScope;
 import net.arctics.clonk.parser.C4ScriptExprTree.*;
 import net.arctics.clonk.parser.C4ScriptParser.ParsingException;
@@ -49,7 +48,7 @@ import org.eclipse.ui.keys.IBindingService;
 import org.eclipse.ui.texteditor.ITextEditor;
 import org.eclipse.ui.texteditor.ITextEditorActionDefinitionIds;
 
-public class ClonkCompletionProcessor implements IContentAssistProcessor {
+public class ClonkCompletionProcessor implements IContentAssistProcessor, ICompletionListener {
 
 	private final class ClonkCompletionListener implements ICompletionListener, ICompletionListenerExtension {
 
@@ -202,14 +201,6 @@ public class ClonkCompletionProcessor implements IContentAssistProcessor {
 		List<ClonkCompletionProposal> proposals = new ArrayList<ClonkCompletionProposal>();
 		ClonkIndex index = nature.getIndex();
 
-		// refresh to find about whether caret is inside a function and to get all the declarations
-		try {
-			((C4ScriptEditor)editor).reparseWithDocumentContents(null,false);
-		} catch (CompilerException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
 		final C4Function activeFunc = getActiveFunc(doc, offset);
 		
 		statusMessages.add("Project files");
@@ -329,11 +320,7 @@ public class ClonkCompletionProcessor implements IContentAssistProcessor {
 							contextObjChanged = true;
 						}
 					}
-				} catch (CompilerException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
 				} catch (ParsingException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 			}
@@ -380,14 +367,13 @@ public class ClonkCompletionProcessor implements IContentAssistProcessor {
 			return new ICompletionProposal[] { new CompletionProposal("",offset,0,0,null,"No proposals available",null,null) };
 		}
 		
-		ClonkCompletionProposal[] result = proposals.toArray(new ClonkCompletionProposal[] {});
+		ClonkCompletionProposal[] result = proposals.toArray(new ClonkCompletionProposal[proposals.size()]);
 		
 		Arrays.sort(result, new Comparator<ClonkCompletionProposal>() {
 			public int compare(ClonkCompletionProposal arg0,
 					ClonkCompletionProposal arg1) {
 				return (arg0.getDisplayString().compareToIgnoreCase(arg1.getDisplayString()));
 			}
-			
 		});
 		
 		return result;
@@ -488,8 +474,29 @@ public class ClonkCompletionProcessor implements IContentAssistProcessor {
     }
 	
 	public String getErrorMessage() {
-		// TODO Auto-generated method stub
 		return null;
+	}
+
+	public void assistSessionEnded(ContentAssistEvent event) {
+		
+	}
+
+	public void assistSessionStarted(ContentAssistEvent event) {
+		// refresh to find about whether caret is inside a function and to get all the declarations
+		try {
+			try {
+				((C4ScriptEditor)editor).reparseWithDocumentContents(null,true);
+			} catch (ParsingException e) {
+				e.printStackTrace();
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+
+	public void selectionChanged(ICompletionProposal proposal,
+			boolean smartToggle) {
+		
 	}
 	
 }

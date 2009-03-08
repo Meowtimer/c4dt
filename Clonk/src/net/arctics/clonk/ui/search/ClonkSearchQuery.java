@@ -9,7 +9,6 @@ import net.arctics.clonk.parser.C4Object;
 import net.arctics.clonk.parser.C4Scenario;
 import net.arctics.clonk.parser.C4ScriptBase;
 import net.arctics.clonk.parser.C4ScriptParser;
-import net.arctics.clonk.parser.CompilerException;
 import net.arctics.clonk.parser.C4ScriptExprTree.ExprAccessField;
 import net.arctics.clonk.parser.C4ScriptExprTree.ExprCallFunc;
 import net.arctics.clonk.parser.C4ScriptExprTree.ExprElm;
@@ -19,6 +18,7 @@ import net.arctics.clonk.parser.C4ScriptExprTree.ExprString;
 import net.arctics.clonk.parser.C4ScriptExprTree.IExpressionListener;
 import net.arctics.clonk.parser.C4ScriptExprTree.Statement;
 import net.arctics.clonk.parser.C4ScriptExprTree.TraversalContinuation;
+import net.arctics.clonk.parser.C4ScriptParser.ParsingException;
 import net.arctics.clonk.resource.ClonkProjectNature;
 
 import org.eclipse.core.resources.IContainer;
@@ -125,11 +125,7 @@ public class ClonkSearchQuery implements ISearchQuery {
 				if (resource instanceof IFile) {
 					C4ScriptBase script = Utilities.getScriptForFile((IFile) resource);
 					if (script != null) {
-						try {
-							searchScript(searchExpressions, resource, script);
-						} catch (CompilerException e) {
-							e.printStackTrace();
-						}
+						searchScript(searchExpressions, resource, script);
 					}
 				}
 				return true;
@@ -142,20 +138,16 @@ public class ClonkSearchQuery implements ISearchQuery {
 				}
 				else if (scope instanceof C4ScriptBase) {
 					C4ScriptBase script = (C4ScriptBase) scope;
-					try {
-						searchScript(searchExpressions, (IResource) script.getScriptFile(), script);
-					} catch (CompilerException e) {
-						e.printStackTrace();
-					}
+					searchScript(searchExpressions, (IResource) script.getScriptFile(), script);
 				}
 				else if (scope instanceof C4Function) {
 					C4Function func = (C4Function) scope;
 					C4ScriptBase script = func.getScript();
+					C4ScriptParser parser = new C4ScriptParser((IFile) script.getScriptFile(), script);
+					parser.setExpressionListener(searchExpressions);
 					try {
-						C4ScriptParser parser = new C4ScriptParser((IFile) script.getScriptFile(), script);
-						parser.setExpressionListener(searchExpressions);
 						parser.parseCodeOfFunction(func);
-					} catch (CompilerException e) {
+					} catch (ParsingException e) {
 						e.printStackTrace();
 					}
 				}
@@ -167,10 +159,7 @@ public class ClonkSearchQuery implements ISearchQuery {
 		return new Status(IStatus.OK, ClonkCore.PLUGIN_ID, 0, "Okeydokey", null);
 	}
 	
-	private void searchScript(
-			final IExpressionListener searchExpressions,
-			IResource resource, C4ScriptBase script)
-			throws CompilerException {
+	private void searchScript(final IExpressionListener searchExpressions, IResource resource, C4ScriptBase script) {
 		C4ScriptParser parser = new C4ScriptParser((IFile) resource, script);
 		if (field instanceof C4Object) {
 			C4Directive include = script.getIncludeDirectiveFor((C4Object) field);
@@ -178,7 +167,11 @@ public class ClonkSearchQuery implements ISearchQuery {
 				result.addMatch(include.getExprElm(), parser, false, false);
 		}
 		parser.setExpressionListener(searchExpressions);
-		parser.parseCodeOfFunctions();
+		try {
+			parser.parseCodeOfFunctions();
+		} catch (ParsingException e) {
+			e.printStackTrace();
+		}
 	}
 
 	public C4ScriptBase getDeclaringScript() {

@@ -17,7 +17,6 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.regex.Pattern;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
@@ -68,7 +67,7 @@ public class C4Group implements C4GroupItem, Serializable {
 	private C4GroupHeader header;
 	private C4EntryHeader entryHeader;
 	private C4Group parentGroup;
-	private static final Pattern fileNameSwapPattern = Pattern.compile("\\Ac4\\w\\..+");
+	private int sizeOfChildren;
 	
 	/**
 	 * Constructor for root group
@@ -124,14 +123,10 @@ public class C4Group implements C4GroupItem, Serializable {
 		}
 	}
 	
-	private static boolean hasToBeSwapped(String file) {
-		return fileNameSwapPattern.matcher(file).matches();
-	}
-	
 	protected static C4Group makeGroup(IFolder folder) {
 		try {
 			String groupName = folder.getName();
-			if (hasToBeSwapped(groupName)) groupName = swapExtension(groupName);
+			//if (hasToBeSwapped(groupName)) groupName = swapExtension(groupName);
 			IResource[] children = folder.members();
 			int entryCount = children.length;
 			C4Group group = new C4Group(groupName, C4GroupHeader.createHeader(entryCount, "Eclipse C4Scripter"));// TODO implement new project option for "maker" string
@@ -139,7 +134,7 @@ public class C4Group implements C4GroupItem, Serializable {
 //			C4EntryHeader[] headers = new C4EntryHeader[entryCount];
 			for (int i = 0; i < entryCount;i++) {
 				String entryName = children[i].getName();
-				if (hasToBeSwapped(entryName)) entryName = swapExtension(entryName);
+				//if (hasToBeSwapped(entryName)) entryName = swapExtension(entryName);
 				if (children[i] instanceof IFolder) {
 					C4Group subGroup = makeGroup((IFolder)children[i]);
 					subGroup.entryHeader.setOffset(groupSize);
@@ -239,8 +234,9 @@ public class C4Group implements C4GroupItem, Serializable {
      * @param stream
      * @throws InvalidDataException
      * @throws IOException 
+     * @throws CoreException
      */
-	public void open(boolean recursively, IHeaderFilter filter) throws InvalidDataException, IOException {
+	public void open(boolean recursively, IHeaderFilter filter) throws InvalidDataException, IOException, CoreException {
 		
 		if (parentGroup != null && parentGroup.getChildEntries().get(0) != this) {
 			C4GroupItem predecessor = parentGroup.getChildEntries().get(parentGroup.getChildEntries().indexOf(this) - 1);
@@ -249,13 +245,18 @@ public class C4Group implements C4GroupItem, Serializable {
 		
 		if (!completed) {
 			
+			completed = true;
 			header = C4GroupHeader.createFromStream(stream);
 			
 			childEntries = new ArrayList<C4GroupItem>(header.getEntries());
 			List<Object> readObjects = new LinkedList<Object>();
+			
+			// populate readObjects with either C4GroupHeader (meaning the file this header describes is to be skipped) or C4GroupItem (meaning this item is to be added to child list of the calling group)
+			sizeOfChildren = 0;
 			for(int i = 0; i < header.getEntries(); i++) {
 				hasChildren = true;
 				C4EntryHeader entryHeader = C4EntryHeader.createFromStream(stream);
+				sizeOfChildren += entryHeader.getSize();
 				if (!filter.accepts(entryHeader, this)) {
 					// FIXME: skipping groups will not work at this time
 					readObjects.add(entryHeader);
@@ -272,7 +273,11 @@ public class C4Group implements C4GroupItem, Serializable {
 				}
 			}
 			
+			// process group before processing child items
+			filter.processData(this);
+			
 			if (recursively) {
+				// open (read into memory or process in a way defined by the filter) or skip 
 				for (Object o : readObjects) {
 					if (o instanceof C4EntryHeader) {
 						((C4EntryHeader)o).skipData(stream);
@@ -290,12 +295,10 @@ public class C4Group implements C4GroupItem, Serializable {
 						childEntries.add((C4GroupItem) o);
 			}
 			
-			completed = true;
-			
 		}
 	}
 	
-	public void open(boolean recursively) throws InvalidDataException, IOException {
+	public void open(boolean recursively) throws InvalidDataException, IOException, CoreException {
 		open(recursively, IHeaderFilter.ACCEPT_EVERYTHING);
 	}
 
@@ -318,7 +321,7 @@ public class C4Group implements C4GroupItem, Serializable {
 			me = ((IProject)parent).getFolder(getExtractedName());
 		}
 		else {
-			throw new InvalidParameterException("You can not import files to workspace root!");
+			throw new InvalidParameterException("You cannot import files to workspace root!");
 		}
 		me.create(IResource.NONE, true, monitor);
 		for(C4GroupItem item : childEntries) {
@@ -446,4 +449,12 @@ public class C4Group implements C4GroupItem, Serializable {
 		}
 		return null;
 	}
+	
+	public void releaseData() {
+	}
+
+	public int getSizeOfChildren() {
+		return sizeOfChildren;
+	}
+	
 }

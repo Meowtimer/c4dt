@@ -81,7 +81,7 @@ public class C4ObjectParser {
 		}
 	}
 	
-	public void parseScript(C4ScriptParser scriptParser) throws CompilerException {
+	public void parseScript(C4ScriptParser scriptParser) {
 		ClonkIndex index = Utilities.getProject(objectFolder).getIndex();
 		IFile script = object.getScriptFile();
 		if (script != null) {

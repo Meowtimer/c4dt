@@ -18,7 +18,11 @@ public interface C4GroupItem {
 			public boolean accepts(C4EntryHeader header, C4Group context) {
 				return true;
 			}
+			public void processData(C4GroupItem item) {
+				// no processing
+			}
 		};
+		public void processData(C4GroupItem item) throws CoreException;
 	}
 	
 	/**
@@ -37,8 +41,9 @@ public interface C4GroupItem {
 	 * Read this item
 	 * @throws InvalidDataException
 	 * @throws IOException 
+	 * @throws CoreException 
 	 */
-	public void open(boolean recursively, IHeaderFilter filter) throws InvalidDataException, IOException;
+	public void open(boolean recursively, IHeaderFilter filter) throws InvalidDataException, IOException, CoreException;
 	
 	/**
 	 * Writes this entry and all sub items to stream
@@ -85,5 +90,10 @@ public interface C4GroupItem {
 	 * recursively call visitor.visit for all items in this group (including the group itself)
 	 */
 	public void accept(IC4GroupVisitor visitor, C4GroupType type, IProgressMonitor monitor);
+	
+	/**
+	 * release data stored in memory to preserve space
+	 */
+	public void releaseData();
 	
 }

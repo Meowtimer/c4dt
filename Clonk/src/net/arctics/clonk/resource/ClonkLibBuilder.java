@@ -9,7 +9,6 @@ import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.C4ObjectExtern;
 import net.arctics.clonk.parser.C4ScriptExtern;
 import net.arctics.clonk.parser.C4ScriptParser;
-import net.arctics.clonk.parser.CompilerException;
 import net.arctics.clonk.parser.C4ObjectExternGroup;
 import net.arctics.clonk.parser.INodeWithParent;
 import net.arctics.clonk.parser.defcore.DefCoreParser;
@@ -45,7 +44,7 @@ public class ClonkLibBuilder implements IC4GroupVisitor, IPropertyChangeListener
 //		ResourcesPlugin.getWorkspace().addResourceChangeListener(this, IResourceChangeEvent.PRE_BUILD);
 	}
 	
-	public void build(IProgressMonitor monitor) throws InvalidDataException, IOException {
+	public void build(IProgressMonitor monitor) throws InvalidDataException, IOException, CoreException {
 		readExternalLibs(monitor);
 		buildNeeded = false;
 	}
@@ -61,7 +60,7 @@ public class ClonkLibBuilder implements IC4GroupVisitor, IPropertyChangeListener
 		return optionString.split("<>");
 	}
 	
-	private void readExternalLib(String lib, IProgressMonitor monitor) throws InvalidDataException, IOException {
+	private void readExternalLib(String lib, IProgressMonitor monitor) throws InvalidDataException, IOException, CoreException {
 		if (monitor == null) monitor = new NullProgressMonitor();
 		File libFile = new File(lib);
 		monitor.beginTask("Parse lib " + lib, 1);
@@ -72,6 +71,9 @@ public class ClonkLibBuilder implements IC4GroupVisitor, IPropertyChangeListener
 					String entryName = header.getEntryName();
 					// all we care about is groups, scripts, defcores and names
 					return header.isGroup() || entryName.endsWith(".c") || entryName.equals("DefCore.txt") || entryName.equals("Names.txt");
+				}
+
+				public void processData(C4GroupItem item) throws CoreException {
 				}
 			});
 			try {
@@ -98,8 +100,9 @@ public class ClonkLibBuilder implements IC4GroupVisitor, IPropertyChangeListener
 	 * Starts indexing of all external libraries
 	 * @throws InvalidDataException
 	 * @throws IOException 
+	 * @throws CoreException 
 	 */
-	private void readExternalLibs(IProgressMonitor monitor) throws InvalidDataException, IOException {
+	private void readExternalLibs(IProgressMonitor monitor) throws InvalidDataException, IOException, CoreException {
 		String[] libs = getExternalLibNames();
 		ClonkCore.getDefault().EXTERN_INDEX.clear();
 		try {
@@ -146,13 +149,9 @@ public class ClonkLibBuilder implements IC4GroupVisitor, IPropertyChangeListener
 						ClonkCore.getDefault().EXTERN_INDEX.addObject(obj);
 						if (names != null)
 							obj.readNames(new String(names.getContentsAsArray()));
-					} catch (CompilerException e) {
-						e.printStackTrace();
 					} catch (CoreException e) {
-						// TODO Auto-generated catch block
 						e.printStackTrace();
 					} catch (IOException e) {
-						// TODO Auto-generated catch block
 						e.printStackTrace();
 					}
 				}
@@ -169,8 +168,6 @@ public class ClonkLibBuilder implements IC4GroupVisitor, IPropertyChangeListener
 							parser.parseDeclarations();
 							ClonkCore.getDefault().EXTERN_INDEX.addScript(externScript);
 							//						Utilities.getProject(getProject()).getIndexedData().addObject(externSystemc4g);
-						} catch (CompilerException e) {
-							e.printStackTrace();
 						} catch (CoreException e) {
 							// TODO Auto-generated catch block
 							e.printStackTrace();
@@ -204,6 +201,8 @@ public class ClonkLibBuilder implements IC4GroupVisitor, IPropertyChangeListener
 									e.printStackTrace();
 								} catch (IOException e) {
 									e.printStackTrace();
+								} catch (CoreException e) {
+									e.printStackTrace();
 								}
 							}
 						}
@@ -215,6 +214,9 @@ public class ClonkLibBuilder implements IC4GroupVisitor, IPropertyChangeListener
 								} catch (InvalidDataException e) {
 									e.printStackTrace();
 								} catch (IOException e) {
+									e.printStackTrace();
+								} catch (CoreException e) {
+									// TODO Auto-generated catch block
 									e.printStackTrace();
 								}
 							}

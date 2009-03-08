@@ -5,7 +5,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import net.arctics.clonk.parser.BufferedScanner;
-import net.arctics.clonk.parser.CompilerException;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
@@ -20,11 +19,7 @@ public class IniReader {
 	protected String defaultName;
 	
 	public IniReader(InputStream stream) {
-		try {
-			reader = new BufferedScanner(stream, 0);
-		} catch (CompilerException e) {
-			e.printStackTrace();
-		}
+		reader = new BufferedScanner(stream, 0);
 	}
 	
 	public IniReader(IFile file) {
@@ -107,7 +102,7 @@ public class IniReader {
 		}
 	}
 	
-	public void parse() throws CompilerException {
+	public void parse() {
 		if (getIniFile() != null) {
 			try {
 				getIniFile().deleteMarkers(IMarker.PROBLEM, true, IResource.DEPTH_ONE);
@@ -123,7 +118,7 @@ public class IniReader {
 		}
 	}
 	
-	protected IniSection parseSection() throws CompilerException {
+	protected IniSection parseSection() {
 		reader.eatWhitespace();
 		int start = reader.getPosition();
 		// parse head

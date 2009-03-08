@@ -406,6 +406,9 @@ public abstract class C4ScriptBase extends C4Structure implements IRelatedResour
 //		return didSomething;
 //	}
 	
+	/**
+	 * Returns an iterator to iterate over all functions defined in this script
+	 */
 	public Iterable<C4Function> functions() {
 		return new Iterable<C4Function>() {
 			public Iterator<C4Function> iterator() {
@@ -414,6 +417,9 @@ public abstract class C4ScriptBase extends C4Structure implements IRelatedResour
 		};
 	}
 	
+	/**
+	 * Returns an iterator to iterate over all variables defined in this script
+	 */
 	public Iterable<C4Variable> variables() {
 		return new Iterable<C4Variable>() {
 			public Iterator<C4Variable> iterator() {
@@ -422,6 +428,9 @@ public abstract class C4ScriptBase extends C4Structure implements IRelatedResour
 		};
 	}
 	
+	/**
+	 * Returns an iterator to iterate over all directives defined in this script
+	 */
 	public Iterable<C4Directive> directives() {
 		return new Iterable<C4Directive>() {
 			public Iterator<C4Directive> iterator() {

@@ -9,9 +9,9 @@ import net.arctics.clonk.Utilities;
 import net.arctics.clonk.parser.C4Function;
 import net.arctics.clonk.parser.C4ScriptBase;
 import net.arctics.clonk.parser.C4ScriptParser;
-import net.arctics.clonk.parser.CompilerException;
 import net.arctics.clonk.parser.Pair;
 import net.arctics.clonk.parser.C4ScriptExprTree.Statement;
+import net.arctics.clonk.parser.C4ScriptParser.ParsingException;
 import net.arctics.clonk.ui.editors.actions.ConvertOldCodeToNewCodeAction;
 
 import org.eclipse.core.resources.IContainer;
@@ -79,16 +79,14 @@ public class ConvertOldCodeInBulkAction extends Action {
 									IFile file = (IFile) resource;
 									C4ScriptBase script = Utilities.getScriptForFile(file);
 									if (script != null) {
-										C4ScriptParser parser;
-										try {
-											parser = new C4ScriptParser(file, script);
-										} catch (CompilerException e) {
-											e.printStackTrace();
-											return true;
-										}
+										C4ScriptParser parser = new C4ScriptParser(file, script);
 										LinkedList<Pair<C4Function, LinkedList<Statement>>> statements = new LinkedList<Pair<C4Function, LinkedList<Statement>>>();
 										parser.setExpressionListener(ConvertOldCodeToNewCodeAction.expressionCollector(null, statements, 0));
-										parser.parse();
+										try {
+											parser.parse();
+										} catch (ParsingException e1) {
+											e1.printStackTrace();
+										}
 										textFileDocProvider.connect(file);
 										IDocument document = textFileDocProvider.getDocument(file);
 										

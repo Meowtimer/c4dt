@@ -1,11 +1,7 @@
 package net.arctics.clonk.ui.editors;
 
-import java.io.IOException;
-
 import net.arctics.clonk.parser.C4Field;
 import net.arctics.clonk.parser.C4Object;
-import net.arctics.clonk.parser.CompilerException;
-
 import org.eclipse.jface.internal.text.html.HTMLTextPresenter;
 import org.eclipse.jface.text.DefaultInformationControl;
 import org.eclipse.jface.text.IAutoEditStrategy;
@@ -32,7 +28,6 @@ import org.eclipse.jface.text.rules.DefaultDamagerRepairer;
 import org.eclipse.jface.text.rules.Token;
 import org.eclipse.jface.text.source.ISourceViewer;
 import org.eclipse.swt.widgets.Shell;
-import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.editors.text.TextSourceViewerConfiguration;
 import org.eclipse.ui.texteditor.ITextEditor;
 
@@ -88,15 +83,8 @@ public class ClonkSourceViewerConfiguration extends TextSourceViewerConfiguratio
 		public void open() {
 			try {
 				C4ScriptEditor.openDeclaration(target);
-			} catch (PartInitException e1) {
-				// TODO Auto-generated catch block
+			} catch (Exception e1) {
 				e1.printStackTrace();
-			} catch (CompilerException e1) {
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
 			}
 		}
 		
@@ -200,7 +188,9 @@ public class ClonkSourceViewerConfiguration extends TextSourceViewerConfiguratio
 		ContentAssistant assistant = new ContentAssistant();
 //		assistant.setDocumentPartitioning(getConfiguredDocumentPartitioning(sourceViewer));
 //		assistant.setContentAssistProcessor(new CodeBodyCompletionProcessor(getEditor(),assistant), ClonkPartitionScanner.C4S_CODEBODY);
-		assistant.setContentAssistProcessor(new ClonkCompletionProcessor(getEditor(),assistant), IDocument.DEFAULT_CONTENT_TYPE);
+		ClonkCompletionProcessor processor = new ClonkCompletionProcessor(getEditor(),assistant);
+		assistant.setContentAssistProcessor(processor, IDocument.DEFAULT_CONTENT_TYPE);
+		assistant.addCompletionListener(processor);
 		assistant.install(sourceViewer);
 		
 		assistant.setContextInformationPopupOrientation(IContentAssistant.CONTEXT_INFO_ABOVE);

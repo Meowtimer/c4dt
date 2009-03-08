@@ -89,7 +89,7 @@ public abstract class C4ScriptExprTree {
 		}
 
 		public C4Object guessObjectType(C4ScriptParser context) {
-			return null; // no idea, dude
+			return context.queryObjectTypeOfExpression(this);
 		}
 		
 		public ExprElm getExemplaryArrayElement(C4ScriptParser context) {
@@ -300,6 +300,11 @@ public abstract class C4ScriptExprTree {
 
 		public void expectedToBeOfType(C4Type type) {
 			// so what
+		}
+		
+		public void inferTypeFromAssignment(ExprElm rightSide,
+				C4ScriptParser parser) {
+			parser.storeTypeInformation(this, rightSide.getType(), rightSide.guessObjectType(parser));
 		}
 		
 		public boolean isReturn() {
@@ -561,6 +566,11 @@ public abstract class C4ScriptExprTree {
 		public C4Type getType() {
 			return field != null ? ((C4Variable)field).getType() : super.getType();
 		}
+		
+		public void inferTypeFromAssignment(ExprElm rightSide, C4ScriptParser parser) {
+			if (field instanceof C4Variable)
+				((C4Variable)field).inferTypeFromAssignment(rightSide, parser);
+		}
 
 	}
 
@@ -635,7 +645,7 @@ public abstract class C4ScriptExprTree {
 		@Override
 		public void reportErrors(C4ScriptParser parser) throws ParsingException {
 			super.reportErrors(parser);
-			if (fieldName.equals("Par")) {
+			if (field == C4ScriptParser.CachedEngineFuncs.Par) {
 				if (params.length > 0) {
 					parser.unnamedParamaterUsed(params[0]);
 				}
@@ -708,8 +718,11 @@ public abstract class C4ScriptExprTree {
 			else if (fieldName.equals("GetID") && params.length == 0) {
 				return getPredecessorInSequence() == null ? parser.getContainerObject() : getPredecessorInSequence().guessObjectType(parser);
 			}
-			if (field instanceof ITypedField)
-				return ((ITypedField)field).getExpectedContent();
+			if (field instanceof ITypedField) {
+				C4Object obj = ((ITypedField)field).getExpectedContent();
+				if (obj != null)
+					return obj;
+			}
 			return super.guessObjectType(parser);
 		}
 		protected ExprBinaryOp applyOperatorTo(C4ScriptParser parser, ExprElm[] parms, C4ScriptOperator operator) throws CloneNotSupportedException {
@@ -767,7 +780,7 @@ public abstract class C4ScriptExprTree {
 			}
 			
 			// Par(5) -> nameOfParm6
-			if (params.length <= 1 && fieldName.equals("Par") && (params.length == 0 || params[0] instanceof ExprNumber)) {
+			if (params.length <= 1 && field == C4ScriptParser.CachedEngineFuncs.Par && (params.length == 0 || params[0] instanceof ExprNumber)) {
 				ExprNumber number = params.length > 0 ? (ExprNumber) params[0] : ExprNumber.ZERO;
 				if (number.intValue() >= 0 && number.intValue() < parser.getActiveFunc().getParameters().size())
 					return new ExprAccessVar(parser.getActiveFunc().getParameters().get(number.intValue()).getName());
@@ -1028,11 +1041,7 @@ public abstract class C4ScriptExprTree {
 			getRightSide().expectedToBeOfType(getOperator().getSecondArgType());
 			
 			if (getOperator() == C4ScriptOperator.Assign) {
-				if (getLeftSide() instanceof ExprAccessVar) {
-					C4Variable v = (C4Variable) ((ExprAccessVar)getLeftSide()).getField(parser);
-					if (v != null)
-						v.inferTypeFromAssignment(getRightSide(), parser);
-				}
+				getLeftSide().inferTypeFromAssignment(getRightSide(), parser);
 			}
 		}
 
