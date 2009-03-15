@@ -3,7 +3,7 @@
  */
 package net.arctics.clonk.parser;
 
-public enum ErrorCode {
+public enum C4ScriptParserErrorCode {
 	TokenExpected("'%s' expected"),
 	NotAllowedHere("'%s' not allowed here"),
 	MissingClosingBracket("Missing '%s'"),
@@ -43,7 +43,7 @@ public enum ErrorCode {
 	
 	private String message;
 	
-	ErrorCode(String message) {
+	C4ScriptParserErrorCode(String message) {
 		this.message = message;
 	}
 	

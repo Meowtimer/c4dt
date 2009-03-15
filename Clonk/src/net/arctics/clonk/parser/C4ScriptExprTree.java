@@ -69,7 +69,7 @@ public abstract class C4ScriptExprTree {
 
 		public void warnIfNoSideEffects(C4ScriptParser parser) {
 			if (!hasSideEffects())
-				parser.warningWithCode(ErrorCode.NoSideEffects, this);
+				parser.warningWithCode(C4ScriptParserErrorCode.NoSideEffects, this);
 		}
 
 		public void setParent(ExprElm parent) {
@@ -562,7 +562,7 @@ public abstract class C4ScriptExprTree {
 		public void reportErrors(C4ScriptParser parser) throws ParsingException {
 			super.reportErrors(parser);
 			if (field == null)
-				parser.errorWithCode(ErrorCode.UndeclaredIdentifier, this, true, fieldName);
+				parser.errorWithCode(C4ScriptParserErrorCode.UndeclaredIdentifier, this, true, fieldName);
 		}
 
 		@Override
@@ -656,15 +656,15 @@ public abstract class C4ScriptExprTree {
 					parser.unnamedParamaterUsed(ExprNumber.ZERO);
 			}
 			else if (fieldName.equals(Keywords.Return))
-				parser.warningWithCode(ErrorCode.ReturnAsFunction, this);
+				parser.warningWithCode(C4ScriptParserErrorCode.ReturnAsFunction, this);
 			else {
 				if (field instanceof C4Variable) {
 					if (params.length == 0) {
 						// no warning when in #strict mode
 						if (parser.getStrictLevel() >= 2)
-							parser.warningWithCode(ErrorCode.VariableCalled, this, field.getName());
+							parser.warningWithCode(C4ScriptParserErrorCode.VariableCalled, this, field.getName());
 					} else {
-						parser.errorWithCode(ErrorCode.VariableCalled, this, field.getName(), true);
+						parser.errorWithCode(C4ScriptParserErrorCode.VariableCalled, this, field.getName(), true);
 					}
 				}
 				else if (field instanceof C4Function) {
@@ -678,7 +678,7 @@ public abstract class C4ScriptExprTree {
 							continue;
 						//given.reportErrors(parser); no duplicate errors
 						if (!given.validForType(parm.getType()))
-							parser.warningWithCode(ErrorCode.IncompatibleTypes, given, parm.getType(), given.getType());
+							parser.warningWithCode(C4ScriptParserErrorCode.IncompatibleTypes, given, parm.getType(), given.getType());
 						given.expectedToBeOfType(parm.getType());
 //						if (parm.getScript() != ClonkCore.getDefault().ENGINE_OBJECT)
 //							parm.inferTypeFromAssignment(given, parser);
@@ -686,11 +686,11 @@ public abstract class C4ScriptExprTree {
 				}
 				else if (field == null && getPredecessorInSequence() == null) {
 					if (fieldName.equals(Keywords.Inherited)) {
-						parser.errorWithCode(ErrorCode.NoInheritedFunction, getExprStart(), getExprStart()+fieldName.length(), true, parser.getActiveFunc().getName(), true);
+						parser.errorWithCode(C4ScriptParserErrorCode.NoInheritedFunction, getExprStart(), getExprStart()+fieldName.length(), true, parser.getActiveFunc().getName(), true);
 					}
 					// _inherited yields no warning or error
 					else if (!fieldName.equals(Keywords.SafeInherited)) {
-						parser.errorWithCode(ErrorCode.UndeclaredIdentifier, getExprStart(), getExprStart()+fieldName.length(), true, fieldName, true);
+						parser.errorWithCode(C4ScriptParserErrorCode.UndeclaredIdentifier, getExprStart(), getExprStart()+fieldName.length(), true, fieldName, true);
 					}
 				}
 			}
@@ -975,7 +975,7 @@ public abstract class C4ScriptExprTree {
 
 		public void checkTopLevelAssignment(C4ScriptParser parser) throws ParsingException {
 			if (!getOperator().modifiesArgument())
-				parser.warningWithCode(ErrorCode.NoAssignment, this);
+				parser.warningWithCode(C4ScriptParserErrorCode.NoAssignment, this);
 		}
 
 		public ExprBinaryOp(C4ScriptOperator op) {
@@ -1030,15 +1030,15 @@ public abstract class C4ScriptExprTree {
 			setExprRegion(getLeftSide().getExprStart(), getRightSide().getExprEnd());
 			// i'm an assignment operator and i can't modify my left side :C
 			if (getOperator().modifiesArgument() && !getLeftSide().modifiable()) {
-				parser.errorWithCode(ErrorCode.ExpressionNotModifiable, getLeftSide(), true);
+				parser.errorWithCode(C4ScriptParserErrorCode.ExpressionNotModifiable, getLeftSide(), true);
 			}
 			if ((getOperator() == C4ScriptOperator.StringEqual || getOperator() == C4ScriptOperator.ne) && (parser.getStrictLevel() >= 2)) {
-				parser.warningWithCode(ErrorCode.ObsoleteOperator, this, getOperator().getOperatorName());
+				parser.warningWithCode(C4ScriptParserErrorCode.ObsoleteOperator, this, getOperator().getOperatorName());
 			}
 			if (!getLeftSide().validForType(getOperator().getFirstArgType()))
-				parser.warningWithCode(ErrorCode.IncompatibleTypes, getLeftSide(), getOperator().getFirstArgType(), getLeftSide().getType());
+				parser.warningWithCode(C4ScriptParserErrorCode.IncompatibleTypes, getLeftSide(), getOperator().getFirstArgType(), getLeftSide().getType());
 			if (!getRightSide().validForType(getOperator().getSecondArgType()))
-				parser.warningWithCode(ErrorCode.IncompatibleTypes, getRightSide(), getOperator().getSecondArgType(), getRightSide().getType());
+				parser.warningWithCode(C4ScriptParserErrorCode.IncompatibleTypes, getRightSide(), getOperator().getSecondArgType(), getRightSide().getType());
 			
 			getLeftSide().expectedToBeOfType(getOperator().getFirstArgType());
 			getRightSide().expectedToBeOfType(getOperator().getSecondArgType());
@@ -1155,10 +1155,10 @@ public abstract class C4ScriptExprTree {
 			getArgument().reportErrors(parser);
 			if (getOperator().modifiesArgument() && !getArgument().modifiable()) {
 				//				System.out.println(getArgument().toString() + " does not behave");
-				parser.errorWithCode(ErrorCode.ExpressionNotModifiable, getArgument(), true);
+				parser.errorWithCode(C4ScriptParserErrorCode.ExpressionNotModifiable, getArgument(), true);
 			}
 			if (!getArgument().validForType(getOperator().getFirstArgType())) {
-				parser.warningWithCode(ErrorCode.IncompatibleTypes, getArgument(), getOperator().getFirstArgType().toString(), getArgument().getType().toString());
+				parser.warningWithCode(C4ScriptParserErrorCode.IncompatibleTypes, getArgument(), getOperator().getFirstArgType().toString(), getArgument().getType().toString());
 			}
 			getArgument().expectedToBeOfType(getOperator().getFirstArgType());
 		}
