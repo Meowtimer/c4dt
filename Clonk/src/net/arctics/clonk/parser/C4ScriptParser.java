@@ -431,7 +431,7 @@ public class C4ScriptParser {
 					ExprElm constantValue = parseExpression(offset, false);
 					if (constantValue == null)
 						constantValue = ERROR_PLACEHOLDER_EXPR;
-					if (!(constantValue instanceof ExprLiteral)) {
+					if (!constantValue.isConstant()) {
 						errorWithCode(ErrorCode.ConstantValueExpected, constantValue, true);
 					}
 					C4Variable var = new C4Variable(varName,C4VariableScope.VAR_CONST);
@@ -992,59 +992,6 @@ public class C4ScriptParser {
 		return null;
 	}
 	
-	public enum ErrorCode {
-		TokenExpected, NotAllowedHere, MissingClosingBracket, InvalidExpression, InternalError, 
-		ExpressionExpected, UnexpectedEnd, NameExpected, ReturnAsFunction, ExpressionNotModifiable,
-		OperatorNeedsRightSide, NoAssignment, NoSideEffects, KeywordInWrongPlace, UndeclaredIdentifier,
-		OldStyleFunc, ValueExpected, TuplesNotAllowed, EmptyParentheses, ExpectedCode, ConstantValueExpected,
-		CommaOrSemicolonExpected, IncompatibleTypes, VariableCalled, TypeAsName, BlockNotClosed, UnknownDirective,
-		StatementExpected, ConditionExpected, OutOfIntRange, NoInheritedFunction, FunctionRedeclared, NeverReached, ObsoleteOperator,
-		StringNotClosed, UnexpectedToken;
-		
-		public String getErrorString(Object... format) {
-			return String.format(C4ScriptParser.errorStrings[ordinal()], format);
-		}
-	}
-	
-	private static String[] errorStrings = new String[] {
-		"'%s' expected",
-		"'%s' not allowed here",
-		"Missing '%s'",
-		"Invalid expression",
-		"Internal error: %s",
-		"Expression expected",
-		"Unexpected end of script",
-		"Name expected",
-		"return should not be treated as function",
-		"Expression cannot be modified",
-		"Operator has no right side",
-		"There is no toplevel-assignment in this expression",
-		"Expression has no side effects",
-		"Keyword '%s' misplaced",
-		"Undeclared identifier '%s'",
-		"Old-style function",
-		"Value expected",
-		"Tuples not allowed here",
-		"Empty parentheses",
-		"Code expected",
-		"Constant value expected",
-		"Comma or semicolon expected",
-		"Incompatible types: %s and %s",
-		"Variable %s called as function",
-		"Typename as name: %s",
-		"Code block not closed with '}'",
-		"Unknown directive",
-		"Statement expected",
-		"Condition expected",
-		"Out of integer range: %s",
-		"No inherited version of %s found",
-		"Function overload: this function is already declared in this script",
-		"Code never reached",
-		"Obsolete operator '%s'",
-		"String not closed",
-		"Unexpected token: %s"
-	};
-	
 	private Set<ErrorCode> disabledErrors = new HashSet<ErrorCode>();
 	
 	private void disableError(ErrorCode error) {
@@ -1060,7 +1007,7 @@ public class C4ScriptParser {
 	}
 	
 	void warningWithCode(ErrorCode code, int errorStart, int errorEnd, Object... args) {
-		String problem = String.format(errorStrings[code.ordinal()], args);
+		String problem = String.format(code.getErrorString(args), args);
 		createWarningMarker(errorStart, errorEnd, problem);
 	}
 	

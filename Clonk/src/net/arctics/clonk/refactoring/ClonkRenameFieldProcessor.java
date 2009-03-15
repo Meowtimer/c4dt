@@ -9,6 +9,7 @@ import net.arctics.clonk.Utilities;
 import net.arctics.clonk.parser.C4Field;
 import net.arctics.clonk.parser.C4Function;
 import net.arctics.clonk.parser.C4ScriptBase;
+import net.arctics.clonk.parser.FindFieldInfo;
 import net.arctics.clonk.parser.ProjectIndex;
 import net.arctics.clonk.ui.search.ClonkSearchMatch;
 import net.arctics.clonk.ui.search.ClonkSearchQuery;
@@ -44,13 +45,18 @@ public class ClonkRenameFieldProcessor extends RenameProcessor {
 	@Override
 	public RefactoringStatus checkInitialConditions(IProgressMonitor monitor)
 			throws CoreException, OperationCanceledException {
-		C4Field baseField;
-		if (field instanceof C4Function)
-			baseField = ((C4Function)field).baseFunction();
-		else
-			baseField = field;
+		// renaming fields that originate from outside the project is not allowed
+		C4Field baseField = field instanceof C4Function ? ((C4Function)field).baseFunction() : field;
 		if (!(baseField.getScript().getIndex() instanceof ProjectIndex))
 			return RefactoringStatus.createFatalErrorStatus(field.getName() + " is either declared outside of the project or overrides a function that is declared outside of the project");
+		
+		FindFieldInfo info = new FindFieldInfo(field.getScript().getIndex());
+		info.setFieldClass(field.getClass());
+		C4Field existingField = field.getScript().findField(newName, info);
+		if (existingField != null) {
+			return RefactoringStatus.createFatalErrorStatus("There is already an item with name " + newName + " in " + field.getScript().toString());
+		}
+		
 		return RefactoringStatus.createInfoStatus("Everything awesome");
 	}
 

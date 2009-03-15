@@ -494,8 +494,7 @@ public class ClonkCompletionProcessor implements IContentAssistProcessor, ICompl
 		}
 	}
 
-	public void selectionChanged(ICompletionProposal proposal,
-			boolean smartToggle) {
+	public void selectionChanged(ICompletionProposal proposal, boolean smartToggle) {
 		
 	}
 	

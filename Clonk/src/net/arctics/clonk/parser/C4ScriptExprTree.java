@@ -5,7 +5,6 @@ import java.util.LinkedList;
 import java.util.List;
 
 import net.arctics.clonk.ClonkCore;
-import net.arctics.clonk.parser.C4ScriptParser.ErrorCode;
 import net.arctics.clonk.parser.C4ScriptParser.Keywords;
 import net.arctics.clonk.parser.C4ScriptParser.ParsingException;
 import net.arctics.clonk.parser.C4Variable.C4VariableScope;
@@ -317,6 +316,10 @@ public abstract class C4ScriptExprTree {
 			for (ExprElm e : expression.getSubElements())
 				if (this.containedIn(e))
 					return true;
+			return false;
+		}
+		
+		public boolean isConstant() {
 			return false;
 		}
 
@@ -1186,6 +1189,11 @@ public abstract class C4ScriptExprTree {
 			}
 			return super.newStyleReplacement(context);
 		}
+		
+		@Override
+		public boolean isConstant() {
+			return argument.isConstant();
+		}
 
 	}
 
@@ -1209,6 +1217,11 @@ public abstract class C4ScriptExprTree {
 		@Override
 		public boolean isValidInSequence(ExprElm predecessor) {
 			return predecessor == null;
+		}
+		
+		@Override
+		public boolean isConstant() {
+			return true;
 		}
 
 	}
