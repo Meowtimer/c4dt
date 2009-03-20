@@ -11,6 +11,7 @@ import java.util.Map;
 
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.Utilities;
+import net.arctics.clonk.parser.C4Directive.C4DirectiveType;
 import net.arctics.clonk.parser.C4Function.C4FunctionScope;
 import net.arctics.clonk.parser.C4Variable.C4VariableScope;
 import org.eclipse.core.resources.IContainer;
@@ -21,13 +22,14 @@ public class ClonkIndex implements Serializable, Iterable<C4Object> {
 	
 	private static final long serialVersionUID = 1L;
 
-	private Map<C4ID,List<C4Object>> indexedObjects = new HashMap<C4ID, List<C4Object>>();
+	private Map<C4ID, List<C4Object>> indexedObjects = new HashMap<C4ID, List<C4Object>>();
 	private List<C4ScriptBase> indexedScripts = new LinkedList<C4ScriptBase>(); 
 	private List<C4Scenario> indexedScenarios = new LinkedList<C4Scenario>();
 	
 	private transient List<C4Function> globalFunctions = new LinkedList<C4Function>();
 	private transient List<C4Variable> staticVariables = new LinkedList<C4Variable>();
 	private transient Map<String, List<C4Field>> fieldMap = new HashMap<String, List<C4Field>>();
+	private transient Map<C4ID, List<C4ScriptBase>> appendages = new HashMap<C4ID, List<C4ScriptBase>>();
 	
 	public int numUniqueIds() {
 		return indexedObjects.size();
@@ -109,9 +111,22 @@ public class ClonkIndex implements Serializable, Iterable<C4Object> {
 		}
 	}
 	
+	private void detectAppendages(C4ScriptBase script) {
+		for (C4Directive d : script.directives())
+			if (d.getType() == C4DirectiveType.APPENDTO) {
+				List<C4ScriptBase> appendtoList = appendages.get(d.contentAsID());
+				if (appendtoList == null) {
+					appendtoList = new LinkedList<C4ScriptBase>();
+					appendages.put(d.contentAsID(), appendtoList);
+				}
+				appendtoList.add(script);
+			}
+	}
+	
 	private <T extends C4ScriptBase> void addGlobalsFrom(Iterable<T> scripts) {
 		for (T script : scripts) {
 			addGlobalsFrom(script);
+			detectAppendages(script);
 		}
 	}
 	
@@ -124,9 +139,12 @@ public class ClonkIndex implements Serializable, Iterable<C4Object> {
 			staticVariables = new LinkedList<C4Variable>();
 		if (fieldMap == null)
 			fieldMap = new HashMap<String, List<C4Field>>();
+		if (appendages == null)
+			appendages = new HashMap<C4ID, List<C4ScriptBase>>();
 		globalFunctions.clear();
 		staticVariables.clear();
 		fieldMap.clear();
+		appendages.clear();
 		
 		// save cachable items
 		addGlobalsFrom(this);
@@ -411,6 +429,14 @@ public class ClonkIndex implements Serializable, Iterable<C4Object> {
 				};
 			}
 		};
+	}
+	
+	public List<C4ScriptBase> appendagesOf(C4Object object) {
+		List<C4ScriptBase> list = appendages.get(object.getId());
+		if (list != null) {
+			return Collections.unmodifiableList(list); 
+		}
+		return null;
 	}
 
 }

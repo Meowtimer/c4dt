@@ -1,4 +1,5 @@
-package net.arctics.clonk.ui.editors.defcore;
+package net.arctics.clonk.ui.editors.ini;
+
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jface.text.IDocument;
@@ -6,8 +7,8 @@ import org.eclipse.jface.text.IDocumentPartitioner;
 import org.eclipse.jface.text.rules.FastPartitioner;
 import org.eclipse.ui.editors.text.FileDocumentProvider;
 
-public class DefCoreDocumentProvider extends FileDocumentProvider {
-	public DefCoreDocumentProvider() {
+public class IniDocumentProvider extends FileDocumentProvider {
+	public IniDocumentProvider() {
 		
 	}
 
@@ -17,8 +18,8 @@ public class DefCoreDocumentProvider extends FileDocumentProvider {
 		if (document != null) {
 			IDocumentPartitioner partitioner =
 				new FastPartitioner(
-					new DefCorePartitionScanner(),
-					DefCorePartitionScanner.C4INI_PARTITIONS);
+					new IniPartitionScanner(),
+					IniPartitionScanner.C4INI_PARTITIONS);
 			partitioner.connect(document);
 			document.setDocumentPartitioner(partitioner);
 		}

@@ -2,6 +2,7 @@ package net.arctics.clonk.parser;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -104,6 +105,16 @@ public abstract class C4Object extends C4ScriptBase {
 			}
 		}
 		return false;
+	}
+	
+	@Override
+	protected void gatherIncludes(List<C4ScriptBase> list, ClonkIndex index) {
+		super.gatherIncludes(list, index);
+		if (index != null) {
+			List<C4ScriptBase> appendages = index.appendagesOf(this);
+			if (appendages != null)
+				list.addAll(appendages);
+		}
 	}
 	
 }

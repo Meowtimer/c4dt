@@ -36,6 +36,11 @@ public class C4Variable extends C4Field implements Serializable, ITypedField {
 		this(name, C4Type.makeType(type), desc, C4VariableScope.VAR_VAR);
 	}
 	
+	public C4Variable(String name, C4Type type) {
+		this.name = name;
+		this.type = type;
+	}
+	
 	public C4Variable(String name, C4VariableScope scope) {
 		this.name = name;
 		this.scope = scope;

@@ -302,7 +302,7 @@ public class C4Function extends C4Structure implements Serializable, ITypedField
 				f = ClonkCore.getDefault().ENGINE_OBJECT.findFunction(getName());
 			return f;
 		}
-		C4Object[] includes = getScript().getIncludes();
+		C4ScriptBase[] includes = getScript().getIncludes();
 		for (int i = includes.length-1; i >= 0; i--) {
 			C4Function field = includes[i].findFunction(getName());
 			if (field != null && field != this)

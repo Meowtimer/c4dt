@@ -1,4 +1,4 @@
-package net.arctics.clonk.parser;
+package net.arctics.clonk.util;
 
 import java.util.Iterator;
 

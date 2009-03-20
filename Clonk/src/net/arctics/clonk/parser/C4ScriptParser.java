@@ -16,6 +16,7 @@ import net.arctics.clonk.parser.C4Directive.C4DirectiveType;
 import net.arctics.clonk.parser.C4Function.C4FunctionScope;
 import net.arctics.clonk.parser.C4Variable.C4VariableScope;
 import net.arctics.clonk.parser.C4ScriptExprTree.*;
+import net.arctics.clonk.util.Pair;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;

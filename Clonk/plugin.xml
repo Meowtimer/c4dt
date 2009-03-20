@@ -25,6 +25,17 @@
             <contentTypeBinding contentTypeId="net.arctics.clonk.c4defcore">
             </contentTypeBinding>
       </editor>
+      
+      <editor
+            name="ActMap Editor"
+            icon="icons/c4scriptIcon.png"
+            contributorClass="net.arctics.clonk.ui.editors.EditorActionContributor"
+            class="net.arctics.clonk.ui.editors.actmap.ActMapEditor"
+            id="clonk.editors.ActMapEditor"
+            filenames="ActMap.txt">
+            <contentTypeBinding contentTypeId="net.arctics.clonk.actmap">
+            </contentTypeBinding>
+      </editor>
    </extension>
    
 <extension 
@@ -53,6 +64,13 @@
        file-names="DefCore.txt"
        id="net.arctics.clonk.c4defcore"
        name="C4Object definitions"
+       priority="high">
+ </content-type>
+ <content-type
+       base-type="net.arctics.clonk.c4files"
+       file-names="ActMap.txt"
+       id="net.arctics.clonk.actmap"
+       name="C4Object action definitions"
        priority="high">
  </content-type>
  <content-type

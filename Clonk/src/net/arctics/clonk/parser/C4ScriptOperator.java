@@ -32,24 +32,25 @@ public enum C4ScriptOperator {
 	BitAnd(C4Type.INT, C4Type.INT, C4Type.INT, "&", 8, "BitAnd"),
 	BitXOr(C4Type.INT, C4Type.INT, C4Type.INT, "^", 6),
 	BitOr(C4Type.INT, C4Type.INT, C4Type.INT, "|", 6),
-	Decrement(C4Type.INT, null, C4Type.INT, "--", 15, "Dec"),
-	Increment(C4Type.INT, null, C4Type.INT, "++", 15, "Inc"),
+	Decrement(C4Type.INT, null, C4Type.INT, "--", 15, "Dec", true),
+	Increment(C4Type.INT, null, C4Type.INT, "++", 15, "Inc", true),
 	ShiftLeft(C4Type.INT, C4Type.INT, C4Type.INT, "<<", 11),
 	ShiftRight(C4Type.INT, C4Type.INT, C4Type.INT, ">>", 11),
-	Assign(C4Type.UNKNOWN, C4Type.UNKNOWN, C4Type.UNKNOWN, "=", 2),
-	AssignAdd(C4Type.INT, C4Type.INT, C4Type.INT, "+=", 2),
-	AssignSubtract(C4Type.INT, C4Type.INT, C4Type.INT, "-=", 2),
-	AssignMultiply(C4Type.INT, C4Type.INT, C4Type.INT, "*=", 2),
-	AssignDivide(C4Type.INT, C4Type.INT, C4Type.INT, "/=", 2),
-	AssignModulo(C4Type.INT, C4Type.INT, C4Type.INT, "%=", 2),
-	AssignOr(C4Type.BOOL, C4Type.BOOL, C4Type.BOOL, "|=", 2),
-	AssignAnd(C4Type.BOOL, C4Type.BOOL, C4Type.BOOL, "&=", 2),
-	AssignXOr(C4Type.INT, C4Type.INT, C4Type.INT, "^=", 2);
+	Assign(C4Type.UNKNOWN, C4Type.UNKNOWN, C4Type.UNKNOWN, "=", 2, null, true),
+	AssignAdd(C4Type.INT, C4Type.INT, C4Type.INT, "+=", 2, null, true),
+	AssignSubtract(C4Type.INT, C4Type.INT, C4Type.INT, "-=", 2, null, true),
+	AssignMultiply(C4Type.INT, C4Type.INT, C4Type.INT, "*=", 2, null, true),
+	AssignDivide(C4Type.INT, C4Type.INT, C4Type.INT, "/=", 2, null, true),
+	AssignModulo(C4Type.INT, C4Type.INT, C4Type.INT, "%=", 2, null, true),
+	AssignOr(C4Type.BOOL, C4Type.BOOL, C4Type.BOOL, "|=", 2, null, true),
+	AssignAnd(C4Type.BOOL, C4Type.BOOL, C4Type.BOOL, "&=", 2, null, true),
+	AssignXOr(C4Type.INT, C4Type.INT, C4Type.INT, "^=", 2, null, true);
 	
 	C4Type firstArgType, secondArgType, resultType;
 	String operatorName, oldStyleFunctionEquivalent;
 	int priority;
 	boolean rightAssociative;
+	boolean returnsRef;
 	
 	public static final Map<String, C4ScriptOperator> stringToOperatorMap;
 	
@@ -75,6 +76,13 @@ public enum C4ScriptOperator {
 		this.oldStyleFunctionEquivalent = oldStyleFunctionEquivalent;
 		this.priority = priority;
 		this.rightAssociative = name().startsWith("Assign");
+	}
+	
+	private C4ScriptOperator(C4Type firstArgType, C4Type secondArgType,
+			C4Type resultType, String operatorName, int priority,
+			String oldStyleFunctionEquivalent, boolean returnsRef) {
+		this(firstArgType, secondArgType, resultType, operatorName, priority, oldStyleFunctionEquivalent);
+		this.returnsRef = returnsRef;
 	}
 	
 	private C4ScriptOperator(C4Type firstArgType, C4Type secondArgType,
@@ -169,6 +177,10 @@ public enum C4ScriptOperator {
 		return
 			((this == Add || this == Increment) && (other == Add || other == Increment)) ||
 			((this == Subtract || this == Decrement) && (other == Subtract || other == Decrement));
+	}
+	
+	public boolean returnsRef() {
+		return returnsRef;
 	}
 
 }

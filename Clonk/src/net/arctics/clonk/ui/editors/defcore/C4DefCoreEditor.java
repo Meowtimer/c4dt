@@ -4,6 +4,8 @@ import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.Utilities;
 import net.arctics.clonk.parser.C4Object;
 import net.arctics.clonk.ui.editors.ColorManager;
+import net.arctics.clonk.ui.editors.ini.IniDocumentProvider;
+import net.arctics.clonk.ui.editors.ini.IniSourceViewerConfiguration;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
@@ -45,7 +47,6 @@ public class C4DefCoreEditor extends FormEditor {
 
 		@Override
 		public void doSave(IProgressMonitor monitor) {
-			// TODO Auto-generated method stub
 			super.doSave(monitor);
 			try {
 				documentProvider.saveDocument(monitor, getEditorInput(), documentProvider.getDocument(getEditorInput()), true);
@@ -110,7 +111,6 @@ public class C4DefCoreEditor extends FormEditor {
 		
 		@Override
 		public void doSave(IProgressMonitor progressMonitor) {
-			// TODO Auto-generated method stub
 			super.doSave(progressMonitor);
 		}
 
@@ -121,7 +121,7 @@ public class C4DefCoreEditor extends FormEditor {
 			setPartName(title);
 			setContentDescription(title);
 			this.title = title;
-			setSourceViewerConfiguration(new DefCoreSourceViewerConfiguration(colorManager, this));
+			setSourceViewerConfiguration(new IniSourceViewerConfiguration(colorManager, this));
 			setDocumentProvider(documentProvider);
 		}
 
@@ -143,7 +143,7 @@ public class C4DefCoreEditor extends FormEditor {
 	@Override
 	protected void addPages() {
 		try {
-			documentProvider = new DefCoreDocumentProvider();
+			documentProvider = new IniDocumentProvider();
 			addPage(new DefCoreSectionPage(this, "DefCore", "[DefCore]", documentProvider));
 			int index = addPage(new RawSourcePage(this, RawSourcePage.PAGE_ID,"DefCore.txt", documentProvider),this.getEditorInput());
 			// editors as pages are not able to handle tab title strings

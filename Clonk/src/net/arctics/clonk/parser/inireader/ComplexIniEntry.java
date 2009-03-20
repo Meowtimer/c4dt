@@ -30,4 +30,9 @@ public class ComplexIniEntry extends IniEntry  {
 		return cmpl;
 	}
 	
+	@Override
+	public String getValue() {
+		return extendedValue.toString();
+	}
+	
 }

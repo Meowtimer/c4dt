@@ -14,6 +14,7 @@ import net.arctics.clonk.parser.C4ScriptParser;
 import net.arctics.clonk.parser.C4ScriptIntern;
 import net.arctics.clonk.parser.ClonkIndex;
 import net.arctics.clonk.parser.C4ScriptParser.ParsingException;
+import net.arctics.clonk.parser.actmap.ActMapParser;
 import net.arctics.clonk.parser.defcore.DefCoreParser;
 import net.arctics.clonk.preferences.PreferenceConstants;
 import net.arctics.clonk.ui.editors.C4ScriptEditor;
@@ -206,7 +207,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 			Display.getDefault().asyncExec(new Runnable() {
 				public void run() {
 					IWorkbench w = PlatformUI.getWorkbench();
-					if (w == null)
+					if (w == null || w.getActiveWorkbenchWindow() == null || w.getActiveWorkbenchWindow().getActivePage() == null)
 						return;
 					IWorkbenchPage page = w.getActiveWorkbenchWindow().getActivePage();
 					for (IEditorReference ref : page.getEditorReferences()) {
@@ -275,11 +276,15 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 						}
 					}
 				}
-				else if (buildPhase == 0 && delta.getResource().getName().equals("DefCore.txt")) {
+				else if (buildPhase == 0 && delta.getResource().getName().equalsIgnoreCase("DefCore.txt")) {
 					DefCoreParser defCore = new DefCoreParser((IFile) delta.getResource());
 					defCore.parse();
 					if (script instanceof C4Object)
 						((C4Object)script).setId(defCore.getObjectID());
+				}
+				else if (buildPhase == 0 && delta.getResource().getName().equalsIgnoreCase("ActMap.txt")) {
+					ActMapParser actMap = new ActMapParser((IFile)delta.getResource());
+					actMap.parse();
 				}
 			}
 			else if (delta.getKind() == IResourceDelta.REMOVED && delta.getResource().getParent().exists()) {

@@ -8,6 +8,7 @@ import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.C4ScriptParser.Keywords;
 import net.arctics.clonk.parser.C4ScriptParser.ParsingException;
 import net.arctics.clonk.parser.C4Variable.C4VariableScope;
+import net.arctics.clonk.util.Pair;
 
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.Region;
@@ -895,7 +896,7 @@ public abstract class C4ScriptExprTree {
 		
 		@Override
 		public boolean modifiable() {
-			return false;
+			return getOperator().returnsRef();
 		}
 
 	}
@@ -1193,6 +1194,11 @@ public abstract class C4ScriptExprTree {
 		@Override
 		public boolean isConstant() {
 			return argument.isConstant();
+		}
+		
+		@Override
+		public boolean modifiable() {
+			return placement == Placement.Prefix && getOperator().returnsRef();
 		}
 
 	}

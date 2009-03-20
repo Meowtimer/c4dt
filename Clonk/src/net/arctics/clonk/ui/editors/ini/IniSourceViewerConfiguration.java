@@ -1,4 +1,5 @@
-package net.arctics.clonk.ui.editors.defcore;
+package net.arctics.clonk.ui.editors.ini;
+
 
 import net.arctics.clonk.ui.editors.ColorManager;
 import net.arctics.clonk.ui.editors.IClonkColorConstants;
@@ -13,13 +14,13 @@ import org.eclipse.jface.text.source.ISourceViewer;
 import org.eclipse.ui.editors.text.TextSourceViewerConfiguration;
 import org.eclipse.ui.texteditor.ITextEditor;
 
-public class DefCoreSourceViewerConfiguration extends
+public class IniSourceViewerConfiguration extends
 		TextSourceViewerConfiguration {
 	private ColorManager colorManager;
 	private ITextEditor textEditor;
-	private DefCoreScanner scanner;
+	private IniScanner scanner;
 	
-	public DefCoreSourceViewerConfiguration(ColorManager colorManager, ITextEditor textEditor) {
+	public IniSourceViewerConfiguration(ColorManager colorManager, ITextEditor textEditor) {
 		this.colorManager = colorManager;
 		this.textEditor = textEditor;
 	}
@@ -36,9 +37,9 @@ public class DefCoreSourceViewerConfiguration extends
 		return reconciler;
 	}
 	
-	protected DefCoreScanner getDefCoreScanner() {
+	protected IniScanner getDefCoreScanner() {
 		if (scanner == null) {
-			scanner = new DefCoreScanner(colorManager);
+			scanner = new IniScanner(colorManager);
 			scanner.setDefaultReturnToken(
 				new Token(
 					new TextAttribute(

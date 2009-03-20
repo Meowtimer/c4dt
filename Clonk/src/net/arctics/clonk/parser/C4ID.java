@@ -5,11 +5,11 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class C4ID implements Serializable {
+	private static final Map<String, C4ID> idPool = new HashMap<String, C4ID>();
 	private static final long serialVersionUID = 833007356188766488L;
-	private String name;
-	private static Map<String, C4ID> idPool = new HashMap<String, C4ID>();
-//	public static final C4ID GLOBAL = new C4ID("GLOBAL");
+	public static final C4ID NULL = getID("NULL");
 	
+	private String name;
 	
 	protected C4ID(String id) {
 		name = id;

@@ -393,7 +393,7 @@ public class ClonkCompletionProcessor implements IContentAssistProcessor, ICompl
 			if (var.getScope() != C4VariableScope.VAR_STATIC && var.getScope() != C4VariableScope.VAR_CONST)
 				proposalForVar(var, prefix, wordOffset, proposals);
 		}
-		for (C4Object o : script.getIncludes())
+		for (C4ScriptBase o : script.getIncludes())
 			proposalsFromScript(o, loopCatcher, prefix, offset, wordOffset, proposals, noPrivateFuncs);
 	}
 

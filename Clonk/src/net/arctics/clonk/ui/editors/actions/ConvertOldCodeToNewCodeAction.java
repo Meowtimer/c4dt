@@ -5,10 +5,10 @@ import java.util.ResourceBundle;
 
 import net.arctics.clonk.parser.C4Function;
 import net.arctics.clonk.parser.C4ScriptParser;
-import net.arctics.clonk.parser.Pair;
 import net.arctics.clonk.parser.C4ScriptExprTree.*;
 import net.arctics.clonk.ui.editors.C4ScriptEditor;
 import net.arctics.clonk.ui.editors.ClonkCommandIds;
+import net.arctics.clonk.util.Pair;
 
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.DocumentRewriteSession;

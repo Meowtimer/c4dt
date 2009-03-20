@@ -9,10 +9,10 @@ import net.arctics.clonk.Utilities;
 import net.arctics.clonk.parser.C4Function;
 import net.arctics.clonk.parser.C4ScriptBase;
 import net.arctics.clonk.parser.C4ScriptParser;
-import net.arctics.clonk.parser.Pair;
 import net.arctics.clonk.parser.C4ScriptExprTree.Statement;
 import net.arctics.clonk.parser.C4ScriptParser.ParsingException;
 import net.arctics.clonk.ui.editors.actions.ConvertOldCodeToNewCodeAction;
+import net.arctics.clonk.util.Pair;
 
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;

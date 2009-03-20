@@ -1,4 +1,4 @@
-package net.arctics.clonk.ui.editors.defcore;
+package net.arctics.clonk.ui.editors.ini;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -11,7 +11,6 @@ import net.arctics.clonk.ui.editors.ColorManager;
 import net.arctics.clonk.ui.editors.CombinedWordRule;
 import net.arctics.clonk.ui.editors.IClonkColorConstants;
 import net.arctics.clonk.ui.editors.WordScanner;
-
 import org.eclipse.jface.text.TextAttribute;
 import org.eclipse.jface.text.rules.ICharacterScanner;
 import org.eclipse.jface.text.rules.IRule;
@@ -21,7 +20,7 @@ import org.eclipse.jface.text.rules.SingleLineRule;
 import org.eclipse.jface.text.rules.Token;
 import org.eclipse.jface.text.rules.WhitespaceRule;
 
-public class DefCoreScanner extends RuleBasedScanner {
+public class IniScanner extends RuleBasedScanner {
 	
 	private static final class OperatorRule implements IRule {
 
@@ -103,7 +102,7 @@ public class DefCoreScanner extends RuleBasedScanner {
 		
 	}
 	
-	public DefCoreScanner(ColorManager manager) {
+	public IniScanner(ColorManager manager) {
 		
 		IToken defaultToken = new Token(new TextAttribute(manager.getColor(IClonkColorConstants.DEFAULT)));
 		

@@ -29,6 +29,7 @@ public class C4Directive extends C4Field implements Serializable {
 	
 	private C4DirectiveType type;
 	private String content;
+	private transient C4ID cachedID;
 	
 	public C4Directive(C4DirectiveType type, String content) {
 		this.content = content;
@@ -78,7 +79,9 @@ public class C4Directive extends C4Field implements Serializable {
 	}
 	
 	public C4ID contentAsID() {
-		return C4ID.getID(this.getContent());
+		if (cachedID == null)
+			cachedID = C4ID.getID(this.getContent());
+		return cachedID;
 	}
 	
 }

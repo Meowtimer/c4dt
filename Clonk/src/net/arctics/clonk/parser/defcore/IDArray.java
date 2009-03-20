@@ -5,9 +5,9 @@ import java.util.List;
 import java.util.ListIterator;
 
 import net.arctics.clonk.parser.C4ID;
-import net.arctics.clonk.parser.Pair;
 import net.arctics.clonk.parser.inireader.IEntryCreateable;
 import net.arctics.clonk.parser.inireader.IniParserException;
+import net.arctics.clonk.util.Pair;
 
 public class IDArray implements IEntryCreateable {
 	private final List<Pair<C4ID,Integer>> components = new ArrayList<Pair<C4ID,Integer>>();

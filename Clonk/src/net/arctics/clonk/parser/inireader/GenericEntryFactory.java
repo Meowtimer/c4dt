@@ -4,7 +4,7 @@ import java.io.InvalidClassException;
 
 import net.arctics.clonk.parser.C4ID;
 
-public class DefCoreFactory implements IEntryFactory {
+public class GenericEntryFactory implements IEntryFactory {
 	
 	public Object create(Class<?> type, String value) throws InvalidClassException, IniParserException {
 		if (type.equals(C4ID.class)) {

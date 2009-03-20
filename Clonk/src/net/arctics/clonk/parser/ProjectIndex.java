@@ -38,6 +38,11 @@ public class ProjectIndex extends ClonkIndex {
 		}
 		super.fixReferencesAfterSerialization();
 	}
+	
+	@Override
+	public String toString() {
+		return "Index for " + project.toString();
+	}
 
 	/**
 	 * 

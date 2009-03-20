@@ -3,11 +3,13 @@
  */
 package net.arctics.clonk.parser.inireader;
 
+import java.util.Map;
+
 
 public class IniSection {
 	private int startPos;
 	private String name;
-	private IniEntry[] entries = null;
+	private Map<String, IniEntry> entries;
 	
 	protected IniSection(int pos, String name) {
 		startPos = pos;
@@ -22,11 +24,16 @@ public class IniSection {
 		return name;
 	}
 
-	public IniEntry[] getEntries() {
+	public Map<String, IniEntry> getEntries() {
 		return entries;
 	}
 
-	public void setEntries(IniEntry[] entries) {
+	public void setEntries(Map<String, IniEntry> entries) {
 		this.entries = entries;
 	}
+
+	public IniEntry getEntry(String key) {
+		return entries.get(key);
+	} 
+	
 }

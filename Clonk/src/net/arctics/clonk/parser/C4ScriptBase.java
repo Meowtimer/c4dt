@@ -13,6 +13,8 @@ import java.util.Set;
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.Utilities;
 import net.arctics.clonk.parser.C4Directive.C4DirectiveType;
+import net.arctics.clonk.util.ReadOnlyIterator;
+
 import org.eclipse.core.resources.IResource;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.ITextSelection;
@@ -29,8 +31,6 @@ public abstract class C4ScriptBase extends C4Structure implements IRelatedResour
 	protected List<C4Function> definedFunctions = new LinkedList<C4Function>();
 	protected List<C4Variable> definedVariables = new ArrayList<C4Variable>(); // default capacity of 10 is ok
 	protected List<C4Directive> definedDirectives = new ArrayList<C4Directive>(4); // mostly 4 are enough
-	
-//	private List<IC4ObjectListener> changeListeners = new LinkedList<IC4ObjectListener>();
 	
 	public int strictLevel() {
 		int level = 0;
@@ -57,16 +57,20 @@ public abstract class C4ScriptBase extends C4Structure implements IRelatedResour
 		return result.toArray(new C4Directive[result.size()]);
 	}
 	
-	public C4Object[] getIncludes(ClonkIndex index) {
-		List<C4Object> result = new ArrayList<C4Object>();
+	protected void gatherIncludes(List<C4ScriptBase> list, ClonkIndex index) {
 		for (C4Directive d : definedDirectives) {
 			if (d.getType() == C4DirectiveType.INCLUDE || d.getType() == C4DirectiveType.APPENDTO) {
 				C4Object obj = getNearestObjectWithId(d.contentAsID());
 				if (obj != null)
-					result.add(obj);
+					list.add(obj);
 			}
 		}
-		return result.toArray(new C4Object[result.size()]);
+	}
+	
+	public C4ScriptBase[] getIncludes(ClonkIndex index) {
+		List<C4ScriptBase> result = new ArrayList<C4ScriptBase>();
+		gatherIncludes(result, index);
+		return result.toArray(new C4ScriptBase[result.size()]);
 	}
 	
 	public C4Directive getIncludeDirectiveFor(C4Object obj) {
@@ -77,7 +81,7 @@ public abstract class C4ScriptBase extends C4Structure implements IRelatedResour
 		return null;
 	}
 	
-	public C4Object[] getIncludes() {
+	public C4ScriptBase[] getIncludes() {
 		ClonkIndex index = getIndex();
 		if (index == null)
 			return NO_INCLUDES;
@@ -161,7 +165,7 @@ public abstract class C4ScriptBase extends C4Structure implements IRelatedResour
 		
 		// search in included definitions
 		info.recursion++;
-		for (C4Object o : getIncludes(info.index)) {
+		for (C4ScriptBase o : getIncludes(info.index)) {
 			C4Field result = o.findField(name, info);
 			if (result != null)
 				return result;
@@ -306,8 +310,8 @@ public abstract class C4ScriptBase extends C4Structure implements IRelatedResour
 		if (dontRevisit.contains(this))
 			return false;
 		dontRevisit.add(this);
-		C4Object[] incs = this.getIncludes();
-		for (C4Object o : incs) {
+		C4ScriptBase[] incs = this.getIncludes();
+		for (C4ScriptBase o : incs) {
 			if (o == other)
 				return true;
 			if (o.includes(other, dontRevisit))
@@ -320,6 +324,28 @@ public abstract class C4ScriptBase extends C4Structure implements IRelatedResour
 
 	public C4Variable findLocalVariable(String name, boolean includeIncludes) {
 		return findLocalVariable(name, includeIncludes, new HashSet<C4ScriptBase>());
+	}
+	
+	public C4Function findLocalFunction(String name, boolean includeIncludes) {
+		return findLocalFunction(name, includeIncludes, new HashSet<C4ScriptBase>());
+	}
+	
+	public C4Function findLocalFunction(String name, boolean includeIncludes, HashSet<C4ScriptBase> alreadySearched) {
+		if (alreadySearched.contains(this))
+			return null;
+		alreadySearched.add(this);
+		for (C4Function func: definedFunctions) {
+			if (func.name.equals(name))
+				return func;
+		}
+		if (includeIncludes) {
+			for (C4ScriptBase script : getIncludes()) {
+				C4Function func = script.findLocalFunction(name, includeIncludes, alreadySearched);
+				if (func != null)
+					return func;
+			}
+		}
+		return null;
 	}
 	
 	public C4Variable findLocalVariable(String name, boolean includeIncludes, HashSet<C4ScriptBase> alreadySearched) {
@@ -340,25 +366,6 @@ public abstract class C4ScriptBase extends C4Structure implements IRelatedResour
 		return null;
 	}
 	
-//	private static boolean looksLikeConstName(String name) {
-//		boolean underscore = false;
-//		for (int i = 0; i < name.length(); i++) {
-//			char c = name.charAt(i);
-//			if (i > 0 && c == '_') {
-//				if (!underscore)
-//					underscore = true;
-//				else
-//					return false;
-//			}
-//			if (!underscore) {
-//				if (Character.toUpperCase(c) != c) {
-//					return false;
-//				}
-//			}
-//		}
-//		return underscore || name.equals(name.toUpperCase());
-//	}
-	
 	public boolean removeDuplicateVariables() {
 		Map<String, C4Variable> variableMap = new HashMap<String, C4Variable>();
 		Collection<C4Variable> toBeRemoved = new LinkedList<C4Variable>();
@@ -373,38 +380,6 @@ public abstract class C4ScriptBase extends C4Structure implements IRelatedResour
 			definedVariables.remove(v);
 		return toBeRemoved.size() > 0;
 	}
-
-//	public boolean convertFuncsToConstsIfTheyLookLikeConsts() {
-//		boolean didSomething = false;
-//		List<C4Function> toBeRemoved = new LinkedList<C4Function>();
-//		for (C4Function f : definedFunctions) {
-//			if (f.getParameters().size() == 0 && looksLikeConstName(f.getName())) {
-//				toBeRemoved.add(f);
-//				definedVariables.add(new C4Variable(f.getName(), f.getReturnType(), f.getUserDescription(), C4VariableScope.VAR_CONST));
-//				didSomething = true;
-//			}
-//		}
-//		for (C4Variable v : definedVariables) {
-//			if (v.getScope() != C4VariableScope.VAR_CONST) {
-//				v.setScope(C4VariableScope.VAR_CONST);
-//				didSomething = true;
-//			}
-//			if (v.getScript() != this) {
-//				v.setScript(this);
-//				didSomething = true;
-//			}
-//		}
-//		for (C4Function f : toBeRemoved)
-//			definedFunctions.remove(f);
-//		C4Variable v = findLocalVariable("_inherited", false);
-//		if (v != null) {
-//			definedVariables.remove(v);
-//			definedFunctions.add(new C4Function("_inherited", this, C4FunctionScope.FUNC_PUBLIC));
-//			didSomething = true;
-//		}
-//		didSomething |= removeDuplicateVariables();
-//		return didSomething;
-//	}
 	
 	/**
 	 * Returns an iterator to iterate over all functions defined in this script
@@ -450,5 +425,82 @@ public abstract class C4ScriptBase extends C4Structure implements IRelatedResour
 	public C4Object getNearestObjectWithId(C4ID id) {
 		return getIndex().getObjectNearestTo(getResource(), id);
 	}
+	
+//	public boolean convertFuncsToConstsIfTheyLookLikeConsts() {
+//	boolean didSomething = false;
+//	List<C4Function> toBeRemoved = new LinkedList<C4Function>();
+//	for (C4Function f : definedFunctions) {
+//		if (f.getParameters().size() == 0 && looksLikeConstName(f.getName())) {
+//			toBeRemoved.add(f);
+//			definedVariables.add(new C4Variable(f.getName(), f.getReturnType(), f.getUserDescription(), C4VariableScope.VAR_CONST));
+//			didSomething = true;
+//		}
+//	}
+//	for (C4Variable v : definedVariables) {
+//		if (v.getScope() != C4VariableScope.VAR_CONST) {
+//			v.setScope(C4VariableScope.VAR_CONST);
+//			didSomething = true;
+//		}
+//		if (v.getScript() != this) {
+//			v.setScript(this);
+//			didSomething = true;
+//		}
+//	}
+//	for (C4Function f : toBeRemoved)
+//		definedFunctions.remove(f);
+//	C4Variable v = findLocalVariable("_inherited", false);
+//	if (v != null) {
+//		definedVariables.remove(v);
+//		definedFunctions.add(new C4Function("_inherited", this, C4FunctionScope.FUNC_PUBLIC));
+//		didSomething = true;
+//	}
+//	didSomething |= removeDuplicateVariables();
+//	return didSomething;
+//}
+
+//public void addFuncsFromList(String file) throws IOException {
+//Reader r = new FileReader(file);
+//LineNumberReader lReader = new LineNumberReader(r);
+//String funcName, type;
+//for (funcName = lReader.readLine(); funcName != null; funcName = type) {
+//	C4Function func = findLocalFunction(funcName, false);
+//	C4Type retType = null;
+//	List<C4Variable> parms = new LinkedList<C4Variable>();
+//	int numParms = 0;
+//	while ((type = lReader.readLine()) != null) {
+//		C4Type t = type.equals("any") ? C4Type.ANY : C4Type.makeType(type);
+//		if (t == C4Type.UNKNOWN)
+//			break;
+//		if (retType == null) {
+//			retType = t;
+//			continue;
+//		}
+//		parms.add(new C4Variable("par"+numParms++, t));
+//	}
+//	if (func == null && ClonkCore.getDefault().EXTERN_INDEX.findGlobalFunction(funcName) == null) {
+//		func = new C4Function(funcName, retType, parms.toArray(new C4Variable[numParms]));
+//		addField(func);
+//	}
+//}
+//}
+
+//private static boolean looksLikeConstName(String name) {
+//boolean underscore = false;
+//for (int i = 0; i < name.length(); i++) {
+//	char c = name.charAt(i);
+//	if (i > 0 && c == '_') {
+//		if (!underscore)
+//			underscore = true;
+//		else
+//			return false;
+//	}
+//	if (!underscore) {
+//		if (Character.toUpperCase(c) != c) {
+//			return false;
+//		}
+//	}
+//}
+//return underscore || name.equals(name.toUpperCase());
+//}
 
 }

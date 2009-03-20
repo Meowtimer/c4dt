@@ -17,8 +17,7 @@ public class EditorActionContributor extends BasicTextEditorActionContributor {
 	public EditorActionContributor() {
 		ResourceBundle messagesBundle = ResourceBundle.getBundle("net.arctics.clonk.ui.editors.Messages");
 		fContentAssist = new RetargetTextEditorAction(messagesBundle, null);
-		fContentAssist
-				.setActionDefinitionId(ITextEditorActionDefinitionIds.CONTENT_ASSIST_PROPOSALS);
+		fContentAssist.setActionDefinitionId(ITextEditorActionDefinitionIds.CONTENT_ASSIST_PROPOSALS);
 //		fConvertOldCodeToNewCode = new RetargetTextEditorAction(messagesBundle, null);
 //		fConvertOldCodeToNewCode.setActionDefinitionId(ClonkActionDefinitionIds.CONVERT_OLD_CODE_TO_NEW_CODE);
 		// fIndexClonkDir = new

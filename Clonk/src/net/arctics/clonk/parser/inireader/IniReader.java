@@ -1,21 +1,31 @@
 package net.arctics.clonk.parser.inireader;
 
 import java.io.InputStream;
+import java.io.InvalidClassException;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 
 import net.arctics.clonk.parser.BufferedScanner;
+import net.arctics.clonk.parser.inireader.IniData.IniConfiguration;
+import net.arctics.clonk.parser.inireader.IniData.IniDataEntry;
+import net.arctics.clonk.parser.inireader.IniData.IniDataSection;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 
-public class IniReader {
+public class IniReader implements Iterable<IniSection> {
 
 	protected BufferedScanner reader;
 	protected IFile iniFile = null;
-	protected Map<String, IniEntry> entries = new HashMap<String, IniEntry>();
+	// map to access sections by their name - only useful when sections have different names 
+	protected Map<String, IniSection> sections = new HashMap<String, IniSection>();
+	/// list of all sections regardless of name
+	protected List<IniSection> sectionsList = new LinkedList<IniSection>();
 	protected String defaultName;
 	
 	public IniReader(InputStream stream) {
@@ -67,7 +77,7 @@ public class IniReader {
 	 * @return <tt>true</tt> if valid
 	 */
 	protected boolean isSectionNameValid(String name) {
-		return true;
+		return getConfiguration() == null || getConfiguration().hasSection(name);
 	}
 	
 	/**
@@ -78,7 +88,32 @@ public class IniReader {
 	 * @return validated entry
 	 */
 	protected IniEntry validateEntry(IniEntry entry, IniSection section) throws IniParserException {
-		return entry;
+		IniConfiguration configuration = getConfiguration();
+		if (configuration == null)
+			return entry;
+		IniDataSection sectionConfig = configuration.getSections().get(section.getName());
+		if (sectionConfig == null)
+			return entry; // don't throw errors in unknown section
+		if (!sectionConfig.hasEntry(entry.getKey())) {
+			throw new IniParserException(IMarker.SEVERITY_WARNING, "Unknown option '" + entry.getKey() + "'", entry.getStartPos(), entry.getKey().length() + entry.getStartPos());
+		}
+		IniDataEntry entryConfig = sectionConfig.getEntries().get(entry.getKey());
+		try {
+			try {
+				Object value = configuration.getFactory().create(entryConfig.getEntryClass(), entry.getValue());
+				return ComplexIniEntry.adaptFrom(entry, value, entryConfig);
+			}
+			catch(IniParserException e) { // add offsets and throw through
+				// FIXME: whitespace before and after '=' is not taken into account
+				if (e.getOffset() == 0 || e.getEndOffset() == 0) {
+					e.setOffset(entry.getStartPos() + entry.getKey().length() + 1);
+					e.setEndOffset(entry.getStartPos() + entry.getKey().length() + 1 + entry.getValue().length());
+				}
+				throw e;
+			}
+		} catch (InvalidClassException e) {
+			throw new IniParserException(IMarker.SEVERITY_WARNING, "There is a bug in the ini scheme. Report the following data to a C4DT developer: " + e.getMessage(),entry.getStartPos(),entry.getStartPos() + entry.getKey().length());
+		}
 	}
 	
 	protected IMarker createMarker(String message, int severity, int offset, int endOffset) {
@@ -112,7 +147,11 @@ public class IniReader {
 		}
 		reader.seek(0);
 //		IniEntry[] entries = null;
-		while(parseSection() != null);
+		IniSection section;
+		while ((section = parseSection()) != null) {
+			sections.put(section.getName(), section);
+			sectionsList.add(section);
+		}
 		if (!reader.reachedEOF()) {
 			createMarker("Unexpected data.", IMarker.SEVERITY_WARNING, reader.getPosition() - 2, reader.getPosition());
 		}
@@ -130,17 +169,18 @@ public class IniReader {
 			}
 			else {
 				if (!isSectionNameValid(name)) {
-					createMarker("Section name '' is unknown.", IMarker.SEVERITY_WARNING, start, reader.getPosition() - 1);
+					createMarker("Unknown section name", IMarker.SEVERITY_WARNING, start, reader.getPosition() - 1);
 				}
 			}
 			IniSection section = new IniSection(start, name);
 			// parse entries
 //			List<IniEntry> entries = new LinkedList<IniEntry>();
 			IniEntry entry = null;
-			while((entry = parseEntry(section)) != null) {
-				entries.put(entry.getKey().toLowerCase(),entry);
+			Map<String, IniEntry> entries = new HashMap<String, IniEntry>(); 
+			while ((entry = parseEntry(section)) != null) {
+				entries.put(entry.getKey(),entry);
 			}
-			section.setEntries(entries.values().toArray(new IniEntry[entries.size()]));
+			section.setEntries(entries);
 			return section;
 		}
 		else {
@@ -183,6 +223,23 @@ public class IniReader {
 			createMarker(e.getMessage(), e.getSeverity(), e.getOffset(), e.getEndOffset());
 			return entry;
 		}
+	}
+	
+	protected IniConfiguration getConfiguration() {
+		return null;
+	}
+
+	public Iterator<IniSection> iterator() {
+		return sectionsList.iterator();
+	}
+	
+	public IniSection sectionWithName(String name) {
+		return sections.get(name);
+	}
+	
+	public IniEntry entryInSection(String section, String entry) {
+		IniSection s = sections.get(section);
+		return s != null ? s.getEntry(entry) : null;
 	}
 	
 //	/**
