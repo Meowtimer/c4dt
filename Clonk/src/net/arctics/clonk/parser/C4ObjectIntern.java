@@ -4,7 +4,7 @@ import java.io.Serializable;
 import java.security.InvalidParameterException;
 
 import net.arctics.clonk.ClonkCore;
-import net.arctics.clonk.Utilities;
+import net.arctics.clonk.util.Utilities;
 
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;

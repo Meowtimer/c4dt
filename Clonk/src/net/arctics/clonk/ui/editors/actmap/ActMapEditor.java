@@ -2,19 +2,17 @@ package net.arctics.clonk.ui.editors.actmap;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.CoreException;
-import org.eclipse.jface.viewers.ILabelProviderListener;
 import org.eclipse.jface.viewers.IStructuredContentProvider;
-import org.eclipse.jface.viewers.ITableLabelProvider;
 import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.jface.viewers.TableViewerColumn;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Layout;
+import org.eclipse.swt.widgets.Table;
 import org.eclipse.ui.forms.IManagedForm;
 import org.eclipse.ui.forms.SectionPart;
 import org.eclipse.ui.forms.editor.FormEditor;
@@ -24,10 +22,13 @@ import org.eclipse.ui.forms.widgets.Section;
 import org.eclipse.ui.texteditor.IDocumentProvider;
 
 import net.arctics.clonk.ClonkCore;
-import net.arctics.clonk.Utilities;
 import net.arctics.clonk.parser.C4Object;
 import net.arctics.clonk.parser.actmap.ActMapParser;
+import net.arctics.clonk.parser.inireader.IniReader;
 import net.arctics.clonk.ui.editors.ini.IniEditor;
+import net.arctics.clonk.ui.editors.ini.IniEditorColumnLabelProvider;
+import net.arctics.clonk.ui.editors.ini.IniEditorColumnLabelProvider.WhatLabel;
+import net.arctics.clonk.util.Utilities;
 
 public class ActMapEditor extends IniEditor {
 	
@@ -80,49 +81,22 @@ public class ActMapEditor extends IniEditor {
 
 			part.getSection().setClient(sectionComp);
 
-			TableViewer actions = new TableViewer(sectionComp);
+			Table actionsTable = toolkit.createTable(sectionComp, SWT.BOTTOM);
+			TableViewer actions = new TableViewer(actionsTable);
 			
 			// colummns
 			TableViewerColumn keyCol = new TableViewerColumn(actions, SWT.BORDER);
-			TableViewerColumn valCol = new TableViewerColumn(actions, SWT.BORDER);
+			keyCol.setLabelProvider(new IniEditorColumnLabelProvider(WhatLabel.Key));
 			keyCol.getColumn().setText("Key");
-			valCol.getColumn().setText("Value");
+			keyCol.getColumn().setWidth(actionsTable.getSize().x/2);
 			
-			actions.setLabelProvider(new ITableLabelProvider() {
-
-				public Image getColumnImage(Object element, int columnIndex) {
-					return null;
-				}
-
-				public String getColumnText(Object element, int columnIndex) {
-					switch (columnIndex) {
-					case 0:
-						return "blub";
-					case 1:
-						return "ugha";
-					}
-					return null;
-				}
-
-				public void addListener(ILabelProviderListener listener) {
-					// do i care?
-				}
-
-				public void dispose() {
-					// TODO Auto-generated method stub
-					
-				}
-
-				public boolean isLabelProperty(Object element, String property) {
-					return false;
-				}
-
-				public void removeListener(ILabelProviderListener listener) {
-					// TODO Auto-generated method stub
-					
-				}
-				
-			});
+			TableViewerColumn valCol = new TableViewerColumn(actions, SWT.BOTTOM);
+			valCol.setLabelProvider(new IniEditorColumnLabelProvider(WhatLabel.Value));
+			valCol.getColumn().setText("Value");
+			valCol.getColumn().setWidth(actionsTable.getSize().x/2);
+			
+			actionsTable.setSize(actionsTable.getSize().x, sectionComp.getSize().y-10);
+			
 			actions.setContentProvider(new IStructuredContentProvider() {
 				
 				public void dispose() {
@@ -137,14 +111,14 @@ public class ActMapEditor extends IniEditor {
 				}
 
 				public Object[] getElements(Object inputElement) {
-					return new String[] {
-						"zuhauf",
-						"jefreili"
-					};
+					if (inputElement instanceof IniReader) {
+						return ((IniReader)inputElement).getSections();
+					}
+					return new Object[0];
 				}
 				
 			});
-			actions.setInput("Awesome");
+			actions.setInput(parser);
 		}
 	}
 

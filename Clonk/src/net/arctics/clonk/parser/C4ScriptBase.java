@@ -11,9 +11,9 @@ import java.util.Map;
 import java.util.Set;
 
 import net.arctics.clonk.ClonkCore;
-import net.arctics.clonk.Utilities;
 import net.arctics.clonk.parser.C4Directive.C4DirectiveType;
 import net.arctics.clonk.util.ReadOnlyIterator;
+import net.arctics.clonk.util.Utilities;
 
 import org.eclipse.core.resources.IResource;
 import org.eclipse.jface.text.IRegion;

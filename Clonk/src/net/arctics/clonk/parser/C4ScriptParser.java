@@ -11,12 +11,12 @@ import java.util.Set;
 import java.util.Vector;
 
 import net.arctics.clonk.ClonkCore;
-import net.arctics.clonk.Utilities;
 import net.arctics.clonk.parser.C4Directive.C4DirectiveType;
 import net.arctics.clonk.parser.C4Function.C4FunctionScope;
 import net.arctics.clonk.parser.C4Variable.C4VariableScope;
 import net.arctics.clonk.parser.C4ScriptExprTree.*;
 import net.arctics.clonk.util.Pair;
+import net.arctics.clonk.util.Utilities;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;

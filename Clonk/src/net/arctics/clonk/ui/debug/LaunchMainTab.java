@@ -4,10 +4,10 @@ import java.util.Collection;
 import java.util.LinkedList;
 
 import net.arctics.clonk.ClonkCore;
-import net.arctics.clonk.Utilities;
 import net.arctics.clonk.debug.ClonkLaunchConfigurationDelegate;
 import net.arctics.clonk.resource.c4group.C4Group;
 import net.arctics.clonk.ui.navigator.ClonkLabelProvider;
+import net.arctics.clonk.util.Utilities;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;

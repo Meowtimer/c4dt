@@ -6,7 +6,6 @@ import java.io.InputStream;
 import java.util.ResourceBundle;
 
 import net.arctics.clonk.ClonkCore;
-import net.arctics.clonk.Utilities;
 import net.arctics.clonk.parser.C4Field;
 import net.arctics.clonk.parser.C4Function;
 import net.arctics.clonk.parser.C4ObjectIntern;
@@ -20,6 +19,7 @@ import net.arctics.clonk.ui.editors.actions.ConvertOldCodeToNewCodeAction;
 import net.arctics.clonk.ui.editors.actions.FindReferencesAction;
 import net.arctics.clonk.ui.editors.actions.OpenDeclarationAction;
 import net.arctics.clonk.ui.editors.actions.RenameFieldAction;
+import net.arctics.clonk.util.Utilities;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;

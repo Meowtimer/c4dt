@@ -3,8 +3,8 @@ package net.arctics.clonk.parser;
 import java.io.Serializable;
 
 import net.arctics.clonk.ClonkCore;
-import net.arctics.clonk.Utilities;
 import net.arctics.clonk.resource.ClonkProjectNature;
+import net.arctics.clonk.util.Utilities;
 
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;

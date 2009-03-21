@@ -1,11 +1,11 @@
 package net.arctics.clonk.ui.editors.defcore;
 
 import net.arctics.clonk.ClonkCore;
-import net.arctics.clonk.Utilities;
 import net.arctics.clonk.parser.C4Object;
 import net.arctics.clonk.ui.editors.ColorManager;
 import net.arctics.clonk.ui.editors.ini.IniDocumentProvider;
 import net.arctics.clonk.ui.editors.ini.IniSourceViewerConfiguration;
+import net.arctics.clonk.util.Utilities;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;

@@ -5,7 +5,6 @@ import java.util.HashSet;
 import java.util.Set;
 
 import net.arctics.clonk.ClonkCore;
-import net.arctics.clonk.Utilities;
 import net.arctics.clonk.parser.C4Field;
 import net.arctics.clonk.parser.C4Function;
 import net.arctics.clonk.parser.C4ScriptBase;
@@ -14,6 +13,7 @@ import net.arctics.clonk.parser.ProjectIndex;
 import net.arctics.clonk.ui.search.ClonkSearchMatch;
 import net.arctics.clonk.ui.search.ClonkSearchQuery;
 import net.arctics.clonk.ui.search.ClonkSearchResult;
+import net.arctics.clonk.util.Utilities;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;

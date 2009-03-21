@@ -1,7 +1,6 @@
 package net.arctics.clonk.ui.search;
 
 import net.arctics.clonk.ClonkCore;
-import net.arctics.clonk.Utilities;
 import net.arctics.clonk.parser.C4Directive;
 import net.arctics.clonk.parser.C4Field;
 import net.arctics.clonk.parser.C4Function;
@@ -20,6 +19,7 @@ import net.arctics.clonk.parser.C4ScriptExprTree.Statement;
 import net.arctics.clonk.parser.C4ScriptExprTree.TraversalContinuation;
 import net.arctics.clonk.parser.C4ScriptParser.ParsingException;
 import net.arctics.clonk.resource.ClonkProjectNature;
+import net.arctics.clonk.util.Utilities;
 
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;

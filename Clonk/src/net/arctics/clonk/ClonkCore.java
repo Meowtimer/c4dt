@@ -16,6 +16,7 @@ import net.arctics.clonk.parser.inireader.IniData;
 import net.arctics.clonk.resource.ClonkLibBuilder;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.resource.InputStreamRespectingUniqueIDs;
+import net.arctics.clonk.util.Utilities;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.ISaveContext;

@@ -2,20 +2,14 @@ package net.arctics.clonk.ui.wizards;
 
 import java.util.List;
 
-import net.arctics.clonk.Utilities;
 import net.arctics.clonk.parser.C4ID;
 import net.arctics.clonk.parser.C4Object;
 import net.arctics.clonk.resource.ClonkProjectNature;
+import net.arctics.clonk.util.Utilities;
 
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Text;
-
-/**
- * The "New" wizard page allows setting the container for the new file as well
- * as the file name. The page will only accept file name without the extension
- * OR with the extension that matches the expected one (mpe).
- */
 
 public class NewC4ObjectPage extends NewClonkFolderWizardPage {
 

@@ -3,12 +3,12 @@
  */
 package net.arctics.clonk.ui.editors;
 
-import net.arctics.clonk.Utilities;
 import net.arctics.clonk.parser.C4Field;
 import net.arctics.clonk.parser.C4Function;
 import net.arctics.clonk.parser.C4ScriptBase;
 import net.arctics.clonk.parser.C4Type;
 import net.arctics.clonk.parser.C4Variable;
+import net.arctics.clonk.util.Utilities;
 
 import org.eclipse.jface.viewers.ITreeContentProvider;
 import org.eclipse.jface.viewers.LabelProvider;

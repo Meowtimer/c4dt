@@ -1,6 +1,5 @@
 package net.arctics.clonk.ui.editors;
 
-import net.arctics.clonk.Utilities;
 import net.arctics.clonk.parser.C4Field;
 import net.arctics.clonk.parser.C4Function;
 import net.arctics.clonk.parser.C4ScriptBase;
@@ -11,6 +10,7 @@ import net.arctics.clonk.parser.C4ScriptExprTree.FieldRegion;
 import net.arctics.clonk.parser.C4ScriptExprTree.IExpressionListener;
 import net.arctics.clonk.parser.C4ScriptExprTree.TraversalContinuation;
 import net.arctics.clonk.parser.C4ScriptParser.ParsingException;
+import net.arctics.clonk.util.Utilities;
 
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.IDocument;

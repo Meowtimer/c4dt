@@ -2,10 +2,10 @@ package net.arctics.clonk.ui;
 
 import java.util.Comparator;
 import net.arctics.clonk.ClonkCore;
-import net.arctics.clonk.Utilities;
 import net.arctics.clonk.parser.C4Object;
 import net.arctics.clonk.parser.ClonkIndex;
 import net.arctics.clonk.resource.ClonkProjectNature;
+import net.arctics.clonk.util.Utilities;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.ResourcesPlugin;

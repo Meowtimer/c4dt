@@ -24,7 +24,7 @@ public class IniReader implements Iterable<IniSection> {
 	protected IFile iniFile = null;
 	// map to access sections by their name - only useful when sections have different names 
 	protected Map<String, IniSection> sections = new HashMap<String, IniSection>();
-	/// list of all sections regardless of name
+	/// list of all sections regardless of name (for ActMap and similar files)
 	protected List<IniSection> sectionsList = new LinkedList<IniSection>();
 	protected String defaultName;
 	
@@ -240,6 +240,10 @@ public class IniReader implements Iterable<IniSection> {
 	public IniEntry entryInSection(String section, String entry) {
 		IniSection s = sections.get(section);
 		return s != null ? s.getEntry(entry) : null;
+	}
+
+	public IniSection[] getSections() {
+		return sectionsList.toArray(new IniSection[sectionsList.size()]);
 	}
 	
 //	/**

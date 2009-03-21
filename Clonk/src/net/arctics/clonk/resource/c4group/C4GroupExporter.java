@@ -7,8 +7,8 @@ import java.io.OutputStreamWriter;
 import java.io.Writer;
 
 import net.arctics.clonk.ClonkCore;
-import net.arctics.clonk.Utilities;
 import net.arctics.clonk.preferences.PreferenceConstants;
+import net.arctics.clonk.util.Utilities;
 
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IResource;

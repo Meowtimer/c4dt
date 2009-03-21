@@ -1,8 +1,9 @@
-package net.arctics.clonk;
+package net.arctics.clonk.util;
 
 import java.util.Collection;
 import java.util.LinkedList;
 
+import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.C4Function;
 import net.arctics.clonk.parser.C4Object;
 import net.arctics.clonk.parser.C4ObjectIntern;

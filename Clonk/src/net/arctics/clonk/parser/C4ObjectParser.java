@@ -1,9 +1,9 @@
 package net.arctics.clonk.parser;
 
 import net.arctics.clonk.ClonkCore;
-import net.arctics.clonk.Utilities;
 import net.arctics.clonk.parser.defcore.DefCoreParser;
 import net.arctics.clonk.resource.c4group.C4Group;
+import net.arctics.clonk.util.Utilities;
 
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;

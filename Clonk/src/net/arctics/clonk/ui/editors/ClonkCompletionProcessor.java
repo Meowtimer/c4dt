@@ -8,7 +8,6 @@ import java.util.HashSet;
 import java.util.List;
 
 import net.arctics.clonk.ClonkCore;
-import net.arctics.clonk.Utilities;
 import net.arctics.clonk.parser.BuiltInDefinitions;
 import net.arctics.clonk.parser.C4Function;
 import net.arctics.clonk.parser.C4Object;
@@ -22,6 +21,7 @@ import net.arctics.clonk.parser.C4ScriptExprTree.*;
 import net.arctics.clonk.parser.C4ScriptParser.ParsingException;
 import net.arctics.clonk.parser.C4Variable.C4VariableScope;
 import net.arctics.clonk.resource.ClonkProjectNature;
+import net.arctics.clonk.util.Utilities;
 
 import org.eclipse.core.runtime.FileLocator;
 import org.eclipse.core.runtime.Path;
@@ -196,7 +196,7 @@ public class ClonkCompletionProcessor implements IContentAssistProcessor, ICompl
 			prefix = null;
 		}
 		
-		ClonkProjectNature nature = net.arctics.clonk.Utilities.getProject(editor);
+		ClonkProjectNature nature = net.arctics.clonk.util.Utilities.getProject(editor);
 		List<String> statusMessages = new ArrayList<String>(4);
 		List<ClonkCompletionProposal> proposals = new ArrayList<ClonkCompletionProposal>();
 		ClonkIndex index = nature.getIndex();
@@ -326,7 +326,7 @@ public class ClonkCompletionProcessor implements IContentAssistProcessor, ICompl
 			}
 			
 			if (contextScript != null) {
-				proposalsFromScript(contextScript, new HashSet<C4ScriptBase>(), prefix, offset, wordOffset, proposals, contextObjChanged);
+				proposalsFromScript(contextScript, new HashSet<C4ScriptBase>(), prefix, offset, wordOffset, proposals, contextObjChanged, index);
 			}
 			if (proposalCycle == SHOW_ALL) {
 				for(String keyword : BuiltInDefinitions.KEYWORDS) {
@@ -379,7 +379,7 @@ public class ClonkCompletionProcessor implements IContentAssistProcessor, ICompl
 		return result;
 	}
 
-	private void proposalsFromScript(C4ScriptBase script, HashSet<C4ScriptBase> loopCatcher, String prefix, int offset, int wordOffset, List<ClonkCompletionProposal> proposals, boolean noPrivateFuncs) {
+	private void proposalsFromScript(C4ScriptBase script, HashSet<C4ScriptBase> loopCatcher, String prefix, int offset, int wordOffset, List<ClonkCompletionProposal> proposals, boolean noPrivateFuncs, ClonkIndex index) {
 		if (loopCatcher.contains(script)) {
 			return;
 		}
@@ -393,8 +393,8 @@ public class ClonkCompletionProcessor implements IContentAssistProcessor, ICompl
 			if (var.getScope() != C4VariableScope.VAR_STATIC && var.getScope() != C4VariableScope.VAR_CONST)
 				proposalForVar(var, prefix, wordOffset, proposals);
 		}
-		for (C4ScriptBase o : script.getIncludes())
-			proposalsFromScript(o, loopCatcher, prefix, offset, wordOffset, proposals, noPrivateFuncs);
+		for (C4ScriptBase o : script.getIncludes(index))
+			proposalsFromScript(o, loopCatcher, prefix, offset, wordOffset, proposals, noPrivateFuncs, index);
 	}
 
 	protected C4Function getActiveFunc(IDocument document, int offset) {

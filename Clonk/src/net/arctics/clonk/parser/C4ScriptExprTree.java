@@ -628,7 +628,7 @@ public abstract class C4ScriptExprTree {
 			ExprElm p = getPredecessorInSequence();
 			C4ScriptBase lookIn = p == null ? parser.getContainer() : p.guessObjectType(parser);
 			if (lookIn != null) {
-				FindFieldInfo info = new FindFieldInfo(lookIn.getIndex());
+				FindFieldInfo info = new FindFieldInfo(parser.getContainer().getIndex());
 				info.setSearchOrigin(parser.getContainer());
 				C4Field field = lookIn.findFunction(fieldName, info);
 				// might be a variable called as a function (not after '->')

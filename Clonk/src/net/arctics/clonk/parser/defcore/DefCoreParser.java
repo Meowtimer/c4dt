@@ -66,7 +66,7 @@ public class DefCoreParser extends IniReader {
 	}
 	
 	public String getName() {
-		IniEntry entry = entryInSection("DefCore", "name");
+		IniEntry entry = entryInSection("DefCore", "Name");
 		return entry instanceof ComplexIniEntry ? (String)((ComplexIniEntry)entry).getExtendedValue() : defaultName;
 	}
 	

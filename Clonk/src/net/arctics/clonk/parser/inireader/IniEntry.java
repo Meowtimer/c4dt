@@ -3,7 +3,9 @@
  */
 package net.arctics.clonk.parser.inireader;
 
-public class IniEntry {
+import net.arctics.clonk.util.IHasKeyAndValue;
+
+public class IniEntry implements IHasKeyAndValue<String, String> {
 	private int startPos;
 	private String key;
 	private String value;

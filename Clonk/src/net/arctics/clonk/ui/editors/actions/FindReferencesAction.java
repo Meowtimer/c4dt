@@ -2,11 +2,11 @@ package net.arctics.clonk.ui.editors.actions;
 
 import java.util.ResourceBundle;
 
-import net.arctics.clonk.Utilities;
 import net.arctics.clonk.parser.C4Field;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.ui.editors.ClonkCommandIds;
 import net.arctics.clonk.ui.search.ClonkSearchQuery;
+import net.arctics.clonk.util.Utilities;
 
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.search.ui.NewSearchUI;

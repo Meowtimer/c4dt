@@ -1,8 +1,8 @@
 package net.arctics.clonk.ui;
 
 import net.arctics.clonk.ClonkCore;
-import net.arctics.clonk.Utilities;
 import net.arctics.clonk.resource.c4group.C4Group.C4GroupType;
+import net.arctics.clonk.util.Utilities;
 
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IMarker;
