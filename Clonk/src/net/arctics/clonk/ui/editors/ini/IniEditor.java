@@ -20,16 +20,19 @@ import org.eclipse.ui.texteditor.IDocumentProvider;
 
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.C4Object;
-import net.arctics.clonk.ui.editors.ColorManager;
-import net.arctics.clonk.ui.editors.ShowInAdapter;
+import net.arctics.clonk.ui.editors.c4script.ColorManager;
+import net.arctics.clonk.ui.editors.c4script.ShowInAdapter;
 import net.arctics.clonk.ui.editors.ini.IniDocumentProvider;
 import net.arctics.clonk.ui.editors.ini.IniSourceViewerConfiguration;
 import net.arctics.clonk.util.IHasKeyAndValue;
 import net.arctics.clonk.util.Utilities;
 
 import org.eclipse.jface.viewers.CellEditor;
+import org.eclipse.jface.viewers.CheckboxCellEditor;
+import org.eclipse.jface.viewers.EditingSupport;
 import org.eclipse.jface.viewers.TextCellEditor;
 import org.eclipse.jface.viewers.TreeViewer;
+import org.eclipse.jface.viewers.TreeViewerColumn;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.jface.viewers.ViewerComparator;
 import org.eclipse.swt.SWT;
@@ -38,10 +41,11 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Layout;
 import org.eclipse.swt.widgets.Tree;
-import org.eclipse.swt.widgets.TreeColumn;
 import org.eclipse.ui.forms.SectionPart;
 import org.eclipse.ui.forms.widgets.Section;
 
+import net.arctics.clonk.parser.inireader.Boolean;
+import net.arctics.clonk.parser.inireader.ComplexIniEntry;
 import net.arctics.clonk.parser.inireader.IniReader;
 import net.arctics.clonk.ui.editors.ini.IniEditor;
 import net.arctics.clonk.ui.editors.ini.IniEditorColumnLabelAndContentProvider;
@@ -115,34 +119,99 @@ public abstract class IniEditor extends FormEditor {
 
 			part.getSection().setClient(sectionComp);
 
-			Tree actionsTree = toolkit.createTree(sectionComp, SWT.BOTTOM | SWT.FULL_SELECTION);
-			actionsTree.setHeaderVisible(true);
-			actionsTree.setLinesVisible(true);
-			actionsTree.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+			Tree tree = toolkit.createTree(sectionComp, SWT.BOTTOM | SWT.FULL_SELECTION);
+			tree.setHeaderVisible(true);
+			tree.setLinesVisible(true);
+			tree.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
 			
-			TreeColumn keyCol = new TreeColumn(actionsTree, SWT.CENTER, 0);
-			keyCol.setText("Key");
-			keyCol.setWidth(200);
-			
-			TreeColumn valCol = new TreeColumn(actionsTree, SWT.LEFT, 1);
-			valCol.setText("Value");
-			valCol.setWidth(200);
+//			TreeColumn keyCol = new TreeColumn(tree, SWT.CENTER, 0);
+//			keyCol.setText("Key");
+//			keyCol.setWidth(200);
+//			
+//			TreeColumn valCol = new TreeColumn(tree, SWT.LEFT, 1);
+//			valCol.setText("Value");
+//			valCol.setWidth(200);
 			
 //			TreeColumn descCol = new TreeColumn(actionsTree, SWT.LEFT, 2);
 //			descCol.setText("Description");
 //			descCol.setWidth(200);
 			
-			TreeViewer actions = new TreeViewer(actionsTree);
-			actions.setColumnProperties(new String[] {"key", "value"});
-			IniEditorColumnLabelAndContentProvider provider = new IniEditorColumnLabelAndContentProvider(iniReader.getConfiguration());
-			actions.setLabelProvider(provider);
-			actions.setContentProvider(provider);
-			actions.setInput(iniReader);
-			actions.setCellEditors(new CellEditor[] {
-					null,
-					new TextCellEditor(actionsTree)
+			TreeViewer treeViewer = new TreeViewer(tree);
+			
+			TreeViewerColumn keyCol = new TreeViewerColumn(treeViewer, SWT.CENTER, 0);
+			keyCol.getColumn().setText("Key");
+			keyCol.getColumn().setWidth(200);
+			
+			TreeViewerColumn valCol = new TreeViewerColumn(treeViewer, SWT.LEFT, 1);
+			valCol.getColumn().setText("Value");
+			valCol.getColumn().setWidth(200);
+			valCol.setEditingSupport(new EditingSupport(treeViewer) {
+
+				private TextCellEditor textEditor;
+				private CheckboxCellEditor checkboxEditor;
+				
+				@Override
+				protected boolean canEdit(Object element) {
+					return true;
+				}
+
+				@Override
+				protected CellEditor getCellEditor(Object element) {
+					if (element instanceof ComplexIniEntry) {
+						ComplexIniEntry complex = (ComplexIniEntry) element;
+						if (complex.getExtendedValue() instanceof Boolean)
+							return getCheckboxEditor();
+					}
+					return getTextEditor();
+				}
+
+				@SuppressWarnings("unchecked")
+				@Override
+				protected Object getValue(Object element) {
+					if (element instanceof ComplexIniEntry) {
+						ComplexIniEntry complex = (ComplexIniEntry) element;
+						if (complex.getExtendedValue() instanceof Boolean)
+							return ((Boolean)complex.getExtendedValue()).getNumber() != 0 ? true : false;
+					}
+					return ((IHasKeyAndValue<String, String>)element).getValue();
+				}
+
+				@SuppressWarnings("unchecked")
+				@Override
+				protected void setValue(Object element, Object value) {
+					if (element instanceof ComplexIniEntry) {
+						ComplexIniEntry complex = (ComplexIniEntry) element;
+						if (complex.getExtendedValue() instanceof Boolean)
+							((Boolean)complex.getExtendedValue()).setNumber(value.equals(true) ? 1 : 0);
+					}
+					((IHasKeyAndValue<String, String>)element).setValue(value.toString());
+					this.getViewer().refresh();
+				}
+
+				public TextCellEditor getTextEditor() {
+					if (textEditor == null)
+						textEditor = new TextCellEditor((Composite)this.getViewer().getControl());
+					return textEditor;
+				}
+
+				public CheckboxCellEditor getCheckboxEditor() {
+					if (checkboxEditor == null)
+						checkboxEditor = new CheckboxCellEditor((Composite)this.getViewer().getControl());
+					return checkboxEditor;
+				}
+				
 			});
-			actions.setComparator(new ViewerComparator() {
+			
+			TreeViewerColumn descCol = new TreeViewerColumn(treeViewer, SWT.LEFT, 2);
+			descCol.getColumn().setText("Description");
+			descCol.getColumn().setWidth(200);
+			
+			treeViewer.setColumnProperties(new String[] {"key", "value"});
+			IniEditorColumnLabelAndContentProvider provider = new IniEditorColumnLabelAndContentProvider(iniReader.getConfiguration());
+			treeViewer.setLabelProvider(provider);
+			treeViewer.setContentProvider(provider);
+			treeViewer.setInput(iniReader);
+			treeViewer.setComparator(new ViewerComparator() {
 				@SuppressWarnings("unchecked")
 				@Override
 				public int compare(Viewer viewer, Object e1, Object e2) {

@@ -10,7 +10,7 @@ import net.arctics.clonk.parser.C4ScriptBase;
 import net.arctics.clonk.parser.C4ScriptParser;
 import net.arctics.clonk.parser.C4ScriptExprTree.Statement;
 import net.arctics.clonk.parser.C4ScriptParser.ParsingException;
-import net.arctics.clonk.ui.editors.actions.ConvertOldCodeToNewCodeAction;
+import net.arctics.clonk.ui.editors.actions.c4script.ConvertOldCodeToNewCodeAction;
 import net.arctics.clonk.util.Pair;
 import net.arctics.clonk.util.Utilities;
 

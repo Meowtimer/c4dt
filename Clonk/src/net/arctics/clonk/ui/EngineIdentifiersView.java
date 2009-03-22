@@ -9,7 +9,8 @@ import net.arctics.clonk.parser.C4Type;
 import net.arctics.clonk.parser.C4Variable;
 import net.arctics.clonk.parser.C4Function.C4FunctionScope;
 import net.arctics.clonk.parser.C4Variable.C4VariableScope;
-import net.arctics.clonk.ui.editors.ClonkContentOutlineLabelAndContentProvider;
+import net.arctics.clonk.ui.editors.c4script.ClonkContentOutlineLabelAndContentProvider;
+
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;

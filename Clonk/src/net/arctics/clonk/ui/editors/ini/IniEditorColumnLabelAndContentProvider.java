@@ -1,5 +1,6 @@
 package net.arctics.clonk.ui.editors.ini;
 
+import net.arctics.clonk.parser.inireader.ComplexIniEntry;
 import net.arctics.clonk.parser.inireader.IniData.IniConfiguration;
 import net.arctics.clonk.util.IHasChildren;
 import net.arctics.clonk.util.IHasKeyAndValue;
@@ -31,6 +32,8 @@ public class IniEditorColumnLabelAndContentProvider implements ITableLabelProvid
 			return keyVal.getKey();
 		case 1:
 			return keyVal.getValue();
+		case 2:
+			return element instanceof ComplexIniEntry ? ((ComplexIniEntry)element).getEntryConfig().getDescription() : "";
 		}
 		return "Unknown";
 	}

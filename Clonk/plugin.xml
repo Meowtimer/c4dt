@@ -7,8 +7,8 @@
       <editor
             name="C4Script Editor"
             icon="icons/c4scriptIcon.png"
-            contributorClass="net.arctics.clonk.ui.editors.EditorActionContributor"
-            class="net.arctics.clonk.ui.editors.C4ScriptEditor"
+            contributorClass="net.arctics.clonk.ui.editors.c4script.EditorActionContributor"
+            class="net.arctics.clonk.ui.editors.c4script.C4ScriptEditor"
             id="clonk.editors.C4ScriptEditor"
             filenames="*.c">
             <contentTypeBinding contentTypeId="net.arctics.clonk.c4script">
@@ -18,7 +18,7 @@
       <editor
             name="C4DefCore Editor"
             icon="icons/c4scriptIcon.png"
-            contributorClass="net.arctics.clonk.ui.editors.EditorActionContributor"
+            contributorClass="net.arctics.clonk.ui.editors.c4script.EditorActionContributor"
             class="net.arctics.clonk.ui.editors.defcore.C4DefCoreEditor"
             id="clonk.editors.C4DefCoreEditor"
             filenames="DefCore.txt">
@@ -29,13 +29,25 @@
       <editor
             name="ActMap Editor"
             icon="icons/c4scriptIcon.png"
-            contributorClass="net.arctics.clonk.ui.editors.EditorActionContributor"
+            contributorClass="net.arctics.clonk.ui.editors.c4script.EditorActionContributor"
             class="net.arctics.clonk.ui.editors.actmap.ActMapEditor"
             id="clonk.editors.ActMapEditor"
             filenames="ActMap.txt">
-            <contentTypeBinding contentTypeId="net.arctics.clonk.actmap">
+            <contentTypeBinding contentTypeId="net.arctics.clonk.c4actmap">
             </contentTypeBinding>
       </editor>
+      
+      <editor
+            name="Scenario Editor"
+            icon="icons/c4scriptIcon.png"
+            contributorClass="net.arctics.clonk.ui.editors.c4script.EditorActionContributor"
+            class="net.arctics.clonk.ui.editors.scenario.ScenarioEditor"
+            id="clonk.editors.ScenarioEditor"
+            filenames="Scenario.txt">
+            <contentTypeBinding contentTypeId="net.arctics.clonk.c4scenariocfg">
+            </contentTypeBinding>
+      </editor>
+      
    </extension>
    
 <extension 
@@ -69,15 +81,15 @@
  <content-type
        base-type="net.arctics.clonk.c4files"
        file-names="ActMap.txt"
-       id="net.arctics.clonk.actmap"
-       name="C4Object action definitions"
+       id="net.arctics.clonk.c4actmap"
+       name="C4Object actions"
        priority="high">
  </content-type>
  <content-type
        base-type="net.arctics.clonk.c4files"
-       file-names="ActMap.txt"
-       id="net.arctics.clonk.c4actmap"
-       name="C4Object actions"
+       file-names="Scenario.txt"
+       id="net.arctics.clonk.c4scenariocfg"
+       name="Scenario configuration"
        priority="high">
  </content-type>
 </extension>
@@ -314,7 +326,7 @@
          <action
                id="net.arctics.clonk.ui.actions.OpenObject"
                toolbarPath="org.eclipse.search.searchActionSet/Search"
-               class="net.arctics.clonk.ui.editors.actions.OpenObject"
+               class="net.arctics.clonk.ui.editors.actions.c4script.OpenObject"
                definitionId="org.eclipse.jdt.ui.navigate.open.type"
                icon="$nl$/icons/Clonk_C4.png"
                label="Open Object"

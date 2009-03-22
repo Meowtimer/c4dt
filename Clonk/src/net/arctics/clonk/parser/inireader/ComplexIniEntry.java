@@ -1,8 +1,10 @@
 package net.arctics.clonk.parser.inireader;
 
 import net.arctics.clonk.parser.inireader.IniData.IniDataEntry;
+import net.arctics.clonk.ui.editors.ini.IntegerArrayItem;
+import net.arctics.clonk.util.IHasChildren;
 
-public class ComplexIniEntry extends IniEntry  {
+public class ComplexIniEntry extends IniEntry implements IHasChildren  {
 	private Object extendedValue;
 	private IniDataEntry entryConfig;
 
@@ -33,6 +35,36 @@ public class ComplexIniEntry extends IniEntry  {
 	@Override
 	public String getValue() {
 		return extendedValue.toString();
+	}
+	
+	@Override
+	public void setValue(String value) {
+		if (extendedValue instanceof IEntryCreateable) {
+			try {
+				((IEntryCreateable)extendedValue).setInput(value);
+			} catch (IniParserException e) {
+				e.printStackTrace();
+			}
+		} else {
+			if (extendedValue instanceof String)
+				extendedValue = value;
+		}
+	}
+
+	public Object[] getChildren() {
+		if (extendedValue instanceof IntegerArray) {
+			IntegerArray integers = (IntegerArray) extendedValue;
+			Object[] result = new Object[integers.getIntegers().length];
+			for (int i = 0; i < result.length; i++)
+				result[i] = new IntegerArrayItem(integers, i);
+			return result;
+		}
+		return null;
+	}
+
+	public boolean hasChildren() {
+		return
+			extendedValue instanceof IntegerArray;
 	}
 	
 }

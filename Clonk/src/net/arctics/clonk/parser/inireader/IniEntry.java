@@ -32,4 +32,8 @@ public class IniEntry implements IHasKeyAndValue<String, String> {
 	public String toString() {
 		return getKey() + "=" + getValue();
 	}
+
+	public void setValue(String value) {
+		this.value = value;
+	}
 }

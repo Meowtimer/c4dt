@@ -16,7 +16,7 @@ import net.arctics.clonk.parser.C4ScriptParser.ParsingException;
 import net.arctics.clonk.parser.actmap.ActMapParser;
 import net.arctics.clonk.parser.defcore.DefCoreParser;
 import net.arctics.clonk.preferences.PreferenceConstants;
-import net.arctics.clonk.ui.editors.C4ScriptEditor;
+import net.arctics.clonk.ui.editors.c4script.C4ScriptEditor;
 import net.arctics.clonk.util.Utilities;
 
 import org.eclipse.core.resources.IContainer;

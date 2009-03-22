@@ -1,7 +1,7 @@
 package net.arctics.clonk.ui.editors.defcore;
 
 import net.arctics.clonk.parser.defcore.DefCoreParser;
-import net.arctics.clonk.ui.editors.ColorManager;
+import net.arctics.clonk.ui.editors.c4script.ColorManager;
 import net.arctics.clonk.ui.editors.ini.IniEditor;
 import net.arctics.clonk.ui.editors.ini.IniSourceViewerConfiguration;
 import net.arctics.clonk.util.Utilities;

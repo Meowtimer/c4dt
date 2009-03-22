@@ -14,7 +14,7 @@ import net.arctics.clonk.parser.ClonkIndex;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.resource.c4group.C4Group;
 import net.arctics.clonk.resource.c4group.C4Group.C4GroupType;
-import net.arctics.clonk.ui.editors.ScriptWithStorageEditorInput;
+import net.arctics.clonk.ui.editors.c4script.ScriptWithStorageEditorInput;
 
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;

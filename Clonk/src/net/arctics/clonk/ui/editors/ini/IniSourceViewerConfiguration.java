@@ -1,8 +1,8 @@
 package net.arctics.clonk.ui.editors.ini;
 
 
-import net.arctics.clonk.ui.editors.ColorManager;
-import net.arctics.clonk.ui.editors.IClonkColorConstants;
+import net.arctics.clonk.ui.editors.c4script.ColorManager;
+import net.arctics.clonk.ui.editors.c4script.IClonkColorConstants;
 
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.TextAttribute;
