@@ -39,7 +39,6 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IEditorSite;
-import org.eclipse.ui.IPageLayout;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.PartInitException;
@@ -48,13 +47,12 @@ import org.eclipse.ui.editors.text.TextEditor;
 import org.eclipse.ui.ide.IDE;
 import org.eclipse.ui.part.IShowInSource;
 import org.eclipse.ui.part.IShowInTargetList;
-import org.eclipse.ui.part.ShowInContext;
 import org.eclipse.ui.texteditor.ContentAssistAction;
 import org.eclipse.ui.texteditor.ITextEditorActionDefinitionIds;
 import org.eclipse.ui.texteditor.SourceViewerDecorationSupport;
 import org.eclipse.ui.views.contentoutline.IContentOutlinePage;
 
-public class C4ScriptEditor extends TextEditor implements IShowInSource, IShowInTargetList {
+public class C4ScriptEditor extends TextEditor {
 
 	private ColorManager colorManager;
 	private ClonkContentOutlinePage outlinePage;
@@ -62,6 +60,7 @@ public class C4ScriptEditor extends TextEditor implements IShowInSource, IShowIn
 	private static final String ENABLE_BRACKET_HIGHLIGHT = ClonkCore.PLUGIN_ID + ".enableBracketHighlighting";
 	private static final String BRACKET_HIGHLIGHT_COLOR = ClonkCore.PLUGIN_ID + ".bracketHighlightColor";
 	private DefaultCharacterPairMatcher fBracketMatcher = new DefaultCharacterPairMatcher(new char[] { '{', '}', '(', ')' });
+	private ShowInAdapter showInAdapter;
 	
 	public C4ScriptEditor() {
 		super();
@@ -114,8 +113,10 @@ public class C4ScriptEditor extends TextEditor implements IShowInSource, IShowIn
 		if (IContentOutlinePage.class.equals(adapter)) {
 			return getOutlinePage();
 		}
-		if (IShowInSource.class.equals(adapter)) {
-			return this;
+		if (IShowInSource.class.equals(adapter) || IShowInTargetList.class.equals(adapter)) {
+			if (showInAdapter == null)
+				showInAdapter = new ShowInAdapter(this);
+			return showInAdapter;
 		}
 		return super.getAdapter(adapter);
 	}
@@ -279,31 +280,6 @@ public class C4ScriptEditor extends TextEditor implements IShowInSource, IShowIn
 			}
 		}
 		return null;
-	}
-
-	public ShowInContext getShowInContext() {
-		return new ShowInContext(null, null) {
-			@Override
-			public Object getInput() {
-				return getEditorInput();
-			}
-			@Override
-			public ISelection getSelection() {
-				return getSelectionProvider().getSelection();
-			}
-		};
-//		IEditorInput input = getEditorInput();
-//		if (input instanceof FileEditorInput) {
-//			return new ShowInContext(((FileEditorInput)input).getFile(), null);
-//		}
-//		return null;
-	}
-
-	public String[] getShowInTargetIds() {
-		return new String[] {
-			IPageLayout.ID_RES_NAV,
-			"org.eclipse.ui.navigator.ProjectExplorer" // FIXME: constant for this?
-		};
 	}
 
 }

@@ -27,7 +27,7 @@ public class DefCoreParser extends IniReader {
 	}
 	
 	@Override
-	protected IniConfiguration getConfiguration() {
+	public IniConfiguration getConfiguration() {
 		return configuration;
 	}
 

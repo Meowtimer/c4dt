@@ -1,48 +1,31 @@
 package net.arctics.clonk.ui.editors.defcore;
 
-import net.arctics.clonk.ClonkCore;
-import net.arctics.clonk.parser.C4Object;
+import net.arctics.clonk.parser.defcore.DefCoreParser;
 import net.arctics.clonk.ui.editors.ColorManager;
-import net.arctics.clonk.ui.editors.ini.IniDocumentProvider;
+import net.arctics.clonk.ui.editors.ini.IniEditor;
 import net.arctics.clonk.ui.editors.ini.IniSourceViewerConfiguration;
 import net.arctics.clonk.util.Utilities;
 
-import org.eclipse.core.resources.IFile;
-import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.swt.SWT;
-import org.eclipse.swt.custom.CTabFolder;
-import org.eclipse.swt.layout.GridData;
-import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.Composite;
-import org.eclipse.ui.IEditorInput;
-import org.eclipse.ui.IEditorSite;
-import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.editors.text.TextEditor;
-import org.eclipse.ui.forms.IManagedForm;
-import org.eclipse.ui.forms.SectionPart;
 import org.eclipse.ui.forms.editor.FormEditor;
-import org.eclipse.ui.forms.editor.FormPage;
-import org.eclipse.ui.forms.widgets.FormToolkit;
-import org.eclipse.ui.forms.widgets.ScrolledForm;
-import org.eclipse.ui.forms.widgets.Section;
 import org.eclipse.ui.texteditor.IDocumentProvider;
 
-public class C4DefCoreEditor extends FormEditor {
+public class C4DefCoreEditor extends IniEditor {
 
 	private IDocumentProvider documentProvider;
 	
 	public C4DefCoreEditor() {
 	}
 
-	public static class DefCoreSectionPage extends FormPage {
+	public static class DefCoreSectionPage extends IniSectionPage {
 		
 		private IDocumentProvider documentProvider;
 		
 		public DefCoreSectionPage(FormEditor editor, String id, String title, IDocumentProvider docProvider) {
-			super(editor, id, title);
-			documentProvider = docProvider;
+			super(editor, id, title, docProvider);
+			iniReader = new DefCoreParser(Utilities.getEditingFile(getEditor()));
 		}
 
 		@Override
@@ -54,50 +37,7 @@ public class C4DefCoreEditor extends FormEditor {
 				e.printStackTrace();
 			}
 		}
-
-		protected void createFormContent(IManagedForm managedForm) {
-			super.createFormContent(managedForm);
-
-			FormToolkit toolkit = managedForm.getToolkit();
-			ScrolledForm form = managedForm.getForm();
-			toolkit.decorateFormHeading(form.getForm());
-			
-			form.setText("DefCore options");
-			IFile input = Utilities.getEditingFile(getEditor());
-			if (input != null) {
-				try { // XXX values should come from document - not from builder cache
-					//IContainer cont = input.getParent();
-					C4Object obj = (C4Object) input.getParent().getSessionProperty(ClonkCore.C4OBJECT_PROPERTY_ID);
-					if (obj != null) {
-						form.setText(obj.getName() + "(" + obj.getId().getName() + ") definition core");
-					}
-				} catch (CoreException e) {
-					e.printStackTrace();
-				}
-			}
-			
-			GridLayout layout = new GridLayout(1,false);
-			form.getBody().setLayout(layout);
-			form.getBody().setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-			
-			
-			SectionPart part = new SectionPart(form.getBody(),toolkit,Section.CLIENT_INDENT | Section.TITLE_BAR | Section.EXPANDED);
-			
-			part.getSection().setText("General options");
-			part.getSection().setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-			
-			Composite sectionComp = toolkit.createComposite(part.getSection());
-			sectionComp.setLayout(new GridLayout());
-			sectionComp.setLayoutData(new GridData(GridData.FILL_BOTH));
-			
-			part.getSection().setClient(sectionComp);
-			
-			toolkit.createLabel(sectionComp, "Title bar dingens halt");
-			
-			toolkit.createLabel(sectionComp, "blub",SWT.LEFT);
-//			lab.setText("flub");
-//			lab.setVisible(true);
-		}
+		
 	}
 
 	public static class RawSourcePage extends TextEditor {
@@ -129,51 +69,20 @@ public class C4DefCoreEditor extends FormEditor {
 			setPartName(title);
 		}
 	}
-	
+
 	@Override
-	public void init(IEditorSite site, IEditorInput input)
-			throws PartInitException {
-		super.init(site, input);
-		IResource res = (IResource) input.getAdapter(IResource.class);
-		if (res != null) {
-			setPartName(res.getParent().getName() + "/" + res.getName());
+	protected Object getPageConfiguration(PageAttribRequest request) {
+		switch (request) {
+		case RawSourcePageTitle:
+			return "DefCore.txt";
+		case SectionPageClass:
+			return DefCoreSectionPage.class;
+		case SectionPageId:
+			return "DefCore";
+		case SectionPageTitle:
+			return "[DefCore]";
 		}
-	}
-
-	@Override
-	protected void addPages() {
-		try {
-			documentProvider = new IniDocumentProvider();
-			addPage(new DefCoreSectionPage(this, "DefCore", "[DefCore]", documentProvider));
-			int index = addPage(new RawSourcePage(this, RawSourcePage.PAGE_ID,"DefCore.txt", documentProvider),this.getEditorInput());
-			// editors as pages are not able to handle tab title strings
-			// so here is a dirty trick:
-			if (getContainer() instanceof CTabFolder)
-				((CTabFolder)getContainer()).getItem(index).setText("DefCore.txt");
-		} catch (PartInitException e) {
-			e.printStackTrace();
-		}
-	}
-
-	@Override
-	public void doSave(IProgressMonitor monitor) {
-		try {
-			documentProvider.saveDocument(monitor, getEditorInput(), documentProvider.getDocument(getEditorInput()), true);
-		} catch (CoreException e) {
-			e.printStackTrace();
-		}
-	}
-
-	@Override
-	public void doSaveAs() {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public boolean isSaveAsAllowed() {
-		// TODO Auto-generated method stub
-		return false;
+		return null;
 	}
 
 }

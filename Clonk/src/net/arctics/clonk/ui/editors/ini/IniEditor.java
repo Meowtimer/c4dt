@@ -1,5 +1,6 @@
 package net.arctics.clonk.ui.editors.ini;
 
+import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -8,17 +9,47 @@ import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorSite;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.editors.text.TextEditor;
+import org.eclipse.ui.forms.IManagedForm;
 import org.eclipse.ui.forms.editor.FormEditor;
 import org.eclipse.ui.forms.editor.FormPage;
+import org.eclipse.ui.forms.widgets.FormToolkit;
+import org.eclipse.ui.forms.widgets.ScrolledForm;
+import org.eclipse.ui.part.IShowInSource;
+import org.eclipse.ui.part.IShowInTargetList;
 import org.eclipse.ui.texteditor.IDocumentProvider;
 
+import net.arctics.clonk.ClonkCore;
+import net.arctics.clonk.parser.C4Object;
 import net.arctics.clonk.ui.editors.ColorManager;
+import net.arctics.clonk.ui.editors.ShowInAdapter;
 import net.arctics.clonk.ui.editors.ini.IniDocumentProvider;
 import net.arctics.clonk.ui.editors.ini.IniSourceViewerConfiguration;
+import net.arctics.clonk.util.IHasKeyAndValue;
+import net.arctics.clonk.util.Utilities;
+
+import org.eclipse.jface.viewers.CellEditor;
+import org.eclipse.jface.viewers.TextCellEditor;
+import org.eclipse.jface.viewers.TreeViewer;
+import org.eclipse.jface.viewers.Viewer;
+import org.eclipse.jface.viewers.ViewerComparator;
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Layout;
+import org.eclipse.swt.widgets.Tree;
+import org.eclipse.swt.widgets.TreeColumn;
+import org.eclipse.ui.forms.SectionPart;
+import org.eclipse.ui.forms.widgets.Section;
+
+import net.arctics.clonk.parser.inireader.IniReader;
+import net.arctics.clonk.ui.editors.ini.IniEditor;
+import net.arctics.clonk.ui.editors.ini.IniEditorColumnLabelAndContentProvider;
 
 public abstract class IniEditor extends FormEditor {
 
 	private IDocumentProvider documentProvider;
+	private ShowInAdapter showInAdapter;
 	
 	public IniEditor() {
 	}
@@ -26,6 +57,7 @@ public abstract class IniEditor extends FormEditor {
 	public static class IniSectionPage extends FormPage {
 		
 		protected IDocumentProvider documentProvider;
+		protected IniReader iniReader;
 		
 		public IniSectionPage(FormEditor editor, String id, String title, IDocumentProvider docProvider) {
 			super(editor, id, title);
@@ -40,6 +72,86 @@ public abstract class IniEditor extends FormEditor {
 			} catch (CoreException e) {
 				e.printStackTrace();
 			}
+		}
+		
+		protected String subHeader() {
+			return "Contents";
+		}
+		
+		protected void createFormContent(IManagedForm managedForm) {
+			super.createFormContent(managedForm);
+
+			FormToolkit toolkit = managedForm.getToolkit();
+			ScrolledForm form = managedForm.getForm();
+			toolkit.decorateFormHeading(form.getForm());
+			
+			form.setText("ActMap options");
+			IFile input = Utilities.getEditingFile(getEditor());
+			if (input != null) {
+				try { // XXX values should come from document - not from builder cache
+					//IContainer cont = input.getParent();
+					C4Object obj = (C4Object) input.getParent().getSessionProperty(ClonkCore.C4OBJECT_PROPERTY_ID);
+					if (obj != null) {
+						form.setText(obj.getName() + "(" + obj.getId().getName() + ")");
+					}
+				} catch (CoreException e) {
+					e.printStackTrace();
+				}
+			}
+
+			Layout layout = new GridLayout(1, true);
+			form.getBody().setLayout(layout);
+			form.getBody().setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+
+			iniReader.parse();
+
+			SectionPart part = new SectionPart(form.getBody(), toolkit,Section.CLIENT_INDENT | Section.TITLE_BAR | Section.EXPANDED);
+			part.getSection().setText(subHeader());
+			part.getSection().setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+
+			Composite sectionComp = toolkit.createComposite(part.getSection());
+			sectionComp.setLayout(new GridLayout(1, false));
+			sectionComp.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+
+			part.getSection().setClient(sectionComp);
+
+			Tree actionsTree = toolkit.createTree(sectionComp, SWT.BOTTOM | SWT.FULL_SELECTION);
+			actionsTree.setHeaderVisible(true);
+			actionsTree.setLinesVisible(true);
+			actionsTree.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+			
+			TreeColumn keyCol = new TreeColumn(actionsTree, SWT.CENTER, 0);
+			keyCol.setText("Key");
+			keyCol.setWidth(200);
+			
+			TreeColumn valCol = new TreeColumn(actionsTree, SWT.LEFT, 1);
+			valCol.setText("Value");
+			valCol.setWidth(200);
+			
+//			TreeColumn descCol = new TreeColumn(actionsTree, SWT.LEFT, 2);
+//			descCol.setText("Description");
+//			descCol.setWidth(200);
+			
+			TreeViewer actions = new TreeViewer(actionsTree);
+			actions.setColumnProperties(new String[] {"key", "value"});
+			IniEditorColumnLabelAndContentProvider provider = new IniEditorColumnLabelAndContentProvider(iniReader.getConfiguration());
+			actions.setLabelProvider(provider);
+			actions.setContentProvider(provider);
+			actions.setInput(iniReader);
+			actions.setCellEditors(new CellEditor[] {
+					null,
+					new TextCellEditor(actionsTree)
+			});
+			actions.setComparator(new ViewerComparator() {
+				@SuppressWarnings("unchecked")
+				@Override
+				public int compare(Viewer viewer, Object e1, Object e2) {
+					IHasKeyAndValue<String, String> a = (IHasKeyAndValue<String, String>) e1;
+					IHasKeyAndValue<String, String> b = (IHasKeyAndValue<String, String>) e2;
+					return a.getKey().compareToIgnoreCase(b.getKey());
+				}
+			});
+
 		}
 
 	}
@@ -127,6 +239,17 @@ public abstract class IniEditor extends FormEditor {
 	public boolean isSaveAsAllowed() {
 		// TODO Auto-generated method stub
 		return false;
+	}
+	
+	@SuppressWarnings("unchecked")
+	@Override
+	public Object getAdapter(Class adapter) {
+		if (adapter.equals(IShowInSource.class) || adapter.equals(IShowInTargetList.class)) {
+			if (showInAdapter == null)
+				showInAdapter = new ShowInAdapter(this);
+			return showInAdapter;
+		}
+		return super.getAdapter(adapter);
 	}
 
 }

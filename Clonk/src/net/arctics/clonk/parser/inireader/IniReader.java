@@ -12,13 +12,14 @@ import net.arctics.clonk.parser.BufferedScanner;
 import net.arctics.clonk.parser.inireader.IniData.IniConfiguration;
 import net.arctics.clonk.parser.inireader.IniData.IniDataEntry;
 import net.arctics.clonk.parser.inireader.IniData.IniDataSection;
+import net.arctics.clonk.util.IHasChildren;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 
-public class IniReader implements Iterable<IniSection> {
+public class IniReader implements Iterable<IniSection>, IHasChildren {
 
 	protected BufferedScanner reader;
 	protected IFile iniFile = null;
@@ -225,7 +226,7 @@ public class IniReader implements Iterable<IniSection> {
 		}
 	}
 	
-	protected IniConfiguration getConfiguration() {
+	public IniConfiguration getConfiguration() {
 		return null;
 	}
 
@@ -244,6 +245,14 @@ public class IniReader implements Iterable<IniSection> {
 
 	public IniSection[] getSections() {
 		return sectionsList.toArray(new IniSection[sectionsList.size()]);
+	}
+
+	public Object[] getChildren() {
+		return getSections();
+	}
+
+	public boolean hasChildren() {
+		return !sections.isEmpty();
 	}
 	
 //	/**

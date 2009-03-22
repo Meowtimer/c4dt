@@ -5,10 +5,10 @@ package net.arctics.clonk.parser.inireader;
 
 import java.util.Map;
 
+import net.arctics.clonk.util.IHasChildren;
 import net.arctics.clonk.util.IHasKeyAndValue;
 
-
-public class IniSection implements IHasKeyAndValue<String, String> {
+public class IniSection implements IHasKeyAndValue<String, String>, IHasChildren {
 	private int startPos;
 	private String name;
 	private Map<String, IniEntry> entries;
@@ -44,6 +44,14 @@ public class IniSection implements IHasKeyAndValue<String, String> {
 
 	public String getValue() {
 		return "";
+	}
+
+	public Object[] getChildren() {
+		return getEntries().values().toArray();
+	}
+
+	public boolean hasChildren() {
+		return !entries.isEmpty();
 	} 
 	
 }

@@ -38,5 +38,10 @@ public class SignedInteger implements IEntryCreateable {
 			throw exp;
 		}
 	}
+	
+	@Override
+	public String toString() {
+		return String.valueOf(x);
+	}
 
 }

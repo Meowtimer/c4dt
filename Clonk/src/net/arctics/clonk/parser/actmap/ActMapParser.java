@@ -13,7 +13,7 @@ public class ActMapParser extends IniReader {
 	private final IniConfiguration configuration = ClonkCore.getDefault().INI_CONFIGURATIONS.getConfigurationFor("ActMap.txt");
 	
 	@Override
-	protected IniConfiguration getConfiguration() {
+	public IniConfiguration getConfiguration() {
 		return configuration;
 	}
 	
