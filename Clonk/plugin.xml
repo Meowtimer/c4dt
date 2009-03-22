@@ -18,7 +18,6 @@
       <editor
             name="C4DefCore Editor"
             icon="icons/c4scriptIcon.png"
-            contributorClass="net.arctics.clonk.ui.editors.c4script.EditorActionContributor"
             class="net.arctics.clonk.ui.editors.defcore.C4DefCoreEditor"
             id="clonk.editors.C4DefCoreEditor"
             filenames="DefCore.txt">
@@ -29,7 +28,6 @@
       <editor
             name="ActMap Editor"
             icon="icons/c4scriptIcon.png"
-            contributorClass="net.arctics.clonk.ui.editors.c4script.EditorActionContributor"
             class="net.arctics.clonk.ui.editors.actmap.ActMapEditor"
             id="clonk.editors.ActMapEditor"
             filenames="ActMap.txt">
@@ -40,7 +38,6 @@
       <editor
             name="Scenario Editor"
             icon="icons/c4scriptIcon.png"
-            contributorClass="net.arctics.clonk.ui.editors.c4script.EditorActionContributor"
             class="net.arctics.clonk.ui.editors.scenario.ScenarioEditor"
             id="clonk.editors.ScenarioEditor"
             filenames="Scenario.txt">

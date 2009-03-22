@@ -52,6 +52,10 @@ public class IniSection implements IHasKeyAndValue<String, String>, IHasChildren
 
 	public boolean hasChildren() {
 		return !entries.isEmpty();
+	}
+
+	public void setValue(String value) {
+		// FIXME?
 	} 
 	
 }

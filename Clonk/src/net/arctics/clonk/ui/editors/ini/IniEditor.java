@@ -181,8 +181,11 @@ public abstract class IniEditor extends FormEditor {
 				protected void setValue(Object element, Object value) {
 					if (element instanceof ComplexIniEntry) {
 						ComplexIniEntry complex = (ComplexIniEntry) element;
-						if (complex.getExtendedValue() instanceof Boolean)
+						if (complex.getExtendedValue() instanceof Boolean) {
 							((Boolean)complex.getExtendedValue()).setNumber(value.equals(true) ? 1 : 0);
+							this.getViewer().refresh();
+							return;
+						}
 					}
 					((IHasKeyAndValue<String, String>)element).setValue(value.toString());
 					this.getViewer().refresh();
