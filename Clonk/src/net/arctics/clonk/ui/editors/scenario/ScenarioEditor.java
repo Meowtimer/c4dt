@@ -5,15 +5,13 @@ import org.eclipse.ui.texteditor.IDocumentProvider;
 
 import net.arctics.clonk.parser.scenario.ScenarioParser;
 import net.arctics.clonk.ui.editors.ini.IniEditor;
-import net.arctics.clonk.util.Utilities;
 
 public class ScenarioEditor extends IniEditor {
 
 	public class ScenarioSectionPage extends IniSectionPage {
 
 		public ScenarioSectionPage(FormEditor editor, String id, String title, IDocumentProvider docProvider) {
-			super(editor, id, title, docProvider);
-			iniReader = new ScenarioParser(Utilities.getEditingFile(getEditor()));
+			super(editor, id, title, docProvider, ScenarioParser.class);
 		}
 		
 	}

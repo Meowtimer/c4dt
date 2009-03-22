@@ -5,7 +5,6 @@ import org.eclipse.ui.texteditor.IDocumentProvider;
 
 import net.arctics.clonk.parser.actmap.ActMapParser;
 import net.arctics.clonk.ui.editors.ini.IniEditor;
-import net.arctics.clonk.util.Utilities;
 
 public class ActMapEditor extends IniEditor {
 	
@@ -15,8 +14,7 @@ public class ActMapEditor extends IniEditor {
 	public static class ActMapSectionPage extends IniSectionPage {
 		
 		public ActMapSectionPage(FormEditor editor, String id, String title, IDocumentProvider docProvider) {
-			super(editor, id, title, docProvider);
-			iniReader = new ActMapParser(Utilities.getEditingFile(getEditor()));
+			super(editor, id, title, docProvider, ActMapParser.class);
 		}
 
 	}

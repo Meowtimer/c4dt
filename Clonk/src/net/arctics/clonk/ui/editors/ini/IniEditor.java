@@ -1,12 +1,16 @@
 package net.arctics.clonk.ui.editors.ini;
 
+import java.io.InputStream;
+
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.IStorage;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.swt.custom.CTabFolder;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorSite;
+import org.eclipse.ui.IFileEditorInput;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.editors.text.TextEditor;
 import org.eclipse.ui.forms.IManagedForm;
@@ -27,6 +31,8 @@ import net.arctics.clonk.ui.editors.ini.IniSourceViewerConfiguration;
 import net.arctics.clonk.util.IHasKeyAndValue;
 import net.arctics.clonk.util.Utilities;
 
+import org.eclipse.jface.dialogs.IPageChangedListener;
+import org.eclipse.jface.dialogs.PageChangedEvent;
 import org.eclipse.jface.viewers.CellEditor;
 import org.eclipse.jface.viewers.CheckboxCellEditor;
 import org.eclipse.jface.viewers.EditingSupport;
@@ -54,6 +60,8 @@ public abstract class IniEditor extends FormEditor {
 
 	private IDocumentProvider documentProvider;
 	private ShowInAdapter showInAdapter;
+	private RawSourcePage sourcePage;
+	private IniSectionPage sectionPage;
 	
 	public IniEditor() {
 	}
@@ -62,10 +70,38 @@ public abstract class IniEditor extends FormEditor {
 		
 		protected IDocumentProvider documentProvider;
 		protected IniReader iniReader;
+		protected Class<? extends IniReader> iniReaderClass;
+		protected TreeViewer treeViewer;
 		
-		public IniSectionPage(FormEditor editor, String id, String title, IDocumentProvider docProvider) {
+		public <T extends IniReader> T createIniReader(Class<T> cls, Object arg) {
+			iniReaderClass = cls;
+			T result;
+			try {
+				Class<?> argClass = arg instanceof IFile ? IFile.class : InputStream.class;
+				result = cls.getConstructor(argClass).newInstance(arg);
+			} catch (Exception e) {
+				e.printStackTrace();
+				return null;
+			}
+			result.parse();
+			iniReader = result;
+			return result;
+		}
+		
+		public void updateIniReader(Object arg) {
+			if (iniReaderClass != null) {
+				createIniReader(iniReaderClass, arg);
+				if (treeViewer != null)
+					treeViewer.setInput(iniReader);
+			}
+		}
+		
+		public IniSectionPage(FormEditor editor, String id, String title, IDocumentProvider docProvider, Class<? extends IniReader> iniReaderClass) {
 			super(editor, id, title);
+			this.iniReaderClass = iniReaderClass;
 			documentProvider = docProvider;
+			if (iniReaderClass != null)
+				updateIniReader(Utilities.getEditingFile(getEditor()));
 		}
 
 		@Override
@@ -89,7 +125,6 @@ public abstract class IniEditor extends FormEditor {
 			ScrolledForm form = managedForm.getForm();
 			toolkit.decorateFormHeading(form.getForm());
 			
-			form.setText("ActMap options");
 			IFile input = Utilities.getEditingFile(getEditor());
 			if (input != null) {
 				try { // XXX values should come from document - not from builder cache
@@ -97,6 +132,9 @@ public abstract class IniEditor extends FormEditor {
 					C4Object obj = (C4Object) input.getParent().getSessionProperty(ClonkCore.C4OBJECT_PROPERTY_ID);
 					if (obj != null) {
 						form.setText(obj.getName() + "(" + obj.getId().getName() + ")");
+					}
+					else {
+						form.setText("Options");
 					}
 				} catch (CoreException e) {
 					e.printStackTrace();
@@ -106,8 +144,6 @@ public abstract class IniEditor extends FormEditor {
 			Layout layout = new GridLayout(1, true);
 			form.getBody().setLayout(layout);
 			form.getBody().setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-
-			iniReader.parse();
 
 			SectionPart part = new SectionPart(form.getBody(), toolkit,Section.CLIENT_INDENT | Section.TITLE_BAR | Section.EXPANDED);
 			part.getSection().setText(subHeader());
@@ -119,6 +155,11 @@ public abstract class IniEditor extends FormEditor {
 
 			part.getSection().setClient(sectionComp);
 
+			createTreeViewer(toolkit, sectionComp);
+
+		}
+
+		private void createTreeViewer(FormToolkit toolkit, Composite sectionComp) {
 			Tree tree = toolkit.createTree(sectionComp, SWT.BOTTOM | SWT.FULL_SELECTION);
 			tree.setHeaderVisible(true);
 			tree.setLinesVisible(true);
@@ -136,7 +177,7 @@ public abstract class IniEditor extends FormEditor {
 //			descCol.setText("Description");
 //			descCol.setWidth(200);
 			
-			TreeViewer treeViewer = new TreeViewer(tree);
+			treeViewer = new TreeViewer(tree);
 			
 			TreeViewerColumn keyCol = new TreeViewerColumn(treeViewer, SWT.CENTER, 0);
 			keyCol.getColumn().setText("Key");
@@ -213,7 +254,6 @@ public abstract class IniEditor extends FormEditor {
 			IniEditorColumnLabelAndContentProvider provider = new IniEditorColumnLabelAndContentProvider(iniReader.getConfiguration());
 			treeViewer.setLabelProvider(provider);
 			treeViewer.setContentProvider(provider);
-			treeViewer.setInput(iniReader);
 			treeViewer.setComparator(new ViewerComparator() {
 				@SuppressWarnings("unchecked")
 				@Override
@@ -223,7 +263,8 @@ public abstract class IniEditor extends FormEditor {
 					return a.getKey().compareToIgnoreCase(b.getKey());
 				}
 			});
-
+			
+			treeViewer.setInput(iniReader);
 		}
 
 	}
@@ -278,15 +319,32 @@ public abstract class IniEditor extends FormEditor {
 	protected void addPages() {
 		try {
 			documentProvider = new IniDocumentProvider();
-			Class<IniSectionPage> iniSectionPage = (Class<IniSectionPage>)getPageConfiguration(PageAttribRequest.SectionPageClass);
-			addPage(iniSectionPage.getConstructor(FormEditor.class, String.class, String.class, IDocumentProvider.class).newInstance(
-				this, getPageConfiguration(PageAttribRequest.SectionPageId), getPageConfiguration(PageAttribRequest.SectionPageTitle), documentProvider)
-			);
-			int index = addPage(new RawSourcePage(this, RawSourcePage.PAGE_ID, (String) getPageConfiguration(PageAttribRequest.RawSourcePageTitle), documentProvider), this.getEditorInput());
+			Class<IniSectionPage> iniSectionPageClass = (Class<IniSectionPage>)getPageConfiguration(PageAttribRequest.SectionPageClass);
+			sectionPage = iniSectionPageClass.getConstructor(FormEditor.class, String.class, String.class, IDocumentProvider.class).newInstance(
+					this, getPageConfiguration(PageAttribRequest.SectionPageId), getPageConfiguration(PageAttribRequest.SectionPageTitle), documentProvider);
+			addPage(sectionPage);
+			sourcePage = new RawSourcePage(this, RawSourcePage.PAGE_ID, (String) getPageConfiguration(PageAttribRequest.RawSourcePageTitle), documentProvider);
+			int index = addPage(sourcePage, this.getEditorInput());
 			// editors as pages are not able to handle tab title strings
 			// so here is a dirty trick:
 			if (getContainer() instanceof CTabFolder)
 				((CTabFolder)getContainer()).getItem(index).setText((String)getPageConfiguration(PageAttribRequest.RawSourcePageTitle));
+			addPageChangedListener(new IPageChangedListener() {
+
+				public void pageChanged(PageChangedEvent event) {
+					try {
+						if (event.getSelectedPage() == sectionPage) {
+							IEditorInput input = sectionPage.getEditorInput();
+							System.out.println(input);
+							IStorage sourceStorage = ((IFileEditorInput)sourcePage.getEditorInput()).getStorage();
+							sectionPage.updateIniReader(sourceStorage.getContents());
+						}
+					} catch (CoreException e) {
+						e.printStackTrace();
+					}
+				}
+				
+			});
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

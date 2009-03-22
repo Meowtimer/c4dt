@@ -1,5 +1,7 @@
 package net.arctics.clonk.parser.scenario;
 
+import java.io.InputStream;
+
 import org.eclipse.core.resources.IFile;
 
 import net.arctics.clonk.ClonkCore;
@@ -12,7 +14,10 @@ public class ScenarioParser extends IniReader {
 	
 	public ScenarioParser(IFile file) {
 		super(file);
-		// TODO Auto-generated constructor stub
+	}
+	
+	public ScenarioParser(InputStream stream) {
+		super(stream);
 	}
 	
 	@Override

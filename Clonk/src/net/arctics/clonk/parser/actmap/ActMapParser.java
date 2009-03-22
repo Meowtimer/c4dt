@@ -1,5 +1,7 @@
 package net.arctics.clonk.parser.actmap;
 
+import java.io.InputStream;
+
 import org.eclipse.core.resources.IFile;
 
 import net.arctics.clonk.ClonkCore;
@@ -19,6 +21,10 @@ public class ActMapParser extends IniReader {
 	
 	public ActMapParser(IFile file) {
 		super(file);
+	}
+	
+	public ActMapParser(InputStream stream) {
+		super(stream);
 	}
 	
 //	public static void printActMapEntryList() throws ParserConfigurationException, MalformedURLException, SAXException, IOException {

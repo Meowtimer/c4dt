@@ -57,8 +57,8 @@ public class ScriptWithStorageEditorInput implements IEditorInput, IPathEditorIn
 			return null;
 		}
 	}
+	
 	@Override
-
 	public boolean equals(Object obj) {
 		return (obj instanceof ScriptWithStorageEditorInput && ((ScriptWithStorageEditorInput)obj).script == script);
 	}
