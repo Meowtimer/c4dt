@@ -20,7 +20,7 @@ public class ActMapEditor extends IniEditor {
 	}
 
 	@Override
-	protected Object getPageConfiguration(PageAttribRequest request) {
+	public Object getPageConfiguration(PageAttribRequest request) {
 		switch (request) {
 		case RawSourcePageTitle:
 			return "ActMap.txt";

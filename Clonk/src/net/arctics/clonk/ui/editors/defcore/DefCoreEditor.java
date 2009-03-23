@@ -5,11 +5,11 @@ import net.arctics.clonk.ui.editors.ini.IniEditor;
 import org.eclipse.ui.forms.editor.FormEditor;
 import org.eclipse.ui.texteditor.IDocumentProvider;
 
-public class C4DefCoreEditor extends IniEditor {
+public class DefCoreEditor extends IniEditor {
 
 	private IDocumentProvider documentProvider;
 	
-	public C4DefCoreEditor() {
+	public DefCoreEditor() {
 	}
 
 	public static class DefCoreSectionPage extends IniSectionPage {
@@ -23,7 +23,7 @@ public class C4DefCoreEditor extends IniEditor {
 	}
 
 	@Override
-	protected Object getPageConfiguration(PageAttribRequest request) {
+	public Object getPageConfiguration(PageAttribRequest request) {
 		switch (request) {
 		case RawSourcePageTitle:
 			return "DefCore.txt";

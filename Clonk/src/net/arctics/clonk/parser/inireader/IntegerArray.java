@@ -1,9 +1,12 @@
 package net.arctics.clonk.parser.inireader;
 
 
+import net.arctics.clonk.ui.editors.ini.IntegerArrayItem;
+import net.arctics.clonk.util.IHasChildren;
+
 import org.eclipse.core.resources.IMarker;
 
-public class IntegerArray implements IEntryCreateable {
+public class IntegerArray implements IEntryCreateable, IHasChildren {
 
 	private int[] integers;
 	
@@ -74,5 +77,16 @@ public class IntegerArray implements IEntryCreateable {
 	public void set(int index, int value) {
 		integers[index] = value;
 	}
+
+	public Object[] getChildren() {
+		Object[] result = new Object[integers.length];
+		for (int i = 0; i < result.length; i++)
+			result[i] = new IntegerArrayItem(this, i);
+		return result;
+	}
+
+	public boolean hasChildren() {
+		return integers.length > 0;
+	}	
 
 }

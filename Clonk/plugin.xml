@@ -18,8 +18,8 @@
       <editor
             name="C4DefCore Editor"
             icon="icons/c4scriptIcon.png"
-            class="net.arctics.clonk.ui.editors.defcore.C4DefCoreEditor"
-            id="clonk.editors.C4DefCoreEditor"
+            class="net.arctics.clonk.ui.editors.defcore.DefCoreEditor"
+            id="clonk.editors.DefCoreEditor"
             filenames="DefCore.txt">
             <contentTypeBinding contentTypeId="net.arctics.clonk.c4defcore">
             </contentTypeBinding>

@@ -23,7 +23,10 @@ import org.eclipse.ui.part.IShowInTargetList;
 import org.eclipse.ui.texteditor.IDocumentProvider;
 
 import net.arctics.clonk.ClonkCore;
+import net.arctics.clonk.parser.C4Function;
 import net.arctics.clonk.parser.C4Object;
+import net.arctics.clonk.parser.C4ObjectIntern;
+import net.arctics.clonk.parser.C4ScriptBase;
 import net.arctics.clonk.ui.editors.c4script.ColorManager;
 import net.arctics.clonk.ui.editors.c4script.ShowInAdapter;
 import net.arctics.clonk.ui.editors.ini.IniDocumentProvider;
@@ -35,6 +38,7 @@ import org.eclipse.jface.dialogs.IPageChangedListener;
 import org.eclipse.jface.dialogs.PageChangedEvent;
 import org.eclipse.jface.viewers.CellEditor;
 import org.eclipse.jface.viewers.CheckboxCellEditor;
+import org.eclipse.jface.viewers.ComboBoxCellEditor;
 import org.eclipse.jface.viewers.EditingSupport;
 import org.eclipse.jface.viewers.TextCellEditor;
 import org.eclipse.jface.viewers.TreeViewer;
@@ -52,6 +56,8 @@ import org.eclipse.ui.forms.widgets.Section;
 
 import net.arctics.clonk.parser.inireader.Boolean;
 import net.arctics.clonk.parser.inireader.ComplexIniEntry;
+import net.arctics.clonk.parser.inireader.Function;
+import net.arctics.clonk.parser.inireader.IniParserException;
 import net.arctics.clonk.parser.inireader.IniReader;
 import net.arctics.clonk.ui.editors.ini.IniEditor;
 import net.arctics.clonk.ui.editors.ini.IniEditorColumnLabelAndContentProvider;
@@ -115,7 +121,7 @@ public abstract class IniEditor extends FormEditor {
 		}
 		
 		protected String subHeader() {
-			return "Contents";
+			return (String) ((IniEditor)this.getEditor()).getPageConfiguration(PageAttribRequest.SectionPageTitle);
 		}
 		
 		protected void createFormContent(IManagedForm managedForm) {
@@ -190,10 +196,27 @@ public abstract class IniEditor extends FormEditor {
 
 				private TextCellEditor textEditor;
 				private CheckboxCellEditor checkboxEditor;
+				private ComboBoxCellEditor comboboxEditor;
 				
 				@Override
 				protected boolean canEdit(Object element) {
 					return true;
+				}
+				
+				private C4ScriptBase relatedScript() {
+					IFileEditorInput f = (IFileEditorInput) getEditor().getEditorInput();
+					C4ScriptBase script = C4ObjectIntern.objectCorrespondingTo(f.getFile().getParent());
+					return script;
+				}
+				
+				private String[] getFunctions() {
+					C4ScriptBase script = relatedScript();
+					String[] result = new String[script.numFunctions()];
+					int i = 0;
+					for (C4Function f : script.functions()) {
+						result[i++] = f.getName();
+					}
+					return result;
 				}
 
 				@Override
@@ -202,6 +225,8 @@ public abstract class IniEditor extends FormEditor {
 						ComplexIniEntry complex = (ComplexIniEntry) element;
 						if (complex.getExtendedValue() instanceof Boolean)
 							return getCheckboxEditor();
+						if (complex.getExtendedValue() instanceof Function) 
+							return getComboboxEditor(getFunctions());
 					}
 					return getTextEditor();
 				}
@@ -213,6 +238,10 @@ public abstract class IniEditor extends FormEditor {
 						ComplexIniEntry complex = (ComplexIniEntry) element;
 						if (complex.getExtendedValue() instanceof Boolean)
 							return ((Boolean)complex.getExtendedValue()).getNumber() != 0 ? true : false;
+						if (complex.getExtendedValue() instanceof Function) {
+							String functionName = ((Function)complex.getExtendedValue()).toString();
+							return Utilities.indexOf(comboboxEditor.getItems(), functionName);
+						}
 					}
 					return ((IHasKeyAndValue<String, String>)element).getValue();
 				}
@@ -225,6 +254,15 @@ public abstract class IniEditor extends FormEditor {
 						if (complex.getExtendedValue() instanceof Boolean) {
 							((Boolean)complex.getExtendedValue()).setNumber(value.equals(true) ? 1 : 0);
 							this.getViewer().refresh();
+							return;
+						}
+						if (complex.getExtendedValue() instanceof Function) {
+							try {
+								((Function)complex.getExtendedValue()).setInput(comboboxEditor.getItems()[(Integer) comboboxEditor.getValue()]);
+								this.getViewer().refresh();
+							} catch (IniParserException e) {
+								e.printStackTrace();
+							}
 							return;
 						}
 					}
@@ -242,6 +280,14 @@ public abstract class IniEditor extends FormEditor {
 					if (checkboxEditor == null)
 						checkboxEditor = new CheckboxCellEditor((Composite)this.getViewer().getControl());
 					return checkboxEditor;
+				}
+
+				public ComboBoxCellEditor getComboboxEditor(String[] items) {
+					if (comboboxEditor == null)
+						comboboxEditor = new ComboBoxCellEditor((Composite)this.getViewer().getControl(), items);
+					else
+						comboboxEditor.setItems(items);
+					return comboboxEditor;
 				}
 				
 			});
@@ -312,7 +358,7 @@ public abstract class IniEditor extends FormEditor {
 		RawSourcePageTitle
 	}
 	
-	protected abstract Object getPageConfiguration(PageAttribRequest request);
+	public abstract Object getPageConfiguration(PageAttribRequest request);
 
 	@SuppressWarnings("unchecked")
 	@Override
@@ -334,8 +380,6 @@ public abstract class IniEditor extends FormEditor {
 				public void pageChanged(PageChangedEvent event) {
 					try {
 						if (event.getSelectedPage() == sectionPage) {
-							IEditorInput input = sectionPage.getEditorInput();
-							System.out.println(input);
 							IStorage sourceStorage = ((IFileEditorInput)sourcePage.getEditorInput()).getStorage();
 							sectionPage.updateIniReader(sourceStorage.getContents());
 						}

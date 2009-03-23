@@ -15,10 +15,10 @@
 			<entry name="FacetTargetStretch" class="net.arctics.clonk.parser.inireader.Boolean" desecription="0 oder 1. Bei 1 wird die Grafik vertikal bis zur oberen Kante des ActionTarget gestretcht."/>
 			<entry name="NextAction" class="java.lang.String" description="Nächste Aktivität nach Ablauf der Animationsphasen."/>
 			<entry name="NoOtherAction" class="net.arctics.clonk.parser.inireader.Boolean" desecription="0 oder 1. Bei 1 ist keine Aktivität nach dieser möglich (z.B. Tod, Zerstörung)."/>
-			<entry name="StartCall" class="java.lang.String" description="Objektscriptfunktion, die beim Start der Aktivität aufgerufen wird."/>
-			<entry name="EndCall" class="java.lang.String" description="Wird am Ende der Aktivität aufgerufen."/>
-			<entry name="PhaseCall" class="java.lang.String" description="Wird bei jedem Phasenschritt aufgerufen."/>
-			<entry name="AbortCall" class="java.lang.String" description="Wird aufgerufen, wenn die Aktivität vor ihrem Ende durch eine andere ersetzt wird."/>
+			<entry name="StartCall" class="net.arctics.clonk.parser.inireader.Function" description="Objektscriptfunktion, die beim Start der Aktivität aufgerufen wird."/>
+			<entry name="EndCall" class="net.arctics.clonk.parser.inireader.Function" description="Wird am Ende der Aktivität aufgerufen."/>
+			<entry name="PhaseCall" class="net.arctics.clonk.parser.inireader.Function" description="Wird bei jedem Phasenschritt aufgerufen."/>
+			<entry name="AbortCall" class="net.arctics.clonk.parser.inireader.Function" description="Wird aufgerufen, wenn die Aktivität vor ihrem Ende durch eine andere ersetzt wird."/>
 			<entry name="InLiquidAction" class="java.lang.String" description="Auszuführende Aktion, wenn das Objekt in Flüssigkeiten eintaucht."/>
 			<entry name="Sound" class="java.lang.String" description="Dauerhaftes Geräusch dieser Aktivität."/>
 			<entry name="ObjectDisabled" class="net.arctics.clonk.parser.inireader.Boolean" desecription="0 oder 1. Eingeschränkte Fähigkeit des Objekts während dieser Aktion."/>

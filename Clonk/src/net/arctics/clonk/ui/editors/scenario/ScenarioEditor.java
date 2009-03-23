@@ -8,7 +8,7 @@ import net.arctics.clonk.ui.editors.ini.IniEditor;
 
 public class ScenarioEditor extends IniEditor {
 
-	public class ScenarioSectionPage extends IniSectionPage {
+	public static class ScenarioSectionPage extends IniSectionPage {
 
 		public ScenarioSectionPage(FormEditor editor, String id, String title, IDocumentProvider docProvider) {
 			super(editor, id, title, docProvider, ScenarioParser.class);
@@ -17,7 +17,7 @@ public class ScenarioEditor extends IniEditor {
 	}
 	
 	@Override
-	protected Object getPageConfiguration(PageAttribRequest request) {
+	public Object getPageConfiguration(PageAttribRequest request) {
 		switch (request) {
 		case RawSourcePageTitle:
 			return "Scenario.txt";

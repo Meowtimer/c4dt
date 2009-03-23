@@ -209,7 +209,7 @@ public abstract class Utilities {
 		return script;
 	}
 
-	public static C4ScriptBase getScriptForEditor(ITextEditor editor) {
+	public static C4ScriptBase getScriptForEditor(IEditorPart editor) {
 		if (editor.getEditorInput() instanceof ScriptWithStorageEditorInput) {
 			return ((ScriptWithStorageEditorInput)editor.getEditorInput()).getScript();
 		}
@@ -319,6 +319,14 @@ public abstract class Utilities {
 			dist++;
 		}
 		return dist;
+	}
+	
+	// nowhere to be found oO
+	public static <T> int indexOf(T[] items, T item) {
+		for (int i = 0; i < items.length; i++)
+			if (items[i].equals(item))
+				return i;
+		return -1;
 	}
 	
 }
