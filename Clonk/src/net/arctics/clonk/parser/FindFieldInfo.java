@@ -6,6 +6,7 @@ package net.arctics.clonk.parser;
 import java.util.HashSet;
 import java.util.Set;
 
+
 public class FindFieldInfo {
 	public  ClonkIndex index;
 	public int recursion;

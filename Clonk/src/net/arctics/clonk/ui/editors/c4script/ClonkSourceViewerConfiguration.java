@@ -2,6 +2,7 @@ package net.arctics.clonk.ui.editors.c4script;
 
 import net.arctics.clonk.parser.C4Field;
 import net.arctics.clonk.parser.C4Object;
+
 import org.eclipse.jface.internal.text.html.HTMLTextPresenter;
 import org.eclipse.jface.text.DefaultInformationControl;
 import org.eclipse.jface.text.IAutoEditStrategy;

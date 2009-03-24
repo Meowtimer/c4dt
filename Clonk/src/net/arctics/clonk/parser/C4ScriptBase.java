@@ -210,6 +210,9 @@ public abstract class C4ScriptBase extends C4Structure implements IRelatedResour
 //				listener.fieldAdded(this, field);
 //			}
 		}
+		else if (field instanceof C4Directive) {
+			definedDirectives.add((C4Directive)field);
+		}
 	}
 	
 	public void removeField(C4Field field) {
@@ -335,7 +338,7 @@ public abstract class C4ScriptBase extends C4Structure implements IRelatedResour
 			return null;
 		alreadySearched.add(this);
 		for (C4Function func: definedFunctions) {
-			if (func.name.equals(name))
+			if (func.getName().equals(name))
 				return func;
 		}
 		if (includeIncludes) {
@@ -353,7 +356,7 @@ public abstract class C4ScriptBase extends C4Structure implements IRelatedResour
 			return null;
 		alreadySearched.add(this);
 		for (C4Variable var : definedVariables) {
-			if (var.name.equals(name))
+			if (var.getName().equals(name))
 				return var;
 		}
 		if (includeIncludes) {
@@ -424,6 +427,28 @@ public abstract class C4ScriptBase extends C4Structure implements IRelatedResour
 	
 	public C4Object getNearestObjectWithId(C4ID id) {
 		return getIndex().getObjectNearestTo(getResource(), id);
+	}
+	
+	public Iterable<C4ScriptBase> scriptsInBranch(final ClonkIndex index) {
+		final C4ScriptBase thisScript = this;
+		return new Iterable<C4ScriptBase>() {
+			void gather(C4ScriptBase script, List<C4ScriptBase> list, Set<C4ScriptBase> duplicatesCatcher) {
+				if (duplicatesCatcher.contains(script))
+					return;
+				duplicatesCatcher.add(script);
+				list.add(script);
+				for (C4ScriptBase s : script.getIncludes(index)) {
+					gather(s, list, duplicatesCatcher);
+				}
+			}
+			public Iterator<C4ScriptBase> iterator() {
+				List<C4ScriptBase> list = new LinkedList<C4ScriptBase>();
+				Set<C4ScriptBase> catcher = new HashSet<C4ScriptBase>();
+				gather(thisScript, list, catcher);
+				return list.iterator();
+			}
+			
+		};
 	}
 	
 //	public boolean convertFuncsToConstsIfTheyLookLikeConsts() {

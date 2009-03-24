@@ -43,6 +43,7 @@ public class CategoriesArray implements IEntryCreateable {
 	}
 
 	public void setInput(String input) throws IniParserException {
+		constants.clear();
 		String[] parts = input.split("\\|");
 		if (parts.length == 1) {
 			tryIntegerInput(input, parts);

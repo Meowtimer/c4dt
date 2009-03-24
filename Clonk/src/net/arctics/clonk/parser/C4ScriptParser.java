@@ -13,8 +13,8 @@ import java.util.Vector;
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.C4Directive.C4DirectiveType;
 import net.arctics.clonk.parser.C4Function.C4FunctionScope;
-import net.arctics.clonk.parser.C4Variable.C4VariableScope;
 import net.arctics.clonk.parser.C4ScriptExprTree.*;
+import net.arctics.clonk.parser.C4Variable.C4VariableScope;
 import net.arctics.clonk.util.Pair;
 import net.arctics.clonk.util.Utilities;
 
@@ -315,7 +315,7 @@ public class C4ScriptParser {
 	
 	public void parseCodeOfFunctions() throws ParsingException {
 		strictLevel = container.strictLevel();
-		for (C4Function function : container.definedFunctions) {
+		for (C4Function function : container.functions()) {
 			parseCodeOfFunction(function);
 		}
 	}
@@ -373,7 +373,7 @@ public class C4ScriptParser {
 					content = content.trim();
 				C4Directive directive = new C4Directive(type, content);
 				directive.setLocation(new SourceLocation(offset, fReader.getPosition()));
-				container.definedDirectives.add(directive);
+				container.addField(directive);
 				return true;
 			}
 		}
@@ -503,7 +503,7 @@ public class C4ScriptParser {
 			break;
 		case VAR_CONST: case VAR_STATIC: case VAR_LOCAL:
 			result.setParentField(getContainer());
-			getContainer().definedVariables.add(result);
+			getContainer().addField(result);
 		}
 		result.setLocation(location);
 		return result;
@@ -624,7 +624,7 @@ public class C4ScriptParser {
 				errorWithCode(C4ScriptParserErrorCode.NameExpected, fReader.getPosition()-1, fReader.getPosition());
 			endName = fReader.getPosition();
 		}
-		for(C4Function otherFunc : container.definedFunctions) {
+		for(C4Function otherFunc : container.functions()) {
 			if (otherFunc.getName().equalsIgnoreCase(funcName)) {
 				warningWithCode(C4ScriptParserErrorCode.FunctionRedeclared, startName, fReader.getPosition());
 				break;

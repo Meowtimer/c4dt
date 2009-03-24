@@ -1,12 +1,15 @@
 package net.arctics.clonk.ui.editors.ini;
 
 import java.io.InputStream;
+import java.util.HashSet;
+import java.util.Set;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IStorage;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.swt.custom.CCombo;
 import org.eclipse.swt.custom.CTabFolder;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorSite;
@@ -211,12 +214,13 @@ public abstract class IniEditor extends FormEditor {
 				
 				private String[] getFunctions() {
 					C4ScriptBase script = relatedScript();
-					String[] result = new String[script.numFunctions()];
-					int i = 0;
-					for (C4Function f : script.functions()) {
-						result[i++] = f.getName();
+					Set<String> functionNames = new HashSet<String>();
+					for (C4ScriptBase s : script.scriptsInBranch(Utilities.getIndex(Utilities.getEditingFile(getEditor())))) {
+						for (C4Function f : s.functions()) {
+							functionNames.add(f.getName());
+						}
 					}
-					return result;
+					return functionNames.toArray(new String[functionNames.size()]);
 				}
 
 				@Override
@@ -258,7 +262,7 @@ public abstract class IniEditor extends FormEditor {
 						}
 						if (complex.getExtendedValue() instanceof Function) {
 							try {
-								((Function)complex.getExtendedValue()).setInput(comboboxEditor.getItems()[(Integer) comboboxEditor.getValue()]);
+								((Function)complex.getExtendedValue()).setInput(((CCombo)comboboxEditor.getControl()).getText());
 								this.getViewer().refresh();
 							} catch (IniParserException e) {
 								e.printStackTrace();
