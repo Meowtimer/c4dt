@@ -7,12 +7,12 @@ public class ComplexIniEntry extends IniEntry implements IHasChildren  {
 	private Object extendedValue;
 	private IniDataEntry entryConfig;
 
-	protected ComplexIniEntry(int pos, String key, String value) {
-		super(pos,key,value);
+	protected ComplexIniEntry(int pos, int endPos, String key, String value) {
+		super(pos,endPos, key,value);
 	}
 	
-	public ComplexIniEntry(int pos, String key, Object value) {
-		super(pos,key,null);
+	public ComplexIniEntry(int pos, int endPos, String key, Object value) {
+		super(pos,endPos, key,null);
 		extendedValue = value;
 	}
 	
@@ -25,7 +25,7 @@ public class ComplexIniEntry extends IniEntry implements IHasChildren  {
 	}
 	
 	public static ComplexIniEntry adaptFrom(IniEntry entry, Object extendedValue, IniDataEntry config) {
-		ComplexIniEntry cmpl = new ComplexIniEntry(entry.getStartPos(), entry.getKey(), entry.getValue());
+		ComplexIniEntry cmpl = new ComplexIniEntry(entry.getStartPos(), entry.getEndPos(), entry.getKey(), entry.getValue());
 		cmpl.entryConfig = config;
 		cmpl.extendedValue = extendedValue;
 		return cmpl;

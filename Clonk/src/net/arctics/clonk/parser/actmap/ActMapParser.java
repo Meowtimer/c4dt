@@ -27,6 +27,10 @@ public class ActMapParser extends IniReader {
 		super(stream);
 	}
 	
+	public ActMapParser(String text) {
+		super(text);
+	}
+	
 //	public static void printActMapEntryList() throws ParserConfigurationException, MalformedURLException, SAXException, IOException {
 //		DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
 //		DocumentBuilder builder = factory.newDocumentBuilder();

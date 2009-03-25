@@ -26,6 +26,10 @@ public class DefCoreParser extends IniReader {
 		super(file);
 	}
 	
+	public DefCoreParser(String text) {
+		super(text);
+	}
+	
 	@Override
 	public IniConfiguration getConfiguration() {
 		return configuration;

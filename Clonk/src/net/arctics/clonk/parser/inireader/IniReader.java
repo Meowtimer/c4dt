@@ -33,6 +33,10 @@ public class IniReader implements Iterable<IniSection>, IHasChildren {
 		reader = new BufferedScanner(stream, 0);
 	}
 	
+	public IniReader(String text) {
+		reader = new BufferedScanner(text);
+	}
+	
 	public IniReader(IFile file) {
 		try {
 			defaultName = file.getParent().getName();
@@ -216,8 +220,10 @@ public class IniReader implements Iterable<IniSection>, IHasChildren {
 			createMarker("Parse error: expected '='", IMarker.SEVERITY_ERROR, keyStart + key.length(), reader.getPosition());
 		}
 		reader.eat(new char[] {' ', '\t'});
-		String value = reader.readLine();
-		IniEntry entry = new IniEntry(keyStart, key, value);
+		String value = reader.readStringUntil(BufferedScanner.NEWLINE_DELIMITERS);
+		int valEnd = reader.getPosition();
+		reader.eat(BufferedScanner.NEWLINE_DELIMITERS);
+		IniEntry entry = new IniEntry(keyStart, valEnd, key, value);
 		try {
 			return validateEntry(entry, section);
 		} catch (IniParserException e) {

@@ -133,17 +133,19 @@ public class BufferedScanner {
 	public String readStringUntil(char ...delimiters) {
 		int start = offset;
 		int i = 0;
-		do {
+		int subtract = 0;
+		Outer: do {
 			int readByte = read();
 			for(i = 0; i < delimiters.length;i++) {
 				if (readByte == delimiters[i]) {
-					i = offset - start - 1; // variable reuse
-					seek(start);
-					return readString(i);
+					subtract = 1;
+					break Outer;
 				}
 			}
 		} while(!reachedEOF());
-		return null;
+		i = offset - start - subtract; // variable reuse
+		seek(start);
+		return readString(i);
 	}
 	
 	/**
@@ -153,7 +155,7 @@ public class BufferedScanner {
 	 */
 	public String readLine() {
 		int start = offset;
-		String line = readStringUntil('\r','\n');
+		String line = readStringUntil(NEWLINE_DELIMITERS);
 		if (line == null) {
 			return readStringAt(start, offset);
 		}

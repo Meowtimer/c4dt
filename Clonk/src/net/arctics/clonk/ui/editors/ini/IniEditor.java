@@ -6,7 +6,6 @@ import java.util.Set;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
-import org.eclipse.core.resources.IStorage;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.swt.custom.CCombo;
@@ -39,6 +38,9 @@ import net.arctics.clonk.util.Utilities;
 
 import org.eclipse.jface.dialogs.IPageChangedListener;
 import org.eclipse.jface.dialogs.PageChangedEvent;
+import org.eclipse.jface.text.BadLocationException;
+import org.eclipse.jface.text.IDocument;
+import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.viewers.CellEditor;
 import org.eclipse.jface.viewers.CheckboxCellEditor;
 import org.eclipse.jface.viewers.ComboBoxCellEditor;
@@ -60,14 +62,13 @@ import org.eclipse.ui.forms.widgets.Section;
 import net.arctics.clonk.parser.inireader.Boolean;
 import net.arctics.clonk.parser.inireader.ComplexIniEntry;
 import net.arctics.clonk.parser.inireader.Function;
-import net.arctics.clonk.parser.inireader.IniParserException;
 import net.arctics.clonk.parser.inireader.IniReader;
 import net.arctics.clonk.ui.editors.ini.IniEditor;
 import net.arctics.clonk.ui.editors.ini.IniEditorColumnLabelAndContentProvider;
 
 public abstract class IniEditor extends FormEditor {
 
-	private IDocumentProvider documentProvider;
+	private IniDocumentProvider documentProvider;
 	private ShowInAdapter showInAdapter;
 	private RawSourcePage sourcePage;
 	private IniSectionPage sectionPage;
@@ -86,7 +87,12 @@ public abstract class IniEditor extends FormEditor {
 			iniReaderClass = cls;
 			T result;
 			try {
-				Class<?> argClass = arg instanceof IFile ? IFile.class : InputStream.class;
+				Class<?> argClass =
+					arg instanceof IFile
+						? IFile.class
+						: arg instanceof InputStream
+							? InputStream.class
+							: String.class;
 				result = cls.getConstructor(argClass).newInstance(arg);
 			} catch (Exception e) {
 				e.printStackTrace();
@@ -166,6 +172,10 @@ public abstract class IniEditor extends FormEditor {
 
 			createTreeViewer(toolkit, sectionComp);
 
+		}
+		
+		public IniEditor getIniEditor() {
+			return (IniEditor) getEditor();
 		}
 
 		private void createTreeViewer(FormToolkit toolkit, Composite sectionComp) {
@@ -249,6 +259,21 @@ public abstract class IniEditor extends FormEditor {
 					}
 					return ((IHasKeyAndValue<String, String>)element).getValue();
 				}
+				
+				private <T extends IHasKeyAndValue<String, String>> void setValueOfEntry(T entry, String value) {
+					int s = ((IRegion)entry).getOffset(), l = ((IRegion)entry).getLength();
+					entry.setValue(value);
+					IDocument doc = getIniEditor().sourcePage.getDocumentProvider().getDocument(getIniEditor().sourcePage.getEditorInput());
+					try {
+						String oldText = doc.get(s, l);
+						String newText = entry.toString();
+						if (!oldText.equals(newText))
+							doc.replace(s, l, newText);
+					} catch (BadLocationException e) {
+						e.printStackTrace();
+					}
+					this.getViewer().refresh();
+				}
 
 				@SuppressWarnings("unchecked")
 				@Override
@@ -256,22 +281,15 @@ public abstract class IniEditor extends FormEditor {
 					if (element instanceof ComplexIniEntry) {
 						ComplexIniEntry complex = (ComplexIniEntry) element;
 						if (complex.getExtendedValue() instanceof Boolean) {
-							((Boolean)complex.getExtendedValue()).setNumber(value.equals(true) ? 1 : 0);
-							this.getViewer().refresh();
+							setValueOfEntry(complex, value.equals(true) ? "1" : "0");
 							return;
 						}
 						if (complex.getExtendedValue() instanceof Function) {
-							try {
-								((Function)complex.getExtendedValue()).setInput(((CCombo)comboboxEditor.getControl()).getText());
-								this.getViewer().refresh();
-							} catch (IniParserException e) {
-								e.printStackTrace();
-							}
+							setValueOfEntry(complex, ((CCombo)comboboxEditor.getControl()).getText());
 							return;
 						}
 					}
-					((IHasKeyAndValue<String, String>)element).setValue(value.toString());
-					this.getViewer().refresh();
+					setValueOfEntry((IHasKeyAndValue<String, String>)element,value.toString());
 				}
 
 				public TextCellEditor getTextEditor() {
@@ -380,18 +398,13 @@ public abstract class IniEditor extends FormEditor {
 			if (getContainer() instanceof CTabFolder)
 				((CTabFolder)getContainer()).getItem(index).setText((String)getPageConfiguration(PageAttribRequest.RawSourcePageTitle));
 			addPageChangedListener(new IPageChangedListener() {
-
 				public void pageChanged(PageChangedEvent event) {
-					try {
-						if (event.getSelectedPage() == sectionPage) {
-							IStorage sourceStorage = ((IFileEditorInput)sourcePage.getEditorInput()).getStorage();
-							sectionPage.updateIniReader(sourceStorage.getContents());
-						}
-					} catch (CoreException e) {
-						e.printStackTrace();
+					if (event.getSelectedPage() == sectionPage) {
+						IDocument doc = sourcePage.getDocumentProvider().getDocument(sourcePage.getEditorInput());
+						String completeText = doc.get();
+						sectionPage.updateIniReader(completeText);
 					}
 				}
-				
 			});
 		} catch (Exception e) {
 			e.printStackTrace();

@@ -20,6 +20,10 @@ public class ScenarioParser extends IniReader {
 		super(stream);
 	}
 	
+	public ScenarioParser(String text) {
+		super(text);
+	}
+	
 	@Override
 	public IniConfiguration getConfiguration() {
 		return configuration;
