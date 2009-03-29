@@ -3,10 +3,11 @@ package net.arctics.clonk.parser;
 import java.io.Serializable;
 
 import net.arctics.clonk.resource.ClonkProjectNature;
+import net.arctics.clonk.util.IHasRelatedResource;
 
 import org.eclipse.core.resources.IResource;
 
-public abstract class C4Field implements Serializable, IRelatedResource  {
+public abstract class C4Field implements Serializable, IHasRelatedResource  {
 	/**
 	 * 
 	 */

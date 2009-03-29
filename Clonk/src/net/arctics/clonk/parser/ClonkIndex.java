@@ -13,6 +13,7 @@ import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.C4Directive.C4DirectiveType;
 import net.arctics.clonk.parser.C4Function.C4FunctionScope;
 import net.arctics.clonk.parser.C4Variable.C4VariableScope;
+import net.arctics.clonk.util.IHasRelatedResource;
 import net.arctics.clonk.util.Utilities;
 
 import org.eclipse.core.resources.IContainer;
@@ -260,7 +261,7 @@ public class ClonkIndex implements Serializable, Iterable<C4Object> {
 		return null;
 	}
 
-	public static <T extends IRelatedResource> T pickNearest(IResource resource, Collection<T> fromList) {
+	public static <T extends IHasRelatedResource> T pickNearest(IResource resource, Collection<T> fromList) {
 		int bestDist = 1000;
 		T best = null;
 		if (fromList != null) {

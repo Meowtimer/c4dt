@@ -1,7 +1,7 @@
-package net.arctics.clonk.parser;
+package net.arctics.clonk.util;
 
 import org.eclipse.core.resources.IResource;
 
-public interface IRelatedResource {
+public interface IHasRelatedResource {
 	IResource getResource();
 }

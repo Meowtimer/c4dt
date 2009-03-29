@@ -1,4 +1,4 @@
-package net.arctics.clonk.parser;
+package net.arctics.clonk.util;
 
 public interface INodeWithParent {
 	String nodeName();

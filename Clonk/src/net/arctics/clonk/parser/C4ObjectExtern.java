@@ -3,6 +3,7 @@ package net.arctics.clonk.parser;
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.resource.c4group.C4GroupEntry;
 import net.arctics.clonk.resource.c4group.C4GroupItem;
+import net.arctics.clonk.util.INodeWithParent;
 
 public class C4ObjectExtern extends C4Object implements INodeWithParent {
 

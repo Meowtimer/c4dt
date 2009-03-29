@@ -1,16 +1,21 @@
 package net.arctics.clonk.ui.editors.ini;
 
 import net.arctics.clonk.parser.inireader.IntegerArray;
+import net.arctics.clonk.util.IHasContext;
 import net.arctics.clonk.util.IHasKeyAndValue;
 
-public class IntegerArrayItem implements IHasKeyAndValue<String, String> {
-	public IntegerArrayItem(IntegerArray array, int index) {
+public class IntegerArrayItem implements IHasKeyAndValue<String, String>, IHasContext {
+	
+	private IntegerArray array;
+	private int index;
+	private Object context;
+	
+	public IntegerArrayItem(IntegerArray array, int index, Object context) {
 		super();
 		this.array = array;
 		this.index = index;
+		this.context = context;
 	}
-	private IntegerArray array;
-	private int index;
 	public IntegerArray getArray() {
 		return array;
 	}
@@ -28,5 +33,8 @@ public class IntegerArrayItem implements IHasKeyAndValue<String, String> {
 	}
 	public String getValue() {
 		return String.valueOf(array.get(index));
+	}
+	public Object context() {
+		return context;
 	}
 }

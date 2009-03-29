@@ -33,6 +33,7 @@ import net.arctics.clonk.ui.editors.c4script.ColorManager;
 import net.arctics.clonk.ui.editors.c4script.ShowInAdapter;
 import net.arctics.clonk.ui.editors.ini.IniDocumentProvider;
 import net.arctics.clonk.ui.editors.ini.IniSourceViewerConfiguration;
+import net.arctics.clonk.util.IHasContext;
 import net.arctics.clonk.util.IHasKeyAndValue;
 import net.arctics.clonk.util.Utilities;
 
@@ -72,7 +73,7 @@ public abstract class IniEditor extends FormEditor {
 	private ShowInAdapter showInAdapter;
 	private RawSourcePage sourcePage;
 	private IniSectionPage sectionPage;
-	
+		
 	public IniEditor() {
 	}
 
@@ -261,12 +262,14 @@ public abstract class IniEditor extends FormEditor {
 				}
 				
 				private <T extends IHasKeyAndValue<String, String>> void setValueOfEntry(T entry, String value) {
-					int s = ((IRegion)entry).getOffset(), l = ((IRegion)entry).getLength();
+					Object context = ((IHasContext)entry).context();
+					IRegion r = (IRegion)context;
+					int s = r.getOffset(), l = r.getLength();
 					entry.setValue(value);
 					IDocument doc = getIniEditor().sourcePage.getDocumentProvider().getDocument(getIniEditor().sourcePage.getEditorInput());
 					try {
 						String oldText = doc.get(s, l);
-						String newText = entry.toString();
+						String newText = context.toString();
 						if (!oldText.equals(newText))
 							doc.replace(s, l, newText);
 					} catch (BadLocationException e) {

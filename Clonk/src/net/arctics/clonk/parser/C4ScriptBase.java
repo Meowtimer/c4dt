@@ -12,6 +12,7 @@ import java.util.Set;
 
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.C4Directive.C4DirectiveType;
+import net.arctics.clonk.util.IHasRelatedResource;
 import net.arctics.clonk.util.ReadOnlyIterator;
 import net.arctics.clonk.util.Utilities;
 
@@ -20,7 +21,7 @@ import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.ITextSelection;
 import org.eclipse.jface.text.Region;
 
-public abstract class C4ScriptBase extends C4Structure implements IRelatedResource {
+public abstract class C4ScriptBase extends C4Structure implements IHasRelatedResource {
 	/**
 	 * 
 	 */

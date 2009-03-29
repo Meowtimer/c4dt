@@ -10,7 +10,6 @@ import net.arctics.clonk.parser.C4ObjectExtern;
 import net.arctics.clonk.parser.C4ScriptExtern;
 import net.arctics.clonk.parser.C4ObjectExternGroup;
 import net.arctics.clonk.parser.C4ScriptParser;
-import net.arctics.clonk.parser.INodeWithParent;
 import net.arctics.clonk.parser.defcore.DefCoreParser;
 import net.arctics.clonk.preferences.PreferenceConstants;
 import net.arctics.clonk.resource.c4group.C4GroupEntry;
@@ -21,6 +20,7 @@ import net.arctics.clonk.resource.c4group.IC4GroupVisitor;
 import net.arctics.clonk.resource.c4group.InvalidDataException;
 import net.arctics.clonk.resource.c4group.C4Group.C4GroupType;
 import net.arctics.clonk.resource.c4group.C4GroupItem.IHeaderFilter;
+import net.arctics.clonk.util.INodeWithParent;
 
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.ResourcesPlugin;

@@ -2,6 +2,8 @@ package net.arctics.clonk.parser;
 
 import java.io.Serializable;
 
+import net.arctics.clonk.util.INodeWithParent;
+
 public class C4ObjectExternGroup implements INodeWithParent, Serializable {
 
 	private static final long serialVersionUID = 1L;

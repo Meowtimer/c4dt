@@ -2,8 +2,10 @@ package net.arctics.clonk.parser.inireader;
 
 import net.arctics.clonk.parser.inireader.IniData.IniDataEntry;
 import net.arctics.clonk.util.IHasChildren;
+import net.arctics.clonk.util.IHasChildrenWithContext;
+import net.arctics.clonk.util.IHasContext;
 
-public class ComplexIniEntry extends IniEntry implements IHasChildren  {
+public class ComplexIniEntry extends IniEntry implements IHasChildren, IHasContext  {
 	private Object extendedValue;
 	private IniDataEntry entryConfig;
 
@@ -51,14 +53,21 @@ public class ComplexIniEntry extends IniEntry implements IHasChildren  {
 	}
 
 	public Object[] getChildren() {
-		if (extendedValue instanceof IHasChildren)
+		if (extendedValue instanceof IHasChildrenWithContext)
+			return ((IHasChildrenWithContext)extendedValue).getChildren(this);
+		else if (extendedValue instanceof IHasChildren)
 			return ((IHasChildren)extendedValue).getChildren();
 		return null;
 	}
 
 	public boolean hasChildren() {
 		return
-			extendedValue instanceof IHasChildren && ((IHasChildren)extendedValue).hasChildren();
+			(extendedValue instanceof IHasChildren && ((IHasChildren)extendedValue).hasChildren()) ||
+			(extendedValue instanceof IHasChildrenWithContext && ((IHasChildrenWithContext)extendedValue).hasChildren());
+	}
+
+	public Object context() {
+		return this; // is it's own context; over-abstraction is awesome -.-
 	}
 	
 }
