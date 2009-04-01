@@ -7,14 +7,14 @@ import net.arctics.clonk.util.IHasRelatedResource;
 
 import org.eclipse.core.resources.IResource;
 
-public abstract class C4Declaration implements Serializable, IHasRelatedResource  {
+public abstract class C4Field implements Serializable, IHasRelatedResource  {
 	/**
 	 * 
 	 */
 	private static final long serialVersionUID = 1L;
 	protected String name;
 	protected SourceLocation location;
-	protected C4Declaration parentDeclaration;
+	protected C4Field parentDeclaration;
 	
 	private static final Object[] EMPTY_SCOPE = new IResource[0];
 
@@ -44,19 +44,19 @@ public abstract class C4Declaration implements Serializable, IHasRelatedResource
 	 * @param script the object to set
 	 */
 	public void setScript(C4ScriptBase script) {
-		setParentField(script);
+		setParentDeclaration(script);
 	}
 	/**
 	 * @return the object
 	 */
 	public C4ScriptBase getScript() {
-		for (C4Declaration f = this; f != null; f = f.parentDeclaration)
+		for (C4Field f = this; f != null; f = f.parentDeclaration)
 			if (f instanceof C4ScriptBase)
 				return (C4ScriptBase)f;
 		return null;
 	}
 	
-	public void setParentField(C4Declaration field) {
+	public void setParentDeclaration(C4Field field) {
 		this.parentDeclaration = field;
 	}
 	
@@ -72,7 +72,7 @@ public abstract class C4Declaration implements Serializable, IHasRelatedResource
 		return false;
 	}
 	
-	public C4Declaration latestVersion() {
+	public C4Field latestVersion() {
 		if (parentDeclaration != null)
 			parentDeclaration = parentDeclaration.latestVersion();
 		if (parentDeclaration instanceof C4Structure)

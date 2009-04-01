@@ -3,7 +3,7 @@ package net.arctics.clonk.ui.editors.actions.c4script;
 import java.util.ResourceBundle;
 
 import net.arctics.clonk.ClonkCore;
-import net.arctics.clonk.parser.C4Declaration;
+import net.arctics.clonk.parser.C4Field;
 import net.arctics.clonk.refactoring.ClonkRenameFieldProcessor;
 import net.arctics.clonk.ui.editors.c4script.ClonkCommandIds;
 
@@ -41,7 +41,7 @@ public class RenameFieldAction extends OpenDeclarationAction {
 	@Override
 	public void run() {
 		try {
-			C4Declaration fieldToRename = getFieldAtSelection();
+			C4Field fieldToRename = getFieldAtSelection();
 			if (fieldToRename != null) {
 				InputDialog newNameDialog = new InputDialog(getTextEditor().getSite().getWorkbenchWindow().getShell(), "Rename field", "Specify the new name here", fieldToRename.getName(), null);
 				switch (newNameDialog.open()) {

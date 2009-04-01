@@ -14,7 +14,7 @@ import net.arctics.clonk.resource.ClonkProjectNature;
  * @author ZokRadonh
  *
  */
-public class C4Variable extends C4Declaration implements Serializable, ITypedField {
+public class C4Variable extends C4Field implements Serializable, ITypedField {
 
 	private static final long serialVersionUID = -2350345359769750230L;
 	private C4VariableScope scope;
@@ -58,7 +58,7 @@ public class C4Variable extends C4Declaration implements Serializable, ITypedFie
 	}
 	
 	@Override
-	public C4Declaration latestVersion() {
+	public C4Field latestVersion() {
 		if (parentDeclaration instanceof C4Structure)
 			return ((C4Structure)parentDeclaration).findVariable(getName());
 		return super.latestVersion();

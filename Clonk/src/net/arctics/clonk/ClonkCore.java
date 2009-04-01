@@ -1,5 +1,6 @@
 package net.arctics.clonk;
 
+import java.beans.XMLEncoder;
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -184,6 +185,7 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant {
 				engineFile.delete();
 			
 			FileOutputStream outputStream = new FileOutputStream(engineFile);
+			//XMLEncoder encoder = new XMLEncoder(new BufferedOutputStream(outputStream));
 			ObjectOutputStream encoder = new ObjectOutputStream(new BufferedOutputStream(outputStream));
 			encoder.writeObject(ENGINE_OBJECT);
 			encoder.close();

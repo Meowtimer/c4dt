@@ -7,7 +7,7 @@ import java.util.Set;
 public class FindDeclarationInfo {
 	public  ClonkIndex index;
 	public int recursion;
-	public Class<? extends C4Declaration> fieldClass;
+	public Class<? extends C4Field> fieldClass;
 	private C4Function contextFunction;
 	private Set<C4ScriptBase> alreadySearched;
 	private C4ScriptBase searchOrigin;
@@ -21,10 +21,10 @@ public class FindDeclarationInfo {
 		this(clonkIndex);
 		setContextFunction(ctx);
 	}
-	public Class<? extends C4Declaration> getFieldClass() {
+	public Class<? extends C4Field> getFieldClass() {
 		return fieldClass;
 	}
-	public void setFieldClass(Class<?extends C4Declaration> fieldClass) {
+	public void setFieldClass(Class<?extends C4Field> fieldClass) {
 		this.fieldClass = fieldClass;
 	}
 	public void setContextFunction(C4Function ctx) {

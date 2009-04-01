@@ -1,6 +1,6 @@
 package net.arctics.clonk.ui.editors.c4script;
 
-import net.arctics.clonk.parser.C4Declaration;
+import net.arctics.clonk.parser.C4Field;
 import net.arctics.clonk.parser.C4Function;
 import net.arctics.clonk.parser.C4ScriptBase;
 import net.arctics.clonk.parser.C4ScriptParser;
@@ -28,7 +28,7 @@ public class IdentInfo implements IExpressionListener {
 	private String line;
 	private IRegion identRegion;
 	private ExprElm exprAtRegion;
-	private C4Declaration field;
+	private C4Field field;
 	
 	public ITextEditor getEditor() {
 		return editor;
@@ -96,7 +96,7 @@ public class IdentInfo implements IExpressionListener {
 	/**
 	 * @return the field
 	 */
-	public C4Declaration getField() {
+	public C4Field getField() {
 		return field;
 	}
 

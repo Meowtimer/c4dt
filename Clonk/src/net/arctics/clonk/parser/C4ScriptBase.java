@@ -89,7 +89,7 @@ public abstract class C4ScriptBase extends C4Structure implements IHasRelatedRes
 		return getIncludes(index);
 	}
 	
-	public C4Declaration findDeclaration(String name) {
+	public C4Field findDeclaration(String name) {
 		return findDeclaration(name, new FindDeclarationInfo(getIndex()));
 	}
 	
@@ -128,7 +128,7 @@ public abstract class C4ScriptBase extends C4Structure implements IHasRelatedRes
 	 * @param info
 	 * @return the field or <tt>null</tt> if not found
 	 */
-	public C4Declaration findDeclaration(String name, FindDeclarationInfo info) {
+	public C4Field findDeclaration(String name, FindDeclarationInfo info) {
 		
 		// prevent infinite recursion
 		if (info.getAlreadySearched().contains(this))
@@ -138,7 +138,7 @@ public abstract class C4ScriptBase extends C4Structure implements IHasRelatedRes
 		// local variable?
 		if (info.recursion == 0) {
 			if (info.getContextFunction() != null) {
-				C4Declaration v = info.getContextFunction().findVariable(name);
+				C4Field v = info.getContextFunction().findVariable(name);
 				if (v != null)
 					return v;
 			}
@@ -167,7 +167,7 @@ public abstract class C4ScriptBase extends C4Structure implements IHasRelatedRes
 		// search in included definitions
 		info.recursion++;
 		for (C4ScriptBase o : getIncludes(info.index)) {
-			C4Declaration result = o.findDeclaration(name, info);
+			C4Field result = o.findDeclaration(name, info);
 			if (result != null)
 				return result;
 		}
@@ -175,7 +175,7 @@ public abstract class C4ScriptBase extends C4Structure implements IHasRelatedRes
 		
 		// finally look if it's something global
 		if (info.recursion == 0 && this != ClonkCore.getDefault().ENGINE_OBJECT) { // .-.
-			C4Declaration f = null;
+			C4Field f = null;
 			// definition from extern index
 			if (Utilities.looksLikeID(name)) {
 				f = info.index.getObjectNearestTo(getResource(), C4ID.getID(name));
@@ -197,7 +197,7 @@ public abstract class C4ScriptBase extends C4Structure implements IHasRelatedRes
 		return null;
 	}
 	
-	public void addField(C4Declaration field) {
+	public void addField(C4Field field) {
 		field.setScript(this);
 		if (field instanceof C4Function) {
 			definedFunctions.add((C4Function)field);
@@ -216,7 +216,7 @@ public abstract class C4ScriptBase extends C4Structure implements IHasRelatedRes
 		}
 	}
 	
-	public void removeField(C4Declaration field) {
+	public void removeField(C4Field field) {
 		if (field.getScript() != this) field.setScript(this);
 		if (field instanceof C4Function) {
 			definedFunctions.remove((C4Function)field);

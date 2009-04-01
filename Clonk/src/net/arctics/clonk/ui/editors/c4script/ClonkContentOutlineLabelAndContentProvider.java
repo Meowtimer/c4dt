@@ -3,7 +3,7 @@
  */
 package net.arctics.clonk.ui.editors.c4script;
 
-import net.arctics.clonk.parser.C4Declaration;
+import net.arctics.clonk.parser.C4Field;
 import net.arctics.clonk.parser.C4Function;
 import net.arctics.clonk.parser.C4ScriptBase;
 import net.arctics.clonk.parser.C4Type;
@@ -35,7 +35,7 @@ public class ClonkContentOutlineLabelAndContentProvider extends LabelProvider im
 	 * @see org.eclipse.jface.viewers.ITreeContentProvider#getChildren(java.lang.Object)
 	 */
 	public Object[] getChildren(Object obj) {
-		return ((C4Declaration)obj).getChildFieldsForOutline();
+		return ((C4Field)obj).getChildFieldsForOutline();
 	}
 
 	/* (non-Javadoc)
@@ -50,7 +50,7 @@ public class ClonkContentOutlineLabelAndContentProvider extends LabelProvider im
 	 * @see org.eclipse.jface.viewers.ITreeContentProvider#hasChildren(java.lang.Object)
 	 */
 	public boolean hasChildren(Object field) {
-		return ((C4Declaration)field).hasChildFields();
+		return ((C4Field)field).hasChildFields();
 	}
 
 	/* (non-Javadoc)

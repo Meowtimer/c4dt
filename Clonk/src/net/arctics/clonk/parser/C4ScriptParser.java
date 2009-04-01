@@ -557,7 +557,7 @@ public class C4ScriptParser {
 		case VAR_VAR:
 			return activeFunc.findVariable(name);
 		case VAR_CONST: case VAR_STATIC:
-			C4Declaration globalField = getContainer().getIndex().findGlobalField(name);
+			C4Field globalField = getContainer().getIndex().findGlobalField(name);
 			if (globalField instanceof C4Variable)
 				return (C4Variable) globalField;
 			return null;
@@ -572,11 +572,11 @@ public class C4ScriptParser {
 		C4Variable result = new C4Variable(varName, scope);
 		switch (scope) {
 		case VAR_VAR:
-			result.setParentField(activeFunc);
+			result.setParentDeclaration(activeFunc);
 			activeFunc.getLocalVars().add(result);
 			break;
 		case VAR_CONST: case VAR_STATIC: case VAR_LOCAL:
-			result.setParentField(getContainer());
+			result.setParentDeclaration(getContainer());
 			getContainer().addField(result);
 		}
 		result.setLocation(location);
@@ -2017,7 +2017,7 @@ public class C4ScriptParser {
 			}
 		}
 		var.setLocation(new SourceLocation(s, e));
-		var.setParentField(function);
+		var.setParentDeclaration(function);
 		function.getParameters().add(var);
 		return true;
 	}

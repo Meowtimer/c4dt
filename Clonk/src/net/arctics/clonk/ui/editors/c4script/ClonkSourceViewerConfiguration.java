@@ -1,6 +1,6 @@
 package net.arctics.clonk.ui.editors.c4script;
 
-import net.arctics.clonk.parser.C4Declaration;
+import net.arctics.clonk.parser.C4Field;
 import net.arctics.clonk.parser.C4Object;
 
 import org.eclipse.jface.internal.text.html.HTMLTextPresenter;
@@ -57,13 +57,13 @@ public class ClonkSourceViewerConfiguration extends TextSourceViewerConfiguratio
 	private static class C4ScriptHyperlink implements IHyperlink {
 
 		private final IRegion region;
-		private C4Declaration target;
+		private C4Field target;
 		
 		/**
 		 * @param region
 		 * @param target
 		 */
-		public C4ScriptHyperlink(IRegion region, C4Declaration target) {
+		public C4ScriptHyperlink(IRegion region, C4Field target) {
 			super();
 			this.region = region;
 			this.target = target;

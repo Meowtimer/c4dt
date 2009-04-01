@@ -5,7 +5,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import net.arctics.clonk.ClonkCore;
-import net.arctics.clonk.parser.C4Declaration;
+import net.arctics.clonk.parser.C4Field;
 import net.arctics.clonk.parser.C4Function;
 import net.arctics.clonk.parser.C4ScriptBase;
 import net.arctics.clonk.parser.FindDeclarationInfo;
@@ -34,10 +34,10 @@ import org.eclipse.text.edits.ReplaceEdit;
 
 public class ClonkRenameFieldProcessor extends RenameProcessor {
 	
-	private C4Declaration field;
+	private C4Field field;
 	private String newName;
 
-	public ClonkRenameFieldProcessor(C4Declaration field, String newName) {
+	public ClonkRenameFieldProcessor(C4Field field, String newName) {
 		this.newName = newName;
 		this.field = field;
 	}
@@ -46,13 +46,13 @@ public class ClonkRenameFieldProcessor extends RenameProcessor {
 	public RefactoringStatus checkInitialConditions(IProgressMonitor monitor)
 			throws CoreException, OperationCanceledException {
 		// renaming fields that originate from outside the project is not allowed
-		C4Declaration baseField = field instanceof C4Function ? ((C4Function)field).baseFunction() : field;
+		C4Field baseField = field instanceof C4Function ? ((C4Function)field).baseFunction() : field;
 		if (!(baseField.getScript().getIndex() instanceof ProjectIndex))
 			return RefactoringStatus.createFatalErrorStatus(field.getName() + " is either declared outside of the project or overrides a function that is declared outside of the project");
 		
 		FindDeclarationInfo info = new FindDeclarationInfo(field.getScript().getIndex());
 		info.setFieldClass(field.getClass());
-		C4Declaration existingField = field.getScript().findDeclaration(newName, info);
+		C4Field existingField = field.getScript().findDeclaration(newName, info);
 		if (existingField != null) {
 			return RefactoringStatus.createFatalErrorStatus("There is already an item with name " + newName + " in " + field.getScript().toString());
 		}
@@ -148,7 +148,7 @@ public class ClonkRenameFieldProcessor extends RenameProcessor {
 		return null;
 	}
 
-	public C4Declaration getField() {
+	public C4Field getField() {
 		return field;
 	}
 	

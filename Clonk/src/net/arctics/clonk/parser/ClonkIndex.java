@@ -30,7 +30,7 @@ public class ClonkIndex implements Serializable, Iterable<C4Object> {
 	
 	private transient List<C4Function> globalFunctions = new LinkedList<C4Function>();
 	private transient List<C4Variable> staticVariables = new LinkedList<C4Variable>();
-	private transient Map<String, List<C4Declaration>> fieldMap = new HashMap<String, List<C4Declaration>>();
+	private transient Map<String, List<C4Field>> fieldMap = new HashMap<String, List<C4Field>>();
 	private transient Map<C4ID, List<C4ScriptBase>> appendages = new HashMap<C4ID, List<C4ScriptBase>>();
 	
 	public int numUniqueIds() {
@@ -89,10 +89,10 @@ public class ClonkIndex implements Serializable, Iterable<C4Object> {
 		}
 	}
 
-	private void addToFieldMap(C4Declaration field) {
-		List<C4Declaration> list = fieldMap.get(field.getName());
+	private void addToFieldMap(C4Field field) {
+		List<C4Field> list = fieldMap.get(field.getName());
 		if (list == null) {
-			list = new LinkedList<C4Declaration>();
+			list = new LinkedList<C4Field>();
 			fieldMap.put(field.getName(), list);
 		}
 		list.add(field);
@@ -140,7 +140,7 @@ public class ClonkIndex implements Serializable, Iterable<C4Object> {
 		if (staticVariables == null)
 			staticVariables = new LinkedList<C4Variable>();
 		if (fieldMap == null)
-			fieldMap = new HashMap<String, List<C4Declaration>>();
+			fieldMap = new HashMap<String, List<C4Field>>();
 		if (appendages == null)
 			appendages = new HashMap<C4ID, List<C4ScriptBase>>();
 		globalFunctions.clear();
@@ -244,7 +244,7 @@ public class ClonkIndex implements Serializable, Iterable<C4Object> {
 		return Collections.unmodifiableList(staticVariables);
 	}
 	
-	public Map<String, List<C4Declaration>> getFieldMap() {
+	public Map<String, List<C4Field>> getFieldMap() {
 		return Collections.unmodifiableMap(fieldMap);
 	}
 
@@ -302,11 +302,11 @@ public class ClonkIndex implements Serializable, Iterable<C4Object> {
 		return result;
 	}
 
-	public <T extends C4Declaration> Iterable<T> fieldsWithName(String name, final Class<T> fieldClass) {
-		List<C4Declaration> nonFinalList = this.fieldMap.get(name);
+	public <T extends C4Field> Iterable<T> fieldsWithName(String name, final Class<T> fieldClass) {
+		List<C4Field> nonFinalList = this.fieldMap.get(name);
 		if (nonFinalList == null)
-			nonFinalList = new LinkedList<C4Declaration>();
-		final List<C4Declaration> list = nonFinalList;
+			nonFinalList = new LinkedList<C4Field>();
+		final List<C4Field> list = nonFinalList;
 		return new Iterable<T>() {
 			public Iterator<T> iterator() {
 				return new Iterator<T>() {
@@ -352,17 +352,17 @@ public class ClonkIndex implements Serializable, Iterable<C4Object> {
 		return null;
 	}
 	
-	public C4Declaration findGlobalField(String fieldName) {
+	public C4Field findGlobalField(String fieldName) {
 		C4Function f = findGlobalFunction(fieldName);
 		if (f != null)
 			return f;
 		return findGlobalVariable(fieldName);
 	}
 	
-	public C4Declaration findGlobalField(String fieldName, IResource pivot) {
+	public C4Field findGlobalField(String fieldName, IResource pivot) {
 		if (pivot == null)
 			return findGlobalField(fieldName);
-		List<C4Declaration> fields = fieldMap.get(fieldName);
+		List<C4Field> fields = fieldMap.get(fieldName);
 		if (fields != null) {
 			return pickNearest(pivot, fields);
 		}

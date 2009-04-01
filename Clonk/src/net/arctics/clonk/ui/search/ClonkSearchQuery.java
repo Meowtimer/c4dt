@@ -2,7 +2,7 @@ package net.arctics.clonk.ui.search;
 
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.C4Directive;
-import net.arctics.clonk.parser.C4Declaration;
+import net.arctics.clonk.parser.C4Field;
 import net.arctics.clonk.parser.C4Function;
 import net.arctics.clonk.parser.C4Object;
 import net.arctics.clonk.parser.C4Scenario;
@@ -35,14 +35,14 @@ import org.eclipse.search.ui.ISearchResult;
 
 public class ClonkSearchQuery implements ISearchQuery {
 
-	private C4Declaration field;
+	private C4Field field;
 	private Object[] scope;
 	private C4ScriptBase declaringScript;
 	private boolean declaringScriptIsScenario;
 	
 	private ClonkSearchResult result;
 	
-	public ClonkSearchQuery(C4Declaration field, ClonkProjectNature project) {
+	public ClonkSearchQuery(C4Field field, ClonkProjectNature project) {
 		super();
 		this.field = field;
 		this.declaringScript = field.getScript();

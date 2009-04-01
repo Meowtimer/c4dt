@@ -6,7 +6,7 @@ import java.io.InputStream;
 import java.util.ResourceBundle;
 
 import net.arctics.clonk.ClonkCore;
-import net.arctics.clonk.parser.C4Declaration;
+import net.arctics.clonk.parser.C4Field;
 import net.arctics.clonk.parser.C4Function;
 import net.arctics.clonk.parser.C4ObjectIntern;
 import net.arctics.clonk.parser.C4ScriptBase;
@@ -242,11 +242,11 @@ public class C4ScriptEditor extends TextEditor {
 		return parser;
 	}
 	
-	public static IEditorPart openDeclaration(C4Declaration target) throws PartInitException, IOException, ParsingException {
+	public static IEditorPart openDeclaration(C4Field target) throws PartInitException, IOException, ParsingException {
 		return openDeclaration(target, true);
 	}
 	
-	public static IEditorPart openDeclaration(C4Declaration target, boolean activate) throws PartInitException, IOException, ParsingException {
+	public static IEditorPart openDeclaration(C4Field target, boolean activate) throws PartInitException, IOException, ParsingException {
 		IWorkbench workbench = PlatformUI.getWorkbench();
 		IWorkbenchPage workbenchPage = workbench.getActiveWorkbenchWindow().getActivePage();
 		C4ScriptBase script = target instanceof C4ScriptBase ? (C4ScriptBase)target : target.getScript();
