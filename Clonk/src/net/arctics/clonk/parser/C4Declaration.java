@@ -7,14 +7,14 @@ import net.arctics.clonk.util.IHasRelatedResource;
 
 import org.eclipse.core.resources.IResource;
 
-public abstract class C4Field implements Serializable, IHasRelatedResource  {
+public abstract class C4Declaration implements Serializable, IHasRelatedResource  {
 	/**
 	 * 
 	 */
 	private static final long serialVersionUID = 1L;
 	protected String name;
 	protected SourceLocation location;
-	protected C4Field parentField;
+	protected C4Declaration parentDeclaration;
 	
 	private static final Object[] EMPTY_SCOPE = new IResource[0];
 
@@ -50,28 +50,33 @@ public abstract class C4Field implements Serializable, IHasRelatedResource  {
 	 * @return the object
 	 */
 	public C4ScriptBase getScript() {
-		for (C4Field f = this; f != null; f = f.parentField)
+		for (C4Declaration f = this; f != null; f = f.parentDeclaration)
 			if (f instanceof C4ScriptBase)
 				return (C4ScriptBase)f;
 		return null;
 	}
-	public void setParentField(C4Field field) {
-		this.parentField = field;
+	
+	public void setParentField(C4Declaration field) {
+		this.parentDeclaration = field;
 	}
+	
 	public String getShortInfo() {
 		return getName();
 	}
+	
 	public Object[] getChildFieldsForOutline() {
 		return null;
 	}
+	
 	public boolean hasChildFields() {
 		return false;
 	}
-	public C4Field latestVersion() {
-		if (parentField != null)
-			parentField = parentField.latestVersion();
-		if (parentField instanceof C4Structure)
-			return ((C4Structure)parentField).findField(getName());
+	
+	public C4Declaration latestVersion() {
+		if (parentDeclaration != null)
+			parentDeclaration = parentDeclaration.latestVersion();
+		if (parentDeclaration instanceof C4Structure)
+			return ((C4Structure)parentDeclaration).findDeclaration(getName());
 		return this;
 	}
 	

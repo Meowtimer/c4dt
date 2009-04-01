@@ -1,6 +1,6 @@
 package net.arctics.clonk.ui.editors.c4script;
 
-import net.arctics.clonk.parser.C4Field;
+import net.arctics.clonk.parser.C4Declaration;
 import net.arctics.clonk.parser.C4ScriptBase;
 import net.arctics.clonk.util.Utilities;
 
@@ -40,7 +40,7 @@ public class ClonkContentOutlinePage extends ContentOutlinePage {
 		treeViewer.setInput(obj);
 		treeViewer.setSorter(new ViewerSorter() {
 			public int category(Object element) {
-				return ((C4Field)element).sortCategory();
+				return ((C4Declaration)element).sortCategory();
 			}
 		});
 		treeViewer.refresh();
@@ -51,7 +51,7 @@ public class ClonkContentOutlinePage extends ContentOutlinePage {
 		if (event.getSelection().isEmpty()) {
 			return;
 		} else if (event.getSelection() instanceof IStructuredSelection) {
-			editor.selectAndReveal(((C4Field)((IStructuredSelection)event.getSelection()).getFirstElement()).getLocation());
+			editor.selectAndReveal(((C4Declaration)((IStructuredSelection)event.getSelection()).getFirstElement()).getLocation());
 		}
 	}
 
@@ -76,7 +76,7 @@ public class ClonkContentOutlinePage extends ContentOutlinePage {
 			getTreeViewer().refresh();
 	}
 	
-	public void select(C4Field field) {
+	public void select(C4Declaration field) {
 		TreeViewer viewer = getTreeViewer();
 		viewer.removeSelectionChangedListener(this);
 		try {

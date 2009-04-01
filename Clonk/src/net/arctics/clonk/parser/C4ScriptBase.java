@@ -89,11 +89,11 @@ public abstract class C4ScriptBase extends C4Structure implements IHasRelatedRes
 		return getIncludes(index);
 	}
 	
-	public C4Field findField(String name) {
-		return findField(name, new FindFieldInfo(getIndex()));
+	public C4Declaration findDeclaration(String name) {
+		return findDeclaration(name, new FindDeclarationInfo(getIndex()));
 	}
 	
-	protected boolean refersToThis(String name, FindFieldInfo info) {
+	protected boolean refersToThis(String name, FindDeclarationInfo info) {
 		return false;
 	}
 	
@@ -128,7 +128,7 @@ public abstract class C4ScriptBase extends C4Structure implements IHasRelatedRes
 	 * @param info
 	 * @return the field or <tt>null</tt> if not found
 	 */
-	public C4Field findField(String name, FindFieldInfo info) {
+	public C4Declaration findDeclaration(String name, FindDeclarationInfo info) {
 		
 		// prevent infinite recursion
 		if (info.getAlreadySearched().contains(this))
@@ -138,7 +138,7 @@ public abstract class C4ScriptBase extends C4Structure implements IHasRelatedRes
 		// local variable?
 		if (info.recursion == 0) {
 			if (info.getContextFunction() != null) {
-				C4Field v = info.getContextFunction().findVariable(name);
+				C4Declaration v = info.getContextFunction().findVariable(name);
 				if (v != null)
 					return v;
 			}
@@ -167,7 +167,7 @@ public abstract class C4ScriptBase extends C4Structure implements IHasRelatedRes
 		// search in included definitions
 		info.recursion++;
 		for (C4ScriptBase o : getIncludes(info.index)) {
-			C4Field result = o.findField(name, info);
+			C4Declaration result = o.findDeclaration(name, info);
 			if (result != null)
 				return result;
 		}
@@ -175,7 +175,7 @@ public abstract class C4ScriptBase extends C4Structure implements IHasRelatedRes
 		
 		// finally look if it's something global
 		if (info.recursion == 0 && this != ClonkCore.getDefault().ENGINE_OBJECT) { // .-.
-			C4Field f = null;
+			C4Declaration f = null;
 			// definition from extern index
 			if (Utilities.looksLikeID(name)) {
 				f = info.index.getObjectNearestTo(getResource(), C4ID.getID(name));
@@ -185,7 +185,7 @@ public abstract class C4ScriptBase extends C4Structure implements IHasRelatedRes
 				f = info.index.findGlobalField(name);
 			// engine function
 			if (f == null)
-				f = ClonkCore.getDefault().ENGINE_OBJECT.findField(name, info);
+				f = ClonkCore.getDefault().ENGINE_OBJECT.findDeclaration(name, info);
 			// function in extern lib
 			if (f == null && info.index != ClonkCore.getDefault().EXTERN_INDEX) {
 				f = ClonkCore.getDefault().EXTERN_INDEX.findGlobalField(name, getResource());
@@ -197,7 +197,7 @@ public abstract class C4ScriptBase extends C4Structure implements IHasRelatedRes
 		return null;
 	}
 	
-	public void addField(C4Field field) {
+	public void addField(C4Declaration field) {
 		field.setScript(this);
 		if (field instanceof C4Function) {
 			definedFunctions.add((C4Function)field);
@@ -216,7 +216,7 @@ public abstract class C4ScriptBase extends C4Structure implements IHasRelatedRes
 		}
 	}
 	
-	public void removeField(C4Field field) {
+	public void removeField(C4Declaration field) {
 		if (field.getScript() != this) field.setScript(this);
 		if (field instanceof C4Function) {
 			definedFunctions.remove((C4Function)field);
@@ -261,26 +261,26 @@ public abstract class C4ScriptBase extends C4Structure implements IHasRelatedRes
 		return null;
 	}
 
-	public C4Function findFunction(String functionName, FindFieldInfo info) {
+	public C4Function findFunction(String functionName, FindDeclarationInfo info) {
 		info.resetState();
 		info.setFieldClass(C4Function.class);
-		return (C4Function) findField(functionName, info);
+		return (C4Function) findDeclaration(functionName, info);
 	}
 	
 	public C4Function findFunction(String functionName) {
-		FindFieldInfo info = new FindFieldInfo(getIndex());
+		FindDeclarationInfo info = new FindDeclarationInfo(getIndex());
 		return findFunction(functionName, info);
 	}
 	
 	public C4Variable findVariable(String varName) {
-		FindFieldInfo info = new FindFieldInfo(getIndex());
+		FindDeclarationInfo info = new FindDeclarationInfo(getIndex());
 		return findVariable(varName, info);
 	}
 	
-	public C4Variable findVariable(String varName, FindFieldInfo info) {
+	public C4Variable findVariable(String varName, FindDeclarationInfo info) {
 		info.resetState();
 		info.setFieldClass(C4Variable.class);
-		return (C4Variable) findField(varName, info);
+		return (C4Variable) findDeclaration(varName, info);
 	}
 
 	public C4Function funcAt(int offset) {

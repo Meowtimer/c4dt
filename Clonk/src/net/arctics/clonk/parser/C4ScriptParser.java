@@ -157,6 +157,7 @@ public class C4ScriptParser {
 				if (callFunc.getParams().length > 0 && callFunc.getParams()[0] instanceof ExprNumber) {
 					ExprNumber number = (ExprNumber)callFunc.getParams()[0];
 					if (number.intValue() >= 0 && number.intValue() < MAX_NUMVAR) {
+						// Var() with a sane constant number
 						int val = number.intValue();
 						if (unnamedVarTypeInformation == null)
 							unnamedVarTypeInformation = new ArrayList<Pair<C4Type, C4Object>>(MAX_NUMVAR);
@@ -177,6 +178,12 @@ public class C4ScriptParser {
 		}
 	}
 	
+	/**
+	 * Query the type of an arbitrary expression. With some luck the parser will be able to give an answer.
+	 * At the moment, only Var() calls are supported.
+	 * @param expression the expression to query the type of
+	 * @return
+	 */
 	public C4Type queryTypeOfExpression(ExprElm expression) {
 		if (unnamedVarTypeInformation != null && expression instanceof ExprCallFunc) {
 			ExprCallFunc callFunc = (ExprCallFunc)expression;
@@ -184,6 +191,7 @@ public class C4ScriptParser {
 				if (callFunc.getParams().length > 0 && callFunc.getParams()[0] instanceof ExprNumber) {
 					ExprNumber number = (ExprNumber)callFunc.getParams()[0];
 					if (number.intValue() >= 0 && number.intValue() < unnamedVarTypeInformation.size()) {
+						// Var()
 						int val = number.intValue();
 						if (unnamedVarTypeInformation.get(val) != null)
 							return unnamedVarTypeInformation.get(val).getFirst();
@@ -194,6 +202,9 @@ public class C4ScriptParser {
 		return C4Type.UNKNOWN;
 	}
 	
+	/**
+	 * Same as queryTypeOfEexpression but for object types.
+	 */
 	public C4Object queryObjectTypeOfExpression(ExprElm expression) {
 		if (unnamedVarTypeInformation != null && expression instanceof ExprCallFunc) {
 			ExprCallFunc callFunc = (ExprCallFunc)expression;
@@ -219,10 +230,18 @@ public class C4ScriptParser {
 		return strictLevel;
 	}
 	
+	/**
+	 * Returns the function that is currently being parsed or otherwise considered "active"
+	 * @return the active function
+	 */
 	public C4Function getActiveFunc() {
 		return activeFunc;
 	}
 	
+	/**
+	 * Sets the active function. There should be a good reason to call this. 
+	 * @param func
+	 */
 	public void setActiveFunc(C4Function func) {
 		if (func != activeFunc) {
 			activeFunc = func;
@@ -233,16 +252,27 @@ public class C4ScriptParser {
 		}
 	}
 	
+	/**
+	 * Returns the script object that is being parsed by the parser.
+	 * @return
+	 */
 	public C4ScriptBase getContainer() {
 		return container;
 	}
 	
+	/**
+	 * Returns the script object as an object if it is one or null if it is not.
+	 * @return The script object as  C4Object
+	 */
 	public C4Object getContainerObject() {
 		if (container instanceof C4Object)
 			return (C4Object) container;
 		return null;
 	}
 	
+	/**
+	 * Creates a script parser. The script is read from the file attached to the script (queried through getScriptFile())
+	 */
 	public C4ScriptParser(C4ScriptBase script) {
 		this((IFile) script.getScriptFile(), script);
 	}
@@ -285,12 +315,19 @@ public class C4ScriptParser {
 		container = script;
 	}
 	
+	/**
+	 * Perform a full parsing (that includes cleaning up the current state of the script container, parsing declarations and parsing function code)
+	 * @throws ParsingException
+	 */
 	public void parse() throws ParsingException {
 		clean();
 		parseDeclarations();
 		parseCodeOfFunctions();
 	}
 
+	/**
+	 * Parse declarations but not function code. Before calling this it should be ensured that the script is cleared to avoid duplicates.
+	 */
 	public void parseDeclarations() {
 		int offset = 0;
 		fReader.seek(offset);
@@ -313,6 +350,12 @@ public class C4ScriptParser {
 		}
 	}
 	
+	/**
+	 * Parse function code. Side effects include:
+	 * 	-Errors (or things the parser thinks are errors) listed in the Problems view
+	 * 	-Types for variables inferred more or less accurately
+	 * @throws ParsingException
+	 */
 	public void parseCodeOfFunctions() throws ParsingException {
 		strictLevel = container.strictLevel();
 		for (C4Function function : container.functions()) {
@@ -320,6 +363,11 @@ public class C4ScriptParser {
 		}
 	}
 
+	/**
+	 * Parse code of one single function. parseCodeOfFunctions() calls this for all functions in the script. 
+	 * @param function
+	 * @throws ParsingException
+	 */
 	public void parseCodeOfFunction(C4Function function) throws ParsingException {
 		try {
 			setActiveFunc(function);
@@ -343,18 +391,39 @@ public class C4ScriptParser {
 		}
 	}
 	
+	/**
+	 * Returns a line a region is in as a string
+	 * @param region the region the line to be returned is in
+	 * @return the line string
+	 */
 	public String getLineAt(IRegion region) {
 		return fReader.getLineAt(region);
 	}
 	
+	/**
+	 * Returns a substring of the script denoted by a region
+	 * @param region the region
+	 * @return the substring
+	 */
 	public String getSubstringOfScript(IRegion region) {
 		return fReader.readStringAt(region.getOffset(), region.getOffset()+region.getLength()+1);
 	}
 	
+	/**
+	 * Returns a line region for a region in the script
+	 * @param region the region the line to be returned is in
+	 * @return the line region
+	 */
 	public IRegion getLineRegion(IRegion regionInLine) {
 		return fReader.getLineRegion(regionInLine);
 	}
 
+	/**
+	 * Parses the declaration at offset.
+	 * @param offset offset at which the declaration starts
+	 * @return whether parsing was sucessful
+	 * @throws ParsingException
+	 */
 	protected boolean parseDeclaration(int offset) throws ParsingException {
 		fReader.seek(offset);
 		int readByte = fReader.read();
@@ -400,6 +469,11 @@ public class C4ScriptParser {
 		return false;
 	}
 
+	/**
+	 * Returns whether a parsed word looks like it might be the start of a function declaration (func, private, protected etc.)
+	 * @param word
+	 * @return
+	 */
 	private boolean looksLikeStartOfFunction(String word) {
 		return word.equalsIgnoreCase(Keywords.Public) || word.equalsIgnoreCase(Keywords.Protected) || word.equalsIgnoreCase(Keywords.Private) || word.equalsIgnoreCase(Keywords.Global) || word.equals(Keywords.Func);
 	}
@@ -483,7 +557,7 @@ public class C4ScriptParser {
 		case VAR_VAR:
 			return activeFunc.findVariable(name);
 		case VAR_CONST: case VAR_STATIC:
-			C4Field globalField = getContainer().getIndex().findGlobalField(name);
+			C4Declaration globalField = getContainer().getIndex().findGlobalField(name);
 			if (globalField instanceof C4Variable)
 				return (C4Variable) globalField;
 			return null;
@@ -1557,263 +1631,15 @@ public class C4ScriptParser {
 					}
 				}
 				else if ((scope = C4VariableScope.makeScope(readWord)) != null) {
-					List<Pair<String, ExprElm>> initializations = new LinkedList<Pair<String, ExprElm>>();
-					do {
-						eatWhitespace();
-						String varName = fReader.readWord();
-						// check if there is initial content
-						eatWhitespace();
-						C4Variable var = findVar(varName, scope);
-						parsedVariable = var;
-						ExprElm val;
-						if (fReader.read() == '=') {
-							eatWhitespace();
-							offset = fReader.getPosition();
-							val = parseExpression(offset);
-							if (val == null)
-								errorWithCode(C4ScriptParserErrorCode.ValueExpected, fReader.getPosition()-1, fReader.getPosition());
-							else {
-								// FIXME: check where var is declared
-								var.inferTypeFromAssignment(val, this);
-							}
-						}
-						else {
-							val = null;
-							fReader.unread();
-						}
-						initializations.add(new Pair<String, ExprElm>(varName, val));
-					} while(fReader.read() == ',');
-					fReader.unread();
-					result = new VarDeclarationStatement(initializations, scope);
-					if (!options.contains(ParseStatementOption.InitializationStatement))
-						checkForSemicolon();
+					result = parseVarDeclarationInStatement(options, scope);
 				}
-				else if (!options.contains(ParseStatementOption.InitializationStatement)) {
-					if (readWord.equals(Keywords.If)) {
-						eatWhitespace();
-						if (fReader.read() != '(') {
-							tokenExpectedError("(");
-						}
-						eatWhitespace();
-						ExprElm condition = parseExpression(fReader.getPosition());
-						if (condition == null)
-							condition = ExprElm.NULL_EXPR; // if () is valid
-						eatWhitespace();
-						if (fReader.read() != ')') {
-							tokenExpectedError(")");
-						}
-						eatWhitespace(); // FIXME: eats comments so when transforming code the comments will be gone
-						Statement body = parseStatement(fReader.getPosition());
-						if (body == null) {
-							errorWithCode(C4ScriptParserErrorCode.StatementExpected, offset, offset+4);
-						}
-
-						int beforeElse = fReader.getPosition();
-						eatWhitespace();
-						offset = fReader.getPosition();
-						String nextWord = fReader.readWord();
-						Statement elseStatement;
-						if (nextWord != null && nextWord.equals(Keywords.Else)) {
-							eatWhitespace();
-							offset = fReader.getPosition();
-							elseStatement = parseStatement(fReader.getPosition());
-							if (elseStatement == null) {
-								errorWithCode(C4ScriptParserErrorCode.StatementExpected, offset, offset+Keywords.Else.length());
-							}	
-						}
-						else {
-							fReader.seek(beforeElse); // don't eat comments and stuff after if (...) ...;
-							elseStatement = null;
-						}
-						result = new IfStatement(condition, body, elseStatement);
-					}
-					else if (readWord.equals(Keywords.While)) {
-						currentLoop = LoopType.While;
-						//			if (!readWord.equals(readWord.toLowerCase())) {
-						//				String problem = "Syntax error: you should only use lower case letters in keywords. ('" + readWord.toLowerCase() + "' instead of '" + readWord + "')"; 
-						//				createErrorMarker(fReader.getPosition() - readWord.length(), fReader.getPosition(), problem);
-						//				throw new ParsingException(problem);
-						//			}
-						eatWhitespace();
-						if (fReader.read() != '(') {
-							tokenExpectedError("(");
-						}
-						eatWhitespace();
-						ExprElm condition = parseExpression(fReader.getPosition());
-						if (condition == null)
-							condition = ExprElm.NULL_EXPR; // while () is valid
-						eatWhitespace();
-						if (fReader.read() != ')') {
-							tokenExpectedError(")");
-						}
-						eatWhitespace();
-						offset = fReader.getPosition();
-						Statement body = parseStatement(fReader.getPosition());
-						if (body == null) {
-							errorWithCode(C4ScriptParserErrorCode.StatementExpected, offset, offset+4);
-						}
-						result = new WhileStatement(condition, body);
-					}
-					else if (readWord.equals(Keywords.For)) {
-						eatWhitespace();
-						if (fReader.read() != '(') {
-							tokenExpectedError("(");					
-						}
-						eatWhitespace();
-
-						// initialization
-						offset = fReader.getPosition();
-						C4Variable loopVariable = null;
-						Statement initialization, body;
-						ExprElm arrayExpr, condition, increment;
-						if (fReader.read() == ';') {
-							// any of the for statements is optional
-							initialization = null;
-						} else {
-							fReader.unread();
-							initialization = parseStatement(fReader.getPosition(), EnumSet.of(ParseStatementOption.InitializationStatement));
-							if (initialization == null) {
-								errorWithCode(C4ScriptParserErrorCode.ExpectedCode, fReader.getPosition(), fReader.getPosition()+1);
-							}
-							loopVariable = parsedVariable; // let's just assume it's the right one
-						}
-
-						// determine loop type
-						eatWhitespace();
-						offset = fReader.getPosition();
-						String w;
-						if (initialization != null) {
-							if (fReader.read() == ';') { // initialization finished regularly with ';'
-								offset = fReader.getPosition();
-								w = null; // implies there can be no 'in'
-							} else {
-								fReader.unread();
-								w = fReader.readWord();
-							}
-						}
-						else
-							w = null; // if there is no initialization statement at all there can also be no 'in'
-						LoopType loopType;
-						if (w != null && w.equals(Keywords.In)) {
-							// it's a for (x in array) loop!
-							loopType = LoopType.IterateArray;
-							eatWhitespace();
-							arrayExpr = parseExpression(fReader.getPosition());
-							if (arrayExpr == null)
-								errorWithCode(C4ScriptParserErrorCode.ExpressionExpected, offset, fReader.getPosition()+1);
-							else {
-								C4Type t = arrayExpr.getType();
-								if (!t.canBeAssignedFrom(C4Type.ARRAY))
-									warningWithCode(C4ScriptParserErrorCode.IncompatibleTypes, arrayExpr, t.toString(), C4Type.ARRAY.toString());
-								if (loopVariable != null)
-									loopVariable.inferTypeFromAssignment(arrayExpr.getExemplaryArrayElement(this), this);
-							}
-							condition = null;
-							increment = null;
-						} else {
-							loopType = LoopType.For;
-							fReader.seek(offset); // if a word !equaling("in") was read
-
-							if (fReader.read() == ';') {
-								// any " optional "
-								fReader.unread(); // is expected
-								condition = null;
-							} else {
-								fReader.unread();
-								condition = parseExpression(fReader.getPosition());
-								if (condition == null) {
-									errorWithCode(C4ScriptParserErrorCode.ConditionExpected, offset, fReader.getPosition());
-								}
-							}
-							eatWhitespace();
-							offset = fReader.getPosition();
-							if (fReader.read() != ';') {
-								tokenExpectedError(";");
-							}
-							eatWhitespace();
-							offset = fReader.getPosition();
-							if (fReader.read() == ')') {
-								// " optional "
-								fReader.unread(); // is expected
-								increment = null;
-							} else {
-								fReader.unread();
-								increment = parseExpression(fReader.getPosition());
-								if (increment == null) {
-									errorWithCode(C4ScriptParserErrorCode.ExpressionExpected, offset, fReader.getPosition()+1);
-								}
-							}
-							arrayExpr = null;
-						}
-						eatWhitespace();
-						if (fReader.read() != ')') {
-							tokenExpectedError(")");
-						}
-						eatWhitespace();
-						offset = fReader.getPosition();
-						currentLoop = loopType;
-						body = parseStatement(fReader.getPosition());
-						if (body == null) {
-							errorWithCode(C4ScriptParserErrorCode.StatementExpected, offset, offset+4);
-						}
-						switch (loopType) {
-						case For:
-							result = new ForStatement(initialization, condition, increment, body);
-							break;
-						case IterateArray:
-							result = new IterateArrayStatement(initialization, arrayExpr, body);
-							break;
-						default:
-							result = null;
-						}
-					}
-					else if (readWord.equals(Keywords.Continue)) {
-						if (currentLoop == null)
-							errorWithCode(C4ScriptParserErrorCode.KeywordInWrongPlace, fReader.getPosition()-readWord.length(), fReader.getPosition(), true, readWord);
-						checkForSemicolon();
-						result = new ContinueStatement();
-					}
-					else if (readWord.equals(Keywords.Break)) {
-						if (currentLoop == null)
-							errorWithCode(C4ScriptParserErrorCode.KeywordInWrongPlace, fReader.getPosition()-readWord.length(), fReader.getPosition(), true, readWord);
-						checkForSemicolon();
-						result = new BreakStatement();
-					}
-					else if (readWord.equals(Keywords.Return)) {
-						eatWhitespace();
-						int next = fReader.read();
-						ExprElm returnExpr;
-						if (next == ';') {
-							fReader.unread();
-							returnExpr = null;
-						}
-						else {
-							fReader.unread();
-							offset = fReader.getPosition();
-							disableError(C4ScriptParserErrorCode.TuplesNotAllowed);
-							disableError(C4ScriptParserErrorCode.EmptyParentheses);
-							returnExpr = parseExpression(fReader.getPosition());
-							if (returnExpr == null) {
-								errorWithCode(C4ScriptParserErrorCode.ValueExpected, fReader.getPosition() - 1, fReader.getPosition());				
-							}
-							warnAboutTupleInReturnExpr(returnExpr, false);
-							enableError(C4ScriptParserErrorCode.TuplesNotAllowed);
-							enableError(C4ScriptParserErrorCode.EmptyParentheses);
-						}
-						result = new ReturnStatement(returnExpr);
-						checkForSemicolon();
-					}
-					else if (activeFunc.isOldStyle() && (looksLikeStartOfFunction(readWord) || fReader.peekAfterWhitespace() == ':')) {
-						// whoops, too far
-						return null;
-					}
-					else
-						result = null;
-				}
+				else if (!options.contains(ParseStatementOption.InitializationStatement))
+					result = parseKeyword(offset, readWord);
 				else
 					result = null;
 			}
 
+			// just an expression that needs to be wrapped as a statement
 			if (result == null) {
 				fReader.seek(start);
 				ExprElm expression = parseExpression(fReader.getPosition());
@@ -1840,12 +1666,289 @@ public class C4ScriptParser {
 					}
 				}
 			}
+			
+			int daring = fReader.getPosition();
+			Comment c = null;
+			for (int r = fReader.read(); r != -1 && (r == '/' || BufferedScanner.isWhiteSpaceButNotLineDelimiterChar((char) r)); r = fReader.read()) {
+				if (r == '/') {
+					c = parseCommentObject(fReader.getPosition()-1);
+					break;
+				}
+			}
+			if (c != null)
+				result.setInlineComment(c);
+			else
+				fReader.seek(daring);
 			return result;
 		} finally {
 			parseStatementRecursion--;
 		}
 		
 
+	}
+
+	private Statement parseVarDeclarationInStatement(
+			EnumSet<ParseStatementOption> options, C4VariableScope scope)
+			throws ParsingException {
+		int offset;
+		Statement result;
+		List<Pair<String, ExprElm>> initializations = new LinkedList<Pair<String, ExprElm>>();
+		do {
+			eatWhitespace();
+			String varName = fReader.readWord();
+			// check if there is initial content
+			eatWhitespace();
+			C4Variable var = findVar(varName, scope);
+			parsedVariable = var;
+			ExprElm val;
+			if (fReader.read() == '=') {
+				eatWhitespace();
+				offset = fReader.getPosition();
+				val = parseExpression(offset);
+				if (val == null)
+					errorWithCode(C4ScriptParserErrorCode.ValueExpected, fReader.getPosition()-1, fReader.getPosition());
+				else {
+					// FIXME: check where var is declared
+					var.inferTypeFromAssignment(val, this);
+				}
+			}
+			else {
+				val = null;
+				fReader.unread();
+			}
+			initializations.add(new Pair<String, ExprElm>(varName, val));
+		} while(fReader.read() == ',');
+		fReader.unread();
+		result = new VarDeclarationStatement(initializations, scope);
+		if (!options.contains(ParseStatementOption.InitializationStatement))
+			checkForSemicolon();
+		return result;
+	}
+
+	private Statement parseKeyword(int offset, String readWord) throws ParsingException {
+		Statement result = null;
+		if (readWord.equals(Keywords.If)) {
+			eatWhitespace();
+			if (fReader.read() != '(') {
+				tokenExpectedError("(");
+			}
+			eatWhitespace();
+			ExprElm condition = parseExpression(fReader.getPosition());
+			if (condition == null)
+				condition = ExprElm.NULL_EXPR; // if () is valid
+			eatWhitespace();
+			if (fReader.read() != ')') {
+				tokenExpectedError(")");
+			}
+			eatWhitespace(); // FIXME: eats comments so when transforming code the comments will be gone
+			Statement body = parseStatement(fReader.getPosition());
+			if (body == null) {
+				errorWithCode(C4ScriptParserErrorCode.StatementExpected, offset, offset+4);
+			}
+
+			int beforeElse = fReader.getPosition();
+			eatWhitespace();
+			offset = fReader.getPosition();
+			String nextWord = fReader.readWord();
+			Statement elseStatement;
+			if (nextWord != null && nextWord.equals(Keywords.Else)) {
+				eatWhitespace();
+				offset = fReader.getPosition();
+				elseStatement = parseStatement(fReader.getPosition());
+				if (elseStatement == null) {
+					errorWithCode(C4ScriptParserErrorCode.StatementExpected, offset, offset+Keywords.Else.length());
+				}	
+			}
+			else {
+				fReader.seek(beforeElse); // don't eat comments and stuff after if (...) ...;
+				elseStatement = null;
+			}
+			result = new IfStatement(condition, body, elseStatement);
+		}
+		else if (readWord.equals(Keywords.While)) {
+			currentLoop = LoopType.While;
+			//			if (!readWord.equals(readWord.toLowerCase())) {
+			//				String problem = "Syntax error: you should only use lower case letters in keywords. ('" + readWord.toLowerCase() + "' instead of '" + readWord + "')"; 
+			//				createErrorMarker(fReader.getPosition() - readWord.length(), fReader.getPosition(), problem);
+			//				throw new ParsingException(problem);
+			//			}
+			eatWhitespace();
+			if (fReader.read() != '(') {
+				tokenExpectedError("(");
+			}
+			eatWhitespace();
+			ExprElm condition = parseExpression(fReader.getPosition());
+			if (condition == null)
+				condition = ExprElm.NULL_EXPR; // while () is valid
+			eatWhitespace();
+			if (fReader.read() != ')') {
+				tokenExpectedError(")");
+			}
+			eatWhitespace();
+			offset = fReader.getPosition();
+			Statement body = parseStatement(fReader.getPosition());
+			if (body == null) {
+				errorWithCode(C4ScriptParserErrorCode.StatementExpected, offset, offset+4);
+			}
+			result = new WhileStatement(condition, body);
+		}
+		else if (readWord.equals(Keywords.For)) {
+			eatWhitespace();
+			if (fReader.read() != '(') {
+				tokenExpectedError("(");					
+			}
+			eatWhitespace();
+
+			// initialization
+			offset = fReader.getPosition();
+			C4Variable loopVariable = null;
+			Statement initialization, body;
+			ExprElm arrayExpr, condition, increment;
+			if (fReader.read() == ';') {
+				// any of the for statements is optional
+				initialization = null;
+			} else {
+				fReader.unread();
+				initialization = parseStatement(fReader.getPosition(), EnumSet.of(ParseStatementOption.InitializationStatement));
+				if (initialization == null) {
+					errorWithCode(C4ScriptParserErrorCode.ExpectedCode, fReader.getPosition(), fReader.getPosition()+1);
+				}
+				loopVariable = parsedVariable; // let's just assume it's the right one
+			}
+
+			// determine loop type
+			eatWhitespace();
+			offset = fReader.getPosition();
+			String w;
+			if (initialization != null) {
+				if (fReader.read() == ';') { // initialization finished regularly with ';'
+					offset = fReader.getPosition();
+					w = null; // implies there can be no 'in'
+				} else {
+					fReader.unread();
+					w = fReader.readWord();
+				}
+			}
+			else
+				w = null; // if there is no initialization statement at all there can also be no 'in'
+			LoopType loopType;
+			if (w != null && w.equals(Keywords.In)) {
+				// it's a for (x in array) loop!
+				loopType = LoopType.IterateArray;
+				eatWhitespace();
+				arrayExpr = parseExpression(fReader.getPosition());
+				if (arrayExpr == null)
+					errorWithCode(C4ScriptParserErrorCode.ExpressionExpected, offset, fReader.getPosition()+1);
+				else {
+					C4Type t = arrayExpr.getType();
+					if (!t.canBeAssignedFrom(C4Type.ARRAY))
+						warningWithCode(C4ScriptParserErrorCode.IncompatibleTypes, arrayExpr, t.toString(), C4Type.ARRAY.toString());
+					if (loopVariable != null)
+						loopVariable.inferTypeFromAssignment(arrayExpr.getExemplaryArrayElement(this), this);
+				}
+				condition = null;
+				increment = null;
+			} else {
+				loopType = LoopType.For;
+				fReader.seek(offset); // if a word !equaling("in") was read
+
+				if (fReader.read() == ';') {
+					// any " optional "
+					fReader.unread(); // is expected
+					condition = null;
+				} else {
+					fReader.unread();
+					condition = parseExpression(fReader.getPosition());
+					if (condition == null) {
+						errorWithCode(C4ScriptParserErrorCode.ConditionExpected, offset, fReader.getPosition());
+					}
+				}
+				eatWhitespace();
+				offset = fReader.getPosition();
+				if (fReader.read() != ';') {
+					tokenExpectedError(";");
+				}
+				eatWhitespace();
+				offset = fReader.getPosition();
+				if (fReader.read() == ')') {
+					// " optional "
+					fReader.unread(); // is expected
+					increment = null;
+				} else {
+					fReader.unread();
+					increment = parseExpression(fReader.getPosition());
+					if (increment == null) {
+						errorWithCode(C4ScriptParserErrorCode.ExpressionExpected, offset, fReader.getPosition()+1);
+					}
+				}
+				arrayExpr = null;
+			}
+			eatWhitespace();
+			if (fReader.read() != ')') {
+				tokenExpectedError(")");
+			}
+			eatWhitespace();
+			offset = fReader.getPosition();
+			currentLoop = loopType;
+			body = parseStatement(fReader.getPosition());
+			if (body == null) {
+				errorWithCode(C4ScriptParserErrorCode.StatementExpected, offset, offset+4);
+			}
+			switch (loopType) {
+			case For:
+				result = new ForStatement(initialization, condition, increment, body);
+				break;
+			case IterateArray:
+				result = new IterateArrayStatement(initialization, arrayExpr, body);
+				break;
+			default:
+				result = null;
+			}
+		}
+		else if (readWord.equals(Keywords.Continue)) {
+			if (currentLoop == null)
+				errorWithCode(C4ScriptParserErrorCode.KeywordInWrongPlace, fReader.getPosition()-readWord.length(), fReader.getPosition(), true, readWord);
+			checkForSemicolon();
+			result = new ContinueStatement();
+		}
+		else if (readWord.equals(Keywords.Break)) {
+			if (currentLoop == null)
+				errorWithCode(C4ScriptParserErrorCode.KeywordInWrongPlace, fReader.getPosition()-readWord.length(), fReader.getPosition(), true, readWord);
+			checkForSemicolon();
+			result = new BreakStatement();
+		}
+		else if (readWord.equals(Keywords.Return)) {
+			eatWhitespace();
+			int next = fReader.read();
+			ExprElm returnExpr;
+			if (next == ';') {
+				fReader.unread();
+				returnExpr = null;
+			}
+			else {
+				fReader.unread();
+				offset = fReader.getPosition();
+				disableError(C4ScriptParserErrorCode.TuplesNotAllowed);
+				disableError(C4ScriptParserErrorCode.EmptyParentheses);
+				returnExpr = parseExpression(fReader.getPosition());
+				if (returnExpr == null) {
+					errorWithCode(C4ScriptParserErrorCode.ValueExpected, fReader.getPosition() - 1, fReader.getPosition());				
+				}
+				warnAboutTupleInReturnExpr(returnExpr, false);
+				enableError(C4ScriptParserErrorCode.TuplesNotAllowed);
+				enableError(C4ScriptParserErrorCode.EmptyParentheses);
+			}
+			result = new ReturnStatement(returnExpr);
+			checkForSemicolon();
+		}
+		else if (activeFunc.isOldStyle() && (looksLikeStartOfFunction(readWord) || fReader.peekAfterWhitespace() == ':')) {
+			// whoops, too far
+			return null;
+		}
+		else
+			result = null;
+
+		return result;
 	}
 
 	private void checkForSemicolon() throws ParsingException {

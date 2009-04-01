@@ -64,7 +64,7 @@ public abstract class C4Object extends C4ScriptBase {
 	
 
 	@Override
-	protected boolean refersToThis(String name, FindFieldInfo info) {
+	protected boolean refersToThis(String name, FindDeclarationInfo info) {
 		if (info.getFieldClass() == null || info.getFieldClass() == C4Object.class) {
 			if (id != null && id.getName().equals(name))
 				return true;

@@ -41,7 +41,7 @@ public class C4Function extends C4Structure implements Serializable, ITypedField
 	public C4Function(String name, String type, String desc, C4Variable... pars) {
 		this(name, C4Type.makeType(type), pars);
 		description = desc;
-		parentField = null; // since engine function only
+		parentDeclaration = null; // since engine function only
 		localVars = null;
 	}
 	

@@ -44,6 +44,7 @@ import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.viewers.CellEditor;
 import org.eclipse.jface.viewers.CheckboxCellEditor;
+import org.eclipse.jface.viewers.ColumnViewer;
 import org.eclipse.jface.viewers.ComboBoxCellEditor;
 import org.eclipse.jface.viewers.EditingSupport;
 import org.eclipse.jface.viewers.TextCellEditor;
@@ -79,6 +80,119 @@ public abstract class IniEditor extends FormEditor {
 
 	public static class IniSectionPage extends FormPage {
 		
+		private final class IniEditorEditingSupport extends EditingSupport {
+			private TextCellEditor textEditor;
+			private CheckboxCellEditor checkboxEditor;
+			private ComboBoxCellEditor comboboxEditor;
+
+			private IniEditorEditingSupport(ColumnViewer viewer) {
+				super(viewer);
+			}
+
+			@Override
+			protected boolean canEdit(Object element) {
+				return true;
+			}
+
+			private C4ScriptBase relatedScript() {
+				IFileEditorInput f = (IFileEditorInput) getEditor().getEditorInput();
+				C4ScriptBase script = C4ObjectIntern.objectCorrespondingTo(f.getFile().getParent());
+				return script;
+			}
+
+			private String[] getFunctions() {
+				C4ScriptBase script = relatedScript();
+				Set<String> functionNames = new HashSet<String>();
+				for (C4ScriptBase s : script.scriptsInBranch(Utilities.getIndex(Utilities.getEditingFile(getEditor())))) {
+					for (C4Function f : s.functions()) {
+						functionNames.add(f.getName());
+					}
+				}
+				return functionNames.toArray(new String[functionNames.size()]);
+			}
+
+			@Override
+			protected CellEditor getCellEditor(Object element) {
+				if (element instanceof ComplexIniEntry) {
+					ComplexIniEntry complex = (ComplexIniEntry) element;
+					if (complex.getExtendedValue() instanceof Boolean)
+						return getCheckboxEditor();
+					if (complex.getExtendedValue() instanceof Function) 
+						return getComboboxEditor(getFunctions());
+				}
+				return getTextEditor();
+			}
+
+			@SuppressWarnings("unchecked")
+			@Override
+			protected Object getValue(Object element) {
+				if (element instanceof ComplexIniEntry) {
+					ComplexIniEntry complex = (ComplexIniEntry) element;
+					if (complex.getExtendedValue() instanceof Boolean)
+						return ((Boolean)complex.getExtendedValue()).getNumber() != 0 ? true : false;
+					if (complex.getExtendedValue() instanceof Function) {
+						String functionName = ((Function)complex.getExtendedValue()).toString();
+						return Utilities.indexOf(comboboxEditor.getItems(), functionName);
+					}
+				}
+				return ((IHasKeyAndValue<String, String>)element).getValue();
+			}
+
+			private <T extends IHasKeyAndValue<String, String>> void setValueOfEntry(T entry, String value) {
+				Object context = ((IHasContext)entry).context();
+				IRegion r = (IRegion)context;
+				int s = r.getOffset(), l = r.getLength();
+				entry.setValue(value);
+				IDocument doc = getIniEditor().sourcePage.getDocumentProvider().getDocument(getIniEditor().sourcePage.getEditorInput());
+				try {
+					String oldText = doc.get(s, l);
+					String newText = context.toString();
+					if (!oldText.equals(newText))
+						doc.replace(s, l, newText);
+				} catch (BadLocationException e) {
+					e.printStackTrace();
+				}
+				this.getViewer().refresh();
+			}
+
+			@SuppressWarnings("unchecked")
+			@Override
+			protected void setValue(Object element, Object value) {
+				if (element instanceof ComplexIniEntry) {
+					ComplexIniEntry complex = (ComplexIniEntry) element;
+					if (complex.getExtendedValue() instanceof Boolean) {
+						setValueOfEntry(complex, value.equals(true) ? "1" : "0");
+						return;
+					}
+					if (complex.getExtendedValue() instanceof Function) {
+						setValueOfEntry(complex, ((CCombo)comboboxEditor.getControl()).getText());
+						return;
+					}
+				}
+				setValueOfEntry((IHasKeyAndValue<String, String>)element,value.toString());
+			}
+
+			public TextCellEditor getTextEditor() {
+				if (textEditor == null)
+					textEditor = new TextCellEditor((Composite)this.getViewer().getControl());
+				return textEditor;
+			}
+
+			public CheckboxCellEditor getCheckboxEditor() {
+				if (checkboxEditor == null)
+					checkboxEditor = new CheckboxCellEditor((Composite)this.getViewer().getControl());
+				return checkboxEditor;
+			}
+
+			public ComboBoxCellEditor getComboboxEditor(String[] items) {
+				if (comboboxEditor == null)
+					comboboxEditor = new ComboBoxCellEditor((Composite)this.getViewer().getControl(), items);
+				else
+					comboboxEditor.setItems(items);
+				return comboboxEditor;
+			}
+		}
+
 		protected IDocumentProvider documentProvider;
 		protected IniReader iniReader;
 		protected Class<? extends IniReader> iniReaderClass;
@@ -206,116 +320,7 @@ public abstract class IniEditor extends FormEditor {
 			TreeViewerColumn valCol = new TreeViewerColumn(treeViewer, SWT.LEFT, 1);
 			valCol.getColumn().setText("Value");
 			valCol.getColumn().setWidth(200);
-			valCol.setEditingSupport(new EditingSupport(treeViewer) {
-
-				private TextCellEditor textEditor;
-				private CheckboxCellEditor checkboxEditor;
-				private ComboBoxCellEditor comboboxEditor;
-				
-				@Override
-				protected boolean canEdit(Object element) {
-					return true;
-				}
-				
-				private C4ScriptBase relatedScript() {
-					IFileEditorInput f = (IFileEditorInput) getEditor().getEditorInput();
-					C4ScriptBase script = C4ObjectIntern.objectCorrespondingTo(f.getFile().getParent());
-					return script;
-				}
-				
-				private String[] getFunctions() {
-					C4ScriptBase script = relatedScript();
-					Set<String> functionNames = new HashSet<String>();
-					for (C4ScriptBase s : script.scriptsInBranch(Utilities.getIndex(Utilities.getEditingFile(getEditor())))) {
-						for (C4Function f : s.functions()) {
-							functionNames.add(f.getName());
-						}
-					}
-					return functionNames.toArray(new String[functionNames.size()]);
-				}
-
-				@Override
-				protected CellEditor getCellEditor(Object element) {
-					if (element instanceof ComplexIniEntry) {
-						ComplexIniEntry complex = (ComplexIniEntry) element;
-						if (complex.getExtendedValue() instanceof Boolean)
-							return getCheckboxEditor();
-						if (complex.getExtendedValue() instanceof Function) 
-							return getComboboxEditor(getFunctions());
-					}
-					return getTextEditor();
-				}
-
-				@SuppressWarnings("unchecked")
-				@Override
-				protected Object getValue(Object element) {
-					if (element instanceof ComplexIniEntry) {
-						ComplexIniEntry complex = (ComplexIniEntry) element;
-						if (complex.getExtendedValue() instanceof Boolean)
-							return ((Boolean)complex.getExtendedValue()).getNumber() != 0 ? true : false;
-						if (complex.getExtendedValue() instanceof Function) {
-							String functionName = ((Function)complex.getExtendedValue()).toString();
-							return Utilities.indexOf(comboboxEditor.getItems(), functionName);
-						}
-					}
-					return ((IHasKeyAndValue<String, String>)element).getValue();
-				}
-				
-				private <T extends IHasKeyAndValue<String, String>> void setValueOfEntry(T entry, String value) {
-					Object context = ((IHasContext)entry).context();
-					IRegion r = (IRegion)context;
-					int s = r.getOffset(), l = r.getLength();
-					entry.setValue(value);
-					IDocument doc = getIniEditor().sourcePage.getDocumentProvider().getDocument(getIniEditor().sourcePage.getEditorInput());
-					try {
-						String oldText = doc.get(s, l);
-						String newText = context.toString();
-						if (!oldText.equals(newText))
-							doc.replace(s, l, newText);
-					} catch (BadLocationException e) {
-						e.printStackTrace();
-					}
-					this.getViewer().refresh();
-				}
-
-				@SuppressWarnings("unchecked")
-				@Override
-				protected void setValue(Object element, Object value) {
-					if (element instanceof ComplexIniEntry) {
-						ComplexIniEntry complex = (ComplexIniEntry) element;
-						if (complex.getExtendedValue() instanceof Boolean) {
-							setValueOfEntry(complex, value.equals(true) ? "1" : "0");
-							return;
-						}
-						if (complex.getExtendedValue() instanceof Function) {
-							setValueOfEntry(complex, ((CCombo)comboboxEditor.getControl()).getText());
-							return;
-						}
-					}
-					setValueOfEntry((IHasKeyAndValue<String, String>)element,value.toString());
-				}
-
-				public TextCellEditor getTextEditor() {
-					if (textEditor == null)
-						textEditor = new TextCellEditor((Composite)this.getViewer().getControl());
-					return textEditor;
-				}
-
-				public CheckboxCellEditor getCheckboxEditor() {
-					if (checkboxEditor == null)
-						checkboxEditor = new CheckboxCellEditor((Composite)this.getViewer().getControl());
-					return checkboxEditor;
-				}
-
-				public ComboBoxCellEditor getComboboxEditor(String[] items) {
-					if (comboboxEditor == null)
-						comboboxEditor = new ComboBoxCellEditor((Composite)this.getViewer().getControl(), items);
-					else
-						comboboxEditor.setItems(items);
-					return comboboxEditor;
-				}
-				
-			});
+			valCol.setEditingSupport(new IniEditorEditingSupport(treeViewer));
 			
 			TreeViewerColumn descCol = new TreeViewerColumn(treeViewer, SWT.LEFT, 2);
 			descCol.getColumn().setText("Description");

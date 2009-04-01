@@ -45,6 +45,16 @@
             </contentTypeBinding>
       </editor>
       
+      <editor
+            name="Particle Editor"
+            icon="icons/c4scriptIcon.png"
+            class="net.arctics.clonk.ui.editors.particle.ParticleEditor"
+            id="clonk.editors.ParticleEditor"
+            filenames="Particle.txt">
+            <contentTypeBinding contentTypeId="net.arctics.clonk.c4particle">
+            </contentTypeBinding>
+      </editor>
+      
    </extension>
    
 <extension 

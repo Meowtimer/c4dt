@@ -283,6 +283,10 @@ public class BufferedScanner {
 				return true;
 		return false;
 	}
+	
+	public static boolean isWhiteSpaceButNotLineDelimiterChar(char c) {
+		return c == ' '	|| c == '\t';
+	}
 
 	public String getLineAt(IRegion region) {
 		IRegion lineRegion = getLineRegion(region);

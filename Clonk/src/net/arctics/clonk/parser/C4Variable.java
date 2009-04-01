@@ -14,7 +14,7 @@ import net.arctics.clonk.resource.ClonkProjectNature;
  * @author ZokRadonh
  *
  */
-public class C4Variable extends C4Field implements Serializable, ITypedField {
+public class C4Variable extends C4Declaration implements Serializable, ITypedField {
 
 	private static final long serialVersionUID = -2350345359769750230L;
 	private C4VariableScope scope;
@@ -58,9 +58,9 @@ public class C4Variable extends C4Field implements Serializable, ITypedField {
 	}
 	
 	@Override
-	public C4Field latestVersion() {
-		if (parentField instanceof C4Structure)
-			return ((C4Structure)parentField).findVariable(getName());
+	public C4Declaration latestVersion() {
+		if (parentDeclaration instanceof C4Structure)
+			return ((C4Structure)parentDeclaration).findVariable(getName());
 		return super.latestVersion();
 	}
 
@@ -226,10 +226,10 @@ public class C4Variable extends C4Field implements Serializable, ITypedField {
 	
 	@Override
 	public Object[] occurenceScope(ClonkProjectNature project) {
-		if (parentField instanceof C4Function)
-			return new Object[] {parentField};
-		if (!isGlobal() && parentField instanceof C4ObjectIntern) {
-			C4ObjectIntern obj = (C4ObjectIntern) parentField;
+		if (parentDeclaration instanceof C4Function)
+			return new Object[] {parentDeclaration};
+		if (!isGlobal() && parentDeclaration instanceof C4ObjectIntern) {
+			C4ObjectIntern obj = (C4ObjectIntern) parentDeclaration;
 			ClonkIndex index = obj.getIndex();
 			Set<Object> result = new HashSet<Object>();
 			result.add(obj);

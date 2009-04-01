@@ -3,7 +3,7 @@ package net.arctics.clonk.ui;
 import java.util.ArrayList;
 import java.util.List;
 import net.arctics.clonk.ClonkCore;
-import net.arctics.clonk.parser.C4Field;
+import net.arctics.clonk.parser.C4Declaration;
 import net.arctics.clonk.parser.C4Function;
 import net.arctics.clonk.parser.C4Type;
 import net.arctics.clonk.parser.C4Variable;
@@ -80,7 +80,7 @@ public class EngineIdentifiersView extends ViewPart {
 		}
 		
 		private Button newParameter;
-		private C4Field identifier;
+		private C4Declaration identifier;
 		private Text identifierNameField;
 		private Text descriptionField;
 		private Combo returnTypeBox;
@@ -100,7 +100,7 @@ public class EngineIdentifiersView extends ViewPart {
 		 * @param parent
 		 * @param identifier
 		 */
-		public EditIdentifierInputDialog(Shell parent, C4Field identifier) {
+		public EditIdentifierInputDialog(Shell parent, C4Declaration identifier) {
 			super(parent);
 			this.identifier = identifier;
 		}
@@ -116,10 +116,10 @@ public class EngineIdentifiersView extends ViewPart {
 			composite.setLayout(new GridLayout(2,false));
 			if (identifier == null) {
 				Object activeElement = getActiveElement();
-				if (!(activeElement instanceof C4Field)) {
+				if (!(activeElement instanceof C4Declaration)) {
 					return null;
 				}
-				identifier = (C4Field) activeElement;
+				identifier = (C4Declaration) activeElement;
 			}
 			
 			if (identifier instanceof C4Function) {
@@ -324,7 +324,7 @@ public class EngineIdentifiersView extends ViewPart {
 		viewer.setLabelProvider(provider);
 		viewer.setSorter(new ViewerSorter() {
 			public int category(Object element) {
-				return ((C4Field)element).sortCategory();
+				return ((C4Declaration)element).sortCategory();
 			}
 		});
 		viewer.setInput(ClonkCore.getDefault().ENGINE_OBJECT);
@@ -448,8 +448,8 @@ public class EngineIdentifiersView extends ViewPart {
 					TreeItem[] selection = viewer.getTree().getSelection();
 					for (TreeItem t : selection) {
 						Object selectedItem = t.getData();
-						if (selectedItem instanceof C4Field) {
-							ClonkCore.getDefault().ENGINE_OBJECT.removeField((C4Field) selectedItem);
+						if (selectedItem instanceof C4Declaration) {
+							ClonkCore.getDefault().ENGINE_OBJECT.removeField((C4Declaration) selectedItem);
 						}
 					}
 					refresh();

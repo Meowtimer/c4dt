@@ -142,4 +142,9 @@
       <entry name="CanFly" class="net.arctics.clonk.parser.inireader.SignedInteger" description="0 Objekt kann nicht fliegen, 1 Objekt kann fliegen."/>
     </section>
   </file>
+ 	<file name="Particle.txt" factoryclass="net.arctics.clonk.parser.inireader.GenericEntryFactory">
+ 		<section name="Particle">
+ 			<entry name="Name" class="java.lang.String" description="Name des Partikels" />
+ 		</section>
+ 	</file>
 </clonkiniconfig>

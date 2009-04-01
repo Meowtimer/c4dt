@@ -27,12 +27,12 @@ public abstract class C4ScriptExprTree {
 	}
 	
 	public final static class FieldRegion {
-		private C4Field field;
+		private C4Declaration field;
 		private IRegion region;
-		public C4Field getField() {
+		public C4Declaration getField() {
 			return field;
 		}
-		public FieldRegion(C4Field field, IRegion region) {
+		public FieldRegion(C4Declaration field, IRegion region) {
 			super();
 			this.field = field;
 			this.region = region;
@@ -465,11 +465,11 @@ public abstract class C4ScriptExprTree {
 	}
 
 	public static abstract class ExprAccessField extends ExprValue {
-		protected C4Field field;
+		protected C4Declaration field;
 		private boolean fieldNotFound = false;
 		protected final String fieldName;
 		
-		public C4Field getField(C4ScriptParser parser) {
+		public C4Declaration getField(C4ScriptParser parser) {
 			if (field == null && !fieldNotFound) {
 				field = getFieldImpl(parser);
 				fieldNotFound = field == null;
@@ -477,11 +477,11 @@ public abstract class C4ScriptExprTree {
 			return field;
 		}
 		
-		public C4Field getField() {
+		public C4Declaration getField() {
 			return field; // return without trying to obtain it (no parser context)
 		}
 		
-		protected abstract C4Field getFieldImpl(C4ScriptParser parser);
+		protected abstract C4Declaration getFieldImpl(C4ScriptParser parser);
 
 		@Override
 		public void reportErrors(C4ScriptParser parser) throws ParsingException {
@@ -552,8 +552,8 @@ public abstract class C4ScriptExprTree {
 		}
 
 		@Override
-		protected C4Field getFieldImpl(C4ScriptParser parser) {
-			FindFieldInfo info = new FindFieldInfo(parser.getContainer().getIndex());
+		protected C4Declaration getFieldImpl(C4ScriptParser parser) {
+			FindDeclarationInfo info = new FindDeclarationInfo(parser.getContainer().getIndex());
 			info.setContextFunction(parser.getActiveFunc());
 			info.setSearchOrigin(parser.getContainer());
 			return parser.getContainer().findVariable(fieldName, info);
@@ -619,7 +619,7 @@ public abstract class C4ScriptExprTree {
 			return super.isValidInSequence(elm) || elm instanceof ExprObjectCall;	
 		}
 		@Override
-		protected C4Field getFieldImpl(C4ScriptParser parser) {
+		protected C4Declaration getFieldImpl(C4ScriptParser parser) {
 			if (fieldName.equals(Keywords.Return))
 				return null;
 			if (fieldName.equals(Keywords.Inherited) || fieldName.equals(Keywords.SafeInherited)) {
@@ -628,16 +628,16 @@ public abstract class C4ScriptExprTree {
 			ExprElm p = getPredecessorInSequence();
 			C4ScriptBase lookIn = p == null ? parser.getContainer() : p.guessObjectType(parser);
 			if (lookIn != null) {
-				FindFieldInfo info = new FindFieldInfo(parser.getContainer().getIndex());
+				FindDeclarationInfo info = new FindDeclarationInfo(parser.getContainer().getIndex());
 				info.setSearchOrigin(parser.getContainer());
-				C4Field field = lookIn.findFunction(fieldName, info);
+				C4Declaration field = lookIn.findFunction(fieldName, info);
 				// might be a variable called as a function (not after '->')
 				if (field == null && p == null)
 					field = lookIn.findVariable(fieldName, info);
 				return field;
 			} else if (p != null) {
 				// find global function
-				C4Field field = parser.getContainer().getIndex().findGlobalFunction(fieldName);
+				C4Declaration field = parser.getContainer().getIndex().findGlobalFunction(fieldName);
 				if (field == null)
 					field = ClonkCore.getDefault().EXTERN_INDEX.findGlobalField(fieldName);
 				if (field == null)
@@ -1558,6 +1558,16 @@ public abstract class C4ScriptExprTree {
 	 *
 	 */
 	public static class Statement extends ExprElm {
+		
+		private Comment inlineComment;
+		
+		public Comment getInlineComment() {
+			return inlineComment;
+		}
+		public void setInlineComment(Comment inlineComment) {
+			this.inlineComment = inlineComment;
+		}
+		
 		@Override
 		public C4Type getType() {
 			return null;
@@ -1572,9 +1582,16 @@ public abstract class C4ScriptExprTree {
 		}
 		@Override
 		public void reportErrors(C4ScriptParser parser) throws ParsingException {
+			super.reportErrors(parser);
 //			for (ExprElm elm : getSubElements())
 //				if (elm != null)
 //					elm.reportErrors(parser);
+		}
+		public void printAppendix(StringBuilder builder, int depth) {
+			if (inlineComment != null) {
+				builder.append(" ");
+				inlineComment.print(builder, depth);
+			}
 		}
 	}
 	
@@ -1617,11 +1634,16 @@ public abstract class C4ScriptExprTree {
 			return getStatements();
 		}
 		
+		protected void printStatement(StringBuilder builder, Statement statement, int depth) {
+			statement.print(builder, depth);
+			statement.printAppendix(builder, depth);
+		}
+		
 		@Override
 		public void print(StringBuilder builder, int depth) {
 			builder.append("{\n");
 			for (Statement statement : statements) {
-				printIndent(builder, depth); statement.print(builder, depth+1); builder.append("\n");
+				printIndent(builder, depth); printStatement(builder, statement, depth+1); builder.append("\n");
 			}
 			printIndent(builder, depth-1); builder.append("}");
 		}
@@ -1656,7 +1678,7 @@ public abstract class C4ScriptExprTree {
 					builder.append("\n");
 					printIndent(builder, depth-1);
 				}
-				statement.print(builder, depth+1);
+				printStatement(builder, statement, depth+1);
 			}
 		}
 	}
@@ -2214,7 +2236,7 @@ public abstract class C4ScriptExprTree {
 						String name = nameValue[0].trim();
 						String value = nameValue[1].trim();
 						if (name.equals("Condition") || name.equals("Image"))
-							return new FieldRegion(parser.getContainer().findField(value), new Region(off+nameValue[0].length()+1, value.length()));
+							return new FieldRegion(parser.getContainer().findDeclaration(value), new Region(off+nameValue[0].length()+1, value.length()));
 					}
 					break;
 				}

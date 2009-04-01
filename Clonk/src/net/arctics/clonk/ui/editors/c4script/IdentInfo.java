@@ -1,10 +1,10 @@
 package net.arctics.clonk.ui.editors.c4script;
 
-import net.arctics.clonk.parser.C4Field;
+import net.arctics.clonk.parser.C4Declaration;
 import net.arctics.clonk.parser.C4Function;
 import net.arctics.clonk.parser.C4ScriptBase;
 import net.arctics.clonk.parser.C4ScriptParser;
-import net.arctics.clonk.parser.FindFieldInfo;
+import net.arctics.clonk.parser.FindDeclarationInfo;
 import net.arctics.clonk.parser.C4ScriptExprTree.ExprElm;
 import net.arctics.clonk.parser.C4ScriptExprTree.FieldRegion;
 import net.arctics.clonk.parser.C4ScriptExprTree.IExpressionListener;
@@ -28,7 +28,7 @@ public class IdentInfo implements IExpressionListener {
 	private String line;
 	private IRegion identRegion;
 	private ExprElm exprAtRegion;
-	private C4Field field;
+	private C4Declaration field;
 	
 	public ITextEditor getEditor() {
 		return editor;
@@ -76,7 +76,7 @@ public class IdentInfo implements IExpressionListener {
 		for (start = localOffset; start > 0 && Character.isJavaIdentifierPart(line.charAt(start-1)); start--);
 		for (end = localOffset; end < line.length() && Character.isJavaIdentifierPart(line.charAt(end)); end++);
 		identRegion = new Region(lineInfo.getOffset()+start,end-start);
-		field = script.findField(doc.get(identRegion.getOffset(),  identRegion.getLength()), new FindFieldInfo(script.getIndex(), func));
+		field = script.findDeclaration(doc.get(identRegion.getOffset(),  identRegion.getLength()), new FindDeclarationInfo(script.getIndex(), func));
 	}
 	
 	/**
@@ -96,7 +96,7 @@ public class IdentInfo implements IExpressionListener {
 	/**
 	 * @return the field
 	 */
-	public C4Field getField() {
+	public C4Declaration getField() {
 		return field;
 	}
 
