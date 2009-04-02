@@ -438,6 +438,7 @@ public class C4Group implements C4GroupItem, Serializable {
 					monitor.worked(1);
 				item.accept(visitor, type, monitor);
 			}
+			visitor.groupFinished(this);
 		}
 	}
 

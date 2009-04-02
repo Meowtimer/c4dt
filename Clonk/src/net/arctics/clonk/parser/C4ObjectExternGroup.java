@@ -2,6 +2,8 @@ package net.arctics.clonk.parser;
 
 import java.io.Serializable;
 
+import org.eclipse.core.runtime.IPath;
+
 import net.arctics.clonk.util.INodeWithParent;
 
 public class C4ObjectExternGroup implements INodeWithParent, Serializable {
@@ -23,6 +25,14 @@ public class C4ObjectExternGroup implements INodeWithParent, Serializable {
 		super();
 		this.nodeName = nodeName;
 		this.parentNode = parentNode;
+	}
+
+	public IPath getPath() {
+		return INodeWithParent.Default.getPath(this);
+	}
+	
+	public boolean subNodeOf(INodeWithParent node) {
+		return INodeWithParent.Default.subNodeOf(this, node);
 	}
 
 }

@@ -63,6 +63,7 @@ public class ClonkLibBuilder implements IC4GroupVisitor, IPropertyChangeListener
 	private void readExternalLib(String lib, IProgressMonitor monitor) throws InvalidDataException, IOException, CoreException {
 		if (monitor == null) monitor = new NullProgressMonitor();
 		File libFile = new File(lib);
+		currentExternNode = null;
 		monitor.beginTask("Parse lib " + lib, 1);
 		if (libFile.exists()) {
 			C4Group group = C4Group.openFile(libFile);
@@ -140,7 +141,7 @@ public class ClonkLibBuilder implements IC4GroupVisitor, IPropertyChangeListener
 					DefCoreParser defCoreWrapper = new DefCoreParser(new ByteArrayInputStream(defCore.getContentsAsArray()));
 					try {
 						defCoreWrapper.parse();
-						C4ObjectExtern obj = new C4ObjectExtern(defCoreWrapper.getObjectID(),defCoreWrapper.getName(),script, currentExternNode);
+						C4ObjectExtern obj = new C4ObjectExtern(defCoreWrapper.getObjectID(), defCoreWrapper.getName(), script, currentExternNode);
 						currentExternNode = obj;
 						C4ScriptParser parser = new C4ScriptParser(script.getContents(),script.computeSize(),obj);
 						// we only need declarations
@@ -178,6 +179,10 @@ public class ClonkLibBuilder implements IC4GroupVisitor, IPropertyChangeListener
 			return true;
 		}
 		return false;
+	}
+	
+	public void groupFinished(C4Group group) {
+		currentExternNode = currentExternNode.parentNode();
 	}
 
 	public void propertyChange(PropertyChangeEvent event) {

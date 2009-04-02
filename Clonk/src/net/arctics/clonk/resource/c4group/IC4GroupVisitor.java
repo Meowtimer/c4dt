@@ -11,4 +11,9 @@ public interface IC4GroupVisitor {
 	 * @return <code>true</code>, if children should be visited too
 	 */
 	public boolean visit(C4GroupItem item, C4GroupType packageType);
+	/**
+	 * Called to inform the visitor that all the children of group have been visited
+	 * @param group the group
+	 */
+	public void groupFinished(C4Group group);
 }

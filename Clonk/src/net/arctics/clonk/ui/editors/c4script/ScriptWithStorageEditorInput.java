@@ -2,6 +2,7 @@ package net.arctics.clonk.ui.editors.c4script;
 
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.C4ScriptBase;
+import net.arctics.clonk.util.INodeWithParent;
 
 import org.eclipse.core.resources.IStorage;
 import org.eclipse.core.runtime.CoreException;
@@ -39,7 +40,7 @@ public class ScriptWithStorageEditorInput implements IEditorInput, IPathEditorIn
 	}
 
 	public String getToolTipText() {
-		return script.getName();
+		return ((INodeWithParent)script).getPath().toOSString();
 	}
 
 	@SuppressWarnings("unchecked")
