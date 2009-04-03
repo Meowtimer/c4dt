@@ -649,7 +649,7 @@ public class C4ScriptParser {
 			return 0;
 		Token t = parseToken(offset);
 		if (t == Token.Symbol)
-			return parsedString.charAt(0);
+			return parsedString != null ? parsedString.charAt(0) : 0;
 		return 0;
 	}
 
