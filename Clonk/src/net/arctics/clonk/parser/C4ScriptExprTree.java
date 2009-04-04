@@ -918,41 +918,50 @@ public abstract class C4ScriptExprTree {
 			}
 			
 			// blub() && blab() && return(1); -> {blub(); blab(); return(1);}
-			if (getOperator() == C4ScriptOperator.And && (getParent() instanceof SimpleStatement)) {// && getRightSide().isReturn()) {
-				LinkedList<ExprElm> leftSideArguments = new LinkedList<ExprElm>();
-				ExprElm r;
-				boolean works = true;
-				// gather left sides (must not be operators)
-				for (r = getLeftSide(); r instanceof ExprBinaryOp; r = ((ExprBinaryOp)r).getLeftSide()) {
-					ExprBinaryOp op = (ExprBinaryOp)r;
-					if (op.getOperator() != C4ScriptOperator.And) {
-						works = false;
-						break;
-					}
-					if (op.getRightSide() instanceof ExprBinaryOp) {
-						works = false;
-						break;
-					}
-					leftSideArguments.addLast(op.getRightSide());
-				}
-				// return at the right end signals this should rather be a block
-				if (works) {
-					leftSideArguments.addFirst(r);
-					List<Statement> statements = new LinkedList<Statement>();
-					// wrap expressions in statements
-					for (ExprElm ex : leftSideArguments) {
-						statements.add(new SimpleStatement(ex.newStyleReplacement(context)));
-					}
-					// convert func call to proper return statement
-					if (getRightSide().isReturn())
-						statements.add(new ReturnStatement(((ExprCallFunc)getRightSide()).getReturnArg().newStyleReplacement(context)));
-					else
-						statements.add(new SimpleStatement(getRightSide().newStyleReplacement(context)));
-					return new Block(statements);
-				}
+			if ((getOperator() == C4ScriptOperator.And || getOperator() == C4ScriptOperator.Or) && (getParent() instanceof SimpleStatement)) {// && getRightSide().isReturn()) {
+				ExprElm block = convertOperatorHackToBlock(context);
+				if (block != null)
+					return block;
 			}
 			
 			return super.newStyleReplacement(context);
+		}
+
+		private ExprElm convertOperatorHackToBlock(C4ScriptParser context)
+				throws CloneNotSupportedException {
+			LinkedList<ExprElm> leftSideArguments = new LinkedList<ExprElm>();
+			ExprElm r;
+			boolean works = true;
+			C4ScriptOperator hackOp = this.getOperator();
+			// gather left sides (must not be operators)
+			for (r = getLeftSide(); r instanceof ExprBinaryOp; r = ((ExprBinaryOp)r).getLeftSide()) {
+				ExprBinaryOp op = (ExprBinaryOp)r;
+				if (op.getOperator() != hackOp) {
+					works = false;
+					break;
+				}
+				if (op.getRightSide() instanceof ExprBinaryOp) {
+					works = false;
+					break;
+				}
+				leftSideArguments.addLast(op.getRightSide());
+			}
+			// return at the right end signals this should rather be a block
+			if (works) {
+				leftSideArguments.addFirst(r);
+				List<Statement> statements = new LinkedList<Statement>();
+				// wrap expressions in statements
+				for (ExprElm ex : leftSideArguments) {
+					statements.add(new SimpleStatement(ex.newStyleReplacement(context)));
+				}
+				// convert func call to proper return statement
+				if (getRightSide().isReturn())
+					statements.add(new ReturnStatement(((ExprCallFunc)getRightSide()).getReturnArg().newStyleReplacement(context)));
+				else
+					statements.add(new SimpleStatement(getRightSide().newStyleReplacement(context)));
+				return new Block(statements);
+			}
+			return null;
 		}
 
 		private ExprElm leftSide, rightSide;
@@ -1754,14 +1763,18 @@ public abstract class C4ScriptExprTree {
 			builder.append(getKeyword());
 			builder.append(";");
 		}
-		
+
 		protected void printBody(ExprElm body, StringBuilder builder, int depth) {
-			if (!(body instanceof Block)) {
-				builder.append("\n");
-				printIndent(builder, depth);
-			} else
-				builder.append(" ");
-			body.print(builder, depth + ((body instanceof Block) ? 0 : 1));
+			int depthAdd = 0;
+			if (!(body instanceof EmptyStatement)) {
+				if (!(body instanceof Block)) {
+					builder.append("\n");
+					printIndent(builder, depth);
+					depthAdd = 1;
+				} else
+					builder.append(" ");
+			}
+			body.print(builder, depth + depthAdd);
 		}
 	}
 	

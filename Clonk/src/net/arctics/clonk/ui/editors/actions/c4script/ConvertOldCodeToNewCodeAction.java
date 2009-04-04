@@ -1,6 +1,7 @@
 package net.arctics.clonk.ui.editors.actions.c4script;
 
 import java.util.LinkedList;
+import java.util.List;
 import java.util.ResourceBundle;
 
 import net.arctics.clonk.parser.C4Function;
@@ -52,13 +53,31 @@ public class ConvertOldCodeToNewCodeAction extends TextEditorAction {
 			final LinkedList<Pair<C4Function, LinkedList<Statement>>> statements,
 			final int selLength) {
 		return new IExpressionListener() {
+			
+			// don't immediately add comments for old-style funcs so that unrelated comments following a function don't get mangled in
+			private List<Comment> commentsOnOld = new LinkedList<Comment>();
+			
 			public TraversalContinuation expressionDetected(ExprElm expression, C4ScriptParser parser) {
 				if (!(expression instanceof Statement))
 					return TraversalContinuation.Continue; // odd
-				if (statements.size() == 0 || parser.getActiveFunc() != statements.getFirst().getFirst())
+				if (statements.size() == 0 || parser.getActiveFunc() != statements.getFirst().getFirst()) {
 					statements.addFirst(new Pair<C4Function, LinkedList<Statement>>(parser.getActiveFunc(), new LinkedList<Statement>()));
+					commentsOnOld.clear();
+				}
 				if (selLength == 0 || (expression.getExprStart() >= selection.getOffset() && expression.getExprEnd() < selection.getOffset()+selection.getLength())) {
-					statements.getFirst().getSecond().addFirst((Statement)expression);
+					if (parser.getActiveFunc().isOldStyle()) {
+						if (expression instanceof Comment)
+							commentsOnOld.add((Comment)expression);
+						else {
+							// another statement follows comments -> add all comments to function
+							for (Comment c : commentsOnOld)
+								statements.getFirst().getSecond().addFirst(c);
+							commentsOnOld.clear();
+							statements.getFirst().getSecond().addFirst((Statement)expression);
+						}
+					} else {
+						statements.getFirst().getSecond().addFirst((Statement)expression);
+					}
 				}
 				return TraversalContinuation.Continue;
 			}

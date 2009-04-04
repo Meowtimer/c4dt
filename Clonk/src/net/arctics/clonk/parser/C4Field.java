@@ -14,7 +14,7 @@ public abstract class C4Field implements Serializable, IHasRelatedResource  {
 	private static final long serialVersionUID = 1L;
 	protected String name;
 	protected SourceLocation location;
-	protected C4Field parentDeclaration;
+	protected transient C4Field parentDeclaration;
 	
 	private static final Object[] EMPTY_SCOPE = new IResource[0];
 
@@ -95,6 +95,18 @@ public abstract class C4Field implements Serializable, IHasRelatedResource  {
 	
 	public IResource getResource() {
 		return getScript().getResource();
+	}
+	
+	public Iterable<C4Field> allSubDeclarations() {
+		return null;
+	}
+	
+	public void fixReferencesAfterSerialization(C4Field parent) {
+		setParentDeclaration(parent);
+		Iterable<C4Field> subDecs = this.allSubDeclarations();
+		if (subDecs != null)
+			for (C4Field d : subDecs)
+				d.fixReferencesAfterSerialization(this);
 	}
 	
 }

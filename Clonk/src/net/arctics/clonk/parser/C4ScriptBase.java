@@ -12,6 +12,7 @@ import java.util.Set;
 
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.C4Directive.C4DirectiveType;
+import net.arctics.clonk.util.CompoundIterable;
 import net.arctics.clonk.util.IHasRelatedResource;
 import net.arctics.clonk.util.ReadOnlyIterator;
 import net.arctics.clonk.util.Utilities;
@@ -95,6 +96,12 @@ public abstract class C4ScriptBase extends C4Structure implements IHasRelatedRes
 	
 	protected boolean refersToThis(String name, FindDeclarationInfo info) {
 		return false;
+	}
+	
+	@SuppressWarnings("unchecked")
+	@Override
+	public Iterable<C4Field> allSubDeclarations() {
+		return new CompoundIterable<C4Field>(definedFunctions, definedVariables, definedDirectives);
 	}
 	
 //	private static boolean resourceInsideContainer(IResource resource, IContainer container) {

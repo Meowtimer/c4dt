@@ -8,6 +8,7 @@ import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.C4ScriptExprTree.ExprElm;
 import net.arctics.clonk.parser.C4ScriptParser.Keywords;
 import net.arctics.clonk.parser.C4Variable.C4VariableScope;
+import net.arctics.clonk.util.CompoundIterable;
 
 public class C4Function extends C4Structure implements Serializable, ITypedField {
 
@@ -412,6 +413,12 @@ public class C4Function extends C4Structure implements Serializable, ITypedField
 			if (otherFunc.inheritsFrom(f))
 				return true;
 		return false;
+	}
+	
+	@SuppressWarnings("unchecked")
+	@Override
+	public Iterable<C4Field> allSubDeclarations() {
+		return new CompoundIterable<C4Field>(localVars, parameter); 
 	}
 	
 }

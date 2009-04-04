@@ -1,6 +1,5 @@
 package net.arctics.clonk;
 
-import java.beans.XMLEncoder;
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -124,6 +123,7 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant {
 			try {
 				ObjectInputStream objStream = new InputStreamRespectingUniqueIDs(engineStream);
 				ENGINE_OBJECT = (C4ObjectExtern)objStream.readObject();
+				ENGINE_OBJECT.fixReferencesAfterSerialization(null);
 			} catch (Exception e) {
 				e.printStackTrace();
 				ENGINE_OBJECT = new C4ObjectExtern(C4ID.getSpecialID("Engine"),"Engine",null, null);

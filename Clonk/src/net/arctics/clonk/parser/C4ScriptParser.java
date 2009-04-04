@@ -822,22 +822,28 @@ public class C4ScriptParser {
 		int endOfFunc = activeFunc.getBody().getEnd();
 		EnumSet<ParseStatementOption> options = EnumSet.of(ParseStatementOption.ExpectFuncDesc, ParseStatementOption.ParseEmptyLines);
 		boolean lastWasReturn = false;
+		int oldStyleEnd = endOfFunc;
 		while(!fReader.reachedEOF() && fReader.getPosition() < endOfFunc) {
 			Statement statement = parseStatement(fReader.getPosition(), options);
 			boolean statementIsComment = statement instanceof Comment;
 			if (statement == null)
 				break;
-			if (lastWasReturn && !statementIsComment)
-				warningWithCode(C4ScriptParserErrorCode.NeverReached, statement);
-			if (!lastWasReturn)
+			if (lastWasReturn) {
+				// warn about statements after final return
+				if (!statementIsComment)
+					warningWithCode(C4ScriptParserErrorCode.NeverReached, statement);
+			}
+			else {
 				lastWasReturn = statement.isReturn();
+			}
 			// after first 'real' statement don't expect function description anymore
 			if (!statementIsComment) {
 				options.remove(ParseStatementOption.ExpectFuncDesc);
-				if (activeFunc.isOldStyle())
-					activeFunc.getBody().setEnd(statement.getExprEnd());
+				oldStyleEnd = statement.getExprEnd();
 			}
 		}
+		if (activeFunc.isOldStyle())
+			activeFunc.getBody().setEnd(oldStyleEnd);
 		return true;
 	}
 	
@@ -1102,9 +1108,13 @@ public class C4ScriptParser {
 		if (errorDisabled(code))// || (errorHook != null && errorHook.handle(code, args)))
 			return;
 		String problem = code.getErrorString(args);
-		createErrorMarker(errorStart, errorEnd, problem);
+		boolean silence = fScript == null || (activeFunc != null && fReader.getPosition() > activeFunc.getBody().getEnd());
+		if (!silence)
+			createErrorMarker(errorStart, errorEnd, problem);
 		if (!noThrow)
-			throw fScript == null ? new SilentParsingException(problem) : new ParsingException(problem);
+			throw silence
+				? new SilentParsingException(problem)
+				: new ParsingException(problem);
 	}
 	
 	private void errorWithCode(C4ScriptParserErrorCode code, int errorStart, int errorEnd, Object... args) throws ParsingException {
@@ -1309,7 +1319,7 @@ public class C4ScriptParser {
 			
 			// check if sequence is valid (CreateObject(BLUB)->localvar is not)
 			if (elm != null) {
-				if (!elm.isValidInSequence(prevElm)) {
+				if (prevElm != null && !elm.isValidInSequence(prevElm)) {
 					elm = null; // blub blub <- first blub is var; second blub is not part of the sequence -.-
 					//fReader.seek(elmStart);
 					dontCheckForPostOp = true;
