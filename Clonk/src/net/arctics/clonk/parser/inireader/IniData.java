@@ -1,13 +1,22 @@
 package net.arctics.clonk.parser.inireader;
 
+import java.io.BufferedWriter;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.io.PrintStream;
+import java.io.Writer;
 import java.util.HashMap;
 import java.util.Map;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
+import net.arctics.clonk.parser.BufferedScanner;
+import net.arctics.clonk.parser.C4ID;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
@@ -82,6 +91,7 @@ public class IniData {
 		public IEntryFactory getFactory() {
 			return factory;
 		}
+		
 	}
 	
 	public static class IniDataSection {
@@ -224,5 +234,47 @@ public class IniData {
 			e.printStackTrace();
 		}
 	}
+	
+//	public static Class<?> entryClassFromDocumentation(String docType) {
+//		if (docType.equals("Integer"))
+//			return SignedInteger.class;
+//		if (docType.endsWith("Integer"))
+//			return IntegerArray.class;
+//		if (docType.startsWith("Zeichenfolge"))
+//			return String.class;
+//		if (docType.equalsIgnoreCase("id"))
+//			return C4ID.class;
+//		return null;
+//	}
+//	
+//	public static void xmlFromText(InputStream input, PrintStream output) throws IOException {
+//		BufferedScanner scanner = new BufferedScanner(input);
+//		for (String name = scanner.readWord(); name != null && name.length() > 0; name = scanner.readWord()) {
+//			scanner.eatWhitespace();
+//			String type = scanner.readWord();
+//			scanner.eatWhitespace();
+//			if (Character.isDigit(type.charAt(0))) {
+//				type = type + " " + scanner.readWord();
+//				scanner.eatWhitespace();
+//			}
+//			String desc = scanner.readStringUntil(BufferedScanner.NEWLINE_DELIMITERS);
+//			scanner.eatWhitespace();
+//			Class<?> entryClass = entryClassFromDocumentation(type);
+//			output.println("<entry name=\""+name+"\" class=\""+entryClass.getName()+"\" description=\""+desc+"\" />");
+//		}
+//	}
+//	
+//	static {
+//		try {
+//			xmlFromText(new FileInputStream("/Users/madeen/Desktop/material.txt"), System.out);
+//		} catch (FileNotFoundException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		} catch (IOException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
+//	}
+	
 }
 

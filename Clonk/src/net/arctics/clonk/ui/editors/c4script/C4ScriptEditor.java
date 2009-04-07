@@ -231,7 +231,7 @@ public class C4ScriptEditor extends TextEditor {
 		IDocument document = getDocumentProvider().getDocument(getEditorInput());
 		byte[] documentBytes = document.get().getBytes();
 		InputStream scriptStream = new ByteArrayInputStream(documentBytes);
-		C4ScriptParser parser = new C4ScriptParser(scriptStream, documentBytes.length, Utilities.getScriptForEditor(this));
+		C4ScriptParser parser = new C4ScriptParser(scriptStream, Utilities.getScriptForEditor(this));
 		scriptStream.close();
 		parser.setExpressionListener(exprListener);
 		parser.clean();

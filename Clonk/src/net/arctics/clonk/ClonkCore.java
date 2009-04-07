@@ -41,9 +41,10 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant {
 	public static final String PLUGIN_ID = "net.arctics.clonk";
 	public static final String CLONK_NATURE_ID = PLUGIN_ID + ".clonknature";
 	public static final String MARKER_EXTERN_LIB_ERROR = PLUGIN_ID + ".externliberror";
+	
 	public static final QualifiedName FOLDER_C4ID_PROPERTY_ID = new QualifiedName(PLUGIN_ID,"c4id");
 	public static final QualifiedName C4OBJECT_PROPERTY_ID = new QualifiedName(PLUGIN_ID,"c4object");
-	public static final QualifiedName SCRIPT_PROPERTY_ID = new QualifiedName(PLUGIN_ID, "script");
+	public static final QualifiedName SCRIPT_PROPERTY_ID = new QualifiedName(PLUGIN_ID, "script"); 
 	
 	public C4ObjectExtern ENGINE_OBJECT;
 	public ClonkIndex EXTERN_INDEX;

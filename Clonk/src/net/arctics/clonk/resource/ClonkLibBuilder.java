@@ -143,7 +143,7 @@ public class ClonkLibBuilder implements IC4GroupVisitor, IPropertyChangeListener
 						defCoreWrapper.parse();
 						C4ObjectExtern obj = new C4ObjectExtern(defCoreWrapper.getObjectID(), defCoreWrapper.getName(), script, currentExternNode);
 						currentExternNode = obj;
-						C4ScriptParser parser = new C4ScriptParser(script.getContents(),script.computeSize(),obj);
+						C4ScriptParser parser = new C4ScriptParser(script.getContents(),obj);
 						// we only need declarations
 						parser.clean();
 						parser.parseDeclarations();
@@ -165,7 +165,7 @@ public class ClonkLibBuilder implements IC4GroupVisitor, IPropertyChangeListener
 					if (child.getName().endsWith(".c")) {
 						try {
 							C4ScriptExtern externScript = new C4ScriptExtern(child, currentExternNode);
-							C4ScriptParser parser = new C4ScriptParser(((C4GroupEntry)child).getContents(),((C4GroupEntry)child).computeSize(), externScript);
+							C4ScriptParser parser = new C4ScriptParser(((C4GroupEntry)child).getContents(),externScript);
 							parser.parseDeclarations();
 							ClonkCore.getDefault().EXTERN_INDEX.addScript(externScript);
 							//						Utilities.getProject(getProject()).getIndexedData().addObject(externSystemc4g);

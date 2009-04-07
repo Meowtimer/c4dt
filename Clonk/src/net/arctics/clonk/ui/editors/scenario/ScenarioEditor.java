@@ -5,6 +5,7 @@ import org.eclipse.ui.texteditor.IDocumentProvider;
 
 import net.arctics.clonk.parser.scenario.ScenarioParser;
 import net.arctics.clonk.ui.editors.ini.IniEditor;
+import net.arctics.clonk.ui.editors.ini.IniSectionPage;
 
 public class ScenarioEditor extends IniEditor {
 

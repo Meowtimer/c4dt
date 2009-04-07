@@ -30,7 +30,7 @@ public class IniReader implements Iterable<IniSection>, IHasChildren {
 	protected String defaultName;
 	
 	public IniReader(InputStream stream) {
-		reader = new BufferedScanner(stream, 0);
+		reader = new BufferedScanner(stream);
 	}
 	
 	public IniReader(String text) {
@@ -41,7 +41,7 @@ public class IniReader implements Iterable<IniSection>, IHasChildren {
 		try {
 			defaultName = file.getParent().getName();
 			InputStream stream = file.getContents();
-			reader = new BufferedScanner(stream, 0);
+			reader = new BufferedScanner(stream);
 			stream.close();
 		} catch (Exception e) {
 			e.printStackTrace();

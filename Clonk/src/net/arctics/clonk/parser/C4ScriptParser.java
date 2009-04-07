@@ -298,9 +298,9 @@ public class C4ScriptParser {
 	 * @param object
 	 * @throws CompilerException
 	 */
-	public C4ScriptParser(InputStream stream, long size, C4ScriptBase script) {
+	public C4ScriptParser(InputStream stream, C4ScriptBase script) {
 		fScript = null;
-		fReader = new BufferedScanner(stream, size);
+		fReader = new BufferedScanner(stream);
 		container = script;
 	}
 	
@@ -802,6 +802,8 @@ public class C4ScriptParser {
 		activeFunc.setBody(new SourceLocation(startBody,endBody));
 		activeFunc.setHeader(new SourceLocation(startOfHeader, endOfHeader));
 		container.addField(activeFunc);
+		if (!activeFunc.isOldStyle())
+			activeFunc = null; // to not suppress errors in-between functions
 		//		functions.add(func);
 		return true;
 	}

@@ -61,7 +61,7 @@ public class BufferedScanner {
 		}
 	}
 
-	public BufferedScanner(InputStream stream, long fileSize) {
+	public BufferedScanner(InputStream stream) {
 		try {
 			offset = 0;
 			buffer = stringFromInputStream(stream);

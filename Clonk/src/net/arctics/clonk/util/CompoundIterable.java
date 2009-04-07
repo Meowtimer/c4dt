@@ -20,10 +20,13 @@ public class CompoundIterable<T> implements Iterable<T>, Iterator<T> {
 	}
 
 	public boolean hasNext() {
-		for (; curIterator != null && !curIterator.hasNext() && ++iterIndex < subIterables.length; curIterator = subIterables[iterIndex] != null ? subIterables[iterIndex].iterator() : curIterator);
+		for (;
+			curIterator != null && !curIterator.hasNext() && ++iterIndex < subIterables.length;
+			curIterator = subIterables[iterIndex] != null ? subIterables[iterIndex].iterator() : curIterator
+		);
 		return curIterator != null && curIterator.hasNext();
 	}
-
+ 
 	public T next() {
 		return curIterator.next();
 	}

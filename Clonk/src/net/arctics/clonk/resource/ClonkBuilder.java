@@ -15,6 +15,7 @@ import net.arctics.clonk.parser.ClonkIndex;
 import net.arctics.clonk.parser.C4ScriptParser.ParsingException;
 import net.arctics.clonk.parser.actmap.ActMapParser;
 import net.arctics.clonk.parser.defcore.DefCoreParser;
+import net.arctics.clonk.parser.particle.ParticleDefParser;
 import net.arctics.clonk.preferences.PreferenceConstants;
 import net.arctics.clonk.ui.editors.c4script.C4ScriptEditor;
 import net.arctics.clonk.util.Utilities;
@@ -285,6 +286,10 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 				else if (buildPhase == 0 && delta.getResource().getName().equalsIgnoreCase("ActMap.txt")) {
 					ActMapParser actMap = new ActMapParser((IFile)delta.getResource());
 					actMap.parse();
+				}
+				else if (buildPhase == 0 && delta.getResource().getName().equalsIgnoreCase("Particle.txt")) {
+					ParticleDefParser particle = new ParticleDefParser((IFile)delta.getResource());
+					particle.parse();
 				}
 			}
 			else if (delta.getKind() == IResourceDelta.REMOVED && delta.getResource().getParent().exists()) {
