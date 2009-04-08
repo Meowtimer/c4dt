@@ -25,8 +25,7 @@ import org.eclipse.jface.dialogs.IPageChangedListener;
 import org.eclipse.jface.dialogs.PageChangedEvent;
 import org.eclipse.jface.text.IDocument;
 
-
-public abstract class IniEditor extends FormEditor {
+public class IniEditor extends FormEditor {
 
 	private IniDocumentProvider documentProvider;
 	private ShowInAdapter showInAdapter;
@@ -122,6 +121,7 @@ public abstract class IniEditor extends FormEditor {
 					}
 				}
 			});
+			sectionPage.initializeReader();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

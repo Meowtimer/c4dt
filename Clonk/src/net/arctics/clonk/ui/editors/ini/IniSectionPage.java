@@ -5,6 +5,7 @@ package net.arctics.clonk.ui.editors.ini;
 
 import java.io.InputStream;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 import net.arctics.clonk.ClonkCore;
@@ -12,10 +13,13 @@ import net.arctics.clonk.parser.C4Function;
 import net.arctics.clonk.parser.C4Object;
 import net.arctics.clonk.parser.C4ObjectIntern;
 import net.arctics.clonk.parser.C4ScriptBase;
+import net.arctics.clonk.parser.actmap.ActMapParser;
+import net.arctics.clonk.parser.defcore.DefCoreParser;
 import net.arctics.clonk.parser.inireader.Boolean;
 import net.arctics.clonk.parser.inireader.ComplexIniEntry;
 import net.arctics.clonk.parser.inireader.Function;
 import net.arctics.clonk.parser.inireader.IniReader;
+import net.arctics.clonk.parser.scenario.ScenarioParser;
 import net.arctics.clonk.ui.editors.ini.IniEditor.PageAttribRequest;
 import net.arctics.clonk.util.IHasContext;
 import net.arctics.clonk.util.IHasKeyAndValue;
@@ -24,6 +28,7 @@ import net.arctics.clonk.util.Utilities;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.content.IContentType;
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IRegion;
@@ -52,6 +57,7 @@ import org.eclipse.ui.forms.editor.FormPage;
 import org.eclipse.ui.forms.widgets.FormToolkit;
 import org.eclipse.ui.forms.widgets.ScrolledForm;
 import org.eclipse.ui.forms.widgets.Section;
+import org.eclipse.ui.ide.IDE;
 import org.eclipse.ui.texteditor.IDocumentProvider;
 
 public class IniSectionPage extends FormPage {
@@ -206,17 +212,24 @@ public class IniSectionPage extends FormPage {
 		this (editor, id, title, docProvider, null);
 	}
 	
-	private static Class<? extends IniReader> getIniReaderClassFromDocument(
+	private static Map<String, Class<? extends IniReader>> INIREADER_CLASSES = Utilities.map(new Object[] {
+		"net.arctics.clonk.c4scenariocfg", ScenarioParser.class,
+		"net.arctics.clonk.c4actmap"     , ActMapParser.class,
+		"net.arctics.clonk.c4defcore"    , DefCoreParser.class
+	});
+	
+	private Class<? extends IniReader> getIniReaderClassFromDocument(
 			IDocument document) {
-		// TODO Auto-generated method stub
-		return null;
+		IContentType contentType = IDE.getContentType(Utilities.getEditingFile(getEditor()));
+		Class<? extends IniReader> iniReaderClass = INIREADER_CLASSES.get(contentType.getId());
+		return iniReaderClass;
 	}
 	
-	@Override
-	public void initialize(FormEditor editor) {
-		super.initialize(editor);
-		this.iniReaderClass = getIniReaderClassFromDocument(getIniEditor().getSourcePage().getDocumentProvider().getDocument(getEditor().getEditorInput()));
-		updateIniReader(Utilities.getEditingFile(getEditor()));
+	public void initializeReader() {
+		if (iniReaderClass == null) {
+			this.iniReaderClass = getIniReaderClassFromDocument(getIniEditor().getSourcePage().getDocumentProvider().getDocument(getEditor().getEditorInput()));
+			updateIniReader(Utilities.getEditingFile(getEditor()));
+		}
 	}
 
 	public IniSectionPage(FormEditor editor, String id, String title, IDocumentProvider docProvider, Class<? extends IniReader> iniReaderClass) {

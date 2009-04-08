@@ -1,7 +1,10 @@
 package net.arctics.clonk.util;
 
 import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.Map;
 
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.C4Function;
@@ -327,6 +330,25 @@ public abstract class Utilities {
 			if (items[i].equals(item))
 				return i;
 		return -1;
+	}
+	
+	@SuppressWarnings("unchecked")
+	public static <KeyType, ValueType> Map<KeyType, ValueType> mapOfType(Class<? extends Map<KeyType, ValueType>> mapClass, Object... keysAndValues) {
+		try {
+			Map<KeyType, ValueType> map = mapClass.newInstance();
+			for (int i = 0; i < keysAndValues.length-1; i += 2) {
+				map.put((KeyType)keysAndValues[i], (ValueType)keysAndValues[i+1]);
+			}
+			return Collections.unmodifiableMap(map);
+		} catch (Exception e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
+	
+	@SuppressWarnings("unchecked")
+	public static <KeyType, ValueType> Map<KeyType, ValueType> map(Object... keysAndValues) {
+		return mapOfType((Class<? extends Map<KeyType, ValueType>>) HashMap.class, keysAndValues);
 	}
 	
 }

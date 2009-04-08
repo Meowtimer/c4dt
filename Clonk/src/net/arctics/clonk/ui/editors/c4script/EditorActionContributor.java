@@ -15,11 +15,9 @@ public class EditorActionContributor extends BasicTextEditorActionContributor {
 	private RetargetTextEditorAction fContentAssist;
 	//	
 	public EditorActionContributor() {
-		ResourceBundle messagesBundle = ResourceBundle.getBundle("net.arctics.clonk.ui.editors.Messages");
+		ResourceBundle messagesBundle = ResourceBundle.getBundle("net.arctics.clonk.ui.editors.c4script.Messages");
 		fContentAssist = new RetargetTextEditorAction(messagesBundle, null);
 		fContentAssist.setActionDefinitionId(ITextEditorActionDefinitionIds.CONTENT_ASSIST_PROPOSALS);
-//		fConvertOldCodeToNewCode = new RetargetTextEditorAction(messagesBundle, null);
-//		fConvertOldCodeToNewCode.setActionDefinitionId(ClonkActionDefinitionIds.CONVERT_OLD_CODE_TO_NEW_CODE);
 		// fIndexClonkDir = new
 		// RetargetTextEditorAction(ResourceBundle.getBundle
 		// ("net.arctics.clonk.ui.editors.Messages"),"IndexClonkDir.");
@@ -41,9 +39,11 @@ public class EditorActionContributor extends BasicTextEditorActionContributor {
 		// ACTION_INDEX_CLONK_DIR) == null)
 		// getActionBars().getToolBarManager().add(getAction((ITextEditor)part,
 		// C4ScriptEditor.ACTION_INDEX_CLONK_DIR));
-		if ((part instanceof ITextEditor))
-			fContentAssist.setAction(getAction((ITextEditor) part,
-					ITextEditorActionDefinitionIds.CONTENT_ASSIST_PROPOSALS));
+		if (fContentAssist != null) {
+			if ((part instanceof ITextEditor))
+				fContentAssist.setAction(getAction((ITextEditor) part,
+						ITextEditorActionDefinitionIds.CONTENT_ASSIST_PROPOSALS));
+		}
 //		fConvertOldCodeToNewCode.setAction(getAction((ITextEditor)part, ClonkActionDefinitionIds.CONVERT_OLD_CODE_TO_NEW_CODE));
 		// fIndexClonkDir.setAction(getAction((ITextEditor)part,
 		// C4ScriptEditor.ACTION_INDEX_CLONK_DIR));

@@ -1,22 +1,13 @@
 package net.arctics.clonk.parser.inireader;
 
-import java.io.BufferedWriter;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.io.PrintStream;
-import java.io.Writer;
 import java.util.HashMap;
 import java.util.Map;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
-import net.arctics.clonk.parser.BufferedScanner;
-import net.arctics.clonk.parser.C4ID;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;

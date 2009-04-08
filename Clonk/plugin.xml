@@ -32,13 +32,6 @@
 
 		</editor>
 
-		<editor name="Particle Editor" icon="icons/c4scriptIcon.png"
-			class="net.arctics.clonk.ui.editors.ini.IniEditor" id="clonk.editors.IniEditor"
-			filenames="*.txt">
-			<contentTypeBinding contentTypeId="net.arctics.clonk.inifile" />
-
-		</editor>
-
 		<editor name="Ini Editor" icon="icons/c4scriptIcon.png"
 			class="net.arctics.clonk.ui.editors.ini.IniEditor" id="clonk.editors.IniEditor"
 			filenames="*.txt">
@@ -58,21 +51,27 @@
 	</extension>
 
 	<extension point="org.eclipse.core.runtime.contentTypes">
+	
+		<content-type id="net.arctics.clonk.c4files" name="Clonk files"
+			priority="normal" />
+	
 		<content-type base-type="net.arctics.clonk.c4files"
 			file-names="Script.c" id="net.arctics.clonk.c4script" name="C4Script files"
 			priority="high" />
-
-		<content-type id="net.arctics.clonk.c4files" name="Clonk files"
-			priority="normal" />
+		
 		<content-type base-type="net.arctics.clonk.c4files"
+			file-extensions="txt" id="net.arctics.clonk.inifile" name="Clonk Configuration file"
+			priority="high" />
+		
+		<content-type base-type="net.arctics.clonk.inifile"
 			file-names="DefCore.txt" id="net.arctics.clonk.c4defcore" name="C4Object definitions"
 			priority="high" />
 
-		<content-type base-type="net.arctics.clonk.c4files"
+		<content-type base-type="net.arctics.clonk.inifile"
 			file-names="ActMap.txt" id="net.arctics.clonk.c4actmap" name="C4Object actions"
 			priority="high" />
 
-		<content-type base-type="net.arctics.clonk.c4files"
+		<content-type base-type="net.arctics.clonk.inifile"
 			file-names="Scenario.txt" id="net.arctics.clonk.c4scenariocfg" name="Scenario configuration"
 			priority="high" />
 
