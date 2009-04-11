@@ -12,6 +12,7 @@ import java.util.Set;
 
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.C4Directive.C4DirectiveType;
+import net.arctics.clonk.parser.c4script.FindDeclarationInfo;
 import net.arctics.clonk.util.CompoundIterable;
 import net.arctics.clonk.util.IHasRelatedResource;
 import net.arctics.clonk.util.ReadOnlyIterator;
@@ -157,14 +158,14 @@ public abstract class C4ScriptBase extends C4Structure implements IHasRelatedRes
 		}
 		
 		// a function defined in this object
-		if (info.getFieldClass() == null || info.getFieldClass() == C4Function.class) {
+		if (info.getDeclarationClass() == null || info.getDeclarationClass() == C4Function.class) {
 			for (C4Function f : definedFunctions) {
 				if (f.getName().equals(name))
 					return f;
 			}
 		}
 		// a variable
-		if (info.getFieldClass() == null || info.getFieldClass() == C4Variable.class) {
+		if (info.getDeclarationClass() == null || info.getDeclarationClass() == C4Variable.class) {
 			for (C4Variable v : definedVariables) {
 				if (v.getName().equals(name))
 					return v;
@@ -189,16 +190,16 @@ public abstract class C4ScriptBase extends C4Structure implements IHasRelatedRes
 			}
 			// global stuff defined in project
 			if (f == null)
-				f = info.index.findGlobalField(name);
+				f = info.index.findGlobalDeclaration(name);
 			// engine function
 			if (f == null)
 				f = ClonkCore.getDefault().ENGINE_OBJECT.findDeclaration(name, info);
 			// function in extern lib
 			if (f == null && info.index != ClonkCore.getDefault().EXTERN_INDEX) {
-				f = ClonkCore.getDefault().EXTERN_INDEX.findGlobalField(name, getResource());
+				f = ClonkCore.getDefault().EXTERN_INDEX.findGlobalDeclaration(name, getResource());
 			}
 			
-			if (f != null && (info.fieldClass == null || info.fieldClass.isAssignableFrom(f.getClass())))
+			if (f != null && (info.declarationClass == null || info.declarationClass.isAssignableFrom(f.getClass())))
 				return f;
 		}
 		return null;
@@ -270,7 +271,7 @@ public abstract class C4ScriptBase extends C4Structure implements IHasRelatedRes
 
 	public C4Function findFunction(String functionName, FindDeclarationInfo info) {
 		info.resetState();
-		info.setFieldClass(C4Function.class);
+		info.setDeclarationClass(C4Function.class);
 		return (C4Function) findDeclaration(functionName, info);
 	}
 	
@@ -286,7 +287,7 @@ public abstract class C4ScriptBase extends C4Structure implements IHasRelatedRes
 	
 	public C4Variable findVariable(String varName, FindDeclarationInfo info) {
 		info.resetState();
-		info.setFieldClass(C4Variable.class);
+		info.setDeclarationClass(C4Variable.class);
 		return (C4Variable) findDeclaration(varName, info);
 	}
 

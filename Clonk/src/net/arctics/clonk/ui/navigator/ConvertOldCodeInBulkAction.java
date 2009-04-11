@@ -7,9 +7,9 @@ import java.util.List;
 
 import net.arctics.clonk.parser.C4Function;
 import net.arctics.clonk.parser.C4ScriptBase;
-import net.arctics.clonk.parser.C4ScriptParser;
-import net.arctics.clonk.parser.C4ScriptExprTree.Statement;
-import net.arctics.clonk.parser.C4ScriptParser.ParsingException;
+import net.arctics.clonk.parser.c4script.C4ScriptParser;
+import net.arctics.clonk.parser.c4script.C4ScriptExprTree.Statement;
+import net.arctics.clonk.parser.c4script.C4ScriptParser.ParsingException;
 import net.arctics.clonk.ui.editors.actions.c4script.ConvertOldCodeToNewCodeAction;
 import net.arctics.clonk.util.Pair;
 import net.arctics.clonk.util.Utilities;

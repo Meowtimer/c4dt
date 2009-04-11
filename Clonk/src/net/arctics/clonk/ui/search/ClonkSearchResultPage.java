@@ -3,7 +3,7 @@ package net.arctics.clonk.ui.search;
 import java.io.IOException;
 
 import net.arctics.clonk.parser.C4ScriptBase;
-import net.arctics.clonk.parser.C4ScriptParser.ParsingException;
+import net.arctics.clonk.parser.c4script.C4ScriptParser.ParsingException;
 import net.arctics.clonk.ui.editors.c4script.C4ScriptEditor;
 
 import org.eclipse.jface.viewers.IStructuredSelection;

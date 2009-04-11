@@ -5,8 +5,8 @@ import java.util.List;
 import java.util.ResourceBundle;
 
 import net.arctics.clonk.parser.C4Function;
-import net.arctics.clonk.parser.C4ScriptParser;
-import net.arctics.clonk.parser.C4ScriptExprTree.*;
+import net.arctics.clonk.parser.c4script.C4ScriptParser;
+import net.arctics.clonk.parser.c4script.C4ScriptExprTree.*;
 import net.arctics.clonk.ui.editors.c4script.C4ScriptEditor;
 import net.arctics.clonk.ui.editors.c4script.ClonkCommandIds;
 import net.arctics.clonk.util.Pair;

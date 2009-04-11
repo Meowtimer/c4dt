@@ -1,4 +1,4 @@
-package net.arctics.clonk.parser;
+package net.arctics.clonk.parser.c4script;
 
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
@@ -11,10 +11,22 @@ import java.util.Set;
 import java.util.Vector;
 
 import net.arctics.clonk.ClonkCore;
+import net.arctics.clonk.parser.BufferedScanner;
+import net.arctics.clonk.parser.C4Directive;
+import net.arctics.clonk.parser.C4Field;
+import net.arctics.clonk.parser.C4Function;
+import net.arctics.clonk.parser.C4ID;
+import net.arctics.clonk.parser.C4Object;
+import net.arctics.clonk.parser.C4ScriptBase;
+import net.arctics.clonk.parser.C4Type;
+import net.arctics.clonk.parser.C4Variable;
+import net.arctics.clonk.parser.ClonkIndex;
+import net.arctics.clonk.parser.SimpleScriptStorage;
+import net.arctics.clonk.parser.SourceLocation;
 import net.arctics.clonk.parser.C4Directive.C4DirectiveType;
 import net.arctics.clonk.parser.C4Function.C4FunctionScope;
-import net.arctics.clonk.parser.C4ScriptExprTree.*;
 import net.arctics.clonk.parser.C4Variable.C4VariableScope;
+import net.arctics.clonk.parser.c4script.C4ScriptExprTree.*;
 import net.arctics.clonk.util.Pair;
 import net.arctics.clonk.util.Utilities;
 
@@ -26,11 +38,16 @@ import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IRegion;
 
+/**
+ * A C4Script parser. Parses declarations in a script and stores it in a C4ScriptBase object (sold separately).
+ * The parser can also perform a second parse phase that creates syntax trees from c4script functions. Those can be used for various purposes, including
+ * checking correctness (aiming to detect all kinds of errors like undeclared identifiers, supplying values of wrong type to functions etc.), converting old
+ * c4script code to #strict-compliant "new-style" code and forming the base of navigation operations like "Find Declaration", "Find References" etc.
+ */
 public class C4ScriptParser {
 	
 	/**
 	 * Keywords of C4Script
-	 * @author madeen
 	 *
 	 */
 	public interface Keywords {
@@ -68,6 +85,9 @@ public class C4ScriptParser {
 		public static final String False = "false";
 	}
 	
+	/**
+	 * Exception thrown when a parsing error occurs
+	 */
 	public static class ParsingException extends Exception {
 
 		private static final long serialVersionUID = 1L;
@@ -77,6 +97,10 @@ public class C4ScriptParser {
 		}
 	}
 	
+	/**
+	 * Special parsing exception thrown when the error is not supposed to be shown to the user (in form of error markers in the Errors view for example)
+	 * Used when calling the parser internally to support content assistance and similar things
+	 */
 	public static class SilentParsingException extends ParsingException {
 
 		private static final long serialVersionUID = 1L;
@@ -87,6 +111,9 @@ public class C4ScriptParser {
 		
 	}
 	
+	/**
+	 * Contains cached engine functions that have special meaning
+	 */
 	public static class CachedEngineFuncs {
 		public static final C4Function Par = ClonkCore.getDefault().ENGINE_OBJECT.findFunction("Par");
 		public static final C4Function Var = ClonkCore.getDefault().ENGINE_OBJECT.findFunction("Var");
@@ -94,10 +121,18 @@ public class C4ScriptParser {
 	
 	private IExpressionListener expressionListener;
 
+	/**
+	 * Returns the expression listener that is notified when an expression or a statement has been parsed
+	 * @return the expression listener
+	 */
 	public IExpressionListener getExpressionListener() {
 		return expressionListener;
 	}
 
+	/**
+	 * Sets the expression listener.
+	 * @param expressionListener the new expression listener
+	 */
 	public void setExpressionListener(IExpressionListener expressionListener) {
 		this.expressionListener = expressionListener;
 	}
@@ -557,7 +592,7 @@ public class C4ScriptParser {
 		case VAR_VAR:
 			return activeFunc.findVariable(name);
 		case VAR_CONST: case VAR_STATIC:
-			C4Field globalField = getContainer().getIndex().findGlobalField(name);
+			C4Field globalField = getContainer().getIndex().findGlobalDeclaration(name);
 			if (globalField instanceof C4Variable)
 				return (C4Variable) globalField;
 			return null;

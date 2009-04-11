@@ -5,9 +5,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 import net.arctics.clonk.ClonkCore;
-import net.arctics.clonk.parser.C4ScriptExprTree.ExprElm;
-import net.arctics.clonk.parser.C4ScriptParser.Keywords;
 import net.arctics.clonk.parser.C4Variable.C4VariableScope;
+import net.arctics.clonk.parser.c4script.C4ScriptParser;
+import net.arctics.clonk.parser.c4script.C4ScriptExprTree.ExprElm;
+import net.arctics.clonk.parser.c4script.C4ScriptParser.Keywords;
 import net.arctics.clonk.util.CompoundIterable;
 
 public class C4Function extends C4Structure implements Serializable, ITypedField {
@@ -291,7 +292,7 @@ public class C4Function extends C4Structure implements Serializable, ITypedField
 	public C4Function getInherited() {
 		if (getVisibility() == C4FunctionScope.FUNC_GLOBAL) {
 			C4Function f = null;
-			for (C4Function funcWithSameName : getScript().getIndex().fieldsWithName(this.name, C4Function.class)) {
+			for (C4Function funcWithSameName : getScript().getIndex().declarationsWithName(this.name, C4Function.class)) {
 				if (funcWithSameName == this) {
 					break;
 				}
@@ -320,12 +321,12 @@ public class C4Function extends C4Structure implements Serializable, ITypedField
 	}
 
 	@Override
-	public boolean hasChildFields() {
+	public boolean hasSubDeclarations() {
 		return getLocalVars() != null && getLocalVars().size() > 0;
 	}
 
 	@Override
-	public Object[] getChildFieldsForOutline() {
+	public Object[] getSubDeclarationsForOutline() {
 		return getLocalVars().toArray();
 	}
 
@@ -394,11 +395,16 @@ public class C4Function extends C4Structure implements Serializable, ITypedField
 	public C4Object getExpectedContent() {
 		return expectedContent;
 	}
-
+	
 	public void setExpectedContent(C4Object object) {
 		expectedContent = object;
 	}
 	
+	/**
+	 * Returns whether this functino inherites from the calling function
+	 * @param otherFunc
+	 * @return true if related, false if not
+	 */
 	public boolean inheritsFrom(C4Function otherFunc) {
 		for (C4Function f = this; f != null; f = f.getInherited())
 			if (otherFunc == f)
@@ -406,7 +412,12 @@ public class C4Function extends C4Structure implements Serializable, ITypedField
 		return false;
 	}
 	
-	public boolean relatedFunction(C4Function otherFunc) {
+	/**
+	 * Returns whether the function passed to this method is in the same override line as the calling function 
+	 * @param otherFunc
+	 * @return true if both functions are related, false if not
+	 */
+	public boolean isRelatedFunction(C4Function otherFunc) {
 		if (this.inheritsFrom(otherFunc))
 			return true; 
 		for (C4Function f = this; f != null; f = f.getInherited())
@@ -419,6 +430,11 @@ public class C4Function extends C4Structure implements Serializable, ITypedField
 	@Override
 	public Iterable<C4Field> allSubDeclarations() {
 		return new CompoundIterable<C4Field>(localVars, parameter); 
+	}
+	
+	@Override
+	public boolean isGlobal() {
+		return getVisibility() == C4FunctionScope.FUNC_GLOBAL;
 	}
 	
 }

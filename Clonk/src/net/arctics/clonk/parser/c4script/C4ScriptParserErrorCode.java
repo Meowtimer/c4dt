@@ -1,7 +1,7 @@
 /**
  * 
  */
-package net.arctics.clonk.parser;
+package net.arctics.clonk.parser.c4script;
 
 public enum C4ScriptParserErrorCode {
 	TokenExpected("'%s' expected"),

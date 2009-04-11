@@ -8,8 +8,8 @@ import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.C4Field;
 import net.arctics.clonk.parser.C4Function;
 import net.arctics.clonk.parser.C4ScriptBase;
-import net.arctics.clonk.parser.FindDeclarationInfo;
 import net.arctics.clonk.parser.ProjectIndex;
+import net.arctics.clonk.parser.c4script.FindDeclarationInfo;
 import net.arctics.clonk.ui.search.ClonkSearchMatch;
 import net.arctics.clonk.ui.search.ClonkSearchQuery;
 import net.arctics.clonk.ui.search.ClonkSearchResult;
@@ -34,27 +34,27 @@ import org.eclipse.text.edits.ReplaceEdit;
 
 public class ClonkRenameFieldProcessor extends RenameProcessor {
 	
-	private C4Field field;
+	private C4Field decl;
 	private String newName;
 
 	public ClonkRenameFieldProcessor(C4Field field, String newName) {
 		this.newName = newName;
-		this.field = field;
+		this.decl = field;
 	}
 
 	@Override
 	public RefactoringStatus checkInitialConditions(IProgressMonitor monitor)
 			throws CoreException, OperationCanceledException {
 		// renaming fields that originate from outside the project is not allowed
-		C4Field baseField = field instanceof C4Function ? ((C4Function)field).baseFunction() : field;
+		C4Field baseField = decl instanceof C4Function ? ((C4Function)decl).baseFunction() : decl;
 		if (!(baseField.getScript().getIndex() instanceof ProjectIndex))
-			return RefactoringStatus.createFatalErrorStatus(field.getName() + " is either declared outside of the project or overrides a function that is declared outside of the project");
+			return RefactoringStatus.createFatalErrorStatus(decl.getName() + " is either declared outside of the project or overrides a function that is declared outside of the project");
 		
-		FindDeclarationInfo info = new FindDeclarationInfo(field.getScript().getIndex());
-		info.setFieldClass(field.getClass());
-		C4Field existingField = field.getScript().findDeclaration(newName, info);
-		if (existingField != null) {
-			return RefactoringStatus.createFatalErrorStatus("There is already an item with name " + newName + " in " + field.getScript().toString());
+		FindDeclarationInfo info = new FindDeclarationInfo(decl.getScript().getIndex());
+		info.setDeclarationClass(decl.getClass());
+		C4Field existingDec = decl.getScript().findDeclaration(newName, info);
+		if (existingDec != null) {
+			return RefactoringStatus.createFatalErrorStatus("There is already an item with name " + newName + " in " + decl.getScript().toString());
 		}
 		
 		return RefactoringStatus.createInfoStatus("Everything awesome");
@@ -63,26 +63,26 @@ public class ClonkRenameFieldProcessor extends RenameProcessor {
 	@Override
 	public Change createChange(IProgressMonitor monitor) throws CoreException,
 			OperationCanceledException {
-		Object script = field.getScript().getScriptFile();
+		Object script = decl.getScript().getScriptFile();
 		if (!(script instanceof IResource))
 			return null;
 		IResource declaringFile = (IResource) script;
-		ClonkSearchQuery query = new ClonkSearchQuery(field, Utilities.getProject(declaringFile));
+		ClonkSearchQuery query = new ClonkSearchQuery(decl, Utilities.getProject(declaringFile));
 		query.run(monitor);
 		ClonkSearchResult searchResult = (ClonkSearchResult) query.getSearchResult();
 		// all references in code
 		Set<Object> elements = new HashSet<Object>(Arrays.asList(searchResult.getElements()));
 		// declaration of the selected field
-		elements.add(field.getScript());
+		elements.add(decl.getScript());
 		// if field is a function also look for functions which inherit or are inherited from field
-		if (field instanceof C4Function) {
-			C4Function fieldAsFunc = (C4Function)field;
-			for (C4Function relatedFunc : field.getScript().getIndex().fieldsWithName(field.getName(), C4Function.class)) {
-				if (field != relatedFunc && fieldAsFunc.relatedFunction(relatedFunc) && fieldAsFunc.getScript().getScriptFile() instanceof IFile)
+		if (decl instanceof C4Function) {
+			C4Function fieldAsFunc = (C4Function)decl;
+			for (C4Function relatedFunc : decl.getScript().getIndex().declarationsWithName(decl.getName(), C4Function.class)) {
+				if (decl != relatedFunc && fieldAsFunc.isRelatedFunction(relatedFunc) && fieldAsFunc.getScript().getScriptFile() instanceof IFile)
 					elements.add(relatedFunc);
 			}
 		}
-		CompositeChange composite = new CompositeChange("Renaming " + field.toString());
+		CompositeChange composite = new CompositeChange("Renaming " + decl.toString());
 		for (Object element : elements) {
 			IFile file;
 			if (element instanceof IFile)
@@ -94,11 +94,11 @@ public class ClonkRenameFieldProcessor extends RenameProcessor {
 			else
 				file = null;
 			if (file != null) {
-				TextFileChange fileChange = new TextFileChange("Renaming " + field.toString() + " in " + file.getFullPath().toString(), file);
+				TextFileChange fileChange = new TextFileChange("Renaming " + decl.toString() + " in " + file.getFullPath().toString(), file);
 				fileChange.setEdit(new MultiTextEdit());
 				// change declaration
 				if (file.equals(declaringFile)) {
-					fileChange.addEdit(new ReplaceEdit(field.getLocation().getOffset(), field.getLocation().getLength(), newName));
+					fileChange.addEdit(new ReplaceEdit(decl.getLocation().getOffset(), decl.getLocation().getLength(), newName));
 				}
 				if (element instanceof C4Function) {
 					C4Function relatedFunc = (C4Function)element;
@@ -124,7 +124,7 @@ public class ClonkRenameFieldProcessor extends RenameProcessor {
 
 	@Override
 	public Object[] getElements() {
-		return new Object[] {field};
+		return new Object[] {decl};
 	}
 
 	@Override
@@ -149,7 +149,7 @@ public class ClonkRenameFieldProcessor extends RenameProcessor {
 	}
 
 	public C4Field getField() {
-		return field;
+		return decl;
 	}
 	
 }

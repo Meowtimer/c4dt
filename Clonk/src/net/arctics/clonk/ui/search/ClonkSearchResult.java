@@ -1,8 +1,8 @@
 package net.arctics.clonk.ui.search;
 
 import net.arctics.clonk.parser.C4ScriptBase;
-import net.arctics.clonk.parser.C4ScriptParser;
-import net.arctics.clonk.parser.C4ScriptExprTree.ExprElm;
+import net.arctics.clonk.parser.c4script.C4ScriptParser;
+import net.arctics.clonk.parser.c4script.C4ScriptExprTree.ExprElm;
 import net.arctics.clonk.util.Utilities;
 
 import org.eclipse.core.resources.IFile;

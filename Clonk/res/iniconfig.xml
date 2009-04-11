@@ -232,6 +232,8 @@
 				description="?" />
 			<entry name="RotatedSolidmasks" class="net.arctics.clonk.parser.inireader.IntegerArray"
 				description="?" />
+			<entry name="AllowPictureStack" class="net.arctics.clonk.parser.inireader.CategoriesArray"
+				description="?" />
 
 		</section>
 		<section name="Physical">

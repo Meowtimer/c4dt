@@ -1,18 +1,31 @@
-package net.arctics.clonk.parser;
+package net.arctics.clonk.parser.c4script;
 
 import java.io.Serializable;
 import java.util.LinkedList;
 import java.util.List;
 
 import net.arctics.clonk.ClonkCore;
-import net.arctics.clonk.parser.C4ScriptParser.Keywords;
-import net.arctics.clonk.parser.C4ScriptParser.ParsingException;
+import net.arctics.clonk.parser.C4Field;
+import net.arctics.clonk.parser.C4Function;
+import net.arctics.clonk.parser.C4ID;
+import net.arctics.clonk.parser.C4Object;
+import net.arctics.clonk.parser.C4Scenario;
+import net.arctics.clonk.parser.C4ScriptBase;
+import net.arctics.clonk.parser.C4Type;
+import net.arctics.clonk.parser.C4Variable;
+import net.arctics.clonk.parser.ClonkIndex;
+import net.arctics.clonk.parser.ITypedField;
 import net.arctics.clonk.parser.C4Variable.C4VariableScope;
+import net.arctics.clonk.parser.c4script.C4ScriptParser.Keywords;
+import net.arctics.clonk.parser.c4script.C4ScriptParser.ParsingException;
 import net.arctics.clonk.util.Pair;
 
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.Region;
 
+/**
+ * Contains classes that form a c4script syntax tree.
+ */
 public abstract class C4ScriptExprTree {
 	
 	public enum TraversalContinuation {
@@ -26,13 +39,13 @@ public abstract class C4ScriptExprTree {
 		public TraversalContinuation expressionDetected(ExprElm expression, C4ScriptParser parser);
 	}
 	
-	public final static class FieldRegion {
+	public final static class DeclarationRegion {
 		private C4Field field;
 		private IRegion region;
 		public C4Field getField() {
 			return field;
 		}
-		public FieldRegion(C4Field field, IRegion region) {
+		public DeclarationRegion(C4Field field, IRegion region) {
 			super();
 			this.field = field;
 			this.region = region;
@@ -251,7 +264,7 @@ public abstract class C4ScriptExprTree {
 			return new Region(offset+getExprStart(), getExprEnd()-getExprStart());
 		}
 		
-		public FieldRegion fieldAt(int offset, C4ScriptParser parser) {
+		public DeclarationRegion declarationAt(int offset, C4ScriptParser parser) {
 			return null;
 		}
 		
@@ -385,9 +398,9 @@ public abstract class C4ScriptExprTree {
 		}
 
 		@Override
-		public FieldRegion fieldAt(int offset, C4ScriptParser parser) {
+		public DeclarationRegion declarationAt(int offset, C4ScriptParser parser) {
 			if (id != null && offset >= idOffset && offset < idOffset+4)
-				return new FieldRegion(parser.getContainer().getNearestObjectWithId(id), new Region(getExprStart()+idOffset, 4));
+				return new DeclarationRegion(parser.getContainer().getNearestObjectWithId(id), new Region(getExprStart()+idOffset, 4));
 			return null;
 		}
 		
@@ -502,8 +515,8 @@ public abstract class C4ScriptExprTree {
 		}
 
 		@Override
-		public FieldRegion fieldAt(int offset, C4ScriptParser parser) {
-			return new FieldRegion(getField(parser), region(0));
+		public DeclarationRegion declarationAt(int offset, C4ScriptParser parser) {
+			return new DeclarationRegion(getField(parser), region(0));
 		}
 
 		public String getFieldName() {
@@ -639,7 +652,7 @@ public abstract class C4ScriptExprTree {
 				// find global function
 				C4Field field = parser.getContainer().getIndex().findGlobalFunction(fieldName);
 				if (field == null)
-					field = ClonkCore.getDefault().EXTERN_INDEX.findGlobalField(fieldName);
+					field = ClonkCore.getDefault().EXTERN_INDEX.findGlobalDeclaration(fieldName);
 				if (field == null)
 					field = ClonkCore.getDefault().ENGINE_OBJECT.findFunction(fieldName);
 				return field;
@@ -806,8 +819,8 @@ public abstract class C4ScriptExprTree {
 			return super.newStyleReplacement(parser);
 		}
 		@Override
-		public FieldRegion fieldAt(int offset, C4ScriptParser parser) {
-			return new FieldRegion(getField(parser), new Region(getExprStart(), fieldName.length()));
+		public DeclarationRegion declarationAt(int offset, C4ScriptParser parser) {
+			return new DeclarationRegion(getField(parser), new Region(getExprStart(), fieldName.length()));
 		}
 		public C4Object searchCriteriaAssumedResult(C4ScriptParser context) {
 			C4Object result = null;
@@ -1317,7 +1330,7 @@ public abstract class C4ScriptExprTree {
 		}
 		
 		@Override
-		public FieldRegion fieldAt(int offset, C4ScriptParser parser) {
+		public DeclarationRegion declarationAt(int offset, C4ScriptParser parser) {
 			if (getParent() instanceof ExprCallFunc) {
 				ExprCallFunc parentFunc = (ExprCallFunc) getParent();
 				int myIndex = parentFunc.indexOfParm(this);
@@ -1331,7 +1344,7 @@ public abstract class C4ScriptExprTree {
 					if (scenario != null) {
 						C4Function scenFunc = scenario.findFunction(stringValue());
 						if (scenFunc != null)
-							return new FieldRegion(scenFunc, this);
+							return new DeclarationRegion(scenFunc, this);
 					}
 				}
 				
@@ -1341,7 +1354,7 @@ public abstract class C4ScriptExprTree {
 					if (typeToLookIn != null) {
 						C4Function func = typeToLookIn.findFunction(stringValue());
 						if (func != null)
-							return new FieldRegion(func, this);
+							return new DeclarationRegion(func, this);
 					}
 				}
 				
@@ -1355,7 +1368,7 @@ public abstract class C4ScriptExprTree {
 					if (typeToLookIn != null) {
 						C4Variable var = typeToLookIn.findLocalVariable(stringValue(), false);
 						if (var != null)
-							return new FieldRegion(var, this);
+							return new DeclarationRegion(var, this);
 					}
 				}
 				
@@ -1391,8 +1404,8 @@ public abstract class C4ScriptExprTree {
 		}
 
 		@Override
-		public FieldRegion fieldAt(int offset, C4ScriptParser parser) {
-			return new FieldRegion(parser.getContainer().getNearestObjectWithId(idValue()), region(0));
+		public DeclarationRegion declarationAt(int offset, C4ScriptParser parser) {
+			return new DeclarationRegion(parser.getContainer().getNearestObjectWithId(idValue()), region(0));
 		}
 
 	}
@@ -2237,7 +2250,7 @@ public abstract class C4ScriptExprTree {
 			this.contents = contents;
 		}
 		@Override
-		public FieldRegion fieldAt(int offset, C4ScriptParser parser) {
+		public DeclarationRegion declarationAt(int offset, C4ScriptParser parser) {
 			if (contents == null)
 				return null;
 			String[] assignments = contents.split("\\|");
@@ -2249,7 +2262,7 @@ public abstract class C4ScriptExprTree {
 						String name = nameValue[0].trim();
 						String value = nameValue[1].trim();
 						if (name.equals("Condition") || name.equals("Image"))
-							return new FieldRegion(parser.getContainer().findDeclaration(value), new Region(off+nameValue[0].length()+1, value.length()));
+							return new DeclarationRegion(parser.getContainer().findDeclaration(value), new Region(off+nameValue[0].length()+1, value.length()));
 					}
 					break;
 				}

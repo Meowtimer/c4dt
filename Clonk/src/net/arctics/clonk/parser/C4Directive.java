@@ -2,7 +2,7 @@ package net.arctics.clonk.parser;
 
 import java.io.Serializable;
 
-import net.arctics.clonk.parser.C4ScriptExprTree.ExprElm;
+import net.arctics.clonk.parser.c4script.C4ScriptExprTree.ExprElm;
 
 public class C4Directive extends C4Field implements Serializable {
 	/**

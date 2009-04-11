@@ -55,6 +55,11 @@ public class C4ObjectIntern extends C4Object implements Serializable {
 	public void setId(C4ID newId, boolean persistent) {
 		setId(newId);
 		if (persistent) {
+//			DefCoreParser defCoreParser = new DefCoreParser(getScriptFile());
+//			IniEntry idEntry = defCoreParser.entryInSection("DefCore", "id");
+//			if (idEntry != null) {
+//				idEntry.setValue(value)
+//			}
 			// TODO edit DefCore.txt
 			throw new InvalidParameterException("Parameter 'persistent' is not yet implemented");
 		}

@@ -13,13 +13,13 @@ import net.arctics.clonk.parser.C4Function;
 import net.arctics.clonk.parser.C4Object;
 import net.arctics.clonk.parser.C4ObjectIntern;
 import net.arctics.clonk.parser.C4ScriptBase;
-import net.arctics.clonk.parser.C4ScriptParser;
 import net.arctics.clonk.parser.C4Variable;
 import net.arctics.clonk.parser.ClonkIndex;
 import net.arctics.clonk.parser.C4Function.C4FunctionScope;
-import net.arctics.clonk.parser.C4ScriptExprTree.*;
-import net.arctics.clonk.parser.C4ScriptParser.ParsingException;
 import net.arctics.clonk.parser.C4Variable.C4VariableScope;
+import net.arctics.clonk.parser.c4script.C4ScriptParser;
+import net.arctics.clonk.parser.c4script.C4ScriptExprTree.*;
+import net.arctics.clonk.parser.c4script.C4ScriptParser.ParsingException;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.util.Utilities;
 
@@ -52,30 +52,53 @@ public class ClonkCompletionProcessor implements IContentAssistProcessor, ICompl
 
 	private final class ClonkCompletionListener implements ICompletionListener, ICompletionListenerExtension {
 
-		public void selectionChanged(ICompletionProposal proposal,
-				boolean smartToggle) {
+		public void selectionChanged(ICompletionProposal proposal, boolean smartToggle) {
 		}
 	
 		public void assistSessionStarted(ContentAssistEvent event) {
-			proposalCycle = SHOW_ALL;
+			proposalCycle = ProposalCycle.SHOW_ALL;
 		}
 	
 		public void assistSessionEnded(ContentAssistEvent event) {
 		}
 
 		public void assistSessionRestarted(ContentAssistEvent event) {
-			proposalCycle = proposalCycle ^ 1;
+			proposalCycle = proposalCycle.reverseCycle(); // wtf -.-
 		}
 		
 	}
 	
-	private final int SHOW_ALL = 0;
-	private final int SHOW_LOCAL = 1;
+	private enum ProposalCycle {
+		SHOW_ALL,
+		SHOW_LOCAL,
+		SHOW_OBJECT;
+		
+		public String description() {
+			switch (this) {
+			case SHOW_ALL:
+				return "all completions";
+			case SHOW_LOCAL:
+				return "local completions";
+			case SHOW_OBJECT:
+				return "object completions";
+			default:
+				return null;
+			}
+		}
+
+		public ProposalCycle reverseCycle() {
+			return values()[ordinal() == 0 ? values().length-1 : ordinal() - 1];
+		}
+
+		public ProposalCycle cycle() {
+			return values()[(this.ordinal()+1)%values().length];
+		}
+	}
 	
 	private ITextEditor editor;
 	private ContentAssistant assistant;
 	private ExprElm contextExpression;
-	private int proposalCycle = SHOW_ALL;
+	private ProposalCycle proposalCycle = ProposalCycle.SHOW_ALL;
 	
 	public ClonkCompletionProcessor(ITextEditor editor,
 			ContentAssistant assistant) {
@@ -89,8 +112,7 @@ public class ClonkCompletionProcessor implements IContentAssistProcessor, ICompl
 	}
 	
 	protected void doCycle() {
-		if (proposalCycle == SHOW_ALL) proposalCycle = SHOW_LOCAL;
-		else proposalCycle = SHOW_ALL;
+		proposalCycle = proposalCycle.cycle();
 	}
 	
 	public void proposalForFunc(C4Function func,String prefix,int offset,List<ClonkCompletionProposal> proposals,String parentName) {
@@ -196,7 +218,7 @@ public class ClonkCompletionProcessor implements IContentAssistProcessor, ICompl
 			prefix = null;
 		}
 		
-		ClonkProjectNature nature = net.arctics.clonk.util.Utilities.getProject(editor);
+		ClonkProjectNature nature = Utilities.getProject(editor);
 		List<String> statusMessages = new ArrayList<String>(4);
 		List<ClonkCompletionProposal> proposals = new ArrayList<ClonkCompletionProposal>();
 		ClonkIndex index = nature.getIndex();
@@ -205,7 +227,7 @@ public class ClonkCompletionProcessor implements IContentAssistProcessor, ICompl
 		
 		statusMessages.add("Project files");
 		
-		if (proposalCycle == SHOW_ALL || activeFunc == null) {
+		if (proposalCycle == ProposalCycle.SHOW_ALL || activeFunc == null) {
 			if (!ClonkCore.getDefault().EXTERN_INDEX.isEmpty()) {
 				statusMessages.add("Extern libs");
 			}
@@ -215,134 +237,12 @@ public class ClonkCompletionProcessor implements IContentAssistProcessor, ICompl
 		}
 		
 		if (activeFunc == null) {
-		
-			try {
-				if (viewer.getDocument().get(offset - 5, 5).equalsIgnoreCase("func ")) {
-					for(String callback : BuiltInDefinitions.OBJECT_CALLBACKS) {
-						if (prefix != null) {
-							if (!callback.toLowerCase().startsWith(prefix)) continue;
-						}
-						ImageRegistry reg = ClonkCore.getDefault().getImageRegistry();
-						if (reg.get("callback") == null) {
-							reg.put("callback", ImageDescriptor.createFromURL(FileLocator.find(ClonkCore.getDefault().getBundle(), new Path("icons/callback.png"), null)));
-						}
-						int replacementLength = 0;
-						if (prefix != null) replacementLength = prefix.length();
-						ClonkCompletionProposal prop = new ClonkCompletionProposal(callback,offset,replacementLength,callback.length(), reg.get("callback") , callback.trim(),null,null," - Callback");
-						proposals.add(prop);
-					}
-				}
-			} catch (BadLocationException e) {
-				// ignore
-			}
-			
-			
-			for(String declarator : BuiltInDefinitions.DECLARATORS) {
-				if (prefix != null) {
-					if (!declarator.toLowerCase().startsWith(prefix)) continue;
-				}
-				ImageRegistry reg = ClonkCore.getDefault().getImageRegistry();
-				if (reg.get("declarator") == null) {
-					reg.put("declarator", ImageDescriptor.createFromURL(FileLocator.find(ClonkCore.getDefault().getBundle(), new Path("icons/declarator.png"), null)));
-				}
-				int replacementLength = 0;
-				if (prefix != null) replacementLength = prefix.length();
-				ClonkCompletionProposal prop = new ClonkCompletionProposal(declarator,offset,replacementLength,declarator.length(), reg.get("declarator") , declarator.trim(),null,null," - Engine");
-				proposals.add(prop);
-			}
-			
-			for(String directive : BuiltInDefinitions.DIRECTIVES) {
-				if (prefix != null) {
-					if (!directive.toLowerCase().contains(prefix)) continue;
-				}
-				ImageRegistry reg = ClonkCore.getDefault().getImageRegistry();
-				if (reg.get("directive") == null) {
-					reg.put("directive", ImageDescriptor.createFromURL(FileLocator.find(ClonkCore.getDefault().getBundle(), new Path("icons/directive.png"), null)));
-				}
-				int replacementLength = 0;
-				if (prefix != null) replacementLength = prefix.length();
-				ClonkCompletionProposal prop = new ClonkCompletionProposal(directive,offset,replacementLength,directive.length(), reg.get("directive") , directive.trim(),null,null," - Engine");
-				proposals.add(prop);
-			}
-			
-			// propose objects for #include or something
-			proposalForIndex(index, offset, wordOffset, prefix, proposals);
-			proposalForIndex(ClonkCore.getDefault().EXTERN_INDEX, offset, wordOffset, prefix, proposals);
+			proposalsOutsideOfFunction(viewer, offset, wordOffset, prefix,
+					proposals, index);
 		}
 		else {
-			proposalForIndex(index, offset, wordOffset, prefix, proposals);
-			
-			if (proposalCycle == SHOW_ALL) {
-				proposalForIndex(ClonkCore.getDefault().EXTERN_INDEX, offset, wordOffset, prefix, proposals);
-				
-				if (ClonkCore.getDefault().ENGINE_OBJECT != null) {
-					for (C4Function func : ClonkCore.getDefault().ENGINE_OBJECT.functions()) {
-						proposalForFunc(func, prefix, offset, proposals, ClonkCore.getDefault().ENGINE_OBJECT.getName());
-					}
-					for (C4Variable var : ClonkCore.getDefault().ENGINE_OBJECT.variables()) {
-						proposalForVar(var,prefix,offset,proposals);
-					}
-				}
-				
-				if (activeFunc != null) {
-					for (C4Variable v : activeFunc.getParameters()) {
-						proposalForVar(v, prefix, wordOffset, proposals);
-					}
-					for (C4Variable v : activeFunc.getLocalVars()) {
-						proposalForVar(v, prefix, wordOffset, proposals);
-					}
-				}
-			}
-			C4ScriptBase contextScript = Utilities.getScriptForEditor(editor);
-			boolean contextObjChanged = false;
-			if (contextScript != null) {
-				try {
-					contextExpression = null;
-					final int preservedOffset = offset;
-					C4ScriptParser parser = C4ScriptParser.reportExpressionsAndStatements(doc, activeFunc.getBody().getOffset(), offset, contextScript, activeFunc, new IExpressionListener() {
-						public TraversalContinuation expressionDetected(ExprElm expression, C4ScriptParser parser) {
-							if (expression instanceof Statement) {
-								if (contextExpression != null && !contextExpression.containedIn(expression))
-									contextExpression = null;
-								return TraversalContinuation.Continue;
-							}
-							if (activeFunc.getBody().getOffset() + expression.getExprStart() <= preservedOffset) {
-								contextExpression = expression;
-								return TraversalContinuation.Continue;
-							}
-							return TraversalContinuation.Cancel;
-						}
-					});
-					if (contextExpression != null) {
-						C4Object guessed = contextExpression.guessObjectType(parser);
-						if (guessed != null) {
-							contextScript = guessed;
-							contextObjChanged = true;
-						}
-					}
-				} catch (ParsingException e) {
-					e.printStackTrace();
-				}
-			}
-			
-			if (contextScript != null) {
-				proposalsFromScript(contextScript, new HashSet<C4ScriptBase>(), prefix, offset, wordOffset, proposals, contextObjChanged, index);
-			}
-			if (proposalCycle == SHOW_ALL) {
-				for(String keyword : BuiltInDefinitions.KEYWORDS) {
-					if (prefix != null) {
-						if (!keyword.toLowerCase().startsWith(prefix)) continue;
-					}
-					ImageRegistry reg = ClonkCore.getDefault().getImageRegistry();
-					if (reg.get("keyword") == null) {
-						reg.put("keyword", ImageDescriptor.createFromURL(FileLocator.find(ClonkCore.getDefault().getBundle(), new Path("icons/keyword.png"), null)));
-					}
-					int replacementLength = 0;
-					if (prefix != null) replacementLength = prefix.length();
-					ClonkCompletionProposal prop = new ClonkCompletionProposal(keyword,offset,replacementLength,keyword.length(), reg.get("keyword") , keyword.trim(),null,null," - Engine");
-					proposals.add(prop);
-				}
-			}
+			proposalsInsideOfFunction(offset, wordOffset, doc, prefix,
+					proposals, index, activeFunc);
 		}
 		
 		StringBuilder statusMessage = new StringBuilder("Shown data: ");
@@ -351,15 +251,8 @@ public class ClonkCompletionProcessor implements IContentAssistProcessor, ICompl
 			if (statusMessages.get(statusMessages.size() - 1) != message) statusMessage.append(", ");
 		}
 		
-		TriggerSequence sequence = getIterationBinding();
-		
-		assistant.setStatusMessage(statusMessage.toString());
-		if (proposalCycle == SHOW_LOCAL)
-			assistant.setStatusMessage("Press '" + sequence.format() + "' to show all completions");
-		else if (proposalCycle == SHOW_ALL)
-			assistant.setStatusMessage("Press '" + sequence.format() + "' to show project completions");
-		
-		
+		//assistant.setStatusMessage(statusMessage.toString());
+		assistant.setStatusMessage(getProposalCycleMessage());
 		
 		doCycle();
 		
@@ -377,6 +270,150 @@ public class ClonkCompletionProcessor implements IContentAssistProcessor, ICompl
 		});
 		
 		return result;
+	}
+
+	private void proposalsInsideOfFunction(int offset, int wordOffset,
+			IDocument doc, String prefix,
+			List<ClonkCompletionProposal> proposals, ClonkIndex index,
+			final C4Function activeFunc) {
+		
+		if (proposalCycle != ProposalCycle.SHOW_OBJECT)
+			proposalForIndex(index, offset, wordOffset, prefix, proposals);
+		
+		if (proposalCycle == ProposalCycle.SHOW_ALL) {
+			proposalForIndex(ClonkCore.getDefault().EXTERN_INDEX, offset, wordOffset, prefix, proposals);
+			
+			if (ClonkCore.getDefault().ENGINE_OBJECT != null) {
+				for (C4Function func : ClonkCore.getDefault().ENGINE_OBJECT.functions()) {
+					proposalForFunc(func, prefix, offset, proposals, ClonkCore.getDefault().ENGINE_OBJECT.getName());
+				}
+				for (C4Variable var : ClonkCore.getDefault().ENGINE_OBJECT.variables()) {
+					proposalForVar(var,prefix,offset,proposals);
+				}
+			}
+			
+			if (activeFunc != null) {
+				for (C4Variable v : activeFunc.getParameters()) {
+					proposalForVar(v, prefix, wordOffset, proposals);
+				}
+				for (C4Variable v : activeFunc.getLocalVars()) {
+					proposalForVar(v, prefix, wordOffset, proposals);
+				}
+			}
+		}
+		C4ScriptBase contextScript = Utilities.getScriptForEditor(editor);
+		boolean contextObjChanged = false;
+		if (contextScript != null) {
+			try {
+				contextExpression = null;
+				final int preservedOffset = offset;
+				C4ScriptParser parser = C4ScriptParser.reportExpressionsAndStatements(doc, activeFunc.getBody().getOffset(), offset, contextScript, activeFunc, new IExpressionListener() {
+					public TraversalContinuation expressionDetected(ExprElm expression, C4ScriptParser parser) {
+						if (expression instanceof Statement) {
+							if (contextExpression != null && !contextExpression.containedIn(expression))
+								contextExpression = null;
+							return TraversalContinuation.Continue;
+						}
+						if (activeFunc.getBody().getOffset() + expression.getExprStart() <= preservedOffset) {
+							contextExpression = expression;
+							return TraversalContinuation.Continue;
+						}
+						return TraversalContinuation.Cancel;
+					}
+				});
+				if (contextExpression != null) {
+					C4Object guessed = contextExpression.guessObjectType(parser);
+					if (guessed != null) {
+						contextScript = guessed;
+						contextObjChanged = true;
+					}
+				}
+			} catch (ParsingException e) {
+				e.printStackTrace();
+			}
+		}
+		
+		if (contextScript != null) {
+			proposalsFromScript(contextScript, new HashSet<C4ScriptBase>(), prefix, offset, wordOffset, proposals, contextObjChanged, index);
+		}
+		if (proposalCycle == ProposalCycle.SHOW_ALL) {
+			for(String keyword : BuiltInDefinitions.KEYWORDS) {
+				if (prefix != null) {
+					if (!keyword.toLowerCase().startsWith(prefix)) continue;
+				}
+				ImageRegistry reg = ClonkCore.getDefault().getImageRegistry();
+				if (reg.get("keyword") == null) {
+					reg.put("keyword", ImageDescriptor.createFromURL(FileLocator.find(ClonkCore.getDefault().getBundle(), new Path("icons/keyword.png"), null)));
+				}
+				int replacementLength = 0;
+				if (prefix != null) replacementLength = prefix.length();
+				ClonkCompletionProposal prop = new ClonkCompletionProposal(keyword,offset,replacementLength,keyword.length(), reg.get("keyword") , keyword.trim(),null,null," - Engine");
+				proposals.add(prop);
+			}
+		}
+	}
+
+	private void proposalsOutsideOfFunction(ITextViewer viewer, int offset,
+			int wordOffset, String prefix,
+			List<ClonkCompletionProposal> proposals, ClonkIndex index) {
+		try {
+			if (viewer.getDocument().get(offset - 5, 5).equalsIgnoreCase("func ")) {
+				for(String callback : BuiltInDefinitions.OBJECT_CALLBACKS) {
+					if (prefix != null) {
+						if (!callback.toLowerCase().startsWith(prefix)) continue;
+					}
+					ImageRegistry reg = ClonkCore.getDefault().getImageRegistry();
+					if (reg.get("callback") == null) {
+						reg.put("callback", ImageDescriptor.createFromURL(FileLocator.find(ClonkCore.getDefault().getBundle(), new Path("icons/callback.png"), null)));
+					}
+					int replacementLength = 0;
+					if (prefix != null) replacementLength = prefix.length();
+					ClonkCompletionProposal prop = new ClonkCompletionProposal(callback,offset,replacementLength,callback.length(), reg.get("callback") , callback.trim(),null,null," - Callback");
+					proposals.add(prop);
+				}
+			}
+		} catch (BadLocationException e) {
+			// ignore
+		}
+		
+		
+		for(String declarator : BuiltInDefinitions.DECLARATORS) {
+			if (prefix != null) {
+				if (!declarator.toLowerCase().startsWith(prefix)) continue;
+			}
+			ImageRegistry reg = ClonkCore.getDefault().getImageRegistry();
+			if (reg.get("declarator") == null) {
+				reg.put("declarator", ImageDescriptor.createFromURL(FileLocator.find(ClonkCore.getDefault().getBundle(), new Path("icons/declarator.png"), null)));
+			}
+			int replacementLength = 0;
+			if (prefix != null) replacementLength = prefix.length();
+			ClonkCompletionProposal prop = new ClonkCompletionProposal(declarator,offset,replacementLength,declarator.length(), reg.get("declarator") , declarator.trim(),null,null," - Engine");
+			proposals.add(prop);
+		}
+		
+		for(String directive : BuiltInDefinitions.DIRECTIVES) {
+			if (prefix != null) {
+				if (!directive.toLowerCase().contains(prefix)) continue;
+			}
+			ImageRegistry reg = ClonkCore.getDefault().getImageRegistry();
+			if (reg.get("directive") == null) {
+				reg.put("directive", ImageDescriptor.createFromURL(FileLocator.find(ClonkCore.getDefault().getBundle(), new Path("icons/directive.png"), null)));
+			}
+			int replacementLength = 0;
+			if (prefix != null) replacementLength = prefix.length();
+			ClonkCompletionProposal prop = new ClonkCompletionProposal(directive,offset,replacementLength,directive.length(), reg.get("directive") , directive.trim(),null,null," - Engine");
+			proposals.add(prop);
+		}
+		
+		// propose objects for #include or something
+		proposalForIndex(index, offset, wordOffset, prefix, proposals);
+		if (proposalCycle == ProposalCycle.SHOW_ALL)
+			proposalForIndex(ClonkCore.getDefault().EXTERN_INDEX, offset, wordOffset, prefix, proposals);
+	}
+
+	private String getProposalCycleMessage() {
+		TriggerSequence sequence = getIterationBinding();
+		return "Press '" + sequence.format() + "' to show " + proposalCycle.cycle().description();
 	}
 
 	private void proposalsFromScript(C4ScriptBase script, HashSet<C4ScriptBase> loopCatcher, String prefix, int offset, int wordOffset, List<ClonkCompletionProposal> proposals, boolean noPrivateFuncs, ClonkIndex index) {

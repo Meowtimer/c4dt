@@ -1,6 +1,7 @@
 package net.arctics.clonk.parser;
 
-import net.arctics.clonk.parser.C4ScriptExprTree.ExprElm;
+import net.arctics.clonk.parser.c4script.C4ScriptParser;
+import net.arctics.clonk.parser.c4script.C4ScriptExprTree.ExprElm;
 
 public interface ITypedField {
 	public void inferTypeFromAssignment(ExprElm val, C4ScriptParser context);

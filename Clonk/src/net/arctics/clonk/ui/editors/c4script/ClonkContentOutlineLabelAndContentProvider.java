@@ -35,7 +35,7 @@ public class ClonkContentOutlineLabelAndContentProvider extends LabelProvider im
 	 * @see org.eclipse.jface.viewers.ITreeContentProvider#getChildren(java.lang.Object)
 	 */
 	public Object[] getChildren(Object obj) {
-		return ((C4Field)obj).getChildFieldsForOutline();
+		return ((C4Field)obj).getSubDeclarationsForOutline();
 	}
 
 	/* (non-Javadoc)
@@ -50,7 +50,7 @@ public class ClonkContentOutlineLabelAndContentProvider extends LabelProvider im
 	 * @see org.eclipse.jface.viewers.ITreeContentProvider#hasChildren(java.lang.Object)
 	 */
 	public boolean hasChildren(Object field) {
-		return ((C4Field)field).hasChildFields();
+		return ((C4Field)field).hasSubDeclarations();
 	}
 
 	/* (non-Javadoc)

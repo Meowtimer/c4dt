@@ -8,6 +8,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import net.arctics.clonk.ClonkCore;
+import net.arctics.clonk.parser.c4script.FindDeclarationInfo;
 import net.arctics.clonk.preferences.PreferenceConstants;
 
 import org.eclipse.core.runtime.Platform;
@@ -65,7 +66,7 @@ public abstract class C4Object extends C4ScriptBase {
 
 	@Override
 	protected boolean refersToThis(String name, FindDeclarationInfo info) {
-		if (info.getFieldClass() == null || info.getFieldClass() == C4Object.class) {
+		if (info.getDeclarationClass() == null || info.getDeclarationClass() == C4Object.class) {
 			if (id != null && id.getName().equals(name))
 				return true;
 		}

@@ -1,8 +1,10 @@
-package net.arctics.clonk.parser;
+package net.arctics.clonk.parser.c4script;
 
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+
+import net.arctics.clonk.parser.C4Type;
 
 /**
  * 

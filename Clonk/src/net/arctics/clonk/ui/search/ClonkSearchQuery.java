@@ -7,17 +7,17 @@ import net.arctics.clonk.parser.C4Function;
 import net.arctics.clonk.parser.C4Object;
 import net.arctics.clonk.parser.C4Scenario;
 import net.arctics.clonk.parser.C4ScriptBase;
-import net.arctics.clonk.parser.C4ScriptParser;
-import net.arctics.clonk.parser.C4ScriptExprTree.ExprAccessField;
-import net.arctics.clonk.parser.C4ScriptExprTree.ExprCallFunc;
-import net.arctics.clonk.parser.C4ScriptExprTree.ExprElm;
-import net.arctics.clonk.parser.C4ScriptExprTree.ExprID;
-import net.arctics.clonk.parser.C4ScriptExprTree.ExprObjectCall;
-import net.arctics.clonk.parser.C4ScriptExprTree.ExprString;
-import net.arctics.clonk.parser.C4ScriptExprTree.IExpressionListener;
-import net.arctics.clonk.parser.C4ScriptExprTree.Statement;
-import net.arctics.clonk.parser.C4ScriptExprTree.TraversalContinuation;
-import net.arctics.clonk.parser.C4ScriptParser.ParsingException;
+import net.arctics.clonk.parser.c4script.C4ScriptParser;
+import net.arctics.clonk.parser.c4script.C4ScriptExprTree.ExprAccessField;
+import net.arctics.clonk.parser.c4script.C4ScriptExprTree.ExprCallFunc;
+import net.arctics.clonk.parser.c4script.C4ScriptExprTree.ExprElm;
+import net.arctics.clonk.parser.c4script.C4ScriptExprTree.ExprID;
+import net.arctics.clonk.parser.c4script.C4ScriptExprTree.ExprObjectCall;
+import net.arctics.clonk.parser.c4script.C4ScriptExprTree.ExprString;
+import net.arctics.clonk.parser.c4script.C4ScriptExprTree.IExpressionListener;
+import net.arctics.clonk.parser.c4script.C4ScriptExprTree.Statement;
+import net.arctics.clonk.parser.c4script.C4ScriptExprTree.TraversalContinuation;
+import net.arctics.clonk.parser.c4script.C4ScriptParser.ParsingException;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.util.Utilities;
 
@@ -101,7 +101,7 @@ public class ClonkSearchQuery implements ISearchQuery {
 						result.addMatch(expression, parser, false, true);
 					else if (potentiallyReferencedByObjectCall(expression)) {
 						C4Function otherFunc = (C4Function) accessField.getField();
-						boolean potential = (otherFunc == null || !((C4Function)field).relatedFunction(otherFunc));
+						boolean potential = (otherFunc == null || !((C4Function)field).isRelatedFunction(otherFunc));
 						result.addMatch(expression, parser, potential, accessField.indirectAccess());
 					}
 				}

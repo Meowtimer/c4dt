@@ -52,20 +52,23 @@ public abstract class Utilities {
 	private static MessageConsole clonkConsole = null;
 	private static MessageConsoleStream debugConsoleStream = null;
 	
+	/**
+	 * Returns the clonk project nature of the project the file that is being edited using the supplied editor belongs to
+	 * @param editor the editor
+	 * @return the nature
+	 */
 	public static ClonkProjectNature getProject(ITextEditor editor) {
-		try {
-			if (editor.getEditorInput() instanceof FileEditorInput) {
-				IProjectNature clonkProj = ((FileEditorInput)editor.getEditorInput()).getFile().getProject().getNature("net.arctics.clonk.clonknature");
-				if (clonkProj instanceof ClonkProjectNature) {
-					return (ClonkProjectNature)clonkProj;
-				}
-			}
-		} catch (CoreException e) {
-			e.printStackTrace();
+		if (editor.getEditorInput() instanceof FileEditorInput) {
+			return getProject(((FileEditorInput)editor.getEditorInput()).getFile());
 		}
 		return null;
 	}
 	
+	/**
+	 * Returns the clonk project nature associated with the project of res
+	 * @param res the resource
+	 * @return the nature
+	 */
 	public static ClonkProjectNature getProject(IResource res) {
 		if (res == null) return null;
 		IProject project = res.getProject();
@@ -79,6 +82,11 @@ public abstract class Utilities {
 		}
 	}
 	
+	/**
+	 * 
+	 * @param script
+	 * @return
+	 */
 	public static ClonkProjectNature getProject(C4ScriptBase script) {
 		if (script == null)
 			return null;
@@ -297,15 +305,23 @@ public abstract class Utilities {
 		}
 		return offset;
 	}
-	
-	public static boolean isLineBreak(char c) {
-		return c == '\n' || c == '\r';
-	}
 
+	/**
+	 * Shorthand for comparing resources
+	 * @param a the first resource
+	 * @param b the second resource
+	 * @return true if resources are both null or denote the same resource, false if not
+	 */
 	public static boolean resourceEqual(IResource a, IResource b) {
 		return (a == null && b == null) || (a != null && b != null && a.equals(b));
 	}
 	
+	/**
+	 * Returns whether resource somewhere below container in the file hierarchy
+	 * @param resource the resource
+	 * @param container the container
+	 * @return true if resource is below container, false if not
+	 */
 	public static boolean resourceInside(IResource resource, IContainer container) {
 		for (IContainer c = resource instanceof IContainer ? (IContainer)resource : resource.getParent(); c != null; c = c.getParent())
 			if (c.equals(container))
@@ -313,6 +329,12 @@ public abstract class Utilities {
 		return false;
 	}
 	
+	/**
+	 * Return the hops needed to get to a parent folder of a that also contains b
+	 * @param a
+	 * @param b
+	 * @return The distance to a container that both a and b are contained in
+	 */
 	public static int distanceToCommonContainer(IResource a, IResource b) {
 		IContainer c;
 		int dist = 0;
@@ -325,6 +347,9 @@ public abstract class Utilities {
 	}
 	
 	// nowhere to be found oO
+	/**
+	 * Return the index of an item in an array
+	 */
 	public static <T> int indexOf(T[] items, T item) {
 		for (int i = 0; i < items.length; i++)
 			if (items[i].equals(item))
@@ -332,6 +357,14 @@ public abstract class Utilities {
 		return -1;
 	}
 	
+	/**
+	 * Helper for creating a map with one assignment
+	 * @param <KeyType> key type for resulting map
+	 * @param <ValueType> value type for resulting map
+	 * @param mapClass class the method is to instantiate
+	 * @param keysAndValues array containing keys and values. keys are at even indices while values are at uneven ones
+	 * @return the map
+	 */
 	@SuppressWarnings("unchecked")
 	public static <KeyType, ValueType> Map<KeyType, ValueType> mapOfType(Class<? extends Map<KeyType, ValueType>> mapClass, Object... keysAndValues) {
 		try {
@@ -345,7 +378,14 @@ public abstract class Utilities {
 			return null;
 		}
 	}
-	
+
+	/**
+	 * like mapOfType, but called with HashMap.class
+	 * @param <KeyType>
+	 * @param <ValueType>
+	 * @param keysAndValues
+	 * @return
+	 */
 	@SuppressWarnings("unchecked")
 	public static <KeyType, ValueType> Map<KeyType, ValueType> map(Object... keysAndValues) {
 		return mapOfType((Class<? extends Map<KeyType, ValueType>>) HashMap.class, keysAndValues);

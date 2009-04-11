@@ -5,8 +5,9 @@ import java.util.HashSet;
 import java.util.Set;
 
 import net.arctics.clonk.ClonkCore;
-import net.arctics.clonk.parser.C4ScriptExprTree.ExprElm;
-import net.arctics.clonk.parser.C4ScriptParser.Keywords;
+import net.arctics.clonk.parser.c4script.C4ScriptParser;
+import net.arctics.clonk.parser.c4script.C4ScriptExprTree.ExprElm;
+import net.arctics.clonk.parser.c4script.C4ScriptParser.Keywords;
 import net.arctics.clonk.resource.ClonkProjectNature;
 
 /**
@@ -249,7 +250,9 @@ public class C4Variable extends C4Field implements Serializable, ITypedField {
 		return super.occurenceScope(project);
 	}
 
-	private boolean isGlobal() {
+	
+	@Override
+	public boolean isGlobal() {
 		return scope == C4VariableScope.VAR_STATIC || scope == C4VariableScope.VAR_CONST;
 	}
 	
