@@ -233,6 +233,12 @@ public class IniData {
 //			return IntegerArray.class;
 //		if (docType.startsWith("Zeichenfolge"))
 //			return String.class;
+//		if (docType.equals("IDListe"))
+//			return IDArray.class;
+//		if (docType.equals("DWORD"))
+//			return SignedInteger.class;
+//		if (docType.equals("Materialliste"))
+//			return MaterialArray.class;
 //		if (docType.equalsIgnoreCase("id"))
 //			return C4ID.class;
 //		return null;
@@ -257,7 +263,7 @@ public class IniData {
 //	
 //	static {
 //		try {
-//			xmlFromText(new FileInputStream("/Users/madeen/Desktop/material.txt"), System.out);
+//			xmlFromText(new FileInputStream("/Users/madeen/Desktop/scenario.txt"), System.out);
 //		} catch (FileNotFoundException e) {
 //			// TODO Auto-generated catch block
 //			e.printStackTrace();

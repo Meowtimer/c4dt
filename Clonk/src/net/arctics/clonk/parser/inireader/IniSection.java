@@ -5,6 +5,7 @@ package net.arctics.clonk.parser.inireader;
 
 import java.util.Map;
 
+import net.arctics.clonk.parser.inireader.IniData.IniDataSection;
 import net.arctics.clonk.util.IHasChildren;
 import net.arctics.clonk.util.IHasKeyAndValue;
 
@@ -12,7 +13,16 @@ public class IniSection implements IHasKeyAndValue<String, String>, IHasChildren
 	private int startPos;
 	private String name;
 	private Map<String, IniEntry> entries;
+	private IniDataSection sectionData;
 	
+	public IniDataSection getSectionData() {
+		return sectionData;
+	}
+
+	public void setSectionData(IniDataSection sectionData) {
+		this.sectionData = sectionData;
+	}
+
 	protected IniSection(int pos, String name) {
 		startPos = pos;
 		this.name = name;

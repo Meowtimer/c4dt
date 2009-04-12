@@ -19,6 +19,7 @@ import net.arctics.clonk.parser.inireader.Boolean;
 import net.arctics.clonk.parser.inireader.ComplexIniEntry;
 import net.arctics.clonk.parser.inireader.Function;
 import net.arctics.clonk.parser.inireader.IniReader;
+import net.arctics.clonk.parser.inireader.IniSection;
 import net.arctics.clonk.parser.scenario.ScenarioParser;
 import net.arctics.clonk.ui.editors.ini.IniEditor.PageAttribRequest;
 import net.arctics.clonk.util.IHasContext;
@@ -95,6 +96,8 @@ public class IniSectionPage extends FormPage {
 
 		@Override
 		protected CellEditor getCellEditor(Object element) {
+			if (element instanceof IniSection)
+				return null;
 			if (element instanceof ComplexIniEntry) {
 				ComplexIniEntry complex = (ComplexIniEntry) element;
 				if (complex.getExtendedValue() instanceof Boolean)
@@ -265,7 +268,7 @@ public class IniSectionPage extends FormPage {
 			try { // XXX values should come from document - not from builder cache
 				//IContainer cont = input.getParent();
 				C4Object obj = (C4Object) input.getParent().getSessionProperty(ClonkCore.C4OBJECT_PROPERTY_ID);
-				if (obj != null) {
+				if (obj != null && obj.getId() != null) {
 					form.setText(obj.getName() + "(" + obj.getId().getName() + ")");
 				}
 				else {

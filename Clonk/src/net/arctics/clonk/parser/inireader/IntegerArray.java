@@ -1,7 +1,6 @@
 package net.arctics.clonk.parser.inireader;
 
 
-import net.arctics.clonk.ui.editors.ini.IntegerArrayItem;
 import net.arctics.clonk.util.IHasChildrenWithContext;
 import net.arctics.clonk.util.IHasContext;
 
@@ -86,8 +85,20 @@ public class IntegerArray implements IEntryCreateable, IHasChildrenWithContext {
 	public IHasContext[] getChildren(Object context) {
 		IHasContext[] result = new IHasContext[integers.length];
 		for (int i = 0; i < result.length; i++)
-			result[i] = new IntegerArrayItem(this, i, context);
+			result[i] = new EntrySubItem<IntegerArray>(this, context, i);
 		return result;
+	}
+
+	public Object getChildValue(int index) {
+		return integers[index];
+	}
+
+	public void setChildValue(int index, Object value) {
+		integers[index] = value instanceof Integer
+			? (Integer)value
+			: value instanceof String
+				? Integer.valueOf((String)value)
+				: 0;
 	}	
 
 }

@@ -29,6 +29,8 @@ public class IniReader implements Iterable<IniSection>, IHasChildren {
 	protected List<IniSection> sectionsList = new LinkedList<IniSection>();
 	protected String defaultName;
 	
+	protected IniSection currentSection;
+	
 	public IniReader(InputStream stream) {
 		reader = new BufferedScanner(stream);
 	}
@@ -96,7 +98,7 @@ public class IniReader implements Iterable<IniSection>, IHasChildren {
 		IniConfiguration configuration = getConfiguration();
 		if (configuration == null)
 			return entry;
-		IniDataSection sectionConfig = configuration.getSections().get(section.getName());
+		IniDataSection sectionConfig = currentSection.getSectionData();
 		if (sectionConfig == null)
 			return entry; // don't throw errors in unknown section
 		if (!sectionConfig.hasEntry(entry.getKey())) {
@@ -162,6 +164,12 @@ public class IniReader implements Iterable<IniSection>, IHasChildren {
 		}
 	}
 	
+	protected IniDataSection getSectionDataFor(IniSection section) {
+		return getConfiguration() != null
+			? getConfiguration().getSections().get(section.getName())
+			: null;
+	}
+	
 	protected IniSection parseSection() {
 		reader.eatWhitespace();
 		int start = reader.getPosition();
@@ -181,7 +189,9 @@ public class IniReader implements Iterable<IniSection>, IHasChildren {
 			// parse entries
 //			List<IniEntry> entries = new LinkedList<IniEntry>();
 			IniEntry entry = null;
-			Map<String, IniEntry> entries = new HashMap<String, IniEntry>(); 
+			Map<String, IniEntry> entries = new HashMap<String, IniEntry>();
+			currentSection = section;
+			currentSection.setSectionData(getSectionDataFor(section));
 			while ((entry = parseEntry(section)) != null) {
 				entries.put(entry.getKey(),entry);
 			}

@@ -232,7 +232,8 @@
 				description="?" />
 			<entry name="RotatedSolidmasks" class="net.arctics.clonk.parser.inireader.IntegerArray"
 				description="?" />
-			<entry name="AllowPictureStack" class="net.arctics.clonk.parser.inireader.CategoriesArray"
+			<entry name="AllowPictureStack"
+				class="net.arctics.clonk.parser.inireader.CategoriesArray"
 				description="?" />
 
 		</section>
@@ -336,86 +337,265 @@
 	</file>
 	<file name="Material.txt"
 		factoryclass="net.arctics.clonk.parser.inireader.GenericEntryFactory">
-		<entry name="Name" class="java.lang.String" description="Name des Materials." />
-		<entry name="Color" class="net.arctics.clonk.parser.inireader.IntegerArray"
-			description="Die drei Farben des Materials als R,G,B, R,G,B, R,G,B (jeweils 0-255)." />
-		<entry name="ColorAnimation" class="net.arctics.clonk.parser.inireader.SignedInteger"
-			description="0 oder 1. Farbanimation." />
-		<entry name="Shape" class="net.arctics.clonk.parser.inireader.SignedInteger"
-			description="Landschaftsform: 0 glatt, 1 oben glatt, 2 halbrauh, 3 komplett rauh." />
-		<entry name="Density" class="net.arctics.clonk.parser.inireader.SignedInteger"
-			description="Dichte: 50 fest, 25 flüssig (andere Werte nicht zulässig)." />
-		<entry name="Friction" class="net.arctics.clonk.parser.inireader.SignedInteger"
-			description="0-100. Reibung." />
-		<entry name="DigFree" class="net.arctics.clonk.parser.inireader.SignedInteger"
-			description="0 oder 1. Bestimmt, ob das Material freigegraben werden kann." />
-		<entry name="BlastFree" class="net.arctics.clonk.parser.inireader.SignedInteger"
-			description="0 oder 1. Bestimmt, ob das Material freigesprengt werden kann." />
-		<entry name="Blast2Object" class="net.arctics.clonk.parser.C4ID"
-			description="Freigesprengte Objekte." />
-		<entry name="Dig2Object" class="net.arctics.clonk.parser.C4ID"
-			description="Freigegrabene Objekte." />
-		<entry name="Dig2ObjectRatio" class="net.arctics.clonk.parser.inireader.SignedInteger"
-			description="ca. 100-500. Massenverhältnis beim Freigraben." />
-		<entry name="Dig2ObjectRequest" class="net.arctics.clonk.parser.inireader.SignedInteger"
-			description="0 oder 1. Wenn 1, werden Objekte nur auf Wunsch freigegraben." />
-		<entry name="Blast2ObjectRatio" class="net.arctics.clonk.parser.inireader.SignedInteger"
-			description="ca. 100-500. Massenverhältnis beim Freisprengen." />
-		<entry name="Blast2PXSRatio" class="net.arctics.clonk.parser.inireader.SignedInteger"
-			description="Massenverhältnis beim Freisprengen von Kleinmaterial." />
-		<entry name="Instable" class="net.arctics.clonk.parser.inireader.SignedInteger"
-			description="0 oder 1. Stabilität." />
-		<entry name="MaxAirSpeed" class="net.arctics.clonk.parser.inireader.SignedInteger"
-			description="ca. 10-100. Fallgeschwindigkeit." />
-		<entry name="MaxSlide" class="net.arctics.clonk.parser.inireader.SignedInteger"
-			description="Rutschreichweite." />
-		<entry name="WindDrift" class="net.arctics.clonk.parser.inireader.SignedInteger"
-			description="Abtrieb durch Wind." />
-		<entry name="Inflammable" class="net.arctics.clonk.parser.inireader.SignedInteger"
-			description="Entzündbarkeit." />
-		<entry name="Incindiary" class="net.arctics.clonk.parser.inireader.SignedInteger"
-			description="Entzündung durch dieses Material." />
-		<entry name="Corrode" class="net.arctics.clonk.parser.inireader.SignedInteger"
-			description="Verätzung durch dieses Material." />
-		<entry name="Corrosive" class="net.arctics.clonk.parser.inireader.SignedInteger"
-			description="Ätzbarkeit." />
-		<entry name="Extinguisher" class="net.arctics.clonk.parser.inireader.SignedInteger"
-			description="Feuerlöschkraft." />
-		<entry name="Soil" class="net.arctics.clonk.parser.inireader.SignedInteger"
-			description="Nährboden für Pflanzen." />
-		<entry name="TempConvStrength" class="net.arctics.clonk.parser.inireader.SignedInteger"
-			description="Stärke der Temperaturumwandlung." />
-		<entry name="BlastShiftTo" class="java.lang.String"
-			description="Materialverwandlung bei Sprengung." />
-		<entry name="InMatConvert" class="java.lang.String"
-			description="In diesem Material verwandelt sich das Material..." />
-		<entry name="InMatConvertTo" class="java.lang.String"
-			description="...in dieses Material..." />
-		<entry name="InMatConvertDepth" class="net.arctics.clonk.parser.inireader.SignedInteger"
-			description="...wenn das Materialpixel zur angegebenen Tiefe im angegebenen Material ist. Ab CE." />
-		<entry name="AboveTempConvert" class="net.arctics.clonk.parser.inireader.SignedInteger"
-			description="Oberhalb dieser Temperatur verwandelt sich das Material..." />
-		<entry name="AboveTempConvertTo" class="java.lang.String"
-			description="...in dieses Material." />
-		<entry name="AboveTempConvertDir" class="net.arctics.clonk.parser.inireader.SignedInteger"
-			description="Richtung der Umwandlung: von oben nach unten (0), von unten nach oben (1)" />
-		<entry name="BelowTempConvert" class="net.arctics.clonk.parser.inireader.SignedInteger"
-			description="Unterhalb dieser Temperatur verwandelt sich das Material..." />
-		<entry name="BelowTempConvertTo" class="java.lang.String"
-			description="...in dieses Material." />
-		<entry name="BelowTempConvertDir" class="net.arctics.clonk.parser.inireader.SignedInteger"
-			description="Richtung der Umwandlung: von oben nach unten (0), von unten nach oben (1)" />
-		<entry name="Alpha" class="net.arctics.clonk.parser.inireader.IntegerArray"
-			description="Durchsichtigkeit für die drei Materialfarben ober- und unterirdisch." />
-		<entry name="Placement" class="net.arctics.clonk.parser.inireader.SignedInteger"
-			description="0-100. Dieser Wert wird für die Nachbeleuchtung der Landschaft verwendet, und wird normalerweise automatisch aus den anderen Materialwerten berechnet." />
-		<entry name="TextureOverlay" class="java.lang.String"
-			description="Standardtextur für dieses Material, die vom Landschaftsgenerator zusätzlich benutzt wird." />
-		<entry name="OverlayType" class="net.arctics.clonk.parser.inireader.SignedInteger"
-			description="Bitmaske für die Berechnung der Textur auf dem Material. Bit 0 (1): Exakt (kein Zoom), Bit 1 (2): Keine Textur, Bit 2 (4): Extragroß gezoomt, Bit 3 (8): Textur auf Graustufen aufrechnen." />
-		<entry name="PXSGfx" class="java.lang.String"
-			description="Grafik für lose Materialpixel. Die Grafik sollte als Materialtextur geladen sein." />
-		<entry name="PXSGfxRt" class="net.arctics.clonk.parser.inireader.IntegerArray"
-			description="Zielrechteck auf die Grafik für lose Materialpixel. Es werden weitere Phasen rechts und unterhalb der angegebenen Grafik benutzt. Die Grafik sollte immer oben links beginnen, und die gesamte Texturgröße einnehmen." />
+		<section name="Material">
+			<entry name="Name" class="java.lang.String" description="Name des Materials." />
+			<entry name="Color" class="net.arctics.clonk.parser.inireader.IntegerArray"
+				description="Die drei Farben des Materials als R,G,B, R,G,B, R,G,B (jeweils 0-255)." />
+			<entry name="ColorAnimation" class="net.arctics.clonk.parser.inireader.SignedInteger"
+				description="0 oder 1. Farbanimation." />
+			<entry name="Shape" class="net.arctics.clonk.parser.inireader.SignedInteger"
+				description="Landschaftsform: 0 glatt, 1 oben glatt, 2 halbrauh, 3 komplett rauh." />
+			<entry name="Density" class="net.arctics.clonk.parser.inireader.SignedInteger"
+				description="Dichte: 50 fest, 25 flüssig (andere Werte nicht zulässig)." />
+			<entry name="Friction" class="net.arctics.clonk.parser.inireader.SignedInteger"
+				description="0-100. Reibung." />
+			<entry name="DigFree" class="net.arctics.clonk.parser.inireader.SignedInteger"
+				description="0 oder 1. Bestimmt, ob das Material freigegraben werden kann." />
+			<entry name="BlastFree" class="net.arctics.clonk.parser.inireader.SignedInteger"
+				description="0 oder 1. Bestimmt, ob das Material freigesprengt werden kann." />
+			<entry name="Blast2Object" class="net.arctics.clonk.parser.C4ID"
+				description="Freigesprengte Objekte." />
+			<entry name="Dig2Object" class="net.arctics.clonk.parser.C4ID"
+				description="Freigegrabene Objekte." />
+			<entry name="Dig2ObjectRatio" class="net.arctics.clonk.parser.inireader.SignedInteger"
+				description="ca. 100-500. Massenverhältnis beim Freigraben." />
+			<entry name="Dig2ObjectRequest" class="net.arctics.clonk.parser.inireader.SignedInteger"
+				description="0 oder 1. Wenn 1, werden Objekte nur auf Wunsch freigegraben." />
+			<entry name="Blast2ObjectRatio" class="net.arctics.clonk.parser.inireader.SignedInteger"
+				description="ca. 100-500. Massenverhältnis beim Freisprengen." />
+			<entry name="Blast2PXSRatio" class="net.arctics.clonk.parser.inireader.SignedInteger"
+				description="Massenverhältnis beim Freisprengen von Kleinmaterial." />
+			<entry name="Instable" class="net.arctics.clonk.parser.inireader.SignedInteger"
+				description="0 oder 1. Stabilität." />
+			<entry name="MaxAirSpeed" class="net.arctics.clonk.parser.inireader.SignedInteger"
+				description="ca. 10-100. Fallgeschwindigkeit." />
+			<entry name="MaxSlide" class="net.arctics.clonk.parser.inireader.SignedInteger"
+				description="Rutschreichweite." />
+			<entry name="WindDrift" class="net.arctics.clonk.parser.inireader.SignedInteger"
+				description="Abtrieb durch Wind." />
+			<entry name="Inflammable" class="net.arctics.clonk.parser.inireader.SignedInteger"
+				description="Entzündbarkeit." />
+			<entry name="Incindiary" class="net.arctics.clonk.parser.inireader.SignedInteger"
+				description="Entzündung durch dieses Material." />
+			<entry name="Corrode" class="net.arctics.clonk.parser.inireader.SignedInteger"
+				description="Verätzung durch dieses Material." />
+			<entry name="Corrosive" class="net.arctics.clonk.parser.inireader.SignedInteger"
+				description="Ätzbarkeit." />
+			<entry name="Extinguisher" class="net.arctics.clonk.parser.inireader.SignedInteger"
+				description="Feuerlöschkraft." />
+			<entry name="Soil" class="net.arctics.clonk.parser.inireader.SignedInteger"
+				description="Nährboden für Pflanzen." />
+			<entry name="TempConvStrength" class="net.arctics.clonk.parser.inireader.SignedInteger"
+				description="Stärke der Temperaturumwandlung." />
+			<entry name="BlastShiftTo" class="java.lang.String"
+				description="Materialverwandlung bei Sprengung." />
+			<entry name="InMatConvert" class="java.lang.String"
+				description="In diesem Material verwandelt sich das Material..." />
+			<entry name="InMatConvertTo" class="java.lang.String"
+				description="...in dieses Material..." />
+			<entry name="InMatConvertDepth" class="net.arctics.clonk.parser.inireader.SignedInteger"
+				description="...wenn das Materialpixel zur angegebenen Tiefe im angegebenen Material ist. Ab CE." />
+			<entry name="AboveTempConvert" class="net.arctics.clonk.parser.inireader.SignedInteger"
+				description="Oberhalb dieser Temperatur verwandelt sich das Material..." />
+			<entry name="AboveTempConvertTo" class="java.lang.String"
+				description="...in dieses Material." />
+			<entry name="AboveTempConvertDir" class="net.arctics.clonk.parser.inireader.SignedInteger"
+				description="Richtung der Umwandlung: von oben nach unten (0), von unten nach oben (1)" />
+			<entry name="BelowTempConvert" class="net.arctics.clonk.parser.inireader.SignedInteger"
+				description="Unterhalb dieser Temperatur verwandelt sich das Material..." />
+			<entry name="BelowTempConvertTo" class="java.lang.String"
+				description="...in dieses Material." />
+			<entry name="BelowTempConvertDir" class="net.arctics.clonk.parser.inireader.SignedInteger"
+				description="Richtung der Umwandlung: von oben nach unten (0), von unten nach oben (1)" />
+			<entry name="Alpha" class="net.arctics.clonk.parser.inireader.IntegerArray"
+				description="Durchsichtigkeit für die drei Materialfarben ober- und unterirdisch." />
+			<entry name="Placement" class="net.arctics.clonk.parser.inireader.SignedInteger"
+				description="0-100. Dieser Wert wird für die Nachbeleuchtung der Landschaft verwendet, und wird normalerweise automatisch aus den anderen Materialwerten berechnet." />
+			<entry name="TextureOverlay" class="java.lang.String"
+				description="Standardtextur für dieses Material, die vom Landschaftsgenerator zusätzlich benutzt wird." />
+			<entry name="OverlayType" class="net.arctics.clonk.parser.inireader.SignedInteger"
+				description="Bitmaske für die Berechnung der Textur auf dem Material. Bit 0 (1): Exakt (kein Zoom), Bit 1 (2): Keine Textur, Bit 2 (4): Extragroß gezoomt, Bit 3 (8): Textur auf Graustufen aufrechnen." />
+			<entry name="PXSGfx" class="java.lang.String"
+				description="Grafik für lose Materialpixel. Die Grafik sollte als Materialtextur geladen sein." />
+			<entry name="PXSGfxRt" class="net.arctics.clonk.parser.inireader.IntegerArray"
+				description="Zielrechteck auf die Grafik für lose Materialpixel. Es werden weitere Phasen rechts und unterhalb der angegebenen Grafik benutzt. Die Grafik sollte immer oben links beginnen, und die gesamte Texturgröße einnehmen." />
+		</section>
+	</file>
+	<file name="Scenario.txt"
+		factoryclass="net.arctics.clonk.parser.inireader.GenericEntryFactory">
+		<section name="Head">
+			<entry name="Icon" class="net.arctics.clonk.parser.inireader.SignedInteger"
+				description="Standard-Icon des Szenarios. Siehe Szenarioeigenschaften im Menüsystem." />
+			<entry name="Title" class="java.lang.String"
+				description="Titel des Szenarios. Wird durch die Einträge in Title.txt ersetzt." />
+			<entry name="Version" class="net.arctics.clonk.parser.inireader.IntegerArray"
+				description="Vom Szenario benötigte Version der Engine." />
+			<entry name="RoundOptions" class="net.arctics.clonk.parser.inireader.SignedInteger"
+				description="0 oder 1. Freigabe der Szenarioeigenschaften im Menüsystem für andere Spieler." />
+			<entry name="MaxPlayer" class="net.arctics.clonk.parser.inireader.SignedInteger"
+				description="Maximale Anzahl der Spieler." />
+			<entry name="NoInitialize" class="net.arctics.clonk.parser.inireader.SignedInteger"
+				description="0 oder 1. Bei 1 werden alle Objekte, die genau einmal erzeugt werden sollten, nicht platziert. Automatisch für Spielstände und gespeicherte Szenarien gesetzt, um eine erneute Erzeugung von Vegetation, Spielzielen und ähnlichem zu vermeiden. Es werden unter anderem die Werte Buildings, Vehicles, Material, Vegetation, InEarth und Animals ignoriert." />
+			<entry name="MissionAccess" class="java.lang.String"
+				description="Szenario kann nur gestartet werden, wenn ein Spieler zuvor dieses Zugangspasswort in einem anderen Szenario erspielt hat. Siehe Scriptfunktion GainMissionAccess()." />
+			<entry name="Replay" class="net.arctics.clonk.parser.inireader.SignedInteger"
+				description="Wird von der Engine automatisch gesetzt, und markiert eine Aufnahme." />
+			<entry name="Film" class="net.arctics.clonk.parser.inireader.SignedInteger"
+				description="0 oder 1 und nur bei Aufnahmen. Bei 1 folgt die Sicht nur dem ersten Spieler und alle Spielerkontrollen werden ausgeblendet." />
+			<entry name="ForcedGfxMode" class="net.arctics.clonk.parser.inireader.SignedInteger"
+				description="0-2. 0: Jede Engine möglich; 1: Nur NewGfx (OpenGL/D3D); 2: Nur OldGfx (8Bit-DDraw)." />
+		</section>
+		<section name="Game">
+			<entry name="Rules" class="net.arctics.clonk.parser.inireader.IDArray"
+				description="Spielregeln." />
+			<entry name="Goals" class="net.arctics.clonk.parser.inireader.IDArray"
+				description="Spielziele." />
+			<entry name="ValueOverloads" class="net.arctics.clonk.parser.inireader.IDArray"
+				description="Liste der Definitionen, dessen Wert für diese Runde geändert sein soll. Die Menge gibt den neuen Wert an." />
+			<entry name="FoWColor" class="net.arctics.clonk.parser.inireader.SignedInteger"
+				description="Farbe des Fog of War." />
+			<entry name="Mode" class="net.arctics.clonk.parser.inireader.SignedInteger"
+				description="Veraltet. 0 Kooperativ, 1 Melee, 2 Teamwork-Melee." />
+			<entry name="Elimination" class="net.arctics.clonk.parser.inireader.SignedInteger"
+				description="Veraltet. Spielereliminierung durch 0 Verlust Captain, 1 Verlust Crew, 2 Verlust Flagge." />
+			<entry name="CooperativeGoal" class="net.arctics.clonk.parser.inireader.SignedInteger"
+				description="Veraltet. Wert der Auswahl Spielziel im Menüsystem (0-4)." />
+			<entry name="CreateObjects" class="net.arctics.clonk.parser.inireader.IDArray"
+				description="Veraltet. Spielziel: Diese Objekte müssen mindestens vorhanden sein." />
+			<entry name="ClearObjects" class="net.arctics.clonk.parser.inireader.IDArray"
+				description="Veraltet. Spielziel: Diese Objekte müssen auf x reduziert werden." />
+			<entry name="ClearMaterials" class="net.arctics.clonk.parser.inireader.MaterialArray"
+				description="Veraltet. Spielziel: Diese Materialien müssen auf x reduziert werden." />
+			<entry name="BaseFunctionality" class="net.arctics.clonk.parser.inireader.SignedInteger"
+				description="Bitmaske, die angibt, welche Funktionen eine Basis erfüllt. Siehe Basisfunktionalitäten. Ab CR." />
+			<entry name="BaseRegenerateEnergyPrice" class="net.arctics.clonk.parser.inireader.SignedInteger"
+				description="Kosten, die aufgewendet werden, um einen Clonk in einer Basis um 100 Energiepunkte zu heilen. Standard ist 5; bei 0 ist die Heilung kostenlos. Ab CR." />
+		</section>
+		<section name="Player">
+			<entry name="Wealth" class="net.arctics.clonk.parser.inireader.IntegerArray"
+				description="Startkapital." />
+			<entry name="Position" class="net.arctics.clonk.parser.inireader.IntegerArray"
+				description="Startposition in Koordinaten der ungezoomten Landkarte. Beide -1 für Zufall." />
+			<entry name="Crew" class="net.arctics.clonk.parser.inireader.IDArray"
+				description="Art und Anzahl der Mannschaftsmitglieder." />
+			<entry name="Buildings" class="net.arctics.clonk.parser.inireader.IDArray"
+				description="Zu Spielbeginn vorhandene Gebäude." />
+			<entry name="Vehicles" class="net.arctics.clonk.parser.inireader.IDArray"
+				description="Zu Spielbeginn vorhandene Fahrzeuge." />
+			<entry name="Material" class="net.arctics.clonk.parser.inireader.IDArray"
+				description="Zu Spielbeginn vorhandenes Material." />
+			<entry name="Knowledge" class="net.arctics.clonk.parser.inireader.IDArray"
+				description="Vom Spieler erzeugbare Objekte." />
+			<entry name="HomeBaseMaterial" class="net.arctics.clonk.parser.inireader.IDArray"
+				description="Zu Spielbeginn in der Heimatbasis kaufbares Material." />
+			<entry name="HomeBaseProduction" class="net.arctics.clonk.parser.inireader.IDArray"
+				description="Nachproduktion von Material für die Heimatbasis." />
+			<entry name="Magic" class="net.arctics.clonk.parser.inireader.IDArray"
+				description="Zur Verfügung stehende Zauber. Sind keine Zauber angegeben, werden alle verfügbaren Zauber geladen (Abwärtskompatibilität zu älteren Szenarien)." />
+		</section>
+		<section name="Landscape">
+			<entry name="Vegetation" class="net.arctics.clonk.parser.inireader.IDArray"
+				description="Vegetationstypen und relative Anteile." />
+			<entry name="VegetationLevel" class="net.arctics.clonk.parser.inireader.IntegerArray"
+				description="0-100. Menge Vegetation." />
+			<entry name="InEarth" class="net.arctics.clonk.parser.inireader.IDArray"
+				description="Typen und relative Anteile der Objekte im Erdreich." />
+			<entry name="InEarthLevel" class="net.arctics.clonk.parser.inireader.IntegerArray"
+				description="0-100. Menge Erdreich-Objekte." />
+			<entry name="Sky" class="java.lang.String"
+				description="Himmeltextur wie in der Graphics.c4g vorhanden (ohne Dateierweiterung)." />
+			<entry name="SkyFade" class="net.arctics.clonk.parser.inireader.IntegerArray"
+				description="Himmelfarbverlauf von RGB nach RGB. Werte von 0-255. Sind alle Werte 0, wird das Vorgabe-Blau der Clonk-Farbpalette verwendet." />
+			<entry name="BottomOpen" class="net.arctics.clonk.parser.inireader.SignedInteger"
+				description="0 oder 1. Legt fest, ob die Spielwelt unten offen ist." />
+			<entry name="TopOpen" class="net.arctics.clonk.parser.inireader.SignedInteger"
+				description="0 oder 1. Legt fest, ob die Spielwelt oben offen ist." />
+			<entry name="LeftOpen" class="net.arctics.clonk.parser.inireader.SignedInteger"
+				description="Öffnung des linken Randes bis zum Abstand in Pixel von der Oberkante." />
+			<entry name="RightOpen" class="net.arctics.clonk.parser.inireader.SignedInteger"
+				description="Öffnung des rechten Randes bis zum Abstand in Pixel von der Oberkante." />
+			<entry name="AutoScanSideOpen" class="net.arctics.clonk.parser.inireader.SignedInteger"
+				description="0 oder 1. Bei 1 werden LeftOpen und RightOpen automatisch angepasst." />
+			<entry name="MapWidth" class="net.arctics.clonk.parser.inireader.IntegerArray"
+				description="Ausgangsbreite der dynamischen Karte." />
+			<entry name="MapHeight" class="net.arctics.clonk.parser.inireader.IntegerArray"
+				description="Ausgangshöhe der dynamischen Karte." />
+			<entry name="MapZoom" class="net.arctics.clonk.parser.inireader.IntegerArray"
+				description="Vergrößerungsfaktor der Karte auf die tatsächliche Spiellandschaft. Wert 10." />
+			<entry name="Amplitude" class="net.arctics.clonk.parser.inireader.IntegerArray"
+				description="0-100 und Abweichung. Hügelhöhe bei dynamischen Karten." />
+			<entry name="Phase" class="net.arctics.clonk.parser.inireader.IntegerArray"
+				description="0-100 und Abweichung. Hügelverschiebung bei dynamischen Karten." />
+			<entry name="Period" class="net.arctics.clonk.parser.inireader.IntegerArray"
+				description="0-100 und Abweichung. Hügelabstand bei dynamischen Karten." />
+			<entry name="Random" class="net.arctics.clonk.parser.inireader.IntegerArray"
+				description="0-100 und Abweichung. Zufallsabweichung bei dynamischen Karten." />
+			<entry name="Material" class="java.lang.String"
+				description="Material-Textur-Definition des Basismaterials (Erdreich) bei dynamischen Karten." />
+			<entry name="Liquid" class="java.lang.String"
+				description="Material-Textur-Definition der Flüssigkeit in dynamischen Karten." />
+			<entry name="LiquidLevel" class="net.arctics.clonk.parser.inireader.IntegerArray"
+				description="0-100 und Abweichung. Flüssigkeitsstand in dynamischen Karten." />
+			<entry name="MapPlayerExtend" class="net.arctics.clonk.parser.inireader.SignedInteger"
+				description="0 oder 1. Legt fest, ob die dynamische Karte in der Breite angepasst wird." />
+			<entry name="Layers" class="net.arctics.clonk.parser.inireader.MaterialArray"
+				description="Materialschichten im Erdreich bei dynamischen Karten." />
+			<entry name="ExactLandscape" class="net.arctics.clonk.parser.inireader.IntegerArray"
+				description="0 oder 1. Gibt an, ob Landscape.bmp eine tatsächliche Spiellandschaft ist." />
+			<entry name="Gravity" class="net.arctics.clonk.parser.inireader.IntegerArray"
+				description="10-200: Gravitation. 100 ist Standard." />
+			<entry name="NoScan" class="net.arctics.clonk.parser.inireader.SignedInteger"
+				description="0 oder 1. Bei 1 werden keine Überprüfungen innerhalb der Landschaft durchgeführt, wie beispielsweise Schneeschmelze oder Festwerden von Lava in Vulkanen." />
+			<entry name="KeepMapCreator" class="net.arctics.clonk.parser.inireader.SignedInteger"
+				description="0 oder 1. Bei 1 wird der interne MapCreator nicht nach dem Start entladen, so dass Befehle wie DrawDefMap zur Verfügung stehen." />
+			<entry name="SkyScrollMode" class="net.arctics.clonk.parser.inireader.SignedInteger"
+				description="0 bis 2. Bei 1 bewegt sich der Himmel mit dem Wind, bei 2 ist er halbparallax." />
+			<entry name="FoWRes" class="net.arctics.clonk.parser.inireader.SignedInteger"
+				description="Größe der Blöcke, in denen der Kriegsnebel (Fog of War) berechnet wird. Standardwert 64. Achtung: Kleinere Werte verbessern zwar die Darstellung des Kriegsnebels, erhöhen aber auch die benötigte Rechenleistung bei hohen Bildschirmauflösungen. Ab CR." />
+		</section>
+		<section name="Animals">
+			<entry name="Animals" class="net.arctics.clonk.parser.inireader.IDArray"
+				description="Freilaufende Lebewesen." />
+			<entry name="Nest" class="net.arctics.clonk.parser.inireader.IDArray"
+				description="Nester im Erdreich." />
+		</section>
+		<section name="Weather">
+			<entry name="Climate" class="net.arctics.clonk.parser.inireader.IntegerArray"
+				description="0-100 und Abweichung. Durchschnittstemperatur. 0 warm, 100 kalt." />
+			<entry name="StartSeason" class="net.arctics.clonk.parser.inireader.IntegerArray"
+				description="0-100 und Abweichung. Startjahreszeit." />
+			<entry name="YearSpeed" class="net.arctics.clonk.parser.inireader.IntegerArray"
+				description="0-100 und Abweichung. Geschwindigkeit des Jahreszeitenwechsels." />
+			<entry name="Rain" class="net.arctics.clonk.parser.inireader.IntegerArray"
+				description="0-100 und Abweichung. Regenwahrscheinlichkeit." />
+			<entry name="Wind" class="net.arctics.clonk.parser.inireader.IntegerArray"
+				description="-100-100 und Abweichung. Windrichtung und -stärke." />
+			<entry name="Lightning" class="net.arctics.clonk.parser.inireader.IntegerArray"
+				description="0-100 und Abweichung. Blitzwahrscheinlichkeit." />
+			<entry name="Precipitation" class="java.lang.String"
+				description="Einfache Materialdefinition Niederschlag." />
+			<entry name="NoGamma" class="net.arctics.clonk.parser.inireader.SignedInteger"
+				description="0 oder 1. Bei 1 wirken sich die Jahreszeiten nicht auf die Bildschirmfärbung aus." />
+		</section>
+		<section name="Disasters">
+			<entry name="Meteorite" class="net.arctics.clonk.parser.inireader.IntegerArray"
+				description="0-100 und Abweichung. Meteoritenwahrscheinlichkeit." />
+			<entry name="Volcano" class="net.arctics.clonk.parser.inireader.IntegerArray"
+				description="0-100 und Abweichung. Vulkanwahrscheinlichkeit." />
+			<entry name="Earthquake" class="net.arctics.clonk.parser.inireader.IntegerArray"
+				description="0-100 und Abweichung. Erdbebenwahrscheinlichkeit." />
+		</section>
+		<section name="Environment">
+			<entry name="Objects" class="net.arctics.clonk.parser.inireader.IDArray"
+				description="Umweltsteuerungsobjekte, die am Anfang der Runde platziert werden." />
+		</section>
+		<section name="Definitions">
+			<entry name="LocalOnly" class="net.arctics.clonk.parser.inireader.SignedInteger"
+				description="Wenn LocalOnly den Wert 1 hat, werden alle angegebenen Objektdefinitions-pakete ignoriert und nur lokale Objektdefinitionen geladen." />
+			<entry name="Definition1" class="java.lang.String"
+				description="Über Definitionx-Einträge kann vorgegeben werden, welche Objektdefinitionspakete (c4d) das Szenario benutzen soll. Die Pakete müssen im Clonk-Verzeichnis vorhanden sein. Sind Pakete im Szenario angegeben, wird die vom Menüsystem bestimmte Auswahl ignoriert." />
+			<entry name="SkipDefs" class="net.arctics.clonk.parser.inireader.IDArray"
+				description="Liste der Definitionen, die im Spiel nicht geladen werden sollen. So lässt sich beispielsweise die Erforschung bestimmter Objekte verhindern." />
+		</section>
 	</file>
 </clonkiniconfig>
