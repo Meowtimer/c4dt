@@ -66,7 +66,7 @@ public class C4ObjectExtern extends C4Object implements ITreeNode {
 	}
 
 	public void addChild(ITreeNode node) {
-		childNodes.add(node);
+		getChildren().add(node);
 	}
 
 }

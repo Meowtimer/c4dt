@@ -40,14 +40,14 @@ public class C4ObjectExternGroup implements ITreeNode, Serializable {
 		return ITreeNode.Default.subNodeOf(this, node);
 	}
 
-	public List<? extends ITreeNode> getChildren() {
+	public List<ITreeNode> getChildren() {
 		if (childNodes == null)
 			childNodes = new ArrayList<ITreeNode>();
 		return childNodes;
 	}
 
 	public void addChild(ITreeNode node) {
-		childNodes.add(node);
+		getChildren().add(node);
 	}
 	
 	@Override

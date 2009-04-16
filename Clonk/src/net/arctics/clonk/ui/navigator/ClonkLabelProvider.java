@@ -35,7 +35,7 @@ public class ClonkLabelProvider extends LabelProvider implements IStyledLabelPro
 		}
 		else if (element instanceof IFile) {
 			if (element.toString().endsWith(".c")) {
-				return Utilities.getIconImage("c4script","icons/c4scriptIcon.png");
+				return Icons.SCRIPT_ICON;
 			}
 			if (element.toString().endsWith(".txt")) {
 				return Utilities.getIconImage("c4txt","icons/text.png");

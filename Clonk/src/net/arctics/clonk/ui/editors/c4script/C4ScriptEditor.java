@@ -69,14 +69,6 @@ public class C4ScriptEditor extends TextEditor {
 		setDocumentProvider(new ClonkDocumentProvider(this));
 	}
 
-//	/* (non-Javadoc)
-//	 * @see org.eclipse.ui.part.WorkbenchPart#getTitleImage()
-//	 */
-//	@Override
-//	public Image getTitleImage() {
-//		return ClonkLabelProvider.computeImage("c4script", "icons/c4scriptIcon.png",	Utilities.getEditingFile(this));
-//	}
-
 	/* (non-Javadoc)
 	 * @see org.eclipse.ui.texteditor.AbstractDecoratedTextEditor#configureSourceViewerDecorationSupport(org.eclipse.ui.texteditor.SourceViewerDecorationSupport)
 	 */
