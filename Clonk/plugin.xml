@@ -114,6 +114,9 @@
 					<instanceof value="org.eclipse.core.resources.IResource" />
 					<instanceof value="org.eclipse.core.resources.IFolder" />
 					<instanceof value="org.eclipse.core.resources.IFile" />
+					<instanceof value="net.arctics.clonk.parser.C4ObjectExternGroup" />
+					<instanceof value="net.arctics.clonk.parser.C4ObjectExtern" />
+					<instanceof value="net.arctics.clonk.ui.navigator.DependenciesNavigatorNode" />
 				</or>
 			</possibleChildren>
 			<actionProvider class="net.arctics.clonk.ui.navigator.ClonkActionProvider"

@@ -1,9 +1,11 @@
 package net.arctics.clonk.ui.navigator;
 
 import org.eclipse.jface.action.IMenuManager;
+import org.eclipse.ui.IActionBars;
+import org.eclipse.ui.navigator.CommonActionProvider;
 
 
-public class ClonkActionProvider extends org.eclipse.ui.navigator.CommonActionProvider {
+public class ClonkActionProvider extends CommonActionProvider {
 
 	public ClonkActionProvider() {
 
@@ -15,9 +17,13 @@ public class ClonkActionProvider extends org.eclipse.ui.navigator.CommonActionPr
 	@Override
 	public void fillContextMenu(IMenuManager menu) {
 		super.fillContextMenu(menu);
-//		menu.appendToGroup("group.additions",new Action("Quick Export") {
 		menu.add(new QuickExportAction("Quick Export"));
 		menu.add(new ConvertOldCodeInBulkAction("Convert old code"));
+	}
+	
+	@Override
+	public void fillActionBars(IActionBars actionBars) {
+		super.fillActionBars(actionBars);
 	}
 
 }
