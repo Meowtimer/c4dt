@@ -2,7 +2,8 @@ package net.arctics.clonk.ui.search;
 
 import net.arctics.clonk.parser.C4ObjectIntern;
 import net.arctics.clonk.parser.C4ScriptIntern;
-import net.arctics.clonk.ui.navigator.ClonkLabelProvider;
+import net.arctics.clonk.util.Icons;
+import net.arctics.clonk.util.Utilities;
 
 import org.eclipse.jface.viewers.LabelProvider;
 import org.eclipse.jface.viewers.StyledString;
@@ -17,10 +18,10 @@ public class ClonkSearchLabelProvider extends LabelProvider implements IStyledLa
 	@Override
 	public Image getImage(Object element) {
 		if (element instanceof C4ObjectIntern) {
-			return ClonkLabelProvider.computeImage("c4object","icons/C4Object.png", null);
+			return Icons.GENERAL_OBJECT_ICON;
 		}
 		if (element instanceof C4ScriptIntern) {
-			return ClonkLabelProvider.computeImage("c4script","icons/c4scriptIcon.png", null);
+			return Utilities.getIconImage("c4script","icons/c4scriptIcon.png");
 		}
 		return null;
 	}

@@ -20,7 +20,7 @@ import net.arctics.clonk.resource.c4group.IC4GroupVisitor;
 import net.arctics.clonk.resource.c4group.InvalidDataException;
 import net.arctics.clonk.resource.c4group.C4Group.C4GroupType;
 import net.arctics.clonk.resource.c4group.C4GroupItem.IHeaderFilter;
-import net.arctics.clonk.util.INodeWithParent;
+import net.arctics.clonk.util.ITreeNode;
 
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.ResourcesPlugin;
@@ -37,7 +37,7 @@ import org.eclipse.swt.widgets.Display;
 public class ClonkLibBuilder implements IC4GroupVisitor, IPropertyChangeListener {
 	
 	private boolean buildNeeded = false;
-	private INodeWithParent currentExternNode;
+	private ITreeNode currentExternNode;
 	
 	public ClonkLibBuilder() {
 		ClonkCore.getDefault().getPreferenceStore().addPropertyChangeListener(this);
@@ -52,7 +52,6 @@ public class ClonkLibBuilder implements IC4GroupVisitor, IPropertyChangeListener
 	public void clean() {
 		ClonkCore.getDefault().EXTERN_INDEX.clear();
 		buildNeeded = true;
-		System.gc();
 	}
 	
 	private String[] getExternalLibNames() {
@@ -157,10 +156,10 @@ public class ClonkLibBuilder implements IC4GroupVisitor, IPropertyChangeListener
 					}
 				}
 				else
-					currentExternNode = new C4ObjectExternGroup(item.getName(), currentExternNode);
+					createGroup(item);
 			}
 			else if (groupType == C4GroupType.ResourceGroup) { // System.c4g like
-				currentExternNode = new C4ObjectExternGroup(item.getName(), currentExternNode);
+				createGroup(item);
 				for (C4GroupItem child : group.getChildEntries()) {
 					if (child.getName().endsWith(".c")) {
 						try {
@@ -179,6 +178,16 @@ public class ClonkLibBuilder implements IC4GroupVisitor, IPropertyChangeListener
 			return true;
 		}
 		return false;
+	}
+
+	private void createGroup(C4GroupItem item) {
+		if (currentExternNode == null) {
+			ExternalLib lib;
+			currentExternNode = lib = new ExternalLib(item.getName(), null);
+			ClonkCore.getDefault().EXTERN_INDEX.getLibs().add(lib);
+		}
+		else
+			currentExternNode = new C4ObjectExternGroup(item.getName(), currentExternNode);
 	}
 	
 	public void groupFinished(C4Group group) {

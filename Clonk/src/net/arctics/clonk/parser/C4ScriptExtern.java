@@ -1,21 +1,25 @@
 package net.arctics.clonk.parser;
 
+import java.util.List;
+
 import org.eclipse.core.runtime.IPath;
 
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.resource.c4group.C4GroupEntry;
 import net.arctics.clonk.resource.c4group.C4GroupItem;
-import net.arctics.clonk.util.INodeWithParent;
+import net.arctics.clonk.util.ITreeNode;
 
-public class C4ScriptExtern extends C4ScriptBase implements INodeWithParent {
+public class C4ScriptExtern extends C4ScriptBase implements ITreeNode {
 	
 	private static final long serialVersionUID = 1L;
 	
 	private SimpleScriptStorage scriptStorage;
-	private INodeWithParent parentNode;
+	private ITreeNode parentNode;
 
-	public C4ScriptExtern(C4GroupItem script, INodeWithParent parentNode) {
+	public C4ScriptExtern(C4GroupItem script, ITreeNode parentNode) {
 		this.parentNode = parentNode;
+		if (parentNode != null)
+			parentNode.addChild(this);
 		setName(script.getName());
 		scriptStorage = new SimpleScriptStorage((C4GroupEntry) script);
 	}
@@ -34,16 +38,24 @@ public class C4ScriptExtern extends C4ScriptBase implements INodeWithParent {
 		return getName();
 	}
 
-	public INodeWithParent parentNode() {
+	public ITreeNode parentNode() {
 		return parentNode;
 	}
 
 	public IPath getPath() {
-		return INodeWithParent.Default.getPath(this);
+		return ITreeNode.Default.getPath(this);
 	}
 	
-	public boolean subNodeOf(INodeWithParent node) {
-		return INodeWithParent.Default.subNodeOf(this, node);
+	public boolean subNodeOf(ITreeNode node) {
+		return ITreeNode.Default.subNodeOf(this, node);
+	}
+
+	public List<ITreeNode> getChildren() {
+		return null;
+	}
+
+	public void addChild(ITreeNode node) {
+		// nope
 	}
 
 }

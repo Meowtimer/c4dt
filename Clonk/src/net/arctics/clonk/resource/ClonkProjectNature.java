@@ -6,7 +6,9 @@ import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.util.List;
 
+import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.ClonkIndex;
 import net.arctics.clonk.parser.ProjectIndex;
 
@@ -129,6 +131,11 @@ public class ClonkProjectNature implements IProjectNature {
 	
 	public void markAsDirty() {
 		indexDirty = true;
+	}
+	
+	public List<ExternalLib> getDependencies() {
+		// just return global libs for now
+		return ClonkCore.getDefault().EXTERN_INDEX.getLibs();
 	}
 
 }

@@ -86,7 +86,7 @@ public class C4ScriptParser {
 	}
 	
 	/**
-	 * Exception thrown when a parsing error occurs
+	 * Exception thrown when a parsing error occurs.
 	 */
 	public static class ParsingException extends Exception {
 
@@ -98,8 +98,8 @@ public class C4ScriptParser {
 	}
 	
 	/**
-	 * Special parsing exception thrown when the error is not supposed to be shown to the user (in form of error markers in the Errors view for example)
-	 * Used when calling the parser internally to support content assistance and similar things
+	 * Special parsing exception thrown when the error is not supposed to be shown to the user (in form of error markers in the Errors view for example).
+	 * Used when calling the parser internally to support content assistance and similar things.
 	 */
 	public static class SilentParsingException extends ParsingException {
 
@@ -112,7 +112,7 @@ public class C4ScriptParser {
 	}
 	
 	/**
-	 * Contains cached engine functions that have special meaning
+	 * Contains cached engine functions that have special meaning.
 	 */
 	public static class CachedEngineFuncs {
 		public static final C4Function Par = ClonkCore.getDefault().ENGINE_OBJECT.findFunction("Par");
@@ -122,7 +122,7 @@ public class C4ScriptParser {
 	private IExpressionListener expressionListener;
 
 	/**
-	 * Returns the expression listener that is notified when an expression or a statement has been parsed
+	 * Returns the expression listener that is notified when an expression or a statement has been parsed.
 	 * @return the expression listener
 	 */
 	public IExpressionListener getExpressionListener() {
@@ -161,7 +161,7 @@ public class C4ScriptParser {
 	public static final int UNKNOWN_PARAMETERNUM = MAX_PAR+1;
 	
 	/*
-	 * Number of unnamed parameters used in activeFunc (Par(5) -> 6 unnamed parameters)
+	 * Number of unnamed parameters used in activeFunc (Par(5) -> 6 unnamed parameters).
 	 * If a complex expression is passed to Par() this variable is set to UNKNOWN_PARAMETERNUM
 	 */
 	private int numUnnamedParameters;
@@ -169,7 +169,7 @@ public class C4ScriptParser {
 	private List<Pair<C4Type, C4Object>> unnamedVarTypeInformation;
 
 	/**
-	 * Informs the parser that an unnamed parameter was used by calling the Par() function with the given index expression
+	 * Informs the parser that an unnamed parameter was used by calling the Par() function with the given index expression.
 	 * @param index the index expression
 	 */
 	public void unnamedParamaterUsed(ExprElm index) {
@@ -306,14 +306,14 @@ public class C4ScriptParser {
 	}
 	
 	/**
-	 * Creates a script parser. The script is read from the file attached to the script (queried through getScriptFile())
+	 * Creates a script parser. The script is read from the file attached to the script (queried through getScriptFile()).
 	 */
 	public C4ScriptParser(C4ScriptBase script) {
 		this((IFile) script.getScriptFile(), script);
 	}
 
 	/**
-	 * Creates a C4Script parser that parses a file within the project
+	 * Creates a C4Script parser that parses a file within the project.
 	 * Results are stored in <code>object</code>
 	 * @param scriptFile
 	 * @param obj
@@ -340,7 +340,7 @@ public class C4ScriptParser {
 	}
 	
 	/**
-	 * Creates a C4Script parser that parses an arbitrary string
+	 * Creates a C4Script parser that parses an arbitrary string.
 	 * @param withString
 	 * @param script
 	 */
@@ -351,7 +351,7 @@ public class C4ScriptParser {
 	}
 	
 	/**
-	 * Perform a full parsing (that includes cleaning up the current state of the script container, parsing declarations and parsing function code)
+	 * Perform a full parsing (that includes cleaning up the current state of the script container, parsing declarations and parsing function code).
 	 * @throws ParsingException
 	 */
 	public void parse() throws ParsingException {
@@ -1145,7 +1145,7 @@ public class C4ScriptParser {
 		if (errorDisabled(code))// || (errorHook != null && errorHook.handle(code, args)))
 			return;
 		String problem = code.getErrorString(args);
-		boolean silence = fScript == null || (activeFunc != null && fReader.getPosition() > activeFunc.getBody().getEnd());
+		boolean silence = fScript == null || (activeFunc != null && activeFunc.getBody() != null && fReader.getPosition() > activeFunc.getBody().getEnd());
 		if (!silence)
 			createErrorMarker(errorStart, errorEnd, problem);
 		if (!noThrow)

@@ -74,6 +74,10 @@
 		<content-type base-type="net.arctics.clonk.inifile"
 			file-names="Scenario.txt" id="net.arctics.clonk.c4scenariocfg" name="Scenario configuration"
 			priority="high" />
+			
+		<content-type base-type="net.arctics.clonk.inifile"
+			file-names="Particle.txt" id="net.arctics.clonk.c4particle" name="Particle definition"
+			priority="high" />
 
 	</extension>
 

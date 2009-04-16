@@ -9,11 +9,17 @@ import java.util.Map;
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.C4Function;
 import net.arctics.clonk.parser.C4Object;
+import net.arctics.clonk.parser.C4ObjectExternGroup;
 import net.arctics.clonk.parser.C4ObjectIntern;
 import net.arctics.clonk.parser.C4ScriptBase;
 import net.arctics.clonk.parser.C4ScriptIntern;
 import net.arctics.clonk.parser.C4Variable;
 import net.arctics.clonk.parser.ClonkIndex;
+import net.arctics.clonk.parser.actmap.ActMapParser;
+import net.arctics.clonk.parser.defcore.DefCoreParser;
+import net.arctics.clonk.parser.inireader.IniReader;
+import net.arctics.clonk.parser.particle.ParticleDefParser;
+import net.arctics.clonk.parser.scenario.ScenarioParser;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.resource.c4group.C4Group;
 import net.arctics.clonk.resource.c4group.C4Group.C4GroupType;
@@ -29,7 +35,9 @@ import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.FileLocator;
 import org.eclipse.core.runtime.Path;
+import org.eclipse.core.runtime.content.IContentType;
 import org.eclipse.jface.resource.ImageDescriptor;
+import org.eclipse.jface.resource.ImageRegistry;
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.swt.graphics.Image;
@@ -44,9 +52,14 @@ import org.eclipse.ui.console.IConsoleManager;
 import org.eclipse.ui.console.IConsoleView;
 import org.eclipse.ui.console.MessageConsole;
 import org.eclipse.ui.console.MessageConsoleStream;
+import org.eclipse.ui.ide.IDE;
 import org.eclipse.ui.part.FileEditorInput;
 import org.eclipse.ui.texteditor.ITextEditor;
 
+/**
+ * Contains various utility functions
+ *
+ */
 public abstract class Utilities {
 	
 	private static MessageConsole clonkConsole = null;
@@ -112,7 +125,7 @@ public abstract class Utilities {
 			}
 			catch(CoreException e) { }
 			
-		return c.toArray(new IProject [] {});
+		return c.toArray(new IProject [c.size()]);
 	}
 	
 	public static MessageConsole getClonkConsole() {
@@ -187,13 +200,13 @@ public abstract class Utilities {
 			return getIconForFunction((C4Function)element);
 		if (element instanceof C4Variable)
 			return getIconForVariable((C4Variable)element);
-		if (element instanceof C4Object)
-			return getIconForC4ID((C4Object)element);
+		if (element instanceof C4Object || element instanceof C4ObjectExternGroup)
+			return Icons.GENERAL_OBJECT_ICON;
 		return null;
 	}
 	
-	public static Image getIconForC4ID(C4Object element) {
-		return null;
+	public static Image getIconForC4Object(C4Object element) {
+		return Icons.GENERAL_OBJECT_ICON;
 //		Image base = new Image(PlatformUI.getWorkbench().getDisplay(),FileLocator.find(null, null, null).openStream());
 //		ImageData data = base.getImageData();
 //		org.eclipse.swt.graphics.
@@ -203,6 +216,19 @@ public abstract class Utilities {
 
 	public static ImageDescriptor getIconDescriptor(String path) {
 		return ImageDescriptor.createFromURL(FileLocator.find(ClonkCore.getDefault().getBundle(), new Path(path), null));
+	}
+	
+	public static Image getIconImage(String registryKey, String iconPath) {
+		ImageRegistry reg = ClonkCore.getDefault().getImageRegistry();
+		Image img = reg.get(registryKey);
+		if (img == null) {
+			reg.put(registryKey, Utilities.getIconDescriptor(iconPath));
+			img = reg.get(registryKey);
+		}
+//			if (element.findMarkers(IMarker.PROBLEM, true, IResource.DEPTH_INFINITE).length > 0) {
+//				return decorateImage(reg.getDescriptor(registryKey), element).createImage();
+//			}
+		return img;
 	}
 	
 	public static C4ScriptBase getScriptForFile(IFile scriptFile) {
@@ -274,32 +300,6 @@ public abstract class Utilities {
 			case '(':
 				if (--bracketDepth < 0)
 					return off+1;
-				break;
-			}
-		}
-		return offset;
-	}
-	
-	public static int getEndOfStatement(IDocument doc, int offset) throws BadLocationException {
-		int bracketDepth = 0, blockDepth = 0;
-		for (int off = offset+1; off < doc.getLength(); off++) {
-			switch (doc.getChar(off)) {
-			case ';':
-				if (bracketDepth <= 0 && blockDepth <= 0)
-					return off+1;
-				break;
-			case '{':
-				blockDepth++;
-				break;
-			case '}':
-				if (--blockDepth <= 0)
-					return off+1;
-				break;
-			case '(':
-				bracketDepth++;
-				break;
-			case ')':
-				bracketDepth--;
 				break;
 			}
 		}
@@ -389,6 +389,26 @@ public abstract class Utilities {
 	@SuppressWarnings("unchecked")
 	public static <KeyType, ValueType> Map<KeyType, ValueType> map(Object... keysAndValues) {
 		return mapOfType((Class<? extends Map<KeyType, ValueType>>) HashMap.class, keysAndValues);
+	}
+	
+	private static Map<String, Class<? extends IniReader>> INIREADER_CLASSES = Utilities.map(new Object[] {
+		"net.arctics.clonk.c4scenariocfg", ScenarioParser.class,
+		"net.arctics.clonk.c4actmap"     , ActMapParser.class,
+		"net.arctics.clonk.c4defcore"    , DefCoreParser.class,
+		"net.arctics.clonk.c4particle"   , ParticleDefParser.class
+	});
+
+	/**
+	 * Returns the IniReader class that is best suited to parsing the given ini file
+	 * @param file the ini file to return an IniReader class for
+	 * @return the IniReader class or null if no suitable one could be found
+	 */
+	public static Class<? extends IniReader> getIniReaderClassFromFile(IFile file) {
+		IContentType contentType = IDE.getContentType(file);
+		if (contentType == null)
+			return null;
+		Class<? extends IniReader> iniReaderClass = INIREADER_CLASSES.get(contentType.getId());
+		return iniReaderClass;
 	}
 	
 }

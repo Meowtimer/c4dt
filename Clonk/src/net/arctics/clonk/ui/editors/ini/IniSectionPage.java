@@ -5,7 +5,6 @@ package net.arctics.clonk.ui.editors.ini;
 
 import java.io.InputStream;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 
 import net.arctics.clonk.ClonkCore;
@@ -13,14 +12,11 @@ import net.arctics.clonk.parser.C4Function;
 import net.arctics.clonk.parser.C4Object;
 import net.arctics.clonk.parser.C4ObjectIntern;
 import net.arctics.clonk.parser.C4ScriptBase;
-import net.arctics.clonk.parser.actmap.ActMapParser;
-import net.arctics.clonk.parser.defcore.DefCoreParser;
 import net.arctics.clonk.parser.inireader.Boolean;
 import net.arctics.clonk.parser.inireader.ComplexIniEntry;
 import net.arctics.clonk.parser.inireader.Function;
 import net.arctics.clonk.parser.inireader.IniReader;
 import net.arctics.clonk.parser.inireader.IniSection;
-import net.arctics.clonk.parser.scenario.ScenarioParser;
 import net.arctics.clonk.ui.editors.ini.IniEditor.PageAttribRequest;
 import net.arctics.clonk.util.IHasContext;
 import net.arctics.clonk.util.IHasKeyAndValue;
@@ -29,7 +25,6 @@ import net.arctics.clonk.util.Utilities;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.content.IContentType;
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IRegion;
@@ -58,9 +53,11 @@ import org.eclipse.ui.forms.editor.FormPage;
 import org.eclipse.ui.forms.widgets.FormToolkit;
 import org.eclipse.ui.forms.widgets.ScrolledForm;
 import org.eclipse.ui.forms.widgets.Section;
-import org.eclipse.ui.ide.IDE;
 import org.eclipse.ui.texteditor.IDocumentProvider;
 
+/**
+ * The gui editing component in an IniEditor (in contrast to the raw text editor)
+ */
 public class IniSectionPage extends FormPage {
 
 	private final class IniEditorEditingSupport extends EditingSupport {
@@ -178,11 +175,33 @@ public class IniSectionPage extends FormPage {
 		}
 	}
 
+	/**
+	 * The document provider of the ini file being edited
+	 */
 	protected IDocumentProvider documentProvider;
+	
+	/**
+	 * Reader to read the ini file
+	 */
 	protected IniReader iniReader;
+	
+	/**
+	 * Class used to create iniReader
+	 */
 	protected Class<? extends IniReader> iniReaderClass;
+	
+	/**
+	 * GUI editing tree
+	 */
 	protected TreeViewer treeViewer;
 
+	/**
+	 * Creates an ini reader of the given class.
+	 * @param <T>
+	 * @param cls The class to instantiate. A reference to this class is stored in iniReaderClass
+	 * @param arg The argument for the constructor. May be an IFile, an InputStream or a string
+	 * @return The reader. A reference is also stored in iniReader.
+	 */
 	public <T extends IniReader> T createIniReader(Class<T> cls, Object arg) {
 		iniReaderClass = cls;
 		T result;
@@ -203,6 +222,11 @@ public class IniSectionPage extends FormPage {
 		return result;
 	}
 
+	/**
+	 * Updates the ini reader, e.g creates a new one of the class supplied earlier.
+	 * This method also refreshes the tree viewer.
+	 * @param arg
+	 */
 	public void updateIniReader(Object arg) {
 		if (iniReaderClass != null) {
 			createIniReader(iniReaderClass, arg);
@@ -215,22 +239,9 @@ public class IniSectionPage extends FormPage {
 		this (editor, id, title, docProvider, null);
 	}
 	
-	private static Map<String, Class<? extends IniReader>> INIREADER_CLASSES = Utilities.map(new Object[] {
-		"net.arctics.clonk.c4scenariocfg", ScenarioParser.class,
-		"net.arctics.clonk.c4actmap"     , ActMapParser.class,
-		"net.arctics.clonk.c4defcore"    , DefCoreParser.class
-	});
-	
-	private Class<? extends IniReader> getIniReaderClassFromDocument(
-			IDocument document) {
-		IContentType contentType = IDE.getContentType(Utilities.getEditingFile(getEditor()));
-		Class<? extends IniReader> iniReaderClass = INIREADER_CLASSES.get(contentType.getId());
-		return iniReaderClass;
-	}
-	
 	public void initializeReader() {
 		if (iniReaderClass == null) {
-			this.iniReaderClass = getIniReaderClassFromDocument(getIniEditor().getSourcePage().getDocumentProvider().getDocument(getEditor().getEditorInput()));
+			this.iniReaderClass = Utilities.getIniReaderClassFromFile(Utilities.getEditingFile(getEditor()));
 			updateIniReader(Utilities.getEditingFile(getEditor()));
 		}
 	}

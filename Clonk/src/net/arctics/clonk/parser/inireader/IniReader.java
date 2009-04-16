@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 
 import net.arctics.clonk.parser.BufferedScanner;
+import net.arctics.clonk.parser.C4ScriptBase;
 import net.arctics.clonk.parser.inireader.IniData.IniConfiguration;
 import net.arctics.clonk.parser.inireader.IniData.IniDataEntry;
 import net.arctics.clonk.parser.inireader.IniData.IniDataSection;
@@ -19,26 +20,61 @@ import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 
+/**
+ * Reads Windows ini style configuration files
+ */
 public class IniReader implements Iterable<IniSection>, IHasChildren {
 
+	/**
+	 * Text scanner
+	 */
 	protected BufferedScanner reader;
+	
+	/**
+	 * The configuration file
+	 */
 	protected IFile iniFile = null;
-	// map to access sections by their name - only useful when sections have different names 
+	
+	/**
+	 * map to access sections by their name - only useful when sections have different names
+	 */
 	protected Map<String, IniSection> sections = new HashMap<String, IniSection>();
-	/// list of all sections regardless of name (for ActMap and similar files)
+	
+	/**
+	 * list of all sections regardless of name (for ActMap and similar files)
+	 */
 	protected List<IniSection> sectionsList = new LinkedList<IniSection>();
+	
+	/**
+	 * Name of the configuration that is to be used when no name was explicitly defined in the file. (?)
+	 */
 	protected String defaultName;
 	
+	/**
+	 * Temporary reference to the section being currently parsed.
+	 */
 	protected IniSection currentSection;
 	
+	/**
+	 * Creates an IniReader that reads ini information from a stream
+	 * @param stream the stream
+	 */
 	public IniReader(InputStream stream) {
 		reader = new BufferedScanner(stream);
 	}
 	
+	/**
+	 * Creates an IniReader that reads ini information from a string
+	 * @param text the string
+	 */
 	public IniReader(String text) {
 		reader = new BufferedScanner(text);
 	}
 	
+	/**
+	 * Creates an IniReader that reads ini information from a project file
+	 * @param file the file
+	 */
 	public IniReader(IFile file) {
 		try {
 			defaultName = file.getParent().getName();
@@ -51,31 +87,13 @@ public class IniReader implements Iterable<IniSection>, IHasChildren {
 		iniFile = file;
 	}
 	
-	public int getPosition() {
-		return reader.getPosition();
-	}
-	
+	/**
+	 * Returns the file the configuration was read from
+	 * @return the file
+	 */
 	public IFile getIniFile() {
 		return iniFile;
 	}
-
-	public void setIniFile(IFile iniFile) {
-		this.iniFile = iniFile;
-	}
-
-//	/**
-//	 * Moves the cursor until a section is found.
-//	 * @return the section name without [] or <code>null</code> if no more section is available
-//	 */
-//	public String nextSection() {
-//		String line;
-//		do {
-//			line = reader.readLine();
-//			if (line == null) return null;
-////				line = line.trim();
-//		} while(!line.startsWith("[") || !line.endsWith("]"));
-//		return line.substring(1,line.length() - 1);
-//	}
 	
 	/**
 	 * Checks whether this section name is valid.<br>
@@ -270,24 +288,9 @@ public class IniReader implements Iterable<IniSection>, IHasChildren {
 	public boolean hasChildren() {
 		return !sections.isEmpty();
 	}
+
+	public void commitTo(C4ScriptBase script) {
+		// placeholder
+	}
 	
-//	/**
-//	 * Moves the cursor until an entry is found.
-//	 * @return the key at index 0 and the value at index 1
-//	 */
-//	public IniEntry nextEntry() {
-//		String line;
-//		int splitPos, beforePos;
-//		do {
-//			beforePos = getPosition();
-//			line = reader.readLine();
-//			if (line == null) return null;
-//			if (line.startsWith("[")) {
-//				reader.seek(beforePos);
-//				return null;
-//			}
-////				line = line.trim();
-//		} while((splitPos = line.indexOf('=')) == -1);
-//		return new IniEntry(beforePos, line.substring(0,splitPos).trim(), line.substring(splitPos + 1).trim());
-//	}
 }

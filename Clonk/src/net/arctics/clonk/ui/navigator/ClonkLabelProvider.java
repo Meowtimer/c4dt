@@ -4,6 +4,7 @@ import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.C4ObjectIntern;
 import net.arctics.clonk.resource.c4group.C4Group.C4GroupType;
 import net.arctics.clonk.ui.OverlayIcon;
+import net.arctics.clonk.util.Icons;
 import net.arctics.clonk.util.Utilities;
 
 import org.eclipse.core.resources.IFile;
@@ -13,7 +14,6 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jface.resource.ImageDescriptor;
-import org.eclipse.jface.resource.ImageRegistry;
 import org.eclipse.jface.viewers.ILabelProviderListener;
 import org.eclipse.jface.viewers.LabelProvider;
 import org.eclipse.jface.viewers.LabelProviderChangedEvent;
@@ -35,13 +35,13 @@ public class ClonkLabelProvider extends LabelProvider implements IStyledLabelPro
 		}
 		else if (element instanceof IFile) {
 			if (element.toString().endsWith(".c")) {
-				return computeImage("c4script","icons/c4scriptIcon.png",(IResource)element);
+				return Utilities.getIconImage("c4script","icons/c4scriptIcon.png");
 			}
 			if (element.toString().endsWith(".txt")) {
-				return computeImage("c4txt","icons/text.png",(IResource)element);
+				return Utilities.getIconImage("c4txt","icons/text.png");
 			}
 			if (element.toString().endsWith(".c4m")) {
-				return computeImage("c4material","icons/Clonk_C4.png",(IResource)element);
+				return Utilities.getIconImage("c4material","icons/Clonk_C4.png");
 			}
 		}
 		else if (element instanceof IFolder) {
@@ -49,33 +49,19 @@ public class ClonkLabelProvider extends LabelProvider implements IStyledLabelPro
 			C4GroupType groupType = Utilities.groupTypeFromFolderName(folder.getName());
 			
 			if (groupType == C4GroupType.FolderGroup) {
-				return computeImage("c4folder","icons/Clonk_folder.png",(IResource)element);
+				return Utilities.getIconImage("c4folder","icons/Clonk_folder.png");
 			}
 			else if (groupType == C4GroupType.DefinitionGroup) {
-				return computeImage("c4object","icons/C4Object.png",(IResource)element);
+				return Icons.GENERAL_OBJECT_ICON;
 			}
 			else if (groupType == C4GroupType.ScenarioGroup) {
-				return computeImage("c4scenario","icons/Clonk_scenario.png",(IResource)element);
+				return Utilities.getIconImage("c4scenario","icons/Clonk_scenario.png");
 			}
 			else if (groupType == C4GroupType.ResourceGroup) {
-				return computeImage("c4datafolder","icons/Clonk_datafolder.png",(IResource)element);
+				return Utilities.getIconImage("c4datafolder","icons/Clonk_datafolder.png");
 			}
 		}
-//		if (element instanceof C4Entry) {
-//			
-//			C4Entry entry = (C4Entry)element;
-//			if (entry.getName().endsWith(".txt")) {
-//				return computeImage("c4txt","icons/text.png",(IResource)element);
-//			}
-//			else if (entry.getName().endsWith(".png")) {
-//				return super.getImage(element.toString());
-//			}
-//			else if (entry.getName().endsWith(".c")) {
-//				return computeImage("c4script","icons/c4scriptIcon.png",(IResource)element);
-//			}
-//		}
-		
-		return null;
+		return Utilities.getIconForObject(element);
 	}
 
 	public String getText(Object element) {
@@ -93,7 +79,6 @@ public class ClonkLabelProvider extends LabelProvider implements IStyledLabelPro
 	}
 	
 	public StyledString getStyledText(Object element) {
-
 		if (element instanceof IFolder) {
 			IFolder folder = (IFolder)element;
 			C4GroupType groupType = Utilities.groupTypeFromFolderName(folder.getName());
@@ -121,21 +106,13 @@ public class ClonkLabelProvider extends LabelProvider implements IStyledLabelPro
 			}
 			if (groupType == C4GroupType.FolderGroup || groupType == C4GroupType.ScenarioGroup || groupType == C4GroupType.ResourceGroup)
 				return new StyledString(folder.getName().substring(0,folder.getName().lastIndexOf(".")));
+			return new StyledString(((IFolder)element).getName());
 		}
-		return new StyledString(((IResource)element).getName());
-	}
-
-	public static Image computeImage(String registryKey, String iconPath, IResource element) {
-		ImageRegistry reg = ClonkCore.getDefault().getImageRegistry();
-		Image img = reg.get(registryKey);
-		if (img == null) {
-			reg.put(registryKey, Utilities.getIconDescriptor(iconPath));
-			img = reg.get(registryKey);
-		}
-//			if (element.findMarkers(IMarker.PROBLEM, true, IResource.DEPTH_INFINITE).length > 0) {
-//				return decorateImage(reg.getDescriptor(registryKey), element).createImage();
-//			}
-		return img;
+		else if (element instanceof IResource)
+			return new StyledString(((IResource)element).getName());
+		else if (element instanceof DependenciesNavigatorNode)
+			return new StyledString(element.toString(), StyledString.DECORATIONS_STYLER);
+		return new StyledString(element.toString());
 	}
 	
 	protected static ImageDescriptor decorateImage(ImageDescriptor input,

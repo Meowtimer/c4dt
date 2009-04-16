@@ -3,6 +3,8 @@ package net.arctics.clonk.parser.defcore;
 import java.io.InputStream;
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.C4ID;
+import net.arctics.clonk.parser.C4Object;
+import net.arctics.clonk.parser.C4ScriptBase;
 import net.arctics.clonk.parser.inireader.ComplexIniEntry;
 import net.arctics.clonk.parser.inireader.IniEntry;
 import net.arctics.clonk.parser.inireader.IniReader;
@@ -72,6 +74,12 @@ public class DefCoreParser extends IniReader {
 	public String getName() {
 		IniEntry entry = entryInSection("DefCore", "Name");
 		return entry instanceof ComplexIniEntry ? (String)((ComplexIniEntry)entry).getExtendedValue() : defaultName;
+	}
+	
+	@Override
+	public void commitTo(C4ScriptBase script) {
+		if (script instanceof C4Object)
+			((C4Object)script).setId(this.getObjectID());
 	}
 	
 }

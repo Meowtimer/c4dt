@@ -11,7 +11,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import net.arctics.clonk.parser.C4ID;
 import net.arctics.clonk.parser.C4ObjectExtern;
-import net.arctics.clonk.parser.ClonkIndex;
+import net.arctics.clonk.parser.ExternIndex;
 import net.arctics.clonk.parser.inireader.IniData;
 import net.arctics.clonk.resource.ClonkLibBuilder;
 import net.arctics.clonk.resource.ClonkProjectNature;
@@ -33,26 +33,54 @@ import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.osgi.framework.BundleContext;
 
 /**
- * The activator class controls the plug-in life cycle
+ * The core of the plugin. The singleton instance of this class stores various global things, including
+ * the extern index that contains all objects imported from external object packs and the engine object that
+ * contains global predefined functions of Clonk.
  */
 public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant {
 
-	// The plug-in ID
+	/**
+	 * The Plugin-ID
+	 */
 	public static final String PLUGIN_ID = "net.arctics.clonk";
-	public static final String CLONK_NATURE_ID = PLUGIN_ID + ".clonknature";
-	public static final String MARKER_EXTERN_LIB_ERROR = PLUGIN_ID + ".externliberror";
 	
+	/**
+	 * id for Clonk project natures
+	 */
+	public static final String CLONK_NATURE_ID = PLUGIN_ID + ".clonknature";
+	
+	/**
+	 * id for error markers that denote errors occuring while importing extern libs
+	 */
+	public static final String MARKER_EXTERN_LIB_ERROR = PLUGIN_ID + ".externliberror";
+
 	public static final QualifiedName FOLDER_C4ID_PROPERTY_ID = new QualifiedName(PLUGIN_ID,"c4id");
 	public static final QualifiedName C4OBJECT_PROPERTY_ID = new QualifiedName(PLUGIN_ID,"c4object");
 	public static final QualifiedName SCRIPT_PROPERTY_ID = new QualifiedName(PLUGIN_ID, "script"); 
 	
+	/**
+	 * The engine object contains global functions and variables defined by Clonk itself
+	 */
 	public C4ObjectExtern ENGINE_OBJECT;
-	public ClonkIndex EXTERN_INDEX;
+	
+	/**
+	 * Index that contains objects and scripts imported from external object packs and .c4g-groups 
+	 */
+	public ExternIndex EXTERN_INDEX;
+	
+	/**
+	 * ini configuration definitions for the various Clonk configuration files
+	 */
 	public IniData INI_CONFIGURATIONS;
 	
-	// The shared instance
+	/**
+	 * Shared instance
+	 */
 	private static ClonkCore plugin;
 	
+	/**
+	 * builder to import external libs
+	 */
 	private ClonkLibBuilder libBuilder = null;
 	
 	/**
@@ -218,15 +246,15 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant {
 	public void loadExternIndex() {
 		final File index = getExternLibCacheFile().toFile();
 		if (!index.exists()) {
-			EXTERN_INDEX = new ClonkIndex();
+			EXTERN_INDEX = new ExternIndex();
 		} else {
 			try {
 				FileInputStream in = new FileInputStream(index);
 				ObjectInputStream objStream = new InputStreamRespectingUniqueIDs(in);
-				EXTERN_INDEX = (ClonkIndex)objStream.readObject();
+				EXTERN_INDEX = (ExternIndex)objStream.readObject();
 				EXTERN_INDEX.fixReferencesAfterSerialization();
 			} catch (Exception e) {
-				EXTERN_INDEX = new ClonkIndex();
+				EXTERN_INDEX = new ExternIndex();
 			}
 		}
 	}
