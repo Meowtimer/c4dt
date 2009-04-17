@@ -6,11 +6,8 @@ import org.eclipse.jface.viewers.Viewer;
 public class ClonkSearchContentProvider implements ITreeContentProvider {
 
 	private ClonkSearchResult searchResult;
-	private ClonkSearchResultPage page;
-	
 	public ClonkSearchContentProvider(ClonkSearchResultPage page) {
 		super();
-		this.page = page;
 	}
 
 	public Object[] getChildren(Object element) {

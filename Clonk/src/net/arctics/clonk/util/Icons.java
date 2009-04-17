@@ -9,4 +9,7 @@ import org.eclipse.swt.graphics.Image;
 public abstract class Icons {
 	public final static Image GENERAL_OBJECT_ICON = Utilities.getIconImage("c4object","icons/C4Object.png");
 	public final static Image SCRIPT_ICON = Utilities.getIconImage("c4script","icons/c4scriptIcon.png");
+	public final static Image GROUP_ICON = Utilities.getIconImage("c4datafolder","icons/Clonk_datafolder.png");
+	public final static Image FOLDER_ICON = Utilities.getIconImage("c4folder","icons/Clonk_folder.png");
+	public static final Image SCENARIO_ICON = Utilities.getIconImage("c4scenario","icons/Clonk_scenario.png");
 }

@@ -17,12 +17,10 @@ import org.eclipse.ui.texteditor.ITextEditor;
 public class IniSourceViewerConfiguration extends
 		TextSourceViewerConfiguration {
 	private ColorManager colorManager;
-	private ITextEditor textEditor;
 	private IniScanner scanner;
 	
 	public IniSourceViewerConfiguration(ColorManager colorManager, ITextEditor textEditor) {
 		this.colorManager = colorManager;
-		this.textEditor = textEditor;
 	}
 
 	@Override

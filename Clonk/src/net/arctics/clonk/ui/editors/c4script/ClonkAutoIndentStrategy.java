@@ -21,15 +21,10 @@ import org.eclipse.jface.text.IRegion;
  *
  */
 public class ClonkAutoIndentStrategy extends DefaultIndentLineAutoEditStrategy {
-	private ClonkProjectNature project;
-	private String partitioning; // i think that is some kinda constant; ClonkPartitionScanner.C4S_CODEBODY?
-	
 	public ClonkAutoIndentStrategy() {
 	}
 	
 	public ClonkAutoIndentStrategy(ClonkProjectNature project, String partitioning) {
-		this.partitioning = partitioning;
-		this.project = project;
 	}
 
 	/*

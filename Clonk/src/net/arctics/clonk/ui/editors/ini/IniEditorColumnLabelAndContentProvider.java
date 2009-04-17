@@ -13,10 +13,7 @@ import org.eclipse.swt.graphics.Image;
 
 public class IniEditorColumnLabelAndContentProvider implements ITableLabelProvider, ITreeContentProvider {
 
-	private IniConfiguration configuration;
-	
 	public IniEditorColumnLabelAndContentProvider(IniConfiguration configuration) {
-		this.configuration = configuration;
 	}
 
 	public Image getColumnImage(Object element, int columnIndex) {

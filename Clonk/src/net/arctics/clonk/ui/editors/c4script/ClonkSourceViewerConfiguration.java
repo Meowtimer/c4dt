@@ -127,7 +127,6 @@ public class ClonkSourceViewerConfiguration extends TextSourceViewerConfiguratio
 		
 	}
 	
-	private ClonkDoubleClickStrategy doubleClickStrategy;
 	private ClonkCodeScanner scanner;
 	private ClonkCommentScanner commentScanner;
 	private ColorManager colorManager;

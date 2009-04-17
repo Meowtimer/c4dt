@@ -11,7 +11,6 @@ import org.eclipse.jface.viewers.Viewer;
 
 public class ResourceContentProvider implements ITreeContentProvider {
 	
-	private IResource root;
 	private int resourceTypes;
 	
 	public ResourceContentProvider(IResource root) {
@@ -19,7 +18,6 @@ public class ResourceContentProvider implements ITreeContentProvider {
 	}
 	
 	public ResourceContentProvider(IResource root, int resourceTypes) {
-		this.root = root;
 		this.resourceTypes = resourceTypes;
 	}
 	
@@ -74,8 +72,8 @@ public class ResourceContentProvider implements ITreeContentProvider {
 	}
 
 	public void inputChanged(Viewer viewer, Object oldInput, Object newInput) {
-		if (newInput instanceof IResource)
-			root = (IResource) newInput;
+		if (newInput instanceof IResource) {
+		}
 	}
 
 }

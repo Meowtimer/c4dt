@@ -202,6 +202,8 @@ public abstract class Utilities {
 			return getIconForVariable((C4Variable)element);
 		if (element instanceof C4Object || element instanceof C4ObjectExternGroup)
 			return Icons.GENERAL_OBJECT_ICON;
+		if (element instanceof C4ScriptBase)
+			return Icons.SCRIPT_ICON;
 		return null;
 	}
 	

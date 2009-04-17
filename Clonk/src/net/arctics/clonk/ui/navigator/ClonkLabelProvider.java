@@ -49,16 +49,16 @@ public class ClonkLabelProvider extends LabelProvider implements IStyledLabelPro
 			C4GroupType groupType = Utilities.groupTypeFromFolderName(folder.getName());
 			
 			if (groupType == C4GroupType.FolderGroup) {
-				return Utilities.getIconImage("c4folder","icons/Clonk_folder.png");
+				return Icons.FOLDER_ICON;
 			}
 			else if (groupType == C4GroupType.DefinitionGroup) {
 				return Icons.GENERAL_OBJECT_ICON;
 			}
 			else if (groupType == C4GroupType.ScenarioGroup) {
-				return Utilities.getIconImage("c4scenario","icons/Clonk_scenario.png");
+				return Icons.SCENARIO_ICON;
 			}
 			else if (groupType == C4GroupType.ResourceGroup) {
-				return Utilities.getIconImage("c4datafolder","icons/Clonk_datafolder.png");
+				return Icons.GROUP_ICON;
 			}
 		}
 		return Utilities.getIconForObject(element);
