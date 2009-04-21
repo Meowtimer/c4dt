@@ -9,7 +9,7 @@ import net.arctics.clonk.parser.C4Type;
 import net.arctics.clonk.parser.C4Variable;
 import net.arctics.clonk.parser.C4Function.C4FunctionScope;
 import net.arctics.clonk.parser.C4Variable.C4VariableScope;
-import net.arctics.clonk.ui.editors.c4script.ClonkContentOutlineLabelAndContentProvider;
+import net.arctics.clonk.ui.navigator.ClonkOutlineProvider;
 
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Combo;
@@ -319,7 +319,7 @@ public class EngineIdentifiersView extends ViewPart {
 		viewer = new TreeViewer(parent, SWT.MULTI | SWT.H_SCROLL | SWT.V_SCROLL);
 		drillDownAdapter = new DrillDownAdapter(viewer);
 		
-		ClonkContentOutlineLabelAndContentProvider provider = new ClonkContentOutlineLabelAndContentProvider();
+		ClonkOutlineProvider provider = new ClonkOutlineProvider();
 		viewer.setContentProvider(provider);
 		viewer.setLabelProvider(provider);
 		viewer.setSorter(new ViewerSorter() {

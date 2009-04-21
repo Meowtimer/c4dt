@@ -2,6 +2,8 @@ package net.arctics.clonk.ui.navigator;
 
 import java.text.Collator;
 
+import net.arctics.clonk.parser.C4Field;
+
 import org.eclipse.core.resources.IResource;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.jface.viewers.ViewerSorter;
@@ -22,6 +24,11 @@ public class ClonkSorter extends ViewerSorter {
 			if (resource.getName().endsWith(sortPriorities[i])) return i;
 		}
 		return -1;
+	}
+	
+	@Override
+	public int category(Object element) {
+		return element instanceof C4Field ? ((C4Field)element).sortCategory() : 0;
 	}
 	
 	@Override

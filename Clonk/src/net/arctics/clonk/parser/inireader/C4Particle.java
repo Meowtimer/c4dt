@@ -1,4 +1,4 @@
-package net.arctics.clonk.parser.particle;
+package net.arctics.clonk.parser.inireader;
 
 import net.arctics.clonk.parser.C4Field;
 

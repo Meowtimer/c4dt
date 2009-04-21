@@ -25,7 +25,7 @@ import org.eclipse.jface.action.Action;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.TextSelection;
 import org.eclipse.jface.viewers.ISelection;
-import org.eclipse.jface.viewers.TreeSelection;
+import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.editors.text.TextFileDocumentProvider;
@@ -33,6 +33,12 @@ import org.eclipse.ui.editors.text.TextFileDocumentProvider;
 public class ConvertOldCodeInBulkAction extends Action {
 	ConvertOldCodeInBulkAction(String text) {
 		super(text);
+	}
+	
+	@Override
+	public boolean isEnabled() {
+		IStructuredSelection sel = (IStructuredSelection) PlatformUI.getWorkbench().getActiveWorkbenchWindow().getSelectionService().getSelection();
+		return Utilities.allInstanceOf(sel.toArray(), IResource.class);
 	}
 
 	@Override
@@ -44,9 +50,9 @@ public class ConvertOldCodeInBulkAction extends Action {
 				PlatformUI.getWorkbench().getActiveWorkbenchWindow().getSelectionService().getSelection() == null)
 			return;
 		ISelection selection = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getSelectionService().getSelection();
-		if (selection != null && selection instanceof TreeSelection) {
-			TreeSelection tree = (TreeSelection) selection;
-			Iterator<?> it = tree.iterator();
+		if (selection != null && selection instanceof IStructuredSelection) {
+			IStructuredSelection sel = (IStructuredSelection) selection;
+			Iterator<?> it = sel.iterator();
 			List<IContainer> selectedContainers = new LinkedList<IContainer>();
 			while (it.hasNext()) {
 				Object obj = it.next();

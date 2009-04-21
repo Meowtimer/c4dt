@@ -3,7 +3,7 @@ package net.arctics.clonk.ui.editors.actmap;
 import org.eclipse.ui.forms.editor.FormEditor;
 import org.eclipse.ui.texteditor.IDocumentProvider;
 
-import net.arctics.clonk.parser.actmap.ActMapParser;
+import net.arctics.clonk.parser.inireader.ActMapParser;
 import net.arctics.clonk.ui.editors.ini.IniEditor;
 import net.arctics.clonk.ui.editors.ini.IniSectionPage;
 

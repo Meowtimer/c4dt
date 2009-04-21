@@ -1,6 +1,6 @@
 package net.arctics.clonk.ui.editors.defcore;
 
-import net.arctics.clonk.parser.defcore.DefCoreParser;
+import net.arctics.clonk.parser.inireader.DefCoreParser;
 import net.arctics.clonk.ui.editors.ini.IniEditor;
 import net.arctics.clonk.ui.editors.ini.IniSectionPage;
 

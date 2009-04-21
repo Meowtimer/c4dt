@@ -10,7 +10,7 @@ import net.arctics.clonk.parser.C4ObjectExtern;
 import net.arctics.clonk.parser.C4ScriptExtern;
 import net.arctics.clonk.parser.C4ObjectExternGroup;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
-import net.arctics.clonk.parser.defcore.DefCoreParser;
+import net.arctics.clonk.parser.inireader.DefCoreParser;
 import net.arctics.clonk.preferences.PreferenceConstants;
 import net.arctics.clonk.resource.c4group.C4GroupEntry;
 import net.arctics.clonk.resource.c4group.C4EntryHeader;

@@ -1327,7 +1327,7 @@ public class C4ScriptParser {
 			if (elm == null) {
 				int c = fReader.read();
 				if (c == '(') {
-					ExprElm firstExpr = parseExpression(fReader.getPosition());
+					ExprElm firstExpr = parseExpression(fReader.getPosition(), reportErrors);
 					if (firstExpr == null) {
 						firstExpr = ExprElm.NULL_EXPR;
 						// might be disabled

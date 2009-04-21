@@ -3,7 +3,7 @@ package net.arctics.clonk.ui.editors.material;
 import org.eclipse.ui.forms.editor.FormEditor;
 import org.eclipse.ui.texteditor.IDocumentProvider;
 
-import net.arctics.clonk.parser.material.MaterialParser;
+import net.arctics.clonk.parser.inireader.MaterialParser;
 import net.arctics.clonk.ui.editors.ini.IniEditor;
 import net.arctics.clonk.ui.editors.ini.IniSectionPage;
 

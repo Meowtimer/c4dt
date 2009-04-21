@@ -5,6 +5,10 @@ import net.arctics.clonk.parser.C4Object;
 import net.arctics.clonk.ui.OpenObjectDialog;
 import net.arctics.clonk.ui.editors.c4script.C4ScriptEditor;
 
+import org.eclipse.core.commands.ExecutionEvent;
+import org.eclipse.core.commands.ExecutionException;
+import org.eclipse.core.commands.IHandler;
+import org.eclipse.core.commands.IHandlerListener;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.viewers.ISelection;
@@ -13,7 +17,7 @@ import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.IWorkbenchWindowActionDelegate;
 
 public class OpenObject extends Action implements
-		IWorkbenchWindowActionDelegate {
+		IWorkbenchWindowActionDelegate, IHandler {
 
 	public void dispose() {
 		// nothing to dispose
@@ -44,6 +48,21 @@ public class OpenObject extends Action implements
 
 	public void selectionChanged(IAction action, ISelection selection) {
 		// who cares?
+	}
+
+	public void addHandlerListener(IHandlerListener handlerListener) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	public Object execute(ExecutionEvent event) throws ExecutionException {
+		run();
+		return null;
+	}
+
+	public void removeHandlerListener(IHandlerListener handlerListener) {
+		// TODO Auto-generated method stub
+		
 	}
 
 }

@@ -1,7 +1,7 @@
 /**
  * 
  */
-package net.arctics.clonk.ui.editors.c4script;
+package net.arctics.clonk.ui.navigator;
 
 import net.arctics.clonk.parser.C4Field;
 import net.arctics.clonk.parser.C4Function;
@@ -21,7 +21,7 @@ import org.eclipse.swt.graphics.Image;
  * @author madeen
  *
  */
-public class ClonkContentOutlineLabelAndContentProvider extends LabelProvider implements ITreeContentProvider, IStyledLabelProvider {
+public class ClonkOutlineProvider extends LabelProvider implements ITreeContentProvider, IStyledLabelProvider {
 	
 	/* (non-Javadoc)
 	 * @see org.eclipse.jface.viewers.IBaseLabelProvider#addListener(org.eclipse.jface.viewers.ILabelProviderListener)
@@ -35,7 +35,9 @@ public class ClonkContentOutlineLabelAndContentProvider extends LabelProvider im
 	 * @see org.eclipse.jface.viewers.ITreeContentProvider#getChildren(java.lang.Object)
 	 */
 	public Object[] getChildren(Object obj) {
-		return ((C4Field)obj).getSubDeclarationsForOutline();
+		if (obj instanceof C4Field)
+			return ((C4Field)obj).getSubDeclarationsForOutline();
+		return null;
 	}
 
 	/* (non-Javadoc)
@@ -50,7 +52,7 @@ public class ClonkContentOutlineLabelAndContentProvider extends LabelProvider im
 	 * @see org.eclipse.jface.viewers.ITreeContentProvider#hasChildren(java.lang.Object)
 	 */
 	public boolean hasChildren(Object field) {
-		return ((C4Field)field).hasSubDeclarations();
+		return field instanceof C4Field && ((C4Field)field).hasSubDeclarations();
 	}
 
 	/* (non-Javadoc)

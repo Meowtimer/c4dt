@@ -72,4 +72,9 @@ public class ScriptWithStorageEditorInput implements IEditorInput, IPathEditorIn
 		return script;
 	}
 
+	public String getFactoryId() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 }

@@ -2,6 +2,7 @@ package net.arctics.clonk.ui.editors.c4script;
 
 import net.arctics.clonk.parser.C4Field;
 import net.arctics.clonk.parser.C4ScriptBase;
+import net.arctics.clonk.ui.navigator.ClonkOutlineProvider;
 import net.arctics.clonk.util.Utilities;
 
 import org.eclipse.jface.viewers.IStructuredSelection;
@@ -34,11 +35,12 @@ public class ClonkContentOutlinePage extends ContentOutlinePage {
 		TreeViewer treeViewer = this.getTreeViewer();
 		if (treeViewer == null)
 			return;
-		ClonkContentOutlineLabelAndContentProvider provider = new ClonkContentOutlineLabelAndContentProvider();
+		ClonkOutlineProvider provider = new ClonkOutlineProvider();
 		treeViewer.setLabelProvider(provider);
 		treeViewer.setContentProvider(provider);
 		treeViewer.setInput(obj);
 		treeViewer.setSorter(new ViewerSorter() {
+			@Override
 			public int category(Object element) {
 				return ((C4Field)element).sortCategory();
 			}

@@ -1,12 +1,10 @@
-package net.arctics.clonk.parser.scenario;
+package net.arctics.clonk.parser.inireader;
 
 import java.io.InputStream;
 
 import org.eclipse.core.resources.IFile;
 
 import net.arctics.clonk.ClonkCore;
-import net.arctics.clonk.parser.inireader.IniReader;
-import net.arctics.clonk.parser.inireader.IniSection;
 import net.arctics.clonk.parser.inireader.IniData.IniConfiguration;
 import net.arctics.clonk.parser.inireader.IniData.IniDataSection;
 

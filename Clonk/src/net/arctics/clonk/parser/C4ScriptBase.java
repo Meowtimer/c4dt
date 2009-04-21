@@ -460,6 +460,19 @@ public abstract class C4ScriptBase extends C4Structure implements IHasRelatedRes
 		};
 	}
 	
+	@Override
+	public Object[] getSubDeclarationsForOutline() {
+		List<Object> all = new LinkedList<Object>();
+		all.addAll(definedFunctions);
+		all.addAll(definedVariables);
+		return all.toArray(new Object[all.size()]);
+	}
+	
+	@Override
+	public boolean hasSubDeclarations() {
+		return definedFunctions.size() > 0 || definedVariables.size() > 0;
+	}
+	
 //	public boolean convertFuncsToConstsIfTheyLookLikeConsts() {
 //	boolean didSomething = false;
 //	List<C4Function> toBeRemoved = new LinkedList<C4Function>();

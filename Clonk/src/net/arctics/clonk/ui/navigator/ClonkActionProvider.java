@@ -1,5 +1,6 @@
 package net.arctics.clonk.ui.navigator;
 
+import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.ui.IActionBars;
 import org.eclipse.ui.navigator.CommonActionProvider;
@@ -13,6 +14,8 @@ import org.eclipse.ui.navigator.ICommonViewerWorkbenchSite;
 public class ClonkActionProvider extends CommonActionProvider {
 
 	private OpenSpecialItemAction openAction;
+	private QuickExportAction quickExportAction;
+	private ConvertOldCodeInBulkAction convertCodeAction;
 	
 	public ClonkActionProvider() {
 
@@ -29,6 +32,8 @@ public class ClonkActionProvider extends CommonActionProvider {
 				new OpenSpecialItemAction(workbenchSite.getPage(), 
 					workbenchSite.getSelectionProvider());
 		}
+		quickExportAction = new QuickExportAction("Quick Export");
+		convertCodeAction = new ConvertOldCodeInBulkAction("Convert old code");
 	}
 
 	/* (non-Javadoc)
@@ -37,8 +42,9 @@ public class ClonkActionProvider extends CommonActionProvider {
 	@Override
 	public void fillContextMenu(IMenuManager menu) {
 		super.fillContextMenu(menu);
-		menu.add(new QuickExportAction("Quick Export"));
-		menu.add(new ConvertOldCodeInBulkAction("Convert old code"));
+		for (IAction a : new IAction[]{quickExportAction, convertCodeAction})
+			if (a.isEnabled())
+				menu.add(a);
 		if (openAction.isEnabled())
 			menu.appendToGroup(ICommonMenuConstants.GROUP_OPEN, openAction);
 	}

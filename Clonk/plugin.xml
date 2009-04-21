@@ -51,18 +51,18 @@
 	</extension>
 
 	<extension point="org.eclipse.core.runtime.contentTypes">
-	
+
 		<content-type id="net.arctics.clonk.c4files" name="Clonk files"
 			priority="normal" />
-	
+
 		<content-type base-type="net.arctics.clonk.c4files"
 			file-names="Script.c" id="net.arctics.clonk.c4script" name="C4Script files"
 			priority="high" />
-		
+
 		<content-type base-type="net.arctics.clonk.c4files"
 			file-extensions="txt" id="net.arctics.clonk.inifile" name="Clonk Configuration file"
 			priority="high" />
-		
+
 		<content-type base-type="net.arctics.clonk.inifile"
 			file-names="DefCore.txt" id="net.arctics.clonk.c4defcore" name="C4Object definitions"
 			priority="high" />
@@ -74,7 +74,7 @@
 		<content-type base-type="net.arctics.clonk.inifile"
 			file-names="Scenario.txt" id="net.arctics.clonk.c4scenariocfg" name="Scenario configuration"
 			priority="high" />
-			
+
 		<content-type base-type="net.arctics.clonk.inifile"
 			file-names="Particle.txt" id="net.arctics.clonk.c4particle" name="Particle definition"
 			priority="high" />
@@ -114,6 +114,45 @@
 					<instanceof value="org.eclipse.core.resources.IResource" />
 					<instanceof value="org.eclipse.core.resources.IFolder" />
 					<instanceof value="org.eclipse.core.resources.IFile" />
+					<instanceof value="net.arctics.clonk.util.ITreeNode" />
+					<instanceof value="net.arctics.clonk.parser.C4Field" />
+				</or>
+			</possibleChildren>
+			<actionProvider class="net.arctics.clonk.ui.navigator.ClonkActionProvider"
+				id="clonkActionProvider" priority="normal" />
+
+			<commonSorter class="net.arctics.clonk.ui.navigator.ClonkSorter">
+				<parentExpression>
+					<or>
+						<instanceof value="org.eclipse.core.resources.IWorkspaceRoot" />
+						<instanceof value="org.eclipse.core.resources.IProject" />
+						<instanceof value="org.eclipse.core.resources.IResource" />
+						<instanceof value="org.eclipse.core.resources.IFolder" />
+						<instanceof value="org.eclipse.core.resources.IFile" />
+						<instanceof value="net.arctics.clonk.util.ITreeNode" />
+					</or>
+				</parentExpression>
+			</commonSorter>
+		</navigatorContent>
+		
+		<!--
+		<navigatorContent name="ClonkEmbeddedOutline"
+			priority="high" icon="icons/Clonk_Object.ico" activeByDefault="true"
+			contentProvider="net.arctics.clonk.ui.navigator.ClonkOutlineProvider"
+			labelProvider="net.arctics.clonk.ui.navigator.ClonkOutlineProvider"
+			providesSaveables="false" id="net.arctics.clonk.navigator.embeddedOutline">
+			<triggerPoints>
+				<or>
+					<instanceof value="net.arctics.clonk.parser.C4ScriptBase" />
+				</or>
+			</triggerPoints>
+			<possibleChildren>
+				<or>
+					<instanceof value="org.eclipse.core.resources.IWorkspaceRoot" />
+					<instanceof value="org.eclipse.core.resources.IProject" />
+					<instanceof value="org.eclipse.core.resources.IResource" />
+					<instanceof value="org.eclipse.core.resources.IFolder" />
+					<instanceof value="org.eclipse.core.resources.IFile" />
 					<instanceof value="net.arctics.clonk.parser.C4ObjectExternGroup" />
 					<instanceof value="net.arctics.clonk.parser.C4ObjectExtern" />
 					<instanceof value="net.arctics.clonk.ui.navigator.DependenciesNavigatorNode" />
@@ -135,12 +174,13 @@
 				</parentExpression>
 			</commonSorter>
 		</navigatorContent>
+		-->
 	</extension>
 
 	<extension point="org.eclipse.ui.navigator.viewer">
 		<viewerContentBinding viewerId="org.eclipse.ui.navigator.ProjectExplorer">
 			<includes>
-				<contentExtension pattern="net.arctics.clonk.navigator.resourceContent" />
+				<contentExtension pattern="net.arctics.clonk.navigator.*" />
 			</includes>
 		</viewerContentBinding>
 	</extension>
@@ -155,7 +195,7 @@
 			finalPerspective="net.arctics.clonk.clonkPerspective">
 			<description>
 				Create an empty Clonk project
-		</description>
+			</description>
 			<selection class="org.eclipse.core.resources.IWorkspaceRoot" />
 		</wizard>
 		<wizard category="net.arctics.clonk.clonkProjects" class="net.arctics.clonk.ui.wizards.NewC4Object"
@@ -182,7 +222,7 @@
 				Import project clonk data to current project. E.g. your
 				scenarios or
 				objects of your project. 
-		</description>
+			</description>
 			<selection class="org.eclipse.core.resources.IResource" />
 		</wizard>
 	</extension>
@@ -198,7 +238,7 @@
 				directory. That is for
 				instance a scenario or an object of your
 				project. 
-		</description>
+			</description>
 			<selection class="org.eclipse.core.resources.IFolder" />
 		</wizard>
 	</extension>
@@ -227,7 +267,7 @@
 		<filter pattern="*.c4d" selected="false">
 			<description>
 				Clonk object file
-  </description>
+  			</description>
 		</filter>
 	</extension>
 
@@ -261,25 +301,10 @@
 		<super type="org.eclipse.core.resources.problemmarker" />
 	</extension>
 
-	<extension point="org.eclipse.ui.actionSets">
-		<actionSet label="Clonk action set" description="Several Clonk specific actions"
-			visible="true" id="net.arctics.clonk.ui.actionset">
-			<action id="net.arctics.clonk.ui.actions.OpenObject"
-				toolbarPath="org.eclipse.search.searchActionSet/Search"
-				class="net.arctics.clonk.ui.editors.actions.c4script.OpenObject"
-				definitionId="org.eclipse.jdt.ui.navigate.open.type" icon="$nl$/icons/Clonk_C4.png"
-				label="Open Object" menubarPath="navigate/open.ext2" tooltip="Open Object" />
-
-			<!--
-				<action id="net.arctics.clonk.ui.quickExport" label="Quick Export"
-				style="push"> </action>
-			-->
-		</actionSet>
-	</extension>
-
 	<extension point="org.eclipse.ui.commands">
-		<command categoryId="org.eclipse.ui.category.edit"
-			description="Open Object Description" id="net.arctics.clonk.ui.open.object"
+		<command categoryId="org.eclipse.ui.category.navigate"
+			description="Opens a dialog to quickly find a definition" id="net.arctics.clonk.ui.open.object"
+			defaultHandler="net.arctics.clonk.ui.editors.actions.c4script.OpenObject"
 			name="Open Object" />
 
 		<command categoryId="org.eclipse.ui.category.edit"
@@ -301,6 +326,14 @@
 
 	</extension>
 
+	<extension point="org.eclipse.ui.menus">
+		<menuContribution locationURI="menu:org.eclipse.ui.main.menu">
+			<menu label="Clonk">
+				<command commandId="net.arctics.clonk.ui.open.object" label="Open Object" />
+			</menu>
+		</menuContribution>
+	</extension>
+
 	<extension point="org.eclipse.ui.bindings">
 		<key sequence="M1+M2+T" commandId="net.arctics.clonk.ui.open.object"
 			schemeId="org.eclipse.ui.defaultAcceleratorConfiguration" />
@@ -312,7 +345,6 @@
 		<key sequence="F3"
 			commandId="net.arctics.clonk.ui.editors.actions.OpenDeclaration"
 			schemeId="org.eclipse.ui.defaultAcceleratorConfiguration" />
-
 	</extension>
 	<extension id="product" point="org.eclipse.core.runtime.products">
 		<product application="org.eclipse.ui.ide.workbench" name="%productName">
@@ -356,20 +388,17 @@
 		<viewPage id="net.arctics.clonk.ui.ClonkSearchResultPage"
 			searchResultClass="net.arctics.clonk.ui.search.ClonkSearchResult"
 			class="net.arctics.clonk.ui.search.ClonkSearchResultPage" />
-
 	</extension>
 
 	<extension point="org.eclipse.debug.core.launchConfigurationTypes">
 		<launchConfigurationType id="net.arctics.clonk.debug.ClonkLaunch"
 			delegate="net.arctics.clonk.debug.ClonkLaunchConfigurationDelegate"
 			modes="run" name="Clonk" />
-
 	</extension>
 
 	<extension point="org.eclipse.debug.ui.launchConfigurationTypeImages">
 		<launchConfigurationTypeImage icon="icons/Clonk_engine.png"
 			configTypeID="net.arctics.clonk.debug.ClonkLaunch" id="net.arctics.clonk.ui.debug.ClonkLaunchTypeImage" />
-
 	</extension>
 
 	<extension point="org.eclipse.debug.ui.launchConfigurationTabGroups">
@@ -416,5 +445,19 @@
 			<configurationType id="net.arctics.clonk.debug.ClonkLaunch" />
 		</shortcut>
 	</extension>
+
+	<extension point="org.eclipse.ui.navigator.linkHelper">
+		<linkHelper
+			class="net.arctics.clonk.ui.navigator.LinkHelper"
+			id="net.arctics.clonk.navigator.linkhelper">
+			<selectionEnablement>
+				<instanceof value="net.arctics.clonk.util.ITreeNode" />
+			</selectionEnablement>
+			<editorInputEnablement>
+				<instanceof value="net.arctics.clonk.ui.editors.c4script.ScriptWithStorageEditorInput" />
+			</editorInputEnablement>
+		</linkHelper>
+	</extension>
+
 
 </plugin>

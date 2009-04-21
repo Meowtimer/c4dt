@@ -3,7 +3,7 @@ package net.arctics.clonk.ui.editors.scenario;
 import org.eclipse.ui.forms.editor.FormEditor;
 import org.eclipse.ui.texteditor.IDocumentProvider;
 
-import net.arctics.clonk.parser.scenario.ScenarioParser;
+import net.arctics.clonk.parser.inireader.ScenarioParser;
 import net.arctics.clonk.ui.editors.ini.IniEditor;
 import net.arctics.clonk.ui.editors.ini.IniSectionPage;
 

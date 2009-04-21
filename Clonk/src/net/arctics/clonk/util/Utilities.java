@@ -15,11 +15,11 @@ import net.arctics.clonk.parser.C4ScriptBase;
 import net.arctics.clonk.parser.C4ScriptIntern;
 import net.arctics.clonk.parser.C4Variable;
 import net.arctics.clonk.parser.ClonkIndex;
-import net.arctics.clonk.parser.actmap.ActMapParser;
-import net.arctics.clonk.parser.defcore.DefCoreParser;
+import net.arctics.clonk.parser.inireader.ActMapParser;
+import net.arctics.clonk.parser.inireader.DefCoreParser;
 import net.arctics.clonk.parser.inireader.IniReader;
-import net.arctics.clonk.parser.particle.ParticleDefParser;
-import net.arctics.clonk.parser.scenario.ScenarioParser;
+import net.arctics.clonk.parser.inireader.ParticleDefParser;
+import net.arctics.clonk.parser.inireader.ScenarioParser;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.resource.c4group.C4Group;
 import net.arctics.clonk.resource.c4group.C4Group.C4GroupType;
@@ -200,8 +200,14 @@ public abstract class Utilities {
 			return getIconForFunction((C4Function)element);
 		if (element instanceof C4Variable)
 			return getIconForVariable((C4Variable)element);
-		if (element instanceof C4Object || element instanceof C4ObjectExternGroup)
+		if (element instanceof C4Object)
 			return Icons.GENERAL_OBJECT_ICON;
+		if (element instanceof C4ObjectExternGroup) {
+			C4ObjectExternGroup group = (C4ObjectExternGroup) element;
+			if (group.nodeName().endsWith(".c4g"))
+				return Icons.GROUP_ICON;
+			return Icons.GENERAL_OBJECT_ICON;
+		}
 		if (element instanceof C4ScriptBase)
 			return Icons.SCRIPT_ICON;
 		return null;
@@ -257,8 +263,6 @@ public abstract class Utilities {
 	
 	public static C4GroupType groupTypeFromFolderName(String name) {
 		C4GroupType result = C4Group.extensionToGroupTypeMap.get(name.substring(name.lastIndexOf(".")+1));
-		if (result == null)
-			result = C4Group.extensionToGroupTypeMap.get(name.substring(0,3)); // legacy
 		if (result != null)
 			return result;
 		return C4GroupType.OtherGroup;
@@ -412,5 +416,29 @@ public abstract class Utilities {
 		Class<? extends IniReader> iniReaderClass = INIREADER_CLASSES.get(contentType.getId());
 		return iniReaderClass;
 	}
+	
+	public static boolean allInstanceOf(Object[] objects, Class<?> cls) {
+		for (Object item : objects)
+			if (!(cls.isAssignableFrom(item.getClass())))
+				return false;
+		return true;
+	}
+
+	@SuppressWarnings("unchecked")
+	public static <T> T[] concat(T[] a, T[] b) {
+		final int alen = a != null ? a.length : 0;
+		final int blen = b != null ? b.length : 0;
+		if (alen == 0) {
+			return b != null ? b : (T[])new Object[0];
+		}
+		if (blen == 0) {
+			return a != null ? a : (T[])new Object[0];
+		}
+		final T[] result = (T[]) java.lang.reflect.Array.newInstance(a.getClass().getComponentType(), alen + blen);
+		System.arraycopy(a, 0, result, 0, alen);
+		System.arraycopy(b, 0, result, alen, blen);
+		return result;
+	}
+
 	
 }

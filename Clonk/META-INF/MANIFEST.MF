@@ -29,7 +29,6 @@ Import-Package: org.eclipse.search.internal.ui.text,
  org.eclipse.ui.forms.widgets
 Export-Package: net.arctics.clonk,
  net.arctics.clonk.parser,
- net.arctics.clonk.parser.defcore,
  net.arctics.clonk.preferences,
  net.arctics.clonk.resource,
  net.arctics.clonk.resource.c4group,

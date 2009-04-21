@@ -10,7 +10,6 @@ import java.util.List;
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.preferences.PreferenceConstants;
 import net.arctics.clonk.resource.c4group.C4GroupExporter;
-
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
@@ -18,17 +17,16 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.preferences.IPreferencesService;
-import org.eclipse.jface.action.Action;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.TreeSelection;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.ui.PlatformUI;
 
-public class QuickExportAction extends Action {
+public class QuickExportAction extends ClonkResourceAction {
 		QuickExportAction(String text) {
 			super(text);
 		}
-
+		
 		@SuppressWarnings("unchecked")
 		@Override
 		public void runWithEvent(Event e) {

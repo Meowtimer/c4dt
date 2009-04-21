@@ -1,11 +1,10 @@
-package net.arctics.clonk.parser.particle;
+package net.arctics.clonk.parser.inireader;
 
 import java.io.InputStream;
 
 import org.eclipse.core.resources.IFile;
 
 import net.arctics.clonk.ClonkCore;
-import net.arctics.clonk.parser.inireader.IniReader;
 import net.arctics.clonk.parser.inireader.IniData.IniConfiguration;
 
 public class ParticleDefParser extends IniReader {
