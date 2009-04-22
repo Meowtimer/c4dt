@@ -3,32 +3,38 @@
  */
 package net.arctics.clonk.parser.inireader;
 
+import java.util.Collection;
+
+import org.eclipse.core.runtime.IPath;
 import org.eclipse.jface.text.IRegion;
 
+import net.arctics.clonk.parser.C4Field;
+import net.arctics.clonk.parser.SourceLocation;
 import net.arctics.clonk.util.IHasKeyAndValue;
+import net.arctics.clonk.util.ITreeNode;
 
-public class IniEntry implements IHasKeyAndValue<String, String>, IRegion {
-	private int startPos, endPos;
-	private String key;
+public class IniEntry extends C4Field implements IHasKeyAndValue<String, String>, IRegion, ITreeNode {
+
+	private static final long serialVersionUID = 1L;
+	
 	private String value;
 	
 	public IniEntry(int pos, int endPos, String k, String v) {
-		startPos = pos;
-		this.endPos = endPos;
-		key = k;
+		this.location = new SourceLocation(pos, endPos);
+		this.name = k;
 		value = v;
 	}
 
 	public int getStartPos() {
-		return startPos;
+		return location.getStart();
 	}
 	
 	public int getEndPos() {
-		return endPos;
+		return location.getEnd();
 	}
 
 	public String getKey() {
-		return key;
+		return name;
 	}
 
 	public String getValue() {
@@ -45,11 +51,36 @@ public class IniEntry implements IHasKeyAndValue<String, String>, IRegion {
 	}
 
 	public int getLength() {
-		return endPos - startPos;
+		return getEndPos() - getStartPos();
 	}
 
 	public int getOffset() {
-		return startPos;
+		return getStartPos();
+	}
+
+	public void addChild(ITreeNode node) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	public Collection<? extends ITreeNode> getChildCollection() {
+		return null;
+	}
+
+	public String getNodeName() {
+		return getKey();
+	}
+
+	public ITreeNode getParentNode() {
+		return null;
+	}
+
+	public IPath getPath() {
+		return ITreeNode.Default.getPath(this);
+	}
+
+	public boolean subNodeOf(ITreeNode node) {
+		return ITreeNode.Default.subNodeOf(this, node);
 	}
 
 }

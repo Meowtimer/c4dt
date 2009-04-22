@@ -34,11 +34,11 @@ public class C4ScriptExtern extends C4ScriptBase implements ITreeNode {
 		return scriptStorage;
 	}
 
-	public String nodeName() {
+	public String getNodeName() {
 		return getName();
 	}
 
-	public ITreeNode parentNode() {
+	public ITreeNode getParentNode() {
 		return parentNode;
 	}
 
@@ -50,7 +50,7 @@ public class C4ScriptExtern extends C4ScriptBase implements ITreeNode {
 		return ITreeNode.Default.subNodeOf(this, node);
 	}
 
-	public List<ITreeNode> getChildren() {
+	public List<ITreeNode> getChildCollection() {
 		return null;
 	}
 

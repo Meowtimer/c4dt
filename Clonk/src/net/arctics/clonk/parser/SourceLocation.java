@@ -64,5 +64,10 @@ public class SourceLocation implements IRegion, Serializable {
 		return document.get(start, end-start);
 	}
 	
+	@Override
+	public String toString() {
+		return "("+getStart()+", "+getEnd()+")";
+	}
+	
 	// TODO: hashcode() implementation
 }

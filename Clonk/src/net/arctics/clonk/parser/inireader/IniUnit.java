@@ -9,21 +9,27 @@ import java.util.List;
 import java.util.Map;
 
 import net.arctics.clonk.parser.BufferedScanner;
+import net.arctics.clonk.parser.C4Field;
 import net.arctics.clonk.parser.C4ScriptBase;
+import net.arctics.clonk.parser.SourceLocation;
 import net.arctics.clonk.parser.inireader.IniData.IniConfiguration;
 import net.arctics.clonk.parser.inireader.IniData.IniDataEntry;
 import net.arctics.clonk.parser.inireader.IniData.IniDataSection;
 import net.arctics.clonk.util.IHasChildren;
+import net.arctics.clonk.util.ITreeNode;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IPath;
 
 /**
  * Reads Windows ini style configuration files
  */
-public class IniReader implements Iterable<IniSection>, IHasChildren {
+public class IniUnit extends C4Field implements Iterable<IniSection>, IHasChildren, ITreeNode {
+
+	private static final long serialVersionUID = 1L;
 
 	/**
 	 * Text scanner
@@ -59,7 +65,7 @@ public class IniReader implements Iterable<IniSection>, IHasChildren {
 	 * Creates an IniReader that reads ini information from a stream
 	 * @param stream the stream
 	 */
-	public IniReader(InputStream stream) {
+	public IniUnit(InputStream stream) {
 		reader = new BufferedScanner(stream);
 	}
 	
@@ -67,7 +73,7 @@ public class IniReader implements Iterable<IniSection>, IHasChildren {
 	 * Creates an IniReader that reads ini information from a string
 	 * @param text the string
 	 */
-	public IniReader(String text) {
+	public IniUnit(String text) {
 		reader = new BufferedScanner(text);
 	}
 	
@@ -75,7 +81,7 @@ public class IniReader implements Iterable<IniSection>, IHasChildren {
 	 * Creates an IniReader that reads ini information from a project file
 	 * @param file the file
 	 */
-	public IniReader(IFile file) {
+	public IniUnit(IFile file) {
 		try {
 			defaultName = file.getParent().getName();
 			InputStream stream = file.getContents();
@@ -203,7 +209,9 @@ public class IniReader implements Iterable<IniSection>, IHasChildren {
 					createMarker("Unknown section name", IMarker.SEVERITY_WARNING, start, reader.getPosition() - 1);
 				}
 			}
-			IniSection section = new IniSection(start, name);
+			int end = reader.getPosition();
+			IniSection section = new IniSection(new SourceLocation(start, end), name);
+			section.setParentDeclaration(this);
 			// parse entries
 //			List<IniEntry> entries = new LinkedList<IniEntry>();
 			IniEntry entry = null;
@@ -252,6 +260,7 @@ public class IniReader implements Iterable<IniSection>, IHasChildren {
 		int valEnd = reader.getPosition();
 		reader.eat(BufferedScanner.NEWLINE_DELIMITERS);
 		IniEntry entry = new IniEntry(keyStart, valEnd, key, value);
+		entry.setParentDeclaration(section);
 		try {
 			return validateEntry(entry, section);
 		} catch (IniParserException e) {
@@ -291,6 +300,36 @@ public class IniReader implements Iterable<IniSection>, IHasChildren {
 
 	public void commitTo(C4ScriptBase script) {
 		// placeholder
+	}
+
+	public void addChild(ITreeNode node) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	public List<? extends ITreeNode> getChildCollection() {
+		return sectionsList;
+	}
+
+	public String getNodeName() {
+		return iniFile != null ? iniFile.getName() : toString();
+	}
+
+	public ITreeNode getParentNode() {
+		return null;
+	}
+
+	public IPath getPath() {
+		return ITreeNode.Default.getPath(this);
+	}
+
+	public boolean subNodeOf(ITreeNode node) {
+		return ITreeNode.Default.subNodeOf(this, node);
+	}
+	
+	@Override
+	public IResource getResource() {
+		return iniFile;
 	}
 	
 }

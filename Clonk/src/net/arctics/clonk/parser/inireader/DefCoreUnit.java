@@ -9,24 +9,26 @@ import net.arctics.clonk.parser.inireader.IniData.IniConfiguration;
 
 import org.eclipse.core.resources.IFile;
 
-public class DefCoreParser extends IniReader {
+public class DefCoreUnit extends IniUnit {
 	
 //	private final static String[] DEFCORE_SECTIONS = new String[] { "DefCore" , "Physical" };
 //	
 //	private final List<DefCoreOption> defCoreOptions = DefCoreOption.createNewDefCoreList();
 //	private final List<DefCoreOption> physicalOptions = DefCoreOption.createNewPhysicalList();
 	
+	private static final long serialVersionUID = 1L;
+	
 	private final IniConfiguration configuration = ClonkCore.getDefault().INI_CONFIGURATIONS.getConfigurationFor("DefCore.txt");
 	
-	public DefCoreParser(InputStream stream) {
+	public DefCoreUnit(InputStream stream) {
 		super(stream);
 	}
 	
-	public DefCoreParser(IFile file) {
+	public DefCoreUnit(IFile file) {
 		super(file);
 	}
 	
-	public DefCoreParser(String text) {
+	public DefCoreUnit(String text) {
 		super(text);
 	}
 	

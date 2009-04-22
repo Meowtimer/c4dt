@@ -127,7 +127,7 @@ public abstract class C4Field implements Serializable, IHasRelatedResource  {
 	 */
 	@Override
 	public String toString() {
-		return getName();
+		return name != null ? name : getClass().getSimpleName();
 	}
 	
 	/**
@@ -147,9 +147,12 @@ public abstract class C4Field implements Serializable, IHasRelatedResource  {
 	 * Returns the resource this declaration is declared in
 	 */
 	public IResource getResource() {
-		return getScript().getResource();
+		return getParentDeclaration() != null ? getParentDeclaration().getResource() : null;
 	}
 	
+	public C4Field getParentDeclaration() {
+		return parentDeclaration;
+	}
 	/**
 	 * Returns an Iterable for iterating over all sub declaration of this declaration.
 	 * Might return null if there are none.

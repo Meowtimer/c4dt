@@ -2,9 +2,9 @@ package net.arctics.clonk.ui.navigator;
 
 import java.io.File;
 import java.io.FilenameFilter;
-import java.util.List;
-
+import java.util.Collection;
 import net.arctics.clonk.parser.C4ScriptBase;
+import net.arctics.clonk.parser.inireader.IniUnit;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.util.ITreeNode;
 import net.arctics.clonk.util.Utilities;
@@ -31,11 +31,22 @@ public class ClonkNavigator extends ClonkOutlineProvider {
 			C4ScriptBase script = Utilities.getScriptForFile((IFile) element);
 			if (script != null)
 				return super.getChildren(script);
+			Class<? extends IniUnit> iniReaderClass = Utilities.getIniUnitClass((IFile) element);
+			if (iniReaderClass != null) {
+				try {
+					IniUnit reader = iniReaderClass.getConstructor(IFile.class).newInstance(element);
+					reader.parse();
+					// call again for ITreeNode implementing inireader
+					return this.getChildren(reader);
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
 		}
 		else if (element instanceof ITreeNode) {
-			List<? extends ITreeNode> children = ((ITreeNode)element).getChildren();
+			Collection<? extends ITreeNode> children = ((ITreeNode)element).getChildCollection();
 			if (children != null && !children.isEmpty())
-			return Utilities.concat(((ITreeNode) element).getChildren().toArray(), super.getChildren(element));
+				return Utilities.concat(((ITreeNode) element).getChildCollection().toArray(), super.getChildren(element));
 		}
 		return super.getChildren(element);
 	}
@@ -49,10 +60,13 @@ public class ClonkNavigator extends ClonkOutlineProvider {
 			C4ScriptBase script = Utilities.getScriptForFile((IFile) element);
 			if (script != null)
 				return super.hasChildren(script);
+			if (Utilities.getIniUnitClass((IFile) element) != null)
+				// assume there is something in it
+				return true;
 		}
 		else if (element instanceof ITreeNode) {
 			ITreeNode node = (ITreeNode) element;
-			if (node.getChildren() != null && node.getChildren().size() > 0)
+			if (node.getChildCollection() != null && node.getChildCollection().size() > 0)
 				return true;
 		}
 		return super.hasChildren(element);

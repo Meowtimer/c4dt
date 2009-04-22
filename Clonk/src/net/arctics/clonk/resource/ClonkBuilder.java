@@ -13,7 +13,7 @@ import net.arctics.clonk.parser.C4ScriptIntern;
 import net.arctics.clonk.parser.ClonkIndex;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.C4ScriptParser.ParsingException;
-import net.arctics.clonk.parser.inireader.IniReader;
+import net.arctics.clonk.parser.inireader.IniUnit;
 import net.arctics.clonk.preferences.PreferenceConstants;
 import net.arctics.clonk.ui.editors.c4script.C4ScriptEditor;
 import net.arctics.clonk.util.Utilities;
@@ -244,7 +244,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 
 		if (delta.getResource() instanceof IFile) {
 			if (delta.getKind() == IResourceDelta.CHANGED || delta.getKind() == IResourceDelta.ADDED) {
-				Class<? extends IniReader> iniReaderClass;
+				Class<? extends IniUnit> iniReaderClass;
 				C4ScriptBase script = Utilities.getScriptForFile((IFile) delta.getResource());
 				if (script == null && buildPhase == 0) {
 					// create if new file
@@ -276,9 +276,9 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 						}
 					}
 				}
-				else if (buildPhase == 0 && (iniReaderClass = Utilities.getIniReaderClassFromFile((IFile) delta.getResource())) != null) {
+				else if (buildPhase == 0 && (iniReaderClass = Utilities.getIniUnitClass((IFile) delta.getResource())) != null) {
 					try {
-						IniReader reader = iniReaderClass.getConstructor(IFile.class).newInstance(delta.getResource());
+						IniUnit reader = iniReaderClass.getConstructor(IFile.class).newInstance(delta.getResource());
 						reader.parse();
 						reader.commitTo(script);
 					} catch (Exception e) {

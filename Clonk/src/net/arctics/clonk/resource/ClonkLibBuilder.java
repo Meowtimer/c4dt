@@ -10,7 +10,7 @@ import net.arctics.clonk.parser.C4ObjectExtern;
 import net.arctics.clonk.parser.C4ScriptExtern;
 import net.arctics.clonk.parser.C4ObjectExternGroup;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
-import net.arctics.clonk.parser.inireader.DefCoreParser;
+import net.arctics.clonk.parser.inireader.DefCoreUnit;
 import net.arctics.clonk.preferences.PreferenceConstants;
 import net.arctics.clonk.resource.c4group.C4GroupEntry;
 import net.arctics.clonk.resource.c4group.C4EntryHeader;
@@ -137,7 +137,7 @@ public class ClonkLibBuilder implements IC4GroupVisitor, IPropertyChangeListener
 					}
 				}
 				if (defCore != null && script != null) {
-					DefCoreParser defCoreWrapper = new DefCoreParser(new ByteArrayInputStream(defCore.getContentsAsArray()));
+					DefCoreUnit defCoreWrapper = new DefCoreUnit(new ByteArrayInputStream(defCore.getContentsAsArray()));
 					try {
 						defCoreWrapper.parse();
 						C4ObjectExtern obj = new C4ObjectExtern(defCoreWrapper.getObjectID(), defCoreWrapper.getName(), script, currentExternNode);
@@ -191,7 +191,7 @@ public class ClonkLibBuilder implements IC4GroupVisitor, IPropertyChangeListener
 	}
 	
 	public void groupFinished(C4Group group) {
-		currentExternNode = currentExternNode.parentNode();
+		currentExternNode = currentExternNode.getParentNode();
 	}
 
 	public void propertyChange(PropertyChangeEvent event) {

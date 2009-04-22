@@ -1,24 +1,23 @@
 package net.arctics.clonk.util;
 
-import java.util.List;
-
+import java.util.Collection;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Path;
 
 public interface ITreeNode {
-	String nodeName();
-	ITreeNode parentNode();
+	String getNodeName();
+	ITreeNode getParentNode();
 	IPath getPath();
-	List<? extends ITreeNode> getChildren();
+	Collection<? extends ITreeNode> getChildCollection();
 	void addChild(ITreeNode node);
 	boolean subNodeOf(ITreeNode node);
 	
 	public static class Default {
 		public static IPath getPath(ITreeNode node) {
-			return node.parentNode() != null ? node.parentNode().getPath().append(node.nodeName()) : new Path(node.nodeName());
+			return node.getParentNode() != null ? node.getParentNode().getPath().append(node.getNodeName()) : new Path(node.getNodeName());
 		}
 		public static boolean subNodeOf(ITreeNode node, ITreeNode other) {
-			for (ITreeNode n = node; n != null; n = n.parentNode())
+			for (ITreeNode n = node; n != null; n = n.getParentNode())
 				if (n == other)
 					return true;
 			return false;

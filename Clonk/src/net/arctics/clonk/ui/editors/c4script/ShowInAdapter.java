@@ -21,6 +21,8 @@ public class ShowInAdapter implements IShowInSource, IShowInTargetList {
 		return new ShowInContext(null, null) {
 			@Override
 			public Object getInput() {
+				if (editor instanceof C4ScriptEditor)
+					return ((C4ScriptEditor) editor).getFuncAtCursor();
 				return editor.getEditorInput();
 			}
 			@Override

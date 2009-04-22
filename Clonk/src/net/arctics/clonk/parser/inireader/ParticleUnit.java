@@ -7,17 +7,19 @@ import org.eclipse.core.resources.IFile;
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.inireader.IniData.IniConfiguration;
 
-public class ParticleDefParser extends IniReader {
+public class ParticleUnit extends IniUnit {
 
-	public ParticleDefParser(IFile file) {
+	private static final long serialVersionUID = 1L;
+
+	public ParticleUnit(IFile file) {
 		super(file);
 	}
 	
-	public ParticleDefParser(InputStream stream) {
+	public ParticleUnit(InputStream stream) {
 		super(stream);
 	}
 	
-	public ParticleDefParser(String text) {
+	public ParticleUnit(String text) {
 		super(text);
 	}
 	

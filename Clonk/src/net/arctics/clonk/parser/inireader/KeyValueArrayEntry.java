@@ -1,14 +1,17 @@
 package net.arctics.clonk.parser.inireader;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
-import java.util.ListIterator;
+import org.eclipse.core.runtime.IPath;
 
 import net.arctics.clonk.util.IHasChildrenWithContext;
 import net.arctics.clonk.util.IHasContext;
+import net.arctics.clonk.util.ITreeNode;
 import net.arctics.clonk.util.KeyValuePair;
 
-public abstract class KeyValueArrayEntry<KeyType, ValueType> implements IEntryCreateable, IHasChildrenWithContext {
+public abstract class KeyValueArrayEntry<KeyType, ValueType> implements IEntryCreateable, IHasChildrenWithContext, ITreeNode {
 	private final List<KeyValuePair<KeyType, ValueType>> components = new ArrayList<KeyValuePair<KeyType, ValueType>>();
 	
 	public KeyValueArrayEntry(String value) throws IniParserException {
@@ -28,7 +31,7 @@ public abstract class KeyValueArrayEntry<KeyType, ValueType> implements IEntryCr
 	
 	public String toString() {
 		StringBuilder builder = new StringBuilder(components.size() * 7); // MYID=1;
-		ListIterator<KeyValuePair<KeyType, ValueType>> it = components.listIterator();
+		Iterator<KeyValuePair<KeyType, ValueType>> it = components.iterator();
 		while (it.hasNext()) {
 			KeyValuePair<KeyType, ValueType> pair = it.next();
 			builder.append(pair.toString());
@@ -79,6 +82,30 @@ public abstract class KeyValueArrayEntry<KeyType, ValueType> implements IEntryCr
 			kv = null;
 		if (kv != null)
 			components.set(index, kv);
+	}
+	
+	public Collection<? extends ITreeNode> getChildCollection() {
+		return components;
+	}
+	
+	public String getNodeName() {
+		return null;
+	}
+	
+	public void addChild(ITreeNode node) {
+		
+	}
+	
+	public ITreeNode getParentNode() {
+		return null;
+	}
+	
+	public IPath getPath() {
+		return ITreeNode.Default.getPath(this);
+	}
+	
+	public boolean subNodeOf(ITreeNode node) {
+		return ITreeNode.Default.subNodeOf(this, node);
 	}
 	
 }

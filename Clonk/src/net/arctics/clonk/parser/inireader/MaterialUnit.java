@@ -7,7 +7,9 @@ import org.eclipse.core.resources.IFile;
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.inireader.IniData.IniConfiguration;
 
-public class MaterialParser extends IniReader {
+public class MaterialUnit extends IniUnit {
+
+	private static final long serialVersionUID = 1L;
 	
 	private final IniConfiguration configuration = ClonkCore.getDefault().INI_CONFIGURATIONS.getConfigurationFor("Material.txt");
 	
@@ -16,15 +18,15 @@ public class MaterialParser extends IniReader {
 		return configuration;
 	}
 	
-	public MaterialParser(IFile file) {
+	public MaterialUnit(IFile file) {
 		super(file);
 	}
 	
-	public MaterialParser(InputStream stream) {
+	public MaterialUnit(InputStream stream) {
 		super(stream);
 	}
 	
-	public MaterialParser(String text) {
+	public MaterialUnit(String text) {
 		super(text);
 	}
 }

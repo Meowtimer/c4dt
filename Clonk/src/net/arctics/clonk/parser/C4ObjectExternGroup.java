@@ -16,11 +16,11 @@ public class C4ObjectExternGroup implements ITreeNode, Serializable {
 	private ITreeNode parentNode;
 	private List<ITreeNode> childNodes;
 	
-	public String nodeName() {
+	public String getNodeName() {
 		return nodeName;
 	}
 
-	public ITreeNode parentNode() {
+	public ITreeNode getParentNode() {
 		return parentNode;
 	}
 
@@ -40,14 +40,14 @@ public class C4ObjectExternGroup implements ITreeNode, Serializable {
 		return ITreeNode.Default.subNodeOf(this, node);
 	}
 
-	public List<ITreeNode> getChildren() {
+	public List<ITreeNode> getChildCollection() {
 		if (childNodes == null)
 			childNodes = new ArrayList<ITreeNode>();
 		return childNodes;
 	}
 
 	public void addChild(ITreeNode node) {
-		getChildren().add(node);
+		getChildCollection().add(node);
 	}
 	
 	@Override

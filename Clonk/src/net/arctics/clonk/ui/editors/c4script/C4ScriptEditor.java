@@ -8,22 +8,18 @@ import java.util.ResourceBundle;
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.C4Field;
 import net.arctics.clonk.parser.C4Function;
-import net.arctics.clonk.parser.C4ObjectIntern;
 import net.arctics.clonk.parser.C4ScriptBase;
-import net.arctics.clonk.parser.C4ScriptIntern;
-import net.arctics.clonk.parser.SourceLocation;
 import net.arctics.clonk.parser.c4script.C4ScriptExprTree;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.C4ScriptParser.ParsingException;
+import net.arctics.clonk.ui.editors.ClonkTextEditor;
 import net.arctics.clonk.ui.editors.actions.c4script.ConvertOldCodeToNewCodeAction;
 import net.arctics.clonk.ui.editors.actions.c4script.FindReferencesAction;
 import net.arctics.clonk.ui.editors.actions.c4script.OpenDeclarationAction;
 import net.arctics.clonk.ui.editors.actions.c4script.RenameFieldAction;
 import net.arctics.clonk.util.Utilities;
 
-import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
-import org.eclipse.core.resources.IStorage;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.preference.PreferenceConverter;
@@ -39,12 +35,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IEditorSite;
-import org.eclipse.ui.IWorkbench;
-import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.PartInitException;
-import org.eclipse.ui.PlatformUI;
-import org.eclipse.ui.editors.text.TextEditor;
-import org.eclipse.ui.ide.IDE;
 import org.eclipse.ui.part.IShowInSource;
 import org.eclipse.ui.part.IShowInTargetList;
 import org.eclipse.ui.texteditor.ContentAssistAction;
@@ -52,10 +43,9 @@ import org.eclipse.ui.texteditor.ITextEditorActionDefinitionIds;
 import org.eclipse.ui.texteditor.SourceViewerDecorationSupport;
 import org.eclipse.ui.views.contentoutline.IContentOutlinePage;
 
-public class C4ScriptEditor extends TextEditor {
+public class C4ScriptEditor extends ClonkTextEditor {
 
 	private ColorManager colorManager;
-	private ClonkContentOutlinePage outlinePage;
 	public static final String ACTION_INDEX_CLONK_DIR = "net.arctics.clonk.indexClonkCommand";
 	private static final String ENABLE_BRACKET_HIGHLIGHT = ClonkCore.PLUGIN_ID + ".enableBracketHighlighting";
 	private static final String BRACKET_HIGHLIGHT_COLOR = ClonkCore.PLUGIN_ID + ".bracketHighlightColor";
@@ -90,14 +80,6 @@ public class C4ScriptEditor extends TextEditor {
 		if (res != null) {
 			setPartName(res.getParent().getName() + "/" + res.getName());
 		}
-	}
-
-	public ClonkContentOutlinePage getOutlinePage() {
-		if (outlinePage == null) {
-			outlinePage = new ClonkContentOutlinePage();
-			outlinePage.setEditor(this);
-		}
-		return outlinePage;
 	}
 
 	@SuppressWarnings("unchecked")
@@ -180,10 +162,6 @@ public class C4ScriptEditor extends TextEditor {
 		addAction(menu, ClonkCommandIds.RENAME_FIELD);
 	}
 
-	public void selectAndReveal(SourceLocation location) {
-		this.selectAndReveal(location.getStart(), location.getEnd() - location.getStart());
-	}
-
 	@Override
 	protected void doSetSelection(ISelection selection) {
 		super.doSetSelection(selection);
@@ -194,19 +172,12 @@ public class C4ScriptEditor extends TextEditor {
 //		}
 	}
 
-	public void refreshOutline() {
-		if (outlinePage != null) // don't start lazy loading of outlinePage
-			getOutlinePage().refresh();
-	}
-
 	@Override
 	protected void handleCursorPositionChanged() {
 		super.handleCursorPositionChanged();
-		C4ScriptBase script = Utilities.getScriptForEditor(this);
 		boolean noHighlight = true;
-		if (script != null) {
-			TextSelection sel = (TextSelection) getSelectionProvider().getSelection();
-			C4Function f = script.funcAt(sel.getOffset());
+		C4Function f = getFuncAtCursor();
+		if (f != null) {
 			if (f != null) {
 				this.setHighlightRange(f.getLocation().getOffset(), Math.min(
 						f.getBody().getOffset()-f.getLocation().getOffset() + f.getBody().getLength() + (f.isOldStyle()?0:1),
@@ -217,6 +188,16 @@ public class C4ScriptEditor extends TextEditor {
 		}
 		if (noHighlight)
 			this.resetHighlightRange();
+	}
+
+	public C4Function getFuncAtCursor() {
+		C4ScriptBase script = Utilities.getScriptForEditor(this);
+		if (script != null) {
+			TextSelection sel = (TextSelection) getSelectionProvider().getSelection();
+			C4Function f = script.funcAt(sel.getOffset());
+			return f;
+		}
+		return null;
 	}
 
 	public C4ScriptParser reparseWithDocumentContents(C4ScriptExprTree.IExpressionListener exprListener, boolean onlyDeclarations) throws IOException, ParsingException {
@@ -236,42 +217,6 @@ public class C4ScriptEditor extends TextEditor {
 	
 	public static IEditorPart openDeclaration(C4Field target) throws PartInitException, IOException, ParsingException {
 		return openDeclaration(target, true);
-	}
-	
-	public static IEditorPart openDeclaration(C4Field target, boolean activate) throws PartInitException, IOException, ParsingException {
-		IWorkbench workbench = PlatformUI.getWorkbench();
-		IWorkbenchPage workbenchPage = workbench.getActiveWorkbenchWindow().getActivePage();
-		C4ScriptBase script = target instanceof C4ScriptBase ? (C4ScriptBase)target : target.getScript();
-		if (script != null) {
-			if (script instanceof C4ObjectIntern || script instanceof C4ScriptIntern) {
-				IFile scriptFile = (IFile) script.getScriptFile();
-				if (scriptFile != null) {
-					IEditorPart editor = IDE.openEditor(workbenchPage, scriptFile, "clonk.editors.C4ScriptEditor", activate);
-					C4ScriptEditor scriptEditor = (C4ScriptEditor)editor;						
-					if (target != script) {
-						scriptEditor.reparseWithDocumentContents(null, false);
-						target = target.latestVersion();
-						if (target != null)
-							scriptEditor.selectAndReveal(target.getLocation());
-					}
-					return scriptEditor;
-				} else {
-					IFile defCore = ((C4ObjectIntern)script).getDefCoreFile();
-					if (defCore != null)
-						return IDE.openEditor(workbenchPage, defCore, activate);
-				}
-			}
-			else if (script.getScriptFile() instanceof IStorage) {
-				if (script != ClonkCore.getDefault().ENGINE_OBJECT) {
-					IEditorPart editor = workbenchPage.openEditor(new ScriptWithStorageEditorInput(script), "clonk.editors.C4ScriptEditor");
-					C4ScriptEditor scriptEditor = (C4ScriptEditor)editor;
-					if (target != script)
-						scriptEditor.selectAndReveal(target.getLocation());
-					return scriptEditor;
-				}
-			}
-		}
-		return null;
 	}
 
 }

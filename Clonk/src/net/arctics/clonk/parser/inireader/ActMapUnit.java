@@ -7,7 +7,9 @@ import org.eclipse.core.resources.IFile;
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.inireader.IniData.IniConfiguration;
 
-public class ActMapParser extends IniReader {
+public class ActMapUnit extends IniUnit {
+
+	private static final long serialVersionUID = 1L;
 
 	public static final String ACTION_SECTION = "Action";
 	
@@ -18,15 +20,15 @@ public class ActMapParser extends IniReader {
 		return configuration;
 	}
 	
-	public ActMapParser(IFile file) {
+	public ActMapUnit(IFile file) {
 		super(file);
 	}
 	
-	public ActMapParser(InputStream stream) {
+	public ActMapUnit(InputStream stream) {
 		super(stream);
 	}
 	
-	public ActMapParser(String text) {
+	public ActMapUnit(String text) {
 		super(text);
 	}
 

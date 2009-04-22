@@ -2,6 +2,7 @@ package net.arctics.clonk.ui.editors.c4script;
 
 import net.arctics.clonk.parser.C4Field;
 import net.arctics.clonk.parser.C4ScriptBase;
+import net.arctics.clonk.ui.editors.ClonkTextEditor;
 import net.arctics.clonk.ui.navigator.ClonkOutlineProvider;
 import net.arctics.clonk.util.Utilities;
 
@@ -15,7 +16,7 @@ import org.eclipse.ui.views.contentoutline.ContentOutlinePage;
 
 public class ClonkContentOutlinePage extends ContentOutlinePage {
 
-	private C4ScriptEditor editor;
+	private ClonkTextEditor editor;
 	
 	/* (non-Javadoc)
 	 * @see org.eclipse.ui.views.contentoutline.ContentOutlinePage#createControl(org.eclipse.swt.widgets.Composite)
@@ -58,16 +59,16 @@ public class ClonkContentOutlinePage extends ContentOutlinePage {
 	}
 
 	/**
-	 * @param editor the editor to set
+	 * @param clonkTextEditor the editor to set
 	 */
-	public void setEditor(C4ScriptEditor editor) {
-		this.editor = editor;
+	public void setEditor(ClonkTextEditor clonkTextEditor) {
+		this.editor = clonkTextEditor;
 	}
 
 	/**
 	 * @return the editor
 	 */
-	public C4ScriptEditor getEditor() {
+	public ClonkTextEditor getEditor() {
 		return editor;
 	}
 

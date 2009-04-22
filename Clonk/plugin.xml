@@ -11,29 +11,8 @@
 
 		</editor>
 
-		<editor name="C4DefCore Editor" icon="icons/c4scriptIcon.png"
-			class="net.arctics.clonk.ui.editors.defcore.DefCoreEditor" id="clonk.editors.DefCoreEditor"
-			filenames="DefCore.txt">
-			<contentTypeBinding contentTypeId="net.arctics.clonk.c4defcore" />
-
-		</editor>
-
-		<editor name="ActMap Editor" icon="icons/c4scriptIcon.png"
-			class="net.arctics.clonk.ui.editors.actmap.ActMapEditor" id="clonk.editors.ActMapEditor"
-			filenames="ActMap.txt">
-			<contentTypeBinding contentTypeId="net.arctics.clonk.c4actmap" />
-
-		</editor>
-
-		<editor name="Scenario Editor" icon="icons/c4scriptIcon.png"
-			class="net.arctics.clonk.ui.editors.scenario.ScenarioEditor" id="clonk.editors.ScenarioEditor"
-			filenames="Scenario.txt">
-			<contentTypeBinding contentTypeId="net.arctics.clonk.c4scenariocfg" />
-
-		</editor>
-
 		<editor name="Ini Editor" icon="icons/c4scriptIcon.png"
-			class="net.arctics.clonk.ui.editors.ini.IniEditor" id="clonk.editors.IniEditor"
+			class="net.arctics.clonk.ui.editors.ini.IniTextEditor" id="clonk.editors.IniEditor"
 			filenames="*.txt">
 			<contentTypeBinding contentTypeId="net.arctics.clonk.inifile" />
 

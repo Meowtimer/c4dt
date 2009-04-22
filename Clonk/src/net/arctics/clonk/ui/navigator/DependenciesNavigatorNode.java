@@ -28,7 +28,7 @@ public class DependenciesNavigatorNode implements ITreeNode {
 		return "Dependencies";
 	}
 
-	public List<? extends ITreeNode> getChildren() {
+	public List<? extends ITreeNode> getChildCollection() {
 		return clonkNature.getDependencies();
 	}
 
@@ -36,11 +36,11 @@ public class DependenciesNavigatorNode implements ITreeNode {
 		return ITreeNode.Default.getPath(this);
 	}
 
-	public String nodeName() {
+	public String getNodeName() {
 		return "Dependencies";
 	}
 
-	public ITreeNode parentNode() {
+	public ITreeNode getParentNode() {
 		return null;
 	}
 

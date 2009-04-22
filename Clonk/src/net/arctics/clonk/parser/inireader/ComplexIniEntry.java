@@ -1,11 +1,17 @@
 package net.arctics.clonk.parser.inireader;
 
+import java.util.Collection;
+
 import net.arctics.clonk.parser.inireader.IniData.IniDataEntry;
 import net.arctics.clonk.util.IHasChildren;
 import net.arctics.clonk.util.IHasChildrenWithContext;
 import net.arctics.clonk.util.IHasContext;
+import net.arctics.clonk.util.ITreeNode;
 
 public class ComplexIniEntry extends IniEntry implements IHasChildren, IHasContext  {
+	
+	private static final long serialVersionUID = 1L;
+	
 	private Object extendedValue;
 	private IniDataEntry entryConfig;
 
@@ -30,6 +36,7 @@ public class ComplexIniEntry extends IniEntry implements IHasChildren, IHasConte
 		ComplexIniEntry cmpl = new ComplexIniEntry(entry.getStartPos(), entry.getEndPos(), entry.getKey(), entry.getValue());
 		cmpl.entryConfig = config;
 		cmpl.extendedValue = extendedValue;
+		cmpl.setParentDeclaration(entry.getParentDeclaration());
 		return cmpl;
 	}
 	
@@ -60,6 +67,14 @@ public class ComplexIniEntry extends IniEntry implements IHasChildren, IHasConte
 		return null;
 	}
 
+	@Override
+	public Collection<? extends ITreeNode> getChildCollection() {
+		if (extendedValue instanceof ITreeNode) {
+			return ((ITreeNode) extendedValue).getChildCollection();
+		}
+		return null;
+	}
+	
 	public boolean hasChildren() {
 		return
 			(extendedValue instanceof IHasChildren && ((IHasChildren)extendedValue).hasChildren()) ||

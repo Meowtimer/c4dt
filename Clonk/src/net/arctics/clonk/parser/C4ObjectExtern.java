@@ -41,13 +41,13 @@ public class C4ObjectExtern extends C4Object implements ITreeNode {
 	}
 
 	// return name of folder instead of name of object (so constructed paths don't look wierd)
-	public String nodeName() {
+	public String getNodeName() {
 		if (nodeName == null)
 			nodeName = getName();
 		return nodeName;
 	}
 
-	public ITreeNode parentNode() {
+	public ITreeNode getParentNode() {
 		return parentNode;
 	}
 
@@ -59,14 +59,14 @@ public class C4ObjectExtern extends C4Object implements ITreeNode {
 		return ITreeNode.Default.subNodeOf(this, node);
 	}
 
-	public List<ITreeNode> getChildren() {
+	public List<ITreeNode> getChildCollection() {
 		if (childNodes == null)
 			childNodes = new ArrayList<ITreeNode>();
 		return childNodes;
 	}
 
 	public void addChild(ITreeNode node) {
-		getChildren().add(node);
+		getChildCollection().add(node);
 	}
 
 }

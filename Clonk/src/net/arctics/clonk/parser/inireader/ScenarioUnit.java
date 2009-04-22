@@ -8,19 +8,21 @@ import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.inireader.IniData.IniConfiguration;
 import net.arctics.clonk.parser.inireader.IniData.IniDataSection;
 
-public class ScenarioParser extends IniReader {
+public class ScenarioUnit extends IniUnit {
 
+	private static final long serialVersionUID = 1L;
+	
 	private final static IniConfiguration configuration = ClonkCore.getDefault().INI_CONFIGURATIONS.getConfigurationFor("Scenario.txt");
 	
-	public ScenarioParser(IFile file) {
+	public ScenarioUnit(IFile file) {
 		super(file);
 	}
 	
-	public ScenarioParser(InputStream stream) {
+	public ScenarioUnit(InputStream stream) {
 		super(stream);
 	}
 	
-	public ScenarioParser(String text) {
+	public ScenarioUnit(String text) {
 		super(text);
 	}
 	

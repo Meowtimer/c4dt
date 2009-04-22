@@ -1,8 +1,12 @@
 package net.arctics.clonk.util;
 
+import java.util.Collection;
+
+import org.eclipse.core.runtime.IPath;
+
 import net.arctics.clonk.parser.inireader.EntrySubItem;
 
-public class KeyValuePair<First, Second> extends Pair<First, Second> implements IHasKeyAndValue<First, Second>, IHasChildrenWithContext {
+public class KeyValuePair<First, Second> extends Pair<First, Second> implements IHasKeyAndValue<First, Second>, IHasChildrenWithContext, ITreeNode {
 
 	public KeyValuePair(First first, Second second) {
 		super(first, second);
@@ -42,6 +46,31 @@ public class KeyValuePair<First, Second> extends Pair<First, Second> implements 
 
 	public void setChildValue(int index, Object value) {
 		
+	}
+
+	public void addChild(ITreeNode node) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	public Collection<? extends ITreeNode> getChildCollection() {
+		return null;
+	}
+
+	public String getNodeName() {
+		return (String) getKey();
+	}
+
+	public ITreeNode getParentNode() {
+		return null;
+	}
+
+	public IPath getPath() {
+		return ITreeNode.Default.getPath(this);
+	}
+
+	public boolean subNodeOf(ITreeNode node) {
+		return ITreeNode.Default.subNodeOf(this, node);
 	}
 
 }

@@ -15,11 +15,11 @@ import net.arctics.clonk.parser.C4ScriptBase;
 import net.arctics.clonk.parser.C4ScriptIntern;
 import net.arctics.clonk.parser.C4Variable;
 import net.arctics.clonk.parser.ClonkIndex;
-import net.arctics.clonk.parser.inireader.ActMapParser;
-import net.arctics.clonk.parser.inireader.DefCoreParser;
-import net.arctics.clonk.parser.inireader.IniReader;
-import net.arctics.clonk.parser.inireader.ParticleDefParser;
-import net.arctics.clonk.parser.inireader.ScenarioParser;
+import net.arctics.clonk.parser.inireader.ActMapUnit;
+import net.arctics.clonk.parser.inireader.DefCoreUnit;
+import net.arctics.clonk.parser.inireader.IniUnit;
+import net.arctics.clonk.parser.inireader.ParticleUnit;
+import net.arctics.clonk.parser.inireader.ScenarioUnit;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.resource.c4group.C4Group;
 import net.arctics.clonk.resource.c4group.C4Group.C4GroupType;
@@ -204,7 +204,7 @@ public abstract class Utilities {
 			return Icons.GENERAL_OBJECT_ICON;
 		if (element instanceof C4ObjectExternGroup) {
 			C4ObjectExternGroup group = (C4ObjectExternGroup) element;
-			if (group.nodeName().endsWith(".c4g"))
+			if (group.getNodeName().endsWith(".c4g"))
 				return Icons.GROUP_ICON;
 			return Icons.GENERAL_OBJECT_ICON;
 		}
@@ -397,24 +397,23 @@ public abstract class Utilities {
 		return mapOfType((Class<? extends Map<KeyType, ValueType>>) HashMap.class, keysAndValues);
 	}
 	
-	private static Map<String, Class<? extends IniReader>> INIREADER_CLASSES = Utilities.map(new Object[] {
-		"net.arctics.clonk.c4scenariocfg", ScenarioParser.class,
-		"net.arctics.clonk.c4actmap"     , ActMapParser.class,
-		"net.arctics.clonk.c4defcore"    , DefCoreParser.class,
-		"net.arctics.clonk.c4particle"   , ParticleDefParser.class
+	private static Map<String, Class<? extends IniUnit>> INIREADER_CLASSES = Utilities.map(new Object[] {
+		"net.arctics.clonk.c4scenariocfg", ScenarioUnit.class,
+		"net.arctics.clonk.c4actmap"     , ActMapUnit.class,
+		"net.arctics.clonk.c4defcore"    , DefCoreUnit.class,
+		"net.arctics.clonk.c4particle"   , ParticleUnit.class
 	});
 
 	/**
-	 * Returns the IniReader class that is best suited to parsing the given ini file
-	 * @param file the ini file to return an IniReader class for
-	 * @return the IniReader class or null if no suitable one could be found
+	 * Returns the IniUnit class that is best suited to parsing the given ini file
+	 * @param file the ini file to return an IniUnit class for
+	 * @return the IniUnit class or null if no suitable one could be found
 	 */
-	public static Class<? extends IniReader> getIniReaderClassFromFile(IFile file) {
+	public static Class<? extends IniUnit> getIniUnitClass(IFile file) {
 		IContentType contentType = IDE.getContentType(file);
 		if (contentType == null)
 			return null;
-		Class<? extends IniReader> iniReaderClass = INIREADER_CLASSES.get(contentType.getId());
-		return iniReaderClass;
+		return INIREADER_CLASSES.get(contentType.getId());
 	}
 	
 	public static boolean allInstanceOf(Object[] objects, Class<?> cls) {
