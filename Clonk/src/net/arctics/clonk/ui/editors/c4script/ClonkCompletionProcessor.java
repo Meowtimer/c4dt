@@ -48,7 +48,7 @@ import org.eclipse.ui.keys.IBindingService;
 import org.eclipse.ui.texteditor.ITextEditor;
 import org.eclipse.ui.texteditor.ITextEditorActionDefinitionIds;
 
-public class ClonkCompletionProcessor implements IContentAssistProcessor, ICompletionListener {
+public class ClonkCompletionProcessor implements IContentAssistProcessor {
 
 	private final class ClonkCompletionListener implements ICompletionListener, ICompletionListenerExtension {
 
@@ -57,13 +57,24 @@ public class ClonkCompletionProcessor implements IContentAssistProcessor, ICompl
 	
 		public void assistSessionStarted(ContentAssistEvent event) {
 			proposalCycle = ProposalCycle.SHOW_ALL;
+			
+			// refresh to find out whether caret is inside a function and to get all the declarations
+			try {
+				try {
+					((C4ScriptEditor)editor).reparseWithDocumentContents(null,true);
+				} catch (ParsingException e) {
+					e.printStackTrace();
+				}
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
 		}
 	
 		public void assistSessionEnded(ContentAssistEvent event) {
 		}
 
 		public void assistSessionRestarted(ContentAssistEvent event) {
-			proposalCycle = proposalCycle.reverseCycle(); // wtf -.-
+			proposalCycle = proposalCycle.reverseCycle();
 		}
 		
 	}
@@ -106,7 +117,6 @@ public class ClonkCompletionProcessor implements IContentAssistProcessor, ICompl
 		this.assistant = assistant;
 		
 		assistant.setRepeatedInvocationTrigger(getIterationBinding());
-		
 		assistant.addCompletionListener(new ClonkCompletionListener());
 		
 	}
@@ -512,27 +522,6 @@ public class ClonkCompletionProcessor implements IContentAssistProcessor, ICompl
 	
 	public String getErrorMessage() {
 		return null;
-	}
-
-	public void assistSessionEnded(ContentAssistEvent event) {
-		
-	}
-
-	public void assistSessionStarted(ContentAssistEvent event) {
-		// refresh to find about whether caret is inside a function and to get all the declarations
-		try {
-			try {
-				((C4ScriptEditor)editor).reparseWithDocumentContents(null,true);
-			} catch (ParsingException e) {
-				e.printStackTrace();
-			}
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-	}
-
-	public void selectionChanged(ICompletionProposal proposal, boolean smartToggle) {
-		
 	}
 	
 }

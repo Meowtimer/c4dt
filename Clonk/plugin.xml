@@ -313,18 +313,6 @@
 		</menuContribution>
 	</extension>
 
-	<extension point="org.eclipse.ui.bindings">
-		<key sequence="M1+M2+T" commandId="net.arctics.clonk.ui.open.object"
-			schemeId="org.eclipse.ui.defaultAcceleratorConfiguration" />
-
-		<key sequence="F4"
-			commandId="net.arctics.clonk.ui.editors.actions.FindReferences"
-			schemeId="org.eclipse.ui.defaultAcceleratorConfiguration" />
-
-		<key sequence="F3"
-			commandId="net.arctics.clonk.ui.editors.actions.OpenDeclaration"
-			schemeId="org.eclipse.ui.defaultAcceleratorConfiguration" />
-	</extension>
 	<extension id="product" point="org.eclipse.core.runtime.products">
 		<product application="org.eclipse.ui.ide.workbench" name="%productName">
 			<property name="windowImages"

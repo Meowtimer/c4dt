@@ -190,7 +190,6 @@ public class ClonkSourceViewerConfiguration extends TextSourceViewerConfiguratio
 //		assistant.setContentAssistProcessor(new CodeBodyCompletionProcessor(getEditor(),assistant), ClonkPartitionScanner.C4S_CODEBODY);
 		ClonkCompletionProcessor processor = new ClonkCompletionProcessor(getEditor(),assistant);
 		assistant.setContentAssistProcessor(processor, IDocument.DEFAULT_CONTENT_TYPE);
-		assistant.addCompletionListener(processor);
 		assistant.install(sourceViewer);
 		
 		assistant.setContextInformationPopupOrientation(IContentAssistant.CONTEXT_INFO_ABOVE);

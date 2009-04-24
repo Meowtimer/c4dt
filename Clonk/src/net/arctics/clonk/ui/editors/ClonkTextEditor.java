@@ -82,13 +82,15 @@ public class ClonkTextEditor extends TextEditor {
 			IResource res = target.getResource();
 			if (res instanceof IFile) {
 				IEditorPart editor = IDE.openEditor(workbenchPage, (IFile) res, activate);
-				ClonkTextEditor ed = (ClonkTextEditor)editor;						
-				if (target != script) {
-					target = target.latestVersion();
-					if (target != null)
-						ed.selectAndReveal(target.getLocation());
+				if (editor instanceof ClonkTextEditor) {
+					ClonkTextEditor ed = (ClonkTextEditor)editor;						
+					if (target != script) {
+						target = target.latestVersion();
+						if (target != null)
+							ed.selectAndReveal(target.getLocation());
+					}
 				}
-				return ed;
+				return editor;
 			}
 		}
 		return null;
