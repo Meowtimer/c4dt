@@ -41,8 +41,8 @@ public class IniTextEditor extends ClonkTextEditor {
 		
 		IAction action;
 		action = new ContentAssistAction(messagesBundle,"IniContentAssist.",this); //$NON-NLS-1$
-		action.setActionDefinitionId(ITextEditorActionDefinitionIds.CONTENT_ASSIST_CONTEXT_INFORMATION);
-		setAction(ITextEditorActionDefinitionIds.CONTENT_ASSIST_CONTEXT_INFORMATION, action);
+		action.setActionDefinitionId(ITextEditorActionDefinitionIds.CONTENT_ASSIST_PROPOSALS);
+		setAction(ITextEditorActionDefinitionIds.CONTENT_ASSIST_PROPOSALS, action);
 	}
 	
 }

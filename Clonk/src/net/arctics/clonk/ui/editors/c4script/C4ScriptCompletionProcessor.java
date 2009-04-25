@@ -11,7 +11,6 @@ import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.BuiltInDefinitions;
 import net.arctics.clonk.parser.C4Function;
 import net.arctics.clonk.parser.C4Object;
-import net.arctics.clonk.parser.C4ObjectIntern;
 import net.arctics.clonk.parser.C4ScriptBase;
 import net.arctics.clonk.parser.C4Variable;
 import net.arctics.clonk.parser.ClonkIndex;
@@ -21,6 +20,7 @@ import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.C4ScriptExprTree.*;
 import net.arctics.clonk.parser.c4script.C4ScriptParser.ParsingException;
 import net.arctics.clonk.resource.ClonkProjectNature;
+import net.arctics.clonk.ui.editors.ClonkCompletionProcessor;
 import net.arctics.clonk.util.Utilities;
 
 import org.eclipse.core.runtime.FileLocator;
@@ -40,7 +40,6 @@ import org.eclipse.jface.text.contentassist.ContextInformation;
 import org.eclipse.jface.text.contentassist.ICompletionListener;
 import org.eclipse.jface.text.contentassist.ICompletionListenerExtension;
 import org.eclipse.jface.text.contentassist.ICompletionProposal;
-import org.eclipse.jface.text.contentassist.IContentAssistProcessor;
 import org.eclipse.jface.text.contentassist.IContextInformation;
 import org.eclipse.jface.text.contentassist.IContextInformationValidator;
 import org.eclipse.ui.PlatformUI;
@@ -48,8 +47,8 @@ import org.eclipse.ui.keys.IBindingService;
 import org.eclipse.ui.texteditor.ITextEditor;
 import org.eclipse.ui.texteditor.ITextEditorActionDefinitionIds;
 
-public class ClonkCompletionProcessor implements IContentAssistProcessor {
-
+public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor {
+	
 	private final class ClonkCompletionListener implements ICompletionListener, ICompletionListenerExtension {
 
 		public void selectionChanged(ICompletionProposal proposal, boolean smartToggle) {
@@ -106,14 +105,13 @@ public class ClonkCompletionProcessor implements IContentAssistProcessor {
 		}
 	}
 	
-	private ITextEditor editor;
 	private ContentAssistant assistant;
 	private ExprElm contextExpression;
 	private ProposalCycle proposalCycle = ProposalCycle.SHOW_ALL;
 	
-	public ClonkCompletionProcessor(ITextEditor editor,
+	public C4ScriptCompletionProcessor(ITextEditor editor,
 			ContentAssistant assistant) {
-		this.editor = editor;
+		super(editor);
 		this.assistant = assistant;
 		
 		assistant.setRepeatedInvocationTrigger(getIterationBinding());
@@ -125,7 +123,7 @@ public class ClonkCompletionProcessor implements IContentAssistProcessor {
 		proposalCycle = proposalCycle.cycle();
 	}
 	
-	public void proposalForFunc(C4Function func,String prefix,int offset,List<ClonkCompletionProposal> proposals,String parentName) {
+	public void proposalForFunc(C4Function func,String prefix,int offset,List<ICompletionProposal> proposals,String parentName) {
 		if (prefix != null) {
 			if (!func.getName().toLowerCase().startsWith(prefix))
 				return;
@@ -142,37 +140,9 @@ public class ClonkCompletionProcessor implements IContentAssistProcessor {
 		proposals.add(prop);
 	}
 
-	public void proposalForObject(C4Object obj,String prefix,int offset,List<ClonkCompletionProposal> proposals) {
-		try {
-			if (obj == null || obj.getId() == null)
-				return;
+	
 
-			if (prefix != null) {
-				if (!(
-						obj.getName().toLowerCase().startsWith(prefix) ||
-						obj.getId().getName().toLowerCase().startsWith(prefix) ||
-						(obj instanceof C4ObjectIntern && ((C4ObjectIntern)obj).getObjectFolder() != null && ((C4ObjectIntern)obj).getObjectFolder().getName().startsWith(prefix))
-				))
-					return;
-			}
-			String displayString = obj.getName();
-			int replacementLength = 0;
-			if (prefix != null) replacementLength = prefix.length();
-
-			// no need for context information
-//			String contextInfoString = obj.getName();
-//			IContextInformation contextInformation = null;// new ContextInformation(obj.getId().getName(),contextInfoString); 
-
-			ClonkCompletionProposal prop = new ClonkCompletionProposal(obj.getId().getName(),offset,replacementLength,obj.getId().getName().length(),
-					Utilities.getIconForObject(obj), displayString.trim(),null,null," - " + obj.getId().getName());
-			proposals.add(prop);
-		} catch (Exception e) {
-			e.printStackTrace();
-			System.out.println(obj.toString());
-		}
-	}
-
-	public ClonkCompletionProposal proposalForVar(C4Variable var, String prefix, int offset, List<ClonkCompletionProposal> proposals) {
+	public ClonkCompletionProposal proposalForVar(C4Variable var, String prefix, int offset, List<ICompletionProposal> proposals) {
 		if (prefix != null && !var.getName().toLowerCase().startsWith(prefix))
 			return null;
 		if (var.getScript() == null)
@@ -189,8 +159,8 @@ public class ClonkCompletionProcessor implements IContentAssistProcessor {
 		return prop;
 	}
 	
-	private void proposalForIndex(ClonkIndex index, int offset, int wordOffset, String prefix,
-			List<ClonkCompletionProposal> proposals) {
+	private void proposalsForIndex(ClonkIndex index, int offset, int wordOffset, String prefix,
+			List<ICompletionProposal> proposals) {
 		if (!index.isEmpty()) {
 			for (C4Function func : index.getGlobalFunctions()) {
 				if (func.getScript() == null)
@@ -201,9 +171,7 @@ public class ClonkCompletionProcessor implements IContentAssistProcessor {
 			for (C4Variable var : index.getStaticVariables()) {
 				proposalForVar(var,prefix,offset,proposals);
 			}
-			for (C4Object obj : index.objectsIgnoringRemoteDuplicates(Utilities.getScriptForEditor(editor).getResource())) {
-				proposalForObject(obj, prefix, wordOffset, proposals);
-			}
+			proposalsForIndexedObjects(index, offset, wordOffset, prefix, proposals);
 		}
 	}
 	
@@ -230,7 +198,7 @@ public class ClonkCompletionProcessor implements IContentAssistProcessor {
 		
 		ClonkProjectNature nature = Utilities.getProject(editor);
 		List<String> statusMessages = new ArrayList<String>(4);
-		List<ClonkCompletionProposal> proposals = new ArrayList<ClonkCompletionProposal>();
+		List<ICompletionProposal> proposals = new ArrayList<ICompletionProposal>();
 		ClonkIndex index = nature.getIndex();
 
 		final C4Function activeFunc = getActiveFunc(doc, offset);
@@ -284,14 +252,14 @@ public class ClonkCompletionProcessor implements IContentAssistProcessor {
 
 	private void proposalsInsideOfFunction(int offset, int wordOffset,
 			IDocument doc, String prefix,
-			List<ClonkCompletionProposal> proposals, ClonkIndex index,
+			List<ICompletionProposal> proposals, ClonkIndex index,
 			final C4Function activeFunc) {
 		
 		if (proposalCycle != ProposalCycle.SHOW_OBJECT)
-			proposalForIndex(index, offset, wordOffset, prefix, proposals);
+			proposalsForIndex(index, offset, wordOffset, prefix, proposals);
 		
 		if (proposalCycle == ProposalCycle.SHOW_ALL) {
-			proposalForIndex(ClonkCore.getDefault().EXTERN_INDEX, offset, wordOffset, prefix, proposals);
+			proposalsForIndex(ClonkCore.getDefault().EXTERN_INDEX, offset, wordOffset, prefix, proposals);
 			
 			if (ClonkCore.getDefault().ENGINE_OBJECT != null) {
 				for (C4Function func : ClonkCore.getDefault().ENGINE_OBJECT.functions()) {
@@ -365,7 +333,7 @@ public class ClonkCompletionProcessor implements IContentAssistProcessor {
 
 	private void proposalsOutsideOfFunction(ITextViewer viewer, int offset,
 			int wordOffset, String prefix,
-			List<ClonkCompletionProposal> proposals, ClonkIndex index) {
+			List<ICompletionProposal> proposals, ClonkIndex index) {
 		try {
 			if (viewer.getDocument().get(offset - 5, 5).equalsIgnoreCase("func ")) {
 				for(String callback : BuiltInDefinitions.OBJECT_CALLBACKS) {
@@ -416,9 +384,9 @@ public class ClonkCompletionProcessor implements IContentAssistProcessor {
 		}
 		
 		// propose objects for #include or something
-		proposalForIndex(index, offset, wordOffset, prefix, proposals);
+		proposalsForIndex(index, offset, wordOffset, prefix, proposals);
 		if (proposalCycle == ProposalCycle.SHOW_ALL)
-			proposalForIndex(ClonkCore.getDefault().EXTERN_INDEX, offset, wordOffset, prefix, proposals);
+			proposalsForIndex(ClonkCore.getDefault().EXTERN_INDEX, offset, wordOffset, prefix, proposals);
 	}
 
 	private String getProposalCycleMessage() {
@@ -426,7 +394,7 @@ public class ClonkCompletionProcessor implements IContentAssistProcessor {
 		return "Press '" + sequence.format() + "' to show " + proposalCycle.cycle().description();
 	}
 
-	private void proposalsFromScript(C4ScriptBase script, HashSet<C4ScriptBase> loopCatcher, String prefix, int offset, int wordOffset, List<ClonkCompletionProposal> proposals, boolean noPrivateFuncs, ClonkIndex index) {
+	private void proposalsFromScript(C4ScriptBase script, HashSet<C4ScriptBase> loopCatcher, String prefix, int offset, int wordOffset, List<ICompletionProposal> proposals, boolean noPrivateFuncs, ClonkIndex index) {
 		if (loopCatcher.contains(script)) {
 			return;
 		}

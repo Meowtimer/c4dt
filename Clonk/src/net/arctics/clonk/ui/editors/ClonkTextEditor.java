@@ -6,7 +6,6 @@ import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.C4Field;
 import net.arctics.clonk.parser.C4ObjectIntern;
 import net.arctics.clonk.parser.C4ScriptBase;
-import net.arctics.clonk.parser.C4ScriptIntern;
 import net.arctics.clonk.parser.SourceLocation;
 import net.arctics.clonk.parser.c4script.C4ScriptParser.ParsingException;
 import net.arctics.clonk.ui.editors.c4script.C4ScriptEditor;
@@ -50,25 +49,28 @@ public class ClonkTextEditor extends TextEditor {
 		IWorkbenchPage workbenchPage = workbench.getActiveWorkbenchWindow().getActivePage();
 		C4ScriptBase script = target instanceof C4ScriptBase ? (C4ScriptBase)target : target.getScript();
 		if (script != null) {
-			if (script instanceof C4ObjectIntern || script instanceof C4ScriptIntern) {
-				IFile scriptFile = (IFile) script.getScriptFile();
+			Object scriptStorage = script.getScriptFile();
+			if (scriptStorage instanceof IFile) {
+				IFile scriptFile = (IFile) scriptStorage;
 				if (scriptFile != null) {
 					IEditorPart editor = IDE.openEditor(workbenchPage, scriptFile, activate);
-					C4ScriptEditor scriptEditor = (C4ScriptEditor)editor;						
-					if (target != script) {
-						scriptEditor.reparseWithDocumentContents(null, false);
-						target = target.latestVersion();
-						if (target != null)
-							scriptEditor.selectAndReveal(target.getLocation());
+					if (editor instanceof C4ScriptEditor) {
+						C4ScriptEditor scriptEditor = (C4ScriptEditor)editor;						
+						if (target != script) {
+							scriptEditor.reparseWithDocumentContents(null, false);
+							target = target.latestVersion();
+							if (target != null)
+								scriptEditor.selectAndReveal(target.getLocation());
+						}
 					}
-					return scriptEditor;
+					return editor;
 				} else {
 					IFile defCore = ((C4ObjectIntern)script).getDefCoreFile();
 					if (defCore != null)
 						return IDE.openEditor(workbenchPage, defCore, activate);
 				}
 			}
-			else if (script.getScriptFile() instanceof IStorage) {
+			else if (scriptStorage instanceof IStorage) {
 				if (script != ClonkCore.getDefault().ENGINE_OBJECT) {
 					IEditorPart editor = workbenchPage.openEditor(new ScriptWithStorageEditorInput(script), "clonk.editors.C4ScriptEditor");
 					C4ScriptEditor scriptEditor = (C4ScriptEditor)editor;

@@ -10,7 +10,7 @@ import org.eclipse.core.runtime.IPath;
 
 import net.arctics.clonk.parser.C4Field;
 import net.arctics.clonk.parser.SourceLocation;
-import net.arctics.clonk.parser.inireader.IniData.IniDataSection;
+import net.arctics.clonk.parser.inireader.IniData.IniSectionData;
 import net.arctics.clonk.util.IHasChildren;
 import net.arctics.clonk.util.IHasKeyAndValue;
 import net.arctics.clonk.util.ITreeNode;
@@ -20,13 +20,13 @@ public class IniSection extends C4Field implements IHasKeyAndValue<String, Strin
 	private static final long serialVersionUID = 1L;
 	
 	private Map<String, IniEntry> entries;
-	private IniDataSection sectionData;
+	private IniSectionData sectionData;
 	
-	public IniDataSection getSectionData() {
+	public IniSectionData getSectionData() {
 		return sectionData;
 	}
 
-	public void setSectionData(IniDataSection sectionData) {
+	public void setSectionData(IniSectionData sectionData) {
 		this.sectionData = sectionData;
 	}
 

@@ -1,12 +1,10 @@
 package net.arctics.clonk.ui.editors.ini;
 
 
-import net.arctics.clonk.ui.editors.IniCompletionProcessor;
 import net.arctics.clonk.ui.editors.c4script.ColorManager;
 import net.arctics.clonk.ui.editors.c4script.IClonkColorConstants;
 
 import org.eclipse.jface.text.IDocument;
-import org.eclipse.jface.text.IInformationControlCreator;
 import org.eclipse.jface.text.TextAttribute;
 import org.eclipse.jface.text.contentassist.ContentAssistant;
 import org.eclipse.jface.text.contentassist.IContentAssistant;

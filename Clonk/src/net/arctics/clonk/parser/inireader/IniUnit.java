@@ -14,7 +14,7 @@ import net.arctics.clonk.parser.C4ScriptBase;
 import net.arctics.clonk.parser.SourceLocation;
 import net.arctics.clonk.parser.inireader.IniData.IniConfiguration;
 import net.arctics.clonk.parser.inireader.IniData.IniDataEntry;
-import net.arctics.clonk.parser.inireader.IniData.IniDataSection;
+import net.arctics.clonk.parser.inireader.IniData.IniSectionData;
 import net.arctics.clonk.util.IHasChildren;
 import net.arctics.clonk.util.ITreeNode;
 
@@ -44,7 +44,7 @@ public class IniUnit extends C4Field implements Iterable<IniSection>, IHasChildr
 	/**
 	 * map to access sections by their name - only useful when sections have different names
 	 */
-	protected Map<String, IniSection> sections = new HashMap<String, IniSection>();
+	protected Map<String, IniSection> sectionsMap = new HashMap<String, IniSection>();
 	
 	/**
 	 * list of all sections regardless of name (for ActMap and similar files)
@@ -122,7 +122,7 @@ public class IniUnit extends C4Field implements Iterable<IniSection>, IHasChildr
 		IniConfiguration configuration = getConfiguration();
 		if (configuration == null)
 			return entry;
-		IniDataSection sectionConfig = currentSection.getSectionData();
+		IniSectionData sectionConfig = currentSection.getSectionData();
 		if (sectionConfig == null)
 			return entry; // don't throw errors in unknown section
 		if (!sectionConfig.hasEntry(entry.getKey())) {
@@ -180,7 +180,7 @@ public class IniUnit extends C4Field implements Iterable<IniSection>, IHasChildr
 //		IniEntry[] entries = null;
 		IniSection section;
 		while ((section = parseSection()) != null) {
-			sections.put(section.getName(), section);
+			sectionsMap.put(section.getName(), section);
 			sectionsList.add(section);
 		}
 		if (!reader.reachedEOF()) {
@@ -188,7 +188,7 @@ public class IniUnit extends C4Field implements Iterable<IniSection>, IHasChildr
 		}
 	}
 	
-	protected IniDataSection getSectionDataFor(IniSection section) {
+	protected IniSectionData getSectionDataFor(IniSection section) {
 		return getConfiguration() != null
 			? getConfiguration().getSections().get(section.getName())
 			: null;
@@ -278,11 +278,11 @@ public class IniUnit extends C4Field implements Iterable<IniSection>, IHasChildr
 	}
 	
 	public IniSection sectionWithName(String name) {
-		return sections.get(name);
+		return sectionsMap.get(name);
 	}
 	
 	public IniEntry entryInSection(String section, String entry) {
-		IniSection s = sections.get(section);
+		IniSection s = sectionsMap.get(section);
 		return s != null ? s.getEntry(entry) : null;
 	}
 
@@ -295,7 +295,7 @@ public class IniUnit extends C4Field implements Iterable<IniSection>, IHasChildr
 	}
 
 	public boolean hasChildren() {
-		return !sections.isEmpty();
+		return !sectionsMap.isEmpty();
 	}
 
 	public void commitTo(C4ScriptBase script) {

@@ -188,7 +188,7 @@ public class ClonkSourceViewerConfiguration extends TextSourceViewerConfiguratio
 		ContentAssistant assistant = new ContentAssistant();
 //		assistant.setDocumentPartitioning(getConfiguredDocumentPartitioning(sourceViewer));
 //		assistant.setContentAssistProcessor(new CodeBodyCompletionProcessor(getEditor(),assistant), ClonkPartitionScanner.C4S_CODEBODY);
-		ClonkCompletionProcessor processor = new ClonkCompletionProcessor(getEditor(),assistant);
+		C4ScriptCompletionProcessor processor = new C4ScriptCompletionProcessor(getEditor(),assistant);
 		assistant.setContentAssistProcessor(processor, IDocument.DEFAULT_CONTENT_TYPE);
 		assistant.install(sourceViewer);
 		

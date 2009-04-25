@@ -21,7 +21,7 @@ public class IniData {
 	
 	public static class IniConfiguration {
 		private String filename;
-		private Map<String, IniDataSection> sections = new HashMap<String, IniDataSection>();
+		private Map<String, IniSectionData> sections = new HashMap<String, IniSectionData>();
 		private IEntryFactory factory = null;
 		
 		protected IniConfiguration() {
@@ -56,7 +56,7 @@ public class IniData {
 			NodeList sectionNodes = fileNode.getChildNodes();
 			for(int i = 0;i < sectionNodes.getLength();i++) {
 				if (sectionNodes.item(i).getNodeName() == "section") {
-					IniDataSection section = IniDataSection.createByXML(sectionNodes.item(i), conf.factory);
+					IniSectionData section = IniSectionData.createByXML(sectionNodes.item(i), conf.factory);
 					conf.getSections().put(section.getSectionName(), section);
 				}
 			}
@@ -67,7 +67,7 @@ public class IniData {
 			return filename;
 		}
 
-		public Map<String, IniDataSection> getSections() {
+		public Map<String, IniSectionData> getSections() {
 			return sections;
 		}
 		
@@ -85,15 +85,15 @@ public class IniData {
 		
 	}
 	
-	public static class IniDataSection {
+	public static class IniSectionData {
 		private String sectionName;
 		private Map<String, IniDataEntry> entries = new HashMap<String, IniDataEntry>();		
 		
-		protected IniDataSection() {
+		protected IniSectionData() {
 		}
 		
-		public static IniDataSection createByXML(Node sectionNode, IEntryFactory factory) throws InvalidIniConfigurationException {
-			IniDataSection section = new IniDataSection();
+		public static IniSectionData createByXML(Node sectionNode, IEntryFactory factory) throws InvalidIniConfigurationException {
+			IniSectionData section = new IniSectionData();
 			if (sectionNode.getAttributes() == null || 
 					sectionNode.getAttributes().getLength() == 0 || 
 					sectionNode.getAttributes().getNamedItem("name") == null) {
