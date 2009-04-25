@@ -8,8 +8,10 @@ public class IDArray extends KeyValueArrayEntry<C4ID, Integer> {
 	@Override
 	public KeyValuePair<C4ID, Integer> singleComponentFromString(String s) {
 		String[] idAndCount = s.split("=");
+		if (idAndCount.length < 2)
+			return null;
 		try {
-			return new KeyValuePair<C4ID, Integer>(C4ID.getID(idAndCount[0].trim()),Integer.parseInt(idAndCount[1].trim()));
+			return new KeyValuePair<C4ID, Integer>(C4ID.getID(idAndCount[0].trim()), Integer.parseInt(idAndCount[1].trim()));
 		} catch (NumberFormatException e) {
 			e.printStackTrace();
 			return null;

@@ -24,7 +24,7 @@ public class SignedInteger implements IEntryCreateable {
 
 	public void setInput(String input) throws IniParserException {
 		try {
-			input = input.trim();
+			input = input != null ? input.trim() : "";
 			if (input.equals(""))
 				x = 0;
 			else

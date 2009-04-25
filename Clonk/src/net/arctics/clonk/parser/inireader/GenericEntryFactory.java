@@ -7,6 +7,8 @@ import net.arctics.clonk.parser.C4ID;
 public class GenericEntryFactory implements IEntryFactory {
 	
 	public Object create(Class<?> type, String value) throws InvalidClassException, IniParserException {
+		if (value == null)
+			value = "";
 		if (type.equals(C4ID.class)) {
 			return C4ID.getID(value);
 		}

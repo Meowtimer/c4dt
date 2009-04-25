@@ -438,7 +438,20 @@ public abstract class C4ScriptBase extends C4Structure implements IHasRelatedRes
 		return getIndex().getObjectNearestTo(getResource(), id);
 	}
 	
-	public Iterable<C4ScriptBase> scriptsInBranch(final ClonkIndex index) {
+	/**
+	 * Returns an iterator that can be used to iterate over all scripts that are included by this script plus the script itself.
+	 * @return the Iterable
+	 */
+	public Iterable<C4ScriptBase> conglomerate() {
+		return conglomerate(this.getIndex());
+	}
+	
+	/**
+	 * Returns an iterator that can be used to iterate over all scripts that are included by this script plus the script itself.
+	 * @param index index used to look for includes
+	 * @return the Iterable
+	 */
+	public Iterable<C4ScriptBase> conglomerate(final ClonkIndex index) {
 		final C4ScriptBase thisScript = this;
 		return new Iterable<C4ScriptBase>() {
 			void gather(C4ScriptBase script, List<C4ScriptBase> list, Set<C4ScriptBase> duplicatesCatcher) {
@@ -456,7 +469,6 @@ public abstract class C4ScriptBase extends C4Structure implements IHasRelatedRes
 				gather(thisScript, list, catcher);
 				return list.iterator();
 			}
-			
 		};
 	}
 	

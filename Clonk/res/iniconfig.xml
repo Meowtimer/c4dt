@@ -63,7 +63,7 @@
 				description="Kategorie des Objekts. Siehe Objektkategorien." />
 			<entry name="MaxUserSelect" class="net.arctics.clonk.parser.inireader.SignedInteger"
 				description="Maximale Anzahl beim Platzieren des Objekts im Menüsystem." />
-			<entry name="TimerCall" class="java.lang.String"
+			<entry name="TimerCall" class="net.arctics.clonk.parser.inireader.Function"
 				description="Regelmäßig aufgerufene Funktion des Objektscripts.\n  Siehe Objektscripte." />
 			<entry name="Timer" class="net.arctics.clonk.parser.inireader.SignedInteger"
 				description="Zeitabstand der TimerCalls in Frames. Ohne Angabe gilt der Vorgabewert 35." />

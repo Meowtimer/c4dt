@@ -156,6 +156,10 @@ public class BufferedScanner {
 		(/*length > 0 &&*/ '0' <= character && character <= '9');
 	}
 	
+	public static boolean isWordStart(int character) {
+		return (character >= 'a' && character <= 'z') || (character >= 'A' && character <= 'Z') || character == '_';
+	}
+	
 	/**
 	 * Reads a code-word. (like regexp class [0-9a-zA-Z_])
 	 * @return the code-word

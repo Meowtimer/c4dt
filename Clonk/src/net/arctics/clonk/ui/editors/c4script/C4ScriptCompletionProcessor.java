@@ -2,8 +2,6 @@ package net.arctics.clonk.ui.editors.c4script;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 
@@ -122,25 +120,6 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor {
 	protected void doCycle() {
 		proposalCycle = proposalCycle.cycle();
 	}
-	
-	public void proposalForFunc(C4Function func,String prefix,int offset,List<ICompletionProposal> proposals,String parentName) {
-		if (prefix != null) {
-			if (!func.getName().toLowerCase().startsWith(prefix))
-				return;
-		}
-		String displayString = func.getLongParameterString(true);
-		int replacementLength = 0;
-		if (prefix != null) replacementLength = prefix.length();
-		
-		String contextInfoString = func.getLongParameterString(false);
-		IContextInformation contextInformation = new ContextInformation(func.getName() + "()",contextInfoString); 
-		
-		ClonkCompletionProposal prop = new ClonkCompletionProposal(func.getName() + "()",offset,replacementLength,func.getName().length()+1,
-				Utilities.getIconForFunction(func), displayString.trim(),contextInformation,null," - " + parentName);
-		proposals.add(prop);
-	}
-
-	
 
 	public ClonkCompletionProposal proposalForVar(C4Variable var, String prefix, int offset, List<ICompletionProposal> proposals) {
 		if (prefix != null && !var.getName().toLowerCase().startsWith(prefix))
@@ -166,7 +145,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor {
 				if (func.getScript() == null)
 					System.out.println(func.getName());
 				else
-					proposalForFunc(func, prefix, offset, proposals, func.getScript().getName());
+					proposalForFunc(func, prefix, offset, proposals, func.getScript().getName(), true);
 			}
 			for (C4Variable var : index.getStaticVariables()) {
 				proposalForVar(var,prefix,offset,proposals);
@@ -238,16 +217,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor {
 			return new ICompletionProposal[] { new CompletionProposal("",offset,0,0,null,"No proposals available",null,null) };
 		}
 		
-		ClonkCompletionProposal[] result = proposals.toArray(new ClonkCompletionProposal[proposals.size()]);
-		
-		Arrays.sort(result, new Comparator<ClonkCompletionProposal>() {
-			public int compare(ClonkCompletionProposal arg0,
-					ClonkCompletionProposal arg1) {
-				return (arg0.getDisplayString().compareToIgnoreCase(arg1.getDisplayString()));
-			}
-		});
-		
-		return result;
+		return sortProposals(proposals.toArray(new ICompletionProposal[proposals.size()]));
 	}
 
 	private void proposalsInsideOfFunction(int offset, int wordOffset,
@@ -263,7 +233,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor {
 			
 			if (ClonkCore.getDefault().ENGINE_OBJECT != null) {
 				for (C4Function func : ClonkCore.getDefault().ENGINE_OBJECT.functions()) {
-					proposalForFunc(func, prefix, offset, proposals, ClonkCore.getDefault().ENGINE_OBJECT.getName());
+					proposalForFunc(func, prefix, offset, proposals, ClonkCore.getDefault().ENGINE_OBJECT.getName(), true);
 				}
 				for (C4Variable var : ClonkCore.getDefault().ENGINE_OBJECT.variables()) {
 					proposalForVar(var,prefix,offset,proposals);
@@ -402,7 +372,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor {
 		for (C4Function func : script.functions()) {
 			if (func.getVisibility() != C4FunctionScope.FUNC_GLOBAL)
 				if (!noPrivateFuncs  || func.getVisibility() == C4FunctionScope.FUNC_PUBLIC)
-					proposalForFunc(func, prefix, offset, proposals, script.getName());
+					proposalForFunc(func, prefix, offset, proposals, script.getName(), true);
 		}
 		for (C4Variable var : script.variables()) {
 			if (var.getScope() != C4VariableScope.VAR_STATIC && var.getScope() != C4VariableScope.VAR_CONST)
