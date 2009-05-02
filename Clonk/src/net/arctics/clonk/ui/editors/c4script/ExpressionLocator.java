@@ -1,0 +1,49 @@
+package net.arctics.clonk.ui.editors.c4script;
+
+import org.eclipse.jface.text.IRegion;
+import org.eclipse.jface.text.Region;
+
+import net.arctics.clonk.parser.c4script.C4ScriptParser;
+import net.arctics.clonk.parser.c4script.C4ScriptExprTree.ExprElm;
+import net.arctics.clonk.parser.c4script.C4ScriptExprTree.IExpressionListener;
+import net.arctics.clonk.parser.c4script.C4ScriptExprTree.TraversalContinuation;
+
+/**
+ * Helper class for obtaining the expression at a specified region
+ * @author madeen
+ *
+ */
+public class ExpressionLocator implements IExpressionListener {
+	
+	protected ExprElm exprAtRegion;
+	protected IRegion exprRegion;
+	
+	// derived classes don't need to call the one-arg constructor
+	public ExpressionLocator() {}
+	
+	public ExpressionLocator(IRegion exprRegion) {
+		this.exprRegion = exprRegion;
+	}
+
+	public ExpressionLocator(int pos) {
+		this(new Region(pos, 0));
+	}
+
+	public ExprElm getExprAtRegion() {
+		return exprAtRegion;
+	}
+
+	public TraversalContinuation expressionDetected(ExprElm expression, C4ScriptParser parser) {
+		expression.traverse(new IExpressionListener() {
+			public TraversalContinuation expressionDetected(ExprElm expression, C4ScriptParser parser) {
+				if (exprRegion.getOffset() >= expression.getExprStart() && exprRegion.getOffset() < expression.getExprEnd()) {
+					exprAtRegion = expression;
+					return TraversalContinuation.TraverseSubElements;
+				}
+				return TraversalContinuation.Continue;
+			}
+		}, parser);
+		return exprAtRegion != null ? TraversalContinuation.Cancel : TraversalContinuation.Continue;
+	}
+
+}

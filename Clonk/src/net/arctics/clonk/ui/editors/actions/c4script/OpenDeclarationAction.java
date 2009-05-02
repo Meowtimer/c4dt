@@ -27,10 +27,11 @@ public class OpenDeclarationAction extends TextEditorAction {
 		ITextSelection selection = (ITextSelection) getTextEditor().getSelectionProvider().getSelection();
 		IRegion r = new Region(selection.getOffset(), selection.getLength());
 		IdentInfo info = new IdentInfo(
-				getTextEditor(),
-				getTextEditor().getDocumentProvider().getDocument(getTextEditor().getEditorInput()),
-				r);
-		return info.getField();
+			getTextEditor(),
+			getTextEditor().getDocumentProvider().getDocument(getTextEditor().getEditorInput()),
+			r
+		);
+		return info.getDeclaration();
 	}
 
 	@Override

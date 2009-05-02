@@ -40,14 +40,14 @@ public abstract class C4ScriptExprTree {
 	}
 	
 	public final static class DeclarationRegion {
-		private C4Field field;
+		private C4Field declaration;
 		private IRegion region;
-		public C4Field getField() {
-			return field;
+		public C4Field getDeclaration() {
+			return declaration;
 		}
-		public DeclarationRegion(C4Field field, IRegion region) {
+		public DeclarationRegion(C4Field declaration, IRegion region) {
 			super();
-			this.field = field;
+			this.declaration = declaration;
 			this.region = region;
 		}
 		public IRegion getRegion() {

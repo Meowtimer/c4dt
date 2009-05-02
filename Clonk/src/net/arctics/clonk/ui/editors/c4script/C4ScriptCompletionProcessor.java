@@ -385,21 +385,6 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor {
 	protected C4Function getActiveFunc(IDocument document, int offset) {
 		C4ScriptBase thisScript = Utilities.getScriptForEditor(editor);
 		return thisScript != null ? thisScript.funcAt(new Region(offset,1)) : null;
-		// restored
-//		try {
-//			int openBrackets = 0;
-//			int closeBrackets = 0;
-//			String content = document.get(0, offset);
-//			for(int i = 0; i < content.length();i++) {
-//				char c = content.charAt(i);
-//				if (c == '{') openBrackets++;
-//				else if (c == '}') closeBrackets++;
-//			}
-//			if (openBrackets > closeBrackets) return true;
-//			else return false;
-//		} catch (BadLocationException e) {
-//			return false;
-//		}
 	}
 	
 	public IContextInformation[] computeContextInformation(ITextViewer viewer,

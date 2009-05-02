@@ -1,5 +1,8 @@
 package net.arctics.clonk.util;
 
+import java.io.InputStream;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -18,6 +21,7 @@ import net.arctics.clonk.parser.ClonkIndex;
 import net.arctics.clonk.parser.inireader.ActMapUnit;
 import net.arctics.clonk.parser.inireader.DefCoreUnit;
 import net.arctics.clonk.parser.inireader.IniUnit;
+import net.arctics.clonk.parser.inireader.MaterialUnit;
 import net.arctics.clonk.parser.inireader.ParticleUnit;
 import net.arctics.clonk.parser.inireader.ScenarioUnit;
 import net.arctics.clonk.resource.ClonkProjectNature;
@@ -398,10 +402,11 @@ public abstract class Utilities {
 	}
 	
 	private static Map<String, Class<? extends IniUnit>> INIREADER_CLASSES = Utilities.map(new Object[] {
-		"net.arctics.clonk.c4scenariocfg", ScenarioUnit.class,
-		"net.arctics.clonk.c4actmap"     , ActMapUnit.class,
-		"net.arctics.clonk.c4defcore"    , DefCoreUnit.class,
-		"net.arctics.clonk.c4particle"   , ParticleUnit.class
+		"net.arctics.clonk.scenariocfg", ScenarioUnit.class,
+		"net.arctics.clonk.actmap"     , ActMapUnit.class,
+		"net.arctics.clonk.defcore"    , DefCoreUnit.class,
+		"net.arctics.clonk.particle"   , ParticleUnit.class,
+		"net.arctics.clonk.material"   , MaterialUnit.class
 	});
 
 	/**
@@ -438,6 +443,21 @@ public abstract class Utilities {
 		System.arraycopy(b, 0, result, alen, blen);
 		return result;
 	}
+	
+	public static IniUnit createAdequateIniUnit(IFile file) throws SecurityException, NoSuchMethodException, IllegalArgumentException, InstantiationException, IllegalAccessException, InvocationTargetException {
+		return createAdequateIniUnit(file, file);
+	}
 
+	public static IniUnit createAdequateIniUnit(IFile file, Object arg) throws SecurityException, NoSuchMethodException, IllegalArgumentException, InstantiationException, IllegalAccessException, InvocationTargetException {
+		Class<? extends IniUnit> cls = getIniUnitClass(file);
+		Class<?> neededArgType =
+			arg instanceof String
+				? String.class
+				: arg instanceof IFile
+					? IFile.class
+					: InputStream.class;
+		Constructor<? extends IniUnit> ctor = cls.getConstructor(neededArgType);
+		return ctor.newInstance(arg);
+	}
 	
 }

@@ -6,7 +6,6 @@ import java.io.InputStream;
 import java.util.ResourceBundle;
 
 import net.arctics.clonk.ClonkCore;
-import net.arctics.clonk.parser.C4Field;
 import net.arctics.clonk.parser.C4Function;
 import net.arctics.clonk.parser.C4ScriptBase;
 import net.arctics.clonk.parser.c4script.C4ScriptExprTree;
@@ -33,7 +32,6 @@ import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.ui.IEditorInput;
-import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IEditorSite;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.part.IShowInSource;
@@ -55,7 +53,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 	public C4ScriptEditor() {
 		super();
 		colorManager = new ColorManager();
-		setSourceViewerConfiguration(new ClonkSourceViewerConfiguration(colorManager,this));
+		setSourceViewerConfiguration(new C4ScriptSourceViewerConfiguration(colorManager,this));
 		setDocumentProvider(new ClonkDocumentProvider(this));
 	}
 
@@ -213,10 +211,6 @@ public class C4ScriptEditor extends ClonkTextEditor {
 			parser.parseCodeOfFunctions();
 		refreshOutline();
 		return parser;
-	}
-	
-	public static IEditorPart openDeclaration(C4Field target) throws PartInitException, IOException, ParsingException {
-		return openDeclaration(target, true);
 	}
 
 }

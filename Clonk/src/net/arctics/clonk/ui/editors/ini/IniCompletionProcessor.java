@@ -3,21 +3,16 @@ package net.arctics.clonk.ui.editors.ini;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
 import net.arctics.clonk.ClonkCore;
-import net.arctics.clonk.parser.BufferedScanner;
 import net.arctics.clonk.parser.C4Function;
 import net.arctics.clonk.parser.C4ID;
 import net.arctics.clonk.parser.C4ObjectIntern;
 import net.arctics.clonk.parser.C4ScriptBase;
 import net.arctics.clonk.parser.inireader.Boolean;
-import net.arctics.clonk.parser.inireader.CategoriesArray;
 import net.arctics.clonk.parser.inireader.Function;
 import net.arctics.clonk.parser.inireader.IDArray;
 import net.arctics.clonk.parser.inireader.IniSection;
 import net.arctics.clonk.parser.inireader.IniUnit;
-import net.arctics.clonk.parser.inireader.KeyValueArrayEntry;
 import net.arctics.clonk.parser.inireader.SignedInteger;
 import net.arctics.clonk.parser.inireader.UnsignedInteger;
 import net.arctics.clonk.parser.inireader.IniData.IniDataEntry;
@@ -27,6 +22,7 @@ import net.arctics.clonk.util.Utilities;
 
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.IDocument;
+import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.ITextViewer;
 import org.eclipse.jface.text.contentassist.CompletionProposal;
 import org.eclipse.jface.text.contentassist.ContentAssistEvent;
@@ -37,10 +33,12 @@ import org.eclipse.jface.text.contentassist.IContextInformation;
 import org.eclipse.jface.text.contentassist.IContextInformationValidator;
 import org.eclipse.ui.texteditor.ITextEditor;
 
+/**
+ * Completion processor for ini files. Proposes entries and values for those entries based on their type (functions from the related script for callbacks for example)
+ * @author madeen
+ *
+ */
 public class IniCompletionProcessor extends ClonkCompletionProcessor implements ICompletionListener {
-	
-	private static Pattern noAssignPattern = Pattern.compile("([A-Za-z_0-9]*)");
-	private static Pattern assignPattern = Pattern.compile("([A-Za-z_0-9]*)=(.*)");
 	
 	private IniUnit unit;
 	private IniSection section;
@@ -57,13 +55,9 @@ public class IniCompletionProcessor extends ClonkCompletionProcessor implements 
 		String line;
 		int lineStart;
 		try {
-			for (lineStart = offset-1; lineStart >= 0; lineStart--) {
-				if (BufferedScanner.isLineDelimiterChar(doc.getChar(lineStart))) {
-					lineStart++;
-					break;
-				}
-			}
-			line = doc.get(lineStart, offset-lineStart); 
+			IRegion lineRegion = doc.getLineInformationOfOffset(offset);
+			line = doc.get(lineRegion.getOffset(), lineRegion.getLength());
+			lineStart = lineRegion.getOffset();
 		} catch (BadLocationException e) {
 			line = "";
 			lineStart = offset;
@@ -74,66 +68,64 @@ public class IniCompletionProcessor extends ClonkCompletionProcessor implements 
 		String entryName = "";
 		boolean assignment = false;
 		int wordOffset = offset;
-		if ((m = assignPattern.matcher(line)).matches()) {
+		if ((m = IniSourceViewerConfiguration.assignPattern.matcher(line)).matches()) {
 			entryName = m.group(1);
 			prefix = m.group(2);
 			assignment = true;
 			wordOffset = lineStart + m.start(2); 
 		}
-		else if ((m = noAssignPattern.matcher(line)).matches()) {
+		else if ((m = IniSourceViewerConfiguration.noAssignPattern.matcher(line)).matches()) {
 			prefix = m.group(1);
 			wordOffset = lineStart + m.start(1);
 		}
 		prefix = prefix.toLowerCase();
 		
-		section = null;
-		for (IniSection sec : unit.getSections()) {
-			int start = sec.getLocation().getStart();
-			if (start > lineStart)
-				start += line.length();
-			if (start > offset)
-				break;
-			section = sec;
-		}
+		section = unit.sectionAtOffset(lineStart, line.length());
 
 		if (!assignment) {
 			if (section != null) {
 				IniSectionData d = section.getSectionData();
 				if (d != null) {
-					for (IniDataEntry entry : d.getEntries().values()) {
-						if (!entry.getEntryName().toLowerCase().contains(prefix))
-							continue;
-						proposals.add(new CompletionProposal(entry.getEntryName(), wordOffset, prefix.length(), entry.getEntryName().length()));
-					}
+					proposalsForSection(proposals, prefix, wordOffset, d);
 				}
 			}
 		}
 		else if (assignment && section != null) {
-			IniDataEntry entryDef = section.getSectionData().getEntries().get(entryName);
-			if (entryDef.getEntryClass() == C4ID.class) {
+			IniDataEntry entryDef = section.getSectionData().getEntry(entryName);
+			Class<?> entryClass = entryDef.getEntryClass();
+			if (entryClass == C4ID.class) {
 				proposalsForIndexedObjects(ClonkCore.getDefault().EXTERN_INDEX, offset, wordOffset, prefix, proposals);
 			}
-			else if (entryDef.getEntryClass() == String.class) {
+			else if (entryClass == String.class) {
 				proposalsForStringEntry(proposals, prefix, wordOffset);
 			}
-			else if (entryDef.getEntryClass() == SignedInteger.class || entryDef.getEntryClass() == UnsignedInteger.class) {
+			else if (entryClass == SignedInteger.class || entryClass == UnsignedInteger.class) {
 				proposalsForIntegerEntry(proposals, prefix, wordOffset);
 			}
-			else if (entryDef.getEntryClass() == Function.class) {
+			else if (entryClass == Function.class) {
 				proposalsForFunctionEntry(proposals, prefix, wordOffset);
 			}
-			else if (entryDef.getEntryClass() == IDArray.class) {
+			else if (entryClass == IDArray.class) {
 				int lastDelim = prefix.lastIndexOf(';');
 				prefix = prefix.substring(lastDelim+1);
 				wordOffset += lastDelim+1;
 				proposalsForIndexedObjects(ClonkCore.getDefault().EXTERN_INDEX, offset, wordOffset, prefix, proposals);
 			}
-			else if (entryDef.getEntryClass() == Boolean.class) {
+			else if (entryClass == Boolean.class) {
 				proposalsForBooleanEntry(proposals, prefix, wordOffset);
 			}
 		}
 		
 		return sortProposals(proposals.toArray(new ICompletionProposal[proposals.size()]));
+	}
+
+	private void proposalsForSection(Collection<ICompletionProposal> proposals,
+			String prefix, int wordOffset, IniSectionData sectionData) {
+		for (IniDataEntry entry : sectionData.getEntries().values()) {
+			if (!entry.getEntryName().toLowerCase().contains(prefix))
+				continue;
+			proposals.add(new CompletionProposal(entry.getEntryName(), wordOffset, prefix.length(), entry.getEntryName().length(), null, entry.getEntryName(), null, entry.getDescription()));
+		}
 	}
 
 	private void proposalsForFunctionEntry(
@@ -202,15 +194,14 @@ public class IniCompletionProcessor extends ClonkCompletionProcessor implements 
 
 	public void assistSessionStarted(ContentAssistEvent event) {
 		try {
-			unit = Utilities.getIniUnitClass(Utilities.getEditingFile(editor)).getConstructor(String.class).newInstance(editor.getDocumentProvider().getDocument(editor.getEditorInput()).get());
+			unit = Utilities.createAdequateIniUnit(Utilities.getEditingFile(editor), editor.getDocumentProvider().getDocument(editor.getEditorInput()).get());
 			unit.parse();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
 
-	public void selectionChanged(ICompletionProposal proposal,
-			boolean smartToggle) {
+	public void selectionChanged(ICompletionProposal proposal, boolean smartToggle) {
 	}
 
 }

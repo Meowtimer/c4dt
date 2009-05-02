@@ -100,7 +100,7 @@ public class IniSection extends C4Field implements IHasKeyAndValue<String, Strin
 	
 	@Override
 	public String toString() {
-		return "["+getName()+"]";
+		return ((IniUnit)getParentDeclaration()).sectionToString(this);
 	}
 	
 }

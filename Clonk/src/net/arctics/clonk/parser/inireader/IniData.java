@@ -126,6 +126,10 @@ public class IniData {
 		public String[] getEntryNames() {
 			return entries.keySet().toArray(new String[entries.size()]);
 		}
+
+		public IniDataEntry getEntry(String key) {
+			return getEntries().get(key);
+		}
 		
 	}
 	

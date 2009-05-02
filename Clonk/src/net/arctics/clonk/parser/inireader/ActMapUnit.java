@@ -31,5 +31,13 @@ public class ActMapUnit extends IniUnit {
 	public ActMapUnit(String text) {
 		super(text);
 	}
+	
+	@Override
+	public String sectionToString(IniSection section) {
+		IniEntry nameEntry = section.getEntry("Name");
+		if (nameEntry != null)
+			return "["+nameEntry.getValue()+"]";
+		return super.sectionToString(section);
+	}
 
 }

@@ -2236,7 +2236,7 @@ public class C4ScriptParser {
 		return tempParser.parseExpression(0);
 	}
 	
-	public static C4ScriptParser reportExpressionsAndStatements(IDocument doc, int offset, C4Object context, C4Function func, IExpressionListener listener) throws BadLocationException, ParsingException {
+	public static C4ScriptParser reportExpressionsAndStatements(IDocument doc, int offset, C4ScriptBase context, C4Function func, IExpressionListener listener) throws BadLocationException, ParsingException {
 		return reportExpressionsAndStatements(doc, Utilities.getStartOfStatement(doc, offset), offset, context, func, listener);
 	}
 

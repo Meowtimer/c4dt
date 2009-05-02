@@ -21,7 +21,7 @@ public class ClonkSorter extends ViewerSorter {
 
 	private int getSortPriority(IResource resource) {
 		for(int i = 0; i < sortPriorities.length;i++) {
-			if (resource.getName().endsWith(sortPriorities[i])) return i;
+			if (resource.getName().toLowerCase().endsWith(sortPriorities[i])) return i;
 		}
 		return -1;
 	}

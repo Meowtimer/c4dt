@@ -244,7 +244,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 
 		if (delta.getResource() instanceof IFile) {
 			if (delta.getKind() == IResourceDelta.CHANGED || delta.getKind() == IResourceDelta.ADDED) {
-				Class<? extends IniUnit> iniReaderClass;
+				Class<? extends IniUnit> iniUnitClass;
 				C4ScriptBase script = Utilities.getScriptForFile((IFile) delta.getResource());
 				if (script == null && buildPhase == 0) {
 					// create if new file
@@ -276,9 +276,9 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 						}
 					}
 				}
-				else if (buildPhase == 0 && (iniReaderClass = Utilities.getIniUnitClass((IFile) delta.getResource())) != null) {
+				else if (buildPhase == 0 && (iniUnitClass = Utilities.getIniUnitClass((IFile) delta.getResource())) != null) {
 					try {
-						IniUnit reader = iniReaderClass.getConstructor(IFile.class).newInstance(delta.getResource());
+						IniUnit reader = iniUnitClass.getConstructor(IFile.class).newInstance(delta.getResource());
 						reader.parse();
 						reader.commitTo(script);
 					} catch (Exception e) {

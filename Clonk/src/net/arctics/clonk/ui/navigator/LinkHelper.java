@@ -1,7 +1,7 @@
 package net.arctics.clonk.ui.navigator;
 
 import net.arctics.clonk.parser.C4Field;
-import net.arctics.clonk.ui.editors.c4script.C4ScriptEditor;
+import net.arctics.clonk.ui.editors.ClonkTextEditor;
 import net.arctics.clonk.ui.editors.c4script.ScriptWithStorageEditorInput;
 
 import org.eclipse.jface.viewers.IStructuredSelection;
@@ -16,7 +16,7 @@ public class LinkHelper implements ILinkHelper {
 			IStructuredSelection selection) {
 		try {
 			if (selection.getFirstElement() instanceof C4Field)
-				C4ScriptEditor.openDeclaration((C4Field) selection.getFirstElement());
+				ClonkTextEditor.openDeclaration((C4Field) selection.getFirstElement());
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

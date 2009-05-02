@@ -128,7 +128,7 @@ public class IniUnit extends C4Field implements Iterable<IniSection>, IHasChildr
 		if (!sectionConfig.hasEntry(entry.getKey())) {
 			throw new IniParserException(IMarker.SEVERITY_WARNING, "Unknown option '" + entry.getKey() + "'", entry.getStartPos(), entry.getKey().length() + entry.getStartPos());
 		}
-		IniDataEntry entryConfig = sectionConfig.getEntries().get(entry.getKey());
+		IniDataEntry entryConfig = sectionConfig.getEntry(entry.getKey());
 		try {
 			try {
 				Object value = configuration.getFactory().create(entryConfig.getEntryClass(), entry.getValue());
@@ -330,6 +330,23 @@ public class IniUnit extends C4Field implements Iterable<IniSection>, IHasChildr
 	@Override
 	public IResource getResource() {
 		return iniFile;
+	}
+	
+	public String sectionToString(IniSection section) {
+		return "["+section.getName()+"]";
+	}
+
+	public IniSection sectionAtOffset(int offset, int addIfOverOffset) {
+		IniSection section = null;
+		for (IniSection sec : this.getSections()) {
+			int start = sec.getLocation().getStart();
+			if (start > offset)
+				start += addIfOverOffset;
+			if (start > offset)
+				break;
+			section = sec;
+		}
+		return section;
 	}
 	
 }

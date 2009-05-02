@@ -1,6 +1,3 @@
-/**
- * 
- */
 package net.arctics.clonk.parser.inireader;
 
 public class IniParserException extends Exception {

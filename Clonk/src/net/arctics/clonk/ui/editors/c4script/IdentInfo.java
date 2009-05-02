@@ -23,12 +23,11 @@ import org.eclipse.ui.texteditor.ITextEditor;
  * @author madeen
  *
  */
-public class IdentInfo implements IExpressionListener {
+public class IdentInfo extends ExpressionLocator {
 	private ITextEditor editor;
 	private String line;
-	private IRegion identRegion;
 	private ExprElm exprAtRegion;
-	private C4Field field;
+	private C4Field declaration;
 	
 	public ITextEditor getEditor() {
 		return editor;
@@ -45,15 +44,15 @@ public class IdentInfo implements IExpressionListener {
 			simpleFindField(doc, region, script, null);
 			return;
 		}
-		int statementStart = func.getBody().getOffset();
-		if (region.getOffset() >= statementStart) {
-			identRegion = new Region(region.getOffset()-statementStart,0);
+		int bodyStart = func.getBody().getOffset();
+		if (region.getOffset() >= bodyStart) {
+			exprRegion = new Region(region.getOffset()-bodyStart,0);
 			C4ScriptParser parser = C4ScriptParser.reportExpressionsAndStatements(doc, func.getBody(), script, func, this);
 			if (exprAtRegion != null) {
-				DeclarationRegion fieldRegion = exprAtRegion.declarationAt(identRegion.getOffset()-exprAtRegion.getExprStart(), parser);
-				if (fieldRegion != null) {
-					this.field = fieldRegion.getField();
-					this.identRegion = new Region(statementStart+fieldRegion.getRegion().getOffset(), fieldRegion.getRegion().getLength());
+				DeclarationRegion declRegion = exprAtRegion.declarationAt(exprRegion.getOffset()-exprAtRegion.getExprStart(), parser);
+				if (declRegion != null) {
+					this.declaration = declRegion.getDeclaration();
+					this.exprRegion = new Region(bodyStart+declRegion.getRegion().getOffset(), declRegion.getRegion().getLength());
 				}
 			}
 		}
@@ -75,8 +74,8 @@ public class IdentInfo implements IExpressionListener {
 		int start,end;
 		for (start = localOffset; start > 0 && Character.isJavaIdentifierPart(line.charAt(start-1)); start--);
 		for (end = localOffset; end < line.length() && Character.isJavaIdentifierPart(line.charAt(end)); end++);
-		identRegion = new Region(lineInfo.getOffset()+start,end-start);
-		field = script.findDeclaration(doc.get(identRegion.getOffset(),  identRegion.getLength()), new FindDeclarationInfo(script.getIndex(), func));
+		exprRegion = new Region(lineInfo.getOffset()+start,end-start);
+		declaration = script.findDeclaration(doc.get(exprRegion.getOffset(),  exprRegion.getLength()), new FindDeclarationInfo(script.getIndex(), func));
 	}
 	
 	/**
@@ -90,20 +89,20 @@ public class IdentInfo implements IExpressionListener {
 	 * @return the identRegion
 	 */
 	public IRegion getIdentRegion() {
-		return identRegion;
+		return exprRegion;
 	}
 
 	/**
-	 * @return the field
+	 * @return the declaration
 	 */
-	public C4Field getField() {
-		return field;
+	public C4Field getDeclaration() {
+		return declaration;
 	}
 
 	public TraversalContinuation expressionDetected(ExprElm expression, C4ScriptParser parser) {
 		expression.traverse(new IExpressionListener() {
 			public TraversalContinuation expressionDetected(ExprElm expression, C4ScriptParser parser) {
-				if (identRegion.getOffset() >= expression.getExprStart() && identRegion.getOffset() < expression.getExprEnd()) {
+				if (exprRegion.getOffset() >= expression.getExprStart() && exprRegion.getOffset() < expression.getExprEnd()) {
 					exprAtRegion = expression;
 					return TraversalContinuation.TraverseSubElements;
 				}

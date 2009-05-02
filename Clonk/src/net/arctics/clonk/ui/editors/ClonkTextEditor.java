@@ -98,4 +98,8 @@ public class ClonkTextEditor extends TextEditor {
 		return null;
 	}
 	
+	public static IEditorPart openDeclaration(C4Field target) throws PartInitException, IOException, ParsingException {
+		return openDeclaration(target, true);
+	}
+	
 }

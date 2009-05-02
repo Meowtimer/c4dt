@@ -8,14 +8,12 @@
 			class="net.arctics.clonk.ui.editors.c4script.C4ScriptEditor" id="clonk.editors.C4ScriptEditor"
 			filenames="*.c">
 			<contentTypeBinding contentTypeId="net.arctics.clonk.c4script" />
-
 		</editor>
 
 		<editor name="Ini Editor" icon="icons/c4scriptIcon.png"
 			class="net.arctics.clonk.ui.editors.ini.IniTextEditor" id="clonk.editors.IniEditor"
 			filenames="*.txt">
 			<contentTypeBinding contentTypeId="net.arctics.clonk.inifile" />
-
 		</editor>
 
 	</extension>
@@ -43,19 +41,23 @@
 			priority="high" />
 
 		<content-type base-type="net.arctics.clonk.inifile"
-			file-names="DefCore.txt" id="net.arctics.clonk.c4defcore" name="C4Object definitions"
+			file-names="DefCore.txt" id="net.arctics.clonk.defcore" name="C4Object definitions"
 			priority="high" />
 
 		<content-type base-type="net.arctics.clonk.inifile"
-			file-names="ActMap.txt" id="net.arctics.clonk.c4actmap" name="C4Object actions"
+			file-names="ActMap.txt" id="net.arctics.clonk.actmap" name="C4Object actions"
 			priority="high" />
 
 		<content-type base-type="net.arctics.clonk.inifile"
-			file-names="Scenario.txt" id="net.arctics.clonk.c4scenariocfg" name="Scenario configuration"
+			file-names="Scenario.txt" id="net.arctics.clonk.scenariocfg" name="Scenario configuration"
 			priority="high" />
 
 		<content-type base-type="net.arctics.clonk.inifile"
-			file-names="Particle.txt" id="net.arctics.clonk.c4particle" name="Particle definition"
+			file-names="Particle.txt" id="net.arctics.clonk.particle" name="Particle definition"
+			priority="high" />
+
+		<content-type base-type="net.arctics.clonk.inifile"
+			file-extensions="c4m" id="net.arctics.clonk.material" name="Material definition"
 			priority="high" />
 
 	</extension>
@@ -113,47 +115,6 @@
 				</parentExpression>
 			</commonSorter>
 		</navigatorContent>
-		
-		<!--
-		<navigatorContent name="ClonkEmbeddedOutline"
-			priority="high" icon="icons/Clonk_Object.ico" activeByDefault="true"
-			contentProvider="net.arctics.clonk.ui.navigator.ClonkOutlineProvider"
-			labelProvider="net.arctics.clonk.ui.navigator.ClonkOutlineProvider"
-			providesSaveables="false" id="net.arctics.clonk.navigator.embeddedOutline">
-			<triggerPoints>
-				<or>
-					<instanceof value="net.arctics.clonk.parser.C4ScriptBase" />
-				</or>
-			</triggerPoints>
-			<possibleChildren>
-				<or>
-					<instanceof value="org.eclipse.core.resources.IWorkspaceRoot" />
-					<instanceof value="org.eclipse.core.resources.IProject" />
-					<instanceof value="org.eclipse.core.resources.IResource" />
-					<instanceof value="org.eclipse.core.resources.IFolder" />
-					<instanceof value="org.eclipse.core.resources.IFile" />
-					<instanceof value="net.arctics.clonk.parser.C4ObjectExternGroup" />
-					<instanceof value="net.arctics.clonk.parser.C4ObjectExtern" />
-					<instanceof value="net.arctics.clonk.ui.navigator.DependenciesNavigatorNode" />
-					<instanceof value="net.arctics.clonk.parser.C4ScriptExtern" />
-				</or>
-			</possibleChildren>
-			<actionProvider class="net.arctics.clonk.ui.navigator.ClonkActionProvider"
-				id="clonkActionProvider" priority="normal" />
-
-			<commonSorter class="net.arctics.clonk.ui.navigator.ClonkSorter">
-				<parentExpression>
-					<or>
-						<instanceof value="org.eclipse.core.resources.IWorkspaceRoot" />
-						<instanceof value="org.eclipse.core.resources.IProject" />
-						<instanceof value="org.eclipse.core.resources.IResource" />
-						<instanceof value="org.eclipse.core.resources.IFolder" />
-						<instanceof value="org.eclipse.core.resources.IFile" />
-					</or>
-				</parentExpression>
-			</commonSorter>
-		</navigatorContent>
-		-->
 	</extension>
 
 	<extension point="org.eclipse.ui.navigator.viewer">
@@ -418,7 +379,10 @@
 			class="net.arctics.clonk.ui.navigator.LinkHelper"
 			id="net.arctics.clonk.navigator.linkhelper">
 			<selectionEnablement>
-				<instanceof value="net.arctics.clonk.util.ITreeNode" />
+				<or>
+					<instanceof value="net.arctics.clonk.util.ITreeNode" />
+					<instanceof value="net.arctics.clonk.parser.C4Field" />
+				</or>
 			</selectionEnablement>
 			<editorInputEnablement>
 				<instanceof value="net.arctics.clonk.ui.editors.c4script.ScriptWithStorageEditorInput" />
