@@ -137,8 +137,12 @@ public class IniUnit extends C4Field implements Iterable<IniSection>, IHasChildr
 			catch(IniParserException e) { // add offsets and throw through
 				// FIXME: whitespace before and after '=' is not taken into account
 				if (e.getOffset() == 0 || e.getEndOffset() == 0) {
-					e.setOffset(entry.getStartPos() + entry.getKey().length() + 1);
-					e.setEndOffset(entry.getStartPos() + entry.getKey().length() + 1 + entry.getValue().length());
+					String key = entry.getKey();
+					String value = entry.getValue();
+					if (value == null)
+						value = "";
+					e.setOffset(entry.getStartPos() + key.length() + 1);
+					e.setEndOffset(entry.getStartPos() + key.length() + 1 + value.length());
 				}
 				throw e;
 			}

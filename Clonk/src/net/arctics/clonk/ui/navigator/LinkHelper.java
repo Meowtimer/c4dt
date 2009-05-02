@@ -4,19 +4,27 @@ import net.arctics.clonk.parser.C4Field;
 import net.arctics.clonk.ui.editors.ClonkTextEditor;
 import net.arctics.clonk.ui.editors.c4script.ScriptWithStorageEditorInput;
 
+import org.eclipse.core.resources.IFile;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IWorkbenchPage;
+import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.navigator.ILinkHelper;
+import org.eclipse.ui.part.FileEditorInput;
 
 public class LinkHelper implements ILinkHelper {
 
 	public void activateEditor(IWorkbenchPage page,
 			IStructuredSelection selection) {
 		try {
-			if (selection.getFirstElement() instanceof C4Field)
-				ClonkTextEditor.openDeclaration((C4Field) selection.getFirstElement());
+			if (selection.getFirstElement() instanceof C4Field) {
+				C4Field dec = (C4Field) selection.getFirstElement();
+				IWorkbenchPage wpage = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
+				IFile file = (IFile) dec.getScript().getScriptFile();
+				if (wpage.findEditor(new FileEditorInput(file)) != null)
+					ClonkTextEditor.openDeclaration(dec, false);
+			}
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
