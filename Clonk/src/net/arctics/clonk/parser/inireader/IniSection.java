@@ -103,4 +103,14 @@ public class IniSection extends C4Field implements IHasKeyAndValue<String, Strin
 		return ((IniUnit)getParentDeclaration()).sectionToString(this);
 	}
 	
+	@Override
+	public Object[] getSubDeclarationsForOutline() {
+		return this.getChildren();
+	}
+	
+	@Override
+	public boolean hasSubDeclarationsInOutline() {
+		return hasChildren();
+	}
+	
 }

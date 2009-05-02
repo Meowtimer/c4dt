@@ -5,7 +5,7 @@ import java.util.ResourceBundle;
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.C4Field;
 import net.arctics.clonk.refactoring.ClonkRenameFieldProcessor;
-import net.arctics.clonk.ui.editors.c4script.ClonkCommandIds;
+import net.arctics.clonk.ui.editors.ClonkCommandIds;
 
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;

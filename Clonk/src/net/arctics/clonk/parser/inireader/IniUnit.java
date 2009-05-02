@@ -180,8 +180,8 @@ public class IniUnit extends C4Field implements Iterable<IniSection>, IHasChildr
 				e.printStackTrace();
 			}
 		}
+		this.clear();
 		reader.seek(0);
-//		IniEntry[] entries = null;
 		IniSection section;
 		while ((section = parseSection()) != null) {
 			sectionsMap.put(section.getName(), section);
@@ -192,6 +192,11 @@ public class IniUnit extends C4Field implements Iterable<IniSection>, IHasChildr
 		}
 	}
 	
+	private void clear() {
+		sectionsList.clear();
+		sectionsMap.clear();
+	}
+
 	protected IniSectionData getSectionDataFor(IniSection section) {
 		return getConfiguration() != null
 			? getConfiguration().getSections().get(section.getName())
@@ -351,6 +356,11 @@ public class IniUnit extends C4Field implements Iterable<IniSection>, IHasChildr
 			section = sec;
 		}
 		return section;
+	}
+	
+	@Override
+	public Object[] getSubDeclarationsForOutline() {
+		return this.getChildren();
 	}
 	
 }

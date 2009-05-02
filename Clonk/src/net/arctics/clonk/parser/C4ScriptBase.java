@@ -481,7 +481,7 @@ public abstract class C4ScriptBase extends C4Structure implements IHasRelatedRes
 	}
 	
 	@Override
-	public boolean hasSubDeclarations() {
+	public boolean hasSubDeclarationsInOutline() {
 		return definedFunctions.size() > 0 || definedVariables.size() > 0;
 	}
 	

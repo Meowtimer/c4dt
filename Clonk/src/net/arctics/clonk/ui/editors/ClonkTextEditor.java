@@ -22,10 +22,14 @@ import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.editors.text.TextEditor;
 import org.eclipse.ui.ide.IDE;
+import org.eclipse.ui.part.IShowInSource;
+import org.eclipse.ui.part.IShowInTargetList;
+import org.eclipse.ui.views.contentoutline.IContentOutlinePage;
 
 public class ClonkTextEditor extends TextEditor {
 	
-	private ClonkContentOutlinePage outlinePage;
+	protected ClonkContentOutlinePage outlinePage;
+	private ShowInAdapter showInAdapter;
 	
 	public void selectAndReveal(SourceLocation location) {
 		this.selectAndReveal(location.getStart(), location.getEnd() - location.getStart());
@@ -42,6 +46,19 @@ public class ClonkTextEditor extends TextEditor {
 			outlinePage.setEditor(this);
 		}
 		return outlinePage;
+	}
+	
+	@SuppressWarnings("unchecked")
+	public Object getAdapter(Class adapter) {
+		if (IContentOutlinePage.class.equals(adapter)) {
+			return getOutlinePage();
+		}
+		if (IShowInSource.class.equals(adapter) || IShowInTargetList.class.equals(adapter)) {
+			if (showInAdapter == null)
+				showInAdapter = new ShowInAdapter(this);
+			return showInAdapter;
+		}
+		return super.getAdapter(adapter);
 	}
 	
 	public static IEditorPart openDeclaration(C4Field target, boolean activate) throws PartInitException, IOException, ParsingException {
@@ -100,6 +117,14 @@ public class ClonkTextEditor extends TextEditor {
 	
 	public static IEditorPart openDeclaration(C4Field target) throws PartInitException, IOException, ParsingException {
 		return openDeclaration(target, true);
+	}
+	
+	/**
+	 * Return the declaration that represents the file being edited
+	 * @return the declaration
+	 */
+	public C4Field getTopLevelDeclaration() {
+		return null;
 	}
 	
 }

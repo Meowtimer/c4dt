@@ -8,7 +8,6 @@ import net.arctics.clonk.parser.C4Function;
 import net.arctics.clonk.parser.C4Object;
 import net.arctics.clonk.parser.C4ObjectIntern;
 import net.arctics.clonk.parser.ClonkIndex;
-import net.arctics.clonk.ui.editors.c4script.ClonkCompletionProposal;
 import net.arctics.clonk.util.Utilities;
 
 import org.eclipse.jface.text.contentassist.ContextInformation;

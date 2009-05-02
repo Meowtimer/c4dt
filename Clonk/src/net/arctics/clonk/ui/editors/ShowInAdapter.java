@@ -1,4 +1,6 @@
-package net.arctics.clonk.ui.editors.c4script;
+package net.arctics.clonk.ui.editors;
+
+import net.arctics.clonk.ui.editors.c4script.C4ScriptEditor;
 
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.ui.IEditorPart;
@@ -37,6 +39,7 @@ public class ShowInAdapter implements IShowInSource, IShowInTargetList {
 	public String[] getShowInTargetIds() {
 		return new String[] {
 			IPageLayout.ID_RES_NAV,
+			//IPageLayout.ID_PROJECT_EXPLORER -- Eclipse 3.5
 			"org.eclipse.ui.navigator.ProjectExplorer" // FIXME: constant for this?
 		};
 	}

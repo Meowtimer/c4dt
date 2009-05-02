@@ -49,8 +49,8 @@ public class C4ScriptSourceViewerConfiguration extends TextSourceViewerConfigura
 		}
 	}
 	
-	private ClonkCodeScanner scanner;
-	private ClonkCommentScanner commentScanner;
+	private C4ScriptCodeScanner scanner;
+	private C4ScriptCommentScanner commentScanner;
 	private ColorManager colorManager;
 	private ITextEditor textEditor;
 	private ITextHover hover;
@@ -75,9 +75,9 @@ public class C4ScriptSourceViewerConfiguration extends TextSourceViewerConfigura
 		return textEditor;
 	}
 	
-	protected ClonkCodeScanner getClonkScanner() {
+	protected C4ScriptCodeScanner getClonkScanner() {
 		if (scanner == null) {
-			scanner = new ClonkCodeScanner(colorManager);
+			scanner = new C4ScriptCodeScanner(colorManager);
 			scanner.setDefaultReturnToken(
 				new Token(
 					new TextAttribute(
@@ -86,9 +86,9 @@ public class C4ScriptSourceViewerConfiguration extends TextSourceViewerConfigura
 		return scanner;
 	}
 	
-	protected ClonkCommentScanner getClonkCommentScanner() {
+	protected C4ScriptCommentScanner getClonkCommentScanner() {
 		if (commentScanner == null) {
-			commentScanner = new ClonkCommentScanner(colorManager);
+			commentScanner = new C4ScriptCommentScanner(colorManager);
 			commentScanner.setDefaultReturnToken(
 				new Token(
 					new TextAttribute(

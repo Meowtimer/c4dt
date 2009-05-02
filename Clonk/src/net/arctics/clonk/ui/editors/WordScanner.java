@@ -1,7 +1,7 @@
 /**
  * 
  */
-package net.arctics.clonk.ui.editors.c4script;
+package net.arctics.clonk.ui.editors;
 
 import net.arctics.clonk.parser.BufferedScanner;
 

@@ -20,11 +20,11 @@ import org.eclipse.jface.text.IRegion;
  * @author ZokRadonh
  *
  */
-public class ClonkAutoIndentStrategy extends DefaultIndentLineAutoEditStrategy {
-	public ClonkAutoIndentStrategy() {
+public class C4ScriptAutoIndentStrategy extends DefaultIndentLineAutoEditStrategy {
+	public C4ScriptAutoIndentStrategy() {
 	}
 	
-	public ClonkAutoIndentStrategy(ClonkProjectNature project, String partitioning) {
+	public C4ScriptAutoIndentStrategy(ClonkProjectNature project, String partitioning) {
 	}
 
 	/*

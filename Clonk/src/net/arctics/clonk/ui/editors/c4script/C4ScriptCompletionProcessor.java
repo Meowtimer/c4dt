@@ -19,6 +19,8 @@ import net.arctics.clonk.parser.c4script.C4ScriptExprTree.*;
 import net.arctics.clonk.parser.c4script.C4ScriptParser.ParsingException;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.ui.editors.ClonkCompletionProcessor;
+import net.arctics.clonk.ui.editors.ClonkCompletionProposal;
+import net.arctics.clonk.ui.editors.WordScanner;
 import net.arctics.clonk.util.Utilities;
 
 import org.eclipse.core.runtime.FileLocator;

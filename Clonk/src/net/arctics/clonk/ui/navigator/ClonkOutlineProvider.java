@@ -5,7 +5,6 @@ package net.arctics.clonk.ui.navigator;
 
 import net.arctics.clonk.parser.C4Field;
 import net.arctics.clonk.parser.C4Function;
-import net.arctics.clonk.parser.C4ScriptBase;
 import net.arctics.clonk.parser.C4Type;
 import net.arctics.clonk.parser.C4Variable;
 import net.arctics.clonk.util.Utilities;
@@ -17,10 +16,6 @@ import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.jface.viewers.DelegatingStyledCellLabelProvider.IStyledLabelProvider;
 import org.eclipse.swt.graphics.Image;
 
-/**
- * @author madeen
- *
- */
 public class ClonkOutlineProvider extends LabelProvider implements ITreeContentProvider, IStyledLabelProvider {
 	
 	/* (non-Javadoc)
@@ -51,25 +46,15 @@ public class ClonkOutlineProvider extends LabelProvider implements ITreeContentP
 	/* (non-Javadoc)
 	 * @see org.eclipse.jface.viewers.ITreeContentProvider#hasChildren(java.lang.Object)
 	 */
-	public boolean hasChildren(Object field) {
-		return field instanceof C4Field && ((C4Field)field).hasSubDeclarations();
+	public boolean hasChildren(Object dec) {
+		return dec instanceof C4Field && ((C4Field)dec).hasSubDeclarationsInOutline();
 	}
 
 	/* (non-Javadoc)
 	 * @see org.eclipse.jface.viewers.IStructuredContentProvider#getElements(java.lang.Object)
 	 */
 	public Object[] getElements(Object root) {
-		if (root instanceof C4ScriptBase) {
-			C4ScriptBase script = (C4ScriptBase)root;
-			Object[] result = new Object[script.numFunctions()+script.numVariables()];
-			int i = 0;
-			for (C4Function f : script.functions())
-				result[i++] = f;
-			for (C4Variable v : script.variables())
-				result[i++] = v;
-			return result;
-		}
-		return null;
+		return getChildren(root);
 	}
 
 	/* (non-Javadoc)

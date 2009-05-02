@@ -15,7 +15,7 @@ import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.C4ScriptParser.ParsingException;
 import net.arctics.clonk.parser.inireader.IniUnit;
 import net.arctics.clonk.preferences.PreferenceConstants;
-import net.arctics.clonk.ui.editors.c4script.C4ScriptEditor;
+import net.arctics.clonk.ui.editors.ClonkTextEditor;
 import net.arctics.clonk.util.Utilities;
 
 import org.eclipse.core.resources.IContainer;
@@ -211,8 +211,8 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 					IWorkbenchPage page = w.getActiveWorkbenchWindow().getActivePage();
 					for (IEditorReference ref : page.getEditorReferences()) {
 						IEditorPart part = ref.getEditor(false);
-						if (part != null && part instanceof C4ScriptEditor) {
-							((C4ScriptEditor)part).refreshOutline();
+						if (part != null && part instanceof ClonkTextEditor) {
+							((ClonkTextEditor)part).refreshOutline();
 						}
 					}
 				}

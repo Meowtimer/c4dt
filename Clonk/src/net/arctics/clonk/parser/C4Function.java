@@ -321,7 +321,7 @@ public class C4Function extends C4Structure implements Serializable, ITypedField
 	}
 
 	@Override
-	public boolean hasSubDeclarations() {
+	public boolean hasSubDeclarationsInOutline() {
 		return getLocalVars() != null && getLocalVars().size() > 0;
 	}
 

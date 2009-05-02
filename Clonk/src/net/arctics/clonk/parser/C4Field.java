@@ -106,7 +106,7 @@ public abstract class C4Field implements Serializable, IHasRelatedResource  {
 	 * Returns whether this declaration has sub declarations
 	 * @return
 	 */
-	public boolean hasSubDeclarations() {
+	public boolean hasSubDeclarationsInOutline() {
 		return false;
 	}
 	

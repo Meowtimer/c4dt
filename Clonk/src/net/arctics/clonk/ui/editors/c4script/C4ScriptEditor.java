@@ -6,11 +6,13 @@ import java.io.InputStream;
 import java.util.ResourceBundle;
 
 import net.arctics.clonk.ClonkCore;
+import net.arctics.clonk.parser.C4Field;
 import net.arctics.clonk.parser.C4Function;
 import net.arctics.clonk.parser.C4ScriptBase;
 import net.arctics.clonk.parser.c4script.C4ScriptExprTree;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.C4ScriptParser.ParsingException;
+import net.arctics.clonk.ui.editors.ClonkCommandIds;
 import net.arctics.clonk.ui.editors.ClonkTextEditor;
 import net.arctics.clonk.ui.editors.actions.c4script.ConvertOldCodeToNewCodeAction;
 import net.arctics.clonk.ui.editors.actions.c4script.FindReferencesAction;
@@ -34,12 +36,9 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorSite;
 import org.eclipse.ui.PartInitException;
-import org.eclipse.ui.part.IShowInSource;
-import org.eclipse.ui.part.IShowInTargetList;
 import org.eclipse.ui.texteditor.ContentAssistAction;
 import org.eclipse.ui.texteditor.ITextEditorActionDefinitionIds;
 import org.eclipse.ui.texteditor.SourceViewerDecorationSupport;
-import org.eclipse.ui.views.contentoutline.IContentOutlinePage;
 
 public class C4ScriptEditor extends ClonkTextEditor {
 
@@ -48,7 +47,6 @@ public class C4ScriptEditor extends ClonkTextEditor {
 	private static final String ENABLE_BRACKET_HIGHLIGHT = ClonkCore.PLUGIN_ID + ".enableBracketHighlighting";
 	private static final String BRACKET_HIGHLIGHT_COLOR = ClonkCore.PLUGIN_ID + ".bracketHighlightColor";
 	private DefaultCharacterPairMatcher fBracketMatcher = new DefaultCharacterPairMatcher(new char[] { '{', '}', '(', ')' });
-	private ShowInAdapter showInAdapter;
 	
 	public C4ScriptEditor() {
 		super();
@@ -78,19 +76,6 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		if (res != null) {
 			setPartName(res.getParent().getName() + "/" + res.getName());
 		}
-	}
-
-	@SuppressWarnings("unchecked")
-	public Object getAdapter(Class adapter) {
-		if (IContentOutlinePage.class.equals(adapter)) {
-			return getOutlinePage();
-		}
-		if (IShowInSource.class.equals(adapter) || IShowInTargetList.class.equals(adapter)) {
-			if (showInAdapter == null)
-				showInAdapter = new ShowInAdapter(this);
-			return showInAdapter;
-		}
-		return super.getAdapter(adapter);
 	}
 
 	public void dispose() {
@@ -211,6 +196,11 @@ public class C4ScriptEditor extends ClonkTextEditor {
 			parser.parseCodeOfFunctions();
 		refreshOutline();
 		return parser;
+	}
+	
+	@Override
+	public C4Field getTopLevelDeclaration() {
+		return Utilities.getScriptForEditor(this);
 	}
 
 }

@@ -9,11 +9,12 @@ import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.BuiltInDefinitions;
 import net.arctics.clonk.parser.C4Function;
 import net.arctics.clonk.parser.C4Type;
+import net.arctics.clonk.ui.editors.WordScanner;
 
 import org.eclipse.jface.text.rules.*;
 import org.eclipse.jface.text.*;
 
-public class ClonkCodeScanner extends RuleBasedScanner {
+public class C4ScriptCodeScanner extends RuleBasedScanner {
 
 	/**
 	 * Rule to detect clonk operators.
@@ -154,7 +155,7 @@ public class ClonkCodeScanner extends RuleBasedScanner {
 	
 	private IRule[] currentRules;
 	
-	public ClonkCodeScanner(ColorManager manager) {
+	public C4ScriptCodeScanner(ColorManager manager) {
 
 		IToken defaultToken = new Token(new TextAttribute(manager.getColor(IClonkColorConstants.DEFAULT)));
 		
