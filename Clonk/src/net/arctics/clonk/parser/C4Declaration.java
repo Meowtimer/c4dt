@@ -11,6 +11,11 @@ import net.arctics.clonk.util.IHasRelatedResource;
 
 import org.eclipse.core.resources.IResource;
 
+/**
+ * Baseclass for all declarations (object definitions, actmaps, functions and variables)
+ * @author madeen
+ *
+ */
 public abstract class C4Declaration implements Serializable, IHasRelatedResource  {
 	/**
 	 * 
@@ -154,9 +159,14 @@ public abstract class C4Declaration implements Serializable, IHasRelatedResource
 		return getParentDeclaration() != null ? getParentDeclaration().getResource() : null;
 	}
 	
+	/**
+	 * Returns the parent declaration this one is contained in
+	 * @return
+	 */
 	public C4Declaration getParentDeclaration() {
 		return parentDeclaration;
 	}
+	
 	/**
 	 * Returns an Iterable for iterating over all sub declaration of this declaration.
 	 * Might return null if there are none.

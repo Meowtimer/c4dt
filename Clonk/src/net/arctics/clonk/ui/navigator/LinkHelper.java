@@ -22,7 +22,7 @@ public class LinkHelper implements ILinkHelper {
 			if (selection.getFirstElement() instanceof C4Declaration) {
 				C4Declaration dec = (C4Declaration) selection.getFirstElement();
 				IWorkbenchPage wpage = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
-				IResource res = dec.getResource();
+				IResource res = dec.getScript() != null ? (IResource)dec.getScript().getScriptFile() : dec.getResource();
 				if (res instanceof IFile && wpage.findEditor(new FileEditorInput((IFile) res)) != null)
 					ClonkTextEditor.openDeclaration(dec, false);
 			}

@@ -196,7 +196,7 @@
 			</parameters>
 			<description>Führt einen Funktionsaufruf im angegebenen Effekt durch. Der Aufruf erhält den Befehlskontext des Effektes, und die ersten beiden Aufrufparameter sind immer Zielobjekt und Effektindex. Die weiteren Parameter können frei gewählt werden.</description>
 		</function>
-		<function name="EffectVar" return="unknown">
+		<function name="EffectVar" return="int">
 			<parameters>
 				<parameter name="iVarIndex" type="int" />
 				<parameter name="pTarget" type="object" />
@@ -1397,7 +1397,7 @@ Wenn fCheckSite 1 ist, wird die Baustelle vorher auf ihre Eignung überprüft. I
 			</parameters>
 			<description>Prüft, ob ein Objekt nur aus einem Objekttyp besteht.</description>
 		</function>
-		<function name="GetComponent" return="unknown">
+		<function name="GetComponent" return="int">
 			<parameters>
 				<parameter name="idComponent" type="id" />
 				<parameter name="iIndex" type="int" />
@@ -1480,7 +1480,7 @@ Wenn fCheckSite 1 ist, wird die Baustelle vorher auf ihre Eignung überprüft. I
 		</function>
 		<function name="GetController" return="int">
 			<parameters>
-				<parameter name="pObj" type="unknown" />
+				<parameter name="pObj" type="int" />
 			</parameters>
 			<description>Fragt ab, welcher Spieler ein Objekt zur Zeit kontrolliert bzw. zuletzt kontrolliert hat. Bei Mannschaftsmitgliedern ist dies normalerweise immer der Besitzer; bei Fahrzeugen der Controller des Clonks, der es zuletzt bedient (angefasst und geschoben/gezogen) hat. Objekte, die von Lebewesen aufgenommen werden, nehmen automatisch den Controller ihres Containers an. Beim Besitzerwechsel (siehe <a href="../../../sdk/script/fn/SetOwner.html">SetOwner</a>())wird automatisch auch der Controller auf den neuen Besitzer geändert.</description>
 		</function>
@@ -1559,11 +1559,11 @@ Wenn fCheckSite 1 ist, wird die Baustelle vorher auf ihre Eignung überprüft. I
 				<parameter name="idItem" type="id" />
 				<parameter name="pMenuObject" type="object" />
 				<parameter name="iCount" type="int" />
-				<parameter name="Parameter" type="unknown" />
+				<parameter name="Parameter" type="int" />
 				<parameter name="szInfoCaption" type="string" />
 				<parameter name="iExtra" type="int" />
-				<parameter name="XPar1" type="unknown" />
-				<parameter name="XPar2" type="unknown" />
+				<parameter name="XPar1" type="int" />
+				<parameter name="XPar2" type="int" />
 			</parameters>
 			<description>Fügt einen Menüeintrag hinzu.</description>
 		</function>
@@ -2534,7 +2534,7 @@ Wenn fCheckSite 1 ist, wird die Baustelle vorher auf ihre Eignung überprüft. I
 		</function>
 		<function name="GetPlayerCount" return="int">
 			<parameters>
-				<parameter name="ePlayerType" type="unknown" />
+				<parameter name="ePlayerType" type="int" />
 			</parameters>
 			<description>Liefert die Anzahl der Spieler, die momentan im Spiel sind.</description>
 		</function>
@@ -2613,7 +2613,7 @@ Wenn fCheckSite 1 ist, wird die Baustelle vorher auf ihre Eignung überprüft. I
 			</parameters>
 			<description>Bei angegebenen id gibt die Funktion TRUE zurück, wenn der Spieler den Bauplan des betreffenden herstellbaren Objekts besitzt. iIndex und dwCategory werden hierbei ignoriert. Wird als id Null übergeben, liefert die Funktion den indizierten Bauplan der entsprechenden Kategorie des Spielers.</description>
 		</function>
-		<function name="GetPlrMagic" return="unknown">
+		<function name="GetPlrMagic" return="int">
 			<parameters>
 				<parameter name="iPlr" type="int" />
 				<parameter name="id" type="id" />
@@ -3025,13 +3025,13 @@ Wenn fCheckSite 1 ist, wird die Baustelle vorher auf ihre Eignung überprüft. I
 			</parameters>
 			<description>Gibt den Typ des übergebenen Werts zurück.</description>
 		</function>
-		<function name="Global" return="unknown">
+		<function name="Global" return="int">
 			<parameters>
 				<parameter name="iVarIndex" type="int" />
 			</parameters>
 			<description>Liefert den Inhalt der globalen Variable iVarIndex.</description>
 		</function>
-		<function name="GlobalN" return="unknown">
+		<function name="GlobalN" return="int">
 			<parameters>
 				<parameter name="szText" type="string" />
 			</parameters>
@@ -3055,28 +3055,28 @@ Wenn fCheckSite 1 ist, wird die Baustelle vorher auf ihre Eignung überprüft. I
 			</parameters>
 			<description>Prüft, ob Value eine Referenz ist.</description>
 		</function>
-		<function name="Local" return="ref">
+		<function name="Local" return="reference">
 			<parameters>
 				<parameter name="iVarIndex" type="int" />
 				<parameter name="pObj" type="object" />
 			</parameters>
 			<description>Gibt den Wert einer lokalen Variable (als Referenz) zurück. Jedes Objekt kann eine beliebige Anzahl lokaler Variablen besitzen. Diese werden für jedes Objekt dauerhaft gespeichert und gehen erst verloren, wenn das Objekt gelöscht wird. Eine lokale Variable hat bei Erstellung des Objekts immer den Wert 0.</description>
 		</function>
-		<function name="LocalN" return="ref">
+		<function name="LocalN" return="reference">
 			<parameters>
 				<parameter name="szName" type="string" />
 				<parameter name="pObj" type="object" />
 			</parameters>
 			<description>Gibt eine Referenz auf eine Objektlokale Variable zurück. Diese Referenz kann zum Lesen und Schreiben benutzt werden.</description>
 		</function>
-		<function name="SetGlobal" return="unknown">
+		<function name="SetGlobal" return="int">
 			<parameters>
 				<parameter name="iVarIndex" type="int" />
 				<parameter name="Value" type="any" />
 			</parameters>
 			<description>Setzt eine <a href="../../../sdk/script/fn/Global.html">Global</a>-Variable.</description>
 		</function>
-		<function name="SetLocal" return="unknown">
+		<function name="SetLocal" return="int">
 			<parameters>
 				<parameter name="iVarIndex" type="int" />
 				<parameter name="Value" type="any" />
@@ -3084,113 +3084,113 @@ Wenn fCheckSite 1 ist, wird die Baustelle vorher auf ihre Eignung überprüft. I
 			</parameters>
 			<description>Setzt eine <a href="../../../sdk/script/fn/Local.html">Local</a>-Variable in einem Objekt (wenn nicht angegeben, wird die Variable in dem aufrufenden Objekt gesetzt).</description>
 		</function>
-		<function name="SetVar" return="unknown">
+		<function name="SetVar" return="int">
 			<parameters>
 				<parameter name="iVarIndex" type="int" />
 				<parameter name="Value" type="any" />
 			</parameters>
 			<description>Weist den Wert iValue einer beliebigen Thread-lokalen Variablen (ab 0) zu. Der Datentyp ist variabel. Thread-lokale Variablen gelten nur für die Dauer des aktuellen Funktionsaufrufes. Numerierte Variablen wurden durch Variablen mit Namen abgelöst, sind aber für Arrays nützlich.</description>
 		</function>
-		<function name="Var" return="unknown">
+		<function name="Var" return="int">
 			<parameters>
 				<parameter name="iIndex" type="int" />
 			</parameters>
 			<description>Gibt eine Referenz auf eine funktionslokale Variable zurück. Diese Referenz kann zum Lesen und Schreiben benutzt werden.</description>
 		</function>
-		<function name="VarN" return="unknown">
+		<function name="VarN" return="int">
 			<parameters>
 				<parameter name="szName" type="string" />
 			</parameters>
 			<description>Gibt eine Referenz auf eine funktionslokale Variable zurück. Diese Referenz kann zum Lesen und Schreiben benutzt werden.</description>
 		</function>
-		<function name="AbortMessageBoard" return="unknown">
+		<function name="AbortMessageBoard" return="int">
 			<parameters>
 			</parameters>
 		</function>
-		<function name="ActivateGameGoalMenu" return="unknown">
+		<function name="ActivateGameGoalMenu" return="int">
 			<parameters>
 			</parameters>
 		</function>
-		<function name="AddEvaluationData" return="unknown">
+		<function name="AddEvaluationData" return="int">
 			<parameters>
 			</parameters>
 		</function>
-		<function name="AddMessage" return="unknown">
+		<function name="AddMessage" return="int">
 			<parameters>
 			</parameters>
 		</function>
-		<function name="AdjustWalkRotation" return="unknown">
+		<function name="AdjustWalkRotation" return="int">
 			<parameters>
 			</parameters>
 		</function>
-		<function name="AsyncRandom" return="unknown">
+		<function name="AsyncRandom" return="int">
 			<parameters>
 			</parameters>
 		</function>
-		<function name="BlastFree" return="unknown">
+		<function name="BlastFree" return="int">
 			<parameters>
 			</parameters>
 		</function>
-		<function name="BlastObject" return="unknown">
+		<function name="BlastObject" return="int">
 			<parameters>
 			</parameters>
 		</function>
-		<function name="CallMessageBoard" return="unknown">
+		<function name="CallMessageBoard" return="int">
 			<parameters>
 			</parameters>
 		</function>
-		<function name="CastBackParticles" return="unknown">
+		<function name="CastBackParticles" return="int">
 			<parameters>
 			</parameters>
 		</function>
-		<function name="ClearLastPlrCom" return="unknown">
+		<function name="ClearLastPlrCom" return="int">
 			<parameters>
 			</parameters>
 		</function>
-		<function name="DrawMatChunks" return="unknown">
+		<function name="DrawMatChunks" return="int">
 			<parameters>
 			</parameters>
 		</function>
-		<function name="DrawModLandscape" return="unknown">
+		<function name="DrawModLandscape" return="int">
 			<parameters>
 			</parameters>
 		</function>
-		<function name="DrawVolcanoBranch" return="unknown">
+		<function name="DrawVolcanoBranch" return="int">
 			<parameters>
 			</parameters>
 		</function>
-		<function name="ExecuteCommand" return="unknown">
+		<function name="ExecuteCommand" return="int">
 			<parameters>
 			</parameters>
 		</function>
-		<function name="FatalError" return="unknown">
+		<function name="FatalError" return="int">
 			<parameters>
 			</parameters>
 		</function>
-		<function name="FlameConsumeMaterial" return="unknown">
+		<function name="FlameConsumeMaterial" return="int">
 			<parameters>
 			</parameters>
 		</function>
-		<function name="GameCallEx" return="unknown">
+		<function name="GameCallEx" return="int">
 			<parameters>
 			</parameters>
 		</function>
 		<function name="GetIndexOf" return="int">
 			<parameters>
-				<parameter name="iNeedle" type="unknown" />
+				<parameter name="iNeedle" type="int" />
 				<parameter name="aHaystack" type="array" />
 			</parameters>
 			<description>Inoffizielle Dokumentation: Gibt -1 bei nicht finden zurück, ansonsten den Schlüssel.</description>
 		</function>
-		<function name="GetMatAdjust" return="unknown">
+		<function name="GetMatAdjust" return="int">
 			<parameters>
 			</parameters>
 		</function>
-		<function name="GetObjectStatus" return="unknown">
+		<function name="GetObjectStatus" return="int">
 			<parameters>
 			</parameters>
 		</function>
-		<function name="GetScoreboardData" return="unknown">
+		<function name="GetScoreboardData" return="int">
 			<parameters>
 			</parameters>
 		</function>
@@ -3200,27 +3200,27 @@ Wenn fCheckSite 1 ist, wird die Baustelle vorher auf ihre Eignung überprüft. I
 			</parameters>
 			<description>Inoffizielle Dokumentation: Parameter ist eine TEAM_ Konstante</description>
 		</function>
-		<function name="IncinerateLandscape" return="unknown">
+		<function name="IncinerateLandscape" return="int">
 			<parameters>
 			</parameters>
 		</function>
-		<function name="InitScenarioPlayer" return="unknown">
+		<function name="InitScenarioPlayer" return="int">
 			<parameters>
 			</parameters>
 		</function>
-		<function name="LoadScenarioSection" return="unknown">
+		<function name="LoadScenarioSection" return="int">
 			<parameters>
 			</parameters>
 		</function>
-		<function name="LocateFunc" return="unknown">
+		<function name="LocateFunc" return="int">
 			<parameters>
 			</parameters>
 		</function>
-		<function name="ModulateColor" return="unknown">
+		<function name="ModulateColor" return="int">
 			<parameters>
 			</parameters>
 		</function>
-		<function name="OnMessageBoardAnswer" return="unknown">
+		<function name="OnMessageBoardAnswer" return="int">
 			<parameters>
 			</parameters>
 		</function>
@@ -3239,19 +3239,19 @@ Wenn fCheckSite 1 ist, wird die Baustelle vorher auf ihre Eignung überprüft. I
 			</parameters>
 			<description></description>
 		</function>
-		<function name="PlayVideo" return="unknown">
+		<function name="PlayVideo" return="int">
 			<parameters>
 			</parameters>
 		</function>
-		<function name="PlayerObjectCommand" return="unknown">
+		<function name="PlayerObjectCommand" return="int">
 			<parameters>
 			</parameters>
 		</function>
-		<function name="RemoveUnusedTexMapEntries" return="unknown">
+		<function name="RemoveUnusedTexMapEntries" return="int">
 			<parameters>
 			</parameters>
 		</function>
-		<function name="Set" return="unknown">
+		<function name="Set" return="int">
 			<parameters>
 			</parameters>
 		</function>
@@ -3313,15 +3313,15 @@ Wenn fCheckSite 1 ist, wird die Baustelle vorher auf ihre Eignung überprüft. I
 			</parameters>
 			<description></description>
 		</function>
-		<function name="SetTextureIndex" return="unknown">
+		<function name="SetTextureIndex" return="int">
 			<parameters>
 			</parameters>
 		</function>
-		<function name="SetViewCursor" return="unknown">
+		<function name="SetViewCursor" return="int">
 			<parameters>
 			</parameters>
 		</function>
-		<function name="StartCallTrace" return="unknown">
+		<function name="StartCallTrace" return="int">
 			<parameters>
 			</parameters>
 		</function>
@@ -3331,7 +3331,7 @@ Wenn fCheckSite 1 ist, wird die Baustelle vorher auf ihre Eignung überprüft. I
 			</parameters>
 			<description></description>
 		</function>
-		<function name="TestMessageBoard" return="unknown">
+		<function name="TestMessageBoard" return="int">
 			<parameters>
 			</parameters>
 		</function>
@@ -3353,7 +3353,7 @@ Wenn fCheckSite 1 ist, wird die Baustelle vorher auf ihre Eignung überprüft. I
 			</parameters>
 			<description></description>
 		</function>
-		<function name="_inherited" return="unknown">
+		<function name="_inherited" return="int">
 			<parameters>
 			</parameters>
 		</function>
@@ -3463,7 +3463,7 @@ Wenn fCheckSite 1 ist, wird die Baustelle vorher auf ihre Eignung überprüft. I
 		</function>
 	</functions>
 	<variables>
-		<variable name="C4D_All" type="unknown" const="true">
+		<variable name="C4D_All" type="int" const="true">
 			<description>
 				
 			</description>
@@ -3473,7 +3473,7 @@ Wenn fCheckSite 1 ist, wird die Baustelle vorher auf ihre Eignung überprüft. I
 				
 			</description>
 		</variable>
-		<variable name="C4D_Structure" type="unknown" const="true">
+		<variable name="C4D_Structure" type="int" const="true">
 			<description>
 				
 			</description>
@@ -3483,1157 +3483,1157 @@ Wenn fCheckSite 1 ist, wird die Baustelle vorher auf ihre Eignung überprüft. I
 				
 			</description>
 		</variable>
-		<variable name="C4D_Living" type="unknown" const="true">
+		<variable name="C4D_Living" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="C4D_Object" type="unknown" const="true">
+		<variable name="C4D_Object" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="C4D_Goal" type="unknown" const="true">
+		<variable name="C4D_Goal" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="C4D_Environment" type="unknown" const="true">
+		<variable name="C4D_Environment" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="C4D_Knowledge" type="unknown" const="true">
+		<variable name="C4D_Knowledge" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="C4D_Magic" type="unknown" const="true">
+		<variable name="C4D_Magic" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="C4D_Rule" type="unknown" const="true">
+		<variable name="C4D_Rule" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="C4D_Background" type="unknown" const="true">
+		<variable name="C4D_Background" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="C4D_Parallax" type="unknown" const="true">
+		<variable name="C4D_Parallax" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="C4D_MouseSelect" type="unknown" const="true">
+		<variable name="C4D_MouseSelect" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="C4D_Foreground" type="unknown" const="true">
+		<variable name="C4D_Foreground" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="C4D_MouseIgnore" type="unknown" const="true">
+		<variable name="C4D_MouseIgnore" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="C4D_IgnoreFoW" type="unknown" const="true">
+		<variable name="C4D_IgnoreFoW" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="C4D_GrabGet" type="unknown" const="true">
+		<variable name="C4D_GrabGet" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="C4D_GrabPut" type="unknown" const="true">
+		<variable name="C4D_GrabPut" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="C4D_LinePower" type="unknown" const="true">
+		<variable name="C4D_LinePower" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="C4D_LineSource" type="unknown" const="true">
+		<variable name="C4D_LineSource" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="C4D_LineDrain" type="unknown" const="true">
+		<variable name="C4D_LineDrain" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="C4D_LineLightning" type="unknown" const="true">
+		<variable name="C4D_LineLightning" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="C4D_LineVolcano" type="unknown" const="true">
+		<variable name="C4D_LineVolcano" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="C4D_LineRope" type="unknown" const="true">
+		<variable name="C4D_LineRope" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="C4D_LineColored" type="unknown" const="true">
+		<variable name="C4D_LineColored" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="C4D_LineVertex" type="unknown" const="true">
+		<variable name="C4D_LineVertex" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="C4D_PowerInput" type="unknown" const="true">
+		<variable name="C4D_PowerInput" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="C4D_PowerOutput" type="unknown" const="true">
+		<variable name="C4D_PowerOutput" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="C4D_LiquidInput" type="unknown" const="true">
+		<variable name="C4D_LiquidInput" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="C4D_LiquidOutput" type="unknown" const="true">
+		<variable name="C4D_LiquidOutput" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="C4D_PowerGenerator" type="unknown" const="true">
+		<variable name="C4D_PowerGenerator" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="C4D_PowerConsumer" type="unknown" const="true">
+		<variable name="C4D_PowerConsumer" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="C4D_LiquidPump" type="unknown" const="true">
+		<variable name="C4D_LiquidPump" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="C4D_ConnectRope" type="unknown" const="true">
+		<variable name="C4D_ConnectRope" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="C4D_EnergyHolder" type="unknown" const="true">
+		<variable name="C4D_EnergyHolder" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="C4V_Any" type="unknown" const="true">
+		<variable name="C4V_Any" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="C4V_Int" type="unknown" const="true">
+		<variable name="C4V_Int" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="C4V_Bool" type="unknown" const="true">
+		<variable name="C4V_Bool" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="C4V_C4ID" type="unknown" const="true">
+		<variable name="C4V_C4ID" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="C4V_C4Object" type="unknown" const="true">
+		<variable name="C4V_C4Object" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="C4V_String" type="unknown" const="true">
+		<variable name="C4V_String" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="C4V_Array" type="unknown" const="true">
+		<variable name="C4V_Array" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="COMD_None" type="unknown" const="true">
+		<variable name="COMD_None" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="COMD_Stop" type="unknown" const="true">
+		<variable name="COMD_Stop" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="COMD_Up" type="unknown" const="true">
+		<variable name="COMD_Up" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="COMD_UpRight" type="unknown" const="true">
+		<variable name="COMD_UpRight" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="COMD_Right" type="unknown" const="true">
+		<variable name="COMD_Right" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="COMD_DownRight" type="unknown" const="true">
+		<variable name="COMD_DownRight" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="COMD_Down" type="unknown" const="true">
+		<variable name="COMD_Down" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="COMD_DownLeft" type="unknown" const="true">
+		<variable name="COMD_DownLeft" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="COMD_Left" type="unknown" const="true">
+		<variable name="COMD_Left" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="COMD_UpLeft" type="unknown" const="true">
+		<variable name="COMD_UpLeft" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="DIR_Left" type="unknown" const="true">
+		<variable name="DIR_Left" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="DIR_Right" type="unknown" const="true">
+		<variable name="DIR_Right" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="CON_CursorLeft" type="unknown" const="true">
+		<variable name="CON_CursorLeft" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="CON_CursorToggle" type="unknown" const="true">
+		<variable name="CON_CursorToggle" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="CON_CursorRight" type="unknown" const="true">
+		<variable name="CON_CursorRight" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="CON_Throw" type="unknown" const="true">
+		<variable name="CON_Throw" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="CON_Up" type="unknown" const="true">
+		<variable name="CON_Up" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="CON_Dig" type="unknown" const="true">
+		<variable name="CON_Dig" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="CON_Left" type="unknown" const="true">
+		<variable name="CON_Left" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="CON_Down" type="unknown" const="true">
+		<variable name="CON_Down" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="CON_Right" type="unknown" const="true">
+		<variable name="CON_Right" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="CON_Menu" type="unknown" const="true">
+		<variable name="CON_Menu" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="CON_Special" type="unknown" const="true">
+		<variable name="CON_Special" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="CON_Special2" type="unknown" const="true">
+		<variable name="CON_Special2" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="OCF_Construct" type="unknown" const="true">
+		<variable name="OCF_Construct" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="OCF_Grab" type="unknown" const="true">
+		<variable name="OCF_Grab" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="OCF_Collectible" type="unknown" const="true">
+		<variable name="OCF_Collectible" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="OCF_OnFire" type="unknown" const="true">
+		<variable name="OCF_OnFire" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="OCF_HitSpeed1" type="unknown" const="true">
+		<variable name="OCF_HitSpeed1" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="OCF_Fullcon" type="unknown" const="true">
+		<variable name="OCF_Fullcon" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="OCF_Inflammable" type="unknown" const="true">
+		<variable name="OCF_Inflammable" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="OCF_Chop" type="unknown" const="true">
+		<variable name="OCF_Chop" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="OCF_Rotate" type="unknown" const="true">
+		<variable name="OCF_Rotate" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="OCF_Exclusive" type="unknown" const="true">
+		<variable name="OCF_Exclusive" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="OCF_Entrance" type="unknown" const="true">
+		<variable name="OCF_Entrance" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="OCF_HitSpeed2" type="unknown" const="true">
+		<variable name="OCF_HitSpeed2" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="OCF_HitSpeed3" type="unknown" const="true">
+		<variable name="OCF_HitSpeed3" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="OCF_Collection" type="unknown" const="true">
+		<variable name="OCF_Collection" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="OCF_Living" type="unknown" const="true">
+		<variable name="OCF_Living" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="OCF_HitSpeed4" type="unknown" const="true">
+		<variable name="OCF_HitSpeed4" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="OCF_FightReady" type="unknown" const="true">
+		<variable name="OCF_FightReady" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="OCF_LineConstruct" type="unknown" const="true">
+		<variable name="OCF_LineConstruct" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="OCF_Prey" type="unknown" const="true">
+		<variable name="OCF_Prey" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="OCF_AttractLightning" type="unknown" const="true">
+		<variable name="OCF_AttractLightning" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="OCF_NotContained" type="unknown" const="true">
+		<variable name="OCF_NotContained" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="OCF_CrewMember" type="unknown" const="true">
+		<variable name="OCF_CrewMember" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="OCF_Edible" type="unknown" const="true">
+		<variable name="OCF_Edible" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="OCF_InLiquid" type="unknown" const="true">
+		<variable name="OCF_InLiquid" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="OCF_InSolid" type="unknown" const="true">
+		<variable name="OCF_InSolid" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="OCF_InFree" type="unknown" const="true">
+		<variable name="OCF_InFree" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="OCF_Available" type="unknown" const="true">
+		<variable name="OCF_Available" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="OCF_PowerConsumer" type="unknown" const="true">
+		<variable name="OCF_PowerConsumer" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="OCF_PowerSupply" type="unknown" const="true">
+		<variable name="OCF_PowerSupply" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="OCF_Container" type="unknown" const="true">
+		<variable name="OCF_Container" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="OCF_Alive" type="unknown" const="true">
+		<variable name="OCF_Alive" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="VIS_All" type="unknown" const="true">
+		<variable name="VIS_All" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="VIS_None" type="unknown" const="true">
+		<variable name="VIS_None" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="VIS_Owner" type="unknown" const="true">
+		<variable name="VIS_Owner" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="VIS_Allies" type="unknown" const="true">
+		<variable name="VIS_Allies" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="VIS_Enemies" type="unknown" const="true">
+		<variable name="VIS_Enemies" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="VIS_Local" type="unknown" const="true">
+		<variable name="VIS_Local" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="VIS_God" type="unknown" const="true">
+		<variable name="VIS_God" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="VIS_LayerToggle" type="unknown" const="true">
+		<variable name="VIS_LayerToggle" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="VIS_OverlayOnly" type="unknown" const="true">
+		<variable name="VIS_OverlayOnly" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="C4X_Ver1" type="unknown" const="true">
+		<variable name="C4X_Ver1" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="C4X_Ver2" type="unknown" const="true">
+		<variable name="C4X_Ver2" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="C4X_Ver3" type="unknown" const="true">
+		<variable name="C4X_Ver3" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="C4X_Ver4" type="unknown" const="true">
+		<variable name="C4X_Ver4" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="C4X_VerBuild" type="unknown" const="true">
+		<variable name="C4X_VerBuild" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="SkyPar_Keep" type="unknown" const="true">
+		<variable name="SkyPar_Keep" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="C4MN_Style_Normal" type="unknown" const="true">
+		<variable name="C4MN_Style_Normal" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="C4MN_Style_Context" type="unknown" const="true">
+		<variable name="C4MN_Style_Context" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="C4MN_Style_Info" type="unknown" const="true">
+		<variable name="C4MN_Style_Info" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="C4MN_Style_Dialog" type="unknown" const="true">
+		<variable name="C4MN_Style_Dialog" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="C4MN_Style_EqualItemHeight" type="unknown" const="true">
+		<variable name="C4MN_Style_EqualItemHeight" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="C4MN_Extra_None" type="unknown" const="true">
+		<variable name="C4MN_Extra_None" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="C4MN_Extra_Components" type="unknown" const="true">
+		<variable name="C4MN_Extra_Components" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="C4MN_Extra_Value" type="unknown" const="true">
+		<variable name="C4MN_Extra_Value" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="C4MN_Extra_MagicValue" type="unknown" const="true">
+		<variable name="C4MN_Extra_MagicValue" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="C4MN_Extra_Info" type="unknown" const="true">
+		<variable name="C4MN_Extra_Info" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="C4MN_Extra_ComponentsMagic" type="unknown" const="true">
+		<variable name="C4MN_Extra_ComponentsMagic" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="C4MN_Extra_LiveMagicValue" type="unknown" const="true">
+		<variable name="C4MN_Extra_LiveMagicValue" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="C4MN_Extra_ComponentsLiveMagic" type="unknown" const="true">
+		<variable name="C4MN_Extra_ComponentsLiveMagic" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="C4MN_Add_ImgRank" type="unknown" const="true">
+		<variable name="C4MN_Add_ImgRank" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="C4MN_Add_ImgIndexed" type="unknown" const="true">
+		<variable name="C4MN_Add_ImgIndexed" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="C4MN_Add_ImgObjRank" type="unknown" const="true">
+		<variable name="C4MN_Add_ImgObjRank" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="C4MN_Add_ImgObject" type="unknown" const="true">
+		<variable name="C4MN_Add_ImgObject" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="C4MN_Add_ImgTextSpec" type="unknown" const="true">
+		<variable name="C4MN_Add_ImgTextSpec" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="C4MN_Add_ImgColor" type="unknown" const="true">
+		<variable name="C4MN_Add_ImgColor" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="C4MN_Add_PassValue" type="unknown" const="true">
+		<variable name="C4MN_Add_PassValue" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="C4MN_Add_ForceCount" type="unknown" const="true">
+		<variable name="C4MN_Add_ForceCount" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="C4MN_Add_ForceNoDesc" type="unknown" const="true">
+		<variable name="C4MN_Add_ForceNoDesc" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="FX_OK" type="unknown" const="true">
+		<variable name="FX_OK" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="FX_Effect_Deny" type="unknown" const="true">
+		<variable name="FX_Effect_Deny" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="FX_Effect_Annul" type="unknown" const="true">
+		<variable name="FX_Effect_Annul" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="FX_Effect_AnnulDoCalls" type="unknown" const="true">
+		<variable name="FX_Effect_AnnulDoCalls" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="FX_Execute_Kill" type="unknown" const="true">
+		<variable name="FX_Execute_Kill" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="FX_Stop_Deny" type="unknown" const="true">
+		<variable name="FX_Stop_Deny" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="FX_Start_Deny" type="unknown" const="true">
+		<variable name="FX_Start_Deny" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="FX_Call_Normal" type="unknown" const="true">
+		<variable name="FX_Call_Normal" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="FX_Call_Temp" type="unknown" const="true">
+		<variable name="FX_Call_Temp" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="FX_Call_TempAddForRemoval" type="unknown" const="true">
+		<variable name="FX_Call_TempAddForRemoval" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="FX_Call_RemoveClear" type="unknown" const="true">
+		<variable name="FX_Call_RemoveClear" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="FX_Call_RemoveDeath" type="unknown" const="true">
+		<variable name="FX_Call_RemoveDeath" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="CSPF_Invisible" type="unknown" const="true">
+		<variable name="CSPF_Invisible" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="CSPF_NoEliminationCheck" type="unknown" const="true">
+		<variable name="CSPF_NoEliminationCheck" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="CSPF_NoScenarioInit" type="unknown" const="true">
+		<variable name="CSPF_NoScenarioInit" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="CSPF_FixedAttributes" type="unknown" const="true">
+		<variable name="CSPF_FixedAttributes" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="C4PT_Script" type="unknown" const="true">
+		<variable name="C4PT_Script" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="C4PT_User" type="unknown" const="true">
+		<variable name="C4PT_User" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="MSG_Multiple" type="unknown" const="true">
+		<variable name="MSG_Multiple" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="MSG_Bottom" type="unknown" const="true">
+		<variable name="MSG_Bottom" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="MSG_NoLinebreak" type="unknown" const="true">
+		<variable name="MSG_NoLinebreak" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="TEAMID_New" type="unknown" const="true">
+		<variable name="TEAMID_New" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="C4SECT_KeepEffects" type="unknown" const="true">
+		<variable name="C4SECT_KeepEffects" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="C4SECT_SaveObjects" type="unknown" const="true">
+		<variable name="C4SECT_SaveObjects" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="C4SECT_SaveLandscape" type="unknown" const="true">
+		<variable name="C4SECT_SaveLandscape" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="C4CMD_Enter_PushTarget" type="unknown" const="true">
+		<variable name="C4CMD_Enter_PushTarget" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="C4CMD_MoveTo_PushTarget" type="unknown" const="true">
+		<variable name="C4CMD_MoveTo_PushTarget" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="C4CMD_MoveTo_NoPosAdjust" type="unknown" const="true">
+		<variable name="C4CMD_MoveTo_NoPosAdjust" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="C4CMD_SilentSub" type="unknown" const="true">
+		<variable name="C4CMD_SilentSub" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="C4CMD_Sub" type="unknown" const="true">
+		<variable name="C4CMD_Sub" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="C4CMD_SilentBase" type="unknown" const="true">
+		<variable name="C4CMD_SilentBase" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="C4CMD_Base" type="unknown" const="true">
+		<variable name="C4CMD_Base" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="PHYS_StackTemporary" type="unknown" const="true">
+		<variable name="PHYS_StackTemporary" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="PHYS_Temporary" type="unknown" const="true">
+		<variable name="PHYS_Temporary" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="PHYS_Permanent" type="unknown" const="true">
+		<variable name="PHYS_Permanent" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="PHYS_Current" type="unknown" const="true">
+		<variable name="PHYS_Current" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="C4SO_Func" type="unknown" const="true">
+		<variable name="C4SO_Func" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="C4SO_Value" type="unknown" const="true">
+		<variable name="C4SO_Value" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="C4SO_Mass" type="unknown" const="true">
+		<variable name="C4SO_Mass" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="C4SO_Speed" type="unknown" const="true">
+		<variable name="C4SO_Speed" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="C4SO_Random" type="unknown" const="true">
+		<variable name="C4SO_Random" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="C4SO_Distance" type="unknown" const="true">
+		<variable name="C4SO_Distance" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="C4SO_Multiple" type="unknown" const="true">
+		<variable name="C4SO_Multiple" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="C4SO_Reverse" type="unknown" const="true">
+		<variable name="C4SO_Reverse" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="C4FO_Layer" type="unknown" const="true">
+		<variable name="C4FO_Layer" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="C4FO_Func" type="unknown" const="true">
+		<variable name="C4FO_Func" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="C4FO_Owner" type="unknown" const="true">
+		<variable name="C4FO_Owner" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="C4FO_AnyContainer" type="unknown" const="true">
+		<variable name="C4FO_AnyContainer" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="C4FO_Container" type="unknown" const="true">
+		<variable name="C4FO_Container" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="C4FO_ActionTarget" type="unknown" const="true">
+		<variable name="C4FO_ActionTarget" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="C4FO_Action" type="unknown" const="true">
+		<variable name="C4FO_Action" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="C4FO_Category" type="unknown" const="true">
+		<variable name="C4FO_Category" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="C4FO_OCF" type="unknown" const="true">
+		<variable name="C4FO_OCF" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="C4FO_ID" type="unknown" const="true">
+		<variable name="C4FO_ID" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="C4FO_Distance" type="unknown" const="true">
+		<variable name="C4FO_Distance" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="C4FO_OnLine" type="unknown" const="true">
+		<variable name="C4FO_OnLine" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="C4FO_AtRect" type="unknown" const="true">
+		<variable name="C4FO_AtRect" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="C4FO_AtPoint" type="unknown" const="true">
+		<variable name="C4FO_AtPoint" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="C4FO_InRect" type="unknown" const="true">
+		<variable name="C4FO_InRect" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="C4FO_Exclude" type="unknown" const="true">
+		<variable name="C4FO_Exclude" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="C4FO_Or" type="unknown" const="true">
+		<variable name="C4FO_Or" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="C4FO_And" type="unknown" const="true">
+		<variable name="C4FO_And" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="C4FO_Not" type="unknown" const="true">
+		<variable name="C4FO_Not" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="C4MSGCMDR_Identifier" type="unknown" const="true">
+		<variable name="C4MSGCMDR_Identifier" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="C4MSGCMDR_Plain" type="unknown" const="true">
+		<variable name="C4MSGCMDR_Plain" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="C4MSGCMDR_Escaped" type="unknown" const="true">
+		<variable name="C4MSGCMDR_Escaped" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="C4OS_INACTIVE" type="unknown" const="true">
+		<variable name="C4OS_INACTIVE" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="C4OS_NORMAL" type="unknown" const="true">
+		<variable name="C4OS_NORMAL" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="C4OS_DELETED" type="unknown" const="true">
+		<variable name="C4OS_DELETED" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="TEAM_TeamColors" type="unknown" const="true">
+		<variable name="TEAM_TeamColors" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="TEAM_AutoGenerateTeams" type="unknown" const="true">
+		<variable name="TEAM_AutoGenerateTeams" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="TEAM_AllowTeamSwitch" type="unknown" const="true">
+		<variable name="TEAM_AllowTeamSwitch" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="TEAM_Dist" type="unknown" const="true">
+		<variable name="TEAM_Dist" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="TEAM_AllowHostilityChange" type="unknown" const="true">
+		<variable name="TEAM_AllowHostilityChange" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="TEAM_Active" type="unknown" const="true">
+		<variable name="TEAM_Active" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="TEAM_Custom" type="unknown" const="true">
+		<variable name="TEAM_Custom" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="SBRD_Caption" type="unknown" const="true">
+		<variable name="SBRD_Caption" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="C4M_Background" type="unknown" const="true">
+		<variable name="C4M_Background" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="C4M_Liquid" type="unknown" const="true">
+		<variable name="C4M_Liquid" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="C4M_SemiSolid" type="unknown" const="true">
+		<variable name="C4M_SemiSolid" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="C4M_Solid" type="unknown" const="true">
+		<variable name="C4M_Solid" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="C4M_Vehicle" type="unknown" const="true">
+		<variable name="C4M_Vehicle" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="VTX_SetPermanentUpd" type="unknown" const="true">
+		<variable name="VTX_SetPermanentUpd" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="VTX_SetPermanent" type="unknown" const="true">
+		<variable name="VTX_SetPermanent" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="VTX_Friction" type="unknown" const="true">
+		<variable name="VTX_Friction" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="VTX_CNAT" type="unknown" const="true">
+		<variable name="VTX_CNAT" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="VTX_Y" type="unknown" const="true">
+		<variable name="VTX_Y" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="VTX_X" type="unknown" const="true">
+		<variable name="VTX_X" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="GFX_BLIT_Parent" type="unknown" const="true">
+		<variable name="GFX_BLIT_Parent" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="GFX_BLIT_Custom" type="unknown" const="true">
+		<variable name="GFX_BLIT_Custom" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="GFX_BLIT_ClrSfc_Mod2" type="unknown" const="true">
+		<variable name="GFX_BLIT_ClrSfc_Mod2" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="GFX_BLIT_ClrSfc_OwnClr" type="unknown" const="true">
+		<variable name="GFX_BLIT_ClrSfc_OwnClr" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="GFX_BLIT_Mod2" type="unknown" const="true">
+		<variable name="GFX_BLIT_Mod2" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="GFX_BLIT_Additive" type="unknown" const="true">
+		<variable name="GFX_BLIT_Additive" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="GFXOV_UI" type="unknown" const="true">
+		<variable name="GFXOV_UI" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="GFXOV_Misc" type="unknown" const="true">
+		<variable name="GFXOV_Misc" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="GFXOV_ProcessTarget" type="unknown" const="true">
+		<variable name="GFXOV_ProcessTarget" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="GFXOV_Tools" type="unknown" const="true">
+		<variable name="GFXOV_Tools" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="GFXOV_Clothing" type="unknown" const="true">
+		<variable name="GFXOV_Clothing" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="GFX_Overlay" type="unknown" const="true">
+		<variable name="GFX_Overlay" type="int" const="true">
 			<description>
 				
 			</description>
@@ -4648,137 +4648,137 @@ Wenn fCheckSite 1 ist, wird die Baustelle vorher auf ihre Eignung überprüft. I
 				
 			</description>
 		</variable>
-		<variable name="GFXOV_MODE_IngamePicture" type="unknown" const="true">
+		<variable name="GFXOV_MODE_IngamePicture" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="GFXOV_MODE_Picture" type="unknown" const="true">
+		<variable name="GFXOV_MODE_Picture" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="GFXOV_MODE_Action" type="unknown" const="true">
+		<variable name="GFXOV_MODE_Action" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="GFXOV_MODE_Base" type="unknown" const="true">
+		<variable name="GFXOV_MODE_Base" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="GFXOV_MODE_None" type="unknown" const="true">
+		<variable name="GFXOV_MODE_None" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="FX_Call_EngGetPunched" type="unknown" const="true">
+		<variable name="FX_Call_EngGetPunched" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="FX_Call_EngStruct" type="unknown" const="true">
+		<variable name="FX_Call_EngStruct" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="FX_Call_EngCorrosion" type="unknown" const="true">
+		<variable name="FX_Call_EngCorrosion" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="FX_Call_EngAsphyxiation" type="unknown" const="true">
+		<variable name="FX_Call_EngAsphyxiation" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="FX_Call_EngBaseRefresh" type="unknown" const="true">
+		<variable name="FX_Call_EngBaseRefresh" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="FX_Call_EngFire" type="unknown" const="true">
+		<variable name="FX_Call_EngFire" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="FX_Call_EngObjHit" type="unknown" const="true">
+		<variable name="FX_Call_EngObjHit" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="FX_Call_EngBlast" type="unknown" const="true">
+		<variable name="FX_Call_EngBlast" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="FX_Call_EngScript" type="unknown" const="true">
+		<variable name="FX_Call_EngScript" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="FX_Call_Energy" type="unknown" const="true">
+		<variable name="FX_Call_Energy" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="FX_Call_DmgChop" type="unknown" const="true">
+		<variable name="FX_Call_DmgChop" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="FX_Call_DmgFire" type="unknown" const="true">
+		<variable name="FX_Call_DmgFire" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="FX_Call_DmgBlast" type="unknown" const="true">
+		<variable name="FX_Call_DmgBlast" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="FX_Call_DmgScript" type="unknown" const="true">
+		<variable name="FX_Call_DmgScript" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="CNAT_None" type="unknown" const="true">
+		<variable name="CNAT_None" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="CNAT_Left" type="unknown" const="true">
+		<variable name="CNAT_Left" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="CNAT_Right" type="unknown" const="true">
+		<variable name="CNAT_Right" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="CNAT_Top" type="unknown" const="true">
+		<variable name="CNAT_Top" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="CNAT_Bottom" type="unknown" const="true">
+		<variable name="CNAT_Bottom" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="CNAT_Center" type="unknown" const="true">
+		<variable name="CNAT_Center" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="CNAT_MultiAttach" type="unknown" const="true">
+		<variable name="CNAT_MultiAttach" type="int" const="true">
 			<description>
 				
 			</description>
 		</variable>
-		<variable name="CNAT_NoCollision" type="unknown" const="true">
+		<variable name="CNAT_NoCollision" type="int" const="true">
 			<description>
 				
 			</description>

@@ -21,7 +21,11 @@ public enum C4Type {
 	
 	@Override
 	public String toString() {
-		if (this == REFERENCE)
+		return toString(false);
+	}
+	
+	public String toString(boolean special) {
+		if (!special && this == REFERENCE)
 			return "&";
 		return super.toString().toLowerCase();
 	}
@@ -36,6 +40,10 @@ public enum C4Type {
 	}
 	
 	public static C4Type makeType(String arg) {
+		return makeType(arg, false);
+	}
+	
+	public static C4Type makeType(String arg, boolean allowSpecial) {
 		// ID, Id.. all variable names
 		//if (arg.equals("any")) return C4Type.ANY; engine does not like that
 		if (arg.equals("bool")) return C4Type.BOOL;
@@ -45,7 +53,8 @@ public enum C4Type {
 		if (arg.equals("array")) return C4Type.ARRAY;
 		if (arg.equals("object")) return C4Type.OBJECT;
 		if (arg.equals("dword")) return C4Type.DWORD;
-		if (arg.equals("&")) return C4Type.REFERENCE;
+		if (arg.equals("&") || (allowSpecial && arg.equals("reference"))) return C4Type.REFERENCE;
 		return C4Type.UNKNOWN;
 	}
+
 }

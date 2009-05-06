@@ -9,6 +9,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.xpath.XPathExpressionException;
 
 import net.arctics.clonk.index.ExternIndex;
 import net.arctics.clonk.parser.C4ID;
@@ -32,6 +34,7 @@ import org.eclipse.jface.resource.ImageRegistry;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.osgi.framework.BundleContext;
+import org.xml.sax.SAXException;
 
 /**
  * The core of the plugin. The singleton instance of this class stores various global things, including
@@ -140,14 +143,20 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant {
 //			// finished
 //		}
 //	}
-
-	private void loadEngineObject() throws FileNotFoundException, IOException, ClassNotFoundException {
+	
+	private void loadEngineObject() throws FileNotFoundException, IOException, ClassNotFoundException, XPathExpressionException, ParserConfigurationException, SAXException {
 		InputStream engineStream;
 		if (getEngineCacheFile().toFile().exists()) {
 			engineStream = new FileInputStream(getEngineCacheFile().toFile());
 		}
 		else {
-			engineStream = getBundle().getEntry("res/engine").openStream();
+			try {
+				engineStream = getBundle().getEntry("res/engine").openStream();
+			} catch (FileNotFoundException e) {
+				createDefaultEngineObject();
+				ENGINE_OBJECT.importFromXML(getBundle().getEntry("res/engine.xml").openStream());
+			}
+			return;
 		}
 		try {
 			try {
@@ -157,11 +166,15 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant {
 				ENGINE_OBJECT.fixReferencesAfterSerialization(null);
 			} catch (Exception e) {
 				e.printStackTrace();
-				ENGINE_OBJECT = new C4ObjectExtern(C4ID.getSpecialID("Engine"),"Engine",null, null);
+				createDefaultEngineObject();
 			}
 		} finally {
 			engineStream.close();
 		}
+	}
+
+	private void createDefaultEngineObject() {
+		ENGINE_OBJECT = new C4ObjectExtern(C4ID.getSpecialID("Engine"),"Engine",null, null);
 	}
 	
 //	private int nooper;

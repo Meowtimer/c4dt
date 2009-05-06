@@ -511,7 +511,7 @@ public abstract class C4ScriptBase extends C4Structure implements IHasRelatedRes
 					writer.write(String.format("\t\t<function name=\"%s\" return=\"%s\">\n", f.getName(), f.getReturnType().toString()));
 					writer.write("\t\t\t<parameters>\n");
 						for (C4Variable p : f.getParameters()) {
-							writer.write(String.format("\t\t\t\t<parameter name=\"%s\" type=\"%s\" />\n", p.getName(), p.getType().toString()));
+							writer.write(String.format("\t\t\t\t<parameter name=\"%s\" type=\"%s\" />\n", p.getName(), p.getType().toString(true)));
 						}
 					writer.write("\t\t\t</parameters>\n");
 					if (f.getUserDescription() != null) {
@@ -524,7 +524,7 @@ public abstract class C4ScriptBase extends C4Structure implements IHasRelatedRes
 			writer.write("\t</functions>\n");
 			writer.write("\t<variables>\n");
 				for (C4Variable v : variables()) {
-					writer.write(String.format("\t\t<variable name=\"%s\" type=\"%s\" const=\"%s\">\n", v.getName(), v.getType().toString(), Boolean.valueOf(v.getScope() == C4VariableScope.VAR_CONST)));
+					writer.write(String.format("\t\t<variable name=\"%s\" type=\"%s\" const=\"%s\">\n", v.getName(), v.getType().toString(true), Boolean.valueOf(v.getScope() == C4VariableScope.VAR_CONST)));
 						if (v.getUserDescription() != null) {
 							writer.write("\t\t\t<description>\n");
 								writer.write("\t\t\t\t"+v.getUserDescription()+"\n");
@@ -551,9 +551,9 @@ public abstract class C4ScriptBase extends C4Structure implements IHasRelatedRes
 			NodeList parms = (NodeList) xPath.evaluate("./parameters/parameter", function, XPathConstants.NODESET);
 			C4Variable[] p = new C4Variable[parms.getLength()];
 			for (int j = 0; j < p.length; j++) {
-				p[j] = new C4Variable(parms.item(j).getAttributes().getNamedItem("name").getNodeValue(), C4Type.makeType(parms.item(j).getAttributes().getNamedItem("type").getNodeValue()));
+				p[j] = new C4Variable(parms.item(j).getAttributes().getNamedItem("name").getNodeValue(), C4Type.makeType(parms.item(j).getAttributes().getNamedItem("type").getNodeValue(), true));
 			}
-			C4Function f = new C4Function(function.getAttributes().getNamedItem("name").getNodeValue(), C4Type.makeType(function.getAttributes().getNamedItem("return").getNodeValue()), p);
+			C4Function f = new C4Function(function.getAttributes().getNamedItem("name").getNodeValue(), C4Type.makeType(function.getAttributes().getNamedItem("return").getNodeValue(), true), p);
 			Node desc = (Node) xPath.evaluate("./description[1]", function, XPathConstants.NODE);
 			if (desc != null)
 				f.setUserDescription(desc.getTextContent());
@@ -561,7 +561,7 @@ public abstract class C4ScriptBase extends C4Structure implements IHasRelatedRes
 		}
 		for (int i = 0; i < variables.getLength(); i++) {
 			Node variable = variables.item(i);
-			C4Variable v = new C4Variable(variable.getAttributes().getNamedItem("name").getNodeValue(), C4Type.makeType(variable.getAttributes().getNamedItem("type").getNodeValue()));
+			C4Variable v = new C4Variable(variable.getAttributes().getNamedItem("name").getNodeValue(), C4Type.makeType(variable.getAttributes().getNamedItem("type").getNodeValue(), true));
 			v.setScope(variable.getAttributes().getNamedItem("const").getNodeValue().equals(Boolean.TRUE.toString()) ? C4VariableScope.VAR_CONST : C4VariableScope.VAR_STATIC);
 			Node desc = (Node) xPath.evaluate("./description[1]", variable, XPathConstants.NODE);
 			if (desc != null)
