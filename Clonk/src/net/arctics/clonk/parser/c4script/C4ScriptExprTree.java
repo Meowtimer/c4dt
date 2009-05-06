@@ -331,6 +331,10 @@ public abstract class C4ScriptExprTree {
 			return false;
 		}
 
+		public boolean containsOffset(int preservedOffset) {
+			return preservedOffset >= getExprStart() && preservedOffset <= getExprEnd();
+		}
+
 	}
 
 	public static class ExprObjectCall extends ExprElm {

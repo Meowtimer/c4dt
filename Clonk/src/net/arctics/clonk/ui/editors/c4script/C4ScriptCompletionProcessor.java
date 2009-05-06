@@ -271,7 +271,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor {
 						return TraversalContinuation.Cancel;
 					}
 				});
-				if (contextExpression != null) {
+				if (contextExpression != null && contextExpression.containsOffset(preservedOffset-activeFunc.getBody().getOffset())) {
 					C4Object guessed = contextExpression.guessObjectType(parser);
 					if (guessed != null) {
 						contextScript = guessed;
