@@ -155,8 +155,8 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant {
 			} catch (FileNotFoundException e) {
 				createDefaultEngineObject();
 				ENGINE_OBJECT.importFromXML(getBundle().getEntry("res/engine.xml").openStream());
+				return;
 			}
-			return;
 		}
 		try {
 			try {

@@ -191,7 +191,8 @@ public class ClonkLibBuilder implements IC4GroupVisitor, IPropertyChangeListener
 	}
 	
 	public void groupFinished(C4Group group) {
-		currentExternNode = currentExternNode.getParentNode();
+		if (currentExternNode != null)
+			currentExternNode = currentExternNode.getParentNode();
 	}
 
 	public void propertyChange(PropertyChangeEvent event) {
