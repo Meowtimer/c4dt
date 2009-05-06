@@ -5,10 +5,10 @@ import java.util.HashSet;
 import java.util.Set;
 
 import net.arctics.clonk.ClonkCore;
-import net.arctics.clonk.parser.C4Field;
-import net.arctics.clonk.parser.C4Function;
-import net.arctics.clonk.parser.C4ScriptBase;
-import net.arctics.clonk.parser.ProjectIndex;
+import net.arctics.clonk.index.ProjectIndex;
+import net.arctics.clonk.parser.C4Declaration;
+import net.arctics.clonk.parser.c4script.C4Function;
+import net.arctics.clonk.parser.c4script.C4ScriptBase;
 import net.arctics.clonk.parser.c4script.FindDeclarationInfo;
 import net.arctics.clonk.ui.search.ClonkSearchMatch;
 import net.arctics.clonk.ui.search.ClonkSearchQuery;
@@ -34,10 +34,10 @@ import org.eclipse.text.edits.ReplaceEdit;
 
 public class ClonkRenameFieldProcessor extends RenameProcessor {
 	
-	private C4Field decl;
+	private C4Declaration decl;
 	private String newName;
 
-	public ClonkRenameFieldProcessor(C4Field field, String newName) {
+	public ClonkRenameFieldProcessor(C4Declaration field, String newName) {
 		this.newName = newName;
 		this.decl = field;
 	}
@@ -46,13 +46,13 @@ public class ClonkRenameFieldProcessor extends RenameProcessor {
 	public RefactoringStatus checkInitialConditions(IProgressMonitor monitor)
 			throws CoreException, OperationCanceledException {
 		// renaming fields that originate from outside the project is not allowed
-		C4Field baseField = decl instanceof C4Function ? ((C4Function)decl).baseFunction() : decl;
+		C4Declaration baseField = decl instanceof C4Function ? ((C4Function)decl).baseFunction() : decl;
 		if (!(baseField.getScript().getIndex() instanceof ProjectIndex))
 			return RefactoringStatus.createFatalErrorStatus(decl.getName() + " is either declared outside of the project or overrides a function that is declared outside of the project");
 		
 		FindDeclarationInfo info = new FindDeclarationInfo(decl.getScript().getIndex());
 		info.setDeclarationClass(decl.getClass());
-		C4Field existingDec = decl.getScript().findDeclaration(newName, info);
+		C4Declaration existingDec = decl.getScript().findDeclaration(newName, info);
 		if (existingDec != null) {
 			return RefactoringStatus.createFatalErrorStatus("There is already an item with name " + newName + " in " + decl.getScript().toString());
 		}
@@ -148,7 +148,7 @@ public class ClonkRenameFieldProcessor extends RenameProcessor {
 		return null;
 	}
 
-	public C4Field getField() {
+	public C4Declaration getField() {
 		return decl;
 	}
 	

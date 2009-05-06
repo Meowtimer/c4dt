@@ -2,12 +2,16 @@ package net.arctics.clonk.parser;
 
 import java.io.Serializable;
 
+import net.arctics.clonk.index.C4ObjectIntern;
+import net.arctics.clonk.parser.c4script.C4ScriptBase;
+import net.arctics.clonk.parser.c4script.C4ScriptIntern;
+import net.arctics.clonk.parser.c4script.C4Structure;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.util.IHasRelatedResource;
 
 import org.eclipse.core.resources.IResource;
 
-public abstract class C4Field implements Serializable, IHasRelatedResource  {
+public abstract class C4Declaration implements Serializable, IHasRelatedResource  {
 	/**
 	 * 
 	 */
@@ -26,7 +30,7 @@ public abstract class C4Field implements Serializable, IHasRelatedResource  {
 	/**
 	 * The parent declaration
 	 */
-	protected transient C4Field parentDeclaration;
+	protected transient C4Declaration parentDeclaration;
 	
 	/**
 	 * result to be returned of occurenceScope if there is no scope
@@ -72,7 +76,7 @@ public abstract class C4Field implements Serializable, IHasRelatedResource  {
 	 * @return the script
 	 */
 	public C4ScriptBase getScript() {
-		for (C4Field f = this; f != null; f = f.parentDeclaration)
+		for (C4Declaration f = this; f != null; f = f.parentDeclaration)
 			if (f instanceof C4ScriptBase)
 				return (C4ScriptBase)f;
 		return null;
@@ -82,7 +86,7 @@ public abstract class C4Field implements Serializable, IHasRelatedResource  {
 	 * Sets the parent declaration of this declaration.
 	 * @param field the new parent declaration
 	 */
-	public void setParentDeclaration(C4Field field) {
+	public void setParentDeclaration(C4Declaration field) {
 		this.parentDeclaration = field;
 	}
 	
@@ -114,7 +118,7 @@ public abstract class C4Field implements Serializable, IHasRelatedResource  {
 	 * Returns the latest version of this declaration, obtaining it by searching for a declaration with its name in its parent declaration
 	 * @return The latest version of this declaration
 	 */
-	public C4Field latestVersion() {
+	public C4Declaration latestVersion() {
 		if (parentDeclaration != null)
 			parentDeclaration = parentDeclaration.latestVersion();
 		if (parentDeclaration instanceof C4Structure)
@@ -150,7 +154,7 @@ public abstract class C4Field implements Serializable, IHasRelatedResource  {
 		return getParentDeclaration() != null ? getParentDeclaration().getResource() : null;
 	}
 	
-	public C4Field getParentDeclaration() {
+	public C4Declaration getParentDeclaration() {
 		return parentDeclaration;
 	}
 	/**
@@ -158,7 +162,7 @@ public abstract class C4Field implements Serializable, IHasRelatedResource  {
 	 * Might return null if there are none.
 	 * @return The Iterable for iterating over sub declarations or null.
 	 */
-	public Iterable<C4Field> allSubDeclarations() {
+	public Iterable<C4Declaration> allSubDeclarations() {
 		return null;
 	}
 	
@@ -166,11 +170,11 @@ public abstract class C4Field implements Serializable, IHasRelatedResource  {
 	 * Called after deserialization to restore transient references
 	 * @param parent
 	 */
-	public void fixReferencesAfterSerialization(C4Field parent) {
+	public void fixReferencesAfterSerialization(C4Declaration parent) {
 		setParentDeclaration(parent);
-		Iterable<C4Field> subDecs = this.allSubDeclarations();
+		Iterable<C4Declaration> subDecs = this.allSubDeclarations();
 		if (subDecs != null)
-			for (C4Field d : subDecs)
+			for (C4Declaration d : subDecs)
 				d.fixReferencesAfterSerialization(this);
 	}
 	

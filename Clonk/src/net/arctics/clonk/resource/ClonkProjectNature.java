@@ -9,8 +9,8 @@ import java.io.ObjectOutputStream;
 import java.util.List;
 
 import net.arctics.clonk.ClonkCore;
-import net.arctics.clonk.parser.ClonkIndex;
-import net.arctics.clonk.parser.ProjectIndex;
+import net.arctics.clonk.index.ClonkIndex;
+import net.arctics.clonk.index.ProjectIndex;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;

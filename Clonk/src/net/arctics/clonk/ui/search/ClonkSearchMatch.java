@@ -1,6 +1,6 @@
 package net.arctics.clonk.ui.search;
 
-import net.arctics.clonk.parser.C4ScriptBase;
+import net.arctics.clonk.parser.c4script.C4ScriptBase;
 
 import org.eclipse.search.ui.text.Match;
 

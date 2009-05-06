@@ -11,22 +11,16 @@ import java.util.Set;
 import java.util.Vector;
 
 import net.arctics.clonk.ClonkCore;
+import net.arctics.clonk.index.ClonkIndex;
 import net.arctics.clonk.parser.BufferedScanner;
-import net.arctics.clonk.parser.C4Directive;
-import net.arctics.clonk.parser.C4Field;
-import net.arctics.clonk.parser.C4Function;
+import net.arctics.clonk.parser.C4Declaration;
 import net.arctics.clonk.parser.C4ID;
-import net.arctics.clonk.parser.C4Object;
-import net.arctics.clonk.parser.C4ScriptBase;
-import net.arctics.clonk.parser.C4Type;
-import net.arctics.clonk.parser.C4Variable;
-import net.arctics.clonk.parser.ClonkIndex;
 import net.arctics.clonk.parser.SimpleScriptStorage;
 import net.arctics.clonk.parser.SourceLocation;
-import net.arctics.clonk.parser.C4Directive.C4DirectiveType;
-import net.arctics.clonk.parser.C4Function.C4FunctionScope;
-import net.arctics.clonk.parser.C4Variable.C4VariableScope;
+import net.arctics.clonk.parser.c4script.C4Directive.C4DirectiveType;
+import net.arctics.clonk.parser.c4script.C4Function.C4FunctionScope;
 import net.arctics.clonk.parser.c4script.C4ScriptExprTree.*;
+import net.arctics.clonk.parser.c4script.C4Variable.C4VariableScope;
 import net.arctics.clonk.util.Pair;
 import net.arctics.clonk.util.Utilities;
 
@@ -592,7 +586,7 @@ public class C4ScriptParser {
 		case VAR_VAR:
 			return activeFunc.findVariable(name);
 		case VAR_CONST: case VAR_STATIC:
-			C4Field globalField = getContainer().getIndex().findGlobalDeclaration(name);
+			C4Declaration globalField = getContainer().getIndex().findGlobalDeclaration(name);
 			if (globalField instanceof C4Variable)
 				return (C4Variable) globalField;
 			return null;

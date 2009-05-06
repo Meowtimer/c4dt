@@ -1,4 +1,8 @@
-package net.arctics.clonk.parser;
+package net.arctics.clonk.index;
+
+import net.arctics.clonk.parser.c4script.C4Object;
+import net.arctics.clonk.parser.c4script.C4ScriptBase;
+import net.arctics.clonk.parser.c4script.C4ScriptIntern;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;

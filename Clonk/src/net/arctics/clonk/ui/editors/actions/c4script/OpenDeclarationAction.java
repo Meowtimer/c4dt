@@ -2,7 +2,7 @@ package net.arctics.clonk.ui.editors.actions.c4script;
 
 import java.util.ResourceBundle;
 
-import net.arctics.clonk.parser.C4Field;
+import net.arctics.clonk.parser.C4Declaration;
 import net.arctics.clonk.parser.c4script.C4ScriptParser.ParsingException;
 import net.arctics.clonk.ui.editors.ClonkCommandIds;
 import net.arctics.clonk.ui.editors.c4script.C4ScriptEditor;
@@ -23,7 +23,7 @@ public class OpenDeclarationAction extends TextEditorAction {
 		this.setActionDefinitionId(ClonkCommandIds.OPEN_DECLARATION);
 	}
 	
-	protected C4Field getFieldAtSelection() throws BadLocationException, ParsingException {
+	protected C4Declaration getFieldAtSelection() throws BadLocationException, ParsingException {
 		ITextSelection selection = (ITextSelection) getTextEditor().getSelectionProvider().getSelection();
 		IRegion r = new Region(selection.getOffset(), selection.getLength());
 		IdentInfo info = new IdentInfo(
@@ -37,7 +37,7 @@ public class OpenDeclarationAction extends TextEditorAction {
 	@Override
 	public void run() {
 		try {
-			C4Field field = getFieldAtSelection();
+			C4Declaration field = getFieldAtSelection();
 			if (field != null)
 				C4ScriptEditor.openDeclaration(field);
 		} catch (Exception e) {

@@ -1,4 +1,6 @@
-package net.arctics.clonk.parser;
+package net.arctics.clonk.index;
+
+import net.arctics.clonk.parser.C4ID;
 
 import org.eclipse.core.resources.IContainer;
 

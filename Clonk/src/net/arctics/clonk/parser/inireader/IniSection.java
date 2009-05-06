@@ -8,14 +8,14 @@ import java.util.Map;
 
 import org.eclipse.core.runtime.IPath;
 
-import net.arctics.clonk.parser.C4Field;
+import net.arctics.clonk.parser.C4Declaration;
 import net.arctics.clonk.parser.SourceLocation;
 import net.arctics.clonk.parser.inireader.IniData.IniSectionData;
 import net.arctics.clonk.util.IHasChildren;
 import net.arctics.clonk.util.IHasKeyAndValue;
 import net.arctics.clonk.util.ITreeNode;
 
-public class IniSection extends C4Field implements IHasKeyAndValue<String, String>, IHasChildren, ITreeNode {
+public class IniSection extends C4Declaration implements IHasKeyAndValue<String, String>, IHasChildren, ITreeNode {
 	
 	private static final long serialVersionUID = 1L;
 	

@@ -1,8 +1,9 @@
-package net.arctics.clonk.parser;
+package net.arctics.clonk.parser.c4script;
 
 import java.io.Serializable;
 
 import net.arctics.clonk.ClonkCore;
+import net.arctics.clonk.index.ClonkIndex;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.util.Utilities;
 

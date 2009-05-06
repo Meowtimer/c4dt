@@ -3,8 +3,8 @@ package net.arctics.clonk.parser.inireader;
 import java.io.InputStream;
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.C4ID;
-import net.arctics.clonk.parser.C4Object;
-import net.arctics.clonk.parser.C4ScriptBase;
+import net.arctics.clonk.parser.c4script.C4Object;
+import net.arctics.clonk.parser.c4script.C4ScriptBase;
 import net.arctics.clonk.parser.inireader.IniData.IniConfiguration;
 
 import org.eclipse.core.resources.IFile;

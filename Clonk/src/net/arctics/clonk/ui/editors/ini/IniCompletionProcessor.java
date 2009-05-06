@@ -4,15 +4,14 @@ import java.util.Collection;
 import java.util.LinkedList;
 import java.util.regex.Matcher;
 import net.arctics.clonk.ClonkCore;
-import net.arctics.clonk.parser.C4Function;
+import net.arctics.clonk.index.C4ObjectIntern;
 import net.arctics.clonk.parser.C4ID;
-import net.arctics.clonk.parser.C4ObjectIntern;
-import net.arctics.clonk.parser.C4ScriptBase;
+import net.arctics.clonk.parser.c4script.C4Function;
+import net.arctics.clonk.parser.c4script.C4ScriptBase;
 import net.arctics.clonk.parser.inireader.Boolean;
 import net.arctics.clonk.parser.inireader.Function;
 import net.arctics.clonk.parser.inireader.IDArray;
 import net.arctics.clonk.parser.inireader.IniSection;
-import net.arctics.clonk.parser.inireader.IniUnit;
 import net.arctics.clonk.parser.inireader.SignedInteger;
 import net.arctics.clonk.parser.inireader.UnsignedInteger;
 import net.arctics.clonk.parser.inireader.IniData.IniDataEntry;
@@ -40,7 +39,6 @@ import org.eclipse.ui.texteditor.ITextEditor;
  */
 public class IniCompletionProcessor extends ClonkCompletionProcessor implements ICompletionListener {
 	
-	private IniUnit unit;
 	private IniSection section;
 	
 	public IniCompletionProcessor(ITextEditor editor, ContentAssistant assistant) {
@@ -80,7 +78,7 @@ public class IniCompletionProcessor extends ClonkCompletionProcessor implements 
 		}
 		prefix = prefix.toLowerCase();
 		
-		section = unit.sectionAtOffset(lineStart, line.length());
+		section = getEditor().getIniUnit().sectionAtOffset(lineStart, line.length());
 
 		if (!assignment) {
 			if (section != null) {
@@ -117,6 +115,10 @@ public class IniCompletionProcessor extends ClonkCompletionProcessor implements 
 		}
 		
 		return sortProposals(proposals.toArray(new ICompletionProposal[proposals.size()]));
+	}
+
+	private IniTextEditor getEditor() {
+		return (IniTextEditor) editor;
 	}
 
 	private void proposalsForSection(Collection<ICompletionProposal> proposals,
@@ -189,13 +191,12 @@ public class IniCompletionProcessor extends ClonkCompletionProcessor implements 
 	}
 
 	public void assistSessionEnded(ContentAssistEvent event) {
-		unit = null;
+		
 	}
 
 	public void assistSessionStarted(ContentAssistEvent event) {
 		try {
-			unit = Utilities.createAdequateIniUnit(Utilities.getEditingFile(editor), editor.getDocumentProvider().getDocument(editor.getEditorInput()).get());
-			unit.parse();
+			getEditor().forgetUnitParsed();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

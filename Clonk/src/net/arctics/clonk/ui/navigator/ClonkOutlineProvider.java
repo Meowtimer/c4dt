@@ -3,10 +3,10 @@
  */
 package net.arctics.clonk.ui.navigator;
 
-import net.arctics.clonk.parser.C4Field;
-import net.arctics.clonk.parser.C4Function;
-import net.arctics.clonk.parser.C4Type;
-import net.arctics.clonk.parser.C4Variable;
+import net.arctics.clonk.parser.C4Declaration;
+import net.arctics.clonk.parser.c4script.C4Function;
+import net.arctics.clonk.parser.c4script.C4Type;
+import net.arctics.clonk.parser.c4script.C4Variable;
 import net.arctics.clonk.util.Utilities;
 
 import org.eclipse.jface.viewers.ITreeContentProvider;
@@ -30,8 +30,8 @@ public class ClonkOutlineProvider extends LabelProvider implements ITreeContentP
 	 * @see org.eclipse.jface.viewers.ITreeContentProvider#getChildren(java.lang.Object)
 	 */
 	public Object[] getChildren(Object obj) {
-		if (obj instanceof C4Field)
-			return ((C4Field)obj).getSubDeclarationsForOutline();
+		if (obj instanceof C4Declaration)
+			return ((C4Declaration)obj).getSubDeclarationsForOutline();
 		return null;
 	}
 
@@ -47,7 +47,7 @@ public class ClonkOutlineProvider extends LabelProvider implements ITreeContentP
 	 * @see org.eclipse.jface.viewers.ITreeContentProvider#hasChildren(java.lang.Object)
 	 */
 	public boolean hasChildren(Object dec) {
-		return dec instanceof C4Field && ((C4Field)dec).hasSubDeclarationsInOutline();
+		return dec instanceof C4Declaration && ((C4Declaration)dec).hasSubDeclarationsInOutline();
 	}
 
 	/* (non-Javadoc)

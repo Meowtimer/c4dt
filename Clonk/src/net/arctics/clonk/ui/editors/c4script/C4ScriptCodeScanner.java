@@ -7,8 +7,8 @@ import java.util.Map;
 
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.BuiltInDefinitions;
-import net.arctics.clonk.parser.C4Function;
-import net.arctics.clonk.parser.C4Type;
+import net.arctics.clonk.parser.c4script.C4Function;
+import net.arctics.clonk.parser.c4script.C4Type;
 import net.arctics.clonk.ui.editors.WordScanner;
 
 import org.eclipse.jface.text.rules.*;

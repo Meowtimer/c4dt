@@ -3,16 +3,14 @@ package net.arctics.clonk.parser.c4script;
 import java.util.HashSet;
 import java.util.Set;
 
-import net.arctics.clonk.parser.C4Field;
-import net.arctics.clonk.parser.C4Function;
-import net.arctics.clonk.parser.C4ScriptBase;
-import net.arctics.clonk.parser.ClonkIndex;
+import net.arctics.clonk.index.ClonkIndex;
+import net.arctics.clonk.parser.C4Declaration;
 
 
 public class FindDeclarationInfo {
 	public  ClonkIndex index;
 	public int recursion;
-	public Class<? extends C4Field> declarationClass;
+	public Class<? extends C4Declaration> declarationClass;
 	private C4Function contextFunction;
 	private Set<C4ScriptBase> alreadySearched;
 	private C4ScriptBase searchOrigin;
@@ -26,10 +24,10 @@ public class FindDeclarationInfo {
 		this(clonkIndex);
 		setContextFunction(ctx);
 	}
-	public Class<? extends C4Field> getDeclarationClass() {
+	public Class<? extends C4Declaration> getDeclarationClass() {
 		return declarationClass;
 	}
-	public void setDeclarationClass(Class<?extends C4Field> declarationClass) {
+	public void setDeclarationClass(Class<?extends C4Declaration> declarationClass) {
 		this.declarationClass = declarationClass;
 	}
 	public void setContextFunction(C4Function ctx) {

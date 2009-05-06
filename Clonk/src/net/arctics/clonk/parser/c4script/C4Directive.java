@@ -1,10 +1,12 @@
-package net.arctics.clonk.parser;
+package net.arctics.clonk.parser.c4script;
 
 import java.io.Serializable;
 
+import net.arctics.clonk.parser.C4Declaration;
+import net.arctics.clonk.parser.C4ID;
 import net.arctics.clonk.parser.c4script.C4ScriptExprTree.ExprElm;
 
-public class C4Directive extends C4Field implements Serializable {
+public class C4Directive extends C4Declaration implements Serializable {
 	/**
 	 * 
 	 */

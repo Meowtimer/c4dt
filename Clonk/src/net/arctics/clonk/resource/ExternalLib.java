@@ -3,7 +3,7 @@
  */
 package net.arctics.clonk.resource;
 
-import net.arctics.clonk.parser.C4ObjectExternGroup;
+import net.arctics.clonk.index.C4ObjectExternGroup;
 import net.arctics.clonk.util.ITreeNode;
 
 /**

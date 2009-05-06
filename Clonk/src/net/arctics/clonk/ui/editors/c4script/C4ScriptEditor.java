@@ -6,9 +6,9 @@ import java.io.InputStream;
 import java.util.ResourceBundle;
 
 import net.arctics.clonk.ClonkCore;
-import net.arctics.clonk.parser.C4Field;
-import net.arctics.clonk.parser.C4Function;
-import net.arctics.clonk.parser.C4ScriptBase;
+import net.arctics.clonk.parser.C4Declaration;
+import net.arctics.clonk.parser.c4script.C4Function;
+import net.arctics.clonk.parser.c4script.C4ScriptBase;
 import net.arctics.clonk.parser.c4script.C4ScriptExprTree;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.C4ScriptParser.ParsingException;
@@ -199,7 +199,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 	}
 	
 	@Override
-	public C4Field getTopLevelDeclaration() {
+	public C4Declaration getTopLevelDeclaration() {
 		return Utilities.getScriptForEditor(this);
 	}
 

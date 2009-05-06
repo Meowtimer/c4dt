@@ -1,4 +1,4 @@
-package net.arctics.clonk.parser;
+package net.arctics.clonk.parser.c4script;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -8,7 +8,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import net.arctics.clonk.ClonkCore;
-import net.arctics.clonk.parser.c4script.FindDeclarationInfo;
+import net.arctics.clonk.index.ClonkIndex;
+import net.arctics.clonk.parser.C4ID;
 import net.arctics.clonk.preferences.PreferenceConstants;
 
 import org.eclipse.core.runtime.Platform;

@@ -1,6 +1,6 @@
 package net.arctics.clonk.ui.navigator;
 
-import net.arctics.clonk.parser.C4Field;
+import net.arctics.clonk.parser.C4Declaration;
 import net.arctics.clonk.ui.editors.ClonkTextEditor;
 import net.arctics.clonk.ui.editors.c4script.ScriptWithStorageEditorInput;
 
@@ -19,8 +19,8 @@ public class LinkHelper implements ILinkHelper {
 	public void activateEditor(IWorkbenchPage page,
 			IStructuredSelection selection) {
 		try {
-			if (selection.getFirstElement() instanceof C4Field) {
-				C4Field dec = (C4Field) selection.getFirstElement();
+			if (selection.getFirstElement() instanceof C4Declaration) {
+				C4Declaration dec = (C4Declaration) selection.getFirstElement();
 				IWorkbenchPage wpage = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
 				IResource res = dec.getResource();
 				if (res instanceof IFile && wpage.findEditor(new FileEditorInput((IFile) res)) != null)

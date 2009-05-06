@@ -4,8 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import net.arctics.clonk.ClonkCore;
-import net.arctics.clonk.parser.C4Variable;
-import net.arctics.clonk.parser.C4Variable.C4VariableScope;
+import net.arctics.clonk.parser.c4script.C4Variable;
+import net.arctics.clonk.parser.c4script.C4Variable.C4VariableScope;
 import net.arctics.clonk.ui.editors.WordScanner;
 import net.arctics.clonk.ui.editors.c4script.ClonkWhitespaceDetector;
 import net.arctics.clonk.ui.editors.c4script.ColorManager;

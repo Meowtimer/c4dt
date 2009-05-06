@@ -1,11 +1,13 @@
-package net.arctics.clonk.parser;
+package net.arctics.clonk.parser.c4script;
 
 import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Set;
 
 import net.arctics.clonk.ClonkCore;
-import net.arctics.clonk.parser.c4script.C4ScriptParser;
+import net.arctics.clonk.index.C4ObjectIntern;
+import net.arctics.clonk.index.ClonkIndex;
+import net.arctics.clonk.parser.C4Declaration;
 import net.arctics.clonk.parser.c4script.C4ScriptExprTree.ExprElm;
 import net.arctics.clonk.parser.c4script.C4ScriptParser.Keywords;
 import net.arctics.clonk.resource.ClonkProjectNature;
@@ -15,7 +17,7 @@ import net.arctics.clonk.resource.ClonkProjectNature;
  * @author ZokRadonh
  *
  */
-public class C4Variable extends C4Field implements Serializable, ITypedField {
+public class C4Variable extends C4Declaration implements Serializable, ITypedDeclaration {
 
 	private static final long serialVersionUID = -2350345359769750230L;
 	private C4VariableScope scope;
@@ -59,7 +61,7 @@ public class C4Variable extends C4Field implements Serializable, ITypedField {
 	}
 	
 	@Override
-	public C4Field latestVersion() {
+	public C4Declaration latestVersion() {
 		if (parentDeclaration instanceof C4Structure)
 			return ((C4Structure)parentDeclaration).findVariable(getName());
 		return super.latestVersion();
@@ -208,13 +210,13 @@ public class C4Variable extends C4Field implements Serializable, ITypedField {
 	public void inferTypeFromAssignment(ExprElm val, C4ScriptParser context) {
 		if (typeLocked)
 			return;
-		ITypedField.Default.inferTypeFromAssignment(this, val, context);
+		ITypedDeclaration.Default.inferTypeFromAssignment(this, val, context);
 	}
 	
 	public void expectedToBeOfType(C4Type t) {
 		// engine objects should not be altered
 		if (!typeLocked && getScript() != ClonkCore.getDefault().ENGINE_OBJECT)
-			ITypedField.Default.expectedToBeOfType(this, t);
+			ITypedDeclaration.Default.expectedToBeOfType(this, t);
 	}
 
 	public boolean isByRef() {

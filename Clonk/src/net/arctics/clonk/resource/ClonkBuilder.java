@@ -5,12 +5,12 @@ import java.util.HashMap;
 import java.util.Map;
 
 import net.arctics.clonk.ClonkCore;
-import net.arctics.clonk.parser.C4Object;
-import net.arctics.clonk.parser.C4ObjectIntern;
-import net.arctics.clonk.parser.C4ObjectParser;
-import net.arctics.clonk.parser.C4ScriptBase;
-import net.arctics.clonk.parser.C4ScriptIntern;
-import net.arctics.clonk.parser.ClonkIndex;
+import net.arctics.clonk.index.C4ObjectIntern;
+import net.arctics.clonk.index.C4ObjectParser;
+import net.arctics.clonk.index.ClonkIndex;
+import net.arctics.clonk.parser.c4script.C4Object;
+import net.arctics.clonk.parser.c4script.C4ScriptBase;
+import net.arctics.clonk.parser.c4script.C4ScriptIntern;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.C4ScriptParser.ParsingException;
 import net.arctics.clonk.parser.inireader.IniUnit;

@@ -3,7 +3,8 @@ package net.arctics.clonk.ui.navigator;
 import java.io.File;
 import java.io.FilenameFilter;
 import java.util.Collection;
-import net.arctics.clonk.parser.C4ScriptBase;
+
+import net.arctics.clonk.parser.c4script.C4ScriptBase;
 import net.arctics.clonk.parser.inireader.IniUnit;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.util.ITreeNode;

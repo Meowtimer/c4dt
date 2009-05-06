@@ -1,7 +1,7 @@
 package net.arctics.clonk.ui.search;
 
-import net.arctics.clonk.parser.C4ObjectIntern;
-import net.arctics.clonk.parser.C4ScriptIntern;
+import net.arctics.clonk.index.C4ObjectIntern;
+import net.arctics.clonk.parser.c4script.C4ScriptIntern;
 import net.arctics.clonk.util.Icons;
 import org.eclipse.jface.viewers.LabelProvider;
 import org.eclipse.jface.viewers.StyledString;

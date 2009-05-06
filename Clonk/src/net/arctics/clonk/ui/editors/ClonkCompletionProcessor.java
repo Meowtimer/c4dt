@@ -4,10 +4,10 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
 
-import net.arctics.clonk.parser.C4Function;
-import net.arctics.clonk.parser.C4Object;
-import net.arctics.clonk.parser.C4ObjectIntern;
-import net.arctics.clonk.parser.ClonkIndex;
+import net.arctics.clonk.index.C4ObjectIntern;
+import net.arctics.clonk.index.ClonkIndex;
+import net.arctics.clonk.parser.c4script.C4Function;
+import net.arctics.clonk.parser.c4script.C4Object;
 import net.arctics.clonk.util.Utilities;
 
 import org.eclipse.jface.text.contentassist.ContextInformation;

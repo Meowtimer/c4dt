@@ -1,9 +1,9 @@
-package net.arctics.clonk.parser;
+package net.arctics.clonk.parser.c4script;
 
-import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.C4ScriptExprTree.ExprElm;
 
-public interface ITypedField {
+
+public interface ITypedDeclaration {
 	public void inferTypeFromAssignment(ExprElm val, C4ScriptParser context);
 	public void expectedToBeOfType(C4Type t);
 	public C4Type getType();
@@ -13,7 +13,7 @@ public interface ITypedField {
 	
 	// interfaces should allow default implementations -.-
 	public abstract static class Default {
-		public static void expectedToBeOfType(ITypedField instance, C4Type type) {
+		public static void expectedToBeOfType(ITypedDeclaration instance, C4Type type) {
 			if (instance.getType() == C4Type.UNKNOWN)
 				// unknown before so now it is assumed to be of this type
 				instance.setType(type);
@@ -21,7 +21,7 @@ public interface ITypedField {
 				// assignments of multiple types - can be anything
 				instance.setType(C4Type.ANY);
 		}
-		public static void inferTypeFromAssignment(ITypedField instance, ExprElm val, C4ScriptParser context) {
+		public static void inferTypeFromAssignment(ITypedDeclaration instance, ExprElm val, C4ScriptParser context) {
 			instance.setExpectedContent(val.guessObjectType(context));
 			instance.expectedToBeOfType(val.getType());
 		}

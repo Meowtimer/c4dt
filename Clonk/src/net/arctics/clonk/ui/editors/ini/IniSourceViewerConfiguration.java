@@ -3,10 +3,10 @@ package net.arctics.clonk.ui.editors.ini;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import net.arctics.clonk.parser.C4Field;
+import net.arctics.clonk.index.C4ObjectIntern;
+import net.arctics.clonk.index.ClonkIndex;
+import net.arctics.clonk.parser.C4Declaration;
 import net.arctics.clonk.parser.C4ID;
-import net.arctics.clonk.parser.C4ObjectIntern;
-import net.arctics.clonk.parser.ClonkIndex;
 import net.arctics.clonk.parser.inireader.Function;
 import net.arctics.clonk.parser.inireader.IniSection;
 import net.arctics.clonk.parser.inireader.IniData.IniDataEntry;
@@ -83,7 +83,7 @@ public class IniSourceViewerConfiguration extends
 							IniDataEntry entry = section.getSectionData().getEntry(attrib);
 							if (entry != null) {
 								Class<?> entryClass = entry.getEntryClass();
-								C4Field declaration = null;
+								C4Declaration declaration = null;
 								if (entryClass == C4ID.class) {
 									IResource r = Utilities.getEditingFile(getEditor());
 									ClonkIndex index = Utilities.getIndex(r);

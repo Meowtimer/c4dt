@@ -8,12 +8,12 @@ import java.util.Collection;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.jface.text.IRegion;
 
-import net.arctics.clonk.parser.C4Field;
+import net.arctics.clonk.parser.C4Declaration;
 import net.arctics.clonk.parser.SourceLocation;
 import net.arctics.clonk.util.IHasKeyAndValue;
 import net.arctics.clonk.util.ITreeNode;
 
-public class IniEntry extends C4Field implements IHasKeyAndValue<String, String>, IRegion, ITreeNode {
+public class IniEntry extends C4Declaration implements IHasKeyAndValue<String, String>, IRegion, ITreeNode {
 
 	private static final long serialVersionUID = 1L;
 	

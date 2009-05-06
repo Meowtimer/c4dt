@@ -1,6 +1,6 @@
 package net.arctics.clonk.ui.editors.c4script;
 
-import net.arctics.clonk.parser.C4Field;
+import net.arctics.clonk.parser.C4Declaration;
 import net.arctics.clonk.ui.editors.ClonkTextEditor;
 import net.arctics.clonk.ui.navigator.ClonkOutlineProvider;
 import org.eclipse.jface.viewers.IStructuredSelection;
@@ -22,14 +22,14 @@ public class ClonkContentOutlinePage extends ContentOutlinePage {
 	public void createControl(Composite parent) {
 		super.createControl(parent);
 		if (editor != null) {
-			C4Field topLevelDeclaration = getEditor().getTopLevelDeclaration();
+			C4Declaration topLevelDeclaration = getEditor().getTopLevelDeclaration();
 			if (topLevelDeclaration != null) {
 				setTreeViewerInput(topLevelDeclaration);
 			}
 		}
 	}
 
-	private void setTreeViewerInput(C4Field obj) {
+	private void setTreeViewerInput(C4Declaration obj) {
 		TreeViewer treeViewer = this.getTreeViewer();
 		if (treeViewer == null)
 			return;
@@ -40,7 +40,7 @@ public class ClonkContentOutlinePage extends ContentOutlinePage {
 		treeViewer.setSorter(new ViewerSorter() {
 			@Override
 			public int category(Object element) {
-				return ((C4Field)element).sortCategory();
+				return ((C4Declaration)element).sortCategory();
 			}
 		});
 		treeViewer.refresh();
@@ -51,7 +51,7 @@ public class ClonkContentOutlinePage extends ContentOutlinePage {
 		if (event.getSelection().isEmpty()) {
 			return;
 		} else if (event.getSelection() instanceof IStructuredSelection) {
-			editor.selectAndReveal(((C4Field)((IStructuredSelection)event.getSelection()).getFirstElement()).getLocation());
+			editor.selectAndReveal(((C4Declaration)((IStructuredSelection)event.getSelection()).getFirstElement()).getLocation());
 		}
 	}
 
@@ -76,7 +76,7 @@ public class ClonkContentOutlinePage extends ContentOutlinePage {
 			getTreeViewer().refresh();
 	}
 	
-	public void select(C4Field field) {
+	public void select(C4Declaration field) {
 		TreeViewer viewer = getTreeViewer();
 		viewer.removeSelectionChangedListener(this);
 		try {

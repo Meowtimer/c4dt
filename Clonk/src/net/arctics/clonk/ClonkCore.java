@@ -9,9 +9,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+
+import net.arctics.clonk.index.ExternIndex;
 import net.arctics.clonk.parser.C4ID;
-import net.arctics.clonk.parser.C4ObjectExtern;
-import net.arctics.clonk.parser.ExternIndex;
+import net.arctics.clonk.parser.c4script.C4ObjectExtern;
 import net.arctics.clonk.parser.inireader.IniData;
 import net.arctics.clonk.resource.ClonkLibBuilder;
 import net.arctics.clonk.resource.ClonkProjectNature;
@@ -150,6 +151,7 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant {
 		}
 		try {
 			try {
+//				throw new Exception("ugh");
 				ObjectInputStream objStream = new InputStreamRespectingUniqueIDs(engineStream);
 				ENGINE_OBJECT = (C4ObjectExtern)objStream.readObject();
 				ENGINE_OBJECT.fixReferencesAfterSerialization(null);

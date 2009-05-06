@@ -1,4 +1,4 @@
-package net.arctics.clonk.parser;
+package net.arctics.clonk.index;
 
 import java.util.ArrayList;
 import java.util.List;

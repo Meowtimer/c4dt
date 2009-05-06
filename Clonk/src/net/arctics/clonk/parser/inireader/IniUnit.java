@@ -9,9 +9,9 @@ import java.util.List;
 import java.util.Map;
 
 import net.arctics.clonk.parser.BufferedScanner;
-import net.arctics.clonk.parser.C4Field;
-import net.arctics.clonk.parser.C4ScriptBase;
+import net.arctics.clonk.parser.C4Declaration;
 import net.arctics.clonk.parser.SourceLocation;
+import net.arctics.clonk.parser.c4script.C4ScriptBase;
 import net.arctics.clonk.parser.inireader.IniData.IniConfiguration;
 import net.arctics.clonk.parser.inireader.IniData.IniDataEntry;
 import net.arctics.clonk.parser.inireader.IniData.IniSectionData;
@@ -27,7 +27,7 @@ import org.eclipse.core.runtime.IPath;
 /**
  * Reads Windows ini style configuration files
  */
-public class IniUnit extends C4Field implements Iterable<IniSection>, IHasChildren, ITreeNode {
+public class IniUnit extends C4Declaration implements Iterable<IniSection>, IHasChildren, ITreeNode {
 
 	private static final long serialVersionUID = 1L;
 

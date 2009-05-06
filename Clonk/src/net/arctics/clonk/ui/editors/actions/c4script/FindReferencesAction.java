@@ -2,7 +2,7 @@ package net.arctics.clonk.ui.editors.actions.c4script;
 
 import java.util.ResourceBundle;
 
-import net.arctics.clonk.parser.C4Field;
+import net.arctics.clonk.parser.C4Declaration;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.ui.editors.ClonkCommandIds;
 import net.arctics.clonk.ui.search.ClonkSearchQuery;
@@ -23,7 +23,7 @@ public class FindReferencesAction extends OpenDeclarationAction {
 	@Override
 	public void run() {
 		try {
-			C4Field field = getFieldAtSelection();
+			C4Declaration field = getFieldAtSelection();
 			if (field != null) {
 				ClonkProjectNature nature = Utilities.getProject(field.getScript());				
 				if (nature == null) {

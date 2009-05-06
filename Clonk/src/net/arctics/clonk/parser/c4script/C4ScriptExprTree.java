@@ -5,19 +5,13 @@ import java.util.LinkedList;
 import java.util.List;
 
 import net.arctics.clonk.ClonkCore;
-import net.arctics.clonk.parser.C4Field;
-import net.arctics.clonk.parser.C4Function;
+import net.arctics.clonk.index.C4Scenario;
+import net.arctics.clonk.index.ClonkIndex;
+import net.arctics.clonk.parser.C4Declaration;
 import net.arctics.clonk.parser.C4ID;
-import net.arctics.clonk.parser.C4Object;
-import net.arctics.clonk.parser.C4Scenario;
-import net.arctics.clonk.parser.C4ScriptBase;
-import net.arctics.clonk.parser.C4Type;
-import net.arctics.clonk.parser.C4Variable;
-import net.arctics.clonk.parser.ClonkIndex;
-import net.arctics.clonk.parser.ITypedField;
-import net.arctics.clonk.parser.C4Variable.C4VariableScope;
 import net.arctics.clonk.parser.c4script.C4ScriptParser.Keywords;
 import net.arctics.clonk.parser.c4script.C4ScriptParser.ParsingException;
+import net.arctics.clonk.parser.c4script.C4Variable.C4VariableScope;
 import net.arctics.clonk.util.Pair;
 
 import org.eclipse.jface.text.IRegion;
@@ -40,12 +34,12 @@ public abstract class C4ScriptExprTree {
 	}
 	
 	public final static class DeclarationRegion {
-		private C4Field declaration;
+		private C4Declaration declaration;
 		private IRegion region;
-		public C4Field getDeclaration() {
+		public C4Declaration getDeclaration() {
 			return declaration;
 		}
-		public DeclarationRegion(C4Field declaration, IRegion region) {
+		public DeclarationRegion(C4Declaration declaration, IRegion region) {
 			super();
 			this.declaration = declaration;
 			this.region = region;
@@ -478,11 +472,11 @@ public abstract class C4ScriptExprTree {
 	}
 
 	public static abstract class ExprAccessField extends ExprValue {
-		protected C4Field field;
+		protected C4Declaration field;
 		private boolean fieldNotFound = false;
 		protected final String fieldName;
 		
-		public C4Field getField(C4ScriptParser parser) {
+		public C4Declaration getField(C4ScriptParser parser) {
 			if (field == null && !fieldNotFound) {
 				field = getFieldImpl(parser);
 				fieldNotFound = field == null;
@@ -490,11 +484,11 @@ public abstract class C4ScriptExprTree {
 			return field;
 		}
 		
-		public C4Field getField() {
+		public C4Declaration getField() {
 			return field; // return without trying to obtain it (no parser context)
 		}
 		
-		protected abstract C4Field getFieldImpl(C4ScriptParser parser);
+		protected abstract C4Declaration getFieldImpl(C4ScriptParser parser);
 
 		@Override
 		public void reportErrors(C4ScriptParser parser) throws ParsingException {
@@ -565,7 +559,7 @@ public abstract class C4ScriptExprTree {
 		}
 
 		@Override
-		protected C4Field getFieldImpl(C4ScriptParser parser) {
+		protected C4Declaration getFieldImpl(C4ScriptParser parser) {
 			FindDeclarationInfo info = new FindDeclarationInfo(parser.getContainer().getIndex());
 			info.setContextFunction(parser.getActiveFunc());
 			info.setSearchOrigin(parser.getContainer());
@@ -632,7 +626,7 @@ public abstract class C4ScriptExprTree {
 			return super.isValidInSequence(elm) || elm instanceof ExprObjectCall;	
 		}
 		@Override
-		protected C4Field getFieldImpl(C4ScriptParser parser) {
+		protected C4Declaration getFieldImpl(C4ScriptParser parser) {
 			if (fieldName.equals(Keywords.Return))
 				return null;
 			if (fieldName.equals(Keywords.Inherited) || fieldName.equals(Keywords.SafeInherited)) {
@@ -643,14 +637,14 @@ public abstract class C4ScriptExprTree {
 			if (lookIn != null) {
 				FindDeclarationInfo info = new FindDeclarationInfo(parser.getContainer().getIndex());
 				info.setSearchOrigin(parser.getContainer());
-				C4Field field = lookIn.findFunction(fieldName, info);
+				C4Declaration field = lookIn.findFunction(fieldName, info);
 				// might be a variable called as a function (not after '->')
 				if (field == null && p == null)
 					field = lookIn.findVariable(fieldName, info);
 				return field;
 			} else if (p != null) {
 				// find global function
-				C4Field field = parser.getContainer().getIndex().findGlobalFunction(fieldName);
+				C4Declaration field = parser.getContainer().getIndex().findGlobalFunction(fieldName);
 				if (field == null)
 					field = ClonkCore.getDefault().EXTERN_INDEX.findGlobalDeclaration(fieldName);
 				if (field == null)
@@ -735,8 +729,8 @@ public abstract class C4ScriptExprTree {
 			else if (fieldName.equals("GetID") && params.length == 0) {
 				return getPredecessorInSequence() == null ? parser.getContainerObject() : getPredecessorInSequence().guessObjectType(parser);
 			}
-			if (field instanceof ITypedField) {
-				C4Object obj = ((ITypedField)field).getExpectedContent();
+			if (field instanceof ITypedDeclaration) {
+				C4Object obj = ((ITypedDeclaration)field).getExpectedContent();
 				if (obj != null)
 					return obj;
 			}

@@ -5,7 +5,7 @@ package net.arctics.clonk.ui.editors.ini;
 
 import java.util.ResourceBundle;
 
-import net.arctics.clonk.parser.C4Field;
+import net.arctics.clonk.parser.C4Declaration;
 import net.arctics.clonk.parser.inireader.IniUnit;
 import net.arctics.clonk.ui.editors.ClonkTextEditor;
 import net.arctics.clonk.ui.editors.c4script.ColorManager;
@@ -70,7 +70,7 @@ public class IniTextEditor extends ClonkTextEditor {
 	}
 	
 	@Override
-	public C4Field getTopLevelDeclaration() {
+	public C4Declaration getTopLevelDeclaration() {
 		return getIniUnit(); 
 	}
 

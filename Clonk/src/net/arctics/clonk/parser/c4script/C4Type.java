@@ -1,4 +1,4 @@
-package net.arctics.clonk.parser;
+package net.arctics.clonk.parser.c4script;
 
 /**
  * The engine predefined variable types.

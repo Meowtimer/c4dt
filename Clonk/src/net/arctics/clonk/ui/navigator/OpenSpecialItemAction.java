@@ -1,6 +1,6 @@
 package net.arctics.clonk.ui.navigator;
 
-import net.arctics.clonk.parser.C4Field;
+import net.arctics.clonk.parser.C4Declaration;
 import net.arctics.clonk.ui.editors.c4script.C4ScriptEditor;
 
 import org.eclipse.jface.action.Action;
@@ -25,7 +25,7 @@ public class OpenSpecialItemAction extends Action {
 		if(!selection.isEmpty()) {
 			final IStructuredSelection sSelection = (IStructuredSelection) selection;
 			for (Object o : sSelection.toArray()) {
-				if (!(o instanceof C4Field))
+				if (!(o instanceof C4Declaration))
 					return false;
 			}
 			return true;
@@ -37,7 +37,7 @@ public class OpenSpecialItemAction extends Action {
 	public void run() {
 		for (Object o : ((IStructuredSelection)provider.getSelection()).toArray()) {
 			try {
-				C4ScriptEditor.openDeclaration((C4Field)o);
+				C4ScriptEditor.openDeclaration((C4Declaration)o);
 			} catch (Exception e) {
 				e.printStackTrace();
 			}

@@ -3,10 +3,10 @@ package net.arctics.clonk.ui.editors;
 import java.io.IOException;
 
 import net.arctics.clonk.ClonkCore;
-import net.arctics.clonk.parser.C4Field;
-import net.arctics.clonk.parser.C4ObjectIntern;
-import net.arctics.clonk.parser.C4ScriptBase;
+import net.arctics.clonk.index.C4ObjectIntern;
+import net.arctics.clonk.parser.C4Declaration;
 import net.arctics.clonk.parser.SourceLocation;
+import net.arctics.clonk.parser.c4script.C4ScriptBase;
 import net.arctics.clonk.parser.c4script.C4ScriptParser.ParsingException;
 import net.arctics.clonk.ui.editors.c4script.C4ScriptEditor;
 import net.arctics.clonk.ui.editors.c4script.ClonkContentOutlinePage;
@@ -61,7 +61,7 @@ public class ClonkTextEditor extends TextEditor {
 		return super.getAdapter(adapter);
 	}
 	
-	public static IEditorPart openDeclaration(C4Field target, boolean activate) throws PartInitException, IOException, ParsingException {
+	public static IEditorPart openDeclaration(C4Declaration target, boolean activate) throws PartInitException, IOException, ParsingException {
 		IWorkbench workbench = PlatformUI.getWorkbench();
 		IWorkbenchPage workbenchPage = workbench.getActiveWorkbenchWindow().getActivePage();
 		C4ScriptBase script = target instanceof C4ScriptBase ? (C4ScriptBase)target : target.getScript();
@@ -115,7 +115,7 @@ public class ClonkTextEditor extends TextEditor {
 		return null;
 	}
 	
-	public static IEditorPart openDeclaration(C4Field target) throws PartInitException, IOException, ParsingException {
+	public static IEditorPart openDeclaration(C4Declaration target) throws PartInitException, IOException, ParsingException {
 		return openDeclaration(target, true);
 	}
 	
@@ -123,7 +123,7 @@ public class ClonkTextEditor extends TextEditor {
 	 * Return the declaration that represents the file being edited
 	 * @return the declaration
 	 */
-	public C4Field getTopLevelDeclaration() {
+	public C4Declaration getTopLevelDeclaration() {
 		return null;
 	}
 	

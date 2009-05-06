@@ -2,7 +2,7 @@ package net.arctics.clonk.ui.navigator;
 
 import java.text.Collator;
 
-import net.arctics.clonk.parser.C4Field;
+import net.arctics.clonk.parser.C4Declaration;
 
 import org.eclipse.core.resources.IResource;
 import org.eclipse.jface.viewers.Viewer;
@@ -28,7 +28,7 @@ public class ClonkSorter extends ViewerSorter {
 	
 	@Override
 	public int category(Object element) {
-		return element instanceof C4Field ? ((C4Field)element).sortCategory() : 0;
+		return element instanceof C4Declaration ? ((C4Declaration)element).sortCategory() : 0;
 	}
 	
 	@Override

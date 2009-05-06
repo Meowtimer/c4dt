@@ -96,7 +96,7 @@
 					<instanceof value="org.eclipse.core.resources.IFolder" />
 					<instanceof value="org.eclipse.core.resources.IFile" />
 					<instanceof value="net.arctics.clonk.util.ITreeNode" />
-					<instanceof value="net.arctics.clonk.parser.C4Field" />
+					<instanceof value="net.arctics.clonk.parser.C4Declaration" />
 				</or>
 			</possibleChildren>
 			<actionProvider class="net.arctics.clonk.ui.navigator.ClonkActionProvider"
@@ -381,7 +381,7 @@
 			<selectionEnablement>
 				<or>
 					<instanceof value="net.arctics.clonk.util.ITreeNode" />
-					<instanceof value="net.arctics.clonk.parser.C4Field" />
+					<instanceof value="net.arctics.clonk.parser.C4Declaration" />
 				</or>
 			</selectionEnablement>
 			<editorInputEnablement>

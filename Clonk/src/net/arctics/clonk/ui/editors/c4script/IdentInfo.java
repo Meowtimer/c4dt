@@ -1,8 +1,8 @@
 package net.arctics.clonk.ui.editors.c4script;
 
-import net.arctics.clonk.parser.C4Field;
-import net.arctics.clonk.parser.C4Function;
-import net.arctics.clonk.parser.C4ScriptBase;
+import net.arctics.clonk.parser.C4Declaration;
+import net.arctics.clonk.parser.c4script.C4Function;
+import net.arctics.clonk.parser.c4script.C4ScriptBase;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.FindDeclarationInfo;
 import net.arctics.clonk.parser.c4script.C4ScriptExprTree.DeclarationRegion;
@@ -27,7 +27,7 @@ public class IdentInfo extends ExpressionLocator {
 	private ITextEditor editor;
 	private String line;
 	private ExprElm exprAtRegion;
-	private C4Field declaration;
+	private C4Declaration declaration;
 	
 	public ITextEditor getEditor() {
 		return editor;
@@ -95,7 +95,7 @@ public class IdentInfo extends ExpressionLocator {
 	/**
 	 * @return the declaration
 	 */
-	public C4Field getDeclaration() {
+	public C4Declaration getDeclaration() {
 		return declaration;
 	}
 

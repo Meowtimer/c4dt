@@ -7,7 +7,7 @@ import java.util.ListIterator;
 import org.eclipse.core.resources.IMarker;
 
 import net.arctics.clonk.ClonkCore;
-import net.arctics.clonk.parser.C4Variable;
+import net.arctics.clonk.parser.c4script.C4Variable;
 
 public class CategoriesArray implements IEntryCreateable {
 

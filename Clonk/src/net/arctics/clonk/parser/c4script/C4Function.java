@@ -1,17 +1,18 @@
-package net.arctics.clonk.parser;
+package net.arctics.clonk.parser.c4script;
 
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
 import net.arctics.clonk.ClonkCore;
-import net.arctics.clonk.parser.C4Variable.C4VariableScope;
-import net.arctics.clonk.parser.c4script.C4ScriptParser;
+import net.arctics.clonk.parser.C4Declaration;
+import net.arctics.clonk.parser.SourceLocation;
 import net.arctics.clonk.parser.c4script.C4ScriptExprTree.ExprElm;
 import net.arctics.clonk.parser.c4script.C4ScriptParser.Keywords;
+import net.arctics.clonk.parser.c4script.C4Variable.C4VariableScope;
 import net.arctics.clonk.util.CompoundIterable;
 
-public class C4Function extends C4Structure implements Serializable, ITypedField {
+public class C4Function extends C4Structure implements Serializable, ITypedDeclaration {
 
 	private static final long serialVersionUID = 3848213897251037684L;
 	private C4FunctionScope visibility; 
@@ -98,6 +99,8 @@ public class C4Function extends C4Structure implements Serializable, ITypedField
 	 * @return the returnType
 	 */
 	public C4Type getReturnType() {
+		if (returnType == null)
+			returnType = C4Type.UNKNOWN;
 		return returnType;
 	}
 
@@ -377,11 +380,11 @@ public class C4Function extends C4Structure implements Serializable, ITypedField
 	}
 
 	public void expectedToBeOfType(C4Type t) {
-		ITypedField.Default.expectedToBeOfType(this, t);
+		ITypedDeclaration.Default.expectedToBeOfType(this, t);
 	}
 
 	public void inferTypeFromAssignment(ExprElm val, C4ScriptParser context) {
-		ITypedField.Default.inferTypeFromAssignment(this, val, context);
+		ITypedDeclaration.Default.inferTypeFromAssignment(this, val, context);
 	}
 
 	public C4Type getType() {
@@ -428,8 +431,8 @@ public class C4Function extends C4Structure implements Serializable, ITypedField
 	
 	@SuppressWarnings("unchecked")
 	@Override
-	public Iterable<C4Field> allSubDeclarations() {
-		return new CompoundIterable<C4Field>(localVars, parameter); 
+	public Iterable<C4Declaration> allSubDeclarations() {
+		return new CompoundIterable<C4Declaration>(localVars, parameter); 
 	}
 	
 	@Override

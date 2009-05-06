@@ -1,4 +1,4 @@
-package net.arctics.clonk.parser;
+package net.arctics.clonk.parser.c4script;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -6,6 +6,9 @@ import java.util.List;
 import org.eclipse.core.runtime.IPath;
 
 import net.arctics.clonk.ClonkCore;
+import net.arctics.clonk.index.ClonkIndex;
+import net.arctics.clonk.parser.C4ID;
+import net.arctics.clonk.parser.SimpleScriptStorage;
 import net.arctics.clonk.resource.c4group.C4GroupEntry;
 import net.arctics.clonk.resource.c4group.C4GroupItem;
 import net.arctics.clonk.util.ITreeNode;
@@ -25,7 +28,10 @@ public class C4ObjectExtern extends C4Object implements ITreeNode {
 		this.parentNode = parentNode;
 		if (parentNode != null)
 			parentNode.addChild(this);
-		this.nodeName = script.getParentGroup().getName();
+		if (script != null && script.getParentGroup() != null)
+			this.nodeName = script.getParentGroup().getName();
+		else
+			this.nodeName = name;
 	}
 
 	@Override

@@ -1,7 +1,7 @@
 package net.arctics.clonk.ui.editors.c4script;
 
 import net.arctics.clonk.ClonkCore;
-import net.arctics.clonk.parser.C4ScriptBase;
+import net.arctics.clonk.parser.c4script.C4ScriptBase;
 import net.arctics.clonk.util.ITreeNode;
 
 import org.eclipse.core.resources.IStorage;
