@@ -262,12 +262,7 @@ public class C4Function extends C4Structure implements Serializable, ITypedDecla
 
 	@Override
 	public String getShortInfo() {
-		if (getScript() == ClonkCore.getDefault().ENGINE_OBJECT) {
-			//return String.format("<b>%s</b><br>%s<br><i><a href='%s'>Online Documentation</a></i>", getName(), getDescription(), getDocumentationURL());
-			// engine function
-			return String.format("<b>%s</b><br>%s", getLongParameterString(true), getUserDescription());
-		}
-		return getLongParameterString(true);
+		return String.format("<b>%s</b><br>%s", getLongParameterString(true), getUserDescription());
 	}
 
 	public C4Variable findVariable(String fieldName) {

@@ -42,7 +42,6 @@ public class C4ScriptParser {
 	
 	/**
 	 * Keywords of C4Script
-	 *
 	 */
 	public interface Keywords {
 
@@ -149,6 +148,7 @@ public class C4ScriptParser {
 	private int blockDepth;
 	
 	private LoopType currentLoop;
+	private Comment lastComment;
 	
 	public static final int MAX_PAR = 10;
 	public static final int MAX_NUMVAR = 20;
@@ -508,6 +508,7 @@ public class C4ScriptParser {
 	}
 
 	private boolean parseVariableDeclaration(int offset) throws ParsingException {
+		String desc = getTextOfLastComment(offset);
 		fReader.seek(offset);
 
 		String word = fReader.readWord();
@@ -538,17 +539,11 @@ public class C4ScriptParser {
 					if (!constantValue.isConstant()) {
 						errorWithCode(C4ScriptParserErrorCode.ConstantValueExpected, constantValue, true);
 					}
-					C4Variable var = new C4Variable(varName,C4VariableScope.VAR_CONST);
-					var.setLocation(new SourceLocation(s, e));
-					var.setScript(container);
+					C4Variable var = createVariable(C4VariableScope.VAR_CONST, desc, s, e, varName);
 					var.inferTypeFromAssignment(constantValue, this);
-					container.addField(var);
 				}
 				else {
-					C4Variable var = new C4Variable(varName, C4VariableScope.VAR_STATIC);
-					var.setLocation(new SourceLocation(s, e));
-					var.setScript(container);
-					container.addField(var);
+					createVariable(C4VariableScope.VAR_STATIC, desc, s, e, varName);
 				}
 				eatWhitespace();
 			} while(fReader.read() == ',');
@@ -564,10 +559,7 @@ public class C4ScriptParser {
 				int s = fReader.getPosition();
 				String varName = fReader.readWord();
 				int e = fReader.getPosition();
-				C4Variable v = new C4Variable(varName, C4VariableScope.VAR_LOCAL);
-				v.setLocation(new SourceLocation(s, e));
-				v.setScript(container);
-				container.addField(v);
+				createVariable(C4VariableScope.VAR_LOCAL, desc, s, e, varName);
 				eatWhitespace();
 			} while (fReader.read() == ',');
 			fReader.unread();
@@ -579,6 +571,16 @@ public class C4ScriptParser {
 		// local iVar, iX;
 		// static const pObj = parseValue, iMat = 2;
 		return false;
+	}
+
+	private C4Variable createVariable(C4VariableScope scope, String desc, int start, int end,
+			String varName) {
+		C4Variable var = new C4Variable(varName, scope);
+		var.setLocation(new SourceLocation(start, end));
+		var.setScript(container);
+		var.setUserDescription(desc);
+		container.addField(var);
+		return var;
 	}
 	
 	private C4Variable findVar(String name, C4VariableScope scope) {
@@ -689,12 +691,14 @@ public class C4ScriptParser {
 	 * @return
 	 * @throws ParsingException 
 	 */
-	private boolean parseFunctionDeclaration(String firstWord, int startOfHeader, int offset) throws ParsingException {
+	private boolean parseFunctionDeclaration(String firstWord, int startOfFirstWord, int offset) throws ParsingException {
 		int endOfHeader;
 		fReader.seek(offset);
+		String desc = getTextOfLastComment(startOfFirstWord);
 		eatWhitespace();
 		activeFunc = new C4Function();
 		activeFunc.setScript(container);
+		activeFunc.setUserDescription(desc);
 		int startName = 0, endName = 0, startBody = 0, endBody = 0;
 		boolean suspectOldStyle = false;
 		String funcName = null;
@@ -745,22 +749,27 @@ public class C4ScriptParser {
 				tokenExpectedError("(");
 			}
 		} else {
-			// get parameter
+			// get parameters
 			do {
 				eatWhitespace();
 				offset = fReader.getPosition();
 				if (parseParameter(offset, activeFunc)) offset = fReader.getPosition(); 
 				eatWhitespace(offset);
 				int readByte = fReader.read();
-				if (readByte == ')') break; // all parameter parsed
-				else if (readByte == ',') continue; // parse another parameter
+				if (readByte == ')')
+					break; // all parameters parsed
+				else if (readByte == ',')
+					continue; // parse another parameter
 				else {
 					errorWithCode(C4ScriptParserErrorCode.TokenExpected, fReader.getPosition()-1, fReader.getPosition(), (Object) new String[] {")", ","});
 				}
 			} while(!fReader.reachedEOF());
 		}
 		endOfHeader = fReader.getPosition();
+		lastComment = null;
 		eatWhitespace();
+		if (lastComment != null)
+			activeFunc.setUserDescription(lastComment.getComment());
 		// parse code block
 		if (fReader.read() != '{') {
 			if (suspectOldStyle) {
@@ -829,12 +838,18 @@ public class C4ScriptParser {
 		// finish up
 		activeFunc.setLocation(new SourceLocation(startName,endName));
 		activeFunc.setBody(new SourceLocation(startBody,endBody));
-		activeFunc.setHeader(new SourceLocation(startOfHeader, endOfHeader));
+		activeFunc.setHeader(new SourceLocation(startOfFirstWord, endOfHeader));
 		container.addField(activeFunc);
 		if (!activeFunc.isOldStyle())
 			activeFunc = null; // to not suppress errors in-between functions
 		//		functions.add(func);
 		return true;
+	}
+
+	private String getTextOfLastComment(int declarationOffset) {
+		String desc = (lastComment != null && lastComment.precedesOffset(declarationOffset, fReader.getBuffer())) ? lastComment.getComment().trim() : "";
+		lastComment = null;
+		return desc;
 	}
 
 	private boolean looksLikeVarDeclaration(String word) {
@@ -2106,33 +2121,13 @@ public class C4ScriptParser {
 	}
 	
 	protected boolean parseComment(int offset) {
-		fReader.seek(offset);
-		String sequence = fReader.readString(2);
-		if (sequence == null) {
-			return false;
-		}
-		else if (sequence.equals("//")) {
-			fReader.moveUntil(BufferedScanner.NEWLINE_DELIMITERS);
-			fReader.eat(BufferedScanner.NEWLINE_DELIMITERS);
+		Comment c = parseCommentObject(offset);
+		if (c != null) {
+			c.setExprRegion(offset, fReader.getPosition());
+			lastComment = c;
 			return true;
 		}
-		else if (sequence.equals("/*")) {
-			while (!fReader.reachedEOF()) {
-				if (fReader.read() == '*') {
-					if (fReader.read() == '/') {
-						return true; // genug gefressen
-					}
-					else {
-						fReader.unread();
-					}
-				}
-			}
-			return true;
-		}
-		else {
-			fReader.move(-2);
-			return false;
-		}
+		return false;
 	}
 	
 	private IMarker createMarker(int start, int end, String message, int severity) {
@@ -2207,7 +2202,7 @@ public class C4ScriptParser {
 	}
 	
 	public static ExprElm parseStandaloneExpression(final String expression, C4ScriptBase context) throws ParsingException {
-		if (context == null)
+		if (context == null) {
 			context = new C4ScriptBase() {
 				private static final long serialVersionUID = 1L;
 
@@ -2226,6 +2221,7 @@ public class C4ScriptParser {
 				}
 			
 			};
+		}
 		C4ScriptParser tempParser = new C4ScriptParser(expression, context);
 		return tempParser.parseExpression(0);
 	}

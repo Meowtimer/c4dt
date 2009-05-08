@@ -396,4 +396,8 @@ public class BufferedScanner {
 	public int getBufferLength() {
 		return buffer.length();
 	}
+	
+	public CharSequence getBuffer() {
+		return buffer;
+	}
 }

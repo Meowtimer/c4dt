@@ -7,6 +7,7 @@ import java.util.List;
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.index.C4Scenario;
 import net.arctics.clonk.index.ClonkIndex;
+import net.arctics.clonk.parser.BufferedScanner;
 import net.arctics.clonk.parser.C4Declaration;
 import net.arctics.clonk.parser.C4ID;
 import net.arctics.clonk.parser.c4script.C4ScriptParser.Keywords;
@@ -2199,6 +2200,16 @@ public abstract class C4ScriptExprTree {
 
 		public void setMultiLine(boolean multiLine) {
 			this.multiLine = multiLine;
+		}
+
+		public boolean precedesOffset(int offset, CharSequence script) {
+			if (offset > getExprEnd()) {
+				for (int i = getExprEnd()+1; i < offset; i++)
+					if (!BufferedScanner.isLineDelimiterChar(script.charAt(i)))
+						return false;
+				return true;
+			}
+			return false;
 		}
 		
 	}
