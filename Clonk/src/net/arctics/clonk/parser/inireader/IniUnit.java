@@ -376,7 +376,7 @@ public class IniUnit extends C4Structure implements Iterable<IniSection>, IHasCh
 	}
 	
 	@Override
-	public C4Structure getStructure() {
+	public C4Structure getTopLevelStructure() {
 		return this;
 	}
 	

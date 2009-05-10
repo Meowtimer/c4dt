@@ -61,7 +61,7 @@ public class ClonkTextEditor extends TextEditor {
 	public static IEditorPart openDeclaration(C4Declaration target, boolean activate) throws PartInitException, IOException, ParsingException {
 		IWorkbench workbench = PlatformUI.getWorkbench();
 		IWorkbenchPage workbenchPage = workbench.getActiveWorkbenchWindow().getActivePage();
-		C4Structure structure = target.getStructure();
+		C4Structure structure = target.getTopLevelStructure();
 		if (structure != null) {
 			IEditorInput input = structure.getEditorInput();
 			if (input != null) {

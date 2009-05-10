@@ -306,7 +306,7 @@ public abstract class C4ScriptBase extends C4Structure implements IHasRelatedRes
 	}
 	
 	@Override
-	public C4Structure getStructure() {
+	public C4Structure getTopLevelStructure() {
 		return this;
 	}
 	

@@ -78,19 +78,20 @@ public abstract class C4Declaration implements Serializable, IHasRelatedResource
 	}
 	
 	@SuppressWarnings("unchecked")
-	private final <T extends C4Declaration> T getParentDeclarationOfType(Class<T> type) {
+	private final <T extends C4Declaration> T getTopLevelParentDeclarationOfType(Class<T> type) {
+		T result = null;
 		for (C4Declaration f = this; f != null; f = f.parentDeclaration)
 			if (type.isAssignableFrom(f.getClass()))
-				return (T) f;
-		return null;
+				result = (T) f;
+		return result;
 	}
 	
 	/**
-	 * Returns the C4Structure this declaration is declared in.
+	 * Returns the toplevel C4Structure this declaration is declared in.
 	 * @return the structure
 	 */
-	public C4Structure getStructure() {
-		return getParentDeclarationOfType(C4Structure.class);
+	public C4Structure getTopLevelStructure() {
+		return getTopLevelParentDeclarationOfType(C4Structure.class);
 	}
 	
 	/**
@@ -98,7 +99,7 @@ public abstract class C4Declaration implements Serializable, IHasRelatedResource
 	 * @return the script
 	 */
 	public C4ScriptBase getScript() {
-		return getParentDeclarationOfType(C4ScriptBase.class);
+		return getTopLevelParentDeclarationOfType(C4ScriptBase.class);
 	}
 	
 	/**

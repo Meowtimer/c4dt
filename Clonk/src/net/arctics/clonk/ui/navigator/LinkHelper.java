@@ -19,7 +19,7 @@ public class LinkHelper implements ILinkHelper {
 			if (selection.getFirstElement() instanceof C4Declaration) {
 				C4Declaration dec = (C4Declaration) selection.getFirstElement();
 				IWorkbenchPage wpage = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
-				IEditorInput input = dec.getStructure() != null ? dec.getStructure().getEditorInput() : null;
+				IEditorInput input = dec.getTopLevelStructure() != null ? dec.getTopLevelStructure().getEditorInput() : null;
 				if (input != null && wpage.findEditor(input) != null)
 					ClonkTextEditor.openDeclaration(dec, false);
 			}
