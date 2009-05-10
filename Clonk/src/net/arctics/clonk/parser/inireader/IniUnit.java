@@ -12,6 +12,8 @@ import net.arctics.clonk.parser.BufferedScanner;
 import net.arctics.clonk.parser.C4Declaration;
 import net.arctics.clonk.parser.SourceLocation;
 import net.arctics.clonk.parser.c4script.C4ScriptBase;
+import net.arctics.clonk.parser.c4script.C4Structure;
+import net.arctics.clonk.parser.c4script.C4Variable;
 import net.arctics.clonk.parser.inireader.IniData.IniConfiguration;
 import net.arctics.clonk.parser.inireader.IniData.IniDataEntry;
 import net.arctics.clonk.parser.inireader.IniData.IniSectionData;
@@ -27,7 +29,7 @@ import org.eclipse.core.runtime.IPath;
 /**
  * Reads Windows ini style configuration files
  */
-public class IniUnit extends C4Declaration implements Iterable<IniSection>, IHasChildren, ITreeNode {
+public class IniUnit extends C4Structure implements Iterable<IniSection>, IHasChildren, ITreeNode {
 
 	private static final long serialVersionUID = 1L;
 
@@ -361,6 +363,21 @@ public class IniUnit extends C4Declaration implements Iterable<IniSection>, IHas
 	@Override
 	public Object[] getSubDeclarationsForOutline() {
 		return this.getChildren();
+	}
+
+	@Override
+	public C4Variable findVariable(String variableName) {
+		return null;
+	}
+	
+	@Override
+	public C4Declaration findDeclaration(String declarationName) {
+		return sectionWithName(declarationName);
+	}
+	
+	@Override
+	public C4Structure getStructure() {
+		return this;
 	}
 	
 }

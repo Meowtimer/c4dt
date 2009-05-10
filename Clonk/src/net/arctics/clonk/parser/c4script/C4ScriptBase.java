@@ -300,6 +300,16 @@ public abstract class C4ScriptBase extends C4Structure implements IHasRelatedRes
 	
 	public abstract Object getScriptFile();
 	
+	@Override
+	public C4ScriptBase getScript() {
+		return this;
+	}
+	
+	@Override
+	public C4Structure getStructure() {
+		return this;
+	}
+	
 	public IResource getResource() {
 		return null;
 	}

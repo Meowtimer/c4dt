@@ -45,7 +45,6 @@ public class ScriptWithStorageEditorInput implements IEditorInput, IPathEditorIn
 
 	@SuppressWarnings("unchecked")
 	public Object getAdapter(Class cls) {
-		// TODO Auto-generated method stub
 		return null;
 	}
 
@@ -53,7 +52,6 @@ public class ScriptWithStorageEditorInput implements IEditorInput, IPathEditorIn
 		try {
 			return getStorage().getFullPath();
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 			return null;
 		}

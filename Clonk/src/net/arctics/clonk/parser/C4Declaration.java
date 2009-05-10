@@ -76,15 +76,29 @@ public abstract class C4Declaration implements Serializable, IHasRelatedResource
 	public void setScript(C4ScriptBase script) {
 		setParentDeclaration(script);
 	}
+	
+	@SuppressWarnings("unchecked")
+	private final <T extends C4Declaration> T getParentDeclarationOfType(Class<T> type) {
+		for (C4Declaration f = this; f != null; f = f.parentDeclaration)
+			if (type.isAssignableFrom(f.getClass()))
+				return (T) f;
+		return null;
+	}
+	
+	/**
+	 * Returns the C4Structure this declaration is declared in.
+	 * @return the structure
+	 */
+	public C4Structure getStructure() {
+		return getParentDeclarationOfType(C4Structure.class);
+	}
+	
 	/**
 	 * Returns the script this declaration is declared in.
 	 * @return the script
 	 */
 	public C4ScriptBase getScript() {
-		for (C4Declaration f = this; f != null; f = f.parentDeclaration)
-			if (f instanceof C4ScriptBase)
-				return (C4ScriptBase)f;
-		return null;
+		return getParentDeclarationOfType(C4ScriptBase.class);
 	}
 	
 	/**
