@@ -262,7 +262,7 @@ public class C4Function extends C4Structure implements Serializable, ITypedDecla
 
 	@Override
 	public String getShortInfo() {
-		return String.format("<b>%s</b><br>%s", getLongParameterString(true), getUserDescription());
+		return String.format("<b>%s</b><br>%s", getLongParameterString(true), getUserDescription() != null ? getUserDescription() : "");
 	}
 
 	public C4Variable findVariable(String fieldName) {

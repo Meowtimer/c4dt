@@ -144,7 +144,7 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant {
 //		}
 //	}
 	
-	private void loadEngineObject() throws FileNotFoundException, IOException, ClassNotFoundException, XPathExpressionException, ParserConfigurationException, SAXException {
+	public void loadEngineObject() throws FileNotFoundException, IOException, ClassNotFoundException, XPathExpressionException, ParserConfigurationException, SAXException {
 		InputStream engineStream;
 		if (getEngineCacheFile().toFile().exists()) {
 			engineStream = new FileInputStream(getEngineCacheFile().toFile());
