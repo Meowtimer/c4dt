@@ -356,6 +356,26 @@ public abstract class Utilities {
 		return dist;
 	}
 	
+	public static <T extends IHasRelatedResource> T pickNearest(IResource resource, Collection<T> fromList, IPredicate<T> filter) {
+		int bestDist = 1000;
+		T best = null;
+		if (fromList != null) {
+			for (T o : fromList) {
+				if (filter != null && !filter.test(o))
+					continue;
+				IResource res = o.getResource();
+				int newDist = res != null
+					? distanceToCommonContainer(resource, res)
+					: 100;
+				if (best == null || newDist < bestDist) {
+					best = o;
+					bestDist = newDist;
+				}
+			}
+		}
+		return best;
+	}
+	
 	// nowhere to be found oO
 	/**
 	 * Return the index of an item in an array

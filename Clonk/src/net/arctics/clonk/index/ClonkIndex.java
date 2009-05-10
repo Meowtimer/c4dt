@@ -277,27 +277,7 @@ public class ClonkIndex implements Serializable, Iterable<C4Object> {
 	}
 
 	public static <T extends IHasRelatedResource> T pickNearest(IResource resource, Collection<T> fromList) {
-		return pickNearest(resource, fromList, null);
-	}
-	
-	public static <T extends IHasRelatedResource> T pickNearest(IResource resource, Collection<T> fromList, IPredicate<T> filter) {
-		int bestDist = 1000;
-		T best = null;
-		if (fromList != null) {
-			for (T o : fromList) {
-				if (filter != null && !filter.test(o))
-					continue;
-				IResource res = o.getResource();
-				int newDist = res != null
-					? Utilities.distanceToCommonContainer(resource, res)
-					: 100;
-				if (best == null || newDist < bestDist) {
-					best = o;
-					bestDist = newDist;
-				}
-			}
-		}
-		return best;
+		return Utilities.pickNearest(resource, fromList, null);
 	}
 	
 	public C4Object getObjectNearestTo(IResource resource, C4ID id) {
@@ -384,7 +364,7 @@ public class ClonkIndex implements Serializable, Iterable<C4Object> {
 			return findGlobalDeclaration(declName);
 		List<C4Declaration> declarations = declarationMap.get(declName);
 		if (declarations != null) {
-			return pickNearest(pivot, declarations, IS_GLOBAL);
+			return Utilities.pickNearest(pivot, declarations, IS_GLOBAL);
 		}
 		return null;
 	}

@@ -54,6 +54,10 @@ public abstract class C4ScriptBase extends C4Structure implements IHasRelatedRes
 	protected List<C4Variable> definedVariables = new LinkedList<C4Variable>();
 	protected List<C4Directive> definedDirectives = new LinkedList<C4Directive>();
 	
+	/**
+	 * Returns the strict level of the script
+	 * @return the #strict level
+	 */
 	public int strictLevel() {
 		int level = 0;
 		for (C4Directive d : this.definedDirectives) {
@@ -62,13 +66,18 @@ public abstract class C4ScriptBase extends C4Structure implements IHasRelatedRes
 					level = Math.max(level, Integer.parseInt(d.getContent()));
 				}
 				catch (NumberFormatException e) {
-					level = 1;
+					if (level == 0)
+						level = 1;
 				}
 			}
 		}
 		return level;
 	}
-	
+
+	/**
+	 * Returns \#include and \#appendto directives 
+	 * @return The directives
+	 */
 	public C4Directive[] getIncludeDirectives() {
 		List<C4Directive> result = new ArrayList<C4Directive>();
 		for (C4Directive d : definedDirectives) {
@@ -79,6 +88,11 @@ public abstract class C4ScriptBase extends C4Structure implements IHasRelatedRes
 		return result.toArray(new C4Directive[result.size()]);
 	}
 	
+	/**
+	 * Tries to gather all of the script's includes (including appendtos in the case of object scripts)
+	 * @param list The list to be filled with the includes
+	 * @param index The project index to search for includes in (has greater priority than EXTERN_INDEX which is always searched)
+	 */
 	protected void gatherIncludes(List<C4ScriptBase> list, ClonkIndex index) {
 		for (C4Directive d : definedDirectives) {
 			if (d.getType() == C4DirectiveType.INCLUDE || d.getType() == C4DirectiveType.APPENDTO) {
@@ -89,12 +103,33 @@ public abstract class C4ScriptBase extends C4Structure implements IHasRelatedRes
 		}
 	}
 	
+	/**
+	 * Does the same as gatherIncludes except that the user does not have to create their own list
+	 * @param index The index to be passed to gatherIncludes
+	 * @return The includes
+	 */
 	public C4ScriptBase[] getIncludes(ClonkIndex index) {
 		List<C4ScriptBase> result = new ArrayList<C4ScriptBase>();
 		gatherIncludes(result, index);
 		return result.toArray(new C4ScriptBase[result.size()]);
 	}
 	
+	/**
+	 * Does the same as gatherIncludes except that the user does not have to create their own list and does not even have to supply an index (defaulting to getIndex()) 
+	 * @return The includes
+	 */
+	public C4ScriptBase[] getIncludes() {
+		ClonkIndex index = getIndex();
+		if (index == null)
+			return NO_INCLUDES;
+		return getIncludes(index);
+	}
+	
+	/**
+	 * Returns an include directive that include a specific object's script
+	 * @param obj The object
+	 * @return The directive 
+	 */
 	public C4Directive getIncludeDirectiveFor(C4Object obj) {
 		for (C4Directive d : getIncludeDirectives()) {
 			if ((d.getType() == C4DirectiveType.INCLUDE || d.getType() == C4DirectiveType.APPENDTO) && getNearestObjectWithId(d.contentAsID()) == obj)
@@ -103,57 +138,38 @@ public abstract class C4ScriptBase extends C4Structure implements IHasRelatedRes
 		return null;
 	}
 	
-	public C4ScriptBase[] getIncludes() {
-		ClonkIndex index = getIndex();
-		if (index == null)
-			return NO_INCLUDES;
-		return getIncludes(index);
-	}
-	
+	/**
+	 * Finds a declaration in this script or an included one
+	 * @return The declaration or null if not found
+	 */
 	public C4Declaration findDeclaration(String name) {
 		return findDeclaration(name, new FindDeclarationInfo(getIndex()));
 	}
 	
+	/**
+	 * Returns whether the supplied name might refer to this script (used in findDeclaration)
+	 * @param name The name
+	 * @param info Additional info
+	 * @return Whether or not
+	 */
 	protected boolean refersToThis(String name, FindDeclarationInfo info) {
 		return false;
 	}
 	
+	/**
+	 * Returns all declarations of this script (functions, variables and directives)
+	 */
 	@SuppressWarnings("unchecked")
 	@Override
 	public Iterable<C4Declaration> allSubDeclarations() {
 		return new CompoundIterable<C4Declaration>(definedFunctions, definedVariables, definedDirectives);
 	}
 	
-//	private static boolean resourceInsideContainer(IResource resource, IContainer container) {
-//		for (IContainer c = resource.getParent(); c != null; c = c.getParent())
-//			if (c.equals(container))
-//				return true;
-//		return false;
-//	}
-	
-//	private static C4Object pickNearestObject(List<C4Object> objects, C4ScriptBase origin) {
-//		if (!(origin.getScriptFile() instanceof IFile))
-//			return objects.size() > 0 ? objects.get(0) : null;
-//		IFile originFile = (IFile) origin.getScriptFile();
-//		IContainer originContainer = originFile.getParent();
-//		C4Object result = null;
-//		int foldersDistance = 0;
-//		for (C4Object o : objects) {
-//			if (!(o.getScriptFile() instanceof IFile))
-//				continue;
-//			IContainer objContainer = ((IFile)o.getScriptFile()).getParent();
-//			if (resou
-//			int i;
-//			for (i = )
-//		}
-//		return result;
-//	}
-	
 	/**
-	 * Finds field with specified name and infos
-	 * @param name
-	 * @param info
-	 * @return the field or <tt>null</tt> if not found
+	 * Finds a declaration with the given name using information from the helper object
+	 * @param name The name
+	 * @param info Additional info
+	 * @return the declaration or <tt>null</tt> if not found
 	 */
 	public C4Declaration findDeclaration(String name, FindDeclarationInfo info) {
 		
