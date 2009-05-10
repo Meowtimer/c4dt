@@ -74,5 +74,10 @@ public class C4ObjectExtern extends C4Object implements ITreeNode {
 	public void addChild(ITreeNode node) {
 		getChildCollection().add(node);
 	}
+	
+	@Override
+	public boolean isEditable() {
+		return true;
+	}
 
 }

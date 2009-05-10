@@ -59,5 +59,10 @@ public class C4ScriptExtern extends C4ScriptBase implements ITreeNode {
 	public void addChild(ITreeNode node) {
 		// nope
 	}
+	
+	@Override
+	public boolean isEditable() {
+		return true;
+	}
 
 }
