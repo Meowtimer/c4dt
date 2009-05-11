@@ -3,5 +3,5 @@
 #strict 2
 
 func Initialize() {
-  return 1;
+	return 1;
 }
