@@ -389,6 +389,12 @@
 			</editorInputEnablement>
 		</linkHelper>
 	</extension>
+	
+	<extension point="org.eclipse.ui.elementFactories">
+		<factory
+			class="net.arctics.clonk.ui.editors.c4script.ScriptWithStorageEditorInputFactory"
+			id="net.arctics.clonk.ui.editors.scriptWithStorageEditorInputFactory"/>
+	</extension>
 
 
 </plugin>

@@ -22,26 +22,28 @@ import org.eclipse.jface.viewers.Viewer;
 public class ClonkNavigator extends ClonkOutlineProvider {
 
 	public Object[] getChildren(Object element) {
+		// add additional virtual nodes to the project
 		if (element instanceof IProject) {
 			ClonkProjectNature clonkProject = Utilities.getProject((IProject)element);
 			if (clonkProject == null)
 				return null;
-			return new Object[] { new DependenciesNavigatorNode(clonkProject) };
+			return new Object[] {
+				// Dependencies
+				new DependenciesNavigatorNode(clonkProject)
+			};
 		}
 		else if (element instanceof IFile) {
+			// list contents of ini and script files
 			C4ScriptBase script = Utilities.getScriptForFile((IFile) element);
 			if (script != null)
 				return super.getChildren(script);
-			Class<? extends IniUnit> iniReaderClass = Utilities.getIniUnitClass((IFile) element);
-			if (iniReaderClass != null) {
-				try {
-					IniUnit reader = iniReaderClass.getConstructor(IFile.class).newInstance(element);
-					reader.parse();
-					// call again for ITreeNode implementing inireader
-					return this.getChildren(reader);
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
+			try {
+				IniUnit reader = Utilities.createAdequateIniUnit((IFile) element);
+				reader.parse();
+				// call again for IniUnit which implements ITreeNode (below)
+				return this.getChildren(reader);
+			} catch (Exception e) {
+				e.printStackTrace();
 			}
 		}
 		else if (element instanceof ITreeNode) {

@@ -7,19 +7,24 @@ import net.arctics.clonk.util.ITreeNode;
 import org.eclipse.core.resources.IStorage;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
+import org.eclipse.core.runtime.PlatformObject;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.ui.IEditorInput;
+import org.eclipse.ui.IMemento;
 import org.eclipse.ui.IPathEditorInput;
 import org.eclipse.ui.IPersistableElement;
 import org.eclipse.ui.IStorageEditorInput;
 
-public class ScriptWithStorageEditorInput implements IEditorInput, IPathEditorInput, IStorageEditorInput {
+public class ScriptWithStorageEditorInput extends PlatformObject implements IEditorInput, IPathEditorInput, IStorageEditorInput, IPersistableElement {
 
 	private C4ScriptBase script;
 	
-	public ScriptWithStorageEditorInput(C4ScriptBase object) {
+	public ScriptWithStorageEditorInput(C4ScriptBase script) {
 		super();
-		this.script = object;
+		
+		if (!(script.getScriptFile() instanceof IStorage))
+			throw new IllegalArgumentException("script");
+		this.script = script;
 	}
 
 	public boolean exists() {
@@ -35,8 +40,7 @@ public class ScriptWithStorageEditorInput implements IEditorInput, IPathEditorIn
 	}
 
 	public IPersistableElement getPersistable() {
-		// TODO Auto-generated method stub
-		return null;
+		return this;
 	}
 
 	public String getToolTipText() {
@@ -50,6 +54,8 @@ public class ScriptWithStorageEditorInput implements IEditorInput, IPathEditorIn
 
 	public IPath getPath() {
 		try {
+			if (script instanceof ITreeNode)
+				return ((ITreeNode)script).getPath();
 			return getStorage().getFullPath();
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -71,8 +77,11 @@ public class ScriptWithStorageEditorInput implements IEditorInput, IPathEditorIn
 	}
 
 	public String getFactoryId() {
-		// TODO Auto-generated method stub
-		return null;
+		return "net.arctics.clonk.ui.editors.scriptWithStorageEditorInputFactory";
+	}
+
+	public void saveState(IMemento memento) {
+		memento.putString("path", getPath().toPortableString());
 	}
 
 }
