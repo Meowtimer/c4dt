@@ -13,6 +13,7 @@ import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.index.C4ObjectExternGroup;
 import net.arctics.clonk.index.C4ObjectIntern;
 import net.arctics.clonk.index.ClonkIndex;
+import net.arctics.clonk.parser.BufferedScanner;
 import net.arctics.clonk.parser.c4script.C4Function;
 import net.arctics.clonk.parser.c4script.C4Object;
 import net.arctics.clonk.parser.c4script.C4ScriptBase;
@@ -44,6 +45,8 @@ import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.resource.ImageRegistry;
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.IDocument;
+import org.eclipse.jface.text.IRegion;
+import org.eclipse.jface.text.Region;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IWorkbenchPage;
@@ -478,6 +481,16 @@ public abstract class Utilities {
 					: InputStream.class;
 		Constructor<? extends IniUnit> ctor = cls.getConstructor(neededArgType);
 		return ctor.newInstance(arg);
+	}
+
+	public static IRegion wordRegionAt(CharSequence line, int relativeOffset) {
+		int start, end;
+		start = end = relativeOffset;
+		for (int s = relativeOffset; s >= 0 && BufferedScanner.isWordPart(line.charAt(s)); s--)
+			start = s;
+		for (int e = relativeOffset+1; e < line.length() && BufferedScanner.isWordPart(line.charAt(e)); e++)
+			end = e;
+		return new Region(start, end-start+1);
 	}
 	
 }

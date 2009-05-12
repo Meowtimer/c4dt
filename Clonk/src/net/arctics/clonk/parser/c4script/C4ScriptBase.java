@@ -146,6 +146,14 @@ public abstract class C4ScriptBase extends C4Structure implements IHasRelatedRes
 		return findDeclaration(name, new FindDeclarationInfo(getIndex()));
 	}
 	
+	@Override
+	public C4Declaration findDeclaration(String declarationName,
+			Class<? extends C4Declaration> declarationClass) {
+		FindDeclarationInfo info = new FindDeclarationInfo(getIndex());
+		info.setDeclarationClass(declarationClass);
+		return findDeclaration(declarationName, info);
+	}
+	
 	/**
 	 * Returns whether the supplied name might refer to this script (used in findDeclaration)
 	 * @param name The name

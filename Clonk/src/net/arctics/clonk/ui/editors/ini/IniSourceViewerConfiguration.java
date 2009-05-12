@@ -8,6 +8,7 @@ import net.arctics.clonk.index.ClonkIndex;
 import net.arctics.clonk.parser.C4Declaration;
 import net.arctics.clonk.parser.C4ID;
 import net.arctics.clonk.parser.inireader.Function;
+import net.arctics.clonk.parser.inireader.IDArray;
 import net.arctics.clonk.parser.inireader.IniSection;
 import net.arctics.clonk.parser.inireader.IniData.IniDataEntry;
 import net.arctics.clonk.ui.editors.c4script.ClonkHyperlink;
@@ -81,6 +82,7 @@ public class IniSourceViewerConfiguration extends
 						if (!hoverOverAttrib) {
 							// link stuff on the value side
 							IniDataEntry entry = section.getSectionData().getEntry(attrib);
+							int linkStart = lineRegion.getOffset()+m.start(2), linkLen = value.length();
 							if (entry != null) {
 								Class<?> entryClass = entry.getEntryClass();
 								C4Declaration declaration = null;
@@ -95,9 +97,19 @@ public class IniSourceViewerConfiguration extends
 										declaration = obj.findFunction(value);
 									}
 								}
+								else if (entryClass == IDArray.class) {
+									IRegion idRegion = Utilities.wordRegionAt(line, relativeOffset);
+									if (idRegion.getLength() == 4) {
+										IResource r = Utilities.getEditingFile(getEditor());
+										ClonkIndex index = Utilities.getIndex(r);
+										declaration = index.getObjectNearestTo(r, C4ID.getID(line.substring(idRegion.getOffset(), idRegion.getOffset()+idRegion.getLength())));
+										linkStart = lineRegion.getOffset()+idRegion.getOffset();
+										linkLen = idRegion.getLength();
+									}
+								}
 								if (declaration != null) {
 									return new IHyperlink[] {
-										new ClonkHyperlink(new Region(lineRegion.getOffset()+m.start(2), value.length()), declaration)
+										new ClonkHyperlink(new Region(linkStart, linkLen), declaration)
 									};
 								}
 							}

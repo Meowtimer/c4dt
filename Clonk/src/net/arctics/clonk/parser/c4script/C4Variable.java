@@ -63,7 +63,7 @@ public class C4Variable extends C4Declaration implements Serializable, ITypedDec
 	@Override
 	public C4Declaration latestVersion() {
 		if (parentDeclaration instanceof C4Structure)
-			return ((C4Structure)parentDeclaration).findVariable(getName());
+			return ((C4Structure)parentDeclaration).findDeclaration(getName(), C4Variable.class);
 		return super.latestVersion();
 	}
 

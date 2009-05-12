@@ -265,18 +265,24 @@ public class C4Function extends C4Structure implements Serializable, ITypedDecla
 		return String.format("<b>%s</b><br>%s", getLongParameterString(true), getUserDescription() != null ? getUserDescription() : "");
 	}
 
-	public C4Variable findVariable(String fieldName) {
-		if (fieldName.equals(C4Variable.THIS.getName()))
-			return C4Variable.THIS;
-		for (C4Variable v : localVars) {
-			if (v.getName().equals(fieldName))
-				return v;
-		}
-		for (C4Variable p : parameter) {
-			if (p.getName().equals(fieldName))
-				return p;
+	public C4Variable findDeclaration(String declarationName, Class<? extends C4Declaration> declarationClass) {
+		if (declarationClass == C4Variable.class) {
+			if (declarationName.equals(C4Variable.THIS.getName()))
+				return C4Variable.THIS;
+			for (C4Variable v : localVars) {
+				if (v.getName().equals(declarationName))
+					return v;
+			}
+			for (C4Variable p : parameter) {
+				if (p.getName().equals(declarationName))
+					return p;
+			}
 		}
 		return null;
+	}
+	
+	public C4Variable findVariable(String variableName) {
+		return findDeclaration(variableName, C4Variable.class);
 	}
 
 	public boolean isOldStyle() {

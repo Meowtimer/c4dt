@@ -13,7 +13,6 @@ import net.arctics.clonk.parser.C4Declaration;
 import net.arctics.clonk.parser.SourceLocation;
 import net.arctics.clonk.parser.c4script.C4ScriptBase;
 import net.arctics.clonk.parser.c4script.C4Structure;
-import net.arctics.clonk.parser.c4script.C4Variable;
 import net.arctics.clonk.parser.inireader.IniData.IniConfiguration;
 import net.arctics.clonk.parser.inireader.IniData.IniDataEntry;
 import net.arctics.clonk.parser.inireader.IniData.IniSectionData;
@@ -364,9 +363,12 @@ public class IniUnit extends C4Structure implements Iterable<IniSection>, IHasCh
 	public Object[] getSubDeclarationsForOutline() {
 		return this.getChildren();
 	}
-
+	
 	@Override
-	public C4Variable findVariable(String variableName) {
+	public C4Declaration findDeclaration(String declarationName,
+			Class<? extends C4Declaration> declarationClass) {
+		if (declarationClass.isAssignableFrom(IniSection.class))
+			return findDeclaration(declarationName);
 		return null;
 	}
 	
