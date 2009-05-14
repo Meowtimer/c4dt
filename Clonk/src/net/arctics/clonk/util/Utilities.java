@@ -39,6 +39,7 @@ import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.FileLocator;
+import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.content.IContentType;
 import org.eclipse.jface.resource.ImageDescriptor;
@@ -491,6 +492,19 @@ public abstract class Utilities {
 		for (int e = relativeOffset+1; e < line.length() && BufferedScanner.isWordPart(line.charAt(e)); e++)
 			end = e;
 		return new Region(start, end-start+1);
+	}
+	
+	public static void refreshClonkProjects(IProgressMonitor monitor) throws CoreException {
+		IProject[] projects = ResourcesPlugin.getWorkspace().getRoot().getProjects();
+		if (monitor != null)
+			monitor.beginTask("Refreshing Clonk projects", projects.length);
+		int work = 0;
+		for (IProject p : projects) {
+			if (Utilities.getProject(p) != null)
+				p.refreshLocal(IResource.DEPTH_INFINITE, monitor);
+			monitor.worked(work++);
+		}
+		monitor.done();
 	}
 	
 }

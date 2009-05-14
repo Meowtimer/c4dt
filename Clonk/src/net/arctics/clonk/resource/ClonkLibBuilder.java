@@ -2,6 +2,7 @@ package net.arctics.clonk.resource;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 
@@ -21,6 +22,7 @@ import net.arctics.clonk.resource.c4group.InvalidDataException;
 import net.arctics.clonk.resource.c4group.C4Group.C4GroupType;
 import net.arctics.clonk.resource.c4group.C4GroupItem.IHeaderFilter;
 import net.arctics.clonk.util.ITreeNode;
+import net.arctics.clonk.util.Utilities;
 
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.ResourcesPlugin;
@@ -237,6 +239,16 @@ public class ClonkLibBuilder implements IC4GroupVisitor, IPropertyChangeListener
 							}
 						}
 						ClonkCore.getDefault().EXTERN_INDEX.refreshCache();
+						try {
+							ClonkCore.getDefault().saveExternIndex(monitor);
+						} catch (FileNotFoundException e1) {
+							e1.printStackTrace();
+						}
+						try {
+							Utilities.refreshClonkProjects(monitor);
+						} catch (CoreException e) {
+							e.printStackTrace();
+						}
 					}
 				});
 			} catch (InvocationTargetException e1) {

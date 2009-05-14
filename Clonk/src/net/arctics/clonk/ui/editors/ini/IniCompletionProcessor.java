@@ -12,6 +12,7 @@ import net.arctics.clonk.parser.inireader.Boolean;
 import net.arctics.clonk.parser.inireader.Function;
 import net.arctics.clonk.parser.inireader.IDArray;
 import net.arctics.clonk.parser.inireader.IniSection;
+import net.arctics.clonk.parser.inireader.IniUnit;
 import net.arctics.clonk.parser.inireader.SignedInteger;
 import net.arctics.clonk.parser.inireader.UnsignedInteger;
 import net.arctics.clonk.parser.inireader.IniData.IniDataEntry;
@@ -86,6 +87,9 @@ public class IniCompletionProcessor extends ClonkCompletionProcessor implements 
 				if (d != null) {
 					proposalsForSection(proposals, prefix, wordOffset, d);
 				}
+				// also propose new sections
+				IniUnit unit = getEditor().getIniUnit();
+				proposalsForIniUnit(proposals, prefix, wordOffset, unit);
 			}
 		}
 		else if (assignment && section != null) {
@@ -115,6 +119,16 @@ public class IniCompletionProcessor extends ClonkCompletionProcessor implements 
 		}
 		
 		return sortProposals(proposals.toArray(new ICompletionProposal[proposals.size()]));
+	}
+
+	private void proposalsForIniUnit(Collection<ICompletionProposal> proposals,
+			String prefix, int wordOffset, IniUnit unit) {
+		for (IniSectionData sec : unit.getConfiguration().getSections().values()) {
+			if (sec.getSectionName().toLowerCase().contains(prefix)) {
+				String secString = "["+sec.getSectionName()+"]";
+				proposals.add(new CompletionProposal(secString, wordOffset, prefix.length(), secString.length()));
+			}
+		}
 	}
 
 	private IniTextEditor getEditor() {
