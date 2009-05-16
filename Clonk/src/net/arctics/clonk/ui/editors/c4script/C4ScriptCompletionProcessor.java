@@ -6,10 +6,10 @@ import java.util.HashSet;
 import java.util.List;
 
 import net.arctics.clonk.ClonkCore;
+import net.arctics.clonk.index.C4Object;
 import net.arctics.clonk.index.ClonkIndex;
 import net.arctics.clonk.parser.BuiltInDefinitions;
 import net.arctics.clonk.parser.c4script.C4Function;
-import net.arctics.clonk.parser.c4script.C4Object;
 import net.arctics.clonk.parser.c4script.C4ScriptBase;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.C4Variable;
@@ -107,6 +107,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor {
 	
 	private ContentAssistant assistant;
 	private ExprElm contextExpression;
+	private C4Object guessedContextObjectType;
 	private ProposalCycle proposalCycle = ProposalCycle.SHOW_ALL;
 	
 	public C4ScriptCompletionProcessor(ITextEditor editor,
@@ -266,18 +267,19 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor {
 						}
 						if (activeFunc.getBody().getOffset() + expression.getExprStart() <= preservedOffset) {
 							contextExpression = expression;
+							guessedContextObjectType = expression.guessObjectType(parser);
 							return TraversalContinuation.Continue;
 						}
 						return TraversalContinuation.Cancel;
 					}
 				});
 				if (contextExpression != null && contextExpression.containsOffset(preservedOffset-activeFunc.getBody().getOffset())) {
-					C4Object guessed = contextExpression.guessObjectType(parser);
-					if (guessed != null) {
-						contextScript = guessed;
+					if (guessedContextObjectType != null) {
+						contextScript = guessedContextObjectType;
 						contextObjChanged = true;
 					}
 				}
+				parser.endTypeInferenceBlock();
 			} catch (ParsingException e) {
 				e.printStackTrace();
 			}

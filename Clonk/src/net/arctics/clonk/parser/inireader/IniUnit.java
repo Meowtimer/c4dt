@@ -104,7 +104,7 @@ public class IniUnit extends C4Structure implements Iterable<IniSection>, IHasCh
 	
 	/**
 	 * Checks whether this section name is valid.<br>
-	 * Clients may override. This implementation always returns <tt>true</tt>.
+	 * Default implementation consults the configuration returned from getConfiguration() to determine if the section is valid.
 	 * @param name
 	 * @return <tt>true</tt> if valid
 	 */

@@ -21,7 +21,7 @@ public class C4ScriptTextHover implements ITextHover, ITextHoverExtension {
 		 * 
 		 */
 		private final C4ScriptSourceViewerConfiguration configuration;
-		private IdentInfo identInfo;
+		private DeclarationLocator declLocator;
 //		private IInformationControlCreator informationControlCreator;
 		
 		public C4ScriptTextHover(C4ScriptSourceViewerConfiguration clonkSourceViewerConfiguration) {
@@ -31,19 +31,19 @@ public class C4ScriptTextHover implements ITextHover, ITextHoverExtension {
 		}
 		
 		public String getHoverInfo(ITextViewer viewer, IRegion region) {
-			return identInfo != null && identInfo.getDeclaration() != null
-				? identInfo.getDeclaration().getShortInfo()
+			return declLocator != null && declLocator.getDeclaration() != null
+				? declLocator.getDeclaration().getShortInfo()
 				: null;
 		}
 
 		public IRegion getHoverRegion(ITextViewer viewer, int offset) {
 			try {
-				identInfo = new IdentInfo(configuration.getEditor(), viewer.getDocument(), new Region(offset, 0));
+				declLocator = new DeclarationLocator(configuration.getEditor(), viewer.getDocument(), new Region(offset, 0));
 			} catch (Exception e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-			return identInfo.getIdentRegion();
+			return declLocator.getIdentRegion();
 		}
 
 		public IInformationControlCreator getHoverControlCreator() {

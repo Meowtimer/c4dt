@@ -1,7 +1,7 @@
 package net.arctics.clonk.ui.editors.actions.c4script;
 
 import net.arctics.clonk.ClonkCore;
-import net.arctics.clonk.parser.c4script.C4Object;
+import net.arctics.clonk.index.C4Object;
 import net.arctics.clonk.ui.OpenObjectDialog;
 import net.arctics.clonk.ui.editors.c4script.C4ScriptEditor;
 

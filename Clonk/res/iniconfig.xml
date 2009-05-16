@@ -592,23 +592,23 @@
 		<section name="Definitions">
 			<entry name="LocalOnly" class="net.arctics.clonk.parser.inireader.SignedInteger"
 				description="Wenn LocalOnly den Wert 1 hat, werden alle angegebenen Objektdefinitions-pakete ignoriert und nur lokale Objektdefinitionen geladen." />
-			<entry name="Definition1" class="java.lang.String"
+			<entry name="Definition1" class="net.arctics.clonk.parser.inireader.DefinitionPack"
 				description="Über Definitionx-Einträge kann vorgegeben werden, welche Objektdefinitionspakete (c4d) das Szenario benutzen soll. Die Pakete müssen im Clonk-Verzeichnis vorhanden sein. Sind Pakete im Szenario angegeben, wird die vom Menüsystem bestimmte Auswahl ignoriert." />
-			<entry name="Definition2" class="java.lang.String"
+			<entry name="Definition2" class="net.arctics.clonk.parser.inireader.DefinitionPack"
 				description="Über Definitionx-Einträge kann vorgegeben werden, welche Objektdefinitionspakete (c4d) das Szenario benutzen soll. Die Pakete müssen im Clonk-Verzeichnis vorhanden sein. Sind Pakete im Szenario angegeben, wird die vom Menüsystem bestimmte Auswahl ignoriert." />
-			<entry name="Definition3" class="java.lang.String"
+			<entry name="Definition3" class="net.arctics.clonk.parser.inireader.DefinitionPack"
 				description="Über Definitionx-Einträge kann vorgegeben werden, welche Objektdefinitionspakete (c4d) das Szenario benutzen soll. Die Pakete müssen im Clonk-Verzeichnis vorhanden sein. Sind Pakete im Szenario angegeben, wird die vom Menüsystem bestimmte Auswahl ignoriert." />
-			<entry name="Definition4" class="java.lang.String"
+			<entry name="Definition4" class="net.arctics.clonk.parser.inireader.DefinitionPack"
 				description="Über Definitionx-Einträge kann vorgegeben werden, welche Objektdefinitionspakete (c4d) das Szenario benutzen soll. Die Pakete müssen im Clonk-Verzeichnis vorhanden sein. Sind Pakete im Szenario angegeben, wird die vom Menüsystem bestimmte Auswahl ignoriert." />
-			<entry name="Definition5" class="java.lang.String"
+			<entry name="Definition5" class="net.arctics.clonk.parser.inireader.DefinitionPack"
 				description="Über Definitionx-Einträge kann vorgegeben werden, welche Objektdefinitionspakete (c4d) das Szenario benutzen soll. Die Pakete müssen im Clonk-Verzeichnis vorhanden sein. Sind Pakete im Szenario angegeben, wird die vom Menüsystem bestimmte Auswahl ignoriert." />
-			<entry name="Definition6" class="java.lang.String"
+			<entry name="Definition6" class="net.arctics.clonk.parser.inireader.DefinitionPack"
 				description="Über Definitionx-Einträge kann vorgegeben werden, welche Objektdefinitionspakete (c4d) das Szenario benutzen soll. Die Pakete müssen im Clonk-Verzeichnis vorhanden sein. Sind Pakete im Szenario angegeben, wird die vom Menüsystem bestimmte Auswahl ignoriert." />
-			<entry name="Definition7" class="java.lang.String"
+			<entry name="Definition7" class="net.arctics.clonk.parser.inireader.DefinitionPack"
 				description="Über Definitionx-Einträge kann vorgegeben werden, welche Objektdefinitionspakete (c4d) das Szenario benutzen soll. Die Pakete müssen im Clonk-Verzeichnis vorhanden sein. Sind Pakete im Szenario angegeben, wird die vom Menüsystem bestimmte Auswahl ignoriert." />
-			<entry name="Definition8" class="java.lang.String"
+			<entry name="Definition8" class="net.arctics.clonk.parser.inireader.DefinitionPack"
 				description="Über Definitionx-Einträge kann vorgegeben werden, welche Objektdefinitionspakete (c4d) das Szenario benutzen soll. Die Pakete müssen im Clonk-Verzeichnis vorhanden sein. Sind Pakete im Szenario angegeben, wird die vom Menüsystem bestimmte Auswahl ignoriert." />
-			<entry name="Definition9" class="java.lang.String"
+			<entry name="Definition9" class="net.arctics.clonk.parser.inireader.DefinitionPack"
 				description="Über Definitionx-Einträge kann vorgegeben werden, welche Objektdefinitionspakete (c4d) das Szenario benutzen soll. Die Pakete müssen im Clonk-Verzeichnis vorhanden sein. Sind Pakete im Szenario angegeben, wird die vom Menüsystem bestimmte Auswahl ignoriert." />	
 			<entry name="SkipDefs" class="net.arctics.clonk.parser.inireader.IDArray"
 				description="Liste der Definitionen, die im Spiel nicht geladen werden sollen. So lässt sich beispielsweise die Erforschung bestimmter Objekte verhindern." />

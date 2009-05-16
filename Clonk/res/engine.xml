@@ -196,7 +196,7 @@
 			</parameters>
 			<description>Führt einen Funktionsaufruf im angegebenen Effekt durch. Der Aufruf erhält den Befehlskontext des Effektes, und die ersten beiden Aufrufparameter sind immer Zielobjekt und Effektindex. Die weiteren Parameter können frei gewählt werden.</description>
 		</function>
-		<function name="EffectVar" return="int">
+		<function name="EffectVar" return="reference">
 			<parameters>
 				<parameter name="iVarIndex" type="int" />
 				<parameter name="pTarget" type="object" />
@@ -1480,7 +1480,7 @@ Wenn fCheckSite 1 ist, wird die Baustelle vorher auf ihre Eignung überprüft. I
 		</function>
 		<function name="GetController" return="int">
 			<parameters>
-				<parameter name="pObj" type="int" />
+				<parameter name="pObj" type="object" />
 			</parameters>
 			<description>Fragt ab, welcher Spieler ein Objekt zur Zeit kontrolliert bzw. zuletzt kontrolliert hat. Bei Mannschaftsmitgliedern ist dies normalerweise immer der Besitzer; bei Fahrzeugen der Controller des Clonks, der es zuletzt bedient (angefasst und geschoben/gezogen) hat. Objekte, die von Lebewesen aufgenommen werden, nehmen automatisch den Controller ihres Containers an. Beim Besitzerwechsel (siehe <a href="../../../sdk/script/fn/SetOwner.html">SetOwner</a>())wird automatisch auch der Controller auf den neuen Besitzer geändert.</description>
 		</function>
@@ -1559,7 +1559,7 @@ Wenn fCheckSite 1 ist, wird die Baustelle vorher auf ihre Eignung überprüft. I
 				<parameter name="idItem" type="id" />
 				<parameter name="pMenuObject" type="object" />
 				<parameter name="iCount" type="int" />
-				<parameter name="Parameter" type="int" />
+				<parameter name="Parameter" type="any" />
 				<parameter name="szInfoCaption" type="string" />
 				<parameter name="iExtra" type="int" />
 				<parameter name="XPar1" type="int" />
@@ -3025,13 +3025,13 @@ Wenn fCheckSite 1 ist, wird die Baustelle vorher auf ihre Eignung überprüft. I
 			</parameters>
 			<description>Gibt den Typ des übergebenen Werts zurück.</description>
 		</function>
-		<function name="Global" return="int">
+		<function name="Global" return="reference">
 			<parameters>
 				<parameter name="iVarIndex" type="int" />
 			</parameters>
 			<description>Liefert den Inhalt der globalen Variable iVarIndex.</description>
 		</function>
-		<function name="GlobalN" return="int">
+		<function name="GlobalN" return="reference">
 			<parameters>
 				<parameter name="szText" type="string" />
 			</parameters>
@@ -3091,7 +3091,7 @@ Wenn fCheckSite 1 ist, wird die Baustelle vorher auf ihre Eignung überprüft. I
 			</parameters>
 			<description>Weist den Wert iValue einer beliebigen Thread-lokalen Variablen (ab 0) zu. Der Datentyp ist variabel. Thread-lokale Variablen gelten nur für die Dauer des aktuellen Funktionsaufrufes. Numerierte Variablen wurden durch Variablen mit Namen abgelöst, sind aber für Arrays nützlich.</description>
 		</function>
-		<function name="Var" return="int">
+		<function name="Var" return="reference">
 			<parameters>
 				<parameter name="iIndex" type="int" />
 			</parameters>
@@ -3177,7 +3177,7 @@ Wenn fCheckSite 1 ist, wird die Baustelle vorher auf ihre Eignung überprüft. I
 		</function>
 		<function name="GetIndexOf" return="int">
 			<parameters>
-				<parameter name="iNeedle" type="int" />
+				<parameter name="iNeedle" type="any" />
 				<parameter name="aHaystack" type="array" />
 			</parameters>
 			<description>Inoffizielle Dokumentation: Gibt -1 bei nicht finden zurück, ansonsten den Schlüssel.</description>

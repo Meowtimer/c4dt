@@ -9,6 +9,7 @@ import net.arctics.clonk.parser.C4ID;
 import net.arctics.clonk.parser.c4script.C4Function;
 import net.arctics.clonk.parser.c4script.C4ScriptBase;
 import net.arctics.clonk.parser.inireader.Boolean;
+import net.arctics.clonk.parser.inireader.DefinitionPack;
 import net.arctics.clonk.parser.inireader.Function;
 import net.arctics.clonk.parser.inireader.IDArray;
 import net.arctics.clonk.parser.inireader.IniSection;
@@ -17,6 +18,7 @@ import net.arctics.clonk.parser.inireader.SignedInteger;
 import net.arctics.clonk.parser.inireader.UnsignedInteger;
 import net.arctics.clonk.parser.inireader.IniData.IniDataEntry;
 import net.arctics.clonk.parser.inireader.IniData.IniSectionData;
+import net.arctics.clonk.resource.ExternalLib;
 import net.arctics.clonk.ui.editors.ClonkCompletionProcessor;
 import net.arctics.clonk.util.Utilities;
 
@@ -116,9 +118,24 @@ public class IniCompletionProcessor extends ClonkCompletionProcessor implements 
 			else if (entryClass == Boolean.class) {
 				proposalsForBooleanEntry(proposals, prefix, wordOffset);
 			}
+			else if (entryClass == DefinitionPack.class) {
+				proposalsForDefinitionPackEntry(proposals, prefix, wordOffset);
+			}
 		}
 		
 		return sortProposals(proposals.toArray(new ICompletionProposal[proposals.size()]));
+	}
+
+	private void proposalsForDefinitionPackEntry(
+			Collection<ICompletionProposal> proposals, String prefix,
+			int wordOffset) {
+		for (ExternalLib lib : ClonkCore.getDefault().EXTERN_INDEX.getLibs()) {
+			if (!lib.getNodeName().toLowerCase().contains(prefix))
+				continue;
+			if (!lib.getNodeName().endsWith(".c4d"))
+				continue;
+			proposals.add(new CompletionProposal(lib.getNodeName(), wordOffset, prefix.length(), lib.getNodeName().length()));
+		}
 	}
 
 	private void proposalsForIniUnit(Collection<ICompletionProposal> proposals,

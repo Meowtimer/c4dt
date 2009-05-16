@@ -23,7 +23,7 @@ public class FindReferencesAction extends OpenDeclarationAction {
 	@Override
 	public void run() {
 		try {
-			C4Declaration field = getFieldAtSelection();
+			C4Declaration field = getDeclarationAtSelection();
 			if (field != null) {
 				ClonkProjectNature nature = Utilities.getProject(field.getScript());				
 				if (nature == null) {

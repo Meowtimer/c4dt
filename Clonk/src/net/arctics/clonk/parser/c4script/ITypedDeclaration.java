@@ -1,5 +1,6 @@
 package net.arctics.clonk.parser.c4script;
 
+import net.arctics.clonk.index.C4Object;
 import net.arctics.clonk.parser.c4script.C4ScriptExprTree.ExprElm;
 
 
@@ -23,7 +24,7 @@ public interface ITypedDeclaration {
 		}
 		public static void inferTypeFromAssignment(ITypedDeclaration instance, ExprElm val, C4ScriptParser context) {
 			instance.setExpectedContent(val.guessObjectType(context));
-			instance.expectedToBeOfType(val.getType());
+			instance.expectedToBeOfType(val.getType(context));
 		}
 	}
 }

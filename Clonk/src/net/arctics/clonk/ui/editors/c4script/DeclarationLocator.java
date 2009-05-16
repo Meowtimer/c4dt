@@ -19,21 +19,20 @@ import org.eclipse.jface.text.Region;
 import org.eclipse.ui.texteditor.ITextEditor;
 
 /**
- * Encapsulates information about an identifier in a document and the field it refers to
+ * Encapsulates information about an identifier in a document and the declaration it refers to
  * @author madeen
  *
  */
-public class IdentInfo extends ExpressionLocator {
+public class DeclarationLocator extends ExpressionLocator {
 	private ITextEditor editor;
 	private String line;
-	private ExprElm exprAtRegion;
 	private C4Declaration declaration;
 	
 	public ITextEditor getEditor() {
 		return editor;
 	}
 	
-	public IdentInfo(ITextEditor editor, IDocument doc, IRegion region) throws BadLocationException, ParsingException {
+	public DeclarationLocator(ITextEditor editor, IDocument doc, IRegion region) throws BadLocationException, ParsingException {
 		this.editor = editor;
 		C4ScriptBase script = Utilities.getScriptForEditor(getEditor());
 		if (script == null)

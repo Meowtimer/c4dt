@@ -1,6 +1,5 @@
 package net.arctics.clonk.index;
 
-import net.arctics.clonk.parser.c4script.C4Object;
 import net.arctics.clonk.parser.c4script.C4ScriptBase;
 import net.arctics.clonk.parser.c4script.C4ScriptIntern;
 

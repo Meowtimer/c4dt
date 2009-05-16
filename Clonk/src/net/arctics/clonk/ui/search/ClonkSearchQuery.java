@@ -1,14 +1,14 @@
 package net.arctics.clonk.ui.search;
 
 import net.arctics.clonk.ClonkCore;
+import net.arctics.clonk.index.C4Object;
 import net.arctics.clonk.index.C4Scenario;
 import net.arctics.clonk.parser.C4Declaration;
 import net.arctics.clonk.parser.c4script.C4Directive;
 import net.arctics.clonk.parser.c4script.C4Function;
-import net.arctics.clonk.parser.c4script.C4Object;
 import net.arctics.clonk.parser.c4script.C4ScriptBase;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
-import net.arctics.clonk.parser.c4script.C4ScriptExprTree.ExprAccessField;
+import net.arctics.clonk.parser.c4script.C4ScriptExprTree.ExprAccessDeclaration;
 import net.arctics.clonk.parser.c4script.C4ScriptExprTree.ExprCallFunc;
 import net.arctics.clonk.parser.c4script.C4ScriptExprTree.ExprElm;
 import net.arctics.clonk.parser.c4script.C4ScriptExprTree.ExprID;
@@ -75,7 +75,7 @@ public class ClonkSearchQuery implements ISearchQuery {
 			private boolean calledThroughGameCall(ExprElm expression) {
 				if (expression instanceof ExprCallFunc) {
 					ExprCallFunc callFunc = (ExprCallFunc) expression;
-					if (callFunc.getFieldName().equals("GameCall")) {
+					if (callFunc.getDeclarationName().equals("GameCall")) {
 						if (callFunc.getParams().length > 0 && callFunc.getParams()[0] instanceof ExprString) {
 							if (((ExprString)callFunc.getParams()[0]).stringValue().equals(field.getName()))
 								return true;
@@ -87,20 +87,20 @@ public class ClonkSearchQuery implements ISearchQuery {
 			private boolean potentiallyReferencedByObjectCall(ExprElm expression) {
 				if (expression instanceof ExprCallFunc && expression.getPredecessorInSequence() instanceof ExprObjectCall) {
 					ExprCallFunc callFunc = (ExprCallFunc) expression;
-					return callFunc.getFieldName().equals(field.getName());
+					return callFunc.getDeclarationName().equals(field.getName());
 				}
 				return false;
 			}
 			public TraversalContinuation expressionDetected(ExprElm expression,
 					C4ScriptParser parser) {
-				if (expression instanceof ExprAccessField) {
-					ExprAccessField accessField = (ExprAccessField) expression;
-					if (accessField.getField(parser) == field)
+				if (expression instanceof ExprAccessDeclaration) {
+					ExprAccessDeclaration accessField = (ExprAccessDeclaration) expression;
+					if (accessField.getDeclaration(parser) == field)
 						result.addMatch(expression, parser, false, accessField.indirectAccess());
 					else if (declaringScriptIsScenario && calledThroughGameCall(expression))
 						result.addMatch(expression, parser, false, true);
 					else if (potentiallyReferencedByObjectCall(expression)) {
-						C4Function otherFunc = (C4Function) accessField.getField();
+						C4Function otherFunc = (C4Function) accessField.getDeclaration();
 						boolean potential = (otherFunc == null || !((C4Function)field).isRelatedFunction(otherFunc));
 						result.addMatch(expression, parser, potential, accessField.indirectAccess());
 					}

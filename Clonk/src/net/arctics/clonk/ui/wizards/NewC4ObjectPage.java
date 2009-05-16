@@ -2,8 +2,8 @@ package net.arctics.clonk.ui.wizards;
 
 import java.util.List;
 
+import net.arctics.clonk.index.C4Object;
 import net.arctics.clonk.parser.C4ID;
-import net.arctics.clonk.parser.c4script.C4Object;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.util.Utilities;
 

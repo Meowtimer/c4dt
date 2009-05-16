@@ -1,6 +1,6 @@
 package net.arctics.clonk.ui.editors.c4script;
 
-import net.arctics.clonk.parser.c4script.C4Object;
+import net.arctics.clonk.index.C4Object;
 
 import org.eclipse.jface.text.DefaultInformationControl;
 import org.eclipse.jface.text.IAutoEditStrategy;
@@ -32,9 +32,9 @@ public class C4ScriptSourceViewerConfiguration extends TextSourceViewerConfigura
 	
 	private class C4ScriptHyperlinkDetector implements IHyperlinkDetector {
 		public IHyperlink[] detectHyperlinks(ITextViewer viewer, IRegion region, boolean canShowMultipleHyperlinks) {
-			IdentInfo i;
+			DeclarationLocator i;
 			try {
-				i = new IdentInfo(getEditor(), viewer.getDocument(),region);
+				i = new DeclarationLocator(getEditor(), viewer.getDocument(),region);
 			} catch (Exception e) {
 				e.printStackTrace();
 				i = null;

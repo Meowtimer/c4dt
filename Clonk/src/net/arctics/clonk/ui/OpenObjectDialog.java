@@ -2,8 +2,8 @@ package net.arctics.clonk.ui;
 
 import java.util.Comparator;
 import net.arctics.clonk.ClonkCore;
+import net.arctics.clonk.index.C4Object;
 import net.arctics.clonk.index.ClonkIndex;
-import net.arctics.clonk.parser.c4script.C4Object;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.util.Utilities;
 

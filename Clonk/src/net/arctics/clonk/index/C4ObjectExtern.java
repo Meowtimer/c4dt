@@ -1,4 +1,4 @@
-package net.arctics.clonk.parser.c4script;
+package net.arctics.clonk.index;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -6,7 +6,6 @@ import java.util.List;
 import org.eclipse.core.runtime.IPath;
 
 import net.arctics.clonk.ClonkCore;
-import net.arctics.clonk.index.ClonkIndex;
 import net.arctics.clonk.parser.C4ID;
 import net.arctics.clonk.parser.SimpleScriptStorage;
 import net.arctics.clonk.resource.c4group.C4GroupEntry;

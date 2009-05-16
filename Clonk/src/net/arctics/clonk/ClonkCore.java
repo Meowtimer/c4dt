@@ -12,9 +12,9 @@ import java.io.ObjectOutputStream;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.xpath.XPathExpressionException;
 
+import net.arctics.clonk.index.C4ObjectExtern;
 import net.arctics.clonk.index.ExternIndex;
 import net.arctics.clonk.parser.C4ID;
-import net.arctics.clonk.parser.c4script.C4ObjectExtern;
 import net.arctics.clonk.parser.inireader.IniData;
 import net.arctics.clonk.resource.ClonkLibBuilder;
 import net.arctics.clonk.resource.ClonkProjectNature;
@@ -146,30 +146,22 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant {
 	
 	public void loadEngineObject() throws FileNotFoundException, IOException, ClassNotFoundException, XPathExpressionException, ParserConfigurationException, SAXException {
 		InputStream engineStream;
-		if (getEngineCacheFile().toFile().exists()) {
-			engineStream = new FileInputStream(getEngineCacheFile().toFile());
-		}
-		else {
-			try {
-				engineStream = getBundle().getEntry("res/engine").openStream();
-			} catch (FileNotFoundException e) {
-				createDefaultEngineObject();
-				ENGINE_OBJECT.importFromXML(getBundle().getEntry("res/engine.xml").openStream());
-				return;
-			}
-		}
 		try {
-			try {
-//				throw new Exception("ugh");
-				ObjectInputStream objStream = new InputStreamRespectingUniqueIDs(engineStream);
-				ENGINE_OBJECT = (C4ObjectExtern)objStream.readObject();
-				ENGINE_OBJECT.fixReferencesAfterSerialization(null);
-			} catch (Exception e) {
-				e.printStackTrace();
-				createDefaultEngineObject();
+			if (getEngineCacheFile().toFile().exists()) {
+				engineStream = new FileInputStream(getEngineCacheFile().toFile());
 			}
-		} finally {
-			engineStream.close();
+			else {
+				engineStream = getBundle().getEntry("res/engine").openStream();
+			}
+			ObjectInputStream objStream = new InputStreamRespectingUniqueIDs(engineStream);
+			ENGINE_OBJECT = (C4ObjectExtern)objStream.readObject();
+			ENGINE_OBJECT.fixReferencesAfterSerialization(null);
+
+		} catch (Exception e) {
+			// fallback to xml
+			createDefaultEngineObject();
+			ENGINE_OBJECT.importFromXML(getBundle().getEntry("res/engine.xml").openStream());
+			return;
 		}
 	}
 

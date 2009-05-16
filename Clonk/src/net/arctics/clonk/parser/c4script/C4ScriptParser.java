@@ -2,15 +2,17 @@ package net.arctics.clonk.parser.c4script;
 
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
-import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
+import java.util.Stack;
 import java.util.Vector;
 
 import net.arctics.clonk.ClonkCore;
+import net.arctics.clonk.index.C4Object;
 import net.arctics.clonk.index.ClonkIndex;
 import net.arctics.clonk.parser.BufferedScanner;
 import net.arctics.clonk.parser.C4Declaration;
@@ -176,35 +178,44 @@ public class C4ScriptParser {
 		}
 	}
 	
+	private Stack<List<IStoredTypeInformation>> storedTypeInformationStack = new Stack<List<IStoredTypeInformation>>();
+	
+	public void beginTypeInferenceBlock() {
+		storedTypeInformationStack.push(new LinkedList<IStoredTypeInformation>());
+	}
+	
+	public List<IStoredTypeInformation> endTypeInferenceBlock() {
+		return storedTypeInformationStack.pop();
+	}
+	
+	private void applyStoredTypeInformations() {
+		for (IStoredTypeInformation info : storedTypeInformationStack.peek()) {
+			info.apply();
+		}
+	}
+	
 	/**
 	 * Ask the parser to store type information about an expression. No guarantees whether type information will actually be stored.
 	 */
 	public void storeTypeInformation(ExprElm expression, C4Type type, C4Object objectType) {
-		if (expression instanceof ExprCallFunc) {
-			ExprCallFunc callFunc = (ExprCallFunc)expression;
-			if (callFunc.getField() == CachedEngineFuncs.Var) {
-				if (callFunc.getParams().length > 0 && callFunc.getParams()[0] instanceof ExprNumber) {
-					ExprNumber number = (ExprNumber)callFunc.getParams()[0];
-					if (number.intValue() >= 0 && number.intValue() < MAX_NUMVAR) {
-						// Var() with a sane constant number
-						int val = number.intValue();
-						if (unnamedVarTypeInformation == null)
-							unnamedVarTypeInformation = new ArrayList<Pair<C4Type, C4Object>>(MAX_NUMVAR);
-						while (unnamedVarTypeInformation.size() <= val)
-							unnamedVarTypeInformation.add(null);
-						if (unnamedVarTypeInformation.get(val) == null) {
-							unnamedVarTypeInformation.set(val, new Pair<C4Type, C4Object>(type, objectType));
-						}
-						else {
-							Pair<C4Type, C4Object> info = unnamedVarTypeInformation.get(val);
-							if (type != null)
-								info.setFirst(type);
-							info.setSecond(objectType);
-						}
-					}
-				}
-			}	
+		IStoredTypeInformation requested = requestStoredTypeInformation(expression);
+		if (requested != null) {
+			requested.storeObjectType(objectType);
+			requested.storeType(type);
 		}
+	}
+	
+	public IStoredTypeInformation requestStoredTypeInformation(ExprElm expression) {
+		if (storedTypeInformationStack.isEmpty())
+			return null;
+		for (IStoredTypeInformation info : storedTypeInformationStack.peek()) {
+			if (info.expressionRelevant(expression))
+				return info;
+		}
+		IStoredTypeInformation newlyCreated = expression.createStoredTypeInformation();
+		if (newlyCreated != null)
+			storedTypeInformationStack.peek().add(newlyCreated);
+		return newlyCreated;
 	}
 	
 	/**
@@ -213,42 +224,29 @@ public class C4ScriptParser {
 	 * @param expression the expression to query the type of
 	 * @return
 	 */
-	public C4Type queryTypeOfExpression(ExprElm expression) {
-		if (unnamedVarTypeInformation != null && expression instanceof ExprCallFunc) {
-			ExprCallFunc callFunc = (ExprCallFunc)expression;
-			if (callFunc.getField() == CachedEngineFuncs.Var) {
-				if (callFunc.getParams().length > 0 && callFunc.getParams()[0] instanceof ExprNumber) {
-					ExprNumber number = (ExprNumber)callFunc.getParams()[0];
-					if (number.intValue() >= 0 && number.intValue() < unnamedVarTypeInformation.size()) {
-						// Var()
-						int val = number.intValue();
-						if (unnamedVarTypeInformation.get(val) != null)
-							return unnamedVarTypeInformation.get(val).getFirst();
-					}
-				}
-			}	
+	public IStoredTypeInformation queryStoredTypeInformation(ExprElm expression, boolean wholeStack) {
+		if (storedTypeInformationStack.isEmpty())
+			return null;
+		for (int i = storedTypeInformationStack.size()-1, levels = wholeStack ? storedTypeInformationStack.size() : 1; levels > 0; levels--,i--) {
+			for (IStoredTypeInformation info : storedTypeInformationStack.get(i)) {
+				if (info.expressionRelevant(expression))
+					return info;
+			}
 		}
-		return C4Type.UNKNOWN;
+		return null;
 	}
 	
 	/**
 	 * Same as queryTypeOfEexpression but for object types.
 	 */
 	public C4Object queryObjectTypeOfExpression(ExprElm expression) {
-		if (unnamedVarTypeInformation != null && expression instanceof ExprCallFunc) {
-			ExprCallFunc callFunc = (ExprCallFunc)expression;
-			if (callFunc.getField() == CachedEngineFuncs.Var) {
-				if (callFunc.getParams().length > 0 && callFunc.getParams()[0] instanceof ExprNumber) {
-					ExprNumber number = (ExprNumber)callFunc.getParams()[0];
-					if (number.intValue() >= 0 && number.intValue() < unnamedVarTypeInformation.size()) {
-						int val = number.intValue();
-						if (unnamedVarTypeInformation.get(val) != null)
-							return unnamedVarTypeInformation.get(val).getSecond();
-					}
-				}
-			}	
-		}
-		return null;
+		IStoredTypeInformation info = queryStoredTypeInformation(expression, true);
+		return info != null ? info.getObjectType() : null;
+	}
+	
+	public C4Type queryTypeOfExpression(ExprElm expression, C4Type defaultType) {
+		IStoredTypeInformation info = queryStoredTypeInformation(expression, true);
+		return info != null ? info.getType() : defaultType;
 	}
 	
 	/**
@@ -400,7 +398,10 @@ public class C4ScriptParser {
 	public void parseCodeOfFunction(C4Function function) throws ParsingException {
 		try {
 			setActiveFunc(function);
+			beginTypeInferenceBlock();
 			parseCodeBlock(function.getBody().getStart());
+			applyStoredTypeInformations();
+			endTypeInferenceBlock();
 			if (numUnnamedParameters < UNKNOWN_PARAMETERNUM) {
 				activeFunc.createParameters(numUnnamedParameters);
 			}
@@ -419,7 +420,7 @@ public class C4ScriptParser {
 			e.printStackTrace();
 		}
 	}
-	
+
 	/**
 	 * Returns a line a region is in as a string
 	 * @param region the region the line to be returned is in
@@ -1365,7 +1366,7 @@ public class C4ScriptParser {
 			
 			// check if sequence is valid (CreateObject(BLUB)->localvar is not)
 			if (elm != null) {
-				if (prevElm != null && !elm.isValidInSequence(prevElm)) {
+				if (prevElm != null && !elm.isValidInSequence(prevElm, this)) {
 					elm = null; // blub blub <- first blub is var; second blub is not part of the sequence -.-
 					//fReader.seek(elmStart);
 					dontCheckForPostOp = true;
@@ -1390,7 +1391,7 @@ public class C4ScriptParser {
 		}
 		
 		result.setExprRegion(sequenceStart, fReader.getPosition());
-		if (result.getType() == null) {
+		if (result.getType(this) == null) {
 			errorWithCode(C4ScriptParserErrorCode.InvalidExpression, result);
 		}
 		
@@ -1623,6 +1624,20 @@ public class C4ScriptParser {
 		return parseStatement(offset, ParseStatementOption.NoOptions);
 	}
 	
+	private Statement parseStatementWithOwnTypeInferenceBlock(int offset, TypeInformationMerger merger) throws ParsingException {
+		beginTypeInferenceBlock();
+		Statement s = parseStatement(offset);
+		merger.inject(endTypeInferenceBlock());
+		return s;
+	}
+	
+	private Statement parseStatementAndMergeTypeInformation(int offset) throws ParsingException {
+		TypeInformationMerger merger = new TypeInformationMerger();
+		Statement s = parseStatementWithOwnTypeInferenceBlock(offset, merger);
+		storedTypeInformationStack.push(merger.finish(storedTypeInformationStack.pop()));
+		return s;
+	}
+	
 	private Statement parseStatement(int offset, EnumSet<ParseStatementOption> options) throws ParsingException {
 		parseStatementRecursion++;
 		try {
@@ -1780,6 +1795,40 @@ public class C4ScriptParser {
 			checkForSemicolon();
 		return result;
 	}
+	
+	private static class TypeInformationMerger {
+		private List<IStoredTypeInformation> merged;
+		
+		private static List<IStoredTypeInformation> mergeTypeInformations(List<IStoredTypeInformation> first, List<IStoredTypeInformation> second) {
+			for (IStoredTypeInformation info : first) {
+				for (Iterator<IStoredTypeInformation> it = second.iterator(); it.hasNext();) {
+					IStoredTypeInformation info2 = it.next();
+					if (info2.sameExpression(info)) {
+						info.merge(info2);
+						it.remove();
+					}
+				}
+			}
+			first.addAll(second);
+			return first;
+		}
+		
+		public List<IStoredTypeInformation> inject(List<IStoredTypeInformation> infos) {
+			if (merged == null)
+				return merged = infos;
+			return merged = mergeTypeInformations(merged, infos);
+		}
+
+		public List<IStoredTypeInformation> getMerged() {
+			return merged;
+		}
+
+		public List<IStoredTypeInformation> finish(List<IStoredTypeInformation> finalList) {
+			if (merged == null)
+				return finalList;
+			return mergeTypeInformations(finalList, merged);
+		}
+	}
 
 	private Statement parseKeyword(int offset, String readWord) throws ParsingException {
 		Statement result = null;
@@ -1797,11 +1846,11 @@ public class C4ScriptParser {
 				tokenExpectedError(")");
 			}
 			eatWhitespace(); // FIXME: eats comments so when transforming code the comments will be gone
-			Statement body = parseStatement(fReader.getPosition());
-			if (body == null) {
-				errorWithCode(C4ScriptParserErrorCode.StatementExpected, offset, offset+4);
+			TypeInformationMerger merger = new TypeInformationMerger();
+			Statement ifStatement = parseStatementWithOwnTypeInferenceBlock(fReader.getPosition(), merger);
+			if (ifStatement == null) {
+				errorWithCode(C4ScriptParserErrorCode.StatementExpected, offset, offset+Keywords.If.length());
 			}
-
 			int beforeElse = fReader.getPosition();
 			eatWhitespace();
 			offset = fReader.getPosition();
@@ -1810,7 +1859,7 @@ public class C4ScriptParser {
 			if (nextWord != null && nextWord.equals(Keywords.Else)) {
 				eatWhitespace();
 				offset = fReader.getPosition();
-				elseStatement = parseStatement(fReader.getPosition());
+				elseStatement = parseStatementWithOwnTypeInferenceBlock(fReader.getPosition(), merger);
 				if (elseStatement == null) {
 					errorWithCode(C4ScriptParserErrorCode.StatementExpected, offset, offset+Keywords.Else.length());
 				}	
@@ -1819,7 +1868,9 @@ public class C4ScriptParser {
 				fReader.seek(beforeElse); // don't eat comments and stuff after if (...) ...;
 				elseStatement = null;
 			}
-			result = new IfStatement(condition, body, elseStatement);
+			// merge gathered type information with current list
+			storedTypeInformationStack.push(merger.finish(storedTypeInformationStack.pop()));
+			result = new IfStatement(condition, ifStatement, elseStatement);
 		}
 		else if (readWord.equals(Keywords.While)) {
 			currentLoop = LoopType.While;
@@ -1842,7 +1893,7 @@ public class C4ScriptParser {
 			}
 			eatWhitespace();
 			offset = fReader.getPosition();
-			Statement body = parseStatement(fReader.getPosition());
+			Statement body = parseStatementAndMergeTypeInformation(fReader.getPosition());
 			if (body == null) {
 				errorWithCode(C4ScriptParserErrorCode.StatementExpected, offset, offset+4);
 			}
@@ -1896,7 +1947,7 @@ public class C4ScriptParser {
 				if (arrayExpr == null)
 					errorWithCode(C4ScriptParserErrorCode.ExpressionExpected, offset, fReader.getPosition()+1);
 				else {
-					C4Type t = arrayExpr.getType();
+					C4Type t = arrayExpr.getType(this);
 					if (!t.canBeAssignedFrom(C4Type.ARRAY))
 						warningWithCode(C4ScriptParserErrorCode.IncompatibleTypes, arrayExpr, t.toString(), C4Type.ARRAY.toString());
 					if (loopVariable != null)
@@ -1946,7 +1997,7 @@ public class C4ScriptParser {
 			eatWhitespace();
 			offset = fReader.getPosition();
 			currentLoop = loopType;
-			body = parseStatement(fReader.getPosition());
+			body = parseStatementAndMergeTypeInformation(fReader.getPosition());
 			if (body == null) {
 				errorWithCode(C4ScriptParserErrorCode.StatementExpected, offset, offset+4);
 			}
@@ -2184,6 +2235,7 @@ public class C4ScriptParser {
 		parser.disableError(C4ScriptParserErrorCode.NotAllowedHere);
 		try {
 			EnumSet<ParseStatementOption> options = EnumSet.of(ParseStatementOption.ExpectFuncDesc);
+			parser.beginTypeInferenceBlock();
 			while (!parser.fReader.reachedEOF()) {
 				Statement statement = parser.parseStatement(parser.fReader.getPosition(), options);
 				if (statement == null)
@@ -2191,6 +2243,7 @@ public class C4ScriptParser {
 				if (!(statement instanceof Comment))
 					options.remove(ParseStatementOption.ExpectFuncDesc);
 			}
+			//parser.endTypeInferenceBlock(); not here for type information might still be needed
 		} 
 		catch (SilentParsingException e) {
 			// silent...

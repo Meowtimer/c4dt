@@ -7,8 +7,8 @@ import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 
 import net.arctics.clonk.ClonkCore;
+import net.arctics.clonk.index.C4ObjectExtern;
 import net.arctics.clonk.index.C4ObjectExternGroup;
-import net.arctics.clonk.parser.c4script.C4ObjectExtern;
 import net.arctics.clonk.parser.c4script.C4ScriptExtern;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.inireader.DefCoreUnit;

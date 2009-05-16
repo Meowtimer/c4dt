@@ -5,7 +5,6 @@ import java.security.InvalidParameterException;
 
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.C4ID;
-import net.arctics.clonk.parser.c4script.C4Object;
 import net.arctics.clonk.util.Utilities;
 
 import org.eclipse.core.resources.IContainer;
