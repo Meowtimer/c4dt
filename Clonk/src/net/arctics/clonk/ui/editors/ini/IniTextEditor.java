@@ -18,9 +18,6 @@ import org.eclipse.ui.texteditor.ITextEditorActionDefinitionIds;
 
 public class IniTextEditor extends ClonkTextEditor {
 	
-	public static final String PAGE_ID = "rawIniEditor";
-	
-	private String title;
 	private IniUnit unit;
 	private boolean unitParsed;
 
@@ -32,10 +29,6 @@ public class IniTextEditor extends ClonkTextEditor {
 	public IniTextEditor() {
 		super();
 		setSourceViewerConfiguration(new IniSourceViewerConfiguration(new ColorManager(), this));
-	}
-
-	public void resetPartName() {
-		setPartName(title);
 	}
 	
 	@Override

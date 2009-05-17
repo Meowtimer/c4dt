@@ -474,6 +474,8 @@ public abstract class Utilities {
 
 	public static IniUnit createAdequateIniUnit(IFile file, Object arg) throws SecurityException, NoSuchMethodException, IllegalArgumentException, InstantiationException, IllegalAccessException, InvocationTargetException {
 		Class<? extends IniUnit> cls = getIniUnitClass(file);
+		if (cls == null)
+			return null;
 		Class<?> neededArgType =
 			arg instanceof String
 				? String.class

@@ -11,6 +11,7 @@ import net.arctics.clonk.index.ClonkIndex;
 import net.arctics.clonk.parser.BufferedScanner;
 import net.arctics.clonk.parser.C4Declaration;
 import net.arctics.clonk.parser.C4ID;
+import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.c4script.C4ScriptParser.CachedEngineFuncs;
 import net.arctics.clonk.parser.c4script.C4ScriptParser.Keywords;
 import net.arctics.clonk.parser.c4script.C4ScriptParser.ParsingException;
@@ -80,7 +81,7 @@ public abstract class C4ScriptExprTree {
 
 		public void warnIfNoSideEffects(C4ScriptParser parser) {
 			if (!hasSideEffects())
-				parser.warningWithCode(C4ScriptParserErrorCode.NoSideEffects, this);
+				parser.warningWithCode(ParserErrorCode.NoSideEffects, this);
 		}
 
 		public void setParent(ExprElm parent) {
@@ -604,7 +605,7 @@ public abstract class C4ScriptExprTree {
 		public void reportErrors(C4ScriptParser parser) throws ParsingException {
 			super.reportErrors(parser);
 			if (declaration == null)
-				parser.errorWithCode(C4ScriptParserErrorCode.UndeclaredIdentifier, this, true, declarationName);
+				parser.errorWithCode(ParserErrorCode.UndeclaredIdentifier, this, true, declarationName);
 		}
 		
 		@Override
@@ -742,15 +743,15 @@ public abstract class C4ScriptExprTree {
 					context.unnamedParamaterUsed(ExprNumber.ZERO);
 			}
 			else if (declarationName.equals(Keywords.Return))
-				context.warningWithCode(C4ScriptParserErrorCode.ReturnAsFunction, this);
+				context.warningWithCode(ParserErrorCode.ReturnAsFunction, this);
 			else {
 				if (declaration instanceof C4Variable) {
 					if (params.length == 0) {
 						// no warning when in #strict mode
 						if (context.getStrictLevel() >= 2)
-							context.warningWithCode(C4ScriptParserErrorCode.VariableCalled, this, declaration.getName());
+							context.warningWithCode(ParserErrorCode.VariableCalled, this, declaration.getName());
 					} else {
-						context.errorWithCode(C4ScriptParserErrorCode.VariableCalled, this, declaration.getName(), true);
+						context.errorWithCode(ParserErrorCode.VariableCalled, this, declaration.getName(), true);
 					}
 				}
 				else if (declaration instanceof C4Function) {
@@ -764,7 +765,7 @@ public abstract class C4ScriptExprTree {
 							continue;
 						//given.reportErrors(parser); no duplicate errors
 						if (!given.validForType(parm.getType(), context))
-							context.warningWithCode(C4ScriptParserErrorCode.IncompatibleTypes, given, parm.getType(), given.getType(context));
+							context.warningWithCode(ParserErrorCode.IncompatibleTypes, given, parm.getType(), given.getType(context));
 						given.expectedToBeOfType(parm.getType(), context);
 //						if (parm.getScript() != ClonkCore.getDefault().ENGINE_OBJECT)
 //							parm.inferTypeFromAssignment(given, parser);
@@ -772,11 +773,11 @@ public abstract class C4ScriptExprTree {
 				}
 				else if (declaration == null && getPredecessorInSequence() == null) {
 					if (declarationName.equals(Keywords.Inherited)) {
-						context.errorWithCode(C4ScriptParserErrorCode.NoInheritedFunction, getExprStart(), getExprStart()+declarationName.length(), true, context.getActiveFunc().getName(), true);
+						context.errorWithCode(ParserErrorCode.NoInheritedFunction, getExprStart(), getExprStart()+declarationName.length(), true, context.getActiveFunc().getName(), true);
 					}
 					// _inherited yields no warning or error
 					else if (!declarationName.equals(Keywords.SafeInherited)) {
-						context.errorWithCode(C4ScriptParserErrorCode.UndeclaredIdentifier, getExprStart(), getExprStart()+declarationName.length(), true, declarationName, true);
+						context.errorWithCode(ParserErrorCode.UndeclaredIdentifier, getExprStart(), getExprStart()+declarationName.length(), true, declarationName, true);
 					}
 				}
 			}
@@ -1083,7 +1084,7 @@ public abstract class C4ScriptExprTree {
 
 		public void checkTopLevelAssignment(C4ScriptParser parser) throws ParsingException {
 			if (!getOperator().modifiesArgument())
-				parser.warningWithCode(C4ScriptParserErrorCode.NoAssignment, this);
+				parser.warningWithCode(ParserErrorCode.NoAssignment, this);
 		}
 
 		public ExprBinaryOp(C4ScriptOperator op) {
@@ -1138,15 +1139,15 @@ public abstract class C4ScriptExprTree {
 			setExprRegion(getLeftSide().getExprStart(), getRightSide().getExprEnd());
 			// i'm an assignment operator and i can't modify my left side :C
 			if (getOperator().modifiesArgument() && !getLeftSide().modifiable(context)) {
-				context.errorWithCode(C4ScriptParserErrorCode.ExpressionNotModifiable, getLeftSide(), true);
+				context.errorWithCode(ParserErrorCode.ExpressionNotModifiable, getLeftSide(), true);
 			}
 			if ((getOperator() == C4ScriptOperator.StringEqual || getOperator() == C4ScriptOperator.ne) && (context.getStrictLevel() >= 2)) {
-				context.warningWithCode(C4ScriptParserErrorCode.ObsoleteOperator, this, getOperator().getOperatorName());
+				context.warningWithCode(ParserErrorCode.ObsoleteOperator, this, getOperator().getOperatorName());
 			}
 			if (!getLeftSide().validForType(getOperator().getFirstArgType(), context))
-				context.warningWithCode(C4ScriptParserErrorCode.IncompatibleTypes, getLeftSide(), getOperator().getFirstArgType(), getLeftSide().getType(context));
+				context.warningWithCode(ParserErrorCode.IncompatibleTypes, getLeftSide(), getOperator().getFirstArgType(), getLeftSide().getType(context));
 			if (!getRightSide().validForType(getOperator().getSecondArgType(), context))
-				context.warningWithCode(C4ScriptParserErrorCode.IncompatibleTypes, getRightSide(), getOperator().getSecondArgType(), getRightSide().getType(context));
+				context.warningWithCode(ParserErrorCode.IncompatibleTypes, getRightSide(), getOperator().getSecondArgType(), getRightSide().getType(context));
 			
 			getLeftSide().expectedToBeOfType(getOperator().getFirstArgType(), context);
 			getRightSide().expectedToBeOfType(getOperator().getSecondArgType(), context);
@@ -1263,10 +1264,10 @@ public abstract class C4ScriptExprTree {
 			getArgument().reportErrors(context);
 			if (getOperator().modifiesArgument() && !getArgument().modifiable(context)) {
 				//				System.out.println(getArgument().toString() + " does not behave");
-				context.errorWithCode(C4ScriptParserErrorCode.ExpressionNotModifiable, getArgument(), true);
+				context.errorWithCode(ParserErrorCode.ExpressionNotModifiable, getArgument(), true);
 			}
 			if (!getArgument().validForType(getOperator().getFirstArgType(), context)) {
-				context.warningWithCode(C4ScriptParserErrorCode.IncompatibleTypes, getArgument(), getOperator().getFirstArgType().toString(), getArgument().getType(context).toString());
+				context.warningWithCode(ParserErrorCode.IncompatibleTypes, getArgument(), getOperator().getFirstArgType().toString(), getArgument().getType(context).toString());
 			}
 			getArgument().expectedToBeOfType(getOperator().getFirstArgType(), context);
 		}

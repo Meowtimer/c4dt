@@ -1,9 +1,9 @@
 /**
  * 
  */
-package net.arctics.clonk.parser.c4script;
+package net.arctics.clonk.parser;
 
-public enum C4ScriptParserErrorCode {
+public enum ParserErrorCode {
 	TokenExpected("'%s' expected"),
 	NotAllowedHere("'%s' not allowed here"),
 	MissingClosingBracket("Missing '%s'"),
@@ -43,7 +43,7 @@ public enum C4ScriptParserErrorCode {
 	
 	private String message;
 	
-	C4ScriptParserErrorCode(String message) {
+	ParserErrorCode(String message) {
 		this.message = message;
 	}
 	

@@ -16,6 +16,12 @@
 			<contentTypeBinding contentTypeId="net.arctics.clonk.inifile" />
 		</editor>
 
+		<editor name="Landscape Editor" icon="icons/c4scriptIcon.png"
+			class="net.arctics.clonk.ui.editors.landscape.LandscapeEditor" id="clonk.editors.LandscapeEditor"
+			filenames="Landscape.txt">
+			<contentTypeBinding contentTypeId="net.arctics.clonk.landscapefile" />
+		</editor>
+
 	</extension>
 
 	<extension point="org.eclipse.core.resources.natures" id="clonknature"
@@ -33,7 +39,11 @@
 			priority="normal" />
 
 		<content-type base-type="net.arctics.clonk.c4files"
-			file-names="Script.c" id="net.arctics.clonk.c4script" name="C4Script files"
+			file-names="Script.c" id="net.arctics.clonk.c4script" name="C4Script file"
+			priority="high" />
+
+		<content-type base-type="net.arctics.clonk.c4files"
+			file-names="Landscape.txt" id="net.arctics.clonk.landscapefile" name="Landscape file"
 			priority="high" />
 
 		<content-type base-type="net.arctics.clonk.c4files"
@@ -159,9 +169,7 @@
 			category="net.arctics.clonk.clonkProjects" icon="icons/Clonk_C4Chip.ico"
 			class="net.arctics.clonk.ui.wizards.ImportClonkFiles">
 			<description>
-				Import project clonk data to current project. E.g. your
-				scenarios or
-				objects of your project. 
+				Import scenarios or object packs into the project.
 			</description>
 			<selection class="org.eclipse.core.resources.IResource" />
 		</wizard>
@@ -375,8 +383,7 @@
 	</extension>
 
 	<extension point="org.eclipse.ui.navigator.linkHelper">
-		<linkHelper
-			class="net.arctics.clonk.ui.navigator.LinkHelper"
+		<linkHelper class="net.arctics.clonk.ui.navigator.LinkHelper"
 			id="net.arctics.clonk.navigator.linkhelper">
 			<selectionEnablement>
 				<or>
@@ -385,16 +392,16 @@
 				</or>
 			</selectionEnablement>
 			<editorInputEnablement>
-				<instanceof value="net.arctics.clonk.ui.editors.c4script.ScriptWithStorageEditorInput" />
+				<instanceof
+					value="net.arctics.clonk.ui.editors.c4script.ScriptWithStorageEditorInput" />
 			</editorInputEnablement>
 		</linkHelper>
 	</extension>
-	
+
 	<extension point="org.eclipse.ui.elementFactories">
 		<factory
 			class="net.arctics.clonk.ui.editors.c4script.ScriptWithStorageEditorInputFactory"
-			id="net.arctics.clonk.ui.editors.scriptWithStorageEditorInputFactory"/>
+			id="net.arctics.clonk.ui.editors.scriptWithStorageEditorInputFactory" />
 	</extension>
-
 
 </plugin>

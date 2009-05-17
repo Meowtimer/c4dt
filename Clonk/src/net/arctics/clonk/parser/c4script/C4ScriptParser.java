@@ -17,6 +17,7 @@ import net.arctics.clonk.index.ClonkIndex;
 import net.arctics.clonk.parser.BufferedScanner;
 import net.arctics.clonk.parser.C4Declaration;
 import net.arctics.clonk.parser.C4ID;
+import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.SimpleScriptStorage;
 import net.arctics.clonk.parser.SourceLocation;
 import net.arctics.clonk.parser.c4script.C4Directive.C4DirectiveType;
@@ -366,7 +367,7 @@ public class C4ScriptParser {
 					if (!fReader.reachedEOF()) {
 						int start = fReader.getPosition();
 						String tokenText = parseTokenAndReturnAsString(start);
-						errorWithCode(C4ScriptParserErrorCode.UnexpectedToken, start, fReader.getPosition(), true, tokenText);
+						errorWithCode(ParserErrorCode.UnexpectedToken, start, fReader.getPosition(), true, tokenText);
 					}
 				}
 				eatWhitespace();
@@ -416,7 +417,7 @@ public class C4ScriptParser {
 		}
 		catch (Exception e) {
 			// errorWithCode throws ^^;
-			errorWithCode(C4ScriptParserErrorCode.InternalError, fReader.getPosition(), fReader.getPosition()+1, true, e.getMessage());
+			errorWithCode(ParserErrorCode.InternalError, fReader.getPosition(), fReader.getPosition()+1, true, e.getMessage());
 			e.printStackTrace();
 		}
 	}
@@ -462,7 +463,7 @@ public class C4ScriptParser {
 			String directiveName = fReader.readStringUntil(BufferedScanner.WHITESPACE_DELIMITERS);
 			C4DirectiveType type = C4DirectiveType.makeType(directiveName);
 			if (type == null) {
-				warningWithCode(C4ScriptParserErrorCode.UnknownDirective, offset, offset + directiveName.length());
+				warningWithCode(ParserErrorCode.UnknownDirective, offset, offset + directiveName.length());
 				fReader.moveUntil(BufferedScanner.NEWLINE_DELIMITERS);
 				return true;
 			}
@@ -538,7 +539,7 @@ public class C4ScriptParser {
 					if (constantValue == null)
 						constantValue = ERROR_PLACEHOLDER_EXPR;
 					if (!constantValue.isConstant()) {
-						errorWithCode(C4ScriptParserErrorCode.ConstantValueExpected, constantValue, true);
+						errorWithCode(ParserErrorCode.ConstantValueExpected, constantValue, true);
 					}
 					C4Variable var = createVariable(C4VariableScope.VAR_CONST, desc, s, e, varName);
 					var.inferTypeFromAssignment(constantValue, this);
@@ -550,7 +551,7 @@ public class C4ScriptParser {
 			} while(fReader.read() == ',');
 			fReader.unread();
 			if (fReader.read() != ';') {
-				errorWithCode(C4ScriptParserErrorCode.CommaOrSemicolonExpected, fReader.getPosition()-1, fReader.getPosition());
+				errorWithCode(ParserErrorCode.CommaOrSemicolonExpected, fReader.getPosition()-1, fReader.getPosition());
 			}
 			return true;
 		}
@@ -565,7 +566,7 @@ public class C4ScriptParser {
 			} while (fReader.read() == ',');
 			fReader.unread();
 			if (fReader.read() != ';') {
-				errorWithCode(C4ScriptParserErrorCode.CommaOrSemicolonExpected, fReader.getPosition()-1, fReader.getPosition());
+				errorWithCode(ParserErrorCode.CommaOrSemicolonExpected, fReader.getPosition()-1, fReader.getPosition());
 			}
 			return true;
 		}
@@ -643,7 +644,7 @@ public class C4ScriptParser {
 					ExprElm val = parseExpression(offset, !declaration);
 					if (!declaration) {
 						if (val == null)
-							errorWithCode(C4ScriptParserErrorCode.ValueExpected, fReader.getPosition()-1, fReader.getPosition());
+							errorWithCode(ParserErrorCode.ValueExpected, fReader.getPosition()-1, fReader.getPosition());
 						else {
 							var.inferTypeFromAssignment(val, this);
 						}
@@ -715,7 +716,7 @@ public class C4ScriptParser {
 				suspectOldStyle = true; // suspicious
 				funcName = shouldBeFunc;
 				endName = fReader.getPosition();
-				warningWithCode(C4ScriptParserErrorCode.OldStyleFunc, startName, endName);
+				warningWithCode(ParserErrorCode.OldStyleFunc, startName, endName);
 			}
 		}
 		else {
@@ -729,12 +730,12 @@ public class C4ScriptParser {
 			startName = fReader.getPosition();
 			funcName = fReader.readWord();
 			if (funcName == null || funcName.length() == 0)
-				errorWithCode(C4ScriptParserErrorCode.NameExpected, fReader.getPosition()-1, fReader.getPosition());
+				errorWithCode(ParserErrorCode.NameExpected, fReader.getPosition()-1, fReader.getPosition());
 			endName = fReader.getPosition();
 		}
 		for(C4Function otherFunc : container.functions()) {
 			if (otherFunc.getName().equalsIgnoreCase(funcName)) {
-				warningWithCode(C4ScriptParserErrorCode.FunctionRedeclared, startName, fReader.getPosition());
+				warningWithCode(ParserErrorCode.FunctionRedeclared, startName, fReader.getPosition());
 				break;
 			}
 		}
@@ -762,7 +763,7 @@ public class C4ScriptParser {
 				else if (readByte == ',')
 					continue; // parse another parameter
 				else {
-					errorWithCode(C4ScriptParserErrorCode.TokenExpected, fReader.getPosition()-1, fReader.getPosition(), (Object) new String[] {")", ","});
+					errorWithCode(ParserErrorCode.TokenExpected, fReader.getPosition()-1, fReader.getPosition(), (Object) new String[] {")", ","});
 				}
 			} while(!fReader.reachedEOF());
 		}
@@ -803,7 +804,7 @@ public class C4ScriptParser {
 					endBody = fReader.getPosition(); // blub
 				} while (!fReader.reachedEOF());
 			} else {
-				errorWithCode(C4ScriptParserErrorCode.TokenExpected, fReader.getPosition()-1, fReader.getPosition(), "{");
+				errorWithCode(ParserErrorCode.TokenExpected, fReader.getPosition()-1, fReader.getPosition(), "{");
 			}
 		} else {
 			// body in {...}
@@ -832,7 +833,7 @@ public class C4ScriptParser {
 //				System.out.println(activeFunc.getName());
 				//int pos = Math.min(fReader.getPosition()-1, fReader.getBufferLength()-1);
 				int pos = Math.min(fReader.getPosition(), fReader.getBufferLength()-1);
-				errorWithCode(C4ScriptParserErrorCode.TokenExpected, pos, pos+1, "}");
+				errorWithCode(ParserErrorCode.TokenExpected, pos, pos+1, "}");
 				return false;
 			}
 		}
@@ -878,7 +879,7 @@ public class C4ScriptParser {
 			if (lastWasReturn) {
 				// warn about statements after final return
 				if (!statementIsComment)
-					warningWithCode(C4ScriptParserErrorCode.NeverReached, statement);
+					warningWithCode(ParserErrorCode.NeverReached, statement);
 			}
 			else {
 				lastWasReturn = statement.isReturn();
@@ -909,7 +910,7 @@ public class C4ScriptParser {
 			if (!parseCodeBlock(fReader.getPosition())) fReader.seek(offset);
 			eatWhitespace();
 			if (fReader.read() != '}') {
-				errorWithCode(C4ScriptParserErrorCode.BlockNotClosed, fReader.getPosition()-1, fReader.getPosition());
+				errorWithCode(ParserErrorCode.BlockNotClosed, fReader.getPosition()-1, fReader.getPosition());
 			}
 			blockDepth--;
 			return true;
@@ -928,9 +929,9 @@ public class C4ScriptParser {
 			return;
 		if (expr instanceof ExprTuple) {
 			if (tupleIsError)
-				errorWithCode(C4ScriptParserErrorCode.TuplesNotAllowed, expr);
+				errorWithCode(ParserErrorCode.TuplesNotAllowed, expr);
 			else
-				warningWithCode(C4ScriptParserErrorCode.ReturnAsFunction, expr);
+				warningWithCode(ParserErrorCode.ReturnAsFunction, expr);
 		}
 		ExprElm[] subElms = expr.getSubElements();
 		for (ExprElm e : subElms) {
@@ -1120,38 +1121,38 @@ public class C4ScriptParser {
 		return null;
 	}
 	
-	private Set<C4ScriptParserErrorCode> disabledErrors = new HashSet<C4ScriptParserErrorCode>();
+	private Set<ParserErrorCode> disabledErrors = new HashSet<ParserErrorCode>();
 	
-	private void disableError(C4ScriptParserErrorCode error) {
+	private void disableError(ParserErrorCode error) {
 		disabledErrors.add(error);
 	}
 	
-	private void enableError(C4ScriptParserErrorCode error) {
+	private void enableError(ParserErrorCode error) {
 		disabledErrors.remove(error);
 	}
 	
-	public boolean errorDisabled(C4ScriptParserErrorCode error) {
+	public boolean errorDisabled(ParserErrorCode error) {
 		return disabledErrors.contains(error);
 	}
 	
-	void warningWithCode(C4ScriptParserErrorCode code, int errorStart, int errorEnd, Object... args) {
+	void warningWithCode(ParserErrorCode code, int errorStart, int errorEnd, Object... args) {
 		String problem = String.format(code.getErrorString(args), args);
 		createWarningMarker(errorStart, errorEnd, problem);
 	}
 	
-	void warningWithCode(C4ScriptParserErrorCode code, IRegion errorRegion, Object... args) {
+	void warningWithCode(ParserErrorCode code, IRegion errorRegion, Object... args) {
 		warningWithCode(code, errorRegion.getOffset(), errorRegion.getOffset()+errorRegion.getLength(), args);
 	}
 	
-	void errorWithCode(C4ScriptParserErrorCode code, IRegion errorRegion, Object... args) throws ParsingException {
+	void errorWithCode(ParserErrorCode code, IRegion errorRegion, Object... args) throws ParsingException {
 		errorWithCode(code, errorRegion, false, args);
 	}
 	
-	void errorWithCode(C4ScriptParserErrorCode code, IRegion errorRegion, boolean noThrow, Object... args) throws ParsingException {
+	void errorWithCode(ParserErrorCode code, IRegion errorRegion, boolean noThrow, Object... args) throws ParsingException {
 		errorWithCode(code, errorRegion.getOffset(), errorRegion.getOffset()+errorRegion.getLength(), noThrow, args);
 	}
 	
-	void errorWithCode(C4ScriptParserErrorCode code, int errorStart, int errorEnd, boolean noThrow, Object... args) throws ParsingException {
+	void errorWithCode(ParserErrorCode code, int errorStart, int errorEnd, boolean noThrow, Object... args) throws ParsingException {
 		if (errorDisabled(code))// || (errorHook != null && errorHook.handle(code, args)))
 			return;
 		String problem = code.getErrorString(args);
@@ -1164,12 +1165,12 @@ public class C4ScriptParser {
 				: new ParsingException(problem);
 	}
 	
-	private void errorWithCode(C4ScriptParserErrorCode code, int errorStart, int errorEnd, Object... args) throws ParsingException {
+	private void errorWithCode(ParserErrorCode code, int errorStart, int errorEnd, Object... args) throws ParsingException {
 		errorWithCode(code, errorStart, errorEnd, false, args);
 	}
 	
 	private void tokenExpectedError(String token) throws ParsingException {
-		errorWithCode(C4ScriptParserErrorCode.TokenExpected, fReader.getPosition()-1, fReader.getPosition(), false, token);
+		errorWithCode(ParserErrorCode.TokenExpected, fReader.getPosition()-1, fReader.getPosition(), false, token);
 	}
 	
 	private boolean parseStaticFieldOperator_(int offset) {
@@ -1190,7 +1191,7 @@ public class C4ScriptParser {
 		if (preop != null && preop.isPrefix()) {
 			ExprElm followingExpr = parseExpressionWithoutOperators(fReader.getPosition(), reportErrors);
 			if (followingExpr == null) {
-				errorWithCode(C4ScriptParserErrorCode.ExpressionExpected, fReader.getPosition(), fReader.getPosition()+1);
+				errorWithCode(ParserErrorCode.ExpressionExpected, fReader.getPosition(), fReader.getPosition()+1);
 			}
 			result = new ExprUnaryOp(preop, ExprUnaryOp.Placement.Prefix, followingExpr);
 		} else
@@ -1238,7 +1239,7 @@ public class C4ScriptParser {
 			// number
 			if (elm == null && parseNumber(fReader.getPosition())) {
 				if (parsedNumber < Integer.MIN_VALUE || parsedNumber > Integer.MAX_VALUE)
-					warningWithCode(C4ScriptParserErrorCode.OutOfIntRange, elmStart, fReader.getPosition(), String.valueOf(parsedNumber));
+					warningWithCode(ParserErrorCode.OutOfIntRange, elmStart, fReader.getPosition(), String.valueOf(parsedNumber));
 				elm = new ExprNumber(parsedNumber);
 			}
 			
@@ -1306,7 +1307,7 @@ public class C4ScriptParser {
 							}
 						}
 						if (!properlyClosed) {
-							errorWithCode(C4ScriptParserErrorCode.MissingClosingBracket, fReader.getPosition()-1, fReader.getPosition(), "]");
+							errorWithCode(ParserErrorCode.MissingClosingBracket, fReader.getPosition()-1, fReader.getPosition(), "]");
 						}
 						elm = new ExprArray(arrayElms.toArray(new ExprElm[0]));
 						
@@ -1325,7 +1326,7 @@ public class C4ScriptParser {
 					if (parseID(fReader.getPosition())) {
 						eatWhitespace();
 						if (!parseStaticFieldOperator_(fReader.getPosition())) {
-							errorWithCode(C4ScriptParserErrorCode.TokenExpected, fReader.getPosition(), fReader.getPosition()+2, "::");
+							errorWithCode(ParserErrorCode.TokenExpected, fReader.getPosition(), fReader.getPosition()+2, "::");
 						}
 					} else
 						idOffset = 0;
@@ -1341,20 +1342,20 @@ public class C4ScriptParser {
 					if (firstExpr == null) {
 						firstExpr = ExprElm.NULL_EXPR;
 						// might be disabled
-						errorWithCode(C4ScriptParserErrorCode.EmptyParentheses, fReader.getPosition()-1, fReader.getPosition());
+						errorWithCode(ParserErrorCode.EmptyParentheses, fReader.getPosition()-1, fReader.getPosition());
 					}
 					c = fReader.read();
 					if (c == ')')
 						elm = new ExprParenthesized(firstExpr);
 					else if (c == ',') {
-						errorWithCode(C4ScriptParserErrorCode.TuplesNotAllowed, fReader.getPosition()-1, fReader.getPosition());
+						errorWithCode(ParserErrorCode.TuplesNotAllowed, fReader.getPosition()-1, fReader.getPosition());
 						// tuple (just for multiple parameters for return)
 						List<ExprElm> tupleElms = new LinkedList<ExprElm>();
 						tupleElms.add(firstExpr);
 						parseRestOfTuple(fReader.getPosition(), tupleElms, reportErrors);
 						elm = new ExprTuple(tupleElms.toArray(new ExprElm[0]));
 					} else
-						errorWithCode(C4ScriptParserErrorCode.TokenExpected, fReader.getPosition()-1, fReader.getPosition(), ")");
+						errorWithCode(ParserErrorCode.TokenExpected, fReader.getPosition()-1, fReader.getPosition(), ")");
 				} else {
 					fReader.unread();
 				}
@@ -1370,7 +1371,7 @@ public class C4ScriptParser {
 					elm = null; // blub blub <- first blub is var; second blub is not part of the sequence -.-
 					//fReader.seek(elmStart);
 					dontCheckForPostOp = true;
-					errorWithCode(C4ScriptParserErrorCode.NotAllowedHere, elmStart, fReader.getPosition(), fReader.readStringAt(elmStart, fReader.getPosition()));
+					errorWithCode(ParserErrorCode.NotAllowedHere, elmStart, fReader.getPosition(), fReader.readStringAt(elmStart, fReader.getPosition()));
 				} else {
 					elm.setExprRegion(elmStart, fReader.getPosition());
 					elements.add(elm);
@@ -1392,7 +1393,7 @@ public class C4ScriptParser {
 		
 		result.setExprRegion(sequenceStart, fReader.getPosition());
 		if (result.getType(this) == null) {
-			errorWithCode(C4ScriptParserErrorCode.InvalidExpression, result);
+			errorWithCode(ParserErrorCode.InvalidExpression, result);
 		}
 		
 		if (!dontCheckForPostOp) {
@@ -1432,12 +1433,12 @@ public class C4ScriptParser {
 			} else {
 				fReader.unread();
 				if (listToAddElementsTo.size() > 100) {
-					errorWithCode(C4ScriptParserErrorCode.InternalError, fReader.getPosition(), fReader.getPosition(), "Way too much");
+					errorWithCode(ParserErrorCode.InternalError, fReader.getPosition(), fReader.getPosition(), "Way too much");
 				//	break;
 				}
 				ExprElm arg = parseExpression(fReader.getPosition(), reportErrors);
 				if (arg == null) {
-					errorWithCode(C4ScriptParserErrorCode.ExpressionExpected, fReader.getPosition(), fReader.getPosition()+1);
+					errorWithCode(ParserErrorCode.ExpressionExpected, fReader.getPosition(), fReader.getPosition()+1);
 //					break;
 				} else
 					listToAddElementsTo.add(arg);
@@ -1537,7 +1538,7 @@ public class C4ScriptParser {
 				case SECONDOPERAND:
 					ExprElm rightSide = parseExpressionWithoutOperators(fReader.getPosition(), reportErrors);
 					if (rightSide == null)
-						errorWithCode(C4ScriptParserErrorCode.OperatorNeedsRightSide, lastOp);
+						errorWithCode(ParserErrorCode.OperatorNeedsRightSide, lastOp);
 					((ExprBinaryOp)current).setRightSide(rightSide);
 					lastOp = (ExprBinaryOp)current;
 					current = rightSide;
@@ -1587,7 +1588,7 @@ public class C4ScriptParser {
 			builder.append(fReader.readStringUntil((char)delimiter));
 		} while (builder.length() != 0 && (builder.charAt(builder.length() - 1) == '\\'));
 		if (fReader.read() != '"') {
-			errorWithCode(C4ScriptParserErrorCode.StringNotClosed, offset, fReader.getPosition()-1);
+			errorWithCode(ParserErrorCode.StringNotClosed, offset, fReader.getPosition()-1);
 		}
 		parsedString = builder.toString();
 		return true;
@@ -1674,10 +1675,10 @@ public class C4ScriptParser {
 							if (subStatement != null)
 								subStatements.add(subStatement);
 							else
-								errorWithCode(C4ScriptParserErrorCode.StatementExpected, this.ERROR_PLACEHOLDER_EXPR);
+								errorWithCode(ParserErrorCode.StatementExpected, this.ERROR_PLACEHOLDER_EXPR);
 						}
 						if (!foundClosingBracket)
-							errorWithCode(C4ScriptParserErrorCode.BlockNotClosed, start, start+1);
+							errorWithCode(ParserErrorCode.BlockNotClosed, start, start+1);
 						result = new Block(subStatements);
 					}
 					else if (read == ';') {
@@ -1777,7 +1778,7 @@ public class C4ScriptParser {
 				offset = fReader.getPosition();
 				val = parseExpression(offset);
 				if (val == null)
-					errorWithCode(C4ScriptParserErrorCode.ValueExpected, fReader.getPosition()-1, fReader.getPosition());
+					errorWithCode(ParserErrorCode.ValueExpected, fReader.getPosition()-1, fReader.getPosition());
 				else {
 					// FIXME: check where var is declared
 					var.inferTypeFromAssignment(val, this);
@@ -1849,7 +1850,7 @@ public class C4ScriptParser {
 			TypeInformationMerger merger = new TypeInformationMerger();
 			Statement ifStatement = parseStatementWithOwnTypeInferenceBlock(fReader.getPosition(), merger);
 			if (ifStatement == null) {
-				errorWithCode(C4ScriptParserErrorCode.StatementExpected, offset, offset+Keywords.If.length());
+				errorWithCode(ParserErrorCode.StatementExpected, offset, offset+Keywords.If.length());
 			}
 			int beforeElse = fReader.getPosition();
 			eatWhitespace();
@@ -1861,7 +1862,7 @@ public class C4ScriptParser {
 				offset = fReader.getPosition();
 				elseStatement = parseStatementWithOwnTypeInferenceBlock(fReader.getPosition(), merger);
 				if (elseStatement == null) {
-					errorWithCode(C4ScriptParserErrorCode.StatementExpected, offset, offset+Keywords.Else.length());
+					errorWithCode(ParserErrorCode.StatementExpected, offset, offset+Keywords.Else.length());
 				}	
 			}
 			else {
@@ -1895,7 +1896,7 @@ public class C4ScriptParser {
 			offset = fReader.getPosition();
 			Statement body = parseStatementAndMergeTypeInformation(fReader.getPosition());
 			if (body == null) {
-				errorWithCode(C4ScriptParserErrorCode.StatementExpected, offset, offset+4);
+				errorWithCode(ParserErrorCode.StatementExpected, offset, offset+4);
 			}
 			result = new WhileStatement(condition, body);
 		}
@@ -1918,7 +1919,7 @@ public class C4ScriptParser {
 				fReader.unread();
 				initialization = parseStatement(fReader.getPosition(), EnumSet.of(ParseStatementOption.InitializationStatement));
 				if (initialization == null) {
-					errorWithCode(C4ScriptParserErrorCode.ExpectedCode, fReader.getPosition(), fReader.getPosition()+1);
+					errorWithCode(ParserErrorCode.ExpectedCode, fReader.getPosition(), fReader.getPosition()+1);
 				}
 				loopVariable = parsedVariable; // let's just assume it's the right one
 			}
@@ -1945,11 +1946,11 @@ public class C4ScriptParser {
 				eatWhitespace();
 				arrayExpr = parseExpression(fReader.getPosition());
 				if (arrayExpr == null)
-					errorWithCode(C4ScriptParserErrorCode.ExpressionExpected, offset, fReader.getPosition()+1);
+					errorWithCode(ParserErrorCode.ExpressionExpected, offset, fReader.getPosition()+1);
 				else {
 					C4Type t = arrayExpr.getType(this);
 					if (!t.canBeAssignedFrom(C4Type.ARRAY))
-						warningWithCode(C4ScriptParserErrorCode.IncompatibleTypes, arrayExpr, t.toString(), C4Type.ARRAY.toString());
+						warningWithCode(ParserErrorCode.IncompatibleTypes, arrayExpr, t.toString(), C4Type.ARRAY.toString());
 					if (loopVariable != null)
 						loopVariable.inferTypeFromAssignment(arrayExpr.getExemplaryArrayElement(this), this);
 				}
@@ -1967,7 +1968,7 @@ public class C4ScriptParser {
 					fReader.unread();
 					condition = parseExpression(fReader.getPosition());
 					if (condition == null) {
-						errorWithCode(C4ScriptParserErrorCode.ConditionExpected, offset, fReader.getPosition());
+						errorWithCode(ParserErrorCode.ConditionExpected, offset, fReader.getPosition());
 					}
 				}
 				eatWhitespace();
@@ -1985,7 +1986,7 @@ public class C4ScriptParser {
 					fReader.unread();
 					increment = parseExpression(fReader.getPosition());
 					if (increment == null) {
-						errorWithCode(C4ScriptParserErrorCode.ExpressionExpected, offset, fReader.getPosition()+1);
+						errorWithCode(ParserErrorCode.ExpressionExpected, offset, fReader.getPosition()+1);
 					}
 				}
 				arrayExpr = null;
@@ -1999,7 +2000,7 @@ public class C4ScriptParser {
 			currentLoop = loopType;
 			body = parseStatementAndMergeTypeInformation(fReader.getPosition());
 			if (body == null) {
-				errorWithCode(C4ScriptParserErrorCode.StatementExpected, offset, offset+4);
+				errorWithCode(ParserErrorCode.StatementExpected, offset, offset+4);
 			}
 			switch (loopType) {
 			case For:
@@ -2014,13 +2015,13 @@ public class C4ScriptParser {
 		}
 		else if (readWord.equals(Keywords.Continue)) {
 			if (currentLoop == null)
-				errorWithCode(C4ScriptParserErrorCode.KeywordInWrongPlace, fReader.getPosition()-readWord.length(), fReader.getPosition(), true, readWord);
+				errorWithCode(ParserErrorCode.KeywordInWrongPlace, fReader.getPosition()-readWord.length(), fReader.getPosition(), true, readWord);
 			checkForSemicolon();
 			result = new ContinueStatement();
 		}
 		else if (readWord.equals(Keywords.Break)) {
 			if (currentLoop == null)
-				errorWithCode(C4ScriptParserErrorCode.KeywordInWrongPlace, fReader.getPosition()-readWord.length(), fReader.getPosition(), true, readWord);
+				errorWithCode(ParserErrorCode.KeywordInWrongPlace, fReader.getPosition()-readWord.length(), fReader.getPosition(), true, readWord);
 			checkForSemicolon();
 			result = new BreakStatement();
 		}
@@ -2035,15 +2036,15 @@ public class C4ScriptParser {
 			else {
 				fReader.unread();
 				offset = fReader.getPosition();
-				disableError(C4ScriptParserErrorCode.TuplesNotAllowed);
-				disableError(C4ScriptParserErrorCode.EmptyParentheses);
+				disableError(ParserErrorCode.TuplesNotAllowed);
+				disableError(ParserErrorCode.EmptyParentheses);
 				returnExpr = parseExpression(fReader.getPosition());
 				if (returnExpr == null) {
-					errorWithCode(C4ScriptParserErrorCode.ValueExpected, fReader.getPosition() - 1, fReader.getPosition());				
+					errorWithCode(ParserErrorCode.ValueExpected, fReader.getPosition() - 1, fReader.getPosition());				
 				}
 				warnAboutTupleInReturnExpr(returnExpr, false);
-				enableError(C4ScriptParserErrorCode.TuplesNotAllowed);
-				enableError(C4ScriptParserErrorCode.EmptyParentheses);
+				enableError(ParserErrorCode.TuplesNotAllowed);
+				enableError(ParserErrorCode.EmptyParentheses);
 			}
 			result = new ReturnStatement(returnExpr);
 			checkForSemicolon();
@@ -2117,7 +2118,7 @@ public class C4ScriptParser {
 			}
 			else {
 				// type is name
-				warningWithCode(C4ScriptParserErrorCode.TypeAsName, s, e, firstWord);
+				warningWithCode(ParserErrorCode.TypeAsName, s, e, firstWord);
 				var.setType(C4Type.ANY);
 				var.setName(firstWord);
 				fReader.seek(e);
@@ -2229,10 +2230,10 @@ public class C4ScriptParser {
 		C4ScriptParser parser = new C4ScriptParser(expr, context);
 		parser.activeFunc = func;
 		parser.setExpressionListener(listener);
-		parser.disableError(C4ScriptParserErrorCode.TokenExpected);
-		parser.disableError(C4ScriptParserErrorCode.InvalidExpression);
-		parser.disableError(C4ScriptParserErrorCode.BlockNotClosed);
-		parser.disableError(C4ScriptParserErrorCode.NotAllowedHere);
+		parser.disableError(ParserErrorCode.TokenExpected);
+		parser.disableError(ParserErrorCode.InvalidExpression);
+		parser.disableError(ParserErrorCode.BlockNotClosed);
+		parser.disableError(ParserErrorCode.NotAllowedHere);
 		try {
 			EnumSet<ParseStatementOption> options = EnumSet.of(ParseStatementOption.ExpectFuncDesc);
 			parser.beginTypeInferenceBlock();

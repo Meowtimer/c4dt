@@ -45,10 +45,10 @@ public class ClonkPreferencePage
 	 */
 	public void createFieldEditors() {
 		final DirectoryFieldEditor clonkPathEditor = new DirectoryFieldEditor(PreferenceConstants.GAME_PATH, 
-				"&Clonk game path:", getFieldEditorParent());
+				"&Game path:", getFieldEditorParent());
 		final FileFieldEditor c4groupExecutable = new FileFieldEditor(PreferenceConstants.C4GROUP_EXECUTABLE,
 				"C4&Group executable:", getFieldEditorParent());
-		final FileFieldEditor engineExecutable = new FileFieldEditor(PreferenceConstants.ENGINE_EXECUTABLE, "Clonk Engine:", getFieldEditorParent());
+		final FileFieldEditor engineExecutable = new FileFieldEditor(PreferenceConstants.ENGINE_EXECUTABLE, "&Engine:", getFieldEditorParent());
 		addField(clonkPathEditor);
 		addField(c4groupExecutable);
 		addField(engineExecutable);
