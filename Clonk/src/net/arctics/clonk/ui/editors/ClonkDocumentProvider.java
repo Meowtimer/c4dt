@@ -1,12 +1,11 @@
-package net.arctics.clonk.ui.editors.c4script;
+package net.arctics.clonk.ui.editors;
 
-import org.eclipse.core.resources.IFile;
+
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IDocumentPartitioner;
 import org.eclipse.jface.text.rules.FastPartitioner;
 import org.eclipse.ui.editors.text.FileDocumentProvider;
-import org.eclipse.ui.part.FileEditorInput;
 import org.eclipse.ui.texteditor.ITextEditor;
 
 public class ClonkDocumentProvider extends FileDocumentProvider {
@@ -38,11 +37,5 @@ public class ClonkDocumentProvider extends FileDocumentProvider {
 //			((C4ScriptEditor)editor).getOutlinePage().refresh();
 //		}
 	}
-	
-	protected IFile getEditingFile(ITextEditor editor) {
-		if (editor.getEditorInput() instanceof FileEditorInput) {
-			return ((FileEditorInput)editor.getEditorInput()).getFile();
-		}
-		else return null;
-	}
+
 }

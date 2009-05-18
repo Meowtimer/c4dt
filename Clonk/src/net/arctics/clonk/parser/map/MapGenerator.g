@@ -9,6 +9,13 @@ package net.arctics.clonk.parser.map;
 @members {
 C4MapCreator mapCreator;
 C4MapOverlay current;
+C4MapOverlay lastOverlay;
+
+public MapGeneratorParser(C4MapCreator mapCreator, TokenStream input) {
+	this(input);
+	this.mapCreator = mapCreator;
+	this.current = mapCreator;
+}
 
 void createMapObject(String type, String name) {
 	try {
@@ -37,31 +44,57 @@ private void setVal(String name, String value) {
 	}
 }
 
-public MapGeneratorParser(C4MapCreator mapCreator, TokenStream input) {
-	this(input);
-	this.mapCreator = mapCreator;
-	this.current = mapCreator;
+private void moveLevelUp() {
+	lastOverlay = current;
+	current = (C4MapOverlay) current.getParentDeclaration();
+}
+
+private void assignOperator(String t) {
+	C4MapOverlay.Operator op = C4MapOverlay.Operator.valueOf(t.charAt(0));
+	lastOverlay.setOperator(op);
 }
 
 }
 
-parse	:	subobject*;
+parse	:	statement*;
+
+statement
+	:	{lastOverlay = null;} composition STATEMENTEND;
+
+composition
+	:	subobject (op=OPERATOR {assignOperator($op.text);} composition)?;
 
 subobject
-	:	MAP name=WORD? {createMapObject(C4Map.class, $name.text);} '{' (subobject)* '}' ';'
-	|	OVERLAY name=WORD? {createMapObject(C4MapOverlay.class, $name.text);} '{' subobject* '}' ';'
-	|	template=WORD name=WORD? {createMapObject($template.text, $name.text);} '{' subobject* '}' ';';
+	:	MAP name=NAME? {createMapObject(C4Map.class, $name.text);} block
+	|	OVERLAY name=NAME? {createMapObject(C4MapOverlay.class, $name.text);} block
+	|	template=NAME name=NAME? {createMapObject($template.text, $name.text);} block;
+
+block	:	BLOCKOPEN statementorattrib* BLOCKCLOSE {moveLevelUp();};
+
+statementorattrib
+	:	attribute|statement;
 
 attribute
-	:	attr=WORD '=' attrValue=INT
-	|	attr=WORD '=' attrValue=WORD
-	|	attr=WORD '=' attrValue=MATERIAL;
+	:	attr=NAME ASSIGN attrValue=NAME STATEMENTEND {setVal($attr.text, $attrValue.text);}
+	|	attr=NAME ASSIGN attrValue=NUMBER STATEMENTEND {setVal($attr.text, $attrValue.text);}
+	|	attr=NAME ASSIGN attrValue=MATCOMBO STATEMENTEND {setVal($attr.text, $attrValue.text);};
 
-MAP	:	'map';
-OVERLAY	:	'overlay';
-LETTER	:	'a'..'z'|'A'..'Z'|'_';
-DIGIT	:	'0'..'9';
-WORD	:	LETTER (LETTER|DIGIT)*;
-INT	:	('+'|'-')? DIGIT+;
-MATERIAL	:	WORD '-' WORD;
-WS	:	(' '|'\t'|'\n'|'\r')+ {skip();} ;
+MAP		:	'map';
+OVERLAY		:	'overlay';
+
+fragment LETTER	:	'a'..'z'|'A'..'Z'|'_';
+fragment DIGIT	:	'0'..'9';
+fragment INT		:	('+'|'-')? DIGIT+;
+fragment WORD	:	LETTER (LETTER|DIGIT)*;
+
+NUMBER		:	INT;
+NAME		:	WORD;
+MATCOMBO	:	WORD '-' WORD;
+WS		:	(' '|'\t'|'\n'|'\r')+ {skip();};
+SLCOMMENT	:	'//' .* '\n' {skip();};
+MLCOMMENT	:	'/*' .* '*/' {skip();};
+ASSIGN		:	'=';
+BLOCKOPEN	:	'{';
+BLOCKCLOSE	:	'}';
+STATEMENTEND	:	';';
+OPERATOR		:	'|'|'&'|'^';

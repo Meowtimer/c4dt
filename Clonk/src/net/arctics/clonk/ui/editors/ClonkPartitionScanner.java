@@ -1,4 +1,4 @@
-package net.arctics.clonk.ui.editors.c4script;
+package net.arctics.clonk.ui.editors;
 
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.rules.*;
@@ -8,7 +8,6 @@ public class ClonkPartitionScanner extends RuleBasedPartitionScanner {
 	public final static String C4S_MULTI_LINE_COMMENT = "__c4s_multi_comment";
 	public final static String C4S_CODEBODY = "__c4s_codebody";
 	public final static String C4S_STRING = "__c4s_string";
-//	public final static String C4S_
 	
 	public final static String[] C4S_PARTITIONS = {C4S_COMMENT, C4S_MULTI_LINE_COMMENT, C4S_STRING, C4S_CODEBODY, IDocument.DEFAULT_CONTENT_TYPE};
 

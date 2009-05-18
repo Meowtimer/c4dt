@@ -1,4 +1,4 @@
-package net.arctics.clonk.ui.editors.c4script;
+package net.arctics.clonk.ui.editors;
 
 import java.util.HashMap;
 import java.util.Iterator;

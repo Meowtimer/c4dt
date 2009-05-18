@@ -183,5 +183,13 @@ public enum C4ScriptOperator {
 	public boolean returnsRef() {
 		return returnsRef;
 	}
+	
+	public static String[] arrayOfOperatorNames() {
+		String[] result = new String[values().length];
+		for (C4ScriptOperator o : values()) {
+			result[o.ordinal()] = o.getOperatorName();
+		}
+		return result;
+	}
 
 }

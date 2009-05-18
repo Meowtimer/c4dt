@@ -1,5 +1,8 @@
 package net.arctics.clonk.ui.editors.c4script;
 
+import net.arctics.clonk.ui.editors.ColorManager;
+import net.arctics.clonk.ui.editors.IClonkColorConstants;
+
 import org.eclipse.jface.text.TextAttribute;
 import org.eclipse.jface.text.rules.IToken;
 import org.eclipse.jface.text.rules.RuleBasedScanner;

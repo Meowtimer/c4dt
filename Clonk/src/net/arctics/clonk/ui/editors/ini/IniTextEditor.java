@@ -8,7 +8,7 @@ import java.util.ResourceBundle;
 import net.arctics.clonk.parser.C4Declaration;
 import net.arctics.clonk.parser.inireader.IniUnit;
 import net.arctics.clonk.ui.editors.ClonkTextEditor;
-import net.arctics.clonk.ui.editors.c4script.ColorManager;
+import net.arctics.clonk.ui.editors.ColorManager;
 import net.arctics.clonk.util.Utilities;
 
 import org.eclipse.core.runtime.IProgressMonitor;

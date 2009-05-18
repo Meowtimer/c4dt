@@ -7,25 +7,26 @@ import net.arctics.clonk.parser.C4ID;
 import net.arctics.clonk.parser.c4script.C4ScriptExprTree.ExprElm;
 
 public class C4Directive extends C4Declaration implements Serializable {
-	/**
-	 * 
-	 */
+	
 	private static final long serialVersionUID = 1L;
+	
 	public enum C4DirectiveType {
 		STRICT,
 		INCLUDE,
 		APPENDTO;
 		
+		private String lowerCase = name().toLowerCase();
+		
 		public static C4DirectiveType makeType(String arg) {
-			if (arg.equals("strict")) return C4DirectiveType.STRICT;
-			if (arg.equals("include")) return C4DirectiveType.INCLUDE;
-			if (arg.equals("appendto")) return C4DirectiveType.APPENDTO;
+			for (C4DirectiveType d : values())
+				if (d.toString().equals(arg))
+					return d;
 			return null;
 		}
 		
 		@Override
 		public String toString() {
-			return super.name().toLowerCase();
+			return lowerCase;
 		}
 	}
 	
@@ -53,6 +54,7 @@ public class C4Directive extends C4Declaration implements Serializable {
 	public C4DirectiveType getType() {
 		return type;
 	}
+	
 	/**
 	 * @return the content
 	 */
@@ -84,6 +86,13 @@ public class C4Directive extends C4Declaration implements Serializable {
 		if (cachedID == null)
 			cachedID = C4ID.getID(this.getContent());
 		return cachedID;
+	}
+
+	public static String[] arrayOfDirectiveStrings() {
+		String[] result = new String[C4DirectiveType.values().length];
+		for (C4DirectiveType d : C4DirectiveType.values())
+			result[d.ordinal()] = d.toString();
+		return result;
 	}
 	
 }

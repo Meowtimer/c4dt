@@ -1,31 +1,29 @@
-package net.arctics.clonk.ui.editors.c4script;
+package net.arctics.clonk.ui.editors.landscape;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-
-import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.BuiltInDefinitions;
-import net.arctics.clonk.parser.c4script.C4Function;
-import net.arctics.clonk.parser.c4script.C4Type;
 import net.arctics.clonk.ui.editors.ColorManager;
 import net.arctics.clonk.ui.editors.IClonkColorConstants;
 import net.arctics.clonk.ui.editors.WordScanner;
+import net.arctics.clonk.ui.editors.c4script.ClonkWhitespaceDetector;
+import net.arctics.clonk.ui.editors.c4script.CombinedWordRule;
 
-import org.eclipse.jface.text.rules.*;
-import org.eclipse.jface.text.*;
+import org.eclipse.jface.text.TextAttribute;
+import org.eclipse.jface.text.rules.ICharacterScanner;
+import org.eclipse.jface.text.rules.IRule;
+import org.eclipse.jface.text.rules.IToken;
+import org.eclipse.jface.text.rules.RuleBasedScanner;
+import org.eclipse.jface.text.rules.Token;
+import org.eclipse.jface.text.rules.WhitespaceRule;
 
-public class C4ScriptCodeScanner extends RuleBasedScanner {
+public class MapGenCodeScanner extends RuleBasedScanner {
 
-	/**
-	 * Rule to detect clonk operators.
-	 *
-	 */
+
 	private static final class OperatorRule implements IRule {
 
 		/** Clonk operators */
-		private final char[] CLONK_OPERATORS= { ':', ';', '.', '=', '/', '\\', '+', '-', '*', '<', '>', '?', '!', ',', '|', '&', '^', '%', '~'};
+		private final char[] CLONK_OPERATORS= { '^', '&', '|' };
 		/** Token to return for this rule */
 		private final IToken fToken;
 
@@ -124,63 +122,27 @@ public class C4ScriptCodeScanner extends RuleBasedScanner {
 			}
 		}
 	}
-	
-	public static Map<String,IToken> fTokenMap= new HashMap<String, IToken>();
-//	static String[] fgKeywords= {
-//		"break", 
-//		"continue",
-//		"const",
-//		"do", 
-//		"else",
-//		"for", "func", 
-//		"global",
-//		"if",
-//		"local",
-//		"private", "protected", "public", 
-//		"static",
-//		"this",
-//		"var",
-//		"while"
-//	};
 
-	private static final String RETURN= "return"; //$NON-NLS-1$
-
-//	private static String[] fgTypes= { "any", "array", "bool", "dword", "id", "int", "object", "string" }; //$NON-NLS-1$ //$NON-NLS-5$ //$NON-NLS-7$ //$NON-NLS-6$ //$NON-NLS-8$ //$NON-NLS-9$  //$NON-NLS-10$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-2$
-
-	private static String[] fgConstants= { "false", "null", "true" }; //$NON-NLS-3$ //$NON-NLS-2$ //$NON-NLS-1$
-
-//	private static String[] fgBuiltInFunctions = {"CreateObject","FindObjects"};
-	
-	private static String[] fgDirectives = {"include", "strict", "appendto"};
-	
 	public final static String KEYWORDS = "__keywords";
-	
+
 	private IRule[] currentRules;
-	
-	public C4ScriptCodeScanner(ColorManager manager) {
+
+	public MapGenCodeScanner(ColorManager manager) {
 
 		IToken defaultToken = new Token(new TextAttribute(manager.getColor(IClonkColorConstants.DEFAULT)));
-		
+
 		IToken operator = new Token(new TextAttribute(manager.getColor(IClonkColorConstants.OPERATOR)));
 		IToken keyword = new Token(new TextAttribute(manager.getColor(IClonkColorConstants.KEYWORD)));
-		IToken type = new Token(new TextAttribute(manager.getColor(IClonkColorConstants.TYPE)));
-		IToken engineFunction = new Token(new TextAttribute(manager.getColor(IClonkColorConstants.ENGINE_FUNCTION)));
-		IToken objCallbackFunction = new Token(new TextAttribute(manager.getColor(IClonkColorConstants.OBJ_CALLBACK)));
-		IToken string = new Token(new TextAttribute(manager.getColor(IClonkColorConstants.STRING)));
-//		IToken number = new Token(new TextAttribute(manager.getColor(IClonkColorConstants.NUMBER)));
+		//			IToken number = new Token(new TextAttribute(manager.getColor(IClonkColorConstants.NUMBER)));
 		IToken bracket = new Token(new TextAttribute(manager.getColor(IClonkColorConstants.BRACKET)));
-		IToken returnToken = new Token(new TextAttribute(manager.getColor(IClonkColorConstants.RETURN)));
-		IToken pragma = new Token(new TextAttribute(manager.getColor(IClonkColorConstants.PRAGMA)));
-		
-//		fTokenMap.put(ClonkScriptPartitionScanner.C4S_STRING, string);
-		
+
+		//			fTokenMap.put(ClonkScriptPartitionScanner.C4S_STRING, string);
+
 		List<IRule> rules = new ArrayList<IRule>();
-		
-		rules.add(new SingleLineRule("\"", "\"", string, '\\'));
-		
+
 		// Add generic whitespace rule.
 		rules.add(new WhitespaceRule(new ClonkWhitespaceDetector()));
-		
+
 
 		// Add rule for operators
 		rules.add(new OperatorRule(operator));
@@ -190,52 +152,18 @@ public class C4ScriptCodeScanner extends RuleBasedScanner {
 
 		WordScanner wordDetector= new WordScanner();
 		CombinedWordRule combinedWordRule= new CombinedWordRule(wordDetector, defaultToken);
-		
-		// Add word rule for keyword 'return'.
-		CombinedWordRule.WordMatcher returnWordRule= new CombinedWordRule.WordMatcher();
-		returnWordRule.addWord(RETURN, returnToken);  
-		combinedWordRule.addWordMatcher(returnWordRule);
 
 		// Add word rule for keywords, types, and constants.
 		CombinedWordRule.WordMatcher wordRule= new CombinedWordRule.WordMatcher();
-//		for (int i=0; i<fgKeywords.length; i++)
-//			wordRule.addWord(fgKeywords[i], keyword);
-		for (String c4keyword : BuiltInDefinitions.KEYWORDS)
-			wordRule.addWord(c4keyword.trim(), keyword);
-		for (String c4keyword : BuiltInDefinitions.DECLARATORS)
-			wordRule.addWord(c4keyword.trim(), keyword);
-//		for (int i=0; i<fgTypes.length; i++)
-//			wordRule.addWord(fgTypes[i], type);
-		for (C4Type c4type : C4Type.values()) 
-			if (c4type != C4Type.UNKNOWN)
-				wordRule.addWord(c4type.name().trim().toLowerCase(), type);
-		for (int i=0; i<fgConstants.length; i++)
-			wordRule.addWord(fgConstants[i], type);
-		for (C4Function func : ClonkCore.getDefault().ENGINE_OBJECT.functions())
-			wordRule.addWord(func.getName(), engineFunction);
-		for (int i=0; i<BuiltInDefinitions.OBJECT_CALLBACKS.length; i++)
-			wordRule.addWord(BuiltInDefinitions.OBJECT_CALLBACKS[i], objCallbackFunction);
-		
-		
+		for (String c4keyword : BuiltInDefinitions.MAPGENKEYWORDS)
+			wordRule.addWord(c4keyword, keyword);
+
 		combinedWordRule.addWordMatcher(wordRule);
-		
 		rules.add(combinedWordRule);
-		
-		rules.add(new PragmaRule(fgDirectives,pragma));
-		
-//		for (int i=0; i<fgDirectives.length; i++)
-//			rules.add(new PatternRule("#" + fgDirectives[i]," ",pragma,(char)0,true));
-		
-//		WordRule engineFunctionRule = new WordRule(new WordScanner());
-		
-		//rules.add(new NumberRule(number));
-		
-//		rules.add(new OperatorScanner());
-////		rules.add(operatorRule);
-//		rules.add(keywordRule);
-//		rules.add(typeRule);
-//		rules.add(engineFunctionRule);
+
 		currentRules = (IRule[])rules.toArray(new IRule[0]);
 		setRules(currentRules);
 	}
+
+
 }

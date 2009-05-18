@@ -26,6 +26,31 @@ public class C4MapOverlay extends C4Structure implements Cloneable {
 		script
 	}
 	
+	public enum Operator {
+		Or('|'),
+		And('&'),
+		XOr('^');
+		
+		private char c;
+		
+		Operator(char c) {
+			this.c = c;
+		}
+		
+		@Override
+		public String toString() {
+			return String.valueOf(c);
+		}
+		
+		public static Operator valueOf(char c) {
+			for (Operator o : values()) {
+				if (o.c == c)
+					return o;
+			}
+			return null;
+		}
+	}
+	
 	public String material;
 	public String tex;
 	public Algorithm algo;
@@ -43,6 +68,15 @@ public class C4MapOverlay extends C4Structure implements Cloneable {
 	public int lambda;
 	
 	private C4MapOverlay template;
+	private Operator operator;
+
+	public Operator getOperator() {
+		return operator;
+	}
+
+	public void setOperator(Operator operator) {
+		this.operator = operator;
+	}
 
 	private static final long serialVersionUID = 1L;
 	
@@ -68,10 +102,8 @@ public class C4MapOverlay extends C4Structure implements Cloneable {
 		Field f = getClass().getField(attr);
 		if (f != null) {
 			if (f.getType().getSuperclass() == Enum.class) {
-				Method valueOfMethod = f.getType().getMethod("valueOf", String.class);
 				try {
-					Enum<?> enumValue = (Enum<?>) valueOfMethod.invoke(attr);
-					f.set(this, enumValue);
+					f.set(this, f.getType().getMethod("valueOf", String.class).invoke(f.getClass(), value));
 				} catch (Exception e) {
 					return false;
 				}
@@ -165,6 +197,10 @@ public class C4MapOverlay extends C4Structure implements Cloneable {
 		if (t != null)
 			return t.name + " " + (name!=null?name:"");
 		return (this.getClass()==C4Map.class?"map":"overlay") + " " + (name!=null?name:"");
+	}
+	
+	public void clear() {
+		subOverlays = new LinkedList<C4MapOverlay>();
 	}
 
 }

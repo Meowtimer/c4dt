@@ -6,11 +6,11 @@ import java.util.List;
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.c4script.C4Variable;
 import net.arctics.clonk.parser.c4script.C4Variable.C4VariableScope;
+import net.arctics.clonk.ui.editors.ColorManager;
+import net.arctics.clonk.ui.editors.IClonkColorConstants;
 import net.arctics.clonk.ui.editors.WordScanner;
 import net.arctics.clonk.ui.editors.c4script.ClonkWhitespaceDetector;
-import net.arctics.clonk.ui.editors.c4script.ColorManager;
 import net.arctics.clonk.ui.editors.c4script.CombinedWordRule;
-import net.arctics.clonk.ui.editors.c4script.IClonkColorConstants;
 
 import org.eclipse.jface.text.TextAttribute;
 import org.eclipse.jface.text.rules.ICharacterScanner;
