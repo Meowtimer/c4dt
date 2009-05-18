@@ -140,6 +140,14 @@ public class C4MapOverlay extends C4Structure implements Cloneable {
 		return result;
 	}
 	
+	public C4MapOverlay createOverlay(Class<? extends C4MapOverlay> cls, String name) throws InstantiationException, IllegalAccessException {
+		C4MapOverlay result = cls.newInstance();
+		result.name = name;
+		result.setParentDeclaration(this);
+		this.subOverlays.add(result);
+		return result;
+	}
+	
 	@Override
 	public Object[] getSubDeclarationsForOutline() {
 		return subOverlays.toArray(new C4MapOverlay[subOverlays.size()]);

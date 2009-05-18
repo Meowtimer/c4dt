@@ -1,4 +1,4 @@
-// $ANTLR 3.1.2 /Users/madeen/Projects/Eclipse/Clonk/src/net/arctics/clonk/parser/map/MapGenerator.g 2009-05-17 20:36:50
+// $ANTLR 3.1.2 /Users/madeen/Projects/Eclipse/Clonk/src/net/arctics/clonk/parser/map/MapGenerator.g 2009-05-18 00:02:45
 package net.arctics.clonk.parser.map;
 
 import org.antlr.runtime.*;
@@ -7,16 +7,17 @@ import java.util.List;
 import java.util.ArrayList;
 
 public class MapGeneratorLexer extends Lexer {
-    public static final int WORD=4;
-    public static final int WS=9;
-    public static final int ATTRVALUE=5;
+    public static final int WORD=5;
+    public static final int WS=11;
     public static final int T__12=12;
-    public static final int T__11=11;
-    public static final int LETTER=6;
+    public static final int OVERLAY=6;
+    public static final int T__14=14;
+    public static final int LETTER=9;
     public static final int T__13=13;
-    public static final int T__10=10;
-    public static final int INT=8;
-    public static final int DIGIT=7;
+    public static final int MAP=4;
+    public static final int MATERIAL=8;
+    public static final int INT=7;
+    public static final int DIGIT=10;
     public static final int EOF=-1;
 
     // delegates
@@ -32,55 +33,15 @@ public class MapGeneratorLexer extends Lexer {
     }
     public String getGrammarFileName() { return "/Users/madeen/Projects/Eclipse/Clonk/src/net/arctics/clonk/parser/map/MapGenerator.g"; }
 
-    // $ANTLR start "T__10"
-    public final void mT__10() throws RecognitionException {
-        try {
-            int _type = T__10;
-            int _channel = DEFAULT_TOKEN_CHANNEL;
-            // /Users/madeen/Projects/Eclipse/Clonk/src/net/arctics/clonk/parser/map/MapGenerator.g:5:7: ( '{' )
-            // /Users/madeen/Projects/Eclipse/Clonk/src/net/arctics/clonk/parser/map/MapGenerator.g:5:9: '{'
-            {
-            match('{'); 
-
-            }
-
-            state.type = _type;
-            state.channel = _channel;
-        }
-        finally {
-        }
-    }
-    // $ANTLR end "T__10"
-
-    // $ANTLR start "T__11"
-    public final void mT__11() throws RecognitionException {
-        try {
-            int _type = T__11;
-            int _channel = DEFAULT_TOKEN_CHANNEL;
-            // /Users/madeen/Projects/Eclipse/Clonk/src/net/arctics/clonk/parser/map/MapGenerator.g:6:7: ( '}' )
-            // /Users/madeen/Projects/Eclipse/Clonk/src/net/arctics/clonk/parser/map/MapGenerator.g:6:9: '}'
-            {
-            match('}'); 
-
-            }
-
-            state.type = _type;
-            state.channel = _channel;
-        }
-        finally {
-        }
-    }
-    // $ANTLR end "T__11"
-
     // $ANTLR start "T__12"
     public final void mT__12() throws RecognitionException {
         try {
             int _type = T__12;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // /Users/madeen/Projects/Eclipse/Clonk/src/net/arctics/clonk/parser/map/MapGenerator.g:7:7: ( ';' )
-            // /Users/madeen/Projects/Eclipse/Clonk/src/net/arctics/clonk/parser/map/MapGenerator.g:7:9: ';'
+            // /Users/madeen/Projects/Eclipse/Clonk/src/net/arctics/clonk/parser/map/MapGenerator.g:5:7: ( '{' )
+            // /Users/madeen/Projects/Eclipse/Clonk/src/net/arctics/clonk/parser/map/MapGenerator.g:5:9: '{'
             {
-            match(';'); 
+            match('{'); 
 
             }
 
@@ -97,10 +58,10 @@ public class MapGeneratorLexer extends Lexer {
         try {
             int _type = T__13;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // /Users/madeen/Projects/Eclipse/Clonk/src/net/arctics/clonk/parser/map/MapGenerator.g:8:7: ( '=' )
-            // /Users/madeen/Projects/Eclipse/Clonk/src/net/arctics/clonk/parser/map/MapGenerator.g:8:9: '='
+            // /Users/madeen/Projects/Eclipse/Clonk/src/net/arctics/clonk/parser/map/MapGenerator.g:6:7: ( '}' )
+            // /Users/madeen/Projects/Eclipse/Clonk/src/net/arctics/clonk/parser/map/MapGenerator.g:6:9: '}'
             {
-            match('='); 
+            match('}'); 
 
             }
 
@@ -112,12 +73,74 @@ public class MapGeneratorLexer extends Lexer {
     }
     // $ANTLR end "T__13"
 
+    // $ANTLR start "T__14"
+    public final void mT__14() throws RecognitionException {
+        try {
+            int _type = T__14;
+            int _channel = DEFAULT_TOKEN_CHANNEL;
+            // /Users/madeen/Projects/Eclipse/Clonk/src/net/arctics/clonk/parser/map/MapGenerator.g:7:7: ( ';' )
+            // /Users/madeen/Projects/Eclipse/Clonk/src/net/arctics/clonk/parser/map/MapGenerator.g:7:9: ';'
+            {
+            match(';'); 
+
+            }
+
+            state.type = _type;
+            state.channel = _channel;
+        }
+        finally {
+        }
+    }
+    // $ANTLR end "T__14"
+
+    // $ANTLR start "MAP"
+    public final void mMAP() throws RecognitionException {
+        try {
+            int _type = MAP;
+            int _channel = DEFAULT_TOKEN_CHANNEL;
+            // /Users/madeen/Projects/Eclipse/Clonk/src/net/arctics/clonk/parser/map/MapGenerator.g:58:5: ( 'map' )
+            // /Users/madeen/Projects/Eclipse/Clonk/src/net/arctics/clonk/parser/map/MapGenerator.g:58:7: 'map'
+            {
+            match("map"); 
+
+
+            }
+
+            state.type = _type;
+            state.channel = _channel;
+        }
+        finally {
+        }
+    }
+    // $ANTLR end "MAP"
+
+    // $ANTLR start "OVERLAY"
+    public final void mOVERLAY() throws RecognitionException {
+        try {
+            int _type = OVERLAY;
+            int _channel = DEFAULT_TOKEN_CHANNEL;
+            // /Users/madeen/Projects/Eclipse/Clonk/src/net/arctics/clonk/parser/map/MapGenerator.g:59:9: ( 'overlay' )
+            // /Users/madeen/Projects/Eclipse/Clonk/src/net/arctics/clonk/parser/map/MapGenerator.g:59:11: 'overlay'
+            {
+            match("overlay"); 
+
+
+            }
+
+            state.type = _type;
+            state.channel = _channel;
+        }
+        finally {
+        }
+    }
+    // $ANTLR end "OVERLAY"
+
     // $ANTLR start "LETTER"
     public final void mLETTER() throws RecognitionException {
         try {
             int _type = LETTER;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // /Users/madeen/Projects/Eclipse/Clonk/src/net/arctics/clonk/parser/map/MapGenerator.g:44:9: ( 'a' .. 'z' | 'A' .. 'Z' | '_' )
+            // /Users/madeen/Projects/Eclipse/Clonk/src/net/arctics/clonk/parser/map/MapGenerator.g:60:8: ( 'a' .. 'z' | 'A' .. 'Z' | '_' )
             // /Users/madeen/Projects/Eclipse/Clonk/src/net/arctics/clonk/parser/map/MapGenerator.g:
             {
             if ( (input.LA(1)>='A' && input.LA(1)<='Z')||input.LA(1)=='_'||(input.LA(1)>='a' && input.LA(1)<='z') ) {
@@ -145,8 +168,8 @@ public class MapGeneratorLexer extends Lexer {
         try {
             int _type = DIGIT;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // /Users/madeen/Projects/Eclipse/Clonk/src/net/arctics/clonk/parser/map/MapGenerator.g:45:8: ( '0' .. '9' )
-            // /Users/madeen/Projects/Eclipse/Clonk/src/net/arctics/clonk/parser/map/MapGenerator.g:45:10: '0' .. '9'
+            // /Users/madeen/Projects/Eclipse/Clonk/src/net/arctics/clonk/parser/map/MapGenerator.g:61:7: ( '0' .. '9' )
+            // /Users/madeen/Projects/Eclipse/Clonk/src/net/arctics/clonk/parser/map/MapGenerator.g:61:9: '0' .. '9'
             {
             matchRange('0','9'); 
 
@@ -165,11 +188,11 @@ public class MapGeneratorLexer extends Lexer {
         try {
             int _type = WORD;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // /Users/madeen/Projects/Eclipse/Clonk/src/net/arctics/clonk/parser/map/MapGenerator.g:46:7: ( LETTER ( LETTER | DIGIT )* )
-            // /Users/madeen/Projects/Eclipse/Clonk/src/net/arctics/clonk/parser/map/MapGenerator.g:46:9: LETTER ( LETTER | DIGIT )*
+            // /Users/madeen/Projects/Eclipse/Clonk/src/net/arctics/clonk/parser/map/MapGenerator.g:62:6: ( LETTER ( LETTER | DIGIT )* )
+            // /Users/madeen/Projects/Eclipse/Clonk/src/net/arctics/clonk/parser/map/MapGenerator.g:62:8: LETTER ( LETTER | DIGIT )*
             {
             mLETTER(); 
-            // /Users/madeen/Projects/Eclipse/Clonk/src/net/arctics/clonk/parser/map/MapGenerator.g:46:16: ( LETTER | DIGIT )*
+            // /Users/madeen/Projects/Eclipse/Clonk/src/net/arctics/clonk/parser/map/MapGenerator.g:62:15: ( LETTER | DIGIT )*
             loop1:
             do {
                 int alt1=2;
@@ -218,10 +241,10 @@ public class MapGeneratorLexer extends Lexer {
         try {
             int _type = INT;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // /Users/madeen/Projects/Eclipse/Clonk/src/net/arctics/clonk/parser/map/MapGenerator.g:47:6: ( ( '+' | '-' )? ( DIGIT )+ )
-            // /Users/madeen/Projects/Eclipse/Clonk/src/net/arctics/clonk/parser/map/MapGenerator.g:47:8: ( '+' | '-' )? ( DIGIT )+
+            // /Users/madeen/Projects/Eclipse/Clonk/src/net/arctics/clonk/parser/map/MapGenerator.g:63:5: ( ( '+' | '-' )? ( DIGIT )+ )
+            // /Users/madeen/Projects/Eclipse/Clonk/src/net/arctics/clonk/parser/map/MapGenerator.g:63:7: ( '+' | '-' )? ( DIGIT )+
             {
-            // /Users/madeen/Projects/Eclipse/Clonk/src/net/arctics/clonk/parser/map/MapGenerator.g:47:8: ( '+' | '-' )?
+            // /Users/madeen/Projects/Eclipse/Clonk/src/net/arctics/clonk/parser/map/MapGenerator.g:63:7: ( '+' | '-' )?
             int alt2=2;
             int LA2_0 = input.LA(1);
 
@@ -247,7 +270,7 @@ public class MapGeneratorLexer extends Lexer {
 
             }
 
-            // /Users/madeen/Projects/Eclipse/Clonk/src/net/arctics/clonk/parser/map/MapGenerator.g:47:19: ( DIGIT )+
+            // /Users/madeen/Projects/Eclipse/Clonk/src/net/arctics/clonk/parser/map/MapGenerator.g:63:18: ( DIGIT )+
             int cnt3=0;
             loop3:
             do {
@@ -261,7 +284,7 @@ public class MapGeneratorLexer extends Lexer {
 
                 switch (alt3) {
             	case 1 :
-            	    // /Users/madeen/Projects/Eclipse/Clonk/src/net/arctics/clonk/parser/map/MapGenerator.g:47:19: DIGIT
+            	    // /Users/madeen/Projects/Eclipse/Clonk/src/net/arctics/clonk/parser/map/MapGenerator.g:63:18: DIGIT
             	    {
             	    mDIGIT(); 
 
@@ -288,79 +311,53 @@ public class MapGeneratorLexer extends Lexer {
     }
     // $ANTLR end "INT"
 
-    // $ANTLR start "ATTRVALUE"
-    public final void mATTRVALUE() throws RecognitionException {
+    // $ANTLR start "MATERIAL"
+    public final void mMATERIAL() throws RecognitionException {
         try {
-            int _type = ATTRVALUE;
+            int _type = MATERIAL;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // /Users/madeen/Projects/Eclipse/Clonk/src/net/arctics/clonk/parser/map/MapGenerator.g:48:11: ( INT | WORD | ( WORD '-' WORD ) )
-            int alt4=3;
-            alt4 = dfa4.predict(input);
-            switch (alt4) {
-                case 1 :
-                    // /Users/madeen/Projects/Eclipse/Clonk/src/net/arctics/clonk/parser/map/MapGenerator.g:48:13: INT
-                    {
-                    mINT(); 
-
-                    }
-                    break;
-                case 2 :
-                    // /Users/madeen/Projects/Eclipse/Clonk/src/net/arctics/clonk/parser/map/MapGenerator.g:48:17: WORD
-                    {
-                    mWORD(); 
-
-                    }
-                    break;
-                case 3 :
-                    // /Users/madeen/Projects/Eclipse/Clonk/src/net/arctics/clonk/parser/map/MapGenerator.g:48:22: ( WORD '-' WORD )
-                    {
-                    // /Users/madeen/Projects/Eclipse/Clonk/src/net/arctics/clonk/parser/map/MapGenerator.g:48:22: ( WORD '-' WORD )
-                    // /Users/madeen/Projects/Eclipse/Clonk/src/net/arctics/clonk/parser/map/MapGenerator.g:48:23: WORD '-' WORD
-                    {
-                    mWORD(); 
-                    match('-'); 
-                    mWORD(); 
-
-                    }
-
-
-                    }
-                    break;
+            // /Users/madeen/Projects/Eclipse/Clonk/src/net/arctics/clonk/parser/map/MapGenerator.g:64:10: ( WORD '-' WORD )
+            // /Users/madeen/Projects/Eclipse/Clonk/src/net/arctics/clonk/parser/map/MapGenerator.g:64:12: WORD '-' WORD
+            {
+            mWORD(); 
+            match('-'); 
+            mWORD(); 
 
             }
+
             state.type = _type;
             state.channel = _channel;
         }
         finally {
         }
     }
-    // $ANTLR end "ATTRVALUE"
+    // $ANTLR end "MATERIAL"
 
     // $ANTLR start "WS"
     public final void mWS() throws RecognitionException {
         try {
             int _type = WS;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // /Users/madeen/Projects/Eclipse/Clonk/src/net/arctics/clonk/parser/map/MapGenerator.g:49:5: ( ( ' ' | '\\t' )+ )
-            // /Users/madeen/Projects/Eclipse/Clonk/src/net/arctics/clonk/parser/map/MapGenerator.g:49:7: ( ' ' | '\\t' )+
+            // /Users/madeen/Projects/Eclipse/Clonk/src/net/arctics/clonk/parser/map/MapGenerator.g:65:4: ( ( ' ' | '\\t' | '\\n' | '\\r' )+ )
+            // /Users/madeen/Projects/Eclipse/Clonk/src/net/arctics/clonk/parser/map/MapGenerator.g:65:6: ( ' ' | '\\t' | '\\n' | '\\r' )+
             {
-            // /Users/madeen/Projects/Eclipse/Clonk/src/net/arctics/clonk/parser/map/MapGenerator.g:49:7: ( ' ' | '\\t' )+
-            int cnt5=0;
-            loop5:
+            // /Users/madeen/Projects/Eclipse/Clonk/src/net/arctics/clonk/parser/map/MapGenerator.g:65:6: ( ' ' | '\\t' | '\\n' | '\\r' )+
+            int cnt4=0;
+            loop4:
             do {
-                int alt5=2;
-                int LA5_0 = input.LA(1);
+                int alt4=2;
+                int LA4_0 = input.LA(1);
 
-                if ( (LA5_0=='\t'||LA5_0==' ') ) {
-                    alt5=1;
+                if ( ((LA4_0>='\t' && LA4_0<='\n')||LA4_0=='\r'||LA4_0==' ') ) {
+                    alt4=1;
                 }
 
 
-                switch (alt5) {
+                switch (alt4) {
             	case 1 :
             	    // /Users/madeen/Projects/Eclipse/Clonk/src/net/arctics/clonk/parser/map/MapGenerator.g:
             	    {
-            	    if ( input.LA(1)=='\t'||input.LA(1)==' ' ) {
+            	    if ( (input.LA(1)>='\t' && input.LA(1)<='\n')||input.LA(1)=='\r'||input.LA(1)==' ' ) {
             	        input.consume();
 
             	    }
@@ -374,12 +371,12 @@ public class MapGeneratorLexer extends Lexer {
             	    break;
 
             	default :
-            	    if ( cnt5 >= 1 ) break loop5;
+            	    if ( cnt4 >= 1 ) break loop4;
                         EarlyExitException eee =
-                            new EarlyExitException(5, input);
+                            new EarlyExitException(4, input);
                         throw eee;
                 }
-                cnt5++;
+                cnt4++;
             } while (true);
 
             skip();
@@ -395,75 +392,82 @@ public class MapGeneratorLexer extends Lexer {
     // $ANTLR end "WS"
 
     public void mTokens() throws RecognitionException {
-        // /Users/madeen/Projects/Eclipse/Clonk/src/net/arctics/clonk/parser/map/MapGenerator.g:1:8: ( T__10 | T__11 | T__12 | T__13 | LETTER | DIGIT | WORD | INT | ATTRVALUE | WS )
-        int alt6=10;
-        alt6 = dfa6.predict(input);
-        switch (alt6) {
+        // /Users/madeen/Projects/Eclipse/Clonk/src/net/arctics/clonk/parser/map/MapGenerator.g:1:8: ( T__12 | T__13 | T__14 | MAP | OVERLAY | LETTER | DIGIT | WORD | INT | MATERIAL | WS )
+        int alt5=11;
+        alt5 = dfa5.predict(input);
+        switch (alt5) {
             case 1 :
-                // /Users/madeen/Projects/Eclipse/Clonk/src/net/arctics/clonk/parser/map/MapGenerator.g:1:10: T__10
-                {
-                mT__10(); 
-
-                }
-                break;
-            case 2 :
-                // /Users/madeen/Projects/Eclipse/Clonk/src/net/arctics/clonk/parser/map/MapGenerator.g:1:16: T__11
-                {
-                mT__11(); 
-
-                }
-                break;
-            case 3 :
-                // /Users/madeen/Projects/Eclipse/Clonk/src/net/arctics/clonk/parser/map/MapGenerator.g:1:22: T__12
+                // /Users/madeen/Projects/Eclipse/Clonk/src/net/arctics/clonk/parser/map/MapGenerator.g:1:10: T__12
                 {
                 mT__12(); 
 
                 }
                 break;
-            case 4 :
-                // /Users/madeen/Projects/Eclipse/Clonk/src/net/arctics/clonk/parser/map/MapGenerator.g:1:28: T__13
+            case 2 :
+                // /Users/madeen/Projects/Eclipse/Clonk/src/net/arctics/clonk/parser/map/MapGenerator.g:1:16: T__13
                 {
                 mT__13(); 
 
                 }
                 break;
+            case 3 :
+                // /Users/madeen/Projects/Eclipse/Clonk/src/net/arctics/clonk/parser/map/MapGenerator.g:1:22: T__14
+                {
+                mT__14(); 
+
+                }
+                break;
+            case 4 :
+                // /Users/madeen/Projects/Eclipse/Clonk/src/net/arctics/clonk/parser/map/MapGenerator.g:1:28: MAP
+                {
+                mMAP(); 
+
+                }
+                break;
             case 5 :
-                // /Users/madeen/Projects/Eclipse/Clonk/src/net/arctics/clonk/parser/map/MapGenerator.g:1:34: LETTER
+                // /Users/madeen/Projects/Eclipse/Clonk/src/net/arctics/clonk/parser/map/MapGenerator.g:1:32: OVERLAY
+                {
+                mOVERLAY(); 
+
+                }
+                break;
+            case 6 :
+                // /Users/madeen/Projects/Eclipse/Clonk/src/net/arctics/clonk/parser/map/MapGenerator.g:1:40: LETTER
                 {
                 mLETTER(); 
 
                 }
                 break;
-            case 6 :
-                // /Users/madeen/Projects/Eclipse/Clonk/src/net/arctics/clonk/parser/map/MapGenerator.g:1:41: DIGIT
+            case 7 :
+                // /Users/madeen/Projects/Eclipse/Clonk/src/net/arctics/clonk/parser/map/MapGenerator.g:1:47: DIGIT
                 {
                 mDIGIT(); 
 
                 }
                 break;
-            case 7 :
-                // /Users/madeen/Projects/Eclipse/Clonk/src/net/arctics/clonk/parser/map/MapGenerator.g:1:47: WORD
+            case 8 :
+                // /Users/madeen/Projects/Eclipse/Clonk/src/net/arctics/clonk/parser/map/MapGenerator.g:1:53: WORD
                 {
                 mWORD(); 
 
                 }
                 break;
-            case 8 :
-                // /Users/madeen/Projects/Eclipse/Clonk/src/net/arctics/clonk/parser/map/MapGenerator.g:1:52: INT
+            case 9 :
+                // /Users/madeen/Projects/Eclipse/Clonk/src/net/arctics/clonk/parser/map/MapGenerator.g:1:58: INT
                 {
                 mINT(); 
 
                 }
                 break;
-            case 9 :
-                // /Users/madeen/Projects/Eclipse/Clonk/src/net/arctics/clonk/parser/map/MapGenerator.g:1:56: ATTRVALUE
+            case 10 :
+                // /Users/madeen/Projects/Eclipse/Clonk/src/net/arctics/clonk/parser/map/MapGenerator.g:1:62: MATERIAL
                 {
-                mATTRVALUE(); 
+                mMATERIAL(); 
 
                 }
                 break;
-            case 10 :
-                // /Users/madeen/Projects/Eclipse/Clonk/src/net/arctics/clonk/parser/map/MapGenerator.g:1:66: WS
+            case 11 :
+                // /Users/madeen/Projects/Eclipse/Clonk/src/net/arctics/clonk/parser/map/MapGenerator.g:1:71: WS
                 {
                 mWS(); 
 
@@ -475,128 +479,92 @@ public class MapGeneratorLexer extends Lexer {
     }
 
 
-    protected DFA4 dfa4 = new DFA4(this);
-    protected DFA6 dfa6 = new DFA6(this);
-    static final String DFA4_eotS =
-        "\2\uffff\1\3\1\uffff\1\3\1\uffff";
-    static final String DFA4_eofS =
-        "\6\uffff";
-    static final String DFA4_minS =
-        "\1\53\1\uffff\1\55\1\uffff\1\55\1\uffff";
-    static final String DFA4_maxS =
-        "\1\172\1\uffff\1\172\1\uffff\1\172\1\uffff";
-    static final String DFA4_acceptS =
-        "\1\uffff\1\1\1\uffff\1\2\1\uffff\1\3";
-    static final String DFA4_specialS =
-        "\6\uffff}>";
-    static final String[] DFA4_transitionS = {
-            "\1\1\1\uffff\1\1\2\uffff\12\1\7\uffff\32\2\4\uffff\1\2\1\uffff"+
-            "\32\2",
+    protected DFA5 dfa5 = new DFA5(this);
+    static final String DFA5_eotS =
+        "\4\uffff\3\13\1\17\2\uffff\1\21\1\uffff\1\21\1\uffff\1\21\1\uffff"+
+        "\1\23\1\uffff\1\21\1\uffff\3\21\1\30\1\uffff";
+    static final String DFA5_eofS =
+        "\31\uffff";
+    static final String DFA5_minS =
+        "\1\11\3\uffff\3\55\1\60\2\uffff\1\55\1\uffff\1\55\1\uffff\1\55\1"+
+        "\uffff\1\55\1\uffff\1\55\1\uffff\4\55\1\uffff";
+    static final String DFA5_maxS =
+        "\1\175\3\uffff\3\172\1\71\2\uffff\1\172\1\uffff\1\172\1\uffff\1"+
+        "\172\1\uffff\1\172\1\uffff\1\172\1\uffff\4\172\1\uffff";
+    static final String DFA5_acceptS =
+        "\1\uffff\1\1\1\2\1\3\4\uffff\1\11\1\13\1\uffff\1\6\1\uffff\1\12"+
+        "\1\uffff\1\7\1\uffff\1\10\1\uffff\1\4\4\uffff\1\5";
+    static final String DFA5_specialS =
+        "\31\uffff}>";
+    static final String[] DFA5_transitionS = {
+            "\2\11\2\uffff\1\11\22\uffff\1\11\12\uffff\1\10\1\uffff\1\10"+
+            "\2\uffff\12\7\1\uffff\1\3\5\uffff\32\6\4\uffff\1\6\1\uffff\14"+
+            "\6\1\4\1\6\1\5\13\6\1\1\1\uffff\1\2",
             "",
-            "\1\5\2\uffff\12\4\7\uffff\32\4\4\uffff\1\4\1\uffff\32\4",
             "",
-            "\1\5\2\uffff\12\4\7\uffff\32\4\4\uffff\1\4\1\uffff\32\4",
+            "",
+            "\1\15\2\uffff\12\14\7\uffff\32\14\4\uffff\1\14\1\uffff\1\12"+
+            "\31\14",
+            "\1\15\2\uffff\12\14\7\uffff\32\14\4\uffff\1\14\1\uffff\25\14"+
+            "\1\16\4\14",
+            "\1\15\2\uffff\12\14\7\uffff\32\14\4\uffff\1\14\1\uffff\32\14",
+            "\12\10",
+            "",
+            "",
+            "\1\15\2\uffff\12\14\7\uffff\32\14\4\uffff\1\14\1\uffff\17\14"+
+            "\1\20\12\14",
+            "",
+            "\1\15\2\uffff\12\14\7\uffff\32\14\4\uffff\1\14\1\uffff\32\14",
+            "",
+            "\1\15\2\uffff\12\14\7\uffff\32\14\4\uffff\1\14\1\uffff\4\14"+
+            "\1\22\25\14",
+            "",
+            "\1\15\2\uffff\12\14\7\uffff\32\14\4\uffff\1\14\1\uffff\32\14",
+            "",
+            "\1\15\2\uffff\12\14\7\uffff\32\14\4\uffff\1\14\1\uffff\21\14"+
+            "\1\24\10\14",
+            "",
+            "\1\15\2\uffff\12\14\7\uffff\32\14\4\uffff\1\14\1\uffff\13\14"+
+            "\1\25\16\14",
+            "\1\15\2\uffff\12\14\7\uffff\32\14\4\uffff\1\14\1\uffff\1\26"+
+            "\31\14",
+            "\1\15\2\uffff\12\14\7\uffff\32\14\4\uffff\1\14\1\uffff\30\14"+
+            "\1\27\1\14",
+            "\1\15\2\uffff\12\14\7\uffff\32\14\4\uffff\1\14\1\uffff\32\14",
             ""
     };
 
-    static final short[] DFA4_eot = DFA.unpackEncodedString(DFA4_eotS);
-    static final short[] DFA4_eof = DFA.unpackEncodedString(DFA4_eofS);
-    static final char[] DFA4_min = DFA.unpackEncodedStringToUnsignedChars(DFA4_minS);
-    static final char[] DFA4_max = DFA.unpackEncodedStringToUnsignedChars(DFA4_maxS);
-    static final short[] DFA4_accept = DFA.unpackEncodedString(DFA4_acceptS);
-    static final short[] DFA4_special = DFA.unpackEncodedString(DFA4_specialS);
-    static final short[][] DFA4_transition;
+    static final short[] DFA5_eot = DFA.unpackEncodedString(DFA5_eotS);
+    static final short[] DFA5_eof = DFA.unpackEncodedString(DFA5_eofS);
+    static final char[] DFA5_min = DFA.unpackEncodedStringToUnsignedChars(DFA5_minS);
+    static final char[] DFA5_max = DFA.unpackEncodedStringToUnsignedChars(DFA5_maxS);
+    static final short[] DFA5_accept = DFA.unpackEncodedString(DFA5_acceptS);
+    static final short[] DFA5_special = DFA.unpackEncodedString(DFA5_specialS);
+    static final short[][] DFA5_transition;
 
     static {
-        int numStates = DFA4_transitionS.length;
-        DFA4_transition = new short[numStates][];
+        int numStates = DFA5_transitionS.length;
+        DFA5_transition = new short[numStates][];
         for (int i=0; i<numStates; i++) {
-            DFA4_transition[i] = DFA.unpackEncodedString(DFA4_transitionS[i]);
+            DFA5_transition[i] = DFA.unpackEncodedString(DFA5_transitionS[i]);
         }
     }
 
-    class DFA4 extends DFA {
+    class DFA5 extends DFA {
 
-        public DFA4(BaseRecognizer recognizer) {
+        public DFA5(BaseRecognizer recognizer) {
             this.recognizer = recognizer;
-            this.decisionNumber = 4;
-            this.eot = DFA4_eot;
-            this.eof = DFA4_eof;
-            this.min = DFA4_min;
-            this.max = DFA4_max;
-            this.accept = DFA4_accept;
-            this.special = DFA4_special;
-            this.transition = DFA4_transition;
+            this.decisionNumber = 5;
+            this.eot = DFA5_eot;
+            this.eof = DFA5_eof;
+            this.min = DFA5_min;
+            this.max = DFA5_max;
+            this.accept = DFA5_accept;
+            this.special = DFA5_special;
+            this.transition = DFA5_transition;
         }
         public String getDescription() {
-            return "48:1: ATTRVALUE : ( INT | WORD | ( WORD '-' WORD ) );";
-        }
-    }
-    static final String DFA6_eotS =
-        "\5\uffff\1\11\1\14\3\uffff\1\16\2\uffff\1\17\2\uffff";
-    static final String DFA6_eofS =
-        "\20\uffff";
-    static final String DFA6_minS =
-        "\1\11\4\uffff\1\55\2\60\2\uffff\1\55\2\uffff\1\60\2\uffff";
-    static final String DFA6_maxS =
-        "\1\175\4\uffff\1\172\2\71\2\uffff\1\172\2\uffff\1\71\2\uffff";
-    static final String DFA6_acceptS =
-        "\1\uffff\1\1\1\2\1\3\1\4\3\uffff\1\12\1\5\1\uffff\1\11\1\6\1\uffff"+
-        "\1\7\1\10";
-    static final String DFA6_specialS =
-        "\20\uffff}>";
-    static final String[] DFA6_transitionS = {
-            "\1\10\26\uffff\1\10\12\uffff\1\7\1\uffff\1\7\2\uffff\12\6\1"+
-            "\uffff\1\3\1\uffff\1\4\3\uffff\32\5\4\uffff\1\5\1\uffff\32\5"+
-            "\1\1\1\uffff\1\2",
-            "",
-            "",
-            "",
-            "",
-            "\1\13\2\uffff\12\12\7\uffff\32\12\4\uffff\1\12\1\uffff\32\12",
-            "\12\15",
-            "\12\15",
-            "",
-            "",
-            "\1\13\2\uffff\12\12\7\uffff\32\12\4\uffff\1\12\1\uffff\32\12",
-            "",
-            "",
-            "\12\15",
-            "",
-            ""
-    };
-
-    static final short[] DFA6_eot = DFA.unpackEncodedString(DFA6_eotS);
-    static final short[] DFA6_eof = DFA.unpackEncodedString(DFA6_eofS);
-    static final char[] DFA6_min = DFA.unpackEncodedStringToUnsignedChars(DFA6_minS);
-    static final char[] DFA6_max = DFA.unpackEncodedStringToUnsignedChars(DFA6_maxS);
-    static final short[] DFA6_accept = DFA.unpackEncodedString(DFA6_acceptS);
-    static final short[] DFA6_special = DFA.unpackEncodedString(DFA6_specialS);
-    static final short[][] DFA6_transition;
-
-    static {
-        int numStates = DFA6_transitionS.length;
-        DFA6_transition = new short[numStates][];
-        for (int i=0; i<numStates; i++) {
-            DFA6_transition[i] = DFA.unpackEncodedString(DFA6_transitionS[i]);
-        }
-    }
-
-    class DFA6 extends DFA {
-
-        public DFA6(BaseRecognizer recognizer) {
-            this.recognizer = recognizer;
-            this.decisionNumber = 6;
-            this.eot = DFA6_eot;
-            this.eof = DFA6_eof;
-            this.min = DFA6_min;
-            this.max = DFA6_max;
-            this.accept = DFA6_accept;
-            this.special = DFA6_special;
-            this.transition = DFA6_transition;
-        }
-        public String getDescription() {
-            return "1:1: Tokens : ( T__10 | T__11 | T__12 | T__13 | LETTER | DIGIT | WORD | INT | ATTRVALUE | WS );";
+            return "1:1: Tokens : ( T__12 | T__13 | T__14 | MAP | OVERLAY | LETTER | DIGIT | WORD | INT | MATERIAL | WS );";
         }
     }
  
