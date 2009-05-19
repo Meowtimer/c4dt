@@ -10,11 +10,12 @@ import net.arctics.clonk.parser.mapcreator.MapCreatorParser;
 import net.arctics.clonk.ui.editors.ClonkDocumentProvider;
 import net.arctics.clonk.ui.editors.ClonkTextEditor;
 import net.arctics.clonk.ui.editors.ColorManager;
+import net.arctics.clonk.util.Utilities;
 
 
 public class MapCreatorEditor extends ClonkTextEditor {
 	
-	private C4MapCreator mapCreator = new C4MapCreator();
+	private C4MapCreator mapCreator;
 	
 	public MapCreatorEditor() {
 		super();
@@ -39,6 +40,8 @@ public class MapCreatorEditor extends ClonkTextEditor {
 	}
 	
 	public C4MapCreator getMapCreator() {
+		if (mapCreator == null)
+			mapCreator = new C4MapCreator(Utilities.getEditingFile(this));
 		reparse();
 		return mapCreator;
 		
