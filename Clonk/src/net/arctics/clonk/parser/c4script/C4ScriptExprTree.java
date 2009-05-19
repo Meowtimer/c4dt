@@ -14,9 +14,9 @@ import net.arctics.clonk.parser.C4ID;
 import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.c4script.C4ScriptParser.CachedEngineFuncs;
 import net.arctics.clonk.parser.c4script.C4ScriptParser.Keywords;
-import net.arctics.clonk.parser.c4script.C4ScriptParser.ParsingException;
 import net.arctics.clonk.parser.c4script.C4Variable.C4VariableScope;
 import net.arctics.clonk.util.Pair;
+import net.arctics.clonk.parser.ParsingException;
 
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.Region;

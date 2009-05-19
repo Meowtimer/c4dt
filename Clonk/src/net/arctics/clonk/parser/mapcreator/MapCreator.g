@@ -1,10 +1,13 @@
 grammar MapCreator;
 
 @header {
-package net.arctics.clonk.parser.map;
+package net.arctics.clonk.parser.mapcreator;
+
+import org.eclipse.core.resources.IMarker;
+import org.eclipse.core.runtime.CoreException;
 }
 
-@lexer::header {package net.arctics.clonk.parser.map;}
+@lexer::header {package net.arctics.clonk.parser.mapcreator;}
 
 @members {
 C4MapCreator mapCreator;
@@ -52,6 +55,30 @@ private void moveLevelUp() {
 private void assignOperator(String t) {
 	C4MapOverlay.Operator op = C4MapOverlay.Operator.valueOf(t.charAt(0));
 	lastOverlay.setOperator(op);
+}
+
+private IMarker createMarker(int start, int end, String message, int severity) {
+	if (mapCreator.getResource() == null) return null;
+	try {
+		IMarker marker = mapCreator.getResource().createMarker(IMarker.PROBLEM);
+		marker.setAttribute(IMarker.SEVERITY, severity);
+		marker.setAttribute(IMarker.TRANSIENT, false);
+		marker.setAttribute(IMarker.MESSAGE, message);
+		marker.setAttribute(IMarker.CHAR_START, start);
+		marker.setAttribute(IMarker.CHAR_END, end);
+		return marker;
+	} catch (CoreException e) {
+		e.printStackTrace();
+	}
+	return null;
+}
+
+private IMarker createErrorMarker(int start, int end, String message) {
+	return createMarker(start, end, message, IMarker.SEVERITY_ERROR);
+}
+
+private IMarker createWarningMarker(int start, int end, String message) {
+	return createMarker(start, end, message, IMarker.SEVERITY_WARNING);
 }
 
 }

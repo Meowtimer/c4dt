@@ -3,7 +3,7 @@ package net.arctics.clonk.ui.editors.actions.c4script;
 import java.util.ResourceBundle;
 
 import net.arctics.clonk.parser.C4Declaration;
-import net.arctics.clonk.parser.c4script.C4ScriptParser.ParsingException;
+import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.ui.editors.ClonkCommandIds;
 import net.arctics.clonk.ui.editors.c4script.C4ScriptEditor;
 import net.arctics.clonk.ui.editors.c4script.DeclarationLocator;

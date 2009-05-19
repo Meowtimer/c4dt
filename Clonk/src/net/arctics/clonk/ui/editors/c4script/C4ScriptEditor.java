@@ -11,7 +11,7 @@ import net.arctics.clonk.parser.c4script.C4Function;
 import net.arctics.clonk.parser.c4script.C4ScriptBase;
 import net.arctics.clonk.parser.c4script.C4ScriptExprTree;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
-import net.arctics.clonk.parser.c4script.C4ScriptParser.ParsingException;
+import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.ui.editors.ClonkCommandIds;
 import net.arctics.clonk.ui.editors.ClonkDocumentProvider;
 import net.arctics.clonk.ui.editors.ClonkTextEditor;

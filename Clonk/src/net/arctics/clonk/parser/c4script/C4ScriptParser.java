@@ -14,6 +14,8 @@ import java.util.Vector;
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.index.C4Object;
 import net.arctics.clonk.index.ClonkIndex;
+import net.arctics.clonk.parser.ParsingException;
+import net.arctics.clonk.parser.SilentParsingException;
 import net.arctics.clonk.parser.BufferedScanner;
 import net.arctics.clonk.parser.C4Declaration;
 import net.arctics.clonk.parser.C4ID;
@@ -79,32 +81,6 @@ public class C4ScriptParser {
 
 		public static final String True = "true";
 		public static final String False = "false";
-	}
-	
-	/**
-	 * Exception thrown when a parsing error occurs.
-	 */
-	public static class ParsingException extends Exception {
-
-		private static final long serialVersionUID = 1L;
-
-		public ParsingException(String msg) {
-			super(msg);
-		}
-	}
-	
-	/**
-	 * Special parsing exception thrown when the error is not supposed to be shown to the user (in form of error markers in the Errors view for example).
-	 * Used when calling the parser internally to support content assistance and similar things.
-	 */
-	public static class SilentParsingException extends ParsingException {
-
-		private static final long serialVersionUID = 1L;
-		
-		public SilentParsingException(String msg) {
-			super(msg);
-		}
-		
 	}
 	
 	/**

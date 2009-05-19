@@ -3,9 +3,9 @@ package net.arctics.clonk.ui.editors.c4script;
 import net.arctics.clonk.parser.c4script.C4Function;
 import net.arctics.clonk.parser.c4script.C4ScriptBase;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
+import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.util.Utilities;
 import net.arctics.clonk.parser.c4script.C4ScriptExprTree.ExprElm;
-import net.arctics.clonk.parser.c4script.C4ScriptParser.ParsingException;
 
 import org.eclipse.jface.text.*;
 

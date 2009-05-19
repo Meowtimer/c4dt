@@ -16,10 +16,10 @@
 			<contentTypeBinding contentTypeId="net.arctics.clonk.inifile" />
 		</editor>
 
-		<editor name="Landscape Editor" icon="icons/c4scriptIcon.png"
-			class="net.arctics.clonk.ui.editors.landscape.LandscapeEditor" id="clonk.editors.LandscapeEditor"
+		<editor name="Landscape.txt Editor" icon="icons/c4scriptIcon.png"
+			class="net.arctics.clonk.ui.editors.mapcreator.MapCreatorEditor" id="clonk.editors.MapCreatorEditor"
 			filenames="Landscape.txt">
-			<contentTypeBinding contentTypeId="net.arctics.clonk.landscapefile" />
+			<contentTypeBinding contentTypeId="net.arctics.clonk.mapcreatorfile" />
 		</editor>
 
 	</extension>
@@ -43,7 +43,7 @@
 			priority="high" />
 
 		<content-type base-type="net.arctics.clonk.c4files"
-			file-names="Landscape.txt" id="net.arctics.clonk.landscapefile" name="Landscape file"
+			file-names="Landscape.txt" id="net.arctics.clonk.mapcreatorfile" name="Landscape.txt file"
 			priority="high" />
 
 		<content-type base-type="net.arctics.clonk.c4files"
