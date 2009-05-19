@@ -3,6 +3,10 @@ grammar MapCreator;
 @header {
 package net.arctics.clonk.parser.mapcreator;
 
+import net.arctics.clonk.parser.ParserErrorCode;
+import net.arctics.clonk.parser.ParsingException;
+import net.arctics.clonk.parser.SourceLocation;
+
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.runtime.CoreException;
 }
@@ -20,20 +24,23 @@ public MapCreatorParser(C4MapCreator mapCreator, TokenStream input) {
 	this.current = mapCreator;
 }
 
-void createMapObject(String type, String name) {
-	try {
-		C4MapOverlay newOverlay = current.createOverlay(type, name);
-		current = newOverlay;
-	} catch (Exception e) {
-		e.printStackTrace();
-	}
+private static int startPos(Token t) {
+	return ((CommonToken)t).getStartIndex();
 }
 
+private static int endPos(Token t, Token fallback) {
+	return ((CommonToken)(t!=null?t:fallback)).getStopIndex()+1;
+}
 
-void createMapObject(Class<? extends C4MapOverlay> cls, String name) {
+private void setCurrentOverlay(C4MapOverlay overlay, Token typeToken, Token nameToken) {
+	current = overlay;
+	current.setLocation(new SourceLocation(startPos(typeToken), endPos(nameToken, typeToken)));
+}
+
+private void createMapObject(Token typeToken, Token nameToken) {
 	try {
-		C4MapOverlay newOverlay = current.createOverlay(cls, name);
-		current = newOverlay;
+		C4MapOverlay newOverlay = current.createOverlay(typeToken.getText(), nameToken!=null?nameToken.getText():null);
+		setCurrentOverlay(newOverlay, typeToken, nameToken);
 	} catch (Exception e) {
 		e.printStackTrace();
 	}
@@ -81,6 +88,13 @@ private IMarker createWarningMarker(int start, int end, String message) {
 	return createMarker(start, end, message, IMarker.SEVERITY_WARNING);
 }
 
+private void errorWithCode(ParserErrorCode code, int errorStart, int errorEnd, boolean noThrow, Object... args) throws ParsingException {
+	String problem = code.getErrorString(args);
+	createErrorMarker(errorStart, errorEnd, problem);
+	if (!noThrow)
+		throw new ParsingException(problem);
+}
+
 }
 
 parse	:	statement*;
@@ -92,9 +106,9 @@ composition
 	:	subobject (op=OPERATOR {assignOperator($op.text);} composition)?;
 
 subobject
-	:	MAP name=NAME? {createMapObject(C4Map.class, $name.text);} block
-	|	OVERLAY name=NAME? {createMapObject(C4MapOverlay.class, $name.text);} block
-	|	template=NAME name=NAME? {createMapObject($template.text, $name.text);} block;
+	:	type=MAP name=NAME? {createMapObject(type, name);} block
+	|	type=OVERLAY name=NAME? {createMapObject(type, name);} block
+	|	template=NAME name=NAME? {createMapObject(template, name);} block;
 
 block	:	BLOCKOPEN statementorattrib* BLOCKCLOSE {moveLevelUp();};
 

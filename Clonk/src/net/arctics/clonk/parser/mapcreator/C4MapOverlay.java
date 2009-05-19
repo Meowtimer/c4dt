@@ -2,7 +2,6 @@ package net.arctics.clonk.parser.mapcreator;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -87,7 +86,7 @@ public class C4MapOverlay extends C4Structure implements Cloneable {
 			Class<? extends C4Declaration> declarationClass) {
 		if (C4MapOverlay.class.isAssignableFrom(declarationClass)) {
 			for (C4MapOverlay o : subOverlays)
-				if (o.getName().equals(declarationName) && declarationClass.isAssignableFrom(o.getClass()))
+				if (o.getName() != null && o.getName().equals(declarationName) && declarationClass.isAssignableFrom(o.getClass()))
 					return o;
 		}
 		return null;
