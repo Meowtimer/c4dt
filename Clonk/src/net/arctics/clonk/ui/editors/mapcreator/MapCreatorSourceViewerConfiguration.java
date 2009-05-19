@@ -26,7 +26,7 @@ public class MapCreatorSourceViewerConfiguration extends ClonkSourceViewerConfig
 	
 	protected ITokenScanner getClonkScanner() {
 		if (scanner == null) {
-			scanner = new MapGenCodeScanner(getColorManager());
+			scanner = new MapCreatorCodeScanner(getColorManager());
 			scanner.setDefaultReturnToken(
 				new Token(
 					new TextAttribute(
