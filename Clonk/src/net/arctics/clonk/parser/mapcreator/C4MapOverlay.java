@@ -2,6 +2,7 @@ package net.arctics.clonk.parser.mapcreator;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -50,7 +51,7 @@ public class C4MapOverlay extends C4Structure implements Cloneable {
 		}
 	}
 	
-	public String material;
+	public String mat;
 	public String tex;
 	public Algorithm algo;
 	public int x;
@@ -179,14 +180,25 @@ public class C4MapOverlay extends C4Structure implements Cloneable {
 		return result;
 	}
 	
+	private boolean hasAnyNamedSubOverlays() {
+		for (C4MapOverlay o : this.subOverlays)
+			if (o.getName() != null)
+				return true;
+		return false;
+	}
+	
 	@Override
 	public Object[] getSubDeclarationsForOutline() {
-		return subOverlays.toArray(new C4MapOverlay[subOverlays.size()]);
+		LinkedList<C4MapOverlay> result = new LinkedList<C4MapOverlay>();
+		for (C4MapOverlay o : this.subOverlays)
+			if (o.getName() != null)
+				result.add(o);
+		return result.toArray(new C4MapOverlay[result.size()]);
 	}
 	
 	@Override
 	public boolean hasSubDeclarationsInOutline() {
-		return subOverlays.size() > 0;
+		return hasAnyNamedSubOverlays();
 	}
 	
 	@Override
@@ -199,7 +211,18 @@ public class C4MapOverlay extends C4Structure implements Cloneable {
 	}
 	
 	public void clear() {
-		subOverlays = new LinkedList<C4MapOverlay>();
+		haveOwnSubOverlaysList();
+	}
+	
+	@Override
+	protected Object clone() throws CloneNotSupportedException {
+		C4MapOverlay clone = (C4MapOverlay) super.clone();
+		clone.haveOwnSubOverlaysList(); // don't copy nested overlays
+		return clone;
+	}
+
+	private void haveOwnSubOverlaysList() {
+		this.subOverlays = new LinkedList<C4MapOverlay>();
 	}
 
 }

@@ -63,6 +63,8 @@ private void setCurrentOverlay(C4MapOverlay overlay, Token typeToken, Token name
 
 private void createMapObject(Token typeToken, Token nameToken) {
 	try {
+		if (current == null)
+			return;	
 		C4MapOverlay newOverlay = current.createOverlay(typeToken.getText(), nameToken!=null?nameToken.getText():null);
 		if (newOverlay == null)
 			errorWithCode(ParserErrorCode.UndeclaredIdentifier, startPos(typeToken), endPos(typeToken), typeToken.getText());
@@ -148,11 +150,14 @@ composition
 	:	subobject (op=OPERATOR {assignOperator($op.text);} composition)?;
 
 subobject
-	:	type=MAP name=NAME? {createMapObject(type, name);} block
-	|	type=OVERLAY name=NAME? {createMapObject(type, name);} block
-	|	template=NAME name=NAME? {createMapObject(template, name);} block;
+	:	type=MAP name=NAME? {createMapObject(type, name);} optionalblock
+	|	type=OVERLAY name=NAME? {createMapObject(type, name);} optionalblock
+	|	template=NAME name=NAME? {createMapObject(template, name);} optionalblock;
 
-block	:	BLOCKOPEN statementorattrib* BLOCKCLOSE {moveLevelUp();};
+optionalblock
+	:	block?  {moveLevelUp();};
+
+block	:	BLOCKOPEN statementorattrib* BLOCKCLOSE;
 
 statementorattrib
 	:	attribute|statement;
