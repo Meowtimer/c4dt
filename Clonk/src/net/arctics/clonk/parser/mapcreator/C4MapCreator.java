@@ -1,6 +1,7 @@
 package net.arctics.clonk.parser.mapcreator;
 
 import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IResource;
 
 public class C4MapCreator extends C4Map {
 
@@ -15,6 +16,11 @@ public class C4MapCreator extends C4Map {
 	public C4MapCreator(IFile file) {
 		super();
 		this.file = file;
+	}
+	
+	@Override
+	public IResource getResource() {
+		return file;
 	}
 
 }

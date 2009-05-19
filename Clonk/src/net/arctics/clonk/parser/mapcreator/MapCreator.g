@@ -8,6 +8,7 @@ import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.SourceLocation;
 
 import org.eclipse.core.resources.IMarker;
+import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 }
 
@@ -32,6 +33,10 @@ private static int endPos(Token t, Token fallback) {
 	return ((CommonToken)(t!=null?t:fallback)).getStopIndex()+1;
 }
 
+private static int endPos(Token t) {
+	return endPos(t, null);
+}
+
 private void setCurrentOverlay(C4MapOverlay overlay, Token typeToken, Token nameToken) {
 	current = overlay;
 	current.setLocation(new SourceLocation(startPos(typeToken), endPos(nameToken, typeToken)));
@@ -46,9 +51,11 @@ private void createMapObject(Token typeToken, Token nameToken) {
 	}
 }
 
-private void setVal(String name, String value) {
+private void setVal(Token nameToken, Token valueToken) {
 	try {
-		current.setAttribute(name, value);
+		current.setAttribute(nameToken.getText(), valueToken.getText());
+	} catch (NoSuchFieldException e) {
+		errorWithCode(ParserErrorCode.UndeclaredIdentifier, startPos(nameToken), endPos(nameToken), nameToken.getText());
 	} catch (Exception e) {
 		e.printStackTrace();
 	}
@@ -88,16 +95,22 @@ private IMarker createWarningMarker(int start, int end, String message) {
 	return createMarker(start, end, message, IMarker.SEVERITY_WARNING);
 }
 
-private void errorWithCode(ParserErrorCode code, int errorStart, int errorEnd, boolean noThrow, Object... args) throws ParsingException {
+private void errorWithCode(ParserErrorCode code, int errorStart, int errorEnd, Object... args) {
 	String problem = code.getErrorString(args);
-	createErrorMarker(errorStart, errorEnd, problem);
-	if (!noThrow)
-		throw new ParsingException(problem);
+	createErrorMarker(errorStart, errorEnd, problem);    	
+}
+
+private void deleteMarkers() {
+	try {
+		mapCreator.getResource().deleteMarkers(IMarker.PROBLEM, true, IResource.DEPTH_ONE);
+	} catch (CoreException e) {
+		e.printStackTrace();
+	}
 }
 
 }
 
-parse	:	statement*;
+parse	:	{deleteMarkers();} statement*;
 
 statement
 	:	{lastOverlay = null;} composition STATEMENTEND;
@@ -116,9 +129,9 @@ statementorattrib
 	:	attribute|statement;
 
 attribute
-	:	attr=NAME ASSIGN attrValue=NAME STATEMENTEND {setVal($attr.text, $attrValue.text);}
-	|	attr=NAME ASSIGN attrValue=NUMBER STATEMENTEND {setVal($attr.text, $attrValue.text);}
-	|	attr=NAME ASSIGN attrValue=MATCOMBO STATEMENTEND {setVal($attr.text, $attrValue.text);};
+	:	attr=NAME ASSIGN attrValue=NAME STATEMENTEND {setVal(attr, attrValue);}
+	|	attr=NAME ASSIGN attrValue=NUMBER STATEMENTEND {setVal(attr, attrValue);}
+	|	attr=NAME ASSIGN attrValue=MATCOMBO STATEMENTEND {setVal(attr, attrValue);};
 
 MAP		:	'map';
 OVERLAY		:	'overlay';
