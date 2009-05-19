@@ -1,6 +1,6 @@
 // $ANTLR 3.1.2 C:\\Users\\Madeen\\Projects\\Eclipse\\eclipse.c4dt\\Clonk\\src\\net\\arctics\\clonk\\parser\\mapcreator\\MapCreator.g 2009-05-19 08:35:22
 
-package net.arctics.clonk.parser.map;
+package net.arctics.clonk.parser.mapcreator;
 
 
 import org.antlr.runtime.*;

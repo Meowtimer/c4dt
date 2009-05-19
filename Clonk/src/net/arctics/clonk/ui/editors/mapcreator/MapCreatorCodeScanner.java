@@ -1,4 +1,4 @@
-package net.arctics.clonk.ui.editors.landscape;
+package net.arctics.clonk.ui.editors.mapcreator;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -17,7 +17,7 @@ import org.eclipse.jface.text.rules.RuleBasedScanner;
 import org.eclipse.jface.text.rules.Token;
 import org.eclipse.jface.text.rules.WhitespaceRule;
 
-public class MapGenCodeScanner extends RuleBasedScanner {
+public class MapCreatorCodeScanner extends RuleBasedScanner {
 
 
 	private static final class OperatorRule implements IRule {
@@ -127,7 +127,7 @@ public class MapGenCodeScanner extends RuleBasedScanner {
 
 	private IRule[] currentRules;
 
-	public MapGenCodeScanner(ColorManager manager) {
+	public MapCreatorCodeScanner(ColorManager manager) {
 
 		IToken defaultToken = new Token(new TextAttribute(manager.getColor(IClonkColorConstants.DEFAULT)));
 

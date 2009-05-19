@@ -1,35 +1,35 @@
-package net.arctics.clonk.ui.editors.landscape;
+package net.arctics.clonk.ui.editors.mapcreator;
 
 import org.antlr.runtime.ANTLRStringStream;
 import org.antlr.runtime.CharStream;
 import org.antlr.runtime.CommonTokenStream;
 import org.antlr.runtime.RecognitionException;
-import net.arctics.clonk.parser.map.C4MapCreator;
-import net.arctics.clonk.parser.map.MapGeneratorLexer;
-import net.arctics.clonk.parser.map.MapGeneratorParser;
+import net.arctics.clonk.parser.mapcreator.C4MapCreator;
+import net.arctics.clonk.parser.mapcreator.MapCreatorLexer;
+import net.arctics.clonk.parser.mapcreator.MapCreatorParser;
 import net.arctics.clonk.ui.editors.ClonkDocumentProvider;
 import net.arctics.clonk.ui.editors.ClonkTextEditor;
 import net.arctics.clonk.ui.editors.ColorManager;
 
 
-public class LandscapeEditor extends ClonkTextEditor {
+public class MapCreatorEditor extends ClonkTextEditor {
 	
 	private C4MapCreator mapCreator = new C4MapCreator();
 	
-	public LandscapeEditor() {
+	public MapCreatorEditor() {
 		super();
 		ColorManager colorManager = new ColorManager();
-		setSourceViewerConfiguration(new LandscapeSourceViewerConfiguration(colorManager,this));
+		setSourceViewerConfiguration(new MapCreatorSourceViewerConfiguration(colorManager,this));
 		setDocumentProvider(new ClonkDocumentProvider(this));
 	}
 	
 	private void reparse() {
 		String documentText = getDocumentProvider().getDocument(getEditorInput()).get();
 		CharStream charStream = new ANTLRStringStream(documentText);
-		MapGeneratorLexer lexer = new MapGeneratorLexer(charStream);
+		MapCreatorLexer lexer = new MapCreatorLexer(charStream);
 		CommonTokenStream tokenStream = new CommonTokenStream();
 		tokenStream.setTokenSource(lexer);
-		MapGeneratorParser parser = new MapGeneratorParser(mapCreator, tokenStream);
+		MapCreatorParser parser = new MapCreatorParser(mapCreator, tokenStream);
 		try {
 			mapCreator.clear();
 			parser.parse();

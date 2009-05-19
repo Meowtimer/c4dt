@@ -1,4 +1,4 @@
-package net.arctics.clonk.ui.editors.landscape;
+package net.arctics.clonk.ui.editors.mapcreator;
 
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.TextAttribute;
@@ -16,11 +16,11 @@ import net.arctics.clonk.ui.editors.ClonkSourceViewerConfiguration;
 import net.arctics.clonk.ui.editors.ColorManager;
 import net.arctics.clonk.ui.editors.IClonkColorConstants;
 
-public class LandscapeSourceViewerConfiguration extends ClonkSourceViewerConfiguration {
+public class MapCreatorSourceViewerConfiguration extends ClonkSourceViewerConfiguration {
 
 	private RuleBasedScanner scanner;
 
-	public LandscapeSourceViewerConfiguration(ColorManager colorManager,ITextEditor textEditor) {
+	public MapCreatorSourceViewerConfiguration(ColorManager colorManager,ITextEditor textEditor) {
 		super(colorManager, textEditor);
 	}
 	

@@ -1,4 +1,4 @@
-package net.arctics.clonk.parser.map;
+package net.arctics.clonk.parser.mapcreator;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;

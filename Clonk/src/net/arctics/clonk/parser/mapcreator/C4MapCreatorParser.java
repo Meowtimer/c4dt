@@ -1,4 +1,4 @@
-package net.arctics.clonk.parser.map;
+package net.arctics.clonk.parser.mapcreator;
 
 import org.eclipse.core.resources.IFile;
 

@@ -1,4 +1,4 @@
-package net.arctics.clonk.parser.map;
+package net.arctics.clonk.parser.mapcreator;
 
 public class C4MapCreator extends C4Map {
 
