@@ -9,6 +9,8 @@ import net.arctics.clonk.parser.SourceLocation;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
+
+import java.io.IOException;
 }
 
 @lexer::header {package net.arctics.clonk.parser.mapcreator;}
@@ -22,6 +24,24 @@ public MapCreatorParser(C4MapCreator mapCreator, TokenStream input) {
 	this(input);
 	this.mapCreator = mapCreator;
 	this.current = mapCreator;
+}
+
+public MapCreatorParser(C4MapCreator mapCreator) {
+	this (mapCreator, getTokenStream(mapCreator));
+}
+
+private static TokenStream getTokenStream(C4MapCreator mapCreator) {
+	CharStream charStream;
+	try {
+		charStream = new ANTLRFileStream(mapCreator.getResource().getLocation().toOSString());
+		MapCreatorLexer lexer = new MapCreatorLexer(charStream);
+		CommonTokenStream tokenStream = new CommonTokenStream();
+		tokenStream.setTokenSource(lexer);
+		return tokenStream;
+	} catch (IOException e) {
+		e.printStackTrace();
+		return null;
+	}
 }
 
 private static int startPos(Token t) {
@@ -44,7 +64,10 @@ private void setCurrentOverlay(C4MapOverlay overlay, Token typeToken, Token name
 private void createMapObject(Token typeToken, Token nameToken) {
 	try {
 		C4MapOverlay newOverlay = current.createOverlay(typeToken.getText(), nameToken!=null?nameToken.getText():null);
-		setCurrentOverlay(newOverlay, typeToken, nameToken);
+		if (newOverlay == null)
+			errorWithCode(ParserErrorCode.UndeclaredIdentifier, startPos(typeToken), endPos(typeToken), typeToken.getText());
+		else
+			setCurrentOverlay(newOverlay, typeToken, nameToken);
 	} catch (Exception e) {
 		e.printStackTrace();
 	}
@@ -105,6 +128,13 @@ private void deleteMarkers() {
 	} catch (CoreException e) {
 		e.printStackTrace();
 	}
+}
+
+@Override
+public void reportError(RecognitionException error) {
+	if (error.token.getText() != null)	
+		errorWithCode(ParserErrorCode.UnexpectedToken, startPos(error.token), endPos(error.token), error.token.getText());
+	super.reportError(error);
 }
 
 }

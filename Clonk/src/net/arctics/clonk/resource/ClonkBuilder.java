@@ -14,10 +14,13 @@ import net.arctics.clonk.parser.c4script.C4ScriptIntern;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.inireader.IniUnit;
+import net.arctics.clonk.parser.mapcreator.C4MapCreator;
+import net.arctics.clonk.parser.mapcreator.MapCreatorParser;
 import net.arctics.clonk.preferences.PreferenceConstants;
 import net.arctics.clonk.ui.editors.ClonkTextEditor;
 import net.arctics.clonk.util.Utilities;
 
+import org.antlr.runtime.RecognitionException;
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
@@ -284,6 +287,15 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 					} catch (Exception e) {
 						e.printStackTrace();
 					}
+				}
+				else if (buildPhase == 0 && (delta.getResource().getName().equals("Landscape.txt"))) {
+					C4MapCreator mapCreator = new C4MapCreator((IFile) delta.getResource());
+					MapCreatorParser parser = new MapCreatorParser(mapCreator);
+					try {
+	                    parser.parse();
+                    } catch (RecognitionException e) {
+	                    e.printStackTrace();
+                    }
 				}
 			}
 			else if (delta.getKind() == IResourceDelta.REMOVED && delta.getResource().getParent().exists()) {
