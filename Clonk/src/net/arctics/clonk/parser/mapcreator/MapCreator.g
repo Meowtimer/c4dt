@@ -4,7 +4,6 @@ grammar MapCreator;
 package net.arctics.clonk.parser.mapcreator;
 
 import net.arctics.clonk.parser.ParserErrorCode;
-import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.SourceLocation;
 
 import org.eclipse.core.resources.IMarker;
@@ -57,7 +56,7 @@ private void setVal(Token nameToken, Token valueToken) {
 	} catch (NoSuchFieldException e) {
 		errorWithCode(ParserErrorCode.UndeclaredIdentifier, startPos(nameToken), endPos(nameToken), nameToken.getText());
 	} catch (Exception e) {
-		e.printStackTrace();
+		errorWithCode(ParserErrorCode.InvalidExpression, startPos(valueToken), endPos(valueToken), nameToken.getText());
 	}
 }
 

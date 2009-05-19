@@ -53,6 +53,10 @@ public class C4MapOverlay extends C4Structure implements Cloneable {
 	public String material;
 	public String tex;
 	public Algorithm algo;
+	public int x;
+	public int y;
+	public int wdt;
+	public int hgt;
 	public int zoomX, zoomY;
 	public int ox, oy;
 	public int a, b;
@@ -101,11 +105,7 @@ public class C4MapOverlay extends C4Structure implements Cloneable {
 		Field f = getClass().getField(attr);
 		if (f != null) {
 			if (f.getType().getSuperclass() == Enum.class) {
-				try {
-					f.set(this, f.getType().getMethod("valueOf", String.class).invoke(f.getClass(), value));
-				} catch (Exception e) {
-					return false;
-				}
+				f.set(this, f.getType().getMethod("valueOf", String.class).invoke(f.getClass(), value));
 			}
 			else if (f.getType() == Integer.TYPE) {
 				f.set(this, Integer.parseInt(value));
