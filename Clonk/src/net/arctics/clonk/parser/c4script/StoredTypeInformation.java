@@ -2,7 +2,7 @@ package net.arctics.clonk.parser.c4script;
 
 import net.arctics.clonk.index.C4Object;
 
-public abstract class StoredTypeInformation implements IStoredTypeInformation {
+public abstract class StoredTypeInformation implements IStoredTypeInformation, Cloneable {
 
 	private C4Type type;
 	private C4Object objectType;
@@ -23,7 +23,7 @@ public abstract class StoredTypeInformation implements IStoredTypeInformation {
 		this.type = type;
 	}
 	
-	public void apply() {}
+	public void apply(boolean soft) {}
 	
 	public void merge(IStoredTypeInformation other) {
 		if (getType() == C4Type.UNKNOWN)
@@ -32,6 +32,11 @@ public abstract class StoredTypeInformation implements IStoredTypeInformation {
 		else if (getType() != other.getType())
 			// assignments of multiple types - can be anything
 			storeType(C4Type.ANY);
+	}
+	
+	@Override
+	public Object clone() throws CloneNotSupportedException {
+		return super.clone();
 	}
 
 }

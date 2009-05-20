@@ -11,6 +11,8 @@ public interface IStoredTypeInformation {
 	
 	boolean expressionRelevant(ExprElm expr);
 	boolean sameExpression(IStoredTypeInformation other);
-	void apply();
+	void apply(boolean soft);
 	void merge(IStoredTypeInformation other);
+	
+	Object clone() throws CloneNotSupportedException; // Cloneable does not declare the method :c
 }

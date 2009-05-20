@@ -2,6 +2,7 @@ package net.arctics.clonk.parser.c4script;
 
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -36,6 +37,7 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IRegion;
+import org.eclipse.ui.internal.services.ExpressionAuthority;
 
 /**
  * A C4Script parser. Parses declarations in a script and stores it in a C4ScriptBase object (sold separately).
@@ -165,9 +167,9 @@ public class C4ScriptParser {
 		return storedTypeInformationStack.pop();
 	}
 	
-	private void applyStoredTypeInformations() {
+	public void applyStoredTypeInformationList(boolean soft) {
 		for (IStoredTypeInformation info : storedTypeInformationStack.peek()) {
-			info.apply();
+			info.apply(soft);
 		}
 	}
 	
@@ -193,6 +195,18 @@ public class C4ScriptParser {
 		if (newlyCreated != null)
 			storedTypeInformationStack.peek().add(newlyCreated);
 		return newlyCreated;
+	}
+	
+	public List<IStoredTypeInformation> copyCurrentTypeInformationList() throws CloneNotSupportedException {
+		List<IStoredTypeInformation> list = new ArrayList<IStoredTypeInformation>(storedTypeInformationStack.peek().size());
+		for (IStoredTypeInformation info : storedTypeInformationStack.peek()) {
+			list.add((IStoredTypeInformation) info.clone());
+		}
+		return list;
+	}
+	
+	public void pushTypeInformationList(List<IStoredTypeInformation> list) {
+		storedTypeInformationStack.push(list);
 	}
 	
 	/**
@@ -377,7 +391,7 @@ public class C4ScriptParser {
 			setActiveFunc(function);
 			beginTypeInferenceBlock();
 			parseCodeBlock(function.getBody().getStart());
-			applyStoredTypeInformations();
+			applyStoredTypeInformationList(false);
 			endTypeInferenceBlock();
 			if (numUnnamedParameters < UNKNOWN_PARAMETERNUM) {
 				activeFunc.createParameters(numUnnamedParameters);
@@ -849,9 +863,9 @@ public class C4ScriptParser {
 		int oldStyleEnd = endOfFunc;
 		while(!fReader.reachedEOF() && fReader.getPosition() < endOfFunc) {
 			Statement statement = parseStatement(fReader.getPosition(), options);
-			boolean statementIsComment = statement instanceof Comment;
 			if (statement == null)
 				break;
+			boolean statementIsComment = statement instanceof Comment;
 			if (lastWasReturn) {
 				// warn about statements after final return
 				if (!statementIsComment)
@@ -1756,7 +1770,7 @@ public class C4ScriptParser {
 				if (val == null)
 					errorWithCode(ParserErrorCode.ValueExpected, fReader.getPosition()-1, fReader.getPosition());
 				else {
-					// FIXME: check where var is declared
+					storeTypeInformation(new ExprAccessVar(var), val.getType(this), val.guessObjectType(this));
 					var.inferTypeFromAssignment(val, this);
 				}
 			}
@@ -1776,7 +1790,7 @@ public class C4ScriptParser {
 	private static class TypeInformationMerger {
 		private List<IStoredTypeInformation> merged;
 		
-		private static List<IStoredTypeInformation> mergeTypeInformations(List<IStoredTypeInformation> first, List<IStoredTypeInformation> second) {
+		private static List<IStoredTypeInformation> mergeTypeInformationLists(List<IStoredTypeInformation> first, List<IStoredTypeInformation> second) {
 			for (IStoredTypeInformation info : first) {
 				for (Iterator<IStoredTypeInformation> it = second.iterator(); it.hasNext();) {
 					IStoredTypeInformation info2 = it.next();
@@ -1793,7 +1807,7 @@ public class C4ScriptParser {
 		public List<IStoredTypeInformation> inject(List<IStoredTypeInformation> infos) {
 			if (merged == null)
 				return merged = infos;
-			return merged = mergeTypeInformations(merged, infos);
+			return merged = mergeTypeInformationLists(merged, infos);
 		}
 
 		public List<IStoredTypeInformation> getMerged() {
@@ -1803,7 +1817,7 @@ public class C4ScriptParser {
 		public List<IStoredTypeInformation> finish(List<IStoredTypeInformation> finalList) {
 			if (merged == null)
 				return finalList;
-			return mergeTypeInformations(finalList, merged);
+			return mergeTypeInformationLists(finalList, merged);
 		}
 	}
 
@@ -2228,6 +2242,7 @@ public class C4ScriptParser {
 		catch (Exception e) {
 			e.printStackTrace();
 		}
+		parser.applyStoredTypeInformationList(true);
 		return parser;
 	}
 	

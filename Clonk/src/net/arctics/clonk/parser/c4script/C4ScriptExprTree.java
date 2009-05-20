@@ -311,7 +311,7 @@ public abstract class C4ScriptExprTree {
 
 		public void expectedToBeOfType(C4Type type, C4ScriptParser context) {
 			IStoredTypeInformation info = context.requestStoredTypeInformation(this);
-			if (info != null)
+			if (info != null && type != C4Type.UNKNOWN)
 				info.storeType(type);
 		}
 		
@@ -481,6 +481,9 @@ public abstract class C4ScriptExprTree {
 		public ExprElm[] getElements() {
 			return elements;
 		}
+		public ExprElm getLastElement() {
+			return elements != null && elements.length > 1 ? elements[elements.length-1] : null;
+        }
 
 	}
 
@@ -541,8 +544,8 @@ public abstract class C4ScriptExprTree {
 	}
 
 	public static class ExprAccessVar extends ExprAccessDeclaration {
-		private static final class VariableTypeInformation extends
-				StoredTypeInformation {
+		
+		private static final class VariableTypeInformation extends StoredTypeInformation {
 			private C4Declaration decl;
 			
 			public VariableTypeInformation(C4Declaration varDeclaration) {
@@ -550,15 +553,25 @@ public abstract class C4ScriptExprTree {
 			}
 
 			public boolean expressionRelevant(ExprElm expr) {
+				// obj-> asks for the relevance of obj
+				if (expr instanceof ExprSequence) {
+					ExprSequence seq = (ExprSequence) expr;
+					if (seq.getLastElement() instanceof ExprObjectCall && seq.getLastElement().getPredecessorInSequence() instanceof ExprAccessVar)
+						expr = seq.getLastElement().getPredecessorInSequence();
+					else
+						return false;
+				}
 				return expr instanceof ExprAccessVar && ((ExprAccessVar)expr).getDeclaration() == decl;
 			}
 
 			@Override
-			public void apply() {
+			public void apply(boolean soft) {
 				if (decl instanceof C4Variable) {
 					C4Variable var = (C4Variable) decl;
-					var.expectedToBeOfType(getType());					
-					var.setExpectedContent(getObjectType());
+					if (!soft || var.getScope() == C4VariableScope.VAR_VAR) {
+						var.setType(getType());					
+						var.setExpectedContent(getObjectType());
+					}
 				}
 			}
 
@@ -586,6 +599,11 @@ public abstract class C4ScriptExprTree {
 
 		public ExprAccessVar(String varName) {
 			super(varName);
+		}
+		
+		public ExprAccessVar(C4Variable v) {
+			this(v.getName());
+			this.declaration = v;
 		}
 
 		@Override

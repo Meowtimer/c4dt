@@ -13,6 +13,7 @@ import net.arctics.clonk.parser.c4script.C4Function;
 import net.arctics.clonk.parser.c4script.C4ScriptBase;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.C4Variable;
+import net.arctics.clonk.parser.c4script.IStoredTypeInformation;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.c4script.C4Function.C4FunctionScope;
 import net.arctics.clonk.parser.c4script.C4ScriptExprTree.*;
@@ -46,7 +47,6 @@ import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.keys.IBindingService;
 import org.eclipse.ui.texteditor.ITextEditor;
 import org.eclipse.ui.texteditor.ITextEditorActionDefinitionIds;
-import net.arctics.clonk.parser.ParsingException;
 
 public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor {
 	
@@ -108,7 +108,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor {
 	
 	private ContentAssistant assistant;
 	private ExprElm contextExpression;
-	private C4Object guessedContextObjectType;
+	private List<IStoredTypeInformation> contextTypeInformation;
 	private ProposalCycle proposalCycle = ProposalCycle.SHOW_ALL;
 	
 	public C4ScriptCompletionProcessor(ITextEditor editor,
@@ -268,16 +268,25 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor {
 						}
 						if (activeFunc.getBody().getOffset() + expression.getExprStart() <= preservedOffset) {
 							contextExpression = expression;
-							guessedContextObjectType = expression.guessObjectType(parser);
+							try {
+	                            contextTypeInformation = parser.copyCurrentTypeInformationList();
+                            } catch (CloneNotSupportedException e) {
+	                            e.printStackTrace();
+                            }
 							return TraversalContinuation.Continue;
 						}
 						return TraversalContinuation.Cancel;
 					}
 				});
-				if (contextExpression != null && contextExpression.containsOffset(preservedOffset-activeFunc.getBody().getOffset())) {
-					if (guessedContextObjectType != null) {
-						contextScript = guessedContextObjectType;
-						contextObjChanged = true;
+				if (contextExpression != null) {
+					parser.pushTypeInformationList(contextTypeInformation);
+					parser.applyStoredTypeInformationList(true);
+					if (contextExpression.containsOffset(preservedOffset-activeFunc.getBody().getOffset())) {
+						C4Object guessedType = parser.queryObjectTypeOfExpression(contextExpression);
+						if (guessedType != null) {
+							contextScript = guessedType;
+							contextObjChanged = true;
+						}
 					}
 				}
 				parser.endTypeInferenceBlock();

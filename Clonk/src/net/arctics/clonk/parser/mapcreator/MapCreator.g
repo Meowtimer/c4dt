@@ -185,4 +185,4 @@ ASSIGN		:	'=';
 BLOCKOPEN	:	'{';
 BLOCKCLOSE	:	'}';
 STATEMENTEND	:	';';
-OPERATOR		:	'|'|'&'|'^';
+OPERATOR	:	'|'|'&'|'^';
