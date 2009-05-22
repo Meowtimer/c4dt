@@ -11,9 +11,9 @@ import net.arctics.clonk.parser.inireader.Function;
 import net.arctics.clonk.parser.inireader.IDArray;
 import net.arctics.clonk.parser.inireader.IniSection;
 import net.arctics.clonk.parser.inireader.IniData.IniDataEntry;
+import net.arctics.clonk.ui.editors.ClonkHyperlink;
 import net.arctics.clonk.ui.editors.ColorManager;
 import net.arctics.clonk.ui.editors.IClonkColorConstants;
-import net.arctics.clonk.ui.editors.c4script.ClonkHyperlink;
 import net.arctics.clonk.util.Utilities;
 
 import org.eclipse.core.resources.IResource;

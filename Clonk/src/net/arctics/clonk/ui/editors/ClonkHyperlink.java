@@ -1,10 +1,9 @@
 /**
  * 
  */
-package net.arctics.clonk.ui.editors.c4script;
+package net.arctics.clonk.ui.editors;
 
 import net.arctics.clonk.parser.C4Declaration;
-import net.arctics.clonk.ui.editors.ClonkTextEditor;
 
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.hyperlink.IHyperlink;

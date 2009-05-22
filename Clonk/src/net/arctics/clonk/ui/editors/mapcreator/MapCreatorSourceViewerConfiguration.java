@@ -1,7 +1,12 @@
 package net.arctics.clonk.ui.editors.mapcreator;
 
 import org.eclipse.jface.text.IDocument;
+import org.eclipse.jface.text.IRegion;
+import org.eclipse.jface.text.ITextViewer;
+import org.eclipse.jface.text.Region;
 import org.eclipse.jface.text.TextAttribute;
+import org.eclipse.jface.text.hyperlink.IHyperlink;
+import org.eclipse.jface.text.hyperlink.IHyperlinkDetector;
 import org.eclipse.jface.text.presentation.IPresentationReconciler;
 import org.eclipse.jface.text.presentation.PresentationReconciler;
 import org.eclipse.jface.text.rules.DefaultDamagerRepairer;
@@ -9,18 +14,32 @@ import org.eclipse.jface.text.rules.ITokenScanner;
 import org.eclipse.jface.text.rules.RuleBasedScanner;
 import org.eclipse.jface.text.rules.Token;
 import org.eclipse.jface.text.source.ISourceViewer;
-import org.eclipse.ui.texteditor.ITextEditor;
 
+import net.arctics.clonk.parser.mapcreator.C4MapOverlay;
+import net.arctics.clonk.ui.editors.ClonkHyperlink;
 import net.arctics.clonk.ui.editors.ClonkPartitionScanner;
 import net.arctics.clonk.ui.editors.ClonkSourceViewerConfiguration;
 import net.arctics.clonk.ui.editors.ColorManager;
 import net.arctics.clonk.ui.editors.IClonkColorConstants;
 
-public class MapCreatorSourceViewerConfiguration extends ClonkSourceViewerConfiguration {
+public class MapCreatorSourceViewerConfiguration extends ClonkSourceViewerConfiguration<MapCreatorEditor> {
+
+	public class MapCreatorHyperlinkDetector implements IHyperlinkDetector {
+
+		public IHyperlink[] detectHyperlinks(ITextViewer textViewer,
+				IRegion region, boolean canShowMultipleHyperlinks) {
+			C4MapOverlay overlay = getEditor().getMapCreator().overlayAt(region.getOffset());
+			// link to template (linking other things does not seem to make much sense)
+			if (overlay != null && overlay.getTemplate() != null && region.getOffset()-overlay.getLocation().getStart() < overlay.getTemplate().getName().length())
+				return new IHyperlink[] {new ClonkHyperlink(new Region(overlay.getLocation().getOffset(), overlay.getTemplate().getName().length()), overlay.getTemplate())};
+			return null;
+		}
+
+	}
 
 	private RuleBasedScanner scanner;
 
-	public MapCreatorSourceViewerConfiguration(ColorManager colorManager,ITextEditor textEditor) {
+	public MapCreatorSourceViewerConfiguration(ColorManager colorManager, MapCreatorEditor textEditor) {
 		super(colorManager, textEditor);
 	}
 	
@@ -60,6 +79,18 @@ public class MapCreatorSourceViewerConfiguration extends ClonkSourceViewerConfig
 //		reconciler.setRepairer(ndr, ClonkPartitionScanner.C4S_COMMENT);
 		
 		return reconciler;
+	}
+	
+	@Override
+	public IHyperlinkDetector[] getHyperlinkDetectors(ISourceViewer sourceViewer) {
+		try {
+			return new IHyperlinkDetector[] {
+				new MapCreatorHyperlinkDetector()
+			};
+		} catch (Exception e) {
+			e.printStackTrace();
+			return null;
+		}
 	}
 
 }

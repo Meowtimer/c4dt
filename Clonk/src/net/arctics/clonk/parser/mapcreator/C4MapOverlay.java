@@ -7,6 +7,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import net.arctics.clonk.parser.C4Declaration;
+import net.arctics.clonk.parser.SourceLocation;
 import net.arctics.clonk.parser.c4script.C4Structure;
 
 public class C4MapOverlay extends C4Structure implements Cloneable {
@@ -73,6 +74,11 @@ public class C4MapOverlay extends C4Structure implements Cloneable {
 	
 	private C4MapOverlay template;
 	private Operator operator;
+	private SourceLocation body;
+	
+	private static final long serialVersionUID = 1L;
+	
+	protected List<C4MapOverlay> subOverlays = new LinkedList<C4MapOverlay>();
 
 	public Operator getOperator() {
 		return operator;
@@ -81,10 +87,6 @@ public class C4MapOverlay extends C4Structure implements Cloneable {
 	public void setOperator(Operator operator) {
 		this.operator = operator;
 	}
-
-	private static final long serialVersionUID = 1L;
-	
-	protected List<C4MapOverlay> subOverlays = new LinkedList<C4MapOverlay>();
 
 	@Override
 	public C4MapOverlay findDeclaration(String declarationName,
@@ -147,6 +149,10 @@ public class C4MapOverlay extends C4Structure implements Cloneable {
 				return o;
 		}
 		return null;
+	}
+	
+	public C4MapOverlay getTemplate() {
+		return template;
 	}
 	
 	public C4MapOverlay createOverlay(String type, String name) throws InstantiationException, IllegalAccessException, CloneNotSupportedException {
@@ -223,6 +229,24 @@ public class C4MapOverlay extends C4Structure implements Cloneable {
 
 	private void haveOwnSubOverlaysList() {
 		this.subOverlays = new LinkedList<C4MapOverlay>();
+	}
+	
+	public C4MapOverlay overlayAt(int offset) {
+		C4MapOverlay newov, ov;
+		Outer: for (ov = this; ov != null && ov.subOverlays.size() != 0; ov = newov) {
+			for (C4MapOverlay o : ov.subOverlays) {
+				if (offset >= o.getLocation().getStart() && offset < (o.body!=null?o.body:o.getLocation()).getEnd()) {
+					newov = o;
+					continue Outer;
+				}
+			}
+			break;
+		}
+		return ov;
+	}
+
+	public void setBody(SourceLocation body) {
+		this.body = body;		
 	}
 
 }

@@ -139,6 +139,10 @@ public void reportError(RecognitionException error) {
 	super.reportError(error);
 }
 
+private void setBody(Token blockOpen, Token blockClose) {
+	current.setBody(new SourceLocation(startPos(blockOpen), endPos(blockClose)));
+}
+
 }
 
 parse	:	{deleteMarkers();} statement*;
@@ -157,7 +161,7 @@ subobject
 optionalblock
 	:	block?  {moveLevelUp();};
 
-block	:	BLOCKOPEN statementorattrib* BLOCKCLOSE;
+block	:	open=BLOCKOPEN statementorattrib* close=BLOCKCLOSE {setBody(open, close);};
 
 statementorattrib
 	:	attribute|statement;
@@ -185,4 +189,4 @@ ASSIGN		:	'=';
 BLOCKOPEN	:	'{';
 BLOCKCLOSE	:	'}';
 STATEMENTEND	:	';';
-OPERATOR	:	'|'|'&'|'^';
+OPERATOR		:	'|'|'&'|'^';

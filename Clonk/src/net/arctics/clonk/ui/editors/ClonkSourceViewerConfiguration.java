@@ -4,14 +4,13 @@ import org.eclipse.jface.text.hyperlink.IHyperlinkDetector;
 import org.eclipse.jface.text.hyperlink.URLHyperlinkDetector;
 import org.eclipse.jface.text.source.ISourceViewer;
 import org.eclipse.ui.editors.text.TextSourceViewerConfiguration;
-import org.eclipse.ui.texteditor.ITextEditor;
 
-public class ClonkSourceViewerConfiguration extends
+public class ClonkSourceViewerConfiguration<EditorType extends ClonkTextEditor> extends
 		TextSourceViewerConfiguration {
-	private ITextEditor textEditor;
+	private EditorType textEditor;
 	private ColorManager colorManager;
 
-	public ClonkSourceViewerConfiguration(ColorManager colorManager, ITextEditor textEditor) {
+	public ClonkSourceViewerConfiguration(ColorManager colorManager, EditorType textEditor) {
 		this.textEditor = textEditor;
 		this.colorManager = colorManager;
 	}
@@ -24,7 +23,7 @@ public class ClonkSourceViewerConfiguration extends
 		return ClonkPartitionScanner.C4S_PARTITIONS;
 	}
 
-	protected ITextEditor getEditor() {
+	protected EditorType getEditor() {
 		return textEditor;
 	}
 

@@ -42,14 +42,15 @@ public class MapCreatorEditor extends ClonkTextEditor {
 	public C4MapCreator getMapCreator() {
 		if (mapCreator == null)
 			mapCreator = new C4MapCreator(Utilities.getEditingFile(this));
-		reparse();
 		return mapCreator;
 		
 	}
 	
 	@Override
 	public C4MapCreator getTopLevelDeclaration() {
-		return getMapCreator();
+		C4MapCreator result = getMapCreator();
+		reparse();
+		return result;
 	}
 	
 	@Override
