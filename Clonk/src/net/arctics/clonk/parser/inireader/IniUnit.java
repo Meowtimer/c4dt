@@ -250,6 +250,7 @@ public class IniUnit extends C4Structure implements Iterable<IniSection>, IHasCh
 		int r = reader.read();
 		if (r == ';' || r == '#') {
 			reader.readStringUntil('\n');
+			reader.eatWhitespace();
 			return true;
 		}
 		else {
