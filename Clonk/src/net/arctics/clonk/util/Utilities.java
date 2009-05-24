@@ -483,7 +483,9 @@ public abstract class Utilities {
 					? IFile.class
 					: InputStream.class;
 		Constructor<? extends IniUnit> ctor = cls.getConstructor(neededArgType);
-		return ctor.newInstance(arg);
+		IniUnit result = ctor.newInstance(arg);
+		result.setIniFile(file);
+		return result;
 	}
 
 	public static IRegion wordRegionAt(CharSequence line, int relativeOffset) {
@@ -507,6 +509,13 @@ public abstract class Utilities {
 			monitor.worked(work++);
 		}
 		monitor.done();
+	}
+	
+	public static <T> T itemMatching(Predicate<T> predicate, Iterable<T> iterable) {
+		for (T item : iterable)
+			if (predicate.test(item))
+				return item;
+		return null;
 	}
 	
 }

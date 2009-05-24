@@ -1,14 +1,22 @@
 package net.arctics.clonk.ui.editors;
 
 import java.io.IOException;
+import java.util.ResourceBundle;
 
 import net.arctics.clonk.parser.C4Declaration;
 import net.arctics.clonk.parser.SourceLocation;
 import net.arctics.clonk.parser.c4script.C4Structure;
 import net.arctics.clonk.parser.ParsingException;
+import net.arctics.clonk.ui.editors.actions.c4script.OpenDeclarationAction;
 import net.arctics.clonk.ui.editors.c4script.C4ScriptEditor;
 import net.arctics.clonk.ui.editors.c4script.ClonkContentOutlinePage;
 
+import org.eclipse.jface.action.IAction;
+import org.eclipse.jface.action.IMenuManager;
+import org.eclipse.jface.text.IRegion;
+import org.eclipse.jface.text.Region;
+import org.eclipse.jface.text.hyperlink.IHyperlink;
+import org.eclipse.jface.text.hyperlink.IHyperlinkDetector;
 import org.eclipse.ui.IEditorDescriptor;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorPart;
@@ -90,6 +98,32 @@ public class ClonkTextEditor extends TextEditor {
 	 * @return the declaration
 	 */
 	public C4Declaration getTopLevelDeclaration() {
+		return null;
+	}
+	
+	@Override
+	protected void createActions() {
+		super.createActions();
+		
+		ResourceBundle messagesBundle = ResourceBundle.getBundle("net.arctics.clonk.ui.editors.Messages"); //$NON-NLS-1$
+		IAction action = new OpenDeclarationAction(messagesBundle,"OpenDeclaration.",this); //$NON-NLS-1$
+		setAction(ClonkCommandIds.OPEN_DECLARATION, action);
+	}
+	
+	@Override
+	protected void editorContextMenuAboutToShow(IMenuManager menu) {
+		super.editorContextMenuAboutToShow(menu);
+		addAction(menu, ClonkCommandIds.OPEN_DECLARATION);
+	}
+	
+	public IHyperlink hyperlinkAtOffset(int offset) {
+		IHyperlinkDetector[] detectors = getSourceViewerConfiguration().getHyperlinkDetectors(getSourceViewer());
+		IRegion r = new Region(offset, 0);
+		for (IHyperlinkDetector d : detectors) {
+			IHyperlink[] hyperlinks = d.detectHyperlinks(getSourceViewer(), r, false);
+			if (hyperlinks != null && hyperlinks.length > 0)
+				return hyperlinks[0];
+		}
 		return null;
 	}
 	

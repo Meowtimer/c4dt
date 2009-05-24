@@ -7,13 +7,16 @@ import net.arctics.clonk.index.C4ObjectIntern;
 import net.arctics.clonk.index.ClonkIndex;
 import net.arctics.clonk.parser.C4Declaration;
 import net.arctics.clonk.parser.C4ID;
+import net.arctics.clonk.parser.inireader.Action;
 import net.arctics.clonk.parser.inireader.Function;
 import net.arctics.clonk.parser.inireader.IDArray;
+import net.arctics.clonk.parser.inireader.IniEntry;
 import net.arctics.clonk.parser.inireader.IniSection;
 import net.arctics.clonk.parser.inireader.IniData.IniDataEntry;
 import net.arctics.clonk.ui.editors.ClonkHyperlink;
 import net.arctics.clonk.ui.editors.ColorManager;
 import net.arctics.clonk.ui.editors.IClonkColorConstants;
+import net.arctics.clonk.util.Predicate;
 import net.arctics.clonk.util.Utilities;
 
 import org.eclipse.core.resources.IResource;
@@ -78,7 +81,7 @@ public class IniSourceViewerConfiguration extends
 					if ((m = assignPattern.matcher(line)).matches()) {
 						boolean hoverOverAttrib = relativeOffset < m.start(2);
 						String attrib = m.group(1);
-						String value = m.group(2);
+						final String value = m.group(2);
 						if (!hoverOverAttrib) {
 							// link stuff on the value side
 							IniDataEntry entry = section.getSectionData().getEntry(attrib);
@@ -106,6 +109,14 @@ public class IniSourceViewerConfiguration extends
 										linkStart = lineRegion.getOffset()+idRegion.getOffset();
 										linkLen = idRegion.getLength();
 									}
+								}
+								else if (entryClass == Action.class) {
+									declaration = getEditor().getIniUnit().sectionMatching(new Predicate<IniSection>() {
+										public boolean test(IniSection object) {
+											IniEntry entry = object.getEntry("Name");
+											return (entry != null && entry.getValue().equals(value));
+										}
+									});
 								}
 								if (declaration != null) {
 									return new IHyperlink[] {

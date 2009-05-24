@@ -1,5 +1,5 @@
 package net.arctics.clonk.parser.inireader;
 
-public class Function extends NamedReference {
+public class Action extends NamedReference {
 
 }

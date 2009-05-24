@@ -104,9 +104,6 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		action = new ConvertOldCodeToNewCodeAction(messagesBundle,"ConvertOldCodeToNewCode.",this); //$NON-NLS-1$
 		setAction(ClonkCommandIds.CONVERT_OLD_CODE_TO_NEW_CODE, action);
 		
-		action = new OpenDeclarationAction(messagesBundle,"OpenDeclaration.",this); //$NON-NLS-1$
-		setAction(ClonkCommandIds.OPEN_DECLARATION, action);
-		
 		action = new FindReferencesAction(messagesBundle,"FindReferences.",this); //$NON-NLS-1$
 		setAction(ClonkCommandIds.FIND_REFERENCES, action);
 		
@@ -140,11 +137,11 @@ public class C4ScriptEditor extends ClonkTextEditor {
 	@Override
 	protected void editorContextMenuAboutToShow(IMenuManager menu) {
 		super.editorContextMenuAboutToShow(menu);
-		if (Utilities.getScriptForEditor(this).isEditable())
+		if (Utilities.getScriptForEditor(this).isEditable()) {
 			addAction(menu, ClonkCommandIds.CONVERT_OLD_CODE_TO_NEW_CODE);
-		addAction(menu, ClonkCommandIds.OPEN_DECLARATION);
+			addAction(menu, ClonkCommandIds.RENAME_FIELD);
+		}
 		addAction(menu, ClonkCommandIds.FIND_REFERENCES);
-		addAction(menu, ClonkCommandIds.RENAME_FIELD);
 	}
 
 	@Override

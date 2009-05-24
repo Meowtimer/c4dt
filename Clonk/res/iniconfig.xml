@@ -25,7 +25,7 @@
 				desecription="0 oder 1. Bei 1 wird das TopFace (siehe " />
 			<entry name="FacetTargetStretch" class="net.arctics.clonk.parser.inireader.Boolean"
 				desecription="0 oder 1. Bei 1 wird die Grafik vertikal bis zur oberen Kante des ActionTarget gestretcht." />
-			<entry name="NextAction" class="java.lang.String"
+			<entry name="NextAction" class="net.arctics.clonk.parser.inireader.Action"
 				description="Nächste Aktivität nach Ablauf der Animationsphasen." />
 			<entry name="NoOtherAction" class="net.arctics.clonk.parser.inireader.Boolean"
 				desecription="0 oder 1. Bei 1 ist keine Aktivität nach dieser möglich (z.B. Tod, Zerstörung)." />

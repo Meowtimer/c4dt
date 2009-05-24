@@ -18,6 +18,8 @@ import net.arctics.clonk.parser.inireader.IniData.IniDataEntry;
 import net.arctics.clonk.parser.inireader.IniData.IniSectionData;
 import net.arctics.clonk.util.IHasChildren;
 import net.arctics.clonk.util.ITreeNode;
+import net.arctics.clonk.util.Predicate;
+import net.arctics.clonk.util.Utilities;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
@@ -100,6 +102,10 @@ public class IniUnit extends C4Structure implements Iterable<IniSection>, IHasCh
 	 */
 	public IFile getIniFile() {
 		return iniFile;
+	}
+	
+	public void setIniFile(IFile file) {
+		iniFile = file;
 	}
 	
 	/**
@@ -240,17 +246,20 @@ public class IniUnit extends C4Structure implements Iterable<IniSection>, IHasCh
 		}
 	}
 	
-	protected void skipComment() {
+	protected boolean skipComment() {
 		int r = reader.read();
 		if (r == ';' || r == '#') {
 			reader.readStringUntil('\n');
+			return true;
 		}
-		else 
+		else {
 			reader.unread();
+			return false;
+		}
 	}
 	
 	protected IniEntry parseEntry(IniSection section) {
-		skipComment();
+		while (skipComment());
 		int start = reader.getPosition();
 		reader.eatWhitespace();
 		if (reader.read() == '[') {
@@ -289,6 +298,10 @@ public class IniUnit extends C4Structure implements Iterable<IniSection>, IHasCh
 	
 	public IniSection sectionWithName(String name) {
 		return sectionsMap.get(name);
+	}
+	
+	public IniSection sectionMatching(Predicate<IniSection> predicate) {
+		return Utilities.itemMatching(predicate, sectionsList);
 	}
 	
 	public IniEntry entryInSection(String section, String entry) {

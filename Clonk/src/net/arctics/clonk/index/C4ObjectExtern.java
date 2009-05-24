@@ -76,7 +76,7 @@ public class C4ObjectExtern extends C4Object implements ITreeNode {
 	
 	@Override
 	public boolean isEditable() {
-		return true;
+		return false;
 	}
 
 }
