@@ -18,7 +18,6 @@ import net.arctics.clonk.ui.editors.ClonkTextEditor;
 import net.arctics.clonk.ui.editors.ColorManager;
 import net.arctics.clonk.ui.editors.actions.c4script.ConvertOldCodeToNewCodeAction;
 import net.arctics.clonk.ui.editors.actions.c4script.FindReferencesAction;
-import net.arctics.clonk.ui.editors.actions.c4script.OpenDeclarationAction;
 import net.arctics.clonk.ui.editors.actions.c4script.RenameFieldAction;
 import net.arctics.clonk.util.Utilities;
 

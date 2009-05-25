@@ -31,6 +31,7 @@ import org.eclipse.ltk.core.refactoring.participants.SharableParticipants;
 import org.eclipse.search.ui.text.Match;
 import org.eclipse.text.edits.MultiTextEdit;
 import org.eclipse.text.edits.ReplaceEdit;
+import org.eclipse.ui.PlatformUI;
 
 public class ClonkRenameFieldProcessor extends RenameProcessor {
 	

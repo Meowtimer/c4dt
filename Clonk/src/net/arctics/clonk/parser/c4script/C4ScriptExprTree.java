@@ -578,6 +578,12 @@ public abstract class C4ScriptExprTree {
 			public boolean sameExpression(IStoredTypeInformation other) {
 				return other.getClass() == VariableTypeInformation.class && ((VariableTypeInformation)other).decl == decl;
 			}
+			
+			@Override
+			public String toString() {
+				return "variable " + decl.getName() + " " +  super.toString();
+			}
+			
 		}
 
 		@Override
@@ -633,12 +639,13 @@ public abstract class C4ScriptExprTree {
 		
 		@Override
 		public C4Type getType(C4ScriptParser context) {
-			if (getDeclaration() == C4Variable.THIS)
+			// getDeclaration(context) ensures that declaration is not null (if there is actually a variable) which is needed for queryTypeOfExpression for example
+			if (getDeclaration(context) == C4Variable.THIS)
 				return C4Type.OBJECT;
 			C4Type stored = context.queryTypeOfExpression(this, null);
 			if (stored != null)
 				return stored;
-			if (getDeclaration(context) instanceof C4Variable)
+			if (getDeclaration() instanceof C4Variable)
 				return ((C4Variable)getDeclaration()).getType();
 			return C4Type.ANY;
 		}

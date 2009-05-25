@@ -265,7 +265,7 @@ public class ClonkIndex implements Serializable, Iterable<C4Object> {
 	public C4Object getLastObjectWithId(C4ID id) {
 		List<C4Object> objs = getObjects(id);
 		if (objs != null) {
-			if (objs instanceof LinkedList) { // due to performance
+			if (objs instanceof LinkedList<?>) { // due to performance
 				return ((LinkedList<C4Object>)objs).getLast();
 			}
 			else {

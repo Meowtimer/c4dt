@@ -2,7 +2,6 @@ package net.arctics.clonk.parser.mapcreator;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
-import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 

@@ -400,4 +400,17 @@ public class BufferedScanner {
 	public CharSequence getBuffer() {
 		return buffer;
 	}
+	
+	@Override
+	public String toString() {
+		return "offset: " + getPosition() + "; next: " + (char)peek();
+	}
+
+	private int peek() {
+		int p = read();
+		unread();
+		return p;
+	}
+	
+	
 }
