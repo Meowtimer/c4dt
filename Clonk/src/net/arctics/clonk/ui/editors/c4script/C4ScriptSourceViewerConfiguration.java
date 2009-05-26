@@ -54,7 +54,6 @@ public class C4ScriptSourceViewerConfiguration extends ClonkSourceViewerConfigur
 	
 	private C4ScriptCodeScanner scanner;
 	private C4ScriptCommentScanner commentScanner;
-	private ColorManager colorManager;
 	private ITextHover hover;
 	private ITextDoubleClickStrategy doubleClickStrategy;
 
@@ -74,22 +73,22 @@ public class C4ScriptSourceViewerConfiguration extends ClonkSourceViewerConfigur
 	
 	protected C4ScriptCodeScanner getClonkScanner() {
 		if (scanner == null) {
-			scanner = new C4ScriptCodeScanner(colorManager);
+			scanner = new C4ScriptCodeScanner(getColorManager());
 			scanner.setDefaultReturnToken(
 				new Token(
 					new TextAttribute(
-						colorManager.getColor(IClonkColorConstants.DEFAULT))));
+						getColorManager().getColor(IClonkColorConstants.DEFAULT))));
 		}
 		return scanner;
 	}
 	
 	protected C4ScriptCommentScanner getClonkCommentScanner() {
 		if (commentScanner == null) {
-			commentScanner = new C4ScriptCommentScanner(colorManager);
+			commentScanner = new C4ScriptCommentScanner(getColorManager());
 			commentScanner.setDefaultReturnToken(
 				new Token(
 					new TextAttribute(
-						colorManager.getColor(IClonkColorConstants.COMMENT))));
+						getColorManager().getColor(IClonkColorConstants.COMMENT))));
 		}
 		return commentScanner;
 	}
