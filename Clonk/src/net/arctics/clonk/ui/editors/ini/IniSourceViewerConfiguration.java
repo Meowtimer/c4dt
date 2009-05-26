@@ -14,6 +14,7 @@ import net.arctics.clonk.parser.inireader.IniEntry;
 import net.arctics.clonk.parser.inireader.IniSection;
 import net.arctics.clonk.parser.inireader.IniData.IniDataEntry;
 import net.arctics.clonk.ui.editors.ClonkHyperlink;
+import net.arctics.clonk.ui.editors.ClonkSourceViewerConfiguration;
 import net.arctics.clonk.ui.editors.ColorManager;
 import net.arctics.clonk.ui.editors.IClonkColorConstants;
 import net.arctics.clonk.util.Predicate;
@@ -39,13 +40,11 @@ import org.eclipse.jface.text.rules.DefaultDamagerRepairer;
 import org.eclipse.jface.text.rules.Token;
 import org.eclipse.jface.text.source.ISourceViewer;
 import org.eclipse.swt.graphics.RGB;
-import org.eclipse.ui.editors.text.TextSourceViewerConfiguration;
 
-public class IniSourceViewerConfiguration extends
-		TextSourceViewerConfiguration {
+public class IniSourceViewerConfiguration extends ClonkSourceViewerConfiguration<IniTextEditor> {
 	
-	public static Pattern noAssignPattern = Pattern.compile("([A-Za-z_0-9]*)");
-	public static Pattern assignPattern = Pattern.compile("([A-Za-z_0-9]*)=(.*)");
+	public static Pattern noAssignPattern = Pattern.compile("\\s*([A-Za-z_0-9]*)");
+	public static Pattern assignPattern = Pattern.compile("\\s*([A-Za-z_0-9]*)\\s*=\\s*(.*)\\s*");
 	
 	private class IniSourceHyperlinkPresenter extends DefaultHyperlinkPresenter {
 
@@ -136,9 +135,7 @@ public class IniSourceViewerConfiguration extends
 		
 	}
 	
-	private ColorManager colorManager;
 	private IniScanner scanner;
-	private IniTextEditor textEditor;
 	
 	@Override
 	public IHyperlinkPresenter getHyperlinkPresenter(ISourceViewer sourceViewer) {
@@ -159,13 +156,8 @@ public class IniSourceViewerConfiguration extends
 		}
 	}
 	
-	public IniTextEditor getEditor() {
-		return textEditor;
-	}
-	
 	public IniSourceViewerConfiguration(ColorManager colorManager, IniTextEditor textEditor) {
-		this.colorManager = colorManager;
-		this.textEditor = textEditor;
+		super(colorManager, textEditor);
 	}
 
 	@Override
@@ -182,17 +174,22 @@ public class IniSourceViewerConfiguration extends
 	
 	protected IniScanner getDefCoreScanner() {
 		if (scanner == null) {
-			scanner = new IniScanner(colorManager);
+			scanner = new IniScanner(getColorManager());
 			scanner.setDefaultReturnToken(
 				new Token(
 					new TextAttribute(
-						colorManager.getColor(IClonkColorConstants.DEFAULT))));
+						getColorManager().getColor(IClonkColorConstants.DEFAULT))));
 		}
 		return scanner;
 	}
 	
+	private ContentAssistant assistant;
+	
 	public IContentAssistant getContentAssistant(ISourceViewer sourceViewer) {
-		ContentAssistant assistant = new ContentAssistant();
+		if (assistant != null)
+			return assistant;
+		
+		assistant = new ContentAssistant();
 //		assistant.setDocumentPartitioning(getConfiguredDocumentPartitioning(sourceViewer));
 //		assistant.setContentAssistProcessor(new CodeBodyCompletionProcessor(getEditor(),assistant), ClonkPartitionScanner.C4S_CODEBODY);
 		IniCompletionProcessor processor = new IniCompletionProcessor(getEditor(), assistant);
@@ -207,7 +204,7 @@ public class IniSourceViewerConfiguration extends
 		// key sequence is set in constructor of ClonkCompletionProcessor
 		
 		assistant.setStatusLineVisible(true);
-		assistant.setStatusMessage(Utilities.getEditingFile(textEditor).getName() + " proposals");
+		assistant.setStatusMessage(Utilities.getEditingFile(getEditor()).getName() + " proposals");
 		
 		assistant.enablePrefixCompletion(false);
 		assistant.enableAutoInsert(true);

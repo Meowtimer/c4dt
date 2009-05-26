@@ -45,10 +45,9 @@ import org.eclipse.jface.text.contentassist.IContextInformation;
 import org.eclipse.jface.text.contentassist.IContextInformationValidator;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.keys.IBindingService;
-import org.eclipse.ui.texteditor.ITextEditor;
 import org.eclipse.ui.texteditor.ITextEditorActionDefinitionIds;
 
-public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor {
+public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4ScriptEditor> {
 	
 	private final class ClonkCompletionListener implements ICompletionListener, ICompletionListenerExtension {
 
@@ -111,7 +110,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor {
 	private List<IStoredTypeInformation> contextTypeInformation;
 	private ProposalCycle proposalCycle = ProposalCycle.SHOW_ALL;
 	
-	public C4ScriptCompletionProcessor(ITextEditor editor,
+	public C4ScriptCompletionProcessor(C4ScriptEditor editor,
 			ContentAssistant assistant) {
 		super(editor);
 		this.assistant = assistant;

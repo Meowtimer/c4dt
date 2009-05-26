@@ -15,13 +15,16 @@ import org.eclipse.jface.text.contentassist.ICompletionProposal;
 import org.eclipse.jface.text.contentassist.IContentAssistProcessor;
 import org.eclipse.jface.text.contentassist.IContextInformation;
 import org.eclipse.ui.IFileEditorInput;
-import org.eclipse.ui.texteditor.ITextEditor;
 
-public abstract class ClonkCompletionProcessor implements IContentAssistProcessor {
+public abstract class ClonkCompletionProcessor<EditorType extends ClonkTextEditor> implements IContentAssistProcessor {
 
-	protected ITextEditor editor;
+	public EditorType getEditor() {
+		return editor;
+	}
+
+	protected EditorType editor;
 	
-	public ClonkCompletionProcessor(ITextEditor editor) {
+	public ClonkCompletionProcessor(EditorType editor) {
 		this.editor = editor;
 	}
 	
@@ -85,6 +88,10 @@ public abstract class ClonkCompletionProcessor implements IContentAssistProcesso
 			}
 		});
 		return proposals;
+	}
+	
+	public String getErrorMessage() {
+		return null;
 	}
 
 }

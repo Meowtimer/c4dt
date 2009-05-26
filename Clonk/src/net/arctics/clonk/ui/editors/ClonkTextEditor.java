@@ -29,6 +29,8 @@ import org.eclipse.ui.editors.text.TextEditor;
 import org.eclipse.ui.ide.IDE;
 import org.eclipse.ui.part.IShowInSource;
 import org.eclipse.ui.part.IShowInTargetList;
+import org.eclipse.ui.texteditor.ContentAssistAction;
+import org.eclipse.ui.texteditor.ITextEditorActionDefinitionIds;
 import org.eclipse.ui.views.contentoutline.IContentOutlinePage;
 
 public class ClonkTextEditor extends TextEditor {
@@ -105,9 +107,17 @@ public class ClonkTextEditor extends TextEditor {
 	protected void createActions() {
 		super.createActions();
 		
+		IAction action;
+		
 		ResourceBundle messagesBundle = ResourceBundle.getBundle("net.arctics.clonk.ui.editors.Messages"); //$NON-NLS-1$
-		IAction action = new OpenDeclarationAction(messagesBundle,"OpenDeclaration.",this); //$NON-NLS-1$
+		action = new OpenDeclarationAction(messagesBundle,"OpenDeclaration.",this); //$NON-NLS-1$
 		setAction(ClonkCommandIds.OPEN_DECLARATION, action);
+		
+		if (getSourceViewerConfiguration().getContentAssistant(getSourceViewer()) != null) {
+			action = new ContentAssistAction(messagesBundle, "ContentAssist.", this); //$NON-NLS-1$
+			action.setActionDefinitionId(ITextEditorActionDefinitionIds.CONTENT_ASSIST_PROPOSALS);
+			setAction(ITextEditorActionDefinitionIds.CONTENT_ASSIST_PROPOSALS, action);
+		}
 	}
 	
 	@Override
@@ -118,6 +128,8 @@ public class ClonkTextEditor extends TextEditor {
 	
 	public IHyperlink hyperlinkAtOffset(int offset) {
 		IHyperlinkDetector[] detectors = getSourceViewerConfiguration().getHyperlinkDetectors(getSourceViewer());
+		// emulate
+		getSourceViewerConfiguration().getHyperlinkPresenter(getSourceViewer()).hideHyperlinks();
 		IRegion r = new Region(offset, 0);
 		for (IHyperlinkDetector d : detectors) {
 			IHyperlink[] hyperlinks = d.detectHyperlinks(getSourceViewer(), r, false);

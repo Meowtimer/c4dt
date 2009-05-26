@@ -3,11 +3,9 @@ package net.arctics.clonk.resource.c4group;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.RandomAccessFile;
 import java.io.Serializable;
 import java.security.InvalidParameterException;
 import java.util.ArrayList;
@@ -18,8 +16,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.zip.GZIPInputStream;
-import java.util.zip.GZIPOutputStream;
-
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
@@ -93,34 +89,6 @@ public class C4Group implements C4GroupItem, Serializable {
 		entryName = name;
 		childEntries = new LinkedList<C4GroupItem>();
 		this.header = header;
-	}
-	
-	protected static String swapExtension(String projectString) {
-		return projectString.substring(projectString.indexOf('.') + 1) + "." + projectString.substring(0,projectString.indexOf('.'));
-	}
-	
-	public static boolean createFile(IFolder folder, File targetDir) throws InvalidDataException, FileNotFoundException {
-		if (!targetDir.isDirectory()) {
-			throw new InvalidDataException("targetDir ist not a directory! (" + targetDir.getAbsolutePath() + ")");
-		}
-		try {
-			File target = new File(targetDir,swapExtension(folder.getName()));
-			if (target.exists()) target.delete();
-			FileOutputStream stream = new FileOutputStream(target); // TODO recognize not swapped folder name
-			C4Group root = makeGroup(folder);
-			GZIPOutputStream zipper = new GZIPOutputStream(stream);
-			root.writeTo(zipper);
-			zipper.close();
-//			root.writeTo(stream);
-			stream.close();
-			RandomAccessFile clonker = new RandomAccessFile(target,"rw");
-			clonker.write(new byte[] { 0x1E, (byte) 0x8C },0,2);
-			clonker.close();
-			return true;
-		} catch (IOException e) {
-			e.printStackTrace();
-			return false;
-		}
 	}
 	
 	protected static C4Group makeGroup(IFolder folder) {

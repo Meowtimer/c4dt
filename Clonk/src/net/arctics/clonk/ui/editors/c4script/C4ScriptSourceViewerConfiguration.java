@@ -3,6 +3,7 @@ package net.arctics.clonk.ui.editors.c4script;
 import net.arctics.clonk.index.C4Object;
 import net.arctics.clonk.ui.editors.ClonkHyperlink;
 import net.arctics.clonk.ui.editors.ClonkPartitionScanner;
+import net.arctics.clonk.ui.editors.ClonkSourceViewerConfiguration;
 import net.arctics.clonk.ui.editors.ColorManager;
 import net.arctics.clonk.ui.editors.IClonkColorConstants;
 
@@ -29,10 +30,8 @@ import org.eclipse.jface.text.rules.DefaultDamagerRepairer;
 import org.eclipse.jface.text.rules.Token;
 import org.eclipse.jface.text.source.ISourceViewer;
 import org.eclipse.swt.widgets.Shell;
-import org.eclipse.ui.editors.text.TextSourceViewerConfiguration;
-import org.eclipse.ui.texteditor.ITextEditor;
 
-public class C4ScriptSourceViewerConfiguration extends TextSourceViewerConfiguration {
+public class C4ScriptSourceViewerConfiguration extends ClonkSourceViewerConfiguration<C4ScriptEditor> {
 	
 	private class C4ScriptHyperlinkDetector implements IHyperlinkDetector {
 		public IHyperlink[] detectHyperlinks(ITextViewer viewer, IRegion region, boolean canShowMultipleHyperlinks) {
@@ -56,13 +55,11 @@ public class C4ScriptSourceViewerConfiguration extends TextSourceViewerConfigura
 	private C4ScriptCodeScanner scanner;
 	private C4ScriptCommentScanner commentScanner;
 	private ColorManager colorManager;
-	private ITextEditor textEditor;
 	private ITextHover hover;
 	private ITextDoubleClickStrategy doubleClickStrategy;
 
-	public C4ScriptSourceViewerConfiguration(ColorManager colorManager, ITextEditor textEditor) {
-		this.colorManager = colorManager;
-		this.textEditor = textEditor;
+	public C4ScriptSourceViewerConfiguration(ColorManager colorManager, C4ScriptEditor textEditor) {
+		super(colorManager, textEditor);
 	}
 	
 	public String[] getConfiguredContentTypes(ISourceViewer sourceViewer) {
@@ -73,10 +70,6 @@ public class C4ScriptSourceViewerConfiguration extends TextSourceViewerConfigura
 		if (doubleClickStrategy == null)
 			doubleClickStrategy = new C4ScriptDoubleClickStrategy(this);
 		return doubleClickStrategy;
-	}
-
-	protected ITextEditor getEditor() {
-		return textEditor;
 	}
 	
 	protected C4ScriptCodeScanner getClonkScanner() {
@@ -108,8 +101,13 @@ public class C4ScriptSourceViewerConfiguration extends TextSourceViewerConfigura
 //		return 2;
 //	}
 
+	private ContentAssistant assistant;
+	
 	public IContentAssistant getContentAssistant(ISourceViewer sourceViewer) {
-		ContentAssistant assistant = new ContentAssistant();
+		if (assistant != null)
+			return assistant;
+		
+		assistant = new ContentAssistant();
 //		assistant.setDocumentPartitioning(getConfiguredDocumentPartitioning(sourceViewer));
 //		assistant.setContentAssistProcessor(new CodeBodyCompletionProcessor(getEditor(),assistant), ClonkPartitionScanner.C4S_CODEBODY);
 		C4ScriptCompletionProcessor processor = new C4ScriptCompletionProcessor(getEditor(),assistant);

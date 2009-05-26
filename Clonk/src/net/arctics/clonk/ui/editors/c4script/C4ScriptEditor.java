@@ -37,8 +37,6 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorSite;
 import org.eclipse.ui.PartInitException;
-import org.eclipse.ui.texteditor.ContentAssistAction;
-import org.eclipse.ui.texteditor.ITextEditorActionDefinitionIds;
 import org.eclipse.ui.texteditor.SourceViewerDecorationSupport;
 
 public class C4ScriptEditor extends ClonkTextEditor {
@@ -87,18 +85,20 @@ public class C4ScriptEditor extends ClonkTextEditor {
 	protected void createActions() {
 		super.createActions();
 		ResourceBundle messagesBundle = ResourceBundle.getBundle("net.arctics.clonk.ui.editors.c4script.Messages"); //$NON-NLS-1$
+//		
+		IAction action;
 		
-		IAction action = new ContentAssistAction(messagesBundle,"ClonkContentAssist.",this); //$NON-NLS-1$
-		action.setActionDefinitionId(ITextEditorActionDefinitionIds.CONTENT_ASSIST_PROPOSALS);
-		setAction(ITextEditorActionDefinitionIds.CONTENT_ASSIST_PROPOSALS, action);
-		
-		action = new ContentAssistAction(messagesBundle,"ClonkContentAssist.",this); //$NON-NLS-1$
-		action.setActionDefinitionId(ITextEditorActionDefinitionIds.SHOW_INFORMATION);
-		setAction(ITextEditorActionDefinitionIds.SHOW_INFORMATION, action);
-		
-		action = new ContentAssistAction(messagesBundle,"ClonkContentAssist.",this); //$NON-NLS-1$
-		action.setActionDefinitionId(ITextEditorActionDefinitionIds.CONTENT_ASSIST_CONTEXT_INFORMATION);
-		setAction(ITextEditorActionDefinitionIds.CONTENT_ASSIST_CONTEXT_INFORMATION, action);
+//		IAction action = new ContentAssistAction(messagesBundle,"ClonkContentAssist.",this); //$NON-NLS-1$
+//		action.setActionDefinitionId(ITextEditorActionDefinitionIds.CONTENT_ASSIST_PROPOSALS);
+//		setAction(ITextEditorActionDefinitionIds.CONTENT_ASSIST_PROPOSALS, action);
+//		
+//		action = new ContentAssistAction(messagesBundle,"ClonkContentAssist.",this); //$NON-NLS-1$
+//		action.setActionDefinitionId(ITextEditorActionDefinitionIds.SHOW_INFORMATION);
+//		setAction(ITextEditorActionDefinitionIds.SHOW_INFORMATION, action);
+//		
+//		action = new ContentAssistAction(messagesBundle,"ClonkContentAssist.",this); //$NON-NLS-1$
+//		action.setActionDefinitionId(ITextEditorActionDefinitionIds.CONTENT_ASSIST_CONTEXT_INFORMATION);
+//		setAction(ITextEditorActionDefinitionIds.CONTENT_ASSIST_CONTEXT_INFORMATION, action);
 		
 		action = new ConvertOldCodeToNewCodeAction(messagesBundle,"ConvertOldCodeToNewCode.",this); //$NON-NLS-1$
 		setAction(ClonkCommandIds.CONVERT_OLD_CODE_TO_NEW_CODE, action);

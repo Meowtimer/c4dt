@@ -5,6 +5,8 @@ import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.ITextViewer;
 import org.eclipse.jface.text.Region;
 import org.eclipse.jface.text.TextAttribute;
+import org.eclipse.jface.text.contentassist.ContentAssistant;
+import org.eclipse.jface.text.contentassist.IContentAssistant;
 import org.eclipse.jface.text.hyperlink.IHyperlink;
 import org.eclipse.jface.text.hyperlink.IHyperlinkDetector;
 import org.eclipse.jface.text.presentation.IPresentationReconciler;
@@ -21,6 +23,7 @@ import net.arctics.clonk.ui.editors.ClonkPartitionScanner;
 import net.arctics.clonk.ui.editors.ClonkSourceViewerConfiguration;
 import net.arctics.clonk.ui.editors.ColorManager;
 import net.arctics.clonk.ui.editors.IClonkColorConstants;
+import net.arctics.clonk.util.Utilities;
 
 public class MapCreatorSourceViewerConfiguration extends ClonkSourceViewerConfiguration<MapCreatorEditor> {
 
@@ -91,6 +94,32 @@ public class MapCreatorSourceViewerConfiguration extends ClonkSourceViewerConfig
 			e.printStackTrace();
 			return null;
 		}
+	}
+	
+	public IContentAssistant getContentAssistant(ISourceViewer sourceViewer) {
+		ContentAssistant assistant = new ContentAssistant();
+//		assistant.setDocumentPartitioning(getConfiguredDocumentPartitioning(sourceViewer));
+//		assistant.setContentAssistProcessor(new CodeBodyCompletionProcessor(getEditor(),assistant), ClonkPartitionScanner.C4S_CODEBODY);
+		MapCreatorCompletionProcessor processor = new MapCreatorCompletionProcessor(getEditor());
+		assistant.setContentAssistProcessor(processor, IDocument.DEFAULT_CONTENT_TYPE);
+		assistant.install(sourceViewer);
+		
+		assistant.setContextInformationPopupOrientation(IContentAssistant.CONTEXT_INFO_ABOVE);
+		
+
+		//assistant.setRepeatedInvocationMode(true);
+		// key sequence is set in constructor of ClonkCompletionProcessor
+		
+		assistant.setStatusLineVisible(true);
+		assistant.setStatusMessage(Utilities.getEditingFile(getEditor()).getName() + " proposals");
+		
+		assistant.enablePrefixCompletion(false);
+		assistant.enableAutoInsert(true);
+		assistant.enableAutoActivation(true);
+		
+		assistant.enableColoredLabels(true);
+		
+		return assistant;
 	}
 
 }

@@ -87,7 +87,8 @@ private void setVal(Token nameToken, Token valueToken) {
 
 private void moveLevelUp() {
 	lastOverlay = current;
-	current = (C4MapOverlay) current.getParentDeclaration();
+	if (current != null)
+		current = (C4MapOverlay) current.getParentDeclaration();
 }
 
 private void assignOperator(String t) {
@@ -126,7 +127,8 @@ private void errorWithCode(ParserErrorCode code, int errorStart, int errorEnd, O
 
 private void deleteMarkers() {
 	try {
-		mapCreator.getResource().deleteMarkers(IMarker.PROBLEM, true, IResource.DEPTH_ONE);
+		if (mapCreator.getResource() != null)
+			mapCreator.getResource().deleteMarkers(IMarker.PROBLEM, true, IResource.DEPTH_ONE);
 	} catch (CoreException e) {
 		e.printStackTrace();
 	}
@@ -140,7 +142,8 @@ public void reportError(RecognitionException error) {
 }
 
 private void setBody(Token blockOpen, Token blockClose) {
-	current.setBody(new SourceLocation(startPos(blockOpen), endPos(blockClose)));
+	if (current != null)
+		current.setBody(new SourceLocation(startPos(blockOpen), endPos(blockClose)));
 }
 
 }

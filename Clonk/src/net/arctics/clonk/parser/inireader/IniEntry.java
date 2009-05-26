@@ -59,8 +59,6 @@ public class IniEntry extends C4Declaration implements IHasKeyAndValue<String, S
 	}
 
 	public void addChild(ITreeNode node) {
-		// TODO Auto-generated method stub
-		
 	}
 
 	public Collection<? extends ITreeNode> getChildCollection() {

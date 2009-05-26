@@ -13,6 +13,10 @@ public class C4MapCreator extends C4Map {
 		return file;
 	}
 
+	public void setFile(IFile file) {
+		this.file = file;
+	}
+
 	public C4MapCreator(IFile file) {
 		super();
 		this.file = file;

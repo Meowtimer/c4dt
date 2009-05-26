@@ -518,4 +518,8 @@ public abstract class Utilities {
 		return null;
 	}
 	
+	public static Enum<?>[] valuesOfEnum(Class<?> enumClass) throws IllegalArgumentException, SecurityException, IllegalAccessException, InvocationTargetException, NoSuchMethodException {
+		return (Enum<?>[]) enumClass.getMethod("values").invoke(null);
+	}
+	
 }

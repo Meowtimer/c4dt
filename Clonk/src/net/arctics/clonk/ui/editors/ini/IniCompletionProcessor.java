@@ -33,18 +33,17 @@ import org.eclipse.jface.text.contentassist.ICompletionListener;
 import org.eclipse.jface.text.contentassist.ICompletionProposal;
 import org.eclipse.jface.text.contentassist.IContextInformation;
 import org.eclipse.jface.text.contentassist.IContextInformationValidator;
-import org.eclipse.ui.texteditor.ITextEditor;
 
 /**
  * Completion processor for ini files. Proposes entries and values for those entries based on their type (functions from the related script for callbacks for example)
  * @author madeen
  *
  */
-public class IniCompletionProcessor extends ClonkCompletionProcessor implements ICompletionListener {
+public class IniCompletionProcessor extends ClonkCompletionProcessor<IniTextEditor> implements ICompletionListener {
 	
 	private IniSection section;
 	
-	public IniCompletionProcessor(ITextEditor editor, ContentAssistant assistant) {
+	public IniCompletionProcessor(IniTextEditor editor, ContentAssistant assistant) {
 		super(editor);
 	}
 
@@ -148,10 +147,6 @@ public class IniCompletionProcessor extends ClonkCompletionProcessor implements 
 		}
 	}
 
-	private IniTextEditor getEditor() {
-		return (IniTextEditor) editor;
-	}
-
 	private void proposalsForSection(Collection<ICompletionProposal> proposals,
 			String prefix, int wordOffset, IniSectionData sectionData) {
 		for (IniDataEntry entry : sectionData.getEntries().values()) {
@@ -214,10 +209,6 @@ public class IniCompletionProcessor extends ClonkCompletionProcessor implements 
 	}
 
 	public IContextInformationValidator getContextInformationValidator() {
-		return null;
-	}
-
-	public String getErrorMessage() {
 		return null;
 	}
 
