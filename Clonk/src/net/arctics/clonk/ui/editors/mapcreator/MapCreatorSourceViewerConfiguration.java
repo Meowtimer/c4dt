@@ -23,6 +23,7 @@ import net.arctics.clonk.ui.editors.ClonkPartitionScanner;
 import net.arctics.clonk.ui.editors.ClonkSourceViewerConfiguration;
 import net.arctics.clonk.ui.editors.ColorManager;
 import net.arctics.clonk.ui.editors.IClonkColorConstants;
+import net.arctics.clonk.ui.editors.ScriptCommentScanner;
 import net.arctics.clonk.util.Utilities;
 
 public class MapCreatorSourceViewerConfiguration extends ClonkSourceViewerConfiguration<MapCreatorEditor> {
@@ -41,6 +42,7 @@ public class MapCreatorSourceViewerConfiguration extends ClonkSourceViewerConfig
 	}
 
 	private RuleBasedScanner scanner;
+	private ScriptCommentScanner commentScanner;
 
 	public MapCreatorSourceViewerConfiguration(ColorManager colorManager, MapCreatorEditor textEditor) {
 		super(colorManager, textEditor);
@@ -55,6 +57,17 @@ public class MapCreatorSourceViewerConfiguration extends ClonkSourceViewerConfig
 						getColorManager().getColor(IClonkColorConstants.DEFAULT))));
 		}
 		return scanner;
+	}
+	
+	protected ScriptCommentScanner getClonkCommentScanner() {
+		if (commentScanner == null) {
+			commentScanner = new ScriptCommentScanner(getColorManager());
+			commentScanner.setDefaultReturnToken(
+				new Token(
+					new TextAttribute(
+						getColorManager().getColor(IClonkColorConstants.COMMENT))));
+		}
+		return commentScanner;
 	}
 	
 	public IPresentationReconciler getPresentationReconciler(ISourceViewer sourceViewer) {
@@ -72,6 +85,10 @@ public class MapCreatorSourceViewerConfiguration extends ClonkSourceViewerConfig
 		dr = new DefaultDamagerRepairer(getClonkScanner());
 		reconciler.setDamager(dr, IDocument.DEFAULT_CONTENT_TYPE);
 		reconciler.setRepairer(dr, IDocument.DEFAULT_CONTENT_TYPE);
+		
+		dr = new DefaultDamagerRepairer(getClonkCommentScanner());
+		reconciler.setDamager(dr, ClonkPartitionScanner.C4S_COMMENT);
+		reconciler.setRepairer(dr, ClonkPartitionScanner.C4S_COMMENT);
 		
 //		NonRuleBasedDamagerRepairer ndr =
 //			new NonRuleBasedDamagerRepairer(

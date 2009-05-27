@@ -81,13 +81,14 @@ public abstract class ClonkCompletionProcessor<EditorType extends ClonkTextEdito
 		proposals.add(prop);
 	}
 
-	protected ICompletionProposal[] sortProposals(ICompletionProposal[] proposals) {
-		Arrays.sort(proposals, new Comparator<ICompletionProposal>() {
+	protected ICompletionProposal[] sortProposals(Collection<ICompletionProposal> proposals) {
+		ICompletionProposal[] arr = proposals.toArray(new ICompletionProposal[proposals.size()]);
+		Arrays.sort(arr, new Comparator<ICompletionProposal>() {
 			public int compare(ICompletionProposal propA, ICompletionProposal propB) {
 				return (propA.getDisplayString().compareToIgnoreCase(propB.getDisplayString()));
 			}
 		});
-		return proposals;
+		return arr;
 	}
 	
 	public String getErrorMessage() {

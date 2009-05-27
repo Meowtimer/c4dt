@@ -23,7 +23,7 @@ public class MapCreatorCompletionProcessor extends ClonkCompletionProcessor<MapC
 
 	private static final Pattern startedOverlay = Pattern.compile(".*\\s+overlay\\s+([A-Za-z_0-9]*)");
 	private static final Pattern startedMap     = Pattern.compile(".*\\s+map\\s+([A-Za-z_0-9]*)");
-	private static final Pattern startedAttr    = Pattern.compile(".*\\s+([A-Za-z_0-9]*)");
+	private static final Pattern startedAttr    = Pattern.compile(".*\\s+([A-Za-z_0-9]*).*");
 	private static final Pattern startedAttrVal = Pattern.compile(".*\\s+([A-Za-z_0-9]*)\\s*=\\s*([A-Za-z_0-9]*).*");
 	
 	public MapCreatorCompletionProcessor(MapCreatorEditor editor) {
@@ -45,6 +45,15 @@ public class MapCreatorCompletionProcessor extends ClonkCompletionProcessor<MapC
 			IRegion lineRegion = doc.getLineInformationOfOffset(offset);
 			line = doc.get(lineRegion.getOffset(), lineRegion.getLength());
 			lineStart = lineRegion.getOffset();
+			String seps = ";{}";
+			for (int i = seps.length()-1; i>=0; i--) {
+				int sepIndex = line.lastIndexOf(seps.charAt(i), offset-lineStart-1);
+				if (sepIndex != -1) {
+					line = line.substring(sepIndex+1);
+					lineStart += sepIndex+1;
+					break;
+				}
+			}
 		} catch (BadLocationException e) {
 			line = "";
 			lineStart = offset;
@@ -53,21 +62,15 @@ public class MapCreatorCompletionProcessor extends ClonkCompletionProcessor<MapC
 		List<ICompletionProposal> proposals = new LinkedList<ICompletionProposal>();
 		Matcher m;
 		C4MapOverlay overlay = getEditor().getMapCreator().overlayAt(offset);
+		if (overlay == getEditor().getMapCreator())
+			overlay = null;
 		if ((m = startedOverlay.matcher(line)).matches() || (m = startedMap.matcher(line)).matches()) {
 
-		}
-		else if (overlay != null && (m = startedAttr.matcher(line)).matches()) {
-			String prefix = m.group(1).toLowerCase();
-			Field[] fields = overlay.getClass().getFields();
-			for (Field f : fields) {
-				if (f.getName().toLowerCase().startsWith(prefix)) {
-					proposals.add(new CompletionProposal(f.getName(), lineStart+m.start(1), prefix.length(), f.getName().length()));
-				}
-			}
 		}
 		else if (overlay != null && (m = startedAttrVal.matcher(line)).matches()) {
 			String attrName = m.group(1);
 			String attrValStart = m.group(2);
+			System.out.println(attrValStart);
 			try {
 				Field attr = overlay.getClass().getField(attrName);
 				// enum recommendations
@@ -82,10 +85,26 @@ public class MapCreatorCompletionProcessor extends ClonkCompletionProcessor<MapC
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
+		}
+		else if ((m = startedAttr.matcher(line)).matches() && offset-lineStart >= m.start(1) && offset-lineStart <= m.end(1)) {
+			String prefix = m.group(1).toLowerCase();
+			if (overlay != null) {
+				Field[] fields = overlay.getClass().getFields();
+				for (Field f : fields) {
+					if (f.getName().toLowerCase().startsWith(prefix)) {
+						proposals.add(new CompletionProposal(f.getName(), lineStart+m.start(1), prefix.length(), f.getName().length()));
+					}
+				}
+			}
 			
+			String[] keywords = new String[] {"map", "overlay"};
+			for (String keyword : keywords) {
+				if (keyword.toLowerCase().startsWith(prefix))
+					proposals.add(new CompletionProposal(keyword, lineStart+m.start(1), prefix.length(), keyword.length()));
+			}
 		}
 		
-		return proposals.toArray(new ICompletionProposal[proposals.size()]);
+		return sortProposals(proposals);
 	}
 
 	public IContextInformation[] computeContextInformation(ITextViewer viewer,

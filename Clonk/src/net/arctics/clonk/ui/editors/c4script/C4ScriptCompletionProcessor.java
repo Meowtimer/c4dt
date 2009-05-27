@@ -220,7 +220,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 			return new ICompletionProposal[] { new CompletionProposal("",offset,0,0,null,"No proposals available",null,null) };
 		}
 		
-		return sortProposals(proposals.toArray(new ICompletionProposal[proposals.size()]));
+		return sortProposals(proposals);
 	}
 
 	private void proposalsInsideOfFunction(int offset, int wordOffset,

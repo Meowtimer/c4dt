@@ -6,6 +6,7 @@ import net.arctics.clonk.ui.editors.ClonkPartitionScanner;
 import net.arctics.clonk.ui.editors.ClonkSourceViewerConfiguration;
 import net.arctics.clonk.ui.editors.ColorManager;
 import net.arctics.clonk.ui.editors.IClonkColorConstants;
+import net.arctics.clonk.ui.editors.ScriptCommentScanner;
 
 import org.eclipse.jface.text.DefaultInformationControl;
 import org.eclipse.jface.text.IAutoEditStrategy;
@@ -53,7 +54,7 @@ public class C4ScriptSourceViewerConfiguration extends ClonkSourceViewerConfigur
 	}
 	
 	private C4ScriptCodeScanner scanner;
-	private C4ScriptCommentScanner commentScanner;
+	private ScriptCommentScanner commentScanner;
 	private ITextHover hover;
 	private ITextDoubleClickStrategy doubleClickStrategy;
 
@@ -82,9 +83,9 @@ public class C4ScriptSourceViewerConfiguration extends ClonkSourceViewerConfigur
 		return scanner;
 	}
 	
-	protected C4ScriptCommentScanner getClonkCommentScanner() {
+	protected ScriptCommentScanner getClonkCommentScanner() {
 		if (commentScanner == null) {
-			commentScanner = new C4ScriptCommentScanner(getColorManager());
+			commentScanner = new ScriptCommentScanner(getColorManager());
 			commentScanner.setDefaultReturnToken(
 				new Token(
 					new TextAttribute(

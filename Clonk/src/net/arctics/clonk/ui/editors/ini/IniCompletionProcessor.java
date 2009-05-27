@@ -122,7 +122,7 @@ public class IniCompletionProcessor extends ClonkCompletionProcessor<IniTextEdit
 			}
 		}
 		
-		return sortProposals(proposals.toArray(new ICompletionProposal[proposals.size()]));
+		return sortProposals(proposals);
 	}
 
 	private void proposalsForDefinitionPackEntry(
