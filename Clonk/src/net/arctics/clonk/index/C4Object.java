@@ -86,10 +86,16 @@ public abstract class C4Object extends C4ScriptBase {
 		while (matcher.find()) {
 			localizedNames.put(matcher.group(1), matcher.group(2));
 		}
-		String preferredName = localizedNames.get(Platform.getPreferencesService().getString(ClonkCore.PLUGIN_ID, PreferenceConstants.PREFERRED_LANGID, "DE", null));
-		if (preferredName != null)
-			setName(preferredName);
+		chooseLocalizedName();
 	}
+
+	public void chooseLocalizedName() {
+		if (localizedNames != null) {
+			String preferredName = localizedNames.get(Platform.getPreferencesService().getString(ClonkCore.PLUGIN_ID, PreferenceConstants.PREFERRED_LANGID, "DE", null));
+			if (preferredName != null)
+				setName(preferredName);
+		}
+    }
 
 	public Map<String, String> getLocalizedNames() {
 		return localizedNames;

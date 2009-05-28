@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 
 import net.arctics.clonk.ClonkCore;
+import net.arctics.clonk.index.C4Object;
 import net.arctics.clonk.index.C4ObjectExtern;
 import net.arctics.clonk.index.C4ObjectExternGroup;
 import net.arctics.clonk.parser.c4script.C4ScriptExtern;
@@ -255,6 +256,11 @@ public class ClonkLibBuilder implements IC4GroupVisitor, IPropertyChangeListener
 				e1.printStackTrace();
 			} catch (InterruptedException e1) {
 				e1.printStackTrace();
+			}
+		}
+		else if (event.getProperty().equals(PreferenceConstants.PREFERRED_LANGID)) {
+			for (C4Object o : ClonkCore.getDefault().EXTERN_INDEX) {
+				o.chooseLocalizedName();
 			}
 		}
 	}
