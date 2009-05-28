@@ -132,7 +132,7 @@ private void deleteMarkers() {
 	} catch (CoreException e) {
 		e.printStackTrace();
 	}
-}
+		}
 
 @Override
 public void reportError(RecognitionException error) {
@@ -146,9 +146,23 @@ private void setBody(Token blockOpen, Token blockClose) {
 		current.setBody(new SourceLocation(startPos(blockOpen), endPos(blockClose)));
 }
 
+@Override
+public void displayRecognitionError(String[] tokenNames, RecognitionException e) {
+	// do nothing
 }
 
-parse	:	{deleteMarkers();} statement*;
+public void parse() {
+	try {
+		start();
+	} catch (RecognitionException e) {
+		e.printStackTrace();
+	}
+}
+
+
+}
+
+start	:	{deleteMarkers();} statement*;
 
 statement
 	:	{lastOverlay = null;} composition STATEMENTEND;

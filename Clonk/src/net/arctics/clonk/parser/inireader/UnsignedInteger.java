@@ -36,7 +36,7 @@ public class UnsignedInteger implements IEntryCreateable {
 
 	public void setInput(String input) throws IniParserException {
 		try {
-			Integer num = Integer.decode(input);
+			Integer num = !input.equals("") ? Integer.decode(input) : 0;
 			number = num.intValue();
 			if (num < 0)
 				throw new IniParserException(IMarker.SEVERITY_WARNING, "Unsigned value expected");

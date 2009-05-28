@@ -200,26 +200,13 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 				return null;
 			}
 			monitor.subTask("Save data");
-			// saves all objects persistent
+			
+			// saves all objects persistently
 			Utilities.getProject(proj).markAsDirty();
 
 			monitor.done();
 			
-			// refresh outlines
-			Display.getDefault().asyncExec(new Runnable() {
-				public void run() {
-					IWorkbench w = PlatformUI.getWorkbench();
-					if (w == null || w.getActiveWorkbenchWindow() == null || w.getActiveWorkbenchWindow().getActivePage() == null)
-						return;
-					IWorkbenchPage page = w.getActiveWorkbenchWindow().getActivePage();
-					for (IEditorReference ref : page.getEditorReferences()) {
-						IEditorPart part = ref.getEditor(false);
-						if (part != null && part instanceof ClonkTextEditor) {
-							((ClonkTextEditor)part).refreshOutline();
-						}
-					}
-				}
-			});
+			refreshUIAfterBuild();
 		
 			parserMap.clear();
 			return new IProject[] { proj };
@@ -228,6 +215,24 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 			return null;
 		}
 	}
+
+	private void refreshUIAfterBuild() {
+	    // refresh outlines
+	    Display.getDefault().asyncExec(new Runnable() {
+	    	public void run() {
+	    		IWorkbench w = PlatformUI.getWorkbench();
+	    		if (w == null || w.getActiveWorkbenchWindow() == null || w.getActiveWorkbenchWindow().getActivePage() == null)
+	    			return;
+	    		IWorkbenchPage page = w.getActiveWorkbenchWindow().getActivePage();
+	    		for (IEditorReference ref : page.getEditorReferences()) {
+	    			IEditorPart part = ref.getEditor(false);
+	    			if (part != null && part instanceof ClonkTextEditor) {
+	    				((ClonkTextEditor)part).refreshOutline();
+	    			}
+	    		}
+	    	}
+	    });
+    }
 	
 	private String[] getExternalLibNames() {
 		String optionString = ClonkCore.getDefault().getPreferenceStore().getString(PreferenceConstants.STANDARD_EXT_LIBS);
@@ -291,11 +296,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 				else if (buildPhase == 0 && (delta.getResource().getName().equals("Landscape.txt"))) {
 					C4MapCreator mapCreator = new C4MapCreator((IFile) delta.getResource());
 					MapCreatorParser parser = new MapCreatorParser(mapCreator);
-					try {
-	                    parser.parse();
-                    } catch (RecognitionException e) {
-	                    e.printStackTrace();
-                    }
+					parser.parse();
 				}
 			}
 			else if (delta.getKind() == IResourceDelta.REMOVED && delta.getResource().getParent().exists()) {

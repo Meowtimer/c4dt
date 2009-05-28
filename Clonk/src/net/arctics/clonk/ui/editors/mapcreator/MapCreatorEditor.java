@@ -32,12 +32,8 @@ public class MapCreatorEditor extends ClonkTextEditor {
 		CommonTokenStream tokenStream = new CommonTokenStream();
 		tokenStream.setTokenSource(lexer);
 		MapCreatorParser parser = new MapCreatorParser(mapCreator, tokenStream);
-		try {
-			mapCreator.clear();
-			parser.parse();
-		} catch (RecognitionException e) {
-			e.printStackTrace();
-		}
+		mapCreator.clear();
+        parser.parse();
 	}
 	
 	public C4MapCreator getMapCreator() {

@@ -1,4 +1,4 @@
-// $ANTLR 3.1.2 /Users/madeen/Projects/Eclipse/Clonk/src/net/arctics/clonk/parser/mapcreator/MapCreator.g 2009-05-26 20:05:44
+// $ANTLR 3.1.2 C:\\Users\\Madeen\\Projects\\Eclipse\\Clonk\\src\\net\\arctics\\clonk\\parser\\mapcreator\\MapCreator.g 2009-05-28 13:16:18
 
 package net.arctics.clonk.parser.mapcreator;
 
@@ -54,7 +54,7 @@ public class MapCreatorParser extends Parser {
         
 
     public String[] getTokenNames() { return MapCreatorParser.tokenNames; }
-    public String getGrammarFileName() { return "/Users/madeen/Projects/Eclipse/Clonk/src/net/arctics/clonk/parser/mapcreator/MapCreator.g"; }
+    public String getGrammarFileName() { return "C:\\Users\\Madeen\\Projects\\Eclipse\\Clonk\\src\\net\\arctics\\clonk\\parser\\mapcreator\\MapCreator.g"; }
 
 
     C4MapCreator mapCreator;
@@ -173,7 +173,7 @@ public class MapCreatorParser extends Parser {
     	} catch (CoreException e) {
     		e.printStackTrace();
     	}
-    }
+    		}
 
     @Override
     public void reportError(RecognitionException error) {
@@ -187,18 +187,32 @@ public class MapCreatorParser extends Parser {
     		current.setBody(new SourceLocation(startPos(blockOpen), endPos(blockClose)));
     }
 
+    @Override
+    public void displayRecognitionError(String[] tokenNames, RecognitionException e) {
+    	// do nothing
+    }
+
+    public void parse() {
+    	try {
+    		start();
+    	} catch (RecognitionException e) {
+    		e.printStackTrace();
+    	}
+    }
 
 
 
-    // $ANTLR start "parse"
-    // /Users/madeen/Projects/Eclipse/Clonk/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:151:1: parse : ( statement )* ;
-    public final void parse() throws RecognitionException {
+
+
+    // $ANTLR start "start"
+    // C:\\Users\\Madeen\\Projects\\Eclipse\\Clonk\\src\\net\\arctics\\clonk\\parser\\mapcreator\\MapCreator.g:165:1: start : ( statement )* ;
+    public final void start() throws RecognitionException {
         try {
-            // /Users/madeen/Projects/Eclipse/Clonk/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:151:7: ( ( statement )* )
-            // /Users/madeen/Projects/Eclipse/Clonk/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:151:9: ( statement )*
+            // C:\\Users\\Madeen\\Projects\\Eclipse\\Clonk\\src\\net\\arctics\\clonk\\parser\\mapcreator\\MapCreator.g:165:7: ( ( statement )* )
+            // C:\\Users\\Madeen\\Projects\\Eclipse\\Clonk\\src\\net\\arctics\\clonk\\parser\\mapcreator\\MapCreator.g:165:9: ( statement )*
             {
             deleteMarkers();
-            // /Users/madeen/Projects/Eclipse/Clonk/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:151:28: ( statement )*
+            // C:\\Users\\Madeen\\Projects\\Eclipse\\Clonk\\src\\net\\arctics\\clonk\\parser\\mapcreator\\MapCreator.g:165:28: ( statement )*
             loop1:
             do {
                 int alt1=2;
@@ -211,9 +225,9 @@ public class MapCreatorParser extends Parser {
 
                 switch (alt1) {
             	case 1 :
-            	    // /Users/madeen/Projects/Eclipse/Clonk/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:151:28: statement
+            	    // C:\\Users\\Madeen\\Projects\\Eclipse\\Clonk\\src\\net\\arctics\\clonk\\parser\\mapcreator\\MapCreator.g:165:28: statement
             	    {
-            	    pushFollow(FOLLOW_statement_in_parse33);
+            	    pushFollow(FOLLOW_statement_in_start33);
             	    statement();
 
             	    state._fsp--;
@@ -239,15 +253,15 @@ public class MapCreatorParser extends Parser {
         }
         return ;
     }
-    // $ANTLR end "parse"
+    // $ANTLR end "start"
 
 
     // $ANTLR start "statement"
-    // /Users/madeen/Projects/Eclipse/Clonk/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:153:1: statement : composition STATEMENTEND ;
+    // C:\\Users\\Madeen\\Projects\\Eclipse\\Clonk\\src\\net\\arctics\\clonk\\parser\\mapcreator\\MapCreator.g:167:1: statement : composition STATEMENTEND ;
     public final void statement() throws RecognitionException {
         try {
-            // /Users/madeen/Projects/Eclipse/Clonk/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:154:2: ( composition STATEMENTEND )
-            // /Users/madeen/Projects/Eclipse/Clonk/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:154:4: composition STATEMENTEND
+            // C:\\Users\\Madeen\\Projects\\Eclipse\\Clonk\\src\\net\\arctics\\clonk\\parser\\mapcreator\\MapCreator.g:168:2: ( composition STATEMENTEND )
+            // C:\\Users\\Madeen\\Projects\\Eclipse\\Clonk\\src\\net\\arctics\\clonk\\parser\\mapcreator\\MapCreator.g:168:4: composition STATEMENTEND
             {
             lastOverlay = null;
             pushFollow(FOLLOW_composition_in_statement45);
@@ -272,20 +286,20 @@ public class MapCreatorParser extends Parser {
 
 
     // $ANTLR start "composition"
-    // /Users/madeen/Projects/Eclipse/Clonk/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:156:1: composition : subobject (op= OPERATOR composition )? ;
+    // C:\\Users\\Madeen\\Projects\\Eclipse\\Clonk\\src\\net\\arctics\\clonk\\parser\\mapcreator\\MapCreator.g:170:1: composition : subobject (op= OPERATOR composition )? ;
     public final void composition() throws RecognitionException {
         Token op=null;
 
         try {
-            // /Users/madeen/Projects/Eclipse/Clonk/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:157:2: ( subobject (op= OPERATOR composition )? )
-            // /Users/madeen/Projects/Eclipse/Clonk/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:157:4: subobject (op= OPERATOR composition )?
+            // C:\\Users\\Madeen\\Projects\\Eclipse\\Clonk\\src\\net\\arctics\\clonk\\parser\\mapcreator\\MapCreator.g:171:2: ( subobject (op= OPERATOR composition )? )
+            // C:\\Users\\Madeen\\Projects\\Eclipse\\Clonk\\src\\net\\arctics\\clonk\\parser\\mapcreator\\MapCreator.g:171:4: subobject (op= OPERATOR composition )?
             {
             pushFollow(FOLLOW_subobject_in_composition56);
             subobject();
 
             state._fsp--;
 
-            // /Users/madeen/Projects/Eclipse/Clonk/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:157:14: (op= OPERATOR composition )?
+            // C:\\Users\\Madeen\\Projects\\Eclipse\\Clonk\\src\\net\\arctics\\clonk\\parser\\mapcreator\\MapCreator.g:171:14: (op= OPERATOR composition )?
             int alt2=2;
             int LA2_0 = input.LA(1);
 
@@ -294,7 +308,7 @@ public class MapCreatorParser extends Parser {
             }
             switch (alt2) {
                 case 1 :
-                    // /Users/madeen/Projects/Eclipse/Clonk/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:157:15: op= OPERATOR composition
+                    // C:\\Users\\Madeen\\Projects\\Eclipse\\Clonk\\src\\net\\arctics\\clonk\\parser\\mapcreator\\MapCreator.g:171:15: op= OPERATOR composition
                     {
                     op=(Token)match(input,OPERATOR,FOLLOW_OPERATOR_in_composition61); 
                     assignOperator((op!=null?op.getText():null));
@@ -325,14 +339,14 @@ public class MapCreatorParser extends Parser {
 
 
     // $ANTLR start "subobject"
-    // /Users/madeen/Projects/Eclipse/Clonk/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:159:1: subobject : (type= MAP (name= NAME )? optionalblock | type= OVERLAY (name= NAME )? optionalblock | template= NAME (name= NAME )? optionalblock );
+    // C:\\Users\\Madeen\\Projects\\Eclipse\\Clonk\\src\\net\\arctics\\clonk\\parser\\mapcreator\\MapCreator.g:173:1: subobject : (type= MAP (name= NAME )? optionalblock | type= OVERLAY (name= NAME )? optionalblock | template= NAME (name= NAME )? optionalblock );
     public final void subobject() throws RecognitionException {
         Token type=null;
         Token name=null;
         Token template=null;
 
         try {
-            // /Users/madeen/Projects/Eclipse/Clonk/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:160:2: (type= MAP (name= NAME )? optionalblock | type= OVERLAY (name= NAME )? optionalblock | template= NAME (name= NAME )? optionalblock )
+            // C:\\Users\\Madeen\\Projects\\Eclipse\\Clonk\\src\\net\\arctics\\clonk\\parser\\mapcreator\\MapCreator.g:174:2: (type= MAP (name= NAME )? optionalblock | type= OVERLAY (name= NAME )? optionalblock | template= NAME (name= NAME )? optionalblock )
             int alt6=3;
             switch ( input.LA(1) ) {
             case MAP:
@@ -359,10 +373,10 @@ public class MapCreatorParser extends Parser {
 
             switch (alt6) {
                 case 1 :
-                    // /Users/madeen/Projects/Eclipse/Clonk/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:160:4: type= MAP (name= NAME )? optionalblock
+                    // C:\\Users\\Madeen\\Projects\\Eclipse\\Clonk\\src\\net\\arctics\\clonk\\parser\\mapcreator\\MapCreator.g:174:4: type= MAP (name= NAME )? optionalblock
                     {
                     type=(Token)match(input,MAP,FOLLOW_MAP_in_subobject78); 
-                    // /Users/madeen/Projects/Eclipse/Clonk/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:160:17: (name= NAME )?
+                    // C:\\Users\\Madeen\\Projects\\Eclipse\\Clonk\\src\\net\\arctics\\clonk\\parser\\mapcreator\\MapCreator.g:174:17: (name= NAME )?
                     int alt3=2;
                     int LA3_0 = input.LA(1);
 
@@ -371,7 +385,7 @@ public class MapCreatorParser extends Parser {
                     }
                     switch (alt3) {
                         case 1 :
-                            // /Users/madeen/Projects/Eclipse/Clonk/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:160:17: name= NAME
+                            // C:\\Users\\Madeen\\Projects\\Eclipse\\Clonk\\src\\net\\arctics\\clonk\\parser\\mapcreator\\MapCreator.g:174:17: name= NAME
                             {
                             name=(Token)match(input,NAME,FOLLOW_NAME_in_subobject82); 
 
@@ -390,10 +404,10 @@ public class MapCreatorParser extends Parser {
                     }
                     break;
                 case 2 :
-                    // /Users/madeen/Projects/Eclipse/Clonk/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:161:4: type= OVERLAY (name= NAME )? optionalblock
+                    // C:\\Users\\Madeen\\Projects\\Eclipse\\Clonk\\src\\net\\arctics\\clonk\\parser\\mapcreator\\MapCreator.g:175:4: type= OVERLAY (name= NAME )? optionalblock
                     {
                     type=(Token)match(input,OVERLAY,FOLLOW_OVERLAY_in_subobject94); 
-                    // /Users/madeen/Projects/Eclipse/Clonk/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:161:21: (name= NAME )?
+                    // C:\\Users\\Madeen\\Projects\\Eclipse\\Clonk\\src\\net\\arctics\\clonk\\parser\\mapcreator\\MapCreator.g:175:21: (name= NAME )?
                     int alt4=2;
                     int LA4_0 = input.LA(1);
 
@@ -402,7 +416,7 @@ public class MapCreatorParser extends Parser {
                     }
                     switch (alt4) {
                         case 1 :
-                            // /Users/madeen/Projects/Eclipse/Clonk/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:161:21: name= NAME
+                            // C:\\Users\\Madeen\\Projects\\Eclipse\\Clonk\\src\\net\\arctics\\clonk\\parser\\mapcreator\\MapCreator.g:175:21: name= NAME
                             {
                             name=(Token)match(input,NAME,FOLLOW_NAME_in_subobject98); 
 
@@ -421,10 +435,10 @@ public class MapCreatorParser extends Parser {
                     }
                     break;
                 case 3 :
-                    // /Users/madeen/Projects/Eclipse/Clonk/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:162:4: template= NAME (name= NAME )? optionalblock
+                    // C:\\Users\\Madeen\\Projects\\Eclipse\\Clonk\\src\\net\\arctics\\clonk\\parser\\mapcreator\\MapCreator.g:176:4: template= NAME (name= NAME )? optionalblock
                     {
                     template=(Token)match(input,NAME,FOLLOW_NAME_in_subobject110); 
-                    // /Users/madeen/Projects/Eclipse/Clonk/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:162:22: (name= NAME )?
+                    // C:\\Users\\Madeen\\Projects\\Eclipse\\Clonk\\src\\net\\arctics\\clonk\\parser\\mapcreator\\MapCreator.g:176:22: (name= NAME )?
                     int alt5=2;
                     int LA5_0 = input.LA(1);
 
@@ -433,7 +447,7 @@ public class MapCreatorParser extends Parser {
                     }
                     switch (alt5) {
                         case 1 :
-                            // /Users/madeen/Projects/Eclipse/Clonk/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:162:22: name= NAME
+                            // C:\\Users\\Madeen\\Projects\\Eclipse\\Clonk\\src\\net\\arctics\\clonk\\parser\\mapcreator\\MapCreator.g:176:22: name= NAME
                             {
                             name=(Token)match(input,NAME,FOLLOW_NAME_in_subobject114); 
 
@@ -466,13 +480,13 @@ public class MapCreatorParser extends Parser {
 
 
     // $ANTLR start "optionalblock"
-    // /Users/madeen/Projects/Eclipse/Clonk/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:164:1: optionalblock : ( block )? ;
+    // C:\\Users\\Madeen\\Projects\\Eclipse\\Clonk\\src\\net\\arctics\\clonk\\parser\\mapcreator\\MapCreator.g:178:1: optionalblock : ( block )? ;
     public final void optionalblock() throws RecognitionException {
         try {
-            // /Users/madeen/Projects/Eclipse/Clonk/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:165:2: ( ( block )? )
-            // /Users/madeen/Projects/Eclipse/Clonk/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:165:4: ( block )?
+            // C:\\Users\\Madeen\\Projects\\Eclipse\\Clonk\\src\\net\\arctics\\clonk\\parser\\mapcreator\\MapCreator.g:179:2: ( ( block )? )
+            // C:\\Users\\Madeen\\Projects\\Eclipse\\Clonk\\src\\net\\arctics\\clonk\\parser\\mapcreator\\MapCreator.g:179:4: ( block )?
             {
-            // /Users/madeen/Projects/Eclipse/Clonk/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:165:4: ( block )?
+            // C:\\Users\\Madeen\\Projects\\Eclipse\\Clonk\\src\\net\\arctics\\clonk\\parser\\mapcreator\\MapCreator.g:179:4: ( block )?
             int alt7=2;
             int LA7_0 = input.LA(1);
 
@@ -481,7 +495,7 @@ public class MapCreatorParser extends Parser {
             }
             switch (alt7) {
                 case 1 :
-                    // /Users/madeen/Projects/Eclipse/Clonk/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:165:4: block
+                    // C:\\Users\\Madeen\\Projects\\Eclipse\\Clonk\\src\\net\\arctics\\clonk\\parser\\mapcreator\\MapCreator.g:179:4: block
                     {
                     pushFollow(FOLLOW_block_in_optionalblock128);
                     block();
@@ -511,17 +525,17 @@ public class MapCreatorParser extends Parser {
 
 
     // $ANTLR start "block"
-    // /Users/madeen/Projects/Eclipse/Clonk/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:167:1: block : open= BLOCKOPEN ( statementorattrib )* close= BLOCKCLOSE ;
+    // C:\\Users\\Madeen\\Projects\\Eclipse\\Clonk\\src\\net\\arctics\\clonk\\parser\\mapcreator\\MapCreator.g:181:1: block : open= BLOCKOPEN ( statementorattrib )* close= BLOCKCLOSE ;
     public final void block() throws RecognitionException {
         Token open=null;
         Token close=null;
 
         try {
-            // /Users/madeen/Projects/Eclipse/Clonk/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:167:7: (open= BLOCKOPEN ( statementorattrib )* close= BLOCKCLOSE )
-            // /Users/madeen/Projects/Eclipse/Clonk/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:167:9: open= BLOCKOPEN ( statementorattrib )* close= BLOCKCLOSE
+            // C:\\Users\\Madeen\\Projects\\Eclipse\\Clonk\\src\\net\\arctics\\clonk\\parser\\mapcreator\\MapCreator.g:181:7: (open= BLOCKOPEN ( statementorattrib )* close= BLOCKCLOSE )
+            // C:\\Users\\Madeen\\Projects\\Eclipse\\Clonk\\src\\net\\arctics\\clonk\\parser\\mapcreator\\MapCreator.g:181:9: open= BLOCKOPEN ( statementorattrib )* close= BLOCKCLOSE
             {
             open=(Token)match(input,BLOCKOPEN,FOLLOW_BLOCKOPEN_in_block142); 
-            // /Users/madeen/Projects/Eclipse/Clonk/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:167:24: ( statementorattrib )*
+            // C:\\Users\\Madeen\\Projects\\Eclipse\\Clonk\\src\\net\\arctics\\clonk\\parser\\mapcreator\\MapCreator.g:181:24: ( statementorattrib )*
             loop8:
             do {
                 int alt8=2;
@@ -534,7 +548,7 @@ public class MapCreatorParser extends Parser {
 
                 switch (alt8) {
             	case 1 :
-            	    // /Users/madeen/Projects/Eclipse/Clonk/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:167:24: statementorattrib
+            	    // C:\\Users\\Madeen\\Projects\\Eclipse\\Clonk\\src\\net\\arctics\\clonk\\parser\\mapcreator\\MapCreator.g:181:24: statementorattrib
             	    {
             	    pushFollow(FOLLOW_statementorattrib_in_block144);
             	    statementorattrib();
@@ -568,10 +582,10 @@ public class MapCreatorParser extends Parser {
 
 
     // $ANTLR start "statementorattrib"
-    // /Users/madeen/Projects/Eclipse/Clonk/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:169:1: statementorattrib : ( attribute | statement );
+    // C:\\Users\\Madeen\\Projects\\Eclipse\\Clonk\\src\\net\\arctics\\clonk\\parser\\mapcreator\\MapCreator.g:183:1: statementorattrib : ( attribute | statement );
     public final void statementorattrib() throws RecognitionException {
         try {
-            // /Users/madeen/Projects/Eclipse/Clonk/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:170:2: ( attribute | statement )
+            // C:\\Users\\Madeen\\Projects\\Eclipse\\Clonk\\src\\net\\arctics\\clonk\\parser\\mapcreator\\MapCreator.g:184:2: ( attribute | statement )
             int alt9=2;
             int LA9_0 = input.LA(1);
 
@@ -602,7 +616,7 @@ public class MapCreatorParser extends Parser {
             }
             switch (alt9) {
                 case 1 :
-                    // /Users/madeen/Projects/Eclipse/Clonk/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:170:4: attribute
+                    // C:\\Users\\Madeen\\Projects\\Eclipse\\Clonk\\src\\net\\arctics\\clonk\\parser\\mapcreator\\MapCreator.g:184:4: attribute
                     {
                     pushFollow(FOLLOW_attribute_in_statementorattrib160);
                     attribute();
@@ -613,7 +627,7 @@ public class MapCreatorParser extends Parser {
                     }
                     break;
                 case 2 :
-                    // /Users/madeen/Projects/Eclipse/Clonk/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:170:14: statement
+                    // C:\\Users\\Madeen\\Projects\\Eclipse\\Clonk\\src\\net\\arctics\\clonk\\parser\\mapcreator\\MapCreator.g:184:14: statement
                     {
                     pushFollow(FOLLOW_statement_in_statementorattrib162);
                     statement();
@@ -638,13 +652,13 @@ public class MapCreatorParser extends Parser {
 
 
     // $ANTLR start "attribute"
-    // /Users/madeen/Projects/Eclipse/Clonk/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:172:1: attribute : (attr= NAME ASSIGN attrValue= NAME STATEMENTEND | attr= NAME ASSIGN attrValue= NUMBER STATEMENTEND | attr= NAME ASSIGN attrValue= MATCOMBO STATEMENTEND );
+    // C:\\Users\\Madeen\\Projects\\Eclipse\\Clonk\\src\\net\\arctics\\clonk\\parser\\mapcreator\\MapCreator.g:186:1: attribute : (attr= NAME ASSIGN attrValue= NAME STATEMENTEND | attr= NAME ASSIGN attrValue= NUMBER STATEMENTEND | attr= NAME ASSIGN attrValue= MATCOMBO STATEMENTEND );
     public final void attribute() throws RecognitionException {
         Token attr=null;
         Token attrValue=null;
 
         try {
-            // /Users/madeen/Projects/Eclipse/Clonk/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:173:2: (attr= NAME ASSIGN attrValue= NAME STATEMENTEND | attr= NAME ASSIGN attrValue= NUMBER STATEMENTEND | attr= NAME ASSIGN attrValue= MATCOMBO STATEMENTEND )
+            // C:\\Users\\Madeen\\Projects\\Eclipse\\Clonk\\src\\net\\arctics\\clonk\\parser\\mapcreator\\MapCreator.g:187:2: (attr= NAME ASSIGN attrValue= NAME STATEMENTEND | attr= NAME ASSIGN attrValue= NUMBER STATEMENTEND | attr= NAME ASSIGN attrValue= MATCOMBO STATEMENTEND )
             int alt10=3;
             int LA10_0 = input.LA(1);
 
@@ -691,7 +705,7 @@ public class MapCreatorParser extends Parser {
             }
             switch (alt10) {
                 case 1 :
-                    // /Users/madeen/Projects/Eclipse/Clonk/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:173:4: attr= NAME ASSIGN attrValue= NAME STATEMENTEND
+                    // C:\\Users\\Madeen\\Projects\\Eclipse\\Clonk\\src\\net\\arctics\\clonk\\parser\\mapcreator\\MapCreator.g:187:4: attr= NAME ASSIGN attrValue= NAME STATEMENTEND
                     {
                     attr=(Token)match(input,NAME,FOLLOW_NAME_in_attribute173); 
                     match(input,ASSIGN,FOLLOW_ASSIGN_in_attribute175); 
@@ -702,7 +716,7 @@ public class MapCreatorParser extends Parser {
                     }
                     break;
                 case 2 :
-                    // /Users/madeen/Projects/Eclipse/Clonk/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:174:4: attr= NAME ASSIGN attrValue= NUMBER STATEMENTEND
+                    // C:\\Users\\Madeen\\Projects\\Eclipse\\Clonk\\src\\net\\arctics\\clonk\\parser\\mapcreator\\MapCreator.g:188:4: attr= NAME ASSIGN attrValue= NUMBER STATEMENTEND
                     {
                     attr=(Token)match(input,NAME,FOLLOW_NAME_in_attribute190); 
                     match(input,ASSIGN,FOLLOW_ASSIGN_in_attribute192); 
@@ -713,7 +727,7 @@ public class MapCreatorParser extends Parser {
                     }
                     break;
                 case 3 :
-                    // /Users/madeen/Projects/Eclipse/Clonk/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:175:4: attr= NAME ASSIGN attrValue= MATCOMBO STATEMENTEND
+                    // C:\\Users\\Madeen\\Projects\\Eclipse\\Clonk\\src\\net\\arctics\\clonk\\parser\\mapcreator\\MapCreator.g:189:4: attr= NAME ASSIGN attrValue= MATCOMBO STATEMENTEND
                     {
                     attr=(Token)match(input,NAME,FOLLOW_NAME_in_attribute207); 
                     match(input,ASSIGN,FOLLOW_ASSIGN_in_attribute209); 
@@ -741,7 +755,7 @@ public class MapCreatorParser extends Parser {
 
  
 
-    public static final BitSet FOLLOW_statement_in_parse33 = new BitSet(new long[]{0x00000000000001C2L});
+    public static final BitSet FOLLOW_statement_in_start33 = new BitSet(new long[]{0x00000000000001C2L});
     public static final BitSet FOLLOW_composition_in_statement45 = new BitSet(new long[]{0x0000000000000010L});
     public static final BitSet FOLLOW_STATEMENTEND_in_statement47 = new BitSet(new long[]{0x0000000000000002L});
     public static final BitSet FOLLOW_subobject_in_composition56 = new BitSet(new long[]{0x0000000000000022L});

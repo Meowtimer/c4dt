@@ -9,6 +9,7 @@ import org.eclipse.jface.preference.DirectoryFieldEditor;
 import org.eclipse.jface.preference.FieldEditorPreferencePage;
 import org.eclipse.jface.preference.FileFieldEditor;
 import org.eclipse.jface.preference.ListEditor;
+import org.eclipse.jface.preference.StringFieldEditor;
 import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPreferencePage;
@@ -52,6 +53,13 @@ public class ClonkPreferencePage
 		addField(clonkPathEditor);
 		addField(c4groupExecutable);
 		addField(engineExecutable);
+		addField(
+				new StringFieldEditor(
+						PreferenceConstants.PREFERRED_LANGID,
+						"Preferred language",
+						getFieldEditorParent()
+				)
+		);
 		addField(new ListEditor(PreferenceConstants.STANDARD_EXT_LIBS,"External objects and scripts:",getFieldEditorParent()) {
 		
 			@Override
@@ -68,7 +76,7 @@ public class ClonkPreferencePage
 					gamePath = clonkPathEditor.getStringValue();
 				}
 				if (gamePath == null || !new File(gamePath).exists()) {
-					gamePath = "C:\\";
+					gamePath = null;
 				}
 				FileDialog dialog = new FileDialog(getShell());
 				dialog.setText("Choose external object");
