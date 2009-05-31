@@ -2,10 +2,9 @@ package net.arctics.clonk.ui.search;
 
 import java.io.IOException;
 
-import net.arctics.clonk.parser.c4script.C4ScriptBase;
+import net.arctics.clonk.parser.C4Structure;
 import net.arctics.clonk.parser.ParsingException;
-import net.arctics.clonk.ui.editors.c4script.C4ScriptEditor;
-
+import net.arctics.clonk.ui.editors.ClonkTextEditor;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.OpenEvent;
 import org.eclipse.jface.viewers.TableViewer;
@@ -46,9 +45,9 @@ public class ClonkSearchResultPage extends AbstractTextSearchViewPage implements
 			boolean activate) throws PartInitException {
 		ClonkSearchMatch clonkMatch = (ClonkSearchMatch) match;
 		try {
-			C4ScriptEditor editor;
+			ClonkTextEditor editor;
 			try {
-				editor = (C4ScriptEditor) C4ScriptEditor.openDeclaration(clonkMatch.getScript(), activate);
+				editor = (ClonkTextEditor) ClonkTextEditor.openDeclaration(clonkMatch.getStructure(), activate);
 				editor.selectAndReveal(currentOffset, currentLength);
 			} catch (ParsingException e) {
 				e.printStackTrace();
@@ -67,7 +66,7 @@ public class ClonkSearchResultPage extends AbstractTextSearchViewPage implements
 				IStructuredSelection selection = (IStructuredSelection) treeViewer.getSelection();
 				Object firstElm = selection.getFirstElement();
 				if (firstElm instanceof Match) {
-					return ((C4ScriptBase)((Match)firstElm).getElement()).getScriptFile();
+					return ((C4Structure)((Match)firstElm).getElement()).getResource();
 				}
 				return selection.getFirstElement();
 			}

@@ -4,8 +4,8 @@ import java.io.IOException;
 import java.util.ResourceBundle;
 
 import net.arctics.clonk.parser.C4Declaration;
+import net.arctics.clonk.parser.C4Structure;
 import net.arctics.clonk.parser.SourceLocation;
-import net.arctics.clonk.parser.c4script.C4Structure;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.ui.editors.actions.c4script.OpenDeclarationAction;
 import net.arctics.clonk.ui.editors.c4script.C4ScriptEditor;
@@ -86,6 +86,7 @@ public class ClonkTextEditor extends TextEditor {
 					if (target != null)
 						clonkTextEditor.selectAndReveal(target.getLocation());
 				}
+				return editor;
 			}
 		}
 		return null;

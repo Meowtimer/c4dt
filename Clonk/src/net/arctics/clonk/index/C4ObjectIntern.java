@@ -95,7 +95,7 @@ public class C4ObjectIntern extends C4Object implements Serializable {
 	 * The file on the harddisk is not deleted. (delete it by IResource.delete(true,null))
 	 */
 	public void delete() {
-		Utilities.getProject(objectFolder.getProject()).getIndex().removeObject(this);
+		Utilities.getClonkNature(objectFolder.getProject()).getIndex().removeObject(this);
 	}
 	
 	public void setObjectFolder(IContainer folder) throws CoreException {

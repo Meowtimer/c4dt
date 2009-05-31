@@ -67,7 +67,7 @@ public class ClonkRenameFieldProcessor extends RenameProcessor {
 		if (!(script instanceof IResource))
 			return null;
 		IResource declaringFile = (IResource) script;
-		ClonkSearchQuery query = new ClonkSearchQuery(decl, Utilities.getProject(declaringFile));
+		ClonkSearchQuery query = new ClonkSearchQuery(decl, Utilities.getClonkNature(declaringFile));
 		query.run(monitor);
 		ClonkSearchResult searchResult = (ClonkSearchResult) query.getSearchResult();
 		// all references in code

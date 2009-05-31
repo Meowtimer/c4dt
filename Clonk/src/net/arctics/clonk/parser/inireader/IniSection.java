@@ -4,6 +4,7 @@
 package net.arctics.clonk.parser.inireader;
 
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.Map;
 
 import org.eclipse.core.runtime.IPath;
@@ -14,8 +15,9 @@ import net.arctics.clonk.parser.inireader.IniData.IniSectionData;
 import net.arctics.clonk.util.IHasChildren;
 import net.arctics.clonk.util.IHasKeyAndValue;
 import net.arctics.clonk.util.ITreeNode;
+import net.arctics.clonk.util.ReadOnlyIterator;
 
-public class IniSection extends C4Declaration implements IHasKeyAndValue<String, String>, IHasChildren, ITreeNode {
+public class IniSection extends C4Declaration implements IHasKeyAndValue<String, String>, IHasChildren, ITreeNode, Iterable<IniEntry> {
 	
 	private static final long serialVersionUID = 1L;
 	
@@ -111,6 +113,10 @@ public class IniSection extends C4Declaration implements IHasKeyAndValue<String,
 	@Override
 	public boolean hasSubDeclarationsInOutline() {
 		return hasChildren();
+	}
+
+	public Iterator<IniEntry> iterator() {
+		return new ReadOnlyIterator<IniEntry>(this.entries.values().iterator());
 	}
 	
 }

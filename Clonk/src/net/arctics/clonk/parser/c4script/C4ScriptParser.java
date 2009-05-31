@@ -478,7 +478,7 @@ public class C4ScriptParser {
 			else {
 				// old-style function declaration without visibility
 				eatWhitespace();
-				if (fReader.read() == ':') {
+				if (fReader.read() == ':' && fReader.read() != ':') { // no :: -.-
 					fReader.seek(offset); // just let parseFunctionDeclaration parse the name again
 					if (parseFunctionDeclaration(Keywords.Public, offset, offset)) // just assume public
 						return true;
@@ -495,7 +495,7 @@ public class C4ScriptParser {
 	 * @return
 	 */
 	private boolean looksLikeStartOfFunction(String word) {
-		return word.equalsIgnoreCase(Keywords.Public) || word.equalsIgnoreCase(Keywords.Protected) || word.equalsIgnoreCase(Keywords.Private) || word.equalsIgnoreCase(Keywords.Global) || word.equals(Keywords.Func);
+		return word.equals(Keywords.Public) || word.equals(Keywords.Protected) || word.equals(Keywords.Private) || word.equals(Keywords.Global) || word.equals(Keywords.Func);
 	}
 
 	private boolean parseVariableDeclaration(int offset) throws ParsingException {
@@ -779,7 +779,7 @@ public class C4ScriptParser {
 							break;
 						} else {
 							eatWhitespace();
-							if (fReader.read() == ':') {
+							if (fReader.read() == ':' && fReader.read() != ':') {
 								fReader.seek(endBody);
 								break;
 							} else {
@@ -2268,10 +2268,6 @@ public class C4ScriptParser {
 		}
 		C4ScriptParser tempParser = new C4ScriptParser(expression, context);
 		return tempParser.parseExpression(0);
-	}
-	
-	public static C4ScriptParser reportExpressionsAndStatements(IDocument doc, int offset, C4ScriptBase context, C4Function func, IExpressionListener listener) throws BadLocationException, ParsingException {
-		return reportExpressionsAndStatements(doc, Utilities.getStartOfStatement(doc, offset), offset, context, func, listener);
 	}
 
 }

@@ -27,7 +27,7 @@ public class FindReferencesAction extends OpenDeclarationAction {
 			if (field != null) {
 				ClonkProjectNature nature = Utilities.getProject(field.getScript());				
 				if (nature == null) {
-					nature = Utilities.getProject(getTextEditor()); 
+					nature = Utilities.getClonkNature(getTextEditor()); 
 				}
 				if (nature == null) {
 					MessageDialog.openError(getTextEditor().getSite().getShell(), "Find References", "Find References only works with files in your project (not external objects)");

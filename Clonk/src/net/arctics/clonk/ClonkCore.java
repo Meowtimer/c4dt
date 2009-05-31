@@ -60,7 +60,8 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant {
 
 	public static final QualifiedName FOLDER_C4ID_PROPERTY_ID = new QualifiedName(PLUGIN_ID,"c4id");
 	public static final QualifiedName C4OBJECT_PROPERTY_ID = new QualifiedName(PLUGIN_ID,"c4object");
-	public static final QualifiedName SCRIPT_PROPERTY_ID = new QualifiedName(PLUGIN_ID, "script"); 
+	public static final QualifiedName SCRIPT_PROPERTY_ID = new QualifiedName(PLUGIN_ID, "script");
+	public static final QualifiedName STRUCTURE_PROPERTY_ID = new QualifiedName(PLUGIN_ID, "structure");
 	
 	/**
 	 * The engine object contains global functions and variables defined by Clonk itself
@@ -156,6 +157,9 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant {
 			ObjectInputStream objStream = new InputStreamRespectingUniqueIDs(engineStream);
 			ENGINE_OBJECT = (C4ObjectExtern)objStream.readObject();
 			ENGINE_OBJECT.fixReferencesAfterSerialization(null);
+			if (ENGINE_OBJECT.removeDWording()) {
+				saveEngineObject();
+			}
 
 		} catch (Exception e) {
 			// fallback to xml
@@ -337,7 +341,7 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant {
 		ClonkProjectNature clonkProj;
 		switch (context.getKind()) {
 		case ISaveContext.PROJECT_SAVE:
-			clonkProj = Utilities.getProject(context.getProject());
+			clonkProj = Utilities.getClonkNature(context.getProject());
 			if (clonkProj != null) {
 				clonkProj.saveIndex();
 			}
@@ -347,7 +351,7 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant {
 			for (IProject project : ResourcesPlugin.getWorkspace().getRoot().getProjects()) {
 				if (!project.isOpen())
 					continue;
-				clonkProj = Utilities.getProject(project);
+				clonkProj = Utilities.getClonkNature(project);
 				if (clonkProj != null) {
 					clonkProj.saveIndex();
 				}

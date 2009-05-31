@@ -26,6 +26,7 @@ import net.arctics.clonk.index.C4Object;
 import net.arctics.clonk.index.ClonkIndex;
 import net.arctics.clonk.parser.C4Declaration;
 import net.arctics.clonk.parser.C4ID;
+import net.arctics.clonk.parser.C4Structure;
 import net.arctics.clonk.parser.c4script.C4Directive.C4DirectiveType;
 import net.arctics.clonk.parser.c4script.C4Variable.C4VariableScope;
 import net.arctics.clonk.util.CompoundIterable;
@@ -603,6 +604,23 @@ public abstract class C4ScriptBase extends C4Structure implements IHasRelatedRes
 				v.setUserDescription(desc.getTextContent());
 			this.addField(v);
 		}
+	}
+	
+	public boolean removeDWording() {
+		boolean result = false;
+		for (C4Function f : functions()) {
+			if (f.getReturnType() == C4Type.DWORD) {
+				f.setReturnType(C4Type.INT);
+				result = true;
+			}
+			for (C4Variable parm : f.getParameters()) {
+				if (parm.getType() == C4Type.DWORD) {
+					parm.setType(C4Type.INT);
+					result = true;
+				}
+			}
+		}
+		return result;
 	}
 
 	//	public boolean convertFuncsToConstsIfTheyLookLikeConsts() {

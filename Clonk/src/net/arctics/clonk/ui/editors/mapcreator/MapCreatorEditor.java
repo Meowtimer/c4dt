@@ -3,7 +3,6 @@ package net.arctics.clonk.ui.editors.mapcreator;
 import org.antlr.runtime.ANTLRStringStream;
 import org.antlr.runtime.CharStream;
 import org.antlr.runtime.CommonTokenStream;
-import org.antlr.runtime.RecognitionException;
 import org.eclipse.core.resources.IFile;
 import net.arctics.clonk.parser.mapcreator.C4MapCreator;
 import net.arctics.clonk.parser.mapcreator.MapCreatorLexer;

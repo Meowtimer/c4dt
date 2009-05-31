@@ -2,8 +2,10 @@ package net.arctics.clonk.ui.search;
 
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.index.C4Object;
+import net.arctics.clonk.index.C4ObjectIntern;
 import net.arctics.clonk.index.C4Scenario;
 import net.arctics.clonk.parser.C4Declaration;
+import net.arctics.clonk.parser.C4Structure;
 import net.arctics.clonk.parser.c4script.C4Directive;
 import net.arctics.clonk.parser.c4script.C4Function;
 import net.arctics.clonk.parser.c4script.C4ScriptBase;
@@ -18,6 +20,11 @@ import net.arctics.clonk.parser.c4script.C4ScriptExprTree.ExprString;
 import net.arctics.clonk.parser.c4script.C4ScriptExprTree.IExpressionListener;
 import net.arctics.clonk.parser.c4script.C4ScriptExprTree.Statement;
 import net.arctics.clonk.parser.c4script.C4ScriptExprTree.TraversalContinuation;
+import net.arctics.clonk.parser.inireader.ComplexIniEntry;
+import net.arctics.clonk.parser.inireader.Function;
+import net.arctics.clonk.parser.inireader.IniEntry;
+import net.arctics.clonk.parser.inireader.IniSection;
+import net.arctics.clonk.parser.inireader.IniUnit;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.util.Utilities;
 
@@ -35,19 +42,19 @@ import org.eclipse.search.ui.ISearchResult;
 
 public class ClonkSearchQuery implements ISearchQuery {
 
-	private C4Declaration field;
+	private C4Declaration declaration;
 	private Object[] scope;
 	private C4ScriptBase declaringScript;
 	private boolean declaringScriptIsScenario;
 	
 	private ClonkSearchResult result;
 	
-	public ClonkSearchQuery(C4Declaration field, ClonkProjectNature project) {
+	public ClonkSearchQuery(C4Declaration declaration, ClonkProjectNature project) {
 		super();
-		this.field = field;
-		this.declaringScript = field.getScript();
+		this.declaration = declaration;
+		this.declaringScript = declaration.getScript();
 		this.declaringScriptIsScenario = declaringScript instanceof C4Scenario;
-		this.scope = field.occurenceScope(project);
+		this.scope = declaration.occurenceScope(project);
 	}
 
 	public boolean canRerun() {
@@ -59,7 +66,7 @@ public class ClonkSearchQuery implements ISearchQuery {
 	}
 
 	public String getLabel() {
-		return String.format("Search for '%s'", field.toString()); 
+		return String.format("Search for '%s'", declaration.toString()); 
 	}
 
 	public ISearchResult getSearchResult() {
@@ -77,7 +84,7 @@ public class ClonkSearchQuery implements ISearchQuery {
 					ExprCallFunc callFunc = (ExprCallFunc) expression;
 					if (callFunc.getDeclarationName().equals("GameCall")) {
 						if (callFunc.getParams().length > 0 && callFunc.getParams()[0] instanceof ExprString) {
-							if (((ExprString)callFunc.getParams()[0]).stringValue().equals(field.getName()))
+							if (((ExprString)callFunc.getParams()[0]).stringValue().equals(declaration.getName()))
 								return true;
 						}
 					}
@@ -87,34 +94,32 @@ public class ClonkSearchQuery implements ISearchQuery {
 			private boolean potentiallyReferencedByObjectCall(ExprElm expression) {
 				if (expression instanceof ExprCallFunc && expression.getPredecessorInSequence() instanceof ExprObjectCall) {
 					ExprCallFunc callFunc = (ExprCallFunc) expression;
-					return callFunc.getDeclarationName().equals(field.getName());
+					return callFunc.getDeclarationName().equals(declaration.getName());
 				}
 				return false;
 			}
-			public TraversalContinuation expressionDetected(ExprElm expression,
-					C4ScriptParser parser) {
+			public TraversalContinuation expressionDetected(ExprElm expression, C4ScriptParser parser) {
 				if (expression instanceof ExprAccessDeclaration) {
 					ExprAccessDeclaration accessField = (ExprAccessDeclaration) expression;
-					if (accessField.getDeclaration(parser) == field)
+					if (accessField.getDeclaration(parser) == declaration)
 						result.addMatch(expression, parser, false, accessField.indirectAccess());
 					else if (declaringScriptIsScenario && calledThroughGameCall(expression))
 						result.addMatch(expression, parser, false, true);
 					else if (potentiallyReferencedByObjectCall(expression)) {
 						C4Function otherFunc = (C4Function) accessField.getDeclaration();
-						boolean potential = (otherFunc == null || !((C4Function)field).isRelatedFunction(otherFunc));
+						boolean potential = (otherFunc == null || !((C4Function)declaration).isRelatedFunction(otherFunc));
 						result.addMatch(expression, parser, potential, accessField.indirectAccess());
 					}
 				}
-				else if (expression instanceof ExprID && field instanceof C4ScriptBase) {
-					if (expression.guessObjectType(parser) == field)
+				else if (expression instanceof ExprID && declaration instanceof C4ScriptBase) {
+					if (expression.guessObjectType(parser) == declaration)
 						result.addMatch(expression, parser, false, false);
 				}
 				return TraversalContinuation.Continue;
 			}
 		};
 		final IExpressionListener searchExpressions = new IExpressionListener() {
-			public TraversalContinuation expressionDetected(ExprElm expression,
-					C4ScriptParser parser) {
+			public TraversalContinuation expressionDetected(ExprElm expression, C4ScriptParser parser) {
 				if (expression instanceof Statement)
 					expression.traverse(searchExpression, parser);
 				return TraversalContinuation.Continue;
@@ -161,8 +166,8 @@ public class ClonkSearchQuery implements ISearchQuery {
 	
 	private void searchScript(final IExpressionListener searchExpressions, IResource resource, C4ScriptBase script) {
 		C4ScriptParser parser = new C4ScriptParser((IFile) resource, script);
-		if (field instanceof C4Object) {
-			C4Directive include = script.getIncludeDirectiveFor((C4Object) field);
+		if (declaration instanceof C4Object) {
+			C4Directive include = script.getIncludeDirectiveFor((C4Object) declaration);
 			if (include != null)
 				result.addMatch(include.getExprElm(), parser, false, false);
 		}
@@ -171,6 +176,43 @@ public class ClonkSearchQuery implements ISearchQuery {
 			parser.parseCodeOfFunctions();
 		} catch (ParsingException e) {
 			e.printStackTrace();
+		}
+		
+		// also search related files (actmap, defcore etc)
+		try {
+			searchScriptRelatedFiles(script);
+		} catch (CoreException e) {
+			e.printStackTrace();
+		}
+	}
+
+	private void searchScriptRelatedFiles(C4ScriptBase script) throws CoreException {
+		if (script instanceof C4ObjectIntern) {
+			IContainer objectFolder = ((C4ObjectIntern)script).getScriptFile().getParent();
+			for (IResource res : objectFolder.members()) {
+				if (res instanceof IFile) {
+					IFile file = (IFile)res;
+					C4Structure pinned = C4Structure.pinned(file, true);
+					if (pinned instanceof IniUnit) {
+						IniUnit iniUnit = (IniUnit) pinned;
+						for (IniSection sec : iniUnit) {
+							for (IniEntry entry : sec) {
+								if (entry instanceof ComplexIniEntry) {
+									ComplexIniEntry complex = (ComplexIniEntry) entry;
+									if (complex.getEntryConfig() != null && complex.getEntryConfig().getEntryClass() == Function.class) {
+										C4ObjectIntern obj = C4ObjectIntern.objectCorrespondingTo(objectFolder);
+										if (obj != null) {
+											C4Declaration declaration = obj.findFunction(complex.getValue());
+											if (declaration == this.declaration)
+												result.addMatch(new ClonkSearchMatch(entry.toString(), 0, iniUnit, entry.getStartPos(), entry.getEndPos()-entry.getStartPos(), false, false));
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
 		}
 	}
 

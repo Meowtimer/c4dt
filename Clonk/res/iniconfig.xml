@@ -420,6 +420,11 @@
 			<entry name="PXSGfxRt" class="net.arctics.clonk.parser.inireader.IntegerArray"
 				description="Zielrechteck auf die Grafik für lose Materialpixel. Es werden weitere Phasen rechts und unterhalb der angegebenen Grafik benutzt. Die Grafik sollte immer oben links beginnen, und die gesamte Texturgröße einnehmen." />
 		</section>
+		<section name="Reaction">
+			<entry name="Type" class="java.lang.String" />
+			<entry name="TargetSpec" class="java.lang.String" />
+			<entry name="ConvertMat" class="java.lang.String" />
+		</section>
 	</file>
 	<file name="Scenario.txt"
 		factoryclass="net.arctics.clonk.parser.inireader.GenericEntryFactory">

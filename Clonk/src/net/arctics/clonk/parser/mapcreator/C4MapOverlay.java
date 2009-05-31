@@ -6,8 +6,8 @@ import java.util.LinkedList;
 import java.util.List;
 
 import net.arctics.clonk.parser.C4Declaration;
+import net.arctics.clonk.parser.C4Structure;
 import net.arctics.clonk.parser.SourceLocation;
-import net.arctics.clonk.parser.c4script.C4Structure;
 
 public class C4MapOverlay extends C4Structure implements Cloneable {
 	

@@ -20,7 +20,6 @@ import net.arctics.clonk.preferences.PreferenceConstants;
 import net.arctics.clonk.ui.editors.ClonkTextEditor;
 import net.arctics.clonk.util.Utilities;
 
-import org.antlr.runtime.RecognitionException;
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
@@ -72,7 +71,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 		if (monitor != null) monitor.beginTask("Cleaning up", 1);
 		IProject proj = this.getProject();
 		if (proj != null) {
-			Utilities.getProject(proj).getIndex().clear();
+			Utilities.getClonkNature(proj).getIndex().clear();
 			proj.accept(new IResourceVisitor() {
 				public boolean visit(IResource resource) throws CoreException {
 					if (resource.getSessionProperty(ClonkCore.C4OBJECT_PROPERTY_ID) != null) {
@@ -114,7 +113,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 					// parse
 					buildPhase = 0;
 					delta.accept(this);
-					Utilities.getProject(proj).getIndex().refreshCache();
+					Utilities.getClonkNature(proj).getIndex().refreshCache();
 					buildPhase = 1;
 					delta.accept(this);
 					
@@ -122,7 +121,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 					delta.getResource().touch(monitor);
 					
 					// refresh global func and static var cache
-					Utilities.getProject(proj).getIndex().refreshCache();
+					Utilities.getClonkNature(proj).getIndex().refreshCache();
 				}
 				break;
 			
@@ -179,7 +178,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 					// parse declarations
 					buildPhase = 0;
 					proj.accept(this);
-					Utilities.getProject(proj).getIndex().refreshCache();
+					Utilities.getClonkNature(proj).getIndex().refreshCache();
 					if (monitor.isCanceled()) {
 						monitor.done();
 						return null;
@@ -202,7 +201,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 			monitor.subTask("Save data");
 			
 			// saves all objects persistently
-			Utilities.getProject(proj).markAsDirty();
+			Utilities.getClonkNature(proj).markAsDirty();
 
 			monitor.done();
 			
@@ -251,16 +250,17 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 			return false;
 
 		if (delta.getResource() instanceof IFile) {
+			IFile file = (IFile) delta.getResource();
 			if (delta.getKind() == IResourceDelta.CHANGED || delta.getKind() == IResourceDelta.ADDED) {
 				Class<? extends IniUnit> iniUnitClass;
-				C4ScriptBase script = Utilities.getScriptForFile((IFile) delta.getResource());
+				C4ScriptBase script = Utilities.getScriptForFile(file);
 				if (script == null && buildPhase == 0) {
 					// create if new file
 					IContainer folder = delta.getResource().getParent();
 					C4ObjectParser parser;
 					if (delta.getResource().getName().endsWith(".c") && folder.getName().endsWith(".c4g")) {
 						script = new C4ScriptIntern(delta.getResource());
-						Utilities.getProject(delta.getResource()).getIndex().addScript(script);
+						Utilities.getClonkNature(delta.getResource()).getIndex().addScript(script);
 					}
 					else if ((parser = C4ObjectParser.create(folder)) != null) {
 						script = parser.createObject();
@@ -284,29 +284,31 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 						}
 					}
 				}
-				else if (buildPhase == 0 && (iniUnitClass = Utilities.getIniUnitClass((IFile) delta.getResource())) != null) {
+				else if (buildPhase == 0 && (iniUnitClass = Utilities.getIniUnitClass(file)) != null) {
 					try {
 						IniUnit reader = iniUnitClass.getConstructor(IFile.class).newInstance(delta.getResource());
 						reader.parse();
 						reader.commitTo(script);
+						reader.pinTo(file);
 					} catch (Exception e) {
 						e.printStackTrace();
 					}
 				}
 				else if (buildPhase == 0 && (delta.getResource().getName().equals("Landscape.txt"))) {
-					C4MapCreator mapCreator = new C4MapCreator((IFile) delta.getResource());
+					C4MapCreator mapCreator = new C4MapCreator(file);
 					MapCreatorParser parser = new MapCreatorParser(mapCreator);
 					parser.parse();
 				}
 			}
 			else if (delta.getKind() == IResourceDelta.REMOVED && delta.getResource().getParent().exists()) {
 				if (buildPhase == 0) {
-					C4ScriptBase script = Utilities.getScriptForFile((IFile) delta.getResource());
-					if (script != null && delta.getResource().equals(script.getScriptFile()))
+					C4ScriptBase script = Utilities.getScriptForFile(file);
+					if (script != null && file.equals(script.getScriptFile()))
 						script.clearFields();
 				}
 			}
-			if (monitor != null) monitor.worked(1);
+			if (monitor != null)
+				monitor.worked(1);
 			return true;
 		}
 		else if (delta.getResource() instanceof IContainer) {
@@ -349,7 +351,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 				return true;
 			case 1:
 				// check correctness of function code
-				ClonkIndex index = Utilities.getProject(resource).getIndex();
+				ClonkIndex index = Utilities.getClonkNature(resource).getIndex();
 				C4Object obj = index.getObject((IContainer)resource);
 				IFile scriptFile = (IFile) ((obj != null) ? obj.getScriptFile() : null);
 				if (scriptFile != null) {
@@ -373,7 +375,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 				if (script == null) {
 					script = new C4ScriptIntern(resource);
 				}
-				Utilities.getProject(resource).getIndex().addScript(script);
+				Utilities.getClonkNature(resource).getIndex().addScript(script);
 				C4ScriptParser parser = new C4ScriptParser((IFile)resource, script);
 				parser.clean();
 				parser.parseDeclarations();

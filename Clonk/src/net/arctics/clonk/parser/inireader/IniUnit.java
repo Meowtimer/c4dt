@@ -10,9 +10,9 @@ import java.util.Map;
 
 import net.arctics.clonk.parser.BufferedScanner;
 import net.arctics.clonk.parser.C4Declaration;
+import net.arctics.clonk.parser.C4Structure;
 import net.arctics.clonk.parser.SourceLocation;
 import net.arctics.clonk.parser.c4script.C4ScriptBase;
-import net.arctics.clonk.parser.c4script.C4Structure;
 import net.arctics.clonk.parser.inireader.IniData.IniConfiguration;
 import net.arctics.clonk.parser.inireader.IniData.IniDataEntry;
 import net.arctics.clonk.parser.inireader.IniData.IniSectionData;
@@ -394,6 +394,11 @@ public class IniUnit extends C4Structure implements Iterable<IniSection>, IHasCh
 	@Override
 	public C4Structure getTopLevelStructure() {
 		return this;
+	}
+	
+	@Override
+	public String toString() {
+		return getIniFile().getFullPath().toOSString();
 	}
 	
 }

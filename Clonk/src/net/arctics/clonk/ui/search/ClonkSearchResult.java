@@ -82,13 +82,6 @@ public class ClonkSearchResult extends AbstractTextSearchResult implements IEdit
 	public IFile getFile(Object element) {
 		if (element instanceof C4ScriptBase)
 			return (IFile) ((C4ScriptBase)element).getScriptFile();
-//		if (element instanceof C4Field) {
-//			C4ScriptBase script = ((C4Field)element).getScript();
-//			Object file = script.getScriptFile();
-//			if (file instanceof IFile)
-//				return (IFile)file;
-//			return null;
-//		}
 		if (element instanceof IFile) {
 			return (IFile)element;
 		}

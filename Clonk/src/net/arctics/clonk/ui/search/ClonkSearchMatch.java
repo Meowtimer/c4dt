@@ -1,7 +1,6 @@
 package net.arctics.clonk.ui.search;
 
-import net.arctics.clonk.parser.c4script.C4ScriptBase;
-
+import net.arctics.clonk.parser.C4Structure;
 import org.eclipse.search.ui.text.Match;
 
 public class ClonkSearchMatch extends Match {
@@ -28,8 +27,8 @@ public class ClonkSearchMatch extends Match {
 		return line;
 	}
 
-	public C4ScriptBase getScript() {
-		return (C4ScriptBase) getElement();
+	public C4Structure getStructure() {
+		return (C4Structure) getElement();
 	}
 
 	public int getLineOffset() {

@@ -30,7 +30,7 @@ public class C4ScriptIntern extends C4ScriptBase implements Serializable {
 
 	@Override
 	public ClonkIndex getIndex() {
-		ClonkProjectNature nature = Utilities.getProject(scriptFile);
+		ClonkProjectNature nature = Utilities.getClonkNature(scriptFile);
 		return nature != null ? nature.getIndex() : null;
 	}
 

@@ -44,8 +44,6 @@ import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.content.IContentType;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.resource.ImageRegistry;
-import org.eclipse.jface.text.BadLocationException;
-import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.Region;
 import org.eclipse.swt.graphics.Image;
@@ -78,9 +76,9 @@ public abstract class Utilities {
 	 * @param editor the editor
 	 * @return the nature
 	 */
-	public static ClonkProjectNature getProject(ITextEditor editor) {
+	public static ClonkProjectNature getClonkNature(ITextEditor editor) {
 		if (editor.getEditorInput() instanceof FileEditorInput) {
-			return getProject(((FileEditorInput)editor.getEditorInput()).getFile());
+			return getClonkNature(((FileEditorInput)editor.getEditorInput()).getFile());
 		}
 		return null;
 	}
@@ -90,10 +88,10 @@ public abstract class Utilities {
 	 * @param res the resource
 	 * @return the nature
 	 */
-	public static ClonkProjectNature getProject(IResource res) {
+	public static ClonkProjectNature getClonkNature(IResource res) {
 		if (res == null) return null;
 		IProject project = res.getProject();
-		if (project == null) return null;
+		if (project == null || !project.isOpen()) return null;
 		try {
 			IProjectNature clonkProj = project.getNature("net.arctics.clonk.clonknature");
 			return (ClonkProjectNature) clonkProj;
@@ -112,9 +110,9 @@ public abstract class Utilities {
 		if (script == null)
 			return null;
 		if (script instanceof C4ObjectIntern)
-			return getProject(((C4ObjectIntern)script).getObjectFolder());
+			return getClonkNature(((C4ObjectIntern)script).getObjectFolder());
 		if (script instanceof C4ScriptIntern)
-			return getProject(((C4ScriptIntern)script).getScriptFile());
+			return getClonkNature(((C4ScriptIntern)script).getScriptFile());
 		else
 			return null;
 	}
@@ -178,7 +176,7 @@ public abstract class Utilities {
 	
 	public static ClonkIndex getIndex(IResource res) {
 		if (res != null) {
-			ClonkProjectNature nature = getProject(res);
+			ClonkProjectNature nature = getClonkNature(res);
 			if (nature != null) {
 				return nature.getIndex();
 			}
@@ -289,8 +287,8 @@ public abstract class Utilities {
 			if ('0' <= readChar && readChar <= '9')
 				digits++;
 			if (('A' <= readChar && readChar <= 'Z') ||
-					('0' <= readChar && readChar <= '9') ||
-					(readChar == '_')) {
+			    ('0' <= readChar && readChar <= '9') ||
+			    (readChar == '_')) {
 				continue;
 			}
 			else {
@@ -298,26 +296,6 @@ public abstract class Utilities {
 			}
 		}
 		return digits != 4; // rather interpret 1000 as int
-	}
-	
-	public static int getStartOfStatement(IDocument doc, int offset) throws BadLocationException {
-		int bracketDepth = 0;
-		for (int off = offset-1; off >= 0; off--) {
-			switch (doc.getChar(off)) {
-			case ';': case '{': case '}': case ']': case ':':
-				if (bracketDepth <= 0)
-					return off+1;
-				break;
-			case ')':
-				bracketDepth++;
-				break;
-			case '(':
-				if (--bracketDepth < 0)
-					return off+1;
-				break;
-			}
-		}
-		return offset;
 	}
 
 	/**
@@ -425,7 +403,7 @@ public abstract class Utilities {
 		return mapOfType((Class<? extends Map<KeyType, ValueType>>) HashMap.class, keysAndValues);
 	}
 	
-	private static Map<String, Class<? extends IniUnit>> INIREADER_CLASSES = Utilities.map(new Object[] {
+	private static Map<String, Class<? extends IniUnit>> INIREADER_CLASSES = map(new Object[] {
 		"net.arctics.clonk.scenariocfg", ScenarioUnit.class,
 		"net.arctics.clonk.actmap"     , ActMapUnit.class,
 		"net.arctics.clonk.defcore"    , DefCoreUnit.class,
@@ -504,7 +482,7 @@ public abstract class Utilities {
 			monitor.beginTask("Refreshing Clonk projects", projects.length);
 		int work = 0;
 		for (IProject p : projects) {
-			if (Utilities.getProject(p) != null)
+			if (Utilities.getClonkNature(p) != null)
 				p.refreshLocal(IResource.DEPTH_INFINITE, monitor);
 			monitor.worked(work++);
 		}

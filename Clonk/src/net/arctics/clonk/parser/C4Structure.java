@@ -1,12 +1,16 @@
-package net.arctics.clonk.parser.c4script;
+package net.arctics.clonk.parser;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IStorage;
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.part.FileEditorInput;
 
-import net.arctics.clonk.parser.C4Declaration;
+import net.arctics.clonk.ClonkCore;
+import net.arctics.clonk.parser.c4script.C4ScriptBase;
+import net.arctics.clonk.parser.inireader.IniUnit;
 import net.arctics.clonk.ui.editors.c4script.ScriptWithStorageEditorInput;
+import net.arctics.clonk.util.Utilities;
 
 public abstract class C4Structure extends C4Declaration {
 	/**
@@ -31,4 +35,27 @@ public abstract class C4Structure extends C4Declaration {
 	public boolean isEditable() {
 		return true;
 	}
+	
+	public void pinTo(IFile file) throws CoreException {
+		file.setSessionProperty(ClonkCore.STRUCTURE_PROPERTY_ID, this);
+	}
+	
+	public static C4Structure pinned(IFile file, boolean force) throws CoreException {
+		C4Structure result = (C4Structure) file.getSessionProperty(ClonkCore.STRUCTURE_PROPERTY_ID);
+		if (result == null && force) {
+			Class<? extends IniUnit> iniUnitClass = Utilities.getIniUnitClass(file);
+			if (iniUnitClass != null) {
+				try {
+					IniUnit reader = iniUnitClass.getConstructor(IFile.class).newInstance(file);
+					reader.parse();
+					reader.pinTo(file);
+					result = reader;
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+		}
+		return result;
+	}
+	
 }

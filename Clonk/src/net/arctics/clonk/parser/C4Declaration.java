@@ -5,7 +5,6 @@ import java.io.Serializable;
 import net.arctics.clonk.index.C4ObjectIntern;
 import net.arctics.clonk.parser.c4script.C4ScriptBase;
 import net.arctics.clonk.parser.c4script.C4ScriptIntern;
-import net.arctics.clonk.parser.c4script.C4Structure;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.util.IHasRelatedResource;
 

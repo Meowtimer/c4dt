@@ -24,7 +24,7 @@ public class ClonkNavigator extends ClonkOutlineProvider {
 	public Object[] getChildren(Object element) {
 		// add additional virtual nodes to the project
 		if (element instanceof IProject) {
-			ClonkProjectNature clonkProject = Utilities.getProject((IProject)element);
+			ClonkProjectNature clonkProject = Utilities.getClonkNature((IProject)element);
 			if (clonkProject == null)
 				return null;
 			return new Object[] {
