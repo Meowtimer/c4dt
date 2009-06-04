@@ -337,33 +337,37 @@ public class C4ScriptParser {
 	 * @throws ParsingException
 	 */
 	public void parse() throws ParsingException {
-		clean();
-		parseDeclarations();
-		parseCodeOfFunctions();
+		synchronized (container) {
+			clean();
+			parseDeclarations();
+			parseCodeOfFunctions();
+		}
 	}
 
 	/**
 	 * Parse declarations but not function code. Before calling this it should be ensured that the script is cleared to avoid duplicates.
 	 */
 	public void parseDeclarations() {
-		int offset = 0;
-		fReader.seek(offset);
-		try {
-			eatWhitespace();
-			while(!fReader.reachedEOF()) {
-				if (!parseDeclaration(fReader.getPosition())) {
-					eatWhitespace();
-					if (!fReader.reachedEOF()) {
-						int start = fReader.getPosition();
-						String tokenText = parseTokenAndReturnAsString(start);
-						errorWithCode(ParserErrorCode.UnexpectedToken, start, fReader.getPosition(), true, tokenText);
-					}
-				}
+		synchronized (container) {
+			int offset = 0;
+			fReader.seek(offset);
+			try {
 				eatWhitespace();
+				while(!fReader.reachedEOF()) {
+					if (!parseDeclaration(fReader.getPosition())) {
+						eatWhitespace();
+						if (!fReader.reachedEOF()) {
+							int start = fReader.getPosition();
+							String tokenText = parseTokenAndReturnAsString(start);
+							errorWithCode(ParserErrorCode.UnexpectedToken, start, fReader.getPosition(), true, tokenText);
+						}
+					}
+					eatWhitespace();
+				}
 			}
-		}
-		catch (ParsingException e) {
-			return;
+			catch (ParsingException e) {
+				return;
+			}
 		}
 	}
 	
@@ -374,9 +378,11 @@ public class C4ScriptParser {
 	 * @throws ParsingException
 	 */
 	public void parseCodeOfFunctions() throws ParsingException {
-		strictLevel = container.strictLevel();
-		for (C4Function function : container.functions()) {
-			parseCodeOfFunction(function);
+		synchronized (container) {
+			strictLevel = container.strictLevel();
+			for (C4Function function : container.functions()) {
+				parseCodeOfFunction(function);
+			}
 		}
 	}
 
@@ -723,7 +729,7 @@ public class C4ScriptParser {
 			endName = fReader.getPosition();
 		}
 		for(C4Function otherFunc : container.functions()) {
-			if (otherFunc.getName().equalsIgnoreCase(funcName)) {
+			if (otherFunc.getName().equals(funcName)) {
 				warningWithCode(ParserErrorCode.FunctionRedeclared, startName, fReader.getPosition());
 				break;
 			}
@@ -2196,13 +2202,15 @@ public class C4ScriptParser {
 	}
 
 	public void clean() {
-		try {
-			if (fScript != null)
-				fScript.deleteMarkers(IMarker.PROBLEM, true, IResource.DEPTH_ONE);
-		} catch (CoreException e1) {
-			e1.printStackTrace();
+		synchronized (container) {
+			try {
+				if (fScript != null)
+					fScript.deleteMarkers(IMarker.PROBLEM, true, IResource.DEPTH_ONE);
+			} catch (CoreException e1) {
+				e1.printStackTrace();
+			}
+			container.clearFields();
 		}
-		container.clearFields();
 	}
 	
 	public static C4ScriptParser reportExpressionsAndStatements(IDocument doc, IRegion region, C4ScriptBase context, C4Function func, IExpressionListener listener) throws BadLocationException, ParsingException {

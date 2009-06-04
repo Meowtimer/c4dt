@@ -1,9 +1,6 @@
 package net.arctics.clonk.ui.search;
 
-import java.io.IOException;
-
 import net.arctics.clonk.parser.C4Structure;
-import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.ui.editors.ClonkTextEditor;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.OpenEvent;
@@ -44,18 +41,9 @@ public class ClonkSearchResultPage extends AbstractTextSearchViewPage implements
 	protected void showMatch(Match match, int currentOffset, int currentLength,
 			boolean activate) throws PartInitException {
 		ClonkSearchMatch clonkMatch = (ClonkSearchMatch) match;
-		try {
-			ClonkTextEditor editor;
-			try {
-				editor = (ClonkTextEditor) ClonkTextEditor.openDeclaration(clonkMatch.getStructure(), activate);
-				editor.selectAndReveal(currentOffset, currentLength);
-			} catch (ParsingException e) {
-				e.printStackTrace();
-			}
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+		ClonkTextEditor editor;
+		editor = (ClonkTextEditor) ClonkTextEditor.openDeclaration(clonkMatch.getStructure(), activate);
+		editor.selectAndReveal(currentOffset, currentLength);
 	}
 
 	public ShowInContext getShowInContext() {

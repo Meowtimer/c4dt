@@ -36,18 +36,20 @@ public class C4ScriptSourceViewerConfiguration extends ClonkSourceViewerConfigur
 	
 	private class C4ScriptHyperlinkDetector implements IHyperlinkDetector {
 		public IHyperlink[] detectHyperlinks(ITextViewer viewer, IRegion region, boolean canShowMultipleHyperlinks) {
-			DeclarationLocator i;
 			try {
-				i = new DeclarationLocator(getEditor(), viewer.getDocument(),region);
+				DeclarationLocator locator = new DeclarationLocator(getEditor(), viewer.getDocument(),region);
+				if (locator.getDeclaration() != null && (locator.getDeclaration().getScript() != null || locator.getDeclaration() instanceof C4Object)) {
+					return new IHyperlink[] {
+						new ClonkHyperlink(locator.getIdentRegion(),locator.getDeclaration())
+					};
+				} else if (locator.getProposedDeclarations() != null) {
+					return new IHyperlink[] {
+						new ClonkMultipleDeclarationsHyperlink(locator.getIdentRegion(), locator.getProposedDeclarations())
+					};
+				}
+				return null;
 			} catch (Exception e) {
 				e.printStackTrace();
-				i = null;
-			}
-			if (i != null && i.getDeclaration() != null && (i.getDeclaration().getScript() != null || i.getDeclaration() instanceof C4Object)) {
-				return new IHyperlink[] {
-					new ClonkHyperlink(i.getIdentRegion(),i.getDeclaration())
-				};
-			} else {
 				return null;
 			}
 		}

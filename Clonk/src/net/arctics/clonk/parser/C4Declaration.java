@@ -210,4 +210,13 @@ public abstract class C4Declaration implements Serializable, IHasRelatedResource
 		return false;
 	}
 	
+	/**
+	 * Used to filter declarations based on their name
+	 * @param part The filter string
+	 * @return whether this declaration should be filtered (false) or not (true)
+	 */
+	public boolean nameContains(String part) {
+		return getName().toLowerCase().contains(part.toLowerCase());
+	}
+	
 }

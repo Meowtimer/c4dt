@@ -1,12 +1,10 @@
 package net.arctics.clonk.ui.editors;
 
-import java.io.IOException;
 import java.util.ResourceBundle;
 
 import net.arctics.clonk.parser.C4Declaration;
 import net.arctics.clonk.parser.C4Structure;
 import net.arctics.clonk.parser.SourceLocation;
-import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.ui.editors.actions.c4script.OpenDeclarationAction;
 import net.arctics.clonk.ui.editors.c4script.C4ScriptEditor;
 import net.arctics.clonk.ui.editors.c4script.ClonkContentOutlinePage;
@@ -68,31 +66,39 @@ public class ClonkTextEditor extends TextEditor {
 		return super.getAdapter(adapter);
 	}
 	
-	public static IEditorPart openDeclaration(C4Declaration target, boolean activate) throws PartInitException, IOException, ParsingException {
+	public static IEditorPart openDeclaration(C4Declaration target, boolean activate) {
 		IWorkbench workbench = PlatformUI.getWorkbench();
 		IWorkbenchPage workbenchPage = workbench.getActiveWorkbenchWindow().getActivePage();
 		C4Structure structure = target.getTopLevelStructure();
 		if (structure != null) {
 			IEditorInput input = structure.getEditorInput();
 			if (input != null) {
-				IEditorDescriptor descriptor = input instanceof IFileEditorInput ? IDE.getEditorDescriptor(((IFileEditorInput)input).getFile()) : null;
-				String editorId = descriptor != null ? descriptor.getId() : "clonk.editors.C4ScriptEditor"; 
-				IEditorPart editor = IDE.openEditor(workbenchPage, input, editorId, activate);
-				ClonkTextEditor clonkTextEditor = (ClonkTextEditor) editor;
-				if (target != structure) {
-					if (structure.isEditable() && clonkTextEditor instanceof C4ScriptEditor)
-						((C4ScriptEditor) clonkTextEditor).reparseWithDocumentContents(null, false);
-					target = target.latestVersion();
-					if (target != null)
-						clonkTextEditor.selectAndReveal(target.getLocation());
+				try {
+					IEditorDescriptor descriptor = input instanceof IFileEditorInput ? IDE.getEditorDescriptor(((IFileEditorInput)input).getFile()) : null;
+					String editorId = descriptor != null ? descriptor.getId() : "clonk.editors.C4ScriptEditor"; 
+					IEditorPart editor = IDE.openEditor(workbenchPage, input, editorId, activate);
+					ClonkTextEditor clonkTextEditor = (ClonkTextEditor) editor;
+					if (target != structure) {
+						if (structure.isEditable() && clonkTextEditor instanceof C4ScriptEditor)
+							try {
+								((C4ScriptEditor) clonkTextEditor).reparseWithDocumentContents(null, false);
+							} catch (Exception e) {
+								e.printStackTrace();
+							}
+							target = target.latestVersion();
+							if (target != null)
+								clonkTextEditor.selectAndReveal(target.getLocation());
+					}
+					return editor;
+				} catch (PartInitException e) {
+					e.printStackTrace();
 				}
-				return editor;
 			}
 		}
 		return null;
 	}
 	
-	public static IEditorPart openDeclaration(C4Declaration target) throws PartInitException, IOException, ParsingException {
+	public static IEditorPart openDeclaration(C4Declaration target) {
 		return openDeclaration(target, true);
 	}
 	

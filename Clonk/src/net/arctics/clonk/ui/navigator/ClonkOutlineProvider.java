@@ -17,14 +17,6 @@ import org.eclipse.jface.viewers.DelegatingStyledCellLabelProvider.IStyledLabelP
 import org.eclipse.swt.graphics.Image;
 
 public class ClonkOutlineProvider extends LabelProvider implements ITreeContentProvider, IStyledLabelProvider {
-	
-	/* (non-Javadoc)
-	 * @see org.eclipse.jface.viewers.IBaseLabelProvider#addListener(org.eclipse.jface.viewers.ILabelProviderListener)
-	 */
-//	public void addListener(ILabelProviderListener arg0) {
-//		// TODO Auto-generated method stub
-//
-//	}
 
 	/* (non-Javadoc)
 	 * @see org.eclipse.jface.viewers.ITreeContentProvider#getChildren(java.lang.Object)
@@ -38,7 +30,7 @@ public class ClonkOutlineProvider extends LabelProvider implements ITreeContentP
 	/* (non-Javadoc)
 	 * @see org.eclipse.jface.viewers.ITreeContentProvider#getParent(java.lang.Object)
 	 */
-	public Object getParent(Object arg0) {
+	public Object getParent(Object obj) {
 		// TODO Auto-generated method stub
 		return null;
 	}
@@ -72,38 +64,19 @@ public class ClonkOutlineProvider extends LabelProvider implements ITreeContentP
 		super.dispose();
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.jface.viewers.IBaseLabelProvider#isLabelProperty(java.lang.Object, java.lang.String)
-	 */
-//	public boolean isLabelProperty(Object arg0, String arg1) {
-//		// TODO Auto-generated method stub
-//		return false;
-//	}
-
-	/* (non-Javadoc)
-	 * @see org.eclipse.jface.viewers.IBaseLabelProvider#removeListener(org.eclipse.jface.viewers.ILabelProviderListener)
-	 */
-//	public void removeListener(ILabelProviderListener arg0) {
-//		// TODO Auto-generated method stub
-//
-//	}
-
 	public Image getImage(Object element) {
 		return Utilities.getIconForObject(element);
 	}
 
 	public String getText(Object element) {
 		return getStyledText(element).toString();
-//		if (element instanceof C4Function) {
-//			return ((C4Function)element).getLongParameterString(true);
-//		}
-//		if (element instanceof C4Variable) {
-//			return ((C4Variable)element).getName();
-//		}
-//		return element.toString();
 	}
 
 	public StyledString getStyledText(Object element) {
+		return getStyledTextForEveryone(element);
+	}
+	
+	public static StyledString getStyledTextForEveryone(Object element) {
 		if (element instanceof C4Function) {
 			C4Function func = ((C4Function)element);
 			StyledString string = new StyledString(func.getLongParameterString(true));

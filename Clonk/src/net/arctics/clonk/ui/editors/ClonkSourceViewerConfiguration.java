@@ -5,8 +5,7 @@ import org.eclipse.jface.text.hyperlink.URLHyperlinkDetector;
 import org.eclipse.jface.text.source.ISourceViewer;
 import org.eclipse.ui.editors.text.TextSourceViewerConfiguration;
 
-public class ClonkSourceViewerConfiguration<EditorType extends ClonkTextEditor> extends
-		TextSourceViewerConfiguration {
+public class ClonkSourceViewerConfiguration<EditorType extends ClonkTextEditor> extends TextSourceViewerConfiguration {
 	private EditorType textEditor;
 	private ColorManager colorManager;
 

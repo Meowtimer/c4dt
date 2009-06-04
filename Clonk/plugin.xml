@@ -252,7 +252,7 @@
 	<extension point="org.eclipse.ui.commands">
 		<command categoryId="org.eclipse.ui.category.navigate"
 			description="Opens a dialog to quickly find a definition" id="net.arctics.clonk.ui.open.object"
-			defaultHandler="net.arctics.clonk.ui.editors.actions.c4script.OpenObject"
+			defaultHandler="net.arctics.clonk.ui.editors.actions.c4script.OpenObjectAction"
 			name="Open Object" />
 
 		<command categoryId="org.eclipse.ui.category.edit"

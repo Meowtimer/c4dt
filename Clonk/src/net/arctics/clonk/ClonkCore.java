@@ -359,5 +359,9 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant {
 			break;
 		}
 	}
+
+	public static String id(String id) {
+		return PLUGIN_ID + "." + id;
+	}
 	
 }

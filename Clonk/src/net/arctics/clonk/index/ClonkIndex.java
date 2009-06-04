@@ -258,7 +258,7 @@ public class ClonkIndex implements Serializable, Iterable<C4Object> {
 		return Collections.unmodifiableList(staticVariables);
 	}
 	
-	public Map<String, List<C4Declaration>> getFieldMap() {
+	public Map<String, List<C4Declaration>> getDeclarationMap() {
 		return Collections.unmodifiableMap(declarationMap);
 	}
 

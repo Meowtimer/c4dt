@@ -4,6 +4,8 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ResourceBundle;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.C4Declaration;
@@ -32,8 +34,12 @@ import org.eclipse.jface.text.source.ISourceViewer;
 import org.eclipse.jface.text.source.IVerticalRuler;
 import org.eclipse.jface.text.source.projection.ProjectionViewer;
 import org.eclipse.jface.viewers.ISelection;
+import org.eclipse.swt.custom.TextChangeListener;
+import org.eclipse.swt.custom.TextChangedEvent;
+import org.eclipse.swt.custom.TextChangingEvent;
 import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorSite;
 import org.eclipse.ui.PartInitException;
@@ -42,9 +48,10 @@ import org.eclipse.ui.texteditor.SourceViewerDecorationSupport;
 public class C4ScriptEditor extends ClonkTextEditor {
 
 	private ColorManager colorManager;
-	public static final String ACTION_INDEX_CLONK_DIR = "net.arctics.clonk.indexClonkCommand";
-	private static final String ENABLE_BRACKET_HIGHLIGHT = ClonkCore.PLUGIN_ID + ".enableBracketHighlighting";
-	private static final String BRACKET_HIGHLIGHT_COLOR = ClonkCore.PLUGIN_ID + ".bracketHighlightColor";
+	public static final String ACTION_INDEX_CLONK_DIR = ClonkCore.id("indexClonkCommand");
+	private static final String ENABLE_BRACKET_HIGHLIGHT = ClonkCore.id("enableBracketHighlighting");
+	private static final String BRACKET_HIGHLIGHT_COLOR = ClonkCore.id("bracketHighlightColor");
+	
 	private DefaultCharacterPairMatcher fBracketMatcher = new DefaultCharacterPairMatcher(new char[] { '{', '}', '(', ')' });
 	
 	public C4ScriptEditor() {
@@ -60,11 +67,11 @@ public class C4ScriptEditor extends ClonkTextEditor {
 	@Override
 	protected void configureSourceViewerDecorationSupport(
 			SourceViewerDecorationSupport support) {
+		super.configureSourceViewerDecorationSupport(support);
 		support.setCharacterPairMatcher(fBracketMatcher);
 		support.setMatchingCharacterPainterPreferenceKeys(ENABLE_BRACKET_HIGHLIGHT, BRACKET_HIGHLIGHT_COLOR);
 		getPreferenceStore().setValue(ENABLE_BRACKET_HIGHLIGHT, true);
 		PreferenceConverter.setValue(getPreferenceStore(), BRACKET_HIGHLIGHT_COLOR, new RGB(0x33,0x33,0xAA));
-		super.configureSourceViewerDecorationSupport(support);
 	}
 
 	@Override
@@ -73,8 +80,50 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		super.init(site, input);
 		IResource res = (IResource) getEditorInput().getAdapter(IResource.class);
 		if (res != null) {
+			// name of script file not very descriptive (Script.c)
 			setPartName(res.getParent().getName() + "/" + res.getName());
 		}
+	}
+	
+	@Override
+	public void createPartControl(Composite parent) {
+		super.createPartControl(parent);
+		getSourceViewer().getTextWidget().getContent().addTextChangeListener(new TextChangeListener() {
+			
+			private Timer reparseTimer;
+
+			public void textChanged(TextChangedEvent event) {
+				reparseTimer = new Timer("ReparseTimer");
+				reparseTimer.schedule(new TimerTask() {
+					@Override
+					public void run() {
+						try {
+							try {
+								reparseWithDocumentContents(null, true);
+							} finally {
+								if (reparseTimer != null) {
+									reparseTimer.cancel();
+									reparseTimer = null;
+								}
+							}
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
+					}
+				}, 2000);
+			}
+
+			public void textChanging(TextChangingEvent event) {
+				// TODO Auto-generated method stub
+				
+			}
+
+			public void textSet(TextChangedEvent event) {
+				// TODO Auto-generated method stub
+				
+			}
+			
+		});
 	}
 
 	public void dispose() {
@@ -192,7 +241,12 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		parser.parseDeclarations();
 		if (!onlyDeclarations)
 			parser.parseCodeOfFunctions();
-		refreshOutline();
+		// make sure it's executed on the ui thread
+		Display.getDefault().asyncExec(new Runnable() {
+			public void run() {
+				refreshOutline();
+			}
+		});
 		return parser;
 	}
 	

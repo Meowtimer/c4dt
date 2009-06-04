@@ -1,5 +1,7 @@
 package net.arctics.clonk.ui.editors.c4script;
 
+import java.util.List;
+
 import net.arctics.clonk.parser.C4Declaration;
 import net.arctics.clonk.parser.c4script.C4Function;
 import net.arctics.clonk.parser.c4script.C4ScriptBase;
@@ -7,6 +9,7 @@ import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.FindDeclarationInfo;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.c4script.C4ScriptExprTree.DeclarationRegion;
+import net.arctics.clonk.parser.c4script.C4ScriptExprTree.ExprAccessDeclaration;
 import net.arctics.clonk.parser.c4script.C4ScriptExprTree.ExprElm;
 import net.arctics.clonk.parser.c4script.C4ScriptExprTree.IExpressionListener;
 import net.arctics.clonk.parser.c4script.C4ScriptExprTree.TraversalContinuation;
@@ -27,7 +30,12 @@ public class DeclarationLocator extends ExpressionLocator {
 	private ITextEditor editor;
 	private String line;
 	private C4Declaration declaration;
+	private List<C4Declaration> proposedDeclarations;
 	
+	public List<C4Declaration> getProposedDeclarations() {
+		return proposedDeclarations;
+	}
+
 	public ITextEditor getEditor() {
 		return editor;
 	}
@@ -40,7 +48,7 @@ public class DeclarationLocator extends ExpressionLocator {
 		C4Function func = script.funcAt(region);
 		if (func == null) {
 			// outside function, fallback to old technique
-			simpleFindField(doc, region, script, null);
+			simpleFindDeclaration(doc, region, script, null);
 			return;
 		}
 		int bodyStart = func.getBody().getOffset();
@@ -49,17 +57,27 @@ public class DeclarationLocator extends ExpressionLocator {
 			C4ScriptParser parser = C4ScriptParser.reportExpressionsAndStatements(doc, func.getBody(), script, func, this);
 			if (exprAtRegion != null) {
 				DeclarationRegion declRegion = exprAtRegion.declarationAt(exprRegion.getOffset()-exprAtRegion.getExprStart(), parser);
-				if (declRegion != null) {
+				boolean setRegion;
+				if (declRegion != null && declRegion.getDeclaration() != null) {
 					this.declaration = declRegion.getDeclaration();
-					this.exprRegion = new Region(bodyStart+declRegion.getRegion().getOffset(), declRegion.getRegion().getLength());
+					setRegion = true;
 				}
+				else if (exprAtRegion instanceof ExprAccessDeclaration) {
+					ExprAccessDeclaration access = (ExprAccessDeclaration) exprAtRegion;
+					proposedDeclarations = script.getIndex().getDeclarationMap().get(access.getDeclarationName());
+					setRegion = (proposedDeclarations != null && proposedDeclarations.size() > 0);
+				}
+				else
+					setRegion = false;
+				if (setRegion)
+					this.exprRegion = new Region(bodyStart+declRegion.getRegion().getOffset(), declRegion.getRegion().getLength());
 			}
 		}
 		else
-			simpleFindField(doc, region, script, func);
+			simpleFindDeclaration(doc, region, script, func);
 	}
 
-	private void simpleFindField(IDocument doc, IRegion region,
+	private void simpleFindDeclaration(IDocument doc, IRegion region,
 			C4ScriptBase script, C4Function func) throws BadLocationException {
 		IRegion lineInfo;
 		String line;

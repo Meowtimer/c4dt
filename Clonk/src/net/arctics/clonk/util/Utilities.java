@@ -1,6 +1,7 @@
 package net.arctics.clonk.util;
 
 import java.io.InputStream;
+import java.lang.reflect.Array;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Collection;
@@ -498,6 +499,13 @@ public abstract class Utilities {
 	
 	public static Enum<?>[] valuesOfEnum(Class<?> enumClass) throws IllegalArgumentException, SecurityException, IllegalAccessException, InvocationTargetException, NoSuchMethodException {
 		return (Enum<?>[]) enumClass.getMethod("values").invoke(null);
+	}
+	
+	@SuppressWarnings("unchecked")
+	public static <T> T[] convertArray(Object[] baseArray, Class<T> newElementClass) {
+		T[] result = (T[]) Array.newInstance(newElementClass, baseArray.length);
+		System.arraycopy(baseArray, 0, result, 0, baseArray.length);
+		return result;
 	}
 	
 }

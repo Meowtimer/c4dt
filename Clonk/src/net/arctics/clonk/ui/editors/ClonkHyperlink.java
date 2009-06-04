@@ -11,7 +11,7 @@ import org.eclipse.jface.text.hyperlink.IHyperlink;
 public class ClonkHyperlink implements IHyperlink {
 
 	private final IRegion region;
-	private C4Declaration target;
+	protected C4Declaration target;
 	
 	/**
 	 * @param region

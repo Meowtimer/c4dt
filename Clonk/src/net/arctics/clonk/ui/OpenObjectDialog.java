@@ -48,7 +48,7 @@ public class OpenObjectDialog extends FilteredItemsSelectionDialog {
 
 	@Override
 	protected Control createExtendedContentArea(Composite parent) {
-		// theres nothing special here
+		// There's nothing special here
 		return null;
 	}
 
@@ -123,14 +123,13 @@ public class OpenObjectDialog extends FilteredItemsSelectionDialog {
 		return ((C4Object)item).getId().getName();
 	}
 
-	@SuppressWarnings("unchecked")
 	@Override
-	protected Comparator getItemsComparator() {
-	      return new Comparator() {
-	          public int compare(Object arg0, Object arg1) {
-	             return arg0.toString().compareTo(arg1.toString());
-	          }
-	       };
+	protected Comparator<?> getItemsComparator() {
+		return new Comparator<?>() {
+			public int compare(Object arg0, Object arg1) {
+				return arg0.toString().compareTo(arg1.toString());
+			}
+		};
 	}
 
 	@Override
@@ -139,11 +138,7 @@ public class OpenObjectDialog extends FilteredItemsSelectionDialog {
 	}
 	
 	public C4Object[] getSelectedObjects() {
-		Object[] objects = this.getResult();
-		C4Object[] result = new C4Object[objects.length];
-		for (int i = 0; i < result.length; i++)
-			result[i] = (C4Object) objects[i];
-		return result;
+		return Utilities.convertArray(getResult(), C4Object.class);
 	}
 
 }

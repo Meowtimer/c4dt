@@ -1,7 +1,5 @@
 package net.arctics.clonk.ui.editors;
 
-import net.arctics.clonk.ui.editors.c4script.C4ScriptEditor;
-
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IPageLayout;
@@ -23,8 +21,6 @@ public class ShowInAdapter implements IShowInSource, IShowInTargetList {
 		return new ShowInContext(null, null) {
 			@Override
 			public Object getInput() {
-				if (editor instanceof C4ScriptEditor)
-					return ((C4ScriptEditor) editor).getFuncAtCursor();
 				return editor.getEditorInput();
 			}
 			@Override

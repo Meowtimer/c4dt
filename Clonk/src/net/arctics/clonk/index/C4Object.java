@@ -101,6 +101,7 @@ public abstract class C4Object extends C4ScriptBase {
 		return localizedNames;
 	}
 	
+	@Override
 	public boolean nameContains(String text) {
 		if (getId().getName().indexOf(text) != -1)
 			return true;
