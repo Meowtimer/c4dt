@@ -14,6 +14,8 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.dialogs.IDialogSettings;
+import org.eclipse.jface.viewers.StyledString;
+import org.eclipse.jface.viewers.DelegatingStyledCellLabelProvider.IStyledLabelProvider;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Shell;
@@ -22,6 +24,17 @@ import org.eclipse.ui.dialogs.FilteredItemsSelectionDialog;
 
 public class DeclarationChooser extends FilteredItemsSelectionDialog {
 
+	private class LabelProvider extends org.eclipse.jface.viewers.LabelProvider implements IStyledLabelProvider {
+
+		public StyledString getStyledText(Object element) {
+			StyledString result = ClonkOutlineProvider.getStyledTextForEveryone(element);
+			result.append(" - ", StyledString.QUALIFIER_STYLER);
+			result.append(((C4Declaration)element).getTopLevelStructure().toString(), StyledString.QUALIFIER_STYLER);
+			return result;
+		}
+		
+	}
+	
 	private static final String DIALOG_SETTINGS = "DeclarationChooserDialogSettings";
 	
 	private Collection<C4Declaration> declarations;
@@ -29,6 +42,7 @@ public class DeclarationChooser extends FilteredItemsSelectionDialog {
 	public DeclarationChooser(Shell shell, Collection<C4Declaration> declarations) {
 		super(shell);
 		this.declarations = declarations;
+		setListLabelProvider(new LabelProvider());
 	}
 	
 	@Override
@@ -83,13 +97,18 @@ public class DeclarationChooser extends FilteredItemsSelectionDialog {
 
 	@Override
 	public String getElementName(Object item) {
-		return ClonkOutlineProvider.getStyledTextForEveryone(item).toString();
+		return item.toString();
 	}
 
 	@Override
 	protected Comparator<?> getItemsComparator() {
-		// TODO Auto-generated method stub
-		return null;
+		return new Comparator<?>() {
+
+			public int compare(Object a, Object b) {
+				return 1;
+			}
+			
+		};
 	}
 
 	@Override
