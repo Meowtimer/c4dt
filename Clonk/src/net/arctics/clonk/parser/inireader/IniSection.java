@@ -1,6 +1,3 @@
-/**
- * 
- */
 package net.arctics.clonk.parser.inireader;
 
 import java.util.Collection;

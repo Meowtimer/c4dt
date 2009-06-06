@@ -11,13 +11,16 @@ import net.arctics.clonk.index.ClonkIndex;
 import net.arctics.clonk.parser.BufferedScanner;
 import net.arctics.clonk.parser.C4Declaration;
 import net.arctics.clonk.parser.C4ID;
+import net.arctics.clonk.parser.NameValueAssignment;
 import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.c4script.C4ScriptParser.CachedEngineFuncs;
 import net.arctics.clonk.parser.c4script.C4ScriptParser.Keywords;
 import net.arctics.clonk.parser.c4script.C4Variable.C4VariableScope;
+import net.arctics.clonk.parser.stringtbl.StringTbl;
 import net.arctics.clonk.util.Pair;
 import net.arctics.clonk.parser.ParsingException;
 
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.Region;
 
@@ -2384,20 +2387,34 @@ public abstract class C4ScriptExprTree {
 		public DeclarationRegion declarationAt(int offset, C4ScriptParser parser) {
 			if (contents == null)
 				return null;
-			String[] assignments = contents.split("\\|");
+			String[] parts = contents.split("\\|");
 			int off = 1;
-			for (String assignment : assignments) {
-				if (offset >= off && offset < off+assignment.length()) {
-					String[] nameValue = assignment.split("=");
-					if (nameValue.length == 2) {
-						String name = nameValue[0].trim();
-						String value = nameValue[1].trim();
-						if (name.equals("Condition") || name.equals("Image"))
-							return new DeclarationRegion(parser.getContainer().findDeclaration(value), new Region(getExprStart()+off+nameValue[0].length()+1, value.length()));
+			for (String part : parts) {
+				if (offset >= off && offset < off+part.length()) {
+					if (part.startsWith("$") && part.endsWith("$")) {
+						try {
+							StringTbl stringTbl = parser.getContainer().getStringTblForLanguagePref();
+							if (stringTbl != null) {
+								NameValueAssignment entry = stringTbl.getMap().get(part.substring(1, part.length()-1));
+								if (entry != null)
+									return new DeclarationRegion(entry, new Region(getExprStart()+off, part.length()));
+							}
+						} catch (CoreException e) {
+							e.printStackTrace();
+						}
+					}
+					else {
+						String[] nameValue = part.split("=");
+						if (nameValue.length == 2) {
+							String name = nameValue[0].trim();
+							String value = nameValue[1].trim();
+							if (name.equals("Condition") || name.equals("Image"))
+								return new DeclarationRegion(parser.getContainer().findDeclaration(value), new Region(getExprStart()+off+nameValue[0].length()+1, value.length()));
+						}
 					}
 					break;
 				}
-				off += assignment.length()+1;
+				off += part.length()+1;
 			}
 			return null;
 		}

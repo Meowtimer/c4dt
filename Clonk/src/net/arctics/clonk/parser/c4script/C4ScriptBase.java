@@ -29,12 +29,16 @@ import net.arctics.clonk.parser.C4ID;
 import net.arctics.clonk.parser.C4Structure;
 import net.arctics.clonk.parser.c4script.C4Directive.C4DirectiveType;
 import net.arctics.clonk.parser.c4script.C4Variable.C4VariableScope;
+import net.arctics.clonk.parser.stringtbl.StringTbl;
 import net.arctics.clonk.util.CompoundIterable;
 import net.arctics.clonk.util.IHasRelatedResource;
 import net.arctics.clonk.util.ReadOnlyIterator;
 import net.arctics.clonk.util.Utilities;
 
+import org.eclipse.core.resources.IContainer;
+import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.ITextSelection;
 import org.eclipse.jface.text.Region;
@@ -540,6 +544,27 @@ public abstract class C4ScriptBase extends C4Structure implements IHasRelatedRes
 		return definedFunctions.size() > 0 || definedVariables.size() > 0;
 	}
 	
+	private boolean dirty;
+	
+	public void setDirty(boolean d) {
+		dirty = d;
+	}
+	
+	@Override
+	public boolean dirty() {
+		return dirty;
+	}
+	
+	public StringTbl getStringTblForLanguagePref() throws CoreException {
+		IResource res = getResource();
+		IContainer container = res instanceof IContainer ? (IContainer) res : res.getParent();
+		String pref = ClonkCore.getDefault().languagePref();
+		IResource tblFile = container.findMember("StringTbl"+pref+".txt");
+		if (tblFile instanceof IFile)
+			return (StringTbl) C4Structure.pinned((IFile) tblFile, true);
+		return null;
+	}
+	
 	public void exportAsXML(Writer writer) throws IOException {
 		writer.write("<script>\n");
 			writer.write("\t<functions>\n");
@@ -606,22 +631,22 @@ public abstract class C4ScriptBase extends C4Structure implements IHasRelatedRes
 		}
 	}
 	
-	public boolean removeDWording() {
-		boolean result = false;
-		for (C4Function f : functions()) {
-			if (f.getReturnType() == C4Type.DWORD) {
-				f.setReturnType(C4Type.INT);
-				result = true;
-			}
-			for (C4Variable parm : f.getParameters()) {
-				if (parm.getType() == C4Type.DWORD) {
-					parm.setType(C4Type.INT);
-					result = true;
-				}
-			}
-		}
-		return result;
-	}
+//	public boolean removeDWording() {
+//		boolean result = false;
+//		for (C4Function f : functions()) {
+//			if (f.getReturnType() == C4Type.DWORD) {
+//				f.setReturnType(C4Type.INT);
+//				result = true;
+//			}
+//			for (C4Variable parm : f.getParameters()) {
+//				if (parm.getType() == C4Type.DWORD) {
+//					parm.setType(C4Type.INT);
+//					result = true;
+//				}
+//			}
+//		}
+//		return result;
+//	}
 
 	//	public boolean convertFuncsToConstsIfTheyLookLikeConsts() {
 	//	boolean didSomething = false;

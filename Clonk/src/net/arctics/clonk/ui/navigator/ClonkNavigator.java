@@ -4,9 +4,8 @@ import java.io.File;
 import java.io.FilenameFilter;
 import java.util.Collection;
 
+import net.arctics.clonk.parser.C4Structure;
 import net.arctics.clonk.parser.c4script.C4ScriptBase;
-import net.arctics.clonk.parser.inireader.IniUnit;
-import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.util.ITreeNode;
 import net.arctics.clonk.util.Utilities;
 
@@ -14,6 +13,7 @@ import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jface.viewers.Viewer;
 
 /**
@@ -24,13 +24,14 @@ public class ClonkNavigator extends ClonkOutlineProvider {
 	public Object[] getChildren(Object element) {
 		// add additional virtual nodes to the project
 		if (element instanceof IProject) {
-			ClonkProjectNature clonkProject = Utilities.getClonkNature((IProject)element);
-			if (clonkProject == null)
-				return null;
-			return new Object[] {
-				// Dependencies
-				new DependenciesNavigatorNode(clonkProject)
-			};
+//			ClonkProjectNature clonkProject = Utilities.getClonkNature((IProject)element);
+//			if (clonkProject == null)
+//				return null;
+//			return new Object[] {
+//				// Dependencies
+//				new DependenciesNavigatorNode(clonkProject)
+//			};
+			return null;
 		}
 		else if (element instanceof IFile) {
 			// list contents of ini and script files
@@ -38,10 +39,11 @@ public class ClonkNavigator extends ClonkOutlineProvider {
 			if (script != null)
 				return super.getChildren(script);
 			try {
-				IniUnit reader = Utilities.createAdequateIniUnit((IFile) element);
-				reader.parse();
-				// call again for IniUnit which implements ITreeNode (below)
-				return this.getChildren(reader);
+				C4Structure s = C4Structure.pinned((IFile) element, false);
+				if (s instanceof ITreeNode) {
+					// call again for ITreeNode object (below)
+					return this.getChildren(s);
+				}
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
@@ -63,9 +65,13 @@ public class ClonkNavigator extends ClonkOutlineProvider {
 			C4ScriptBase script = Utilities.getScriptForFile((IFile) element);
 			if (script != null)
 				return super.hasChildren(script);
-			if (Utilities.getIniUnitClass((IFile) element) != null)
-				// assume there is something in it
-				return true;
+			try {
+				C4Structure s;
+				if ((s = C4Structure.pinned((IFile) element, true)) != null)
+					return (s instanceof ITreeNode && ((ITreeNode)s).getChildCollection().size() > 0);
+			} catch (CoreException e) {
+				return false;
+			}
 		}
 		else if (element instanceof ITreeNode) {
 			ITreeNode node = (ITreeNode) element;

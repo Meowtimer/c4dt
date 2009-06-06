@@ -16,6 +16,9 @@ import net.arctics.clonk.index.C4ObjectExtern;
 import net.arctics.clonk.index.ExternIndex;
 import net.arctics.clonk.parser.C4ID;
 import net.arctics.clonk.parser.inireader.IniData;
+import net.arctics.clonk.parser.inireader.IniUnit;
+import net.arctics.clonk.parser.stringtbl.StringTbl;
+import net.arctics.clonk.preferences.PreferenceConstants;
 import net.arctics.clonk.resource.ClonkLibBuilder;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.resource.InputStreamRespectingUniqueIDs;
@@ -28,6 +31,7 @@ import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.QualifiedName;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.resource.ImageRegistry;
@@ -109,6 +113,9 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant {
 		loadExternIndex(); 
 		
 		ResourcesPlugin.getWorkspace().addSaveParticipant(this, this);
+		
+		IniUnit.register();
+		StringTbl.register();
 	}
 	
 	private void loadIniConfigurations() {
@@ -157,10 +164,6 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant {
 			ObjectInputStream objStream = new InputStreamRespectingUniqueIDs(engineStream);
 			ENGINE_OBJECT = (C4ObjectExtern)objStream.readObject();
 			ENGINE_OBJECT.fixReferencesAfterSerialization(null);
-			if (ENGINE_OBJECT.removeDWording()) {
-				saveEngineObject();
-			}
-
 		} catch (Exception e) {
 			// fallback to xml
 			createDefaultEngineObject();
@@ -362,6 +365,10 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant {
 
 	public static String id(String id) {
 		return PLUGIN_ID + "." + id;
+	}
+
+	public String languagePref() {
+		return Platform.getPreferencesService().getString(PLUGIN_ID, PreferenceConstants.PREFERRED_LANGID, "DE", null);
 	}
 	
 }

@@ -1,6 +1,5 @@
 package net.arctics.clonk.ui.editors.c4script;
 
-import net.arctics.clonk.index.C4Object;
 import net.arctics.clonk.ui.editors.ClonkHyperlink;
 import net.arctics.clonk.ui.editors.ClonkPartitionScanner;
 import net.arctics.clonk.ui.editors.ClonkSourceViewerConfiguration;
@@ -38,7 +37,7 @@ public class C4ScriptSourceViewerConfiguration extends ClonkSourceViewerConfigur
 		public IHyperlink[] detectHyperlinks(ITextViewer viewer, IRegion region, boolean canShowMultipleHyperlinks) {
 			try {
 				DeclarationLocator locator = new DeclarationLocator(getEditor(), viewer.getDocument(),region);
-				if (locator.getDeclaration() != null && (locator.getDeclaration().getScript() != null || locator.getDeclaration() instanceof C4Object)) {
+				if (locator.getDeclaration() != null && locator.getDeclaration().getResource() != null) {
 					return new IHyperlink[] {
 						new ClonkHyperlink(locator.getIdentRegion(),locator.getDeclaration())
 					};

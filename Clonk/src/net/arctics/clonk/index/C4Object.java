@@ -11,9 +11,6 @@ import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.C4ID;
 import net.arctics.clonk.parser.c4script.C4ScriptBase;
 import net.arctics.clonk.parser.c4script.FindDeclarationInfo;
-import net.arctics.clonk.preferences.PreferenceConstants;
-
-import org.eclipse.core.runtime.Platform;
 
 public abstract class C4Object extends C4ScriptBase {
 
@@ -91,7 +88,7 @@ public abstract class C4Object extends C4ScriptBase {
 
 	public void chooseLocalizedName() {
 		if (localizedNames != null) {
-			String preferredName = localizedNames.get(Platform.getPreferencesService().getString(ClonkCore.PLUGIN_ID, PreferenceConstants.PREFERRED_LANGID, "DE", null));
+			String preferredName = localizedNames.get(ClonkCore.getDefault().languagePref());
 			if (preferredName != null)
 				setName(preferredName);
 		}

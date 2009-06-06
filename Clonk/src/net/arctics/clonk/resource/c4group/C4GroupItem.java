@@ -12,6 +12,9 @@ import org.eclipse.core.runtime.IProgressMonitor;
 
 public interface C4GroupItem {
 	
+	/**
+	 * Interface used to filter files in c4groups so they won't be loaded into memory
+	 */
 	public interface IHeaderFilter {
 		public boolean accepts(C4EntryHeader header, C4Group context);
 		public static final IHeaderFilter ACCEPT_EVERYTHING = new IHeaderFilter() {
@@ -26,13 +29,13 @@ public interface C4GroupItem {
 	}
 	
 	/**
-	 * Has this item children?
+	 * Does this item have children?
 	 * @return
 	 */
 	public boolean hasChildren();
 	
 	/**
-	 * Is this item completely read from hard disk?
+	 * Is this item completely read from disk?
 	 * @return
 	 */
 	public boolean isCompleted();
@@ -46,7 +49,7 @@ public interface C4GroupItem {
 	public void open(boolean recursively, IHeaderFilter filter) throws InvalidDataException, IOException, CoreException;
 	
 	/**
-	 * Writes this entry and all sub items to stream
+	 * Writes this entry and all sub items to the stream
 	 * @throws FileNotFoundException 
 	 * @throws IOException 
 	 */
@@ -59,13 +62,13 @@ public interface C4GroupItem {
 	public String getName();
 	
 	/**
-	 * Returns the size of the object and all subitems
+	 * Returns the size of the object and all sub items
 	 * @return
 	 */
 	public int computeSize();
 	
 	/**
-	 * The parent group this item is a child from
+	 * The parent group this item is a child of
 	 * @return
 	 */
 	public C4Group getParentGroup();
@@ -77,12 +80,12 @@ public interface C4GroupItem {
 	public C4EntryHeader getEntryHeader();
 	
 	/**
-	 * Extracts this file to hard disk
+	 * Extracts this file to disk
 	 */
 	public void extractToFilesystem(IContainer internPath) throws CoreException;
 	
 	/**
-	 * Extracts this file to hard disk with the given progress monitor
+	 * Extracts this file to disk with the given progress monitor
 	 */
 	public void extractToFilesystem(IContainer internPath, IProgressMonitor monitor) throws CoreException;
 	

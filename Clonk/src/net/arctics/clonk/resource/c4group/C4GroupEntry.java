@@ -263,8 +263,7 @@ public class C4GroupEntry implements C4GroupItem, IStorage, Serializable {
 		return null;
 	}
 
-	public void accept(IC4GroupVisitor visitor, C4GroupType type,
-			IProgressMonitor monitor) {
+	public void accept(IC4GroupVisitor visitor, C4GroupType type, IProgressMonitor monitor) {
 		visitor.visit(this, type);
 	}
 }

@@ -85,6 +85,10 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		}
 	}
 	
+	private void markScriptAsDirty() {
+		Utilities.getScriptForEditor(this).setDirty(true);
+	}
+	
 	@Override
 	public void createPartControl(Composite parent) {
 		super.createPartControl(parent);
@@ -93,6 +97,9 @@ public class C4ScriptEditor extends ClonkTextEditor {
 			private Timer reparseTimer;
 
 			public void textChanged(TextChangedEvent event) {
+				markScriptAsDirty();
+				if (getDocumentProvider().getDocument(getEditorInput()).getLength() > 20 * 1024)
+					return;
 				reparseTimer = new Timer("ReparseTimer");
 				reparseTimer.schedule(new TimerTask() {
 					@Override

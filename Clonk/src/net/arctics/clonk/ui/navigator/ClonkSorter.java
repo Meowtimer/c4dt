@@ -12,8 +12,7 @@ public class ClonkSorter extends ViewerSorter {
 
 	final static private String[] sortPriorities = new String[] {".c4f", ".c4s", ".c4g" , ".txt", ".bmp", ".png", ".c",".c4d", ".wav", ".pal"}; 
 	
-	public ClonkSorter() {
-	}
+	public ClonkSorter() {}
 
 	public ClonkSorter(Collator collator) {
 		super(collator);
@@ -33,8 +32,8 @@ public class ClonkSorter extends ViewerSorter {
 	
 	@Override
 	public int compare(Viewer viewer, Object e1, Object e2) {
-		if (e1 instanceof DependenciesNavigatorNode)
-			return -1; // always first place
+//		if (e1 instanceof DependenciesNavigatorNode)
+//			return -1; // always first place
 		if (e1 instanceof IResource && e2 instanceof IResource) {
 			int p1 = getSortPriority((IResource) e1);
 			int p2 = getSortPriority((IResource) e2);

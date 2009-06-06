@@ -368,6 +368,7 @@ public class C4ScriptParser {
 			catch (ParsingException e) {
 				return;
 			}
+			container.setDirty(false);
 		}
 	}
 	
@@ -383,6 +384,7 @@ public class C4ScriptParser {
 			for (C4Function function : container.functions()) {
 				parseCodeOfFunction(function);
 			}
+			container.setDirty(false);
 		}
 	}
 

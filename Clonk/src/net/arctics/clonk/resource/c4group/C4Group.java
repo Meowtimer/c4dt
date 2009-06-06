@@ -94,22 +94,16 @@ public class C4Group implements C4GroupItem, Serializable {
 	protected static C4Group makeGroup(IFolder folder) {
 		try {
 			String groupName = folder.getName();
-			//if (hasToBeSwapped(groupName)) groupName = swapExtension(groupName);
 			IResource[] children = folder.members();
 			int entryCount = children.length;
 			C4Group group = new C4Group(groupName, C4GroupHeader.createHeader(entryCount, "Eclipse C4Scripter"));// TODO implement new project option for "maker" string
 			int groupSize = 0;
-//			C4EntryHeader[] headers = new C4EntryHeader[entryCount];
 			for (int i = 0; i < entryCount;i++) {
 				String entryName = children[i].getName();
-				//if (hasToBeSwapped(entryName)) entryName = swapExtension(entryName);
 				if (children[i] instanceof IFolder) {
 					C4Group subGroup = makeGroup((IFolder)children[i]);
 					subGroup.entryHeader.setOffset(groupSize);
 					group.getChildEntries().add(subGroup);
-					
-//					makeGroup(children[i], stream);
-//					headers[i] = C4EntryHeader.createHeader(entryName, false, true, children[i]., entrySize, offset, time)
 				}
 				else if (children[i] instanceof IFile) {
 					File file = new File(((IFile)children[i]).getRawLocationURI());
@@ -135,7 +129,7 @@ public class C4Group implements C4GroupItem, Serializable {
 	}
 
 	/**
-	 * Open a C4Group file but not parse it yet
+	 * Open a C4Group file but do not parse it yet
 	 * @param file
 	 * @return
 	 * @throws InvalidDataException
@@ -271,22 +265,22 @@ public class C4Group implements C4GroupItem, Serializable {
 	}
 
 	/**
-	 * 
+	 * Extracts the group to the specified location in the project 
 	 */	
 	public void extractToFilesystem(IContainer parent) throws CoreException {
 		extractToFilesystem(parent, null);
 	}
 	
 	/**
-	 * 
+	 * Extracts the group to the specified location in the project using a progress monitor
 	 */	
 	public void extractToFilesystem(IContainer parent, IProgressMonitor monitor) throws CoreException {
 		IFolder me = null;
 		if (parent instanceof IFolder) {
-			me = ((IFolder)parent).getFolder(getExtractedName());
+			me = ((IFolder)parent).getFolder(getName());
 		}
 		else if (parent instanceof IProject) {
-			me = ((IProject)parent).getFolder(getExtractedName());
+			me = ((IProject)parent).getFolder(getName());
 		}
 		else {
 			throw new InvalidParameterException("You cannot import files to workspace root!");
@@ -304,18 +298,10 @@ public class C4Group implements C4GroupItem, Serializable {
 	}
 	
 	/**
-	 * Returns Object.c4d
+	 * Returns the file name of the item
 	 */
 	public String getName() {
 		return entryName;
-	}
-	
-	/**
-	 * Returns c4d.Object
-	 * @return
-	 */
-	public String getExtractedName() {
-		return entryName; // C:
 	}
 
 	public boolean isCompleted() {
@@ -323,7 +309,7 @@ public class C4Group implements C4GroupItem, Serializable {
 	}
 	
 	/**
-	 * @return the stream
+	 * @return the stream the group is read from
 	 */
 	public InputStream getStream() {
 		return stream;
@@ -347,6 +333,9 @@ public class C4Group implements C4GroupItem, Serializable {
 		return parentGroup;
 	}
 	
+	/**
+	 * Close the stream the group is being read from
+	 */
 	public void close() {
 		if (childEntries != null) {
 			childEntries.clear();

@@ -92,19 +92,12 @@
 			providesSaveables="false" id="net.arctics.clonk.navigator.resourceContent">
 			<triggerPoints>
 				<or>
-					<instanceof value="org.eclipse.core.resources.IWorkspaceRoot" />
-					<instanceof value="org.eclipse.core.resources.IProject" />
-					<instanceof value="org.eclipse.core.resources.IFolder" />
 					<instanceof value="org.eclipse.core.resources.IResource" />
 				</or>
 			</triggerPoints>
 			<possibleChildren>
 				<or>
-					<instanceof value="org.eclipse.core.resources.IWorkspaceRoot" />
-					<instanceof value="org.eclipse.core.resources.IProject" />
 					<instanceof value="org.eclipse.core.resources.IResource" />
-					<instanceof value="org.eclipse.core.resources.IFolder" />
-					<instanceof value="org.eclipse.core.resources.IFile" />
 					<instanceof value="net.arctics.clonk.util.ITreeNode" />
 					<instanceof value="net.arctics.clonk.parser.C4Declaration" />
 				</or>
@@ -112,14 +105,10 @@
 			<actionProvider class="net.arctics.clonk.ui.navigator.ClonkActionProvider"
 				id="clonkActionProvider" priority="normal" />
 
-			<commonSorter class="net.arctics.clonk.ui.navigator.ClonkSorter">
+			<commonSorter class="net.arctics.clonk.ui.navigator.ClonkSorter" id="clonkSorter">
 				<parentExpression>
 					<or>
-						<instanceof value="org.eclipse.core.resources.IWorkspaceRoot" />
-						<instanceof value="org.eclipse.core.resources.IProject" />
 						<instanceof value="org.eclipse.core.resources.IResource" />
-						<instanceof value="org.eclipse.core.resources.IFolder" />
-						<instanceof value="org.eclipse.core.resources.IFile" />
 						<instanceof value="net.arctics.clonk.util.ITreeNode" />
 					</or>
 				</parentExpression>

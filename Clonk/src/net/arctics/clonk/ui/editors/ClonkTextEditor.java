@@ -27,6 +27,7 @@ import org.eclipse.ui.editors.text.TextEditor;
 import org.eclipse.ui.ide.IDE;
 import org.eclipse.ui.part.IShowInSource;
 import org.eclipse.ui.part.IShowInTargetList;
+import org.eclipse.ui.texteditor.AbstractTextEditor;
 import org.eclipse.ui.texteditor.ContentAssistAction;
 import org.eclipse.ui.texteditor.ITextEditorActionDefinitionIds;
 import org.eclipse.ui.views.contentoutline.IContentOutlinePage;
@@ -77,17 +78,22 @@ public class ClonkTextEditor extends TextEditor {
 					IEditorDescriptor descriptor = input instanceof IFileEditorInput ? IDE.getEditorDescriptor(((IFileEditorInput)input).getFile()) : null;
 					String editorId = descriptor != null ? descriptor.getId() : "clonk.editors.C4ScriptEditor"; 
 					IEditorPart editor = IDE.openEditor(workbenchPage, input, editorId, activate);
-					ClonkTextEditor clonkTextEditor = (ClonkTextEditor) editor;
-					if (target != structure) {
-						if (structure.isEditable() && clonkTextEditor instanceof C4ScriptEditor)
-							try {
-								((C4ScriptEditor) clonkTextEditor).reparseWithDocumentContents(null, false);
-							} catch (Exception e) {
-								e.printStackTrace();
-							}
-							target = target.latestVersion();
-							if (target != null)
-								clonkTextEditor.selectAndReveal(target.getLocation());
+					if (editor instanceof ClonkTextEditor) {
+						ClonkTextEditor clonkTextEditor = (ClonkTextEditor) editor;
+						if (target != structure) {
+							if (structure.dirty() && clonkTextEditor instanceof C4ScriptEditor)
+								try {
+									((C4ScriptEditor) clonkTextEditor).reparseWithDocumentContents(null, false);
+								} catch (Exception e) {
+									e.printStackTrace();
+								}
+								target = target.latestVersion();
+								if (target != null)
+									clonkTextEditor.selectAndReveal(target.getLocation());
+						}
+					} else if (editor instanceof AbstractTextEditor) {
+						AbstractTextEditor ed = (AbstractTextEditor) editor;
+						ed.selectAndReveal(target.getLocation().getStart(), target.getLocation().getEnd()-target.getLocation().getStart());
 					}
 					return editor;
 				} catch (PartInitException e) {

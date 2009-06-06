@@ -12,7 +12,6 @@ import net.arctics.clonk.parser.BufferedScanner;
 import net.arctics.clonk.parser.C4Declaration;
 import net.arctics.clonk.parser.C4Structure;
 import net.arctics.clonk.parser.SourceLocation;
-import net.arctics.clonk.parser.c4script.C4ScriptBase;
 import net.arctics.clonk.parser.inireader.IniData.IniConfiguration;
 import net.arctics.clonk.parser.inireader.IniData.IniDataEntry;
 import net.arctics.clonk.parser.inireader.IniData.IniSectionData;
@@ -322,10 +321,6 @@ public class IniUnit extends C4Structure implements Iterable<IniSection>, IHasCh
 		return !sectionsMap.isEmpty();
 	}
 
-	public void commitTo(C4ScriptBase script) {
-		// placeholder
-	}
-
 	public void addChild(ITreeNode node) {
 		// TODO Auto-generated method stub
 		
@@ -399,6 +394,30 @@ public class IniUnit extends C4Structure implements Iterable<IniSection>, IHasCh
 	@Override
 	public String toString() {
 		return getIniFile().getFullPath().toOSString();
+	}
+	
+	@Override
+	public void pinTo(IFile file) throws CoreException {
+		super.pinTo(file);
+		reader = null; // drop reader
+	}
+	
+	public static void register() {
+		C4Structure.registerStructureFactory(new IStructureFactory() {
+			public C4Structure create(IFile file) {
+				Class<? extends IniUnit> iniUnitClass = Utilities.getIniUnitClass(file);
+				if (iniUnitClass != null) {
+					try {
+						IniUnit reader = iniUnitClass.getConstructor(IFile.class).newInstance(file);
+						reader.parse();
+						return reader;
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
+				}
+				return null;
+			}
+		});
 	}
 	
 }

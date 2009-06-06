@@ -12,8 +12,8 @@ import net.arctics.clonk.index.ClonkIndex;
 import net.arctics.clonk.parser.c4script.C4ScriptBase;
 import net.arctics.clonk.parser.c4script.C4ScriptIntern;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
+import net.arctics.clonk.parser.C4Structure;
 import net.arctics.clonk.parser.ParsingException;
-import net.arctics.clonk.parser.inireader.IniUnit;
 import net.arctics.clonk.parser.mapcreator.C4MapCreator;
 import net.arctics.clonk.parser.mapcreator.MapCreatorParser;
 import net.arctics.clonk.preferences.PreferenceConstants;
@@ -252,7 +252,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 		if (delta.getResource() instanceof IFile) {
 			IFile file = (IFile) delta.getResource();
 			if (delta.getKind() == IResourceDelta.CHANGED || delta.getKind() == IResourceDelta.ADDED) {
-				Class<? extends IniUnit> iniUnitClass;
+				C4Structure structure;
 				C4ScriptBase script = Utilities.getScriptForFile(file);
 				if (script == null && buildPhase == 0) {
 					// create if new file
@@ -284,15 +284,9 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 						}
 					}
 				}
-				else if (buildPhase == 0 && (iniUnitClass = Utilities.getIniUnitClass(file)) != null) {
-					try {
-						IniUnit reader = iniUnitClass.getConstructor(IFile.class).newInstance(delta.getResource());
-						reader.parse();
-						reader.commitTo(script);
-						reader.pinTo(file);
-					} catch (Exception e) {
-						e.printStackTrace();
-					}
+				else if (buildPhase == 0 && (structure = C4Structure.createStructureForFile(file)) != null) {
+					structure.commitTo(script);
+					structure.pinTo(file);
 				}
 				else if (buildPhase == 0 && (delta.getResource().getName().equals("Landscape.txt"))) {
 					C4MapCreator mapCreator = new C4MapCreator(file);

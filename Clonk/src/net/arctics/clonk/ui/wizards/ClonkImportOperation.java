@@ -57,8 +57,8 @@ public class ClonkImportOperation extends WorkspaceModifyOperation {
 							if (item instanceof C4Group) {
 								C4Group group = (C4Group)item;
 								if (group.getParentGroup() == null)
-									monitor.beginTask("Import " + group.getExtractedName(), group.getSizeOfChildren());
-								IFolder newFolder = currentContainer.getFolder(new Path(group.getExtractedName()));
+									monitor.beginTask("Import " + group.getName(), group.getSizeOfChildren());
+								IFolder newFolder = currentContainer.getFolder(new Path(group.getName()));
 								newFolder.create(IResource.NONE, true, monitor);
 								currentContainer = newFolder;
 								currentGroup = group;

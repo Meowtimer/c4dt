@@ -194,7 +194,7 @@ public class C4Function extends C4Structure implements Serializable, ITypedDecla
 			string.append(getName());
 			string.append("(");
 		}
-		printParameterString(string, false);
+		printParameterString(string, true);
 		if (withFuncName) string.append(")");
 		return string.toString();
 	}
