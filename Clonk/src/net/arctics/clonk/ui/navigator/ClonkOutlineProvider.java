@@ -89,7 +89,9 @@ public class ClonkOutlineProvider extends LabelProvider implements ITreeContentP
 		if (element instanceof C4Variable) {
 			return new StyledString(((C4Variable)element).getName());
 		}
-		return new StyledString(element.toString());
+		if (element != null)
+			return new StyledString(element.toString());
+		return new StyledString("");
 	}
 
 }

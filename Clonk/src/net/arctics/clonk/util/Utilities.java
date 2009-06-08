@@ -249,7 +249,7 @@ public abstract class Utilities {
 	public static C4ScriptBase getScriptForFile(IFile scriptFile) {
 		C4ScriptBase script;
 		try {
-			script = C4ScriptIntern.scriptCorrespondingTo(scriptFile);
+			script = C4ScriptIntern.pinnedScript(scriptFile);
 		} catch (CoreException e) {
 			script = null;
 		}

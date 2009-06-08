@@ -17,6 +17,7 @@ import net.arctics.clonk.index.ExternIndex;
 import net.arctics.clonk.parser.C4ID;
 import net.arctics.clonk.parser.inireader.IniData;
 import net.arctics.clonk.parser.inireader.IniUnit;
+import net.arctics.clonk.parser.mapcreator.C4MapCreator;
 import net.arctics.clonk.parser.stringtbl.StringTbl;
 import net.arctics.clonk.preferences.PreferenceConstants;
 import net.arctics.clonk.resource.ClonkLibBuilder;
@@ -64,8 +65,7 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant {
 
 	public static final QualifiedName FOLDER_C4ID_PROPERTY_ID = new QualifiedName(PLUGIN_ID,"c4id");
 	public static final QualifiedName C4OBJECT_PROPERTY_ID = new QualifiedName(PLUGIN_ID,"c4object");
-	public static final QualifiedName SCRIPT_PROPERTY_ID = new QualifiedName(PLUGIN_ID, "script");
-	public static final QualifiedName STRUCTURE_PROPERTY_ID = new QualifiedName(PLUGIN_ID, "structure");
+	public static final QualifiedName C4STRUCTURE_PROPERTY_ID = new QualifiedName(PLUGIN_ID, "structure");
 	
 	/**
 	 * The engine object contains global functions and variables defined by Clonk itself
@@ -116,6 +116,7 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant {
 		
 		IniUnit.register();
 		StringTbl.register();
+		C4MapCreator.register();
 	}
 	
 	private void loadIniConfigurations() {

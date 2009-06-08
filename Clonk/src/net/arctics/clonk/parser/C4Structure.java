@@ -4,6 +4,7 @@ import java.util.Collection;
 import java.util.LinkedList;
 
 import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IStorage;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.ui.IEditorInput;
@@ -38,11 +39,11 @@ public abstract class C4Structure extends C4Declaration {
 	}
 	
 	public void pinTo(IFile file) throws CoreException {
-		file.setSessionProperty(ClonkCore.STRUCTURE_PROPERTY_ID, this);
+		file.setSessionProperty(ClonkCore.C4STRUCTURE_PROPERTY_ID, this);
 	}
 	
 	public static C4Structure pinned(IFile file, boolean force) throws CoreException {
-		C4Structure result = (C4Structure) file.getSessionProperty(ClonkCore.STRUCTURE_PROPERTY_ID);
+		C4Structure result = (C4Structure) file.getSessionProperty(ClonkCore.C4STRUCTURE_PROPERTY_ID);
 		if (result == null && force) {
 			result = createStructureForFile(file);
 			if (result != null)

@@ -28,8 +28,10 @@ public class DeclarationChooser extends FilteredItemsSelectionDialog {
 
 		public StyledString getStyledText(Object element) {
 			StyledString result = ClonkOutlineProvider.getStyledTextForEveryone(element);
-			result.append(" - ", StyledString.QUALIFIER_STYLER);
-			result.append(((C4Declaration)element).getTopLevelStructure().toString(), StyledString.QUALIFIER_STYLER);
+			if (element != null) {
+				result.append(" - ", StyledString.QUALIFIER_STYLER);
+				result.append(((C4Declaration)element).getTopLevelStructure().toString(), StyledString.QUALIFIER_STYLER);
+			}
 			return result;
 		}
 		

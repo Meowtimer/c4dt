@@ -2,14 +2,18 @@ package net.arctics.clonk.parser.mapcreator;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
+import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
+
+import org.eclipse.core.runtime.IPath;
 
 import net.arctics.clonk.parser.C4Declaration;
 import net.arctics.clonk.parser.C4Structure;
 import net.arctics.clonk.parser.SourceLocation;
+import net.arctics.clonk.util.ITreeNode;
 
-public class C4MapOverlay extends C4Structure implements Cloneable {
+public class C4MapOverlay extends C4Structure implements Cloneable, ITreeNode {
 	
 	public enum Algorithm {
 		solid,
@@ -246,6 +250,31 @@ public class C4MapOverlay extends C4Structure implements Cloneable {
 
 	public void setBody(SourceLocation body) {
 		this.body = body;		
+	}
+
+	public void addChild(ITreeNode node) {		
+	}
+
+	public Collection<? extends ITreeNode> getChildCollection() {
+		return this.subOverlays;
+	}
+
+	public String getNodeName() {
+		return "Landscape.txt"; 
+	}
+
+	public ITreeNode getParentNode() {
+		if (getParentDeclaration() instanceof ITreeNode)
+			return (ITreeNode) getParentDeclaration();
+		return null;
+	}
+
+	public IPath getPath() {
+		return ITreeNode.Default.getPath(this);
+	}
+
+	public boolean subNodeOf(ITreeNode node) {
+		return ITreeNode.Default.subNodeOf(this, node);
 	}
 
 }

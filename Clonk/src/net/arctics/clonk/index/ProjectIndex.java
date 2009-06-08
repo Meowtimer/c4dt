@@ -36,7 +36,7 @@ public class ProjectIndex extends ClonkIndex {
 				Path path = new Path(standalone.getScriptFilePath());
 				IPath projectPath = path.removeFirstSegments(1);
 				IResource res = project.findMember(projectPath);
-				standalone.setScriptfile(res);
+				standalone.setScriptFile(res);
 			}
 		}
 		super.fixReferencesAfterSerialization();

@@ -14,8 +14,6 @@ import net.arctics.clonk.parser.c4script.C4ScriptIntern;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.C4Structure;
 import net.arctics.clonk.parser.ParsingException;
-import net.arctics.clonk.parser.mapcreator.C4MapCreator;
-import net.arctics.clonk.parser.mapcreator.MapCreatorParser;
 import net.arctics.clonk.preferences.PreferenceConstants;
 import net.arctics.clonk.ui.editors.ClonkTextEditor;
 import net.arctics.clonk.util.Utilities;
@@ -77,8 +75,8 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 					if (resource.getSessionProperty(ClonkCore.C4OBJECT_PROPERTY_ID) != null) {
 						resource.setSessionProperty(ClonkCore.C4OBJECT_PROPERTY_ID, null);
 					}
-					if (resource.getSessionProperty(ClonkCore.SCRIPT_PROPERTY_ID) != null) {
-						resource.setSessionProperty(ClonkCore.SCRIPT_PROPERTY_ID, null);
+					if (resource.getSessionProperty(ClonkCore.C4STRUCTURE_PROPERTY_ID) != null) {
+						resource.setSessionProperty(ClonkCore.C4STRUCTURE_PROPERTY_ID, null);
 					}
 					return resource instanceof IContainer;
 				}
@@ -288,11 +286,6 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 					structure.commitTo(script);
 					structure.pinTo(file);
 				}
-				else if (buildPhase == 0 && (delta.getResource().getName().equals("Landscape.txt"))) {
-					C4MapCreator mapCreator = new C4MapCreator(file);
-					MapCreatorParser parser = new MapCreatorParser(mapCreator);
-					parser.parse();
-				}
 			}
 			else if (delta.getKind() == IResourceDelta.REMOVED && delta.getResource().getParent().exists()) {
 				if (buildPhase == 0) {
@@ -324,8 +317,6 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 	}
 
 	public boolean visit(IResource resource) throws CoreException {
-		if (resource == null)
-			return false;
 		if (resource instanceof IContainer) {
 			switch (buildPhase) {
 			case 0:
@@ -362,32 +353,40 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 				return false; // :C ?
 			}
 		}
-		else if (resource.getName().endsWith(".c") && resource.getParent().getName().endsWith(".c4g")) {
-			C4ScriptBase script = C4ScriptIntern.scriptCorrespondingTo(resource);
-			switch (buildPhase) {
-			case 0:
-				if (script == null) {
-					script = new C4ScriptIntern(resource);
-				}
-				Utilities.getClonkNature(resource).getIndex().addScript(script);
-				C4ScriptParser parser = new C4ScriptParser((IFile)resource, script);
-				parser.clean();
-				parser.parseDeclarations();
-				return true;
-			case 1:
-				if (script != null) {
-					try {
-						new C4ScriptParser((IFile)resource, script).parseCodeOfFunctions();
-					} catch (ParsingException e) {
-						e.printStackTrace();
+		else if (resource instanceof IFile) {
+			IFile file = (IFile) resource;
+			C4Structure structure;
+			if (resource.getName().endsWith(".c") && resource.getParent().getName().endsWith(".c4g")) {
+				C4ScriptBase script = C4ScriptIntern.pinnedScript(file);
+				switch (buildPhase) {
+				case 0:
+					if (script == null) {
+						script = new C4ScriptIntern(resource);
 					}
+					Utilities.getClonkNature(resource).getIndex().addScript(script);
+					C4ScriptParser parser = getParserFor(script);
+					parser.clean();
+					parser.parseDeclarations();
+					return true;
+				case 1:
+					if (script != null) {
+						try {
+							getParserFor(script).parseCodeOfFunctions();
+						} catch (ParsingException e) {
+							e.printStackTrace();
+						}
+					}
+					return true;
 				}
+			}
+			else if (buildPhase == 0 && (structure = C4Structure.createStructureForFile(file)) != null) {
+				C4ScriptBase script = Utilities.getScriptForFile(file);
+				structure.commitTo(script);
+				structure.pinTo(file);
 				return true;
-			default:
-				return false;
 			}
 		}
-		else return false;
+		return false;
 	}
 	
 }

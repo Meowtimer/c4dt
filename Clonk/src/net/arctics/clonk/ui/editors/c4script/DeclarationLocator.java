@@ -1,7 +1,9 @@
 package net.arctics.clonk.ui.editors.c4script;
 
+import java.util.LinkedList;
 import java.util.List;
 
+import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.C4Declaration;
 import net.arctics.clonk.parser.c4script.C4Function;
 import net.arctics.clonk.parser.c4script.C4ScriptBase;
@@ -22,8 +24,7 @@ import org.eclipse.jface.text.Region;
 import org.eclipse.ui.texteditor.ITextEditor;
 
 /**
- * Encapsulates information about an identifier in a document and the declaration it refers to
- * @author madeen
+ * Little helper thingie to find declarations
  *
  */
 public class DeclarationLocator extends ExpressionLocator {
@@ -64,8 +65,18 @@ public class DeclarationLocator extends ExpressionLocator {
 				}
 				else if (exprAtRegion instanceof ExprAccessDeclaration) {
 					ExprAccessDeclaration access = (ExprAccessDeclaration) exprAtRegion;
-					proposedDeclarations = script.getIndex().getDeclarationMap().get(access.getDeclarationName());
-					setRegion = (proposedDeclarations != null && proposedDeclarations.size() > 0);
+					List<C4Declaration> projectDeclarations = script.getIndex().getDeclarationMap().get(access.getDeclarationName());
+					List<C4Declaration> externalDeclarations = ClonkCore.getDefault().EXTERN_INDEX.getDeclarationMap().get(access.getDeclarationName());
+					if (projectDeclarations != null || externalDeclarations != null) {
+						proposedDeclarations = new LinkedList<C4Declaration>();
+						if (projectDeclarations != null)
+							proposedDeclarations.addAll(projectDeclarations);
+						if (externalDeclarations != null)
+							proposedDeclarations.addAll(externalDeclarations);
+						setRegion = true;
+					}
+					else
+						setRegion = false;
 				}
 				else
 					setRegion = false;
@@ -92,7 +103,7 @@ public class DeclarationLocator extends ExpressionLocator {
 		for (start = localOffset; start > 0 && Character.isJavaIdentifierPart(line.charAt(start-1)); start--);
 		for (end = localOffset; end < line.length() && Character.isJavaIdentifierPart(line.charAt(end)); end++);
 		exprRegion = new Region(lineInfo.getOffset()+start,end-start);
-		declaration = script.findDeclaration(doc.get(exprRegion.getOffset(),  exprRegion.getLength()), new FindDeclarationInfo(script.getIndex(), func));
+		declaration = script.findDeclaration(doc.get(exprRegion.getOffset(), exprRegion.getLength()), new FindDeclarationInfo(script.getIndex(), func));
 	}
 	
 	/**
