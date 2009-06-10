@@ -10,11 +10,15 @@ import net.arctics.clonk.ui.editors.ColorManager;
 import net.arctics.clonk.util.Utilities;
 
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.jface.text.DocumentEvent;
+import org.eclipse.jface.text.IDocumentListener;
+import org.eclipse.swt.widgets.Composite;
 
 public class IniTextEditor extends ClonkTextEditor {
 	
 	private IniUnit unit;
 	private boolean unitParsed;
+	private int unitLocked;
 
 	@Override
 	public void doSave(IProgressMonitor progressMonitor) {
@@ -51,12 +55,36 @@ public class IniTextEditor extends ClonkTextEditor {
 	}
 
 	public void forgetUnitParsed() {
-		unitParsed = false;
+		if (unitLocked == 0)
+			unitParsed = false;
 	}
 
 	public IniUnit getIniUnit() {
 		ensureIniUnitUpToDate();
 		return unit;
+	}
+	
+	public void lockUnit() {
+		unitLocked++;
+	}
+	
+	public void unlockUnit() {
+		unitLocked--;
+	}
+	
+	@Override
+	public void createPartControl(Composite parent) {
+		super.createPartControl(parent);
+		getDocumentProvider().getDocument(getEditorInput()).addDocumentListener(new IDocumentListener() {
+
+			public void documentAboutToBeChanged(DocumentEvent event) {
+			}
+
+			public void documentChanged(DocumentEvent event) {
+				forgetUnitParsed();
+			}
+			
+		});
 	}
 	
 }

@@ -23,6 +23,7 @@ import net.arctics.clonk.util.Utilities;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.text.BadLocationException;
+import org.eclipse.jface.text.DocumentEvent;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.ITextViewer;
@@ -58,8 +59,14 @@ public class IniSourceViewerConfiguration extends ClonkSourceViewerConfiguration
 		
 		@Override
 		public void hideHyperlinks() {
-			getEditor().forgetUnitParsed();
+			//getEditor().forgetUnitParsed();
 			super.hideHyperlinks();
+		}
+		
+		@Override
+		public void documentChanged(DocumentEvent event) {
+			System.out.println("called");
+			super.documentChanged(event);
 		}
 		
 	}

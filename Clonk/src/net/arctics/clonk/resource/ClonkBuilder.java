@@ -379,10 +379,8 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 					return true;
 				}
 			}
-			else if (buildPhase == 0 && (structure = C4Structure.createStructureForFile(file)) != null) {
-				C4ScriptBase script = Utilities.getScriptForFile(file);
-				structure.commitTo(script);
-				structure.pinTo(file);
+			else if (buildPhase == 0 && (structure = C4Structure.pinned(file, true)) != null) {
+				structure.commitTo(Utilities.getScriptForFile(file));
 				return true;
 			}
 		}

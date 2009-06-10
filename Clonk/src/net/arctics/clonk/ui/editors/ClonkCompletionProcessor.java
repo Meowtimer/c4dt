@@ -85,7 +85,18 @@ public abstract class ClonkCompletionProcessor<EditorType extends ClonkTextEdito
 		ICompletionProposal[] arr = proposals.toArray(new ICompletionProposal[proposals.size()]);
 		Arrays.sort(arr, new Comparator<ICompletionProposal>() {
 			public int compare(ICompletionProposal propA, ICompletionProposal propB) {
-				return (propA.getDisplayString().compareToIgnoreCase(propB.getDisplayString()));
+				String dispA = propA.getDisplayString(), dispB = propB.getDisplayString();
+				if (dispA.startsWith("[")) {
+					if (!dispB.startsWith("[")) {
+						return 1;
+					}
+				}
+				else if (dispB.startsWith("[")) {
+					if (!dispA.startsWith("[")) {
+						return -1;
+					}
+				}
+				return dispA.compareToIgnoreCase(dispB);
 			}
 		});
 		return arr;

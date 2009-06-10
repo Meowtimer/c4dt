@@ -213,12 +213,13 @@ public class IniCompletionProcessor extends ClonkCompletionProcessor<IniTextEdit
 	}
 
 	public void assistSessionEnded(ContentAssistEvent event) {
-		
+		getEditor().unlockUnit();
 	}
 
 	public void assistSessionStarted(ContentAssistEvent event) {
 		try {
 			getEditor().forgetUnitParsed();
+			getEditor().lockUnit();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

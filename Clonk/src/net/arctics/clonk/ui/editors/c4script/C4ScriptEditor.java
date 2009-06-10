@@ -27,7 +27,9 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.preference.PreferenceConverter;
+import org.eclipse.jface.text.DocumentEvent;
 import org.eclipse.jface.text.IDocument;
+import org.eclipse.jface.text.IDocumentListener;
 import org.eclipse.jface.text.TextSelection;
 import org.eclipse.jface.text.source.DefaultCharacterPairMatcher;
 import org.eclipse.jface.text.source.ISourceViewer;
@@ -92,11 +94,16 @@ public class C4ScriptEditor extends ClonkTextEditor {
 	@Override
 	public void createPartControl(Composite parent) {
 		super.createPartControl(parent);
-		getSourceViewer().getTextWidget().getContent().addTextChangeListener(new TextChangeListener() {
-			
-			private Timer reparseTimer;
+		getDocumentProvider().getDocument(getEditorInput()).addDocumentListener(new IDocumentListener() {
 
-			public void textChanged(TextChangedEvent event) {
+			private Timer reparseTimer;
+			
+			public void documentAboutToBeChanged(DocumentEvent event) {
+				// TODO Auto-generated method stub
+				
+			}
+
+			public void documentChanged(DocumentEvent event) {
 				markScriptAsDirty();
 				if (getDocumentProvider().getDocument(getEditorInput()).getLength() > 20 * 1024)
 					return;
@@ -118,16 +125,6 @@ public class C4ScriptEditor extends ClonkTextEditor {
 						}
 					}
 				}, 2000);
-			}
-
-			public void textChanging(TextChangingEvent event) {
-				// TODO Auto-generated method stub
-				
-			}
-
-			public void textSet(TextChangedEvent event) {
-				// TODO Auto-generated method stub
-				
 			}
 			
 		});

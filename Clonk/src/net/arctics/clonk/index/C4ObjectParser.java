@@ -1,6 +1,7 @@
 package net.arctics.clonk.index;
 
 import net.arctics.clonk.ClonkCore;
+import net.arctics.clonk.parser.C4Structure;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.inireader.DefCoreUnit;
 import net.arctics.clonk.resource.c4group.C4Group;
@@ -58,12 +59,11 @@ public class C4ObjectParser {
 	
 	public C4ObjectIntern createObject() {
 		try {
-			object = (C4ObjectIntern) objectFolder.getSessionProperty(ClonkCore.C4OBJECT_PROPERTY_ID);
+			object = C4ObjectIntern.objectCorrespondingTo(objectFolder);
 			if (defCore != null) {
-				DefCoreUnit defCoreWrapper = new DefCoreUnit(defCore);
-				defCoreWrapper.parse();
+				DefCoreUnit defCoreWrapper = (DefCoreUnit) C4Structure.pinned(defCore, true);
 				if (object == null) {
-					object = new C4ObjectIntern(defCoreWrapper.getObjectID(),defCoreWrapper.getName(),objectFolder);
+					object = new C4ObjectIntern(defCoreWrapper.getObjectID(), defCoreWrapper.getName(), objectFolder);
 				}
 				else {
 					object.setId(defCoreWrapper.getObjectID());
