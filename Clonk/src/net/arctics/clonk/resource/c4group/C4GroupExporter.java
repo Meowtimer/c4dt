@@ -44,19 +44,22 @@ public class C4GroupExporter {
 			IContainer toExport = (IContainer)res;
 			try {
 				String OS = System.getProperty("os.name");
-//				Utilities.getDebugStream().println("- Got OS.");
 				if (monitor != null) monitor.subTask(toExport.getName());
 				String c4dpath = new Path(destinationPath).append(toExport.getName()).toOSString();
 				File oldFile = new File(new Path(destinationPath).append(toExport.getName()).toOSString());
-				if (oldFile.exists()) oldFile.delete();
-//				Utilities.getDebugStream().println("- Got Files.");
-				// ugly hack :S create temporary file that uses /bin/sh to execute c4group 
+				// ugh, deleting files is ugly but there seems to be no java method for putting files to trash -.-
+				if (oldFile.exists())
+					oldFile.delete();
+				// ugly hack :S create temporary file that uses /bin/sh to execute c4group - don't really know why it's necessary but c4group always got confused about the current directory 
 				if (OS.equals("Mac OS X")) {
 					if (scratchExecFile == null) {
 						// create and make executable
 						scratchExecFile = File.createTempFile("c4groupproxy", "eclipse");
 						scratchExecFile.deleteOnExit();
 						Runtime.getRuntime().exec(new String[] {"/bin/chmod", "+x", scratchExecFile.getAbsolutePath()}).waitFor();
+					}
+					else {
+						// chance for malicious programs to rewrite this file and let it execute all kinds of nasty things .-.
 					}
 					// write command
 					Writer writer = new OutputStreamWriter(new FileOutputStream(scratchExecFile));

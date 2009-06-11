@@ -1,4 +1,4 @@
-// $ANTLR 3.1.2 C:\\Users\\Madeen\\Projects\\Eclipse\\Clonk\\src\\net\\arctics\\clonk\\parser\\mapcreator\\MapCreator.g 2009-05-28 13:16:18
+// $ANTLR 3.1.2 /Users/madeen/Projects/Eclipse/Clonk/src/net/arctics/clonk/parser/mapcreator/MapCreator.g 2009-06-11 12:27:05
 package net.arctics.clonk.parser.mapcreator;
 
 import org.antlr.runtime.*;
@@ -37,15 +37,15 @@ public class MapCreatorLexer extends Lexer {
         super(input,state);
 
     }
-    public String getGrammarFileName() { return "C:\\Users\\Madeen\\Projects\\Eclipse\\Clonk\\src\\net\\arctics\\clonk\\parser\\mapcreator\\MapCreator.g"; }
+    public String getGrammarFileName() { return "/Users/madeen/Projects/Eclipse/Clonk/src/net/arctics/clonk/parser/mapcreator/MapCreator.g"; }
 
     // $ANTLR start "MAP"
     public final void mMAP() throws RecognitionException {
         try {
             int _type = MAP;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // C:\\Users\\Madeen\\Projects\\Eclipse\\Clonk\\src\\net\\arctics\\clonk\\parser\\mapcreator\\MapCreator.g:191:6: ( 'map' )
-            // C:\\Users\\Madeen\\Projects\\Eclipse\\Clonk\\src\\net\\arctics\\clonk\\parser\\mapcreator\\MapCreator.g:191:8: 'map'
+            // /Users/madeen/Projects/Eclipse/Clonk/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:191:6: ( 'map' )
+            // /Users/madeen/Projects/Eclipse/Clonk/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:191:8: 'map'
             {
             match("map"); 
 
@@ -65,8 +65,8 @@ public class MapCreatorLexer extends Lexer {
         try {
             int _type = OVERLAY;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // C:\\Users\\Madeen\\Projects\\Eclipse\\Clonk\\src\\net\\arctics\\clonk\\parser\\mapcreator\\MapCreator.g:192:10: ( 'overlay' )
-            // C:\\Users\\Madeen\\Projects\\Eclipse\\Clonk\\src\\net\\arctics\\clonk\\parser\\mapcreator\\MapCreator.g:192:12: 'overlay'
+            // /Users/madeen/Projects/Eclipse/Clonk/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:192:10: ( 'overlay' )
+            // /Users/madeen/Projects/Eclipse/Clonk/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:192:12: 'overlay'
             {
             match("overlay"); 
 
@@ -84,8 +84,8 @@ public class MapCreatorLexer extends Lexer {
     // $ANTLR start "LETTER"
     public final void mLETTER() throws RecognitionException {
         try {
-            // C:\\Users\\Madeen\\Projects\\Eclipse\\Clonk\\src\\net\\arctics\\clonk\\parser\\mapcreator\\MapCreator.g:194:17: ( 'a' .. 'z' | 'A' .. 'Z' | '_' )
-            // C:\\Users\\Madeen\\Projects\\Eclipse\\Clonk\\src\\net\\arctics\\clonk\\parser\\mapcreator\\MapCreator.g:
+            // /Users/madeen/Projects/Eclipse/Clonk/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:194:17: ( 'a' .. 'z' | 'A' .. 'Z' | '_' )
+            // /Users/madeen/Projects/Eclipse/Clonk/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:
             {
             if ( (input.LA(1)>='A' && input.LA(1)<='Z')||input.LA(1)=='_'||(input.LA(1)>='a' && input.LA(1)<='z') ) {
                 input.consume();
@@ -108,8 +108,8 @@ public class MapCreatorLexer extends Lexer {
     // $ANTLR start "DIGIT"
     public final void mDIGIT() throws RecognitionException {
         try {
-            // C:\\Users\\Madeen\\Projects\\Eclipse\\Clonk\\src\\net\\arctics\\clonk\\parser\\mapcreator\\MapCreator.g:195:16: ( '0' .. '9' )
-            // C:\\Users\\Madeen\\Projects\\Eclipse\\Clonk\\src\\net\\arctics\\clonk\\parser\\mapcreator\\MapCreator.g:195:18: '0' .. '9'
+            // /Users/madeen/Projects/Eclipse/Clonk/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:195:16: ( '0' .. '9' )
+            // /Users/madeen/Projects/Eclipse/Clonk/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:195:18: '0' .. '9'
             {
             matchRange('0','9'); 
 
@@ -124,10 +124,10 @@ public class MapCreatorLexer extends Lexer {
     // $ANTLR start "INT"
     public final void mINT() throws RecognitionException {
         try {
-            // C:\\Users\\Madeen\\Projects\\Eclipse\\Clonk\\src\\net\\arctics\\clonk\\parser\\mapcreator\\MapCreator.g:196:15: ( ( '+' | '-' )? ( DIGIT )+ )
-            // C:\\Users\\Madeen\\Projects\\Eclipse\\Clonk\\src\\net\\arctics\\clonk\\parser\\mapcreator\\MapCreator.g:196:17: ( '+' | '-' )? ( DIGIT )+
+            // /Users/madeen/Projects/Eclipse/Clonk/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:196:15: ( ( '+' | '-' )? ( DIGIT )+ )
+            // /Users/madeen/Projects/Eclipse/Clonk/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:196:17: ( '+' | '-' )? ( DIGIT )+
             {
-            // C:\\Users\\Madeen\\Projects\\Eclipse\\Clonk\\src\\net\\arctics\\clonk\\parser\\mapcreator\\MapCreator.g:196:17: ( '+' | '-' )?
+            // /Users/madeen/Projects/Eclipse/Clonk/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:196:17: ( '+' | '-' )?
             int alt1=2;
             int LA1_0 = input.LA(1);
 
@@ -136,7 +136,7 @@ public class MapCreatorLexer extends Lexer {
             }
             switch (alt1) {
                 case 1 :
-                    // C:\\Users\\Madeen\\Projects\\Eclipse\\Clonk\\src\\net\\arctics\\clonk\\parser\\mapcreator\\MapCreator.g:
+                    // /Users/madeen/Projects/Eclipse/Clonk/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:
                     {
                     if ( input.LA(1)=='+'||input.LA(1)=='-' ) {
                         input.consume();
@@ -153,7 +153,7 @@ public class MapCreatorLexer extends Lexer {
 
             }
 
-            // C:\\Users\\Madeen\\Projects\\Eclipse\\Clonk\\src\\net\\arctics\\clonk\\parser\\mapcreator\\MapCreator.g:196:28: ( DIGIT )+
+            // /Users/madeen/Projects/Eclipse/Clonk/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:196:28: ( DIGIT )+
             int cnt2=0;
             loop2:
             do {
@@ -167,7 +167,7 @@ public class MapCreatorLexer extends Lexer {
 
                 switch (alt2) {
             	case 1 :
-            	    // C:\\Users\\Madeen\\Projects\\Eclipse\\Clonk\\src\\net\\arctics\\clonk\\parser\\mapcreator\\MapCreator.g:196:28: DIGIT
+            	    // /Users/madeen/Projects/Eclipse/Clonk/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:196:28: DIGIT
             	    {
             	    mDIGIT(); 
 
@@ -195,11 +195,11 @@ public class MapCreatorLexer extends Lexer {
     // $ANTLR start "WORD"
     public final void mWORD() throws RecognitionException {
         try {
-            // C:\\Users\\Madeen\\Projects\\Eclipse\\Clonk\\src\\net\\arctics\\clonk\\parser\\mapcreator\\MapCreator.g:197:15: ( LETTER ( LETTER | DIGIT )* )
-            // C:\\Users\\Madeen\\Projects\\Eclipse\\Clonk\\src\\net\\arctics\\clonk\\parser\\mapcreator\\MapCreator.g:197:17: LETTER ( LETTER | DIGIT )*
+            // /Users/madeen/Projects/Eclipse/Clonk/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:197:15: ( LETTER ( LETTER | DIGIT )* )
+            // /Users/madeen/Projects/Eclipse/Clonk/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:197:17: LETTER ( LETTER | DIGIT )*
             {
             mLETTER(); 
-            // C:\\Users\\Madeen\\Projects\\Eclipse\\Clonk\\src\\net\\arctics\\clonk\\parser\\mapcreator\\MapCreator.g:197:24: ( LETTER | DIGIT )*
+            // /Users/madeen/Projects/Eclipse/Clonk/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:197:24: ( LETTER | DIGIT )*
             loop3:
             do {
                 int alt3=2;
@@ -212,7 +212,7 @@ public class MapCreatorLexer extends Lexer {
 
                 switch (alt3) {
             	case 1 :
-            	    // C:\\Users\\Madeen\\Projects\\Eclipse\\Clonk\\src\\net\\arctics\\clonk\\parser\\mapcreator\\MapCreator.g:
+            	    // /Users/madeen/Projects/Eclipse/Clonk/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:
             	    {
             	    if ( (input.LA(1)>='0' && input.LA(1)<='9')||(input.LA(1)>='A' && input.LA(1)<='Z')||input.LA(1)=='_'||(input.LA(1)>='a' && input.LA(1)<='z') ) {
             	        input.consume();
@@ -246,8 +246,8 @@ public class MapCreatorLexer extends Lexer {
         try {
             int _type = NUMBER;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // C:\\Users\\Madeen\\Projects\\Eclipse\\Clonk\\src\\net\\arctics\\clonk\\parser\\mapcreator\\MapCreator.g:199:9: ( INT )
-            // C:\\Users\\Madeen\\Projects\\Eclipse\\Clonk\\src\\net\\arctics\\clonk\\parser\\mapcreator\\MapCreator.g:199:11: INT
+            // /Users/madeen/Projects/Eclipse/Clonk/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:199:9: ( INT )
+            // /Users/madeen/Projects/Eclipse/Clonk/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:199:11: INT
             {
             mINT(); 
 
@@ -266,8 +266,8 @@ public class MapCreatorLexer extends Lexer {
         try {
             int _type = NAME;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // C:\\Users\\Madeen\\Projects\\Eclipse\\Clonk\\src\\net\\arctics\\clonk\\parser\\mapcreator\\MapCreator.g:200:7: ( WORD )
-            // C:\\Users\\Madeen\\Projects\\Eclipse\\Clonk\\src\\net\\arctics\\clonk\\parser\\mapcreator\\MapCreator.g:200:9: WORD
+            // /Users/madeen/Projects/Eclipse/Clonk/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:200:7: ( WORD )
+            // /Users/madeen/Projects/Eclipse/Clonk/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:200:9: WORD
             {
             mWORD(); 
 
@@ -286,8 +286,8 @@ public class MapCreatorLexer extends Lexer {
         try {
             int _type = MATCOMBO;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // C:\\Users\\Madeen\\Projects\\Eclipse\\Clonk\\src\\net\\arctics\\clonk\\parser\\mapcreator\\MapCreator.g:201:10: ( WORD '-' WORD )
-            // C:\\Users\\Madeen\\Projects\\Eclipse\\Clonk\\src\\net\\arctics\\clonk\\parser\\mapcreator\\MapCreator.g:201:12: WORD '-' WORD
+            // /Users/madeen/Projects/Eclipse/Clonk/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:201:10: ( WORD '-' WORD )
+            // /Users/madeen/Projects/Eclipse/Clonk/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:201:12: WORD '-' WORD
             {
             mWORD(); 
             match('-'); 
@@ -308,10 +308,10 @@ public class MapCreatorLexer extends Lexer {
         try {
             int _type = WS;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // C:\\Users\\Madeen\\Projects\\Eclipse\\Clonk\\src\\net\\arctics\\clonk\\parser\\mapcreator\\MapCreator.g:202:5: ( ( ' ' | '\\t' | '\\n' | '\\r' )+ )
-            // C:\\Users\\Madeen\\Projects\\Eclipse\\Clonk\\src\\net\\arctics\\clonk\\parser\\mapcreator\\MapCreator.g:202:7: ( ' ' | '\\t' | '\\n' | '\\r' )+
+            // /Users/madeen/Projects/Eclipse/Clonk/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:202:5: ( ( ' ' | '\\t' | '\\n' | '\\r' )+ )
+            // /Users/madeen/Projects/Eclipse/Clonk/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:202:7: ( ' ' | '\\t' | '\\n' | '\\r' )+
             {
-            // C:\\Users\\Madeen\\Projects\\Eclipse\\Clonk\\src\\net\\arctics\\clonk\\parser\\mapcreator\\MapCreator.g:202:7: ( ' ' | '\\t' | '\\n' | '\\r' )+
+            // /Users/madeen/Projects/Eclipse/Clonk/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:202:7: ( ' ' | '\\t' | '\\n' | '\\r' )+
             int cnt4=0;
             loop4:
             do {
@@ -325,7 +325,7 @@ public class MapCreatorLexer extends Lexer {
 
                 switch (alt4) {
             	case 1 :
-            	    // C:\\Users\\Madeen\\Projects\\Eclipse\\Clonk\\src\\net\\arctics\\clonk\\parser\\mapcreator\\MapCreator.g:
+            	    // /Users/madeen/Projects/Eclipse/Clonk/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:
             	    {
             	    if ( (input.LA(1)>='\t' && input.LA(1)<='\n')||input.LA(1)=='\r'||input.LA(1)==' ' ) {
             	        input.consume();
@@ -366,12 +366,12 @@ public class MapCreatorLexer extends Lexer {
         try {
             int _type = SLCOMMENT;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // C:\\Users\\Madeen\\Projects\\Eclipse\\Clonk\\src\\net\\arctics\\clonk\\parser\\mapcreator\\MapCreator.g:203:11: ( '//' ( . )* '\\n' )
-            // C:\\Users\\Madeen\\Projects\\Eclipse\\Clonk\\src\\net\\arctics\\clonk\\parser\\mapcreator\\MapCreator.g:203:13: '//' ( . )* '\\n'
+            // /Users/madeen/Projects/Eclipse/Clonk/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:203:11: ( '//' ( . )* '\\n' )
+            // /Users/madeen/Projects/Eclipse/Clonk/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:203:13: '//' ( . )* '\\n'
             {
             match("//"); 
 
-            // C:\\Users\\Madeen\\Projects\\Eclipse\\Clonk\\src\\net\\arctics\\clonk\\parser\\mapcreator\\MapCreator.g:203:18: ( . )*
+            // /Users/madeen/Projects/Eclipse/Clonk/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:203:18: ( . )*
             loop5:
             do {
                 int alt5=2;
@@ -387,7 +387,7 @@ public class MapCreatorLexer extends Lexer {
 
                 switch (alt5) {
             	case 1 :
-            	    // C:\\Users\\Madeen\\Projects\\Eclipse\\Clonk\\src\\net\\arctics\\clonk\\parser\\mapcreator\\MapCreator.g:203:18: .
+            	    // /Users/madeen/Projects/Eclipse/Clonk/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:203:18: .
             	    {
             	    matchAny(); 
 
@@ -417,12 +417,12 @@ public class MapCreatorLexer extends Lexer {
         try {
             int _type = MLCOMMENT;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // C:\\Users\\Madeen\\Projects\\Eclipse\\Clonk\\src\\net\\arctics\\clonk\\parser\\mapcreator\\MapCreator.g:204:11: ( '/*' ( . )* '*/' )
-            // C:\\Users\\Madeen\\Projects\\Eclipse\\Clonk\\src\\net\\arctics\\clonk\\parser\\mapcreator\\MapCreator.g:204:13: '/*' ( . )* '*/'
+            // /Users/madeen/Projects/Eclipse/Clonk/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:204:11: ( '/*' ( . )* '*/' )
+            // /Users/madeen/Projects/Eclipse/Clonk/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:204:13: '/*' ( . )* '*/'
             {
             match("/*"); 
 
-            // C:\\Users\\Madeen\\Projects\\Eclipse\\Clonk\\src\\net\\arctics\\clonk\\parser\\mapcreator\\MapCreator.g:204:18: ( . )*
+            // /Users/madeen/Projects/Eclipse/Clonk/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:204:18: ( . )*
             loop6:
             do {
                 int alt6=2;
@@ -447,7 +447,7 @@ public class MapCreatorLexer extends Lexer {
 
                 switch (alt6) {
             	case 1 :
-            	    // C:\\Users\\Madeen\\Projects\\Eclipse\\Clonk\\src\\net\\arctics\\clonk\\parser\\mapcreator\\MapCreator.g:204:18: .
+            	    // /Users/madeen/Projects/Eclipse/Clonk/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:204:18: .
             	    {
             	    matchAny(); 
 
@@ -478,8 +478,8 @@ public class MapCreatorLexer extends Lexer {
         try {
             int _type = ASSIGN;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // C:\\Users\\Madeen\\Projects\\Eclipse\\Clonk\\src\\net\\arctics\\clonk\\parser\\mapcreator\\MapCreator.g:205:9: ( '=' )
-            // C:\\Users\\Madeen\\Projects\\Eclipse\\Clonk\\src\\net\\arctics\\clonk\\parser\\mapcreator\\MapCreator.g:205:11: '='
+            // /Users/madeen/Projects/Eclipse/Clonk/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:205:9: ( '=' )
+            // /Users/madeen/Projects/Eclipse/Clonk/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:205:11: '='
             {
             match('='); 
 
@@ -498,8 +498,8 @@ public class MapCreatorLexer extends Lexer {
         try {
             int _type = BLOCKOPEN;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // C:\\Users\\Madeen\\Projects\\Eclipse\\Clonk\\src\\net\\arctics\\clonk\\parser\\mapcreator\\MapCreator.g:206:11: ( '{' )
-            // C:\\Users\\Madeen\\Projects\\Eclipse\\Clonk\\src\\net\\arctics\\clonk\\parser\\mapcreator\\MapCreator.g:206:13: '{'
+            // /Users/madeen/Projects/Eclipse/Clonk/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:206:11: ( '{' )
+            // /Users/madeen/Projects/Eclipse/Clonk/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:206:13: '{'
             {
             match('{'); 
 
@@ -518,8 +518,8 @@ public class MapCreatorLexer extends Lexer {
         try {
             int _type = BLOCKCLOSE;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // C:\\Users\\Madeen\\Projects\\Eclipse\\Clonk\\src\\net\\arctics\\clonk\\parser\\mapcreator\\MapCreator.g:207:12: ( '}' )
-            // C:\\Users\\Madeen\\Projects\\Eclipse\\Clonk\\src\\net\\arctics\\clonk\\parser\\mapcreator\\MapCreator.g:207:14: '}'
+            // /Users/madeen/Projects/Eclipse/Clonk/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:207:12: ( '}' )
+            // /Users/madeen/Projects/Eclipse/Clonk/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:207:14: '}'
             {
             match('}'); 
 
@@ -538,8 +538,8 @@ public class MapCreatorLexer extends Lexer {
         try {
             int _type = STATEMENTEND;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // C:\\Users\\Madeen\\Projects\\Eclipse\\Clonk\\src\\net\\arctics\\clonk\\parser\\mapcreator\\MapCreator.g:208:14: ( ';' )
-            // C:\\Users\\Madeen\\Projects\\Eclipse\\Clonk\\src\\net\\arctics\\clonk\\parser\\mapcreator\\MapCreator.g:208:16: ';'
+            // /Users/madeen/Projects/Eclipse/Clonk/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:208:14: ( ';' )
+            // /Users/madeen/Projects/Eclipse/Clonk/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:208:16: ';'
             {
             match(';'); 
 
@@ -558,8 +558,8 @@ public class MapCreatorLexer extends Lexer {
         try {
             int _type = OPERATOR;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // C:\\Users\\Madeen\\Projects\\Eclipse\\Clonk\\src\\net\\arctics\\clonk\\parser\\mapcreator\\MapCreator.g:209:11: ( '|' | '&' | '^' )
-            // C:\\Users\\Madeen\\Projects\\Eclipse\\Clonk\\src\\net\\arctics\\clonk\\parser\\mapcreator\\MapCreator.g:
+            // /Users/madeen/Projects/Eclipse/Clonk/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:209:11: ( '|' | '&' | '^' )
+            // /Users/madeen/Projects/Eclipse/Clonk/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:
             {
             if ( input.LA(1)=='&'||input.LA(1)=='^'||input.LA(1)=='|' ) {
                 input.consume();
@@ -582,96 +582,96 @@ public class MapCreatorLexer extends Lexer {
     // $ANTLR end "OPERATOR"
 
     public void mTokens() throws RecognitionException {
-        // C:\\Users\\Madeen\\Projects\\Eclipse\\Clonk\\src\\net\\arctics\\clonk\\parser\\mapcreator\\MapCreator.g:1:8: ( MAP | OVERLAY | NUMBER | NAME | MATCOMBO | WS | SLCOMMENT | MLCOMMENT | ASSIGN | BLOCKOPEN | BLOCKCLOSE | STATEMENTEND | OPERATOR )
+        // /Users/madeen/Projects/Eclipse/Clonk/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:1:8: ( MAP | OVERLAY | NUMBER | NAME | MATCOMBO | WS | SLCOMMENT | MLCOMMENT | ASSIGN | BLOCKOPEN | BLOCKCLOSE | STATEMENTEND | OPERATOR )
         int alt7=13;
         alt7 = dfa7.predict(input);
         switch (alt7) {
             case 1 :
-                // C:\\Users\\Madeen\\Projects\\Eclipse\\Clonk\\src\\net\\arctics\\clonk\\parser\\mapcreator\\MapCreator.g:1:10: MAP
+                // /Users/madeen/Projects/Eclipse/Clonk/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:1:10: MAP
                 {
                 mMAP(); 
 
                 }
                 break;
             case 2 :
-                // C:\\Users\\Madeen\\Projects\\Eclipse\\Clonk\\src\\net\\arctics\\clonk\\parser\\mapcreator\\MapCreator.g:1:14: OVERLAY
+                // /Users/madeen/Projects/Eclipse/Clonk/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:1:14: OVERLAY
                 {
                 mOVERLAY(); 
 
                 }
                 break;
             case 3 :
-                // C:\\Users\\Madeen\\Projects\\Eclipse\\Clonk\\src\\net\\arctics\\clonk\\parser\\mapcreator\\MapCreator.g:1:22: NUMBER
+                // /Users/madeen/Projects/Eclipse/Clonk/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:1:22: NUMBER
                 {
                 mNUMBER(); 
 
                 }
                 break;
             case 4 :
-                // C:\\Users\\Madeen\\Projects\\Eclipse\\Clonk\\src\\net\\arctics\\clonk\\parser\\mapcreator\\MapCreator.g:1:29: NAME
+                // /Users/madeen/Projects/Eclipse/Clonk/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:1:29: NAME
                 {
                 mNAME(); 
 
                 }
                 break;
             case 5 :
-                // C:\\Users\\Madeen\\Projects\\Eclipse\\Clonk\\src\\net\\arctics\\clonk\\parser\\mapcreator\\MapCreator.g:1:34: MATCOMBO
+                // /Users/madeen/Projects/Eclipse/Clonk/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:1:34: MATCOMBO
                 {
                 mMATCOMBO(); 
 
                 }
                 break;
             case 6 :
-                // C:\\Users\\Madeen\\Projects\\Eclipse\\Clonk\\src\\net\\arctics\\clonk\\parser\\mapcreator\\MapCreator.g:1:43: WS
+                // /Users/madeen/Projects/Eclipse/Clonk/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:1:43: WS
                 {
                 mWS(); 
 
                 }
                 break;
             case 7 :
-                // C:\\Users\\Madeen\\Projects\\Eclipse\\Clonk\\src\\net\\arctics\\clonk\\parser\\mapcreator\\MapCreator.g:1:46: SLCOMMENT
+                // /Users/madeen/Projects/Eclipse/Clonk/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:1:46: SLCOMMENT
                 {
                 mSLCOMMENT(); 
 
                 }
                 break;
             case 8 :
-                // C:\\Users\\Madeen\\Projects\\Eclipse\\Clonk\\src\\net\\arctics\\clonk\\parser\\mapcreator\\MapCreator.g:1:56: MLCOMMENT
+                // /Users/madeen/Projects/Eclipse/Clonk/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:1:56: MLCOMMENT
                 {
                 mMLCOMMENT(); 
 
                 }
                 break;
             case 9 :
-                // C:\\Users\\Madeen\\Projects\\Eclipse\\Clonk\\src\\net\\arctics\\clonk\\parser\\mapcreator\\MapCreator.g:1:66: ASSIGN
+                // /Users/madeen/Projects/Eclipse/Clonk/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:1:66: ASSIGN
                 {
                 mASSIGN(); 
 
                 }
                 break;
             case 10 :
-                // C:\\Users\\Madeen\\Projects\\Eclipse\\Clonk\\src\\net\\arctics\\clonk\\parser\\mapcreator\\MapCreator.g:1:73: BLOCKOPEN
+                // /Users/madeen/Projects/Eclipse/Clonk/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:1:73: BLOCKOPEN
                 {
                 mBLOCKOPEN(); 
 
                 }
                 break;
             case 11 :
-                // C:\\Users\\Madeen\\Projects\\Eclipse\\Clonk\\src\\net\\arctics\\clonk\\parser\\mapcreator\\MapCreator.g:1:83: BLOCKCLOSE
+                // /Users/madeen/Projects/Eclipse/Clonk/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:1:83: BLOCKCLOSE
                 {
                 mBLOCKCLOSE(); 
 
                 }
                 break;
             case 12 :
-                // C:\\Users\\Madeen\\Projects\\Eclipse\\Clonk\\src\\net\\arctics\\clonk\\parser\\mapcreator\\MapCreator.g:1:94: STATEMENTEND
+                // /Users/madeen/Projects/Eclipse/Clonk/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:1:94: STATEMENTEND
                 {
                 mSTATEMENTEND(); 
 
                 }
                 break;
             case 13 :
-                // C:\\Users\\Madeen\\Projects\\Eclipse\\Clonk\\src\\net\\arctics\\clonk\\parser\\mapcreator\\MapCreator.g:1:107: OPERATOR
+                // /Users/madeen/Projects/Eclipse/Clonk/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:1:107: OPERATOR
                 {
                 mOPERATOR(); 
 
@@ -685,13 +685,13 @@ public class MapCreatorLexer extends Lexer {
 
     protected DFA7 dfa7 = new DFA7(this);
     static final String DFA7_eotS =
-        "\1\uffff\2\15\1\uffff\1\15\7\uffff\1\15\1\uffff\1\15\1\uffff\1"+
-        "\15\2\uffff\1\25\1\15\1\uffff\3\15\1\32\1\uffff";
+        "\1\uffff\2\15\1\uffff\1\15\7\uffff\1\15\1\uffff\1\15\1\uffff\1\15"+
+        "\2\uffff\1\25\1\15\1\uffff\3\15\1\32\1\uffff";
     static final String DFA7_eofS =
         "\33\uffff";
     static final String DFA7_minS =
-        "\1\11\2\55\1\uffff\1\55\1\uffff\1\52\5\uffff\1\55\1\uffff\1\55"+
-        "\1\uffff\1\55\2\uffff\2\55\1\uffff\4\55\1\uffff";
+        "\1\11\2\55\1\uffff\1\55\1\uffff\1\52\5\uffff\1\55\1\uffff\1\55\1"+
+        "\uffff\1\55\2\uffff\2\55\1\uffff\4\55\1\uffff";
     static final String DFA7_maxS =
         "\1\175\2\172\1\uffff\1\172\1\uffff\1\57\5\uffff\1\172\1\uffff\1"+
         "\172\1\uffff\1\172\2\uffff\2\172\1\uffff\4\172\1\uffff";
@@ -707,11 +707,10 @@ public class MapCreatorLexer extends Lexer {
             "\11",
             "\1\17\2\uffff\12\16\7\uffff\32\16\4\uffff\1\16\1\uffff\1\14"+
             "\31\16",
-            "\1\17\2\uffff\12\16\7\uffff\32\16\4\uffff\1\16\1\uffff\25"+
-            "\16\1\20\4\16",
+            "\1\17\2\uffff\12\16\7\uffff\32\16\4\uffff\1\16\1\uffff\25\16"+
+            "\1\20\4\16",
             "",
-            "\1\17\2\uffff\12\16\7\uffff\32\16\4\uffff\1\16\1\uffff\32"+
-            "\16",
+            "\1\17\2\uffff\12\16\7\uffff\32\16\4\uffff\1\16\1\uffff\32\16",
             "",
             "\1\22\4\uffff\1\21",
             "",
@@ -719,29 +718,26 @@ public class MapCreatorLexer extends Lexer {
             "",
             "",
             "",
-            "\1\17\2\uffff\12\16\7\uffff\32\16\4\uffff\1\16\1\uffff\17"+
-            "\16\1\23\12\16",
+            "\1\17\2\uffff\12\16\7\uffff\32\16\4\uffff\1\16\1\uffff\17\16"+
+            "\1\23\12\16",
             "",
-            "\1\17\2\uffff\12\16\7\uffff\32\16\4\uffff\1\16\1\uffff\32"+
-            "\16",
+            "\1\17\2\uffff\12\16\7\uffff\32\16\4\uffff\1\16\1\uffff\32\16",
             "",
             "\1\17\2\uffff\12\16\7\uffff\32\16\4\uffff\1\16\1\uffff\4\16"+
             "\1\24\25\16",
             "",
             "",
-            "\1\17\2\uffff\12\16\7\uffff\32\16\4\uffff\1\16\1\uffff\32"+
-            "\16",
-            "\1\17\2\uffff\12\16\7\uffff\32\16\4\uffff\1\16\1\uffff\21"+
-            "\16\1\26\10\16",
+            "\1\17\2\uffff\12\16\7\uffff\32\16\4\uffff\1\16\1\uffff\32\16",
+            "\1\17\2\uffff\12\16\7\uffff\32\16\4\uffff\1\16\1\uffff\21\16"+
+            "\1\26\10\16",
             "",
-            "\1\17\2\uffff\12\16\7\uffff\32\16\4\uffff\1\16\1\uffff\13"+
-            "\16\1\27\16\16",
+            "\1\17\2\uffff\12\16\7\uffff\32\16\4\uffff\1\16\1\uffff\13\16"+
+            "\1\27\16\16",
             "\1\17\2\uffff\12\16\7\uffff\32\16\4\uffff\1\16\1\uffff\1\30"+
             "\31\16",
-            "\1\17\2\uffff\12\16\7\uffff\32\16\4\uffff\1\16\1\uffff\30"+
-            "\16\1\31\1\16",
-            "\1\17\2\uffff\12\16\7\uffff\32\16\4\uffff\1\16\1\uffff\32"+
-            "\16",
+            "\1\17\2\uffff\12\16\7\uffff\32\16\4\uffff\1\16\1\uffff\30\16"+
+            "\1\31\1\16",
+            "\1\17\2\uffff\12\16\7\uffff\32\16\4\uffff\1\16\1\uffff\32\16",
             ""
     };
 

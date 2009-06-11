@@ -132,7 +132,7 @@ private void deleteMarkers() {
 	} catch (CoreException e) {
 		e.printStackTrace();
 	}
-		}
+}
 
 @Override
 public void reportError(RecognitionException error) {

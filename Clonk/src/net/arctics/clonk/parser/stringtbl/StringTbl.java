@@ -1,5 +1,6 @@
 package net.arctics.clonk.parser.stringtbl;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.Collection;
 import java.util.HashMap;
@@ -96,8 +97,13 @@ public class StringTbl extends C4Structure implements ITreeNode {
 					StringTbl tbl = new StringTbl();
 					tbl.setFile(file);
 					try {
-						tbl.read(file.getContents());
-					} catch (CoreException e) {
+						InputStream fileContents = file.getContents();
+						try {
+							tbl.read(fileContents);
+						} finally {
+							fileContents.close();
+						}
+					} catch (Exception e) {
 						e.printStackTrace();
 						return null;
 					}
