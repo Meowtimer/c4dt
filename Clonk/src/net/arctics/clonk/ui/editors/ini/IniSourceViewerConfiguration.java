@@ -65,7 +65,6 @@ public class IniSourceViewerConfiguration extends ClonkSourceViewerConfiguration
 		
 		@Override
 		public void documentChanged(DocumentEvent event) {
-			System.out.println("called");
 			super.documentChanged(event);
 		}
 		
@@ -197,18 +196,12 @@ public class IniSourceViewerConfiguration extends ClonkSourceViewerConfiguration
 			return assistant;
 		
 		assistant = new ContentAssistant();
-//		assistant.setDocumentPartitioning(getConfiguredDocumentPartitioning(sourceViewer));
-//		assistant.setContentAssistProcessor(new CodeBodyCompletionProcessor(getEditor(),assistant), ClonkPartitionScanner.C4S_CODEBODY);
 		IniCompletionProcessor processor = new IniCompletionProcessor(getEditor(), assistant);
 		assistant.setContentAssistProcessor(processor, IDocument.DEFAULT_CONTENT_TYPE);
 		assistant.addCompletionListener(processor);
 		assistant.install(sourceViewer);
 		
 		assistant.setContextInformationPopupOrientation(IContentAssistant.CONTEXT_INFO_ABOVE);
-		
-
-		//assistant.setRepeatedInvocationMode(true);
-		// key sequence is set in constructor of ClonkCompletionProcessor
 		
 		assistant.setStatusLineVisible(true);
 		assistant.setStatusMessage(Utilities.getEditingFile(getEditor()).getName() + " proposals");

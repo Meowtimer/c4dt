@@ -9,7 +9,6 @@ import net.arctics.clonk.ui.editors.ClonkTextEditor;
 import net.arctics.clonk.ui.editors.ColorManager;
 import net.arctics.clonk.util.Utilities;
 
-import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.text.DocumentEvent;
 import org.eclipse.jface.text.IDocumentListener;
 import org.eclipse.swt.widgets.Composite;
@@ -19,11 +18,6 @@ public class IniTextEditor extends ClonkTextEditor {
 	private IniUnit unit;
 	private boolean unitParsed;
 	private int unitLocked;
-
-	@Override
-	public void doSave(IProgressMonitor progressMonitor) {
-		super.doSave(progressMonitor);
-	}
 	
 	public IniTextEditor() {
 		super();

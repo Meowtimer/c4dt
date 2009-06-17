@@ -27,6 +27,8 @@
 				desecription="0 oder 1. Bei 1 wird die Grafik vertikal bis zur oberen Kante des ActionTarget gestretcht." />
 			<entry name="NextAction" class="net.arctics.clonk.parser.inireader.Action"
 				description="Nächste Aktivität nach Ablauf der Animationsphasen." />
+			<entry name="TurnAction" class="net.arctics.clonk.parser.inireader.Action"
+				description="Aktivitität fürs Umdrehen." />
 			<entry name="NoOtherAction" class="net.arctics.clonk.parser.inireader.Boolean"
 				desecription="0 oder 1. Bei 1 ist keine Aktivität nach dieser möglich (z.B. Tod, Zerstörung)." />
 			<entry name="StartCall" class="net.arctics.clonk.parser.inireader.Function"
@@ -37,7 +39,7 @@
 				description="Wird bei jedem Phasenschritt aufgerufen." />
 			<entry name="AbortCall" class="net.arctics.clonk.parser.inireader.Function"
 				description="Wird aufgerufen, wenn die Aktivität vor ihrem Ende durch eine andere ersetzt wird." />
-			<entry name="InLiquidAction" class="java.lang.String"
+			<entry name="InLiquidAction" class="net.arctics.clonk.parser.inireader.Action"
 				description="Auszuführende Aktion, wenn das Objekt in Flüssigkeiten eintaucht." />
 			<entry name="Sound" class="java.lang.String"
 				description="Dauerhaftes Geräusch dieser Aktivität." />
@@ -421,6 +423,8 @@
 				description="Grafik für lose Materialpixel. Die Grafik sollte als Materialtextur geladen sein." />
 			<entry name="PXSGfxRt" class="net.arctics.clonk.parser.inireader.IntegerArray"
 				description="Zielrechteck auf die Grafik für lose Materialpixel. Es werden weitere Phasen rechts und unterhalb der angegebenen Grafik benutzt. Die Grafik sollte immer oben links beginnen, und die gesamte Texturgröße einnehmen." />
+			<entry name="PXSGfxSize" class="net.arctics.clonk.parser.inireader.UnsignedInteger"
+				description="Size"/>
 		</section>
 		<section name="Reaction">
 			<entry name="Type" class="java.lang.String" />
@@ -565,6 +569,8 @@
 				description="0 bis 2. Bei 1 bewegt sich der Himmel mit dem Wind, bei 2 ist er halbparallax." />
 			<entry name="FoWRes" class="net.arctics.clonk.parser.inireader.SignedInteger"
 				description="Größe der Blöcke, in denen der Kriegsnebel (Fog of War) berechnet wird. Standardwert 64. Achtung: Kleinere Werte verbessern zwar die Darstellung des Kriegsnebels, erhöhen aber auch die benötigte Rechenleistung bei hohen Bildschirmauflösungen. Ab CR." />
+			<entry name="NewStyleLandscape" class="net.arctics.clonk.parser.inireader.UnsignedInteger"
+				description="NewStyle landscape mode"/>
 		</section>
 		<section name="Animals">
 			<entry name="Animals" class="net.arctics.clonk.parser.inireader.IDArray"

@@ -9,6 +9,7 @@ import java.util.TimerTask;
 
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.C4Declaration;
+import net.arctics.clonk.parser.SourceLocation;
 import net.arctics.clonk.parser.c4script.C4Function;
 import net.arctics.clonk.parser.c4script.C4ScriptBase;
 import net.arctics.clonk.parser.c4script.C4ScriptExprTree;
@@ -36,9 +37,6 @@ import org.eclipse.jface.text.source.ISourceViewer;
 import org.eclipse.jface.text.source.IVerticalRuler;
 import org.eclipse.jface.text.source.projection.ProjectionViewer;
 import org.eclipse.jface.viewers.ISelection;
-import org.eclipse.swt.custom.TextChangeListener;
-import org.eclipse.swt.custom.TextChangedEvent;
-import org.eclipse.swt.custom.TextChangingEvent;
 import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
@@ -48,6 +46,102 @@ import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.texteditor.SourceViewerDecorationSupport;
 
 public class C4ScriptEditor extends ClonkTextEditor {
+
+	private final class TextChangeListener implements IDocumentListener {
+		private Timer reparseTimer;
+
+		public void documentAboutToBeChanged(DocumentEvent event) {
+		}
+
+		private void addToLocation(SourceLocation location, int offset, int add) {
+			if (location.getStart() >= offset)
+				location.setStart(location.getStart()+add);
+			if (location.getEnd() >= offset)
+				location.setEnd(location.getEnd()+add);
+		}
+
+		private void adjustDec(C4Declaration declaration, int offset, int add) {
+			addToLocation(declaration.getLocation(), offset, add);
+			if (declaration instanceof C4Function) {
+				C4Function f = (C4Function) declaration;
+				addToLocation(f.getBody(), offset, add);
+				for (C4Declaration v : f.allSubDeclarations()) {
+					addToLocation(v.getLocation(), offset, add);
+				}
+			}
+		}
+
+		public void documentChanged(DocumentEvent event) {
+			markScriptAsDirty();
+			C4Function f = getFuncAt(event.getOffset());
+			if (f != null && !f.isOldStyle()) {
+				adjustDeclarationLocations(event);
+			} else {
+				// performance suffers when auto-reparsing large scripts -.-
+				if (event.getDocument().getLength() > 20 * 1024)
+					return;
+				// only schedule reparsing when editing outside of existing function
+				scheduleReparsing();
+			}
+		}
+
+		private void adjustDeclarationLocations(DocumentEvent event) {
+			if (event.getLength() == 0) {
+				// text was added
+				for (C4Declaration dec : scriptBeingEdited().allSubDeclarations()) {
+					adjustDec(dec, event.getOffset(), event.getText().length());
+				}
+			}
+			else if (event.getLength() == 0) {
+				// text was removed
+				for (C4Declaration dec : scriptBeingEdited().allSubDeclarations()) {
+					adjustDec(dec, event.getOffset(), event.getText().length());
+				}
+			}
+			else {
+				String newText = event.getText();
+				int replLength = event.getLength();
+				int offset = event.getOffset();
+				int diff = newText.length() - replLength;
+				// mixed
+				for (C4Declaration dec : scriptBeingEdited().allSubDeclarations()) {
+					if (dec.getLocation().getStart() >= offset + replLength)
+						adjustDec(dec, offset, diff);
+					else if (dec instanceof C4Function) {
+						// inside function: expand end location
+						C4Function func = (C4Function) dec;
+						if (offset >= func.getBody().getStart() && offset+replLength < func.getBody().getEnd()) {
+							func.getBody().setEnd(func.getBody().getEnd()+diff);
+						}
+					}
+				}
+			}
+		}
+
+		private void scheduleReparsing() {
+			if (reparseTimer != null)
+				reparseTimer.cancel();
+			reparseTimer = new Timer("ReparseTimer");
+			reparseTimer.schedule(new TimerTask() {
+				@Override
+				public void run() {
+					try {
+						try {
+							System.out.println("reparsing");
+							reparseWithDocumentContents(null, true);
+						} finally {
+							if (reparseTimer != null) {
+								reparseTimer.cancel();
+								reparseTimer = null;
+							}
+						}
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
+				}
+			}, 2000);
+		}
+	}
 
 	private ColorManager colorManager;
 	public static final String ACTION_INDEX_CLONK_DIR = ClonkCore.id("indexClonkCommand");
@@ -94,40 +188,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 	@Override
 	public void createPartControl(Composite parent) {
 		super.createPartControl(parent);
-		getDocumentProvider().getDocument(getEditorInput()).addDocumentListener(new IDocumentListener() {
-
-			private Timer reparseTimer;
-			
-			public void documentAboutToBeChanged(DocumentEvent event) {
-				// TODO Auto-generated method stub
-				
-			}
-
-			public void documentChanged(DocumentEvent event) {
-				markScriptAsDirty();
-				if (getDocumentProvider().getDocument(getEditorInput()).getLength() > 20 * 1024)
-					return;
-				reparseTimer = new Timer("ReparseTimer");
-				reparseTimer.schedule(new TimerTask() {
-					@Override
-					public void run() {
-						try {
-							try {
-								reparseWithDocumentContents(null, true);
-							} finally {
-								if (reparseTimer != null) {
-									reparseTimer.cancel();
-									reparseTimer = null;
-								}
-							}
-						} catch (Exception e) {
-							e.printStackTrace();
-						}
-					}
-				}, 2000);
-			}
-			
-		});
+		getDocumentProvider().getDocument(getEditorInput()).addDocumentListener(new TextChangeListener());
 	}
 
 	public void dispose() {
@@ -224,14 +285,21 @@ public class C4ScriptEditor extends ClonkTextEditor {
 			this.resetHighlightRange();
 	}
 
-	public C4Function getFuncAtCursor() {
-		C4ScriptBase script = Utilities.getScriptForEditor(this);
+	public C4ScriptBase scriptBeingEdited() {
+		return Utilities.getScriptForEditor(this);
+	}
+	
+	public C4Function getFuncAt(int offset) {
+		C4ScriptBase script = scriptBeingEdited();
 		if (script != null) {
-			TextSelection sel = (TextSelection) getSelectionProvider().getSelection();
-			C4Function f = script.funcAt(sel.getOffset());
+			C4Function f = script.funcAt(offset);
 			return f;
 		}
 		return null;
+	}
+	
+	public C4Function getFuncAtCursor() {
+		return getFuncAt(((TextSelection)getSelectionProvider().getSelection()).getOffset());
 	}
 
 	public C4ScriptParser reparseWithDocumentContents(C4ScriptExprTree.IExpressionListener exprListener, boolean onlyDeclarations) throws IOException, ParsingException {
@@ -255,8 +323,8 @@ public class C4ScriptEditor extends ClonkTextEditor {
 	}
 	
 	@Override
-	public C4Declaration getTopLevelDeclaration() {
-		return Utilities.getScriptForEditor(this);
+	public C4ScriptBase getTopLevelDeclaration() {
+		return scriptBeingEdited();
 	}
 
 }

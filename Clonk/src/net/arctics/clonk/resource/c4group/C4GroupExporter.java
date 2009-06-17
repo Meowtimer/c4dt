@@ -50,8 +50,8 @@ public class C4GroupExporter {
 				// ugh, deleting files is ugly but there seems to be no java method for putting files to trash -.-
 				if (oldFile.exists())
 					oldFile.delete();
-				// ugly hack :S create temporary file that uses /bin/sh to execute c4group - don't really know why it's necessary but c4group always got confused about the current directory 
 				if (OS.equals("Mac OS X")) {
+					// ugly hack :S create temporary file that uses /bin/sh to execute c4group - don't really know why it's necessary but c4group always got confused about the current directory
 					if (scratchExecFile == null) {
 						// create and make executable
 						scratchExecFile = File.createTempFile("c4groupproxy", "eclipse");

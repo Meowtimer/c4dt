@@ -1,6 +1,5 @@
 package net.arctics.clonk.index;
 
-import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.C4Structure;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.inireader.DefCoreUnit;
@@ -14,20 +13,12 @@ public class C4ObjectParser {
 	
 	private C4ObjectIntern object;
 	private IContainer objectFolder;
-//	private IFile script; there are some objects without a script
 	private IFile defCore;
-//	private IFile actMap;
 	private IFile scenario;
-	
-//	private C4Group group;
-//	private C4Entry extScript;
-//	private C4Entry extDefCore;
 	
 	private C4ObjectParser(IContainer folder) {
 		objectFolder = folder;
-//		script = (IFile) folder.findMember("Script.c");
 		defCore = (IFile) folder.findMember("DefCore.txt");
-//		actMap = (IFile) folder.findMember("ActMap.txt");
 		scenario = (IFile) folder.findMember("Scenario.txt");
 	}
 	
