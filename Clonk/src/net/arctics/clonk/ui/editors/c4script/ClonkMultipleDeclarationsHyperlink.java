@@ -23,7 +23,12 @@ public class ClonkMultipleDeclarationsHyperlink extends ClonkHyperlink {
 	
 	@Override
 	public void open() {
-		chooseDeclarations();
+		if (this.proposedDeclarations.size() == 1) {
+			target = proposedDeclarations.get(0);
+			super.open();
+		}
+		else
+			chooseDeclarations();
 	}
 
 	private boolean chooseDeclarations() {

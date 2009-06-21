@@ -228,11 +228,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 			List<ICompletionProposal> proposals, ClonkIndex index,
 			final C4Function activeFunc) {
 		
-		if (proposalCycle != ProposalCycle.SHOW_OBJECT)
-			proposalsForIndex(index, offset, wordOffset, prefix, proposals);
-		
 		if (proposalCycle == ProposalCycle.SHOW_ALL) {
-			proposalsForIndex(ClonkCore.getDefault().EXTERN_INDEX, offset, wordOffset, prefix, proposals);
 			
 			if (ClonkCore.getDefault().ENGINE_OBJECT != null) {
 				for (C4Function func : ClonkCore.getDefault().ENGINE_OBJECT.functions()) {
@@ -294,17 +290,24 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 			}
 		}
 		
+		if (!contextObjChanged) {
+			if (proposalCycle != ProposalCycle.SHOW_OBJECT)
+				proposalsForIndex(index, offset, wordOffset, prefix, proposals);;
+			if (proposalCycle == ProposalCycle.SHOW_ALL)
+				proposalsForIndex(ClonkCore.getDefault().EXTERN_INDEX, offset, wordOffset, prefix, proposals);
+		}
+		
 		if (contextScript != null) {
 			proposalsFromScript(contextScript, new HashSet<C4ScriptBase>(), prefix, offset, wordOffset, proposals, contextObjChanged, index);
 		}
 		if (proposalCycle == ProposalCycle.SHOW_ALL) {
+			ImageRegistry reg = ClonkCore.getDefault().getImageRegistry();
+			if (reg.get("keyword") == null) {
+				reg.put("keyword", ImageDescriptor.createFromURL(FileLocator.find(ClonkCore.getDefault().getBundle(), new Path("icons/keyword.png"), null)));
+			}
 			for(String keyword : BuiltInDefinitions.KEYWORDS) {
 				if (prefix != null) {
 					if (!keyword.toLowerCase().startsWith(prefix)) continue;
-				}
-				ImageRegistry reg = ClonkCore.getDefault().getImageRegistry();
-				if (reg.get("keyword") == null) {
-					reg.put("keyword", ImageDescriptor.createFromURL(FileLocator.find(ClonkCore.getDefault().getBundle(), new Path("icons/keyword.png"), null)));
 				}
 				int replacementLength = 0;
 				if (prefix != null) replacementLength = prefix.length();
@@ -429,19 +432,15 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 			}
 		}
 		
-//		IContextInformation info = new ContextInformation("contextdisplay String", "information String");
-		
 		return new IContextInformation[] { info };
 	}
 
 	public char[] getCompletionProposalAutoActivationCharacters() {
-		// TODO Auto-generated method stub
 		return null;
 	}
 
 	public char[] getContextInformationAutoActivationCharacters() {
 		return null;
-//		return new char[] { '(' };
 	}
 
 	public IContextInformationValidator getContextInformationValidator() {

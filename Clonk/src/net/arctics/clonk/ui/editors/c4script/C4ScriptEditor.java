@@ -78,8 +78,8 @@ public class C4ScriptEditor extends ClonkTextEditor {
 				adjustDeclarationLocations(event);
 			} else {
 				// performance suffers when auto-reparsing large scripts -.-
-				if (event.getDocument().getLength() > 20 * 1024)
-					return;
+//				if (event.getDocument().getLength() > 20 * 1024)
+//					return;
 				// only schedule reparsing when editing outside of existing function
 				scheduleReparsing();
 			}
@@ -161,8 +161,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 	 * @see org.eclipse.ui.texteditor.AbstractDecoratedTextEditor#configureSourceViewerDecorationSupport(org.eclipse.ui.texteditor.SourceViewerDecorationSupport)
 	 */
 	@Override
-	protected void configureSourceViewerDecorationSupport(
-			SourceViewerDecorationSupport support) {
+	protected void configureSourceViewerDecorationSupport(SourceViewerDecorationSupport support) {
 		super.configureSourceViewerDecorationSupport(support);
 		support.setCharacterPairMatcher(fBracketMatcher);
 		support.setMatchingCharacterPainterPreferenceKeys(ENABLE_BRACKET_HIGHLIGHT, BRACKET_HIGHLIGHT_COLOR);
@@ -171,8 +170,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 	}
 
 	@Override
-	public void init(IEditorSite site, IEditorInput input)
-			throws PartInitException {
+	public void init(IEditorSite site, IEditorInput input) throws PartInitException {
 		super.init(site, input);
 		IResource res = (IResource) getEditorInput().getAdapter(IResource.class);
 		if (res != null) {
