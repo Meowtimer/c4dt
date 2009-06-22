@@ -38,10 +38,10 @@ public class ClonkLabelProvider extends LabelProvider implements IStyledLabelPro
 				return Icons.SCRIPT_ICON;
 			}
 			if (element.toString().endsWith(".txt")) {
-				return Utilities.getIconImage("c4txt","icons/text.png");
+				return Icons.TEXT_ICON;
 			}
 			if (element.toString().endsWith(".c4m")) {
-				return Utilities.getIconImage("c4material","icons/Clonk_C4.png");
+				return Icons.MATERIAL_ICON;
 			}
 		}
 		else if (element instanceof IFolder) {

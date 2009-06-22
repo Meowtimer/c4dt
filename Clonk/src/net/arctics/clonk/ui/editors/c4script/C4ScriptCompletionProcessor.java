@@ -73,6 +73,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 		}
 
 		public void assistSessionRestarted(ContentAssistEvent event) {
+			// needs to be reversed because it gets cycled after computing the proposals...
 			proposalCycle = proposalCycle.reverseCycle();
 		}
 		
@@ -109,9 +110,9 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 	private ExprElm contextExpression;
 	private List<IStoredTypeInformation> contextTypeInformation;
 	private ProposalCycle proposalCycle = ProposalCycle.SHOW_ALL;
+	private C4Function _activeFunc;
 	
-	public C4ScriptCompletionProcessor(C4ScriptEditor editor,
-			ContentAssistant assistant) {
+	public C4ScriptCompletionProcessor(C4ScriptEditor editor, ContentAssistant assistant) {
 		super(editor);
 		this.assistant = assistant;
 		
@@ -141,17 +142,18 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 		return prop;
 	}
 	
-	private void proposalsForIndex(ClonkIndex index, int offset, int wordOffset, String prefix,
-			List<ICompletionProposal> proposals) {
+	private void proposalsForIndex(ClonkIndex index, int offset, int wordOffset, String prefix, List<ICompletionProposal> proposals) {
 		if (!index.isEmpty()) {
-			for (C4Function func : index.getGlobalFunctions()) {
-				if (func.getScript() == null)
-					System.out.println(func.getName());
-				else
-					proposalForFunc(func, prefix, offset, proposals, func.getScript().getName(), true);
-			}
-			for (C4Variable var : index.getStaticVariables()) {
-				proposalForVar(var,prefix,offset,proposals);
+			if (_activeFunc != null) {
+				for (C4Function func : index.getGlobalFunctions()) {
+					if (func.getScript() == null)
+						System.out.println(func.getName());
+					else
+						proposalForFunc(func, prefix, offset, proposals, func.getScript().getName(), true);
+				}
+				for (C4Variable var : index.getStaticVariables()) {
+					proposalForVar(var,prefix,offset,proposals);
+				}
 			}
 			proposalsForIndexedObjects(index, offset, wordOffset, prefix, proposals);
 		}
@@ -184,6 +186,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 		ClonkIndex index = nature.getIndex();
 
 		final C4Function activeFunc = getActiveFunc(doc, offset);
+		this._activeFunc = activeFunc;
 		
 		statusMessages.add("Project files");
 		
@@ -321,21 +324,26 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 			int wordOffset, String prefix,
 			List<ICompletionProposal> proposals, ClonkIndex index) {
 		try {
-			if (viewer.getDocument().get(offset - 5, 5).equalsIgnoreCase("func ")) {
-				for(String callback : BuiltInDefinitions.OBJECT_CALLBACKS) {
-					if (prefix != null) {
-						if (!callback.toLowerCase().startsWith(prefix)) continue;
-					}
-					ImageRegistry reg = ClonkCore.getDefault().getImageRegistry();
-					if (reg.get("callback") == null) {
-						reg.put("callback", ImageDescriptor.createFromURL(FileLocator.find(ClonkCore.getDefault().getBundle(), new Path("icons/callback.png"), null)));
-					}
-					int replacementLength = 0;
-					if (prefix != null) replacementLength = prefix.length();
-					ClonkCompletionProposal prop = new ClonkCompletionProposal(callback,offset,replacementLength,callback.length(), reg.get("callback") , callback.trim(),null,null," - Callback");
-					proposals.add(prop);
+			boolean funcSupplied = offset >= 5 && viewer.getDocument().get(offset - 5, 5).equalsIgnoreCase("func "); 
+
+			for(String callback : BuiltInDefinitions.OBJECT_CALLBACKS) {
+				if (prefix != null) {
+					if (!callback.toLowerCase().startsWith(prefix))
+						continue;
 				}
+				ImageRegistry reg = ClonkCore.getDefault().getImageRegistry();
+				if (reg.get("callback") == null) {
+					reg.put("callback", ImageDescriptor.createFromURL(FileLocator.find(ClonkCore.getDefault().getBundle(), new Path("icons/callback.png"), null)));
+				}
+				int replacementLength = 0;
+				if (prefix != null) replacementLength = prefix.length();
+				String repString = funcSupplied ? callback : ("protected func " + callback + "() {\n}"); 
+				ClonkCompletionProposal prop = new ClonkCompletionProposal(
+						repString, offset, replacementLength, 
+						repString.length(), reg.get("callback") , callback, null,null," - Callback");
+				proposals.add(prop);
 			}
+
 		} catch (BadLocationException e) {
 			// ignore
 		}

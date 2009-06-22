@@ -127,7 +127,6 @@ public class C4ScriptEditor extends ClonkTextEditor {
 				public void run() {
 					try {
 						try {
-							System.out.println("reparsing");
 							reparseWithDocumentContents(null, true);
 						} finally {
 							if (reparseTimer != null) {

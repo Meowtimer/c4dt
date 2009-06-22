@@ -357,7 +357,7 @@ public abstract class C4ScriptBase extends C4Structure implements IHasRelatedRes
 	public C4Function funcAt(IRegion region) {
 		// from name to end of body should be enough... ?
 		for (C4Function f : definedFunctions) {
-			if (f.getLocation().getOffset() <= region.getOffset() && region.getOffset()+region.getLength() < f.getBody().getOffset()+f.getBody().getLength())
+			if (f.getLocation().getOffset() <= region.getOffset() && region.getOffset()+region.getLength() <= f.getBody().getOffset()+f.getBody().getLength())
 				return f;
 		}
 		return null;

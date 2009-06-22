@@ -58,10 +58,10 @@ public class ClonkCompletionProposal implements ICompletionProposal, ICompletion
 	 * @param postInfo information that is appended to displayString
 	 */
 	public ClonkCompletionProposal(String replacementString, int replacementOffset, int replacementLength, int cursorPosition, Image image, String displayString, IContextInformation contextInformation, String additionalProposalInfo, String postInfo) {
-		Assert.isNotNull(replacementString);
-		Assert.isTrue(replacementOffset >= 0);
-		Assert.isTrue(replacementLength >= 0);
-		Assert.isTrue(cursorPosition >= 0);
+//		Assert.isNotNull(replacementString);
+//		Assert.isTrue(replacementOffset >= 0);
+//		Assert.isTrue(replacementLength >= 0);
+//		Assert.isTrue(cursorPosition >= 0);
 
 		fReplacementString= replacementString;
 		fReplacementOffset= replacementOffset;

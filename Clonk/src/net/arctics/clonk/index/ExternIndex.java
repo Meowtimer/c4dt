@@ -50,5 +50,10 @@ public class ExternIndex extends ClonkIndex {
 		}
 		return null;
 	}
+	
+	@Override
+	public String toString() {
+		return "Extern Index";
+	}
 
 }

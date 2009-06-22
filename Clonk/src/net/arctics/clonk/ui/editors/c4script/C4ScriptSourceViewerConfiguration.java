@@ -37,7 +37,7 @@ public class C4ScriptSourceViewerConfiguration extends ClonkSourceViewerConfigur
 		public IHyperlink[] detectHyperlinks(ITextViewer viewer, IRegion region, boolean canShowMultipleHyperlinks) {
 			try {
 				DeclarationLocator locator = new DeclarationLocator(getEditor(), viewer.getDocument(),region);
-				if (locator.getDeclaration() != null && (locator.getDeclaration().getResource() != null || locator.getDeclaration().getScript() != null)) {
+				if (locator.getDeclaration() != null && (locator.getDeclaration().getResource() != null || (locator.getDeclaration().getScript() != null && locator.getDeclaration().getScript().getScriptFile() != null))) {
 					return new IHyperlink[] {
 						new ClonkHyperlink(locator.getIdentRegion(),locator.getDeclaration())
 					};
