@@ -23,7 +23,7 @@ public class ParticleUnit extends IniUnit {
 		super(text);
 	}
 	
-	private final IniConfiguration configuration = ClonkCore.getDefault().INI_CONFIGURATIONS.getConfigurationFor("Particle.txt");
+	private final IniConfiguration configuration = ClonkCore.getDefault().iniConfigurations.getConfigurationFor("Particle.txt");
 	
 	@Override
 	public IniConfiguration getConfiguration() {

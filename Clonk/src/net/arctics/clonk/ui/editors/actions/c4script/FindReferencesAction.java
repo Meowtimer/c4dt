@@ -14,8 +14,7 @@ import org.eclipse.ui.texteditor.ITextEditor;
 
 public class FindReferencesAction extends OpenDeclarationAction {
 
-	public FindReferencesAction(ResourceBundle bundle, String prefix,
-			ITextEditor editor) {
+	public FindReferencesAction(ResourceBundle bundle, String prefix, ITextEditor editor) {
 		super(bundle, prefix, editor);
 		this.setActionDefinitionId(ClonkCommandIds.FIND_REFERENCES);
 	}

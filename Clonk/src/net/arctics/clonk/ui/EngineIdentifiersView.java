@@ -327,7 +327,7 @@ public class EngineIdentifiersView extends ViewPart {
 				return ((C4Declaration)element).sortCategory();
 			}
 		});
-		viewer.setInput(ClonkCore.getDefault().ENGINE_OBJECT);
+		viewer.setInput(ClonkCore.getDefault().getEngineObject());
 		
 		makeActions();
 		hookContextMenu();
@@ -396,7 +396,7 @@ public class EngineIdentifiersView extends ViewPart {
 				dialog.getShell().setSize(400,600);
 				dialog.getShell().pack();
 				if (dialog.open() == Dialog.OK) {
-					ClonkCore.getDefault().ENGINE_OBJECT.addField(func);
+					ClonkCore.getDefault().getEngineObject().addField(func);
 				}
 				refresh();
 			}
@@ -412,7 +412,7 @@ public class EngineIdentifiersView extends ViewPart {
 				dialog.getShell().setSize(400,600);
 				dialog.getShell().pack();
 				if (dialog.open() == Dialog.OK) {
-					ClonkCore.getDefault().ENGINE_OBJECT.addField(var);
+					ClonkCore.getDefault().getEngineObject().addField(var);
 				}
 				refresh();
 			}
@@ -449,7 +449,7 @@ public class EngineIdentifiersView extends ViewPart {
 					for (TreeItem t : selection) {
 						Object selectedItem = t.getData();
 						if (selectedItem instanceof C4Declaration) {
-							ClonkCore.getDefault().ENGINE_OBJECT.removeField((C4Declaration) selectedItem);
+							ClonkCore.getDefault().getEngineObject().removeField((C4Declaration) selectedItem);
 						}
 					}
 					refresh();

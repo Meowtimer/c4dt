@@ -3,14 +3,15 @@ package net.arctics.clonk.ui.search;
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.index.C4Object;
 import net.arctics.clonk.index.C4ObjectIntern;
-import net.arctics.clonk.index.C4Scenario;
 import net.arctics.clonk.parser.C4Declaration;
 import net.arctics.clonk.parser.C4Structure;
 import net.arctics.clonk.parser.c4script.C4Directive;
 import net.arctics.clonk.parser.c4script.C4Function;
 import net.arctics.clonk.parser.c4script.C4ScriptBase;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
+import net.arctics.clonk.parser.c4script.CachedEngineFuncs;
 import net.arctics.clonk.parser.ParsingException;
+import net.arctics.clonk.parser.c4script.C4ScriptExprTree.DeclarationRegion;
 import net.arctics.clonk.parser.c4script.C4ScriptExprTree.ExprAccessDeclaration;
 import net.arctics.clonk.parser.c4script.C4ScriptExprTree.ExprCallFunc;
 import net.arctics.clonk.parser.c4script.C4ScriptExprTree.ExprElm;
@@ -45,15 +46,12 @@ public class ClonkSearchQuery implements ISearchQuery {
 	private C4Declaration declaration;
 	private Object[] scope;
 	private C4ScriptBase declaringScript;
-	private boolean declaringScriptIsScenario;
-	
 	private ClonkSearchResult result;
 	
 	public ClonkSearchQuery(C4Declaration declaration, ClonkProjectNature project) {
 		super();
 		this.declaration = declaration;
 		this.declaringScript = declaration.getScript();
-		this.declaringScriptIsScenario = declaringScript instanceof C4Scenario;
 		this.scope = declaration.occurenceScope(project);
 	}
 
@@ -79,18 +77,9 @@ public class ClonkSearchQuery implements ISearchQuery {
 	public IStatus run(IProgressMonitor monitor) throws OperationCanceledException {
 		getSearchResult(); // make sure we have one
 		final IExpressionListener searchExpression = new IExpressionListener() {
-			private boolean calledThroughGameCall(ExprElm expression) {
-				if (expression instanceof ExprCallFunc) {
-					ExprCallFunc callFunc = (ExprCallFunc) expression;
-					if (callFunc.getDeclarationName().equals("GameCall")) {
-						if (callFunc.getParams().length > 0 && callFunc.getParams()[0] instanceof ExprString) {
-							if (((ExprString)callFunc.getParams()[0]).stringValue().equals(declaration.getName()))
-								return true;
-						}
-					}
-				}
-				return false;
-			}
+			
+			private ExprString functionNameExpr;
+			
 			private boolean potentiallyReferencedByObjectCall(ExprElm expression) {
 				if (expression instanceof ExprCallFunc && expression.getPredecessorInSequence() instanceof ExprObjectCall) {
 					ExprCallFunc callFunc = (ExprCallFunc) expression;
@@ -98,17 +87,34 @@ public class ClonkSearchQuery implements ISearchQuery {
 				}
 				return false;
 			}
+			private boolean potentiallyReferencedByCallFunction(ExprAccessDeclaration expression, C4ScriptParser parser) {
+				functionNameExpr = null;
+				if (expression instanceof ExprCallFunc) {
+					ExprCallFunc callFunc = (ExprCallFunc) expression;
+					for (ExprElm e : callFunc.getParams()) {
+						if (e instanceof ExprString) {
+							functionNameExpr = (ExprString) e;
+							DeclarationRegion decRegion = e.declarationAt(0, parser);
+							if (decRegion != null)
+								return decRegion.getDeclaration() == declaration;
+							break;
+						}
+					}
+				}
+				return false;
+			}
 			public TraversalContinuation expressionDetected(ExprElm expression, C4ScriptParser parser) {
 				if (expression instanceof ExprAccessDeclaration) {
-					ExprAccessDeclaration accessField = (ExprAccessDeclaration) expression;
-					if (accessField.getDeclaration(parser) == declaration)
-						result.addMatch(expression, parser, false, accessField.indirectAccess());
-					else if (declaringScriptIsScenario && calledThroughGameCall(expression))
-						result.addMatch(expression, parser, false, true);
+					ExprAccessDeclaration accessDeclExpr = (ExprAccessDeclaration) expression;
+					if (accessDeclExpr.getDeclaration(parser) == declaration)
+						result.addMatch(expression, parser, false, accessDeclExpr.indirectAccess());
+					else if (Utilities.isAnyOf(accessDeclExpr.getDeclaration(), CachedEngineFuncs.CallFunctions) && potentiallyReferencedByCallFunction(accessDeclExpr, parser)) {
+						result.addMatch(functionNameExpr, parser, true, true);
+					}
 					else if (potentiallyReferencedByObjectCall(expression)) {
-						C4Function otherFunc = (C4Function) accessField.getDeclaration();
+						C4Function otherFunc = (C4Function) accessDeclExpr.getDeclaration();
 						boolean potential = (otherFunc == null || !((C4Function)declaration).isRelatedFunction(otherFunc));
-						result.addMatch(expression, parser, potential, accessField.indirectAccess());
+						result.addMatch(expression, parser, potential, accessDeclExpr.indirectAccess());
 					}
 				}
 				else if (expression instanceof ExprID && declaration instanceof C4ScriptBase) {

@@ -11,7 +11,7 @@ public class MaterialUnit extends IniUnit {
 
 	private static final long serialVersionUID = 1L;
 	
-	private final IniConfiguration configuration = ClonkCore.getDefault().INI_CONFIGURATIONS.getConfigurationFor("Material.txt");
+	private final IniConfiguration configuration = ClonkCore.getDefault().iniConfigurations.getConfigurationFor("Material.txt");
 	
 	@Override
 	public IniConfiguration getConfiguration() {

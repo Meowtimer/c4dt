@@ -88,10 +88,14 @@ public class ClonkSearchResult extends AbstractTextSearchResult implements IEdit
 		return null;
 	}
 	
-	public void addMatch(ExprElm match, C4ScriptParser parser, boolean potential, boolean indirect) {
+	public void addMatch(ExprElm match, C4ScriptParser parser, boolean potential, boolean indirect, int s, int l) {
 		IRegion lineRegion = parser.getLineRegion(match);
 		String line = parser.getSubstringOfScript(lineRegion);
-		addMatch(new ClonkSearchMatch(line, lineRegion.getOffset(), parser.getContainer(), match.getIdentifierStart(), match.getIdentifierLength(), potential, indirect));
+		addMatch(new ClonkSearchMatch(line, lineRegion.getOffset(), parser.getContainer(), s, l, potential, indirect));
+	}
+	
+	public void addMatch(ExprElm match, C4ScriptParser parser, boolean potential, boolean indirect) {
+		addMatch(match, parser, potential, indirect, match.getIdentifierStart(), match.getIdentifierLength());
 	}
 
 }

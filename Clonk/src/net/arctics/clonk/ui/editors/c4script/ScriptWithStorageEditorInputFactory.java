@@ -12,7 +12,7 @@ public class ScriptWithStorageEditorInputFactory implements IElementFactory {
 	public IAdaptable createElement(IMemento memento) {
 		String path = memento.getString("path");
 		if (path != null) {
-			C4ScriptBase script = ClonkCore.getDefault().EXTERN_INDEX.findScriptByPath(path);
+			C4ScriptBase script = ClonkCore.getDefault().externIndex.findScriptByPath(path);
 			if (script != null)
 				return new ScriptWithStorageEditorInput(script);
 		}

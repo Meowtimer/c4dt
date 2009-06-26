@@ -231,7 +231,7 @@ public abstract class C4ScriptBase extends C4Structure implements IHasRelatedRes
 		info.recursion--;
 		
 		// finally look if it's something global
-		if (info.recursion == 0 && this != ClonkCore.getDefault().ENGINE_OBJECT) { // .-.
+		if (info.recursion == 0 && this != ClonkCore.getDefault().getEngineObject()) { // .-.
 			C4Declaration f = null;
 			// definition from extern index
 			if (Utilities.looksLikeID(name)) {
@@ -242,10 +242,10 @@ public abstract class C4ScriptBase extends C4Structure implements IHasRelatedRes
 				f = info.index.findGlobalDeclaration(name);
 			// engine function
 			if (f == null)
-				f = ClonkCore.getDefault().ENGINE_OBJECT.findDeclaration(name, info);
+				f = ClonkCore.getDefault().getEngineObject().findDeclaration(name, info);
 			// function in extern lib
-			if (f == null && info.index != ClonkCore.getDefault().EXTERN_INDEX) {
-				f = ClonkCore.getDefault().EXTERN_INDEX.findGlobalDeclaration(name, getResource());
+			if (f == null && info.index != ClonkCore.getDefault().externIndex) {
+				f = ClonkCore.getDefault().externIndex.findGlobalDeclaration(name, getResource());
 			}
 			
 			if (f != null && (info.declarationClass == null || info.declarationClass.isAssignableFrom(f.getClass())))
@@ -357,7 +357,7 @@ public abstract class C4ScriptBase extends C4Structure implements IHasRelatedRes
 	public C4Function funcAt(IRegion region) {
 		// from name to end of body should be enough... ?
 		for (C4Function f : definedFunctions) {
-			if (f.getLocation().getOffset() <= region.getOffset() && region.getOffset()+region.getLength() <= f.getBody().getOffset()+f.getBody().getLength())
+			if (region.getOffset() >= f.getBody().getOffset() && region.getOffset()+region.getLength() <= f.getBody().getOffset()+f.getBody().getLength()+1)
 				return f;
 		}
 		return null;

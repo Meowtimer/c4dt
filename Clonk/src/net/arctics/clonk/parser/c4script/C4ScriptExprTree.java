@@ -13,11 +13,11 @@ import net.arctics.clonk.parser.C4Declaration;
 import net.arctics.clonk.parser.C4ID;
 import net.arctics.clonk.parser.NameValueAssignment;
 import net.arctics.clonk.parser.ParserErrorCode;
-import net.arctics.clonk.parser.c4script.C4ScriptParser.CachedEngineFuncs;
 import net.arctics.clonk.parser.c4script.C4ScriptParser.Keywords;
 import net.arctics.clonk.parser.c4script.C4Variable.C4VariableScope;
 import net.arctics.clonk.parser.stringtbl.StringTbl;
 import net.arctics.clonk.util.Pair;
+import net.arctics.clonk.util.Utilities;
 import net.arctics.clonk.parser.ParsingException;
 
 import org.eclipse.core.runtime.CoreException;
@@ -63,6 +63,7 @@ public abstract class C4ScriptExprTree {
 	public abstract static class ExprElm implements IRegion, Cloneable {
 		
 		public static final ExprElm NULL_EXPR = new ExprElm() {};
+		public static final ExprElm[] EMPTY_EXPR_ARRAY = new ExprElm[0];
 		
 		private int exprStart, exprEnd;
 		private transient ExprElm parent, predecessorInSequence;
@@ -145,6 +146,10 @@ public abstract class C4ScriptExprTree {
 		public int getIdentifierLength() {
 			return getLength();
 		}
+		
+		public final IRegion identifierRegion() {
+			return new Region(getIdentifierStart(), getIdentifierLength());
+		}
 
 		public void setExprRegion(int start, int end) {
 			this.exprStart = start;
@@ -164,7 +169,7 @@ public abstract class C4ScriptExprTree {
 		}
 
 		public ExprElm[] getSubElements() {
-			return new ExprElm[0];
+			return EMPTY_EXPR_ARRAY;
 		}
 
 		public void setSubElements(ExprElm[] elms) {
@@ -753,9 +758,9 @@ public abstract class C4ScriptExprTree {
 				// find global function
 				C4Declaration field = parser.getContainer().getIndex().findGlobalFunction(declarationName);
 				if (field == null)
-					field = ClonkCore.getDefault().EXTERN_INDEX.findGlobalDeclaration(declarationName);
+					field = ClonkCore.getDefault().externIndex.findGlobalDeclaration(declarationName);
 				if (field == null)
-					field = ClonkCore.getDefault().ENGINE_OBJECT.findFunction(declarationName);
+					field = ClonkCore.getDefault().getEngineObject().findFunction(declarationName);
 				return field;
 			}
 			return null;
@@ -763,7 +768,7 @@ public abstract class C4ScriptExprTree {
 		@Override
 		public void reportErrors(C4ScriptParser context) throws ParsingException {
 			super.reportErrors(context);
-			if (declaration == C4ScriptParser.CachedEngineFuncs.Par) {
+			if (declaration == CachedEngineFuncs.Par) {
 				if (params.length > 0) {
 					context.unnamedParamaterUsed(params[0]);
 				}
@@ -898,7 +903,7 @@ public abstract class C4ScriptExprTree {
 			}
 			
 			// Par(5) -> nameOfParm6
-			if (params.length <= 1 && declaration == C4ScriptParser.CachedEngineFuncs.Par && (params.length == 0 || params[0] instanceof ExprNumber)) {
+			if (params.length <= 1 && declaration == CachedEngineFuncs.Par && (params.length == 0 || params[0] instanceof ExprNumber)) {
 				ExprNumber number = params.length > 0 ? (ExprNumber) params[0] : ExprNumber.ZERO;
 				if (number.intValue() >= 0 && number.intValue() < parser.getActiveFunc().getParameters().size())
 					return new ExprAccessVar(parser.getActiveFunc().getParameters().get(number.intValue()).getName());
@@ -1462,42 +1467,71 @@ public abstract class C4ScriptExprTree {
 				//  link to functions that are called indirectly
 				
 				// GameCall: look for nearest scenario and find function in its script
-				if (myIndex == 0 && parentFunc.getDeclarationName().equals("GameCall")) {
+				if (myIndex == 0 && parentFunc.getDeclaration() == CachedEngineFuncs.GameCall) {
 					ClonkIndex index = parser.getContainer().getIndex();
 					C4Scenario scenario = ClonkIndex.pickNearest(parser.getContainer().getResource(), index.getIndexedScenarios());
 					if (scenario != null) {
 						C4Function scenFunc = scenario.findFunction(stringValue());
 						if (scenFunc != null)
-							return new DeclarationRegion(scenFunc, this);
+							return new DeclarationRegion(scenFunc, identifierRegion());
 					}
 				}
 				
 				// ScheduleCall: second parameter is function name; first is object to call the function in
-				else if (myIndex == 1 && parentFunc.getDeclarationName().equals("ScheduleCall")) {
+				else if (myIndex == 1 && parentFunc.getDeclaration() == CachedEngineFuncs.ScheduleCall) {
 					C4Object typeToLookIn = parentFunc.getParams()[0].guessObjectType(parser);
 					if (typeToLookIn != null) {
 						C4Function func = typeToLookIn.findFunction(stringValue());
 						if (func != null)
-							return new DeclarationRegion(func, this);
+							return new DeclarationRegion(func, identifierRegion());
 					}
 				}
 				
 				// LocalN: look for local var in object
-				else if (myIndex == 0 && parentFunc.getDeclarationName().equals("LocalN")) {
+				else if (myIndex == 0 && parentFunc.getDeclaration() == CachedEngineFuncs.LocalN) {
 					C4Object typeToLookIn = parentFunc.getParams().length > 1 ? parentFunc.getParams()[1].guessObjectType(parser) : null;
 					if (typeToLookIn == null && parentFunc.getPredecessorInSequence() != null)
 						typeToLookIn = parentFunc.getPredecessorInSequence().guessObjectType(parser);
 					if (typeToLookIn == null)
 						typeToLookIn = parser.getContainerObject();
 					if (typeToLookIn != null) {
-						C4Variable var = typeToLookIn.findLocalVariable(stringValue(), false);
+						C4Variable var = typeToLookIn.findVariable(stringValue());
 						if (var != null)
-							return new DeclarationRegion(var, this);
+							return new DeclarationRegion(var, identifierRegion());
 					}
+				}
+				
+				else if (myIndex == 0 && parentFunc.getDeclaration() == CachedEngineFuncs.Call) {
+					C4Function f = parser.getContainer().findFunction(stringValue());
+					if (f != null)
+						return new DeclarationRegion(f, identifierRegion());
+				}
+				
+				else if (myIndex == 1 && Utilities.isAnyOf(parentFunc.getDeclaration(), CachedEngineFuncs.ProtectedCall, CachedEngineFuncs.PrivateCall)) {
+					C4Object typeToLookIn = parentFunc.getParams()[0].guessObjectType(parser);
+					if (typeToLookIn == null && parentFunc.getPredecessorInSequence() != null)
+						typeToLookIn = parentFunc.getPredecessorInSequence().guessObjectType(parser);
+					if (typeToLookIn == null)
+						typeToLookIn = parser.getContainerObject();
+					if (typeToLookIn != null) {
+						C4Function f = typeToLookIn.findFunction(stringValue());
+						if (f != null)
+							return new DeclarationRegion(f, identifierRegion());
+					} 
 				}
 				
 			}
 			return null;
+		}
+		
+		@Override
+		public int getIdentifierStart() {
+			return getExprStart()+1;
+		}
+		
+		@Override
+		public int getIdentifierLength() {
+			return stringValue().length();
 		}
 
 	}
@@ -2278,6 +2312,18 @@ public abstract class C4ScriptExprTree {
 				else
 					builder.append(";");
 			}
+		}
+		@Override
+		public DeclarationRegion declarationAt(int offset, C4ScriptParser parser) {
+			int addToMakeAbsolute = parser.getActiveFunc().getBody().getStart() + this.getExprStart();
+			offset += addToMakeAbsolute;
+			for (Pair<String, ExprElm> pair : varInitializations) {
+				String varName = pair.getFirst();
+				C4Variable var = parser.getActiveFunc().findVariable(varName);
+				if (var != null && var.isAt(offset))
+					return new DeclarationRegion(var, new Region(var.getLocation().getStart()-parser.getActiveFunc().getBody().getStart(), var.getLocation().getLength()));
+			}
+			return super.declarationAt(offset, parser);
 		}
 	}
 	

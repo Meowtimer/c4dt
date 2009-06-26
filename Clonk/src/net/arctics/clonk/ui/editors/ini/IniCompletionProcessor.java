@@ -97,7 +97,7 @@ public class IniCompletionProcessor extends ClonkCompletionProcessor<IniTextEdit
 			IniDataEntry entryDef = section.getSectionData().getEntry(entryName);
 			Class<?> entryClass = entryDef.getEntryClass();
 			if (entryClass == C4ID.class) {
-				proposalsForIndexedObjects(ClonkCore.getDefault().EXTERN_INDEX, offset, wordOffset, prefix, proposals);
+				proposalsForIndexedObjects(ClonkCore.getDefault().externIndex, offset, wordOffset, prefix, proposals);
 			}
 			else if (entryClass == String.class) {
 				proposalsForStringEntry(proposals, prefix, wordOffset);
@@ -112,7 +112,7 @@ public class IniCompletionProcessor extends ClonkCompletionProcessor<IniTextEdit
 				int lastDelim = prefix.lastIndexOf(';');
 				prefix = prefix.substring(lastDelim+1);
 				wordOffset += lastDelim+1;
-				proposalsForIndexedObjects(ClonkCore.getDefault().EXTERN_INDEX, offset, wordOffset, prefix, proposals);
+				proposalsForIndexedObjects(ClonkCore.getDefault().externIndex, offset, wordOffset, prefix, proposals);
 			}
 			else if (entryClass == Boolean.class) {
 				proposalsForBooleanEntry(proposals, prefix, wordOffset);
@@ -128,7 +128,7 @@ public class IniCompletionProcessor extends ClonkCompletionProcessor<IniTextEdit
 	private void proposalsForDefinitionPackEntry(
 			Collection<ICompletionProposal> proposals, String prefix,
 			int wordOffset) {
-		for (ExternalLib lib : ClonkCore.getDefault().EXTERN_INDEX.getLibs()) {
+		for (ExternalLib lib : ClonkCore.getDefault().externIndex.getLibs()) {
 			if (!lib.getNodeName().toLowerCase().contains(prefix))
 				continue;
 			if (!lib.getNodeName().endsWith(".c4d"))

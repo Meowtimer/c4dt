@@ -275,9 +275,9 @@ public class IniUnit extends C4Structure implements Iterable<IniSection>, IHasCh
 			createMarker("Parse error: expected '='", IMarker.SEVERITY_ERROR, keyStart + key.length(), reader.getPosition());
 		}
 		reader.eat(new char[] {' ', '\t'});
-		String value = reader.readStringUntil(BufferedScanner.NEWLINE_DELIMITERS);
+		String value = reader.readStringUntil(BufferedScanner.NEWLINE_CHARS);
 		int valEnd = reader.getPosition();
-		reader.eat(BufferedScanner.NEWLINE_DELIMITERS);
+		reader.eat(BufferedScanner.NEWLINE_CHARS);
 		IniEntry entry = new IniEntry(keyStart, valEnd, key, value);
 		entry.setParentDeclaration(section);
 		try {

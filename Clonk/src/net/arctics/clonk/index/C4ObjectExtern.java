@@ -40,9 +40,9 @@ public class C4ObjectExtern extends C4Object implements ITreeNode {
 
 	@Override
 	public ClonkIndex getIndex() {
-		if (this == ClonkCore.getDefault().ENGINE_OBJECT)
+		if (this == ClonkCore.getDefault().getEngineObject())
 			return null;
-		return ClonkCore.getDefault().EXTERN_INDEX;
+		return ClonkCore.getDefault().externIndex;
 	}
 
 	// return name of folder instead of name of object (so constructed paths don't look wierd)

@@ -12,7 +12,7 @@ public class ScenarioUnit extends IniUnit {
 
 	private static final long serialVersionUID = 1L;
 	
-	private final static IniConfiguration configuration = ClonkCore.getDefault().INI_CONFIGURATIONS.getConfigurationFor("Scenario.txt");
+	private final static IniConfiguration configuration = ClonkCore.getDefault().iniConfigurations.getConfigurationFor("Scenario.txt");
 	
 	public ScenarioUnit(IFile file) {
 		super(file);

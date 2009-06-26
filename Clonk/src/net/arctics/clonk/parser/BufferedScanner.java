@@ -21,12 +21,17 @@ public class BufferedScanner {
 	/**
 	 * characters that represent whitespace
 	 */
-	public static final char[] WHITESPACE_DELIMITERS = new char[] { ' ', '\n', '\r', '\t' };
+	public static final char[] WHITESPACE_CHARS = new char[] { ' ', '\n', '\r', '\t' };
 	
 	/**
 	 * characters that represent a new-line
 	 */
-	public static final char[] NEWLINE_DELIMITERS = new char[] { '\n', '\r' };
+	public static final char[] NEWLINE_CHARS = new char[] { '\n', '\r' };
+	
+	/**
+	 * whitespace chars without new line chars
+	 */
+	public static final char[] WHITESPACE_WITHOUT_NEWLINE_CHARS = new char[] { ' ', '\t' };
 
 	/**
 	 * The buffer
@@ -210,7 +215,7 @@ public class BufferedScanner {
 	 */
 	public String readLine() {
 		int start = offset;
-		String line = readStringUntil(NEWLINE_DELIMITERS);
+		String line = readStringUntil(NEWLINE_CHARS);
 		if (line == null) {
 			return readStringAt(start, offset);
 		}
@@ -279,7 +284,7 @@ public class BufferedScanner {
 	 * @return the amount of whitespace eaten
 	 */
 	public int eatWhitespace() {
-		return eat(WHITESPACE_DELIMITERS);
+		return eat(WHITESPACE_CHARS);
 	}
 
 	/**
@@ -352,8 +357,8 @@ public class BufferedScanner {
 	 * @return true if it is one, false if not
 	 */
 	public static boolean isLineDelimiterChar(char c) {
-		for (int i = 0; i < NEWLINE_DELIMITERS.length; i++)
-			if (NEWLINE_DELIMITERS[i] == c)
+		for (int i = 0; i < NEWLINE_CHARS.length; i++)
+			if (NEWLINE_CHARS[i] == c)
 				return true;
 		return false;
 	}

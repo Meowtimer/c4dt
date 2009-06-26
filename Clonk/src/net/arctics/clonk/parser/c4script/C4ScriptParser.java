@@ -84,14 +84,6 @@ public class C4ScriptParser {
 		public static final String False = "false";
 	}
 	
-	/**
-	 * Contains cached engine functions that have special meaning.
-	 */
-	public static class CachedEngineFuncs {
-		public static final C4Function Par = ClonkCore.getDefault().ENGINE_OBJECT.findFunction("Par");
-		public static final C4Function Var = ClonkCore.getDefault().ENGINE_OBJECT.findFunction("Var");
-	}
-	
 	private IExpressionListener expressionListener;
 
 	/**
@@ -457,15 +449,15 @@ public class C4ScriptParser {
 		int readByte = fReader.read();
 		if (readByte == '#') {
 			// ok, now is a directive
-			String directiveName = fReader.readStringUntil(BufferedScanner.WHITESPACE_DELIMITERS);
+			String directiveName = fReader.readStringUntil(BufferedScanner.WHITESPACE_CHARS);
 			C4DirectiveType type = C4DirectiveType.makeType(directiveName);
 			if (type == null) {
 				warningWithCode(ParserErrorCode.UnknownDirective, offset, offset + directiveName.length());
-				fReader.moveUntil(BufferedScanner.NEWLINE_DELIMITERS);
+				fReader.moveUntil(BufferedScanner.NEWLINE_CHARS);
 				return true;
 			}
 			else {
-				String content = fReader.readStringUntil(BufferedScanner.NEWLINE_DELIMITERS);
+				String content = fReader.readStringUntil(BufferedScanner.NEWLINE_CHARS);
 				if (content != null)
 					content = content.trim();
 				C4Directive directive = new C4Directive(type, content);
@@ -510,6 +502,7 @@ public class C4ScriptParser {
 		String desc = getTextOfLastComment(offset);
 		fReader.seek(offset);
 
+		List<C4Variable> createdVariables = new LinkedList<C4Variable>();
 		String word = fReader.readWord();
 		if (word.equals(Keywords.GlobalNamed)) {
 			eatWhitespace();
@@ -539,10 +532,11 @@ public class C4ScriptParser {
 						errorWithCode(ParserErrorCode.ConstantValueExpected, constantValue, true);
 					}
 					C4Variable var = createVariable(C4VariableScope.VAR_CONST, desc, s, e, varName);
+					createdVariables.add(var);
 					var.inferTypeFromAssignment(constantValue, this);
 				}
 				else {
-					createVariable(C4VariableScope.VAR_STATIC, desc, s, e, varName);
+					createdVariables.add(createVariable(C4VariableScope.VAR_STATIC, desc, s, e, varName));
 				}
 				eatWhitespace();
 			} while(fReader.read() == ',');
@@ -550,7 +544,6 @@ public class C4ScriptParser {
 			if (fReader.read() != ';') {
 				errorWithCode(ParserErrorCode.CommaOrSemicolonExpected, fReader.getPosition()-1, fReader.getPosition());
 			}
-			return true;
 		}
 		else if (word.equals(Keywords.LocalNamed)) {
 			do {
@@ -558,18 +551,25 @@ public class C4ScriptParser {
 				int s = fReader.getPosition();
 				String varName = fReader.readWord();
 				int e = fReader.getPosition();
-				createVariable(C4VariableScope.VAR_LOCAL, desc, s, e, varName);
+				createdVariables.add(createVariable(C4VariableScope.VAR_LOCAL, desc, s, e, varName));
 				eatWhitespace();
 			} while (fReader.read() == ',');
 			fReader.unread();
 			if (fReader.read() != ';') {
 				errorWithCode(ParserErrorCode.CommaOrSemicolonExpected, fReader.getPosition()-1, fReader.getPosition());
 			}
-			return true;
 		}
-		// local iVar, iX;
-		// static const pObj = parseValue, iMat = 2;
-		return false;
+		
+		// look for comment following directly and decorate the newly created variables with it
+		String inlineComment = getTextOfInlineComment();
+		if (inlineComment != null) {
+			inlineComment = inlineComment.trim();
+			for (C4Variable v : createdVariables) {
+				v.setUserDescription(inlineComment);
+			}
+		}
+		
+		return createdVariables.size() > 0;
 	}
 
 	private C4Variable createVariable(C4VariableScope scope, String desc, int start, int end,
@@ -702,6 +702,7 @@ public class C4ScriptParser {
 		boolean suspectOldStyle = false;
 		String funcName = null;
 		C4Type retType = C4Type.ANY;
+		
 		if (!firstWord.equals(Keywords.Func)) {
 			activeFunc.setVisibility(C4FunctionScope.makeScope(firstWord));
 			startName = fReader.getPosition();
@@ -841,7 +842,6 @@ public class C4ScriptParser {
 		container.addField(activeFunc);
 		if (!activeFunc.isOldStyle())
 			activeFunc = null; // to not suppress errors in-between functions
-		//		functions.add(func);
 		return true;
 	}
 
@@ -849,6 +849,18 @@ public class C4ScriptParser {
 		String desc = (lastComment != null && lastComment.precedesOffset(declarationOffset, fReader.getBuffer())) ? lastComment.getComment().trim() : "";
 		lastComment = null;
 		return desc;
+	}
+	
+	private String getTextOfInlineComment() {
+		int pos = fReader.getPosition();
+		fReader.eat(BufferedScanner.WHITESPACE_WITHOUT_NEWLINE_CHARS);
+		if (fReader.eat(BufferedScanner.NEWLINE_CHARS) == 0) {
+			Comment c = parseCommentObject(fReader.getPosition());
+			if (c != null)
+				return c.getComment();
+		}
+		fReader.seek(pos);
+		return null;
 	}
 
 	private boolean looksLikeVarDeclaration(String word) {
@@ -2143,7 +2155,7 @@ public class C4ScriptParser {
 			return null;
 		}
 		else if (sequence.equals("//")) {
-			String commentText = fReader.readStringUntil(BufferedScanner.NEWLINE_DELIMITERS);
+			String commentText = fReader.readStringUntil(BufferedScanner.NEWLINE_CHARS);
 			//fReader.eat(BufferedScanner.NEWLINE_DELIMITERS);
 			return new Comment(commentText, false);
 		}
@@ -2262,7 +2274,7 @@ public class C4ScriptParser {
 
 				@Override
 				public ClonkIndex getIndex() {
-					return ClonkCore.getDefault().EXTERN_INDEX;
+					return ClonkCore.getDefault().externIndex;
 				}
 
 				@Override

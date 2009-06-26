@@ -70,17 +70,17 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant {
 	/**
 	 * The engine object contains global functions and variables defined by Clonk itself
 	 */
-	public C4ObjectExtern ENGINE_OBJECT;
+	private C4ObjectExtern engineObject;
 	
 	/**
 	 * Index that contains objects and scripts imported from external object packs and .c4g-groups 
 	 */
-	public ExternIndex EXTERN_INDEX;
+	public ExternIndex externIndex;
 	
 	/**
 	 * ini configuration definitions for the various Clonk configuration files
 	 */
-	public IniData INI_CONFIGURATIONS;
+	public IniData iniConfigurations;
 	
 	/**
 	 * Shared instance
@@ -123,7 +123,7 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant {
 		try {
 			IniData data = new IniData(getBundle().getEntry("res/iniconfig.xml").openStream());
 			data.parse();
-			INI_CONFIGURATIONS = data; // set this variable when parsing completed successfully
+			iniConfigurations = data; // set this variable when parsing completed successfully
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		} catch (IOException e) {
@@ -163,18 +163,18 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant {
 				engineStream = getBundle().getEntry("res/engine").openStream();
 			}
 			ObjectInputStream objStream = new InputStreamRespectingUniqueIDs(engineStream);
-			ENGINE_OBJECT = (C4ObjectExtern)objStream.readObject();
-			ENGINE_OBJECT.fixReferencesAfterSerialization(null);
+			setEngineObject((C4ObjectExtern)objStream.readObject());
+			getEngineObject().fixReferencesAfterSerialization(null);
 		} catch (Exception e) {
 			// fallback to xml
 			createDefaultEngineObject();
-			ENGINE_OBJECT.importFromXML(getBundle().getEntry("res/engine.xml").openStream());
+			getEngineObject().importFromXML(getBundle().getEntry("res/engine.xml").openStream());
 			return;
 		}
 	}
 
 	private void createDefaultEngineObject() {
-		ENGINE_OBJECT = new C4ObjectExtern(C4ID.getSpecialID("Engine"),"Engine",null, null);
+		setEngineObject(new C4ObjectExtern(C4ID.getSpecialID("Engine"),"Engine",null, null));
 	}
 	
 //	private int nooper;
@@ -231,7 +231,7 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant {
 			FileOutputStream outputStream = new FileOutputStream(engineFile);
 			//XMLEncoder encoder = new XMLEncoder(new BufferedOutputStream(outputStream));
 			ObjectOutputStream encoder = new ObjectOutputStream(new BufferedOutputStream(outputStream));
-			encoder.writeObject(ENGINE_OBJECT);
+			encoder.writeObject(getEngineObject());
 			encoder.close();
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
@@ -248,7 +248,7 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant {
 		
 		try {
 			ObjectOutputStream objStream = new ObjectOutputStream(out);
-			objStream.writeObject(EXTERN_INDEX);
+			objStream.writeObject(externIndex);
 			objStream.close();
 			if (monitor != null) monitor.worked(1);
 		} catch (IOException e) {
@@ -261,15 +261,15 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant {
 	public void loadExternIndex() {
 		final File index = getExternLibCacheFile().toFile();
 		if (!index.exists()) {
-			EXTERN_INDEX = new ExternIndex();
+			externIndex = new ExternIndex();
 		} else {
 			try {
 				FileInputStream in = new FileInputStream(index);
 				ObjectInputStream objStream = new InputStreamRespectingUniqueIDs(in);
-				EXTERN_INDEX = (ExternIndex)objStream.readObject();
-				EXTERN_INDEX.fixReferencesAfterSerialization();
+				externIndex = (ExternIndex)objStream.readObject();
+				externIndex.fixReferencesAfterSerialization();
 			} catch (Exception e) {
-				EXTERN_INDEX = new ExternIndex();
+				externIndex = new ExternIndex();
 			}
 		}
 	}
@@ -370,6 +370,20 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant {
 
 	public String languagePref() {
 		return Platform.getPreferencesService().getString(PLUGIN_ID, PreferenceConstants.PREFERRED_LANGID, "DE", null);
+	}
+
+	/**
+	 * @param engineObject the engineObject to set
+	 */
+	private void setEngineObject(C4ObjectExtern engineObject) {
+		this.engineObject = engineObject;
+	}
+
+	/**
+	 * @return the engineObject
+	 */
+	public C4ObjectExtern getEngineObject() {
+		return engineObject;
 	}
 	
 }

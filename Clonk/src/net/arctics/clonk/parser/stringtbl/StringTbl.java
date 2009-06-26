@@ -64,13 +64,13 @@ public class StringTbl extends C4Structure implements ITreeNode {
 		while (!scanner.reachedEOF()) {
 			scanner.eatWhitespace();
 			if (scanner.read() == '#')
-				scanner.readStringUntil(BufferedScanner.NEWLINE_DELIMITERS);
+				scanner.readStringUntil(BufferedScanner.NEWLINE_CHARS);
 			else {
 				scanner.unread();
 				int start = scanner.getPosition();
 				String key = scanner.readStringUntil('=');
 				if (scanner.read() == '=') {
-					String value = scanner.readStringUntil(BufferedScanner.NEWLINE_DELIMITERS);
+					String value = scanner.readStringUntil(BufferedScanner.NEWLINE_CHARS);
 					add(key, value, start, scanner.getPosition());
 				}
 				else

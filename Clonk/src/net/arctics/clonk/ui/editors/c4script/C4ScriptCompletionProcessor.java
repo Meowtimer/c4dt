@@ -60,7 +60,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 			// refresh to find out whether caret is inside a function and to get all the declarations
 			try {
 				try {
-					((C4ScriptEditor)editor).reparseWithDocumentContents(null,true);
+					((C4ScriptEditor)editor).reparseWithDocumentContents(null, true);
 				} catch (ParsingException e) {
 					e.printStackTrace();
 				}
@@ -111,6 +111,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 	private List<IStoredTypeInformation> contextTypeInformation;
 	private ProposalCycle proposalCycle = ProposalCycle.SHOW_ALL;
 	private C4Function _activeFunc;
+	private String _prefix;
 	
 	public C4ScriptCompletionProcessor(C4ScriptEditor editor, ContentAssistant assistant) {
 		super(editor);
@@ -174,11 +175,13 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 				
 				offset = wordOffset;
 			}
-			if (prefix != null)
-				prefix = prefix.toLowerCase();
 		} catch (BadLocationException e) {
 			prefix = null;
 		}
+		
+		this._prefix = prefix;
+		if (prefix != null)
+			prefix = prefix.toLowerCase();
 		
 		ClonkProjectNature nature = Utilities.getClonkNature(editor);
 		List<String> statusMessages = new ArrayList<String>(4);
@@ -191,10 +194,10 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 		statusMessages.add("Project files");
 		
 		if (proposalCycle == ProposalCycle.SHOW_ALL || activeFunc == null) {
-			if (!ClonkCore.getDefault().EXTERN_INDEX.isEmpty()) {
+			if (!ClonkCore.getDefault().externIndex.isEmpty()) {
 				statusMessages.add("Extern libs");
 			}
-			if (ClonkCore.getDefault().ENGINE_OBJECT != null) {
+			if (ClonkCore.getDefault().getEngineObject() != null) {
 				statusMessages.add("Engine functions");
 			}
 		}
@@ -233,11 +236,11 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 		
 		if (proposalCycle == ProposalCycle.SHOW_ALL) {
 			
-			if (ClonkCore.getDefault().ENGINE_OBJECT != null) {
-				for (C4Function func : ClonkCore.getDefault().ENGINE_OBJECT.functions()) {
-					proposalForFunc(func, prefix, offset, proposals, ClonkCore.getDefault().ENGINE_OBJECT.getName(), true);
+			if (ClonkCore.getDefault().getEngineObject() != null) {
+				for (C4Function func : ClonkCore.getDefault().getEngineObject().functions()) {
+					proposalForFunc(func, prefix, offset, proposals, ClonkCore.getDefault().getEngineObject().getName(), true);
 				}
-				for (C4Variable var : ClonkCore.getDefault().ENGINE_OBJECT.variables()) {
+				for (C4Variable var : ClonkCore.getDefault().getEngineObject().variables()) {
 					proposalForVar(var,prefix,offset,proposals);
 				}
 			}
@@ -297,7 +300,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 			if (proposalCycle != ProposalCycle.SHOW_OBJECT)
 				proposalsForIndex(index, offset, wordOffset, prefix, proposals);;
 			if (proposalCycle == ProposalCycle.SHOW_ALL)
-				proposalsForIndex(ClonkCore.getDefault().EXTERN_INDEX, offset, wordOffset, prefix, proposals);
+				proposalsForIndex(ClonkCore.getDefault().externIndex, offset, wordOffset, prefix, proposals);
 		}
 		
 		if (contextScript != null) {
@@ -319,6 +322,21 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 			}
 		}
 	}
+	
+	private void callbackProposal(String prefix, String callback, boolean funcSupplied, List<ICompletionProposal> proposals, int offset) {
+		ImageRegistry reg = ClonkCore.getDefault().getImageRegistry();
+		if (reg.get("callback") == null) {
+			reg.put("callback", ImageDescriptor.createFromURL(FileLocator.find(ClonkCore.getDefault().getBundle(), new Path("icons/callback.png"), null)));
+		}
+		int replacementLength = 0;
+		if (prefix != null)
+			replacementLength = prefix.length();
+		String repString = funcSupplied ? callback : ("protected func " + callback + "() {\n}"); 
+		ClonkCompletionProposal prop = new ClonkCompletionProposal(
+				repString, offset, replacementLength, 
+				repString.length(), reg.get("callback") , callback, null,null," - Callback");
+		proposals.add(prop);
+	}
 
 	private void proposalsOutsideOfFunction(ITextViewer viewer, int offset,
 			int wordOffset, String prefix,
@@ -331,18 +349,9 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 					if (!callback.toLowerCase().startsWith(prefix))
 						continue;
 				}
-				ImageRegistry reg = ClonkCore.getDefault().getImageRegistry();
-				if (reg.get("callback") == null) {
-					reg.put("callback", ImageDescriptor.createFromURL(FileLocator.find(ClonkCore.getDefault().getBundle(), new Path("icons/callback.png"), null)));
-				}
-				int replacementLength = 0;
-				if (prefix != null) replacementLength = prefix.length();
-				String repString = funcSupplied ? callback : ("protected func " + callback + "() {\n}"); 
-				ClonkCompletionProposal prop = new ClonkCompletionProposal(
-						repString, offset, replacementLength, 
-						repString.length(), reg.get("callback") , callback, null,null," - Callback");
-				proposals.add(prop);
+				callbackProposal(prefix, callback, funcSupplied, proposals, offset);
 			}
+			callbackProposal(prefix, _prefix, funcSupplied, proposals, offset);
 
 		} catch (BadLocationException e) {
 			// ignore
@@ -380,7 +389,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 		// propose objects for #include or something
 		proposalsForIndex(index, offset, wordOffset, prefix, proposals);
 		if (proposalCycle == ProposalCycle.SHOW_ALL)
-			proposalsForIndex(ClonkCore.getDefault().EXTERN_INDEX, offset, wordOffset, prefix, proposals);
+			proposalsForIndex(ClonkCore.getDefault().externIndex, offset, wordOffset, prefix, proposals);
 	}
 
 	private String getProposalCycleMessage() {
@@ -432,7 +441,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 			prefix = null;
 		}
 		IContextInformation info = null;
-		for(C4Function func : ClonkCore.getDefault().ENGINE_OBJECT.functions()) {
+		for(C4Function func : ClonkCore.getDefault().getEngineObject().functions()) {
 			if (func.getName().equalsIgnoreCase(prefix)) {
 				String displayString = func.getLongParameterString(false).trim();
 				info = new ContextInformation(func.getName() + "()",displayString);

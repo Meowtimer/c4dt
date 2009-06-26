@@ -305,9 +305,9 @@ public class C4Function extends C4Structure implements Serializable, ITypedDecla
 				f = funcWithSameName;
 			}
 			if (f == null)
-				f = ClonkCore.getDefault().EXTERN_INDEX.findGlobalFunction(getName());
+				f = ClonkCore.getDefault().externIndex.findGlobalFunction(getName());
 			if (f == null)
-				f = ClonkCore.getDefault().ENGINE_OBJECT.findFunction(getName());
+				f = ClonkCore.getDefault().getEngineObject().findFunction(getName());
 			return f;
 		}
 		C4ScriptBase[] includes = getScript().getIncludes();

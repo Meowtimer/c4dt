@@ -48,7 +48,9 @@ import org.eclipse.ui.texteditor.SourceViewerDecorationSupport;
 public class C4ScriptEditor extends ClonkTextEditor {
 
 	private final class TextChangeListener implements IDocumentListener {
-		private Timer reparseTimer;
+		
+		private Timer reparseTimer = new Timer("ReparseTimer");
+		private TimerTask reparseTask;
 
 		public void documentAboutToBeChanged(DocumentEvent event) {
 		}
@@ -117,22 +119,24 @@ public class C4ScriptEditor extends ClonkTextEditor {
 				}
 			}
 		}
+		
+		public void cancel() {
+			if (reparseTask != null) {
+				reparseTask.cancel();
+				reparseTask = null;
+			}
+		}
 
 		private void scheduleReparsing() {
-			if (reparseTimer != null)
-				reparseTimer.cancel();
-			reparseTimer = new Timer("ReparseTimer");
-			reparseTimer.schedule(new TimerTask() {
+			cancel();
+			reparseTimer.schedule(reparseTask = new TimerTask() {
 				@Override
 				public void run() {
 					try {
 						try {
 							reparseWithDocumentContents(null, true);
 						} finally {
-							if (reparseTimer != null) {
-								reparseTimer.cancel();
-								reparseTimer = null;
-							}
+							cancel();
 						}
 					} catch (Exception e) {
 						e.printStackTrace();
@@ -148,12 +152,20 @@ public class C4ScriptEditor extends ClonkTextEditor {
 	private static final String BRACKET_HIGHLIGHT_COLOR = ClonkCore.id("bracketHighlightColor");
 	
 	private DefaultCharacterPairMatcher fBracketMatcher = new DefaultCharacterPairMatcher(new char[] { '{', '}', '(', ')' });
+	private TextChangeListener textChangeListener;
 	
 	public C4ScriptEditor() {
 		super();
 		colorManager = new ColorManager();
 		setSourceViewerConfiguration(new C4ScriptSourceViewerConfiguration(colorManager,this));
 		setDocumentProvider(new ClonkDocumentProvider(this));
+	}
+	
+	@Override
+	protected void editorSaved() {
+		System.out.println("called");
+		textChangeListener.cancel();
+		super.editorSaved();
 	}
 
 	/* (non-Javadoc)
@@ -185,7 +197,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 	@Override
 	public void createPartControl(Composite parent) {
 		super.createPartControl(parent);
-		getDocumentProvider().getDocument(getEditorInput()).addDocumentListener(new TextChangeListener());
+		getDocumentProvider().getDocument(getEditorInput()).addDocumentListener(textChangeListener = new TextChangeListener());
 	}
 
 	public void dispose() {

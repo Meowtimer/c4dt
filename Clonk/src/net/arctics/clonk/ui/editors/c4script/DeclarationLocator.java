@@ -66,7 +66,7 @@ public class DeclarationLocator extends ExpressionLocator {
 				else if (exprAtRegion instanceof ExprAccessDeclaration) {
 					ExprAccessDeclaration access = (ExprAccessDeclaration) exprAtRegion;
 					List<C4Declaration> projectDeclarations = script.getIndex().getDeclarationMap().get(access.getDeclarationName());
-					List<C4Declaration> externalDeclarations = ClonkCore.getDefault().EXTERN_INDEX.getDeclarationMap().get(access.getDeclarationName());
+					List<C4Declaration> externalDeclarations = ClonkCore.getDefault().externIndex.getDeclarationMap().get(access.getDeclarationName());
 					if (projectDeclarations != null || externalDeclarations != null) {
 						proposedDeclarations = new LinkedList<C4Declaration>();
 						if (projectDeclarations != null)

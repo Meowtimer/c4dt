@@ -507,5 +507,15 @@ public abstract class Utilities {
 		System.arraycopy(baseArray, 0, result, 0, baseArray.length);
 		return result;
 	}
+
+	public static <S, T extends S> boolean isAnyOf(S something, T... things) {
+		if (something != null) {
+			for (Object o : things) {
+				if (something.equals(o))
+					return true;
+			}
+		}
+		return false;
+	}
 	
 }
