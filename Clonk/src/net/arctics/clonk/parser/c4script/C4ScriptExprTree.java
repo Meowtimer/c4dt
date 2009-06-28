@@ -13,7 +13,6 @@ import net.arctics.clonk.parser.C4Declaration;
 import net.arctics.clonk.parser.C4ID;
 import net.arctics.clonk.parser.NameValueAssignment;
 import net.arctics.clonk.parser.ParserErrorCode;
-import net.arctics.clonk.parser.c4script.C4ScriptParser.Keywords;
 import net.arctics.clonk.parser.c4script.C4Variable.C4VariableScope;
 import net.arctics.clonk.parser.stringtbl.StringTbl;
 import net.arctics.clonk.util.Pair;
@@ -758,7 +757,7 @@ public abstract class C4ScriptExprTree {
 				// find global function
 				C4Declaration field = parser.getContainer().getIndex().findGlobalFunction(declarationName);
 				if (field == null)
-					field = ClonkCore.getDefault().externIndex.findGlobalDeclaration(declarationName);
+					field = ClonkCore.getDefault().getExternIndex().findGlobalDeclaration(declarationName);
 				if (field == null)
 					field = ClonkCore.getDefault().getEngineObject().findFunction(declarationName);
 				return field;
@@ -829,14 +828,14 @@ public abstract class C4ScriptExprTree {
 		@Override
 		public C4Object guessObjectType(C4ScriptParser parser) {
 			// FIXME: could lead to problems when one of those functions does not take an id as first parameter
-			if (params != null && params.length >= 1 && getType(parser) == C4Type.OBJECT && (declarationName.startsWith("Create") || declarationName.startsWith("Find"))) {
-				return params[0].guessObjectType(parser);
-			}
-			else if (params.length == 0 && declarationName.equals(C4Variable.THIS.getName())) {
+			if (params.length == 0 && getDeclaration() == C4Variable.THIS) {
 				return parser.getContainerObject();
 			}
 			else if (isCriteriaSearch()) {
 				return searchCriteriaAssumedResult(parser);
+			}
+			else if (params != null && params.length >= 1 && getType(parser) == C4Type.OBJECT && (declarationName.startsWith("Create") || declarationName.startsWith("Find"))) {
+				return params[0].guessObjectType(parser);
 			}
 			else if (declarationName.equals("GetID") && params.length == 0) {
 				return getPredecessorInSequence() == null ? parser.getContainerObject() : getPredecessorInSequence().guessObjectType(parser);

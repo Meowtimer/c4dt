@@ -135,7 +135,7 @@ public class ClonkProjectNature implements IProjectNature {
 	
 	public List<ExternalLib> getDependencies() {
 		// just return global libs for now
-		return ClonkCore.getDefault().externIndex.getLibs();
+		return ClonkCore.getDefault().getExternIndex().getLibs();
 	}
 
 }

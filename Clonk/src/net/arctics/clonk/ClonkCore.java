@@ -56,12 +56,12 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant {
 	/**
 	 * id for Clonk project natures
 	 */
-	public static final String CLONK_NATURE_ID = PLUGIN_ID + ".clonknature";
+	public static final String CLONK_NATURE_ID = id("clonknature");
 	
 	/**
 	 * id for error markers that denote errors occuring while importing extern libs
 	 */
-	public static final String MARKER_EXTERN_LIB_ERROR = PLUGIN_ID + ".externliberror";
+	public static final String MARKER_EXTERN_LIB_ERROR = id("externliberror");
 
 	public static final QualifiedName FOLDER_C4ID_PROPERTY_ID = new QualifiedName(PLUGIN_ID,"c4id");
 	public static final QualifiedName C4OBJECT_PROPERTY_ID = new QualifiedName(PLUGIN_ID,"c4object");
@@ -75,7 +75,7 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant {
 	/**
 	 * Index that contains objects and scripts imported from external object packs and .c4g-groups 
 	 */
-	public ExternIndex externIndex;
+	private ExternIndex externIndex;
 	
 	/**
 	 * ini configuration definitions for the various Clonk configuration files
@@ -384,6 +384,20 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant {
 	 */
 	public C4ObjectExtern getEngineObject() {
 		return engineObject;
+	}
+
+	/**
+	 * @param externIndex the externIndex to set
+	 */
+	public void setExternIndex(ExternIndex externIndex) {
+		this.externIndex = externIndex;
+	}
+
+	/**
+	 * @return the externIndex
+	 */
+	public ExternIndex getExternIndex() {
+		return externIndex;
 	}
 	
 }

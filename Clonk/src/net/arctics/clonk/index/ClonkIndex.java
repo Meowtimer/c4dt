@@ -284,8 +284,8 @@ public class ClonkIndex implements Serializable, Iterable<C4Object> {
 			return getObjectFromEverywhere(id);
 		List<C4Object> objs = getObjects(id);
 		C4Object best = pickNearest(resource, objs);
-		if (best == null && this != ClonkCore.getDefault().externIndex)
-			best = ClonkCore.getDefault().externIndex.getLastObjectWithId(id);
+		if (best == null && this != ClonkCore.getDefault().getExternIndex())
+			best = ClonkCore.getDefault().getExternIndex().getLastObjectWithId(id);
 		return best;
 	}
 	
@@ -296,8 +296,8 @@ public class ClonkIndex implements Serializable, Iterable<C4Object> {
 	 */
 	public C4Object getObjectFromEverywhere(C4ID id) {
 		C4Object result = getLastObjectWithId(id);
-		if (result == null && this != ClonkCore.getDefault().externIndex)
-			result = ClonkCore.getDefault().externIndex.getLastObjectWithId(id);
+		if (result == null && this != ClonkCore.getDefault().getExternIndex())
+			result = ClonkCore.getDefault().getExternIndex().getLastObjectWithId(id);
 		return result;
 	}
 

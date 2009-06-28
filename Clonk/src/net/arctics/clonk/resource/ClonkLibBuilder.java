@@ -53,7 +53,7 @@ public class ClonkLibBuilder implements IC4GroupVisitor, IPropertyChangeListener
 	}
 	
 	public void clean() {
-		ClonkCore.getDefault().externIndex.clear();
+		ClonkCore.getDefault().getExternIndex().clear();
 		buildNeeded = true;
 	}
 	
@@ -107,7 +107,7 @@ public class ClonkLibBuilder implements IC4GroupVisitor, IPropertyChangeListener
 	 */
 	private void readExternalLibs(IProgressMonitor monitor) throws InvalidDataException, IOException, CoreException {
 		String[] libs = getExternalLibNames();
-		ClonkCore.getDefault().externIndex.clear();
+		ClonkCore.getDefault().getExternIndex().clear();
 		try {
 			ResourcesPlugin.getWorkspace().getRoot().deleteMarkers(ClonkCore.MARKER_EXTERN_LIB_ERROR, false, 0);	
 		} catch (CoreException e1) {
@@ -117,7 +117,7 @@ public class ClonkLibBuilder implements IC4GroupVisitor, IPropertyChangeListener
 		for(String lib : libs) {
 			readExternalLib(lib, new SubProgressMonitor(monitor,1));
 		}
-		ClonkCore.getDefault().externIndex.refreshCache();
+		ClonkCore.getDefault().getExternIndex().refreshCache();
 		if (monitor != null) monitor.done();
 	}
 	
@@ -149,7 +149,7 @@ public class ClonkLibBuilder implements IC4GroupVisitor, IPropertyChangeListener
 						// we only need declarations
 						parser.clean();
 						parser.parseDeclarations();
-						ClonkCore.getDefault().externIndex.addObject(obj);
+						ClonkCore.getDefault().getExternIndex().addObject(obj);
 						if (names != null)
 							obj.readNames(new String(names.getContentsAsArray()));
 					} catch (CoreException e) {
@@ -169,7 +169,7 @@ public class ClonkLibBuilder implements IC4GroupVisitor, IPropertyChangeListener
 							C4ScriptExtern externScript = new C4ScriptExtern(child, currentExternNode);
 							C4ScriptParser parser = new C4ScriptParser(((C4GroupEntry)child).getContents(),externScript);
 							parser.parseDeclarations();
-							ClonkCore.getDefault().externIndex.addScript(externScript);
+							ClonkCore.getDefault().getExternIndex().addScript(externScript);
 							//						Utilities.getProject(getProject()).getIndexedData().addObject(externSystemc4g);
 						} catch (CoreException e) {
 							// TODO Auto-generated catch block
@@ -187,7 +187,7 @@ public class ClonkLibBuilder implements IC4GroupVisitor, IPropertyChangeListener
 		if (currentExternNode == null) {
 			ExternalLib lib;
 			currentExternNode = lib = new ExternalLib(item.getName(), null);
-			ClonkCore.getDefault().externIndex.getLibs().add(lib);
+			ClonkCore.getDefault().getExternIndex().getLibs().add(lib);
 		}
 		else
 			currentExternNode = new C4ObjectExternGroup(item.getName(), currentExternNode);
@@ -239,7 +239,7 @@ public class ClonkLibBuilder implements IC4GroupVisitor, IPropertyChangeListener
 								}
 							}
 						}
-						ClonkCore.getDefault().externIndex.refreshCache();
+						ClonkCore.getDefault().getExternIndex().refreshCache();
 						try {
 							ClonkCore.getDefault().saveExternIndex(monitor);
 						} catch (FileNotFoundException e1) {
@@ -259,7 +259,7 @@ public class ClonkLibBuilder implements IC4GroupVisitor, IPropertyChangeListener
 			}
 		}
 		else if (event.getProperty().equals(PreferenceConstants.PREFERRED_LANGID)) {
-			for (C4Object o : ClonkCore.getDefault().externIndex) {
+			for (C4Object o : ClonkCore.getDefault().getExternIndex()) {
 				o.chooseLocalizedName();
 			}
 		}

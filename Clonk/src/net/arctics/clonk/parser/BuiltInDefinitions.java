@@ -1,7 +1,7 @@
 package net.arctics.clonk.parser;
 
 import net.arctics.clonk.parser.c4script.C4Directive;
-import net.arctics.clonk.parser.c4script.C4ScriptParser.Keywords;
+import net.arctics.clonk.parser.c4script.Keywords;
 import net.arctics.clonk.parser.c4script.C4ScriptOperator;
 
 public class BuiltInDefinitions {

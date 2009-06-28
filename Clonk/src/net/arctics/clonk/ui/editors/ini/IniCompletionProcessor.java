@@ -5,6 +5,7 @@ import java.util.LinkedList;
 import java.util.regex.Matcher;
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.index.C4ObjectIntern;
+import net.arctics.clonk.index.ClonkIndex;
 import net.arctics.clonk.parser.C4ID;
 import net.arctics.clonk.parser.c4script.C4Function;
 import net.arctics.clonk.parser.c4script.C4ScriptBase;
@@ -47,8 +48,7 @@ public class IniCompletionProcessor extends ClonkCompletionProcessor<IniTextEdit
 		super(editor);
 	}
 
-	public ICompletionProposal[] computeCompletionProposals(ITextViewer viewer,
-			int offset) {
+	public ICompletionProposal[] computeCompletionProposals(ITextViewer viewer, int offset) {
 		Collection<ICompletionProposal> proposals = new LinkedList<ICompletionProposal>();
 		
 		IDocument doc = viewer.getDocument();
@@ -97,7 +97,7 @@ public class IniCompletionProcessor extends ClonkCompletionProcessor<IniTextEdit
 			IniDataEntry entryDef = section.getSectionData().getEntry(entryName);
 			Class<?> entryClass = entryDef.getEntryClass();
 			if (entryClass == C4ID.class) {
-				proposalsForIndexedObjects(ClonkCore.getDefault().externIndex, offset, wordOffset, prefix, proposals);
+				indexProposals(offset, proposals, prefix, wordOffset);
 			}
 			else if (entryClass == String.class) {
 				proposalsForStringEntry(proposals, prefix, wordOffset);
@@ -112,7 +112,7 @@ public class IniCompletionProcessor extends ClonkCompletionProcessor<IniTextEdit
 				int lastDelim = prefix.lastIndexOf(';');
 				prefix = prefix.substring(lastDelim+1);
 				wordOffset += lastDelim+1;
-				proposalsForIndexedObjects(ClonkCore.getDefault().externIndex, offset, wordOffset, prefix, proposals);
+				indexProposals(offset, proposals, prefix, wordOffset);
 			}
 			else if (entryClass == Boolean.class) {
 				proposalsForBooleanEntry(proposals, prefix, wordOffset);
@@ -125,10 +125,19 @@ public class IniCompletionProcessor extends ClonkCompletionProcessor<IniTextEdit
 		return sortProposals(proposals);
 	}
 
+	private void indexProposals(int offset,
+			Collection<ICompletionProposal> proposals, String prefix,
+			int wordOffset) {
+		proposalsForIndexedObjects(ClonkCore.getDefault().getExternIndex(), offset, wordOffset, prefix, proposals);
+		ClonkIndex index = Utilities.getIndex(getEditor().getIniUnit().getIniFile());
+		if (index != null)
+			proposalsForIndexedObjects(index, offset, wordOffset, prefix, proposals);
+	}
+
 	private void proposalsForDefinitionPackEntry(
 			Collection<ICompletionProposal> proposals, String prefix,
 			int wordOffset) {
-		for (ExternalLib lib : ClonkCore.getDefault().externIndex.getLibs()) {
+		for (ExternalLib lib : ClonkCore.getDefault().getExternIndex().getLibs()) {
 			if (!lib.getNodeName().toLowerCase().contains(prefix))
 				continue;
 			if (!lib.getNodeName().endsWith(".c4d"))

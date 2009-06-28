@@ -1,5 +1,20 @@
 grammar ini;
 
+@header {
+package net.arctics.clonk.parser.ini;
+
+import net.arctics.clonk.parser.ParserErrorCode;
+import net.arctics.clonk.parser.SourceLocation;
+
+import org.eclipse.core.resources.IMarker;
+import org.eclipse.core.resources.IResource;
+import org.eclipse.core.runtime.CoreException;
+
+import java.io.IOException;
+}
+
+@lexer::header {package net.arctics.clonk.parser.ini;;}
+
 start	:	linerecurse;
 
 line	:	(section|assignment|comment);

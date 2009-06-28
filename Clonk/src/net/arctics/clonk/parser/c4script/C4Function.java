@@ -10,7 +10,6 @@ import net.arctics.clonk.parser.C4Declaration;
 import net.arctics.clonk.parser.C4Structure;
 import net.arctics.clonk.parser.SourceLocation;
 import net.arctics.clonk.parser.c4script.C4ScriptExprTree.ExprElm;
-import net.arctics.clonk.parser.c4script.C4ScriptParser.Keywords;
 import net.arctics.clonk.parser.c4script.C4Variable.C4VariableScope;
 import net.arctics.clonk.util.CompoundIterable;
 
@@ -305,7 +304,7 @@ public class C4Function extends C4Structure implements Serializable, ITypedDecla
 				f = funcWithSameName;
 			}
 			if (f == null)
-				f = ClonkCore.getDefault().externIndex.findGlobalFunction(getName());
+				f = ClonkCore.getDefault().getExternIndex().findGlobalFunction(getName());
 			if (f == null)
 				f = ClonkCore.getDefault().getEngineObject().findFunction(getName());
 			return f;

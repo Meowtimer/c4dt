@@ -74,7 +74,7 @@ public class ClonkRenameFieldProcessor extends RenameProcessor {
 		Set<Object> elements = new HashSet<Object>(Arrays.asList(searchResult.getElements()));
 		// declaration of the selected field
 		elements.add(decl.getScript());
-		// if field is a function also look for functions which inherit or are inherited from field
+		// if decl is a function also look for functions which inherit or are inherited from decl
 		if (decl instanceof C4Function) {
 			C4Function fieldAsFunc = (C4Function)decl;
 			for (C4Function relatedFunc : decl.getScript().getIndex().declarationsWithName(decl.getName(), C4Function.class)) {

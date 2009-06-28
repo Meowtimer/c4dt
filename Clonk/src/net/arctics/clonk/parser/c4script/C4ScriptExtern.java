@@ -28,7 +28,7 @@ public class C4ScriptExtern extends C4ScriptBase implements ITreeNode {
 	
 	@Override
 	public ClonkIndex getIndex() {
-		return ClonkCore.getDefault().externIndex;
+		return ClonkCore.getDefault().getExternIndex();
 	}
 
 	@Override

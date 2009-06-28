@@ -4,6 +4,7 @@ import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.index.C4Object;
 import net.arctics.clonk.index.C4ObjectIntern;
 import net.arctics.clonk.parser.C4Declaration;
+import net.arctics.clonk.parser.C4ID;
 import net.arctics.clonk.parser.C4Structure;
 import net.arctics.clonk.parser.c4script.C4Directive;
 import net.arctics.clonk.parser.c4script.C4Function;
@@ -23,10 +24,12 @@ import net.arctics.clonk.parser.c4script.C4ScriptExprTree.Statement;
 import net.arctics.clonk.parser.c4script.C4ScriptExprTree.TraversalContinuation;
 import net.arctics.clonk.parser.inireader.ComplexIniEntry;
 import net.arctics.clonk.parser.inireader.Function;
+import net.arctics.clonk.parser.inireader.IDArray;
 import net.arctics.clonk.parser.inireader.IniEntry;
 import net.arctics.clonk.parser.inireader.IniSection;
 import net.arctics.clonk.parser.inireader.IniUnit;
 import net.arctics.clonk.resource.ClonkProjectNature;
+import net.arctics.clonk.util.KeyValuePair;
 import net.arctics.clonk.util.Utilities;
 
 import org.eclipse.core.resources.IContainer;
@@ -205,12 +208,29 @@ public class ClonkSearchQuery implements ISearchQuery {
 							for (IniEntry entry : sec) {
 								if (entry instanceof ComplexIniEntry) {
 									ComplexIniEntry complex = (ComplexIniEntry) entry;
-									if (complex.getEntryConfig() != null && complex.getEntryConfig().getEntryClass() == Function.class) {
-										C4ObjectIntern obj = C4ObjectIntern.objectCorrespondingTo(objectFolder);
-										if (obj != null) {
-											C4Declaration declaration = obj.findFunction(complex.getValue());
-											if (declaration == this.declaration)
-												result.addMatch(new ClonkSearchMatch(entry.toString(), 0, iniUnit, entry.getStartPos(), entry.getEndPos()-entry.getStartPos(), false, false));
+									if (complex.getEntryConfig() != null) {
+										Class<?> entryClass = complex.getEntryConfig().getEntryClass();
+										if (entryClass == Function.class) {
+											C4ObjectIntern obj = C4ObjectIntern.objectCorrespondingTo(objectFolder);
+											if (obj != null) {
+												C4Declaration declaration = obj.findFunction(complex.getValue());
+												if (declaration == this.declaration)
+													result.addMatch(new ClonkSearchMatch(entry.toString(), 0, iniUnit, entry.getStartPos(), entry.getEndPos()-entry.getStartPos(), false, false));
+											}
+										}
+										else if (declaration instanceof C4Object) {
+											if (entryClass == C4ID.class) {
+												if (script.getIndex().getObjectFromEverywhere((C4ID) complex.getExtendedValue()) == declaration) {
+													result.addMatch(new ClonkSearchMatch(entry.toString(), 0, iniUnit, entry.getStartPos(), entry.getEndPos()-entry.getStartPos(), false, false));
+												}
+											}
+											else if (entryClass == IDArray.class) {
+												for (KeyValuePair<C4ID, Integer> pair : ((IDArray)complex.getExtendedValue()).getComponents()) {
+													C4Object obj = script.getIndex().getObjectFromEverywhere(pair.getKey());
+													if (obj == declaration)
+														result.addMatch(new ClonkSearchMatch(pair.toString(), 0, iniUnit, entry.getStartPos(), entry.getEndPos()-entry.getStartPos(), false, false));
+												}
+											}
 										}
 									}
 								}

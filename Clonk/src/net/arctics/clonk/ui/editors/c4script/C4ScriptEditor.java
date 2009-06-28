@@ -163,7 +163,6 @@ public class C4ScriptEditor extends ClonkTextEditor {
 	
 	@Override
 	protected void editorSaved() {
-		System.out.println("called");
 		textChangeListener.cancel();
 		super.editorSaved();
 	}

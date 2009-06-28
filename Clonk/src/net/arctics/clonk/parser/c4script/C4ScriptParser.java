@@ -46,44 +46,6 @@ import org.eclipse.jface.text.IRegion;
  */
 public class C4ScriptParser {
 	
-	/**
-	 * Keywords of C4Script
-	 */
-	public interface Keywords {
-
-		public static final String Func = "func";
-
-		public static final String Private = "private";
-		public static final String Protected = "protected";
-		public static final String Public = "public";
-		public static final String Global = "global";
-		public static final String Const = "const";
-
-		public static final String If = "if";
-		public static final String Else = "else";
-		public static final String While = "while";
-		public static final String For = "for";
-		public static final String In = "in";
-		public static final String Return = "return";
-		public static final String Par = "Par";
-		public static final String Goto = "goto";
-		public static final String Break = "break";
-		public static final String Continue = "continue";
-		public static final String Inherited = "inherited";
-		public static final String SafeInherited = "_inherited";
-
-		public static final String Image = "Image";
-		public static final String Contents = "Contents";
-		public static final String Condition = "Condition";
-
-		public static final String GlobalNamed = "static";
-		public static final String LocalNamed = "local";
-		public static final String VarNamed = "var";
-
-		public static final String True = "true";
-		public static final String False = "false";
-	}
-	
 	private IExpressionListener expressionListener;
 
 	/**
@@ -126,14 +88,12 @@ public class C4ScriptParser {
 	public static final int MAX_NUMVAR = 20;
 	public static final int UNKNOWN_PARAMETERNUM = MAX_PAR+1;
 	
-	/*
+	/**
 	 * Number of unnamed parameters used in activeFunc (Par(5) -> 6 unnamed parameters).
 	 * If a complex expression is passed to Par() this variable is set to UNKNOWN_PARAMETERNUM
 	 */
 	private int numUnnamedParameters;
 	
-	private List<Pair<C4Type, C4Object>> unnamedVarTypeInformation;
-
 	/**
 	 * Informs the parser that an unnamed parameter was used by calling the Par() function with the given index expression.
 	 * @param index the index expression
@@ -175,6 +135,11 @@ public class C4ScriptParser {
 		}
 	}
 	
+	/**
+	 * Requests type information for an expression
+	 * @param expression the expression
+	 * @return the type information or null if none has been stored
+	 */
 	public IStoredTypeInformation requestStoredTypeInformation(ExprElm expression) {
 		if (storedTypeInformationStack.isEmpty())
 			return null;
@@ -202,7 +167,6 @@ public class C4ScriptParser {
 	
 	/**
 	 * Query the type of an arbitrary expression. With some luck the parser will be able to give an answer.
-	 * At the moment, only Var() calls are supported.
 	 * @param expression the expression to query the type of
 	 * @return
 	 */
@@ -255,9 +219,6 @@ public class C4ScriptParser {
 		if (func != activeFunc) {
 			activeFunc = func;
 			numUnnamedParameters = 0;
-			if (unnamedVarTypeInformation != null)
-				for (int i = 0; i < unnamedVarTypeInformation.size(); i++)
-					unnamedVarTypeInformation.set(i, null);
 		}
 	}
 	
@@ -300,7 +261,7 @@ public class C4ScriptParser {
 	}
 
 	/**
-	 * Creates a C4Script parser object for extern files.
+	 * Creates a C4Script parser object for external files.
 	 * Results are stored in <code>object</code>
 	 * @param stream
 	 * @param size
@@ -2274,7 +2235,7 @@ public class C4ScriptParser {
 
 				@Override
 				public ClonkIndex getIndex() {
-					return ClonkCore.getDefault().externIndex;
+					return ClonkCore.getDefault().getExternIndex();
 				}
 
 				@Override
