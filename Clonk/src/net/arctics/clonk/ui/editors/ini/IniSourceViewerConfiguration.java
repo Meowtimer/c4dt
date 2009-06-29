@@ -44,8 +44,8 @@ import org.eclipse.swt.graphics.RGB;
 
 public class IniSourceViewerConfiguration extends ClonkSourceViewerConfiguration<IniTextEditor> {
 	
-	public static Pattern noAssignPattern = Pattern.compile("\\s*([A-Za-z_0-9]*)");
-	public static Pattern assignPattern = Pattern.compile("\\s*([A-Za-z_0-9]*)\\s*=\\s*(.*)\\s*");
+	public static Pattern NO_ASSIGN_PATTERN = Pattern.compile("\\s*([A-Za-z_0-9]*)");
+	public static Pattern ASSIGN_PATTERN = Pattern.compile("\\s*([A-Za-z_0-9]*)\\s*=\\s*(.*)\\s*");
 	
 	private class IniSourceHyperlinkPresenter extends DefaultHyperlinkPresenter {
 
@@ -83,7 +83,7 @@ public class IniSourceViewerConfiguration extends ClonkSourceViewerConfiguration
 				IniSection section = getEditor().getIniUnit().sectionAtOffset(region.getOffset(), 0);
 				if (section != null) {
 					int relativeOffset = region.getOffset()-lineRegion.getOffset();
-					if ((m = assignPattern.matcher(line)).matches()) {
+					if ((m = ASSIGN_PATTERN.matcher(line)).matches()) {
 						boolean hoverOverAttrib = relativeOffset < m.start(2);
 						String attrib = m.group(1);
 						final String value = m.group(2);

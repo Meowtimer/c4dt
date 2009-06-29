@@ -1,6 +1,3 @@
-/**
- * 
- */
 package net.arctics.clonk.ui.editors.ini;
 
 import net.arctics.clonk.parser.C4Declaration;

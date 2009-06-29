@@ -68,13 +68,13 @@ public class IniCompletionProcessor extends ClonkCompletionProcessor<IniTextEdit
 		String entryName = "";
 		boolean assignment = false;
 		int wordOffset = offset;
-		if ((m = IniSourceViewerConfiguration.assignPattern.matcher(line)).matches()) {
+		if ((m = IniSourceViewerConfiguration.ASSIGN_PATTERN.matcher(line)).matches()) {
 			entryName = m.group(1);
 			prefix = m.group(2);
 			assignment = true;
 			wordOffset = lineStart + m.start(2); 
 		}
-		else if ((m = IniSourceViewerConfiguration.noAssignPattern.matcher(line)).matches()) {
+		else if ((m = IniSourceViewerConfiguration.NO_ASSIGN_PATTERN.matcher(line)).matches()) {
 			prefix = m.group(1);
 			wordOffset = lineStart + m.start(1);
 		}
