@@ -65,7 +65,7 @@ public abstract class C4ScriptExprTree {
 		public static final ExprElm[] EMPTY_EXPR_ARRAY = new ExprElm[0];
 		
 		private int exprStart, exprEnd;
-		private transient ExprElm parent, predecessorInSequence;
+		private transient ExprElm parent, predecessorInSequence, successorInSequence;
 		
 		protected void assignParentToSubElements() {
 			for (ExprElm e : getSubElements())
@@ -165,6 +165,14 @@ public abstract class C4ScriptExprTree {
 
 		public ExprElm getPredecessorInSequence() {
 			return predecessorInSequence;
+		}
+		
+		public ExprElm getSuccessorInSequence() {
+			return successorInSequence;
+		}
+		
+		public void setSuccessorInSequence(ExprElm e) {
+			successorInSequence = e;
 		}
 
 		public ExprElm[] getSubElements() {
@@ -445,6 +453,8 @@ public abstract class C4ScriptExprTree {
 			ExprElm prev = null;
 			for (ExprElm e : elements) {
 				e.setPredecessorInSequence(prev);
+				if (prev != null)
+					prev.setSuccessorInSequence(e);
 				e.setParent(this);
 				prev = e;
 			}
@@ -576,7 +586,8 @@ public abstract class C4ScriptExprTree {
 				if (decl instanceof C4Variable) {
 					C4Variable var = (C4Variable) decl;
 					if (!soft || var.getScope() == C4VariableScope.VAR_VAR) {
-						var.setType(getType());					
+						if (!var.isTypeLocked())
+							var.setType(getType());					
 						var.setExpectedContent(getObjectType());
 					}
 				}
@@ -1230,7 +1241,7 @@ public abstract class C4ScriptExprTree {
 		@Override
 		public ExprElm newStyleReplacement(C4ScriptParser parser)
 				throws CloneNotSupportedException {
-			if (!(getParent() instanceof ExprOperator))
+			if (!(getParent() instanceof ExprOperator) && !(getParent() instanceof ExprSequence))
 				return innerExpr.newStyleReplacement(parser);
 			return super.newStyleReplacement(parser);
 		}

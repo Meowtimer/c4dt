@@ -36,6 +36,7 @@ public class UnsignedInteger implements IEntryCreateable {
 
 	public void setInput(String input) throws IniParserException {
 		try {
+			input = input.trim();
 			Integer num = !input.equals("") ? Integer.decode(input) : 0;
 			number = num.intValue();
 			if (num < 0)

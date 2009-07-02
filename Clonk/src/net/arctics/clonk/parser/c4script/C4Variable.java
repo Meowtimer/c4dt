@@ -265,5 +265,9 @@ public class C4Variable extends C4Declaration implements Serializable, ITypedDec
 	public boolean isAt(int offset) {
 		return offset >= getLocation().getStart() && offset <= getLocation().getEnd();
 	}
+
+	public boolean isTypeLocked() {
+		return typeLocked;
+	}
 	
 }

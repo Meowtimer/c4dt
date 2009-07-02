@@ -43,16 +43,21 @@ public class ClonkRenameFieldProcessor extends RenameProcessor {
 	}
 
 	@Override
-	public RefactoringStatus checkInitialConditions(IProgressMonitor monitor)
-			throws CoreException, OperationCanceledException {
+	public RefactoringStatus checkInitialConditions(IProgressMonitor monitor) throws CoreException, OperationCanceledException {
 		// renaming fields that originate from outside the project is not allowed
-		C4Declaration baseField = decl instanceof C4Function ? ((C4Function)decl).baseFunction() : decl;
-		if (!(baseField.getScript().getIndex() instanceof ProjectIndex))
+		C4Declaration baseDecl = decl instanceof C4Function ? ((C4Function)decl).baseFunction() : decl;
+		if (!(baseDecl.getScript().getIndex() instanceof ProjectIndex))
 			return RefactoringStatus.createFatalErrorStatus(decl.getName() + " is either declared outside of the project or overrides a function that is declared outside of the project");
 		
-		FindDeclarationInfo info = new FindDeclarationInfo(decl.getScript().getIndex());
-		info.setDeclarationClass(decl.getClass());
-		C4Declaration existingDec = decl.getScript().findDeclaration(newName, info);
+		C4Declaration existingDec;
+		if (baseDecl.getParentDeclaration() instanceof C4Function) {
+			existingDec = ((C4Function)baseDecl.getParentDeclaration()).findVariable(newName);
+		}
+		else {
+			FindDeclarationInfo info = new FindDeclarationInfo(decl.getScript().getIndex());
+			info.setDeclarationClass(decl.getClass());
+			existingDec = decl.getScript().findDeclaration(newName, info);
+		}
 		if (existingDec != null) {
 			return RefactoringStatus.createFatalErrorStatus("There is already an item with name " + newName + " in " + decl.getScript().toString());
 		}

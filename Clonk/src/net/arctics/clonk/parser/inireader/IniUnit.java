@@ -194,7 +194,7 @@ public class IniUnit extends C4Structure implements Iterable<IniSection>, IHasCh
 			sectionsList.add(section);
 		}
 		if (!reader.reachedEOF()) {
-			createMarker("Unexpected data.", IMarker.SEVERITY_WARNING, reader.getPosition() - 2, reader.getPosition());
+			//createMarker("Unexpected data.", IMarker.SEVERITY_WARNING, reader.getPosition() - 2, reader.getPosition());
 		}
 	}
 	

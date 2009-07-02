@@ -1,6 +1,7 @@
 package net.arctics.clonk.ui.search;
 
 import net.arctics.clonk.index.C4ObjectIntern;
+import net.arctics.clonk.index.C4Scenario;
 import net.arctics.clonk.parser.c4script.C4ScriptIntern;
 import net.arctics.clonk.util.Icons;
 import org.eclipse.jface.viewers.LabelProvider;
@@ -15,6 +16,9 @@ public class ClonkSearchLabelProvider extends LabelProvider implements IStyledLa
 	}
 	@Override
 	public Image getImage(Object element) {
+		if (element instanceof C4Scenario) {
+			return Icons.SCENARIO_ICON;
+		}
 		if (element instanceof C4ObjectIntern) {
 			return Icons.GENERAL_OBJECT_ICON;
 		}
