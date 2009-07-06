@@ -10,6 +10,7 @@ import net.arctics.clonk.parser.mapcreator.MapCreatorParser;
 import net.arctics.clonk.ui.editors.ClonkDocumentProvider;
 import net.arctics.clonk.ui.editors.ClonkTextEditor;
 import net.arctics.clonk.ui.editors.ColorManager;
+import net.arctics.clonk.ui.editors.c4script.ClonkContentOutlinePage;
 import net.arctics.clonk.util.Utilities;
 
 
@@ -66,6 +67,15 @@ public class MapCreatorEditor extends ClonkTextEditor {
 			outlinePage.setInput(getTopLevelDeclaration());
 			super.refreshOutline();
 		}
+	}
+	
+	@Override
+	public ClonkContentOutlinePage getOutlinePage() {
+		if (outlinePage == null) {
+			outlinePage = new MapCreatorOutlinePage();
+			outlinePage.setEditor(this);
+		}
+		return super.getOutlinePage();
 	}
 	
 }

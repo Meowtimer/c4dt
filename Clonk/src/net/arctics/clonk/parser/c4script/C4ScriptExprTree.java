@@ -341,9 +341,13 @@ public abstract class C4ScriptExprTree {
 		public boolean containedIn(ExprElm expression) {
 			if (expression == this)
 				return true;
-			for (ExprElm e : expression.getSubElements())
-				if (this.containedIn(e))
-					return true;
+			try {
+				for (ExprElm e : expression.getSubElements())
+					if (this.containedIn(e))
+						return true;
+			} catch (NullPointerException e) {
+				System.out.println(expression);
+			}
 			return false;
 		}
 		
