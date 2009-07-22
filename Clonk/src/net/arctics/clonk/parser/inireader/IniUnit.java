@@ -178,8 +178,8 @@ public class IniUnit extends C4Structure implements Iterable<IniSection>, IHasCh
 		}
 	}
 	
-	public void parse() {
-		if (getIniFile() != null) {
+	public void parse(boolean modifyMarkers) {
+		if (modifyMarkers && getIniFile() != null) {
 			try {
 				getIniFile().deleteMarkers(IMarker.PROBLEM, true, IResource.DEPTH_ONE);
 			} catch (CoreException e) {
@@ -189,7 +189,7 @@ public class IniUnit extends C4Structure implements Iterable<IniSection>, IHasCh
 		this.clear();
 		reader.seek(0);
 		IniSection section;
-		while ((section = parseSection()) != null) {
+		while ((section = parseSection(modifyMarkers)) != null) {
 			sectionsMap.put(section.getName(), section);
 			sectionsList.add(section);
 		}
@@ -209,19 +209,21 @@ public class IniUnit extends C4Structure implements Iterable<IniSection>, IHasCh
 			: null;
 	}
 	
-	protected IniSection parseSection() {
+	protected IniSection parseSection(boolean modifyMarkers) {
 		reader.eatWhitespace();
 		int start = reader.getPosition();
 		// parse head
 		if (reader.read() == '[') {
 			String name = reader.readStringUntil(']','\n','\r');
 			if (reader.read() != ']') {
-				createMarker("Parser error: Invalid section head, ']' expected", IMarker.SEVERITY_ERROR, start, reader.getPosition());
+				if (modifyMarkers)
+					createMarker("Parser error: Invalid section head, ']' expected", IMarker.SEVERITY_ERROR, start, reader.getPosition());
 				return null;
 			}
 			else {
 				if (!isSectionNameValid(name)) {
-					createMarker("Unknown section name", IMarker.SEVERITY_WARNING, start, reader.getPosition() - 1);
+					if (modifyMarkers)
+						createMarker("Unknown section name", IMarker.SEVERITY_WARNING, start, reader.getPosition() - 1);
 				}
 			}
 			int end = reader.getPosition();
@@ -233,7 +235,7 @@ public class IniUnit extends C4Structure implements Iterable<IniSection>, IHasCh
 			Map<String, IniEntry> entries = new HashMap<String, IniEntry>();
 			currentSection = section;
 			currentSection.setSectionData(getSectionDataFor(section));
-			while ((entry = parseEntry(section)) != null) {
+			while ((entry = parseEntry(section, modifyMarkers)) != null) {
 				entries.put(entry.getKey(),entry);
 			}
 			section.setEntries(entries);
@@ -258,7 +260,7 @@ public class IniUnit extends C4Structure implements Iterable<IniSection>, IHasCh
 		}
 	}
 	
-	protected IniEntry parseEntry(IniSection section) {
+	protected IniEntry parseEntry(IniSection section, boolean modifyMarkers) {
 		while (skipComment());
 		int start = reader.getPosition();
 		reader.eatWhitespace();
@@ -272,7 +274,8 @@ public class IniUnit extends C4Structure implements Iterable<IniSection>, IHasCh
 		String key = reader.readWord();
 		reader.eatWhitespace();
 		if (reader.read() != '=') {
-			createMarker("Parse error: expected '='", IMarker.SEVERITY_ERROR, keyStart + key.length(), reader.getPosition());
+			if (modifyMarkers)
+				createMarker("Parse error: expected '='", IMarker.SEVERITY_ERROR, keyStart + key.length(), reader.getPosition());
 		}
 		reader.eat(new char[] {' ', '\t'});
 		String value = reader.readStringUntil(BufferedScanner.NEWLINE_CHARS);
@@ -283,7 +286,8 @@ public class IniUnit extends C4Structure implements Iterable<IniSection>, IHasCh
 		try {
 			return validateEntry(entry, section);
 		} catch (IniParserException e) {
-			createMarker(e.getMessage(), e.getSeverity(), e.getOffset(), e.getEndOffset());
+			if (modifyMarkers)
+				createMarker(e.getMessage(), e.getSeverity(), e.getOffset(), e.getEndOffset());
 			return entry;
 		}
 	}
@@ -409,7 +413,7 @@ public class IniUnit extends C4Structure implements Iterable<IniSection>, IHasCh
 				if (iniUnitClass != null) {
 					try {
 						IniUnit reader = iniUnitClass.getConstructor(IFile.class).newInstance(file);
-						reader.parse();
+						reader.parse(true);
 						return reader;
 					} catch (Exception e) {
 						e.printStackTrace();

@@ -142,7 +142,7 @@ public class ClonkLibBuilder implements IC4GroupVisitor, IPropertyChangeListener
 				if (defCore != null && script != null) {
 					DefCoreUnit defCoreWrapper = new DefCoreUnit(new ByteArrayInputStream(defCore.getContentsAsArray()));
 					try {
-						defCoreWrapper.parse();
+						defCoreWrapper.parse(false);
 						C4ObjectExtern obj = new C4ObjectExtern(defCoreWrapper.getObjectID(), defCoreWrapper.getName(), script, currentExternNode);
 						currentExternNode = obj;
 						C4ScriptParser parser = new C4ScriptParser(script.getContents(),obj);

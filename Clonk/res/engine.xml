@@ -4806,5 +4806,7 @@ Wenn fCheckSite 1 ist, wird die Baustelle vorher auf ihre Eignung überprüft. I
 		</variable>
 		<variable name="C4D_SelectVegetation" type="int" const="true">
 		</variable>
+		<variable name="nil" type="any" const="true">
+		</variable>
 	</variables>
 </script>

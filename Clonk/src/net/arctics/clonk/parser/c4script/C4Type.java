@@ -45,13 +45,18 @@ public enum C4Type {
 	
 	public static C4Type makeType(String arg, boolean allowSpecial) {
 		// ID, Id.. all variable names
-		//if (arg.equals("any")) return C4Type.ANY; engine does not like that
 		if (arg.equals("bool")) return C4Type.BOOL;
 		if (arg.equals("int")) return C4Type.INT;
 		if (arg.equals("id")) return C4Type.ID;
 		if (arg.equals("string")) return C4Type.STRING;
 		if (arg.equals("array")) return C4Type.ARRAY;
 		if (arg.equals("object")) return C4Type.OBJECT;
+		if (allowSpecial) {
+			if (arg.equals("dword"))
+				return C4Type.DWORD;
+			if (arg.equals("any"))
+				return C4Type.ANY;
+		}
 		if (allowSpecial && arg.equals("dword")) return C4Type.DWORD;
 		if (arg.equals("&") || (allowSpecial && arg.equals("reference"))) return C4Type.REFERENCE;
 		return C4Type.UNKNOWN;

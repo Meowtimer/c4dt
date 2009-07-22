@@ -154,7 +154,7 @@ public class C4Variable extends C4Declaration implements Serializable, ITypedDec
 	 * generates a string describing the variable (including name and type)
 	 */
 	public String getAdditionalProposalInfo() {
-		return getName() + "  (" + (getType() != null ? getType().toString() : "any") + ")" + (description != null && description.length() > 0 ? (": " + description) : "");
+		return getName() + "  (" + (getType() != null ? getType().toString() : C4Type.ANY.toString()) + ")" + (description != null && description.length() > 0 ? (": " + description) : "");
 	}
 
 	/**
@@ -180,7 +180,7 @@ public class C4Variable extends C4Declaration implements Serializable, ITypedDec
 		public String toKeyword() {
 			switch (this) {
 			case VAR_CONST:
-				return "static const";
+				return Keywords.GlobalNamed + " " + Keywords.Const;
 			case VAR_STATIC:
 				return Keywords.GlobalNamed;
 			case VAR_LOCAL:
@@ -268,6 +268,18 @@ public class C4Variable extends C4Declaration implements Serializable, ITypedDec
 
 	public boolean isTypeLocked() {
 		return typeLocked;
+	}
+	
+	@Override
+	public void setParentDeclaration(C4Declaration declaration) {
+		super.setParentDeclaration(declaration);
+		typeLocked = declaration == ClonkCore.getDefault().getEngineObject();
+	}
+	
+	@Override
+	public void fixReferencesAfterSerialization(C4Declaration parent) {
+		super.fixReferencesAfterSerialization(parent);
+		typeLocked = parent == ClonkCore.getDefault().getEngineObject();
 	}
 	
 }
