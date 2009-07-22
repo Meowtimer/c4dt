@@ -143,7 +143,7 @@ public class C4ScriptSourceViewerConfiguration extends ClonkSourceViewerConfigur
 	}
 	
 	@Override
-	public IQuickAssistAssistant getQuickAssistAssistant(ISourceViewer sourceViewer) { // noch unnï¿½tz
+	public IQuickAssistAssistant getQuickAssistAssistant(ISourceViewer sourceViewer) { // noch unnütz
 		IQuickAssistAssistant assistant = new QuickAssistAssistant();
 		assistant.setQuickAssistProcessor(new ClonkQuickAssistProcessor());
 		return assistant;

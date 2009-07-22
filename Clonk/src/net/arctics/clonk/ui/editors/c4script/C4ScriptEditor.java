@@ -79,9 +79,6 @@ public class C4ScriptEditor extends ClonkTextEditor {
 			if (f != null && !f.isOldStyle()) {
 				adjustDeclarationLocations(event);
 			} else {
-				// performance suffers when auto-reparsing large scripts -.-
-//				if (event.getDocument().getLength() > 20 * 1024)
-//					return;
 				// only schedule reparsing when editing outside of existing function
 				scheduleReparsing();
 			}

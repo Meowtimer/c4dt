@@ -6,6 +6,8 @@ package net.arctics.clonk.parser.c4script;
  *
  */
 public enum C4Type {
+	UNKNOWN,
+	
 	ANY,
 	BOOL,
 	INT,
@@ -13,11 +15,9 @@ public enum C4Type {
 	STRING,
 	ARRAY,
 	OBJECT,
-	/** @since 18.09.08 */
 	DWORD, 
-	/** @since 23.09.08 */
 	REFERENCE, 
-	UNKNOWN; 
+	PROPLIST; 
 	
 	@Override
 	public String toString() {
@@ -43,22 +43,20 @@ public enum C4Type {
 		return makeType(arg, false);
 	}
 	
+	private static final C4Type[] officialTypes = new C4Type[] {BOOL, INT, ID, STRING, ARRAY, OBJECT, PROPLIST};
+	
 	public static C4Type makeType(String arg, boolean allowSpecial) {
-		// ID, Id.. all variable names
-		if (arg.equals("bool")) return C4Type.BOOL;
-		if (arg.equals("int")) return C4Type.INT;
-		if (arg.equals("id")) return C4Type.ID;
-		if (arg.equals("string")) return C4Type.STRING;
-		if (arg.equals("array")) return C4Type.ARRAY;
-		if (arg.equals("object")) return C4Type.OBJECT;
+		for (C4Type t : officialTypes)
+			if (t.name().equalsIgnoreCase(arg))
+				return t;
 		if (allowSpecial) {
 			if (arg.equals("dword"))
 				return C4Type.DWORD;
 			if (arg.equals("any"))
 				return C4Type.ANY;
 		}
-		if (allowSpecial && arg.equals("dword")) return C4Type.DWORD;
-		if (arg.equals("&") || (allowSpecial && arg.equals("reference"))) return C4Type.REFERENCE;
+		if (arg.equals("&") || (allowSpecial && arg.equals("reference")))
+			return C4Type.REFERENCE;
 		return C4Type.UNKNOWN;
 	}
 

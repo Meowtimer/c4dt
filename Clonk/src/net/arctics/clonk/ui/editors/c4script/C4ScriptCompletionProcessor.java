@@ -283,7 +283,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 					parser.pushTypeInformationList(contextTypeInformation);
 					parser.applyStoredTypeInformationList(true);
 					if (contextExpression.containsOffset(preservedOffset-activeFunc.getBody().getOffset())) {
-						C4Object guessedType = parser.queryObjectTypeOfExpression(contextExpression);
+						C4Object guessedType = contextExpression.guessObjectType(parser);
 						if (guessedType != null) {
 							contextScript = guessedType;
 							contextObjChanged = true;

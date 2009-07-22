@@ -365,13 +365,15 @@ public abstract class C4ScriptExprTree {
 
 	}
 
-	public static class ExprObjectCall extends ExprElm {
+	public static class ExprMemberOperator extends ExprElm {
+		private boolean dotNotation;
 		private boolean hasTilde;
 		private C4ID id;
 		private int idOffset;
 
-		public ExprObjectCall(boolean hasTilde, C4ID id, int idOffset) {
+		public ExprMemberOperator(boolean dotNotation, boolean hasTilde, C4ID id, int idOffset) {
 			super();
+			this.dotNotation = dotNotation;
 			this.hasTilde = hasTilde;
 			this.id = id;
 			this.idOffset = idOffset;
@@ -379,13 +381,19 @@ public abstract class C4ScriptExprTree {
 
 		@Override
 		public void print(StringBuilder output, int depth) {
-			if (hasTilde)
-				output.append("->~");
-			else
-				output.append("->");
-			if (id != null) {
-				output.append(id.getName());
-				output.append("::");
+			if (dotNotation) {
+				// so simple
+				output.append('.');
+			}
+			else {
+				if (hasTilde)
+					output.append("->~");
+				else
+					output.append("->");
+				if (id != null) {
+					output.append(id.getName());
+					output.append("::");
+				}
 			}
 		}
 
@@ -577,7 +585,7 @@ public abstract class C4ScriptExprTree {
 				// obj-> asks for the relevance of obj
 				if (expr instanceof ExprSequence) {
 					ExprSequence seq = (ExprSequence) expr;
-					if (seq.getLastElement() instanceof ExprObjectCall && seq.getLastElement().getPredecessorInSequence() instanceof ExprAccessVar)
+					if (seq.getLastElement() instanceof ExprMemberOperator && seq.getLastElement().getPredecessorInSequence() instanceof ExprAccessVar)
 						expr = seq.getLastElement().getPredecessorInSequence();
 					else
 						return false;
@@ -749,7 +757,7 @@ public abstract class C4ScriptExprTree {
 		}
 		@Override
 		public boolean isValidInSequence(ExprElm elm, C4ScriptParser context) {
-			return super.isValidInSequence(elm, context) || elm instanceof ExprObjectCall;	
+			return super.isValidInSequence(elm, context) || elm instanceof ExprMemberOperator;	
 		}
 		@Override
 		protected C4Declaration getDeclImpl(C4ScriptParser parser) {
@@ -907,7 +915,7 @@ public abstract class C4ScriptExprTree {
 					parmsWithoutObject[i] = params[i+2].newStyleReplacement(parser);
 				return new ExprSequence(new ExprElm[] {
 						params[0].newStyleReplacement(parser),
-						new ExprObjectCall(true, null, 0),
+						new ExprMemberOperator(false, true, null, 0),
 						new ExprCallFunc(((ExprString)params[1]).stringValue(), parmsWithoutObject)});
 			}
 			

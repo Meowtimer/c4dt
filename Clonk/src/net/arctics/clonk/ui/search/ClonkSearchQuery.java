@@ -17,7 +17,7 @@ import net.arctics.clonk.parser.c4script.C4ScriptExprTree.ExprAccessDeclaration;
 import net.arctics.clonk.parser.c4script.C4ScriptExprTree.ExprCallFunc;
 import net.arctics.clonk.parser.c4script.C4ScriptExprTree.ExprElm;
 import net.arctics.clonk.parser.c4script.C4ScriptExprTree.ExprID;
-import net.arctics.clonk.parser.c4script.C4ScriptExprTree.ExprObjectCall;
+import net.arctics.clonk.parser.c4script.C4ScriptExprTree.ExprMemberOperator;
 import net.arctics.clonk.parser.c4script.C4ScriptExprTree.ExprString;
 import net.arctics.clonk.parser.c4script.C4ScriptExprTree.IExpressionListener;
 import net.arctics.clonk.parser.c4script.C4ScriptExprTree.Statement;
@@ -84,7 +84,7 @@ public class ClonkSearchQuery implements ISearchQuery {
 			private ExprString functionNameExpr;
 			
 			private boolean potentiallyReferencedByObjectCall(ExprElm expression) {
-				if (expression instanceof ExprCallFunc && expression.getPredecessorInSequence() instanceof ExprObjectCall) {
+				if (expression instanceof ExprCallFunc && expression.getPredecessorInSequence() instanceof ExprMemberOperator) {
 					ExprCallFunc callFunc = (ExprCallFunc) expression;
 					return callFunc.getDeclarationName().equals(declaration.getName());
 				}

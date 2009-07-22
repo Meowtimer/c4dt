@@ -74,7 +74,7 @@ public class C4ScriptParser {
 	private C4ID parsedID;
 	private C4Variable parsedVariable;
 	private long parsedNumber;
-	private String parsedObjectFieldOperator;
+	private String parsedMemberOperator;
 	private String parsedString;
 	
 	private int parseExpressionRecursion;
@@ -976,20 +976,25 @@ public class C4ScriptParser {
 		return false;
 	}
 	
-	private boolean parseObjectFieldOperator(int offset) {
+	private boolean parseMemberOperator(int offset) {
 		fReader.seek(offset);
-		parsedObjectFieldOperator = fReader.readString(2);
-		if (parsedObjectFieldOperator == null) {
-			return false;
-		}
-		if (parsedObjectFieldOperator.equals("->")) {
-			offset = fReader.getPosition();
-			eatWhitespace();
-			if (fReader.read() == '~')
-				parsedObjectFieldOperator = parsedObjectFieldOperator + "~";
-			else
-				fReader.seek(offset);
+		int firstChar = fReader.read();
+		if (firstChar == '.') {
+			parsedMemberOperator = ".";
 			return true;
+		}
+		else if (firstChar == '-') {
+			if (fReader.read() == '>') {
+				offset = fReader.getPosition();
+				eatWhitespace();
+				if (fReader.read() == '~')
+					parsedMemberOperator = "->~";
+				else {
+					parsedMemberOperator = "->";
+					fReader.seek(offset);
+				}
+				return true;
+			}
 		}
 		fReader.seek(offset);
 		return false;
@@ -1290,7 +1295,7 @@ public class C4ScriptParser {
 			// ->
 			if (elm == null) {
 				int fieldOperatorStart = fReader.getPosition();
-				if (parseObjectFieldOperator(fReader.getPosition())) {
+				if (parseMemberOperator(fReader.getPosition())) {
 					eatWhitespace();
 					int idOffset = fReader.getPosition()-fieldOperatorStart;
 					if (parseID(fReader.getPosition())) {
@@ -1300,7 +1305,7 @@ public class C4ScriptParser {
 						}
 					} else
 						idOffset = 0;
-					elm = new ExprObjectCall(parsedObjectFieldOperator.length() == 3, parsedID, idOffset);
+					elm = new ExprMemberOperator(parsedMemberOperator.length() == 1, parsedMemberOperator.length() == 3, parsedID, idOffset);
 				}
 			}
 			
