@@ -1,8 +1,7 @@
 package net.arctics.clonk.ui.navigator;
 
 import net.arctics.clonk.parser.C4Declaration;
-import net.arctics.clonk.ui.editors.c4script.C4ScriptEditor;
-
+import net.arctics.clonk.ui.editors.ClonkTextEditor;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.ISelectionProvider;
@@ -37,7 +36,7 @@ public class OpenSpecialItemAction extends Action {
 	public void run() {
 		for (Object o : ((IStructuredSelection)provider.getSelection()).toArray()) {
 			try {
-				C4ScriptEditor.openDeclaration((C4Declaration)o);
+				ClonkTextEditor.openDeclaration((C4Declaration)o);
 			} catch (Exception e) {
 				e.printStackTrace();
 			}

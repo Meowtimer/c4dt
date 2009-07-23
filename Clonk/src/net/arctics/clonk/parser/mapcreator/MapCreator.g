@@ -116,9 +116,11 @@ private IMarker createErrorMarker(int start, int end, String message) {
 	return createMarker(start, end, message, IMarker.SEVERITY_ERROR);
 }
 
+/*
 private IMarker createWarningMarker(int start, int end, String message) {
 	return createMarker(start, end, message, IMarker.SEVERITY_WARNING);
 }
+*/
 
 private void errorWithCode(ParserErrorCode code, int errorStart, int errorEnd, Object... args) {
 	String problem = code.getErrorString(args);

@@ -4,6 +4,7 @@ import java.util.Collection;
 
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.jface.text.IRegion;
+import org.eclipse.jface.text.Region;
 
 import net.arctics.clonk.util.IHasKeyAndValue;
 import net.arctics.clonk.util.ITreeNode;
@@ -76,6 +77,12 @@ public class NameValueAssignment extends C4Declaration implements IHasKeyAndValu
 
 	public boolean subNodeOf(ITreeNode node) {
 		return ITreeNode.Default.subNodeOf(this, node);
+	}
+	
+	@Override
+	public IRegion getRegionToSelect() {
+		SourceLocation loc = getLocation();
+		return new Region(loc.getOffset()+loc.getLength()-value.length(), value.length());
 	}
 
 }

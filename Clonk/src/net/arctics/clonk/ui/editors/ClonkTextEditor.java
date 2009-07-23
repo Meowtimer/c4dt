@@ -4,7 +4,6 @@ import java.util.ResourceBundle;
 
 import net.arctics.clonk.parser.C4Declaration;
 import net.arctics.clonk.parser.C4Structure;
-import net.arctics.clonk.parser.SourceLocation;
 import net.arctics.clonk.ui.editors.actions.c4script.OpenDeclarationAction;
 import net.arctics.clonk.ui.editors.c4script.C4ScriptEditor;
 import net.arctics.clonk.ui.editors.c4script.ClonkContentOutlinePage;
@@ -37,8 +36,8 @@ public class ClonkTextEditor extends TextEditor {
 	protected ClonkContentOutlinePage outlinePage;
 	private ShowInAdapter showInAdapter;
 	
-	public void selectAndReveal(SourceLocation location) {
-		this.selectAndReveal(location.getStart(), location.getEnd() - location.getStart());
+	public void selectAndReveal(IRegion location) {
+		this.selectAndReveal(location.getOffset(), location.getLength());
 	}
 	
 	public void refreshOutline() {
@@ -89,7 +88,7 @@ public class ClonkTextEditor extends TextEditor {
 								}
 								target = target.latestVersion();
 								if (target != null)
-									clonkTextEditor.selectAndReveal(target.getLocation());
+									clonkTextEditor.selectAndReveal(target.getRegionToSelect());
 						}
 					} else if (editor instanceof AbstractTextEditor) {
 						AbstractTextEditor ed = (AbstractTextEditor) editor;

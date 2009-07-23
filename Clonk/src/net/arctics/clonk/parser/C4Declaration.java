@@ -9,6 +9,7 @@ import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.util.IHasRelatedResource;
 
 import org.eclipse.core.resources.IResource;
+import org.eclipse.jface.text.IRegion;
 
 /**
  * Baseclass for all declarations (object definitions, actmaps, functions and variables)
@@ -47,18 +48,25 @@ public abstract class C4Declaration implements Serializable, IHasRelatedResource
 	public String getName() {
 		return name;
 	}
+	
 	/**
 	 * @param location the location to set
 	 */
 	public void setLocation(SourceLocation location) {
 		this.location = location;
 	}
+	
 	/**
 	 * @return the location
 	 */
 	public SourceLocation getLocation() {
 		return location;
 	}
+	
+	public IRegion getRegionToSelect() {
+		return getLocation();
+	}
+	
 	/**
 	 * Returns an integer that is supposed to be different for different types of declarations (functions, variables)
 	 * so that sorting of declarations by type is possible based on this value.
@@ -68,6 +76,7 @@ public abstract class C4Declaration implements Serializable, IHasRelatedResource
 		// TODO Auto-generated method stub
 		return 0;
 	}
+	
 	/**
 	 * Set the script of this declaration.
 	 * @param script the object to set
