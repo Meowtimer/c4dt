@@ -151,7 +151,7 @@ public class IniCompletionProcessor extends ClonkCompletionProcessor<IniTextEdit
 		for (IniSectionData sec : unit.getConfiguration().getSections().values()) {
 			if (sec.getSectionName().toLowerCase().contains(prefix)) {
 				String secString = "["+sec.getSectionName()+"]";
-				proposals.add(new CompletionProposal(secString, wordOffset, prefix.length(), secString.length()));
+				proposals.add(new CompletionProposal(secString, wordOffset, prefix.length(), secString.length(), null, null, null, "ugh"));
 			}
 		}
 	}

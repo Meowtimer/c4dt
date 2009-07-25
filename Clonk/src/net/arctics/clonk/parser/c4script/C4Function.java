@@ -262,7 +262,7 @@ public class C4Function extends C4Structure implements Serializable, ITypedDecla
 	}
 
 	@Override
-	public String getShortInfo() {
+	public String getInfoText() {
 		return String.format("<b>%s</b><br>%s", getLongParameterString(true), getUserDescription() != null ? getUserDescription() : "");
 	}
 
@@ -309,6 +309,16 @@ public class C4Function extends C4Structure implements Serializable, ITypedDecla
 				f = ClonkCore.getDefault().getEngineObject().findFunction(getName());
 			return f;
 		}
+		List<C4Declaration> decsWithSameName = getScript().getIndex().getDeclarationMap().get(this.getName());
+		C4Function inheritedInSameScript = null;
+		for (C4Declaration d : decsWithSameName) {
+			if (d == this)
+				break;
+			if (d instanceof C4Function && d.getParentDeclaration() == this.getParentDeclaration())
+				inheritedInSameScript = (C4Function) d;
+		}
+		if (inheritedInSameScript != null)
+			return inheritedInSameScript;
 		C4ScriptBase[] includes = getScript().getIncludes();
 		for (int i = includes.length-1; i >= 0; i--) {
 			C4Function field = includes[i].findFunction(getName());

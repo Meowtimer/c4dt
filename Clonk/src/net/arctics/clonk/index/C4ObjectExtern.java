@@ -1,7 +1,9 @@
 package net.arctics.clonk.index;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.eclipse.core.runtime.IPath;
 
@@ -20,6 +22,7 @@ public class C4ObjectExtern extends C4Object implements ITreeNode {
 	private ITreeNode parentNode;
 	private String nodeName;
 	private List<ITreeNode> childNodes;
+	private Map<String, String> localizedDescriptions;
 	
 	public C4ObjectExtern(C4ID id, String name, C4GroupItem script, ITreeNode parentNode) {
 		super(id, name);
@@ -77,6 +80,26 @@ public class C4ObjectExtern extends C4Object implements ITreeNode {
 	@Override
 	public boolean isEditable() {
 		return false;
+	}
+	
+	public void addDesc(String lang, String text) {
+		if (localizedDescriptions == null)
+			localizedDescriptions = new HashMap<String, String>();
+		localizedDescriptions.put(lang, text);
+	}
+	
+	public String getDesc(String lang) {
+		if (localizedDescriptions == null)
+			return null;
+		return localizedDescriptions.get(lang);
+	}
+	
+	@Override
+	public String getInfoText() {
+		String locDesc = getDesc(ClonkCore.getDefault().getLanguagePref());
+		if (locDesc != null)
+			return getName() + ": " + locDesc;
+		return getName();
 	}
 
 }

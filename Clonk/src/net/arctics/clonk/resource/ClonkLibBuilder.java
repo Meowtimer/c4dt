@@ -5,6 +5,8 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
+import java.util.LinkedList;
+import java.util.List;
 
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.index.C4Object;
@@ -39,6 +41,7 @@ import org.eclipse.swt.widgets.Display;
 
 public class ClonkLibBuilder implements IC4GroupVisitor, IPropertyChangeListener {
 	
+	private static final String DESC_TXT = "Desc..\\.txt";
 	private boolean buildNeeded = false;
 	private ITreeNode currentExternNode;
 	
@@ -73,7 +76,7 @@ public class ClonkLibBuilder implements IC4GroupVisitor, IPropertyChangeListener
 				public boolean accepts(C4EntryHeader header, C4Group context) {
 					String entryName = header.getEntryName();
 					// all we care about is groups, scripts, defcores and names
-					return header.isGroup() || entryName.endsWith(".c") || entryName.equals("DefCore.txt") || entryName.equals("Names.txt");
+					return header.isGroup() || entryName.endsWith(".c") || entryName.equals("DefCore.txt") || entryName.equals("Names.txt") || entryName.matches(DESC_TXT);
 				}
 
 				public void processData(C4GroupItem item) throws CoreException {
@@ -127,6 +130,7 @@ public class ClonkLibBuilder implements IC4GroupVisitor, IPropertyChangeListener
 			C4GroupType groupType = group.getGroupType();
 			if (groupType == C4GroupType.DefinitionGroup) { // is .c4d
 				C4GroupEntry defCore = null, script = null, names = null;
+				List<C4GroupEntry> descEntries = new LinkedList<C4GroupEntry>();
 				for(C4GroupItem child : group.getChildEntries()) {
 					if (!(child instanceof C4GroupEntry)) continue;
 					if (child.getName().equals("DefCore.txt")) {
@@ -137,6 +141,9 @@ public class ClonkLibBuilder implements IC4GroupVisitor, IPropertyChangeListener
 					}
 					else if (child.getName().equals("Names.txt")) {
 						names = (C4GroupEntry) child;
+					}
+					else if (child.getName().matches(DESC_TXT)) {
+						descEntries.add((C4GroupEntry) child);
 					}
 				}
 				if (defCore != null && script != null) {
@@ -151,7 +158,10 @@ public class ClonkLibBuilder implements IC4GroupVisitor, IPropertyChangeListener
 						parser.parseDeclarations();
 						ClonkCore.getDefault().getExternIndex().addObject(obj);
 						if (names != null)
-							obj.readNames(new String(names.getContentsAsArray()));
+							obj.readNames(names.getContentsAsString());
+						for (C4GroupEntry descEntry : descEntries) {
+							obj.addDesc(descEntry.getName().substring("Desc".length(), "Desct".length()+1), descEntry.getContentsAsString());
+						}
 					} catch (CoreException e) {
 						e.printStackTrace();
 					} catch (IOException e) {

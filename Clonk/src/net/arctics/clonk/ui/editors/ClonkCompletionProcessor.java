@@ -49,7 +49,7 @@ public abstract class ClonkCompletionProcessor<EditorType extends ClonkTextEdito
 //			IContextInformation contextInformation = null;// new ContextInformation(obj.getId().getName(),contextInfoString); 
 
 			ICompletionProposal prop = new ClonkCompletionProposal(obj.getId().getName(), offset, replacementLength, obj.getId().getName().length(),
-					Utilities.getIconForObject(obj), displayString.trim(), null, null, " - " + obj.getId().getName());
+					Utilities.getIconForObject(obj), displayString.trim(), null, obj.getInfoText(), " - " + obj.getId().getName());
 			proposals.add(prop);
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -77,7 +77,7 @@ public abstract class ClonkCompletionProcessor<EditorType extends ClonkTextEdito
 		
 		String replacement = func.getName() + (brackets ? "()" : "");
 		ClonkCompletionProposal prop = new ClonkCompletionProposal(replacement, offset,replacementLength,func.getName().length()+1,
-				Utilities.getIconForFunction(func), displayString.trim(),contextInformation, func.getShortInfo()," - " + parentName);
+				Utilities.getIconForFunction(func), displayString.trim(),contextInformation, func.getInfoText()," - " + parentName);
 		proposals.add(prop);
 	}
 

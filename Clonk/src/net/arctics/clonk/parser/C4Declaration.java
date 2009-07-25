@@ -122,7 +122,7 @@ public abstract class C4Declaration implements Serializable, IHasRelatedResource
 	 * Returns a brief info string describing the declaration.
 	 * @return The short info string.
 	 */
-	public String getShortInfo() {
+	public String getInfoText() {
 		return getName();
 	}
 	

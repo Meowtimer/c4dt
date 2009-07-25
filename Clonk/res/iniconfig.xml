@@ -425,6 +425,8 @@
 				description="Zielrechteck auf die Grafik für lose Materialpixel. Es werden weitere Phasen rechts und unterhalb der angegebenen Grafik benutzt. Die Grafik sollte immer oben links beginnen, und die gesamte Texturgröße einnehmen." />
 			<entry name="PXSGfxSize" class="net.arctics.clonk.parser.inireader.UnsignedInteger"
 				description="Size"/>
+			<entry name="MinHeightCount" class="net.arctics.clonk.parser.inireader.UnsignedInteger"
+				description="Minimale Dicke bis es gezählt wird"/>
 		</section>
 		<section name="Reaction">
 			<entry name="Type" class="java.lang.String" />
@@ -489,6 +491,8 @@
 				description="Kosten, die aufgewendet werden, um einen Clonk in einer Basis um 100 Energiepunkte zu heilen. Standard ist 5; bei 0 ist die Heilung kostenlos. Ab CR." />
 			<entry name="EnableSurrender" class="net.arctics.clonk.parser.inireader.Boolean" />
 			<entry name="StructNeedEnergy" class="net.arctics.clonk.parser.inireader.Boolean" />
+			<entry name="EnableRemoveFlag" class="net.arctics.clonk.parser.inireader.Boolean" />
+			<entry name="StructNeedMaterial" class="net.arctics.clonk.parser.inireader.Boolean" />
 		</section>
 		<section name="Player">
 			<entry name="Wealth" class="net.arctics.clonk.parser.inireader.IntegerArray"

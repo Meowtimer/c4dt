@@ -692,12 +692,14 @@ public class C4ScriptParser {
 				errorWithCode(ParserErrorCode.NameExpected, fReader.getPosition()-1, fReader.getPosition());
 			endName = fReader.getPosition();
 		}
+		/* not that bad
 		for(C4Function otherFunc : container.functions()) {
 			if (otherFunc.getName().equals(funcName)) {
 				warningWithCode(ParserErrorCode.FunctionRedeclared, startName, fReader.getPosition());
 				break;
 			}
 		}
+		*/
 		activeFunc.setName(funcName);
 		activeFunc.setReturnType(retType);
 		activeFunc.setOldStyle(suspectOldStyle);
@@ -1809,184 +1811,13 @@ public class C4ScriptParser {
 	private Statement parseKeyword(int offset, String readWord) throws ParsingException {
 		Statement result = null;
 		if (readWord.equals(Keywords.If)) {
-			eatWhitespace();
-			if (fReader.read() != '(') {
-				tokenExpectedError("(");
-			}
-			eatWhitespace();
-			ExprElm condition = parseExpression(fReader.getPosition());
-			if (condition == null)
-				condition = ExprElm.NULL_EXPR; // if () is valid
-			eatWhitespace();
-			if (fReader.read() != ')') {
-				tokenExpectedError(")");
-			}
-			eatWhitespace(); // FIXME: eats comments so when transforming code the comments will be gone
-			TypeInformationMerger merger = new TypeInformationMerger();
-			Statement ifStatement = parseStatementWithOwnTypeInferenceBlock(fReader.getPosition(), merger);
-			if (ifStatement == null) {
-				errorWithCode(ParserErrorCode.StatementExpected, offset, offset+Keywords.If.length());
-			}
-			int beforeElse = fReader.getPosition();
-			eatWhitespace();
-			offset = fReader.getPosition();
-			String nextWord = fReader.readWord();
-			Statement elseStatement;
-			if (nextWord != null && nextWord.equals(Keywords.Else)) {
-				eatWhitespace();
-				offset = fReader.getPosition();
-				elseStatement = parseStatementWithOwnTypeInferenceBlock(fReader.getPosition(), merger);
-				if (elseStatement == null) {
-					errorWithCode(ParserErrorCode.StatementExpected, offset, offset+Keywords.Else.length());
-				}	
-			}
-			else {
-				fReader.seek(beforeElse); // don't eat comments and stuff after if (...) ...;
-				elseStatement = null;
-			}
-			// merge gathered type information with current list
-			storedTypeInformationStack.push(merger.finish(storedTypeInformationStack.pop()));
-			result = new IfStatement(condition, ifStatement, elseStatement);
+			result = parseIf(offset);
 		}
 		else if (readWord.equals(Keywords.While)) {
-			currentLoop = LoopType.While;
-			//			if (!readWord.equals(readWord.toLowerCase())) {
-			//				String problem = "Syntax error: you should only use lower case letters in keywords. ('" + readWord.toLowerCase() + "' instead of '" + readWord + "')"; 
-			//				createErrorMarker(fReader.getPosition() - readWord.length(), fReader.getPosition(), problem);
-			//				throw new ParsingException(problem);
-			//			}
-			eatWhitespace();
-			if (fReader.read() != '(') {
-				tokenExpectedError("(");
-			}
-			eatWhitespace();
-			ExprElm condition = parseExpression(fReader.getPosition());
-			if (condition == null)
-				condition = ExprElm.NULL_EXPR; // while () is valid
-			eatWhitespace();
-			if (fReader.read() != ')') {
-				tokenExpectedError(")");
-			}
-			eatWhitespace();
-			offset = fReader.getPosition();
-			Statement body = parseStatementAndMergeTypeInformation(fReader.getPosition());
-			if (body == null) {
-				errorWithCode(ParserErrorCode.StatementExpected, offset, offset+4);
-			}
-			result = new WhileStatement(condition, body);
+			result = parseWhile();
 		}
 		else if (readWord.equals(Keywords.For)) {
-			eatWhitespace();
-			if (fReader.read() != '(') {
-				tokenExpectedError("(");					
-			}
-			eatWhitespace();
-
-			// initialization
-			offset = fReader.getPosition();
-			C4Variable loopVariable = null;
-			Statement initialization, body;
-			ExprElm arrayExpr, condition, increment;
-			if (fReader.read() == ';') {
-				// any of the for statements is optional
-				initialization = null;
-			} else {
-				fReader.unread();
-				initialization = parseStatement(fReader.getPosition(), EnumSet.of(ParseStatementOption.InitializationStatement));
-				if (initialization == null) {
-					errorWithCode(ParserErrorCode.ExpectedCode, fReader.getPosition(), fReader.getPosition()+1);
-				}
-				loopVariable = parsedVariable; // let's just assume it's the right one
-			}
-
-			// determine loop type
-			eatWhitespace();
-			offset = fReader.getPosition();
-			String w;
-			if (initialization != null) {
-				if (fReader.read() == ';') { // initialization finished regularly with ';'
-					offset = fReader.getPosition();
-					w = null; // implies there can be no 'in'
-				} else {
-					fReader.unread();
-					w = fReader.readWord();
-				}
-			}
-			else
-				w = null; // if there is no initialization statement at all there can also be no 'in'
-			LoopType loopType;
-			if (w != null && w.equals(Keywords.In)) {
-				// it's a for (x in array) loop!
-				loopType = LoopType.IterateArray;
-				eatWhitespace();
-				arrayExpr = parseExpression(fReader.getPosition());
-				if (arrayExpr == null)
-					errorWithCode(ParserErrorCode.ExpressionExpected, offset, fReader.getPosition()+1);
-				else {
-					C4Type t = arrayExpr.getType(this);
-					if (!t.canBeAssignedFrom(C4Type.ARRAY))
-						warningWithCode(ParserErrorCode.IncompatibleTypes, arrayExpr, t.toString(), C4Type.ARRAY.toString());
-					if (loopVariable != null)
-						loopVariable.inferTypeFromAssignment(arrayExpr.getExemplaryArrayElement(this), this);
-				}
-				condition = null;
-				increment = null;
-			} else {
-				loopType = LoopType.For;
-				fReader.seek(offset); // if a word !equaling("in") was read
-
-				if (fReader.read() == ';') {
-					// any " optional "
-					fReader.unread(); // is expected
-					condition = null;
-				} else {
-					fReader.unread();
-					condition = parseExpression(fReader.getPosition());
-					if (condition == null) {
-						errorWithCode(ParserErrorCode.ConditionExpected, offset, fReader.getPosition());
-					}
-				}
-				eatWhitespace();
-				offset = fReader.getPosition();
-				if (fReader.read() != ';') {
-					tokenExpectedError(";");
-				}
-				eatWhitespace();
-				offset = fReader.getPosition();
-				if (fReader.read() == ')') {
-					// " optional "
-					fReader.unread(); // is expected
-					increment = null;
-				} else {
-					fReader.unread();
-					increment = parseExpression(fReader.getPosition());
-					if (increment == null) {
-						errorWithCode(ParserErrorCode.ExpressionExpected, offset, fReader.getPosition()+1);
-					}
-				}
-				arrayExpr = null;
-			}
-			eatWhitespace();
-			if (fReader.read() != ')') {
-				tokenExpectedError(")");
-			}
-			eatWhitespace();
-			offset = fReader.getPosition();
-			currentLoop = loopType;
-			body = parseStatementAndMergeTypeInformation(fReader.getPosition());
-			if (body == null) {
-				errorWithCode(ParserErrorCode.StatementExpected, offset, offset+4);
-			}
-			switch (loopType) {
-			case For:
-				result = new ForStatement(initialization, condition, increment, body);
-				break;
-			case IterateArray:
-				result = new IterateArrayStatement(initialization, arrayExpr, body);
-				break;
-			default:
-				result = null;
-			}
+			result = parseFor();
 		}
 		else if (readWord.equals(Keywords.Continue)) {
 			if (currentLoop == null)
@@ -2031,6 +1862,197 @@ public class C4ScriptParser {
 		else
 			result = null;
 
+		return result;
+	}
+
+	private Statement parseFor() throws ParsingException {
+		int offset;
+		Statement result;
+		eatWhitespace();
+		if (fReader.read() != '(') {
+			tokenExpectedError("(");					
+		}
+		eatWhitespace();
+
+		// initialization
+		offset = fReader.getPosition();
+		C4Variable loopVariable = null;
+		Statement initialization, body;
+		ExprElm arrayExpr, condition, increment;
+		if (fReader.read() == ';') {
+			// any of the for statements is optional
+			initialization = null;
+		} else {
+			fReader.unread();
+			initialization = parseStatement(fReader.getPosition(), EnumSet.of(ParseStatementOption.InitializationStatement));
+			if (initialization == null) {
+				errorWithCode(ParserErrorCode.ExpectedCode, fReader.getPosition(), fReader.getPosition()+1);
+			}
+			loopVariable = parsedVariable; // let's just assume it's the right one
+		}
+
+		// determine loop type
+		eatWhitespace();
+		offset = fReader.getPosition();
+		String w;
+		if (initialization != null) {
+			if (fReader.read() == ';') { // initialization finished regularly with ';'
+				offset = fReader.getPosition();
+				w = null; // implies there can be no 'in'
+			} else {
+				fReader.unread();
+				w = fReader.readWord();
+			}
+		}
+		else
+			w = null; // if there is no initialization statement at all there can also be no 'in'
+		LoopType loopType;
+		if (w != null && w.equals(Keywords.In)) {
+			// it's a for (x in array) loop!
+			loopType = LoopType.IterateArray;
+			eatWhitespace();
+			arrayExpr = parseExpression(fReader.getPosition());
+			if (arrayExpr == null)
+				errorWithCode(ParserErrorCode.ExpressionExpected, offset, fReader.getPosition()+1);
+			else {
+				C4Type t = arrayExpr.getType(this);
+				if (!t.canBeAssignedFrom(C4Type.ARRAY))
+					warningWithCode(ParserErrorCode.IncompatibleTypes, arrayExpr, t.toString(), C4Type.ARRAY.toString());
+				if (loopVariable != null)
+					loopVariable.inferTypeFromAssignment(arrayExpr.getExemplaryArrayElement(this), this);
+			}
+			condition = null;
+			increment = null;
+		} else {
+			loopType = LoopType.For;
+			fReader.seek(offset); // if a word !equaling("in") was read
+
+			if (fReader.read() == ';') {
+				// any " optional "
+				fReader.unread(); // is expected
+				condition = null;
+			} else {
+				fReader.unread();
+				condition = parseExpression(fReader.getPosition());
+				if (condition == null) {
+					errorWithCode(ParserErrorCode.ConditionExpected, offset, fReader.getPosition());
+				}
+			}
+			eatWhitespace();
+			offset = fReader.getPosition();
+			if (fReader.read() != ';') {
+				tokenExpectedError(";");
+			}
+			eatWhitespace();
+			offset = fReader.getPosition();
+			if (fReader.read() == ')') {
+				// " optional "
+				fReader.unread(); // is expected
+				increment = null;
+			} else {
+				fReader.unread();
+				increment = parseExpression(fReader.getPosition());
+				if (increment == null) {
+					errorWithCode(ParserErrorCode.ExpressionExpected, offset, fReader.getPosition()+1);
+				}
+			}
+			arrayExpr = null;
+		}
+		eatWhitespace();
+		if (fReader.read() != ')') {
+			tokenExpectedError(")");
+		}
+		eatWhitespace();
+		offset = fReader.getPosition();
+		currentLoop = loopType;
+		body = parseStatementAndMergeTypeInformation(fReader.getPosition());
+		if (body == null) {
+			errorWithCode(ParserErrorCode.StatementExpected, offset, offset+4);
+		}
+		switch (loopType) {
+		case For:
+			result = new ForStatement(initialization, condition, increment, body);
+			break;
+		case IterateArray:
+			result = new IterateArrayStatement(initialization, arrayExpr, body);
+			break;
+		default:
+			result = null;
+		}
+		return result;
+	}
+
+	private Statement parseWhile() throws ParsingException {
+		int offset;
+		Statement result;
+		currentLoop = LoopType.While;
+		//			if (!readWord.equals(readWord.toLowerCase())) {
+		//				String problem = "Syntax error: you should only use lower case letters in keywords. ('" + readWord.toLowerCase() + "' instead of '" + readWord + "')"; 
+		//				createErrorMarker(fReader.getPosition() - readWord.length(), fReader.getPosition(), problem);
+		//				throw new ParsingException(problem);
+		//			}
+		eatWhitespace();
+		if (fReader.read() != '(') {
+			tokenExpectedError("(");
+		}
+		eatWhitespace();
+		ExprElm condition = parseExpression(fReader.getPosition());
+		if (condition == null)
+			condition = ExprElm.NULL_EXPR; // while () is valid
+		eatWhitespace();
+		if (fReader.read() != ')') {
+			tokenExpectedError(")");
+		}
+		eatWhitespace();
+		offset = fReader.getPosition();
+		Statement body = parseStatementAndMergeTypeInformation(fReader.getPosition());
+		if (body == null) {
+			errorWithCode(ParserErrorCode.StatementExpected, offset, offset+4);
+		}
+		result = new WhileStatement(condition, body);
+		return result;
+	}
+
+	private Statement parseIf(int offset) throws ParsingException {
+		Statement result;
+		eatWhitespace();
+		if (fReader.read() != '(') {
+			tokenExpectedError("(");
+		}
+		eatWhitespace();
+		ExprElm condition = parseExpression(fReader.getPosition());
+		if (condition == null)
+			condition = ExprElm.NULL_EXPR; // if () is valid
+		eatWhitespace();
+		if (fReader.read() != ')') {
+			tokenExpectedError(")");
+		}
+		eatWhitespace(); // FIXME: eats comments so when transforming code the comments will be gone
+		TypeInformationMerger merger = new TypeInformationMerger();
+		Statement ifStatement = parseStatementWithOwnTypeInferenceBlock(fReader.getPosition(), merger);
+		if (ifStatement == null) {
+			errorWithCode(ParserErrorCode.StatementExpected, offset, offset+Keywords.If.length());
+		}
+		int beforeElse = fReader.getPosition();
+		eatWhitespace();
+		offset = fReader.getPosition();
+		String nextWord = fReader.readWord();
+		Statement elseStatement;
+		if (nextWord != null && nextWord.equals(Keywords.Else)) {
+			eatWhitespace();
+			offset = fReader.getPosition();
+			elseStatement = parseStatementWithOwnTypeInferenceBlock(fReader.getPosition(), merger);
+			if (elseStatement == null) {
+				errorWithCode(ParserErrorCode.StatementExpected, offset, offset+Keywords.Else.length());
+			}	
+		}
+		else {
+			fReader.seek(beforeElse); // don't eat comments and stuff after if (...) ...;
+			elseStatement = null;
+		}
+		// merge gathered type information with current list
+		storedTypeInformationStack.push(merger.finish(storedTypeInformationStack.pop()));
+		result = new IfStatement(condition, ifStatement, elseStatement);
 		return result;
 	}
 

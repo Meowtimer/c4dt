@@ -166,6 +166,14 @@ public class C4GroupEntry implements C4GroupItem, IStorage, Serializable {
 	public byte[] getContentsAsArray() {
 		return contents;
 	}
+	
+	/**
+	 * Return the contents of this entry as a string
+	 * @return the contents of this entry as string
+	 */
+	public String getContentsAsString() {
+		return new String(getContentsAsArray());
+	}
 
 	public String getName() {
 		return header.getEntryName();

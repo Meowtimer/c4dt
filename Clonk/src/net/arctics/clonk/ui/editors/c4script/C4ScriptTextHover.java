@@ -32,7 +32,7 @@ public class C4ScriptTextHover implements ITextHover, ITextHoverExtension {
 		
 		public String getHoverInfo(ITextViewer viewer, IRegion region) {
 			return declLocator != null && declLocator.getDeclaration() != null
-				? declLocator.getDeclaration().getShortInfo()
+				? declLocator.getDeclaration().getInfoText()
 				: null;
 		}
 

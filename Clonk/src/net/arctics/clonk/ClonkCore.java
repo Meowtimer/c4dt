@@ -368,7 +368,7 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant {
 		return PLUGIN_ID + "." + id;
 	}
 
-	public String languagePref() {
+	public String getLanguagePref() {
 		return Platform.getPreferencesService().getString(PLUGIN_ID, PreferenceConstants.PREFERRED_LANGID, "DE", null);
 	}
 

@@ -137,7 +137,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 			replacementLength = prefix.length();
 		ClonkCompletionProposal prop = new ClonkCompletionProposal(
 			var.getName(), offset, replacementLength, var.getName().length(), Utilities.getIconForVariable(var), displayString, 
-			null, var.getAdditionalProposalInfo(), " - " + var.getScript().getName()
+			null, var.getInfoText(), " - " + var.getScript().getName()
 		);
 		proposals.add(prop);
 		return prop;

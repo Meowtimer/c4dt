@@ -88,7 +88,7 @@ public abstract class C4Object extends C4ScriptBase {
 
 	public void chooseLocalizedName() {
 		if (localizedNames != null) {
-			String preferredName = localizedNames.get(ClonkCore.getDefault().languagePref());
+			String preferredName = localizedNames.get(ClonkCore.getDefault().getLanguagePref());
 			if (preferredName != null)
 				setName(preferredName);
 		}

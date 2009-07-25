@@ -3,10 +3,9 @@
  */
 package net.arctics.clonk.parser;
 
-import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
+import net.arctics.clonk.util.Utilities;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.CoreException;
@@ -48,42 +47,15 @@ public class BufferedScanner {
 	 */
 	private int offset;
 
-	private static String stringFromInputStream(InputStream stream) throws IOException {
-		InputStreamReader inputStreamReader = new InputStreamReader(stream);
-		StringBuilder stringBuilder;
-		try {
-			BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
-			try {
-				stringBuilder = new StringBuilder();
-				char[] buffer = new char[1024];
-				int read;
-				while ((read = bufferedReader.read(buffer)) > 0) {
-					stringBuilder.append(buffer, 0, read);
-				}
-
-			} finally {
-				bufferedReader.close();
-			}
-		} finally {
-			inputStreamReader.close();
-		}
-		return stringBuilder.toString();
-	}
-
 	/**
 	 * Create a new scanner that scans the contents of a text file
 	 * @param file the text file
 	 */
 	public BufferedScanner(IFile file) {
 		try {
-			InputStream contents = file.getContents();
-			try {
-				offset = 0;
-				buffer = stringFromInputStream(contents);
-				size = buffer.length();
-			} finally {
-				contents.close();
-			}
+			offset = 0;
+			buffer = Utilities.stringFromFile(file);
+			size = buffer.length();
 		} catch (CoreException e) {
 			e.printStackTrace();
 		} catch (IOException e) {
@@ -98,7 +70,7 @@ public class BufferedScanner {
 	public BufferedScanner(InputStream stream) {
 		try {
 			offset = 0;
-			buffer = stringFromInputStream(stream);
+			buffer = Utilities.stringFromInputStream(stream);
 			size = buffer.length();
 		} catch (IOException e) {
 			e.printStackTrace();

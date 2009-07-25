@@ -2,6 +2,8 @@ package net.arctics.clonk.parser.c4script;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.StringReader;
 import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -558,7 +560,7 @@ public abstract class C4ScriptBase extends C4Structure implements IHasRelatedRes
 	public StringTbl getStringTblForLanguagePref() throws CoreException {
 		IResource res = getResource();
 		IContainer container = res instanceof IContainer ? (IContainer) res : res.getParent();
-		String pref = ClonkCore.getDefault().languagePref();
+		String pref = ClonkCore.getDefault().getLanguagePref();
 		IResource tblFile = container.findMember("StringTbl"+pref+".txt");
 		if (tblFile instanceof IFile)
 			return (StringTbl) C4Structure.pinned((IFile) tblFile, true);
@@ -629,6 +631,23 @@ public abstract class C4ScriptBase extends C4Structure implements IHasRelatedRes
 				v.setUserDescription(desc.getTextContent());
 			this.addField(v);
 		}
+	}
+	
+	@Override
+	public String getInfoText() {
+		Object f = getScriptFile();
+		if (f instanceof IFile) {
+			IResource infoFile = ((IFile)f).getParent().findMember("Desc"+ClonkCore.getDefault().getLanguagePref()+".txt");
+			if (infoFile instanceof IFile) {
+				try {
+					return Utilities.stringFromFile((IFile) infoFile);
+				} catch (Exception e) {
+					e.printStackTrace();
+					return super.getInfoText();
+				}
+			}
+		}
+		return super.getInfoText();
 	}
 	
 //	public boolean removeDWording() {

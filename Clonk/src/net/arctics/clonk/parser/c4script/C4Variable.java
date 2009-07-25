@@ -21,13 +21,39 @@ import net.arctics.clonk.resource.ClonkProjectNature;
 public class C4Variable extends C4Declaration implements Serializable, ITypedDeclaration {
 
 	private static final long serialVersionUID = -2350345359769750230L;
+	/**
+	 * scope (local, static or function-local)
+	 */
 	private C4VariableScope scope;
-	private C4Type type;
-	private C4Object expectedContent; // mostly null - only set when type=object
-	private String description;
-	private boolean byRef; // array&
-	private boolean typeLocked; // explicit type, not to be changed by assignments
 	
+	/**
+	 * type of variable
+	 */
+	private C4Type type;
+	
+	/**
+	 * mostly null - only set when type=object
+	 */
+	private C4Object expectedContent;
+	
+	/**
+	 * descriptive text meant for the user
+	 */
+	private String description;
+	
+	/**
+	 * array&
+	 */
+	private boolean byRef;
+	
+	/**
+	 * explicit type, not to be changed by weird type inference
+	 */
+	private boolean typeLocked;
+	
+	/**
+	 * variable object used as the special 'this' object
+	 */
 	public static final C4Variable THIS = new C4Variable("this", "object", "reference to the object calling the function");
 	
 	/**
@@ -149,13 +175,6 @@ public class C4Variable extends C4Declaration implements Serializable, ITypedDec
 	public void setScope(C4VariableScope scope) {
 		this.scope = scope;
 	}
-	
-	/**
-	 * generates a string describing the variable (including name and type)
-	 */
-	public String getAdditionalProposalInfo() {
-		return getName() + "  (" + (getType() != null ? getType().toString() : C4Type.ANY.toString()) + ")" + (description != null && description.length() > 0 ? (": " + description) : "");
-	}
 
 	/**
 	 * The scope of a variable
@@ -199,9 +218,9 @@ public class C4Variable extends C4Declaration implements Serializable, ITypedDec
 	}
 	
 	@Override
-	public String getShortInfo() {
+	public String getInfoText() {
 		StringBuilder builder = new StringBuilder();
-		builder.append(getType().toString());
+		builder.append((getType() == C4Type.UNKNOWN ? C4Type.ANY : getType()) .toString());
 		builder.append(" ");
 		builder.append(getName());
 		if (getUserDescription() != null && getUserDescription().length() > 0) {
@@ -230,7 +249,7 @@ public class C4Variable extends C4Declaration implements Serializable, ITypedDec
 	public void setByRef(boolean byRef) {
 		this.byRef = byRef;
 	}
-	
+
 	@Override
 	public Object[] occurenceScope(ClonkProjectNature project) {
 		if (parentDeclaration instanceof C4Function)
