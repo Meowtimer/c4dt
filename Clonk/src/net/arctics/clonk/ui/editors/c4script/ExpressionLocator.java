@@ -16,11 +16,16 @@ import net.arctics.clonk.parser.c4script.C4ScriptExprTree.TraversalContinuation;
 public class ExpressionLocator implements IExpressionListener {
 	
 	protected ExprElm exprAtRegion;
+	protected ExprElm topLevelInRegion;
 	protected IRegion exprRegion;
 	
 	// derived classes don't need to call the one-arg constructor
 	public ExpressionLocator() {}
 	
+	public ExprElm getTopLevelInRegion() {
+		return topLevelInRegion;
+	}
+
 	public ExpressionLocator(IRegion exprRegion) {
 		this.exprRegion = exprRegion;
 	}
@@ -37,6 +42,8 @@ public class ExpressionLocator implements IExpressionListener {
 		expression.traverse(new IExpressionListener() {
 			public TraversalContinuation expressionDetected(ExprElm expression, C4ScriptParser parser) {
 				if (exprRegion.getOffset() >= expression.getExprStart() && exprRegion.getOffset() < expression.getExprEnd()) {
+					if (topLevelInRegion == null)
+						topLevelInRegion = expression;
 					exprAtRegion = expression;
 					return TraversalContinuation.TraverseSubElements;
 				}

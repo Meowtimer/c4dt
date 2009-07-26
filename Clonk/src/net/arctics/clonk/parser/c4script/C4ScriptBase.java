@@ -2,8 +2,6 @@ package net.arctics.clonk.parser.c4script;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.StringReader;
 import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -66,7 +64,7 @@ public abstract class C4ScriptBase extends C4Structure implements IHasRelatedRes
 	 * Returns the strict level of the script
 	 * @return the #strict level
 	 */
-	public int strictLevel() {
+	public int getStrictLevel() {
 		int level = 0;
 		for (C4Directive d : this.definedDirectives) {
 			if (d.getType() == C4DirectiveType.STRICT) {

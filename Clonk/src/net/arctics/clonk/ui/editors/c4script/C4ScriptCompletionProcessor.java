@@ -7,6 +7,7 @@ import java.util.List;
 
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.index.C4Object;
+import net.arctics.clonk.index.C4Scenario;
 import net.arctics.clonk.index.ClonkIndex;
 import net.arctics.clonk.parser.BuiltInDefinitions;
 import net.arctics.clonk.parser.c4script.C4Function;
@@ -146,11 +147,12 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 	private void proposalsForIndex(ClonkIndex index, int offset, int wordOffset, String prefix, List<ICompletionProposal> proposals) {
 		if (!index.isEmpty()) {
 			if (_activeFunc != null) {
+				C4Scenario s2 = _activeFunc.getScenario();
 				for (C4Function func : index.getGlobalFunctions()) {
-					if (func.getScript() == null)
-						System.out.println(func.getName());
-					else
-						proposalForFunc(func, prefix, offset, proposals, func.getScript().getName(), true);
+					C4Scenario s1 = func.getScenario();
+					if (s1 != null && s1 != s2)
+						continue;
+					proposalForFunc(func, prefix, offset, proposals, func.getScript().getName(), true);
 				}
 				for (C4Variable var : index.getStaticVariables()) {
 					proposalForVar(var,prefix,offset,proposals);

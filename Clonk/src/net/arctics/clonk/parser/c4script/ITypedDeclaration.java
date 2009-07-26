@@ -8,7 +8,7 @@ public interface ITypedDeclaration {
 	public void inferTypeFromAssignment(ExprElm val, C4ScriptParser context);
 	public void expectedToBeOfType(C4Type t);
 	public C4Type getType();
-	public void setType(C4Type type);
+	public void forceType(C4Type type);
 	public C4Object getExpectedContent();
 	public void setExpectedContent(C4Object object);
 	
@@ -17,10 +17,10 @@ public interface ITypedDeclaration {
 		public static void expectedToBeOfType(ITypedDeclaration instance, C4Type type) {
 			if (instance.getType() == C4Type.UNKNOWN)
 				// unknown before so now it is assumed to be of this type
-				instance.setType(type);
+				instance.forceType(type);
 			else if (instance.getType() != type)
 				// assignments of multiple types - can be anything
-				instance.setType(C4Type.ANY);
+				instance.forceType(C4Type.ANY);
 		}
 		public static void inferTypeFromAssignment(ITypedDeclaration instance, ExprElm val, C4ScriptParser context) {
 			instance.setExpectedContent(val.guessObjectType(context));

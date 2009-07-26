@@ -3,12 +3,16 @@ package net.arctics.clonk.parser;
 import java.io.Serializable;
 
 import net.arctics.clonk.index.C4ObjectIntern;
+import net.arctics.clonk.index.C4Scenario;
 import net.arctics.clonk.parser.c4script.C4ScriptBase;
 import net.arctics.clonk.parser.c4script.C4ScriptIntern;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.util.IHasRelatedResource;
 
+import org.eclipse.core.resources.IContainer;
+import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jface.text.IRegion;
 
 /**
@@ -110,6 +114,20 @@ public abstract class C4Declaration implements Serializable, IHasRelatedResource
 		return getTopLevelParentDeclarationOfType(C4ScriptBase.class);
 	}
 	
+	public C4Scenario getScenario() {
+		Object file = getScript().getScriptFile();
+		if (file instanceof IResource) {
+			for (IResource r = (IResource) file; r != null; r = r.getParent()) {
+				if (r instanceof IContainer) {
+					C4Scenario s = C4Scenario.scenarioCorrespondingTo((IContainer) r);
+					if (s != null)
+						return s;
+				}
+			}
+		}
+		return null;
+	}
+	
 	/**
 	 * Sets the parent declaration of this declaration.
 	 * @param field the new parent declaration
@@ -203,12 +221,12 @@ public abstract class C4Declaration implements Serializable, IHasRelatedResource
 	 * Called after deserialization to restore transient references
 	 * @param parent
 	 */
-	public void fixReferencesAfterSerialization(C4Declaration parent) {
+	public void postSerialize(C4Declaration parent) {
 		setParentDeclaration(parent);
 		Iterable<C4Declaration> subDecs = this.allSubDeclarations();
 		if (subDecs != null)
 			for (C4Declaration d : subDecs)
-				d.fixReferencesAfterSerialization(this);
+				d.postSerialize(this);
 	}
 	
 	/**

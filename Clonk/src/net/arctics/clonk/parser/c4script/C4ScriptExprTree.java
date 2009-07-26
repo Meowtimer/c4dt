@@ -598,8 +598,7 @@ public abstract class C4ScriptExprTree {
 				if (decl instanceof C4Variable) {
 					C4Variable var = (C4Variable) decl;
 					if (!soft || var.getScope() == C4VariableScope.VAR_VAR) {
-						if (!var.isTypeLocked())
-							var.setType(getType());					
+						var.setType(getType());					
 						var.setExpectedContent(getObjectType());
 					}
 				}
@@ -623,7 +622,7 @@ public abstract class C4ScriptExprTree {
 					return (C4Object) context.getContainer();
 			}
 			C4Object o = super.guessObjectType(context);
-			if (o == null)
+			if (o == null && declaration != null)
 				o = ((C4Variable)declaration).getExpectedContent();
 			return o;
 		}

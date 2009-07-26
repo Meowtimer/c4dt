@@ -37,6 +37,7 @@ import org.eclipse.core.runtime.QualifiedName;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.resource.ImageRegistry;
 import org.eclipse.swt.graphics.Image;
+import org.eclipse.ui.editors.text.TextFileDocumentProvider;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.osgi.framework.BundleContext;
 import org.xml.sax.SAXException;
@@ -62,6 +63,11 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant {
 	 * id for error markers that denote errors occuring while importing extern libs
 	 */
 	public static final String MARKER_EXTERN_LIB_ERROR = id("externliberror");
+	
+	/**
+	 * id for error markers that denote errors in a script
+	 */
+	public static final String MARKER_C4SCRIPT_ERROR = "net.arctics.clonk.c4scripterror";
 
 	public static final QualifiedName FOLDER_C4ID_PROPERTY_ID = new QualifiedName(PLUGIN_ID,"c4id");
 	public static final QualifiedName C4OBJECT_PROPERTY_ID = new QualifiedName(PLUGIN_ID,"c4object");
@@ -91,6 +97,8 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant {
 	 * builder to import external libs
 	 */
 	private ClonkLibBuilder libBuilder = null;
+
+	private TextFileDocumentProvider textFileDocumentProvider;
 	
 	/**
 	 * The constructor
@@ -164,7 +172,7 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant {
 			}
 			ObjectInputStream objStream = new InputStreamRespectingUniqueIDs(engineStream);
 			setEngineObject((C4ObjectExtern)objStream.readObject());
-			getEngineObject().fixReferencesAfterSerialization(null);
+			getEngineObject().postSerialize(null);
 		} catch (Exception e) {
 			// fallback to xml
 			createDefaultEngineObject();
@@ -398,6 +406,16 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant {
 	 */
 	public ExternIndex getExternIndex() {
 		return externIndex;
+	}
+	
+	/**
+	 * Return the shared text file document provider
+	 * @return the provider
+	 */
+	public TextFileDocumentProvider getTextFileDocumentProvider() {
+		if (textFileDocumentProvider == null)
+			textFileDocumentProvider = new TextFileDocumentProvider();
+		return textFileDocumentProvider;
 	}
 	
 }

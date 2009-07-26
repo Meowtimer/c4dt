@@ -263,7 +263,7 @@ public class C4Function extends C4Structure implements Serializable, ITypedDecla
 
 	@Override
 	public String getInfoText() {
-		return String.format("<b>%s</b><br>%s", getLongParameterString(true), getUserDescription() != null ? getUserDescription() : "");
+		return String.format("<b>%s</b><br><br><b>Description:</b><br>%s<br><br><b>Declared in:</b><br>%s", getLongParameterString(true), getUserDescription() != null && !getUserDescription().equals("") ? getUserDescription() : "Not available", getScript().toString());
 	}
 
 	public C4Variable findDeclaration(String declarationName, Class<? extends C4Declaration> declarationClass) {
@@ -403,7 +403,7 @@ public class C4Function extends C4Structure implements Serializable, ITypedDecla
 		return getReturnType();
 	}
 
-	public void setType(C4Type type) {
+	public void forceType(C4Type type) {
 		setReturnType(type);
 	}
 

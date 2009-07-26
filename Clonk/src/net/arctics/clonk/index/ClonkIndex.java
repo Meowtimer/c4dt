@@ -140,7 +140,7 @@ public class ClonkIndex implements Serializable, Iterable<C4Object> {
 	
 	private <T extends C4ScriptBase> void addGlobalsFrom(Iterable<T> scripts) {
 		for (T script : scripts) {
-			script.fixReferencesAfterSerialization(null); // for good measure
+			script.postSerialize(null); // for good measure
 			addGlobalsFrom(script);
 			detectAppendages(script);
 		}

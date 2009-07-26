@@ -5,6 +5,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
+import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.c4script.C4Function;
 import net.arctics.clonk.parser.c4script.C4ScriptBase;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
@@ -76,11 +77,10 @@ public class ConvertOldCodeInBulkAction extends Action {
 			if (selectedContainers.size() > 0) {
 				for (IContainer container : selectedContainers) {
 					try {
-						final TextFileDocumentProvider textFileDocProvider = new TextFileDocumentProvider();
+						final TextFileDocumentProvider textFileDocProvider = ClonkCore.getDefault().getTextFileDocumentProvider();
 						final List<IFile> failedSaves = new LinkedList<IFile>();
 						container.accept(new IResourceVisitor() {
-							public boolean visit(IResource resource)
-									throws CoreException {
+							public boolean visit(IResource resource) throws CoreException {
 								if (resource instanceof IFile) {
 									IFile file = (IFile) resource;
 									C4ScriptBase script = Utilities.getScriptForFile(file);

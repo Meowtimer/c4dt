@@ -215,24 +215,33 @@
 
 		</builder>
 	</extension>
+
 	<extension point="org.eclipse.ui.preferencePages">
 		<page class="net.arctics.clonk.preferences.ClonkPreferencePage"
 			id="net.arctics.clonk.preferences.ClonkPreferencePage" name="Clonk" />
 
 	</extension>
+
 	<extension point="org.eclipse.core.runtime.preferences">
 		<initializer class="net.arctics.clonk.preferences.PreferenceInitializer" />
 
 	</extension>
+
 	<extension point="org.eclipse.ui.views">
 		<category id="net.arctics.clonk" name="Clonk" />
 
 		<view category="net.arctics.clonk" class="net.arctics.clonk.ui.EngineIdentifiersView"
 			icon="icons/Clonk_C4.png" id="net.arctics.clonk.views.EngineIdentifiersView"
 			name="Engine identifiers" />
-
 	</extension>
+
 	<extension id="net.arctics.clonk.externliberror" name="Extern library error"
+		point="org.eclipse.core.resources.markers">
+		<persistent value="true" />
+		<super type="org.eclipse.core.resources.problemmarker" />
+	</extension>
+	
+	<extension id="net.arctics.clonk.c4scripterror" name="C4Script error"
 		point="org.eclipse.core.resources.markers">
 		<persistent value="true" />
 		<super type="org.eclipse.core.resources.problemmarker" />
@@ -392,5 +401,12 @@
 			class="net.arctics.clonk.ui.editors.c4script.ScriptWithStorageEditorInputFactory"
 			id="net.arctics.clonk.ui.editors.scriptWithStorageEditorInputFactory" />
 	</extension>
+	
+	<extension point="org.eclipse.ui.ide.markerResolution">
+		<markerResolutionGenerator markerType="net.arctics.clonk.c4scripterror"
+			class="net.arctics.clonk.parser.c4script.quickfix.C4ScriptMarkerResolutionGenerator">
+		</markerResolutionGenerator>
+	</extension>
+	
 
 </plugin>

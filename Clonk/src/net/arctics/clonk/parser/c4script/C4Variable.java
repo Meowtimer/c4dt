@@ -111,20 +111,26 @@ public class C4Variable extends C4Declaration implements Serializable, ITypedDec
 			type = C4Type.UNKNOWN;
 		return type;
 	}
-
+	
 	/**
 	 * @param type the type to set
 	 */
-	public void setType(C4Type type) {
+	public void forceType(C4Type type) {
 		// -.-;
 		if (type == C4Type.DWORD)
 			type = C4Type.INT;
 		this.type = type;
 	}
 	
-	public void setType(C4Type type, boolean typeLocked) {
-		setType(type);
+	public void forceType(C4Type type, boolean typeLocked) {
+		forceType(type);
 		this.typeLocked = typeLocked;
+	}
+	
+	public void setType(C4Type type) {
+		if (typeLocked)
+			return;
+		forceType(type);
 	}
 
 	/**
@@ -191,7 +197,7 @@ public class C4Variable extends C4Declaration implements Serializable, ITypedDec
 			if (scopeString.equals(Keywords.VarNamed)) return C4VariableScope.VAR_VAR;
 			if (scopeString.equals(Keywords.LocalNamed)) return C4VariableScope.VAR_LOCAL;
 			if (scopeString.equals(Keywords.GlobalNamed)) return C4VariableScope.VAR_STATIC;
-			if (scopeString.equals("static const")) return C4VariableScope.VAR_CONST;
+			if (scopeString.equals(Keywords.GlobalNamed + " " + Keywords.Const)) return C4VariableScope.VAR_CONST;
 			//if (C4VariableScope.valueOf(scopeString) != null) return C4VariableScope.valueOf(scopeString);
 			else return null;
 		}
@@ -289,16 +295,21 @@ public class C4Variable extends C4Declaration implements Serializable, ITypedDec
 		return typeLocked;
 	}
 	
-	@Override
-	public void setParentDeclaration(C4Declaration declaration) {
-		super.setParentDeclaration(declaration);
-		typeLocked = declaration == ClonkCore.getDefault().getEngineObject();
+	private void ensureTypeLockedIfPredefined(C4Declaration declaration) {
+		if (!typeLocked && declaration == ClonkCore.getDefault().getEngineObject())
+			typeLocked = true;
 	}
 	
 	@Override
-	public void fixReferencesAfterSerialization(C4Declaration parent) {
-		super.fixReferencesAfterSerialization(parent);
-		typeLocked = parent == ClonkCore.getDefault().getEngineObject();
+	public void setParentDeclaration(C4Declaration declaration) {
+		super.setParentDeclaration(declaration);
+		ensureTypeLockedIfPredefined(declaration);
+	}
+	
+	@Override
+	public void postSerialize(C4Declaration parent) {
+		super.postSerialize(parent);
+		ensureTypeLockedIfPredefined(parent);
 	}
 	
 }

@@ -167,14 +167,14 @@ public class EngineIdentifiersView extends ViewPart {
 				func.getParameters().clear();
 				for(ParameterCombination par : parameters) {
 					C4Variable var = new C4Variable(par.getName().getText(),C4VariableScope.VAR_LOCAL);
-					var.setType(getSelectedType(par.getType()));
+					var.forceType(getSelectedType(par.getType()));
 					func.getParameters().add(var);
 				}
 			}
 			else if (identifier instanceof C4Variable) {
 				C4Variable var = (C4Variable) identifier;
 				var.setName(identifierNameField.getText());
-				var.setType(C4Type.makeType(returnTypeBox.getItem(returnTypeBox.getSelectionIndex()), true));
+				var.forceType(C4Type.makeType(returnTypeBox.getItem(returnTypeBox.getSelectionIndex()), true));
 				var.setScope(C4VariableScope.valueOf(scopeBox.getItem(scopeBox.getSelectionIndex())));
 			}
 			

@@ -333,7 +333,7 @@ public class C4ScriptParser {
 	 */
 	public void parseCodeOfFunctions() throws ParsingException {
 		synchronized (container) {
-			strictLevel = container.strictLevel();
+			strictLevel = container.getStrictLevel();
 			for (C4Function function : container.functions()) {
 				parseCodeOfFunction(function);
 			}
@@ -716,7 +716,8 @@ public class C4ScriptParser {
 			do {
 				eatWhitespace();
 				offset = fReader.getPosition();
-				if (parseParameter(offset, activeFunc)) offset = fReader.getPosition(); 
+				if (parseParameter(offset, activeFunc))
+					offset = fReader.getPosition(); 
 				eatWhitespace(offset);
 				int readByte = fReader.read();
 				if (readByte == ')')
@@ -1112,38 +1113,47 @@ public class C4ScriptParser {
 		return disabledErrors.contains(error);
 	}
 	
-	void warningWithCode(ParserErrorCode code, int errorStart, int errorEnd, Object... args) {
-		String problem = String.format(code.getErrorString(args), args);
-		createWarningMarker(errorStart, errorEnd, problem);
+	public void warningWithCode(ParserErrorCode code, int errorStart, int errorEnd, Object... args) {
+		try {
+			markerWithCode(code, errorStart, errorEnd, true, IMarker.SEVERITY_WARNING, args);
+		} catch (ParsingException e) {
+			// ignore
+		}
 	}
 	
-	void warningWithCode(ParserErrorCode code, IRegion errorRegion, Object... args) {
+	public void warningWithCode(ParserErrorCode code, IRegion errorRegion, Object... args) {
 		warningWithCode(code, errorRegion.getOffset(), errorRegion.getOffset()+errorRegion.getLength(), args);
 	}
 	
-	void errorWithCode(ParserErrorCode code, IRegion errorRegion, Object... args) throws ParsingException {
+	public void errorWithCode(ParserErrorCode code, IRegion errorRegion, Object... args) throws ParsingException {
 		errorWithCode(code, errorRegion, false, args);
 	}
 	
-	void errorWithCode(ParserErrorCode code, IRegion errorRegion, boolean noThrow, Object... args) throws ParsingException {
+	public void errorWithCode(ParserErrorCode code, IRegion errorRegion, boolean noThrow, Object... args) throws ParsingException {
 		errorWithCode(code, errorRegion.getOffset(), errorRegion.getOffset()+errorRegion.getLength(), noThrow, args);
 	}
 	
-	void errorWithCode(ParserErrorCode code, int errorStart, int errorEnd, boolean noThrow, Object... args) throws ParsingException {
-		if (errorDisabled(code))// || (errorHook != null && errorHook.handle(code, args)))
+	public void errorWithCode(ParserErrorCode code, int errorStart, int errorEnd, boolean noThrow, Object... args) throws ParsingException {
+		markerWithCode(code, errorStart, errorEnd, noThrow, IMarker.SEVERITY_ERROR, args);
+	}
+	
+	private void markerWithCode(ParserErrorCode code, int errorStart, int errorEnd, boolean noThrow, int severity, Object... args) throws ParsingException {
+		if (errorDisabled(code))
 			return;
 		String problem = code.getErrorString(args);
 		boolean silence = fScript == null || (activeFunc != null && activeFunc.getBody() != null && fReader.getPosition() > activeFunc.getBody().getEnd());
-		if (!silence)
-			createErrorMarker(errorStart, errorEnd, problem);
-		if (!noThrow)
+		if (!silence) {
+			IMarker marker = createMarker(errorStart, errorEnd, problem, severity);
+			ParserErrorCode.setErrorCode(marker, code);
+		}
+		if (!noThrow && severity >= IMarker.SEVERITY_ERROR)
 			throw silence
 				? new SilentParsingException(problem)
 				: new ParsingException(problem);
 	}
 	
 	private void errorWithCode(ParserErrorCode code, int errorStart, int errorEnd, Object... args) throws ParsingException {
-		errorWithCode(code, errorStart, errorEnd, false, args);
+		markerWithCode(code, errorStart, errorEnd, false, IMarker.SEVERITY_ERROR, args);
 	}
 	
 	private void tokenExpectedError(String token) throws ParsingException {
@@ -2094,7 +2104,7 @@ public class C4ScriptParser {
 		int e = fReader.getPosition();
 		C4Variable var = new C4Variable(null, C4VariableScope.VAR_VAR);
 		C4Type type = C4Type.makeType(firstWord);
-		var.setType(type, type != C4Type.UNKNOWN);
+		var.forceType(type, type != C4Type.UNKNOWN);
 		if (type == C4Type.UNKNOWN) {
 			//var.setType(C4Type.ANY);
 			var.setName(firstWord);
@@ -2116,7 +2126,7 @@ public class C4ScriptParser {
 			else {
 				// type is name
 				warningWithCode(ParserErrorCode.TypeAsName, s, e, firstWord);
-				var.setType(C4Type.ANY);
+				var.forceType(C4Type.ANY);
 				var.setName(firstWord);
 				fReader.seek(e);
 			}
@@ -2182,7 +2192,7 @@ public class C4ScriptParser {
 	private IMarker createMarker(int start, int end, String message, int severity) {
 		if (fScript == null) return null;
 		try {
-			IMarker marker = fScript.createMarker(IMarker.PROBLEM);
+			IMarker marker = fScript.createMarker(ClonkCore.MARKER_C4SCRIPT_ERROR);
 			marker.setAttribute(IMarker.SEVERITY, severity);
 			marker.setAttribute(IMarker.TRANSIENT, false);
 			marker.setAttribute(IMarker.MESSAGE, message);
@@ -2193,14 +2203,6 @@ public class C4ScriptParser {
 			e.printStackTrace();
 		}
 		return null;
-	}
-
-	private IMarker createErrorMarker(int start, int end, String message) {
-		return createMarker(start, end, message, IMarker.SEVERITY_ERROR);
-	}
-	
-	private IMarker createWarningMarker(int start, int end, String message) {
-		return createMarker(start, end, message, IMarker.SEVERITY_WARNING);
 	}
 
 	public void clean() {
@@ -2229,6 +2231,7 @@ public class C4ScriptParser {
 		C4ScriptParser parser = new C4ScriptParser(expr, context);
 		parser.activeFunc = func;
 		parser.setExpressionListener(listener);
+		parser.strictLevel = context.getStrictLevel();
 		parser.disableError(ParserErrorCode.TokenExpected);
 		parser.disableError(ParserErrorCode.InvalidExpression);
 		parser.disableError(ParserErrorCode.BlockNotClosed);
