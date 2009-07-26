@@ -574,7 +574,7 @@ public class C4ScriptParser {
 		return result;
 	}
 
-	private boolean parseVariableDeclarationInFunc(int offset, boolean declaration) throws ParsingException {
+	private boolean parseVariableDeclarationInFunc(int offset, boolean declaration) {
 		parsedVariable = null;
 		fReader.seek(offset);
 
@@ -599,14 +599,16 @@ public class C4ScriptParser {
 				if (fReader.read() == '=') {
 					eatWhitespace();
 					offset = fReader.getPosition();
-					ExprElm val = parseExpression(offset, !declaration);
-					if (!declaration) {
-						if (val == null)
-							errorWithCode(ParserErrorCode.ValueExpected, fReader.getPosition()-1, fReader.getPosition());
-						else {
-							var.inferTypeFromAssignment(val, this);
+					try { 
+						ExprElm val = parseExpression(offset, !declaration);
+						if (!declaration) {
+							if (val == null)
+								errorWithCode(ParserErrorCode.ValueExpected, fReader.getPosition()-1, fReader.getPosition(), true);
+							else {
+								var.inferTypeFromAssignment(val, this);
+							}
 						}
-					}
+					} catch (ParsingException e) {} // an exception thrown from here will halt the whole parsing process
 				}
 				else {
 					fReader.unread();
@@ -1262,46 +1264,11 @@ public class C4ScriptParser {
 			
 			// array
 			if (elm == null) {
-				int c = fReader.read();
-				if (c == '[') {
-					if (prevElm != null) {
-						// array access
-						ExprElm arg = parseExpression(fReader.getPosition(), reportErrors);
-						this.eatWhitespace();
-						if (fReader.read() != ']') {
-							tokenExpectedError("]");
-						}
-						elm = new ExprAccessArray(arg);
-					} else {
-						// array creation
-						Vector<ExprElm> arrayElms = new Vector<ExprElm>(10);
-						boolean properlyClosed = false;
-						boolean expectingComma = false;
-						while (!fReader.reachedEOF()) {
-							this.eatWhitespace();
-							c = fReader.read();
-							if (c == ',') {
-								if (!expectingComma)
-									arrayElms.add(null);
-								expectingComma = false;
-							} else if (c == ']') {
-								properlyClosed = true;
-								break;
-							} else {
-								fReader.unread();
-								arrayElms.add(parseExpression(fReader.getPosition(), COMMA_OR_CLOSE_BRACKET, reportErrors));
-								expectingComma = true;
-							}
-						}
-						if (!properlyClosed) {
-							errorWithCode(ParserErrorCode.MissingClosingBracket, fReader.getPosition()-1, fReader.getPosition(), "]");
-						}
-						elm = new ExprArray(arrayElms.toArray(new ExprElm[0]));
-						
-					}
-				} else { 
-					fReader.unread();
-				}
+				elm = parseArrayExpression(reportErrors, prevElm);
+			}
+			
+			if (elm == null) {
+				elm = parsePropListExpression(reportErrors, prevElm);
 			}
 		
 			// ->
@@ -1400,6 +1367,98 @@ public class C4ScriptParser {
 		}
 		return result;
 		
+	}
+
+	@SuppressWarnings("unchecked")
+	private ExprElm parsePropListExpression(boolean reportErrors, ExprElm prevElm) throws ParsingException {
+		ExprElm elm = null;
+		int c = fReader.read();
+		if (c == '{') {
+			Vector<Pair<String, ExprElm>> propListElms = new Vector<Pair<String, ExprElm>>(10);
+			boolean properlyClosed = false;
+			boolean expectingComma = false;
+			while (!fReader.reachedEOF()) {
+				this.eatWhitespace();
+				c = fReader.read();
+				if (c == ',') {
+					if (!expectingComma)
+						errorWithCode(ParserErrorCode.UnexpectedToken, fReader.getPosition()-1, 1, ",");
+					expectingComma = false;
+				} else if (c == '}') {
+					properlyClosed = true;
+					break;
+				} else {
+					fReader.unread();
+					if (parseString(fReader.getPosition()) || parseIdentifier(fReader.getPosition())) {
+						String name = parsedString;
+						eatWhitespace();
+						int c_ = fReader.read();
+						if (c_ != ':' && c_ != '=') {
+							fReader.unread();
+							errorWithCode(ParserErrorCode.UnexpectedToken, fReader.getPosition(), 1, fReader.read());
+						}
+						eatWhitespace();
+						ExprElm expr = parseExpression(fReader.getPosition(), COMMA_OR_CLOSE_BLOCK, reportErrors);
+						propListElms.add(new Pair<String, ExprElm>(name, expr));
+						expectingComma = true;
+					}
+					else
+						errorWithCode(ParserErrorCode.TokenExpected, fReader.getPosition(), 1, "String or identifier");
+				}
+			}
+			if (!properlyClosed) {
+				errorWithCode(ParserErrorCode.MissingClosingBracket, fReader.getPosition()-1, fReader.getPosition(), "}");
+			}
+			elm = new ExprPropList(propListElms.toArray((Pair<String, ExprElm>[])new Pair[propListElms.size()]));
+		}
+		else
+			fReader.unread();
+		return elm;
+	}
+
+	private ExprElm parseArrayExpression(boolean reportErrors, ExprElm prevElm) throws ParsingException {
+		ExprElm elm = null;
+		int c = fReader.read();
+		if (c == '[') {
+			if (prevElm != null) {
+				// array access
+				ExprElm arg = parseExpression(fReader.getPosition(), reportErrors);
+				this.eatWhitespace();
+				if (fReader.read() != ']') {
+					tokenExpectedError("]");
+				}
+				elm = new ExprAccessArray(arg);
+			} else {
+				// array creation
+				Vector<ExprElm> arrayElms = new Vector<ExprElm>(10);
+				boolean properlyClosed = false;
+				boolean expectingComma = false;
+				while (!fReader.reachedEOF()) {
+					this.eatWhitespace();
+					c = fReader.read();
+					if (c == ',') {
+						if (!expectingComma)
+							arrayElms.add(null);
+						expectingComma = false;
+					} else if (c == ']') {
+						properlyClosed = true;
+						break;
+					} else {
+						fReader.unread();
+						arrayElms.add(parseExpression(fReader.getPosition(), COMMA_OR_CLOSE_BRACKET, reportErrors));
+						expectingComma = true;
+					}
+				}
+				if (!properlyClosed) {
+					errorWithCode(ParserErrorCode.MissingClosingBracket, fReader.getPosition()-1, fReader.getPosition(), "]");
+				}
+				elm = new ExprArray(arrayElms.toArray(new ExprElm[0]));
+				
+			}
+		} else { 
+			fReader.unread();
+		}
+		return elm;
 	}
 
 	private void parseRestOfTuple(int offset, List<ExprElm> listToAddElementsTo, boolean reportErrors) throws ParsingException {
@@ -1553,6 +1612,7 @@ public class C4ScriptParser {
 	
 	private static final char[] SEMICOLON_DELIMITER = new char[] { ';' };
 	private static final char[] COMMA_OR_CLOSE_BRACKET = new char[] { ',', ']' };
+	private static final char[] COMMA_OR_CLOSE_BLOCK = new char[] { ',', '}' };
 	
 	private ExprElm parseExpression(int offset, boolean reportErrors) throws ParsingException {
 		return parseExpression(offset, SEMICOLON_DELIMITER, reportErrors);
@@ -1579,6 +1639,16 @@ public class C4ScriptParser {
 		}
 		parsedString = builder.toString();
 		return true;
+	}
+	
+	private boolean parseIdentifier(int offset) throws ParsingException {
+		fReader.seek(offset);
+		String word = fReader.readWord();
+		if (word != null && word.length() > 0) {
+			parsedString = word;
+			return true;
+		}
+		return false;
 	}
 	
 	private boolean parsePlaceholderString(int offset) throws ParsingException {

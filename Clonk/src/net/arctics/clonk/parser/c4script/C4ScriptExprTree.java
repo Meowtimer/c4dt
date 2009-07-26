@@ -362,6 +362,11 @@ public abstract class C4ScriptExprTree {
 		public IStoredTypeInformation createStoredTypeInformation() {
 			return null;
 		}
+		
+		protected void printIndent(StringBuilder builder, int indentDepth) {
+			for (int i = 0; i < indentDepth; i++)
+				builder.append("\t"); // FIXME: should be done according to user's preferences
+		}
 
 	}
 
@@ -1699,6 +1704,55 @@ public abstract class C4ScriptExprTree {
 		}
 
 	}
+	
+	public static class ExprPropList extends ExprValue {
+		private Pair<String, ExprElm>[] components;
+		public ExprPropList(Pair<String, ExprElm>[] components) {
+			this.components = components;
+		}
+		@Override
+		public void print(StringBuilder output, int depth) {
+			output.append('{');
+			for (int i = 0; i < components.length; i++) {
+				Pair<String, ExprElm> component = components[i];
+				output.append('\n');
+				printIndent(output, depth+1);
+				output.append(component.getFirst());
+				output.append(": ");
+				component.getSecond().print(output, 0);
+				if (i < components.length-1) {
+					output.append(',');
+				} else {
+					output.append("\n}");
+				}
+			}
+		}
+		@Override
+		public C4Type getType(C4ScriptParser parser) {
+			return C4Type.PROPLIST;
+		}
+		@Override
+		public boolean modifiable(C4ScriptParser parser) {
+			return false;
+		}
+		@Override
+		public boolean isValidInSequence(ExprElm predecessor, C4ScriptParser parser) {
+			return predecessor == null;
+		}
+		@Override
+		public ExprElm[] getSubElements() {
+			ExprElm[] result = new ExprElm[components.length];
+			for (int i = 0; i < result.length; i++)
+				result[i] = components[i].getSecond();
+			return result;
+		}
+		@Override
+		public void setSubElements(ExprElm[] elms) {
+			for (int i = 0; i < Math.min(elms.length, components.length); i++) {
+				components[i].setSecond(elms[i]);
+			}
+		}
+	}
 
 	public static class ExprTuple extends ExprSequence {
 
@@ -1765,6 +1819,7 @@ public abstract class C4ScriptExprTree {
 		public Comment getInlineComment() {
 			return inlineComment;
 		}
+		
 		public void setInlineComment(Comment inlineComment) {
 			this.inlineComment = inlineComment;
 		}
@@ -1773,10 +1828,7 @@ public abstract class C4ScriptExprTree {
 		public C4Type getType(C4ScriptParser context) {
 			return null;
 		}
-		protected void printIndent(StringBuilder builder, int indentDepth) {
-			for (int i = 0; i < indentDepth; i++)
-				builder.append("\t"); // FIXME: should be done according to user's preferences
-		}
+
 		@Override
 		public boolean hasSideEffects() {
 			return true;
@@ -1788,6 +1840,7 @@ public abstract class C4ScriptExprTree {
 //				if (elm != null)
 //					elm.reportErrors(parser);
 		}
+		
 		public void printAppendix(StringBuilder builder, int depth) {
 			if (inlineComment != null) {
 				builder.append(" ");
