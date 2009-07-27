@@ -1716,14 +1716,14 @@ public abstract class C4ScriptExprTree {
 			for (int i = 0; i < components.length; i++) {
 				Pair<String, ExprElm> component = components[i];
 				output.append('\n');
-				printIndent(output, depth+1);
+				printIndent(output, depth-1);
 				output.append(component.getFirst());
 				output.append(": ");
 				component.getSecond().print(output, 0);
 				if (i < components.length-1) {
 					output.append(',');
 				} else {
-					output.append("\n}");
+					output.append('\n'); printIndent(output, depth-2); output.append('}');
 				}
 			}
 		}
