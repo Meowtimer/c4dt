@@ -4,11 +4,14 @@ import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.preferences.PreferenceConstants;
 import net.arctics.clonk.resource.ResourceContentProvider;
 
+import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.preferences.IPreferencesService;
 import org.eclipse.jface.viewers.CheckboxTreeViewer;
+import org.eclipse.jface.viewers.ISelection;
+import org.eclipse.jface.viewers.TreeSelection;
 import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
@@ -16,6 +19,7 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Tree;
+import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.model.WorkbenchLabelProvider;
 
 public class ExportResourcesPage extends WizardPage {
@@ -37,6 +41,25 @@ public class ExportResourcesPage extends WizardPage {
 		
 		createResourcesGroup(comp);
 		createDestinationGroup(comp);
+		
+		// get current selection
+		if (PlatformUI.getWorkbench() == null ||
+				PlatformUI.getWorkbench().getActiveWorkbenchWindow() == null ||
+				PlatformUI.getWorkbench().getActiveWorkbenchWindow().getSelectionService() == null ||
+				PlatformUI.getWorkbench().getActiveWorkbenchWindow().getSelectionService().getSelection() == null)
+			return;
+		ISelection selection = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getSelectionService().getSelection();
+		if (selection != null && selection instanceof TreeSelection) {
+			TreeSelection tree = (TreeSelection) selection;
+			for(Object obj : tree.toList()) {
+				if (obj instanceof IFolder) {
+					folderSelector.expandToLevel(obj, 0);
+					// select selected item
+					folderSelector.setChecked(obj, true);
+				}
+			}
+			
+		}
 		
 		setControl(comp);
 	}
