@@ -70,7 +70,6 @@ public class MapCreatorCompletionProcessor extends ClonkCompletionProcessor<MapC
 		else if (overlay != null && (m = startedAttrVal.matcher(line)).matches()) {
 			String attrName = m.group(1);
 			String attrValStart = m.group(2);
-			System.out.println(attrValStart);
 			try {
 				Field attr = overlay.getClass().getField(attrName);
 				// enum recommendations

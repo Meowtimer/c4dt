@@ -2,6 +2,7 @@ package net.arctics.clonk.ui.editors;
 
 import java.util.ResourceBundle;
 
+import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.C4Declaration;
 import net.arctics.clonk.parser.C4Structure;
 import net.arctics.clonk.ui.editors.actions.c4script.OpenDeclarationAction;
@@ -121,9 +122,9 @@ public class ClonkTextEditor extends TextEditor {
 		
 		IAction action;
 		
-		ResourceBundle messagesBundle = ResourceBundle.getBundle("net.arctics.clonk.ui.editors.Messages"); //$NON-NLS-1$
+		ResourceBundle messagesBundle = ResourceBundle.getBundle(ClonkCore.id("ui.editors.Messages")); //$NON-NLS-1$
 		action = new OpenDeclarationAction(messagesBundle,"OpenDeclaration.",this); //$NON-NLS-1$
-		setAction(ClonkCommandIds.OPEN_DECLARATION, action);
+		setAction(IClonkCommandIds.OPEN_DECLARATION, action);
 		
 		if (getSourceViewerConfiguration().getContentAssistant(getSourceViewer()) != null) {
 			action = new ContentAssistAction(messagesBundle, "ContentAssist.", this); //$NON-NLS-1$
@@ -135,7 +136,7 @@ public class ClonkTextEditor extends TextEditor {
 	@Override
 	protected void editorContextMenuAboutToShow(IMenuManager menu) {
 		super.editorContextMenuAboutToShow(menu);
-		addAction(menu, ClonkCommandIds.OPEN_DECLARATION);
+		addAction(menu, IClonkCommandIds.OPEN_DECLARATION);
 	}
 	
 	public IHyperlink hyperlinkAtOffset(int offset) {

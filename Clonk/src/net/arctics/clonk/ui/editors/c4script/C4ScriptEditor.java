@@ -15,7 +15,7 @@ import net.arctics.clonk.parser.c4script.C4ScriptBase;
 import net.arctics.clonk.parser.c4script.C4ScriptExprTree;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.ParsingException;
-import net.arctics.clonk.ui.editors.ClonkCommandIds;
+import net.arctics.clonk.ui.editors.IClonkCommandIds;
 import net.arctics.clonk.ui.editors.ClonkDocumentProvider;
 import net.arctics.clonk.ui.editors.ClonkTextEditor;
 import net.arctics.clonk.ui.editors.ColorManager;
@@ -47,6 +47,7 @@ import org.eclipse.ui.texteditor.SourceViewerDecorationSupport;
 
 public class C4ScriptEditor extends ClonkTextEditor {
 
+	// Helper class that takes care of triggering a timed reparsing when the document is changed and such
 	private final class TextChangeListener implements IDocumentListener {
 		
 		private Timer reparseTimer = new Timer("ReparseTimer");
@@ -144,7 +145,6 @@ public class C4ScriptEditor extends ClonkTextEditor {
 	}
 
 	private ColorManager colorManager;
-	public static final String ACTION_INDEX_CLONK_DIR = ClonkCore.id("indexClonkCommand");
 	private static final String ENABLE_BRACKET_HIGHLIGHT = ClonkCore.id("enableBracketHighlighting");
 	private static final String BRACKET_HIGHLIGHT_COLOR = ClonkCore.id("bracketHighlightColor");
 	
@@ -203,7 +203,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 	
 	protected void createActions() {
 		super.createActions();
-		ResourceBundle messagesBundle = ResourceBundle.getBundle("net.arctics.clonk.ui.editors.c4script.Messages"); //$NON-NLS-1$
+		ResourceBundle messagesBundle = ResourceBundle.getBundle(ClonkCore.id("ui.editors.c4script.Messages")); //$NON-NLS-1$
 //		
 		IAction action;
 		
@@ -220,13 +220,13 @@ public class C4ScriptEditor extends ClonkTextEditor {
 //		setAction(ITextEditorActionDefinitionIds.CONTENT_ASSIST_CONTEXT_INFORMATION, action);
 		
 		action = new ConvertOldCodeToNewCodeAction(messagesBundle,"ConvertOldCodeToNewCode.",this); //$NON-NLS-1$
-		setAction(ClonkCommandIds.CONVERT_OLD_CODE_TO_NEW_CODE, action);
+		setAction(IClonkCommandIds.CONVERT_OLD_CODE_TO_NEW_CODE, action);
 		
 		action = new FindReferencesAction(messagesBundle,"FindReferences.",this); //$NON-NLS-1$
-		setAction(ClonkCommandIds.FIND_REFERENCES, action);
+		setAction(IClonkCommandIds.FIND_REFERENCES, action);
 		
 		action = new RenameFieldAction(messagesBundle, "RenameField.", this);
-		setAction(ClonkCommandIds.RENAME_FIELD, action);
+		setAction(IClonkCommandIds.RENAME_FIELD, action);
 		
 	}
 
@@ -234,8 +234,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 	 * @see org.eclipse.ui.texteditor.AbstractDecoratedTextEditor#createSourceViewer(org.eclipse.swt.widgets.Composite, org.eclipse.jface.text.source.IVerticalRuler, int)
 	 */
 	@Override
-	protected ISourceViewer createSourceViewer(Composite parent,
-			IVerticalRuler ruler, int styles) {
+	protected ISourceViewer createSourceViewer(Composite parent, IVerticalRuler ruler, int styles) {
 //		return super.createSourceViewer(parent, ruler, styles);
 		
 		fAnnotationAccess = getAnnotationAccess();
@@ -256,10 +255,10 @@ public class C4ScriptEditor extends ClonkTextEditor {
 	protected void editorContextMenuAboutToShow(IMenuManager menu) {
 		super.editorContextMenuAboutToShow(menu);
 		if (Utilities.getScriptForEditor(this).isEditable()) {
-			addAction(menu, ClonkCommandIds.CONVERT_OLD_CODE_TO_NEW_CODE);
-			addAction(menu, ClonkCommandIds.RENAME_FIELD);
+			addAction(menu, IClonkCommandIds.CONVERT_OLD_CODE_TO_NEW_CODE);
+			addAction(menu, IClonkCommandIds.RENAME_FIELD);
 		}
-		addAction(menu, ClonkCommandIds.FIND_REFERENCES);
+		addAction(menu, IClonkCommandIds.FIND_REFERENCES);
 	}
 
 	@Override

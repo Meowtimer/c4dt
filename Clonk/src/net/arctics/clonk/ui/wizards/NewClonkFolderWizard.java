@@ -164,7 +164,7 @@ public class NewClonkFolderWizard extends Wizard implements INewWizard {
 	
 	protected void throwCoreException(String message) throws CoreException {
 		IStatus status =
-			new Status(IStatus.ERROR, "net.arctics.clonk", IStatus.OK, message, null);
+			new Status(IStatus.ERROR, ClonkCore.PLUGIN_ID, IStatus.OK, message, null);
 		throw new CoreException(status);
 	}
 

@@ -5,7 +5,7 @@ import java.util.ResourceBundle;
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.C4Declaration;
 import net.arctics.clonk.refactoring.ClonkRenameFieldProcessor;
-import net.arctics.clonk.ui.editors.ClonkCommandIds;
+import net.arctics.clonk.ui.editors.IClonkCommandIds;
 
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
@@ -24,7 +24,7 @@ public class RenameFieldAction extends OpenDeclarationAction {
 	public RenameFieldAction(ResourceBundle bundle, String prefix,
 			ITextEditor editor) {
 		super(bundle, prefix, editor);
-		this.setActionDefinitionId(ClonkCommandIds.RENAME_FIELD);
+		this.setActionDefinitionId(IClonkCommandIds.RENAME_FIELD);
 	}
 	
 	private boolean displayRefactoringError(RefactoringStatus status) {

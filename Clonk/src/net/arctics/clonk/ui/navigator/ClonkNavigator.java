@@ -1,18 +1,17 @@
 package net.arctics.clonk.ui.navigator;
 
-import java.io.File;
-import java.io.FilenameFilter;
 import java.util.Collection;
 
 import net.arctics.clonk.parser.C4Structure;
 import net.arctics.clonk.parser.c4script.C4ScriptBase;
+import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.util.ITreeNode;
 import net.arctics.clonk.util.Utilities;
 
+import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IWorkspaceRoot;
-import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jface.viewers.Viewer;
 
@@ -22,16 +21,26 @@ import org.eclipse.jface.viewers.Viewer;
 public class ClonkNavigator extends ClonkOutlineProvider {
 
 	public Object[] getChildren(Object element) {
+		// supply standard resources -.-
+		if (element instanceof IContainer) {
+			IContainer container = (IContainer) element;
+			try {
+				ClonkProjectNature clonkProject = element instanceof IProject ? Utilities.getClonkNature((IProject)element) : null;
+				DependenciesNavigatorNode depNode = clonkProject != null ? new DependenciesNavigatorNode(clonkProject) : null;
+				return depNode != null ? Utilities.concat((Object[])container.members(), depNode) : container.members();
+			} catch (CoreException e) {
+				return null;
+			}
+		}
 		// add additional virtual nodes to the project
-		if (element instanceof IProject) {
-//			ClonkProjectNature clonkProject = Utilities.getClonkNature((IProject)element);
-//			if (clonkProject == null)
-//				return null;
-//			return new Object[] {
-//				// Dependencies
-//				new DependenciesNavigatorNode(clonkProject)
-//			};
-			return null;
+		else if (element instanceof IProject) {
+			ClonkProjectNature clonkProject = Utilities.getClonkNature((IProject)element);
+			if (clonkProject == null)
+				return null;
+			return new Object[] {
+				// Dependencies
+				new DependenciesNavigatorNode(clonkProject)
+			};
 		}
 		else if (element instanceof IFile) {
 			// list contents of ini and script files
@@ -83,21 +92,26 @@ public class ClonkNavigator extends ClonkOutlineProvider {
 
 	public Object[] getElements(Object inputElement) {
 		if (inputElement instanceof IWorkspaceRoot) {
-			File file = new File(((IWorkspaceRoot)inputElement).getLocationURI());
-			FilenameFilter filter = new FilenameFilter() {
-				public boolean accept(File dir, String name) {
-					if (name.endsWith(".c4d")) return true;
-					else return false;
-				}
-			};
-			String[] files = file.list(filter);
-			Object[] projects = new Object[files.length];
-			
-			for(int i = 0;i < files.length;i++) {
-				projects[i] = ResourcesPlugin.getWorkspace().getRoot().getProject(files[i]);
-//				((IProject)projects[i]).o
-			}
-			return projects;
+			return ((IWorkspaceRoot)inputElement).getProjects();
+//			File file = new File(((IWorkspaceRoot)inputElement).getLocationURI());
+//			FilenameFilter filter = new FilenameFilter() {
+//				private String[] extensions = new String[] { ".c4d", ".c4s", ".c4f", ".c4g" };
+// 				public boolean accept(File dir, String name) {
+// 					for (int i = 0; i < extensions.length; i++) {
+// 						if (name.endsWith(extensions[i]))
+// 							return true;
+// 					}
+// 					return false;
+//				}
+//			};
+//			String[] files = file.list(filter);
+//			Object[] projects = new Object[files.length];
+//			
+//			for(int i = 0;i < files.length;i++) {
+//				projects[i] = ResourcesPlugin.getWorkspace().getRoot().getProject(files[i]);
+////				((IProject)projects[i]).o
+//			}
+//			return projects;
 		}
 		return super.getElements(inputElement);
 	}

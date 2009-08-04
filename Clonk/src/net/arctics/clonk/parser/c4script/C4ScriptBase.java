@@ -494,7 +494,10 @@ public abstract class C4ScriptBase extends C4Structure implements IHasRelatedRes
 	}
 	
 	public C4Object getNearestObjectWithId(C4ID id) {
-		return getIndex().getObjectNearestTo(getResource(), id);
+		ClonkIndex index = getIndex();
+		if (index != null)
+			return index.getObjectNearestTo(getResource(), id);
+		return null;
 	}
 	
 	/**

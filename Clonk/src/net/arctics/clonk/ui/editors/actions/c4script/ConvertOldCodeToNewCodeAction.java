@@ -7,7 +7,7 @@ import java.util.ResourceBundle;
 import net.arctics.clonk.parser.c4script.C4Function;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.C4ScriptExprTree.*;
-import net.arctics.clonk.ui.editors.ClonkCommandIds;
+import net.arctics.clonk.ui.editors.IClonkCommandIds;
 import net.arctics.clonk.ui.editors.c4script.C4ScriptEditor;
 import net.arctics.clonk.util.Pair;
 
@@ -22,10 +22,9 @@ import org.eclipse.ui.texteditor.TextEditorAction;
 
 public class ConvertOldCodeToNewCodeAction extends TextEditorAction {
 
-	public ConvertOldCodeToNewCodeAction(ResourceBundle bundle,
-			String prefix, ITextEditor editor) {
+	public ConvertOldCodeToNewCodeAction(ResourceBundle bundle, String prefix, ITextEditor editor) {
 		super(bundle, prefix, editor);
-		this.setId(ClonkCommandIds.CONVERT_OLD_CODE_TO_NEW_CODE);
+		this.setId(IClonkCommandIds.CONVERT_OLD_CODE_TO_NEW_CODE);
 	}
 
 	/* (non-Javadoc)

@@ -77,7 +77,7 @@ public class ScriptWithStorageEditorInput extends PlatformObject implements IEdi
 	}
 
 	public String getFactoryId() {
-		return "net.arctics.clonk.ui.editors.scriptWithStorageEditorInputFactory";
+		return ClonkCore.id("ui.editors.scriptWithStorageEditorInputFactory");
 	}
 
 	public void saveState(IMemento memento) {

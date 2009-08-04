@@ -810,7 +810,7 @@ public abstract class C4ScriptExprTree {
 						if (context.getStrictLevel() >= 2)
 							context.warningWithCode(ParserErrorCode.VariableCalled, this, declaration.getName());
 					} else {
-						context.errorWithCode(ParserErrorCode.VariableCalled, this, declaration.getName(), true);
+						context.errorWithCode(ParserErrorCode.VariableCalled, this, true, declaration.getName());
 					}
 				}
 				else if (declaration instanceof C4Function) {
@@ -826,8 +826,6 @@ public abstract class C4ScriptExprTree {
 						if (!given.validForType(parm.getType(), context))
 							context.warningWithCode(ParserErrorCode.IncompatibleTypes, given, parm.getType(), given.getType(context));
 						given.expectedToBeOfType(parm.getType(), context);
-//						if (parm.getScript() != ClonkCore.getDefault().ENGINE_OBJECT)
-//							parm.inferTypeFromAssignment(given, parser);
 					}
 				}
 				else if (declaration == null && getPredecessorInSequence() == null) {
@@ -1444,7 +1442,7 @@ public abstract class C4ScriptExprTree {
 
 		public C4Type getType(C4ScriptParser context) {
 			if (longValue() == 0)
-				return C4Type.UNKNOWN; // FIXME: to prevent warnings when assigning 0 to object-variables
+				return C4Type.ANY; // FIXME: to prevent warnings when assigning 0 to object-variables
 			return C4Type.INT;
 		}
 

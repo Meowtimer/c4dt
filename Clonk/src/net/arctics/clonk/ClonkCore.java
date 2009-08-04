@@ -52,7 +52,7 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant {
 	/**
 	 * The Plugin-ID
 	 */
-	public static final String PLUGIN_ID = "net.arctics.clonk";
+	public static final String PLUGIN_ID = ClonkCore.class.getPackage().getName();
 	
 	/**
 	 * id for Clonk project natures
@@ -67,10 +67,10 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant {
 	/**
 	 * id for error markers that denote errors in a script
 	 */
-	public static final String MARKER_C4SCRIPT_ERROR = "net.arctics.clonk.c4scripterror";
+	public static final String MARKER_C4SCRIPT_ERROR = id("c4scripterror");
 
-	public static final QualifiedName FOLDER_C4ID_PROPERTY_ID = new QualifiedName(PLUGIN_ID,"c4id");
-	public static final QualifiedName C4OBJECT_PROPERTY_ID = new QualifiedName(PLUGIN_ID,"c4object");
+	public static final QualifiedName FOLDER_C4ID_PROPERTY_ID = new QualifiedName(PLUGIN_ID, "c4id");
+	public static final QualifiedName C4OBJECT_PROPERTY_ID = new QualifiedName(PLUGIN_ID, "c4object");
 	public static final QualifiedName C4STRUCTURE_PROPERTY_ID = new QualifiedName(PLUGIN_ID, "structure");
 	
 	/**

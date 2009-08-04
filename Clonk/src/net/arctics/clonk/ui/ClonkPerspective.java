@@ -1,5 +1,7 @@
 package net.arctics.clonk.ui;
 
+import net.arctics.clonk.ClonkCore;
+
 import org.eclipse.debug.ui.IDebugUIConstants;
 import org.eclipse.ui.IFolderLayout;
 import org.eclipse.ui.IPageLayout;
@@ -11,10 +13,10 @@ public class ClonkPerspective implements IPerspectiveFactory {
 //		layout.addFastView("org.eclipse.ui.navigator.ProjectExplorer", (float) 0.2);
 //		layout.addView("org.eclipse.ui.navigator.ProjectExplorer", IPageLayout.RIGHT, IPageLayout.DEFAULT_VIEW_RATIO, "navigator");
 		
-		layout.addActionSet("net.arctics.clonk.ui.actionset");
+		layout.addActionSet(ClonkCore.id("ui.actionset"));
         layout.addActionSet(IDebugUIConstants.LAUNCH_ACTION_SET);
 		
-		layout.addShowViewShortcut("net.arctics.clonk.views.EngineIdentifiersView");
+		layout.addShowViewShortcut(ClonkCore.id("views.EngineIdentifiersView"));
 		
 		// Get the editor area.
 		 String editorArea = layout.getEditorArea();
@@ -34,10 +36,10 @@ public class ClonkPerspective implements IPerspectiveFactory {
 		 // Bottom right: Task List view
 		 layout.addView(IPageLayout.ID_TASK_LIST, IPageLayout.BOTTOM, 0.66f, editorArea);
 
-		 layout.addNewWizardShortcut("net.arctics.clonk.wizards.NewC4Object");
-		 layout.addNewWizardShortcut("net.arctics.clonk.newClonkProject");
-		 layout.addNewWizardShortcut("net.arctics.clonk.wizards.NewScenario");
-		 layout.addNewWizardShortcut("net.arctics.clonk.wizards.NewParticle");
+		 layout.addNewWizardShortcut(ClonkCore.id("wizards.NewC4Object"));
+		 layout.addNewWizardShortcut(ClonkCore.id("wizards.NewClonkProject"));
+		 layout.addNewWizardShortcut(ClonkCore.id("wizards.NewScenario"));
+		 layout.addNewWizardShortcut(ClonkCore.id("wizards.NewParticle"));
 //		 layout.addActionSet("Clonk.actionSet2");
 	}
 

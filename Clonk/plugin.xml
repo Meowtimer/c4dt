@@ -110,6 +110,7 @@
 					<or>
 						<instanceof value="org.eclipse.core.resources.IResource" />
 						<instanceof value="net.arctics.clonk.util.ITreeNode" />
+						<instanceof value="org.eclipse.core.resources.IResource" />
 					</or>
 				</parentExpression>
 			</commonSorter>
@@ -128,7 +129,7 @@
 		<category id="net.arctics.clonk.clonkProjects" name="Clonk"
 			parentCategory="org.eclipse.ui.Basic" />
 
-		<wizard id="net.arctics.clonk.newClonkProject" name="Clonk Project"
+		<wizard id="net.arctics.clonk.wizards.NewClonkProject" name="Clonk Project"
 			category="net.arctics.clonk.clonkProjects" icon="icons/Clonk_C4Chip.ico"
 			class="net.arctics.clonk.ui.wizards.NewClonkProject" project="true"
 			finalPerspective="net.arctics.clonk.clonkPerspective">
@@ -249,25 +250,28 @@
 
 	<extension point="org.eclipse.ui.commands">
 		<command categoryId="org.eclipse.ui.category.navigate"
-			description="Opens a dialog to quickly find a definition" id="net.arctics.clonk.ui.open.object"
+			description="Open a dialog to quickly find a definition" id="net.arctics.clonk.ui.open.object"
 			defaultHandler="net.arctics.clonk.ui.editors.actions.c4script.OpenObjectAction"
 			name="Open Object" />
 
 		<command categoryId="org.eclipse.ui.category.edit"
-			description="Converts old code to new code"
+			description="Convert old code to new code"
 			id="net.arctics.clonk.ui.editors.actions.ConvertOldCodeToNewCode"
 			name="Convert Old Code" />
 
 		<command categoryId="org.eclipse.ui.category.edit"
-			description="Opens the declaration of the selected element" id="net.arctics.clonk.ui.editors.actions.OpenDeclaration"
+			description="Open the declaration of the selected element"
+			id="net.arctics.clonk.ui.editors.actions.OpenDeclaration"
 			name="Open Declaration" />
 
 		<command categoryId="org.eclipse.ui.category.edit"
-			description="Finds references to the selected element" id="net.arctics.clonk.ui.editors.actions.FindReferences"
+			description="Find references to the selected element"
+			id="net.arctics.clonk.ui.editors.actions.FindReferences"
 			name="Find References" />
 
 		<command categoryId="org.eclipse.ui.category.edit"
-			description="Renames the selected field" id="net.arctics.clonk.ui.editors.actions.RenameField"
+			description="Rename the selected field"
+			id="net.arctics.clonk.ui.editors.actions.RenameField"
 			name="Rename Field" />
 
 	</extension>

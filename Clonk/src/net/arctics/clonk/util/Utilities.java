@@ -97,7 +97,7 @@ public abstract class Utilities {
 		IProject project = res.getProject();
 		if (project == null || !project.isOpen()) return null;
 		try {
-			IProjectNature clonkProj = project.getNature("net.arctics.clonk.clonknature");
+			IProjectNature clonkProj = project.getNature(ClonkCore.id("clonknature"));
 			return (ClonkProjectNature) clonkProj;
 		} catch (CoreException e) {
 			e.printStackTrace();
@@ -408,11 +408,11 @@ public abstract class Utilities {
 	}
 	
 	private static Map<String, Class<? extends IniUnit>> INIREADER_CLASSES = map(new Object[] {
-		"net.arctics.clonk.scenariocfg", ScenarioUnit.class,
-		"net.arctics.clonk.actmap"     , ActMapUnit.class,
-		"net.arctics.clonk.defcore"    , DefCoreUnit.class,
-		"net.arctics.clonk.particle"   , ParticleUnit.class,
-		"net.arctics.clonk.material"   , MaterialUnit.class
+		ClonkCore.id("scenariocfg"), ScenarioUnit.class,
+		ClonkCore.id("actmap")     , ActMapUnit.class,
+		ClonkCore.id("defcore")    , DefCoreUnit.class,
+		ClonkCore.id("particle")   , ParticleUnit.class,
+		ClonkCore.id("material")   , MaterialUnit.class
 	});
 
 	/**
@@ -435,7 +435,7 @@ public abstract class Utilities {
 	}
 
 	@SuppressWarnings("unchecked")
-	public static <T> T[] concat(T[] a, T[] b) {
+	public static <T> T[] concat(T[] a, T... b) {
 		final int alen = a != null ? a.length : 0;
 		final int blen = b != null ? b.length : 0;
 		if (alen == 0) {
@@ -444,7 +444,7 @@ public abstract class Utilities {
 		if (blen == 0) {
 			return a != null ? a : (T[])new Object[0];
 		}
-		final T[] result = (T[]) java.lang.reflect.Array.newInstance(a.getClass().getComponentType(), alen + blen);
+		final T[] result = (T[]) new Object[alen + blen];
 		System.arraycopy(a, 0, result, 0, alen);
 		System.arraycopy(b, 0, result, alen, blen);
 		return result;
