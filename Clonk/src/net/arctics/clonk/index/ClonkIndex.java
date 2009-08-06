@@ -433,6 +433,8 @@ public class ClonkIndex implements Serializable, Iterable<C4Object> {
 	}
 	
 	public List<C4ScriptBase> appendagesOf(C4Object object) {
+		if (appendages == null)
+			return null;
 		List<C4ScriptBase> list = appendages.get(object.getId());
 		if (list != null) {
 			return Collections.unmodifiableList(list); 

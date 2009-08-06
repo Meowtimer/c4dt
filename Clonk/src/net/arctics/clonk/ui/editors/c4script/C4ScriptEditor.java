@@ -142,6 +142,12 @@ public class C4ScriptEditor extends ClonkTextEditor {
 				}
 			}, 2000);
 		}
+
+		public void dispose() {
+			cancel();
+			reparseTimer.cancel();
+			reparseTimer = null;
+		}
 	}
 
 	private ColorManager colorManager;
@@ -197,6 +203,8 @@ public class C4ScriptEditor extends ClonkTextEditor {
 	}
 
 	public void dispose() {
+		getDocumentProvider().getDocument(getEditorInput()).removeDocumentListener(textChangeListener);
+		textChangeListener.dispose();
 		colorManager.dispose();
 		super.dispose();
 	}

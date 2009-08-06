@@ -10,6 +10,7 @@ import net.arctics.clonk.parser.C4Declaration;
 import net.arctics.clonk.parser.c4script.C4Function;
 import net.arctics.clonk.parser.c4script.C4ScriptBase;
 import net.arctics.clonk.parser.c4script.FindDeclarationInfo;
+import net.arctics.clonk.parser.inireader.IniUnit;
 import net.arctics.clonk.ui.search.ClonkSearchMatch;
 import net.arctics.clonk.ui.search.ClonkSearchQuery;
 import net.arctics.clonk.ui.search.ClonkSearchResult;
@@ -96,6 +97,8 @@ public class ClonkRenameFieldProcessor extends RenameProcessor {
 				file = (IFile) ((C4ScriptBase)element).getScriptFile();
 			else if (element instanceof C4Function)
 				file = (IFile) ((C4Function)element).getScript().getScriptFile();
+			else if (element instanceof IniUnit)
+				file = ((IniUnit)element).getIniFile();
 			else
 				file = null;
 			if (file != null) {
@@ -105,10 +108,10 @@ public class ClonkRenameFieldProcessor extends RenameProcessor {
 				if (file.equals(declaringFile)) {
 					fileChange.addEdit(new ReplaceEdit(decl.getLocation().getOffset(), decl.getLocation().getLength(), newName));
 				}
-				if (element instanceof C4Function) {
-					C4Function relatedFunc = (C4Function)element;
-					fileChange.addEdit(new ReplaceEdit(relatedFunc.getLocation().getOffset(), relatedFunc.getLocation().getLength(), newName));
-				}
+//				else if (element instanceof C4Function) {
+//					C4Function relatedFunc = (C4Function)element;
+//					fileChange.addEdit(new ReplaceEdit(relatedFunc.getLocation().getOffset(), relatedFunc.getLocation().getLength(), newName));
+//				}
 				for (Match m : searchResult.getMatches(element)) {
 					ClonkSearchMatch match = (ClonkSearchMatch) m;
 					if (!match.isPotential() && !match.isIndirect())

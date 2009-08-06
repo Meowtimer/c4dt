@@ -19,11 +19,15 @@ public abstract class C4Object extends C4ScriptBase {
 	 */
 	private static final long serialVersionUID = 1L;
 	
+	/**
+	 * localized name of the object; key is language code like "DE" and "US"
+	 */
 	private Map<String, String> localizedNames;
 	
+	/**
+	 * id of the object
+	 */
 	protected C4ID id;
-	
-//	private List<IC4ObjectListener> changeListeners = new LinkedList<IC4ObjectListener>();
 	
 	/**
 	 * Creates a new C4Object

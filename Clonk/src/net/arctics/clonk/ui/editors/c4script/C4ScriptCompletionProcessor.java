@@ -333,7 +333,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 		int replacementLength = 0;
 		if (prefix != null)
 			replacementLength = prefix.length();
-		String repString = funcSupplied ? callback : ("protected func " + callback + "() {\n}"); 
+		String repString = funcSupplied ? (callback!=null?callback:"") : ("protected func " + callback + "() {\n}");
 		ClonkCompletionProposal prop = new ClonkCompletionProposal(
 				repString, offset, replacementLength, 
 				repString.length(), reg.get("callback") , callback, null,null," - Callback");

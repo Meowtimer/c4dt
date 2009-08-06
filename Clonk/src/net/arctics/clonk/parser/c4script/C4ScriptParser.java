@@ -1877,10 +1877,6 @@ public class C4ScriptParser {
 			return merged = mergeTypeInformationLists(merged, infos);
 		}
 
-		public List<IStoredTypeInformation> getMerged() {
-			return merged;
-		}
-
 		public List<IStoredTypeInformation> finish(List<IStoredTypeInformation> finalList) {
 			if (merged == null)
 				return finalList;

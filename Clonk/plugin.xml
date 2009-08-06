@@ -33,7 +33,7 @@
 		<builder id="net.arctics.clonk.builder" />
 	</extension>
 
-	<extension point="org.eclipse.core.runtime.contentTypes">
+	<extension point="org.eclipse.core.contenttype.contentTypes">
 
 		<content-type id="net.arctics.clonk.c4files" name="Clonk files"
 			priority="normal" />
@@ -124,6 +124,23 @@
 			</includes>
 		</viewerContentBinding>
 	</extension>
+ <extension
+       point="org.eclipse.ui.propertyPages">
+    <page
+          class="net.arctics.clonk.ui.ClonkProjectProperties"
+          id="net.arctics.clonk.projectProperties"
+          name="Clonk">
+       <enabledWhen>
+          <adapt
+                type="org.eclipse.core.resources.IProject">
+             <test
+                   property="org.eclipse.core.resources.projectNature"
+                   value="net.arctics.clonk.clonknature">
+             </test>
+          </adapt>
+       </enabledWhen>
+    </page>
+ </extension>
 
 	<extension point="org.eclipse.ui.newWizards">
 		<category id="net.arctics.clonk.clonkProjects" name="Clonk"
@@ -188,18 +205,6 @@
 		class="net.arctics.clonk.ui.ClonkProjectPreferences"/> </extension>
 	-->
 
-	<extension point="org.eclipse.ui.propertyPages">
-		<page name="Clonk" class="net.arctics.clonk.ui.ClonkProjectProperties"
-			id="net.arctics.clonk.projectProperties">
-			<enabledWhen>
-				<adapt type="org.eclipse.core.resources.IProject">
-					<test property="org.eclipse.core.resources.projectNature"
-						value="net.arctics.clonk.clonknature" />
-				</adapt>
-			</enabledWhen>
-			<!--<keywordReference id="org.eclipse.jdt.ui.buildpath"/>-->
-		</page>
-	</extension>
 
 	<extension point="org.eclipse.ui.ide.resourceFilters">
 		<filter pattern="*.c4d" selected="false">
@@ -273,6 +278,11 @@
 			description="Rename the selected field"
 			id="net.arctics.clonk.ui.editors.actions.RenameField"
 			name="Rename Field" />
+		
+		<command categoryId="org.eclipse.ui.category.edit"
+			description="Declaration filter"
+			id="net.arctics.clonk.ui.editors.actions.DeclarationFilter"
+			name="Declaration filter" />
 
 	</extension>
 
@@ -285,26 +295,21 @@
 	</extension>
 
 	<extension id="product" point="org.eclipse.core.runtime.products">
-		<product application="org.eclipse.ui.ide.workbench" name="%productName">
-			<property name="windowImages"
-				value="eclipse.gif,eclipse32.gif,eclipse48.gif,eclipse.png,eclipse32.png" />
-
-			<property name="aboutText" value="%productBlurb" />
-
+		<product application="org.eclipse.ui.ide.workbench" name="Clonklipse">
+			<property name="windowImages" value="eclipse.gif,eclipse32.gif,eclipse48.gif,eclipse.png,eclipse32.png" />
+			<property name="aboutText" value="Clonk Development Tools for Eclipse" />
 			<property name="aboutImage" value="eclipse_lg.gif" />
-
 			<property name="startupForegroundColor" value="C8D5EA" />
-
 			<property name="startupProgressRect" value="0,280,455,15" />
-
 			<property name="startupMessageRect" value="7,220,441,20" />
-
-			<property name="appName" value="%productName" />
-
-			<property name="preferenceCustomization" value="plugin_customization.ini" />
-
+			<property name="appName" value="Clonklipse" />
+   <property
+         name="preferenceCustomization"
+         value="plugin_customization.ini">
+   </property>
 		</product>
 	</extension>
+	
 	<extension point="org.eclipse.ui.decorators"><!--icon="icons/C4Object.png"-->
 		<decorator adaptable="true"
 			class="net.arctics.clonk.ui.LightweightLabelDecorator" id="net.arctics.clonk.decorator"
