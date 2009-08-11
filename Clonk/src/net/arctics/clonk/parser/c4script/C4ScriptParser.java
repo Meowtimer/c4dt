@@ -1445,7 +1445,14 @@ public class C4ScriptParser {
 						break;
 					} else {
 						fReader.unread();
-						arrayElms.add(parseExpression(fReader.getPosition(), COMMA_OR_CLOSE_BRACKET, reportErrors));
+						ExprElm arrayElement = parseExpression(fReader.getPosition(), COMMA_OR_CLOSE_BRACKET, reportErrors);
+						if (arrayElement != null) {
+							arrayElms.add(arrayElement);
+						}
+						else {
+							properlyClosed = false;
+							break;
+						}
 						expectingComma = true;
 					}
 				}
