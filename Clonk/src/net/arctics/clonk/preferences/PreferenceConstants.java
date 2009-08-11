@@ -17,4 +17,6 @@ public class PreferenceConstants {
 
 	public static final String ENGINE_EXECUTABLE = "engineExecutable";
 	
+	public static final String OPENCLONK_REPO = "openClonkRepo";
+	
 }

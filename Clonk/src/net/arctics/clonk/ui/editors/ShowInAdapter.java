@@ -34,9 +34,7 @@ public class ShowInAdapter implements IShowInSource, IShowInTargetList {
 
 	public String[] getShowInTargetIds() {
 		return new String[] {
-			IPageLayout.ID_RES_NAV,
-			//IPageLayout.ID_PROJECT_EXPLORER -- Eclipse 3.5
-			"org.eclipse.ui.navigator.ProjectExplorer" // FIXME: constant for this?
+			IPageLayout.ID_PROJECT_EXPLORER // "org.eclipse.ui.navigator.ProjectExplorer"
 		};
 	}
 

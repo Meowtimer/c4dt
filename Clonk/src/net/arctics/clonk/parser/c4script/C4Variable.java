@@ -18,7 +18,7 @@ import net.arctics.clonk.resource.ClonkProjectNature;
  * @author ZokRadonh
  *
  */
-public class C4Variable extends C4Declaration implements Serializable, ITypedDeclaration {
+public class C4Variable extends C4Declaration implements Serializable, ITypedDeclaration, IHasUserDescription {
 
 	private static final long serialVersionUID = -2350345359769750230L;
 	/**
@@ -166,13 +166,6 @@ public class C4Variable extends C4Declaration implements Serializable, ITypedDec
 	 */
 	public void setUserDescription(String description) {
 		this.description = description;
-	}
-
-	/**
-	 * @param name the name to set
-	 */
-	public void setName(String name) {
-		this.name = name;
 	}
 
 	/**

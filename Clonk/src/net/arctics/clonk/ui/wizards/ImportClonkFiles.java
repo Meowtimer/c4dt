@@ -23,8 +23,7 @@ public class ImportClonkFiles extends Wizard implements IImportWizard {
 	
     public ImportClonkFiles() {
         IDialogSettings workbenchSettings = WorkbenchPlugin.getDefault().getDialogSettings();
-        IDialogSettings section = workbenchSettings
-                .getSection("FileSystemImportWizard");//$NON-NLS-1$
+        IDialogSettings section = workbenchSettings.getSection("FileSystemImportWizard");//$NON-NLS-1$
         if (section == null) {
 			section = workbenchSettings.addNewSection("FileSystemImportWizard");//$NON-NLS-1$
 		}

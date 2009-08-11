@@ -25,11 +25,9 @@ import org.eclipse.swt.graphics.Point;
 public class ClonkLabelProvider extends LabelProvider implements IStyledLabelProvider {
 	
 	public ClonkLabelProvider() {
-//		instance = this;
 	}
 	
 	public Image getImage(Object element) {
-//		if (true) return null;
 		if (element instanceof IProject) {
 			return super.getImage(element);
 		}
@@ -60,6 +58,9 @@ public class ClonkLabelProvider extends LabelProvider implements IStyledLabelPro
 			else if (groupType == C4GroupType.ResourceGroup) {
 				return Icons.GROUP_ICON;
 			}
+		}
+		else if (element instanceof DependenciesNavigatorNode) {
+			return Icons.DEPENDENCIES_ICON;
 		}
 		return Utilities.getIconForObject(element);
 	}

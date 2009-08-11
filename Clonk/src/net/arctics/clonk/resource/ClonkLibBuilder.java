@@ -66,7 +66,8 @@ public class ClonkLibBuilder implements IC4GroupVisitor, IPropertyChangeListener
 	}
 	
 	private void readExternalLib(String lib, IProgressMonitor monitor) throws InvalidDataException, IOException, CoreException {
-		if (monitor == null) monitor = new NullProgressMonitor();
+		if (monitor == null)
+			monitor = new NullProgressMonitor();
 		File libFile = new File(lib);
 		currentExternNode = null;
 		monitor.beginTask("Parse lib " + lib, 1);

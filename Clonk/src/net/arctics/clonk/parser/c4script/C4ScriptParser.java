@@ -423,7 +423,7 @@ public class C4ScriptParser {
 					content = content.trim();
 				C4Directive directive = new C4Directive(type, content);
 				directive.setLocation(new SourceLocation(offset, fReader.getPosition()));
-				container.addField(directive);
+				container.addDeclaration(directive);
 				return true;
 			}
 		}
@@ -539,7 +539,7 @@ public class C4ScriptParser {
 		var.setLocation(new SourceLocation(start, end));
 		var.setScript(container);
 		var.setUserDescription(desc);
-		container.addField(var);
+		container.addDeclaration(var);
 		return var;
 	}
 	
@@ -568,7 +568,7 @@ public class C4ScriptParser {
 			break;
 		case VAR_CONST: case VAR_STATIC: case VAR_LOCAL:
 			result.setParentDeclaration(getContainer());
-			getContainer().addField(result);
+			getContainer().addDeclaration(result);
 		}
 		result.setLocation(location);
 		return result;
@@ -805,7 +805,7 @@ public class C4ScriptParser {
 		activeFunc.setLocation(new SourceLocation(startName,endName));
 		activeFunc.setBody(new SourceLocation(startBody,endBody));
 		activeFunc.setHeader(new SourceLocation(startOfFirstWord, endOfHeader));
-		container.addField(activeFunc);
+		container.addDeclaration(activeFunc);
 		if (!activeFunc.isOldStyle())
 			activeFunc = null; // to not suppress errors in-between functions
 		return true;
@@ -2286,7 +2286,7 @@ public class C4ScriptParser {
 			} catch (CoreException e1) {
 				e1.printStackTrace();
 			}
-			container.clearFields();
+			container.clearDeclarations();
 		}
 	}
 	

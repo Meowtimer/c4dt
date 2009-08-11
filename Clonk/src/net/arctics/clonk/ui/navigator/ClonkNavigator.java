@@ -1,6 +1,8 @@
 package net.arctics.clonk.ui.navigator;
 
 import java.util.Collection;
+import java.util.LinkedList;
+import java.util.List;
 
 import net.arctics.clonk.parser.C4Structure;
 import net.arctics.clonk.parser.c4script.C4ScriptBase;
@@ -92,26 +94,12 @@ public class ClonkNavigator extends ClonkOutlineProvider {
 
 	public Object[] getElements(Object inputElement) {
 		if (inputElement instanceof IWorkspaceRoot) {
-			return ((IWorkspaceRoot)inputElement).getProjects();
-//			File file = new File(((IWorkspaceRoot)inputElement).getLocationURI());
-//			FilenameFilter filter = new FilenameFilter() {
-//				private String[] extensions = new String[] { ".c4d", ".c4s", ".c4f", ".c4g" };
-// 				public boolean accept(File dir, String name) {
-// 					for (int i = 0; i < extensions.length; i++) {
-// 						if (name.endsWith(extensions[i]))
-// 							return true;
-// 					}
-// 					return false;
-//				}
-//			};
-//			String[] files = file.list(filter);
-//			Object[] projects = new Object[files.length];
-//			
-//			for(int i = 0;i < files.length;i++) {
-//				projects[i] = ResourcesPlugin.getWorkspace().getRoot().getProject(files[i]);
-////				((IProject)projects[i]).o
-//			}
-//			return projects;
+			IProject[] projects = ((IWorkspaceRoot)inputElement).getProjects();
+			List<IProject> result = new LinkedList<IProject>();
+			for (IProject p : projects)
+				if (Utilities.getClonkNature(p) != null)
+					result.add(p);
+			return result.toArray(new IProject[result.size()]);
 		}
 		return super.getElements(inputElement);
 	}

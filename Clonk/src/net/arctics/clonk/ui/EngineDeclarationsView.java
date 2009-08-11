@@ -2,13 +2,16 @@ package net.arctics.clonk.ui;
 
 import java.util.ArrayList;
 import java.util.List;
+
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.C4Declaration;
 import net.arctics.clonk.parser.c4script.C4Function;
+import net.arctics.clonk.parser.c4script.C4ScriptBase;
 import net.arctics.clonk.parser.c4script.C4Type;
 import net.arctics.clonk.parser.c4script.C4Variable;
 import net.arctics.clonk.parser.c4script.C4Function.C4FunctionScope;
 import net.arctics.clonk.parser.c4script.C4Variable.C4VariableScope;
+import net.arctics.clonk.preferences.PreferenceConstants;
 import net.arctics.clonk.ui.navigator.ClonkOutlineProvider;
 
 import org.eclipse.swt.widgets.Button;
@@ -28,6 +31,7 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.jface.action.*;
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.IDialogConstants;
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.ui.*;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.SWT;
@@ -51,9 +55,9 @@ import org.eclipse.swt.SWT;
  * <p>
  */
 
-public class EngineIdentifiersView extends ViewPart {
+public class EngineDeclarationsView extends ViewPart {
 	
-	protected class EditIdentifierInputDialog extends Dialog {
+	protected class EditDeclarationInputDialog extends Dialog {
 		
 		private class ParameterCombination {
 			private Combo type;
@@ -80,8 +84,8 @@ public class EngineIdentifiersView extends ViewPart {
 		}
 		
 		private Button newParameter;
-		private C4Declaration identifier;
-		private Text identifierNameField;
+		private C4Declaration declaration;
+		private Text declarationNameField;
 		private Text descriptionField;
 		private Combo returnTypeBox;
 		private Combo scopeBox;
@@ -91,18 +95,18 @@ public class EngineIdentifiersView extends ViewPart {
 		 * Edits the currently selected identifer
 		 * @param parent
 		 */
-		public EditIdentifierInputDialog(Shell parent) {
+		public EditDeclarationInputDialog(Shell parent) {
 			super(parent);
 		}
 		
 		/**
-		 * Edits the specified identifier
+		 * Edits the specified declaration
 		 * @param parent
-		 * @param identifier
+		 * @param declaration
 		 */
-		public EditIdentifierInputDialog(Shell parent, C4Declaration identifier) {
+		public EditDeclarationInputDialog(Shell parent, C4Declaration declaration) {
 			super(parent);
-			this.identifier = identifier;
+			this.declaration = declaration;
 		}
 		
 		/* (non-Javadoc)
@@ -114,19 +118,19 @@ public class EngineIdentifiersView extends ViewPart {
 			Composite composite = (Composite) super.createDialogArea(parent);
 			
 			composite.setLayout(new GridLayout(2,false));
-			if (identifier == null) {
+			if (declaration == null) {
 				Object activeElement = getActiveElement();
 				if (!(activeElement instanceof C4Declaration)) {
 					return null;
 				}
-				identifier = (C4Declaration) activeElement;
+				declaration = (C4Declaration) activeElement;
 			}
 			
-			if (identifier instanceof C4Function) {
-				createFunctionEditDialog(composite, (C4Function) identifier);
+			if (declaration instanceof C4Function) {
+				createFunctionEditDialog(composite, (C4Function) declaration);
 			}
-			else if (identifier instanceof C4Variable) {
-				createVariableEditDialog(composite, (C4Variable) identifier);
+			else if (declaration instanceof C4Variable) {
+				createVariableEditDialog(composite, (C4Variable) declaration);
 			}
 			
 			return composite;
@@ -157,9 +161,9 @@ public class EngineIdentifiersView extends ViewPart {
 		
 		@Override
 		protected void okPressed() {
-			if (identifier instanceof C4Function) {
-				C4Function func = (C4Function) identifier;
-				func.setName(identifierNameField.getText());
+			if (declaration instanceof C4Function) {
+				C4Function func = (C4Function) declaration;
+				func.setName(declarationNameField.getText());
 				func.setReturnType(C4Type.makeType(returnTypeBox.getItem(returnTypeBox.getSelectionIndex())));
 				func.setVisibility(C4FunctionScope.makeScope(scopeBox.getItem(scopeBox.getSelectionIndex())));
 				func.setUserDescription(descriptionField.getText());
@@ -171,9 +175,9 @@ public class EngineIdentifiersView extends ViewPart {
 					func.getParameters().add(var);
 				}
 			}
-			else if (identifier instanceof C4Variable) {
-				C4Variable var = (C4Variable) identifier;
-				var.setName(identifierNameField.getText());
+			else if (declaration instanceof C4Variable) {
+				C4Variable var = (C4Variable) declaration;
+				var.setName(declarationNameField.getText());
 				var.forceType(C4Type.makeType(returnTypeBox.getItem(returnTypeBox.getSelectionIndex()), true));
 				var.setScope(C4VariableScope.valueOf(scopeBox.getItem(scopeBox.getSelectionIndex())));
 			}
@@ -192,8 +196,8 @@ public class EngineIdentifiersView extends ViewPart {
 			
 			new Label(parent, SWT.NONE).setText("Name: ");
 			
-			identifierNameField = new Text(parent, SWT.BORDER | SWT.SINGLE);
-			identifierNameField.setText(var.getName());
+			declarationNameField = new Text(parent, SWT.BORDER | SWT.SINGLE);
+			declarationNameField.setText(var.getName());
 			
 			new Label(parent, SWT.NONE).setText("Type: ");
 			returnTypeBox = createComboBoxForType(parent, var.getType());
@@ -209,8 +213,8 @@ public class EngineIdentifiersView extends ViewPart {
 			
 			new Label(parent, SWT.NONE).setText("Name: ");
 			
-			identifierNameField = new Text(parent, SWT.BORDER | SWT.SINGLE);
-			identifierNameField.setText(func.getName());
+			declarationNameField = new Text(parent, SWT.BORDER | SWT.SINGLE);
+			declarationNameField.setText(func.getName());
 			
 			new Label(parent, SWT.NONE).setText("Return type: ");
 			returnTypeBox = createComboBoxForType(parent, func.getReturnType());
@@ -304,11 +308,12 @@ public class EngineIdentifiersView extends ViewPart {
 	private Action addVariableAction;
 	private Action saveAction;
 	private Action doubleClickAction;
+	private Action importFromRepoAction;
 
 	/**
 	 * The constructor.
 	 */
-	public EngineIdentifiersView() {
+	public EngineDeclarationsView() {
 	}
 
 	/**
@@ -347,7 +352,7 @@ public class EngineIdentifiersView extends ViewPart {
 		menuMgr.setRemoveAllWhenShown(true);
 		menuMgr.addMenuListener(new IMenuListener() {
 			public void menuAboutToShow(IMenuManager manager) {
-				EngineIdentifiersView.this.fillContextMenu(manager);
+				EngineDeclarationsView.this.fillContextMenu(manager);
 			}
 		});
 		Menu menu = menuMgr.createContextMenu(viewer.getControl());
@@ -371,7 +376,6 @@ public class EngineIdentifiersView extends ViewPart {
 	private void fillContextMenu(IMenuManager manager) {
 		manager.add(editAction);
 		manager.add(deleteAction);
-//		manager.add(saveAction);
 		manager.add(new Separator());
 		drillDownAdapter.addNavigationActions(manager);
 		// Other plug-ins can contribute there actions here
@@ -382,6 +386,8 @@ public class EngineIdentifiersView extends ViewPart {
 //		manager.add(editAction);
 		manager.add(addFunctionAction);
 		manager.add(addVariableAction);
+		manager.add(new Separator());
+		manager.add(importFromRepoAction);
 		manager.add(saveAction);
 		manager.add(new Separator());
 		drillDownAdapter.addNavigationActions(manager);
@@ -391,12 +397,12 @@ public class EngineIdentifiersView extends ViewPart {
 		addFunctionAction = new Action() {
 			public void run() {
 				C4Function func = new C4Function();
-				Dialog dialog = new EditIdentifierInputDialog(viewer.getControl().getShell(),func);
+				Dialog dialog = new EditDeclarationInputDialog(viewer.getControl().getShell(),func);
 				dialog.create();
 				dialog.getShell().setSize(400,600);
 				dialog.getShell().pack();
 				if (dialog.open() == Dialog.OK) {
-					ClonkCore.getDefault().getEngineObject().addField(func);
+					ClonkCore.getDefault().getEngineObject().addDeclaration(func);
 				}
 				refresh();
 			}
@@ -407,12 +413,12 @@ public class EngineIdentifiersView extends ViewPart {
 		addVariableAction = new Action() {
 			public void run() {
 				C4Variable var = new C4Variable();
-				Dialog dialog = new EditIdentifierInputDialog(viewer.getControl().getShell(),var);
+				Dialog dialog = new EditDeclarationInputDialog(viewer.getControl().getShell(),var);
 				dialog.create();
 				dialog.getShell().setSize(400,600);
 				dialog.getShell().pack();
 				if (dialog.open() == Dialog.OK) {
-					ClonkCore.getDefault().getEngineObject().addField(var);
+					ClonkCore.getDefault().getEngineObject().addDeclaration(var);
 				}
 				refresh();
 			}
@@ -427,7 +433,7 @@ public class EngineIdentifiersView extends ViewPart {
 //				Object data = item.getData();
 //				viewer.editElement(data, 0);
 //				viewer.editElement(((IStructuredSelection)viewer.getSelection()).getFirstElement(), 0);
-				Dialog dialog = new EditIdentifierInputDialog(viewer.getControl().getShell());
+				Dialog dialog = new EditDeclarationInputDialog(viewer.getControl().getShell());
 				dialog.create();
 				dialog.getShell().setSize(400, 600);
 				dialog.getShell().pack();
@@ -436,7 +442,7 @@ public class EngineIdentifiersView extends ViewPart {
 			}
 		};
 		editAction.setText("Edit");
-		editAction.setToolTipText("Edit this identifier");
+		editAction.setToolTipText("Edit this declaration");
 		editAction.setImageDescriptor(PlatformUI.getWorkbench().getSharedImages().
 				getImageDescriptor(ISharedImages.IMG_OBJS_INFO_TSK));
 		
@@ -457,9 +463,8 @@ public class EngineIdentifiersView extends ViewPart {
 			}
 		};
 		deleteAction.setText("Delete");
-		deleteAction.setToolTipText("Delete this identifier");
-		deleteAction.setImageDescriptor(PlatformUI.getWorkbench().getSharedImages().
-				getImageDescriptor(ISharedImages.IMG_TOOL_DELETE));
+		deleteAction.setToolTipText("Delete this declaration");
+		deleteAction.setImageDescriptor(PlatformUI.getWorkbench().getSharedImages().getImageDescriptor(ISharedImages.IMG_TOOL_DELETE));
 		
 		saveAction = new Action() {
 			public void run() {
@@ -468,9 +473,31 @@ public class EngineIdentifiersView extends ViewPart {
 		};
 		saveAction.setText("Save");
 		saveAction.setToolTipText("Save changes");
-		saveAction.setImageDescriptor(PlatformUI.getWorkbench().getSharedImages().
-				getImageDescriptor(ISharedImages.IMG_ETOOL_SAVE_EDIT));
+		saveAction.setImageDescriptor(PlatformUI.getWorkbench().getSharedImages().getImageDescriptor(ISharedImages.IMG_ETOOL_SAVE_EDIT));
+		
 		doubleClickAction = editAction;
+		
+		importFromRepoAction = new Action() {
+			@Override
+			public void run() {
+				C4ScriptBase engine = ClonkCore.getDefault().getEngineObject();
+				String repo = ClonkCore.getDefault().getPreferenceStore().getString(PreferenceConstants.OPENCLONK_REPO);
+				try {
+					if (repo == null) {
+						MessageDialog.openWarning(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(),
+							"No repository", "No repository selected in Preferences->Clonk");
+					} else {
+						engine.clearDeclarations();
+						engine.importFromRepositoryDocumentation(repo);
+						refresh();
+					}
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+		};
+		importFromRepoAction.setToolTipText("Import from OpenClonk repository");
+		importFromRepoAction.setText("Import from repository");
 	}
 
 	private void hookDoubleClickAction() {

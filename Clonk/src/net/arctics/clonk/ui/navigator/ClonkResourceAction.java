@@ -2,20 +2,31 @@ package net.arctics.clonk.ui.navigator;
 
 import net.arctics.clonk.util.Utilities;
 
-import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.IContainer;
 import org.eclipse.jface.action.Action;
+import org.eclipse.jface.viewers.ISelection;
+import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.IStructuredSelection;
-import org.eclipse.ui.PlatformUI;
+import org.eclipse.jface.viewers.SelectionChangedEvent;
 
-public class ClonkResourceAction extends Action {
+public class ClonkResourceAction extends Action implements ISelectionChangedListener {
+
+	private boolean enabled(ISelection selection) {
+		IStructuredSelection sel = (IStructuredSelection) selection;
+		return Utilities.allInstanceOf(sel.toArray(), IContainer.class);
+	}
 	
-	ClonkResourceAction(String text) {
+	public ClonkResourceAction() {
+		super();
+		Utilities.getProjectExplorer().getCommonViewer().addSelectionChangedListener(this);
+	}
+	
+	public ClonkResourceAction(String text) {
 		super (text);
 	}
-	
-	@Override
-	public boolean isEnabled() {
-		IStructuredSelection sel = (IStructuredSelection) PlatformUI.getWorkbench().getActiveWorkbenchWindow().getSelectionService().getSelection();
-		return Utilities.allInstanceOf(sel.toArray(), IResource.class);
+
+	public void selectionChanged(SelectionChangedEvent event) {
+		setEnabled(enabled(event.getSelection()));
 	}
+
 }

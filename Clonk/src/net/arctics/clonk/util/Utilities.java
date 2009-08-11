@@ -52,7 +52,11 @@ import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.Region;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.ui.IEditorPart;
+import org.eclipse.ui.IPageLayout;
+import org.eclipse.ui.IViewPart;
+import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPage;
+import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.console.ConsolePlugin;
@@ -63,6 +67,7 @@ import org.eclipse.ui.console.IConsoleView;
 import org.eclipse.ui.console.MessageConsole;
 import org.eclipse.ui.console.MessageConsoleStream;
 import org.eclipse.ui.ide.IDE;
+import org.eclipse.ui.navigator.CommonNavigator;
 import org.eclipse.ui.part.FileEditorInput;
 import org.eclipse.ui.texteditor.ITextEditor;
 
@@ -551,5 +556,21 @@ public abstract class Utilities {
 			stream.close();
 		}
 	}
-	
+
+	public static CommonNavigator getProjectExplorer() {
+		IWorkbench workbench = PlatformUI.getWorkbench();
+		if (workbench != null) {
+			IWorkbenchWindow window = workbench.getActiveWorkbenchWindow();
+			if (window != null) {
+				IWorkbenchPage page = window.getActivePage();
+				if (page != null) {
+					IViewPart viewPart = page.findView(IPageLayout.ID_PROJECT_EXPLORER);
+					if (viewPart instanceof CommonNavigator) {
+						return (CommonNavigator) viewPart;
+					}
+				}
+			}
+		}
+		return null;
+	}
 }

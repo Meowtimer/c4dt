@@ -13,7 +13,7 @@ import net.arctics.clonk.parser.c4script.C4ScriptExprTree.ExprElm;
 import net.arctics.clonk.parser.c4script.C4Variable.C4VariableScope;
 import net.arctics.clonk.util.CompoundIterable;
 
-public class C4Function extends C4Structure implements Serializable, ITypedDeclaration {
+public class C4Function extends C4Structure implements Serializable, ITypedDeclaration, IHasUserDescription {
 
 	private static final long serialVersionUID = 3848213897251037684L;
 	private C4FunctionScope visibility; 
@@ -131,13 +131,6 @@ public class C4Function extends C4Structure implements Serializable, ITypedDecla
 	 */
 	public void setUserDescription(String description) {
 		this.description = description;
-	}
-
-	/**
-	 * @param name the name to set
-	 */
-	public void setName(String name) {
-		this.name = name;
 	}
 
 	/**

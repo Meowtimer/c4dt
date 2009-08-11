@@ -47,6 +47,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 	
 	private int buildPhase;
 	private IProgressMonitor monitor;
+	
 	// keeps track of parsers created for specific scripts
 	private Map<C4ScriptBase, C4ScriptParser> parserMap = new HashMap<C4ScriptBase, C4ScriptParser>();
 	
@@ -291,7 +292,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 				if (buildPhase == 0) {
 					C4ScriptBase script = Utilities.getScriptForFile(file);
 					if (script != null && file.equals(script.getScriptFile()))
-						script.clearFields();
+						script.clearDeclarations();
 				}
 			}
 			if (monitor != null)

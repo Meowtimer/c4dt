@@ -14,4 +14,5 @@ public abstract class Icons {
 	public static final Image SCENARIO_ICON = Utilities.getIconImage("c4scenario","icons/Clonk_scenario.png");
 	public static final Image TEXT_ICON = Utilities.getIconImage("c4txt","icons/text.png");
 	public static final Image MATERIAL_ICON = Utilities.getIconImage("c4material","icons/Clonk_C4.png");
+	public static final Image DEPENDENCIES_ICON = Utilities.getIconImage("c4dependencies", "icons/Dependencies.png");
 }

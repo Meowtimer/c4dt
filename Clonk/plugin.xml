@@ -21,14 +21,12 @@
 			filenames="Landscape.txt">
 			<contentTypeBinding contentTypeId="net.arctics.clonk.mapcreatorfile" />
 		</editor>
-
 	</extension>
 
 	<extension point="org.eclipse.core.resources.natures" id="clonknature"
 		name="Clonk Nature">
 		<runtime>
 			<run class="net.arctics.clonk.resource.ClonkProjectNature" />
-
 		</runtime>
 		<builder id="net.arctics.clonk.builder" />
 	</extension>
@@ -124,23 +122,19 @@
 			</includes>
 		</viewerContentBinding>
 	</extension>
- <extension
-       point="org.eclipse.ui.propertyPages">
-    <page
-          class="net.arctics.clonk.ui.ClonkProjectProperties"
-          id="net.arctics.clonk.projectProperties"
-          name="Clonk">
-       <enabledWhen>
-          <adapt
-                type="org.eclipse.core.resources.IProject">
-             <test
-                   property="org.eclipse.core.resources.projectNature"
-                   value="net.arctics.clonk.clonknature">
-             </test>
-          </adapt>
-       </enabledWhen>
-    </page>
- </extension>
+	
+	<extension point="org.eclipse.ui.propertyPages">
+		<page
+			class="net.arctics.clonk.ui.ClonkProjectProperties"
+			id="net.arctics.clonk.projectProperties"
+			name="Clonk">
+			<enabledWhen>
+				<adapt type="org.eclipse.core.resources.IProject">
+					<test property="org.eclipse.core.resources.projectNature" value="net.arctics.clonk.clonknature" />
+				</adapt>
+			</enabledWhen>
+    	</page>
+    </extension>
 
 	<extension point="org.eclipse.ui.newWizards">
 		<category id="net.arctics.clonk.clonkProjects" name="Clonk"
@@ -236,9 +230,9 @@
 	<extension point="org.eclipse.ui.views">
 		<category id="net.arctics.clonk" name="Clonk" />
 
-		<view category="net.arctics.clonk" class="net.arctics.clonk.ui.EngineIdentifiersView"
-			icon="icons/Clonk_C4.png" id="net.arctics.clonk.views.EngineIdentifiersView"
-			name="Engine identifiers" />
+		<view category="net.arctics.clonk" class="net.arctics.clonk.ui.EngineDeclarationsView"
+			icon="icons/Clonk_C4.png" id="net.arctics.clonk.views.EngineDeclarationsView"
+			name="Engine declarations" />
 	</extension>
 
 	<extension id="net.arctics.clonk.externliberror" name="Extern library error"
@@ -255,9 +249,16 @@
 
 	<extension point="org.eclipse.ui.commands">
 		<command categoryId="org.eclipse.ui.category.navigate"
-			description="Open a dialog to quickly find a definition" id="net.arctics.clonk.ui.open.object"
+			description="Open a dialog to quickly find a definition"
+			id="net.arctics.clonk.ui.OpenObject"
 			defaultHandler="net.arctics.clonk.ui.editors.actions.c4script.OpenObjectAction"
 			name="Open Object" />
+		
+		<command categoryId="org.eclipse.ui.category.navigate"
+			description="Export the selected resources to the Clonk folder"
+			id="net.arctics.clonk.ui.QuickExport"
+			defaultHandler="net.arctics.clonk.ui.navigator.QuickExportAction"
+			name="Quick Export" />
 
 		<command categoryId="org.eclipse.ui.category.edit"
 			description="Convert old code to new code"
@@ -289,7 +290,8 @@
 	<extension point="org.eclipse.ui.menus">
 		<menuContribution locationURI="menu:org.eclipse.ui.main.menu">
 			<menu label="Clonk">
-				<command commandId="net.arctics.clonk.ui.open.object" label="Open Object" />
+				<command commandId="net.arctics.clonk.ui.OpenObject" label="Open Object" />
+				<command commandId="net.arctics.clonk.ui.QuickExport" label="Quick Export" />
 			</menu>
 		</menuContribution>
 	</extension>
@@ -303,10 +305,7 @@
 			<property name="startupProgressRect" value="0,280,455,15" />
 			<property name="startupMessageRect" value="7,220,441,20" />
 			<property name="appName" value="Clonklipse" />
-   <property
-         name="preferenceCustomization"
-         value="plugin_customization.ini">
-   </property>
+			<property name="preferenceCustomization" value="plugin_customization.ini" />
 		</product>
 	</extension>
 	
@@ -317,11 +316,8 @@
 			<enablement>
 				<or>
 					<objectClass name="org.eclipse.core.resources.IFolder" />
-
 					<objectClass name="org.eclipse.core.resources.IFile" />
-
 					<objectClass name="org.eclipse.core.resources.IProject" />
-
 				</or>
 			</enablement>
 		</decorator>

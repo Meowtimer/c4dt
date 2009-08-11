@@ -52,6 +52,14 @@ public abstract class C4Declaration implements Serializable, IHasRelatedResource
 	}
 	
 	/**
+	 * Sets the name.
+	 * @param name the new name
+	 */
+	public void setName(String name) {
+		this.name = name;
+	}
+	
+	/**
 	 * @param location the location to set
 	 */
 	public void setLocation(SourceLocation location) {

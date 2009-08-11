@@ -48,6 +48,7 @@ import org.eclipse.ui.texteditor.SourceViewerDecorationSupport;
 public class C4ScriptEditor extends ClonkTextEditor {
 
 	// Helper class that takes care of triggering a timed reparsing when the document is changed and such
+	// it tries to only fire a reparse when necessary (ie not when editing inside of a function)
 	private final class TextChangeListener implements IDocumentListener {
 		
 		private Timer reparseTimer = new Timer("ReparseTimer");

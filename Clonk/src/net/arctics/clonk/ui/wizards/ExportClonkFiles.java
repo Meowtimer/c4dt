@@ -33,7 +33,8 @@ public class ExportClonkFiles extends Wizard implements IExportWizard {
 				selectedContainers[i] = (IContainer) selectedResources[i];
 		}
 		C4GroupExporter exporter = new C4GroupExporter(selectedContainers,c4groupPath,gamePath);
-		exporter.export(null);
+		if (exporter.selectDestPaths())
+			exporter.export(null);
 		return true;
 	}
 

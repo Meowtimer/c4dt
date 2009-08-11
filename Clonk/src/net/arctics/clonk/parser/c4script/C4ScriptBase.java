@@ -1,5 +1,9 @@
 package net.arctics.clonk.parser.c4script;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Writer;
@@ -254,7 +258,7 @@ public abstract class C4ScriptBase extends C4Structure implements IHasRelatedRes
 		return null;
 	}
 	
-	public void addField(C4Declaration field) {
+	public void addDeclaration(C4Declaration field) {
 		field.setScript(this);
 		if (field instanceof C4Function) {
 			definedFunctions.add((C4Function)field);
@@ -289,7 +293,7 @@ public abstract class C4ScriptBase extends C4Structure implements IHasRelatedRes
 		}
 	}
 	
-	public void clearFields() {
+	public void clearDeclarations() {
 		if (definedDirectives != null)
 			definedDirectives.clear();
 		if (definedFunctions != null)
@@ -621,7 +625,7 @@ public abstract class C4ScriptBase extends C4Structure implements IHasRelatedRes
 			Node desc = (Node) xPath.evaluate("./description[1]", function, XPathConstants.NODE);
 			if (desc != null)
 				f.setUserDescription(desc.getTextContent());
-			this.addField(f);
+			this.addDeclaration(f);
 		}
 		for (int i = 0; i < variables.getLength(); i++) {
 			Node variable = variables.item(i);
@@ -630,7 +634,7 @@ public abstract class C4ScriptBase extends C4Structure implements IHasRelatedRes
 			Node desc = (Node) xPath.evaluate("./description[1]", variable, XPathConstants.NODE);
 			if (desc != null)
 				v.setUserDescription(desc.getTextContent());
-			this.addField(v);
+			this.addDeclaration(v);
 		}
 	}
 	
@@ -649,6 +653,22 @@ public abstract class C4ScriptBase extends C4Structure implements IHasRelatedRes
 			}
 		}
 		return super.getInfoText();
+	}
+	
+	public void importFromRepositoryDocumentation(String repository) throws XPathExpressionException, FileNotFoundException, SAXException, IOException {
+		XMLDocImporter importer = XMLDocImporter.instance();
+		importer.setRepositoryPath(repository);
+		String fnFolder = repository + "/docs/sdk/script/fn";
+		File fn = new File(fnFolder);
+		for (String fileName : fn.list(new FilenameFilter() {
+			public boolean accept(File dir, String name) {
+				return name.endsWith(".xml");
+			}
+		})) {
+			C4Declaration declaration = importer.importFromXML(new FileInputStream(fnFolder + "/" + fileName));
+			if (declaration != null)
+				this.addDeclaration(declaration);
+		}
 	}
 	
 //	public boolean removeDWording() {

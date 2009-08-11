@@ -53,14 +53,15 @@ public class ClonkPreferencePage
 		addField(clonkPathEditor);
 		addField(c4groupExecutable);
 		addField(engineExecutable);
+		addField(new DirectoryFieldEditor(PreferenceConstants.OPENCLONK_REPO, "&OpenClonk Repository", getFieldEditorParent()));
 		addField(
-				new StringFieldEditor(
-						PreferenceConstants.PREFERRED_LANGID,
-						"Preferred language",
-						getFieldEditorParent()
-				)
+			new StringFieldEditor(
+				PreferenceConstants.PREFERRED_LANGID,
+				"Preferred language",
+				getFieldEditorParent()
+			)
 		);
-		addField(new ListEditor(PreferenceConstants.STANDARD_EXT_LIBS,"External objects and scripts:",getFieldEditorParent()) {
+		addField(new ListEditor(PreferenceConstants.STANDARD_EXT_LIBS, "External objects and scripts:",getFieldEditorParent()) {
 		
 			@Override
 			protected String[] parseString(String stringList) {

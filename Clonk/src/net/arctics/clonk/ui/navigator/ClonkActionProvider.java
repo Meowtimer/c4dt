@@ -42,7 +42,7 @@ public class ClonkActionProvider extends CommonActionProvider {
 	@Override
 	public void fillContextMenu(IMenuManager menu) {
 		super.fillContextMenu(menu);
-		for (IAction a : new IAction[]{quickExportAction, convertCodeAction})
+		for (IAction a : new IAction[] {quickExportAction, convertCodeAction})
 			if (a.isEnabled())
 				menu.add(a);
 		if (openAction.isEnabled())
