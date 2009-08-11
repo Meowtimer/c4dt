@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?pde version="3.5"?>
 
-<product name="Clonklipse" uid="net.arctics.clonk" id="net.arctics.clonk.product" application="org.eclipse.ui.ide.workbench" version="1.5" useFeatures="true" includeLaunchers="true">
+<product name="Eclipse SDK" uid="net.arctics.clonk" id="net.arctics.clonk.product" application="org.eclipse.ui.ide.workbench" version="1.5" useFeatures="true" includeLaunchers="true">
 
    <aboutInfo>
       <text>
@@ -116,5 +116,8 @@
       <feature id="org.eclipse.platform" version="3.5.0.v20090611a-9gEeG1HFtQcmRThO4O3aR_fqSMvJR2sJ"/>
    </features>
 
+   <configurations>
+      <plugin id="net.arctics.clonk" autoStart="true" startLevel="0" />
+   </configurations>
 
 </product>
