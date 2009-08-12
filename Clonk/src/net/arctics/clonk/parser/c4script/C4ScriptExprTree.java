@@ -1717,7 +1717,7 @@ public abstract class C4ScriptExprTree {
 				printIndent(output, depth-1);
 				output.append(component.getFirst());
 				output.append(": ");
-				component.getSecond().print(output, 0);
+				component.getSecond().print(output, depth+1);
 				if (i < components.length-1) {
 					output.append(',');
 				} else {

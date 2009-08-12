@@ -1403,7 +1403,7 @@ public class C4ScriptParser {
 						expectingComma = true;
 					}
 					else
-						errorWithCode(ParserErrorCode.TokenExpected, fReader.getPosition(), 1, "String or identifier");
+						errorWithCode(ParserErrorCode.TokenExpected, fReader.getPosition(), fReader.getPosition()+1, "String or identifier");
 				}
 			}
 			if (!properlyClosed) {
