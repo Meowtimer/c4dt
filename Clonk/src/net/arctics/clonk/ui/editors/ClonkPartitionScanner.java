@@ -21,7 +21,8 @@ public class ClonkPartitionScanner extends RuleBasedPartitionScanner {
 
 		rules[0] = new EndOfLineRule("//", singleLineComment);
 		rules[1] = new MultiLineRule("/*", "*/", multiLineComment,(char)0,true);
-		rules[2] = new SingleLineRule("\"","\"",string);
+		//rules[2] = new SingleLineRule("\"","\"",string);
+		rules[2] = new SingleLineRule("\"","\"",string, '\\');
 //		rules[3] = new CodeBodyRule(codeBody);
 //		rules[4] = new PatternRule(":","return",codeBody,(char)0,false);
 
