@@ -298,7 +298,7 @@
 
 	<extension id="product" point="org.eclipse.core.runtime.products">
 		<product application="org.eclipse.ui.ide.workbench" name="Eclipse SDK">
-			<property name="windowImages" value="icons/eclipse.gif,icons/eclipse32.gif,icons/eclipse48.png,icons/eclipse.png,icons/eclipse32.png" />
+			<property name="windowImages" value="res/DistroIcon16x16.gif,res/DistroIcon32x32.gif,res/DistroIcon48x48.gif,res/DistroIcon64x64.gif,res/DistroIcon128x128.gif" />
 			<property name="aboutText" value="%productBlurb" />
 			<property name="aboutImage" value="icons/eclipse_lg.gif" />
 			<property name="startupForegroundColor" value="C8D5EA" />
