@@ -579,7 +579,7 @@
 				description="NewStyle landscape mode"/>
 		</section>
 		<section name="Animals">
-			<entry name="Animals" class="net.arctics.clonk.parser.inireader.IDArray"
+			<entry name="Animal" class="net.arctics.clonk.parser.inireader.IDArray"
 				description="Freilaufende Lebewesen." />
 			<entry name="Nest" class="net.arctics.clonk.parser.inireader.IDArray"
 				description="Nester im Erdreich." />
