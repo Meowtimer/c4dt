@@ -13,12 +13,12 @@ import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.CachedEngineFuncs;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.c4script.C4ScriptExprTree.DeclarationRegion;
-import net.arctics.clonk.parser.c4script.C4ScriptExprTree.ExprAccessDeclaration;
-import net.arctics.clonk.parser.c4script.C4ScriptExprTree.ExprCallFunc;
+import net.arctics.clonk.parser.c4script.C4ScriptExprTree.AccessDeclaration;
+import net.arctics.clonk.parser.c4script.C4ScriptExprTree.CallFunc;
 import net.arctics.clonk.parser.c4script.C4ScriptExprTree.ExprElm;
-import net.arctics.clonk.parser.c4script.C4ScriptExprTree.ExprID;
-import net.arctics.clonk.parser.c4script.C4ScriptExprTree.ExprMemberOperator;
-import net.arctics.clonk.parser.c4script.C4ScriptExprTree.ExprString;
+import net.arctics.clonk.parser.c4script.C4ScriptExprTree.IDLiteral;
+import net.arctics.clonk.parser.c4script.C4ScriptExprTree.MemberOperator;
+import net.arctics.clonk.parser.c4script.C4ScriptExprTree.StringLiteral;
 import net.arctics.clonk.parser.c4script.C4ScriptExprTree.IExpressionListener;
 import net.arctics.clonk.parser.c4script.C4ScriptExprTree.Statement;
 import net.arctics.clonk.parser.c4script.C4ScriptExprTree.TraversalContinuation;
@@ -81,22 +81,22 @@ public class ClonkSearchQuery implements ISearchQuery {
 		getSearchResult(); // make sure we have one
 		final IExpressionListener searchExpression = new IExpressionListener() {
 			
-			private ExprString functionNameExpr;
+			private StringLiteral functionNameExpr;
 			
 			private boolean potentiallyReferencedByObjectCall(ExprElm expression) {
-				if (expression instanceof ExprCallFunc && expression.getPredecessorInSequence() instanceof ExprMemberOperator) {
-					ExprCallFunc callFunc = (ExprCallFunc) expression;
+				if (expression instanceof CallFunc && expression.getPredecessorInSequence() instanceof MemberOperator) {
+					CallFunc callFunc = (CallFunc) expression;
 					return callFunc.getDeclarationName().equals(declaration.getName());
 				}
 				return false;
 			}
-			private boolean potentiallyReferencedByCallFunction(ExprAccessDeclaration expression, C4ScriptParser parser) {
+			private boolean potentiallyReferencedByCallFunction(AccessDeclaration expression, C4ScriptParser parser) {
 				functionNameExpr = null;
-				if (expression instanceof ExprCallFunc) {
-					ExprCallFunc callFunc = (ExprCallFunc) expression;
+				if (expression instanceof CallFunc) {
+					CallFunc callFunc = (CallFunc) expression;
 					for (ExprElm e : callFunc.getParams()) {
-						if (e instanceof ExprString) {
-							functionNameExpr = (ExprString) e;
+						if (e instanceof StringLiteral) {
+							functionNameExpr = (StringLiteral) e;
 							DeclarationRegion decRegion = e.declarationAt(0, parser);
 							if (decRegion != null)
 								return decRegion.getDeclaration() == declaration;
@@ -107,8 +107,8 @@ public class ClonkSearchQuery implements ISearchQuery {
 				return false;
 			}
 			public TraversalContinuation expressionDetected(ExprElm expression, C4ScriptParser parser) {
-				if (expression instanceof ExprAccessDeclaration) {
-					ExprAccessDeclaration accessDeclExpr = (ExprAccessDeclaration) expression;
+				if (expression instanceof AccessDeclaration) {
+					AccessDeclaration accessDeclExpr = (AccessDeclaration) expression;
 					if (accessDeclExpr.getDeclaration(parser) == declaration)
 						result.addMatch(expression, parser, false, accessDeclExpr.indirectAccess());
 					else if (Utilities.isAnyOf(accessDeclExpr.getDeclaration(), CachedEngineFuncs.CallFunctions) && potentiallyReferencedByCallFunction(accessDeclExpr, parser)) {
@@ -120,7 +120,7 @@ public class ClonkSearchQuery implements ISearchQuery {
 						result.addMatch(expression, parser, potential, accessDeclExpr.indirectAccess());
 					}
 				}
-				else if (expression instanceof ExprID && declaration instanceof C4ScriptBase) {
+				else if (expression instanceof IDLiteral && declaration instanceof C4ScriptBase) {
 					if (expression.guessObjectType(parser) == declaration)
 						result.addMatch(expression, parser, false, false);
 				}

@@ -370,13 +370,13 @@ public abstract class C4ScriptExprTree {
 
 	}
 
-	public static class ExprMemberOperator extends ExprElm {
+	public static class MemberOperator extends ExprElm {
 		private boolean dotNotation;
 		private boolean hasTilde;
 		private C4ID id;
 		private int idOffset;
 
-		public ExprMemberOperator(boolean dotNotation, boolean hasTilde, C4ID id, int idOffset) {
+		public MemberOperator(boolean dotNotation, boolean hasTilde, C4ID id, int idOffset) {
 			super();
 			this.dotNotation = dotNotation;
 			this.hasTilde = hasTilde;
@@ -454,7 +454,7 @@ public abstract class C4ScriptExprTree {
 
 	}
 
-	public abstract static class ExprValue extends ExprElm {
+	public abstract static class Value extends ExprElm {
 
 		@Override
 		public C4Type getType(C4ScriptParser context) {
@@ -463,9 +463,9 @@ public abstract class C4ScriptExprTree {
 
 	}
 
-	public static class ExprSequence extends ExprValue {
+	public static class Sequence extends Value {
 		protected ExprElm[] elements;
-		public ExprSequence(ExprElm[] elms) {
+		public Sequence(ExprElm[] elms) {
 			elements = elms;
 			ExprElm prev = null;
 			for (ExprElm e : elements) {
@@ -521,7 +521,7 @@ public abstract class C4ScriptExprTree {
 
 	}
 
-	public static abstract class ExprAccessDeclaration extends ExprValue {
+	public static abstract class AccessDeclaration extends Value {
 		protected C4Declaration declaration;
 		private boolean declNotFound = false;
 		protected final String declarationName;
@@ -546,7 +546,7 @@ public abstract class C4ScriptExprTree {
 			getDeclaration(parser); // find the field so subclasses can complain about missing variables/functions
 		}
 
-		public ExprAccessDeclaration(String fieldName) {
+		public AccessDeclaration(String fieldName) {
 			this.declarationName = fieldName;
 		}
 		@Override
@@ -577,7 +577,7 @@ public abstract class C4ScriptExprTree {
 		}
 	}
 
-	public static class ExprAccessVar extends ExprAccessDeclaration {
+	public static class AccessVar extends AccessDeclaration {
 		
 		private static final class VariableTypeInformation extends StoredTypeInformation {
 			private C4Declaration decl;
@@ -588,14 +588,14 @@ public abstract class C4ScriptExprTree {
 
 			public boolean expressionRelevant(ExprElm expr) {
 				// obj-> asks for the relevance of obj
-				if (expr instanceof ExprSequence) {
-					ExprSequence seq = (ExprSequence) expr;
-					if (seq.getLastElement() instanceof ExprMemberOperator && seq.getLastElement().getPredecessorInSequence() instanceof ExprAccessVar)
+				if (expr instanceof Sequence) {
+					Sequence seq = (Sequence) expr;
+					if (seq.getLastElement() instanceof MemberOperator && seq.getLastElement().getPredecessorInSequence() instanceof AccessVar)
 						expr = seq.getLastElement().getPredecessorInSequence();
 					else
 						return false;
 				}
-				return expr instanceof ExprAccessVar && ((ExprAccessVar)expr).getDeclaration() == decl;
+				return expr instanceof AccessVar && ((AccessVar)expr).getDeclaration() == decl;
 			}
 
 			@Override
@@ -637,11 +637,11 @@ public abstract class C4ScriptExprTree {
 			return declaration == null || ((C4Variable)declaration).getScope() != C4VariableScope.VAR_CONST;
 		}
 
-		public ExprAccessVar(String varName) {
+		public AccessVar(String varName) {
 			super(varName);
 		}
 		
-		public ExprAccessVar(C4Variable v) {
+		public AccessVar(C4Variable v) {
 			this(v.getName());
 			this.declaration = v;
 		}
@@ -700,7 +700,7 @@ public abstract class C4ScriptExprTree {
 		
 	}
 
-	public static class ExprCallFunc extends ExprAccessDeclaration {
+	public static class CallFunc extends AccessDeclaration {
 		private final static class VarFunctionsTypeInformation extends StoredTypeInformation {
 			private int varIndex;
 
@@ -709,13 +709,13 @@ public abstract class C4ScriptExprTree {
 			}
 
 			public boolean expressionRelevant(ExprElm expr) {
-				if (expr instanceof ExprCallFunc) {
-					ExprCallFunc callFunc = (ExprCallFunc) expr;
+				if (expr instanceof CallFunc) {
+					CallFunc callFunc = (CallFunc) expr;
 					return
 						callFunc.getDeclaration() == CachedEngineFuncs.Var &&
 						callFunc.getParams().length > 0 &&
-						callFunc.getParams()[0] instanceof ExprNumber &&
-						((ExprNumber)callFunc.getParams()[0]).intValue() == varIndex;
+						callFunc.getParams()[0] instanceof NumberLiteral &&
+						((NumberLiteral)callFunc.getParams()[0]).intValue() == varIndex;
 				}
 				return false;
 			}
@@ -725,7 +725,7 @@ public abstract class C4ScriptExprTree {
 			}
 		}
 		private ExprElm[] params;
-		public ExprCallFunc(String funcName, ExprElm... parms) {
+		public CallFunc(String funcName, ExprElm... parms) {
 			super(funcName);
 			params = parms;
 			assignParentToSubElements();
@@ -761,7 +761,7 @@ public abstract class C4ScriptExprTree {
 		}
 		@Override
 		public boolean isValidInSequence(ExprElm elm, C4ScriptParser context) {
-			return super.isValidInSequence(elm, context) || elm instanceof ExprMemberOperator;	
+			return super.isValidInSequence(elm, context) || elm instanceof MemberOperator;	
 		}
 		@Override
 		protected C4Declaration getDeclImpl(C4ScriptParser parser) {
@@ -799,7 +799,7 @@ public abstract class C4ScriptExprTree {
 					context.unnamedParamaterUsed(params[0]);
 				}
 				else
-					context.unnamedParamaterUsed(ExprNumber.ZERO);
+					context.unnamedParamaterUsed(NumberLiteral.ZERO);
 			}
 			else if (declarationName.equals(Keywords.Return))
 				context.warningWithCode(ParserErrorCode.ReturnAsFunction, this);
@@ -872,9 +872,9 @@ public abstract class C4ScriptExprTree {
 			}
 			return super.guessObjectType(parser);
 		}
-		protected ExprBinaryOp applyOperatorTo(C4ScriptParser parser, ExprElm[] parms, C4ScriptOperator operator) throws CloneNotSupportedException {
-			ExprBinaryOp op = new ExprBinaryOp(operator);
-			ExprBinaryOp result = op;
+		protected BinaryOp applyOperatorTo(C4ScriptParser parser, ExprElm[] parms, C4ScriptOperator operator) throws CloneNotSupportedException {
+			BinaryOp op = new BinaryOp(operator);
+			BinaryOp result = op;
 			for (int i = 0; i < parms.length; i++) {
 				ExprElm one = parms[i].newStyleReplacement(parser);
 				ExprElm two = i+1 < parms.length ? parms[i+1] : null;
@@ -884,7 +884,7 @@ public abstract class C4ScriptExprTree {
 					op.setRightSide(one);
 				}
 				else {
-					ExprBinaryOp nu = new ExprBinaryOp(operator);
+					BinaryOp nu = new BinaryOp(operator);
 					op.setRightSide(nu);
 					nu.setLeftSide(one);
 					op = nu;
@@ -900,50 +900,50 @@ public abstract class C4ScriptExprTree {
 			if (replOperator != null && params.length == 1) {
 				// LessThan(x) -> x < 0
 				if (replOperator.getNumArgs() == 2)
-					return new ExprBinaryOp(replOperator, params[0].newStyleReplacement(parser), new ExprNumber(0));
+					return new BinaryOp(replOperator, params[0].newStyleReplacement(parser), new NumberLiteral(0));
 				ExprElm n = params[0].newStyleReplacement(parser);
-				if (n instanceof ExprBinaryOp)
-					n = new ExprParenthesized(n);
-				return new ExprUnaryOp(replOperator, replOperator.isPostfix() ? ExprUnaryOp.Placement.Postfix : ExprUnaryOp.Placement.Prefix, n);
+				if (n instanceof BinaryOp)
+					n = new Parenthesized(n);
+				return new UnaryOp(replOperator, replOperator.isPostfix() ? UnaryOp.Placement.Postfix : UnaryOp.Placement.Prefix, n);
 			}
 			if (replOperator != null && params.length >= 2) {
 				return applyOperatorTo(parser, params, replOperator);
 			}
 			
 			// ObjectCall(ugh, "UghUgh", 5) -> ugh->UghUgh(5)
-			if (params.length >= 2 && declarationName.equals("ObjectCall") && params[1] instanceof ExprString) {
+			if (params.length >= 2 && declarationName.equals("ObjectCall") && params[1] instanceof StringLiteral) {
 				ExprElm[] parmsWithoutObject = new ExprElm[params.length-2];
 				for (int i = 0; i < parmsWithoutObject.length; i++)
 					parmsWithoutObject[i] = params[i+2].newStyleReplacement(parser);
-				return new ExprSequence(new ExprElm[] {
+				return new Sequence(new ExprElm[] {
 						params[0].newStyleReplacement(parser),
-						new ExprMemberOperator(false, true, null, 0),
-						new ExprCallFunc(((ExprString)params[1]).stringValue(), parmsWithoutObject)});
+						new MemberOperator(false, true, null, 0),
+						new CallFunc(((StringLiteral)params[1]).stringValue(), parmsWithoutObject)});
 			}
 			
 			// OCF_Awesome() -> OCF_Awesome
 			if (params.length == 0 && declaration instanceof C4Variable) {
-				return new ExprAccessVar(declarationName);
+				return new AccessVar(declarationName);
 			}
 			
 			// Par(5) -> nameOfParm6
-			if (params.length <= 1 && declaration == CachedEngineFuncs.Par && (params.length == 0 || params[0] instanceof ExprNumber)) {
-				ExprNumber number = params.length > 0 ? (ExprNumber) params[0] : ExprNumber.ZERO;
+			if (params.length <= 1 && declaration == CachedEngineFuncs.Par && (params.length == 0 || params[0] instanceof NumberLiteral)) {
+				NumberLiteral number = params.length > 0 ? (NumberLiteral) params[0] : NumberLiteral.ZERO;
 				if (number.intValue() >= 0 && number.intValue() < parser.getActiveFunc().getParameters().size())
-					return new ExprAccessVar(parser.getActiveFunc().getParameters().get(number.intValue()).getName());
+					return new AccessVar(parser.getActiveFunc().getParameters().get(number.intValue()).getName());
 			}
 			
 			// SetVar(5, "ugh") -> Var(5) = "ugh"
 			if (params.length == 2 && (declarationName.equals("SetVar") || declarationName.equals("SetLocal")) || declarationName.equals("AssignVar")) {
-				return new ExprBinaryOp(C4ScriptOperator.Assign, new ExprCallFunc(declarationName.substring(declarationName.equals("AssignVar") ? "Assign".length() : "Set".length()), params[0].newStyleReplacement(parser)), params[1].newStyleReplacement(parser));
+				return new BinaryOp(C4ScriptOperator.Assign, new CallFunc(declarationName.substring(declarationName.equals("AssignVar") ? "Assign".length() : "Set".length()), params[0].newStyleReplacement(parser)), params[1].newStyleReplacement(parser));
 			}
 			
 			// Call("Func", 5, 5) -> Func(5, 5)
-			if (params.length >= 1 && declarationName.equals("Call") && params[0] instanceof ExprString) {
+			if (params.length >= 1 && declarationName.equals("Call") && params[0] instanceof StringLiteral) {
 				ExprElm[] parmsWithoutName = new ExprElm[params.length-1];
 				for (int i = 0; i < parmsWithoutName.length; i++)
 					parmsWithoutName[i] = params[i+1].newStyleReplacement(parser);
-				return new ExprCallFunc(((ExprString)params[0]).stringValue(), parmsWithoutName);
+				return new CallFunc(((StringLiteral)params[0]).stringValue(), parmsWithoutName);
 			}
 			
 			return super.newStyleReplacement(parser);
@@ -957,8 +957,8 @@ public abstract class C4ScriptExprTree {
 			// parameters to FindObjects itself are also &&-ed together
 			if (declarationName.equals("Find_And") || isCriteriaSearch()) {
 				for (ExprElm parm : params) {
-					if (parm instanceof ExprCallFunc) {
-						ExprCallFunc call = (ExprCallFunc)parm;
+					if (parm instanceof CallFunc) {
+						CallFunc call = (CallFunc)parm;
 						C4Object t = call.searchCriteriaAssumedResult(context);
 						if (t != null) {
 							if (result == null)
@@ -972,8 +972,8 @@ public abstract class C4ScriptExprTree {
 				}
 			}
 			else if (declarationName.equals("Find_ID")) {
-				if (params.length > 0 && params[0] instanceof ExprID) {
-					result = ((ExprID)params[0]).guessObjectType(context);
+				if (params.length > 0 && params[0] instanceof IDLiteral) {
+					result = ((IDLiteral)params[0]).guessObjectType(context);
 				}
 			}
 			return result;
@@ -998,7 +998,7 @@ public abstract class C4ScriptExprTree {
 		public ExprElm getReturnArg() {
 			if (params.length == 1)
 				return params[0];
-			return new ExprTuple(params);
+			return new Tuple(params);
 		}
 		@Override
 		public boolean isReturn() {
@@ -1016,8 +1016,8 @@ public abstract class C4ScriptExprTree {
 		@Override
 		public IStoredTypeInformation createStoredTypeInformation() {
 			if (getDeclaration() == CachedEngineFuncs.Var) {
-				if (getParams().length > 0 && getParams()[0] instanceof ExprNumber) {
-					ExprNumber number = (ExprNumber)getParams()[0];
+				if (getParams().length > 0 && getParams()[0] instanceof NumberLiteral) {
+					NumberLiteral number = (NumberLiteral)getParams()[0];
 					if (number.intValue() >= 0) {
 						// Var() with a sane constant number
 						return new VarFunctionsTypeInformation(number.intValue());
@@ -1028,7 +1028,7 @@ public abstract class C4ScriptExprTree {
 		}
 	}
 
-	public static class ExprOperator extends ExprValue {
+	public static class Operator extends Value {
 		private final C4ScriptOperator operator;
 
 		@Override
@@ -1036,7 +1036,7 @@ public abstract class C4ScriptExprTree {
 			return operator.getResultType();
 		}
 
-		public ExprOperator(C4ScriptOperator operator) {
+		public Operator(C4ScriptOperator operator) {
 			super();
 			this.operator = operator;
 		}
@@ -1057,7 +1057,7 @@ public abstract class C4ScriptExprTree {
 
 	}
 
-	public static class ExprBinaryOp extends ExprOperator {
+	public static class BinaryOp extends Operator {
 		
 		@Override
 		public ExprElm newStyleReplacement(C4ScriptParser context) throws CloneNotSupportedException {
@@ -1069,7 +1069,7 @@ public abstract class C4ScriptExprTree {
 				else if (op == C4ScriptOperator.ne)
 					op = C4ScriptOperator.NotEqual;
 				if (op != getOperator()) {
-					return new ExprBinaryOp(op, getLeftSide().newStyleReplacement(context), getRightSide().newStyleReplacement(context));
+					return new BinaryOp(op, getLeftSide().newStyleReplacement(context), getRightSide().newStyleReplacement(context));
 				}
 			}
 			
@@ -1090,13 +1090,13 @@ public abstract class C4ScriptExprTree {
 			boolean works = true;
 			C4ScriptOperator hackOp = this.getOperator();
 			// gather left sides (must not be operators)
-			for (r = getLeftSide(); r instanceof ExprBinaryOp; r = ((ExprBinaryOp)r).getLeftSide()) {
-				ExprBinaryOp op = (ExprBinaryOp)r;
+			for (r = getLeftSide(); r instanceof BinaryOp; r = ((BinaryOp)r).getLeftSide()) {
+				BinaryOp op = (BinaryOp)r;
 				if (op.getOperator() != hackOp) {
 					works = false;
 					break;
 				}
-				if (op.getRightSide() instanceof ExprBinaryOp) {
+				if (op.getRightSide() instanceof BinaryOp) {
 					works = false;
 					break;
 				}
@@ -1112,7 +1112,7 @@ public abstract class C4ScriptExprTree {
 				}
 				// convert func call to proper return statement
 				if (getRightSide().isReturn())
-					statements.add(new ReturnStatement(((ExprCallFunc)getRightSide()).getReturnArg().newStyleReplacement(context)));
+					statements.add(new ReturnStatement(((CallFunc)getRightSide()).getReturnArg().newStyleReplacement(context)));
 				else
 					statements.add(new SimpleStatement(getRightSide().newStyleReplacement(context)));
 				return new Block(statements);
@@ -1133,7 +1133,7 @@ public abstract class C4ScriptExprTree {
 			rightSide = elements[1];
 		}
 
-		public ExprBinaryOp(C4ScriptOperator operator, ExprElm leftSide, ExprElm rightSide) {
+		public BinaryOp(C4ScriptOperator operator, ExprElm leftSide, ExprElm rightSide) {
 			super(operator);
 			setLeftSide(leftSide);
 			setRightSide(rightSide);
@@ -1144,7 +1144,7 @@ public abstract class C4ScriptExprTree {
 				parser.warningWithCode(ParserErrorCode.NoAssignment, this);
 		}
 
-		public ExprBinaryOp(C4ScriptOperator op) {
+		public BinaryOp(C4ScriptOperator op) {
 			super(op);
 		}
 
@@ -1169,7 +1169,7 @@ public abstract class C4ScriptExprTree {
 		public void print(StringBuilder output, int depth) {
 			
 			// put brackets around operands in case some transformation messed up prioritization
-			boolean needsBrackets = leftSide instanceof ExprBinaryOp && getOperator().getPriority() > ((ExprBinaryOp)leftSide).getOperator().getPriority();
+			boolean needsBrackets = leftSide instanceof BinaryOp && getOperator().getPriority() > ((BinaryOp)leftSide).getOperator().getPriority();
 			if (needsBrackets)
 				output.append("(");
 			leftSide.print(output, depth+1);
@@ -1180,7 +1180,7 @@ public abstract class C4ScriptExprTree {
 			output.append(getOperator().getOperatorName());
 			output.append(" ");
 			
-			needsBrackets = rightSide instanceof ExprBinaryOp && getOperator().getPriority() > ((ExprBinaryOp)rightSide).getOperator().getPriority();
+			needsBrackets = rightSide instanceof BinaryOp && getOperator().getPriority() > ((BinaryOp)rightSide).getOperator().getPriority();
 			if (needsBrackets)
 				output.append("(");
 			rightSide.print(output, depth+1);
@@ -1216,7 +1216,7 @@ public abstract class C4ScriptExprTree {
 
 	}
 
-	public static class ExprParenthesized extends ExprValue {
+	public static class Parenthesized extends Value {
 		private ExprElm innerExpr;
 
 		@Override
@@ -1227,7 +1227,7 @@ public abstract class C4ScriptExprTree {
 		public void setSubElements(ExprElm[] elements) {
 			innerExpr = elements[0];
 		}
-		public ExprParenthesized(ExprElm innerExpr) {
+		public Parenthesized(ExprElm innerExpr) {
 			super();
 			this.innerExpr = innerExpr;
 		}
@@ -1255,14 +1255,14 @@ public abstract class C4ScriptExprTree {
 		@Override
 		public ExprElm newStyleReplacement(C4ScriptParser parser)
 				throws CloneNotSupportedException {
-			if (!(getParent() instanceof ExprOperator) && !(getParent() instanceof ExprSequence))
+			if (!(getParent() instanceof Operator) && !(getParent() instanceof Sequence))
 				return innerExpr.newStyleReplacement(parser);
 			return super.newStyleReplacement(parser);
 		}
 
 	}
 
-	public static class ExprUnaryOp extends ExprOperator {
+	public static class UnaryOp extends Operator {
 
 		public enum Placement {
 			Prefix,
@@ -1272,7 +1272,7 @@ public abstract class C4ScriptExprTree {
 		private final Placement placement;
 		private ExprElm argument;
 
-		public ExprUnaryOp(C4ScriptOperator operator, Placement placement, ExprElm argument) {
+		public UnaryOp(C4ScriptOperator operator, Placement placement, ExprElm argument) {
 			super(operator);
 			this.placement = placement;
 			this.argument = argument;
@@ -1289,14 +1289,14 @@ public abstract class C4ScriptExprTree {
 			argument = elements[0];
 		}
 		
-		private boolean needsSpace(ExprUnaryOp other) {
+		private boolean needsSpace(UnaryOp other) {
 			C4ScriptOperator a = this.getOperator();
 			C4ScriptOperator b = this.getOperator();
 			return a.spaceNeededBetweenMeAnd(b);
 		}
 
 		public void print(StringBuilder output, int depth) {
-			ExprUnaryOp unop = (argument instanceof ExprUnaryOp) ? (ExprUnaryOp)argument : null;
+			UnaryOp unop = (argument instanceof UnaryOp) ? (UnaryOp)argument : null;
 			if (unop != null && unop.placement != this.placement)
 				unop = null;
 			if (placement == Placement.Postfix) {
@@ -1333,23 +1333,23 @@ public abstract class C4ScriptExprTree {
 		public ExprElm newStyleReplacement(C4ScriptParser context) throws CloneNotSupportedException {
 			// could happen when argument is transformed to binary operator
 			ExprElm arg = getArgument().newStyleReplacement(context);
-			if (arg instanceof ExprBinaryOp)
-				return new ExprUnaryOp(getOperator(), placement, new ExprParenthesized(arg));
-			if (getOperator() == C4ScriptOperator.Not && arg instanceof ExprParenthesized) {
-				 ExprParenthesized brackets = (ExprParenthesized)arg;
-				 if (brackets.getInnerExpr() instanceof ExprBinaryOp) {
-					 ExprBinaryOp op = (ExprBinaryOp) brackets.getInnerExpr();
+			if (arg instanceof BinaryOp)
+				return new UnaryOp(getOperator(), placement, new Parenthesized(arg));
+			if (getOperator() == C4ScriptOperator.Not && arg instanceof Parenthesized) {
+				 Parenthesized brackets = (Parenthesized)arg;
+				 if (brackets.getInnerExpr() instanceof BinaryOp) {
+					 BinaryOp op = (BinaryOp) brackets.getInnerExpr();
 					 if (op.getOperator() == C4ScriptOperator.Equal) {
-						 return new ExprBinaryOp(C4ScriptOperator.NotEqual, op.getLeftSide().newStyleReplacement(context), op.getRightSide().newStyleReplacement(context));
+						 return new BinaryOp(C4ScriptOperator.NotEqual, op.getLeftSide().newStyleReplacement(context), op.getRightSide().newStyleReplacement(context));
 					 }
 					 else if (op.getOperator() == C4ScriptOperator.NotEqual) {
-						 return new ExprBinaryOp(C4ScriptOperator.Equal, op.getLeftSide().newStyleReplacement(context), op.getRightSide().newStyleReplacement(context));
+						 return new BinaryOp(C4ScriptOperator.Equal, op.getLeftSide().newStyleReplacement(context), op.getRightSide().newStyleReplacement(context));
 					 }
 					 else if (op.getOperator() == C4ScriptOperator.StringEqual) {
-						 return new ExprBinaryOp(C4ScriptOperator.ne, op.getLeftSide().newStyleReplacement(context), op.getRightSide().newStyleReplacement(context));
+						 return new BinaryOp(C4ScriptOperator.ne, op.getLeftSide().newStyleReplacement(context), op.getRightSide().newStyleReplacement(context));
 					 }
 					 else if (op.getOperator() == C4ScriptOperator.ne) {
-						 return new ExprBinaryOp(C4ScriptOperator.StringEqual, op.getLeftSide().newStyleReplacement(context), op.getRightSide().newStyleReplacement(context));
+						 return new BinaryOp(C4ScriptOperator.StringEqual, op.getLeftSide().newStyleReplacement(context), op.getRightSide().newStyleReplacement(context));
 					 }
 				 }
 			}
@@ -1368,7 +1368,7 @@ public abstract class C4ScriptExprTree {
 
 	}
 
-	public static class ExprLiteral<T> extends ExprValue {
+	public static class Literal<T> extends Value {
 		private final T literal;
 		
 		@Override
@@ -1381,7 +1381,7 @@ public abstract class C4ScriptExprTree {
 			// don't care
 		}
 
-		public ExprLiteral(T literal) {
+		public Literal(T literal) {
 			super();
 			this.literal = literal;
 		}
@@ -1407,18 +1407,18 @@ public abstract class C4ScriptExprTree {
 
 	}
 
-	public static final class ExprNumber extends ExprLiteral<Long> {
+	public static final class NumberLiteral extends Literal<Long> {
 
-		public static final ExprNumber ZERO = new ExprNumber(0);
+		public static final NumberLiteral ZERO = new NumberLiteral(0);
 		
 		private boolean hex;
 
-		public ExprNumber(long value, boolean hex) {
+		public NumberLiteral(long value, boolean hex) {
 			super(new Long(value));
 			this.hex = hex;
 		}
 		
-		public ExprNumber(long value) {
+		public NumberLiteral(long value) {
 			this(value, false);
 		}
 
@@ -1462,8 +1462,8 @@ public abstract class C4ScriptExprTree {
 
 	}
 
-	public static final class ExprString extends ExprLiteral<String> {
-		public ExprString(String literal) {
+	public static final class StringLiteral extends Literal<String> {
+		public StringLiteral(String literal) {
 			super(literal);
 		}
 
@@ -1484,8 +1484,8 @@ public abstract class C4ScriptExprTree {
 		
 		@Override
 		public DeclarationRegion declarationAt(int offset, C4ScriptParser parser) {
-			if (getParent() instanceof ExprCallFunc) {
-				ExprCallFunc parentFunc = (ExprCallFunc) getParent();
+			if (getParent() instanceof CallFunc) {
+				CallFunc parentFunc = (CallFunc) getParent();
 				int myIndex = parentFunc.indexOfParm(this);
 				
 				//  link to functions that are called indirectly
@@ -1560,8 +1560,8 @@ public abstract class C4ScriptExprTree {
 
 	}
 
-	public static final class ExprID extends ExprLiteral<C4ID> {
-		public ExprID(C4ID literal) {
+	public static final class IDLiteral extends Literal<C4ID> {
+		public IDLiteral(C4ID literal) {
 			super(literal);
 		}
 
@@ -1592,11 +1592,11 @@ public abstract class C4ScriptExprTree {
 
 	}
 	
-	public static final class ExprBool extends ExprLiteral<Boolean> {
+	public static final class BoolLiteral extends Literal<Boolean> {
 		public boolean booleanValue() {
 			return getLiteral().booleanValue();
 		}
-		public ExprBool(boolean value) {
+		public BoolLiteral(boolean value) {
 			super(new Boolean(value));
 		}
 		public C4Type getType(C4ScriptParser context) {
@@ -1608,7 +1608,7 @@ public abstract class C4ScriptExprTree {
 		}
 	}
 
-	public static final class ExprAccessArray extends ExprValue {
+	public static final class ArrayElementAccess extends Value {
 
 		private ExprElm argument;
 		
@@ -1617,7 +1617,7 @@ public abstract class C4ScriptExprTree {
 			return C4Type.ANY; // FIXME: guess type of elements
 		}
 
-		public ExprAccessArray(ExprElm argument) {
+		public ArrayElementAccess(ExprElm argument) {
 			super();
 			this.argument = argument;
 		}
@@ -1661,8 +1661,8 @@ public abstract class C4ScriptExprTree {
 
 	}
 
-	public static class ExprArray extends ExprSequence {
-		public ExprArray(ExprElm[] elms) {
+	public static class ArrayExpression extends Sequence {
+		public ArrayExpression(ExprElm[] elms) {
 			super(elms);
 		}
 
@@ -1703,9 +1703,9 @@ public abstract class C4ScriptExprTree {
 
 	}
 	
-	public static class ExprPropList extends ExprValue {
+	public static class PropListExpression extends Value {
 		private Pair<String, ExprElm>[] components;
-		public ExprPropList(Pair<String, ExprElm>[] components) {
+		public PropListExpression(Pair<String, ExprElm>[] components) {
 			this.components = components;
 		}
 		@Override
@@ -1752,9 +1752,9 @@ public abstract class C4ScriptExprTree {
 		}
 	}
 
-	public static class ExprTuple extends ExprSequence {
+	public static class Tuple extends Sequence {
 
-		public ExprTuple(ExprElm[] elms) {
+		public Tuple(ExprElm[] elms) {
 			super(elms);		
 		}
 
@@ -1774,9 +1774,9 @@ public abstract class C4ScriptExprTree {
 
 	}
 
-	public static class ExprEllipsis extends ExprElm {
+	public static class Ellipsis extends ExprElm {
 
-		public ExprEllipsis() {
+		public Ellipsis() {
 			super();
 		}
 
@@ -1787,10 +1787,10 @@ public abstract class C4ScriptExprTree {
 
 	}
 	
-	public static class ExprPlaceholder extends ExprElm {
+	public static class Placeholder extends ExprElm {
 		private String entryName;
 		
-		public ExprPlaceholder(String entryName) {
+		public Placeholder(String entryName) {
 			this.entryName = entryName;
 		}
 		
@@ -1802,6 +1802,11 @@ public abstract class C4ScriptExprTree {
 			builder.append('$');
 			builder.append(entryName);
 			builder.append('$');
+		}
+		@Override
+		public DeclarationRegion declarationAt(int offset, C4ScriptParser parser) {
+			// TODO Auto-generated method stub
+			return super.declarationAt(offset, parser);
 		}
 	}
 	
@@ -2090,11 +2095,11 @@ public abstract class C4ScriptExprTree {
 		public ExprElm newStyleReplacement(C4ScriptParser parser)
 				throws CloneNotSupportedException {
 			// return (0); -> return 0;
-			if (returnExpr instanceof ExprParenthesized)
-				return new ReturnStatement(((ExprParenthesized)returnExpr).getInnerExpr().newStyleReplacement(parser));
+			if (returnExpr instanceof Parenthesized)
+				return new ReturnStatement(((Parenthesized)returnExpr).getInnerExpr().newStyleReplacement(parser));
 			// return (0, Sound("Ugh")); -> { Sound("Ugh"); return 0; }
-			if (returnExpr instanceof ExprTuple) {
-				ExprTuple tuple = (ExprTuple) returnExpr;
+			if (returnExpr instanceof Tuple) {
+				Tuple tuple = (Tuple) returnExpr;
 				ExprElm[] tupleElements = tuple.getElements();
 				List<Statement> statements = new LinkedList<Statement>();
 				for (int i = 1; i < tupleElements.length; i++) {

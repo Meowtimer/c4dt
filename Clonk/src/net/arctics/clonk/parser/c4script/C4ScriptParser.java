@@ -100,8 +100,8 @@ public class C4ScriptParser {
 	 */
 	public void unnamedParamaterUsed(ExprElm index) {
 		if (numUnnamedParameters < UNKNOWN_PARAMETERNUM) {
-			if (index instanceof ExprNumber) {
-				int number = ((ExprNumber)index).intValue();
+			if (index instanceof C4ScriptExprTree.NumberLiteral) {
+				int number = ((C4ScriptExprTree.NumberLiteral)index).intValue();
 				numUnnamedParameters = Math.max(number+1, numUnnamedParameters);
 			} else
 				numUnnamedParameters = UNKNOWN_PARAMETERNUM;
@@ -902,7 +902,7 @@ public class C4ScriptParser {
 	private void warnAboutTupleInReturnExpr(ExprElm expr, boolean tupleIsError) throws ParsingException {
 		if (expr == null)
 			return;
-		if (expr instanceof ExprTuple) {
+		if (expr instanceof Tuple) {
 			if (tupleIsError)
 				errorWithCode(ParserErrorCode.TuplesNotAllowed, expr);
 			else
@@ -1182,7 +1182,7 @@ public class C4ScriptParser {
 			if (followingExpr == null) {
 				errorWithCode(ParserErrorCode.ExpressionExpected, fReader.getPosition(), fReader.getPosition()+1);
 			}
-			result = new ExprUnaryOp(preop, ExprUnaryOp.Placement.Prefix, followingExpr);
+			result = new UnaryOp(preop, UnaryOp.Placement.Prefix, followingExpr);
 		} else
 			fReader.seek(sequenceStart); // don't skip operators that aren't prefixy
 		if (result != null) {
@@ -1215,26 +1215,26 @@ public class C4ScriptParser {
 			
 			// id
 			if (parseID(fReader.getPosition())) {
-				elm = new ExprID(parsedID);
+				elm = new IDLiteral(parsedID);
 			}
 			
 			// hex number
 			if (elm == null && parseHexNumber(fReader.getPosition())) {
 //				if (parsedNumber < Integer.MIN_VALUE || parsedNumber > Integer.MAX_VALUE)
 //					warningWithCode(ErrorCode.OutOfIntRange, elmStart, fReader.getPosition(), String.valueOf(parsedNumber));
-				elm = new ExprNumber(parsedNumber, true);
+				elm = new C4ScriptExprTree.NumberLiteral(parsedNumber, true);
 			}
 			
 			// number
 			if (elm == null && parseNumber(fReader.getPosition())) {
 				if (parsedNumber < Integer.MIN_VALUE || parsedNumber > Integer.MAX_VALUE)
 					warningWithCode(ParserErrorCode.OutOfIntRange, elmStart, fReader.getPosition(), String.valueOf(parsedNumber));
-				elm = new ExprNumber(parsedNumber);
+				elm = new C4ScriptExprTree.NumberLiteral(parsedNumber);
 			}
 			
 			// string
 			if (elm == null && parseString(fReader.getPosition())) {
-				elm = new ExprString(parsedString);
+				elm = new StringLiteral(parsedString);
 			}
 			
 			// variable or function
@@ -1247,17 +1247,17 @@ public class C4ScriptParser {
 						// function call
 						List<ExprElm> args = new LinkedList<ExprElm>();
 						parseRestOfTuple(fReader.getPosition(), args, reportErrors);
-						elm = new ExprCallFunc(word, args.toArray(new ExprElm[args.size()]));
+						elm = new CallFunc(word, args.toArray(new ExprElm[args.size()]));
 					} else {
 						fReader.seek(beforeSpace);
 						// bool
 						if (word.equals(Keywords.True))
-							elm = new ExprBool(true);
+							elm = new BoolLiteral(true);
 						else if (word.equals(Keywords.False))
-							elm = new ExprBool(false);
+							elm = new BoolLiteral(false);
 						else
 							// variable
-							elm = new ExprAccessVar(word);
+							elm = new AccessVar(word);
 					}
 				}
 			}
@@ -1284,7 +1284,7 @@ public class C4ScriptParser {
 						}
 					} else
 						idOffset = 0;
-					elm = new ExprMemberOperator(parsedMemberOperator.length() == 1, parsedMemberOperator.length() == 3, parsedID, idOffset);
+					elm = new MemberOperator(parsedMemberOperator.length() == 1, parsedMemberOperator.length() == 3, parsedID, idOffset);
 				}
 			}
 			
@@ -1300,14 +1300,14 @@ public class C4ScriptParser {
 					}
 					c = fReader.read();
 					if (c == ')')
-						elm = new ExprParenthesized(firstExpr);
+						elm = new Parenthesized(firstExpr);
 					else if (c == ',') {
 						errorWithCode(ParserErrorCode.TuplesNotAllowed, fReader.getPosition()-1, fReader.getPosition());
 						// tuple (just for multiple parameters for return)
 						List<ExprElm> tupleElms = new LinkedList<ExprElm>();
 						tupleElms.add(firstExpr);
 						parseRestOfTuple(fReader.getPosition(), tupleElms, reportErrors);
-						elm = new ExprTuple(tupleElms.toArray(new ExprElm[0]));
+						elm = new Tuple(tupleElms.toArray(new ExprElm[0]));
 					} else
 						errorWithCode(ParserErrorCode.TokenExpected, fReader.getPosition()-1, fReader.getPosition(), ")");
 				} else {
@@ -1316,7 +1316,7 @@ public class C4ScriptParser {
 			}
 			
 			if (elm == null && parsePlaceholderString(fReader.getPosition())) {
-				elm = new ExprPlaceholder(parsedString);
+				elm = new Placeholder(parsedString);
 			}
 			
 			// check if sequence is valid (CreateObject(BLUB)->localvar is not)
@@ -1340,7 +1340,7 @@ public class C4ScriptParser {
 			result = elements.elementAt(elements.size()-1);
 		}
 		else if (elements.size() > 1) {
-			result = new ExprSequence(elements.toArray(new ExprElm[0]));
+			result = new Sequence(elements.toArray(new ExprElm[0]));
 		} else {
 			return null;
 		}
@@ -1356,7 +1356,7 @@ public class C4ScriptParser {
 			C4ScriptOperator postop = parseOperator(fReader.getPosition());
 			if (postop != null) {
 				if (postop.isPostfix()) {
-					ExprUnaryOp op = new ExprUnaryOp(postop, ExprUnaryOp.Placement.Postfix, result);
+					UnaryOp op = new UnaryOp(postop, UnaryOp.Placement.Postfix, result);
 					op.setExprRegion(result.getExprStart(), fReader.getPosition());
 					return op;
 				} else {
@@ -1409,7 +1409,7 @@ public class C4ScriptParser {
 			if (!properlyClosed) {
 				errorWithCode(ParserErrorCode.MissingClosingBracket, fReader.getPosition()-1, fReader.getPosition(), "}");
 			}
-			elm = new ExprPropList(propListElms.toArray((Pair<String, ExprElm>[])new Pair[propListElms.size()]));
+			elm = new PropListExpression(propListElms.toArray((Pair<String, ExprElm>[])new Pair[propListElms.size()]));
 		}
 		else
 			fReader.unread();
@@ -1427,7 +1427,7 @@ public class C4ScriptParser {
 				if (fReader.read() != ']') {
 					tokenExpectedError("]");
 				}
-				elm = new ExprAccessArray(arg);
+				elm = new ArrayElementAccess(arg);
 			} else {
 				// array creation
 				Vector<ExprElm> arrayElms = new Vector<ExprElm>(10);
@@ -1459,7 +1459,7 @@ public class C4ScriptParser {
 				if (!properlyClosed) {
 					errorWithCode(ParserErrorCode.MissingClosingBracket, fReader.getPosition()-1, fReader.getPosition(), "]");
 				}
-				elm = new ExprArray(arrayElms.toArray(new ExprElm[0]));
+				elm = new ArrayExpression(arrayElms.toArray(new ExprElm[0]));
 				
 			}
 		} else { 
@@ -1525,11 +1525,11 @@ public class C4ScriptParser {
 
 			ExprElm root = null;
 			ExprElm current = null;
-			ExprBinaryOp lastOp = null;
+			BinaryOp lastOp = null;
 
 			// magical thingie to pass all parameters to inherited
 			if (parseEllipsis(offset)) {
-				return new ExprEllipsis();
+				return new Ellipsis();
 			}
 
 			fReader.seek(offset);
@@ -1563,9 +1563,9 @@ public class C4ScriptParser {
 						if (op != null && op.isBinary()) {
 							int priorOfNewOp = op.getPriority();
 							ExprElm newLeftSide = null;
-							ExprBinaryOp theOp = null;
-							for (ExprElm opFromBottom = current.getParent(); opFromBottom instanceof ExprBinaryOp; opFromBottom = opFromBottom.getParent()) {
-								ExprBinaryOp oneOp = (ExprBinaryOp) opFromBottom;
+							BinaryOp theOp = null;
+							for (ExprElm opFromBottom = current.getParent(); opFromBottom instanceof BinaryOp; opFromBottom = opFromBottom.getParent()) {
+								BinaryOp oneOp = (BinaryOp) opFromBottom;
 								if (priorOfNewOp > oneOp.getOperator().getPriority() || (priorOfNewOp == oneOp.getOperator().getPriority() && op.isRightAssociative())) {
 									theOp = oneOp;
 									break;
@@ -1573,11 +1573,11 @@ public class C4ScriptParser {
 							}
 							if (theOp != null) {
 								newLeftSide = theOp.getRightSide();
-								current = lastOp = new ExprBinaryOp(op);
+								current = lastOp = new BinaryOp(op);
 								theOp.setRightSide(current);
 							} else {
 								newLeftSide = root;
-								current = root = lastOp = new ExprBinaryOp(op);
+								current = root = lastOp = new BinaryOp(op);
 							}
 							lastOp.setLeftSide(newLeftSide);
 							lastOp.setExprRegion(operatorPos, fReader.getPosition());
@@ -1592,8 +1592,8 @@ public class C4ScriptParser {
 					ExprElm rightSide = parseExpressionWithoutOperators(fReader.getPosition(), reportErrors);
 					if (rightSide == null)
 						errorWithCode(ParserErrorCode.OperatorNeedsRightSide, lastOp);
-					((ExprBinaryOp)current).setRightSide(rightSide);
-					lastOp = (ExprBinaryOp)current;
+					((BinaryOp)current).setRightSide(rightSide);
+					lastOp = (BinaryOp)current;
 					current = rightSide;
 					state = OPERATOR;
 					break;
@@ -1793,8 +1793,8 @@ public class C4ScriptParser {
 				result.reportErrors(this);
 				if (!options.contains(ParseStatementOption.InitializationStatement)) {
 					result.warnIfNoSideEffects(this);
-					if (result instanceof SimpleStatement && ((SimpleStatement)result).getExpression() instanceof ExprBinaryOp)
-						((ExprBinaryOp)((SimpleStatement)result).getExpression()).checkTopLevelAssignment(this);
+					if (result instanceof SimpleStatement && ((SimpleStatement)result).getExpression() instanceof BinaryOp)
+						((BinaryOp)((SimpleStatement)result).getExpression()).checkTopLevelAssignment(this);
 				}
 				if (parseStatementRecursion == 1) {
 					if (expressionListener != null) {
@@ -1844,7 +1844,7 @@ public class C4ScriptParser {
 				if (val == null)
 					errorWithCode(ParserErrorCode.ValueExpected, fReader.getPosition()-1, fReader.getPosition());
 				else {
-					storeTypeInformation(new ExprAccessVar(var), val.getType(this), val.guessObjectType(this));
+					storeTypeInformation(new AccessVar(var), val.getType(this), val.guessObjectType(this));
 					var.inferTypeFromAssignment(val, this);
 				}
 			}

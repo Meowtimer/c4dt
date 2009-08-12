@@ -11,7 +11,7 @@ import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.FindDeclarationInfo;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.c4script.C4ScriptExprTree.DeclarationRegion;
-import net.arctics.clonk.parser.c4script.C4ScriptExprTree.ExprAccessDeclaration;
+import net.arctics.clonk.parser.c4script.C4ScriptExprTree.AccessDeclaration;
 import net.arctics.clonk.parser.c4script.C4ScriptExprTree.ExprElm;
 import net.arctics.clonk.parser.c4script.C4ScriptExprTree.IExpressionListener;
 import net.arctics.clonk.parser.c4script.C4ScriptExprTree.TraversalContinuation;
@@ -63,8 +63,8 @@ public class DeclarationLocator extends ExpressionLocator {
 					this.declaration = declRegion.getDeclaration();
 					setRegion = true;
 				}
-				else if (exprAtRegion instanceof ExprAccessDeclaration) {
-					ExprAccessDeclaration access = (ExprAccessDeclaration) exprAtRegion;
+				else if (exprAtRegion instanceof AccessDeclaration) {
+					AccessDeclaration access = (AccessDeclaration) exprAtRegion;
 					List<C4Declaration> projectDeclarations = script.getIndex().getDeclarationMap().get(access.getDeclarationName());
 					List<C4Declaration> externalDeclarations = ClonkCore.getDefault().getExternIndex().getDeclarationMap().get(access.getDeclarationName());
 					if (projectDeclarations != null || externalDeclarations != null) {
