@@ -349,9 +349,6 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 				}
 				if (monitor != null) monitor.worked(1);
 				return true;
-			default:
-				assert(false); // soft exception
-				return false; // :C ?
 			}
 		}
 		else if (resource instanceof IFile) {

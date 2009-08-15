@@ -42,6 +42,7 @@ public class C4GroupExporter {
 	public synchronized boolean selectDestPaths() {
 		destPaths = new String[packs.length];
 		int i = -1;
+		FileDialog fileDialog = null;
 		for (IResource pack : packs) {
 			i++;
 			if (!(pack instanceof IContainer))
@@ -49,7 +50,8 @@ public class C4GroupExporter {
 			IContainer toExport = (IContainer)pack;
 			String packPath;
 			if (!(pack.getParent() instanceof IProject)) {
-				FileDialog fileDialog = new FileDialog(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(), SWT.SAVE);
+				if (fileDialog == null)
+					fileDialog = new FileDialog(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(), SWT.SAVE);
 				fileDialog.setFileName(toExport.getName());
 				fileDialog.setText("Where to save " + toExport.getName());
 				fileDialog.setFilterPath(destinationPath);
@@ -68,12 +70,10 @@ public class C4GroupExporter {
 	}
 	
 	public void export(IProgressMonitor monitor) {
-//		Utilities.getDebugStream().println("Start exporting.");
 		if (monitor != null)
 			monitor.beginTask("Exporting", packs.length);
 		IPreferencesService service = Platform.getPreferencesService();
 		boolean showExportLog = service.getBoolean(ClonkCore.PLUGIN_ID, PreferenceConstants.SHOW_EXPORT_LOG, false, null);
-//		Utilities.getDebugStream().println("- Got Preferences.");
 		int i = -1;
 		for(IResource pack : packs) {
 			i++;
@@ -124,13 +124,13 @@ public class C4GroupExporter {
 						// show command line in console
 						StringBuilder cmdLine = new StringBuilder();
 						cmdLine.append("Command:");
-						for(String cmdE : cmdArray) cmdLine.append(" " + cmdE);
+						for (String cmdE : cmdArray)
+							cmdLine.append(" " + cmdE);
 						out.println(cmdLine.toString());
 					}
 					
 					// run c4group
 					Process c4group = Runtime.getRuntime().exec(cmdArray, new String[0], oldFile.getParentFile());
-//					Utilities.getDebugStream().println("- Executed c4group.");
 					if (showExportLog) {
 						// pipe output to console
 						java.io.InputStream stream = c4group.getInputStream();
@@ -154,7 +154,6 @@ public class C4GroupExporter {
 		}
 		if (monitor != null)
 			monitor.done();
-//		Utilities.getDebugStream().println("End exporting.");
 	}
 
 }

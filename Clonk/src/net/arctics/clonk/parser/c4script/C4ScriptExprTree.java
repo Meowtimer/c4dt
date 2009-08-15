@@ -1484,6 +1484,10 @@ public abstract class C4ScriptExprTree {
 		
 		@Override
 		public DeclarationRegion declarationAt(int offset, C4ScriptParser parser) {
+			DeclarationRegion result = getStringTblEntryAt(offset-1, parser);
+			if (result != null)
+				return result;
+			
 			if (getParent() instanceof CallFunc) {
 				CallFunc parentFunc = (CallFunc) getParent();
 				int myIndex = parentFunc.indexOfParm(this);
@@ -1548,6 +1552,25 @@ public abstract class C4ScriptExprTree {
 			return null;
 		}
 		
+		private DeclarationRegion getStringTblEntryAt(int offset, C4ScriptParser parser) {
+			try {
+				StringTbl stringTbl = parser.getContainer().getStringTblForLanguagePref();
+				if (stringTbl == null)
+					return null;
+				int firstDollar = stringValue().lastIndexOf('$', offset-1);
+				int secondDollar = stringValue().indexOf('$', offset);
+				if (firstDollar != -1 && secondDollar != -1) {
+					String entry = stringValue().substring(firstDollar+1, secondDollar);
+					if (entry != null) {
+						NameValueAssignment e = stringTbl.getMap().get(entry);
+						if (e != null)
+							return new DeclarationRegion(e, new Region(getExprStart()+1+firstDollar, secondDollar-firstDollar+1));
+					}
+				}
+			} catch (CoreException e) {}
+			return null;
+		}
+
 		@Override
 		public int getIdentifierStart() {
 			return getExprStart()+1;

@@ -12,12 +12,8 @@ import java.io.UnsupportedEncodingException;
  *
  */
 public class C4GroupHeader implements Serializable {
-	/**
-	 * 
-	 */
+
 	private static final long serialVersionUID = 1L;
-	public static final int BINARY_TRUE = 1;
-	public static final int BINARY_FALSE = 0;
 	
     private String id;
     private int ver1, ver2;
@@ -209,11 +205,11 @@ public class C4GroupHeader implements Serializable {
     }
     
     public static boolean byteToBoolean(byte[] buffer, int offset) {
-    	return buffer[offset] == BINARY_TRUE;
+    	return buffer[offset] == 1;
     }
     
     public static byte[] booleanToByte(boolean bool) {
-    	return new byte[] { bool ? (byte)BINARY_TRUE : (byte)BINARY_FALSE };
+    	return new byte[] { bool ? (byte)1 : (byte)0 };
     }
     
 }
