@@ -62,8 +62,7 @@ public class ClonkSearchResultPage extends AbstractTextSearchViewPage implements
 	}
 
 	private static final String[] SHOW_IN_TARGETS = new String[] {
-		IPageLayout.ID_RES_NAV,
-		"org.eclipse.ui.navigator.ProjectExplorer"
+		IPageLayout.ID_PROJECT_EXPLORER
 	};
 	
 	public String[] getShowInTargetIds() {

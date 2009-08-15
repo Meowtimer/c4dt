@@ -564,6 +564,8 @@ public abstract class C4ScriptBase extends C4Structure implements IHasRelatedRes
 	
 	public StringTbl getStringTblForLanguagePref() throws CoreException {
 		IResource res = getResource();
+		if (res == null)
+			return null;
 		IContainer container = res instanceof IContainer ? (IContainer) res : res.getParent();
 		String pref = ClonkCore.getDefault().getLanguagePref();
 		IResource tblFile = container.findMember("StringTbl"+pref+".txt");

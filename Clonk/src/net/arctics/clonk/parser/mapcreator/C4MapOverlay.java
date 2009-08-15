@@ -220,26 +220,27 @@ public class C4MapOverlay extends C4Structure implements Cloneable, ITreeNode {
 	}
 	
 	public void clear() {
-		haveOwnSubOverlaysList();
+		beAutonomousClone();
 	}
 	
 	@Override
 	protected Object clone() throws CloneNotSupportedException {
 		C4MapOverlay clone = (C4MapOverlay) super.clone();
-		clone.haveOwnSubOverlaysList(); // don't copy nested overlays
+		clone.beAutonomousClone(); // don't copy nested overlays
 		return clone;
 	}
 
-	private void haveOwnSubOverlaysList() {
+	private void beAutonomousClone() {
 		this.subOverlays = new LinkedList<C4MapOverlay>();
+		this.body = null;
 	}
 	
 	public C4MapOverlay overlayAt(int offset) {
-		C4MapOverlay newov, ov;
-		Outer: for (ov = this; ov != null && ov.subOverlays.size() != 0; ov = newov) {
+		C4MapOverlay ov;
+		Outer: for (ov = this; ov != null && ov.subOverlays.size() != 0;) {
 			for (C4MapOverlay o : ov.subOverlays) {
 				if (offset >= o.getLocation().getStart() && offset < (o.body!=null?o.body:o.getLocation()).getEnd()) {
-					newov = o;
+					ov = o;
 					continue Outer;
 				}
 			}

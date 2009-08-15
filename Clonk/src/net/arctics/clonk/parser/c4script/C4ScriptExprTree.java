@@ -1805,7 +1805,16 @@ public abstract class C4ScriptExprTree {
 		}
 		@Override
 		public DeclarationRegion declarationAt(int offset, C4ScriptParser parser) {
-			// TODO Auto-generated method stub
+			try {
+				StringTbl stringTbl = parser.getContainer().getStringTblForLanguagePref();
+				if (stringTbl != null) {
+					NameValueAssignment entry = stringTbl.getMap().get(entryName);
+					if (entry != null)
+						return new DeclarationRegion(entry, this);
+				}
+			} catch (CoreException e) {
+				e.printStackTrace();
+			}
 			return super.declarationAt(offset, parser);
 		}
 	}

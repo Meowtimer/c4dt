@@ -3,8 +3,6 @@ package net.arctics.clonk.parser.c4script;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
-import java.io.StringReader;
-
 import java.io.InputStream;
 
 import javax.xml.parsers.DocumentBuilder;
