@@ -11,6 +11,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 
 import net.arctics.clonk.ClonkCore;
@@ -498,8 +499,8 @@ public abstract class Utilities {
 		monitor.done();
 	}
 	
-	public static <T> T itemMatching(Predicate<T> predicate, Iterable<T> iterable) {
-		for (T item : iterable)
+	public static <T> T itemMatching(IPredicate<T> predicate, List<T> sectionsList) {
+		for (T item : sectionsList)
 			if (predicate.test(item))
 				return item;
 		return null;

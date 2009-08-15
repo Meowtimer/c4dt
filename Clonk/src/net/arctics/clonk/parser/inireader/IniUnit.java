@@ -16,8 +16,8 @@ import net.arctics.clonk.parser.inireader.IniData.IniConfiguration;
 import net.arctics.clonk.parser.inireader.IniData.IniDataEntry;
 import net.arctics.clonk.parser.inireader.IniData.IniSectionData;
 import net.arctics.clonk.util.IHasChildren;
+import net.arctics.clonk.util.IPredicate;
 import net.arctics.clonk.util.ITreeNode;
-import net.arctics.clonk.util.Predicate;
 import net.arctics.clonk.util.Utilities;
 
 import org.eclipse.core.resources.IFile;
@@ -304,7 +304,7 @@ public class IniUnit extends C4Structure implements Iterable<IniSection>, IHasCh
 		return sectionsMap.get(name);
 	}
 	
-	public IniSection sectionMatching(Predicate<IniSection> predicate) {
+	public IniSection sectionMatching(IPredicate<IniSection> predicate) {
 		return Utilities.itemMatching(predicate, sectionsList);
 	}
 	

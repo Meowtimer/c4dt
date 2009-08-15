@@ -17,7 +17,7 @@ import net.arctics.clonk.ui.editors.ClonkHyperlink;
 import net.arctics.clonk.ui.editors.ClonkSourceViewerConfiguration;
 import net.arctics.clonk.ui.editors.ColorManager;
 import net.arctics.clonk.ui.editors.IClonkColorConstants;
-import net.arctics.clonk.util.Predicate;
+import net.arctics.clonk.util.IPredicate;
 import net.arctics.clonk.util.Utilities;
 
 import org.eclipse.core.resources.IResource;
@@ -116,7 +116,7 @@ public class IniSourceViewerConfiguration extends ClonkSourceViewerConfiguration
 									}
 								}
 								else if (entryClass == Action.class) {
-									declaration = getEditor().getIniUnit().sectionMatching(new Predicate<IniSection>() {
+									declaration = getEditor().getIniUnit().sectionMatching(new IPredicate<IniSection>() {
 										public boolean test(IniSection object) {
 											IniEntry entry = object.getEntry("Name");
 											return (entry != null && entry.getValue().equals(value));
