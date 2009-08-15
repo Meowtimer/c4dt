@@ -1,9 +1,6 @@
 package net.arctics.clonk.ui.navigator;
 
 import java.util.Collection;
-import java.util.LinkedList;
-import java.util.List;
-
 import net.arctics.clonk.parser.C4Structure;
 import net.arctics.clonk.parser.c4script.C4ScriptBase;
 import net.arctics.clonk.resource.ClonkProjectNature;
@@ -13,7 +10,6 @@ import net.arctics.clonk.util.Utilities;
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
-import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jface.viewers.Viewer;
 
@@ -93,15 +89,7 @@ public class ClonkNavigator extends ClonkOutlineProvider {
 	}
 
 	public Object[] getElements(Object inputElement) {
-		if (inputElement instanceof IWorkspaceRoot) {
-			IProject[] projects = ((IWorkspaceRoot)inputElement).getProjects();
-			List<IProject> result = new LinkedList<IProject>();
-			for (IProject p : projects)
-				if (Utilities.getClonkNature(p) != null)
-					result.add(p);
-			return result.toArray(new IProject[result.size()]);
-		}
-		return super.getElements(inputElement);
+		return Utilities.getClonkProjects();
 	}
 
 	public void dispose() {

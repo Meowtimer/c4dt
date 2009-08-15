@@ -101,9 +101,14 @@ public abstract class Utilities {
 	public static ClonkProjectNature getClonkNature(IResource res) {
 		if (res == null) return null;
 		IProject project = res.getProject();
-		if (project == null || !project.isOpen()) return null;
 		try {
-			IProjectNature clonkProj = project.getNature(ClonkCore.id("clonknature"));
+			if (project == null || !project.isOpen() || !project.hasNature(ClonkCore.CLONK_NATURE_ID))
+				return null;
+		} catch (CoreException e1) {
+			return null;
+		}
+		try {
+			IProjectNature clonkProj = project.getNature(ClonkCore.CLONK_NATURE_ID);
 			return (ClonkProjectNature) clonkProj;
 		} catch (CoreException e) {
 			e.printStackTrace();
@@ -112,11 +117,11 @@ public abstract class Utilities {
 	}
 	
 	/**
-	 * 
-	 * @param script
-	 * @return
+	 * Get the clonk nature of the project the given script is contained in
+	 * @param script the script
+	 * @return the nature
 	 */
-	public static ClonkProjectNature getProject(C4ScriptBase script) {
+	public static ClonkProjectNature getClonkNature(C4ScriptBase script) {
 		if (script == null)
 			return null;
 		if (script instanceof C4ObjectIntern)
@@ -135,11 +140,8 @@ public abstract class Utilities {
 		// Filter out all projects with Clonk nature
 		Collection<IProject> c = new LinkedList<IProject>();
 		for(IProject proj : projects)
-			try {
-				proj.getNature(ClonkCore.CLONK_NATURE_ID);
+			if (getClonkNature(proj) != null)
 				c.add(proj);
-			}
-			catch(CoreException e) { }
 			
 		return c.toArray(new IProject [c.size()]);
 	}

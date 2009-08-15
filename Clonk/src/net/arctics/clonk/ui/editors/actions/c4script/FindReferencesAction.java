@@ -24,7 +24,7 @@ public class FindReferencesAction extends OpenDeclarationAction {
 		try {
 			C4Declaration field = getDeclarationAtSelection();
 			if (field != null) {
-				ClonkProjectNature nature = Utilities.getProject(field.getScript());				
+				ClonkProjectNature nature = Utilities.getClonkNature(field.getScript());				
 				if (nature == null) {
 					nature = Utilities.getClonkNature(getTextEditor()); 
 				}
