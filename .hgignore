@@ -1,0 +1,6 @@
+.*.DS_Store
+bin/*
+.settings/*
+bbpush
+.svn*n
+pullfromc4dt
