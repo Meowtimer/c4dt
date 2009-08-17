@@ -152,9 +152,16 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 					C4Scenario s1 = func.getScenario();
 					if (s1 != null && s1 != s2)
 						continue;
+					if (!_activeFunc.getScript().getIndex().acceptsDeclaration(func))
+						continue;
 					proposalForFunc(func, prefix, offset, proposals, func.getScript().getName(), true);
 				}
 				for (C4Variable var : index.getStaticVariables()) {
+					C4Scenario s1 = var.getScenario();
+					if (s1 != null && s1 != s2)
+						continue;
+					if (!_activeFunc.getScript().getIndex().acceptsDeclaration(var))
+						continue;
 					proposalForVar(var,prefix,offset,proposals);
 				}
 			}

@@ -33,11 +33,8 @@ public class ClonkIndex implements Serializable, Iterable<C4Object> {
 	
 	private static final long serialVersionUID = 1L;
 
-	private static final IPredicate<C4Declaration> IS_GLOBAL = new IPredicate<C4Declaration>() {
-		public boolean test(C4Declaration item) {
-			return item.isGlobal();
-		}
-	};
+	// not so nice to have it as an instance variable :/
+	private transient IPredicate<C4Declaration> isGlobalPredicate;
 
 	private Map<C4ID, List<C4Object>> indexedObjects = new HashMap<C4ID, List<C4Object>>();
 	private List<C4ScriptBase> indexedScripts = new LinkedList<C4ScriptBase>(); 
@@ -285,6 +282,13 @@ public class ClonkIndex implements Serializable, Iterable<C4Object> {
 		return true;
 	}
 	
+	public boolean acceptsDeclaration(C4Declaration declaration) {
+		C4ScriptBase script = declaration.getScript();
+		if (script instanceof C4ObjectExtern)
+			return acceptsFromExternalLib(((C4ObjectExtern)script).getExternalLib());
+		return true;
+	}
+	
 	public C4Object getExternalObject(C4ID id) {
 		List<C4Object> obj = ClonkCore.getDefault().getExternIndex().getObjects(id);
 		if (obj != null) {
@@ -350,10 +354,10 @@ public class ClonkIndex implements Serializable, Iterable<C4Object> {
 			}
 		};
 	}
-
+	
 	public C4Function findGlobalFunction(String functionName) {
 		for (C4Function func : globalFunctions) {
-			if (func.getName().equals(functionName))
+			if (func.getName().equals(functionName) && acceptsDeclaration(func))
 				return func;
 		}
 		return null;
@@ -363,7 +367,7 @@ public class ClonkIndex implements Serializable, Iterable<C4Object> {
 		if (staticVariables == null)
 			return null;
 		for (C4Variable var : staticVariables) {
-			if (var.getName().equals(variableName))
+			if (var.getName().equals(variableName) && acceptsDeclaration(var))
 				return var;
 		}
 		return null;
@@ -375,13 +379,24 @@ public class ClonkIndex implements Serializable, Iterable<C4Object> {
 			return f;
 		return findGlobalVariable(fieldName);
 	}
+
+	private IPredicate<C4Declaration> isGlobalPredicate() {
+		if (isGlobalPredicate == null) {
+			isGlobalPredicate = new IPredicate<C4Declaration>() {
+				public boolean test(C4Declaration item) {
+					return item.isGlobal() && acceptsDeclaration(item);
+				}
+			};
+		}
+		return isGlobalPredicate;
+	}
 	
 	public C4Declaration findGlobalDeclaration(String declName, IResource pivot) {
 		if (pivot == null)
 			return findGlobalDeclaration(declName);
 		List<C4Declaration> declarations = declarationMap.get(declName);
 		if (declarations != null) {
-			return Utilities.pickNearest(pivot, declarations, IS_GLOBAL);
+			return Utilities.pickNearest(pivot, declarations, isGlobalPredicate());
 		}
 		return null;
 	}

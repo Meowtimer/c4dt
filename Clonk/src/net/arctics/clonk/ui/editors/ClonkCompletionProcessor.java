@@ -5,9 +5,11 @@ import java.util.Collection;
 import java.util.Comparator;
 
 import net.arctics.clonk.index.C4Object;
+import net.arctics.clonk.index.C4ObjectExtern;
 import net.arctics.clonk.index.C4ObjectIntern;
 import net.arctics.clonk.index.ClonkIndex;
 import net.arctics.clonk.parser.c4script.C4Function;
+import net.arctics.clonk.parser.c4script.C4ScriptBase;
 import net.arctics.clonk.util.Utilities;
 
 import org.eclipse.jface.text.contentassist.ContextInformation;
@@ -32,6 +34,13 @@ public abstract class ClonkCompletionProcessor<EditorType extends ClonkTextEdito
 		try {
 			if (obj == null || obj.getId() == null)
 				return;
+			
+			// skip external objects from ignored libs
+			if (obj instanceof C4ObjectExtern) {
+				C4ScriptBase script = Utilities.getScriptForEditor(getEditor());
+				if (script != null && script.getIndex() != null && !script.getIndex().acceptsFromExternalLib(((C4ObjectExtern)obj).getExternalLib()))
+					return;
+			}
 
 			if (prefix != null) {
 				if (!(
