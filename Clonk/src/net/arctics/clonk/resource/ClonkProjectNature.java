@@ -8,7 +8,6 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.List;
 
-import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.index.ProjectIndex;
 
 import org.eclipse.core.resources.IFile;
@@ -133,8 +132,7 @@ public class ClonkProjectNature implements IProjectNature {
 	}
 	
 	public List<ExternalLib> getDependencies() {
-		// just return global libs for now
-		return ClonkCore.getDefault().getExternIndex().getLibs();
+		return getIndex().getDependencies();
 	}
 
 }

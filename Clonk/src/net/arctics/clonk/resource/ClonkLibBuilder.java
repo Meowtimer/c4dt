@@ -28,6 +28,7 @@ import net.arctics.clonk.util.ITreeNode;
 import net.arctics.clonk.util.Utilities;
 
 import org.eclipse.core.resources.IMarker;
+import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -121,7 +122,7 @@ public class ClonkLibBuilder implements IC4GroupVisitor, IPropertyChangeListener
 		for(String lib : libs) {
 			readExternalLib(lib, new SubProgressMonitor(monitor,1));
 		}
-		ClonkCore.getDefault().getExternIndex().refreshCache();
+		refresh();
 		if (monitor != null) monitor.done();
 	}
 	
@@ -250,7 +251,7 @@ public class ClonkLibBuilder implements IC4GroupVisitor, IPropertyChangeListener
 								}
 							}
 						}
-						ClonkCore.getDefault().getExternIndex().refreshCache();
+						refresh();
 						try {
 							ClonkCore.getDefault().saveExternIndex(monitor);
 						} catch (FileNotFoundException e1) {
@@ -273,6 +274,13 @@ public class ClonkLibBuilder implements IC4GroupVisitor, IPropertyChangeListener
 			for (C4Object o : ClonkCore.getDefault().getExternIndex()) {
 				o.chooseLocalizedName();
 			}
+		}
+	}
+	
+	private void refresh() {
+		ClonkCore.getDefault().getExternIndex().refreshCache();
+		for (IProject p : Utilities.getClonkProjects()) {
+			Utilities.getClonkNature(p).getIndex().notifyExternalLibsSet();
 		}
 	}
 

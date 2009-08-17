@@ -1,146 +1,109 @@
 package net.arctics.clonk.ui;
 
-import java.io.File;
-import java.io.FilenameFilter;
-import java.util.Stack;
-
-import net.arctics.clonk.ClonkCore;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.Map;
+import net.arctics.clonk.util.Utilities;
 
 import org.eclipse.core.resources.IProject;
-import org.eclipse.core.resources.ProjectScope;
-import org.eclipse.core.runtime.preferences.IEclipsePreferences;
-import org.eclipse.swt.SWT;
-import org.eclipse.swt.layout.GridData;
-import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Control;
-import org.eclipse.swt.widgets.Event;
-import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.Listener;
-import org.eclipse.swt.widgets.Text;
-import org.eclipse.swt.widgets.Tree;
-import org.eclipse.swt.widgets.TreeItem;
-import org.eclipse.ui.dialogs.PropertyPage;
-import org.osgi.service.prefs.BackingStoreException;
+import org.eclipse.core.runtime.IAdaptable;
+import org.eclipse.jface.dialogs.InputDialog;
+import org.eclipse.jface.preference.FieldEditorPreferencePage;
+import org.eclipse.jface.preference.IPreferenceStore;
+import org.eclipse.jface.preference.ListEditor;
+import org.eclipse.jface.preference.PreferenceStore;
+import org.eclipse.ui.IWorkbenchPropertyPage;
+import org.eclipse.ui.PlatformUI;
 
-public class ClonkProjectProperties extends PropertyPage {
+public class ClonkProjectProperties extends FieldEditorPreferencePage implements IWorkbenchPropertyPage {
 
-	private IEclipsePreferences prefs;
-	private Text text;
-	private Tree tree;
-	private Stack<File> fileNames;
+	private static final String DEPENDENCIES_PROPERTY = "dependencies";
 	
-	private Composite comp;
-	
-	@Override
-	protected Control createContents(Composite parent) {
-		IProject nature = (IProject) getElement().getAdapter(IProject.class);
-		if (nature == null) {
-			Label lab = new Label(parent, SWT.LEFT);
-			lab.setText("Returned null oO;");
-			return lab;
+	private final class AdapterStore extends PreferenceStore {
+		private Map<String, String> values = new HashMap<String, String>();
+
+		public String getDefaultString(String name) {
+			return "";
+		}
+
+		public void setValue(String name, String value) {
+			values.put(name, value);
+			commit(name, value);
+		}
+
+		public String getString(String name) {
+			String v = values.get(name);
+			return v != null ? v : getDefaultString(name);
+		}
+
+		@SuppressWarnings("unchecked")
+		public void commit(String n, String v) {
+			if (n.equals(DEPENDENCIES_PROPERTY))
+				Utilities.getClonkNature(getProject()).getIndex().setDependencies(Utilities.collectionFromArray(LinkedList.class, v.split("<>")));
 		}
 		
-		ProjectScope scope = new ProjectScope(nature);
-		prefs = scope.getNode(ClonkCore.PLUGIN_ID);
-		String path = prefs.get("clonkpath", "D:\\");
-		
-		comp = new Composite(parent,SWT.NONE);
-		
-		GridLayout layout= new GridLayout();
-		layout.marginWidth= 0;
-		layout.marginHeight= 0;
-		layout.numColumns= 2;
-		comp.setLayout(layout);
-		
-		Label lab = new Label(comp, SWT.LEFT);
-		lab.setText("THIS PROPERTY PAGE IS DEPRECATED");
-		
-		text = new Text(comp, SWT.SINGLE | SWT.BORDER);
-		text.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
-		text.setText(path);
-		text.setSize(200, 25);
-		text.addListener(SWT.Verify, new Listener() {
-			public void handleEvent(Event event) {
-				File tmp = new File(((Text)event.widget).getText());
-				if (tmp.exists()) {
-					appendLibraryChoser(tmp);
+		public AdapterStore() {
+			values.put(DEPENDENCIES_PROPERTY, stringFromIterable(Utilities.getClonkNature(getProject()).getIndex().getDependencyNames()));
+		}
+	}
+	
+	private IAdaptable element;	
+	private AdapterStore adapterStore;
+	
+	private IProject getProject() {
+		return (IProject) element.getAdapter(IProject.class);
+	}
+	
+	@Override
+	public IPreferenceStore getPreferenceStore() {
+		return adapterStore;
+	}
+	
+	private String stringFromIterable(Iterable<String> iterable) {
+		if (iterable == null)
+			return "";
+		StringBuilder builder = new StringBuilder();
+		for (String s : iterable) {
+			builder.append(s);
+			builder.append("<>");
+		}
+		return builder.toString();
+	}
+	
+	@Override
+	protected void createFieldEditors() {
+		addField(new ListEditor(DEPENDENCIES_PROPERTY, "Dependencies", getFieldEditorParent()) {
+			
+			@Override
+			protected String[] parseString(String stringList) {
+				return stringList.split("<>");
+			}
+			
+			@Override
+			protected String getNewInputObject() {
+				InputDialog input = new InputDialog(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(), "New dependency", "Supply the name of a dependency", "", null);
+				switch (input.open()) {
+				case InputDialog.CANCEL:
+					return null;
+				default:
+					return input.getValue();
 				}
 			}
 			
-		});
-		
-		File tmp = new File(text.getText());
-		if (tmp.exists()) {
-			appendLibraryChoser(tmp);
-		}
-		
-		return comp;
-	}
-	
-	private void generateFileStack(File dir) {
-		File[] files = dir.listFiles(new FilenameFilter() {
-			public boolean accept(File dir, String name) {
-				return (name.endsWith(".c4d") || name.endsWith(".c4g"));
+			@Override
+			protected String createList(String[] items) {
+				return stringFromIterable(Utilities.arrayIterable(items));
 			}
 		});
-		fileNames = new Stack<File>();
-		for(File file : files) fileNames.add(file);
 	}
-	
-	private void appendLibraryChoser(File dir) {
-		generateFileStack(dir);
-		if (fileNames.size() == 0) {
-			if (tree != null) tree.dispose();
-			tree = null;
-			return;
-		}
-		
-		final org.osgi.service.prefs.Preferences extLibs = prefs.node("extLibs");
-		
-		if (tree != null) {
-			tree.clearAll(true);
-			tree.setItemCount(fileNames.size());
-		}
-		else {
-			tree = new Tree(comp, SWT.CHECK | SWT.VIRTUAL | SWT.BORDER);
-			tree.setItemCount(fileNames.size());
-			tree.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true,true,2,1));
-			tree.addListener(SWT.SetData, new Listener() {
-				public void handleEvent(Event event) {
-					TreeItem item = (TreeItem) event.item;
-					item.setText(fileNames.pop().getName());
-					item.setChecked((extLibs.get(item.getText(), null) != null));
-				}
 
-			});
-		}
-		
-		comp.layout(true);
+	public IAdaptable getElement() {
+		return element;
 	}
-	
-	@Override
-	public boolean performOk() {
-		prefs.put("clonkpath", text.getText());
-		try {
-			prefs.flush();
-		} catch (BackingStoreException e) {
-			e.printStackTrace();
-		}
-		TreeItem[] items = tree.getItems();
-		org.osgi.service.prefs.Preferences extLibs = prefs.node("extLibs");
-		try {
-			extLibs.clear();
-		} catch (BackingStoreException e) {
-			e.printStackTrace();
-		}
-		for(TreeItem item : items) {
-			if (item.getChecked()) {
-				extLibs.put(item.getText(), item.getText());
-			}
-		}
-		
-		return super.performOk();
+
+	public void setElement(IAdaptable element) {
+		this.element = element;
+		this.adapterStore = new AdapterStore();
 	}
 
 }

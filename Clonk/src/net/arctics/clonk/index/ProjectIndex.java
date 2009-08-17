@@ -20,19 +20,21 @@ import org.eclipse.core.runtime.Path;
 
 public class ProjectIndex extends ClonkIndex {
 
+	private static final long serialVersionUID = 1L;
+	
 	private transient IProject project;
-	private Collection<String> dependencies;
+	private Collection<String> dependencyNames;
 	private BitSet externalLibBitSet;
 	
 	public List<ExternalLib> getDependencies() {
 		List<ExternalLib> allLibs = ClonkCore.getDefault().getExternIndex().getLibs();
 		// no explicit dependencies specified; return all set in preferences
-		if (dependencies == null)
+		if (dependencyNames == null)
 			return allLibs;
 		// filter
 		return Utilities.filter(allLibs, new IPredicate<ExternalLib>() {
 			public boolean test(ExternalLib lib) {
-				return Utilities.collectionContains(dependencies, lib.getNodeName());
+				return Utilities.collectionContains(dependencyNames, lib.getNodeName());
 			}
 		});
 	}
@@ -41,7 +43,12 @@ public class ProjectIndex extends ClonkIndex {
 		Collection<String> depNames = new ArrayList<String>(list.size());
 		for (ExternalLib lib : list)
 			depNames.add(lib.getNodeName());
-		this.dependencies = depNames;
+		this.dependencyNames = depNames;
+		notifyExternalLibsSet();
+	}
+	
+	public void setDependencies(Collection<String> list) {		
+		this.dependencyNames = list;
 		notifyExternalLibsSet();
 	}
 	
@@ -51,13 +58,13 @@ public class ProjectIndex extends ClonkIndex {
 	}
 	
 	public void notifyExternalLibsSet() {
-		if (dependencies == null)
+		if (dependencyNames == null)
 			externalLibBitSet = null;
 		else {
 			List<ExternalLib> allLibs = ClonkCore.getDefault().getExternIndex().getLibs();
 			externalLibBitSet = new BitSet(allLibs.size());
 			for (ExternalLib lib : allLibs) {
-				externalLibBitSet.set(lib.getIndex(), Utilities.collectionContains(dependencies, lib.getNodeName()));
+				externalLibBitSet.set(lib.getIndex(), Utilities.collectionContains(dependencyNames, lib.getNodeName()));
 			}
 		}
 	}
@@ -96,9 +103,8 @@ public class ProjectIndex extends ClonkIndex {
 		return "Index for " + project.toString();
 	}
 
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 1L;
+	public Iterable<String> getDependencyNames() {
+		return dependencyNames;
+	}
 
 }

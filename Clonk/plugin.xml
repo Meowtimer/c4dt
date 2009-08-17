@@ -212,19 +212,16 @@
 		point="org.eclipse.core.resources.builders">
 		<builder hasNature="true">
 			<run class="net.arctics.clonk.resource.ClonkBuilder" />
-
 		</builder>
 	</extension>
 
 	<extension point="org.eclipse.ui.preferencePages">
 		<page class="net.arctics.clonk.preferences.ClonkPreferencePage"
 			id="net.arctics.clonk.preferences.ClonkPreferencePage" name="Clonk" />
-
 	</extension>
 
 	<extension point="org.eclipse.core.runtime.preferences">
 		<initializer class="net.arctics.clonk.preferences.PreferenceInitializer" />
-
 	</extension>
 
 	<extension point="org.eclipse.ui.views">

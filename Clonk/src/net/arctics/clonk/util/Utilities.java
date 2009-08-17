@@ -1,6 +1,7 @@
 package net.arctics.clonk.util;
 
 import java.io.BufferedReader;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -10,6 +11,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -518,6 +520,18 @@ public abstract class Utilities {
 		System.arraycopy(baseArray, 0, result, 0, baseArray.length);
 		return result;
 	}
+	
+	public static <E, T extends Collection<E>> T collectionFromArray(Class<T> cls, E[] array) {
+		try {
+			T result = cls.newInstance();
+			for (E e : array)
+				result.add(e);
+			return result;
+		} catch (Exception e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
 
 	public static <S, T extends S> boolean isAnyOf(S something, T... things) {
 		if (something != null) {
@@ -590,6 +604,26 @@ public abstract class Utilities {
 			if (filter.test(elm))
 				result.add(elm);
 		return result;
+	}
+
+	public static <T> Iterable<T> arrayIterable(final T[] items) {
+		return new Iterable<T>() {
+			public Iterator<T> iterator() {
+				return new Iterator<T>() {
+					private int index = -1;
+					public boolean hasNext() {
+						return index+1<items.length;
+					}
+
+					public T next() {
+						return items[++index];
+					}
+
+					public void remove() {
+					}
+				};
+			}
+		};
 	}
 	
 }

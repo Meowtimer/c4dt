@@ -26,6 +26,13 @@ public class ExternIndex extends ClonkIndex {
 	}
 	
 	@Override
+	public synchronized void refreshCache() {
+		for (int i = 0; i < libs.size(); i++)
+			libs.get(i).setIndex(i);
+		super.refreshCache();
+	}
+	
+	@Override
 	public void clear() {
 		super.clear();
 		libs.clear();
