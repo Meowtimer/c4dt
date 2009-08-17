@@ -1,9 +1,13 @@
 package net.arctics.clonk.parser.c4script;
 
+import java.io.ByteArrayInputStream;
+
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -13,6 +17,7 @@ import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 
 import net.arctics.clonk.parser.C4Declaration;
+import net.arctics.clonk.util.Utilities;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
@@ -63,15 +68,27 @@ public class XMLDocImporter {
 		}
 	}
 
-	public C4Declaration importFromXML(InputStream stream) throws SAXException, IOException, XPathExpressionException {
+	public C4Declaration importFromXML(InputStream stream) throws IOException, XPathExpressionException {
 		
-		Document doc = builder.parse(stream);
+		String text = Utilities.stringFromInputStream(stream);
+		// get rid of pesky meta information
+		text = text.replaceAll("\\<\\?.*\\?\\>", "").replaceAll("\\<\\!.*\\>", "");
+		Document doc;
+		try {
+			doc = builder.parse(new ByteArrayInputStream(text.getBytes("UTF-8")));
+		} catch (SAXException e) {
+			Matcher m = Pattern.compile("\\<title\\>(.*)\\<\\/title\\>").matcher(text);
+			if (m.find()) {
+				System.out.println(m.group(1));
+			}
+			return null;
+		}
 		
 		doc.getFirstChild();
-		Node titleNode = (Node) xPath.evaluate("./funcs/func/title[1]", doc.getFirstChild(), XPathConstants.NODE);
-		Node rTypeNode = (Node) xPath.evaluate("./funcs/func/syntax/rtype[1]", doc.getFirstChild(), XPathConstants.NODE);
-		NodeList parmNodes = (NodeList) xPath.evaluate("./funcs/func/syntax/params/param", doc.getFirstChild(), XPathConstants.NODESET);
-		Node descNode = (Node) xPath.evaluate("./funcs/func/desc[1]", doc.getFirstChild(), XPathConstants.NODE);
+		Node titleNode = (Node) xPath.evaluate("./func/title[1]", doc.getFirstChild(), XPathConstants.NODE);
+		Node rTypeNode = (Node) xPath.evaluate("./func/syntax/rtype[1]", doc.getFirstChild(), XPathConstants.NODE);
+		NodeList parmNodes = (NodeList) xPath.evaluate("./func/syntax/params/param", doc.getFirstChild(), XPathConstants.NODESET);
+		Node descNode = (Node) xPath.evaluate("./func/desc[1]", doc.getFirstChild(), XPathConstants.NODE);
 		
 		if (titleNode != null && rTypeNode != null) {
 			C4Declaration result = (parmNodes != null) ? new C4Function() : new C4Variable();
