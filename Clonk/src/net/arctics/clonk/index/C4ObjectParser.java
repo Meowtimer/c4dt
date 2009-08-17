@@ -33,11 +33,9 @@ public class C4ObjectParser {
 	 * @return the parser object or <code>null</code>, if <code>folder</code> is not a valid/complete c4d
 	 */
 	public static C4ObjectParser create(IContainer folder) {
-		if ( 
-				(folder.findMember("DefCore.txt") != null &&
-				(folder.findMember("Graphics.png") != null ||
-				folder.findMember("Graphics.bmp") != null)) ||
-				folder.findMember("Scenario.txt") != null) {
+		if (folder.findMember("DefCore.txt") != null ||
+			folder.findMember("Scenario.txt") != null)
+		{
 			C4ObjectParser parser = new C4ObjectParser(folder);
 			return parser;
 		}
