@@ -1,6 +1,7 @@
 package net.arctics.clonk.index;
 
 import java.io.Serializable;
+
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -19,6 +20,7 @@ import net.arctics.clonk.parser.c4script.C4Variable;
 import net.arctics.clonk.parser.c4script.C4Directive.C4DirectiveType;
 import net.arctics.clonk.parser.c4script.C4Function.C4FunctionScope;
 import net.arctics.clonk.parser.c4script.C4Variable.C4VariableScope;
+import net.arctics.clonk.resource.ExternalLib;
 import net.arctics.clonk.util.IHasRelatedResource;
 import net.arctics.clonk.util.IPredicate;
 import net.arctics.clonk.util.Utilities;
@@ -279,13 +281,29 @@ public class ClonkIndex implements Serializable, Iterable<C4Object> {
 		return Utilities.pickNearest(resource, fromList, null);
 	}
 	
+	public boolean acceptsFromExternalLib(ExternalLib lib) {
+		return true;
+	}
+	
+	public C4Object getExternalObject(C4ID id) {
+		List<C4Object> obj = ClonkCore.getDefault().getExternIndex().getObjects(id);
+		if (obj != null) {
+			for (C4Object o : obj) {
+				C4ObjectExtern eo = (C4ObjectExtern) o;
+				if (acceptsFromExternalLib(eo.getExternalLib()))
+					return eo;
+			}
+		}
+		return null;
+	}
+	
 	public C4Object getObjectNearestTo(IResource resource, C4ID id) {
 		if (resource == null)
 			return getObjectFromEverywhere(id);
 		List<C4Object> objs = getObjects(id);
 		C4Object best = pickNearest(resource, objs);
 		if (best == null && this != ClonkCore.getDefault().getExternIndex())
-			best = ClonkCore.getDefault().getExternIndex().getLastObjectWithId(id);
+			best = getExternalObject(id);
 		return best;
 	}
 	
@@ -297,7 +315,7 @@ public class ClonkIndex implements Serializable, Iterable<C4Object> {
 	public C4Object getObjectFromEverywhere(C4ID id) {
 		C4Object result = getLastObjectWithId(id);
 		if (result == null && this != ClonkCore.getDefault().getExternIndex())
-			result = ClonkCore.getDefault().getExternIndex().getLastObjectWithId(id);
+			result = getExternalObject(id);
 		return result;
 	}
 

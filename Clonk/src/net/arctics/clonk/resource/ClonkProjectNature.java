@@ -9,7 +9,6 @@ import java.io.ObjectOutputStream;
 import java.util.List;
 
 import net.arctics.clonk.ClonkCore;
-import net.arctics.clonk.index.ClonkIndex;
 import net.arctics.clonk.index.ProjectIndex;
 
 import org.eclipse.core.resources.IFile;
@@ -65,7 +64,7 @@ public class ClonkProjectNature implements IProjectNature {
 	 * Returns the complete index of the project.
 	 * @return the indexedData
 	 */
-	public ClonkIndex getIndex() {
+	public ProjectIndex getIndex() {
 		if (index == null)
 			loadIndex();
 		return index;

@@ -11,13 +11,20 @@ import net.arctics.clonk.util.ITreeNode;
  */
 public class ExternalLib extends C4ObjectExternGroup {
 
+	private static final long serialVersionUID = 1L;
+	
+	private int index;
+	
 	public ExternalLib(String nodeName, ITreeNode parentNode) {
 		super(nodeName, parentNode);
 	}
 
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 1L;
+	public int getIndex() {
+		return index;
+	}
+
+	public void setIndex(int index) {
+		this.index = index;
+	}
 	
 }

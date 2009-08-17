@@ -576,4 +576,20 @@ public abstract class Utilities {
 		}
 		return null;
 	}
+	
+	public static <T> boolean collectionContains(Collection<T> list, T elm) {
+		for (T e : list)
+			if (e.equals(elm))
+				return true;
+		return false;
+	}
+	
+	public static <T> List<T> filter(List<T> list, IPredicate<T> filter) {
+		List<T> result = new LinkedList<T>();
+		for (T elm : list)
+			if (filter.test(elm))
+				result.add(elm);
+		return result;
+	}
+	
 }

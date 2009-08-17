@@ -1,6 +1,7 @@
 package net.arctics.clonk.index;
 
 import java.util.ArrayList;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -10,6 +11,7 @@ import org.eclipse.core.runtime.IPath;
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.C4ID;
 import net.arctics.clonk.parser.SimpleScriptStorage;
+import net.arctics.clonk.resource.ExternalLib;
 import net.arctics.clonk.resource.c4group.C4GroupEntry;
 import net.arctics.clonk.resource.c4group.C4GroupItem;
 import net.arctics.clonk.util.ITreeNode;
@@ -23,6 +25,8 @@ public class C4ObjectExtern extends C4Object implements ITreeNode {
 	private String nodeName;
 	private List<ITreeNode> childNodes;
 	private Map<String, String> localizedDescriptions;
+	
+	private transient ExternalLib externalLib;
 	
 	public C4ObjectExtern(C4ID id, String name, C4GroupItem script, ITreeNode parentNode) {
 		super(id, name);
@@ -100,6 +104,16 @@ public class C4ObjectExtern extends C4Object implements ITreeNode {
 		if (locDesc != null)
 			return getName() + ": " + locDesc;
 		return getName();
+	}
+
+	public ExternalLib getExternalLib() {
+		if (externalLib == null)
+			for (ITreeNode node = this; node != null; node = node.getParentNode())
+				if (node instanceof ExternalLib) {
+					externalLib = (ExternalLib) node;
+					break;
+				}
+		return externalLib;
 	}
 
 }

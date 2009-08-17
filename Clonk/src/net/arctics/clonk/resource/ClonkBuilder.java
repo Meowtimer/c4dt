@@ -95,8 +95,11 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 			throws CoreException {
 		parserMap.clear();
 		try {
-			IProject proj = getProject();
 			this.monitor = monitor;
+			IProject proj = getProject();
+			
+			Utilities.getClonkNature(proj).getIndex().notifyExternalLibsSet();
+			
 			switch(kind) {
 			case AUTO_BUILD:
 			case INCREMENTAL_BUILD:
