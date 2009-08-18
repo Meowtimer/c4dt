@@ -9,6 +9,7 @@ import org.eclipse.core.runtime.Path;
 
 import net.arctics.clonk.parser.c4script.C4ScriptBase;
 import net.arctics.clonk.resource.ExternalLib;
+import net.arctics.clonk.util.INode;
 import net.arctics.clonk.util.ITreeNode;
 
 public class ExternIndex extends ClonkIndex {
@@ -41,11 +42,11 @@ public class ExternIndex extends ClonkIndex {
 	public C4ScriptBase findScriptByPath(String path) {
 		IPath p = new Path(path);
 		if (p.segmentCount() >= 2) {
-			ITreeNode node = null;
+			INode node = null;
 			int seg = 0;
-			for (Collection<? extends ITreeNode> col = libs; col != null && seg < p.segmentCount(); col = node != null ? node.getChildCollection() : null, seg++) {
+			for (Collection<? extends INode> col = libs; col != null && seg < p.segmentCount(); col = node instanceof ITreeNode ? ((ITreeNode)node).getChildCollection() : null, seg++) {
 				node = null;
-				for (ITreeNode n : col) {
+				for (INode n : col) {
 					if (n.getNodeName().equals(p.segment(seg))) {
 						node = n;
 						break;

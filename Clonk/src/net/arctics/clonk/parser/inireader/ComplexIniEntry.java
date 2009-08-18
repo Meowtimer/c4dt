@@ -6,6 +6,7 @@ import net.arctics.clonk.parser.inireader.IniData.IniDataEntry;
 import net.arctics.clonk.util.IHasChildren;
 import net.arctics.clonk.util.IHasChildrenWithContext;
 import net.arctics.clonk.util.IHasContext;
+import net.arctics.clonk.util.INode;
 import net.arctics.clonk.util.ITreeNode;
 
 public class ComplexIniEntry extends IniEntry implements IHasChildren, IHasContext  {
@@ -68,7 +69,7 @@ public class ComplexIniEntry extends IniEntry implements IHasChildren, IHasConte
 	}
 
 	@Override
-	public Collection<? extends ITreeNode> getChildCollection() {
+	public Collection<? extends INode> getChildCollection() {
 		if (extendedValue instanceof ITreeNode) {
 			return ((ITreeNode) extendedValue).getChildCollection();
 		}

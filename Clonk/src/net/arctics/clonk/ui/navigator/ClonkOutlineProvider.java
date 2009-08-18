@@ -56,14 +56,6 @@ public class ClonkOutlineProvider extends LabelProvider implements ITreeContentP
 		// TODO Auto-generated method stub
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.jface.viewers.IBaseLabelProvider#dispose()
-	 */
-	public void dispose() {
-		// TODO Auto-generated method stub
-		super.dispose();
-	}
-
 	public Image getImage(Object element) {
 		return Utilities.getIconForObject(element);
 	}

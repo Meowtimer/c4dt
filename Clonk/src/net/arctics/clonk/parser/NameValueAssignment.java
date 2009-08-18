@@ -7,6 +7,7 @@ import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.Region;
 
 import net.arctics.clonk.util.IHasKeyAndValue;
+import net.arctics.clonk.util.INode;
 import net.arctics.clonk.util.ITreeNode;
 
 public class NameValueAssignment extends C4Declaration implements IHasKeyAndValue<String, String>, IRegion, ITreeNode {
@@ -57,7 +58,7 @@ public class NameValueAssignment extends C4Declaration implements IHasKeyAndValu
 	public void addChild(ITreeNode node) {
 	}
 
-	public Collection<? extends ITreeNode> getChildCollection() {
+	public Collection<? extends INode> getChildCollection() {
 		return null;
 	}
 

@@ -2,12 +2,14 @@ package net.arctics.clonk.parser;
 
 import java.io.Serializable;
 
+
 import net.arctics.clonk.index.C4ObjectIntern;
 import net.arctics.clonk.index.C4Scenario;
 import net.arctics.clonk.parser.c4script.C4ScriptBase;
 import net.arctics.clonk.parser.c4script.C4ScriptIntern;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.util.IHasRelatedResource;
+import net.arctics.clonk.util.INode;
 
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IResource;
@@ -18,7 +20,7 @@ import org.eclipse.jface.text.IRegion;
  * @author madeen
  *
  */
-public abstract class C4Declaration implements Serializable, IHasRelatedResource  {
+public abstract class C4Declaration implements Serializable, IHasRelatedResource, INode  {
 	/**
 	 * 
 	 */
@@ -250,6 +252,10 @@ public abstract class C4Declaration implements Serializable, IHasRelatedResource
 	 */
 	public boolean nameContains(String part) {
 		return getName().toLowerCase().contains(part.toLowerCase());
+	}
+	
+	public String getNodeName() {
+		return getName();
 	}
 	
 }

@@ -4,6 +4,7 @@ import java.util.Collection;
 import net.arctics.clonk.parser.C4Structure;
 import net.arctics.clonk.parser.c4script.C4ScriptBase;
 import net.arctics.clonk.resource.ClonkProjectNature;
+import net.arctics.clonk.util.INode;
 import net.arctics.clonk.util.ITreeNode;
 import net.arctics.clonk.util.Utilities;
 
@@ -56,7 +57,7 @@ public class ClonkNavigator extends ClonkOutlineProvider {
 			}
 		}
 		else if (element instanceof ITreeNode) {
-			Collection<? extends ITreeNode> children = ((ITreeNode)element).getChildCollection();
+			Collection<? extends INode> children = ((ITreeNode)element).getChildCollection();
 			if (children != null && !children.isEmpty())
 				return Utilities.concat(((ITreeNode) element).getChildCollection().toArray(), super.getChildren(element));
 		}

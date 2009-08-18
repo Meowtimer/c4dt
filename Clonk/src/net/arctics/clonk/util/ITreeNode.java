@@ -4,11 +4,10 @@ import java.util.Collection;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Path;
 
-public interface ITreeNode {
-	String getNodeName();
+public interface ITreeNode extends INode {
 	ITreeNode getParentNode();
 	IPath getPath();
-	Collection<? extends ITreeNode> getChildCollection();
+	Collection<? extends INode> getChildCollection();
 	void addChild(ITreeNode node);
 	boolean subNodeOf(ITreeNode node);
 	
