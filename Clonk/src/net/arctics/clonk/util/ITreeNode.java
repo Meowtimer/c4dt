@@ -8,8 +8,8 @@ public interface ITreeNode extends INode {
 	ITreeNode getParentNode();
 	IPath getPath();
 	Collection<? extends INode> getChildCollection();
-	void addChild(ITreeNode node);
 	boolean subNodeOf(ITreeNode node);
+	void addChild(ITreeNode node);
 	
 	public static class Default {
 		public static IPath getPath(ITreeNode node) {

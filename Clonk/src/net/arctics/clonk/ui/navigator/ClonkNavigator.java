@@ -58,8 +58,7 @@ public class ClonkNavigator extends ClonkOutlineProvider {
 		}
 		else if (element instanceof ITreeNode) {
 			Collection<? extends INode> children = ((ITreeNode)element).getChildCollection();
-			if (children != null && !children.isEmpty())
-				return Utilities.concat(((ITreeNode) element).getChildCollection().toArray(), super.getChildren(element));
+			return children != null ? children.toArray(new INode[children.size()]) : null;
 		}
 		return super.getChildren(element);
 	}

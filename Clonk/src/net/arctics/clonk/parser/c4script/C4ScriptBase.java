@@ -36,6 +36,8 @@ import net.arctics.clonk.parser.c4script.C4Variable.C4VariableScope;
 import net.arctics.clonk.parser.stringtbl.StringTbl;
 import net.arctics.clonk.util.CompoundIterable;
 import net.arctics.clonk.util.IHasRelatedResource;
+import net.arctics.clonk.util.INode;
+import net.arctics.clonk.util.ITreeNode;
 import net.arctics.clonk.util.ReadOnlyIterator;
 import net.arctics.clonk.util.Utilities;
 
@@ -43,6 +45,7 @@ import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IPath;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.ITextSelection;
 import org.eclipse.jface.text.Region;
@@ -51,7 +54,7 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
-public abstract class C4ScriptBase extends C4Structure implements IHasRelatedResource {
+public abstract class C4ScriptBase extends C4Structure implements IHasRelatedResource, ITreeNode {
 
 	/**
 	 * 
@@ -539,11 +542,11 @@ public abstract class C4ScriptBase extends C4Structure implements IHasRelatedRes
 	}
 	
 	@Override
-	public Object[] getSubDeclarationsForOutline() {
+	public INode[] getSubDeclarationsForOutline() {
 		List<Object> all = new LinkedList<Object>();
 		all.addAll(definedFunctions);
 		all.addAll(definedVariables);
-		return all.toArray(new Object[all.size()]);
+		return all.toArray(new INode[all.size()]);
 	}
 	
 	@Override
@@ -671,6 +674,28 @@ public abstract class C4ScriptBase extends C4Structure implements IHasRelatedRes
 			if (declaration != null)
 				this.addDeclaration(declaration);
 		}
+	}
+	
+	public ITreeNode getParentNode() {
+		return getParentDeclaration() instanceof ITreeNode ? (ITreeNode)getParentDeclaration() : null;
+	}
+	
+	public boolean subNodeOf(ITreeNode node) {
+		return ITreeNode.Default.subNodeOf(this, node);
+	}
+	
+	public IPath getPath() {
+		return ITreeNode.Default.getPath(this);
+	}
+	
+	@SuppressWarnings("unchecked")
+	public Collection<? extends INode> getChildCollection() {
+		return Utilities.collectionFromArray(LinkedList.class, getSubDeclarationsForOutline());
+	}
+	
+	public void addChild(ITreeNode node) {
+		if (node instanceof C4Declaration)
+			addDeclaration((C4Declaration)node);
 	}
 	
 //	public boolean removeDWording() {

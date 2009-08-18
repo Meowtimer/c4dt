@@ -2,7 +2,9 @@ package net.arctics.clonk.index;
 
 import java.util.ArrayList;
 
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -14,6 +16,7 @@ import net.arctics.clonk.parser.SimpleScriptStorage;
 import net.arctics.clonk.resource.ExternalLib;
 import net.arctics.clonk.resource.c4group.C4GroupEntry;
 import net.arctics.clonk.resource.c4group.C4GroupItem;
+import net.arctics.clonk.util.INode;
 import net.arctics.clonk.util.ITreeNode;
 
 public class C4ObjectExtern extends C4Object implements ITreeNode {
@@ -23,7 +26,7 @@ public class C4ObjectExtern extends C4Object implements ITreeNode {
 	private SimpleScriptStorage script;
 	private ITreeNode parentNode;
 	private String nodeName;
-	private List<ITreeNode> childNodes;
+	private List<INode> childNodes;
 	private Map<String, String> localizedDescriptions;
 	
 	private transient ExternalLib externalLib;
@@ -71,9 +74,14 @@ public class C4ObjectExtern extends C4Object implements ITreeNode {
 		return ITreeNode.Default.subNodeOf(this, node);
 	}
 
-	public List<ITreeNode> getChildCollection() {
+	public List<INode> getChildCollection() {
 		if (childNodes == null)
-			childNodes = new ArrayList<ITreeNode>();
+			childNodes = new ArrayList<INode>();
+		if (hasSubDeclarationsInOutline()) {
+			List<INode> result = new LinkedList<INode>();
+			Collections.copy(result, childNodes);
+			Collections.addAll(result, getSubDeclarationsForOutline());
+		}
 		return childNodes;
 	}
 
