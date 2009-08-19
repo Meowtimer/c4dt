@@ -1,6 +1,3 @@
-/**
- * 
- */
 package net.arctics.clonk.parser;
 
 import org.eclipse.core.resources.IMarker;

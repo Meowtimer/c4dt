@@ -28,12 +28,12 @@ import org.eclipse.jface.preference.IPreferenceStore;
 public class ClonkLaunchConfigurationDelegate implements
 		ILaunchConfigurationDelegate {
 	
-	public static final String LAUNCH_TYPE = ClonkCore.PLUGIN_ID + ".debug.ClonkLaunch";
+	public static final String LAUNCH_TYPE = ClonkCore.id("debug.ClonkLaunch");
 	
-	public static final String ATTR_PROJECT_NAME = ClonkCore.PLUGIN_ID + ".debug.ProjectNameAttr";
-	public static final String ATTR_SCENARIO_NAME = ClonkCore.PLUGIN_ID + ".debug.ScenarioNameAttr";
-	public static final String ATTR_FULLSCREEN = ClonkCore.PLUGIN_ID + ".debug.FullscreenAttr";
-	public static final String ATTR_RECORD = ClonkCore.PLUGIN_ID + ".debug.RecordAttr";
+	public static final String ATTR_PROJECT_NAME = ClonkCore.id("debug.ProjectNameAttr");
+	public static final String ATTR_SCENARIO_NAME = ClonkCore.id("debug.ScenarioNameAttr");
+	public static final String ATTR_FULLSCREEN = ClonkCore.id("debug.FullscreenAttr");
+	public static final String ATTR_RECORD = ClonkCore.id("debug.RecordAttr");
 	
 	public void launch(ILaunchConfiguration configuration, String mode, ILaunch launch,
 			IProgressMonitor monitor) throws CoreException {

@@ -137,7 +137,7 @@ public class ClonkRenameFieldProcessor extends RenameProcessor {
 
 	@Override
 	public String getIdentifier() {
-		return ClonkCore.PLUGIN_ID + ".refactoring.renameField";
+		return ClonkCore.id("refactoring.renameField");
 	}
 
 	@Override
