@@ -17,9 +17,6 @@ import org.eclipse.swt.widgets.Shell;
 @SuppressWarnings("restriction")
 public class C4ScriptTextHover implements ITextHover, ITextHoverExtension {
 
-		/**
-		 * 
-		 */
 		private final C4ScriptSourceViewerConfiguration configuration;
 		private DeclarationLocator declLocator;
 //		private IInformationControlCreator informationControlCreator;

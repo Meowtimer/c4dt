@@ -123,9 +123,10 @@ public class OpenObjectDialog extends FilteredItemsSelectionDialog {
 		return ((C4Object)item).getId().getName();
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
-	protected Comparator<?> getItemsComparator() {
-		return new Comparator<?>() {
+	protected Comparator getItemsComparator() {
+		return new Comparator() {
 			public int compare(Object arg0, Object arg1) {
 				return arg0.toString().compareTo(arg1.toString());
 			}

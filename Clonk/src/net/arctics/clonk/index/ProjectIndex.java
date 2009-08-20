@@ -44,10 +44,10 @@ public class ProjectIndex extends ClonkIndex {
 		Collection<String> depNames = new ArrayList<String>(list.size());
 		for (ExternalLib lib : list)
 			depNames.add(lib.getNodeName());
-		setDependencies(depNames);
+		setDependencyNames(depNames);
 	}
 	
-	public void setDependencies(Collection<String> list) {
+	public void setDependencyNames(Collection<String> list) {
 		// require resaving
 		getNature().markAsDirty();
 		if (list != null && list.size() == 0)
