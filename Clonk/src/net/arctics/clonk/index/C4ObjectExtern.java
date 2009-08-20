@@ -79,8 +79,10 @@ public class C4ObjectExtern extends C4Object implements ITreeNode {
 			childNodes = new ArrayList<INode>();
 		if (hasSubDeclarationsInOutline()) {
 			List<INode> result = new LinkedList<INode>();
-			Collections.copy(result, childNodes);
+			for (int i = 0; i < childNodes.size(); i++)
+				result.add(childNodes.get(i));
 			Collections.addAll(result, getSubDeclarationsForOutline());
+			return result;
 		}
 		return childNodes;
 	}
