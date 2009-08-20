@@ -39,7 +39,7 @@ public class ClonkProjectProperties extends FieldEditorPreferencePage implements
 		@SuppressWarnings("unchecked")
 		public void commit(String n, String v) {
 			if (n.equals(DEPENDENCIES_PROPERTY))
-				Utilities.getClonkNature(getProject()).getIndex().setDependencies(Utilities.collectionFromArray(LinkedList.class, v.split("<>")));
+				Utilities.getClonkNature(getProject()).getIndex().setDependencies(Utilities.collectionFromArray(LinkedList.class, !v.equals("") ? v.split("<>") : new String[0]));
 		}
 		
 		public AdapterStore() {
@@ -63,9 +63,11 @@ public class ClonkProjectProperties extends FieldEditorPreferencePage implements
 		if (iterable == null)
 			return "";
 		StringBuilder builder = new StringBuilder();
+		int i = 0;
 		for (String s : iterable) {
 			builder.append(s);
 			builder.append("<>");
+			i++;
 		}
 		return builder.toString();
 	}

@@ -275,7 +275,7 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant {
 				FileInputStream in = new FileInputStream(index);
 				ObjectInputStream objStream = new InputStreamRespectingUniqueIDs(in);
 				externIndex = (ExternIndex)objStream.readObject();
-				externIndex.fixReferencesAfterSerialization();
+				externIndex.postSerialize();
 			} catch (Exception e) {
 				externIndex = new ExternIndex();
 			}

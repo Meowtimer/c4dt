@@ -202,7 +202,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 			}
 			monitor.subTask("Save data");
 			
-			// saves all objects persistently
+			// mark as dirty so it will be saved when eclipse is shut down
 			Utilities.getClonkNature(proj).markAsDirty();
 
 			monitor.done();

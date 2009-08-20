@@ -109,7 +109,7 @@ public class ClonkProjectNature implements IProjectNature {
 				ObjectInputStream objStream = new InputStreamRespectingUniqueIDs(in);
 				index = (ProjectIndex)objStream.readObject();
 				index.setProject(getProject());
-				index.fixReferencesAfterSerialization();
+				index.postSerialize();
 			} finally {
 				in.close();
 			}

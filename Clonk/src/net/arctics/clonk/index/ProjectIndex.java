@@ -8,6 +8,7 @@ import java.util.List;
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.c4script.C4ScriptBase;
 import net.arctics.clonk.parser.c4script.C4ScriptIntern;
+import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.resource.ExternalLib;
 import net.arctics.clonk.util.IPredicate;
 import net.arctics.clonk.util.Utilities;
@@ -24,7 +25,7 @@ public class ProjectIndex extends ClonkIndex {
 	
 	private transient IProject project;
 	private Collection<String> dependencyNames;
-	private BitSet externalLibBitSet;
+	private transient BitSet externalLibBitSet;
 	
 	public List<ExternalLib> getDependencies() {
 		List<ExternalLib> allLibs = ClonkCore.getDefault().getExternIndex().getLibs();
@@ -43,11 +44,14 @@ public class ProjectIndex extends ClonkIndex {
 		Collection<String> depNames = new ArrayList<String>(list.size());
 		for (ExternalLib lib : list)
 			depNames.add(lib.getNodeName());
-		this.dependencyNames = depNames;
-		notifyExternalLibsSet();
+		setDependencies(depNames);
 	}
 	
-	public void setDependencies(Collection<String> list) {		
+	public void setDependencies(Collection<String> list) {
+		// require resaving
+		getNature().markAsDirty();
+		if (list != null && list.size() == 0)
+			list = null;
 		this.dependencyNames = list;
 		notifyExternalLibsSet();
 	}
@@ -57,6 +61,10 @@ public class ProjectIndex extends ClonkIndex {
 		// accept all libs if no project-specific dependencies are defined
 		// also always accept c4g groups (System.c4g)
 		return externalLibBitSet == null || lib.isScriptsGroup() || externalLibBitSet.get(lib.getIndex());
+	}
+	
+	public ClonkProjectNature getNature() {
+		return Utilities.getClonkNature(project);
 	}
 	
 	public void notifyExternalLibsSet() {
@@ -79,7 +87,8 @@ public class ProjectIndex extends ClonkIndex {
 		project = proj;
 	}
 	
-	public void fixReferencesAfterSerialization() throws CoreException {
+	public void postSerialize() throws CoreException {
+		notifyExternalLibsSet();
 		for (C4Object object : this) {
 			if (object instanceof C4ObjectIntern) {
 				((C4ObjectIntern)object).refreshFolderReference(project);
@@ -97,7 +106,7 @@ public class ProjectIndex extends ClonkIndex {
 				standalone.setScriptFile(res);
 			}
 		}
-		super.fixReferencesAfterSerialization();
+		super.postSerialize();
 	}
 	
 	@Override

@@ -56,7 +56,7 @@ public class ClonkIndex implements Serializable, Iterable<C4Object> {
 		return l == null ? null : Collections.unmodifiableList(l);
 	}
 	
-	public void fixReferencesAfterSerialization() throws CoreException {
+	public void postSerialize() throws CoreException {
 		refreshCache();
 	}
 	
