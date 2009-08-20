@@ -2,6 +2,7 @@ package net.arctics.clonk.ui.editors.mapcreator;
 
 import java.util.ArrayList;
 import java.util.List;
+
 import net.arctics.clonk.parser.BuiltInDefinitions;
 import net.arctics.clonk.ui.editors.ColorManager;
 import net.arctics.clonk.ui.editors.IClonkColorConstants;

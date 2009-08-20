@@ -14,9 +14,15 @@ public class ExternalLib extends C4ObjectExternGroup {
 	private static final long serialVersionUID = 1L;
 	
 	private int index;
+	private boolean scriptsGroup;
+	
+	public boolean isScriptsGroup() {
+		return scriptsGroup;
+	}
 	
 	public ExternalLib(String nodeName, ITreeNode parentNode) {
 		super(nodeName, parentNode);
+		scriptsGroup = nodeName.endsWith(".c4g");
 	}
 
 	public int getIndex() {

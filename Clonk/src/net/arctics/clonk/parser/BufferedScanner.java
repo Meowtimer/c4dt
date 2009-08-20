@@ -1,6 +1,3 @@
-/**
- * 
- */
 package net.arctics.clonk.parser;
 
 import java.io.IOException;
@@ -374,6 +371,10 @@ public class BufferedScanner {
 		return buffer.length();
 	}
 	
+	/**
+	 * Return the buffer the scanner operates on
+	 * @return the buffer
+	 */
 	public CharSequence getBuffer() {
 		return buffer;
 	}
@@ -383,6 +384,10 @@ public class BufferedScanner {
 		return "offset: " + getPosition() + "; next: " + (char)peek();
 	}
 
+	/**
+	 * Return the next-to-be-read char without modifiying the scanner position
+	 * @return the next char
+	 */
 	private int peek() {
 		int p = read();
 		unread();

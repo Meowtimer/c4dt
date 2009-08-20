@@ -6,7 +6,6 @@ import java.util.Set;
 import net.arctics.clonk.index.ClonkIndex;
 import net.arctics.clonk.parser.C4Declaration;
 
-
 public class FindDeclarationInfo {
 	public  ClonkIndex index;
 	public int recursion;

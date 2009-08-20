@@ -54,7 +54,9 @@ public class ProjectIndex extends ClonkIndex {
 	
 	@Override
 	public boolean acceptsFromExternalLib(ExternalLib lib) {
-		return externalLibBitSet == null || externalLibBitSet.get(lib.getIndex());
+		// accept all libs if no project-specific dependencies are defined
+		// also always accept c4g groups (System.c4g)
+		return externalLibBitSet == null || lib.isScriptsGroup() || externalLibBitSet.get(lib.getIndex());
 	}
 	
 	public void notifyExternalLibsSet() {
