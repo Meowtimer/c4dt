@@ -1,5 +1,6 @@
 package net.arctics.clonk.ui;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -23,6 +24,9 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.widgets.TreeItem;
 import org.eclipse.ui.part.*;
+import org.eclipse.ui.progress.IProgressService;
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.viewers.*;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
@@ -480,17 +484,25 @@ public class EngineDeclarationsView extends ViewPart {
 		importFromRepoAction = new Action() {
 			@Override
 			public void run() {
-				C4ScriptBase engine = ClonkCore.getDefault().getEngineObject();
-				String repo = ClonkCore.getDefault().getPreferenceStore().getString(PreferenceConstants.OPENCLONK_REPO);
+				IProgressService ps = PlatformUI.getWorkbench().getProgressService();
 				try {
+					final String repo = ClonkCore.getDefault().getPreferenceStore().getString(PreferenceConstants.OPENCLONK_REPO);
 					if (repo == null) {
 						MessageDialog.openWarning(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(),
 							"No repository", "No repository selected in Preferences->Clonk");
-					} else {
-						engine.clearDeclarations();
-						engine.importFromRepositoryDocumentation(repo);
-						refresh();
 					}
+					else ps.busyCursorWhile(new IRunnableWithProgress() {
+						public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
+							try {
+								final C4ScriptBase engine = ClonkCore.getDefault().getEngineObject();
+								engine.clearDeclarations();
+								engine.importFromRepositoryDocumentation(repo, monitor);
+							} catch (Exception e) {
+								e.printStackTrace();
+							}
+						}
+					});
+					refresh();
 				} catch (Exception e) {
 					e.printStackTrace();
 				}

@@ -46,6 +46,7 @@ import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
+import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.ITextSelection;
 import org.eclipse.jface.text.Region;
@@ -660,20 +661,28 @@ public abstract class C4ScriptBase extends C4Structure implements IHasRelatedRes
 		return super.getInfoText();
 	}
 	
-	public void importFromRepositoryDocumentation(String repository) throws XPathExpressionException, FileNotFoundException, SAXException, IOException {
+	public void importFromRepositoryDocumentation(String repository, IProgressMonitor monitor) throws XPathExpressionException, FileNotFoundException, SAXException, IOException {
 		XMLDocImporter importer = XMLDocImporter.instance();
 		importer.setRepositoryPath(repository);
 		String fnFolder = repository + "/docs/sdk/script/fn";
 		File fn = new File(fnFolder);
-		for (String fileName : fn.list(new FilenameFilter() {
+		String[] files = fn.list(new FilenameFilter() {
 			public boolean accept(File dir, String name) {
 				return name.endsWith(".xml");
 			}
-		})) {
+		});
+		if (monitor != null)
+			monitor.beginTask("Importing", files.length);
+		for (String fileName : files) {
+			if (monitor != null) {
+				monitor.subTask(fileName);
+				monitor.worked(1);
+			}
 			C4Declaration declaration = importer.importFromXML(new FileInputStream(fnFolder + "/" + fileName));
 			if (declaration != null)
 				this.addDeclaration(declaration);
 		}
+		monitor.done();
 	}
 	
 	public ITreeNode getParentNode() {

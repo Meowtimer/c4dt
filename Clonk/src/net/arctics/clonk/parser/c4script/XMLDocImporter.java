@@ -2,6 +2,7 @@ package net.arctics.clonk.parser.c4script;
 
 import java.io.ByteArrayInputStream;
 
+
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
@@ -13,6 +14,7 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
+import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 
@@ -39,8 +41,27 @@ public class XMLDocImporter {
 	private String repositoryPath;
 	private InputSource clonkDTD;
 	
+	private XPathExpression parmNameExpr;
+	private XPathExpression parmTypeExpr;
+	private XPathExpression parmDescExpr;
+	private XPathExpression titleExpr;
+	private XPathExpression rtypeExpr;
+	private XPathExpression parmsExpr;
+	private XPathExpression descExpr;
+	
 	public XMLDocImporter() {
 		super();
+		try {
+			parmNameExpr = xPath.compile("./name");
+			parmTypeExpr = xPath.compile("./type");
+			parmDescExpr = xPath.compile("./desc");
+			titleExpr = xPath.compile("./func/title[1]");
+			rtypeExpr = xPath.compile("./func/syntax/rtype[1]");
+			parmsExpr = xPath.compile("./func/syntax/params/param");
+			descExpr = xPath.compile("./func/desc[1]");
+		} catch (XPathExpressionException e) {
+			e.printStackTrace();
+		}
 		try {
 			builder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
 			builder.setEntityResolver(new EntityResolver() {	
@@ -85,10 +106,10 @@ public class XMLDocImporter {
 		}
 		
 		doc.getFirstChild();
-		Node titleNode = (Node) xPath.evaluate("./func/title[1]", doc.getFirstChild(), XPathConstants.NODE);
-		Node rTypeNode = (Node) xPath.evaluate("./func/syntax/rtype[1]", doc.getFirstChild(), XPathConstants.NODE);
-		NodeList parmNodes = (NodeList) xPath.evaluate("./func/syntax/params/param", doc.getFirstChild(), XPathConstants.NODESET);
-		Node descNode = (Node) xPath.evaluate("./func/desc[1]", doc.getFirstChild(), XPathConstants.NODE);
+		Node titleNode = (Node) titleExpr.evaluate(doc.getFirstChild(), XPathConstants.NODE);
+		Node rTypeNode = (Node) rtypeExpr.evaluate(doc.getFirstChild(), XPathConstants.NODE);
+		NodeList parmNodes = (NodeList) parmsExpr.evaluate(doc.getFirstChild(), XPathConstants.NODESET);
+		Node descNode = (Node) descExpr.evaluate(doc.getFirstChild(), XPathConstants.NODE);
 		
 		if (titleNode != null && rTypeNode != null) {
 			C4Declaration result = (parmNodes != null) ? new C4Function() : new C4Variable();
@@ -98,9 +119,9 @@ public class XMLDocImporter {
 				C4Function function = (C4Function) result;
 				for (int i = 0; i < parmNodes.getLength(); i++) {
 					Node n = parmNodes.item(i);
-					Node nameNode  = (Node) xPath.evaluate("./name", n, XPathConstants.NODE);
-					Node typeNode  = (Node) xPath.evaluate("./type", n, XPathConstants.NODE);
-					Node descNode_ = (Node) xPath.evaluate("./desc", n, XPathConstants.NODE);
+					Node nameNode  = (Node) parmNameExpr.evaluate(n, XPathConstants.NODE);
+					Node typeNode  = (Node) parmTypeExpr.evaluate(n, XPathConstants.NODE);
+					Node descNode_ = (Node) parmDescExpr.evaluate(n, XPathConstants.NODE);
 					if (nameNode != null && typeNode != null) {
 						C4Variable parm = new C4Variable(nameNode.getTextContent(), C4Type.makeType(typeNode.getTextContent()));
 						if (descNode_ != null)
