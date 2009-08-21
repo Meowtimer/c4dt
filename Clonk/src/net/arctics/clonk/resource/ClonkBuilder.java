@@ -1,6 +1,7 @@
 package net.arctics.clonk.resource;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -15,6 +16,8 @@ import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.C4Structure;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.preferences.PreferenceConstants;
+import net.arctics.clonk.resource.c4group.C4Group;
+import net.arctics.clonk.resource.c4group.C4Group.C4GroupType;
 import net.arctics.clonk.ui.editors.ClonkTextEditor;
 import net.arctics.clonk.util.Utilities;
 
@@ -290,6 +293,15 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 					structure.commitTo(script);
 					structure.pinTo(file);
 				}
+				// packed file
+//				else if (C4Group.getGroupType(file.getName()) != C4GroupType.OtherGroup) {
+//					try {
+//						C4Group g = C4Group.openFile(file);
+//						g.explode();
+//					} catch (IOException e) {
+//						e.printStackTrace();
+//					}
+//				}
 			}
 			else if (delta.getKind() == IResourceDelta.REMOVED && delta.getResource().getParent().exists()) {
 				if (buildPhase == 0) {

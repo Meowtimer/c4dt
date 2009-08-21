@@ -31,9 +31,6 @@ import org.eclipse.core.runtime.IProgressMonitor;
  */
 public class C4Group implements C4GroupItem, Serializable {
 	
-	/**
-	 * 
-	 */
 	private static final long serialVersionUID = 1L;
 
 	public enum C4GroupType {
@@ -53,7 +50,7 @@ public class C4Group implements C4GroupItem, Serializable {
 		return Collections.unmodifiableMap(result);
 	}
 	
-	public static final Map<String, C4GroupType> extensionToGroupTypeMap = getExtensionToGroupTypeMap();
+	public static final Map<String, C4GroupType> EXTENSION_TO_GROUP_TYPE_MAP = getExtensionToGroupTypeMap();
 
 	private String entryName;
 	private List<C4GroupItem> childEntries;
@@ -136,25 +133,60 @@ public class C4Group implements C4GroupItem, Serializable {
 	 * @throws IOException 
 	 */
 	public static C4Group openFile(File file) throws InvalidDataException, IOException {
-		return new C4Group(new GZIPInputStream(new FileInputStream(file) {
+		return openFromCompressedStream(new FileInputStream(file), file.getName());
+	}
+	
+	public static C4Group openFile(IFile file) throws IOException, CoreException {
+		return openFromCompressedStream(file.getContents(), file.getName());
+	}
+	
+	protected static C4Group openFromCompressedStream(final InputStream stream, String name) throws IOException {
+		return new C4Group(new GZIPInputStream(new InputStream() {
 			private int timesRead = 0;
 
-			/* (non-Javadoc)
-			 * @see java.io.FileInputStream#read()
-			 */
 			@Override
 			public int read() throws IOException {
 				if (timesRead < 2) { // deface magic header
 					timesRead++;
-					int readByte = super.read();
+					int readByte = stream.read();
 					if (readByte == 0x1E) return 0x1F;
 					if (readByte == 0x8C) return 0x8B;
 					return readByte;
 				}
-				return super.read();
+				return stream.read();
 			}
-		}),file.getName());
-
+			
+			@Override
+			public boolean markSupported() {
+				return stream.markSupported();
+			}
+			
+			@Override
+			public synchronized void mark(int readlimit) {
+				mark(readlimit);
+			}
+			
+			@Override
+			public synchronized void reset() throws IOException {
+				stream.reset();
+			}
+			
+			@Override
+			public long skip(long n) throws IOException {
+				return stream.skip(n);
+			}
+			
+			@Override
+			public void close() throws IOException {
+				stream.close();
+			}
+			
+			@Override
+			public int available() throws IOException {
+				return stream.available();
+			}
+			
+		}), name);
 	}
 	
     public static void MemScramble(byte[] buffer, int size)
@@ -177,7 +209,7 @@ public class C4Group implements C4GroupItem, Serializable {
 	}
 	
 	public static C4GroupType getGroupTypeExt(String ext) {
-		C4GroupType result = extensionToGroupTypeMap.get(ext);
+		C4GroupType result = EXTENSION_TO_GROUP_TYPE_MAP.get(ext);
 		if (result != null)
 			return result;
 		return C4GroupType.OtherGroup;		
@@ -413,6 +445,10 @@ public class C4Group implements C4GroupItem, Serializable {
 
 	public int getSizeOfChildren() {
 		return sizeOfChildren;
+	}
+
+	public void explode() {
+		
 	}
 	
 }

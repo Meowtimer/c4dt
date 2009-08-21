@@ -310,7 +310,7 @@ public class LaunchMainTab extends AbstractLaunchConfigurationTab {
 					return true;
 				// Type lookup
 				C4Group.C4GroupType type = 
-					C4Group.extensionToGroupTypeMap.get(res.getFileExtension());
+					C4Group.EXTENSION_TO_GROUP_TYPE_MAP.get(res.getFileExtension());
 				if(type == C4Group.C4GroupType.ScenarioGroup)
 					scenarios.add(res);
 				// Only recurse into scenario folders
