@@ -34,7 +34,7 @@ public class C4Variable extends C4Declaration implements Serializable, ITypedDec
 	/**
 	 * mostly null - only set when type=object
 	 */
-	private C4Object expectedContent;
+	private transient C4Object expectedContent;
 	
 	/**
 	 * descriptive text meant for the user

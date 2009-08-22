@@ -157,6 +157,16 @@ public class C4Group implements C4GroupItem, Serializable {
 			}
 			
 			@Override
+			public int read(byte[] b) throws IOException {
+				return stream.read(b);
+			}
+			
+			@Override
+			public int read(byte[] b, int off, int len) throws IOException {
+				return stream.read(b, off, len);
+			}
+			
+			@Override
 			public boolean markSupported() {
 				return stream.markSupported();
 			}

@@ -57,9 +57,6 @@ import org.xml.sax.SAXException;
 
 public abstract class C4ScriptBase extends C4Structure implements IHasRelatedResource, ITreeNode {
 
-	/**
-	 * 
-	 */
 	private static final long serialVersionUID = 1L;
 
 	private static final C4Object[] NO_INCLUDES = new C4Object[] {};
