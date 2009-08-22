@@ -24,7 +24,7 @@ public class C4Function extends C4Structure implements Serializable, ITypedDecla
 	private boolean isCallback;
 	private boolean isOldStyle;
 	private SourceLocation body, header;
-	private C4Object expectedContent;
+	private transient C4Object expectedContent;
 
 	public C4Function(String name, C4Type type, C4Variable... pars) {
 		this.name = name;
