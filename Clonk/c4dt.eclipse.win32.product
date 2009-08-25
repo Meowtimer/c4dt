@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?pde version="3.5"?>
 
-<product name="Eclipse SDK" uid="net.arctics.clonk.c4dt" id="net.arctics.clonk.product" application="org.eclipse.ui.ide.workbench" version="1.5" useFeatures="false" includeLaunchers="true">
+<product name="Eclipse SDK" uid="önet.arctics.clonk.c4dt" id="net.arctics.clonk.product" application="org.eclipse.ui.ide.workbench" version="1.5" useFeatures="false" includeLaunchers="true">
 
    <aboutInfo>
       <image path="/Clonk/icons/eclipse_lg.gif"/>
@@ -17,7 +17,7 @@
       <vmArgsMac>-XstartOnFirstThread -Dorg.eclipse.swt.internal.carbon.smallFonts</vmArgsMac>
    </launcherArgs>
 
-   <windowImages i16="/Clonk/icons/eclipse.gif" i32="/Clonk/icons/eclipse32.gif" i48="/Clonk/icons/eclipse48.png" i64="/Clonk/icons/eclipse.png" i128="/Clonk/icons/eclipse32.png"/>
+   <windowImages i16="/C4DT/icons/eclipse.png" i32="/C4DT/icons/eclipse32.png" i48="/C4DT/icons/eclipse48.png"/>
 
    <splash
       startupProgressRect="0,280,455,15"
@@ -29,6 +29,7 @@
          <bmp/>
       </win>
    </launcher>
+
 
    <vm>
    </vm>

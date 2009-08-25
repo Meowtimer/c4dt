@@ -92,11 +92,13 @@ public class ClonkLibBuilder implements IC4GroupVisitor, IPropertyChangeListener
 		}
 		else  {
 			try {
-				IMarker marker = ResourcesPlugin.getWorkspace().getRoot().createMarker(ClonkCore.MARKER_EXTERN_LIB_ERROR);
-				marker.setAttribute(IMarker.SEVERITY, IMarker.SEVERITY_ERROR);
-				marker.setAttribute(IMarker.TRANSIENT, false);
-				marker.setAttribute(IMarker.MESSAGE, "Clonk extern library does not exist: '" + lib + "'");
-				marker.setAttribute(IMarker.SOURCE_ID, ClonkCore.MARKER_EXTERN_LIB_ERROR);
+				if (!lib.equals("")) {
+					IMarker marker = ResourcesPlugin.getWorkspace().getRoot().createMarker(ClonkCore.MARKER_EXTERN_LIB_ERROR);
+					marker.setAttribute(IMarker.SEVERITY, IMarker.SEVERITY_ERROR);
+					marker.setAttribute(IMarker.TRANSIENT, false);
+					marker.setAttribute(IMarker.MESSAGE, "Clonk extern library does not exist: '" + lib + "'");
+					marker.setAttribute(IMarker.SOURCE_ID, ClonkCore.MARKER_EXTERN_LIB_ERROR);
+				}
 			} catch (CoreException e) {
 				e.printStackTrace();
 			}

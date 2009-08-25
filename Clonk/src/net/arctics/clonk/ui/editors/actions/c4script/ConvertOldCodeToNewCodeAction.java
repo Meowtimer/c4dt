@@ -63,7 +63,7 @@ public class ConvertOldCodeToNewCodeAction extends TextEditorAction {
 					statements.addFirst(new Pair<C4Function, LinkedList<Statement>>(parser.getActiveFunc(), new LinkedList<Statement>()));
 					commentsOnOld.clear();
 				}
-				if (selLength == 0 || (expression.getExprStart() >= selection.getOffset() && expression.getExprEnd() < selection.getOffset()+selection.getLength())) {
+				if (selLength == 0 || (expression.getExprStart() >= selection.getOffset() && expression.getExprEnd() <= selection.getOffset()+selection.getLength())) {
 					if (parser.getActiveFunc().isOldStyle()) {
 						if (expression instanceof Comment)
 							commentsOnOld.add((Comment)expression);

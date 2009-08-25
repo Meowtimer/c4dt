@@ -85,5 +85,10 @@ public class NameValueAssignment extends C4Declaration implements IHasKeyAndValu
 		SourceLocation loc = getLocation();
 		return new Region(loc.getOffset()+loc.getLength()-value.length(), value.length());
 	}
+	
+	@Override
+	public String getInfoText() {
+	    return getKey() + "=" + getValue();
+	}
 
 }
