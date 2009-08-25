@@ -42,5 +42,13 @@ public class ClonkHyperlink implements IHyperlink {
 			e.printStackTrace();
 		}
 	}
+
+	public IRegion getRegion() {
+    	return region;
+    }
+
+	public C4Declaration getTarget() {
+    	return target;
+    }
 	
 }

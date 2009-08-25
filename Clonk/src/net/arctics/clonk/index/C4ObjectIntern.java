@@ -151,5 +151,10 @@ public class C4ObjectIntern extends C4Object implements Serializable {
 	public IResource getResource() {
 		return getObjectFolder();
 	}
+	
+	@Override
+	public String getInfoText() {
+		return getName() + ": " + super.getInfoText();
+	}
 
 }

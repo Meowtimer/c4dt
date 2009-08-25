@@ -12,6 +12,7 @@ import net.arctics.clonk.ui.editors.c4script.ClonkContentOutlinePage;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.text.IRegion;
+import org.eclipse.jface.text.ITextSelection;
 import org.eclipse.jface.text.Region;
 import org.eclipse.jface.text.hyperlink.IHyperlink;
 import org.eclipse.jface.text.hyperlink.IHyperlinkDetector;
@@ -151,5 +152,11 @@ public class ClonkTextEditor extends TextEditor {
 		}
 		return null;
 	}
+	
+	public IHyperlink getHyperlinkAtCurrentSelection() {
+	    ITextSelection selection = (ITextSelection) this.getSelectionProvider().getSelection();
+		IHyperlink hyperlink = this.hyperlinkAtOffset(selection.getOffset());
+	    return hyperlink;
+    }
 	
 }

@@ -56,7 +56,6 @@ public class C4ScriptSourceViewerConfiguration extends ClonkSourceViewerConfigur
 	
 	private C4ScriptCodeScanner scanner;
 	private ScriptCommentScanner commentScanner;
-	private ITextHover hover;
 	private ITextDoubleClickStrategy doubleClickStrategy;
 
 	public C4ScriptSourceViewerConfiguration(ColorManager colorManager, C4ScriptEditor textEditor) {
@@ -190,29 +189,24 @@ public class C4ScriptSourceViewerConfiguration extends ClonkSourceViewerConfigur
 	@Override
 	public IHyperlinkDetector[] getHyperlinkDetectors(ISourceViewer sourceViewer) { 
 		return new IHyperlinkDetector[] {
-				new C4ScriptHyperlinkDetector(),
-				new URLHyperlinkDetector()
+			new C4ScriptHyperlinkDetector(),
+			new URLHyperlinkDetector()
 		};
 	}
 	
 	@Override
-	public IAutoEditStrategy[] getAutoEditStrategies(
-			ISourceViewer sourceViewer, String contentType) {
+	public IAutoEditStrategy[] getAutoEditStrategies(ISourceViewer sourceViewer, String contentType) {
 //		return new IAutoEditStrategy[] {
 //				new ClonkAutoIndentStrategy()
 //		};
 		return super.getAutoEditStrategies(sourceViewer, contentType);
 	}
-
-	/* (non-Javadoc)
-	 * @see org.eclipse.jface.text.source.SourceViewerConfiguration#getTextHover(org.eclipse.jface.text.source.ISourceViewer, java.lang.String, int)
-	 */
+	
 	@Override
-	public ITextHover getTextHover(ISourceViewer sourceViewer, String contentType, int stateMask) {
-		if (hover == null) {
-			hover = new C4ScriptTextHover(this); 
-		}
-		return hover;
+	public ITextHover getTextHover(ISourceViewer sourceViewer, String contentType) {
+	    if (hover == null)
+	    	hover = new C4ScriptTextHover(this);
+	    return hover;
 	}
 
 }

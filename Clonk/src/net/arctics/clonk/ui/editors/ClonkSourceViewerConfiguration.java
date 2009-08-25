@@ -1,5 +1,7 @@
 package net.arctics.clonk.ui.editors;
 
+
+import org.eclipse.jface.text.ITextHover;
 import org.eclipse.jface.text.hyperlink.IHyperlinkDetector;
 import org.eclipse.jface.text.hyperlink.URLHyperlinkDetector;
 import org.eclipse.jface.text.source.ISourceViewer;
@@ -8,6 +10,7 @@ import org.eclipse.ui.editors.text.TextSourceViewerConfiguration;
 public class ClonkSourceViewerConfiguration<EditorType extends ClonkTextEditor> extends TextSourceViewerConfiguration {
 	private EditorType textEditor;
 	private ColorManager colorManager;
+	protected ITextHover hover;
 
 	public ClonkSourceViewerConfiguration(ColorManager colorManager, EditorType textEditor) {
 		this.textEditor = textEditor;
@@ -34,6 +37,14 @@ public class ClonkSourceViewerConfiguration<EditorType extends ClonkTextEditor> 
 		return new IHyperlinkDetector[] {
 				new URLHyperlinkDetector()
 		};
+	}
+	
+	@Override
+	public ITextHover getTextHover(ISourceViewer sourceViewer, String contentType) {
+		if (hover == null) {
+			hover = new ClonkTextHover<EditorType>(this); 
+		}
+		return hover;
 	}
 
 }

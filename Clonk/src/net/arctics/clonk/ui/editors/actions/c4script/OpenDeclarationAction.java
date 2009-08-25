@@ -38,17 +38,8 @@ public class OpenDeclarationAction extends TextEditorAction {
 	@Override
 	public void run() {
 		// OpenDeclarationAction is for all text editors in the plugin so it opens declarations by querying for hyperlinks instead of relying on a script being edited
-		ITextSelection selection = (ITextSelection) getTextEditor().getSelectionProvider().getSelection();
-		ClonkTextEditor clonkEd = (ClonkTextEditor) getTextEditor();
-		IHyperlink hyperlink = clonkEd.hyperlinkAtOffset(selection.getOffset());
+		IHyperlink hyperlink = ((ClonkTextEditor)getTextEditor()).getHyperlinkAtCurrentSelection();
 		if (hyperlink != null)
 			hyperlink.open();
-//		try {
-//			C4Declaration field = getDeclarationAtSelection();
-//			if (field != null)
-//				C4ScriptEditor.openDeclaration(field);
-//		} catch (Exception e) {
-//			// so what
-//		}
 	}
 }
