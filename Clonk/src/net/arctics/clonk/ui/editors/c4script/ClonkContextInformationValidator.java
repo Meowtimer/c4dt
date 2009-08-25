@@ -47,6 +47,8 @@ public class ClonkContextInformationValidator implements
 		presentation.clear();
 		fCurrentParameter= currentParameter;
 
+		if (fInformation == null)
+			return false;
 		String s= fInformation.getInformationDisplayString();
 		int[] commas= computeCommaPositions(s);
 

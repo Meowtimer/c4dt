@@ -49,6 +49,9 @@ import org.eclipse.ui.keys.IBindingService;
 import org.eclipse.ui.texteditor.ITextEditorActionDefinitionIds;
 
 public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4ScriptEditor> {
+
+	private static final char[] CONTEXT_INFORMATION_AUTO_ACTIVATION_CHARS = new char[] {'('};
+	private static final char[] COMPLETION_INFORMATION_AUTO_ACTIVATION_CHARS = new char[] {'.'};
 	
 	private final class ClonkCompletionListener implements ICompletionListener, ICompletionListenerExtension {
 
@@ -450,23 +453,20 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 			prefix = null;
 		}
 		IContextInformation info = null;
-		for(C4Function func : ClonkCore.getDefault().getEngineObject().functions()) {
-			if (func.getName().equalsIgnoreCase(prefix)) {
-				String displayString = func.getLongParameterString(false).trim();
-				info = new ContextInformation(func.getName() + "()",displayString);
-				break;
-			}
+		C4Function func = Utilities.getScriptForEditor(editor).findFunction(prefix);
+		if (func != null) {
+			String displayString = func.getLongParameterString(false).trim();
+			info = new ContextInformation(func.getName() + "()",displayString);
 		}
-		
 		return new IContextInformation[] { info };
 	}
 
 	public char[] getCompletionProposalAutoActivationCharacters() {
-		return null;
+		return COMPLETION_INFORMATION_AUTO_ACTIVATION_CHARS;
 	}
 
 	public char[] getContextInformationAutoActivationCharacters() {
-		return null;
+		return CONTEXT_INFORMATION_AUTO_ACTIVATION_CHARS;
 	}
 
 	public IContextInformationValidator getContextInformationValidator() {
