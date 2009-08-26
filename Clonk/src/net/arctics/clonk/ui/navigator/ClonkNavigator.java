@@ -1,14 +1,15 @@
 package net.arctics.clonk.ui.navigator;
 
 import java.util.Collection;
+
+import net.arctics.clonk.ClonkCore;
+import net.arctics.clonk.index.ExternIndex;
 import net.arctics.clonk.parser.C4Structure;
 import net.arctics.clonk.parser.c4script.C4ScriptBase;
-import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.util.INode;
 import net.arctics.clonk.util.ITreeNode;
 import net.arctics.clonk.util.Utilities;
 
-import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
@@ -20,28 +21,8 @@ import org.eclipse.jface.viewers.Viewer;
 public class ClonkNavigator extends ClonkOutlineProvider {
 
 	public Object[] getChildren(Object element) {
-		// supply standard resources -.-
-		if (element instanceof IContainer) {
-			IContainer container = (IContainer) element;
-			try {
-				ClonkProjectNature clonkProject = element instanceof IProject ? Utilities.getClonkNature((IProject)element) : null;
-				DependenciesNavigatorNode depNode = clonkProject != null ? new DependenciesNavigatorNode(clonkProject) : null;
-				return depNode != null ? Utilities.concat((Object[])container.members(), depNode) : container.members();
-			} catch (CoreException e) {
-				return null;
-			}
-		}
 		// add additional virtual nodes to the project
-		else if (element instanceof IProject) {
-			ClonkProjectNature clonkProject = Utilities.getClonkNature((IProject)element);
-			if (clonkProject == null)
-				return null;
-			return new Object[] {
-				// Dependencies
-				new DependenciesNavigatorNode(clonkProject)
-			};
-		}
-		else if (element instanceof IFile) {
+		if (element instanceof IFile) {
 			// list contents of ini and script files
 			C4ScriptBase script = Utilities.getScriptForFile((IFile) element);
 			if (script != null)
@@ -54,6 +35,12 @@ public class ClonkNavigator extends ClonkOutlineProvider {
 				}
 			} catch (Exception e) {
 				e.printStackTrace();
+			}
+		}
+		else if (element instanceof IProject) {
+			if (Utilities.getDependenciesProject() == element) {
+				ExternIndex index = ClonkCore.getDefault().getExternIndex();
+				return index.getLibs().toArray(new Object[index.getLibs().size()]);
 			}
 		}
 		else if (element instanceof ITreeNode) {

@@ -4,9 +4,12 @@ import net.arctics.clonk.parser.C4Declaration;
 import net.arctics.clonk.ui.editors.ClonkTextEditor;
 import net.arctics.clonk.ui.editors.c4script.ScriptWithStorageEditorInput;
 import net.arctics.clonk.util.ITreeNode;
+import net.arctics.clonk.util.Utilities;
 
+import org.eclipse.core.resources.IProject;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.StructuredSelection;
+import org.eclipse.jface.viewers.TreePath;
 import org.eclipse.jface.viewers.TreeSelection;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IWorkbenchPage;
@@ -31,8 +34,23 @@ public class LinkHelper implements ILinkHelper {
 
 	public IStructuredSelection findSelection(IEditorInput anInput) {
 		ScriptWithStorageEditorInput input = (ScriptWithStorageEditorInput) anInput;
-		StructuredSelection sel = new TreeSelection(ITreeNode.Helpers.getTreePath(input.getScript()));
+		StructuredSelection sel = new TreeSelection(getTreePath(input.getScript()));
 		return sel;
+	}
+	
+	public static TreePath getTreePath(ITreeNode node) {
+		IProject depsProj = Utilities.getDependenciesProject();
+		int num;
+		ITreeNode n;
+		for (num = 0, n = node; n != null; n = n.getParentNode(), num++);
+		if (depsProj != null)
+			num++;
+		Object[] path = new Object[num];
+		for (num = 0, n = node; n != null; n = n.getParentNode(), num++)
+			path[path.length-num-1] = n;
+		if (depsProj != null)
+			path[0] = depsProj;
+		return new TreePath(path);
 	}
 
 }

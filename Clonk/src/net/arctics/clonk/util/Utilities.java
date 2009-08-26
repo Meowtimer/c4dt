@@ -627,4 +627,17 @@ public abstract class Utilities {
 		};
 	}
 	
+	public static IProject getDependenciesProject() {
+		for (IProject p : ResourcesPlugin.getWorkspace().getRoot().getProjects()) {
+			try {
+	            if (p.isOpen() && p.hasNature(ClonkCore.CLONK_DEPS_NATURE_ID))
+	            	return p;
+            } catch (CoreException e) {	        
+	            e.printStackTrace();
+	            return null;
+            }
+		}
+		return null;
+	}
+	
 }

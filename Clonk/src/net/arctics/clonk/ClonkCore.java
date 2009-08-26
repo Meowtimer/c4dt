@@ -58,6 +58,7 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant {
 	 * id for Clonk project natures
 	 */
 	public static final String CLONK_NATURE_ID = id("clonknature");
+	public static final String CLONK_DEPS_NATURE_ID = id("clonkdepsnature");
 	
 	/**
 	 * id for error markers that denote errors occuring while importing extern libs
