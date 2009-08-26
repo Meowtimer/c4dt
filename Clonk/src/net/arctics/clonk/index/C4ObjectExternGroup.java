@@ -5,7 +5,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.eclipse.core.runtime.IPath;
-
 import net.arctics.clonk.util.ITreeNode;
 
 public class C4ObjectExternGroup implements ITreeNode, Serializable {

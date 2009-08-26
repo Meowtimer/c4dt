@@ -276,6 +276,11 @@ public class ClonkLibBuilder implements IC4GroupVisitor, IPropertyChangeListener
 			for (C4Object o : ClonkCore.getDefault().getExternIndex()) {
 				o.chooseLocalizedName();
 			}
+			for (IProject proj : Utilities.getClonkProjects()) {
+				for (C4Object obj : Utilities.getClonkNature(proj).getIndex()) {
+					obj.chooseLocalizedName();
+				}
+			}
 		}
 	}
 	

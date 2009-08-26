@@ -194,8 +194,9 @@ MAP		:	'map';
 OVERLAY		:	'overlay';
 
 fragment LETTER	:	'a'..'z'|'A'..'Z'|'_';
+fragment UNIT	:	('px'|'%');
 fragment DIGIT	:	'0'..'9';
-fragment INT	:	('+'|'-')? DIGIT+('px'|'%')?;
+fragment INT	:	('+'|'-')? DIGIT+UNIT?;
 fragment WORD	:	LETTER (LETTER|DIGIT)*;
 
 NUMBER		:	INT;
@@ -208,4 +209,4 @@ ASSIGN		:	'=';
 BLOCKOPEN	:	'{';
 BLOCKCLOSE	:	'}';
 STATEMENTEND	:	';';
-OPERATOR		:	'|'|'&'|'^';
+OPERATOR	:	'|'|'&'|'^';

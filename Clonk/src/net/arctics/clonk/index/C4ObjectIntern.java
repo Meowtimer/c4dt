@@ -1,5 +1,6 @@
 package net.arctics.clonk.index;
 
+import java.io.IOException;
 import java.io.Serializable;
 import java.security.InvalidParameterException;
 
@@ -156,5 +157,13 @@ public class C4ObjectIntern extends C4Object implements Serializable {
 	public String getInfoText() {
 		return getName() + ": " + super.getInfoText();
 	}
+
+	// for processing files whose contents won't be saved in a separate c4structure thingie
+	public void processFile(IFile file) throws IOException, CoreException {
+	    if (file.getName().equalsIgnoreCase("Names.txt")) {
+	    	readNames(Utilities.stringFromFile(file));
+	    	chooseLocalizedName();
+	    }
+    }
 
 }

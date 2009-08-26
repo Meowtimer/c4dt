@@ -1,4 +1,4 @@
-// $ANTLR 3.1.2 C:\\Users\\Madeen\\Projects\\Clonk\\C4DT\\Clonk\\src\\net\\arctics\\clonk\\parser\\mapcreator\\MapCreator.g 2009-08-26 14:50:32
+// $ANTLR 3.1.2 C:\\Users\\Madeen\\Projects\\Clonk\\C4DT\\Clonk\\src\\net\\arctics\\clonk\\parser\\mapcreator\\MapCreator.g 2009-08-26 16:30:36
 
 package net.arctics.clonk.parser.mapcreator;
 
@@ -13,31 +13,29 @@ import java.io.IOException;
 
 
 import org.antlr.runtime.*;
-import java.util.Stack;
-import java.util.List;
-import java.util.ArrayList;
 
 public class MapCreatorParser extends Parser {
     public static final String[] tokenNames = new String[] {
-        "<invalid>", "<EOR>", "<DOWN>", "<UP>", "STATEMENTEND", "OPERATOR", "MAP", "NAME", "OVERLAY", "BLOCKOPEN", "BLOCKCLOSE", "ASSIGN", "NUMBER", "MATCOMBO", "LETTER", "DIGIT", "INT", "WORD", "WS", "SLCOMMENT", "MLCOMMENT"
+        "<invalid>", "<EOR>", "<DOWN>", "<UP>", "STATEMENTEND", "OPERATOR", "MAP", "NAME", "OVERLAY", "BLOCKOPEN", "BLOCKCLOSE", "ASSIGN", "NUMBER", "MATCOMBO", "LETTER", "UNIT", "DIGIT", "INT", "WORD", "WS", "SLCOMMENT", "MLCOMMENT"
     };
     public static final int OVERLAY=8;
     public static final int STATEMENTEND=4;
     public static final int LETTER=14;
     public static final int OPERATOR=5;
     public static final int NUMBER=12;
-    public static final int SLCOMMENT=19;
-    public static final int INT=16;
+    public static final int SLCOMMENT=20;
+    public static final int INT=17;
     public static final int EOF=-1;
-    public static final int WORD=17;
+    public static final int WORD=18;
     public static final int BLOCKOPEN=9;
     public static final int NAME=7;
-    public static final int WS=18;
+    public static final int UNIT=15;
+    public static final int WS=19;
     public static final int BLOCKCLOSE=10;
     public static final int MAP=6;
     public static final int ASSIGN=11;
-    public static final int DIGIT=15;
-    public static final int MLCOMMENT=20;
+    public static final int DIGIT=16;
+    public static final int MLCOMMENT=21;
     public static final int MATCOMBO=13;
 
     // delegates

@@ -313,6 +313,7 @@ public class EngineDeclarationsView extends ViewPart {
 	private Action saveAction;
 	private Action doubleClickAction;
 	private Action importFromRepoAction;
+	private Action reloadAction;
 
 	/**
 	 * The constructor.
@@ -392,6 +393,7 @@ public class EngineDeclarationsView extends ViewPart {
 		manager.add(addVariableAction);
 		manager.add(new Separator());
 		manager.add(importFromRepoAction);
+		manager.add(reloadAction);
 		manager.add(saveAction);
 		manager.add(new Separator());
 		drillDownAdapter.addNavigationActions(manager);
@@ -510,6 +512,21 @@ public class EngineDeclarationsView extends ViewPart {
 		};
 		importFromRepoAction.setToolTipText("Import from OpenClonk repository");
 		importFromRepoAction.setText("Import from repository");
+		
+		reloadAction = new Action() {
+			@Override
+			public void run() {
+			    try {
+	                ClonkCore.getDefault().loadEngineObject();
+                } catch (Exception e) { 
+	                e.printStackTrace();
+                }
+			    refresh();
+			}
+		};
+		reloadAction.setToolTipText("Reloads the Engine declarations");
+		reloadAction.setText("Reload");
+		
 	}
 
 	private void hookDoubleClickAction() {

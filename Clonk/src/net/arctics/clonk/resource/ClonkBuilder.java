@@ -1,6 +1,7 @@
 package net.arctics.clonk.resource;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -290,6 +291,15 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 					structure.commitTo(script);
 					structure.pinTo(file);
 				}
+				else if (buildPhase == 0) {
+					C4ObjectIntern obj = C4ObjectIntern.objectCorrespondingTo(file.getParent());
+					if (obj != null)
+	                    try {
+	                        obj.processFile(file);
+                        } catch (IOException e) {
+	                        e.printStackTrace();
+                        }
+				}
 				// packed file
 //				else if (C4Group.getGroupType(file.getName()) != C4GroupType.OtherGroup) {
 //					try {
@@ -392,6 +402,15 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 			else if (buildPhase == 0 && (structure = C4Structure.pinned(file, true)) != null) {
 				structure.commitTo(Utilities.getScriptForFile(file));
 				return true;
+			}
+			else if (buildPhase == 0) {
+				C4ObjectIntern obj = C4ObjectIntern.objectCorrespondingTo(file.getParent());
+				if (obj != null)
+	                try {
+	                    obj.processFile(file);
+                    } catch (IOException e) {
+	                    e.printStackTrace();
+                    }
 			}
 		}
 		return false;
