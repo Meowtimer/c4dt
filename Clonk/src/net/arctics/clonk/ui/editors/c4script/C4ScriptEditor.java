@@ -2,6 +2,7 @@ package net.arctics.clonk.ui.editors.c4script;
 
 import java.io.ByteArrayInputStream;
 
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ResourceBundle;
@@ -37,7 +38,6 @@ import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IDocumentListener;
 import org.eclipse.jface.text.Region;
 import org.eclipse.jface.text.TextSelection;
-import org.eclipse.jface.text.contentassist.ContentAssistant;
 import org.eclipse.jface.text.source.DefaultCharacterPairMatcher;
 import org.eclipse.jface.text.source.ISourceViewer;
 import org.eclipse.jface.text.source.IVerticalRuler;

@@ -195,7 +195,7 @@ OVERLAY		:	'overlay';
 
 fragment LETTER	:	'a'..'z'|'A'..'Z'|'_';
 fragment DIGIT	:	'0'..'9';
-fragment INT		:	('+'|'-')? DIGIT+;
+fragment INT	:	('+'|'-')? DIGIT+('px'|'%')?;
 fragment WORD	:	LETTER (LETTER|DIGIT)*;
 
 NUMBER		:	INT;
