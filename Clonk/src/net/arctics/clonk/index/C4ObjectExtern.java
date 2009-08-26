@@ -9,14 +9,18 @@ import java.util.List;
 import java.util.Map;
 
 import org.eclipse.core.runtime.IPath;
+import org.eclipse.core.runtime.Path;
+
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.C4ID;
 import net.arctics.clonk.parser.SimpleScriptStorage;
+import net.arctics.clonk.preferences.PreferenceConstants;
 import net.arctics.clonk.resource.ExternalLib;
 import net.arctics.clonk.resource.c4group.C4GroupEntry;
 import net.arctics.clonk.resource.c4group.C4GroupItem;
 import net.arctics.clonk.util.INode;
 import net.arctics.clonk.util.ITreeNode;
+import net.arctics.clonk.util.Utilities;
 
 public class C4ObjectExtern extends C4Object implements ITreeNode {
 
@@ -123,6 +127,12 @@ public class C4ObjectExtern extends C4Object implements ITreeNode {
 					break;
 				}
 		return externalLib;
+	}
+	
+	public String getFilePath() {
+		IPath path = this.getPath();
+		IPath gamePath = new Path(Utilities.getPreference(PreferenceConstants.GAME_PATH, "", null));
+		return gamePath.append(path).toOSString();
 	}
 
 }

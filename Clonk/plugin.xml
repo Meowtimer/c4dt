@@ -416,5 +416,9 @@
 		</markerResolutionGenerator>
 	</extension>
 	
+	<extension point="org.eclipse.ui.navigator.viewer">
+		<dragAssistant class="net.arctics.clonk.ui.navigator.DragExternalDefsAssistant"
+			viewerId="org.eclipse.ui.navigator.ProjectExplorer"/>
+	</extension>
 
 </plugin>

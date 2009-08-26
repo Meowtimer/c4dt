@@ -1,15 +1,13 @@
-/**
- * 
- */
 package net.arctics.clonk.ui.navigator;
 
 import java.util.ArrayList;
+
 import java.util.Iterator;
 import java.util.List;
 
-import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.preferences.PreferenceConstants;
 import net.arctics.clonk.resource.c4group.C4GroupExporter;
+import net.arctics.clonk.util.Utilities;
 
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
@@ -21,8 +19,6 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.Platform;
-import org.eclipse.core.runtime.preferences.IPreferencesService;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.viewers.ISelection;
@@ -59,10 +55,9 @@ public class QuickExportAction extends ClonkResourceAction implements IHandler, 
 				IWorkbench wb = PlatformUI.getWorkbench();
 				IProgressService ps = wb.getProgressService();
 				try {
-					TreeSelection tree = (TreeSelection) selection;
-					IPreferencesService service = Platform.getPreferencesService();
-					String c4groupPath = service.getString(ClonkCore.PLUGIN_ID, PreferenceConstants.C4GROUP_EXECUTABLE, "", null);
-					String gamePath = service.getString(ClonkCore.PLUGIN_ID, PreferenceConstants.GAME_PATH, null, null);
+					TreeSelection tree = (TreeSelection) selection;					
+					String c4groupPath = Utilities.getPreference(PreferenceConstants.C4GROUP_EXECUTABLE, "", null);
+					String gamePath = Utilities.getPreference(PreferenceConstants.GAME_PATH, null, null);
 					Iterator it = tree.iterator();
 					while (it.hasNext()) {
 						Object obj = it.next();
