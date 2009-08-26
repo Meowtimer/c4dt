@@ -1143,7 +1143,7 @@ public class C4ScriptParser {
 		if (errorDisabled(code))
 			return;
 		String problem = code.getErrorString(args);
-		boolean silence = fScript == null || (activeFunc != null && activeFunc.getBody() != null && fReader.getPosition() > activeFunc.getBody().getEnd());
+		boolean silence = fScript == null || (activeFunc != null && activeFunc.getBody() != null && fReader.getPosition() > activeFunc.getBody().getEnd()+1);
 		if (!silence) {
 			IMarker marker = createMarker(errorStart, errorEnd, problem, severity);
 			ParserErrorCode.setErrorCode(marker, code);
@@ -1244,10 +1244,13 @@ public class C4ScriptParser {
 					int beforeSpace = fReader.getPosition();
 					this.eatWhitespace();
 					if (fReader.read() == '(') {
+						int s = fReader.getPosition();
 						// function call
 						List<ExprElm> args = new LinkedList<ExprElm>();
 						parseRestOfTuple(fReader.getPosition(), args, reportErrors);
-						elm = new CallFunc(word, args.toArray(new ExprElm[args.size()]));
+						CallFunc callFunc = new CallFunc(word, args.toArray(new ExprElm[args.size()]));
+						callFunc.setParmsRegion(s, fReader.getPosition()-1);
+						elm = callFunc;
 					} else {
 						fReader.seek(beforeSpace);
 						// bool
@@ -1597,7 +1600,6 @@ public class C4ScriptParser {
 					current = rightSide;
 					state = OPERATOR;
 					break;
-
 				}
 			}
 			if (root != null) {

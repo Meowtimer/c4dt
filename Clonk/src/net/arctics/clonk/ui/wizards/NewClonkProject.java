@@ -21,7 +21,8 @@ public class NewClonkProject extends Wizard implements INewWizard {
 		try {
 			IProject proj = page.getProjectHandle();
 			IProjectDescription desc = ResourcesPlugin.getWorkspace().newProjectDescription(page.getProjectName());
-			desc.setLocation(page.getLocationPath());
+			if (!page.useDefaults())
+				desc.setLocation(page.getLocationPath());
 			desc.setNatureIds(new String[] { ClonkCore.id("clonknature") });
 			ICommand command = desc.newCommand();
 			command.setBuilderName(ClonkCore.id("builder"));

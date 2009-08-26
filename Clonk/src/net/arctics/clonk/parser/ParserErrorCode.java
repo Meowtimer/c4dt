@@ -39,7 +39,8 @@ public enum ParserErrorCode {
 	NeverReached("Code never reached"),
 	ObsoleteOperator("Obsolete operator '%s'"),
 	StringNotClosed("String not closed"),
-	UnexpectedToken("Unexpected token: %s");
+	UnexpectedToken("Unexpected token: %s"),
+	NotFinished("Expression not finished");
 	
 	public static final String MARKER_ERRORCODE = "c4ScriptErrorCode";
 	

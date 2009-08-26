@@ -724,7 +724,23 @@ public abstract class C4ScriptExprTree {
 				return other.getClass() == VarFunctionsTypeInformation.class && ((VarFunctionsTypeInformation)other).varIndex == varIndex;
 			}
 		}
+		
 		private ExprElm[] params;
+		private int parmsStart, parmsEnd;
+		
+		public void setParmsRegion(int start, int end) {
+			parmsStart = start;
+			parmsEnd   = end;
+		}
+		
+		public int getParmsStart() {
+        	return parmsStart;
+		}
+
+		public int getParmsEnd() {
+        	return parmsEnd;
+        }
+
 		public CallFunc(String funcName, ExprElm... parms) {
 			super(funcName);
 			params = parms;

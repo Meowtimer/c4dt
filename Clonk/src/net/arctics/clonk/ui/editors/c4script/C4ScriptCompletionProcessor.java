@@ -15,6 +15,7 @@ import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.C4Variable;
 import net.arctics.clonk.parser.c4script.IStoredTypeInformation;
 import net.arctics.clonk.parser.BuiltInDefinitions;
+import net.arctics.clonk.parser.C4Declaration;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.c4script.C4Function.C4FunctionScope;
 import net.arctics.clonk.parser.c4script.C4ScriptExprTree.*;
@@ -432,33 +433,22 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 		return thisScript != null ? thisScript.funcAt(new Region(offset,1)) : null;
 	}
 	
-	public IContextInformation[] computeContextInformation(ITextViewer viewer,
-			int offset) {
-		
-		int wordOffset = offset - 2;
-		WordScanner scanner = new WordScanner();
-		IDocument doc = viewer.getDocument();
-		String prefix = null;
-		try {
-			while (scanner.isWordPart(doc.getChar(wordOffset))) {
-				wordOffset--;
-			}
-			wordOffset++;
-			if (wordOffset < offset-1) {
-				prefix = doc.get(wordOffset, offset-1 - wordOffset);
-				
-				offset = wordOffset;
-			}
-		} catch (BadLocationException e) {
-			prefix = null;
-		}
+	public IContextInformation[] computeContextInformation(ITextViewer viewer, int offset) {
 		IContextInformation info = null;
-		C4Function func = Utilities.getScriptForEditor(editor).findFunction(prefix);
-		if (func != null) {
-			String displayString = func.getLongParameterString(false).trim();
-			info = new ContextInformation(func.getName() + "()",displayString);
-		}
-		return new IContextInformation[] { info };
+		try {
+	        CallFunc callFunc = editor.getInnermostCallFuncExpr(offset);
+	        if (callFunc instanceof CallFunc) {
+	        	C4Declaration dec = ((CallFunc)callFunc).getDeclaration();
+	        	if (dec instanceof C4Function) {
+	        		info = new ContextInformation(dec.getName() + "()", ((C4Function)dec).getLongParameterString(false).trim());
+	        	}
+	        }
+        } catch (Exception e) { 	    
+	        e.printStackTrace();
+        }
+        if (info != null)
+        	return new IContextInformation[] { info };
+        return null;
 	}
 
 	public char[] getCompletionProposalAutoActivationCharacters() {

@@ -17,7 +17,7 @@
       <vmArgsMac>-XstartOnFirstThread -Dorg.eclipse.swt.internal.carbon.smallFonts</vmArgsMac>
    </launcherArgs>
 
-   <windowImages i16="/Clonk/res/DistroIcon16x16.gif" i32="/Clonk/res/DistroIcon32x32.gif" i48="/Clonk/res/DistroIcon48x48.gif" i64="/Clonk/res/DistroIcon64x64.gif" i128="/Clonk/res/DistroIcon128x128.gif"/>
+   <windowImages i16="/C4DT/icons/eclipse.png" i32="/C4DT/icons/eclipse32.png" i48="/C4DT/icons/eclipse48.png"/>
 
    <splash
       startupProgressRect="0,280,455,15"
@@ -33,7 +33,6 @@
 
    <vm>
    </vm>
-
 
    <plugins>
       <plugin id="com.ibm.icu"/>

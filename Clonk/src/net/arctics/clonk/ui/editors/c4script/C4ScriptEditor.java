@@ -1,6 +1,7 @@
 package net.arctics.clonk.ui.editors.c4script;
 
 import java.io.ByteArrayInputStream;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ResourceBundle;
@@ -14,6 +15,8 @@ import net.arctics.clonk.parser.c4script.C4Function;
 import net.arctics.clonk.parser.c4script.C4ScriptBase;
 import net.arctics.clonk.parser.c4script.C4ScriptExprTree;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
+import net.arctics.clonk.parser.c4script.C4ScriptExprTree.CallFunc;
+import net.arctics.clonk.parser.c4script.C4ScriptExprTree.ExprElm;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.ui.editors.IClonkCommandIds;
 import net.arctics.clonk.ui.editors.ClonkDocumentProvider;
@@ -28,10 +31,13 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.preference.PreferenceConverter;
+import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.DocumentEvent;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IDocumentListener;
+import org.eclipse.jface.text.Region;
 import org.eclipse.jface.text.TextSelection;
+import org.eclipse.jface.text.contentassist.ContentAssistant;
 import org.eclipse.jface.text.source.DefaultCharacterPairMatcher;
 import org.eclipse.jface.text.source.ISourceViewer;
 import org.eclipse.jface.text.source.IVerticalRuler;
@@ -288,14 +294,21 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		if (f != null) {
 			if (f != null) {
 				this.setHighlightRange(f.getLocation().getOffset(), Math.min(
-						f.getBody().getOffset()-f.getLocation().getOffset() + f.getBody().getLength() + (f.isOldStyle()?0:1),
-						this.getDocumentProvider().getDocument(getEditorInput()).getLength()-f.getLocation().getOffset()
+					f.getBody().getOffset()-f.getLocation().getOffset() + f.getBody().getLength() + (f.isOldStyle()?0:1),
+					this.getDocumentProvider().getDocument(getEditorInput()).getLength()-f.getLocation().getOffset()
 				), false);
 				noHighlight = false;
 			} 
 		}
 		if (noHighlight)
 			this.resetHighlightRange();
+//		try {
+//			CallFunc callFunc = getInnermostCallFuncExpr(((TextSelection)getSelectionProvider().getSelection()).getOffset());
+//			if (callFunc != null)
+//				((ContentAssistant)getSourceViewerConfiguration().getContentAssistant(getSourceViewer())).showContextInformation();
+//        } catch (Exception e) {
+//	        e.printStackTrace();
+//        }
 	}
 
 	public C4ScriptBase scriptBeingEdited() {
@@ -338,6 +351,19 @@ public class C4ScriptEditor extends ClonkTextEditor {
 	@Override
 	public C4ScriptBase getTopLevelDeclaration() {
 		return scriptBeingEdited();
+	}
+	
+	public CallFunc getInnermostCallFuncExpr(int offset) throws BadLocationException, ParsingException {
+		DeclarationLocator locator = new DeclarationLocator(this, getSourceViewer().getDocument(), new Region(offset, 0));
+		ExprElm expr;
+		for (expr = locator.getExprAtRegion(); expr != null && !(expr instanceof CallFunc); expr = expr.getParent());
+		if (expr != null) {
+			CallFunc callFunc = (CallFunc) expr;
+			if (offset-this.getFuncAt(offset).getBody().getOffset() < callFunc.getParmsStart())
+				return null;
+			return callFunc;
+		}
+		return null;
 	}
 
 }

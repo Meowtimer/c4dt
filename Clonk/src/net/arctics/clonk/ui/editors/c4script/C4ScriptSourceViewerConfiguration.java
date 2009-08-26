@@ -115,7 +115,6 @@ public class C4ScriptSourceViewerConfiguration extends ClonkSourceViewerConfigur
 		assistant.install(sourceViewer);
 		
 		assistant.setContextInformationPopupOrientation(IContentAssistant.CONTEXT_INFO_ABOVE);
-		
 
 		assistant.setRepeatedInvocationMode(true);
 		// key sequence is set in constructor of ClonkCompletionProcessor
