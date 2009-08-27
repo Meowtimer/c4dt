@@ -18,13 +18,15 @@ import org.eclipse.swt.graphics.Image;
 
 public class ClonkOutlineProvider extends LabelProvider implements ITreeContentProvider, IStyledLabelProvider {
 
+	protected static final Object[] NO_CHILDREN = new Object[0];
+	
 	/* (non-Javadoc)
 	 * @see org.eclipse.jface.viewers.ITreeContentProvider#getChildren(java.lang.Object)
 	 */
 	public Object[] getChildren(Object obj) {
 		if (obj instanceof C4Declaration)
 			return ((C4Declaration)obj).getSubDeclarationsForOutline();
-		return null;
+		return NO_CHILDREN;
 	}
 
 	/* (non-Javadoc)

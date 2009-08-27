@@ -20,8 +20,6 @@ import org.eclipse.jface.viewers.Viewer;
  */
 public class ClonkNavigator extends ClonkOutlineProvider {
 
-	private static final Object[] NO_CHILDREN = new Object[0];
-
 	public Object[] getChildren(Object element) {
 		// add additional virtual nodes to the project
 		if (element instanceof IFile) {
