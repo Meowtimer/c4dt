@@ -3,11 +3,14 @@ package net.arctics.clonk.ui.editors;
 import java.util.ResourceBundle;
 
 import net.arctics.clonk.ClonkCore;
+import net.arctics.clonk.index.C4ObjectIntern;
 import net.arctics.clonk.parser.C4Declaration;
 import net.arctics.clonk.parser.C4Structure;
 import net.arctics.clonk.ui.editors.actions.c4script.OpenDeclarationAction;
 import net.arctics.clonk.ui.editors.c4script.C4ScriptEditor;
 import net.arctics.clonk.ui.editors.c4script.ClonkContentOutlinePage;
+
+import org.eclipse.core.resources.IResource;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.text.IRegion;
@@ -18,6 +21,7 @@ import org.eclipse.jface.text.hyperlink.IHyperlinkDetector;
 import org.eclipse.ui.IEditorDescriptor;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorPart;
+import org.eclipse.ui.IEditorSite;
 import org.eclipse.ui.IFileEditorInput;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPage;
@@ -156,6 +160,16 @@ public class ClonkTextEditor extends TextEditor {
 	    ITextSelection selection = (ITextSelection) this.getSelectionProvider().getSelection();
 		IHyperlink hyperlink = this.hyperlinkAtOffset(selection.getOffset());
 		return hyperlink;
+	}
+	
+	@Override
+	public void init(IEditorSite site, IEditorInput input) throws PartInitException { 	  
+	    super.init(site, input);
+	    IResource res = (IResource) getEditorInput().getAdapter(IResource.class);
+		if (res != null && res.getParent() != null && C4ObjectIntern.objectCorrespondingTo(res.getParent()) != null) {
+			// name of script file not very descriptive (Script.c)
+			setPartName(res.getParent().getName() + "/" + res.getName());
+		}
 	}
 	
 }

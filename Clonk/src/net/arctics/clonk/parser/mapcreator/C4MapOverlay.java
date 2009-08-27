@@ -102,7 +102,7 @@ public class C4MapOverlay extends C4Structure implements Cloneable, ITreeNode {
 			int i;
 			for (i = value.length()-1; i >= 0 && !Character.isDigit(value.charAt(i)); i--);
 			String unit = value.substring(i+1);
-			String number = value.substring(0, i);
+			String number = value.substring(0, i+1);
 			return new UnitInteger(Unit.parse(unit), Integer.parseInt(number));
         }
 		@Override

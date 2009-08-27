@@ -134,5 +134,10 @@ public class C4ObjectExtern extends C4Object implements ITreeNode {
 		IPath gamePath = new Path(Utilities.getPreference(PreferenceConstants.GAME_PATH, "", null));
 		return gamePath.append(path).toOSString();
 	}
+	
+	@Override
+	public String toString() {
+	    return super.toString();// + "[" + this.getPath().toOSString() + "]";
+	}
 
 }

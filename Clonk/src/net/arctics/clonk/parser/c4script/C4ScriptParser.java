@@ -1405,8 +1405,10 @@ public class C4ScriptParser {
 						propListElms.add(new Pair<String, ExprElm>(name, expr));
 						expectingComma = true;
 					}
-					else
+					else {
 						errorWithCode(ParserErrorCode.TokenExpected, fReader.getPosition(), fReader.getPosition()+1, "String or identifier");
+						break;
+					}
 				}
 			}
 			if (!properlyClosed) {

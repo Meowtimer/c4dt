@@ -3,6 +3,7 @@ package net.arctics.clonk.ui.editors.c4script;
 import java.io.ByteArrayInputStream;
 
 
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ResourceBundle;
@@ -28,7 +29,6 @@ import net.arctics.clonk.ui.editors.actions.c4script.FindReferencesAction;
 import net.arctics.clonk.ui.editors.actions.c4script.RenameFieldAction;
 import net.arctics.clonk.util.Utilities;
 
-import org.eclipse.core.resources.IResource;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.preference.PreferenceConverter;
@@ -46,9 +46,6 @@ import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
-import org.eclipse.ui.IEditorInput;
-import org.eclipse.ui.IEditorSite;
-import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.texteditor.SourceViewerDecorationSupport;
 
 public class C4ScriptEditor extends ClonkTextEditor {
@@ -187,16 +184,6 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		support.setMatchingCharacterPainterPreferenceKeys(ENABLE_BRACKET_HIGHLIGHT, BRACKET_HIGHLIGHT_COLOR);
 		getPreferenceStore().setValue(ENABLE_BRACKET_HIGHLIGHT, true);
 		PreferenceConverter.setValue(getPreferenceStore(), BRACKET_HIGHLIGHT_COLOR, new RGB(0x33,0x33,0xAA));
-	}
-
-	@Override
-	public void init(IEditorSite site, IEditorInput input) throws PartInitException {
-		super.init(site, input);
-		IResource res = (IResource) getEditorInput().getAdapter(IResource.class);
-		if (res != null) {
-			// name of script file not very descriptive (Script.c)
-			setPartName(res.getParent().getName() + "/" + res.getName());
-		}
 	}
 	
 	private void markScriptAsDirty() {
