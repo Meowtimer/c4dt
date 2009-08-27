@@ -16,7 +16,7 @@ public class ClonkPerspective implements IPerspectiveFactory {
 		layout.addActionSet(ClonkCore.id("ui.actionset"));
         layout.addActionSet(IDebugUIConstants.LAUNCH_ACTION_SET);
 		
-		layout.addShowViewShortcut(ClonkCore.id("views.EngineIdentifiersView"));
+		layout.addShowViewShortcut(ClonkCore.id("views.EngineDeclarationsView"));
 		
 		// Get the editor area.
 		 String editorArea = layout.getEditorArea();
@@ -24,7 +24,7 @@ public class ClonkPerspective implements IPerspectiveFactory {
 		 // Top left: Resource Navigator view and Bookmarks view placeholder
 		 IFolderLayout topLeft = layout.createFolder("topLeft", IPageLayout.LEFT, 0.25f,
 		    editorArea);
-		 topLeft.addView("org.eclipse.ui.navigator.ProjectExplorer");
+		 topLeft.addView(IPageLayout.ID_PROJECT_EXPLORER);
 		 topLeft.addPlaceholder(IPageLayout.ID_BOOKMARKS);
 
 		 // Bottom left: Outline view and Property Sheet view
@@ -34,7 +34,7 @@ public class ClonkPerspective implements IPerspectiveFactory {
 		 bottomLeft.addView(IPageLayout.ID_PROP_SHEET);
 
 		 // Bottom right: Task List view
-		 layout.addView(IPageLayout.ID_TASK_LIST, IPageLayout.BOTTOM, 0.66f, editorArea);
+		 layout.addView(IPageLayout.ID_PROBLEM_VIEW, IPageLayout.BOTTOM, 0.66f, editorArea);
 
 		 layout.addNewWizardShortcut(ClonkCore.id("wizards.NewC4Object"));
 		 layout.addNewWizardShortcut(ClonkCore.id("wizards.NewClonkProject"));

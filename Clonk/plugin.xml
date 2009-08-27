@@ -79,7 +79,8 @@
 	<extension point="org.eclipse.ui.perspectives">
 		<perspective name="Clonk" icon="icons/Clonk_C4.png"
 			class="net.arctics.clonk.ui.ClonkPerspective" id="net.arctics.clonk.clonkPerspective" />
-
+		<perspective name="DefSelector" icon="icons/Clonk_C4.png"
+			class="net.arctics.clonk.ui.DefSelectorPerspective" id="net.arctics.clonk.defSelectorPerspective" />
 	</extension>
 
 	<extension point="org.eclipse.ui.ide.projectNatureImages">
@@ -118,6 +119,13 @@
 					</or>
 				</parentExpression>
 			</commonSorter>
+			
+			<dropAssistant id="net.arctics.clonk.ui.navigator.dropAssistant" class="net.arctics.clonk.ui.navigator.DropAssistant">
+				<possibleDropTargets>
+					<instanceof value="org.eclipse.core.resources.IContainer" />
+				</possibleDropTargets>
+			</dropAssistant>
+			
 		</navigatorContent>
 	</extension>
 
