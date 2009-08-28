@@ -132,6 +132,6 @@ public class QuickExportAction extends ClonkResourceAction implements IHandler, 
 		}
 
 		public void selectionChanged(IAction action, ISelection selection) {
-			System.out.println(selection);
+			//System.out.println(selection);
 		}
 	}

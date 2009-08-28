@@ -226,7 +226,7 @@ public class C4Group implements C4GroupItem, Serializable {
 	}
 	
 	public static C4GroupType getGroupType(String groupName) {
-		return getGroupTypeExt(groupName.substring(groupName.lastIndexOf(".") + 1));
+		return getGroupTypeExt(groupName.substring(groupName.lastIndexOf(".") + 1).toLowerCase());
 	}
 	
 	public C4GroupType getGroupType() {

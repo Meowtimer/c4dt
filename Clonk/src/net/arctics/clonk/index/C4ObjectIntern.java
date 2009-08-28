@@ -73,7 +73,7 @@ public class C4ObjectIntern extends C4Object implements Serializable {
 	 */
 	public IFile getScriptFile() {
 		if (this.objectFolder == null)
-			System.out.println(this);
+			System.out.println(this + " has null objectFolder");
 		IResource res = this.objectFolder.findMember("Script.c");
 		if (res == null || !(res instanceof IFile)) return null;
 		else return (IFile) res;

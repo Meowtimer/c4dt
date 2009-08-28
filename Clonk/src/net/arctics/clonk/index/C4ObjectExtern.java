@@ -91,7 +91,9 @@ public class C4ObjectExtern extends C4Object implements ITreeNode {
 	}
 
 	public void addChild(ITreeNode node) {
-		getChildCollection().add(node);
+		if (childNodes == null)
+			childNodes = new ArrayList<INode>();
+		childNodes.add(node);
 	}
 	
 	@Override
@@ -137,7 +139,7 @@ public class C4ObjectExtern extends C4Object implements ITreeNode {
 	
 	@Override
 	public String toString() {
-	    return super.toString();// + "[" + this.getPath().toOSString() + "]";
+		return getNodeName();
 	}
 
 }

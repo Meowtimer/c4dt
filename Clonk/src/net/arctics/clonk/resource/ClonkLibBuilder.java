@@ -44,7 +44,8 @@ public class ClonkLibBuilder implements IC4GroupVisitor, IPropertyChangeListener
 	
 	private static final String DESC_TXT = "Desc..\\.txt";
 	private boolean buildNeeded = false;
-	private ITreeNode currentExternNode;
+	private transient ITreeNode currentExternNode;
+	private transient C4Group nodeGroup;
 	
 	public ClonkLibBuilder() {
 		ClonkCore.getDefault().getPreferenceStore().addPropertyChangeListener(this);
@@ -155,7 +156,7 @@ public class ClonkLibBuilder implements IC4GroupVisitor, IPropertyChangeListener
 					try {
 						defCoreWrapper.parse(false);
 						C4ObjectExtern obj = new C4ObjectExtern(defCoreWrapper.getObjectID(), defCoreWrapper.getName(), script, currentExternNode);
-						currentExternNode = obj;
+						currentExternNode = obj; nodeGroup = group;
 						C4ScriptParser parser = new C4ScriptParser(script.getContents(),obj);
 						// we only need declarations
 						parser.clean();
@@ -173,10 +174,10 @@ public class ClonkLibBuilder implements IC4GroupVisitor, IPropertyChangeListener
 					}
 				}
 				else
-					createGroup(item);
+					createGroup(group);
 			}
 			else if (groupType == C4GroupType.ResourceGroup) { // System.c4g like
-				createGroup(item);
+				createGroup(group);
 				for (C4GroupItem child : group.getChildEntries()) {
 					if (child.getName().endsWith(".c")) {
 						try {
@@ -197,7 +198,7 @@ public class ClonkLibBuilder implements IC4GroupVisitor, IPropertyChangeListener
 		return false;
 	}
 
-	private void createGroup(C4GroupItem item) {
+	private void createGroup(C4Group item) {
 		if (currentExternNode == null) {
 			ExternalLib lib;
 			currentExternNode = lib = new ExternalLib(item.getName(), null);
@@ -205,11 +206,15 @@ public class ClonkLibBuilder implements IC4GroupVisitor, IPropertyChangeListener
 		}
 		else
 			currentExternNode = new C4ObjectExternGroup(item.getName(), currentExternNode);
+		nodeGroup = item;
+		//System.out.println(currentExternNode.getPath().toString());
 	}
 	
 	public void groupFinished(C4Group group) {
-		if (currentExternNode != null)
+		if (currentExternNode != null && group == nodeGroup) {
 			currentExternNode = currentExternNode.getParentNode();
+			nodeGroup = nodeGroup.getParentGroup();
+		}
 	}
 
 	public void propertyChange(PropertyChangeEvent event) {
