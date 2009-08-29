@@ -15,6 +15,7 @@ import net.arctics.clonk.parser.c4script.C4ScriptExprTree.AccessDeclaration;
 import net.arctics.clonk.parser.c4script.C4ScriptExprTree.ExprElm;
 import net.arctics.clonk.parser.c4script.C4ScriptExprTree.IExpressionListener;
 import net.arctics.clonk.parser.c4script.C4ScriptExprTree.TraversalContinuation;
+import net.arctics.clonk.util.IPredicate;
 import net.arctics.clonk.util.Utilities;
 
 import org.eclipse.jface.text.BadLocationException;
@@ -67,13 +68,24 @@ public class DeclarationLocator extends ExpressionLocator {
 					AccessDeclaration access = (AccessDeclaration) exprAtRegion;
 					List<C4Declaration> projectDeclarations = script.getIndex().getDeclarationMap().get(access.getDeclarationName());
 					List<C4Declaration> externalDeclarations = ClonkCore.getDefault().getExternIndex().getDeclarationMap().get(access.getDeclarationName());
+					IPredicate<C4Declaration> isFunc = new IPredicate<C4Declaration>() {
+						public boolean test(C4Declaration item) {
+	                        return item instanceof C4Function;
+                        }
+					};
+					if (projectDeclarations != null)
+						projectDeclarations = Utilities.filter(projectDeclarations, isFunc);
+					if (externalDeclarations != null)
+						externalDeclarations = Utilities.filter(externalDeclarations, isFunc);
 					if (projectDeclarations != null || externalDeclarations != null) {
 						proposedDeclarations = new LinkedList<C4Declaration>();
 						if (projectDeclarations != null)
 							proposedDeclarations.addAll(projectDeclarations);
 						if (externalDeclarations != null)
 							proposedDeclarations.addAll(externalDeclarations);
-						setRegion = true;
+						if (proposedDeclarations.size() == 0)
+							proposedDeclarations = null;
+						setRegion = proposedDeclarations != null;
 					}
 					else
 						setRegion = false;

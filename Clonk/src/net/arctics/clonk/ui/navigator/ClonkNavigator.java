@@ -2,6 +2,7 @@ package net.arctics.clonk.ui.navigator;
 
 import java.util.Collection;
 
+
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.index.ExternIndex;
 import net.arctics.clonk.parser.C4Structure;
