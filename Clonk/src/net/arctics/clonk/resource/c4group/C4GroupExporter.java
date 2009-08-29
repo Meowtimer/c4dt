@@ -124,8 +124,12 @@ public class C4GroupExporter {
 						// show command line in console
 						StringBuilder cmdLine = new StringBuilder();
 						cmdLine.append("Command:");
-						for (String cmdE : cmdArray)
+						for (int _i = 0; _i < cmdArray.length; _i++) {
+							String cmdE = cmdArray[_i];
+							if (_i != 2 && _i != 3)
+								cmdArray[_i] = "\"" + cmdE + "\"";
 							cmdLine.append(" " + cmdE);
+						}
 						out.println(cmdLine.toString());
 					}
 					

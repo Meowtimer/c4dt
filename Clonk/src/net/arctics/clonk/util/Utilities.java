@@ -56,6 +56,7 @@ import org.eclipse.jface.resource.ImageRegistry;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.Region;
 import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IPageLayout;
 import org.eclipse.ui.IViewPart;
@@ -176,18 +177,22 @@ public abstract class Utilities {
 		}
 		return debugConsoleStream;
 	}
-	
+
 	public static void displayClonkConsole() {
-		IWorkbenchPage page = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
-		String id = IConsoleConstants.ID_CONSOLE_VIEW;
-		
-		// show console 
-		try {
-			IConsoleView view = (IConsoleView) page.showView(id);
-			view.display(getClonkConsole());
-		} catch (PartInitException e) {
-			e.printStackTrace();
-		}
+		Display.getDefault().asyncExec(new Runnable() {
+			public void run() {
+				IWorkbenchPage page = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
+				String id = IConsoleConstants.ID_CONSOLE_VIEW;
+
+				// show console 
+				try {
+					IConsoleView view = (IConsoleView) page.showView(id);
+					view.display(getClonkConsole());
+				} catch (PartInitException e) {
+					e.printStackTrace();
+				}
+			}
+		});
 	}
 	
 	public static ClonkIndex getIndex(IResource res) {
