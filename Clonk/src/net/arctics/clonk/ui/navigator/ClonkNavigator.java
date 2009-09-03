@@ -1,18 +1,22 @@
 package net.arctics.clonk.ui.navigator;
 
 import java.util.Collection;
+import java.util.List;
 
 
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.index.ExternIndex;
 import net.arctics.clonk.parser.C4Structure;
 import net.arctics.clonk.parser.c4script.C4ScriptBase;
+import net.arctics.clonk.resource.ClonkProjectNature;
+import net.arctics.clonk.resource.ExternalLib;
 import net.arctics.clonk.util.INode;
 import net.arctics.clonk.util.ITreeNode;
 import net.arctics.clonk.util.Utilities;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jface.viewers.Viewer;
 
@@ -40,8 +44,11 @@ public class ClonkNavigator extends ClonkOutlineProvider {
 		}
 		else if (element instanceof IProject) {
 			if (Utilities.getDependenciesProject() == element) {
-				ExternIndex index = ClonkCore.getDefault().getExternIndex();
-				return index.getLibs().toArray(new Object[index.getLibs().size()]);
+				ClonkProjectNature clonkProj = Utilities.getClonkNature((IResource)element);
+				List<ExternalLib> deps = clonkProj != null
+					? clonkProj.getDependencies()
+					: ClonkCore.getDefault().getExternIndex().getLibs();
+				return deps.toArray(new Object[deps.size()]);
 			}
 		}
 		else if (element instanceof ITreeNode) {
