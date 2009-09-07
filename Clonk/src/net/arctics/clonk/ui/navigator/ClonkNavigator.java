@@ -5,7 +5,6 @@ import java.util.List;
 
 
 import net.arctics.clonk.ClonkCore;
-import net.arctics.clonk.index.ExternIndex;
 import net.arctics.clonk.parser.C4Structure;
 import net.arctics.clonk.parser.c4script.C4ScriptBase;
 import net.arctics.clonk.resource.ClonkProjectNature;

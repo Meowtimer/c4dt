@@ -1,7 +1,7 @@
 package net.arctics.clonk.ui.navigator;
 
 import net.arctics.clonk.ClonkCore;
-import net.arctics.clonk.index.C4ObjectIntern;
+import net.arctics.clonk.index.C4Object;
 import net.arctics.clonk.resource.c4group.C4Group.C4GroupType;
 import net.arctics.clonk.ui.OverlayIcon;
 import net.arctics.clonk.util.Icons;
@@ -85,35 +85,38 @@ public class ClonkLabelProvider extends LabelProvider implements IStyledLabelPro
 			C4GroupType groupType = Utilities.groupTypeFromFolderName(folder.getName());
 			if (groupType == C4GroupType.DefinitionGroup) {
 				// add [C4ID] to .c4d folders
-				StyledString buf = new StyledString();
-				buf.append(stringWithoutExtension(folder.getName()));
 				try {
 					String c4id = folder.getPersistentProperty(ClonkCore.FOLDER_C4ID_PROPERTY_ID);
-					if (c4id != null) {
-						buf.append(" [",StyledString.DECORATIONS_STYLER);
-						buf.append(c4id,StyledString.DECORATIONS_STYLER);
-						buf.append("]",StyledString.DECORATIONS_STYLER);
-					}
-					// FIXME stop activation of lazy loading:
-					if (folder.getSessionProperty(ClonkCore.C4OBJECT_PROPERTY_ID) == null) {
-						C4ObjectIntern.objectCorrespondingTo(folder);
-					}
-
+					return getIDText(folder.getName(), c4id);
 				} catch (CoreException e) {
 					e.printStackTrace();
 				}
-
-				return buf;
 			}
 			if (groupType == C4GroupType.FolderGroup || groupType == C4GroupType.ScenarioGroup || groupType == C4GroupType.ResourceGroup)
 				return new StyledString(folder.getName().substring(0,folder.getName().lastIndexOf(".")));
 			return new StyledString(((IFolder)element).getName());
+		}
+		else if (element instanceof C4Object) {
+			C4Object obj = (C4Object) element;
+			String c4id = obj.getId().toString();
+			return getIDText(obj.getNodeName(), c4id);
 		}
 		else if (element instanceof IResource)
 			return new StyledString(((IResource)element).getName());
 		else if (element instanceof DependenciesNavigatorNode)
 			return new StyledString(element.toString(), StyledString.DECORATIONS_STYLER);
 		return new StyledString(element.toString());
+	}
+
+	private StyledString getIDText(String baseName, String id) {
+		StyledString buf = new StyledString();
+		buf.append(stringWithoutExtension(baseName));
+		if (id != null) {
+			buf.append(" [",StyledString.DECORATIONS_STYLER);
+			buf.append(id,StyledString.DECORATIONS_STYLER);
+			buf.append("]",StyledString.DECORATIONS_STYLER);
+		}
+		return buf;
 	}
 	
 	protected static ImageDescriptor decorateImage(ImageDescriptor input,
