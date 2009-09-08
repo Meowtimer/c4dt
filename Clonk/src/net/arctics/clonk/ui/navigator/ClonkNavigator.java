@@ -42,13 +42,15 @@ public class ClonkNavigator extends ClonkOutlineProvider {
 			}
 		}
 		else if (element instanceof IProject) {
-			if (Utilities.getDependenciesProject() == element) {
-				ClonkProjectNature clonkProj = Utilities.getClonkNature((IResource)element);
-				List<ExternalLib> deps = clonkProj != null
-					? clonkProj.getDependencies()
-					: ClonkCore.getDefault().getExternIndex().getLibs();
-				return deps.toArray(new Object[deps.size()]);
-			}
+			try {
+				if (((IProject) element).hasNature(ClonkCore.CLONK_DEPS_NATURE_ID)) {
+					ClonkProjectNature clonkProj = Utilities.getClonkNature((IResource)element);
+					List<ExternalLib> deps = clonkProj != null
+						? clonkProj.getDependencies()
+						: ClonkCore.getDefault().getExternIndex().getLibs();
+					return deps.toArray(new Object[deps.size()]);
+				}
+			} catch (CoreException e) {}
 		}
 		else if (element instanceof ITreeNode) {
 			Collection<? extends INode> children = ((ITreeNode)element).getChildCollection();

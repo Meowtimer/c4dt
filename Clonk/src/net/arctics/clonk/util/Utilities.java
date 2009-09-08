@@ -2,6 +2,8 @@ package net.arctics.clonk.util;
 
 import java.io.BufferedReader;
 
+
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -40,6 +42,7 @@ import net.arctics.clonk.ui.editors.c4script.ScriptWithStorageEditorInput;
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IProjectDescription;
 import org.eclipse.core.resources.IProjectNature;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IWorkspaceRoot;
@@ -55,6 +58,9 @@ import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.resource.ImageRegistry;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.Region;
+import org.eclipse.jface.viewers.ISelection;
+import org.eclipse.jface.viewers.ITreeSelection;
+import org.eclipse.jface.viewers.TreePath;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.IEditorPart;
@@ -74,6 +80,7 @@ import org.eclipse.ui.console.MessageConsole;
 import org.eclipse.ui.console.MessageConsoleStream;
 import org.eclipse.ui.ide.IDE;
 import org.eclipse.ui.navigator.CommonNavigator;
+import org.eclipse.ui.navigator.CommonViewer;
 import org.eclipse.ui.part.FileEditorInput;
 import org.eclipse.ui.texteditor.ITextEditor;
 
@@ -462,7 +469,7 @@ public abstract class Utilities {
 		if (blen == 0) {
 			return a != null ? a : (T[])new Object[0];
 		}
-		final T[] result = (T[]) new Object[alen + blen];
+		final T[] result = (T[]) Array.newInstance(a.getClass().getComponentType(), alen+blen);
 		System.arraycopy(a, 0, result, 0, alen);
 		System.arraycopy(b, 0, result, alen, blen);
 		return result;
@@ -606,12 +613,23 @@ public abstract class Utilities {
 		return false;
 	}
 	
-	public static <T> List<T> filter(List<T> list, IPredicate<T> filter) {
+	public static <T> List<T> filter(Iterable<T> iterable, IPredicate<T> filter) {
 		List<T> result = new LinkedList<T>();
-		for (T elm : list)
+		for (T elm : iterable)
 			if (filter.test(elm))
 				result.add(elm);
 		return result;
+	}
+	
+	@SuppressWarnings("unchecked")
+	public static <T> T[] filter(T[] array, IPredicate<T> filter) {
+		try {
+			List<T> list = filter(arrayIterable(array), filter);
+			return list.toArray((T[]) Array.newInstance(array.getClass().getComponentType(), list.size()));
+		} catch (Exception e) {
+			e.printStackTrace();
+			return null;
+		}
 	}
 
 	public static <T> Iterable<T> arrayIterable(final T[] items) {
@@ -635,6 +653,29 @@ public abstract class Utilities {
 	}
 	
 	public static IProject getDependenciesProject() {
+		IViewPart projExp = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().findView(IPageLayout.ID_PROJECT_EXPLORER);
+		CommonViewer commonViewer = (CommonViewer) projExp.getAdapter(CommonViewer.class);
+		if (commonViewer != null) {
+			ISelection sel = commonViewer.getSelection();
+			if (sel instanceof ITreeSelection) {
+				ITreeSelection treeSel = (ITreeSelection) sel;
+				if (treeSel.getFirstElement() != null) {
+					TreePath[] treePaths = treeSel.getPathsFor(treeSel.getFirstElement());
+					if (treePaths.length > 0) {
+						for (int i = 0; i < treePaths[0].getSegmentCount(); i++) {
+							if (treePaths[0].getSegment(i) instanceof IProject) {
+								try {
+									if (((IProject)treePaths[0].getSegment(i)).hasNature(ClonkCore.CLONK_DEPS_NATURE_ID)) {
+										return (IProject) treePaths[0].getSegment(i);
+									}
+								} catch (CoreException e) {}
+								break;
+							}
+						}
+					}
+				}
+			}
+		}
 		for (IProject p : ResourcesPlugin.getWorkspace().getRoot().getProjects()) {
 			try {
 	            if (p.isOpen() && p.hasNature(ClonkCore.CLONK_DEPS_NATURE_ID))
@@ -645,6 +686,25 @@ public abstract class Utilities {
             }
 		}
 		return null;
+	}
+	
+	public static void setShowsDependencies(IProject clonkProj, boolean has) throws CoreException {
+		if (has != clonkProj.hasNature(ClonkCore.CLONK_DEPS_NATURE_ID)) {
+			String[] oldNatures = clonkProj.getDescription().getNatureIds();
+			String[] newNatures;
+			if (has)
+				newNatures = concat(oldNatures, ClonkCore.CLONK_DEPS_NATURE_ID);
+			else
+				newNatures = filter(oldNatures, new IPredicate<String>() {
+					@Override
+					public boolean test(String item) {
+						return !item.equals(ClonkCore.CLONK_DEPS_NATURE_ID);
+					}
+				});
+			IProjectDescription desc = clonkProj.getDescription();
+			desc.setNatureIds(newNatures);
+			clonkProj.setDescription(desc, null);
+		}
 	}
 	
 	public static String getPreference(String prefName, String def, IScopeContext[] contexts) {

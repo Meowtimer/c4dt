@@ -2579,6 +2579,9 @@ public abstract class C4ScriptExprTree {
 						if (nameValue.length == 2) {
 							String name = nameValue[0].trim();
 							String value = nameValue[1].trim();
+							int sep = value.indexOf(':');
+							if (sep != -1)
+								value = value.substring(0, sep);
 							if (name.equals("Condition") || name.equals("Image"))
 								return new DeclarationRegion(parser.getContainer().findDeclaration(value), new Region(getExprStart()+off+nameValue[0].length()+1, value.length()));
 						}
