@@ -368,6 +368,11 @@ public abstract class C4ScriptExprTree {
 				builder.append("\t"); // FIXME: should be done according to user's preferences
 		}
 		
+		/**
+		 * Rudimentary possibility for evaluating the expression. Only used for evaluating the value of the SetProperty("Name", ...) call in a Definition function (OpenClonk) right now
+		 * @param context the context to evaluate in
+		 * @return the result
+		 */
 		public Object evaluate(C4ScriptBase context) {
 			return null;
 		}
