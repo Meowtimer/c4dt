@@ -258,4 +258,28 @@ public abstract class C4Declaration implements Serializable, IHasRelatedResource
 		return getName();
 	}
 	
+	/**
+	 * Returns whether the supplied name looks like the name of a constant e.g begins with a prefix in caps followed by an underscore and a name
+	 * @param name the string to check
+	 * @return whether it does or not
+	 */
+	public static boolean looksLikeConstName(String name) {
+		boolean underscore = false;
+		for (int i = 0; i < name.length(); i++) {
+			char c = name.charAt(i);
+			if (i > 0 && c == '_') {
+				if (!underscore)
+					underscore = true;
+				else
+					return false;
+			}
+			if (!underscore) {
+				if (Character.toUpperCase(c) != c) {
+					return false;
+				}
+			}
+		}
+		return underscore || name.equals(name.toUpperCase());
+	}
+	
 }

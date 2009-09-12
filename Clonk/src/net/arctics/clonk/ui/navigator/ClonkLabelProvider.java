@@ -4,6 +4,8 @@ import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.index.C4Object;
 import net.arctics.clonk.resource.c4group.C4Group.C4GroupType;
 import net.arctics.clonk.ui.OverlayIcon;
+import net.arctics.clonk.util.INode;
+import net.arctics.clonk.util.ITreeNode;
 import net.arctics.clonk.util.Icons;
 import net.arctics.clonk.util.Utilities;
 
@@ -87,7 +89,7 @@ public class ClonkLabelProvider extends LabelProvider implements IStyledLabelPro
 				// add [C4ID] to .c4d folders
 				try {
 					String c4id = folder.getPersistentProperty(ClonkCore.FOLDER_C4ID_PROPERTY_ID);
-					return getIDText(folder.getName(), c4id);
+					return getIDText(folder.getName(), c4id, false);
 				} catch (CoreException e) {
 					e.printStackTrace();
 				}
@@ -96,21 +98,28 @@ public class ClonkLabelProvider extends LabelProvider implements IStyledLabelPro
 				return new StyledString(folder.getName().substring(0,folder.getName().lastIndexOf(".")));
 			return new StyledString(((IFolder)element).getName());
 		}
+		else if (element instanceof IResource) {
+			return new StyledString(((IResource)element).getName());
+		}
 		else if (element instanceof C4Object) {
 			C4Object obj = (C4Object) element;
 			String c4id = obj.getId().toString();
-			return getIDText(obj.getNodeName(), c4id);
+			return getIDText(obj.getNodeName(), c4id, true);
 		}
-		else if (element instanceof IResource)
-			return new StyledString(((IResource)element).getName());
+		else if (element instanceof INode) {
+			return new StyledString(element.toString(), StyledString.COUNTER_STYLER);
+		}
 		else if (element instanceof DependenciesNavigatorNode)
 			return new StyledString(element.toString(), StyledString.DECORATIONS_STYLER);
 		return new StyledString(element.toString());
 	}
 
-	private StyledString getIDText(String baseName, String id) {
+	private StyledString getIDText(String baseName, String id, boolean virtual) {
 		StyledString buf = new StyledString();
-		buf.append(stringWithoutExtension(baseName));
+		if (virtual)
+			buf.append(stringWithoutExtension(baseName), StyledString.COUNTER_STYLER);
+		else
+			buf.append(stringWithoutExtension(baseName));
 		if (id != null) {
 			buf.append(" [",StyledString.DECORATIONS_STYLER);
 			buf.append(id,StyledString.DECORATIONS_STYLER);

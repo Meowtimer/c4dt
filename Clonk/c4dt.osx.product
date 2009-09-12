@@ -23,12 +23,12 @@
       startupMessageRect="7,220,441,20"
       startupForegroundColor="C8D5EA" />
    <launcher name="Clonklipse">
-      <macosx icon="/C4DT/res/DistroIcon.icns"/>
       <solaris/>
       <win useIco="false">
          <bmp/>
       </win>
    </launcher>
+
 
    <vm>
    </vm>

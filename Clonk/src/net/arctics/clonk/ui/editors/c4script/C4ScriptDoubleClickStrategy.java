@@ -1,12 +1,13 @@
 package net.arctics.clonk.ui.editors.c4script;
 
+import org.eclipse.jface.text.DefaultTextDoubleClickStrategy;
+import org.eclipse.jface.text.ITextViewer;
+
 import net.arctics.clonk.parser.c4script.C4Function;
 import net.arctics.clonk.parser.c4script.C4ScriptBase;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.util.Utilities;
 import net.arctics.clonk.parser.c4script.C4ScriptExprTree.ExprElm;
-
-import org.eclipse.jface.text.*;
 
 public class C4ScriptDoubleClickStrategy extends DefaultTextDoubleClickStrategy {
 	

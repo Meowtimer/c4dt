@@ -15,7 +15,7 @@ public enum C4Type {
 	STRING,
 	ARRAY,
 	OBJECT,
-	DWORD, 
+	//DWORD, 
 	REFERENCE, 
 	PROPLIST; 
 	
@@ -35,8 +35,8 @@ public enum C4Type {
 			other == this ||
 			this == ANY || this == UNKNOWN || this == REFERENCE || this == BOOL ||
 			other == UNKNOWN || other == ANY || other == REFERENCE ||
-			(this == INT && (other == DWORD || other == BOOL)) ||
-			(this == DWORD && (other == INT || other == BOOL));
+			(this == INT && (/*other == DWORD || */other == BOOL));// ||
+			/*(this == DWORD && (other == INT || other == BOOL)); formerly DWORD */
 	}
 	
 	public static C4Type makeType(String arg) {
@@ -51,7 +51,7 @@ public enum C4Type {
 				return t;
 		if (allowSpecial) {
 			if (arg.equals("dword"))
-				return C4Type.DWORD;
+				return C4Type.INT; // formerly DWORD
 			if (arg.equals("any"))
 				return C4Type.ANY;
 		}

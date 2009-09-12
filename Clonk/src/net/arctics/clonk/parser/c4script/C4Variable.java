@@ -117,8 +117,8 @@ public class C4Variable extends C4Declaration implements Serializable, ITypedDec
 	 */
 	public void forceType(C4Type type) {
 		// -.-;
-		if (type == C4Type.DWORD)
-			type = C4Type.INT;
+//		if (type == C4Type.DWORD) formerly DWORD
+//			type = C4Type.INT;
 		this.type = type;
 	}
 	
