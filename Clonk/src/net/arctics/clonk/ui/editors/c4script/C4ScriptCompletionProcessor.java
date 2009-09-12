@@ -270,43 +270,39 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 		C4ScriptBase contextScript = Utilities.getScriptForEditor(editor);
 		boolean contextObjChanged = false;
 		if (contextScript != null) {
-			try {
-				contextExpression = null;
-				final int preservedOffset = offset;
-				C4ScriptParser parser = C4ScriptParser.reportExpressionsAndStatements(doc, activeFunc.getBody().getOffset(), offset, contextScript, activeFunc, new IExpressionListener() {
-					public TraversalContinuation expressionDetected(ExprElm expression, C4ScriptParser parser) {
-						if (expression instanceof Statement) {
-							if (contextExpression != null && !contextExpression.containedIn(expression))
-								contextExpression = null;
-							return TraversalContinuation.Continue;
-						}
-						if (activeFunc.getBody().getOffset() + expression.getExprStart() <= preservedOffset) {
-							contextExpression = expression;
-							try {
-	                            contextTypeInformation = parser.copyCurrentTypeInformationList();
-                            } catch (CloneNotSupportedException e) {
-	                            e.printStackTrace();
-                            }
-							return TraversalContinuation.Continue;
-						}
-						return TraversalContinuation.Cancel;
+			contextExpression = null;
+			final int preservedOffset = offset;
+			C4ScriptParser parser = C4ScriptParser.reportExpressionsAndStatements(doc, activeFunc.getBody().getOffset(), offset, contextScript, activeFunc, new IExpressionListener() {
+				public TraversalContinuation expressionDetected(ExprElm expression, C4ScriptParser parser) {
+					if (expression instanceof Statement) {
+						if (contextExpression != null && !contextExpression.containedIn(expression))
+							contextExpression = null;
+						return TraversalContinuation.Continue;
 					}
-				});
-				if (contextExpression != null) {
-					parser.pushTypeInformationList(contextTypeInformation);
-					parser.applyStoredTypeInformationList(true);
-					if (contextExpression.containsOffset(preservedOffset-activeFunc.getBody().getOffset())) {
-						C4Object guessedType = contextExpression.guessObjectType(parser);
-						if (guessedType != null) {
-							contextScript = guessedType;
-							contextObjChanged = true;
-						}
+					if (activeFunc.getBody().getOffset() + expression.getExprStart() <= preservedOffset) {
+						contextExpression = expression;
+						try {
+			                contextTypeInformation = parser.copyCurrentTypeInformationList();
+			            } catch (CloneNotSupportedException e) {
+			                e.printStackTrace();
+			            }
+						return TraversalContinuation.Continue;
+					}
+					return TraversalContinuation.Cancel;
+				}
+			});
+			if (contextExpression != null) {
+				parser.pushTypeInformationList(contextTypeInformation);
+				parser.applyStoredTypeInformationList(true);
+				if (contextExpression.containsOffset(preservedOffset-activeFunc.getBody().getOffset())) {
+					C4Object guessedType = contextExpression.guessObjectType(parser);
+					if (guessedType != null) {
+						contextScript = guessedType;
+						contextObjChanged = true;
 					}
 				}
-				parser.endTypeInferenceBlock();
-			} catch (ParsingException e) {
-				e.printStackTrace();
 			}
+			parser.endTypeInferenceBlock();
 		}
 		
 		if (!contextObjChanged) {

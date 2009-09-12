@@ -2367,11 +2367,11 @@ public class C4ScriptParser {
 		applyStoredTypeInformationList(true);
 	}
 	
-	public static C4ScriptParser reportExpressionsAndStatements(IDocument doc, IRegion region, C4ScriptBase context, C4Function func, IExpressionListener listener) throws BadLocationException, ParsingException {
+	public static C4ScriptParser reportExpressionsAndStatements(IDocument doc, IRegion region, C4ScriptBase context, C4Function func, IExpressionListener listener)  {
 		return reportExpressionsAndStatements(doc, region.getOffset(), region.getOffset()+region.getLength(), context, func, listener);
 	}
 	
-	public static C4ScriptParser reportExpressionsAndStatements(IDocument doc, int statementStart, int statementEnd, C4ScriptBase context, C4Function func, IExpressionListener listener) throws ParsingException {
+	public static C4ScriptParser reportExpressionsAndStatements(IDocument doc, int statementStart, int statementEnd, C4ScriptBase context, C4Function func, IExpressionListener listener)  {
 		String expr;
 		try {
 			expr = doc.get(statementStart, Math.min(statementEnd-statementStart, doc.getLength()-statementStart));
