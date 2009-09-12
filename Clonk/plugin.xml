@@ -266,6 +266,12 @@
 			name="Open Object" />
 		
 		<command categoryId="org.eclipse.ui.category.navigate"
+			description="Open a file of the current definition"
+			id="net.arctics.clonk.ui.OpenLocalResource"
+			defaultHandler="net.arctics.clonk.ui.editors.actions.c4script.OpenLocalResourceAction"
+			name="Open Definition File" />
+		
+		<command categoryId="org.eclipse.ui.category.navigate"
 			description="Export the selected resources to the Clonk folder"
 			id="net.arctics.clonk.ui.QuickExport"
 			defaultHandler="net.arctics.clonk.ui.navigator.QuickExportAction"
@@ -302,6 +308,7 @@
 		<menuContribution locationURI="menu:org.eclipse.ui.main.menu">
 			<menu label="Clonk">
 				<command commandId="net.arctics.clonk.ui.OpenObject" label="Open Object" />
+				<command commandId="net.arctics.clonk.ui.OpenLocalResource" label="Open Definition file" />
 				<command commandId="net.arctics.clonk.ui.QuickExport" label="Quick Export" />
 			</menu>
 		</menuContribution>

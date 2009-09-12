@@ -5,7 +5,6 @@ import net.arctics.clonk.index.C4Object;
 import net.arctics.clonk.resource.c4group.C4Group.C4GroupType;
 import net.arctics.clonk.ui.OverlayIcon;
 import net.arctics.clonk.util.INode;
-import net.arctics.clonk.util.ITreeNode;
 import net.arctics.clonk.util.Icons;
 import net.arctics.clonk.util.Utilities;
 
