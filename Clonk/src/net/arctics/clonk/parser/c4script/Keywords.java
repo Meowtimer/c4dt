@@ -37,4 +37,6 @@ public interface Keywords {
 
 	public static final String True = "true";
 	public static final String False = "false";
+
+	public static final String DefinitionFunc = "Definition";
 }

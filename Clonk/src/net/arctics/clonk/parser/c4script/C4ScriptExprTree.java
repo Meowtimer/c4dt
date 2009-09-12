@@ -367,6 +367,10 @@ public abstract class C4ScriptExprTree {
 			for (int i = 0; i < indentDepth; i++)
 				builder.append("\t"); // FIXME: should be done according to user's preferences
 		}
+		
+		public Object evaluate(C4ScriptBase context) {
+			return null;
+		}
 
 	}
 
@@ -668,6 +672,8 @@ public abstract class C4ScriptExprTree {
 		
 		@Override
 		public IStoredTypeInformation createStoredTypeInformation() {
+			if (getDeclaration() instanceof C4Variable && ((C4Variable)getDeclaration()).isTypeLocked())
+				return null;
 			return new VariableTypeInformation(getDeclaration());
 		}
 		
@@ -1420,6 +1426,11 @@ public abstract class C4ScriptExprTree {
 		public boolean isConstant() {
 			return true;
 		}
+		
+		@Override
+		public T evaluate(C4ScriptBase context) {
+			return literal;
+		}
 
 	}
 
@@ -1500,7 +1511,7 @@ public abstract class C4ScriptExprTree {
 		
 		@Override
 		public DeclarationRegion declarationAt(int offset, C4ScriptParser parser) {
-			DeclarationRegion result = getStringTblEntryAt(offset-1, parser);
+			DeclarationRegion result = getStringTblEntryAt(offset-1, parser.getContainer());
 			if (result != null)
 				return result;
 			
@@ -1568,9 +1579,9 @@ public abstract class C4ScriptExprTree {
 			return null;
 		}
 		
-		private DeclarationRegion getStringTblEntryAt(int offset, C4ScriptParser parser) {
+		private DeclarationRegion getStringTblEntryAt(int offset, C4ScriptBase container) {
 			try {
-				StringTbl stringTbl = parser.getContainer().getStringTblForLanguagePref();
+				StringTbl stringTbl = container.getStringTblForLanguagePref();
 				if (stringTbl == null)
 					return null;
 				int firstDollar = stringValue().lastIndexOf('$', offset-1);
@@ -1585,6 +1596,26 @@ public abstract class C4ScriptExprTree {
 				}
 			} catch (CoreException e) {}
 			return null;
+		}
+		
+		@Override
+		public String evaluate(C4ScriptBase context) {
+			String value = getLiteral();
+			int valueLen = value.length();
+			StringBuilder builder = new StringBuilder(valueLen*2);
+			// insert stringtbl entries
+			for (int i = 0; i < valueLen;) {
+				if (i+1 < valueLen && value.charAt(i) == '$') {
+					DeclarationRegion region = getStringTblEntryAt(i+1, context);
+					if (region != null) {
+						builder.append(((NameValueAssignment)region.getDeclaration()).getValue());
+						i += region.getRegion().getLength();
+						continue;
+					}
+				}
+				builder.append(value.charAt(i++));
+			}
+			return builder.toString();
 		}
 
 		@Override

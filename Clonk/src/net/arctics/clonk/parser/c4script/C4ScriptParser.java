@@ -338,6 +338,37 @@ public class C4ScriptParser {
 				parseCodeOfFunction(function);
 			}
 			container.setDirty(false);
+			postProduction();
+		}
+	}
+
+	private void postProduction() {
+		if (container instanceof C4Object) {
+			C4Function definitionFunc = container.findFunction(Keywords.DefinitionFunc);
+			if (definitionFunc != null) {
+				fReader.seek(definitionFunc.getBody().getStart());
+				reportExpressionsAndStatements(definitionFunc, new IExpressionListener() {
+					@Override
+					public TraversalContinuation expressionDetected(ExprElm expression, C4ScriptParser parser) {
+						if (expression instanceof CallFunc) {
+							CallFunc callFunc = (CallFunc) expression;
+							if (
+								callFunc.getDeclarationName().equals("SetProperty") &&
+								callFunc.getParams().length >= 2 &&
+								callFunc.getParams()[0] instanceof StringLiteral &&
+								((StringLiteral)callFunc.getParams()[0]).getLiteral().equals("Name")
+							) {
+								Object v = callFunc.getParams()[1].evaluate(getContainer());
+								if (v instanceof String) {
+									getContainer().setName((String) v);
+								}
+								return TraversalContinuation.Cancel;
+							}
+						}
+						return TraversalContinuation.Continue;
+					}
+				});
+			}
 		}
 	}
 
@@ -361,8 +392,8 @@ public class C4ScriptParser {
 			// not really an error
 		}
 		catch (ParsingException e) {
-			System.out.println(String.format("ParsingException in %s (%s)", activeFunc.getName(), container.getName()));
-			e.printStackTrace();
+			//System.out.println(String.format("ParsingException in %s (%s)", activeFunc.getName(), container.getName()));
+			//e.printStackTrace();
 			// not very exceptional
 		}
 		catch (Exception e) {
@@ -1798,7 +1829,10 @@ public class C4ScriptParser {
 				}
 				if (parseStatementRecursion == 1) {
 					if (expressionListener != null) {
-						expressionListener.expressionDetected(result, this);
+						switch (expressionListener.expressionDetected(result, this)) {
+						case Cancel:
+							throw new SilentParsingException("Expression Listener Cancellation");
+						}
 					}
 				}
 			}
@@ -1961,7 +1995,7 @@ public class C4ScriptParser {
 		ExprElm cond = parseExpression(fReader.getPosition());
 		eatWhitespace();
 		expect(')');
-		expect(';');
+		//expect(';');
 		return new DoWhileStatement(cond, block);
 	}
 	
@@ -2304,6 +2338,35 @@ public class C4ScriptParser {
 		}
 	}
 	
+	private void reportExpressionsAndStatements(C4Function func, IExpressionListener listener) {
+		activeFunc = func;
+		setExpressionListener(listener);
+		strictLevel = getContainer().getStrictLevel();
+		disableError(ParserErrorCode.TokenExpected);
+		disableError(ParserErrorCode.InvalidExpression);
+		disableError(ParserErrorCode.BlockNotClosed);
+		disableError(ParserErrorCode.NotAllowedHere);
+		try {
+			EnumSet<ParseStatementOption> options = EnumSet.of(ParseStatementOption.ExpectFuncDesc);
+			beginTypeInferenceBlock();
+			while (!fReader.reachedEOF()) {
+				Statement statement = parseStatement(fReader.getPosition(), options);
+				if (statement == null)
+					break;
+				if (!(statement instanceof Comment))
+					options.remove(ParseStatementOption.ExpectFuncDesc);
+			}
+			//endTypeInferenceBlock(); not here for type information might still be needed
+		} 
+		catch (SilentParsingException e) {
+			// silent...
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
+		applyStoredTypeInformationList(true);
+	}
+	
 	public static C4ScriptParser reportExpressionsAndStatements(IDocument doc, IRegion region, C4ScriptBase context, C4Function func, IExpressionListener listener) throws BadLocationException, ParsingException {
 		return reportExpressionsAndStatements(doc, region.getOffset(), region.getOffset()+region.getLength(), context, func, listener);
 	}
@@ -2316,32 +2379,7 @@ public class C4ScriptParser {
 			expr = ""; // well...
 		}
 		C4ScriptParser parser = new C4ScriptParser(expr, context);
-		parser.activeFunc = func;
-		parser.setExpressionListener(listener);
-		parser.strictLevel = context.getStrictLevel();
-		parser.disableError(ParserErrorCode.TokenExpected);
-		parser.disableError(ParserErrorCode.InvalidExpression);
-		parser.disableError(ParserErrorCode.BlockNotClosed);
-		parser.disableError(ParserErrorCode.NotAllowedHere);
-		try {
-			EnumSet<ParseStatementOption> options = EnumSet.of(ParseStatementOption.ExpectFuncDesc);
-			parser.beginTypeInferenceBlock();
-			while (!parser.fReader.reachedEOF()) {
-				Statement statement = parser.parseStatement(parser.fReader.getPosition(), options);
-				if (statement == null)
-					break;
-				if (!(statement instanceof Comment))
-					options.remove(ParseStatementOption.ExpectFuncDesc);
-			}
-			//parser.endTypeInferenceBlock(); not here for type information might still be needed
-		} 
-		catch (SilentParsingException e) {
-			// silent...
-		}
-		catch (Exception e) {
-			e.printStackTrace();
-		}
-		parser.applyStoredTypeInformationList(true);
+		parser.reportExpressionsAndStatements(func, listener);
 		return parser;
 	}
 	
