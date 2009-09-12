@@ -271,7 +271,7 @@ public class IniUnit extends C4Structure implements Iterable<IniSection>, IHasCh
 		reader.unread();
 		if (reader.reachedEOF()) return null;
 		int keyStart = reader.getPosition();
-		String key = reader.readWord();
+		String key = reader.readIdent();
 		reader.eatWhitespace();
 		if (reader.read() != '=') {
 			if (modifyMarkers)

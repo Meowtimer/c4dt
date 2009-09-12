@@ -16,6 +16,7 @@ public interface Keywords {
 	public static final String If = "if";
 	public static final String Else = "else";
 	public static final String While = "while";
+	public static final String Do = "do";
 	public static final String For = "for";
 	public static final String In = "in";
 	public static final String Return = "return";

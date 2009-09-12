@@ -138,7 +138,7 @@ public class BufferedScanner {
 	 * Reads a code-word. (like regexp class [0-9a-zA-Z_])
 	 * @return the code-word
 	 */
-	public String readWord() {
+	public String readIdent() {
 		int start = offset;
 		int length = 0;
 		do {

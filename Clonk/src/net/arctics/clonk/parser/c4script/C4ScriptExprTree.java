@@ -2278,6 +2278,23 @@ public abstract class C4ScriptExprTree {
 		}
 	}
 	
+	public static class DoWhileStatement extends WhileStatement {
+		public DoWhileStatement(ExprElm condition, ExprElm body) {
+			super(condition, body);
+		}
+
+		@Override
+		public void print(StringBuilder builder, int depth) {
+			builder.append(Keywords.Do);
+			printBody(builder, depth);
+			builder.append(" ");
+			builder.append(Keywords.While);
+			builder.append(" (");
+			condition.print(builder, depth);
+			builder.append(");");
+		}
+	}
+	
 	public static class ForStatement extends ConditionalStatement {
 		private ExprElm initializer, increment;
 		public ForStatement(ExprElm initializer, ExprElm condition, ExprElm increment, ExprElm body) {

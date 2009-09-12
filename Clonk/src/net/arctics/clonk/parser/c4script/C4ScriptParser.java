@@ -429,7 +429,7 @@ public class C4ScriptParser {
 		}
 		else {
 			fReader.seek(offset);
-			String word = fReader.readWord();
+			String word = fReader.readIdent();
 			if (looksLikeStartOfFunction(word)) {
 				if (parseFunctionDeclaration(word, offset, fReader.getPosition())) return true;
 			}
@@ -464,12 +464,12 @@ public class C4ScriptParser {
 		fReader.seek(offset);
 
 		List<C4Variable> createdVariables = new LinkedList<C4Variable>();
-		String word = fReader.readWord();
+		String word = fReader.readIdent();
 		if (word.equals(Keywords.GlobalNamed)) {
 			eatWhitespace();
 			int pos = fReader.getPosition();
 			boolean constDecl = false; 
-			if (fReader.readWord().equals(Keywords.Const)) {
+			if (fReader.readIdent().equals(Keywords.Const)) {
 				constDecl = true;
 			} else {
 				fReader.seek(pos);
@@ -477,13 +477,11 @@ public class C4ScriptParser {
 			do {
 				eatWhitespace();
 				int s = fReader.getPosition();
-				String varName = fReader.readWord();
+				String varName = fReader.readIdent();
 				int e = fReader.getPosition();
 				if (constDecl) {
 					eatWhitespace();
-					if (fReader.read() != '=') {
-						tokenExpectedError("=");
-					}
+					expect('=');
 					eatWhitespace();
 					offset = fReader.getPosition();
 					ExprElm constantValue = parseExpression(offset, false);
@@ -510,7 +508,7 @@ public class C4ScriptParser {
 			do {
 				eatWhitespace();
 				int s = fReader.getPosition();
-				String varName = fReader.readWord();
+				String varName = fReader.readIdent();
 				int e = fReader.getPosition();
 				createdVariables.add(createVariable(C4VariableScope.VAR_LOCAL, desc, s, e, varName));
 				eatWhitespace();
@@ -578,13 +576,13 @@ public class C4ScriptParser {
 		parsedVariable = null;
 		fReader.seek(offset);
 
-		String word = fReader.readWord();
+		String word = fReader.readIdent();
 		C4VariableScope scope = C4VariableScope.makeScope(word);
 		if (scope != null) {
 			do {
 				eatWhitespace();
 				int nameStart = fReader.getPosition();
-				String varName = fReader.readWord();
+				String varName = fReader.readIdent();
 				int nameEnd = fReader.getPosition();
 				if (declaration) {
 					// construct C4Variable object and register it
@@ -669,7 +667,7 @@ public class C4ScriptParser {
 		if (!firstWord.equals(Keywords.Func)) {
 			activeFunc.setVisibility(C4FunctionScope.makeScope(firstWord));
 			startName = fReader.getPosition();
-			String shouldBeFunc = fReader.readWord();
+			String shouldBeFunc = fReader.readIdent();
 			if (!shouldBeFunc.equals(Keywords.Func)) {
 //				String problem = "Syntax error: expected 'func'";
 //				createErrorMarker(offset, fReader.getPosition(), problem);
@@ -689,7 +687,7 @@ public class C4ScriptParser {
 			retType = parseFunctionReturnType(fReader.getPosition());
 			eatWhitespace();
 			startName = fReader.getPosition();
-			funcName = fReader.readWord();
+			funcName = fReader.readIdent();
 			if (funcName == null || funcName.length() == 0)
 				errorWithCode(ParserErrorCode.NameExpected, fReader.getPosition()-1, fReader.getPosition());
 			endName = fReader.getPosition();
@@ -747,7 +745,7 @@ public class C4ScriptParser {
 				do {
 					eatWhitespace();
 					endBody = fReader.getPosition();
-					String word = fReader.readWord();
+					String word = fReader.readIdent();
 					if (word != null && word.length() > 0) {
 						if (looksLikeStartOfFunction(word) || looksLikeVarDeclaration(word)) {
 							fReader.seek(endBody);
@@ -1027,7 +1025,7 @@ public class C4ScriptParser {
 		fReader.seek(offset);
 		if (parseString(offset))
 			return Token.String;
-		String word = fReader.readWord();
+		String word = fReader.readIdent();
 		if (word.length() > 0) {
 			parsedString = word;
 			return Token.Word;
@@ -1207,7 +1205,7 @@ public class C4ScriptParser {
 				break;
 			}
 			// kind of a hack; stop at 'in' but only if there were other things before it
-			if (elements.size() > 0 && fReader.readWord().equals(Keywords.In)) {
+			if (elements.size() > 0 && fReader.readIdent().equals(Keywords.In)) {
 				fReader.seek(elmStart);
 				break;
 			}
@@ -1239,7 +1237,7 @@ public class C4ScriptParser {
 			
 			// variable or function
 			if (elm == null) {
-				String word = fReader.readWord();
+				String word = fReader.readIdent();
 				if (word != null && word.length() > 0) {
 					int beforeSpace = fReader.getPosition();
 					this.eatWhitespace();
@@ -1429,9 +1427,7 @@ public class C4ScriptParser {
 				// array access
 				ExprElm arg = parseExpression(fReader.getPosition(), reportErrors);
 				this.eatWhitespace();
-				if (fReader.read() != ']') {
-					tokenExpectedError("]");
-				}
+				expect(']');
 				elm = new ArrayElementAccess(arg);
 			} else {
 				// array creation
@@ -1654,7 +1650,7 @@ public class C4ScriptParser {
 	
 	private boolean parseIdentifier(int offset) throws ParsingException {
 		fReader.seek(offset);
-		String word = fReader.readWord();
+		String word = fReader.readIdent();
 		if (word != null && word.length() > 0) {
 			parsedString = word;
 			return true;
@@ -1731,7 +1727,7 @@ public class C4ScriptParser {
 			}*/
 
 			if (result == null) {
-				String readWord = fReader.readWord();
+				String readWord = fReader.readIdent();
 				if (readWord == null || readWord.length() == 0) {
 					int read = fReader.read();
 					if (read == '{' && !options.contains(ParseStatementOption.InitializationStatement)) {
@@ -1835,7 +1831,7 @@ public class C4ScriptParser {
 		List<Pair<String, ExprElm>> initializations = new LinkedList<Pair<String, ExprElm>>();
 		do {
 			eatWhitespace();
-			String varName = fReader.readWord();
+			String varName = fReader.readIdent();
 			// check if there is initial content
 			eatWhitespace();
 			C4Variable var = findVar(varName, scope);
@@ -1903,6 +1899,9 @@ public class C4ScriptParser {
 		else if (readWord.equals(Keywords.While)) {
 			result = parseWhile();
 		}
+		else if (readWord.equals(Keywords.Do)) {
+			result = parseDoWhile();
+		}
 		else if (readWord.equals(Keywords.For)) {
 			result = parseFor();
 		}
@@ -1952,13 +1951,38 @@ public class C4ScriptParser {
 		return result;
 	}
 
+	private Statement parseDoWhile() throws ParsingException {
+		Statement block = parseStatement(fReader.getPosition());
+		eatWhitespace();
+		expect(Keywords.While);
+		eatWhitespace();
+		expect('(');
+		eatWhitespace();
+		ExprElm cond = parseExpression(fReader.getPosition());
+		eatWhitespace();
+		expect(')');
+		expect(';');
+		return new DoWhileStatement(cond, block);
+	}
+	
+	private void expect(char expected) throws ParsingException {
+		if (fReader.read() != expected) {
+			tokenExpectedError(String.valueOf(expected));
+		}
+	}
+	
+	private void expect(String expected) throws ParsingException {
+		String r = fReader.readIdent();
+		if (r == null || !r.equals(expected)) {
+			tokenExpectedError(expected);
+		}
+	}
+
 	private Statement parseFor() throws ParsingException {
 		int offset;
 		Statement result;
 		eatWhitespace();
-		if (fReader.read() != '(') {
-			tokenExpectedError("(");					
-		}
+		expect('(');
 		eatWhitespace();
 
 		// initialization
@@ -1988,7 +2012,7 @@ public class C4ScriptParser {
 				w = null; // implies there can be no 'in'
 			} else {
 				fReader.unread();
-				w = fReader.readWord();
+				w = fReader.readIdent();
 			}
 		}
 		else
@@ -2027,9 +2051,7 @@ public class C4ScriptParser {
 			}
 			eatWhitespace();
 			offset = fReader.getPosition();
-			if (fReader.read() != ';') {
-				tokenExpectedError(";");
-			}
+			expect(';');
 			eatWhitespace();
 			offset = fReader.getPosition();
 			if (fReader.read() == ')') {
@@ -2046,9 +2068,7 @@ public class C4ScriptParser {
 			arrayExpr = null;
 		}
 		eatWhitespace();
-		if (fReader.read() != ')') {
-			tokenExpectedError(")");
-		}
+		expect(')');
 		eatWhitespace();
 		offset = fReader.getPosition();
 		currentLoop = loopType;
@@ -2079,17 +2099,13 @@ public class C4ScriptParser {
 		//				throw new ParsingException(problem);
 		//			}
 		eatWhitespace();
-		if (fReader.read() != '(') {
-			tokenExpectedError("(");
-		}
+		expect('(');
 		eatWhitespace();
 		ExprElm condition = parseExpression(fReader.getPosition());
 		if (condition == null)
 			condition = ExprElm.NULL_EXPR; // while () is valid
 		eatWhitespace();
-		if (fReader.read() != ')') {
-			tokenExpectedError(")");
-		}
+		expect(')');
 		eatWhitespace();
 		offset = fReader.getPosition();
 		Statement body = parseStatementAndMergeTypeInformation(fReader.getPosition());
@@ -2103,17 +2119,13 @@ public class C4ScriptParser {
 	private Statement parseIf(int offset) throws ParsingException {
 		Statement result;
 		eatWhitespace();
-		if (fReader.read() != '(') {
-			tokenExpectedError("(");
-		}
+		expect('(');
 		eatWhitespace();
 		ExprElm condition = parseExpression(fReader.getPosition());
 		if (condition == null)
 			condition = ExprElm.NULL_EXPR; // if () is valid
 		eatWhitespace();
-		if (fReader.read() != ')') {
-			tokenExpectedError(")");
-		}
+		expect(')');
 		eatWhitespace(); // FIXME: eats comments so when transforming code the comments will be gone
 		TypeInformationMerger merger = new TypeInformationMerger();
 		Statement ifStatement = parseStatementWithOwnTypeInferenceBlock(fReader.getPosition(), merger);
@@ -2123,7 +2135,7 @@ public class C4ScriptParser {
 		int beforeElse = fReader.getPosition();
 		eatWhitespace();
 		offset = fReader.getPosition();
-		String nextWord = fReader.readWord();
+		String nextWord = fReader.readIdent();
 		Statement elseStatement;
 		if (nextWord != null && nextWord.equals(Keywords.Else)) {
 			eatWhitespace();
@@ -2145,15 +2157,13 @@ public class C4ScriptParser {
 
 	private void checkForSemicolon() throws ParsingException {
 		eatWhitespace();
-		int readChar = fReader.read();
-		if (readChar != ';')
-			tokenExpectedError(";");
+		expect(';');
 	}
 	
 	private boolean parseID(int offset) throws ParsingException {
 		parsedID = null; // reset so no old parsed ids get through
 		fReader.seek(offset);
-		String word = fReader.readWord();
+		String word = fReader.readIdent();
 		if (word != null && word.length() != 4) {
 			fReader.seek(offset);
 			return false;
@@ -2169,7 +2179,7 @@ public class C4ScriptParser {
 	private boolean parseParameter(int offset, C4Function function) throws ParsingException {
 		fReader.seek(offset);
 		int s = fReader.getPosition();
-		String firstWord = fReader.readWord();
+		String firstWord = fReader.readIdent();
 		if (firstWord.length() == 0) {
 			if (fReader.read() == '&') {
 				firstWord = "&";
@@ -2194,7 +2204,7 @@ public class C4ScriptParser {
 			} else
 				fReader.unread();
 			int newStart = fReader.getPosition();
-			String secondWord = fReader.readWord();
+			String secondWord = fReader.readIdent();
 			if (secondWord.length() > 0) {
 				var.setName(secondWord);
 				s = newStart;
