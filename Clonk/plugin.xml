@@ -309,6 +309,7 @@
 			<menu label="Clonk">
 				<command commandId="net.arctics.clonk.ui.OpenObject" label="Open Object" />
 				<command commandId="net.arctics.clonk.ui.OpenLocalResource" label="Open Definition file" />
+				<separator name="SeparatorAfterOpenCommands" visible="true"/>
 				<command commandId="net.arctics.clonk.ui.QuickExport" label="Quick Export" />
 			</menu>
 		</menuContribution>

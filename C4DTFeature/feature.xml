@@ -2,7 +2,8 @@
 <feature
       id="C4DTFeature"
       label="C4DTFeature"
-      version="1.5">
+      version="1.5"
+      os="linux,macosx,win32">
 
    <description url="http://www.example.com/description">
       [Enter Feature Description here.]
