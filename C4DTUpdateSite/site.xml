@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <site>
-   <description name="C4DT Update Site" url="http://bitbucket.org/mortimer/c4dt/raw/tip/C4DTFeature/">
+   <description name="C4DT Update Site" url="http://bitbucket.org/mortimer/c4dt/raw/tip/C4DTUpdateSite">
       C4DT Update Site hosted at bitbucket.org. Source code of the project can be found at http://bitbucket.org/mortimer/c4dt
    </description>
    <feature url="features/C4DTFeature_1.5.0.jar" id="C4DTFeature" version="1.5"/>
