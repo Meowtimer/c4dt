@@ -4,3 +4,4 @@ bin/*
 bbpush
 .svn*n
 pullfromc4dt
+@dot/*

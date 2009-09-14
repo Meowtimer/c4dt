@@ -6,7 +6,7 @@
       os="linux,macosx,win32">
 
    <description url="http://www.example.com/description">
-      [Enter Feature Description here.]
+      Clonk Development Tools for Eclipse.
    </description>
 
    <copyright url="http://www.example.com/copyright">
