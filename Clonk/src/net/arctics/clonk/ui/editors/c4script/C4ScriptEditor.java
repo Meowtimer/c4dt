@@ -90,16 +90,16 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		}
 
 		private void adjustDeclarationLocations(DocumentEvent event) {
-			if (event.getLength() == 0) {
+			if (event.getLength() == 0 && event.getText().length() > 0) {
 				// text was added
 				for (C4Declaration dec : scriptBeingEdited().allSubDeclarations()) {
 					adjustDec(dec, event.getOffset(), event.getText().length());
 				}
 			}
-			else if (event.getLength() == 0) {
+			else if (event.getLength() > 0 && event.getText().length() == 0) {
 				// text was removed
 				for (C4Declaration dec : scriptBeingEdited().allSubDeclarations()) {
-					adjustDec(dec, event.getOffset(), event.getText().length());
+					adjustDec(dec, event.getOffset(), -event.getLength());
 				}
 			}
 			else {
@@ -330,6 +330,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		Display.getDefault().asyncExec(new Runnable() {
 			public void run() {
 				refreshOutline();
+				handleCursorPositionChanged();
 			}
 		});
 		return parser;
