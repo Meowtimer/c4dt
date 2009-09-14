@@ -4,4 +4,5 @@
       C4DT Update Site hosted at bitbucket.org. Source code of the project can be found at http://bitbucket.org/mortimer/c4dt
    </description>
    <feature url="features/C4DTFeature_1.5.0.jar" id="C4DTFeature" version="1.5"/>
+   <feature url="features/C4DTFeature_1.5.0.1.jar" id="C4DTFeature" version="1.5.0.1" os="linux,macosx,win32"/>
 </site>
