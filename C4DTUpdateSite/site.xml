@@ -1,7 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <site>
-   <description name="C4DT Update Site" url="http://bitbucket.org/mortimer/c4dt/raw/tip/C4DTUpdateSite">
-      C4DT Update Site hosted at bitbucket.org. Source code of the project can be found at http://bitbucket.org/mortimer/c4dt
+   <description name="Clonk Development Tools Update Site" url="http://bitbucket.org/mortimer/c4dt/raw/tip/C4DTUpdateSite/">
+      Update Site for Clonk Development Tools
    </description>
-   <feature url="features/C4DTFeature_1.5.0.1.jar" id="C4DTFeature" version="1.5.0.1"/>
+   <feature url="features/net.arctics.clonk.c4dtFeature_1.5.0.1.jar" id="net.arctics.clonk.c4dtFeature" version="1.5.0.1">
+      <category name="clonk"/>
+   </feature>
+   <category-def name="clonk" label="Clonk">
+      <description>
+         Clonk related
+      </description>
+   </category-def>
 </site>
