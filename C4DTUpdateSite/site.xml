@@ -3,12 +3,5 @@
    <description name="Clonk Development Tools Update Site" url="http://bitbucket.org/mortimer/c4dt/raw/tip/C4DTUpdateSite/">
       Update Site for Clonk Development Tools
    </description>
-   <feature url="features/net.arctics.clonk.c4dtFeature_1.5.0.1.jar" id="net.arctics.clonk.c4dtFeature" version="1.5.0.1">
-      <category name="clonk"/>
-   </feature>
-   <category-def name="clonk" label="Clonk">
-      <description>
-         Clonk related
-      </description>
-   </category-def>
+   <feature url="features/net.arctics.clonk.c4dtFeature_1.5.0.1.jar" id="net.arctics.clonk.c4dtFeature" version="1.5.0.1"/>
 </site>
