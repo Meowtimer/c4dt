@@ -112,11 +112,12 @@ public class XMLDocImporter {
 		Node descNode = (Node) descExpr.evaluate(doc.getFirstChild(), XPathConstants.NODE);
 		
 		if (titleNode != null && rTypeNode != null) {
-			C4Declaration result = (parmNodes != null) ? new C4Function() : new C4Variable();
-			result.setName(titleNode.getTextContent());
-			((ITypedDeclaration)result).forceType(C4Type.makeType(rTypeNode.getTextContent()));
-			if (parmNodes != null) {
-				C4Function function = (C4Function) result;
+			C4Declaration result;
+			String name = titleNode.getTextContent();
+			if (parmNodes != null && (parmNodes.getLength() > 0 || !C4Declaration.looksLikeConstName(name))) {
+				result = new C4Function();
+				C4Function function;
+				result = function = new C4Function();
 				for (int i = 0; i < parmNodes.getLength(); i++) {
 					Node n = parmNodes.item(i);
 					Node nameNode  = (Node) parmNameExpr.evaluate(n, XPathConstants.NODE);
@@ -129,7 +130,11 @@ public class XMLDocImporter {
 						function.getParameters().add(parm);
 					}
 				}
+			} else {
+				result = new C4Variable();
 			}
+			result.setName(name);
+			((ITypedDeclaration)result).forceType(C4Type.makeType(rTypeNode.getTextContent()));
 			if (descNode != null)
 				((IHasUserDescription)result).setUserDescription(descNode.getTextContent());
 			return result;
