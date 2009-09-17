@@ -345,7 +345,7 @@ public class C4ScriptParser {
 	private void postProduction() {
 		if (container instanceof C4Object) {
 			C4Function definitionFunc = container.findFunction(Keywords.DefinitionFunc);
-			if (definitionFunc != null) {
+			if (definitionFunc != null && definitionFunc.getBody() != null) { // could also be engine function without body
 				fReader.seek(definitionFunc.getBody().getStart());
 				reportExpressionsAndStatements(definitionFunc, new IExpressionListener() {
 					@Override

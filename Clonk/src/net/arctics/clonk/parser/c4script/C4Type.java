@@ -35,8 +35,8 @@ public enum C4Type {
 			other == this ||
 			this == ANY || this == UNKNOWN || this == REFERENCE || this == BOOL ||
 			other == UNKNOWN || other == ANY || other == REFERENCE ||
-			(this == INT && (/*other == DWORD || */other == BOOL));// ||
-			/*(this == DWORD && (other == INT || other == BOOL)); formerly DWORD */
+			(this == INT && other == BOOL) ||
+			(this == PROPLIST && other == ID);
 	}
 	
 	public static C4Type makeType(String arg) {
