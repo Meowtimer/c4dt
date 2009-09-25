@@ -75,7 +75,7 @@ public class ClonkLibBuilder implements IC4GroupVisitor, IPropertyChangeListener
 		monitor.beginTask("Parse lib " + lib, 1);
 		if (libFile.exists()) {
 			C4Group group = C4Group.openFile(libFile);
-			group.open(true, new IHeaderFilter() {
+			group.readIntoMemory(true, new IHeaderFilter() {
 				public boolean accepts(C4EntryHeader header, C4Group context) {
 					String entryName = header.getEntryName();
 					// all we care about is groups, scripts, defcores and names
@@ -185,9 +185,7 @@ public class ClonkLibBuilder implements IC4GroupVisitor, IPropertyChangeListener
 							C4ScriptParser parser = new C4ScriptParser(((C4GroupEntry)child).getContents(),externScript);
 							parser.parseDeclarations();
 							ClonkCore.getDefault().getExternIndex().addScript(externScript);
-							//						Utilities.getProject(getProject()).getIndexedData().addObject(externSystemc4g);
 						} catch (CoreException e) {
-							// TODO Auto-generated catch block
 							e.printStackTrace();
 						}
 					}
@@ -202,6 +200,7 @@ public class ClonkLibBuilder implements IC4GroupVisitor, IPropertyChangeListener
 		if (currentExternNode == null) {
 			ExternalLib lib;
 			currentExternNode = lib = new ExternalLib(item.getName(), null);
+			lib.setFullPath(item.getOrigin());
 			ClonkCore.getDefault().getExternIndex().getLibs().add(lib);
 		}
 		else

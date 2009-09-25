@@ -15,7 +15,16 @@ public class ExternalLib extends C4ObjectExternGroup {
 	
 	private int index;
 	private boolean scriptsGroup;
+	private String fullPath;
 	
+	public String getFullPath() {
+		return fullPath;
+	}
+
+	public void setFullPath(String fullPath) {
+		this.fullPath = fullPath;
+	}
+
 	public boolean isScriptsGroup() {
 		return scriptsGroup;
 	}

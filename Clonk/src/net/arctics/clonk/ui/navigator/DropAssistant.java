@@ -1,6 +1,9 @@
 package net.arctics.clonk.ui.navigator;
 
 import net.arctics.clonk.ClonkCore;
+
+import net.arctics.clonk.resource.ClonkProjectNature;
+import net.arctics.clonk.resource.ExternalLib;
 import net.arctics.clonk.util.Utilities;
 
 import org.eclipse.core.resources.IContainer;
@@ -8,9 +11,20 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.swt.dnd.DropTargetEvent;
 import org.eclipse.swt.dnd.FileTransfer;
+import org.eclipse.swt.dnd.ImageTransfer;
+import org.eclipse.swt.dnd.HTMLTransfer;
+import org.eclipse.swt.dnd.RTFTransfer;
+import org.eclipse.swt.dnd.TextTransfer;
+import org.eclipse.swt.dnd.Transfer;
 import org.eclipse.swt.dnd.TransferData;
+import org.eclipse.swt.dnd.URLTransfer;
 import org.eclipse.ui.navigator.CommonDropAdapter;
 import org.eclipse.ui.navigator.CommonDropAdapterAssistant;
+import org.eclipse.ui.part.EditorInputTransfer;
+import org.eclipse.ui.part.MarkerTransfer;
+import org.eclipse.ui.part.PluginTransfer;
+import org.eclipse.ui.part.ResourceTransfer;
+import org.eclipse.ui.texteditor.ITextEditor;
 
 public class DropAssistant extends CommonDropAdapterAssistant {
 
@@ -30,9 +44,37 @@ public class DropAssistant extends CommonDropAdapterAssistant {
 	}
 
 	@Override
-	public IStatus validateDrop(Object target, int operation,
-	        TransferData transferType) {
-		// TODO Auto-generated method stub
+	public IStatus validateDrop(Object target, int operation, TransferData transferType) {
+		Class<?>[] classes = new Class[] {
+			EditorInputTransfer.class,
+			FileTransfer.class,
+			HTMLTransfer.class,
+			ImageTransfer.class,
+			//LocalSelectionTransfer.class,
+			MarkerTransfer.class,
+			PluginTransfer.class,
+			ResourceTransfer.class,
+			RTFTransfer.class,
+			TextTransfer.class,
+			URLTransfer.class
+		};
+		for (Class<?> c : classes) {
+			try {
+				if (((Transfer)c.getMethod("getInstance", new Class<?>[0]).invoke(null, new Object[0])).isSupportedType(transferType)) {
+					System.out.println(c.toString());
+				}
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+		if (target instanceof IContainer && ResourceTransfer.getInstance().isSupportedType(transferType)) {
+			ClonkProjectNature nature = Utilities.getClonkNature((ITextEditor) target);
+			if (nature != null) {
+				for (ExternalLib lib : nature.getDependencies()) {
+					//if (lib.getPath())
+				}
+			}
+		}
 		return null;
 	}
 

@@ -43,7 +43,7 @@ public class ClonkImportOperation extends WorkspaceModifyOperation {
 			try {
 				for(int i = 0; i < resources.length;i++) {
 					groups[i] = C4Group.openFile(resources[i]);
-					groups[i].open(true, new C4GroupItem.IHeaderFilter() {
+					groups[i].readIntoMemory(true, new C4GroupItem.IHeaderFilter() {
 						private IContainer currentContainer = destination;
 						private C4Group currentGroup;
 						
