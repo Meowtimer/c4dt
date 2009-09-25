@@ -14,6 +14,7 @@ import java.io.UnsupportedEncodingException;
 public class C4GroupHeader implements Serializable {
 
 	private static final long serialVersionUID = 1L;
+	public static final int STORED_SIZE = 204;
 	
     private String id;
     private int ver1, ver2;
@@ -41,7 +42,7 @@ public class C4GroupHeader implements Serializable {
     }
     
     public void writeTo(OutputStream stream) throws IOException {
-		byte[] completeHeader = new byte[204];
+		byte[] completeHeader = new byte[STORED_SIZE];
 		arrayCopyTo(stringToByte(id), completeHeader, 0, 24);
 		arrayCopyTo(new byte[] { 0x1, 0x0, 0x0, 0x0 }, completeHeader, 28);
 		arrayCopyTo(new byte[] { 0x2, 0x0, 0x0, 0x0 }, completeHeader, 32);
@@ -50,8 +51,8 @@ public class C4GroupHeader implements Serializable {
 		arrayCopyTo(stringToByte(password), completeHeader, 72, 30);
 		arrayCopyTo(int32ToByte(creation),completeHeader,104);
 		arrayCopyTo(int32ToByte(original),completeHeader,108);
-		C4Group.MemScramble(completeHeader, 204);
-		stream.write(completeHeader,0,204);
+		C4Group.MemScramble(completeHeader, STORED_SIZE);
+		stream.write(completeHeader,0, STORED_SIZE);
 	}
     
     private void arrayCopyTo(byte[] source, byte[] target, int dstOffset) {
@@ -69,11 +70,11 @@ public class C4GroupHeader implements Serializable {
     	C4GroupHeader result = new C4GroupHeader();
     	
     	// read header
-    	byte[] buffer = new byte[204];
+    	byte[] buffer = new byte[STORED_SIZE];
     	try {
-			int readCount = stream.read(buffer,0,204);
-			while (readCount != 204) {
-				readCount += stream.read(buffer,readCount,204 - readCount);
+			int readCount = stream.read(buffer,0, STORED_SIZE);
+			while (readCount != STORED_SIZE) {
+				readCount += stream.read(buffer,readCount,STORED_SIZE - readCount);
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -81,13 +82,13 @@ public class C4GroupHeader implements Serializable {
 		}
 		
 		// unscramble header
-    	C4Group.MemScramble(buffer, 204);
+    	C4Group.MemScramble(buffer, STORED_SIZE);
     	
     	// parse header
     	result.id = byteToString(buffer,0,24).trim();
     	int compare = result.id.compareTo("RedWolf Design GrpFolder");
     	if (compare > 0) {
-    		C4Group.MemScramble(buffer, 204);
+    		C4Group.MemScramble(buffer, STORED_SIZE);
     		throw new InvalidDataException("Header id is invalid ('" + result.id + "')");
     		
     	}

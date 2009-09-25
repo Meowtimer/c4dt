@@ -59,13 +59,13 @@ public class C4GroupEntry implements C4GroupItem, IStorage, Serializable {
     	return entry;
     }
     
-	public void open(boolean recursively, IHeaderFilter filter) throws InvalidDataException, IOException, CoreException {
+	public void readIntoMemory(boolean recursively, IHeaderFilter filter) throws InvalidDataException, IOException, CoreException {
 		if (completed) return;
 		completed = true;
 		
 		if (parentGroup.getChildEntries().get(0) != this) {
 			C4GroupItem predecessor = parentGroup.getChildEntries().get(parentGroup.getChildEntries().indexOf(this) - 1);
-			predecessor.open(true, filter);
+			predecessor.readIntoMemory(true, filter);
 		}
     	
     	// fetch contents
@@ -274,4 +274,7 @@ public class C4GroupEntry implements C4GroupItem, IStorage, Serializable {
 	public void accept(IC4GroupVisitor visitor, C4GroupType type, IProgressMonitor monitor) {
 		visitor.visit(this, type);
 	}
+	
+	public static final int STORED_SIZE = 316;
+	
 }

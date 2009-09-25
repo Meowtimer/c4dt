@@ -46,7 +46,7 @@ public interface C4GroupItem {
 	 * @throws IOException 
 	 * @throws CoreException 
 	 */
-	public void open(boolean recursively, IHeaderFilter filter) throws InvalidDataException, IOException, CoreException;
+	public void readIntoMemory(boolean recursively, IHeaderFilter filter) throws InvalidDataException, IOException, CoreException;
 	
 	/**
 	 * Writes this entry and all sub items to the stream

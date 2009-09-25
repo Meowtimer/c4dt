@@ -10,7 +10,6 @@ import java.io.Serializable;
 import java.security.InvalidParameterException;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -63,6 +62,15 @@ public class C4Group implements C4GroupItem, Serializable {
 	private int sizeOfChildren;
 	
 	/**
+	 * full path of the file the group was read from; only set for master group
+	 */
+	private String origin;
+	
+	public String getOrigin() {
+		return origin;
+	}
+
+	/**
 	 * Constructor for root group
 	 * @param stream
 	 */
@@ -88,12 +96,13 @@ public class C4Group implements C4GroupItem, Serializable {
 		this.header = header;
 	}
 	
+	/*
 	protected static C4Group makeGroup(IFolder folder) {
 		try {
 			String groupName = folder.getName();
 			IResource[] children = folder.members();
 			int entryCount = children.length;
-			C4Group group = new C4Group(groupName, C4GroupHeader.createHeader(entryCount, "Eclipse C4Scripter"));// TODO implement new project option for "maker" string
+			C4Group group = new C4Group(groupName, C4GroupHeader.createHeader(entryCount, "C4DT C4ScriptEditor"));// TODO implement new project option for "maker" string
 			int groupSize = 0;
 			for (int i = 0; i < entryCount;i++) {
 				String entryName = children[i].getName();
@@ -113,31 +122,35 @@ public class C4Group implements C4GroupItem, Serializable {
 					System.out.println("Don't know how to treat resource " + children[i].getName() + " of class " + children[i].getClass().getName());
 					continue;
 				}
-				groupSize += ((java.util.LinkedList<C4GroupItem>)group.getChildEntries()).getLast().computeSize();
+				groupSize += group.getChildEntries().get(group.getChildEntries().size()).computeSize();
 			}
-			groupSize += 204; // group header
-			groupSize += 316 * entryCount; // entry headers
+			groupSize += C4GroupHeader.STORED_SIZE; // group header
+			groupSize += C4GroupEntry.STORED_SIZE * entryCount; // entry headers
 			group.entryHeader = C4EntryHeader.createHeader(groupName, false, true, groupSize, 0, 0, (int) GregorianCalendar.getInstance().getTimeInMillis());
 			return group;
 		} catch (CoreException e) {
 			e.printStackTrace();
 			return null;
 		}
-	}
+	}*/
 
 	/**
 	 * Open a C4Group file but do not parse it yet
-	 * @param file
-	 * @return
+	 * @param file the file to open
+	 * @return the group created from the file
 	 * @throws InvalidDataException
 	 * @throws IOException 
 	 */
 	public static C4Group openFile(File file) throws InvalidDataException, IOException {
-		return openFromCompressedStream(new FileInputStream(file), file.getName());
+		C4Group result = openFromCompressedStream(new FileInputStream(file), file.getName());
+		result.origin = file.getAbsolutePath();
+		return result;
 	}
 	
 	public static C4Group openFile(IFile file) throws IOException, CoreException {
-		return openFromCompressedStream(file.getContents(), file.getName());
+		C4Group result = openFromCompressedStream(file.getContents(), file.getName());
+		result.origin = file.getFullPath().toOSString();
+		return result;
 	}
 	
 	protected static C4Group openFromCompressedStream(final InputStream stream, String name) throws IOException {
@@ -234,17 +247,17 @@ public class C4Group implements C4GroupItem, Serializable {
 	}
 	
     /**
-     * Fetches and parses the index of a container file
+     * Reads the c4group (or parts of it based on the supplied filter) into memory
      * @param stream
      * @throws InvalidDataException
      * @throws IOException 
      * @throws CoreException
      */
-	public void open(boolean recursively, IHeaderFilter filter) throws InvalidDataException, IOException, CoreException {
+	public void readIntoMemory(boolean recursively, IHeaderFilter filter) throws InvalidDataException, IOException, CoreException {
 		
 		if (parentGroup != null && parentGroup.getChildEntries().get(0) != this) {
 			C4GroupItem predecessor = parentGroup.getChildEntries().get(parentGroup.getChildEntries().indexOf(this) - 1);
-			predecessor.open(true, filter);
+			predecessor.readIntoMemory(true, filter);
 		}
 		
 		if (!completed) {
@@ -289,7 +302,7 @@ public class C4Group implements C4GroupItem, Serializable {
 					else if (o instanceof C4GroupItem) {
 						C4GroupItem item = (C4GroupItem) o;
 						childEntries.add(item);
-						item.open(true, filter);
+						item.readIntoMemory(true, filter);
 					}
 				}
 			}
@@ -303,7 +316,7 @@ public class C4Group implements C4GroupItem, Serializable {
 	}
 	
 	public void open(boolean recursively) throws InvalidDataException, IOException, CoreException {
-		open(recursively, IHeaderFilter.ACCEPT_EVERYTHING);
+		readIntoMemory(recursively, IHeaderFilter.ACCEPT_EVERYTHING);
 	}
 
 	/**
