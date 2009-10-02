@@ -2,11 +2,7 @@ package net.arctics.clonk.resource.c4group;
 
 import java.io.File;
 
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.OutputStreamWriter;
-import java.io.Writer;
-
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.preferences.PreferenceConstants;
 import net.arctics.clonk.util.FileOperations;
@@ -32,7 +28,7 @@ public class C4GroupExporter {
 	private String c4groupPath;
 	private String destinationPath;
 	
-	private static File scratchExecFile;
+	//private static File scratchExecFile;
 	
 	public C4GroupExporter(IContainer[] packs, String c4groupPath, String destinatinoPath) {
 		this.packs = packs;
@@ -82,7 +78,7 @@ public class C4GroupExporter {
 				continue;
 			IContainer toExport = (IContainer)pack;
 			try {
-				String OS = System.getProperty("os.name");
+				//String OS = System.getProperty("os.name");
 				if (monitor != null)
 					monitor.subTask(toExport.getName());
 				String packPath = destPaths[i];
