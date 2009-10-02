@@ -10,6 +10,7 @@ import net.arctics.clonk.resource.c4group.C4Group;
 import net.arctics.clonk.resource.c4group.C4GroupEntry;
 import net.arctics.clonk.resource.c4group.C4GroupItem;
 import net.arctics.clonk.resource.c4group.InvalidDataException;
+import net.arctics.clonk.util.Utilities;
 
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
@@ -24,7 +25,7 @@ public class ClonkImportOperation extends WorkspaceModifyOperation {
 
 	private File[] resources;
 	private IContainer destination;
-	
+
 	/**
 	 * Use this constructor
 	 * @param resourcesToImport
@@ -40,13 +41,13 @@ public class ClonkImportOperation extends WorkspaceModifyOperation {
 	InvocationTargetException, InterruptedException {
 		C4Group[] groups = new C4Group[resources.length];
 		try {
-			try {
-				for(int i = 0; i < resources.length;i++) {
+			for(int i = 0; i < resources.length;i++) {
+				try {
 					groups[i] = C4Group.openFile(resources[i]);
 					groups[i].readIntoMemory(true, new C4GroupItem.IHeaderFilter() {
 						private IContainer currentContainer = destination;
 						private C4Group currentGroup;
-						
+
 						public boolean accepts(C4EntryHeader header,
 								C4Group context) {
 							return true; // import whole group
@@ -71,18 +72,19 @@ public class ClonkImportOperation extends WorkspaceModifyOperation {
 							}
 						}
 					});
+				} catch (FileNotFoundException e) {
+					monitor.setCanceled(true);
+					throw new InvocationTargetException(e);
+				} catch (InvalidDataException e) {
+					monitor.setCanceled(true);
+					throw new InvocationTargetException(e);
+				} catch (IOException e) {
+					Utilities.errorMessage(e.getLocalizedMessage(), "Error importing " + resources[i].toString());
+					e.printStackTrace();
 				}
-			} catch (FileNotFoundException e) {
-				monitor.setCanceled(true);
-				throw new InvocationTargetException(e);
-			} catch (InvalidDataException e) {
-				monitor.setCanceled(true);
-				throw new InvocationTargetException(e);
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
 			}
-		} finally {
+		}
+		finally {
 			for (C4Group group : groups) {
 				if (group != null)
 					group.close();
