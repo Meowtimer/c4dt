@@ -149,8 +149,6 @@ public class C4ScriptEditor extends ClonkTextEditor {
 
 		public void dispose() {
 			cancel();
-			reparseTimer.cancel();
-			reparseTimer = null;
 		}
 	}
 
