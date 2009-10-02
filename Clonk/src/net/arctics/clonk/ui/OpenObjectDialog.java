@@ -42,7 +42,7 @@ public class OpenObjectDialog extends FilteredItemsSelectionDialog {
 	}
 	
 	public OpenObjectDialog(Shell shell) {
-		super(shell);
+		super(shell, true);
 		setListLabelProvider(new OpenObjectLabelProvider());
 	}
 
