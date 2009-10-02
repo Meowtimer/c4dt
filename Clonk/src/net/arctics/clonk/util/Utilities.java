@@ -52,6 +52,7 @@ import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.content.IContentType;
 import org.eclipse.core.runtime.preferences.IScopeContext;
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.resource.ImageRegistry;
 import org.eclipse.jface.text.IRegion;
@@ -707,6 +708,20 @@ public abstract class Utilities {
 	
 	public static String getPreference(String prefName, String def, IScopeContext[] contexts) {
 		return Platform.getPreferencesService().getString(ClonkCore.PLUGIN_ID, prefName, def, contexts);
+	}
+	
+	public static void errorMessage(final String message, final String title) {
+		Display.getDefault().asyncExec(new Runnable() {
+			@Override
+			public void run() {
+				MessageDialog messageDialog = new MessageDialog(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(),
+					title == null ? "C4DT Error" : title, null,
+					message, MessageDialog.ERROR,
+					new String[] { "Too bad" }, 1
+				);
+				messageDialog.open();
+			}
+		});
 	}
 	
 }
