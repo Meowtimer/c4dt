@@ -9,6 +9,7 @@ import java.io.Writer;
 
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.preferences.PreferenceConstants;
+import net.arctics.clonk.util.FileOperations;
 import net.arctics.clonk.util.Utilities;
 
 import org.eclipse.swt.SWT;
@@ -85,11 +86,12 @@ public class C4GroupExporter {
 				if (monitor != null)
 					monitor.subTask(toExport.getName());
 				String packPath = destPaths[i];
-				File oldFile = new File(new Path(destinationPath).append(toExport.getName()).toOSString());
+				File oldFile = new File(packPath);
 				// ugh, deleting files is ugly but there seems to be no java method for putting files to trash -.-
 				if (oldFile.exists())
 					oldFile.delete();
-				if (OS.equals("Mac OS X")) {
+				FileOperations.copyDirectory(new File(packs[i].getRawLocation().toOSString()), oldFile);
+				/*if (OS.equals("Mac OS X")) {
 					// ugly hack :S create temporary file that uses /bin/sh to execute c4group - don't really know why it's necessary but c4group always got confused about the current directory
 					// create and make executable
 					scratchExecFile = File.createTempFile("c4groupproxy", "eclipse");
@@ -106,7 +108,7 @@ public class C4GroupExporter {
 						scratchExecFile = null;
 					}
 				}
-				else {
+				else*/ {
 					MessageConsoleStream out = null;
 					if (showExportLog) {
 						// get console
@@ -116,25 +118,20 @@ public class C4GroupExporter {
 					}
 					
 					// create c4group command line
-					String[] cmdArray = new String[] { c4groupPath, packPath, "/r", "-a", new Path(toExport.getLocation().toString()).append("*").toOSString() };
-//					String cmd = "\"" + c4groupPath + "\" \"" + c4dpath + "\" /r -a \"" + new Path(toExport.getLocation().toString()).append("*").toOSString() + "\"";
-//					System.out.println(cmd);
-//					Utilities.getDebugStream().println("- Constructed shell command.");
+					String[] cmdArray = new String[] { c4groupPath, packPath, "-p" };
 					if (showExportLog) {
 						// show command line in console
 						StringBuilder cmdLine = new StringBuilder();
 						cmdLine.append("Command:");
 						for (int _i = 0; _i < cmdArray.length; _i++) {
 							String cmdE = cmdArray[_i];
-							if (_i != 2 && _i != 3)
-								cmdArray[_i] = "\"" + cmdE + "\"";
 							cmdLine.append(" " + cmdE);
 						}
 						out.println(cmdLine.toString());
 					}
 					
 					// run c4group
-					Process c4group = Runtime.getRuntime().exec(cmdArray, new String[0], oldFile.getParentFile());
+					Process c4group = Runtime.getRuntime().exec(cmdArray, null, oldFile.getParentFile());
 					if (showExportLog) {
 						// pipe output to console
 						java.io.InputStream stream = c4group.getInputStream();
