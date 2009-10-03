@@ -9,7 +9,10 @@ import net.arctics.clonk.index.ClonkIndex;
 import net.arctics.clonk.parser.C4ID;
 import net.arctics.clonk.parser.c4script.C4Function;
 import net.arctics.clonk.parser.c4script.C4ScriptBase;
+import net.arctics.clonk.parser.c4script.C4Variable;
+import net.arctics.clonk.parser.c4script.C4Variable.C4VariableScope;
 import net.arctics.clonk.parser.inireader.Boolean;
+import net.arctics.clonk.parser.inireader.CategoriesArray;
 import net.arctics.clonk.parser.inireader.DefinitionPack;
 import net.arctics.clonk.parser.inireader.Function;
 import net.arctics.clonk.parser.inireader.IDArray;
@@ -97,7 +100,7 @@ public class IniCompletionProcessor extends ClonkCompletionProcessor<IniTextEdit
 			IniDataEntry entryDef = section.getSectionData().getEntry(entryName);
 			Class<?> entryClass = entryDef.getEntryClass();
 			if (entryClass == C4ID.class) {
-				indexProposals(offset, proposals, prefix, wordOffset);
+				proposalsForIndex(offset, proposals, prefix, wordOffset);
 			}
 			else if (entryClass == String.class) {
 				proposalsForStringEntry(proposals, prefix, wordOffset);
@@ -112,7 +115,7 @@ public class IniCompletionProcessor extends ClonkCompletionProcessor<IniTextEdit
 				int lastDelim = prefix.lastIndexOf(';');
 				prefix = prefix.substring(lastDelim+1);
 				wordOffset += lastDelim+1;
-				indexProposals(offset, proposals, prefix, wordOffset);
+				proposalsForIndex(offset, proposals, prefix, wordOffset);
 			}
 			else if (entryClass == Boolean.class) {
 				proposalsForBooleanEntry(proposals, prefix, wordOffset);
@@ -120,23 +123,34 @@ public class IniCompletionProcessor extends ClonkCompletionProcessor<IniTextEdit
 			else if (entryClass == DefinitionPack.class) {
 				proposalsForDefinitionPackEntry(proposals, prefix, wordOffset);
 			}
+			else if (entryClass == CategoriesArray.class) {
+				int lastDelim = prefix.lastIndexOf('|');
+				prefix = prefix.substring(lastDelim+1);
+				wordOffset += lastDelim+1;
+				proposalsForCategoriesArray(proposals, prefix, wordOffset);
+			}
 		}
 		
 		return sortProposals(proposals);
 	}
 
-	private void indexProposals(int offset,
-			Collection<ICompletionProposal> proposals, String prefix,
-			int wordOffset) {
+	private void proposalsForCategoriesArray(Collection<ICompletionProposal> proposals, String prefix, int wordOffset) {
+		for (C4Variable v : ClonkCore.getDefault().getEngineObject().variables()) {
+			if (v.getScope() == C4VariableScope.VAR_CONST) {
+				if (v.getName().toLowerCase().contains(prefix))
+					proposals.add(new CompletionProposal(v.getName(), wordOffset, prefix.length(), v.getName().length()));
+			}
+		}
+	}
+
+	private void proposalsForIndex(int offset, Collection<ICompletionProposal> proposals, String prefix, int wordOffset) {
 		proposalsForIndexedObjects(ClonkCore.getDefault().getExternIndex(), offset, wordOffset, prefix, proposals);
 		ClonkIndex index = Utilities.getIndex(getEditor().getIniUnit().getIniFile());
 		if (index != null)
 			proposalsForIndexedObjects(index, offset, wordOffset, prefix, proposals);
 	}
 
-	private void proposalsForDefinitionPackEntry(
-			Collection<ICompletionProposal> proposals, String prefix,
-			int wordOffset) {
+	private void proposalsForDefinitionPackEntry(Collection<ICompletionProposal> proposals, String prefix, int wordOffset) {
 		for (ExternalLib lib : ClonkCore.getDefault().getExternIndex().getLibs()) {
 			if (!lib.getNodeName().toLowerCase().contains(prefix))
 				continue;
@@ -146,8 +160,7 @@ public class IniCompletionProcessor extends ClonkCompletionProcessor<IniTextEdit
 		}
 	}
 
-	private void proposalsForIniUnit(Collection<ICompletionProposal> proposals,
-			String prefix, int wordOffset, IniUnit unit) {
+	private void proposalsForIniUnit(Collection<ICompletionProposal> proposals, String prefix, int wordOffset, IniUnit unit) {
 		for (IniSectionData sec : unit.getConfiguration().getSections().values()) {
 			if (sec.getSectionName().toLowerCase().contains(prefix)) {
 				String secString = "["+sec.getSectionName()+"]";
@@ -156,8 +169,7 @@ public class IniCompletionProcessor extends ClonkCompletionProcessor<IniTextEdit
 		}
 	}
 
-	private void proposalsForSection(Collection<ICompletionProposal> proposals,
-			String prefix, int wordOffset, IniSectionData sectionData) {
+	private void proposalsForSection(Collection<ICompletionProposal> proposals, String prefix, int wordOffset, IniSectionData sectionData) {
 		for (IniDataEntry entry : sectionData.getEntries().values()) {
 			if (!entry.getEntryName().toLowerCase().contains(prefix))
 				continue;
@@ -165,9 +177,7 @@ public class IniCompletionProcessor extends ClonkCompletionProcessor<IniTextEdit
 		}
 	}
 
-	private void proposalsForFunctionEntry(
-			Collection<ICompletionProposal> proposals, String prefix,
-			int wordOffset) {
+	private void proposalsForFunctionEntry(Collection<ICompletionProposal> proposals, String prefix, int wordOffset) {
 		C4ObjectIntern obj = C4ObjectIntern.objectCorrespondingTo(Utilities.getEditingFile(editor).getParent());
 		if (obj != null) {
 			for (C4ScriptBase script : obj.conglomerate()) {
@@ -178,18 +188,14 @@ public class IniCompletionProcessor extends ClonkCompletionProcessor<IniTextEdit
 		}
 	}
 
-	private void proposalsForBooleanEntry(
-			Collection<ICompletionProposal> proposals, String prefix,
-			int wordOffset) {
+	private void proposalsForBooleanEntry(Collection<ICompletionProposal> proposals, String prefix, int wordOffset) {
 		int[] choices = new int[] {0, 1};
 		for (int i : choices) {
 			proposals.add(new CompletionProposal(String.valueOf(i), wordOffset, prefix.length(), String.valueOf(i).length()));
 		}
 	}
 	
-	private void proposalsForIntegerEntry(
-			Collection<ICompletionProposal> proposals, String prefix,
-			int wordOffset) {
+	private void proposalsForIntegerEntry(Collection<ICompletionProposal> proposals, String prefix, int wordOffset) {
 		// KillaRitter ist langweilig -.-
 //		int[] awesomeNumbers = new int[] {42, 1337, 1984};
 //		for (int i : awesomeNumbers) {
@@ -197,17 +203,14 @@ public class IniCompletionProcessor extends ClonkCompletionProcessor<IniTextEdit
 //		}
 	}
 
-	private void proposalsForStringEntry(
-			Collection<ICompletionProposal> proposals, String prefix,
-			int wordOffset) {
+	private void proposalsForStringEntry(Collection<ICompletionProposal> proposals, String prefix, int wordOffset) {
 		// KillaRitter ist langweilig -.-
 //		String[] awesomeProposals = new String[] {"Super Ultra Flint 5001", "Klonfabrik"};
 //		for (String awesomeProposal : awesomeProposals)
 //			proposals.add(new CompletionProposal(awesomeProposal, wordOffset, prefix.length(), awesomeProposal.length()));
 	}
 
-	public IContextInformation[] computeContextInformation(ITextViewer viewer,
-			int offset) {
+	public IContextInformation[] computeContextInformation(ITextViewer viewer, int offset) {
 		return null;
 	}
 
