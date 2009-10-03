@@ -234,25 +234,20 @@ public abstract class Utilities {
 		if (element instanceof C4Variable)
 			return getIconForVariable((C4Variable)element);
 		if (element instanceof C4Object)
-			return Icons.GENERAL_OBJECT_ICON;
+			return UI.GENERAL_OBJECT_ICON;
 		if (element instanceof C4ObjectExternGroup) {
 			C4ObjectExternGroup group = (C4ObjectExternGroup) element;
 			if (group.getNodeName().endsWith(".c4g"))
-				return Icons.GROUP_ICON;
-			return Icons.GENERAL_OBJECT_ICON;
+				return UI.GROUP_ICON;
+			return UI.GENERAL_OBJECT_ICON;
 		}
 		if (element instanceof C4ScriptBase)
-			return Icons.SCRIPT_ICON;
+			return UI.SCRIPT_ICON;
 		return null;
 	}
 	
 	public static Image getIconForC4Object(C4Object element) {
-		return Icons.GENERAL_OBJECT_ICON;
-//		Image base = new Image(PlatformUI.getWorkbench().getDisplay(),FileLocator.find(null, null, null).openStream());
-//		ImageData data = base.getImageData();
-//		org.eclipse.swt.graphics.
-//		ImageData newData = data.scaledTo(16, 16);
-//		return new Image(PlatformUI.getWorkbench().getDisplay(), newData);
+		return UI.GENERAL_OBJECT_ICON;
 	}
 
 	public static ImageDescriptor getIconDescriptor(String path) {
@@ -710,6 +705,10 @@ public abstract class Utilities {
 		return Platform.getPreferencesService().getString(ClonkCore.PLUGIN_ID, prefName, def, contexts);
 	}
 	
+	public static String getPreference(String prefName) {
+		return getPreference(prefName, null, null);
+	}
+	
 	public static void errorMessage(final String message, final String title) {
 		Display.getDefault().asyncExec(new Runnable() {
 			@Override
@@ -722,6 +721,14 @@ public abstract class Utilities {
 				messageDialog.open();
 			}
 		});
+	}
+	
+	@SuppressWarnings("unchecked")
+	public static <From, To> To[] map(From[] elms, Class<To> toClass, IConverter<From, To> converter) {
+		To[] result = (To[]) Array.newInstance(toClass, elms.length);
+		for (int i = 0; i < result.length; i++)
+			result[i] = converter.convert(elms[i]);
+		return result;
 	}
 	
 }
