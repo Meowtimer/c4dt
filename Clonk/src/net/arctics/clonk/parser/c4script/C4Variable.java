@@ -21,6 +21,7 @@ import net.arctics.clonk.resource.ClonkProjectNature;
 public class C4Variable extends C4Declaration implements Serializable, ITypedDeclaration, IHasUserDescription {
 
 	private static final long serialVersionUID = -2350345359769750230L;
+	
 	/**
 	 * scope (local, static or function-local)
 	 */

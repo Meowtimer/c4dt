@@ -29,13 +29,10 @@ public class ClonkSourceViewerConfiguration<EditorType extends ClonkTextEditor> 
 		return textEditor;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.jface.text.source.SourceViewerConfiguration#getHyperlinkDetectors(org.eclipse.jface.text.source.ISourceViewer)
-	 */
 	@Override
 	public IHyperlinkDetector[] getHyperlinkDetectors(ISourceViewer sourceViewer) { 
 		return new IHyperlinkDetector[] {
-				new URLHyperlinkDetector()
+			new URLHyperlinkDetector()
 		};
 	}
 	

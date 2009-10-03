@@ -3,11 +3,13 @@ package net.arctics.clonk.ui.editors.ini;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.index.C4ObjectIntern;
 import net.arctics.clonk.index.ClonkIndex;
 import net.arctics.clonk.parser.C4Declaration;
 import net.arctics.clonk.parser.C4ID;
 import net.arctics.clonk.parser.inireader.Action;
+import net.arctics.clonk.parser.inireader.CategoriesArray;
 import net.arctics.clonk.parser.inireader.Function;
 import net.arctics.clonk.parser.inireader.IDArray;
 import net.arctics.clonk.parser.inireader.IniEntry;
@@ -47,6 +49,8 @@ public class IniSourceViewerConfiguration extends ClonkSourceViewerConfiguration
 	public static Pattern NO_ASSIGN_PATTERN = Pattern.compile("\\s*([A-Za-z_0-9]*)");
 	public static Pattern ASSIGN_PATTERN = Pattern.compile("\\s*([A-Za-z_0-9]*)\\s*=\\s*(.*)\\s*");
 	
+	private IniScanner scanner;
+	
 	private class IniSourceHyperlinkPresenter extends DefaultHyperlinkPresenter {
 
 		public IniSourceHyperlinkPresenter(IPreferenceStore store) {
@@ -72,8 +76,7 @@ public class IniSourceViewerConfiguration extends ClonkSourceViewerConfiguration
 	
 	private class IniSourceHyperlinkDetector implements IHyperlinkDetector {
 		
-		public IHyperlink[] detectHyperlinks(ITextViewer textViewer,
-				IRegion region, boolean canShowMultipleHyperlinks) {
+		public IHyperlink[] detectHyperlinks(ITextViewer textViewer, IRegion region, boolean canShowMultipleHyperlinks) {
 			if (!getEditor().ensureIniUnitUpToDate())
 				return null;
 			try {
@@ -123,6 +126,15 @@ public class IniSourceViewerConfiguration extends ClonkSourceViewerConfiguration
 										}
 									});
 								}
+								else if (entryClass == CategoriesArray.class) {
+									IRegion idRegion = Utilities.wordRegionAt(line, relativeOffset);
+									if (idRegion.getLength() > 0) {
+										declaration = ClonkCore.getDefault().getEngineObject().findVariable(line.substring(idRegion.getOffset(), idRegion.getOffset()+idRegion.getLength()));
+										linkStart = lineRegion.getOffset()+idRegion.getOffset();
+										linkLen = idRegion.getLength();
+									}
+								}
+								
 								if (declaration != null) {
 									return new IHyperlink[] {
 										new ClonkHyperlink(new Region(linkStart, linkLen), declaration)
@@ -140,8 +152,6 @@ public class IniSourceViewerConfiguration extends ClonkSourceViewerConfiguration
 		}
 		
 	}
-	
-	private IniScanner scanner;
 	
 	@Override
 	public IHyperlinkPresenter getHyperlinkPresenter(ISourceViewer sourceViewer) {

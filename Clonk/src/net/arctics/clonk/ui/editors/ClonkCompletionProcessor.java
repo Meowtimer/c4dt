@@ -59,7 +59,7 @@ public abstract class ClonkCompletionProcessor<EditorType extends ClonkTextEdito
 //			IContextInformation contextInformation = null;// new ContextInformation(obj.getId().getName(),contextInfoString); 
 
 			ICompletionProposal prop = new ClonkCompletionProposal(obj.getId().getName(), offset, replacementLength, obj.getId().getName().length(),
-					Utilities.getIconForObject(obj), displayString.trim(), null, obj.getInfoText(), " - " + obj.getId().getName());
+				Utilities.getIconForObject(obj), displayString.trim(), null, obj.getInfoText(), " - " + obj.getId().getName());
 			proposals.add(prop);
 		} catch (Exception e) {
 			e.printStackTrace();

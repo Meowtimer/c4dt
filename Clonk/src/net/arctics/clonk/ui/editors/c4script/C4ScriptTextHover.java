@@ -15,6 +15,8 @@ public class C4ScriptTextHover extends ClonkTextHover<C4ScriptEditor> {
 	    super(clonkSourceViewerConfiguration);
     }
 
+	// some overriding necessary so hovers also work for declarations that can't be hyperlinked (engine declarations and such)
+	
 	@Override
 	public String getHoverInfo(ITextViewer viewer, IRegion region) {
 		return declLocator != null && declLocator.getDeclaration() != null
@@ -27,7 +29,6 @@ public class C4ScriptTextHover extends ClonkTextHover<C4ScriptEditor> {
 		try {
 			declLocator = new DeclarationLocator(configuration.getEditor(), viewer.getDocument(), new Region(offset, 0));
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		return declLocator.getIdentRegion();
