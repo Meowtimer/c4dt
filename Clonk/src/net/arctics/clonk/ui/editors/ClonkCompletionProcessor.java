@@ -44,9 +44,10 @@ public abstract class ClonkCompletionProcessor<EditorType extends ClonkTextEdito
 
 			if (prefix != null) {
 				if (!(
-					obj.getName().toLowerCase().startsWith(prefix) ||
-					obj.getId().getName().toLowerCase().startsWith(prefix) ||
-					(obj instanceof C4ObjectIntern && ((C4ObjectIntern)obj).getObjectFolder() != null && ((C4ObjectIntern)obj).getObjectFolder().getName().startsWith(prefix))
+					obj.getName().toLowerCase().contains(prefix) ||
+					obj.getId().getName().toLowerCase().contains(prefix) ||
+					// also check if the user types in the folder name
+					(obj instanceof C4ObjectIntern && ((C4ObjectIntern)obj).getObjectFolder() != null && ((C4ObjectIntern)obj).getObjectFolder().getName().contains(prefix))
 				))
 					return;
 			}
