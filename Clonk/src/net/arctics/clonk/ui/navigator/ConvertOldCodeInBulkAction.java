@@ -1,6 +1,6 @@
 package net.arctics.clonk.ui.navigator;
 
-import java.util.ArrayList;
+import java.lang.reflect.InvocationTargetException;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -22,7 +22,10 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IResourceVisitor;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.action.Action;
+import org.eclipse.jface.dialogs.ProgressMonitorDialog;
+import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.TextSelection;
 import org.eclipse.jface.viewers.ISelection;
@@ -41,6 +44,8 @@ public class ConvertOldCodeInBulkAction extends Action {
 		IStructuredSelection sel = (IStructuredSelection) PlatformUI.getWorkbench().getActiveWorkbenchWindow().getSelectionService().getSelection();
 		return Utilities.allInstanceOf(sel.toArray(), IResource.class);
 	}
+	
+	private int counter;
 
 	@Override
 	public void runWithEvent(Event event) {
@@ -54,13 +59,12 @@ public class ConvertOldCodeInBulkAction extends Action {
 		if (selection != null && selection instanceof IStructuredSelection) {
 			IStructuredSelection sel = (IStructuredSelection) selection;
 			Iterator<?> it = sel.iterator();
-			List<IContainer> selectedContainers = new LinkedList<IContainer>();
+			final List<IContainer> selectedContainers = new LinkedList<IContainer>();
 			while (it.hasNext()) {
 				Object obj = it.next();
 				if (obj instanceof IProject) {
 					try {
 						IResource[] selectedResources = ((IProject)obj).members(IContainer.EXCLUDE_DERIVED);
-						selectedContainers = new ArrayList<IContainer>();
 						for(int i = 0; i < selectedResources.length;i++) {
 							if (selectedResources[i] instanceof IContainer && !selectedResources[i].getName().startsWith("."))
 								selectedContainers.add((IContainer) selectedResources[i]);
@@ -75,47 +79,85 @@ public class ConvertOldCodeInBulkAction extends Action {
 				}
 			}
 			if (selectedContainers.size() > 0) {
-				for (IContainer container : selectedContainers) {
-					try {
-						final TextFileDocumentProvider textFileDocProvider = ClonkCore.getDefault().getTextFileDocumentProvider();
-						final List<IFile> failedSaves = new LinkedList<IFile>();
-						container.accept(new IResourceVisitor() {
-							public boolean visit(IResource resource) throws CoreException {
-								if (resource instanceof IFile) {
-									IFile file = (IFile) resource;
-									C4ScriptBase script = Utilities.getScriptForFile(file);
-									if (script != null) {
-										C4ScriptParser parser = new C4ScriptParser(file, script);
-										LinkedList<Pair<C4Function, LinkedList<Statement>>> statements = new LinkedList<Pair<C4Function, LinkedList<Statement>>>();
-										parser.setExpressionListener(ConvertOldCodeToNewCodeAction.expressionCollector(null, statements, 0));
-										try {
-											parser.parse();
-										} catch (ParsingException e1) {
-											e1.printStackTrace();
-										}
-										textFileDocProvider.connect(file);
-										IDocument document = textFileDocProvider.getDocument(file);
-										
-										if (document != null)
-											ConvertOldCodeToNewCodeAction.runOnDocument(parser, new TextSelection(document, 0, 0), document, statements);
-
-										try {
-											textFileDocProvider.setEncoding(document, textFileDocProvider.getDefaultEncoding());
-											textFileDocProvider.saveDocument(null, file, document, true);
-										} catch (CoreException e) {
-											e.printStackTrace();
-											failedSaves.add(file);
-										}
-										textFileDocProvider.disconnect(file);
+				ProgressMonitorDialog progressDialog = new ProgressMonitorDialog(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell());
+				try {
+					progressDialog.run(true, true, new IRunnableWithProgress() {
+						@Override
+						public void run(final IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
+							// first count how much to do
+							{
+								counter = 0;
+								IResourceVisitor countingVisitor = new IResourceVisitor() {
+									@Override
+									public boolean visit(IResource resource) throws CoreException {
+										if (resource instanceof IFile && Utilities.getScriptForFile((IFile) resource) != null)
+											counter++;
+										return true;
+									}
+								};
+								for (IContainer container : selectedContainers) {
+									try {
+										container.accept(countingVisitor);
+									} catch (CoreException e) {
+										e.printStackTrace();
 									}
 								}
-								return true;
 							}
-						});
-						// TODO: do something with failedSaves
-					} catch (CoreException e) {
-						e.printStackTrace();
-					}
+							monitor.beginTask("Converting code", counter);
+							for (IContainer container : selectedContainers) {
+								try {
+									final TextFileDocumentProvider textFileDocProvider = ClonkCore.getDefault().getTextFileDocumentProvider();
+									final List<IFile> failedSaves = new LinkedList<IFile>();
+									container.accept(new IResourceVisitor() {
+										public boolean visit(IResource resource) throws CoreException {
+											if (resource instanceof IFile) {
+												IFile file = (IFile) resource;
+												C4ScriptBase script = Utilities.getScriptForFile(file);
+												if (script != null) {
+													C4ScriptParser parser = new C4ScriptParser(file, script);
+													LinkedList<Pair<C4Function, LinkedList<Statement>>> statements = new LinkedList<Pair<C4Function, LinkedList<Statement>>>();
+													parser.setExpressionListener(ConvertOldCodeToNewCodeAction.expressionCollector(null, statements, 0));
+													try {
+														parser.parse();
+													} catch (ParsingException e1) {
+														e1.printStackTrace();
+													}
+													textFileDocProvider.connect(file);
+													IDocument document = textFileDocProvider.getDocument(file);
+													
+													if (document != null)
+														ConvertOldCodeToNewCodeAction.runOnDocument(parser, new TextSelection(document, 0, 0), document, statements);
+
+													try {
+														textFileDocProvider.setEncoding(document, textFileDocProvider.getDefaultEncoding());
+														textFileDocProvider.saveDocument(null, file, document, true);
+													} catch (CoreException e) {
+														e.printStackTrace();
+														failedSaves.add(file);
+													}
+													textFileDocProvider.disconnect(file);
+													monitor.worked(1);
+												}
+											}
+											else if (resource instanceof IContainer) {
+												if (monitor.isCanceled())
+													return false;
+											}
+											return true;
+										}
+									});
+									// TODO: do something with failedSaves
+								} catch (CoreException e) {
+									e.printStackTrace();
+								}
+							}
+							monitor.done();
+						}
+					});
+				} catch (InvocationTargetException e) {
+					e.printStackTrace();
+				} catch (InterruptedException e) {
+					e.printStackTrace();
 				}
 			}
 		}
