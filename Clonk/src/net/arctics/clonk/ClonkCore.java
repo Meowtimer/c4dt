@@ -264,7 +264,8 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		if (monitor != null) monitor.done();
+		if (monitor != null)
+			monitor.done();
 	}
 	
 	public void loadExternIndex() {

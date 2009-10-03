@@ -187,10 +187,7 @@ public class C4ScriptSourceViewerConfiguration extends ClonkSourceViewerConfigur
 		
 		return reconciler;
 	}
-
-	/* (non-Javadoc)
-	 * @see org.eclipse.jface.text.source.SourceViewerConfiguration#getHyperlinkDetectors(org.eclipse.jface.text.source.ISourceViewer)
-	 */
+	
 	@Override
 	public IHyperlinkDetector[] getHyperlinkDetectors(ISourceViewer sourceViewer) { 
 		return new IHyperlinkDetector[] {

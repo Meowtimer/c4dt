@@ -55,7 +55,7 @@ public class QuickExportAction extends ClonkResourceAction implements IHandler {
 			try {
 				TreeSelection tree = (TreeSelection) selection;					
 				String c4groupPath = Utilities.getPreference(PreferenceConstants.C4GROUP_EXECUTABLE, "", null);
-				String gamePath = Utilities.getPreference(PreferenceConstants.GAME_PATH, null, null);
+				String gamePath = Utilities.getPreference(PreferenceConstants.GAME_PATH);
 				Iterator it = tree.iterator();
 				while (it.hasNext()) {
 					Object obj = it.next();

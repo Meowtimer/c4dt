@@ -3,7 +3,7 @@ package net.arctics.clonk.ui.search;
 import net.arctics.clonk.index.C4ObjectIntern;
 import net.arctics.clonk.index.C4Scenario;
 import net.arctics.clonk.parser.c4script.C4ScriptIntern;
-import net.arctics.clonk.util.Icons;
+import net.arctics.clonk.util.UI;
 import org.eclipse.jface.viewers.LabelProvider;
 import org.eclipse.jface.viewers.StyledString;
 import org.eclipse.jface.viewers.DelegatingStyledCellLabelProvider.IStyledLabelProvider;
@@ -17,13 +17,13 @@ public class ClonkSearchLabelProvider extends LabelProvider implements IStyledLa
 	@Override
 	public Image getImage(Object element) {
 		if (element instanceof C4Scenario) {
-			return Icons.SCENARIO_ICON;
+			return UI.SCENARIO_ICON;
 		}
 		if (element instanceof C4ObjectIntern) {
-			return Icons.GENERAL_OBJECT_ICON;
+			return UI.GENERAL_OBJECT_ICON;
 		}
 		if (element instanceof C4ScriptIntern) {
-			return Icons.SCRIPT_ICON;
+			return UI.SCRIPT_ICON;
 		}
 		return null;
 	}

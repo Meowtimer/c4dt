@@ -5,7 +5,7 @@ import net.arctics.clonk.index.C4Object;
 import net.arctics.clonk.resource.c4group.C4Group.C4GroupType;
 import net.arctics.clonk.ui.OverlayIcon;
 import net.arctics.clonk.util.INode;
-import net.arctics.clonk.util.Icons;
+import net.arctics.clonk.util.UI;
 import net.arctics.clonk.util.Utilities;
 
 import org.eclipse.core.resources.IFile;
@@ -34,13 +34,13 @@ public class ClonkLabelProvider extends LabelProvider implements IStyledLabelPro
 		}
 		else if (element instanceof IFile) {
 			if (element.toString().endsWith(".c")) {
-				return Icons.SCRIPT_ICON;
+				return UI.SCRIPT_ICON;
 			}
 			if (element.toString().endsWith(".txt")) {
-				return Icons.TEXT_ICON;
+				return UI.TEXT_ICON;
 			}
 			if (element.toString().endsWith(".c4m")) {
-				return Icons.MATERIAL_ICON;
+				return UI.MATERIAL_ICON;
 			}
 		}
 		else if (element instanceof IFolder) {
@@ -48,20 +48,20 @@ public class ClonkLabelProvider extends LabelProvider implements IStyledLabelPro
 			C4GroupType groupType = Utilities.groupTypeFromFolderName(folder.getName());
 			
 			if (groupType == C4GroupType.FolderGroup) {
-				return Icons.FOLDER_ICON;
+				return UI.FOLDER_ICON;
 			}
 			else if (groupType == C4GroupType.DefinitionGroup) {
-				return Icons.GENERAL_OBJECT_ICON;
+				return UI.GENERAL_OBJECT_ICON;
 			}
 			else if (groupType == C4GroupType.ScenarioGroup) {
-				return Icons.SCENARIO_ICON;
+				return UI.SCENARIO_ICON;
 			}
 			else if (groupType == C4GroupType.ResourceGroup) {
-				return Icons.GROUP_ICON;
+				return UI.GROUP_ICON;
 			}
 		}
 		else if (element instanceof DependenciesNavigatorNode) {
-			return Icons.DEPENDENCIES_ICON;
+			return UI.DEPENDENCIES_ICON;
 		}
 		return Utilities.getIconForObject(element);
 	}

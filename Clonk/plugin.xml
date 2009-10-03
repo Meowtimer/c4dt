@@ -276,6 +276,12 @@
 			id="net.arctics.clonk.ui.QuickExport"
 			defaultHandler="net.arctics.clonk.ui.navigator.QuickExportAction"
 			name="Quick Export" />
+			
+		<command categoryId="org.eclipse.ui.category.navigate"
+			description="Import Clonk files into the selected folder"
+			id="net.arctics.clonk.ui.QuickImport"
+			defaultHandler="net.arctics.clonk.ui.navigator.QuickImportAction"
+			name="Quick Import" />
 
 		<command categoryId="org.eclipse.ui.category.edit"
 			description="Convert old code to new code"
@@ -310,6 +316,14 @@
 				<command commandId="net.arctics.clonk.ui.OpenObject" label="Open Object" />
 				<command commandId="net.arctics.clonk.ui.OpenLocalResource" label="Open Definition file" />
 				<separator name="SeparatorAfterOpenCommands" visible="true"/>
+				<command commandId="net.arctics.clonk.ui.QuickImport" label="Quick Import">
+					<visibleWhen checkEnabled="false">
+						<iterate ifEmpty="false">
+							<adapt type="org.eclipse.core.resources.IContainer">
+							</adapt>
+						</iterate>
+					</visibleWhen>
+				</command>
 				<command commandId="net.arctics.clonk.ui.QuickExport" label="Quick Export">
 					<visibleWhen checkEnabled="false">
 						<iterate ifEmpty="false">

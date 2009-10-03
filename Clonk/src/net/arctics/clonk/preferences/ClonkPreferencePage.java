@@ -3,6 +3,7 @@ package net.arctics.clonk.preferences;
 import java.io.File;
 
 import net.arctics.clonk.ClonkCore;
+import net.arctics.clonk.util.UI;
 
 import org.eclipse.jface.preference.BooleanFieldEditor;
 import org.eclipse.jface.preference.DirectoryFieldEditor;
@@ -81,7 +82,7 @@ public class ClonkPreferencePage
 				}
 				FileDialog dialog = new FileDialog(getShell());
 				dialog.setText("Choose external object");
-				dialog.setFilterExtensions(new String[] { "*.c4g;*.c4d;*.c4f;*.c4s" });
+				dialog.setFilterExtensions(new String[] { UI.FILEDIALOG_CLONK_FILTER });
 				dialog.setFilterPath(gamePath);
 				return dialog.open();
 			}

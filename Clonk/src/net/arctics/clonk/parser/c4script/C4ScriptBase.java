@@ -673,11 +673,13 @@ public abstract class C4ScriptBase extends C4Structure implements IHasRelatedRes
 		for (String fileName : files) {
 			if (monitor != null) {
 				monitor.subTask(fileName);
-				monitor.worked(1);
 			}
 			C4Declaration declaration = importer.importFromXML(new FileInputStream(fnFolder + "/" + fileName));
 			if (declaration != null)
 				this.addDeclaration(declaration);
+			if (monitor != null) {
+				monitor.worked(1);
+			}
 		}
 		monitor.done();
 	}

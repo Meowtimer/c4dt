@@ -46,14 +46,7 @@ public class ImportClonkFiles extends Wizard implements IImportWizard {
     public void init(IWorkbench workbench, IStructuredSelection currentSelection) {
         this.workbench = workbench;
         this.selection = currentSelection;
-        
-//        List selectedResources = IDE.computeSelectedResources(currentSelection);
-//        if (!selectedResources.isEmpty()) {
-//            this.selection = new StructuredSelection(selectedResources);
-//        }
-
         setWindowTitle("Import from Clonk directory to project");
-//        setDefaultPageImageDescriptor(IDEWorkbenchPlugin.getIDEImageDescriptor("wizban/importdir_wiz.png"));//$NON-NLS-1$
         setNeedsProgressMonitor(true);
     }
 
@@ -69,7 +62,7 @@ public class ImportClonkFiles extends Wizard implements IImportWizard {
     	else {
     		container = ResourcesPlugin.getWorkspace().getRoot().getFolder(path);
     	}
-    	ClonkImportOperation op = new ClonkImportOperation(mainPage.getFilesToImport().toArray(new File[] {}),container);
+    	C4GroupImporter op = new C4GroupImporter(mainPage.getFilesToImport().toArray(new File[] {}),container);
     	try {
 			getContainer().run(true, true, op);
 			return true;
@@ -81,41 +74,6 @@ public class ImportClonkFiles extends Wizard implements IImportWizard {
 			e.printStackTrace();
 		}
 		return false;
-//    	boolean importSuccess = true;
-//        if (importSuccess) {
-//        	try {
-//        		IPath projectPath = ResourcesPlugin.getWorkspace().getRoot().getLocation().append(mainPage.getDestinationPath());
-//            	List<Object> files = mainPage.getFilesToImport();
-//            	for(Object e : files) {
-//            		if (e == null) continue;
-//            		if (e instanceof File) {
-//            			File file = (File)e;
-////            			File file = projectPath.append(((File) e).getName()).toFile();
-//        				C4Group group = C4Group.OpenFile(file);
-//        				group.open(true);
-//        				
-////        				IFolder parent = ResourcesPlugin.getWorkspace().getRoot().getFolder(projectPath);
-////        				IPath flub = parent.getLocation();
-//        				group.extractToFilesystem(ResourcesPlugin.getWorkspace().getRoot().getProject("test"));
-//        				group.close();
-//        				group = null; // destruct
-////        				file.delete();
-//            		}
-//            	}
-//            	ResourcesPlugin.getWorkspace().getRoot().getFile(projectPath).refreshLocal(IFile.DEPTH_INFINITE, null);
-//            	
-//			} catch (FileNotFoundException e) {
-//				e.printStackTrace();
-//				return false;
-//			} catch (InvalidDataException e) {
-//				e.printStackTrace();
-//				return false;
-//			} catch (CoreException e) {
-//				e.printStackTrace();
-//				return false;
-//			}
-//        }
-//        return importSuccess;
     }
 
 

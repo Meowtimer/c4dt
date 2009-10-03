@@ -224,7 +224,7 @@ public class ClonkLibBuilder implements IC4GroupVisitor, IPropertyChangeListener
 			final String[] newLibs = newValue.split("<>");
 			final ProgressMonitorDialog progressDialog = new ProgressMonitorDialog(Display.getDefault().getActiveShell());
 			try {
-				progressDialog.run(false, true, new IRunnableWithProgress() {
+				progressDialog.run(false, false, new IRunnableWithProgress() {
 					public void run(IProgressMonitor monitor)
 							throws InvocationTargetException, InterruptedException {
 						for(String lib : oldLibs) {

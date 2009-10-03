@@ -50,6 +50,10 @@ public class C4Group implements C4GroupItem, Serializable {
 	}
 	
 	public static final Map<String, C4GroupType> EXTENSION_TO_GROUP_TYPE_MAP = getExtensionToGroupTypeMap();
+	
+	public static String[] groupExtensions() {
+		return EXTENSION_TO_GROUP_TYPE_MAP.keySet().toArray(new String[EXTENSION_TO_GROUP_TYPE_MAP.keySet().size()]);
+	}
 
 	private String entryName;
 	private List<C4GroupItem> childEntries;
