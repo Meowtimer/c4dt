@@ -6,9 +6,7 @@ import java.io.OutputStream;
 import java.io.Serializable;
 
 public class C4EntryHeader implements Serializable {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = 1L;
 	
 	private String entryName; //260
@@ -17,7 +15,6 @@ public class C4EntryHeader implements Serializable {
     private int size;
     private int entrySize;
 	private int offset;
-    //private Calendar time; seems like overkill
 	private int time;
     private boolean hasCRC;
     private int crc; // unsigned?

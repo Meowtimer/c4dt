@@ -16,16 +16,11 @@ public class ClonkPartitionScanner extends RuleBasedPartitionScanner {
 		IToken singleLineComment = new Token(C4S_COMMENT);
 		IToken multiLineComment = new Token(C4S_MULTI_LINE_COMMENT);
 		IToken string = new Token(C4S_STRING);
-//		IToken codeBody = new Token(C4S_CODEBODY);
-		IPredicateRule[] rules = new IPredicateRule[3];
-
-		rules[0] = new EndOfLineRule("//", singleLineComment);
-		rules[1] = new MultiLineRule("/*", "*/", multiLineComment,(char)0,true);
-		//rules[2] = new SingleLineRule("\"","\"",string);
-		rules[2] = new SingleLineRule("\"","\"",string, '\\');
-//		rules[3] = new CodeBodyRule(codeBody);
-//		rules[4] = new PatternRule(":","return",codeBody,(char)0,false);
-
+		IPredicateRule[] rules = new IPredicateRule[] {
+			new EndOfLineRule("//", singleLineComment),
+			new MultiLineRule("/*", "*/", multiLineComment,(char)0,true),
+			new SingleLineRule("\"","\"",string, '\\')
+		};
 		setPredicateRules(rules);
 	}
 	

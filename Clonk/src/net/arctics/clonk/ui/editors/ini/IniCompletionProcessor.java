@@ -190,18 +190,20 @@ public class IniCompletionProcessor extends ClonkCompletionProcessor<IniTextEdit
 	private void proposalsForIntegerEntry(
 			Collection<ICompletionProposal> proposals, String prefix,
 			int wordOffset) {
-		int[] awesomeNumbers = new int[] {42, 1337, 1984};
-		for (int i : awesomeNumbers) {
-			proposals.add(new CompletionProposal(String.valueOf(i), wordOffset, prefix.length(), String.valueOf(i).length()));
-		}
+		// KillaRitter ist langweilig -.-
+//		int[] awesomeNumbers = new int[] {42, 1337, 1984};
+//		for (int i : awesomeNumbers) {
+//			proposals.add(new CompletionProposal(String.valueOf(i), wordOffset, prefix.length(), String.valueOf(i).length()));
+//		}
 	}
 
 	private void proposalsForStringEntry(
 			Collection<ICompletionProposal> proposals, String prefix,
 			int wordOffset) {
-		String[] awesomeProposals = new String[] {"Super Ultra Flint 5001", "Klonfabrik"};
-		for (String awesomeProposal : awesomeProposals)
-			proposals.add(new CompletionProposal(awesomeProposal, wordOffset, prefix.length(), awesomeProposal.length()));
+		// KillaRitter ist langweilig -.-
+//		String[] awesomeProposals = new String[] {"Super Ultra Flint 5001", "Klonfabrik"};
+//		for (String awesomeProposal : awesomeProposals)
+//			proposals.add(new CompletionProposal(awesomeProposal, wordOffset, prefix.length(), awesomeProposal.length()));
 	}
 
 	public IContextInformation[] computeContextInformation(ITextViewer viewer,

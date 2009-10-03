@@ -192,7 +192,7 @@ public class C4GroupHeader implements Serializable {
 			return new String(buffer,offset,length,"ISO-8859-1");
 		} catch (UnsupportedEncodingException e) {
 			e.printStackTrace();
-			return "unk encoding";
+			return "unkwnown encoding";
 		}
     }
     

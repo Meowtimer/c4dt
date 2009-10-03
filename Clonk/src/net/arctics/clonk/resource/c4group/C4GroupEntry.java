@@ -28,10 +28,8 @@ import org.eclipse.core.runtime.Path;
  */
 public class C4GroupEntry implements C4GroupItem, IStorage, Serializable {
 	
-	/**
-	 * 
-	 */
 	private static final long serialVersionUID = 1L;
+	public static final int STORED_SIZE = 316;
 	
 	private transient C4EntryHeader header;
     private transient C4Group parentGroup;
@@ -274,7 +272,5 @@ public class C4GroupEntry implements C4GroupItem, IStorage, Serializable {
 	public void accept(IC4GroupVisitor visitor, C4GroupType type, IProgressMonitor monitor) {
 		visitor.visit(this, type);
 	}
-	
-	public static final int STORED_SIZE = 316;
 	
 }
