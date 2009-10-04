@@ -215,7 +215,7 @@ public class IniCompletionProcessor extends ClonkCompletionProcessor<IniTextEdit
 	}
 
 	public char[] getCompletionProposalAutoActivationCharacters() {
-		return new char[] {'=', '|', ';'};
+		return new char[] {'='};
 	}
 
 	public char[] getContextInformationAutoActivationCharacters() {
