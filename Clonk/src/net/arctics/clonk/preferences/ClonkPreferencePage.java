@@ -29,10 +29,10 @@ import org.eclipse.ui.IWorkbenchPreferencePage;
  * be accessed directly via the preference store.
  */
 
-public class ClonkPreferencePage
-	extends FieldEditorPreferencePage
-	implements IWorkbenchPreferencePage {
+public class ClonkPreferencePage extends FieldEditorPreferencePage implements IWorkbenchPreferencePage {
 
+	private DirectoryFieldEditor gamePathEditor;
+	
 	public ClonkPreferencePage() {
 		super(GRID);
 		setPreferenceStore(ClonkCore.getDefault().getPreferenceStore());
@@ -46,15 +46,34 @@ public class ClonkPreferencePage
 	 * restore itself.
 	 */
 	public void createFieldEditors() {
-		final DirectoryFieldEditor clonkPathEditor = new DirectoryFieldEditor(PreferenceConstants.GAME_PATH, 
-				"&Game path:", getFieldEditorParent());
-		final FileFieldEditor c4groupExecutable = new FileFieldEditor(PreferenceConstants.C4GROUP_EXECUTABLE,
-				"C4&Group executable:", getFieldEditorParent());
-		final FileFieldEditor engineExecutable = new FileFieldEditor(PreferenceConstants.ENGINE_EXECUTABLE, "&Engine:", getFieldEditorParent());
-		addField(clonkPathEditor);
-		addField(c4groupExecutable);
-		addField(engineExecutable);
-		addField(new DirectoryFieldEditor(PreferenceConstants.OPENCLONK_REPO, "&OpenClonk Repository", getFieldEditorParent()));
+		addField(
+			gamePathEditor = new DirectoryFieldEditor(
+				PreferenceConstants.GAME_PATH,
+				"&Game path:",
+				getFieldEditorParent()
+			)
+		);
+		addField(
+			new FileFieldEditor(
+				PreferenceConstants.C4GROUP_EXECUTABLE,
+				"C4&Group executable:",
+				getFieldEditorParent()
+			)
+		);
+		addField(
+			new FileFieldEditor(
+				PreferenceConstants.ENGINE_EXECUTABLE,
+				"&Engine:",
+				getFieldEditorParent()
+			)
+		);
+		addField(
+			new DirectoryFieldEditor(
+				PreferenceConstants.OPENCLONK_REPO,
+				"&OpenClonk Repository",
+				getFieldEditorParent()
+			)
+		);
 		addField(
 			new StringFieldEditor(
 				PreferenceConstants.PREFERRED_LANGID,
@@ -62,8 +81,14 @@ public class ClonkPreferencePage
 				getFieldEditorParent()
 			)
 		);
+		addField(
+			new StringFieldEditor(
+				PreferenceConstants.DOC_URL_TEMPLATE,
+				"Documentation URL Template",
+				getFieldEditorParent()
+			)
+		);
 		addField(new ListEditor(PreferenceConstants.STANDARD_EXT_LIBS, "External objects and scripts:",getFieldEditorParent()) {
-		
 			@Override
 			protected String[] parseString(String stringList) {
 				if (stringList.length() == 0) return new String[] {};
@@ -75,7 +100,7 @@ public class ClonkPreferencePage
 				String gamePath = getPreferenceStore().getString(PreferenceConstants.GAME_PATH);
 				// not yet saved -> look in field editor
 				if (gamePath == null || gamePath.length() == 0) {
-					gamePath = clonkPathEditor.getStringValue();
+					gamePath = gamePathEditor.getStringValue();
 				}
 				if (gamePath == null || !new File(gamePath).exists()) {
 					gamePath = null;
@@ -104,7 +129,9 @@ public class ClonkPreferencePage
 			new BooleanFieldEditor(
 				PreferenceConstants.SHOW_EXPORT_LOG,
 				"Show &export log in console",
-				getFieldEditorParent()));
+				getFieldEditorParent()
+			)
+		);
 //
 //		addField(new RadioGroupFieldEditor(
 //				PreferenceConstants.P_CHOICE,
