@@ -563,15 +563,19 @@ public abstract class C4ScriptBase extends C4Structure implements IHasRelatedRes
 		return dirty;
 	}
 	
-	public StringTbl getStringTblForLanguagePref() throws CoreException {
-		IResource res = getResource();
-		if (res == null)
-			return null;
-		IContainer container = res instanceof IContainer ? (IContainer) res : res.getParent();
-		String pref = ClonkCore.getDefault().getLanguagePref();
-		IResource tblFile = container.findMember("StringTbl"+pref+".txt");
-		if (tblFile instanceof IFile)
-			return (StringTbl) C4Structure.pinned((IFile) tblFile, true);
+	public StringTbl getStringTblForLanguagePref() {
+		try {
+			IResource res = getResource();
+			if (res == null)
+				return null;
+			IContainer container = res instanceof IContainer ? (IContainer) res : res.getParent();
+			String pref = ClonkCore.getDefault().getLanguagePref();
+			IResource tblFile = container.findMember("StringTbl"+pref+".txt");
+			if (tblFile instanceof IFile)
+				return (StringTbl) C4Structure.pinned((IFile) tblFile, true);
+		} catch (CoreException e) {
+			e.printStackTrace();
+		}
 		return null;
 	}
 	

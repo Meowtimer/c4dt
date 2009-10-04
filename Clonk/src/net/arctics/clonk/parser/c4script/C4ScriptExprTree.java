@@ -20,7 +20,6 @@ import net.arctics.clonk.util.Pair;
 import net.arctics.clonk.util.Utilities;
 import net.arctics.clonk.parser.ParsingException;
 
-import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.Region;
 
@@ -43,16 +42,24 @@ public abstract class C4ScriptExprTree {
 	public final static class DeclarationRegion {
 		private C4Declaration declaration;
 		private IRegion region;
+		private String text;
 		public C4Declaration getDeclaration() {
 			return declaration;
 		}
-		public DeclarationRegion(C4Declaration declaration, IRegion region) {
+		public DeclarationRegion(C4Declaration declaration, IRegion region, String text) {
 			super();
 			this.declaration = declaration;
 			this.region = region;
+			this.text = text;
+		}
+		public DeclarationRegion(C4Declaration declaration, IRegion region) {
+			this(declaration, region, null);
 		}
 		public IRegion getRegion() {
 			return region;
+		}
+		public String getText() {
+			return text;
 		}
 	}
 	
@@ -1526,10 +1533,13 @@ public abstract class C4ScriptExprTree {
 		
 		@Override
 		public DeclarationRegion declarationAt(int offset, C4ScriptParser parser) {
-			DeclarationRegion result = getStringTblEntryAt(offset-1, parser.getContainer());
+			
+			// first check if a string tbl entry is referenced
+			DeclarationRegion result = getStringTblEntryAt(offset-1, parser.getContainer(), true);
 			if (result != null)
 				return result;
 			
+			// look whether this string can be considered a function name
 			if (getParent() instanceof CallFunc) {
 				CallFunc parentFunc = (CallFunc) getParent();
 				int myIndex = parentFunc.indexOfParm(this);
@@ -1571,12 +1581,14 @@ public abstract class C4ScriptExprTree {
 					}
 				}
 				
+				// look for function called by Call("...")
 				else if (myIndex == 0 && parentFunc.getDeclaration() == CachedEngineFuncs.Call) {
 					C4Function f = parser.getContainer().findFunction(stringValue());
 					if (f != null)
 						return new DeclarationRegion(f, identifierRegion());
 				}
 				
+				// ProtectedCall/PrivateCall, a bit more complicated than Call
 				else if (myIndex == 1 && Utilities.isAnyOf(parentFunc.getDeclaration(), CachedEngineFuncs.ProtectedCall, CachedEngineFuncs.PrivateCall)) {
 					C4Object typeToLookIn = parentFunc.getParams()[0].guessObjectType(parser);
 					if (typeToLookIn == null && parentFunc.getPredecessorInSequence() != null)
@@ -1594,22 +1606,19 @@ public abstract class C4ScriptExprTree {
 			return null;
 		}
 		
-		private DeclarationRegion getStringTblEntryAt(int offset, C4ScriptBase container) {
-			try {
-				StringTbl stringTbl = container.getStringTblForLanguagePref();
-				if (stringTbl == null)
-					return null;
-				int firstDollar = stringValue().lastIndexOf('$', offset-1);
-				int secondDollar = stringValue().indexOf('$', offset);
-				if (firstDollar != -1 && secondDollar != -1) {
-					String entry = stringValue().substring(firstDollar+1, secondDollar);
-					if (entry != null) {
-						NameValueAssignment e = stringTbl.getMap().get(entry);
-						if (e != null)
-							return new DeclarationRegion(e, new Region(getExprStart()+1+firstDollar, secondDollar-firstDollar+1));
-					}
-				}
-			} catch (CoreException e) {}
+		private DeclarationRegion getStringTblEntryAt(int offset, C4ScriptBase container, boolean returnNullIfNotFound) {
+			StringTbl stringTbl = container.getStringTblForLanguagePref();
+			if (stringTbl == null)
+				return null;
+			int firstDollar = stringValue().lastIndexOf('$', offset-1);
+			int secondDollar = stringValue().indexOf('$', offset);
+			if (firstDollar != -1 && secondDollar != -1) {
+				String entry = stringValue().substring(firstDollar+1, secondDollar);
+				C4Declaration e = entry != null ? stringTbl.getMap().get(entry) : null;
+				return e == null && returnNullIfNotFound
+					? null
+					: new DeclarationRegion(e, new Region(getExprStart()+1+firstDollar, secondDollar-firstDollar+1), entry);
+			}
 			return null;
 		}
 		
@@ -1621,7 +1630,7 @@ public abstract class C4ScriptExprTree {
 			// insert stringtbl entries
 			for (int i = 0; i < valueLen;) {
 				if (i+1 < valueLen && value.charAt(i) == '$') {
-					DeclarationRegion region = getStringTblEntryAt(i+1, context);
+					DeclarationRegion region = getStringTblEntryAt(i+1, context, true);
 					if (region != null) {
 						builder.append(((NameValueAssignment)region.getDeclaration()).getValue());
 						i += region.getRegion().getLength();
@@ -1631,6 +1640,24 @@ public abstract class C4ScriptExprTree {
 				builder.append(value.charAt(i++));
 			}
 			return builder.toString();
+		}
+		
+		@Override
+		public void reportErrors(C4ScriptParser parser) throws ParsingException {
+			String value = getLiteral();
+			int valueLen = value.length();
+			// warn when using non-declared string tbl entries
+			for (int i = 0; i < valueLen;) {
+				if (i+1 < valueLen && value.charAt(i) == '$') {
+					DeclarationRegion region = getStringTblEntryAt(i+1, parser.getContainer(), false);
+					if (region != null && region.getDeclaration() == null) {
+						parser.warningWithCode(ParserErrorCode.UndeclaredIdentifier, region.getRegion(),  region.getText());
+						i += region.getRegion().getLength();
+						continue;
+					}
+				}
+				++i;
+			}
 		}
 
 		@Override
@@ -1890,15 +1917,11 @@ public abstract class C4ScriptExprTree {
 		}
 		@Override
 		public DeclarationRegion declarationAt(int offset, C4ScriptParser parser) {
-			try {
-				StringTbl stringTbl = parser.getContainer().getStringTblForLanguagePref();
-				if (stringTbl != null) {
-					NameValueAssignment entry = stringTbl.getMap().get(entryName);
-					if (entry != null)
-						return new DeclarationRegion(entry, this);
-				}
-			} catch (CoreException e) {
-				e.printStackTrace();
+			StringTbl stringTbl = parser.getContainer().getStringTblForLanguagePref();
+			if (stringTbl != null) {
+				NameValueAssignment entry = stringTbl.getMap().get(entryName);
+				if (entry != null)
+					return new DeclarationRegion(entry, this);
 			}
 			return super.declarationAt(offset, parser);
 		}
@@ -2626,15 +2649,11 @@ public abstract class C4ScriptExprTree {
 			for (String part : parts) {
 				if (offset >= off && offset < off+part.length()) {
 					if (part.startsWith("$") && part.endsWith("$")) {
-						try {
-							StringTbl stringTbl = parser.getContainer().getStringTblForLanguagePref();
-							if (stringTbl != null) {
-								NameValueAssignment entry = stringTbl.getMap().get(part.substring(1, part.length()-1));
-								if (entry != null)
-									return new DeclarationRegion(entry, new Region(getExprStart()+off, part.length()));
-							}
-						} catch (CoreException e) {
-							e.printStackTrace();
+						StringTbl stringTbl = parser.getContainer().getStringTblForLanguagePref();
+						if (stringTbl != null) {
+							NameValueAssignment entry = stringTbl.getMap().get(part.substring(1, part.length()-1));
+							if (entry != null)
+								return new DeclarationRegion(entry, new Region(getExprStart()+off, part.length()));
 						}
 					}
 					else {
@@ -2654,6 +2673,20 @@ public abstract class C4ScriptExprTree {
 				off += part.length()+1;
 			}
 			return null;
+		}
+		@Override
+		public void reportErrors(C4ScriptParser parser) throws ParsingException {
+			int off = 1;
+			for (String part : contents.split("\\|")) {
+				if (part.startsWith("$") && part.endsWith("$")) {
+					StringTbl stringTbl = parser.getContainer().getStringTblForLanguagePref();
+					String entryName = part.substring(1, part.length()-1);
+					if (stringTbl == null || stringTbl.getMap().get(entryName) == null) {
+						parser.warningWithCode(ParserErrorCode.UndeclaredIdentifier, new Region(getExprStart()+off, part.length()), entryName);
+					}
+				}
+				off += part.length()+1;
+			}
 		}
 	}
 	
