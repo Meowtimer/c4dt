@@ -66,20 +66,17 @@ public class C4GroupHeader implements Serializable {
     	}
     }
     
-	public static C4GroupHeader createFromStream(InputStream stream) throws InvalidDataException {
+	public static C4GroupHeader createFromStream(InputStream stream) throws InvalidDataException, IOException {
     	C4GroupHeader result = new C4GroupHeader();
     	
     	// read header
     	byte[] buffer = new byte[STORED_SIZE];
-    	try {
-			int readCount = stream.read(buffer,0, STORED_SIZE);
-			while (readCount != STORED_SIZE) {
-				readCount += stream.read(buffer,readCount,STORED_SIZE - readCount);
-			}
-		} catch (IOException e) {
-			e.printStackTrace();
-			return null;
-		}
+    	
+    	int readCount = stream.read(buffer,0, STORED_SIZE);
+    	while (readCount != STORED_SIZE) {
+    		readCount += stream.read(buffer,readCount,STORED_SIZE - readCount);
+    	}
+		
 		
 		// unscramble header
     	C4Group.MemScramble(buffer, STORED_SIZE);

@@ -709,6 +709,13 @@ public abstract class Utilities {
 		return getPreference(prefName, null, null);
 	}
 	
+	public static void errorMessage(Throwable error, final String title) {
+		String message = error.getClass().getSimpleName();
+		if (error.getLocalizedMessage() != null)
+			message += ": " + error.getLocalizedMessage();
+		errorMessage(message, title);
+	}
+	
 	public static void errorMessage(final String message, final String title) {
 		Display.getDefault().asyncExec(new Runnable() {
 			@Override

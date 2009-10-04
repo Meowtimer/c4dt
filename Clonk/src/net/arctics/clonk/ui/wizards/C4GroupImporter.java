@@ -1,15 +1,12 @@
 package net.arctics.clonk.ui.wizards;
 
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 
 import net.arctics.clonk.resource.c4group.C4EntryHeader;
 import net.arctics.clonk.resource.c4group.C4Group;
 import net.arctics.clonk.resource.c4group.C4GroupEntry;
 import net.arctics.clonk.resource.c4group.C4GroupItem;
-import net.arctics.clonk.resource.c4group.InvalidDataException;
 import net.arctics.clonk.util.Utilities;
 
 import org.eclipse.core.resources.IContainer;
@@ -21,15 +18,15 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.ui.actions.WorkspaceModifyOperation;
 
+/**
+ * Helper for importing c4group files as folders into a specified container
+ *
+ */
 public class C4GroupImporter extends WorkspaceModifyOperation {
 
 	private File[] resources;
 	private IContainer destination;
 
-	/**
-	 * Use this constructor
-	 * @param resourcesToImport
-	 */
 	public C4GroupImporter(File[] resourcesToImport, IContainer destination) {
 		super();
 		resources = resourcesToImport;
@@ -52,8 +49,7 @@ public class C4GroupImporter extends WorkspaceModifyOperation {
 						private IContainer currentContainer = destination;
 						private C4Group currentGroup;
 
-						public boolean accepts(C4EntryHeader header,
-								C4Group context) {
+						public boolean accepts(C4EntryHeader header, C4Group context) {
 							return true; // import whole group
 						}
 
@@ -76,14 +72,9 @@ public class C4GroupImporter extends WorkspaceModifyOperation {
 							}
 						}
 					});
-				} catch (FileNotFoundException e) {
+				} catch (Exception e) {
+					Utilities.errorMessage(e, "Error importing " + resources[i].toString());
 					monitor.setCanceled(true);
-					throw new InvocationTargetException(e);
-				} catch (InvalidDataException e) {
-					monitor.setCanceled(true);
-					throw new InvocationTargetException(e);
-				} catch (IOException e) {
-					Utilities.errorMessage(e.getLocalizedMessage(), "Error importing " + resources[i].toString());
 					e.printStackTrace();
 				}
 				monitor.worked(1);
