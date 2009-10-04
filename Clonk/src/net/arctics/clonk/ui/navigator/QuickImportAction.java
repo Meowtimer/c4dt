@@ -4,7 +4,6 @@ import java.io.File;
 import java.lang.reflect.InvocationTargetException;
 
 import net.arctics.clonk.preferences.PreferenceConstants;
-import net.arctics.clonk.resource.c4group.C4Group;
 import net.arctics.clonk.ui.wizards.C4GroupImporter;
 import net.arctics.clonk.util.IConverter;
 import net.arctics.clonk.util.UI;

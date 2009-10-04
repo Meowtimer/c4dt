@@ -13,6 +13,7 @@ import net.arctics.clonk.parser.C4Declaration;
 import net.arctics.clonk.parser.C4ID;
 import net.arctics.clonk.parser.NameValueAssignment;
 import net.arctics.clonk.parser.ParserErrorCode;
+import net.arctics.clonk.parser.c4script.C4ScriptExprTree.UnaryOp.Placement;
 import net.arctics.clonk.parser.c4script.C4Variable.C4VariableScope;
 import net.arctics.clonk.parser.stringtbl.StringTbl;
 import net.arctics.clonk.util.Pair;
@@ -961,8 +962,17 @@ public abstract class C4ScriptExprTree {
 			}
 			
 			// SetVar(5, "ugh") -> Var(5) = "ugh"
-			if (params.length == 2 && (declarationName.equals("SetVar") || declarationName.equals("SetLocal")) || declarationName.equals("AssignVar")) {
+			if (params.length == 2 && (declaration == CachedEngineFuncs.SetVar || declaration == CachedEngineFuncs.SetLocal || declaration == CachedEngineFuncs.AssignVar)) {
 				return new BinaryOp(C4ScriptOperator.Assign, new CallFunc(declarationName.substring(declarationName.equals("AssignVar") ? "Assign".length() : "Set".length()), params[0].newStyleReplacement(parser)), params[1].newStyleReplacement(parser));
+			}
+			
+			// DecVar(0) -> Var(0)--
+			if (params.length <= 1 && (declaration == CachedEngineFuncs.DecVar || declaration == CachedEngineFuncs.IncVar)) {
+				return new UnaryOp(declaration == CachedEngineFuncs.DecVar ? C4ScriptOperator.Decrement : C4ScriptOperator.Increment, Placement.Prefix,
+					new CallFunc(CachedEngineFuncs.Var.getName(), new ExprElm[] {
+						params.length == 1 ? params[0].newStyleReplacement(parser) : new NumberLiteral(0)
+					})
+				);
 			}
 			
 			// Call("Func", 5, 5) -> Func(5, 5)
