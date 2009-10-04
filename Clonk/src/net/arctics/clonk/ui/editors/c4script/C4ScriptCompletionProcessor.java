@@ -130,23 +130,6 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 	protected void doCycle() {
 		proposalCycle = proposalCycle.cycle();
 	}
-
-	public ClonkCompletionProposal proposalForVar(C4Variable var, String prefix, int offset, List<ICompletionProposal> proposals) {
-		if (prefix != null && !var.getName().toLowerCase().startsWith(prefix))
-			return null;
-		if (var.getScript() == null)
-			return null;
-		String displayString = var.getName();
-		int replacementLength = 0;
-		if (prefix != null)
-			replacementLength = prefix.length();
-		ClonkCompletionProposal prop = new ClonkCompletionProposal(
-			var.getName(), offset, replacementLength, var.getName().length(), Utilities.getIconForVariable(var), displayString, 
-			null, var.getInfoText(), " - " + var.getScript().getName()
-		);
-		proposals.add(prop);
-		return prop;
-	}
 	
 	private void proposalsForIndex(ClonkIndex index, int offset, int wordOffset, String prefix, List<ICompletionProposal> proposals) {
 		if (!index.isEmpty()) {

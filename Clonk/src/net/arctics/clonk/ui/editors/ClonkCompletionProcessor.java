@@ -3,13 +3,13 @@ package net.arctics.clonk.ui.editors;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
-
 import net.arctics.clonk.index.C4Object;
 import net.arctics.clonk.index.C4ObjectExtern;
 import net.arctics.clonk.index.C4ObjectIntern;
 import net.arctics.clonk.index.ClonkIndex;
 import net.arctics.clonk.parser.c4script.C4Function;
 import net.arctics.clonk.parser.c4script.C4ScriptBase;
+import net.arctics.clonk.parser.c4script.C4Variable;
 import net.arctics.clonk.util.Utilities;
 
 import org.eclipse.jface.text.contentassist.ContextInformation;
@@ -89,6 +89,23 @@ public abstract class ClonkCompletionProcessor<EditorType extends ClonkTextEdito
 		ClonkCompletionProposal prop = new ClonkCompletionProposal(replacement, offset,replacementLength,func.getName().length()+1,
 				Utilities.getIconForFunction(func), displayString.trim(),contextInformation, func.getInfoText()," - " + parentName);
 		proposals.add(prop);
+	}
+	
+	protected ClonkCompletionProposal proposalForVar(C4Variable var, String prefix, int offset, Collection<ICompletionProposal> proposals) {
+		if (prefix != null && !var.getName().toLowerCase().contains(prefix))
+			return null;
+		if (var.getScript() == null)
+			return null;
+		String displayString = var.getName();
+		int replacementLength = 0;
+		if (prefix != null)
+			replacementLength = prefix.length();
+		ClonkCompletionProposal prop = new ClonkCompletionProposal(
+			var.getName(), offset, replacementLength, var.getName().length(), Utilities.getIconForVariable(var), displayString, 
+			null, var.getInfoText(), " - " + var.getScript().getName()
+		);
+		proposals.add(prop);
+		return prop;
 	}
 
 	protected ICompletionProposal[] sortProposals(Collection<ICompletionProposal> proposals) {
