@@ -61,10 +61,12 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		}
 
 		private void addToLocation(SourceLocation location, int offset, int add) {
-			if (location.getStart() >= offset)
-				location.setStart(location.getStart()+add);
-			if (location.getEnd() >= offset)
-				location.setEnd(location.getEnd()+add);
+			if (location != null) {
+				if (location.getStart() >= offset)
+					location.setStart(location.getStart()+add);
+				if (location.getEnd() >= offset)
+					location.setEnd(location.getEnd()+add);
+			}
 		}
 
 		private void adjustDec(C4Declaration declaration, int offset, int add) {
