@@ -91,14 +91,6 @@ public class ClonkPreferencePage extends FieldEditorPreferencePage implements IW
 				getFieldEditorParent()
 			)
 		);
-		addField(
-			new ExceptionlessEncodingFieldEditor(
-				PreferenceConstants.EXTERNAL_INDEX_ENCODING,
-				"Encoding for external scripts",
-				"Encoding",
-				getFieldEditorParent()
-			)
-		);
 		addField(new ListEditor(PreferenceConstants.STANDARD_EXT_LIBS, "External objects and scripts:",getFieldEditorParent()) {
 			@Override
 			protected String[] parseString(String stringList) {
@@ -136,6 +128,14 @@ public class ClonkPreferencePage extends FieldEditorPreferencePage implements IW
 					return null;
 			}
 		});
+		addField(
+			new ExceptionlessEncodingFieldEditor(
+				PreferenceConstants.EXTERNAL_INDEX_ENCODING,
+				"",
+				"Encoding for external scripts",
+				getFieldEditorParent()
+			)
+		);
 		addField(
 			new BooleanFieldEditor(
 				PreferenceConstants.SHOW_EXPORT_LOG,
