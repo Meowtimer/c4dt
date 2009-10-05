@@ -6,6 +6,7 @@ import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.util.UI;
 
 import org.eclipse.jface.preference.BooleanFieldEditor;
+import org.eclipse.jface.preference.ComboFieldEditor;
 import org.eclipse.jface.preference.DirectoryFieldEditor;
 import org.eclipse.jface.preference.FieldEditorPreferencePage;
 import org.eclipse.jface.preference.FileFieldEditor;
@@ -62,9 +63,14 @@ public class ClonkPreferencePage extends FieldEditorPreferencePage implements IW
 			)
 		);
 		addField(
-			new StringFieldEditor(
+			new ComboFieldEditor(
 				PreferenceConstants.PREFERRED_LANGID,
 				"Preferred language",
+				new String[][] {
+					{"German (DE)", "DE"},
+					{"English (US)", "US"},
+					{"Finnish (FI)", "FI"}
+				},
 				getFieldEditorParent()
 			)
 		);
