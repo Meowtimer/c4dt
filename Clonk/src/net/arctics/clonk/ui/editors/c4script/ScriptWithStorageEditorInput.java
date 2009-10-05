@@ -17,6 +17,8 @@ import org.eclipse.ui.IStorageEditorInput;
 
 public class ScriptWithStorageEditorInput extends PlatformObject implements IEditorInput, IPathEditorInput, IStorageEditorInput, IPersistableElement {
 
+	private static final String FACTORY_ID = ClonkCore.id("ui.editors.scriptWithStorageEditorInputFactory");  
+	
 	private C4ScriptBase script;
 	
 	public ScriptWithStorageEditorInput(C4ScriptBase script) {
@@ -77,7 +79,7 @@ public class ScriptWithStorageEditorInput extends PlatformObject implements IEdi
 	}
 
 	public String getFactoryId() {
-		return ClonkCore.id("ui.editors.scriptWithStorageEditorInputFactory");
+		return FACTORY_ID;
 	}
 
 	public void saveState(IMemento memento) {

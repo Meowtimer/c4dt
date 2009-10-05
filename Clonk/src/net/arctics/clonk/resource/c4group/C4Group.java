@@ -24,7 +24,7 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 
 /**
- * Represents 
+ * C4Group support.
  * @author ZokRadonh
  *
  */
@@ -472,10 +472,6 @@ public class C4Group implements C4GroupItem, Serializable {
 
 	public int getSizeOfChildren() {
 		return sizeOfChildren;
-	}
-
-	public void explode() {
-		
 	}
 	
 }

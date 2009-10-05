@@ -12,4 +12,7 @@ public class PreferenceConstants {
 	public static final String ENGINE_EXECUTABLE = "engineExecutable";	
 	public static final String OPENCLONK_REPO = "openClonkRepo";
 	public static final String DOC_URL_TEMPLATE = "docURLTemplate";
+	public static final String EXTERNAL_INDEX_ENCODING = "externalIndexEncoding";
+	
+	public static final String EXTERNAL_INDEX_ENCODING_DEFAULT = "ISO-8859-1";
 }

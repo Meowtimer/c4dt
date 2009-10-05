@@ -28,7 +28,6 @@ import org.eclipse.ui.IWorkbenchPreferencePage;
  * the main plug-in class. That way, preferences can
  * be accessed directly via the preference store.
  */
-
 public class ClonkPreferencePage extends FieldEditorPreferencePage implements IWorkbenchPreferencePage {
 
 	private DirectoryFieldEditor gamePathEditor;
@@ -46,6 +45,10 @@ public class ClonkPreferencePage extends FieldEditorPreferencePage implements IW
 	 * restore itself.
 	 */
 	public void createFieldEditors() {
+		
+		// FIXME: not the best place to set that
+		getPreferenceStore().setDefault(PreferenceConstants.EXTERNAL_INDEX_ENCODING, PreferenceConstants.EXTERNAL_INDEX_ENCODING_DEFAULT);
+		
 		addField(
 			gamePathEditor = new DirectoryFieldEditor(
 				PreferenceConstants.GAME_PATH,
@@ -85,6 +88,14 @@ public class ClonkPreferencePage extends FieldEditorPreferencePage implements IW
 			new StringFieldEditor(
 				PreferenceConstants.DOC_URL_TEMPLATE,
 				"Documentation URL Template",
+				getFieldEditorParent()
+			)
+		);
+		addField(
+			new ExceptionlessEncodingFieldEditor(
+				PreferenceConstants.EXTERNAL_INDEX_ENCODING,
+				"Encoding for external scripts",
+				"Encoding",
 				getFieldEditorParent()
 			)
 		);
