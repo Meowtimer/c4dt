@@ -80,7 +80,12 @@ public class C4ScriptParser {
 	private int parseExpressionRecursion;
 	private int parseStatementRecursion;
 	private int blockDepth;
+	private boolean appendTo;
 	
+	public final boolean hasAppendTo() {
+		return appendTo;
+	}
+
 	private LoopType currentLoop;
 	private Comment lastComment;
 	
@@ -441,7 +446,7 @@ public class C4ScriptParser {
 		fReader.seek(offset);
 		int readByte = fReader.read();
 		if (readByte == '#') {
-			// ok, now is a directive
+			// directive
 			String directiveName = fReader.readStringUntil(BufferedScanner.WHITESPACE_CHARS);
 			C4DirectiveType type = C4DirectiveType.makeType(directiveName);
 			if (type == null) {
@@ -456,6 +461,8 @@ public class C4ScriptParser {
 				C4Directive directive = new C4Directive(type, content);
 				directive.setLocation(new SourceLocation(offset, fReader.getPosition()));
 				container.addDeclaration(directive);
+				if (type == C4DirectiveType.APPENDTO)
+					appendTo = true;
 				return true;
 			}
 		}
@@ -463,10 +470,12 @@ public class C4ScriptParser {
 			fReader.seek(offset);
 			String word = fReader.readIdent();
 			if (looksLikeStartOfFunction(word)) {
-				if (parseFunctionDeclaration(word, offset, fReader.getPosition())) return true;
+				if (parseFunctionDeclaration(word, offset, fReader.getPosition()))
+					return true;
 			}
 			else if (word.equals(Keywords.GlobalNamed) || word.equals(Keywords.LocalNamed)) {
-				if (parseVariableDeclaration(offset)) return true;
+				if (parseVariableDeclaration(offset))
+					return true;
 			}
 			else {
 				// old-style function declaration without visibility

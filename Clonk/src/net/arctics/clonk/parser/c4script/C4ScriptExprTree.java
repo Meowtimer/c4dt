@@ -1644,6 +1644,10 @@ public abstract class C4ScriptExprTree {
 		
 		@Override
 		public void reportErrors(C4ScriptParser parser) throws ParsingException {
+			// don't warn in #appendto scripts because those will inherit their string tables from the scripts they are appended to
+			// and checking for the existence of the table entries there is overkill
+			if (parser.hasAppendTo())
+				return;
 			String value = getLiteral();
 			int valueLen = value.length();
 			// warn when using non-declared string tbl entries
@@ -2676,13 +2680,16 @@ public abstract class C4ScriptExprTree {
 		}
 		@Override
 		public void reportErrors(C4ScriptParser parser) throws ParsingException {
+			// see StringLiteral.reportErrors
+			if (parser.hasAppendTo())
+				return;
 			int off = 1;
 			for (String part : contents.split("\\|")) {
 				if (part.startsWith("$") && part.endsWith("$")) {
 					StringTbl stringTbl = parser.getContainer().getStringTblForLanguagePref();
 					String entryName = part.substring(1, part.length()-1);
 					if (stringTbl == null || stringTbl.getMap().get(entryName) == null) {
-						parser.warningWithCode(ParserErrorCode.UndeclaredIdentifier, new Region(getExprStart()+off, part.length()), entryName);
+						parser.warningWithCode(ParserErrorCode.UndeclaredIdentifier, new Region(getExprStart()+off-2, part.length()), entryName);
 					}
 				}
 				off += part.length()+1;
