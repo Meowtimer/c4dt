@@ -16,8 +16,6 @@ import org.eclipse.ui.internal.browser.WorkbenchBrowserSupport;
  */
 @SuppressWarnings("restriction")
 public class ClonkHyperlink implements IHyperlink {
-
-	private static final String DOC_URL_TEMPLATE_DEFAULT = "http://www.clonk.de/docs/%1$s/sdk/script/fn/%1$s.html";
 	
 	private final IRegion region;
 	protected C4Declaration target;
@@ -45,7 +43,7 @@ public class ClonkHyperlink implements IHyperlink {
 			if (ClonkTextEditor.openDeclaration(target) == null) {
 				// can't open editor so try something else like opening up a documentation page in the browser
 				if (target.isEngineDeclaration()) {
-					String docURLTemplate = Utilities.getPreference(PreferenceConstants.DOC_URL_TEMPLATE, DOC_URL_TEMPLATE_DEFAULT, null);
+					String docURLTemplate = Utilities.getPreference(PreferenceConstants.DOC_URL_TEMPLATE, PreferenceConstants.DOC_URL_TEMPLATE_DEFAULT, null);
 					WorkbenchBrowserSupport.getInstance().getExternalBrowser().openURL(new URL(String.format(
 						docURLTemplate,
 						target.getName(), ClonkCore.getDefault().getLanguagePref().toLowerCase()

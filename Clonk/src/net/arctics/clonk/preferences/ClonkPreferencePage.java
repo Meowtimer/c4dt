@@ -33,6 +33,7 @@ public class ClonkPreferencePage extends FieldEditorPreferencePage implements IW
 		
 		// FIXME: not the best place to set that
 		getPreferenceStore().setDefault(PreferenceConstants.EXTERNAL_INDEX_ENCODING, PreferenceConstants.EXTERNAL_INDEX_ENCODING_DEFAULT);
+		getPreferenceStore().setDefault(PreferenceConstants.DOC_URL_TEMPLATE, PreferenceConstants.DOC_URL_TEMPLATE_DEFAULT);
 		
 		addField(
 			gamePathEditor = new DirectoryFieldEditor(

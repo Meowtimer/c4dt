@@ -1127,8 +1127,7 @@ public abstract class C4ScriptExprTree {
 			return super.newStyleReplacement(context);
 		}
 
-		private ExprElm convertOperatorHackToBlock(C4ScriptParser context)
-				throws CloneNotSupportedException {
+		private ExprElm convertOperatorHackToBlock(C4ScriptParser context) throws CloneNotSupportedException {
 			LinkedList<ExprElm> leftSideArguments = new LinkedList<ExprElm>();
 			ExprElm r;
 			boolean works = true;

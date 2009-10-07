@@ -15,4 +15,5 @@ public class PreferenceConstants {
 	public static final String EXTERNAL_INDEX_ENCODING = "externalIndexEncoding";
 	
 	public static final String EXTERNAL_INDEX_ENCODING_DEFAULT = "ISO-8859-1";
+	public static final String DOC_URL_TEMPLATE_DEFAULT = "http://www.clonk.de/docs/%2$s/sdk/script/fn/%1$s.html";
 }
