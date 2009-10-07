@@ -1653,8 +1653,10 @@ public abstract class C4ScriptExprTree {
 			for (int i = 0; i < valueLen;) {
 				if (i+1 < valueLen && value.charAt(i) == '$') {
 					DeclarationRegion region = getStringTblEntryAt(i+1, parser.getContainer(), false);
-					if (region != null && region.getDeclaration() == null) {
-						parser.warningWithCode(ParserErrorCode.UndeclaredIdentifier, region.getRegion(),  region.getText());
+					if (region != null) {
+						if (region.getDeclaration() == null) {
+							parser.warningWithCode(ParserErrorCode.UndeclaredIdentifier, region.getRegion(),  region.getText());
+						}
 						i += region.getRegion().getLength();
 						continue;
 					}
