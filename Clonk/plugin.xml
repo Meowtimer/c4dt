@@ -151,8 +151,7 @@
     </extension>
 
 	<extension point="org.eclipse.ui.newWizards">
-		<category id="net.arctics.clonk.clonkProjects" name="Clonk"
-			parentCategory="org.eclipse.ui.Basic" />
+		<category id="net.arctics.clonk.clonkProjects" name="Clonk" />
 
 		<wizard id="net.arctics.clonk.wizards.NewClonkProject" name="Clonk Project"
 			category="net.arctics.clonk.clonkProjects" icon="icons/Clonk_C4Chip.ico"
@@ -163,6 +162,7 @@
 			</description>
 			<selection class="org.eclipse.core.resources.IWorkspaceRoot" />
 		</wizard>
+		
 		<wizard category="net.arctics.clonk.clonkProjects" class="net.arctics.clonk.ui.wizards.NewC4Object"
 			hasPages="true" icon="icons/C4Object.png" id="net.arctics.clonk.wizards.NewC4Object"
 			name="Object definition" project="false" />
