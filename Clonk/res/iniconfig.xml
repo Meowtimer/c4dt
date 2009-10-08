@@ -49,6 +49,8 @@
 				description="Freigraben während dieser Aktion. Objektrechteck 1, sonst Kreisradius." />
 			<entry name="EnergyUsage" class="net.arctics.clonk.parser.inireader.SignedInteger"
 				description="Nötige Energie für diese Aktion. Maschinen 500." />
+			<entry name="Step" class="net.arctics.clonk.parser.inireader.UnsignedInteger"
+				description="Bei Step=n nur jedes n-te Bild aus der Animationsgrafik zeichnen." />
 		</section>
 	</file>
 	<file name="DefCore.txt"
