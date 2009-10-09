@@ -942,10 +942,12 @@ public class C4ScriptParser {
 		if (expr == null)
 			return;
 		if (expr instanceof Tuple) {
-			if (tupleIsError)
+			if (tupleIsError) {
 				errorWithCode(ParserErrorCode.TuplesNotAllowed, expr);
-			else
-				warningWithCode(ParserErrorCode.ReturnAsFunction, expr);
+			} else {
+				// too annoying
+				//warningWithCode(ParserErrorCode.ReturnAsFunction, expr);
+			}
 		}
 		ExprElm[] subElms = expr.getSubElements();
 		for (ExprElm e : subElms) {

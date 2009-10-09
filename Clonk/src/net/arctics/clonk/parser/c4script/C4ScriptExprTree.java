@@ -2242,6 +2242,8 @@ public abstract class C4ScriptExprTree {
 			if (returnExpr instanceof Parenthesized)
 				return new ReturnStatement(((Parenthesized)returnExpr).getInnerExpr().newStyleReplacement(parser));
 			// return (0, Sound("Ugh")); -> { Sound("Ugh"); return 0; }
+			// FIXME: should declare temporary variable so that order of expression execution isn't changed
+			/*
 			if (returnExpr instanceof Tuple) {
 				Tuple tuple = (Tuple) returnExpr;
 				ExprElm[] tupleElements = tuple.getElements();
@@ -2252,6 +2254,7 @@ public abstract class C4ScriptExprTree {
 				statements.add(new ReturnStatement(tupleElements[0].newStyleReplacement(parser)));
 				return getParent() instanceof ConditionalStatement ? new Block(statements) : new BunchOfStatements(statements);
 			}
+			*/
 			return super.newStyleReplacement(parser);
 		}
 		
