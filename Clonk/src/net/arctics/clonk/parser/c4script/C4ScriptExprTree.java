@@ -968,14 +968,18 @@ public abstract class C4ScriptExprTree {
 			}
 			
 			// ObjectCall(ugh, "UghUgh", 5) -> ugh->UghUgh(5)
-			if (params.length >= 2 && declarationName.equals("ObjectCall") && params[1] instanceof StringLiteral) {
+			if (params.length >= 2 && declaration == CachedEngineFuncs.ObjectCall && params[1] instanceof StringLiteral && getParent() instanceof Statement && !params[0].hasSideEffects()) {
 				ExprElm[] parmsWithoutObject = new ExprElm[params.length-2];
 				for (int i = 0; i < parmsWithoutObject.length; i++)
 					parmsWithoutObject[i] = params[i+2].newStyleReplacement(parser);
-				return new Sequence(new ExprElm[] {
+				return new IfStatement(params[0].newStyleReplacement(parser),
+					new Sequence(new ExprElm[] {
 						params[0].newStyleReplacement(parser),
 						new MemberOperator(false, true, null, 0),
-						new CallFunc(((StringLiteral)params[1]).stringValue(), parmsWithoutObject)});
+						new CallFunc(((StringLiteral)params[1]).stringValue(), parmsWithoutObject)}
+					),
+					null
+				);
 			}
 			
 			// OCF_Awesome() -> OCF_Awesome

@@ -1,6 +1,7 @@
 package net.arctics.clonk.parser.c4script;
 
 import net.arctics.clonk.ClonkCore;
+import net.arctics.clonk.parser.C4Declaration;
 
 /**
  * Contains cached engine functions that may be used frequently.
@@ -28,6 +29,7 @@ public class CachedEngineFuncs {
 	public static final C4Function SetCommand = f("SetCommand");
 	public static final C4Function AddCommand = f("AddCommand");
 	public static final C4Function AppendCommand = f("AppendCommand");
+	public static final C4Function ObjectCall = f("ObjectCall");
 	
 	public static final C4Function[] CallFunctions = new C4Function[] {
 		GameCall, ScheduleCall, PrivateCall, ProtectedCall, Call
