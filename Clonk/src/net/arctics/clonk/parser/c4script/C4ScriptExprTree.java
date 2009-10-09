@@ -973,11 +973,11 @@ public abstract class C4ScriptExprTree {
 				for (int i = 0; i < parmsWithoutObject.length; i++)
 					parmsWithoutObject[i] = params[i+2].newStyleReplacement(parser);
 				return new IfStatement(params[0].newStyleReplacement(parser),
-					new Sequence(new ExprElm[] {
+					new SimpleStatement(new Sequence(new ExprElm[] {
 						params[0].newStyleReplacement(parser),
 						new MemberOperator(false, true, null, 0),
 						new CallFunc(((StringLiteral)params[1]).stringValue(), parmsWithoutObject)}
-					),
+					)),
 					null
 				);
 			}
