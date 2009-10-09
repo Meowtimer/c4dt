@@ -1,5 +1,11 @@
 <script>
 	<functions>
+		<function name="DebugLog" return="bool">
+			<parameters>
+				<parameter name="szMessage" type="string" />
+				<parameter name="..." type="any" />
+			</parameters>
+		</function>
 		<function name="Abs" return="int">
 			<parameters>
 				<parameter name="iValue" type="int" />
