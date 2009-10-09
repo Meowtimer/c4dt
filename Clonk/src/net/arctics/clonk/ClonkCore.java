@@ -183,7 +183,7 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant {
 	}
 
 	private void createDefaultEngineObject() {
-		setEngineObject(new C4ObjectExtern(C4ID.getSpecialID("Engine"),"Engine",null, null));
+		setEngineObject(new C4ObjectExtern(C4ID.getSpecialID("Engine"), "Engine", null, null));
 	}
 	
 //	private int nooper;

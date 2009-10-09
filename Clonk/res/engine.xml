@@ -3523,6 +3523,10 @@ Wenn fCheckSite 1 ist, wird die Baustelle vorher auf ihre Eignung überprüft. I
 				
 			</description>
 		</variable>
+		<variable name="C4D_SelectNest" type="int" const="true">
+			<description>
+			</description>
+		</variable>
 		<variable name="C4D_Parallax" type="int" const="true">
 			<description>
 				
@@ -3643,6 +3647,10 @@ Wenn fCheckSite 1 ist, wird die Baustelle vorher auf ihre Eignung überprüft. I
 				
 			</description>
 		</variable>
+		<variable name="APS_Color" type="int" const="true" />
+		<variable name="APS_Graphics" type="int" const="true" />
+		<variable name="APS_Name" type="int" const="true" />
+		<variable name="APS_Overlay" type="int" const="true" />
 		<variable name="C4V_Any" type="int" const="true">
 			<description>
 				
