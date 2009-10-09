@@ -48,7 +48,12 @@ public class ExceptionlessEncodingFieldEditor extends AbstractEncodingFieldEdito
 	 * @see org.eclipse.ui.internal.ide.dialogs.AbstractEncodingFieldEditor#getStoredValue()
 	 */
 	protected String getStoredValue() {
-		return getPreferenceStore().getString(getPreferenceName());
+		String val = getPreferenceStore().getString(getPreferenceName());
+		// return null if equal to default so AbstractEncodingFieldEditor will reflect that
+		if (val.equals(getPreferenceStore().getDefaultString(getPreferenceName())))
+			return null;
+		else
+			return val;
 	}
 	
 	/* (non-Javadoc)
