@@ -867,7 +867,7 @@ public abstract class C4ScriptExprTree {
 								C4Type parmType = givenParam >= 2 && givenParam <= 4 ? C4Type.ANY : parm.getType();
 								if (!given.validForType(parmType, context))
 									context.warningWithCode(ParserErrorCode.IncompatibleTypes, given, parmType, given.getType(context));
-								given.expectedToBeOfType(parmType, context);
+								//given.expectedToBeOfType(parmType, context);
 							}
 							specialCaseHandled = true;
 						}
@@ -881,7 +881,7 @@ public abstract class C4ScriptExprTree {
 								continue;
 							if (!given.validForType(parm.getType(), context))
 								context.warningWithCode(ParserErrorCode.IncompatibleTypes, given, parm.getType(), given.getType(context));
-							given.expectedToBeOfType(parm.getType(), context);
+							//given.expectedToBeOfType(parm.getType(), context);
 						}
 					}
 				}
