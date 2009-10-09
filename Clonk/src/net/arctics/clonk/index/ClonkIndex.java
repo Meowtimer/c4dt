@@ -284,8 +284,8 @@ public class ClonkIndex implements Serializable, Iterable<C4Object> {
 	
 	public boolean acceptsDeclaration(C4Declaration declaration) {
 		C4ScriptBase script = declaration.getScript();
-		if (script instanceof C4ObjectExtern)
-			return acceptsFromExternalLib(((C4ObjectExtern)script).getExternalLib());
+		if (script instanceof IExternalScript)
+			return acceptsFromExternalLib(((IExternalScript)script).getExternalLib());
 		return true;
 	}
 	

@@ -22,7 +22,7 @@ import net.arctics.clonk.util.INode;
 import net.arctics.clonk.util.ITreeNode;
 import net.arctics.clonk.util.Utilities;
 
-public class C4ObjectExtern extends C4Object implements ITreeNode {
+public class C4ObjectExtern extends C4Object implements ITreeNode, IExternalScript {
 
 	private static final long serialVersionUID = -4964785375712432236L;
 	
