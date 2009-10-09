@@ -231,7 +231,6 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 			final C4Function activeFunc) {
 		
 		if (proposalCycle == ProposalCycle.SHOW_ALL) {
-			
 			if (ClonkCore.getDefault().getEngineObject() != null) {
 				for (C4Function func : ClonkCore.getDefault().getEngineObject().functions()) {
 					proposalForFunc(func, prefix, offset, proposals, ClonkCore.getDefault().getEngineObject().getName(), true);
@@ -240,20 +239,11 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 					proposalForVar(var,prefix,offset,proposals);
 				}
 			}
-			
-			if (activeFunc != null) {
-				for (C4Variable v : activeFunc.getParameters()) {
-					proposalForVar(v, prefix, wordOffset, proposals);
-				}
-				for (C4Variable v : activeFunc.getLocalVars()) {
-					proposalForVar(v, prefix, wordOffset, proposals);
-				}
-			}
 		}
 		C4ScriptBase contextScript = Utilities.getScriptForEditor(editor);
 		boolean contextObjChanged = false;
+		contextExpression = null;
 		if (contextScript != null) {
-			contextExpression = null;
 			final int preservedOffset = offset;
 			C4ScriptParser parser = C4ScriptParser.reportExpressionsAndStatements(doc, activeFunc.getBody().getOffset(), offset, contextScript, activeFunc, new IExpressionListener() {
 				public TraversalContinuation expressionDetected(ExprElm expression, C4ScriptParser parser) {
@@ -284,8 +274,19 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 						contextObjChanged = true;
 					}
 				}
+				else
+					contextExpression = null;
 			}
 			parser.endTypeInferenceBlock();
+		}
+		
+		if ((proposalCycle == ProposalCycle.SHOW_ALL || proposalCycle == ProposalCycle.SHOW_LOCAL) && activeFunc != null && contextExpression == null) {
+			for (C4Variable v : activeFunc.getParameters()) {
+				proposalForVar(v, prefix, wordOffset, proposals);
+			}
+			for (C4Variable v : activeFunc.getLocalVars()) {
+				proposalForVar(v, prefix, wordOffset, proposals);
+			}
 		}
 		
 		if (!contextObjChanged) {

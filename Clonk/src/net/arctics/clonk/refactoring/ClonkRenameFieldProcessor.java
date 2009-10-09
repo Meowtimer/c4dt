@@ -30,6 +30,7 @@ import org.eclipse.ltk.core.refactoring.participants.RefactoringParticipant;
 import org.eclipse.ltk.core.refactoring.participants.RenameProcessor;
 import org.eclipse.ltk.core.refactoring.participants.SharableParticipants;
 import org.eclipse.search.ui.text.Match;
+import org.eclipse.text.edits.MalformedTreeException;
 import org.eclipse.text.edits.MultiTextEdit;
 import org.eclipse.text.edits.ReplaceEdit;
 
@@ -114,8 +115,11 @@ public class ClonkRenameFieldProcessor extends RenameProcessor {
 //				}
 				for (Match m : searchResult.getMatches(element)) {
 					ClonkSearchMatch match = (ClonkSearchMatch) m;
-					if (!match.isPotential() && !match.isIndirect())
+					if (!match.isPotential() && !match.isIndirect()) try {
 						fileChange.addEdit(new ReplaceEdit(match.getOffset(), match.getLength(), newName));
+					} catch (MalformedTreeException e) {
+						// gonna ignore that; there is one case where it's even normal this is thrown (for (e in a) ... <- e is reference and declaration)
+					}
 				}
 				composite.add(fileChange);
 			}

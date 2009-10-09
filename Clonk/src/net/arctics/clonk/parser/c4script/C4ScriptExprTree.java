@@ -13,6 +13,7 @@ import net.arctics.clonk.parser.C4Declaration;
 import net.arctics.clonk.parser.C4ID;
 import net.arctics.clonk.parser.NameValueAssignment;
 import net.arctics.clonk.parser.ParserErrorCode;
+import net.arctics.clonk.parser.SourceLocation;
 import net.arctics.clonk.parser.c4script.C4ScriptExprTree.UnaryOp.Placement;
 import net.arctics.clonk.parser.c4script.C4Variable.C4VariableScope;
 import net.arctics.clonk.parser.stringtbl.StringTbl;
@@ -2141,6 +2142,13 @@ public abstract class C4ScriptExprTree {
 		public boolean hasSideEffects() {
 			return expression.hasSideEffects();
 		}
+		
+		@Override
+		public void reportErrors(C4ScriptParser parser) throws ParsingException {
+			/*if (getParent() instanceof IterateArrayStatement && this == ((IterateArrayStatement))
+			}*/
+		}
+		
 	}
 	
 	/**
@@ -2500,6 +2508,20 @@ public abstract class C4ScriptExprTree {
 			arrayExpr   = elms[1];
 			body        = elms[2];
 		}
+		
+		@Override
+		public void reportErrors(C4ScriptParser parser) throws ParsingException {
+			if (elementExpr instanceof SimpleStatement && ((SimpleStatement)elementExpr).getExpression() instanceof AccessVar) {
+				AccessVar var = (AccessVar) ((SimpleStatement)elementExpr).getExpression();
+				// for (e in ...) -> implicit declaration of e
+				if (var.getDeclImpl(parser) == null) {
+					C4Variable v = new C4Variable(var.getDeclarationName(), C4Type.ANY);
+					v.setLocation(new SourceLocation(var, parser.getActiveFunc()));
+					parser.getActiveFunc().getLocalVars().add(v);
+				}
+			}
+		}
+		
 	}
 	
 	public static class VarDeclarationStatement extends KeywordStatement {

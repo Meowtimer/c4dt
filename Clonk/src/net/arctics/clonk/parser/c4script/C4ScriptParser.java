@@ -80,6 +80,7 @@ public class C4ScriptParser {
 	private int parseExpressionRecursion;
 	private int parseStatementRecursion;
 	private int blockDepth;
+	
 	private boolean appendTo;
 	
 	public final boolean hasAppendTo() {
@@ -572,8 +573,7 @@ public class C4ScriptParser {
 		return createdVariables.size() > 0;
 	}
 
-	private C4Variable createVariable(C4VariableScope scope, String desc, int start, int end,
-			String varName) {
+	private C4Variable createVariable(C4VariableScope scope, String desc, int start, int end, String varName) {
 		C4Variable var = new C4Variable(varName, scope);
 		var.setLocation(new SourceLocation(start, end));
 		var.setScript(container);
@@ -1646,10 +1646,7 @@ public class C4ScriptParser {
 			if (root != null) {
 				//root.setExprRegion(exprStart, fReader.getPosition());
 				// potentially throwing exceptions and stuff
-				if (reportErrors)
-					root.reportErrors(this);
-				if (expressionListener != null && parseExpressionRecursion == 1)
-					expressionListener.expressionDetected(root, this);
+				handleExpressionCreated(reportErrors, root);
 			}
 			
 			return root;
@@ -1658,6 +1655,14 @@ public class C4ScriptParser {
 			parseExpressionRecursion--;
 		}
 		
+	}
+
+	private final void handleExpressionCreated(boolean reportErrors, ExprElm root)
+			throws ParsingException {
+		if (reportErrors)
+			root.reportErrors(this);
+		if (expressionListener != null && parseExpressionRecursion <= 1)
+			expressionListener.expressionDetected(root, this);
 	}
 	
 	private static final char[] SEMICOLON_DELIMITER = new char[] { ';' };
@@ -2034,35 +2039,65 @@ public class C4ScriptParser {
 		// initialization
 		offset = fReader.getPosition();
 		C4Variable loopVariable = null;
-		Statement initialization, body;
+		Statement initialization = null, body;
 		ExprElm arrayExpr, condition, increment;
+		String w = null;
 		if (fReader.read() == ';') {
 			// any of the for statements is optional
-			initialization = null;
+			//initialization = null;
 		} else {
 			fReader.unread();
-			initialization = parseStatement(fReader.getPosition(), EnumSet.of(ParseStatementOption.InitializationStatement));
-			if (initialization == null) {
-				errorWithCode(ParserErrorCode.ExpectedCode, fReader.getPosition(), fReader.getPosition()+1);
+			// special treatment for case for (e in a) -> implicit declaration of e
+			int pos = fReader.getPosition();
+			String varName = fReader.readIdent();
+			if (!varName.equals("") && !varName.equals(Keywords.VarNamed)) {
+				eatWhitespace();
+				w = fReader.readIdent();
+				if (!w.equals(Keywords.In)) {
+					w = null;
+					fReader.seek(pos);
+				}
+				else {
+					// too much manual setting of stuff
+					AccessVar accessVar = new AccessVar(varName);
+					accessVar.setExprRegion(pos, pos+varName.length());
+					if (accessVar.getDeclImpl(this) == null) {
+						createVarInScope(varName, C4VariableScope.VAR_VAR, new SourceLocation(offsetOfScriptFragment()+pos, offsetOfScriptFragment()+pos+varName.length()));
+					}
+					handleExpressionCreated(true, accessVar);
+					initialization = new SimpleStatement(accessVar);
+					initialization.setExprRegion(pos, pos+varName.length());
+					initialization.reportErrors(this);
+				}
 			}
-			loopVariable = parsedVariable; // let's just assume it's the right one
+			else {
+				fReader.seek(pos);
+			}
+			if (w == null) {
+				initialization = parseStatement(fReader.getPosition(), EnumSet.of(ParseStatementOption.InitializationStatement));
+				if (initialization == null) {
+					errorWithCode(ParserErrorCode.ExpectedCode, fReader.getPosition(), fReader.getPosition()+1);
+				}
+				loopVariable = parsedVariable; // let's just assume it's the right one
+			}
 		}
 
-		// determine loop type
-		eatWhitespace();
-		offset = fReader.getPosition();
-		String w;
-		if (initialization != null) {
-			if (fReader.read() == ';') { // initialization finished regularly with ';'
-				offset = fReader.getPosition();
-				w = null; // implies there can be no 'in'
-			} else {
-				fReader.unread();
-				w = fReader.readIdent();
+		if (w == null) {
+			// determine loop type
+			eatWhitespace();
+			offset = fReader.getPosition();
+			if (initialization != null) {
+				if (fReader.read() == ';') { // initialization finished regularly with ';'
+					offset = fReader.getPosition();
+					w = null; // implies there can be no 'in'
+				} else {
+					fReader.unread();
+					w = fReader.readIdent();
+				}
 			}
+			else
+				w = null; // if there is no initialization statement at all there can also be no 'in'
 		}
-		else
-			w = null; // if there is no initialization statement at all there can also be no 'in'
 		LoopType loopType;
 		if (w != null && w.equals(Keywords.In)) {
 			// it's a for (x in array) loop!
@@ -2350,6 +2385,12 @@ public class C4ScriptParser {
 		}
 	}
 	
+	// overridden by internal helper class that operates on just a substring of the whole script
+	// used for setting the right location for variables that are created while parsing the body of a function
+	protected int offsetOfScriptFragment() {
+		return 0;
+	}
+	
 	private void reportExpressionsAndStatements(C4Function func, IExpressionListener listener) {
 		activeFunc = func;
 		setExpressionListener(listener);
@@ -2383,14 +2424,19 @@ public class C4ScriptParser {
 		return reportExpressionsAndStatements(doc, region.getOffset(), region.getOffset()+region.getLength(), context, func, listener);
 	}
 	
-	public static C4ScriptParser reportExpressionsAndStatements(IDocument doc, int statementStart, int statementEnd, C4ScriptBase context, C4Function func, IExpressionListener listener)  {
+	public static C4ScriptParser reportExpressionsAndStatements(IDocument doc, final int statementStart, int statementEnd, C4ScriptBase context, C4Function func, IExpressionListener listener)  {
 		String expr;
 		try {
 			expr = doc.get(statementStart, Math.min(statementEnd-statementStart, doc.getLength()-statementStart));
 		} catch (BadLocationException e) {
 			expr = ""; // well...
 		}
-		C4ScriptParser parser = new C4ScriptParser(expr, context);
+		C4ScriptParser parser = new C4ScriptParser(expr, context) {
+			@Override
+			protected int offsetOfScriptFragment() {
+				return statementStart;
+			}
+		};
 		parser.reportExpressionsAndStatements(func, listener);
 		return parser;
 	}

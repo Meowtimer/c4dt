@@ -301,6 +301,8 @@ public class BufferedScanner {
 	 * @return the read string
 	 */
 	public String readStringAt(int start, int end) {
+		if (start == end)
+			return "";
 		int p = getPosition();
 		seek(start);
 		String result = readString(end-start);

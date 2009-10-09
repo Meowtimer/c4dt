@@ -3,6 +3,8 @@ package net.arctics.clonk.parser;
 import java.io.Serializable;
 import java.util.regex.Matcher;
 
+import net.arctics.clonk.parser.c4script.C4Function;
+
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IRegion;
@@ -20,6 +22,11 @@ public class SourceLocation implements IRegion, Serializable {
 		this.setStart(matcher.start());
 		this.setEnd(matcher.end());
 	}
+	public SourceLocation(IRegion region, C4Function relative) {
+		this.setStart(relative.getBody().getStart()+region.getOffset());
+		this.setEnd(relative.getBody().getStart()+region.getOffset()+region.getLength());
+	}
+	
 	/**
 	 * @param start the start to set
 	 */
