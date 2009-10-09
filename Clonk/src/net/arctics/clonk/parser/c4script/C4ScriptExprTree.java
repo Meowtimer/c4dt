@@ -71,6 +71,7 @@ public abstract class C4ScriptExprTree {
 		
 		public static final ExprElm NULL_EXPR = new ExprElm() {};
 		public static final ExprElm[] EMPTY_EXPR_ARRAY = new ExprElm[0];
+		public static final Object EVALUATION_COMPLEX = new Object();
 		
 		private int exprStart, exprEnd;
 		private transient ExprElm parent, predecessorInSequence, successorInSequence;
@@ -382,7 +383,7 @@ public abstract class C4ScriptExprTree {
 		 * @return the result
 		 */
 		public Object evaluate(C4ScriptBase context) {
-			return null;
+			return EVALUATION_COMPLEX;
 		}
 
 	}
@@ -851,16 +852,37 @@ public abstract class C4ScriptExprTree {
 				else if (declaration instanceof C4Function) {
 					C4Function f = (C4Function)declaration;
 					int givenParam = 0;
-					for (C4Variable parm : f.getParameters()) {
-						if (givenParam >= params.length)
-							break;
-						ExprElm given = params[givenParam++];
-						if (given == null)
-							continue;
-						//given.reportErrors(parser); no duplicate errors
-						if (!given.validForType(parm.getType(), context))
-							context.warningWithCode(ParserErrorCode.IncompatibleTypes, given, parm.getType(), given.getType(context));
-						given.expectedToBeOfType(parm.getType(), context);
+					boolean specialCaseHandled = false;
+					// yay for special cases
+					if (params.length >= 3 &&  (f == CachedEngineFuncs.AddCommand || f == CachedEngineFuncs.AppendCommand || f == CachedEngineFuncs.SetCommand)) {
+						// look if command is "Call"; if so treat parms 2, 3, 4 as any
+						Object command = params[1].evaluate(context.getContainer());
+						if (command instanceof String && command.equals("Call")) {
+							for (C4Variable parm : f.getParameters()) {
+								if (givenParam >= params.length)
+									break;
+								ExprElm given = params[givenParam++];
+								if (given == null)
+									continue;
+								C4Type parmType = givenParam >= 2 && givenParam <= 4 ? C4Type.ANY : parm.getType();
+								if (!given.validForType(parmType, context))
+									context.warningWithCode(ParserErrorCode.IncompatibleTypes, given, parmType, given.getType(context));
+								given.expectedToBeOfType(parmType, context);
+							}
+							specialCaseHandled = true;
+						}
+					}
+					if (!specialCaseHandled) {
+						for (C4Variable parm : f.getParameters()) {
+							if (givenParam >= params.length)
+								break;
+							ExprElm given = params[givenParam++];
+							if (given == null)
+								continue;
+							if (!given.validForType(parm.getType(), context))
+								context.warningWithCode(ParserErrorCode.IncompatibleTypes, given, parm.getType(), given.getType(context));
+							given.expectedToBeOfType(parm.getType(), context);
+						}
 					}
 				}
 				else if (declaration == null && getPredecessorInSequence() == null) {
@@ -935,7 +957,7 @@ public abstract class C4ScriptExprTree {
 			if (replOperator != null && params.length == 1) {
 				// LessThan(x) -> x < 0
 				if (replOperator.getNumArgs() == 2)
-					return new BinaryOp(replOperator, params[0].newStyleReplacement(parser), new NumberLiteral(0));
+					return new BinaryOp(replOperator, params[0].newStyleReplacement(parser), NumberLiteral.ZERO);
 				ExprElm n = params[0].newStyleReplacement(parser);
 				if (n instanceof BinaryOp)
 					n = new Parenthesized(n);
@@ -977,7 +999,7 @@ public abstract class C4ScriptExprTree {
 			if (params.length <= 1 && (declaration == CachedEngineFuncs.DecVar || declaration == CachedEngineFuncs.IncVar)) {
 				return new UnaryOp(declaration == CachedEngineFuncs.DecVar ? C4ScriptOperator.Decrement : C4ScriptOperator.Increment, Placement.Prefix,
 					new CallFunc(CachedEngineFuncs.Var.getName(), new ExprElm[] {
-						params.length == 1 ? params[0].newStyleReplacement(parser) : new NumberLiteral(0)
+						params.length == 1 ? params[0].newStyleReplacement(parser) : NumberLiteral.ZERO
 					})
 				);
 			}

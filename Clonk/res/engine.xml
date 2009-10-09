@@ -1568,8 +1568,8 @@ Wenn fCheckSite 1 ist, wird die Baustelle vorher auf ihre Eignung überprüft. I
 				<parameter name="Parameter" type="any" />
 				<parameter name="szInfoCaption" type="string" />
 				<parameter name="iExtra" type="int" />
-				<parameter name="XPar1" type="int" />
-				<parameter name="XPar2" type="int" />
+				<parameter name="XPar1" type="any" />
+				<parameter name="XPar2" type="any" />
 			</parameters>
 			<description>Fügt einen Menüeintrag hinzu.</description>
 		</function>
