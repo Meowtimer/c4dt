@@ -945,8 +945,8 @@ public class C4ScriptParser {
 			if (tupleIsError) {
 				errorWithCode(ParserErrorCode.TuplesNotAllowed, expr);
 			} else {
-				// too annoying
-				//warningWithCode(ParserErrorCode.ReturnAsFunction, expr);
+				if (getStrictLevel() >= 2)
+					errorWithCode(ParserErrorCode.ReturnAsFunction, expr, true);
 			}
 		}
 		ExprElm[] subElms = expr.getSubElements();
