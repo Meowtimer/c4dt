@@ -467,6 +467,11 @@
 				description="Zugangscode, der durch Bezwingen dieses Szenarios freigeschaltet wird"/>
 			<entry name="Difficulty" class="net.arctics.clonk.parser.inireader.UnsignedInteger"
 				description="Schwierigkeit" />
+			<entry name="Loader" class="java.lang.String" />
+			<entry name="Origin" class="java.lang.String" />
+			<entry name="Access" class="java.lang.String" />
+			<entry name="MaxPlayerLeague" class="net.arctics.clonk.parser.inireader.UnsignedInteger" />
+			<entry name="ForcedNoCrew" class="net.arctics.clonk.parser.inireader.UnsignedInteger" />
 		</section>
 		<section name="Game">
 			<entry name="Rules" class="net.arctics.clonk.parser.inireader.IDArray"
@@ -519,6 +524,8 @@
 				description="Nachproduktion von Material für die Heimatbasis." />
 			<entry name="Magic" class="net.arctics.clonk.parser.inireader.IDArray"
 				description="Zur Verfügung stehende Zauber. Sind keine Zauber angegeben, werden alle verfügbaren Zauber geladen (Abwärtskompatibilität zu älteren Szenarien)." />
+			<entry name="Clonks" class="net.arctics.clonk.parser.inireader.IntegerArray" />
+			<entry name="Position" class="net.arctics.clonk.parser.inireader.IntegerArray" />
 		</section>
 		<section name="Landscape">
 			<entry name="Vegetation" class="net.arctics.clonk.parser.inireader.IDArray"
