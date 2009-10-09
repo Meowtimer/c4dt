@@ -14,6 +14,7 @@ import net.arctics.clonk.parser.c4script.C4ScriptExprTree.DeclarationRegion;
 import net.arctics.clonk.parser.c4script.C4ScriptExprTree.AccessDeclaration;
 import net.arctics.clonk.parser.c4script.C4ScriptExprTree.ExprElm;
 import net.arctics.clonk.parser.c4script.C4ScriptExprTree.IExpressionListener;
+import net.arctics.clonk.parser.c4script.C4ScriptExprTree.MemberOperator;
 import net.arctics.clonk.parser.c4script.C4ScriptExprTree.TraversalContinuation;
 import net.arctics.clonk.util.IPredicate;
 import net.arctics.clonk.util.Utilities;
@@ -60,7 +61,10 @@ public class DeclarationLocator extends ExpressionLocator {
 			if (exprAtRegion != null) {
 				DeclarationRegion declRegion = exprAtRegion.declarationAt(exprRegion.getOffset()-exprAtRegion.getExprStart(), parser);
 				boolean setRegion;
-				if (declRegion != null && declRegion.getDeclaration() != null) {
+				if (
+					declRegion != null && declRegion.getDeclaration() != null &&
+					(!(exprAtRegion.getPredecessorInSequence() instanceof MemberOperator) || !declRegion.getDeclaration().isGlobal())
+				) {
 					this.declaration = declRegion.getDeclaration();
 					setRegion = true;
 				}
