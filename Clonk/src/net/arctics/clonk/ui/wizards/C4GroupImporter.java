@@ -2,6 +2,8 @@ package net.arctics.clonk.ui.wizards;
 
 import java.io.File;
 import java.lang.reflect.InvocationTargetException;
+import java.util.LinkedList;
+import java.util.List;
 
 import net.arctics.clonk.resource.c4group.C4EntryHeader;
 import net.arctics.clonk.resource.c4group.C4Group;
@@ -45,6 +47,7 @@ public class C4GroupImporter extends WorkspaceModifyOperation {
 				try {
 					groups[i] = C4Group.openFile(resources[i]);
 					monitor.subTask("Importing " + groups[i].getName());
+					final List<String> errorsWhileImporting = new LinkedList<String>();
 					groups[i].readIntoMemory(true, new C4GroupItem.IHeaderFilter() {
 						private IContainer currentContainer = destination;
 						private C4Group currentGroup;
@@ -67,7 +70,12 @@ public class C4GroupImporter extends WorkspaceModifyOperation {
 							else {
 								C4GroupEntry entry = (C4GroupEntry)item;
 								IFile newFile = currentContainer.getFile(new Path(entry.getName()));
-								newFile.create(entry.getContents(), IResource.NONE, monitor);
+								try {
+									newFile.create(entry.getContents(), IResource.NONE, monitor);
+								} catch (CoreException e) {
+									errorsWhileImporting.add(e.getLocalizedMessage());
+									e.printStackTrace();
+								}
 								entry.releaseData(); // release data to prevent heap overflow :S
 							}
 						}
