@@ -2363,7 +2363,7 @@ Wenn fCheckSite 1 ist, wird die Baustelle vorher auf ihre Eignung überprüft. I
 			</parameters>
 			<description>Verändert die Länge eines Felds auf den angegebenen Wert. Überzählige Elemente werden dabei gelöscht.</description>
 		</function>
-		<function name="WildcardMatch" return="string">
+		<function name="WildcardMatch" return="bool">
 			<parameters>
 				<parameter name="szStr" type="string" />
 				<parameter name="szWildcard" type="string" />
