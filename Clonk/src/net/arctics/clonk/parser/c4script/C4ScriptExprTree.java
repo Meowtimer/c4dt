@@ -39,6 +39,10 @@ public abstract class C4ScriptExprTree {
 		public TraversalContinuation expressionDetected(ExprElm expression, C4ScriptParser parser);
 	}
 	
+	public interface ILoop {
+		
+	}
+	
 	public final static class DeclarationRegion {
 		private C4Declaration declaration;
 		private IRegion region;
@@ -968,7 +972,7 @@ public abstract class C4ScriptExprTree {
 			}
 			
 			// ObjectCall(ugh, "UghUgh", 5) -> ugh->UghUgh(5)
-			if (params.length >= 2 && declaration == CachedEngineFuncs.ObjectCall && params[1] instanceof StringLiteral && getParent() instanceof Statement && !params[0].hasSideEffects()) {
+			if (params.length >= 2 && declaration == CachedEngineFuncs.ObjectCall && params[1] instanceof StringLiteral && !this.containedInLoopHeader() && !params[0].hasSideEffects()) {
 				ExprElm[] parmsWithoutObject = new ExprElm[params.length-2];
 				for (int i = 0; i < parmsWithoutObject.length; i++)
 					parmsWithoutObject[i] = params[i+2].newStyleReplacement(parser);
@@ -1018,10 +1022,22 @@ public abstract class C4ScriptExprTree {
 			
 			return super.newStyleReplacement(parser);
 		}
+		
+		private boolean containedInLoopHeader() {
+			for (ExprElm p = getParent(); p != null; p = p.getParent()) {
+				if (p instanceof Block)
+					break;
+				if (p instanceof ILoop)
+					return true;
+			} 
+			return false;
+		}
+
 		@Override
 		public DeclarationRegion declarationAt(int offset, C4ScriptParser parser) {
 			return new DeclarationRegion(getDeclaration(parser), new Region(getExprStart(), declarationName.length()));
 		}
+		
 		public C4Object searchCriteriaAssumedResult(C4ScriptParser context) {
 			C4Object result = null;
 			// parameters to FindObjects itself are also &&-ed together
@@ -2371,7 +2387,7 @@ public abstract class C4ScriptExprTree {
 		
 	}
 	
-	public static class WhileStatement extends ConditionalStatement {
+	public static class WhileStatement extends ConditionalStatement implements ILoop {
 		public WhileStatement(ExprElm condition, ExprElm body) {
 			super(condition, body);
 		}
@@ -2399,7 +2415,7 @@ public abstract class C4ScriptExprTree {
 		}
 	}
 	
-	public static class ForStatement extends ConditionalStatement {
+	public static class ForStatement extends ConditionalStatement implements ILoop {
 		private ExprElm initializer, increment;
 		public ForStatement(ExprElm initializer, ExprElm condition, ExprElm increment, ExprElm body) {
 			super(condition, body);
@@ -2441,7 +2457,7 @@ public abstract class C4ScriptExprTree {
 		}
 	}
 	
-	public static class IterateArrayStatement extends KeywordStatement {
+	public static class IterateArrayStatement extends KeywordStatement implements ILoop {
 		private ExprElm elementExpr, arrayExpr, body;
 
 		public IterateArrayStatement(ExprElm elementExpr, ExprElm arrayExpr, ExprElm body) {

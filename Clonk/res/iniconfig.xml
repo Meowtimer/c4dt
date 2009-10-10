@@ -526,6 +526,7 @@
 				description="Zur Verfügung stehende Zauber. Sind keine Zauber angegeben, werden alle verfügbaren Zauber geladen (Abwärtskompatibilität zu älteren Szenarien)." />
 			<entry name="Clonks" class="net.arctics.clonk.parser.inireader.IntegerArray" />
 			<entry name="Position" class="net.arctics.clonk.parser.inireader.IntegerArray" />
+			<entry name="EnforcePosition" class="net.arctics.clonk.parser.inireader.Boolean" />
 		</section>
 		<section name="Landscape">
 			<entry name="Vegetation" class="net.arctics.clonk.parser.inireader.IDArray"

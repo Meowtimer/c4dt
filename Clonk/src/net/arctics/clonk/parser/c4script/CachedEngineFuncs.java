@@ -1,7 +1,6 @@
 package net.arctics.clonk.parser.c4script;
 
 import net.arctics.clonk.ClonkCore;
-import net.arctics.clonk.parser.C4Declaration;
 
 /**
  * Contains cached engine functions that may be used frequently.
