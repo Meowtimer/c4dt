@@ -822,12 +822,24 @@ public abstract class C4ScriptExprTree {
 				return field;
 			} else if (p != null) {
 				// find global function
-				C4Declaration field = parser.getContainer().getIndex().findGlobalFunction(declarationName);
-				if (field == null)
-					field = ClonkCore.getDefault().getExternIndex().findGlobalDeclaration(declarationName);
-				if (field == null)
-					field = ClonkCore.getDefault().getEngineObject().findFunction(declarationName);
-				return field;
+				C4Declaration declaration = parser.getContainer().getIndex().findGlobalFunction(declarationName);
+				if (declaration == null)
+					declaration = ClonkCore.getDefault().getExternIndex().findGlobalDeclaration(declarationName);
+				if (declaration == null)
+					declaration = ClonkCore.getDefault().getEngineObject().findFunction(declarationName);
+				
+				// only return found declaration if it's the only choice 
+				if (declaration != null) {
+					List<C4Declaration> allFromLocalIndex = parser.getContainer().getIndex().getDeclarationMap().get(declarationName);
+					List<C4Declaration> allFromExternalIndex = ClonkCore.getDefault().getExternIndex().getDeclarationMap().get(declarationName);
+					C4Declaration decl = ClonkCore.getDefault().getEngineObject().findLocalFunction(declarationName, false);
+					if (
+						(allFromLocalIndex != null ? allFromLocalIndex.size() : 0) +
+						(allFromExternalIndex != null ? allFromExternalIndex.size() : 0) +
+						(decl != null ? 1 : 0) == 1
+					)
+						return declaration;
+				}
 			}
 			return null;
 		}
