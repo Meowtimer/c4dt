@@ -441,7 +441,7 @@
 			<entry name="Reverse" class="net.arctics.clonk.parser.inireader.Boolean"
 				description="Normalerweise gibt die Reaktion an, was mit losem Material der Definition, in der die Reaktion definiert ist, passiert, wenn es auf festes Material vom in TargetSpec angegebenen Typ trifft. Ist Reverse gesetzt, so wird die Definition umgekehrt." />
 			<entry name="InverseSpec" class="net.arctics.clonk.parser.inireader.Boolean"
-				description="Wenn wahr, wird die Reaktion für alle anderen Materialien (inklusive "Sky"), die die Bedingung in TargetSpec nicht erfüllen, verwendet." />
+				description="Wenn wahr, wird die Reaktion für alle anderen Materialien (inklusive 'Sky'), die die Bedingung in TargetSpec nicht erfüllen, verwendet." />
 			<entry name="CheckSlide" class="net.arctics.clonk.parser.inireader.Boolean"
 				description="Wenn wahr, wird vor dem Aufruf der Reaktion das Standardverhalten (Sprenkeln am Boden und Abrutschen nach MaxSlide) ausgeführt." />
 			<entry name="Depth" class="net.arctics.clonk.parser.inireader.SignedInteger"
