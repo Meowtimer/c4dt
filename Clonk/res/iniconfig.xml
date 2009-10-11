@@ -434,7 +434,6 @@
 			<entry name="Type" class="java.lang.String" />
 			<entry name="TargetSpec" class="java.lang.String" />
 			<entry name="ConvertMat" class="java.lang.String" />
-			<entry name="ScriptFunc" class="java.lang.String" />
 			<entry name="ScriptFunc" class="java.lang.String"
 				description="Nur für Reaktionstyp Script: Name der Scriptfunktion, die das Verhalten bestimmt." />
 			<entry name="ExecMask" class="net.arctics.clonk.parser.inireader.SignedInteger"
