@@ -471,6 +471,8 @@
 			<entry name="Origin" class="java.lang.String" />
 			<entry name="Access" class="java.lang.String" />
 			<entry name="MaxPlayerLeague" class="net.arctics.clonk.parser.inireader.UnsignedInteger" />
+			<entry name="MinPlayer" class="net.arctics.clonk.parser.inireader.UnsignedInteger" />
+			<entry name="MaxPlayer" class="net.arctics.clonk.parser.inireader.UnsignedInteger" />
 			<entry name="ForcedNoCrew" class="net.arctics.clonk.parser.inireader.UnsignedInteger" />
 		</section>
 		<section name="Game">
