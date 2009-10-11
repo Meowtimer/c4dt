@@ -5,7 +5,7 @@ import org.eclipse.core.runtime.CoreException;
 
 public enum ParserErrorCode {
 	TokenExpected("'%s' expected"),
-	NotAllowedHere("'%s' not allowed here"),
+	NotAllowedHere("'%s' not allowed here (did you forget a ';' ?)"),
 	MissingClosingBracket("Missing '%s'"),
 	InvalidExpression("Invalid expression"),
 	InternalError("Internal error: %s"),
