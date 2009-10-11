@@ -5,7 +5,7 @@ package net.arctics.clonk.parser.inireader;
  * @author madeen
  *
  */
-public class DefinitionPack implements IEntryCreateable {
+public class DefinitionPack implements IIniEntry {
 
 	private String value;
 	

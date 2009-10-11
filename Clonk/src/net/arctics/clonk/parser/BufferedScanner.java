@@ -220,27 +220,46 @@ public class BufferedScanner {
 	}
 
 	/**
-	 * Moves offset until any other char than <code>delimiters</code> occurs
-	 * @param delimiters
+	 * Moves offset until any other char than <code>charsToEat</code> occurs
+	 * @param charsToEat
 	 */
-	public int eat(char[] delimiters) {
+	public int eat(char[] charsToEat) {
 		if (reachedEOF())
 			return 0; // no unreading() when already reached EOF
 		int result = 0;
 		do {
 			int readByte = read();
-			boolean isDelimiter = true;
-			for(int i = 0; i < delimiters.length;i++) {
-				if (readByte != delimiters[i]) {
-					isDelimiter = false;
+			boolean doEat = false;
+			for (int i = 0; i < charsToEat.length;i++) {
+				if (readByte == charsToEat[i]) {
+					doEat = true;
+					result++;
+					break;
 				}
-				else {
+			}
+			if (!doEat) {
+				unread();
+				return result;
+			}
+		} while(!reachedEOF());
+		return result;
+	}
+	
+	public int eatUntil(char ...delimiters) {
+		if (reachedEOF())
+			return 0; // no unreading() when already reached EOF
+		int result = 0;
+		do {
+			int readByte = read();
+			boolean isDelimiter = false;
+			for (int i = 0; i < delimiters.length;i++) {
+				if (readByte == delimiters[i]) {
 					isDelimiter = true;
 					result++;
 					break;
 				}
 			}
-			if (!isDelimiter) {
+			if (isDelimiter) {
 				unread();
 				return result;
 			}

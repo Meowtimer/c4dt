@@ -11,7 +11,7 @@ import net.arctics.clonk.util.IHasContext;
 import net.arctics.clonk.util.ITreeNode;
 import net.arctics.clonk.util.KeyValuePair;
 
-public abstract class KeyValueArrayEntry<KeyType, ValueType> implements IEntryCreateable, IHasChildrenWithContext, ITreeNode {
+public abstract class KeyValueArrayEntry<KeyType, ValueType> implements IIniEntry, IHasChildrenWithContext, ITreeNode {
 	private final List<KeyValuePair<KeyType, ValueType>> components = new ArrayList<KeyValuePair<KeyType, ValueType>>();
 	
 	public KeyValueArrayEntry(String value) throws IniParserException {

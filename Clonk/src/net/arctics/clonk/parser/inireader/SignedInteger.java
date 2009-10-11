@@ -3,7 +3,7 @@ package net.arctics.clonk.parser.inireader;
 
 import org.eclipse.core.resources.IMarker;
 
-public class SignedInteger implements IEntryCreateable {
+public class SignedInteger implements IIniEntry {
 
 	private int x;
 	

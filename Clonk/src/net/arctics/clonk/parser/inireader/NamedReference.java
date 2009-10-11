@@ -1,6 +1,6 @@
 package net.arctics.clonk.parser.inireader;
 
-public class NamedReference implements IEntryCreateable {
+public class NamedReference implements IIniEntry {
 
 	private String value;
 	

@@ -9,7 +9,7 @@ import org.eclipse.core.resources.IMarker;
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.c4script.C4Variable;
 
-public class CategoriesArray implements IEntryCreateable {
+public class CategoriesArray implements IIniEntry {
 
 	private final List<C4Variable> constants = new ArrayList<C4Variable>(4);
 	private int summedValue = -1;

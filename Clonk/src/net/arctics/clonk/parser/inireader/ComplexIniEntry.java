@@ -48,9 +48,9 @@ public class ComplexIniEntry extends IniEntry implements IHasChildren, IHasConte
 	
 	@Override
 	public void setValue(String value) {
-		if (extendedValue instanceof IEntryCreateable) {
+		if (extendedValue instanceof IIniEntry) {
 			try {
-				((IEntryCreateable)extendedValue).setInput(value);
+				((IIniEntry)extendedValue).setInput(value);
 			} catch (IniParserException e) {
 				e.printStackTrace();
 			}

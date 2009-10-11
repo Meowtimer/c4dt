@@ -254,6 +254,28 @@ public class IniUnit extends C4Structure implements Iterable<IniSection>, IHasCh
 			reader.eatWhitespace();
 			return true;
 		}
+		else if (r == '/') {
+			switch (reader.read()) {
+			case '/':
+				reader.eatUntil(BufferedScanner.NEWLINE_CHARS);
+				reader.eatWhitespace();
+				return true;
+			case '*':
+				for (; !reader.reachedEOF();) {
+					if (reader.read() == '*') {
+						if (reader.read() == '/')
+							break;
+						else
+							reader.unread();
+					}
+				}
+				reader.eatWhitespace();
+				return true;
+			default:
+				reader.unread(); reader.unread();
+				return false;
+			}
+		}
 		else {
 			reader.unread();
 			return false;

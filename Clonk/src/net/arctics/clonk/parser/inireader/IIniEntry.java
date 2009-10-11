@@ -1,6 +1,6 @@
 package net.arctics.clonk.parser.inireader;
 
 
-public interface IEntryCreateable {
+public interface IIniEntry {
 	public void setInput(String value) throws IniParserException;
 }

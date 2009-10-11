@@ -6,7 +6,7 @@ import java.security.InvalidParameterException;
 import org.eclipse.core.resources.IMarker;
 
 
-public class UnsignedInteger implements IEntryCreateable {
+public class UnsignedInteger implements IIniEntry {
 	
 	private int number;
 	
