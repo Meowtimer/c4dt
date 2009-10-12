@@ -165,6 +165,23 @@ public abstract class C4ScriptBase extends C4Structure implements IHasRelatedRes
 		return findDeclaration(declarationName, info);
 	}
 	
+	@Override
+	public C4Declaration findLocalDeclaration(String declarationName, Class<? extends C4Declaration> declarationClass) {
+		if (declarationClass.isAssignableFrom(C4Variable.class)) {
+			for (C4Variable v : definedVariables) {
+				if (v.getName().equals(declarationName))
+					return v;
+			}
+		}
+		if (declarationClass.isAssignableFrom(C4Function.class)) {
+			for (C4Function f : definedFunctions) {
+				if (f.getName().equals(declarationName))
+					return f;
+			}
+		}
+		return null;
+	}
+	
 	/**
 	 * Returns whether the supplied name might refer to this script (used in findDeclaration)
 	 * @param name The name

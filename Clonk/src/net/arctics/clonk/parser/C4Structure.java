@@ -27,7 +27,9 @@ public abstract class C4Structure extends C4Declaration {
 	 * @param declarationClass the class of the declaration
 	 * @return the declaration or null if it couldn't be found
 	 */
-	public abstract C4Declaration findDeclaration(String declarationName, Class<? extends C4Declaration> declarationClass);
+	public C4Declaration findDeclaration(String declarationName, Class<? extends C4Declaration> declarationClass) {
+		return findLocalDeclaration(declarationName, declarationClass);
+	}
 	
 	/**
 	 * Finds a declaration without requiring a specific class
@@ -37,6 +39,8 @@ public abstract class C4Structure extends C4Declaration {
 	public C4Declaration findDeclaration(String declarationName) {
 		return findDeclaration(declarationName, C4Declaration.class);
 	}
+	
+	public abstract C4Declaration findLocalDeclaration(String declarationName, Class<? extends C4Declaration> declarationClass);
 	
 	/**
 	 * Returns an editor input for this structure

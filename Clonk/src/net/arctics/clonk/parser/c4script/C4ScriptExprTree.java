@@ -606,6 +606,11 @@ public abstract class C4ScriptExprTree {
 			
 			public VariableTypeInformation(C4Declaration varDeclaration) {
 				this.decl = varDeclaration;
+				if (varDeclaration instanceof C4Variable) {
+					C4Variable var = (C4Variable) varDeclaration;
+					storeObjectType(var.getObjectType());
+					storeType(var.getType());
+				}
 			}
 
 			public boolean expressionRelevant(ExprElm expr) {
@@ -622,11 +627,12 @@ public abstract class C4ScriptExprTree {
 
 			@Override
 			public void apply(boolean soft) {
+				decl = decl.latestVersion(); 
 				if (decl instanceof C4Variable) {
 					C4Variable var = (C4Variable) decl;
 					if (!soft || var.getScope() == C4VariableScope.VAR_VAR) {
 						var.setType(getType());					
-						var.setExpectedContent(getObjectType());
+						var.setObjectType(getObjectType());
 					}
 				}
 			}
@@ -650,7 +656,7 @@ public abstract class C4ScriptExprTree {
 			}
 			C4Object o = super.guessObjectType(context);
 			if (o == null && declaration != null)
-				o = ((C4Variable)declaration).getExpectedContent();
+				o = ((C4Variable)declaration).getObjectType();
 			return o;
 		}
 
@@ -688,11 +694,15 @@ public abstract class C4ScriptExprTree {
 				parser.errorWithCode(ParserErrorCode.UndeclaredIdentifier, this, true, declarationName);
 		}
 		
+		public static IStoredTypeInformation createStoredTypeInformation(C4Declaration declaration) {
+			if (declaration instanceof C4Variable && ((C4Variable)declaration).isTypeLocked())
+				return null;
+			return new VariableTypeInformation(declaration);
+		}
+		
 		@Override
 		public IStoredTypeInformation createStoredTypeInformation() {
-			if (getDeclaration() instanceof C4Variable && ((C4Variable)getDeclaration()).isTypeLocked())
-				return null;
-			return new VariableTypeInformation(getDeclaration());
+			return createStoredTypeInformation(getDeclaration());
 		}
 		
 		@Override
@@ -939,7 +949,7 @@ public abstract class C4ScriptExprTree {
 				return getPredecessorInSequence() == null ? parser.getContainerObject() : getPredecessorInSequence().guessObjectType(parser);
 			}
 			if (declaration instanceof ITypedDeclaration) {
-				C4Object obj = ((ITypedDeclaration)declaration).getExpectedContent();
+				C4Object obj = ((ITypedDeclaration)declaration).getObjectType();
 				if (obj != null)
 					return obj;
 			}

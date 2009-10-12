@@ -9,8 +9,8 @@ public interface ITypedDeclaration {
 	public void expectedToBeOfType(C4Type t);
 	public C4Type getType();
 	public void forceType(C4Type type);
-	public C4Object getExpectedContent();
-	public void setExpectedContent(C4Object object);
+	public C4Object getObjectType();
+	public void setObjectType(C4Object object);
 	
 	// interfaces should allow default implementations -.-
 	public abstract static class Default {
@@ -23,7 +23,7 @@ public interface ITypedDeclaration {
 				instance.forceType(C4Type.ANY);
 		}
 		public static void inferTypeFromAssignment(ITypedDeclaration instance, ExprElm val, C4ScriptParser context) {
-			instance.setExpectedContent(val.guessObjectType(context));
+			instance.setObjectType(val.guessObjectType(context));
 			instance.expectedToBeOfType(val.getType(context));
 		}
 	}

@@ -148,7 +148,12 @@ public class C4MapOverlay extends C4Structure implements Cloneable, ITreeNode {
 	}
 
 	@Override
-	public C4MapOverlay findDeclaration(String declarationName,
+	public C4MapOverlay findDeclaration(String declarationName, Class<? extends C4Declaration> declarationClass) {
+		return findLocalDeclaration(declarationName, declarationClass);
+	}
+	
+	@Override
+	public C4MapOverlay findLocalDeclaration(String declarationName,
 			Class<? extends C4Declaration> declarationClass) {
 		if (C4MapOverlay.class.isAssignableFrom(declarationClass)) {
 			for (C4MapOverlay o : subOverlays)

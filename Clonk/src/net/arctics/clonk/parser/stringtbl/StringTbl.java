@@ -48,7 +48,7 @@ public class StringTbl extends C4Structure implements ITreeNode {
 	}
 
 	@Override
-	public C4Declaration findDeclaration(String declarationName, Class<? extends C4Declaration> declarationClass) {
+	public C4Declaration findLocalDeclaration(String declarationName, Class<? extends C4Declaration> declarationClass) {
 		if (declarationClass == NameValueAssignment.class)
 			return map.get(declarationName);
 		return null;

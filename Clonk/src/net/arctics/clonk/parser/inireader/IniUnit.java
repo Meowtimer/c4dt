@@ -400,7 +400,7 @@ public class IniUnit extends C4Structure implements Iterable<IniSection>, IHasCh
 	}
 	
 	@Override
-	public C4Declaration findDeclaration(String declarationName,
+	public C4Declaration findLocalDeclaration(String declarationName,
 			Class<? extends C4Declaration> declarationClass) {
 		if (declarationClass.isAssignableFrom(IniSection.class))
 			return findDeclaration(declarationName);

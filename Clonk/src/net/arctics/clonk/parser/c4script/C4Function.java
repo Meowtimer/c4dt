@@ -259,8 +259,13 @@ public class C4Function extends C4Structure implements Serializable, ITypedDecla
 		return String.format("<b>%s</b><br><br><b>Description:</b><br>%s<br><br><b>Declared in:</b><br>%s", getLongParameterString(true), getUserDescription() != null && !getUserDescription().equals("") ? getUserDescription() : "Not available", getScript().toString());
 	}
 
+	@Override
 	public C4Variable findDeclaration(String declarationName, Class<? extends C4Declaration> declarationClass) {
-		if (declarationClass == C4Variable.class) {
+		return findLocalDeclaration(declarationName, declarationClass);
+	}
+	
+	public C4Variable findLocalDeclaration(String declarationName, Class<? extends C4Declaration> declarationClass) {
+		if (declarationClass.isAssignableFrom(C4Variable.class)) {
 			if (declarationName.equals(C4Variable.THIS.getName()))
 				return C4Variable.THIS;
 			for (C4Variable v : localVars) {
@@ -402,11 +407,11 @@ public class C4Function extends C4Structure implements Serializable, ITypedDecla
 		setReturnType(type);
 	}
 
-	public C4Object getExpectedContent() {
+	public C4Object getObjectType() {
 		return expectedContent;
 	}
 	
-	public void setExpectedContent(C4Object object) {
+	public void setObjectType(C4Object object) {
 		expectedContent = object;
 	}
 	

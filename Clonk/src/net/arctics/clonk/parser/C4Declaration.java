@@ -177,7 +177,7 @@ public abstract class C4Declaration implements Serializable, IHasRelatedResource
 		if (parentDeclaration != null)
 			parentDeclaration = parentDeclaration.latestVersion();
 		if (parentDeclaration instanceof C4Structure)
-			return ((C4Structure)parentDeclaration).findDeclaration(getName());
+			return ((C4Structure)parentDeclaration).findLocalDeclaration(getName(), getClass());
 		return this;
 	}
 	

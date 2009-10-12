@@ -114,18 +114,18 @@ public class C4ScriptParser {
 		}
 	}
 	
-	private Stack<List<IStoredTypeInformation>> storedTypeInformationStack = new Stack<List<IStoredTypeInformation>>();
+	private Stack<List<IStoredTypeInformation>> storedTypeInformationListStack = new Stack<List<IStoredTypeInformation>>();
 	
 	public void beginTypeInferenceBlock() {
-		storedTypeInformationStack.push(new LinkedList<IStoredTypeInformation>());
+		storedTypeInformationListStack.push(new LinkedList<IStoredTypeInformation>());
 	}
 	
 	public List<IStoredTypeInformation> endTypeInferenceBlock() {
-		return storedTypeInformationStack.pop();
+		return storedTypeInformationListStack.pop();
 	}
 	
 	public void applyStoredTypeInformationList(boolean soft) {
-		for (IStoredTypeInformation info : storedTypeInformationStack.peek()) {
+		for (IStoredTypeInformation info : storedTypeInformationListStack.peek()) {
 			info.apply(soft);
 		}
 	}
@@ -147,28 +147,28 @@ public class C4ScriptParser {
 	 * @return the type information or null if none has been stored
 	 */
 	public IStoredTypeInformation requestStoredTypeInformation(ExprElm expression) {
-		if (storedTypeInformationStack.isEmpty())
+		if (storedTypeInformationListStack.isEmpty())
 			return null;
-		for (IStoredTypeInformation info : storedTypeInformationStack.peek()) {
+		for (IStoredTypeInformation info : storedTypeInformationListStack.peek()) {
 			if (info.expressionRelevant(expression))
 				return info;
 		}
 		IStoredTypeInformation newlyCreated = expression.createStoredTypeInformation();
 		if (newlyCreated != null)
-			storedTypeInformationStack.peek().add(newlyCreated);
+			storedTypeInformationListStack.peek().add(newlyCreated);
 		return newlyCreated;
 	}
 	
 	public List<IStoredTypeInformation> copyCurrentTypeInformationList() throws CloneNotSupportedException {
-		List<IStoredTypeInformation> list = new ArrayList<IStoredTypeInformation>(storedTypeInformationStack.peek().size());
-		for (IStoredTypeInformation info : storedTypeInformationStack.peek()) {
+		List<IStoredTypeInformation> list = new ArrayList<IStoredTypeInformation>(storedTypeInformationListStack.peek().size());
+		for (IStoredTypeInformation info : storedTypeInformationListStack.peek()) {
 			list.add((IStoredTypeInformation) info.clone());
 		}
 		return list;
 	}
 	
 	public void pushTypeInformationList(List<IStoredTypeInformation> list) {
-		storedTypeInformationStack.push(list);
+		storedTypeInformationListStack.push(list);
 	}
 	
 	/**
@@ -177,10 +177,10 @@ public class C4ScriptParser {
 	 * @return
 	 */
 	public IStoredTypeInformation queryStoredTypeInformation(ExprElm expression, boolean wholeStack) {
-		if (storedTypeInformationStack.isEmpty())
+		if (storedTypeInformationListStack.isEmpty())
 			return null;
-		for (int i = storedTypeInformationStack.size()-1, levels = wholeStack ? storedTypeInformationStack.size() : 1; levels > 0; levels--,i--) {
-			for (IStoredTypeInformation info : storedTypeInformationStack.get(i)) {
+		for (int i = storedTypeInformationListStack.size()-1, levels = wholeStack ? storedTypeInformationListStack.size() : 1; levels > 0; levels--,i--) {
+			for (IStoredTypeInformation info : storedTypeInformationListStack.get(i)) {
 				if (info.expressionRelevant(expression))
 					return info;
 			}
@@ -1747,7 +1747,7 @@ public class C4ScriptParser {
 	private Statement parseStatementAndMergeTypeInformation(int offset) throws ParsingException {
 		TypeInformationMerger merger = new TypeInformationMerger();
 		Statement s = parseStatementWithOwnTypeInferenceBlock(offset, merger);
-		storedTypeInformationStack.push(merger.finish(storedTypeInformationStack.pop()));
+		storedTypeInformationListStack.push(merger.finish(storedTypeInformationListStack.pop()));
 		return s;
 	}
 	
@@ -2231,7 +2231,7 @@ public class C4ScriptParser {
 			elseStatement = null;
 		}
 		// merge gathered type information with current list
-		storedTypeInformationStack.push(merger.finish(storedTypeInformationStack.pop()));
+		storedTypeInformationListStack.push(merger.finish(storedTypeInformationListStack.pop()));
 		result = new IfStatement(condition, ifStatement, elseStatement);
 		return result;
 	}

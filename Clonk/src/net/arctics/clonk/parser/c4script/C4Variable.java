@@ -1,6 +1,7 @@
 package net.arctics.clonk.parser.c4script;
 
 import java.io.Serializable;
+import java.lang.ref.WeakReference;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -9,6 +10,7 @@ import net.arctics.clonk.index.C4Object;
 import net.arctics.clonk.index.C4ObjectIntern;
 import net.arctics.clonk.index.ClonkIndex;
 import net.arctics.clonk.parser.C4Declaration;
+import net.arctics.clonk.parser.C4ID;
 import net.arctics.clonk.parser.C4Structure;
 import net.arctics.clonk.parser.c4script.C4ScriptExprTree.ExprElm;
 import net.arctics.clonk.resource.ClonkProjectNature;
@@ -35,7 +37,12 @@ public class C4Variable extends C4Declaration implements Serializable, ITypedDec
 	/**
 	 * mostly null - only set when type=object
 	 */
-	private transient C4Object expectedContent;
+	private transient WeakReference<C4Object> objectType;
+	
+	/**
+	 * persistent data used
+	 */
+	private C4ID objectID;
 	
 	/**
 	 * descriptive text meant for the user
@@ -75,7 +82,7 @@ public class C4Variable extends C4Declaration implements Serializable, ITypedDec
 	public C4Variable(String name, C4VariableScope scope) {
 		this.name = name;
 		this.scope = scope;
-		expectedContent = null;
+		objectType = null;
 		description = "";
 		type = null;
 	}
@@ -85,7 +92,7 @@ public class C4Variable extends C4Declaration implements Serializable, ITypedDec
 		this.type = type;
 		this.description = desc;
 		this.scope = scope;
-		expectedContent = null;
+		objectType = null;
 	}
 	
 	@Override
@@ -137,15 +144,20 @@ public class C4Variable extends C4Declaration implements Serializable, ITypedDec
 	/**
 	 * @return the expectedContent
 	 */
-	public C4Object getExpectedContent() {
-		return expectedContent;
+	public C4Object getObjectType() {
+		return objectType != null ? objectType.get() : null;
 	}
 
 	/**
-	 * @param expectedContent the expectedContent to set
+	 * @param objType the object type to set
 	 */
-	public void setExpectedContent(C4Object expectedContent) {
-		this.expectedContent = expectedContent;
+	public void setObjectType(C4Object objType) {
+		this.objectType = objType != null ? new WeakReference<C4Object>(objType) : null;
+		this.objectID = objType != null ? objType.getId() : null;
+	}
+
+	public C4ID getObjectID() {
+		return objectID;
 	}
 
 	/**
@@ -304,6 +316,9 @@ public class C4Variable extends C4Declaration implements Serializable, ITypedDec
 	public void postSerialize(C4Declaration parent) {
 		super.postSerialize(parent);
 		ensureTypeLockedIfPredefined(parent);
+		if (parent instanceof C4ScriptBase) {
+			setObjectType(((C4ScriptBase)parent).getIndex().getObjectNearestTo(parent.getResource(), objectID));
+		}
 	}
 	
 }

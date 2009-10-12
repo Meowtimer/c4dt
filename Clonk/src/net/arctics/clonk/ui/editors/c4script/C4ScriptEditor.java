@@ -6,6 +6,8 @@ import java.io.ByteArrayInputStream;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.ResourceBundle;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -17,6 +19,9 @@ import net.arctics.clonk.parser.c4script.C4Function;
 import net.arctics.clonk.parser.c4script.C4ScriptBase;
 import net.arctics.clonk.parser.c4script.C4ScriptExprTree;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
+import net.arctics.clonk.parser.c4script.C4Variable;
+import net.arctics.clonk.parser.c4script.IStoredTypeInformation;
+import net.arctics.clonk.parser.c4script.C4ScriptExprTree.AccessVar;
 import net.arctics.clonk.parser.c4script.C4ScriptExprTree.CallFunc;
 import net.arctics.clonk.parser.c4script.C4ScriptExprTree.ExprElm;
 import net.arctics.clonk.parser.ParsingException;
@@ -321,11 +326,25 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		InputStream scriptStream = new ByteArrayInputStream(documentBytes);
 		C4ScriptParser parser = new C4ScriptParser(scriptStream, Utilities.getScriptForEditor(this));
 		scriptStream.close();
+		List<IStoredTypeInformation> storedLocalsTypeInformation = null;
+		if (onlyDeclarations) {
+			storedLocalsTypeInformation = new LinkedList<IStoredTypeInformation>();
+			for (C4Variable v : Utilities.getScriptForEditor(this).variables()) {
+				IStoredTypeInformation info = v.getType() != null || v.getObjectType() != null ? AccessVar.createStoredTypeInformation(v) : null;
+				if (info != null)
+					storedLocalsTypeInformation.add(info);
+			}
+		}
 		parser.setExpressionListener(exprListener);
 		parser.clean();
 		parser.parseDeclarations();
 		if (!onlyDeclarations)
 			parser.parseCodeOfFunctions();
+		if (storedLocalsTypeInformation != null) {
+			for (IStoredTypeInformation info : storedLocalsTypeInformation) {
+				info.apply(false);
+			}
+		}
 		// make sure it's executed on the ui thread
 		Display.getDefault().asyncExec(new Runnable() {
 			public void run() {
