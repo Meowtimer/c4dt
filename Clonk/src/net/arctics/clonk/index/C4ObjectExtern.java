@@ -142,4 +142,9 @@ public class C4ObjectExtern extends C4Object implements ITreeNode, IExternalScri
 		return getNodeName();
 	}
 
+	@Override
+	public SimpleScriptStorage getSimpleStorage() {
+		return script;
+	}
+
 }

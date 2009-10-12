@@ -12,6 +12,7 @@ import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.index.C4Object;
 import net.arctics.clonk.index.C4ObjectExtern;
 import net.arctics.clonk.index.C4ObjectExternGroup;
+import net.arctics.clonk.index.IExternalScript;
 import net.arctics.clonk.parser.c4script.C4ScriptExtern;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.inireader.DefCoreUnit;
@@ -157,7 +158,7 @@ public class ClonkLibBuilder implements IC4GroupVisitor, IPropertyChangeListener
 						defCoreWrapper.parse(false);
 						C4ObjectExtern obj = new C4ObjectExtern(defCoreWrapper.getObjectID(), defCoreWrapper.getName(), script, currentExternNode);
 						currentExternNode = obj; nodeGroup = group;
-						C4ScriptParser parser = new C4ScriptParser(script.getContents(),obj);
+						C4ScriptParser parser = new C4ScriptParser((IExternalScript)obj);
 						// we only need declarations
 						parser.clean();
 						parser.parseDeclarations();
@@ -167,8 +168,6 @@ public class ClonkLibBuilder implements IC4GroupVisitor, IPropertyChangeListener
 						for (C4GroupEntry descEntry : descEntries) {
 							obj.addDesc(descEntry.getName().substring("Desc".length(), "Desct".length()+1), descEntry.getContentsAsString());
 						}
-					} catch (CoreException e) {
-						e.printStackTrace();
 					} catch (IOException e) {
 						e.printStackTrace();
 					}

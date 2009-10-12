@@ -15,6 +15,7 @@ import java.util.Vector;
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.index.C4Object;
 import net.arctics.clonk.index.ClonkIndex;
+import net.arctics.clonk.index.IExternalScript;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.SilentParsingException;
 import net.arctics.clonk.parser.BufferedScanner;
@@ -278,6 +279,12 @@ public class C4ScriptParser {
 		scriptFile = null;
 		fReader = new BufferedScanner(stream);
 		container = script;
+	}
+	
+	public C4ScriptParser(IExternalScript externalScript) {
+		scriptFile = null;
+		fReader = new BufferedScanner(externalScript.getSimpleStorage().getContentsAsString());
+		container = (C4ScriptBase) externalScript;
 	}
 	
 	/**

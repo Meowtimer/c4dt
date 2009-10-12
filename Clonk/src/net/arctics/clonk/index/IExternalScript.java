@@ -1,5 +1,6 @@
 package net.arctics.clonk.index;
 
+import net.arctics.clonk.parser.SimpleScriptStorage;
 import net.arctics.clonk.resource.ExternalLib;
 
 /**
@@ -7,4 +8,5 @@ import net.arctics.clonk.resource.ExternalLib;
  */
 public interface IExternalScript {
 	ExternalLib getExternalLib();
+	SimpleScriptStorage getSimpleStorage();
 }

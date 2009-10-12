@@ -51,4 +51,9 @@ public class C4ScriptExtern extends C4ScriptBase implements IExternalScript {
 		return externalLib;
 	}
 
+	@Override
+	public SimpleScriptStorage getSimpleStorage() {
+		return scriptStorage;
+	}
+
 }
