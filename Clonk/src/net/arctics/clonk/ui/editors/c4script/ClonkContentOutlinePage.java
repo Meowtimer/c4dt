@@ -29,6 +29,13 @@ public class ClonkContentOutlinePage extends ContentOutlinePage {
 		}
 	}
 
+	private static final ViewerSorter DECLARATION_SORTER = new ViewerSorter() {
+		@Override
+		public int category(Object element) {
+			return ((C4Declaration)element).sortCategory();
+		}
+	};
+	
 	private void setTreeViewerInput(C4Declaration obj) {
 		TreeViewer treeViewer = this.getTreeViewer();
 		if (treeViewer == null)
@@ -36,13 +43,8 @@ public class ClonkContentOutlinePage extends ContentOutlinePage {
 		ClonkOutlineProvider provider = new ClonkOutlineProvider();
 		treeViewer.setLabelProvider(provider);
 		treeViewer.setContentProvider(provider);
+		treeViewer.setSorter(DECLARATION_SORTER);
 		treeViewer.setInput(obj);
-		treeViewer.setSorter(new ViewerSorter() {
-			@Override
-			public int category(Object element) {
-				return ((C4Declaration)element).sortCategory();
-			}
-		});
 		treeViewer.refresh();
 	}
 
@@ -70,8 +72,9 @@ public class ClonkContentOutlinePage extends ContentOutlinePage {
 	}
 
 	public void refresh() {
-		if (getTreeViewer().getInput() == null)
-			setTreeViewerInput(getEditor().getTopLevelDeclaration());
+		C4Declaration newInput = getEditor().getTopLevelDeclaration();
+		if (getTreeViewer().getInput() != newInput)
+			setTreeViewerInput(newInput);
 		else
 			getTreeViewer().refresh();
 	}
@@ -88,6 +91,10 @@ public class ClonkContentOutlinePage extends ContentOutlinePage {
 	
 	public void setInput(Object input) {
 		getTreeViewer().setInput(input);
+	}
+
+	public void clear() {
+		getTreeViewer().setInput(null);
 	}
 	
 }

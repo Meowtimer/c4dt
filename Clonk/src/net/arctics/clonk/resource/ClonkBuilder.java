@@ -48,6 +48,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 
 	private int buildPhase;
 	private IProgressMonitor monitor;
+	private boolean cleanedUI;
 
 	// keeps track of parsers created for specific scripts
 	private Map<C4ScriptBase, C4ScriptParser> parserMap = new HashMap<C4ScriptBase, C4ScriptParser>();
@@ -66,7 +67,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 	protected void clean(IProgressMonitor monitor) throws CoreException {
 		// clean external libs - this does not rebuild
 		ClonkCore.getDefault().getLibBuilder().clean();
-
+		
 		// clean up this project
 		if (monitor != null) monitor.beginTask("Cleaning up", 1);
 		IProject proj = this.getProject();
@@ -88,13 +89,22 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 			monitor.worked(1);
 			monitor.done();
 		}
-		System.gc();
 	}
 
 	@SuppressWarnings("unchecked")
 	protected IProject[] build(int kind, Map args, IProgressMonitor monitor)
 	throws CoreException {
 		parserMap.clear();
+		synchronized (this) {
+			clearUIOfReferencesBeforeBuild();
+			while (!cleanedUI)
+				try {
+					wait();
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+		}
+		
 		try {
 			try {
 				this.monitor = monitor;
@@ -125,7 +135,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 						delta.getResource().touch(monitor);
 
 						// refresh global func and static var cache
-						Utilities.getClonkNature(proj).getIndex().refreshCache();
+						//Utilities.getClonkNature(proj).getIndex().refreshCache();
 					}
 					break;
 
@@ -204,7 +214,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 				}
 				monitor.subTask("Save data");
 
-				// mark as dirty so it will be saved when eclipse is shut down
+				// mark index as dirty so it will be saved when eclipse is shut down
 				Utilities.getClonkNature(proj).markAsDirty();
 
 				monitor.done();
@@ -222,6 +232,30 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 		}
 	}
 
+	private void clearUIOfReferencesBeforeBuild() {
+		cleanedUI = false;
+		final ClonkBuilder builder = this;
+		Display.getDefault().asyncExec(new Runnable() {
+			@Override
+			public void run() {
+				IWorkbench w = PlatformUI.getWorkbench();
+				if (w == null || w.getActiveWorkbenchWindow() == null || w.getActiveWorkbenchWindow().getActivePage() == null)
+					return;
+				IWorkbenchPage page = w.getActiveWorkbenchWindow().getActivePage();
+				for (IEditorReference ref : page.getEditorReferences()) {
+					IEditorPart part = ref.getEditor(false);
+					if (part != null && part instanceof ClonkTextEditor) {
+						((ClonkTextEditor)part).clearOutline();
+					}
+				}
+				cleanedUI = true;
+				synchronized (builder) {
+					builder.notify();
+				}
+			}
+		});
+	}
+	
 	private void refreshUIAfterBuild() {
 		// refresh outlines
 		Display.getDefault().asyncExec(new Runnable() {

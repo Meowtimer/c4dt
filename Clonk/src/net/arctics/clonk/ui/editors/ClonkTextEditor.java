@@ -45,6 +45,11 @@ public class ClonkTextEditor extends TextEditor {
 		this.selectAndReveal(location.getOffset(), location.getLength());
 	}
 	
+	public void clearOutline() {
+		if (outlinePage != null)
+			outlinePage.clear();
+	}
+	
 	public void refreshOutline() {
 		if (outlinePage != null) // don't start lazy loading of outlinePage
 			outlinePage.refresh();

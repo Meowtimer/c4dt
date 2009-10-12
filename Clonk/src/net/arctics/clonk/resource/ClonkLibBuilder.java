@@ -166,7 +166,7 @@ public class ClonkLibBuilder implements IC4GroupVisitor, IPropertyChangeListener
 						if (names != null)
 							obj.readNames(names.getContentsAsString());
 						for (C4GroupEntry descEntry : descEntries) {
-							obj.addDesc(descEntry.getName().substring("Desc".length(), "Desct".length()+1), descEntry.getContentsAsString());
+							obj.addDesc(descEntry.getName().substring("Desc".length(), "Desc".length()+2), descEntry.getContentsAsString());
 						}
 					} catch (IOException e) {
 						e.printStackTrace();
