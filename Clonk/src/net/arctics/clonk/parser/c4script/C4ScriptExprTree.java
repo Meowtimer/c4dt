@@ -627,6 +627,8 @@ public abstract class C4ScriptExprTree {
 
 			@Override
 			public void apply(boolean soft) {
+				if (decl == null)
+					return;
 				decl = decl.latestVersion(); 
 				if (decl instanceof C4Variable) {
 					C4Variable var = (C4Variable) decl;
