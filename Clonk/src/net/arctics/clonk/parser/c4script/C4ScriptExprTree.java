@@ -994,7 +994,7 @@ public abstract class C4ScriptExprTree {
 			}
 			
 			// ObjectCall(ugh, "UghUgh", 5) -> ugh->UghUgh(5)
-			if (params.length >= 2 && declaration == CachedEngineFuncs.ObjectCall && params[1] instanceof StringLiteral && !this.containedInLoopHeader() && !params[0].hasSideEffects()) {
+			if (params.length >= 2 && declaration == CachedEngineFuncs.ObjectCall && params[1] instanceof StringLiteral && !this.containedInLoopHeaderOrNotStandaloneExpression() && !params[0].hasSideEffects()) {
 				ExprElm[] parmsWithoutObject = new ExprElm[params.length-2];
 				for (int i = 0; i < parmsWithoutObject.length; i++)
 					parmsWithoutObject[i] = params[i+2].newStyleReplacement(parser);
@@ -1045,11 +1045,11 @@ public abstract class C4ScriptExprTree {
 			return super.newStyleReplacement(parser);
 		}
 		
-		private boolean containedInLoopHeader() {
+		private boolean containedInLoopHeaderOrNotStandaloneExpression() {
 			for (ExprElm p = getParent(); p != null; p = p.getParent()) {
 				if (p instanceof Block)
 					break;
-				if (p instanceof ILoop)
+				if (p instanceof ILoop || !(p instanceof Statement))
 					return true;
 			} 
 			return false;
