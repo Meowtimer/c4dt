@@ -65,7 +65,7 @@ public class C4ScriptParser {
 	}
 
 	private BufferedScanner fReader;
-	private IFile fScript; // for project intern files
+	private IFile scriptFile; // for project intern files
 	private C4ScriptBase container;
 	private C4Function activeFunc;
 	private int strictLevel;
@@ -261,8 +261,8 @@ public class C4ScriptParser {
 	 * @throws CompilerException
 	 */
 	public C4ScriptParser(IFile scriptFile, C4ScriptBase script) {
-		fScript = scriptFile;
-		fReader = new BufferedScanner(fScript);
+		this.scriptFile = scriptFile;
+		fReader = new BufferedScanner(scriptFile);
 		container = script;
 	}
 
@@ -275,7 +275,7 @@ public class C4ScriptParser {
 	 * @throws CompilerException
 	 */
 	public C4ScriptParser(InputStream stream, C4ScriptBase script) {
-		fScript = null;
+		scriptFile = null;
 		fReader = new BufferedScanner(stream);
 		container = script;
 	}
@@ -286,7 +286,7 @@ public class C4ScriptParser {
 	 * @param script
 	 */
 	public C4ScriptParser(String withString, C4ScriptBase script) {
-		fScript = null;
+		scriptFile = null;
 		fReader = new BufferedScanner(withString);
 		container = script;
 	}
@@ -1184,7 +1184,7 @@ public class C4ScriptParser {
 		if (errorDisabled(code))
 			return;
 		String problem = code.getErrorString(args);
-		boolean silence = fScript == null || (activeFunc != null && activeFunc.getBody() != null && fReader.getPosition() > activeFunc.getBody().getEnd()+1);
+		boolean silence = scriptFile == null || (activeFunc != null && activeFunc.getBody() != null && fReader.getPosition() > activeFunc.getBody().getEnd()+1);
 		if (!silence) {
 			IMarker marker = createMarker(errorStart, errorEnd, problem, severity);
 			ParserErrorCode.setErrorCode(marker, code);
@@ -2358,9 +2358,9 @@ public class C4ScriptParser {
 	}
 	
 	private IMarker createMarker(int start, int end, String message, int severity) {
-		if (fScript == null) return null;
+		if (scriptFile == null) return null;
 		try {
-			IMarker marker = fScript.createMarker(ClonkCore.MARKER_C4SCRIPT_ERROR);
+			IMarker marker = scriptFile.createMarker(ClonkCore.MARKER_C4SCRIPT_ERROR);
 			marker.setAttribute(IMarker.SEVERITY, severity);
 			marker.setAttribute(IMarker.TRANSIENT, false);
 			marker.setAttribute(IMarker.MESSAGE, message);
@@ -2376,8 +2376,8 @@ public class C4ScriptParser {
 	public void clean() {
 		synchronized (container) {
 			try {
-				if (fScript != null)
-					fScript.deleteMarkers(IMarker.PROBLEM, true, IResource.DEPTH_ONE);
+				if (scriptFile != null)
+					scriptFile.deleteMarkers(IMarker.PROBLEM, true, IResource.DEPTH_ONE);
 			} catch (CoreException e1) {
 				e1.printStackTrace();
 			}

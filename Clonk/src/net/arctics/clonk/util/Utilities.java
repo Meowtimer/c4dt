@@ -77,6 +77,7 @@ import org.eclipse.ui.console.IConsoleManager;
 import org.eclipse.ui.console.IConsoleView;
 import org.eclipse.ui.console.MessageConsole;
 import org.eclipse.ui.console.MessageConsoleStream;
+import org.eclipse.ui.editors.text.TextFileDocumentProvider;
 import org.eclipse.ui.ide.IDE;
 import org.eclipse.ui.navigator.CommonNavigator;
 import org.eclipse.ui.navigator.CommonViewer;
@@ -575,12 +576,9 @@ public abstract class Utilities {
 	}
 	
 	public static String stringFromFile(IFile file) throws IOException, CoreException {
-		InputStream stream = file.getContents();
-		try {
-			return stringFromInputStream(stream);
-		} finally {
-			stream.close();
-		}
+		TextFileDocumentProvider provider = ClonkCore.getDefault().getTextFileDocumentProvider();
+		provider.connect(file);
+		return provider.getDocument(file).get();
 	}
 
 	public static CommonNavigator getProjectExplorer() {

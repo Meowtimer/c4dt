@@ -320,10 +320,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 
 	public C4ScriptParser reparseWithDocumentContents(C4ScriptExprTree.IExpressionListener exprListener, boolean onlyDeclarations) throws IOException, ParsingException {
 		IDocument document = getDocumentProvider().getDocument(getEditorInput());
-		byte[] documentBytes = document.get().getBytes();
-		InputStream scriptStream = new ByteArrayInputStream(documentBytes);
-		C4ScriptParser parser = new C4ScriptParser(scriptStream, Utilities.getScriptForEditor(this));
-		scriptStream.close();
+		C4ScriptParser parser = new C4ScriptParser(document.get(), Utilities.getScriptForEditor(this));
 		List<IStoredTypeInformation> storedLocalsTypeInformation = null;
 		if (onlyDeclarations) {
 			storedLocalsTypeInformation = new LinkedList<IStoredTypeInformation>();
