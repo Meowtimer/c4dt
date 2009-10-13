@@ -146,7 +146,7 @@ public class IniSourceViewerConfiguration extends ClonkSourceViewerConfiguration
 				}
 				return null;
 			} catch (BadLocationException e) {
-				e.printStackTrace();
+				//e.printStackTrace(); oh well
 				return null;
 			}
 		}

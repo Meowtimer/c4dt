@@ -133,6 +133,8 @@ public class C4ScriptEditor extends ClonkTextEditor {
 
 		private void scheduleReparsing() {
 			cancel();
+			if (scriptBeingEdited() == null)
+				return;
 			reparseTimer.schedule(reparseTask = new TimerTask() {
 				@Override
 				public void run() {
@@ -187,7 +189,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 	}
 	
 	private void markScriptAsDirty() {
-		Utilities.getScriptForEditor(this).setDirty(true);
+		scriptBeingEdited().setDirty(true);
 	}
 	
 	@Override
@@ -256,7 +258,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 	@Override
 	protected void editorContextMenuAboutToShow(IMenuManager menu) {
 		super.editorContextMenuAboutToShow(menu);
-		if (Utilities.getScriptForEditor(this).isEditable()) {
+		if (scriptBeingEdited().isEditable()) {
 			addAction(menu, IClonkCommandIds.CONVERT_OLD_CODE_TO_NEW_CODE);
 			addAction(menu, IClonkCommandIds.RENAME_FIELD);
 		}
@@ -316,12 +318,14 @@ public class C4ScriptEditor extends ClonkTextEditor {
 	}
 
 	public C4ScriptParser reparseWithDocumentContents(C4ScriptExprTree.IExpressionListener exprListener, boolean onlyDeclarations) throws IOException, ParsingException {
+		if (scriptBeingEdited() == null)
+			return null;
 		IDocument document = getDocumentProvider().getDocument(getEditorInput());
-		C4ScriptParser parser = new C4ScriptParser(document.get(), Utilities.getScriptForEditor(this));
+		C4ScriptParser parser = new C4ScriptParser(document.get(), scriptBeingEdited());
 		List<IStoredTypeInformation> storedLocalsTypeInformation = null;
 		if (onlyDeclarations) {
 			storedLocalsTypeInformation = new LinkedList<IStoredTypeInformation>();
-			for (C4Variable v : Utilities.getScriptForEditor(this).variables()) {
+			for (C4Variable v : scriptBeingEdited().variables()) {
 				IStoredTypeInformation info = v.getType() != null || v.getObjectType() != null ? AccessVar.createStoredTypeInformation(v) : null;
 				if (info != null)
 					storedLocalsTypeInformation.add(info);

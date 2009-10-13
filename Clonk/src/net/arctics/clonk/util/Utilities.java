@@ -492,6 +492,7 @@ public abstract class Utilities {
 
 	public static IRegion wordRegionAt(CharSequence line, int relativeOffset) {
 		int start, end;
+		relativeOffset = clamp(relativeOffset, 0, line.length()-1);
 		start = end = relativeOffset;
 		for (int s = relativeOffset; s >= 0 && BufferedScanner.isWordPart(line.charAt(s)); s--)
 			start = s;
@@ -500,6 +501,15 @@ public abstract class Utilities {
 		return new Region(start, end-start+1);
 	}
 	
+	private static int clamp(int value, int min, int max) {
+		if (value < min)
+			return min;
+		else if (value > max)
+			return max;
+		else
+			return value;
+	}
+
 	public static void refreshClonkProjects(IProgressMonitor monitor) throws CoreException {
 		IProject[] projects = ResourcesPlugin.getWorkspace().getRoot().getProjects();
 		if (monitor != null)
