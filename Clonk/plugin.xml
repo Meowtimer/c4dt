@@ -266,10 +266,10 @@
 			name="Open Object" />
 		
 		<command categoryId="org.eclipse.ui.category.navigate"
-			description="Open a file of the current definition"
+			description="Open a file in the same folder as the one you currently edit"
 			id="net.arctics.clonk.ui.OpenLocalResource"
 			defaultHandler="net.arctics.clonk.ui.editors.actions.c4script.OpenLocalResourceAction"
-			name="Open Definition File" />
+			name="Open Related File" />
 		
 		<command categoryId="org.eclipse.ui.category.navigate"
 			description="Export the selected resources to the Clonk folder"
