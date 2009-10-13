@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<feature
+      id="net.arctics.clonk.c4dtFeature"
+      label="Clonk Development Tools"
+      version="1.5.0.8">
+
+   <description url="http://www.example.com/description">
+      Clonk Development Tools for Eclipse.
+==Changes==
+1.5.0.3:
+-Make Quick Export work again on Windows/Linux
+1.5.0.4:
+-Add Quick Import Action
+-Propose constants in ini files for entries like &quot;Category&quot;
+-Open documentation in browser when trying to get to the definition
+of an engine defined declaration
+-Converting old code in bulk (from the project explorer context
+menu) now shows a progress bar
+1.5.0.5:
+-Warn when referencing unused StringTbl entries
+-Preference for the documentation URL template
+-Encoding preference for external scripts
+1.5.0.6:
+-Preferred language field editor is now combo 
+-Don&apos;t warn about missing string tbl entries in #appendto scripts
+-Put New Wizards into Clonk category 
+-Add some missing entries for various configuration files
+-Fix some wrong parameters of engine functions
+-Return as function warning is now an error, but only in #strict
+2 mode
+-Implicit variable declaration in for (e in a) {...} loops
+1.5.0.7:
+Fix
+1.5.0.8:
+-Fixes
+-UTF-8 encoded script handling
+-Attempts to retain type information for variables so that content assist is more helpful
+   </description>
+
+   <copyright url="http://www.example.com/copyright">
+      It is copyrighted I guess.
+   </copyright>
+
+   <license url="http://bitbucket.org/mortimer/c4dt/raw/83d238849769/licenses/isc_license.txt">
+      Permission to use, copy, modify, and/or distribute this software
+for any
+purpose with or without fee is hereby granted, provided that
+the above
+copyright notice and this permission notice appear in all copies.
+THE SOFTWARE IS PROVIDED &quot;AS IS&quot; AND THE AUTHOR DISCLAIMS ALL
+WARRANTIES
+WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES
+OF
+MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE
+LIABLE FOR
+ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY
+DAMAGES
+WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER
+IN AN
+ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING
+OUT OF
+OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+   </license>
+
+   <requires>
+      <import plugin="org.eclipse.core.databinding" version="1.2.0" match="compatible"/>
+      <import plugin="org.eclipse.core.expressions" version="3.4.100"/>
+      <import plugin="org.eclipse.core.resources" version="3.5.0"/>
+      <import plugin="org.eclipse.core.runtime" version="3.5.0"/>
+      <import plugin="org.eclipse.debug.core" version="3.5.0"/>
+      <import plugin="org.eclipse.debug.ui" version="3.5.0"/>
+      <import plugin="org.eclipse.jface.text" version="3.5.0"/>
+      <import plugin="org.eclipse.ltk.core.refactoring" version="3.5.0"/>
+      <import plugin="org.eclipse.ltk.ui.refactoring" version="3.4.100"/>
+      <import plugin="org.eclipse.osgi.services" version="3.2.0"/>
+      <import plugin="org.eclipse.search" version="3.5.0"/>
+      <import plugin="org.eclipse.ui" version="3.5.0"/>
+      <import plugin="org.eclipse.ui.console" version="3.4.0"/>
+      <import plugin="org.eclipse.ui.editors" version="3.5.0"/>
+      <import plugin="org.eclipse.ui.forms" version="3.4.0"/>
+      <import plugin="org.eclipse.ui.ide" version="3.5.0"/>
+      <import plugin="org.eclipse.ui.navigator" version="3.4.0"/>
+      <import plugin="org.eclipse.ui.views" version="3.4.0"/>
+      <import plugin="org.eclipse.swt" version="3.4.0"/>
+   </requires>
+
+   <plugin
+         id="net.arctics.clonk"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+
+</feature>
