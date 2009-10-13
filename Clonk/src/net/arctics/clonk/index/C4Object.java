@@ -14,9 +14,6 @@ import net.arctics.clonk.parser.c4script.FindDeclarationInfo;
 
 public abstract class C4Object extends C4ScriptBase {
 
-	/**
-	 * 
-	 */
 	private static final long serialVersionUID = 1L;
 	
 	/**
@@ -28,6 +25,11 @@ public abstract class C4Object extends C4ScriptBase {
 	 * id of the object
 	 */
 	protected C4ID id;
+	
+	/**
+	 * Template to construct the info text of an object definition from
+	 */
+	public static final String INFO_TEXT_TEMPLATE = "<b>%s</b>: %s<br><br><b>Declared in:</b><br>%s";
 	
 	/**
 	 * Creates a new C4Object

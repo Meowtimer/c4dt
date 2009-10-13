@@ -238,19 +238,23 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 		Display.getDefault().asyncExec(new Runnable() {
 			@Override
 			public void run() {
-				IWorkbench w = PlatformUI.getWorkbench();
-				if (w == null || w.getActiveWorkbenchWindow() == null || w.getActiveWorkbenchWindow().getActivePage() == null)
-					return;
-				IWorkbenchPage page = w.getActiveWorkbenchWindow().getActivePage();
-				for (IEditorReference ref : page.getEditorReferences()) {
-					IEditorPart part = ref.getEditor(false);
-					if (part != null && part instanceof ClonkTextEditor) {
-						((ClonkTextEditor)part).clearOutline();
+				try {
+					IWorkbench w = PlatformUI.getWorkbench();
+					if (w != null && w.getActiveWorkbenchWindow() != null && w.getActiveWorkbenchWindow().getActivePage() != null) {
+						IWorkbenchPage page = w.getActiveWorkbenchWindow().getActivePage();
+						for (IEditorReference ref : page.getEditorReferences()) {
+							IEditorPart part = ref.getEditor(false);
+							if (part != null && part instanceof ClonkTextEditor) {
+								((ClonkTextEditor)part).clearOutline();
+							}
+						}
 					}
 				}
-				cleanedUI = true;
-				synchronized (builder) {
-					builder.notify();
+				finally {
+					cleanedUI = true;
+					synchronized (builder) {
+						builder.notify();
+					}
 				}
 			}
 		});

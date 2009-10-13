@@ -157,7 +157,8 @@ public class C4ObjectIntern extends C4Object implements Serializable {
 	
 	@Override
 	public String getInfoText() {
-		return getName() + ": " + super.getInfoText();
+		return String.format(INFO_TEXT_TEMPLATE, getName(), super.getInfoText(), getObjectFolder().getFullPath().toOSString());
+		//return getName() + ": " + super.getInfoText();
 	}
 
 	// for processing files whose contents won't be saved in a separate c4structure thingie
