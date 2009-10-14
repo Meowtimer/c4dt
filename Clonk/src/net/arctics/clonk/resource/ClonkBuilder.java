@@ -62,6 +62,24 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 	public void worked(int count) {
 		monitor.worked(count);
 	}
+	
+	private class ResourceCounterAndCleaner extends ResourceCounter {
+		public ResourceCounterAndCleaner(int countFlags) {
+			super(countFlags);
+		}
+		@Override
+		public boolean visit(IResource resource) throws CoreException {
+			if (resource instanceof IContainer) {
+				C4ObjectIntern obj = C4ObjectIntern.objectCorrespondingTo((IContainer) resource);
+				if (obj != null)
+					obj.setObjectFolder(null);
+			}
+			else if (resource instanceof IFile) {
+				C4Structure.unPinFrom((IFile) resource);
+			}
+			return super.visit(resource);
+		}
+	}
 
 	@Override
 	protected void clean(IProgressMonitor monitor) throws CoreException {
@@ -73,17 +91,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 		IProject proj = this.getProject();
 		if (proj != null) {
 			Utilities.getClonkNature(proj).getIndex().clear();
-			proj.accept(new IResourceVisitor() {
-				public boolean visit(IResource resource) throws CoreException {
-					if (resource.getSessionProperty(ClonkCore.C4OBJECT_PROPERTY_ID) != null) {
-						resource.setSessionProperty(ClonkCore.C4OBJECT_PROPERTY_ID, null);
-					}
-					if (resource.getSessionProperty(ClonkCore.C4STRUCTURE_PROPERTY_ID) != null) {
-						resource.setSessionProperty(ClonkCore.C4STRUCTURE_PROPERTY_ID, null);
-					}
-					return resource instanceof IContainer;
-				}
-			});
+			proj.accept(new ResourceCounterAndCleaner(0));
 		}
 		if (monitor != null) {
 			monitor.worked(1);
@@ -104,6 +112,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 					e.printStackTrace();
 				}
 		}
+		System.gc();
 		
 		try {
 			try {
@@ -119,7 +128,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 					if (delta != null) {
 
 						// count num of resources to build
-						ResourceCounter counter = new ResourceCounter(ResourceCounter.COUNT_CONTAINER);
+						ResourceCounterAndCleaner counter = new ResourceCounterAndCleaner(ResourceCounter.COUNT_CONTAINER);
 						delta.accept(counter);
 
 						// initialize progress monitor

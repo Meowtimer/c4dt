@@ -38,13 +38,13 @@ public class ConvertOldCodeInBulkAction extends Action {
 	ConvertOldCodeInBulkAction(String text) {
 		super(text);
 	}
-	
+
 	@Override
 	public boolean isEnabled() {
 		IStructuredSelection sel = (IStructuredSelection) PlatformUI.getWorkbench().getActiveWorkbenchWindow().getSelectionService().getSelection();
 		return Utilities.allInstanceOf(sel.toArray(), IResource.class);
 	}
-	
+
 	private int counter;
 
 	@Override
@@ -123,19 +123,22 @@ public class ConvertOldCodeInBulkAction extends Action {
 														e1.printStackTrace();
 													}
 													textFileDocProvider.connect(file);
-													IDocument document = textFileDocProvider.getDocument(file);
-													
-													if (document != null)
-														ConvertOldCodeToNewCodeAction.runOnDocument(parser, new TextSelection(document, 0, 0), document, statements);
-
 													try {
-														textFileDocProvider.setEncoding(document, textFileDocProvider.getDefaultEncoding());
-														textFileDocProvider.saveDocument(null, file, document, true);
-													} catch (CoreException e) {
-														e.printStackTrace();
-														failedSaves.add(file);
+														IDocument document = textFileDocProvider.getDocument(file);
+
+														if (document != null)
+															ConvertOldCodeToNewCodeAction.runOnDocument(parser, new TextSelection(document, 0, 0), document, statements);
+
+														try {
+															textFileDocProvider.setEncoding(document, textFileDocProvider.getDefaultEncoding());
+															textFileDocProvider.saveDocument(null, file, document, true);
+														} catch (CoreException e) {
+															e.printStackTrace();
+															failedSaves.add(file);
+														}
+													} finally {
+														textFileDocProvider.disconnect(file);
 													}
-													textFileDocProvider.disconnect(file);
 													monitor.worked(1);
 												}
 											}

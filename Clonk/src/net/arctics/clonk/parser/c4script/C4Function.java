@@ -24,7 +24,7 @@ public class C4Function extends C4Structure implements Serializable, ITypedDecla
 	private boolean isCallback;
 	private boolean isOldStyle;
 	private SourceLocation body, header;
-	private transient C4Object expectedContent;
+	//private transient C4Object expectedContent;
 
 	public C4Function(String name, C4Type type, C4Variable... pars) {
 		this.name = name;
@@ -408,11 +408,11 @@ public class C4Function extends C4Structure implements Serializable, ITypedDecla
 	}
 
 	public C4Object getObjectType() {
-		return expectedContent;
+		return null;
 	}
 	
 	public void setObjectType(C4Object object) {
-		expectedContent = object;
+		//expectedContent = object;
 	}
 	
 	/**

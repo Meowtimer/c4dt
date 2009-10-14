@@ -25,14 +25,14 @@ public class C4ScriptMarkerResolution implements IMarkerResolution, IMarkerResol
 	private String description;
 	private Image image;
 	private IRegion region;
-	
+
 	public C4ScriptMarkerResolution(IMarker marker) {
 		this.label = "Fix " + marker.getAttribute(IMarker.MESSAGE, "Mysterious");
 		this.description = "Automated fix";
 		int charStart = marker.getAttribute(IMarker.CHAR_START, 0), charEnd = marker.getAttribute(IMarker.CHAR_END, 0);
 		this.region = new Region(charStart, charEnd-charStart);
 	}
-	
+
 	public String getLabel() {
 		return label;
 	}
@@ -42,27 +42,32 @@ public class C4ScriptMarkerResolution implements IMarkerResolution, IMarkerResol
 		C4Function func = script.funcAt(region.getOffset()); 
 		ExpressionLocator locator = new ExpressionLocator(region.getOffset()-func.getBody().getOffset());
 		TextFileDocumentProvider provider = ClonkCore.getDefault().getTextFileDocumentProvider();
+		IDocument doc = null;
 		try {
 			provider.connect(marker.getResource());
 		} catch (CoreException e1) {
 			e1.printStackTrace();
 			return;
 		}
-		IDocument doc = provider.getDocument(marker.getResource());
-		C4ScriptParser parser;
 		try {
-			parser = C4ScriptParser.reportExpressionsAndStatements(doc, func.getBody(), script, func, locator);
-		} catch (Exception e) {
-			e.printStackTrace();
-			return;
-		}
-		ExprElm expr = locator.getTopLevelInRegion();
-		if (expr != null) {
+			doc = provider.getDocument(marker.getResource());
+			C4ScriptParser parser;
 			try {
-				doc.replace(expr.getOffset()+func.getBody().getOffset(), expr.getLength(), expr.exhaustiveNewStyleReplacement(parser).toString());
+				parser = C4ScriptParser.reportExpressionsAndStatements(doc, func.getBody(), script, func, locator);
 			} catch (Exception e) {
 				e.printStackTrace();
+				return;
 			}
+			ExprElm expr = locator.getTopLevelInRegion();
+			if (expr != null) {
+				try {
+					doc.replace(expr.getOffset()+func.getBody().getOffset(), expr.getLength(), expr.exhaustiveNewStyleReplacement(parser).toString());
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+		} finally {
+			provider.disconnect(doc);
 		}
 	}
 

@@ -584,11 +584,15 @@ public abstract class Utilities {
 		}
 		return stringBuilder.toString();
 	}
-	
+
 	public static String stringFromFile(IFile file) throws IOException, CoreException {
 		TextFileDocumentProvider provider = ClonkCore.getDefault().getTextFileDocumentProvider();
 		provider.connect(file);
-		return provider.getDocument(file).get();
+		try {
+			return provider.getDocument(file).get();
+		} finally {
+			provider.disconnect(file);
+		}
 	}
 
 	public static CommonNavigator getProjectExplorer() {

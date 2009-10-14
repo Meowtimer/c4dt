@@ -90,6 +90,19 @@ public abstract class C4Structure extends C4Declaration {
 	}
 	
 	/**
+	 * Remove the structure pinned to the given file
+	 * @param file the file to remove the reference from
+	 * @return the previously pinned structure or null if there was none 
+	 * @throws CoreException
+	 */
+	public static C4Structure unPinFrom(IFile file) throws CoreException {
+		C4Structure pinned = pinned(file, false);
+		if (pinned != null)
+			file.setSessionProperty(ClonkCore.C4STRUCTURE_PROPERTY_ID, null);
+		return pinned;
+	}
+	
+	/**
 	 * Gives a hint whether this structure is in some way out of sync with the file it's defined in
 	 * @return true if out of sync, false if not
 	 */

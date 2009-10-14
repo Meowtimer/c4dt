@@ -32,32 +32,18 @@ public class ResourceCounter implements IResourceVisitor, IResourceDeltaVisitor 
 		if ((flags & COUNT_CONTAINER) > 0) {
 			if (resource instanceof IContainer) {
 				count++;
-				return true;
 			}
 		}
 		if ((flags & COUNT_FILE) > 0) {
 			if (resource instanceof IFile) {
 				count++;
-				return false;
 			}
 		}
-		return false;
+		return true;
 	}
 
 	public boolean visit(IResourceDelta delta) throws CoreException {
-		if ((flags & COUNT_CONTAINER) > 0) {
-			if (delta.getResource() instanceof IContainer) {
-				count++;
-				return true;
-			}
-		}
-		if ((flags & COUNT_FILE) > 0) {
-			if (delta.getResource() instanceof IFile) {
-				count++;
-				return false;
-			}
-		}
-		return false;
+		return visit(delta.getResource());
 	}
 
 }
