@@ -94,6 +94,12 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 			}
 			return super.visit(resource);
 		}
+		@Override
+		public boolean visit(IResourceDelta delta) throws CoreException {
+			if (delta.getKind() == IResourceDelta.CHANGED)
+				return super.visit(delta);
+			return true;
+		}
 	}
 
 	@Override
