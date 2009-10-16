@@ -316,8 +316,10 @@ public class C4Variable extends C4Declaration implements Serializable, ITypedDec
 	public void postSerialize(C4Declaration parent) {
 		super.postSerialize(parent);
 		ensureTypeLockedIfPredefined(parent);
-		if (parent instanceof C4ScriptBase) {
-			setObjectType(((C4ScriptBase)parent).getIndex().getObjectNearestTo(parent.getResource(), objectID));
+		if (objectID != null && parent instanceof C4ScriptBase) {
+			C4ScriptBase script = (C4ScriptBase) parent;
+			if (script.getResource() != null && script.getIndex() != null)
+				setObjectType(script.getIndex().getObjectNearestTo(parent.getResource(), objectID));
 		}
 	}
 	
