@@ -2448,7 +2448,7 @@ public class C4ScriptParser {
 		return parser;
 	}
 	
-	public static ExprElm parseStandaloneExpression(final String expression, C4ScriptBase context) throws ParsingException {
+	public static ExprElm parseStandaloneExpression(final String expression, C4ScriptBase context, IExpressionListener listener) throws ParsingException {
 		if (context == null) {
 			context = new C4ScriptBase() {
 				private static final long serialVersionUID = 1L;
@@ -2470,6 +2470,7 @@ public class C4ScriptParser {
 			};
 		}
 		C4ScriptParser tempParser = new C4ScriptParser(expression, context);
+		tempParser.setExpressionListener(listener);
 		return tempParser.parseExpression(0);
 	}
 

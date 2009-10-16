@@ -16,6 +16,7 @@ import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.c4script.C4ScriptExprTree.UnaryOp.Placement;
 import net.arctics.clonk.parser.c4script.C4Variable.C4VariableScope;
 import net.arctics.clonk.parser.stringtbl.StringTbl;
+import net.arctics.clonk.ui.editors.c4script.ExpressionLocator;
 import net.arctics.clonk.util.Pair;
 import net.arctics.clonk.util.Utilities;
 import net.arctics.clonk.parser.ParsingException;
@@ -64,6 +65,10 @@ public abstract class C4ScriptExprTree {
 		}
 		public String getText() {
 			return text;
+		}
+		public DeclarationRegion addOffsetInplace(int offset) {
+			region = new Region(region.getOffset()+offset, region.getLength());
+			return this;
 		}
 	}
 	
@@ -2668,6 +2673,24 @@ public abstract class C4ScriptExprTree {
 				return true;
 			}
 			return false;
+		}
+		
+		@Override
+		public DeclarationRegion declarationAt(int offset, C4ScriptParser parser) {
+			// parse comment as expression and see what goes
+			ExpressionLocator locator = new ExpressionLocator(offset-2); // make up for '//' or /*'
+			try {
+				C4ScriptParser.parseStandaloneExpression(comment, parser.getContainer(), locator);
+			} catch (ParsingException e) {}
+			if (locator.getExprAtRegion() != null) {
+				DeclarationRegion reg = locator.getExprAtRegion().declarationAt(offset, parser);
+				if (reg != null)
+					return reg.addOffsetInplace(getExprStart()+2);
+				else
+					return null;
+			}
+			else
+				return super.declarationAt(offset, parser);
 		}
 		
 	}
