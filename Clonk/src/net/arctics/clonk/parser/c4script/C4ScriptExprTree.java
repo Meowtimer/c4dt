@@ -748,7 +748,7 @@ public abstract class C4ScriptExprTree {
 				if (expr instanceof CallFunc) {
 					CallFunc callFunc = (CallFunc) expr;
 					return
-						callFunc.getDeclaration() == CachedEngineFuncs.Var &&
+						callFunc.getDeclaration() == CachedEngineFuncs.getInstance().Var &&
 						callFunc.getParams().length > 0 &&
 						callFunc.getParams()[0] instanceof NumberLiteral &&
 						((NumberLiteral)callFunc.getParams()[0]).intValue() == varIndex;
@@ -858,7 +858,7 @@ public abstract class C4ScriptExprTree {
 		@Override
 		public void reportErrors(C4ScriptParser context) throws ParsingException {
 			super.reportErrors(context);
-			if (declaration == CachedEngineFuncs.Par) {
+			if (declaration == CachedEngineFuncs.getInstance().Par) {
 				if (params.length > 0) {
 					context.unnamedParamaterUsed(params[0]);
 				}
@@ -882,7 +882,7 @@ public abstract class C4ScriptExprTree {
 					int givenParam = 0;
 					boolean specialCaseHandled = false;
 					// yay for special cases
-					if (params.length >= 3 &&  (f == CachedEngineFuncs.AddCommand || f == CachedEngineFuncs.AppendCommand || f == CachedEngineFuncs.SetCommand)) {
+					if (params.length >= 3 &&  (f == CachedEngineFuncs.getInstance().AddCommand || f == CachedEngineFuncs.getInstance().AppendCommand || f == CachedEngineFuncs.getInstance().SetCommand)) {
 						// look if command is "Call"; if so treat parms 2, 3, 4 as any
 						Object command = params[1].evaluate(context.getContainer());
 						if (command instanceof String && command.equals("Call")) {
@@ -996,7 +996,7 @@ public abstract class C4ScriptExprTree {
 			}
 			
 			// ObjectCall(ugh, "UghUgh", 5) -> ugh->UghUgh(5)
-			if (params.length >= 2 && declaration == CachedEngineFuncs.ObjectCall && params[1] instanceof StringLiteral && !this.containedInLoopHeaderOrNotStandaloneExpression() && !params[0].hasSideEffects()) {
+			if (params.length >= 2 && declaration == CachedEngineFuncs.getInstance().ObjectCall && params[1] instanceof StringLiteral && !this.containedInLoopHeaderOrNotStandaloneExpression() && !params[0].hasSideEffects()) {
 				ExprElm[] parmsWithoutObject = new ExprElm[params.length-2];
 				for (int i = 0; i < parmsWithoutObject.length; i++)
 					parmsWithoutObject[i] = params[i+2].newStyleReplacement(parser);
@@ -1016,21 +1016,21 @@ public abstract class C4ScriptExprTree {
 			}
 			
 			// Par(5) -> nameOfParm6
-			if (params.length <= 1 && declaration == CachedEngineFuncs.Par && (params.length == 0 || params[0] instanceof NumberLiteral)) {
+			if (params.length <= 1 && declaration == CachedEngineFuncs.getInstance().Par && (params.length == 0 || params[0] instanceof NumberLiteral)) {
 				NumberLiteral number = params.length > 0 ? (NumberLiteral) params[0] : NumberLiteral.ZERO;
 				if (number.intValue() >= 0 && number.intValue() < parser.getActiveFunc().getParameters().size())
 					return new AccessVar(parser.getActiveFunc().getParameters().get(number.intValue()).getName());
 			}
 			
 			// SetVar(5, "ugh") -> Var(5) = "ugh"
-			if (params.length == 2 && (declaration == CachedEngineFuncs.SetVar || declaration == CachedEngineFuncs.SetLocal || declaration == CachedEngineFuncs.AssignVar)) {
+			if (params.length == 2 && (declaration == CachedEngineFuncs.getInstance().SetVar || declaration == CachedEngineFuncs.getInstance().SetLocal || declaration == CachedEngineFuncs.getInstance().AssignVar)) {
 				return new BinaryOp(C4ScriptOperator.Assign, new CallFunc(declarationName.substring(declarationName.equals("AssignVar") ? "Assign".length() : "Set".length()), params[0].newStyleReplacement(parser)), params[1].newStyleReplacement(parser));
 			}
 			
 			// DecVar(0) -> Var(0)--
-			if (params.length <= 1 && (declaration == CachedEngineFuncs.DecVar || declaration == CachedEngineFuncs.IncVar)) {
-				return new UnaryOp(declaration == CachedEngineFuncs.DecVar ? C4ScriptOperator.Decrement : C4ScriptOperator.Increment, Placement.Prefix,
-					new CallFunc(CachedEngineFuncs.Var.getName(), new ExprElm[] {
+			if (params.length <= 1 && (declaration == CachedEngineFuncs.getInstance().DecVar || declaration == CachedEngineFuncs.getInstance().IncVar)) {
+				return new UnaryOp(declaration == CachedEngineFuncs.getInstance().DecVar ? C4ScriptOperator.Decrement : C4ScriptOperator.Increment, Placement.Prefix,
+					new CallFunc(CachedEngineFuncs.getInstance().Var.getName(), new ExprElm[] {
 						params.length == 1 ? params[0].newStyleReplacement(parser) : NumberLiteral.ZERO
 					})
 				);
@@ -1125,7 +1125,7 @@ public abstract class C4ScriptExprTree {
 		}
 		@Override
 		public IStoredTypeInformation createStoredTypeInformation() {
-			if (getDeclaration() == CachedEngineFuncs.Var) {
+			if (getDeclaration() == CachedEngineFuncs.getInstance().Var) {
 				if (getParams().length > 0 && getParams()[0] instanceof NumberLiteral) {
 					NumberLiteral number = (NumberLiteral)getParams()[0];
 					if (number.intValue() >= 0) {
@@ -1612,7 +1612,7 @@ public abstract class C4ScriptExprTree {
 				//  link to functions that are called indirectly
 				
 				// GameCall: look for nearest scenario and find function in its script
-				if (myIndex == 0 && parentFunc.getDeclaration() == CachedEngineFuncs.GameCall) {
+				if (myIndex == 0 && parentFunc.getDeclaration() == CachedEngineFuncs.getInstance().GameCall) {
 					ClonkIndex index = parser.getContainer().getIndex();
 					C4Scenario scenario = ClonkIndex.pickNearest(parser.getContainer().getResource(), index.getIndexedScenarios());
 					if (scenario != null) {
@@ -1623,7 +1623,7 @@ public abstract class C4ScriptExprTree {
 				}
 				
 				// ScheduleCall: second parameter is function name; first is object to call the function in
-				else if (myIndex == 1 && parentFunc.getDeclaration() == CachedEngineFuncs.ScheduleCall) {
+				else if (myIndex == 1 && parentFunc.getDeclaration() == CachedEngineFuncs.getInstance().ScheduleCall) {
 					C4Object typeToLookIn = parentFunc.getParams()[0].guessObjectType(parser);
 					if (typeToLookIn != null) {
 						C4Function func = typeToLookIn.findFunction(stringValue());
@@ -1633,7 +1633,7 @@ public abstract class C4ScriptExprTree {
 				}
 				
 				// LocalN: look for local var in object
-				else if (myIndex == 0 && parentFunc.getDeclaration() == CachedEngineFuncs.LocalN) {
+				else if (myIndex == 0 && parentFunc.getDeclaration() == CachedEngineFuncs.getInstance().LocalN) {
 					C4Object typeToLookIn = parentFunc.getParams().length > 1 ? parentFunc.getParams()[1].guessObjectType(parser) : null;
 					if (typeToLookIn == null && parentFunc.getPredecessorInSequence() != null)
 						typeToLookIn = parentFunc.getPredecessorInSequence().guessObjectType(parser);
@@ -1647,14 +1647,14 @@ public abstract class C4ScriptExprTree {
 				}
 				
 				// look for function called by Call("...")
-				else if (myIndex == 0 && parentFunc.getDeclaration() == CachedEngineFuncs.Call) {
+				else if (myIndex == 0 && parentFunc.getDeclaration() == CachedEngineFuncs.getInstance().Call) {
 					C4Function f = parser.getContainer().findFunction(stringValue());
 					if (f != null)
 						return new DeclarationRegion(f, identifierRegion());
 				}
 				
-				// ProtectedCall/PrivateCall, a bit more complicated than Call
-				else if (myIndex == 1 && Utilities.isAnyOf(parentFunc.getDeclaration(), CachedEngineFuncs.ProtectedCall, CachedEngineFuncs.PrivateCall)) {
+				// ProtectedCall/PrivateCall/ObjectCall, a bit more complicated than Call
+				else if (myIndex == 1 && Utilities.isAnyOf(parentFunc.getDeclaration(), CachedEngineFuncs.getInstance().ObjectCallFunctions)) {
 					C4Object typeToLookIn = parentFunc.getParams()[0].guessObjectType(parser);
 					if (typeToLookIn == null && parentFunc.getPredecessorInSequence() != null)
 						typeToLookIn = parentFunc.getPredecessorInSequence().guessObjectType(parser);
@@ -2761,7 +2761,7 @@ public abstract class C4ScriptExprTree {
 					StringTbl stringTbl = parser.getContainer().getStringTblForLanguagePref();
 					String entryName = part.substring(1, part.length()-1);
 					if (stringTbl == null || stringTbl.getMap().get(entryName) == null) {
-						parser.warningWithCode(ParserErrorCode.UndeclaredIdentifier, new Region(getExprStart()+off-2, part.length()), entryName);
+						parser.warningWithCode(ParserErrorCode.UndeclaredIdentifier, new Region(getExprStart()+off, part.length()), entryName);
 					}
 				}
 				off += part.length()+1;

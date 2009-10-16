@@ -111,7 +111,7 @@ public class ClonkSearchQuery implements ISearchQuery {
 					AccessDeclaration accessDeclExpr = (AccessDeclaration) expression;
 					if (accessDeclExpr.getDeclaration(parser) == declaration)
 						result.addMatch(expression, parser, false, accessDeclExpr.indirectAccess());
-					else if (Utilities.isAnyOf(accessDeclExpr.getDeclaration(), CachedEngineFuncs.CallFunctions) && potentiallyReferencedByCallFunction(accessDeclExpr, parser)) {
+					else if (Utilities.isAnyOf(accessDeclExpr.getDeclaration(), CachedEngineFuncs.getInstance().CallFunctions) && potentiallyReferencedByCallFunction(accessDeclExpr, parser)) {
 						result.addMatch(functionNameExpr, parser, true, true);
 					}
 					else if (potentiallyReferencedByObjectCall(expression)) {
