@@ -85,7 +85,7 @@ public class IniData {
 		
 	}
 	
-	public static class IniSectionData {
+	public static final class IniSectionData {
 		private String sectionName;
 		private Map<String, IniDataEntry> entries = new HashMap<String, IniDataEntry>();		
 		
@@ -133,16 +133,18 @@ public class IniData {
 		
 	}
 	
-	public static class IniDataEntry {
+	public static final class IniDataEntry {
 		protected String entryName;
 		protected Class<?> entryClass;
 		protected String entryDescription;
+		protected Object extraData;
 		
 		protected IniDataEntry() {
 		}
 		
 		
 		public static IniDataEntry createByXML(Node entryNode, IEntryFactory factory) throws InvalidIniConfigurationException {
+			Node n;
 			IniDataEntry entry = new IniDataEntry();
 			if (entryNode.getAttributes() == null || 
 					entryNode.getAttributes().getLength() < 2 || 
@@ -157,8 +159,13 @@ public class IniData {
 			} catch (ClassNotFoundException e) {
 				e.printStackTrace();
 			}
-			if (entryNode.getAttributes().getNamedItem("description") != null) {
-				entry.entryDescription = entryNode.getAttributes().getNamedItem("description").getNodeValue();
+			if ((n = entryNode.getAttributes().getNamedItem("description")) != null) {
+				entry.entryDescription = n.getNodeValue();
+			}
+			if (entry.entryClass == CategoriesArray.class) {
+				if ((n = entryNode.getAttributes().getNamedItem("flags")) != null) {
+					entry.extraData = n.getNodeValue().split(",");
+				}
 			}
 			return entry;
 		}
@@ -182,6 +189,14 @@ public class IniData {
 		}
 		public void setDescription(String desc) {
 			entryDescription = desc;
+		}
+		
+		public String[] getFlags() {
+			try {
+				return (String[]) extraData;
+			} catch (ClassCastException e) {
+				return null;
+			}
 		}
 		
 	}

@@ -50,7 +50,7 @@ public class ComplexIniEntry extends IniEntry implements IHasChildren, IHasConte
 	public void setValue(String value) {
 		if (extendedValue instanceof IIniEntry) {
 			try {
-				((IIniEntry)extendedValue).setInput(value);
+				((IIniEntry)extendedValue).setInput(value, entryConfig);
 			} catch (IniParserException e) {
 				e.printStackTrace();
 			}

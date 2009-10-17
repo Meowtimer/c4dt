@@ -545,6 +545,14 @@ public abstract class C4ScriptExprTree {
 		public ExprElm getLastElement() {
 			return elements != null && elements.length > 1 ? elements[elements.length-1] : null;
         }
+		@Override
+		public IStoredTypeInformation createStoredTypeInformation() {
+			ExprElm last = getLastElement();
+			if (last != null)
+				// things in sequences should take into account their predecessors
+				return last.createStoredTypeInformation();
+			return super.createStoredTypeInformation();
+		}
 
 	}
 

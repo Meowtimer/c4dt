@@ -1190,11 +1190,10 @@ public class C4ScriptParser {
 	private void markerWithCode(ParserErrorCode code, int errorStart, int errorEnd, boolean noThrow, int severity, Object... args) throws ParsingException {
 		if (errorDisabled(code))
 			return;
-		String problem = code.getErrorString(args);
 		boolean silence = scriptFile == null || (activeFunc != null && activeFunc.getBody() != null && fReader.getPosition() > activeFunc.getBody().getEnd()+1);
+		String problem = code.getErrorString(args);
 		if (!silence) {
-			IMarker marker = createMarker(errorStart, errorEnd, problem, severity);
-			ParserErrorCode.setErrorCode(marker, code);
+			code.createMarker(scriptFile, ClonkCore.MARKER_C4SCRIPT_ERROR, errorStart, errorEnd, severity, problem);
 		}
 		if (!noThrow && severity >= IMarker.SEVERITY_ERROR)
 			throw silence
@@ -2362,22 +2361,6 @@ public class C4ScriptParser {
 			return true;
 		}
 		return false;
-	}
-	
-	private IMarker createMarker(int start, int end, String message, int severity) {
-		if (scriptFile == null) return null;
-		try {
-			IMarker marker = scriptFile.createMarker(ClonkCore.MARKER_C4SCRIPT_ERROR);
-			marker.setAttribute(IMarker.SEVERITY, severity);
-			marker.setAttribute(IMarker.TRANSIENT, false);
-			marker.setAttribute(IMarker.MESSAGE, message);
-			marker.setAttribute(IMarker.CHAR_START, start);
-			marker.setAttribute(IMarker.CHAR_END, end);
-			return marker;
-		} catch (CoreException e) {
-			e.printStackTrace();
-		}
-		return null;
 	}
 
 	public void clean() {

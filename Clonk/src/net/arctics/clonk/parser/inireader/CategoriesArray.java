@@ -8,68 +8,76 @@ import org.eclipse.core.resources.IMarker;
 
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.c4script.C4Variable;
+import net.arctics.clonk.parser.inireader.IniData.IniDataEntry;
+import net.arctics.clonk.util.Utilities;
 
 public class CategoriesArray implements IIniEntry {
 
-	private final List<C4Variable> constants = new ArrayList<C4Variable>(4);
+	private final List<String> constants = new ArrayList<String>(4);
 	private int summedValue = -1;
 	
 	public CategoriesArray() {
 	}
 	
-	public CategoriesArray(String input) throws IniParserException {
-		setInput(input);
-	}
-	
-	public void add(C4Variable var) {
-		constants.add(var);
+	public void add(String constant) {
+		constants.add(constant);
 	}
 	
 	public String toString() {
 		if (summedValue != -1)
 			return String.valueOf(summedValue);
 		StringBuilder builder = new StringBuilder(constants.size() * 10); // C4D_Back|
-		ListIterator<C4Variable> it = constants.listIterator();
+		ListIterator<String> it = constants.listIterator();
 		while (it.hasNext()) {
-			C4Variable var = it.next();
-			builder.append(var.getName());
-			if (it.hasNext()) builder.append('|');
+			builder.append(it.next());
+			if (it.hasNext())
+				builder.append('|');
 		}
 		return builder.toString();
 	}
 
-	public List<C4Variable> getConstants() {
+	public List<String> getConstants() {
 		return constants;
 	}
 
-	public void setInput(String input) throws IniParserException {
+	public void setInput(String input, IniDataEntry entryData) throws IniParserException {
 		constants.clear();
 		String[] parts = input != null ? input.split("\\|") : new String[0];
 		if (parts.length == 1) {
-			tryIntegerInput(input, parts);
+			tryIntegerInput(input, parts, entryData);
 		}
 		else {
-			tryConstantInput(input, parts);
+			tryConstantInput(input, parts, entryData);
 		}
 	}
 	
-	private void tryIntegerInput(String input, String[] parts) throws IniParserException {
+	private void tryIntegerInput(String input, String[] parts, IniDataEntry entryData) throws IniParserException {
 		try {
 			int categories = Integer.parseInt(parts[0].trim());
 			summedValue = categories;
 		} catch(NumberFormatException e) {
 			summedValue = -1;
-			tryConstantInput(input, parts);
+			tryConstantInput(input, parts, entryData);
 		}
 	}
 	
-	private void tryConstantInput(String input, String[] parts) throws IniParserException {
-		for(int i = 0; i < parts.length;i++) {
-			C4Variable var = ClonkCore.getDefault().getEngineObject().findVariable(parts[i].trim());
-			if (var == null) {
-				throw new IniParserException(IMarker.SEVERITY_WARNING, "Unknown constant '" + parts[i].trim() + "'");
+	private void tryConstantInput(String input, String[] parts, IniDataEntry entryData) throws IniParserException {
+		if (entryData.getFlags() != null) {
+			String[] flags = entryData.getFlags();
+			for (String part : parts) {
+				part = part.trim();
+				if (Utilities.indexOf(flags, part) == -1)
+					throw new IniParserException(IMarker.SEVERITY_WARNING, "Unknown constant '"+part+"'");
+				add(part);
 			}
-			add(var);
+		}
+		else for (String part : parts) {
+			part = part.trim();
+			C4Variable var = ClonkCore.getDefault().getEngineObject().findVariable(part);
+			if (var == null) {
+				throw new IniParserException(IMarker.SEVERITY_WARNING, "Unknown constant '" + part + "'");
+			}
+			add(var.getName());
 		}
 	}
 	

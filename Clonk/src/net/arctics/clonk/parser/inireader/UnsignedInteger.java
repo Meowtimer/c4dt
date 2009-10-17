@@ -3,16 +3,14 @@ package net.arctics.clonk.parser.inireader;
 import java.security.InvalidParameterException;
 
 
+import net.arctics.clonk.parser.inireader.IniData.IniDataEntry;
+
 import org.eclipse.core.resources.IMarker;
 
 
 public class UnsignedInteger implements IIniEntry {
 	
 	private int number;
-	
-	public UnsignedInteger(String input) throws IniParserException {
-		setInput(input);
-	}
 	
 	public UnsignedInteger(int num) {
 		number = num;
@@ -34,7 +32,7 @@ public class UnsignedInteger implements IIniEntry {
 		return Integer.toString(this.number);
 	}
 
-	public void setInput(String input) throws IniParserException {
+	public void setInput(String input, IniDataEntry entryData) throws IniParserException {
 		try {
 			input = input.trim();
 			Integer num = !input.equals("") ? Integer.decode(input) : 0;

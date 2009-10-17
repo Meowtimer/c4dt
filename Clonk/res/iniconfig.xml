@@ -512,8 +512,9 @@
 				description="Veraltet. Spielziel: Diese Objekte müssen auf x reduziert werden." />
 			<entry name="ClearMaterials" class="net.arctics.clonk.parser.inireader.MaterialArray"
 				description="Veraltet. Spielziel: Diese Materialien müssen auf x reduziert werden." />
-			<entry name="BaseFunctionality" class="net.arctics.clonk.parser.inireader.SignedInteger"
-				description="Bitmaske, die angibt, welche Funktionen eine Basis erfüllt. Siehe Basisfunktionalitäten. Ab CR." />
+			<entry name="BaseFunctionality" class="net.arctics.clonk.parser.inireader.CategoriesArray"
+				description="Bitmaske, die angibt, welche Funktionen eine Basis erfüllt. Siehe Basisfunktionalitäten. Ab CR."
+				flags="BASEFUNC_AutoSellContents,BASEFUNC_RegenerateEnergy,BASEFUNC_Buy,BASEFUNC_Sell,BASEFUNC_RejectEntrance,BASEFUNC_Extinguish,BASEFUNC_Default" />
 			<entry name="BaseRegenerateEnergyPrice" class="net.arctics.clonk.parser.inireader.SignedInteger"
 				description="Kosten, die aufgewendet werden, um einen Clonk in einer Basis um 100 Energiepunkte zu heilen. Standard ist 5; bei 0 ist die Heilung kostenlos. Ab CR." />
 			<entry name="EnableSurrender" class="net.arctics.clonk.parser.inireader.Boolean" />

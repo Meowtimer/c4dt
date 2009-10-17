@@ -1,6 +1,7 @@
 package net.arctics.clonk.parser.inireader;
 
 
+import net.arctics.clonk.parser.inireader.IniData.IniDataEntry;
 import net.arctics.clonk.util.IHasChildrenWithContext;
 import net.arctics.clonk.util.IHasContext;
 
@@ -13,8 +14,8 @@ public class IntegerArray implements IIniEntry, IHasChildrenWithContext {
 	public IntegerArray() {
 	}
 	
-	public IntegerArray(String value) throws IniParserException {
-		setInput(value);
+	public IntegerArray(String value, IniDataEntry entryData) throws IniParserException {
+		setInput(value, entryData);
 	}
 	
 	public String getStringRepresentation() {
@@ -42,7 +43,7 @@ public class IntegerArray implements IIniEntry, IHasChildrenWithContext {
 		this.integers = integers;
 	}
 
-	public void setInput(String input) throws IniParserException {
+	public void setInput(String input, IniDataEntry entryData) throws IniParserException {
 		try {
 			// empty input should be okay
 			if (input.equals("")) {

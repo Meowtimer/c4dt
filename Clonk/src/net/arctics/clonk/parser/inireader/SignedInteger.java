@@ -1,15 +1,13 @@
 package net.arctics.clonk.parser.inireader;
 
 
+import net.arctics.clonk.parser.inireader.IniData.IniDataEntry;
+
 import org.eclipse.core.resources.IMarker;
 
 public class SignedInteger implements IIniEntry {
 
 	private int x;
-	
-	public SignedInteger(String input) throws IniParserException {
-		setInput(input);
-	}
 	
 	public SignedInteger(int i) {
 		x = i;
@@ -22,7 +20,7 @@ public class SignedInteger implements IIniEntry {
 		return Integer.toString(x);
 	}
 
-	public void setInput(String input) throws IniParserException {
+	public void setInput(String input, IniDataEntry entryData) throws IniParserException {
 		try {
 			input = input != null ? input.trim() : "";
 			if (input.equals(""))

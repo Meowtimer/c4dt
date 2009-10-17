@@ -8,9 +8,11 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.BufferedScanner;
 import net.arctics.clonk.parser.C4Declaration;
 import net.arctics.clonk.parser.C4Structure;
+import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.SourceLocation;
 import net.arctics.clonk.parser.inireader.IniData.IniConfiguration;
 import net.arctics.clonk.parser.inireader.IniData.IniDataEntry;
@@ -137,7 +139,7 @@ public class IniUnit extends C4Structure implements Iterable<IniSection>, IHasCh
 		IniDataEntry entryConfig = sectionConfig.getEntry(entry.getKey());
 		try {
 			try {
-				Object value = configuration.getFactory().create(entryConfig.getEntryClass(), entry.getValue());
+				Object value = configuration.getFactory().create(entryConfig.getEntryClass(), entry.getValue(), entryConfig);
 				return ComplexIniEntry.adaptFrom(entry, value, entryConfig);
 			}
 			catch(IniParserException e) { // add offsets and throw through
@@ -154,27 +156,6 @@ public class IniUnit extends C4Structure implements Iterable<IniSection>, IHasCh
 			}
 		} catch (InvalidClassException e) {
 			throw new IniParserException(IMarker.SEVERITY_WARNING, "There is a bug in the ini scheme. Report the following data to a C4DT developer: " + e.getMessage(),entry.getStartPos(),entry.getStartPos() + entry.getKey().length());
-		}
-	}
-	
-	protected IMarker createMarker(String message, int severity, int offset, int endOffset) {
-		if (getIniFile() != null) {
-			try {
-				IMarker marker = getIniFile().createMarker(IMarker.PROBLEM);
-				marker.setAttribute(IMarker.SEVERITY, severity);
-				marker.setAttribute(IMarker.TRANSIENT, false);
-				marker.setAttribute(IMarker.MESSAGE, message);
-				marker.setAttribute(IMarker.CHAR_START, offset);
-				marker.setAttribute(IMarker.CHAR_END, endOffset);
-				return marker;
-			} catch (CoreException e) {
-				e.printStackTrace();
-				return null;
-			}
-		}
-		else {
-			// TODO: notice warnings of extern objects?
-			return null;
 		}
 	}
 	
@@ -217,13 +198,13 @@ public class IniUnit extends C4Structure implements Iterable<IniSection>, IHasCh
 			String name = reader.readStringUntil(']','\n','\r');
 			if (reader.read() != ']') {
 				if (modifyMarkers)
-					createMarker("Parser error: Invalid section head, ']' expected", IMarker.SEVERITY_ERROR, start, reader.getPosition());
+					ParserErrorCode.TokenExpected.createMarker(iniFile, ClonkCore.MARKER_C4SCRIPT_ERROR, start, reader.getPosition(), IMarker.SEVERITY_ERROR, (Object)"]");					
 				return null;
 			}
 			else {
 				if (!isSectionNameValid(name)) {
 					if (modifyMarkers)
-						createMarker("Unknown section name", IMarker.SEVERITY_WARNING, start, reader.getPosition() - 1);
+						ParserErrorCode.InvalidExpression.createMarker(iniFile, ClonkCore.MARKER_C4SCRIPT_ERROR, start, reader.getPosition()-1, IMarker.SEVERITY_WARNING);
 				}
 			}
 			int end = reader.getPosition();
@@ -298,7 +279,7 @@ public class IniUnit extends C4Structure implements Iterable<IniSection>, IHasCh
 		reader.eatWhitespace();
 		if (reader.read() != '=') {
 			if (modifyMarkers)
-				createMarker("Parse error: expected '='", IMarker.SEVERITY_ERROR, keyStart + key.length(), reader.getPosition());
+				ParserErrorCode.TokenExpected.createMarker(iniFile, ClonkCore.MARKER_C4SCRIPT_ERROR, keyStart+key.length(), reader.getPosition(), IMarker.SEVERITY_ERROR, (Object)"=");
 		}
 		reader.eat(new char[] {' ', '\t'});
 		String value = reader.readStringUntil(BufferedScanner.NEWLINE_CHARS);
@@ -310,7 +291,7 @@ public class IniUnit extends C4Structure implements Iterable<IniSection>, IHasCh
 			return validateEntry(entry, section);
 		} catch (IniParserException e) {
 			if (modifyMarkers)
-				createMarker(e.getMessage(), e.getSeverity(), e.getOffset(), e.getEndOffset());
+				ParserErrorCode.GenericError.createMarker(iniFile, ClonkCore.MARKER_C4SCRIPT_ERROR, e.getOffset(), e.getEndOffset(), e.getSeverity(), (Object)e.getMessage());
 			return entry;
 		}
 	}

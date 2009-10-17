@@ -3,10 +3,11 @@ package net.arctics.clonk.parser.inireader;
 import java.io.InvalidClassException;
 
 import net.arctics.clonk.parser.C4ID;
+import net.arctics.clonk.parser.inireader.IniData.IniDataEntry;
 
 public class GenericEntryFactory implements IEntryFactory {
 	
-	public Object create(Class<?> type, String value) throws InvalidClassException, IniParserException {
+	public Object create(Class<?> type, String value, IniDataEntry entryData) throws InvalidClassException, IniParserException {
 		if (value == null)
 			value = "";
 		if (type.equals(C4ID.class)) {
@@ -18,7 +19,7 @@ public class GenericEntryFactory implements IEntryFactory {
 		else if (IIniEntry.class.isAssignableFrom(type)) {
 			try {
 				IIniEntry obj = ((IIniEntry)type.newInstance());
-				obj.setInput(value);
+				obj.setInput(value, entryData);
 				return obj;
 			} catch (InstantiationException e) {
 				e.printStackTrace();

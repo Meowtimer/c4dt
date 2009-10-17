@@ -1,5 +1,6 @@
 package net.arctics.clonk.parser;
 
+import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.runtime.CoreException;
 
@@ -40,7 +41,8 @@ public enum ParserErrorCode {
 	ObsoleteOperator("Obsolete operator '%s'"),
 	StringNotClosed("String not closed"),
 	UnexpectedToken("Unexpected token: %s"),
-	NotFinished("Expression not finished");
+	NotFinished("Expression not finished"),
+	GenericError("%s");
 	
 	public static final String MARKER_ERRORCODE = "c4ScriptErrorCode";
 	
@@ -66,12 +68,26 @@ public enum ParserErrorCode {
 		}
 	}
 	
-	public static void setErrorCode(IMarker marker, ParserErrorCode code) {
+	public IMarker createMarker(IFile file, String markerType, int start, int end, int severity, Object... args) {
+		return createMarker(file, markerType, start, end, severity, getErrorString(args));
+	}
+	
+	public IMarker createMarker(IFile file, String markerType, int start, int end, int severity, String problem) {
+		if (file == null)
+			return null;
 		try {
-			marker.setAttribute(MARKER_ERRORCODE, code.ordinal());
+			IMarker marker = file.createMarker(markerType);
+			marker.setAttribute(IMarker.SEVERITY, severity);
+			marker.setAttribute(IMarker.TRANSIENT, false);
+			marker.setAttribute(IMarker.MESSAGE, problem);
+			marker.setAttribute(IMarker.CHAR_START, start);
+			marker.setAttribute(IMarker.CHAR_END, end);
+			marker.setAttribute(MARKER_ERRORCODE, this.ordinal());
+			return marker;
 		} catch (CoreException e) {
 			e.printStackTrace();
 		}
+		return null;
 	}
 	
 }
