@@ -1312,9 +1312,11 @@ public abstract class C4ScriptExprTree {
 			if (getOperator().modifiesArgument() && !getLeftSide().modifiable(context)) {
 				context.errorWithCode(ParserErrorCode.ExpressionNotModifiable, getLeftSide(), true);
 			}
+			// obsolete operators in #strict 2
 			if ((getOperator() == C4ScriptOperator.StringEqual || getOperator() == C4ScriptOperator.ne) && (context.getStrictLevel() >= 2)) {
 				context.warningWithCode(ParserErrorCode.ObsoleteOperator, this, getOperator().getOperatorName());
 			}
+			// wrong parameter types
 			if (!getLeftSide().validForType(getOperator().getFirstArgType(), context))
 				context.warningWithCode(ParserErrorCode.IncompatibleTypes, getLeftSide(), getOperator().getFirstArgType(), getLeftSide().getType(context));
 			if (!getRightSide().validForType(getOperator().getSecondArgType(), context))
@@ -1824,8 +1826,9 @@ public abstract class C4ScriptExprTree {
 
 		@Override
 		public void reportErrors(C4ScriptParser parser) throws ParsingException {
-			getArgument().reportErrors(parser);
-			// bleh, getOperator() returns null here FIXME: not deriving this class from ExprUnaryOp?
+			ExprElm arg = getArgument();
+			if (arg != null)
+				arg.reportErrors(parser);
 		}
 		
 		@Override
