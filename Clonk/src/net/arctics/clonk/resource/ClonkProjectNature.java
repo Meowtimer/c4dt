@@ -64,7 +64,7 @@ public class ClonkProjectNature implements IProjectNature {
 		return index;
 	}
 
-	private IPath getIndexFileLocation() {
+	public IPath getIndexFileLocation() {
 		return ClonkCore.getDefault().getStateLocation().append(getProject().getName()+ProjectIndex.INDEXFILE_SUFFIX);
 	}
 
