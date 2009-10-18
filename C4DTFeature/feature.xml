@@ -2,7 +2,7 @@
 <feature
       id="net.arctics.clonk.c4dtFeature"
       label="Clonk Development Tools"
-      version="1.5.0.8">
+      version="1.5.0.9">
 
    <description url="http://www.example.com/description">
       Clonk Development Tools for Eclipse.
@@ -34,7 +34,13 @@ Fix
 1.5.0.8:
 -Fixes
 -UTF-8 encoded script handling
--Attempts to retain type information for variables so that content assist is more helpful
+-Attempts to retain type information for variables so that content
+assist is more helpful
+1.5.0.9:
+-Descriptions for definitions now contain the path
+-No error when encountering #0 characters at the end of Scenario.txt and similar files
+-ObjectCall function string link-clickable
+-Fixes
    </description>
 
    <copyright url="http://www.example.com/copyright">
