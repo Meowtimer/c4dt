@@ -9,6 +9,8 @@ import net.arctics.clonk.util.Utilities;
 
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.hyperlink.IHyperlink;
+import org.eclipse.ui.browser.IWebBrowser;
+import org.eclipse.ui.browser.IWorkbenchBrowserSupport;
 import org.eclipse.ui.internal.browser.WorkbenchBrowserSupport;
 
 /**
@@ -16,10 +18,10 @@ import org.eclipse.ui.internal.browser.WorkbenchBrowserSupport;
  */
 @SuppressWarnings("restriction")
 public class ClonkHyperlink implements IHyperlink {
-	
+
 	private final IRegion region;
 	protected C4Declaration target;
-	
+
 	public ClonkHyperlink(IRegion region, C4Declaration target) {
 		super();
 		this.region = region;
@@ -44,10 +46,19 @@ public class ClonkHyperlink implements IHyperlink {
 				// can't open editor so try something else like opening up a documentation page in the browser
 				if (target.isEngineDeclaration()) {
 					String docURLTemplate = Utilities.getPreference(PreferenceConstants.DOC_URL_TEMPLATE, PreferenceConstants.DOC_URL_TEMPLATE_DEFAULT, null);
-					WorkbenchBrowserSupport.getInstance().getExternalBrowser().openURL(new URL(String.format(
-						docURLTemplate,
-						target.getName(), ClonkCore.getDefault().getLanguagePref().toLowerCase()
-					)));
+					IWorkbenchBrowserSupport support = WorkbenchBrowserSupport.getInstance();
+					IWebBrowser browser;
+					if (support.isInternalWebBrowserAvailable()) {
+						browser = support.createBrowser(null);
+					}
+					else {
+						browser = support.getExternalBrowser();
+					}
+					if (browser != null)
+						browser.openURL(new URL(String.format(
+							docURLTemplate,
+							target.getName(), ClonkCore.getDefault().getLanguagePref().toLowerCase()
+						)));
 				}
 			}
 		} catch (Exception e) {
@@ -56,11 +67,11 @@ public class ClonkHyperlink implements IHyperlink {
 	}
 
 	public IRegion getRegion() {
-    	return region;
-    }
+		return region;
+	}
 
 	public C4Declaration getTarget() {
-    	return target;
-    }
-	
+		return target;
+	}
+
 }

@@ -371,7 +371,17 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant {
 					clonkProj.saveIndex();
 				}
 			}
+			removeOldIndexes();
 			break;
+		}
+	}
+
+	private void removeOldIndexes() {
+		File stateDir = getStateLocation().toFile();
+		for (String file : stateDir.list()) {
+			if (file.endsWith(".index") && ResourcesPlugin.getWorkspace().getRoot().findMember(file.substring(0, file.length()-".index".length())) == null) {
+				new File(stateDir, file).delete();
+			}
 		}
 	}
 

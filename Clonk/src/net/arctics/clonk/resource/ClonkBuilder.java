@@ -174,8 +174,8 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 					// calculate build duration
 					int[] operations = new int[4];
 					if (proj != null) {
-						// count num of resources to build
-						ResourceCounter counter = new ResourceCounter(ResourceCounter.COUNT_CONTAINER);
+						// count num of resources to build and also clean...
+						ResourceCounterAndCleaner counter = new ResourceCounterAndCleaner(ResourceCounter.COUNT_CONTAINER);
 						proj.accept(counter);
 						operations[0] = counter.getCount() * 2;
 						operations[1] = counter.getCount();
@@ -275,7 +275,14 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 						for (IEditorReference ref : page.getEditorReferences()) {
 							IEditorPart part = ref.getEditor(false);
 							if (part != null && part instanceof ClonkTextEditor) {
-								((ClonkTextEditor)part).clearOutline();
+								ClonkTextEditor ed = (ClonkTextEditor) part;
+								// only if building the project this element is declared in
+								if (
+									ed.getTopLevelDeclaration() != null &&
+									ed.getTopLevelDeclaration().getResource() != null &&
+									builder.getProject() == ed.getTopLevelDeclaration().getResource().getProject()
+								)
+									ed.clearOutline();
 							}
 						}
 					}

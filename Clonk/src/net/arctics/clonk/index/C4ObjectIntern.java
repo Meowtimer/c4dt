@@ -73,7 +73,7 @@ public class C4ObjectIntern extends C4Object implements Serializable {
 	 */
 	public IFile getScriptFile() {
 		if (this.objectFolder == null)
-			System.out.println(this + " has null objectFolder");
+			return null;
 		IResource res = this.objectFolder.findMember("Script.c");
 		if (res == null || !(res instanceof IFile)) return null;
 		else return (IFile) res;
@@ -134,7 +134,11 @@ public class C4ObjectIntern extends C4Object implements Serializable {
 	}
 	
 	public static C4ObjectIntern objectCorrespondingTo(IContainer folder) {
-		return (Utilities.getIndex(folder) != null) ? Utilities.getIndex(folder).getObject(folder) : null;
+		C4ObjectIntern obj = (Utilities.getIndex(folder) != null) ? Utilities.getIndex(folder).getObject(folder) : null;
+		// haxxy cleanup: might have been lost by <insert unlikely event>
+		if (obj != null)
+			obj.objectFolder = folder;
+		return obj;
 	}
 	
 	public void refreshFolderReference(IProject project) throws CoreException {

@@ -189,7 +189,9 @@ public class C4ScriptEditor extends ClonkTextEditor {
 	}
 	
 	private void markScriptAsDirty() {
-		scriptBeingEdited().setDirty(true);
+		C4ScriptBase script = scriptBeingEdited();
+		if (script != null)
+			script.setDirty(true);
 	}
 	
 	@Override
