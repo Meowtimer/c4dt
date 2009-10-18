@@ -22,11 +22,6 @@ import org.eclipse.core.runtime.IPath;
 public class ClonkProjectNature implements IProjectNature {
 
 	/**
-	 * Name of the file the index gets saved in
-	 */
-	private static final String indexFileName = "indexdata";
-
-	/**
 	 * Reference to the project
 	 */
 	private IProject project;
@@ -70,7 +65,7 @@ public class ClonkProjectNature implements IProjectNature {
 	}
 
 	private IPath getIndexFileLocation() {
-		return ClonkCore.getDefault().getStateLocation().append(getProject().getName()+".index");
+		return ClonkCore.getDefault().getStateLocation().append(getProject().getName()+ProjectIndex.INDEXFILE_SUFFIX);
 	}
 
 	/**

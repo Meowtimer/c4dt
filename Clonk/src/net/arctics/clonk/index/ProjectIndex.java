@@ -22,6 +22,7 @@ import org.eclipse.core.runtime.Path;
 public class ProjectIndex extends ClonkIndex {
 
 	private static final long serialVersionUID = 1L;
+	public static final String INDEXFILE_SUFFIX = ".index";
 	
 	private transient IProject project;
 	private Collection<String> dependencyNames;

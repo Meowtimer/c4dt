@@ -15,6 +15,7 @@ import javax.xml.xpath.XPathExpressionException;
 
 import net.arctics.clonk.index.C4ObjectExtern;
 import net.arctics.clonk.index.ExternIndex;
+import net.arctics.clonk.index.ProjectIndex;
 import net.arctics.clonk.parser.C4ID;
 import net.arctics.clonk.parser.inireader.IniData;
 import net.arctics.clonk.parser.inireader.IniUnit;
@@ -379,7 +380,7 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant {
 	private void removeOldIndexes() {
 		File stateDir = getStateLocation().toFile();
 		for (String file : stateDir.list()) {
-			if (file.endsWith(".index") && ResourcesPlugin.getWorkspace().getRoot().findMember(file.substring(0, file.length()-".index".length())) == null) {
+			if (file.endsWith(ProjectIndex.INDEXFILE_SUFFIX) && ResourcesPlugin.getWorkspace().getRoot().findMember(file.substring(0, file.length()-ProjectIndex.INDEXFILE_SUFFIX.length())) == null) {
 				new File(stateDir, file).delete();
 			}
 		}
