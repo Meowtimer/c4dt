@@ -26,9 +26,9 @@ public class C4Function extends C4Structure implements Serializable, ITypedDecla
 	private SourceLocation body, header;
 	//private transient C4Object expectedContent;
 
-	public C4Function(String name, C4Type type, C4Variable... pars) {
+	public C4Function(String name, C4Type returnType, C4Variable... pars) {
 		this.name = name;
-		this.returnType = type;
+		this.returnType = returnType;
 		parameter = new ArrayList<C4Variable>(pars.length);
 		for (C4Variable var : pars)
 			parameter.add(var);

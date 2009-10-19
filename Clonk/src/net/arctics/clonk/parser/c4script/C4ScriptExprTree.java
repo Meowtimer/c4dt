@@ -70,6 +70,13 @@ public abstract class C4ScriptExprTree {
 			region = new Region(region.getOffset()+offset, region.getLength());
 			return this;
 		}
+		@Override
+		public String toString() {
+			if (declaration != null && region != null)
+				return declaration.toString() + "@(" + region.toString() + ")" + (text != null ? "("+text+")" : "");
+			else
+				return "Empty DeclarationRegion";
+		}
 	}
 	
 	/**
@@ -2691,7 +2698,7 @@ public abstract class C4ScriptExprTree {
 			// parse comment as expression and see what goes
 			ExpressionLocator locator = new ExpressionLocator(offset-2); // make up for '//' or /*'
 			try {
-				C4ScriptParser.parseStandaloneExpression(comment, parser.getContainer(), locator);
+				C4ScriptParser.parseStandaloneStatement(comment, parser.getActiveFunc(), locator);
 			} catch (ParsingException e) {}
 			if (locator.getExprAtRegion() != null) {
 				DeclarationRegion reg = locator.getExprAtRegion().declarationAt(offset, parser);

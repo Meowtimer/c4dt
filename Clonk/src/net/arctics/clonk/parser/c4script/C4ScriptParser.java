@@ -2431,9 +2431,9 @@ public class C4ScriptParser {
 		return parser;
 	}
 	
-	public static ExprElm parseStandaloneExpression(final String expression, C4ScriptBase context, IExpressionListener listener) throws ParsingException {
+	public static Statement parseStandaloneStatement(final String expression, C4Function context, IExpressionListener listener) throws ParsingException {
 		if (context == null) {
-			context = new C4ScriptBase() {
+			C4ScriptBase tempScript = new C4ScriptBase() {
 				private static final long serialVersionUID = 1L;
 
 				@Override
@@ -2451,10 +2451,14 @@ public class C4ScriptParser {
 				}
 			
 			};
+			context = new C4Function("<temp>", C4Type.ANY);
+			context.setScript(tempScript);
 		}
-		C4ScriptParser tempParser = new C4ScriptParser(expression, context);
+		C4ScriptParser tempParser = new C4ScriptParser(expression, context.getScript());
 		tempParser.setExpressionListener(listener);
-		return tempParser.parseExpression(0);
+		tempParser.setActiveFunc(context);
+		tempParser.beginTypeInferenceBlock();
+		return tempParser.parseStatement(0);
 	}
 
 }
