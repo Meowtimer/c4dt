@@ -49,6 +49,8 @@ public class XMLDocImporter {
 	private XPathExpression parmsExpr;
 	private XPathExpression descExpr;
 	
+	private static Pattern TITLE_PATTERN = Pattern.compile("\\<title\\>(.*)\\<\\/title\\>");
+	
 	public XMLDocImporter() {
 		super();
 		try {
@@ -98,7 +100,7 @@ public class XMLDocImporter {
 		try {
 			doc = builder.parse(new ByteArrayInputStream(text.getBytes("UTF-8")));
 		} catch (SAXException e) {
-			Matcher m = Pattern.compile("\\<title\\>(.*)\\<\\/title\\>").matcher(text);
+			Matcher m = TITLE_PATTERN.matcher(text);
 			if (m.find()) {
 				System.out.println(m.group(1));
 			}

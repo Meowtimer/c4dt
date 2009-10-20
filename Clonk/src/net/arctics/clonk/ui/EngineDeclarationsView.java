@@ -479,7 +479,7 @@ public class EngineDeclarationsView extends ViewPart {
 							try {
 								final C4ScriptBase engine = ClonkCore.getDefault().getEngineObject();
 								engine.clearDeclarations();
-								engine.importFromRepositoryDocumentation(repo, monitor);
+								engine.importFromRepository(repo, monitor);
 							} catch (Exception e) {
 								e.printStackTrace();
 							}

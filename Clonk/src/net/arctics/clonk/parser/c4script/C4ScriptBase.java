@@ -1,8 +1,10 @@
 package net.arctics.clonk.parser.c4script;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
@@ -16,6 +18,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -64,7 +68,7 @@ public abstract class C4ScriptBase extends C4Structure implements IHasRelatedRes
 	protected List<C4Function> definedFunctions = new LinkedList<C4Function>();
 	protected List<C4Variable> definedVariables = new LinkedList<C4Variable>();
 	protected List<C4Directive> definedDirectives = new LinkedList<C4Directive>();
-	
+
 	/**
 	 * Returns the strict level of the script
 	 * @return the #strict level
@@ -98,7 +102,7 @@ public abstract class C4ScriptBase extends C4Structure implements IHasRelatedRes
 		}
 		return result.toArray(new C4Directive[result.size()]);
 	}
-	
+
 	/**
 	 * Tries to gather all of the script's includes (including appendtos in the case of object scripts)
 	 * @param list The list to be filled with the includes
@@ -113,7 +117,7 @@ public abstract class C4ScriptBase extends C4Structure implements IHasRelatedRes
 			}
 		}
 	}
-	
+
 	/**
 	 * Does the same as gatherIncludes except that the user does not have to create their own list
 	 * @param index The index to be passed to gatherIncludes
@@ -124,7 +128,7 @@ public abstract class C4ScriptBase extends C4Structure implements IHasRelatedRes
 		gatherIncludes(result, index);
 		return result.toArray(new C4ScriptBase[result.size()]);
 	}
-	
+
 	/**
 	 * Does the same as gatherIncludes except that the user does not have to create their own list and does not even have to supply an index (defaulting to getIndex()) 
 	 * @return The includes
@@ -135,7 +139,7 @@ public abstract class C4ScriptBase extends C4Structure implements IHasRelatedRes
 			return NO_INCLUDES;
 		return getIncludes(index);
 	}
-	
+
 	/**
 	 * Returns an include directive that include a specific object's script
 	 * @param obj The object
@@ -148,7 +152,7 @@ public abstract class C4ScriptBase extends C4Structure implements IHasRelatedRes
 		}
 		return null;
 	}
-	
+
 	/**
 	 * Finds a declaration in this script or an included one
 	 * @return The declaration or null if not found
@@ -156,7 +160,7 @@ public abstract class C4ScriptBase extends C4Structure implements IHasRelatedRes
 	public C4Declaration findDeclaration(String name) {
 		return findDeclaration(name, new FindDeclarationInfo(getIndex()));
 	}
-	
+
 	@Override
 	public C4Declaration findDeclaration(String declarationName,
 			Class<? extends C4Declaration> declarationClass) {
@@ -164,7 +168,7 @@ public abstract class C4ScriptBase extends C4Structure implements IHasRelatedRes
 		info.setDeclarationClass(declarationClass);
 		return findDeclaration(declarationName, info);
 	}
-	
+
 	@Override
 	public C4Declaration findLocalDeclaration(String declarationName, Class<? extends C4Declaration> declarationClass) {
 		if (declarationClass.isAssignableFrom(C4Variable.class)) {
@@ -181,7 +185,7 @@ public abstract class C4ScriptBase extends C4Structure implements IHasRelatedRes
 		}
 		return null;
 	}
-	
+
 	/**
 	 * Returns whether the supplied name might refer to this script (used in findDeclaration)
 	 * @param name The name
@@ -191,7 +195,7 @@ public abstract class C4ScriptBase extends C4Structure implements IHasRelatedRes
 	protected boolean refersToThis(String name, FindDeclarationInfo info) {
 		return false;
 	}
-	
+
 	/**
 	 * Returns all declarations of this script (functions, variables and directives)
 	 */
@@ -200,7 +204,7 @@ public abstract class C4ScriptBase extends C4Structure implements IHasRelatedRes
 	public Iterable<C4Declaration> allSubDeclarations() {
 		return new CompoundIterable<C4Declaration>(definedFunctions, definedVariables, definedDirectives);
 	}
-	
+
 	/**
 	 * Finds a declaration with the given name using information from the helper object
 	 * @param name The name
@@ -208,12 +212,12 @@ public abstract class C4ScriptBase extends C4Structure implements IHasRelatedRes
 	 * @return the declaration or <tt>null</tt> if not found
 	 */
 	public C4Declaration findDeclaration(String name, FindDeclarationInfo info) {
-		
+
 		// prevent infinite recursion
 		if (info.getAlreadySearched().contains(this))
 			return null;
 		info.getAlreadySearched().add(this);
-		
+
 		// local variable?
 		if (info.recursion == 0) {
 			if (info.getContextFunction() != null) {
@@ -222,12 +226,12 @@ public abstract class C4ScriptBase extends C4Structure implements IHasRelatedRes
 					return v;
 			}
 		}
-		
+
 		// this object?
 		if (refersToThis(name, info)) {
 			return this;
 		}
-		
+
 		// a function defined in this object
 		if (info.getDeclarationClass() == null || info.getDeclarationClass() == C4Function.class) {
 			for (C4Function f : definedFunctions) {
@@ -242,7 +246,7 @@ public abstract class C4ScriptBase extends C4Structure implements IHasRelatedRes
 					return v;
 			}
 		}
-		
+
 		// search in included definitions
 		info.recursion++;
 		for (C4ScriptBase o : getIncludes(info.index)) {
@@ -251,7 +255,7 @@ public abstract class C4ScriptBase extends C4Structure implements IHasRelatedRes
 				return result;
 		}
 		info.recursion--;
-		
+
 		// finally look if it's something global
 		if (info.recursion == 0 && this != ClonkCore.getDefault().getEngineObject()) { // .-.
 			C4Declaration f = null;
@@ -269,83 +273,83 @@ public abstract class C4ScriptBase extends C4Structure implements IHasRelatedRes
 			// engine function
 			if (f == null)
 				f = ClonkCore.getDefault().getEngineObject().findDeclaration(name, info);
-			
+
 			if (f != null && (info.declarationClass == null || info.declarationClass.isAssignableFrom(f.getClass())))
 				return f;
 		}
 		return null;
 	}
-	
+
 	public void addDeclaration(C4Declaration field) {
 		field.setScript(this);
 		if (field instanceof C4Function) {
 			definedFunctions.add((C4Function)field);
-//			for(IC4ObjectListener listener : changeListeners) {
-//				listener.fieldAdded(this, field);
-//			}
+			//			for(IC4ObjectListener listener : changeListeners) {
+			//				listener.fieldAdded(this, field);
+			//			}
 		}
 		else if (field instanceof C4Variable) {
 			definedVariables.add((C4Variable)field);
-//			for(IC4ObjectListener listener : changeListeners) {
-//				listener.fieldAdded(this, field);
-//			}
+			//			for(IC4ObjectListener listener : changeListeners) {
+			//				listener.fieldAdded(this, field);
+			//			}
 		}
 		else if (field instanceof C4Directive) {
 			definedDirectives.add((C4Directive)field);
 		}
 	}
-	
+
 	public void removeField(C4Declaration field) {
 		if (field.getScript() != this) field.setScript(this);
 		if (field instanceof C4Function) {
 			definedFunctions.remove((C4Function)field);
-//			for(IC4ObjectListener listener : changeListeners) {
-//				listener.fieldRemoved(this, field);
-//			}
+			//			for(IC4ObjectListener listener : changeListeners) {
+			//				listener.fieldRemoved(this, field);
+			//			}
 		}
 		else if (field instanceof C4Variable) {
 			definedVariables.remove((C4Variable)field);
-//			for(IC4ObjectListener listener : changeListeners) {
-//				listener.fieldRemoved(this, field);
-//			}
+			//			for(IC4ObjectListener listener : changeListeners) {
+			//				listener.fieldRemoved(this, field);
+			//			}
 		}
 	}
-	
+
 	public void clearDeclarations() {
 		if (definedDirectives != null)
 			definedDirectives.clear();
 		if (definedFunctions != null)
-		while (definedFunctions.size() > 0)
-			removeField(definedFunctions.get(definedFunctions.size()-1));
+			while (definedFunctions.size() > 0)
+				removeField(definedFunctions.get(definedFunctions.size()-1));
 		if (definedVariables != null)
-		while (definedVariables.size() > 0)
-			removeField(definedVariables.get(definedVariables.size()-1));
+			while (definedVariables.size() > 0)
+				removeField(definedVariables.get(definedVariables.size()-1));
 	}
-	
+
 	public void setName(String name) {
 		this.name = name;
 	}
 
-//	public void addListener(IC4ObjectListener listener) {
-//		changeListeners.add(listener);
-//	}
-//	
-//	public void removeListener(IC4ObjectListener listener) {
-//		changeListeners.remove(listener);
-//	}
-	
+	//	public void addListener(IC4ObjectListener listener) {
+	//		changeListeners.add(listener);
+	//	}
+	//	
+	//	public void removeListener(IC4ObjectListener listener) {
+	//		changeListeners.remove(listener);
+	//	}
+
 	public abstract Object getScriptFile();
-	
+
 	@Override
 	public C4ScriptBase getScript() {
 		return this;
 	}
-	
+
 	@Override
 	public C4Structure getTopLevelStructure() {
 		return this;
 	}
-	
+
 	public IResource getResource() {
 		return null;
 	}
@@ -355,17 +359,17 @@ public abstract class C4ScriptBase extends C4Structure implements IHasRelatedRes
 		info.setDeclarationClass(C4Function.class);
 		return (C4Function) findDeclaration(functionName, info);
 	}
-	
+
 	public C4Function findFunction(String functionName) {
 		FindDeclarationInfo info = new FindDeclarationInfo(getIndex());
 		return findFunction(functionName, info);
 	}
-	
+
 	public C4Variable findVariable(String varName) {
 		FindDeclarationInfo info = new FindDeclarationInfo(getIndex());
 		return findVariable(varName, info);
 	}
-	
+
 	public C4Variable findVariable(String varName, FindDeclarationInfo info) {
 		info.resetState();
 		info.setDeclarationClass(C4Variable.class);
@@ -375,7 +379,7 @@ public abstract class C4ScriptBase extends C4Structure implements IHasRelatedRes
 	public C4Function funcAt(int offset) {
 		return funcAt(new Region(offset, 1));
 	}
-	
+
 	public C4Function funcAt(IRegion region) {
 		// from name to end of body should be enough... ?
 		for (C4Function f : definedFunctions) {
@@ -384,7 +388,7 @@ public abstract class C4ScriptBase extends C4Structure implements IHasRelatedRes
 		}
 		return null;
 	}
-	
+
 	// OMG, IRegion <-> ITextSelection
 	public C4Function funcAt(ITextSelection region) {
 		// from name to end of body should be enough... ?
@@ -398,7 +402,7 @@ public abstract class C4ScriptBase extends C4Structure implements IHasRelatedRes
 	public boolean includes(C4Object other) {
 		return includes(other, new HashSet<C4ScriptBase>());
 	}
-	
+
 	public boolean includes(C4Object other, Set<C4ScriptBase> dontRevisit) {
 		if (dontRevisit.contains(this))
 			return false;
@@ -412,17 +416,17 @@ public abstract class C4ScriptBase extends C4Structure implements IHasRelatedRes
 		}
 		return false;
 	}
-	
+
 	public abstract ClonkIndex getIndex();
 
 	public C4Variable findLocalVariable(String name, boolean includeIncludes) {
 		return findLocalVariable(name, includeIncludes, new HashSet<C4ScriptBase>());
 	}
-	
+
 	public C4Function findLocalFunction(String name, boolean includeIncludes) {
 		return findLocalFunction(name, includeIncludes, new HashSet<C4ScriptBase>());
 	}
-	
+
 	public C4Function findLocalFunction(String name, boolean includeIncludes, HashSet<C4ScriptBase> alreadySearched) {
 		if (alreadySearched.contains(this))
 			return null;
@@ -440,7 +444,7 @@ public abstract class C4ScriptBase extends C4Structure implements IHasRelatedRes
 		}
 		return null;
 	}
-	
+
 	public C4Variable findLocalVariable(String name, boolean includeIncludes, HashSet<C4ScriptBase> alreadySearched) {
 		if (alreadySearched.contains(this))
 			return null;
@@ -458,7 +462,7 @@ public abstract class C4ScriptBase extends C4Structure implements IHasRelatedRes
 		}
 		return null;
 	}
-	
+
 	public boolean removeDuplicateVariables() {
 		Map<String, C4Variable> variableMap = new HashMap<String, C4Variable>();
 		Collection<C4Variable> toBeRemoved = new LinkedList<C4Variable>();
@@ -473,7 +477,7 @@ public abstract class C4ScriptBase extends C4Structure implements IHasRelatedRes
 			definedVariables.remove(v);
 		return toBeRemoved.size() > 0;
 	}
-	
+
 	/**
 	 * Returns an iterator to iterate over all functions defined in this script
 	 */
@@ -484,7 +488,7 @@ public abstract class C4ScriptBase extends C4Structure implements IHasRelatedRes
 			}
 		};
 	}
-	
+
 	/**
 	 * Returns an iterator to iterate over all variables defined in this script
 	 */
@@ -495,7 +499,7 @@ public abstract class C4ScriptBase extends C4Structure implements IHasRelatedRes
 			}	
 		};
 	}
-	
+
 	/**
 	 * Returns an iterator to iterate over all directives defined in this script
 	 */
@@ -510,18 +514,18 @@ public abstract class C4ScriptBase extends C4Structure implements IHasRelatedRes
 	public int numVariables() {
 		return definedVariables.size();
 	}
-	
+
 	public int numFunctions() {
 		return definedFunctions.size();
 	}
-	
+
 	public C4Object getNearestObjectWithId(C4ID id) {
 		ClonkIndex index = getIndex();
 		if (index != null)
 			return index.getObjectNearestTo(getResource(), id);
 		return null;
 	}
-	
+
 	/**
 	 * Returns an iterator that can be used to iterate over all scripts that are included by this script plus the script itself.
 	 * @return the Iterable
@@ -529,7 +533,7 @@ public abstract class C4ScriptBase extends C4Structure implements IHasRelatedRes
 	public Iterable<C4ScriptBase> conglomerate() {
 		return conglomerate(this.getIndex());
 	}
-	
+
 	/**
 	 * Returns an iterator that can be used to iterate over all scripts that are included by this script plus the script itself.
 	 * @param index index used to look for includes
@@ -555,7 +559,7 @@ public abstract class C4ScriptBase extends C4Structure implements IHasRelatedRes
 			}
 		};
 	}
-	
+
 	@Override
 	public INode[] getSubDeclarationsForOutline() {
 		List<Object> all = new LinkedList<Object>();
@@ -563,23 +567,23 @@ public abstract class C4ScriptBase extends C4Structure implements IHasRelatedRes
 		all.addAll(definedVariables);
 		return all.toArray(new INode[all.size()]);
 	}
-	
+
 	@Override
 	public boolean hasSubDeclarationsInOutline() {
 		return definedFunctions.size() > 0 || definedVariables.size() > 0;
 	}
-	
+
 	private boolean dirty;
-	
+
 	public void setDirty(boolean d) {
 		dirty = d;
 	}
-	
+
 	@Override
 	public boolean dirty() {
 		return dirty;
 	}
-	
+
 	public StringTbl getStringTblForLanguagePref() {
 		try {
 			IResource res = getResource();
@@ -595,44 +599,44 @@ public abstract class C4ScriptBase extends C4Structure implements IHasRelatedRes
 		}
 		return null;
 	}
-	
+
 	public void exportAsXML(Writer writer) throws IOException {
 		writer.write("<script>\n");
-			writer.write("\t<functions>\n");
-				for (C4Function f : functions()) {
-					writer.write(String.format("\t\t<function name=\"%s\" return=\"%s\">\n", f.getName(), f.getReturnType().toString()));
-					writer.write("\t\t\t<parameters>\n");
-						for (C4Variable p : f.getParameters()) {
-							writer.write(String.format("\t\t\t\t<parameter name=\"%s\" type=\"%s\" />\n", p.getName(), p.getType().toString(true)));
-						}
-					writer.write("\t\t\t</parameters>\n");
-					if (f.getUserDescription() != null) {
-						writer.write("\t\t\t<description>");
-							writer.write(f.getUserDescription());
-						writer.write("</description>\n");
-					}
-					writer.write("\t\t</function>\n");
-				}
-			writer.write("\t</functions>\n");
-			writer.write("\t<variables>\n");
-				for (C4Variable v : variables()) {
-					writer.write(String.format("\t\t<variable name=\"%s\" type=\"%s\" const=\"%s\">\n", v.getName(), v.getType().toString(true), Boolean.valueOf(v.getScope() == C4VariableScope.VAR_CONST)));
-						if (v.getUserDescription() != null) {
-							writer.write("\t\t\t<description>\n");
-								writer.write("\t\t\t\t"+v.getUserDescription()+"\n");
-							writer.write("\t\t\t</description>\n");
-						}
-					writer.write("\t\t</variable>\n");
-				}
-			writer.write("\t</variables>\n");
+		writer.write("\t<functions>\n");
+		for (C4Function f : functions()) {
+			writer.write(String.format("\t\t<function name=\"%s\" return=\"%s\">\n", f.getName(), f.getReturnType().toString()));
+			writer.write("\t\t\t<parameters>\n");
+			for (C4Variable p : f.getParameters()) {
+				writer.write(String.format("\t\t\t\t<parameter name=\"%s\" type=\"%s\" />\n", p.getName(), p.getType().toString(true)));
+			}
+			writer.write("\t\t\t</parameters>\n");
+			if (f.getUserDescription() != null) {
+				writer.write("\t\t\t<description>");
+				writer.write(f.getUserDescription());
+				writer.write("</description>\n");
+			}
+			writer.write("\t\t</function>\n");
+		}
+		writer.write("\t</functions>\n");
+		writer.write("\t<variables>\n");
+		for (C4Variable v : variables()) {
+			writer.write(String.format("\t\t<variable name=\"%s\" type=\"%s\" const=\"%s\">\n", v.getName(), v.getType().toString(true), Boolean.valueOf(v.getScope() == C4VariableScope.VAR_CONST)));
+			if (v.getUserDescription() != null) {
+				writer.write("\t\t\t<description>\n");
+				writer.write("\t\t\t\t"+v.getUserDescription()+"\n");
+				writer.write("\t\t\t</description>\n");
+			}
+			writer.write("\t\t</variable>\n");
+		}
+		writer.write("\t</variables>\n");
 		writer.write("</script>\n");
 	}
-	
+
 	public void importFromXML(InputStream stream) throws ParserConfigurationException, SAXException, IOException, XPathExpressionException {
 
 		XPathFactory xpathF = XPathFactory.newInstance();
 		XPath xPath = xpathF.newXPath();
-		
+
 		DocumentBuilder builder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
 		Document doc = builder.parse(stream);
 
@@ -661,7 +665,7 @@ public abstract class C4ScriptBase extends C4Structure implements IHasRelatedRes
 			this.addDeclaration(v);
 		}
 	}
-	
+
 	@Override
 	public String getInfoText() {
 		Object f = getScriptFile();
@@ -678,13 +682,13 @@ public abstract class C4ScriptBase extends C4Structure implements IHasRelatedRes
 		}
 		return super.getInfoText();
 	}
-	
-	public void importFromRepositoryDocumentation(String repository, IProgressMonitor monitor) throws XPathExpressionException, FileNotFoundException, SAXException, IOException {
+
+	public void importFromRepository(String repository, IProgressMonitor monitor) throws XPathExpressionException, FileNotFoundException, SAXException, IOException {
 		XMLDocImporter importer = XMLDocImporter.instance();
 		importer.setRepositoryPath(repository);
-		String fnFolder = repository + "/docs/sdk/script/fn";
-		File fn = new File(fnFolder);
-		String[] files = fn.list(new FilenameFilter() {
+		String fnFolderPath = repository + "/docs/sdk/script/fn";
+		File fnFolder = new File(fnFolderPath);
+		String[] files = fnFolder.list(new FilenameFilter() {
 			public boolean accept(File dir, String name) {
 				return name.endsWith(".xml");
 			}
@@ -695,54 +699,138 @@ public abstract class C4ScriptBase extends C4Structure implements IHasRelatedRes
 			if (monitor != null) {
 				monitor.subTask(fileName);
 			}
-			C4Declaration declaration = importer.importFromXML(new FileInputStream(fnFolder + "/" + fileName));
+			C4Declaration declaration = importer.importFromXML(new FileInputStream(fnFolderPath + "/" + fileName));
 			if (declaration != null)
 				this.addDeclaration(declaration);
 			if (monitor != null) {
 				monitor.worked(1);
 			}
 		}
+		// also import from fn list in C4Script.cpp
+		readMissingFuncsFromSource(repository);
 		monitor.done();
 	}
 	
+	private void readMissingFuncsFromSource(String repository) throws FileNotFoundException, IOException {
+		
+		final int SECTION_None = 0;
+		final int SECTION_InitFunctionMap = 1;
+		final int SECTION_C4ScriptConstMap = 2;
+		final int SECTION_C4ScriptFnMap = 3;
+		
+		String c4ScriptFilePath = repository + "/src/game/script/C4Script.cpp";
+		File c4ScriptFile;
+		if ((c4ScriptFile = new File(c4ScriptFilePath)).exists()) {
+			Matcher[] sectionStartMatchers = new Matcher[] {
+				Pattern.compile("void InitFunctionMap\\(C4AulScriptEngine \\*pEngine\\)").matcher(""),
+				Pattern.compile("C4ScriptConstDef C4ScriptConstMap\\[\\]\\=\\{").matcher(""),
+				Pattern.compile("C4ScriptFnDef C4ScriptFnMap\\[\\]\\=\\{").matcher("")
+			};
+			Matcher fnMapMatcher = Pattern.compile("\\s*\\{\\s*\"(.*?)\"\\s*,\\s*(.*?)\\s*,\\s*(.*?)\\s*,\\s*\\{(.*?)\\}\\s*,\\s*(.*?)\\s*,\\s*(.*?)\\s*\\}\\s*,").matcher("");
+			Matcher constMapMatcher = Pattern.compile("\\s*\\{\\s*\"(.*?)\"\\s*,\\s*(.*?)\\s*,\\s*(.*?)\\s*\\}\\s*,\\s*(\\/\\/(.*))?").matcher("");
+			
+			BufferedReader reader = new BufferedReader(new FileReader(c4ScriptFile));
+			int section = SECTION_None;
+			try {
+				String line;
+				Outer: while ((line = reader.readLine()) != null) {
+					// determine section
+					for (int s = 0; s < sectionStartMatchers.length; s++) {
+						sectionStartMatchers[s].reset(line);
+						if (sectionStartMatchers[s].matches()) {
+							section = s+1;
+							continue Outer;
+						}
+					}
+					
+					switch (section) {
+					case SECTION_InitFunctionMap:
+						break;
+					case SECTION_C4ScriptConstMap:
+						if (constMapMatcher.reset(line).matches()) {
+							int i = 1;
+							String name = constMapMatcher.group(i++);
+							C4Type type = C4Type.makeType(constMapMatcher.group(i++).substring(4).toLowerCase());
+							String comment = constMapMatcher.group(5); 
+								
+							C4Variable cnst = this.findLocalVariable(name, false);
+							if (cnst == null) {
+								cnst = new C4Variable(name, type);
+								cnst.setScope(C4VariableScope.VAR_CONST);
+								cnst.setUserDescription(comment);
+								this.addDeclaration(cnst);
+							}
+						}
+						break;
+					case SECTION_C4ScriptFnMap:
+						if (fnMapMatcher.reset(line).matches()) {
+							int i = 1;
+							String name = fnMapMatcher.group(i++);
+							i++;//String public_ = fnMapMatcher.group(i++);
+							String retType = fnMapMatcher.group(i++);
+							String parms = fnMapMatcher.group(i++);
+							//String pointer = fnMapMatcher.group(i++);
+							//String oldPointer = fnMapMatcher.group(i++);
+							C4Function fun = this.findLocalFunction(name, false);
+							if (fun == null) {
+								fun = new C4Function(name, C4Type.makeType(retType.substring(4).toLowerCase(), true));
+								String[] p = parms.split(",");
+								List<C4Variable> parList = new ArrayList<C4Variable>(p.length);
+								for (String pa : p) {
+									parList.add(new C4Variable("par"+(parList.size()+1), C4Type.makeType(pa.trim().substring(4).toLowerCase(), true)));
+								}
+								fun.setParameter(parList);
+								this.addDeclaration(fun);
+							}
+						}
+						break;
+					}
+				}
+			}
+			finally {
+				reader.close();
+			}
+		}
+	}
+
 	public ITreeNode getParentNode() {
 		return getParentDeclaration() instanceof ITreeNode ? (ITreeNode)getParentDeclaration() : null;
 	}
-	
+
 	public boolean subNodeOf(ITreeNode node) {
 		return ITreeNode.Default.subNodeOf(this, node);
 	}
-	
+
 	public IPath getPath() {
 		return ITreeNode.Default.getPath(this);
 	}
-	
+
 	@SuppressWarnings("unchecked")
 	public Collection<? extends INode> getChildCollection() {
 		return Utilities.collectionFromArray(LinkedList.class, getSubDeclarationsForOutline());
 	}
-	
+
 	public void addChild(ITreeNode node) {
 		if (node instanceof C4Declaration)
 			addDeclaration((C4Declaration)node);
 	}
-	
-//	public boolean removeDWording() {
-//		boolean result = false;
-//		for (C4Function f : functions()) {
-//			if (f.getReturnType() == C4Type.DWORD) {
-//				f.setReturnType(C4Type.INT);
-//				result = true;
-//			}
-//			for (C4Variable parm : f.getParameters()) {
-//				if (parm.getType() == C4Type.DWORD) {
-//					parm.setType(C4Type.INT);
-//					result = true;
-//				}
-//			}
-//		}
-//		return result;
-//	}
+
+	//	public boolean removeDWording() {
+	//		boolean result = false;
+	//		for (C4Function f : functions()) {
+	//			if (f.getReturnType() == C4Type.DWORD) {
+	//				f.setReturnType(C4Type.INT);
+	//				result = true;
+	//			}
+	//			for (C4Variable parm : f.getParameters()) {
+	//				if (parm.getType() == C4Type.DWORD) {
+	//					parm.setType(C4Type.INT);
+	//					result = true;
+	//				}
+	//			}
+	//		}
+	//		return result;
+	//	}
 
 	//	public boolean convertFuncsToConstsIfTheyLookLikeConsts() {
 	//	boolean didSomething = false;
@@ -752,54 +840,54 @@ public abstract class C4ScriptBase extends C4Structure implements IHasRelatedRes
 	//			toBeRemoved.add(f);
 	//			definedVariables.add(new C4Variable(f.getName(), f.getReturnType(), f.getUserDescription(), C4VariableScope.VAR_CONST));
 	//			didSomething = true;
-//		}
-//	}
-//	for (C4Variable v : definedVariables) {
-//		if (v.getScope() != C4VariableScope.VAR_CONST) {
-//			v.setScope(C4VariableScope.VAR_CONST);
-//			didSomething = true;
-//		}
-//		if (v.getScript() != this) {
-//			v.setScript(this);
-//			didSomething = true;
-//		}
-//	}
-//	for (C4Function f : toBeRemoved)
-//		definedFunctions.remove(f);
-//	C4Variable v = findLocalVariable("_inherited", false);
-//	if (v != null) {
-//		definedVariables.remove(v);
-//		definedFunctions.add(new C4Function("_inherited", this, C4FunctionScope.FUNC_PUBLIC));
-//		didSomething = true;
-//	}
-//	didSomething |= removeDuplicateVariables();
-//	return didSomething;
-//}
+	//		}
+	//	}
+	//	for (C4Variable v : definedVariables) {
+	//		if (v.getScope() != C4VariableScope.VAR_CONST) {
+	//			v.setScope(C4VariableScope.VAR_CONST);
+	//			didSomething = true;
+	//		}
+	//		if (v.getScript() != this) {
+	//			v.setScript(this);
+	//			didSomething = true;
+	//		}
+	//	}
+	//	for (C4Function f : toBeRemoved)
+	//		definedFunctions.remove(f);
+	//	C4Variable v = findLocalVariable("_inherited", false);
+	//	if (v != null) {
+	//		definedVariables.remove(v);
+	//		definedFunctions.add(new C4Function("_inherited", this, C4FunctionScope.FUNC_PUBLIC));
+	//		didSomething = true;
+	//	}
+	//	didSomething |= removeDuplicateVariables();
+	//	return didSomething;
+	//}
 
-//public void addFuncsFromList(String file) throws IOException {
-//Reader r = new FileReader(file);
-//LineNumberReader lReader = new LineNumberReader(r);
-//String funcName, type;
-//for (funcName = lReader.readLine(); funcName != null; funcName = type) {
-//	C4Function func = findLocalFunction(funcName, false);
-//	C4Type retType = null;
-//	List<C4Variable> parms = new LinkedList<C4Variable>();
-//	int numParms = 0;
-//	while ((type = lReader.readLine()) != null) {
-//		C4Type t = type.equals("any") ? C4Type.ANY : C4Type.makeType(type);
-//		if (t == C4Type.UNKNOWN)
-//			break;
-//		if (retType == null) {
-//			retType = t;
-//			continue;
-//		}
-//		parms.add(new C4Variable("par"+numParms++, t));
-//	}
-//	if (func == null && ClonkCore.getDefault().EXTERN_INDEX.findGlobalFunction(funcName) == null) {
-//		func = new C4Function(funcName, retType, parms.toArray(new C4Variable[numParms]));
-//		addField(func);
-//	}
-//}
-//}
+	//public void addFuncsFromList(String file) throws IOException {
+	//Reader r = new FileReader(file);
+	//LineNumberReader lReader = new LineNumberReader(r);
+	//String funcName, type;
+	//for (funcName = lReader.readLine(); funcName != null; funcName = type) {
+	//	C4Function func = findLocalFunction(funcName, false);
+	//	C4Type retType = null;
+	//	List<C4Variable> parms = new LinkedList<C4Variable>();
+	//	int numParms = 0;
+	//	while ((type = lReader.readLine()) != null) {
+	//		C4Type t = type.equals("any") ? C4Type.ANY : C4Type.makeType(type);
+	//		if (t == C4Type.UNKNOWN)
+	//			break;
+	//		if (retType == null) {
+	//			retType = t;
+	//			continue;
+	//		}
+	//		parms.add(new C4Variable("par"+numParms++, t));
+	//	}
+	//	if (func == null && ClonkCore.getDefault().EXTERN_INDEX.findGlobalFunction(funcName) == null) {
+	//		func = new C4Function(funcName, retType, parms.toArray(new C4Variable[numParms]));
+	//		addField(func);
+	//	}
+	//}
+	//}
 
 }
