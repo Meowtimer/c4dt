@@ -2,6 +2,7 @@ package net.arctics.clonk.parser.c4script;
 
 import java.io.Serializable;
 import java.lang.ref.WeakReference;
+import java.security.InvalidParameterException;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -25,53 +26,52 @@ public class C4Variable extends C4Declaration implements Serializable, ITypedDec
 	private static final long serialVersionUID = -2350345359769750230L;
 	
 	/**
-	 * scope (local, static or function-local)
+	 * Scope (local, static or function-local)
 	 */
 	private C4VariableScope scope;
 	
 	/**
-	 * type of variable
+	 * Type of the variable.
 	 */
 	private C4Type type;
 	
 	/**
-	 * mostly null - only set when type=object
+	 * Mostly null - only set when type=object
 	 */
 	private transient WeakReference<C4Object> objectType;
 	
 	/**
-	 * persistent data used
+	 * Instead of storing a ref to a C4Object (and retaining it) just store the id and restore the weak ref to the object.
 	 */
 	private C4ID objectID;
 	
 	/**
-	 * descriptive text meant for the user
+	 * Descriptive text meant for the user
 	 */
 	private String description;
 	
 	/**
-	 * array&
+	 * It's a reference. Only parameters get this flag set when they are explicitly marked as by-ref. 
 	 */
 	private boolean byRef;
 	
 	/**
-	 * explicit type, not to be changed by weird type inference
+	 * Explicit type, not to be changed by weird type inference
 	 */
-	private boolean typeLocked;
+	private transient boolean typeLocked;
 	
 	/**
-	 * variable object used as the special 'this' object
+	 * Value of the constant. Only for constants quite obviously.
 	 */
-	public static final C4Variable THIS = new C4Variable("this", "object", "reference to the object calling the function");
+	private Object constValue;
 	
 	/**
-	 * Do NOT use this constructor! Its for engine-function-parameter only.
-	 * @param name
-	 * @param type
-	 * @param desc
+	 * Variable object used as the special 'this' object.
 	 */
-	public C4Variable(String name, String type, String desc) {
-		this(name, C4Type.makeType(type), desc, C4VariableScope.VAR_VAR);
+	public static final C4Variable THIS = new C4Variable("this", C4Type.OBJECT, "reference to the object calling the function");
+	
+	private C4Variable(String name, C4Type type, String desc) {
+		this(name, type, desc, C4VariableScope.VAR_VAR);
 	}
 	
 	public C4Variable(String name, C4Type type) {
@@ -260,6 +260,16 @@ public class C4Variable extends C4Declaration implements Serializable, ITypedDec
 
 	public void setByRef(boolean byRef) {
 		this.byRef = byRef;
+	}
+
+	public Object getConstValue() {
+		return constValue;
+	}
+
+	public void setConstValue(Object constValue) {
+		if (C4Type.typeFrom(constValue) == C4Type.ANY)
+			throw new InvalidParameterException("constValue must be of primitive type recognized by C4Type");
+		this.constValue = constValue;
 	}
 
 	@Override

@@ -372,7 +372,7 @@ public class C4ScriptParser {
 								callFunc.getParams()[0] instanceof StringLiteral &&
 								((StringLiteral)callFunc.getParams()[0]).getLiteral().equals("Name")
 							) {
-								Object v = callFunc.getParams()[1].evaluate(getContainer());
+								Object v = callFunc.getParams()[1].evaluateAtParseTime(getContainer());
 								if (v instanceof String) {
 									getContainer().setName((String) v);
 								}
@@ -540,6 +540,7 @@ public class C4ScriptParser {
 						errorWithCode(ParserErrorCode.ConstantValueExpected, constantValue, true);
 					}
 					C4Variable var = createVariable(C4VariableScope.VAR_CONST, desc, s, e, varName);
+					var.setConstValue(constantValue.evaluateAtParseTime(getContainer()));
 					createdVariables.add(var);
 					var.inferTypeFromAssignment(constantValue, this);
 				}
@@ -2170,6 +2171,8 @@ public class C4ScriptParser {
 		}
 		switch (loopType) {
 		case For:
+			if (condition != null && condition.isAlways(false, getContainer()))
+				warningWithCode(ParserErrorCode.ConditionAlwaysFalse, condition, condition.toString());
 			result = new ForStatement(initialization, condition, increment, body);
 			break;
 		case IterateArray:
@@ -2204,6 +2207,8 @@ public class C4ScriptParser {
 		if (body == null) {
 			errorWithCode(ParserErrorCode.StatementExpected, offset, offset+4);
 		}
+		if (condition != null && condition.isAlways(false, getContainer()))
+			warningWithCode(ParserErrorCode.ConditionAlwaysFalse, condition, condition.toString());
 		result = new WhileStatement(condition, body);
 		return result;
 	}
@@ -2243,8 +2248,7 @@ public class C4ScriptParser {
 		}
 		// merge gathered type information with current list
 		storedTypeInformationListStack.push(merger.finish(storedTypeInformationListStack.pop()));
-		Object conditionEvaluated = condition.evaluate(getContainer());
-		if (conditionEvaluated != null && Boolean.FALSE.equals(C4Type.BOOL.convert(conditionEvaluated))) {
+		if (condition.isAlways(false, getContainer())) {
 			warningWithCode(ParserErrorCode.ConditionAlwaysFalse, condition, condition.toString());
 		}
 		result = new IfStatement(condition, ifStatement, elseStatement);
