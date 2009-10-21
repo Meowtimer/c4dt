@@ -44,6 +44,13 @@ public abstract class C4ScriptExprTree {
 		
 	}
 	
+	public enum ControlFlow {
+		NextIteration,
+		BreakLoop,
+		Return,
+		Continue
+	}
+	
 	public final static class DeclarationRegion {
 		private C4Declaration declaration;
 		private IRegion region;
@@ -359,8 +366,8 @@ public abstract class C4ScriptExprTree {
 			parser.storeTypeInformation(this, rightSide.getType(parser), rightSide.guessObjectType(parser));
 		}
 		
-		public boolean isReturn() {
-			return false;
+		public ControlFlow getControlFlow() {
+			return ControlFlow.Continue;
 		}
 
 		public boolean containedIn(ExprElm expression) {
@@ -1131,8 +1138,8 @@ public abstract class C4ScriptExprTree {
 			return new Tuple(params);
 		}
 		@Override
-		public boolean isReturn() {
-			return declarationName.equals(Keywords.Return);
+		public ControlFlow getControlFlow() {
+			return declarationName.equals(Keywords.Return) ? ControlFlow.Return : super.getControlFlow();
 		}
 		public ExprElm[] getParams() {
 			return params;
@@ -1240,7 +1247,7 @@ public abstract class C4ScriptExprTree {
 					statements.add(new SimpleStatement(ex.newStyleReplacement(context)));
 				}
 				// convert func call to proper return statement
-				if (getRightSide().isReturn())
+				if (getRightSide().getControlFlow() == ControlFlow.Return)
 					statements.add(new ReturnStatement(((CallFunc)getRightSide()).getReturnArg().newStyleReplacement(context)));
 				else
 					statements.add(new SimpleStatement(getRightSide().newStyleReplacement(context)));
@@ -2200,8 +2207,8 @@ public abstract class C4ScriptExprTree {
 		}
 		
 		@Override
-		public boolean isReturn() {
-			return expression.isReturn();
+		public ControlFlow getControlFlow() {
+			return expression.getControlFlow();
 		}
 		
 		@Override
@@ -2243,12 +2250,20 @@ public abstract class C4ScriptExprTree {
 		public String getKeyword() {
 			return Keywords.Continue;
 		}
+		@Override
+		public ControlFlow getControlFlow() {
+			return ControlFlow.NextIteration;
+		}
 	}
 	
 	public static class BreakStatement extends KeywordStatement {
 		@Override
 		public String getKeyword() {
 			return Keywords.Break;
+		}
+		@Override
+		public ControlFlow getControlFlow() {
+			return ControlFlow.BreakLoop;
 		}
 	}
 	
@@ -2299,8 +2314,8 @@ public abstract class C4ScriptExprTree {
 		}
 		
 		@Override
-		public boolean isReturn() {
-			return true;
+		public ControlFlow getControlFlow() {
+			return ControlFlow.Return;
 		}
 		
 		@Override

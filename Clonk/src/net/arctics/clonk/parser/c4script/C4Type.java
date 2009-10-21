@@ -1,5 +1,10 @@
 package net.arctics.clonk.parser.c4script;
 
+import java.lang.reflect.Array;
+import java.util.Map;
+
+import net.arctics.clonk.parser.C4ID;
+
 /**
  * The engine predefined variable types.
  * @author ZokRadonh
@@ -58,6 +63,48 @@ public enum C4Type {
 		if (arg.equals("&") || (allowSpecial && arg.equals("reference")))
 			return C4Type.REFERENCE;
 		return C4Type.UNKNOWN;
+	}
+	
+	
+	/**
+	 * Returns a type the java object comes nearest to being an instance of
+	 * @param value the value
+	 * @return the type
+	 */
+	public static C4Type typeFrom(Object value) {
+		if (value instanceof String)
+			return STRING;
+		if (value instanceof Number)
+			return INT;
+		if (value instanceof Boolean)
+			return BOOL;
+		if (value instanceof C4ID)
+			return ID;
+		if (value instanceof Array)
+			return ARRAY;
+		if (value instanceof Map<?, ?>)
+			return PROPLIST;
+		return ANY;
+	}
+	
+	/**
+	 * Converts a given value to one of the calling type 
+	 * @param value value to convert
+	 * @return the converted value or null if conversion failed
+	 */
+	public Object convert(Object value) {
+		C4Type valueType = typeFrom(value);
+		if (valueType == this)
+			return value;
+		switch (this) {
+		case BOOL:
+			switch (valueType) {
+			case INT:
+				return ((Number)value).intValue() != 0;
+			}
+			break;
+		}
+		return null;
 	}
 
 }

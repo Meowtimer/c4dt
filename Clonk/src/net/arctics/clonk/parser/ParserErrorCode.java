@@ -42,7 +42,9 @@ public enum ParserErrorCode {
 	StringNotClosed("String not closed"),
 	UnexpectedToken("Unexpected token: %s"),
 	NotFinished("Expression not finished"),
-	GenericError("%s");
+	GenericError("%s"),
+	ConditionAlwaysTrue("Condition '%s' is always true"),
+	ConditionAlwaysFalse("Condition '%s' is always false");
 	
 	public static final String MARKER_ERRORCODE = "c4ScriptErrorCode";
 	

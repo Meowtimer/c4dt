@@ -903,7 +903,7 @@ public class C4ScriptParser {
 					warningWithCode(ParserErrorCode.NeverReached, statement);
 			}
 			else {
-				lastWasReturn = statement.isReturn();
+				lastWasReturn = statement.getControlFlow() == ControlFlow.Return;
 			}
 			// after first 'real' statement don't expect function description anymore
 			if (!statementIsComment) {
@@ -1787,12 +1787,17 @@ public class C4ScriptParser {
 					if (read == '{' && !options.contains(ParseStatementOption.InitializationStatement)) {
 						List<Statement> subStatements = new LinkedList<Statement>();
 						boolean foundClosingBracket;
+						boolean notReached = false;
 						for (fReader.eatWhitespace(); !(foundClosingBracket = fReader.read() == '}') && !fReader.reachedEOF(); fReader.eatWhitespace()) {
 							fReader.unread();
 							Statement subStatement = parseStatement(fReader.getPosition());
-							if (subStatement != null)
+							if (subStatement != null) {
 								subStatements.add(subStatement);
-							else
+								if (notReached)
+									warningWithCode(ParserErrorCode.NeverReached, subStatement);
+								else
+									notReached = subStatement.getControlFlow() != ControlFlow.Continue;
+							} else
 								errorWithCode(ParserErrorCode.StatementExpected, this.ERROR_PLACEHOLDER_EXPR);
 						}
 						if (!foundClosingBracket)
@@ -2238,6 +2243,10 @@ public class C4ScriptParser {
 		}
 		// merge gathered type information with current list
 		storedTypeInformationListStack.push(merger.finish(storedTypeInformationListStack.pop()));
+		Object conditionEvaluated = condition.evaluate(getContainer());
+		if (conditionEvaluated != null && Boolean.FALSE.equals(C4Type.BOOL.convert(conditionEvaluated))) {
+			warningWithCode(ParserErrorCode.ConditionAlwaysFalse, condition, condition.toString());
+		}
 		result = new IfStatement(condition, ifStatement, elseStatement);
 		return result;
 	}
