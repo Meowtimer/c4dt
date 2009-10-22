@@ -1392,9 +1392,9 @@ public abstract class C4ScriptExprTree {
 						return ((Number)leftSide).longValue() <= ((Number)rightSide).longValue();
 					}
 				}
-			} catch (ClassCastException e) {
-				// ignore
 			}
+			catch (ClassCastException e) {}
+			catch (NullPointerException e) {}
 			return super.evaluateAtParseTime(context);
 		}
 
@@ -1557,16 +1557,20 @@ public abstract class C4ScriptExprTree {
 
 		@Override
 		public Object evaluateAtParseTime(C4ScriptBase context) {
-			Object ev = argument.evaluateAtParseTime(context);
-			Object conv = getOperator().getFirstArgType().convert(ev);
-			switch (getOperator()) {
-			case Not:
-				return !(Boolean)conv;
-			case Subtract:
-				return -((Number)conv).longValue();
-			case Add:
-				return conv;
+			try {
+				Object ev = argument.evaluateAtParseTime(context);
+				Object conv = getOperator().getFirstArgType().convert(ev);
+				switch (getOperator()) {
+				case Not:
+					return !(Boolean)conv;
+				case Subtract:
+					return -((Number)conv).longValue();
+				case Add:
+					return conv;
+				}
 			}
+			catch (ClassCastException e) {}
+			catch (NullPointerException e) {}
 			return super.evaluateAtParseTime(context);
 		}
 
