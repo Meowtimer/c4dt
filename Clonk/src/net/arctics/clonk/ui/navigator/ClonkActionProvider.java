@@ -33,7 +33,7 @@ public class ClonkActionProvider extends CommonActionProvider {
 					workbenchSite.getSelectionProvider());
 		}
 		quickExportAction = new QuickExportAction("Quick Export");
-		convertCodeAction = new ConvertOldCodeInBulkAction("Convert old code");
+		convertCodeAction = new ConvertOldCodeInBulkAction("Tidy up");
 	}
 
 	/* (non-Javadoc)

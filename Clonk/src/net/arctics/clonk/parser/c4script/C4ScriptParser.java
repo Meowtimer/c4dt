@@ -65,7 +65,7 @@ public class C4ScriptParser {
 		this.expressionListener = expressionListener;
 	}
 
-	private BufferedScanner fReader;
+	private BufferedScanner scanner;
 	private IFile scriptFile; // for project intern files
 	private C4ScriptBase container;
 	private C4Function activeFunc;
@@ -80,7 +80,6 @@ public class C4ScriptParser {
 	
 	private int parseExpressionRecursion;
 	private int parseStatementRecursion;
-	private int blockDepth;
 	
 	private boolean appendTo;
 	
@@ -107,9 +106,10 @@ public class C4ScriptParser {
 	 */
 	public void unnamedParamaterUsed(ExprElm index) {
 		if (numUnnamedParameters < UNKNOWN_PARAMETERNUM) {
-			if (index instanceof C4ScriptExprTree.NumberLiteral) {
-				int number = ((C4ScriptExprTree.NumberLiteral)index).intValue();
-				numUnnamedParameters = Math.max(number+1, numUnnamedParameters);
+			Object ev = index.evaluateAtParseTime(getContainer());
+			if (ev instanceof Number) {
+				int number = ((Number)ev).intValue();
+				numUnnamedParameters = number >= 0 && number < MAX_PAR ? number+1 : UNKNOWN_PARAMETERNUM;
 			} else
 				numUnnamedParameters = UNKNOWN_PARAMETERNUM;
 		}
@@ -263,7 +263,7 @@ public class C4ScriptParser {
 	 */
 	public C4ScriptParser(IFile scriptFile, C4ScriptBase script) {
 		this.scriptFile = scriptFile;
-		fReader = new BufferedScanner(scriptFile);
+		scanner = new BufferedScanner(scriptFile);
 		container = script;
 	}
 
@@ -277,13 +277,13 @@ public class C4ScriptParser {
 	 */
 	public C4ScriptParser(InputStream stream, C4ScriptBase script) {
 		scriptFile = null;
-		fReader = new BufferedScanner(stream);
+		scanner = new BufferedScanner(stream);
 		container = script;
 	}
 	
 	public C4ScriptParser(IExternalScript externalScript) {
 		scriptFile = null;
-		fReader = new BufferedScanner(externalScript.getSimpleStorage().getContentsAsString());
+		scanner = new BufferedScanner(externalScript.getSimpleStorage().getContentsAsString());
 		container = (C4ScriptBase) externalScript;
 	}
 	
@@ -294,7 +294,7 @@ public class C4ScriptParser {
 	 */
 	public C4ScriptParser(String withString, C4ScriptBase script) {
 		scriptFile = null;
-		fReader = new BufferedScanner(withString);
+		scanner = new BufferedScanner(withString);
 		container = script;
 	}
 	
@@ -316,16 +316,16 @@ public class C4ScriptParser {
 	public void parseDeclarations() {
 		synchronized (container) {
 			int offset = 0;
-			fReader.seek(offset);
+			scanner.seek(offset);
 			try {
 				eatWhitespace();
-				while(!fReader.reachedEOF()) {
-					if (!parseDeclaration(fReader.getPosition())) {
+				while(!scanner.reachedEOF()) {
+					if (!parseDeclaration(scanner.getPosition())) {
 						eatWhitespace();
-						if (!fReader.reachedEOF()) {
-							int start = fReader.getPosition();
+						if (!scanner.reachedEOF()) {
+							int start = scanner.getPosition();
 							String tokenText = parseTokenAndReturnAsString(start);
-							errorWithCode(ParserErrorCode.UnexpectedToken, start, fReader.getPosition(), true, tokenText);
+							errorWithCode(ParserErrorCode.UnexpectedToken, start, scanner.getPosition(), true, tokenText);
 						}
 					}
 					eatWhitespace();
@@ -360,7 +360,7 @@ public class C4ScriptParser {
 			((C4Object)container).chooseLocalizedName();
 			C4Function definitionFunc = container.findFunction(Keywords.DefinitionFunc);
 			if (definitionFunc != null && definitionFunc.getBody() != null) { // could also be engine function without body
-				fReader.seek(definitionFunc.getBody().getStart());
+				scanner.seek(definitionFunc.getBody().getStart());
 				reportExpressionsAndStatements(definitionFunc, new IExpressionListener() {
 					@Override
 					public TraversalContinuation expressionDetected(ExprElm expression, C4ScriptParser parser) {
@@ -412,7 +412,7 @@ public class C4ScriptParser {
 		}
 		catch (Exception e) {
 			// errorWithCode throws ^^;
-			errorWithCode(ParserErrorCode.InternalError, fReader.getPosition(), fReader.getPosition()+1, true, e.getMessage());
+			errorWithCode(ParserErrorCode.InternalError, scanner.getPosition(), scanner.getPosition()+1, true, e.getMessage());
 			e.printStackTrace();
 		}
 	}
@@ -423,7 +423,7 @@ public class C4ScriptParser {
 	 * @return the line string
 	 */
 	public String getLineAt(IRegion region) {
-		return fReader.getLineAt(region);
+		return scanner.getLineAt(region);
 	}
 	
 	/**
@@ -432,7 +432,7 @@ public class C4ScriptParser {
 	 * @return the substring
 	 */
 	public String getSubstringOfScript(IRegion region) {
-		return fReader.readStringAt(region.getOffset(), region.getOffset()+region.getLength()+1);
+		return scanner.readStringAt(region.getOffset(), region.getOffset()+region.getLength()+1);
 	}
 	
 	/**
@@ -441,7 +441,7 @@ public class C4ScriptParser {
 	 * @return the line region
 	 */
 	public IRegion getLineRegion(IRegion regionInLine) {
-		return fReader.getLineRegion(regionInLine);
+		return scanner.getLineRegion(regionInLine);
 	}
 
 	/**
@@ -451,23 +451,23 @@ public class C4ScriptParser {
 	 * @throws ParsingException
 	 */
 	protected boolean parseDeclaration(int offset) throws ParsingException {
-		fReader.seek(offset);
-		int readByte = fReader.read();
+		scanner.seek(offset);
+		int readByte = scanner.read();
 		if (readByte == '#') {
 			// directive
-			String directiveName = fReader.readStringUntil(BufferedScanner.WHITESPACE_CHARS);
+			String directiveName = scanner.readStringUntil(BufferedScanner.WHITESPACE_CHARS);
 			C4DirectiveType type = C4DirectiveType.makeType(directiveName);
 			if (type == null) {
 				warningWithCode(ParserErrorCode.UnknownDirective, offset, offset + directiveName.length());
-				fReader.moveUntil(BufferedScanner.NEWLINE_CHARS);
+				scanner.moveUntil(BufferedScanner.NEWLINE_CHARS);
 				return true;
 			}
 			else {
-				String content = fReader.readStringUntil(BufferedScanner.NEWLINE_CHARS);
+				String content = scanner.readStringUntil(BufferedScanner.NEWLINE_CHARS);
 				if (content != null)
 					content = content.trim();
 				C4Directive directive = new C4Directive(type, content);
-				directive.setLocation(new SourceLocation(offset, fReader.getPosition()));
+				directive.setLocation(new SourceLocation(offset, scanner.getPosition()));
 				container.addDeclaration(directive);
 				if (type == C4DirectiveType.APPENDTO)
 					appendTo = true;
@@ -475,10 +475,10 @@ public class C4ScriptParser {
 			}
 		}
 		else {
-			fReader.seek(offset);
-			String word = fReader.readIdent();
+			scanner.seek(offset);
+			String word = scanner.readIdent();
 			if (looksLikeStartOfFunction(word)) {
-				if (parseFunctionDeclaration(word, offset, fReader.getPosition()))
+				if (parseFunctionDeclaration(word, offset, scanner.getPosition()))
 					return true;
 			}
 			else if (word.equals(Keywords.GlobalNamed) || word.equals(Keywords.LocalNamed)) {
@@ -488,14 +488,14 @@ public class C4ScriptParser {
 			else {
 				// old-style function declaration without visibility
 				eatWhitespace();
-				if (fReader.read() == ':' && fReader.read() != ':') { // no :: -.-
-					fReader.seek(offset); // just let parseFunctionDeclaration parse the name again
+				if (scanner.read() == ':' && scanner.read() != ':') { // no :: -.-
+					scanner.seek(offset); // just let parseFunctionDeclaration parse the name again
 					if (parseFunctionDeclaration(Keywords.Public, offset, offset)) // just assume public
 						return true;
 				}
 			}
 		}
-		fReader.seek(offset);
+		scanner.seek(offset);
 		return false;
 	}
 
@@ -510,29 +510,29 @@ public class C4ScriptParser {
 
 	private boolean parseVariableDeclaration(int offset) throws ParsingException {
 		String desc = getTextOfLastComment(offset);
-		fReader.seek(offset);
+		scanner.seek(offset);
 
 		List<C4Variable> createdVariables = new LinkedList<C4Variable>();
-		String word = fReader.readIdent();
+		String word = scanner.readIdent();
 		if (word.equals(Keywords.GlobalNamed)) {
 			eatWhitespace();
-			int pos = fReader.getPosition();
+			int pos = scanner.getPosition();
 			boolean constDecl = false; 
-			if (fReader.readIdent().equals(Keywords.Const)) {
+			if (scanner.readIdent().equals(Keywords.Const)) {
 				constDecl = true;
 			} else {
-				fReader.seek(pos);
+				scanner.seek(pos);
 			}
 			do {
 				eatWhitespace();
-				int s = fReader.getPosition();
-				String varName = fReader.readIdent();
-				int e = fReader.getPosition();
+				int s = scanner.getPosition();
+				String varName = scanner.readIdent();
+				int e = scanner.getPosition();
 				if (constDecl) {
 					eatWhitespace();
 					expect('=');
 					eatWhitespace();
-					offset = fReader.getPosition();
+					offset = scanner.getPosition();
 					ExprElm constantValue = parseExpression(offset, false);
 					if (constantValue == null)
 						constantValue = ERROR_PLACEHOLDER_EXPR;
@@ -548,24 +548,24 @@ public class C4ScriptParser {
 					createdVariables.add(createVariable(C4VariableScope.VAR_STATIC, desc, s, e, varName));
 				}
 				eatWhitespace();
-			} while(fReader.read() == ',');
-			fReader.unread();
-			if (fReader.read() != ';') {
-				errorWithCode(ParserErrorCode.CommaOrSemicolonExpected, fReader.getPosition()-1, fReader.getPosition());
+			} while(scanner.read() == ',');
+			scanner.unread();
+			if (scanner.read() != ';') {
+				errorWithCode(ParserErrorCode.CommaOrSemicolonExpected, scanner.getPosition()-1, scanner.getPosition());
 			}
 		}
 		else if (word.equals(Keywords.LocalNamed)) {
 			do {
 				eatWhitespace();
-				int s = fReader.getPosition();
-				String varName = fReader.readIdent();
-				int e = fReader.getPosition();
+				int s = scanner.getPosition();
+				String varName = scanner.readIdent();
+				int e = scanner.getPosition();
 				createdVariables.add(createVariable(C4VariableScope.VAR_LOCAL, desc, s, e, varName));
 				eatWhitespace();
-			} while (fReader.read() == ',');
-			fReader.unread();
-			if (fReader.read() != ';') {
-				errorWithCode(ParserErrorCode.CommaOrSemicolonExpected, fReader.getPosition()-1, fReader.getPosition());
+			} while (scanner.read() == ',');
+			scanner.unread();
+			if (scanner.read() != ';') {
+				errorWithCode(ParserErrorCode.CommaOrSemicolonExpected, scanner.getPosition()-1, scanner.getPosition());
 			}
 		}
 		
@@ -623,16 +623,16 @@ public class C4ScriptParser {
 
 	private boolean parseVariableDeclarationInFunc(int offset, boolean declaration) {
 		parsedVariable = null;
-		fReader.seek(offset);
+		scanner.seek(offset);
 
-		String word = fReader.readIdent();
+		String word = scanner.readIdent();
 		C4VariableScope scope = C4VariableScope.makeScope(word);
 		if (scope != null) {
 			do {
 				eatWhitespace();
-				int nameStart = fReader.getPosition();
-				String varName = fReader.readIdent();
-				int nameEnd = fReader.getPosition();
+				int nameStart = scanner.getPosition();
+				String varName = scanner.readIdent();
+				int nameEnd = scanner.getPosition();
 				if (declaration) {
 					// construct C4Variable object and register it
 					C4Variable previousDeclaration = findVar(varName, scope); 
@@ -643,14 +643,14 @@ public class C4ScriptParser {
 				eatWhitespace();
 				C4Variable var = activeFunc.findVariable(varName);
 				parsedVariable = var;
-				if (fReader.read() == '=') {
+				if (scanner.read() == '=') {
 					eatWhitespace();
-					offset = fReader.getPosition();
+					offset = scanner.getPosition();
 					try { 
 						ExprElm val = parseExpression(offset, !declaration);
 						if (!declaration) {
 							if (val == null)
-								errorWithCode(ParserErrorCode.ValueExpected, fReader.getPosition()-1, fReader.getPosition(), true);
+								errorWithCode(ParserErrorCode.ValueExpected, scanner.getPosition()-1, scanner.getPosition(), true);
 							else {
 								var.inferTypeFromAssignment(val, this);
 							}
@@ -658,33 +658,33 @@ public class C4ScriptParser {
 					} catch (ParsingException e) {} // an exception thrown from here will halt the whole parsing process
 				}
 				else {
-					fReader.unread();
+					scanner.unread();
 				}
 
-			} while(fReader.read() == ',');
-			fReader.unread();
+			} while(scanner.read() == ',');
+			scanner.unread();
 			return true;
 		}
 		else {
-			fReader.seek(offset);
+			scanner.seek(offset);
 			return false;
 		}
 	}
 
 	private C4Type parseFunctionReturnType(int offset) {
-		fReader.seek(offset);
+		scanner.seek(offset);
 		eatWhitespace();
-		int readByte = fReader.read();
+		int readByte = scanner.read();
 		if (readByte == '&') {
 			return C4Type.REFERENCE;
 		}
-		fReader.seek(offset);
+		scanner.seek(offset);
 		return C4Type.ANY;
 	}
 	
 	private int consumeFunctionCodeOrReturnReadChar(int offset) throws ParsingException {
 		eatWhitespace();
-		offset = fReader.getPosition();
+		offset = scanner.getPosition();
 		if (parseVariableDeclarationInFunc(offset, true))
 			return 0;
 		Token t = parseToken(offset);
@@ -702,7 +702,7 @@ public class C4ScriptParser {
 	 */
 	private boolean parseFunctionDeclaration(String firstWord, int startOfFirstWord, int offset) throws ParsingException {
 		int endOfHeader;
-		fReader.seek(offset);
+		scanner.seek(offset);
 		String desc = getTextOfLastComment(startOfFirstWord);
 		eatWhitespace();
 		activeFunc = new C4Function();
@@ -715,15 +715,12 @@ public class C4ScriptParser {
 		
 		if (!firstWord.equals(Keywords.Func)) {
 			activeFunc.setVisibility(C4FunctionScope.makeScope(firstWord));
-			startName = fReader.getPosition();
-			String shouldBeFunc = fReader.readIdent();
+			startName = scanner.getPosition();
+			String shouldBeFunc = scanner.readIdent();
 			if (!shouldBeFunc.equals(Keywords.Func)) {
-//				String problem = "Syntax error: expected 'func'";
-//				createErrorMarker(offset, fReader.getPosition(), problem);
-//				throw new ParsingException(problem);
 				suspectOldStyle = true; // suspicious
 				funcName = shouldBeFunc;
-				endName = fReader.getPosition();
+				endName = scanner.getPosition();
 				warningWithCode(ParserErrorCode.OldStyleFunc, startName, endName);
 			}
 		}
@@ -733,13 +730,13 @@ public class C4ScriptParser {
 			//createWarningMarker(offset - firstWord.length(), offset, "Function declarations should define a scope. (public,protected,private,global)");
 		}
 		if (!suspectOldStyle) {
-			retType = parseFunctionReturnType(fReader.getPosition());
+			retType = parseFunctionReturnType(scanner.getPosition());
 			eatWhitespace();
-			startName = fReader.getPosition();
-			funcName = fReader.readIdent();
+			startName = scanner.getPosition();
+			funcName = scanner.readIdent();
 			if (funcName == null || funcName.length() == 0)
-				errorWithCode(ParserErrorCode.NameExpected, fReader.getPosition()-1, fReader.getPosition());
-			endName = fReader.getPosition();
+				errorWithCode(ParserErrorCode.NameExpected, scanner.getPosition()-1, scanner.getPosition());
+			endName = scanner.getPosition();
 		}
 		/* not that bad
 		for(C4Function otherFunc : container.functions()) {
@@ -753,7 +750,7 @@ public class C4ScriptParser {
 		activeFunc.setReturnType(retType);
 		activeFunc.setOldStyle(suspectOldStyle);
 		eatWhitespace();
-		int shouldBeBracket = fReader.read();
+		int shouldBeBracket = scanner.read();
 		if (shouldBeBracket != '(') {
 			if (suspectOldStyle && shouldBeBracket == ':') {
 				// old style funcs have no named parameters
@@ -764,63 +761,63 @@ public class C4ScriptParser {
 			// get parameters
 			do {
 				eatWhitespace();
-				offset = fReader.getPosition();
+				offset = scanner.getPosition();
 				if (parseParameter(offset, activeFunc))
-					offset = fReader.getPosition(); 
+					offset = scanner.getPosition(); 
 				eatWhitespace(offset);
-				int readByte = fReader.read();
+				int readByte = scanner.read();
 				if (readByte == ')')
 					break; // all parameters parsed
 				else if (readByte == ',')
 					continue; // parse another parameter
 				else {
-					errorWithCode(ParserErrorCode.TokenExpected, fReader.getPosition()-1, fReader.getPosition(), (Object) new String[] {")", ","});
+					errorWithCode(ParserErrorCode.TokenExpected, scanner.getPosition()-1, scanner.getPosition(), (Object) new String[] {")", ","});
 				}
-			} while(!fReader.reachedEOF());
+			} while(!scanner.reachedEOF());
 		}
-		endOfHeader = fReader.getPosition();
+		endOfHeader = scanner.getPosition();
 		lastComment = null;
 		eatWhitespace();
 		if (lastComment != null)
 			activeFunc.setUserDescription(lastComment.getComment());
 		// parse code block
-		if (fReader.read() != '{') {
+		if (scanner.read() != '{') {
 			if (suspectOldStyle) {
 				//fReader.seek(endOfHeader); // don't eat comments, they are statements
-				fReader.seek(endOfHeader);
+				scanner.seek(endOfHeader);
 				//parseFunctionDescription(fReader.getPosition());
-				startBody = fReader.getPosition();
+				startBody = scanner.getPosition();
 				// body goes from here to start of next function...
 				do {
 					eatWhitespace();
-					endBody = fReader.getPosition();
-					String word = fReader.readIdent();
+					endBody = scanner.getPosition();
+					String word = scanner.readIdent();
 					if (word != null && word.length() > 0) {
 						if (looksLikeStartOfFunction(word) || looksLikeVarDeclaration(word)) {
-							fReader.seek(endBody);
+							scanner.seek(endBody);
 							break;
 						} else {
 							eatWhitespace();
-							if (fReader.read() == ':' && fReader.read() != ':') {
-								fReader.seek(endBody);
+							if (scanner.read() == ':' && scanner.read() != ':') {
+								scanner.seek(endBody);
 								break;
 							} else {
-								fReader.seek(endBody);
+								scanner.seek(endBody);
 							}
 						}
 					}
 					// just move on
-					consumeFunctionCodeOrReturnReadChar(fReader.getPosition());
+					consumeFunctionCodeOrReturnReadChar(scanner.getPosition());
 
-					endBody = fReader.getPosition(); // blub
-				} while (!fReader.reachedEOF());
+					endBody = scanner.getPosition(); // blub
+				} while (!scanner.reachedEOF());
 			} else {
-				errorWithCode(ParserErrorCode.TokenExpected, fReader.getPosition()-1, fReader.getPosition(), "{");
+				errorWithCode(ParserErrorCode.TokenExpected, scanner.getPosition()-1, scanner.getPosition(), "{");
 			}
 		} else {
 			// body in {...}
-			blockDepth = 0;
-			offset = fReader.getPosition();
+			int blockDepth = 0;
+			offset = scanner.getPosition();
 			startBody = offset;
 			eatWhitespace();
 
@@ -828,22 +825,20 @@ public class C4ScriptParser {
 			// first pass: skip the code, just remember where it is
 			boolean foundLast;
 			do {
-				int c = consumeFunctionCodeOrReturnReadChar(fReader.getPosition());
+				int c = consumeFunctionCodeOrReturnReadChar(scanner.getPosition());
 				if (c == '}')
 					blockDepth--;
 				else if (c == '{')
 					blockDepth++;
 				foundLast = blockDepth == -1;
-			} while (!(foundLast || fReader.reachedEOF()));
+			} while (!(foundLast || scanner.reachedEOF()));
 			if (foundLast)
-				fReader.unread(); // go back to last '}'
+				scanner.unread(); // go back to last '}'
 
-			endBody = fReader.getPosition();
+			endBody = scanner.getPosition();
 			eatWhitespace();
-			if (fReader.read() != '}') {
-//				System.out.println(activeFunc.getName());
-				//int pos = Math.min(fReader.getPosition()-1, fReader.getBufferLength()-1);
-				int pos = Math.min(fReader.getPosition(), fReader.getBufferLength()-1);
+			if (scanner.read() != '}') {
+				int pos = Math.min(scanner.getPosition(), scanner.getBufferLength()-1);
 				errorWithCode(ParserErrorCode.TokenExpected, pos, pos+1, "}");
 				return false;
 			}
@@ -859,20 +854,20 @@ public class C4ScriptParser {
 	}
 
 	private String getTextOfLastComment(int declarationOffset) {
-		String desc = (lastComment != null && lastComment.precedesOffset(declarationOffset, fReader.getBuffer())) ? lastComment.getComment().trim() : "";
+		String desc = (lastComment != null && lastComment.precedesOffset(declarationOffset, scanner.getBuffer())) ? lastComment.getComment().trim() : "";
 		lastComment = null;
 		return desc;
 	}
 	
 	private String getTextOfInlineComment() {
-		int pos = fReader.getPosition();
-		fReader.eat(BufferedScanner.WHITESPACE_WITHOUT_NEWLINE_CHARS);
-		if (fReader.eat(BufferedScanner.NEWLINE_CHARS) == 0) {
-			Comment c = parseCommentObject(fReader.getPosition());
+		int pos = scanner.getPosition();
+		scanner.eat(BufferedScanner.WHITESPACE_WITHOUT_NEWLINE_CHARS);
+		if (scanner.eat(BufferedScanner.NEWLINE_CHARS) == 0) {
+			Comment c = parseCommentObject(scanner.getPosition());
 			if (c != null)
 				return c.getComment();
 		}
-		fReader.seek(pos);
+		scanner.seek(pos);
 		return null;
 	}
 
@@ -888,13 +883,13 @@ public class C4ScriptParser {
 	 * @throws ParsingException 
 	 */
 	private boolean parseCodeBlock(int offset) throws ParsingException {
-		fReader.seek(offset);
+		scanner.seek(offset);
 		int endOfFunc = activeFunc.getBody().getEnd();
 		EnumSet<ParseStatementOption> options = EnumSet.of(ParseStatementOption.ExpectFuncDesc, ParseStatementOption.ParseEmptyLines);
 		boolean lastWasReturn = false;
 		int oldStyleEnd = endOfFunc;
-		while(!fReader.reachedEOF() && fReader.getPosition() < endOfFunc) {
-			Statement statement = parseStatement(fReader.getPosition(), options);
+		while(!scanner.reachedEOF() && scanner.getPosition() < endOfFunc) {
+			Statement statement = parseStatement(scanner.getPosition(), options);
 			if (statement == null)
 				break;
 			boolean statementIsComment = statement instanceof Comment;
@@ -916,35 +911,6 @@ public class C4ScriptParser {
 			activeFunc.getBody().setEnd(oldStyleEnd);
 		return true;
 	}
-	
-	/**
-	 * Parses { parseCodeBlock } or parseCode
-	 * @param offset
-	 * @return
-	 * @throws ParsingException 
-	 */
-	protected boolean parseCodeSegment(int offset) throws ParsingException {
-		int c = fReader.read();
-		if (c == '{') { // if has block
-			blockDepth++;
-			eatWhitespace();
-			offset = fReader.getPosition();
-			if (!parseCodeBlock(fReader.getPosition())) fReader.seek(offset);
-			eatWhitespace();
-			if (fReader.read() != '}') {
-				errorWithCode(ParserErrorCode.BlockNotClosed, fReader.getPosition()-1, fReader.getPosition());
-			}
-			blockDepth--;
-			return true;
-		} else if (c == ';') {
-			return true; // empty statement
-		} else {
-			eatWhitespace();
-			if (parseStatement(offset) != null)
-				return true;
-			else return false;
-		}
-	}
 
 	private void warnAboutTupleInReturnExpr(ExprElm expr, boolean tupleIsError) throws ParsingException {
 		if (expr == null)
@@ -964,49 +930,49 @@ public class C4ScriptParser {
 	}
 	
 	private boolean parseHexNumber(int offset) throws ParsingException {
-		fReader.seek(offset);
-		boolean isHex = fReader.read() == '0' && fReader.read() == 'x';
+		scanner.seek(offset);
+		boolean isHex = scanner.read() == '0' && scanner.read() == 'x';
 		if (!isHex)
-			fReader.seek(offset);
+			scanner.seek(offset);
 		else {
 			offset += 2;
 			int count = 0;
 			if (isHex) {
 				do {
-					int readByte = fReader.read();
+					int readByte = scanner.read();
 					if (('0' <= readByte && readByte <= '9') || ('A' <= readByte && readByte <= 'F') ||  ('a' <= readByte && readByte <= 'f'))  {
 						count++;
 						continue;
 					}
 					else {
-						fReader.unread();
+						scanner.unread();
 						if (count > 0) {
-							fReader.seek(offset);
-							parsedNumber = Long.parseLong(fReader.readString(count), 16);
-							fReader.seek(offset+count);
+							scanner.seek(offset);
+							parsedNumber = Long.parseLong(scanner.readString(count), 16);
+							scanner.seek(offset+count);
 						} else {
 							parsedNumber = -1; // unlikely to be parsed
 							return false; // well, this seems not to be a number at all
 						} 
 						return true;
 					}
-				} while(!fReader.reachedEOF());
+				} while(!scanner.reachedEOF());
 			}
 		}
 		return isHex;
 	}
 	
 	private boolean parseNumber(int offset) throws ParsingException {
-		fReader.seek(offset);
+		scanner.seek(offset);
 		int count = 0;
 		do {
-			int readByte = fReader.read();
+			int readByte = scanner.read();
 			if ('0' <= readByte && readByte <= '9') {
 				count++;
 				continue;
 			}
 			else {
-				fReader.unread();
+				scanner.unread();
 				if (count > 0) {
 					break;
 				} else {
@@ -1014,43 +980,43 @@ public class C4ScriptParser {
 					return false; // well, this seems not to be a number at all
 				} 
 			}
-		} while(!fReader.reachedEOF());
-		fReader.seek(offset);
-		parsedNumber = Long.parseLong(fReader.readString(count));
-		fReader.seek(offset+count);
+		} while(!scanner.reachedEOF());
+		scanner.seek(offset);
+		parsedNumber = Long.parseLong(scanner.readString(count));
+		scanner.seek(offset+count);
 		return true;
 	}
 	
 	private boolean parseEllipsis(int offset) {
-		fReader.seek(offset);
-		String e = fReader.readString(3);
+		scanner.seek(offset);
+		String e = scanner.readString(3);
 		if (e != null && e.equals("..."))
 			return true;
-		fReader.seek(offset);
+		scanner.seek(offset);
 		return false;
 	}
 	
 	private boolean parseMemberOperator(int offset) {
-		fReader.seek(offset);
-		int firstChar = fReader.read();
+		scanner.seek(offset);
+		int firstChar = scanner.read();
 		if (firstChar == '.') {
 			parsedMemberOperator = ".";
 			return true;
 		}
 		else if (firstChar == '-') {
-			if (fReader.read() == '>') {
-				offset = fReader.getPosition();
+			if (scanner.read() == '>') {
+				offset = scanner.getPosition();
 				eatWhitespace();
-				if (fReader.read() == '~')
+				if (scanner.read() == '~')
 					parsedMemberOperator = "->~";
 				else {
 					parsedMemberOperator = "->";
-					fReader.seek(offset);
+					scanner.seek(offset);
 				}
 				return true;
 			}
 		}
-		fReader.seek(offset);
+		scanner.seek(offset);
 		return false;
 	}
 
@@ -1073,10 +1039,10 @@ public class C4ScriptParser {
 	}
 	
 	public Token parseToken(int offset) throws ParsingException {
-		fReader.seek(offset);
+		scanner.seek(offset);
 		if (parseString(offset))
 			return Token.String;
-		String word = fReader.readIdent();
+		String word = scanner.readIdent();
 		if (word.length() > 0) {
 			parsedString = word;
 			return Token.Word;
@@ -1090,7 +1056,7 @@ public class C4ScriptParser {
 			parsedString = op.getOperatorName();
 			return Token.Operator;
 		}
-		parsedString = fReader.readString(1);
+		parsedString = scanner.readString(1);
 		return Token.Symbol;
 	}
 
@@ -1114,14 +1080,14 @@ public class C4ScriptParser {
 	 * @return the operator referenced in the code at offset
 	 */
 	private C4ScriptOperator parseOperator(int offset) {
-		fReader.seek(offset);
+		scanner.seek(offset);
 
-		final char[] chars = new char[] { (char)fReader.read(), (char)fReader.read()  };
+		final char[] chars = new char[] { (char)scanner.read(), (char)scanner.read()  };
 		String s = new String(chars);
 		
 		// never to be read as an operator
 		if (s.equals("->")) {
-			fReader.seek(offset);
+			scanner.seek(offset);
 			return null;
 		}
 
@@ -1129,12 +1095,12 @@ public class C4ScriptParser {
 		if (result != null) {
 			// new_variable should not be parsed as ne w_variable -.-
 			if (result == C4ScriptOperator.ne || result == C4ScriptOperator.eq) {
-				int followingChar = fReader.read();
+				int followingChar = scanner.read();
 				if (BufferedScanner.isWordPart(followingChar)) {
-					fReader.seek(offset);
+					scanner.seek(offset);
 					return null;
 				} else
-					fReader.unread();
+					scanner.unread();
 			}
 			return result;
 		}
@@ -1142,11 +1108,11 @@ public class C4ScriptParser {
 		s = s.substring(0, 1);
 		result = C4ScriptOperator.getOperator(s);
 		if (result != null) {
-			fReader.unread();
+			scanner.unread();
 			return result;
 		}
 
-		fReader.seek(offset);
+		scanner.seek(offset);
 		return null;
 	}
 	
@@ -1191,7 +1157,7 @@ public class C4ScriptParser {
 	private void markerWithCode(ParserErrorCode code, int errorStart, int errorEnd, boolean noThrow, int severity, Object... args) throws ParsingException {
 		if (errorDisabled(code))
 			return;
-		boolean silence = scriptFile == null || (activeFunc != null && activeFunc.getBody() != null && fReader.getPosition() > activeFunc.getBody().getEnd()+1);
+		boolean silence = scriptFile == null || (activeFunc != null && activeFunc.getBody() != null && scanner.getPosition() > activeFunc.getBody().getEnd()+1);
 		String problem = code.getErrorString(args);
 		if (!silence) {
 			code.createMarker(scriptFile, ClonkCore.MARKER_C4SCRIPT_ERROR, errorStart, errorEnd, severity, problem);
@@ -1207,34 +1173,34 @@ public class C4ScriptParser {
 	}
 	
 	private void tokenExpectedError(String token) throws ParsingException {
-		errorWithCode(ParserErrorCode.TokenExpected, fReader.getPosition()-1, fReader.getPosition(), false, token);
+		errorWithCode(ParserErrorCode.TokenExpected, scanner.getPosition()-1, scanner.getPosition(), false, token);
 	}
 	
 	private boolean parseStaticFieldOperator_(int offset) {
-		fReader.seek(offset);
-		String o = fReader.readString(2);
+		scanner.seek(offset);
+		String o = scanner.readString(2);
 		if (o.equals("::"))
 			return true;
-		fReader.seek(offset);
+		scanner.seek(offset);
 		return false;
 	}
 	
 	public ExprElm parseExpressionWithoutOperators(int offset, boolean reportErrors) throws ParsingException {
-		fReader.seek(offset);
+		scanner.seek(offset);
 		this.eatWhitespace();
-		int sequenceStart = fReader.getPosition();
-		C4ScriptOperator preop = parseOperator(fReader.getPosition());
+		int sequenceStart = scanner.getPosition();
+		C4ScriptOperator preop = parseOperator(scanner.getPosition());
 		ExprElm result = null;
 		if (preop != null && preop.isPrefix()) {
-			ExprElm followingExpr = parseExpressionWithoutOperators(fReader.getPosition(), reportErrors);
+			ExprElm followingExpr = parseExpressionWithoutOperators(scanner.getPosition(), reportErrors);
 			if (followingExpr == null) {
-				errorWithCode(ParserErrorCode.ExpressionExpected, fReader.getPosition(), fReader.getPosition()+1);
+				errorWithCode(ParserErrorCode.ExpressionExpected, scanner.getPosition(), scanner.getPosition()+1);
 			}
 			result = new UnaryOp(preop, UnaryOp.Placement.Prefix, followingExpr);
 		} else
-			fReader.seek(sequenceStart); // don't skip operators that aren't prefixy
+			scanner.seek(sequenceStart); // don't skip operators that aren't prefixy
 		if (result != null) {
-			result.setExprRegion(sequenceStart, fReader.getPosition());
+			result.setExprRegion(sequenceStart, scanner.getPosition());
 			return result;
 		}
 		Vector<ExprElm> elements = new Vector<ExprElm>(5);
@@ -1245,62 +1211,62 @@ public class C4ScriptParser {
 		do {
 			elm = null;
 			
-			noWhitespaceEating = fReader.getPosition();
+			noWhitespaceEating = scanner.getPosition();
 			this.eatWhitespace();
-			int elmStart = fReader.getPosition();
+			int elmStart = scanner.getPosition();
 
 			// operator always ends a sequence without operators
-			if (parseOperator(fReader.getPosition()) != null) {// || fReader.readWord().equals(Keywords.In)) {
-				fReader.seek(elmStart);
+			if (parseOperator(scanner.getPosition()) != null) {// || fReader.readWord().equals(Keywords.In)) {
+				scanner.seek(elmStart);
 				break;
 			}
 			// kind of a hack; stop at 'in' but only if there were other things before it
-			if (elements.size() > 0 && fReader.readIdent().equals(Keywords.In)) {
-				fReader.seek(elmStart);
+			if (elements.size() > 0 && scanner.readIdent().equals(Keywords.In)) {
+				scanner.seek(elmStart);
 				break;
 			}
-			fReader.seek(elmStart); // nothing special to end the sequence; make sure we start from the beginning
+			scanner.seek(elmStart); // nothing special to end the sequence; make sure we start from the beginning
 			
 			// id
-			if (parseID(fReader.getPosition())) {
+			if (parseID(scanner.getPosition())) {
 				elm = new IDLiteral(parsedID);
 			}
 			
 			// hex number
-			if (elm == null && parseHexNumber(fReader.getPosition())) {
+			if (elm == null && parseHexNumber(scanner.getPosition())) {
 //				if (parsedNumber < Integer.MIN_VALUE || parsedNumber > Integer.MAX_VALUE)
 //					warningWithCode(ErrorCode.OutOfIntRange, elmStart, fReader.getPosition(), String.valueOf(parsedNumber));
 				elm = new C4ScriptExprTree.NumberLiteral(parsedNumber, true);
 			}
 			
 			// number
-			if (elm == null && parseNumber(fReader.getPosition())) {
+			if (elm == null && parseNumber(scanner.getPosition())) {
 				if (parsedNumber < Integer.MIN_VALUE || parsedNumber > Integer.MAX_VALUE)
-					warningWithCode(ParserErrorCode.OutOfIntRange, elmStart, fReader.getPosition(), String.valueOf(parsedNumber));
+					warningWithCode(ParserErrorCode.OutOfIntRange, elmStart, scanner.getPosition(), String.valueOf(parsedNumber));
 				elm = new C4ScriptExprTree.NumberLiteral(parsedNumber);
 			}
 			
 			// string
-			if (elm == null && parseString(fReader.getPosition())) {
+			if (elm == null && parseString(scanner.getPosition())) {
 				elm = new StringLiteral(parsedString);
 			}
 			
 			// variable or function
 			if (elm == null) {
-				String word = fReader.readIdent();
+				String word = scanner.readIdent();
 				if (word != null && word.length() > 0) {
-					int beforeSpace = fReader.getPosition();
+					int beforeSpace = scanner.getPosition();
 					this.eatWhitespace();
-					if (fReader.read() == '(') {
-						int s = fReader.getPosition();
+					if (scanner.read() == '(') {
+						int s = scanner.getPosition();
 						// function call
 						List<ExprElm> args = new LinkedList<ExprElm>();
-						parseRestOfTuple(fReader.getPosition(), args, reportErrors);
+						parseRestOfTuple(scanner.getPosition(), args, reportErrors);
 						CallFunc callFunc = new CallFunc(word, args.toArray(new ExprElm[args.size()]));
-						callFunc.setParmsRegion(s, fReader.getPosition()-1);
+						callFunc.setParmsRegion(s, scanner.getPosition()-1);
 						elm = callFunc;
 					} else {
-						fReader.seek(beforeSpace);
+						scanner.seek(beforeSpace);
 						// bool
 						if (word.equals(Keywords.True))
 							elm = new BoolLiteral(true);
@@ -1324,14 +1290,14 @@ public class C4ScriptParser {
 		
 			// ->
 			if (elm == null) {
-				int fieldOperatorStart = fReader.getPosition();
-				if (parseMemberOperator(fReader.getPosition())) {
+				int fieldOperatorStart = scanner.getPosition();
+				if (parseMemberOperator(scanner.getPosition())) {
 					eatWhitespace();
-					int idOffset = fReader.getPosition()-fieldOperatorStart;
-					if (parseID(fReader.getPosition())) {
+					int idOffset = scanner.getPosition()-fieldOperatorStart;
+					if (parseID(scanner.getPosition())) {
 						eatWhitespace();
-						if (!parseStaticFieldOperator_(fReader.getPosition())) {
-							errorWithCode(ParserErrorCode.TokenExpected, fReader.getPosition(), fReader.getPosition()+2, "::");
+						if (!parseStaticFieldOperator_(scanner.getPosition())) {
+							errorWithCode(ParserErrorCode.TokenExpected, scanner.getPosition(), scanner.getPosition()+2, "::");
 						}
 					} else
 						idOffset = 0;
@@ -1341,32 +1307,32 @@ public class C4ScriptParser {
 			
 			// (<expr>)
 			if (elm == null) {
-				int c = fReader.read();
+				int c = scanner.read();
 				if (c == '(') {
-					ExprElm firstExpr = parseExpression(fReader.getPosition(), reportErrors);
+					ExprElm firstExpr = parseExpression(scanner.getPosition(), reportErrors);
 					if (firstExpr == null) {
 						firstExpr = ExprElm.NULL_EXPR;
 						// might be disabled
-						errorWithCode(ParserErrorCode.EmptyParentheses, fReader.getPosition()-1, fReader.getPosition());
+						errorWithCode(ParserErrorCode.EmptyParentheses, scanner.getPosition()-1, scanner.getPosition());
 					}
-					c = fReader.read();
+					c = scanner.read();
 					if (c == ')')
 						elm = new Parenthesized(firstExpr);
 					else if (c == ',') {
-						errorWithCode(ParserErrorCode.TuplesNotAllowed, fReader.getPosition()-1, fReader.getPosition());
+						errorWithCode(ParserErrorCode.TuplesNotAllowed, scanner.getPosition()-1, scanner.getPosition());
 						// tuple (just for multiple parameters for return)
 						List<ExprElm> tupleElms = new LinkedList<ExprElm>();
 						tupleElms.add(firstExpr);
-						parseRestOfTuple(fReader.getPosition(), tupleElms, reportErrors);
+						parseRestOfTuple(scanner.getPosition(), tupleElms, reportErrors);
 						elm = new Tuple(tupleElms.toArray(new ExprElm[0]));
 					} else
-						errorWithCode(ParserErrorCode.TokenExpected, fReader.getPosition()-1, fReader.getPosition(), ")");
+						errorWithCode(ParserErrorCode.TokenExpected, scanner.getPosition()-1, scanner.getPosition(), ")");
 				} else {
-					fReader.unread();
+					scanner.unread();
 				}
 			}
 			
-			if (elm == null && parsePlaceholderString(fReader.getPosition())) {
+			if (elm == null && parsePlaceholderString(scanner.getPosition())) {
 				elm = new Placeholder(parsedString);
 			}
 			
@@ -1376,16 +1342,16 @@ public class C4ScriptParser {
 					elm = null; // blub blub <- first blub is var; second blub is not part of the sequence -.-
 					//fReader.seek(elmStart);
 					dontCheckForPostOp = true;
-					errorWithCode(ParserErrorCode.NotAllowedHere, elmStart, fReader.getPosition(), fReader.readStringAt(elmStart, fReader.getPosition()));
+					errorWithCode(ParserErrorCode.NotAllowedHere, elmStart, scanner.getPosition(), scanner.readStringAt(elmStart, scanner.getPosition()));
 				} else {
-					elm.setExprRegion(elmStart, fReader.getPosition());
+					elm.setExprRegion(elmStart, scanner.getPosition());
 					elements.add(elm);
 					prevElm = elm;
 				}
 			}
 
 		} while (elm != null);
-		fReader.seek(noWhitespaceEating);
+		scanner.seek(noWhitespaceEating);
 		if (elements.size() == 1) {
 			// no need for sequences containing one element
 			result = elements.elementAt(elements.size()-1);
@@ -1396,23 +1362,23 @@ public class C4ScriptParser {
 			return null;
 		}
 		
-		result.setExprRegion(sequenceStart, fReader.getPosition());
+		result.setExprRegion(sequenceStart, scanner.getPosition());
 		if (result.getType(this) == null) {
 			errorWithCode(ParserErrorCode.InvalidExpression, result);
 		}
 		
 		if (!dontCheckForPostOp) {
 			this.eatWhitespace();
-			int saved = fReader.getPosition();
-			C4ScriptOperator postop = parseOperator(fReader.getPosition());
+			int saved = scanner.getPosition();
+			C4ScriptOperator postop = parseOperator(scanner.getPosition());
 			if (postop != null) {
 				if (postop.isPostfix()) {
 					UnaryOp op = new UnaryOp(postop, UnaryOp.Placement.Postfix, result);
-					op.setExprRegion(result.getExprStart(), fReader.getPosition());
+					op.setExprRegion(result.getExprStart(), scanner.getPosition());
 					return op;
 				} else {
 					// a binary operator following this sequence
-					fReader.seek(saved);
+					scanner.seek(saved);
 				}
 			}
 		}
@@ -1423,59 +1389,59 @@ public class C4ScriptParser {
 	@SuppressWarnings("unchecked")
 	private ExprElm parsePropListExpression(boolean reportErrors, ExprElm prevElm) throws ParsingException {
 		ExprElm elm = null;
-		int c = fReader.read();
+		int c = scanner.read();
 		if (c == '{') {
 			Vector<Pair<String, ExprElm>> propListElms = new Vector<Pair<String, ExprElm>>(10);
 			boolean properlyClosed = false;
 			boolean expectingComma = false;
-			while (!fReader.reachedEOF()) {
+			while (!scanner.reachedEOF()) {
 				this.eatWhitespace();
-				c = fReader.read();
+				c = scanner.read();
 				if (c == ',') {
 					if (!expectingComma)
-						errorWithCode(ParserErrorCode.UnexpectedToken, fReader.getPosition()-1, 1, ",");
+						errorWithCode(ParserErrorCode.UnexpectedToken, scanner.getPosition()-1, 1, ",");
 					expectingComma = false;
 				} else if (c == '}') {
 					properlyClosed = true;
 					break;
 				} else {
-					fReader.unread();
-					if (parseString(fReader.getPosition()) || parseIdentifier(fReader.getPosition())) {
+					scanner.unread();
+					if (parseString(scanner.getPosition()) || parseIdentifier(scanner.getPosition())) {
 						String name = parsedString;
 						eatWhitespace();
-						int c_ = fReader.read();
+						int c_ = scanner.read();
 						if (c_ != ':' && c_ != '=') {
-							fReader.unread();
-							errorWithCode(ParserErrorCode.UnexpectedToken, fReader.getPosition(), 1, fReader.read());
+							scanner.unread();
+							errorWithCode(ParserErrorCode.UnexpectedToken, scanner.getPosition(), 1, scanner.read());
 						}
 						eatWhitespace();
-						ExprElm expr = parseExpression(fReader.getPosition(), COMMA_OR_CLOSE_BLOCK, reportErrors);
+						ExprElm expr = parseExpression(scanner.getPosition(), COMMA_OR_CLOSE_BLOCK, reportErrors);
 						propListElms.add(new Pair<String, ExprElm>(name, expr));
 						expectingComma = true;
 					}
 					else {
-						errorWithCode(ParserErrorCode.TokenExpected, fReader.getPosition(), fReader.getPosition()+1, "String or identifier");
+						errorWithCode(ParserErrorCode.TokenExpected, scanner.getPosition(), scanner.getPosition()+1, "String or identifier");
 						break;
 					}
 				}
 			}
 			if (!properlyClosed) {
-				errorWithCode(ParserErrorCode.MissingClosingBracket, fReader.getPosition()-1, fReader.getPosition(), "}");
+				errorWithCode(ParserErrorCode.MissingClosingBracket, scanner.getPosition()-1, scanner.getPosition(), "}");
 			}
 			elm = new PropListExpression(propListElms.toArray((Pair<String, ExprElm>[])new Pair[propListElms.size()]));
 		}
 		else
-			fReader.unread();
+			scanner.unread();
 		return elm;
 	}
 
 	private ExprElm parseArrayExpression(boolean reportErrors, ExprElm prevElm) throws ParsingException {
 		ExprElm elm = null;
-		int c = fReader.read();
+		int c = scanner.read();
 		if (c == '[') {
 			if (prevElm != null) {
 				// array access
-				ExprElm arg = parseExpression(fReader.getPosition(), reportErrors);
+				ExprElm arg = parseExpression(scanner.getPosition(), reportErrors);
 				this.eatWhitespace();
 				expect(']');
 				elm = new ArrayElementAccess(arg);
@@ -1484,9 +1450,9 @@ public class C4ScriptParser {
 				Vector<ExprElm> arrayElms = new Vector<ExprElm>(10);
 				boolean properlyClosed = false;
 				boolean expectingComma = false;
-				while (!fReader.reachedEOF()) {
+				while (!scanner.reachedEOF()) {
 					this.eatWhitespace();
-					c = fReader.read();
+					c = scanner.read();
 					if (c == ',') {
 						if (!expectingComma)
 							arrayElms.add(null);
@@ -1495,8 +1461,8 @@ public class C4ScriptParser {
 						properlyClosed = true;
 						break;
 					} else {
-						fReader.unread();
-						ExprElm arrayElement = parseExpression(fReader.getPosition(), COMMA_OR_CLOSE_BRACKET, reportErrors);
+						scanner.unread();
+						ExprElm arrayElement = parseExpression(scanner.getPosition(), COMMA_OR_CLOSE_BRACKET, reportErrors);
 						if (arrayElement != null) {
 							arrayElms.add(arrayElement);
 						}
@@ -1508,23 +1474,23 @@ public class C4ScriptParser {
 					}
 				}
 				if (!properlyClosed) {
-					errorWithCode(ParserErrorCode.MissingClosingBracket, fReader.getPosition()-1, fReader.getPosition(), "]");
+					errorWithCode(ParserErrorCode.MissingClosingBracket, scanner.getPosition()-1, scanner.getPosition(), "]");
 				}
 				elm = new ArrayExpression(arrayElms.toArray(new ExprElm[0]));
 				
 			}
 		} else { 
-			fReader.unread();
+			scanner.unread();
 		}
 		return elm;
 	}
 
 	private void parseRestOfTuple(int offset, List<ExprElm> listToAddElementsTo, boolean reportErrors) throws ParsingException {
-		fReader.seek(offset);
+		scanner.seek(offset);
 		boolean expectingComma = false;
-		while (!fReader.reachedEOF()) {
+		while (!scanner.reachedEOF()) {
 			this.eatWhitespace();
-			int c = fReader.read();
+			int c = scanner.read();
 			if (c == ')') {
 				if (!expectingComma && listToAddElementsTo.size() > 0)
 					listToAddElementsTo.add(ExprElm.NULL_EXPR);
@@ -1535,14 +1501,14 @@ public class C4ScriptParser {
 				}
 				expectingComma = false;
 			} else {
-				fReader.unread();
+				scanner.unread();
 				if (listToAddElementsTo.size() > 100) {
-					errorWithCode(ParserErrorCode.InternalError, fReader.getPosition(), fReader.getPosition(), "Way too much");
+					errorWithCode(ParserErrorCode.InternalError, scanner.getPosition(), scanner.getPosition(), "Way too much");
 				//	break;
 				}
-				ExprElm arg = parseExpression(fReader.getPosition(), reportErrors);
+				ExprElm arg = parseExpression(scanner.getPosition(), reportErrors);
 				if (arg == null) {
-					errorWithCode(ParserErrorCode.ExpressionExpected, fReader.getPosition(), fReader.getPosition()+1);
+					errorWithCode(ParserErrorCode.ExpressionExpected, scanner.getPosition(), scanner.getPosition()+1);
 //					break;
 				} else
 					listToAddElementsTo.add(arg);
@@ -1557,11 +1523,11 @@ public class C4ScriptParser {
 	private final ExprElm ERROR_PLACEHOLDER_EXPR = new ExprElm() {
 		@Override
 		public int getExprStart() {
-			return fReader.getPosition();
+			return scanner.getPosition();
 		}
 		@Override
 		public int getExprEnd() {
-			return fReader.getPosition()+1;
+			return scanner.getPosition()+1;
 		}
 	};
 	
@@ -1583,34 +1549,34 @@ public class C4ScriptParser {
 				return new Ellipsis();
 			}
 
-			fReader.seek(offset);
+			scanner.seek(offset);
 			this.eatWhitespace();
 			//int exprStart = fReader.getPosition();
 			for (int state = START; state != DONE;) {
 				this.eatWhitespace();
 				switch (state) {
 				case START:
-					root = parseExpressionWithoutOperators(fReader.getPosition(), reportErrors);
+					root = parseExpressionWithoutOperators(scanner.getPosition(), reportErrors);
 					current = root;
 					state = current != null ? OPERATOR : DONE;
 					break;
 				case OPERATOR:
 
 					// end of expression?
-					int c = fReader.read();
+					int c = scanner.read();
 					for (int i = 0; i < delimiters.length; i++) {
 						if (delimiters[i] == c) {
 							state = DONE;
-							fReader.unread();
+							scanner.unread();
 							break;
 						}
 					}
 
 					if (state != DONE) {
-						fReader.unread();
+						scanner.unread();
 
-						int operatorPos = fReader.getPosition();
-						C4ScriptOperator op = parseOperator(fReader.getPosition());
+						int operatorPos = scanner.getPosition();
+						C4ScriptOperator op = parseOperator(scanner.getPosition());
 						if (op != null && op.isBinary()) {
 							int priorOfNewOp = op.getPriority();
 							ExprElm newLeftSide = null;
@@ -1631,16 +1597,16 @@ public class C4ScriptParser {
 								current = root = lastOp = new BinaryOp(op);
 							}
 							lastOp.setLeftSide(newLeftSide);
-							lastOp.setExprRegion(operatorPos, fReader.getPosition());
+							lastOp.setExprRegion(operatorPos, scanner.getPosition());
 							state = SECONDOPERAND;
 						} else {
-							fReader.seek(operatorPos); // in case there was an operator but not a binary one
+							scanner.seek(operatorPos); // in case there was an operator but not a binary one
 							state = DONE;
 						}
 					}
 					break;
 				case SECONDOPERAND:
-					ExprElm rightSide = parseExpressionWithoutOperators(fReader.getPosition(), reportErrors);
+					ExprElm rightSide = parseExpressionWithoutOperators(scanner.getPosition(), reportErrors);
 					if (rightSide == null)
 						errorWithCode(ParserErrorCode.OperatorNeedsRightSide, lastOp);
 					((BinaryOp)current).setRightSide(rightSide);
@@ -1685,27 +1651,27 @@ public class C4ScriptParser {
 	}
 	
 	private boolean parseString(int offset) throws ParsingException {
-		fReader.seek(offset);
-		int delimiter = fReader.read();
+		scanner.seek(offset);
+		int delimiter = scanner.read();
 		if (delimiter != '"') {
-			fReader.unread();
+			scanner.unread();
 			return false;
 		}
 		StringBuilder builder = new StringBuilder();
 		do {
-			if (builder.length() > 0) builder.append(fReader.readString(1));
-			builder.append(fReader.readStringUntil((char)delimiter));
+			if (builder.length() > 0) builder.append(scanner.readString(1));
+			builder.append(scanner.readStringUntil((char)delimiter));
 		} while (builder.length() != 0 && (builder.charAt(builder.length() - 1) == '\\'));
-		if (fReader.read() != '"') {
-			errorWithCode(ParserErrorCode.StringNotClosed, offset, fReader.getPosition()-1);
+		if (scanner.read() != '"') {
+			errorWithCode(ParserErrorCode.StringNotClosed, offset, scanner.getPosition()-1);
 		}
 		parsedString = builder.toString();
 		return true;
 	}
 	
 	private boolean parseIdentifier(int offset) throws ParsingException {
-		fReader.seek(offset);
-		String word = fReader.readIdent();
+		scanner.seek(offset);
+		String word = scanner.readIdent();
 		if (word != null && word.length() > 0) {
 			parsedString = word;
 			return true;
@@ -1714,18 +1680,18 @@ public class C4ScriptParser {
 	}
 	
 	private boolean parsePlaceholderString(int offset) throws ParsingException {
-		fReader.seek(offset);
-		int delimiter = fReader.read();
+		scanner.seek(offset);
+		int delimiter = scanner.read();
 		if (delimiter != '$') {
-			fReader.unread();
+			scanner.unread();
 			return false;
 		}
 		StringBuilder builder = new StringBuilder();
 		do {
-			if (builder.length() > 0) builder.append(fReader.readString(1));
-			builder.append(fReader.readStringUntil((char)delimiter));
+			if (builder.length() > 0) builder.append(scanner.readString(1));
+			builder.append(scanner.readStringUntil((char)delimiter));
 		} while (builder.length() != 0 && (builder.charAt(builder.length() - 1) == '\\'));
-		if (fReader.read() != '$') {
+		if (scanner.read() != '$') {
 			throw new ParsingException("Internal parsing error.");
 		}
 		parsedString = builder.toString();
@@ -1761,14 +1727,14 @@ public class C4ScriptParser {
 	private Statement parseStatement(int offset, EnumSet<ParseStatementOption> options) throws ParsingException {
 		parseStatementRecursion++;
 		try {
-			fReader.seek(offset);
-			fReader.eatWhitespace();
-			int start = fReader.getPosition();
+			scanner.seek(offset);
+			scanner.eatWhitespace();
+			int start = scanner.getPosition();
 			Statement result;
 			C4VariableScope scope;
 			
 			// comment statement oO
-			result = parseCommentObject(fReader.getPosition());
+			result = parseCommentObject(scanner.getPosition());
 			
 			/*
 			if (options.contains(ParseStatementOption.ParseEmptyLines)) {
@@ -1782,16 +1748,16 @@ public class C4ScriptParser {
 			}*/
 
 			if (result == null) {
-				String readWord = fReader.readIdent();
+				String readWord = scanner.readIdent();
 				if (readWord == null || readWord.length() == 0) {
-					int read = fReader.read();
+					int read = scanner.read();
 					if (read == '{' && !options.contains(ParseStatementOption.InitializationStatement)) {
 						List<Statement> subStatements = new LinkedList<Statement>();
 						boolean foundClosingBracket;
 						boolean notReached = false;
-						for (fReader.eatWhitespace(); !(foundClosingBracket = fReader.read() == '}') && !fReader.reachedEOF(); fReader.eatWhitespace()) {
-							fReader.unread();
-							Statement subStatement = parseStatement(fReader.getPosition());
+						for (scanner.eatWhitespace(); !(foundClosingBracket = scanner.read() == '}') && !scanner.reachedEOF(); scanner.eatWhitespace()) {
+							scanner.unread();
+							Statement subStatement = parseStatement(scanner.getPosition());
 							if (subStatement != null) {
 								subStatements.add(subStatement);
 								if (notReached)
@@ -1809,12 +1775,12 @@ public class C4ScriptParser {
 						result = new EmptyStatement();
 					}
 					else if (read == '[' && options.contains(ParseStatementOption.ExpectFuncDesc)) {
-						String funcDesc = fReader.readStringUntil(']');
-						fReader.read();
+						String funcDesc = scanner.readStringUntil(']');
+						scanner.read();
 						result = new FunctionDescription(funcDesc);
 					}
 					else {
-						fReader.unread();
+						scanner.unread();
 						ExprElm expression = parseExpression(offset);
 						if (expression != null) {
 							result = new SimpleStatement(expression);
@@ -1837,8 +1803,8 @@ public class C4ScriptParser {
 
 			// just an expression that needs to be wrapped as a statement
 			if (result == null) {
-				fReader.seek(start);
-				ExprElm expression = parseExpression(fReader.getPosition());
+				scanner.seek(start);
+				ExprElm expression = parseExpression(scanner.getPosition());
 				if (expression != null) {
 					result = new SimpleStatement(expression);
 					if (!options.contains(ParseStatementOption.InitializationStatement))
@@ -1849,7 +1815,7 @@ public class C4ScriptParser {
 			}
 
 			if (result != null) {
-				result.setExprRegion(start, fReader.getPosition());
+				result.setExprRegion(start, scanner.getPosition());
 				result.reportErrors(this);
 				if (!options.contains(ParseStatementOption.InitializationStatement)) {
 					result.warnIfNoSideEffects(this);
@@ -1866,18 +1832,19 @@ public class C4ScriptParser {
 				}
 			}
 			
-			int daring = fReader.getPosition();
+			// inline comment attached to expression so code reformatting does not mess up the user's code too much
+			int daring = scanner.getPosition();
 			Comment c = null;
-			for (int r = fReader.read(); r != -1 && (r == '/' || BufferedScanner.isWhiteSpaceButNotLineDelimiterChar((char) r)); r = fReader.read()) {
+			for (int r = scanner.read(); r != -1 && (r == '/' || BufferedScanner.isWhiteSpaceButNotLineDelimiterChar((char) r)); r = scanner.read()) {
 				if (r == '/') {
-					c = parseCommentObject(fReader.getPosition()-1);
+					c = parseCommentObject(scanner.getPosition()-1);
 					break;
 				}
 			}
 			if (c != null)
 				result.setInlineComment(c);
 			else
-				fReader.seek(daring);
+				scanner.seek(daring);
 			return result;
 		} finally {
 			parseStatementRecursion--;
@@ -1894,18 +1861,18 @@ public class C4ScriptParser {
 		List<Pair<String, ExprElm>> initializations = new LinkedList<Pair<String, ExprElm>>();
 		do {
 			eatWhitespace();
-			String varName = fReader.readIdent();
+			String varName = scanner.readIdent();
 			// check if there is initial content
 			eatWhitespace();
 			C4Variable var = findVar(varName, scope);
 			parsedVariable = var;
 			ExprElm val;
-			if (fReader.read() == '=') {
+			if (scanner.read() == '=') {
 				eatWhitespace();
-				offset = fReader.getPosition();
+				offset = scanner.getPosition();
 				val = parseExpression(offset);
 				if (val == null)
-					errorWithCode(ParserErrorCode.ValueExpected, fReader.getPosition()-1, fReader.getPosition());
+					errorWithCode(ParserErrorCode.ValueExpected, scanner.getPosition()-1, scanner.getPosition());
 				else {
 					storeTypeInformation(new AccessVar(var), val.getType(this), val.guessObjectType(this));
 					var.inferTypeFromAssignment(val, this);
@@ -1913,11 +1880,11 @@ public class C4ScriptParser {
 			}
 			else {
 				val = null;
-				fReader.unread();
+				scanner.unread();
 			}
 			initializations.add(new Pair<String, ExprElm>(varName, val));
-		} while(fReader.read() == ',');
-		fReader.unread();
+		} while(scanner.read() == ',');
+		scanner.unread();
 		result = new VarDeclarationStatement(initializations, scope);
 		if (!options.contains(ParseStatementOption.InitializationStatement))
 			checkForSemicolon();
@@ -1970,32 +1937,32 @@ public class C4ScriptParser {
 		}
 		else if (readWord.equals(Keywords.Continue)) {
 			if (currentLoop == null)
-				errorWithCode(ParserErrorCode.KeywordInWrongPlace, fReader.getPosition()-readWord.length(), fReader.getPosition(), true, readWord);
+				errorWithCode(ParserErrorCode.KeywordInWrongPlace, scanner.getPosition()-readWord.length(), scanner.getPosition(), true, readWord);
 			checkForSemicolon();
 			result = new ContinueStatement();
 		}
 		else if (readWord.equals(Keywords.Break)) {
 			if (currentLoop == null)
-				errorWithCode(ParserErrorCode.KeywordInWrongPlace, fReader.getPosition()-readWord.length(), fReader.getPosition(), true, readWord);
+				errorWithCode(ParserErrorCode.KeywordInWrongPlace, scanner.getPosition()-readWord.length(), scanner.getPosition(), true, readWord);
 			checkForSemicolon();
 			result = new BreakStatement();
 		}
 		else if (readWord.equals(Keywords.Return)) {
 			eatWhitespace();
-			int next = fReader.read();
+			int next = scanner.read();
 			ExprElm returnExpr;
 			if (next == ';') {
-				fReader.unread();
+				scanner.unread();
 				returnExpr = null;
 			}
 			else {
-				fReader.unread();
-				offset = fReader.getPosition();
+				scanner.unread();
+				offset = scanner.getPosition();
 				disableError(ParserErrorCode.TuplesNotAllowed);
 				disableError(ParserErrorCode.EmptyParentheses);
-				returnExpr = parseExpression(fReader.getPosition());
+				returnExpr = parseExpression(scanner.getPosition());
 				if (returnExpr == null) {
-					errorWithCode(ParserErrorCode.ValueExpected, fReader.getPosition() - 1, fReader.getPosition());				
+					errorWithCode(ParserErrorCode.ValueExpected, scanner.getPosition() - 1, scanner.getPosition());				
 				}
 				warnAboutTupleInReturnExpr(returnExpr, false);
 				enableError(ParserErrorCode.TuplesNotAllowed);
@@ -2004,7 +1971,7 @@ public class C4ScriptParser {
 			result = new ReturnStatement(returnExpr);
 			checkForSemicolon();
 		}
-		else if (activeFunc.isOldStyle() && (looksLikeStartOfFunction(readWord) || fReader.peekAfterWhitespace() == ':')) {
+		else if (activeFunc.isOldStyle() && (looksLikeStartOfFunction(readWord) || scanner.peekAfterWhitespace() == ':')) {
 			// whoops, too far
 			return null;
 		}
@@ -2015,13 +1982,13 @@ public class C4ScriptParser {
 	}
 
 	private Statement parseDoWhile() throws ParsingException {
-		Statement block = parseStatement(fReader.getPosition());
+		Statement block = parseStatement(scanner.getPosition());
 		eatWhitespace();
 		expect(Keywords.While);
 		eatWhitespace();
 		expect('(');
 		eatWhitespace();
-		ExprElm cond = parseExpression(fReader.getPosition());
+		ExprElm cond = parseExpression(scanner.getPosition());
 		eatWhitespace();
 		expect(')');
 		//expect(';');
@@ -2029,13 +1996,13 @@ public class C4ScriptParser {
 	}
 	
 	private void expect(char expected) throws ParsingException {
-		if (fReader.read() != expected) {
+		if (scanner.read() != expected) {
 			tokenExpectedError(String.valueOf(expected));
 		}
 	}
 	
 	private void expect(String expected) throws ParsingException {
-		String r = fReader.readIdent();
+		String r = scanner.readIdent();
 		if (r == null || !r.equals(expected)) {
 			tokenExpectedError(expected);
 		}
@@ -2049,25 +2016,25 @@ public class C4ScriptParser {
 		eatWhitespace();
 
 		// initialization
-		offset = fReader.getPosition();
+		offset = scanner.getPosition();
 		C4Variable loopVariable = null;
 		Statement initialization = null, body;
 		ExprElm arrayExpr, condition, increment;
 		String w = null;
-		if (fReader.read() == ';') {
+		if (scanner.read() == ';') {
 			// any of the for statements is optional
 			//initialization = null;
 		} else {
-			fReader.unread();
+			scanner.unread();
 			// special treatment for case for (e in a) -> implicit declaration of e
-			int pos = fReader.getPosition();
-			String varName = fReader.readIdent();
+			int pos = scanner.getPosition();
+			String varName = scanner.readIdent();
 			if (!varName.equals("") && !varName.equals(Keywords.VarNamed)) {
 				eatWhitespace();
-				w = fReader.readIdent();
+				w = scanner.readIdent();
 				if (!w.equals(Keywords.In)) {
 					w = null;
-					fReader.seek(pos);
+					scanner.seek(pos);
 				}
 				else {
 					// too much manual setting of stuff
@@ -2083,12 +2050,12 @@ public class C4ScriptParser {
 				}
 			}
 			else {
-				fReader.seek(pos);
+				scanner.seek(pos);
 			}
 			if (w == null) {
-				initialization = parseStatement(fReader.getPosition(), EnumSet.of(ParseStatementOption.InitializationStatement));
+				initialization = parseStatement(scanner.getPosition(), EnumSet.of(ParseStatementOption.InitializationStatement));
 				if (initialization == null) {
-					errorWithCode(ParserErrorCode.ExpectedCode, fReader.getPosition(), fReader.getPosition()+1);
+					errorWithCode(ParserErrorCode.ExpectedCode, scanner.getPosition(), scanner.getPosition()+1);
 				}
 				loopVariable = parsedVariable; // let's just assume it's the right one
 			}
@@ -2097,14 +2064,14 @@ public class C4ScriptParser {
 		if (w == null) {
 			// determine loop type
 			eatWhitespace();
-			offset = fReader.getPosition();
+			offset = scanner.getPosition();
 			if (initialization != null) {
-				if (fReader.read() == ';') { // initialization finished regularly with ';'
-					offset = fReader.getPosition();
+				if (scanner.read() == ';') { // initialization finished regularly with ';'
+					offset = scanner.getPosition();
 					w = null; // implies there can be no 'in'
 				} else {
-					fReader.unread();
-					w = fReader.readIdent();
+					scanner.unread();
+					w = scanner.readIdent();
 				}
 			}
 			else
@@ -2115,9 +2082,9 @@ public class C4ScriptParser {
 			// it's a for (x in array) loop!
 			loopType = LoopType.IterateArray;
 			eatWhitespace();
-			arrayExpr = parseExpression(fReader.getPosition());
+			arrayExpr = parseExpression(scanner.getPosition());
 			if (arrayExpr == null)
-				errorWithCode(ParserErrorCode.ExpressionExpected, offset, fReader.getPosition()+1);
+				errorWithCode(ParserErrorCode.ExpressionExpected, offset, scanner.getPosition()+1);
 			else {
 				C4Type t = arrayExpr.getType(this);
 				if (!t.canBeAssignedFrom(C4Type.ARRAY))
@@ -2129,33 +2096,33 @@ public class C4ScriptParser {
 			increment = null;
 		} else {
 			loopType = LoopType.For;
-			fReader.seek(offset); // if a word !equaling("in") was read
+			scanner.seek(offset); // if a word !equaling("in") was read
 
-			if (fReader.read() == ';') {
+			if (scanner.read() == ';') {
 				// any " optional "
-				fReader.unread(); // is expected
+				scanner.unread(); // is expected
 				condition = null;
 			} else {
-				fReader.unread();
-				condition = parseExpression(fReader.getPosition());
+				scanner.unread();
+				condition = parseExpression(scanner.getPosition());
 				if (condition == null) {
-					errorWithCode(ParserErrorCode.ConditionExpected, offset, fReader.getPosition());
+					errorWithCode(ParserErrorCode.ConditionExpected, offset, scanner.getPosition());
 				}
 			}
 			eatWhitespace();
-			offset = fReader.getPosition();
+			offset = scanner.getPosition();
 			expect(';');
 			eatWhitespace();
-			offset = fReader.getPosition();
-			if (fReader.read() == ')') {
+			offset = scanner.getPosition();
+			if (scanner.read() == ')') {
 				// " optional "
-				fReader.unread(); // is expected
+				scanner.unread(); // is expected
 				increment = null;
 			} else {
-				fReader.unread();
-				increment = parseExpression(fReader.getPosition());
+				scanner.unread();
+				increment = parseExpression(scanner.getPosition());
 				if (increment == null) {
-					errorWithCode(ParserErrorCode.ExpressionExpected, offset, fReader.getPosition()+1);
+					errorWithCode(ParserErrorCode.ExpressionExpected, offset, scanner.getPosition()+1);
 				}
 			}
 			arrayExpr = null;
@@ -2163,9 +2130,9 @@ public class C4ScriptParser {
 		eatWhitespace();
 		expect(')');
 		eatWhitespace();
-		offset = fReader.getPosition();
+		offset = scanner.getPosition();
 		currentLoop = loopType;
-		body = parseStatementAndMergeTypeInformation(fReader.getPosition());
+		body = parseStatementAndMergeTypeInformation(scanner.getPosition());
 		if (body == null) {
 			errorWithCode(ParserErrorCode.StatementExpected, offset, offset+4);
 		}
@@ -2196,14 +2163,14 @@ public class C4ScriptParser {
 		eatWhitespace();
 		expect('(');
 		eatWhitespace();
-		ExprElm condition = parseExpression(fReader.getPosition());
+		ExprElm condition = parseExpression(scanner.getPosition());
 		if (condition == null)
 			condition = ExprElm.NULL_EXPR; // while () is valid
 		eatWhitespace();
 		expect(')');
 		eatWhitespace();
-		offset = fReader.getPosition();
-		Statement body = parseStatementAndMergeTypeInformation(fReader.getPosition());
+		offset = scanner.getPosition();
+		Statement body = parseStatementAndMergeTypeInformation(scanner.getPosition());
 		if (body == null) {
 			errorWithCode(ParserErrorCode.StatementExpected, offset, offset+4);
 		}
@@ -2218,32 +2185,32 @@ public class C4ScriptParser {
 		eatWhitespace();
 		expect('(');
 		eatWhitespace();
-		ExprElm condition = parseExpression(fReader.getPosition());
+		ExprElm condition = parseExpression(scanner.getPosition());
 		if (condition == null)
 			condition = ExprElm.NULL_EXPR; // if () is valid
 		eatWhitespace();
 		expect(')');
 		eatWhitespace(); // FIXME: eats comments so when transforming code the comments will be gone
 		TypeInformationMerger merger = new TypeInformationMerger();
-		Statement ifStatement = parseStatementWithOwnTypeInferenceBlock(fReader.getPosition(), merger);
+		Statement ifStatement = parseStatementWithOwnTypeInferenceBlock(scanner.getPosition(), merger);
 		if (ifStatement == null) {
 			errorWithCode(ParserErrorCode.StatementExpected, offset, offset+Keywords.If.length());
 		}
-		int beforeElse = fReader.getPosition();
+		int beforeElse = scanner.getPosition();
 		eatWhitespace();
-		offset = fReader.getPosition();
-		String nextWord = fReader.readIdent();
+		offset = scanner.getPosition();
+		String nextWord = scanner.readIdent();
 		Statement elseStatement;
 		if (nextWord != null && nextWord.equals(Keywords.Else)) {
 			eatWhitespace();
-			offset = fReader.getPosition();
-			elseStatement = parseStatementWithOwnTypeInferenceBlock(fReader.getPosition(), merger);
+			offset = scanner.getPosition();
+			elseStatement = parseStatementWithOwnTypeInferenceBlock(scanner.getPosition(), merger);
 			if (elseStatement == null) {
 				errorWithCode(ParserErrorCode.StatementExpected, offset, offset+Keywords.Else.length());
 			}	
 		}
 		else {
-			fReader.seek(beforeElse); // don't eat comments and stuff after if (...) ...;
+			scanner.seek(beforeElse); // don't eat comments and stuff after if (...) ...;
 			elseStatement = null;
 		}
 		// merge gathered type information with current list
@@ -2262,14 +2229,14 @@ public class C4ScriptParser {
 	
 	private boolean parseID(int offset) throws ParsingException {
 		parsedID = null; // reset so no old parsed ids get through
-		fReader.seek(offset);
-		String word = fReader.readIdent();
+		scanner.seek(offset);
+		String word = scanner.readIdent();
 		if (word != null && word.length() != 4) {
-			fReader.seek(offset);
+			scanner.seek(offset);
 			return false;
 		}
 		if (!Utilities.looksLikeID(word)) {
-			fReader.seek(offset);
+			scanner.seek(offset);
 			return false;
 		}
 		parsedID = C4ID.getID(word);
@@ -2277,18 +2244,18 @@ public class C4ScriptParser {
 	}
 
 	private boolean parseParameter(int offset, C4Function function) throws ParsingException {
-		fReader.seek(offset);
-		int s = fReader.getPosition();
-		String firstWord = fReader.readIdent();
+		scanner.seek(offset);
+		int s = scanner.getPosition();
+		String firstWord = scanner.readIdent();
 		if (firstWord.length() == 0) {
-			if (fReader.read() == '&') {
+			if (scanner.read() == '&') {
 				firstWord = "&";
 			} else {
-				fReader.unread();
+				scanner.unread();
 				return false;
 			}
 		}
-		int e = fReader.getPosition();
+		int e = scanner.getPosition();
 		C4Variable var = new C4Variable(null, C4VariableScope.VAR_VAR);
 		C4Type type = C4Type.makeType(firstWord);
 		var.forceType(type, type != C4Type.UNKNOWN);
@@ -2298,24 +2265,24 @@ public class C4ScriptParser {
 		}
 		else {
 			eatWhitespace();
-			if (fReader.read() == '&') {
+			if (scanner.read() == '&') {
 				var.setByRef(true);
 				eatWhitespace();
 			} else
-				fReader.unread();
-			int newStart = fReader.getPosition();
-			String secondWord = fReader.readIdent();
+				scanner.unread();
+			int newStart = scanner.getPosition();
+			String secondWord = scanner.readIdent();
 			if (secondWord.length() > 0) {
 				var.setName(secondWord);
 				s = newStart;
-				e = fReader.getPosition();
+				e = scanner.getPosition();
 			}
 			else {
 				// type is name
 				warningWithCode(ParserErrorCode.TypeAsName, s, e, firstWord);
 				var.forceType(C4Type.ANY);
 				var.setName(firstWord);
-				fReader.seek(e);
+				scanner.seek(e);
 			}
 		}
 		var.setLocation(new SourceLocation(s, e));
@@ -2325,43 +2292,43 @@ public class C4ScriptParser {
 	}
 	
 	protected void eatWhitespace(int offset) {
-		fReader.seek(offset);
-		while ((fReader.eatWhitespace() > 0 || parseComment(fReader.getPosition())));
+		scanner.seek(offset);
+		while ((scanner.eatWhitespace() > 0 || parseComment(scanner.getPosition())));
 	}
 	
 	protected void eatWhitespace() {
-		eatWhitespace(fReader.getPosition());
+		eatWhitespace(scanner.getPosition());
 	}
 	
 	protected Comment parseCommentObject(int offset) {
-		fReader.seek(offset);
-		String sequence = fReader.readString(2);
+		scanner.seek(offset);
+		String sequence = scanner.readString(2);
 		if (sequence == null) {
 			return null;
 		}
 		else if (sequence.equals("//")) {
-			String commentText = fReader.readStringUntil(BufferedScanner.NEWLINE_CHARS);
+			String commentText = scanner.readStringUntil(BufferedScanner.NEWLINE_CHARS);
 			//fReader.eat(BufferedScanner.NEWLINE_DELIMITERS);
 			return new Comment(commentText, false);
 		}
 		else if (sequence.equals("/*")) {
-			int startMultiline = fReader.getPosition();
-			while (!fReader.reachedEOF()) {
-				if (fReader.read() == '*') {
-					if (fReader.read() == '/') {
-						String commentText = fReader.readStringAt(startMultiline, fReader.getPosition()-2);
+			int startMultiline = scanner.getPosition();
+			while (!scanner.reachedEOF()) {
+				if (scanner.read() == '*') {
+					if (scanner.read() == '/') {
+						String commentText = scanner.readStringAt(startMultiline, scanner.getPosition()-2);
 						return new Comment(commentText, true); // genug gefressen
 					}
 					else {
-						fReader.unread();
+						scanner.unread();
 					}
 				}
 			}
-			String commentText = fReader.readStringAt(startMultiline, fReader.getPosition());
+			String commentText = scanner.readStringAt(startMultiline, scanner.getPosition());
 			return new Comment(commentText, true);
 		}
 		else {
-			fReader.move(-2);
+			scanner.move(-2);
 			return null;
 		}
 	}
@@ -2369,7 +2336,7 @@ public class C4ScriptParser {
 	protected boolean parseComment(int offset) {
 		Comment c = parseCommentObject(offset);
 		if (c != null) {
-			c.setExprRegion(offset, fReader.getPosition());
+			c.setExprRegion(offset, scanner.getPosition());
 			lastComment = c;
 			return true;
 		}
@@ -2405,8 +2372,8 @@ public class C4ScriptParser {
 		try {
 			EnumSet<ParseStatementOption> options = EnumSet.of(ParseStatementOption.ExpectFuncDesc);
 			beginTypeInferenceBlock();
-			while (!fReader.reachedEOF()) {
-				Statement statement = parseStatement(fReader.getPosition(), options);
+			while (!scanner.reachedEOF()) {
+				Statement statement = parseStatement(scanner.getPosition(), options);
 				if (statement == null)
 					break;
 				if (!(statement instanceof Comment))

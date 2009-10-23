@@ -501,7 +501,7 @@ public abstract class Utilities {
 		return new Region(start, end-start+1);
 	}
 	
-	private static int clamp(int value, int min, int max) {
+	public static int clamp(int value, int min, int max) {
 		if (value < min)
 			return min;
 		else if (value > max)

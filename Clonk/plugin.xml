@@ -284,9 +284,9 @@
 			name="Quick Import" />
 
 		<command categoryId="org.eclipse.ui.category.edit"
-			description="Convert old code to new code"
+			description="Tidy up"
 			id="net.arctics.clonk.ui.editors.actions.ConvertOldCodeToNewCode"
-			name="Convert Old Code" />
+			name="Tidy Up" />
 
 		<command categoryId="org.eclipse.ui.category.edit"
 			description="Open the declaration of the selected element"
@@ -299,9 +299,9 @@
 			name="Find References" />
 
 		<command categoryId="org.eclipse.ui.category.edit"
-			description="Rename the selected field"
-			id="net.arctics.clonk.ui.editors.actions.RenameField"
-			name="Rename Field" />
+			description="Rename the selected declaration"
+			id="net.arctics.clonk.ui.editors.actions.RenameDeclaration"
+			name="Rename Declaration" />
 		
 		<command categoryId="org.eclipse.ui.category.edit"
 			description="Declaration filter"

@@ -26,7 +26,7 @@ import net.arctics.clonk.ui.editors.ClonkTextEditor;
 import net.arctics.clonk.ui.editors.ColorManager;
 import net.arctics.clonk.ui.editors.actions.c4script.ConvertOldCodeToNewCodeAction;
 import net.arctics.clonk.ui.editors.actions.c4script.FindReferencesAction;
-import net.arctics.clonk.ui.editors.actions.c4script.RenameFieldAction;
+import net.arctics.clonk.ui.editors.actions.c4script.RenameDeclarationAction;
 import net.arctics.clonk.util.Utilities;
 
 import org.eclipse.jface.action.IAction;
@@ -39,10 +39,6 @@ import org.eclipse.jface.text.IDocumentListener;
 import org.eclipse.jface.text.Region;
 import org.eclipse.jface.text.TextSelection;
 import org.eclipse.jface.text.source.DefaultCharacterPairMatcher;
-import org.eclipse.jface.text.source.ISourceViewer;
-import org.eclipse.jface.text.source.IVerticalRuler;
-import org.eclipse.jface.text.source.projection.ProjectionViewer;
-import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
@@ -210,20 +206,8 @@ public class C4ScriptEditor extends ClonkTextEditor {
 	protected void createActions() {
 		super.createActions();
 		ResourceBundle messagesBundle = ResourceBundle.getBundle(ClonkCore.id("ui.editors.c4script.Messages")); //$NON-NLS-1$
-//		
+
 		IAction action;
-		
-//		IAction action = new ContentAssistAction(messagesBundle,"ClonkContentAssist.",this); //$NON-NLS-1$
-//		action.setActionDefinitionId(ITextEditorActionDefinitionIds.CONTENT_ASSIST_PROPOSALS);
-//		setAction(ITextEditorActionDefinitionIds.CONTENT_ASSIST_PROPOSALS, action);
-//		
-//		action = new ContentAssistAction(messagesBundle,"ClonkContentAssist.",this); //$NON-NLS-1$
-//		action.setActionDefinitionId(ITextEditorActionDefinitionIds.SHOW_INFORMATION);
-//		setAction(ITextEditorActionDefinitionIds.SHOW_INFORMATION, action);
-//		
-//		action = new ContentAssistAction(messagesBundle,"ClonkContentAssist.",this); //$NON-NLS-1$
-//		action.setActionDefinitionId(ITextEditorActionDefinitionIds.CONTENT_ASSIST_CONTEXT_INFORMATION);
-//		setAction(ITextEditorActionDefinitionIds.CONTENT_ASSIST_CONTEXT_INFORMATION, action);
 		
 		action = new ConvertOldCodeToNewCodeAction(messagesBundle,"ConvertOldCodeToNewCode.",this); //$NON-NLS-1$
 		setAction(IClonkCommandIds.CONVERT_OLD_CODE_TO_NEW_CODE, action);
@@ -231,27 +215,9 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		action = new FindReferencesAction(messagesBundle,"FindReferences.",this); //$NON-NLS-1$
 		setAction(IClonkCommandIds.FIND_REFERENCES, action);
 		
-		action = new RenameFieldAction(messagesBundle, "RenameField.", this);
-		setAction(IClonkCommandIds.RENAME_FIELD, action);
+		action = new RenameDeclarationAction(messagesBundle, "RenameDeclaration.", this);
+		setAction(IClonkCommandIds.RENAME_DECLARATION, action);
 		
-	}
-
-	/* (non-Javadoc)
-	 * @see org.eclipse.ui.texteditor.AbstractDecoratedTextEditor#createSourceViewer(org.eclipse.swt.widgets.Composite, org.eclipse.jface.text.source.IVerticalRuler, int)
-	 */
-	@Override
-	protected ISourceViewer createSourceViewer(Composite parent, IVerticalRuler ruler, int styles) {
-//		return super.createSourceViewer(parent, ruler, styles);
-		
-		fAnnotationAccess = getAnnotationAccess();
-		fOverviewRuler = createOverviewRuler(getSharedColors());
-
-		ISourceViewer viewer = new ProjectionViewer(parent, ruler, getOverviewRuler(), isOverviewRulerVisible(), styles);
-		
-		// ensure decoration support has been created and configured.
-		getSourceViewerDecorationSupport(viewer);
-		
-		return viewer;
 	}
 
 	/* (non-Javadoc)
@@ -262,19 +228,9 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		super.editorContextMenuAboutToShow(menu);
 		if (scriptBeingEdited().isEditable()) {
 			addAction(menu, IClonkCommandIds.CONVERT_OLD_CODE_TO_NEW_CODE);
-			addAction(menu, IClonkCommandIds.RENAME_FIELD);
+			addAction(menu, IClonkCommandIds.RENAME_DECLARATION);
 		}
 		addAction(menu, IClonkCommandIds.FIND_REFERENCES);
-	}
-
-	@Override
-	protected void doSetSelection(ISelection selection) {
-		super.doSetSelection(selection);
-//		C4Object obj = Utilities.getObjectForEditor(this);
-//		if (obj != null) {
-//			C4Function func = obj.funcAt((ITextSelection)selection);
-//			getOutlinePage().select(func);
-//		}
 	}
 
 	@Override
