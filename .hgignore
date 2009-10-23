@@ -8,4 +8,6 @@ pullfromc4dt
 help
 C4DTUpdateSite
 Eclipse Cocoa 64Bit
-Buildscript/*
+buildscript/*
+Buildscript.zip
+licenses/*

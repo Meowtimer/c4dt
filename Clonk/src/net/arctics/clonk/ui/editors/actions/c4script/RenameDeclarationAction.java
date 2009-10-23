@@ -19,12 +19,12 @@ import org.eclipse.ltk.core.refactoring.RefactoringStatusEntry;
 import org.eclipse.ltk.core.refactoring.participants.RenameRefactoring;
 import org.eclipse.ui.texteditor.ITextEditor;
 
-public class RenameFieldAction extends OpenDeclarationAction {
+public class RenameDeclarationAction extends OpenDeclarationAction {
 
-	public RenameFieldAction(ResourceBundle bundle, String prefix,
+	public RenameDeclarationAction(ResourceBundle bundle, String prefix,
 			ITextEditor editor) {
 		super(bundle, prefix, editor);
-		this.setActionDefinitionId(IClonkCommandIds.RENAME_FIELD);
+		this.setActionDefinitionId(IClonkCommandIds.RENAME_DECLARATION);
 	}
 	
 	private boolean displayRefactoringError(RefactoringStatus status) {
@@ -43,7 +43,7 @@ public class RenameFieldAction extends OpenDeclarationAction {
 		try {
 			C4Declaration fieldToRename = getDeclarationAtSelection();
 			if (fieldToRename != null) {
-				InputDialog newNameDialog = new InputDialog(getTextEditor().getSite().getWorkbenchWindow().getShell(), "Rename field", "Specify the new name here", fieldToRename.getName(), null);
+				InputDialog newNameDialog = new InputDialog(getTextEditor().getSite().getWorkbenchWindow().getShell(), "Rename declaration", "Specify the new name here", fieldToRename.getName(), null);
 				switch (newNameDialog.open()) {
 				case InputDialog.CANCEL:
 					return;

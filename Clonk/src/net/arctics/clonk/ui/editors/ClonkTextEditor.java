@@ -13,6 +13,7 @@ import net.arctics.clonk.ui.editors.c4script.ClonkContentOutlinePage;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.action.IMenuManager;
+import org.eclipse.jface.action.Separator;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.ITextSelection;
 import org.eclipse.jface.text.Region;
@@ -145,6 +146,7 @@ public class ClonkTextEditor extends TextEditor {
 	@Override
 	protected void editorContextMenuAboutToShow(IMenuManager menu) {
 		super.editorContextMenuAboutToShow(menu);
+		menu.add(new Separator(IClonkCommandIds.GROUP_CLONK));
 		addAction(menu, IClonkCommandIds.OPEN_DECLARATION);
 	}
 	

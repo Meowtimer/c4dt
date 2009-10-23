@@ -458,4 +458,18 @@
 			viewerId="org.eclipse.ui.navigator.ProjectExplorer"/>
 	</extension>
 
+	<!--	
+	<extension point="org.eclipse.ui.popupMenus">
+		<viewerContribution
+        	id="clonk.editors.C4ScriptEditor.popupMenuContributions"
+        	targetID="clonk.editors.C4ScriptEditor">
+        	<action
+               class="c4dt.Action2"
+               id="C4DT.action2"
+               label="label">
+        	</action>
+		</viewerContribution>
+	</extension>
+	!-->
+
 </plugin>
