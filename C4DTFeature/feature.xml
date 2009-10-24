@@ -46,7 +46,7 @@ and similar files
 -Warn about possible infinite loops
 -Open DefCore.txt if no Script.c available
 -Warn about unreachable code in loop bodies
--Warn about conditions that are always false
+-Warn about conditions that are always false or true
    </description>
 
    <copyright url="http://www.example.com/copyright">

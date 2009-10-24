@@ -2138,14 +2138,7 @@ public class C4ScriptParser {
 		}
 		switch (loopType) {
 		case For:
-			Object condEv = C4Type.BOOL.convert(condition == null ? true : condition.evaluateAtParseTime(getContainer()));
-			if (Boolean.valueOf(false).equals(condEv))
-				warningWithCode(ParserErrorCode.ConditionAlwaysFalse, condition, condition.toString());
-			else if (Boolean.valueOf(true).equals(condEv)) {
-				EnumSet<ControlFlow> flows = body.getPossibleControlFlows();
-				if (!(flows.contains(ControlFlow.BreakLoop) || flows.contains(ControlFlow.Return)))
-					warningWithCode(ParserErrorCode.InfiniteLoop, body);
-			}
+			loopConditionWarnings(body, condition);
 			result = new ForStatement(initialization, condition, increment, body);
 			break;
 		case IterateArray:
@@ -2155,6 +2148,17 @@ public class C4ScriptParser {
 			result = null;
 		}
 		return result;
+	}
+
+	private void loopConditionWarnings(Statement body, ExprElm condition) {
+		Object condEv = C4Type.BOOL.convert(condition == null ? true : condition.evaluateAtParseTime(getContainer()));
+		if (Boolean.valueOf(false).equals(condEv))
+			warningWithCode(ParserErrorCode.ConditionAlwaysFalse, condition, condition.toString());
+		else if (Boolean.valueOf(true).equals(condEv)) {
+			EnumSet<ControlFlow> flows = body.getPossibleControlFlows();
+			if (!(flows.contains(ControlFlow.BreakLoop) || flows.contains(ControlFlow.Return)))
+				warningWithCode(ParserErrorCode.InfiniteLoop, body);
+		}
 	}
 
 	private Statement parseWhile() throws ParsingException {
@@ -2180,8 +2184,7 @@ public class C4ScriptParser {
 		if (body == null) {
 			errorWithCode(ParserErrorCode.StatementExpected, offset, offset+4);
 		}
-		if (condition != null && condition.isAlways(false, getContainer()))
-			warningWithCode(ParserErrorCode.ConditionAlwaysFalse, condition, condition.toString());
+		loopConditionWarnings(body, condition);
 		result = new WhileStatement(condition, body);
 		return result;
 	}
