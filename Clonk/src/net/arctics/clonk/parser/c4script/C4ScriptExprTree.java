@@ -1055,20 +1055,22 @@ public abstract class C4ScriptExprTree {
 				return new AccessVar(declarationName);
 			}
 
+			// also check for not-nullness since in OC Var/Par are gone and declaration == ...Par returns true -.-
+			
 			// Par(5) -> nameOfParm6
-			if (params.length <= 1 && declaration == CachedEngineFuncs.getInstance().Par && (params.length == 0 || params[0] instanceof NumberLiteral)) {
+			if (params.length <= 1 && declaration != null && declaration == CachedEngineFuncs.getInstance().Par && (params.length == 0 || params[0] instanceof NumberLiteral)) {
 				NumberLiteral number = params.length > 0 ? (NumberLiteral) params[0] : NumberLiteral.ZERO;
 				if (number.intValue() >= 0 && number.intValue() < parser.getActiveFunc().getParameters().size())
 					return new AccessVar(parser.getActiveFunc().getParameters().get(number.intValue()).getName());
 			}
-
+			
 			// SetVar(5, "ugh") -> Var(5) = "ugh"
-			if (params.length == 2 && (declaration == CachedEngineFuncs.getInstance().SetVar || declaration == CachedEngineFuncs.getInstance().SetLocal || declaration == CachedEngineFuncs.getInstance().AssignVar)) {
+			if (params.length == 2 && declaration != null && (declaration == CachedEngineFuncs.getInstance().SetVar || declaration == CachedEngineFuncs.getInstance().SetLocal || declaration == CachedEngineFuncs.getInstance().AssignVar)) {
 				return new BinaryOp(C4ScriptOperator.Assign, new CallFunc(declarationName.substring(declarationName.equals("AssignVar") ? "Assign".length() : "Set".length()), params[0].newStyleReplacement(parser)), params[1].newStyleReplacement(parser));
 			}
 
 			// DecVar(0) -> Var(0)--
-			if (params.length <= 1 && (declaration == CachedEngineFuncs.getInstance().DecVar || declaration == CachedEngineFuncs.getInstance().IncVar)) {
+			if (params.length <= 1 && declaration != null && (declaration == CachedEngineFuncs.getInstance().DecVar || declaration == CachedEngineFuncs.getInstance().IncVar)) {
 				return new UnaryOp(declaration == CachedEngineFuncs.getInstance().DecVar ? C4ScriptOperator.Decrement : C4ScriptOperator.Increment, Placement.Prefix,
 						new CallFunc(CachedEngineFuncs.getInstance().Var.getName(), new ExprElm[] {
 							params.length == 1 ? params[0].newStyleReplacement(parser) : NumberLiteral.ZERO
@@ -1077,7 +1079,7 @@ public abstract class C4ScriptExprTree {
 			}
 
 			// Call("Func", 5, 5) -> Func(5, 5)
-			if (params.length >= 1 && declarationName.equals("Call") && params[0] instanceof StringLiteral) {
+			if (params.length >= 1 && declaration != null && declaration == CachedEngineFuncs.getInstance().Call && params[0] instanceof StringLiteral) {
 				ExprElm[] parmsWithoutName = new ExprElm[params.length-1];
 				for (int i = 0; i < parmsWithoutName.length; i++)
 					parmsWithoutName[i] = params[i+1].newStyleReplacement(parser);
