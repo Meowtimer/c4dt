@@ -1780,16 +1780,14 @@ public abstract class C4ScriptExprTree {
 
 		private DeclarationRegion getStringTblEntryAt(int offset, C4ScriptBase container, boolean returnNullIfNotFound) {
 			StringTbl stringTbl = container.getStringTblForLanguagePref();
-			if (stringTbl == null)
-				return null;
 			int firstDollar = stringValue().lastIndexOf('$', offset-1);
 			int secondDollar = stringValue().indexOf('$', offset);
 			if (firstDollar != -1 && secondDollar != -1) {
 				String entry = stringValue().substring(firstDollar+1, secondDollar);
-				C4Declaration e = entry != null ? stringTbl.getMap().get(entry) : null;
+				C4Declaration e = entry != null && stringTbl != null ? stringTbl.getMap().get(entry) : null;
 				return e == null && returnNullIfNotFound
-				? null
-						: new DeclarationRegion(e, new Region(getExprStart()+1+firstDollar, secondDollar-firstDollar+1), entry);
+					? null
+					: new DeclarationRegion(e, new Region(getExprStart()+1+firstDollar, secondDollar-firstDollar+1), entry);
 			}
 			return null;
 		}
