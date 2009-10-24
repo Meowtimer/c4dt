@@ -2223,16 +2223,13 @@ public abstract class C4ScriptExprTree {
 		
 		@Override
 		public EnumSet<ControlFlow> getPossibleControlFlows() {
-			EnumSet<ControlFlow> result = null;
+			EnumSet<ControlFlow> result = EnumSet.noneOf(ControlFlow.class);
 			for (Statement s : statements) {
 				ControlFlow cf = s.getControlFlow();
 				if (cf != ControlFlow.Continue)
 					return EnumSet.of(cf);
 				EnumSet<ControlFlow> cfs = s.getPossibleControlFlows();
-				if (result == null)
-					result = cfs;
-				else
-					result.addAll(cfs);
+				result.addAll(cfs);
 			}
 			return result;
 		}
