@@ -64,7 +64,7 @@ public class ClonkTextEditor extends TextEditor {
 		return outlinePage;
 	}
 	
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings("rawtypes")
 	public Object getAdapter(Class adapter) {
 		if (IContentOutlinePage.class.equals(adapter)) {
 			return getOutlinePage();

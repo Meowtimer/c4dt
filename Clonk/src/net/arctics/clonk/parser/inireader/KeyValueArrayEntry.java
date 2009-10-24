@@ -72,7 +72,7 @@ public abstract class KeyValueArrayEntry<KeyType, ValueType> implements IIniEntr
 		return components.get(index);
 	}
 
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public void setChildValue(int index, Object value) {
 		KeyValuePair<KeyType, ValueType> kv;
 		if (value instanceof KeyValuePair)

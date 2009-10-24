@@ -89,7 +89,7 @@ public class ClonkLaunchShortcut implements ILaunchShortcut {
 			return candidates.iterator().next();
 		
 		// Otherwise: Create new
-		String configName = launchManager.generateUniqueLaunchConfigurationNameFrom(res.getName());
+		String configName = launchManager.generateLaunchConfigurationName(res.getName());
 		ILaunchConfigurationWorkingCopy wc = configType.newInstance(null, configName);
 		wc.setAttribute(ClonkLaunchConfigurationDelegate.ATTR_PROJECT_NAME, expectProjectName);
 		wc.setAttribute(ClonkLaunchConfigurationDelegate.ATTR_SCENARIO_NAME, expectScenarioName);

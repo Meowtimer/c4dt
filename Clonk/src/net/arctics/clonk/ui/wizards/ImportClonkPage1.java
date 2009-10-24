@@ -29,7 +29,7 @@ public class ImportClonkPage1 extends WizardFileSystemResourceImportPage1 {
     	return getResourcePath();
     }
     
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings("rawtypes")
 	public List<Object> getFilesToImport() {
         Iterator resourcesEnum = getSelectedResources().iterator();
         List<Object> fileSystemObjects = new ArrayList<Object>();

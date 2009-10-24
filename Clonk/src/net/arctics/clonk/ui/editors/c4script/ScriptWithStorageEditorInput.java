@@ -49,7 +49,7 @@ public class ScriptWithStorageEditorInput extends PlatformObject implements IEdi
 		return ((ITreeNode)script).getPath().toOSString();
 	}
 
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings("rawtypes")
 	public Object getAdapter(Class cls) {
 		return null;
 	}

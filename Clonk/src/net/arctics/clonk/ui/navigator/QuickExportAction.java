@@ -39,7 +39,7 @@ public class QuickExportAction extends ClonkResourceAction implements IHandler {
 		super(text);
 	}
 
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings("rawtypes")
 	@Override
 	public void runWithEvent(Event e) {
 		super.run();

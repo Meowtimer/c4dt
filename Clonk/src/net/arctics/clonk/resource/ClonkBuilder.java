@@ -120,7 +120,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 		}
 	}
 
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({"rawtypes"})
 	protected IProject[] build(int kind, Map args, IProgressMonitor monitor)
 	throws CoreException {
 		parserMap.clear();

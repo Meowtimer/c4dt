@@ -103,7 +103,7 @@ public class DeclarationChooser extends FilteredItemsSelectionDialog {
 		return item.toString();
 	}
 
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings("rawtypes")
 	@Override
 	protected Comparator getItemsComparator() {
 		return new Comparator() {
