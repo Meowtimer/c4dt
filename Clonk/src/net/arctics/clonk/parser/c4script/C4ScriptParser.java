@@ -842,6 +842,11 @@ public class C4ScriptParser {
 				errorWithCode(ParserErrorCode.TokenExpected, pos, pos+1, "}");
 				return false;
 			}
+			// look for comment in the same line as the closing '}' which is common for functions packed into one line
+			// hopefully there won't be multi-line functions with such a comment attached at the end
+			Comment c = getCommentImmediatelyFollowing();
+			if (c != null)
+				activeFunc.setUserDescription(c.getComment());
 		}
 		// finish up
 		activeFunc.setLocation(new SourceLocation(startName,endName));
@@ -1833,24 +1838,32 @@ public class C4ScriptParser {
 			}
 			
 			// inline comment attached to expression so code reformatting does not mess up the user's code too much
-			int daring = scanner.getPosition();
-			Comment c = null;
-			for (int r = scanner.read(); r != -1 && (r == '/' || BufferedScanner.isWhiteSpaceButNotLineDelimiterChar((char) r)); r = scanner.read()) {
-				if (r == '/') {
-					c = parseCommentObject(scanner.getPosition()-1);
-					break;
-				}
-			}
+			Comment c = getCommentImmediatelyFollowing();
 			if (c != null)
 				result.setInlineComment(c);
-			else
-				scanner.seek(daring);
 			return result;
 		} finally {
 			parseStatementRecursion--;
 		}
 		
 
+	}
+
+	private Comment getCommentImmediatelyFollowing() {
+		int daring = scanner.getPosition();
+		Comment c = null;
+		for (int r = scanner.read(); r != -1 && (r == '/' || BufferedScanner.isWhiteSpaceButNotLineDelimiterChar((char) r)); r = scanner.read()) {
+			if (r == '/') {
+				c = parseCommentObject(scanner.getPosition()-1);
+				break;
+			}
+		}
+		if (c != null)
+			return c;
+		else {
+			scanner.seek(daring);
+			return null;
+		}
 	}
 
 	private Statement parseVarDeclarationInStatement(
