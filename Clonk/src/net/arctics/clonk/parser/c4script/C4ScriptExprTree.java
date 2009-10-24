@@ -2194,7 +2194,7 @@ public abstract class C4ScriptExprTree {
 
 		@Override
 		public void print(StringBuilder builder, int depth) {
-			builder.append("{\n");
+			printIndent(builder, depth-1); builder.append("{\n");
 			for (Statement statement : statements) {
 				printIndent(builder, depth); printStatement(builder, statement, depth+1); builder.append("\n");
 			}
@@ -2334,6 +2334,7 @@ public abstract class C4ScriptExprTree {
 		}
 
 		protected void printBody(ExprElm body, StringBuilder builder, int depth) {
+			builder.append("\n");
 			int depthAdd = 0;
 			if (!(body instanceof EmptyStatement)) {
 				if (!(body instanceof Block)) {
@@ -2533,7 +2534,7 @@ public abstract class C4ScriptExprTree {
 					builder.append("\n");
 					printIndent(builder, depth);
 				}
-				elseExpr.print(builder, depth);
+				printBody(elseExpr, builder, depth);
 			}
 		}
 
