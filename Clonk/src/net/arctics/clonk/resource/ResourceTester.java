@@ -15,6 +15,8 @@ public class ResourceTester extends PropertyTester {
 			receiver = ((IFileEditorInput) receiver).getFile();
 
 		IResource res = (IResource) receiver;
+		if (res == null)
+			return false;
 		boolean result = false;
 		
 		// Calculate property value
