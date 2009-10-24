@@ -10,6 +10,7 @@ import net.arctics.clonk.ui.editors.actions.c4script.OpenDeclarationAction;
 import net.arctics.clonk.ui.editors.c4script.C4ScriptEditor;
 import net.arctics.clonk.ui.editors.c4script.ClonkContentOutlinePage;
 
+import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.action.IMenuManager;
@@ -30,6 +31,7 @@ import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.editors.text.TextEditor;
 import org.eclipse.ui.ide.IDE;
+import org.eclipse.ui.part.FileEditorInput;
 import org.eclipse.ui.part.IShowInSource;
 import org.eclipse.ui.part.IShowInTargetList;
 import org.eclipse.ui.texteditor.AbstractTextEditor;
@@ -91,15 +93,16 @@ public class ClonkTextEditor extends TextEditor {
 					if (editor instanceof ClonkTextEditor) {
 						ClonkTextEditor clonkTextEditor = (ClonkTextEditor) editor;
 						if (target != structure) {
-							if (structure.dirty() && clonkTextEditor instanceof C4ScriptEditor)
+							if (structure.dirty() && clonkTextEditor instanceof C4ScriptEditor) {
 								try {
 									((C4ScriptEditor) clonkTextEditor).reparseWithDocumentContents(null, false);
 								} catch (Exception e) {
 									e.printStackTrace();
 								}
-								target = target.latestVersion();
-								if (target != null)
-									clonkTextEditor.selectAndReveal(target.getRegionToSelect());
+							}
+							target = target.latestVersion();
+							if (target != null)
+								clonkTextEditor.selectAndReveal(target.getRegionToSelect());
 						}
 					} else if (editor instanceof AbstractTextEditor) {
 						AbstractTextEditor ed = (AbstractTextEditor) editor;
@@ -108,6 +111,18 @@ public class ClonkTextEditor extends TextEditor {
 					return editor;
 				} catch (PartInitException e) {
 					e.printStackTrace();
+				}
+			}
+			// if a definition has no script fall back to opening to DefCore.txt
+			else if (structure instanceof C4ObjectIntern) {
+				C4ObjectIntern obj = (C4ObjectIntern) structure;
+				IFile defCore = obj.getDefCoreFile();
+				if (defCore != null) {
+					try {
+						IDE.openEditor(workbenchPage, defCore);
+					} catch (PartInitException e) {
+						e.printStackTrace();
+					}
 				}
 			}
 		}

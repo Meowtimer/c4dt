@@ -32,7 +32,7 @@ public class NewParticle extends NewClonkFolderWizard {
 	@Override
 	public void createPageControls(Composite pageContainer) {		
 		super.createPageControls(pageContainer);
-		page.addTextField(Messages.NewParticle_5, this, "title", null); //$NON-NLS-2$
+		page.addTextField(Messages.NewParticle_5, this, "title", null); //$NON-NLS-2$ //$NON-NLS-1$
 		page.getFileText().setText(Messages.NewParticle_7);
 	}
 	
