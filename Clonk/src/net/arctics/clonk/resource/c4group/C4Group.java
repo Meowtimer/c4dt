@@ -42,10 +42,10 @@ public class C4Group implements C4GroupItem, Serializable {
 	
 	private static Map<String, C4GroupType> getExtensionToGroupTypeMap() {
 		Map<String, C4GroupType> result = new HashMap<String, C4GroupType>(C4GroupType.values().length);
-		result.put("c4d", C4GroupType.DefinitionGroup);
-		result.put("c4g", C4GroupType.ResourceGroup);
-		result.put("c4s", C4GroupType.ScenarioGroup);
-		result.put("c4f", C4GroupType.FolderGroup);
+		result.put("c4d", C4GroupType.DefinitionGroup); //$NON-NLS-1$
+		result.put("c4g", C4GroupType.ResourceGroup); //$NON-NLS-1$
+		result.put("c4s", C4GroupType.ScenarioGroup); //$NON-NLS-1$
+		result.put("c4f", C4GroupType.FolderGroup); //$NON-NLS-1$
 		return Collections.unmodifiableMap(result);
 	}
 	
@@ -243,7 +243,7 @@ public class C4Group implements C4GroupItem, Serializable {
 	}
 	
 	public static C4GroupType getGroupType(String groupName) {
-		return getGroupTypeExt(groupName.substring(groupName.lastIndexOf(".") + 1).toLowerCase());
+		return getGroupTypeExt(groupName.substring(groupName.lastIndexOf(".") + 1).toLowerCase()); //$NON-NLS-1$
 	}
 	
 	public C4GroupType getGroupType() {
@@ -342,7 +342,7 @@ public class C4Group implements C4GroupItem, Serializable {
 			me = ((IProject)parent).getFolder(getName());
 		}
 		else {
-			throw new InvalidParameterException("You cannot import files to workspace root!");
+			throw new InvalidParameterException(Messages.C4Group_5);
 		}
 		me.create(IResource.NONE, true, monitor);
 		for(C4GroupItem item : childEntries) {

@@ -46,7 +46,7 @@ public class ImportClonkFiles extends Wizard implements IImportWizard {
     public void init(IWorkbench workbench, IStructuredSelection currentSelection) {
         this.workbench = workbench;
         this.selection = currentSelection;
-        setWindowTitle("Import from Clonk directory to project");
+        setWindowTitle(Messages.ImportClonkFiles_0);
         setNeedsProgressMonitor(true);
     }
 

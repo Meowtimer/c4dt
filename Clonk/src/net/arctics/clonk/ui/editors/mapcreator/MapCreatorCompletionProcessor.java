@@ -21,10 +21,10 @@ import org.eclipse.jface.text.contentassist.IContextInformationValidator;
 
 public class MapCreatorCompletionProcessor extends ClonkCompletionProcessor<MapCreatorEditor> {
 
-	private static final Pattern startedOverlay = Pattern.compile(".*\\s+overlay\\s+([A-Za-z_0-9]*)");
-	private static final Pattern startedMap     = Pattern.compile(".*\\s+map\\s+([A-Za-z_0-9]*)");
-	private static final Pattern startedAttr    = Pattern.compile(".*\\s+([A-Za-z_0-9]*).*");
-	private static final Pattern startedAttrVal = Pattern.compile(".*\\s+([A-Za-z_0-9]*)\\s*=\\s*([A-Za-z_0-9]*).*");
+	private static final Pattern startedOverlay = Pattern.compile(".*\\s+overlay\\s+([A-Za-z_0-9]*)"); //$NON-NLS-1$
+	private static final Pattern startedMap     = Pattern.compile(".*\\s+map\\s+([A-Za-z_0-9]*)"); //$NON-NLS-1$
+	private static final Pattern startedAttr    = Pattern.compile(".*\\s+([A-Za-z_0-9]*).*"); //$NON-NLS-1$
+	private static final Pattern startedAttrVal = Pattern.compile(".*\\s+([A-Za-z_0-9]*)\\s*=\\s*([A-Za-z_0-9]*).*"); //$NON-NLS-1$
 	
 	public MapCreatorCompletionProcessor(MapCreatorEditor editor) {
 		super(editor);
@@ -45,7 +45,7 @@ public class MapCreatorCompletionProcessor extends ClonkCompletionProcessor<MapC
 			IRegion lineRegion = doc.getLineInformationOfOffset(offset);
 			line = doc.get(lineRegion.getOffset(), lineRegion.getLength());
 			lineStart = lineRegion.getOffset();
-			String seps = ";{}";
+			String seps = ";{}"; //$NON-NLS-1$
 			for (int i = seps.length()-1; i>=0; i--) {
 				int sepIndex = line.lastIndexOf(seps.charAt(i), offset-lineStart-1);
 				if (sepIndex != -1) {
@@ -55,7 +55,7 @@ public class MapCreatorCompletionProcessor extends ClonkCompletionProcessor<MapC
 				}
 			}
 		} catch (BadLocationException e) {
-			line = "";
+			line = ""; //$NON-NLS-1$
 			lineStart = offset;
 		}
 		
@@ -96,7 +96,7 @@ public class MapCreatorCompletionProcessor extends ClonkCompletionProcessor<MapC
 				}
 			}
 			
-			String[] keywords = new String[] {"map", "overlay"};
+			String[] keywords = new String[] {"map", "overlay"}; //$NON-NLS-1$ //$NON-NLS-2$
 			for (String keyword : keywords) {
 				if (keyword.toLowerCase().startsWith(prefix))
 					proposals.add(new CompletionProposal(keyword, lineStart+m.start(1), prefix.length(), keyword.length()));

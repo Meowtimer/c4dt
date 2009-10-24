@@ -54,7 +54,7 @@ public class QuickExportAction extends ClonkResourceAction implements IHandler {
 			IProgressService ps = wb.getProgressService();
 			try {
 				TreeSelection tree = (TreeSelection) selection;					
-				String c4groupPath = Utilities.getPreference(PreferenceConstants.C4GROUP_EXECUTABLE, "", null);
+				String c4groupPath = Utilities.getPreference(PreferenceConstants.C4GROUP_EXECUTABLE, "", null); //$NON-NLS-1$
 				String gamePath = Utilities.getPreference(PreferenceConstants.GAME_PATH);
 				Iterator it = tree.iterator();
 				while (it.hasNext()) {
@@ -65,7 +65,7 @@ public class QuickExportAction extends ClonkResourceAction implements IHandler {
 							IResource[] selectedResources = ((IProject)obj).members(IContainer.EXCLUDE_DERIVED);
 							selectedContainers = new ArrayList<IContainer>();
 							for(int i = 0; i < selectedResources.length;i++) {
-								if (selectedResources[i] instanceof IContainer && !selectedResources[i].getName().startsWith("."))
+								if (selectedResources[i] instanceof IContainer && !selectedResources[i].getName().startsWith(".")) //$NON-NLS-1$
 									selectedContainers.add((IContainer) selectedResources[i]);
 							}
 						}

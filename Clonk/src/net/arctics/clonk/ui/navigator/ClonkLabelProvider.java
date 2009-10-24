@@ -33,13 +33,13 @@ public class ClonkLabelProvider extends LabelProvider implements IStyledLabelPro
 			return super.getImage(element);
 		}
 		else if (element instanceof IFile) {
-			if (element.toString().endsWith(".c")) {
+			if (element.toString().endsWith(".c")) { //$NON-NLS-1$
 				return UI.SCRIPT_ICON;
 			}
-			if (element.toString().endsWith(".txt")) {
+			if (element.toString().endsWith(".txt")) { //$NON-NLS-1$
 				return UI.TEXT_ICON;
 			}
-			if (element.toString().endsWith(".c4m")) {
+			if (element.toString().endsWith(".c4m")) { //$NON-NLS-1$
 				return UI.MATERIAL_ICON;
 			}
 		}
@@ -77,7 +77,7 @@ public class ClonkLabelProvider extends LabelProvider implements IStyledLabelPro
 	}
 
 	public static String stringWithoutExtension(String s) {
-		return s.substring(0,s.lastIndexOf("."));
+		return s.substring(0,s.lastIndexOf(".")); //$NON-NLS-1$
 	}
 	
 	public StyledString getStyledText(Object element) {
@@ -94,7 +94,7 @@ public class ClonkLabelProvider extends LabelProvider implements IStyledLabelPro
 				}
 			}
 			if (groupType == C4GroupType.FolderGroup || groupType == C4GroupType.ScenarioGroup || groupType == C4GroupType.ResourceGroup)
-				return new StyledString(folder.getName().substring(0,folder.getName().lastIndexOf(".")));
+				return new StyledString(folder.getName().substring(0,folder.getName().lastIndexOf("."))); //$NON-NLS-1$
 			return new StyledString(((IFolder)element).getName());
 		}
 		else if (element instanceof IResource) {
@@ -120,9 +120,9 @@ public class ClonkLabelProvider extends LabelProvider implements IStyledLabelPro
 		else
 			buf.append(stringWithoutExtension(baseName));
 		if (id != null) {
-			buf.append(" [",StyledString.DECORATIONS_STYLER);
+			buf.append(" [",StyledString.DECORATIONS_STYLER); //$NON-NLS-1$
 			buf.append(id,StyledString.DECORATIONS_STYLER);
-			buf.append("]",StyledString.DECORATIONS_STYLER);
+			buf.append("]",StyledString.DECORATIONS_STYLER); //$NON-NLS-1$
 		}
 		return buf;
 	}
@@ -141,11 +141,11 @@ public class ClonkLabelProvider extends LabelProvider implements IStyledLabelPro
 				if (markers.length > 0) {
 					for(IMarker marker : markers) {
 						if (marker.getAttribute(IMarker.SEVERITY, IMarker.SEVERITY_INFO) == IMarker.SEVERITY_ERROR) {
-							result[2][0] = Utilities.getIconDescriptor("icons/error_co.gif");
+							result[2][0] = Utilities.getIconDescriptor("icons/error_co.gif"); //$NON-NLS-1$
 							break;
 						}
 						if (marker.getAttribute(IMarker.SEVERITY, IMarker.SEVERITY_INFO) == IMarker.SEVERITY_WARNING) {
-							result[2][0] = Utilities.getIconDescriptor("icons/warning_co.gif");
+							result[2][0] = Utilities.getIconDescriptor("icons/warning_co.gif"); //$NON-NLS-1$
 						}
 					}
 				}

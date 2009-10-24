@@ -13,27 +13,27 @@ public class NewParticle extends NewClonkFolderWizard {
 	@Override
 	public void addPages() {
 		page = new NewClonkFolderWizardPage(selection);
-		page.setFolderExtension(".c4d");
-		page.setTitle("Create new particle");
-		page.setDescription("This wizard creates a new particle");
+		page.setFolderExtension(".c4d"); //$NON-NLS-1$
+		page.setTitle(Messages.NewParticle_1);
+		page.setDescription(Messages.NewParticle_2);
 		addPage(page);
 	}
 	@Override
 	public void init(IWorkbench workbench, IStructuredSelection selection) {
 		super.init(workbench, selection);
-		setWindowTitle("New Particle");
+		setWindowTitle(Messages.NewParticle_3);
 	}
 	@Override
 	protected Map<String, String> initTemplateReplacements() {
 		Map<String, String> result = super.initTemplateReplacements();
-		result.put("$Title$", title);
+		result.put("$Title$", title); //$NON-NLS-1$
 		return result;
 	}
 	@Override
 	public void createPageControls(Composite pageContainer) {		
 		super.createPageControls(pageContainer);
-		page.addTextField("&Title:", this, "title", null);
-		page.getFileText().setText("NewParticle");
+		page.addTextField(Messages.NewParticle_5, this, "title", null); //$NON-NLS-2$
+		page.getFileText().setText(Messages.NewParticle_7);
 	}
 	
 }

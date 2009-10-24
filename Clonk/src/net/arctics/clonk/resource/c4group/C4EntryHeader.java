@@ -76,7 +76,7 @@ public class C4EntryHeader implements Serializable {
 
 		} catch (IOException e) {
 			e.printStackTrace();
-			throw new InvalidDataException("There was an IOException.");
+			throw new InvalidDataException("There was an IOException."); //$NON-NLS-1$
 		}
 		return header;
     }
@@ -84,7 +84,7 @@ public class C4EntryHeader implements Serializable {
 	
 	public void skipData(InputStream stream) throws IOException {
 		if (this.isGroup()) {
-			throw new IOException("skipData for groups not implemented");
+			throw new IOException("skipData for groups not implemented"); //$NON-NLS-1$
 		}
 		else {
 			stream.skip(getSize());

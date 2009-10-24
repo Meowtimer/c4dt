@@ -25,13 +25,13 @@ public class LightweightLabelDecorator implements ILightweightLabelDecorator {
 			context.putProperty(IDecoration.ENABLE_REPLACE, Boolean.TRUE);
 		}
 		if (PlatformUI.getWorkbench() == null) {
-			System.out.println("no workbench");
+			System.out.println("no workbench"); //$NON-NLS-1$
 		}
 		else if (PlatformUI.getWorkbench().getDecoratorManager() == null) {
-			System.out.println("no decmgr");
+			System.out.println("no decmgr"); //$NON-NLS-1$
 		}
 		else if (PlatformUI.getWorkbench().getDecoratorManager().getLabelDecorator() == null) {
-			System.out.println("no labeldec");
+			System.out.println("no labeldec"); //$NON-NLS-1$
 		}
 		if (element instanceof IResource) {
 			IResource res = (IResource) element;
@@ -40,22 +40,22 @@ public class LightweightLabelDecorator implements ILightweightLabelDecorator {
 				C4GroupType groupType = Utilities.groupTypeFromFolderName(res.getName());
 				
 				if (groupType == C4GroupType.FolderGroup) {
-					decoration.addOverlay(Utilities.getIconDescriptor("icons/Clonk_folder.png"),IDecoration.REPLACE);
+					decoration.addOverlay(Utilities.getIconDescriptor("icons/Clonk_folder.png"),IDecoration.REPLACE); //$NON-NLS-1$
 				}
 				else if (groupType == C4GroupType.DefinitionGroup) {
-					decoration.addOverlay(Utilities.getIconDescriptor("icons/C4Object.png"),IDecoration.REPLACE);
+					decoration.addOverlay(Utilities.getIconDescriptor("icons/C4Object.png"),IDecoration.REPLACE); //$NON-NLS-1$
 				}
 				else if (groupType == C4GroupType.ScenarioGroup) {
-					decoration.addOverlay(Utilities.getIconDescriptor("icons/Clonk_scenario.png"),IDecoration.REPLACE);
+					decoration.addOverlay(Utilities.getIconDescriptor("icons/Clonk_scenario.png"),IDecoration.REPLACE); //$NON-NLS-1$
 				}
 				else if (groupType == C4GroupType.ResourceGroup) {
-					decoration.addOverlay(Utilities.getIconDescriptor("icons/Clonk_datafolder.png"),IDecoration.REPLACE);
+					decoration.addOverlay(Utilities.getIconDescriptor("icons/Clonk_datafolder.png"),IDecoration.REPLACE); //$NON-NLS-1$
 				}
 			}
 			try {
 				int severity = res.findMaxProblemSeverity(IMarker.PROBLEM, true, IResource.DEPTH_INFINITE);
-				if (severity == IMarker.SEVERITY_WARNING) decoration.addOverlay(getIcon("warning_co.gif"),IDecoration.BOTTOM_LEFT);
-				else if (severity == IMarker.SEVERITY_ERROR) decoration.addOverlay(getIcon("error_co.gif"),IDecoration.BOTTOM_LEFT);
+				if (severity == IMarker.SEVERITY_WARNING) decoration.addOverlay(getIcon("warning_co.gif"),IDecoration.BOTTOM_LEFT); //$NON-NLS-1$
+				else if (severity == IMarker.SEVERITY_ERROR) decoration.addOverlay(getIcon("error_co.gif"),IDecoration.BOTTOM_LEFT); //$NON-NLS-1$
 //				IMarker[] markers = res.findMarkers(IMarker.PROBLEM, true, IResource.DEPTH_INFINITE);
 //				if (markers.length > 0) {
 //					int severity = 0;
@@ -78,14 +78,14 @@ public class LightweightLabelDecorator implements ILightweightLabelDecorator {
 			}
 
 		} else {
-			System.out.println("other");
+			System.out.println("other"); //$NON-NLS-1$
 		}
 	}
 
 	private ImageDescriptor getIcon(String name) {
 		ImageRegistry reg = ClonkCore.getDefault().getImageRegistry();
 		if (reg.get(name) == null) {
-			reg.put(name, Utilities.getIconDescriptor("icons/" + name));
+			reg.put(name, Utilities.getIconDescriptor("icons/" + name)); //$NON-NLS-1$
 		}
 		return reg.getDescriptor(name);
 	}

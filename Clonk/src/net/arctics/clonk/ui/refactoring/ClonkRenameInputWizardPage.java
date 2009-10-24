@@ -22,8 +22,8 @@ class ClonkRenameInputWizardPage extends UserInputWizardPage {
 
 	protected ClonkRenameInputWizardPage(String name) {
 		super(name);
-		setTitle("Supply the new name");
-		setDescription("The new name the field will have after refactoring");
+		setTitle(Messages.ClonkRenameInputWizardPage_0);
+		setDescription(Messages.ClonkRenameInputWizardPage_1);
 	}
 
 	public void createControl(Composite parent) {
@@ -32,7 +32,7 @@ class ClonkRenameInputWizardPage extends UserInputWizardPage {
 		GridLayout layout = new GridLayout();
 		container.setLayout(layout);
 		Label labelObj = new Label(container, SWT.NULL);
-		labelObj.setText("New Name:");
+		labelObj.setText(Messages.ClonkRenameInputWizardPage_2);
 		Text result = new Text(container, SWT.BORDER | SWT.SINGLE);
 		GridData gd = new GridData(GridData.FILL_HORIZONTAL);
 		result.setLayoutData(gd);

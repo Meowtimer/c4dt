@@ -41,21 +41,21 @@ public class C4ScriptAutoIndentStrategy extends DefaultIndentLineAutoEditStrateg
 	
 	@Override
 	public void customizeDocumentCommand(IDocument d, DocumentCommand c) {
-		if (c.text.contains("\n") || c.text.contains("\r")) {
+		if (c.text.contains("\n") || c.text.contains("\r")) { //$NON-NLS-1$ //$NON-NLS-2$
 			try {
 				//String originalText = c.text;
 				IRegion reg = d.getLineInformationOfOffset(c.offset);
 				String line = d.get(reg.getOffset(),reg.getLength());
 				int count = countIndentOfLine(line);
 				line = line.trim();
-				if (line.endsWith("{")) {
+				if (line.endsWith("{")) { //$NON-NLS-1$
 					count++;
 				}
-				for(int i = 0; i < count; i++) c.text += "  ";
-				if (line.endsWith("{")) {
-					c.text += "\r\n";
-					for(int i = 0; i < count - 1; i++) c.text += "\t";
-					c.text += "}";
+				for(int i = 0; i < count; i++) c.text += "  "; //$NON-NLS-1$
+				if (line.endsWith("{")) { //$NON-NLS-1$
+					c.text += "\r\n"; //$NON-NLS-1$
+					for(int i = 0; i < count - 1; i++) c.text += "\t"; //$NON-NLS-1$
+					c.text += "}"; //$NON-NLS-1$
 					//c.caretOffset = c.offset+1;
 //					c.caretOffset = c.offset + count * 2 + originalText.length();
 				}

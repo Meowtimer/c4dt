@@ -124,7 +124,7 @@ public class MapCreatorCodeScanner extends RuleBasedScanner {
 		}
 	}
 
-	public final static String KEYWORDS = "__keywords";
+	public final static String KEYWORDS = "__keywords"; //$NON-NLS-1$
 
 	private IRule[] currentRules;
 

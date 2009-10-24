@@ -75,7 +75,7 @@ public class ClonkOutlineProvider extends LabelProvider implements ITreeContentP
 			C4Function func = ((C4Function)element);
 			StyledString string = new StyledString(func.getLongParameterString(true));
 			if (func.getReturnType() != null && func.getReturnType() != C4Type.UNKNOWN && func.getReturnType() != C4Type.ANY) {
-				string.append(" : ");
+				string.append(" : "); //$NON-NLS-1$
 				string.append(func.getReturnType().toString(true), StyledString.DECORATIONS_STYLER);
 			}
 			return string;
@@ -85,7 +85,7 @@ public class ClonkOutlineProvider extends LabelProvider implements ITreeContentP
 		}
 		if (element != null)
 			return new StyledString(element.toString());
-		return new StyledString("");
+		return new StyledString(""); //$NON-NLS-1$
 	}
 
 }

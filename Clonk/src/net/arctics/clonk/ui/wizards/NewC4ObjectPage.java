@@ -22,10 +22,10 @@ public class NewC4ObjectPage extends NewClonkFolderWizardPage {
 	 */
 	public NewC4ObjectPage(ISelection selection) {
 		super(selection);
-		setTitle("Create new object definition");
-		setDescription("This wizard creates a new object definition structure");
+		setTitle(Messages.NewC4ObjectPage_0);
+		setDescription(Messages.NewC4ObjectPage_1);
 		this.selection = selection;
-		setFolderExtension(".c4d");
+		setFolderExtension(".c4d"); //$NON-NLS-1$
 	}
 
 	/**
@@ -33,7 +33,7 @@ public class NewC4ObjectPage extends NewClonkFolderWizardPage {
 	 */
 	public void createControl(Composite parent) {
 		super.createControl(parent);
-		c4idText = addTextField("Object &ID:");
+		c4idText = addTextField(Messages.NewC4ObjectPage_3);
 		initialize();
 		dialogChanged();
 	}
@@ -46,7 +46,7 @@ public class NewC4ObjectPage extends NewClonkFolderWizardPage {
 	protected void dialogChanged() {
 		super.dialogChanged();
 		if (c4idText.getText().length() != 4) {
-			updateStatus("Object ID must be valid");
+			updateStatus(Messages.NewC4ObjectPage_4);
 			return;
 		}
 		else {
@@ -54,7 +54,7 @@ public class NewC4ObjectPage extends NewClonkFolderWizardPage {
 			if (nature != null) {
 				List<C4Object> objects = nature.getIndex().getObjects(C4ID.getID(c4idText.getText()));
 				if (objects != null && !objects.isEmpty()) {
-					updateStatus("Object ID is already in use.");
+					updateStatus(Messages.NewC4ObjectPage_5);
 					return;
 				}
 			}
@@ -65,7 +65,7 @@ public class NewC4ObjectPage extends NewClonkFolderWizardPage {
 	@Override
 	protected void initialize() {
 		super.initialize();
-		fileText.setText("NewObject");
+		fileText.setText(Messages.NewC4ObjectPage_6);
 	}
 	
 	public String getObjectID() {

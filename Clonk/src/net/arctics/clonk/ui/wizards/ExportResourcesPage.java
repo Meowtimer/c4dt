@@ -32,8 +32,8 @@ public class ExportResourcesPage extends WizardPage {
 
 	public void createControl(Composite parent) {
 		Composite comp = new Composite(parent, SWT.FILL);
-		setTitle("Export folders");
-		setMessage("Select folders which should be exported as c4group files");
+		setTitle(Messages.ExportResourcesPage_0);
+		setMessage(Messages.ExportResourcesPage_1);
 		GridLayout layout = new GridLayout();
 		comp.setLayout(layout);
 		layout.numColumns = 1;
@@ -90,12 +90,12 @@ public class ExportResourcesPage extends WizardPage {
 	protected void createDestinationGroup(Composite parent) {
 		Label lab= new Label(parent,SWT.NONE);
 		IPreferencesService service = Platform.getPreferencesService();
-		String gamePath = service.getString(ClonkCore.PLUGIN_ID, PreferenceConstants.GAME_PATH, "Not set. Set Clonk path in Project properties.", null);
+		String gamePath = service.getString(ClonkCore.PLUGIN_ID, PreferenceConstants.GAME_PATH, Messages.ExportResourcesPage_2, null);
 		if (gamePath != null) {
-			lab.setText("Output dir: " + gamePath);
+			lab.setText(Messages.ExportResourcesPage_3 + gamePath);
 		}
 		else {
-			lab.setText("Configure your Clonk game path to export.");
+			lab.setText(Messages.ExportResourcesPage_4);
 		}
 	}
 

@@ -29,12 +29,12 @@ public class C4GroupHeader implements Serializable {
     
     public static C4GroupHeader createHeader(int entryCount, String maker) {
     	C4GroupHeader header = new C4GroupHeader();
-    	header.id = "RedWolf Design GrpFolder";
+    	header.id = "RedWolf Design GrpFolder"; //$NON-NLS-1$
     	header.entries = entryCount;
     	header.ver1 = 1;
     	header.ver2 = 2;
     	header.maker = maker;
-    	header.password = "";
+    	header.password = ""; //$NON-NLS-1$
     	header.creation = 1221126239; // TODO implement creation time
     	header.original = 0;
     	
@@ -83,23 +83,23 @@ public class C4GroupHeader implements Serializable {
     	
     	// parse header
     	result.id = byteToString(buffer,0,24).trim();
-    	int compare = result.id.compareTo("RedWolf Design GrpFolder");
+    	int compare = result.id.compareTo("RedWolf Design GrpFolder"); //$NON-NLS-1$
     	if (compare > 0) {
     		C4Group.MemScramble(buffer, STORED_SIZE);
-    		throw new InvalidDataException("Header id is invalid ('" + result.id + "')");
+    		throw new InvalidDataException("Header id is invalid ('" + result.id + "')"); //$NON-NLS-1$ //$NON-NLS-2$
     		
     	}
     	result.ver1 = byteToInt32(buffer,28);
     	if (result.ver1 != 1) {
-    		throw new InvalidDataException("GroupHeader invalid: Version1 must be 1.");
+    		throw new InvalidDataException(Messages.C4GroupHeader_5);
     	}
     	result.ver2 = byteToInt32(buffer,32);
     	if (result.ver2 != 2) {
-    		throw new InvalidDataException("GroupHeader invalid: Version2 must be 2.");
+    		throw new InvalidDataException(Messages.C4GroupHeader_6);
     	}
     	result.entries = byteToInt32(buffer, 36);
     	if (result.entries > 1000) {
-    		throw new InvalidDataException("Suspicious group header: group has more than 1000 children");
+    		throw new InvalidDataException(Messages.C4GroupHeader_7);
     	}
     	result.maker = byteToString(buffer, 40, 30).trim();
     	result.password = byteToString(buffer, 72, 30).trim();
@@ -186,16 +186,16 @@ public class C4GroupHeader implements Serializable {
     
     public static String byteToString(byte[] buffer, int offset, int length) {
     	try {
-			return new String(buffer,offset,length,"ISO-8859-1");
+			return new String(buffer,offset,length,"ISO-8859-1"); //$NON-NLS-1$
 		} catch (UnsupportedEncodingException e) {
 			e.printStackTrace();
-			return "unkwnown encoding";
+			return "unkwnown encoding"; //$NON-NLS-1$
 		}
     }
     
     public static byte[] stringToByte(String str) {
     	try {
-			return str.getBytes("ISO-8859-1");
+			return str.getBytes("ISO-8859-1"); //$NON-NLS-1$
 		} catch (UnsupportedEncodingException e) {
 			e.printStackTrace();
 		}

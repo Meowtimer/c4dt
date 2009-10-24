@@ -21,14 +21,14 @@ import org.eclipse.ui.PlatformUI;
 
 public class ClonkProjectProperties extends FieldEditorPreferencePage implements IWorkbenchPropertyPage {
 
-	private static final String DEPENDENCIES_PROPERTY = "dependencies";
-	private static final String SHOWSDEPENDENCIES_PROPERTY = "showsDependencies";
+	private static final String DEPENDENCIES_PROPERTY = "dependencies"; //$NON-NLS-1$
+	private static final String SHOWSDEPENDENCIES_PROPERTY = "showsDependencies"; //$NON-NLS-1$
 	
 	private final class AdapterStore extends PreferenceStore {
 		private Map<String, String> values = new HashMap<String, String>();
 
 		public String getDefaultString(String name) {
-			return "";
+			return ""; //$NON-NLS-1$
 		}
 
 		public void setValue(String name, String value) {
@@ -54,7 +54,7 @@ public class ClonkProjectProperties extends FieldEditorPreferencePage implements
 		@SuppressWarnings("unchecked")
 		public void commit(String n, String v) {
 			if (n.equals(DEPENDENCIES_PROPERTY)) {
-				Utilities.getClonkNature(getProject()).getIndex().setDependencyNames(Utilities.collectionFromArray(LinkedList.class, !v.equals("") ? v.split("<>") : new String[0]));
+				Utilities.getClonkNature(getProject()).getIndex().setDependencyNames(Utilities.collectionFromArray(LinkedList.class, !v.equals("") ? v.split("<>") : new String[0])); //$NON-NLS-1$ //$NON-NLS-2$
 			} else if (n.equals(SHOWSDEPENDENCIES_PROPERTY)) {
 				try {
 					Utilities.setShowsDependencies(getProject(), Boolean.parseBoolean(v));
@@ -84,12 +84,12 @@ public class ClonkProjectProperties extends FieldEditorPreferencePage implements
 	
 	private String stringFromIterable(Iterable<String> iterable) {
 		if (iterable == null)
-			return "";
+			return ""; //$NON-NLS-1$
 		StringBuilder builder = new StringBuilder();
 		int i = 0;
 		for (String s : iterable) {
 			builder.append(s);
-			builder.append("<>");
+			builder.append("<>"); //$NON-NLS-1$
 			i++;
 		}
 		return builder.toString();
@@ -97,16 +97,16 @@ public class ClonkProjectProperties extends FieldEditorPreferencePage implements
 	
 	@Override
 	protected void createFieldEditors() {
-		addField(new ListEditor(DEPENDENCIES_PROPERTY, "Dependencies", getFieldEditorParent()) {
+		addField(new ListEditor(DEPENDENCIES_PROPERTY, Messages.ClonkProjectProperties_7, getFieldEditorParent()) {
 			
 			@Override
 			protected String[] parseString(String stringList) {
-				return stringList.split("<>");
+				return stringList.split("<>"); //$NON-NLS-1$
 			}
 			
 			@Override
 			protected String getNewInputObject() {
-				InputDialog input = new InputDialog(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(), "New dependency", "Supply the name of a dependency", "", null);
+				InputDialog input = new InputDialog(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(), Messages.ClonkProjectProperties_9, Messages.ClonkProjectProperties_10, "", null); //$NON-NLS-3$
 				switch (input.open()) {
 				case InputDialog.CANCEL:
 					return null;
@@ -120,7 +120,7 @@ public class ClonkProjectProperties extends FieldEditorPreferencePage implements
 				return stringFromIterable(Utilities.arrayIterable(items));
 			}
 		});
-		addField(new BooleanFieldEditor(SHOWSDEPENDENCIES_PROPERTY, "Show Dependencies", getFieldEditorParent()));
+		addField(new BooleanFieldEditor(SHOWSDEPENDENCIES_PROPERTY, Messages.ClonkProjectProperties_12, getFieldEditorParent()));
 	}
 
 	public IAdaptable getElement() {

@@ -17,7 +17,7 @@ import org.eclipse.ui.IStorageEditorInput;
 
 public class ScriptWithStorageEditorInput extends PlatformObject implements IEditorInput, IPathEditorInput, IStorageEditorInput, IPersistableElement {
 
-	private static final String FACTORY_ID = ClonkCore.id("ui.editors.scriptWithStorageEditorInputFactory");  
+	private static final String FACTORY_ID = ClonkCore.id("ui.editors.scriptWithStorageEditorInputFactory");   //$NON-NLS-1$
 	
 	private C4ScriptBase script;
 	
@@ -25,7 +25,7 @@ public class ScriptWithStorageEditorInput extends PlatformObject implements IEdi
 		super();
 		
 		if (!(script.getScriptFile() instanceof IStorage))
-			throw new IllegalArgumentException("script");
+			throw new IllegalArgumentException("script"); //$NON-NLS-1$
 		this.script = script;
 	}
 
@@ -34,11 +34,11 @@ public class ScriptWithStorageEditorInput extends PlatformObject implements IEdi
 	}
 
 	public ImageDescriptor getImageDescriptor() {
-		return ClonkCore.getDefault().getIconImageDescriptor("C4Object");
+		return ClonkCore.getDefault().getIconImageDescriptor("C4Object"); //$NON-NLS-1$
 	}
 
 	public String getName() {
-		return "[" + script.getName() + "]";
+		return "[" + script.getName() + "]"; //$NON-NLS-1$ //$NON-NLS-2$
 	}
 
 	public IPersistableElement getPersistable() {
@@ -83,7 +83,7 @@ public class ScriptWithStorageEditorInput extends PlatformObject implements IEdi
 	}
 
 	public void saveState(IMemento memento) {
-		memento.putString("path", getPath().toPortableString());
+		memento.putString("path", getPath().toPortableString()); //$NON-NLS-1$
 	}
 
 }

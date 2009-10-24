@@ -66,7 +66,7 @@ public class ConvertOldCodeInBulkAction extends Action {
 					try {
 						IResource[] selectedResources = ((IProject)obj).members(IContainer.EXCLUDE_DERIVED);
 						for(int i = 0; i < selectedResources.length;i++) {
-							if (selectedResources[i] instanceof IContainer && !selectedResources[i].getName().startsWith("."))
+							if (selectedResources[i] instanceof IContainer && !selectedResources[i].getName().startsWith(".")) //$NON-NLS-1$
 								selectedContainers.add((IContainer) selectedResources[i]);
 						}
 					}
@@ -103,7 +103,7 @@ public class ConvertOldCodeInBulkAction extends Action {
 									}
 								}
 							}
-							monitor.beginTask("Converting code", counter);
+							monitor.beginTask(Messages.ConvertOldCodeInBulkAction_1, counter);
 							for (IContainer container : selectedContainers) {
 								try {
 									final TextFileDocumentProvider textFileDocProvider = ClonkCore.getDefault().getTextFileDocumentProvider();

@@ -160,7 +160,7 @@ public abstract class Utilities {
 	
 	public static MessageConsole getClonkConsole() {
 		if (clonkConsole == null) {
-			clonkConsole = getConsole("Clonk");
+			clonkConsole = getConsole(Messages.Utilities_0);
 		}
 		return clonkConsole;
 	}
@@ -180,7 +180,7 @@ public abstract class Utilities {
 	
 	public static MessageConsoleStream getDebugStream() {
 		if (debugConsoleStream == null) {
-			debugConsoleStream = getConsole("Clonk Debug").newMessageStream();
+			debugConsoleStream = getConsole(Messages.Utilities_1).newMessageStream();
 		}
 		return debugConsoleStream;
 	}
@@ -238,7 +238,7 @@ public abstract class Utilities {
 			return UI.GENERAL_OBJECT_ICON;
 		if (element instanceof C4ObjectExternGroup) {
 			C4ObjectExternGroup group = (C4ObjectExternGroup) element;
-			if (group.getNodeName().endsWith(".c4g"))
+			if (group.getNodeName().endsWith(".c4g")) //$NON-NLS-1$
 				return UI.GROUP_ICON;
 			return UI.GENERAL_OBJECT_ICON;
 		}
@@ -291,7 +291,7 @@ public abstract class Utilities {
 	}
 	
 	public static C4GroupType groupTypeFromFolderName(String name) {
-		C4GroupType result = C4Group.EXTENSION_TO_GROUP_TYPE_MAP.get(name.substring(name.lastIndexOf(".")+1));
+		C4GroupType result = C4Group.EXTENSION_TO_GROUP_TYPE_MAP.get(name.substring(name.lastIndexOf(".")+1)); //$NON-NLS-1$
 		if (result != null)
 			return result;
 		return C4GroupType.OtherGroup;
@@ -428,11 +428,11 @@ public abstract class Utilities {
 	}
 	
 	private static Map<String, Class<? extends IniUnit>> INIREADER_CLASSES = map(new Object[] {
-		ClonkCore.id("scenariocfg"), ScenarioUnit.class,
-		ClonkCore.id("actmap")     , ActMapUnit.class,
-		ClonkCore.id("defcore")    , DefCoreUnit.class,
-		ClonkCore.id("particle")   , ParticleUnit.class,
-		ClonkCore.id("material")   , MaterialUnit.class
+		ClonkCore.id("scenariocfg"), ScenarioUnit.class, //$NON-NLS-1$
+		ClonkCore.id("actmap")     , ActMapUnit.class, //$NON-NLS-1$
+		ClonkCore.id("defcore")    , DefCoreUnit.class, //$NON-NLS-1$
+		ClonkCore.id("particle")   , ParticleUnit.class, //$NON-NLS-1$
+		ClonkCore.id("material")   , MaterialUnit.class //$NON-NLS-1$
 	});
 
 	/**
@@ -513,7 +513,7 @@ public abstract class Utilities {
 	public static void refreshClonkProjects(IProgressMonitor monitor) throws CoreException {
 		IProject[] projects = ResourcesPlugin.getWorkspace().getRoot().getProjects();
 		if (monitor != null)
-			monitor.beginTask("Refreshing Clonk projects", projects.length);
+			monitor.beginTask(Messages.Utilities_9, projects.length);
 		int work = 0;
 		for (IProject p : projects) {
 			if (Utilities.getClonkNature(p) != null)
@@ -531,7 +531,7 @@ public abstract class Utilities {
 	}
 	
 	public static Enum<?>[] valuesOfEnum(Class<?> enumClass) throws IllegalArgumentException, SecurityException, IllegalAccessException, InvocationTargetException, NoSuchMethodException {
-		return (Enum<?>[]) enumClass.getMethod("values").invoke(null);
+		return (Enum<?>[]) enumClass.getMethod("values").invoke(null); //$NON-NLS-1$
 	}
 	
 	@SuppressWarnings("unchecked")
@@ -724,7 +724,7 @@ public abstract class Utilities {
 	public static void errorMessage(Throwable error, final String title) {
 		String message = error.getClass().getSimpleName();
 		if (error.getLocalizedMessage() != null)
-			message += ": " + error.getLocalizedMessage();
+			message += ": " + error.getLocalizedMessage(); //$NON-NLS-1$
 		errorMessage(message, title);
 	}
 	
@@ -733,9 +733,9 @@ public abstract class Utilities {
 			@Override
 			public void run() {
 				MessageDialog messageDialog = new MessageDialog(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(),
-					title == null ? "C4DT Error" : title, null,
+					title == null ? Messages.Utilities_12 : title, null,
 					message, MessageDialog.ERROR,
-					new String[] { "Too bad" }, 1
+					new String[] { Messages.Utilities_13 }, 1
 				);
 				messageDialog.open();
 			}

@@ -28,7 +28,7 @@ public class DependenciesNavigatorNode implements ITreeNode {
 
 	@Override
 	public String toString() {
-		return "Dependencies";
+		return Messages.DependenciesNavigatorNode_0;
 	}
 
 	public List<? extends ITreeNode> getChildCollection() {
@@ -44,7 +44,7 @@ public class DependenciesNavigatorNode implements ITreeNode {
 	}
 
 	public String getNodeName() {
-		return "Dependencies";
+		return Messages.DependenciesNavigatorNode_1;
 	}
 
 	public ITreeNode getParentNode() {

@@ -59,7 +59,7 @@ public abstract class ClonkCompletionProcessor<EditorType extends ClonkTextEdito
 //			IContextInformation contextInformation = null;// new ContextInformation(obj.getId().getName(),contextInfoString); 
 
 			ICompletionProposal prop = new ClonkCompletionProposal(obj.getId().getName(), offset, replacementLength, obj.getId().getName().length(),
-				Utilities.getIconForObject(obj), displayString.trim(), null, obj.getInfoText(), " - " + obj.getId().getName());
+				Utilities.getIconForObject(obj), displayString.trim(), null, obj.getInfoText(), " - " + obj.getId().getName()); //$NON-NLS-1$
 			proposals.add(prop);
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -83,11 +83,11 @@ public abstract class ClonkCompletionProcessor<EditorType extends ClonkTextEdito
 		if (prefix != null) replacementLength = prefix.length();
 		
 		String contextInfoString = func.getLongParameterString(false);
-		IContextInformation contextInformation = new ContextInformation(func.getName() + "()",contextInfoString); 
+		IContextInformation contextInformation = new ContextInformation(func.getName() + "()",contextInfoString);  //$NON-NLS-1$
 		
-		String replacement = func.getName() + (brackets ? "()" : "");
+		String replacement = func.getName() + (brackets ? "()" : ""); //$NON-NLS-1$ //$NON-NLS-2$
 		ClonkCompletionProposal prop = new ClonkCompletionProposal(replacement, offset,replacementLength,func.getName().length()+1,
-				Utilities.getIconForFunction(func), displayString.trim(),contextInformation, func.getInfoText()," - " + parentName);
+				Utilities.getIconForFunction(func), displayString.trim(),contextInformation, func.getInfoText()," - " + parentName); //$NON-NLS-1$
 		proposals.add(prop);
 	}
 	
@@ -102,7 +102,7 @@ public abstract class ClonkCompletionProcessor<EditorType extends ClonkTextEdito
 			replacementLength = prefix.length();
 		ClonkCompletionProposal prop = new ClonkCompletionProposal(
 			var.getName(), offset, replacementLength, var.getName().length(), Utilities.getIconForVariable(var), displayString, 
-			null, var.getInfoText(), " - " + var.getScript().getName()
+			null, var.getInfoText(), " - " + var.getScript().getName() //$NON-NLS-1$
 		);
 		proposals.add(prop);
 		return prop;
@@ -113,13 +113,13 @@ public abstract class ClonkCompletionProcessor<EditorType extends ClonkTextEdito
 		Arrays.sort(arr, new Comparator<ICompletionProposal>() {
 			public int compare(ICompletionProposal propA, ICompletionProposal propB) {
 				String dispA = propA.getDisplayString(), dispB = propB.getDisplayString();
-				if (dispA.startsWith("[")) {
-					if (!dispB.startsWith("[")) {
+				if (dispA.startsWith("[")) { //$NON-NLS-1$
+					if (!dispB.startsWith("[")) { //$NON-NLS-1$
 						return 1;
 					}
 				}
-				else if (dispB.startsWith("[")) {
-					if (!dispA.startsWith("[")) {
+				else if (dispB.startsWith("[")) { //$NON-NLS-1$
+					if (!dispA.startsWith("[")) { //$NON-NLS-1$
 						return -1;
 					}
 				}

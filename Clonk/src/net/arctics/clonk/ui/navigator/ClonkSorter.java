@@ -10,7 +10,7 @@ import org.eclipse.jface.viewers.ViewerSorter;
 
 public class ClonkSorter extends ViewerSorter {
 
-	final static private String[] sortPriorities = new String[] {".c4f", ".c4s", ".c4d", ".c4g" , ".c", ".txt", ".bmp", ".png" , ".wav", ".pal"}; 
+	final static private String[] sortPriorities = new String[] {".c4f", ".c4s", ".c4d", ".c4g" , ".c", ".txt", ".bmp", ".png" , ".wav", ".pal"};  //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$ //$NON-NLS-6$ //$NON-NLS-7$ //$NON-NLS-8$ //$NON-NLS-9$ //$NON-NLS-10$
 	
 	public ClonkSorter() {
 		super();

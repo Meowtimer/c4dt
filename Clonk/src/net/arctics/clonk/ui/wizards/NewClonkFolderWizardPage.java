@@ -36,9 +36,9 @@ public class NewClonkFolderWizardPage extends WizardPage {
 	protected IProject project;
 	
 	public NewClonkFolderWizardPage(ISelection selection) {
-		super("wizardPage");
-		setTitle("Create a new folder");
-		setDescription("This wizard creates a new folder");
+		super("wizardPage"); //$NON-NLS-1$
+		setTitle(Messages.NewClonkFolderWizardPage_1);
+		setDescription(Messages.NewClonkFolderWizardPage_2);
 		this.selection = selection;
 	}
 	
@@ -87,10 +87,10 @@ public class NewClonkFolderWizardPage extends WizardPage {
 		layout.numColumns = 3;
 		layout.verticalSpacing = 9;
 		
-		containerText = addTextField("&Container:", new IAdditionToTextField() {
+		containerText = addTextField(Messages.NewClonkFolderWizardPage_3, new IAdditionToTextField() {
 			public void fill(Composite container, Text textField) {
 				Button button = new Button(container, SWT.PUSH);
-				button.setText("Browse...");
+				button.setText(Messages.NewClonkFolderWizardPage_4);
 				button.addSelectionListener(new SelectionAdapter() {
 					public void widgetSelected(SelectionEvent e) {
 						handleBrowse();
@@ -98,7 +98,7 @@ public class NewClonkFolderWizardPage extends WizardPage {
 				});
 			}
 		});
-		fileText = addTextField("&Folder name:");
+		fileText = addTextField(Messages.NewClonkFolderWizardPage_5);
 		
 		if (getClass() == NewClonkFolderWizardPage.class) {
 			initialize();
@@ -115,24 +115,24 @@ public class NewClonkFolderWizardPage extends WizardPage {
 		String fileName = getFileName();
 
 		if (getContainerName().length() == 0) {
-			updateStatus("File container must be specified");
+			updateStatus(Messages.NewClonkFolderWizardPage_6);
 			return;
 		}
 		if (container == null
 				|| (container.getType() & (IResource.PROJECT | IResource.FOLDER)) == 0) {
-			updateStatus("File container must exist");
+			updateStatus(Messages.NewClonkFolderWizardPage_7);
 			return;
 		}
 		if (!container.isAccessible()) {
-			updateStatus("Project must be writable");
+			updateStatus(Messages.NewClonkFolderWizardPage_8);
 			return;
 		}
 		if (fileName.length() == 0) {
-			updateStatus("Folder name must be specified");
+			updateStatus(Messages.NewClonkFolderWizardPage_9);
 			return;
 		}
 		if (fileName.replace('\\', '/').indexOf('/', 1) > 0) {
-			updateStatus("Folder name must be valid");
+			updateStatus(Messages.NewClonkFolderWizardPage_10);
 			return;
 		}
 		updateStatus(null);
@@ -151,7 +151,7 @@ public class NewClonkFolderWizardPage extends WizardPage {
 	protected void handleBrowse() {
 		ContainerSelectionDialog dialog = new ContainerSelectionDialog(
 				getShell(), ResourcesPlugin.getWorkspace().getRoot(), false,
-				"Select new file container");
+				Messages.NewClonkFolderWizardPage_11);
 		if (dialog.open() == ContainerSelectionDialog.OK) {
 			Object[] result = dialog.getResult();
 			if (result.length == 1) {
@@ -180,7 +180,7 @@ public class NewClonkFolderWizardPage extends WizardPage {
 				project = ((IResource)obj).getProject();
 			}
 		}
-		fileText.setText("NewFolder");
+		fileText.setText(Messages.NewClonkFolderWizardPage_0);
 	}
 	
 	public String getContainerName() {

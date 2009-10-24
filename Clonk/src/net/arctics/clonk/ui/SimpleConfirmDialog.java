@@ -23,7 +23,7 @@ public class SimpleConfirmDialog extends Dialog {
 			boolean defaultButton) {
 		// TODO Auto-generated method stub
 		Button button = super.createButton(parent, id, label, defaultButton);
-		if (id == IDialogConstants.OK_ID) button.setText("Yes");
+		if (id == IDialogConstants.OK_ID) button.setText(Messages.SimpleConfirmDialog_0);
 		return button;
 	}
 
@@ -34,7 +34,7 @@ public class SimpleConfirmDialog extends Dialog {
 	protected Control createDialogArea(Composite parent) {
 		Composite comp = (Composite) super.createDialogArea(parent);
 
-		new Label(comp,SWT.NONE).setText("Do you really want to delete these items?");
+		new Label(comp,SWT.NONE).setText(Messages.SimpleConfirmDialog_1);
 		
 		return comp;
 	}

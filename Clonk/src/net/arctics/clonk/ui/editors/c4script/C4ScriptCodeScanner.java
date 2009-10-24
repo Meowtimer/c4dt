@@ -151,9 +151,9 @@ public class C4ScriptCodeScanner extends RuleBasedScanner {
 
 //	private static String[] fgBuiltInFunctions = {"CreateObject","FindObjects"};
 	
-	private static String[] fgDirectives = {"include", "strict", "appendto"};
+	private static String[] fgDirectives = {"include", "strict", "appendto"}; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 	
-	public final static String KEYWORDS = "__keywords";
+	public final static String KEYWORDS = "__keywords"; //$NON-NLS-1$
 	
 	private IRule[] currentRules;
 	
@@ -176,7 +176,7 @@ public class C4ScriptCodeScanner extends RuleBasedScanner {
 		
 		List<IRule> rules = new ArrayList<IRule>();
 		
-		rules.add(new SingleLineRule("\"", "\"", string, '\\'));
+		rules.add(new SingleLineRule("\"", "\"", string, '\\')); //$NON-NLS-1$ //$NON-NLS-2$
 		
 		// Add generic whitespace rule.
 		rules.add(new WhitespaceRule(new ClonkWhitespaceDetector()));

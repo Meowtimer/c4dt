@@ -78,8 +78,8 @@ public class ClonkLaunchShortcut implements ILaunchShortcut {
 		String expectProjectName = res.getProject().getName();
 		String expectScenarioName = res.getProjectRelativePath().toString();
 		for(ILaunchConfiguration config : configs) {
-			String projectName = config.getAttribute(ClonkLaunchConfigurationDelegate.ATTR_PROJECT_NAME, "");
-			String scenarioName = config.getAttribute(ClonkLaunchConfigurationDelegate.ATTR_SCENARIO_NAME, "");
+			String projectName = config.getAttribute(ClonkLaunchConfigurationDelegate.ATTR_PROJECT_NAME, ""); //$NON-NLS-1$
+			String scenarioName = config.getAttribute(ClonkLaunchConfigurationDelegate.ATTR_SCENARIO_NAME, ""); //$NON-NLS-1$
 			if(projectName.equals(expectProjectName) && scenarioName.equals(expectScenarioName))
 				candidates.add(config);
 		}

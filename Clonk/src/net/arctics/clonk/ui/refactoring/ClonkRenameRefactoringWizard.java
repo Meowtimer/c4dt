@@ -11,7 +11,7 @@ public class ClonkRenameRefactoringWizard extends RefactoringWizard {
 
 	@Override
 	protected void addUserInputPages() {
-		addPage(new ClonkRenameInputWizardPage("New Name"));
+		addPage(new ClonkRenameInputWizardPage(Messages.ClonkRenameRefactoringWizard_0));
 	}
 
 }

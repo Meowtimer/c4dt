@@ -13,7 +13,7 @@ public class NewScenario extends NewClonkFolderWizard {
 	@Override
 	public void init(IWorkbench workbench, IStructuredSelection selection) {
 		super.init(workbench, selection);
-		setWindowTitle("New Scenario");
+		setWindowTitle(Messages.NewScenario_0);
 	}
 	@Override
 	public void addPages() {
@@ -23,7 +23,7 @@ public class NewScenario extends NewClonkFolderWizard {
 	@Override
 	protected Map<String, String> initTemplateReplacements() {
 		Map<String, String> result = super.initTemplateReplacements();
-		result.put("$Title$", ((NewScenarioPage)page).getTitle());
+		result.put("$Title$", ((NewScenarioPage)page).getTitle()); //$NON-NLS-1$
 		return result;
 	}
 }

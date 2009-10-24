@@ -26,7 +26,7 @@ public class KeyValuePair<First, Second> extends Pair<First, Second> implements 
 	
 	@Override
 	public String toString() {
-		return getKey().toString()+"="+getValue().toString();
+		return getKey().toString()+"="+getValue().toString(); //$NON-NLS-1$
 	}
 
 	public Object getChildValue(int index) {

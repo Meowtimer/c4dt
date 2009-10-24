@@ -23,9 +23,9 @@ public class NewClonkProject extends Wizard implements INewWizard {
 			IProjectDescription desc = ResourcesPlugin.getWorkspace().newProjectDescription(page.getProjectName());
 			if (!page.useDefaults())
 				desc.setLocation(page.getLocationPath());
-			desc.setNatureIds(new String[] { ClonkCore.id("clonknature") });
+			desc.setNatureIds(new String[] { ClonkCore.id("clonknature") }); //$NON-NLS-1$
 			ICommand command = desc.newCommand();
-			command.setBuilderName(ClonkCore.id("builder"));
+			command.setBuilderName(ClonkCore.id("builder")); //$NON-NLS-1$
 			desc.setBuildSpec(new ICommand[] { command });
 			proj.create(desc,null);
 			proj.open(null);
@@ -37,10 +37,10 @@ public class NewClonkProject extends Wizard implements INewWizard {
 	}
 
 	public void init(IWorkbench workbench, IStructuredSelection selection) {
-		page = new WizardNewProjectCreationPage("newProject");
-		page.setTitle("Create a Clonk Project");
+		page = new WizardNewProjectCreationPage("newProject"); //$NON-NLS-1$
+		page.setTitle(Messages.NewClonkProject_3);
 		addPage(page);
-		setWindowTitle("New Clonk Project");
+		setWindowTitle(Messages.NewClonkProject_4);
 	}
 
 }

@@ -22,6 +22,6 @@ public class Pair<First, Second> {
 	}
 	@Override
 	public String toString() {
-		return "("+first.toString()+", "+second.toString()+")";
+		return "("+first.toString()+", "+second.toString()+")"; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 	}
 }

@@ -29,7 +29,7 @@ public class FindReferencesAction extends OpenDeclarationAction {
 					nature = Utilities.getClonkNature(getTextEditor()); 
 				}
 				if (nature == null) {
-					MessageDialog.openError(getTextEditor().getSite().getShell(), "Find References", "Find References only works with files in your project (not external objects)");
+					MessageDialog.openError(getTextEditor().getSite().getShell(), Messages.FindReferencesAction_0, Messages.FindReferencesAction_1);
 					return;
 				}
 				NewSearchUI.runQueryInBackground(new ClonkSearchQuery(field, nature));

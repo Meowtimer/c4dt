@@ -37,7 +37,7 @@ public class NewC4Object extends NewClonkFolderWizard implements INewWizard {
 
 	protected Map<String, String> initTemplateReplacements() {
 		Map<String, String> result = super.initTemplateReplacements();
-		result.put("$ID$", ((NewC4ObjectPage)page).getObjectID());
+		result.put("$ID$", ((NewC4ObjectPage)page).getObjectID()); //$NON-NLS-1$
 		return result;
 	}
 
@@ -48,6 +48,6 @@ public class NewC4Object extends NewClonkFolderWizard implements INewWizard {
 	 */
 	public void init(IWorkbench workbench, IStructuredSelection selection) {
 		super.init(workbench, selection);
-		setWindowTitle("Create new Object");
+		setWindowTitle(Messages.NewC4Object_1);
 	}
 }

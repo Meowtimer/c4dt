@@ -41,7 +41,7 @@ public class NewClonkFolderWizard extends Wizard implements INewWizard {
 
 	protected Map<String, String> initTemplateReplacements() {
 		Map<String, String> result = new HashMap<String, String>();
-		result.put("$Name$", page.getFileName().substring(0, page.getFileName().lastIndexOf('.')));
+		result.put("$Name$", page.getFileName().substring(0, page.getFileName().lastIndexOf('.'))); //$NON-NLS-1$
 		return result;
 	}
 	
@@ -71,7 +71,7 @@ public class NewClonkFolderWizard extends Wizard implements INewWizard {
 			return false;
 		} catch (InvocationTargetException e) {
 			Throwable realException = e.getTargetException();
-			MessageDialog.openError(getShell(), "Error", realException.getMessage());
+			MessageDialog.openError(getShell(), Messages.NewClonkFolderWizard_1, realException.getMessage());
 			return false;
 		}
 		return true;
@@ -89,11 +89,11 @@ public class NewClonkFolderWizard extends Wizard implements INewWizard {
 		IProgressMonitor monitor)
 		throws CoreException {
 		// create a sample file
-		monitor.beginTask("Creating " + fileName, 1);
+		monitor.beginTask(Messages.NewClonkFolderWizard_2 + fileName, 1);
 		IWorkspaceRoot root = ResourcesPlugin.getWorkspace().getRoot();
 		IResource resource = root.findMember(new Path(containerName));
 		if (!resource.exists() || !(resource instanceof IContainer)) {
-			throwCoreException("Container \"" + containerName + "\" does not exist.");
+			throwCoreException(Messages.NewClonkFolderWizard_3 + containerName + Messages.NewClonkFolderWizard_4);
 		}
 		IContainer container = (IContainer) resource;
 		final IFolder subContainer = container.getFolder(new Path(fileName));
@@ -105,7 +105,7 @@ public class NewClonkFolderWizard extends Wizard implements INewWizard {
 			while (templates.hasMoreElements()) {
 				URL template = templates.nextElement();
 				String templateFile = new Path(template.getFile()).lastSegment();
-				if (templateFile.startsWith("."))
+				if (templateFile.startsWith(".")) //$NON-NLS-1$
 					continue;
 				InputStream stream = getTemplateStream(template, templateFile);
 				try {
@@ -134,7 +134,7 @@ public class NewClonkFolderWizard extends Wizard implements INewWizard {
 	
 	@SuppressWarnings("unchecked")
 	protected Enumeration<URL> getTemplateFiles() {
-		return ClonkCore.getDefault().getBundle().findEntries("res/wizard/"+getClass().getSimpleName(), "*.*", false);
+		return ClonkCore.getDefault().getBundle().findEntries("res/wizard/"+getClass().getSimpleName(), "*.*", false); //$NON-NLS-1$ //$NON-NLS-2$
 	}
 	
 	protected Map<String, String> getTemplateReplacements() {
@@ -143,7 +143,7 @@ public class NewClonkFolderWizard extends Wizard implements INewWizard {
 	
 	protected InputStream getTemplateStream(URL template, String fileName) throws IOException {
 		InputStream result = template.openStream();
-		if (fileName.endsWith(".txt") || fileName.endsWith(".c")) {
+		if (fileName.endsWith(".txt") || fileName.endsWith(".c")) { //$NON-NLS-1$ //$NON-NLS-2$
 			Reader reader = new InputStreamReader(result);
 			StringBuilder builder = new StringBuilder();
 			char[] buffer = new char[1024];

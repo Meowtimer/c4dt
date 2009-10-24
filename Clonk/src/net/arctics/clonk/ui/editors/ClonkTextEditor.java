@@ -86,7 +86,7 @@ public class ClonkTextEditor extends TextEditor {
 			if (input != null) {
 				try {
 					IEditorDescriptor descriptor = input instanceof IFileEditorInput ? IDE.getEditorDescriptor(((IFileEditorInput)input).getFile()) : null;
-					String editorId = descriptor != null ? descriptor.getId() : "clonk.editors.C4ScriptEditor"; 
+					String editorId = descriptor != null ? descriptor.getId() : "clonk.editors.C4ScriptEditor";  //$NON-NLS-1$
 					IEditorPart editor = IDE.openEditor(workbenchPage, input, editorId, activate);
 					if (editor instanceof ClonkTextEditor) {
 						ClonkTextEditor clonkTextEditor = (ClonkTextEditor) editor;
@@ -175,7 +175,7 @@ public class ClonkTextEditor extends TextEditor {
 	    IResource res = (IResource) getEditorInput().getAdapter(IResource.class);
 		if (res != null && res.getParent() != null && C4ObjectIntern.objectCorrespondingTo(res.getParent()) != null) {
 			// name of script file not very descriptive (Script.c)
-			setPartName(res.getParent().getName() + "/" + res.getName());
+			setPartName(res.getParent().getName() + "/" + res.getName()); //$NON-NLS-1$
 		}
 	}
 	

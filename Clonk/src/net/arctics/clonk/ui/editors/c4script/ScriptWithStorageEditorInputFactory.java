@@ -10,7 +10,7 @@ import org.eclipse.ui.IMemento;
 public class ScriptWithStorageEditorInputFactory implements IElementFactory {
 
 	public IAdaptable createElement(IMemento memento) {
-		String path = memento.getString("path");
+		String path = memento.getString("path"); //$NON-NLS-1$
 		if (path != null) {
 			C4ScriptBase script = ClonkCore.getDefault().getExternIndex().findScriptByPath(path);
 			if (script != null)

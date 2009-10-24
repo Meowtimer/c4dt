@@ -29,7 +29,7 @@ public class DeclarationChooser extends FilteredItemsSelectionDialog {
 		public StyledString getStyledText(Object element) {
 			StyledString result = ClonkOutlineProvider.getStyledTextForEveryone(element);
 			if (element != null) {
-				result.append(" - ", StyledString.QUALIFIER_STYLER);
+				result.append(" - ", StyledString.QUALIFIER_STYLER); //$NON-NLS-1$
 				result.append(((C4Declaration)element).getTopLevelStructure().toString(), StyledString.QUALIFIER_STYLER);
 			}
 			return result;
@@ -37,7 +37,7 @@ public class DeclarationChooser extends FilteredItemsSelectionDialog {
 		
 	}
 	
-	private static final String DIALOG_SETTINGS = "DeclarationChooserDialogSettings";
+	private static final String DIALOG_SETTINGS = "DeclarationChooserDialogSettings"; //$NON-NLS-1$
 	
 	private Collection<C4Declaration> declarations;
 
@@ -45,7 +45,7 @@ public class DeclarationChooser extends FilteredItemsSelectionDialog {
 		super(shell);
 		this.declarations = declarations;
 		setListLabelProvider(new LabelProvider());
-		setTitle("Declaration chooser");
+		setTitle(Messages.DeclarationChooser_2);
 	}
 	
 	@Override

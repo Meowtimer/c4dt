@@ -114,7 +114,7 @@ public class IniScanner extends RuleBasedScanner {
 		
 		List<IRule> rules = new ArrayList<IRule>();
 		
-		rules.add(new SingleLineRule("[", "]", section, '\\'));
+		rules.add(new SingleLineRule("[", "]", section, '\\')); //$NON-NLS-1$ //$NON-NLS-2$
 		
 		rules.add(new OperatorRule(operator));
 		

@@ -127,7 +127,7 @@ public class EngineDeclarationsView extends ViewPart {
 				newParameter = null;
 			}
 			newParameter = new Button(parent, SWT.PUSH);
-			newParameter.setText("New Parameter");
+			newParameter.setText(Messages.EngineDeclarationsView_0);
 			newParameter.addSelectionListener(new SelectionAdapter() {
 				public void widgetSelected(SelectionEvent e) {
 					newParameter.dispose();
@@ -177,37 +177,37 @@ public class EngineDeclarationsView extends ViewPart {
 		private void createVariableEditDialog(Composite parent,
 				C4Variable var) {
 			// set title
-			parent.getShell().setText("Edit variable " + var.getName());
+			parent.getShell().setText(Messages.EngineDeclarationsView_1 + var.getName());
 			
-			new Label(parent, SWT.NONE).setText("Name: ");
+			new Label(parent, SWT.NONE).setText(Messages.EngineDeclarationsView_2);
 			
 			declarationNameField = new Text(parent, SWT.BORDER | SWT.SINGLE);
 			declarationNameField.setText(var.getName());
 			
-			new Label(parent, SWT.NONE).setText("Type: ");
+			new Label(parent, SWT.NONE).setText(Messages.EngineDeclarationsView_3);
 			returnTypeBox = createComboBoxForType(parent, var.getType());
 		
-			new Label(parent, SWT.NONE).setText("Scope: ");
+			new Label(parent, SWT.NONE).setText(Messages.EngineDeclarationsView_4);
 			scopeBox = createComboBoxForScope(parent, var.getScope());
 		}
 
 		private void createFunctionEditDialog(Composite parent, C4Function func) {
 			
 			// set title
-			parent.getShell().setText("Edit function " + func.getName());
+			parent.getShell().setText(Messages.EngineDeclarationsView_5 + func.getName());
 			
-			new Label(parent, SWT.NONE).setText("Name: ");
+			new Label(parent, SWT.NONE).setText(Messages.EngineDeclarationsView_6);
 			
 			declarationNameField = new Text(parent, SWT.BORDER | SWT.SINGLE);
 			declarationNameField.setText(func.getName());
 			
-			new Label(parent, SWT.NONE).setText("Return type: ");
+			new Label(parent, SWT.NONE).setText(Messages.EngineDeclarationsView_7);
 			returnTypeBox = createComboBoxForType(parent, func.getReturnType());
 			
-			new Label(parent, SWT.NONE).setText("Scope: ");
+			new Label(parent, SWT.NONE).setText(Messages.EngineDeclarationsView_8);
 			scopeBox = createComboBoxForScope(parent, func.getVisibility());
 			
-			new Label(parent, SWT.NONE).setText("Beschreibung: ");
+			new Label(parent, SWT.NONE).setText(Messages.EngineDeclarationsView_9);
 			descriptionField = new Text(parent, SWT.BORDER | SWT.MULTI | SWT.WRAP | SWT.V_SCROLL);
 			if (func.getUserDescription() != null) descriptionField.setText(func.getUserDescription());
 			
@@ -220,8 +220,8 @@ public class EngineDeclarationsView extends ViewPart {
 			descriptionField.setSize(400, 100);
 			descriptionField.setLayoutData(gridData);
 			
-			new Label(parent, SWT.NONE).setText(" "); // placeholder
-			new Label(parent, SWT.NONE).setText(" ");
+			new Label(parent, SWT.NONE).setText(" "); // placeholder //$NON-NLS-1$
+			new Label(parent, SWT.NONE).setText(" "); //$NON-NLS-1$
 			if (func.getParameters() != null) {
 				for(C4Variable par : func.getParameters()) {
 					createParameterControls(parent, par.getType(), par.getName());
@@ -233,7 +233,7 @@ public class EngineDeclarationsView extends ViewPart {
 		}
 		
 		private void createParameterControls(Composite parent) {
-			createParameterControls(parent, C4Type.ANY, "");
+			createParameterControls(parent, C4Type.ANY, ""); //$NON-NLS-1$
 		}
 		
 		private void createParameterControls(Composite parent, C4Type type, String parameterName) {
@@ -334,7 +334,7 @@ public class EngineDeclarationsView extends ViewPart {
 	}
 	
 	private void hookContextMenu() {
-		MenuManager menuMgr = new MenuManager("#PopupMenu");
+		MenuManager menuMgr = new MenuManager("#PopupMenu"); //$NON-NLS-1$
 		menuMgr.setRemoveAllWhenShown(true);
 		menuMgr.addMenuListener(new IMenuListener() {
 			public void menuAboutToShow(IMenuManager manager) {
@@ -394,8 +394,8 @@ public class EngineDeclarationsView extends ViewPart {
 				refresh();
 			}
 		};
-		addFunctionAction.setText("Add Function");
-		addFunctionAction.setToolTipText("Adds a new function to engine index");
+		addFunctionAction.setText(Messages.EngineDeclarationsView_14);
+		addFunctionAction.setToolTipText(Messages.EngineDeclarationsView_15);
 		
 		addVariableAction = new Action() {
 			public void run() {
@@ -410,8 +410,8 @@ public class EngineDeclarationsView extends ViewPart {
 				refresh();
 			}
 		};
-		addVariableAction.setText("Add Variable");
-		addVariableAction.setToolTipText("Adds a new variable to engine index");
+		addVariableAction.setText(Messages.EngineDeclarationsView_16);
+		addVariableAction.setToolTipText(Messages.EngineDeclarationsView_17);
 		
 		editAction = new Action() {
 			public void run() {
@@ -428,8 +428,8 @@ public class EngineDeclarationsView extends ViewPart {
 				refresh();
 			}
 		};
-		editAction.setText("Edit");
-		editAction.setToolTipText("Edit this declaration");
+		editAction.setText(Messages.EngineDeclarationsView_18);
+		editAction.setToolTipText(Messages.EngineDeclarationsView_19);
 		editAction.setImageDescriptor(PlatformUI.getWorkbench().getSharedImages().
 				getImageDescriptor(ISharedImages.IMG_OBJS_INFO_TSK));
 		
@@ -449,8 +449,8 @@ public class EngineDeclarationsView extends ViewPart {
 				}
 			}
 		};
-		deleteAction.setText("Delete");
-		deleteAction.setToolTipText("Delete this declaration");
+		deleteAction.setText(Messages.EngineDeclarationsView_20);
+		deleteAction.setToolTipText(Messages.EngineDeclarationsView_21);
 		deleteAction.setImageDescriptor(PlatformUI.getWorkbench().getSharedImages().getImageDescriptor(ISharedImages.IMG_TOOL_DELETE));
 		
 		saveAction = new Action() {
@@ -458,8 +458,8 @@ public class EngineDeclarationsView extends ViewPart {
 				ClonkCore.getDefault().saveEngineObject();
 			}
 		};
-		saveAction.setText("Save");
-		saveAction.setToolTipText("Save changes");
+		saveAction.setText(Messages.EngineDeclarationsView_22);
+		saveAction.setToolTipText(Messages.EngineDeclarationsView_23);
 		saveAction.setImageDescriptor(PlatformUI.getWorkbench().getSharedImages().getImageDescriptor(ISharedImages.IMG_ETOOL_SAVE_EDIT));
 		
 		doubleClickAction = editAction;
@@ -472,7 +472,7 @@ public class EngineDeclarationsView extends ViewPart {
 					final String repo = ClonkCore.getDefault().getPreferenceStore().getString(PreferenceConstants.OPENCLONK_REPO);
 					if (repo == null) {
 						MessageDialog.openWarning(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(),
-							"No repository", "No repository selected in Preferences->Clonk");
+							Messages.EngineDeclarationsView_24, Messages.EngineDeclarationsView_25);
 					}
 					else ps.busyCursorWhile(new IRunnableWithProgress() {
 						public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
@@ -491,8 +491,8 @@ public class EngineDeclarationsView extends ViewPart {
 				}
 			}
 		};
-		importFromRepoAction.setToolTipText("Import from OpenClonk repository");
-		importFromRepoAction.setText("Import from repository");
+		importFromRepoAction.setToolTipText(Messages.EngineDeclarationsView_26);
+		importFromRepoAction.setText(Messages.EngineDeclarationsView_27);
 		
 		reloadAction = new Action() {
 			@Override
@@ -505,8 +505,8 @@ public class EngineDeclarationsView extends ViewPart {
 			    refresh();
 			}
 		};
-		reloadAction.setToolTipText("Reloads the Engine declarations");
-		reloadAction.setText("Reload");
+		reloadAction.setToolTipText(Messages.EngineDeclarationsView_28);
+		reloadAction.setText(Messages.EngineDeclarationsView_29);
 		
 	}
 

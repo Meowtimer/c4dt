@@ -18,15 +18,15 @@ public class ResourceTester extends PropertyTester {
 		boolean result = false;
 		
 		// Calculate property value
-		if(property.equals("isScenario"))
+		if(property.equals("isScenario")) //$NON-NLS-1$
 			result = isScenario(res);
-		else if(property.equals("isDefinition"))
+		else if(property.equals("isDefinition")) //$NON-NLS-1$
 			result = isDefinition(res);
-		else if(property.equals("isFolder"))
+		else if(property.equals("isFolder")) //$NON-NLS-1$
 			result = isFolder(res);
-		else if(property.equals("isResource"))
+		else if(property.equals("isResource")) //$NON-NLS-1$
 			result = isResource(res);
-		else if(property.equals("isInScenario"))
+		else if(property.equals("isInScenario")) //$NON-NLS-1$
 			result = isInScenario(res);
 		else
 			assert false;

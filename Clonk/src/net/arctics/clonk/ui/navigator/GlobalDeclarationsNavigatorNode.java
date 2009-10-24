@@ -39,7 +39,7 @@ public class GlobalDeclarationsNavigatorNode implements ITreeNode {
 	}
 
 	public String getNodeName() {
-		return "Globals";
+		return "Globals"; //$NON-NLS-1$
 	}
 
 	public ITreeNode getParentNode() {

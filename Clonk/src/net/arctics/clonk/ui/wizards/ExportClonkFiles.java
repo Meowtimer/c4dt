@@ -24,7 +24,7 @@ public class ExportClonkFiles extends Wizard implements IExportWizard {
 	
 	public boolean performFinish() {
 		IPreferencesService service = Platform.getPreferencesService();
-		String c4groupPath = service.getString(ClonkCore.PLUGIN_ID, PreferenceConstants.C4GROUP_EXECUTABLE, "", null);
+		String c4groupPath = service.getString(ClonkCore.PLUGIN_ID, PreferenceConstants.C4GROUP_EXECUTABLE, "", null); //$NON-NLS-1$
 		String gamePath = service.getString(ClonkCore.PLUGIN_ID, PreferenceConstants.GAME_PATH, null, null);
 		IResource[] selectedResources = exportPage.getSelectedResources();
 		IContainer[] selectedContainers = new IContainer[selectedResources.length];
@@ -41,12 +41,12 @@ public class ExportClonkFiles extends Wizard implements IExportWizard {
 	public void init(IWorkbench workbench, IStructuredSelection selection) {
 //        this.selection = selection;
 		
-		exportPage = new ExportResourcesPage("Export to Clonk directory");
+		exportPage = new ExportResourcesPage(Messages.ExportClonkFiles_1);
 		exportPage.setWizard(this);
-		exportPage.setMessage("Choose folders to export and check output directory.");
-		exportPage.setTitle("C4Group Export");
-		exportPage.setMessage("blub", WizardPage.INFORMATION);
-		setWindowTitle("Export to Clonk directory");
+		exportPage.setMessage(Messages.ExportClonkFiles_2);
+		exportPage.setTitle(Messages.ExportClonkFiles_3);
+		exportPage.setMessage(Messages.ExportClonkFiles_4, WizardPage.INFORMATION);
+		setWindowTitle(Messages.ExportClonkFiles_5);
 		addPage(exportPage);
 	}
 

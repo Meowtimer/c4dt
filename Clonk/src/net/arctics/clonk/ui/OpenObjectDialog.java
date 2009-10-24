@@ -24,17 +24,17 @@ import org.eclipse.ui.dialogs.FilteredItemsSelectionDialog;
 
 public class OpenObjectDialog extends FilteredItemsSelectionDialog {
 	
-	public static final String DIALOG_SETTINGS = "OpenObjectDialogSettings";
+	public static final String DIALOG_SETTINGS = "OpenObjectDialogSettings"; //$NON-NLS-1$
 	
 	private class OpenObjectLabelProvider extends LabelProvider implements IStyledLabelProvider {
 
 		public StyledString getStyledText(Object element) {
 			if (element == null)
-				return new StyledString("<Empty>");
+				return new StyledString(Messages.OpenObjectDialog_1);
 			if (!(element instanceof C4Object)) return new StyledString(element.toString());
 			C4Object obj = (C4Object) element;
 			StyledString buf = new StyledString(obj.getName());
-			buf.append(" - ", StyledString.QUALIFIER_STYLER);
+			buf.append(" - ", StyledString.QUALIFIER_STYLER); //$NON-NLS-1$
 			buf.append(obj.getId().getName(), StyledString.QUALIFIER_STYLER);
 			return buf;
 		}
@@ -97,7 +97,7 @@ public class OpenObjectDialog extends FilteredItemsSelectionDialog {
 	private void fillWithIndexContents(AbstractContentProvider contentProvider,
 			ItemsFilter itemsFilter, IProgressMonitor progressMonitor,
 			ClonkIndex index) {
-		progressMonitor.beginTask("Searching", index.numUniqueIds());
+		progressMonitor.beginTask(Messages.OpenObjectDialog_3, index.numUniqueIds());
 		for(C4Object object : index) {
 			contentProvider.add(object, itemsFilter);
 			progressMonitor.worked(1);

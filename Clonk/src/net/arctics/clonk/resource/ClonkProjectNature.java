@@ -40,7 +40,7 @@ public class ClonkProjectNature implements IProjectNature {
 	}
 
 	public void configure() throws CoreException {
-		System.out.println("ClonkProjectNature.configure");
+		System.out.println("ClonkProjectNature.configure"); //$NON-NLS-1$
 	}
 
 	public void deconfigure() throws CoreException {

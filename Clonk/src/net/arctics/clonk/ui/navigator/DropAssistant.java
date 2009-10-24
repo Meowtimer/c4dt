@@ -25,9 +25,9 @@ public class DropAssistant extends CommonDropAdapterAssistant {
 			dropTargetEvent.dataTypes.length == 1 &&
 			FileTransfer.getInstance().isSupportedType(dropTargetEvent.dataTypes[0]))
 		{
-			return new Status(IStatus.OK, ClonkCore.PLUGIN_ID, "Drag");
+			return new Status(IStatus.OK, ClonkCore.PLUGIN_ID, "Drag"); //$NON-NLS-1$
 		}
-		return new Status(IStatus.CANCEL, ClonkCore.PLUGIN_ID, "Nope");
+		return new Status(IStatus.CANCEL, ClonkCore.PLUGIN_ID, "Nope"); //$NON-NLS-1$
 	}
 
 	@Override

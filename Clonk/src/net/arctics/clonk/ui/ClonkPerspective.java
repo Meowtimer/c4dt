@@ -13,33 +13,33 @@ public class ClonkPerspective implements IPerspectiveFactory {
 //		layout.addFastView("org.eclipse.ui.navigator.ProjectExplorer", (float) 0.2);
 //		layout.addView("org.eclipse.ui.navigator.ProjectExplorer", IPageLayout.RIGHT, IPageLayout.DEFAULT_VIEW_RATIO, "navigator");
 		
-		layout.addActionSet(ClonkCore.id("ui.actionset"));
+		layout.addActionSet(ClonkCore.id("ui.actionset")); //$NON-NLS-1$
         layout.addActionSet(IDebugUIConstants.LAUNCH_ACTION_SET);
 		
-		layout.addShowViewShortcut(ClonkCore.id("views.EngineDeclarationsView"));
+		layout.addShowViewShortcut(ClonkCore.id("views.EngineDeclarationsView")); //$NON-NLS-1$
 		
 		// Get the editor area.
 		 String editorArea = layout.getEditorArea();
 
 		 // Top left: Resource Navigator view and Bookmarks view placeholder
-		 IFolderLayout topLeft = layout.createFolder("topLeft", IPageLayout.LEFT, 0.25f,
+		 IFolderLayout topLeft = layout.createFolder("topLeft", IPageLayout.LEFT, 0.25f, //$NON-NLS-1$
 		    editorArea);
 		 topLeft.addView(IPageLayout.ID_PROJECT_EXPLORER);
 		 topLeft.addPlaceholder(IPageLayout.ID_BOOKMARKS);
 
 		 // Bottom left: Outline view and Property Sheet view
-		 IFolderLayout bottomLeft = layout.createFolder("bottomLeft", IPageLayout.BOTTOM, 0.50f,
-		 	   "topLeft");
+		 IFolderLayout bottomLeft = layout.createFolder("bottomLeft", IPageLayout.BOTTOM, 0.50f, //$NON-NLS-1$
+		 	   "topLeft"); //$NON-NLS-1$
 		 bottomLeft.addView(IPageLayout.ID_OUTLINE);
 		 bottomLeft.addView(IPageLayout.ID_PROP_SHEET);
 
 		 // Bottom right: Task List view
 		 layout.addView(IPageLayout.ID_PROBLEM_VIEW, IPageLayout.BOTTOM, 0.66f, editorArea);
 
-		 layout.addNewWizardShortcut(ClonkCore.id("wizards.NewC4Object"));
-		 layout.addNewWizardShortcut(ClonkCore.id("wizards.NewClonkProject"));
-		 layout.addNewWizardShortcut(ClonkCore.id("wizards.NewScenario"));
-		 layout.addNewWizardShortcut(ClonkCore.id("wizards.NewParticle"));
+		 layout.addNewWizardShortcut(ClonkCore.id("wizards.NewC4Object")); //$NON-NLS-1$
+		 layout.addNewWizardShortcut(ClonkCore.id("wizards.NewClonkProject")); //$NON-NLS-1$
+		 layout.addNewWizardShortcut(ClonkCore.id("wizards.NewScenario")); //$NON-NLS-1$
+		 layout.addNewWizardShortcut(ClonkCore.id("wizards.NewParticle")); //$NON-NLS-1$
 //		 layout.addActionSet("Clonk.actionSet2");
 	}
 

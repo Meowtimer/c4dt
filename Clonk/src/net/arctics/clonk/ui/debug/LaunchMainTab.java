@@ -96,7 +96,7 @@ public class LaunchMainTab extends AbstractLaunchConfigurationTab {
 		
 		// Create widget group
 		Group grp = new Group(parent, SWT.NONE);
-		grp.setText("Project:");
+		grp.setText(Messages.LaunchMainTab_0);
 		grp.setLayout(new GridLayout(2, false));
 		grp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		grp.setFont(parent.getFont());
@@ -105,7 +105,7 @@ public class LaunchMainTab extends AbstractLaunchConfigurationTab {
 		fProjText = new Text(grp, SWT.SINGLE | SWT.BORDER);
 		fProjText.setFont(parent.getFont());
 		fProjText.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-		fProjButton = createPushButton(grp, "Browse...", null);
+		fProjButton = createPushButton(grp, Messages.LaunchMainTab_1, null);
 		
 		// Install listener
 		fProjText.addModifyListener(fListener);
@@ -122,7 +122,7 @@ public class LaunchMainTab extends AbstractLaunchConfigurationTab {
 		
 		// Create widget group
 		Group grp = new Group(parent, SWT.NONE);
-		grp.setText("Scenario:");
+		grp.setText(Messages.LaunchMainTab_2);
 		grp.setLayout(new GridLayout(2, false));
 		grp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		grp.setFont(parent.getFont());
@@ -131,7 +131,7 @@ public class LaunchMainTab extends AbstractLaunchConfigurationTab {
 		fScenText = new Text(grp, SWT.SINGLE | SWT.BORDER);
 		fScenText.setFont(parent.getFont());
 		fScenText.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-		fScenButton = createPushButton(grp, "Browse...", null);
+		fScenButton = createPushButton(grp, Messages.LaunchMainTab_3, null);
 		
 		// Install listener
 		fScenText.addModifyListener(fListener);
@@ -146,15 +146,15 @@ public class LaunchMainTab extends AbstractLaunchConfigurationTab {
 		
 		// Create widget group
 		Group grp = new Group(parent, SWT.NONE);
-		grp.setText("Launch mode:");
+		grp.setText(Messages.LaunchMainTab_4);
 		grp.setLayout(new GridLayout(2, false));
 		grp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		grp.setFont(parent.getFont());
 		
 		// Full screen, console and record switches
-		fConsoleButton = createRadioButton(grp, "Console");
-		fFullscreenButton = createRadioButton(grp, "Fullscreen");
-		fRecordButton = createCheckButton(grp, "Create record");
+		fConsoleButton = createRadioButton(grp, Messages.LaunchMainTab_5);
+		fFullscreenButton = createRadioButton(grp, Messages.LaunchMainTab_6);
+		fRecordButton = createCheckButton(grp, Messages.LaunchMainTab_7);
 		
 		// Install listener
 		fFullscreenButton.addSelectionListener(fListener);
@@ -165,7 +165,7 @@ public class LaunchMainTab extends AbstractLaunchConfigurationTab {
 	
 	/** The name of the tab */
 	public String getName() {
-		return "Main";
+		return Messages.LaunchMainTab_8;
 	}
 	
 	public void initializeFrom(ILaunchConfiguration conf) {
@@ -173,8 +173,8 @@ public class LaunchMainTab extends AbstractLaunchConfigurationTab {
 		try {
 
 			// Read attributes
-			fProjText.setText(conf.getAttribute(ClonkLaunchConfigurationDelegate.ATTR_PROJECT_NAME, ""));
-			fScenText.setText(conf.getAttribute(ClonkLaunchConfigurationDelegate.ATTR_SCENARIO_NAME, ""));
+			fProjText.setText(conf.getAttribute(ClonkLaunchConfigurationDelegate.ATTR_PROJECT_NAME, "")); //$NON-NLS-1$
+			fScenText.setText(conf.getAttribute(ClonkLaunchConfigurationDelegate.ATTR_SCENARIO_NAME, "")); //$NON-NLS-1$
 			fFullscreenButton.setSelection(conf.getAttribute(ClonkLaunchConfigurationDelegate.ATTR_FULLSCREEN, false));
 			fConsoleButton.setSelection(!fFullscreenButton.getSelection());
 			fRecordButton.setSelection(conf.getAttribute(ClonkLaunchConfigurationDelegate.ATTR_RECORD, false));
@@ -183,8 +183,8 @@ public class LaunchMainTab extends AbstractLaunchConfigurationTab {
 			setErrorMessage(e.getStatus().getMessage());
 			
 			// Set defaults
-			fScenText.setText("");	
-			fProjText.setText("");
+			fScenText.setText("");	 //$NON-NLS-1$
+			fProjText.setText(Messages.LaunchMainTab_12);
 			fFullscreenButton.setSelection(false);
 			fConsoleButton.setSelection(true);
 			fRecordButton.setSelection(false);
@@ -203,8 +203,8 @@ public class LaunchMainTab extends AbstractLaunchConfigurationTab {
 
 	public void setDefaults(ILaunchConfigurationWorkingCopy wc) {
 		
-		wc.setAttribute(ClonkLaunchConfigurationDelegate.ATTR_PROJECT_NAME, "");
-		wc.setAttribute(ClonkLaunchConfigurationDelegate.ATTR_SCENARIO_NAME, "");
+		wc.setAttribute(ClonkLaunchConfigurationDelegate.ATTR_PROJECT_NAME, ""); //$NON-NLS-1$
+		wc.setAttribute(ClonkLaunchConfigurationDelegate.ATTR_SCENARIO_NAME, ""); //$NON-NLS-1$
 		wc.setAttribute(ClonkLaunchConfigurationDelegate.ATTR_FULLSCREEN, false);
 		wc.setAttribute(ClonkLaunchConfigurationDelegate.ATTR_RECORD, false);
 		
@@ -214,8 +214,8 @@ public class LaunchMainTab extends AbstractLaunchConfigurationTab {
 		
 		// Must be a valid path segment
 		String projectName = fProjText.getText();
-		if(!new Path("").isValidSegment(projectName)) {
-			setErrorMessage("Invalid project name!");
+		if(!new Path("").isValidSegment(projectName)) { //$NON-NLS-1$
+			setErrorMessage(Messages.LaunchMainTab_16);
 			return null;
 		}
 		
@@ -223,13 +223,13 @@ public class LaunchMainTab extends AbstractLaunchConfigurationTab {
 		IWorkspaceRoot root = ResourcesPlugin.getWorkspace().getRoot();
 		IProject project = root.getProject(projectName);
 		if(project == null) {
-			setErrorMessage("Project " + projectName + " does not exist!");
+			setErrorMessage(Messages.LaunchMainTab_17 + projectName + Messages.LaunchMainTab_18);
 			return null;
 		}
 		
 		// Project must be open
 		if(!project.isOpen()) {
-			setErrorMessage("Project " + projectName + " is not open!");
+			setErrorMessage(Messages.LaunchMainTab_19 + projectName + Messages.LaunchMainTab_20);
 			return null;
 		}
 	
@@ -242,7 +242,7 @@ public class LaunchMainTab extends AbstractLaunchConfigurationTab {
 		// Must be a valid scenario file name
 		String scenName = fScenText.getText();
 		if(C4Group.getGroupType(scenName) != C4Group.C4GroupType.ScenarioGroup) {
-			setErrorMessage("Scenario name invalid!");
+			setErrorMessage(Messages.LaunchMainTab_21);
 			return null;
 		}
 		
@@ -251,7 +251,7 @@ public class LaunchMainTab extends AbstractLaunchConfigurationTab {
 		//       until we do more magic with the scenario's innards.
 		IResource scenFile = project.getFolder(scenName);
 		if(!scenFile.exists()) {
-			setErrorMessage("Scenario doesn't exist!");
+			setErrorMessage(Messages.LaunchMainTab_22);
 			return null;
 		}
 		
@@ -281,8 +281,8 @@ public class LaunchMainTab extends AbstractLaunchConfigurationTab {
 		// Create dialog listing all Clonk projects
 		ElementListSelectionDialog dialog
 			= new ElementListSelectionDialog(getShell(), new ClonkLabelProvider());
-		dialog.setTitle("Choose Clonk project");
-		dialog.setMessage("Please choose a project");
+		dialog.setTitle(Messages.LaunchMainTab_23);
+		dialog.setMessage(Messages.LaunchMainTab_24);
 		dialog.setElements(Utilities.getClonkProjects());
 		
 		// Set selection
@@ -325,8 +325,8 @@ public class LaunchMainTab extends AbstractLaunchConfigurationTab {
 		// Create dialog with all available scenarios
 		ElementListSelectionDialog dialog
 			= new ElementListSelectionDialog(getShell(), new ClonkLabelProvider());
-		dialog.setTitle("Choose Clonk scenario");
-		dialog.setMessage("Please choose a scenario");
+		dialog.setTitle(Messages.LaunchMainTab_25);
+		dialog.setMessage(Messages.LaunchMainTab_26);
 		dialog.setElements(scenarios.toArray());
 		
 		// Show
@@ -340,7 +340,7 @@ public class LaunchMainTab extends AbstractLaunchConfigurationTab {
 
 	@Override
 	public Image getImage() {
-		return ClonkCore.getDefault().getIconImage("Clonk_engine");
+		return ClonkCore.getDefault().getIconImage("Clonk_engine"); //$NON-NLS-1$
 	}
 	
 }

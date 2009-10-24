@@ -62,13 +62,13 @@ public class IniCompletionProcessor extends ClonkCompletionProcessor<IniTextEdit
 			line = doc.get(lineRegion.getOffset(), lineRegion.getLength());
 			lineStart = lineRegion.getOffset();
 		} catch (BadLocationException e) {
-			line = "";
+			line = ""; //$NON-NLS-1$
 			lineStart = offset;
 		}
 
 		Matcher m;
-		String prefix = "";
-		String entryName = "";
+		String prefix = ""; //$NON-NLS-1$
+		String entryName = ""; //$NON-NLS-1$
 		boolean assignment = false;
 		int wordOffset = offset;
 		if ((m = IniSourceViewerConfiguration.ASSIGN_PATTERN.matcher(line)).matches()) {
@@ -161,7 +161,7 @@ public class IniCompletionProcessor extends ClonkCompletionProcessor<IniTextEdit
 		for (ExternalLib lib : ClonkCore.getDefault().getExternIndex().getLibs()) {
 			if (!lib.getNodeName().toLowerCase().contains(prefix))
 				continue;
-			if (!lib.getNodeName().endsWith(".c4d"))
+			if (!lib.getNodeName().endsWith(".c4d")) //$NON-NLS-1$
 				continue;
 			proposals.add(new CompletionProposal(lib.getNodeName(), wordOffset, prefix.length(), lib.getNodeName().length()));
 		}
@@ -170,8 +170,8 @@ public class IniCompletionProcessor extends ClonkCompletionProcessor<IniTextEdit
 	private void proposalsForIniUnit(Collection<ICompletionProposal> proposals, String prefix, int wordOffset, IniUnit unit) {
 		for (IniSectionData sec : unit.getConfiguration().getSections().values()) {
 			if (sec.getSectionName().toLowerCase().contains(prefix)) {
-				String secString = "["+sec.getSectionName()+"]";
-				proposals.add(new CompletionProposal(secString, wordOffset, prefix.length(), secString.length(), null, null, null, "ugh"));
+				String secString = "["+sec.getSectionName()+"]"; //$NON-NLS-1$ //$NON-NLS-2$
+				proposals.add(new CompletionProposal(secString, wordOffset, prefix.length(), secString.length(), null, null, null, "ugh")); //$NON-NLS-1$
 			}
 		}
 	}
