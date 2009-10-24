@@ -31,7 +31,6 @@ import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.editors.text.TextEditor;
 import org.eclipse.ui.ide.IDE;
-import org.eclipse.ui.part.FileEditorInput;
 import org.eclipse.ui.part.IShowInSource;
 import org.eclipse.ui.part.IShowInTargetList;
 import org.eclipse.ui.texteditor.AbstractTextEditor;

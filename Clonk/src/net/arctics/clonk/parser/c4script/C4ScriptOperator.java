@@ -11,7 +11,7 @@ import java.util.Map;
  * an operator
  */
 public enum C4ScriptOperator {
-	Not(C4Type.UNKNOWN, null, C4Type.BOOL, "!", 15, "Not"),
+	Not(C4Type.ANY, null, C4Type.BOOL, "!", 15, "Not"),
 	BitNot(C4Type.INT, C4Type.INT, C4Type.INT, "~", 15),
 	Power(C4Type.INT, C4Type.INT, C4Type.INT, "**", 14),
 	Divide(C4Type.INT, C4Type.INT, C4Type.INT, "/", 13, "Div"),
@@ -23,13 +23,13 @@ public enum C4ScriptOperator {
 	SmallerEqual(C4Type.INT, C4Type.INT, C4Type.BOOL, "<=", 10),
 	Larger(C4Type.INT, C4Type.INT, C4Type.BOOL, ">", 10, "GreaterThan"),
 	LargerEqual(C4Type.INT, C4Type.INT, C4Type.BOOL, ">=", 10),
-	Equal(C4Type.UNKNOWN, C4Type.UNKNOWN, C4Type.BOOL, "==", 9, "Equal"),
-	NotEqual(C4Type.UNKNOWN, C4Type.UNKNOWN, C4Type.BOOL, "!=", 9),
+	Equal(C4Type.ANY, C4Type.ANY, C4Type.BOOL, "==", 9, "Equal"),
+	NotEqual(C4Type.ANY, C4Type.ANY, C4Type.BOOL, "!=", 9),
 	StringEqual(C4Type.STRING, C4Type.STRING, C4Type.BOOL, "S=", 9, "SEqual"),
 	eq(C4Type.STRING, C4Type.STRING, C4Type.BOOL, "eq", 9),
 	ne(C4Type.STRING, C4Type.STRING, C4Type.BOOL, "ne", 9),
-	And(C4Type.UNKNOWN, C4Type.UNKNOWN, C4Type.BOOL, "&&", 5, "And"),
-	Or(C4Type.UNKNOWN, C4Type.UNKNOWN, C4Type.BOOL, "||", 4, "Or"),
+	And(C4Type.ANY, C4Type.ANY, C4Type.BOOL, "&&", 5, "And"),
+	Or(C4Type.ANY, C4Type.ANY, C4Type.BOOL, "||", 4, "Or"),
 	BitAnd(C4Type.INT, C4Type.INT, C4Type.INT, "&", 8, "BitAnd"),
 	BitXOr(C4Type.INT, C4Type.INT, C4Type.INT, "^", 6),
 	BitOr(C4Type.INT, C4Type.INT, C4Type.INT, "|", 6),
@@ -37,7 +37,7 @@ public enum C4ScriptOperator {
 	Increment(C4Type.INT, null, C4Type.INT, "++", 15, "Inc", true),
 	ShiftLeft(C4Type.INT, C4Type.INT, C4Type.INT, "<<", 11),
 	ShiftRight(C4Type.INT, C4Type.INT, C4Type.INT, ">>", 11),
-	Assign(C4Type.UNKNOWN, C4Type.UNKNOWN, C4Type.UNKNOWN, "=", 2, null, true),
+	Assign(C4Type.ANY, C4Type.ANY, C4Type.ANY, "=", 2, null, true),
 	AssignAdd(C4Type.INT, C4Type.INT, C4Type.INT, "+=", 2, null, true),
 	AssignSubtract(C4Type.INT, C4Type.INT, C4Type.INT, "-=", 2, null, true),
 	AssignMultiply(C4Type.INT, C4Type.INT, C4Type.INT, "*=", 2, null, true),
@@ -93,7 +93,7 @@ public enum C4ScriptOperator {
 	
 //	private static String typeInCode(C4Type type) {
 //		if (type == null)
-//			return "C4Type.UNKNOWN";
+//			return "C4Type.ANY";
 //		return "C4Type."+type.name();
 //	}
 //	

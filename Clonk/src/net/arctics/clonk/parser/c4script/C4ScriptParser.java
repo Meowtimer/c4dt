@@ -2138,8 +2138,14 @@ public class C4ScriptParser {
 		}
 		switch (loopType) {
 		case For:
-			if (condition != null && condition.isAlways(false, getContainer()))
+			Object condEv = C4Type.BOOL.convert(condition == null ? true : condition.evaluateAtParseTime(getContainer()));
+			if (Boolean.valueOf(false).equals(condEv))
 				warningWithCode(ParserErrorCode.ConditionAlwaysFalse, condition, condition.toString());
+			else if (Boolean.valueOf(true).equals(condEv)) {
+				EnumSet<ControlFlow> flows = body.getPossibleControlFlows();
+				if (!(flows.contains(ControlFlow.BreakLoop) || flows.contains(ControlFlow.Return)))
+					warningWithCode(ParserErrorCode.InfiniteLoop, body);
+			}
 			result = new ForStatement(initialization, condition, increment, body);
 			break;
 		case IterateArray:

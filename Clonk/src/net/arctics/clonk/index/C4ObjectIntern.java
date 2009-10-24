@@ -44,7 +44,7 @@ public class C4ObjectIntern extends C4Object implements Serializable {
 		name = newName;
 		if (persistent) {
 			// TODO edit DefCore.txt
-			throw new InvalidParameterException("Parameter 'persistent' is not yet implemented");
+			throw new InvalidParameterException("Parameter 'persistent' is not yet implemented"); //$NON-NLS-1$
 		}
 	}
 	
@@ -63,7 +63,7 @@ public class C4ObjectIntern extends C4Object implements Serializable {
 //				idEntry.setValue(value)
 //			}
 			// TODO edit DefCore.txt
-			throw new InvalidParameterException("Parameter 'persistent' is not yet implemented");
+			throw new InvalidParameterException("Parameter 'persistent' is not yet implemented"); //$NON-NLS-1$
 		}
 	}
 	
@@ -74,13 +74,13 @@ public class C4ObjectIntern extends C4Object implements Serializable {
 	public IFile getScriptFile() {
 		if (this.objectFolder == null)
 			return null;
-		IResource res = this.objectFolder.findMember("Script.c");
+		IResource res = this.objectFolder.findMember("Script.c"); //$NON-NLS-1$
 		if (res == null || !(res instanceof IFile)) return null;
 		else return (IFile) res;
 	}
 	
 	public IFile getDefCoreFile() {
-		IResource res = this.objectFolder.findMember("DefCore.txt");
+		IResource res = this.objectFolder.findMember("DefCore.txt"); //$NON-NLS-1$
 		if (res == null || !(res instanceof IFile)) return null;
 		else return (IFile) res;
 	}
@@ -151,7 +151,7 @@ public class C4ObjectIntern extends C4Object implements Serializable {
 	
 	@Override
 	public String toString() {
-		return super.toString() + " [" + relativePath + "]";
+		return super.toString() + " [" + relativePath + "]"; //$NON-NLS-1$ //$NON-NLS-2$
 	}
 	
 	@Override
@@ -167,7 +167,7 @@ public class C4ObjectIntern extends C4Object implements Serializable {
 
 	// for processing files whose contents won't be saved in a separate c4structure thingie
 	public void processFile(IFile file) throws IOException, CoreException {
-	    if (file.getName().equalsIgnoreCase("Names.txt")) {
+	    if (file.getName().equalsIgnoreCase("Names.txt")) { //$NON-NLS-1$
 	    	readNames(Utilities.stringFromFile(file));
 	    	chooseLocalizedName();
 	    }

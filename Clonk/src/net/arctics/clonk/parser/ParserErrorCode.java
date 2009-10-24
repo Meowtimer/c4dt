@@ -44,7 +44,8 @@ public enum ParserErrorCode {
 	NotFinished("Expression not finished"),
 	GenericError("%s"),
 	ConditionAlwaysTrue("Condition '%s' is always true"),
-	ConditionAlwaysFalse("Condition '%s' is always false");
+	ConditionAlwaysFalse("Condition '%s' is always false"),
+	InfiniteLoop("This looks like an infinite loop");
 	
 	public static final String MARKER_ERRORCODE = "c4ScriptErrorCode";
 	

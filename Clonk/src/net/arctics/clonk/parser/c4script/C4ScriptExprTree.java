@@ -1,9 +1,9 @@
 package net.arctics.clonk.parser.c4script;
 
 import java.io.Serializable;
+import java.util.EnumSet;
 import java.util.LinkedList;
 import java.util.List;
-
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.index.C4Object;
 import net.arctics.clonk.index.C4Scenario;
@@ -368,6 +368,10 @@ public abstract class C4ScriptExprTree {
 
 		public ControlFlow getControlFlow() {
 			return ControlFlow.Continue;
+		}
+		
+		public EnumSet<ControlFlow> getPossibleControlFlows() {
+			return EnumSet.of(getControlFlow()); 
 		}
 
 		public final boolean isAlways(boolean what, C4ScriptBase context) {
@@ -1392,6 +1396,8 @@ public abstract class C4ScriptExprTree {
 						return ((Number)leftSide).longValue() >= ((Number)rightSide).longValue();
 					case SmallerEqual:
 						return ((Number)leftSide).longValue() <= ((Number)rightSide).longValue();
+					case Equal:
+						return leftSide.equals(rightSide);
 					}
 				}
 			}
@@ -2203,6 +2209,33 @@ public abstract class C4ScriptExprTree {
 			}
 			return super.newStyleReplacement(parser);
 		}
+		
+		@Override
+		public ControlFlow getControlFlow() {
+			for (Statement s : statements) {
+				// look for first statement that breaks execution
+				ControlFlow cf = s.getControlFlow();
+				if (cf != ControlFlow.Continue)
+					return cf;
+			}
+			return ControlFlow.Continue;
+		}
+		
+		@Override
+		public EnumSet<ControlFlow> getPossibleControlFlows() {
+			EnumSet<ControlFlow> result = null;
+			for (Statement s : statements) {
+				ControlFlow cf = s.getControlFlow();
+				if (cf != ControlFlow.Continue)
+					return EnumSet.of(cf);
+				EnumSet<ControlFlow> cfs = s.getPossibleControlFlows();
+				if (result == null)
+					result = cfs;
+				else
+					result.addAll(cfs);
+			}
+			return result;
+		}
 
 	}
 
@@ -2518,6 +2551,15 @@ public abstract class C4ScriptExprTree {
 			body      = elms[1];
 			elseExpr  = elms[2];
 		}
+		
+		@Override
+		public EnumSet<ControlFlow> getPossibleControlFlows() {
+			EnumSet<ControlFlow> result = EnumSet.of(ControlFlow.Continue);
+			result.addAll(body.getPossibleControlFlows());
+			if (elseExpr != null)
+				result.addAll(elseExpr.getPossibleControlFlows());
+			return result;
+		}
 
 	}
 
@@ -2529,6 +2571,13 @@ public abstract class C4ScriptExprTree {
 		@Override
 		public String getKeyword() {
 			return Keywords.While;
+		}
+		
+		@Override
+		public EnumSet<ControlFlow> getPossibleControlFlows() {
+			EnumSet<ControlFlow> result = body.getPossibleControlFlows();
+			result.removeAll(EnumSet.of(ControlFlow.BreakLoop, ControlFlow.NextIteration));
+			return result;
 		}
 	}
 

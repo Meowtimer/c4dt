@@ -103,6 +103,8 @@ public enum C4Type {
 				return ((Number)value).intValue() != 0;
 			}
 			break;
+		case ANY:
+			return value;
 		}
 		return null;
 	}
