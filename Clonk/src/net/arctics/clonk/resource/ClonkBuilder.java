@@ -149,7 +149,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 					if (delta != null) {
 
 						// count num of resources to build
-						ResourceCounterAndCleaner counter = new ResourceCounterAndCleaner(ResourceCounter.COUNT_CONTAINER);
+						ResourceCounter counter = new ResourceCounter(ResourceCounter.COUNT_CONTAINER);
 						delta.accept(counter);
 
 						// initialize progress monitor
@@ -165,7 +165,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 						delta.getResource().touch(monitor);
 
 						// refresh global func and static var cache
-						//Utilities.getClonkNature(proj).getIndex().refreshCache();
+						Utilities.getClonkNature(proj).getIndex().refreshCache();
 					}
 					break;
 

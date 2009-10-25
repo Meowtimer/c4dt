@@ -119,7 +119,13 @@ public class C4ObjectIntern extends C4Object implements Serializable {
 	
 	@Override
 	public ClonkIndex getIndex() {
-		return Utilities.getClonkNature(this).getIndex();
+		try {
+			return Utilities.getClonkNature(this).getIndex();
+		} catch (Exception e) {
+			System.out.println(getName() + ": " + this.relativePath);
+			e.printStackTrace();
+			return null;
+		}
 	}
 	
 	@Override
