@@ -728,6 +728,7 @@ public abstract class C4ScriptBase extends C4Structure implements IHasRelatedRes
 			};
 			Matcher fnMapMatcher = Pattern.compile("\\s*\\{\\s*\"(.*?)\"\\s*,\\s*(.*?)\\s*,\\s*(.*?)\\s*,\\s*\\{(.*?)\\}\\s*,\\s*(.*?)\\s*,\\s*(.*?)\\s*\\}\\s*,").matcher("");
 			Matcher constMapMatcher = Pattern.compile("\\s*\\{\\s*\"(.*?)\"\\s*,\\s*(.*?)\\s*,\\s*(.*?)\\s*\\}\\s*,\\s*(\\/\\/(.*))?").matcher("");
+			Matcher addFuncMatcher = Pattern.compile("\\s*AddFunc\\s*\\(\\s*pEngine\\s*,\\s*\"(.*?)\"\\s*,\\s*.*?\\)\\s*;").matcher("");
 			
 			BufferedReader reader = new BufferedReader(new FileReader(c4ScriptFile));
 			int section = SECTION_None;
@@ -745,7 +746,17 @@ public abstract class C4ScriptBase extends C4Structure implements IHasRelatedRes
 					
 					switch (section) {
 					case SECTION_InitFunctionMap:
-						break;
+						if (addFuncMatcher.reset(line).matches()) {
+							String name = addFuncMatcher.group(1);
+							C4Function fun = this.findLocalFunction(name, false);
+							if (fun == null) {
+								fun = new C4Function(name, C4Type.ANY);
+								List<C4Variable> parms = new ArrayList<C4Variable>(1);
+								parms.add(new C4Variable("...", C4Type.ANY));
+								fun.setParameter(parms);
+								this.addDeclaration(fun);
+							}
+						}
 					case SECTION_C4ScriptConstMap:
 						if (constMapMatcher.reset(line).matches()) {
 							int i = 1;
