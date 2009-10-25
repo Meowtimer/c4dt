@@ -48,11 +48,15 @@ and similar files
 -Warn about unreachable code in loop bodies
 -Warn about conditions that are always false or true
 -Open documentation in internal browser if one is available
--Store index files inside the .metadata folder so it doesn&apos;t clutter up the project folder
+-Store index files inside the .metadata folder so it doesn&apos;t
+clutter up the project folder
 1.5.1.1:
 -Fixes
 -Comment at end of one-line function supported
--Also warn about missing stringtbl entries if there is not even a stringtbl file
+-Also warn about missing stringtbl entries if there is not even
+a stringtbl file
+1.5.1.2:
+-Fixes
    </description>
 
    <copyright url="http://www.example.com/copyright">
