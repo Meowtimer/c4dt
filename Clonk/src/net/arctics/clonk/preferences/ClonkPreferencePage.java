@@ -26,7 +26,7 @@ public class ClonkPreferencePage extends FieldEditorPreferencePage implements IW
 	public ClonkPreferencePage() {
 		super(GRID);
 		setPreferenceStore(ClonkCore.getDefault().getPreferenceStore());
-		setDescription("Global Clonk specific preferences");
+		setDescription(Messages.ClonkPreferencePage_0);
 	}
 
 	public void createFieldEditors() {
@@ -38,39 +38,39 @@ public class ClonkPreferencePage extends FieldEditorPreferencePage implements IW
 		addField(
 			gamePathEditor = new DirectoryFieldEditor(
 				PreferenceConstants.GAME_PATH,
-				"&Game path:",
+				Messages.ClonkPreferencePage_1,
 				getFieldEditorParent()
 			)
 		);
 		addField(
 			new FileFieldEditor(
 				PreferenceConstants.C4GROUP_EXECUTABLE,
-				"C4&Group executable:",
+				Messages.ClonkPreferencePage_2,
 				getFieldEditorParent()
 			)
 		);
 		addField(
 			new FileFieldEditor(
 				PreferenceConstants.ENGINE_EXECUTABLE,
-				"&Engine:",
+				Messages.ClonkPreferencePage_3,
 				getFieldEditorParent()
 			)
 		);
 		addField(
 			new DirectoryFieldEditor(
 				PreferenceConstants.OPENCLONK_REPO,
-				"&OpenClonk Repository",
+				Messages.ClonkPreferencePage_4,
 				getFieldEditorParent()
 			)
 		);
 		addField(
 			new ComboFieldEditor(
 				PreferenceConstants.PREFERRED_LANGID,
-				"Preferred language",
+				Messages.ClonkPreferencePage_5,
 				new String[][] {
-					{"German (DE)", "DE"},
-					{"English (US)", "US"},
-					{"Finnish (FI)", "FI"}
+					{Messages.ClonkPreferencePage_6, "DE"}, //$NON-NLS-2$
+					{Messages.ClonkPreferencePage_8, "US"}, //$NON-NLS-2$
+					{Messages.ClonkPreferencePage_10, "FI"} //$NON-NLS-2$
 				},
 				getFieldEditorParent()
 			)
@@ -78,15 +78,15 @@ public class ClonkPreferencePage extends FieldEditorPreferencePage implements IW
 		addField(
 			new StringFieldEditor(
 				PreferenceConstants.DOC_URL_TEMPLATE,
-				"Documentation URL Template",
+				Messages.ClonkPreferencePage_12,
 				getFieldEditorParent()
 			)
 		);
-		addField(new ListEditor(PreferenceConstants.STANDARD_EXT_LIBS, "External objects and scripts:",getFieldEditorParent()) {
+		addField(new ListEditor(PreferenceConstants.STANDARD_EXT_LIBS, Messages.ClonkPreferencePage_13,getFieldEditorParent()) {
 			@Override
 			protected String[] parseString(String stringList) {
 				if (stringList.length() == 0) return new String[] {};
-				return stringList.split("<>");
+				return stringList.split("<>"); //$NON-NLS-1$
 			}
 
 			@Override
@@ -100,7 +100,7 @@ public class ClonkPreferencePage extends FieldEditorPreferencePage implements IW
 					gamePath = null;
 				}
 				FileDialog dialog = new FileDialog(getShell());
-				dialog.setText("Choose external object");
+				dialog.setText(Messages.ClonkPreferencePage_15);
 				dialog.setFilterExtensions(new String[] { UI.FILEDIALOG_CLONK_FILTER });
 				dialog.setFilterPath(gamePath);
 				return dialog.open();
@@ -111,7 +111,7 @@ public class ClonkPreferencePage extends FieldEditorPreferencePage implements IW
 				StringBuilder result = new StringBuilder();
 				for(String item : items) {
 					result.append(item);
-					result.append("<>");
+					result.append("<>"); //$NON-NLS-1$
 				}
 				if (result.length() > 2)
 					return result.substring(0, result.length() - 2);
@@ -122,15 +122,15 @@ public class ClonkPreferencePage extends FieldEditorPreferencePage implements IW
 		addField(
 			new ExceptionlessEncodingFieldEditor(
 				PreferenceConstants.EXTERNAL_INDEX_ENCODING,
-				"",
-				"Encoding for external scripts",
+				"", //$NON-NLS-1$
+				Messages.ClonkPreferencePage_18,
 				getFieldEditorParent()
 			)
 		);
 		addField(
 			new BooleanFieldEditor(
 				PreferenceConstants.SHOW_EXPORT_LOG,
-				"Show &export log in console",
+				Messages.ClonkPreferencePage_19,
 				getFieldEditorParent()
 			)
 		);
