@@ -226,11 +226,13 @@ public class C4ScriptEditor extends ClonkTextEditor {
 	@Override
 	protected void editorContextMenuAboutToShow(IMenuManager menu) {
 		super.editorContextMenuAboutToShow(menu);
-		if (scriptBeingEdited().isEditable()) {
-			addAction(menu, IClonkCommandIds.CONVERT_OLD_CODE_TO_NEW_CODE);
-			addAction(menu, IClonkCommandIds.RENAME_DECLARATION);
+		if (scriptBeingEdited() != null) {
+			if (scriptBeingEdited().isEditable()) {
+				addAction(menu, IClonkCommandIds.CONVERT_OLD_CODE_TO_NEW_CODE);
+				addAction(menu, IClonkCommandIds.RENAME_DECLARATION);
+			}
+			addAction(menu, IClonkCommandIds.FIND_REFERENCES);
 		}
-		addAction(menu, IClonkCommandIds.FIND_REFERENCES);
 	}
 
 	@Override

@@ -160,8 +160,10 @@ public class ClonkTextEditor extends TextEditor {
 	@Override
 	protected void editorContextMenuAboutToShow(IMenuManager menu) {
 		super.editorContextMenuAboutToShow(menu);
-		menu.add(new Separator(IClonkCommandIds.GROUP_CLONK));
-		addAction(menu, IClonkCommandIds.OPEN_DECLARATION);
+		if (getTopLevelDeclaration() != null) {
+			menu.add(new Separator(IClonkCommandIds.GROUP_CLONK));
+			addAction(menu, IClonkCommandIds.OPEN_DECLARATION);
+		}
 	}
 	
 	public IHyperlink hyperlinkAtOffset(int offset) {
