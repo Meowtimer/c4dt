@@ -1376,7 +1376,7 @@ public abstract class C4ScriptExprTree {
 			try {
 				Object leftSide  = getOperator().getFirstArgType().convert(this.getLeftSide().evaluateAtParseTime(context));
 				Object rightSide = getOperator().getSecondArgType().convert(this.getRightSide().evaluateAtParseTime(context));
-				if (leftSide != null && leftSide != ExprElm.EVALUATION_COMPLEX && rightSide != null && leftSide != ExprElm.EVALUATION_COMPLEX) {
+				if (leftSide != null && leftSide != ExprElm.EVALUATION_COMPLEX && rightSide != null && rightSide != ExprElm.EVALUATION_COMPLEX) {
 					switch (getOperator()) {
 					case Add:
 						return ((Number)leftSide).longValue() + ((Number)rightSide).longValue();
