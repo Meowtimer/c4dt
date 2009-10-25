@@ -1097,7 +1097,7 @@ public abstract class C4ScriptExprTree {
 			for (ExprElm p = getParent(); p != null; p = p.getParent()) {
 				if (p instanceof Block)
 					break;
-				if (p instanceof ILoop || !(p instanceof Statement))
+				if (p instanceof ILoop || !(p instanceof SimpleStatement))
 					return true;
 			} 
 			return false;
@@ -2708,6 +2708,7 @@ public abstract class C4ScriptExprTree {
 			super();
 			this.varInitializations = varInitializations;
 			this.scope = scope;
+			assignParentToSubElements();
 		}
 		@Override
 		public String getKeyword() {
