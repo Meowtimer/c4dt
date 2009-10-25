@@ -1765,7 +1765,7 @@ public class C4ScriptParser {
 							Statement subStatement = parseStatement(scanner.getPosition());
 							if (subStatement != null) {
 								subStatements.add(subStatement);
-								if (notReached)
+								if (notReached && !(subStatement instanceof Comment))
 									warningWithCode(ParserErrorCode.NeverReached, subStatement);
 								else
 									notReached = subStatement.getControlFlow() != ControlFlow.Continue;

@@ -2,7 +2,7 @@
 <feature
       id="net.arctics.clonk.c4dtFeature"
       label="Clonk Development Tools"
-      version="1.5.1">
+      version="1.5.1.1">
 
    <description url="http://www.example.com/description">
       Clonk Development Tools for Eclipse.
@@ -49,6 +49,10 @@ and similar files
 -Warn about conditions that are always false or true
 -Open documentation in internal browser if one is available
 -Store index files inside the .metadata folder so it doesn&apos;t clutter up the project folder
+1.5.1.1:
+-Fixes
+-Comment at end of one-line function supported
+-Also warn about missing stringtbl entries if there is not even a stringtbl file
    </description>
 
    <copyright url="http://www.example.com/copyright">
