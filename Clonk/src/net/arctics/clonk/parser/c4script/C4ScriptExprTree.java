@@ -2525,11 +2525,12 @@ public abstract class C4ScriptExprTree {
 				printIndent(builder, depth-1);
 				builder.append(Keywords.Else);
 				builder.append(" ");
-				if (!(elseExpr instanceof Block || elseExpr instanceof IfStatement)) {
+				boolean isBlock = elseExpr instanceof Block;
+				if (!(elseExpr instanceof IfStatement)) {
 					builder.append("\n");
-					printIndent(builder, depth);
+					printIndent(builder, depth - (isBlock?1:0));
 				}
-				printBody(elseExpr, builder, depth);
+				elseExpr.print(builder, depth);
 			}
 		}
 
