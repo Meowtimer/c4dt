@@ -160,55 +160,6 @@ public abstract class Utilities {
 		else return null;
 	}
 	
-	public static Image getIconForFunction(C4Function function) {
-		String iconName = function.getVisibility().name().toLowerCase();
-		return ClonkCore.getDefault().getIconImage(iconName);
-	}
-	
-	public static Image getIconForVariable(C4Variable variable) {
-		String iconName = variable.getScope().toString().toLowerCase();
-		return ClonkCore.getDefault().getIconImage(iconName);
-	}
-
-	public static Image getIconForObject(Object element) {
-		if (element instanceof C4Function)
-			return getIconForFunction((C4Function)element);
-		if (element instanceof C4Variable)
-			return getIconForVariable((C4Variable)element);
-		if (element instanceof C4Object)
-			return UI.GENERAL_OBJECT_ICON;
-		if (element instanceof C4ObjectExternGroup) {
-			C4ObjectExternGroup group = (C4ObjectExternGroup) element;
-			if (group.getNodeName().endsWith(".c4g")) //$NON-NLS-1$
-				return UI.GROUP_ICON;
-			return UI.GENERAL_OBJECT_ICON;
-		}
-		if (element instanceof C4ScriptBase)
-			return UI.SCRIPT_ICON;
-		return null;
-	}
-	
-	public static Image getIconForC4Object(C4Object element) {
-		return UI.GENERAL_OBJECT_ICON;
-	}
-
-	public static ImageDescriptor getIconDescriptor(String path) {
-		return ImageDescriptor.createFromURL(FileLocator.find(ClonkCore.getDefault().getBundle(), new Path(path), null));
-	}
-	
-	public static Image getIconImage(String registryKey, String iconPath) {
-		ImageRegistry reg = ClonkCore.getDefault().getImageRegistry();
-		Image img = reg.get(registryKey);
-		if (img == null) {
-			reg.put(registryKey, Utilities.getIconDescriptor(iconPath));
-			img = reg.get(registryKey);
-		}
-//			if (element.findMarkers(IMarker.PROBLEM, true, IResource.DEPTH_INFINITE).length > 0) {
-//				return decorateImage(reg.getDescriptor(registryKey), element).createImage();
-//			}
-		return img;
-	}
-	
 	public static C4ScriptBase getScriptForFile(IFile scriptFile) {
 		C4ScriptBase script;
 		try {

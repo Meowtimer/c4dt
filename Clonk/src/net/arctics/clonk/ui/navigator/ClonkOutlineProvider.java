@@ -7,6 +7,7 @@ import net.arctics.clonk.parser.C4Declaration;
 import net.arctics.clonk.parser.c4script.C4Function;
 import net.arctics.clonk.parser.c4script.C4Type;
 import net.arctics.clonk.parser.c4script.C4Variable;
+import net.arctics.clonk.util.UI;
 import net.arctics.clonk.util.Utilities;
 
 import org.eclipse.jface.viewers.ITreeContentProvider;
@@ -59,7 +60,7 @@ public class ClonkOutlineProvider extends LabelProvider implements ITreeContentP
 	}
 
 	public Image getImage(Object element) {
-		return Utilities.getIconForObject(element);
+		return UI.getIconForObject(element);
 	}
 
 	public String getText(Object element) {

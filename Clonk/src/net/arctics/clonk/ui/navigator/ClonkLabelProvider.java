@@ -63,7 +63,7 @@ public class ClonkLabelProvider extends LabelProvider implements IStyledLabelPro
 		else if (element instanceof DependenciesNavigatorNode) {
 			return UI.DEPENDENCIES_ICON;
 		}
-		return Utilities.getIconForObject(element);
+		return UI.getIconForObject(element);
 	}
 
 	public String getText(Object element) {
@@ -141,11 +141,11 @@ public class ClonkLabelProvider extends LabelProvider implements IStyledLabelPro
 				if (markers.length > 0) {
 					for(IMarker marker : markers) {
 						if (marker.getAttribute(IMarker.SEVERITY, IMarker.SEVERITY_INFO) == IMarker.SEVERITY_ERROR) {
-							result[2][0] = Utilities.getIconDescriptor("icons/error_co.gif"); //$NON-NLS-1$
+							result[2][0] = UI.getIconDescriptor("icons/error_co.gif"); //$NON-NLS-1$
 							break;
 						}
 						if (marker.getAttribute(IMarker.SEVERITY, IMarker.SEVERITY_INFO) == IMarker.SEVERITY_WARNING) {
-							result[2][0] = Utilities.getIconDescriptor("icons/warning_co.gif"); //$NON-NLS-1$
+							result[2][0] = UI.getIconDescriptor("icons/warning_co.gif"); //$NON-NLS-1$
 						}
 					}
 				}

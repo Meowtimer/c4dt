@@ -2,6 +2,7 @@ package net.arctics.clonk.ui;
 
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.resource.c4group.C4Group.C4GroupType;
+import net.arctics.clonk.util.UI;
 import net.arctics.clonk.util.Utilities;
 
 import org.eclipse.core.resources.IFolder;
@@ -40,16 +41,16 @@ public class LightweightLabelDecorator implements ILightweightLabelDecorator {
 				C4GroupType groupType = Utilities.groupTypeFromFolderName(res.getName());
 				
 				if (groupType == C4GroupType.FolderGroup) {
-					decoration.addOverlay(Utilities.getIconDescriptor("icons/Clonk_folder.png"),IDecoration.REPLACE); //$NON-NLS-1$
+					decoration.addOverlay(UI.getIconDescriptor("icons/Clonk_folder.png"),IDecoration.REPLACE); //$NON-NLS-1$
 				}
 				else if (groupType == C4GroupType.DefinitionGroup) {
-					decoration.addOverlay(Utilities.getIconDescriptor("icons/C4Object.png"),IDecoration.REPLACE); //$NON-NLS-1$
+					decoration.addOverlay(UI.getIconDescriptor("icons/C4Object.png"),IDecoration.REPLACE); //$NON-NLS-1$
 				}
 				else if (groupType == C4GroupType.ScenarioGroup) {
-					decoration.addOverlay(Utilities.getIconDescriptor("icons/Clonk_scenario.png"),IDecoration.REPLACE); //$NON-NLS-1$
+					decoration.addOverlay(UI.getIconDescriptor("icons/Clonk_scenario.png"),IDecoration.REPLACE); //$NON-NLS-1$
 				}
 				else if (groupType == C4GroupType.ResourceGroup) {
-					decoration.addOverlay(Utilities.getIconDescriptor("icons/Clonk_datafolder.png"),IDecoration.REPLACE); //$NON-NLS-1$
+					decoration.addOverlay(UI.getIconDescriptor("icons/Clonk_datafolder.png"),IDecoration.REPLACE); //$NON-NLS-1$
 				}
 			}
 			try {
@@ -63,7 +64,7 @@ public class LightweightLabelDecorator implements ILightweightLabelDecorator {
 //						if (marker.getAttribute(IMarker.SEVERITY, IMarker.SEVERITY_INFO) == IMarker.SEVERITY_ERROR) {
 //							severity = 2;
 ////							decoration.addOverlay(getIcon("error_co.gif"),IDecoration.BOTTOM_LEFT);
-////							decoration.addOverlay(Utilities.getIconDescriptor("icons/error_co.gif"),IDecoration.BOTTOM_LEFT);
+////							decoration.addOverlay(UI.getIconDescriptor("icons/error_co.gif"),IDecoration.BOTTOM_LEFT);
 //							break;
 //						}
 //						if (marker.getAttribute(IMarker.SEVERITY, IMarker.SEVERITY_INFO) == IMarker.SEVERITY_WARNING) {
@@ -85,7 +86,7 @@ public class LightweightLabelDecorator implements ILightweightLabelDecorator {
 	private ImageDescriptor getIcon(String name) {
 		ImageRegistry reg = ClonkCore.getDefault().getImageRegistry();
 		if (reg.get(name) == null) {
-			reg.put(name, Utilities.getIconDescriptor("icons/" + name)); //$NON-NLS-1$
+			reg.put(name, UI.getIconDescriptor("icons/" + name)); //$NON-NLS-1$
 		}
 		return reg.getDescriptor(name);
 	}

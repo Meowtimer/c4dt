@@ -10,6 +10,7 @@ import net.arctics.clonk.index.ClonkIndex;
 import net.arctics.clonk.parser.c4script.C4Function;
 import net.arctics.clonk.parser.c4script.C4ScriptBase;
 import net.arctics.clonk.parser.c4script.C4Variable;
+import net.arctics.clonk.util.UI;
 import net.arctics.clonk.util.Utilities;
 
 import org.eclipse.jface.text.contentassist.ContextInformation;
@@ -59,7 +60,7 @@ public abstract class ClonkCompletionProcessor<EditorType extends ClonkTextEdito
 //			IContextInformation contextInformation = null;// new ContextInformation(obj.getId().getName(),contextInfoString); 
 
 			ICompletionProposal prop = new ClonkCompletionProposal(obj.getId().getName(), offset, replacementLength, obj.getId().getName().length(),
-				Utilities.getIconForObject(obj), displayString.trim(), null, obj.getInfoText(), " - " + obj.getId().getName()); //$NON-NLS-1$
+				UI.getIconForObject(obj), displayString.trim(), null, obj.getInfoText(), " - " + obj.getId().getName()); //$NON-NLS-1$
 			proposals.add(prop);
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -87,7 +88,7 @@ public abstract class ClonkCompletionProcessor<EditorType extends ClonkTextEdito
 		
 		String replacement = func.getName() + (brackets ? "()" : ""); //$NON-NLS-1$ //$NON-NLS-2$
 		ClonkCompletionProposal prop = new ClonkCompletionProposal(replacement, offset,replacementLength,func.getName().length()+1,
-				Utilities.getIconForFunction(func), displayString.trim(),contextInformation, func.getInfoText()," - " + parentName); //$NON-NLS-1$
+				UI.getIconForFunction(func), displayString.trim(),contextInformation, func.getInfoText()," - " + parentName); //$NON-NLS-1$
 		proposals.add(prop);
 	}
 	
@@ -101,7 +102,7 @@ public abstract class ClonkCompletionProcessor<EditorType extends ClonkTextEdito
 		if (prefix != null)
 			replacementLength = prefix.length();
 		ClonkCompletionProposal prop = new ClonkCompletionProposal(
-			var.getName(), offset, replacementLength, var.getName().length(), Utilities.getIconForVariable(var), displayString, 
+			var.getName(), offset, replacementLength, var.getName().length(), UI.getIconForVariable(var), displayString, 
 			null, var.getInfoText(), " - " + var.getScript().getName() //$NON-NLS-1$
 		);
 		proposals.add(prop);
