@@ -291,7 +291,7 @@ public abstract class Utilities {
 	}
 	
 	public static C4GroupType groupTypeFromFolderName(String name) {
-		C4GroupType result = C4Group.EXTENSION_TO_GROUP_TYPE_MAP.get(name.substring(name.lastIndexOf(".")+1)); //$NON-NLS-1$
+		C4GroupType result = C4Group.EXTENSION_TO_GROUP_TYPE_MAP.get(name.substring(name.lastIndexOf(".")+1).toLowerCase()); //$NON-NLS-1$
 		if (result != null)
 			return result;
 		return C4GroupType.OtherGroup;
