@@ -2,7 +2,7 @@
 <feature
       id="net.arctics.clonk.c4dtFeature"
       label="Clonk Development Tools"
-      version="1.5.1.2">
+      version="1.5.1.3">
 
    <description url="http://www.example.com/description">
       Clonk Development Tools for Eclipse.
@@ -57,6 +57,8 @@ clutter up the project folder
 a stringtbl file
 1.5.1.2:
 -Fixes
+1.5.1.3:
+-Hopefully better importing of engine functions/constants from source
    </description>
 
    <copyright url="http://www.example.com/copyright">
