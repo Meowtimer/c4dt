@@ -750,4 +750,16 @@ public abstract class Utilities {
 		return result;
 	}
 	
+	public static IResource findMemberCaseInsensitively(IContainer container, String name) {
+		try {
+	        for (IResource child : container.members()) {
+	        	if (child.getName().equalsIgnoreCase(name))
+	        		return child;
+	        }
+        } catch (CoreException e) {
+	        e.printStackTrace();
+        }
+		return null;
+	}
+	
 }

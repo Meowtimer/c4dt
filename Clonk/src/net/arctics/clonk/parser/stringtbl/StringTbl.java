@@ -5,6 +5,8 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
@@ -90,8 +92,9 @@ public class StringTbl extends C4Structure implements ITreeNode {
 	
 	public static void register() {
 		registerStructureFactory(new IStructureFactory() {
+			private final Matcher stringTblFileMatcher = Pattern.compile("StringTbl..\\.txt", Pattern.CASE_INSENSITIVE).matcher("");
 			public C4Structure create(IFile file) {
-				if (file.getName().matches("StringTbl..\\.txt")) {
+				if (stringTblFileMatcher.reset(file.getName()).matches()) {
 					StringTbl tbl = new StringTbl();
 					tbl.setFile(file);
 					try {
