@@ -3103,7 +3103,7 @@ Wenn fCheckSite 1 ist, wird die Baustelle vorher auf ihre Eignung überprüft. I
 			</parameters>
 			<description>Gibt eine Referenz auf eine funktionslokale Variable zurück. Diese Referenz kann zum Lesen und Schreiben benutzt werden.</description>
 		</function>
-		<function name="VarN" return="int">
+		<function name="VarN" return="reference">
 			<parameters>
 				<parameter name="szName" type="string" />
 			</parameters>
