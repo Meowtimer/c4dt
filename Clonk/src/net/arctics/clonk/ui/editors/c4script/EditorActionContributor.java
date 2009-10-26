@@ -17,7 +17,7 @@ public class EditorActionContributor extends BasicTextEditorActionContributor {
 	private RetargetTextEditorAction fContentAssist;
 
 	public EditorActionContributor() {
-		ResourceBundle messagesBundle = ResourceBundle.getBundle(ClonkCore.id("ui.editors.c4script.Messages")); //$NON-NLS-1$
+		ResourceBundle messagesBundle = ResourceBundle.getBundle(ClonkCore.id("ui.editors.c4script.messages")); //$NON-NLS-1$
 		fContentAssist = new RetargetTextEditorAction(messagesBundle, null);
 		fContentAssist.setActionDefinitionId(ITextEditorActionDefinitionIds.CONTENT_ASSIST_PROPOSALS);
 	}

@@ -146,7 +146,7 @@ public class ClonkTextEditor extends TextEditor {
 		
 		IAction action;
 		
-		ResourceBundle messagesBundle = ResourceBundle.getBundle(ClonkCore.id("ui.editors.Messages")); //$NON-NLS-1$
+		ResourceBundle messagesBundle = ResourceBundle.getBundle(ClonkCore.id("ui.editors.messages")); //$NON-NLS-1$
 		action = new OpenDeclarationAction(messagesBundle,"OpenDeclaration.",this); //$NON-NLS-1$
 		setAction(IClonkCommandIds.OPEN_DECLARATION, action);
 		
