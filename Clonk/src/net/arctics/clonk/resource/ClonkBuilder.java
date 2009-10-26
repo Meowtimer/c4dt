@@ -327,10 +327,12 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 					// create if new file
 					IContainer folder = delta.getResource().getParent();
 					C4ObjectParser objParser;
-					if (delta.getResource().getName().endsWith(".c") && folder.getName().endsWith(".c4g")) { //$NON-NLS-1$ //$NON-NLS-2$
+					// script in a resource group
+					if (delta.getResource().getName().toLowerCase().endsWith(".c") && folder.getName().toLowerCase().endsWith(".c4g")) { //$NON-NLS-1$ //$NON-NLS-2$
 						script = new C4ScriptIntern(delta.getResource());
 						ClonkProjectNature.getClonkNature(delta.getResource()).getIndex().addScript(script);
 					}
+					// object script
 					else if ((objParser = C4ObjectParser.create(folder)) != null) {
 						script = objParser.createObject();
 						objParser.parseScript(getParserFor(script));
@@ -339,6 +341,8 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 				if (script != null && delta.getResource().equals(script.getScriptFile())) {
 					if (script != null) {
 						C4ScriptParser parser = getParserFor(script);
+						// phase 0: clean and parse declarations
+						// phase 1: parse code of functions
 						switch (buildPhase) {
 						case 0:
 							parser.clean();

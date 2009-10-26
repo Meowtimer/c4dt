@@ -99,7 +99,7 @@ public abstract class C4Declaration implements Serializable, IHasRelatedResource
 	}
 	
 	@SuppressWarnings("unchecked")
-	private final <T extends C4Declaration> T getTopLevelParentDeclarationOfType(Class<T> type) {
+	protected final <T extends C4Declaration> T getTopLevelParentDeclarationOfType(Class<T> type) {
 		T result = null;
 		for (C4Declaration f = this; f != null; f = f.parentDeclaration)
 			if (type.isAssignableFrom(f.getClass()))

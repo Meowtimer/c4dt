@@ -128,9 +128,10 @@ public class IniUnit extends C4Structure implements Iterable<IniSection>, IHasCh
 	 * Clients may override. This implementation always returns unmodified <tt>entry</tt>.
 	 * @param entry
 	 * @param section 
+	 * @param modifyMarkers 
 	 * @return validated entry
 	 */
-	protected IniEntry validateEntry(IniEntry entry, IniSection section) throws IniParserException {
+	protected IniEntry validateEntry(IniEntry entry, IniSection section, boolean modifyMarkers) throws IniParserException {
 		IniConfiguration configuration = getConfiguration();
 		if (configuration == null)
 			return entry;
@@ -144,7 +145,7 @@ public class IniUnit extends C4Structure implements Iterable<IniSection>, IHasCh
 		try {
 			try {
 				Object value = configuration.getFactory().create(entryConfig.getEntryClass(), entry.getValue(), entryConfig);
-				return ComplexIniEntry.adaptFrom(entry, value, entryConfig);
+				return ComplexIniEntry.adaptFrom(entry, value, entryConfig, modifyMarkers);
 			}
 			catch(IniParserException e) { // add offsets and throw through
 				// FIXME: whitespace before and after '=' is not taken into account
@@ -202,13 +203,13 @@ public class IniUnit extends C4Structure implements Iterable<IniSection>, IHasCh
 			String name = reader.readStringUntil(']','\n','\r');
 			if (reader.read() != ']') {
 				if (modifyMarkers)
-					ParserErrorCode.TokenExpected.createMarker(iniFile, ClonkCore.MARKER_C4SCRIPT_ERROR, start, reader.getPosition(), IMarker.SEVERITY_ERROR, (Object)"]");					 //$NON-NLS-1$
+					marker(ParserErrorCode.TokenExpected, start, reader.getPosition(), IMarker.SEVERITY_ERROR, (Object)"]");					 //$NON-NLS-1$
 				return null;
 			}
 			else {
 				if (!isSectionNameValid(name)) {
 					if (modifyMarkers)
-						ParserErrorCode.InvalidExpression.createMarker(iniFile, ClonkCore.MARKER_C4SCRIPT_ERROR, start, reader.getPosition()-1, IMarker.SEVERITY_WARNING);
+						marker(ParserErrorCode.InvalidExpression, start, reader.getPosition()-1, IMarker.SEVERITY_WARNING);
 				}
 			}
 			int end = reader.getPosition();
@@ -268,6 +269,14 @@ public class IniUnit extends C4Structure implements Iterable<IniSection>, IHasCh
 		}
 	}
 	
+	public void marker(ParserErrorCode error, int start, int end, int markerSeverity, Object... args) {
+		error.createMarker(iniFile, ClonkCore.MARKER_C4SCRIPT_ERROR, start, end, markerSeverity, args);
+	}
+	
+	public void markerAtValue(ParserErrorCode error, IniEntry entry, int markerSeverity, Object... args) {
+		marker(error, entry.getLocation().getStart(), entry.getLocation().getEnd(), markerSeverity, args);
+	}
+	
 	protected IniEntry parseEntry(IniSection section, boolean modifyMarkers) {
 		while (skipComment());
 		int start = reader.getPosition();
@@ -283,7 +292,7 @@ public class IniUnit extends C4Structure implements Iterable<IniSection>, IHasCh
 		reader.eatWhitespace();
 		if (reader.read() != '=') {
 			if (modifyMarkers)
-				ParserErrorCode.TokenExpected.createMarker(iniFile, ClonkCore.MARKER_C4SCRIPT_ERROR, keyStart+key.length(), reader.getPosition(), IMarker.SEVERITY_ERROR, (Object)"="); //$NON-NLS-1$
+				marker(ParserErrorCode.TokenExpected, keyStart+key.length(), reader.getPosition(), IMarker.SEVERITY_ERROR, (Object)"="); //$NON-NLS-1$
 		}
 		reader.eat(new char[] {' ', '\t'});
 		String value = reader.readStringUntil(BufferedScanner.NEWLINE_CHARS);
@@ -292,10 +301,10 @@ public class IniUnit extends C4Structure implements Iterable<IniSection>, IHasCh
 		IniEntry entry = new IniEntry(keyStart, valEnd, key, value);
 		entry.setParentDeclaration(section);
 		try {
-			return validateEntry(entry, section);
+			return validateEntry(entry, section, modifyMarkers);
 		} catch (IniParserException e) {
 			if (modifyMarkers)
-				ParserErrorCode.GenericError.createMarker(iniFile, ClonkCore.MARKER_C4SCRIPT_ERROR, e.getOffset(), e.getEndOffset(), e.getSeverity(), (Object)e.getMessage());
+				marker(ParserErrorCode.GenericError, e.getOffset(), e.getEndOffset(), e.getSeverity(), (Object)e.getMessage());
 			return entry;
 		}
 	}

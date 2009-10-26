@@ -65,6 +65,7 @@ public class ClonkLaunchShortcut implements ILaunchShortcut {
 		}
 	}
 	
+	@SuppressWarnings("deprecation")
 	private ILaunchConfiguration getLaunchConfigurationFor(IResource res) throws CoreException {
 
 		// Get existing launch configurations

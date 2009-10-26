@@ -289,7 +289,7 @@ public abstract class Utilities {
 	 * @param keysAndValues
 	 * @return
 	 */
-	@SuppressWarnings({ "rawtypes", "unchecked" })
+	@SuppressWarnings({ "unchecked" })
 	public static <KeyType, ValueType> Map<KeyType, ValueType> map(Object... keysAndValues) {
 		return mapOfType((Class<? extends Map<KeyType, ValueType>>) HashMap.class, keysAndValues);
 	}
