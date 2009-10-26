@@ -1,0 +1,27 @@
+#!/usr/bin/ruby
+
+require 'ftools'
+
+@origin = ARGV[0]
+@target = ARGV[1]
+
+@origin = "Clonk/src/net" if not @origin
+@target = "l10n_template/net" if not @template
+
+def traverse (path)
+	fullOriginPath = @origin
+	fullOriginPath += "/"+path if path != ""
+	fullTargetPath = @target
+	fullTargetPath += "/"+path if path != ""
+	Dir.new(fullOriginPath).entries.each {|e|
+		if e == "messages.properties" then
+			puts fullOriginPath+"/"+e
+			File.makedirs(fullTargetPath)
+			File.syscopy(fullOriginPath+"/"+e, fullTargetPath+"/"+e)
+		elsif e != "." and e != ".." and File.directory?(fullOriginPath+"/"+e) then
+			traverse(path+"/"+e)
+		end
+	}
+end
+
+traverse ""

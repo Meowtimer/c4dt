@@ -11,3 +11,4 @@ Eclipse Cocoa 64Bit
 buildscript/*
 Buildscript.zip
 licenses/*
+l10n_template/*
