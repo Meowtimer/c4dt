@@ -13,6 +13,7 @@ import net.arctics.clonk.parser.C4Declaration;
 import net.arctics.clonk.parser.C4ID;
 import net.arctics.clonk.parser.NameValueAssignment;
 import net.arctics.clonk.parser.ParserErrorCode;
+import net.arctics.clonk.parser.c4script.C4Function.C4FunctionScope;
 import net.arctics.clonk.parser.c4script.C4ScriptExprTree.UnaryOp.Placement;
 import net.arctics.clonk.parser.c4script.C4Variable.C4VariableScope;
 import net.arctics.clonk.parser.stringtbl.StringTbl;
@@ -730,6 +731,10 @@ public abstract class C4ScriptExprTree {
 			super.reportErrors(parser);
 			if (declaration == null)
 				parser.errorWithCode(ParserErrorCode.UndeclaredIdentifier, this, true, declarationName);
+			// local variable used in global function
+			else if (declaration instanceof C4Variable && ((C4Variable)declaration).getScope() == C4VariableScope.VAR_LOCAL && parser.getActiveFunc().getVisibility() == C4FunctionScope.FUNC_GLOBAL) {
+				parser.errorWithCode(ParserErrorCode.LocalUsedInGlobal, this, true);
+			}
 		}
 
 		public static IStoredTypeInformation createStoredTypeInformation(C4Declaration declaration) {

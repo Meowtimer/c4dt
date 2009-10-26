@@ -1319,7 +1319,7 @@ public class C4ScriptParser {
 					if (firstExpr == null) {
 						firstExpr = ExprElm.NULL_EXPR;
 						// might be disabled
-						errorWithCode(ParserErrorCode.EmptyParentheses, parenthStartPos, scanner.getPosition()+1);
+						errorWithCode(ParserErrorCode.EmptyParentheses, parenthStartPos, scanner.getPosition()+1, true);
 					}
 					c = scanner.read();
 					if (c == ')')

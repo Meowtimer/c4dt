@@ -40,6 +40,7 @@ public class Messages extends NLS {
 	public static String ParserErrorCode_39;
 	public static String ParserErrorCode_4;
 	public static String ParserErrorCode_40;
+	public static String ParserErrorCode_41;
 	public static String ParserErrorCode_5;
 	public static String ParserErrorCode_6;
 	public static String ParserErrorCode_7;
