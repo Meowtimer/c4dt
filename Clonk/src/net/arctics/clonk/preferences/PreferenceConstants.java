@@ -1,5 +1,10 @@
 package net.arctics.clonk.preferences;
 
+import net.arctics.clonk.ClonkCore;
+
+import org.eclipse.core.runtime.Platform;
+import org.eclipse.core.runtime.preferences.IScopeContext;
+
 /**
  * Constant definitions for clonk preferences
  */
@@ -16,4 +21,12 @@ public class PreferenceConstants {
 	
 	public static final String EXTERNAL_INDEX_ENCODING_DEFAULT = "ISO-8859-1";
 	public static final String DOC_URL_TEMPLATE_DEFAULT = "http://www.clonk.de/docs/%2$s/sdk/script/fn/%1$s.html";
+	
+	public static String getPreference(String prefName, String def, IScopeContext[] contexts) {
+		return Platform.getPreferencesService().getString(ClonkCore.PLUGIN_ID, prefName, def, contexts);
+	}
+	
+	public static String getPreference(String prefName) {
+		return getPreference(prefName, null, null);
+	}
 }

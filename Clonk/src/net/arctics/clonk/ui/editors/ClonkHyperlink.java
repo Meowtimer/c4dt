@@ -5,8 +5,6 @@ import java.net.URL;
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.C4Declaration;
 import net.arctics.clonk.preferences.PreferenceConstants;
-import net.arctics.clonk.util.Utilities;
-
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.hyperlink.IHyperlink;
 import org.eclipse.ui.browser.IWebBrowser;
@@ -45,7 +43,7 @@ public class ClonkHyperlink implements IHyperlink {
 			if (ClonkTextEditor.openDeclaration(target) == null) {
 				// can't open editor so try something else like opening up a documentation page in the browser
 				if (target.isEngineDeclaration()) {
-					String docURLTemplate = Utilities.getPreference(PreferenceConstants.DOC_URL_TEMPLATE, PreferenceConstants.DOC_URL_TEMPLATE_DEFAULT, null);
+					String docURLTemplate = PreferenceConstants.getPreference(PreferenceConstants.DOC_URL_TEMPLATE, PreferenceConstants.DOC_URL_TEMPLATE_DEFAULT, null);
 					IWorkbenchBrowserSupport support = WorkbenchBrowserSupport.getInstance();
 					IWebBrowser browser;
 					if (support.isInternalWebBrowserAvailable()) {

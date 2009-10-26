@@ -250,6 +250,13 @@ public class C4Group implements C4GroupItem, Serializable {
 		return getGroupType(getName());
 	}
 	
+	public static C4GroupType groupTypeFromFolderName(String name) {
+		C4GroupType result = EXTENSION_TO_GROUP_TYPE_MAP.get(name.substring(name.lastIndexOf(".")+1).toLowerCase()); //$NON-NLS-1$
+		if (result != null)
+			return result;
+		return C4GroupType.OtherGroup;
+	}
+	
     /**
      * Reads the c4group (or parts of it based on the supplied filter) into memory
      * @param stream

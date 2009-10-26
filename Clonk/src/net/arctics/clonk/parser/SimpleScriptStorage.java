@@ -7,8 +7,6 @@ import java.io.UnsupportedEncodingException;
 
 import net.arctics.clonk.preferences.PreferenceConstants;
 import net.arctics.clonk.resource.c4group.C4GroupEntry;
-import net.arctics.clonk.util.Utilities;
-
 import org.eclipse.core.resources.IStorage;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
@@ -24,7 +22,7 @@ public class SimpleScriptStorage implements IStorage, Serializable {
 	public SimpleScriptStorage(C4GroupEntry entry) {
 		name = entry.getName();
 		try {
-			contents = new String(entry.getContentsAsArray(), Utilities.getPreference(PreferenceConstants.EXTERNAL_INDEX_ENCODING, PreferenceConstants.EXTERNAL_INDEX_ENCODING_DEFAULT, null));
+			contents = new String(entry.getContentsAsArray(), PreferenceConstants.getPreference(PreferenceConstants.EXTERNAL_INDEX_ENCODING, PreferenceConstants.EXTERNAL_INDEX_ENCODING_DEFAULT, null));
 		} catch (UnsupportedEncodingException e) {
 			e.printStackTrace();
 			contents = "";
@@ -38,7 +36,7 @@ public class SimpleScriptStorage implements IStorage, Serializable {
 
 	public InputStream getContents() throws CoreException {
 		try {
-			return new ByteArrayInputStream(contents.getBytes(Utilities.getPreference(PreferenceConstants.EXTERNAL_INDEX_ENCODING, PreferenceConstants.EXTERNAL_INDEX_ENCODING_DEFAULT, null)));
+			return new ByteArrayInputStream(contents.getBytes(PreferenceConstants.getPreference(PreferenceConstants.EXTERNAL_INDEX_ENCODING, PreferenceConstants.EXTERNAL_INDEX_ENCODING_DEFAULT, null)));
 		} catch (UnsupportedEncodingException e) {
 			e.printStackTrace();
 			return null;

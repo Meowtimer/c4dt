@@ -20,7 +20,6 @@ import net.arctics.clonk.resource.c4group.C4GroupEntry;
 import net.arctics.clonk.resource.c4group.C4GroupItem;
 import net.arctics.clonk.util.INode;
 import net.arctics.clonk.util.ITreeNode;
-import net.arctics.clonk.util.Utilities;
 
 public class C4ObjectExtern extends C4Object implements ITreeNode, IExternalScript {
 
@@ -133,7 +132,7 @@ public class C4ObjectExtern extends C4Object implements ITreeNode, IExternalScri
 	
 	public String getFilePath() {
 		IPath path = this.getPath();
-		IPath gamePath = new Path(Utilities.getPreference(PreferenceConstants.GAME_PATH, "", null));
+		IPath gamePath = new Path(PreferenceConstants.getPreference(PreferenceConstants.GAME_PATH, "", null));
 		return gamePath.append(path).toOSString();
 	}
 	

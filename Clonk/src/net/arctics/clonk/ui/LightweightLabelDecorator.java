@@ -3,7 +3,7 @@ package net.arctics.clonk.ui;
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.resource.c4group.C4Group.C4GroupType;
 import net.arctics.clonk.util.UI;
-import net.arctics.clonk.util.Utilities;
+import net.arctics.clonk.resource.c4group.C4Group;
 
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IMarker;
@@ -38,7 +38,7 @@ public class LightweightLabelDecorator implements ILightweightLabelDecorator {
 			IResource res = (IResource) element;
 			if (!res.getProject().isOpen()) return;
 			if (res instanceof IFolder) {
-				C4GroupType groupType = Utilities.groupTypeFromFolderName(res.getName());
+				C4GroupType groupType = C4Group.groupTypeFromFolderName(res.getName());
 				
 				if (groupType == C4GroupType.FolderGroup) {
 					decoration.addOverlay(UI.getIconDescriptor("icons/Clonk_folder.png"),IDecoration.REPLACE); //$NON-NLS-1$

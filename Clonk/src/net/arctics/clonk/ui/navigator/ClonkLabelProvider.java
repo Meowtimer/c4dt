@@ -6,7 +6,7 @@ import net.arctics.clonk.resource.c4group.C4Group.C4GroupType;
 import net.arctics.clonk.ui.OverlayIcon;
 import net.arctics.clonk.util.INode;
 import net.arctics.clonk.util.UI;
-import net.arctics.clonk.util.Utilities;
+import net.arctics.clonk.resource.c4group.C4Group;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
@@ -45,7 +45,7 @@ public class ClonkLabelProvider extends LabelProvider implements IStyledLabelPro
 		}
 		else if (element instanceof IFolder) {
 			IFolder folder = (IFolder)element;
-			C4GroupType groupType = Utilities.groupTypeFromFolderName(folder.getName());
+			C4GroupType groupType = C4Group.groupTypeFromFolderName(folder.getName());
 			
 			if (groupType == C4GroupType.FolderGroup) {
 				return UI.FOLDER_ICON;
@@ -83,7 +83,7 @@ public class ClonkLabelProvider extends LabelProvider implements IStyledLabelPro
 	public StyledString getStyledText(Object element) {
 		if (element instanceof IFolder) {
 			IFolder folder = (IFolder)element;
-			C4GroupType groupType = Utilities.groupTypeFromFolderName(folder.getName());
+			C4GroupType groupType = C4Group.groupTypeFromFolderName(folder.getName());
 			if (groupType == C4GroupType.DefinitionGroup) {
 				// add [C4ID] to .c4d folders
 				try {

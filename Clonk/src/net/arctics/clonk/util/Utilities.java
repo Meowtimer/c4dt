@@ -16,18 +16,12 @@ import java.util.List;
 import java.util.Map;
 
 import net.arctics.clonk.ClonkCore;
-import net.arctics.clonk.index.C4Object;
-import net.arctics.clonk.index.C4ObjectExternGroup;
 import net.arctics.clonk.index.C4ObjectIntern;
 import net.arctics.clonk.index.ClonkIndex;
 import net.arctics.clonk.parser.BufferedScanner;
-import net.arctics.clonk.parser.c4script.C4Function;
 import net.arctics.clonk.parser.c4script.C4ScriptBase;
 import net.arctics.clonk.parser.c4script.C4ScriptIntern;
-import net.arctics.clonk.parser.c4script.C4Variable;
 import net.arctics.clonk.resource.ClonkProjectNature;
-import net.arctics.clonk.resource.c4group.C4Group;
-import net.arctics.clonk.resource.c4group.C4Group.C4GroupType;
 import net.arctics.clonk.ui.editors.c4script.ScriptWithStorageEditorInput;
 
 import org.eclipse.core.resources.IContainer;
@@ -38,20 +32,13 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.FileLocator;
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.Path;
-import org.eclipse.core.runtime.Platform;
-import org.eclipse.core.runtime.preferences.IScopeContext;
 import org.eclipse.jface.dialogs.MessageDialog;
-import org.eclipse.jface.resource.ImageDescriptor;
-import org.eclipse.jface.resource.ImageRegistry;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.Region;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.ITreeSelection;
 import org.eclipse.jface.viewers.TreePath;
-import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IPageLayout;
@@ -180,13 +167,6 @@ public abstract class Utilities {
 			return ((ScriptWithStorageEditorInput)editor.getEditorInput()).getScript();
 		}
 		return getScriptForFile(getEditingFile(editor));
-	}
-	
-	public static C4GroupType groupTypeFromFolderName(String name) {
-		C4GroupType result = C4Group.EXTENSION_TO_GROUP_TYPE_MAP.get(name.substring(name.lastIndexOf(".")+1).toLowerCase()); //$NON-NLS-1$
-		if (result != null)
-			return result;
-		return C4GroupType.OtherGroup;
 	}
 
 	public static boolean looksLikeID(String word) {
@@ -559,14 +539,6 @@ public abstract class Utilities {
 			desc.setNatureIds(newNatures);
 			clonkProj.setDescription(desc, null);
 		}
-	}
-	
-	public static String getPreference(String prefName, String def, IScopeContext[] contexts) {
-		return Platform.getPreferencesService().getString(ClonkCore.PLUGIN_ID, prefName, def, contexts);
-	}
-	
-	public static String getPreference(String prefName) {
-		return getPreference(prefName, null, null);
 	}
 	
 	public static void errorMessage(Throwable error, final String title) {

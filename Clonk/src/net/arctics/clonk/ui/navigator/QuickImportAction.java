@@ -52,7 +52,7 @@ public class QuickImportAction extends ClonkResourceAction implements IHandler {
 					return;
 				IContainer container = (IContainer) ssel.getFirstElement();
 				
-				String gamePath = Utilities.getPreference(PreferenceConstants.GAME_PATH);
+				String gamePath = PreferenceConstants.getPreference(PreferenceConstants.GAME_PATH);
 				
 				final FileDialog fileDialog = new FileDialog(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(), SWT.OPEN+SWT.MULTI);
 				fileDialog.setFilterPath(gamePath);

@@ -3,8 +3,6 @@ package net.arctics.clonk.ui.editors;
 
 import net.arctics.clonk.preferences.PreferenceConstants;
 import net.arctics.clonk.ui.editors.c4script.ScriptWithStorageEditorInput;
-import net.arctics.clonk.util.Utilities;
-
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IDocumentPartitioner;
@@ -35,7 +33,7 @@ public class ClonkDocumentProvider extends FileDocumentProvider {
 	@Override
 	public String getEncoding(Object element) {
 		if (element instanceof ScriptWithStorageEditorInput) {
-			return Utilities.getPreference(PreferenceConstants.EXTERNAL_INDEX_ENCODING, PreferenceConstants.EXTERNAL_INDEX_ENCODING_DEFAULT, null);
+			return PreferenceConstants.getPreference(PreferenceConstants.EXTERNAL_INDEX_ENCODING, PreferenceConstants.EXTERNAL_INDEX_ENCODING_DEFAULT, null);
 		}
 		return super.getEncoding(element);
 	}
