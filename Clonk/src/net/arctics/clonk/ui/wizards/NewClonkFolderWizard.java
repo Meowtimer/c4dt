@@ -93,7 +93,7 @@ public class NewClonkFolderWizard extends Wizard implements INewWizard {
 		IWorkspaceRoot root = ResourcesPlugin.getWorkspace().getRoot();
 		IResource resource = root.findMember(new Path(containerName));
 		if (!resource.exists() || !(resource instanceof IContainer)) {
-			throwCoreException(Messages.NewClonkFolderWizard_3 + containerName + Messages.NewClonkFolderWizard_4);
+			throwCoreException(String.format(Messages.NewClonkFolderWizard_3, containerName));
 		}
 		IContainer container = (IContainer) resource;
 		final IFolder subContainer = container.getFolder(new Path(fileName));

@@ -29,7 +29,6 @@ public class Messages extends NLS {
 	public static String NewClonkFolderWizard_1;
 	public static String NewClonkFolderWizard_2;
 	public static String NewClonkFolderWizard_3;
-	public static String NewClonkFolderWizard_4;
 	public static String NewClonkFolderWizardPage_0;
 	public static String NewClonkFolderWizardPage_1;
 	public static String NewClonkFolderWizardPage_10;

@@ -41,7 +41,7 @@ public class UnsignedInteger implements IIniEntry {
 				throw new IniParserException(IMarker.SEVERITY_WARNING, Messages.UnsignedInteger_2);
 		}
 		catch (NumberFormatException e) {
-			IniParserException exp = new IniParserException(IMarker.SEVERITY_ERROR, Messages.UnsignedInteger_3 + input + Messages.UnsignedInteger_4);
+			IniParserException exp = new IniParserException(IMarker.SEVERITY_ERROR, String.format(Messages.UnsignedInteger_3, input));
 			exp.setInnerException(e);
 			throw exp;
 		}
