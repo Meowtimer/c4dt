@@ -111,7 +111,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 		if (monitor != null) monitor.beginTask("Cleaning up", 1);
 		IProject proj = this.getProject();
 		if (proj != null) {
-			Utilities.getClonkNature(proj).getIndex().clear();
+			ClonkProjectNature.getClonkNature(proj).getIndex().clear();
 			proj.accept(new ResourceCounterAndCleaner(0));
 		}
 		if (monitor != null) {
@@ -140,7 +140,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 				this.monitor = monitor;
 				IProject proj = getProject();
 
-				Utilities.getClonkNature(proj).getIndex().notifyExternalLibsSet();
+				ClonkProjectNature.getClonkNature(proj).getIndex().notifyExternalLibsSet();
 
 				switch(kind) {
 				case AUTO_BUILD:
@@ -157,7 +157,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 						// parse
 						buildPhase = 0;
 						delta.accept(this);
-						Utilities.getClonkNature(proj).getIndex().refreshCache();
+						ClonkProjectNature.getClonkNature(proj).getIndex().refreshCache();
 						buildPhase = 1;
 						delta.accept(this);
 
@@ -165,7 +165,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 						delta.getResource().touch(monitor);
 
 						// refresh global func and static var cache
-						Utilities.getClonkNature(proj).getIndex().refreshCache();
+						ClonkProjectNature.getClonkNature(proj).getIndex().refreshCache();
 					}
 					break;
 
@@ -222,7 +222,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 						// parse declarations
 						buildPhase = 0;
 						proj.accept(this);
-						Utilities.getClonkNature(proj).getIndex().refreshCache();
+						ClonkProjectNature.getClonkNature(proj).getIndex().refreshCache();
 						if (monitor.isCanceled()) {
 							monitor.done();
 							return null;
@@ -245,7 +245,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 				monitor.subTask("Save data");
 
 				// mark index as dirty so it will be saved when eclipse is shut down
-				Utilities.getClonkNature(proj).markAsDirty();
+				ClonkProjectNature.getClonkNature(proj).markAsDirty();
 
 				monitor.done();
 
@@ -329,7 +329,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 					C4ObjectParser objParser;
 					if (delta.getResource().getName().endsWith(".c") && folder.getName().endsWith(".c4g")) {
 						script = new C4ScriptIntern(delta.getResource());
-						Utilities.getClonkNature(delta.getResource()).getIndex().addScript(script);
+						ClonkProjectNature.getClonkNature(delta.getResource()).getIndex().addScript(script);
 					}
 					else if ((objParser = C4ObjectParser.create(folder)) != null) {
 						script = objParser.createObject();
@@ -425,7 +425,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 				return true;
 			case 1:
 				// check correctness of function code
-				ClonkIndex index = Utilities.getClonkNature(resource).getIndex();
+				ClonkIndex index = ClonkProjectNature.getClonkNature(resource).getIndex();
 				C4Object obj = index.getObject((IContainer)resource);
 				IFile scriptFile = (IFile) ((obj != null) ? obj.getScriptFile() : null);
 				if (scriptFile != null) {
@@ -449,7 +449,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 					if (script == null) {
 						script = new C4ScriptIntern(resource);
 					}
-					Utilities.getClonkNature(resource).getIndex().addScript(script);
+					ClonkProjectNature.getClonkNature(resource).getIndex().addScript(script);
 					C4ScriptParser parser = getParserFor(script);
 					parser.clean();
 					parser.parseDeclarations();

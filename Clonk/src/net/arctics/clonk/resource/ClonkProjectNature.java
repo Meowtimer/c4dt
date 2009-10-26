@@ -9,12 +9,18 @@ import java.io.ObjectOutputStream;
 import java.util.List;
 
 import net.arctics.clonk.ClonkCore;
+import net.arctics.clonk.index.C4ObjectIntern;
 import net.arctics.clonk.index.ProjectIndex;
+import net.arctics.clonk.parser.c4script.C4ScriptBase;
+import net.arctics.clonk.parser.c4script.C4ScriptIntern;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IProjectNature;
+import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
+import org.eclipse.ui.part.FileEditorInput;
+import org.eclipse.ui.texteditor.ITextEditor;
 
 /**
  * project nature for Clonk projects
@@ -69,7 +75,7 @@ public class ClonkProjectNature implements IProjectNature {
 	}
 	
 	private IPath getOldIndexFileLocation() {
-		return null;
+		return project.getFile("indexdata").getLocation();
 	}
 
 	/**
@@ -101,10 +107,17 @@ public class ClonkProjectNature implements IProjectNature {
 	 * Loads the index from disk
 	 */
 	private void loadIndex() {
+		boolean oldLocation = false;
 		File indexFile = getIndexFileLocation().toFile();
 		if (!indexFile.exists()) {
-			index = new ProjectIndex(project);
-			return;
+			// fall back to old indexdata file
+			indexFile = getOldIndexFileLocation().toFile();
+			if (!indexFile.exists()) {
+				index = new ProjectIndex(project);
+				return;
+			}
+			else
+				oldLocation = true;
 		}
 		try {
 			InputStream in = new FileInputStream(indexFile);
@@ -119,6 +132,12 @@ public class ClonkProjectNature implements IProjectNature {
 				}
 			} finally {
 				in.close();
+			}
+			if (oldLocation) {
+				// old location: mark as dirty so it will be saved in the new location when shutting down
+				// also remove old file
+				markAsDirty();
+				indexFile.delete();
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -140,6 +159,57 @@ public class ClonkProjectNature implements IProjectNature {
 
 	public List<ExternalLib> getDependencies() {
 		return getIndex().getDependencies();
+	}
+	
+	/**
+	 * Returns the clonk project nature of the project the file that is being edited using the supplied editor belongs to
+	 * @param editor the editor
+	 * @return the nature
+	 */
+	public static ClonkProjectNature getClonkNature(ITextEditor editor) {
+		if (editor.getEditorInput() instanceof FileEditorInput) {
+			return getClonkNature(((FileEditorInput)editor.getEditorInput()).getFile());
+		}
+		return null;
+	}
+	
+	/**
+	 * Returns the clonk project nature associated with the project of res
+	 * @param res the resource
+	 * @return the nature
+	 */
+	public static ClonkProjectNature getClonkNature(IResource res) {
+		if (res == null) return null;
+		IProject project = res.getProject();
+		try {
+			if (project == null || !project.isOpen() || !project.hasNature(ClonkCore.CLONK_NATURE_ID))
+				return null;
+		} catch (CoreException e1) {
+			return null;
+		}
+		try {
+			IProjectNature clonkProj = project.getNature(ClonkCore.CLONK_NATURE_ID);
+			return (ClonkProjectNature) clonkProj;
+		} catch (CoreException e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
+	
+	/**
+	 * Get the clonk nature of the project the given script is contained in
+	 * @param script the script
+	 * @return the nature
+	 */
+	public static ClonkProjectNature getClonkNature(C4ScriptBase script) {
+		if (script == null)
+			return null;
+		if (script instanceof C4ObjectIntern)
+			return getClonkNature(((C4ObjectIntern)script).getObjectFolder());
+		if (script instanceof C4ScriptIntern)
+			return getClonkNature(((C4ScriptIntern)script).getScriptFile());
+		else
+			return null;
 	}
 
 }

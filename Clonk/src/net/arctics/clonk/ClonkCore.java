@@ -25,8 +25,6 @@ import net.arctics.clonk.preferences.PreferenceConstants;
 import net.arctics.clonk.resource.ClonkLibBuilder;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.resource.InputStreamRespectingUniqueIDs;
-import net.arctics.clonk.util.Utilities;
-
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResourceChangeEvent;
 import org.eclipse.core.resources.IResourceChangeListener;
@@ -364,7 +362,7 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 		ClonkProjectNature clonkProj;
 		switch (context.getKind()) {
 		case ISaveContext.PROJECT_SAVE:
-			clonkProj = Utilities.getClonkNature(context.getProject());
+			clonkProj = ClonkProjectNature.getClonkNature(context.getProject());
 			if (clonkProj != null) {
 				clonkProj.saveIndex();
 			}
@@ -374,7 +372,7 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 			for (IProject project : ResourcesPlugin.getWorkspace().getRoot().getProjects()) {
 				if (!project.isOpen())
 					continue;
-				clonkProj = Utilities.getClonkNature(project);
+				clonkProj = ClonkProjectNature.getClonkNature(project);
 				if (clonkProj != null) {
 					clonkProj.saveIndex();
 				}
@@ -446,7 +444,7 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 			case IResourceChangeEvent.PRE_DELETE:
 				// delete old index - could be renamed i guess but renaming a project is not exactly a common activity
 				if (event.getResource() instanceof IProject && ((IProject)event.getResource()).hasNature(CLONK_NATURE_ID)) {
-					ClonkProjectNature proj = Utilities.getClonkNature(event.getResource());
+					ClonkProjectNature proj = ClonkProjectNature.getClonkNature(event.getResource());
 					proj.getIndexFileLocation().toFile().delete();
 				}
 			}

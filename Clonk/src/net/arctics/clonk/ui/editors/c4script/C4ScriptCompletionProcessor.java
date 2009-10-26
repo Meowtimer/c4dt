@@ -179,7 +179,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 		if (prefix != null)
 			prefix = prefix.toLowerCase();
 		
-		ClonkProjectNature nature = Utilities.getClonkNature(editor);
+		ClonkProjectNature nature = ClonkProjectNature.getClonkNature(editor);
 		List<String> statusMessages = new ArrayList<String>(4);
 		List<ICompletionProposal> proposals = new ArrayList<ICompletionProposal>();
 		ClonkIndex index = nature.getIndex();

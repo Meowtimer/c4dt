@@ -6,6 +6,7 @@ import java.security.InvalidParameterException;
 
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.C4ID;
+import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.util.Utilities;
 
 import org.eclipse.core.resources.IContainer;
@@ -98,7 +99,7 @@ public class C4ObjectIntern extends C4Object implements Serializable {
 	 * The file on the harddisk is not deleted. (delete it by IResource.delete(true,null))
 	 */
 	public void delete() {
-		Utilities.getClonkNature(objectFolder.getProject()).getIndex().removeObject(this);
+		ClonkProjectNature.getClonkNature(objectFolder.getProject()).getIndex().removeObject(this);
 	}
 	
 	public void setObjectFolder(IContainer folder) throws CoreException {
@@ -120,7 +121,7 @@ public class C4ObjectIntern extends C4Object implements Serializable {
 	@Override
 	public ClonkIndex getIndex() {
 		try {
-			return Utilities.getClonkNature(this).getIndex();
+			return ClonkProjectNature.getClonkNature(this).getIndex();
 		} catch (Exception e) {
 			System.out.println(getName() + ": " + this.relativePath);
 			e.printStackTrace();

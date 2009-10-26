@@ -65,7 +65,7 @@ public class ProjectIndex extends ClonkIndex {
 	}
 	
 	public ClonkProjectNature getNature() {
-		return Utilities.getClonkNature(project);
+		return ClonkProjectNature.getClonkNature(project);
 	}
 	
 	public void notifyExternalLibsSet() {

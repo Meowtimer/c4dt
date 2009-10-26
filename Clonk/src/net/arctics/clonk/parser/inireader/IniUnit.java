@@ -2,6 +2,8 @@ package net.arctics.clonk.parser.inireader;
 
 import java.io.InputStream;
 import java.io.InvalidClassException;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -27,6 +29,8 @@ import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
+import org.eclipse.core.runtime.content.IContentType;
+import org.eclipse.ui.ide.IDE;
 
 /**
  * Reads Windows ini style configuration files
@@ -413,7 +417,7 @@ public class IniUnit extends C4Structure implements Iterable<IniSection>, IHasCh
 	public static void register() {
 		C4Structure.registerStructureFactory(new IStructureFactory() {
 			public C4Structure create(IFile file) {
-				Class<? extends IniUnit> iniUnitClass = Utilities.getIniUnitClass(file);
+				Class<? extends IniUnit> iniUnitClass = getIniUnitClass(file);
 				if (iniUnitClass != null) {
 					try {
 						IniUnit reader = iniUnitClass.getConstructor(IFile.class).newInstance(file);
@@ -428,4 +432,44 @@ public class IniUnit extends C4Structure implements Iterable<IniSection>, IHasCh
 		});
 	}
 	
+	public static IniUnit createAdequateIniUnit(IFile file) throws SecurityException, NoSuchMethodException, IllegalArgumentException, InstantiationException, IllegalAccessException, InvocationTargetException {
+		return createAdequateIniUnit(file, file);
+	}
+
+	public static IniUnit createAdequateIniUnit(IFile file, Object arg) throws SecurityException, NoSuchMethodException, IllegalArgumentException, InstantiationException, IllegalAccessException, InvocationTargetException {
+		Class<? extends IniUnit> cls = getIniUnitClass(file);
+		if (cls == null)
+			return null;
+		Class<?> neededArgType =
+			arg instanceof String
+				? String.class
+				: arg instanceof IFile
+					? IFile.class
+					: InputStream.class;
+		Constructor<? extends IniUnit> ctor = cls.getConstructor(neededArgType);
+		IniUnit result = ctor.newInstance(arg);
+		result.setIniFile(file);
+		return result;
+	}
+
+	private static Map<String, Class<? extends IniUnit>> INIREADER_CLASSES = Utilities.map(new Object[] {
+		ClonkCore.id("scenariocfg"), ScenarioUnit.class, //$NON-NLS-1$
+		ClonkCore.id("actmap")     , ActMapUnit.class, //$NON-NLS-1$
+		ClonkCore.id("defcore")    , DefCoreUnit.class, //$NON-NLS-1$
+		ClonkCore.id("particle")   , ParticleUnit.class, //$NON-NLS-1$
+		ClonkCore.id("material")   , MaterialUnit.class //$NON-NLS-1$
+	});
+
+	/**
+	 * Returns the IniUnit class that is best suited to parsing the given ini file
+	 * @param file the ini file to return an IniUnit class for
+	 * @return the IniUnit class or null if no suitable one could be found
+	 */
+	public static Class<? extends IniUnit> getIniUnitClass(IFile file) {
+		IContentType contentType = IDE.getContentType(file);
+		if (contentType == null)
+			return null;
+		return INIREADER_CLASSES.get(contentType.getId());
+	}
+
 }

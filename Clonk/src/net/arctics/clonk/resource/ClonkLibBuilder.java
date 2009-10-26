@@ -280,7 +280,7 @@ public class ClonkLibBuilder implements IC4GroupVisitor, IPropertyChangeListener
 				o.chooseLocalizedName();
 			}
 			for (IProject proj : Utilities.getClonkProjects()) {
-				for (C4Object obj : Utilities.getClonkNature(proj).getIndex()) {
+				for (C4Object obj : ClonkProjectNature.getClonkNature(proj).getIndex()) {
 					obj.chooseLocalizedName();
 				}
 			}
@@ -290,7 +290,7 @@ public class ClonkLibBuilder implements IC4GroupVisitor, IPropertyChangeListener
 	private void refresh() {
 		ClonkCore.getDefault().getExternIndex().refreshCache();
 		for (IProject p : Utilities.getClonkProjects()) {
-			Utilities.getClonkNature(p).getIndex().notifyExternalLibsSet();
+			ClonkProjectNature.getClonkNature(p).getIndex().notifyExternalLibsSet();
 		}
 	}
 

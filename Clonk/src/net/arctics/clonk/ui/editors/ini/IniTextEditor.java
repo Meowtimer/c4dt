@@ -31,7 +31,7 @@ public class IniTextEditor extends ClonkTextEditor {
 		if (!unitParsed) {
 			unitParsed = true;
 			try {
-				unit = Utilities.createAdequateIniUnit(Utilities.getEditingFile(this), getDocumentProvider().getDocument(getEditorInput()).get());
+				unit = IniUnit.createAdequateIniUnit(Utilities.getEditingFile(this), getDocumentProvider().getDocument(getEditorInput()).get());
 				unit.parse(false);
 			} catch (Exception e) {
 				e.printStackTrace();

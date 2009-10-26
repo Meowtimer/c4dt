@@ -5,6 +5,7 @@ import java.util.LinkedList;
 import java.util.Map;
 
 import net.arctics.clonk.ClonkCore;
+import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.util.Utilities;
 
 import org.eclipse.core.resources.IProject;
@@ -54,7 +55,7 @@ public class ClonkProjectProperties extends FieldEditorPreferencePage implements
 		@SuppressWarnings("unchecked")
 		public void commit(String n, String v) {
 			if (n.equals(DEPENDENCIES_PROPERTY)) {
-				Utilities.getClonkNature(getProject()).getIndex().setDependencyNames(Utilities.collectionFromArray(LinkedList.class, !v.equals("") ? v.split("<>") : new String[0])); //$NON-NLS-1$ //$NON-NLS-2$
+				ClonkProjectNature.getClonkNature(getProject()).getIndex().setDependencyNames(Utilities.collectionFromArray(LinkedList.class, !v.equals("") ? v.split("<>") : new String[0])); //$NON-NLS-1$ //$NON-NLS-2$
 			} else if (n.equals(SHOWSDEPENDENCIES_PROPERTY)) {
 				try {
 					Utilities.setShowsDependencies(getProject(), Boolean.parseBoolean(v));
@@ -65,7 +66,7 @@ public class ClonkProjectProperties extends FieldEditorPreferencePage implements
 		}
 		
 		public AdapterStore() throws CoreException {
-			values.put(DEPENDENCIES_PROPERTY, stringFromIterable(Utilities.getClonkNature(getProject()).getIndex().getDependencyNames()));
+			values.put(DEPENDENCIES_PROPERTY, stringFromIterable(ClonkProjectNature.getClonkNature(getProject()).getIndex().getDependencyNames()));
 			values.put(SHOWSDEPENDENCIES_PROPERTY, String.valueOf(getProject().hasNature(ClonkCore.CLONK_DEPS_NATURE_ID)));
 		}
 	}

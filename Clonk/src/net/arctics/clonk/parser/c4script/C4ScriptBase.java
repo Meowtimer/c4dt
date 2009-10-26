@@ -59,6 +59,10 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
+/**
+ * Base class for various objects that act as containers of stuff declared in scripts.
+ * Subclasses include C4Object, C4StandaloneScript etc.
+ */
 public abstract class C4ScriptBase extends C4Structure implements IHasRelatedResource, ITreeNode {
 
 	private static final long serialVersionUID = 1L;
@@ -303,15 +307,9 @@ public abstract class C4ScriptBase extends C4Structure implements IHasRelatedRes
 		if (field.getScript() != this) field.setScript(this);
 		if (field instanceof C4Function) {
 			definedFunctions.remove((C4Function)field);
-			//			for(IC4ObjectListener listener : changeListeners) {
-			//				listener.fieldRemoved(this, field);
-			//			}
 		}
 		else if (field instanceof C4Variable) {
 			definedVariables.remove((C4Variable)field);
-			//			for(IC4ObjectListener listener : changeListeners) {
-			//				listener.fieldRemoved(this, field);
-			//			}
 		}
 	}
 
@@ -329,14 +327,6 @@ public abstract class C4ScriptBase extends C4Structure implements IHasRelatedRes
 	public void setName(String name) {
 		this.name = name;
 	}
-
-	//	public void addListener(IC4ObjectListener listener) {
-	//		changeListeners.add(listener);
-	//	}
-	//	
-	//	public void removeListener(IC4ObjectListener listener) {
-	//		changeListeners.remove(listener);
-	//	}
 
 	public abstract Object getScriptFile();
 

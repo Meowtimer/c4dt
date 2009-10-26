@@ -6,7 +6,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.lang.reflect.Array;
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Collection;
 import java.util.Collections;
@@ -26,12 +25,6 @@ import net.arctics.clonk.parser.c4script.C4Function;
 import net.arctics.clonk.parser.c4script.C4ScriptBase;
 import net.arctics.clonk.parser.c4script.C4ScriptIntern;
 import net.arctics.clonk.parser.c4script.C4Variable;
-import net.arctics.clonk.parser.inireader.ActMapUnit;
-import net.arctics.clonk.parser.inireader.DefCoreUnit;
-import net.arctics.clonk.parser.inireader.IniUnit;
-import net.arctics.clonk.parser.inireader.MaterialUnit;
-import net.arctics.clonk.parser.inireader.ParticleUnit;
-import net.arctics.clonk.parser.inireader.ScenarioUnit;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.resource.c4group.C4Group;
 import net.arctics.clonk.resource.c4group.C4Group.C4GroupType;
@@ -41,7 +34,6 @@ import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IProjectDescription;
-import org.eclipse.core.resources.IProjectNature;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.resources.ResourcesPlugin;
@@ -50,7 +42,6 @@ import org.eclipse.core.runtime.FileLocator;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Platform;
-import org.eclipse.core.runtime.content.IContentType;
 import org.eclipse.core.runtime.preferences.IScopeContext;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.resource.ImageDescriptor;
@@ -78,11 +69,9 @@ import org.eclipse.ui.console.IConsoleView;
 import org.eclipse.ui.console.MessageConsole;
 import org.eclipse.ui.console.MessageConsoleStream;
 import org.eclipse.ui.editors.text.TextFileDocumentProvider;
-import org.eclipse.ui.ide.IDE;
 import org.eclipse.ui.navigator.CommonNavigator;
 import org.eclipse.ui.navigator.CommonViewer;
 import org.eclipse.ui.part.FileEditorInput;
-import org.eclipse.ui.texteditor.ITextEditor;
 
 /**
  * Contains various utility functions
@@ -94,57 +83,9 @@ public abstract class Utilities {
 	private static MessageConsoleStream debugConsoleStream = null;
 	
 	/**
-	 * Returns the clonk project nature of the project the file that is being edited using the supplied editor belongs to
-	 * @param editor the editor
-	 * @return the nature
+	 * All Clonk projects in the current workspace
+	 * @return array containing the Clonk projects
 	 */
-	public static ClonkProjectNature getClonkNature(ITextEditor editor) {
-		if (editor.getEditorInput() instanceof FileEditorInput) {
-			return getClonkNature(((FileEditorInput)editor.getEditorInput()).getFile());
-		}
-		return null;
-	}
-	
-	/**
-	 * Returns the clonk project nature associated with the project of res
-	 * @param res the resource
-	 * @return the nature
-	 */
-	public static ClonkProjectNature getClonkNature(IResource res) {
-		if (res == null) return null;
-		IProject project = res.getProject();
-		try {
-			if (project == null || !project.isOpen() || !project.hasNature(ClonkCore.CLONK_NATURE_ID))
-				return null;
-		} catch (CoreException e1) {
-			return null;
-		}
-		try {
-			IProjectNature clonkProj = project.getNature(ClonkCore.CLONK_NATURE_ID);
-			return (ClonkProjectNature) clonkProj;
-		} catch (CoreException e) {
-			e.printStackTrace();
-			return null;
-		}
-	}
-	
-	/**
-	 * Get the clonk nature of the project the given script is contained in
-	 * @param script the script
-	 * @return the nature
-	 */
-	public static ClonkProjectNature getClonkNature(C4ScriptBase script) {
-		if (script == null)
-			return null;
-		if (script instanceof C4ObjectIntern)
-			return getClonkNature(((C4ObjectIntern)script).getObjectFolder());
-		if (script instanceof C4ScriptIntern)
-			return getClonkNature(((C4ScriptIntern)script).getScriptFile());
-		else
-			return null;
-	}
-	
-	/** @return All Clonk projects in the current workspace */
 	public static IProject[] getClonkProjects() {
 		IWorkspaceRoot root = ResourcesPlugin.getWorkspace().getRoot();
 		IProject[] projects = root.getProjects();
@@ -152,7 +93,7 @@ public abstract class Utilities {
 		// Filter out all projects with Clonk nature
 		Collection<IProject> c = new LinkedList<IProject>();
 		for(IProject proj : projects)
-			if (getClonkNature(proj) != null)
+			if (ClonkProjectNature.getClonkNature(proj) != null)
 				c.add(proj);
 			
 		return c.toArray(new IProject [c.size()]);
@@ -204,7 +145,7 @@ public abstract class Utilities {
 	
 	public static ClonkIndex getIndex(IResource res) {
 		if (res != null) {
-			ClonkProjectNature nature = getClonkNature(res);
+			ClonkProjectNature nature = ClonkProjectNature.getClonkNature(res);
 			if (nature != null) {
 				return nature.getIndex();
 			}
@@ -295,10 +236,6 @@ public abstract class Utilities {
 		if (result != null)
 			return result;
 		return C4GroupType.OtherGroup;
-	}
-	
-	public static boolean c4FilenameExtensionIs(String filename, String ext) {
-		return filename.endsWith(ext);
 	}
 
 	public static boolean looksLikeID(String word) {
@@ -427,26 +364,6 @@ public abstract class Utilities {
 		return mapOfType((Class<? extends Map<KeyType, ValueType>>) c, keysAndValues);
 	}
 	
-	private static Map<String, Class<? extends IniUnit>> INIREADER_CLASSES = map(new Object[] {
-		ClonkCore.id("scenariocfg"), ScenarioUnit.class, //$NON-NLS-1$
-		ClonkCore.id("actmap")     , ActMapUnit.class, //$NON-NLS-1$
-		ClonkCore.id("defcore")    , DefCoreUnit.class, //$NON-NLS-1$
-		ClonkCore.id("particle")   , ParticleUnit.class, //$NON-NLS-1$
-		ClonkCore.id("material")   , MaterialUnit.class //$NON-NLS-1$
-	});
-
-	/**
-	 * Returns the IniUnit class that is best suited to parsing the given ini file
-	 * @param file the ini file to return an IniUnit class for
-	 * @return the IniUnit class or null if no suitable one could be found
-	 */
-	public static Class<? extends IniUnit> getIniUnitClass(IFile file) {
-		IContentType contentType = IDE.getContentType(file);
-		if (contentType == null)
-			return null;
-		return INIREADER_CLASSES.get(contentType.getId());
-	}
-	
 	public static boolean allInstanceOf(Object[] objects, Class<?> cls) {
 		for (Object item : objects)
 			if (!(cls.isAssignableFrom(item.getClass())))
@@ -467,26 +384,6 @@ public abstract class Utilities {
 		final T[] result = (T[]) Array.newInstance(a.getClass().getComponentType(), alen+blen);
 		System.arraycopy(a, 0, result, 0, alen);
 		System.arraycopy(b, 0, result, alen, blen);
-		return result;
-	}
-	
-	public static IniUnit createAdequateIniUnit(IFile file) throws SecurityException, NoSuchMethodException, IllegalArgumentException, InstantiationException, IllegalAccessException, InvocationTargetException {
-		return createAdequateIniUnit(file, file);
-	}
-
-	public static IniUnit createAdequateIniUnit(IFile file, Object arg) throws SecurityException, NoSuchMethodException, IllegalArgumentException, InstantiationException, IllegalAccessException, InvocationTargetException {
-		Class<? extends IniUnit> cls = getIniUnitClass(file);
-		if (cls == null)
-			return null;
-		Class<?> neededArgType =
-			arg instanceof String
-				? String.class
-				: arg instanceof IFile
-					? IFile.class
-					: InputStream.class;
-		Constructor<? extends IniUnit> ctor = cls.getConstructor(neededArgType);
-		IniUnit result = ctor.newInstance(arg);
-		result.setIniFile(file);
 		return result;
 	}
 
@@ -516,7 +413,7 @@ public abstract class Utilities {
 			monitor.beginTask(Messages.Utilities_9, projects.length);
 		int work = 0;
 		for (IProject p : projects) {
-			if (Utilities.getClonkNature(p) != null)
+			if (ClonkProjectNature.getClonkNature(p) != null)
 				p.refreshLocal(IResource.DEPTH_INFINITE, monitor);
 			monitor.worked(work++);
 		}

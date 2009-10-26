@@ -6,8 +6,6 @@ import net.arctics.clonk.parser.C4Declaration;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.ui.editors.IClonkCommandIds;
 import net.arctics.clonk.ui.search.ClonkSearchQuery;
-import net.arctics.clonk.util.Utilities;
-
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.search.ui.NewSearchUI;
 import org.eclipse.ui.texteditor.ITextEditor;
@@ -24,9 +22,9 @@ public class FindReferencesAction extends OpenDeclarationAction {
 		try {
 			C4Declaration field = getDeclarationAtSelection();
 			if (field != null) {
-				ClonkProjectNature nature = Utilities.getClonkNature(field.getScript());				
+				ClonkProjectNature nature = ClonkProjectNature.getClonkNature(field.getScript());				
 				if (nature == null) {
-					nature = Utilities.getClonkNature(getTextEditor()); 
+					nature = ClonkProjectNature.getClonkNature(getTextEditor()); 
 				}
 				if (nature == null) {
 					MessageDialog.openError(getTextEditor().getSite().getShell(), Messages.FindReferencesAction_0, Messages.FindReferencesAction_1);

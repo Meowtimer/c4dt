@@ -3,9 +3,8 @@ package net.arctics.clonk.index;
 import net.arctics.clonk.parser.C4Structure;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.inireader.DefCoreUnit;
+import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.resource.c4group.C4Group;
-import net.arctics.clonk.util.Utilities;
-
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
 
@@ -72,7 +71,7 @@ public class C4ObjectParser {
 	}
 	
 	public void parseScript(C4ScriptParser scriptParser) {
-		ClonkIndex index = Utilities.getClonkNature(objectFolder).getIndex();
+		ClonkIndex index = ClonkProjectNature.getClonkNature(objectFolder).getIndex();
 		IFile script = object.getScriptFile();
 		if (script != null) {
 			if (scriptParser == null)

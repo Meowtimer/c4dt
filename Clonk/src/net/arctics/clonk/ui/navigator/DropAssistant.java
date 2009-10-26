@@ -2,8 +2,7 @@ package net.arctics.clonk.ui.navigator;
 
 import net.arctics.clonk.ClonkCore;
 
-import net.arctics.clonk.util.Utilities;
-
+import net.arctics.clonk.resource.ClonkProjectNature;
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
@@ -21,7 +20,7 @@ public class DropAssistant extends CommonDropAdapterAssistant {
 
 	@Override
 	public IStatus handleDrop(CommonDropAdapter dropAdapter, DropTargetEvent dropTargetEvent, Object target) {
-		if (target instanceof IContainer && Utilities.getClonkNature(((IContainer)target).getProject()) != null &&
+		if (target instanceof IContainer && ClonkProjectNature.getClonkNature(((IContainer)target).getProject()) != null &&
 			dropTargetEvent.dataTypes.length == 1 &&
 			FileTransfer.getInstance().isSupportedType(dropTargetEvent.dataTypes[0]))
 		{
@@ -55,7 +54,7 @@ public class DropAssistant extends CommonDropAdapterAssistant {
 //			}
 //		}
 //		if (target instanceof IContainer && ResourceTransfer.getInstance().isSupportedType(transferType)) {
-//			ClonkProjectNature nature = Utilities.getClonkNature((ITextEditor) target);
+//			ClonkProjectNature nature = ClonkProjectNature.getClonkNature((ITextEditor) target);
 //			if (nature != null) {
 //				for (ExternalLib lib : nature.getDependencies()) {
 //					//if (lib.getPath())

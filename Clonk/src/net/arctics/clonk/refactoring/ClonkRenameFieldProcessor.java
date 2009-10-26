@@ -11,11 +11,10 @@ import net.arctics.clonk.parser.c4script.C4Function;
 import net.arctics.clonk.parser.c4script.C4ScriptBase;
 import net.arctics.clonk.parser.c4script.FindDeclarationInfo;
 import net.arctics.clonk.parser.inireader.IniUnit;
+import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.ui.search.ClonkSearchMatch;
 import net.arctics.clonk.ui.search.ClonkSearchQuery;
 import net.arctics.clonk.ui.search.ClonkSearchResult;
-import net.arctics.clonk.util.Utilities;
-
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
@@ -74,7 +73,7 @@ public class ClonkRenameFieldProcessor extends RenameProcessor {
 		if (!(script instanceof IResource))
 			return null;
 		IResource declaringFile = (IResource) script;
-		ClonkSearchQuery query = new ClonkSearchQuery(decl, Utilities.getClonkNature(declaringFile));
+		ClonkSearchQuery query = new ClonkSearchQuery(decl, ClonkProjectNature.getClonkNature(declaringFile));
 		query.run(monitor);
 		ClonkSearchResult searchResult = (ClonkSearchResult) query.getSearchResult();
 		// all references in code

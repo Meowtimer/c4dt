@@ -44,7 +44,7 @@ public class ClonkNavigator extends ClonkOutlineProvider {
 		else if (element instanceof IProject) {
 			try {
 				if (((IProject) element).hasNature(ClonkCore.CLONK_DEPS_NATURE_ID)) {
-					ClonkProjectNature clonkProj = Utilities.getClonkNature((IResource)element);
+					ClonkProjectNature clonkProj = ClonkProjectNature.getClonkNature((IResource)element);
 					List<ExternalLib> deps = clonkProj != null
 						? clonkProj.getDependencies()
 						: ClonkCore.getDefault().getExternIndex().getLibs();

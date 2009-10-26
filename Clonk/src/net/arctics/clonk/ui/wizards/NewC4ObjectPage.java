@@ -5,8 +5,6 @@ import java.util.List;
 import net.arctics.clonk.index.C4Object;
 import net.arctics.clonk.parser.C4ID;
 import net.arctics.clonk.resource.ClonkProjectNature;
-import net.arctics.clonk.util.Utilities;
-
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Text;
@@ -50,7 +48,7 @@ public class NewC4ObjectPage extends NewClonkFolderWizardPage {
 			return;
 		}
 		else {
-			ClonkProjectNature nature = Utilities.getClonkNature(project);
+			ClonkProjectNature nature = ClonkProjectNature.getClonkNature(project);
 			if (nature != null) {
 				List<C4Object> objects = nature.getIndex().getObjects(C4ID.getID(c4idText.getText()));
 				if (objects != null && !objects.isEmpty()) {

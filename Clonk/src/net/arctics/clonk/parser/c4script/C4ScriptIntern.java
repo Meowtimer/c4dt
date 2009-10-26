@@ -17,9 +17,6 @@ import org.eclipse.core.runtime.CoreException;
  */
 public class C4ScriptIntern extends C4ScriptBase implements Serializable {
 
-	/**
-	 * 
-	 */
 	private static final long serialVersionUID = 1L;
 	
 	private transient IResource scriptFile;
@@ -32,7 +29,7 @@ public class C4ScriptIntern extends C4ScriptBase implements Serializable {
 
 	@Override
 	public ClonkIndex getIndex() {
-		ClonkProjectNature nature = Utilities.getClonkNature(scriptFile);
+		ClonkProjectNature nature = ClonkProjectNature.getClonkNature(scriptFile);
 		return nature != null ? nature.getIndex() : null;
 	}
 
