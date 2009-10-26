@@ -49,18 +49,18 @@ public class XMLDocImporter {
 	private XPathExpression parmsExpr;
 	private XPathExpression descExpr;
 	
-	private static Pattern TITLE_PATTERN = Pattern.compile("\\<title\\>(.*)\\<\\/title\\>");
+	private static Pattern TITLE_PATTERN = Pattern.compile("\\<title\\>(.*)\\<\\/title\\>"); //$NON-NLS-1$
 	
 	public XMLDocImporter() {
 		super();
 		try {
-			parmNameExpr = xPath.compile("./name");
-			parmTypeExpr = xPath.compile("./type");
-			parmDescExpr = xPath.compile("./desc");
-			titleExpr = xPath.compile("./func/title[1]");
-			rtypeExpr = xPath.compile("./func/syntax/rtype[1]");
-			parmsExpr = xPath.compile("./func/syntax/params/param");
-			descExpr = xPath.compile("./func/desc[1]");
+			parmNameExpr = xPath.compile("./name"); //$NON-NLS-1$
+			parmTypeExpr = xPath.compile("./type"); //$NON-NLS-1$
+			parmDescExpr = xPath.compile("./desc"); //$NON-NLS-1$
+			titleExpr = xPath.compile("./func/title[1]"); //$NON-NLS-1$
+			rtypeExpr = xPath.compile("./func/syntax/rtype[1]"); //$NON-NLS-1$
+			parmsExpr = xPath.compile("./func/syntax/params/param"); //$NON-NLS-1$
+			descExpr = xPath.compile("./func/desc[1]"); //$NON-NLS-1$
 		} catch (XPathExpressionException e) {
 			e.printStackTrace();
 		}
@@ -68,7 +68,7 @@ public class XMLDocImporter {
 			builder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
 			builder.setEntityResolver(new EntityResolver() {	
 				public InputSource resolveEntity(String publicId, String systemId) throws SAXException, IOException {
-					if (systemId.endsWith("clonk.dtd"))
+					if (systemId.endsWith("clonk.dtd")) //$NON-NLS-1$
 						return clonkDTD;
 					return null;
 				}
@@ -85,7 +85,7 @@ public class XMLDocImporter {
 	public void setRepositoryPath(String repositoryPath) {
 		this.repositoryPath = repositoryPath;
 		try {
-			clonkDTD = new InputSource(new FileReader(repositoryPath + "/docs/clonk.dtd"));
+			clonkDTD = new InputSource(new FileReader(repositoryPath + "/docs/clonk.dtd")); //$NON-NLS-1$
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		}
@@ -95,10 +95,10 @@ public class XMLDocImporter {
 		
 		String text = Utilities.stringFromInputStream(stream);
 		// get rid of pesky meta information
-		text = text.replaceAll("\\<\\?.*\\?\\>", "").replaceAll("\\<\\!.*\\>", "");
+		text = text.replaceAll("\\<\\?.*\\?\\>", "").replaceAll("\\<\\!.*\\>", ""); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
 		Document doc;
 		try {
-			doc = builder.parse(new ByteArrayInputStream(text.getBytes("UTF-8")));
+			doc = builder.parse(new ByteArrayInputStream(text.getBytes("UTF-8"))); //$NON-NLS-1$
 		} catch (SAXException e) {
 			Matcher m = TITLE_PATTERN.matcher(text);
 			if (m.find()) {

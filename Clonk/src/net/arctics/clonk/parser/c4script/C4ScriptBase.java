@@ -581,7 +581,7 @@ public abstract class C4ScriptBase extends C4Structure implements IHasRelatedRes
 				return null;
 			IContainer container = res instanceof IContainer ? (IContainer) res : res.getParent();
 			String pref = ClonkCore.getDefault().getLanguagePref();
-			IResource tblFile = Utilities.findMemberCaseInsensitively(container, "StringTbl"+pref+".txt");
+			IResource tblFile = Utilities.findMemberCaseInsensitively(container, "StringTbl"+pref+".txt"); //$NON-NLS-1$ //$NON-NLS-2$
 			if (tblFile instanceof IFile)
 				return (StringTbl) C4Structure.pinned((IFile) tblFile, true);
 		} catch (CoreException e) {
@@ -591,35 +591,35 @@ public abstract class C4ScriptBase extends C4Structure implements IHasRelatedRes
 	}
 
 	public void exportAsXML(Writer writer) throws IOException {
-		writer.write("<script>\n");
-		writer.write("\t<functions>\n");
+		writer.write("<script>\n"); //$NON-NLS-1$
+		writer.write("\t<functions>\n"); //$NON-NLS-1$
 		for (C4Function f : functions()) {
-			writer.write(String.format("\t\t<function name=\"%s\" return=\"%s\">\n", f.getName(), f.getReturnType().toString()));
-			writer.write("\t\t\t<parameters>\n");
+			writer.write(String.format("\t\t<function name=\"%s\" return=\"%s\">\n", f.getName(), f.getReturnType().toString())); //$NON-NLS-1$
+			writer.write("\t\t\t<parameters>\n"); //$NON-NLS-1$
 			for (C4Variable p : f.getParameters()) {
-				writer.write(String.format("\t\t\t\t<parameter name=\"%s\" type=\"%s\" />\n", p.getName(), p.getType().toString(true)));
+				writer.write(String.format("\t\t\t\t<parameter name=\"%s\" type=\"%s\" />\n", p.getName(), p.getType().toString(true))); //$NON-NLS-1$
 			}
-			writer.write("\t\t\t</parameters>\n");
+			writer.write("\t\t\t</parameters>\n"); //$NON-NLS-1$
 			if (f.getUserDescription() != null) {
-				writer.write("\t\t\t<description>");
+				writer.write("\t\t\t<description>"); //$NON-NLS-1$
 				writer.write(f.getUserDescription());
-				writer.write("</description>\n");
+				writer.write("</description>\n"); //$NON-NLS-1$
 			}
-			writer.write("\t\t</function>\n");
+			writer.write("\t\t</function>\n"); //$NON-NLS-1$
 		}
-		writer.write("\t</functions>\n");
-		writer.write("\t<variables>\n");
+		writer.write("\t</functions>\n"); //$NON-NLS-1$
+		writer.write("\t<variables>\n"); //$NON-NLS-1$
 		for (C4Variable v : variables()) {
-			writer.write(String.format("\t\t<variable name=\"%s\" type=\"%s\" const=\"%s\">\n", v.getName(), v.getType().toString(true), Boolean.valueOf(v.getScope() == C4VariableScope.VAR_CONST)));
+			writer.write(String.format("\t\t<variable name=\"%s\" type=\"%s\" const=\"%s\">\n", v.getName(), v.getType().toString(true), Boolean.valueOf(v.getScope() == C4VariableScope.VAR_CONST))); //$NON-NLS-1$
 			if (v.getUserDescription() != null) {
-				writer.write("\t\t\t<description>\n");
-				writer.write("\t\t\t\t"+v.getUserDescription()+"\n");
-				writer.write("\t\t\t</description>\n");
+				writer.write("\t\t\t<description>\n"); //$NON-NLS-1$
+				writer.write("\t\t\t\t"+v.getUserDescription()+"\n"); //$NON-NLS-1$ //$NON-NLS-2$
+				writer.write("\t\t\t</description>\n"); //$NON-NLS-1$
 			}
-			writer.write("\t\t</variable>\n");
+			writer.write("\t\t</variable>\n"); //$NON-NLS-1$
 		}
-		writer.write("\t</variables>\n");
-		writer.write("</script>\n");
+		writer.write("\t</variables>\n"); //$NON-NLS-1$
+		writer.write("</script>\n"); //$NON-NLS-1$
 	}
 
 	public void importFromXML(InputStream stream) throws ParserConfigurationException, SAXException, IOException, XPathExpressionException {
@@ -630,26 +630,26 @@ public abstract class C4ScriptBase extends C4Structure implements IHasRelatedRes
 		DocumentBuilder builder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
 		Document doc = builder.parse(stream);
 
-		NodeList functions = (NodeList) xPath.evaluate("./functions/function", doc.getFirstChild(), XPathConstants.NODESET);
-		NodeList variables = (NodeList) xPath.evaluate("./variables/variable", doc.getFirstChild(), XPathConstants.NODESET);
+		NodeList functions = (NodeList) xPath.evaluate("./functions/function", doc.getFirstChild(), XPathConstants.NODESET); //$NON-NLS-1$
+		NodeList variables = (NodeList) xPath.evaluate("./variables/variable", doc.getFirstChild(), XPathConstants.NODESET); //$NON-NLS-1$
 		for (int i = 0; i < functions.getLength(); i++) {
 			Node function = functions.item(i);
-			NodeList parms = (NodeList) xPath.evaluate("./parameters/parameter", function, XPathConstants.NODESET);
+			NodeList parms = (NodeList) xPath.evaluate("./parameters/parameter", function, XPathConstants.NODESET); //$NON-NLS-1$
 			C4Variable[] p = new C4Variable[parms.getLength()];
 			for (int j = 0; j < p.length; j++) {
-				p[j] = new C4Variable(parms.item(j).getAttributes().getNamedItem("name").getNodeValue(), C4Type.makeType(parms.item(j).getAttributes().getNamedItem("type").getNodeValue(), true));
+				p[j] = new C4Variable(parms.item(j).getAttributes().getNamedItem("name").getNodeValue(), C4Type.makeType(parms.item(j).getAttributes().getNamedItem("type").getNodeValue(), true)); //$NON-NLS-1$ //$NON-NLS-2$
 			}
-			C4Function f = new C4Function(function.getAttributes().getNamedItem("name").getNodeValue(), C4Type.makeType(function.getAttributes().getNamedItem("return").getNodeValue(), true), p);
-			Node desc = (Node) xPath.evaluate("./description[1]", function, XPathConstants.NODE);
+			C4Function f = new C4Function(function.getAttributes().getNamedItem("name").getNodeValue(), C4Type.makeType(function.getAttributes().getNamedItem("return").getNodeValue(), true), p); //$NON-NLS-1$ //$NON-NLS-2$
+			Node desc = (Node) xPath.evaluate("./description[1]", function, XPathConstants.NODE); //$NON-NLS-1$
 			if (desc != null)
 				f.setUserDescription(desc.getTextContent());
 			this.addDeclaration(f);
 		}
 		for (int i = 0; i < variables.getLength(); i++) {
 			Node variable = variables.item(i);
-			C4Variable v = new C4Variable(variable.getAttributes().getNamedItem("name").getNodeValue(), C4Type.makeType(variable.getAttributes().getNamedItem("type").getNodeValue(), true));
-			v.setScope(variable.getAttributes().getNamedItem("const").getNodeValue().equals(Boolean.TRUE.toString()) ? C4VariableScope.VAR_CONST : C4VariableScope.VAR_STATIC);
-			Node desc = (Node) xPath.evaluate("./description[1]", variable, XPathConstants.NODE);
+			C4Variable v = new C4Variable(variable.getAttributes().getNamedItem("name").getNodeValue(), C4Type.makeType(variable.getAttributes().getNamedItem("type").getNodeValue(), true)); //$NON-NLS-1$ //$NON-NLS-2$
+			v.setScope(variable.getAttributes().getNamedItem("const").getNodeValue().equals(Boolean.TRUE.toString()) ? C4VariableScope.VAR_CONST : C4VariableScope.VAR_STATIC); //$NON-NLS-1$
+			Node desc = (Node) xPath.evaluate("./description[1]", variable, XPathConstants.NODE); //$NON-NLS-1$
 			if (desc != null)
 				v.setUserDescription(desc.getTextContent());
 			this.addDeclaration(v);
@@ -660,7 +660,7 @@ public abstract class C4ScriptBase extends C4Structure implements IHasRelatedRes
 	public String getInfoText() {
 		Object f = getScriptFile();
 		if (f instanceof IFile) {
-			IResource infoFile = ((IFile)f).getParent().findMember("Desc"+ClonkCore.getDefault().getLanguagePref()+".txt");
+			IResource infoFile = ((IFile)f).getParent().findMember("Desc"+ClonkCore.getDefault().getLanguagePref()+".txt"); //$NON-NLS-1$ //$NON-NLS-2$
 			if (infoFile instanceof IFile) {
 				try {
 					return Utilities.stringFromFile((IFile) infoFile);
@@ -676,20 +676,20 @@ public abstract class C4ScriptBase extends C4Structure implements IHasRelatedRes
 	public void importFromRepository(String repository, IProgressMonitor monitor) throws XPathExpressionException, FileNotFoundException, SAXException, IOException {
 		XMLDocImporter importer = XMLDocImporter.instance();
 		importer.setRepositoryPath(repository);
-		String fnFolderPath = repository + "/docs/sdk/script/fn";
+		String fnFolderPath = repository + "/docs/sdk/script/fn"; //$NON-NLS-1$
 		File fnFolder = new File(fnFolderPath);
 		String[] files = fnFolder.list(new FilenameFilter() {
 			public boolean accept(File dir, String name) {
-				return name.endsWith(".xml");
+				return name.endsWith(".xml"); //$NON-NLS-1$
 			}
 		});
 		if (monitor != null)
-			monitor.beginTask("Importing", files.length);
+			monitor.beginTask("Importing", files.length); //$NON-NLS-1$
 		for (String fileName : files) {
 			if (monitor != null) {
 				monitor.subTask(fileName);
 			}
-			C4Declaration declaration = importer.importFromXML(new FileInputStream(fnFolderPath + "/" + fileName));
+			C4Declaration declaration = importer.importFromXML(new FileInputStream(fnFolderPath + "/" + fileName)); //$NON-NLS-1$
 			if (declaration != null)
 				this.addDeclaration(declaration);
 			if (monitor != null) {
@@ -708,17 +708,17 @@ public abstract class C4ScriptBase extends C4Structure implements IHasRelatedRes
 		final int SECTION_C4ScriptConstMap = 2;
 		final int SECTION_C4ScriptFnMap = 3;
 		
-		String c4ScriptFilePath = repository + "/src/game/script/C4Script.cpp";
+		String c4ScriptFilePath = repository + "/src/game/script/C4Script.cpp"; //$NON-NLS-1$
 		File c4ScriptFile;
 		if ((c4ScriptFile = new File(c4ScriptFilePath)).exists()) {
 			Matcher[] sectionStartMatchers = new Matcher[] {
-				Pattern.compile("void InitFunctionMap\\(C4AulScriptEngine \\*pEngine\\)").matcher(""),
-				Pattern.compile("C4ScriptConstDef C4ScriptConstMap\\[\\]\\=\\{").matcher(""),
-				Pattern.compile("C4ScriptFnDef C4ScriptFnMap\\[\\]\\=\\{").matcher("")
+				Pattern.compile("void InitFunctionMap\\(C4AulScriptEngine \\*pEngine\\)").matcher(""), //$NON-NLS-1$ //$NON-NLS-2$
+				Pattern.compile("C4ScriptConstDef C4ScriptConstMap\\[\\]\\=\\{").matcher(""), //$NON-NLS-1$ //$NON-NLS-2$
+				Pattern.compile("C4ScriptFnDef C4ScriptFnMap\\[\\]\\=\\{").matcher("") //$NON-NLS-1$ //$NON-NLS-2$
 			};
-			Matcher fnMapMatcher = Pattern.compile("\\s*\\{\\s*\"(.*?)\"\\s*,\\s*(.*?)\\s*,\\s*(.*?)\\s*,\\s*\\{(.*?)\\}\\s*,\\s*(.*?)\\s*,\\s*(.*?)\\s*\\}\\s*,").matcher("");
-			Matcher constMapMatcher = Pattern.compile("\\s*\\{\\s*\"(.*?)\"\\s*,\\s*(.*?)\\s*,\\s*(.*?)\\s*\\}\\s*,\\s*(\\/\\/(.*))?").matcher("");
-			Matcher addFuncMatcher = Pattern.compile("\\s*AddFunc\\s*\\(\\s*pEngine\\s*,\\s*\"(.*?)\"\\s*,\\s*.*?\\)\\s*;").matcher("");
+			Matcher fnMapMatcher = Pattern.compile("\\s*\\{\\s*\"(.*?)\"\\s*,\\s*(.*?)\\s*,\\s*(.*?)\\s*,\\s*\\{(.*?)\\}\\s*,\\s*(.*?)\\s*,\\s*(.*?)\\s*\\}\\s*,").matcher(""); //$NON-NLS-1$ //$NON-NLS-2$
+			Matcher constMapMatcher = Pattern.compile("\\s*\\{\\s*\"(.*?)\"\\s*,\\s*(.*?)\\s*,\\s*(.*?)\\s*\\}\\s*,\\s*(\\/\\/(.*))?").matcher(""); //$NON-NLS-1$ //$NON-NLS-2$
+			Matcher addFuncMatcher = Pattern.compile("\\s*AddFunc\\s*\\(\\s*pEngine\\s*,\\s*\"(.*?)\"\\s*,\\s*.*?\\)\\s*;").matcher(""); //$NON-NLS-1$ //$NON-NLS-2$
 			
 			BufferedReader reader = new BufferedReader(new FileReader(c4ScriptFile));
 			int section = SECTION_None;
@@ -742,7 +742,7 @@ public abstract class C4ScriptBase extends C4Structure implements IHasRelatedRes
 							if (fun == null) {
 								fun = new C4Function(name, C4Type.ANY);
 								List<C4Variable> parms = new ArrayList<C4Variable>(1);
-								parms.add(new C4Variable("...", C4Type.ANY));
+								parms.add(new C4Variable("...", C4Type.ANY)); //$NON-NLS-1$
 								fun.setParameter(parms);
 								this.addDeclaration(fun);
 							}
@@ -775,10 +775,10 @@ public abstract class C4ScriptBase extends C4Structure implements IHasRelatedRes
 							C4Function fun = this.findLocalFunction(name, false);
 							if (fun == null) {
 								fun = new C4Function(name, C4Type.makeType(retType.substring(4).toLowerCase(), true));
-								String[] p = parms.split(",");
+								String[] p = parms.split(","); //$NON-NLS-1$
 								List<C4Variable> parList = new ArrayList<C4Variable>(p.length);
 								for (String pa : p) {
-									parList.add(new C4Variable("par"+(parList.size()+1), C4Type.makeType(pa.trim().substring(4).toLowerCase(), true)));
+									parList.add(new C4Variable("par"+(parList.size()+1), C4Type.makeType(pa.trim().substring(4).toLowerCase(), true))); //$NON-NLS-1$
 								}
 								fun.setParameter(parList);
 								this.addDeclaration(fun);

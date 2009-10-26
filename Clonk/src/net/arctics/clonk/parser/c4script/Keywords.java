@@ -5,38 +5,38 @@ package net.arctics.clonk.parser.c4script;
  */
 public interface Keywords {
 
-	public static final String Func = "func";
+	public static final String Func = "func"; //$NON-NLS-1$
 
-	public static final String Private = "private";
-	public static final String Protected = "protected";
-	public static final String Public = "public";
-	public static final String Global = "global";
-	public static final String Const = "const";
+	public static final String Private = "private"; //$NON-NLS-1$
+	public static final String Protected = "protected"; //$NON-NLS-1$
+	public static final String Public = "public"; //$NON-NLS-1$
+	public static final String Global = "global"; //$NON-NLS-1$
+	public static final String Const = "const"; //$NON-NLS-1$
 
-	public static final String If = "if";
-	public static final String Else = "else";
-	public static final String While = "while";
-	public static final String Do = "do";
-	public static final String For = "for";
-	public static final String In = "in";
-	public static final String Return = "return";
-	public static final String Par = "Par";
-	public static final String Goto = "goto";
-	public static final String Break = "break";
-	public static final String Continue = "continue";
-	public static final String Inherited = "inherited";
-	public static final String SafeInherited = "_inherited";
+	public static final String If = "if"; //$NON-NLS-1$
+	public static final String Else = "else"; //$NON-NLS-1$
+	public static final String While = "while"; //$NON-NLS-1$
+	public static final String Do = "do"; //$NON-NLS-1$
+	public static final String For = "for"; //$NON-NLS-1$
+	public static final String In = "in"; //$NON-NLS-1$
+	public static final String Return = "return"; //$NON-NLS-1$
+	public static final String Par = "Par"; //$NON-NLS-1$
+	public static final String Goto = "goto"; //$NON-NLS-1$
+	public static final String Break = "break"; //$NON-NLS-1$
+	public static final String Continue = "continue"; //$NON-NLS-1$
+	public static final String Inherited = "inherited"; //$NON-NLS-1$
+	public static final String SafeInherited = "_inherited"; //$NON-NLS-1$
 
-	public static final String Image = "Image";
-	public static final String Contents = "Contents";
-	public static final String Condition = "Condition";
+	public static final String Image = "Image"; //$NON-NLS-1$
+	public static final String Contents = "Contents"; //$NON-NLS-1$
+	public static final String Condition = "Condition"; //$NON-NLS-1$
 
-	public static final String GlobalNamed = "static";
-	public static final String LocalNamed = "local";
-	public static final String VarNamed = "var";
+	public static final String GlobalNamed = "static"; //$NON-NLS-1$
+	public static final String LocalNamed = "local"; //$NON-NLS-1$
+	public static final String VarNamed = "var"; //$NON-NLS-1$
 
-	public static final String True = "true";
-	public static final String False = "false";
+	public static final String True = "true"; //$NON-NLS-1$
+	public static final String False = "false"; //$NON-NLS-1$
 
-	public static final String DefinitionFunc = "Definition";
+	public static final String DefinitionFunc = "Definition"; //$NON-NLS-1$
 }

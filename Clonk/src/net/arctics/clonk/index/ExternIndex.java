@@ -61,7 +61,7 @@ public class ExternIndex extends ClonkIndex {
 	
 	@Override
 	public String toString() {
-		return "Extern Index";
+		return "Extern Index"; //$NON-NLS-1$
 	}
 
 }

@@ -291,8 +291,7 @@ public abstract class Utilities {
 	 */
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public static <KeyType, ValueType> Map<KeyType, ValueType> map(Object... keysAndValues) {
-		Class c = HashMap.class;
-		return mapOfType((Class<? extends Map<KeyType, ValueType>>) c, keysAndValues);
+		return mapOfType((Class<? extends Map<KeyType, ValueType>>) HashMap.class, keysAndValues);
 	}
 	
 	public static boolean allInstanceOf(Object[] objects, Class<?> cls) {

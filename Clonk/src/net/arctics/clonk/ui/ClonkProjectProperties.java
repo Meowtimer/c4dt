@@ -107,7 +107,7 @@ public class ClonkProjectProperties extends FieldEditorPreferencePage implements
 			
 			@Override
 			protected String getNewInputObject() {
-				InputDialog input = new InputDialog(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(), Messages.ClonkProjectProperties_9, Messages.ClonkProjectProperties_10, "", null); //$NON-NLS-3$
+				InputDialog input = new InputDialog(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(), Messages.ClonkProjectProperties_9, Messages.ClonkProjectProperties_10, "", null); //$NON-NLS-1$
 				switch (input.open()) {
 				case InputDialog.CANCEL:
 					return null;

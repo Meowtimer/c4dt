@@ -64,9 +64,9 @@ public class C4Directive extends C4Declaration implements Serializable {
 	
 	@Override
 	public String toString() {
-		if (content != "" && content != null)
-			return "#" + type.toString() + " " + content;
-		return "#" + type.toString();
+		if (content != "" && content != null) //$NON-NLS-1$
+			return "#" + type.toString() + " " + content; //$NON-NLS-1$ //$NON-NLS-2$
+		return "#" + type.toString(); //$NON-NLS-1$
 	}
 	
 	public ExprElm getExprElm() {

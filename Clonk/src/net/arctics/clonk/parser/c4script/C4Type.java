@@ -31,7 +31,7 @@ public enum C4Type {
 	
 	public String toString(boolean special) {
 		if (!special && this == REFERENCE)
-			return "&";
+			return "&"; //$NON-NLS-1$
 		return super.toString().toLowerCase();
 	}
 	
@@ -55,12 +55,12 @@ public enum C4Type {
 			if (t.toString().equals(arg))
 				return t;
 		if (allowSpecial) {
-			if (arg.equals("dword"))
+			if (arg.equals("dword")) //$NON-NLS-1$
 				return C4Type.INT; // formerly DWORD
-			if (arg.equals("any"))
+			if (arg.equals("any")) //$NON-NLS-1$
 				return C4Type.ANY;
 		}
-		if (arg.equals("&") || (allowSpecial && arg.equals("reference")))
+		if (arg.equals("&") || (allowSpecial && arg.equals("reference"))) //$NON-NLS-1$ //$NON-NLS-2$
 			return C4Type.REFERENCE;
 		return C4Type.UNKNOWN;
 	}

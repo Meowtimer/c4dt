@@ -22,14 +22,14 @@ public class SignedInteger implements IIniEntry {
 
 	public void setInput(String input, IniDataEntry entryData) throws IniParserException {
 		try {
-			input = input != null ? input.trim() : "";
-			if (input.equals(""))
+			input = input != null ? input.trim() : ""; //$NON-NLS-1$
+			if (input.equals("")) //$NON-NLS-1$
 				x = 0;
 			else
 				x = Integer.parseInt(input.trim());
 		}
 		catch(NumberFormatException e) {
-			IniParserException exp = new IniParserException(IMarker.SEVERITY_ERROR, "Expected an integer instead of '" + input + "'");
+			IniParserException exp = new IniParserException(IMarker.SEVERITY_ERROR, Messages.SignedInteger_2 + input + Messages.SignedInteger_0); //$NON-NLS-2$
 			exp.setInnerException(e);
 			throw exp;
 		}

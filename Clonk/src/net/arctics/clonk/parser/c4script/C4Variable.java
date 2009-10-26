@@ -68,7 +68,7 @@ public class C4Variable extends C4Declaration implements Serializable, ITypedDec
 	/**
 	 * Variable object used as the special 'this' object.
 	 */
-	public static final C4Variable THIS = new C4Variable("this", C4Type.OBJECT, "reference to the object calling the function");
+	public static final C4Variable THIS = new C4Variable("this", C4Type.OBJECT, Messages.C4Variable_0); //$NON-NLS-1$
 	
 	private C4Variable(String name, C4Type type, String desc) {
 		this(name, type, desc, C4VariableScope.VAR_VAR);
@@ -83,7 +83,7 @@ public class C4Variable extends C4Declaration implements Serializable, ITypedDec
 		this.name = name;
 		this.scope = scope;
 		objectType = null;
-		description = "";
+		description = ""; //$NON-NLS-1$
 		type = null;
 	}
 	
@@ -103,7 +103,7 @@ public class C4Variable extends C4Declaration implements Serializable, ITypedDec
 	}
 
 	public C4Variable() {
-		name = "";
+		name = ""; //$NON-NLS-1$
 		scope = C4VariableScope.VAR_VAR;
 	}
 	
@@ -203,7 +203,7 @@ public class C4Variable extends C4Declaration implements Serializable, ITypedDec
 			if (scopeString.equals(Keywords.VarNamed)) return C4VariableScope.VAR_VAR;
 			if (scopeString.equals(Keywords.LocalNamed)) return C4VariableScope.VAR_LOCAL;
 			if (scopeString.equals(Keywords.GlobalNamed)) return C4VariableScope.VAR_STATIC;
-			if (scopeString.equals(Keywords.GlobalNamed + " " + Keywords.Const)) return C4VariableScope.VAR_CONST;
+			if (scopeString.equals(Keywords.GlobalNamed + " " + Keywords.Const)) return C4VariableScope.VAR_CONST; //$NON-NLS-1$
 			//if (C4VariableScope.valueOf(scopeString) != null) return C4VariableScope.valueOf(scopeString);
 			else return null;
 		}
@@ -211,7 +211,7 @@ public class C4Variable extends C4Declaration implements Serializable, ITypedDec
 		public String toKeyword() {
 			switch (this) {
 			case VAR_CONST:
-				return Keywords.GlobalNamed + " " + Keywords.Const;
+				return Keywords.GlobalNamed + " " + Keywords.Const; //$NON-NLS-1$
 			case VAR_STATIC:
 				return Keywords.GlobalNamed;
 			case VAR_LOCAL:
@@ -233,10 +233,10 @@ public class C4Variable extends C4Declaration implements Serializable, ITypedDec
 	public String getInfoText() {
 		StringBuilder builder = new StringBuilder();
 		builder.append((getType() == C4Type.UNKNOWN ? C4Type.ANY : getType()) .toString());
-		builder.append(" ");
+		builder.append(" "); //$NON-NLS-1$
 		builder.append(getName());
 		if (getUserDescription() != null && getUserDescription().length() > 0) {
-			builder.append(": ");
+			builder.append(": "); //$NON-NLS-1$
 			builder.append(getUserDescription());
 		}
 		return builder.toString();
@@ -268,7 +268,7 @@ public class C4Variable extends C4Declaration implements Serializable, ITypedDec
 
 	public void setConstValue(Object constValue) {
 		if (C4Type.typeFrom(constValue) == C4Type.ANY)
-			throw new InvalidParameterException("constValue must be of primitive type recognized by C4Type");
+			throw new InvalidParameterException("constValue must be of primitive type recognized by C4Type"); //$NON-NLS-1$
 		this.constValue = constValue;
 	}
 

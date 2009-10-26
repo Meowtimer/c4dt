@@ -367,10 +367,10 @@ public class C4ScriptParser {
 						if (expression instanceof CallFunc) {
 							CallFunc callFunc = (CallFunc) expression;
 							if (
-								callFunc.getDeclarationName().equals("SetProperty") &&
+								callFunc.getDeclarationName().equals("SetProperty") && //$NON-NLS-1$
 								callFunc.getParams().length >= 2 &&
 								callFunc.getParams()[0] instanceof StringLiteral &&
-								((StringLiteral)callFunc.getParams()[0]).getLiteral().equals("Name")
+								((StringLiteral)callFunc.getParams()[0]).getLiteral().equals("Name") //$NON-NLS-1$
 							) {
 								Object v = callFunc.getParams()[1].evaluateAtParseTime(getContainer());
 								if (v instanceof String) {
@@ -755,7 +755,7 @@ public class C4ScriptParser {
 			if (suspectOldStyle && shouldBeBracket == ':') {
 				// old style funcs have no named parameters
 			} else {
-				tokenExpectedError("(");
+				tokenExpectedError("("); //$NON-NLS-1$
 			}
 		} else {
 			// get parameters
@@ -771,7 +771,7 @@ public class C4ScriptParser {
 				else if (readByte == ',')
 					continue; // parse another parameter
 				else {
-					errorWithCode(ParserErrorCode.TokenExpected, scanner.getPosition()-1, scanner.getPosition(), (Object) new String[] {")", ","});
+					errorWithCode(ParserErrorCode.TokenExpected, scanner.getPosition()-1, scanner.getPosition(), (Object) new String[] {")", ","}); //$NON-NLS-1$ //$NON-NLS-2$
 				}
 			} while(!scanner.reachedEOF());
 		}
@@ -812,7 +812,7 @@ public class C4ScriptParser {
 					endBody = scanner.getPosition(); // blub
 				} while (!scanner.reachedEOF());
 			} else {
-				errorWithCode(ParserErrorCode.TokenExpected, scanner.getPosition()-1, scanner.getPosition(), "{");
+				errorWithCode(ParserErrorCode.TokenExpected, scanner.getPosition()-1, scanner.getPosition(), "{"); //$NON-NLS-1$
 			}
 		} else {
 			// body in {...}
@@ -839,7 +839,7 @@ public class C4ScriptParser {
 			eatWhitespace();
 			if (scanner.read() != '}') {
 				int pos = Math.min(scanner.getPosition(), scanner.getBufferLength()-1);
-				errorWithCode(ParserErrorCode.TokenExpected, pos, pos+1, "}");
+				errorWithCode(ParserErrorCode.TokenExpected, pos, pos+1, "}"); //$NON-NLS-1$
 				return false;
 			}
 			// look for comment in the same line as the closing '}' which is common for functions packed into one line
@@ -859,7 +859,7 @@ public class C4ScriptParser {
 	}
 
 	private String getTextOfLastComment(int declarationOffset) {
-		String desc = (lastComment != null && lastComment.precedesOffset(declarationOffset, scanner.getBuffer())) ? lastComment.getComment().trim() : "";
+		String desc = (lastComment != null && lastComment.precedesOffset(declarationOffset, scanner.getBuffer())) ? lastComment.getComment().trim() : ""; //$NON-NLS-1$
 		lastComment = null;
 		return desc;
 	}
@@ -995,7 +995,7 @@ public class C4ScriptParser {
 	private boolean parseEllipsis(int offset) {
 		scanner.seek(offset);
 		String e = scanner.readString(3);
-		if (e != null && e.equals("..."))
+		if (e != null && e.equals("...")) //$NON-NLS-1$
 			return true;
 		scanner.seek(offset);
 		return false;
@@ -1005,7 +1005,7 @@ public class C4ScriptParser {
 		scanner.seek(offset);
 		int firstChar = scanner.read();
 		if (firstChar == '.') {
-			parsedMemberOperator = ".";
+			parsedMemberOperator = "."; //$NON-NLS-1$
 			return true;
 		}
 		else if (firstChar == '-') {
@@ -1013,9 +1013,9 @@ public class C4ScriptParser {
 				offset = scanner.getPosition();
 				eatWhitespace();
 				if (scanner.read() == '~')
-					parsedMemberOperator = "->~";
+					parsedMemberOperator = "->~"; //$NON-NLS-1$
 				else {
-					parsedMemberOperator = "->";
+					parsedMemberOperator = "->"; //$NON-NLS-1$
 					scanner.seek(offset);
 				}
 				return true;
@@ -1069,10 +1069,10 @@ public class C4ScriptParser {
 		switch (token) {
 		case ID: return parsedID.getName();
 		case Number: return String.valueOf(parsedNumber);
-		case String: return "\""+parsedString+"\"";
+		case String: return "\""+parsedString+"\""; //$NON-NLS-1$ //$NON-NLS-2$
 		case Word: case Symbol: case Operator: return parsedString;
 		}
-		return "";
+		return ""; //$NON-NLS-1$
 	}
 	
 	public String parseTokenAndReturnAsString(int offset) throws ParsingException {
@@ -1091,7 +1091,7 @@ public class C4ScriptParser {
 		String s = new String(chars);
 		
 		// never to be read as an operator
-		if (s.equals("->")) {
+		if (s.equals("->")) { //$NON-NLS-1$
 			scanner.seek(offset);
 			return null;
 		}
@@ -1184,7 +1184,7 @@ public class C4ScriptParser {
 	private boolean parseStaticFieldOperator_(int offset) {
 		scanner.seek(offset);
 		String o = scanner.readString(2);
-		if (o.equals("::"))
+		if (o.equals("::")) //$NON-NLS-1$
 			return true;
 		scanner.seek(offset);
 		return false;
@@ -1302,7 +1302,7 @@ public class C4ScriptParser {
 					if (parseID(scanner.getPosition())) {
 						eatWhitespace();
 						if (!parseStaticFieldOperator_(scanner.getPosition())) {
-							errorWithCode(ParserErrorCode.TokenExpected, scanner.getPosition(), scanner.getPosition()+2, "::");
+							errorWithCode(ParserErrorCode.TokenExpected, scanner.getPosition(), scanner.getPosition()+2, "::"); //$NON-NLS-1$
 						}
 					} else
 						idOffset = 0;
@@ -1331,7 +1331,7 @@ public class C4ScriptParser {
 						parseRestOfTuple(scanner.getPosition(), tupleElms, reportErrors);
 						elm = new Tuple(tupleElms.toArray(new ExprElm[0]));
 					} else
-						errorWithCode(ParserErrorCode.TokenExpected, scanner.getPosition()-1, scanner.getPosition(), ")");
+						errorWithCode(ParserErrorCode.TokenExpected, scanner.getPosition()-1, scanner.getPosition(), ")"); //$NON-NLS-1$
 				} else {
 					scanner.unread();
 				}
@@ -1404,7 +1404,7 @@ public class C4ScriptParser {
 				c = scanner.read();
 				if (c == ',') {
 					if (!expectingComma)
-						errorWithCode(ParserErrorCode.UnexpectedToken, scanner.getPosition()-1, 1, ",");
+						errorWithCode(ParserErrorCode.UnexpectedToken, scanner.getPosition()-1, 1, ","); //$NON-NLS-1$
 					expectingComma = false;
 				} else if (c == '}') {
 					properlyClosed = true;
@@ -1425,13 +1425,13 @@ public class C4ScriptParser {
 						expectingComma = true;
 					}
 					else {
-						errorWithCode(ParserErrorCode.TokenExpected, scanner.getPosition(), scanner.getPosition()+1, "String or identifier");
+						errorWithCode(ParserErrorCode.TokenExpected, scanner.getPosition(), scanner.getPosition()+1, Messages.C4ScriptParser_20);
 						break;
 					}
 				}
 			}
 			if (!properlyClosed) {
-				errorWithCode(ParserErrorCode.MissingClosingBracket, scanner.getPosition()-1, scanner.getPosition(), "}");
+				errorWithCode(ParserErrorCode.MissingClosingBracket, scanner.getPosition()-1, scanner.getPosition(), "}"); //$NON-NLS-1$
 			}
 			elm = new PropListExpression(propListElms.toArray((Pair<String, ExprElm>[])new Pair[propListElms.size()]));
 		}
@@ -1479,7 +1479,7 @@ public class C4ScriptParser {
 					}
 				}
 				if (!properlyClosed) {
-					errorWithCode(ParserErrorCode.MissingClosingBracket, scanner.getPosition()-1, scanner.getPosition(), "]");
+					errorWithCode(ParserErrorCode.MissingClosingBracket, scanner.getPosition()-1, scanner.getPosition(), "]"); //$NON-NLS-1$
 				}
 				elm = new ArrayExpression(arrayElms.toArray(new ExprElm[0]));
 				
@@ -1508,7 +1508,7 @@ public class C4ScriptParser {
 			} else {
 				scanner.unread();
 				if (listToAddElementsTo.size() > 100) {
-					errorWithCode(ParserErrorCode.InternalError, scanner.getPosition(), scanner.getPosition(), "Way too much");
+					errorWithCode(ParserErrorCode.InternalError, scanner.getPosition(), scanner.getPosition(), Messages.C4ScriptParser_23);
 				//	break;
 				}
 				ExprElm arg = parseExpression(scanner.getPosition(), reportErrors);
@@ -1697,7 +1697,7 @@ public class C4ScriptParser {
 			builder.append(scanner.readStringUntil((char)delimiter));
 		} while (builder.length() != 0 && (builder.charAt(builder.length() - 1) == '\\'));
 		if (scanner.read() != '$') {
-			throw new ParsingException("Internal parsing error.");
+			throw new ParsingException(Messages.C4ScriptParser_24);
 		}
 		parsedString = builder.toString();
 		return true;
@@ -1831,7 +1831,7 @@ public class C4ScriptParser {
 					if (expressionListener != null) {
 						switch (expressionListener.expressionDetected(result, this)) {
 						case Cancel:
-							throw new SilentParsingException("Expression Listener Cancellation");
+							throw new SilentParsingException("Expression Listener Cancellation"); //$NON-NLS-1$
 						}
 					}
 				}
@@ -2042,7 +2042,7 @@ public class C4ScriptParser {
 			// special treatment for case for (e in a) -> implicit declaration of e
 			int pos = scanner.getPosition();
 			String varName = scanner.readIdent();
-			if (!varName.equals("") && !varName.equals(Keywords.VarNamed)) {
+			if (!varName.equals("") && !varName.equals(Keywords.VarNamed)) { //$NON-NLS-1$
 				eatWhitespace();
 				w = scanner.readIdent();
 				if (!w.equals(Keywords.In)) {
@@ -2273,7 +2273,7 @@ public class C4ScriptParser {
 		String firstWord = scanner.readIdent();
 		if (firstWord.length() == 0) {
 			if (scanner.read() == '&') {
-				firstWord = "&";
+				firstWord = "&"; //$NON-NLS-1$
 			} else {
 				scanner.unread();
 				return false;
@@ -2330,12 +2330,12 @@ public class C4ScriptParser {
 		if (sequence == null) {
 			return null;
 		}
-		else if (sequence.equals("//")) {
+		else if (sequence.equals("//")) { //$NON-NLS-1$
 			String commentText = scanner.readStringUntil(BufferedScanner.NEWLINE_CHARS);
 			//fReader.eat(BufferedScanner.NEWLINE_DELIMITERS);
 			return new Comment(commentText, false);
 		}
-		else if (sequence.equals("/*")) {
+		else if (sequence.equals("/*")) { //$NON-NLS-1$
 			int startMultiline = scanner.getPosition();
 			while (!scanner.reachedEOF()) {
 				if (scanner.read() == '*') {
@@ -2423,7 +2423,7 @@ public class C4ScriptParser {
 		try {
 			expr = doc.get(statementStart, Math.min(statementEnd-statementStart, doc.getLength()-statementStart));
 		} catch (BadLocationException e) {
-			expr = ""; // well...
+			expr = ""; // well... //$NON-NLS-1$
 		}
 		C4ScriptParser parser = new C4ScriptParser(expr, context) {
 			@Override
@@ -2455,7 +2455,7 @@ public class C4ScriptParser {
 				}
 			
 			};
-			context = new C4Function("<temp>", C4Type.ANY);
+			context = new C4Function("<temp>", C4Type.ANY); //$NON-NLS-1$
 			context.setScript(tempScript);
 		}
 		C4ScriptParser tempParser = new C4ScriptParser(expression, context.getScript());

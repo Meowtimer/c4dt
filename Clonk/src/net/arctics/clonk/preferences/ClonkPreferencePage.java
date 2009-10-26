@@ -68,9 +68,9 @@ public class ClonkPreferencePage extends FieldEditorPreferencePage implements IW
 				PreferenceConstants.PREFERRED_LANGID,
 				Messages.ClonkPreferencePage_5,
 				new String[][] {
-					{Messages.ClonkPreferencePage_6, "DE"}, //$NON-NLS-2$
-					{Messages.ClonkPreferencePage_8, "US"}, //$NON-NLS-2$
-					{Messages.ClonkPreferencePage_10, "FI"} //$NON-NLS-2$
+					{Messages.ClonkPreferencePage_6, "DE"}, //$NON-NLS-1$
+					{Messages.ClonkPreferencePage_8, "US"}, //$NON-NLS-1$
+					{Messages.ClonkPreferencePage_10, "FI"} //$NON-NLS-1$
 				},
 				getFieldEditorParent()
 			)

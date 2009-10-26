@@ -71,7 +71,7 @@ public class SourceLocation implements IRegion, Serializable {
 	
 	@Override
 	public String toString() {
-		return "("+getStart()+", "+getEnd()+")";
+		return "("+getStart()+", "+getEnd()+")"; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 	}
 	
 	// TODO: hashcode() implementation

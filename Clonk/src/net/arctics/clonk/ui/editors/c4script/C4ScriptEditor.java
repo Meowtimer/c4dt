@@ -50,7 +50,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 	// it tries to only fire a reparse when necessary (ie not when editing inside of a function)
 	private final class TextChangeListener implements IDocumentListener {
 		
-		private Timer reparseTimer = new Timer("ReparseTimer");
+		private Timer reparseTimer = new Timer("ReparseTimer"); //$NON-NLS-1$
 		private TimerTask reparseTask;
 
 		public void documentAboutToBeChanged(DocumentEvent event) {
@@ -153,8 +153,8 @@ public class C4ScriptEditor extends ClonkTextEditor {
 	}
 
 	private ColorManager colorManager;
-	private static final String ENABLE_BRACKET_HIGHLIGHT = ClonkCore.id("enableBracketHighlighting");
-	private static final String BRACKET_HIGHLIGHT_COLOR = ClonkCore.id("bracketHighlightColor");
+	private static final String ENABLE_BRACKET_HIGHLIGHT = ClonkCore.id("enableBracketHighlighting"); //$NON-NLS-1$
+	private static final String BRACKET_HIGHLIGHT_COLOR = ClonkCore.id("bracketHighlightColor"); //$NON-NLS-1$
 	
 	private DefaultCharacterPairMatcher fBracketMatcher = new DefaultCharacterPairMatcher(new char[] { '{', '}', '(', ')' });
 	private TextChangeListener textChangeListener;
@@ -215,7 +215,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		action = new FindReferencesAction(messagesBundle,"FindReferences.",this); //$NON-NLS-1$
 		setAction(IClonkCommandIds.FIND_REFERENCES, action);
 		
-		action = new RenameDeclarationAction(messagesBundle, "RenameDeclaration.", this);
+		action = new RenameDeclarationAction(messagesBundle, "RenameDeclaration.", this); //$NON-NLS-1$
 		setAction(IClonkCommandIds.RENAME_DECLARATION, action);
 		
 	}

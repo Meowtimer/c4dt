@@ -7,7 +7,7 @@ public class IDArray extends KeyValueArrayEntry<C4ID, Integer> {
 
 	@Override
 	public KeyValuePair<C4ID, Integer> singleComponentFromString(String s) {
-		String[] idAndCount = s.split("=");
+		String[] idAndCount = s.split("="); //$NON-NLS-1$
 		if (idAndCount.length < 2)
 			return null;
 		try {

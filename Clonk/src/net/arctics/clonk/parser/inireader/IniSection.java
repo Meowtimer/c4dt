@@ -59,7 +59,7 @@ public class IniSection extends C4Declaration implements IHasKeyAndValue<String,
 	}
 
 	public String getValue() {
-		return "";
+		return ""; //$NON-NLS-1$
 	}
 
 	public Object[] getChildren() {

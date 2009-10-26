@@ -26,7 +26,7 @@ public class IntegerArray implements IIniEntry, IHasChildrenWithContext {
 		StringBuilder builder = new StringBuilder(integers.length * 2);
 		for(int i = 0; i < integers.length;i++) {
 			builder.append(integers[i]);
-			if (i < integers.length - 1) builder.append(",");
+			if (i < integers.length - 1) builder.append(","); //$NON-NLS-1$
 		}
 		return builder.toString();
 	}
@@ -46,30 +46,30 @@ public class IntegerArray implements IIniEntry, IHasChildrenWithContext {
 	public void setInput(String input, IniDataEntry entryData) throws IniParserException {
 		try {
 			// empty input should be okay
-			if (input.equals("")) {
+			if (input.equals("")) { //$NON-NLS-1$
 				this.integers = new int[] {};
 				return;
 			}
-			String[] parts = input.split(",");
+			String[] parts = input.split(","); //$NON-NLS-1$
 			if (parts.length > 0) {
 				int[] integers = new int[parts.length];
 				for(int i = 0; i < parts.length;i++) {
 					parts[i] = parts[i].trim();
-					if (parts[i].equals(""))
+					if (parts[i].equals("")) //$NON-NLS-1$
 						integers[i] = 0;
 					else {
-						if (parts[i].startsWith("+")) parts[i] = parts[i].substring(1);
+						if (parts[i].startsWith("+")) parts[i] = parts[i].substring(1); //$NON-NLS-1$
 						integers[i] = Integer.parseInt(parts[i].trim());
 					}
 				}
 				this.integers = integers;
 			}
 			else {
-				throw new IniParserException(IMarker.SEVERITY_WARNING, "Expected an integer array");
+				throw new IniParserException(IMarker.SEVERITY_WARNING, Messages.IntegerArray_5);
 			}
 		}
 		catch(NumberFormatException e) {
-			IniParserException exp = new IniParserException(IMarker.SEVERITY_ERROR, "Expected an integer array");
+			IniParserException exp = new IniParserException(IMarker.SEVERITY_ERROR, Messages.IntegerArray_6);
 			exp.setInnerException(e);
 			throw exp;
 		}

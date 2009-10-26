@@ -11,9 +11,9 @@ public class ActMapUnit extends IniUnit {
 
 	private static final long serialVersionUID = 1L;
 
-	public static final String ACTION_SECTION = "Action";
+	public static final String ACTION_SECTION = "Action"; //$NON-NLS-1$
 	
-	private final IniConfiguration configuration = ClonkCore.getDefault().iniConfigurations.getConfigurationFor("ActMap.txt");
+	private final IniConfiguration configuration = ClonkCore.getDefault().iniConfigurations.getConfigurationFor("ActMap.txt"); //$NON-NLS-1$
 	
 	@Override
 	public IniConfiguration getConfiguration() {
@@ -34,9 +34,9 @@ public class ActMapUnit extends IniUnit {
 	
 	@Override
 	public String sectionToString(IniSection section) {
-		IniEntry nameEntry = section.getEntry("Name");
+		IniEntry nameEntry = section.getEntry("Name"); //$NON-NLS-1$
 		if (nameEntry != null)
-			return "["+nameEntry.getValue()+"]";
+			return "["+nameEntry.getValue()+"]"; //$NON-NLS-1$ //$NON-NLS-2$
 		return super.sectionToString(section);
 	}
 

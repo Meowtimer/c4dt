@@ -9,7 +9,7 @@ public class GenericEntryFactory implements IEntryFactory {
 	
 	public Object create(Class<?> type, String value, IniDataEntry entryData) throws InvalidClassException, IniParserException {
 		if (value == null)
-			value = "";
+			value = ""; //$NON-NLS-1$
 		if (type.equals(C4ID.class)) {
 			return C4ID.getID(value);
 		}
@@ -26,10 +26,10 @@ public class GenericEntryFactory implements IEntryFactory {
 			} catch (IllegalAccessException e) {
 				e.printStackTrace();
 			}
-			throw new InvalidClassException(this.getClass().getName() + " seems not to be capable of constructing objects of type '" + type.getName() + "'");
+			throw new InvalidClassException(this.getClass().getName() + " seems not to be capable of constructing objects of type '" + type.getName() + "'"); //$NON-NLS-1$ //$NON-NLS-2$
 		}
 		else {
-			throw new InvalidClassException(this.getClass().getName() + " is not capable of constructing objects of type '" + type.getName() + "'");
+			throw new InvalidClassException(this.getClass().getName() + " is not capable of constructing objects of type '" + type.getName() + "'"); //$NON-NLS-1$ //$NON-NLS-2$
 		}
 	}
 

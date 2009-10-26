@@ -35,7 +35,7 @@ public class MapCreatorLexer extends Lexer {
         super(input,state);
 
     }
-    public String getGrammarFileName() { return "C:\\Users\\Madeen\\Projects\\Clonk\\C4DT\\Clonk\\src\\net\\arctics\\clonk\\parser\\mapcreator\\MapCreator.g"; }
+    public String getGrammarFileName() { return "C:\\Users\\Madeen\\Projects\\Clonk\\C4DT\\Clonk\\src\\net\\arctics\\clonk\\parser\\mapcreator\\MapCreator.g"; } //$NON-NLS-1$
 
     // $ANTLR start "MAP"
     public final void mMAP() throws RecognitionException {
@@ -45,7 +45,7 @@ public class MapCreatorLexer extends Lexer {
             // C:\\Users\\Madeen\\Projects\\Clonk\\C4DT\\Clonk\\src\\net\\arctics\\clonk\\parser\\mapcreator\\MapCreator.g:193:6: ( 'map' )
             // C:\\Users\\Madeen\\Projects\\Clonk\\C4DT\\Clonk\\src\\net\\arctics\\clonk\\parser\\mapcreator\\MapCreator.g:193:8: 'map'
             {
-            match("map"); 
+            match("map");  //$NON-NLS-1$
 
 
             }
@@ -66,7 +66,7 @@ public class MapCreatorLexer extends Lexer {
             // C:\\Users\\Madeen\\Projects\\Clonk\\C4DT\\Clonk\\src\\net\\arctics\\clonk\\parser\\mapcreator\\MapCreator.g:194:10: ( 'overlay' )
             // C:\\Users\\Madeen\\Projects\\Clonk\\C4DT\\Clonk\\src\\net\\arctics\\clonk\\parser\\mapcreator\\MapCreator.g:194:12: 'overlay'
             {
-            match("overlay"); 
+            match("overlay");  //$NON-NLS-1$
 
 
             }
@@ -121,7 +121,7 @@ public class MapCreatorLexer extends Lexer {
             }
             else {
                 NoViableAltException nvae =
-                    new NoViableAltException("", 1, 0, input);
+                    new NoViableAltException("", 1, 0, input); //$NON-NLS-1$
 
                 throw nvae;
             }
@@ -129,7 +129,7 @@ public class MapCreatorLexer extends Lexer {
                 case 1 :
                     // C:\\Users\\Madeen\\Projects\\Clonk\\C4DT\\Clonk\\src\\net\\arctics\\clonk\\parser\\mapcreator\\MapCreator.g:197:18: 'px'
                     {
-                    match("px"); 
+                    match("px");  //$NON-NLS-1$
 
 
                     }
@@ -435,7 +435,7 @@ public class MapCreatorLexer extends Lexer {
             // C:\\Users\\Madeen\\Projects\\Clonk\\C4DT\\Clonk\\src\\net\\arctics\\clonk\\parser\\mapcreator\\MapCreator.g:206:11: ( '//' ( . )* '\\n' )
             // C:\\Users\\Madeen\\Projects\\Clonk\\C4DT\\Clonk\\src\\net\\arctics\\clonk\\parser\\mapcreator\\MapCreator.g:206:13: '//' ( . )* '\\n'
             {
-            match("//"); 
+            match("//");  //$NON-NLS-1$
 
             // C:\\Users\\Madeen\\Projects\\Clonk\\C4DT\\Clonk\\src\\net\\arctics\\clonk\\parser\\mapcreator\\MapCreator.g:206:18: ( . )*
             loop7:
@@ -486,7 +486,7 @@ public class MapCreatorLexer extends Lexer {
             // C:\\Users\\Madeen\\Projects\\Clonk\\C4DT\\Clonk\\src\\net\\arctics\\clonk\\parser\\mapcreator\\MapCreator.g:207:11: ( '/*' ( . )* '*/' )
             // C:\\Users\\Madeen\\Projects\\Clonk\\C4DT\\Clonk\\src\\net\\arctics\\clonk\\parser\\mapcreator\\MapCreator.g:207:13: '/*' ( . )* '*/'
             {
-            match("/*"); 
+            match("/*");  //$NON-NLS-1$
 
             // C:\\Users\\Madeen\\Projects\\Clonk\\C4DT\\Clonk\\src\\net\\arctics\\clonk\\parser\\mapcreator\\MapCreator.g:207:18: ( . )*
             loop8:
@@ -525,7 +525,7 @@ public class MapCreatorLexer extends Lexer {
                 }
             } while (true);
 
-            match("*/"); 
+            match("*/");  //$NON-NLS-1$
 
             skip();
 
@@ -751,64 +751,64 @@ public class MapCreatorLexer extends Lexer {
 
     protected DFA9 dfa9 = new DFA9(this);
     static final String DFA9_eotS =
-        "\1\uffff\2\15\1\uffff\1\15\7\uffff\1\15\1\uffff\1\15\1\uffff\1"+
-        "\15\2\uffff\1\25\1\15\1\uffff\3\15\1\32\1\uffff";
+        "\1\uffff\2\15\1\uffff\1\15\7\uffff\1\15\1\uffff\1\15\1\uffff\1"+ //$NON-NLS-1$
+        "\15\2\uffff\1\25\1\15\1\uffff\3\15\1\32\1\uffff"; //$NON-NLS-1$
     static final String DFA9_eofS =
-        "\33\uffff";
+        "\33\uffff"; //$NON-NLS-1$
     static final String DFA9_minS =
-        "\1\11\2\55\1\uffff\1\55\1\uffff\1\52\5\uffff\1\55\1\uffff\1\55"+
-        "\1\uffff\1\55\2\uffff\2\55\1\uffff\4\55\1\uffff";
+        "\1\11\2\55\1\uffff\1\55\1\uffff\1\52\5\uffff\1\55\1\uffff\1\55"+ //$NON-NLS-1$
+        "\1\uffff\1\55\2\uffff\2\55\1\uffff\4\55\1\uffff"; //$NON-NLS-1$
     static final String DFA9_maxS =
-        "\1\175\2\172\1\uffff\1\172\1\uffff\1\57\5\uffff\1\172\1\uffff\1"+
-        "\172\1\uffff\1\172\2\uffff\2\172\1\uffff\4\172\1\uffff";
+        "\1\175\2\172\1\uffff\1\172\1\uffff\1\57\5\uffff\1\172\1\uffff\1"+ //$NON-NLS-1$
+        "\172\1\uffff\1\172\2\uffff\2\172\1\uffff\4\172\1\uffff"; //$NON-NLS-1$
     static final String DFA9_acceptS =
-        "\3\uffff\1\3\1\uffff\1\6\1\uffff\1\11\1\12\1\13\1\14\1\15\1\uffff"+
-        "\1\4\1\uffff\1\5\1\uffff\1\7\1\10\2\uffff\1\1\4\uffff\1\2";
+        "\3\uffff\1\3\1\uffff\1\6\1\uffff\1\11\1\12\1\13\1\14\1\15\1\uffff"+ //$NON-NLS-1$
+        "\1\4\1\uffff\1\5\1\uffff\1\7\1\10\2\uffff\1\1\4\uffff\1\2"; //$NON-NLS-1$
     static final String DFA9_specialS =
-        "\33\uffff}>";
+        "\33\uffff}>"; //$NON-NLS-1$
     static final String[] DFA9_transitionS = {
-            "\2\5\2\uffff\1\5\22\uffff\1\5\5\uffff\1\13\4\uffff\1\3\1\uffff"+
-            "\1\3\1\uffff\1\6\12\3\1\uffff\1\12\1\uffff\1\7\3\uffff\32\4"+
-            "\3\uffff\1\13\1\4\1\uffff\14\4\1\1\1\4\1\2\13\4\1\10\1\13\1"+
-            "\11",
-            "\1\17\2\uffff\12\16\7\uffff\32\16\4\uffff\1\16\1\uffff\1\14"+
-            "\31\16",
-            "\1\17\2\uffff\12\16\7\uffff\32\16\4\uffff\1\16\1\uffff\25"+
-            "\16\1\20\4\16",
-            "",
-            "\1\17\2\uffff\12\16\7\uffff\32\16\4\uffff\1\16\1\uffff\32"+
-            "\16",
-            "",
-            "\1\22\4\uffff\1\21",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "\1\17\2\uffff\12\16\7\uffff\32\16\4\uffff\1\16\1\uffff\17"+
-            "\16\1\23\12\16",
-            "",
-            "\1\17\2\uffff\12\16\7\uffff\32\16\4\uffff\1\16\1\uffff\32"+
-            "\16",
-            "",
-            "\1\17\2\uffff\12\16\7\uffff\32\16\4\uffff\1\16\1\uffff\4\16"+
-            "\1\24\25\16",
-            "",
-            "",
-            "\1\17\2\uffff\12\16\7\uffff\32\16\4\uffff\1\16\1\uffff\32"+
-            "\16",
-            "\1\17\2\uffff\12\16\7\uffff\32\16\4\uffff\1\16\1\uffff\21"+
-            "\16\1\26\10\16",
-            "",
-            "\1\17\2\uffff\12\16\7\uffff\32\16\4\uffff\1\16\1\uffff\13"+
-            "\16\1\27\16\16",
-            "\1\17\2\uffff\12\16\7\uffff\32\16\4\uffff\1\16\1\uffff\1\30"+
-            "\31\16",
-            "\1\17\2\uffff\12\16\7\uffff\32\16\4\uffff\1\16\1\uffff\30"+
-            "\16\1\31\1\16",
-            "\1\17\2\uffff\12\16\7\uffff\32\16\4\uffff\1\16\1\uffff\32"+
-            "\16",
-            ""
+            "\2\5\2\uffff\1\5\22\uffff\1\5\5\uffff\1\13\4\uffff\1\3\1\uffff"+ //$NON-NLS-1$
+            "\1\3\1\uffff\1\6\12\3\1\uffff\1\12\1\uffff\1\7\3\uffff\32\4"+ //$NON-NLS-1$
+            "\3\uffff\1\13\1\4\1\uffff\14\4\1\1\1\4\1\2\13\4\1\10\1\13\1"+ //$NON-NLS-1$
+            "\11", //$NON-NLS-1$
+            "\1\17\2\uffff\12\16\7\uffff\32\16\4\uffff\1\16\1\uffff\1\14"+ //$NON-NLS-1$
+            "\31\16", //$NON-NLS-1$
+            "\1\17\2\uffff\12\16\7\uffff\32\16\4\uffff\1\16\1\uffff\25"+ //$NON-NLS-1$
+            "\16\1\20\4\16", //$NON-NLS-1$
+            "", //$NON-NLS-1$
+            "\1\17\2\uffff\12\16\7\uffff\32\16\4\uffff\1\16\1\uffff\32"+ //$NON-NLS-1$
+            "\16", //$NON-NLS-1$
+            "", //$NON-NLS-1$
+            "\1\22\4\uffff\1\21", //$NON-NLS-1$
+            "", //$NON-NLS-1$
+            "", //$NON-NLS-1$
+            "", //$NON-NLS-1$
+            "", //$NON-NLS-1$
+            "", //$NON-NLS-1$
+            "\1\17\2\uffff\12\16\7\uffff\32\16\4\uffff\1\16\1\uffff\17"+ //$NON-NLS-1$
+            "\16\1\23\12\16", //$NON-NLS-1$
+            "", //$NON-NLS-1$
+            "\1\17\2\uffff\12\16\7\uffff\32\16\4\uffff\1\16\1\uffff\32"+ //$NON-NLS-1$
+            "\16", //$NON-NLS-1$
+            "", //$NON-NLS-1$
+            "\1\17\2\uffff\12\16\7\uffff\32\16\4\uffff\1\16\1\uffff\4\16"+ //$NON-NLS-1$
+            "\1\24\25\16", //$NON-NLS-1$
+            "", //$NON-NLS-1$
+            "", //$NON-NLS-1$
+            "\1\17\2\uffff\12\16\7\uffff\32\16\4\uffff\1\16\1\uffff\32"+ //$NON-NLS-1$
+            "\16", //$NON-NLS-1$
+            "\1\17\2\uffff\12\16\7\uffff\32\16\4\uffff\1\16\1\uffff\21"+ //$NON-NLS-1$
+            "\16\1\26\10\16", //$NON-NLS-1$
+            "", //$NON-NLS-1$
+            "\1\17\2\uffff\12\16\7\uffff\32\16\4\uffff\1\16\1\uffff\13"+ //$NON-NLS-1$
+            "\16\1\27\16\16", //$NON-NLS-1$
+            "\1\17\2\uffff\12\16\7\uffff\32\16\4\uffff\1\16\1\uffff\1\30"+ //$NON-NLS-1$
+            "\31\16", //$NON-NLS-1$
+            "\1\17\2\uffff\12\16\7\uffff\32\16\4\uffff\1\16\1\uffff\30"+ //$NON-NLS-1$
+            "\16\1\31\1\16", //$NON-NLS-1$
+            "\1\17\2\uffff\12\16\7\uffff\32\16\4\uffff\1\16\1\uffff\32"+ //$NON-NLS-1$
+            "\16", //$NON-NLS-1$
+            "" //$NON-NLS-1$
     };
 
     static final short[] DFA9_eot = DFA.unpackEncodedString(DFA9_eotS);
@@ -841,7 +841,7 @@ public class MapCreatorLexer extends Lexer {
             this.transition = DFA9_transition;
         }
         public String getDescription() {
-            return "1:1: Tokens : ( MAP | OVERLAY | NUMBER | NAME | MATCOMBO | WS | SLCOMMENT | MLCOMMENT | ASSIGN | BLOCKOPEN | BLOCKCLOSE | STATEMENTEND | OPERATOR );";
+            return "1:1: Tokens : ( MAP | OVERLAY | NUMBER | NAME | MATCOMBO | WS | SLCOMMENT | MLCOMMENT | ASSIGN | BLOCKOPEN | BLOCKCLOSE | STATEMENTEND | OPERATOR );"; //$NON-NLS-1$
         }
     }
  

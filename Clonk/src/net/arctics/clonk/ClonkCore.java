@@ -59,22 +59,22 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 	/**
 	 * id for Clonk project natures
 	 */
-	public static final String CLONK_NATURE_ID = id("clonknature");
-	public static final String CLONK_DEPS_NATURE_ID = id("clonkdepsnature");
+	public static final String CLONK_NATURE_ID = id("clonknature"); //$NON-NLS-1$
+	public static final String CLONK_DEPS_NATURE_ID = id("clonkdepsnature"); //$NON-NLS-1$
 
 	/**
 	 * id for error markers that denote errors occuring while importing extern libs
 	 */
-	public static final String MARKER_EXTERN_LIB_ERROR = id("externliberror");
+	public static final String MARKER_EXTERN_LIB_ERROR = id("externliberror"); //$NON-NLS-1$
 
 	/**
 	 * id for error markers that denote errors in a script
 	 */
-	public static final String MARKER_C4SCRIPT_ERROR = id("c4scripterror");
+	public static final String MARKER_C4SCRIPT_ERROR = id("c4scripterror"); //$NON-NLS-1$
 
-	public static final QualifiedName FOLDER_C4ID_PROPERTY_ID = new QualifiedName(PLUGIN_ID, "c4id");
-	public static final QualifiedName C4OBJECT_PROPERTY_ID = new QualifiedName(PLUGIN_ID, "c4object");
-	public static final QualifiedName C4STRUCTURE_PROPERTY_ID = new QualifiedName(PLUGIN_ID, "structure");
+	public static final QualifiedName FOLDER_C4ID_PROPERTY_ID = new QualifiedName(PLUGIN_ID, "c4id"); //$NON-NLS-1$
+	public static final QualifiedName C4OBJECT_PROPERTY_ID = new QualifiedName(PLUGIN_ID, "c4object"); //$NON-NLS-1$
+	public static final QualifiedName C4STRUCTURE_PROPERTY_ID = new QualifiedName(PLUGIN_ID, "structure"); //$NON-NLS-1$
 
 	/**
 	 * The engine object contains global functions and variables defined by Clonk itself
@@ -137,7 +137,7 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 
 	private void loadIniConfigurations() {
 		try {
-			IniData data = new IniData(getBundle().getEntry("res/iniconfig.xml").openStream());
+			IniData data = new IniData(getBundle().getEntry("res/iniconfig.xml").openStream()); //$NON-NLS-1$
 			data.parse();
 			iniConfigurations = data; // set this variable when parsing completed successfully
 		} catch (FileNotFoundException e) {
@@ -176,7 +176,7 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 				engineStream = new FileInputStream(getEngineCacheFile().toFile());
 			}
 			else {
-				engineStream = getBundle().getEntry("res/engine").openStream();
+				engineStream = getBundle().getEntry("res/engine").openStream(); //$NON-NLS-1$
 			}
 			ObjectInputStream objStream = new InputStreamRespectingUniqueIDs(engineStream);
 			setEngineObject((C4ObjectExtern)objStream.readObject());
@@ -184,13 +184,13 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 		} catch (Exception e) {
 			// fallback to xml
 			createDefaultEngineObject();
-			getEngineObject().importFromXML(getBundle().getEntry("res/engine.xml").openStream());
+			getEngineObject().importFromXML(getBundle().getEntry("res/engine.xml").openStream()); //$NON-NLS-1$
 			return;
 		}
 	}
 
 	private void createDefaultEngineObject() {
-		setEngineObject(new C4ObjectExtern(C4ID.getSpecialID("Engine"), "Engine", null, null));
+		setEngineObject(new C4ObjectExtern(C4ID.getSpecialID("Engine"), "Engine", null, null)); //$NON-NLS-1$ //$NON-NLS-2$
 	}
 
 	//	private int nooper;
@@ -223,7 +223,7 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 
 	public static IPath getEngineCacheFile() {
 		IPath path = ClonkCore.getDefault().getStateLocation();
-		return path.append("engine");
+		return path.append("engine"); //$NON-NLS-1$
 	}
 
 	public ClonkLibBuilder getLibBuilder() {
@@ -233,7 +233,7 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 
 	public static IPath getExternLibCacheFile() {
 		IPath path = ClonkCore.getDefault().getStateLocation();
-		return path.append("externlib");
+		return path.append("externlib"); //$NON-NLS-1$
 	}
 
 	public void saveEngineObject() {
@@ -258,7 +258,7 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 	}
 
 	public void saveExternIndex(IProgressMonitor monitor) throws FileNotFoundException {
-		if (monitor != null) monitor.beginTask("Saving libs", 1);
+		if (monitor != null) monitor.beginTask(Messages.ClonkCore_14, 1);
 		final File index = getExternLibCacheFile().toFile();
 		FileOutputStream out = new FileOutputStream(index);
 
@@ -342,7 +342,7 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 	}
 
 	public ImageDescriptor getIconImageDescriptor(String iconName) {
-		ImageDescriptor descriptor = getImageDescriptor("icons/" + iconName + ".png");
+		ImageDescriptor descriptor = getImageDescriptor("icons/" + iconName + ".png"); //$NON-NLS-1$ //$NON-NLS-2$
 		if(descriptor == null)
 			descriptor = ImageDescriptor.getMissingImageDescriptor();
 		return descriptor;
@@ -392,11 +392,11 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 	}
 
 	public static String id(String id) {
-		return PLUGIN_ID + "." + id;
+		return PLUGIN_ID + "." + id; //$NON-NLS-1$
 	}
 
 	public String getLanguagePref() {
-		return Platform.getPreferencesService().getString(PLUGIN_ID, PreferenceConstants.PREFERRED_LANGID, "DE", null);
+		return Platform.getPreferencesService().getString(PLUGIN_ID, PreferenceConstants.PREFERRED_LANGID, "DE", null); //$NON-NLS-1$
 	}
 
 	/**

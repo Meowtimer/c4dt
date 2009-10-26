@@ -321,7 +321,7 @@ public class BufferedScanner {
 	 */
 	public String readStringAt(int start, int end) {
 		if (start == end)
-			return "";
+			return ""; //$NON-NLS-1$
 		int p = getPosition();
 		seek(start);
 		String result = readString(end-start);
@@ -402,7 +402,7 @@ public class BufferedScanner {
 	
 	@Override
 	public String toString() {
-		return "offset: " + getPosition() + "; next: " + (char)peek();
+		return "offset: " + getPosition() + "; next: " + (char)peek(); //$NON-NLS-1$ //$NON-NLS-2$
 	}
 
 	/**

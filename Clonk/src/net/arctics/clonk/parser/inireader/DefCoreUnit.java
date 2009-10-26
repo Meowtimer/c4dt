@@ -18,7 +18,7 @@ public class DefCoreUnit extends IniUnit {
 	
 	private static final long serialVersionUID = 1L;
 	
-	private final IniConfiguration configuration = ClonkCore.getDefault().iniConfigurations.getConfigurationFor("DefCore.txt");
+	private final IniConfiguration configuration = ClonkCore.getDefault().iniConfigurations.getConfigurationFor("DefCore.txt"); //$NON-NLS-1$
 	
 	public DefCoreUnit(InputStream stream) {
 		super(stream);
@@ -65,14 +65,14 @@ public class DefCoreUnit extends IniUnit {
 //	
 
 	public C4ID getObjectID() {
-		IniEntry entry = entryInSection("DefCore", "id");
+		IniEntry entry = entryInSection("DefCore", "id"); //$NON-NLS-1$ //$NON-NLS-2$
 		if (entry instanceof ComplexIniEntry)
 			return (C4ID)((ComplexIniEntry)entry).getExtendedValue();
 		return C4ID.NULL;
 	}
 	
 	public String getName() {
-		IniEntry entry = entryInSection("DefCore", "Name");
+		IniEntry entry = entryInSection("DefCore", "Name"); //$NON-NLS-1$ //$NON-NLS-2$
 		return entry instanceof ComplexIniEntry ? (String)((ComplexIniEntry)entry).getExtendedValue() : defaultName;
 	}
 	

@@ -41,7 +41,7 @@ public abstract class StoredTypeInformation implements IStoredTypeInformation, C
 	
 	@Override
 	public String toString() {
-		return "type: " + getType() + " objecttype: " + getObjectType();
+		return "type: " + getType() + " objecttype: " + getObjectType(); //$NON-NLS-1$ //$NON-NLS-2$
 	}
 
 }

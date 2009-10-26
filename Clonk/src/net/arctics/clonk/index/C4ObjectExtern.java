@@ -132,7 +132,7 @@ public class C4ObjectExtern extends C4Object implements ITreeNode, IExternalScri
 	
 	public String getFilePath() {
 		IPath path = this.getPath();
-		IPath gamePath = new Path(PreferenceConstants.getPreference(PreferenceConstants.GAME_PATH, "", null));
+		IPath gamePath = new Path(PreferenceConstants.getPreference(PreferenceConstants.GAME_PATH, "", null)); //$NON-NLS-1$
 		return gamePath.append(path).toOSString();
 	}
 	

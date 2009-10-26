@@ -75,7 +75,7 @@ public class ClonkProjectNature implements IProjectNature {
 	}
 	
 	private IPath getOldIndexFileLocation() {
-		return project.getFile("indexdata").getLocation();
+		return project.getFile("indexdata").getLocation(); //$NON-NLS-1$
 	}
 
 	/**

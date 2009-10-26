@@ -31,18 +31,18 @@ public class IniData {
 			IniConfiguration conf = new IniConfiguration();
 			if (fileNode.getAttributes() == null || 
 					fileNode.getAttributes().getLength() < 2 || 
-					fileNode.getAttributes().getNamedItem("name") == null ||
-					fileNode.getAttributes().getNamedItem("factoryclass") == null) {
-				throw new InvalidIniConfigurationException("A <file> tag must have a name=\"\" and a factoryclass=\"\" attribute");
+					fileNode.getAttributes().getNamedItem("name") == null || //$NON-NLS-1$
+					fileNode.getAttributes().getNamedItem("factoryclass") == null) { //$NON-NLS-1$
+				throw new InvalidIniConfigurationException("A <file> tag must have a name=\"\" and a factoryclass=\"\" attribute"); //$NON-NLS-1$
 			}
-			conf.filename = fileNode.getAttributes().getNamedItem("name").getNodeValue();
+			conf.filename = fileNode.getAttributes().getNamedItem("name").getNodeValue(); //$NON-NLS-1$
 			try {
-				Class<?> configClass = Class.forName(fileNode.getAttributes().getNamedItem("factoryclass").getNodeValue());
+				Class<?> configClass = Class.forName(fileNode.getAttributes().getNamedItem("factoryclass").getNodeValue()); //$NON-NLS-1$
 				if (!cachedFactories.containsKey(configClass)) {
 					if (IEntryFactory.class.isAssignableFrom(configClass))
 						cachedFactories.put(configClass, (IEntryFactory) configClass.newInstance());
 					else
-						throw new InvalidIniConfigurationException("Value of 'factorymethod' in file declaration '" + conf.filename + "' is not a subtype of IEntryFactory");;
+						throw new InvalidIniConfigurationException("Value of 'factorymethod' in file declaration '" + conf.filename + "' is not a subtype of IEntryFactory");; //$NON-NLS-1$ //$NON-NLS-2$
 				}
 				conf.factory = cachedFactories.get(configClass);
 			}  catch (ClassNotFoundException e) {
@@ -55,7 +55,7 @@ public class IniData {
 
 			NodeList sectionNodes = fileNode.getChildNodes();
 			for(int i = 0;i < sectionNodes.getLength();i++) {
-				if (sectionNodes.item(i).getNodeName() == "section") {
+				if (sectionNodes.item(i).getNodeName() == "section") { //$NON-NLS-1$
 					IniSectionData section = IniSectionData.createByXML(sectionNodes.item(i), conf.factory);
 					conf.getSections().put(section.getSectionName(), section);
 				}
@@ -96,14 +96,14 @@ public class IniData {
 			IniSectionData section = new IniSectionData();
 			if (sectionNode.getAttributes() == null || 
 					sectionNode.getAttributes().getLength() == 0 || 
-					sectionNode.getAttributes().getNamedItem("name") == null) {
-				throw new InvalidIniConfigurationException("A <section> tag must have a name=\"\" attribute");
+					sectionNode.getAttributes().getNamedItem("name") == null) { //$NON-NLS-1$
+				throw new InvalidIniConfigurationException("A <section> tag must have a name=\"\" attribute"); //$NON-NLS-1$
 			}
-			section.sectionName = sectionNode.getAttributes().getNamedItem("name").getNodeValue();
+			section.sectionName = sectionNode.getAttributes().getNamedItem("name").getNodeValue(); //$NON-NLS-1$
 			// TODO implement 'optional' <section> attribute
 			NodeList entryNodes = sectionNode.getChildNodes();
 			for(int i = 0; i < entryNodes.getLength();i++) {
-				if (entryNodes.item(i).getNodeName() == "entry") {
+				if (entryNodes.item(i).getNodeName() == "entry") { //$NON-NLS-1$
 					IniDataEntry entry = IniDataEntry.createByXML(entryNodes.item(i), factory);
 					section.getEntries().put(entry.getEntryName(), entry);
 				}
@@ -148,23 +148,23 @@ public class IniData {
 			IniDataEntry entry = new IniDataEntry();
 			if (entryNode.getAttributes() == null || 
 					entryNode.getAttributes().getLength() < 2 || 
-					entryNode.getAttributes().getNamedItem("name") == null ||
-					entryNode.getAttributes().getNamedItem("class") == null) {
-				throw new InvalidIniConfigurationException("An <entry> tag must have a 'name=\"\"' and a 'class=\"\"' attribute");
+					entryNode.getAttributes().getNamedItem("name") == null || //$NON-NLS-1$
+					entryNode.getAttributes().getNamedItem("class") == null) { //$NON-NLS-1$
+				throw new InvalidIniConfigurationException("An <entry> tag must have a 'name=\"\"' and a 'class=\"\"' attribute"); //$NON-NLS-1$
 			}
-			entry.entryName = entryNode.getAttributes().getNamedItem("name").getNodeValue();
+			entry.entryName = entryNode.getAttributes().getNamedItem("name").getNodeValue(); //$NON-NLS-1$
 			try {
-				Class<?> configClass = Class.forName(entryNode.getAttributes().getNamedItem("class").getNodeValue());
+				Class<?> configClass = Class.forName(entryNode.getAttributes().getNamedItem("class").getNodeValue()); //$NON-NLS-1$
 					entry.entryClass = configClass;
 			} catch (ClassNotFoundException e) {
 				e.printStackTrace();
 			}
-			if ((n = entryNode.getAttributes().getNamedItem("description")) != null) {
+			if ((n = entryNode.getAttributes().getNamedItem("description")) != null) { //$NON-NLS-1$
 				entry.entryDescription = n.getNodeValue();
 			}
 			if (entry.entryClass == CategoriesArray.class) {
-				if ((n = entryNode.getAttributes().getNamedItem("flags")) != null) {
-					entry.extraData = n.getNodeValue().split(",");
+				if ((n = entryNode.getAttributes().getNamedItem("flags")) != null) { //$NON-NLS-1$
+					entry.extraData = n.getNodeValue().split(","); //$NON-NLS-1$
 				}
 			}
 			return entry;
@@ -223,10 +223,10 @@ public class IniData {
 			DocumentBuilder db = dbf.newDocumentBuilder();
 			Document doc = db.parse(xmlFile);
 			doc.getDocumentElement().normalize();
-			if (!doc.getDocumentElement().getNodeName().equals("clonkiniconfig")) {
-				throw new ParserConfigurationException("Invalid xml document. Wrong root node '" + doc.getDocumentElement().getNodeName() + "'.");
+			if (!doc.getDocumentElement().getNodeName().equals("clonkiniconfig")) { //$NON-NLS-1$
+				throw new ParserConfigurationException("Invalid xml document. Wrong root node '" + doc.getDocumentElement().getNodeName() + "'."); //$NON-NLS-1$ //$NON-NLS-2$
 			}
-			NodeList nodeList = doc.getElementsByTagName("file");
+			NodeList nodeList = doc.getElementsByTagName("file"); //$NON-NLS-1$
 			for (int i = 0; i < nodeList.getLength();i++) {
 				try {
 					IniConfiguration conf = IniConfiguration.createByXML(nodeList.item(i));

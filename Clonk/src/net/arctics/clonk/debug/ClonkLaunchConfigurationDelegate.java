@@ -28,24 +28,24 @@ import org.eclipse.jface.preference.IPreferenceStore;
 public class ClonkLaunchConfigurationDelegate implements
 		ILaunchConfigurationDelegate {
 	
-	public static final String LAUNCH_TYPE = ClonkCore.id("debug.ClonkLaunch");
+	public static final String LAUNCH_TYPE = ClonkCore.id("debug.ClonkLaunch"); //$NON-NLS-1$
 	
-	public static final String ATTR_PROJECT_NAME = ClonkCore.id("debug.ProjectNameAttr");
-	public static final String ATTR_SCENARIO_NAME = ClonkCore.id("debug.ScenarioNameAttr");
-	public static final String ATTR_FULLSCREEN = ClonkCore.id("debug.FullscreenAttr");
-	public static final String ATTR_RECORD = ClonkCore.id("debug.RecordAttr");
+	public static final String ATTR_PROJECT_NAME = ClonkCore.id("debug.ProjectNameAttr"); //$NON-NLS-1$
+	public static final String ATTR_SCENARIO_NAME = ClonkCore.id("debug.ScenarioNameAttr"); //$NON-NLS-1$
+	public static final String ATTR_FULLSCREEN = ClonkCore.id("debug.FullscreenAttr"); //$NON-NLS-1$
+	public static final String ATTR_RECORD = ClonkCore.id("debug.RecordAttr"); //$NON-NLS-1$
 	
 	public void launch(ILaunchConfiguration configuration, String mode, ILaunch launch,
 			IProgressMonitor monitor) throws CoreException {
 
 		// Run only for now
 		if(!mode.equals(ILaunchManager.RUN_MODE))
-			abort(IStatus.ERROR, "Launcher only supports run mode!");
+			abort(IStatus.ERROR, Messages.ClonkLaunchConfigurationDelegate_5);
 		
 		// Set up monitor
 		if(monitor == null)
 			monitor = new NullProgressMonitor();
-		monitor.beginTask("Launch " + configuration.getName() + "...", 2);
+		monitor.beginTask(Messages.ClonkLaunchConfigurationDelegate_6 + configuration.getName() + Messages.ClonkLaunchConfigurationDelegate_7, 2);
 		
 		try {
 			
@@ -60,14 +60,14 @@ public class ClonkLaunchConfigurationDelegate implements
 			// Progress
 			if(monitor.isCanceled()) return;
 			monitor.worked(1);
-			monitor.subTask("Starting Clonk engine...");
+			monitor.subTask(Messages.ClonkLaunchConfigurationDelegate_8);
 			
 			// Run the engine
 			try {
 				Process process = Runtime.getRuntime().exec(launchArgs, null, workDirectory);
 				DebugPlugin.newProcess(launch, process, configuration.getName());
 			} catch(IOException e) {
-				abort(IStatus.ERROR, "Could not start engine!", e);
+				abort(IStatus.ERROR, Messages.ClonkLaunchConfigurationDelegate_9, e);
 			}
 				
 		} finally {
@@ -91,34 +91,34 @@ public class ClonkLaunchConfigurationDelegate implements
 			throws CoreException {
 		
 		// Get project and scenario name from configuration
-		String projectName = configuration.getAttribute(ATTR_PROJECT_NAME, "");
-		String scenarioName = configuration.getAttribute(ATTR_SCENARIO_NAME, "");
+		String projectName = configuration.getAttribute(ATTR_PROJECT_NAME, ""); //$NON-NLS-1$
+		String scenarioName = configuration.getAttribute(ATTR_SCENARIO_NAME, ""); //$NON-NLS-1$
 		
 		// Get project
 		IWorkspaceRoot root = ResourcesPlugin.getWorkspace().getRoot();
 		IProject project = root.getProject(projectName);
 		if(project == null || !project.isOpen())
-			abort(IStatus.ERROR, projectName + " is not an open project!");
+			abort(IStatus.ERROR, projectName + Messages.ClonkLaunchConfigurationDelegate_0);
 		
 		// Get scenario
 		IFolder scenario = project.getFolder(scenarioName);
 		if(scenario == null || !scenario.exists())
-			abort(IStatus.ERROR, "Scenario " + projectName + " not found!");
+			abort(IStatus.ERROR, Messages.ClonkLaunchConfigurationDelegate_13 + projectName + Messages.ClonkLaunchConfigurationDelegate_14);
 		
 		return scenario;
 	}
 	
 	private String[] possibleEngineNamesAccordingToOS(String OS) {
-		if (OS.equals("Mac OS X")) {
-			return new String[] { "Clonk.app/Contents/MacOS/Clonk" };
+		if (OS.equals("Mac OS X")) { //$NON-NLS-1$
+			return new String[] { "Clonk.app/Contents/MacOS/Clonk" }; //$NON-NLS-1$
 		}
-		if (OS.contains("Windows")) {
-			return new String[] { "Clonk.c4x", "Clonk.exe" };
+		if (OS.contains("Windows")) { //$NON-NLS-1$
+			return new String[] { "Clonk.c4x", "Clonk.exe" }; //$NON-NLS-1$ //$NON-NLS-2$
 		}
-		if (OS.contains("Linux")) {
-			return new String[] { "clonk" };
+		if (OS.contains("Linux")) { //$NON-NLS-1$
+			return new String[] { "clonk" }; //$NON-NLS-1$
 		}
-		return possibleEngineNamesAccordingToOS("Windows"); // default to what the majority wants!
+		return possibleEngineNamesAccordingToOS("Windows"); // default to what the majority wants! //$NON-NLS-1$
 	}
 	
 	/** 
@@ -135,15 +135,15 @@ public class ClonkLaunchConfigurationDelegate implements
 		String gamePath = prefs.getString(PreferenceConstants.GAME_PATH);
 
 		File enginePath = null;
-		String enginePref = Platform.getPreferencesService().getString(ClonkCore.PLUGIN_ID, PreferenceConstants.ENGINE_EXECUTABLE, "", null);
-		if (enginePref != "") {
+		String enginePref = Platform.getPreferencesService().getString(ClonkCore.PLUGIN_ID, PreferenceConstants.ENGINE_EXECUTABLE, "", null); //$NON-NLS-1$
+		if (enginePref != "") { //$NON-NLS-1$
 			enginePath = new File(enginePref);
 			if (!enginePath.exists())
 				enginePath = null;
 		}
 		else {
 			// Try some variants in an attempt to find the engine (ugh...)
-			final String[] engineNames = possibleEngineNamesAccordingToOS(System.getProperty("os.name"));
+			final String[] engineNames = possibleEngineNamesAccordingToOS(System.getProperty("os.name")); //$NON-NLS-1$
 			for(String name : engineNames) {
 				File path = new File(gamePath, name);
 				if(path.exists()) {
@@ -153,7 +153,7 @@ public class ClonkLaunchConfigurationDelegate implements
 			}
 		}
 		if(enginePath == null)
-			abort(IStatus.ERROR, "Could not find engine excutable!");
+			abort(IStatus.ERROR, Messages.ClonkLaunchConfigurationDelegate_26);
 
 		// TODO: Do some more verification? Check engine version?
 	
@@ -175,13 +175,13 @@ public class ClonkLaunchConfigurationDelegate implements
 		
 		// Full screen/console
 		if(configuration.getAttribute(ATTR_FULLSCREEN, false))
-			args.add("/fullscreen");
+			args.add("/fullscreen"); //$NON-NLS-1$
 		else
-			args.add("/console");
+			args.add("/console"); //$NON-NLS-1$
 		
 		// Record
 		if(configuration.getAttribute(ATTR_RECORD, false))
-			args.add("/record");
+			args.add("/record"); //$NON-NLS-1$
 		
 		return args.toArray(new String [] {});
 	}

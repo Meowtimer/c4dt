@@ -46,8 +46,8 @@ import org.eclipse.swt.graphics.RGB;
 
 public class IniSourceViewerConfiguration extends ClonkSourceViewerConfiguration<IniTextEditor> {
 	
-	public static Pattern NO_ASSIGN_PATTERN = Pattern.compile("\\s*([A-Za-z_0-9]*)");
-	public static Pattern ASSIGN_PATTERN = Pattern.compile("\\s*([A-Za-z_0-9]*)\\s*=\\s*(.*)\\s*");
+	public static Pattern NO_ASSIGN_PATTERN = Pattern.compile("\\s*([A-Za-z_0-9]*)"); //$NON-NLS-1$
+	public static Pattern ASSIGN_PATTERN = Pattern.compile("\\s*([A-Za-z_0-9]*)\\s*=\\s*(.*)\\s*"); //$NON-NLS-1$
 	
 	private IniScanner scanner;
 	
@@ -121,7 +121,7 @@ public class IniSourceViewerConfiguration extends ClonkSourceViewerConfiguration
 								else if (entryClass == Action.class) {
 									declaration = getEditor().getIniUnit().sectionMatching(new IPredicate<IniSection>() {
 										public boolean test(IniSection object) {
-											IniEntry entry = object.getEntry("Name");
+											IniEntry entry = object.getEntry("Name"); //$NON-NLS-1$
 											return (entry != null && entry.getValue().equals(value));
 										}
 									});
@@ -214,7 +214,7 @@ public class IniSourceViewerConfiguration extends ClonkSourceViewerConfiguration
 		assistant.setContextInformationPopupOrientation(IContentAssistant.CONTEXT_INFO_ABOVE);
 		
 		assistant.setStatusLineVisible(true);
-		assistant.setStatusMessage(Utilities.getEditingFile(getEditor()).getName() + " proposals");
+		assistant.setStatusMessage(Utilities.getEditingFile(getEditor()).getName() + " proposals"); //$NON-NLS-1$
 		
 		assistant.enablePrefixCompletion(false);
 		assistant.enableAutoInsert(true);

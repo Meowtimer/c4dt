@@ -51,7 +51,7 @@ public class C4Function extends C4Structure implements Serializable, ITypedDecla
 	
 	public C4Function() {
 		visibility = C4FunctionScope.FUNC_GLOBAL;
-		name = "";
+		name = Messages.C4Function_0;
 		parameter = new ArrayList<C4Variable>();
 		localVars = new ArrayList<C4Variable>();
 	}
@@ -155,10 +155,10 @@ public class C4Function extends C4Structure implements Serializable, ITypedDecla
 		
 		public static C4FunctionScope makeScope(String scopeString) {
 			if (scopeString == null) return C4FunctionScope.FUNC_PUBLIC;
-			if (scopeString.equals("public")) return C4FunctionScope.FUNC_PUBLIC;
-			if (scopeString.equals("protected")) return C4FunctionScope.FUNC_PROTECTED;
-			if (scopeString.equals("private")) return C4FunctionScope.FUNC_PRIVATE;
-			if (scopeString.equals("global")) return C4FunctionScope.FUNC_GLOBAL;
+			if (scopeString.equals(Messages.C4Function_1)) return C4FunctionScope.FUNC_PUBLIC;
+			if (scopeString.equals(Messages.C4Function_2)) return C4FunctionScope.FUNC_PROTECTED;
+			if (scopeString.equals(Messages.C4Function_3)) return C4FunctionScope.FUNC_PRIVATE;
+			if (scopeString.equals(Messages.C4Function_4)) return C4FunctionScope.FUNC_GLOBAL;
 			//if (C4FunctionScope.valueOf(scopeString) != null) return C4FunctionScope.valueOf(scopeString);
 			return C4FunctionScope.FUNC_PUBLIC;
 		}
@@ -184,10 +184,10 @@ public class C4Function extends C4Structure implements Serializable, ITypedDecla
 		StringBuilder string = new StringBuilder();
 		if (withFuncName) {
 			string.append(getName());
-			string.append("(");
+			string.append(Messages.C4Function_5);
 		}
 		printParameterString(string, true);
-		if (withFuncName) string.append(")");
+		if (withFuncName) string.append(Messages.C4Function_6);
 		return string.toString();
 	}
 
@@ -251,12 +251,12 @@ public class C4Function extends C4Structure implements Serializable, ITypedDecla
 
 	// to be called on engine functions
 	public String getDocumentationURL() {
-		return String.format("http://www.clonk.de/docs/de/sdk/script/fn/%s.html",getName());
+		return String.format(Messages.C4Function_7,getName());
 	}
 
 	@Override
 	public String getInfoText() {
-		return String.format("<b>%s</b><br><br><b>Description:</b><br>%s<br><br><b>Declared in:</b><br>%s", getLongParameterString(true), getUserDescription() != null && !getUserDescription().equals("") ? getUserDescription() : "Not available", getScript().toString());
+		return String.format(Messages.C4Function_8, getLongParameterString(true), getUserDescription() != null && !getUserDescription().equals(Messages.C4Function_9) ? getUserDescription() : Messages.C4Function_10, getScript().toString());
 	}
 
 	@Override
@@ -348,7 +348,7 @@ public class C4Function extends C4Structure implements Serializable, ITypedDecla
 	public void createParameters(int num) {
 		if (parameter.size() == 0)
 			for (int i = 0; i < num; i++) {
-				parameter.add(new C4Variable("par"+i, C4VariableScope.VAR_VAR));
+				parameter.add(new C4Variable(Messages.C4Function_11+i, C4VariableScope.VAR_VAR));
 			}
 	}
 
@@ -367,18 +367,18 @@ public class C4Function extends C4Structure implements Serializable, ITypedDecla
 	public void printHeader(StringBuilder output, boolean oldStyle) {
 		output.append(getVisibility().toString());
 		if (!oldStyle) {
-			output.append(" ");
+			output.append(Messages.C4Function_12);
 			output.append(Keywords.Func);
 		}
-		output.append(" ");
+		output.append(Messages.C4Function_13);
 		output.append(getName());
 		if (!oldStyle) {
-			output.append("(");
+			output.append(Messages.C4Function_14);
 			printParameterString(output, true);
-			output.append(")");
+			output.append(Messages.C4Function_15);
 		}
 		else
-			output.append(":");
+			output.append(Messages.C4Function_16);
 	}
 	
 	public String getHeaderString(boolean oldStyle) {

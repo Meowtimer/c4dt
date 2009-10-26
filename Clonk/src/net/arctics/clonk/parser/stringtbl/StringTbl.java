@@ -92,7 +92,7 @@ public class StringTbl extends C4Structure implements ITreeNode {
 	
 	public static void register() {
 		registerStructureFactory(new IStructureFactory() {
-			private final Matcher stringTblFileMatcher = Pattern.compile("StringTbl..\\.txt", Pattern.CASE_INSENSITIVE).matcher("");
+			private final Matcher stringTblFileMatcher = Pattern.compile("StringTbl..\\.txt", Pattern.CASE_INSENSITIVE).matcher(""); //$NON-NLS-1$ //$NON-NLS-2$
 			public C4Structure create(IFile file) {
 				if (stringTblFileMatcher.reset(file.getName()).matches()) {
 					StringTbl tbl = new StringTbl();
@@ -123,7 +123,7 @@ public class StringTbl extends C4Structure implements ITreeNode {
 	}
 
 	public String getNodeName() {
-		return "StringTbl"; 
+		return "StringTbl";  //$NON-NLS-1$
 	}
 
 	public ITreeNode getParentNode() {

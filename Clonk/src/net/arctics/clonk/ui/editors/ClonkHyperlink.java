@@ -35,7 +35,7 @@ public class ClonkHyperlink implements IHyperlink {
 	}
 
 	public String getTypeLabel() {
-		return "Clonk Hyperlink";
+		return Messages.ClonkHyperlink_0;
 	}
 
 	public void open() {

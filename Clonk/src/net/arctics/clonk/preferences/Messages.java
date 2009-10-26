@@ -18,6 +18,7 @@ public class Messages extends NLS {
 	public static String ClonkPreferencePage_5;
 	public static String ClonkPreferencePage_6;
 	public static String ClonkPreferencePage_8;
+	public static String PreferenceConstants_10;
 	static {
 		// initialize resource bundle
 		NLS.initializeMessages(BUNDLE_NAME, Messages.class);

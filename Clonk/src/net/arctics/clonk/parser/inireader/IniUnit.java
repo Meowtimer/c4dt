@@ -138,7 +138,7 @@ public class IniUnit extends C4Structure implements Iterable<IniSection>, IHasCh
 		if (sectionConfig == null)
 			return entry; // don't throw errors in unknown section
 		if (!sectionConfig.hasEntry(entry.getKey())) {
-			throw new IniParserException(IMarker.SEVERITY_WARNING, "Unknown option '" + entry.getKey() + "'", entry.getStartPos(), entry.getKey().length() + entry.getStartPos());
+			throw new IniParserException(IMarker.SEVERITY_WARNING, Messages.IniUnit_0 + entry.getKey() + Messages.IniUnit_1, entry.getStartPos(), entry.getKey().length() + entry.getStartPos()); //$NON-NLS-2$
 		}
 		IniDataEntry entryConfig = sectionConfig.getEntry(entry.getKey());
 		try {
@@ -152,14 +152,14 @@ public class IniUnit extends C4Structure implements Iterable<IniSection>, IHasCh
 					String key = entry.getKey();
 					String value = entry.getValue();
 					if (value == null)
-						value = "";
+						value = ""; //$NON-NLS-1$
 					e.setOffset(entry.getStartPos() + key.length() + 1);
 					e.setEndOffset(entry.getStartPos() + key.length() + 1 + value.length());
 				}
 				throw e;
 			}
 		} catch (InvalidClassException e) {
-			throw new IniParserException(IMarker.SEVERITY_WARNING, "There is a bug in the ini scheme. Report the following data to a C4DT developer: " + e.getMessage(),entry.getStartPos(),entry.getStartPos() + entry.getKey().length());
+			throw new IniParserException(IMarker.SEVERITY_WARNING, Messages.IniUnit_3 + e.getMessage(),entry.getStartPos(),entry.getStartPos() + entry.getKey().length());
 		}
 	}
 	
@@ -202,7 +202,7 @@ public class IniUnit extends C4Structure implements Iterable<IniSection>, IHasCh
 			String name = reader.readStringUntil(']','\n','\r');
 			if (reader.read() != ']') {
 				if (modifyMarkers)
-					ParserErrorCode.TokenExpected.createMarker(iniFile, ClonkCore.MARKER_C4SCRIPT_ERROR, start, reader.getPosition(), IMarker.SEVERITY_ERROR, (Object)"]");					
+					ParserErrorCode.TokenExpected.createMarker(iniFile, ClonkCore.MARKER_C4SCRIPT_ERROR, start, reader.getPosition(), IMarker.SEVERITY_ERROR, (Object)"]");					 //$NON-NLS-1$
 				return null;
 			}
 			else {
@@ -283,7 +283,7 @@ public class IniUnit extends C4Structure implements Iterable<IniSection>, IHasCh
 		reader.eatWhitespace();
 		if (reader.read() != '=') {
 			if (modifyMarkers)
-				ParserErrorCode.TokenExpected.createMarker(iniFile, ClonkCore.MARKER_C4SCRIPT_ERROR, keyStart+key.length(), reader.getPosition(), IMarker.SEVERITY_ERROR, (Object)"=");
+				ParserErrorCode.TokenExpected.createMarker(iniFile, ClonkCore.MARKER_C4SCRIPT_ERROR, keyStart+key.length(), reader.getPosition(), IMarker.SEVERITY_ERROR, (Object)"="); //$NON-NLS-1$
 		}
 		reader.eat(new char[] {' ', '\t'});
 		String value = reader.readStringUntil(BufferedScanner.NEWLINE_CHARS);
@@ -364,7 +364,7 @@ public class IniUnit extends C4Structure implements Iterable<IniSection>, IHasCh
 	}
 	
 	public String sectionToString(IniSection section) {
-		return "["+section.getName()+"]";
+		return "["+section.getName()+"]"; //$NON-NLS-1$ //$NON-NLS-2$
 	}
 
 	public IniSection sectionAtOffset(int offset, int addIfOverOffset) {

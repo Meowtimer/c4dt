@@ -80,9 +80,9 @@ public abstract class C4ScriptExprTree {
 		@Override
 		public String toString() {
 			if (declaration != null && region != null)
-				return declaration.toString() + "@(" + region.toString() + ")" + (text != null ? "("+text+")" : "");
+				return declaration.toString() + "@(" + region.toString() + ")" + (text != null ? "("+text+")" : ""); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$
 			else
-				return "Empty DeclarationRegion";
+				return "Empty DeclarationRegion"; //$NON-NLS-1$
 		}
 	}
 
@@ -213,7 +213,7 @@ public abstract class C4ScriptExprTree {
 
 		public void setSubElements(ExprElm[] elms) {
 			if (getSubElements().length > 0)
-				System.out.println("setSubElements should be implemented when getSubElements() is implemented ("+getClass().getName()+")");
+				System.out.println("setSubElements should be implemented when getSubElements() is implemented ("+getClass().getName()+")"); //$NON-NLS-1$ //$NON-NLS-2$
 		}
 
 		/**
@@ -406,7 +406,7 @@ public abstract class C4ScriptExprTree {
 
 		protected void printIndent(StringBuilder builder, int indentDepth) {
 			for (int i = 0; i < indentDepth; i++)
-				builder.append("\t"); // FIXME: should be done according to user's preferences
+				builder.append("\t"); // FIXME: should be done according to user's preferences //$NON-NLS-1$
 		}
 
 		/**
@@ -442,12 +442,12 @@ public abstract class C4ScriptExprTree {
 			}
 			else {
 				if (hasTilde)
-					output.append("->~");
+					output.append("->~"); //$NON-NLS-1$
 				else
-					output.append("->");
+					output.append("->"); //$NON-NLS-1$
 				if (id != null) {
 					output.append(id.getName());
-					output.append("::");
+					output.append("::"); //$NON-NLS-1$
 				}
 			}
 		}
@@ -681,7 +681,7 @@ public abstract class C4ScriptExprTree {
 
 			@Override
 			public String toString() {
-				return "variable " + decl.getName() + " " +  super.toString();
+				return "variable " + decl.getName() + " " +  super.toString(); //$NON-NLS-1$ //$NON-NLS-2$
 			}
 
 		}
@@ -829,16 +829,16 @@ public abstract class C4ScriptExprTree {
 		@Override
 		public void print(StringBuilder output, int depth) {
 			super.print(output, depth);
-			output.append("(");
+			output.append("("); //$NON-NLS-1$
 			if (params != null) {
 				for (int i = 0; i < params.length; i++) {
 					if (params[i] != null)
 						params[i].print(output, depth+1);
 					if (i < params.length-1)
-						output.append(", ");
+						output.append(", "); //$NON-NLS-1$
 				}
 			}
-			output.append(")");
+			output.append(")"); //$NON-NLS-1$
 		}
 		@Override
 		public boolean modifiable(C4ScriptParser context) {
@@ -929,7 +929,7 @@ public abstract class C4ScriptExprTree {
 					if (params.length >= 3 &&  (f == CachedEngineFuncs.getInstance().AddCommand || f == CachedEngineFuncs.getInstance().AppendCommand || f == CachedEngineFuncs.getInstance().SetCommand)) {
 						// look if command is "Call"; if so treat parms 2, 3, 4 as any
 						Object command = params[1].evaluateAtParseTime(context.getContainer());
-						if (command instanceof String && command.equals("Call")) {
+						if (command instanceof String && command.equals("Call")) { //$NON-NLS-1$
 							for (C4Variable parm : f.getParameters()) {
 								if (givenParam >= params.length)
 									break;
@@ -977,7 +977,7 @@ public abstract class C4ScriptExprTree {
 			params = elms;
 		}
 		private boolean isCriteriaSearch() {
-			return declarationName.equals("FindObjects") || declarationName.equals("FindObject2");
+			return declarationName.equals("FindObjects") || declarationName.equals("FindObject2"); //$NON-NLS-1$ //$NON-NLS-2$
 		}
 		@Override
 		public C4Object guessObjectType(C4ScriptParser parser) {
@@ -988,10 +988,10 @@ public abstract class C4ScriptExprTree {
 			else if (isCriteriaSearch()) {
 				return searchCriteriaAssumedResult(parser);
 			}
-			else if (params != null && params.length >= 1 && getType(parser) == C4Type.OBJECT && (declarationName.startsWith("Create") || declarationName.startsWith("Find"))) {
+			else if (params != null && params.length >= 1 && getType(parser) == C4Type.OBJECT && (declarationName.startsWith("Create") || declarationName.startsWith("Find"))) { //$NON-NLS-1$ //$NON-NLS-2$
 				return params[0].guessObjectType(parser);
 			}
-			else if (declarationName.equals("GetID") && params.length == 0) {
+			else if (declarationName.equals("GetID") && params.length == 0) { //$NON-NLS-1$
 				return getPredecessorInSequence() == null ? parser.getContainerObject() : getPredecessorInSequence().guessObjectType(parser);
 			}
 			if (declaration instanceof ITypedDeclaration) {
@@ -1070,7 +1070,7 @@ public abstract class C4ScriptExprTree {
 			
 			// SetVar(5, "ugh") -> Var(5) = "ugh"
 			if (params.length == 2 && declaration != null && (declaration == CachedEngineFuncs.getInstance().SetVar || declaration == CachedEngineFuncs.getInstance().SetLocal || declaration == CachedEngineFuncs.getInstance().AssignVar)) {
-				return new BinaryOp(C4ScriptOperator.Assign, new CallFunc(declarationName.substring(declarationName.equals("AssignVar") ? "Assign".length() : "Set".length()), params[0].newStyleReplacement(parser)), params[1].newStyleReplacement(parser));
+				return new BinaryOp(C4ScriptOperator.Assign, new CallFunc(declarationName.substring(declarationName.equals("AssignVar") ? "Assign".length() : "Set".length()), params[0].newStyleReplacement(parser)), params[1].newStyleReplacement(parser)); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 			}
 
 			// DecVar(0) -> Var(0)--
@@ -1111,7 +1111,7 @@ public abstract class C4ScriptExprTree {
 		public C4Object searchCriteriaAssumedResult(C4ScriptParser context) {
 			C4Object result = null;
 			// parameters to FindObjects itself are also &&-ed together
-			if (declarationName.equals("Find_And") || isCriteriaSearch()) {
+			if (declarationName.equals("Find_And") || isCriteriaSearch()) { //$NON-NLS-1$
 				for (ExprElm parm : params) {
 					if (parm instanceof CallFunc) {
 						CallFunc call = (CallFunc)parm;
@@ -1127,7 +1127,7 @@ public abstract class C4ScriptExprTree {
 					}
 				}
 			}
-			else if (declarationName.equals("Find_ID")) {
+			else if (declarationName.equals("Find_ID")) { //$NON-NLS-1$
 				if (params.length > 0 && params[0] instanceof IDLiteral) {
 					result = ((IDLiteral)params[0]).guessObjectType(context);
 				}
@@ -1326,21 +1326,21 @@ public abstract class C4ScriptExprTree {
 			// put brackets around operands in case some transformation messed up prioritization
 			boolean needsBrackets = leftSide instanceof BinaryOp && getOperator().getPriority() > ((BinaryOp)leftSide).getOperator().getPriority();
 			if (needsBrackets)
-				output.append("(");
+				output.append("("); //$NON-NLS-1$
 			leftSide.print(output, depth+1);
 			if (needsBrackets)
-				output.append(")");
+				output.append(")"); //$NON-NLS-1$
 
-			output.append(" ");
+			output.append(" "); //$NON-NLS-1$
 			output.append(getOperator().getOperatorName());
-			output.append(" ");
+			output.append(" "); //$NON-NLS-1$
 
 			needsBrackets = rightSide instanceof BinaryOp && getOperator().getPriority() > ((BinaryOp)rightSide).getOperator().getPriority();
 			if (needsBrackets)
-				output.append("(");
+				output.append("("); //$NON-NLS-1$
 			rightSide.print(output, depth+1);
 			if (needsBrackets)
-				output.append(")");
+				output.append(")"); //$NON-NLS-1$
 		}
 
 		@Override
@@ -1424,9 +1424,9 @@ public abstract class C4ScriptExprTree {
 			this.innerExpr = innerExpr;
 		}
 		public void print(StringBuilder output, int depth) {
-			output.append("(");
+			output.append("("); //$NON-NLS-1$
 			innerExpr.print(output, depth+1);
-			output.append(")");
+			output.append(")"); //$NON-NLS-1$
 		}
 		public C4Type getType(C4ScriptParser context) {
 			return innerExpr.getType(context);
@@ -1499,12 +1499,12 @@ public abstract class C4ScriptExprTree {
 			if (placement == Placement.Postfix) {
 				argument.print(output, depth+1);
 				if (unop != null && needsSpace(unop))
-					output.append(" "); // - -5 -.-
+					output.append(" "); // - -5 -.- //$NON-NLS-1$
 				output.append(getOperator().getOperatorName());
 			} else {
 				output.append(getOperator().getOperatorName());
 				if (unop != null && needsSpace(unop))
-					output.append(" "); // - -5 -.-
+					output.append(" "); // - -5 -.- //$NON-NLS-1$
 				argument.print(output, depth+1);
 			}
 		}
@@ -1654,7 +1654,7 @@ public abstract class C4ScriptExprTree {
 		@Override
 		public void print(StringBuilder output, int depth) {
 			if (hex) {
-				output.append("0x");
+				output.append("0x"); //$NON-NLS-1$
 				output.append(Long.toHexString(longValue()).toUpperCase());
 			}
 			else
@@ -1693,9 +1693,9 @@ public abstract class C4ScriptExprTree {
 		}
 		@Override
 		public void print(StringBuilder output, int depth) {
-			output.append("\"");
+			output.append("\""); //$NON-NLS-1$
 			output.append(stringValue());
-			output.append("\"");
+			output.append("\""); //$NON-NLS-1$
 		}
 
 		@Override
@@ -1912,9 +1912,9 @@ public abstract class C4ScriptExprTree {
 
 		@Override
 		public void print(StringBuilder output, int depth) {
-			output.append("[");
+			output.append("["); //$NON-NLS-1$
 			getArgument().print(output, depth+1);
-			output.append("]");
+			output.append("]"); //$NON-NLS-1$
 		}
 
 		@Override
@@ -1956,14 +1956,14 @@ public abstract class C4ScriptExprTree {
 		}
 
 		public void print(StringBuilder output, int depth) {
-			output.append("[");
+			output.append("["); //$NON-NLS-1$
 			for (int i = 0; i < elements.length; i++) {
 				if (elements[i] != null)
 					elements[i].print(output, depth+1);
 				if (i < elements.length-1)
-					output.append(", ");
+					output.append(", "); //$NON-NLS-1$
 			}
-			output.append("]");
+			output.append("]"); //$NON-NLS-1$
 		}
 
 		@Override
@@ -2005,7 +2005,7 @@ public abstract class C4ScriptExprTree {
 				output.append('\n');
 				printIndent(output, depth-2);
 				output.append(component.getFirst());
-				output.append(": ");
+				output.append(": "); //$NON-NLS-1$
 				component.getSecond().print(output, depth+1);
 				if (i < components.length-1) {
 					output.append(',');
@@ -2055,7 +2055,7 @@ public abstract class C4ScriptExprTree {
 					if (elements[i] != null)
 						elements[i].print(output, depth+1);
 					if (i < elements.length-1)
-						output.append(", ");
+						output.append(", "); //$NON-NLS-1$
 				}
 			}
 			output.append(')');
@@ -2071,7 +2071,7 @@ public abstract class C4ScriptExprTree {
 
 		@Override
 		public void print(StringBuilder output, int depth) {
-			output.append("...");
+			output.append("..."); //$NON-NLS-1$
 		}
 
 	}
@@ -2140,7 +2140,7 @@ public abstract class C4ScriptExprTree {
 
 		public void printAppendix(StringBuilder builder, int depth) {
 			if (inlineComment != null) {
-				builder.append(" ");
+				builder.append(" "); //$NON-NLS-1$
 				inlineComment.print(builder, depth);
 			}
 		}
@@ -2192,11 +2192,11 @@ public abstract class C4ScriptExprTree {
 
 		@Override
 		public void print(StringBuilder builder, int depth) {
-			builder.append("{\n");
+			builder.append("{\n"); //$NON-NLS-1$
 			for (Statement statement : statements) {
-				printIndent(builder, depth); printStatement(builder, statement, depth+1); builder.append("\n");
+				printIndent(builder, depth); printStatement(builder, statement, depth+1); builder.append("\n"); //$NON-NLS-1$
 			}
-			printIndent(builder, depth-1); builder.append("}");
+			printIndent(builder, depth-1); builder.append("}"); //$NON-NLS-1$
 		}
 
 		@Override
@@ -2250,7 +2250,7 @@ public abstract class C4ScriptExprTree {
 				if (first)
 					first = false;
 				else {
-					builder.append("\n");
+					builder.append("\n"); //$NON-NLS-1$
 					printIndent(builder, depth-1);
 				}
 				printStatement(builder, statement, depth+1);
@@ -2293,7 +2293,7 @@ public abstract class C4ScriptExprTree {
 		@Override
 		public void print(StringBuilder builder, int depth) {
 			expression.print(builder, depth+1);
-			builder.append(";");
+			builder.append(";"); //$NON-NLS-1$
 		}
 
 		@Override
@@ -2328,13 +2328,13 @@ public abstract class C4ScriptExprTree {
 		@Override
 		public void print(StringBuilder builder, int depth) {
 			builder.append(getKeyword());
-			builder.append(";");
+			builder.append(";"); //$NON-NLS-1$
 		}
 
 		protected void printBody(ExprElm body, StringBuilder builder, int depth) {
 			int depthAdd = 0;
 			if (!(body instanceof EmptyStatement)) {
-				builder.append("\n");
+				builder.append("\n"); //$NON-NLS-1$
 				boolean isBlock = body instanceof Block;
 				printIndent(builder, depth - (isBlock ? 1 : 0));
 				depthAdd = isBlock ? 0 : 1;
@@ -2383,14 +2383,14 @@ public abstract class C4ScriptExprTree {
 		public void print(StringBuilder builder, int depth) {
 			builder.append(getKeyword());
 			if (returnExpr != null) {
-				builder.append(" ");
+				builder.append(" "); //$NON-NLS-1$
 				// return(); -> return 0;
 				if (returnExpr == ExprElm.NULL_EXPR)
-					builder.append("0");
+					builder.append("0"); //$NON-NLS-1$
 				else
 					returnExpr.print(builder, depth+1);
 			}
-			builder.append(";");
+			builder.append(";"); //$NON-NLS-1$
 		}
 
 		public ExprElm getReturnExpr() {
@@ -2472,9 +2472,9 @@ public abstract class C4ScriptExprTree {
 		@Override
 		public void print(StringBuilder builder, int depth) {
 			builder.append(getKeyword());
-			builder.append(" (");
+			builder.append(" ("); //$NON-NLS-1$
 			condition.print(builder, depth+1);
-			builder.append(")");
+			builder.append(")"); //$NON-NLS-1$
 			printBody(builder, depth);
 		}
 
@@ -2516,18 +2516,18 @@ public abstract class C4ScriptExprTree {
 		@Override
 		public void print(StringBuilder builder, int depth) {
 			builder.append(getKeyword());
-			builder.append(" (");
+			builder.append(" ("); //$NON-NLS-1$
 			condition.print(builder, depth);
-			builder.append(")");
+			builder.append(")"); //$NON-NLS-1$
 			printBody(builder, depth);
 			if (elseExpr != null) {
-				builder.append("\n");
+				builder.append("\n"); //$NON-NLS-1$
 				printIndent(builder, depth-1);
 				builder.append(Keywords.Else);
-				builder.append(" ");
+				builder.append(" "); //$NON-NLS-1$
 				boolean isBlock = elseExpr instanceof Block;
 				if (!(elseExpr instanceof IfStatement)) {
-					builder.append("\n");
+					builder.append("\n"); //$NON-NLS-1$
 					printIndent(builder, depth - (isBlock?1:0));
 				}
 				elseExpr.print(builder, depth);
@@ -2584,11 +2584,11 @@ public abstract class C4ScriptExprTree {
 		public void print(StringBuilder builder, int depth) {
 			builder.append(Keywords.Do);
 			printBody(builder, depth);
-			builder.append(" ");
+			builder.append(" "); //$NON-NLS-1$
 			builder.append(Keywords.While);
-			builder.append(" (");
+			builder.append(" ("); //$NON-NLS-1$
 			condition.print(builder, depth);
-			builder.append(");");
+			builder.append(");"); //$NON-NLS-1$
 		}
 	}
 
@@ -2606,18 +2606,18 @@ public abstract class C4ScriptExprTree {
 		}
 		@Override
 		public void print(StringBuilder builder, int depth) {
-			builder.append(getKeyword() + " (");
+			builder.append(getKeyword() + " ("); //$NON-NLS-1$
 			if (initializer != null)
 				initializer.print(builder, depth+1);
 			else
-				builder.append(";");
-			builder.append(" "); // no ';' since initializer is already a statement
+				builder.append(";"); //$NON-NLS-1$
+			builder.append(" "); // no ';' since initializer is already a statement //$NON-NLS-1$
 			if (condition != null)
 				condition.print(builder, depth+1);
-			builder.append("; ");
+			builder.append("; "); //$NON-NLS-1$
 			if (increment != null)
 				increment.print(builder, depth);
-			builder.append(")");
+			builder.append(")"); //$NON-NLS-1$
 			printBody(builder, depth);
 		}
 		@Override
@@ -2668,14 +2668,14 @@ public abstract class C4ScriptExprTree {
 
 		@Override
 		public void print(StringBuilder builder, int depth) {
-			builder.append(getKeyword() + " (");
+			builder.append(getKeyword() + " ("); //$NON-NLS-1$
 			elementExpr.print(builder, depth+1);
 			// remove ';' that elementExpr (a statement) prints
 			if (builder.charAt(builder.length()-1) == ';')
 				builder.deleteCharAt(builder.length()-1);
-			builder.append(" " + Keywords.In + " ");
+			builder.append(" " + Keywords.In + " "); //$NON-NLS-1$ //$NON-NLS-2$
 			arrayExpr.print(builder, depth+1);
-			builder.append(") ");
+			builder.append(") "); //$NON-NLS-1$
 			printBody(body, builder, depth);
 		}
 
@@ -2740,18 +2740,18 @@ public abstract class C4ScriptExprTree {
 		@Override
 		public void print(StringBuilder builder, int depth) {
 			builder.append(getKeyword());
-			builder.append(" ");
+			builder.append(" "); //$NON-NLS-1$
 			int counter = 0;
 			for (Pair<String, ExprElm> var : varInitializations) {
 				builder.append(var.getFirst());
 				if (var.getSecond() != null) {
-					builder.append(" = ");
+					builder.append(" = "); //$NON-NLS-1$
 					var.getSecond().print(builder, depth+1);
 				}
 				if (++counter < varInitializations.size())
-					builder.append(", ");
+					builder.append(", "); //$NON-NLS-1$
 				else
-					builder.append(";");
+					builder.append(";"); //$NON-NLS-1$
 			}
 		}
 		@Override
@@ -2771,7 +2771,7 @@ public abstract class C4ScriptExprTree {
 	public static class EmptyStatement extends Statement {
 		@Override
 		public void print(StringBuilder builder, int depth) {
-			builder.append(";");
+			builder.append(";"); //$NON-NLS-1$
 		}
 	}
 
@@ -2796,12 +2796,12 @@ public abstract class C4ScriptExprTree {
 		@Override
 		public void print(StringBuilder builder, int depth) {
 			if (isMultiLine()) {
-				builder.append("/*");
+				builder.append("/*"); //$NON-NLS-1$
 				builder.append(comment);
-				builder.append("*/");
+				builder.append("*/"); //$NON-NLS-1$
 			}
 			else {
-				builder.append("//");
+				builder.append("//"); //$NON-NLS-1$
 				builder.append(comment);
 			}
 		}
@@ -2864,7 +2864,7 @@ public abstract class C4ScriptExprTree {
 		@Override
 		public void print(StringBuilder builder, int depth) {
 			for (int i = 0; i < numLines; i++)
-				builder.append("\n");
+				builder.append("\n"); //$NON-NLS-1$
 		}
 	}
 
@@ -2892,11 +2892,11 @@ public abstract class C4ScriptExprTree {
 		public DeclarationRegion declarationAt(int offset, C4ScriptParser parser) {
 			if (contents == null)
 				return null;
-			String[] parts = contents.split("\\|");
+			String[] parts = contents.split("\\|"); //$NON-NLS-1$
 			int off = 1;
 			for (String part : parts) {
 				if (offset >= off && offset < off+part.length()) {
-					if (part.startsWith("$") && part.endsWith("$")) {
+					if (part.startsWith("$") && part.endsWith("$")) { //$NON-NLS-1$ //$NON-NLS-2$
 						StringTbl stringTbl = parser.getContainer().getStringTblForLanguagePref();
 						if (stringTbl != null) {
 							NameValueAssignment entry = stringTbl.getMap().get(part.substring(1, part.length()-1));
@@ -2905,14 +2905,14 @@ public abstract class C4ScriptExprTree {
 						}
 					}
 					else {
-						String[] nameValue = part.split("=");
+						String[] nameValue = part.split("="); //$NON-NLS-1$
 						if (nameValue.length == 2) {
 							String name = nameValue[0].trim();
 							String value = nameValue[1].trim();
 							int sep = value.indexOf(':');
 							if (sep != -1)
 								value = value.substring(0, sep);
-							if (name.equals("Condition") || name.equals("Image"))
+							if (name.equals("Condition") || name.equals("Image")) //$NON-NLS-1$ //$NON-NLS-2$
 								return new DeclarationRegion(parser.getContainer().findDeclaration(value), new Region(getExprStart()+off+nameValue[0].length()+1, value.length()));
 						}
 					}
@@ -2928,8 +2928,8 @@ public abstract class C4ScriptExprTree {
 			if (parser.hasAppendTo())
 				return;
 			int off = 1;
-			for (String part : contents.split("\\|")) {
-				if (part.startsWith("$") && part.endsWith("$")) {
+			for (String part : contents.split("\\|")) { //$NON-NLS-1$
+				if (part.startsWith("$") && part.endsWith("$")) { //$NON-NLS-1$ //$NON-NLS-2$
 					StringTbl stringTbl = parser.getContainer().getStringTblForLanguagePref();
 					String entryName = part.substring(1, part.length()-1);
 					if (stringTbl == null || stringTbl.getMap().get(entryName) == null) {

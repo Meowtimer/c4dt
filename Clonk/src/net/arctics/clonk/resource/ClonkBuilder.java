@@ -108,7 +108,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 		ClonkCore.getDefault().getLibBuilder().clean();
 		
 		// clean up this project
-		if (monitor != null) monitor.beginTask("Cleaning up", 1);
+		if (monitor != null) monitor.beginTask(Messages.ClonkBuilder_0, 1);
 		IProject proj = this.getProject();
 		if (proj != null) {
 			ClonkProjectNature.getClonkNature(proj).getIndex().clear();
@@ -153,7 +153,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 						delta.accept(counter);
 
 						// initialize progress monitor
-						monitor.beginTask("Build project " + proj.getName(), counter.getCount());
+						monitor.beginTask(Messages.ClonkBuilder_1 + proj.getName(), counter.getCount());
 						// parse
 						buildPhase = 0;
 						delta.accept(this);
@@ -203,22 +203,22 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 					for(int work : operations) workSum += work;
 
 					// initialize progress monitor
-					monitor.beginTask("Build project " + proj.getName(), workSum);
+					monitor.beginTask(Messages.ClonkBuilder_2 + proj.getName(), workSum);
 
 
 					// build external lib if needed
 					if (libBuilder.isBuildNeeded()) {
-						monitor.subTask("Parsing libraries");
+						monitor.subTask(Messages.ClonkBuilder_3);
 						libBuilder.build(new SubProgressMonitor(monitor,operations[2]));
 
-						monitor.subTask("Saving libraries");
+						monitor.subTask(Messages.ClonkBuilder_4);
 						ClonkCore.getDefault().saveExternIndex(
 								new SubProgressMonitor(monitor,operations[3]));
 					}
 
 					// build project
 					if (proj != null) {
-						monitor.subTask("Index project " + proj.getName());
+						monitor.subTask(Messages.ClonkBuilder_5 + proj.getName());
 						// parse declarations
 						buildPhase = 0;
 						proj.accept(this);
@@ -227,7 +227,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 							monitor.done();
 							return null;
 						}
-						monitor.subTask("Parse project " + proj.getName());
+						monitor.subTask(Messages.ClonkBuilder_6 + proj.getName());
 						// parse code bodies
 						buildPhase = 1;
 						proj.accept(this);
@@ -242,7 +242,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 					monitor.done();
 					return null;
 				}
-				monitor.subTask("Save data");
+				monitor.subTask(Messages.ClonkBuilder_7);
 
 				// mark index as dirty so it will be saved when eclipse is shut down
 				ClonkProjectNature.getClonkNature(proj).markAsDirty();
@@ -304,7 +304,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 
 	private String[] getExternalLibNames() {
 		String optionString = ClonkCore.getDefault().getPreferenceStore().getString(PreferenceConstants.STANDARD_EXT_LIBS);
-		return optionString.split("<>");
+		return optionString.split("<>"); //$NON-NLS-1$
 	}
 
 	private C4ScriptParser getParserFor(C4ScriptBase script) {
@@ -327,7 +327,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 					// create if new file
 					IContainer folder = delta.getResource().getParent();
 					C4ObjectParser objParser;
-					if (delta.getResource().getName().endsWith(".c") && folder.getName().endsWith(".c4g")) {
+					if (delta.getResource().getName().endsWith(".c") && folder.getName().endsWith(".c4g")) { //$NON-NLS-1$ //$NON-NLS-2$
 						script = new C4ScriptIntern(delta.getResource());
 						ClonkProjectNature.getClonkNature(delta.getResource()).getIndex().addScript(script);
 					}
@@ -442,7 +442,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 		else if (resource instanceof IFile) {
 			IFile file = (IFile) resource;
 			C4Structure structure;
-			if (resource.getName().endsWith(".c") && resource.getParent().getName().endsWith(".c4g")) {
+			if (resource.getName().endsWith(".c") && resource.getParent().getName().endsWith(".c4g")) { //$NON-NLS-1$ //$NON-NLS-2$
 				C4ScriptBase script = C4ScriptIntern.pinnedScript(file);
 				switch (buildPhase) {
 				case 0:

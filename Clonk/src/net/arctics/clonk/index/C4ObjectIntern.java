@@ -123,7 +123,7 @@ public class C4ObjectIntern extends C4Object implements Serializable {
 		try {
 			return ClonkProjectNature.getClonkNature(this).getIndex();
 		} catch (Exception e) {
-			System.out.println(getName() + ": " + this.relativePath);
+			System.out.println(getName() + ": " + this.relativePath); //$NON-NLS-1$
 			e.printStackTrace();
 			return null;
 		}

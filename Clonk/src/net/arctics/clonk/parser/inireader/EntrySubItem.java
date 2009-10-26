@@ -28,7 +28,7 @@ public class EntrySubItem<EntryType extends IHasChildrenWithContext> implements 
 	}
 
 	public String getKey() {
-		return "["+String.valueOf(index)+"]";
+		return "["+String.valueOf(index)+"]"; //$NON-NLS-1$ //$NON-NLS-2$
 	}
 
 	public String getValue() {

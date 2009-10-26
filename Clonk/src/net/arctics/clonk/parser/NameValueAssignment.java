@@ -40,7 +40,7 @@ public class NameValueAssignment extends C4Declaration implements IHasKeyAndValu
 	
 	@Override
 	public String toString() {
-		return getKey() + "=" + getValue();
+		return getKey() + "=" + getValue(); //$NON-NLS-1$
 	}
 
 	public void setValue(String value) {
@@ -88,7 +88,7 @@ public class NameValueAssignment extends C4Declaration implements IHasKeyAndValu
 	
 	@Override
 	public String getInfoText() {
-	    return getKey() + "=" + getValue();
+	    return getKey() + "=" + getValue(); //$NON-NLS-1$
 	}
 
 }

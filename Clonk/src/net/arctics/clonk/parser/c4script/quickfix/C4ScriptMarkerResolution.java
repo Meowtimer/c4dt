@@ -27,8 +27,8 @@ public class C4ScriptMarkerResolution implements IMarkerResolution, IMarkerResol
 	private IRegion region;
 
 	public C4ScriptMarkerResolution(IMarker marker) {
-		this.label = "Fix " + marker.getAttribute(IMarker.MESSAGE, "Mysterious");
-		this.description = "Automated fix";
+		this.label = Messages.C4ScriptMarkerResolution_0 + marker.getAttribute(IMarker.MESSAGE, Messages.C4ScriptMarkerResolution_1);
+		this.description = Messages.C4ScriptMarkerResolution_2;
 		int charStart = marker.getAttribute(IMarker.CHAR_START, 0), charEnd = marker.getAttribute(IMarker.CHAR_END, 0);
 		this.region = new Region(charStart, charEnd-charStart);
 	}

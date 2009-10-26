@@ -92,11 +92,11 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 		public String description() {
 			switch (this) {
 			case SHOW_ALL:
-				return "all completions";
+				return Messages.C4ScriptCompletionProcessor_0;
 			case SHOW_LOCAL:
-				return "local completions";
+				return Messages.C4ScriptCompletionProcessor_1;
 			case SHOW_OBJECT:
-				return "object completions";
+				return Messages.C4ScriptCompletionProcessor_2;
 			default:
 				return null;
 			}
@@ -187,14 +187,14 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 		final C4Function activeFunc = getActiveFunc(doc, offset);
 		this._activeFunc = activeFunc;
 		
-		statusMessages.add("Project files");
+		statusMessages.add(Messages.C4ScriptCompletionProcessor_3);
 		
 		if (proposalCycle == ProposalCycle.SHOW_ALL || activeFunc == null) {
 			if (!ClonkCore.getDefault().getExternIndex().isEmpty()) {
-				statusMessages.add("Extern libs");
+				statusMessages.add(Messages.C4ScriptCompletionProcessor_4);
 			}
 			if (ClonkCore.getDefault().getEngineObject() != null) {
-				statusMessages.add("Engine functions");
+				statusMessages.add(Messages.C4ScriptCompletionProcessor_5);
 			}
 		}
 		
@@ -207,10 +207,10 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 					proposals, index, activeFunc);
 		}
 		
-		StringBuilder statusMessage = new StringBuilder("Shown data: ");
+		StringBuilder statusMessage = new StringBuilder(Messages.C4ScriptCompletionProcessor_6);
 		for(String message : statusMessages) {
 			statusMessage.append(message);
-			if (statusMessages.get(statusMessages.size() - 1) != message) statusMessage.append(", ");
+			if (statusMessages.get(statusMessages.size() - 1) != message) statusMessage.append(", "); //$NON-NLS-1$
 		}
 		
 		//assistant.setStatusMessage(statusMessage.toString());
@@ -219,7 +219,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 		doCycle();
 		
 		if (proposals.size() == 0) {
-			return new ICompletionProposal[] { new CompletionProposal("",offset,0,0,null,"No proposals available",null,null) };
+			return new ICompletionProposal[] { new CompletionProposal("",offset,0,0,null,Messages.C4ScriptCompletionProcessor_9,null,null) }; //$NON-NLS-1$
 		}
 		
 		return sortProposals(proposals);
@@ -301,8 +301,8 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 		}
 		if (proposalCycle == ProposalCycle.SHOW_ALL) {
 			ImageRegistry reg = ClonkCore.getDefault().getImageRegistry();
-			if (reg.get("keyword") == null) {
-				reg.put("keyword", ImageDescriptor.createFromURL(FileLocator.find(ClonkCore.getDefault().getBundle(), new Path("icons/keyword.png"), null)));
+			if (reg.get("keyword") == null) { //$NON-NLS-1$
+				reg.put("keyword", ImageDescriptor.createFromURL(FileLocator.find(ClonkCore.getDefault().getBundle(), new Path("icons/keyword.png"), null))); //$NON-NLS-1$ //$NON-NLS-2$
 			}
 			for(String keyword : BuiltInDefinitions.KEYWORDS) {
 				if (prefix != null) {
@@ -310,7 +310,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 				}
 				int replacementLength = 0;
 				if (prefix != null) replacementLength = prefix.length();
-				ClonkCompletionProposal prop = new ClonkCompletionProposal(keyword,offset,replacementLength,keyword.length(), reg.get("keyword") , keyword.trim(),null,null," - Engine");
+				ClonkCompletionProposal prop = new ClonkCompletionProposal(keyword,offset,replacementLength,keyword.length(), reg.get("keyword") , keyword.trim(),null,null,Messages.C4ScriptCompletionProcessor_14); //$NON-NLS-1$
 				proposals.add(prop);
 			}
 		}
@@ -318,16 +318,16 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 	
 	private void callbackProposal(String prefix, String callback, boolean funcSupplied, List<ICompletionProposal> proposals, int offset) {
 		ImageRegistry reg = ClonkCore.getDefault().getImageRegistry();
-		if (reg.get("callback") == null) {
-			reg.put("callback", ImageDescriptor.createFromURL(FileLocator.find(ClonkCore.getDefault().getBundle(), new Path("icons/callback.png"), null)));
+		if (reg.get("callback") == null) { //$NON-NLS-1$
+			reg.put("callback", ImageDescriptor.createFromURL(FileLocator.find(ClonkCore.getDefault().getBundle(), new Path("icons/callback.png"), null))); //$NON-NLS-1$ //$NON-NLS-2$
 		}
 		int replacementLength = 0;
 		if (prefix != null)
 			replacementLength = prefix.length();
-		String repString = funcSupplied ? (callback!=null?callback:"") : ("protected func " + callback + "() {\n}");
+		String repString = funcSupplied ? (callback!=null?callback:"") : ("protected func " + callback + "() {\n}"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 		ClonkCompletionProposal prop = new ClonkCompletionProposal(
 				repString, offset, replacementLength, 
-				repString.length(), reg.get("callback") , callback, null,null," - Callback");
+				repString.length(), reg.get("callback") , callback, null,null,Messages.C4ScriptCompletionProcessor_22); //$NON-NLS-1$
 		proposals.add(prop);
 	}
 
@@ -335,7 +335,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 			int wordOffset, String prefix,
 			List<ICompletionProposal> proposals, ClonkIndex index) {
 		try {
-			boolean funcSupplied = offset >= 5 && viewer.getDocument().get(offset - 5, 5).equalsIgnoreCase("func "); 
+			boolean funcSupplied = offset >= 5 && viewer.getDocument().get(offset - 5, 5).equalsIgnoreCase("func ");  //$NON-NLS-1$
 
 			for(String callback : BuiltInDefinitions.OBJECT_CALLBACKS) {
 				if (prefix != null) {
@@ -356,12 +356,12 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 				if (!declarator.toLowerCase().startsWith(prefix)) continue;
 			}
 			ImageRegistry reg = ClonkCore.getDefault().getImageRegistry();
-			if (reg.get("declarator") == null) {
-				reg.put("declarator", ImageDescriptor.createFromURL(FileLocator.find(ClonkCore.getDefault().getBundle(), new Path("icons/declarator.png"), null)));
+			if (reg.get("declarator") == null) { //$NON-NLS-1$
+				reg.put("declarator", ImageDescriptor.createFromURL(FileLocator.find(ClonkCore.getDefault().getBundle(), new Path("icons/declarator.png"), null))); //$NON-NLS-1$ //$NON-NLS-2$
 			}
 			int replacementLength = 0;
 			if (prefix != null) replacementLength = prefix.length();
-			ClonkCompletionProposal prop = new ClonkCompletionProposal(declarator,offset,replacementLength,declarator.length(), reg.get("declarator") , declarator.trim(),null,null," - Engine");
+			ClonkCompletionProposal prop = new ClonkCompletionProposal(declarator,offset,replacementLength,declarator.length(), reg.get("declarator") , declarator.trim(),null,null,Messages.C4ScriptCompletionProcessor_28); //$NON-NLS-1$
 			proposals.add(prop);
 		}
 		
@@ -370,12 +370,12 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 				if (!directive.toLowerCase().contains(prefix)) continue;
 			}
 			ImageRegistry reg = ClonkCore.getDefault().getImageRegistry();
-			if (reg.get("directive") == null) {
-				reg.put("directive", ImageDescriptor.createFromURL(FileLocator.find(ClonkCore.getDefault().getBundle(), new Path("icons/directive.png"), null)));
+			if (reg.get("directive") == null) { //$NON-NLS-1$
+				reg.put("directive", ImageDescriptor.createFromURL(FileLocator.find(ClonkCore.getDefault().getBundle(), new Path("icons/directive.png"), null))); //$NON-NLS-1$ //$NON-NLS-2$
 			}
 			int replacementLength = 0;
 			if (prefix != null) replacementLength = prefix.length();
-			ClonkCompletionProposal prop = new ClonkCompletionProposal(directive,offset,replacementLength,directive.length(), reg.get("directive") , directive.trim(),null,null," - Engine");
+			ClonkCompletionProposal prop = new ClonkCompletionProposal(directive,offset,replacementLength,directive.length(), reg.get("directive") , directive.trim(),null,null,Messages.C4ScriptCompletionProcessor_33); //$NON-NLS-1$
 			proposals.add(prop);
 		}
 		
@@ -387,7 +387,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 
 	private String getProposalCycleMessage() {
 		TriggerSequence sequence = getIterationBinding();
-		return "Press '" + sequence.format() + "' to show " + proposalCycle.cycle().description();
+		return Messages.C4ScriptCompletionProcessor_34 + sequence.format() + Messages.C4ScriptCompletionProcessor_35 + proposalCycle.cycle().description();
 	}
 
 	private void proposalsFromScript(C4ScriptBase script, HashSet<C4ScriptBase> loopCatcher, String prefix, int offset, int wordOffset, List<ICompletionProposal> proposals, boolean noPrivateFuncs, ClonkIndex index) {
@@ -420,7 +420,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 	        if (callFunc instanceof CallFunc) {
 	        	C4Declaration dec = ((CallFunc)callFunc).getDeclaration();
 	        	if (dec instanceof C4Function) {
-	        		info = new ContextInformation(dec.getName() + "()", ((C4Function)dec).getLongParameterString(false).trim());
+	        		info = new ContextInformation(dec.getName() + "()", ((C4Function)dec).getLongParameterString(false).trim()); //$NON-NLS-1$
 	        	}
 	        }
         } catch (Exception e) { 	    

@@ -29,7 +29,7 @@ public abstract class C4Object extends C4ScriptBase {
 	/**
 	 * Template to construct the info text of an object definition from
 	 */
-	public static final String INFO_TEXT_TEMPLATE = "<b>%s</b>: %s<br><br><b>Declared in:</b><br>%s";
+	public static final String INFO_TEXT_TEMPLATE = Messages.C4Object_0;
 	
 	/**
 	 * Creates a new C4Object
@@ -43,7 +43,7 @@ public abstract class C4Object extends C4ScriptBase {
 
 	@Override
 	public String toString() {
-		return getName() + (id != null ? " (" + id.toString() + ")" : "");
+		return getName() + (id != null ? " (" + id.toString() + ")" : ""); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 	}
 	
 	/**
@@ -78,7 +78,7 @@ public abstract class C4Object extends C4ScriptBase {
 		return false;
 	}
 	
-	private static Pattern langNamePairPattern = Pattern.compile("(..):(.*)");
+	private static Pattern langNamePairPattern = Pattern.compile("(..):(.*)"); //$NON-NLS-1$
 	
 	public void readNames(String namesText) throws IOException {
 		Matcher matcher = langNamePairPattern.matcher(namesText);

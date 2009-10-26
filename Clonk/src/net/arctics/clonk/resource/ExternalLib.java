@@ -4,6 +4,8 @@
 package net.arctics.clonk.resource;
 
 import net.arctics.clonk.index.C4ObjectExternGroup;
+import net.arctics.clonk.resource.c4group.C4Group;
+import net.arctics.clonk.resource.c4group.C4Group.C4GroupType;
 import net.arctics.clonk.util.ITreeNode;
 
 /**
@@ -31,7 +33,7 @@ public class ExternalLib extends C4ObjectExternGroup {
 	
 	public ExternalLib(String nodeName, ITreeNode parentNode) {
 		super(nodeName, parentNode);
-		scriptsGroup = nodeName.endsWith(".c4g");
+		scriptsGroup = C4Group.groupTypeFromFolderName(nodeName) == C4GroupType.ResourceGroup;
 	}
 
 	public int getIndex() {

@@ -25,7 +25,7 @@ public class SimpleScriptStorage implements IStorage, Serializable {
 			contents = new String(entry.getContentsAsArray(), PreferenceConstants.getPreference(PreferenceConstants.EXTERNAL_INDEX_ENCODING, PreferenceConstants.EXTERNAL_INDEX_ENCODING_DEFAULT, null));
 		} catch (UnsupportedEncodingException e) {
 			e.printStackTrace();
-			contents = "";
+			contents = ""; //$NON-NLS-1$
 		}
 	}
 	

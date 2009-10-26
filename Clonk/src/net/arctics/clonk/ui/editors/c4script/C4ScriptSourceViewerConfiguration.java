@@ -126,7 +126,7 @@ public class C4ScriptSourceViewerConfiguration extends ClonkSourceViewerConfigur
 		// key sequence is set in constructor of ClonkCompletionProcessor
 		
 		assistant.setStatusLineVisible(true);
-		assistant.setStatusMessage("Standard proposals");
+		assistant.setStatusMessage(Messages.C4ScriptSourceViewerConfiguration_0);
 		
 		assistant.enablePrefixCompletion(false);
 		assistant.enableAutoInsert(true);
@@ -137,7 +137,7 @@ public class C4ScriptSourceViewerConfiguration extends ClonkSourceViewerConfigur
 		assistant.setInformationControlCreator(new IInformationControlCreator() {
 			public IInformationControl createInformationControl(Shell parent) {
 //				BrowserInformationControl control = new BrowserInformationControl(parent, "Arial", "Press 'Tab' from proposal table or click for focus");
-				DefaultInformationControl def = new DefaultInformationControl(parent,"Press 'Tab' from proposal table or click for focus");
+				DefaultInformationControl def = new DefaultInformationControl(parent,Messages.C4ScriptSourceViewerConfiguration_1);
 				return def;
 			}
 		});

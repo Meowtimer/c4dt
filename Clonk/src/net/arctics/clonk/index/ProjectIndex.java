@@ -22,7 +22,7 @@ import org.eclipse.core.runtime.Path;
 public class ProjectIndex extends ClonkIndex {
 
 	private static final long serialVersionUID = 1L;
-	public static final String INDEXFILE_SUFFIX = ".index";
+	public static final String INDEXFILE_SUFFIX = ".index"; //$NON-NLS-1$
 	
 	private transient IProject project;
 	private Collection<String> dependencyNames;
@@ -112,7 +112,7 @@ public class ProjectIndex extends ClonkIndex {
 	
 	@Override
 	public String toString() {
-		return "Index for " + project.toString();
+		return "Index for " + project.toString(); //$NON-NLS-1$
 	}
 
 	public Iterable<String> getDependencyNames() {

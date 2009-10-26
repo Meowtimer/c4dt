@@ -42,7 +42,7 @@ public class CategoriesArray implements IIniEntry {
 
 	public void setInput(String input, IniDataEntry entryData) throws IniParserException {
 		constants.clear();
-		String[] parts = input != null ? input.split("\\|") : new String[0];
+		String[] parts = input != null ? input.split("\\|") : new String[0]; //$NON-NLS-1$
 		if (parts.length == 1) {
 			tryIntegerInput(input, parts, entryData);
 		}
@@ -67,7 +67,7 @@ public class CategoriesArray implements IIniEntry {
 			for (String part : parts) {
 				part = part.trim();
 				if (Utilities.indexOf(flags, part) == -1)
-					throw new IniParserException(IMarker.SEVERITY_WARNING, "Unknown constant '"+part+"'");
+					throw new IniParserException(IMarker.SEVERITY_WARNING, Messages.CategoriesArray_1+part+Messages.CategoriesArray_2);
 				add(part);
 			}
 		}
@@ -75,7 +75,7 @@ public class CategoriesArray implements IIniEntry {
 			part = part.trim();
 			C4Variable var = ClonkCore.getDefault().getEngineObject().findVariable(part);
 			if (var == null) {
-				throw new IniParserException(IMarker.SEVERITY_WARNING, "Unknown constant '" + part + "'");
+				throw new IniParserException(IMarker.SEVERITY_WARNING, Messages.CategoriesArray_3 + part + Messages.CategoriesArray_4);
 			}
 			add(var.getName());
 		}

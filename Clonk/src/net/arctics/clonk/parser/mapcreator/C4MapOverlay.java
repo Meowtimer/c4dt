@@ -59,9 +59,9 @@ public class C4MapOverlay extends C4Structure implements Cloneable, ITreeNode {
 		Pixels;
 		
 		public static Unit parse(String px) {
-			if (px.equals("px"))
+			if (px.equals("px")) //$NON-NLS-1$
 				return Pixels;
-			if (px.equals("%"))
+			if (px.equals("%")) //$NON-NLS-1$
 				return Percent;
 			return Pixels;
 		}
@@ -69,9 +69,9 @@ public class C4MapOverlay extends C4Structure implements Cloneable, ITreeNode {
 		public String toString() {
 		    switch (this) {
 		    case Percent:
-		    	return "%";
+		    	return "%"; //$NON-NLS-1$
 		    case Pixels:
-		    	return "px";
+		    	return "px"; //$NON-NLS-1$
 		    default:
 		    	return super.toString();
 		    }
@@ -172,7 +172,7 @@ public class C4MapOverlay extends C4Structure implements Cloneable, ITreeNode {
 		Field f = getClass().getField(attr);
 		if (f != null) {
 			if (f.getType().getSuperclass() == Enum.class) {
-				f.set(this, f.getType().getMethod("valueOf", String.class).invoke(f.getClass(), value));
+				f.set(this, f.getType().getMethod("valueOf", String.class).invoke(f.getClass(), value)); //$NON-NLS-1$
 			}
 			else if (f.getType() == UnitInteger.class) {
 				f.set(this, UnitInteger.parse(value));
@@ -197,10 +197,10 @@ public class C4MapOverlay extends C4Structure implements Cloneable, ITreeNode {
 	}
 	
 	public static Class<? extends C4MapOverlay> getDefaultClass(String type) {
-		if (type.equals("map")) {
+		if (type.equals("map")) { //$NON-NLS-1$
 			return C4Map.class;
 		}
-		else if (type.equals("overlay")) {
+		else if (type.equals("overlay")) { //$NON-NLS-1$
 			return C4MapOverlay.class;
 		}
 		return null;
@@ -276,8 +276,8 @@ public class C4MapOverlay extends C4Structure implements Cloneable, ITreeNode {
 		C4MapOverlay t;
 		for (t = template; t != null && t.template != null; t = t.template);
 		if (t != null)
-			return t.name + " " + (name!=null?name:"");
-		return (this.getClass()==C4Map.class?"map":"overlay") + " " + (name!=null?name:"");
+			return t.name + " " + (name!=null?name:""); //$NON-NLS-1$ //$NON-NLS-2$
+		return (this.getClass()==C4Map.class?"map":"overlay") + " " + (name!=null?name:""); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
 	}
 	
 	public void clear() {
@@ -322,7 +322,7 @@ public class C4MapOverlay extends C4Structure implements Cloneable, ITreeNode {
 	}
 
 	public String getNodeName() {
-		return "Landscape.txt"; 
+		return "Landscape.txt";  //$NON-NLS-1$
 	}
 
 	public ITreeNode getParentNode() {

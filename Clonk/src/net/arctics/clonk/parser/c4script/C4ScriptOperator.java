@@ -11,41 +11,41 @@ import java.util.Map;
  * an operator
  */
 public enum C4ScriptOperator {
-	Not(C4Type.ANY, null, C4Type.BOOL, "!", 15, "Not"),
-	BitNot(C4Type.INT, C4Type.INT, C4Type.INT, "~", 15),
-	Power(C4Type.INT, C4Type.INT, C4Type.INT, "**", 14),
-	Divide(C4Type.INT, C4Type.INT, C4Type.INT, "/", 13, "Div"),
-	Multiply(C4Type.INT, C4Type.INT, C4Type.INT, "*", 13, "Mul"),
-	Modulo(C4Type.INT, C4Type.INT, C4Type.INT, "%", 13),
-	Subtract(C4Type.INT, C4Type.INT, C4Type.INT, "-", 12, "Sub"),
-	Add(C4Type.INT, C4Type.INT, C4Type.INT, "+", 12, "Sum"),
-	Smaller(C4Type.INT, C4Type.INT, C4Type.BOOL, "<", 10, "LessThan"),
-	SmallerEqual(C4Type.INT, C4Type.INT, C4Type.BOOL, "<=", 10),
-	Larger(C4Type.INT, C4Type.INT, C4Type.BOOL, ">", 10, "GreaterThan"),
-	LargerEqual(C4Type.INT, C4Type.INT, C4Type.BOOL, ">=", 10),
-	Equal(C4Type.ANY, C4Type.ANY, C4Type.BOOL, "==", 9, "Equal"),
-	NotEqual(C4Type.ANY, C4Type.ANY, C4Type.BOOL, "!=", 9),
-	StringEqual(C4Type.STRING, C4Type.STRING, C4Type.BOOL, "S=", 9, "SEqual"),
-	eq(C4Type.STRING, C4Type.STRING, C4Type.BOOL, "eq", 9),
-	ne(C4Type.STRING, C4Type.STRING, C4Type.BOOL, "ne", 9),
-	And(C4Type.ANY, C4Type.ANY, C4Type.BOOL, "&&", 5, "And"),
-	Or(C4Type.ANY, C4Type.ANY, C4Type.BOOL, "||", 4, "Or"),
-	BitAnd(C4Type.INT, C4Type.INT, C4Type.INT, "&", 8, "BitAnd"),
-	BitXOr(C4Type.INT, C4Type.INT, C4Type.INT, "^", 6),
-	BitOr(C4Type.INT, C4Type.INT, C4Type.INT, "|", 6),
-	Decrement(C4Type.INT, null, C4Type.INT, "--", 15, "Dec", true),
-	Increment(C4Type.INT, null, C4Type.INT, "++", 15, "Inc", true),
-	ShiftLeft(C4Type.INT, C4Type.INT, C4Type.INT, "<<", 11),
-	ShiftRight(C4Type.INT, C4Type.INT, C4Type.INT, ">>", 11),
-	Assign(C4Type.ANY, C4Type.ANY, C4Type.ANY, "=", 2, null, true),
-	AssignAdd(C4Type.INT, C4Type.INT, C4Type.INT, "+=", 2, null, true),
-	AssignSubtract(C4Type.INT, C4Type.INT, C4Type.INT, "-=", 2, null, true),
-	AssignMultiply(C4Type.INT, C4Type.INT, C4Type.INT, "*=", 2, null, true),
-	AssignDivide(C4Type.INT, C4Type.INT, C4Type.INT, "/=", 2, null, true),
-	AssignModulo(C4Type.INT, C4Type.INT, C4Type.INT, "%=", 2, null, true),
-	AssignOr(C4Type.BOOL, C4Type.BOOL, C4Type.BOOL, "|=", 2, null, true),
-	AssignAnd(C4Type.BOOL, C4Type.BOOL, C4Type.BOOL, "&=", 2, null, true),
-	AssignXOr(C4Type.INT, C4Type.INT, C4Type.INT, "^=", 2, null, true);
+	Not(C4Type.ANY, null, C4Type.BOOL, "!", 15, "Not"), //$NON-NLS-1$ //$NON-NLS-2$
+	BitNot(C4Type.INT, C4Type.INT, C4Type.INT, "~", 15), //$NON-NLS-1$
+	Power(C4Type.INT, C4Type.INT, C4Type.INT, "**", 14), //$NON-NLS-1$
+	Divide(C4Type.INT, C4Type.INT, C4Type.INT, "/", 13, "Div"), //$NON-NLS-1$ //$NON-NLS-2$
+	Multiply(C4Type.INT, C4Type.INT, C4Type.INT, "*", 13, "Mul"), //$NON-NLS-1$ //$NON-NLS-2$
+	Modulo(C4Type.INT, C4Type.INT, C4Type.INT, "%", 13), //$NON-NLS-1$
+	Subtract(C4Type.INT, C4Type.INT, C4Type.INT, "-", 12, "Sub"), //$NON-NLS-1$ //$NON-NLS-2$
+	Add(C4Type.INT, C4Type.INT, C4Type.INT, "+", 12, "Sum"), //$NON-NLS-1$ //$NON-NLS-2$
+	Smaller(C4Type.INT, C4Type.INT, C4Type.BOOL, "<", 10, "LessThan"), //$NON-NLS-1$ //$NON-NLS-2$
+	SmallerEqual(C4Type.INT, C4Type.INT, C4Type.BOOL, "<=", 10), //$NON-NLS-1$
+	Larger(C4Type.INT, C4Type.INT, C4Type.BOOL, ">", 10, "GreaterThan"), //$NON-NLS-1$ //$NON-NLS-2$
+	LargerEqual(C4Type.INT, C4Type.INT, C4Type.BOOL, ">=", 10), //$NON-NLS-1$
+	Equal(C4Type.ANY, C4Type.ANY, C4Type.BOOL, "==", 9, "Equal"), //$NON-NLS-1$ //$NON-NLS-2$
+	NotEqual(C4Type.ANY, C4Type.ANY, C4Type.BOOL, "!=", 9), //$NON-NLS-1$
+	StringEqual(C4Type.STRING, C4Type.STRING, C4Type.BOOL, "S=", 9, "SEqual"), //$NON-NLS-1$ //$NON-NLS-2$
+	eq(C4Type.STRING, C4Type.STRING, C4Type.BOOL, "eq", 9), //$NON-NLS-1$
+	ne(C4Type.STRING, C4Type.STRING, C4Type.BOOL, "ne", 9), //$NON-NLS-1$
+	And(C4Type.ANY, C4Type.ANY, C4Type.BOOL, "&&", 5, "And"), //$NON-NLS-1$ //$NON-NLS-2$
+	Or(C4Type.ANY, C4Type.ANY, C4Type.BOOL, "||", 4, "Or"), //$NON-NLS-1$ //$NON-NLS-2$
+	BitAnd(C4Type.INT, C4Type.INT, C4Type.INT, "&", 8, "BitAnd"), //$NON-NLS-1$ //$NON-NLS-2$
+	BitXOr(C4Type.INT, C4Type.INT, C4Type.INT, "^", 6), //$NON-NLS-1$
+	BitOr(C4Type.INT, C4Type.INT, C4Type.INT, "|", 6), //$NON-NLS-1$
+	Decrement(C4Type.INT, null, C4Type.INT, "--", 15, "Dec", true), //$NON-NLS-1$ //$NON-NLS-2$
+	Increment(C4Type.INT, null, C4Type.INT, "++", 15, "Inc", true), //$NON-NLS-1$ //$NON-NLS-2$
+	ShiftLeft(C4Type.INT, C4Type.INT, C4Type.INT, "<<", 11), //$NON-NLS-1$
+	ShiftRight(C4Type.INT, C4Type.INT, C4Type.INT, ">>", 11), //$NON-NLS-1$
+	Assign(C4Type.ANY, C4Type.ANY, C4Type.ANY, "=", 2, null, true), //$NON-NLS-1$
+	AssignAdd(C4Type.INT, C4Type.INT, C4Type.INT, "+=", 2, null, true), //$NON-NLS-1$
+	AssignSubtract(C4Type.INT, C4Type.INT, C4Type.INT, "-=", 2, null, true), //$NON-NLS-1$
+	AssignMultiply(C4Type.INT, C4Type.INT, C4Type.INT, "*=", 2, null, true), //$NON-NLS-1$
+	AssignDivide(C4Type.INT, C4Type.INT, C4Type.INT, "/=", 2, null, true), //$NON-NLS-1$
+	AssignModulo(C4Type.INT, C4Type.INT, C4Type.INT, "%=", 2, null, true), //$NON-NLS-1$
+	AssignOr(C4Type.BOOL, C4Type.BOOL, C4Type.BOOL, "|=", 2, null, true), //$NON-NLS-1$
+	AssignAnd(C4Type.BOOL, C4Type.BOOL, C4Type.BOOL, "&=", 2, null, true), //$NON-NLS-1$
+	AssignXOr(C4Type.INT, C4Type.INT, C4Type.INT, "^=", 2, null, true); //$NON-NLS-1$
 	
 	C4Type firstArgType, secondArgType, resultType;
 	String operatorName, oldStyleFunctionEquivalent;
@@ -76,7 +76,7 @@ public enum C4ScriptOperator {
 		this.operatorName = operatorName;
 		this.oldStyleFunctionEquivalent = oldStyleFunctionEquivalent;
 		this.priority = priority;
-		this.rightAssociative = name().startsWith("Assign");
+		this.rightAssociative = name().startsWith("Assign"); //$NON-NLS-1$
 	}
 	
 	private C4ScriptOperator(C4Type firstArgType, C4Type secondArgType,
@@ -151,7 +151,7 @@ public enum C4ScriptOperator {
 	}
 	
 	public boolean modifiesArgument() {
-		return this == Increment || this == Decrement || this.name().startsWith("Assign");
+		return this == Increment || this == Decrement || this.name().startsWith("Assign"); //$NON-NLS-1$
 	}
 	
 	public String getOldStyleFunctionEquivalent() {

@@ -7,7 +7,7 @@ import java.util.Map;
 public class C4ID implements Serializable {
 	private static final Map<String, C4ID> idPool = new HashMap<String, C4ID>();
 	private static final long serialVersionUID = 833007356188766488L;
-	public static final C4ID NULL = getID("NULL");
+	public static final C4ID NULL = getID("NULL"); //$NON-NLS-1$
 	
 	private String name;
 	
@@ -46,7 +46,7 @@ public class C4ID implements Serializable {
 	public static boolean isValidC4ID(String c4id) {
 		if (c4id == null) return false;
 		if (c4id.length() != 4) return false;
-		if (!c4id.matches("^[A-Z0-9_]{4}$")) return false;
+		if (!c4id.matches("^[A-Z0-9_]{4}$")) return false; //$NON-NLS-1$
 		return true;
 	}
 	
