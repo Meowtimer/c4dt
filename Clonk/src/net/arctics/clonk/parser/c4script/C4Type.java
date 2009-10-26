@@ -52,7 +52,7 @@ public enum C4Type {
 	
 	public static C4Type makeType(String arg, boolean allowSpecial) {
 		for (C4Type t : officialTypes)
-			if (t.name().equalsIgnoreCase(arg))
+			if (t.toString().equals(arg))
 				return t;
 		if (allowSpecial) {
 			if (arg.equals("dword"))
