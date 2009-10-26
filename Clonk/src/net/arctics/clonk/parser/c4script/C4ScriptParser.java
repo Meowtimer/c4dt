@@ -1312,13 +1312,14 @@ public class C4ScriptParser {
 			
 			// (<expr>)
 			if (elm == null) {
+				int parenthStartPos = scanner.getPosition();
 				int c = scanner.read();
 				if (c == '(') {
 					ExprElm firstExpr = parseExpression(scanner.getPosition(), reportErrors);
 					if (firstExpr == null) {
 						firstExpr = ExprElm.NULL_EXPR;
 						// might be disabled
-						errorWithCode(ParserErrorCode.EmptyParentheses, scanner.getPosition()-1, scanner.getPosition());
+						errorWithCode(ParserErrorCode.EmptyParentheses, parenthStartPos, scanner.getPosition()+1);
 					}
 					c = scanner.read();
 					if (c == ')')
@@ -1961,28 +1962,7 @@ public class C4ScriptParser {
 			result = new BreakStatement();
 		}
 		else if (readWord.equals(Keywords.Return)) {
-			eatWhitespace();
-			int next = scanner.read();
-			ExprElm returnExpr;
-			if (next == ';') {
-				scanner.unread();
-				returnExpr = null;
-			}
-			else {
-				scanner.unread();
-				offset = scanner.getPosition();
-				disableError(ParserErrorCode.TuplesNotAllowed);
-				disableError(ParserErrorCode.EmptyParentheses);
-				returnExpr = parseExpression(scanner.getPosition());
-				if (returnExpr == null) {
-					errorWithCode(ParserErrorCode.ValueExpected, scanner.getPosition() - 1, scanner.getPosition());				
-				}
-				warnAboutTupleInReturnExpr(returnExpr, false);
-				enableError(ParserErrorCode.TuplesNotAllowed);
-				enableError(ParserErrorCode.EmptyParentheses);
-			}
-			result = new ReturnStatement(returnExpr);
-			checkForSemicolon();
+			result = parseReturn();
 		}
 		else if (activeFunc.isOldStyle() && (looksLikeStartOfFunction(readWord) || scanner.peekAfterWhitespace() == ':')) {
 			// whoops, too far
@@ -1991,6 +1971,33 @@ public class C4ScriptParser {
 		else
 			result = null;
 
+		return result;
+	}
+
+	private Statement parseReturn() throws ParsingException {
+		Statement result;
+		eatWhitespace();
+		int next = scanner.read();
+		ExprElm returnExpr;
+		if (next == ';') {
+			scanner.unread();
+			returnExpr = null;
+		}
+		else {
+			scanner.unread();
+			disableError(ParserErrorCode.TuplesNotAllowed);
+			if (getStrictLevel() < 2)
+				disableError(ParserErrorCode.EmptyParentheses);
+			returnExpr = parseExpression(scanner.getPosition());
+			if (returnExpr == null) {
+				errorWithCode(ParserErrorCode.ValueExpected, scanner.getPosition() - 1, scanner.getPosition());				
+			}
+			warnAboutTupleInReturnExpr(returnExpr, false);
+			enableError(ParserErrorCode.TuplesNotAllowed);
+			enableError(ParserErrorCode.EmptyParentheses);
+		}
+		result = new ReturnStatement(returnExpr);
+		checkForSemicolon();
 		return result;
 	}
 

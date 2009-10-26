@@ -909,9 +909,12 @@ public abstract class C4ScriptExprTree {
 				else
 					context.unnamedParamaterUsed(NumberLiteral.ZERO);
 			}
-			else if (declarationName.equals(Keywords.Return))
-				context.warningWithCode(ParserErrorCode.ReturnAsFunction, this);
-			else {
+			else if (declarationName.equals(Keywords.Return)) {
+				if (context.getStrictLevel() >= 2)
+					context.errorWithCode(ParserErrorCode.ReturnAsFunction, this, true);
+				else
+					context.warningWithCode(ParserErrorCode.ReturnAsFunction, this);
+			} else {
 				if (declaration instanceof C4Variable) {
 					if (params.length == 0) {
 						// no warning when in #strict mode
