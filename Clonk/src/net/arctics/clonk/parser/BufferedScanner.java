@@ -409,7 +409,7 @@ public class BufferedScanner {
 	 * Return the next-to-be-read char without modifiying the scanner position
 	 * @return the next char
 	 */
-	private int peek() {
+	public int peek() {
 		int p = read();
 		unread();
 		return p;

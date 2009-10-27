@@ -317,6 +317,7 @@ public class C4ScriptParser {
 		synchronized (container) {
 			int offset = 0;
 			scanner.seek(offset);
+			disableError(ParserErrorCode.StringNotClosed); // just one time error when parsing function code
 			try {
 				eatWhitespace();
 				while(!scanner.reachedEOF()) {
@@ -334,6 +335,7 @@ public class C4ScriptParser {
 			catch (ParsingException e) {
 				return;
 			}
+			enableError(ParserErrorCode.StringNotClosed);
 			container.setDirty(false);
 		}
 	}
@@ -407,7 +409,7 @@ public class C4ScriptParser {
 		}
 		catch (ParsingException e) {
 			//System.out.println(String.format("ParsingException in %s (%s)", activeFunc.getName(), container.getName()));
-			//e.printStackTrace();
+			e.printStackTrace();
 			// not very exceptional
 		}
 		catch (Exception e) {
@@ -1405,7 +1407,7 @@ public class C4ScriptParser {
 				c = scanner.read();
 				if (c == ',') {
 					if (!expectingComma)
-						errorWithCode(ParserErrorCode.UnexpectedToken, scanner.getPosition()-1, 1, ","); //$NON-NLS-1$
+						errorWithCode(ParserErrorCode.UnexpectedToken, scanner.getPosition()-1, scanner.getPosition(), ","); //$NON-NLS-1$
 					expectingComma = false;
 				} else if (c == '}') {
 					properlyClosed = true;
@@ -1418,7 +1420,7 @@ public class C4ScriptParser {
 						int c_ = scanner.read();
 						if (c_ != ':' && c_ != '=') {
 							scanner.unread();
-							errorWithCode(ParserErrorCode.UnexpectedToken, scanner.getPosition(), 1, scanner.read());
+							errorWithCode(ParserErrorCode.UnexpectedToken, scanner.getPosition(), scanner.getPosition()+1, (char)scanner.read());
 						}
 						eatWhitespace();
 						ExprElm expr = parseExpression(scanner.getPosition(), COMMA_OR_CLOSE_BLOCK, reportErrors);
@@ -1656,20 +1658,32 @@ public class C4ScriptParser {
 		return parseExpression(offset, true);
 	}
 	
+	private static final char[] getQuotesAndNewLineChars() {
+		char[] result = new char[1+BufferedScanner.NEWLINE_CHARS.length];
+		result[0] = '"';
+		System.arraycopy(BufferedScanner.NEWLINE_CHARS, 0, result, 1, BufferedScanner.NEWLINE_CHARS.length);
+		return result;
+	}
+	private static final char[] QUOTES_AND_NEWLINE_CHARS = getQuotesAndNewLineChars();
+	
 	private boolean parseString(int offset) throws ParsingException {
 		scanner.seek(offset);
-		int delimiter = scanner.read();
-		if (delimiter != '"') {
+		int quotes = scanner.read();
+		if (quotes != '"') {
 			scanner.unread();
 			return false;
 		}
 		StringBuilder builder = new StringBuilder();
 		do {
 			if (builder.length() > 0) builder.append(scanner.readString(1));
-			builder.append(scanner.readStringUntil((char)delimiter));
+			builder.append(scanner.readStringUntil(QUOTES_AND_NEWLINE_CHARS));
+			if (BufferedScanner.isLineDelimiterChar((char) scanner.peek())) {
+				errorWithCode(ParserErrorCode.StringNotClosed, scanner.getPosition()-1, scanner.getPosition(), true);
+				return true;
+			}
 		} while (builder.length() != 0 && (builder.charAt(builder.length() - 1) == '\\'));
 		if (scanner.read() != '"') {
-			errorWithCode(ParserErrorCode.StringNotClosed, offset, scanner.getPosition()-1);
+			errorWithCode(ParserErrorCode.StringNotClosed, scanner.getPosition()-1, scanner.getPosition());
 		}
 		parsedString = builder.toString();
 		return true;
