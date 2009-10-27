@@ -148,12 +148,16 @@ public class C4ObjectIntern extends C4Object implements Serializable {
 		return obj;
 	}
 	
-	public void refreshFolderReference(IProject project) throws CoreException {
+	public boolean refreshFolderReference(IProject project) throws CoreException {
 		Path path = new Path(this.relativePath);
 		IPath projectPath = path.removeFirstSegments(1);
 		IResource res = project.findMember(projectPath);
-		if (res instanceof IContainer)
+		if (res instanceof IContainer) {
 			this.setObjectFolder((IContainer)res);
+			return true;
+		}
+		else
+			return false;
 	}
 	
 	@Override

@@ -3,6 +3,7 @@ package net.arctics.clonk.index;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.Collection;
+import java.util.LinkedList;
 import java.util.List;
 
 import net.arctics.clonk.ClonkCore;
@@ -14,10 +15,7 @@ import net.arctics.clonk.util.IPredicate;
 import net.arctics.clonk.util.Utilities;
 
 import org.eclipse.core.resources.IProject;
-import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.IPath;
-import org.eclipse.core.runtime.Path;
 
 public class ProjectIndex extends ClonkIndex {
 
@@ -90,22 +88,30 @@ public class ProjectIndex extends ClonkIndex {
 	
 	public void postSerialize() throws CoreException {
 		notifyExternalLibsSet();
+		List<C4ScriptBase> stuffToBeRemoved = new LinkedList<C4ScriptBase>();
 		for (C4Object object : this) {
 			if (object instanceof C4ObjectIntern) {
-				((C4ObjectIntern)object).refreshFolderReference(project);
+				if (!((C4ObjectIntern)object).refreshFolderReference(project)) {
+					stuffToBeRemoved.add(object);
+				}
 			}
 		}
 		for (C4Scenario scenario : getIndexedScenarios()) {
-			scenario.refreshFolderReference(project);
+			if (!scenario.refreshFolderReference(project)) {
+				stuffToBeRemoved.add(scenario);
+			}
 		}
 		for (C4ScriptBase script : getIndexedScripts()) {
 			if (script instanceof C4ScriptIntern) {
 				C4ScriptIntern standalone = (C4ScriptIntern) script;
-				Path path = new Path(standalone.getScriptFilePath());
-				IPath projectPath = path.removeFirstSegments(1);
-				IResource res = project.findMember(projectPath);
-				standalone.setScriptFile(res);
+				if (!standalone.refreshFileReference(project)) {
+					stuffToBeRemoved.add(standalone);
+				}
 			}
+		}
+		// purge objects that seem to be non-existent
+		for (C4ScriptBase s : stuffToBeRemoved) {
+			this.removeScript(s);
 		}
 		super.postSerialize();
 	}
