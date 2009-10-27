@@ -1,6 +1,6 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
-Bundle-Name: Clonk Plug-in
+Bundle-Name: C4DT
 Bundle-SymbolicName: net.arctics.clonk;singleton:=true
 Bundle-Version: 1.5.1.5
 Bundle-Activator: net.arctics.clonk.ClonkCore
