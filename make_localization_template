@@ -4,9 +4,11 @@ require 'ftools'
 
 @origin = ARGV[0]
 @target = ARGV[1]
+@lang   = ARGV[2]
 
-@origin = "Clonk/src/net" if not @origin
+@origin = "C4DT/src/net" if not @origin
 @target = "l10n_template/net" if not @template
+@lang = "de" if not @lang
 
 def traverse (path)
 	fullOriginPath = @origin
@@ -18,6 +20,7 @@ def traverse (path)
 			puts fullOriginPath+"/"+e
 			File.makedirs(fullTargetPath)
 			File.syscopy(fullOriginPath+"/"+e, fullTargetPath+"/"+e)
+			File.rename(fullTargetPath+"/"+e, fullTargetPath+"/messages_"+@lang+".properties")
 		elsif e != "." and e != ".." and File.directory?(fullOriginPath+"/"+e) then
 			traverse(path+"/"+e)
 		end
