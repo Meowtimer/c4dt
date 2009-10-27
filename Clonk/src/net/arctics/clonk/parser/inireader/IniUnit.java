@@ -269,12 +269,16 @@ public class IniUnit extends C4Structure implements Iterable<IniSection>, IHasCh
 		}
 	}
 	
-	public void marker(ParserErrorCode error, int start, int end, int markerSeverity, Object... args) {
-		error.createMarker(iniFile, ClonkCore.MARKER_C4SCRIPT_ERROR, start, end, markerSeverity, args);
+	public void marker(String markerType, ParserErrorCode error, int start, int end, int markerSeverity, Object... args) {
+		error.createMarker(iniFile, markerType, start, end, markerSeverity, args);
 	}
 	
-	public void markerAtValue(ParserErrorCode error, IniEntry entry, int markerSeverity, Object... args) {
-		marker(error, entry.getLocation().getStart(), entry.getLocation().getEnd(), markerSeverity, args);
+	public void marker(ParserErrorCode error, int start, int end, int markerSeverity, Object... args) {
+		marker(ClonkCore.MARKER_INI_ERROR, error, start, end, markerSeverity, args);
+	}
+	
+	public void markerAtValue(String markerType, ParserErrorCode error, IniEntry entry, int markerSeverity, Object... args) {
+		marker(markerType, error, entry.getLocation().getStart(), entry.getLocation().getEnd(), markerSeverity, args);
 	}
 	
 	protected IniEntry parseEntry(IniSection section, boolean modifyMarkers) {
@@ -479,6 +483,24 @@ public class IniUnit extends C4Structure implements Iterable<IniSection>, IHasCh
 		if (contentType == null)
 			return null;
 		return INIREADER_CLASSES.get(contentType.getId());
+	}
+	
+	@Override
+	public void validate() {
+		try {
+			iniFile.deleteMarkers(ClonkCore.MARKER_C4SCRIPT_ERROR, true, 0);
+		} catch (CoreException e1) {
+			e1.printStackTrace();
+		}
+		for (IniSection sec : this.sectionsList) {
+			for (IniEntry e : sec) {
+				if (e instanceof ComplexIniEntry) {
+					ComplexIniEntry ce = (ComplexIniEntry) e;
+					if (ce.getExtendedValue() instanceof IComplainingIniEntryValue)
+						((IComplainingIniEntryValue)ce.getExtendedValue()).complain(ce);
+				}
+			}
+		}
 	}
 
 }
