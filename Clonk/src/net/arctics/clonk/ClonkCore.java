@@ -71,6 +71,11 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 	 * id for error markers that denote errors in a script
 	 */
 	public static final String MARKER_C4SCRIPT_ERROR = id("c4scripterror"); //$NON-NLS-1$
+	
+	/**
+	 * id for error markers that denote errors in a ini file
+	 */
+	public static final String MARKER_INI_ERROR = id("inierror");
 
 	public static final QualifiedName FOLDER_C4ID_PROPERTY_ID = new QualifiedName(PLUGIN_ID, "c4id"); //$NON-NLS-1$
 	public static final QualifiedName C4OBJECT_PROPERTY_ID = new QualifiedName(PLUGIN_ID, "c4object"); //$NON-NLS-1$
