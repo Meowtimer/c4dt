@@ -108,7 +108,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 		ClonkCore.getDefault().getLibBuilder().clean();
 		
 		// clean up this project
-		if (monitor != null) monitor.beginTask(Messages.ClonkBuilder_0, 1);
+		if (monitor != null) monitor.beginTask(Messages.Cleaning_Up, 1);
 		IProject proj = this.getProject();
 		if (proj != null) {
 			ClonkProjectNature.getClonkNature(proj).getIndex().clear();
@@ -153,7 +153,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 						delta.accept(counter);
 
 						// initialize progress monitor
-						monitor.beginTask(Messages.ClonkBuilder_1 + proj.getName(), counter.getCount());
+						monitor.beginTask(String.format(Messages.Build_Project, proj.getName()), counter.getCount());
 						// parse
 						buildPhase = 0;
 						delta.accept(this);
@@ -203,22 +203,22 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 					for(int work : operations) workSum += work;
 
 					// initialize progress monitor
-					monitor.beginTask(Messages.ClonkBuilder_2 + proj.getName(), workSum);
+					monitor.beginTask(String.format(Messages.Build_Project, proj.getName()), workSum);
 
 
 					// build external lib if needed
 					if (libBuilder.isBuildNeeded()) {
-						monitor.subTask(Messages.ClonkBuilder_3);
+						monitor.subTask(Messages.Parsing_Libraries);
 						libBuilder.build(new SubProgressMonitor(monitor,operations[2]));
 
-						monitor.subTask(Messages.ClonkBuilder_4);
+						monitor.subTask(Messages.Saving_Libraries);
 						ClonkCore.getDefault().saveExternIndex(
 								new SubProgressMonitor(monitor,operations[3]));
 					}
 
 					// build project
 					if (proj != null) {
-						monitor.subTask(Messages.ClonkBuilder_5 + proj.getName());
+						monitor.subTask(Messages.Index_Project + proj.getName());
 						// parse declarations
 						buildPhase = 0;
 						proj.accept(this);
@@ -227,7 +227,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 							monitor.done();
 							return null;
 						}
-						monitor.subTask(Messages.ClonkBuilder_6 + proj.getName());
+						monitor.subTask(Messages.Parse_Project + proj.getName());
 						// parse code bodies
 						buildPhase = 1;
 						proj.accept(this);
@@ -242,7 +242,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 					monitor.done();
 					return null;
 				}
-				monitor.subTask(Messages.ClonkBuilder_7);
+				monitor.subTask(Messages.Saving_Data);
 
 				// mark index as dirty so it will be saved when eclipse is shut down
 				ClonkProjectNature.getClonkNature(proj).markAsDirty();
@@ -251,6 +251,10 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 
 				refreshUIAfterBuild();
 
+				// validate files related to the scripts that have been parsed
+				for (C4ScriptBase script : parserMap.keySet()) {
+					validateRelatedFiles(script);
+				}
 				parserMap.clear();
 				return new IProject[] { proj };
 			} catch (Exception e) {
@@ -259,6 +263,19 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 			}
 		} finally {
 			parserMap.clear();
+		}
+	}
+
+	private void validateRelatedFiles(C4ScriptBase script) throws CoreException {
+		if (script instanceof C4ObjectIntern) {
+			C4ObjectIntern obj = (C4ObjectIntern) script;
+			for (IResource r : obj.getObjectFolder().members()) {
+				if (r instanceof IFile) {
+					C4Structure pinned = C4Structure.pinned((IFile) r, false);
+					if (pinned != null)
+						pinned.validate();
+				}
+			}
 		}
 	}
 
@@ -321,7 +338,6 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 		if (delta.getResource() instanceof IFile) {
 			IFile file = (IFile) delta.getResource();
 			if (delta.getKind() == IResourceDelta.CHANGED || delta.getKind() == IResourceDelta.ADDED) {
-				C4Structure structure;
 				C4ScriptBase script = Utilities.getScriptForFile(file);
 				if (script == null && buildPhase == 0) {
 					// create if new file
@@ -356,20 +372,8 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 							}
 						}
 					}
-				}
-				else if (buildPhase == 0 && (structure = C4Structure.createStructureForFile(file)) != null) {
-					structure.commitTo(script);
-					structure.pinTo(file);
-				}
-				else if (buildPhase == 0) {
-					C4ObjectIntern obj = C4ObjectIntern.objectCorrespondingTo(file.getParent());
-					if (obj != null)
-						try {
-							obj.processFile(file);
-						} catch (IOException e) {
-							e.printStackTrace();
-						}
-				}
+				} else
+					processAuxiliaryFiles(file, script);
 				// packed file
 				//				else if (C4Group.getGroupType(file.getName()) != C4GroupType.OtherGroup) {
 				//					try {
@@ -404,6 +408,30 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 				if (object != null)
 					object.getIndex().removeObject(object);
 			}
+			return true;
+		}
+		return false;
+	}
+
+	private boolean processAuxiliaryFiles(IFile file, C4ScriptBase script) throws CoreException {
+		C4Structure structure;
+		if (buildPhase == 0 && (structure = C4Structure.createStructureForFile(file)) != null) {
+			structure.commitTo(script);
+			structure.pinTo(file);
+			return true;
+		}
+		else if (buildPhase == 1 && (structure = C4Structure.pinned(file, false)) != null) {
+			structure.validate();
+			return true;
+		}
+		else if (buildPhase == 0) {
+			C4ObjectIntern obj = C4ObjectIntern.objectCorrespondingTo(file.getParent());
+			if (obj != null)
+				try {
+					obj.processFile(file);
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
 			return true;
 		}
 		return false;
@@ -445,7 +473,6 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 		}
 		else if (resource instanceof IFile) {
 			IFile file = (IFile) resource;
-			C4Structure structure;
 			if (resource.getName().endsWith(".c") && resource.getParent().getName().endsWith(".c4g")) { //$NON-NLS-1$ //$NON-NLS-2$
 				C4ScriptBase script = C4ScriptIntern.pinnedScript(file);
 				switch (buildPhase) {
@@ -469,19 +496,8 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 					return true;
 				}
 			}
-			else if (buildPhase == 0 && (structure = C4Structure.pinned(file, true)) != null) {
-				structure.commitTo(Utilities.getScriptForFile(file));
+			else if (processAuxiliaryFiles(file, Utilities.getScriptForFile(file)))
 				return true;
-			}
-			else if (buildPhase == 0) {
-				C4ObjectIntern obj = C4ObjectIntern.objectCorrespondingTo(file.getParent());
-				if (obj != null)
-					try {
-						obj.processFile(file);
-					} catch (IOException e) {
-						e.printStackTrace();
-					}
-			}
 		}
 		return false;
 	}
