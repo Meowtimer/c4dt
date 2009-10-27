@@ -48,7 +48,7 @@ public class C4GroupExporter {
 				if (fileDialog == null)
 					fileDialog = new FileDialog(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(), SWT.SAVE);
 				fileDialog.setFileName(toExport.getName());
-				fileDialog.setText(Messages.C4GroupExporter_0 + toExport.getName());
+				fileDialog.setText(String.format(Messages.WhereToSave, toExport.getName()));
 				fileDialog.setFilterPath(destinationPath);
 				packPath = fileDialog.open();
 				if (packPath == null) {
@@ -66,7 +66,7 @@ public class C4GroupExporter {
 
 	public void export(IProgressMonitor monitor) {
 		if (monitor != null)
-			monitor.beginTask(Messages.C4GroupExporter_1, packs.length);
+			monitor.beginTask(Messages.Exporting, packs.length);
 		IPreferencesService service = Platform.getPreferencesService();
 		boolean showExportLog = service.getBoolean(ClonkCore.PLUGIN_ID, PreferenceConstants.SHOW_EXPORT_LOG, false, null);
 		int i = -1;
@@ -99,7 +99,7 @@ public class C4GroupExporter {
 				if (showExportLog) {
 					// show command line in console
 					StringBuilder cmdLine = new StringBuilder();
-					cmdLine.append(Messages.C4GroupExporter_3);
+					cmdLine.append(Messages.ExporterCommandlineTitle);
 					for (int _i = 0; _i < cmdArray.length; _i++) {
 						String cmdE = cmdArray[_i];
 						cmdLine.append(" " + cmdE); //$NON-NLS-1$

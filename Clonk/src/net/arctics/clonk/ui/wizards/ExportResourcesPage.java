@@ -32,8 +32,8 @@ public class ExportResourcesPage extends WizardPage {
 
 	public void createControl(Composite parent) {
 		Composite comp = new Composite(parent, SWT.FILL);
-		setTitle(Messages.ExportResourcesPage_0);
-		setMessage(Messages.ExportResourcesPage_1);
+		setTitle(Messages.ExportResourcesPage_Title);
+		setMessage(Messages.ExportResourcesPage_Desc);
 		GridLayout layout = new GridLayout();
 		comp.setLayout(layout);
 		layout.numColumns = 1;
@@ -90,12 +90,12 @@ public class ExportResourcesPage extends WizardPage {
 	protected void createDestinationGroup(Composite parent) {
 		Label lab= new Label(parent,SWT.NONE);
 		IPreferencesService service = Platform.getPreferencesService();
-		String gamePath = service.getString(ClonkCore.PLUGIN_ID, PreferenceConstants.GAME_PATH, Messages.ExportResourcesPage_2, null);
+		String gamePath = service.getString(ClonkCore.PLUGIN_ID, PreferenceConstants.GAME_PATH, null, null);
 		if (gamePath != null) {
-			lab.setText(Messages.ExportResourcesPage_3 + gamePath);
+			lab.setText(String.format(Messages.ExportResourcesPage_OutputDir, gamePath));
 		}
 		else {
-			lab.setText(Messages.ExportResourcesPage_4);
+			lab.setText(Messages.ExportResourcesPage_GamePathMissing);
 		}
 	}
 

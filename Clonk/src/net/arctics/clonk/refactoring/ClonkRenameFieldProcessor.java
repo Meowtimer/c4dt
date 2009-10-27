@@ -48,7 +48,7 @@ public class ClonkRenameFieldProcessor extends RenameProcessor {
 		// renaming fields that originate from outside the project is not allowed
 		C4Declaration baseDecl = decl instanceof C4Function ? ((C4Function)decl).baseFunction() : decl;
 		if (!(baseDecl.getScript().getIndex() instanceof ProjectIndex))
-			return RefactoringStatus.createFatalErrorStatus(decl.getName() + Messages.ClonkRenameFieldProcessor_0);
+			return RefactoringStatus.createFatalErrorStatus(decl.getName() + Messages.OutsideProject);
 		
 		C4Declaration existingDec;
 		if (baseDecl.getParentDeclaration() instanceof C4Function) {
@@ -60,10 +60,10 @@ public class ClonkRenameFieldProcessor extends RenameProcessor {
 			existingDec = decl.getScript().findDeclaration(newName, info);
 		}
 		if (existingDec != null) {
-			return RefactoringStatus.createFatalErrorStatus(Messages.ClonkRenameFieldProcessor_1 + newName + Messages.ClonkRenameFieldProcessor_2 + decl.getScript().toString());
+			return RefactoringStatus.createFatalErrorStatus(String.format(Messages.DuplicateItem, newName, decl.getScript().toString()));
 		}
 		
-		return RefactoringStatus.createInfoStatus(Messages.ClonkRenameFieldProcessor_3);
+		return RefactoringStatus.createInfoStatus(Messages.Success);
 	}
 
 	@Override
@@ -88,7 +88,7 @@ public class ClonkRenameFieldProcessor extends RenameProcessor {
 					elements.add(relatedFunc);
 			}
 		}
-		CompositeChange composite = new CompositeChange(Messages.ClonkRenameFieldProcessor_4 + decl.toString());
+		CompositeChange composite = new CompositeChange(String.format(Messages.RenamingProgress, decl.toString()));
 		for (Object element : elements) {
 			IFile file;
 			if (element instanceof IFile)
@@ -102,7 +102,7 @@ public class ClonkRenameFieldProcessor extends RenameProcessor {
 			else
 				file = null;
 			if (file != null) {
-				TextFileChange fileChange = new TextFileChange(Messages.ClonkRenameFieldProcessor_5 + decl.toString() + Messages.ClonkRenameFieldProcessor_6 + file.getFullPath().toString(), file);
+				TextFileChange fileChange = new TextFileChange(String.format(Messages.RenameChangeDescription, decl.toString(), file.getFullPath().toString()), file);
 				fileChange.setEdit(new MultiTextEdit());
 				// change declaration
 				if (file.equals(declaringFile)) {
@@ -130,7 +130,7 @@ public class ClonkRenameFieldProcessor extends RenameProcessor {
 	public RefactoringStatus checkFinalConditions(IProgressMonitor monitor,
 			CheckConditionsContext context) throws CoreException,
 			OperationCanceledException {
-		return RefactoringStatus.createInfoStatus(Messages.ClonkRenameFieldProcessor_7);
+		return RefactoringStatus.createInfoStatus(Messages.Success);
 	}
 
 	@Override
@@ -145,7 +145,7 @@ public class ClonkRenameFieldProcessor extends RenameProcessor {
 
 	@Override
 	public String getProcessorName() {
-		return Messages.ClonkRenameFieldProcessor_9;
+		return Messages.RenameProcessorName;
 	}
 
 	@Override

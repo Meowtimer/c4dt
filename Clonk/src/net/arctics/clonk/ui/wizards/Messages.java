@@ -4,21 +4,21 @@ import org.eclipse.osgi.util.NLS;
 
 public class Messages extends NLS {
 	private static final String BUNDLE_NAME = "net.arctics.clonk.ui.wizards.messages"; //$NON-NLS-1$
-	public static String C4GroupImporter_0;
-	public static String C4GroupImporter_1;
-	public static String C4GroupImporter_2;
-	public static String C4GroupImporter_3;
-	public static String ExportClonkFiles_1;
-	public static String ExportClonkFiles_2;
-	public static String ExportClonkFiles_3;
-	public static String ExportClonkFiles_4;
+	public static String C4GroupImporter_ImportingFiles;
+	public static String C4GroupImporter_Importing;
+	public static String C4GroupImporter_ImportTask;
+	public static String C4GroupImporter_ErrorImporting;
+	public static String ExportClonkFiles_ExportToClonkDir;
+	public static String ExportClonkFiles_ChooseFoldersToExport;
+	public static String ExportClonkFiles_Title;
+	public static String ExportClonkFiles_Information;
 	public static String ExportClonkFiles_5;
-	public static String ExportResourcesPage_0;
-	public static String ExportResourcesPage_1;
+	public static String ExportResourcesPage_Title;
+	public static String ExportResourcesPage_Desc;
 	public static String ExportResourcesPage_2;
-	public static String ExportResourcesPage_3;
-	public static String ExportResourcesPage_4;
-	public static String ImportClonkFiles_0;
+	public static String ExportResourcesPage_OutputDir;
+	public static String ExportResourcesPage_GamePathMissing;
+	public static String ImportClonkFiles_Title;
 	public static String NewC4Object_1;
 	public static String NewC4ObjectPage_0;
 	public static String NewC4ObjectPage_1;

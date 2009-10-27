@@ -1428,7 +1428,7 @@ public class C4ScriptParser {
 						expectingComma = true;
 					}
 					else {
-						errorWithCode(ParserErrorCode.TokenExpected, scanner.getPosition(), scanner.getPosition()+1, Messages.C4ScriptParser_20);
+						errorWithCode(ParserErrorCode.TokenExpected, scanner.getPosition(), scanner.getPosition()+1, Messages.TokenStringOrIdentifier);
 						break;
 					}
 				}
@@ -1511,7 +1511,7 @@ public class C4ScriptParser {
 			} else {
 				scanner.unread();
 				if (listToAddElementsTo.size() > 100) {
-					errorWithCode(ParserErrorCode.InternalError, scanner.getPosition(), scanner.getPosition(), Messages.C4ScriptParser_23);
+					errorWithCode(ParserErrorCode.InternalError, scanner.getPosition(), scanner.getPosition(), Messages.InternalError_WayTooMuch);
 				//	break;
 				}
 				ExprElm arg = parseExpression(scanner.getPosition(), reportErrors);
@@ -1712,7 +1712,7 @@ public class C4ScriptParser {
 			builder.append(scanner.readStringUntil((char)delimiter));
 		} while (builder.length() != 0 && (builder.charAt(builder.length() - 1) == '\\'));
 		if (scanner.read() != '$') {
-			throw new ParsingException(Messages.C4ScriptParser_24);
+			throw new ParsingException(Messages.InternalParserError);
 		}
 		parsedString = builder.toString();
 		return true;

@@ -98,7 +98,7 @@ public class ClonkLibBuilder implements IC4GroupVisitor, IPropertyChangeListener
 					IMarker marker = ResourcesPlugin.getWorkspace().getRoot().createMarker(ClonkCore.MARKER_EXTERN_LIB_ERROR);
 					marker.setAttribute(IMarker.SEVERITY, IMarker.SEVERITY_ERROR);
 					marker.setAttribute(IMarker.TRANSIENT, false);
-					marker.setAttribute(IMarker.MESSAGE, String.format(Messages.External_Library_Does_Not_Exist, lib));
+					marker.setAttribute(IMarker.MESSAGE, String.format(Messages.ExternalLibraryDoesNotExist, lib));
 					marker.setAttribute(IMarker.SOURCE_ID, ClonkCore.MARKER_EXTERN_LIB_ERROR);
 				}
 			} catch (CoreException e) {
@@ -122,7 +122,7 @@ public class ClonkLibBuilder implements IC4GroupVisitor, IPropertyChangeListener
 		} catch (CoreException e1) {
 			e1.printStackTrace();
 		}
-		if (monitor != null) monitor.beginTask(Messages.Parsing_Libs, libs.length);
+		if (monitor != null) monitor.beginTask(Messages.ParsingLibs, libs.length);
 		for(String lib : libs) {
 			readExternalLib(lib, new SubProgressMonitor(monitor,1));
 		}

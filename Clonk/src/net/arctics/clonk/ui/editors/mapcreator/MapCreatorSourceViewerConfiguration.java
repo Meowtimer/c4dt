@@ -128,7 +128,7 @@ public class MapCreatorSourceViewerConfiguration extends ClonkSourceViewerConfig
 		// key sequence is set in constructor of ClonkCompletionProcessor
 		
 		assistant.setStatusLineVisible(true);
-		assistant.setStatusMessage(Utilities.getEditingFile(getEditor()).getName() + Messages.MapCreatorSourceViewerConfiguration_0);
+		assistant.setStatusMessage(String.format(Messages.MapCreatorSourceViewerConfiguration_Proposals, Utilities.getEditingFile(getEditor()).getName()));
 		
 		assistant.enablePrefixCompletion(false);
 		assistant.enableAutoInsert(true);

@@ -29,7 +29,7 @@ public class SignedInteger implements IIniEntryValue {
 				x = Integer.parseInt(input.trim());
 		}
 		catch(NumberFormatException e) {
-			IniParserException exp = new IniParserException(IMarker.SEVERITY_ERROR, Messages.SignedInteger_2 + input + Messages.SignedInteger_0); //$NON-NLS-2$
+			IniParserException exp = new IniParserException(IMarker.SEVERITY_ERROR, String.format(Messages.IntegerExpected, input)); //$NON-NLS-2$
 			exp.setInnerException(e);
 			throw exp;
 		}

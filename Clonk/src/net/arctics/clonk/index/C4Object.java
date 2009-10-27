@@ -29,7 +29,7 @@ public abstract class C4Object extends C4ScriptBase {
 	/**
 	 * Template to construct the info text of an object definition from
 	 */
-	public static final String INFO_TEXT_TEMPLATE = Messages.C4Object_0;
+	public static final String INFO_TEXT_TEMPLATE = Messages.C4Object_InfoTextTemplate;
 	
 	/**
 	 * Creates a new C4Object

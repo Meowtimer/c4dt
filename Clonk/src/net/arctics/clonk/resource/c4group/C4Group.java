@@ -349,7 +349,7 @@ public class C4Group implements C4GroupItem, Serializable {
 			me = ((IProject)parent).getFolder(getName());
 		}
 		else {
-			throw new InvalidParameterException(Messages.C4Group_5);
+			throw new InvalidParameterException(Messages.NoImportingToWorkspaceRoot);
 		}
 		me.create(IResource.NONE, true, monitor);
 		for(C4GroupItem item : childEntries) {

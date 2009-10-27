@@ -56,7 +56,7 @@ public class QuickImportAction extends ClonkResourceAction implements IHandler {
 				
 				final FileDialog fileDialog = new FileDialog(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(), SWT.OPEN+SWT.MULTI);
 				fileDialog.setFilterPath(gamePath);
-				fileDialog.setText(Messages.QuickImportAction_0 + container.getName());
+				fileDialog.setText(String.format(Messages.QuickImportAction_SelectFiles, container.getName()));
 				fileDialog.setFilterExtensions(new String[] {UI.FILEDIALOG_CLONK_FILTER, "*.*"}); //$NON-NLS-1$
 				if (fileDialog.open() != null) {
 					File[] files = Utilities.map(fileDialog.getFileNames(), File.class, new IConverter<String, File>() { 

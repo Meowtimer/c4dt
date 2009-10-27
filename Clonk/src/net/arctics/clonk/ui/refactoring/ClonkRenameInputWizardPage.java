@@ -22,8 +22,8 @@ class ClonkRenameInputWizardPage extends UserInputWizardPage {
 
 	protected ClonkRenameInputWizardPage(String name) {
 		super(name);
-		setTitle(Messages.ClonkRenameInputWizardPage_0);
-		setDescription(Messages.ClonkRenameInputWizardPage_1);
+		setTitle(Messages.ClonkRenameInputWizardPage_SupplyTheName);
+		setDescription(Messages.ClonkRenameInputWizardPage_SupplyTheNameDesc);
 	}
 
 	public void createControl(Composite parent) {
@@ -32,7 +32,7 @@ class ClonkRenameInputWizardPage extends UserInputWizardPage {
 		GridLayout layout = new GridLayout();
 		container.setLayout(layout);
 		Label labelObj = new Label(container, SWT.NULL);
-		labelObj.setText(Messages.ClonkRenameInputWizardPage_2);
+		labelObj.setText(Messages.ClonkRenameInputWizardPage_NewName);
 		Text result = new Text(container, SWT.BORDER | SWT.SINGLE);
 		GridData gd = new GridData(GridData.FILL_HORIZONTAL);
 		result.setLayoutData(gd);

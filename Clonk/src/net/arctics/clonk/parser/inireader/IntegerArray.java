@@ -65,11 +65,11 @@ public class IntegerArray implements IIniEntryValue, IHasChildrenWithContext {
 				this.integers = integers;
 			}
 			else {
-				throw new IniParserException(IMarker.SEVERITY_WARNING, Messages.IntegerArray_5);
+				throw new IniParserException(IMarker.SEVERITY_WARNING, Messages.ExpectedIntegerArray);
 			}
 		}
 		catch(NumberFormatException e) {
-			IniParserException exp = new IniParserException(IMarker.SEVERITY_ERROR, Messages.IntegerArray_6);
+			IniParserException exp = new IniParserException(IMarker.SEVERITY_ERROR, Messages.ExpectedIntegerArray);
 			exp.setInnerException(e);
 			throw exp;
 		}

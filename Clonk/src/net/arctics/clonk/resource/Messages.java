@@ -4,15 +4,15 @@ import org.eclipse.osgi.util.NLS;
 
 public class Messages extends NLS {
 	private static final String BUNDLE_NAME = "net.arctics.clonk.resource.messages"; //$NON-NLS-1$
-	public static String Cleaning_Up;
-	public static String Build_Project;
-	public static String Parsing_Libraries;
-	public static String Saving_Libraries;
-	public static String Index_Project;
-	public static String Parse_Project;
-	public static String Saving_Data;
-	public static String External_Library_Does_Not_Exist;
-	public static String Parsing_Libs;
+	public static String CleaningUp;
+	public static String BuildProject;
+	public static String ParsingLibraries;
+	public static String SavingLibraries;
+	public static String IndexProject;
+	public static String ParseProject;
+	public static String SavingData;
+	public static String ExternalLibraryDoesNotExist;
+	public static String ParsingLibs;
 	static {
 		// initialize resource bundle
 		NLS.initializeMessages(BUNDLE_NAME, Messages.class);

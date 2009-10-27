@@ -32,7 +32,7 @@ public class RenameDeclarationAction extends OpenDeclarationAction {
 			return false;
 		RefactoringStatusEntry entry = status.getEntryWithHighestSeverity();
 		if (entry != null && entry.getSeverity() == RefactoringStatus.FATAL) {
-			ErrorDialog.openError(null, Messages.RenameDeclarationAction_0, Messages.RenameDeclarationAction_1, new Status(IStatus.ERROR, ClonkCore.PLUGIN_ID, entry.getMessage()));
+			ErrorDialog.openError(null, Messages.RenameDeclarationAction_Failed, Messages.RenameDeclarationAction_RenamingFailed, new Status(IStatus.ERROR, ClonkCore.PLUGIN_ID, entry.getMessage()));
 			return true;
 		}
 		return false;
@@ -43,7 +43,7 @@ public class RenameDeclarationAction extends OpenDeclarationAction {
 		try {
 			C4Declaration fieldToRename = getDeclarationAtSelection();
 			if (fieldToRename != null) {
-				InputDialog newNameDialog = new InputDialog(getTextEditor().getSite().getWorkbenchWindow().getShell(), Messages.RenameDeclarationAction_2, Messages.RenameDeclarationAction_3, fieldToRename.getName(), null);
+				InputDialog newNameDialog = new InputDialog(getTextEditor().getSite().getWorkbenchWindow().getShell(), Messages.RenameDeclarationAction_RenameDeclaration, Messages.RenameDeclarationAction_SpecifyNewName, fieldToRename.getName(), null);
 				switch (newNameDialog.open()) {
 				case InputDialog.CANCEL:
 					return;

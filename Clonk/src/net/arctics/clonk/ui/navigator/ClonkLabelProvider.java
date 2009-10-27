@@ -60,9 +60,6 @@ public class ClonkLabelProvider extends LabelProvider implements IStyledLabelPro
 				return UI.GROUP_ICON;
 			}
 		}
-		else if (element instanceof DependenciesNavigatorNode) {
-			return UI.DEPENDENCIES_ICON;
-		}
 		return UI.getIconForObject(element);
 	}
 
@@ -108,8 +105,6 @@ public class ClonkLabelProvider extends LabelProvider implements IStyledLabelPro
 		else if (element instanceof INode) {
 			return new StyledString(element.toString(), StyledString.COUNTER_STYLER);
 		}
-		else if (element instanceof DependenciesNavigatorNode)
-			return new StyledString(element.toString(), StyledString.DECORATIONS_STYLER);
 		return new StyledString(element.toString());
 	}
 

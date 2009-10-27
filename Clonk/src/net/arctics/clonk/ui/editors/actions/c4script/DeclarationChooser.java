@@ -45,7 +45,7 @@ public class DeclarationChooser extends FilteredItemsSelectionDialog {
 		super(shell);
 		this.declarations = declarations;
 		setListLabelProvider(new LabelProvider());
-		setTitle(Messages.DeclarationChooser_2);
+		setTitle(Messages.DeclarationChooser_Label);
 	}
 	
 	@Override

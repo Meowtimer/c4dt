@@ -20,7 +20,7 @@ public class PreferenceConstants {
 	public static final String EXTERNAL_INDEX_ENCODING = "externalIndexEncoding"; //$NON-NLS-1$
 	
 	public static final String EXTERNAL_INDEX_ENCODING_DEFAULT = "ISO-8859-1"; //$NON-NLS-1$
-	public static final String DOC_URL_TEMPLATE_DEFAULT = Messages.PreferenceConstants_10;
+	public static final String DOC_URL_TEMPLATE_DEFAULT = Messages.DocURLTemplateDefault;
 	
 	public static String getPreference(String prefName, String def, IScopeContext[] contexts) {
 		return Platform.getPreferencesService().getString(ClonkCore.PLUGIN_ID, prefName, def, contexts);

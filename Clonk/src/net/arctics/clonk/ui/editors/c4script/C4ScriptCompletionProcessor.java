@@ -92,11 +92,11 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 		public String description() {
 			switch (this) {
 			case SHOW_ALL:
-				return Messages.C4ScriptCompletionProcessor_0;
+				return Messages.C4ScriptCompletionProcessor_AllCompletions;
 			case SHOW_LOCAL:
-				return Messages.C4ScriptCompletionProcessor_1;
+				return Messages.C4ScriptCompletionProcessor_LocalCompletions;
 			case SHOW_OBJECT:
-				return Messages.C4ScriptCompletionProcessor_2;
+				return Messages.C4ScriptCompletionProcessor_ObjectCompletions;
 			default:
 				return null;
 			}
@@ -187,14 +187,14 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 		final C4Function activeFunc = getActiveFunc(doc, offset);
 		this._activeFunc = activeFunc;
 		
-		statusMessages.add(Messages.C4ScriptCompletionProcessor_3);
+		statusMessages.add(Messages.C4ScriptCompletionProcessor_ProjectFiles);
 		
 		if (proposalCycle == ProposalCycle.SHOW_ALL || activeFunc == null) {
 			if (!ClonkCore.getDefault().getExternIndex().isEmpty()) {
-				statusMessages.add(Messages.C4ScriptCompletionProcessor_4);
+				statusMessages.add(Messages.C4ScriptCompletionProcessor_ExternalLibraries);
 			}
 			if (ClonkCore.getDefault().getEngineObject() != null) {
-				statusMessages.add(Messages.C4ScriptCompletionProcessor_5);
+				statusMessages.add(Messages.C4ScriptCompletionProcessor_EngineFunctions);
 			}
 		}
 		
@@ -207,7 +207,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 					proposals, index, activeFunc);
 		}
 		
-		StringBuilder statusMessage = new StringBuilder(Messages.C4ScriptCompletionProcessor_6);
+		StringBuilder statusMessage = new StringBuilder(Messages.C4ScriptCompletionProcessor_ShownData);
 		for(String message : statusMessages) {
 			statusMessage.append(message);
 			if (statusMessages.get(statusMessages.size() - 1) != message) statusMessage.append(", "); //$NON-NLS-1$
@@ -219,7 +219,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 		doCycle();
 		
 		if (proposals.size() == 0) {
-			return new ICompletionProposal[] { new CompletionProposal("",offset,0,0,null,Messages.C4ScriptCompletionProcessor_9,null,null) }; //$NON-NLS-1$
+			return new ICompletionProposal[] { new CompletionProposal("",offset,0,0,null,Messages.C4ScriptCompletionProcessor_NoProposalsAvailable,null,null) }; //$NON-NLS-1$
 		}
 		
 		return sortProposals(proposals);
@@ -310,7 +310,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 				}
 				int replacementLength = 0;
 				if (prefix != null) replacementLength = prefix.length();
-				ClonkCompletionProposal prop = new ClonkCompletionProposal(keyword,offset,replacementLength,keyword.length(), reg.get("keyword") , keyword.trim(),null,null,Messages.C4ScriptCompletionProcessor_14); //$NON-NLS-1$
+				ClonkCompletionProposal prop = new ClonkCompletionProposal(keyword,offset,replacementLength,keyword.length(), reg.get("keyword") , keyword.trim(),null,null,Messages.C4ScriptCompletionProcessor_Engine); //$NON-NLS-1$
 				proposals.add(prop);
 			}
 		}
@@ -327,7 +327,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 		String repString = funcSupplied ? (callback!=null?callback:"") : ("protected func " + callback + "() {\n}"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 		ClonkCompletionProposal prop = new ClonkCompletionProposal(
 				repString, offset, replacementLength, 
-				repString.length(), reg.get("callback") , callback, null,null,Messages.C4ScriptCompletionProcessor_22); //$NON-NLS-1$
+				repString.length(), reg.get("callback") , callback, null,null,Messages.C4ScriptCompletionProcessor_Callback); //$NON-NLS-1$
 		proposals.add(prop);
 	}
 
@@ -361,7 +361,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 			}
 			int replacementLength = 0;
 			if (prefix != null) replacementLength = prefix.length();
-			ClonkCompletionProposal prop = new ClonkCompletionProposal(declarator,offset,replacementLength,declarator.length(), reg.get("declarator") , declarator.trim(),null,null,Messages.C4ScriptCompletionProcessor_28); //$NON-NLS-1$
+			ClonkCompletionProposal prop = new ClonkCompletionProposal(declarator,offset,replacementLength,declarator.length(), reg.get("declarator") , declarator.trim(),null,null,Messages.C4ScriptCompletionProcessor_Engine); //$NON-NLS-1$
 			proposals.add(prop);
 		}
 		
@@ -375,7 +375,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 			}
 			int replacementLength = 0;
 			if (prefix != null) replacementLength = prefix.length();
-			ClonkCompletionProposal prop = new ClonkCompletionProposal(directive,offset,replacementLength,directive.length(), reg.get("directive") , directive.trim(),null,null,Messages.C4ScriptCompletionProcessor_33); //$NON-NLS-1$
+			ClonkCompletionProposal prop = new ClonkCompletionProposal(directive,offset,replacementLength,directive.length(), reg.get("directive") , directive.trim(),null,null,Messages.C4ScriptCompletionProcessor_Engine); //$NON-NLS-1$
 			proposals.add(prop);
 		}
 		
@@ -387,7 +387,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 
 	private String getProposalCycleMessage() {
 		TriggerSequence sequence = getIterationBinding();
-		return Messages.C4ScriptCompletionProcessor_34 + sequence.format() + Messages.C4ScriptCompletionProcessor_35 + proposalCycle.cycle().description();
+		return String.format(Messages.C4ScriptCompletionProcessor_PressToShowCycle, sequence.format(), proposalCycle.cycle().description());
 	}
 
 	private void proposalsFromScript(C4ScriptBase script, HashSet<C4ScriptBase> loopCatcher, String prefix, int offset, int wordOffset, List<ICompletionProposal> proposals, boolean noPrivateFuncs, ClonkIndex index) {

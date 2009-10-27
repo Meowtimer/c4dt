@@ -41,12 +41,12 @@ public class ExportClonkFiles extends Wizard implements IExportWizard {
 	public void init(IWorkbench workbench, IStructuredSelection selection) {
 //        this.selection = selection;
 		
-		exportPage = new ExportResourcesPage(Messages.ExportClonkFiles_1);
+		exportPage = new ExportResourcesPage(Messages.ExportClonkFiles_ExportToClonkDir);
 		exportPage.setWizard(this);
-		exportPage.setMessage(Messages.ExportClonkFiles_2);
-		exportPage.setTitle(Messages.ExportClonkFiles_3);
-		exportPage.setMessage(Messages.ExportClonkFiles_4, WizardPage.INFORMATION);
-		setWindowTitle(Messages.ExportClonkFiles_5);
+		exportPage.setMessage(Messages.ExportClonkFiles_ChooseFoldersToExport);
+		exportPage.setTitle(Messages.ExportClonkFiles_Title);
+		exportPage.setMessage(Messages.ExportClonkFiles_Information, WizardPage.INFORMATION);
+		setWindowTitle(Messages.ExportClonkFiles_ExportToClonkDir);
 		addPage(exportPage);
 	}
 

@@ -26,7 +26,7 @@ public class ClonkPreferencePage extends FieldEditorPreferencePage implements IW
 	public ClonkPreferencePage() {
 		super(GRID);
 		setPreferenceStore(ClonkCore.getDefault().getPreferenceStore());
-		setDescription(Messages.ClonkPreferencePage_0);
+		setDescription(Messages.ClonkPreferences);
 	}
 
 	public void createFieldEditors() {
@@ -38,39 +38,39 @@ public class ClonkPreferencePage extends FieldEditorPreferencePage implements IW
 		addField(
 			gamePathEditor = new DirectoryFieldEditor(
 				PreferenceConstants.GAME_PATH,
-				Messages.ClonkPreferencePage_1,
+				Messages.GamePath,
 				getFieldEditorParent()
 			)
 		);
 		addField(
 			new FileFieldEditor(
 				PreferenceConstants.C4GROUP_EXECUTABLE,
-				Messages.ClonkPreferencePage_2,
+				Messages.C4GroupExecutable,
 				getFieldEditorParent()
 			)
 		);
 		addField(
 			new FileFieldEditor(
 				PreferenceConstants.ENGINE_EXECUTABLE,
-				Messages.ClonkPreferencePage_3,
+				Messages.EngineExecutable,
 				getFieldEditorParent()
 			)
 		);
 		addField(
 			new DirectoryFieldEditor(
 				PreferenceConstants.OPENCLONK_REPO,
-				Messages.ClonkPreferencePage_4,
+				Messages.OpenClonkRepo,
 				getFieldEditorParent()
 			)
 		);
 		addField(
 			new ComboFieldEditor(
 				PreferenceConstants.PREFERRED_LANGID,
-				Messages.ClonkPreferencePage_5,
+				Messages.PreferredLangID,
 				new String[][] {
-					{Messages.ClonkPreferencePage_6, "DE"}, //$NON-NLS-1$
-					{Messages.ClonkPreferencePage_8, "US"}, //$NON-NLS-1$
-					{Messages.ClonkPreferencePage_10, "FI"} //$NON-NLS-1$
+					{Messages.German, "DE"}, //$NON-NLS-1$
+					{Messages.USEnglish, "US"}, //$NON-NLS-1$
+					{Messages.Finnish, "FI"} //$NON-NLS-1$
 				},
 				getFieldEditorParent()
 			)
@@ -78,11 +78,11 @@ public class ClonkPreferencePage extends FieldEditorPreferencePage implements IW
 		addField(
 			new StringFieldEditor(
 				PreferenceConstants.DOC_URL_TEMPLATE,
-				Messages.ClonkPreferencePage_12,
+				Messages.DocumentURLTemplate,
 				getFieldEditorParent()
 			)
 		);
-		addField(new ListEditor(PreferenceConstants.STANDARD_EXT_LIBS, Messages.ClonkPreferencePage_13,getFieldEditorParent()) {
+		addField(new ListEditor(PreferenceConstants.STANDARD_EXT_LIBS, Messages.ExternalObjectsAndScripts,getFieldEditorParent()) {
 			@Override
 			protected String[] parseString(String stringList) {
 				if (stringList.length() == 0) return new String[] {};
@@ -100,7 +100,7 @@ public class ClonkPreferencePage extends FieldEditorPreferencePage implements IW
 					gamePath = null;
 				}
 				FileDialog dialog = new FileDialog(getShell());
-				dialog.setText(Messages.ClonkPreferencePage_15);
+				dialog.setText(Messages.ChooseExternalObject);
 				dialog.setFilterExtensions(new String[] { UI.FILEDIALOG_CLONK_FILTER });
 				dialog.setFilterPath(gamePath);
 				return dialog.open();
@@ -123,14 +123,14 @@ public class ClonkPreferencePage extends FieldEditorPreferencePage implements IW
 			new ExceptionlessEncodingFieldEditor(
 				PreferenceConstants.EXTERNAL_INDEX_ENCODING,
 				"", //$NON-NLS-1$
-				Messages.ClonkPreferencePage_18,
+				Messages.EncodingForExternalObjects,
 				getFieldEditorParent()
 			)
 		);
 		addField(
 			new BooleanFieldEditor(
 				PreferenceConstants.SHOW_EXPORT_LOG,
-				Messages.ClonkPreferencePage_19,
+				Messages.ShowExportLog,
 				getFieldEditorParent()
 			)
 		);

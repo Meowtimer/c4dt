@@ -32,8 +32,8 @@ public class ClonkActionProvider extends CommonActionProvider {
 				new OpenSpecialItemAction(workbenchSite.getPage(), 
 					workbenchSite.getSelectionProvider());
 		}
-		quickExportAction = new QuickExportAction(Messages.ClonkActionProvider_0);
-		convertCodeAction = new ConvertOldCodeInBulkAction(Messages.ClonkActionProvider_1);
+		quickExportAction = new QuickExportAction(Messages.ClonkActionProvider_QuickExport);
+		convertCodeAction = new ConvertOldCodeInBulkAction(Messages.ClonkActionProvider_ConvertOldCode);
 	}
 
 	/* (non-Javadoc)

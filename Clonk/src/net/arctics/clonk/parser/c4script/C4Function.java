@@ -11,6 +11,7 @@ import net.arctics.clonk.parser.C4Structure;
 import net.arctics.clonk.parser.SourceLocation;
 import net.arctics.clonk.parser.c4script.C4ScriptExprTree.ExprElm;
 import net.arctics.clonk.parser.c4script.C4Variable.C4VariableScope;
+import net.arctics.clonk.preferences.PreferenceConstants;
 import net.arctics.clonk.util.CompoundIterable;
 
 public class C4Function extends C4Structure implements Serializable, ITypedDeclaration, IHasUserDescription {
@@ -51,7 +52,7 @@ public class C4Function extends C4Structure implements Serializable, ITypedDecla
 	
 	public C4Function() {
 		visibility = C4FunctionScope.FUNC_GLOBAL;
-		name = Messages.C4Function_0;
+		name = "";
 		parameter = new ArrayList<C4Variable>();
 		localVars = new ArrayList<C4Variable>();
 	}
@@ -155,10 +156,10 @@ public class C4Function extends C4Structure implements Serializable, ITypedDecla
 		
 		public static C4FunctionScope makeScope(String scopeString) {
 			if (scopeString == null) return C4FunctionScope.FUNC_PUBLIC;
-			if (scopeString.equals(Messages.C4Function_1)) return C4FunctionScope.FUNC_PUBLIC;
-			if (scopeString.equals(Messages.C4Function_2)) return C4FunctionScope.FUNC_PROTECTED;
-			if (scopeString.equals(Messages.C4Function_3)) return C4FunctionScope.FUNC_PRIVATE;
-			if (scopeString.equals(Messages.C4Function_4)) return C4FunctionScope.FUNC_GLOBAL;
+			if (scopeString.equals(Keywords.Public)) return C4FunctionScope.FUNC_PUBLIC;
+			if (scopeString.equals(Keywords.Protected)) return C4FunctionScope.FUNC_PROTECTED;
+			if (scopeString.equals(Keywords.Private)) return C4FunctionScope.FUNC_PRIVATE;
+			if (scopeString.equals(Keywords.Global)) return C4FunctionScope.FUNC_GLOBAL;
 			//if (C4FunctionScope.valueOf(scopeString) != null) return C4FunctionScope.valueOf(scopeString);
 			return C4FunctionScope.FUNC_PUBLIC;
 		}
@@ -184,10 +185,10 @@ public class C4Function extends C4Structure implements Serializable, ITypedDecla
 		StringBuilder string = new StringBuilder();
 		if (withFuncName) {
 			string.append(getName());
-			string.append(Messages.C4Function_5);
+			string.append("(");
 		}
 		printParameterString(string, true);
-		if (withFuncName) string.append(Messages.C4Function_6);
+		if (withFuncName) string.append(")");
 		return string.toString();
 	}
 
@@ -251,12 +252,13 @@ public class C4Function extends C4Structure implements Serializable, ITypedDecla
 
 	// to be called on engine functions
 	public String getDocumentationURL() {
-		return String.format(Messages.C4Function_7,getName());
+		String docURLTemplate = PreferenceConstants.getPreference(PreferenceConstants.DOC_URL_TEMPLATE, PreferenceConstants.DOC_URL_TEMPLATE_DEFAULT, null);
+		return String.format(docURLTemplate, getName(), ClonkCore.getDefault().getLanguagePref().toLowerCase());
 	}
 
 	@Override
 	public String getInfoText() {
-		return String.format(Messages.C4Function_8, getLongParameterString(true), getUserDescription() != null && !getUserDescription().equals(Messages.C4Function_9) ? getUserDescription() : Messages.C4Function_10, getScript().toString());
+		return String.format(Messages.C4Function_InfoTextTemplate, getLongParameterString(true), getUserDescription() != null && !getUserDescription().equals("") ? getUserDescription() : Messages.DescriptionNotAvailable, getScript().toString());
 	}
 
 	@Override
@@ -348,7 +350,7 @@ public class C4Function extends C4Structure implements Serializable, ITypedDecla
 	public void createParameters(int num) {
 		if (parameter.size() == 0)
 			for (int i = 0; i < num; i++) {
-				parameter.add(new C4Variable(Messages.C4Function_11+i, C4VariableScope.VAR_VAR));
+				parameter.add(new C4Variable("par"+i, C4VariableScope.VAR_VAR));
 			}
 	}
 
@@ -367,18 +369,18 @@ public class C4Function extends C4Structure implements Serializable, ITypedDecla
 	public void printHeader(StringBuilder output, boolean oldStyle) {
 		output.append(getVisibility().toString());
 		if (!oldStyle) {
-			output.append(Messages.C4Function_12);
+			output.append(" ");
 			output.append(Keywords.Func);
 		}
-		output.append(Messages.C4Function_13);
+		output.append(" ");
 		output.append(getName());
 		if (!oldStyle) {
-			output.append(Messages.C4Function_14);
+			output.append("(");
 			printParameterString(output, true);
-			output.append(Messages.C4Function_15);
+			output.append(")");
 		}
 		else
-			output.append(Messages.C4Function_16);
+			output.append(":");
 	}
 	
 	public String getHeaderString(boolean oldStyle) {

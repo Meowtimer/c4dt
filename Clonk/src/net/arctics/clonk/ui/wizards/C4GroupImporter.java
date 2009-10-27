@@ -39,14 +39,14 @@ public class C4GroupImporter extends WorkspaceModifyOperation {
 	protected void execute(final IProgressMonitor monitor) throws CoreException,
 	InvocationTargetException, InterruptedException {
 		C4Group[] groups = new C4Group[resources.length];
-		monitor.beginTask(Messages.C4GroupImporter_0, groups.length);
+		monitor.beginTask(Messages.C4GroupImporter_ImportingFiles, groups.length);
 		try {
 			for(int i = 0; i < resources.length;i++) {
 				if (monitor.isCanceled())
 					return;
 				try {
 					groups[i] = C4Group.openFile(resources[i]);
-					monitor.subTask(Messages.C4GroupImporter_1 + groups[i].getName());
+					monitor.subTask(String.format(Messages.C4GroupImporter_Importing, groups[i].getName()));
 					final List<String> errorsWhileImporting = new LinkedList<String>();
 					groups[i].readIntoMemory(true, new C4GroupItem.IHeaderFilter() {
 						private IContainer currentContainer = destination;
@@ -61,7 +61,7 @@ public class C4GroupImporter extends WorkspaceModifyOperation {
 							if (item instanceof C4Group) {
 								C4Group group = (C4Group)item;
 								if (group.getParentGroup() == null)
-									monitor.beginTask(Messages.C4GroupImporter_2 + group.getName(), group.getSizeOfChildren());
+									monitor.beginTask(String.format(Messages.C4GroupImporter_ImportTask, group.getName()), group.getSizeOfChildren());
 								IFolder newFolder = currentContainer.getFolder(new Path(group.getName()));
 								newFolder.create(IResource.NONE, true, monitor);
 								currentContainer = newFolder;
@@ -81,7 +81,7 @@ public class C4GroupImporter extends WorkspaceModifyOperation {
 						}
 					});
 				} catch (Exception e) {
-					Utilities.errorMessage(e, Messages.C4GroupImporter_3 + resources[i].toString());
+					Utilities.errorMessage(e, String.format(Messages.C4GroupImporter_ErrorImporting, resources[i].toString()));
 					monitor.setCanceled(true);
 					e.printStackTrace();
 				}

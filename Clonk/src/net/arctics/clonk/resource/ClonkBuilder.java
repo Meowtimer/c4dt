@@ -108,7 +108,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 		ClonkCore.getDefault().getLibBuilder().clean();
 		
 		// clean up this project
-		if (monitor != null) monitor.beginTask(Messages.Cleaning_Up, 1);
+		if (monitor != null) monitor.beginTask(Messages.CleaningUp, 1);
 		IProject proj = this.getProject();
 		if (proj != null) {
 			ClonkProjectNature.getClonkNature(proj).getIndex().clear();
@@ -153,7 +153,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 						delta.accept(counter);
 
 						// initialize progress monitor
-						monitor.beginTask(String.format(Messages.Build_Project, proj.getName()), counter.getCount());
+						monitor.beginTask(String.format(Messages.BuildProject, proj.getName()), counter.getCount());
 						// parse
 						buildPhase = 0;
 						delta.accept(this);
@@ -203,22 +203,22 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 					for(int work : operations) workSum += work;
 
 					// initialize progress monitor
-					monitor.beginTask(String.format(Messages.Build_Project, proj.getName()), workSum);
+					monitor.beginTask(String.format(Messages.BuildProject, proj.getName()), workSum);
 
 
 					// build external lib if needed
 					if (libBuilder.isBuildNeeded()) {
-						monitor.subTask(Messages.Parsing_Libraries);
+						monitor.subTask(Messages.ParsingLibraries);
 						libBuilder.build(new SubProgressMonitor(monitor,operations[2]));
 
-						monitor.subTask(Messages.Saving_Libraries);
+						monitor.subTask(Messages.SavingLibraries);
 						ClonkCore.getDefault().saveExternIndex(
 								new SubProgressMonitor(monitor,operations[3]));
 					}
 
 					// build project
 					if (proj != null) {
-						monitor.subTask(Messages.Index_Project + proj.getName());
+						monitor.subTask(Messages.IndexProject + proj.getName());
 						// parse declarations
 						buildPhase = 0;
 						proj.accept(this);
@@ -227,7 +227,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 							monitor.done();
 							return null;
 						}
-						monitor.subTask(Messages.Parse_Project + proj.getName());
+						monitor.subTask(Messages.ParseProject + proj.getName());
 						// parse code bodies
 						buildPhase = 1;
 						proj.accept(this);
@@ -242,7 +242,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 					monitor.done();
 					return null;
 				}
-				monitor.subTask(Messages.Saving_Data);
+				monitor.subTask(Messages.SavingData);
 
 				// mark index as dirty so it will be saved when eclipse is shut down
 				ClonkProjectNature.getClonkNature(proj).markAsDirty();

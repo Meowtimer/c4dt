@@ -67,7 +67,7 @@ public class ClonkSearchQuery implements ISearchQuery {
 	}
 
 	public String getLabel() {
-		return String.format(Messages.ClonkSearchQuery_0, declaration.toString()); 
+		return String.format(Messages.ClonkSearchQuery_SearchFor, declaration.toString()); 
 	}
 
 	public ISearchResult getSearchResult() {
@@ -170,7 +170,7 @@ public class ClonkSearchQuery implements ISearchQuery {
 			e.printStackTrace();
 		}
 		
-		return new Status(IStatus.OK, ClonkCore.PLUGIN_ID, 0, Messages.ClonkSearchQuery_1, null);
+		return new Status(IStatus.OK, ClonkCore.PLUGIN_ID, 0, Messages.ClonkSearchQuery_Success, null);
 	}
 	
 	private void searchScript(final IExpressionListener searchExpressions, IResource resource, C4ScriptBase script) {

@@ -68,7 +68,7 @@ public class C4Variable extends C4Declaration implements Serializable, ITypedDec
 	/**
 	 * Variable object used as the special 'this' object.
 	 */
-	public static final C4Variable THIS = new C4Variable("this", C4Type.OBJECT, Messages.C4Variable_0); //$NON-NLS-1$
+	public static final C4Variable THIS = new C4Variable("this", C4Type.OBJECT, Messages.This_Description); //$NON-NLS-1$
 	
 	private C4Variable(String name, C4Type type, String desc) {
 		this(name, type, desc, C4VariableScope.VAR_VAR);

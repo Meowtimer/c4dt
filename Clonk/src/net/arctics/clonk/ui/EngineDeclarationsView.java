@@ -127,7 +127,7 @@ public class EngineDeclarationsView extends ViewPart {
 				newParameter = null;
 			}
 			newParameter = new Button(parent, SWT.PUSH);
-			newParameter.setText(Messages.EngineDeclarationsView_0);
+			newParameter.setText(Messages.Engine_NewParameter);
 			newParameter.addSelectionListener(new SelectionAdapter() {
 				public void widgetSelected(SelectionEvent e) {
 					newParameter.dispose();
@@ -177,37 +177,37 @@ public class EngineDeclarationsView extends ViewPart {
 		private void createVariableEditDialog(Composite parent,
 				C4Variable var) {
 			// set title
-			parent.getShell().setText(Messages.EngineDeclarationsView_1 + var.getName());
+			parent.getShell().setText(String.format(Messages.Engine_EditVariable, var.getName()));
 			
-			new Label(parent, SWT.NONE).setText(Messages.EngineDeclarationsView_2);
+			new Label(parent, SWT.NONE).setText(Messages.Engine_NameTitle);
 			
 			declarationNameField = new Text(parent, SWT.BORDER | SWT.SINGLE);
 			declarationNameField.setText(var.getName());
 			
-			new Label(parent, SWT.NONE).setText(Messages.EngineDeclarationsView_3);
+			new Label(parent, SWT.NONE).setText(Messages.Engine_TypeTitle);
 			returnTypeBox = createComboBoxForType(parent, var.getType());
 		
-			new Label(parent, SWT.NONE).setText(Messages.EngineDeclarationsView_4);
+			new Label(parent, SWT.NONE).setText(Messages.Engine_ScopeTitle);
 			scopeBox = createComboBoxForScope(parent, var.getScope());
 		}
 
 		private void createFunctionEditDialog(Composite parent, C4Function func) {
 			
 			// set title
-			parent.getShell().setText(Messages.EngineDeclarationsView_5 + func.getName());
+			parent.getShell().setText(String.format(Messages.Engine_EditFunction, func.getName()));
 			
-			new Label(parent, SWT.NONE).setText(Messages.EngineDeclarationsView_6);
+			new Label(parent, SWT.NONE).setText(Messages.Engine_NameTitle);
 			
 			declarationNameField = new Text(parent, SWT.BORDER | SWT.SINGLE);
 			declarationNameField.setText(func.getName());
 			
-			new Label(parent, SWT.NONE).setText(Messages.EngineDeclarationsView_7);
+			new Label(parent, SWT.NONE).setText(Messages.Engine_ReturnTypeTitle);
 			returnTypeBox = createComboBoxForType(parent, func.getReturnType());
 			
-			new Label(parent, SWT.NONE).setText(Messages.EngineDeclarationsView_8);
+			new Label(parent, SWT.NONE).setText(Messages.Engine_ScopeTitle);
 			scopeBox = createComboBoxForScope(parent, func.getVisibility());
 			
-			new Label(parent, SWT.NONE).setText(Messages.EngineDeclarationsView_9);
+			new Label(parent, SWT.NONE).setText(Messages.Engine_DescriptionTitle);
 			descriptionField = new Text(parent, SWT.BORDER | SWT.MULTI | SWT.WRAP | SWT.V_SCROLL);
 			if (func.getUserDescription() != null) descriptionField.setText(func.getUserDescription());
 			
@@ -394,8 +394,8 @@ public class EngineDeclarationsView extends ViewPart {
 				refresh();
 			}
 		};
-		addFunctionAction.setText(Messages.EngineDeclarationsView_14);
-		addFunctionAction.setToolTipText(Messages.EngineDeclarationsView_15);
+		addFunctionAction.setText(Messages.Engine_AddFunction);
+		addFunctionAction.setToolTipText(Messages.Engine_AddFunctionDesc);
 		
 		addVariableAction = new Action() {
 			public void run() {
@@ -410,8 +410,8 @@ public class EngineDeclarationsView extends ViewPart {
 				refresh();
 			}
 		};
-		addVariableAction.setText(Messages.EngineDeclarationsView_16);
-		addVariableAction.setToolTipText(Messages.EngineDeclarationsView_17);
+		addVariableAction.setText(Messages.Engine_AddVariable);
+		addVariableAction.setToolTipText(Messages.Engine_AddVariableDesc);
 		
 		editAction = new Action() {
 			public void run() {
@@ -428,8 +428,8 @@ public class EngineDeclarationsView extends ViewPart {
 				refresh();
 			}
 		};
-		editAction.setText(Messages.EngineDeclarationsView_18);
-		editAction.setToolTipText(Messages.EngineDeclarationsView_19);
+		editAction.setText(Messages.Engine_Edit);
+		editAction.setToolTipText(Messages.Engine_EditDesc);
 		editAction.setImageDescriptor(PlatformUI.getWorkbench().getSharedImages().
 				getImageDescriptor(ISharedImages.IMG_OBJS_INFO_TSK));
 		
@@ -449,8 +449,8 @@ public class EngineDeclarationsView extends ViewPart {
 				}
 			}
 		};
-		deleteAction.setText(Messages.EngineDeclarationsView_20);
-		deleteAction.setToolTipText(Messages.EngineDeclarationsView_21);
+		deleteAction.setText(Messages.Engine_Delete);
+		deleteAction.setToolTipText(Messages.Engine_DeleteDesc);
 		deleteAction.setImageDescriptor(PlatformUI.getWorkbench().getSharedImages().getImageDescriptor(ISharedImages.IMG_TOOL_DELETE));
 		
 		saveAction = new Action() {
@@ -458,8 +458,8 @@ public class EngineDeclarationsView extends ViewPart {
 				ClonkCore.getDefault().saveEngineObject();
 			}
 		};
-		saveAction.setText(Messages.EngineDeclarationsView_22);
-		saveAction.setToolTipText(Messages.EngineDeclarationsView_23);
+		saveAction.setText(Messages.Engine_Save);
+		saveAction.setToolTipText(Messages.Engine_SaveTitle);
 		saveAction.setImageDescriptor(PlatformUI.getWorkbench().getSharedImages().getImageDescriptor(ISharedImages.IMG_ETOOL_SAVE_EDIT));
 		
 		doubleClickAction = editAction;
@@ -472,7 +472,7 @@ public class EngineDeclarationsView extends ViewPart {
 					final String repo = ClonkCore.getDefault().getPreferenceStore().getString(PreferenceConstants.OPENCLONK_REPO);
 					if (repo == null) {
 						MessageDialog.openWarning(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(),
-							Messages.EngineDeclarationsView_24, Messages.EngineDeclarationsView_25);
+							Messages.Engine_NoRepository, Messages.Engine_NoRepositoryDesc);
 					}
 					else ps.busyCursorWhile(new IRunnableWithProgress() {
 						public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
@@ -491,8 +491,8 @@ public class EngineDeclarationsView extends ViewPart {
 				}
 			}
 		};
-		importFromRepoAction.setToolTipText(Messages.EngineDeclarationsView_26);
-		importFromRepoAction.setText(Messages.EngineDeclarationsView_27);
+		importFromRepoAction.setToolTipText(Messages.Engine_ImportFromRepoDesc);
+		importFromRepoAction.setText(Messages.Engine_ImportFromRepo);
 		
 		reloadAction = new Action() {
 			@Override
@@ -505,8 +505,8 @@ public class EngineDeclarationsView extends ViewPart {
 			    refresh();
 			}
 		};
-		reloadAction.setToolTipText(Messages.EngineDeclarationsView_28);
-		reloadAction.setText(Messages.EngineDeclarationsView_29);
+		reloadAction.setToolTipText(Messages.Engine_ReloadDesc);
+		reloadAction.setText(Messages.Engine_Reload);
 		
 	}
 

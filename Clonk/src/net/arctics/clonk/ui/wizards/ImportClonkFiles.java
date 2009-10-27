@@ -46,7 +46,7 @@ public class ImportClonkFiles extends Wizard implements IImportWizard {
     public void init(IWorkbench workbench, IStructuredSelection currentSelection) {
         this.workbench = workbench;
         this.selection = currentSelection;
-        setWindowTitle(Messages.ImportClonkFiles_0);
+        setWindowTitle(Messages.ImportClonkFiles_Title);
         setNeedsProgressMonitor(true);
     }
 

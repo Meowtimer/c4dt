@@ -91,15 +91,15 @@ public class C4GroupHeader implements Serializable {
     	}
     	result.ver1 = byteToInt32(buffer,28);
     	if (result.ver1 != 1) {
-    		throw new InvalidDataException(Messages.C4GroupHeader_5);
+    		throw new InvalidDataException(Messages.C4GroupHeaderInvalid_1);
     	}
     	result.ver2 = byteToInt32(buffer,32);
     	if (result.ver2 != 2) {
-    		throw new InvalidDataException(Messages.C4GroupHeader_6);
+    		throw new InvalidDataException(Messages.C4GroupHeaderInvalid_2);
     	}
     	result.entries = byteToInt32(buffer, 36);
     	if (result.entries > 1000) {
-    		throw new InvalidDataException(Messages.C4GroupHeader_7);
+    		throw new InvalidDataException(Messages.C4GroupHeaderSuspicious);
     	}
     	result.maker = byteToString(buffer, 40, 30).trim();
     	result.password = byteToString(buffer, 72, 30).trim();

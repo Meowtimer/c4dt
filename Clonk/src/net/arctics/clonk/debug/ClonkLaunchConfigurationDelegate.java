@@ -40,12 +40,12 @@ public class ClonkLaunchConfigurationDelegate implements
 
 		// Run only for now
 		if(!mode.equals(ILaunchManager.RUN_MODE))
-			abort(IStatus.ERROR, Messages.ClonkLaunchConfigurationDelegate_5);
+			abort(IStatus.ERROR, Messages.LauncherOnlySupportsRunMode);
 		
 		// Set up monitor
 		if(monitor == null)
 			monitor = new NullProgressMonitor();
-		monitor.beginTask(Messages.ClonkLaunchConfigurationDelegate_6 + configuration.getName() + Messages.ClonkLaunchConfigurationDelegate_7, 2);
+		monitor.beginTask(String.format(Messages.LaunchConf, configuration.getName()), 2);
 		
 		try {
 			
@@ -60,14 +60,14 @@ public class ClonkLaunchConfigurationDelegate implements
 			// Progress
 			if(monitor.isCanceled()) return;
 			monitor.worked(1);
-			monitor.subTask(Messages.ClonkLaunchConfigurationDelegate_8);
+			monitor.subTask(Messages.StartingClonkEngine);
 			
 			// Run the engine
 			try {
 				Process process = Runtime.getRuntime().exec(launchArgs, null, workDirectory);
 				DebugPlugin.newProcess(launch, process, configuration.getName());
 			} catch(IOException e) {
-				abort(IStatus.ERROR, Messages.ClonkLaunchConfigurationDelegate_9, e);
+				abort(IStatus.ERROR, Messages.CouldNotStartEngine, e);
 			}
 				
 		} finally {
@@ -98,12 +98,12 @@ public class ClonkLaunchConfigurationDelegate implements
 		IWorkspaceRoot root = ResourcesPlugin.getWorkspace().getRoot();
 		IProject project = root.getProject(projectName);
 		if(project == null || !project.isOpen())
-			abort(IStatus.ERROR, projectName + Messages.ClonkLaunchConfigurationDelegate_0);
+			abort(IStatus.ERROR, String.format(Messages.ProjectNotOpen, projectName));
 		
 		// Get scenario
 		IFolder scenario = project.getFolder(scenarioName);
 		if(scenario == null || !scenario.exists())
-			abort(IStatus.ERROR, Messages.ClonkLaunchConfigurationDelegate_13 + projectName + Messages.ClonkLaunchConfigurationDelegate_14);
+			abort(IStatus.ERROR, String.format(Messages.ScenarioNotFound, projectName));
 		
 		return scenario;
 	}
@@ -153,7 +153,7 @@ public class ClonkLaunchConfigurationDelegate implements
 			}
 		}
 		if(enginePath == null)
-			abort(IStatus.ERROR, Messages.ClonkLaunchConfigurationDelegate_26);
+			abort(IStatus.ERROR, Messages.CouldNotFindEngine);
 
 		// TODO: Do some more verification? Check engine version?
 	

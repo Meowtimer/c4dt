@@ -25,7 +25,7 @@ public class UnsignedInteger implements IIniEntryValue {
 
 	public void setNumber(int number) {
 		if (number >= 0) this.number = number;
-		else throw new InvalidParameterException(Messages.UnsignedInteger_0);
+		else throw new InvalidParameterException(Messages.OnlyUnsignedIntegersAllowed);
 	}
 
 	public String getStringRepresentation() {
@@ -38,10 +38,10 @@ public class UnsignedInteger implements IIniEntryValue {
 			Integer num = !input.equals("") ? Integer.decode(input) : 0; //$NON-NLS-1$
 			number = num.intValue();
 			if (num < 0)
-				throw new IniParserException(IMarker.SEVERITY_WARNING, Messages.UnsignedInteger_2);
+				throw new IniParserException(IMarker.SEVERITY_WARNING, Messages.UnsignedValueExpected);
 		}
 		catch (NumberFormatException e) {
-			IniParserException exp = new IniParserException(IMarker.SEVERITY_ERROR, String.format(Messages.UnsignedInteger_3, input));
+			IniParserException exp = new IniParserException(IMarker.SEVERITY_ERROR, String.format(Messages.InvalidValue, input));
 			exp.setInnerException(e);
 			throw exp;
 		}

@@ -27,7 +27,7 @@ public class FindReferencesAction extends OpenDeclarationAction {
 					nature = ClonkProjectNature.getClonkNature(getTextEditor()); 
 				}
 				if (nature == null) {
-					MessageDialog.openError(getTextEditor().getSite().getShell(), Messages.FindReferencesAction_0, Messages.FindReferencesAction_1);
+					MessageDialog.openError(getTextEditor().getSite().getShell(), Messages.FindReferencesAction_Label, Messages.FindReferencesAction_OnlyWorksWithinProject);
 					return;
 				}
 				NewSearchUI.runQueryInBackground(new ClonkSearchQuery(field, nature));

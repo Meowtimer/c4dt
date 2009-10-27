@@ -30,7 +30,7 @@ public class OpenObjectDialog extends FilteredItemsSelectionDialog {
 
 		public StyledString getStyledText(Object element) {
 			if (element == null)
-				return new StyledString(Messages.OpenObjectDialog_1);
+				return new StyledString(Messages.OpenObjectDialog_Empty);
 			if (!(element instanceof C4Object)) return new StyledString(element.toString());
 			C4Object obj = (C4Object) element;
 			StyledString buf = new StyledString(obj.getName());
@@ -97,7 +97,7 @@ public class OpenObjectDialog extends FilteredItemsSelectionDialog {
 	private void fillWithIndexContents(AbstractContentProvider contentProvider,
 			ItemsFilter itemsFilter, IProgressMonitor progressMonitor,
 			ClonkIndex index) {
-		progressMonitor.beginTask(Messages.OpenObjectDialog_3, index.numUniqueIds());
+		progressMonitor.beginTask(Messages.OpenObjectDialog_Searching, index.numUniqueIds());
 		for(C4Object object : index) {
 			contentProvider.add(object, itemsFilter);
 			progressMonitor.worked(1);

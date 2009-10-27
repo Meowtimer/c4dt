@@ -103,7 +103,7 @@ public class ConvertOldCodeInBulkAction extends Action {
 									}
 								}
 							}
-							monitor.beginTask(Messages.ConvertOldCodeInBulkAction_1, counter);
+							monitor.beginTask(Messages.ConvertOldCodeInBulkAction_ConvertingCode, counter);
 							for (IContainer container : selectedContainers) {
 								try {
 									final TextFileDocumentProvider textFileDocProvider = ClonkCore.getDefault().getTextFileDocumentProvider();

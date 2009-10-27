@@ -96,7 +96,7 @@ public class LaunchMainTab extends AbstractLaunchConfigurationTab {
 		
 		// Create widget group
 		Group grp = new Group(parent, SWT.NONE);
-		grp.setText(Messages.LaunchMainTab_0);
+		grp.setText(Messages.LaunchMainTab_ProjectTitle);
 		grp.setLayout(new GridLayout(2, false));
 		grp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		grp.setFont(parent.getFont());
@@ -105,7 +105,7 @@ public class LaunchMainTab extends AbstractLaunchConfigurationTab {
 		fProjText = new Text(grp, SWT.SINGLE | SWT.BORDER);
 		fProjText.setFont(parent.getFont());
 		fProjText.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-		fProjButton = createPushButton(grp, Messages.LaunchMainTab_1, null);
+		fProjButton = createPushButton(grp, Messages.LaunchMainTab_Browse, null);
 		
 		// Install listener
 		fProjText.addModifyListener(fListener);
@@ -122,7 +122,7 @@ public class LaunchMainTab extends AbstractLaunchConfigurationTab {
 		
 		// Create widget group
 		Group grp = new Group(parent, SWT.NONE);
-		grp.setText(Messages.LaunchMainTab_2);
+		grp.setText(Messages.LaunchMainTab_ScenarioTitle);
 		grp.setLayout(new GridLayout(2, false));
 		grp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		grp.setFont(parent.getFont());
@@ -131,7 +131,7 @@ public class LaunchMainTab extends AbstractLaunchConfigurationTab {
 		fScenText = new Text(grp, SWT.SINGLE | SWT.BORDER);
 		fScenText.setFont(parent.getFont());
 		fScenText.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-		fScenButton = createPushButton(grp, Messages.LaunchMainTab_3, null);
+		fScenButton = createPushButton(grp, Messages.LaunchMainTab_Browse, null);
 		
 		// Install listener
 		fScenText.addModifyListener(fListener);
@@ -146,15 +146,15 @@ public class LaunchMainTab extends AbstractLaunchConfigurationTab {
 		
 		// Create widget group
 		Group grp = new Group(parent, SWT.NONE);
-		grp.setText(Messages.LaunchMainTab_4);
+		grp.setText(Messages.LaunchMainTab_LaunchMode);
 		grp.setLayout(new GridLayout(2, false));
 		grp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		grp.setFont(parent.getFont());
 		
 		// Full screen, console and record switches
-		fConsoleButton = createRadioButton(grp, Messages.LaunchMainTab_5);
-		fFullscreenButton = createRadioButton(grp, Messages.LaunchMainTab_6);
-		fRecordButton = createCheckButton(grp, Messages.LaunchMainTab_7);
+		fConsoleButton = createRadioButton(grp, Messages.LaunchMainTab_Console);
+		fFullscreenButton = createRadioButton(grp, Messages.LaunchMainTab_Fullscreen);
+		fRecordButton = createCheckButton(grp, Messages.LaunchMainTab_CreateRecord);
 		
 		// Install listener
 		fFullscreenButton.addSelectionListener(fListener);
@@ -165,7 +165,7 @@ public class LaunchMainTab extends AbstractLaunchConfigurationTab {
 	
 	/** The name of the tab */
 	public String getName() {
-		return Messages.LaunchMainTab_8;
+		return Messages.LaunchMainTab_Main;
 	}
 	
 	public void initializeFrom(ILaunchConfiguration conf) {
@@ -184,7 +184,7 @@ public class LaunchMainTab extends AbstractLaunchConfigurationTab {
 			
 			// Set defaults
 			fScenText.setText("");	 //$NON-NLS-1$
-			fProjText.setText(Messages.LaunchMainTab_12);
+			fProjText.setText("");
 			fFullscreenButton.setSelection(false);
 			fConsoleButton.setSelection(true);
 			fRecordButton.setSelection(false);
@@ -215,7 +215,7 @@ public class LaunchMainTab extends AbstractLaunchConfigurationTab {
 		// Must be a valid path segment
 		String projectName = fProjText.getText();
 		if(!new Path("").isValidSegment(projectName)) { //$NON-NLS-1$
-			setErrorMessage(Messages.LaunchMainTab_16);
+			setErrorMessage(Messages.LaunchMainTab_InvalidProjectName);
 			return null;
 		}
 		
@@ -223,13 +223,13 @@ public class LaunchMainTab extends AbstractLaunchConfigurationTab {
 		IWorkspaceRoot root = ResourcesPlugin.getWorkspace().getRoot();
 		IProject project = root.getProject(projectName);
 		if(project == null) {
-			setErrorMessage(Messages.LaunchMainTab_17 + projectName + Messages.LaunchMainTab_18);
+			setErrorMessage(String.format(Messages.LaunchMainTab_ProjectDoesNotExist, projectName));
 			return null;
 		}
 		
 		// Project must be open
 		if(!project.isOpen()) {
-			setErrorMessage(Messages.LaunchMainTab_19 + projectName + Messages.LaunchMainTab_20);
+			setErrorMessage(String.format(Messages.LaunchMainTab_ProjectNotOpen, projectName));
 			return null;
 		}
 	
@@ -242,7 +242,7 @@ public class LaunchMainTab extends AbstractLaunchConfigurationTab {
 		// Must be a valid scenario file name
 		String scenName = fScenText.getText();
 		if(C4Group.getGroupType(scenName) != C4Group.C4GroupType.ScenarioGroup) {
-			setErrorMessage(Messages.LaunchMainTab_21);
+			setErrorMessage(Messages.LaunchMainTab_ScenarioNameInvalid);
 			return null;
 		}
 		
@@ -251,7 +251,7 @@ public class LaunchMainTab extends AbstractLaunchConfigurationTab {
 		//       until we do more magic with the scenario's innards.
 		IResource scenFile = project.getFolder(scenName);
 		if(!scenFile.exists()) {
-			setErrorMessage(Messages.LaunchMainTab_22);
+			setErrorMessage(Messages.LaunchMainTab_ScenarioDoesNotExist);
 			return null;
 		}
 		
@@ -281,8 +281,8 @@ public class LaunchMainTab extends AbstractLaunchConfigurationTab {
 		// Create dialog listing all Clonk projects
 		ElementListSelectionDialog dialog
 			= new ElementListSelectionDialog(getShell(), new ClonkLabelProvider());
-		dialog.setTitle(Messages.LaunchMainTab_23);
-		dialog.setMessage(Messages.LaunchMainTab_24);
+		dialog.setTitle(Messages.LaunchMainTab_ChooseClonkProject);
+		dialog.setMessage(Messages.LaunchMainTab_ChooseClonkProjectPretty);
 		dialog.setElements(Utilities.getClonkProjects());
 		
 		// Set selection
@@ -325,8 +325,8 @@ public class LaunchMainTab extends AbstractLaunchConfigurationTab {
 		// Create dialog with all available scenarios
 		ElementListSelectionDialog dialog
 			= new ElementListSelectionDialog(getShell(), new ClonkLabelProvider());
-		dialog.setTitle(Messages.LaunchMainTab_25);
-		dialog.setMessage(Messages.LaunchMainTab_26);
+		dialog.setTitle(Messages.LaunchMainTab_ChooseClonkScenario);
+		dialog.setMessage(Messages.LaunchMainTab_ChooseClonkScenarioPretty);
 		dialog.setElements(scenarios.toArray());
 		
 		// Show

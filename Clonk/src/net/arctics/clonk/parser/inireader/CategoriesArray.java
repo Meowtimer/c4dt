@@ -67,7 +67,7 @@ public class CategoriesArray implements IIniEntryValue {
 			for (String part : parts) {
 				part = part.trim();
 				if (Utilities.indexOf(flags, part) == -1)
-					throw new IniParserException(IMarker.SEVERITY_WARNING, Messages.CategoriesArray_1+part+Messages.CategoriesArray_2);
+					throw new IniParserException(IMarker.SEVERITY_WARNING, String.format(Messages.UnknownConstant, part));
 				add(part);
 			}
 		}
@@ -75,7 +75,7 @@ public class CategoriesArray implements IIniEntryValue {
 			part = part.trim();
 			C4Variable var = ClonkCore.getDefault().getEngineObject().findVariable(part);
 			if (var == null) {
-				throw new IniParserException(IMarker.SEVERITY_WARNING, Messages.CategoriesArray_3 + part + Messages.CategoriesArray_4);
+				throw new IniParserException(IMarker.SEVERITY_WARNING, String.format(Messages.UnknownConstant, part));
 			}
 			add(var.getName());
 		}

@@ -98,7 +98,7 @@ public class ClonkProjectProperties extends FieldEditorPreferencePage implements
 	
 	@Override
 	protected void createFieldEditors() {
-		addField(new ListEditor(DEPENDENCIES_PROPERTY, Messages.ClonkProjectProperties_7, getFieldEditorParent()) {
+		addField(new ListEditor(DEPENDENCIES_PROPERTY, Messages.Project_Dependencies, getFieldEditorParent()) {
 			
 			@Override
 			protected String[] parseString(String stringList) {
@@ -107,7 +107,7 @@ public class ClonkProjectProperties extends FieldEditorPreferencePage implements
 			
 			@Override
 			protected String getNewInputObject() {
-				InputDialog input = new InputDialog(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(), Messages.ClonkProjectProperties_9, Messages.ClonkProjectProperties_10, "", null); //$NON-NLS-1$
+				InputDialog input = new InputDialog(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(), Messages.Project_NewDependency, Messages.Project_NewDependencyDesc, "", null); //$NON-NLS-1$
 				switch (input.open()) {
 				case InputDialog.CANCEL:
 					return null;
@@ -121,7 +121,7 @@ public class ClonkProjectProperties extends FieldEditorPreferencePage implements
 				return stringFromIterable(Utilities.arrayIterable(items));
 			}
 		});
-		addField(new BooleanFieldEditor(SHOWSDEPENDENCIES_PROPERTY, Messages.ClonkProjectProperties_12, getFieldEditorParent()));
+		addField(new BooleanFieldEditor(SHOWSDEPENDENCIES_PROPERTY, Messages.Project_ShowDependencies, getFieldEditorParent()));
 	}
 
 	public IAdaptable getElement() {
