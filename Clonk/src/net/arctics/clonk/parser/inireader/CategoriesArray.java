@@ -11,7 +11,7 @@ import net.arctics.clonk.parser.c4script.C4Variable;
 import net.arctics.clonk.parser.inireader.IniData.IniDataEntry;
 import net.arctics.clonk.util.Utilities;
 
-public class CategoriesArray implements IIniEntry {
+public class CategoriesArray implements IIniEntryValue {
 
 	private final List<String> constants = new ArrayList<String>(4);
 	private int summedValue = -1;

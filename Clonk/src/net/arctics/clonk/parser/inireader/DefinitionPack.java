@@ -7,7 +7,7 @@ import net.arctics.clonk.parser.inireader.IniData.IniDataEntry;
  * @author madeen
  *
  */
-public class DefinitionPack implements IIniEntry {
+public class DefinitionPack implements IIniEntryValue {
 
 	private String value;
 	

@@ -38,8 +38,6 @@ public class ComplexIniEntry extends IniEntry implements IHasChildren, IHasConte
 		cmpl.entryConfig = config;
 		cmpl.extendedValue = extendedValue;
 		cmpl.setParentDeclaration(entry.getParentDeclaration());
-		if (createErrorMarkers && extendedValue instanceof IComplainingIniEntry)
-			((IComplainingIniEntry)extendedValue).complain(cmpl);
 		return cmpl;
 	}
 	
@@ -54,9 +52,9 @@ public class ComplexIniEntry extends IniEntry implements IHasChildren, IHasConte
 	
 	@Override
 	public void setValue(String value) {
-		if (extendedValue instanceof IIniEntry) {
+		if (extendedValue instanceof IIniEntryValue) {
 			try {
-				((IIniEntry)extendedValue).setInput(value, entryConfig);
+				((IIniEntryValue)extendedValue).setInput(value, entryConfig);
 			} catch (IniParserException e) {
 				e.printStackTrace();
 			}
