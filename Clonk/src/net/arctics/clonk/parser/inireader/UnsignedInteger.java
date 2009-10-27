@@ -8,7 +8,7 @@ import net.arctics.clonk.parser.inireader.IniData.IniDataEntry;
 import org.eclipse.core.resources.IMarker;
 
 
-public class UnsignedInteger implements IIniEntry {
+public class UnsignedInteger implements IIniEntryValue {
 	
 	private int number;
 	

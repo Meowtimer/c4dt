@@ -16,9 +16,9 @@ public class GenericEntryFactory implements IEntryFactory {
 		else if (type.equals(String.class)) {
 			return value;
 		}
-		else if (IIniEntry.class.isAssignableFrom(type)) {
+		else if (IIniEntryValue.class.isAssignableFrom(type)) {
 			try {
-				IIniEntry obj = ((IIniEntry)type.newInstance());
+				IIniEntryValue obj = ((IIniEntryValue)type.newInstance());
 				obj.setInput(value, entryData);
 				return obj;
 			} catch (InstantiationException e) {

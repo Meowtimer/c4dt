@@ -7,7 +7,7 @@ import net.arctics.clonk.util.IHasContext;
 
 import org.eclipse.core.resources.IMarker;
 
-public class IntegerArray implements IIniEntry, IHasChildrenWithContext {
+public class IntegerArray implements IIniEntryValue, IHasChildrenWithContext {
 
 	private int[] integers;
 	

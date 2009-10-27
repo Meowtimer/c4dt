@@ -1,5 +1,5 @@
 package net.arctics.clonk.parser.inireader;
 
-public interface IComplainingIniEntry {
+public interface IComplainingIniEntryValue {
 	public void complain(ComplexIniEntry context);
 }
