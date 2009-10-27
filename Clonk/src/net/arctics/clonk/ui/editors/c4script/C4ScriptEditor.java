@@ -203,9 +203,10 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		super.dispose();
 	}
 	
+	private static final ResourceBundle messagesBundle = ResourceBundle.getBundle(ClonkCore.id("ui.editors.c4script.actionsBundle")); //$NON-NLS-1$
+	
 	protected void createActions() {
 		super.createActions();
-		ResourceBundle messagesBundle = ResourceBundle.getBundle(ClonkCore.id("ui.editors.c4script.messages")); //$NON-NLS-1$
 
 		IAction action;
 		

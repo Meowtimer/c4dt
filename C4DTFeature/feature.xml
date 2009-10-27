@@ -2,7 +2,7 @@
 <feature
       id="net.arctics.clonk.c4dtFeature"
       label="Clonk Development Tools"
-      version="1.5.1.4">
+      version="1.5.1.5">
 
    <description url="http://www.example.com/description">
       Clonk Development Tools for Eclipse.
@@ -61,8 +61,11 @@ a stringtbl file
 -Hopefully better importing of engine functions/constants from
 source
 1.5.1.4:
--If there are still indexdata files load them and automatically migrate to new storage location in .metadata
+-If there are still indexdata files load them and automatically
+migrate to new storage location in .metadata
 -Detect some more errors
+1.5.1.5:
+-Attempt at fixing a stupid problem
    </description>
 
    <copyright url="http://www.example.com/copyright">

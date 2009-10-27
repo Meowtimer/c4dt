@@ -140,13 +140,13 @@ public class ClonkTextEditor extends TextEditor {
 		return null;
 	}
 	
+	private static final ResourceBundle messagesBundle = ResourceBundle.getBundle(ClonkCore.id("ui.editors.actionsBundle")); //$NON-NLS
+	
 	@Override
 	protected void createActions() {
 		super.createActions();
 		
 		IAction action;
-		
-		ResourceBundle messagesBundle = ResourceBundle.getBundle(ClonkCore.id("ui.editors.messages")); //$NON-NLS-1$
 		action = new OpenDeclarationAction(messagesBundle,"OpenDeclaration.",this); //$NON-NLS-1$
 		setAction(IClonkCommandIds.OPEN_DECLARATION, action);
 		
