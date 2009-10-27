@@ -246,13 +246,19 @@
 			name="Engine declarations" />
 	</extension>
 
-	<extension id="net.arctics.clonk.externliberror" name="Extern library error"
+	<extension id="net.arctics.clonk.externliberror" name="External library error"
 		point="org.eclipse.core.resources.markers">
 		<persistent value="true" />
 		<super type="org.eclipse.core.resources.problemmarker" />
 	</extension>
 	
 	<extension id="net.arctics.clonk.c4scripterror" name="C4Script error"
+		point="org.eclipse.core.resources.markers">
+		<persistent value="true" />
+		<super type="org.eclipse.core.resources.problemmarker" />
+	</extension>
+	
+	<extension id="net.arctics.clonk.inierror" name="Configuration file error"
 		point="org.eclipse.core.resources.markers">
 		<persistent value="true" />
 		<super type="org.eclipse.core.resources.problemmarker" />
@@ -314,7 +320,7 @@
 		<menuContribution locationURI="menu:org.eclipse.ui.main.menu">
 			<menu label="Clonk">
 				<command commandId="net.arctics.clonk.ui.OpenObject" label="Open Object" />
-				<command commandId="net.arctics.clonk.ui.OpenLocalResource" label="Open Definition file" />
+				<command commandId="net.arctics.clonk.ui.OpenLocalResource" label="Open Related File" />
 				<separator name="SeparatorAfterOpenCommands" visible="true"/>
 				<command commandId="net.arctics.clonk.ui.QuickImport" label="Quick Import">
 					<visibleWhen checkEnabled="false">
