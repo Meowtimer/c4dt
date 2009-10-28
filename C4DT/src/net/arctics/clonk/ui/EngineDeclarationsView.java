@@ -27,6 +27,8 @@ import org.eclipse.ui.part.*;
 import org.eclipse.ui.progress.IProgressService;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.operation.IRunnableWithProgress;
+import org.eclipse.jface.util.IPropertyChangeListener;
+import org.eclipse.jface.util.PropertyChangeEvent;
 import org.eclipse.jface.viewers.*;
 import org.eclipse.jface.window.Window;
 import org.eclipse.swt.events.SelectionAdapter;
@@ -42,7 +44,7 @@ import org.eclipse.ui.*;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.SWT;
 
-public class EngineDeclarationsView extends ViewPart {
+public class EngineDeclarationsView extends ViewPart implements IPropertyChangeListener {
 	
 	protected class EditDeclarationInputDialog extends Dialog {
 		
@@ -302,6 +304,7 @@ public class EngineDeclarationsView extends ViewPart {
 	 * The constructor.
 	 */
 	public EngineDeclarationsView() {
+		ClonkCore.getDefault().getPreferenceStore().addPropertyChangeListener(this);
 	}
 
 	/**
@@ -320,7 +323,7 @@ public class EngineDeclarationsView extends ViewPart {
 				return ((C4Declaration)element).sortCategory();
 			}
 		});
-		viewer.setInput(ClonkCore.getDefault().getActiveEngine());
+		refresh();
 		
 		makeActions();
 		hookContextMenu();
@@ -332,7 +335,8 @@ public class EngineDeclarationsView extends ViewPart {
 	 * Refreshes this viewer completely with information freshly obtained from this viewer's model.
 	 */
 	public void refresh() {
-		viewer.refresh();
+		viewer.setInput(ClonkCore.getDefault().getActiveEngine());
+		//viewer.refresh();
 	}
 	
 	private void hookContextMenu() {
@@ -542,4 +546,17 @@ public class EngineDeclarationsView extends ViewPart {
 	public void setFocus() {
 		viewer.getControl().setFocus();
 	}
+
+	@Override
+	public void propertyChange(PropertyChangeEvent event) {
+		if (event.getProperty().equals(ClonkPreferences.ACTIVE_ENGINE)) {
+			refresh();
+		}
+	}
+	
+	@Override
+	public void dispose() {
+		ClonkCore.getDefault().getPreferenceStore().removePropertyChangeListener(this);
+	}
+	
 }
