@@ -75,13 +75,13 @@ public class C4ObjectIntern extends C4Object implements Serializable {
 	public IFile getScriptFile() {
 		if (this.objectFolder == null)
 			return null;
-		IResource res = this.objectFolder.findMember("Script.c"); //$NON-NLS-1$
+		IResource res = Utilities.findMemberCaseInsensitively(this.objectFolder, "Script.c"); //$NON-NLS-1$
 		if (res == null || !(res instanceof IFile)) return null;
 		else return (IFile) res;
 	}
 	
 	public IFile getDefCoreFile() {
-		IResource res = this.objectFolder.findMember("DefCore.txt"); //$NON-NLS-1$
+		IResource res = Utilities.findMemberCaseInsensitively(this.objectFolder, "DefCore.txt"); //$NON-NLS-1$
 		if (res == null || !(res instanceof IFile)) return null;
 		else return (IFile) res;
 	}

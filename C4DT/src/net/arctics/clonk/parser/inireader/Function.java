@@ -12,6 +12,8 @@ public class Function extends NamedReference implements IComplainingIniEntryValu
 
 	@Override
 	public void complain(ComplexIniEntry context) {
+		if (toString().equals("None") || toString().equals("")) // special null value
+			return;
 		IniUnit iniUnit = context.getIniUnit();
 		IFile f = iniUnit.getIniFile();
 		if (f != null) {

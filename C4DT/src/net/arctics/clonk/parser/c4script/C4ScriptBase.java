@@ -664,7 +664,7 @@ public abstract class C4ScriptBase extends C4Structure implements IHasRelatedRes
 	public String getInfoText() {
 		Object f = getScriptFile();
 		if (f instanceof IFile) {
-			IResource infoFile = ((IFile)f).getParent().findMember("Desc"+ClonkCore.getDefault().getLanguagePref()+".txt"); //$NON-NLS-1$ //$NON-NLS-2$
+			IResource infoFile = Utilities.findMemberCaseInsensitively(((IFile)f).getParent(), "Desc"+ClonkCore.getDefault().getLanguagePref()+".txt"); //$NON-NLS-1$ //$NON-NLS-2$
 			if (infoFile instanceof IFile) {
 				try {
 					return Utilities.stringFromFile((IFile) infoFile);
