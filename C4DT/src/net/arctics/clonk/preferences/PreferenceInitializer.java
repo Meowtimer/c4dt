@@ -17,8 +17,8 @@ public class PreferenceInitializer extends AbstractPreferenceInitializer {
 	 */
 	public void initializeDefaultPreferences() {
 		IPreferenceStore store = ClonkCore.getDefault().getPreferenceStore();
-		store.setDefault(PreferenceConstants.GAME_PATH, ""); //$NON-NLS-1$
-		store.setDefault(PreferenceConstants.STANDARD_EXT_LIBS, ""); //$NON-NLS-1$
+		store.setDefault(ClonkPreferences.GAME_PATH, ""); //$NON-NLS-1$
+		store.setDefault(ClonkPreferences.STANDARD_EXT_LIBS, ""); //$NON-NLS-1$
 		
 //		store.setDefault(PreferenceConstants.P_BOOLEAN, true);
 //		store.setDefault(PreferenceConstants.P_CHOICE, "choice2");

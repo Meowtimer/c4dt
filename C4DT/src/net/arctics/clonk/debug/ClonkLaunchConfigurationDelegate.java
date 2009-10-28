@@ -5,7 +5,7 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.LinkedList;
 import net.arctics.clonk.ClonkCore;
-import net.arctics.clonk.preferences.PreferenceConstants;
+import net.arctics.clonk.preferences.ClonkPreferences;
 
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
@@ -132,10 +132,10 @@ public class ClonkLaunchConfigurationDelegate implements
 		
 		// Clonk path from configuration
 		IPreferenceStore prefs = ClonkCore.getDefault().getPreferenceStore();
-		String gamePath = prefs.getString(PreferenceConstants.GAME_PATH);
+		String gamePath = prefs.getString(ClonkPreferences.GAME_PATH);
 
 		File enginePath = null;
-		String enginePref = Platform.getPreferencesService().getString(ClonkCore.PLUGIN_ID, PreferenceConstants.ENGINE_EXECUTABLE, "", null); //$NON-NLS-1$
+		String enginePref = Platform.getPreferencesService().getString(ClonkCore.PLUGIN_ID, ClonkPreferences.ENGINE_EXECUTABLE, "", null); //$NON-NLS-1$
 		if (enginePref != "") { //$NON-NLS-1$
 			enginePath = new File(enginePref);
 			if (!enginePath.exists())

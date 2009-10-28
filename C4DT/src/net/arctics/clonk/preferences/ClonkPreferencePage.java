@@ -32,40 +32,40 @@ public class ClonkPreferencePage extends FieldEditorPreferencePage implements IW
 	public void createFieldEditors() {
 		
 		// FIXME: not the best place to set that
-		getPreferenceStore().setDefault(PreferenceConstants.EXTERNAL_INDEX_ENCODING, PreferenceConstants.EXTERNAL_INDEX_ENCODING_DEFAULT);
-		getPreferenceStore().setDefault(PreferenceConstants.DOC_URL_TEMPLATE, PreferenceConstants.DOC_URL_TEMPLATE_DEFAULT);
+		getPreferenceStore().setDefault(ClonkPreferences.EXTERNAL_INDEX_ENCODING, ClonkPreferences.EXTERNAL_INDEX_ENCODING_DEFAULT);
+		getPreferenceStore().setDefault(ClonkPreferences.DOC_URL_TEMPLATE, ClonkPreferences.DOC_URL_TEMPLATE_DEFAULT);
 		
 		addField(
 			gamePathEditor = new DirectoryFieldEditor(
-				PreferenceConstants.GAME_PATH,
+				ClonkPreferences.GAME_PATH,
 				Messages.GamePath,
 				getFieldEditorParent()
 			)
 		);
 		addField(
 			new FileFieldEditor(
-				PreferenceConstants.C4GROUP_EXECUTABLE,
+				ClonkPreferences.C4GROUP_EXECUTABLE,
 				Messages.C4GroupExecutable,
 				getFieldEditorParent()
 			)
 		);
 		addField(
 			new FileFieldEditor(
-				PreferenceConstants.ENGINE_EXECUTABLE,
+				ClonkPreferences.ENGINE_EXECUTABLE,
 				Messages.EngineExecutable,
 				getFieldEditorParent()
 			)
 		);
 		addField(
 			new DirectoryFieldEditor(
-				PreferenceConstants.OPENCLONK_REPO,
+				ClonkPreferences.OPENCLONK_REPO,
 				Messages.OpenClonkRepo,
 				getFieldEditorParent()
 			)
 		);
 		addField(
 			new ComboFieldEditor(
-				PreferenceConstants.PREFERRED_LANGID,
+				ClonkPreferences.PREFERRED_LANGID,
 				Messages.PreferredLangID,
 				new String[][] {
 					{Messages.German, "DE"}, //$NON-NLS-1$
@@ -77,12 +77,12 @@ public class ClonkPreferencePage extends FieldEditorPreferencePage implements IW
 		);
 		addField(
 			new StringFieldEditor(
-				PreferenceConstants.DOC_URL_TEMPLATE,
+				ClonkPreferences.DOC_URL_TEMPLATE,
 				Messages.DocumentURLTemplate,
 				getFieldEditorParent()
 			)
 		);
-		addField(new ListEditor(PreferenceConstants.STANDARD_EXT_LIBS, Messages.ExternalObjectsAndScripts,getFieldEditorParent()) {
+		addField(new ListEditor(ClonkPreferences.STANDARD_EXT_LIBS, Messages.ExternalObjectsAndScripts,getFieldEditorParent()) {
 			@Override
 			protected String[] parseString(String stringList) {
 				if (stringList.length() == 0) return new String[] {};
@@ -91,7 +91,7 @@ public class ClonkPreferencePage extends FieldEditorPreferencePage implements IW
 
 			@Override
 			protected String getNewInputObject() {
-				String gamePath = getPreferenceStore().getString(PreferenceConstants.GAME_PATH);
+				String gamePath = getPreferenceStore().getString(ClonkPreferences.GAME_PATH);
 				// not yet saved -> look in field editor
 				if (gamePath == null || gamePath.length() == 0) {
 					gamePath = gamePathEditor.getStringValue();
@@ -121,7 +121,7 @@ public class ClonkPreferencePage extends FieldEditorPreferencePage implements IW
 		});
 		addField(
 			new ExceptionlessEncodingFieldEditor(
-				PreferenceConstants.EXTERNAL_INDEX_ENCODING,
+				ClonkPreferences.EXTERNAL_INDEX_ENCODING,
 				"", //$NON-NLS-1$
 				Messages.EncodingForExternalObjects,
 				getFieldEditorParent()
@@ -129,7 +129,7 @@ public class ClonkPreferencePage extends FieldEditorPreferencePage implements IW
 		);
 		addField(
 			new BooleanFieldEditor(
-				PreferenceConstants.SHOW_EXPORT_LOG,
+				ClonkPreferences.SHOW_EXPORT_LOG,
 				Messages.ShowExportLog,
 				getFieldEditorParent()
 			)

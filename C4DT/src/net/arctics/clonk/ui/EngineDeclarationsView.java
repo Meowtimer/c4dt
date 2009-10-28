@@ -12,7 +12,7 @@ import net.arctics.clonk.parser.c4script.C4Type;
 import net.arctics.clonk.parser.c4script.C4Variable;
 import net.arctics.clonk.parser.c4script.C4Function.C4FunctionScope;
 import net.arctics.clonk.parser.c4script.C4Variable.C4VariableScope;
-import net.arctics.clonk.preferences.PreferenceConstants;
+import net.arctics.clonk.preferences.ClonkPreferences;
 import net.arctics.clonk.ui.navigator.ClonkOutlineProvider;
 
 import org.eclipse.swt.widgets.Button;
@@ -469,7 +469,7 @@ public class EngineDeclarationsView extends ViewPart {
 			public void run() {
 				IProgressService ps = PlatformUI.getWorkbench().getProgressService();
 				try {
-					final String repo = ClonkCore.getDefault().getPreferenceStore().getString(PreferenceConstants.OPENCLONK_REPO);
+					final String repo = ClonkCore.getDefault().getPreferenceStore().getString(ClonkPreferences.OPENCLONK_REPO);
 					if (repo == null) {
 						MessageDialog.openWarning(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(),
 							Messages.Engine_NoRepository, Messages.Engine_NoRepositoryDesc);

@@ -9,22 +9,26 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.lang.reflect.InvocationTargetException;
+import java.util.List;
 
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.xpath.XPathExpressionException;
 
+import net.arctics.clonk.index.C4Engine;
 import net.arctics.clonk.index.C4ObjectExtern;
 import net.arctics.clonk.index.ExternIndex;
 import net.arctics.clonk.index.ProjectIndex;
-import net.arctics.clonk.parser.C4ID;
 import net.arctics.clonk.parser.inireader.IniData;
 import net.arctics.clonk.parser.inireader.IniUnit;
 import net.arctics.clonk.parser.mapcreator.C4MapCreator;
 import net.arctics.clonk.parser.stringtbl.StringTbl;
-import net.arctics.clonk.preferences.PreferenceConstants;
+import net.arctics.clonk.preferences.ClonkPreferences;
 import net.arctics.clonk.resource.ClonkLibBuilder;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.resource.InputStreamRespectingUniqueIDs;
+import net.arctics.clonk.util.IRunnableWithProgressAndResult;
+
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResourceChangeEvent;
 import org.eclipse.core.resources.IResourceChangeListener;
@@ -36,9 +40,11 @@ import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.QualifiedName;
+import org.eclipse.jface.dialogs.ProgressMonitorDialog;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.resource.ImageRegistry;
 import org.eclipse.swt.graphics.Image;
+import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.editors.text.TextFileDocumentProvider;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.osgi.framework.BundleContext;
@@ -84,7 +90,12 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 	/**
 	 * The engine object contains global functions and variables defined by Clonk itself
 	 */
-	private C4ObjectExtern engineObject;
+	private C4Engine engineObject;
+	
+	/**
+	 * List of engines currently loaded
+	 */
+	private List<C4Engine> engines;
 
 	/**
 	 * Index that contains objects and scripts imported from external object packs and .c4g-groups 
@@ -173,29 +184,54 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 	//			// finished
 	//		}
 	//	}
-
-	public void loadEngineObject() throws FileNotFoundException, IOException, ClassNotFoundException, XPathExpressionException, ParserConfigurationException, SAXException {
+	
+	private C4Engine loadEngine(final String engineName) {
 		InputStream engineStream;
+		C4Engine result = null;
 		try {
 			if (getEngineCacheFile().toFile().exists()) {
 				engineStream = new FileInputStream(getEngineCacheFile().toFile());
 			}
 			else {
-				engineStream = getBundle().getEntry("res/engine").openStream(); //$NON-NLS-1$
+				engineStream = getBundle().getEntry(String.format("res/engines/%s.engine", engineName)).openStream(); //$NON-NLS-1$
 			}
 			ObjectInputStream objStream = new InputStreamRespectingUniqueIDs(engineStream);
-			setEngineObject((C4ObjectExtern)objStream.readObject());
-			getEngineObject().postSerialize(null);
+			result = (C4Engine)objStream.readObject();
+			result.postSerialize(null);
 		} catch (Exception e) {
 			// fallback to xml
-			createDefaultEngineObject();
-			getEngineObject().importFromXML(getBundle().getEntry("res/engine.xml").openStream()); //$NON-NLS-1$
-			return;
+			ProgressMonitorDialog progressDialog = new ProgressMonitorDialog(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell());
+			try {
+				IRunnableWithProgressAndResult<C4Engine> xmlImportor = new IRunnableWithProgressAndResult<C4Engine>() {
+					private C4Engine engine;
+					
+					@Override
+                    public C4Engine getResult() {
+	                    return engine;
+                    }
+
+					@Override
+                    public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
+						engine = new C4Engine(engineName);
+	            		try {
+	            			engine.importFromXML(getBundle().getEntry(String.format("res/engines/%s.engine.xml", engineName)).openStream(), monitor); //$NON-NLS-1$
+	            		} catch (Exception e) {
+	            			e.printStackTrace();
+	            		}
+                    }
+				};
+	            progressDialog.run(false, false, xmlImportor);
+	            result = xmlImportor.getResult();
+            } catch (Exception e1) {
+	            e1.printStackTrace();
+            }
 		}
+		return result;
 	}
 
-	private void createDefaultEngineObject() {
-		setEngineObject(new C4ObjectExtern(C4ID.getSpecialID("Engine"), "Engine", null, null)); //$NON-NLS-1$ //$NON-NLS-2$
+	public void loadEngineObject() throws FileNotFoundException, IOException, ClassNotFoundException, XPathExpressionException, ParserConfigurationException, SAXException {
+		C4Engine engine = loadEngine(ClonkPreferences.getPreferenceOrDefault(ClonkPreferences.SELECTED_ENGINE));
+		setEngineObject(engine);
 	}
 
 	//	private int nooper;
@@ -401,13 +437,13 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 	}
 
 	public String getLanguagePref() {
-		return Platform.getPreferencesService().getString(PLUGIN_ID, PreferenceConstants.PREFERRED_LANGID, "DE", null); //$NON-NLS-1$
+		return Platform.getPreferencesService().getString(PLUGIN_ID, ClonkPreferences.PREFERRED_LANGID, "DE", null); //$NON-NLS-1$
 	}
 
 	/**
 	 * @param engineObject the engineObject to set
 	 */
-	private void setEngineObject(C4ObjectExtern engineObject) {
+	private void setEngineObject(C4Engine engineObject) {
 		this.engineObject = engineObject;
 	}
 

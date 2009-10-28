@@ -4,7 +4,7 @@ import java.io.File;
 
 import java.io.IOException;
 import net.arctics.clonk.ClonkCore;
-import net.arctics.clonk.preferences.PreferenceConstants;
+import net.arctics.clonk.preferences.ClonkPreferences;
 import net.arctics.clonk.util.FileOperations;
 import net.arctics.clonk.util.Utilities;
 
@@ -68,7 +68,7 @@ public class C4GroupExporter {
 		if (monitor != null)
 			monitor.beginTask(Messages.Exporting, packs.length);
 		IPreferencesService service = Platform.getPreferencesService();
-		boolean showExportLog = service.getBoolean(ClonkCore.PLUGIN_ID, PreferenceConstants.SHOW_EXPORT_LOG, false, null);
+		boolean showExportLog = service.getBoolean(ClonkCore.PLUGIN_ID, ClonkPreferences.SHOW_EXPORT_LOG, false, null);
 		int i = -1;
 		for(IResource pack : packs) {
 			i++;

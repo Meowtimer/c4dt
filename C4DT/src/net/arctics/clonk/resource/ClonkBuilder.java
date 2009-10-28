@@ -15,7 +15,7 @@ import net.arctics.clonk.parser.c4script.C4ScriptIntern;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.C4Structure;
 import net.arctics.clonk.parser.ParsingException;
-import net.arctics.clonk.preferences.PreferenceConstants;
+import net.arctics.clonk.preferences.ClonkPreferences;
 import net.arctics.clonk.ui.editors.ClonkTextEditor;
 import net.arctics.clonk.util.Utilities;
 
@@ -320,7 +320,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 	}
 
 	private String[] getExternalLibNames() {
-		String optionString = ClonkCore.getDefault().getPreferenceStore().getString(PreferenceConstants.STANDARD_EXT_LIBS);
+		String optionString = ClonkCore.getDefault().getPreferenceStore().getString(ClonkPreferences.STANDARD_EXT_LIBS);
 		return optionString.split("<>"); //$NON-NLS-1$
 	}
 

@@ -1,7 +1,7 @@
 package net.arctics.clonk.ui.editors;
 
 
-import net.arctics.clonk.preferences.PreferenceConstants;
+import net.arctics.clonk.preferences.ClonkPreferences;
 import net.arctics.clonk.ui.editors.c4script.ScriptWithStorageEditorInput;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jface.text.IDocument;
@@ -33,7 +33,7 @@ public class ClonkDocumentProvider extends FileDocumentProvider {
 	@Override
 	public String getEncoding(Object element) {
 		if (element instanceof ScriptWithStorageEditorInput) {
-			return PreferenceConstants.getPreference(PreferenceConstants.EXTERNAL_INDEX_ENCODING, PreferenceConstants.EXTERNAL_INDEX_ENCODING_DEFAULT, null);
+			return ClonkPreferences.getPreferenceOrDefault(ClonkPreferences.EXTERNAL_INDEX_ENCODING);
 		}
 		return super.getEncoding(element);
 	}

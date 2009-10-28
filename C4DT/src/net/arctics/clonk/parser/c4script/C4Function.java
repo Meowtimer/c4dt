@@ -11,7 +11,7 @@ import net.arctics.clonk.parser.C4Structure;
 import net.arctics.clonk.parser.SourceLocation;
 import net.arctics.clonk.parser.c4script.C4ScriptExprTree.ExprElm;
 import net.arctics.clonk.parser.c4script.C4Variable.C4VariableScope;
-import net.arctics.clonk.preferences.PreferenceConstants;
+import net.arctics.clonk.preferences.ClonkPreferences;
 import net.arctics.clonk.util.CompoundIterable;
 
 public class C4Function extends C4Structure implements Serializable, ITypedDeclaration, IHasUserDescription {
@@ -252,7 +252,7 @@ public class C4Function extends C4Structure implements Serializable, ITypedDecla
 
 	// to be called on engine functions
 	public String getDocumentationURL() {
-		String docURLTemplate = PreferenceConstants.getPreference(PreferenceConstants.DOC_URL_TEMPLATE, PreferenceConstants.DOC_URL_TEMPLATE_DEFAULT, null);
+		String docURLTemplate = ClonkPreferences.getPreferenceOrDefault(ClonkPreferences.DOC_URL_TEMPLATE);
 		return String.format(docURLTemplate, getName(), ClonkCore.getDefault().getLanguagePref().toLowerCase());
 	}
 

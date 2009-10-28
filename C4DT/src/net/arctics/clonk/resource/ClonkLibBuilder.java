@@ -16,7 +16,7 @@ import net.arctics.clonk.index.IExternalScript;
 import net.arctics.clonk.parser.c4script.C4ScriptExtern;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.inireader.DefCoreUnit;
-import net.arctics.clonk.preferences.PreferenceConstants;
+import net.arctics.clonk.preferences.ClonkPreferences;
 import net.arctics.clonk.resource.c4group.C4GroupEntry;
 import net.arctics.clonk.resource.c4group.C4EntryHeader;
 import net.arctics.clonk.resource.c4group.C4Group;
@@ -64,7 +64,7 @@ public class ClonkLibBuilder implements IC4GroupVisitor, IPropertyChangeListener
 	}
 	
 	private String[] getExternalLibNames() {
-		String optionString = ClonkCore.getDefault().getPreferenceStore().getString(PreferenceConstants.STANDARD_EXT_LIBS);
+		String optionString = ClonkCore.getDefault().getPreferenceStore().getString(ClonkPreferences.STANDARD_EXT_LIBS);
 		return optionString.split("<>"); //$NON-NLS-1$
 	}
 	
@@ -216,7 +216,7 @@ public class ClonkLibBuilder implements IC4GroupVisitor, IPropertyChangeListener
 	}
 
 	public void propertyChange(PropertyChangeEvent event) {
-		if (event.getProperty().equals(PreferenceConstants.STANDARD_EXT_LIBS)) {
+		if (event.getProperty().equals(ClonkPreferences.STANDARD_EXT_LIBS)) {
 			String oldValue = (String) event.getOldValue();
 			String newValue = (String) event.getNewValue();
 			final String[] oldLibs = oldValue.split("<>"); //$NON-NLS-1$
@@ -275,7 +275,7 @@ public class ClonkLibBuilder implements IC4GroupVisitor, IPropertyChangeListener
 				e1.printStackTrace();
 			}
 		}
-		else if (event.getProperty().equals(PreferenceConstants.PREFERRED_LANGID)) {
+		else if (event.getProperty().equals(ClonkPreferences.PREFERRED_LANGID)) {
 			for (C4Object o : ClonkCore.getDefault().getExternIndex()) {
 				o.chooseLocalizedName();
 			}

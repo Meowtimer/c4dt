@@ -3,7 +3,7 @@ package net.arctics.clonk.ui.navigator;
 import java.io.File;
 import java.lang.reflect.InvocationTargetException;
 
-import net.arctics.clonk.preferences.PreferenceConstants;
+import net.arctics.clonk.preferences.ClonkPreferences;
 import net.arctics.clonk.ui.wizards.C4GroupImporter;
 import net.arctics.clonk.util.IConverter;
 import net.arctics.clonk.util.UI;
@@ -52,7 +52,7 @@ public class QuickImportAction extends ClonkResourceAction implements IHandler {
 					return;
 				IContainer container = (IContainer) ssel.getFirstElement();
 				
-				String gamePath = PreferenceConstants.getPreference(PreferenceConstants.GAME_PATH);
+				String gamePath = ClonkPreferences.getPreference(ClonkPreferences.GAME_PATH);
 				
 				final FileDialog fileDialog = new FileDialog(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(), SWT.OPEN+SWT.MULTI);
 				fileDialog.setFilterPath(gamePath);
