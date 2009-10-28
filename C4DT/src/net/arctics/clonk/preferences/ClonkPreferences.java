@@ -1,6 +1,8 @@
 package net.arctics.clonk.preferences;
 
 import java.lang.reflect.Field;
+import java.util.HashMap;
+import java.util.Map;
 
 import net.arctics.clonk.ClonkCore;
 
@@ -26,10 +28,24 @@ public class ClonkPreferences {
 	public static final String DOC_URL_TEMPLATE_DEFAULT = Messages.DocURLTemplateDefault;
 	public static final String SELECTED_ENGINE_DEFAULT = "ClonkRage"; //$NON-NLS-1$
 	
+	private static final Map<String, Field> valueFieldMapping = new HashMap<String, Field>();
+	
 	public static String getPreferenceOrDefault(String prefName) {
 		String def;
 		try {
-	        Field f = ClonkPreferences.class.getField(prefName+"_DEFAULT");
+			Field prefField = valueFieldMapping.get(prefName);
+			if (prefField == null) {
+				for (Field f : ClonkPreferences.class.getFields()) {
+					if (!f.getName().endsWith("_DEFAULT")) { //$NON-NLS-1$
+						if (f.get(null).equals(prefName)) {
+							prefField = f;
+							valueFieldMapping.put(prefName, f);
+							break;
+						}
+					}
+				}
+			}
+	        Field f = prefField != null ? ClonkPreferences.class.getField(prefField.getName()+"_DEFAULT") : null;
 	        def = f != null ? f.get(null).toString() : null;
         } catch (Exception e) {
 	        def = null;
