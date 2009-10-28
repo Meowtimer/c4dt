@@ -2,10 +2,7 @@ package net.arctics.clonk.preferences;
 
 import java.io.File;
 import java.util.List;
-import java.util.Map;
-
 import net.arctics.clonk.ClonkCore;
-import net.arctics.clonk.index.C4Engine;
 import net.arctics.clonk.util.UI;
 
 import org.eclipse.jface.preference.BooleanFieldEditor;

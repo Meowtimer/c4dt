@@ -28,6 +28,7 @@ import org.eclipse.ui.progress.IProgressService;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.viewers.*;
+import org.eclipse.jface.window.Window;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.layout.GridData;
@@ -35,6 +36,7 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.jface.action.*;
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.IDialogConstants;
+import org.eclipse.jface.dialogs.InputDialog;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.ui.*;
 import org.eclipse.swt.widgets.Menu;
@@ -455,7 +457,17 @@ public class EngineDeclarationsView extends ViewPart {
 		
 		saveAction = new Action() {
 			public void run() {
-				ClonkCore.getDefault().saveEngineObject();
+				InputDialog dialog = new InputDialog(
+						PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(),
+						"Specify Engine Name", "Please specify the name of this engine",
+						ClonkCore.getDefault().getActiveEngine().getName(),
+						null
+				);
+				switch (dialog.open()) {				
+				case Window.OK:
+					ClonkCore.getDefault().saveEngineInWorkspace(dialog.getValue());
+					break;
+				}
 			}
 		};
 		saveAction.setText(Messages.Engine_Save);
@@ -498,7 +510,7 @@ public class EngineDeclarationsView extends ViewPart {
 			@Override
 			public void run() {
 			    try {
-	                ClonkCore.getDefault().loadEngineObject();
+	                ClonkCore.getDefault().loadActiveEngine();
                 } catch (Exception e) { 
 	                e.printStackTrace();
                 }

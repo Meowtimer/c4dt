@@ -24,7 +24,6 @@ import net.arctics.clonk.index.C4Engine;
 import net.arctics.clonk.index.C4ObjectExtern;
 import net.arctics.clonk.index.ExternIndex;
 import net.arctics.clonk.index.ProjectIndex;
-import net.arctics.clonk.parser.C4ID;
 import net.arctics.clonk.parser.inireader.IniData;
 import net.arctics.clonk.parser.inireader.IniUnit;
 import net.arctics.clonk.parser.mapcreator.C4MapCreator;
@@ -144,7 +143,7 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 
 		loadIniConfigurations();
 
-		loadEngineObject();
+		loadActiveEngine();
 		loadExternIndex(); 
 
 		ResourcesPlugin.getWorkspace().addSaveParticipant(this, this);
@@ -207,14 +206,28 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 		return Collections.unmodifiableMap(loadedEngines);
 	}
 	
+	private String engineNameFromPath(String path) {
+		path = path.substring(path.lastIndexOf('/')+1);
+		return path.endsWith(".engine") ? path.substring(0, path.lastIndexOf('.')) : null;
+	}
+	
 	@SuppressWarnings("unchecked")
     public List<String> getAvailableEngines() {
 		List<String> result = new LinkedList<String>();
+		// get built-in engine definitions
 		for (Enumeration<String> paths = getBundle().getEntryPaths("res/engines"); paths.hasMoreElements();) {
-			String path = paths.nextElement();
-			path = path.substring(path.lastIndexOf('/')+1);
-			if (!path.endsWith(".xml")) {
-				result.add(path.substring(0, path.lastIndexOf('.')));
+			String engineName = engineNameFromPath(paths.nextElement());
+			if (engineName != null) {
+				result.add(engineName);
+			}
+		}
+		// get engine definitions from workspace
+		String[] workspaceEngines = getWorkspaceStorageLocationForEngines().toFile().list();
+		if (workspaceEngines != null) {
+			for (String wEngine : workspaceEngines) {
+				String engineName = engineNameFromPath(wEngine);
+				if (engineName != null && !result.contains(engineName))
+					result.add(engineName);
 			}
 		}
 		return result;
@@ -226,8 +239,8 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 		if (result != null)
 			return result;
 		try {
-			if (getEngineCacheFile().toFile().exists()) {
-				engineStream = new FileInputStream(getEngineCacheFile().toFile());
+			if (getWorkspaceStorageLocationForActiveEngine().toFile().exists()) {
+				engineStream = new FileInputStream(getWorkspaceStorageLocationForActiveEngine().toFile());
 			}
 			else {
 				engineStream = getBundle().getEntry(String.format("res/engines/%s.engine", engineName)).openStream(); //$NON-NLS-1$
@@ -268,7 +281,7 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 		return result;
 	}
 
-	public void loadEngineObject() throws FileNotFoundException, IOException, ClassNotFoundException, XPathExpressionException, ParserConfigurationException, SAXException {
+	public void loadActiveEngine() throws FileNotFoundException, IOException, ClassNotFoundException, XPathExpressionException, ParserConfigurationException, SAXException {
 		setActiveEngineByName(ClonkPreferences.getPreferenceOrDefault(ClonkPreferences.ACTIVE_ENGINE));
 	}
 
@@ -300,10 +313,21 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 	//	//	removeSystemDuplicates();
 	//	}
 
-	public static IPath getEngineCacheFile() {
-		IPath path = ClonkCore.getDefault().getStateLocation();
-		return path.append("engine"); //$NON-NLS-1$
+	public IPath getWorkspaceStorageLocationForActiveEngine() {
+		return getWorkspaceStorageLocationForEngine(ClonkPreferences.getPreferenceOrDefault(ClonkPreferences.ACTIVE_ENGINE));
 	}
+	
+	public IPath getWorkspaceStorageLocationForEngine(String engineName) {
+		IPath path = getWorkspaceStorageLocationForEngines(); //$NON-NLS-1$
+		File dir = path.toFile();
+		if (!dir.exists())
+			dir.mkdir();
+		return path.append(String.format("%s.engine", engineName)); //$NON-NLS-1$
+	}
+
+	private IPath getWorkspaceStorageLocationForEngines() {
+	    return getStateLocation().append("engines");
+    }
 
 	public ClonkLibBuilder getLibBuilder() {
 		if (libBuilder == null) libBuilder = new ClonkLibBuilder();
@@ -315,9 +339,9 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 		return path.append("externlib"); //$NON-NLS-1$
 	}
 
-	public void saveEngineObject() {
+	public void saveEngineInWorkspace(String engineName) {
 		try {
-			IPath engine = getEngineCacheFile();
+			IPath engine = getWorkspaceStorageLocationForEngine(engineName);
 
 			File engineFile = engine.toFile();
 			if (engineFile.exists())
@@ -328,12 +352,16 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 			ObjectOutputStream encoder = new ObjectOutputStream(new BufferedOutputStream(outputStream));
 			encoder.writeObject(getActiveEngine());
 			encoder.close();
+			loadedEngines.remove(engineName);
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-
+	}
+	
+	public void saveActiveEngineInWorkspace() {
+		saveEngineInWorkspace(getActiveEngine().getName());
 	}
 
 	public void saveExternIndex(IProgressMonitor monitor) throws FileNotFoundException {
