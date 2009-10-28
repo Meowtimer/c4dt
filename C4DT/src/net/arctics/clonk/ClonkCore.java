@@ -11,7 +11,9 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Collections;
+import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -98,7 +100,7 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 	/**
 	 * List of engines currently loaded
 	 */
-	private Map<String, C4Engine> engines = new HashMap<String, C4Engine>();
+	private Map<String, C4Engine> loadedEngines = new HashMap<String, C4Engine>();
 
 	/**
 	 * Index that contains objects and scripts imported from external object packs and .c4g-groups 
@@ -188,13 +190,26 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 	//		}
 	//	}
 	
-	public Map<String, C4Engine> getEngines() {
-		return Collections.unmodifiableMap(engines);
+	public Map<String, C4Engine> getLoadedEngines() {
+		return Collections.unmodifiableMap(loadedEngines);
+	}
+	
+	@SuppressWarnings("unchecked")
+    public List<String> getAvailableEngines() {
+		List<String> result = new LinkedList<String>();
+		for (Enumeration<String> paths = getBundle().getEntryPaths("res/engines"); paths.hasMoreElements();) {
+			String path = paths.nextElement();
+			path = path.substring(path.lastIndexOf('/')+1);
+			if (!path.endsWith(".xml")) {
+				result.add(path.substring(0, path.lastIndexOf('.')));
+			}
+		}
+		return result;
 	}
 	
 	private C4Engine loadEngine(final String engineName) {
 		InputStream engineStream;
-		C4Engine result = engines.get(engineName);
+		C4Engine result = loadedEngines.get(engineName);
 		if (result != null)
 			return result;
 		try {
@@ -236,7 +251,7 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
             }
 		}
 		if (result != null)
-			engines.put(engineName, result);
+			loadedEngines.put(engineName, result);
 		return result;
 	}
 

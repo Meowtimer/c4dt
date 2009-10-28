@@ -1,6 +1,7 @@
 package net.arctics.clonk.preferences;
 
 import java.io.File;
+import java.util.List;
 import java.util.Map;
 
 import net.arctics.clonk.ClonkCore;
@@ -77,10 +78,10 @@ public class ClonkPreferencePage extends FieldEditorPreferencePage implements IW
 				getFieldEditorParent()
 			)
 		);
-		Map<String, C4Engine> engines = ClonkCore.getDefault().getEngines();
+		List<String> engines = ClonkCore.getDefault().getAvailableEngines();
 		String[][] engineChoices = new String[engines.size()][2];
 		int i = 0;
-		for (String s : engines.keySet()) {
+		for (String s : engines) {
 			engineChoices[i][1] = s;
 			engineChoices[i][0] = makeUserFriendlyEngineName(s);
 			i++;
