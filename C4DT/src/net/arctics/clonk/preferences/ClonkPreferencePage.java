@@ -1,8 +1,10 @@
 package net.arctics.clonk.preferences;
 
 import java.io.File;
+import java.util.Map;
 
 import net.arctics.clonk.ClonkCore;
+import net.arctics.clonk.index.C4Engine;
 import net.arctics.clonk.util.UI;
 
 import org.eclipse.jface.preference.BooleanFieldEditor;
@@ -72,6 +74,22 @@ public class ClonkPreferencePage extends FieldEditorPreferencePage implements IW
 					{Messages.USEnglish, "US"}, //$NON-NLS-1$
 					{Messages.Finnish, "FI"} //$NON-NLS-1$
 				},
+				getFieldEditorParent()
+			)
+		);
+		Map<String, C4Engine> engines = ClonkCore.getDefault().getEngines();
+		String[][] engineChoices = new String[engines.size()][2];
+		int i = 0;
+		for (String s : engines.keySet()) {
+			engineChoices[i][1] = s;
+			engineChoices[i][0] = makeUserFriendlyEngineName(s);
+			i++;
+		}
+		addField(
+			new ComboFieldEditor(
+				ClonkPreferences.ACTIVE_ENGINE,
+				"Engine Version",
+				engineChoices,
 				getFieldEditorParent()
 			)
 		);
@@ -145,6 +163,17 @@ public class ClonkPreferencePage extends FieldEditorPreferencePage implements IW
 //		addField(
 //			new StringFieldEditor(PreferenceConstants.P_STRING, "A &text preference:", getFieldEditorParent()));
 	}
+
+	private String makeUserFriendlyEngineName(String s) {
+	    StringBuilder builder = new StringBuilder(s.length()*2);
+	    for (int i = 0; i < s.length(); i++) {
+	    	char c = s.charAt(i);
+	    	if (i > 0 && Character.isUpperCase(c))
+	    		builder.append(' ');
+	    	builder.append(c);
+	    }
+	    return builder.toString();
+    }
 
 	public void init(IWorkbench workbench) {
 	}

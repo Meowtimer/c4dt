@@ -10,7 +10,10 @@ import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.lang.reflect.InvocationTargetException;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.xpath.XPathExpressionException;
@@ -95,7 +98,7 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 	/**
 	 * List of engines currently loaded
 	 */
-	private List<C4Engine> engines;
+	private Map<String, C4Engine> engines = new HashMap<String, C4Engine>();
 
 	/**
 	 * Index that contains objects and scripts imported from external object packs and .c4g-groups 
@@ -185,9 +188,15 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 	//		}
 	//	}
 	
+	public Map<String, C4Engine> getEngines() {
+		return Collections.unmodifiableMap(engines);
+	}
+	
 	private C4Engine loadEngine(final String engineName) {
 		InputStream engineStream;
-		C4Engine result = null;
+		C4Engine result = engines.get(engineName);
+		if (result != null)
+			return result;
 		try {
 			if (getEngineCacheFile().toFile().exists()) {
 				engineStream = new FileInputStream(getEngineCacheFile().toFile());
@@ -226,6 +235,8 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 	            e1.printStackTrace();
             }
 		}
+		if (result != null)
+			engines.put(engineName, result);
 		return result;
 	}
 
