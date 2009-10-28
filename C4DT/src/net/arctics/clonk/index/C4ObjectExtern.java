@@ -27,7 +27,7 @@ public class C4ObjectExtern extends C4Object implements ITreeNode, IExternalScri
 	
 	private SimpleScriptStorage script;
 	private ITreeNode parentNode;
-	private String nodeName;
+	protected String nodeName;
 	private List<INode> childNodes;
 	private Map<String, String> localizedDescriptions;
 	

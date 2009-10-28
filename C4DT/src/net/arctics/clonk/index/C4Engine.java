@@ -10,7 +10,20 @@ import net.arctics.clonk.parser.C4ID;
 public class C4Engine extends C4ObjectExtern {
 
     public C4Engine(String name) {
-	    super(C4ID.getID(name), name, null, null);
+	    super(null, name, null, null);
+    }
+    
+    @Override
+    public void setName(String name) {
+        super.setName(name);
+        // sync node name
+        nodeName = name;
+        id = C4ID.getID(name);
+    }
+    
+    @Override
+    public void setId(C4ID newId) {
+        // ignore
     }
 
 	private static final long serialVersionUID = 1L;

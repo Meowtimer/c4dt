@@ -24,6 +24,7 @@ import net.arctics.clonk.index.C4Engine;
 import net.arctics.clonk.index.C4ObjectExtern;
 import net.arctics.clonk.index.ExternIndex;
 import net.arctics.clonk.index.ProjectIndex;
+import net.arctics.clonk.parser.C4ID;
 import net.arctics.clonk.parser.inireader.IniData;
 import net.arctics.clonk.parser.inireader.IniUnit;
 import net.arctics.clonk.parser.mapcreator.C4MapCreator;
@@ -48,6 +49,8 @@ import org.eclipse.core.runtime.QualifiedName;
 import org.eclipse.jface.dialogs.ProgressMonitorDialog;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.resource.ImageRegistry;
+import org.eclipse.jface.util.IPropertyChangeListener;
+import org.eclipse.jface.util.PropertyChangeEvent;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.editors.text.TextFileDocumentProvider;
@@ -148,6 +151,16 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 		ResourcesPlugin.getWorkspace().addResourceChangeListener(this, IResourceChangeEvent.PRE_DELETE);
 
 		registerStructureClasses();
+		
+		// react to active enginge being changed
+		getPreferenceStore().addPropertyChangeListener(new IPropertyChangeListener() {
+			@Override
+			public void propertyChange(PropertyChangeEvent event) {
+				if (event.getProperty().equals(ClonkPreferences.ACTIVE_ENGINE)) {
+					setActiveEngineByName(ClonkPreferences.getPreferenceOrDefault(ClonkPreferences.ACTIVE_ENGINE));
+				}
+			}
+		});
 	}
 
 	private void registerStructureClasses() {
@@ -256,8 +269,7 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 	}
 
 	public void loadEngineObject() throws FileNotFoundException, IOException, ClassNotFoundException, XPathExpressionException, ParserConfigurationException, SAXException {
-		C4Engine engine = loadEngine(ClonkPreferences.getPreferenceOrDefault(ClonkPreferences.ACTIVE_ENGINE));
-		setActiveEngine(engine);
+		setActiveEngineByName(ClonkPreferences.getPreferenceOrDefault(ClonkPreferences.ACTIVE_ENGINE));
 	}
 
 	//	private int nooper;
@@ -471,6 +483,13 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 	 */
 	private void setActiveEngine(C4Engine activeEngine) {
 		this.activeEngine = activeEngine;
+	}
+	
+	public void setActiveEngineByName(String engineName) {
+		C4Engine e = loadEngine(engineName);
+		// make sure names are correct
+		e.setName(engineName);
+		setActiveEngine(e);
 	}
 
 	/**
