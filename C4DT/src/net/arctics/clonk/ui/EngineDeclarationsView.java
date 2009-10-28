@@ -318,7 +318,7 @@ public class EngineDeclarationsView extends ViewPart {
 				return ((C4Declaration)element).sortCategory();
 			}
 		});
-		viewer.setInput(ClonkCore.getDefault().getEngineObject());
+		viewer.setInput(ClonkCore.getDefault().getActiveEngine());
 		
 		makeActions();
 		hookContextMenu();
@@ -389,7 +389,7 @@ public class EngineDeclarationsView extends ViewPart {
 				dialog.getShell().setSize(400,600);
 				dialog.getShell().pack();
 				if (dialog.open() == Dialog.OK) {
-					ClonkCore.getDefault().getEngineObject().addDeclaration(func);
+					ClonkCore.getDefault().getActiveEngine().addDeclaration(func);
 				}
 				refresh();
 			}
@@ -405,7 +405,7 @@ public class EngineDeclarationsView extends ViewPart {
 				dialog.getShell().setSize(400,600);
 				dialog.getShell().pack();
 				if (dialog.open() == Dialog.OK) {
-					ClonkCore.getDefault().getEngineObject().addDeclaration(var);
+					ClonkCore.getDefault().getActiveEngine().addDeclaration(var);
 				}
 				refresh();
 			}
@@ -442,7 +442,7 @@ public class EngineDeclarationsView extends ViewPart {
 					for (TreeItem t : selection) {
 						Object selectedItem = t.getData();
 						if (selectedItem instanceof C4Declaration) {
-							ClonkCore.getDefault().getEngineObject().removeField((C4Declaration) selectedItem);
+							ClonkCore.getDefault().getActiveEngine().removeField((C4Declaration) selectedItem);
 						}
 					}
 					refresh();
@@ -477,7 +477,7 @@ public class EngineDeclarationsView extends ViewPart {
 					else ps.busyCursorWhile(new IRunnableWithProgress() {
 						public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
 							try {
-								final C4ScriptBase engine = ClonkCore.getDefault().getEngineObject();
+								final C4ScriptBase engine = ClonkCore.getDefault().getActiveEngine();
 								engine.clearDeclarations();
 								engine.importFromRepository(repo, monitor);
 							} catch (Exception e) {

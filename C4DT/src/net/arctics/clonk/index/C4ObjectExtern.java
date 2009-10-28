@@ -52,7 +52,7 @@ public class C4ObjectExtern extends C4Object implements ITreeNode, IExternalScri
 
 	@Override
 	public ClonkIndex getIndex() {
-		if (this == ClonkCore.getDefault().getEngineObject())
+		if (this == ClonkCore.getDefault().getActiveEngine())
 			return null;
 		return ClonkCore.getDefault().getExternIndex();
 	}

@@ -22,11 +22,11 @@ public class ClonkPreferences {
 	public static final String OPENCLONK_REPO = "openClonkRepo"; //$NON-NLS-1$
 	public static final String DOC_URL_TEMPLATE = "docURLTemplate"; //$NON-NLS-1$
 	public static final String EXTERNAL_INDEX_ENCODING = "externalIndexEncoding"; //$NON-NLS-1$
-	public static final String SELECTED_ENGINE = "selectedEngine"; //$NON-NLS-1$
+	public static final String ACTIVE_ENGINE = "selectedEngine"; //$NON-NLS-1$
 	
 	public static final String EXTERNAL_INDEX_ENCODING_DEFAULT = "ISO-8859-1"; //$NON-NLS-1$
 	public static final String DOC_URL_TEMPLATE_DEFAULT = Messages.DocURLTemplateDefault;
-	public static final String SELECTED_ENGINE_DEFAULT = "ClonkRage"; //$NON-NLS-1$
+	public static final String ACTIVE_ENGINE_DEFAULT = "ClonkRage"; //$NON-NLS-1$
 	
 	private static final Map<String, Field> valueFieldMapping = new HashMap<String, Field>();
 	

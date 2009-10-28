@@ -11,7 +11,7 @@ public class CachedEngineFuncs {
 	private static CachedEngineFuncs instance;
 	
 	private static C4Function f(String name) {
-		return ClonkCore.getDefault().getEngineObject().findFunction(name);
+		return ClonkCore.getDefault().getActiveEngine().findFunction(name);
 	}
 	
 	public final C4Function Par = f("Par"); //$NON-NLS-1$

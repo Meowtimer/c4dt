@@ -887,13 +887,13 @@ public abstract class C4ScriptExprTree {
 				if (declaration == null)
 					declaration = ClonkCore.getDefault().getExternIndex().findGlobalDeclaration(declarationName);
 				if (declaration == null)
-					declaration = ClonkCore.getDefault().getEngineObject().findFunction(declarationName);
+					declaration = ClonkCore.getDefault().getActiveEngine().findFunction(declarationName);
 
 				// only return found declaration if it's the only choice 
 				if (declaration != null) {
 					List<C4Declaration> allFromLocalIndex = parser.getContainer().getIndex().getDeclarationMap().get(declarationName);
 					List<C4Declaration> allFromExternalIndex = ClonkCore.getDefault().getExternIndex().getDeclarationMap().get(declarationName);
-					C4Declaration decl = ClonkCore.getDefault().getEngineObject().findLocalFunction(declarationName, false);
+					C4Declaration decl = ClonkCore.getDefault().getActiveEngine().findLocalFunction(declarationName, false);
 					if (
 							(allFromLocalIndex != null ? allFromLocalIndex.size() : 0) +
 							(allFromExternalIndex != null ? allFromExternalIndex.size() : 0) +

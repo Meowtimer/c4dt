@@ -81,7 +81,7 @@ public class DeclarationLocator extends ExpressionLocator {
 						projectDeclarations = Utilities.filter(projectDeclarations, isFunc);
 					if (externalDeclarations != null)
 						externalDeclarations = Utilities.filter(externalDeclarations, isFunc);
-					C4Function engineFunc = ClonkCore.getDefault().getEngineObject().findFunction(access.getDeclarationName());
+					C4Function engineFunc = ClonkCore.getDefault().getActiveEngine().findFunction(access.getDeclarationName());
 					if (projectDeclarations != null || externalDeclarations != null || engineFunc != null) {
 						proposedDeclarations = new LinkedList<C4Declaration>();
 						if (projectDeclarations != null)

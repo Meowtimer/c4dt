@@ -126,7 +126,7 @@ public class IniScanner extends RuleBasedScanner {
 		
 		CombinedWordRule.WordMatcher wordRule = new CombinedWordRule.WordMatcher();
 		
-		for(C4Variable var : ClonkCore.getDefault().getEngineObject().variables()) {
+		for(C4Variable var : ClonkCore.getDefault().getActiveEngine().variables()) {
 			if (var.getScope() == C4VariableScope.VAR_CONST)
 				wordRule.addWord(var.getName(), constant);
 		}

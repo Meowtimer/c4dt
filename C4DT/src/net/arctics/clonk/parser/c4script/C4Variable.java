@@ -250,7 +250,7 @@ public class C4Variable extends C4Declaration implements Serializable, ITypedDec
 	
 	public void expectedToBeOfType(C4Type t) {
 		// engine objects should not be altered
-		if (!typeLocked && getScript() != ClonkCore.getDefault().getEngineObject())
+		if (!typeLocked && getScript() != ClonkCore.getDefault().getActiveEngine())
 			ITypedDeclaration.Default.expectedToBeOfType(this, t);
 	}
 
@@ -312,7 +312,7 @@ public class C4Variable extends C4Declaration implements Serializable, ITypedDec
 	}
 	
 	private void ensureTypeLockedIfPredefined(C4Declaration declaration) {
-		if (!typeLocked && declaration == ClonkCore.getDefault().getEngineObject())
+		if (!typeLocked && declaration == ClonkCore.getDefault().getActiveEngine())
 			typeLocked = true;
 	}
 	

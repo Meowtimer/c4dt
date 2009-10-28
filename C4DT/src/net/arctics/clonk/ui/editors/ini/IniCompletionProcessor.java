@@ -142,7 +142,7 @@ public class IniCompletionProcessor extends ClonkCompletionProcessor<IniTextEdit
 			}
 		}
 		else {
-			for (C4Variable v : ClonkCore.getDefault().getEngineObject().variables()) {
+			for (C4Variable v : ClonkCore.getDefault().getActiveEngine().variables()) {
 				if (v.getScope() == C4VariableScope.VAR_CONST) {
 					proposalForVar(v, prefix, wordOffset, proposals);
 				}

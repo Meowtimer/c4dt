@@ -90,7 +90,7 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 	/**
 	 * The engine object contains global functions and variables defined by Clonk itself
 	 */
-	private C4Engine engineObject;
+	private C4Engine activeEngine;
 	
 	/**
 	 * List of engines currently loaded
@@ -230,8 +230,8 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 	}
 
 	public void loadEngineObject() throws FileNotFoundException, IOException, ClassNotFoundException, XPathExpressionException, ParserConfigurationException, SAXException {
-		C4Engine engine = loadEngine(ClonkPreferences.getPreferenceOrDefault(ClonkPreferences.SELECTED_ENGINE));
-		setEngineObject(engine);
+		C4Engine engine = loadEngine(ClonkPreferences.getPreferenceOrDefault(ClonkPreferences.ACTIVE_ENGINE));
+		setActiveEngine(engine);
 	}
 
 	//	private int nooper;
@@ -288,7 +288,7 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 			FileOutputStream outputStream = new FileOutputStream(engineFile);
 			//XMLEncoder encoder = new XMLEncoder(new BufferedOutputStream(outputStream));
 			ObjectOutputStream encoder = new ObjectOutputStream(new BufferedOutputStream(outputStream));
-			encoder.writeObject(getEngineObject());
+			encoder.writeObject(getActiveEngine());
 			encoder.close();
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
@@ -441,17 +441,17 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 	}
 
 	/**
-	 * @param engineObject the engineObject to set
+	 * @param activeEngine the engineObject to set
 	 */
-	private void setEngineObject(C4Engine engineObject) {
-		this.engineObject = engineObject;
+	private void setActiveEngine(C4Engine activeEngine) {
+		this.activeEngine = activeEngine;
 	}
 
 	/**
 	 * @return the engineObject
 	 */
-	public C4ObjectExtern getEngineObject() {
-		return engineObject;
+	public C4ObjectExtern getActiveEngine() {
+		return activeEngine;
 	}
 
 	/**

@@ -261,7 +261,7 @@ public abstract class C4ScriptBase extends C4Structure implements IHasRelatedRes
 		info.recursion--;
 
 		// finally look if it's something global
-		if (info.recursion == 0 && this != ClonkCore.getDefault().getEngineObject()) { // .-.
+		if (info.recursion == 0 && this != ClonkCore.getDefault().getActiveEngine()) { // .-.
 			C4Declaration f = null;
 			// definition from extern index
 			if (Utilities.looksLikeID(name)) {
@@ -276,7 +276,7 @@ public abstract class C4ScriptBase extends C4Structure implements IHasRelatedRes
 			}
 			// engine function
 			if (f == null)
-				f = ClonkCore.getDefault().getEngineObject().findDeclaration(name, info);
+				f = ClonkCore.getDefault().getActiveEngine().findDeclaration(name, info);
 
 			if (f != null && (info.declarationClass == null || info.declarationClass.isAssignableFrom(f.getClass())))
 				return f;

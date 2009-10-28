@@ -193,7 +193,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 			if (!ClonkCore.getDefault().getExternIndex().isEmpty()) {
 				statusMessages.add(Messages.C4ScriptCompletionProcessor_ExternalLibraries);
 			}
-			if (ClonkCore.getDefault().getEngineObject() != null) {
+			if (ClonkCore.getDefault().getActiveEngine() != null) {
 				statusMessages.add(Messages.C4ScriptCompletionProcessor_EngineFunctions);
 			}
 		}
@@ -231,11 +231,11 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 			final C4Function activeFunc) {
 		
 		if (proposalCycle == ProposalCycle.SHOW_ALL) {
-			if (ClonkCore.getDefault().getEngineObject() != null) {
-				for (C4Function func : ClonkCore.getDefault().getEngineObject().functions()) {
-					proposalForFunc(func, prefix, offset, proposals, ClonkCore.getDefault().getEngineObject().getName(), true);
+			if (ClonkCore.getDefault().getActiveEngine() != null) {
+				for (C4Function func : ClonkCore.getDefault().getActiveEngine().functions()) {
+					proposalForFunc(func, prefix, offset, proposals, ClonkCore.getDefault().getActiveEngine().getName(), true);
 				}
-				for (C4Variable var : ClonkCore.getDefault().getEngineObject().variables()) {
+				for (C4Variable var : ClonkCore.getDefault().getActiveEngine().variables()) {
 					proposalForVar(var,prefix,offset,proposals);
 				}
 			}

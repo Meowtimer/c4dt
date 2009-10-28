@@ -129,7 +129,7 @@ public class IniSourceViewerConfiguration extends ClonkSourceViewerConfiguration
 								else if (entryClass == CategoriesArray.class) {
 									IRegion idRegion = Utilities.wordRegionAt(line, relativeOffset);
 									if (idRegion.getLength() > 0) {
-										declaration = ClonkCore.getDefault().getEngineObject().findVariable(line.substring(idRegion.getOffset(), idRegion.getOffset()+idRegion.getLength()));
+										declaration = ClonkCore.getDefault().getActiveEngine().findVariable(line.substring(idRegion.getOffset(), idRegion.getOffset()+idRegion.getLength()));
 										linkStart = lineRegion.getOffset()+idRegion.getOffset();
 										linkLen = idRegion.getLength();
 									}

@@ -284,7 +284,7 @@ public abstract class C4Declaration implements Serializable, IHasRelatedResource
 	}
 
 	public boolean isEngineDeclaration() {
-		return getParentDeclaration() == ClonkCore.getDefault().getEngineObject();
+		return getParentDeclaration() == ClonkCore.getDefault().getActiveEngine();
 	}
 	
 }
