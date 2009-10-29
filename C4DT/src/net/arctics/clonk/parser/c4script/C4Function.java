@@ -454,4 +454,13 @@ public class C4Function extends C4Structure implements Serializable, ITypedDecla
 		return getVisibility() == C4FunctionScope.FUNC_GLOBAL;
 	}
 	
+	/**
+	 * Invoke this function. Left empty for 'regular' functions, only defined in special interpreter functions
+	 * @param args the arguments to pass to the function
+	 * @return the result
+	 */
+	public Object invoke(Object... args) {
+		return null;
+	}
+	
 }

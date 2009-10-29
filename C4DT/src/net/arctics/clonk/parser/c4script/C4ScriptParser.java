@@ -707,7 +707,7 @@ public class C4ScriptParser {
 		scanner.seek(offset);
 		String desc = getTextOfLastComment(startOfFirstWord);
 		eatWhitespace();
-		activeFunc = new C4Function();
+		activeFunc = newFunction();
 		activeFunc.setScript(container);
 		activeFunc.setUserDescription(desc);
 		int startName = 0, endName = 0, startBody = 0, endBody = 0;
@@ -859,6 +859,10 @@ public class C4ScriptParser {
 			activeFunc = null; // to not suppress errors in-between functions
 		return true;
 	}
+
+	protected C4Function newFunction() {
+	    return new C4Function();
+    }
 
 	private String getTextOfLastComment(int declarationOffset) {
 		String desc = (lastComment != null && lastComment.precedesOffset(declarationOffset, scanner.getBuffer())) ? lastComment.getComment().trim() : ""; //$NON-NLS-1$

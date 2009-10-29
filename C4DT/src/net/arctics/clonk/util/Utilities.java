@@ -580,5 +580,14 @@ public abstract class Utilities {
         }
 		return null;
 	}
+
+	@SuppressWarnings("unchecked")
+    public static <T> T[] concat(T first, T... rest) {
+		T[] result = (T[]) Array.newInstance(first.getClass(), 1+rest.length);
+		result[0] = first;
+		for (int i = 0; i < rest.length; i++)
+			result[1+i] = rest[i];
+		return result;
+    }
 	
 }

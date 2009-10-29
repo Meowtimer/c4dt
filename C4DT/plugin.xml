@@ -278,6 +278,12 @@
 			name="Open Related File" />
 		
 		<command categoryId="org.eclipse.ui.category.navigate"
+			description="Invoke a command"
+			id="net.arctics.clonk.ui.InvokeCommand"
+			defaultHandler="net.arctics.clonk.command.ui.actions.InvokeCommandAction"
+			name="Invoke Command" />
+		
+		<command categoryId="org.eclipse.ui.category.navigate"
 			description="Export the selected resources to the Clonk folder"
 			id="net.arctics.clonk.ui.QuickExport"
 			defaultHandler="net.arctics.clonk.ui.navigator.QuickExportAction"
@@ -338,6 +344,8 @@
 						</iterate>
 					</visibleWhen>
 				</command>
+				<separator name="SeparatorAfterImportCommands" visible="true"/>
+				<command commandId="net.arctics.clonk.ui.InvokeCommand" label="Invoke Command" />
 			</menu>
 		</menuContribution>
 	</extension>

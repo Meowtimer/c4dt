@@ -19,6 +19,7 @@ import net.arctics.clonk.parser.c4script.C4ScriptExprTree.UnaryOp.Placement;
 import net.arctics.clonk.parser.c4script.C4Variable.C4VariableScope;
 import net.arctics.clonk.parser.stringtbl.StringTbl;
 import net.arctics.clonk.ui.editors.c4script.ExpressionLocator;
+import net.arctics.clonk.util.IConverter;
 import net.arctics.clonk.util.Pair;
 import net.arctics.clonk.util.Utilities;
 import net.arctics.clonk.parser.ParsingException;
@@ -418,6 +419,14 @@ public abstract class C4ScriptExprTree {
 		 */
 		public Object evaluateAtParseTime(C4ScriptBase context) {
 			return EVALUATION_COMPLEX;
+		}
+		
+		/**
+		 * Evaluate expression. Used for the interpreter
+		 * @return the result of the evaluation
+		 */
+		public Object evaluate() {
+			return null;
 		}
 		
 		public final CachedEngineFuncs getCachedFuncs(C4ScriptParser parser) {
@@ -1195,6 +1204,23 @@ public abstract class C4ScriptExprTree {
 			}
 			return super.createStoredTypeInformation(parser);
 		}
+		
+		private static final IConverter<ExprElm, Object> EVALUATE_EXPR = new IConverter<ExprElm, Object>() {
+			@Override
+            public Object convert(ExprElm from) {
+	            return from != null ? from.evaluate() : null;
+            }
+		};
+		
+		@Override
+		public Object evaluate() {
+		    if (declaration instanceof C4Function) {
+		    	Object[] args = Utilities.map(getParams(), Object.class, EVALUATE_EXPR);
+		    	return ((C4Function)declaration).invoke(args);
+		    }
+		    else
+		    	return null;
+		}
 	}
 
 	public static class Operator extends Value {
@@ -1390,33 +1416,49 @@ public abstract class C4ScriptExprTree {
 				Object leftSide  = getOperator().getFirstArgType().convert(this.getLeftSide().evaluateAtParseTime(context));
 				Object rightSide = getOperator().getSecondArgType().convert(this.getRightSide().evaluateAtParseTime(context));
 				if (leftSide != null && leftSide != ExprElm.EVALUATION_COMPLEX && rightSide != null && rightSide != ExprElm.EVALUATION_COMPLEX) {
-					switch (getOperator()) {
-					case Add:
-						return ((Number)leftSide).longValue() + ((Number)rightSide).longValue();
-					case Subtract:
-						return ((Number)leftSide).longValue() - ((Number)rightSide).longValue();
-					case Multiply:
-						return ((Number)leftSide).longValue() * ((Number)rightSide).longValue();
-					case Divide:
-						return ((Number)leftSide).longValue() / ((Number)rightSide).longValue();
-					case Modulo:
-						return ((Number)leftSide).longValue() % ((Number)rightSide).longValue();
-					case Larger:
-						return ((Number)leftSide).longValue() > ((Number)rightSide).longValue();
-					case Smaller:
-						return ((Number)leftSide).longValue() < ((Number)rightSide).longValue();
-					case LargerEqual:
-						return ((Number)leftSide).longValue() >= ((Number)rightSide).longValue();
-					case SmallerEqual:
-						return ((Number)leftSide).longValue() <= ((Number)rightSide).longValue();
-					case Equal:
-						return leftSide.equals(rightSide);
-					}
+					return evaluateOn(leftSide, rightSide);
 				}
 			}
 			catch (ClassCastException e) {}
 			catch (NullPointerException e) {}
 			return super.evaluateAtParseTime(context);
+		}
+
+		private Object evaluateOn(Object leftSide, Object rightSide) {
+	        switch (getOperator()) {
+	        case Add:
+	        	return ((Number)leftSide).longValue() + ((Number)rightSide).longValue();
+	        case Subtract:
+	        	return ((Number)leftSide).longValue() - ((Number)rightSide).longValue();
+	        case Multiply:
+	        	return ((Number)leftSide).longValue() * ((Number)rightSide).longValue();
+	        case Divide:
+	        	return ((Number)leftSide).longValue() / ((Number)rightSide).longValue();
+	        case Modulo:
+	        	return ((Number)leftSide).longValue() % ((Number)rightSide).longValue();
+	        case Larger:
+	        	return ((Number)leftSide).longValue() > ((Number)rightSide).longValue();
+	        case Smaller:
+	        	return ((Number)leftSide).longValue() < ((Number)rightSide).longValue();
+	        case LargerEqual:
+	        	return ((Number)leftSide).longValue() >= ((Number)rightSide).longValue();
+	        case SmallerEqual:
+	        	return ((Number)leftSide).longValue() <= ((Number)rightSide).longValue();
+	        case Equal:
+	        	return leftSide.equals(rightSide);
+	        default:
+	        	return null;
+	        }
+        }
+		
+		@Override
+		public Object evaluate() {
+		    Object left = getLeftSide().evaluate();
+		    Object right = getRightSide().evaluate();
+		    if (left != null && right != null)
+		    	return evaluateOn(left, right);
+		    else
+		    	return null;
 		}
 
 	}
@@ -1637,6 +1679,11 @@ public abstract class C4ScriptExprTree {
 		@Override
 		public T evaluateAtParseTime(C4ScriptBase context) {
 			return literal;
+		}
+		
+		@Override
+		public Object evaluate() {
+		    return literal;
 		}
 
 	}
