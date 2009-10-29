@@ -4,6 +4,8 @@ import java.util.LinkedList;
 import java.util.List;
 
 import net.arctics.clonk.ClonkCore;
+import net.arctics.clonk.index.ExternIndex;
+import net.arctics.clonk.index.IExternalScript;
 import net.arctics.clonk.parser.C4Declaration;
 import net.arctics.clonk.parser.c4script.C4Function;
 import net.arctics.clonk.parser.c4script.C4ScriptBase;
@@ -43,9 +45,15 @@ public class DeclarationLocator extends ExpressionLocator {
 		return editor;
 	}
 	
+	private static IPredicate<C4Declaration> isFunc = new IPredicate<C4Declaration>() {
+		public boolean test(C4Declaration item) {
+            return item instanceof C4Function;
+        }
+	};
+	
 	public DeclarationLocator(ITextEditor editor, IDocument doc, IRegion region) throws BadLocationException, ParsingException {
 		this.editor = editor;
-		C4ScriptBase script = Utilities.getScriptForEditor(getEditor());
+		final C4ScriptBase script = Utilities.getScriptForEditor(getEditor());
 		if (script == null)
 			return;
 		C4Function func = script.funcAt(region);
@@ -70,17 +78,19 @@ public class DeclarationLocator extends ExpressionLocator {
 				}
 				else if (exprAtRegion instanceof AccessDeclaration) {
 					AccessDeclaration access = (AccessDeclaration) exprAtRegion;
-					List<C4Declaration> projectDeclarations = script.getIndex().getDeclarationMap().get(access.getDeclarationName());
+					List<C4Declaration> projectDeclarations = script.getIndex() instanceof ExternIndex ? null : script.getIndex().getDeclarationMap().get(access.getDeclarationName());
 					List<C4Declaration> externalDeclarations = ClonkCore.getDefault().getExternIndex().getDeclarationMap().get(access.getDeclarationName());
-					IPredicate<C4Declaration> isFunc = new IPredicate<C4Declaration>() {
+					
+					IPredicate<C4Declaration> isFuncAndInDeps = new IPredicate<C4Declaration>() {
+						@Override
 						public boolean test(C4Declaration item) {
-	                        return item instanceof C4Function;
-                        }
+							return item instanceof C4Function && script.getIndex().acceptsFromExternalLib(((IExternalScript)item.getScript()).getExternalLib());
+						}
 					};
 					if (projectDeclarations != null)
 						projectDeclarations = Utilities.filter(projectDeclarations, isFunc);
 					if (externalDeclarations != null)
-						externalDeclarations = Utilities.filter(externalDeclarations, isFunc);
+						externalDeclarations = Utilities.filter(externalDeclarations, isFuncAndInDeps);
 					C4Function engineFunc = ClonkCore.getDefault().getActiveEngine().findFunction(access.getDeclarationName());
 					if (projectDeclarations != null || externalDeclarations != null || engineFunc != null) {
 						proposedDeclarations = new LinkedList<C4Declaration>();
