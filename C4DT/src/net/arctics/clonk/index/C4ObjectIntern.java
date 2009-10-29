@@ -26,6 +26,7 @@ public class C4ObjectIntern extends C4Object implements Serializable {
 	
 	protected transient IContainer objectFolder;
 	protected String relativePath;
+	private transient ClonkIndex index;
 	
 	public C4ObjectIntern(C4ID id, String name, IContainer container) {
 		super(id, name);
@@ -115,18 +116,13 @@ public class C4ObjectIntern extends C4Object implements Serializable {
 			else
 				folder.setPersistentProperty(ClonkCore.FOLDER_C4ID_PROPERTY_ID, null);
 			relativePath = folder.getFullPath().toPortableString();
+			index = ClonkProjectNature.getClonkNature(objectFolder).getIndex();
 		}
 	}
 	
 	@Override
 	public ClonkIndex getIndex() {
-		try {
-			return ClonkProjectNature.getClonkNature(this).getIndex();
-		} catch (Exception e) {
-			System.out.println(getName() + ": " + this.relativePath); //$NON-NLS-1$
-			e.printStackTrace();
-			return null;
-		}
+		return index;
 	}
 	
 	@Override

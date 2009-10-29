@@ -3,7 +3,7 @@ package net.arctics.clonk.parser;
 import java.io.Serializable;
 
 
-import net.arctics.clonk.ClonkCore;
+import net.arctics.clonk.index.C4Engine;
 import net.arctics.clonk.index.C4ObjectIntern;
 import net.arctics.clonk.index.C4Scenario;
 import net.arctics.clonk.parser.c4script.C4ScriptBase;
@@ -284,7 +284,7 @@ public abstract class C4Declaration implements Serializable, IHasRelatedResource
 	}
 
 	public boolean isEngineDeclaration() {
-		return getParentDeclaration() == ClonkCore.getDefault().getActiveEngine();
+		return getParentDeclaration() instanceof C4Engine;
 	}
 	
 }

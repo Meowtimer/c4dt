@@ -21,7 +21,6 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.xpath.XPathExpressionException;
 
 import net.arctics.clonk.index.C4Engine;
-import net.arctics.clonk.index.C4ObjectExtern;
 import net.arctics.clonk.index.ExternIndex;
 import net.arctics.clonk.index.ProjectIndex;
 import net.arctics.clonk.parser.inireader.IniData;
@@ -523,7 +522,7 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 	/**
 	 * @return the engineObject
 	 */
-	public C4ObjectExtern getActiveEngine() {
+	public C4Engine getActiveEngine() {
 		return activeEngine;
 	}
 

@@ -1,5 +1,6 @@
 package net.arctics.clonk.index;
 
+import net.arctics.clonk.parser.C4Declaration;
 import net.arctics.clonk.parser.C4ID;
 
 /**
@@ -9,7 +10,15 @@ import net.arctics.clonk.parser.C4ID;
  */
 public class C4Engine extends C4ObjectExtern {
 
-    public C4Engine(String name) {
+	private static final long serialVersionUID = 1L;
+	
+	private CachedEngineFuncs cachedFuncs;
+	
+    public CachedEngineFuncs getCachedFuncs() {
+		return cachedFuncs;
+	}
+
+	public C4Engine(String name) {
 	    super(null, name, null, null);
     }
     
@@ -25,7 +34,15 @@ public class C4Engine extends C4ObjectExtern {
     public void setId(C4ID newId) {
         // ignore
     }
-
-	private static final long serialVersionUID = 1L;
+    
+    public void modified() {
+    	cachedFuncs = new CachedEngineFuncs(this);
+    }
+    
+    @Override
+    public void postSerialize(C4Declaration parent) {
+    	super.postSerialize(parent);
+    	modified();
+    }
 
 }

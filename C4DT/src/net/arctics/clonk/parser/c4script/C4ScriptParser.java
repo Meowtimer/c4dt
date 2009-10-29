@@ -151,10 +151,10 @@ public class C4ScriptParser {
 		if (storedTypeInformationListStack.isEmpty())
 			return null;
 		for (IStoredTypeInformation info : storedTypeInformationListStack.peek()) {
-			if (info.expressionRelevant(expression))
+			if (info.expressionRelevant(expression, this))
 				return info;
 		}
-		IStoredTypeInformation newlyCreated = expression.createStoredTypeInformation();
+		IStoredTypeInformation newlyCreated = expression.createStoredTypeInformation(this);
 		if (newlyCreated != null)
 			storedTypeInformationListStack.peek().add(newlyCreated);
 		return newlyCreated;
@@ -182,7 +182,7 @@ public class C4ScriptParser {
 			return null;
 		for (int i = storedTypeInformationListStack.size()-1, levels = wholeStack ? storedTypeInformationListStack.size() : 1; levels > 0; levels--,i--) {
 			for (IStoredTypeInformation info : storedTypeInformationListStack.get(i)) {
-				if (info.expressionRelevant(expression))
+				if (info.expressionRelevant(expression, this))
 					return info;
 			}
 		}

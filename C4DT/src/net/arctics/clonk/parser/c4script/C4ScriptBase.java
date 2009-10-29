@@ -30,6 +30,7 @@ import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 
 import net.arctics.clonk.ClonkCore;
+import net.arctics.clonk.index.C4Engine;
 import net.arctics.clonk.index.C4Object;
 import net.arctics.clonk.index.ClonkIndex;
 import net.arctics.clonk.parser.C4Declaration;
@@ -261,7 +262,7 @@ public abstract class C4ScriptBase extends C4Structure implements IHasRelatedRes
 		info.recursion--;
 
 		// finally look if it's something global
-		if (info.recursion == 0 && this != ClonkCore.getDefault().getActiveEngine()) { // .-.
+		if (info.recursion == 0 && !(this instanceof C4Engine)) { // .-.
 			C4Declaration f = null;
 			// definition from extern index
 			if (Utilities.looksLikeID(name)) {
@@ -276,7 +277,7 @@ public abstract class C4ScriptBase extends C4Structure implements IHasRelatedRes
 			}
 			// engine function
 			if (f == null)
-				f = ClonkCore.getDefault().getActiveEngine().findDeclaration(name, info);
+				f = getIndex().getEngine().findDeclaration(name, info);
 
 			if (f != null && (info.declarationClass == null || info.declarationClass.isAssignableFrom(f.getClass())))
 				return f;

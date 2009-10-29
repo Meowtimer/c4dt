@@ -306,7 +306,7 @@ public class C4Function extends C4Structure implements Serializable, ITypedDecla
 			if (f == null)
 				f = ClonkCore.getDefault().getExternIndex().findGlobalFunction(getName());
 			if (f == null)
-				f = ClonkCore.getDefault().getActiveEngine().findFunction(getName());
+				f = getScript().getIndex().getEngine().findFunction(getName());
 			return f;
 		}
 		List<C4Declaration> decsWithSameName = getScript().getIndex().getDeclarationMap().get(this.getName());
