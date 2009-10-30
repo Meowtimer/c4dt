@@ -288,14 +288,14 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 				proposalForVar(v, prefix, wordOffset, proposals);
 			}
 		}
-		
-		if (!contextObjChanged) {
-			if (proposalCycle != ProposalCycle.SHOW_OBJECT)
-				proposalsForIndex(index, offset, wordOffset, prefix, proposals);;
-			if (proposalCycle == ProposalCycle.SHOW_ALL)
-				proposalsForIndex(ClonkCore.getDefault().getExternIndex(), offset, wordOffset, prefix, proposals);
-		}
-		
+
+
+		if (proposalCycle != ProposalCycle.SHOW_OBJECT)
+			proposalsForIndex(index, offset, wordOffset, prefix, proposals);
+		if (proposalCycle == ProposalCycle.SHOW_ALL)
+			proposalsForIndex(ClonkCore.getDefault().getExternIndex(), offset, wordOffset, prefix, proposals);
+
+
 		if (contextScript != null) {
 			proposalsFromScript(contextScript, new HashSet<C4ScriptBase>(), prefix, offset, wordOffset, proposals, contextObjChanged, index);
 		}
