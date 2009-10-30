@@ -25,7 +25,16 @@ public class ProjectIndex extends ClonkIndex {
 	private transient IProject project;
 	private Collection<String> dependencyNames;
 	private transient BitSet externalLibBitSet;
+	private String engineName;
 	
+	public String getEngineName() {
+		return engineName;
+	}
+
+	public void setEngineName(String engineName) {
+		this.engineName = engineName;
+	}
+
 	public List<ExternalLib> getDependencies() {
 		List<ExternalLib> allLibs = ClonkCore.getDefault().getExternIndex().getLibs();
 		// no explicit dependencies specified; return all set in preferences

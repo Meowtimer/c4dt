@@ -44,11 +44,11 @@ public class DeclarationLocator extends ExpressionLocator {
 	public ITextEditor getEditor() {
 		return editor;
 	}
-	
+
 	private static IPredicate<C4Declaration> isFunc = new IPredicate<C4Declaration>() {
 		public boolean test(C4Declaration item) {
-            return item instanceof C4Function;
-        }
+			return item instanceof C4Function;
+		}
 	};
 	
 	public DeclarationLocator(ITextEditor editor, IDocument doc, IRegion region) throws BadLocationException, ParsingException {
