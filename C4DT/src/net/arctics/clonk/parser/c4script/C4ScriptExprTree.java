@@ -88,6 +88,13 @@ public abstract class C4ScriptExprTree {
 				return "Empty DeclarationRegion"; //$NON-NLS-1$
 		}
 	}
+	
+	private static final IConverter<ExprElm, Object> EVALUATE_EXPR = new IConverter<ExprElm, Object>() {
+		@Override
+        public Object convert(ExprElm from) {
+            return from != null ? from.evaluate() : null;
+        }
+	};
 
 	/**
 	 * @author madeen
@@ -1205,13 +1212,6 @@ public abstract class C4ScriptExprTree {
 			return super.createStoredTypeInformation(parser);
 		}
 		
-		private static final IConverter<ExprElm, Object> EVALUATE_EXPR = new IConverter<ExprElm, Object>() {
-			@Override
-            public Object convert(ExprElm from) {
-	            return from != null ? from.evaluate() : null;
-            }
-		};
-		
 		@Override
 		public Object evaluate() {
 		    if (declaration instanceof C4Function) {
@@ -2049,6 +2049,11 @@ public abstract class C4ScriptExprTree {
 			}
 			return type == C4Type.UNKNOWN ? super.getExemplaryArrayElement(context) : ExprElm.getExprElmForType(type);
 		}
+		
+		@Override
+		public Object evaluate() {
+			return Utilities.map(getElements(), Object.class, EVALUATE_EXPR);
+		}
 
 	}
 
@@ -2374,6 +2379,11 @@ public abstract class C4ScriptExprTree {
 		@Override
 		public boolean hasSideEffects() {
 			return expression.hasSideEffects();
+		}
+		
+		@Override
+		public Object evaluate() {
+			return expression.evaluate();
 		}
 
 	}

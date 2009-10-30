@@ -21,14 +21,13 @@ import net.arctics.clonk.util.Utilities;
 public class Command {
 	public static final C4ScriptBase COMMAND_BASESCRIPT;
 	
-	public @interface CommandFunction {}
-	
 	public static class C4CommandScript extends C4ScriptBase {
 		
 		private class C4CommandFunction extends C4Function {
             private static final long serialVersionUID = 1L;
             
 			private Statement[] statements;
+			
 			@Override
 			public Object invoke(Object... args) {
 			    for (Statement s : statements) {
@@ -95,10 +94,10 @@ public class Command {
 		}
 		
 		@Override
-		public C4ScriptBase[] getIncludes() {
-		    return new C4ScriptBase[] {
-		    	COMMAND_BASESCRIPT
-		    };
+		public C4ScriptBase[] getIncludes(ClonkIndex index) {
+			return new C4ScriptBase[] {
+				COMMAND_BASESCRIPT
+			};
 		}
 		
 		public C4CommandFunction getMain() {
@@ -127,9 +126,24 @@ public class Command {
 	                return null;
                 }
 			}
+			
+			@Override
+			public String getName() {
+				return "CommandBaseScript";
+			};
+			
+			@Override
+			public String getNodeName() {
+				return getName();
+			};
+			
 		};
 		
-		for (Method m : Command.class.getMethods()) {
+		registerCommandsFromClass(Command.class);
+	}
+
+	private static void registerCommandsFromClass(Class<?> classs) {
+		for (Method m : classs.getMethods()) {
 			if (m.getAnnotation(CommandFunction.class) != null)
 				addCommand(m);
 		}
@@ -162,7 +176,13 @@ public class Command {
 		COMMAND_BASESCRIPT.addDeclaration(new C4CommandFunction(COMMAND_BASESCRIPT, method));
 	}
 	
+	@CommandFunction
 	public static void Log(Object context, String message) {
 		System.out.println(message);
+	}
+	
+	@CommandFunction
+	public static String Format(Object context, String format, Object... args) {
+		return String.format(format, args);
 	}
 }

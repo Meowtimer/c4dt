@@ -138,7 +138,7 @@ public abstract class C4ScriptBase extends C4Structure implements IHasRelatedRes
 	 * Does the same as gatherIncludes except that the user does not have to create their own list and does not even have to supply an index (defaulting to getIndex()) 
 	 * @return The includes
 	 */
-	public C4ScriptBase[] getIncludes() {
+	public final C4ScriptBase[] getIncludes() {
 		ClonkIndex index = getIndex();
 		if (index == null)
 			return NO_INCLUDES;
