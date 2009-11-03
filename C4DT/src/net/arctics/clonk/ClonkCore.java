@@ -42,7 +42,6 @@ import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.QualifiedName;
 import org.eclipse.jface.dialogs.ProgressMonitorDialog;
 import org.eclipse.jface.resource.ImageDescriptor;
@@ -499,10 +498,6 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 
 	public static String id(String id) {
 		return PLUGIN_ID + "." + id; //$NON-NLS-1$
-	}
-
-	public String getLanguagePref() {
-		return Platform.getPreferencesService().getString(PLUGIN_ID, ClonkPreferences.PREFERRED_LANGID, "DE", null); //$NON-NLS-1$
 	}
 
 	/**

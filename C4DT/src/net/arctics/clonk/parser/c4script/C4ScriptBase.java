@@ -39,6 +39,7 @@ import net.arctics.clonk.parser.C4Structure;
 import net.arctics.clonk.parser.c4script.C4Directive.C4DirectiveType;
 import net.arctics.clonk.parser.c4script.C4Variable.C4VariableScope;
 import net.arctics.clonk.parser.stringtbl.StringTbl;
+import net.arctics.clonk.preferences.ClonkPreferences;
 import net.arctics.clonk.util.CompoundIterable;
 import net.arctics.clonk.util.IHasRelatedResource;
 import net.arctics.clonk.util.INode;
@@ -581,7 +582,7 @@ public abstract class C4ScriptBase extends C4Structure implements IHasRelatedRes
 			if (res == null)
 				return null;
 			IContainer container = res instanceof IContainer ? (IContainer) res : res.getParent();
-			String pref = ClonkCore.getDefault().getLanguagePref();
+			String pref = ClonkPreferences.getLanguagePref();
 			IResource tblFile = Utilities.findMemberCaseInsensitively(container, "StringTbl"+pref+".txt"); //$NON-NLS-1$ //$NON-NLS-2$
 			if (tblFile instanceof IFile)
 				return (StringTbl) C4Structure.pinned((IFile) tblFile, true);
@@ -665,7 +666,7 @@ public abstract class C4ScriptBase extends C4Structure implements IHasRelatedRes
 	public String getInfoText() {
 		Object f = getScriptFile();
 		if (f instanceof IFile) {
-			IResource infoFile = Utilities.findMemberCaseInsensitively(((IFile)f).getParent(), "Desc"+ClonkCore.getDefault().getLanguagePref()+".txt"); //$NON-NLS-1$ //$NON-NLS-2$
+			IResource infoFile = Utilities.findMemberCaseInsensitively(((IFile)f).getParent(), "Desc"+ClonkPreferences.getLanguagePref()+".txt"); //$NON-NLS-1$ //$NON-NLS-2$
 			if (infoFile instanceof IFile) {
 				try {
 					return Utilities.stringFromFile((IFile) infoFile);

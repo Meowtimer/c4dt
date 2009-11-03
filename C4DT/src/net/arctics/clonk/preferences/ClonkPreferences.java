@@ -27,6 +27,7 @@ public class ClonkPreferences {
 	public static final String EXTERNAL_INDEX_ENCODING_DEFAULT = "ISO-8859-1"; //$NON-NLS-1$
 	public static final String DOC_URL_TEMPLATE_DEFAULT = Messages.DocURLTemplateDefault;
 	public static final String ACTIVE_ENGINE_DEFAULT = "ClonkRage"; //$NON-NLS-1$
+	public static final String PREFERRED_LANGID_DEFAULT = "DE"; //$NON-NLS-1$
 	
 	private static final Map<String, Field> valueFieldMapping = new HashMap<String, Field>();
 	
@@ -59,5 +60,9 @@ public class ClonkPreferences {
 	
 	public static String getPreference(String prefName) {
 		return getPreference(prefName, null, null);
+	}
+	
+	public static String getLanguagePref() {
+		return getPreferenceOrDefault(PREFERRED_LANGID);
 	}
 }

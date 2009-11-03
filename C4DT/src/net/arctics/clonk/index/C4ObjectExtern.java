@@ -114,7 +114,7 @@ public class C4ObjectExtern extends C4Object implements ITreeNode, IExternalScri
 	
 	@Override
 	public String getInfoText() {
-		String locDesc = getDesc(ClonkCore.getDefault().getLanguagePref());
+		String locDesc = getDesc(ClonkPreferences.getLanguagePref());
 		if (locDesc != null)
 			return String.format(INFO_TEXT_TEMPLATE, getName(), locDesc, this.getPath().toOSString());
 		return super.getInfoText();
