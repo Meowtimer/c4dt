@@ -1,12 +1,13 @@
 package net.arctics.clonk.ui.editors;
 
+import java.net.MalformedURLException;
 import java.net.URL;
 
-import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.C4Declaration;
 import net.arctics.clonk.preferences.ClonkPreferences;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.hyperlink.IHyperlink;
+import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.browser.IWebBrowser;
 import org.eclipse.ui.browser.IWorkbenchBrowserSupport;
 import org.eclipse.ui.internal.browser.WorkbenchBrowserSupport;
@@ -43,25 +44,29 @@ public class ClonkHyperlink implements IHyperlink {
 			if (ClonkTextEditor.openDeclaration(target) == null) {
 				// can't open editor so try something else like opening up a documentation page in the browser
 				if (target.isEngineDeclaration()) {
-					String docURLTemplate = ClonkPreferences.getPreferenceOrDefault(ClonkPreferences.DOC_URL_TEMPLATE);
-					IWorkbenchBrowserSupport support = WorkbenchBrowserSupport.getInstance();
-					IWebBrowser browser;
-					if (support.isInternalWebBrowserAvailable()) {
-						browser = support.createBrowser(null);
-					}
-					else {
-						browser = support.getExternalBrowser();
-					}
-					if (browser != null)
-						browser.openURL(new URL(String.format(
-							docURLTemplate,
-							target.getName(), ClonkCore.getDefault().getLanguagePref().toLowerCase()
-						)));
+					openDocumentationForFunction(target.getName());
 				}
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+	}
+
+	public static void openDocumentationForFunction(String functionName) throws PartInitException, MalformedURLException {
+		String docURLTemplate = ClonkPreferences.getPreferenceOrDefault(ClonkPreferences.DOC_URL_TEMPLATE);
+		IWorkbenchBrowserSupport support = WorkbenchBrowserSupport.getInstance();
+		IWebBrowser browser;
+		if (support.isInternalWebBrowserAvailable()) {
+			browser = support.createBrowser(null);
+		}
+		else {
+			browser = support.getExternalBrowser();
+		}
+		if (browser != null)
+			browser.openURL(new URL(String.format(
+				docURLTemplate,
+				functionName, ClonkPreferences.getLanguagePref().toLowerCase()
+			)));
 	}
 
 	public IRegion getRegion() {
