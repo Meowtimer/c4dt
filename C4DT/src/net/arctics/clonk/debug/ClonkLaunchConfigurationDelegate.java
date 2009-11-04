@@ -22,7 +22,9 @@ import org.eclipse.debug.core.DebugPlugin;
 import org.eclipse.debug.core.ILaunch;
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.ILaunchManager;
+import org.eclipse.debug.core.model.IDebugTarget;
 import org.eclipse.debug.core.model.ILaunchConfigurationDelegate;
+import org.eclipse.debug.core.model.IProcess;
 import org.eclipse.jface.preference.IPreferenceStore;
 
 public class ClonkLaunchConfigurationDelegate implements
@@ -35,12 +37,14 @@ public class ClonkLaunchConfigurationDelegate implements
 	public static final String ATTR_FULLSCREEN = ClonkCore.id("debug.FullscreenAttr"); //$NON-NLS-1$
 	public static final String ATTR_RECORD = ClonkCore.id("debug.RecordAttr"); //$NON-NLS-1$
 	
+	public static int DEFAULT_DEBUG_PORT = 10464;
+	
 	public void launch(ILaunchConfiguration configuration, String mode, ILaunch launch,
 			IProgressMonitor monitor) throws CoreException {
 
 		// Run only for now
-		if(!mode.equals(ILaunchManager.RUN_MODE))
-			abort(IStatus.ERROR, Messages.LauncherOnlySupportsRunMode);
+		/*if(!mode.equals(ILaunchManager.RUN_MODE))
+			abort(IStatus.ERROR, Messages.LauncherOnlySupportsRunMode);*/
 		
 		// Set up monitor
 		if(monitor == null)
@@ -52,7 +56,7 @@ public class ClonkLaunchConfigurationDelegate implements
 			// Get scenario and engine
 			IResource scenario = verifyScenario(configuration);
 			File engine = verifyClonkInstall(configuration);
-			String[] launchArgs = verifyLaunchArguments(configuration, scenario, engine);
+			String[] launchArgs = verifyLaunchArguments(configuration, scenario, engine, mode);
 			
 			// Working directory (work around a bug in early Linux engines)
 			File workDirectory = engine.getParentFile();
@@ -65,7 +69,15 @@ public class ClonkLaunchConfigurationDelegate implements
 			// Run the engine
 			try {
 				Process process = Runtime.getRuntime().exec(launchArgs, null, workDirectory);
-				DebugPlugin.newProcess(launch, process, configuration.getName());
+				IProcess p = DebugPlugin.newProcess(launch, process, configuration.getName());
+				if (mode.equals(ILaunchManager.DEBUG_MODE)) {
+					try {
+						IDebugTarget target = new ClonkDebugTarget(launch, p, DEFAULT_DEBUG_PORT);
+						launch.addDebugTarget(target);
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
+				}
 			} catch(IOException e) {
 				abort(IStatus.ERROR, Messages.CouldNotStartEngine, e);
 			}
@@ -162,9 +174,10 @@ public class ClonkLaunchConfigurationDelegate implements
 	
 	/** 
 	 * Collects arguments to pass to the engine at launch
+	 * @param mode 
 	 */
 	public String[] verifyLaunchArguments(ILaunchConfiguration configuration,
-			IResource scenario, File engine) throws CoreException {
+			IResource scenario, File engine, String mode) throws CoreException {
 		Collection<String> args = new LinkedList<String>();  
 			
 		// Engine
@@ -182,6 +195,12 @@ public class ClonkLaunchConfigurationDelegate implements
 		// Record
 		if(configuration.getAttribute(ATTR_RECORD, false))
 			args.add("/record"); //$NON-NLS-1$
+	
+		// Debug
+		if (mode.equals(ILaunchManager.DEBUG_MODE)) {
+			args.add(String.format("/debug:%d", DEFAULT_DEBUG_PORT));
+			args.add("/debugwait");
+		}
 		
 		return args.toArray(new String [] {});
 	}

@@ -1,7 +1,13 @@
 package net.arctics.clonk.command;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Method;
+import java.net.Socket;
+import java.net.UnknownHostException;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -16,6 +22,7 @@ import net.arctics.clonk.parser.c4script.C4ScriptExprTree.ExprElm;
 import net.arctics.clonk.parser.c4script.C4ScriptExprTree.IExpressionListener;
 import net.arctics.clonk.parser.c4script.C4ScriptExprTree.Statement;
 import net.arctics.clonk.parser.c4script.C4ScriptExprTree.TraversalContinuation;
+import net.arctics.clonk.ui.editors.ClonkHyperlink;
 import net.arctics.clonk.util.Utilities;
 
 public class Command {
@@ -140,6 +147,7 @@ public class Command {
 		};
 		
 		registerCommandsFromClass(Command.class);
+		registerCommandsFromClass(DebugCommands.class);
 	}
 
 	private static void registerCommandsFromClass(Class<?> classs) {
@@ -185,4 +193,67 @@ public class Command {
 	public static String Format(Object context, String format, Object... args) {
 		return String.format(format, args);
 	}
+	
+	@CommandFunction
+	public static void OpenDoc(Object context, String funcName) {
+		try {
+			ClonkHyperlink.openDocumentationForFunction(funcName);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
+	public static class DebugCommands {
+
+		private static Socket debugSocket;
+		private static PrintWriter debugSocketWriter;
+		private static BufferedReader debugSocketReader;
+
+		@CommandFunction
+		public static void ConnectToDebugSocket(Object context, long port) {
+			try {
+				debugSocket = new Socket("localhost", (int) port);
+				debugSocketWriter = new PrintWriter(debugSocket.getOutputStream());
+				debugSocketReader = new BufferedReader(new InputStreamReader(debugSocket.getInputStream()));
+			} catch (UnknownHostException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+
+		@CommandFunction
+		public static void CloseDebugSocket(Object context) {
+			if (debugSocket != null)
+				try {
+					debugSocketReader.close();
+					debugSocketReader = null;
+					debugSocketWriter.close();
+					debugSocketWriter = null;
+					debugSocket.close();
+					debugSocket = null;
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+		}
+
+		@CommandFunction
+		public static void SendToDebugSocket(Object context, String command) {
+			if (debugSocketWriter != null) {
+				debugSocketWriter.println(command);
+				debugSocketWriter.flush();
+			}
+			String line;
+			try {
+				if ((line = debugSocketReader.readLine()) != null)
+					System.out.println(line);
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+
+	}
+	
 }

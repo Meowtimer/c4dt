@@ -19,6 +19,36 @@ public class InvokeCommandAction extends Action implements IWorkbenchWindowActio
 	
 	private static final String COMMAND_SCRIPT_TEMPLATE = "func Main() {%s;}";
 	
+	/*private static class InputDialogWithHistory extends InputDialog {
+
+		private static Stack<String> backStack = new Stack<String>();
+		private static Stack<String> forwardStack = new Stack<String>();
+		
+		public InputDialogWithHistory(Shell parentShell, String dialogTitle,
+				String dialogMessage, String initialValue,
+				IInputValidator validator) {
+			super(parentShell, dialogTitle, dialogMessage, initialValue, validator);
+			getText().addKeyListener(new KeyListener() {
+				@Override
+				public void keyPressed(KeyEvent e) {
+					// TODO Auto-generated method stub
+					
+				}
+				@Override
+				public void keyReleased(KeyEvent e) {
+					if (e.keyCode == SWT.KeyUp) {
+						if (!backStack.isEmpty()) {
+							String text = backStack.pop();
+							forwardStack.push
+							getText().setText(text);
+						}
+					}
+				}
+			});
+		}
+		
+	}*/
+	
 	@Override
 	public void run() {
 	    InputDialog inputDialog = new InputDialog(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(),
