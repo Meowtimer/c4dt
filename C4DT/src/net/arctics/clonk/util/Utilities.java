@@ -147,6 +147,15 @@ public abstract class Utilities {
 		else return null;
 	}
 	
+	public static C4ScriptBase getScriptForResource(IResource resource) throws CoreException {
+		if (resource instanceof IContainer)
+			return C4ObjectIntern.objectCorrespondingTo((IContainer) resource);
+		else if (resource instanceof IFile)
+			return getScriptForFile((IFile) resource);
+		else
+			return null;
+	}
+	
 	public static C4ScriptBase getScriptForFile(IFile scriptFile) {
 		C4ScriptBase script;
 		try {

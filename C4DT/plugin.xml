@@ -382,11 +382,21 @@
 			searchResultClass="net.arctics.clonk.ui.search.ClonkSearchResult"
 			class="net.arctics.clonk.ui.search.ClonkSearchResultPage" />
 	</extension>
+	
+	<extension point="org.eclipse.debug.core.sourceLocators">
+	    <sourceLocator
+	          class="net.arctics.clonk.debug.ClonkDebugSourceLocator"
+	          id="net.arctics.clonk.debug.ClonkDebugSourceLocator"
+	          name="Clonk Debug Source Locator">
+	    </sourceLocator>
+	</extension>
 
 	<extension point="org.eclipse.debug.core.launchConfigurationTypes">
 		<launchConfigurationType id="net.arctics.clonk.debug.ClonkLaunch"
 			delegate="net.arctics.clonk.debug.ClonkLaunchConfigurationDelegate"
-			modes="run,debug" name="Clonk" />
+			modes="run,debug" name="Clonk" 
+			sourceLocatorId="net.arctics.clonk.debug.ClonkDebugSourceLocator"
+		/>
 	</extension>
 
 	<extension point="org.eclipse.debug.ui.launchConfigurationTypeImages">

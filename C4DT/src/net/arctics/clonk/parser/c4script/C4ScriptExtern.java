@@ -31,6 +31,11 @@ public class C4ScriptExtern extends C4ScriptBase implements IExternalScript {
 	}
 
 	@Override
+	public String getScriptText() {
+		return scriptStorage.getContentsAsString();
+	}
+	
+	@Override
 	public Object getScriptFile() {
 		return scriptStorage;
 	}

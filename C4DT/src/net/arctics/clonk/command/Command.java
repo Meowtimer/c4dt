@@ -56,6 +56,11 @@ public class Command {
         }
 
 		@Override
+		public String getScriptText() {
+			return script;
+		}
+		
+		@Override
         public Object getScriptFile() {
 			try {
 	            return new SimpleScriptStorage(getName(), script);
@@ -252,6 +257,13 @@ public class Command {
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
+		}
+		
+		@CommandFunction
+		public static void Testing(Object context, String value) {
+			for (int i = 0; i < value.length(); i++)
+				System.out.println((int)value.charAt(i));
+			System.out.println(Integer.parseInt(value));
 		}
 
 	}

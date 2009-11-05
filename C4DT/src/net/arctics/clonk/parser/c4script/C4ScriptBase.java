@@ -33,6 +33,7 @@ import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.index.C4Engine;
 import net.arctics.clonk.index.C4Object;
 import net.arctics.clonk.index.ClonkIndex;
+import net.arctics.clonk.parser.BufferedScanner;
 import net.arctics.clonk.parser.C4Declaration;
 import net.arctics.clonk.parser.C4ID;
 import net.arctics.clonk.parser.C4Structure;
@@ -74,6 +75,92 @@ public abstract class C4ScriptBase extends C4Structure implements IHasRelatedRes
 	protected List<C4Function> definedFunctions = new LinkedList<C4Function>();
 	protected List<C4Variable> definedVariables = new LinkedList<C4Variable>();
 	protected List<C4Directive> definedDirectives = new LinkedList<C4Directive>();
+	
+	private static class MutableRegion implements IRegion {
+
+		private int length;
+		private int offset;
+		
+		public MutableRegion(int length, int offset) {
+			super();
+			this.length = length;
+			this.offset = offset;
+		}
+		
+		@Override
+		public int getLength() {
+			return length;
+		}
+
+		@Override
+		public int getOffset() {
+			return offset;
+		}
+
+		public void setLength(int length) {
+			this.length = length;
+		}
+
+		public void setOffset(int offset) {
+			this.offset = offset;
+		}
+		
+	}
+	
+	private transient C4Function[] lineToFunctionMap;
+	
+	public String getScriptText() {
+		return "";
+	}
+	
+	public C4Function funcAtLine(int line) {
+		if (line < 0)
+			return null;
+		calculateLineToFunctionMap();
+		return lineToFunctionMap != null && line < lineToFunctionMap.length ? lineToFunctionMap[line] : null;
+	}
+	
+	public void forgetLineToFunctionMap() {
+		lineToFunctionMap = null;
+	}
+	
+	public void calculateLineToFunctionMap() {
+		if (lineToFunctionMap != null)
+			return;
+		String scriptText = this.getScriptText();
+		MutableRegion region = new MutableRegion(scriptText.length(), 0);
+		int line = 0;
+		int lineStart = 0;
+		int lineEnd = 0;
+		List<C4Function> mappingAsList = new LinkedList<C4Function>();
+		for (BufferedScanner scanner = new BufferedScanner(scriptText); !scanner.reachedEOF();) {
+			int read = scanner.read();
+			boolean newLine = false;
+			switch (read) {
+			case '\r':
+				line++;
+				newLine = true;
+				if (scanner.read() != '\n')
+					scanner.unread();
+				break;
+			case '\n':
+				line++;
+				newLine = true;
+				break;
+			default:
+				lineEnd = scanner.getPosition();
+			}
+			if (newLine) {
+				region.setOffset(lineStart);
+				region.setLength(lineEnd-lineStart);
+				C4Function f = this.funcAt(region);
+				mappingAsList.add(f);
+				lineStart = scanner.getPosition();
+			}
+		}
+		
+		lineToFunctionMap = mappingAsList.toArray(new C4Function[mappingAsList.size()]);
+	}
 
 	/**
 	 * Returns the strict level of the script

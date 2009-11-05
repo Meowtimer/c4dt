@@ -1,27 +1,36 @@
 package net.arctics.clonk.debug;
 
+import org.eclipse.debug.core.DebugEvent;
+import org.eclipse.debug.core.DebugPlugin;
 import org.eclipse.debug.core.ILaunch;
 import org.eclipse.debug.core.model.IDebugElement;
 import org.eclipse.debug.core.model.IDebugTarget;
 
 public class ClonkDebugElement implements IDebugElement {
 
+	private ClonkDebugTarget target;
+
+	public ClonkDebugElement(ClonkDebugTarget target) {
+		this.target = target;
+	}
+
+	public ClonkDebugTarget getTarget() {
+		return target;
+	}
+	
 	@Override
 	public IDebugTarget getDebugTarget() {
-		// TODO Auto-generated method stub
-		return null;
+		return target;
 	}
 
 	@Override
 	public ILaunch getLaunch() {
-		// TODO Auto-generated method stub
-		return null;
+		return target.getLaunch();
 	}
 
 	@Override
 	public String getModelIdentifier() {
-		// TODO Auto-generated method stub
-		return null;
+		return target.getModelIdentifier();
 	}
 
 	@SuppressWarnings("rawtypes")
@@ -29,6 +38,22 @@ public class ClonkDebugElement implements IDebugElement {
 	public Object getAdapter(Class adapter) {
 		// TODO Auto-generated method stub
 		return null;
+	}
+	
+	protected void fireEvent(DebugEvent event) {
+		DebugPlugin.getDefault().fireDebugEventSet(new DebugEvent[] {event});
+	}
+	
+	public void fireResumeEvent(int detail) {
+		fireEvent(new DebugEvent(this, DebugEvent.RESUME, detail));
+	}
+	
+	public void fireSuspendEvent(int detail) {
+		fireEvent(new DebugEvent(this, DebugEvent.SUSPEND, detail));
+	}
+	
+	protected void fireTerminateEvent() {
+		fireEvent(new DebugEvent(this, DebugEvent.TERMINATE));
 	}
 	
 }

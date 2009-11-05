@@ -72,7 +72,7 @@ public class ClonkLaunchConfigurationDelegate implements
 				IProcess p = DebugPlugin.newProcess(launch, process, configuration.getName());
 				if (mode.equals(ILaunchManager.DEBUG_MODE)) {
 					try {
-						IDebugTarget target = new ClonkDebugTarget(launch, p, DEFAULT_DEBUG_PORT);
+						IDebugTarget target = new ClonkDebugTarget(launch, p, DEFAULT_DEBUG_PORT, scenario);
 						launch.addDebugTarget(target);
 					} catch (Exception e) {
 						e.printStackTrace();

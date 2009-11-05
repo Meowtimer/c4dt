@@ -44,6 +44,11 @@ public class C4ObjectExtern extends C4Object implements ITreeNode, IExternalScri
 		else
 			this.nodeName = name;
 	}
+	
+	@Override
+	public String getScriptText() {
+		return script.getContentsAsString();
+	}
 
 	@Override
 	public Object getScriptFile() {

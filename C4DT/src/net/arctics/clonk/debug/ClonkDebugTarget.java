@@ -10,6 +10,9 @@ import java.net.UnknownHostException;
 import net.arctics.clonk.ClonkCore;
 
 import org.eclipse.core.resources.IMarkerDelta;
+import org.eclipse.core.resources.IResource;
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.debug.core.DebugEvent;
 import org.eclipse.debug.core.DebugException;
 import org.eclipse.debug.core.DebugPlugin;
 import org.eclipse.debug.core.ILaunch;
@@ -19,7 +22,7 @@ import org.eclipse.debug.core.model.IMemoryBlock;
 import org.eclipse.debug.core.model.IProcess;
 import org.eclipse.debug.core.model.IThread;
 
-public class ClonkDebugTarget implements IDebugTarget {
+public class ClonkDebugTarget extends ClonkDebugElement implements IDebugTarget {
 
 	private ILaunch launch;
 	private IProcess process;
@@ -29,6 +32,7 @@ public class ClonkDebugTarget implements IDebugTarget {
 	private PrintWriter socketWriter;
 	private BufferedReader socketReader;
 	private boolean suspended;
+	private IResource scenario;
 	
 	public PrintWriter getSocketWriter() {
 		return socketWriter;
@@ -38,20 +42,58 @@ public class ClonkDebugTarget implements IDebugTarget {
 		return socketReader;
 	}
 	
-	synchronized private void setConnectionObjects(Socket socket, PrintWriter socketWriter, BufferedReader socketReader) {
+	synchronized private void setConnectionObjects(Socket socket, PrintWriter socketWriter, BufferedReader socketReader_) {
 		this.socket = socket;
 		this.socketWriter = socketWriter;
-		this.socketReader = socketReader;
+		this.socketReader = socketReader_;
 		
 		send("");
+		
+		new Thread(new Runnable() {
+			@Override
+			public void run() {
+				String event = "";
+				while (!isTerminated() && event != null) {
+					try {
+						event = socketReader.readLine();
+						if (event != null && event.length() > 0) {
+							System.out.println("Got line from Clonk: " + event);
+							if (event.startsWith("POS")) {
+								String sourcePath = event.substring(4, event.length() - (event.charAt(event.length()-1)==0?1:0)); // cut off weird 0 at end
+								stoppedAtPath(sourcePath);
+							}
+						}
+					} catch (IOException e) {
+						e.printStackTrace();
+						terminated();
+						break;
+					}
+				}
+			}
+		}, "Clonk Debugger Event Dispatch").start();
+	}
+	
+	private void stoppedAtPath(String sourcePath) {
+		try {
+			thread.setSourcePath(sourcePath);
+		} catch (CoreException e) {
+			e.printStackTrace();
+			return;
+		}
+		fireEvent(new DebugEvent(this, DebugEvent.STEP_INTO));
 	}
 
-	public ClonkDebugTarget(ILaunch launch, IProcess process, final int port) throws Exception {
-	     this.launch = launch;
-	     this.process = process;
-	     this.thread = new ClonkDebugThread(this);
-	     this.threads = new IThread[] {thread};
-	     new Thread(new Runnable() {
+	public ClonkDebugTarget(ILaunch launch, IProcess process, final int port, IResource scenario) throws Exception {
+
+		super(null);
+
+		this.launch = launch;
+		this.process = process;
+		this.thread = new ClonkDebugThread(this);
+		this.threads = new IThread[] {thread};
+		this.scenario = scenario;
+
+		new Thread(new Runnable() {
 			@Override
 			public void run() {
 				boolean success = false;
@@ -84,10 +126,18 @@ public class ClonkDebugTarget implements IDebugTarget {
 				else
 					System.out.println("Clonk Debugger: Connected successfully!");
 			}
-	     }, "Clonk Debugger Connection Thread").start();
-	     DebugPlugin.getDefault().getBreakpointManager().addBreakpointListener(this);
+		}, "Clonk Debugger Connection Thread").start();
+
+		DebugPlugin.getDefault().getBreakpointManager().addBreakpointListener(this);
+
+		//launch.setsou
+
 	}
-	
+
+	public IResource getScenario() {
+		return scenario;
+	}
+
 	private void abort(String message, Exception e) throws Exception {
 		System.out.println(message);
 		throw e;
@@ -151,6 +201,16 @@ public class ClonkDebugTarget implements IDebugTarget {
 		return process.isTerminated();
 	}
 
+	public void terminated() {
+		try {
+			terminate();
+		} catch (DebugException e) {
+			e.printStackTrace();
+		}
+		DebugPlugin.getDefault().getBreakpointManager().removeBreakpointListener(this);
+		fireTerminateEvent();
+	}
+	
 	@Override
 	public void terminate() throws DebugException {
 		disconnect();
@@ -180,11 +240,6 @@ public class ClonkDebugTarget implements IDebugTarget {
 	public synchronized void send(String command) {
 		socketWriter.println(command);
 		socketWriter.flush();
-		try {
-			String line = socketReader.readLine();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
 	}
 
 	@Override

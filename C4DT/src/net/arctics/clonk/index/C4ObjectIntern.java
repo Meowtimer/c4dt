@@ -81,6 +81,15 @@ public class C4ObjectIntern extends C4Object implements Serializable {
 		else return (IFile) res;
 	}
 	
+	@Override
+	public String getScriptText() {
+		try {
+			return Utilities.stringFromFile(getScriptFile());
+		} catch (Exception e) {
+			return null;
+		}
+	}
+	
 	public IFile getDefCoreFile() {
 		IResource res = Utilities.findMemberCaseInsensitively(this.objectFolder, "DefCore.txt"); //$NON-NLS-1$
 		if (res == null || !(res instanceof IFile)) return null;
