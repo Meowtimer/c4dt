@@ -6,7 +6,6 @@ import net.arctics.clonk.parser.c4script.C4Function;
 
 /**
  * Contains cached engine functions that may be used frequently.
- * FIXME: if engine index is modified/recreated stuff depending on those functions won't work properly
  */
 public class CachedEngineFuncs {
 	
