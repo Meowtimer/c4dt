@@ -58,14 +58,12 @@ public class ClonkPreferencePage extends FieldEditorPreferencePage implements IW
 		@Override
 		protected String createList(String[] items) {
 			StringBuilder result = new StringBuilder();
-			for(String item : items) {
-				result.append(item);
-				result.append("<>"); //$NON-NLS-1$
+			for (int i = 0; i < items.length; i++) {
+				if (i > 0)
+					result.append("<>"); //$NON-NLS-1$
+				result.append(items[i]);
 			}
-			if (result.length() > 2)
-				return result.substring(0, result.length() - 2);
-			else
-				return null;
+			return result.toString();
 		}
 		
 		public String[] getValues() {
