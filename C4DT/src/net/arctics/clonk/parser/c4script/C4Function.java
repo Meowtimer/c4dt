@@ -295,31 +295,23 @@ public class C4Function extends C4Structure implements Serializable, ITypedDecla
 	}
 	
 	public C4Function getInherited() {
-		if (getVisibility() == C4FunctionScope.FUNC_GLOBAL) {
-			C4Function f = null;
-			for (C4Function funcWithSameName : getScript().getIndex().declarationsWithName(this.name, C4Function.class)) {
-				if (funcWithSameName == this) {
-					break;
-				}
-				f = funcWithSameName;
-			}
-			if (f == null)
-				f = ClonkCore.getDefault().getExternIndex().findGlobalFunction(getName());
-			if (f == null)
-				f = getScript().getIndex().getEngine().findFunction(getName());
-			return f;
-		}
 		List<C4Declaration> decsWithSameName = getScript().getIndex().getDeclarationMap().get(this.getName());
 		if (decsWithSameName != null) {
-			C4Function inheritedInSameScript = null;
+			C4Function f = null;
+			int rating = 0;
 			for (C4Declaration d : decsWithSameName) {
-				if (d == this)
+				if (d == this || !(d instanceof C4Function))
 					break;
-				if (d instanceof C4Function && d.getParentDeclaration() == this.getParentDeclaration())
-					inheritedInSameScript = (C4Function) d;
+				int rating_ = 0;
+				if (d.getParentDeclaration() == this.getParentDeclaration())
+					rating_++;
+				if (rating_ > rating) {
+					f = (C4Function) d;
+					rating = rating_;
+				}
 			}
-			if (inheritedInSameScript != null)
-				return inheritedInSameScript;
+			if (f != null)
+				return f;
 		}
 		C4ScriptBase[] includes = getScript().getIncludes();
 		for (int i = includes.length-1; i >= 0; i--) {
@@ -327,6 +319,14 @@ public class C4Function extends C4Structure implements Serializable, ITypedDecla
 			if (field != null && field != this)
 				return field;
 		}
+		
+		C4Function f = ClonkCore.getDefault().getExternIndex().findGlobalFunction(getName());
+		if (f != null)
+			return f;
+		f = getScript().getIndex().getEngine().findFunction(getName());
+		if (f != null)
+			return f;
+		
 		return null;
 	}
 	
