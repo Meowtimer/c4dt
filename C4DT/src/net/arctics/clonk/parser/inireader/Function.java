@@ -18,7 +18,7 @@ public class Function extends NamedReference implements IComplainingIniEntryValu
 		IFile f = iniUnit.getIniFile();
 		if (f != null) {
 			C4Object obj = C4ObjectIntern.objectCorrespondingTo(f.getParent());
-			if (obj != null && obj.findLocalFunction(this.toString(), true) == null)
+			if (obj != null && obj.findFunction(this.toString()) == null)
 				iniUnit.markerAtValue(ClonkCore.MARKER_C4SCRIPT_ERROR, ParserErrorCode.UndeclaredIdentifier, context, IMarker.SEVERITY_ERROR, toString());
 		}
 	}
