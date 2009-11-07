@@ -353,11 +353,14 @@ public class C4ScriptParser {
 				parseCodeOfFunction(function);
 			}
 			container.setDirty(false);
-			postProduction();
+			distillAdditionalInformation();
 		}
 	}
 
-	private void postProduction() {
+	/**
+	 * OC: get information out of the script that was previously to be found in additional files (like the name of the definition)
+	 */
+	public void distillAdditionalInformation() {
 		if (container instanceof C4Object) {
 			((C4Object)container).chooseLocalizedName();
 			C4Function definitionFunc = container.findFunction(Keywords.DefinitionFunc);

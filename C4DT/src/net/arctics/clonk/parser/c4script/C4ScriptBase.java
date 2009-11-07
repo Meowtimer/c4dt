@@ -63,7 +63,7 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
 /**
- * Base class for various objects that act as containers of stuff declared in scripts.
+ * Base class for various objects that act as containers of stuff declared in scripts/ini files.
  * Subclasses include C4Object, C4StandaloneScript etc.
  */
 public abstract class C4ScriptBase extends C4Structure implements IHasRelatedResource, ITreeNode {

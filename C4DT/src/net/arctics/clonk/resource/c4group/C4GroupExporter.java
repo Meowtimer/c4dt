@@ -44,7 +44,8 @@ public class C4GroupExporter {
 				continue;
 			IContainer toExport = (IContainer)pack;
 			String packPath;
-			if (!(pack.getParent() instanceof IProject)) {
+			boolean alwaysAskForPath = true;
+			if (alwaysAskForPath || !(pack.getParent() instanceof IProject)) {
 				if (fileDialog == null)
 					fileDialog = new FileDialog(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(), SWT.SAVE);
 				fileDialog.setFileName(toExport.getName());
