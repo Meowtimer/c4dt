@@ -26,6 +26,7 @@ public class C4ObjectIntern extends C4Object implements Serializable {
 	
 	protected transient IContainer objectFolder;
 	protected String relativePath;
+	private transient ClonkIndex index;
 	
 	public C4ObjectIntern(C4ID id, String name, IContainer container) {
 		super(id, name);
@@ -75,13 +76,22 @@ public class C4ObjectIntern extends C4Object implements Serializable {
 	public IFile getScriptFile() {
 		if (this.objectFolder == null)
 			return null;
-		IResource res = this.objectFolder.findMember("Script.c"); //$NON-NLS-1$
+		IResource res = Utilities.findMemberCaseInsensitively(this.objectFolder, "Script.c"); //$NON-NLS-1$
 		if (res == null || !(res instanceof IFile)) return null;
 		else return (IFile) res;
 	}
 	
+	@Override
+	public String getScriptText() {
+		try {
+			return Utilities.stringFromFile(getScriptFile());
+		} catch (Exception e) {
+			return null;
+		}
+	}
+	
 	public IFile getDefCoreFile() {
-		IResource res = this.objectFolder.findMember("DefCore.txt"); //$NON-NLS-1$
+		IResource res = Utilities.findMemberCaseInsensitively(this.objectFolder, "DefCore.txt"); //$NON-NLS-1$
 		if (res == null || !(res instanceof IFile)) return null;
 		else return (IFile) res;
 	}
@@ -115,18 +125,13 @@ public class C4ObjectIntern extends C4Object implements Serializable {
 			else
 				folder.setPersistentProperty(ClonkCore.FOLDER_C4ID_PROPERTY_ID, null);
 			relativePath = folder.getFullPath().toPortableString();
+			index = ClonkProjectNature.getClonkNature(objectFolder).getIndex();
 		}
 	}
 	
 	@Override
 	public ClonkIndex getIndex() {
-		try {
-			return ClonkProjectNature.getClonkNature(this).getIndex();
-		} catch (Exception e) {
-			System.out.println(getName() + ": " + this.relativePath); //$NON-NLS-1$
-			e.printStackTrace();
-			return null;
-		}
+		return index;
 	}
 	
 	@Override

@@ -12,7 +12,7 @@ import net.arctics.clonk.parser.c4script.C4Type;
 import net.arctics.clonk.parser.c4script.C4Variable;
 import net.arctics.clonk.parser.c4script.C4Function.C4FunctionScope;
 import net.arctics.clonk.parser.c4script.C4Variable.C4VariableScope;
-import net.arctics.clonk.preferences.PreferenceConstants;
+import net.arctics.clonk.preferences.ClonkPreferences;
 import net.arctics.clonk.ui.navigator.ClonkOutlineProvider;
 
 import org.eclipse.swt.widgets.Button;
@@ -27,7 +27,10 @@ import org.eclipse.ui.part.*;
 import org.eclipse.ui.progress.IProgressService;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.operation.IRunnableWithProgress;
+import org.eclipse.jface.util.IPropertyChangeListener;
+import org.eclipse.jface.util.PropertyChangeEvent;
 import org.eclipse.jface.viewers.*;
+import org.eclipse.jface.window.Window;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.layout.GridData;
@@ -35,12 +38,13 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.jface.action.*;
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.IDialogConstants;
+import org.eclipse.jface.dialogs.InputDialog;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.ui.*;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.SWT;
 
-public class EngineDeclarationsView extends ViewPart {
+public class EngineDeclarationsView extends ViewPart implements IPropertyChangeListener {
 	
 	protected class EditDeclarationInputDialog extends Dialog {
 		
@@ -300,6 +304,7 @@ public class EngineDeclarationsView extends ViewPart {
 	 * The constructor.
 	 */
 	public EngineDeclarationsView() {
+		ClonkCore.getDefault().getPreferenceStore().addPropertyChangeListener(this);
 	}
 
 	/**
@@ -318,7 +323,7 @@ public class EngineDeclarationsView extends ViewPart {
 				return ((C4Declaration)element).sortCategory();
 			}
 		});
-		viewer.setInput(ClonkCore.getDefault().getEngineObject());
+		refresh();
 		
 		makeActions();
 		hookContextMenu();
@@ -330,7 +335,8 @@ public class EngineDeclarationsView extends ViewPart {
 	 * Refreshes this viewer completely with information freshly obtained from this viewer's model.
 	 */
 	public void refresh() {
-		viewer.refresh();
+		viewer.setInput(ClonkCore.getDefault().getActiveEngine());
+		//viewer.refresh();
 	}
 	
 	private void hookContextMenu() {
@@ -389,7 +395,7 @@ public class EngineDeclarationsView extends ViewPart {
 				dialog.getShell().setSize(400,600);
 				dialog.getShell().pack();
 				if (dialog.open() == Dialog.OK) {
-					ClonkCore.getDefault().getEngineObject().addDeclaration(func);
+					ClonkCore.getDefault().getActiveEngine().addDeclaration(func);
 				}
 				refresh();
 			}
@@ -405,7 +411,7 @@ public class EngineDeclarationsView extends ViewPart {
 				dialog.getShell().setSize(400,600);
 				dialog.getShell().pack();
 				if (dialog.open() == Dialog.OK) {
-					ClonkCore.getDefault().getEngineObject().addDeclaration(var);
+					ClonkCore.getDefault().getActiveEngine().addDeclaration(var);
 				}
 				refresh();
 			}
@@ -442,7 +448,7 @@ public class EngineDeclarationsView extends ViewPart {
 					for (TreeItem t : selection) {
 						Object selectedItem = t.getData();
 						if (selectedItem instanceof C4Declaration) {
-							ClonkCore.getDefault().getEngineObject().removeField((C4Declaration) selectedItem);
+							ClonkCore.getDefault().getActiveEngine().removeField((C4Declaration) selectedItem);
 						}
 					}
 					refresh();
@@ -455,7 +461,17 @@ public class EngineDeclarationsView extends ViewPart {
 		
 		saveAction = new Action() {
 			public void run() {
-				ClonkCore.getDefault().saveEngineObject();
+				InputDialog dialog = new InputDialog(
+						PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(),
+						"Specify Engine Name", "Please specify the name of this engine",
+						ClonkCore.getDefault().getActiveEngine().getName(),
+						null
+				);
+				switch (dialog.open()) {				
+				case Window.OK:
+					ClonkCore.getDefault().saveEngineInWorkspace(dialog.getValue());
+					break;
+				}
 			}
 		};
 		saveAction.setText(Messages.Engine_Save);
@@ -469,7 +485,7 @@ public class EngineDeclarationsView extends ViewPart {
 			public void run() {
 				IProgressService ps = PlatformUI.getWorkbench().getProgressService();
 				try {
-					final String repo = ClonkCore.getDefault().getPreferenceStore().getString(PreferenceConstants.OPENCLONK_REPO);
+					final String repo = ClonkCore.getDefault().getPreferenceStore().getString(ClonkPreferences.OPENCLONK_REPO);
 					if (repo == null) {
 						MessageDialog.openWarning(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(),
 							Messages.Engine_NoRepository, Messages.Engine_NoRepositoryDesc);
@@ -477,7 +493,7 @@ public class EngineDeclarationsView extends ViewPart {
 					else ps.busyCursorWhile(new IRunnableWithProgress() {
 						public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
 							try {
-								final C4ScriptBase engine = ClonkCore.getDefault().getEngineObject();
+								final C4ScriptBase engine = ClonkCore.getDefault().getActiveEngine();
 								engine.clearDeclarations();
 								engine.importFromRepository(repo, monitor);
 							} catch (Exception e) {
@@ -498,7 +514,7 @@ public class EngineDeclarationsView extends ViewPart {
 			@Override
 			public void run() {
 			    try {
-	                ClonkCore.getDefault().loadEngineObject();
+	                ClonkCore.getDefault().loadActiveEngine();
                 } catch (Exception e) { 
 	                e.printStackTrace();
                 }
@@ -530,4 +546,17 @@ public class EngineDeclarationsView extends ViewPart {
 	public void setFocus() {
 		viewer.getControl().setFocus();
 	}
+
+	@Override
+	public void propertyChange(PropertyChangeEvent event) {
+		if (event.getProperty().equals(ClonkPreferences.ACTIVE_ENGINE)) {
+			refresh();
+		}
+	}
+	
+	@Override
+	public void dispose() {
+		ClonkCore.getDefault().getPreferenceStore().removePropertyChangeListener(this);
+	}
+	
 }

@@ -73,7 +73,7 @@ public class CategoriesArray implements IIniEntryValue {
 		}
 		else for (String part : parts) {
 			part = part.trim();
-			C4Variable var = ClonkCore.getDefault().getEngineObject().findVariable(part);
+			C4Variable var = ClonkCore.getDefault().getActiveEngine().findVariable(part);
 			if (var == null) {
 				throw new IniParserException(IMarker.SEVERITY_WARNING, String.format(Messages.UnknownConstant, part));
 			}

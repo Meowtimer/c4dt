@@ -5,7 +5,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import net.arctics.clonk.preferences.PreferenceConstants;
+import net.arctics.clonk.preferences.ClonkPreferences;
 import net.arctics.clonk.resource.c4group.C4GroupExporter;
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
@@ -52,8 +52,8 @@ public class QuickExportAction extends ClonkResourceAction implements IHandler {
 			IProgressService ps = wb.getProgressService();
 			try {
 				TreeSelection tree = (TreeSelection) selection;					
-				String c4groupPath = PreferenceConstants.getPreference(PreferenceConstants.C4GROUP_EXECUTABLE, "", null); //$NON-NLS-1$
-				String gamePath = PreferenceConstants.getPreference(PreferenceConstants.GAME_PATH);
+				String c4groupPath = ClonkPreferences.getPreference(ClonkPreferences.C4GROUP_EXECUTABLE, "", null); //$NON-NLS-1$
+				String gamePath = ClonkPreferences.getPreference(ClonkPreferences.GAME_PATH);
 				Iterator it = tree.iterator();
 				while (it.hasNext()) {
 					Object obj = it.next();

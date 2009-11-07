@@ -7,6 +7,7 @@ import java.util.List;
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.index.C4Object;
 import net.arctics.clonk.index.C4Scenario;
+import net.arctics.clonk.index.CachedEngineFuncs;
 import net.arctics.clonk.index.ClonkIndex;
 import net.arctics.clonk.parser.BufferedScanner;
 import net.arctics.clonk.parser.C4Declaration;
@@ -18,6 +19,7 @@ import net.arctics.clonk.parser.c4script.C4ScriptExprTree.UnaryOp.Placement;
 import net.arctics.clonk.parser.c4script.C4Variable.C4VariableScope;
 import net.arctics.clonk.parser.stringtbl.StringTbl;
 import net.arctics.clonk.ui.editors.c4script.ExpressionLocator;
+import net.arctics.clonk.util.IConverter;
 import net.arctics.clonk.util.Pair;
 import net.arctics.clonk.util.Utilities;
 import net.arctics.clonk.parser.ParsingException;
@@ -86,6 +88,13 @@ public abstract class C4ScriptExprTree {
 				return "Empty DeclarationRegion"; //$NON-NLS-1$
 		}
 	}
+	
+	private static final IConverter<ExprElm, Object> EVALUATE_EXPR = new IConverter<ExprElm, Object>() {
+		@Override
+        public Object convert(ExprElm from) {
+            return from != null ? from.evaluate() : null;
+        }
+	};
 
 	/**
 	 * @author madeen
@@ -401,7 +410,7 @@ public abstract class C4ScriptExprTree {
 			return preservedOffset >= getExprStart() && preservedOffset <= getExprEnd();
 		}
 
-		public IStoredTypeInformation createStoredTypeInformation() {
+		public IStoredTypeInformation createStoredTypeInformation(C4ScriptParser parser) {
 			return null;
 		}
 
@@ -417,6 +426,18 @@ public abstract class C4ScriptExprTree {
 		 */
 		public Object evaluateAtParseTime(C4ScriptBase context) {
 			return EVALUATION_COMPLEX;
+		}
+		
+		/**
+		 * Evaluate expression. Used for the interpreter
+		 * @return the result of the evaluation
+		 */
+		public Object evaluate() {
+			return null;
+		}
+		
+		public final CachedEngineFuncs getCachedFuncs(C4ScriptParser parser) {
+			return parser.getContainer().getIndex().getEngine().getCachedFuncs();
 		}
 
 	}
@@ -570,12 +591,12 @@ public abstract class C4ScriptExprTree {
 			return elements != null && elements.length > 1 ? elements[elements.length-1] : null;
 		}
 		@Override
-		public IStoredTypeInformation createStoredTypeInformation() {
+		public IStoredTypeInformation createStoredTypeInformation(C4ScriptParser parser) {
 			ExprElm last = getLastElement();
 			if (last != null)
 				// things in sequences should take into account their predecessors
-				return last.createStoredTypeInformation();
-			return super.createStoredTypeInformation();
+				return last.createStoredTypeInformation(parser);
+			return super.createStoredTypeInformation(parser);
 		}
 
 	}
@@ -650,7 +671,7 @@ public abstract class C4ScriptExprTree {
 				}
 			}
 
-			public boolean expressionRelevant(ExprElm expr) {
+			public boolean expressionRelevant(ExprElm expr, C4ScriptParser parser) {
 				// obj-> asks for the relevance of obj
 				if (expr instanceof Sequence) {
 					Sequence seq = (Sequence) expr;
@@ -744,7 +765,7 @@ public abstract class C4ScriptExprTree {
 		}
 
 		@Override
-		public IStoredTypeInformation createStoredTypeInformation() {
+		public IStoredTypeInformation createStoredTypeInformation(C4ScriptParser parser) {
 			return createStoredTypeInformation(getDeclaration());
 		}
 
@@ -793,11 +814,11 @@ public abstract class C4ScriptExprTree {
 				varIndex = val;
 			}
 
-			public boolean expressionRelevant(ExprElm expr) {
+			public boolean expressionRelevant(ExprElm expr, C4ScriptParser parser) {
 				if (expr instanceof CallFunc) {
 					CallFunc callFunc = (CallFunc) expr;
 					return
-					callFunc.getDeclaration() == CachedEngineFuncs.getInstance().Var &&
+					callFunc.getDeclaration() == expr.getCachedFuncs(parser).Var &&
 					callFunc.getParams().length > 0 &&
 					callFunc.getParams()[0] instanceof NumberLiteral &&
 					((NumberLiteral)callFunc.getParams()[0]).intValue() == varIndex;
@@ -887,13 +908,13 @@ public abstract class C4ScriptExprTree {
 				if (declaration == null)
 					declaration = ClonkCore.getDefault().getExternIndex().findGlobalDeclaration(declarationName);
 				if (declaration == null)
-					declaration = ClonkCore.getDefault().getEngineObject().findFunction(declarationName);
+					declaration = parser.getContainer().getIndex().getEngine().findFunction(declarationName);
 
 				// only return found declaration if it's the only choice 
 				if (declaration != null) {
 					List<C4Declaration> allFromLocalIndex = parser.getContainer().getIndex().getDeclarationMap().get(declarationName);
 					List<C4Declaration> allFromExternalIndex = ClonkCore.getDefault().getExternIndex().getDeclarationMap().get(declarationName);
-					C4Declaration decl = ClonkCore.getDefault().getEngineObject().findLocalFunction(declarationName, false);
+					C4Declaration decl = ClonkCore.getDefault().getActiveEngine().findLocalFunction(declarationName, false);
 					if (
 							(allFromLocalIndex != null ? allFromLocalIndex.size() : 0) +
 							(allFromExternalIndex != null ? allFromExternalIndex.size() : 0) +
@@ -907,7 +928,7 @@ public abstract class C4ScriptExprTree {
 		@Override
 		public void reportErrors(C4ScriptParser context) throws ParsingException {
 			super.reportErrors(context);
-			if (declaration == CachedEngineFuncs.getInstance().Par) {
+			if (declaration == getCachedFuncs(context).Par) {
 				if (params.length > 0) {
 					context.unnamedParamaterUsed(params[0]);
 				}
@@ -934,7 +955,7 @@ public abstract class C4ScriptExprTree {
 					int givenParam = 0;
 					boolean specialCaseHandled = false;
 					// yay for special cases
-					if (params.length >= 3 &&  (f == CachedEngineFuncs.getInstance().AddCommand || f == CachedEngineFuncs.getInstance().AppendCommand || f == CachedEngineFuncs.getInstance().SetCommand)) {
+					if (params.length >= 3 &&  (f == getCachedFuncs(context).AddCommand || f == getCachedFuncs(context).AppendCommand || f == getCachedFuncs(context).SetCommand)) {
 						// look if command is "Call"; if so treat parms 2, 3, 4 as any
 						Object command = params[1].evaluateAtParseTime(context.getContainer());
 						if (command instanceof String && command.equals("Call")) { //$NON-NLS-1$
@@ -964,6 +985,14 @@ public abstract class C4ScriptExprTree {
 							//given.expectedToBeOfType(parm.getType(), context);
 						}
 					}
+					
+					// warn about too many parameters
+					if (f.getParameters().size() == 0 || !f.getParameters().get(f.getParameters().size()-1).getName().equals("...")) {
+						if (params.length > f.getParameters().size()) {
+							context.warningWithCode(ParserErrorCode.TooManyParameters, this, f.getParameters().size(), params.length);
+						}
+					}
+					
 				}
 				else if (declaration == null && getPredecessorInSequence() == null) {
 					if (declarationName.equals(Keywords.Inherited)) {
@@ -1048,7 +1077,7 @@ public abstract class C4ScriptExprTree {
 			}
 
 			// ObjectCall(ugh, "UghUgh", 5) -> ugh->UghUgh(5)
-			if (params.length >= 2 && declaration == CachedEngineFuncs.getInstance().ObjectCall && params[1] instanceof StringLiteral && !this.containedInLoopHeaderOrNotStandaloneExpression() && !params[0].hasSideEffects()) {
+			if (params.length >= 2 && declaration == getCachedFuncs(parser).ObjectCall && params[1] instanceof StringLiteral && !this.containedInLoopHeaderOrNotStandaloneExpression() && !params[0].hasSideEffects()) {
 				ExprElm[] parmsWithoutObject = new ExprElm[params.length-2];
 				for (int i = 0; i < parmsWithoutObject.length; i++)
 					parmsWithoutObject[i] = params[i+2].newStyleReplacement(parser);
@@ -1070,28 +1099,28 @@ public abstract class C4ScriptExprTree {
 			// also check for not-nullness since in OC Var/Par are gone and declaration == ...Par returns true -.-
 			
 			// Par(5) -> nameOfParm6
-			if (params.length <= 1 && declaration != null && declaration == CachedEngineFuncs.getInstance().Par && (params.length == 0 || params[0] instanceof NumberLiteral)) {
+			if (params.length <= 1 && declaration != null && declaration == getCachedFuncs(parser).Par && (params.length == 0 || params[0] instanceof NumberLiteral)) {
 				NumberLiteral number = params.length > 0 ? (NumberLiteral) params[0] : NumberLiteral.ZERO;
 				if (number.intValue() >= 0 && number.intValue() < parser.getActiveFunc().getParameters().size())
 					return new AccessVar(parser.getActiveFunc().getParameters().get(number.intValue()).getName());
 			}
 			
 			// SetVar(5, "ugh") -> Var(5) = "ugh"
-			if (params.length == 2 && declaration != null && (declaration == CachedEngineFuncs.getInstance().SetVar || declaration == CachedEngineFuncs.getInstance().SetLocal || declaration == CachedEngineFuncs.getInstance().AssignVar)) {
+			if (params.length == 2 && declaration != null && (declaration == getCachedFuncs(parser).SetVar || declaration == getCachedFuncs(parser).SetLocal || declaration == getCachedFuncs(parser).AssignVar)) {
 				return new BinaryOp(C4ScriptOperator.Assign, new CallFunc(declarationName.substring(declarationName.equals("AssignVar") ? "Assign".length() : "Set".length()), params[0].newStyleReplacement(parser)), params[1].newStyleReplacement(parser)); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 			}
 
 			// DecVar(0) -> Var(0)--
-			if (params.length <= 1 && declaration != null && (declaration == CachedEngineFuncs.getInstance().DecVar || declaration == CachedEngineFuncs.getInstance().IncVar)) {
-				return new UnaryOp(declaration == CachedEngineFuncs.getInstance().DecVar ? C4ScriptOperator.Decrement : C4ScriptOperator.Increment, Placement.Prefix,
-						new CallFunc(CachedEngineFuncs.getInstance().Var.getName(), new ExprElm[] {
+			if (params.length <= 1 && declaration != null && (declaration == getCachedFuncs(parser).DecVar || declaration == getCachedFuncs(parser).IncVar)) {
+				return new UnaryOp(declaration == getCachedFuncs(parser).DecVar ? C4ScriptOperator.Decrement : C4ScriptOperator.Increment, Placement.Prefix,
+						new CallFunc(getCachedFuncs(parser).Var.getName(), new ExprElm[] {
 							params.length == 1 ? params[0].newStyleReplacement(parser) : NumberLiteral.ZERO
 						})
 				);
 			}
 
 			// Call("Func", 5, 5) -> Func(5, 5)
-			if (params.length >= 1 && declaration != null && declaration == CachedEngineFuncs.getInstance().Call && params[0] instanceof StringLiteral) {
+			if (params.length >= 1 && declaration != null && declaration == getCachedFuncs(parser).Call && params[0] instanceof StringLiteral) {
 				ExprElm[] parmsWithoutName = new ExprElm[params.length-1];
 				for (int i = 0; i < parmsWithoutName.length; i++)
 					parmsWithoutName[i] = params[i+1].newStyleReplacement(parser);
@@ -1178,8 +1207,8 @@ public abstract class C4ScriptExprTree {
 			return -1;
 		}
 		@Override
-		public IStoredTypeInformation createStoredTypeInformation() {
-			if (getDeclaration() == CachedEngineFuncs.getInstance().Var) {
+		public IStoredTypeInformation createStoredTypeInformation(C4ScriptParser parser) {
+			if (getDeclaration() == getCachedFuncs(parser).Var) {
 				if (getParams().length > 0 && getParams()[0] instanceof NumberLiteral) {
 					NumberLiteral number = (NumberLiteral)getParams()[0];
 					if (number.intValue() >= 0) {
@@ -1188,7 +1217,17 @@ public abstract class C4ScriptExprTree {
 					}
 				}
 			}
-			return super.createStoredTypeInformation();
+			return super.createStoredTypeInformation(parser);
+		}
+		
+		@Override
+		public Object evaluate() {
+		    if (declaration instanceof C4Function) {
+		    	Object[] args = Utilities.map(getParams(), Object.class, EVALUATE_EXPR);
+		    	return ((C4Function)declaration).invoke(args);
+		    }
+		    else
+		    	return null;
 		}
 	}
 
@@ -1385,33 +1424,49 @@ public abstract class C4ScriptExprTree {
 				Object leftSide  = getOperator().getFirstArgType().convert(this.getLeftSide().evaluateAtParseTime(context));
 				Object rightSide = getOperator().getSecondArgType().convert(this.getRightSide().evaluateAtParseTime(context));
 				if (leftSide != null && leftSide != ExprElm.EVALUATION_COMPLEX && rightSide != null && rightSide != ExprElm.EVALUATION_COMPLEX) {
-					switch (getOperator()) {
-					case Add:
-						return ((Number)leftSide).longValue() + ((Number)rightSide).longValue();
-					case Subtract:
-						return ((Number)leftSide).longValue() - ((Number)rightSide).longValue();
-					case Multiply:
-						return ((Number)leftSide).longValue() * ((Number)rightSide).longValue();
-					case Divide:
-						return ((Number)leftSide).longValue() / ((Number)rightSide).longValue();
-					case Modulo:
-						return ((Number)leftSide).longValue() % ((Number)rightSide).longValue();
-					case Larger:
-						return ((Number)leftSide).longValue() > ((Number)rightSide).longValue();
-					case Smaller:
-						return ((Number)leftSide).longValue() < ((Number)rightSide).longValue();
-					case LargerEqual:
-						return ((Number)leftSide).longValue() >= ((Number)rightSide).longValue();
-					case SmallerEqual:
-						return ((Number)leftSide).longValue() <= ((Number)rightSide).longValue();
-					case Equal:
-						return leftSide.equals(rightSide);
-					}
+					return evaluateOn(leftSide, rightSide);
 				}
 			}
 			catch (ClassCastException e) {}
 			catch (NullPointerException e) {}
 			return super.evaluateAtParseTime(context);
+		}
+
+		private Object evaluateOn(Object leftSide, Object rightSide) {
+	        switch (getOperator()) {
+	        case Add:
+	        	return ((Number)leftSide).longValue() + ((Number)rightSide).longValue();
+	        case Subtract:
+	        	return ((Number)leftSide).longValue() - ((Number)rightSide).longValue();
+	        case Multiply:
+	        	return ((Number)leftSide).longValue() * ((Number)rightSide).longValue();
+	        case Divide:
+	        	return ((Number)leftSide).longValue() / ((Number)rightSide).longValue();
+	        case Modulo:
+	        	return ((Number)leftSide).longValue() % ((Number)rightSide).longValue();
+	        case Larger:
+	        	return ((Number)leftSide).longValue() > ((Number)rightSide).longValue();
+	        case Smaller:
+	        	return ((Number)leftSide).longValue() < ((Number)rightSide).longValue();
+	        case LargerEqual:
+	        	return ((Number)leftSide).longValue() >= ((Number)rightSide).longValue();
+	        case SmallerEqual:
+	        	return ((Number)leftSide).longValue() <= ((Number)rightSide).longValue();
+	        case Equal:
+	        	return leftSide.equals(rightSide);
+	        default:
+	        	return null;
+	        }
+        }
+		
+		@Override
+		public Object evaluate() {
+		    Object left = getLeftSide().evaluate();
+		    Object right = getRightSide().evaluate();
+		    if (left != null && right != null)
+		    	return evaluateOn(left, right);
+		    else
+		    	return null;
 		}
 
 	}
@@ -1633,6 +1688,11 @@ public abstract class C4ScriptExprTree {
 		public T evaluateAtParseTime(C4ScriptBase context) {
 			return literal;
 		}
+		
+		@Override
+		public Object evaluate() {
+		    return literal;
+		}
 
 	}
 
@@ -1727,7 +1787,7 @@ public abstract class C4ScriptExprTree {
 				//  link to functions that are called indirectly
 
 				// GameCall: look for nearest scenario and find function in its script
-				if (myIndex == 0 && parentFunc.getDeclaration() == CachedEngineFuncs.getInstance().GameCall) {
+				if (myIndex == 0 && parentFunc.getDeclaration() == getCachedFuncs(parser).GameCall) {
 					ClonkIndex index = parser.getContainer().getIndex();
 					C4Scenario scenario = ClonkIndex.pickNearest(parser.getContainer().getResource(), index.getIndexedScenarios());
 					if (scenario != null) {
@@ -1738,7 +1798,7 @@ public abstract class C4ScriptExprTree {
 				}
 
 				// ScheduleCall: second parameter is function name; first is object to call the function in
-				else if (myIndex == 1 && parentFunc.getDeclaration() == CachedEngineFuncs.getInstance().ScheduleCall) {
+				else if (myIndex == 1 && parentFunc.getDeclaration() == getCachedFuncs(parser).ScheduleCall) {
 					C4Object typeToLookIn = parentFunc.getParams()[0].guessObjectType(parser);
 					if (typeToLookIn != null) {
 						C4Function func = typeToLookIn.findFunction(stringValue());
@@ -1748,7 +1808,7 @@ public abstract class C4ScriptExprTree {
 				}
 
 				// LocalN: look for local var in object
-				else if (myIndex == 0 && parentFunc.getDeclaration() == CachedEngineFuncs.getInstance().LocalN) {
+				else if (myIndex == 0 && parentFunc.getDeclaration() == getCachedFuncs(parser).LocalN) {
 					C4Object typeToLookIn = parentFunc.getParams().length > 1 ? parentFunc.getParams()[1].guessObjectType(parser) : null;
 					if (typeToLookIn == null && parentFunc.getPredecessorInSequence() != null)
 						typeToLookIn = parentFunc.getPredecessorInSequence().guessObjectType(parser);
@@ -1762,14 +1822,14 @@ public abstract class C4ScriptExprTree {
 				}
 
 				// look for function called by Call("...")
-				else if (myIndex == 0 && parentFunc.getDeclaration() == CachedEngineFuncs.getInstance().Call) {
+				else if (myIndex == 0 && parentFunc.getDeclaration() == getCachedFuncs(parser).Call) {
 					C4Function f = parser.getContainer().findFunction(stringValue());
 					if (f != null)
 						return new DeclarationRegion(f, identifierRegion());
 				}
 
 				// ProtectedCall/PrivateCall/ObjectCall, a bit more complicated than Call
-				else if (myIndex == 1 && Utilities.isAnyOf(parentFunc.getDeclaration(), CachedEngineFuncs.getInstance().ObjectCallFunctions)) {
+				else if (myIndex == 1 && Utilities.isAnyOf(parentFunc.getDeclaration(), getCachedFuncs(parser).ObjectCallFunctions)) {
 					C4Object typeToLookIn = parentFunc.getParams()[0].guessObjectType(parser);
 					if (typeToLookIn == null && parentFunc.getPredecessorInSequence() != null)
 						typeToLookIn = parentFunc.getPredecessorInSequence().guessObjectType(parser);
@@ -1996,6 +2056,11 @@ public abstract class C4ScriptExprTree {
 				type = ExprElm.combineTypes(type, e.getType(context));
 			}
 			return type == C4Type.UNKNOWN ? super.getExemplaryArrayElement(context) : ExprElm.getExprElmForType(type);
+		}
+		
+		@Override
+		public Object evaluate() {
+			return Utilities.map(getElements(), Object.class, EVALUATE_EXPR);
 		}
 
 	}
@@ -2322,6 +2387,11 @@ public abstract class C4ScriptExprTree {
 		@Override
 		public boolean hasSideEffects() {
 			return expression.hasSideEffects();
+		}
+		
+		@Override
+		public Object evaluate() {
+			return expression.evaluate();
 		}
 
 	}

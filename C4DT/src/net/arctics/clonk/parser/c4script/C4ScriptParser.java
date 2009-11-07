@@ -151,10 +151,10 @@ public class C4ScriptParser {
 		if (storedTypeInformationListStack.isEmpty())
 			return null;
 		for (IStoredTypeInformation info : storedTypeInformationListStack.peek()) {
-			if (info.expressionRelevant(expression))
+			if (info.expressionRelevant(expression, this))
 				return info;
 		}
-		IStoredTypeInformation newlyCreated = expression.createStoredTypeInformation();
+		IStoredTypeInformation newlyCreated = expression.createStoredTypeInformation(this);
 		if (newlyCreated != null)
 			storedTypeInformationListStack.peek().add(newlyCreated);
 		return newlyCreated;
@@ -182,7 +182,7 @@ public class C4ScriptParser {
 			return null;
 		for (int i = storedTypeInformationListStack.size()-1, levels = wholeStack ? storedTypeInformationListStack.size() : 1; levels > 0; levels--,i--) {
 			for (IStoredTypeInformation info : storedTypeInformationListStack.get(i)) {
-				if (info.expressionRelevant(expression))
+				if (info.expressionRelevant(expression, this))
 					return info;
 			}
 		}
@@ -353,11 +353,14 @@ public class C4ScriptParser {
 				parseCodeOfFunction(function);
 			}
 			container.setDirty(false);
-			postProduction();
+			distillAdditionalInformation();
 		}
 	}
 
-	private void postProduction() {
+	/**
+	 * OC: get information out of the script that was previously to be found in additional files (like the name of the definition)
+	 */
+	public void distillAdditionalInformation() {
 		if (container instanceof C4Object) {
 			((C4Object)container).chooseLocalizedName();
 			C4Function definitionFunc = container.findFunction(Keywords.DefinitionFunc);
@@ -707,7 +710,7 @@ public class C4ScriptParser {
 		scanner.seek(offset);
 		String desc = getTextOfLastComment(startOfFirstWord);
 		eatWhitespace();
-		activeFunc = new C4Function();
+		activeFunc = newFunction();
 		activeFunc.setScript(container);
 		activeFunc.setUserDescription(desc);
 		int startName = 0, endName = 0, startBody = 0, endBody = 0;
@@ -859,6 +862,10 @@ public class C4ScriptParser {
 			activeFunc = null; // to not suppress errors in-between functions
 		return true;
 	}
+
+	protected C4Function newFunction() {
+	    return new C4Function();
+    }
 
 	private String getTextOfLastComment(int declarationOffset) {
 		String desc = (lastComment != null && lastComment.precedesOffset(declarationOffset, scanner.getBuffer())) ? lastComment.getComment().trim() : ""; //$NON-NLS-1$

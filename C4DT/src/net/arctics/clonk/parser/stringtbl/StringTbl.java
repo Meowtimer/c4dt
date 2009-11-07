@@ -19,8 +19,10 @@ import net.arctics.clonk.parser.NameValueAssignment;
 import net.arctics.clonk.util.ITreeNode;
 import net.arctics.clonk.util.ReadOnlyIterator;
 
-public class StringTbl extends C4Structure implements ITreeNode {
+public class StringTbl extends C4Structure implements ITreeNode, ITableEntryInformationSink {
 	
+	public static final Pattern PATTERN = Pattern.compile("StringTbl(..)\\.txt", Pattern.CASE_INSENSITIVE);
+
 	private static final long serialVersionUID = 1L;
 	
 	private Map<String, NameValueAssignment> map = new HashMap<String, NameValueAssignment>();
@@ -43,7 +45,7 @@ public class StringTbl extends C4Structure implements ITreeNode {
 		return map;
 	}
 	
-	public void add(String key, String value, int start, int end) {
+	public void addTblEntry(String key, String value, int start, int end) {
 		NameValueAssignment nv = new NameValueAssignment(start, end, key, value);
 		nv.setParentDeclaration(this);
 		map.put(key, nv);
@@ -61,7 +63,7 @@ public class StringTbl extends C4Structure implements ITreeNode {
 		return map.get(declarationName);
 	}
 	
-	public void read(InputStream stream) {
+	public static void readStringTbl(InputStream stream, ITableEntryInformationSink sink) {
 		BufferedScanner scanner = new BufferedScanner(stream);
 		while (!scanner.reachedEOF()) {
 			scanner.eatWhitespace();
@@ -73,12 +75,16 @@ public class StringTbl extends C4Structure implements ITreeNode {
 				String key = scanner.readStringUntil('=');
 				if (scanner.read() == '=') {
 					String value = scanner.readStringUntil(BufferedScanner.NEWLINE_CHARS);
-					add(key, value, start, scanner.getPosition());
+					sink.addTblEntry(key, value, start, scanner.getPosition());
 				}
 				else
 					scanner.unread();
 			}
 		}
+	}
+	
+	public void read(InputStream stream) {
+		readStringTbl(stream, this);
 	}
 	
 	@Override
@@ -92,7 +98,7 @@ public class StringTbl extends C4Structure implements ITreeNode {
 	
 	public static void register() {
 		registerStructureFactory(new IStructureFactory() {
-			private final Matcher stringTblFileMatcher = Pattern.compile("StringTbl..\\.txt", Pattern.CASE_INSENSITIVE).matcher(""); //$NON-NLS-1$ //$NON-NLS-2$
+			private final Matcher stringTblFileMatcher = PATTERN.matcher(""); //$NON-NLS-1$ //$NON-NLS-2$
 			public C4Structure create(IFile file) {
 				if (stringTblFileMatcher.reset(file.getName()).matches()) {
 					StringTbl tbl = new StringTbl();

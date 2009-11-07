@@ -10,7 +10,6 @@ import net.arctics.clonk.parser.c4script.C4Directive;
 import net.arctics.clonk.parser.c4script.C4Function;
 import net.arctics.clonk.parser.c4script.C4ScriptBase;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
-import net.arctics.clonk.parser.c4script.CachedEngineFuncs;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.c4script.C4ScriptExprTree.DeclarationRegion;
 import net.arctics.clonk.parser.c4script.C4ScriptExprTree.AccessDeclaration;
@@ -111,7 +110,7 @@ public class ClonkSearchQuery implements ISearchQuery {
 					AccessDeclaration accessDeclExpr = (AccessDeclaration) expression;
 					if (accessDeclExpr.getDeclaration(parser) == declaration)
 						result.addMatch(expression, parser, false, accessDeclExpr.indirectAccess());
-					else if (Utilities.isAnyOf(accessDeclExpr.getDeclaration(), CachedEngineFuncs.getInstance().CallFunctions) && potentiallyReferencedByCallFunction(accessDeclExpr, parser)) {
+					else if (Utilities.isAnyOf(accessDeclExpr.getDeclaration(), expression.getCachedFuncs(parser).CallFunctions) && potentiallyReferencedByCallFunction(accessDeclExpr, parser)) {
 						result.addMatch(functionNameExpr, parser, true, true);
 					}
 					else if (potentiallyReferencedByObjectCall(expression)) {

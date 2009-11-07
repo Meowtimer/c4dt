@@ -6,7 +6,7 @@ import java.security.InvalidParameterException;
 import java.util.HashSet;
 import java.util.Set;
 
-import net.arctics.clonk.ClonkCore;
+import net.arctics.clonk.index.C4Engine;
 import net.arctics.clonk.index.C4Object;
 import net.arctics.clonk.index.C4ObjectIntern;
 import net.arctics.clonk.index.ClonkIndex;
@@ -250,7 +250,7 @@ public class C4Variable extends C4Declaration implements Serializable, ITypedDec
 	
 	public void expectedToBeOfType(C4Type t) {
 		// engine objects should not be altered
-		if (!typeLocked && getScript() != ClonkCore.getDefault().getEngineObject())
+		if (!typeLocked && !(getScript() instanceof C4Engine))
 			ITypedDeclaration.Default.expectedToBeOfType(this, t);
 	}
 
@@ -312,7 +312,7 @@ public class C4Variable extends C4Declaration implements Serializable, ITypedDec
 	}
 	
 	private void ensureTypeLockedIfPredefined(C4Declaration declaration) {
-		if (!typeLocked && declaration == ClonkCore.getDefault().getEngineObject())
+		if (!typeLocked && declaration instanceof C4Engine)
 			typeLocked = true;
 	}
 	

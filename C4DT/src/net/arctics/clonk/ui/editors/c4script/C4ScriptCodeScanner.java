@@ -211,7 +211,7 @@ public class C4ScriptCodeScanner extends RuleBasedScanner {
 				wordRule.addWord(c4type.name().trim().toLowerCase(), type);
 		for (int i=0; i<fgConstants.length; i++)
 			wordRule.addWord(fgConstants[i], type);
-		for (C4Function func : ClonkCore.getDefault().getEngineObject().functions())
+		for (C4Function func : ClonkCore.getDefault().getActiveEngine().functions())
 			wordRule.addWord(func.getName(), engineFunction);
 		for (int i=0; i<BuiltInDefinitions.OBJECT_CALLBACKS.length; i++)
 			wordRule.addWord(BuiltInDefinitions.OBJECT_CALLBACKS[i], objCallbackFunction);

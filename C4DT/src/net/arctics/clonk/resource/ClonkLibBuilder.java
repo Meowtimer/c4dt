@@ -5,8 +5,10 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.index.C4Object;
@@ -16,7 +18,8 @@ import net.arctics.clonk.index.IExternalScript;
 import net.arctics.clonk.parser.c4script.C4ScriptExtern;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.inireader.DefCoreUnit;
-import net.arctics.clonk.preferences.PreferenceConstants;
+import net.arctics.clonk.parser.stringtbl.StringTbl;
+import net.arctics.clonk.preferences.ClonkPreferences;
 import net.arctics.clonk.resource.c4group.C4GroupEntry;
 import net.arctics.clonk.resource.c4group.C4EntryHeader;
 import net.arctics.clonk.resource.c4group.C4Group;
@@ -43,7 +46,7 @@ import org.eclipse.swt.widgets.Display;
 
 public class ClonkLibBuilder implements IC4GroupVisitor, IPropertyChangeListener {
 	
-	private static final String DESC_TXT = "Desc..\\.txt"; //$NON-NLS-1$
+	private static final Pattern DESC_TXT_PATTERN = Pattern.compile("Desc(..)\\.txt", Pattern.CASE_INSENSITIVE); //$NON-NLS-1$
 	private boolean buildNeeded = false;
 	private transient ITreeNode currentExternNode;
 	private transient C4Group nodeGroup;
@@ -64,7 +67,7 @@ public class ClonkLibBuilder implements IC4GroupVisitor, IPropertyChangeListener
 	}
 	
 	private String[] getExternalLibNames() {
-		String optionString = ClonkCore.getDefault().getPreferenceStore().getString(PreferenceConstants.STANDARD_EXT_LIBS);
+		String optionString = ClonkCore.getDefault().getPreferenceStore().getString(ClonkPreferences.STANDARD_EXT_LIBS);
 		return optionString.split("<>"); //$NON-NLS-1$
 	}
 	
@@ -80,7 +83,13 @@ public class ClonkLibBuilder implements IC4GroupVisitor, IPropertyChangeListener
 				public boolean accepts(C4EntryHeader header, C4Group context) {
 					String entryName = header.getEntryName();
 					// all we care about is groups, scripts, defcores and names
-					return header.isGroup() || entryName.endsWith(".c") || entryName.equals("DefCore.txt") || entryName.equals("Names.txt") || entryName.matches(DESC_TXT); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+					return header.isGroup() ||
+						entryName.endsWith(".c") || // $NON-NLS-1$
+						entryName.equals("DefCore.txt") || // $NON-NLS-1$
+						entryName.equals("Names.txt") || // $NON-NLS-1$
+						entryName.matches(DESC_TXT_PATTERN.pattern()) ||
+						// also load string tables since they are needed for getting the correct names OC definitions
+						entryName.matches(StringTbl.PATTERN.pattern());
 				}
 
 				public void processData(C4GroupItem item) throws CoreException {
@@ -130,13 +139,17 @@ public class ClonkLibBuilder implements IC4GroupVisitor, IPropertyChangeListener
 		if (monitor != null) monitor.done();
 	}
 	
+	private final Matcher descMatcher = DESC_TXT_PATTERN.matcher("");
+	private final Matcher stringTblMatcher = StringTbl.PATTERN.matcher("");
+	
 	public boolean visit(C4GroupItem item, C4GroupType packageType) {
 		if (item instanceof C4Group) {
 			C4Group group = (C4Group) item;
 			C4GroupType groupType = group.getGroupType();
 			if (groupType == C4GroupType.DefinitionGroup) { // is .c4d
 				C4GroupEntry defCore = null, script = null, names = null;
-				List<C4GroupEntry> descEntries = new LinkedList<C4GroupEntry>();
+				Map<String, C4GroupEntry> descEntries = new HashMap<String, C4GroupEntry>();
+				Map<String, C4GroupEntry> tbls = new HashMap<String, C4GroupEntry>();
 				for(C4GroupItem child : group.getChildEntries()) {
 					if (!(child instanceof C4GroupEntry)) continue;
 					if (child.getName().equals("DefCore.txt")) { //$NON-NLS-1$
@@ -148,8 +161,11 @@ public class ClonkLibBuilder implements IC4GroupVisitor, IPropertyChangeListener
 					else if (child.getName().equals("Names.txt")) { //$NON-NLS-1$
 						names = (C4GroupEntry) child;
 					}
-					else if (child.getName().matches(DESC_TXT)) {
-						descEntries.add((C4GroupEntry) child);
+					else if (descMatcher.reset(child.getName()).matches()) {
+						descEntries.put(descMatcher.group(1), (C4GroupEntry) child);
+					}
+					else if (stringTblMatcher.reset(child.getName()).matches()) {
+						tbls.put(stringTblMatcher.group(1), (C4GroupEntry) child);
 					}
 				}
 				if (defCore != null && script != null) {
@@ -158,16 +174,29 @@ public class ClonkLibBuilder implements IC4GroupVisitor, IPropertyChangeListener
 						defCoreWrapper.parse(false);
 						C4ObjectExtern obj = new C4ObjectExtern(defCoreWrapper.getObjectID(), defCoreWrapper.getName(), script, currentExternNode);
 						currentExternNode = obj; nodeGroup = group;
+						
+						if (names != null)
+							obj.readNames(names.getContentsAsString());
+						for (String descLang : descEntries.keySet()) {
+							obj.addDesc(descLang, descEntries.get(descLang).getContentsAsString()); //$NON-NLS-1$ //$NON-NLS-2$
+						}
+						for (String stringTblLang : tbls.keySet()) {
+							StringTbl tbl = new StringTbl();
+							try {
+								C4GroupEntry entry = tbls.get(stringTblLang);
+								tbl.read(entry.getContents());
+							} catch (CoreException e) {
+								e.printStackTrace();
+							}
+							obj.addStringTbl(stringTblLang, tbl);
+						}
+						
 						C4ScriptParser parser = new C4ScriptParser((IExternalScript)obj);
 						// we only need declarations
 						parser.clean();
 						parser.parseDeclarations();
+						parser.distillAdditionalInformation(); // OC
 						ClonkCore.getDefault().getExternIndex().addObject(obj);
-						if (names != null)
-							obj.readNames(names.getContentsAsString());
-						for (C4GroupEntry descEntry : descEntries) {
-							obj.addDesc(descEntry.getName().substring("Desc".length(), "Desc".length()+2), descEntry.getContentsAsString()); //$NON-NLS-1$ //$NON-NLS-2$
-						}
 					} catch (IOException e) {
 						e.printStackTrace();
 					}
@@ -216,7 +245,7 @@ public class ClonkLibBuilder implements IC4GroupVisitor, IPropertyChangeListener
 	}
 
 	public void propertyChange(PropertyChangeEvent event) {
-		if (event.getProperty().equals(PreferenceConstants.STANDARD_EXT_LIBS)) {
+		if (event.getProperty().equals(ClonkPreferences.STANDARD_EXT_LIBS)) {
 			String oldValue = (String) event.getOldValue();
 			String newValue = (String) event.getNewValue();
 			final String[] oldLibs = oldValue.split("<>"); //$NON-NLS-1$
@@ -275,7 +304,7 @@ public class ClonkLibBuilder implements IC4GroupVisitor, IPropertyChangeListener
 				e1.printStackTrace();
 			}
 		}
-		else if (event.getProperty().equals(PreferenceConstants.PREFERRED_LANGID)) {
+		else if (event.getProperty().equals(ClonkPreferences.PREFERRED_LANGID)) {
 			for (C4Object o : ClonkCore.getDefault().getExternIndex()) {
 				o.chooseLocalizedName();
 			}

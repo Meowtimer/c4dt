@@ -9,22 +9,30 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.lang.reflect.InvocationTargetException;
+import java.util.Collections;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.xpath.XPathExpressionException;
 
-import net.arctics.clonk.index.C4ObjectExtern;
+import net.arctics.clonk.index.C4Engine;
 import net.arctics.clonk.index.ExternIndex;
 import net.arctics.clonk.index.ProjectIndex;
-import net.arctics.clonk.parser.C4ID;
 import net.arctics.clonk.parser.inireader.IniData;
 import net.arctics.clonk.parser.inireader.IniUnit;
 import net.arctics.clonk.parser.mapcreator.C4MapCreator;
 import net.arctics.clonk.parser.stringtbl.StringTbl;
-import net.arctics.clonk.preferences.PreferenceConstants;
+import net.arctics.clonk.preferences.ClonkPreferences;
 import net.arctics.clonk.resource.ClonkLibBuilder;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.resource.InputStreamRespectingUniqueIDs;
+import net.arctics.clonk.util.IRunnableWithProgressAndResult;
+
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResourceChangeEvent;
 import org.eclipse.core.resources.IResourceChangeListener;
@@ -34,11 +42,14 @@ import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.QualifiedName;
+import org.eclipse.jface.dialogs.ProgressMonitorDialog;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.resource.ImageRegistry;
+import org.eclipse.jface.util.IPropertyChangeListener;
+import org.eclipse.jface.util.PropertyChangeEvent;
 import org.eclipse.swt.graphics.Image;
+import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.editors.text.TextFileDocumentProvider;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.osgi.framework.BundleContext;
@@ -84,7 +95,12 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 	/**
 	 * The engine object contains global functions and variables defined by Clonk itself
 	 */
-	private C4ObjectExtern engineObject;
+	private C4Engine activeEngine;
+	
+	/**
+	 * List of engines currently loaded
+	 */
+	private Map<String, C4Engine> loadedEngines = new HashMap<String, C4Engine>();
 
 	/**
 	 * Index that contains objects and scripts imported from external object packs and .c4g-groups 
@@ -125,13 +141,23 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 
 		loadIniConfigurations();
 
-		loadEngineObject();
+		loadActiveEngine();
 		loadExternIndex(); 
 
 		ResourcesPlugin.getWorkspace().addSaveParticipant(this, this);
 		ResourcesPlugin.getWorkspace().addResourceChangeListener(this, IResourceChangeEvent.PRE_DELETE);
 
 		registerStructureClasses();
+		
+		// react to active enginge being changed
+		getPreferenceStore().addPropertyChangeListener(new IPropertyChangeListener() {
+			@Override
+			public void propertyChange(PropertyChangeEvent event) {
+				if (event.getProperty().equals(ClonkPreferences.ACTIVE_ENGINE)) {
+					setActiveEngineByName(ClonkPreferences.getPreferenceOrDefault(ClonkPreferences.ACTIVE_ENGINE));
+				}
+			}
+		});
 	}
 
 	private void registerStructureClasses() {
@@ -173,29 +199,88 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 	//			// finished
 	//		}
 	//	}
-
-	public void loadEngineObject() throws FileNotFoundException, IOException, ClassNotFoundException, XPathExpressionException, ParserConfigurationException, SAXException {
+	
+	public Map<String, C4Engine> getLoadedEngines() {
+		return Collections.unmodifiableMap(loadedEngines);
+	}
+	
+	private String engineNameFromPath(String path) {
+		path = path.substring(path.lastIndexOf('/')+1);
+		return path.endsWith(".engine") ? path.substring(0, path.lastIndexOf('.')) : null;
+	}
+	
+	@SuppressWarnings("unchecked")
+    public List<String> getAvailableEngines() {
+		List<String> result = new LinkedList<String>();
+		// get built-in engine definitions
+		for (Enumeration<String> paths = getBundle().getEntryPaths("res/engines"); paths.hasMoreElements();) {
+			String engineName = engineNameFromPath(paths.nextElement());
+			if (engineName != null) {
+				result.add(engineName);
+			}
+		}
+		// get engine definitions from workspace
+		String[] workspaceEngines = getWorkspaceStorageLocationForEngines().toFile().list();
+		if (workspaceEngines != null) {
+			for (String wEngine : workspaceEngines) {
+				String engineName = engineNameFromPath(wEngine);
+				if (engineName != null && !result.contains(engineName))
+					result.add(engineName);
+			}
+		}
+		return result;
+	}
+	
+	private C4Engine loadEngine(final String engineName) {
 		InputStream engineStream;
+		C4Engine result = loadedEngines.get(engineName);
+		if (result != null)
+			return result;
 		try {
-			if (getEngineCacheFile().toFile().exists()) {
-				engineStream = new FileInputStream(getEngineCacheFile().toFile());
+			if (getWorkspaceStorageLocationForActiveEngine().toFile().exists()) {
+				engineStream = new FileInputStream(getWorkspaceStorageLocationForActiveEngine().toFile());
 			}
 			else {
-				engineStream = getBundle().getEntry("res/engine").openStream(); //$NON-NLS-1$
+				engineStream = getBundle().getEntry(String.format("res/engines/%s.engine", engineName)).openStream(); //$NON-NLS-1$
 			}
 			ObjectInputStream objStream = new InputStreamRespectingUniqueIDs(engineStream);
-			setEngineObject((C4ObjectExtern)objStream.readObject());
-			getEngineObject().postSerialize(null);
+			result = (C4Engine)objStream.readObject();
+			result.postSerialize(null);
 		} catch (Exception e) {
 			// fallback to xml
-			createDefaultEngineObject();
-			getEngineObject().importFromXML(getBundle().getEntry("res/engine.xml").openStream()); //$NON-NLS-1$
-			return;
+			ProgressMonitorDialog progressDialog = new ProgressMonitorDialog(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell());
+			try {
+				IRunnableWithProgressAndResult<C4Engine> xmlImportor = new IRunnableWithProgressAndResult<C4Engine>() {
+					private C4Engine engine;
+					
+					@Override
+                    public C4Engine getResult() {
+	                    return engine;
+                    }
+
+					@Override
+                    public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
+						engine = new C4Engine(engineName);
+	            		try {
+	            			engine.importFromXML(getBundle().getEntry(String.format("res/engines/%s.engine.xml", engineName)).openStream(), monitor); //$NON-NLS-1$
+	            		} catch (Exception e) {
+	            			e.printStackTrace();
+	            		}
+                    }
+				};
+	            progressDialog.run(false, false, xmlImportor);
+	            result = xmlImportor.getResult();
+            } catch (Exception e1) {
+	            e1.printStackTrace();
+            }
 		}
+		if (result != null)
+			loadedEngines.put(engineName, result);
+		return result;
 	}
 
-	private void createDefaultEngineObject() {
-		setEngineObject(new C4ObjectExtern(C4ID.getSpecialID("Engine"), "Engine", null, null)); //$NON-NLS-1$ //$NON-NLS-2$
+	public void loadActiveEngine() throws FileNotFoundException, IOException, ClassNotFoundException, XPathExpressionException, ParserConfigurationException, SAXException {
+		setActiveEngineByName(ClonkPreferences.getPreferenceOrDefault(ClonkPreferences.ACTIVE_ENGINE));
 	}
 
 	//	private int nooper;
@@ -226,10 +311,21 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 	//	//	removeSystemDuplicates();
 	//	}
 
-	public static IPath getEngineCacheFile() {
-		IPath path = ClonkCore.getDefault().getStateLocation();
-		return path.append("engine"); //$NON-NLS-1$
+	public IPath getWorkspaceStorageLocationForActiveEngine() {
+		return getWorkspaceStorageLocationForEngine(ClonkPreferences.getPreferenceOrDefault(ClonkPreferences.ACTIVE_ENGINE));
 	}
+	
+	public IPath getWorkspaceStorageLocationForEngine(String engineName) {
+		IPath path = getWorkspaceStorageLocationForEngines(); //$NON-NLS-1$
+		File dir = path.toFile();
+		if (!dir.exists())
+			dir.mkdir();
+		return path.append(String.format("%s.engine", engineName)); //$NON-NLS-1$
+	}
+
+	private IPath getWorkspaceStorageLocationForEngines() {
+	    return getStateLocation().append("engines");
+    }
 
 	public ClonkLibBuilder getLibBuilder() {
 		if (libBuilder == null) libBuilder = new ClonkLibBuilder();
@@ -241,9 +337,9 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 		return path.append("externlib"); //$NON-NLS-1$
 	}
 
-	public void saveEngineObject() {
+	public void saveEngineInWorkspace(String engineName) {
 		try {
-			IPath engine = getEngineCacheFile();
+			IPath engine = getWorkspaceStorageLocationForEngine(engineName);
 
 			File engineFile = engine.toFile();
 			if (engineFile.exists())
@@ -252,14 +348,18 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 			FileOutputStream outputStream = new FileOutputStream(engineFile);
 			//XMLEncoder encoder = new XMLEncoder(new BufferedOutputStream(outputStream));
 			ObjectOutputStream encoder = new ObjectOutputStream(new BufferedOutputStream(outputStream));
-			encoder.writeObject(getEngineObject());
+			encoder.writeObject(getActiveEngine());
 			encoder.close();
+			loadedEngines.remove(engineName);
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-
+	}
+	
+	public void saveActiveEngineInWorkspace() {
+		saveEngineInWorkspace(getActiveEngine().getName());
 	}
 
 	public void saveExternIndex(IProgressMonitor monitor) throws FileNotFoundException {
@@ -400,22 +500,25 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 		return PLUGIN_ID + "." + id; //$NON-NLS-1$
 	}
 
-	public String getLanguagePref() {
-		return Platform.getPreferencesService().getString(PLUGIN_ID, PreferenceConstants.PREFERRED_LANGID, "DE", null); //$NON-NLS-1$
-	}
-
 	/**
-	 * @param engineObject the engineObject to set
+	 * @param activeEngine the engineObject to set
 	 */
-	private void setEngineObject(C4ObjectExtern engineObject) {
-		this.engineObject = engineObject;
+	private void setActiveEngine(C4Engine activeEngine) {
+		this.activeEngine = activeEngine;
+	}
+	
+	public void setActiveEngineByName(String engineName) {
+		C4Engine e = loadEngine(engineName);
+		// make sure names are correct
+		e.setName(engineName);
+		setActiveEngine(e);
 	}
 
 	/**
 	 * @return the engineObject
 	 */
-	public C4ObjectExtern getEngineObject() {
-		return engineObject;
+	public C4Engine getActiveEngine() {
+		return activeEngine;
 	}
 
 	/**

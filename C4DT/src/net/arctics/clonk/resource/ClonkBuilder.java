@@ -15,7 +15,9 @@ import net.arctics.clonk.parser.c4script.C4ScriptIntern;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.C4Structure;
 import net.arctics.clonk.parser.ParsingException;
-import net.arctics.clonk.preferences.PreferenceConstants;
+import net.arctics.clonk.preferences.ClonkPreferences;
+import net.arctics.clonk.resource.c4group.C4Group;
+import net.arctics.clonk.resource.c4group.C4Group.C4GroupType;
 import net.arctics.clonk.ui.editors.ClonkTextEditor;
 import net.arctics.clonk.util.Utilities;
 
@@ -320,7 +322,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 	}
 
 	private String[] getExternalLibNames() {
-		String optionString = ClonkCore.getDefault().getPreferenceStore().getString(PreferenceConstants.STANDARD_EXT_LIBS);
+		String optionString = ClonkCore.getDefault().getPreferenceStore().getString(ClonkPreferences.STANDARD_EXT_LIBS);
 		return optionString.split("<>"); //$NON-NLS-1$
 	}
 
@@ -345,7 +347,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 					C4ObjectParser objParser;
 					// script in a resource group
 					if (delta.getResource().getName().toLowerCase().endsWith(".c") && folder.getName().toLowerCase().endsWith(".c4g")) { //$NON-NLS-1$ //$NON-NLS-2$
-						script = new C4ScriptIntern(delta.getResource());
+						script = new C4ScriptIntern(file);
 						ClonkProjectNature.getClonkNature(delta.getResource()).getIndex().addScript(script);
 					}
 					// object script
@@ -473,12 +475,12 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 		}
 		else if (resource instanceof IFile) {
 			IFile file = (IFile) resource;
-			if (resource.getName().endsWith(".c") && resource.getParent().getName().endsWith(".c4g")) { //$NON-NLS-1$ //$NON-NLS-2$
+			if (resource.getName().toLowerCase().endsWith(".c") && C4Group.groupTypeFromFolderName(resource.getParent().getName()) == C4GroupType.ResourceGroup) { //$NON-NLS-1$ //$NON-NLS-2$
 				C4ScriptBase script = C4ScriptIntern.pinnedScript(file);
 				switch (buildPhase) {
 				case 0:
 					if (script == null) {
-						script = new C4ScriptIntern(resource);
+						script = new C4ScriptIntern(file);
 					}
 					ClonkProjectNature.getClonkNature(resource).getIndex().addScript(script);
 					C4ScriptParser parser = getParserFor(script);

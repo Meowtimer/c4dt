@@ -14,7 +14,8 @@ import org.eclipse.core.runtime.Path;
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.C4ID;
 import net.arctics.clonk.parser.SimpleScriptStorage;
-import net.arctics.clonk.preferences.PreferenceConstants;
+import net.arctics.clonk.parser.stringtbl.StringTbl;
+import net.arctics.clonk.preferences.ClonkPreferences;
 import net.arctics.clonk.resource.ExternalLib;
 import net.arctics.clonk.resource.c4group.C4GroupEntry;
 import net.arctics.clonk.resource.c4group.C4GroupItem;
@@ -24,14 +25,33 @@ import net.arctics.clonk.util.ITreeNode;
 public class C4ObjectExtern extends C4Object implements ITreeNode, IExternalScript {
 
 	private static final long serialVersionUID = -4964785375712432236L;
-	
+
 	private SimpleScriptStorage script;
 	private ITreeNode parentNode;
-	private String nodeName;
+	protected String nodeName;
 	private List<INode> childNodes;
 	private Map<String, String> localizedDescriptions;
+	private Map<String, StringTbl> stringTables;
 	
 	private transient ExternalLib externalLib;
+	
+	public void addStringTbl(String lang, StringTbl tbl) {
+		if (stringTables == null)
+			stringTables = new HashMap<String, StringTbl>();
+		stringTables.put(lang, tbl);
+	}
+	
+	public StringTbl getStringTbl(String lang) {
+		if (stringTables == null)
+			return null;
+		else
+			return stringTables.get(lang);
+	}
+	
+	public StringTbl getStringTblForLanguagePref() {
+		String pref = ClonkPreferences.getLanguagePref();
+		return getStringTbl(pref);
+	}
 	
 	public C4ObjectExtern(C4ID id, String name, C4GroupItem script, ITreeNode parentNode) {
 		super(id, name);
@@ -44,6 +64,11 @@ public class C4ObjectExtern extends C4Object implements ITreeNode, IExternalScri
 		else
 			this.nodeName = name;
 	}
+	
+	@Override
+	public String getScriptText() {
+		return script.getContentsAsString();
+	}
 
 	@Override
 	public Object getScriptFile() {
@@ -52,7 +77,7 @@ public class C4ObjectExtern extends C4Object implements ITreeNode, IExternalScri
 
 	@Override
 	public ClonkIndex getIndex() {
-		if (this == ClonkCore.getDefault().getEngineObject())
+		if (this == ClonkCore.getDefault().getActiveEngine())
 			return null;
 		return ClonkCore.getDefault().getExternIndex();
 	}
@@ -114,7 +139,7 @@ public class C4ObjectExtern extends C4Object implements ITreeNode, IExternalScri
 	
 	@Override
 	public String getInfoText() {
-		String locDesc = getDesc(ClonkCore.getDefault().getLanguagePref());
+		String locDesc = getDesc(ClonkPreferences.getLanguagePref());
 		if (locDesc != null)
 			return String.format(INFO_TEXT_TEMPLATE, getName(), locDesc, this.getPath().toOSString());
 		return super.getInfoText();
@@ -132,7 +157,7 @@ public class C4ObjectExtern extends C4Object implements ITreeNode, IExternalScri
 	
 	public String getFilePath() {
 		IPath path = this.getPath();
-		IPath gamePath = new Path(PreferenceConstants.getPreference(PreferenceConstants.GAME_PATH, "", null)); //$NON-NLS-1$
+		IPath gamePath = new Path(ClonkPreferences.getPreference(ClonkPreferences.GAME_PATH, "", null)); //$NON-NLS-1$
 		return gamePath.append(path).toOSString();
 	}
 	

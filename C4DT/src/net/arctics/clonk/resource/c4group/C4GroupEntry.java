@@ -83,9 +83,13 @@ public class C4GroupEntry implements C4GroupItem, IStorage, Serializable {
     	
 	}
 
-    public String toString()
-    {
-        return getEntryName();
+    public String toString() {
+    	StringBuilder builder = new StringBuilder();
+    	for (C4GroupItem item = this; item != null; item = item.getParentGroup()) {
+    		builder.insert(0, item.getName());
+    		builder.insert(0, '/');
+    	}
+        return builder.toString();
     }
     
     /**

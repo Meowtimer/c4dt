@@ -1,7 +1,7 @@
 package net.arctics.clonk.ui.wizards;
 
 import net.arctics.clonk.ClonkCore;
-import net.arctics.clonk.preferences.PreferenceConstants;
+import net.arctics.clonk.preferences.ClonkPreferences;
 import net.arctics.clonk.resource.c4group.C4GroupExporter;
 
 import org.eclipse.core.resources.IContainer;
@@ -24,8 +24,8 @@ public class ExportClonkFiles extends Wizard implements IExportWizard {
 	
 	public boolean performFinish() {
 		IPreferencesService service = Platform.getPreferencesService();
-		String c4groupPath = service.getString(ClonkCore.PLUGIN_ID, PreferenceConstants.C4GROUP_EXECUTABLE, "", null); //$NON-NLS-1$
-		String gamePath = service.getString(ClonkCore.PLUGIN_ID, PreferenceConstants.GAME_PATH, null, null);
+		String c4groupPath = service.getString(ClonkCore.PLUGIN_ID, ClonkPreferences.C4GROUP_EXECUTABLE, "", null); //$NON-NLS-1$
+		String gamePath = service.getString(ClonkCore.PLUGIN_ID, ClonkPreferences.GAME_PATH, null, null);
 		IResource[] selectedResources = exportPage.getSelectedResources();
 		IContainer[] selectedContainers = new IContainer[selectedResources.length];
 		for(int i = 0; i < selectedResources.length;i++) {

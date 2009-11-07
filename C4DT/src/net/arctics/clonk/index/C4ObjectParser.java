@@ -5,6 +5,8 @@ import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.inireader.DefCoreUnit;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.resource.c4group.C4Group;
+import net.arctics.clonk.util.Utilities;
+
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
 
@@ -17,8 +19,8 @@ public class C4ObjectParser {
 	
 	private C4ObjectParser(IContainer folder) {
 		objectFolder = folder;
-		defCore = (IFile) folder.findMember("DefCore.txt"); //$NON-NLS-1$
-		scenario = (IFile) folder.findMember("Scenario.txt"); //$NON-NLS-1$
+		defCore = (IFile) Utilities.findMemberCaseInsensitively(folder, "DefCore.txt"); //$NON-NLS-1$
+		scenario = (IFile) Utilities.findMemberCaseInsensitively(folder, "Scenario.txt"); //$NON-NLS-1$
 	}
 	
 	private C4ObjectParser(C4Group group) {
@@ -32,9 +34,9 @@ public class C4ObjectParser {
 	 * @return the parser object or <code>null</code>, if <code>folder</code> is not a valid/complete c4d
 	 */
 	public static C4ObjectParser create(IContainer folder) {
-		if (folder.findMember("DefCore.txt") != null || //$NON-NLS-1$
-			folder.findMember("Scenario.txt") != null) //$NON-NLS-1$
-		{
+		if (Utilities.findMemberCaseInsensitively(folder, "DefCore.txt") != null || //$NON-NLS-1$
+			Utilities.findMemberCaseInsensitively(folder, "Scenario.txt") != null) //$NON-NLS-1$
+		{ 
 			C4ObjectParser parser = new C4ObjectParser(folder);
 			return parser;
 		}

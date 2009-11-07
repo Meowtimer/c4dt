@@ -360,7 +360,12 @@ public class C4Group implements C4GroupItem, Serializable {
 	}
 	
 	public String toString() {
-		return entryName;
+		StringBuilder builder = new StringBuilder();
+    	for (C4GroupItem item = this; item != null; item = item.getParentGroup()) {
+    		builder.insert(0, item.getName());
+    		builder.insert(0, '/');
+    	}
+        return builder.toString();
 	}
 	
 	/**

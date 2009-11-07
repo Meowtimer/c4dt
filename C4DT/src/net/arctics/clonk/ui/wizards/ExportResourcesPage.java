@@ -1,7 +1,7 @@
 package net.arctics.clonk.ui.wizards;
 
 import net.arctics.clonk.ClonkCore;
-import net.arctics.clonk.preferences.PreferenceConstants;
+import net.arctics.clonk.preferences.ClonkPreferences;
 import net.arctics.clonk.resource.ResourceContentProvider;
 
 import org.eclipse.core.resources.IFolder;
@@ -90,7 +90,7 @@ public class ExportResourcesPage extends WizardPage {
 	protected void createDestinationGroup(Composite parent) {
 		Label lab= new Label(parent,SWT.NONE);
 		IPreferencesService service = Platform.getPreferencesService();
-		String gamePath = service.getString(ClonkCore.PLUGIN_ID, PreferenceConstants.GAME_PATH, null, null);
+		String gamePath = service.getString(ClonkCore.PLUGIN_ID, ClonkPreferences.GAME_PATH, null, null);
 		if (gamePath != null) {
 			lab.setText(String.format(Messages.ExportResourcesPage_OutputDir, gamePath));
 		}

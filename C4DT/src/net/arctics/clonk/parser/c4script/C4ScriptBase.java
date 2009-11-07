@@ -30,14 +30,17 @@ import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 
 import net.arctics.clonk.ClonkCore;
+import net.arctics.clonk.index.C4Engine;
 import net.arctics.clonk.index.C4Object;
 import net.arctics.clonk.index.ClonkIndex;
+import net.arctics.clonk.parser.BufferedScanner;
 import net.arctics.clonk.parser.C4Declaration;
 import net.arctics.clonk.parser.C4ID;
 import net.arctics.clonk.parser.C4Structure;
 import net.arctics.clonk.parser.c4script.C4Directive.C4DirectiveType;
 import net.arctics.clonk.parser.c4script.C4Variable.C4VariableScope;
 import net.arctics.clonk.parser.stringtbl.StringTbl;
+import net.arctics.clonk.preferences.ClonkPreferences;
 import net.arctics.clonk.util.CompoundIterable;
 import net.arctics.clonk.util.IHasRelatedResource;
 import net.arctics.clonk.util.INode;
@@ -60,7 +63,7 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
 /**
- * Base class for various objects that act as containers of stuff declared in scripts.
+ * Base class for various objects that act as containers of stuff declared in scripts/ini files.
  * Subclasses include C4Object, C4StandaloneScript etc.
  */
 public abstract class C4ScriptBase extends C4Structure implements IHasRelatedResource, ITreeNode {
@@ -72,6 +75,92 @@ public abstract class C4ScriptBase extends C4Structure implements IHasRelatedRes
 	protected List<C4Function> definedFunctions = new LinkedList<C4Function>();
 	protected List<C4Variable> definedVariables = new LinkedList<C4Variable>();
 	protected List<C4Directive> definedDirectives = new LinkedList<C4Directive>();
+	
+	private static class MutableRegion implements IRegion {
+
+		private int length;
+		private int offset;
+		
+		public MutableRegion(int length, int offset) {
+			super();
+			this.length = length;
+			this.offset = offset;
+		}
+		
+		@Override
+		public int getLength() {
+			return length;
+		}
+
+		@Override
+		public int getOffset() {
+			return offset;
+		}
+
+		public void setLength(int length) {
+			this.length = length;
+		}
+
+		public void setOffset(int offset) {
+			this.offset = offset;
+		}
+		
+	}
+	
+	private transient C4Function[] lineToFunctionMap;
+	
+	public String getScriptText() {
+		return "";
+	}
+	
+	public C4Function funcAtLine(int line) {
+		if (line < 0)
+			return null;
+		calculateLineToFunctionMap();
+		return lineToFunctionMap != null && line < lineToFunctionMap.length ? lineToFunctionMap[line] : null;
+	}
+	
+	public void forgetLineToFunctionMap() {
+		lineToFunctionMap = null;
+	}
+	
+	public void calculateLineToFunctionMap() {
+		if (lineToFunctionMap != null)
+			return;
+		String scriptText = this.getScriptText();
+		MutableRegion region = new MutableRegion(scriptText.length(), 0);
+		int line = 0;
+		int lineStart = 0;
+		int lineEnd = 0;
+		List<C4Function> mappingAsList = new LinkedList<C4Function>();
+		for (BufferedScanner scanner = new BufferedScanner(scriptText); !scanner.reachedEOF();) {
+			int read = scanner.read();
+			boolean newLine = false;
+			switch (read) {
+			case '\r':
+				line++;
+				newLine = true;
+				if (scanner.read() != '\n')
+					scanner.unread();
+				break;
+			case '\n':
+				line++;
+				newLine = true;
+				break;
+			default:
+				lineEnd = scanner.getPosition();
+			}
+			if (newLine) {
+				region.setOffset(lineStart);
+				region.setLength(lineEnd-lineStart);
+				C4Function f = this.funcAt(region);
+				mappingAsList.add(f);
+				lineStart = scanner.getPosition();
+			}
+		}
+		
+		lineToFunctionMap = mappingAsList.toArray(new C4Function[mappingAsList.size()]);
+	}
 
 	/**
 	 * Returns the strict level of the script
@@ -137,7 +226,7 @@ public abstract class C4ScriptBase extends C4Structure implements IHasRelatedRes
 	 * Does the same as gatherIncludes except that the user does not have to create their own list and does not even have to supply an index (defaulting to getIndex()) 
 	 * @return The includes
 	 */
-	public C4ScriptBase[] getIncludes() {
+	public final C4ScriptBase[] getIncludes() {
 		ClonkIndex index = getIndex();
 		if (index == null)
 			return NO_INCLUDES;
@@ -261,7 +350,7 @@ public abstract class C4ScriptBase extends C4Structure implements IHasRelatedRes
 		info.recursion--;
 
 		// finally look if it's something global
-		if (info.recursion == 0 && this != ClonkCore.getDefault().getEngineObject()) { // .-.
+		if (info.recursion == 0 && !(this instanceof C4Engine)) { // .-.
 			C4Declaration f = null;
 			// definition from extern index
 			if (Utilities.looksLikeID(name)) {
@@ -276,7 +365,7 @@ public abstract class C4ScriptBase extends C4Structure implements IHasRelatedRes
 			}
 			// engine function
 			if (f == null)
-				f = ClonkCore.getDefault().getEngineObject().findDeclaration(name, info);
+				f = getIndex().getEngine().findDeclaration(name, info);
 
 			if (f != null && (info.declarationClass == null || info.declarationClass.isAssignableFrom(f.getClass())))
 				return f;
@@ -580,7 +669,7 @@ public abstract class C4ScriptBase extends C4Structure implements IHasRelatedRes
 			if (res == null)
 				return null;
 			IContainer container = res instanceof IContainer ? (IContainer) res : res.getParent();
-			String pref = ClonkCore.getDefault().getLanguagePref();
+			String pref = ClonkPreferences.getLanguagePref();
 			IResource tblFile = Utilities.findMemberCaseInsensitively(container, "StringTbl"+pref+".txt"); //$NON-NLS-1$ //$NON-NLS-2$
 			if (tblFile instanceof IFile)
 				return (StringTbl) C4Structure.pinned((IFile) tblFile, true);
@@ -622,7 +711,7 @@ public abstract class C4ScriptBase extends C4Structure implements IHasRelatedRes
 		writer.write("</script>\n"); //$NON-NLS-1$
 	}
 
-	public void importFromXML(InputStream stream) throws ParserConfigurationException, SAXException, IOException, XPathExpressionException {
+	public void importFromXML(InputStream stream, IProgressMonitor monitor) throws ParserConfigurationException, SAXException, IOException, XPathExpressionException {
 
 		XPathFactory xpathF = XPathFactory.newInstance();
 		XPath xPath = xpathF.newXPath();
@@ -632,6 +721,7 @@ public abstract class C4ScriptBase extends C4Structure implements IHasRelatedRes
 
 		NodeList functions = (NodeList) xPath.evaluate("./functions/function", doc.getFirstChild(), XPathConstants.NODESET); //$NON-NLS-1$
 		NodeList variables = (NodeList) xPath.evaluate("./variables/variable", doc.getFirstChild(), XPathConstants.NODESET); //$NON-NLS-1$
+		monitor.beginTask("Importing Engine information from XML", functions.getLength()+variables.getLength());
 		for (int i = 0; i < functions.getLength(); i++) {
 			Node function = functions.item(i);
 			NodeList parms = (NodeList) xPath.evaluate("./parameters/parameter", function, XPathConstants.NODESET); //$NON-NLS-1$
@@ -644,6 +734,7 @@ public abstract class C4ScriptBase extends C4Structure implements IHasRelatedRes
 			if (desc != null)
 				f.setUserDescription(desc.getTextContent());
 			this.addDeclaration(f);
+			monitor.worked(1);
 		}
 		for (int i = 0; i < variables.getLength(); i++) {
 			Node variable = variables.item(i);
@@ -653,14 +744,16 @@ public abstract class C4ScriptBase extends C4Structure implements IHasRelatedRes
 			if (desc != null)
 				v.setUserDescription(desc.getTextContent());
 			this.addDeclaration(v);
+			monitor.worked(1);
 		}
+		monitor.done();
 	}
 
 	@Override
 	public String getInfoText() {
 		Object f = getScriptFile();
 		if (f instanceof IFile) {
-			IResource infoFile = ((IFile)f).getParent().findMember("Desc"+ClonkCore.getDefault().getLanguagePref()+".txt"); //$NON-NLS-1$ //$NON-NLS-2$
+			IResource infoFile = Utilities.findMemberCaseInsensitively(((IFile)f).getParent(), "Desc"+ClonkPreferences.getLanguagePref()+".txt"); //$NON-NLS-1$ //$NON-NLS-2$
 			if (infoFile instanceof IFile) {
 				try {
 					return Utilities.stringFromFile((IFile) infoFile);

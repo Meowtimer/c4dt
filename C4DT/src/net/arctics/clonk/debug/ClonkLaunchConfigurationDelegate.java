@@ -5,7 +5,8 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.LinkedList;
 import net.arctics.clonk.ClonkCore;
-import net.arctics.clonk.preferences.PreferenceConstants;
+import net.arctics.clonk.index.C4Engine;
+import net.arctics.clonk.preferences.ClonkPreferences;
 
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
@@ -22,7 +23,9 @@ import org.eclipse.debug.core.DebugPlugin;
 import org.eclipse.debug.core.ILaunch;
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.ILaunchManager;
+import org.eclipse.debug.core.model.IDebugTarget;
 import org.eclipse.debug.core.model.ILaunchConfigurationDelegate;
+import org.eclipse.debug.core.model.IProcess;
 import org.eclipse.jface.preference.IPreferenceStore;
 
 public class ClonkLaunchConfigurationDelegate implements
@@ -35,12 +38,14 @@ public class ClonkLaunchConfigurationDelegate implements
 	public static final String ATTR_FULLSCREEN = ClonkCore.id("debug.FullscreenAttr"); //$NON-NLS-1$
 	public static final String ATTR_RECORD = ClonkCore.id("debug.RecordAttr"); //$NON-NLS-1$
 	
+	public static int DEFAULT_DEBUG_PORT = 10464;
+	
 	public void launch(ILaunchConfiguration configuration, String mode, ILaunch launch,
 			IProgressMonitor monitor) throws CoreException {
 
 		// Run only for now
-		if(!mode.equals(ILaunchManager.RUN_MODE))
-			abort(IStatus.ERROR, Messages.LauncherOnlySupportsRunMode);
+		/*if(!mode.equals(ILaunchManager.RUN_MODE))
+			abort(IStatus.ERROR, Messages.LauncherOnlySupportsRunMode);*/
 		
 		// Set up monitor
 		if(monitor == null)
@@ -52,7 +57,7 @@ public class ClonkLaunchConfigurationDelegate implements
 			// Get scenario and engine
 			IResource scenario = verifyScenario(configuration);
 			File engine = verifyClonkInstall(configuration);
-			String[] launchArgs = verifyLaunchArguments(configuration, scenario, engine);
+			String[] launchArgs = verifyLaunchArguments(configuration, scenario, engine, mode);
 			
 			// Working directory (work around a bug in early Linux engines)
 			File workDirectory = engine.getParentFile();
@@ -65,7 +70,15 @@ public class ClonkLaunchConfigurationDelegate implements
 			// Run the engine
 			try {
 				Process process = Runtime.getRuntime().exec(launchArgs, null, workDirectory);
-				DebugPlugin.newProcess(launch, process, configuration.getName());
+				IProcess p = DebugPlugin.newProcess(launch, process, configuration.getName());
+				if (mode.equals(ILaunchManager.DEBUG_MODE)) {
+					try {
+						IDebugTarget target = new ClonkDebugTarget(launch, p, DEFAULT_DEBUG_PORT, scenario);
+						launch.addDebugTarget(target);
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
+				}
 			} catch(IOException e) {
 				abort(IStatus.ERROR, Messages.CouldNotStartEngine, e);
 			}
@@ -108,19 +121,6 @@ public class ClonkLaunchConfigurationDelegate implements
 		return scenario;
 	}
 	
-	private String[] possibleEngineNamesAccordingToOS(String OS) {
-		if (OS.equals("Mac OS X")) { //$NON-NLS-1$
-			return new String[] { "Clonk.app/Contents/MacOS/Clonk" }; //$NON-NLS-1$
-		}
-		if (OS.contains("Windows")) { //$NON-NLS-1$
-			return new String[] { "Clonk.c4x", "Clonk.exe" }; //$NON-NLS-1$ //$NON-NLS-2$
-		}
-		if (OS.contains("Linux")) { //$NON-NLS-1$
-			return new String[] { "clonk" }; //$NON-NLS-1$
-		}
-		return possibleEngineNamesAccordingToOS("Windows"); // default to what the majority wants! //$NON-NLS-1$
-	}
-	
 	/** 
 	 * Searches an appropriate Clonk installation for launching the scenario.
 	 * @return The path of the Clonk engine executable
@@ -132,10 +132,10 @@ public class ClonkLaunchConfigurationDelegate implements
 		
 		// Clonk path from configuration
 		IPreferenceStore prefs = ClonkCore.getDefault().getPreferenceStore();
-		String gamePath = prefs.getString(PreferenceConstants.GAME_PATH);
+		String gamePath = prefs.getString(ClonkPreferences.GAME_PATH);
 
 		File enginePath = null;
-		String enginePref = Platform.getPreferencesService().getString(ClonkCore.PLUGIN_ID, PreferenceConstants.ENGINE_EXECUTABLE, "", null); //$NON-NLS-1$
+		String enginePref = Platform.getPreferencesService().getString(ClonkCore.PLUGIN_ID, ClonkPreferences.ENGINE_EXECUTABLE, "", null); //$NON-NLS-1$
 		if (enginePref != "") { //$NON-NLS-1$
 			enginePath = new File(enginePref);
 			if (!enginePath.exists())
@@ -143,7 +143,7 @@ public class ClonkLaunchConfigurationDelegate implements
 		}
 		else {
 			// Try some variants in an attempt to find the engine (ugh...)
-			final String[] engineNames = possibleEngineNamesAccordingToOS(System.getProperty("os.name")); //$NON-NLS-1$
+			final String[] engineNames = C4Engine.possibleEngineNamesAccordingToOS(); //$NON-NLS-1$
 			for(String name : engineNames) {
 				File path = new File(gamePath, name);
 				if(path.exists()) {
@@ -162,9 +162,10 @@ public class ClonkLaunchConfigurationDelegate implements
 	
 	/** 
 	 * Collects arguments to pass to the engine at launch
+	 * @param mode 
 	 */
 	public String[] verifyLaunchArguments(ILaunchConfiguration configuration,
-			IResource scenario, File engine) throws CoreException {
+			IResource scenario, File engine, String mode) throws CoreException {
 		Collection<String> args = new LinkedList<String>();  
 			
 		// Engine
@@ -182,6 +183,12 @@ public class ClonkLaunchConfigurationDelegate implements
 		// Record
 		if(configuration.getAttribute(ATTR_RECORD, false))
 			args.add("/record"); //$NON-NLS-1$
+	
+		// Debug
+		if (mode.equals(ILaunchManager.DEBUG_MODE)) {
+			args.add(String.format("/debug:%d", DEFAULT_DEBUG_PORT));
+			args.add("/debugwait");
+		}
 		
 		return args.toArray(new String [] {});
 	}

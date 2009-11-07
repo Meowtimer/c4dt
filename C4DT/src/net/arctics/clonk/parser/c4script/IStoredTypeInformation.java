@@ -9,7 +9,7 @@ public interface IStoredTypeInformation {
 	C4Type getType();
 	void storeType(C4Type type);
 	
-	boolean expressionRelevant(ExprElm expr);
+	boolean expressionRelevant(ExprElm expr, C4ScriptParser parser);
 	boolean sameExpression(IStoredTypeInformation other);
 	void apply(boolean soft);
 	void merge(IStoredTypeInformation other);

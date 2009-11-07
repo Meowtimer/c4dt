@@ -474,5 +474,9 @@ public class ClonkIndex implements Serializable, Iterable<C4Object> {
 		}
 		return null;
 	}
+	
+	public C4Engine getEngine() {
+		return ClonkCore.getDefault().getActiveEngine();
+	}
 
 }

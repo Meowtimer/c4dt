@@ -147,6 +147,15 @@ public abstract class Utilities {
 		else return null;
 	}
 	
+	public static C4ScriptBase getScriptForResource(IResource resource) throws CoreException {
+		if (resource instanceof IContainer)
+			return C4ObjectIntern.objectCorrespondingTo((IContainer) resource);
+		else if (resource instanceof IFile)
+			return getScriptForFile((IFile) resource);
+		else
+			return null;
+	}
+	
 	public static C4ScriptBase getScriptForFile(IFile scriptFile) {
 		C4ScriptBase script;
 		try {
@@ -580,5 +589,14 @@ public abstract class Utilities {
         }
 		return null;
 	}
+
+	@SuppressWarnings("unchecked")
+    public static <T> T[] concat(T first, T... rest) {
+		T[] result = (T[]) Array.newInstance(rest.getClass().getComponentType(), 1+rest.length);
+		result[0] = first;
+		for (int i = 0; i < rest.length; i++)
+			result[1+i] = rest[i];
+		return result;
+    }
 	
 }

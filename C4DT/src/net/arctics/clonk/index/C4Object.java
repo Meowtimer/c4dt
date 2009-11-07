@@ -7,10 +7,10 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.C4ID;
 import net.arctics.clonk.parser.c4script.C4ScriptBase;
 import net.arctics.clonk.parser.c4script.FindDeclarationInfo;
+import net.arctics.clonk.preferences.ClonkPreferences;
 
 public abstract class C4Object extends C4ScriptBase {
 
@@ -94,7 +94,7 @@ public abstract class C4Object extends C4ScriptBase {
 
 	public void chooseLocalizedName() {
 		if (localizedNames != null) {
-			String preferredName = localizedNames.get(ClonkCore.getDefault().getLanguagePref());
+			String preferredName = localizedNames.get(ClonkPreferences.getLanguagePref());
 			if (preferredName != null)
 				setName(preferredName);
 		}
