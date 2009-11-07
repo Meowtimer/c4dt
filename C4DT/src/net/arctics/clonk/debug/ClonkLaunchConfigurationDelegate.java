@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.LinkedList;
 import net.arctics.clonk.ClonkCore;
+import net.arctics.clonk.index.C4Engine;
 import net.arctics.clonk.preferences.ClonkPreferences;
 
 import org.eclipse.core.resources.IFolder;
@@ -120,19 +121,6 @@ public class ClonkLaunchConfigurationDelegate implements
 		return scenario;
 	}
 	
-	private String[] possibleEngineNamesAccordingToOS(String OS) {
-		if (OS.equals("Mac OS X")) { //$NON-NLS-1$
-			return new String[] { "Clonk.app/Contents/MacOS/Clonk" }; //$NON-NLS-1$
-		}
-		if (OS.contains("Windows")) { //$NON-NLS-1$
-			return new String[] { "Clonk.c4x", "Clonk.exe" }; //$NON-NLS-1$ //$NON-NLS-2$
-		}
-		if (OS.contains("Linux")) { //$NON-NLS-1$
-			return new String[] { "clonk" }; //$NON-NLS-1$
-		}
-		return possibleEngineNamesAccordingToOS("Windows"); // default to what the majority wants! //$NON-NLS-1$
-	}
-	
 	/** 
 	 * Searches an appropriate Clonk installation for launching the scenario.
 	 * @return The path of the Clonk engine executable
@@ -155,7 +143,7 @@ public class ClonkLaunchConfigurationDelegate implements
 		}
 		else {
 			// Try some variants in an attempt to find the engine (ugh...)
-			final String[] engineNames = possibleEngineNamesAccordingToOS(System.getProperty("os.name")); //$NON-NLS-1$
+			final String[] engineNames = C4Engine.possibleEngineNamesAccordingToOS(); //$NON-NLS-1$
 			for(String name : engineNames) {
 				File path = new File(gamePath, name);
 				if(path.exists()) {

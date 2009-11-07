@@ -1,5 +1,7 @@
 package net.arctics.clonk.index;
 
+import org.eclipse.jface.util.Util;
+
 import net.arctics.clonk.parser.C4Declaration;
 import net.arctics.clonk.parser.C4ID;
 
@@ -44,5 +46,17 @@ public class C4Engine extends C4ObjectExtern {
     	super.postSerialize(parent);
     	modified();
     }
+    
+    public static String[] possibleEngineNamesAccordingToOS() {
+		if (Util.isMac()) {
+			return new String[] { "Clonk.app/Contents/MacOS/Clonk" }; //$NON-NLS-1$
+		}
+		if (Util.isLinux()) {
+			return new String[] { "clonk" }; //$NON-NLS-1$
+		}
+		//if (Util.isWindows()) {
+    		return new String[] { "Clonk.c4x", "Clonk.exe" }; //$NON-NLS-1$ //$NON-NLS-2$
+    	//}
+	}
 
 }
