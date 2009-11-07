@@ -985,6 +985,14 @@ public abstract class C4ScriptExprTree {
 							//given.expectedToBeOfType(parm.getType(), context);
 						}
 					}
+					
+					// warn about too many parameters
+					if (f.getParameters().size() == 0 || !f.getParameters().get(f.getParameters().size()-1).getName().equals("...")) {
+						if (params.length > f.getParameters().size()) {
+							context.warningWithCode(ParserErrorCode.TooManyParameters, this, f.getParameters().size(), params.length);
+						}
+					}
+					
 				}
 				else if (declaration == null && getPredecessorInSequence() == null) {
 					if (declarationName.equals(Keywords.Inherited)) {
