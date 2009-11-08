@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <feature
       id="net.arctics.clonk.c4dt_de_feature"
-      label="C4DT Deutsches Sprachpaket"
+      label="Clonk Development Tools - Deutsches Sprachpaket"
       version="0.9">
 
    <description url="http://www.example.com/description">
