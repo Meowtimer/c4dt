@@ -2296,6 +2296,7 @@ Wenn fCheckSite 1 ist, wird die Baustelle vorher auf ihre Eignung überprüft. I
 		<function name="Format" return="string">
 			<parameters>
 				<parameter name="szStr" type="string" />
+				<parameter name="..." type="any" />
 			</parameters>
 			<description>Setzt eine Zeichenkette aus verschiedenen Werten zusammen. Dabei wird szStr von vorne bis zum Ende nach mit '%' beginnenden Platzhaltern durchsucht, um diese dann durch die Parameter zu ersetzen.<br/>
       Das allgemeine Syntax für diese Platzhalter lautet:<br/>
