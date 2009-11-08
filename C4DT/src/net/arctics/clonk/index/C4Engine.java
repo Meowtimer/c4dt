@@ -14,7 +14,7 @@ public class C4Engine extends C4ObjectExtern {
 
 	private static final long serialVersionUID = 1L;
 	
-	private CachedEngineFuncs cachedFuncs;
+	private transient CachedEngineFuncs cachedFuncs;
 	
     public CachedEngineFuncs getCachedFuncs() {
 		return cachedFuncs;
