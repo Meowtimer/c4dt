@@ -21,6 +21,8 @@ def traverse (path)
 			baseName = "messages"
 		elsif e == "actionsBundle.properties" then
 			baseName = "actionsBundle"
+		elsif e == "plugin.properties" then
+			baseName = "plugin"
 		end
 		if baseName != "" then
 			puts fullOriginPath+"/"+e
