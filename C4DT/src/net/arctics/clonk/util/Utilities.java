@@ -308,8 +308,15 @@ public abstract class Utilities {
 			if (!(cls.isAssignableFrom(item.getClass())))
 				return false;
 		return true;
-	}
+	} 
 
+	public static Class<?> baseClass(Class<?> a, Class<?> b) {
+		Class<?> result = a;
+		while (!result.isAssignableFrom(b))
+			result = result.getSuperclass();
+		return result;
+	}
+	
 	@SuppressWarnings("unchecked")
 	public static <T> T[] concat(T[] a, T... b) {
 		final int alen = a != null ? a.length : 0;
@@ -320,7 +327,7 @@ public abstract class Utilities {
 		if (blen == 0) {
 			return a != null ? a : (T[])new Object[0];
 		}
-		final T[] result = (T[]) Array.newInstance(a.getClass().getComponentType(), alen+blen);
+		final T[] result = (T[]) Array.newInstance(baseClass(a.getClass().getComponentType(), b.getClass().getComponentType()), alen+blen);
 		System.arraycopy(a, 0, result, 0, alen);
 		System.arraycopy(b, 0, result, alen, blen);
 		return result;

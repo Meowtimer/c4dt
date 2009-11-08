@@ -1,5 +1,6 @@
 package net.arctics.clonk.resource;
 
+import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.resource.c4group.C4Group;
 
 import org.eclipse.core.expressions.PropertyTester;
@@ -68,6 +69,14 @@ public class ResourceTester extends PropertyTester {
 			res = res.getParent();
 		}
 		return false;
+	}
+
+	public static boolean isInClonkProject(IResource res) {
+		try {
+			return res.getProject().hasNature(ClonkCore.CLONK_NATURE_ID);
+		} catch (Exception e) {
+			return false;
+		}
 	}
 	
 }

@@ -10,9 +10,11 @@ import net.arctics.clonk.parser.c4script.C4ScriptBase;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.resource.ExternalLib;
 import net.arctics.clonk.util.INode;
+import net.arctics.clonk.util.IPredicate;
 import net.arctics.clonk.util.ITreeNode;
 import net.arctics.clonk.util.Utilities;
 
+import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
@@ -24,18 +26,32 @@ import org.eclipse.jface.viewers.Viewer;
  */
 public class ClonkNavigator extends ClonkOutlineProvider {
 
+	private static IPredicate<IResource> filter = new IPredicate<IResource>() {
+		@Override
+		public boolean test(IResource item) {
+			return !(item.getName().endsWith(".png"));
+		}
+	};
+	
 	public Object[] getChildren(Object element) {
+		Object[] baseResources = NO_CHILDREN;
+		if (element instanceof IContainer) {
+			try {
+				baseResources = ((IContainer)element).members();
+				//baseResources = Utilities.filter(((IContainer)element).members(), filter);
+			} catch (CoreException e) {}
+		}
 		// add additional virtual nodes to the project
 		if (element instanceof IFile) {
 			// list contents of ini and script files
 			C4ScriptBase script = Utilities.getScriptForFile((IFile) element);
 			if (script != null)
-				return super.getChildren(script);
+				return Utilities.concat(baseResources, super.getChildren(script));
 			try {
 				C4Structure s = C4Structure.pinned((IFile) element, false);
 				if (s instanceof ITreeNode) {
 					// call again for ITreeNode object (below)
-					return this.getChildren(s);
+					return Utilities.concat(baseResources, this.getChildren(s));
 				}
 			} catch (Exception e) {
 				e.printStackTrace();
@@ -48,21 +64,20 @@ public class ClonkNavigator extends ClonkOutlineProvider {
 					List<ExternalLib> deps = clonkProj != null
 						? clonkProj.getDependencies()
 						: ClonkCore.getDefault().getExternIndex().getLibs();
-					return deps.toArray(new Object[deps.size()]);
+					return Utilities.concat(baseResources, deps.toArray(new Object[deps.size()]));
 				}
 			} catch (CoreException e) {}
 		}
 		else if (element instanceof ITreeNode) {
 			Collection<? extends INode> children = ((ITreeNode)element).getChildCollection();
-			return children != null ? children.toArray(new INode[children.size()]) : NO_CHILDREN;
+			return children != null ? Utilities.concat(baseResources, (Object[])children.toArray(new INode[children.size()])) : baseResources;
 		}
-		return super.getChildren(element);
+		return Utilities.concat(baseResources, super.getChildren(element));
 	}
 
 	public boolean hasChildren(Object element) {
-		if (element instanceof IProject) {
-			if (((IProject)element).isOpen())
-				return true;
+		if (element instanceof IContainer) {
+			return true;
 		}
 		else if (element instanceof IFile) {
 			C4ScriptBase script = Utilities.getScriptForFile((IFile) element);
@@ -71,7 +86,7 @@ public class ClonkNavigator extends ClonkOutlineProvider {
 			try {
 				C4Structure s;
 				if ((s = C4Structure.pinned((IFile) element, true)) != null)
-					return (s instanceof ITreeNode && ((ITreeNode)s).getChildCollection().size() > 0);
+					return s instanceof ITreeNode && ((ITreeNode)s).getChildCollection().size() > 0;
 			} catch (CoreException e) {
 				return false;
 			}

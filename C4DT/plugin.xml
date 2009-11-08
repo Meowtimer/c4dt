@@ -90,16 +90,24 @@
 	</extension>
 
 	<extension point="org.eclipse.ui.navigator.navigatorContent">
-		<navigatorContent name="ClonkResourceNavigation"
-			priority="low" icon="icons/Clonk_Object.ico" activeByDefault="true"
+		<navigatorContent name="Clonk Resources"
+			priority="high" icon="icons/Clonk_Object.ico" activeByDefault="true"
 			contentProvider="net.arctics.clonk.ui.navigator.ClonkNavigator"
 			labelProvider="net.arctics.clonk.ui.navigator.ClonkLabelProvider"
 			providesSaveables="false" id="net.arctics.clonk.navigator.resourceContent">
+			
+			<override
+				policy="InvokeAlwaysRegardlessOfSuppressedExt"
+         		suppressedExtensionId="org.eclipse.ui.navigator.resourceContent">
+			</override>
+			
 			<triggerPoints>
 				<or>
 					<instanceof value="org.eclipse.core.resources.IResource" />
+					<test property="net.arctics.clonk.resource.isInClonkProject" />
 				</or>
 			</triggerPoints>
+			
 			<possibleChildren>
 				<or>
 					<instanceof value="org.eclipse.core.resources.IResource" />
@@ -107,6 +115,7 @@
 					<instanceof value="net.arctics.clonk.parser.C4Declaration" />
 				</or>
 			</possibleChildren>
+			
 			<actionProvider class="net.arctics.clonk.ui.navigator.ClonkActionProvider"
 				id="clonkActionProvider" priority="normal" />
 
@@ -411,7 +420,7 @@
 
 	<extension point="org.eclipse.core.expressions.propertyTesters">
 		<propertyTester id="net.arctics.clonk.resource.ResourceTester"
-			namespace="net.arctics.clonk.resource" properties="isScenario,isDefinition,isFolder,isResource,isInScenario"
+			namespace="net.arctics.clonk.resource" properties="isScenario,isDefinition,isFolder,isResource,isInScenario,isInClonkProject"
 			type="org.eclipse.core.resources.IResource" class="net.arctics.clonk.resource.ResourceTester" />
 
 		<propertyTester id="net.arctics.clonk.resource.ResourceTesterEditor"
