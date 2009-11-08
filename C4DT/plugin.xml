@@ -276,69 +276,70 @@
 
 	<extension point="org.eclipse.ui.commands">
 		<command categoryId="org.eclipse.ui.category.navigate"
-			description="Open a dialog to quickly find a definition"
+			description="%OpenObject_Desc"
 			id="net.arctics.clonk.ui.OpenObject"
 			defaultHandler="net.arctics.clonk.ui.editors.actions.c4script.OpenObjectAction"
-			name="Open Object" />
+			name="%OpenObject_Name" />
 		
 		<command categoryId="org.eclipse.ui.category.navigate"
-			description="Open a file in the same folder as the one you currently edit"
+			description="%OpenLocalResource_Desc"
 			id="net.arctics.clonk.ui.OpenLocalResource"
 			defaultHandler="net.arctics.clonk.ui.editors.actions.c4script.OpenLocalResourceAction"
-			name="Open Related File" />
+			name="%OpenLocalResource_Name" />
 		
 		<command categoryId="org.eclipse.ui.category.navigate"
-			description="Invoke a command"
+			description="%InvokeCommand_Desc"
 			id="net.arctics.clonk.ui.InvokeCommand"
 			defaultHandler="net.arctics.clonk.command.ui.actions.InvokeCommandAction"
-			name="Invoke Command" />
+			name="%InvokeCommand_Name" />
 		
 		<command categoryId="org.eclipse.ui.category.navigate"
-			description="Export the selected resources to the Clonk folder"
+			description="%QuickExport_Desc"
 			id="net.arctics.clonk.ui.QuickExport"
 			defaultHandler="net.arctics.clonk.ui.navigator.QuickExportAction"
-			name="Quick Export" />
+			name="%QuickExport_Name" />
 			
 		<command categoryId="org.eclipse.ui.category.navigate"
-			description="Import Clonk files into the selected folder"
+			description="%QuickImport_Desc"
 			id="net.arctics.clonk.ui.QuickImport"
 			defaultHandler="net.arctics.clonk.ui.navigator.QuickImportAction"
-			name="Quick Import" />
+			name="%QuickImport_Name" />
 
 		<command categoryId="org.eclipse.ui.category.edit"
-			description="Tidy up"
+			description="%ConvertOldCodeToNewCode_Desc"
 			id="net.arctics.clonk.ui.editors.actions.ConvertOldCodeToNewCode"
-			name="Tidy Up" />
+			name="%ConvertOldCodeToNewCode_Desc" />
 
 		<command categoryId="org.eclipse.ui.category.edit"
-			description="Open the declaration of the selected element"
+			description="%OpenDeclaration_Desc"
 			id="net.arctics.clonk.ui.editors.actions.OpenDeclaration"
-			name="Open Declaration" />
+			name="%OpenDeclaration_Name" />
 
 		<command categoryId="org.eclipse.ui.category.edit"
-			description="Find references to the selected element"
+			description="%FindReferences_Desc"
 			id="net.arctics.clonk.ui.editors.actions.FindReferences"
-			name="Find References" />
+			name="%FindReferences_Name" />
 
 		<command categoryId="org.eclipse.ui.category.edit"
-			description="Rename the selected declaration"
+			description="%RenameDeclaration_Desc"
 			id="net.arctics.clonk.ui.editors.actions.RenameDeclaration"
-			name="Rename Declaration" />
+			name="%RenameDeclaration_Name" />
 		
+		<!-- FIXME: what was that supposed to do -->
 		<command categoryId="org.eclipse.ui.category.edit"
-			description="Declaration filter"
+			description="%DeclarationFilter_Desc"
 			id="net.arctics.clonk.ui.editors.actions.DeclarationFilter"
-			name="Declaration filter" />
+			name="%DeclarationFilter_Name" />
 
 	</extension>
 
 	<extension point="org.eclipse.ui.menus">
 		<menuContribution locationURI="menu:org.eclipse.ui.main.menu">
 			<menu label="Clonk">
-				<command commandId="net.arctics.clonk.ui.OpenObject" label="Open Object" />
-				<command commandId="net.arctics.clonk.ui.OpenLocalResource" label="Open Related File" />
+				<command commandId="net.arctics.clonk.ui.OpenObject" label="%OpenObject_Name" />
+				<command commandId="net.arctics.clonk.ui.OpenLocalResource" label="%OpenLocalResource_Name" />
 				<separator name="SeparatorAfterOpenCommands" visible="true"/>
-				<command commandId="net.arctics.clonk.ui.QuickImport" label="Quick Import">
+				<command commandId="net.arctics.clonk.ui.QuickImport" label="%QuickImport_Name">
 					<visibleWhen checkEnabled="false">
 						<iterate ifEmpty="false">
 							<adapt type="org.eclipse.core.resources.IContainer">
@@ -346,7 +347,7 @@
 						</iterate>
 					</visibleWhen>
 				</command>
-				<command commandId="net.arctics.clonk.ui.QuickExport" label="Quick Export">
+				<command commandId="net.arctics.clonk.ui.QuickExport" label="%QuickExport_Name">
 					<visibleWhen checkEnabled="false">
 						<iterate ifEmpty="false">
 							<adapt type="org.eclipse.core.resources.IContainer">
@@ -355,7 +356,7 @@
 					</visibleWhen>
 				</command>
 				<separator name="SeparatorAfterImportCommands" visible="true"/>
-				<command commandId="net.arctics.clonk.ui.InvokeCommand" label="Invoke Command" />
+				<command commandId="net.arctics.clonk.ui.InvokeCommand" label="%InvokeCommand_Name" />
 			</menu>
 		</menuContribution>
 	</extension>

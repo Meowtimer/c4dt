@@ -16,11 +16,22 @@ def traverse (path)
 	fullTargetPath = @target
 	fullTargetPath += "/"+path if path != ""
 	Dir.new(fullOriginPath).entries.each {|e|
+		baseName = ""
 		if e == "messages.properties" then
+			baseName = "messages"
+		elsif e == "actionsBundle.properties" then
+			baseName = "actionsBundle"
+		end
+		if baseName != "" then
 			puts fullOriginPath+"/"+e
 			File.makedirs(fullTargetPath)
-			File.syscopy(fullOriginPath+"/"+e, fullTargetPath+"/"+e)
-			File.rename(fullTargetPath+"/"+e, fullTargetPath+"/messages_"+@lang+".properties")
+			loc = fullTargetPath+"/"+baseName+"_"+@lang+".properties"
+			if File.exists? loc then
+				puts loc
+			else
+				File.syscopy(fullOriginPath+"/"+e, fullTargetPath+"/"+e)
+				File.rename(fullTargetPath+"/"+e, loc)
+			end
 		elsif e != "." and e != ".." and File.directory?(fullOriginPath+"/"+e) then
 			traverse(path+"/"+e)
 		end
