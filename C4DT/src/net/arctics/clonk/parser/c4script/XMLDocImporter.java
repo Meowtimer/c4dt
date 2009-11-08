@@ -125,8 +125,9 @@ public class XMLDocImporter {
 					Node nameNode  = (Node) parmNameExpr.evaluate(n, XPathConstants.NODE);
 					Node typeNode  = (Node) parmTypeExpr.evaluate(n, XPathConstants.NODE);
 					Node descNode_ = (Node) parmDescExpr.evaluate(n, XPathConstants.NODE);
-					if (nameNode != null && typeNode != null) {
-						C4Variable parm = new C4Variable(nameNode.getTextContent(), C4Type.makeType(typeNode.getTextContent()));
+					String typeStr = typeNode != null ? typeNode.getTextContent() : C4Type.ANY.toString();
+					if (nameNode != null) {
+						C4Variable parm = new C4Variable(nameNode.getTextContent(), C4Type.makeType(typeStr));
 						if (descNode_ != null)
 							parm.setUserDescription(descNode_.getTextContent());
 						function.getParameters().add(parm);
