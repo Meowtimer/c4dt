@@ -10,7 +10,6 @@ import net.arctics.clonk.parser.c4script.C4ScriptBase;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.resource.ExternalLib;
 import net.arctics.clonk.util.INode;
-import net.arctics.clonk.util.IPredicate;
 import net.arctics.clonk.util.ITreeNode;
 import net.arctics.clonk.util.Utilities;
 
@@ -25,20 +24,12 @@ import org.eclipse.jface.viewers.Viewer;
  * content provider for adding virtual (non-file based) nodes to the project explorer
  */
 public class ClonkNavigator extends ClonkOutlineProvider {
-
-	private static IPredicate<IResource> filter = new IPredicate<IResource>() {
-		@Override
-		public boolean test(IResource item) {
-			return !(item.getName().endsWith(".png"));
-		}
-	};
 	
 	public Object[] getChildren(Object element) {
 		Object[] baseResources = NO_CHILDREN;
 		if (element instanceof IContainer) {
 			try {
 				baseResources = ((IContainer)element).members();
-				//baseResources = Utilities.filter(((IContainer)element).members(), filter);
 			} catch (CoreException e) {}
 		}
 		// add additional virtual nodes to the project
