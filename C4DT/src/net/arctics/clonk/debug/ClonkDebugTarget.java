@@ -12,6 +12,10 @@ import net.arctics.clonk.ClonkCore;
 import org.eclipse.core.resources.IMarkerDelta;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
+import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.debug.core.DebugEvent;
 import org.eclipse.debug.core.DebugException;
 import org.eclipse.debug.core.DebugPlugin;
@@ -42,35 +46,91 @@ public class ClonkDebugTarget extends ClonkDebugElement implements IDebugTarget 
 		return socketReader;
 	}
 	
+	private class EventDispatchJob extends Job {
+
+		public EventDispatchJob(String name) {
+			super(name);
+		}
+
+		@Override
+		protected IStatus run(IProgressMonitor monitor) {
+			String event = ""; //$NON-NLS-1$
+			while (!isTerminated() && event != null) {
+				try {
+					event = socketReader.readLine();
+					if (event != null && event.length() > 0) {
+						System.out.println("Got line from Clonk: " + event); //$NON-NLS-1$
+						if (event.startsWith("POS")) { //$NON-NLS-1$
+							String sourcePath = event.substring(4, event.length() - (event.charAt(event.length()-1)==0?1:0)); // cut off weird 0 at end
+							stoppedAtPath(sourcePath);
+						}
+					}
+				} catch (IOException e) {
+					//e.printStackTrace();
+					terminated();
+					break;
+				}
+			}
+			return Status.OK_STATUS;
+		}
+		
+	}
+	
+	private class ConnectionJob extends Job {
+
+		private int port;
+		
+		public ConnectionJob(String name, int port) {
+			super(name);
+			this.port = port;
+		}
+
+		@Override
+		protected IStatus run(IProgressMonitor monitor) {
+			boolean success = false;
+			// try several times to give the engine a chance to load
+			for (int attempts = 0; attempts < 30; attempts++) {
+				Socket socket;
+				try {
+					socket = new Socket("localhost", port); //$NON-NLS-1$
+				} catch (UnknownHostException e) {
+					try {Thread.sleep(5000);} catch (InterruptedException interrupt) {}
+					continue;
+				} catch (IOException e) {
+					try {Thread.sleep(5000);} catch (InterruptedException interrupt) {}
+					continue;
+				}
+				PrintWriter socketWriter = null;
+				BufferedReader socketReader = null;
+				try {
+					socketWriter = new PrintWriter(socket.getOutputStream());
+					socketReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+				setConnectionObjects(socket, socketWriter, socketReader);
+				success = true;
+				break;
+			}
+			if (!success)
+				System.out.println("Clonk Debugger: Connecting to engine failed"); //$NON-NLS-1$
+			else
+				System.out.println("Clonk Debugger: Connected successfully!"); //$NON-NLS-1$
+			return Status.OK_STATUS;
+		}
+		
+	}
+	
 	synchronized private void setConnectionObjects(Socket socket, PrintWriter socketWriter, BufferedReader socketReader_) {
 		this.socket = socket;
 		this.socketWriter = socketWriter;
 		this.socketReader = socketReader_;
 		
-		send("");
+		fireEvent(new DebugEvent(this, DebugEvent.CREATE));
 		
-		new Thread(new Runnable() {
-			@Override
-			public void run() {
-				String event = "";
-				while (!isTerminated() && event != null) {
-					try {
-						event = socketReader.readLine();
-						if (event != null && event.length() > 0) {
-							System.out.println("Got line from Clonk: " + event);
-							if (event.startsWith("POS")) {
-								String sourcePath = event.substring(4, event.length() - (event.charAt(event.length()-1)==0?1:0)); // cut off weird 0 at end
-								stoppedAtPath(sourcePath);
-							}
-						}
-					} catch (IOException e) {
-						e.printStackTrace();
-						terminated();
-						break;
-					}
-				}
-			}
-		}, "Clonk Debugger Event Dispatch").start();
+		send(""); //$NON-NLS-1$
+		
+		new EventDispatchJob("Clonk Debugger Event Dispatch").schedule(); //$NON-NLS-1$
 	}
 	
 	private void stoppedAtPath(String sourcePath) {
@@ -83,7 +143,7 @@ public class ClonkDebugTarget extends ClonkDebugElement implements IDebugTarget 
 		fireEvent(new DebugEvent(this, DebugEvent.STEP_INTO));
 	}
 
-	public ClonkDebugTarget(ILaunch launch, IProcess process, final int port, IResource scenario) throws Exception {
+	public ClonkDebugTarget(ILaunch launch, IProcess process, int port, IResource scenario) throws Exception {
 
 		super(null);
 
@@ -93,40 +153,7 @@ public class ClonkDebugTarget extends ClonkDebugElement implements IDebugTarget 
 		this.threads = new IThread[] {thread};
 		this.scenario = scenario;
 
-		new Thread(new Runnable() {
-			@Override
-			public void run() {
-				boolean success = false;
-				// try several times to give the engine a chance to load
-				for (int attempts = 0; attempts < 30; attempts++) {
-					Socket socket;
-					try {
-						socket = new Socket("localhost", port);
-					} catch (UnknownHostException e) {
-						try {Thread.sleep(5000);} catch (InterruptedException interrupt) {}
-						continue;
-					} catch (IOException e) {
-						try {Thread.sleep(5000);} catch (InterruptedException interrupt) {}
-						continue;
-					}
-					PrintWriter socketWriter = null;
-					BufferedReader socketReader = null;
-					try {
-						socketWriter = new PrintWriter(socket.getOutputStream());
-						socketReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-					} catch (IOException e) {
-						e.printStackTrace();
-					}
-					setConnectionObjects(socket, socketWriter, socketReader);
-					success = true;
-					break;
-				}
-				if (!success)
-					System.out.println("Clonk Debugger: Connecting to engine failed");
-				else
-					System.out.println("Clonk Debugger: Connected successfully!");
-			}
-		}, "Clonk Debugger Connection Thread").start();
+		new ConnectionJob("Clonk Debugger Connection Job", port).schedule(); //$NON-NLS-1$
 
 		DebugPlugin.getDefault().getBreakpointManager().addBreakpointListener(this);
 
@@ -145,7 +172,7 @@ public class ClonkDebugTarget extends ClonkDebugElement implements IDebugTarget 
 
 	@Override
 	public String getName() throws DebugException {
-		return "Clonk DebugTarget";
+		return "Clonk DebugTarget"; //$NON-NLS-1$
 	}
 
 	@Override
@@ -204,9 +231,7 @@ public class ClonkDebugTarget extends ClonkDebugElement implements IDebugTarget 
 	public void terminated() {
 		try {
 			terminate();
-		} catch (DebugException e) {
-			e.printStackTrace();
-		}
+		} catch (DebugException e) {}
 		DebugPlugin.getDefault().getBreakpointManager().removeBreakpointListener(this);
 		fireTerminateEvent();
 	}
@@ -233,8 +258,8 @@ public class ClonkDebugTarget extends ClonkDebugElement implements IDebugTarget 
 	}
 	
 	public static class Commands {
-		public static final String RESUME = "GO";
-		public static final String SUSPEND = "STP";
+		public static final String RESUME = "GO"; //$NON-NLS-1$
+		public static final String SUSPEND = "STP"; //$NON-NLS-1$
 	}
 	
 	public synchronized void send(String command) {
@@ -246,12 +271,14 @@ public class ClonkDebugTarget extends ClonkDebugElement implements IDebugTarget 
 	public void resume() throws DebugException {
 		send(Commands.RESUME);
 		suspended = false;
+		fireResumeEvent(DebugEvent.CLIENT_REQUEST);
 	}
 
 	@Override
 	public void suspend() throws DebugException {
 		send(Commands.SUSPEND);
 		suspended = true;
+		fireSuspendEvent(DebugEvent.CLIENT_REQUEST);
 	}
 
 	@Override

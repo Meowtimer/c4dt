@@ -46,6 +46,7 @@ public class Messages extends NLS {
 	public static String NameExpected;
 	public static String ReturnAsFunction;
 	public static String ExpressionNotModifiable;
+	public static String ParserErrorCode_WrongNumberOfParameters;
 	static {
 		// initialize resource bundle
 		NLS.initializeMessages(BUNDLE_NAME, Messages.class);

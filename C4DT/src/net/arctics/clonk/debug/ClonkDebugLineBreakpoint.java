@@ -13,7 +13,7 @@ public class ClonkDebugLineBreakpoint implements IBreakpoint {
 	
 	public ClonkDebugLineBreakpoint(IResource resource, int lineNumber) throws CoreException {
 		IMarker marker = resource.createMarker(
-				"org.eclipse.debug.examples.core.pda.lineBreakpoint.marker");
+				"org.eclipse.debug.examples.core.pda.lineBreakpoint.marker"); //$NON-NLS-1$
 		setMarker(marker);
 		setEnabled(true);
 		marker.setAttribute(IMarker.LINE_NUMBER, lineNumber);

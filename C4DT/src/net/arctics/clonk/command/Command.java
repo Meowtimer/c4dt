@@ -81,7 +81,7 @@ public class Command {
 				}
 				@Override
 				public void parseCodeOfFunction(C4Function function) throws ParsingException {
-				    if (function.getName().equals("Main")) {
+				    if (function.getName().equals("Main")) { //$NON-NLS-1$
 				    	main = (C4CommandFunction)function;
 				    }
 				    final List<Statement> statements = new LinkedList<Statement>();
@@ -133,7 +133,7 @@ public class Command {
 			@Override
 			public Object getScriptFile() {
 			    try {
-	                return new SimpleScriptStorage("CommandBase", "");
+	                return new SimpleScriptStorage("CommandBase", ""); //$NON-NLS-1$ //$NON-NLS-2$
                 } catch (UnsupportedEncodingException e) {
 	                return null;
                 }
@@ -141,7 +141,7 @@ public class Command {
 			
 			@Override
 			public String getName() {
-				return "CommandBaseScript";
+				return "CommandBaseScript"; //$NON-NLS-1$
 			};
 			
 			@Override
@@ -217,7 +217,7 @@ public class Command {
 		@CommandFunction
 		public static void ConnectToDebugSocket(Object context, long port) {
 			try {
-				debugSocket = new Socket("localhost", (int) port);
+				debugSocket = new Socket("localhost", (int) port); //$NON-NLS-1$
 				debugSocketWriter = new PrintWriter(debugSocket.getOutputStream());
 				debugSocketReader = new BufferedReader(new InputStreamReader(debugSocket.getInputStream()));
 			} catch (UnknownHostException e) {

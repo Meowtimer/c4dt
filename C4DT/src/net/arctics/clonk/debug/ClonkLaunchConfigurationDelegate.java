@@ -186,8 +186,8 @@ public class ClonkLaunchConfigurationDelegate implements
 	
 		// Debug
 		if (mode.equals(ILaunchManager.DEBUG_MODE)) {
-			args.add(String.format("/debug:%d", DEFAULT_DEBUG_PORT));
-			args.add("/debugwait");
+			args.add(String.format("/debug:%d", DEFAULT_DEBUG_PORT)); //$NON-NLS-1$
+			args.add("/debugwait"); //$NON-NLS-1$
 		}
 		
 		return args.toArray(new String [] {});

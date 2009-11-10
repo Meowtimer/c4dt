@@ -184,7 +184,7 @@ public class LaunchMainTab extends AbstractLaunchConfigurationTab {
 			
 			// Set defaults
 			fScenText.setText("");	 //$NON-NLS-1$
-			fProjText.setText("");
+			fProjText.setText(""); //$NON-NLS-1$
 			fFullscreenButton.setSelection(false);
 			fConsoleButton.setSelection(true);
 			fRecordButton.setSelection(false);

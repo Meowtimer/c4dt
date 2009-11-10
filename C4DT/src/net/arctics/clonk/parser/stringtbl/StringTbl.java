@@ -21,7 +21,7 @@ import net.arctics.clonk.util.ReadOnlyIterator;
 
 public class StringTbl extends C4Structure implements ITreeNode, ITableEntryInformationSink {
 	
-	public static final Pattern PATTERN = Pattern.compile("StringTbl(..)\\.txt", Pattern.CASE_INSENSITIVE);
+	public static final Pattern PATTERN = Pattern.compile("StringTbl(..)\\.txt", Pattern.CASE_INSENSITIVE); //$NON-NLS-1$
 
 	private static final long serialVersionUID = 1L;
 	

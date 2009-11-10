@@ -463,7 +463,7 @@ public class EngineDeclarationsView extends ViewPart implements IPropertyChangeL
 			public void run() {
 				InputDialog dialog = new InputDialog(
 						PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(),
-						"Specify Engine Name", "Please specify the name of this engine",
+						Messages.EngineDeclarationsView_SpecifyEngineName, Messages.EngineDeclarationsView_SpecifyEngineNameDesc,
 						ClonkCore.getDefault().getActiveEngine().getName(),
 						null
 				);

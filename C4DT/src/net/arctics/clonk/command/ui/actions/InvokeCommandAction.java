@@ -17,7 +17,7 @@ import org.eclipse.ui.PlatformUI;
 
 public class InvokeCommandAction extends Action implements IWorkbenchWindowActionDelegate, IHandler {
 	
-	private static final String COMMAND_SCRIPT_TEMPLATE = "func Main() {%s;}";
+	private static final String COMMAND_SCRIPT_TEMPLATE = "func Main() {%s;}"; //$NON-NLS-1$
 	
 	/*private static class InputDialogWithHistory extends InputDialog {
 
@@ -52,10 +52,10 @@ public class InvokeCommandAction extends Action implements IWorkbenchWindowActio
 	@Override
 	public void run() {
 	    InputDialog inputDialog = new InputDialog(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(),
-	    		"Invoke Command", "Specify command", "", null);
+	    		Messages.InvokeCommandAction_InvokeCommand, Messages.InvokeCommandAction_SpecifyCommand, "", null); //$NON-NLS-1$
 	    switch (inputDialog.open()) {
 	    case Window.OK:
-	    	C4CommandScript script = new C4CommandScript("command", String.format(COMMAND_SCRIPT_TEMPLATE, inputDialog.getValue()));
+	    	C4CommandScript script = new C4CommandScript("command", String.format(COMMAND_SCRIPT_TEMPLATE, inputDialog.getValue())); //$NON-NLS-1$
 	    	script.invoke((Object[])null);
 	    }
 	}

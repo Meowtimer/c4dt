@@ -86,7 +86,7 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 	/**
 	 * id for error markers that denote errors in a ini file
 	 */
-	public static final String MARKER_INI_ERROR = id("inierror");
+	public static final String MARKER_INI_ERROR = id("inierror"); //$NON-NLS-1$
 
 	public static final QualifiedName FOLDER_C4ID_PROPERTY_ID = new QualifiedName(PLUGIN_ID, "c4id"); //$NON-NLS-1$
 	public static final QualifiedName C4OBJECT_PROPERTY_ID = new QualifiedName(PLUGIN_ID, "c4object"); //$NON-NLS-1$
@@ -206,14 +206,14 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 	
 	private String engineNameFromPath(String path) {
 		path = path.substring(path.lastIndexOf('/')+1);
-		return path.endsWith(".engine") ? path.substring(0, path.lastIndexOf('.')) : null;
+		return path.endsWith(".engine") ? path.substring(0, path.lastIndexOf('.')) : null; //$NON-NLS-1$
 	}
 	
 	@SuppressWarnings("unchecked")
     public List<String> getAvailableEngines() {
 		List<String> result = new LinkedList<String>();
 		// get built-in engine definitions
-		for (Enumeration<String> paths = getBundle().getEntryPaths("res/engines"); paths.hasMoreElements();) {
+		for (Enumeration<String> paths = getBundle().getEntryPaths("res/engines"); paths.hasMoreElements();) { //$NON-NLS-1$
 			String engineName = engineNameFromPath(paths.nextElement());
 			if (engineName != null) {
 				result.add(engineName);
@@ -324,7 +324,7 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 	}
 
 	private IPath getWorkspaceStorageLocationForEngines() {
-	    return getStateLocation().append("engines");
+	    return getStateLocation().append("engines"); //$NON-NLS-1$
     }
 
 	public ClonkLibBuilder getLibBuilder() {

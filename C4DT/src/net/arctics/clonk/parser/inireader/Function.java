@@ -12,7 +12,7 @@ public class Function extends NamedReference implements IComplainingIniEntryValu
 
 	@Override
 	public void complain(ComplexIniEntry context) {
-		if (toString().equals("None") || toString().equals("")) // special null value
+		if (toString().equals("None") || toString().equals("")) // special null value //$NON-NLS-1$ //$NON-NLS-2$
 			return;
 		IniUnit iniUnit = context.getIniUnit();
 		IFile f = iniUnit.getIniFile();

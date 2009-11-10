@@ -987,7 +987,7 @@ public abstract class C4ScriptExprTree {
 					}
 					
 					// warn about too many parameters
-					if (f.getParameters().size() == 0 || !f.getParameters().get(f.getParameters().size()-1).getName().equals("...")) {
+					if (f.getParameters().size() == 0 || !f.getParameters().get(f.getParameters().size()-1).getName().equals("...")) { //$NON-NLS-1$
 						if (params.length > f.getParameters().size()) {
 							context.warningWithCode(ParserErrorCode.TooManyParameters, this, f.getParameters().size(), params.length);
 						}

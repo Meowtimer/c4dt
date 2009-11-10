@@ -104,14 +104,14 @@ public class ClonkPreferencePage extends FieldEditorPreferencePage implements IW
 				
 				private String c4GroupAccordingToOS() {
 					if (Util.isWindows())
-						return "c4group.exe";
+						return "c4group.exe"; //$NON-NLS-1$
 					else
-						return "c4group";
+						return "c4group"; //$NON-NLS-1$
 				}
 				
 				private void setFile(IPath gamePath, String gamePathText, FileFieldEditor editor, String... values) {
 					String val = editor.getStringValue();
-					if (val.equals("")) {
+					if (val.equals("")) { //$NON-NLS-1$
 						for (String s : values) {
 							File f;
 							if ((f = gamePath.append(s).toFile()).exists()) {
@@ -140,8 +140,8 @@ public class ClonkPreferencePage extends FieldEditorPreferencePage implements IW
 					String[] externalLibs = externalLibsEditor.getValues();
 					if (externalLibs.length == 0) {
 						externalLibs = new String[] {
-							gamePath.append("System.c4g").toPortableString(),
-							gamePath.append("Objects.c4d").toPortableString()
+							gamePath.append("System.c4g").toPortableString(), //$NON-NLS-1$
+							gamePath.append("Objects.c4d").toPortableString() //$NON-NLS-1$
 						};
 						externalLibsEditor.setValues(externalLibs);
 					}
@@ -203,7 +203,7 @@ public class ClonkPreferencePage extends FieldEditorPreferencePage implements IW
 		addField(
 			new ComboFieldEditor(
 				ClonkPreferences.ACTIVE_ENGINE,
-				"Engine Version",
+				Messages.ClonkPreferencePage_EngineVersion,
 				engineChoices,
 				getFieldEditorParent()
 			)

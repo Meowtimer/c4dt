@@ -110,7 +110,7 @@ public abstract class C4ScriptBase extends C4Structure implements IHasRelatedRes
 	private transient C4Function[] lineToFunctionMap;
 	
 	public String getScriptText() {
-		return "";
+		return ""; //$NON-NLS-1$
 	}
 	
 	public C4Function funcAtLine(int line) {
@@ -721,7 +721,7 @@ public abstract class C4ScriptBase extends C4Structure implements IHasRelatedRes
 
 		NodeList functions = (NodeList) xPath.evaluate("./functions/function", doc.getFirstChild(), XPathConstants.NODESET); //$NON-NLS-1$
 		NodeList variables = (NodeList) xPath.evaluate("./variables/variable", doc.getFirstChild(), XPathConstants.NODESET); //$NON-NLS-1$
-		monitor.beginTask("Importing Engine information from XML", functions.getLength()+variables.getLength());
+		monitor.beginTask(Messages.C4ScriptBase_ImportingEngineFromXML, functions.getLength()+variables.getLength());
 		for (int i = 0; i < functions.getLength(); i++) {
 			Node function = functions.item(i);
 			NodeList parms = (NodeList) xPath.evaluate("./parameters/parameter", function, XPathConstants.NODESET); //$NON-NLS-1$

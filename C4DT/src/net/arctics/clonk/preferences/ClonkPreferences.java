@@ -46,7 +46,7 @@ public class ClonkPreferences {
 					}
 				}
 			}
-	        Field f = prefField != null ? ClonkPreferences.class.getField(prefField.getName()+"_DEFAULT") : null;
+	        Field f = prefField != null ? ClonkPreferences.class.getField(prefField.getName()+"_DEFAULT") : null; //$NON-NLS-1$
 	        def = f != null ? f.get(null).toString() : null;
         } catch (Exception e) {
 	        def = null;

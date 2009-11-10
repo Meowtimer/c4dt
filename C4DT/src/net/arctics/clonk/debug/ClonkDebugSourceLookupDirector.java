@@ -6,7 +6,7 @@ import org.eclipse.debug.core.sourcelookup.ISourceLookupParticipant;
 public class ClonkDebugSourceLookupDirector extends AbstractSourceLookupDirector {
 
 	public ClonkDebugSourceLookupDirector() {
-		System.out.println("Created Source Locator");
+		System.out.println("Created Source Locator"); //$NON-NLS-1$
 	}
 
 	@Override

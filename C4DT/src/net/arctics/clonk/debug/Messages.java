@@ -6,6 +6,7 @@ public class Messages extends NLS {
 	private static final String BUNDLE_NAME = "net.arctics.clonk.debug.messages"; //$NON-NLS-1$
 	public static String ProjectNotOpen;
 	public static String ScenarioNotFound;
+	public static String ClonkDebugThread_0;
 	public static String CouldNotFindEngine;
 	public static String LauncherOnlySupportsRunMode;
 	public static String LaunchConf;

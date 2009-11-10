@@ -52,7 +52,7 @@ public class C4Function extends C4Structure implements Serializable, ITypedDecla
 	
 	public C4Function() {
 		visibility = C4FunctionScope.FUNC_GLOBAL;
-		name = "";
+		name = ""; //$NON-NLS-1$
 		parameter = new ArrayList<C4Variable>();
 		localVars = new ArrayList<C4Variable>();
 	}
@@ -185,10 +185,10 @@ public class C4Function extends C4Structure implements Serializable, ITypedDecla
 		StringBuilder string = new StringBuilder();
 		if (withFuncName) {
 			string.append(getName());
-			string.append("(");
+			string.append("("); //$NON-NLS-1$
 		}
 		printParameterString(string, true);
-		if (withFuncName) string.append(")");
+		if (withFuncName) string.append(")"); //$NON-NLS-1$
 		return string.toString();
 	}
 
@@ -258,7 +258,7 @@ public class C4Function extends C4Structure implements Serializable, ITypedDecla
 
 	@Override
 	public String getInfoText() {
-		return String.format(Messages.C4Function_InfoTextTemplate, getLongParameterString(true), getUserDescription() != null && !getUserDescription().equals("") ? getUserDescription() : Messages.DescriptionNotAvailable, getScript().toString());
+		return String.format(Messages.C4Function_InfoTextTemplate, getLongParameterString(true), getUserDescription() != null && !getUserDescription().equals("") ? getUserDescription() : Messages.DescriptionNotAvailable, getScript().toString()); //$NON-NLS-1$
 	}
 
 	@Override
@@ -350,7 +350,7 @@ public class C4Function extends C4Structure implements Serializable, ITypedDecla
 	public void createParameters(int num) {
 		if (parameter.size() == 0)
 			for (int i = 0; i < num; i++) {
-				parameter.add(new C4Variable("par"+i, C4VariableScope.VAR_VAR));
+				parameter.add(new C4Variable("par"+i, C4VariableScope.VAR_VAR)); //$NON-NLS-1$
 			}
 	}
 
@@ -369,18 +369,18 @@ public class C4Function extends C4Structure implements Serializable, ITypedDecla
 	public void printHeader(StringBuilder output, boolean oldStyle) {
 		output.append(getVisibility().toString());
 		if (!oldStyle) {
-			output.append(" ");
+			output.append(" "); //$NON-NLS-1$
 			output.append(Keywords.Func);
 		}
-		output.append(" ");
+		output.append(" "); //$NON-NLS-1$
 		output.append(getName());
 		if (!oldStyle) {
-			output.append("(");
+			output.append("("); //$NON-NLS-1$
 			printParameterString(output, true);
-			output.append(")");
+			output.append(")"); //$NON-NLS-1$
 		}
 		else
-			output.append(":");
+			output.append(":"); //$NON-NLS-1$
 	}
 	
 	public String getHeaderString(boolean oldStyle) {

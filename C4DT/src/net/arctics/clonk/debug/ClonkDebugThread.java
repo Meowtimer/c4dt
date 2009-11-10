@@ -10,6 +10,7 @@ import net.arctics.clonk.util.Utilities;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.Path;
+import org.eclipse.debug.core.DebugEvent;
 import org.eclipse.debug.core.DebugException;
 import org.eclipse.debug.core.model.IBreakpoint;
 import org.eclipse.debug.core.model.IStackFrame;
@@ -61,6 +62,7 @@ public class ClonkDebugThread extends ClonkDebugElement implements IThread {
 	
 	public ClonkDebugThread(ClonkDebugTarget target) {
 		super(target);
+		fireEvent(new DebugEvent(this, DebugEvent.CREATE));
 	}
 
 	@Override
@@ -70,7 +72,7 @@ public class ClonkDebugThread extends ClonkDebugElement implements IThread {
 
 	@Override
 	public String getName() throws DebugException {
-		return "Main Thread";
+		return Messages.ClonkDebugThread_0;
 	}
 
 	@Override
@@ -121,11 +123,13 @@ public class ClonkDebugThread extends ClonkDebugElement implements IThread {
 	@Override
 	public void resume() throws DebugException {
 		getTarget().resume();
+		fireResumeEvent(DebugEvent.CLIENT_REQUEST);
 	}
 
 	@Override
 	public void suspend() throws DebugException {
 		getTarget().suspend();
+		fireSuspendEvent(DebugEvent.CLIENT_REQUEST);
 	}
 
 	@Override
@@ -178,6 +182,7 @@ public class ClonkDebugThread extends ClonkDebugElement implements IThread {
 	@Override
 	public void terminate() throws DebugException {
 		getTarget().terminate();
+		fireTerminateEvent();
 	}
 
 }

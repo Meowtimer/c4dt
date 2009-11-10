@@ -84,9 +84,9 @@ public class ClonkLibBuilder implements IC4GroupVisitor, IPropertyChangeListener
 					String entryName = header.getEntryName();
 					// all we care about is groups, scripts, defcores and names
 					return header.isGroup() ||
-						entryName.endsWith(".c") || // $NON-NLS-1$
-						entryName.equals("DefCore.txt") || // $NON-NLS-1$
-						entryName.equals("Names.txt") || // $NON-NLS-1$
+						entryName.endsWith(".c") || // $NON-NLS-1$ //$NON-NLS-1$
+						entryName.equals("DefCore.txt") || // $NON-NLS-1$ //$NON-NLS-1$
+						entryName.equals("Names.txt") || // $NON-NLS-1$ //$NON-NLS-1$
 						entryName.matches(DESC_TXT_PATTERN.pattern()) ||
 						// also load string tables since they are needed for getting the correct names OC definitions
 						entryName.matches(StringTbl.PATTERN.pattern());
@@ -139,8 +139,8 @@ public class ClonkLibBuilder implements IC4GroupVisitor, IPropertyChangeListener
 		if (monitor != null) monitor.done();
 	}
 	
-	private final Matcher descMatcher = DESC_TXT_PATTERN.matcher("");
-	private final Matcher stringTblMatcher = StringTbl.PATTERN.matcher("");
+	private final Matcher descMatcher = DESC_TXT_PATTERN.matcher(""); //$NON-NLS-1$
+	private final Matcher stringTblMatcher = StringTbl.PATTERN.matcher(""); //$NON-NLS-1$
 	
 	public boolean visit(C4GroupItem item, C4GroupType packageType) {
 		if (item instanceof C4Group) {
