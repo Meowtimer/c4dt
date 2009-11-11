@@ -102,6 +102,9 @@ public class DeclarationLocator extends ExpressionLocator {
 							proposedDeclarations.add(engineFunc);
 						if (proposedDeclarations.size() == 0)
 							proposedDeclarations = null;
+						else if (proposedDeclarations.size() == 1) {
+							this.declaration = proposedDeclarations.get(0);
+						}
 						setRegion = proposedDeclarations != null;
 					}
 					else
