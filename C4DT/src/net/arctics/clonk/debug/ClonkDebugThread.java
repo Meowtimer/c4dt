@@ -72,7 +72,7 @@ public class ClonkDebugThread extends ClonkDebugElement implements IThread {
 
 	@Override
 	public String getName() throws DebugException {
-		return Messages.ClonkDebugThread_0;
+		return Messages.MainThread;
 	}
 
 	@Override

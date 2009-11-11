@@ -47,7 +47,7 @@ public enum ParserErrorCode {
 	ConditionAlwaysFalse(Messages.ConditionAlwaysFalse),
 	InfiniteLoop(Messages.InfiniteLoop),
 	LocalUsedInGlobal(Messages.LocalUsedInGlobal),
-	TooManyParameters(Messages.ParserErrorCode_WrongNumberOfParameters);
+	TooManyParameters(Messages.WrongNumberOfParameters);
 	
 	public static final String MARKER_ERRORCODE = "c4ScriptErrorCode"; //$NON-NLS-1$
 	

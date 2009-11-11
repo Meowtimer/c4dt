@@ -203,7 +203,7 @@ public class ClonkPreferencePage extends FieldEditorPreferencePage implements IW
 		addField(
 			new ComboFieldEditor(
 				ClonkPreferences.ACTIVE_ENGINE,
-				Messages.ClonkPreferencePage_EngineVersion,
+				Messages.EngineVersion,
 				engineChoices,
 				getFieldEditorParent()
 			)

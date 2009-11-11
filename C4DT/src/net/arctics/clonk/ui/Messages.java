@@ -32,8 +32,8 @@ public class Messages extends NLS {
 	public static String Engine_EditFunction;
 	public static String Engine_ReturnTypeTitle;
 	public static String Engine_DescriptionTitle;
-	public static String EngineDeclarationsView_SpecifyEngineName;
-	public static String EngineDeclarationsView_SpecifyEngineNameDesc;
+	public static String SpecifyEngineName;
+	public static String SpecifyEngineNameDesc;
 	public static String OpenObjectDialog_Empty;
 	public static String OpenObjectDialog_Searching;
 	public static String SimpleConfirmDialog_Yes;
