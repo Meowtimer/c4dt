@@ -406,6 +406,11 @@ public class C4ScriptParser {
 			if (numUnnamedParameters < UNKNOWN_PARAMETERNUM) {
 				activeFunc.createParameters(numUnnamedParameters);
 			}
+			else if (numUnnamedParameters == UNKNOWN_PARAMETERNUM) {
+				C4Variable v = new C4Variable("...", C4Type.ANY);
+				v.setParentDeclaration(activeFunc);
+				activeFunc.getParameters().add(v);
+			}
 		}
 		catch (SilentParsingException e) {
 			// not really an error
