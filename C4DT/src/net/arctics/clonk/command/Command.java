@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.net.Socket;
 import java.net.UnknownHostException;
@@ -17,6 +18,7 @@ import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.SimpleScriptStorage;
 import net.arctics.clonk.parser.c4script.C4Function;
 import net.arctics.clonk.parser.c4script.C4ScriptBase;
+import net.arctics.clonk.parser.c4script.C4ScriptExprTree;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.C4ScriptExprTree.ExprElm;
 import net.arctics.clonk.parser.c4script.C4ScriptExprTree.IExpressionListener;
@@ -153,6 +155,7 @@ public class Command {
 		
 		registerCommandsFromClass(Command.class);
 		registerCommandsFromClass(DebugCommands.class);
+		registerCommandsFromClass(CodeConversionCommands.class);
 	}
 
 	private static void registerCommandsFromClass(Class<?> classs) {
@@ -205,6 +208,18 @@ public class Command {
 			ClonkHyperlink.openDocumentationForFunction(funcName);
 		} catch (Exception e) {
 			e.printStackTrace();
+		}
+	}
+	
+	public static class CodeConversionCommands {
+		@CommandFunction
+		public static void SetCodeConversionOption(Object context, String option, Object value) {
+			try {
+				Field f = C4ScriptExprTree.class.getField(option);
+				f.set(null, value);
+			} catch (Exception e) {
+
+			}
 		}
 	}
 	
