@@ -22,8 +22,7 @@ import net.arctics.clonk.parser.BufferedScanner;
 import net.arctics.clonk.parser.c4script.C4ScriptBase;
 import net.arctics.clonk.parser.c4script.C4ScriptIntern;
 import net.arctics.clonk.resource.ClonkProjectNature;
-import net.arctics.clonk.ui.editors.c4script.ScriptWithStorageEditorInput;
-
+import net.arctics.clonk.ui.editors.c4script.C4ScriptEditor;
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
@@ -158,6 +157,8 @@ public abstract class Utilities {
 	
 	public static C4ScriptBase getScriptForFile(IFile scriptFile) {
 		C4ScriptBase script;
+		if (scriptFile == null)
+			return null;
 		try {
 			script = C4ScriptIntern.pinnedScript(scriptFile);
 		} catch (CoreException e) {
@@ -172,10 +173,10 @@ public abstract class Utilities {
 	}
 
 	public static C4ScriptBase getScriptForEditor(IEditorPart editor) {
-		if (editor.getEditorInput() instanceof ScriptWithStorageEditorInput) {
-			return ((ScriptWithStorageEditorInput)editor.getEditorInput()).getScript();
-		}
-		return getScriptForFile(getEditingFile(editor));
+		if (editor instanceof C4ScriptEditor)
+			return ((C4ScriptEditor) editor).scriptBeingEdited();
+		else
+			return null;
 	}
 
 	public static boolean looksLikeID(String word) {

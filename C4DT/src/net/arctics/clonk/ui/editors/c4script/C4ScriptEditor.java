@@ -1,6 +1,7 @@
 package net.arctics.clonk.ui.editors.c4script;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.ResourceBundle;
@@ -8,7 +9,9 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 import net.arctics.clonk.ClonkCore;
+import net.arctics.clonk.index.ClonkIndex;
 import net.arctics.clonk.parser.C4Declaration;
+import net.arctics.clonk.parser.SimpleScriptStorage;
 import net.arctics.clonk.parser.SourceLocation;
 import net.arctics.clonk.parser.c4script.C4Function;
 import net.arctics.clonk.parser.c4script.C4ScriptBase;
@@ -24,11 +27,13 @@ import net.arctics.clonk.ui.editors.IClonkCommandIds;
 import net.arctics.clonk.ui.editors.ClonkDocumentProvider;
 import net.arctics.clonk.ui.editors.ClonkTextEditor;
 import net.arctics.clonk.ui.editors.ColorManager;
+import net.arctics.clonk.ui.editors.IHasEditorRefWhichEnablesStreamlinedOpeningOfDeclarations;
 import net.arctics.clonk.ui.editors.actions.c4script.ConvertOldCodeToNewCodeAction;
 import net.arctics.clonk.ui.editors.actions.c4script.FindReferencesAction;
 import net.arctics.clonk.ui.editors.actions.c4script.RenameDeclarationAction;
 import net.arctics.clonk.util.Utilities;
 
+import org.eclipse.core.resources.IFile;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.preference.PreferenceConverter;
@@ -42,9 +47,39 @@ import org.eclipse.jface.text.source.DefaultCharacterPairMatcher;
 import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.ui.texteditor.ITextEditor;
 import org.eclipse.ui.texteditor.SourceViewerDecorationSupport;
 
 public class C4ScriptEditor extends ClonkTextEditor {
+
+	private static final class ScratchScript extends C4ScriptBase implements IHasEditorRefWhichEnablesStreamlinedOpeningOfDeclarations {
+		private final C4ScriptEditor me;
+		private static final long serialVersionUID = 1L;
+
+		private ScratchScript(C4ScriptEditor me) {
+			this.me = me;
+		}
+
+		@Override
+		public ClonkIndex getIndex() {
+			return ClonkCore.getDefault().getExternIndex();
+		}
+
+		@Override
+		public Object getScriptFile() {
+			IDocument document = me.getDocumentProvider().getDocument(me.getEditorInput());
+			try {
+				return new SimpleScriptStorage(me.getEditorInput().toString(), document.get());
+			} catch (UnsupportedEncodingException e) {
+				return null;
+			}
+		}
+
+		@Override
+		public ITextEditor getEditor() {
+			return me;
+		}
+	}
 
 	// Helper class that takes care of triggering a timed reparsing when the document is changed and such
 	// it tries to only fire a reparse when necessary (ie not when editing inside of a function)
@@ -242,13 +277,11 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		boolean noHighlight = true;
 		C4Function f = getFuncAtCursor();
 		if (f != null) {
-			if (f != null) {
-				this.setHighlightRange(f.getLocation().getOffset(), Math.min(
-					f.getBody().getOffset()-f.getLocation().getOffset() + f.getBody().getLength() + (f.isOldStyle()?0:1),
-					this.getDocumentProvider().getDocument(getEditorInput()).getLength()-f.getLocation().getOffset()
-				), false);
-				noHighlight = false;
-			} 
+			this.setHighlightRange(f.getLocation().getOffset(), Math.min(
+				f.getBody().getOffset()-f.getLocation().getOffset() + f.getBody().getLength() + (f.isOldStyle()?0:1),
+				this.getDocumentProvider().getDocument(getEditorInput()).getLength()-f.getLocation().getOffset()
+			), false);
+			noHighlight = false;
 		}
 		if (noHighlight)
 			this.resetHighlightRange();
@@ -261,10 +294,30 @@ public class C4ScriptEditor extends ClonkTextEditor {
 //        }
 	}
 
-	public C4ScriptBase scriptBeingEdited() {
-		return Utilities.getScriptForEditor(this);
-	}
+	// created if there is no suitable script to get from somewhere else
+	// can be considered a hack to make viewing (svn) revisions of a file work
+	private C4ScriptBase scratchScript;
 	
+	public C4ScriptBase scriptBeingEdited() {
+		if (getEditorInput() instanceof ScriptWithStorageEditorInput) {
+			return ((ScriptWithStorageEditorInput)getEditorInput()).getScript();
+		}
+		IFile f;
+		if ((f = Utilities.getEditingFile(this)) != null) { 
+			return Utilities.getScriptForFile(f);
+		}
+
+		if (scratchScript == null) {
+			scratchScript = new ScratchScript(this);
+			try {
+				reparseWithDocumentContents(null, false);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+		return scratchScript;
+	}
+
 	public C4Function getFuncAt(int offset) {
 		C4ScriptBase script = scriptBeingEdited();
 		if (script != null) {

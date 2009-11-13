@@ -82,6 +82,11 @@ public class ClonkTextEditor extends TextEditor {
 		IWorkbench workbench = PlatformUI.getWorkbench();
 		IWorkbenchPage workbenchPage = workbench.getActiveWorkbenchWindow().getActivePage();
 		C4Structure structure = target.getTopLevelStructure();
+		if (structure instanceof IHasEditorRefWhichEnablesStreamlinedOpeningOfDeclarations) {
+			IEditorPart ed = ((IHasEditorRefWhichEnablesStreamlinedOpeningOfDeclarations) structure).getEditor();
+			revealInEditor(target, structure, ed);
+			return ed;
+		}
 		if (structure != null) {
 			IEditorInput input = structure.getEditorInput();
 			if (input != null) {
@@ -89,24 +94,7 @@ public class ClonkTextEditor extends TextEditor {
 					IEditorDescriptor descriptor = input instanceof IFileEditorInput ? IDE.getEditorDescriptor(((IFileEditorInput)input).getFile()) : null;
 					String editorId = descriptor != null ? descriptor.getId() : "clonk.editors.C4ScriptEditor";  //$NON-NLS-1$
 					IEditorPart editor = IDE.openEditor(workbenchPage, input, editorId, activate);
-					if (editor instanceof ClonkTextEditor) {
-						ClonkTextEditor clonkTextEditor = (ClonkTextEditor) editor;
-						if (target != structure) {
-							if (structure.dirty() && clonkTextEditor instanceof C4ScriptEditor) {
-								try {
-									((C4ScriptEditor) clonkTextEditor).reparseWithDocumentContents(null, false);
-								} catch (Exception e) {
-									e.printStackTrace();
-								}
-							}
-							target = target.latestVersion();
-							if (target != null)
-								clonkTextEditor.selectAndReveal(target.getRegionToSelect());
-						}
-					} else if (editor instanceof AbstractTextEditor) {
-						AbstractTextEditor ed = (AbstractTextEditor) editor;
-						ed.selectAndReveal(target.getLocation().getStart(), target.getLocation().getEnd()-target.getLocation().getStart());
-					}
+					revealInEditor(target, structure, editor);
 					return editor;
 				} catch (PartInitException e) {
 					e.printStackTrace();
@@ -126,6 +114,28 @@ public class ClonkTextEditor extends TextEditor {
 			}
 		}
 		return null;
+	}
+
+	private static void revealInEditor(C4Declaration target,
+			C4Structure structure, IEditorPart editor) {
+		if (editor instanceof ClonkTextEditor) {
+			ClonkTextEditor clonkTextEditor = (ClonkTextEditor) editor;
+			if (target != structure) {
+				if (structure.dirty() && clonkTextEditor instanceof C4ScriptEditor) {
+					try {
+						((C4ScriptEditor) clonkTextEditor).reparseWithDocumentContents(null, false);
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
+				}
+				target = target.latestVersion();
+				if (target != null)
+					clonkTextEditor.selectAndReveal(target.getRegionToSelect());
+			}
+		} else if (editor instanceof AbstractTextEditor) {
+			AbstractTextEditor ed = (AbstractTextEditor) editor;
+			ed.selectAndReveal(target.getLocation().getStart(), target.getLocation().getEnd()-target.getLocation().getStart());
+		}
 	}
 	
 	public static IEditorPart openDeclaration(C4Declaration target) {
