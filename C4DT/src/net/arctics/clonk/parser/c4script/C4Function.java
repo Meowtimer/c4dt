@@ -174,27 +174,34 @@ public class C4Function extends C4Structure implements Serializable, ITypedDecla
 	
 	/**
 	 * Generates a function string in the form of
-	 * function(int parName1, int parName2)
+	 * function(type1 parName1, type2 parName2)
 	 * if <code>withFuncName</code> is true, else
-	 * int parName1, int parName2
+	 * type1 parName1, type1 parName2
 	 * 
-	 * @param withFuncName
-	 * @return
+	 * @param withFuncName include function name
+	 * @param engineCompatible print parameters in an engine-parseable manner
+	 * @return the function string
 	 */
-	public String getLongParameterString(boolean withFuncName) {
+	public String getLongParameterString(boolean withFuncName, boolean engineCompatible) {
 		StringBuilder string = new StringBuilder();
 		if (withFuncName) {
 			string.append(getName());
 			string.append("("); //$NON-NLS-1$
 		}
-		printParameterString(string, true);
+		printParameterString(string, engineCompatible);
 		if (withFuncName) string.append(")"); //$NON-NLS-1$
 		return string.toString();
+	}
+	
+	public String getLongParameterString(boolean withFuncName) {
+		return getLongParameterString(withFuncName, true);	
 	}
 
 	private void printParameterString(StringBuilder output, boolean engineCompatible) {
 		if (getParameters().size() > 0) {
 			for(C4Variable par : getParameters()) {
+				if (engineCompatible && par.getName().equals("..."))
+					continue;
 				if (par.getType() != C4Type.UNKNOWN && par.getType() != null) {
 					if (!engineCompatible || (par.getType() != C4Type.ANY && par.getType() != C4Type.UNKNOWN)) {
 						output.append(par.getType().toString());
@@ -258,7 +265,7 @@ public class C4Function extends C4Structure implements Serializable, ITypedDecla
 
 	@Override
 	public String getInfoText() {
-		return String.format(Messages.C4Function_InfoTextTemplate, getLongParameterString(true), getUserDescription() != null && !getUserDescription().equals("") ? getUserDescription() : Messages.DescriptionNotAvailable, getScript().toString()); //$NON-NLS-1$
+		return String.format(Messages.C4Function_InfoTextTemplate, getLongParameterString(true, false), getUserDescription() != null && !getUserDescription().equals("") ? getUserDescription() : Messages.DescriptionNotAvailable, getScript().toString()); //$NON-NLS-1$
 	}
 
 	@Override
@@ -348,10 +355,9 @@ public class C4Function extends C4Structure implements Serializable, ITypedDecla
 	}
 
 	public void createParameters(int num) {
-		if (parameter.size() == 0)
-			for (int i = 0; i < num; i++) {
-				parameter.add(new C4Variable("par"+i, C4VariableScope.VAR_VAR)); //$NON-NLS-1$
-			}
+		for (int i = parameter.size(); i < num; i++) {
+			parameter.add(new C4Variable("par"+i, C4VariableScope.VAR_VAR)); //$NON-NLS-1$
+		}
 	}
 
 	public SourceLocation getHeader() {
