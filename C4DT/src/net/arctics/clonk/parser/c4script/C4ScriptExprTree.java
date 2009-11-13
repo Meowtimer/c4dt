@@ -31,6 +31,8 @@ import org.eclipse.jface.text.Region;
  * Contains classes that form a c4script syntax tree.
  */
 public abstract class C4ScriptExprTree {
+	
+	public static boolean AlwaysConvertObjectCalls;
 
 	public enum TraversalContinuation {
 		Continue,
@@ -44,7 +46,7 @@ public abstract class C4ScriptExprTree {
 	}
 
 	public interface ILoop {
-
+		ExprElm getBody();
 	}
 
 	public enum ControlFlow {
@@ -1077,18 +1079,24 @@ public abstract class C4ScriptExprTree {
 			}
 
 			// ObjectCall(ugh, "UghUgh", 5) -> ugh->UghUgh(5)
-			if (params.length >= 2 && declaration == getCachedFuncs(parser).ObjectCall && params[1] instanceof StringLiteral && !this.containedInLoopHeaderOrNotStandaloneExpression() && !params[0].hasSideEffects()) {
+			if (params.length >= 2 && declaration == getCachedFuncs(parser).ObjectCall && params[1] instanceof StringLiteral && (AlwaysConvertObjectCalls || !this.containedInLoopHeaderOrNotStandaloneExpression()) && !params[0].hasSideEffects()) {
 				ExprElm[] parmsWithoutObject = new ExprElm[params.length-2];
 				for (int i = 0; i < parmsWithoutObject.length; i++)
 					parmsWithoutObject[i] = params[i+2].newStyleReplacement(parser);
-				return new IfStatement(params[0].newStyleReplacement(parser),
+				return AlwaysConvertObjectCalls && this.containedInLoopHeaderOrNotStandaloneExpression()
+					? new Sequence(new ExprElm[] {
+							params[0].newStyleReplacement(parser),
+							new MemberOperator(false, true, null, 0),
+							new CallFunc(((StringLiteral)params[1]).stringValue(), parmsWithoutObject)}
+					)
+					: new IfStatement(params[0].newStyleReplacement(parser),
 						new SimpleStatement(new Sequence(new ExprElm[] {
 								params[0].newStyleReplacement(parser),
 								new MemberOperator(false, true, null, 0),
 								new CallFunc(((StringLiteral)params[1]).stringValue(), parmsWithoutObject)}
 						)),
 						null
-				);
+					);
 			}
 
 			// OCF_Awesome() -> OCF_Awesome
@@ -1131,11 +1139,19 @@ public abstract class C4ScriptExprTree {
 		}
 
 		private boolean containedInLoopHeaderOrNotStandaloneExpression() {
+			SimpleStatement simpleStatement = null;
 			for (ExprElm p = getParent(); p != null; p = p.getParent()) {
 				if (p instanceof Block)
 					break;
-				if (p instanceof ILoop || !(p instanceof SimpleStatement))
+				if (p instanceof ILoop) {
+					if (simpleStatement != null && simpleStatement == ((ILoop)p).getBody())
+						return false;
 					return true;
+				}
+				if (!(p instanceof SimpleStatement))
+					return true;
+				else
+					simpleStatement = (SimpleStatement) p;
 			} 
 			return false;
 		}
@@ -2278,7 +2294,25 @@ public abstract class C4ScriptExprTree {
 			if (getParent() != null && !(getParent() instanceof KeywordStatement) && !(this instanceof BunchOfStatements)) {
 				return new BunchOfStatements(statements);
 			}
-			return super.newStyleReplacement(parser);
+			// uncomment never-reached statements
+			boolean notReached = false;
+			Statement[] commentedOutList = null;
+			for (int i = 0; i < statements.length; i++) {
+				Statement s = statements[i];
+				if (notReached && !(s instanceof Comment)) {
+					if (commentedOutList == null) {
+						commentedOutList = new Statement[statements.length];
+						System.arraycopy(statements, 0, commentedOutList, 0, i);
+					}
+					commentedOutList[i] = new Comment(s.toString(), false);
+				}
+				else
+					notReached = s.getControlFlow() != ControlFlow.Continue;
+			}
+			if (commentedOutList != null)
+				return new Block(commentedOutList);
+			else
+				return super.newStyleReplacement(parser);
 		}
 		
 		@Override
