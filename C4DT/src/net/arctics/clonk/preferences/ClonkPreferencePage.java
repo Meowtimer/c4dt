@@ -52,10 +52,10 @@ public class ClonkPreferencePage extends FieldEditorPreferencePage implements IW
 				gamePath = null;
 			}
 			MessageDialog msgDialog = new MessageDialog(
-				getShell(), "Group file or folder", null, "Would you like to select a regular folder?",
+				getShell(), Messages.ClonkPreferencePage_GroupFileOrFolder, null, Messages.ClonkPreferencePage_SelectRegularFolder,
 				MessageDialog.INFORMATION, new String[] {
-					"Nope",
-					"Why, yes"
+					Messages.ClonkPreferencePage_Nope,
+					Messages.ClonkPreferencePage_YesIndeed
 				}, 0
 			);
 			switch (msgDialog.open()) {
@@ -67,7 +67,7 @@ public class ClonkPreferencePage extends FieldEditorPreferencePage implements IW
 				return dialog.open();
 			case 1:
 				DirectoryDialog dirDialog = new DirectoryDialog(getShell());
-				dirDialog.setText("Select external folder");
+				dirDialog.setText(Messages.ClonkPreferencePage_SelectExternalFolder);
 				dirDialog.setFilterPath(gamePath);
 				return dirDialog.open();
 			default:

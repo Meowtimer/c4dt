@@ -200,7 +200,7 @@ public class C4Function extends C4Structure implements Serializable, ITypedDecla
 	private void printParameterString(StringBuilder output, boolean engineCompatible) {
 		if (getParameters().size() > 0) {
 			for(C4Variable par : getParameters()) {
-				if (engineCompatible && par.getName().equals("..."))
+				if (engineCompatible && par.getName().equals("...")) //$NON-NLS-1$
 					continue;
 				if (par.getType() != C4Type.UNKNOWN && par.getType() != null) {
 					if (!engineCompatible || (par.getType() != C4Type.ANY && par.getType() != C4Type.UNKNOWN)) {

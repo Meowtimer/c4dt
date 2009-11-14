@@ -407,7 +407,7 @@ public class C4ScriptParser {
 				activeFunc.createParameters(numUnnamedParameters);
 			}
 			else if (numUnnamedParameters == UNKNOWN_PARAMETERNUM) {
-				C4Variable v = new C4Variable("...", C4Type.ANY);
+				C4Variable v = new C4Variable("...", C4Type.ANY); //$NON-NLS-1$
 				v.setParentDeclaration(activeFunc);
 				activeFunc.getParameters().add(v);
 			}

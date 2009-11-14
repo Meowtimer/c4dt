@@ -123,7 +123,7 @@ public class ClonkCompletionProposal implements ICompletionProposal, ICompletion
 
 	public StyledString getStyledDisplayString() {
 		if (fDisplayString == null)
-			return new StyledString("<Error>", StyledString.QUALIFIER_STYLER);
+			return new StyledString("<Error>", StyledString.QUALIFIER_STYLER); //$NON-NLS-1$
 		StyledString result = new StyledString(fDisplayString);
 		result.append(fPostInfo, StyledString.QUALIFIER_STYLER);
 //		result.setStyle(fDisplayString.length(), fPostInfo.length(), StyledString.createColorRegistryStyler(JFacePreferences.DECORATIONS_COLOR,JFacePreferences.CONTENT_ASSIST_BACKGROUND_COLOR) );
