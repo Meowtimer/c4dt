@@ -2,7 +2,7 @@
 <feature
       id="net.arctics.clonk.c4dtFeature"
       label="Clonk Development Tools"
-      version="1.5.1.6">
+      version="1.5.1.7">
 
    <description url="http://www.example.com/description">
       Clonk Development Tools for Eclipse.
@@ -66,6 +66,13 @@ migrate to new storage location in .metadata
 -Detect some more errors
 1.5.1.5:
 -Attempt at fixing a stupid problem
+1.5.1.6:
+-Bug fixes most probably
+1.5.1.7:
+-One can now select folders as external libraries
+-No error when opening the revision of a script from svn
+-Advance state of german localization
+-Bug fixes
    </description>
 
    <copyright url="http://www.example.com/copyright">
