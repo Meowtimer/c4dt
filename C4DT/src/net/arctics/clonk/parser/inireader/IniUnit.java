@@ -418,7 +418,10 @@ public class IniUnit extends C4Structure implements Iterable<IniSection>, IHasCh
 	
 	@Override
 	public String toString() {
-		return getIniFile().getFullPath().toOSString();
+		if (getIniFile() != null)
+			return getIniFile().getFullPath().toOSString();
+		else
+			return super.toString();
 	}
 	
 	@Override

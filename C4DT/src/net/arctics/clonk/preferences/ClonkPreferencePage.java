@@ -8,6 +8,8 @@ import net.arctics.clonk.util.UI;
 
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Path;
+import org.eclipse.jface.dialogs.InputDialog;
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.preference.BooleanFieldEditor;
 import org.eclipse.jface.preference.ComboFieldEditor;
 import org.eclipse.jface.preference.DirectoryFieldEditor;
@@ -17,6 +19,7 @@ import org.eclipse.jface.preference.ListEditor;
 import org.eclipse.jface.preference.StringFieldEditor;
 import org.eclipse.jface.util.Util;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.DirectoryDialog;
 import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPreferencePage;
@@ -48,11 +51,28 @@ public class ClonkPreferencePage extends FieldEditorPreferencePage implements IW
 			if (gamePath == null || !new File(gamePath).exists()) {
 				gamePath = null;
 			}
-			FileDialog dialog = new FileDialog(getShell());
-			dialog.setText(Messages.ChooseExternalObject);
-			dialog.setFilterExtensions(new String[] { UI.FILEDIALOG_CLONK_FILTER });
-			dialog.setFilterPath(gamePath);
-			return dialog.open();
+			MessageDialog msgDialog = new MessageDialog(
+				getShell(), "Group file or folder", null, "Would you like to select a regular folder?",
+				MessageDialog.INFORMATION, new String[] {
+					"Nope",
+					"Why, yes"
+				}, 0
+			);
+			switch (msgDialog.open()) {
+			case 0:
+				FileDialog dialog = new FileDialog(getShell());
+				dialog.setText(Messages.ChooseExternalObject);
+				dialog.setFilterExtensions(new String[] { UI.FILEDIALOG_CLONK_FILTER });
+				dialog.setFilterPath(gamePath);
+				return dialog.open();
+			case 1:
+				DirectoryDialog dirDialog = new DirectoryDialog(getShell());
+				dirDialog.setText("Select external folder");
+				dirDialog.setFilterPath(gamePath);
+				return dirDialog.open();
+			default:
+				return null;
+			}
 		}
 
 		@Override

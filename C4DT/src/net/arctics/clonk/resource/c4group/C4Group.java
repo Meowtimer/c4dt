@@ -58,6 +58,7 @@ public class C4Group implements C4GroupItem, Serializable {
 	private String entryName;
 	private List<C4GroupItem> childEntries;
 	private transient InputStream stream;
+	private transient File sourceDir;
 	private boolean completed;
 	private boolean hasChildren;
 	private C4GroupHeader header;
@@ -82,6 +83,14 @@ public class C4Group implements C4GroupItem, Serializable {
 		this.stream = stream;
 		parentGroup = null;
 		entryName = name;
+	}
+	
+	protected C4Group(C4Group parent, File folder) {
+		assert(folder.isDirectory());
+		
+		parentGroup = parent;
+		sourceDir = folder;
+		entryName = folder.getName();
 	}
 	
 	/**
@@ -138,6 +147,10 @@ public class C4Group implements C4GroupItem, Serializable {
 		}
 	}*/
 
+	public static C4Group openDirectory(File file) {
+		return new C4Group(null, file);
+	}
+	
 	/**
 	 * Open a C4Group file but do not parse it yet
 	 * @param file the file to open
@@ -265,65 +278,97 @@ public class C4Group implements C4GroupItem, Serializable {
      * @throws CoreException
      */
 	public void readIntoMemory(boolean recursively, IHeaderFilter filter) throws InvalidDataException, IOException, CoreException {
-		
-		if (parentGroup != null && parentGroup.getChildEntries().get(0) != this) {
-			C4GroupItem predecessor = parentGroup.getChildEntries().get(parentGroup.getChildEntries().indexOf(this) - 1);
-			predecessor.readIntoMemory(true, filter);
-		}
-		
-		if (!completed) {
-			
-			completed = true;
-			header = C4GroupHeader.createFromStream(stream);
-			
-			childEntries = new ArrayList<C4GroupItem>(header.getEntries());
-			List<Object> readObjects = new LinkedList<Object>();
-			
-			// populate readObjects with either C4GroupHeader (meaning the file this header describes is to be skipped) or C4GroupItem (meaning this item is to be added to child list of the calling group)
-			sizeOfChildren = 0;
-			for(int i = 0; i < header.getEntries(); i++) {
-				hasChildren = true;
-				C4EntryHeader entryHeader = C4EntryHeader.createFromStream(stream);
-				sizeOfChildren += entryHeader.getSize();
-				if (!filter.accepts(entryHeader, this)) {
-					// FIXME: skipping groups will not work at this time
-					readObjects.add(entryHeader);
-				}
-				else {
-					C4GroupItem entry;
-					if (entryHeader.isGroup()) {
-						entry = new C4Group(this, entryHeader.getEntryName()); // a group does not need all header information
+
+		// compressed
+		if (stream != null) {
+
+			// read all items before this one in the parent group so the stream offset is right
+			if (parentGroup != null && parentGroup.getChildEntries().get(0) != this) {
+				C4GroupItem predecessor = parentGroup.getChildEntries().get(parentGroup.getChildEntries().indexOf(this) - 1);
+				predecessor.readIntoMemory(true, filter);
+			}
+
+			if (!completed) {
+
+				completed = true;
+				header = C4GroupHeader.createFromStream(stream);
+
+				childEntries = new ArrayList<C4GroupItem>(header.getEntries());
+				List<Object> readObjects = new LinkedList<Object>();
+
+				// populate readObjects with either C4GroupHeader (meaning the file this header describes is to be skipped) or C4GroupItem (meaning this item is to be added to child list of the calling group)
+				sizeOfChildren = 0;
+				for(int i = 0; i < header.getEntries(); i++) {
+					hasChildren = true;
+					C4EntryHeader entryHeader = C4EntryHeader.createFromStream(stream);
+					sizeOfChildren += entryHeader.getSize();
+					if (!filter.accepts(entryHeader, this)) {
+						// FIXME: skipping groups will not work at this time
+						readObjects.add(entryHeader);
 					}
 					else {
-						entry = new C4GroupEntry(this, entryHeader);
-					}
-					readObjects.add(entry);
-				}
-			}
-			
-			// process group before processing child items
-			filter.processData(this);
-			
-			if (recursively) {
-				// open (read into memory or process in a way defined by the filter) or skip 
-				for (Object o : readObjects) {
-					if (o instanceof C4EntryHeader) {
-						((C4EntryHeader)o).skipData(stream);
-					}
-					else if (o instanceof C4GroupItem) {
-						C4GroupItem item = (C4GroupItem) o;
-						childEntries.add(item);
-						item.readIntoMemory(true, filter);
+						C4GroupItem entry;
+						if (entryHeader.isGroup()) {
+							entry = new C4Group(this, entryHeader.getEntryName()); // a group does not need all header information
+						}
+						else {
+							entry = new C4GroupEntry(this, entryHeader);
+						}
+						readObjects.add(entry);
 					}
 				}
+
+				// process group before processing child items
+				filter.processData(this);
+
+				if (recursively) {
+					// open (read into memory or process in a way defined by the filter) or skip 
+					for (Object o : readObjects) {
+						if (o instanceof C4EntryHeader) {
+							((C4EntryHeader)o).skipData(stream);
+						}
+						else if (o instanceof C4GroupItem) {
+							C4GroupItem item = (C4GroupItem) o;
+							childEntries.add(item);
+							item.readIntoMemory(true, filter);
+						}
+					}
+				}
+				else {
+					for (Object o : readObjects)
+						if (o instanceof C4GroupItem)
+							childEntries.add((C4GroupItem) o);
+				}
+
 			}
-			else {
-				for (Object o : readObjects)
-					if (o instanceof C4GroupItem)
-						childEntries.add((C4GroupItem) o);
-			}
-			
+
 		}
+		
+		// not compressed
+		else if (sourceDir != null) {
+			String[] files = sourceDir.list();
+			childEntries = new ArrayList<C4GroupItem>(files.length);
+			for (String childFileName : files) {
+				File child = new File(sourceDir, childFileName);
+				C4EntryHeader header = new C4EntryHeader(child);
+				if (filter.accepts(header, this)) {
+					boolean isFile = !header.isGroup();
+					C4GroupItem childItem = isFile ? new C4GroupEntry(this, header) : new C4Group(this, child);
+					if (isFile)
+						stream = new FileInputStream(child);
+					try {
+						childEntries.add(childItem);
+						childItem.readIntoMemory(true, filter);
+					} finally {
+						if (isFile) {
+							stream.close();
+							stream = null;
+						}
+					}
+				}
+			}
+		}
+		
 	}
 	
 	public void open(boolean recursively) throws InvalidDataException, IOException, CoreException {

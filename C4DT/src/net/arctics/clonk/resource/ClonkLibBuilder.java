@@ -78,7 +78,9 @@ public class ClonkLibBuilder implements IC4GroupVisitor, IPropertyChangeListener
 		currentExternNode = null;
 		monitor.beginTask("Parse lib " + lib, 1); //$NON-NLS-1$
 		if (libFile.exists()) {
-			C4Group group = C4Group.openFile(libFile);
+			C4Group group = libFile.isDirectory()
+				? C4Group.openDirectory(libFile)
+				: C4Group.openFile(libFile);
 			group.readIntoMemory(true, new IHeaderFilter() {
 				public boolean accepts(C4EntryHeader header, C4Group context) {
 					String entryName = header.getEntryName();

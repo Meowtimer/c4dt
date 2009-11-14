@@ -1,5 +1,6 @@
 package net.arctics.clonk.resource.c4group;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -19,7 +20,15 @@ public class C4EntryHeader implements Serializable {
     private boolean hasCRC;
     private int crc; // unsigned?
     
-    protected C4EntryHeader() {
+    protected C4EntryHeader() {}
+    
+    public C4EntryHeader(File file) {
+    	entryName = file.getName();
+    	packed = false;
+    	group = file.isDirectory();
+    	size = (int) file.length();
+    	offset = 0;
+    	time = (int) file.lastModified();
     }
     
     public static C4EntryHeader createHeader(String name, boolean packed, boolean group, int size, int entrySize, int offset, int time) {
