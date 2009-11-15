@@ -172,8 +172,8 @@ public class IniSourceViewerConfiguration extends ClonkSourceViewerConfiguration
 		}
 	}
 	
-	public IniSourceViewerConfiguration(ColorManager colorManager, IniTextEditor textEditor) {
-		super(colorManager, textEditor);
+	public IniSourceViewerConfiguration(IPreferenceStore store, ColorManager colorManager, IniTextEditor textEditor) {
+		super(store, colorManager, textEditor);
 	}
 
 	@Override

@@ -197,7 +197,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 	public C4ScriptEditor() {
 		super();
 		colorManager = new ColorManager();
-		setSourceViewerConfiguration(new C4ScriptSourceViewerConfiguration(colorManager,this));
+		setSourceViewerConfiguration(new C4ScriptSourceViewerConfiguration(getPreferenceStore(), colorManager,this));
 		setDocumentProvider(new ClonkDocumentProvider(this));
 	}
 	

@@ -1,6 +1,7 @@
 package net.arctics.clonk.ui.editors;
 
 
+import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.text.ITextHover;
 import org.eclipse.jface.text.hyperlink.IHyperlinkDetector;
 import org.eclipse.jface.text.hyperlink.URLHyperlinkDetector;
@@ -12,7 +13,8 @@ public class ClonkSourceViewerConfiguration<EditorType extends ClonkTextEditor> 
 	private ColorManager colorManager;
 	protected ITextHover hover;
 
-	public ClonkSourceViewerConfiguration(ColorManager colorManager, EditorType textEditor) {
+	public ClonkSourceViewerConfiguration(IPreferenceStore store, ColorManager colorManager, EditorType textEditor) {
+		super(store);
 		this.textEditor = textEditor;
 		this.colorManager = colorManager;
 	}

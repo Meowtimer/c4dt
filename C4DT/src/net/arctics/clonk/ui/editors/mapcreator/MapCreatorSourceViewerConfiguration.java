@@ -1,5 +1,6 @@
 package net.arctics.clonk.ui.editors.mapcreator;
 
+import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.ITextViewer;
@@ -44,8 +45,8 @@ public class MapCreatorSourceViewerConfiguration extends ClonkSourceViewerConfig
 	private RuleBasedScanner scanner;
 	private ScriptCommentScanner commentScanner;
 
-	public MapCreatorSourceViewerConfiguration(ColorManager colorManager, MapCreatorEditor textEditor) {
-		super(colorManager, textEditor);
+	public MapCreatorSourceViewerConfiguration(IPreferenceStore store, ColorManager colorManager, MapCreatorEditor textEditor) {
+		super(store, colorManager, textEditor);
 	}
 	
 	protected ITokenScanner getClonkScanner() {

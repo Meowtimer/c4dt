@@ -7,6 +7,7 @@ import net.arctics.clonk.ui.editors.ColorManager;
 import net.arctics.clonk.ui.editors.IClonkColorConstants;
 import net.arctics.clonk.ui.editors.ScriptCommentScanner;
 
+import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.text.DefaultInformationControl;
 import org.eclipse.jface.text.IAutoEditStrategy;
 import org.eclipse.jface.text.IDocument;
@@ -64,8 +65,8 @@ public class C4ScriptSourceViewerConfiguration extends ClonkSourceViewerConfigur
 	private ScriptCommentScanner commentScanner;
 	private ITextDoubleClickStrategy doubleClickStrategy;
 
-	public C4ScriptSourceViewerConfiguration(ColorManager colorManager, C4ScriptEditor textEditor) {
-		super(colorManager, textEditor);
+	public C4ScriptSourceViewerConfiguration(IPreferenceStore store, ColorManager colorManager, C4ScriptEditor textEditor) {
+		super(store, colorManager, textEditor);
 	}
 	
 	public String[] getConfiguredContentTypes(ISourceViewer sourceViewer) {

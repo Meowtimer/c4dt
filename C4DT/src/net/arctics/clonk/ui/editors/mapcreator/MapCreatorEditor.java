@@ -21,7 +21,7 @@ public class MapCreatorEditor extends ClonkTextEditor {
 	public MapCreatorEditor() {
 		super();
 		ColorManager colorManager = new ColorManager();
-		setSourceViewerConfiguration(new MapCreatorSourceViewerConfiguration(colorManager,this));
+		setSourceViewerConfiguration(new MapCreatorSourceViewerConfiguration(getPreferenceStore(), colorManager,this));
 		setDocumentProvider(new ClonkDocumentProvider(this));
 	}
 	

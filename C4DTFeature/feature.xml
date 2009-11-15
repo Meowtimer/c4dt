@@ -73,6 +73,7 @@ migrate to new storage location in .metadata
 -No error when opening the revision of a script from svn
 -Advance state of german localization
 -Bug fixes
+-Definitions and global functions/variables in other Clonk projects can be found by referencing them (Project Properties-&gt;Project References)
    </description>
 
    <copyright url="http://www.example.com/copyright">

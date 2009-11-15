@@ -18,7 +18,7 @@ public class IniTextEditor extends ClonkTextEditor {
 	
 	public IniTextEditor() {
 		super();
-		setSourceViewerConfiguration(new IniSourceViewerConfiguration(new ColorManager(), this));
+		setSourceViewerConfiguration(new IniSourceViewerConfiguration(getPreferenceStore(), new ColorManager(), this));
 	}
 	
 	@Override
