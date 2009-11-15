@@ -166,9 +166,9 @@ public class ClonkProjectNature implements IProjectNature {
 	 * @param editor the editor
 	 * @return the nature
 	 */
-	public static ClonkProjectNature getClonkNature(ITextEditor editor) {
+	public static ClonkProjectNature get(ITextEditor editor) {
 		if (editor.getEditorInput() instanceof FileEditorInput) {
-			return getClonkNature(((FileEditorInput)editor.getEditorInput()).getFile());
+			return get(((FileEditorInput)editor.getEditorInput()).getFile());
 		}
 		return null;
 	}
@@ -178,7 +178,7 @@ public class ClonkProjectNature implements IProjectNature {
 	 * @param res the resource
 	 * @return the nature
 	 */
-	public static ClonkProjectNature getClonkNature(IResource res) {
+	public static ClonkProjectNature get(IResource res) {
 		if (res == null) return null;
 		IProject project = res.getProject();
 		try {
@@ -201,13 +201,13 @@ public class ClonkProjectNature implements IProjectNature {
 	 * @param script the script
 	 * @return the nature
 	 */
-	public static ClonkProjectNature getClonkNature(C4ScriptBase script) {
+	public static ClonkProjectNature get(C4ScriptBase script) {
 		if (script == null)
 			return null;
 		if (script instanceof C4ObjectIntern)
-			return getClonkNature(((C4ObjectIntern)script).getObjectFolder());
+			return get(((C4ObjectIntern)script).getObjectFolder());
 		if (script instanceof C4ScriptIntern)
-			return getClonkNature(((C4ScriptIntern)script).getScriptFile());
+			return get(((C4ScriptIntern)script).getScriptFile());
 		else
 			return null;
 	}

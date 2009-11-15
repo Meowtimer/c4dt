@@ -357,8 +357,11 @@ public abstract class C4ScriptBase extends C4Structure implements IHasRelatedRes
 				f = info.index.getObjectNearestTo(getResource(), C4ID.getID(name));
 			}
 			// global stuff defined in project
-			if (f == null)
-				f = info.index.findGlobalDeclaration(name, getResource());
+			for (ClonkIndex index : info.getAllRelevantIndexes()) {
+				f = index.findGlobalDeclaration(name, getResource());
+				if (f != null)
+					return f;
+			}
 			// function in extern lib
 			if (f == null && info.index != ClonkCore.getDefault().getExternIndex()) {
 				f = ClonkCore.getDefault().getExternIndex().findGlobalDeclaration(name, getResource());

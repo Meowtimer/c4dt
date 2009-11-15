@@ -48,7 +48,7 @@ public class NewC4ObjectPage extends NewClonkFolderWizardPage {
 			return;
 		}
 		else {
-			ClonkProjectNature nature = ClonkProjectNature.getClonkNature(project);
+			ClonkProjectNature nature = ClonkProjectNature.get(project);
 			if (nature != null) {
 				List<C4Object> objects = nature.getIndex().getObjects(C4ID.getID(c4idText.getText()));
 				if (objects != null && !objects.isEmpty()) {

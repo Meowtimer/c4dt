@@ -72,7 +72,7 @@ public class ProjectIndex extends ClonkIndex {
 	}
 	
 	public ClonkProjectNature getNature() {
-		return ClonkProjectNature.getClonkNature(project);
+		return ClonkProjectNature.get(project);
 	}
 	
 	public void notifyExternalLibsSet() {
@@ -95,6 +95,10 @@ public class ProjectIndex extends ClonkIndex {
 		project = proj;
 	}
 	
+	public IProject getProject() {
+		return project;
+	}
+
 	public void postSerialize() throws CoreException {
 		notifyExternalLibsSet();
 		List<C4ScriptBase> stuffToBeRemoved = new LinkedList<C4ScriptBase>();

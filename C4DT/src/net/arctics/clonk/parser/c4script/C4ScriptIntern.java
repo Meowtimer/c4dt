@@ -58,7 +58,7 @@ public class C4ScriptIntern extends C4ScriptBase implements Serializable {
 		scriptFile = f;
 		if (f != null) { 
 			f.setSessionProperty(ClonkCore.C4STRUCTURE_PROPERTY_ID, this);
-			ClonkProjectNature nature = ClonkProjectNature.getClonkNature(scriptFile);
+			ClonkProjectNature nature = ClonkProjectNature.get(scriptFile);
 			index = nature != null ? nature.getIndex() : null;
 		}
 		scriptFilePath = f != null ? f.getFullPath().toPortableString() : ""; //$NON-NLS-1$

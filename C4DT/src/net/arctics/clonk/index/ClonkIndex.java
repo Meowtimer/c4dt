@@ -2,6 +2,7 @@ package net.arctics.clonk.index;
 
 import java.io.Serializable;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -9,7 +10,6 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.C4Declaration;
 import net.arctics.clonk.parser.C4ID;
@@ -20,12 +20,14 @@ import net.arctics.clonk.parser.c4script.C4Variable;
 import net.arctics.clonk.parser.c4script.C4Directive.C4DirectiveType;
 import net.arctics.clonk.parser.c4script.C4Function.C4FunctionScope;
 import net.arctics.clonk.parser.c4script.C4Variable.C4VariableScope;
+import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.resource.ExternalLib;
 import net.arctics.clonk.util.IHasRelatedResource;
 import net.arctics.clonk.util.IPredicate;
 import net.arctics.clonk.util.Utilities;
 
 import org.eclipse.core.resources.IContainer;
+import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 
@@ -301,11 +303,47 @@ public class ClonkIndex implements Serializable, Iterable<C4Object> {
 		return null;
 	}
 	
+	public static void addIndexesFromReferencedProjects(List<ClonkIndex> result, ClonkIndex index) {
+		if (index instanceof ProjectIndex) {
+			ProjectIndex projIndex = (ProjectIndex) index;
+			try {
+				List<ClonkIndex> newOnes = new LinkedList<ClonkIndex>();
+				for (IProject p : projIndex.getProject().getReferencedProjects()) {
+					ClonkProjectNature n = ClonkProjectNature.get(p);
+					if (n != null && n.getIndex() != null && !result.contains(n.getIndex()))
+						newOnes.add(n.getIndex());
+				}
+				result.addAll(newOnes);
+				for (ClonkIndex i : newOnes) {
+					addIndexesFromReferencedProjects(result, i);
+				}
+			} catch (CoreException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+	}
+	
+	public List<ClonkIndex> relevantIndexes() {
+		List<ClonkIndex> result = new ArrayList<ClonkIndex>(10);
+		result.add(this);
+		addIndexesFromReferencedProjects(result, this);
+		return result;
+	}
+
 	public C4Object getObjectNearestTo(IResource resource, C4ID id) {
-		if (resource == null)
-			return getObjectFromEverywhere(id);
-		List<C4Object> objs = getObjects(id);
-		C4Object best = pickNearest(resource, objs);
+		C4Object best = null;
+		for (ClonkIndex index : relevantIndexes()) {
+			if (resource != null) {
+				List<C4Object> objs = index.getObjects(id);
+				best = pickNearest(resource, objs);
+			}
+			else {
+				best = index.getLastObjectWithId(id);
+			}
+			if (best != null)
+				break;
+		}
 		if (best == null && this != ClonkCore.getDefault().getExternIndex())
 			best = getExternalObject(id);
 		return best;
@@ -317,10 +355,7 @@ public class ClonkIndex implements Serializable, Iterable<C4Object> {
 	 * @return
 	 */
 	public C4Object getObjectFromEverywhere(C4ID id) {
-		C4Object result = getLastObjectWithId(id);
-		if (result == null && this != ClonkCore.getDefault().getExternIndex())
-			result = getExternalObject(id);
-		return result;
+		return getObjectNearestTo(null, id);
 	}
 
 	public <T extends C4Declaration> Iterable<T> declarationsWithName(String name, final Class<T> fieldClass) {

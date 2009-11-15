@@ -79,7 +79,7 @@ public abstract class Utilities {
 		// Filter out all projects with Clonk nature
 		Collection<IProject> c = new LinkedList<IProject>();
 		for(IProject proj : projects)
-			if (ClonkProjectNature.getClonkNature(proj) != null)
+			if (ClonkProjectNature.get(proj) != null)
 				c.add(proj);
 			
 		return c.toArray(new IProject [c.size()]);
@@ -131,7 +131,7 @@ public abstract class Utilities {
 	
 	public static ClonkIndex getIndex(IResource res) {
 		if (res != null) {
-			ClonkProjectNature nature = ClonkProjectNature.getClonkNature(res);
+			ClonkProjectNature nature = ClonkProjectNature.get(res);
 			if (nature != null) {
 				return nature.getIndex();
 			}
@@ -180,7 +180,7 @@ public abstract class Utilities {
 	}
 
 	public static boolean looksLikeID(String word) {
-		if (word == null || word.length() < 4)
+		if (word == null || word.length() != 4)
 			return false;
 		int digits = 0;
 		for(int i = 0; i < 4;i++) {
@@ -360,7 +360,7 @@ public abstract class Utilities {
 			monitor.beginTask(Messages.Utilities_9, projects.length);
 		int work = 0;
 		for (IProject p : projects) {
-			if (ClonkProjectNature.getClonkNature(p) != null)
+			if (ClonkProjectNature.get(p) != null)
 				p.refreshLocal(IResource.DEPTH_INFINITE, monitor);
 			monitor.worked(work++);
 		}

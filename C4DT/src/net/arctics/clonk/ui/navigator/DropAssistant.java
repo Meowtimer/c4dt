@@ -20,7 +20,7 @@ public class DropAssistant extends CommonDropAdapterAssistant {
 
 	@Override
 	public IStatus handleDrop(CommonDropAdapter dropAdapter, DropTargetEvent dropTargetEvent, Object target) {
-		if (target instanceof IContainer && ClonkProjectNature.getClonkNature(((IContainer)target).getProject()) != null &&
+		if (target instanceof IContainer && ClonkProjectNature.get(((IContainer)target).getProject()) != null &&
 			dropTargetEvent.dataTypes.length == 1 &&
 			FileTransfer.getInstance().isSupportedType(dropTargetEvent.dataTypes[0]))
 		{

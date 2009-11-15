@@ -22,9 +22,9 @@ public class FindReferencesAction extends OpenDeclarationAction {
 		try {
 			C4Declaration field = getDeclarationAtSelection();
 			if (field != null) {
-				ClonkProjectNature nature = ClonkProjectNature.getClonkNature(field.getScript());				
+				ClonkProjectNature nature = ClonkProjectNature.get(field.getScript());				
 				if (nature == null) {
-					nature = ClonkProjectNature.getClonkNature(getTextEditor()); 
+					nature = ClonkProjectNature.get(getTextEditor()); 
 				}
 				if (nature == null) {
 					MessageDialog.openError(getTextEditor().getSite().getShell(), Messages.FindReferencesAction_Label, Messages.FindReferencesAction_OnlyWorksWithinProject);

@@ -179,7 +179,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 		if (prefix != null)
 			prefix = prefix.toLowerCase();
 		
-		ClonkProjectNature nature = ClonkProjectNature.getClonkNature(editor);
+		ClonkProjectNature nature = ClonkProjectNature.get(editor);
 		List<String> statusMessages = new ArrayList<String>(4);
 		List<ICompletionProposal> proposals = new ArrayList<ICompletionProposal>();
 		ClonkIndex index = nature.getIndex();
@@ -291,7 +291,8 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 
 
 		if (proposalCycle != ProposalCycle.SHOW_OBJECT)
-			proposalsForIndex(index, offset, wordOffset, prefix, proposals);
+			for (ClonkIndex i : index.relevantIndexes())
+				proposalsForIndex(i, offset, wordOffset, prefix, proposals);
 		if (proposalCycle == ProposalCycle.SHOW_ALL)
 			proposalsForIndex(ClonkCore.getDefault().getExternIndex(), offset, wordOffset, prefix, proposals);
 
@@ -380,7 +381,8 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 		}
 		
 		// propose objects for #include or something
-		proposalsForIndex(index, offset, wordOffset, prefix, proposals);
+		for (ClonkIndex i : index.relevantIndexes())
+			proposalsForIndex(i, offset, wordOffset, prefix, proposals);
 		if (proposalCycle == ProposalCycle.SHOW_ALL)
 			proposalsForIndex(ClonkCore.getDefault().getExternIndex(), offset, wordOffset, prefix, proposals);
 	}

@@ -109,7 +109,7 @@ public class C4ObjectIntern extends C4Object implements Serializable {
 	 * The file on the harddisk is not deleted. (delete it by IResource.delete(true,null))
 	 */
 	public void delete() {
-		ClonkProjectNature.getClonkNature(objectFolder.getProject()).getIndex().removeObject(this);
+		ClonkProjectNature.get(objectFolder.getProject()).getIndex().removeObject(this);
 	}
 	
 	public void setObjectFolder(IContainer folder) throws CoreException {
@@ -125,7 +125,7 @@ public class C4ObjectIntern extends C4Object implements Serializable {
 			else
 				folder.setPersistentProperty(ClonkCore.FOLDER_C4ID_PROPERTY_ID, null);
 			relativePath = folder.getFullPath().toPortableString();
-			index = ClonkProjectNature.getClonkNature(objectFolder).getIndex();
+			index = ClonkProjectNature.get(objectFolder).getIndex();
 		}
 	}
 	

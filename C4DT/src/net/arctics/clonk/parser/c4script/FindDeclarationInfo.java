@@ -1,18 +1,21 @@
 package net.arctics.clonk.parser.c4script;
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import net.arctics.clonk.index.ClonkIndex;
 import net.arctics.clonk.parser.C4Declaration;
 
 public class FindDeclarationInfo {
-	public  ClonkIndex index;
+	public ClonkIndex index;
 	public int recursion;
 	public Class<? extends C4Declaration> declarationClass;
 	private C4Function contextFunction;
 	private Set<C4ScriptBase> alreadySearched;
 	private C4ScriptBase searchOrigin;
+	private List<ClonkIndex> relevantIndexes;
 
 	public FindDeclarationInfo(ClonkIndex clonkIndex) {
 		super();
@@ -47,5 +50,13 @@ public class FindDeclarationInfo {
 	public void resetState() {
 		alreadySearched.clear();
 		recursion = 0;
+	}
+	public List<ClonkIndex> getAllRelevantIndexes() {
+		if (relevantIndexes == null) {
+			relevantIndexes = new ArrayList<ClonkIndex>(10);
+			relevantIndexes.add(index);
+			ClonkIndex.addIndexesFromReferencedProjects(relevantIndexes, index);
+		}
+		return relevantIndexes;
 	}
 }

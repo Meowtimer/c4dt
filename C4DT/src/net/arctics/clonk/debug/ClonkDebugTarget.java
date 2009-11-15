@@ -165,10 +165,11 @@ public class ClonkDebugTarget extends ClonkDebugElement implements IDebugTarget 
 		return scenario;
 	}
 
+	/*
 	private void abort(String message, Exception e) throws Exception {
 		System.out.println(message);
 		throw e;
-	}
+	}*/
 
 	@Override
 	public String getName() throws DebugException {

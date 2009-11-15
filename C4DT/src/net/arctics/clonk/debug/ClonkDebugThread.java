@@ -41,7 +41,7 @@ public class ClonkDebugThread extends ClonkDebugElement implements IThread {
 		sourcePath = sourcePath.substring(0, delim);
 		if (this.sourcePath == null || this.sourcePath.equals(sourcePath)) {
 			this.sourcePath = sourcePath;
-			ClonkProjectNature nature = ClonkProjectNature.getClonkNature(getTarget().getScenario().getProject());
+			ClonkProjectNature nature = ClonkProjectNature.get(getTarget().getScenario().getProject());
 			if (nature != null) {
 				IResource resInProject = nature.getProject().findMember(new Path(sourcePath));
 				if (resInProject != null && (script = Utilities.getScriptForResource(resInProject)) != null) {
