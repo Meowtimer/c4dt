@@ -94,6 +94,7 @@ public class ClonkSearchQuery implements ISearchQuery {
 				if (expression instanceof CallFunc) {
 					CallFunc callFunc = (CallFunc) expression;
 					for (ExprElm e : callFunc.getParams()) {
+						// ask the string literals whether they might refer to a function
 						if (e instanceof StringLiteral) {
 							functionNameExpr = (StringLiteral) e;
 							DeclarationRegion decRegion = e.declarationAt(0, parser);
