@@ -989,7 +989,7 @@ public abstract class C4ScriptExprTree {
 					}
 					
 					// warn about too many parameters
-					if (f.getParameters().size() == 0 || !f.getParameters().get(f.getParameters().size()-1).getName().equals("...")) { //$NON-NLS-1$
+					if (f.getParameters().size() == 0 || f.getParameters().get(f.getParameters().size()-1).isActualParm()) { //$NON-NLS-1$
 						if (params.length > f.getParameters().size()) {
 							context.warningWithCode(ParserErrorCode.TooManyParameters, this, f.getParameters().size(), params.length);
 						}
@@ -1109,7 +1109,7 @@ public abstract class C4ScriptExprTree {
 			// Par(5) -> nameOfParm6
 			if (params.length <= 1 && declaration != null && declaration == getCachedFuncs(parser).Par && (params.length == 0 || params[0] instanceof NumberLiteral)) {
 				NumberLiteral number = params.length > 0 ? (NumberLiteral) params[0] : NumberLiteral.ZERO;
-				if (number.intValue() >= 0 && number.intValue() < parser.getActiveFunc().getParameters().size())
+				if (number.intValue() >= 0 && number.intValue() < parser.getActiveFunc().getParameters().size() && parser.getActiveFunc().getParameters().get(number.intValue()).isActualParm())
 					return new AccessVar(parser.getActiveFunc().getParameters().get(number.intValue()).getName());
 			}
 			

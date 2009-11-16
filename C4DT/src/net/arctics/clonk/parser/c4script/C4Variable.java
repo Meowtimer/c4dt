@@ -332,5 +332,13 @@ public class C4Variable extends C4Declaration implements Serializable, ITypedDec
 				setObjectType(script.getIndex().getObjectNearestTo(parent.getResource(), objectID));
 		}
 	}
+
+	/**
+	 * Returns whether this variable is an actual explicitly declared parameter and not some crazy hack thingie like '...'
+	 * @return look above and feel relieved that redundancy is lifted from you
+	 */
+	public boolean isActualParm() {
+		return !getName().equals("..."); //$NON-NLS-1$
+	}
 	
 }
