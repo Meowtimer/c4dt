@@ -216,9 +216,12 @@ public class Command {
 		public static void SetCodeConversionOption(Object context, String option, Object value) {
 			try {
 				Field f = C4ScriptExprTree.class.getField(option);
+				if (value instanceof String && f.getType().getSuperclass() == Enum.class) {
+					value = f.getType().getMethod("valueOf", String.class).invoke(f.getClass(), value);
+				}
 				f.set(null, value);
 			} catch (Exception e) {
-
+				e.printStackTrace();
 			}
 		}
 	}

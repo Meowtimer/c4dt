@@ -32,7 +32,14 @@ import org.eclipse.jface.text.Region;
  */
 public abstract class C4ScriptExprTree {
 	
-	public static boolean AlwaysConvertObjectCalls;
+	public enum BraceStyleType {
+		NewLine,
+		SameLine,
+	}
+	
+	// options
+	public static boolean AlwaysConvertObjectCalls = false;
+	public static BraceStyleType BraceStyle = BraceStyleType.NewLine;
 
 	public enum TraversalContinuation {
 		Continue,
@@ -2446,9 +2453,17 @@ public abstract class C4ScriptExprTree {
 		protected void printBody(ExprElm body, StringBuilder builder, int depth) {
 			int depthAdd = 0;
 			if (!(body instanceof EmptyStatement)) {
-				builder.append("\n"); //$NON-NLS-1$
+				if (BraceStyle == BraceStyleType.NewLine)
+					builder.append("\n"); //$NON-NLS-1$
 				boolean isBlock = body instanceof Block;
-				printIndent(builder, depth - (isBlock ? 1 : 0));
+				switch (BraceStyle) {
+				case NewLine:
+					printIndent(builder, depth - (isBlock ? 1 : 0));
+					break;
+				case SameLine:
+					builder.append(' ');
+					break;
+				}
 				depthAdd = isBlock ? 0 : 1;
 			}
 			body.print(builder, depth + depthAdd);
