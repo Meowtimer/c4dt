@@ -2654,8 +2654,14 @@ public abstract class C4ScriptExprTree {
 				builder.append(" "); //$NON-NLS-1$
 				boolean isBlock = elseExpr instanceof Block;
 				if (!(elseExpr instanceof IfStatement)) {
-					builder.append("\n"); //$NON-NLS-1$
-					printIndent(builder, depth - (isBlock?1:0));
+					switch (BraceStyle) {
+					case NewLine:
+						builder.append("\n"); //$NON-NLS-1$
+						printIndent(builder, depth - (isBlock?1:0));
+						break;
+					case SameLine:
+						break;
+					}
 				}
 				elseExpr.print(builder, depth);
 			}
