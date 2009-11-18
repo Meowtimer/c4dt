@@ -40,6 +40,7 @@ public abstract class C4ScriptExprTree {
 	// options
 	public static boolean AlwaysConvertObjectCalls = false;
 	public static BraceStyleType BraceStyle = BraceStyleType.NewLine;
+	public static String IndentString = "\t";
 
 	public enum TraversalContinuation {
 		Continue,
@@ -425,7 +426,7 @@ public abstract class C4ScriptExprTree {
 
 		protected void printIndent(StringBuilder builder, int indentDepth) {
 			for (int i = 0; i < indentDepth; i++)
-				builder.append("\t"); // FIXME: should be done according to user's preferences //$NON-NLS-1$
+				builder.append(IndentString); // FIXME: should be done according to user's preferences //$NON-NLS-1$
 		}
 
 		/**
