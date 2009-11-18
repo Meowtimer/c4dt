@@ -1,22 +1,28 @@
 package net.arctics.clonk.ui.editors.actions.c4script;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.ResourceBundle;
 
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.C4Declaration;
 import net.arctics.clonk.refactoring.ClonkRenameFieldProcessor;
+import net.arctics.clonk.ui.editors.EditorUtil;
 import net.arctics.clonk.ui.editors.IClonkCommandIds;
-
+import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.dialogs.ErrorDialog;
 import org.eclipse.jface.dialogs.InputDialog;
+import org.eclipse.jface.dialogs.ProgressMonitorDialog;
+import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.ltk.core.refactoring.CheckConditionsOperation;
 import org.eclipse.ltk.core.refactoring.CreateChangeOperation;
 import org.eclipse.ltk.core.refactoring.PerformChangeOperation;
 import org.eclipse.ltk.core.refactoring.RefactoringStatus;
 import org.eclipse.ltk.core.refactoring.RefactoringStatusEntry;
 import org.eclipse.ltk.core.refactoring.participants.RenameRefactoring;
+import org.eclipse.ui.IEditorPart;
+import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.texteditor.ITextEditor;
 
 public class RenameDeclarationAction extends OpenDeclarationAction {
@@ -40,6 +46,9 @@ public class RenameDeclarationAction extends OpenDeclarationAction {
 
 	@Override
 	public void run() {
+		
+		saveModifiedFiles();
+		
 		try {
 			C4Declaration fieldToRename = getDeclarationAtSelection();
 			if (fieldToRename != null) {
@@ -67,6 +76,27 @@ public class RenameDeclarationAction extends OpenDeclarationAction {
 		}
 		catch (Exception e) {
 			e.printStackTrace();
+		}
+	}
+	
+	private void saveModifiedFiles() {
+
+		boolean anyModified = EditorUtil.editorPartsToBeSaved().iterator().hasNext();
+
+		if (anyModified) {
+			final ProgressMonitorDialog progressMonitor = new ProgressMonitorDialog(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell());
+			try {
+				progressMonitor.run(false, false, new IRunnableWithProgress() {
+					@Override
+					public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
+						for (IEditorPart part : EditorUtil.editorPartsToBeSaved()) {
+							part.doSave(monitor);
+						}
+					}
+				});
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
 		}
 	}
 
