@@ -2315,7 +2315,7 @@ public abstract class C4ScriptExprTree {
 					commentedOutList[i] = new Comment(s.toString(), false);
 				}
 				else
-					notReached = s.getControlFlow() != ControlFlow.Continue;
+					notReached = s != null && s.getControlFlow() != ControlFlow.Continue;
 			}
 			if (commentedOutList != null)
 				return new Block(commentedOutList);

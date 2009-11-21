@@ -23,6 +23,8 @@ import net.arctics.clonk.parser.inireader.UnsignedInteger;
 import net.arctics.clonk.parser.inireader.IniData.IniDataEntry;
 import net.arctics.clonk.parser.inireader.IniData.IniSectionData;
 import net.arctics.clonk.resource.ExternalLib;
+import net.arctics.clonk.resource.c4group.C4Group;
+import net.arctics.clonk.resource.c4group.C4Group.C4GroupType;
 import net.arctics.clonk.ui.editors.ClonkCompletionProcessor;
 import net.arctics.clonk.util.Utilities;
 
@@ -161,7 +163,7 @@ public class IniCompletionProcessor extends ClonkCompletionProcessor<IniTextEdit
 		for (ExternalLib lib : ClonkCore.getDefault().getExternIndex().getLibs()) {
 			if (!lib.getNodeName().toLowerCase().contains(prefix))
 				continue;
-			if (!lib.getNodeName().endsWith(".c4d")) //$NON-NLS-1$
+			if (C4Group.getGroupType(lib.getNodeName()) != C4GroupType.DefinitionGroup)
 				continue;
 			proposals.add(new CompletionProposal(lib.getNodeName(), wordOffset, prefix.length(), lib.getNodeName().length()));
 		}

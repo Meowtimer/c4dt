@@ -89,7 +89,7 @@ public class ClonkDebugTarget extends ClonkDebugElement implements IDebugTarget 
 		protected IStatus run(IProgressMonitor monitor) {
 			boolean success = false;
 			// try several times to give the engine a chance to load
-			for (int attempts = 0; attempts < 30; attempts++) {
+			for (int attempts = 0; attempts < 30 && !monitor.isCanceled(); attempts++) {
 				Socket socket;
 				try {
 					socket = new Socket("localhost", port); //$NON-NLS-1$
