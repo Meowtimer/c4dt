@@ -905,20 +905,20 @@ public class C4ScriptParser {
 		scanner.seek(offset);
 		int endOfFunc = activeFunc.getBody().getEnd();
 		EnumSet<ParseStatementOption> options = EnumSet.of(ParseStatementOption.ExpectFuncDesc, ParseStatementOption.ParseEmptyLines);
-		boolean lastWasReturn = false;
+		boolean notReached = false;
 		int oldStyleEnd = endOfFunc;
 		while(!scanner.reachedEOF() && scanner.getPosition() < endOfFunc) {
 			Statement statement = parseStatement(scanner.getPosition(), options);
 			if (statement == null)
 				break;
 			boolean statementIsComment = statement instanceof Comment;
-			if (lastWasReturn) {
+			if (notReached) {
 				// warn about statements after final return
 				if (!statementIsComment)
 					warningWithCode(ParserErrorCode.NeverReached, statement);
 			}
 			else {
-				lastWasReturn = statement.getControlFlow() == ControlFlow.Return;
+				notReached = statement.getControlFlow() == ControlFlow.Return;
 			}
 			// after first 'real' statement don't expect function description anymore
 			if (!statementIsComment) {
@@ -1792,8 +1792,10 @@ public class C4ScriptParser {
 							Statement subStatement = parseStatement(scanner.getPosition());
 							if (subStatement != null) {
 								subStatements.add(subStatement);
-								if (notReached && !(subStatement instanceof Comment))
-									warningWithCode(ParserErrorCode.NeverReached, subStatement);
+								if (notReached) {
+									if (!(subStatement instanceof Comment))
+										warningWithCode(ParserErrorCode.NeverReached, subStatement);
+								}
 								else
 									notReached = subStatement.getControlFlow() != ControlFlow.Continue;
 							} else

@@ -375,6 +375,11 @@ public abstract class C4ScriptExprTree {
 		public String toString() {
 			return toString(1);
 		}
+		
+		public Comment commentedOut() {
+			String str = this.toString();
+			return new Comment(str, str.contains("\n"));
+		}
 
 		public void expectedToBeOfType(C4Type type, C4ScriptParser context) {
 			IStoredTypeInformation info = context.requestStoredTypeInformation(this);
@@ -2295,7 +2300,7 @@ public abstract class C4ScriptExprTree {
 			}
 			printIndent(builder, depth-1); builder.append("}"); //$NON-NLS-1$
 		}
-
+		
 		@Override
 		public ExprElm newStyleReplacement(C4ScriptParser parser)
 		throws CloneNotSupportedException {
@@ -2307,12 +2312,15 @@ public abstract class C4ScriptExprTree {
 			Statement[] commentedOutList = null;
 			for (int i = 0; i < statements.length; i++) {
 				Statement s = statements[i];
-				if (notReached && !(s instanceof Comment)) {
-					if (commentedOutList == null) {
+				if (notReached) {
+					if (commentedOutList != null) {
+						commentedOutList[i] = s instanceof Comment ? s : s.commentedOut();
+					}
+					else if (!(s instanceof Comment)) {
 						commentedOutList = new Statement[statements.length];
 						System.arraycopy(statements, 0, commentedOutList, 0, i);
+						commentedOutList[i] = s.commentedOut();
 					}
-					commentedOutList[i] = new Comment(s.toString(), false);
 				}
 				else
 					notReached = s != null && s.getControlFlow() != ControlFlow.Continue;
