@@ -15,8 +15,17 @@ public class C4Engine extends C4ObjectExtern {
 	private static final long serialVersionUID = 1L;
 	
 	private transient CachedEngineFuncs cachedFuncs;
+	private int strictDefaultLevel;
 	
-    public CachedEngineFuncs getCachedFuncs() {
+    public int getStrictDefaultLevel() {
+		return strictDefaultLevel;
+	}
+
+	public void setStrictDefaultLevel(int strictDefaultLevel) {
+		this.strictDefaultLevel = strictDefaultLevel;
+	}
+
+	public CachedEngineFuncs getCachedFuncs() {
 		return cachedFuncs;
 	}
 
@@ -39,6 +48,10 @@ public class C4Engine extends C4ObjectExtern {
     
     public void modified() {
     	cachedFuncs = new CachedEngineFuncs(this);
+//    	if (getName().equals("OpenClonk"))
+//    		setStrictDefaultLevel(2);
+//    	else
+//    		setStrictDefaultLevel(1);
     }
     
     @Override
@@ -57,6 +70,6 @@ public class C4Engine extends C4ObjectExtern {
 		//if (Util.isWindows()) {
     		return new String[] { "Clonk.c4x", "Clonk.exe" }; //$NON-NLS-1$ //$NON-NLS-2$
     	//}
-	}
+	}    
 
 }

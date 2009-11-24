@@ -164,10 +164,10 @@ public abstract class C4ScriptBase extends C4Structure implements IHasRelatedRes
 
 	/**
 	 * Returns the strict level of the script
-	 * @return the #strict level
+	 * @return the #strict level or -1 if there is no explicit #strict setting
 	 */
 	public int getStrictLevel() {
-		int level = 0;
+		int level = -1;
 		for (C4Directive d : this.definedDirectives) {
 			if (d.getType() == C4DirectiveType.STRICT) {
 				try {
