@@ -2,7 +2,7 @@
 <feature
       id="net.arctics.clonk.c4dtFeature"
       label="Clonk Development Tools"
-      version="1.5.1.7">
+      version="1.5.1.8">
 
    <description url="http://www.example.com/description">
       Clonk Development Tools for Eclipse.
@@ -73,7 +73,15 @@ migrate to new storage location in .metadata
 -No error when opening the revision of a script from svn
 -Advance state of german localization
 -Bug fixes
--Definitions and global functions/variables in other Clonk projects can be found by referencing them (Project Properties-&gt;Project References)
+-Definitions and global functions/variables in other Clonk projects
+can be found by referencing them (Project Properties-&gt;Project
+References)
+1.5.1.8:
+-Improvements in code formatting
+-Save modified files before performing rename refactoring
+-Some internal options for the code formatter that can be set by invoking the command SetCodeConversionOption(&quot;&lt;option&gt;&quot;, &quot;&lt;value&gt;&quot;)
+-Respect tab settings in c4dt text editors
+-Support for referencing other Clonk projects whose indexed contents are then taken into account in various places
    </description>
 
    <copyright url="http://www.example.com/copyright">
