@@ -12,3 +12,5 @@ Buildscript.zip
 licenses/*
 l10n_template/*
 copy_engine_to_res
+C4DTMapeNative/*
+C4DTMape/*

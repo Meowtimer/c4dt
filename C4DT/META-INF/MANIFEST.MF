@@ -29,7 +29,8 @@ Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Import-Package: org.eclipse.search.internal.ui.text,
  org.eclipse.search.ui,
  org.eclipse.search.ui.text,
- org.eclipse.ui.forms.widgets
+ org.eclipse.ui.forms.widgets,
+ org.eclipse.ui.texteditor.spelling
 Export-Package: net.arctics.clonk,
  net.arctics.clonk.parser,
  net.arctics.clonk.preferences,

@@ -205,4 +205,10 @@ public class ClonkTextEditor extends TextEditor {
 		}
 	}
 	
+	@Override
+	protected void initializeEditor() {
+		super.initializeEditor();
+		//setPreferenceStore(ClonkCore.getDefault().getPreferenceStore());
+	}
+	
 }

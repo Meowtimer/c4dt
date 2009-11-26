@@ -5,7 +5,10 @@ import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.text.ITextHover;
 import org.eclipse.jface.text.hyperlink.IHyperlinkDetector;
 import org.eclipse.jface.text.hyperlink.URLHyperlinkDetector;
+import org.eclipse.jface.text.reconciler.IReconciler;
+import org.eclipse.jface.text.reconciler.Reconciler;
 import org.eclipse.jface.text.source.ISourceViewer;
+import org.eclipse.ui.editors.text.EditorsUI;
 import org.eclipse.ui.editors.text.TextSourceViewerConfiguration;
 
 public class ClonkSourceViewerConfiguration<EditorType extends ClonkTextEditor> extends TextSourceViewerConfiguration {
@@ -44,6 +47,17 @@ public class ClonkSourceViewerConfiguration<EditorType extends ClonkTextEditor> 
 			hover = new ClonkTextHover<EditorType>(this); 
 		}
 		return hover;
+	}
+	
+	@Override
+	public IReconciler getReconciler(ISourceViewer sourceViewer) {
+		// pff, spell checking comments, that's ridiculous
+		return null;
+		/*ClonkReconcilerStrategy strategy = new ClonkReconcilerStrategy(sourceViewer, EditorsUI.getSpellingService());
+		Reconciler reconciler = new Reconciler();
+		reconciler.setReconcilingStrategy(strategy, ClonkPartitionScanner.C4S_COMMENT);
+		reconciler.setDocumentPartitioning(ClonkPartitionScanner.C4S_COMMENT);
+		return reconciler;*/
 	}
 
 }
