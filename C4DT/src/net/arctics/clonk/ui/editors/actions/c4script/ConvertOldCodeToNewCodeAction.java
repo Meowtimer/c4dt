@@ -129,7 +129,7 @@ public class ConvertOldCodeToNewCodeAction extends TextEditorAction {
 						blockLength = func.getBody().getEnd()+1 - blockBegin;
 					}
 					// eat indentation
-					while (blockBegin-1 > func.getHeader().getEnd() && isIndent(document.getChar(blockBegin-1))) {
+					while (blockBegin-1 > func.getHeader().getEnd() && superflousBetweenFuncHeaderAndBody(document.getChar(blockBegin-1))) {
 						blockBegin--;
 						blockLength++;
 					}
@@ -155,7 +155,7 @@ public class ConvertOldCodeToNewCodeAction extends TextEditorAction {
 			ext4.stopRewriteSession(session);
 	}
 
-	private static boolean isIndent(char c) {
+	private static boolean superflousBetweenFuncHeaderAndBody(char c) {
 		return c == '\t' || c == ' ' || c == '\n';
 	}
 	
