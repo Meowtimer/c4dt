@@ -5,7 +5,10 @@ bbpush
 pullfromc4dt
 @dot/*
 help
-C4DTUpdateSite
+C4DTUpdateSite/features/*
+C4DTUpdateSite/plugins/*
+C4DTUpdateSite/artifacts.jar
+C4DTUpdateSite/content.jar
 Eclipse Cocoa 64Bit
 buildscript/*
 Buildscript.zip
