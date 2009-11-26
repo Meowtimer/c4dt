@@ -6,9 +6,7 @@ import org.eclipse.jface.text.ITextHover;
 import org.eclipse.jface.text.hyperlink.IHyperlinkDetector;
 import org.eclipse.jface.text.hyperlink.URLHyperlinkDetector;
 import org.eclipse.jface.text.reconciler.IReconciler;
-import org.eclipse.jface.text.reconciler.Reconciler;
 import org.eclipse.jface.text.source.ISourceViewer;
-import org.eclipse.ui.editors.text.EditorsUI;
 import org.eclipse.ui.editors.text.TextSourceViewerConfiguration;
 
 public class ClonkSourceViewerConfiguration<EditorType extends ClonkTextEditor> extends TextSourceViewerConfiguration {

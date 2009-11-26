@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.ResourceBundle;
 
 import net.arctics.clonk.parser.c4script.C4Function;
+import net.arctics.clonk.parser.c4script.C4ScriptExprTree;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.C4ScriptExprTree.*;
 import net.arctics.clonk.ui.editors.IClonkCommandIds;
@@ -105,7 +106,17 @@ public class ConvertOldCodeToNewCodeAction extends TextEditorAction {
 						statementsInRightOrder[counter--] = s;
 					}
 					Block b = new Block(statementsInRightOrder);
-					String blockString = b.exhaustiveNewStyleReplacement(parser).toString(1);
+					StringBuilder blockStringBuilder = new StringBuilder(func.getBody().getLength());
+					switch (C4ScriptExprTree.BraceStyle) {
+					case NewLine:
+						blockStringBuilder.append('\n');
+						break;
+					case SameLine:
+						// noop
+						break;
+					}
+					b.exhaustiveNewStyleReplacement(parser).print(blockStringBuilder, 1);
+					String blockString = blockStringBuilder.toString();
 					int blockBegin;
 					int blockLength;
 					// eat braces if new style func
@@ -145,7 +156,7 @@ public class ConvertOldCodeToNewCodeAction extends TextEditorAction {
 	}
 
 	private static boolean isIndent(char c) {
-		return c == '\t' || c == ' ';
+		return c == '\t' || c == ' ' || c == '\n';
 	}
 	
 	private static void replaceExpression(IDocument document, ExprElm e, C4ScriptParser parser) throws BadLocationException, CloneNotSupportedException {
