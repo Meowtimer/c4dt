@@ -1262,8 +1262,6 @@ public class C4ScriptParser {
 			
 			// number
 			if (elm == null && parseNumber(scanner.getPosition())) {
-				if (parsedNumber < Integer.MIN_VALUE || parsedNumber > Integer.MAX_VALUE)
-					warningWithCode(ParserErrorCode.OutOfIntRange, elmStart, scanner.getPosition(), String.valueOf(parsedNumber));
 				elm = new C4ScriptExprTree.NumberLiteral(parsedNumber);
 			}
 			

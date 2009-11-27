@@ -1777,6 +1777,21 @@ public abstract class C4ScriptExprTree {
 		public void setHex(boolean hex) {
 			this.hex = hex;
 		}
+		
+		@Override
+		public void reportErrors(C4ScriptParser parser) throws ParsingException {
+			super.reportErrors(parser);
+			long val = longValue();
+			ExprElm region;
+			if (getParent() instanceof UnaryOp && ((UnaryOp)getParent()).getOperator() == C4ScriptOperator.Subtract) {
+				val = -val;
+				region = getParent();
+			}
+			else
+				region = this;
+			if (val < Integer.MIN_VALUE || val > Integer.MAX_VALUE)
+				parser.warningWithCode(ParserErrorCode.OutOfIntRange, region, String.valueOf(val));
+		}
 
 	}
 
