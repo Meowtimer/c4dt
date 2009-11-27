@@ -15,15 +15,10 @@ public class C4Engine extends C4ObjectExtern {
 	private static final long serialVersionUID = 1L;
 	
 	private transient CachedEngineFuncs cachedFuncs;
-	private int strictDefaultLevel;
 	
-    public int getStrictDefaultLevel() {
-		return strictDefaultLevel;
-	}
-
-	public void setStrictDefaultLevel(int strictDefaultLevel) {
-		this.strictDefaultLevel = strictDefaultLevel;
-	}
+	// public so setting them by reflection is easier -.-
+	public int strictDefaultLevel;
+	public int maxStringLen;
 
 	public CachedEngineFuncs getCachedFuncs() {
 		return cachedFuncs;

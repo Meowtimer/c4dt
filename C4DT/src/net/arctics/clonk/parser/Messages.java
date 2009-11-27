@@ -33,6 +33,7 @@ public class Messages extends NLS {
 	public static String NeverReached;
 	public static String ObsoleteOperator;
 	public static String StringNotClosed;
+	public static String StringTooLong;
 	public static String UnexpectedToken;
 	public static String NotFinished;
 	public static String GenericError;

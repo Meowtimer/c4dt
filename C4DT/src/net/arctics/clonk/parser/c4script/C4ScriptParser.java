@@ -350,7 +350,7 @@ public class C4ScriptParser {
 		synchronized (container) {
 			strictLevel = container.getStrictLevel();
 			if (strictLevel == -1)
-				strictLevel = container.getIndex().getEngine().getStrictDefaultLevel();
+				strictLevel = container.getIndex().getEngine().strictDefaultLevel;
 			for (C4Function function : container.functions()) {
 				parseCodeOfFunction(function);
 			}

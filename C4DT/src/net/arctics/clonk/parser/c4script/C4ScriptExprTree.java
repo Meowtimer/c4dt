@@ -1911,6 +1911,13 @@ public abstract class C4ScriptExprTree {
 
 		@Override
 		public void reportErrors(C4ScriptParser parser) throws ParsingException {
+			
+			// warn about overly long strings
+			int max = parser.getContainer().getIndex().getEngine().maxStringLen;
+			if (max != 0 && getLiteral().length() > max) {
+				parser.warningWithCode(ParserErrorCode.StringTooLong, this, getLiteral().length(), max);
+			}
+			
 			// don't warn in #appendto scripts because those will inherit their string tables from the scripts they are appended to
 			// and checking for the existence of the table entries there is overkill
 			if (parser.hasAppendTo())

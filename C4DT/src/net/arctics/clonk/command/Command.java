@@ -156,6 +156,7 @@ public class Command {
 		registerCommandsFromClass(Command.class);
 		registerCommandsFromClass(DebugCommands.class);
 		registerCommandsFromClass(CodeConversionCommands.class);
+		registerCommandsFromClass(EngineConfiguration.class);
 	}
 
 	private static void registerCommandsFromClass(Class<?> classs) {
@@ -192,6 +193,22 @@ public class Command {
 		COMMAND_BASESCRIPT.addDeclaration(new C4CommandFunction(COMMAND_BASESCRIPT, method));
 	}
 	
+	public static void setFieldValue(Object obj, String name, Object value) {
+		Class<?> c = obj instanceof Class<?> ? (Class<?>)obj : obj.getClass();
+		try {
+			Field f = c.getField(name);
+			if (value instanceof Long && f.getType() == Integer.TYPE) {
+				value = ((Long)value).intValue();
+			}
+			else if (value instanceof String && f.getType().getSuperclass() == Enum.class) {
+				value = f.getType().getMethod("valueOf", String.class).invoke(f.getClass(), value);
+			}
+			f.set(obj, value);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
 	@CommandFunction
 	public static void Log(Object context, String message) {
 		System.out.println(message);
@@ -214,15 +231,7 @@ public class Command {
 	public static class CodeConversionCommands {
 		@CommandFunction
 		public static void SetCodeConversionOption(Object context, String option, Object value) {
-			try {
-				Field f = C4ScriptExprTree.class.getField(option);
-				if (value instanceof String && f.getType().getSuperclass() == Enum.class) {
-					value = f.getType().getMethod("valueOf", String.class).invoke(f.getClass(), value);
-				}
-				f.set(null, value);
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
+			setFieldValue(C4ScriptExprTree.class, option, value);
 		}
 	}
 	
@@ -284,6 +293,13 @@ public class Command {
 			System.out.println(Integer.parseInt(value));
 		}
 
+	}
+	
+	public static class EngineConfiguration {
+		@CommandFunction
+		public static void SetEngineProperty(Object context, String name, Object value) {
+			setFieldValue(ClonkCore.getDefault().getActiveEngine(), name, value);
+		}
 	}
 	
 }
