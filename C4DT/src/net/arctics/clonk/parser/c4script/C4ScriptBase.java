@@ -310,10 +310,12 @@ public abstract class C4ScriptBase extends C4Structure implements IHasRelatedRes
 		if (info.getAlreadySearched().contains(this))
 			return null;
 		info.getAlreadySearched().add(this);
+		
+		Class<? extends C4Declaration> decClass = info.getDeclarationClass();
 
 		// local variable?
 		if (info.recursion == 0) {
-			if (info.getContextFunction() != null) {
+			if (info.getContextFunction() != null && (decClass == null || decClass == C4Variable.class)) {
 				C4Declaration v = info.getContextFunction().findVariable(name);
 				if (v != null)
 					return v;
@@ -321,19 +323,19 @@ public abstract class C4ScriptBase extends C4Structure implements IHasRelatedRes
 		}
 
 		// this object?
-		if (refersToThis(name, info)) {
+		if (decClass == null || decClass == C4ScriptBase.class && refersToThis(name, info)) {
 			return this;
 		}
 
 		// a function defined in this object
-		if (info.getDeclarationClass() == null || info.getDeclarationClass() == C4Function.class) {
+		if (decClass == null || decClass == C4Function.class) {
 			for (C4Function f : definedFunctions) {
 				if (f.getName().equals(name))
 					return f;
 			}
 		}
 		// a variable
-		if (info.getDeclarationClass() == null || info.getDeclarationClass() == C4Variable.class) {
+		if (decClass == null || decClass == C4Variable.class) {
 			for (C4Variable v : definedVariables) {
 				if (v.getName().equals(name))
 					return v;
@@ -357,10 +359,12 @@ public abstract class C4ScriptBase extends C4Structure implements IHasRelatedRes
 				f = info.index.getObjectNearestTo(getResource(), C4ID.getID(name));
 			}
 			// global stuff defined in project
-			for (ClonkIndex index : info.getAllRelevantIndexes()) {
-				f = index.findGlobalDeclaration(name, getResource());
-				if (f != null)
-					return f;
+			if (f == null) {
+				for (ClonkIndex index : info.getAllRelevantIndexes()) {
+					f = index.findGlobalDeclaration(name, getResource());
+					if (f != null)
+						break;
+				}
 			}
 			// function in extern lib
 			if (f == null && info.index != ClonkCore.getDefault().getExternIndex()) {
