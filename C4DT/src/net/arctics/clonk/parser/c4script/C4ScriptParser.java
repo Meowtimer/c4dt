@@ -1158,8 +1158,7 @@ public class C4ScriptParser {
 		public int severity;
 		public Object[] args;
 		public Object cookie;
-		public LatentMarker(ParserErrorCode code, int start, int end,
-				int severity, Object[] args, Object cookie) {
+		public LatentMarker(ParserErrorCode code, int start, int end, int severity, Object[] args, Object cookie) {
 			super();
 			this.code = code;
 			this.start = start;

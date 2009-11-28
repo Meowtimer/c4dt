@@ -20,6 +20,7 @@ public class Messages extends NLS {
 	public static String LaunchMainTab_Console;
 	public static String LaunchMainTab_Fullscreen;
 	public static String LaunchMainTab_CreateRecord;
+	public static String LaunchMainTab_CustomOptions;
 	public static String LaunchMainTab_Main;
 	static {
 		// initialize resource bundle

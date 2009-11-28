@@ -37,6 +37,7 @@ public class ClonkLaunchConfigurationDelegate implements
 	public static final String ATTR_SCENARIO_NAME = ClonkCore.id("debug.ScenarioNameAttr"); //$NON-NLS-1$
 	public static final String ATTR_FULLSCREEN = ClonkCore.id("debug.FullscreenAttr"); //$NON-NLS-1$
 	public static final String ATTR_RECORD = ClonkCore.id("debug.RecordAttr"); //$NON-NLS-1$
+	public static final String ATTR_CUSTOMARGS = ClonkCore.id("debug.CustomArgs"); //$NON-NLS-1$
 	
 	public static int DEFAULT_DEBUG_PORT = 10464;
 	
@@ -190,7 +191,11 @@ public class ClonkLaunchConfigurationDelegate implements
 			args.add("/debugwait"); //$NON-NLS-1$
 		}
 		
-		return args.toArray(new String [] {});
+		String custom = configuration.getAttribute(ATTR_CUSTOMARGS, (String)null);
+		if (custom != null)
+			args.add(custom);
+		
+		return args.toArray(new String [args.size()]);
 	}
 	
 }

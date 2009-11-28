@@ -19,6 +19,7 @@ import org.eclipse.core.runtime.Path;
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.ILaunchConfigurationWorkingCopy;
 import org.eclipse.debug.ui.AbstractLaunchConfigurationTab;
+import org.eclipse.jface.util.Util;
 import org.eclipse.jface.window.Window;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ModifyEvent;
@@ -31,6 +32,7 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Group;
+import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.dialogs.ElementListSelectionDialog;
 
@@ -48,6 +50,7 @@ public class LaunchMainTab extends AbstractLaunchConfigurationTab {
 	private Button fFullscreenButton;
 	private Button fConsoleButton;
 	private Button fRecordButton;
+	private Text fCustomOptions;
 	
 	/** Listener used to track changes in widgets */
 	private class WidgetListener implements ModifyListener, SelectionListener {
@@ -84,6 +87,7 @@ public class LaunchMainTab extends AbstractLaunchConfigurationTab {
 		createProjectEditor(comp);
 		createScenarioEditor(comp);
 		createLaunchOptionsEditor(comp);
+		createCustomOptionsEditor(comp);
 
 	}
 	
@@ -163,6 +167,21 @@ public class LaunchMainTab extends AbstractLaunchConfigurationTab {
 		
 	}
 	
+	private void createCustomOptionsEditor(Composite parent) {
+		// Create widget group
+		Group grp = new Group(parent, SWT.NONE);
+		grp.setText(Messages.LaunchMainTab_CustomOptions);
+		grp.setLayout(new GridLayout(1, false));
+		grp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+		grp.setFont(parent.getFont());
+		
+		// Custom options
+		fCustomOptions = new Text(grp, SWT.SINGLE | SWT.BORDER);
+		fCustomOptions.setFont(parent.getFont());
+		fCustomOptions.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+		fCustomOptions.addModifyListener(fListener);
+	}
+	
 	/** The name of the tab */
 	public String getName() {
 		return Messages.LaunchMainTab_Main;
@@ -178,6 +197,7 @@ public class LaunchMainTab extends AbstractLaunchConfigurationTab {
 			fFullscreenButton.setSelection(conf.getAttribute(ClonkLaunchConfigurationDelegate.ATTR_FULLSCREEN, false));
 			fConsoleButton.setSelection(!fFullscreenButton.getSelection());
 			fRecordButton.setSelection(conf.getAttribute(ClonkLaunchConfigurationDelegate.ATTR_RECORD, false));
+			fCustomOptions.setText(conf.getAttribute(ClonkLaunchConfigurationDelegate.ATTR_CUSTOMARGS, "")); //$NON-NLS-1$
 			
 		} catch (CoreException e) {
 			setErrorMessage(e.getStatus().getMessage());
@@ -188,26 +208,25 @@ public class LaunchMainTab extends AbstractLaunchConfigurationTab {
 			fFullscreenButton.setSelection(false);
 			fConsoleButton.setSelection(true);
 			fRecordButton.setSelection(false);
+			fCustomOptions.setText(""); //$NON-NLS-1$
 			
 		}
 	}
 
 	public void performApply(ILaunchConfigurationWorkingCopy wc) {
-		
 		wc.setAttribute(ClonkLaunchConfigurationDelegate.ATTR_PROJECT_NAME, fProjText.getText());
 		wc.setAttribute(ClonkLaunchConfigurationDelegate.ATTR_SCENARIO_NAME, fScenText.getText());
 		wc.setAttribute(ClonkLaunchConfigurationDelegate.ATTR_FULLSCREEN, fFullscreenButton.getSelection());
 		wc.setAttribute(ClonkLaunchConfigurationDelegate.ATTR_RECORD, fRecordButton.getSelection());
-			
+		wc.setAttribute(ClonkLaunchConfigurationDelegate.ATTR_CUSTOMARGS, fCustomOptions.getText());
 	}
 
 	public void setDefaults(ILaunchConfigurationWorkingCopy wc) {
-		
 		wc.setAttribute(ClonkLaunchConfigurationDelegate.ATTR_PROJECT_NAME, ""); //$NON-NLS-1$
 		wc.setAttribute(ClonkLaunchConfigurationDelegate.ATTR_SCENARIO_NAME, ""); //$NON-NLS-1$
-		wc.setAttribute(ClonkLaunchConfigurationDelegate.ATTR_FULLSCREEN, false);
+		wc.setAttribute(ClonkLaunchConfigurationDelegate.ATTR_FULLSCREEN, Util.isMac()); // FIXME: Mac Clonk crashes when run with /console but has windowed mode
 		wc.setAttribute(ClonkLaunchConfigurationDelegate.ATTR_RECORD, false);
-		
+		wc.setAttribute(ClonkLaunchConfigurationDelegate.ATTR_CUSTOMARGS, ""); //$NON-NLS-1$
 	}
 
 	public IProject validateProject() {
