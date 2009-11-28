@@ -299,6 +299,7 @@ public class EngineDeclarationsView extends ViewPart implements IPropertyChangeL
 	private Action doubleClickAction;
 	private Action importFromRepoAction;
 	private Action reloadAction;
+	private Action exportXMLAction;
 
 	/**
 	 * The constructor.
@@ -381,7 +382,9 @@ public class EngineDeclarationsView extends ViewPart implements IPropertyChangeL
 		manager.add(new Separator());
 		manager.add(importFromRepoAction);
 		manager.add(reloadAction);
+		manager.add(new Separator());
 		manager.add(saveAction);
+		manager.add(exportXMLAction);
 		manager.add(new Separator());
 		drillDownAdapter.addNavigationActions(manager);
 	}
@@ -523,6 +526,25 @@ public class EngineDeclarationsView extends ViewPart implements IPropertyChangeL
 		};
 		reloadAction.setToolTipText(Messages.Engine_ReloadDesc);
 		reloadAction.setText(Messages.Engine_Reload);
+		
+		exportXMLAction = new Action() {
+			@Override
+			public void run() {
+				InputDialog dialog = new InputDialog(
+						PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(),
+						Messages.SpecifyEngineName, Messages.SpecifyEngineNameDesc,
+						ClonkCore.getDefault().getActiveEngine().getName(),
+						null
+				);
+				switch (dialog.open()) {				
+				case Window.OK:
+					ClonkCore.getDefault().exportEngineToXMLInWorkspace(dialog.getValue());
+					break;
+				}
+			}
+		};
+		exportXMLAction.setToolTipText("Export to XML");
+		exportXMLAction.setText("Export to XML");
 		
 	}
 

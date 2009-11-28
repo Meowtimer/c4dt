@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
@@ -339,6 +340,27 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 		return path.append("externlib"); //$NON-NLS-1$
 	}
 
+	public void exportEngineToXMLInWorkspace(String engineName) {
+		try {
+			IPath engineXML = getWorkspaceStorageLocationForEngine(engineName).addFileExtension("xml");
+
+			File engineXMLFile = engineXML.toFile();
+			if (engineXMLFile.exists())
+				engineXMLFile.delete();
+
+			FileWriter writer = new FileWriter(engineXMLFile);
+			try {
+				this.getActiveEngine().exportAsXML(writer);
+			} finally {
+				writer.close();
+			}
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}		
+	}
+	
 	public void saveEngineInWorkspace(String engineName) {
 		try {
 			IPath engine = getWorkspaceStorageLocationForEngine(engineName);

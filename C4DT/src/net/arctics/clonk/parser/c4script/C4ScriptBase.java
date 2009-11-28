@@ -690,7 +690,7 @@ public abstract class C4ScriptBase extends C4Structure implements IHasRelatedRes
 		writer.write("<script>\n"); //$NON-NLS-1$
 		writer.write("\t<functions>\n"); //$NON-NLS-1$
 		for (C4Function f : functions()) {
-			writer.write(String.format("\t\t<function name=\"%s\" return=\"%s\">\n", f.getName(), f.getReturnType().toString())); //$NON-NLS-1$
+			writer.write(String.format("\t\t<function name=\"%s\" return=\"%s\">\n", f.getName(), f.getReturnType().toString(true))); //$NON-NLS-1$
 			writer.write("\t\t\t<parameters>\n"); //$NON-NLS-1$
 			for (C4Variable p : f.getParameters()) {
 				writer.write(String.format("\t\t\t\t<parameter name=\"%s\" type=\"%s\" />\n", p.getName(), p.getType().toString(true))); //$NON-NLS-1$
