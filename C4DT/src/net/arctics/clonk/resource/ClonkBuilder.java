@@ -48,23 +48,6 @@ import org.eclipse.ui.PlatformUI;
  */
 public class ClonkBuilder extends IncrementalProjectBuilder implements IResourceDeltaVisitor, IResourceVisitor {
 
-	private int buildPhase;
-	private IProgressMonitor monitor;
-	private boolean cleanedUI;
-
-	// keeps track of parsers created for specific scripts
-	private Map<C4ScriptBase, C4ScriptParser> parserMap = new HashMap<C4ScriptBase, C4ScriptParser>();
-
-	public ClonkBuilder() {
-		super();
-		// ensure lib builder object
-		ClonkCore.getDefault().getLibBuilder();
-	}
-
-	public void worked(int count) {
-		monitor.worked(count);
-	}
-	
 	private static final class UIRefresher implements Runnable {
 		public void run() {
 			IWorkbench w = PlatformUI.getWorkbench();
@@ -102,6 +85,23 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 				return super.visit(delta);
 			return true;
 		}
+	}
+	
+	private int buildPhase;
+	private IProgressMonitor monitor;
+	private boolean cleanedUI;
+
+	// keeps track of parsers created for specific scripts
+	private Map<C4ScriptBase, C4ScriptParser> parserMap = new HashMap<C4ScriptBase, C4ScriptParser>();
+
+	public ClonkBuilder() {
+		super();
+		// ensure lib builder object
+		ClonkCore.getDefault().getLibBuilder();
+	}
+
+	public void worked(int count) {
+		monitor.worked(count);
 	}
 
 	@Override
@@ -162,6 +162,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 						ClonkProjectNature.get(proj).getIndex().refreshCache();
 						buildPhase = 1;
 						delta.accept(this);
+						applyLatentMarkers();
 
 						// fire change event
 						delta.getResource().touch(monitor);
@@ -233,6 +234,8 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 						// parse code bodies
 						buildPhase = 1;
 						proj.accept(this);
+						
+						applyLatentMarkers();
 
 						// fire update event
 						proj.touch(monitor);
@@ -265,6 +268,12 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 			}
 		} finally {
 			parserMap.clear();
+		}
+	}
+
+	private void applyLatentMarkers() {
+		for (C4ScriptParser p : parserMap.values()) {
+			p.applyLatentMarkers();
 		}
 	}
 

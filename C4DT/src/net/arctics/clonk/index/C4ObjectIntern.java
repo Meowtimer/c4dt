@@ -185,7 +185,6 @@ public class C4ObjectIntern extends C4Object implements Serializable {
 	public void processFile(IFile file) throws IOException, CoreException {
 	    if (file.getName().equalsIgnoreCase("Names.txt")) { //$NON-NLS-1$
 	    	readNames(Utilities.stringFromFile(file));
-	    	chooseLocalizedName();
 	    }
     }
 

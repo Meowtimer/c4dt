@@ -9,7 +9,6 @@ import net.arctics.clonk.index.C4Object;
 import net.arctics.clonk.index.C4Scenario;
 import net.arctics.clonk.index.CachedEngineFuncs;
 import net.arctics.clonk.index.ClonkIndex;
-import net.arctics.clonk.index.IExternalScript;
 import net.arctics.clonk.parser.BufferedScanner;
 import net.arctics.clonk.parser.C4Declaration;
 import net.arctics.clonk.parser.C4ID;
@@ -25,6 +24,7 @@ import net.arctics.clonk.util.Pair;
 import net.arctics.clonk.util.Utilities;
 import net.arctics.clonk.parser.ParsingException;
 
+import org.eclipse.core.resources.IMarker;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.Region;
 
@@ -944,6 +944,8 @@ public abstract class C4ScriptExprTree {
 		@Override
 		public void reportErrors(C4ScriptParser context) throws ParsingException {
 			super.reportErrors(context);
+			
+			// notify parser about unnamed parameter usage
 			if (declaration == getCachedFuncs(context).Par) {
 				if (params.length > 0) {
 					context.unnamedParamaterUsed(params[0]);
@@ -951,12 +953,15 @@ public abstract class C4ScriptExprTree {
 				else
 					context.unnamedParamaterUsed(NumberLiteral.ZERO);
 			}
+			// return as function
 			else if (declarationName.equals(Keywords.Return)) {
 				if (context.getStrictLevel() >= 2)
 					context.errorWithCode(ParserErrorCode.ReturnAsFunction, this, true);
 				else
 					context.warningWithCode(ParserErrorCode.ReturnAsFunction, this);
-			} else {
+			}
+			else {
+				// variable as function
 				if (declaration instanceof C4Variable) {
 					if (params.length == 0) {
 						// no warning when in #strict mode
@@ -1003,10 +1008,8 @@ public abstract class C4ScriptExprTree {
 					}
 					
 					// warn about too many parameters
-					if (!(f.getScript() instanceof IExternalScript) && !declarationName.equals(Keywords.SafeInherited) && (f.getParameters().size() == 0 || f.getParameters().get(f.getParameters().size()-1).isActualParm())) { //$NON-NLS-1$
-						if (params.length > f.getParameters().size()) {
-							context.warningWithCode(ParserErrorCode.TooManyParameters, this, f.getParameters().size(), params.length);
-						}
+					if (f.tooManyParameters(params.length)) {
+						context.addLatentMarker(ParserErrorCode.TooManyParameters, this, IMarker.SEVERITY_WARNING, f, f.getParameters().size(), params.length);
 					}
 					
 				}

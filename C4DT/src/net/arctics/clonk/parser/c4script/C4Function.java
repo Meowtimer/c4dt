@@ -6,6 +6,7 @@ import java.util.List;
 
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.index.C4Object;
+import net.arctics.clonk.index.IExternalScript;
 import net.arctics.clonk.parser.C4Declaration;
 import net.arctics.clonk.parser.C4Structure;
 import net.arctics.clonk.parser.SourceLocation;
@@ -458,6 +459,14 @@ public class C4Function extends C4Structure implements Serializable, ITypedDecla
 	@Override
 	public boolean isGlobal() {
 		return getVisibility() == C4FunctionScope.FUNC_GLOBAL;
+	}
+	
+	public boolean tooManyParameters(int num) {
+		return
+			!(getScript() instanceof IExternalScript) &&
+			!getName().equals(Keywords.SafeInherited) &&
+			(getParameters().size() == 0 || getParameters().get(getParameters().size()-1).isActualParm()) &&
+			num > getParameters().size();
 	}
 	
 	/**

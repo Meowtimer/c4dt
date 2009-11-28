@@ -3,6 +3,7 @@ package net.arctics.clonk.parser.c4script;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -47,23 +48,11 @@ import org.eclipse.jface.text.IRegion;
  */
 public class C4ScriptParser {
 	
+	public static final int MAX_PAR = 10;
+	public static final int MAX_NUMVAR = 20;
+	public static final int UNKNOWN_PARAMETERNUM = MAX_PAR+1;
+	
 	private IExpressionListener expressionListener;
-
-	/**
-	 * Returns the expression listener that is notified when an expression or a statement has been parsed.
-	 * @return the expression listener
-	 */
-	public IExpressionListener getExpressionListener() {
-		return expressionListener;
-	}
-
-	/**
-	 * Sets the expression listener.
-	 * @param expressionListener the new expression listener
-	 */
-	public void setExpressionListener(IExpressionListener expressionListener) {
-		this.expressionListener = expressionListener;
-	}
 
 	private BufferedScanner scanner;
 	private IFile scriptFile; // for project intern files
@@ -82,23 +71,37 @@ public class C4ScriptParser {
 	private int parseStatementRecursion;
 	
 	private boolean appendTo;
-	
-	public final boolean hasAppendTo() {
-		return appendTo;
-	}
 
 	private LoopType currentLoop;
 	private Comment lastComment;
-	
-	public static final int MAX_PAR = 10;
-	public static final int MAX_NUMVAR = 20;
-	public static final int UNKNOWN_PARAMETERNUM = MAX_PAR+1;
 	
 	/**
 	 * Number of unnamed parameters used in activeFunc (Par(5) -> 6 unnamed parameters).
 	 * If a complex expression is passed to Par() this variable is set to UNKNOWN_PARAMETERNUM
 	 */
 	private int numUnnamedParameters;
+	
+	private Stack<List<IStoredTypeInformation>> storedTypeInformationListStack = new Stack<List<IStoredTypeInformation>>();
+	
+	/**
+	 * Returns the expression listener that is notified when an expression or a statement has been parsed.
+	 * @return the expression listener
+	 */
+	public IExpressionListener getExpressionListener() {
+		return expressionListener;
+	}
+
+	/**
+	 * Sets the expression listener.
+	 * @param expressionListener the new expression listener
+	 */
+	public void setExpressionListener(IExpressionListener expressionListener) {
+		this.expressionListener = expressionListener;
+	}
+	
+	public final boolean hasAppendTo() {
+		return appendTo;
+	}
 	
 	/**
 	 * Informs the parser that an unnamed parameter was used by calling the Par() function with the given index expression.
@@ -114,8 +117,6 @@ public class C4ScriptParser {
 				numUnnamedParameters = UNKNOWN_PARAMETERNUM;
 		}
 	}
-	
-	private Stack<List<IStoredTypeInformation>> storedTypeInformationListStack = new Stack<List<IStoredTypeInformation>>();
 	
 	public void beginTypeInferenceBlock() {
 		storedTypeInformationListStack.push(new LinkedList<IStoredTypeInformation>());
@@ -459,7 +460,7 @@ public class C4ScriptParser {
 	/**
 	 * Parses the declaration at offset.
 	 * @param offset offset at which the declaration starts
-	 * @return whether parsing was sucessful
+	 * @return whether parsing was successful
 	 * @throws ParsingException
 	 */
 	protected boolean parseDeclaration(int offset) throws ParsingException {
@@ -1151,46 +1152,111 @@ public class C4ScriptParser {
 		return disabledErrors.contains(error);
 	}
 	
-	public void warningWithCode(ParserErrorCode code, int errorStart, int errorEnd, Object... args) {
-		try {
-			markerWithCode(code, errorStart, errorEnd, true, IMarker.SEVERITY_WARNING, args);
-		} catch (ParsingException e) {
-			// ignore
+	private static class LatentMarker {
+		public ParserErrorCode code;
+		public int start, end;
+		public int severity;
+		public Object[] args;
+		public Object cookie;
+		public LatentMarker(ParserErrorCode code, int start, int end,
+				int severity, Object[] args, Object cookie) {
+			super();
+			this.code = code;
+			this.start = start;
+			this.end = end;
+			this.severity = severity;
+			this.args = args;
+			this.cookie = cookie;
+		}
+		public boolean stillApplies(C4ScriptParser parser) {
+			switch (code) {
+			case TooManyParameters:
+				return ((C4Function)cookie).tooManyParameters((Integer)args[1]);
+			default:
+				return false;
+			}
 		}
 	}
 	
-	public void warningWithCode(ParserErrorCode code, IRegion errorRegion, Object... args) {
-		warningWithCode(code, errorRegion.getOffset(), errorRegion.getOffset()+errorRegion.getLength(), args);
+	private Collection<LatentMarker> latentMarkers;
+	
+	public void addLatentMarker(ParserErrorCode code, IRegion region, int severity, Object cookie, Object... args) {
+		addLatentMarker(code, region.getOffset(), region.getOffset()+region.getLength(), severity, cookie, args);
 	}
 	
-	public void errorWithCode(ParserErrorCode code, IRegion errorRegion, Object... args) throws ParsingException {
-		errorWithCode(code, errorRegion, false, args);
+	/**
+	 * Adds a marker that is not yet sure to apply
+	 * @param code parser error code
+	 * @param start start of marked region
+	 * @param end end of marked region
+	 * @param severity severity as IMarker constant
+	 * @param cookie additional information (a function or something)
+	 * @param args format arguments
+	 */
+	public void addLatentMarker(ParserErrorCode code, int start, int end, int severity, Object cookie, Object... args) {
+		if (latentMarkers == null)
+			latentMarkers = new LinkedList<LatentMarker>();
+		LatentMarker marker = new LatentMarker(code, start, end, severity, args, cookie);
+		latentMarkers.add(marker);
 	}
 	
-	public void errorWithCode(ParserErrorCode code, IRegion errorRegion, boolean noThrow, Object... args) throws ParsingException {
-		errorWithCode(code, errorRegion.getOffset(), errorRegion.getOffset()+errorRegion.getLength(), noThrow, args);
+	/**
+	 * Applies latent markers added as of yet
+	 */
+	public void applyLatentMarkers() {
+		if (latentMarkers != null) {
+			for (LatentMarker marker : latentMarkers) {
+				if (marker.stillApplies(this)) try {
+					markerWithCode(marker.code, marker.start, marker.end, true, marker.severity, marker.args);
+				} catch (ParsingException e) { /* does not happen */ }
+			}
+			latentMarkers = null;
+		}
 	}
 	
-	public void errorWithCode(ParserErrorCode code, int errorStart, int errorEnd, boolean noThrow, Object... args) throws ParsingException {
-		markerWithCode(code, errorStart, errorEnd, noThrow, IMarker.SEVERITY_ERROR, args);
+	public IMarker warningWithCode(ParserErrorCode code, int errorStart, int errorEnd, Object... args) {
+		try {
+			return markerWithCode(code, errorStart, errorEnd, true, IMarker.SEVERITY_WARNING, args);
+		} catch (ParsingException e) {
+			// ignore
+			return null;
+		}
 	}
 	
-	private void markerWithCode(ParserErrorCode code, int errorStart, int errorEnd, boolean noThrow, int severity, Object... args) throws ParsingException {
+	public IMarker warningWithCode(ParserErrorCode code, IRegion errorRegion, Object... args) {
+		return warningWithCode(code, errorRegion.getOffset(), errorRegion.getOffset()+errorRegion.getLength(), args);
+	}
+	
+	public IMarker errorWithCode(ParserErrorCode code, IRegion errorRegion, Object... args) throws ParsingException {
+		return errorWithCode(code, errorRegion, false, args);
+	}
+	
+	public IMarker errorWithCode(ParserErrorCode code, IRegion errorRegion, boolean noThrow, Object... args) throws ParsingException {
+		return errorWithCode(code, errorRegion.getOffset(), errorRegion.getOffset()+errorRegion.getLength(), noThrow, args);
+	}
+	
+	public IMarker errorWithCode(ParserErrorCode code, int errorStart, int errorEnd, boolean noThrow, Object... args) throws ParsingException {
+		return markerWithCode(code, errorStart, errorEnd, noThrow, IMarker.SEVERITY_ERROR, args);
+	}
+	
+	private IMarker errorWithCode(ParserErrorCode code, int errorStart, int errorEnd, Object... args) throws ParsingException {
+		return markerWithCode(code, errorStart, errorEnd, false, IMarker.SEVERITY_ERROR, args);
+	}
+	
+	private IMarker markerWithCode(ParserErrorCode code, int errorStart, int errorEnd, boolean noThrow, int severity, Object... args) throws ParsingException {
 		if (errorDisabled(code))
-			return;
+			return null;
+		IMarker result = null;
 		boolean silence = scriptFile == null || (activeFunc != null && activeFunc.getBody() != null && scanner.getPosition() > activeFunc.getBody().getEnd()+1);
 		String problem = code.getErrorString(args);
 		if (!silence) {
-			code.createMarker(scriptFile, ClonkCore.MARKER_C4SCRIPT_ERROR, errorStart, errorEnd, severity, problem);
+			result = code.createMarker(scriptFile, ClonkCore.MARKER_C4SCRIPT_ERROR, errorStart, errorEnd, severity, problem);
 		}
 		if (!noThrow && severity >= IMarker.SEVERITY_ERROR)
 			throw silence
 				? new SilentParsingException(problem)
 				: new ParsingException(problem);
-	}
-	
-	private void errorWithCode(ParserErrorCode code, int errorStart, int errorEnd, Object... args) throws ParsingException {
-		markerWithCode(code, errorStart, errorEnd, false, IMarker.SEVERITY_ERROR, args);
+		return result;
 	}
 	
 	private void tokenExpectedError(String token) throws ParsingException {

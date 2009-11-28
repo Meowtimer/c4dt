@@ -52,7 +52,9 @@ import org.eclipse.ui.texteditor.ITextEditorActionDefinitionIds;
 public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4ScriptEditor> {
 
 	private static final char[] CONTEXT_INFORMATION_AUTO_ACTIVATION_CHARS = new char[] {'('};
-	private static final char[] COMPLETION_INFORMATION_AUTO_ACTIVATION_CHARS = new char[] {'.'};
+	private static final char[] COMPLETION_INFORMATION_AUTO_ACTIVATION_CHARS = new char[] {
+		// OC maybe '.'
+	};
 	
 	private final class ClonkCompletionListener implements ICompletionListener, ICompletionListenerExtension {
 
@@ -325,7 +327,8 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 		int replacementLength = 0;
 		if (prefix != null)
 			replacementLength = prefix.length();
-		String repString = funcSupplied ? (callback!=null?callback:"") : ("protected func " + callback + "() {\n}"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+		// FIXME: copy signature of overloaded func and respect brace style
+		String repString = funcSupplied ? (callback!=null?callback:"") : ("func " + callback + "() {\n}"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 		ClonkCompletionProposal prop = new ClonkCompletionProposal(
 				repString, offset, replacementLength, 
 				repString.length(), reg.get("callback") , callback, null,null,Messages.C4ScriptCompletionProcessor_Callback); //$NON-NLS-1$
