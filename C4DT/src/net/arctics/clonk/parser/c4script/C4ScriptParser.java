@@ -1566,74 +1566,74 @@ public class C4ScriptParser {
 
 			// magical thingie to pass all parameters to inherited
 			if (parseEllipsis(offset)) {
-				return new Ellipsis();
-			}
-
-			scanner.seek(offset);
-			this.eatWhitespace();
-			//int exprStart = fReader.getPosition();
-			for (int state = START; state != DONE;) {
+				root = new Ellipsis();
+			} else {
+				scanner.seek(offset);
 				this.eatWhitespace();
-				switch (state) {
-				case START:
-					root = parseExpressionWithoutOperators(scanner.getPosition(), reportErrors);
-					current = root;
-					state = current != null ? OPERATOR : DONE;
-					break;
-				case OPERATOR:
+				//int exprStart = fReader.getPosition();
+				for (int state = START; state != DONE;) {
+					this.eatWhitespace();
+					switch (state) {
+					case START:
+						root = parseExpressionWithoutOperators(scanner.getPosition(), reportErrors);
+						current = root;
+						state = current != null ? OPERATOR : DONE;
+						break;
+					case OPERATOR:
 
-					// end of expression?
-					int c = scanner.read();
-					for (int i = 0; i < delimiters.length; i++) {
-						if (delimiters[i] == c) {
-							state = DONE;
+						// end of expression?
+						int c = scanner.read();
+						for (int i = 0; i < delimiters.length; i++) {
+							if (delimiters[i] == c) {
+								state = DONE;
+								scanner.unread();
+								break;
+							}
+						}
+
+						if (state != DONE) {
 							scanner.unread();
-							break;
-						}
-					}
 
-					if (state != DONE) {
-						scanner.unread();
-
-						int operatorPos = scanner.getPosition();
-						C4ScriptOperator op = parseOperator(scanner.getPosition());
-						if (op != null && op.isBinary()) {
-							int priorOfNewOp = op.getPriority();
-							ExprElm newLeftSide = null;
-							BinaryOp theOp = null;
-							for (ExprElm opFromBottom = current.getParent(); opFromBottom instanceof BinaryOp; opFromBottom = opFromBottom.getParent()) {
-								BinaryOp oneOp = (BinaryOp) opFromBottom;
-								if (priorOfNewOp > oneOp.getOperator().getPriority() || (priorOfNewOp == oneOp.getOperator().getPriority() && op.isRightAssociative())) {
-									theOp = oneOp;
-									break;
+							int operatorPos = scanner.getPosition();
+							C4ScriptOperator op = parseOperator(scanner.getPosition());
+							if (op != null && op.isBinary()) {
+								int priorOfNewOp = op.getPriority();
+								ExprElm newLeftSide = null;
+								BinaryOp theOp = null;
+								for (ExprElm opFromBottom = current.getParent(); opFromBottom instanceof BinaryOp; opFromBottom = opFromBottom.getParent()) {
+									BinaryOp oneOp = (BinaryOp) opFromBottom;
+									if (priorOfNewOp > oneOp.getOperator().getPriority() || (priorOfNewOp == oneOp.getOperator().getPriority() && op.isRightAssociative())) {
+										theOp = oneOp;
+										break;
+									}
 								}
-							}
-							if (theOp != null) {
-								newLeftSide = theOp.getRightSide();
-								current = lastOp = new BinaryOp(op);
-								theOp.setRightSide(current);
+								if (theOp != null) {
+									newLeftSide = theOp.getRightSide();
+									current = lastOp = new BinaryOp(op);
+									theOp.setRightSide(current);
+								} else {
+									newLeftSide = root;
+									current = root = lastOp = new BinaryOp(op);
+								}
+								lastOp.setLeftSide(newLeftSide);
+								lastOp.setExprRegion(operatorPos, scanner.getPosition());
+								state = SECONDOPERAND;
 							} else {
-								newLeftSide = root;
-								current = root = lastOp = new BinaryOp(op);
+								scanner.seek(operatorPos); // in case there was an operator but not a binary one
+								state = DONE;
 							}
-							lastOp.setLeftSide(newLeftSide);
-							lastOp.setExprRegion(operatorPos, scanner.getPosition());
-							state = SECONDOPERAND;
-						} else {
-							scanner.seek(operatorPos); // in case there was an operator but not a binary one
-							state = DONE;
 						}
+						break;
+					case SECONDOPERAND:
+						ExprElm rightSide = parseExpressionWithoutOperators(scanner.getPosition(), reportErrors);
+						if (rightSide == null)
+							errorWithCode(ParserErrorCode.OperatorNeedsRightSide, lastOp);
+						((BinaryOp)current).setRightSide(rightSide);
+						lastOp = (BinaryOp)current;
+						current = rightSide;
+						state = OPERATOR;
+						break;
 					}
-					break;
-				case SECONDOPERAND:
-					ExprElm rightSide = parseExpressionWithoutOperators(scanner.getPosition(), reportErrors);
-					if (rightSide == null)
-						errorWithCode(ParserErrorCode.OperatorNeedsRightSide, lastOp);
-					((BinaryOp)current).setRightSide(rightSide);
-					lastOp = (BinaryOp)current;
-					current = rightSide;
-					state = OPERATOR;
-					break;
 				}
 			}
 			if (root != null) {

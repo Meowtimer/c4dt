@@ -1002,7 +1002,7 @@ public abstract class C4ScriptExprTree {
 					}
 					
 					// warn about too many parameters
-					if (f.getParameters().size() == 0 || f.getParameters().get(f.getParameters().size()-1).isActualParm()) { //$NON-NLS-1$
+					if (!declarationName.equals(Keywords.SafeInherited) && (f.getParameters().size() == 0 || f.getParameters().get(f.getParameters().size()-1).isActualParm())) { //$NON-NLS-1$
 						if (params.length > f.getParameters().size()) {
 							context.warningWithCode(ParserErrorCode.TooManyParameters, this, f.getParameters().size(), params.length);
 						}
@@ -2196,6 +2196,12 @@ public abstract class C4ScriptExprTree {
 		@Override
 		public void print(StringBuilder output, int depth) {
 			output.append("..."); //$NON-NLS-1$
+		}
+		
+		@Override
+		public void reportErrors(C4ScriptParser parser) throws ParsingException {
+			super.reportErrors(parser);
+			parser.unnamedParamaterUsed(this); // it's kinda sound...
 		}
 
 	}
