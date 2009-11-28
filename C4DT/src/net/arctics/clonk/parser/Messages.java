@@ -17,6 +17,7 @@ public class Messages extends NLS {
 	public static String EmptyParentheses;
 	public static String ExpectedCode;
 	public static String MissingClosingBracket;
+	public static String MissingLocalizations;
 	public static String ConstantValueExpected;
 	public static String CommaOrSemicolonExpected;
 	public static String IncompatibleTypes;
@@ -47,7 +48,7 @@ public class Messages extends NLS {
 	public static String NameExpected;
 	public static String ReturnAsFunction;
 	public static String ExpressionNotModifiable;
-	public static String WrongNumberOfParameters;
+	public static String TooManyParameters;
 	static {
 		// initialize resource bundle
 		NLS.initializeMessages(BUNDLE_NAME, Messages.class);

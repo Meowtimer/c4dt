@@ -4,6 +4,8 @@ import java.io.Serializable;
 import java.util.EnumSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.regex.Matcher;
+
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.index.C4Object;
 import net.arctics.clonk.index.C4Scenario;
@@ -24,7 +26,11 @@ import net.arctics.clonk.util.Pair;
 import net.arctics.clonk.util.Utilities;
 import net.arctics.clonk.parser.ParsingException;
 
+import org.eclipse.core.resources.IContainer;
+import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
+import org.eclipse.core.resources.IResource;
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.Region;
 
@@ -86,6 +92,9 @@ public abstract class C4ScriptExprTree {
 		}
 		public String getText() {
 			return text;
+		}
+		public void setDeclaration(C4Declaration declaration) {
+			this.declaration = declaration;
 		}
 		public DeclarationRegion addOffsetInplace(int offset) {
 			region = new Region(region.getOffset()+offset, region.getLength());
@@ -1823,7 +1832,7 @@ public abstract class C4ScriptExprTree {
 		public DeclarationRegion declarationAt(int offset, C4ScriptParser parser) {
 
 			// first check if a string tbl entry is referenced
-			DeclarationRegion result = getStringTblEntryAt(offset-1, parser.getContainer(), true);
+			DeclarationRegion result = getStringTblEntryForLanguagePref(offset-1, parser.getContainer(), true);
 			if (result != null)
 				return result;
 
@@ -1894,18 +1903,28 @@ public abstract class C4ScriptExprTree {
 			return null;
 		}
 
-		private DeclarationRegion getStringTblEntryAt(int offset, C4ScriptBase container, boolean returnNullIfNotFound) {
-			StringTbl stringTbl = container.getStringTblForLanguagePref();
+		private DeclarationRegion getStringTblEntryRegion(int offset) {
 			int firstDollar = stringValue().lastIndexOf('$', offset-1);
 			int secondDollar = stringValue().indexOf('$', offset);
 			if (firstDollar != -1 && secondDollar != -1) {
 				String entry = stringValue().substring(firstDollar+1, secondDollar);
-				C4Declaration e = entry != null && stringTbl != null ? stringTbl.getMap().get(entry) : null;
-				return e == null && returnNullIfNotFound
-					? null
-					: new DeclarationRegion(e, new Region(getExprStart()+1+firstDollar, secondDollar-firstDollar+1), entry);
+				return new DeclarationRegion(null, new Region(getExprStart()+1+firstDollar, secondDollar-firstDollar+1), entry);
 			}
 			return null;
+		}
+		
+		private DeclarationRegion getStringTblEntryForLanguagePref(int offset, C4ScriptBase container, boolean returnNullIfNotFound) {
+			DeclarationRegion result = getStringTblEntryRegion(offset);
+			if (result != null) {
+				StringTbl stringTbl = container.getStringTblForLanguagePref();
+				C4Declaration e = stringTbl != null ? stringTbl.getMap().get(result.getText()) : null;
+				if (e == null && returnNullIfNotFound) {
+					result = null;
+				} else {
+					result.setDeclaration(e);
+				}
+			}
+			return result;
 		}
 
 		@Override
@@ -1916,7 +1935,7 @@ public abstract class C4ScriptExprTree {
 			// insert stringtbl entries
 			for (int i = 0; i < valueLen;) {
 				if (i+1 < valueLen && value.charAt(i) == '$') {
-					DeclarationRegion region = getStringTblEntryAt(i+1, context, true);
+					DeclarationRegion region = getStringTblEntryForLanguagePref(i+1, context, true);
 					if (region != null) {
 						builder.append(((NameValueAssignment)region.getDeclaration()).getValue());
 						i += region.getRegion().getLength();
@@ -1937,19 +1956,42 @@ public abstract class C4ScriptExprTree {
 				parser.warningWithCode(ParserErrorCode.StringTooLong, this, getLiteral().length(), max);
 			}
 			
+			// stringtbl entries
 			// don't warn in #appendto scripts because those will inherit their string tables from the scripts they are appended to
 			// and checking for the existence of the table entries there is overkill
-			if (parser.hasAppendTo())
+			if (parser.hasAppendTo() || parser.getContainer().getResource() == null)
 				return;
 			String value = getLiteral();
 			int valueLen = value.length();
 			// warn when using non-declared string tbl entries
 			for (int i = 0; i < valueLen;) {
 				if (i+1 < valueLen && value.charAt(i) == '$') {
-					DeclarationRegion region = getStringTblEntryAt(i+1, parser.getContainer(), false);
+					DeclarationRegion region = getStringTblEntryRegion(i+1);
 					if (region != null) {
-						if (region.getDeclaration() == null) {
-							parser.warningWithCode(ParserErrorCode.UndeclaredIdentifier, region.getRegion(),  region.getText());
+						StringBuilder listOfLangFilesItsMissingIn = null;
+						try {
+							for (IResource r : (parser.getContainer().getResource() instanceof IContainer ? (IContainer)parser.getContainer().getResource() : parser.getContainer().getResource().getParent()).members()) {
+								if (!(r instanceof IFile))
+									continue;
+								IFile f = (IFile) r;
+								Matcher m = StringTbl.PATTERN.matcher(r.getName());
+								if (m.matches()) {
+									String lang = m.group(1);
+									StringTbl tbl = (StringTbl)StringTbl.pinned(f, true);
+									if (tbl != null) {
+										if (tbl.getMap().get(region.getText()) == null) {
+											if (listOfLangFilesItsMissingIn == null)
+												listOfLangFilesItsMissingIn = new StringBuilder(10);
+											if (listOfLangFilesItsMissingIn.length() > 0)
+												listOfLangFilesItsMissingIn.append(", ");
+											listOfLangFilesItsMissingIn.append(lang);
+										}
+									}
+								}
+							}
+						} catch (CoreException e) {}
+						if (listOfLangFilesItsMissingIn != null) {
+							parser.warningWithCode(ParserErrorCode.MissingLocalizations, region.getRegion(), listOfLangFilesItsMissingIn.toString());
 						}
 						i += region.getRegion().getLength();
 						continue;
