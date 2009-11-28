@@ -9,6 +9,7 @@ import net.arctics.clonk.index.C4Object;
 import net.arctics.clonk.index.C4Scenario;
 import net.arctics.clonk.index.CachedEngineFuncs;
 import net.arctics.clonk.index.ClonkIndex;
+import net.arctics.clonk.index.IExternalScript;
 import net.arctics.clonk.parser.BufferedScanner;
 import net.arctics.clonk.parser.C4Declaration;
 import net.arctics.clonk.parser.C4ID;
@@ -1002,7 +1003,7 @@ public abstract class C4ScriptExprTree {
 					}
 					
 					// warn about too many parameters
-					if (!declarationName.equals(Keywords.SafeInherited) && (f.getParameters().size() == 0 || f.getParameters().get(f.getParameters().size()-1).isActualParm())) { //$NON-NLS-1$
+					if (!(f.getScript() instanceof IExternalScript) && !declarationName.equals(Keywords.SafeInherited) && (f.getParameters().size() == 0 || f.getParameters().get(f.getParameters().size()-1).isActualParm())) { //$NON-NLS-1$
 						if (params.length > f.getParameters().size()) {
 							context.warningWithCode(ParserErrorCode.TooManyParameters, this, f.getParameters().size(), params.length);
 						}
