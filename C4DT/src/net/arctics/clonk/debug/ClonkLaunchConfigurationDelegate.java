@@ -6,7 +6,6 @@ import java.util.Collection;
 import java.util.LinkedList;
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.index.C4Engine;
-import net.arctics.clonk.parser.BufferedScanner;
 import net.arctics.clonk.preferences.ClonkPreferences;
 
 import org.eclipse.core.resources.IFolder;

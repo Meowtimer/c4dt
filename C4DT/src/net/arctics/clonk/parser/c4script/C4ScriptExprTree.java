@@ -1303,6 +1303,22 @@ public abstract class C4ScriptExprTree {
 	}
 
 	public static class BinaryOp extends Operator {
+		
+		@Override
+		public C4Type getType(C4ScriptParser context) {
+			switch (getOperator()) {
+			// &&/|| special: they return either the left or right side of the operator so the return type is the lowest common denominator of the argument types
+			case And: case Or:
+				C4Type leftSideType = getLeftSide().getType(context);
+				C4Type rightSideType = getRightSide().getType(context);
+				if (leftSideType == rightSideType)
+					return leftSideType;
+				else
+					return C4Type.ANY;
+			default:
+				return super.getType(context);
+			}
+		}
 
 		@Override
 		public ExprElm newStyleReplacement(C4ScriptParser context) throws CloneNotSupportedException {
