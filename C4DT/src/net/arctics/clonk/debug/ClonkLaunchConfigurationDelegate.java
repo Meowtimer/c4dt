@@ -6,6 +6,7 @@ import java.util.Collection;
 import java.util.LinkedList;
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.index.C4Engine;
+import net.arctics.clonk.parser.BufferedScanner;
 import net.arctics.clonk.preferences.ClonkPreferences;
 
 import org.eclipse.core.resources.IFolder;
@@ -192,8 +193,12 @@ public class ClonkLaunchConfigurationDelegate implements
 		}
 		
 		String custom = configuration.getAttribute(ATTR_CUSTOMARGS, (String)null);
-		if (custom != null)
-			args.add(custom);
+		if (custom != null) {
+			// FIXME: doesn't take into account '\ ' and such..
+			String[] split = custom.split(" ");
+			for (String s : split)
+				args.add(s);
+		}
 		
 		return args.toArray(new String [args.size()]);
 	}
