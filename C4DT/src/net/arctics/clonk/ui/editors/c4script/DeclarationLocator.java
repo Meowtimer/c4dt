@@ -45,10 +45,20 @@ public class DeclarationLocator extends ExpressionLocator {
 		return editor;
 	}
 
-	private static IPredicate<C4Declaration> isFunc = new IPredicate<C4Declaration>() {
+	private static IPredicate<C4Declaration> IS_FUNC = new IPredicate<C4Declaration>() {
 		public boolean test(C4Declaration item) {
 			return item instanceof C4Function;
 		}
+	};
+	private static IPredicate<C4Declaration> IS_GLOBAL = new IPredicate<C4Declaration>() {
+		public boolean test(C4Declaration item) {
+			return item.isGlobal();
+		};
+	};
+	private static IPredicate<C4Declaration> IS_NOT_GLOBAL = new IPredicate<C4Declaration>() {
+		public boolean test(C4Declaration item) {
+			return !item.isGlobal();
+		};
 	};
 	
 	public DeclarationLocator(ITextEditor editor, IDocument doc, IRegion region) throws BadLocationException, ParsingException {
@@ -73,14 +83,19 @@ public class DeclarationLocator extends ExpressionLocator {
 					declRegion != null && declRegion.getDeclaration() != null &&
 					(!(exprAtRegion.getPredecessorInSequence() instanceof MemberOperator) || !declRegion.getDeclaration().isGlobal())
 				) {
+					// declaration was found; return it if this is not an object call ('->') or if the found declaration is non-global
+					// in which case the type of the calling object is probably known 
 					this.declaration = declRegion.getDeclaration();
 					setRegion = true;
 				}
 				else if (exprAtRegion instanceof AccessDeclaration) {
 					AccessDeclaration access = (AccessDeclaration) exprAtRegion;
+					
+					// gather declarations with that name from the project index and from the external index
 					List<C4Declaration> projectDeclarations = script.getIndex() instanceof ExternIndex ? null : script.getIndex().getDeclarationMap().get(access.getDeclarationName());
 					List<C4Declaration> externalDeclarations = ClonkCore.getDefault().getExternIndex().getDeclarationMap().get(access.getDeclarationName());
 					
+					// filter to make sure the declarations found are actually functions and in the case of external ones also contained in the project dependencies
 					IPredicate<C4Declaration> isFuncAndInDeps = new IPredicate<C4Declaration>() {
 						@Override
 						public boolean test(C4Declaration item) {
@@ -88,17 +103,24 @@ public class DeclarationLocator extends ExpressionLocator {
 						}
 					};
 					if (projectDeclarations != null)
-						projectDeclarations = Utilities.filter(projectDeclarations, isFunc);
+						projectDeclarations = Utilities.filter(projectDeclarations, IS_FUNC);
 					if (externalDeclarations != null)
 						externalDeclarations = Utilities.filter(externalDeclarations, isFuncAndInDeps);
+					
 					C4Function engineFunc = ClonkCore.getDefault().getActiveEngine().findFunction(access.getDeclarationName());
 					if (projectDeclarations != null || externalDeclarations != null || engineFunc != null) {
 						proposedDeclarations = new LinkedList<C4Declaration>();
 						if (projectDeclarations != null)
 							proposedDeclarations.addAll(projectDeclarations);
-						if (externalDeclarations != null)
+						if (externalDeclarations != null) {
+							// filter out global functions from external index if there is any global function defined in the project 
+							if (projectDeclarations != null && Utilities.any(projectDeclarations, IS_GLOBAL)) {
+								externalDeclarations = Utilities.filter(externalDeclarations, IS_NOT_GLOBAL);
+							}
 							proposedDeclarations.addAll(externalDeclarations);
-						if (engineFunc != null)
+						}
+						// only add engine func if not overloaded by any global function
+						if (engineFunc != null && !Utilities.any(proposedDeclarations, IS_GLOBAL))
 							proposedDeclarations.add(engineFunc);
 						if (proposedDeclarations.size() == 0)
 							proposedDeclarations = null;

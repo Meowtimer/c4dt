@@ -606,5 +606,19 @@ public abstract class Utilities {
 			result[1+i] = rest[i];
 		return result;
     }
+
+	/**
+	 * Returns true if there is anything in items that matches the predicate
+	 * @param <T>
+	 * @param items items
+	 * @param predicate predicate
+	 * @return see above
+	 */
+	public static <T> boolean any(Iterable<T> items, IPredicate<T> predicate) {
+		for (T item : items)
+			if (predicate.test(item))
+				return true;
+		return false;
+	}
 	
 }
