@@ -282,7 +282,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 			parser.endTypeInferenceBlock();
 		}
 		
-		if ((proposalCycle == ProposalCycle.SHOW_ALL || proposalCycle == ProposalCycle.SHOW_LOCAL) && activeFunc != null && contextExpression == null) {
+		if ((proposalCycle == ProposalCycle.SHOW_ALL || proposalCycle == ProposalCycle.SHOW_LOCAL) && activeFunc != null /*&& contextExpression == null* what was the reason for that again?*/) {
 			for (C4Variable v : activeFunc.getParameters()) {
 				proposalForVar(v, prefix, wordOffset, proposals);
 			}
