@@ -4,6 +4,10 @@ import org.antlr.runtime.ANTLRStringStream;
 import org.antlr.runtime.CharStream;
 import org.antlr.runtime.CommonTokenStream;
 import org.eclipse.core.resources.IFile;
+import org.eclipse.jface.text.DocumentEvent;
+import org.eclipse.jface.text.IDocumentListener;
+import org.eclipse.swt.widgets.Composite;
+
 import net.arctics.clonk.parser.mapcreator.C4MapCreator;
 import net.arctics.clonk.parser.mapcreator.MapCreatorLexer;
 import net.arctics.clonk.parser.mapcreator.MapCreatorParser;
@@ -17,6 +21,7 @@ import net.arctics.clonk.util.Utilities;
 public class MapCreatorEditor extends ClonkTextEditor {
 	
 	private C4MapCreator mapCreator;
+	private boolean parsed;
 	
 	public MapCreatorEditor() {
 		super();
@@ -24,16 +29,19 @@ public class MapCreatorEditor extends ClonkTextEditor {
 		setSourceViewerConfiguration(new MapCreatorSourceViewerConfiguration(getPreferenceStore(), colorManager,this));
 		setDocumentProvider(new ClonkDocumentProvider(this));
 	}
-	
+
 	private void reparse() {
-		String documentText = getDocumentProvider().getDocument(getEditorInput()).get();
-		CharStream charStream = new ANTLRStringStream(documentText);
-		MapCreatorLexer lexer = new MapCreatorLexer(charStream);
-		CommonTokenStream tokenStream = new CommonTokenStream();
-		tokenStream.setTokenSource(lexer);
-		MapCreatorParser parser = new MapCreatorParser(mapCreator, tokenStream);
-		mapCreator.clear();
-        parser.parse();
+		if (!parsed) {
+			String documentText = getDocumentProvider().getDocument(getEditorInput()).get();
+			CharStream charStream = new ANTLRStringStream(documentText);
+			MapCreatorLexer lexer = new MapCreatorLexer(charStream);
+			CommonTokenStream tokenStream = new CommonTokenStream();
+			tokenStream.setTokenSource(lexer);
+			MapCreatorParser parser = new MapCreatorParser(mapCreator, tokenStream);
+			mapCreator.clear();
+			parser.parse();
+			parsed = true;
+		}
 	}
 	
 	public C4MapCreator getMapCreator() {
@@ -76,6 +84,21 @@ public class MapCreatorEditor extends ClonkTextEditor {
 			outlinePage.setEditor(this);
 		}
 		return super.getOutlinePage();
+	}
+	
+	@Override
+	public void createPartControl(Composite parent) {
+		super.createPartControl(parent);
+		getDocumentProvider().getDocument(getEditorInput()).addDocumentListener(new IDocumentListener() {
+
+			public void documentAboutToBeChanged(DocumentEvent event) {
+			}
+
+			public void documentChanged(DocumentEvent event) {
+				parsed = false;
+			}
+			
+		});
 	}
 	
 }
