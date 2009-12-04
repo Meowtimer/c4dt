@@ -1,0 +1,86 @@
+Clonk Development Tools for Eclipse.
+==Changes==
+1.5.0.3:
+-Make Quick Export work again on Windows/Linux
+1.5.0.4:
+-Add Quick Import Action
+-Propose constants in ini files for entries like "Category"
+-Open documentation in browser when trying to get to the definition
+of an engine defined declaration
+-Converting old code in bulk (from the project explorer context
+menu) now shows a progress bar
+1.5.0.5:
+-Warn when referencing unused StringTbl entries
+-Preference for the documentation URL template
+-Encoding preference for external scripts
+1.5.0.6:
+-Preferred language field editor is now combo 
+-Don't warn about missing string tbl entries in #appendto scripts
+-Put New Wizards into Clonk category 
+-Add some missing entries for various configuration files
+-Fix some wrong parameters of engine functions
+-Return as function warning is now an error, but only in #strict
+2 mode
+-Implicit variable declaration in for (e in a) {...} loops
+1.5.0.7:
+Fix
+1.5.0.8:
+-Fixes
+-UTF-8 encoded script handling
+-Attempts to retain type information for variables so that content
+assist is more helpful
+1.5.0.9:
+-Descriptions for definitions now contain the path
+-No error when encountering #0 characters at the end of Scenario.txt
+and similar files
+-ObjectCall function string link-clickable
+-Fixes
+1.5.1:
+-Warn about possible infinite loops
+-Open DefCore.txt if no Script.c available
+-Warn about unreachable code in loop bodies
+-Warn about conditions that are always false or true
+-Open documentation in internal browser if one is available
+-Store index files inside the .metadata folder so it doesn't
+clutter up the project folder
+1.5.1.1:
+-Fixes
+-Comment at end of one-line function supported
+-Also warn about missing stringtbl entries if there is not even
+a stringtbl file
+1.5.1.2:
+-Fixes
+1.5.1.3:
+-Hopefully better importing of engine functions/constants from
+source
+1.5.1.4:
+-If there are still indexdata files load them and automatically
+migrate to new storage location in .metadata
+-Detect some more errors
+1.5.1.5:
+-Attempt at fixing a stupid problem
+1.5.1.6:
+-Bug fixes most probably
+1.5.1.7:
+-One can now select folders as external libraries
+-No error when opening the revision of a script from svn
+-Advance state of german localization
+-Bug fixes
+-Definitions and global functions/variables in other Clonk projects
+can be found by referencing them (Project Properties->Project
+References)
+1.5.1.8:
+-Improvements in code formatting
+-Save modified files before performing rename refactoring
+-Some internal options for the code formatter that can be set
+by invoking the command SetCodeConversionOption("<option>", "<value>")
+-Respect tab settings in c4dt text editors
+-Support for referencing other Clonk projects whose indexed contents
+are then taken into account in various places
+1.5.1.9:
+-Fix issue with parsing numbers in Landscape.txt files that were written with a '+' sign
+-Filter out some bogus proposals in the Declaration Chooser
+-Operators || and && don't return bool anymore but the type of their arguments
+-Custom arguments for launching scenarios
+-More specific warning for missing stringtbl entries
+-Reduce 'Too Many Parameters' false positives 
