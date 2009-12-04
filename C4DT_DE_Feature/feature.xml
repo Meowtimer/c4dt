@@ -2,7 +2,7 @@
 <feature
       id="net.arctics.clonk.c4dt_de_feature"
       label="Clonk Development Tools - Deutsches Sprachpaket"
-      version="0.9.8">
+      version="0.9.9">
 
    <description url="http://www.example.com/description">
       Deutsche Lokalisierung für die Clonk Development Tools (c4dt)
