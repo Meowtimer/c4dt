@@ -169,6 +169,7 @@ start	:	{deleteMarkers();} statement*;
 statement
 	:	{lastOverlay = null;} composition STATEMENTEND;
 
+
 composition
 	:	subobject (op=OPERATOR {assignOperator($op.text);} composition)?;
 
@@ -179,6 +180,7 @@ subobject
 
 optionalblock
 	:	block?  {moveLevelUp();};
+	
 
 block	:	open=BLOCKOPEN statementorattrib* close=BLOCKCLOSE {setBody(open, close);};
 
