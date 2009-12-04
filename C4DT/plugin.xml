@@ -6,7 +6,7 @@
 		<editor name="C4Script Editor" icon="icons/c4scriptIcon.png"
 			contributorClass="net.arctics.clonk.ui.editors.c4script.EditorActionContributor"
 			class="net.arctics.clonk.ui.editors.c4script.C4ScriptEditor" id="clonk.editors.C4ScriptEditor"
-			filenames="*.c">
+			filenames="*.c, Script.c">
 			<contentTypeBinding contentTypeId="net.arctics.clonk.c4script" />
 		</editor>
 
