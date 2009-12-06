@@ -282,7 +282,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 			C4ObjectIntern obj = (C4ObjectIntern) script;
 			for (IResource r : obj.getObjectFolder().members()) {
 				if (r instanceof IFile) {
-					C4Structure pinned = C4Structure.pinned((IFile) r, false);
+					C4Structure pinned = C4Structure.pinned((IFile) r, false, true);
 					if (pinned != null)
 						pinned.validate();
 				}
@@ -426,12 +426,12 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 
 	private boolean processAuxiliaryFiles(IFile file, C4ScriptBase script) throws CoreException {
 		C4Structure structure;
-		if (buildPhase == 0 && (structure = C4Structure.createStructureForFile(file)) != null) {
+		if (buildPhase == 0 && (structure = C4Structure.createStructureForFile(file, true)) != null) {
 			structure.commitTo(script);
 			structure.pinTo(file);
 			return true;
 		}
-		else if (buildPhase == 1 && (structure = C4Structure.pinned(file, false)) != null) {
+		else if (buildPhase == 1 && (structure = C4Structure.pinned(file, false, true)) != null) {
 			structure.validate();
 			return true;
 		}
@@ -485,7 +485,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 		else if (resource instanceof IFile) {
 			IFile file = (IFile) resource;
 			if (resource.getName().toLowerCase().endsWith(".c") && C4Group.groupTypeFromFolderName(resource.getParent().getName()) == C4GroupType.ResourceGroup) { //$NON-NLS-1$ //$NON-NLS-2$
-				C4ScriptBase script = C4ScriptIntern.pinnedScript(file);
+				C4ScriptBase script = C4ScriptIntern.pinnedScript(file, true);
 				switch (buildPhase) {
 				case 0:
 					if (script == null) {

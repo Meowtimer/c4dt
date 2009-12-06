@@ -79,10 +79,10 @@ public abstract class C4Structure extends C4Declaration {
 	 * @return the structure
 	 * @throws CoreException
 	 */
-	public static C4Structure pinned(IFile file, boolean force) throws CoreException {
+	public static C4Structure pinned(IFile file, boolean force, boolean duringBuild) throws CoreException {
 		C4Structure result = (C4Structure) file.getSessionProperty(ClonkCore.C4STRUCTURE_PROPERTY_ID);
 		if (result == null && force) {
-			result = createStructureForFile(file);
+			result = createStructureForFile(file, duringBuild);
 			if (result != null)
 				result.pinTo(file);
 		}
@@ -96,7 +96,7 @@ public abstract class C4Structure extends C4Declaration {
 	 * @throws CoreException
 	 */
 	public static C4Structure unPinFrom(IFile file) throws CoreException {
-		C4Structure pinned = pinned(file, false);
+		C4Structure pinned = pinned(file, false, false);
 		if (pinned != null)
 			file.setSessionProperty(ClonkCore.C4STRUCTURE_PROPERTY_ID, null);
 		return pinned;
@@ -115,7 +115,7 @@ public abstract class C4Structure extends C4Declaration {
 	 *
 	 */
 	public interface IStructureFactory {
-		public C4Structure create(IFile file);
+		public C4Structure create(IFile file, boolean duringBuild);
 	}
 	
 	/**
@@ -136,9 +136,9 @@ public abstract class C4Structure extends C4Declaration {
 	 * @param file file
 	 * @return the newly created structure or null if no suitable factory could be found
 	 */
-	public static C4Structure createStructureForFile(IFile file) {
+	public static C4Structure createStructureForFile(IFile file, boolean duringBuild) {
 		for (IStructureFactory factory : structureFactories) {
-			C4Structure result = factory.create(file);
+			C4Structure result = factory.create(file, duringBuild);
 			if (result != null)
 				return result;
 		}

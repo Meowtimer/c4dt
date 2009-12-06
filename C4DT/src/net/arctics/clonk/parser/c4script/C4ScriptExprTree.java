@@ -2010,7 +2010,7 @@ public abstract class C4ScriptExprTree {
 								Matcher m = StringTbl.PATTERN.matcher(r.getName());
 								if (m.matches()) {
 									String lang = m.group(1);
-									StringTbl tbl = (StringTbl)StringTbl.pinned(f, true);
+									StringTbl tbl = (StringTbl)StringTbl.pinned(f, true, false);
 									if (tbl != null) {
 										if (tbl.getMap().get(region.getText()) == null) {
 											if (listOfLangFilesItsMissingIn == null)

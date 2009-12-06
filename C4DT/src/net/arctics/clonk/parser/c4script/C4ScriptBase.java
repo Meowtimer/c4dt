@@ -679,7 +679,7 @@ public abstract class C4ScriptBase extends C4Structure implements IHasRelatedRes
 			String pref = ClonkPreferences.getLanguagePref();
 			IResource tblFile = Utilities.findMemberCaseInsensitively(container, "StringTbl"+pref+".txt"); //$NON-NLS-1$ //$NON-NLS-2$
 			if (tblFile instanceof IFile)
-				return (StringTbl) C4Structure.pinned((IFile) tblFile, true);
+				return (StringTbl) C4Structure.pinned((IFile) tblFile, true, false);
 		} catch (CoreException e) {
 			e.printStackTrace();
 		}

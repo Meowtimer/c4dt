@@ -51,7 +51,7 @@ public class C4ObjectParser {
 		try {
 			object = C4ObjectIntern.objectCorrespondingTo(objectFolder);
 			if (defCore != null) {
-				DefCoreUnit defCoreWrapper = (DefCoreUnit) C4Structure.pinned(defCore, true);
+				DefCoreUnit defCoreWrapper = (DefCoreUnit) C4Structure.pinned(defCore, true, false);
 				if (object == null) {
 					object = new C4ObjectIntern(defCoreWrapper.getObjectID(), defCoreWrapper.getName(), objectFolder);
 				}

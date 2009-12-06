@@ -201,7 +201,7 @@ public class ClonkSearchQuery implements ISearchQuery {
 			for (IResource res : objectFolder.members()) {
 				if (res instanceof IFile) {
 					IFile file = (IFile)res;
-					C4Structure pinned = C4Structure.pinned(file, true);
+					C4Structure pinned = C4Structure.pinned(file, true, false);
 					if (pinned instanceof IniUnit) {
 						IniUnit iniUnit = (IniUnit) pinned;
 						for (IniSection sec : iniUnit) {

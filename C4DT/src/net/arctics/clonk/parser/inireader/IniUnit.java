@@ -179,9 +179,6 @@ public class IniUnit extends C4Structure implements Iterable<IniSection>, IHasCh
 			sectionsMap.put(section.getName(), section);
 			sectionsList.add(section);
 		}
-		if (!reader.reachedEOF()) {
-			//createMarker("Unexpected data.", IMarker.SEVERITY_WARNING, reader.getPosition() - 2, reader.getPosition());
-		}
 	}
 	
 	private void clear() {
@@ -432,12 +429,12 @@ public class IniUnit extends C4Structure implements Iterable<IniSection>, IHasCh
 	
 	public static void register() {
 		C4Structure.registerStructureFactory(new IStructureFactory() {
-			public C4Structure create(IFile file) {
+			public C4Structure create(IFile file, boolean duringBuild) {
 				Class<? extends IniUnit> iniUnitClass = getIniUnitClass(file);
 				if (iniUnitClass != null) {
 					try {
 						IniUnit reader = iniUnitClass.getConstructor(IFile.class).newInstance(file);
-						reader.parse(true);
+						reader.parse(duringBuild);
 						return reader;
 					} catch (Exception e) {
 						e.printStackTrace();

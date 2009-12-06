@@ -39,7 +39,7 @@ public class ClonkNavigator extends ClonkOutlineProvider {
 			if (script != null)
 				return Utilities.concat(baseResources, super.getChildren(script));
 			try {
-				C4Structure s = C4Structure.pinned((IFile) element, false);
+				C4Structure s = C4Structure.pinned((IFile) element, false, false);
 				if (s instanceof ITreeNode) {
 					// call again for ITreeNode object (below)
 					return Utilities.concat(baseResources, this.getChildren(s));
@@ -76,7 +76,7 @@ public class ClonkNavigator extends ClonkOutlineProvider {
 				return super.hasChildren(script);
 			try {
 				C4Structure s;
-				if ((s = C4Structure.pinned((IFile) element, true)) != null)
+				if ((s = C4Structure.pinned((IFile) element, true, false)) != null)
 					return s instanceof ITreeNode && ((ITreeNode)s).getChildCollection().size() > 0;
 			} catch (CoreException e) {
 				return false;

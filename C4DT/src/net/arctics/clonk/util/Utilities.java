@@ -160,7 +160,7 @@ public abstract class Utilities {
 		if (scriptFile == null)
 			return null;
 		try {
-			script = C4ScriptIntern.pinnedScript(scriptFile);
+			script = C4ScriptIntern.pinnedScript(scriptFile, false);
 		} catch (CoreException e) {
 			script = null;
 		}

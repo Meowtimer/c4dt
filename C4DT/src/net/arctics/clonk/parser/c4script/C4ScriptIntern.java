@@ -68,8 +68,8 @@ public class C4ScriptIntern extends C4ScriptBase implements Serializable {
 		return scriptFilePath;
 	}
 	
-	public static C4ScriptIntern pinnedScript(IFile resource) throws CoreException {
-		C4Structure s = pinned(resource, false);
+	public static C4ScriptIntern pinnedScript(IFile resource, boolean duringBuild) throws CoreException {
+		C4Structure s = pinned(resource, false, duringBuild);
 		return s instanceof C4ScriptIntern ? (C4ScriptIntern) s : null;
 	}
 	
