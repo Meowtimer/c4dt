@@ -61,7 +61,7 @@ public class IniCompletionProcessor extends ClonkCompletionProcessor<IniTextEdit
 		int lineStart;
 		try {
 			IRegion lineRegion = doc.getLineInformationOfOffset(offset);
-			line = doc.get(lineRegion.getOffset(), lineRegion.getLength());
+			line = doc.get(lineRegion.getOffset(), lineRegion.getLength()).trim();
 			lineStart = lineRegion.getOffset();
 		} catch (BadLocationException e) {
 			line = ""; //$NON-NLS-1$

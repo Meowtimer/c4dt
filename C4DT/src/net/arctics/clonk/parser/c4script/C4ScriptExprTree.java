@@ -1871,13 +1871,30 @@ public abstract class C4ScriptExprTree {
 				}
 
 				// ScheduleCall: second parameter is function name; first is object to call the function in
-				else if (myIndex == 1 && parentFunc.getDeclaration() == getCachedFuncs(parser).ScheduleCall) {
+				else if (myIndex == 1 && parentFunc.getDeclarationName().equals("ScheduleCall")) {
 					C4Object typeToLookIn = parentFunc.getParams()[0].guessObjectType(parser);
 					if (typeToLookIn != null) {
 						C4Function func = typeToLookIn.findFunction(stringValue());
 						if (func != null)
 							return new DeclarationRegion(func, identifierRegion());
 					}
+				}
+				
+				else if (myIndex == 0 && parentFunc.getDeclarationName().equals("Schedule")) {
+					// parse first parm of Schedule as expression and see what goes
+					ExpressionLocator locator = new ExpressionLocator(offset-1); // make up for '//' or /*'
+					try {
+						C4ScriptParser.parseStandaloneStatement(getLiteral(), parser.getActiveFunc(), locator);
+					} catch (ParsingException e) {}
+					if (locator.getExprAtRegion() != null) {
+						DeclarationRegion reg = locator.getExprAtRegion().declarationAt(offset, parser);
+						if (reg != null)
+							return reg.addOffsetInplace(getExprStart()+1);
+						else
+							return null;
+					}
+					else
+						return super.declarationAt(offset, parser);	
 				}
 
 				// LocalN: look for local var in object

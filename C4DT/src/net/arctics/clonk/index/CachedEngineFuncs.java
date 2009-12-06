@@ -19,7 +19,6 @@ public class CachedEngineFuncs {
 	public C4Function Var;
 	public C4Function GameCall;
 	public C4Function LocalN;
-	public C4Function ScheduleCall;
 	public C4Function PrivateCall;
 	public C4Function ProtectedCall;
 	public C4Function Call;
@@ -49,7 +48,7 @@ public class CachedEngineFuncs {
 			e.printStackTrace();
 		}
 		CallFunctions = new C4Function[] {
-			GameCall, ScheduleCall, PrivateCall, ProtectedCall, Call
+			GameCall, PrivateCall, ProtectedCall, Call
 		};
 		ObjectCallFunctions = new C4Function[] {
 			ObjectCall,
