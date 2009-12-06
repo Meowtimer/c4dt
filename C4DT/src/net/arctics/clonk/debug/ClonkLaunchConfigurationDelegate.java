@@ -178,8 +178,10 @@ public class ClonkLaunchConfigurationDelegate implements
 		// Full screen/console
 		if(configuration.getAttribute(ATTR_FULLSCREEN, false))
 			args.add("/fullscreen"); //$NON-NLS-1$
-		else
+		else {
 			args.add("/console"); //$NON-NLS-1$
+			args.add("/noleague"); //$NON-NLS-1$
+		}
 		
 		// Record
 		if(configuration.getAttribute(ATTR_RECORD, false))
