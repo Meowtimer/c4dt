@@ -118,7 +118,8 @@ public class C4ScriptSourceViewerConfiguration extends ClonkSourceViewerConfigur
 //		assistant.setDocumentPartitioning(getConfiguredDocumentPartitioning(sourceViewer));
 //		assistant.setContentAssistProcessor(new CodeBodyCompletionProcessor(getEditor(),assistant), ClonkPartitionScanner.C4S_CODEBODY);
 		C4ScriptCompletionProcessor processor = new C4ScriptCompletionProcessor(getEditor(),assistant);
-		assistant.setContentAssistProcessor(processor, IDocument.DEFAULT_CONTENT_TYPE);
+		for (String s : ClonkPartitionScanner.C4S_PARTITIONS)
+			assistant.setContentAssistProcessor(processor, s);
 		assistant.install(sourceViewer);
 		
 		assistant.setContextInformationPopupOrientation(IContentAssistant.CONTEXT_INFO_ABOVE);
