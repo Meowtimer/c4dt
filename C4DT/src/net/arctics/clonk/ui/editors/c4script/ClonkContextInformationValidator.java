@@ -31,7 +31,15 @@ public class ClonkContextInformationValidator implements
 	}
 
 	public boolean updatePresentation(int offset, TextPresentation presentation) {
-		int currentParameter= fInformation instanceof ClonkContextInformation ? ((ClonkContextInformation)fInformation).getParmIndex() : 0;
+		int currentParameter;
+		if (fInformation instanceof ClonkContextInformation) {
+			ClonkContextInformation clonkInformation = (ClonkContextInformation) fInformation;
+			if (!clonkInformation.valid(offset))
+				return false;
+			currentParameter = clonkInformation.getParmIndex();
+		}
+		else
+			currentParameter = 0;
 		try {
 	        currentParameter += getCharCount(fTextViewer.getDocument(), fOffset, offset, ",", "", true); //$NON-NLS-1$//$NON-NLS-2$
         } catch (BadLocationException e) {
@@ -72,7 +80,7 @@ public class ClonkContextInformationValidator implements
 
 	public boolean isContextInformationValid(int offset) {
 		try {
-			if (offset < fOffset)
+			if (!((ClonkContextInformation) fInformation).valid(offset))
 				return false;
 
 			IDocument document= fTextViewer.getDocument();

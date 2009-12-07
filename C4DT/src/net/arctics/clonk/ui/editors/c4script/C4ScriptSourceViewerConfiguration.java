@@ -18,7 +18,6 @@ import org.eclipse.jface.text.ITextDoubleClickStrategy;
 import org.eclipse.jface.text.ITextHover;
 import org.eclipse.jface.text.ITextViewer;
 import org.eclipse.jface.text.TextAttribute;
-import org.eclipse.jface.text.contentassist.ContentAssistant;
 import org.eclipse.jface.text.contentassist.IContentAssistant;
 import org.eclipse.jface.text.hyperlink.IHyperlink;
 import org.eclipse.jface.text.hyperlink.IHyperlinkDetector;
@@ -108,13 +107,13 @@ public class C4ScriptSourceViewerConfiguration extends ClonkSourceViewerConfigur
 //		return 2;
 //	}
 
-	private ContentAssistant assistant;
+	private ClonkContentAssistant assistant;
 	
-	public IContentAssistant getContentAssistant(ISourceViewer sourceViewer) {
+	public ClonkContentAssistant getContentAssistant(ISourceViewer sourceViewer) {
 		if (assistant != null)
 			return assistant;
 		
-		assistant = new ContentAssistant();
+		assistant = new ClonkContentAssistant();
 //		assistant.setDocumentPartitioning(getConfiguredDocumentPartitioning(sourceViewer));
 //		assistant.setContentAssistProcessor(new CodeBodyCompletionProcessor(getEditor(),assistant), ClonkPartitionScanner.C4S_CODEBODY);
 		C4ScriptCompletionProcessor processor = new C4ScriptCompletionProcessor(getEditor(),assistant);

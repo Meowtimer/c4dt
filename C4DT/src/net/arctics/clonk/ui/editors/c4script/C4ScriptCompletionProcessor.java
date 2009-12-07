@@ -119,6 +119,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 	private ProposalCycle proposalCycle = ProposalCycle.SHOW_ALL;
 	private C4Function _activeFunc;
 	private String _prefix;
+	private boolean contextInformationSuccess;
 	
 	public C4ScriptCompletionProcessor(C4ScriptEditor editor, ContentAssistant assistant) {
 		super(editor);
@@ -129,6 +130,10 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 		
 	}
 	
+	public boolean isContextInformationSuccess() {
+		return contextInformationSuccess;
+	}
+
 	protected void doCycle() {
 		proposalCycle = proposalCycle.cycle();
 	}
@@ -427,16 +432,22 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 	        	if (dec instanceof C4Function) {
 	        		info = new ClonkContextInformation(
 	        			dec.getName() + "()", null, //$NON-NLS-1$
-	        			((C4Function)dec).getLongParameterString(false).trim(), funcCallInfo.parmIndex
+	        			((C4Function)dec).getLongParameterString(false).trim(),
+	        			funcCallInfo.parmIndex, funcCallInfo.parmsStart, funcCallInfo.parmsEnd
 	        		);
 	        	}
 	        }
         } catch (Exception e) { 	    
 	        e.printStackTrace();
         }
-        if (info != null)
+        if (info != null) {
+        	contextInformationSuccess = true;
         	return new IContextInformation[] { info };
-        return null;
+        }
+        else {
+        	contextInformationSuccess = false;
+        	return null;
+        }
 	}
 
 	public char[] getCompletionProposalAutoActivationCharacters() {

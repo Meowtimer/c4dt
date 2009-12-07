@@ -41,9 +41,11 @@ import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.DocumentEvent;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IDocumentListener;
+import org.eclipse.jface.text.ITextOperationTarget;
 import org.eclipse.jface.text.Region;
 import org.eclipse.jface.text.TextSelection;
 import org.eclipse.jface.text.source.DefaultCharacterPairMatcher;
+import org.eclipse.jface.text.source.ISourceViewer;
 import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
@@ -274,7 +276,9 @@ public class C4ScriptEditor extends ClonkTextEditor {
 	@Override
 	protected void handleCursorPositionChanged() {
 		super.handleCursorPositionChanged();
-		//((ITextOperationTarget)getSourceViewer()).doOperation(ISourceViewer.CONTENTASSIST_CONTEXT_INFORMATION);
+		((ITextOperationTarget)getSourceViewer()).doOperation(ISourceViewer.CONTENTASSIST_CONTEXT_INFORMATION);
+//		if (!processor.isContextInformationSuccess())
+//			processor
 		boolean noHighlight = true;
 		C4Function f = getFuncAtCursor();
 		if (f != null) {
@@ -374,12 +378,15 @@ public class C4ScriptEditor extends ClonkTextEditor {
 	public static class FuncCallInfo {
 		public CallFunc callFunc;
 		public int parmIndex;
-		public FuncCallInfo(CallFunc callFunc, int parmIndex) {
+		public int parmsStart, parmsEnd;
+		public FuncCallInfo(C4Function func, CallFunc callFunc, int parmIndex) {
 			this.callFunc = callFunc;
 			this.parmIndex = parmIndex;
+			this.parmsStart = func.getBody().getStart()+callFunc.getParmsStart();
+			this.parmsEnd = func.getBody().getStart()+callFunc.getParmsEnd();
 		}
-		public FuncCallInfo(CallFunc callFunc, ExprElm parm) {
-			this(callFunc, parm != null ? callFunc.indexOfParm(parm) : 0);
+		public FuncCallInfo(C4Function func, CallFunc callFunc, ExprElm parm) {
+			this(func, callFunc, parm != null ? callFunc.indexOfParm(parm) : 0);
 		}
 	}
 	
@@ -390,17 +397,22 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		for (expr = locator.getExprAtRegion(); expr != null && !(expr.getParent() instanceof CallFunc); expr = expr.getParent());
 		if (expr != null) {
 			CallFunc callFunc = (CallFunc) expr.getParent();
-			if (offset-this.getFuncAt(offset).getBody().getOffset() < callFunc.getParmsStart())
+			C4Function f = this.getFuncAt(offset);
+			if (offset-f.getBody().getOffset() < callFunc.getParmsStart())
 				return null;
-			return new FuncCallInfo(callFunc, expr);
+			return new FuncCallInfo(f, callFunc, expr);
 		}
 		else {
 			// cursor somewhere between parm expressions... locate CallFunc and search
 			C4Function f = this.getFuncAt(offset);
+			if (f == null)
+				return null;
 			int bodyStart = f.getBody().getStart();
 			for (expr = locator.getExprAtRegion(); expr != null && !(expr instanceof CallFunc); expr = expr.getParent());
 			if (expr != null) {
 				CallFunc callFunc = (CallFunc) expr;
+				if (offset-this.getFuncAt(offset).getBody().getOffset() < callFunc.getParmsStart())
+					return null;
 				ExprElm prev = null;
 				for (ExprElm parm : callFunc.getParams()) {
 					if (bodyStart+parm.getExprEnd() > offset) {
@@ -408,11 +420,11 @@ public class C4ScriptEditor extends ClonkTextEditor {
 							break;
 						String docText = getSourceViewer().getDocument().get(bodyStart+prev.getExprEnd(), parm.getExprStart()-prev.getExprEnd());
 						int commaIndex = docText.indexOf(',');
-						return new FuncCallInfo(callFunc, offset >= bodyStart+prev.getExprEnd()+commaIndex ? parm : prev);
+						return new FuncCallInfo(f, callFunc, offset >= bodyStart+prev.getExprEnd()+commaIndex ? parm : prev);
 					}
 					prev = parm;
 				}
-				return new FuncCallInfo(callFunc, prev);
+				return new FuncCallInfo(f, callFunc, prev);
 			}
 		}
 		return null;
