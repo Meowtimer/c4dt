@@ -274,6 +274,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 	@Override
 	protected void handleCursorPositionChanged() {
 		super.handleCursorPositionChanged();
+		//((ITextOperationTarget)getSourceViewer()).doOperation(ISourceViewer.CONTENTASSIST_CONTEXT_INFORMATION);
 		boolean noHighlight = true;
 		C4Function f = getFuncAtCursor();
 		if (f != null) {
@@ -370,15 +371,35 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		return scriptBeingEdited();
 	}
 	
-	public CallFunc getInnermostCallFuncExpr(int offset) throws BadLocationException, ParsingException {
+	public ExprElm getInnermostCallFuncExprParm(int offset) throws BadLocationException, ParsingException {
 		DeclarationLocator locator = new DeclarationLocator(this, getSourceViewer().getDocument(), new Region(offset, 0));
 		ExprElm expr;
-		for (expr = locator.getExprAtRegion(); expr != null && !(expr instanceof CallFunc); expr = expr.getParent());
+		// locate expression that is a parameter of a CallFunc
+		for (expr = locator.getExprAtRegion(); expr != null && !(expr.getParent() instanceof CallFunc); expr = expr.getParent());
 		if (expr != null) {
-			CallFunc callFunc = (CallFunc) expr;
+			CallFunc callFunc = (CallFunc) expr.getParent();
 			if (offset-this.getFuncAt(offset).getBody().getOffset() < callFunc.getParmsStart())
 				return null;
-			return callFunc;
+			return expr;
+		}
+		else {
+			// cursor somewhere between parm expressions... locate CallFunc and search
+			C4Function f = this.getFuncAt(offset);
+			int bodyStart = f.getBody().getStart();
+			for (expr = locator.getExprAtRegion(); expr != null && !(expr instanceof CallFunc); expr = expr.getParent());
+			if (expr != null) {
+				CallFunc callFunc = (CallFunc) expr;
+				ExprElm prev = null;
+				for (ExprElm parm : callFunc.getParams()) {
+					if (bodyStart+parm.getExprEnd() > offset) {
+						String docText = getSourceViewer().getDocument().get(bodyStart+prev.getExprEnd(), parm.getExprStart()-prev.getExprEnd());
+						int commaIndex = docText.indexOf(',');
+						return offset > bodyStart+prev.getExprEnd()+commaIndex ? parm : prev;
+					}
+					prev = parm;
+				}
+				return prev;
+			}
 		}
 		return null;
 	}

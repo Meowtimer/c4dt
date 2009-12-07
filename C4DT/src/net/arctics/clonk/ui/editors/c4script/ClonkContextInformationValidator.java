@@ -31,13 +31,12 @@ public class ClonkContextInformationValidator implements
 	}
 
 	public boolean updatePresentation(int offset, TextPresentation presentation) {
-		int currentParameter= -1;
-
+		int currentParameter= ((ClonkContextInformation)fInformation).getParmIndex();
 		try {
-			currentParameter= getCharCount(fTextViewer.getDocument(), fOffset, offset, ",", "", true);  //$NON-NLS-1$//$NON-NLS-2$
-		} catch (BadLocationException x) {
-			return false;
-		}
+	        currentParameter += getCharCount(fTextViewer.getDocument(), fOffset, offset, ",", "", true); //$NON-NLS-1$//$NON-NLS-2$
+        } catch (BadLocationException e) {
+	        e.printStackTrace();
+        }
 
 		if (fCurrentParameter != -1) {
 			if (currentParameter == fCurrentParameter)

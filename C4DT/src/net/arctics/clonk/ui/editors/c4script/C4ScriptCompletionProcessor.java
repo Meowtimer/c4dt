@@ -39,7 +39,6 @@ import org.eclipse.jface.text.Region;
 import org.eclipse.jface.text.contentassist.CompletionProposal;
 import org.eclipse.jface.text.contentassist.ContentAssistEvent;
 import org.eclipse.jface.text.contentassist.ContentAssistant;
-import org.eclipse.jface.text.contentassist.ContextInformation;
 import org.eclipse.jface.text.contentassist.ICompletionListener;
 import org.eclipse.jface.text.contentassist.ICompletionListenerExtension;
 import org.eclipse.jface.text.contentassist.ICompletionProposal;
@@ -421,11 +420,15 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 	public IContextInformation[] computeContextInformation(ITextViewer viewer, int offset) {
 		IContextInformation info = null;
 		try {
-	        CallFunc callFunc = editor.getInnermostCallFuncExpr(offset);
-	        if (callFunc instanceof CallFunc) {
-	        	C4Declaration dec = ((CallFunc)callFunc).getDeclaration();
+	        ExprElm parm = editor.getInnermostCallFuncExprParm(offset);
+	        if (parm != null) {
+	        	CallFunc callFunc = (CallFunc) parm.getParent();
+	        	C4Declaration dec = callFunc.getDeclaration();
 	        	if (dec instanceof C4Function) {
-	        		info = new ContextInformation(dec.getName() + "()", ((C4Function)dec).getLongParameterString(false).trim()); //$NON-NLS-1$
+	        		info = new ClonkContextInformation(
+	        			dec.getName() + "()", null, //$NON-NLS-1$
+	        			((C4Function)dec).getLongParameterString(false).trim(), callFunc.indexOfParm(parm)
+	        		);
 	        	}
 	        }
         } catch (Exception e) { 	    
