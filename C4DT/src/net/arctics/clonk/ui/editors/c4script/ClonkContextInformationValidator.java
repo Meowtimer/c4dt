@@ -36,7 +36,7 @@ public class ClonkContextInformationValidator implements
 			ClonkContextInformation clonkInformation = (ClonkContextInformation) fInformation;
 			if (!clonkInformation.valid(offset))
 				return false;
-			currentParameter = clonkInformation.getParmIndex();
+			currentParameter = 0; // not necessary :C clonkInformation.getParmIndex();
 		}
 		else
 			currentParameter = 0;

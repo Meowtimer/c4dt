@@ -119,7 +119,6 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 	private ProposalCycle proposalCycle = ProposalCycle.SHOW_ALL;
 	private C4Function _activeFunc;
 	private String _prefix;
-	private boolean contextInformationSuccess;
 	
 	public C4ScriptCompletionProcessor(C4ScriptEditor editor, ContentAssistant assistant) {
 		super(editor);
@@ -128,10 +127,6 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 		assistant.setRepeatedInvocationTrigger(getIterationBinding());
 		assistant.addCompletionListener(new ClonkCompletionListener());
 		
-	}
-	
-	public boolean isContextInformationSuccess() {
-		return contextInformationSuccess;
 	}
 
 	protected void doCycle() {
@@ -423,6 +418,8 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 		return thisScript != null ? thisScript.funcAt(new Region(offset,1)) : null;
 	}
 	
+	private IContextInformation prevInformation;
+
 	public IContextInformation[] computeContextInformation(ITextViewer viewer, int offset) {
 		IContextInformation info = null;
 		try {
@@ -437,17 +434,17 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 	        		);
 	        	}
 	        }
-        } catch (Exception e) { 	    
-	        e.printStackTrace();
-        }
-        if (info != null) {
-        	contextInformationSuccess = true;
-        	return new IContextInformation[] { info };
-        }
-        else {
-        	contextInformationSuccess = false;
-        	return null;
-        }
+		} catch (Exception e) { 	    
+			e.printStackTrace();
+		}
+		try {
+			// HACK: if changed, hide the old one -.-
+			if (!Utilities.objectsEqual(prevInformation, info))
+				this.getEditor().getContextAssistant().hide();
+			return info != null ? new IContextInformation[] {info} : null;
+		} finally {
+			prevInformation = info;
+		}
 	}
 
 	public char[] getCompletionProposalAutoActivationCharacters() {

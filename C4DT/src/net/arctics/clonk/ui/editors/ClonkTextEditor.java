@@ -8,6 +8,7 @@ import net.arctics.clonk.parser.C4Declaration;
 import net.arctics.clonk.parser.C4Structure;
 import net.arctics.clonk.ui.editors.actions.c4script.OpenDeclarationAction;
 import net.arctics.clonk.ui.editors.c4script.C4ScriptEditor;
+import net.arctics.clonk.ui.editors.c4script.ClonkContentAssistant;
 import net.arctics.clonk.ui.editors.c4script.ClonkContentOutlinePage;
 
 import org.eclipse.core.resources.IFile;
@@ -209,6 +210,14 @@ public class ClonkTextEditor extends TextEditor {
 	protected void initializeEditor() {
 		super.initializeEditor();
 		//setPreferenceStore(ClonkCore.getDefault().getPreferenceStore());
+	}
+	
+//	public ClonkSourceViewerConfiguration<?> getClonkSourceViewerConfiguration() {
+//		return (ClonkSourceViewerConfiguration<?>) super.getSourceViewerConfiguration();
+//	}
+	
+	public ClonkContentAssistant getContextAssistant() {
+		return (ClonkContentAssistant) getSourceViewerConfiguration().getContentAssistant(getSourceViewer());
 	}
 	
 }

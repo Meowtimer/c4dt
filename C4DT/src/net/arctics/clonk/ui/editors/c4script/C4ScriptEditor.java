@@ -276,9 +276,15 @@ public class C4ScriptEditor extends ClonkTextEditor {
 	@Override
 	protected void handleCursorPositionChanged() {
 		super.handleCursorPositionChanged();
-		((ITextOperationTarget)getSourceViewer()).doOperation(ISourceViewer.CONTENTASSIST_CONTEXT_INFORMATION);
-//		if (!processor.isContextInformationSuccess())
-//			processor
+		ITextOperationTarget opTarget = (ITextOperationTarget) getSourceViewer();
+		ClonkContentAssistant assistant = ((ClonkContentAssistant)this.getSourceViewerConfiguration().getContentAssistant(getSourceViewer()));
+		C4ScriptCompletionProcessor processor = (C4ScriptCompletionProcessor) getSourceViewerConfiguration().getContentAssistant(getSourceViewer()).getContentAssistProcessor(IDocument.DEFAULT_CONTENT_TYPE);
+		/*if (processor.isContextInformationChanged()) {
+			System.out.println("hiding");
+			assistant.hide();
+		}*/
+		if (opTarget.canDoOperation(ISourceViewer.CONTENTASSIST_CONTEXT_INFORMATION))
+			opTarget.doOperation(ISourceViewer.CONTENTASSIST_CONTEXT_INFORMATION);
 		boolean noHighlight = true;
 		C4Function f = getFuncAtCursor();
 		if (f != null) {
@@ -389,44 +395,40 @@ public class C4ScriptEditor extends ClonkTextEditor {
 			this(func, callFunc, parm != null ? callFunc.indexOfParm(parm) : 0);
 		}
 	}
-	
+
 	public FuncCallInfo getInnermostCallFuncExprParm(int offset) throws BadLocationException, ParsingException {
 		DeclarationLocator locator = new DeclarationLocator(this, getSourceViewer().getDocument(), new Region(offset, 0));
 		ExprElm expr;
-		// locate expression that is a parameter of a CallFunc
-		for (expr = locator.getExprAtRegion(); expr != null && !(expr.getParent() instanceof CallFunc); expr = expr.getParent());
+
+		// cursor somewhere between parm expressions... locate CallFunc and search
+		C4Function f = this.getFuncAt(offset);
+		if (f == null)
+			return null;
+		int bodyStart = f.getBody().getStart();
+		for (
+			expr = locator.getExprAtRegion();
+			expr != null;
+			expr = expr.getParent()
+		) {
+			 if (expr instanceof CallFunc && offset-f.getBody().getOffset() >= ((CallFunc)expr).getParmsStart())
+				 break;
+		}
 		if (expr != null) {
-			CallFunc callFunc = (CallFunc) expr.getParent();
-			C4Function f = this.getFuncAt(offset);
-			if (offset-f.getBody().getOffset() < callFunc.getParmsStart())
-				return null;
-			return new FuncCallInfo(f, callFunc, expr);
-		}
-		else {
-			// cursor somewhere between parm expressions... locate CallFunc and search
-			C4Function f = this.getFuncAt(offset);
-			if (f == null)
-				return null;
-			int bodyStart = f.getBody().getStart();
-			for (expr = locator.getExprAtRegion(); expr != null && !(expr instanceof CallFunc); expr = expr.getParent());
-			if (expr != null) {
-				CallFunc callFunc = (CallFunc) expr;
-				if (offset-this.getFuncAt(offset).getBody().getOffset() < callFunc.getParmsStart())
-					return null;
-				ExprElm prev = null;
-				for (ExprElm parm : callFunc.getParams()) {
-					if (bodyStart+parm.getExprEnd() > offset) {
-						if (prev == null)
-							break;
-						String docText = getSourceViewer().getDocument().get(bodyStart+prev.getExprEnd(), parm.getExprStart()-prev.getExprEnd());
-						int commaIndex = docText.indexOf(',');
-						return new FuncCallInfo(f, callFunc, offset >= bodyStart+prev.getExprEnd()+commaIndex ? parm : prev);
-					}
-					prev = parm;
+			CallFunc callFunc = (CallFunc) expr;
+			ExprElm prev = null;
+			for (ExprElm parm : callFunc.getParams()) {
+				if (bodyStart+parm.getExprEnd() > offset) {
+					if (prev == null)
+						break;
+					String docText = getSourceViewer().getDocument().get(bodyStart+prev.getExprEnd(), parm.getExprStart()-prev.getExprEnd());
+					int commaIndex = docText.indexOf(',');
+					return new FuncCallInfo(f, callFunc, offset >= bodyStart+prev.getExprEnd()+commaIndex ? parm : prev);
 				}
-				return new FuncCallInfo(f, callFunc, prev);
+				prev = parm;
 			}
+			return new FuncCallInfo(f, callFunc, prev);
 		}
+
 		return null;
 	}
 

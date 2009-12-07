@@ -51,7 +51,7 @@ public class C4ScriptIntern extends C4ScriptBase implements Serializable {
 	}
 	
 	public void setScriptFile(IFile f) throws CoreException {
-		if (Utilities.resourceEqual(scriptFile, f))
+		if (Utilities.objectsEqual(scriptFile, f))
 			return;
 		if (scriptFile != null)
 			scriptFile.setSessionProperty(ClonkCore.C4STRUCTURE_PROPERTY_ID, null);

@@ -1,16 +1,31 @@
 package net.arctics.clonk.ui.editors.c4script;
 
 import org.eclipse.jface.text.contentassist.IContextInformation;
+import org.eclipse.jface.text.contentassist.IContextInformationExtension;
 import org.eclipse.swt.graphics.Image;
 
-public class ClonkContextInformation implements IContextInformation {
+public class ClonkContextInformation implements IContextInformation, IContextInformationExtension {
 
 	private String contextDisplayString;
 	private Image image;
 	private String informationDisplayString;
 	private int parmIndex;
 	private int parmsStart, parmsEnd;
-
+	
+	@Override
+	public String toString() {
+		return String.format("%d %d", parmsStart, parmsEnd);
+	}
+	
+	@Override
+	public boolean equals(Object obj) {
+		if (obj instanceof ClonkContextInformation) {
+			ClonkContextInformation info = (ClonkContextInformation) obj;
+			return parmsStart == info.parmsStart && parmsEnd == info.parmsEnd;
+		}
+		return false;
+	}
+	
 	public ClonkContextInformation(String contextDisplayString, Image image,
 		String informationDisplayString, int parmIndex, int parmsStart, int parmsEnd) {
 	    super();
@@ -57,5 +72,10 @@ public class ClonkContextInformation implements IContextInformation {
     public String getInformationDisplayString() {
 	    return informationDisplayString;
     }
+
+	@Override
+	public int getContextInformationPosition() {
+		return parmsStart; 
+	}
 	
 }
