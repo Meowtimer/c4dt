@@ -371,7 +371,19 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		return scriptBeingEdited();
 	}
 	
-	public ExprElm getInnermostCallFuncExprParm(int offset) throws BadLocationException, ParsingException {
+	public static class FuncCallInfo {
+		public CallFunc callFunc;
+		public int parmIndex;
+		public FuncCallInfo(CallFunc callFunc, int parmIndex) {
+			this.callFunc = callFunc;
+			this.parmIndex = parmIndex;
+		}
+		public FuncCallInfo(CallFunc callFunc, ExprElm parm) {
+			this(callFunc, parm != null ? callFunc.indexOfParm(parm) : 0);
+		}
+	}
+	
+	public FuncCallInfo getInnermostCallFuncExprParm(int offset) throws BadLocationException, ParsingException {
 		DeclarationLocator locator = new DeclarationLocator(this, getSourceViewer().getDocument(), new Region(offset, 0));
 		ExprElm expr;
 		// locate expression that is a parameter of a CallFunc
@@ -380,7 +392,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 			CallFunc callFunc = (CallFunc) expr.getParent();
 			if (offset-this.getFuncAt(offset).getBody().getOffset() < callFunc.getParmsStart())
 				return null;
-			return expr;
+			return new FuncCallInfo(callFunc, expr);
 		}
 		else {
 			// cursor somewhere between parm expressions... locate CallFunc and search
@@ -392,13 +404,15 @@ public class C4ScriptEditor extends ClonkTextEditor {
 				ExprElm prev = null;
 				for (ExprElm parm : callFunc.getParams()) {
 					if (bodyStart+parm.getExprEnd() > offset) {
+						if (prev == null)
+							break;
 						String docText = getSourceViewer().getDocument().get(bodyStart+prev.getExprEnd(), parm.getExprStart()-prev.getExprEnd());
 						int commaIndex = docText.indexOf(',');
-						return offset > bodyStart+prev.getExprEnd()+commaIndex ? parm : prev;
+						return new FuncCallInfo(callFunc, offset >= bodyStart+prev.getExprEnd()+commaIndex ? parm : prev);
 					}
 					prev = parm;
 				}
-				return prev;
+				return new FuncCallInfo(callFunc, prev);
 			}
 		}
 		return null;

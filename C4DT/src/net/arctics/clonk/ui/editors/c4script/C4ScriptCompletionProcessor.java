@@ -24,6 +24,7 @@ import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.ui.editors.ClonkCompletionProcessor;
 import net.arctics.clonk.ui.editors.ClonkCompletionProposal;
 import net.arctics.clonk.ui.editors.WordScanner;
+import net.arctics.clonk.ui.editors.c4script.C4ScriptEditor.FuncCallInfo;
 import net.arctics.clonk.util.Utilities;
 
 import org.eclipse.core.runtime.FileLocator;
@@ -420,14 +421,13 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 	public IContextInformation[] computeContextInformation(ITextViewer viewer, int offset) {
 		IContextInformation info = null;
 		try {
-	        ExprElm parm = editor.getInnermostCallFuncExprParm(offset);
-	        if (parm != null) {
-	        	CallFunc callFunc = (CallFunc) parm.getParent();
-	        	C4Declaration dec = callFunc.getDeclaration();
+	        FuncCallInfo funcCallInfo = editor.getInnermostCallFuncExprParm(offset);
+	        if (funcCallInfo != null) {
+	        	C4Declaration dec = funcCallInfo.callFunc.getDeclaration();
 	        	if (dec instanceof C4Function) {
 	        		info = new ClonkContextInformation(
 	        			dec.getName() + "()", null, //$NON-NLS-1$
-	        			((C4Function)dec).getLongParameterString(false).trim(), callFunc.indexOfParm(parm)
+	        			((C4Function)dec).getLongParameterString(false).trim(), funcCallInfo.parmIndex
 	        		);
 	        	}
 	        }

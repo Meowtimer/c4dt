@@ -1396,7 +1396,7 @@ public class C4ScriptParser {
 				if (c == '(') {
 					ExprElm firstExpr = parseExpression(scanner.getPosition(), reportErrors);
 					if (firstExpr == null) {
-						firstExpr = ExprElm.NULL_EXPR;
+						firstExpr = ExprElm.nullExpr(scanner.getPosition(), 0);
 						// might be disabled
 						errorWithCode(ParserErrorCode.EmptyParentheses, parenthStartPos, scanner.getPosition()+1, true);
 					}
@@ -1578,11 +1578,11 @@ public class C4ScriptParser {
 			int c = scanner.read();
 			if (c == ')') {
 				if (!expectingComma && listToAddElementsTo.size() > 0)
-					listToAddElementsTo.add(ExprElm.NULL_EXPR);
+					listToAddElementsTo.add(ExprElm.nullExpr(scanner.getPosition(), 0));
 				break;
 			} else if (c == ',') {
 				if (!expectingComma) {
-					listToAddElementsTo.add(ExprElm.NULL_EXPR);
+					listToAddElementsTo.add(ExprElm.nullExpr(scanner.getPosition(), 0));
 				}
 				expectingComma = false;
 			} else {
@@ -2288,7 +2288,7 @@ public class C4ScriptParser {
 		eatWhitespace();
 		ExprElm condition = parseExpression(scanner.getPosition());
 		if (condition == null)
-			condition = ExprElm.NULL_EXPR; // while () is valid
+			condition = ExprElm.nullExpr(scanner.getPosition(), 0); // while () is valid
 		eatWhitespace();
 		expect(')');
 		eatWhitespace();
@@ -2309,7 +2309,7 @@ public class C4ScriptParser {
 		eatWhitespace();
 		ExprElm condition = parseExpression(scanner.getPosition());
 		if (condition == null)
-			condition = ExprElm.NULL_EXPR; // if () is valid
+			condition = ExprElm.nullExpr(scanner.getPosition(), 0); // if () is valid
 		eatWhitespace();
 		expect(')');
 		eatWhitespace(); // FIXME: eats comments so when transforming code the comments will be gone

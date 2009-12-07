@@ -120,12 +120,18 @@ public abstract class C4ScriptExprTree {
 	 * @author madeen
 	 * base class for making expression trees
 	 */
-	public abstract static class ExprElm implements IRegion, Cloneable {
+	public static class ExprElm implements IRegion, Cloneable {
 
-		public static final ExprElm NULL_EXPR = new ExprElm() {};
+		public static final ExprElm NULL_EXPR = new ExprElm();
 		public static final ExprElm[] EMPTY_EXPR_ARRAY = new ExprElm[0];
 		public static final Object EVALUATION_COMPLEX = new Object();
 
+		public static final ExprElm nullExpr(int start, int length) {
+			ExprElm result = new ExprElm();
+			result.setExprRegion(start, start+length);
+			return result;
+		}
+		
 		private int exprStart, exprEnd;
 		private transient ExprElm parent, predecessorInSequence, successorInSequence;
 
