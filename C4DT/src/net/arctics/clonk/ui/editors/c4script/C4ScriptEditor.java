@@ -49,6 +49,7 @@ import org.eclipse.jface.text.source.ISourceViewer;
 import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.texteditor.ITextEditor;
 import org.eclipse.ui.texteditor.SourceViewerDecorationSupport;
 
@@ -277,14 +278,15 @@ public class C4ScriptEditor extends ClonkTextEditor {
 	protected void handleCursorPositionChanged() {
 		super.handleCursorPositionChanged();
 		ITextOperationTarget opTarget = (ITextOperationTarget) getSourceViewer();
-		ClonkContentAssistant assistant = ((ClonkContentAssistant)this.getSourceViewerConfiguration().getContentAssistant(getSourceViewer()));
-		C4ScriptCompletionProcessor processor = (C4ScriptCompletionProcessor) getSourceViewerConfiguration().getContentAssistant(getSourceViewer()).getContentAssistProcessor(IDocument.DEFAULT_CONTENT_TYPE);
+//		ClonkContentAssistant assistant = ((ClonkContentAssistant)this.getSourceViewerConfiguration().getContentAssistant(getSourceViewer()));
+//		C4ScriptCompletionProcessor processor = (C4ScriptCompletionProcessor) getSourceViewerConfiguration().getContentAssistant(getSourceViewer()).getContentAssistProcessor(IDocument.DEFAULT_CONTENT_TYPE);
 		/*if (processor.isContextInformationChanged()) {
 			System.out.println("hiding");
 			assistant.hide();
 		}*/
-		if (opTarget.canDoOperation(ISourceViewer.CONTENTASSIST_CONTEXT_INFORMATION))
-			opTarget.doOperation(ISourceViewer.CONTENTASSIST_CONTEXT_INFORMATION);
+		if (PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().getActivePart() == this)
+			if (opTarget.canDoOperation(ISourceViewer.CONTENTASSIST_CONTEXT_INFORMATION))
+				opTarget.doOperation(ISourceViewer.CONTENTASSIST_CONTEXT_INFORMATION);
 		boolean noHighlight = true;
 		C4Function f = getFuncAtCursor();
 		if (f != null) {
