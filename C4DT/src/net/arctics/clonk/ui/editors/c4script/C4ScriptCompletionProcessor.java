@@ -427,9 +427,12 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 	        if (funcCallInfo != null) {
 	        	C4Declaration dec = funcCallInfo.callFunc.getDeclaration();
 	        	if (dec instanceof C4Function) {
+	        		String parmString = ((C4Function)dec).getLongParameterString(false).trim();
+	        		if (parmString.length() == 0)
+	        			parmString = Messages.C4ScriptCompletionProcessor_NoParameters;
 	        		info = new ClonkContextInformation(
 	        			dec.getName() + "()", null, //$NON-NLS-1$
-	        			((C4Function)dec).getLongParameterString(false).trim(),
+	        			parmString,
 	        			funcCallInfo.parmIndex, funcCallInfo.parmsStart, funcCallInfo.parmsEnd
 	        		);
 	        	}
@@ -439,8 +442,11 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 		}
 		try {
 			// HACK: if changed, hide the old one -.-
-			if (!Utilities.objectsEqual(prevInformation, info))
-				this.getEditor().getContextAssistant().hide();
+			if (!Utilities.objectsEqual(prevInformation, info)) {
+				ClonkContentAssistant assistant = this.getEditor().getContentAssistant();
+				//if (!assistant.isProposalPopupActive())
+					assistant.hide();
+			}
 			return info != null ? new IContextInformation[] {info} : null;
 		} finally {
 			prevInformation = info;

@@ -216,7 +216,7 @@ public class ClonkTextEditor extends TextEditor {
 //		return (ClonkSourceViewerConfiguration<?>) super.getSourceViewerConfiguration();
 //	}
 	
-	public ClonkContentAssistant getContextAssistant() {
+	public ClonkContentAssistant getContentAssistant() {
 		return (ClonkContentAssistant) getSourceViewerConfiguration().getContentAssistant(getSourceViewer());
 	}
 	

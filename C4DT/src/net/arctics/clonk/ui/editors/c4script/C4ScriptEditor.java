@@ -286,8 +286,9 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		}*/
 		try {
 			if (PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().getActivePart() == this)
-				if (opTarget.canDoOperation(ISourceViewer.CONTENTASSIST_CONTEXT_INFORMATION))
-					opTarget.doOperation(ISourceViewer.CONTENTASSIST_CONTEXT_INFORMATION);
+				if (!getContentAssistant().isProposalPopupActive())
+					if (opTarget.canDoOperation(ISourceViewer.CONTENTASSIST_CONTEXT_INFORMATION))
+						opTarget.doOperation(ISourceViewer.CONTENTASSIST_CONTEXT_INFORMATION);
 		} catch (NullPointerException nullP) {
 			// might just be not that much of an issue
 		}

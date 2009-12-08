@@ -14,7 +14,6 @@ import org.eclipse.jface.text.contentassist.IContextInformationPresenter;
 import org.eclipse.jface.text.contentassist.IContextInformationValidator;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.StyleRange;
-import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.widgets.Display;
 
 public class ClonkContextInformationValidator implements
@@ -82,7 +81,7 @@ public class ClonkContextInformationValidator implements
 
 	public boolean isContextInformationValid(int offset) {
 		try {
-			if (!((ClonkContextInformation) fInformation).valid(offset))
+			if (fInformation instanceof ClonkContextInformation && !((ClonkContextInformation) fInformation).valid(offset))
 				return false;
 
 			IDocument document= fTextViewer.getDocument();

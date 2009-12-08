@@ -12,4 +12,8 @@ public class ClonkContentAssistant extends ContentAssistant {
 	public boolean isContextInfoPopupActive() {
 		return super.isContextInfoPopupActive();
 	}
+	@Override
+	public boolean isProposalPopupActive() {
+		return super.isProposalPopupActive();
+	}
 }

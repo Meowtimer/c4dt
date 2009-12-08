@@ -13,10 +13,8 @@ import net.arctics.clonk.parser.c4script.C4Variable;
 import net.arctics.clonk.util.UI;
 import net.arctics.clonk.util.Utilities;
 
-import org.eclipse.jface.text.contentassist.ContextInformation;
 import org.eclipse.jface.text.contentassist.ICompletionProposal;
 import org.eclipse.jface.text.contentassist.IContentAssistProcessor;
-import org.eclipse.jface.text.contentassist.IContextInformation;
 import org.eclipse.ui.IFileEditorInput;
 
 public abstract class ClonkCompletionProcessor<EditorType extends ClonkTextEditor> implements IContentAssistProcessor {
@@ -83,12 +81,12 @@ public abstract class ClonkCompletionProcessor<EditorType extends ClonkTextEdito
 		int replacementLength = 0;
 		if (prefix != null) replacementLength = prefix.length();
 		
-		String contextInfoString = func.getLongParameterString(false);
-		IContextInformation contextInformation = new ContextInformation(func.getName() + "()",contextInfoString);  //$NON-NLS-1$
+		/*String contextInfoString = func.getLongParameterString(false);
+		IContextInformation contextInformation = new ContextInformation(func.getName() + "()",contextInfoString);  //$NON-NLS-1$*/
 		
 		String replacement = func.getName() + (brackets ? "()" : ""); //$NON-NLS-1$ //$NON-NLS-2$
 		ClonkCompletionProposal prop = new ClonkCompletionProposal(replacement, offset,replacementLength,func.getName().length()+1,
-				UI.getIconForFunction(func), displayString.trim(),contextInformation, func.getInfoText()," - " + parentName); //$NON-NLS-1$
+				UI.getIconForFunction(func), displayString.trim(), null/*contextInformation*/, func.getInfoText()," - " + parentName); //$NON-NLS-1$
 		proposals.add(prop);
 	}
 	
