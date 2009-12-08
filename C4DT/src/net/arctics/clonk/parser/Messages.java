@@ -20,6 +20,7 @@ public class Messages extends NLS {
 	public static String MissingLocalizations;
 	public static String ConstantValueExpected;
 	public static String CommaOrSemicolonExpected;
+	public static String IdentShadowed;
 	public static String IncompatibleTypes;
 	public static String VariableCalled;
 	public static String TypeAsName;

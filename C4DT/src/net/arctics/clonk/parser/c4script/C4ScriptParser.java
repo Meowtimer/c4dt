@@ -648,7 +648,13 @@ public class C4ScriptParser {
 				int nameEnd = scanner.getPosition();
 				if (declaration) {
 					// construct C4Variable object and register it
-					C4Variable previousDeclaration = findVar(varName, scope); 
+					C4Variable previousDeclaration = findVar(varName, scope);
+					if (previousDeclaration == null) {
+						if (scope == C4VariableScope.VAR_VAR) {
+							if (findVar(varName, C4VariableScope.VAR_LOCAL) != null)
+								warningWithCode(ParserErrorCode.IdentShadowed, nameStart, nameEnd, varName, Keywords.LocalNamed + " " + varName);
+						}
+					}
 					C4Variable var = previousDeclaration != null ? previousDeclaration : createVarInScope(varName, scope, new SourceLocation(nameStart, nameEnd));
 					parsedVariable = var;
 				}
