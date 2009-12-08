@@ -14,6 +14,8 @@ import org.eclipse.jface.text.contentassist.IContextInformationPresenter;
 import org.eclipse.jface.text.contentassist.IContextInformationValidator;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.StyleRange;
+import org.eclipse.swt.graphics.Color;
+import org.eclipse.swt.widgets.Display;
 
 public class ClonkContextInformationValidator implements
 		IContextInformationPresenter, IContextInformationValidator {
@@ -70,7 +72,7 @@ public class ClonkContextInformationValidator implements
 			presentation.addStyleRange(new StyleRange(0, start, null, null, SWT.NORMAL));
 
 		if (end > start)
-			presentation.addStyleRange(new StyleRange(start, end - start, null, null, SWT.BOLD));
+			presentation.addStyleRange(new StyleRange(start, end - start, Display.getCurrent().getSystemColor(SWT.COLOR_DARK_BLUE), null, SWT.BOLD));
 
 		if (end < s.length())
 			presentation.addStyleRange(new StyleRange(end, s.length() - end, null, null, SWT.NORMAL));

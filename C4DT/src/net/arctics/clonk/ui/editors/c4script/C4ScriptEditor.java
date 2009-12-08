@@ -284,9 +284,13 @@ public class C4ScriptEditor extends ClonkTextEditor {
 			System.out.println("hiding");
 			assistant.hide();
 		}*/
-		if (PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().getActivePart() == this)
-			if (opTarget.canDoOperation(ISourceViewer.CONTENTASSIST_CONTEXT_INFORMATION))
-				opTarget.doOperation(ISourceViewer.CONTENTASSIST_CONTEXT_INFORMATION);
+		try {
+			if (PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().getActivePart() == this)
+				if (opTarget.canDoOperation(ISourceViewer.CONTENTASSIST_CONTEXT_INFORMATION))
+					opTarget.doOperation(ISourceViewer.CONTENTASSIST_CONTEXT_INFORMATION);
+		} catch (NullPointerException nullP) {
+			// might just be not that much of an issue
+		}
 		boolean noHighlight = true;
 		C4Function f = getFuncAtCursor();
 		if (f != null) {
