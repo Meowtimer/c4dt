@@ -130,6 +130,11 @@ public class BufferedScanner {
 		(/*length > 0 &&*/ '0' <= character && character <= '9');
 	}
 	
+	public static boolean isUmlaut(char character) {
+		character = Character.toLowerCase(character);
+	    return character == 'ß' || character == 'ä' || character == 'ü' || character == 'ö';
+    }
+	
 	public static boolean isWordStart(int character) {
 		return (character >= 'a' && character <= 'z') || (character >= 'A' && character <= 'Z') || character == '_';
 	}
@@ -414,6 +419,5 @@ public class BufferedScanner {
 		unread();
 		return p;
 	}
-	
 	
 }

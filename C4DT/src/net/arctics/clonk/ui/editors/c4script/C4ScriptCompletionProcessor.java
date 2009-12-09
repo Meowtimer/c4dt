@@ -14,6 +14,7 @@ import net.arctics.clonk.parser.c4script.C4ScriptBase;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.C4Variable;
 import net.arctics.clonk.parser.c4script.IStoredTypeInformation;
+import net.arctics.clonk.parser.BufferedScanner;
 import net.arctics.clonk.parser.BuiltInDefinitions;
 import net.arctics.clonk.parser.C4Declaration;
 import net.arctics.clonk.parser.ParsingException;
@@ -160,11 +161,10 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 	
 	public ICompletionProposal[] computeCompletionProposals(ITextViewer viewer, int offset) {
 		int wordOffset = offset - 1;
-		WordScanner scanner = new WordScanner();
 		IDocument doc = viewer.getDocument();
 		String prefix = null;
 		try {
-			while (scanner.isWordPart(doc.getChar(wordOffset))) {
+			while (BufferedScanner.isWordPart(doc.getChar(wordOffset)) || BufferedScanner.isUmlaut(doc.getChar(wordOffset))) {
 				wordOffset--;
 			}
 			wordOffset++;
