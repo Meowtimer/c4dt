@@ -323,7 +323,7 @@ public abstract class C4ScriptBase extends C4Structure implements IHasRelatedRes
 		}
 
 		// this object?
-		if (decClass == null || decClass == C4ScriptBase.class && refersToThis(name, info)) {
+		if ((decClass == null || decClass == C4ScriptBase.class) && refersToThis(name, info)) {
 			return this;
 		}
 
