@@ -1549,6 +1549,7 @@ public abstract class C4ScriptExprTree {
 		public Parenthesized(ExprElm innerExpr) {
 			super();
 			this.innerExpr = innerExpr;
+			assignParentToSubElements();
 		}
 		public void print(StringBuilder output, int depth) {
 			output.append("("); //$NON-NLS-1$
