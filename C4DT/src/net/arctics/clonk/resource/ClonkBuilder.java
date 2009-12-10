@@ -286,7 +286,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 			for (C4ScriptBase s : scripts) {
 				IResource r = s.getResource();
 				if (r != null) {
-					System.out.println("Triggered reparsing of " + r);
+					//System.out.println("Triggered reparsing of " + r);
 					this.visit(r);
 				}
 			}

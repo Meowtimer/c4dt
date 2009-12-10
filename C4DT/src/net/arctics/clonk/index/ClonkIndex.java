@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -521,6 +522,7 @@ public class ClonkIndex implements Serializable, Iterable<C4Object> {
 	            	private int stage = 0;
 	            	private Iterator<? extends C4ScriptBase> currentIterator = getIndexedScripts().iterator();
 	            	private C4ScriptBase currentScript;
+	            	private HashSet<C4ScriptBase> alreadyReturned = new HashSet<C4ScriptBase>();
 
 	            	private Iterator<? extends C4ScriptBase> getIterator() {
 	            		while (!currentIterator.hasNext()) {
@@ -544,7 +546,7 @@ public class ClonkIndex implements Serializable, Iterable<C4Object> {
 	            		Outer: for (Iterator<? extends C4ScriptBase> it = getIterator(); it != null; it = getIterator()) {
 	            			do {
 	            				s = it.next();
-	            				if (s == base)
+	            				if (s == base || alreadyReturned.contains(s))
 	            					continue;
 	            				if (hasGlobals) {
 	            					break Outer;
@@ -553,10 +555,20 @@ public class ClonkIndex implements Serializable, Iterable<C4Object> {
 	            					if (s.includes(baseObject))
 	            						break Outer;
 	            				}
+	            				List<C4ScriptBase> appendages;
+	            				if (s instanceof C4Object && (appendages = appendagesOf((C4Object)s)) != null && appendages.contains(base)) {
+	            					break Outer;
+	            				}
 	            			} while (it.hasNext());
 	            			s = null;
 	            		}
-	            		return (currentScript = s) != null;
+	            		if (s != null) {
+	            			alreadyReturned.add(s);
+	            			currentScript = s;
+	            			return true;
+	            		}
+	            		else
+	            			return false;
 	            	}
 					@Override
                     public C4ScriptBase next() {
