@@ -24,6 +24,7 @@ public class ClonkProjectProperties extends FieldEditorPreferencePage implements
 
 	private static final String DEPENDENCIES_PROPERTY = "dependencies"; //$NON-NLS-1$
 	private static final String SHOWSDEPENDENCIES_PROPERTY = "showsDependencies"; //$NON-NLS-1$
+	private static final String INHERITSDEPENDENCIES_PROPERTY = "inheritsDependencies";
 	
 	private final class AdapterStore extends PreferenceStore {
 		private Map<String, String> values = new HashMap<String, String>();

@@ -10,6 +10,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.C4Declaration;
 import net.arctics.clonk.parser.C4ID;
@@ -508,6 +509,64 @@ public class ClonkIndex implements Serializable, Iterable<C4Object> {
 			return Collections.unmodifiableList(list); 
 		}
 		return null;
+	}
+	
+	public Iterable<C4ScriptBase> dependentScripts(final C4ScriptBase base) {
+		return new Iterable<C4ScriptBase>() {
+			@Override
+            public Iterator<C4ScriptBase> iterator() {
+	            return new Iterator<C4ScriptBase>() {
+	            	private C4Object baseObject = base instanceof C4Object ? (C4Object)base : null;
+	            	private boolean hasGlobals = base.containsGlobals();
+	            	private int stage = 0;
+	            	private Iterator<? extends C4ScriptBase> currentIterator = getIndexedScripts().iterator();
+	            	private C4ScriptBase currentScript;
+
+	            	private Iterator<? extends C4ScriptBase> getIterator() {
+	            		while (!currentIterator.hasNext()) {
+            				switch (++stage) {
+            				case 1:
+            					currentIterator = getIndexedScenarios().iterator();
+            					break;
+            				case 2:
+            					currentIterator = ClonkIndex.this.iterator();
+            					break; 
+            				default:
+            					return null;
+            				}
+            			}
+	            		return currentIterator;
+	            	}
+	            	
+	            	@Override
+	            	public boolean hasNext() {
+	            		C4ScriptBase s = null;
+	            		Outer: for (Iterator<? extends C4ScriptBase> it = getIterator(); it != null; it = getIterator()) {
+	            			do {
+	            				s = it.next();
+	            				if (s == base)
+	            					continue;
+	            				if (hasGlobals) {
+	            					break Outer;
+	            				}
+	            				if (baseObject != null) {
+	            					if (s.includes(baseObject))
+	            						break Outer;
+	            				}
+	            			} while (it.hasNext());
+	            			s = null;
+	            		}
+	            		return (currentScript = s) != null;
+	            	}
+					@Override
+                    public C4ScriptBase next() {
+						return currentScript;
+                    }
+					@Override
+                    public void remove() {}	            	
+	            };
+            }
+		};
 	}
 	
 	public C4Engine getEngine() {

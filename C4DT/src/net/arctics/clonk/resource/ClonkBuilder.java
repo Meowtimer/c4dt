@@ -3,7 +3,9 @@ package net.arctics.clonk.resource;
 import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.index.C4Object;
@@ -135,7 +137,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 					e.printStackTrace();
 				}
 		}
-		System.gc();
+//		System.gc();
 		
 		try {
 			try {
@@ -163,6 +165,8 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 						buildPhase = 1;
 						delta.accept(this);
 						applyLatentMarkers();
+						
+						reparseDependentScripts();
 
 						// fire change event
 						delta.getResource().touch(monitor);
@@ -270,6 +274,24 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 			parserMap.clear();
 		}
 	}
+
+	private void reparseDependentScripts() throws CoreException {
+		Set<C4ScriptBase> scripts = new HashSet<C4ScriptBase>();
+		for (C4ScriptParser parser : parserMap.values()) {
+			for (C4ScriptBase dep : parser.getContainer().getIndex().dependentScripts(parser.getContainer())) {
+				scripts.add(dep);
+			}
+		}
+		for (buildPhase = 0; buildPhase < 2; buildPhase++) {
+			for (C4ScriptBase s : scripts) {
+				IResource r = s.getResource();
+				if (r != null) {
+					System.out.println("Triggered reparsing of " + r);
+					this.visit(r);
+				}
+			}
+		}
+    }
 
 	private void applyLatentMarkers() {
 		for (C4ScriptParser p : parserMap.values()) {

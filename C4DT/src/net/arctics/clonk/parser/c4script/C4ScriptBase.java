@@ -38,6 +38,7 @@ import net.arctics.clonk.parser.C4Declaration;
 import net.arctics.clonk.parser.C4ID;
 import net.arctics.clonk.parser.C4Structure;
 import net.arctics.clonk.parser.c4script.C4Directive.C4DirectiveType;
+import net.arctics.clonk.parser.c4script.C4Function.C4FunctionScope;
 import net.arctics.clonk.parser.c4script.C4Variable.C4VariableScope;
 import net.arctics.clonk.parser.stringtbl.StringTbl;
 import net.arctics.clonk.preferences.ClonkPreferences;
@@ -915,6 +916,16 @@ public abstract class C4ScriptBase extends C4Structure implements IHasRelatedRes
 		if (node instanceof C4Declaration)
 			addDeclaration((C4Declaration)node);
 	}
+
+	public boolean containsGlobals() {
+	    for (C4Function f : this.definedFunctions)
+	    	if (f.getVisibility() == C4FunctionScope.FUNC_GLOBAL)
+	    		return true;
+	    for (C4Variable v : this.definedVariables)
+	    	if (v.getScope() == C4VariableScope.VAR_STATIC)
+	    		return true;
+	    return false;
+    }
 
 	//	public boolean removeDWording() {
 	//		boolean result = false;
