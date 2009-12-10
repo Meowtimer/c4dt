@@ -1974,10 +1974,15 @@ public class C4ScriptParser {
 		List<Pair<String, ExprElm>> initializations = new LinkedList<Pair<String, ExprElm>>();
 		do {
 			eatWhitespace();
+			int varNameStart = scanner.getPosition();
 			String varName = scanner.readIdent();
 			// check if there is initial content
 			eatWhitespace();
 			C4Variable var = findVar(varName, scope);
+			if (var == null) {
+				// happens when parsing only the body of a function for computing context information in an editor and such
+				var = createVariable(C4VariableScope.VAR_VAR, null, varNameStart, scanner.getPosition(), varName);
+			}
 			parsedVariable = var;
 			ExprElm val;
 			if (scanner.read() == '=') {
