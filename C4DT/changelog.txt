@@ -84,3 +84,6 @@ are then taken into account in various places
 -Custom arguments for launching scenarios
 -More specific warning for missing stringtbl entries
 -Reduce 'Too Many Parameters' false positives 
+1.5.2:
+-Fixes
+-Context information (parameters) shown immediately
