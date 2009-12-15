@@ -379,14 +379,19 @@ public class BufferedScanner {
 	
 	/**
 	 * Returns the line region is contained in as a region
+	 * @param text the string to look for the line in
 	 * @param regionInLine the region
 	 * @return the line region
 	 */
-	public IRegion getLineRegion(IRegion regionInLine) {
+	public static IRegion getLineRegion(String text, IRegion regionInLine) {
 		int start, end;
-		for (start = regionInLine.getOffset(); start > 0 && !isLineDelimiterChar(buffer.charAt(start-1)); start--);
-		for (end = regionInLine.getOffset()+regionInLine.getLength(); end < buffer.length()-1 && !isLineDelimiterChar(buffer.charAt(end+1)); end++);
+		for (start = regionInLine.getOffset(); start > 0 && !isLineDelimiterChar(text.charAt(start-1)); start--);
+		for (end = regionInLine.getOffset()+regionInLine.getLength(); end < text.length()-1 && !isLineDelimiterChar(text.charAt(end+1)); end++);
 		return new Region(start, end-start);
+	}
+	
+	public IRegion getLineRegion(IRegion regionInLine) {
+		return getLineRegion(this.buffer, regionInLine);
 	}
 
 	/**
