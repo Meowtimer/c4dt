@@ -649,12 +649,12 @@ public class C4ScriptParser {
 				if (declaration) {
 					// construct C4Variable object and register it
 					C4Variable previousDeclaration = findVar(varName, scope);
-					if (previousDeclaration == null) {
+					/*if (previousDeclaration == null) {
 						if (scope == C4VariableScope.VAR_VAR) {
 							if (findVar(varName, C4VariableScope.VAR_LOCAL) != null)
 								warningWithCode(ParserErrorCode.IdentShadowed, nameStart, nameEnd, varName, Keywords.LocalNamed + " " + varName);
 						}
-					}
+					}*/
 					C4Variable var = previousDeclaration != null ? previousDeclaration : createVarInScope(varName, scope, new SourceLocation(nameStart, nameEnd));
 					parsedVariable = var;
 				}
@@ -2530,13 +2530,13 @@ public class C4ScriptParser {
 	}
 	
 	public static C4ScriptParser reportExpressionsAndStatements(IDocument doc, final int statementStart, int statementEnd, C4ScriptBase context, C4Function func, IExpressionListener listener)  {
-		String expr;
+		String statements;
 		try {
-			expr = doc.get(statementStart, Math.min(statementEnd-statementStart, doc.getLength()-statementStart));
+			statements = doc.get(statementStart, Math.min(statementEnd-statementStart, doc.getLength()-statementStart)) + ")";
 		} catch (BadLocationException e) {
-			expr = ""; // well... //$NON-NLS-1$
+			statements = ""; // well... //$NON-NLS-1$
 		}
-		C4ScriptParser parser = new C4ScriptParser(expr, context) {
+		C4ScriptParser parser = new C4ScriptParser(statements, context) {
 			@Override
 			protected int offsetOfScriptFragment() {
 				return statementStart;
