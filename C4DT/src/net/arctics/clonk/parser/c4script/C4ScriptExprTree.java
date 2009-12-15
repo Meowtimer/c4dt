@@ -1833,7 +1833,7 @@ public abstract class C4ScriptExprTree {
 
 	public static final class StringLiteral extends Literal<String> {
 		public StringLiteral(String literal) {
-			super(literal);
+			super(literal != null ? literal : "");
 		}
 
 		public String stringValue() {
