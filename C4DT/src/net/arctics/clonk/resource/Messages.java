@@ -13,6 +13,7 @@ public class Messages extends NLS {
 	public static String SavingData;
 	public static String ExternalLibraryDoesNotExist;
 	public static String ParsingLibs;
+	public static String ReparseDependentScripts;
 	static {
 		// initialize resource bundle
 		NLS.initializeMessages(BUNDLE_NAME, Messages.class);

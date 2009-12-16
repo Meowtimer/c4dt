@@ -161,12 +161,11 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 						// parse
 						buildPhase = 0;
 						delta.accept(this);
-						ClonkProjectNature.get(proj).getIndex().refreshCache();
 						buildPhase = 1;
 						delta.accept(this);
 						applyLatentMarkers();
-						
-						reparseDependentScripts();
+						reparseDependentScripts(monitor);
+						ClonkProjectNature.get(proj).getIndex().refreshCache();
 
 						// fire change event
 						delta.getResource().touch(monitor);
@@ -275,20 +274,23 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 		}
 	}
 
-	private void reparseDependentScripts() throws CoreException {
+	private void reparseDependentScripts(IProgressMonitor monitor) throws CoreException {
 		Set<C4ScriptBase> scripts = new HashSet<C4ScriptBase>();
 		for (C4ScriptParser parser : parserMap.values()) {
 			for (C4ScriptBase dep : parser.getContainer().getIndex().dependentScripts(parser.getContainer())) {
 				scripts.add(dep);
 			}
 		}
+		monitor.beginTask(Messages.ReparseDependentScripts, scripts.size());
 		for (buildPhase = 0; buildPhase < 2; buildPhase++) {
 			for (C4ScriptBase s : scripts) {
 				IResource r = s.getResource();
 				if (r != null) {
+					monitor.subTask(s.toString());
 					//System.out.println("Triggered reparsing of " + r);
 					this.visit(r);
 				}
+				monitor.worked(1);
 			}
 		}
     }
