@@ -2,11 +2,9 @@ package net.arctics.clonk.ui.editors.c4script;
 
 import net.arctics.clonk.resource.ClonkProjectNature;
 
-import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.DefaultIndentLineAutoEditStrategy;
 import org.eclipse.jface.text.DocumentCommand;
 import org.eclipse.jface.text.IDocument;
-import org.eclipse.jface.text.IRegion;
 
 /**
  * Planned edit strategies:
@@ -20,11 +18,11 @@ import org.eclipse.jface.text.IRegion;
  * @author ZokRadonh
  *
  */
-public class C4ScriptAutoIndentStrategy extends DefaultIndentLineAutoEditStrategy {
-	public C4ScriptAutoIndentStrategy() {
+public class C4ScriptAutoEditStrategy extends DefaultIndentLineAutoEditStrategy {
+	public C4ScriptAutoEditStrategy() {
 	}
 	
-	public C4ScriptAutoIndentStrategy(ClonkProjectNature project, String partitioning) {
+	public C4ScriptAutoEditStrategy(ClonkProjectNature project, String partitioning) {
 	}
 
 	/*
@@ -41,7 +39,11 @@ public class C4ScriptAutoIndentStrategy extends DefaultIndentLineAutoEditStrateg
 	
 	@Override
 	public void customizeDocumentCommand(IDocument d, DocumentCommand c) {
-		if (c.text.contains("\n") || c.text.contains("\r")) { //$NON-NLS-1$ //$NON-NLS-2$
+		/*if (c.text.endsWith("(")) {
+			c.text += ")";
+			c.caretOffset = c.offset-1;
+		}*/
+		/*if (c.text.contains("\n") || c.text.contains("\r")) { //$NON-NLS-1$ //$NON-NLS-2$
 			try {
 				//String originalText = c.text;
 				IRegion reg = d.getLineInformationOfOffset(c.offset);
@@ -62,26 +64,8 @@ public class C4ScriptAutoIndentStrategy extends DefaultIndentLineAutoEditStrateg
 			} catch (BadLocationException e) {
 				e.printStackTrace();
 			}
-		}
-//		super.customizeDocumentCommand(d, c);
-	}
-	
-	private int countIndentOfLine(String line) {
-		int indentStep = 2;
-		int whitespace = 0;
-		int indent = 0;
-		for (int i = 0; i < line.length(); i++) {
-			char c = line.charAt(i);
-			if (c == '\t') {
-				indent++;
-				i++;
-			}
-			else if (c == ' ')
-				whitespace++;
-			else
-				break;
-		}
-		return indent + whitespace/indentStep;
+		}*/
+		super.customizeDocumentCommand(d, c);
 	}
 	
 	
