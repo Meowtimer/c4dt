@@ -1115,20 +1115,23 @@ public abstract class C4ScriptExprTree {
 				ExprElm[] parmsWithoutObject = new ExprElm[params.length-2];
 				for (int i = 0; i < parmsWithoutObject.length; i++)
 					parmsWithoutObject[i] = params[i+2].newStyleReplacement(parser);
-				return AlwaysConvertObjectCalls && this.containedInLoopHeaderOrNotStandaloneExpression()
+				String lit = ((StringLiteral)params[1]).stringValue();
+				if (lit.length() > 0 && lit.charAt(0) != '~') {
+					return AlwaysConvertObjectCalls && this.containedInLoopHeaderOrNotStandaloneExpression()
 					? new Sequence(new ExprElm[] {
 							params[0].newStyleReplacement(parser),
 							new MemberOperator(false, true, null, 0),
 							new CallFunc(((StringLiteral)params[1]).stringValue(), parmsWithoutObject)}
 					)
 					: new IfStatement(params[0].newStyleReplacement(parser),
-						new SimpleStatement(new Sequence(new ExprElm[] {
-								params[0].newStyleReplacement(parser),
-								new MemberOperator(false, true, null, 0),
-								new CallFunc(((StringLiteral)params[1]).stringValue(), parmsWithoutObject)}
-						)),
-						null
+							new SimpleStatement(new Sequence(new ExprElm[] {
+									params[0].newStyleReplacement(parser),
+									new MemberOperator(false, true, null, 0),
+									new CallFunc(((StringLiteral)params[1]).stringValue(), parmsWithoutObject)}
+							)),
+							null
 					);
+				}
 			}
 
 			// OCF_Awesome() -> OCF_Awesome
@@ -1161,10 +1164,13 @@ public abstract class C4ScriptExprTree {
 
 			// Call("Func", 5, 5) -> Func(5, 5)
 			if (params.length >= 1 && declaration != null && declaration == getCachedFuncs(parser).Call && params[0] instanceof StringLiteral) {
-				ExprElm[] parmsWithoutName = new ExprElm[params.length-1];
-				for (int i = 0; i < parmsWithoutName.length; i++)
-					parmsWithoutName[i] = params[i+1].newStyleReplacement(parser);
-				return new CallFunc(((StringLiteral)params[0]).stringValue(), parmsWithoutName);
+				String lit = ((StringLiteral)params[0]).stringValue();
+				if (lit.length() > 0 && lit.charAt(0) != '~') {
+					ExprElm[] parmsWithoutName = new ExprElm[params.length-1];
+					for (int i = 0; i < parmsWithoutName.length; i++)
+						parmsWithoutName[i] = params[i+1].newStyleReplacement(parser);
+					return new CallFunc(((StringLiteral)params[0]).stringValue(), parmsWithoutName);
+				}
 			}
 
 			return super.newStyleReplacement(parser);
