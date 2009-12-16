@@ -435,7 +435,6 @@ public class C4ScriptEditor extends ClonkTextEditor {
 			}
 			return new FuncCallInfo(f, callFunc, prev);
 		}
-
 		return null;
 	}
 

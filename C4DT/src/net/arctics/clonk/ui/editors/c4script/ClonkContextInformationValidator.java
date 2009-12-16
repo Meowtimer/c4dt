@@ -33,6 +33,7 @@ public class ClonkContextInformationValidator implements
 
 	public boolean updatePresentation(int offset, TextPresentation presentation) {
 		int currentParameter;
+		offset = fTextViewer.getSelectedRange().x;
 		if (fInformation instanceof ClonkContextInformation) {
 			ClonkContextInformation clonkInformation = (ClonkContextInformation) fInformation;
 			if (!clonkInformation.valid(offset))
@@ -43,6 +44,7 @@ public class ClonkContextInformationValidator implements
 			currentParameter = 0;
 		try {
 	        currentParameter += getCharCount(fTextViewer.getDocument(), fOffset, offset, ",", "", true); //$NON-NLS-1$//$NON-NLS-2$
+	        //System.out.println(String.format("%d %d %d", fOffset, offset, currentParameter));
         } catch (BadLocationException e) {
 	        e.printStackTrace();
         }
@@ -80,20 +82,21 @@ public class ClonkContextInformationValidator implements
 	}
 
 	public boolean isContextInformationValid(int offset) {
+		boolean result = false;
 		try {
 			if (fInformation instanceof ClonkContextInformation && !((ClonkContextInformation) fInformation).valid(offset))
-				return false;
+				return result = true;
 
 			IDocument document= fTextViewer.getDocument();
 			IRegion line= document.getLineInformationOfOffset(fOffset);
 
 			if (offset < line.getOffset() || offset >= document.getLength())
-				return false;
+				return result = false;
 
-			return getCharCount(document, fOffset, offset, "(", ")", false) >= 0; //$NON-NLS-1$ //$NON-NLS-2$
+			return result = getCharCount(document, fOffset, offset, "(", ")", false) >= 0; //$NON-NLS-1$ //$NON-NLS-2$
 
 		} catch (BadLocationException x) {
-			return false;
+			return result = false;
 		}
 	}
 

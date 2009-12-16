@@ -19,9 +19,10 @@ public class ClonkContextInformation implements IContextInformation, IContextInf
 	
 	@Override
 	public boolean equals(Object obj) {
+		//System.out.println("ClonkContextInformation.equals called");
 		if (obj instanceof ClonkContextInformation) {
 			ClonkContextInformation info = (ClonkContextInformation) obj;
-			return parmsStart == info.parmsStart && parmsEnd == info.parmsEnd;
+			return parmsStart == info.parmsStart && parmsEnd == info.parmsEnd; // similar enough :o
 		}
 		return false;
 	}
