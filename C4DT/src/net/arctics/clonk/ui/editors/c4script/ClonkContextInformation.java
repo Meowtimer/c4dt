@@ -22,7 +22,7 @@ public class ClonkContextInformation implements IContextInformation, IContextInf
 		//System.out.println("ClonkContextInformation.equals called");
 		if (obj instanceof ClonkContextInformation) {
 			ClonkContextInformation info = (ClonkContextInformation) obj;
-			return parmsStart == info.parmsStart && parmsEnd == info.parmsEnd; // similar enough :o
+			return parmsStart == info.parmsStart; // similar enough :o
 		}
 		return false;
 	}
@@ -40,7 +40,7 @@ public class ClonkContextInformation implements IContextInformation, IContextInf
 
 	public boolean valid(int offset) {
 		//System.out.println(String.format("%d %d %d", parmsStart, offset, parmsEnd));
-		return parmIndex != -1 && offset >= parmsStart && offset <= parmsEnd;
+		return parmIndex != -1 && offset >= parmsStart;// && offset <= parmsEnd; <- does the trick!1
 	}
 	
 	public ClonkContextInformation() {
