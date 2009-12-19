@@ -78,8 +78,8 @@ public class ClonkProjectNature implements IProjectNature {
 	 * @throws CoreException
 	 */
 	public void saveIndex() throws CoreException {
-		if (index.isDirty()) {
-			getIndex(); // make sure index is loaded in the first place
+		if (index != null && index.isDirty()) {
+			//getIndex(); // make sure index is loaded in the first place -- does not happen
 			IPath indexLocation = getIndexFileLocation();
 			File indexFile = indexLocation.toFile();
 			try {

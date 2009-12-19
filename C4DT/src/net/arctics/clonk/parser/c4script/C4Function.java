@@ -428,7 +428,7 @@ public class C4Function extends C4Structure implements Serializable, ITypedDecla
 	}
 	
 	/**
-	 * Returns whether this functino inherites from the calling function
+	 * Returns whether this function inherits from the calling function
 	 * @param otherFunc
 	 * @return true if related, false if not
 	 */
