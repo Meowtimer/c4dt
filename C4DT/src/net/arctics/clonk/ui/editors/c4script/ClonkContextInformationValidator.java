@@ -85,7 +85,7 @@ public class ClonkContextInformationValidator implements
 		boolean result = false;
 		try {
 			if (fInformation instanceof ClonkContextInformation && !((ClonkContextInformation) fInformation).valid(offset))
-				return result = true;
+				return result = false;
 
 			IDocument document= fTextViewer.getDocument();
 			IRegion line= document.getLineInformationOfOffset(fOffset);
