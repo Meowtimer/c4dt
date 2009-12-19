@@ -82,21 +82,20 @@ public class ClonkContextInformationValidator implements
 	}
 
 	public boolean isContextInformationValid(int offset) {
-		boolean result = false;
 		try {
 			if (fInformation instanceof ClonkContextInformation && !((ClonkContextInformation) fInformation).valid(offset))
-				return result = false;
+				return false;
 
 			IDocument document= fTextViewer.getDocument();
 			IRegion line= document.getLineInformationOfOffset(fOffset);
 
 			if (offset < line.getOffset() || offset >= document.getLength())
-				return result = false;
+				return false;
 
-			return result = getCharCount(document, fOffset, offset, "(", ")", false) >= 0; //$NON-NLS-1$ //$NON-NLS-2$
+			return getCharCount(document, fOffset, offset, "(", ")", false) >= 0; //$NON-NLS-1$ //$NON-NLS-2$
 
 		} catch (BadLocationException x) {
-			return result = false;
+			return false;
 		}
 	}
 
