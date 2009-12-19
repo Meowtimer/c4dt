@@ -158,20 +158,21 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 
 						// initialize progress monitor
 						monitor.beginTask(String.format(Messages.BuildProject, proj.getName()), counter.getCount());
-						// parse
+						
+						// parse declarations
 						buildPhase = 0;
 						delta.accept(this);
+						// refresh global func and static var cache
+						ClonkProjectNature.get(proj).getIndex().refreshCache();
+						
+						// parse function code
 						buildPhase = 1;
 						delta.accept(this);
 						applyLatentMarkers();
 						reparseDependentScripts(monitor);
-						ClonkProjectNature.get(proj).getIndex().refreshCache();
 
 						// fire change event
-						delta.getResource().touch(monitor);
-
-						// refresh global func and static var cache
-						ClonkProjectNature.get(proj).getIndex().refreshCache();
+						//delta.getResource().touch(monitor);
 					}
 					break;
 
@@ -234,14 +235,14 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 							return null;
 						}
 						monitor.subTask(Messages.ParseProject + proj.getName());
-						// parse code bodies
+						// parse function code
 						buildPhase = 1;
 						proj.accept(this);
 						
 						applyLatentMarkers();
 
 						// fire update event
-						proj.touch(monitor);
+						//proj.touch(monitor);
 					}
 
 				}
@@ -253,7 +254,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 				monitor.subTask(Messages.SavingData);
 
 				// mark index as dirty so it will be saved when eclipse is shut down
-				ClonkProjectNature.get(proj).markAsDirty();
+				ClonkProjectNature.get(proj).getIndex().setDirty(true);
 
 				monitor.done();
 
@@ -278,7 +279,8 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 		Set<C4ScriptBase> scripts = new HashSet<C4ScriptBase>();
 		for (C4ScriptParser parser : parserMap.values()) {
 			for (C4ScriptBase dep : parser.getContainer().getIndex().dependentScripts(parser.getContainer())) {
-				scripts.add(dep);
+				if (parserMap.get(dep) == null)
+					scripts.add(dep);
 			}
 		}
 		monitor.beginTask(Messages.ReparseDependentScripts, scripts.size());
@@ -372,8 +374,10 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 
 		if (delta.getResource() instanceof IFile) {
 			IFile file = (IFile) delta.getResource();
-			if (delta.getKind() == IResourceDelta.CHANGED || delta.getKind() == IResourceDelta.ADDED) {
-				C4ScriptBase script = Utilities.getScriptForFile(file);
+			C4ScriptBase script;
+			switch (delta.getKind()) {
+			case IResourceDelta.CHANGED: case IResourceDelta.ADDED:
+				script = Utilities.getScriptForFile(file);
 				if (script == null && buildPhase == 0) {
 					// create if new file
 					IContainer folder = delta.getResource().getParent();
@@ -418,12 +422,12 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 				//						e.printStackTrace();
 				//					}
 				//				}
-			}
-			else if (delta.getKind() == IResourceDelta.REMOVED && delta.getResource().getParent().exists()) {
+				break;
+			case IResourceDelta.REMOVED:
 				if (buildPhase == 0) {
-					C4ScriptBase script = Utilities.getScriptForFile(file);
+					script = C4ScriptIntern.scriptCorrespondingTo(file);
 					if (script != null && file.equals(script.getScriptFile()))
-						script.clearDeclarations();
+						script.getIndex().removeScript(script);
 				}
 			}
 			if (monitor != null)
@@ -432,16 +436,19 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 		}
 		else if (delta.getResource() instanceof IContainer) {
 			// make sure the object has a reference to its folder (not to some obsolete deleted one)
-			if (delta.getKind() == IResourceDelta.ADDED) {
-				C4ObjectIntern object = C4ObjectIntern.objectCorrespondingTo((IContainer)delta.getResource());
+			C4ObjectIntern object;
+			switch (delta.getKind()) {
+			case IResourceDelta.ADDED:
+				object = C4ObjectIntern.objectCorrespondingTo((IContainer)delta.getResource());
 				if (object != null)
 					object.setObjectFolder((IContainer) delta.getResource());
-			}
-			else if (delta.getKind() == IResourceDelta.REMOVED) {
+				break;
+			case IResourceDelta.REMOVED:
 				// remove object when folder is removed
-				C4ObjectIntern object = C4ObjectIntern.objectCorrespondingTo((IContainer)delta.getResource());
+				object = C4ObjectIntern.objectCorrespondingTo((IContainer)delta.getResource());
 				if (object != null)
 					object.getIndex().removeObject(object);
+				break;
 			}
 			return true;
 		}

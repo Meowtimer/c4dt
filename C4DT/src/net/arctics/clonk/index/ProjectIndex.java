@@ -26,6 +26,7 @@ public class ProjectIndex extends ClonkIndex {
 	private Collection<String> dependencyNames;
 	private transient BitSet externalLibBitSet;
 	private String engineName;
+	private transient boolean isDirty;
 	
 	public String getEngineName() {
 		return engineName;
@@ -57,7 +58,7 @@ public class ProjectIndex extends ClonkIndex {
 	
 	public void setDependencyNames(Collection<String> list) {
 		// require resaving
-		getNature().markAsDirty();
+		setDirty(true);
 		if (list != null && list.size() == 0)
 			list = null;
 		this.dependencyNames = list;
@@ -136,6 +137,16 @@ public class ProjectIndex extends ClonkIndex {
 
 	public Iterable<String> getDependencyNames() {
 		return dependencyNames;
+	}
+	
+	@Override
+	public void setDirty(boolean dirty) {
+		isDirty = dirty;
+	}
+	
+	@Override
+	public boolean isDirty() {
+		return isDirty;
 	}
 
 }

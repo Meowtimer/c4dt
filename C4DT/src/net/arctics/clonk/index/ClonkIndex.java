@@ -29,6 +29,7 @@ import net.arctics.clonk.util.IPredicate;
 import net.arctics.clonk.util.Utilities;
 
 import org.eclipse.core.resources.IContainer;
+import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
@@ -100,9 +101,24 @@ public class ClonkIndex implements Serializable, Iterable<C4Object> {
 					}
 				}
 			}
+			// also try scenarios
+			for (C4Scenario s : indexedScenarios) {
+				if (s.getObjectFolder() != null && s.getObjectFolder().equals(folder))
+					return s;
+			}
 			//e.printStackTrace();
 			return null;
 		}
+	}
+	
+	public C4ScriptBase getScript(IFile file) {
+		C4ScriptBase result = Utilities.getScriptForFile(file);
+		if (result == null) {
+			for (C4ScriptBase s : this.indexedScripts)
+				if (s.getResource().equals(file))
+					return s;
+		}
+		return result;
 	}
 
 	private void addToFieldMap(C4Declaration field) {
@@ -199,12 +215,27 @@ public class ClonkIndex implements Serializable, Iterable<C4Object> {
 	}
 	
 	/**
-	 * Removes this object from index.<br>
+	 * Remove the script from the index
+	 * @param script script which maybe a standalone-script, a scenario or an object
+	 */
+	public void removeScript(C4ScriptBase script) {
+		if (script instanceof C4Object)
+			removeObject((C4Object)script);
+		else
+			indexedScripts.remove(script);
+	}
+	
+	/**
+	 * Removes this object from the index.<br>
 	 * The object may still exist in IContainer.sessionProperty<br>
 	 * Take care of the global function and static variable cache. You have to call <tt>refreshCache()</tt> after modifying the index.
 	 * @param obj
 	 */
 	public void removeObject(C4Object obj) {
+		if (obj instanceof C4Scenario) {
+			removeScenario((C4Scenario)obj);
+			return;
+		}
 		if (obj.getId() == null)
 			return;
 		List<C4Object> alreadyDefinedObjects = indexedObjects.get(obj.getId());
@@ -214,6 +245,10 @@ public class ClonkIndex implements Serializable, Iterable<C4Object> {
 				indexedObjects.remove(obj.getId());
 			}
 		}
+	}
+	
+	public void removeScenario(C4Scenario scenario) {
+		this.indexedScenarios.remove(scenario);
 	}
 	
 	public void addScript(C4ScriptBase script) {
@@ -228,13 +263,6 @@ public class ClonkIndex implements Serializable, Iterable<C4Object> {
 			if (!indexedScripts.contains(script))
 				indexedScripts.add(script);
 		}
-	}
-	
-	public void removeScript(C4ScriptBase script) {
-		if (script instanceof C4Object)
-			removeObject((C4Object)script);
-		else
-			indexedScripts.remove(script);
 	}
 	
 	/**
@@ -584,5 +612,8 @@ public class ClonkIndex implements Serializable, Iterable<C4Object> {
 	public C4Engine getEngine() {
 		return ClonkCore.getDefault().getActiveEngine();
 	}
+	
+	public void setDirty(boolean dirty) {}
+	public boolean isDirty() {return false;}
 
 }

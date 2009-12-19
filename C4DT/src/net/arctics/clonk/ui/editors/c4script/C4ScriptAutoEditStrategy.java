@@ -2,11 +2,9 @@ package net.arctics.clonk.ui.editors.c4script;
 
 import net.arctics.clonk.resource.ClonkProjectNature;
 
-import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.DefaultIndentLineAutoEditStrategy;
 import org.eclipse.jface.text.DocumentCommand;
 import org.eclipse.jface.text.IDocument;
-import org.eclipse.jface.text.IRegion;
 
 /**
  * Planned edit strategies:

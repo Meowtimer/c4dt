@@ -37,11 +37,6 @@ public class ClonkProjectNature implements IProjectNature {
 	 */
 	private ProjectIndex index = null;
 
-	/**
-	 * Signals whether the index needs to be saved to disk
-	 */
-	private boolean indexDirty = false;
-
 	public ClonkProjectNature() {
 	}
 
@@ -83,12 +78,12 @@ public class ClonkProjectNature implements IProjectNature {
 	 * @throws CoreException
 	 */
 	public void saveIndex() throws CoreException {
-		if (indexDirty) {
+		if (index.isDirty()) {
 			getIndex(); // make sure index is loaded in the first place
 			IPath indexLocation = getIndexFileLocation();
-			File index = indexLocation.toFile();
+			File indexFile = indexLocation.toFile();
 			try {
-				FileOutputStream out = new FileOutputStream(index);
+				FileOutputStream out = new FileOutputStream(indexFile);
 				try {
 					ObjectOutputStream objStream = new ObjectOutputStream(out);
 					objStream.writeObject(getIndex());
@@ -99,7 +94,7 @@ public class ClonkProjectNature implements IProjectNature {
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
-			indexDirty = false;
+			index.setDirty(false);
 		}
 	}
 
@@ -136,25 +131,14 @@ public class ClonkProjectNature implements IProjectNature {
 			if (oldLocation) {
 				// old location: mark as dirty so it will be saved in the new location when shutting down
 				// also remove old file
-				markAsDirty();
 				indexFile.delete();
+				index.setDirty(true);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
 			// somehow failed - ignore
 			index = new ProjectIndex(project);
 		}
-	}
-
-	/**
-	 * @return whether the index is dirty and needs to be resaved or not
-	 */
-	public boolean isIndexDirty() {
-		return indexDirty;
-	}
-
-	public void markAsDirty() {
-		indexDirty = true;
 	}
 
 	public List<ExternalLib> getDependencies() {

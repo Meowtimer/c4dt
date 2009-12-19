@@ -94,5 +94,10 @@ public class C4ScriptIntern extends C4ScriptBase implements Serializable {
 		else
 			return false;
 	}
+	
+	public static C4ScriptIntern scriptCorrespondingTo(IFile file) {
+		C4ScriptBase script = Utilities.getIndex(file) != null ? Utilities.getIndex(file).getScript(file) : null;
+		return script instanceof C4ScriptIntern ? (C4ScriptIntern)script : null;
+	}
 
 }
