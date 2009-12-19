@@ -60,8 +60,8 @@ public class C4GroupImporter extends WorkspaceModifyOperation {
 							for (; currentGroup != item.getParentGroup(); currentGroup = currentGroup.getParentGroup(), currentContainer = currentContainer.getParent());
 							if (item instanceof C4Group) {
 								C4Group group = (C4Group)item;
-								if (group.getParentGroup() == null)
-									monitor.beginTask(String.format(Messages.C4GroupImporter_ImportTask, group.getName()), group.getSizeOfChildren());
+								/*if (group.getParentGroup() == null)
+									monitor.subTask(String.format(Messages.C4GroupImporter_ImportTask, group.getName()));*/
 								IFolder newFolder = currentContainer.getFolder(new Path(group.getName()));
 								newFolder.create(IResource.NONE, true, monitor);
 								currentContainer = newFolder;
