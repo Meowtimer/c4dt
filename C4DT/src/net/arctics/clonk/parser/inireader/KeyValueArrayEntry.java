@@ -46,7 +46,7 @@ public abstract class KeyValueArrayEntry<KeyType, ValueType> implements IIniEntr
 	public void setInput(String input, IniDataEntry entryData) throws IniParserException {
 		// CLNK=1;STIN=10;
 		components.clear();
-		String[] parts = input.split(";"); //$NON-NLS-1$
+		String[] parts = input.split(";|,"); //$NON-NLS-1$
 		for(String part : parts) {
 			if (part.contains("=")) { //$NON-NLS-1$
 				KeyValuePair<KeyType, ValueType> kv = singleComponentFromString(part);
