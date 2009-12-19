@@ -7,7 +7,11 @@ import java.util.LinkedList;
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.index.C4Engine;
 import net.arctics.clonk.preferences.ClonkPreferences;
+import net.arctics.clonk.resource.c4group.C4Group;
+import net.arctics.clonk.resource.c4group.C4Group.C4GroupType;
+import net.arctics.clonk.util.Utilities;
 
+import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
@@ -174,6 +178,15 @@ public class ClonkLaunchConfigurationDelegate implements
 		
 		// Scenario
 		args.add(scenario.getRawLocation().toOSString());
+		
+		// add stuff from the project so Clonk does not fail to find them
+		for (IResource res : scenario.getProject().members(0)) {
+			if (res instanceof IContainer)
+				if (!res.getName().startsWith("."))
+					if (C4Group.getGroupType(res.getName()) != C4GroupType.ScenarioGroup)
+						if (!Utilities.resourceInside(scenario, (IContainer) res))
+							args.add(res.getRawLocation().toOSString());
+		}
 		
 		// Full screen/console
 		if(configuration.getAttribute(ATTR_FULLSCREEN, false))
