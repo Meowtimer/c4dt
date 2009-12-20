@@ -1,6 +1,7 @@
 package net.arctics.clonk.command;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
@@ -12,7 +13,11 @@ import java.net.UnknownHostException;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.eclipse.core.runtime.CoreException;
+
 import net.arctics.clonk.ClonkCore;
+import net.arctics.clonk.index.C4Object;
+import net.arctics.clonk.index.C4Scenario;
 import net.arctics.clonk.index.ClonkIndex;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.SimpleScriptStorage;
@@ -157,6 +162,7 @@ public class Command {
 		registerCommandsFromClass(DebugCommands.class);
 		registerCommandsFromClass(CodeConversionCommands.class);
 		registerCommandsFromClass(EngineConfiguration.class);
+		registerCommandsFromClass(Diagnostics.class);
 	}
 
 	private static void registerCommandsFromClass(Class<?> classs) {
@@ -299,6 +305,31 @@ public class Command {
 		@CommandFunction
 		public static void SetEngineProperty(Object context, String name, Object value) {
 			setFieldValue(ClonkCore.getDefault().getActiveEngine(), name, value);
+		}
+	}
+	
+	public static class Diagnostics {
+		@CommandFunction
+		public static void ReadIndex(Object context, String path) {
+			ClonkIndex index = ClonkIndex.load(ClonkIndex.class, new File(path), null);
+			try {
+				index.postSerialize();
+			} catch (CoreException e) {
+				e.printStackTrace();
+				return;
+			}
+			System.out.println("===Objects===");
+			for (C4Object obj : index) {
+				System.out.println(obj.toString());
+			}
+			System.out.println("===Scripts===");
+			for (C4ScriptBase script : index.getIndexedScripts()) {
+				System.out.println(script.toString());
+			}
+			System.out.println("===Scenarios===");
+			for (C4Scenario scen : index.getIndexedScenarios()) {
+				System.out.println(scen.toString());
+			}
 		}
 	}
 	
