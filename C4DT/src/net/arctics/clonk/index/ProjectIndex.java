@@ -36,7 +36,7 @@ public class ProjectIndex extends ClonkIndex {
 		this.engineName = engineName;
 	}
 
-	public List<ExternalLib> getDependencies() {
+	public List<ExternalLib> getExternalDependencies() {
 		List<ExternalLib> allLibs = ClonkCore.getDefault().getExternIndex().getLibs();
 		// no explicit dependencies specified; return all set in preferences
 		if (dependencyNames == null)
@@ -49,14 +49,14 @@ public class ProjectIndex extends ClonkIndex {
 		});
 	}
 	
-	public void setDependencies(List<ExternalLib> list) {
+	public void setExternalDependencies(List<ExternalLib> list) {
 		Collection<String> depNames = new ArrayList<String>(list.size());
 		for (ExternalLib lib : list)
 			depNames.add(lib.getNodeName());
-		setDependencyNames(depNames);
+		setExternalDependencyNames(depNames);
 	}
 	
-	public void setDependencyNames(Collection<String> list) {
+	public void setExternalDependencyNames(Collection<String> list) {
 		// require resaving
 		setDirty(true);
 		if (list != null && list.size() == 0)
@@ -102,37 +102,39 @@ public class ProjectIndex extends ClonkIndex {
 
 	public void postSerialize() throws CoreException {
 		notifyExternalLibsSet();
-		List<C4ScriptBase> stuffToBeRemoved = new LinkedList<C4ScriptBase>();
-		for (C4Object object : this) {
-			if (object instanceof C4ObjectIntern) {
-				if (!((C4ObjectIntern)object).refreshFolderReference(project)) {
-					stuffToBeRemoved.add(object);
+		if (project != null) {
+			List<C4ScriptBase> stuffToBeRemoved = new LinkedList<C4ScriptBase>();
+			for (C4Object object : this) {
+				if (object instanceof C4ObjectIntern) {
+					if (!((C4ObjectIntern)object).refreshFolderReference(project)) {
+						stuffToBeRemoved.add(object);
+					}
 				}
 			}
-		}
-		for (C4Scenario scenario : getIndexedScenarios()) {
-			if (!scenario.refreshFolderReference(project)) {
-				stuffToBeRemoved.add(scenario);
-			}
-		}
-		for (C4ScriptBase script : getIndexedScripts()) {
-			if (script instanceof C4ScriptIntern) {
-				C4ScriptIntern standalone = (C4ScriptIntern) script;
-				if (!standalone.refreshFileReference(project)) {
-					stuffToBeRemoved.add(standalone);
+			for (C4Scenario scenario : getIndexedScenarios()) {
+				if (!scenario.refreshFolderReference(project)) {
+					stuffToBeRemoved.add(scenario);
 				}
 			}
-		}
-		// purge objects that seem to be non-existent
-		for (C4ScriptBase s : stuffToBeRemoved) {
-			this.removeScript(s);
+			for (C4ScriptBase script : getIndexedScripts()) {
+				if (script instanceof C4ScriptIntern) {
+					C4ScriptIntern standalone = (C4ScriptIntern) script;
+					if (!standalone.refreshFileReference(project)) {
+						stuffToBeRemoved.add(standalone);
+					}
+				}
+			}
+			// purge objects that seem to be non-existent
+			for (C4ScriptBase s : stuffToBeRemoved) {
+				this.removeScript(s);
+			}
 		}
 		super.postSerialize();
 	}
 	
 	@Override
 	public String toString() {
-		return "Index for " + project.toString(); //$NON-NLS-1$
+		return project != null ? "Index for " + project.toString() : "Orphan Project Index";
 	}
 
 	public Iterable<String> getDependencyNames() {

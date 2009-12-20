@@ -56,7 +56,7 @@ public class ClonkProjectProperties extends FieldEditorPreferencePage implements
 		@SuppressWarnings("unchecked")
 		public void commit(String n, String v) {
 			if (n.equals(DEPENDENCIES_PROPERTY)) {
-				ClonkProjectNature.get(getProject()).getIndex().setDependencyNames(Utilities.collectionFromArray(LinkedList.class, !v.equals("") ? v.split("<>") : new String[0])); //$NON-NLS-1$ //$NON-NLS-2$
+				ClonkProjectNature.get(getProject()).getIndex().setExternalDependencyNames(Utilities.collectionFromArray(LinkedList.class, !v.equals("") ? v.split("<>") : new String[0])); //$NON-NLS-1$ //$NON-NLS-2$
 			} else if (n.equals(SHOWSDEPENDENCIES_PROPERTY)) {
 				try {
 					Utilities.setShowsDependencies(getProject(), Boolean.parseBoolean(v));
