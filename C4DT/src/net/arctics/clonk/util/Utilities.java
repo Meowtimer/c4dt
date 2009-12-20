@@ -620,5 +620,18 @@ public abstract class Utilities {
 				return true;
 		return false;
 	}
+
+	@SuppressWarnings("rawtypes")
+	public static final IConverter<Object, Class> INSTANCE_TO_CLASS_CONVERTER = new IConverter<Object, Class>() {
+
+		@Override
+		public Class convert(Object from) {
+			return from.getClass();
+		}
+	};
+	
+	public static Class<?>[] getParameterTypes(Object[] constructorArgs) {
+		return map(constructorArgs, Class.class, INSTANCE_TO_CLASS_CONVERTER);
+	}
 	
 }
