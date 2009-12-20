@@ -79,7 +79,8 @@ public class C4ObjectExtern extends C4Object implements ITreeNode, IExternalScri
 	public ClonkIndex getIndex() {
 		if (this == ClonkCore.getDefault().getActiveEngine())
 			return null;
-		return getExternalLib().getIndex();
+		ExternalLib lib = getExternalLib();
+		return lib != null ? getExternalLib().getIndex() : null;
 	}
 
 	// return name of folder instead of name of object (so constructed paths don't look wierd)
@@ -157,6 +158,8 @@ public class C4ObjectExtern extends C4Object implements ITreeNode, IExternalScri
 	
 	public String getFilePath() {
 		IPath path = this.getPath();
+		if (getExternalLib().getIndex() instanceof ProjectIndex)
+			path = path.removeFirstSegments(1);
 		IPath gamePath = new Path(ClonkPreferences.getPreference(ClonkPreferences.GAME_PATH, "", null)); //$NON-NLS-1$
 		return gamePath.append(path).toOSString();
 	}

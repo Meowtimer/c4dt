@@ -63,7 +63,7 @@ public final class ExternalLibsLoader implements IC4GroupVisitor {
 						entryName.equals("DefCore.txt") || // $NON-NLS-1$ //$NON-NLS-1$
 						entryName.equals("Names.txt") || // $NON-NLS-1$ //$NON-NLS-1$
 						entryName.matches(DESC_TXT_PATTERN.pattern()) ||
-						// also load string tables since they are needed for getting the correct names OC definitions
+						// also load string tables since they are needed for getting the correct names of OC definitions
 						entryName.matches(StringTbl.PATTERN.pattern());
 				}
 
@@ -144,6 +144,10 @@ public final class ExternalLibsLoader implements IC4GroupVisitor {
 					DefCoreUnit defCoreWrapper = new DefCoreUnit(new ByteArrayInputStream(defCore.getContentsAsArray()));
 					try {
 						defCoreWrapper.parse(false);
+						if (currentExternNode == null) {
+							// pack that is one definition: create ExternalLib wrapper with same name (FIXME: won't allow proper dragging since the file path will be off)
+							createGroup(group);
+						}
 						C4ObjectExtern obj = new C4ObjectExtern(defCoreWrapper.getObjectID(), defCoreWrapper.getName(), script, currentExternNode);
 						currentExternNode = obj; nodeGroup = group;
 						

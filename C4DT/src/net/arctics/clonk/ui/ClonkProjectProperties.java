@@ -11,6 +11,7 @@ import net.arctics.clonk.index.ProjectIndex;
 import net.arctics.clonk.preferences.ExternalLibsEditor;
 
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.core.runtime.NullProgressMonitor;
@@ -66,6 +67,11 @@ public class ClonkProjectProperties extends FieldEditorPreferencePage implements
 				} catch (CoreException e) {
 					e.printStackTrace();
 				}
+			}
+			try {
+				getProject().refreshLocal(IResource.DEPTH_ONE, null);
+			} catch (CoreException e) {
+				e.printStackTrace();
 			}
 		}
 		
