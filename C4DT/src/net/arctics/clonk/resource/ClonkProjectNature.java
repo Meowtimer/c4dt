@@ -1,15 +1,13 @@
 package net.arctics.clonk.resource;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.InputStream;
-import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.List;
 
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.index.C4ObjectIntern;
+import net.arctics.clonk.index.ClonkIndex;
 import net.arctics.clonk.index.ProjectIndex;
 import net.arctics.clonk.parser.c4script.C4ScriptBase;
 import net.arctics.clonk.parser.c4script.C4ScriptIntern;
@@ -101,48 +99,23 @@ public class ClonkProjectNature implements IProjectNature {
 	/**
 	 * Loads the index from disk
 	 */
-	private void loadIndex() {
-		boolean oldLocation = false;
-		File indexFile = getIndexFileLocation().toFile();
-		if (!indexFile.exists()) {
-			// fall back to old indexdata file
-			indexFile = getOldIndexFileLocation().toFile();
-			if (!indexFile.exists()) {
-				index = new ProjectIndex(project);
-				return;
-			}
-			else
-				oldLocation = true;
-		}
-		try {
-			InputStream in = new FileInputStream(indexFile);
+	private synchronized void loadIndex() {
+		ProjectIndex loadedIndex = ClonkIndex.load(ProjectIndex.class, getIndexFileLocation().toFile(), getOldIndexFileLocation().toFile());
+		if (loadedIndex != null) {
+			index = loadedIndex; // necessary to avoid infinite recursion
+			loadedIndex.setProject(getProject());
 			try {
-				ObjectInputStream objStream = new InputStreamRespectingUniqueIDs(in);
-				try {
-					index = (ProjectIndex)objStream.readObject();
-					index.setProject(getProject());
-					index.postSerialize();
-				} finally {
-					objStream.close();
-				}
-			} finally {
-				in.close();
+				loadedIndex.postSerialize();
+			} catch (CoreException e) {
+				e.printStackTrace();
+				loadedIndex = null;
 			}
-			if (oldLocation) {
-				// old location: mark as dirty so it will be saved in the new location when shutting down
-				// also remove old file
-				indexFile.delete();
-				index.setDirty(true);
-			}
-		} catch (Exception e) {
-			e.printStackTrace();
-			// somehow failed - ignore
-			index = new ProjectIndex(project);
 		}
+		index = loadedIndex != null ? loadedIndex : new ProjectIndex(getProject());
 	}
 
-	public List<ExternalLib> getDependencies() {
-		return getIndex().getDependencies();
+	public List<ExternalLib> getExternalDependencies() {
+		return getIndex().getExternalDependencies();
 	}
 	
 	/**

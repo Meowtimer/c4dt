@@ -1,5 +1,9 @@
 package net.arctics.clonk.index;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.InputStream;
+import java.io.ObjectInputStream;
 import java.io.Serializable;
 
 import java.util.ArrayList;
@@ -24,6 +28,7 @@ import net.arctics.clonk.parser.c4script.C4Function.C4FunctionScope;
 import net.arctics.clonk.parser.c4script.C4Variable.C4VariableScope;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.resource.ExternalLib;
+import net.arctics.clonk.resource.InputStreamRespectingUniqueIDs;
 import net.arctics.clonk.util.IHasRelatedResource;
 import net.arctics.clonk.util.IPredicate;
 import net.arctics.clonk.util.Utilities;
@@ -615,5 +620,43 @@ public class ClonkIndex implements Serializable, Iterable<C4Object> {
 	
 	public void setDirty(boolean dirty) {}
 	public boolean isDirty() {return false;}
+	
+	public static <T extends ClonkIndex> T load(Class<T> indexClass, File indexFile, File fallbackFileLocation) {
+		boolean oldLocation = false;
+		if (!indexFile.exists()) {
+			// fall back to old indexdata file
+			indexFile = fallbackFileLocation;
+			if (indexFile == null || !indexFile.exists()) {
+				return null;
+			}
+			else
+				oldLocation = true;
+		}
+		try {
+			InputStream in = new FileInputStream(indexFile);
+			T index;
+			try {
+				ObjectInputStream objStream = new InputStreamRespectingUniqueIDs(in);
+				try {
+					index = indexClass.cast(objStream.readObject());
+				} finally {
+					objStream.close();
+				}
+			} finally {
+				in.close();
+			}
+			if (oldLocation) {
+				// old location: mark as dirty so it will be saved in the new location when shutting down
+				// also remove old file
+				indexFile.delete();
+				index.setDirty(true);
+			}
+			return index;
+		} catch (Exception e) {
+			e.printStackTrace();
+			// somehow failed - ignore
+			return null;
+		}
+	}
 
 }
