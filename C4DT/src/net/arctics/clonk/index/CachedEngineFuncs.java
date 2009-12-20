@@ -31,6 +31,7 @@ public class CachedEngineFuncs {
 	public C4Function AddCommand;
 	public C4Function AppendCommand;
 	public C4Function ObjectCall;
+	public Object     This; // this as variable name not allowed so exclude this var -.-
 	
 	public final C4Function[] ObjectCallFunctions;
 	
@@ -44,6 +45,7 @@ public class CachedEngineFuncs {
 					f.set(this, this.f(f.getName()));
 				}
 			}
+			This = this.f("this");
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

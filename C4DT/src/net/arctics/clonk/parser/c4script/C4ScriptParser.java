@@ -234,7 +234,7 @@ public class C4ScriptParser {
 	 * Returns the script object that is being parsed by the parser.
 	 * @return
 	 */
-	public C4ScriptBase getContainer() {
+	public final C4ScriptBase getContainer() {
 		return container;
 	}
 	

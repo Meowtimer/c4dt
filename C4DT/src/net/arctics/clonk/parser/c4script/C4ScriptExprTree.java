@@ -1053,7 +1053,7 @@ public abstract class C4ScriptExprTree {
 		@Override
 		public C4Object guessObjectType(C4ScriptParser parser) {
 			// FIXME: could lead to problems when one of those functions does not take an id as first parameter
-			if (params.length == 0 && getDeclaration() == C4Variable.THIS) {
+			if (params.length == 0 && (getDeclaration() == getCachedFuncs(parser).This || getDeclaration() == C4Variable.THIS)) {
 				return parser.getContainerObject();
 			}
 			else if (isCriteriaSearch()) {
@@ -1882,16 +1882,6 @@ public abstract class C4ScriptExprTree {
 							return new DeclarationRegion(scenFunc, identifierRegion());
 					}
 				}
-
-				// ScheduleCall: second parameter is function name; first is object to call the function in
-				else if (myIndex == 1 && parentFunc.getDeclarationName().equals("ScheduleCall")) {
-					C4Object typeToLookIn = parentFunc.getParams()[0].guessObjectType(parser);
-					if (typeToLookIn != null) {
-						C4Function func = typeToLookIn.findFunction(stringValue());
-						if (func != null)
-							return new DeclarationRegion(func, identifierRegion());
-					}
-				}
 				
 				else if (myIndex == 0 && parentFunc.getDeclarationName().equals("Schedule")) {
 					// parse first parm of Schedule as expression and see what goes
@@ -1932,7 +1922,7 @@ public abstract class C4ScriptExprTree {
 				}
 
 				// ProtectedCall/PrivateCall/ObjectCall, a bit more complicated than Call
-				else if (myIndex == 1 && Utilities.isAnyOf(parentFunc.getDeclaration(), getCachedFuncs(parser).ObjectCallFunctions)) {
+				else if (myIndex == 1 && (Utilities.isAnyOf(parentFunc.getDeclaration(), getCachedFuncs(parser).ObjectCallFunctions) || parentFunc.getDeclarationName().equals("ScheduleCall"))) {
 					C4Object typeToLookIn = parentFunc.getParams()[0].guessObjectType(parser);
 					if (typeToLookIn == null && parentFunc.getPredecessorInSequence() != null)
 						typeToLookIn = parentFunc.getPredecessorInSequence().guessObjectType(parser);

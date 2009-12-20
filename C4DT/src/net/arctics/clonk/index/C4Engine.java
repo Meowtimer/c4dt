@@ -20,7 +20,7 @@ public class C4Engine extends C4ObjectExtern {
 	public int strictDefaultLevel;
 	public int maxStringLen;
 
-	public CachedEngineFuncs getCachedFuncs() {
+	public final CachedEngineFuncs getCachedFuncs() {
 		return cachedFuncs;
 	}
 
