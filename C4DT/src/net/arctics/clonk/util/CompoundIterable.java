@@ -31,9 +31,7 @@ public class CompoundIterable<T> implements Iterable<T>, Iterator<T> {
 		return curIterator.next();
 	}
 
-	public void remove() {
-		// TODO Auto-generated method stub
-		
+	public void remove() {	
 	}
 
 }

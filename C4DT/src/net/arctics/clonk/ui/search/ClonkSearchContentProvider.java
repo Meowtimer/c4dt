@@ -27,8 +27,6 @@ public class ClonkSearchContentProvider implements ITreeContentProvider {
 	}
 
 	public void dispose() {
-		// TODO Auto-generated method stub
-
 	}
 
 	public void inputChanged(Viewer viewer, Object oldInput, Object newInput) {

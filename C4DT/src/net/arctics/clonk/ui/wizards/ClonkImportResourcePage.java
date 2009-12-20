@@ -29,7 +29,6 @@ public class ClonkImportResourcePage extends WizardResourceImportPage {
 
 	@Override
 	protected ITreeContentProvider getFolderProvider() {
-		// TODO Auto-generated method stub
 		return null;
 	}
 

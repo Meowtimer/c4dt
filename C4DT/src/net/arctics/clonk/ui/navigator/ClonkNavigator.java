@@ -95,13 +95,10 @@ public class ClonkNavigator extends ClonkOutlineProvider {
 	}
 
 	public void dispose() {
-		// TODO Auto-generated method stub
 		
 	}
 
-	public void inputChanged(Viewer viewer, Object oldInput, Object newInput) {
-		// TODO Auto-generated method stub
-		
+	public void inputChanged(Viewer viewer, Object oldInput, Object newInput) {	
 	}
 
 }
