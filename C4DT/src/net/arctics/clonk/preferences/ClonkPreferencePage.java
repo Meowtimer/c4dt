@@ -4,22 +4,16 @@ import java.io.File;
 import java.util.List;
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.index.C4Engine;
-import net.arctics.clonk.util.UI;
 
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Path;
-import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.preference.BooleanFieldEditor;
 import org.eclipse.jface.preference.ComboFieldEditor;
 import org.eclipse.jface.preference.DirectoryFieldEditor;
 import org.eclipse.jface.preference.FieldEditorPreferencePage;
 import org.eclipse.jface.preference.FileFieldEditor;
-import org.eclipse.jface.preference.ListEditor;
 import org.eclipse.jface.preference.StringFieldEditor;
 import org.eclipse.jface.util.Util;
-import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.DirectoryDialog;
-import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPreferencePage;
 
@@ -28,75 +22,6 @@ import org.eclipse.ui.IWorkbenchPreferencePage;
  */
 public class ClonkPreferencePage extends FieldEditorPreferencePage implements IWorkbenchPreferencePage {
 
-	private final class ExternalLibsEditor extends ListEditor {
-		private ExternalLibsEditor(String name, String labelText,
-				Composite parent) {
-			super(name, labelText, parent);
-		}
-
-		@Override
-		protected String[] parseString(String stringList) {
-			if (stringList.length() == 0) return new String[] {};
-			return stringList.split("<>"); //$NON-NLS-1$
-		}
-
-		@Override
-		protected String getNewInputObject() {
-			String gamePath = getPreferenceStore().getString(ClonkPreferences.GAME_PATH);
-			// not yet saved -> look in field editor
-			if (gamePath == null || gamePath.length() == 0) {
-				gamePath = gamePathEditor.getStringValue();
-			}
-			if (gamePath == null || !new File(gamePath).exists()) {
-				gamePath = null;
-			}
-			MessageDialog msgDialog = new MessageDialog(
-				getShell(), Messages.ClonkPreferencePage_GroupFileOrFolder, null, Messages.ClonkPreferencePage_SelectRegularFolder,
-				MessageDialog.INFORMATION, new String[] {
-					Messages.ClonkPreferencePage_Nope,
-					Messages.ClonkPreferencePage_YesIndeed
-				}, 0
-			);
-			switch (msgDialog.open()) {
-			case 0:
-				FileDialog dialog = new FileDialog(getShell());
-				dialog.setText(Messages.ChooseExternalObject);
-				dialog.setFilterExtensions(new String[] { UI.FILEDIALOG_CLONK_FILTER });
-				dialog.setFilterPath(gamePath);
-				return dialog.open();
-			case 1:
-				DirectoryDialog dirDialog = new DirectoryDialog(getShell());
-				dirDialog.setText(Messages.ClonkPreferencePage_SelectExternalFolder);
-				dirDialog.setFilterPath(gamePath);
-				return dirDialog.open();
-			default:
-				return null;
-			}
-		}
-
-		@Override
-		protected String createList(String[] items) {
-			StringBuilder result = new StringBuilder();
-			for (int i = 0; i < items.length; i++) {
-				if (i > 0)
-					result.append("<>"); //$NON-NLS-1$
-				result.append(items[i]);
-			}
-			return result.toString();
-		}
-		
-		public String[] getValues() {
-			return getList().getItems();
-		}
-		
-		public void setValues(String[] items) {
-			getList().setItems(items);
-			setPresentsDefaultValue(false);
-		}
-		
-	}
-
-	private DirectoryFieldEditor gamePathEditor;
 	private ExternalLibsEditor externalLibsEditor;
 	private String previousGamePath;
 	private FileFieldEditor c4GroupEditor;
@@ -113,6 +38,8 @@ public class ClonkPreferencePage extends FieldEditorPreferencePage implements IW
 		// FIXME: not the best place to set that
 		getPreferenceStore().setDefault(ClonkPreferences.EXTERNAL_INDEX_ENCODING, ClonkPreferences.EXTERNAL_INDEX_ENCODING_DEFAULT);
 		getPreferenceStore().setDefault(ClonkPreferences.DOC_URL_TEMPLATE, ClonkPreferences.DOC_URL_TEMPLATE_DEFAULT);
+		
+		StringFieldEditor gamePathEditor;
 		
 		addField(
 			gamePathEditor = new DirectoryFieldEditor(
@@ -235,6 +162,7 @@ public class ClonkPreferencePage extends FieldEditorPreferencePage implements IW
 			)
 		);
 		addField(externalLibsEditor = new ExternalLibsEditor(ClonkPreferences.STANDARD_EXT_LIBS, Messages.ExternalObjectsAndScripts, getFieldEditorParent()));
+		externalLibsEditor.gamePathEditor = gamePathEditor;
 		addField(
 			new ExceptionlessEncodingFieldEditor(
 				ClonkPreferences.EXTERNAL_INDEX_ENCODING,

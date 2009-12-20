@@ -19,24 +19,27 @@ public class ExternIndex extends ClonkIndex {
 	private List<ExternalLib> libs;
 	
 	public ExternIndex() {
-		libs = new ArrayList<ExternalLib>();
+		getLibs();
 	}
 	
 	public List<ExternalLib> getLibs() {
+		if (libs == null)
+			libs = new ArrayList<ExternalLib>();
 		return libs;
 	}
 	
-	@Override
-	public synchronized void refreshCache() {
-		for (int i = 0; i < libs.size(); i++)
-			libs.get(i).setIndex(i);
-		super.refreshCache();
+	public String[] getLibPaths() {
+		String[] result = new String[libs.size()];
+		for (int i = 0; i < result.length; i++)
+			result[i] = libs.get(i).getFullPath();
+		return result;
 	}
 	
 	@Override
 	public void clear() {
 		super.clear();
-		libs.clear();
+		if (libs != null)
+			libs.clear();
 	}
 
 	public C4ScriptBase findScriptByPath(String path) {
@@ -57,6 +60,20 @@ public class ExternIndex extends ClonkIndex {
 				return (C4ScriptBase) node;
 		}
 		return null;
+	}
+	
+	public String libsEncodedAsString() {
+		if (libs == null)
+			return "";
+		StringBuilder builder = new StringBuilder();
+		int i = 0;
+		for (ExternalLib lib : libs) {
+			String s = lib.getFullPath();
+			builder.append(s);
+			builder.append("<>"); //$NON-NLS-1$
+			i++;
+		}
+		return builder.toString();
 	}
 	
 	@Override

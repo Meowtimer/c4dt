@@ -152,7 +152,7 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 
 		registerStructureClasses();
 		
-		// react to active enginge being changed
+		// react to active engine being changed
 		getPreferenceStore().addPropertyChangeListener(new IPropertyChangeListener() {
 			@Override
 			public void propertyChange(PropertyChangeEvent event) {

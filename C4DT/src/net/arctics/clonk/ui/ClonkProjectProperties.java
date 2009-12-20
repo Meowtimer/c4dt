@@ -1,30 +1,29 @@
 package net.arctics.clonk.ui;
 
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.Map;
 
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.util.Utilities;
+import net.arctics.clonk.index.ExternalLibsLoader;
+import net.arctics.clonk.index.ProjectIndex;
+import net.arctics.clonk.preferences.ExternalLibsEditor;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IAdaptable;
-import org.eclipse.jface.dialogs.InputDialog;
+import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.jface.preference.BooleanFieldEditor;
 import org.eclipse.jface.preference.FieldEditorPreferencePage;
 import org.eclipse.jface.preference.IPreferenceStore;
-import org.eclipse.jface.preference.ListEditor;
 import org.eclipse.jface.preference.PreferenceStore;
 import org.eclipse.ui.IWorkbenchPropertyPage;
-import org.eclipse.ui.PlatformUI;
 
 public class ClonkProjectProperties extends FieldEditorPreferencePage implements IWorkbenchPropertyPage {
 
 	private static final String DEPENDENCIES_PROPERTY = "dependencies"; //$NON-NLS-1$
 	private static final String SHOWSDEPENDENCIES_PROPERTY = "showsDependencies"; //$NON-NLS-1$
-	private static final String INHERITSDEPENDENCIES_PROPERTY = "inheritsDependencies";
 	
 	private final class AdapterStore extends PreferenceStore {
 		private Map<String, String> values = new HashMap<String, String>();
@@ -53,10 +52,14 @@ public class ClonkProjectProperties extends FieldEditorPreferencePage implements
 			return v != null ? v : getDefaultString(name);
 		}
 
-		@SuppressWarnings("unchecked")
 		public void commit(String n, String v) {
 			if (n.equals(DEPENDENCIES_PROPERTY)) {
-				ClonkProjectNature.get(getProject()).getIndex().setExternalDependencyNames(Utilities.collectionFromArray(LinkedList.class, !v.equals("") ? v.split("<>") : new String[0])); //$NON-NLS-1$ //$NON-NLS-2$
+				ProjectIndex projIndex = ClonkProjectNature.get(getProject()).getIndex();
+				try {
+					ExternalLibsLoader.readExternalLibs(projIndex, new NullProgressMonitor(), !v.equals("") ? v.split("<>") : new String[0]);
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
 			} else if (n.equals(SHOWSDEPENDENCIES_PROPERTY)) {
 				try {
 					Utilities.setShowsDependencies(getProject(), Boolean.parseBoolean(v));
@@ -67,7 +70,7 @@ public class ClonkProjectProperties extends FieldEditorPreferencePage implements
 		}
 		
 		public AdapterStore() throws CoreException {
-			values.put(DEPENDENCIES_PROPERTY, stringFromIterable(ClonkProjectNature.get(getProject()).getIndex().getDependencyNames()));
+			values.put(DEPENDENCIES_PROPERTY, ClonkProjectNature.get(getProject()).getIndex().libsEncodedAsString());
 			values.put(SHOWSDEPENDENCIES_PROPERTY, String.valueOf(getProject().hasNature(ClonkCore.CLONK_DEPS_NATURE_ID)));
 		}
 	}
@@ -84,44 +87,9 @@ public class ClonkProjectProperties extends FieldEditorPreferencePage implements
 		return adapterStore;
 	}
 	
-	private String stringFromIterable(Iterable<String> iterable) {
-		if (iterable == null)
-			return ""; //$NON-NLS-1$
-		StringBuilder builder = new StringBuilder();
-		int i = 0;
-		for (String s : iterable) {
-			builder.append(s);
-			builder.append("<>"); //$NON-NLS-1$
-			i++;
-		}
-		return builder.toString();
-	}
-	
 	@Override
 	protected void createFieldEditors() {
-		addField(new ListEditor(DEPENDENCIES_PROPERTY, Messages.Project_Dependencies, getFieldEditorParent()) {
-			
-			@Override
-			protected String[] parseString(String stringList) {
-				return stringList.split("<>"); //$NON-NLS-1$
-			}
-			
-			@Override
-			protected String getNewInputObject() {
-				InputDialog input = new InputDialog(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(), Messages.Project_NewDependency, Messages.Project_NewDependencyDesc, "", null); //$NON-NLS-1$
-				switch (input.open()) {
-				case InputDialog.CANCEL:
-					return null;
-				default:
-					return input.getValue();
-				}
-			}
-			
-			@Override
-			protected String createList(String[] items) {
-				return stringFromIterable(Utilities.arrayIterable(items));
-			}
-		});
+		addField(new ExternalLibsEditor(DEPENDENCIES_PROPERTY, net.arctics.clonk.preferences.Messages.ExternalObjectsAndScripts, getFieldEditorParent()));
 		addField(new BooleanFieldEditor(SHOWSDEPENDENCIES_PROPERTY, Messages.Project_ShowDependencies, getFieldEditorParent()));
 	}
 

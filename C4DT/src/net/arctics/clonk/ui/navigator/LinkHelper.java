@@ -1,12 +1,12 @@
 package net.arctics.clonk.ui.navigator;
 
+import net.arctics.clonk.index.ExternIndex;
+import net.arctics.clonk.index.ProjectIndex;
 import net.arctics.clonk.parser.C4Declaration;
+import net.arctics.clonk.resource.ExternalLib;
 import net.arctics.clonk.ui.editors.ClonkTextEditor;
 import net.arctics.clonk.ui.editors.c4script.ScriptWithStorageEditorInput;
 import net.arctics.clonk.util.ITreeNode;
-import net.arctics.clonk.util.Utilities;
-
-import org.eclipse.core.resources.IProject;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.viewers.TreePath;
@@ -39,17 +39,18 @@ public class LinkHelper implements ILinkHelper {
 	}
 	
 	public static TreePath getTreePath(ITreeNode node) {
-		IProject depsProj = Utilities.getDependenciesProject();
 		int num;
-		ITreeNode n;
-		for (num = 0, n = node; n != null; n = n.getParentNode(), num++);
-		if (depsProj != null)
+		ITreeNode n, p;
+		for (num = 0, n = node, p = null; n != null; p = n, n = n.getParentNode(), num++);
+		ExternIndex index = (p instanceof ExternalLib && ((ExternalLib)p).getIndex() != null) ? ((ExternalLib)p).getIndex() : null;
+		ProjectIndex projIndex = index instanceof ProjectIndex ? (ProjectIndex)index : null;
+		if (projIndex != null)
 			num++;
 		Object[] path = new Object[num];
 		for (num = 0, n = node; n != null; n = n.getParentNode(), num++)
 			path[path.length-num-1] = n;
-		if (depsProj != null)
-			path[0] = depsProj;
+		if (projIndex != null)
+			path[0] = projIndex.getProject();
 		return new TreePath(path);
 	}
 

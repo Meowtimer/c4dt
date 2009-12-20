@@ -1,30 +1,21 @@
 package net.arctics.clonk.index;
 
-import java.util.ArrayList;
-import java.util.BitSet;
-import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 
-import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.c4script.C4ScriptBase;
 import net.arctics.clonk.parser.c4script.C4ScriptIntern;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.resource.ExternalLib;
-import net.arctics.clonk.util.IPredicate;
-import net.arctics.clonk.util.Utilities;
-
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
 
-public class ProjectIndex extends ClonkIndex {
+public class ProjectIndex extends ExternIndex {
 
 	private static final long serialVersionUID = 1L;
 	public static final String INDEXFILE_SUFFIX = ".index"; //$NON-NLS-1$
 	
 	private transient IProject project;
-	private Collection<String> dependencyNames;
-	private transient BitSet externalLibBitSet;
 	private String engineName;
 	private transient boolean isDirty;
 	
@@ -37,7 +28,8 @@ public class ProjectIndex extends ClonkIndex {
 	}
 
 	public List<ExternalLib> getExternalDependencies() {
-		List<ExternalLib> allLibs = ClonkCore.getDefault().getExternIndex().getLibs();
+		return this.getLibs();
+		/*List<ExternalLib> allLibs = ClonkCore.getDefault().getExternIndex().getLibs();
 		// no explicit dependencies specified; return all set in preferences
 		if (dependencyNames == null)
 			return allLibs;
@@ -46,46 +38,16 @@ public class ProjectIndex extends ClonkIndex {
 			public boolean test(ExternalLib lib) {
 				return Utilities.collectionContains(dependencyNames, lib.getNodeName());
 			}
-		});
-	}
-	
-	public void setExternalDependencies(List<ExternalLib> list) {
-		Collection<String> depNames = new ArrayList<String>(list.size());
-		for (ExternalLib lib : list)
-			depNames.add(lib.getNodeName());
-		setExternalDependencyNames(depNames);
-	}
-	
-	public void setExternalDependencyNames(Collection<String> list) {
-		// require resaving
-		setDirty(true);
-		if (list != null && list.size() == 0)
-			list = null;
-		this.dependencyNames = list;
-		notifyExternalLibsSet();
+		});*/
 	}
 	
 	@Override
 	public boolean acceptsFromExternalLib(ExternalLib lib) {
-		// accept all libs if no project-specific dependencies are defined
-		// also always accept c4g groups (System.c4g)
-		return externalLibBitSet == null || lib.isScriptsGroup() || externalLibBitSet.get(lib.getIndex());
+		return true;
 	}
 	
 	public ClonkProjectNature getNature() {
 		return ClonkProjectNature.get(project);
-	}
-	
-	public void notifyExternalLibsSet() {
-		if (dependencyNames == null)
-			externalLibBitSet = null;
-		else {
-			List<ExternalLib> allLibs = ClonkCore.getDefault().getExternIndex().getLibs();
-			externalLibBitSet = new BitSet(allLibs.size());
-			for (ExternalLib lib : allLibs) {
-				externalLibBitSet.set(lib.getIndex(), Utilities.collectionContains(dependencyNames, lib.getNodeName()));
-			}
-		}
 	}
 	
 	public ProjectIndex(IProject project) {
@@ -101,7 +63,6 @@ public class ProjectIndex extends ClonkIndex {
 	}
 
 	public void postSerialize() throws CoreException {
-		notifyExternalLibsSet();
 		if (project != null) {
 			List<C4ScriptBase> stuffToBeRemoved = new LinkedList<C4ScriptBase>();
 			for (C4Object object : this) {
@@ -135,10 +96,6 @@ public class ProjectIndex extends ClonkIndex {
 	@Override
 	public String toString() {
 		return project != null ? "Index for " + project.toString() : "Orphan Project Index";
-	}
-
-	public Iterable<String> getDependencyNames() {
-		return dependencyNames;
 	}
 	
 	@Override

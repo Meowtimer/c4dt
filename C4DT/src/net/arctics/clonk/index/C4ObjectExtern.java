@@ -163,7 +163,7 @@ public class C4ObjectExtern extends C4Object implements ITreeNode, IExternalScri
 	
 	@Override
 	public String toString() {
-		return getNodeName();
+		return getPath().toOSString();
 	}
 
 	@Override

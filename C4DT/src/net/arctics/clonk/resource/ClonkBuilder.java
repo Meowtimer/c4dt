@@ -12,6 +12,8 @@ import net.arctics.clonk.index.C4Object;
 import net.arctics.clonk.index.C4ObjectIntern;
 import net.arctics.clonk.index.C4ObjectParser;
 import net.arctics.clonk.index.ClonkIndex;
+import net.arctics.clonk.index.ExternalLibsLoader;
+import net.arctics.clonk.index.ProjectIndex;
 import net.arctics.clonk.parser.c4script.C4ScriptBase;
 import net.arctics.clonk.parser.c4script.C4ScriptIntern;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
@@ -95,6 +97,8 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 
 	// keeps track of parsers created for specific scripts
 	private Map<C4ScriptBase, C4ScriptParser> parserMap = new HashMap<C4ScriptBase, C4ScriptParser>();
+	
+	private String[] externalLibs;
 
 	public ClonkBuilder() {
 		super();
@@ -115,7 +119,9 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 		if (monitor != null) monitor.beginTask(Messages.CleaningUp, 1);
 		IProject proj = this.getProject();
 		if (proj != null) {
-			ClonkProjectNature.get(proj).getIndex().clear();
+			ProjectIndex projIndex = ClonkProjectNature.get(proj).getIndex();
+			externalLibs = projIndex.getLibPaths();
+			projIndex.clear();
 			proj.accept(new ResourceCounterAndCleaner(0));
 		}
 		if (monitor != null) {
@@ -125,9 +131,10 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 	}
 
 	@SuppressWarnings({"rawtypes"})
-	protected IProject[] build(int kind, Map args, IProgressMonitor monitor)
-	throws CoreException {
+	protected IProject[] build(int kind, Map args, IProgressMonitor monitor) throws CoreException {
+		
 		parserMap.clear();
+		
 		synchronized (this) {
 			clearUIOfReferencesBeforeBuild();
 			while (!cleanedUI)
@@ -137,14 +144,11 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 					e.printStackTrace();
 				}
 		}
-//		System.gc();
 		
 		try {
 			try {
 				this.monitor = monitor;
 				IProject proj = getProject();
-
-				ClonkProjectNature.get(proj).getIndex().notifyExternalLibsSet();
 
 				switch(kind) {
 				case AUTO_BUILD:
@@ -177,9 +181,11 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 					break;
 
 				case FULL_BUILD:
+					
+					ProjectIndex projIndex = ClonkProjectNature.get(proj).getIndex();
 
 					// calculate build duration
-					int[] operations = new int[4];
+					int[] operations = new int[5];
 					if (proj != null) {
 						// count num of resources to build and also clean...
 						ResourceCounterAndCleaner counter = new ResourceCounterAndCleaner(ResourceCounter.COUNT_CONTAINER);
@@ -205,9 +211,12 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 						}
 						operations[3] = operations[2] / 2; // approximate save time
 					}
+					
+					operations[4] = externalLibs.length;
 
 					int workSum = 0;
-					for(int work : operations) workSum += work;
+					for (int work : operations)
+						workSum += work;
 
 					// initialize progress monitor
 					monitor.beginTask(String.format(Messages.BuildProject, proj.getName()), workSum);
@@ -219,13 +228,14 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 						libBuilder.build(new SubProgressMonitor(monitor,operations[2]));
 
 						monitor.subTask(Messages.SavingLibraries);
-						ClonkCore.getDefault().saveExternIndex(
-								new SubProgressMonitor(monitor,operations[3]));
+						ClonkCore.getDefault().saveExternIndex(new SubProgressMonitor(monitor,operations[3]));
 					}
+					
+					ExternalLibsLoader.readExternalLibs(projIndex, new SubProgressMonitor(monitor, operations[4]), externalLibs);
 
 					// build project
 					if (proj != null) {
-						monitor.subTask(Messages.IndexProject + proj.getName());
+						monitor.subTask(String.format(Messages.IndexProject, proj.getName()));
 						// parse declarations
 						buildPhase = 0;
 						proj.accept(this);
@@ -234,7 +244,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 							monitor.done();
 							return null;
 						}
-						monitor.subTask(Messages.ParseProject + proj.getName());
+						monitor.subTask(String.format(Messages.ParseProject, proj.getName()));
 						// parse function code
 						buildPhase = 1;
 						proj.accept(this);

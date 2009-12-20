@@ -65,4 +65,10 @@ public class ClonkPreferences {
 	public static String getLanguagePref() {
 		return getPreferenceOrDefault(PREFERRED_LANGID);
 	}
+	
+	public static String[] getExternalLibNames() {
+		String optionString = getPreference(STANDARD_EXT_LIBS);
+		return optionString.split("<>"); //$NON-NLS-1$
+	}
+	
 }
