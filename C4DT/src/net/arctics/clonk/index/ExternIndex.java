@@ -29,10 +29,14 @@ public class ExternIndex extends ClonkIndex {
 	}
 	
 	public String[] getLibPaths() {
-		String[] result = new String[libs.size()];
-		for (int i = 0; i < result.length; i++)
-			result[i] = libs.get(i).getFullPath();
-		return result;
+		if (libs == null) {
+			return new String[0];
+		} else {
+			String[] result = new String[libs.size()];
+			for (int i = 0; i < result.length; i++)
+				result[i] = libs.get(i).getFullPath();
+			return result;
+		}
 	}
 	
 	@Override
