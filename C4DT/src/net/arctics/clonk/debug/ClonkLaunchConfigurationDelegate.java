@@ -7,6 +7,8 @@ import java.util.LinkedList;
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.index.C4Engine;
 import net.arctics.clonk.preferences.ClonkPreferences;
+import net.arctics.clonk.resource.ClonkProjectNature;
+import net.arctics.clonk.resource.ExternalLib;
 import net.arctics.clonk.resource.c4group.C4Group;
 import net.arctics.clonk.resource.c4group.C4Group.C4GroupType;
 import net.arctics.clonk.util.Utilities;
@@ -186,6 +188,11 @@ public class ClonkLaunchConfigurationDelegate implements
 					if (C4Group.getGroupType(res.getName()) != C4GroupType.ScenarioGroup)
 						if (!Utilities.resourceInside(scenario, (IContainer) res))
 							args.add(res.getRawLocation().toOSString());
+		}
+		
+		// also add external dependencies
+		for (ExternalLib lib : ClonkProjectNature.get(scenario).getExternalDependencies()) {
+			args.add(lib.getFullPath());
 		}
 		
 		// Full screen/console
