@@ -1,11 +1,15 @@
 package net.arctics.clonk.ui.editors.ini;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.regex.Matcher;
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.index.C4ObjectIntern;
 import net.arctics.clonk.index.ClonkIndex;
+import net.arctics.clonk.index.ExternIndex;
+import net.arctics.clonk.index.ProjectIndex;
 import net.arctics.clonk.parser.C4ID;
 import net.arctics.clonk.parser.c4script.C4Function;
 import net.arctics.clonk.parser.c4script.C4ScriptBase;
@@ -22,12 +26,16 @@ import net.arctics.clonk.parser.inireader.SignedInteger;
 import net.arctics.clonk.parser.inireader.UnsignedInteger;
 import net.arctics.clonk.parser.inireader.IniData.IniDataEntry;
 import net.arctics.clonk.parser.inireader.IniData.IniSectionData;
+import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.resource.ExternalLib;
 import net.arctics.clonk.resource.c4group.C4Group;
 import net.arctics.clonk.resource.c4group.C4Group.C4GroupType;
 import net.arctics.clonk.ui.editors.ClonkCompletionProcessor;
 import net.arctics.clonk.util.Utilities;
 
+import org.eclipse.core.resources.IContainer;
+import org.eclipse.core.resources.IResource;
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IRegion;
@@ -160,12 +168,31 @@ public class IniCompletionProcessor extends ClonkCompletionProcessor<IniTextEdit
 	}
 
 	private void proposalsForDefinitionPackEntry(Collection<ICompletionProposal> proposals, String prefix, int wordOffset) {
-		for (ExternalLib lib : ClonkCore.getDefault().getExternIndex().getLibs()) {
-			if (!lib.getNodeName().toLowerCase().contains(prefix))
-				continue;
-			if (C4Group.getGroupType(lib.getNodeName()) != C4GroupType.DefinitionGroup)
-				continue;
-			proposals.add(new CompletionProposal(lib.getNodeName(), wordOffset, prefix.length(), lib.getNodeName().length()));
+		ClonkProjectNature nature = ClonkProjectNature.get(this.editor.getTopLevelDeclaration().getResource().getProject());
+		List<ClonkIndex> indexes = new ArrayList<ClonkIndex>(10);
+		indexes.add(ClonkCore.getDefault().getExternIndex());
+		indexes.addAll(nature.getIndex().relevantIndexes());
+		for (ClonkIndex index : indexes) {
+			if (index instanceof ExternIndex) {
+				for (ExternalLib lib : ((ExternIndex)index).getLibs()) {
+					if (!lib.getNodeName().toLowerCase().contains(prefix))
+						continue;
+					if (C4Group.getGroupType(lib.getNodeName()) != C4GroupType.DefinitionGroup)
+						continue;
+					proposals.add(new CompletionProposal(lib.getNodeName(), wordOffset, prefix.length(), lib.getNodeName().length()));
+				}
+			}
+			if (index instanceof ProjectIndex) {
+				try {
+					for (IResource res : ((ProjectIndex)index).getProject().members()) {
+						if (res instanceof IContainer && C4Group.getGroupType(res.getName()) == C4GroupType.DefinitionGroup)
+							if (res.getName().toLowerCase().contains(prefix))
+								proposals.add(new CompletionProposal(res.getName(), wordOffset, prefix.length(), res.getName().length()));
+					}
+				} catch (CoreException e) {
+					e.printStackTrace();
+				}
+			}
 		}
 	}
 
