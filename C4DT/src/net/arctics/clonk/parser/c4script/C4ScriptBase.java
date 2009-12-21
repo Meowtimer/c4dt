@@ -77,37 +77,6 @@ public abstract class C4ScriptBase extends C4Structure implements IHasRelatedRes
 	protected List<C4Variable> definedVariables = new LinkedList<C4Variable>();
 	protected List<C4Directive> definedDirectives = new LinkedList<C4Directive>();
 	
-	private static class MutableRegion implements IRegion {
-
-		private int length;
-		private int offset;
-		
-		public MutableRegion(int length, int offset) {
-			super();
-			this.length = length;
-			this.offset = offset;
-		}
-		
-		@Override
-		public int getLength() {
-			return length;
-		}
-
-		@Override
-		public int getOffset() {
-			return offset;
-		}
-
-		public void setLength(int length) {
-			this.length = length;
-		}
-
-		public void setOffset(int offset) {
-			this.offset = offset;
-		}
-		
-	}
-	
 	private transient C4Function[] lineToFunctionMap;
 	
 	public String getScriptText() {
@@ -129,7 +98,7 @@ public abstract class C4ScriptBase extends C4Structure implements IHasRelatedRes
 		if (lineToFunctionMap != null)
 			return;
 		String scriptText = this.getScriptText();
-		MutableRegion region = new MutableRegion(scriptText.length(), 0);
+		MutableRegion region = new MutableRegion(0, scriptText.length());
 		int line = 0;
 		int lineStart = 0;
 		int lineEnd = 0;

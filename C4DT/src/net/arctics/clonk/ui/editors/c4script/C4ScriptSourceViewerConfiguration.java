@@ -197,11 +197,15 @@ public class C4ScriptSourceViewerConfiguration extends ClonkSourceViewerConfigur
 		};
 	}
 	
+	private C4ScriptAutoEditStrategy autoEditStrategy = new C4ScriptAutoEditStrategy(this);
+	
+	public C4ScriptAutoEditStrategy getAutoEditStrategy() {
+		return autoEditStrategy;
+	}
+
 	@Override
 	public IAutoEditStrategy[] getAutoEditStrategies(ISourceViewer sourceViewer, String contentType) {
-		return new IAutoEditStrategy[] {
-			new C4ScriptAutoEditStrategy(this)
-		};
+		return new IAutoEditStrategy[] {autoEditStrategy};
 		//return super.getAutoEditStrategies(sourceViewer, contentType);
 	}
 	

@@ -1,10 +1,16 @@
 package net.arctics.clonk.ui.editors.c4script;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import net.arctics.clonk.parser.c4script.MutableRegion;
 import net.arctics.clonk.resource.ClonkProjectNature;
 
+import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.DefaultIndentLineAutoEditStrategy;
 import org.eclipse.jface.text.DocumentCommand;
 import org.eclipse.jface.text.IDocument;
+import org.eclipse.jface.text.IRegion;
 
 /**
  * Planned edit strategies:
@@ -20,7 +26,10 @@ import org.eclipse.jface.text.IDocument;
  */
 public class C4ScriptAutoEditStrategy extends DefaultIndentLineAutoEditStrategy {
 	
+	private static final String[] AUTOPAIR_STRINGS = {"(", ")", "\"", "\""};
+	
 	private C4ScriptSourceViewerConfiguration configuration;
+	private List<MutableRegion> overrideRegions = new ArrayList<MutableRegion>(3);
 	
 	public C4ScriptSourceViewerConfiguration getConfiguration() {
 		return configuration;
@@ -43,43 +52,66 @@ public class C4ScriptAutoEditStrategy extends DefaultIndentLineAutoEditStrategy 
 	 * 1. sense/use of ReplaceEdit/DeleteEdit/...
 	 * 2. correct calculation of c.caretOffset
 	 */
-	
-	
 	@Override
 	public void customizeDocumentCommand(IDocument d, DocumentCommand c) {
-		if (c.text.endsWith("(")) {
-			c.text += ")";
-			c.shiftsCaret = false;
-			c.caretOffset = c.offset+1;
-			return;
-		}
-		/*if (c.text.contains("\n") || c.text.contains("\r")) { //$NON-NLS-1$ //$NON-NLS-2$
+
+		boolean overrideRegionTrespassed = false;
+		for (int i = overrideRegions.size()-1; i >= 0; i--) {
+			MutableRegion r = overrideRegions.get(i);
 			try {
-				//String originalText = c.text;
-				IRegion reg = d.getLineInformationOfOffset(c.offset);
-				String line = d.get(reg.getOffset(),reg.getLength());
-				if (line.endsWith("{")) {
-					C4Function f = configuration.getEditor().getFuncAt(c.offset);
-					if (f != null && unbalanced(d, f.getBody(), reg.getOffset()+reg.getLength()-1)) {
-						int whitespaceLen;
-						for (whitespaceLen = 0; whitespaceLen < line.length() && BufferedScanner.isWhiteSpaceButNotLineDelimiterChar(line.charAt(whitespaceLen)); whitespaceLen++);
-						String indentStr = line.substring(0, whitespaceLen);
-						line = line.trim();
-						int oldLen = c.text.length();
-						String lineBreakStr = "\n";
-						String blockCloseStr = "}";
-						StringBuilder b = new StringBuilder(oldLen+indentStr.length()*2+C4ScriptExprTree.IndentString.length()+lineBreakStr.length()+blockCloseStr.length());
-						c.text = b.append(c.text).append(indentStr).append(C4ScriptExprTree.IndentString).append(lineBreakStr).append(indentStr).append(blockCloseStr).toString();
-						c.shiftsCaret = false;
-						c.caretOffset = c.offset + 1 + indentStr.length() + C4ScriptExprTree.IndentString.length();
-						return;
+				if (r.getOffset() == c.offset && c.text.length() == 1 && d.getChar(r.getOffset()) == c.text.charAt(0)) {
+					c.text = "";
+					c.shiftsCaret = false;
+					c.caretOffset = c.offset+1;
+					r.incOffset(1);
+					r.incLength(-1);
+					if (r.getLength() == 0) {
+						overrideRegions.remove(i);
 					}
+					overrideRegionTrespassed = true;
+					break;
+				}
+			} catch (BadLocationException e) {
+				e.printStackTrace();
+				break;
+			}
+		}
+		MutableRegion newOne = null;
+		if (!overrideRegionTrespassed) {
+			for (int i = 0; i < AUTOPAIR_STRINGS.length; i += 2) {
+				if (c.text.endsWith(AUTOPAIR_STRINGS[i])){
+					overrideRegions.add(0, newOne = new MutableRegion(c.offset+c.text.length(), AUTOPAIR_STRINGS[i+1].length()));
+					c.text += AUTOPAIR_STRINGS[i+1];
+					c.shiftsCaret = false;
+					c.caretOffset = c.offset+AUTOPAIR_STRINGS[i+1].length();
+					break;
+				}
+			}
+		}
+		for (int i = newOne != null ? 1 : 0; i < overrideRegions.size(); i++) {
+			MutableRegion r = overrideRegions.get(i);
+			if (r.getOffset() >= c.offset) {
+				r.incOffset(c.text.length());
+			}
+		}
+
+
+		super.customizeDocumentCommand(d, c);
+	}
+	
+	public void handleCursorPositionChanged(int cursorPos, IDocument d) {
+		if (!overrideRegions.isEmpty()) {
+			try {
+				IRegion r = d.getLineInformationOfOffset(cursorPos);
+				for (int i = overrideRegions.size()-1; i >= 0; i--) {
+					MutableRegion or = overrideRegions.get(i);
+					if (or.getOffset() < r.getOffset() || or.getOffset() > r.getOffset()+r.getLength())
+						overrideRegions.remove(i);
 				}
 			} catch (BadLocationException e) {
 				e.printStackTrace();
 			}
-		}*/
-		super.customizeDocumentCommand(d, c);
+		}
 	}
 
 	/*

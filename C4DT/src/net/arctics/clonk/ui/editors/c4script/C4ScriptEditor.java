@@ -273,17 +273,17 @@ public class C4ScriptEditor extends ClonkTextEditor {
 			addAction(menu, IClonkCommandIds.FIND_REFERENCES);
 		}
 	}
+	
+	private int cursorPos() {
+		return ((TextSelection)getSelectionProvider().getSelection()).getOffset();
+	}
 
 	@Override
 	protected void handleCursorPositionChanged() {
 		super.handleCursorPositionChanged();
+		
+		// show parameter help
 		ITextOperationTarget opTarget = (ITextOperationTarget) getSourceViewer();
-//		ClonkContentAssistant assistant = ((ClonkContentAssistant)this.getSourceViewerConfiguration().getContentAssistant(getSourceViewer()));
-//		C4ScriptCompletionProcessor processor = (C4ScriptCompletionProcessor) getSourceViewerConfiguration().getContentAssistant(getSourceViewer()).getContentAssistProcessor(IDocument.DEFAULT_CONTENT_TYPE);
-		/*if (processor.isContextInformationChanged()) {
-			System.out.println("hiding");
-			assistant.hide();
-		}*/
 		try {
 			if (PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().getActivePart() == this)
 				if (!getContentAssistant().isProposalPopupActive())
@@ -292,6 +292,8 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		} catch (NullPointerException nullP) {
 			// might just be not that much of an issue
 		}
+		
+		// highlight active function
 		boolean noHighlight = true;
 		C4Function f = getFuncAtCursor();
 		if (f != null) {
@@ -303,13 +305,11 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		}
 		if (noHighlight)
 			this.resetHighlightRange();
-//		try {
-//			CallFunc callFunc = getInnermostCallFuncExpr(((TextSelection)getSelectionProvider().getSelection()).getOffset());
-//			if (callFunc != null)
-//				((ContentAssistant)getSourceViewerConfiguration().getContentAssistant(getSourceViewer())).showContextInformation();
-//        } catch (Exception e) {
-//	        e.printStackTrace();
-//        }
+		
+		// inform auto edit strategy about cursor position change so it can delete its override regions
+		((C4ScriptSourceViewerConfiguration)getSourceViewerConfiguration()).getAutoEditStrategy().handleCursorPositionChanged(
+			cursorPos(), getDocumentProvider().getDocument(getEditorInput()));
+		
 	}
 
 	// created if there is no suitable script to get from somewhere else
@@ -346,7 +346,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 	}
 	
 	public C4Function getFuncAtCursor() {
-		return getFuncAt(((TextSelection)getSelectionProvider().getSelection()).getOffset());
+		return getFuncAt(cursorPos());
 	}
 
 	public C4ScriptParser reparseWithDocumentContents(C4ScriptExprTree.IExpressionListener exprListener, boolean onlyDeclarations) throws IOException, ParsingException {
