@@ -14,7 +14,7 @@ public class OpenSpecialItemAction extends Action {
 	
 	public OpenSpecialItemAction(IWorkbenchPage page,
 			ISelectionProvider selectionProvider) {
-		this.setText("Open"); //$NON-NLS-1$
+		this.setText(Messages.OpenSpecialItemAction_Open);
 		this.provider = selectionProvider;
 	}
 

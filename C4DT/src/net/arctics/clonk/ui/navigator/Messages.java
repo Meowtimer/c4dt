@@ -7,6 +7,7 @@ public class Messages extends NLS {
 	public static String ClonkActionProvider_QuickExport;
 	public static String ClonkActionProvider_ConvertOldCode;
 	public static String ConvertOldCodeInBulkAction_ConvertingCode;
+	public static String OpenSpecialItemAction_Open;
 	public static String QuickImportAction_SelectFiles;
 	static {
 		// initialize resource bundle
