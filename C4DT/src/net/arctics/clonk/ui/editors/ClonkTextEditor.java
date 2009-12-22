@@ -220,4 +220,6 @@ public class ClonkTextEditor extends TextEditor {
 		return (ClonkContentAssistant) getSourceViewerConfiguration().getContentAssistant(getSourceViewer());
 	}
 	
+	public void completionProposalApplied(ClonkCompletionProposal proposal) {}
+	
 }

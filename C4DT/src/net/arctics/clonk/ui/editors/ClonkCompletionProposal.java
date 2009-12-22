@@ -12,23 +12,42 @@ import org.eclipse.swt.graphics.Point;
 public class ClonkCompletionProposal implements ICompletionProposal, ICompletionProposalExtension6 {
 	
 	/** The string to be displayed in the completion proposal popup. */
-	private String fDisplayString;
+	private String displayString;
 	/** The string to be displayed after the display string. */
-	private String fPostInfo;
+	private String postInfo;
 	/** The replacement string. */
-	private String fReplacementString;
+	private String replacementString;
+
 	/** The replacement offset. */
-	private int fReplacementOffset;
+	private int replacementOffset;
 	/** The replacement length. */
-	private int fReplacementLength;
+	private int replacementLength;
 	/** The cursor position after this proposal has been applied. */
-	private int fCursorPosition;
+	private int cursorPosition;
 	/** The image to be displayed in the completion proposal popup. */
-	private Image fImage;
+	private Image image;
 	/** The context information of this proposal. */
-	private IContextInformation fContextInformation;
+	private IContextInformation contextInformation;
 	/** The additional info of this proposal. */
-	private String fAdditionalProposalInfo;
+	private String additionalProposalInfo;
+	
+	private ClonkTextEditor editor;
+
+	public void setEditor(ClonkTextEditor editor) {
+		this.editor = editor;
+	}
+	
+	public String getReplacementString() {
+		return replacementString;
+	}
+
+	public int getReplacementOffset() {
+		return replacementOffset;
+	}
+
+	public int getReplacementLength() {
+		return replacementLength;
+	}
 
 	/**
 	 * Creates a new completion proposal based on the provided information. The replacement string is
@@ -40,7 +59,7 @@ public class ClonkCompletionProposal implements ICompletionProposal, ICompletion
 	 * @param cursorPosition the position of the cursor following the insert relative to replacementOffset
 	 */
 	public ClonkCompletionProposal(String replacementString, int replacementOffset, int replacementLength, int cursorPosition) {
-		this(replacementString, replacementOffset, replacementLength, cursorPosition, null, null, null, null, null);
+		this(replacementString, replacementOffset, replacementLength, cursorPosition, null, null, null, null, null, null);
 	}
 
 	/**
@@ -56,21 +75,30 @@ public class ClonkCompletionProposal implements ICompletionProposal, ICompletion
 	 * @param additionalProposalInfo the additional information associated with this proposal
 	 * @param postInfo information that is appended to displayString
 	 */
-	public ClonkCompletionProposal(String replacementString, int replacementOffset, int replacementLength, int cursorPosition, Image image, String displayString, IContextInformation contextInformation, String additionalProposalInfo, String postInfo) {
+	public ClonkCompletionProposal(
+			String replacementString,
+			int replacementOffset, int replacementLength, int cursorPosition,
+			Image image,
+			String displayString,
+			IContextInformation contextInformation,
+			String additionalProposalInfo, String postInfo,
+			ClonkTextEditor editor
+	) {
 //		Assert.isNotNull(replacementString);
 //		Assert.isTrue(replacementOffset >= 0);
 //		Assert.isTrue(replacementLength >= 0);
 //		Assert.isTrue(cursorPosition >= 0);
 
-		fReplacementString= replacementString;
-		fReplacementOffset= replacementOffset;
-		fReplacementLength= replacementLength;
-		fCursorPosition= cursorPosition;
-		fImage= image;
-		fDisplayString= displayString;
-		fContextInformation= contextInformation;
-		fAdditionalProposalInfo= additionalProposalInfo;
-		fPostInfo = postInfo;
+		this.replacementString= replacementString;
+		this.replacementOffset= replacementOffset;
+		this.replacementLength= replacementLength;
+		this.cursorPosition= cursorPosition;
+		this.image= image;
+		this.displayString= displayString;
+		this.contextInformation= contextInformation;
+		this.additionalProposalInfo= additionalProposalInfo;
+		this.postInfo = postInfo;
+		this.setEditor(editor);
 	}
 
 	/*
@@ -78,7 +106,9 @@ public class ClonkCompletionProposal implements ICompletionProposal, ICompletion
 	 */
 	public void apply(IDocument document) {
 		try {
-			document.replace(fReplacementOffset, fReplacementLength, fReplacementString);
+			document.replace(replacementOffset, replacementLength, replacementString);
+			if (editor != null)
+				editor.completionProposalApplied(this);
 		} catch (BadLocationException x) {
 			// ignore
 		}
@@ -88,44 +118,44 @@ public class ClonkCompletionProposal implements ICompletionProposal, ICompletion
 	 * @see ICompletionProposal#getSelection(IDocument)
 	 */
 	public Point getSelection(IDocument document) {
-		return new Point(fReplacementOffset + fCursorPosition, 0);
+		return new Point(replacementOffset + cursorPosition, 0);
 	}
 
 	/*
 	 * @see ICompletionProposal#getContextInformation()
 	 */
 	public IContextInformation getContextInformation() {
-		return fContextInformation;
+		return contextInformation;
 	}
 
 	/*
 	 * @see ICompletionProposal#getImage()
 	 */
 	public Image getImage() {
-		return fImage;
+		return image;
 	}
 
 	/*
 	 * @see ICompletionProposal#getDisplayString()
 	 */
 	public String getDisplayString() {
-		if (fDisplayString != null)
-			return fDisplayString;
-		return fReplacementString;
+		if (displayString != null)
+			return displayString;
+		return replacementString;
 	}
 
 	/*
 	 * @see ICompletionProposal#getAdditionalProposalInfo()
 	 */
 	public String getAdditionalProposalInfo() {
-		return fAdditionalProposalInfo;
+		return additionalProposalInfo;
 	}
 
 	public StyledString getStyledDisplayString() {
-		if (fDisplayString == null)
+		if (displayString == null)
 			return new StyledString("<Error>", StyledString.QUALIFIER_STYLER); //$NON-NLS-1$
-		StyledString result = new StyledString(fDisplayString);
-		result.append(fPostInfo, StyledString.QUALIFIER_STYLER);
+		StyledString result = new StyledString(displayString);
+		result.append(postInfo, StyledString.QUALIFIER_STYLER);
 //		result.setStyle(fDisplayString.length(), fPostInfo.length(), StyledString.createColorRegistryStyler(JFacePreferences.DECORATIONS_COLOR,JFacePreferences.CONTENT_ASSIST_BACKGROUND_COLOR) );
 		
 		return result;

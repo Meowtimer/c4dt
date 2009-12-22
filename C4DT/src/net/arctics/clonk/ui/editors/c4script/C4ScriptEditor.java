@@ -23,6 +23,7 @@ import net.arctics.clonk.parser.c4script.C4ScriptExprTree.AccessVar;
 import net.arctics.clonk.parser.c4script.C4ScriptExprTree.CallFunc;
 import net.arctics.clonk.parser.c4script.C4ScriptExprTree.ExprElm;
 import net.arctics.clonk.parser.ParsingException;
+import net.arctics.clonk.ui.editors.ClonkCompletionProposal;
 import net.arctics.clonk.ui.editors.IClonkCommandIds;
 import net.arctics.clonk.ui.editors.ClonkDocumentProvider;
 import net.arctics.clonk.ui.editors.ClonkTextEditor;
@@ -307,9 +308,19 @@ public class C4ScriptEditor extends ClonkTextEditor {
 			this.resetHighlightRange();
 		
 		// inform auto edit strategy about cursor position change so it can delete its override regions
-		((C4ScriptSourceViewerConfiguration)getSourceViewerConfiguration()).getAutoEditStrategy().handleCursorPositionChanged(
+		getC4ScriptSourceViewerConfiguration().getAutoEditStrategy().handleCursorPositionChanged(
 			cursorPos(), getDocumentProvider().getDocument(getEditorInput()));
-		
+
+	}
+
+	private final C4ScriptSourceViewerConfiguration getC4ScriptSourceViewerConfiguration() {
+		return (C4ScriptSourceViewerConfiguration)getSourceViewerConfiguration();
+	}
+
+	@Override
+	public void completionProposalApplied(ClonkCompletionProposal proposal) {
+		getC4ScriptSourceViewerConfiguration().getAutoEditStrategy().completionProposalApplied(proposal);
+		super.completionProposalApplied(proposal);
 	}
 
 	// created if there is no suitable script to get from somewhere else
