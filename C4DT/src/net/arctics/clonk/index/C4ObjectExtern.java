@@ -1,5 +1,6 @@
 package net.arctics.clonk.index;
 
+import java.io.InputStream;
 import java.util.ArrayList;
 
 import java.util.Collections;
@@ -8,25 +9,25 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import org.eclipse.core.resources.IStorage;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Path;
 
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.C4ID;
-import net.arctics.clonk.parser.SimpleScriptStorage;
 import net.arctics.clonk.parser.stringtbl.StringTbl;
 import net.arctics.clonk.preferences.ClonkPreferences;
 import net.arctics.clonk.resource.ExternalLib;
 import net.arctics.clonk.resource.c4group.C4GroupEntry;
-import net.arctics.clonk.resource.c4group.C4GroupItem;
 import net.arctics.clonk.util.INode;
 import net.arctics.clonk.util.ITreeNode;
+import net.arctics.clonk.util.Utilities;
 
-public class C4ObjectExtern extends C4Object implements ITreeNode, IExternalScript {
+public class C4ObjectExtern extends C4Object implements ITreeNode, IExternalScript, IContainedInExternalLib {
 
 	private static final long serialVersionUID = -4964785375712432236L;
 
-	private SimpleScriptStorage script;
+	private IStorage script;
 	private ITreeNode parentNode;
 	protected String nodeName;
 	private List<INode> childNodes;
@@ -53,9 +54,9 @@ public class C4ObjectExtern extends C4Object implements ITreeNode, IExternalScri
 		return getStringTbl(pref);
 	}
 	
-	public C4ObjectExtern(C4ID id, String name, C4GroupItem script, ITreeNode parentNode) {
+	public C4ObjectExtern(C4ID id, String name, C4GroupEntry script, ITreeNode parentNode) {
 		super(id, name);
-		this.script = script != null ? new SimpleScriptStorage((C4GroupEntry)script) : null;
+		this.script = script != null ? new C4GroupEntryStorage(this, script) : null;
 		this.parentNode = parentNode;
 		if (parentNode != null)
 			parentNode.addChild(this);
@@ -64,10 +65,20 @@ public class C4ObjectExtern extends C4Object implements ITreeNode, IExternalScri
 		else
 			this.nodeName = name;
 	}
-	
+
 	@Override
 	public String getScriptText() {
-		return script.getContentsAsString();
+		try {
+			InputStream contents = script.getContents();
+			try {
+				return Utilities.stringFromInputStream(script.getContents(), ClonkPreferences.getPreferenceOrDefault(ClonkPreferences.EXTERNAL_INDEX_ENCODING));
+			} finally {
+				contents.close();
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			return null;
+		}
 	}
 
 	@Override
@@ -169,9 +180,6 @@ public class C4ObjectExtern extends C4Object implements ITreeNode, IExternalScri
 		return getPath().toOSString();
 	}
 
-	@Override
-	public SimpleScriptStorage getSimpleStorage() {
-		return script;
-	}
+	
 
 }

@@ -1,28 +1,35 @@
 package net.arctics.clonk.parser.c4script;
 
+import java.io.InputStream;
+
+import org.eclipse.core.resources.IStorage;
+
 import net.arctics.clonk.ClonkCore;
+import net.arctics.clonk.index.C4GroupEntryStorage;
 import net.arctics.clonk.index.ClonkIndex;
+import net.arctics.clonk.index.IContainedInExternalLib;
 import net.arctics.clonk.index.IExternalScript;
-import net.arctics.clonk.parser.SimpleScriptStorage;
+import net.arctics.clonk.preferences.ClonkPreferences;
 import net.arctics.clonk.resource.ExternalLib;
 import net.arctics.clonk.resource.c4group.C4GroupEntry;
-import net.arctics.clonk.resource.c4group.C4GroupItem;
 import net.arctics.clonk.util.ITreeNode;
+import net.arctics.clonk.util.Utilities;
 
 public class C4ScriptExtern extends C4ScriptBase implements IExternalScript {
 	
 	private static final long serialVersionUID = 1L;
 	
-	private SimpleScriptStorage scriptStorage;
+	private IStorage scriptStorage;
 	private ITreeNode parentNode;
 	private transient ExternalLib externalLib;
 
-	public C4ScriptExtern(C4GroupItem script, ITreeNode parentNode) {
+	public C4ScriptExtern(C4GroupEntry script, ITreeNode parentNode) {
 		this.parentNode = parentNode;
 		if (parentNode != null)
 			parentNode.addChild(this);
 		setName(script.getName());
-		scriptStorage = new SimpleScriptStorage((C4GroupEntry) script);
+		scriptStorage = new C4GroupEntryStorage((IContainedInExternalLib)this.getParentNode(), script);
+		//scriptStorage = new SimpleScriptStorage((C4GroupEntry) script);
 	}
 	
 	@Override
@@ -32,7 +39,17 @@ public class C4ScriptExtern extends C4ScriptBase implements IExternalScript {
 
 	@Override
 	public String getScriptText() {
-		return scriptStorage.getContentsAsString();
+		try {
+			InputStream contents = scriptStorage.getContents();
+			try {
+				return Utilities.stringFromInputStream(scriptStorage.getContents(), ClonkPreferences.getPreferenceOrDefault(ClonkPreferences.EXTERNAL_INDEX_ENCODING));
+			} finally {
+				contents.close();
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			return null;
+		}
 	}
 	
 	@Override
@@ -54,11 +71,6 @@ public class C4ScriptExtern extends C4ScriptBase implements IExternalScript {
 					break;
 				}
 		return externalLib;
-	}
-
-	@Override
-	public SimpleScriptStorage getSimpleStorage() {
-		return scriptStorage;
 	}
 
 }

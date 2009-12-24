@@ -200,7 +200,7 @@ public class IniUnit extends C4Structure implements Iterable<IniSection>, IHasCh
 			String name = reader.readStringUntil(']','\n','\r');
 			if (reader.read() != ']') {
 				if (modifyMarkers)
-					marker(ParserErrorCode.TokenExpected, start, reader.getPosition(), IMarker.SEVERITY_ERROR, (Object)"]");					 //$NON-NLS-1$
+					marker(ParserErrorCode.TokenExpected, start, reader.getPosition(), IMarker.SEVERITY_ERROR, (Object)"]"); //$NON-NLS-1$
 				return null;
 			}
 			else {

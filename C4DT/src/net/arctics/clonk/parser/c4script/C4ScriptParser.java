@@ -284,7 +284,7 @@ public class C4ScriptParser {
 	
 	public C4ScriptParser(IExternalScript externalScript) {
 		scriptFile = null;
-		scanner = new BufferedScanner(externalScript.getSimpleStorage().getContentsAsString());
+		scanner = new BufferedScanner(externalScript.getScriptText());
 		container = (C4ScriptBase) externalScript;
 	}
 	

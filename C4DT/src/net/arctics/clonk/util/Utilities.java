@@ -407,8 +407,8 @@ public abstract class Utilities {
 		return false;
 	}
 	
-	public static String stringFromInputStream(InputStream stream) throws IOException {
-		InputStreamReader inputStreamReader = new InputStreamReader(stream);
+	public static String stringFromInputStream(InputStream stream, String encoding) throws IOException {
+		InputStreamReader inputStreamReader = new InputStreamReader(stream, encoding);
 		StringBuilder stringBuilder;
 		try {
 			BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
@@ -427,6 +427,10 @@ public abstract class Utilities {
 			inputStreamReader.close();
 		}
 		return stringBuilder.toString();
+	}
+	
+	public static String stringFromInputStream(InputStream stream) throws IOException {
+		return stringFromInputStream(stream, "UTF-8");
 	}
 
 	public static String stringFromFile(IFile file) throws IOException, CoreException {

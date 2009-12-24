@@ -3,6 +3,8 @@
  */
 package net.arctics.clonk.resource;
 
+import java.io.File;
+
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Path;
@@ -31,6 +33,10 @@ public class ExternalLib extends C4ObjectExternGroup {
 	public String getFullPath() {
 		return fullPath;
 	}
+	
+	public File getFile() {
+		return new File(getFullPath());
+	}
 
 	public void setFullPath(String fullPath) {
 		this.fullPath = fullPath;
@@ -54,6 +60,11 @@ public class ExternalLib extends C4ObjectExternGroup {
 		}
 		else
 			return super.getPath();
+	}
+	
+	@Override
+	public ExternalLib getExternalLib() {
+		return this;
 	}
 	
 }

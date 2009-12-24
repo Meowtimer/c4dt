@@ -5,12 +5,13 @@ import java.io.IOException;
 import java.io.OutputStream;
 
 import net.arctics.clonk.resource.c4group.C4Group.C4GroupType;
+import net.arctics.clonk.util.INode;
 
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 
-public interface C4GroupItem {
+public interface C4GroupItem extends INode {
 	
 	/**
 	 * Interface used to filter files in c4groups so they won't be loaded into memory
@@ -26,6 +27,10 @@ public interface C4GroupItem {
 			}
 		};
 		public void processData(C4GroupItem item) throws CoreException;
+	}
+	
+	public interface IHeaderFilterCreationListener extends IHeaderFilter {
+		void created(C4EntryHeader header, C4GroupItem item);
 	}
 	
 	/**

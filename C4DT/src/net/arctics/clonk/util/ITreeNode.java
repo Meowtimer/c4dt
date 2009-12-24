@@ -22,6 +22,14 @@ public interface ITreeNode extends INode {
 					return true;
 			return false;
 		}
+		public static IPath pathRelativeTo(ITreeNode item, ITreeNode other) {
+			if (item == other)
+				return Path.EMPTY;
+			else if (item.getParentNode() == null)
+				return new Path(item.getNodeName());
+			else
+				return pathRelativeTo(item.getParentNode(), other).append(item.getNodeName());
+		}
 	}
 	
 }

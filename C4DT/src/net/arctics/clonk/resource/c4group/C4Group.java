@@ -9,18 +9,24 @@ import java.io.OutputStream;
 import java.io.Serializable;
 import java.security.InvalidParameterException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.zip.GZIPInputStream;
+
+import net.arctics.clonk.util.INode;
+import net.arctics.clonk.util.ITreeNode;
+
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 
 /**
@@ -28,10 +34,8 @@ import org.eclipse.core.runtime.IProgressMonitor;
  * @author ZokRadonh
  *
  */
-public class C4Group implements C4GroupItem, Serializable {
+public class C4Group implements C4GroupItem, Serializable, ITreeNode {
 	
-	private static final long serialVersionUID = 1L;
-
 	public enum C4GroupType {
 		OtherGroup,
 		DefinitionGroup,
@@ -40,21 +44,9 @@ public class C4Group implements C4GroupItem, Serializable {
 		FolderGroup
 	}
 	
-	private static Map<String, C4GroupType> getExtensionToGroupTypeMap() {
-		Map<String, C4GroupType> result = new HashMap<String, C4GroupType>(C4GroupType.values().length);
-		result.put("c4d", C4GroupType.DefinitionGroup); //$NON-NLS-1$
-		result.put("c4g", C4GroupType.ResourceGroup); //$NON-NLS-1$
-		result.put("c4s", C4GroupType.ScenarioGroup); //$NON-NLS-1$
-		result.put("c4f", C4GroupType.FolderGroup); //$NON-NLS-1$
-		return Collections.unmodifiableMap(result);
-	}
-	
+	private static final long serialVersionUID = 1L;
 	public static final Map<String, C4GroupType> EXTENSION_TO_GROUP_TYPE_MAP = getExtensionToGroupTypeMap();
 	
-	public static String[] groupExtensions() {
-		return EXTENSION_TO_GROUP_TYPE_MAP.keySet().toArray(new String[EXTENSION_TO_GROUP_TYPE_MAP.keySet().size()]);
-	}
-
 	private String entryName;
 	private List<C4GroupItem> childEntries;
 	private transient InputStream stream;
@@ -65,6 +57,19 @@ public class C4Group implements C4GroupItem, Serializable {
 	private C4EntryHeader entryHeader;
 	private C4Group parentGroup;
 	private int sizeOfChildren;
+	
+	private static Map<String, C4GroupType> getExtensionToGroupTypeMap() {
+		Map<String, C4GroupType> result = new HashMap<String, C4GroupType>(C4GroupType.values().length);
+		result.put("c4d", C4GroupType.DefinitionGroup); //$NON-NLS-1$
+		result.put("c4g", C4GroupType.ResourceGroup); //$NON-NLS-1$
+		result.put("c4s", C4GroupType.ScenarioGroup); //$NON-NLS-1$
+		result.put("c4f", C4GroupType.FolderGroup); //$NON-NLS-1$
+		return Collections.unmodifiableMap(result);
+	}
+	
+	public static String[] groupExtensions() {
+		return EXTENSION_TO_GROUP_TYPE_MAP.keySet().toArray(new String[EXTENSION_TO_GROUP_TYPE_MAP.keySet().size()]);
+	}
 	
 	/**
 	 * full path of the file the group was read from; only set for master group
@@ -294,7 +299,7 @@ public class C4Group implements C4GroupItem, Serializable {
 				header = C4GroupHeader.createFromStream(stream);
 
 				childEntries = new ArrayList<C4GroupItem>(header.getEntries());
-				List<Object> readObjects = new LinkedList<Object>();
+				List<Object> readObjects = new ArrayList<Object>(header.getEntries());
 
 				// populate readObjects with either C4GroupHeader (meaning the file this header describes is to be skipped) or C4GroupItem (meaning this item is to be added to child list of the calling group)
 				sizeOfChildren = 0;
@@ -302,7 +307,7 @@ public class C4Group implements C4GroupItem, Serializable {
 					hasChildren = true;
 					C4EntryHeader entryHeader = C4EntryHeader.createFromStream(stream);
 					sizeOfChildren += entryHeader.getSize();
-					if (!filter.accepts(entryHeader, this)) {
+					if (!(filter.accepts(entryHeader, this) || entryHeader.isGroup())) {
 						// FIXME: skipping groups will not work at this time
 						readObjects.add(entryHeader);
 					}
@@ -314,6 +319,8 @@ public class C4Group implements C4GroupItem, Serializable {
 						else {
 							entry = new C4GroupEntry(this, entryHeader);
 						}
+						if (filter instanceof IHeaderFilterCreationListener)
+							((IHeaderFilterCreationListener)filter).created(entryHeader, entry);
 						readObjects.add(entry);
 					}
 				}
@@ -529,6 +536,36 @@ public class C4Group implements C4GroupItem, Serializable {
 
 	public int getSizeOfChildren() {
 		return sizeOfChildren;
+	}
+
+	@Override
+	public void addChild(ITreeNode node) {
+		// nope
+	}
+
+	@Override
+	public Collection<? extends INode> getChildCollection() {
+		return this.getChildEntries();
+	}
+
+	@Override
+	public ITreeNode getParentNode() {
+		return getParentGroup();
+	}
+
+	@Override
+	public IPath getPath() {
+		return ITreeNode.Default.getPath(this);
+	}
+
+	@Override
+	public boolean subNodeOf(ITreeNode node) {
+		return ITreeNode.Default.subNodeOf(this, node);
+	}
+
+	@Override
+	public String getNodeName() {
+		return getName();
 	}
 	
 }

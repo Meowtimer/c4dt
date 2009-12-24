@@ -5,15 +5,19 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.eclipse.core.runtime.IPath;
+
+import net.arctics.clonk.resource.ExternalLib;
 import net.arctics.clonk.util.ITreeNode;
 
-public class C4ObjectExternGroup implements ITreeNode, Serializable {
+public class C4ObjectExternGroup implements ITreeNode, Serializable, IContainedInExternalLib {
 
 	private static final long serialVersionUID = 1L;
 	
 	private String nodeName;
 	private ITreeNode parentNode;
 	private List<ITreeNode> childNodes;
+	
+	private transient ExternalLib externalLib;
 	
 	public String getNodeName() {
 		return nodeName;
@@ -52,6 +56,17 @@ public class C4ObjectExternGroup implements ITreeNode, Serializable {
 	@Override
 	public String toString() {
 		return nodeName;
+	}
+
+	@Override
+	public ExternalLib getExternalLib() {
+		if (externalLib == null)
+			for (ITreeNode node = this; node != null; node = node.getParentNode())
+				if (node instanceof ExternalLib) {
+					externalLib = (ExternalLib) node;
+					break;
+				}
+		return externalLib;
 	}
 
 }

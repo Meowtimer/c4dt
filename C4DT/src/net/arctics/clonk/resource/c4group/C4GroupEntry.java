@@ -276,5 +276,10 @@ public class C4GroupEntry implements C4GroupItem, IStorage, Serializable {
 	public void accept(IC4GroupVisitor visitor, C4GroupType type, IProgressMonitor monitor) {
 		visitor.visit(this, type);
 	}
+
+	@Override
+	public String getNodeName() {
+		return getName();
+	}
 	
 }

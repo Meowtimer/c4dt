@@ -183,9 +183,9 @@ public final class ExternalLibsLoader implements IC4GroupVisitor {
 			else if (groupType == C4GroupType.ResourceGroup) { // System.c4g like
 				createGroup(group);
 				for (C4GroupItem child : group.getChildEntries()) {
-					if (child.getName().endsWith(".c")) { //$NON-NLS-1$
+					if (child instanceof C4GroupEntry  && child.getName().endsWith(".c")) { //$NON-NLS-1$
 						try {
-							C4ScriptExtern externScript = new C4ScriptExtern(child, currentExternNode);
+							C4ScriptExtern externScript = new C4ScriptExtern((C4GroupEntry) child, currentExternNode);
 							C4ScriptParser parser = new C4ScriptParser(((C4GroupEntry)child).getContents(),externScript);
 							parser.parseDeclarations();
 							index.addScript(externScript);
