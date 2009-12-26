@@ -25,6 +25,7 @@ public abstract class UI {
 	public static final Image TEXT_ICON = getIconImage("c4txt","icons/text.png"); //$NON-NLS-1$ //$NON-NLS-2$
 	public static final Image MATERIAL_ICON = getIconImage("c4material","icons/Clonk_C4.png"); //$NON-NLS-1$ //$NON-NLS-2$
 	public static final Image DEPENDENCIES_ICON = getIconImage("c4dependencies", "icons/Dependencies.png"); //$NON-NLS-1$ //$NON-NLS-2$
+	public static final Image CLONK_ENGINE_ICON = getIconImage("c4engine", "icons/Clonk_engine"); //$NON-NLS-1$
 	
 	public static final String FILEDIALOG_CLONK_FILTER = "*.c4g;*.c4d;*.c4f;*.c4s"; //$NON-NLS-1$
 	

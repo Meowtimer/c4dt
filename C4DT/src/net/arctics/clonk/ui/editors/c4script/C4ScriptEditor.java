@@ -207,7 +207,8 @@ public class C4ScriptEditor extends ClonkTextEditor {
 	
 	@Override
 	protected void editorSaved() {
-		textChangeListener.cancel();
+		if (textChangeListener != null)
+			textChangeListener.cancel();
 		super.editorSaved();
 	}
 
@@ -232,12 +233,16 @@ public class C4ScriptEditor extends ClonkTextEditor {
 	@Override
 	public void createPartControl(Composite parent) {
 		super.createPartControl(parent);
-		getDocumentProvider().getDocument(getEditorInput()).addDocumentListener(textChangeListener = new TextChangeListener());
+		C4ScriptBase script = scriptBeingEdited();
+		if (script != null && script.isEditable())
+			getDocumentProvider().getDocument(getEditorInput()).addDocumentListener(textChangeListener = new TextChangeListener());
 	}
 
 	public void dispose() {
-		getDocumentProvider().getDocument(getEditorInput()).removeDocumentListener(textChangeListener);
-		textChangeListener.dispose();
+		if (textChangeListener != null) {
+			getDocumentProvider().getDocument(getEditorInput()).removeDocumentListener(textChangeListener);
+			textChangeListener.dispose();
+		}
 		colorManager.dispose();
 		super.dispose();
 	}

@@ -163,11 +163,11 @@ public class C4EntryHeader implements Serializable {
 		this.offset = offset;
 	}
 
-	private void arrayCopyTo(byte[] source, byte[] target, int dstOffset) {
+	private static void arrayCopyTo(byte[] source, byte[] target, int dstOffset) {
     	arrayCopyTo(source, target, dstOffset, source.length);
     }
     
-    private void arrayCopyTo(byte[] source, byte[] target, int dstOffset, int length) {
+    private static void arrayCopyTo(byte[] source, byte[] target, int dstOffset, int length) {
     	for(int i = 0;i < length;i++) {
     		if (i >= source.length) target[dstOffset + i] = 0x0; // fill with zeros
     		else target[dstOffset + i] = source[i];

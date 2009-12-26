@@ -7,6 +7,7 @@ import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.debug.ClonkLaunchConfigurationDelegate;
 import net.arctics.clonk.resource.c4group.C4Group;
 import net.arctics.clonk.ui.navigator.ClonkLabelProvider;
+import net.arctics.clonk.util.UI;
 import net.arctics.clonk.util.Utilities;
 
 import org.eclipse.core.resources.IProject;
@@ -358,7 +359,7 @@ public class LaunchMainTab extends AbstractLaunchConfigurationTab {
 
 	@Override
 	public Image getImage() {
-		return ClonkCore.getDefault().getIconImage("Clonk_engine"); //$NON-NLS-1$
+		return UI.CLONK_ENGINE_ICON; 
 	}
 	
 }
