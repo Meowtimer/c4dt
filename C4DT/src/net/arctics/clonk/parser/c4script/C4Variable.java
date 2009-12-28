@@ -228,15 +228,21 @@ public class C4Variable extends C4Declaration implements Serializable, ITypedDec
 		if (scope == null) return C4VariableScope.VAR_VAR.ordinal();
 		return scope.ordinal();
 	}
-	
+
 	@Override
 	public String getInfoText() {
 		StringBuilder builder = new StringBuilder();
-		builder.append((getType() == C4Type.UNKNOWN ? C4Type.ANY : getType()) .toString());
+		builder.append("<b>");
+		builder.append((getType() == C4Type.UNKNOWN ? C4Type.ANY : getType()).toString());
 		builder.append(" "); //$NON-NLS-1$
 		builder.append(getName());
+		if (constValue != null) {
+			builder.append(" = ");
+			builder.append(constValue.toString());
+		}
+		builder.append("</b>");
 		if (getUserDescription() != null && getUserDescription().length() > 0) {
-			builder.append(": "); //$NON-NLS-1$
+			builder.append("<br>"); //$NON-NLS-1$
 			builder.append(getUserDescription());
 		}
 		return builder.toString();

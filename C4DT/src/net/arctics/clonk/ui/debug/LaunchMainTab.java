@@ -3,7 +3,6 @@ package net.arctics.clonk.ui.debug;
 import java.util.Collection;
 import java.util.LinkedList;
 
-import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.debug.ClonkLaunchConfigurationDelegate;
 import net.arctics.clonk.resource.c4group.C4Group;
 import net.arctics.clonk.ui.navigator.ClonkLabelProvider;
