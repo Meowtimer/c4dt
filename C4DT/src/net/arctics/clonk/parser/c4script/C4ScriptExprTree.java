@@ -183,9 +183,12 @@ public abstract class C4ScriptExprTree {
 		}
 
 		public boolean hasSideEffects() {
-			for (ExprElm e : getSubElements()) {
-				if (e.hasSideEffects())
-					return true;
+			ExprElm[] subElms = getSubElements();
+			if (subElms != null) {
+				for (ExprElm e : subElms) {
+					if (e != null && e.hasSideEffects())
+						return true;
+				}
 			}
 			return false;
 		}
@@ -604,10 +607,6 @@ public abstract class C4ScriptExprTree {
 		@Override
 		public boolean modifiable(C4ScriptParser context) {
 			return elements != null && elements.length > 0 && elements[elements.length-1].modifiable(context);
-		}
-		@Override
-		public boolean hasSideEffects() {
-			return true; // FIXME: check elements?
 		}
 		@Override
 		public void reportErrors(C4ScriptParser parser) throws ParsingException {
