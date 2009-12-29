@@ -1,6 +1,5 @@
 package net.arctics.clonk.ui.navigator;
 
-import net.arctics.clonk.parser.inireader.ComplexIniEntry;
 import net.arctics.clonk.parser.inireader.DefCoreUnit;
 import net.arctics.clonk.parser.inireader.IniEntry;
 import net.arctics.clonk.parser.inireader.IntegerArray;
@@ -43,12 +42,16 @@ public class ClonkPreviewView extends ViewPart implements ISelectionChangedListe
 
 	private final class ImageCanvas extends Canvas {
 		private ImageCanvas(Composite parent, int style) {
-			super(parent, style | SWT.NO_SCROLL);
+			super(parent, style);
+			this.setBackground(getDisplay().getSystemColor(SWT.COLOR_BLACK));
 			this.addPaintListener(new PaintListener() {
 				@Override
 				public void paintControl(PaintEvent e) {
-					if (image != null)
-						e.gc.drawImage(image, 0, 0, image.getBounds().width, image.getBounds().height, 0, 0, getBounds().width, getBounds().height);
+					if (image != null) {
+						float ratio = (float)getBounds().height/(float)image.getBounds().height;
+						int wdt = (int) (image.getBounds().width*ratio);
+						e.gc.drawImage(image, 0, 0, image.getBounds().width, image.getBounds().height, (getBounds().width-wdt)/2, 0, wdt, getBounds().height);
+					}
 				}
 			});
 		}
@@ -65,7 +68,7 @@ public class ClonkPreviewView extends ViewPart implements ISelectionChangedListe
 	@Override
 	public void createPartControl(Composite parent) {
 		Utilities.getProjectExplorer().getCommonViewer().addSelectionChangedListener(this);
-		canvas = new ImageCanvas(parent, SWT.DEFAULT);
+		canvas = new ImageCanvas(parent, SWT.NO_SCROLL);
 	}
 
 	@Override
