@@ -212,7 +212,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 						operations[3] = operations[2] / 2; // approximate save time
 					}
 					
-					operations[4] = externalLibs.length;
+					operations[4] = externalLibs != null ? externalLibs.length : 0;
 
 					int workSum = 0;
 					for (int work : operations)
