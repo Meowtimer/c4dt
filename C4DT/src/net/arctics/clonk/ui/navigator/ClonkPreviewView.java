@@ -43,14 +43,19 @@ public class ClonkPreviewView extends ViewPart implements ISelectionChangedListe
 	private final class ImageCanvas extends Canvas {
 		private ImageCanvas(Composite parent, int style) {
 			super(parent, style);
-			this.setBackground(getDisplay().getSystemColor(SWT.COLOR_BLACK));
 			this.addPaintListener(new PaintListener() {
 				@Override
 				public void paintControl(PaintEvent e) {
 					if (image != null) {
-						float ratio = (float)getBounds().height/(float)image.getBounds().height;
+						int hgt = getBounds().height;
+						float ratio = (float)hgt/(float)image.getBounds().height;
 						int wdt = (int) (image.getBounds().width*ratio);
-						e.gc.drawImage(image, 0, 0, image.getBounds().width, image.getBounds().height, (getBounds().width-wdt)/2, 0, wdt, getBounds().height);
+						if (wdt > getBounds().width) {
+							wdt = getBounds().width;
+							ratio = (float)wdt/(float)image.getBounds().width;
+							hgt = (int) (image.getBounds().height*ratio);
+						}
+						e.gc.drawImage(image, 0, 0, image.getBounds().width, image.getBounds().height, (getBounds().width-wdt)/2, (getBounds().height-hgt)/2, wdt, hgt);
 					}
 				}
 			});
@@ -77,11 +82,11 @@ public class ClonkPreviewView extends ViewPart implements ISelectionChangedListe
 
 	@Override
 	public void selectionChanged(SelectionChangedEvent event) {
+		Image newImage = null;
 		if (event.getSelection() instanceof IStructuredSelection) try {
 			IStructuredSelection structSel = (IStructuredSelection) event.getSelection();
 			Object sel = structSel.getFirstElement();
 			if (sel instanceof IContainer) {
-				Image newImage = null;
 				IContainer container = (IContainer) sel;
 
 				// Title.png
@@ -124,17 +129,15 @@ public class ClonkPreviewView extends ViewPart implements ISelectionChangedListe
 					}
 				}
 				
-				if (newImage != null) {
-					if (image != null)
-						image.dispose();
-					image = newImage;
-					canvas.redraw();
-				}
-				
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+		if (image != null)
+			image.dispose();
+		image = newImage;
+		canvas.redraw();
+		
 	}
 	
 	@Override
