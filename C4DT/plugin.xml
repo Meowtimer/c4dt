@@ -254,6 +254,10 @@
 		<view category="net.arctics.clonk" class="net.arctics.clonk.ui.EngineDeclarationsView"
 			icon="icons/Clonk_C4.png" id="net.arctics.clonk.views.EngineDeclarationsView"
 			name="Engine declarations" />
+		
+		<view category="net.arctics.clonk" class="net.arctics.clonk.ui.navigator.ClonkPreviewView"
+			id="net.arctics.clonk.views.ClonkPreviewView"
+			name="Clonk Preview" />
 	</extension>
 
 	<extension id="net.arctics.clonk.externliberror" name="External library error"

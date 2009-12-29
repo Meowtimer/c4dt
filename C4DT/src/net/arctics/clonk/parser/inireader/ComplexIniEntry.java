@@ -51,6 +51,11 @@ public class ComplexIniEntry extends IniEntry implements IHasChildren, IHasConte
 	}
 	
 	@Override
+	public Object getValueObject() {
+		return extendedValue;
+	}
+	
+	@Override
 	public void setValue(String value) {
 		if (extendedValue instanceof IIniEntryValue) {
 			try {
