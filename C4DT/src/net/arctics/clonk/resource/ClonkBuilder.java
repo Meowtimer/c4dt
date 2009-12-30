@@ -231,7 +231,8 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 						ClonkCore.getDefault().saveExternIndex(new SubProgressMonitor(monitor,operations[3]));
 					}
 					
-					ExternalLibsLoader.readExternalLibs(projIndex, new SubProgressMonitor(monitor, operations[4]), externalLibs);
+					if (externalLibs != null)
+						ExternalLibsLoader.readExternalLibs(projIndex, new SubProgressMonitor(monitor, operations[4]), externalLibs);
 
 					// build project
 					if (proj != null) {
