@@ -30,9 +30,14 @@ import org.eclipse.swt.events.PaintEvent;
 import org.eclipse.swt.events.PaintListener;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
-import org.eclipse.swt.layout.FillLayout;
+import org.eclipse.swt.layout.FormAttachment;
+import org.eclipse.swt.layout.FormData;
+import org.eclipse.swt.layout.FormLayout;
 import org.eclipse.swt.widgets.Canvas;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.Listener;
+import org.eclipse.swt.widgets.Sash;
 import org.eclipse.ui.IViewSite;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.navigator.CommonNavigator;
@@ -72,22 +77,71 @@ public class ClonkPreviewView extends ViewPart implements ISelectionChangedListe
 	
 	private Canvas canvas;
 	private Browser browser;
+	private Sash sash;
 	private Image image;
 
 	public ClonkPreviewView() {
 	}
 	
+	private static FormData createFormData(FormAttachment left, FormAttachment right, FormAttachment top, FormAttachment bottom) {
+		FormData result = new FormData();
+		result.left   = left;
+		result.top    = top;
+		result.right  = right;
+		result.bottom = bottom;
+		return result;
+	}
+	
 	@Override
-	public void createPartControl(Composite parent) {
-		parent.setLayout(new FillLayout(SWT.VERTICAL));
+	public void createPartControl(final Composite parent) {
+		parent.setLayout(new FormLayout());
 		canvas = new ImageCanvas(parent, SWT.NO_SCROLL);
+		sash = new Sash(parent, SWT.HORIZONTAL);
 		browser = new Browser(parent, SWT.NONE);
+		
+		canvas.setLayoutData(createFormData(
+			new FormAttachment(0, 0),
+			new FormAttachment(100, 0),
+			new FormAttachment(0, 0),
+			new FormAttachment(sash, 0)
+		));
+		
+		final FormData sashData;
+		sash.setLayoutData(sashData = createFormData(
+			new FormAttachment(0, 0),
+			new FormAttachment(100, 0),
+			new FormAttachment(40, 0),
+			null
+		));
+		sash.addListener(SWT.Selection, new Listener() {
+			@Override
+			public void handleEvent(Event event) {
+				sashData.top = new FormAttachment(0, event.y);
+				parent.layout();
+			}
+		});
+		
+		browser.setLayoutData(createFormData(
+			new FormAttachment(0, 0),
+			new FormAttachment(100, 0),
+			new FormAttachment(sash, 0),
+			new FormAttachment(100, 0)
+		));
+		
+		parent.layout();
+		refresh();
 	}
 	
 	@Override
 	public void init(IViewSite site) throws PartInitException {
 		super.init(site);
-		Utilities.getProjectExplorer().getCommonViewer().addSelectionChangedListener(this);
+		CommonNavigator nav = Utilities.getProjectExplorer();
+		nav.getCommonViewer().addSelectionChangedListener(this);
+	}
+	
+	private void refresh() {
+		CommonNavigator nav = Utilities.getProjectExplorer();
+		selectionChanged(new SelectionChangedEvent(nav.getCommonViewer(), nav.getCommonViewer().getSelection()));
 	}
 
 	@Override
