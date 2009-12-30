@@ -26,6 +26,10 @@ import net.arctics.clonk.util.Utilities;
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
+import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
@@ -40,6 +44,7 @@ import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.layout.FormLayout;
 import org.eclipse.swt.widgets.Canvas;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Sash;
@@ -182,7 +187,17 @@ public class ClonkPreviewView extends ViewPart implements ISelectionChangedListe
 	}
 
 	@Override
-	public void selectionChanged(SelectionChangedEvent event) {
+	public void selectionChanged(final SelectionChangedEvent event) {
+		new Job("ClonkPreview Updater") {
+			@Override
+			protected IStatus run(IProgressMonitor monitor) {
+				synchronizedSelectionChanged(event);
+				return Status.OK_STATUS;
+			}
+		}.schedule();
+	}
+
+	private synchronized void synchronizedSelectionChanged(SelectionChangedEvent event) {
 		Image newImage = null;
 		String newHtml = ""; //$NON-NLS-1$
 		String newDefText = "";
@@ -299,10 +314,16 @@ public class ClonkPreviewView extends ViewPart implements ISelectionChangedListe
 			image.dispose();
 		doNotDisposeImage = newDoNotDispose;
 		image = newImage;
-		canvas.redraw();
-		browser.setText(newHtml);
-		defInfo.setText(newDefText);
-
+		final String finalNewHtml = newHtml;
+		final String finalNewDefText = newDefText;
+		Display.getDefault().asyncExec(new Runnable() {
+			@Override
+			public void run() {
+				canvas.redraw();
+				browser.setText(finalNewHtml);
+				defInfo.setText(finalNewDefText);	
+			}
+		});
 	}
 
 	public String rtfToHtml(String rtf) throws IOException, BadLocationException {
