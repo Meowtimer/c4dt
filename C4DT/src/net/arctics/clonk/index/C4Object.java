@@ -46,6 +46,10 @@ public abstract class C4Object extends C4ScriptBase {
 		return getName() + (id != null ? " (" + id.toString() + ")" : ""); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 	}
 	
+	public String idWithName() {
+		return getId() != null ? String.format("%s (%s)", getName(), getId().toString()) : getName();
+	}
+	
 	/**
 	 * The id of this object. (e.g. CLNK)
 	 * @return the id

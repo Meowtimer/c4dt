@@ -11,6 +11,8 @@ import javax.swing.text.html.HTMLEditorKit;
 import javax.swing.text.rtf.RTFEditorKit;
 
 import net.arctics.clonk.ClonkCore;
+import net.arctics.clonk.index.C4ObjectExtern;
+import net.arctics.clonk.index.C4ObjectIntern;
 import net.arctics.clonk.parser.C4Structure;
 import net.arctics.clonk.parser.inireader.DefCoreUnit;
 import net.arctics.clonk.parser.inireader.IniEntry;
@@ -38,6 +40,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Sash;
+import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.IViewSite;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.navigator.CommonNavigator;
@@ -79,6 +82,7 @@ public class ClonkPreviewView extends ViewPart implements ISelectionChangedListe
 	private Browser browser;
 	private Sash sash;
 	private Image image;
+	private Text defInfo;
 
 	public ClonkPreviewView() {
 	}
@@ -95,9 +99,11 @@ public class ClonkPreviewView extends ViewPart implements ISelectionChangedListe
 	@Override
 	public void createPartControl(final Composite parent) {
 		parent.setLayout(new FormLayout());
+		
 		canvas = new ImageCanvas(parent, SWT.NO_SCROLL);
 		sash = new Sash(parent, SWT.HORIZONTAL);
 		browser = new Browser(parent, SWT.NONE);
+		defInfo = new Text(parent, SWT.NONE);
 		
 		canvas.setLayoutData(createFormData(
 			new FormAttachment(0, 0),
@@ -125,6 +131,13 @@ public class ClonkPreviewView extends ViewPart implements ISelectionChangedListe
 			new FormAttachment(0, 0),
 			new FormAttachment(100, 0),
 			new FormAttachment(sash, 0),
+			new FormAttachment(100, -defInfo.computeSize(SWT.DEFAULT, SWT.DEFAULT).y)
+		));
+		
+		defInfo.setLayoutData(createFormData(
+			new FormAttachment(0, 0),
+			new FormAttachment(100, 0),
+			new FormAttachment(browser, 0),
 			new FormAttachment(100, 0)
 		));
 		
@@ -152,6 +165,7 @@ public class ClonkPreviewView extends ViewPart implements ISelectionChangedListe
 	public void selectionChanged(SelectionChangedEvent event) {
 		Image newImage = null;
 		String newHtml = ""; //$NON-NLS-1$
+		String newDefText = "";
 		if (event.getSelection() instanceof IStructuredSelection) try {
 			IStructuredSelection structSel = (IStructuredSelection) event.getSelection();
 			Object sel = structSel.getFirstElement();
@@ -170,8 +184,12 @@ public class ClonkPreviewView extends ViewPart implements ISelectionChangedListe
 					newHtml = Utilities.stringFromFile(file);
 				}
 			}
-			else if (sel instanceof IContainer) {
+			else if (sel instanceof IContainer && ((IContainer)sel).getProject().isOpen()) {
 				IContainer container = (IContainer) sel;
+				
+				C4ObjectIntern obj = C4ObjectIntern.objectCorrespondingTo(container);
+				if (obj != null)
+					newDefText = obj.idWithName();
 
 				IResource descFile = Utilities.findMemberCaseInsensitively(container, "Desc"+ClonkPreferences.getLanguagePref()+".rtf"); //$NON-NLS-1$ //$NON-NLS-2$
 				if (descFile instanceof IFile) {
@@ -225,6 +243,11 @@ public class ClonkPreviewView extends ViewPart implements ISelectionChangedListe
 				}
 				
 			}
+			else if (sel instanceof C4ObjectExtern) {
+				C4ObjectExtern obj = (C4ObjectExtern) sel;
+				newHtml = obj.getInfoText();
+				newDefText = obj.idWithName();
+			}
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -233,6 +256,7 @@ public class ClonkPreviewView extends ViewPart implements ISelectionChangedListe
 		image = newImage;
 		canvas.redraw();
 		browser.setText(newHtml);
+		defInfo.setText(newDefText);
 
 	}
 
