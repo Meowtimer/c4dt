@@ -783,8 +783,18 @@ public abstract class C4ScriptExprTree {
 			if (declaration == null)
 				parser.errorWithCode(ParserErrorCode.UndeclaredIdentifier, this, true, declarationName);
 			// local variable used in global function
-			else if (declaration instanceof C4Variable && ((C4Variable)declaration).getScope() == C4VariableScope.VAR_LOCAL && parser.getActiveFunc().getVisibility() == C4FunctionScope.FUNC_GLOBAL) {
-				parser.errorWithCode(ParserErrorCode.LocalUsedInGlobal, this, true);
+			else if (declaration instanceof C4Variable) {
+				C4Variable var = (C4Variable) declaration;
+				switch (var.getScope()) {
+					case VAR_LOCAL:
+						if (parser.getActiveFunc().getVisibility() == C4FunctionScope.FUNC_GLOBAL) {
+							parser.errorWithCode(ParserErrorCode.LocalUsedInGlobal, this, true);
+						}
+						break;
+					case VAR_STATIC:
+						parser.getContainer().addUsedProjectScript(var.getScript());
+						break;
+				}
 			}
 		}
 
@@ -987,6 +997,9 @@ public abstract class C4ScriptExprTree {
 				}
 				else if (declaration instanceof C4Function) {
 					C4Function f = (C4Function)declaration;
+					if (f.getVisibility() == C4FunctionScope.FUNC_GLOBAL) {
+						context.getContainer().addUsedProjectScript(f.getScript());
+					}
 					int givenParam = 0;
 					boolean specialCaseHandled = false;
 					// yay for special cases

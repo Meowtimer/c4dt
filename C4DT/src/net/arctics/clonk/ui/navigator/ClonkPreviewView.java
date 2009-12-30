@@ -21,6 +21,7 @@ import org.eclipse.swt.widgets.Canvas;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.ui.IViewSite;
 import org.eclipse.ui.PartInitException;
+import org.eclipse.ui.navigator.CommonNavigator;
 import org.eclipse.ui.part.*;
 
 
@@ -143,14 +144,16 @@ public class ClonkPreviewView extends ViewPart implements ISelectionChangedListe
 			image.dispose();
 		image = newImage;
 		canvas.redraw();
-		
+
 	}
 	
 	@Override
 	public void dispose() {
 		if (image != null)
 			image.dispose();
-		Utilities.getProjectExplorer().getCommonViewer().removeSelectionChangedListener(this);
+		CommonNavigator nav = Utilities.getProjectExplorer();
+		if (nav != null)
+			nav.getCommonViewer().removeSelectionChangedListener(this);
 		super.dispose();
 	}
 

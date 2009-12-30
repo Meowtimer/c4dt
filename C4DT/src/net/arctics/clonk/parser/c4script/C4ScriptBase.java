@@ -79,6 +79,9 @@ public abstract class C4ScriptBase extends C4Structure implements IHasRelatedRes
 	
 	private transient C4Function[] lineToFunctionMap;
 	
+	// set of scripts this script is using functions and/or static variables from
+	private Set<C4ScriptBase> usedProjectScripts;
+	
 	public String getScriptText() {
 		return ""; //$NON-NLS-1$
 	}
@@ -380,6 +383,8 @@ public abstract class C4ScriptBase extends C4Structure implements IHasRelatedRes
 	}
 
 	public void clearDeclarations() {
+		if (usedProjectScripts != null)
+			usedProjectScripts = null;
 		if (definedDirectives != null)
 			definedDirectives.clear();
 		if (definedFunctions != null)
@@ -895,6 +900,16 @@ public abstract class C4ScriptBase extends C4Structure implements IHasRelatedRes
 	    		return true;
 	    return false;
     }
+	
+	public void addUsedProjectScript(C4ScriptBase script) {
+		if (script.getIndex() == this.getIndex()) {
+			((usedProjectScripts == null) ? (usedProjectScripts = new HashSet<C4ScriptBase>()) : usedProjectScripts).add(script);
+		}
+	}
+	
+	public boolean usedProjectScript(C4ScriptBase script) {
+		return usedProjectScripts != null && usedProjectScripts.contains(script);
+	}
 
 	//	public boolean removeDWording() {
 	//		boolean result = false;

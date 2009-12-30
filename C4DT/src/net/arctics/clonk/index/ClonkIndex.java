@@ -589,7 +589,8 @@ public class ClonkIndex implements Serializable, Iterable<C4Object> {
 	            				if (s == base || alreadyReturned.contains(s))
 	            					continue;
 	            				if (hasGlobals) {
-	            					break Outer;
+	            					if (s.usedProjectScript(base))
+	            						break Outer;
 	            				}
 	            				if (baseObject != null) {
 	            					if (s.includes(baseObject))
