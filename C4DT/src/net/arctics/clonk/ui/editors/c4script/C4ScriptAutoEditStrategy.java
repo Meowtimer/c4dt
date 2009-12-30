@@ -99,6 +99,19 @@ public class C4ScriptAutoEditStrategy extends DefaultIndentLineAutoEditStrategy 
 	@Override
 	public void customizeDocumentCommand(IDocument d, DocumentCommand c) {
 
+		if (c.text.equals("\t")) {
+			for (int i = overrideRegions.size()-1; i >= 0; i--) {
+				MutableRegion r = overrideRegions.get(i);
+				if (r.getOffset() == c.offset) {
+					overrideRegions.remove(i);
+					c.text = "";
+					c.shiftsCaret = false;
+					c.caretOffset = r.getOffset()+r.getLength();
+					return;
+				}
+			}
+		}
+		
 		if (c.text.length() == 0 && c.length > 0) {
 			regionDeleted(c.offset, c.length, null);
 		}
