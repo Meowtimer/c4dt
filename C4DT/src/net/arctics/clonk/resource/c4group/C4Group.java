@@ -288,8 +288,8 @@ public class C4Group implements C4GroupItem, Serializable, ITreeNode {
 		if (stream != null) {
 
 			// read all items before this one in the parent group so the stream offset is right
-			if (parentGroup != null && parentGroup.getChildEntries().get(0) != this) {
-				C4GroupItem predecessor = parentGroup.getChildEntries().get(parentGroup.getChildEntries().indexOf(this) - 1);
+			if (parentGroup != null && parentGroup.getChildren().get(0) != this) {
+				C4GroupItem predecessor = parentGroup.getChildren().get(parentGroup.getChildren().indexOf(this) - 1);
 				predecessor.readIntoMemory(true, filter);
 			}
 
@@ -441,7 +441,7 @@ public class C4Group implements C4GroupItem, Serializable, ITreeNode {
 	/**
 	 * @return the childEntries
 	 */
-	public List<C4GroupItem> getChildEntries() {
+	public List<C4GroupItem> getChildren() {
 		return childEntries;
 	}
 
@@ -454,6 +454,14 @@ public class C4Group implements C4GroupItem, Serializable, ITreeNode {
 
 	public C4Group getParentGroup() {
 		return parentGroup;
+	}
+	
+	public C4GroupItem findChild(String itemName) {
+		for (C4GroupItem item : getChildren()) {
+			if (item.getName().equals(itemName))
+				return item;
+		}
+		return null;
 	}
 	
 	/**
@@ -523,7 +531,7 @@ public class C4Group implements C4GroupItem, Serializable, ITreeNode {
 	}
 
 	public C4GroupItem findEntry(String entryName) {
-		for (C4GroupItem entry : getChildEntries()) {
+		for (C4GroupItem entry : getChildren()) {
 			if (entry.getName().equalsIgnoreCase(entryName)) {
 				return entry;
 			}
@@ -545,7 +553,7 @@ public class C4Group implements C4GroupItem, Serializable, ITreeNode {
 
 	@Override
 	public Collection<? extends INode> getChildCollection() {
-		return this.getChildEntries();
+		return this.getChildren();
 	}
 
 	@Override
@@ -566,6 +574,12 @@ public class C4Group implements C4GroupItem, Serializable, ITreeNode {
 	@Override
 	public String getNodeName() {
 		return getName();
+	}
+
+	public C4Group getMasterGroup() {
+		C4Group result;
+		for (result = this; result.getParentGroup() != null; result = result.getParentGroup());
+		return result;
 	}
 	
 }

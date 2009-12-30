@@ -2,6 +2,7 @@ package net.arctics.clonk.ui.navigator;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.StringReader;
 import java.io.StringWriter;
 
@@ -11,6 +12,7 @@ import javax.swing.text.html.HTMLEditorKit;
 import javax.swing.text.rtf.RTFEditorKit;
 
 import net.arctics.clonk.ClonkCore;
+import net.arctics.clonk.index.C4GroupEntryStorage;
 import net.arctics.clonk.index.C4ObjectExtern;
 import net.arctics.clonk.index.C4ObjectIntern;
 import net.arctics.clonk.parser.C4Structure;
@@ -18,6 +20,7 @@ import net.arctics.clonk.parser.inireader.DefCoreUnit;
 import net.arctics.clonk.parser.inireader.IniEntry;
 import net.arctics.clonk.parser.inireader.IntegerArray;
 import net.arctics.clonk.preferences.ClonkPreferences;
+import net.arctics.clonk.resource.c4group.C4Group;
 import net.arctics.clonk.util.Utilities;
 
 import org.eclipse.core.resources.IContainer;
@@ -82,6 +85,7 @@ public class ClonkPreviewView extends ViewPart implements ISelectionChangedListe
 	private Browser browser;
 	private Sash sash;
 	private Image image;
+	private boolean doNotDisposeImage;
 	private Text defInfo;
 
 	public ClonkPreviewView() {
@@ -160,12 +164,29 @@ public class ClonkPreviewView extends ViewPart implements ISelectionChangedListe
 	@Override
 	public void setFocus() {
 	}
+	
+	public Image getPicture(DefCoreUnit defCore, Image graphics) {
+		Image result = null;
+		IniEntry pictureEntry = defCore.entryInSection("DefCore", "Picture"); //$NON-NLS-1$ //$NON-NLS-2$
+		if (pictureEntry != null && pictureEntry.getValueObject() instanceof IntegerArray) {
+			IntegerArray values = (IntegerArray) pictureEntry.getValueObject();
+			result = new Image(canvas.getDisplay(), values.get(2), values.get(3));
+			GC gc = new GC(result);
+			try {
+				gc.drawImage(graphics, values.get(0), values.get(1), values.get(2), values.get(3), 0, 0, result.getBounds().width, result.getBounds().height);
+			} finally {
+				gc.dispose();
+			}
+		}
+		return result;
+	}
 
 	@Override
 	public void selectionChanged(SelectionChangedEvent event) {
 		Image newImage = null;
 		String newHtml = ""; //$NON-NLS-1$
 		String newDefText = "";
+		boolean newDoNotDispose = false;
 		if (event.getSelection() instanceof IStructuredSelection) try {
 			IStructuredSelection structSel = (IStructuredSelection) event.getSelection();
 			Object sel = structSel.getFirstElement();
@@ -221,17 +242,7 @@ public class ClonkPreviewView extends ViewPart implements ISelectionChangedListe
 							IResource defCoreFile = container.findMember("DefCore.txt"); //$NON-NLS-1$
 							if (defCoreFile instanceof IFile) {
 								DefCoreUnit defCore = (DefCoreUnit) DefCoreUnit.pinned((IFile) defCoreFile, true, false);
-								IniEntry pictureEntry = defCore.entryInSection("DefCore", "Picture"); //$NON-NLS-1$ //$NON-NLS-2$
-								if (pictureEntry != null && pictureEntry.getValueObject() instanceof IntegerArray) {
-									IntegerArray values = (IntegerArray) pictureEntry.getValueObject();
-									newImage = new Image(canvas.getDisplay(), values.get(2), values.get(3));
-									GC gc = new GC(newImage);
-									try {
-										gc.drawImage(fullGraphics, values.get(0), values.get(1), values.get(2), values.get(3), 0, 0, newImage.getBounds().width, newImage.getBounds().height);
-									} finally {
-										gc.dispose();
-									}
-								}
+								newImage = getPicture(defCore, fullGraphics);
 							}
 						} finally {
 							if (newImage == null)
@@ -241,18 +252,52 @@ public class ClonkPreviewView extends ViewPart implements ISelectionChangedListe
 						}
 					}
 				}
-				
+
 			}
 			else if (sel instanceof C4ObjectExtern) {
 				C4ObjectExtern obj = (C4ObjectExtern) sel;
+				if (obj.getCachedPicture() != null) {
+					newImage = obj.getCachedPicture();
+					newDoNotDispose = true;
+				} else {
+					C4Group group = C4GroupEntryStorage.selectGroup(obj, "Graphics.png", "DefCore.txt");
+					try {
+						InputStream graphics = new C4GroupEntryStorage(group, "Graphics.png").getContents();
+						try {
+							Image fullGraphics = new Image(canvas.getDisplay(), graphics);
+							try {
+								InputStream defCoreStream = new C4GroupEntryStorage(group, "DefCore.txt").getContents();
+								try {
+									DefCoreUnit defCore = new DefCoreUnit(defCoreStream);
+									defCore.parse(false);
+									newImage = getPicture(defCore, fullGraphics);
+								} finally {
+									defCoreStream.close();
+								}
+							} finally {
+								if (newImage == null)
+									newImage = fullGraphics;
+								else
+									fullGraphics.dispose();
+								obj.setCachedPicture(newImage);
+								newDoNotDispose = true;
+							}
+						} finally {
+							graphics.close();
+						}
+					} finally {
+						group.getMasterGroup().close();
+					}
+				}
 				newHtml = obj.getInfoText();
 				newDefText = obj.idWithName();
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		if (image != null)
+		if (image != null && !doNotDisposeImage)
 			image.dispose();
+		doNotDisposeImage = newDoNotDispose;
 		image = newImage;
 		canvas.redraw();
 		browser.setText(newHtml);
@@ -279,7 +324,8 @@ public class ClonkPreviewView extends ViewPart implements ISelectionChangedListe
 	@Override
 	public void dispose() {
 		if (image != null) {
-			image.dispose();
+			if (!doNotDisposeImage)
+				image.dispose();
 			image = null;
 		}
 		CommonNavigator nav = Utilities.getProjectExplorer();

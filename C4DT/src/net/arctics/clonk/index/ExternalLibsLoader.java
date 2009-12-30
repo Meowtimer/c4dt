@@ -122,7 +122,7 @@ public final class ExternalLibsLoader implements IC4GroupVisitor {
 				C4GroupEntry defCore = null, script = null, names = null;
 				Map<String, C4GroupEntry> descEntries = new HashMap<String, C4GroupEntry>();
 				Map<String, C4GroupEntry> tbls = new HashMap<String, C4GroupEntry>();
-				for(C4GroupItem child : group.getChildEntries()) {
+				for(C4GroupItem child : group.getChildren()) {
 					if (!(child instanceof C4GroupEntry)) continue;
 					if (child.getName().equals("DefCore.txt")) { //$NON-NLS-1$
 						defCore = (C4GroupEntry) child;
@@ -182,7 +182,7 @@ public final class ExternalLibsLoader implements IC4GroupVisitor {
 			}
 			else if (groupType == C4GroupType.ResourceGroup) { // System.c4g like
 				createGroup(group);
-				for (C4GroupItem child : group.getChildEntries()) {
+				for (C4GroupItem child : group.getChildren()) {
 					if (child instanceof C4GroupEntry  && child.getName().endsWith(".c")) { //$NON-NLS-1$
 						try {
 							C4ScriptExtern externScript = new C4ScriptExtern((C4GroupEntry) child, currentExternNode);

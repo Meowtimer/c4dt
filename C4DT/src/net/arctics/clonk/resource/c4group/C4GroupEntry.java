@@ -61,8 +61,8 @@ public class C4GroupEntry implements C4GroupItem, IStorage, Serializable {
 		if (completed) return;
 		completed = true;
 		
-		if (parentGroup.getChildEntries().get(0) != this) {
-			C4GroupItem predecessor = parentGroup.getChildEntries().get(parentGroup.getChildEntries().indexOf(this) - 1);
+		if (parentGroup.getChildren().get(0) != this) {
+			C4GroupItem predecessor = parentGroup.getChildren().get(parentGroup.getChildren().indexOf(this) - 1);
 			predecessor.readIntoMemory(true, filter);
 		}
     	

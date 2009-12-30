@@ -331,6 +331,10 @@ public class Command {
 				System.out.println(scen.toString());
 			}
 		}
+		@CommandFunction
+		public static void GC(Object context) {
+			System.gc();
+		}
 	}
 	
 }
