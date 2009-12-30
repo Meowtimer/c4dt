@@ -72,8 +72,12 @@ public class ClonkIndex implements Serializable, Iterable<C4Object> {
 	}
 	
 	@SuppressWarnings("unchecked")
+	public Iterable<C4ScriptBase> allScripts() {
+		return new CompoundIterable<C4ScriptBase>(this, indexedScripts, indexedScenarios);
+	}
+	
 	public void preSerialize() {
-		for (C4ScriptBase script : new CompoundIterable<C4ScriptBase>(this, indexedScripts, indexedScenarios)) {
+		for (C4ScriptBase script : allScripts()) {
 			script.preSerialize();
 		}
 	}
@@ -128,7 +132,7 @@ public class ClonkIndex implements Serializable, Iterable<C4Object> {
 		C4ScriptBase result = Utilities.getScriptForFile(file);
 		if (result == null) {
 			for (C4ScriptBase s : this.indexedScripts)
-				if (s.getResource().equals(file))
+				if (s.getResource() != null && s.getResource().equals(file))
 					return s;
 		}
 		return result;
@@ -232,12 +236,14 @@ public class ClonkIndex implements Serializable, Iterable<C4Object> {
 	 * @param script script which maybe a standalone-script, a scenario or an object
 	 */
 	public void removeScript(C4ScriptBase script) {
-		if (script instanceof C4Object)
+		if (script instanceof C4Object) {
 			removeObject((C4Object)script);
-		else
+		} else {
 			indexedScripts.remove(script);
+			scriptRemoved(script);
+		}
 	}
-	
+
 	/**
 	 * Removes this object from the index.<br>
 	 * The object may still exist in IContainer.sessionProperty<br>
@@ -254,14 +260,21 @@ public class ClonkIndex implements Serializable, Iterable<C4Object> {
 		List<C4Object> alreadyDefinedObjects = indexedObjects.get(obj.getId());
 		if (alreadyDefinedObjects != null) {
 			alreadyDefinedObjects.remove(obj);
+			scriptRemoved(obj);
 			if (alreadyDefinedObjects.size() == 0) { // if there are no more objects with this C4ID
 				indexedObjects.remove(obj.getId());
 			}
 		}
 	}
-	
+
 	public void removeScenario(C4Scenario scenario) {
 		this.indexedScenarios.remove(scenario);
+		scriptRemoved(scenario);
+	}
+	
+	private void scriptRemoved(C4ScriptBase script) {
+		for (C4ScriptBase s : allScripts())
+			s.scriptRemovedFromIndex(script);
 	}
 	
 	public void addScript(C4ScriptBase script) {

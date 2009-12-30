@@ -451,7 +451,7 @@ public class EngineDeclarationsView extends ViewPart implements IPropertyChangeL
 					for (TreeItem t : selection) {
 						Object selectedItem = t.getData();
 						if (selectedItem instanceof C4Declaration) {
-							ClonkCore.getDefault().getActiveEngine().removeField((C4Declaration) selectedItem);
+							ClonkCore.getDefault().getActiveEngine().removeDeclaration((C4Declaration) selectedItem);
 						}
 					}
 					refresh();

@@ -372,13 +372,13 @@ public abstract class C4ScriptBase extends C4Structure implements IHasRelatedRes
 		}
 	}
 
-	public void removeField(C4Declaration field) {
-		if (field.getScript() != this) field.setScript(this);
-		if (field instanceof C4Function) {
-			definedFunctions.remove((C4Function)field);
+	public void removeDeclaration(C4Declaration declaration) {
+		if (declaration.getScript() != this) declaration.setScript(this);
+		if (declaration instanceof C4Function) {
+			definedFunctions.remove((C4Function)declaration);
 		}
-		else if (field instanceof C4Variable) {
-			definedVariables.remove((C4Variable)field);
+		else if (declaration instanceof C4Variable) {
+			definedVariables.remove((C4Variable)declaration);
 		}
 	}
 
@@ -389,10 +389,10 @@ public abstract class C4ScriptBase extends C4Structure implements IHasRelatedRes
 			definedDirectives.clear();
 		if (definedFunctions != null)
 			while (definedFunctions.size() > 0)
-				removeField(definedFunctions.get(definedFunctions.size()-1));
+				removeDeclaration(definedFunctions.get(definedFunctions.size()-1));
 		if (definedVariables != null)
 			while (definedVariables.size() > 0)
-				removeField(definedVariables.get(definedVariables.size()-1));
+				removeDeclaration(definedVariables.get(definedVariables.size()-1));
 	}
 
 	public void setName(String name) {
@@ -985,5 +985,13 @@ public abstract class C4ScriptBase extends C4Structure implements IHasRelatedRes
 	//	}
 	//}
 	//}
+	
+	/**
+	 * notification sent by the index when a script is removed
+	 */
+	public void scriptRemovedFromIndex(C4ScriptBase script) {
+		if (usedProjectScripts != null)
+			usedProjectScripts.remove(script);
+	}
 
 }
