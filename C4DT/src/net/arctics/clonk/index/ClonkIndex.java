@@ -29,6 +29,7 @@ import net.arctics.clonk.parser.c4script.C4Variable.C4VariableScope;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.resource.ExternalLib;
 import net.arctics.clonk.resource.InputStreamRespectingUniqueIDs;
+import net.arctics.clonk.util.CompoundIterable;
 import net.arctics.clonk.util.IHasRelatedResource;
 import net.arctics.clonk.util.IPredicate;
 import net.arctics.clonk.util.Utilities;
@@ -68,6 +69,13 @@ public class ClonkIndex implements Serializable, Iterable<C4Object> {
 	
 	public void postSerialize() throws CoreException {
 		refreshCache();
+	}
+	
+	@SuppressWarnings("unchecked")
+	public void preSerialize() {
+		for (C4ScriptBase script : new CompoundIterable<C4ScriptBase>(this, indexedScripts, indexedScenarios)) {
+			script.preSerialize();
+		}
 	}
 	
 	/**

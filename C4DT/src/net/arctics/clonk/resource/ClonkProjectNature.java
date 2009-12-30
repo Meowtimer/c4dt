@@ -84,6 +84,7 @@ public class ClonkProjectNature implements IProjectNature {
 				FileOutputStream out = new FileOutputStream(indexFile);
 				try {
 					ObjectOutputStream objStream = new ObjectOutputStream(out);
+					getIndex().preSerialize();
 					objStream.writeObject(getIndex());
 					objStream.close();
 				} finally {

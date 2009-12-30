@@ -228,7 +228,7 @@ public abstract class C4Declaration implements Serializable, IHasRelatedResource
 	
 	/**
 	 * Called after deserialization to restore transient references
-	 * @param parent
+	 * @param parent the parent
 	 */
 	public void postSerialize(C4Declaration parent) {
 		setParentDeclaration(parent);
@@ -236,6 +236,17 @@ public abstract class C4Declaration implements Serializable, IHasRelatedResource
 		if (subDecs != null)
 			for (C4Declaration d : subDecs)
 				d.postSerialize(this);
+	}
+	
+	/**
+	 * Called before serializing this object
+	 * @param parent the parent
+	 */
+	public void preSerialize() {
+		Iterable<C4Declaration> subDecs = this.allSubDeclarations();
+		if (subDecs != null)
+			for (C4Declaration d : subDecs)
+				d.preSerialize();
 	}
 	
 	/**
