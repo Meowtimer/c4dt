@@ -147,7 +147,7 @@ public abstract class C4ScriptBase extends C4Structure implements IHasRelatedRes
 					level = Math.max(level, Integer.parseInt(d.getContent()));
 				}
 				catch (NumberFormatException e) {
-					if (level == 0)
+					if (level < 1)
 						level = 1;
 				}
 			}
