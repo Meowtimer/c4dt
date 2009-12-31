@@ -27,7 +27,6 @@ import net.arctics.clonk.parser.c4script.C4Directive.C4DirectiveType;
 import net.arctics.clonk.parser.c4script.C4Function.C4FunctionScope;
 import net.arctics.clonk.parser.c4script.C4Variable.C4VariableScope;
 import net.arctics.clonk.resource.ClonkProjectNature;
-import net.arctics.clonk.resource.ExternalLib;
 import net.arctics.clonk.resource.InputStreamRespectingUniqueIDs;
 import net.arctics.clonk.util.CompoundIterable;
 import net.arctics.clonk.util.IHasRelatedResource;
@@ -336,24 +335,11 @@ public class ClonkIndex implements Serializable, Iterable<C4Object> {
 		return Utilities.pickNearest(resource, fromList, null);
 	}
 	
-	public boolean acceptsFromExternalLib(ExternalLib lib) {
-		return true;
-	}
-	
-	public boolean acceptsDeclaration(C4Declaration declaration) {
-		C4ScriptBase script = declaration.getScript();
-		if (script instanceof IExternalScript)
-			return acceptsFromExternalLib(((IExternalScript)script).getExternalLib());
-		return true;
-	}
-	
 	public C4Object getExternalObject(C4ID id) {
 		List<C4Object> obj = ClonkCore.getDefault().getExternIndex().getObjects(id);
 		if (obj != null) {
 			for (C4Object o : obj) {
-				C4ObjectExtern eo = (C4ObjectExtern) o;
-				if (acceptsFromExternalLib(eo.getExternalLib()))
-					return eo;
+				return o;
 			}
 		}
 		return null;
@@ -447,7 +433,7 @@ public class ClonkIndex implements Serializable, Iterable<C4Object> {
 	
 	public C4Function findGlobalFunction(String functionName) {
 		for (C4Function func : globalFunctions) {
-			if (func.getName().equals(functionName) && acceptsDeclaration(func))
+			if (func.getName().equals(functionName))
 				return func;
 		}
 		return null;
@@ -457,7 +443,7 @@ public class ClonkIndex implements Serializable, Iterable<C4Object> {
 		if (staticVariables == null)
 			return null;
 		for (C4Variable var : staticVariables) {
-			if (var.getName().equals(variableName) && acceptsDeclaration(var))
+			if (var.getName().equals(variableName))
 				return var;
 		}
 		return null;
@@ -474,7 +460,7 @@ public class ClonkIndex implements Serializable, Iterable<C4Object> {
 		if (isGlobalPredicate == null) {
 			isGlobalPredicate = new IPredicate<C4Declaration>() {
 				public boolean test(C4Declaration item) {
-					return item.isGlobal() && acceptsDeclaration(item);
+					return item.isGlobal();
 				}
 			};
 		}

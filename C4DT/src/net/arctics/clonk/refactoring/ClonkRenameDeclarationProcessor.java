@@ -140,7 +140,7 @@ public class ClonkRenameDeclarationProcessor extends RenameProcessor {
 
 	@Override
 	public String getIdentifier() {
-		return ClonkCore.id("refactoring.renameField"); //$NON-NLS-1$
+		return ClonkCore.id("refactoring.renameDeclaration"); //$NON-NLS-1$
 	}
 
 	@Override

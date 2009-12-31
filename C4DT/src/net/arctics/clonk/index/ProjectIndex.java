@@ -41,11 +41,6 @@ public class ProjectIndex extends ExternIndex {
 		});*/
 	}
 	
-	@Override
-	public boolean acceptsFromExternalLib(ExternalLib lib) {
-		return true;
-	}
-	
 	public ClonkProjectNature getNature() {
 		return ClonkProjectNature.get(project);
 	}

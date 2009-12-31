@@ -5,7 +5,6 @@ import java.util.List;
 
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.index.ExternIndex;
-import net.arctics.clonk.index.IExternalScript;
 import net.arctics.clonk.parser.C4Declaration;
 import net.arctics.clonk.parser.c4script.C4Function;
 import net.arctics.clonk.parser.c4script.C4ScriptBase;
@@ -96,16 +95,16 @@ public class DeclarationLocator extends ExpressionLocator {
 					List<C4Declaration> externalDeclarations = ClonkCore.getDefault().getExternIndex().getDeclarationMap().get(access.getDeclarationName());
 					
 					// filter to make sure the declarations found are actually functions and in the case of external ones also contained in the project dependencies
-					IPredicate<C4Declaration> isFuncAndInDeps = new IPredicate<C4Declaration>() {
+					/*IPredicate<C4Declaration> isFunc = new IPredicate<C4Declaration>() {
 						@Override
 						public boolean test(C4Declaration item) {
-							return item instanceof C4Function && script.getIndex().acceptsFromExternalLib(((IExternalScript)item.getScript()).getExternalLib());
+							return item instanceof C4Function;// && script.getIndex().acceptsFromExternalLib(((IExternalScript)item.getScript()).getExternalLib());
 						}
-					};
+					};*/
 					if (projectDeclarations != null)
 						projectDeclarations = Utilities.filter(projectDeclarations, IS_FUNC);
 					if (externalDeclarations != null)
-						externalDeclarations = Utilities.filter(externalDeclarations, isFuncAndInDeps);
+						externalDeclarations = Utilities.filter(externalDeclarations, IS_FUNC);
 					
 					C4Function engineFunc = ClonkCore.getDefault().getActiveEngine().findFunction(access.getDeclarationName());
 					if (projectDeclarations != null || externalDeclarations != null || engineFunc != null) {
