@@ -117,6 +117,9 @@
 				</or>
 			</possibleChildren>
 
+			<actionProvider class="net.arctics.clonk.ui.navigator.ClonkActionProvider"
+				id="clonkActionProvider" priority="normal" />
+
 			<commonSorter class="net.arctics.clonk.ui.navigator.ClonkSorter" id="clonkSorter">
 				<parentExpression>
 					<or>
