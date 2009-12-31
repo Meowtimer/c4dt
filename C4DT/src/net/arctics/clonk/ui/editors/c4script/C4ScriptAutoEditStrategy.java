@@ -3,6 +3,8 @@ package net.arctics.clonk.ui.editors.c4script;
 import java.util.ArrayList;
 import java.util.List;
 
+import net.arctics.clonk.parser.c4script.C4Function;
+import net.arctics.clonk.parser.c4script.C4ScriptExprTree;
 import net.arctics.clonk.parser.c4script.MutableRegion;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.ui.editors.ClonkCompletionProposal;
@@ -85,17 +87,7 @@ public class C4ScriptAutoEditStrategy extends DefaultIndentLineAutoEditStrategy 
 	
 	public C4ScriptAutoEditStrategy(ClonkProjectNature project, String partitioning) {
 	}
-
-	/*
-	 * Facts:
-	 * 1. backspaces are only customizable if attached to viewers key-listener (see jdt)
-	 * 2. search methods(scan* in jdt) should always respect partitioning to avoid strings and comments
-	 * 3. every insertion has to check if the characters already exist before adding them to c.text
-	 * 
-	 * Unclear points:
-	 * 1. sense/use of ReplaceEdit/DeleteEdit/...
-	 * 2. correct calculation of c.caretOffset
-	 */
+	
 	@Override
 	public void customizeDocumentCommand(IDocument d, DocumentCommand c) {
 
@@ -110,6 +102,25 @@ public class C4ScriptAutoEditStrategy extends DefaultIndentLineAutoEditStrategy 
 					return;
 				}
 			}
+		}
+		
+		try {
+			if (c.text.endsWith("\n") && c.offset > 0 && d.getChar(c.offset-1) == '{') {
+				C4Function f = ((C4ScriptEditor)getConfiguration().getEditor()).getFuncAtCursor();
+				if (unbalanced(d, f.getBody())) {
+					IRegion r = d.getLineInformationOfOffset(c.offset);
+					int start = r.getOffset();
+					int end = findEndOfWhiteSpace(d, start, c.offset);
+					if (end > start) {
+						c.text += d.get(start, end-start) + C4ScriptExprTree.IndentString;
+					}
+					c.caretOffset = c.offset + c.text.length();
+					c.shiftsCaret = false;
+					c.text += "\n" + d.get(start, end-start) + "}";
+				}
+			}
+		} catch (BadLocationException e1) {
+			e1.printStackTrace();
 		}
 		
 		if (c.text.length() == 0 && c.length > 0) {
@@ -209,8 +220,7 @@ public class C4ScriptAutoEditStrategy extends DefaultIndentLineAutoEditStrategy 
 		}
 	}
 
-	/*
-	private boolean unbalanced(IDocument d, IRegion body, int i) throws BadLocationException {
+	private boolean unbalanced(IDocument d, IRegion body) throws BadLocationException {
 		int open, close;
 		open = close = 0;
 		for (int x = 0; x < body.getLength()-1 && body.getOffset()+x < d.getLength(); x++) {
@@ -226,6 +236,5 @@ public class C4ScriptAutoEditStrategy extends DefaultIndentLineAutoEditStrategy 
 		}
 		return open > close;
 	}
-	*/
 	
 }
