@@ -7,6 +7,8 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.eclipse.swt.graphics.Image;
+
 import net.arctics.clonk.parser.C4ID;
 import net.arctics.clonk.parser.c4script.C4ScriptBase;
 import net.arctics.clonk.parser.c4script.FindDeclarationInfo;
@@ -15,6 +17,11 @@ import net.arctics.clonk.preferences.ClonkPreferences;
 public abstract class C4Object extends C4ScriptBase {
 
 	private static final long serialVersionUID = 1L;
+	
+	/**
+	 * Template to construct the info text of an object definition from
+	 */
+	public static final String INFO_TEXT_TEMPLATE = Messages.C4Object_InfoTextTemplate;
 	
 	/**
 	 * localized name of the object; key is language code like "DE" and "US"
@@ -27,9 +34,9 @@ public abstract class C4Object extends C4ScriptBase {
 	protected C4ID id;
 	
 	/**
-	 * Template to construct the info text of an object definition from
+	 * Cached picture from Graphics.png
 	 */
-	public static final String INFO_TEXT_TEMPLATE = Messages.C4Object_InfoTextTemplate;
+	private transient Image cachedPicture;
 	
 	/**
 	 * Creates a new C4Object
@@ -132,6 +139,21 @@ public abstract class C4Object extends C4ScriptBase {
 			if (appendages != null)
 				list.addAll(appendages);
 		}
+	}
+	
+	@Override
+	protected void finalize() throws Throwable {
+		if (cachedPicture != null)
+			cachedPicture.dispose();
+		super.finalize();
+	}
+
+	public Image getCachedPicture() {
+		return cachedPicture;
+	}
+
+	public void setCachedPicture(Image cachedPicture) {
+		this.cachedPicture = cachedPicture;
 	}
 	
 }

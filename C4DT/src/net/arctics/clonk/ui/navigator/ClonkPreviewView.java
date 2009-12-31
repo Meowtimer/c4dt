@@ -237,33 +237,42 @@ public class ClonkPreviewView extends ViewPart implements ISelectionChangedListe
 						newHtml = Utilities.stringFromFile((IFile) descFile);
 					}
 				}
-				
-				// Title.png
-				if (newImage == null) {
-					IResource graphicsFile = container.findMember("Title.png"); //$NON-NLS-1$
-					if (graphicsFile != null) {
-						newImage = new Image(canvas.getDisplay(), graphicsFile.getLocation().toOSString());
-					}
+
+				if (obj != null && obj.getCachedPicture() != null) {
+					newImage = obj.getCachedPicture();
+					newDoNotDispose = true;
 				}
-				
-				// part of Graphics.png as specified by DefCore.Picture
-				if (newImage == null) {
-					IResource graphicsFile = container.findMember("Graphics.png"); //$NON-NLS-1$
-					if (graphicsFile == null)
-						graphicsFile = container.findMember("Graphics.bmp"); //$NON-NLS-1$
-					if (graphicsFile != null) {
-						Image fullGraphics = new Image(canvas.getDisplay(), graphicsFile.getLocation().toOSString());
-						try {
-							IResource defCoreFile = container.findMember("DefCore.txt"); //$NON-NLS-1$
-							if (defCoreFile instanceof IFile) {
-								DefCoreUnit defCore = (DefCoreUnit) DefCoreUnit.pinned((IFile) defCoreFile, true, false);
-								newImage = getPicture(defCore, fullGraphics);
+				else {
+
+					// Title.png
+					if (newImage == null) {
+						IResource graphicsFile = container.findMember("Title.png"); //$NON-NLS-1$
+						if (graphicsFile != null) {
+							newImage = new Image(canvas.getDisplay(), graphicsFile.getLocation().toOSString());
+						}
+					}
+
+					// part of Graphics.png as specified by DefCore.Picture
+					if (newImage == null) {
+						IResource graphicsFile = container.findMember("Graphics.png"); //$NON-NLS-1$
+						if (graphicsFile == null)
+							graphicsFile = container.findMember("Graphics.bmp"); //$NON-NLS-1$
+						if (graphicsFile != null) {
+							Image fullGraphics = new Image(canvas.getDisplay(), graphicsFile.getLocation().toOSString());
+							try {
+								IResource defCoreFile = container.findMember("DefCore.txt"); //$NON-NLS-1$
+								if (defCoreFile instanceof IFile) {
+									DefCoreUnit defCore = (DefCoreUnit) DefCoreUnit.pinned((IFile) defCoreFile, true, false);
+									newImage = getPicture(defCore, fullGraphics);
+								}
+							} finally {
+								if (newImage == null)
+									newImage = fullGraphics;
+								else
+									fullGraphics.dispose();
+								obj.setCachedPicture(newImage);
+								newDoNotDispose = true;
 							}
-						} finally {
-							if (newImage == null)
-								newImage = fullGraphics;
-							else
-								fullGraphics.dispose();
 						}
 					}
 				}

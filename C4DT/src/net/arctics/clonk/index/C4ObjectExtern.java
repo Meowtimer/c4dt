@@ -12,8 +12,6 @@ import java.util.Map;
 import org.eclipse.core.resources.IStorage;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Path;
-import org.eclipse.swt.graphics.Image;
-
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.C4ID;
 import net.arctics.clonk.parser.stringtbl.StringTbl;
@@ -36,7 +34,6 @@ public class C4ObjectExtern extends C4Object implements ITreeNode, IExternalScri
 	private Map<String, StringTbl> stringTables;
 	
 	private transient ExternalLib externalLib;
-	private transient Image cachedPicture;
 	
 	public void addStringTbl(String lang, StringTbl tbl) {
 		if (stringTables == null)
@@ -180,21 +177,6 @@ public class C4ObjectExtern extends C4Object implements ITreeNode, IExternalScri
 	@Override
 	public String toString() {
 		return getPath().toOSString();
-	}
-	
-	@Override
-	protected void finalize() throws Throwable {
-		if (cachedPicture != null)
-			cachedPicture.dispose();
-		super.finalize();
-	}
-
-	public Image getCachedPicture() {
-		return cachedPicture;
-	}
-
-	public void setCachedPicture(Image cachedPicture) {
-		this.cachedPicture = cachedPicture;
 	}
 
 }

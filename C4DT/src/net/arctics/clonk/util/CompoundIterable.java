@@ -28,7 +28,10 @@ public class CompoundIterable<T> implements Iterable<T>, Iterator<T> {
 	}
  
 	public T next() {
-		return curIterator.next();
+		T next = curIterator.next();
+		if (next == null)
+			System.out.println("CompoundIterator complains about its underling " + curIterator + ", it returns null");
+		return next;
 	}
 
 	public void remove() {	
