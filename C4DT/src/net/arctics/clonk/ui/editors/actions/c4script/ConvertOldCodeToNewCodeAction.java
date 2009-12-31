@@ -12,17 +12,29 @@ import net.arctics.clonk.ui.editors.IClonkCommandIds;
 import net.arctics.clonk.ui.editors.c4script.C4ScriptEditor;
 import net.arctics.clonk.util.Pair;
 
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.DocumentRewriteSession;
 import org.eclipse.jface.text.DocumentRewriteSessionType;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IDocumentExtension4;
 import org.eclipse.jface.text.ITextSelection;
+import org.eclipse.ltk.core.refactoring.DocumentChange;
+import org.eclipse.ltk.core.refactoring.TextChange;
+import org.eclipse.text.edits.MultiTextEdit;
+import org.eclipse.text.edits.ReplaceEdit;
 import org.eclipse.ui.texteditor.ITextEditor;
 import org.eclipse.ui.texteditor.TextEditorAction;
 
 public class ConvertOldCodeToNewCodeAction extends TextEditorAction {
 
+	private final static class FunctionStatements extends Pair<C4Function, LinkedList<Statement>> {
+		public FunctionStatements(C4Function first, LinkedList<Statement> second) {
+			super(first, second);
+		}
+	}
+	
 	public ConvertOldCodeToNewCodeAction(ResourceBundle bundle, String prefix, ITextEditor editor) {
 		super(bundle, prefix, editor);
 		this.setId(IClonkCommandIds.CONVERT_OLD_CODE_TO_NEW_CODE);
@@ -36,11 +48,18 @@ public class ConvertOldCodeToNewCodeAction extends TextEditorAction {
 		final C4ScriptEditor editor = (C4ScriptEditor)this.getTextEditor();
 		final ITextSelection selection = (ITextSelection)editor.getSelectionProvider().getSelection();
 		final IDocument document = editor.getDocumentProvider().getDocument(editor.getEditorInput());
-		final LinkedList<Pair<C4Function, LinkedList<Statement>>> statements = new LinkedList<Pair<C4Function, LinkedList<Statement>>>();
+		final LinkedList<FunctionStatements> statements = new LinkedList<FunctionStatements>();
 		final int selLength = selection.getLength() == document.getLength() ? 0 : selection.getLength();
 		C4ScriptParser parser;
 		try {
 			parser = editor.reparseWithDocumentContents(expressionCollector(selection, statements, selLength), false);
+			// add functions that contain now statements and are therefore not collected
+			Outer: for (C4Function f : parser.getContainer().functions()) {
+				for (FunctionStatements s : statements)
+					if (s.getFirst() == f)
+						continue Outer;
+				statements.add(new FunctionStatements(f, new LinkedList<Statement>()));
+			}
 		} catch (Exception e) {
 			parser = null;
 			e.printStackTrace();
@@ -50,7 +69,7 @@ public class ConvertOldCodeToNewCodeAction extends TextEditorAction {
 
 	public static IExpressionListener expressionCollector(
 			final ITextSelection selection,
-			final LinkedList<Pair<C4Function, LinkedList<Statement>>> statements,
+			final LinkedList<FunctionStatements> statements,
 			final int selLength) {
 		return new IExpressionListener() {
 			
@@ -61,7 +80,7 @@ public class ConvertOldCodeToNewCodeAction extends TextEditorAction {
 				if (!(expression instanceof Statement))
 					return TraversalContinuation.Continue; // odd
 				if (statements.size() == 0 || parser.getActiveFunc() != statements.getFirst().getFirst()) {
-					statements.addFirst(new Pair<C4Function, LinkedList<Statement>>(parser.getActiveFunc(), new LinkedList<Statement>()));
+					statements.addFirst(new FunctionStatements(parser.getActiveFunc(), new LinkedList<Statement>()));
 					commentsOnOld.clear();
 				}
 				if (selLength == 0 || (expression.getExprStart() >= selection.getOffset() && expression.getExprEnd() <= selection.getOffset()+selection.getLength())) {
@@ -88,12 +107,14 @@ public class ConvertOldCodeToNewCodeAction extends TextEditorAction {
 		final C4ScriptParser parser,
 		final ITextSelection selection,
 		final IDocument document,
-		final LinkedList<Pair<C4Function, LinkedList<Statement>>> statements
+		final LinkedList<FunctionStatements> statements
 	) {
 		final int selLength = selection.getLength() == document.getLength() ? 0 : selection.getLength();
-		IDocumentExtension4 ext4 = (document instanceof IDocumentExtension4) ? (IDocumentExtension4)document : null;
-		DocumentRewriteSession session = ext4 != null ? ext4.startRewriteSession(DocumentRewriteSessionType.SEQUENTIAL) : null;
-		for (Pair<C4Function, LinkedList<Statement>> pair : statements) {
+		IDocumentExtension4 ext4 = null; // (document instanceof IDocumentExtension4) ? (IDocumentExtension4)document : null;
+		DocumentRewriteSession session = ext4 != null ? ext4.startRewriteSession(DocumentRewriteSessionType.UNRESTRICTED) : null;
+		TextChange textChange = new DocumentChange("Tidy Up Code", document);
+		textChange.setEdit(new MultiTextEdit());
+		for (FunctionStatements pair : statements) {
 			try {
 				C4Function func = pair.getFirst();
 				LinkedList<Statement> elms = pair.getSecond();
@@ -129,18 +150,18 @@ public class ConvertOldCodeToNewCodeAction extends TextEditorAction {
 						blockLength = func.getBody().getEnd()+1 - blockBegin;
 					}
 					// eat indentation
-					while (blockBegin-1 > func.getHeader().getEnd() && superflousBetweenFuncHeaderAndBody(document.getChar(blockBegin-1))) {
+					while (blockBegin-1 >= func.getHeader().getEnd() && superflousBetweenFuncHeaderAndBody(document.getChar(blockBegin-1))) {
 						blockBegin--;
 						blockLength++;
 					}
-					document.replace(blockBegin, blockLength, blockString);
+					textChange.addEdit(new ReplaceEdit(blockBegin, blockLength, blockString));
 					// convert old style function to new style function
 					String newHeader = func.getHeaderString(false);
-					document.replace(func.getHeader().getStart(), func.getHeader().getLength(), newHeader);
+					textChange.addEdit(new ReplaceEdit(func.getHeader().getStart(), func.getHeader().getLength(), newHeader));
 				}
 				else {
 					for (ExprElm e : elms) {
-						replaceExpression(document, e, parser);
+						replaceExpression(document, e, parser, textChange);
 					}
 				}
 			} catch (BadLocationException e1) {
@@ -151,19 +172,24 @@ public class ConvertOldCodeToNewCodeAction extends TextEditorAction {
 				e1.printStackTrace();
 			}
 		}
+		try {
+			textChange.perform(new NullProgressMonitor());
+		} catch (CoreException e) {
+			e.printStackTrace();
+		}
 		if (ext4 != null)
 			ext4.stopRewriteSession(session);
 	}
 
 	private static boolean superflousBetweenFuncHeaderAndBody(char c) {
-		return c == '\t' || c == ' ' || c == '\n';
+		return c == '\t' || c == ' ' || c == '\n' || c == '\r';
 	}
 	
-	private static void replaceExpression(IDocument document, ExprElm e, C4ScriptParser parser) throws BadLocationException, CloneNotSupportedException {
+	private static void replaceExpression(IDocument document, ExprElm e, C4ScriptParser parser, TextChange textChange) throws BadLocationException, CloneNotSupportedException {
 		String oldString = document.get(e.getExprStart(), e.getExprEnd()-e.getExprStart());
 		String newString = e.exhaustiveNewStyleReplacement(parser).toString(2);
 		if (!oldString.equals(newString))
-			document.replace(e.getExprStart(), e.getExprEnd()-e.getExprStart(), newString);
+			textChange.addEdit(new ReplaceEdit(e.getExprStart(), e.getExprEnd()-e.getExprStart(), newString));
 	}
 	
 }
