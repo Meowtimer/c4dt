@@ -33,12 +33,12 @@ import org.eclipse.text.edits.MalformedTreeException;
 import org.eclipse.text.edits.MultiTextEdit;
 import org.eclipse.text.edits.ReplaceEdit;
 
-public class ClonkRenameFieldProcessor extends RenameProcessor {
+public class ClonkRenameDeclarationProcessor extends RenameProcessor {
 	
 	private C4Declaration decl;
 	private String newName;
 
-	public ClonkRenameFieldProcessor(C4Declaration field, String newName) {
+	public ClonkRenameDeclarationProcessor(C4Declaration field, String newName) {
 		this.newName = newName;
 		this.decl = field;
 	}

@@ -5,7 +5,7 @@ import java.util.ResourceBundle;
 
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.C4Declaration;
-import net.arctics.clonk.refactoring.ClonkRenameFieldProcessor;
+import net.arctics.clonk.refactoring.ClonkRenameDeclarationProcessor;
 import net.arctics.clonk.ui.editors.EditorUtil;
 import net.arctics.clonk.ui.editors.IClonkCommandIds;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -58,7 +58,7 @@ public class RenameDeclarationAction extends OpenDeclarationAction {
 					return;
 				}
 				String newName = newNameDialog.getValue();
-				RenameRefactoring refactoring = new RenameRefactoring(new ClonkRenameFieldProcessor(fieldToRename, newName));
+				RenameRefactoring refactoring = new RenameRefactoring(new ClonkRenameDeclarationProcessor(fieldToRename, newName));
 				CheckConditionsOperation checkConditions = new CheckConditionsOperation(refactoring, CheckConditionsOperation.ALL_CONDITIONS);
 				CreateChangeOperation createChange = new CreateChangeOperation(checkConditions, RefactoringStatus.FATAL);
 				PerformChangeOperation op = new PerformChangeOperation(createChange);
