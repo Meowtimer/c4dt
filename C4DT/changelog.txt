@@ -87,3 +87,8 @@ are then taken into account in various places
 1.5.2:
 -Fixes
 -Context information (parameters) shown immediately
+1.5.2.1:
+-Fixes
+-Auto brackets ({}, ())
+-Preview view similar to the Editor.exe preview
+-ClonkBuilder speed improved in some cases
