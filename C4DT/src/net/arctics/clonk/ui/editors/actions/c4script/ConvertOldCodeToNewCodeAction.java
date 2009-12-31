@@ -29,7 +29,7 @@ import org.eclipse.ui.texteditor.TextEditorAction;
 
 public class ConvertOldCodeToNewCodeAction extends TextEditorAction {
 
-	private final static class FunctionStatements extends Pair<C4Function, LinkedList<Statement>> {
+	public final static class FunctionStatements extends Pair<C4Function, LinkedList<Statement>> {
 		public FunctionStatements(C4Function first, LinkedList<Statement> second) {
 			super(first, second);
 		}

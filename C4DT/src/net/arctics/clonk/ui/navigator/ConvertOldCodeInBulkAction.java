@@ -6,13 +6,11 @@ import java.util.LinkedList;
 import java.util.List;
 
 import net.arctics.clonk.ClonkCore;
-import net.arctics.clonk.parser.c4script.C4Function;
 import net.arctics.clonk.parser.c4script.C4ScriptBase;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.ParsingException;
-import net.arctics.clonk.parser.c4script.C4ScriptExprTree.Statement;
 import net.arctics.clonk.ui.editors.actions.c4script.ConvertOldCodeToNewCodeAction;
-import net.arctics.clonk.util.Pair;
+import net.arctics.clonk.ui.editors.actions.c4script.ConvertOldCodeToNewCodeAction.FunctionStatements;
 import net.arctics.clonk.util.Utilities;
 
 import org.eclipse.core.resources.IContainer;
@@ -115,7 +113,7 @@ public class ConvertOldCodeInBulkAction extends Action {
 												C4ScriptBase script = Utilities.getScriptForFile(file);
 												if (script != null) {
 													C4ScriptParser parser = new C4ScriptParser(file, script);
-													LinkedList<Pair<C4Function, LinkedList<Statement>>> statements = new LinkedList<Pair<C4Function, LinkedList<Statement>>>();
+													LinkedList<FunctionStatements> statements = new LinkedList<FunctionStatements>();
 													parser.setExpressionListener(ConvertOldCodeToNewCodeAction.expressionCollector(null, statements, 0));
 													try {
 														parser.parse();
