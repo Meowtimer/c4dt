@@ -257,6 +257,7 @@
 		
 		<view category="net.arctics.clonk" class="net.arctics.clonk.ui.navigator.ClonkPreviewView"
 			id="net.arctics.clonk.views.ClonkPreviewView"
+			icon="icons/Clonk_C4.png"
 			name="Clonk Preview" />
 	</extension>
 
