@@ -72,7 +72,7 @@ public class C4ScriptAutoEditStrategy extends DefaultIndentLineAutoEditStrategy 
 		
 	}*/
 	
-	private static final String[] AUTOPAIR_STRINGS = {"(", ")", "\"", "\""};
+	private static final String[] AUTOPAIR_STRINGS = {"(", ")", "\"", "\"", "[", "]"};
 	
 	private C4ScriptSourceViewerConfiguration configuration;
 	private List<MutableRegion> overrideRegions = new ArrayList<MutableRegion>(3);
