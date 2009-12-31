@@ -467,7 +467,6 @@ public class C4Function extends C4Structure implements Serializable, ITypedDecla
 	public boolean tooManyParameters(int num) {
 		return
 			!(getScript() instanceof IExternalScript) &&
-			!getName().equals(Keywords.SafeInherited) &&
 			(getParameters().size() == 0 || getParameters().get(getParameters().size()-1).isActualParm()) &&
 			num > getParameters().size();
 	}

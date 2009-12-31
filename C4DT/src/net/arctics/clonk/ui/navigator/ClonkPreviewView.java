@@ -270,8 +270,10 @@ public class ClonkPreviewView extends ViewPart implements ISelectionChangedListe
 									newImage = fullGraphics;
 								else
 									fullGraphics.dispose();
-								obj.setCachedPicture(newImage);
-								newDoNotDispose = true;
+								if (obj != null)
+									obj.setCachedPicture(newImage);
+									newDoNotDispose = true;
+								}
 							}
 						}
 					}

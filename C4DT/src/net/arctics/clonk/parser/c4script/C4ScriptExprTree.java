@@ -1035,8 +1035,8 @@ public abstract class C4ScriptExprTree {
 					}
 					
 					// warn about too many parameters
-					if (f.tooManyParameters(params.length)) {
-						context.addLatentMarker(ParserErrorCode.TooManyParameters, this, IMarker.SEVERITY_WARNING, f, f.getParameters().size(), params.length);
+					if (!declarationName.equals(Keywords.SafeInherited) && f.tooManyParameters(actualParmsNum())) {
+						context.addLatentMarker(ParserErrorCode.TooManyParameters, this, IMarker.SEVERITY_WARNING, f, f.getParameters().size(), actualParmsNum());
 					}
 					
 				}
@@ -1050,6 +1050,12 @@ public abstract class C4ScriptExprTree {
 					}
 				}
 			}
+		}
+		public int actualParmsNum() {
+			int result = params.length;
+			while (result > 0 && params[result-1] instanceof Ellipsis)
+				result--;
+			return result;
 		}
 		@Override
 		public ExprElm[] getSubElements() {
