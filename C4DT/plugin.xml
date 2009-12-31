@@ -116,9 +116,6 @@
 					<instanceof value="net.arctics.clonk.parser.C4Declaration" />
 				</or>
 			</possibleChildren>
-			
-			<actionProvider class="net.arctics.clonk.ui.navigator.ClonkActionProvider"
-				id="clonkActionProvider" priority="normal" />
 
 			<commonSorter class="net.arctics.clonk.ui.navigator.ClonkSorter" id="clonkSorter">
 				<parentExpression>
@@ -313,6 +310,12 @@
 			description="%ConvertOldCodeToNewCode_Desc"
 			id="net.arctics.clonk.ui.editors.actions.ConvertOldCodeToNewCode"
 			name="%ConvertOldCodeToNewCode_Desc" />
+		
+		<command categoryId="org.eclipse.ui.category.edit"
+			description="%ConvertOldCodeToNewCode_Desc"
+			id="net.arctics.clonk.ui.editors.actions.ConvertOldCodeInBulk"
+			defaultHandler="net.arctics.clonk.ui.navigator.ConvertOldCodeInBulkAction"
+			name="%ConvertOldCodeToNewCode_Desc" />
 
 		<command categoryId="org.eclipse.ui.category.edit"
 			description="%OpenDeclaration_Desc"
@@ -362,6 +365,26 @@
 				<separator name="SeparatorAfterImportCommands" visible="true"/>
 				<command commandId="net.arctics.clonk.ui.InvokeCommand" label="%InvokeCommand_Name" />
 			</menu>
+		</menuContribution>
+		
+		<menuContribution locationURI="popup:org.eclipse.ui.navigator.ProjectExplorer#PopupMenu?after=additions">
+			<separator name="SeparatorBeforeProjectExplorerClonkContributionsThatFulfillsTheFunctionOfSeparatingTheRegularCommandsFromTheClonkOnes" visible="true" />
+			<command commandId="net.arctics.clonk.ui.QuickExport" label="%QuickExport_Name">
+				<visibleWhen checkEnabled="false">
+					<iterate ifEmpty="false">
+						<adapt type="org.eclipse.core.resources.IContainer">
+						</adapt>
+					</iterate>
+				</visibleWhen>
+			</command>
+			<command commandId="net.arctics.clonk.ui.editors.actions.ConvertOldCodeInBulk" label="%ConvertOldCodeToNewCode_Name">
+				<visibleWhen checkEnabled="false">
+					<iterate ifEmpty="false">
+						<adapt type="org.eclipse.core.resources.IResource">
+						</adapt>
+					</iterate>
+				</visibleWhen>
+			</command>
 		</menuContribution>
 	</extension>
 

@@ -13,6 +13,10 @@ import net.arctics.clonk.ui.editors.actions.c4script.ConvertOldCodeToNewCodeActi
 import net.arctics.clonk.ui.editors.actions.c4script.ConvertOldCodeToNewCodeAction.FunctionStatements;
 import net.arctics.clonk.util.Utilities;
 
+import org.eclipse.core.commands.ExecutionEvent;
+import org.eclipse.core.commands.ExecutionException;
+import org.eclipse.core.commands.IHandler;
+import org.eclipse.core.commands.IHandlerListener;
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
@@ -32,9 +36,13 @@ import org.eclipse.swt.widgets.Event;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.editors.text.TextFileDocumentProvider;
 
-public class ConvertOldCodeInBulkAction extends Action {
+public class ConvertOldCodeInBulkAction extends Action implements IHandler {
 	ConvertOldCodeInBulkAction(String text) {
 		super(text);
+	}
+	
+	public ConvertOldCodeInBulkAction() {
+		this ("Convert Old Code In Bulk");
 	}
 
 	@Override
@@ -162,5 +170,23 @@ public class ConvertOldCodeInBulkAction extends Action {
 				}
 			}
 		}
+	}
+
+	@Override
+	public void addHandlerListener(IHandlerListener handlerListener) {
+	}
+
+	@Override
+	public void dispose() {
+	}
+
+	@Override
+	public Object execute(ExecutionEvent event) throws ExecutionException {
+		runWithEvent(null);
+		return null;
+	}
+
+	@Override
+	public void removeHandlerListener(IHandlerListener handlerListener) {
 	}
 }
