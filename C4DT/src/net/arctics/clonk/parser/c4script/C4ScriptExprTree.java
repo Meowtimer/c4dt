@@ -1035,9 +1035,10 @@ public abstract class C4ScriptExprTree {
 					}
 					
 					// warn about too many parameters
-					if (!declarationName.equals(Keywords.SafeInherited) && f.tooManyParameters(actualParmsNum())) {
+					// FIXME: too annoying
+					/*if (!declarationName.equals(Keywords.SafeInherited) && f.tooManyParameters(actualParmsNum())) {
 						context.addLatentMarker(ParserErrorCode.TooManyParameters, this, IMarker.SEVERITY_WARNING, f, f.getParameters().size(), actualParmsNum());
-					}
+					}*/
 					
 				}
 				else if (declaration == null && getPredecessorInSequence() == null) {
