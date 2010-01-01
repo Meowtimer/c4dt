@@ -107,7 +107,7 @@ public class C4ScriptAutoEditStrategy extends DefaultIndentLineAutoEditStrategy 
 		try {
 			if (c.text.endsWith("\n") && c.offset > 0 && d.getChar(c.offset-1) == '{') {
 				C4Function f = ((C4ScriptEditor)getConfiguration().getEditor()).getFuncAtCursor();
-				if (unbalanced(d, f.getBody())) {
+				if (f != null && unbalanced(d, f.getBody())) {
 					IRegion r = d.getLineInformationOfOffset(c.offset);
 					int start = r.getOffset();
 					int end = findEndOfWhiteSpace(d, start, c.offset);
