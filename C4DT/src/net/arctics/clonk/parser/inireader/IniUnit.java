@@ -208,6 +208,7 @@ public class IniUnit extends C4Structure implements Iterable<IniSection>, IHasCh
 					if (modifyMarkers)
 						marker(ParserErrorCode.InvalidExpression, start, reader.getPosition()-1, IMarker.SEVERITY_WARNING);
 				}
+				reader.readStringUntil(BufferedScanner.NEWLINE_CHARS); // ignore rest of section line
 			}
 			int end = reader.getPosition();
 			IniSection section = new IniSection(new SourceLocation(start, end), name);
@@ -298,6 +299,13 @@ public class IniUnit extends C4Structure implements Iterable<IniSection>, IHasCh
 		reader.eat(new char[] {' ', '\t'});
 		String value = reader.readStringUntil(BufferedScanner.NEWLINE_CHARS);
 		int valEnd = reader.getPosition();
+		int commentStart = value.indexOf('#');
+		if (commentStart == -1)
+			commentStart = value.indexOf(';');
+		if (commentStart != -1) {
+			valEnd -= value.length()-commentStart;
+			value = value.substring(0, commentStart);
+		}
 		reader.eat(BufferedScanner.NEWLINE_CHARS);
 		IniEntry entry = new IniEntry(keyStart, valEnd, key, value);
 		entry.setParentDeclaration(section);

@@ -25,7 +25,7 @@ public class ClonkSyntaxColoringPreferencePage extends FieldEditorPreferencePage
 				addField(new ColorFieldEditor(ClonkColorConstants.actualPrefName(colorField.getName()), (String) ClonkColorConstants.ColorHumanReadable.class.getField(colorField.getName()).get(null), getFieldEditorParent()));
 			}
 		} catch (Exception e) {
-
+			e.printStackTrace();
 		}
 	}
 	
