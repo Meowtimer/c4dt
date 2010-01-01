@@ -222,4 +222,8 @@ public class ClonkTextEditor extends TextEditor {
 	
 	public void completionProposalApplied(ClonkCompletionProposal proposal) {}
 	
+	public void refreshSyntaxColoring() {
+		((ClonkSourceViewerConfiguration<?>) getSourceViewerConfiguration()).refreshSyntaxColoring();
+	}
+	
 }

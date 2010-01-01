@@ -57,5 +57,9 @@ public class ClonkSourceViewerConfiguration<EditorType extends ClonkTextEditor> 
 		reconciler.setDocumentPartitioning(ClonkPartitionScanner.C4S_COMMENT);
 		return reconciler;*/
 	}
+	
+	public void refreshSyntaxColoring() {
+		
+	}
 
 }

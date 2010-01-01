@@ -208,5 +208,10 @@ public class C4ScriptSourceViewerConfiguration extends ClonkSourceViewerConfigur
 	    	hover = new C4ScriptTextHover(this);
 	    return hover;
 	}
+	
+	@Override
+	public void refreshSyntaxColoring() {
+		getClonkScanner().commitRules(getColorManager());
+	}
 
 }

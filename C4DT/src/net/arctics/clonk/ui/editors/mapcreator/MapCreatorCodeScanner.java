@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import net.arctics.clonk.parser.BuiltInDefinitions;
+import net.arctics.clonk.ui.editors.ClonkRuleBasedScanner;
 import net.arctics.clonk.ui.editors.ColorManager;
 import net.arctics.clonk.ui.editors.ClonkColorConstants;
 import net.arctics.clonk.ui.editors.WordScanner;
@@ -14,11 +15,10 @@ import org.eclipse.jface.text.TextAttribute;
 import org.eclipse.jface.text.rules.ICharacterScanner;
 import org.eclipse.jface.text.rules.IRule;
 import org.eclipse.jface.text.rules.IToken;
-import org.eclipse.jface.text.rules.RuleBasedScanner;
 import org.eclipse.jface.text.rules.Token;
 import org.eclipse.jface.text.rules.WhitespaceRule;
 
-public class MapCreatorCodeScanner extends RuleBasedScanner {
+public class MapCreatorCodeScanner extends ClonkRuleBasedScanner {
 
 
 	private static final class OperatorRule implements IRule {
@@ -70,60 +70,6 @@ public class MapCreatorCodeScanner extends RuleBasedScanner {
 		}
 	}
 
-	/**
-	 * Rule to detect java brackets.
-	 *
-	 * @since 3.3
-	 */
-	private static final class BracketRule implements IRule {
-
-		/** Java brackets */
-		private final char[] JAVA_BRACKETS= { '(', ')', '{', '}', '[', ']' };
-		/** Token to return for this rule */
-		private final IToken fToken;
-
-		/**
-		 * Creates a new bracket rule.
-		 *
-		 * @param token Token to use for this rule
-		 */
-		public BracketRule(IToken token) {
-			fToken= token;
-		}
-
-		/**
-		 * Is this character a bracket character?
-		 *
-		 * @param character Character to determine whether it is a bracket character
-		 * @return <code>true</code> if the character is a bracket, <code>false</code> otherwise.
-		 */
-		public boolean isBracket(char character) {
-			for (int index= 0; index < JAVA_BRACKETS.length; index++) {
-				if (JAVA_BRACKETS[index] == character)
-					return true;
-			}
-			return false;
-		}
-
-		/*
-		 * @see org.eclipse.jface.text.rules.IRule#evaluate(org.eclipse.jface.text.rules.ICharacterScanner)
-		 */
-		public IToken evaluate(ICharacterScanner scanner) {
-
-			int character= scanner.read();
-			if (isBracket((char) character)) {
-				do {
-					character= scanner.read();
-				} while (isBracket((char) character));
-				scanner.unread();
-				return fToken;
-			} else {
-				scanner.unread();
-				return Token.UNDEFINED;
-			}
-		}
-	}
-
 	public final static String KEYWORDS = "__keywords"; //$NON-NLS-1$
 
 	private IRule[] currentRules;
@@ -132,10 +78,10 @@ public class MapCreatorCodeScanner extends RuleBasedScanner {
 
 		IToken defaultToken = new Token(new TextAttribute(manager.getColor(ClonkColorConstants.getColor("DEFAULT"))));
 
-		IToken operator = new Token(new TextAttribute(manager.getColor(ClonkColorConstants.getColor("OPERATOR"))));
-		IToken keyword = new Token(new TextAttribute(manager.getColor(ClonkColorConstants.getColor("KEYWORD"))));
+		IToken operator = createToken(manager, "OPERATOR");
+		IToken keyword = createToken(manager, "KEYWORD");
 		//			IToken number = new Token(new TextAttribute(manager.getColor(IClonkColorConstants.getColor("NUMBER"))));
-		IToken bracket = new Token(new TextAttribute(manager.getColor(ClonkColorConstants.getColor("BRACKET"))));
+		IToken bracket = createToken(manager, "BRACKET");
 
 		//			fTokenMap.put(ClonkScriptPartitionScanner.C4S_STRING, string);
 

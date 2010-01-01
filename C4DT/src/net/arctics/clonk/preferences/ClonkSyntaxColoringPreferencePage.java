@@ -4,7 +4,6 @@ import java.lang.reflect.Field;
 
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.ui.editors.ClonkColorConstants;
-
 import org.eclipse.jface.preference.ColorFieldEditor;
 import org.eclipse.jface.preference.FieldEditorPreferencePage;
 import org.eclipse.ui.IWorkbench;
@@ -26,6 +25,27 @@ public class ClonkSyntaxColoringPreferencePage extends FieldEditorPreferencePage
 		} catch (Exception e) {
 
 		}
+	}
+	
+	@Override
+	public boolean performOk() {
+		if (super.performOk()) {
+			/*
+			FIXME: refresh immediately
+			for (IWorkbenchWindow window : PlatformUI.getWorkbench().getWorkbenchWindows()) {
+				for (IWorkbenchPage page : window.getPages()) {
+					for (IEditorReference edRef : page.getEditorReferences()) {
+						IEditorPart editor = edRef.getEditor(false);
+						if (editor instanceof ClonkTextEditor) {
+							((ClonkTextEditor)editor).refreshSyntaxColoring();
+						}
+					}
+				}
+			} */
+			return true;
+		}
+		else
+			return false;
 	}
 
 	@Override
