@@ -2,8 +2,10 @@ package net.arctics.clonk.ui.editors.c4script;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.ResourceBundle;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -25,7 +27,6 @@ import net.arctics.clonk.parser.c4script.C4ScriptExprTree.ExprElm;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.ui.editors.ClonkCompletionProposal;
 import net.arctics.clonk.ui.editors.IClonkCommandIds;
-import net.arctics.clonk.ui.editors.ClonkDocumentProvider;
 import net.arctics.clonk.ui.editors.ClonkTextEditor;
 import net.arctics.clonk.ui.editors.ColorManager;
 import net.arctics.clonk.ui.editors.IHasEditorRefWhichEnablesStreamlinedOpeningOfDeclarations;
@@ -87,11 +88,29 @@ public class C4ScriptEditor extends ClonkTextEditor {
 
 	// Helper class that takes care of triggering a timed reparsing when the document is changed and such
 	// it tries to only fire a reparse when necessary (ie not when editing inside of a function)
-	private final class TextChangeListener implements IDocumentListener {
+	private final static class TextChangeListener implements IDocumentListener {
 		
 		private Timer reparseTimer = new Timer("ReparseTimer"); //$NON-NLS-1$
 		private TimerTask reparseTask;
+		private int clients;
+		private C4ScriptBase script;
+		private IDocument document;
+		
+		private static Map<IDocument, TextChangeListener> listeners = new HashMap<IDocument, TextChangeListener>();
 
+		public static TextChangeListener addTo(IDocument document, C4ScriptBase script) {
+			TextChangeListener result = listeners.get(document);
+			if (result == null) {
+				result = new TextChangeListener();
+				result.script = script;
+				result.document = document;
+				document.addDocumentListener(result);
+				listeners.put(document, result);
+			}
+			result.clients++;
+			return result;
+		}
+		
 		public void documentAboutToBeChanged(DocumentEvent event) {
 		}
 
@@ -116,8 +135,8 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		}
 
 		public void documentChanged(DocumentEvent event) {
-			markScriptAsDirty();
-			C4Function f = getFuncAt(event.getOffset());
+			script.setDirty(true);
+			C4Function f = script.funcAt(event.getOffset());
 			if (f != null && !f.isOldStyle()) {
 				adjustDeclarationLocations(event);
 			} else {
@@ -129,13 +148,13 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		private void adjustDeclarationLocations(DocumentEvent event) {
 			if (event.getLength() == 0 && event.getText().length() > 0) {
 				// text was added
-				for (C4Declaration dec : scriptBeingEdited().allSubDeclarations()) {
+				for (C4Declaration dec : script.allSubDeclarations()) {
 					adjustDec(dec, event.getOffset(), event.getText().length());
 				}
 			}
 			else if (event.getLength() > 0 && event.getText().length() == 0) {
 				// text was removed
-				for (C4Declaration dec : scriptBeingEdited().allSubDeclarations()) {
+				for (C4Declaration dec : script.allSubDeclarations()) {
 					adjustDec(dec, event.getOffset(), -event.getLength());
 				}
 			}
@@ -145,7 +164,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 				int offset = event.getOffset();
 				int diff = newText.length() - replLength;
 				// mixed
-				for (C4Declaration dec : scriptBeingEdited().allSubDeclarations()) {
+				for (C4Declaration dec : script.allSubDeclarations()) {
 					if (dec.getLocation().getStart() >= offset + replLength)
 						adjustDec(dec, offset, diff);
 					else if (dec instanceof C4Function) {
@@ -168,14 +187,14 @@ public class C4ScriptEditor extends ClonkTextEditor {
 
 		private void scheduleReparsing() {
 			cancel();
-			if (scriptBeingEdited() == null)
+			if (script == null)
 				return;
 			reparseTimer.schedule(reparseTask = new TimerTask() {
 				@Override
 				public void run() {
 					try {
 						try {
-							reparseWithDocumentContents(null, true);
+							reparseWithDocumentContents(null, true, document, script, null);
 						} finally {
 							cancel();
 						}
@@ -187,7 +206,11 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		}
 
 		public void dispose() {
-			cancel();
+			if (--clients == 0) {
+				cancel();
+				listeners.remove(document);
+				document.removeDocumentListener(this);
+			}
 		}
 	}
 
@@ -202,7 +225,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		super();
 		colorManager = new ColorManager();
 		setSourceViewerConfiguration(new C4ScriptSourceViewerConfiguration(getPreferenceStore(), colorManager,this));
-		setDocumentProvider(new ClonkDocumentProvider(this));
+		//setDocumentProvider(new ClonkDocumentProvider(this));
 	}
 	
 	@Override
@@ -235,12 +258,11 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		super.createPartControl(parent);
 		C4ScriptBase script = scriptBeingEdited();
 		if (script != null && script.isEditable())
-			getDocumentProvider().getDocument(getEditorInput()).addDocumentListener(textChangeListener = new TextChangeListener());
+			textChangeListener = TextChangeListener.addTo(getDocumentProvider().getDocument(getEditorInput()), script);
 	}
 
 	public void dispose() {
 		if (textChangeListener != null) {
-			getDocumentProvider().getDocument(getEditorInput()).removeDocumentListener(textChangeListener);
 			textChangeListener.dispose();
 		}
 		colorManager.dispose();
@@ -369,11 +391,25 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		if (scriptBeingEdited() == null)
 			return null;
 		IDocument document = getDocumentProvider().getDocument(getEditorInput());
-		C4ScriptParser parser = new C4ScriptParser(document.get(), scriptBeingEdited());
+		return reparseWithDocumentContents(exprListener, onlyDeclarations, document, scriptBeingEdited(), new Runnable() {
+			public void run() {
+				refreshOutline();
+				handleCursorPositionChanged();
+			}
+		});
+	}
+
+	private static C4ScriptParser reparseWithDocumentContents(
+			C4ScriptExprTree.IExpressionListener exprListener,
+			boolean onlyDeclarations, IDocument document,
+			C4ScriptBase script,
+			Runnable uiRefreshRunnable)
+			throws ParsingException {
+		C4ScriptParser parser = new C4ScriptParser(document.get(), script);
 		List<IStoredTypeInformation> storedLocalsTypeInformation = null;
 		if (onlyDeclarations) {
 			storedLocalsTypeInformation = new LinkedList<IStoredTypeInformation>();
-			for (C4Variable v : scriptBeingEdited().variables()) {
+			for (C4Variable v : script.variables()) {
 				IStoredTypeInformation info = v.getType() != null || v.getObjectType() != null ? AccessVar.createStoredTypeInformation(v) : null;
 				if (info != null)
 					storedLocalsTypeInformation.add(info);
@@ -390,12 +426,8 @@ public class C4ScriptEditor extends ClonkTextEditor {
 			}
 		}
 		// make sure it's executed on the ui thread
-		Display.getDefault().asyncExec(new Runnable() {
-			public void run() {
-				refreshOutline();
-				handleCursorPositionChanged();
-			}
-		});
+		if (uiRefreshRunnable != null)
+			Display.getDefault().asyncExec(uiRefreshRunnable);
 		return parser;
 	}
 	
