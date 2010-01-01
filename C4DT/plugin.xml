@@ -3,20 +3,20 @@
 <plugin>
 
 	<extension point="org.eclipse.ui.editors">
-		<editor name="C4Script Editor" icon="icons/c4scriptIcon.png"
+		<editor name="%C4ScriptEditor_Name" icon="icons/c4scriptIcon.png"
 			contributorClass="net.arctics.clonk.ui.editors.c4script.EditorActionContributor"
 			class="net.arctics.clonk.ui.editors.c4script.C4ScriptEditor" id="clonk.editors.C4ScriptEditor"
 			filenames="*.c, Script.c">
 			<contentTypeBinding contentTypeId="net.arctics.clonk.c4script" />
 		</editor>
 
-		<editor name="Ini Editor" icon="icons/c4scriptIcon.png"
+		<editor name="%IniEditor_Name" icon="icons/c4scriptIcon.png"
 			class="net.arctics.clonk.ui.editors.ini.IniTextEditor" id="clonk.editors.IniEditor"
 			filenames="*.txt">
 			<contentTypeBinding contentTypeId="net.arctics.clonk.inifile" />
 		</editor>
 
-		<editor name="Landscape.txt Editor" icon="icons/c4scriptIcon.png"
+		<editor name="%LandscapeTextEditor_Name" icon="icons/c4scriptIcon.png"
 			class="net.arctics.clonk.ui.editors.mapcreator.MapCreatorEditor" id="clonk.editors.MapCreatorEditor"
 			filenames="Landscape.txt">
 			<contentTypeBinding contentTypeId="net.arctics.clonk.mapcreatorfile" />
@@ -39,39 +39,39 @@
 
 	<extension point="org.eclipse.core.contenttype.contentTypes">
 
-		<content-type id="net.arctics.clonk.c4files" name="Clonk files"
+		<content-type id="net.arctics.clonk.c4files" name="%ClonkFiles_Name"
 			priority="normal" />
 
 		<content-type base-type="net.arctics.clonk.c4files"
-			file-names="Script.c" id="net.arctics.clonk.c4script" name="C4Script file"
+			file-names="Script.c" id="net.arctics.clonk.c4script" name="%C4Script_Name"
 			priority="high" />
 
 		<content-type base-type="net.arctics.clonk.c4files"
-			file-names="Landscape.txt" id="net.arctics.clonk.mapcreatorfile" name="Landscape.txt file"
+			file-names="Landscape.txt" id="net.arctics.clonk.mapcreatorfile" name="%LandscapeText_Name"
 			priority="high" />
 
 		<content-type base-type="net.arctics.clonk.c4files"
-			file-extensions="txt" id="net.arctics.clonk.inifile" name="Clonk Configuration file"
+			file-extensions="txt" id="net.arctics.clonk.inifile" name="%ClonkConfiguration_Name"
 			priority="high" />
 
 		<content-type base-type="net.arctics.clonk.inifile"
-			file-names="DefCore.txt" id="net.arctics.clonk.defcore" name="C4Object definitions"
+			file-names="DefCore.txt" id="net.arctics.clonk.defcore" name="%C4Object_DefCore_Name"
 			priority="high" />
 
 		<content-type base-type="net.arctics.clonk.inifile"
-			file-names="ActMap.txt" id="net.arctics.clonk.actmap" name="C4Object actions"
+			file-names="ActMap.txt" id="net.arctics.clonk.actmap" name="%C4Object_ActMap_Name"
 			priority="high" />
 
 		<content-type base-type="net.arctics.clonk.inifile"
-			file-names="Scenario.txt" id="net.arctics.clonk.scenariocfg" name="Scenario configuration"
+			file-names="Scenario.txt" id="net.arctics.clonk.scenariocfg" name="%ScenarioConfiguration_Name"
 			priority="high" />
 
 		<content-type base-type="net.arctics.clonk.inifile"
-			file-names="Particle.txt" id="net.arctics.clonk.particle" name="Particle definition"
+			file-names="Particle.txt" id="net.arctics.clonk.particle" name="%ParticleDefinition_Name"
 			priority="high" />
 
 		<content-type base-type="net.arctics.clonk.inifile"
-			file-extensions="c4m" id="net.arctics.clonk.material" name="Material definition"
+			file-extensions="c4m" id="net.arctics.clonk.material" name="%MaterialDefinition_Name"
 			priority="high" />
 
 	</extension>
@@ -90,7 +90,7 @@
 	</extension>
 
 	<extension point="org.eclipse.ui.navigator.navigatorContent">
-		<navigatorContent name="Clonk Resources"
+		<navigatorContent name="%ClonkResources_Name"
 			priority="low" icon="icons/Clonk_Object.ico" activeByDefault="true"
 			contentProvider="net.arctics.clonk.ui.navigator.ClonkNavigator"
 			labelProvider="net.arctics.clonk.ui.navigator.ClonkLabelProvider"
@@ -163,7 +163,7 @@
 	<extension point="org.eclipse.ui.newWizards">
 		<category id="net.arctics.clonk.clonkProjects" name="Clonk" />
 
-		<wizard id="net.arctics.clonk.wizards.NewClonkProject" name="Clonk Project"
+		<wizard id="net.arctics.clonk.wizards.NewClonkProject" name="%ClonkProject_Name"
 			category="net.arctics.clonk.clonkProjects" icon="icons/Clonk_C4Chip.ico"
 			class="net.arctics.clonk.ui.wizards.NewClonkProject" project="true"
 			finalPerspective="net.arctics.clonk.clonkPerspective">
@@ -175,15 +175,15 @@
 		
 		<wizard category="net.arctics.clonk.clonkProjects" class="net.arctics.clonk.ui.wizards.NewC4Object"
 			hasPages="true" icon="icons/C4Object.png" id="net.arctics.clonk.wizards.NewC4Object"
-			name="Object definition" project="false" />
+			name="%Definition_Name" project="false" />
 
 		<wizard category="net.arctics.clonk.clonkProjects" class="net.arctics.clonk.ui.wizards.NewScenario"
 			hasPages="true" icon="icons/Clonk_scenario.png" id="net.arctics.clonk.wizards.NewScenario"
-			name="Scenario" project="false" />
+			name="%Scenario_Name" project="false" />
 
 		<wizard category="net.arctics.clonk.clonkProjects" class="net.arctics.clonk.ui.wizards.NewParticle"
 			hasPages="true" icon="icons/Clonk_Particle.png" id="net.arctics.clonk.wizards.NewParticle"
-			name="Particle" project="false" />
+			name="%Particle_Name" project="false" />
 
 	</extension>
 
@@ -253,12 +253,12 @@
 
 		<view category="net.arctics.clonk" class="net.arctics.clonk.ui.EngineDeclarationsView"
 			icon="icons/Clonk_C4.png" id="net.arctics.clonk.views.EngineDeclarationsView"
-			name="Engine declarations" />
+			name="%EngineDeclarations_Name" />
 		
 		<view category="net.arctics.clonk" class="net.arctics.clonk.ui.navigator.ClonkPreviewView"
 			id="net.arctics.clonk.views.ClonkPreviewView"
 			icon="icons/Clonk_C4.png"
-			name="Clonk Preview" />
+			name="%ClonkPreview_Name" />
 	</extension>
 
 	<extension id="net.arctics.clonk.externliberror" name="External library error"
