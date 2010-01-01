@@ -247,12 +247,6 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		PreferenceConverter.setValue(getPreferenceStore(), BRACKET_HIGHLIGHT_COLOR, new RGB(0x33,0x33,0xAA));
 	}
 	
-	private void markScriptAsDirty() {
-		C4ScriptBase script = scriptBeingEdited();
-		if (script != null)
-			script.setDirty(true);
-	}
-	
 	@Override
 	public void createPartControl(Composite parent) {
 		super.createPartControl(parent);

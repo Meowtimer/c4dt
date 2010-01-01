@@ -24,7 +24,8 @@ public class IniTextEditor extends ClonkTextEditor {
 	@Override
 	public void refreshOutline() {
 		forgetUnitParsed();
-		outlinePage.setInput(getIniUnit());
+		if (outlinePage != null)
+			outlinePage.setInput(getIniUnit());
 	}
 	
 	public boolean ensureIniUnitUpToDate() {
