@@ -259,10 +259,10 @@ public class ClonkIndex implements Serializable, Iterable<C4Object> {
 		List<C4Object> alreadyDefinedObjects = indexedObjects.get(obj.getId());
 		if (alreadyDefinedObjects != null) {
 			alreadyDefinedObjects.remove(obj);
-			scriptRemoved(obj);
 			if (alreadyDefinedObjects.size() == 0) { // if there are no more objects with this C4ID
 				indexedObjects.remove(obj.getId());
 			}
+			scriptRemoved(obj);
 		}
 	}
 
