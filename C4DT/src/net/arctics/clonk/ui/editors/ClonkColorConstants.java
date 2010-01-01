@@ -41,16 +41,20 @@ public class ClonkColorConstants {
 		public static final String OBJ_CALLBACK = Messages.ClonkColorConstants_OBJ_CALLBACK;
 	}
 	
+	public static RGB getDefaultColor(String colorName) {
+		try {
+			return (RGB) Defaults.class.getField(colorName).get(null);
+		} catch (Exception e) {
+			return null;
+		}
+	}
+	
 	public static RGB getColor(String prefName) {
 		String actualPrefName = actualPrefName(prefName);
 		RGB result = PreferenceConverter.getColor(ClonkCore.getDefault().getPreferenceStore(), actualPrefName);
 		if (result == PreferenceConverter.COLOR_DEFAULT_DEFAULT) {
-			try {
-				result = (RGB) Defaults.class.getField(prefName).get(null);
-				PreferenceConverter.setValue(ClonkCore.getDefault().getPreferenceStore(), actualPrefName, result);
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
+			result = getDefaultColor(prefName);
+			PreferenceConverter.setValue(ClonkCore.getDefault().getPreferenceStore(), actualPrefName, result);
 		}
 		return result;
 	}
