@@ -4,7 +4,7 @@ import net.arctics.clonk.ui.editors.ClonkHyperlink;
 import net.arctics.clonk.ui.editors.ClonkPartitionScanner;
 import net.arctics.clonk.ui.editors.ClonkSourceViewerConfiguration;
 import net.arctics.clonk.ui.editors.ColorManager;
-import net.arctics.clonk.ui.editors.IClonkColorConstants;
+import net.arctics.clonk.ui.editors.ClonkColorConstants;
 import net.arctics.clonk.ui.editors.ScriptCommentScanner;
 
 import org.eclipse.jface.preference.IPreferenceStore;
@@ -77,14 +77,14 @@ public class C4ScriptSourceViewerConfiguration extends ClonkSourceViewerConfigur
 			doubleClickStrategy = new C4ScriptDoubleClickStrategy(this);
 		return doubleClickStrategy;
 	}
-	
+
 	protected C4ScriptCodeScanner getClonkScanner() {
 		if (scanner == null) {
 			scanner = new C4ScriptCodeScanner(getColorManager());
 			scanner.setDefaultReturnToken(
-				new Token(
-					new TextAttribute(
-						getColorManager().getColor(IClonkColorConstants.DEFAULT))));
+					new Token(
+							new TextAttribute(
+									getColorManager().getColor(ClonkColorConstants.getColor("DEFAULT")))));
 		}
 		return scanner;
 	}
@@ -93,19 +93,12 @@ public class C4ScriptSourceViewerConfiguration extends ClonkSourceViewerConfigur
 		if (commentScanner == null) {
 			commentScanner = new ScriptCommentScanner(getColorManager());
 			commentScanner.setDefaultReturnToken(
-				new Token(
-					new TextAttribute(
-						getColorManager().getColor(IClonkColorConstants.COMMENT))));
+					new Token(
+							new TextAttribute(
+									getColorManager().getColor(ClonkColorConstants.getColor("COMMENT")))));
 		}
 		return commentScanner;
 	}
-	
-	/* (non-Javadoc)
-	 * @see org.eclipse.jface.text.source.SourceViewerConfiguration#getTabWidth(org.eclipse.jface.text.source.ISourceViewer)
-	 */
-//	public int getTabWidth(ISourceViewer sourceViewer) {		
-//		return 2;
-//	}
 
 	private ClonkContentAssistant assistant;
 	
@@ -181,7 +174,7 @@ public class C4ScriptSourceViewerConfiguration extends ClonkSourceViewerConfigur
 //		NonRuleBasedDamagerRepairer ndr =
 //			new NonRuleBasedDamagerRepairer(
 //				new TextAttribute(
-//					colorManager.getColor(IClonkColorConstants.COMMENT)));
+//					colorManager.getColor(IClonkColorConstants.getColor("COMMENT"))));
 //		
 //		reconciler.setDamager(ndr, ClonkPartitionScanner.C4S_COMMENT);
 //		reconciler.setRepairer(ndr, ClonkPartitionScanner.C4S_COMMENT);

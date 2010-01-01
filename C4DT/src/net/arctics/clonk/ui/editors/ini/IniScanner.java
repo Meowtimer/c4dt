@@ -7,7 +7,7 @@ import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.c4script.C4Variable;
 import net.arctics.clonk.parser.c4script.C4Variable.C4VariableScope;
 import net.arctics.clonk.ui.editors.ColorManager;
-import net.arctics.clonk.ui.editors.IClonkColorConstants;
+import net.arctics.clonk.ui.editors.ClonkColorConstants;
 import net.arctics.clonk.ui.editors.WordScanner;
 import net.arctics.clonk.ui.editors.c4script.ClonkWhitespaceDetector;
 import net.arctics.clonk.ui.editors.c4script.CombinedWordRule;
@@ -105,12 +105,12 @@ public class IniScanner extends RuleBasedScanner {
 	
 	public IniScanner(ColorManager manager) {
 		
-		IToken defaultToken = new Token(new TextAttribute(manager.getColor(IClonkColorConstants.DEFAULT)));
+		IToken defaultToken = new Token(new TextAttribute(manager.getColor(ClonkColorConstants.getColor("DEFAULT"))));
 		
-		IToken operator = new Token(new TextAttribute(manager.getColor(IClonkColorConstants.OPERATOR)));
-		IToken section = new Token(new TextAttribute(manager.getColor(IClonkColorConstants.KEYWORD)));
-		IToken number = new Token(new TextAttribute(manager.getColor(IClonkColorConstants.NUMBER)));
-		IToken constant = new Token(new TextAttribute(manager.getColor(IClonkColorConstants.ENGINE_FUNCTION)));
+		IToken operator = new Token(new TextAttribute(manager.getColor(ClonkColorConstants.getColor("OPERATOR"))));
+		IToken section = new Token(new TextAttribute(manager.getColor(ClonkColorConstants.getColor("KEYWORD"))));
+		IToken number = new Token(new TextAttribute(manager.getColor(ClonkColorConstants.getColor("NUMBER"))));
+		IToken constant = new Token(new TextAttribute(manager.getColor(ClonkColorConstants.getColor("ENGINE_FUNCTION"))));
 		
 		List<IRule> rules = new ArrayList<IRule>();
 		

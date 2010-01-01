@@ -11,7 +11,7 @@ public class ScriptCommentScanner extends RuleBasedScanner {
 	private IToken defaultToken;
 	
 	public ScriptCommentScanner(ColorManager manager) {
-		defaultToken = new Token(new TextAttribute(manager.getColor(IClonkColorConstants.COMMENT)));
+		defaultToken = new Token(new TextAttribute(manager.getColor(ClonkColorConstants.getColor("COMMENT"))));
 		setDefaultReturnToken(getDefaultToken());
 		
 	}

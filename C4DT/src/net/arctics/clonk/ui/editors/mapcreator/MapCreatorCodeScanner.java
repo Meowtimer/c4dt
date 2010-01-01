@@ -5,7 +5,7 @@ import java.util.List;
 
 import net.arctics.clonk.parser.BuiltInDefinitions;
 import net.arctics.clonk.ui.editors.ColorManager;
-import net.arctics.clonk.ui.editors.IClonkColorConstants;
+import net.arctics.clonk.ui.editors.ClonkColorConstants;
 import net.arctics.clonk.ui.editors.WordScanner;
 import net.arctics.clonk.ui.editors.c4script.ClonkWhitespaceDetector;
 import net.arctics.clonk.ui.editors.c4script.CombinedWordRule;
@@ -130,12 +130,12 @@ public class MapCreatorCodeScanner extends RuleBasedScanner {
 
 	public MapCreatorCodeScanner(ColorManager manager) {
 
-		IToken defaultToken = new Token(new TextAttribute(manager.getColor(IClonkColorConstants.DEFAULT)));
+		IToken defaultToken = new Token(new TextAttribute(manager.getColor(ClonkColorConstants.getColor("DEFAULT"))));
 
-		IToken operator = new Token(new TextAttribute(manager.getColor(IClonkColorConstants.OPERATOR)));
-		IToken keyword = new Token(new TextAttribute(manager.getColor(IClonkColorConstants.KEYWORD)));
-		//			IToken number = new Token(new TextAttribute(manager.getColor(IClonkColorConstants.NUMBER)));
-		IToken bracket = new Token(new TextAttribute(manager.getColor(IClonkColorConstants.BRACKET)));
+		IToken operator = new Token(new TextAttribute(manager.getColor(ClonkColorConstants.getColor("OPERATOR"))));
+		IToken keyword = new Token(new TextAttribute(manager.getColor(ClonkColorConstants.getColor("KEYWORD"))));
+		//			IToken number = new Token(new TextAttribute(manager.getColor(IClonkColorConstants.getColor("NUMBER"))));
+		IToken bracket = new Token(new TextAttribute(manager.getColor(ClonkColorConstants.getColor("BRACKET"))));
 
 		//			fTokenMap.put(ClonkScriptPartitionScanner.C4S_STRING, string);
 
