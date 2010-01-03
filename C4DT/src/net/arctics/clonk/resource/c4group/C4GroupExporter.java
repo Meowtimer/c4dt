@@ -3,6 +3,8 @@ package net.arctics.clonk.resource.c4group;
 import java.io.File;
 
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
+
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.preferences.ClonkPreferences;
 import net.arctics.clonk.util.FileOperations;
@@ -16,12 +18,13 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.preferences.IPreferencesService;
+import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.console.MessageConsole;
 import org.eclipse.ui.console.MessageConsoleStream;
 
-public class C4GroupExporter {
+public class C4GroupExporter implements IRunnableWithProgress {
 
 	private IContainer[] packs;
 	private String[] destPaths;
@@ -133,6 +136,11 @@ public class C4GroupExporter {
 			if (monitor != null)
 				monitor.done();
 		}
+	}
+
+	@Override
+	public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
+		export(monitor);
 	}
 
 }
