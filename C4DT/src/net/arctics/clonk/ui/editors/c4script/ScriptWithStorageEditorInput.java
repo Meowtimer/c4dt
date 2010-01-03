@@ -1,5 +1,7 @@
 package net.arctics.clonk.ui.editors.c4script;
 
+import java.lang.ref.WeakReference;
+
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.c4script.C4ScriptBase;
 import net.arctics.clonk.util.ITreeNode;
@@ -19,18 +21,18 @@ public class ScriptWithStorageEditorInput extends PlatformObject implements IEdi
 
 	private static final String FACTORY_ID = ClonkCore.id("ui.editors.scriptWithStorageEditorInputFactory");   //$NON-NLS-1$
 	
-	private C4ScriptBase script;
+	private WeakReference<C4ScriptBase> script;
 	
 	public ScriptWithStorageEditorInput(C4ScriptBase script) {
 		super();
 		
 		if (!(script.getScriptFile() instanceof IStorage))
 			throw new IllegalArgumentException("script"); //$NON-NLS-1$
-		this.script = script;
+		this.script = new WeakReference<C4ScriptBase>(script);
 	}
 
 	public boolean exists() {
-		return script != null;
+		return script != null && script.get() != null;
 	}
 
 	public ImageDescriptor getImageDescriptor() {
@@ -38,7 +40,7 @@ public class ScriptWithStorageEditorInput extends PlatformObject implements IEdi
 	}
 
 	public String getName() {
-		return "[" + script.getName() + "]"; //$NON-NLS-1$ //$NON-NLS-2$
+		return "[" + getScript().getName() + "]"; //$NON-NLS-1$ //$NON-NLS-2$
 	}
 
 	public IPersistableElement getPersistable() {
@@ -46,7 +48,7 @@ public class ScriptWithStorageEditorInput extends PlatformObject implements IEdi
 	}
 
 	public String getToolTipText() {
-		return ((ITreeNode)script).getPath().toOSString();
+		return ((ITreeNode)getScript()).getPath().toOSString();
 	}
 
 	@SuppressWarnings("rawtypes")
@@ -67,15 +69,15 @@ public class ScriptWithStorageEditorInput extends PlatformObject implements IEdi
 	
 	@Override
 	public boolean equals(Object obj) {
-		return (obj instanceof ScriptWithStorageEditorInput && ((ScriptWithStorageEditorInput)obj).script == script);
+		return (obj instanceof ScriptWithStorageEditorInput && ((ScriptWithStorageEditorInput)obj).getScript() == getScript());
 	}
 
 	public IStorage getStorage() throws CoreException {
-		return (IStorage)script.getScriptFile();
+		return (IStorage)getScript().getScriptFile();
 	}
 
 	public C4ScriptBase getScript() {
-		return script;
+		return script.get();
 	}
 
 	public String getFactoryId() {
