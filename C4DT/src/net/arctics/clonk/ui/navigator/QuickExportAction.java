@@ -17,82 +17,15 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.TreeSelection;
 import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Event;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.progress.IProgressService;
 
 public class QuickExportAction extends ClonkResourceAction implements IHandler {
-
-	public QuickExportAction() {
-		super();
-	}
-
-	public QuickExportAction(String text) {
-		super(text);
-	}
-
-	@SuppressWarnings("rawtypes")
-	@Override
-	public void runWithEvent(Event e) {
-		super.run();
-		if (PlatformUI.getWorkbench() == null ||
-				PlatformUI.getWorkbench().getActiveWorkbenchWindow() == null ||
-				PlatformUI.getWorkbench().getActiveWorkbenchWindow().getSelectionService() == null ||
-				PlatformUI.getWorkbench().getActiveWorkbenchWindow().getSelectionService().getSelection() == null)
-			return;
-		final ISelection selection = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getSelectionService().getSelection();
-		if (selection != null && selection instanceof TreeSelection) {
-			IWorkbench wb = PlatformUI.getWorkbench();
-			IProgressService ps = wb.getProgressService();
-			try {
-				TreeSelection tree = (TreeSelection) selection;					
-				String c4groupPath = ClonkPreferences.getPreference(ClonkPreferences.C4GROUP_EXECUTABLE, "", null); //$NON-NLS-1$
-				String gamePath = ClonkPreferences.getPreference(ClonkPreferences.GAME_PATH);
-				Iterator it = tree.iterator();
-				while (it.hasNext()) {
-					Object obj = it.next();
-					List<IContainer> selectedContainers = null;
-					if (obj instanceof IProject) {
-						try {
-							IResource[] selectedResources = ((IProject)obj).members(IContainer.EXCLUDE_DERIVED);
-							selectedContainers = new ArrayList<IContainer>();
-							for(int i = 0; i < selectedResources.length;i++) {
-								if (selectedResources[i] instanceof IContainer && !selectedResources[i].getName().startsWith(".")) //$NON-NLS-1$
-									selectedContainers.add((IContainer) selectedResources[i]);
-							}
-						}
-						catch (CoreException ex) {
-							ex.printStackTrace();
-						}
-					}
-					else if (obj instanceof IFolder) {
-						selectedContainers = new ArrayList<IContainer>(1);
-						selectedContainers.add((IContainer) obj);
-					}
-					if (selectedContainers != null) {
-						final C4GroupExporter exporter = new C4GroupExporter(selectedContainers.toArray(new IContainer[selectedContainers.size()]), c4groupPath, gamePath);
-						if (exporter.selectDestPaths())
-							ps.busyCursorWhile(new IRunnableWithProgress() {
-								public void run(IProgressMonitor pm) {
-									exporter.export(pm);
-								}
-							});
-
-					}
-				}
-			} catch (Exception exc) {
-				exc.printStackTrace();
-			}
-		}
-
-		//				return true;
-	}
 
 	public void addHandlerListener(IHandlerListener handlerListener) {
 		// TODO Auto-generated method stub
@@ -101,8 +34,57 @@ public class QuickExportAction extends ClonkResourceAction implements IHandler {
 
 	public Object execute(ExecutionEvent event) throws ExecutionException {
 		Display.getDefault().asyncExec(new Runnable() {
+			@SuppressWarnings("rawtypes")
 			public void run() {
-				runWithEvent(null);
+				if (PlatformUI.getWorkbench() == null ||
+						PlatformUI.getWorkbench().getActiveWorkbenchWindow() == null ||
+						PlatformUI.getWorkbench().getActiveWorkbenchWindow().getSelectionService() == null ||
+						PlatformUI.getWorkbench().getActiveWorkbenchWindow().getSelectionService().getSelection() == null)
+					return;
+				final ISelection selection = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getSelectionService().getSelection();
+				if (selection != null && selection instanceof TreeSelection) {
+					IWorkbench wb = PlatformUI.getWorkbench();
+					IProgressService ps = wb.getProgressService();
+					try {
+						TreeSelection tree = (TreeSelection) selection;					
+						String c4groupPath = ClonkPreferences.getPreference(ClonkPreferences.C4GROUP_EXECUTABLE, "", null); //$NON-NLS-1$
+						String gamePath = ClonkPreferences.getPreference(ClonkPreferences.GAME_PATH);
+						Iterator it = tree.iterator();
+						while (it.hasNext()) {
+							Object obj = it.next();
+							List<IContainer> selectedContainers = null;
+							if (obj instanceof IProject) {
+								try {
+									IResource[] selectedResources = ((IProject)obj).members(IContainer.EXCLUDE_DERIVED);
+									selectedContainers = new ArrayList<IContainer>();
+									for(int i = 0; i < selectedResources.length;i++) {
+										if (selectedResources[i] instanceof IContainer && !selectedResources[i].getName().startsWith(".")) //$NON-NLS-1$
+											selectedContainers.add((IContainer) selectedResources[i]);
+									}
+								}
+								catch (CoreException ex) {
+									ex.printStackTrace();
+								}
+							}
+							else if (obj instanceof IFolder) {
+								selectedContainers = new ArrayList<IContainer>(1);
+								selectedContainers.add((IContainer) obj);
+							}
+							if (selectedContainers != null) {
+								final C4GroupExporter exporter = new C4GroupExporter(selectedContainers.toArray(new IContainer[selectedContainers.size()]), c4groupPath, gamePath);
+								if (exporter.selectDestPaths())
+									ps.busyCursorWhile(new IRunnableWithProgress() {
+										public void run(IProgressMonitor pm) {
+											exporter.export(pm);
+										}
+									});
+
+							}
+						}
+					} catch (Exception exc) {
+						exc.printStackTrace();
+					}
+				}
 			}
 		});
 		return null;
@@ -111,10 +93,6 @@ public class QuickExportAction extends ClonkResourceAction implements IHandler {
 	public void removeHandlerListener(IHandlerListener handlerListener) {
 		// TODO Auto-generated method stub
 
-	}
-
-	public void run(IAction action) {
-		runWithEvent(null);
 	}
 
 }

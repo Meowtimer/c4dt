@@ -1,8 +1,6 @@
 package net.arctics.clonk.ui.navigator;
 
 import java.io.File;
-import java.lang.reflect.InvocationTargetException;
-
 import net.arctics.clonk.preferences.ClonkPreferences;
 import net.arctics.clonk.ui.wizards.C4GroupImporter;
 import net.arctics.clonk.util.IConverter;
@@ -21,31 +19,20 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.handlers.HandlerUtil;
 
 public class QuickImportAction extends ClonkResourceAction implements IHandler {
-	public QuickImportAction() {
-		super();
-	}
-
-	public QuickImportAction(String text) {
-		super(text);
-	}
 
 	@Override
 	public void addHandlerListener(IHandlerListener handlerListener) {}
 
 	@Override
-	public Object execute(ExecutionEvent event) throws ExecutionException {
+	public Object execute(final ExecutionEvent event) throws ExecutionException {
 		Display.getDefault().asyncExec(new Runnable() {
 			@Override
 			public void run() {
-				if (PlatformUI.getWorkbench() == null ||
-						PlatformUI.getWorkbench().getActiveWorkbenchWindow() == null ||
-						PlatformUI.getWorkbench().getActiveWorkbenchWindow().getSelectionService() == null ||
-						PlatformUI.getWorkbench().getActiveWorkbenchWindow().getSelectionService().getSelection() == null)
-					return;
-				final ISelection selection = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getSelectionService().getSelection();
-				if (selection.isEmpty() || !(selection instanceof IStructuredSelection))
+				final ISelection selection = HandlerUtil.getCurrentSelection(event);
+				if (selection == null || selection.isEmpty() || !(selection instanceof IStructuredSelection))
 					return;
 				final IStructuredSelection ssel = (IStructuredSelection) selection;
 				if (!(ssel.getFirstElement() instanceof IContainer))
@@ -66,12 +53,10 @@ public class QuickImportAction extends ClonkResourceAction implements IHandler {
 						}
 					});
 					C4GroupImporter importer = new C4GroupImporter(files, container);
-					final ProgressMonitorDialog progressDialog = new ProgressMonitorDialog(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell());
+					final ProgressMonitorDialog progressDialog = new ProgressMonitorDialog(HandlerUtil.getActiveWorkbenchWindow(event).getShell());
 					try {
 						progressDialog.run(false, true, importer);
-					} catch (InvocationTargetException e) {
-						e.printStackTrace();
-					} catch (InterruptedException e) {
+					} catch (Exception e) {
 						e.printStackTrace();
 					}
 				}
