@@ -13,10 +13,9 @@ import net.arctics.clonk.ui.editors.actions.c4script.ConvertOldCodeToNewCodeActi
 import net.arctics.clonk.ui.editors.actions.c4script.ConvertOldCodeToNewCodeAction.FunctionStatements;
 import net.arctics.clonk.util.Utilities;
 
+import org.eclipse.core.commands.AbstractHandler;
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
-import org.eclipse.core.commands.IHandler;
-import org.eclipse.core.commands.IHandlerListener;
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
@@ -25,25 +24,16 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IResourceVisitor;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.jface.action.Action;
 import org.eclipse.jface.dialogs.ProgressMonitorDialog;
 import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.TextSelection;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
-import org.eclipse.swt.widgets.Event;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.editors.text.TextFileDocumentProvider;
 
-public class ConvertOldCodeInBulkAction extends Action implements IHandler {
-	ConvertOldCodeInBulkAction(String text) {
-		super(text);
-	}
-	
-	public ConvertOldCodeInBulkAction() {
-		this ("Convert Old Code In Bulk");
-	}
+public class ConvertOldCodeInBulkAction extends AbstractHandler {
 
 	@Override
 	public boolean isEnabled() {
@@ -54,13 +44,12 @@ public class ConvertOldCodeInBulkAction extends Action implements IHandler {
 	private int counter;
 
 	@Override
-	public void runWithEvent(Event event) {
-		super.run();
+	public Object execute(ExecutionEvent event) throws ExecutionException {
 		if (PlatformUI.getWorkbench() == null ||
 				PlatformUI.getWorkbench().getActiveWorkbenchWindow() == null ||
 				PlatformUI.getWorkbench().getActiveWorkbenchWindow().getSelectionService() == null ||
 				PlatformUI.getWorkbench().getActiveWorkbenchWindow().getSelectionService().getSelection() == null)
-			return;
+			return null;
 		ISelection selection = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getSelectionService().getSelection();
 		if (selection != null && selection instanceof IStructuredSelection) {
 			IStructuredSelection sel = (IStructuredSelection) selection;
@@ -170,23 +159,6 @@ public class ConvertOldCodeInBulkAction extends Action implements IHandler {
 				}
 			}
 		}
-	}
-
-	@Override
-	public void addHandlerListener(IHandlerListener handlerListener) {
-	}
-
-	@Override
-	public void dispose() {
-	}
-
-	@Override
-	public Object execute(ExecutionEvent event) throws ExecutionException {
-		runWithEvent(null);
 		return null;
-	}
-
-	@Override
-	public void removeHandlerListener(IHandlerListener handlerListener) {
 	}
 }
