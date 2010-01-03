@@ -200,7 +200,7 @@ public class ClonkTextEditor extends TextEditor {
 	public void init(IEditorSite site, IEditorInput input) throws PartInitException { 	  
 	    super.init(site, input);
 	    IResource res = (IResource) getEditorInput().getAdapter(IResource.class);
-		if (res != null && res.getParent() != null && C4ObjectIntern.objectCorrespondingTo(res.getParent()) != null) {
+		if (res != null && res.getParent() != null) {
 			// name of script file not very descriptive (Script.c)
 			setPartName(res.getParent().getName() + "/" + res.getName()); //$NON-NLS-1$
 		}
