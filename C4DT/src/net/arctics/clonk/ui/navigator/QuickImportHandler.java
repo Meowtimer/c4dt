@@ -9,7 +9,6 @@ import net.arctics.clonk.util.Utilities;
 
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
-import org.eclipse.core.commands.IHandler;
 import org.eclipse.core.commands.IHandlerListener;
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.jface.dialogs.ProgressMonitorDialog;
@@ -21,7 +20,7 @@ import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.handlers.HandlerUtil;
 
-public class QuickImportAction extends ClonkResourceAction implements IHandler {
+public class QuickImportHandler extends ClonkResourceHandler {
 
 	@Override
 	public void addHandlerListener(IHandlerListener handlerListener) {}

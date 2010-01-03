@@ -286,31 +286,31 @@
 		<command categoryId="org.eclipse.ui.category.navigate"
 			description="%OpenObject_Desc"
 			id="net.arctics.clonk.ui.OpenObject"
-			defaultHandler="net.arctics.clonk.ui.editors.actions.c4script.OpenObjectAction"
+			defaultHandler="net.arctics.clonk.ui.editors.actions.c4script.OpenObjectHandler"
 			name="%OpenObject_Name" />
 		
 		<command categoryId="org.eclipse.ui.category.navigate"
 			description="%OpenLocalResource_Desc"
 			id="net.arctics.clonk.ui.OpenLocalResource"
-			defaultHandler="net.arctics.clonk.ui.editors.actions.c4script.OpenLocalResourceAction"
+			defaultHandler="net.arctics.clonk.ui.editors.actions.c4script.OpenLocalResourceHandler"
 			name="%OpenLocalResource_Name" />
 		
 		<command categoryId="org.eclipse.ui.category.navigate"
 			description="%InvokeCommand_Desc"
 			id="net.arctics.clonk.ui.InvokeCommand"
-			defaultHandler="net.arctics.clonk.command.ui.actions.InvokeCommandAction"
+			defaultHandler="net.arctics.clonk.command.ui.actions.InvokeCommandHandler"
 			name="%InvokeCommand_Name" />
 		
 		<command categoryId="org.eclipse.ui.category.navigate"
 			description="%QuickExport_Desc"
 			id="net.arctics.clonk.ui.QuickExport"
-			defaultHandler="net.arctics.clonk.ui.navigator.QuickExportAction"
+			defaultHandler="net.arctics.clonk.ui.navigator.QuickExportHandler"
 			name="%QuickExport_Name" />
 			
 		<command categoryId="org.eclipse.ui.category.navigate"
 			description="%QuickImport_Desc"
 			id="net.arctics.clonk.ui.QuickImport"
-			defaultHandler="net.arctics.clonk.ui.navigator.QuickImportAction"
+			defaultHandler="net.arctics.clonk.ui.navigator.QuickImportHandler"
 			name="%QuickImport_Name" />
 
 		<command categoryId="org.eclipse.ui.category.edit"
@@ -321,7 +321,7 @@
 		<command categoryId="org.eclipse.ui.category.edit"
 			description="%ConvertOldCodeToNewCode_Desc"
 			id="net.arctics.clonk.ui.navigator.actions.ConvertOldCodeInBulk"
-			defaultHandler="net.arctics.clonk.ui.navigator.ConvertOldCodeInBulkAction"
+			defaultHandler="net.arctics.clonk.ui.navigator.ConvertOldCodeInBulkHandler"
 			name="%ConvertOldCodeToNewCode_Desc" />
 		
 		<command categoryId="org.eclipse.ui.category.edit"

@@ -33,7 +33,7 @@ import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.editors.text.TextFileDocumentProvider;
 
-public class ConvertOldCodeInBulkAction extends AbstractHandler {
+public class ConvertOldCodeInBulkHandler extends AbstractHandler {
 
 	@Override
 	public boolean isEnabled() {

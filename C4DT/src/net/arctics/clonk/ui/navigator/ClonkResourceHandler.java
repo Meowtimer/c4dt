@@ -6,9 +6,9 @@ import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.IWorkbenchWindowActionDelegate;
 
-public abstract class ClonkResourceAction extends AbstractHandler implements IWorkbenchWindowActionDelegate {
+public abstract class ClonkResourceHandler extends AbstractHandler implements IWorkbenchWindowActionDelegate {
 	
-	public ClonkResourceAction() {
+	public ClonkResourceHandler() {
 		super();
 		//Utilities.getProjectExplorer().getCommonViewer().addSelectionChangedListener(this);
 	}

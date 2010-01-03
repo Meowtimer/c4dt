@@ -104,81 +104,83 @@ public class ConvertOldCodeToNewCodeAction extends TextEditorAction {
 	}
 
 	public static void runOnDocument(
-		final C4ScriptParser parser,
-		final ITextSelection selection,
-		final IDocument document,
-		final LinkedList<FunctionStatements> statements
+			final C4ScriptParser parser,
+			final ITextSelection selection,
+			final IDocument document,
+			final LinkedList<FunctionStatements> statements
 	) {
-		final int selLength = selection.getLength() == document.getLength() ? 0 : selection.getLength();
-		IDocumentExtension4 ext4 = null; // (document instanceof IDocumentExtension4) ? (IDocumentExtension4)document : null;
-		DocumentRewriteSession session = ext4 != null ? ext4.startRewriteSession(DocumentRewriteSessionType.UNRESTRICTED) : null;
-		TextChange textChange = new DocumentChange("Tidy Up Code", document);
-		textChange.setEdit(new MultiTextEdit());
-		for (FunctionStatements pair : statements) {
-			try {
-				C4Function func = pair.getFirst();
-				LinkedList<Statement> elms = pair.getSecond();
-				boolean wholeFuncConversion = selLength == 0;
-				parser.setActiveFunc(func);
-				if (wholeFuncConversion) {
-					Statement[] statementsInRightOrder = new Statement[elms.size()];
-					int counter = statementsInRightOrder.length-1;
-					for (Statement s : elms) {
-						statementsInRightOrder[counter--] = s;
-					}
-					Block b = new Block(statementsInRightOrder);
-					StringBuilder blockStringBuilder = new StringBuilder(func.getBody().getLength());
-					switch (C4ScriptExprTree.BraceStyle) {
-					case NewLine:
-						blockStringBuilder.append('\n');
-						break;
-					case SameLine:
-						// noop
-						break;
-					}
-					b.exhaustiveNewStyleReplacement(parser).print(blockStringBuilder, 1);
-					String blockString = blockStringBuilder.toString();
-					int blockBegin;
-					int blockLength;
-					// eat braces if new style func
-					if (func.isOldStyle()) {
-						blockBegin = statementsInRightOrder[0].getExprStart();
-						blockLength = statementsInRightOrder[elms.size()-1].getExprEnd() - blockBegin;
+		synchronized (document) {
+			final int selLength = selection.getLength() == document.getLength() ? 0 : selection.getLength();
+			IDocumentExtension4 ext4 = null; // (document instanceof IDocumentExtension4) ? (IDocumentExtension4)document : null;
+			DocumentRewriteSession session = ext4 != null ? ext4.startRewriteSession(DocumentRewriteSessionType.UNRESTRICTED) : null;
+			TextChange textChange = new DocumentChange("Tidy Up Code", document);
+			textChange.setEdit(new MultiTextEdit());
+			for (FunctionStatements pair : statements) {
+				try {
+					C4Function func = pair.getFirst();
+					LinkedList<Statement> elms = pair.getSecond();
+					boolean wholeFuncConversion = selLength == 0;
+					parser.setActiveFunc(func);
+					if (wholeFuncConversion) {
+						Statement[] statementsInRightOrder = new Statement[elms.size()];
+						int counter = statementsInRightOrder.length-1;
+						for (Statement s : elms) {
+							statementsInRightOrder[counter--] = s;
+						}
+						Block b = new Block(statementsInRightOrder);
+						StringBuilder blockStringBuilder = new StringBuilder(func.getBody().getLength());
+						switch (C4ScriptExprTree.BraceStyle) {
+						case NewLine:
+							blockStringBuilder.append('\n');
+							break;
+						case SameLine:
+							// noop
+							break;
+						}
+						b.exhaustiveNewStyleReplacement(parser).print(blockStringBuilder, 1);
+						String blockString = blockStringBuilder.toString();
+						int blockBegin;
+						int blockLength;
+						// eat braces if new style func
+						if (func.isOldStyle()) {
+							blockBegin = statementsInRightOrder[0].getExprStart();
+							blockLength = statementsInRightOrder[elms.size()-1].getExprEnd() - blockBegin;
+						}
+						else {
+							blockBegin  = func.getBody().getStart()-1;
+							blockLength = func.getBody().getEnd()+1 - blockBegin;
+						}
+						// eat indentation
+						while (blockBegin-1 >= func.getHeader().getEnd() && superflousBetweenFuncHeaderAndBody(document.getChar(blockBegin-1))) {
+							blockBegin--;
+							blockLength++;
+						}
+						textChange.addEdit(new ReplaceEdit(blockBegin, blockLength, blockString));
+						// convert old style function to new style function
+						String newHeader = func.getHeaderString(false);
+						textChange.addEdit(new ReplaceEdit(func.getHeader().getStart(), func.getHeader().getLength(), newHeader));
 					}
 					else {
-						blockBegin  = func.getBody().getStart()-1;
-						blockLength = func.getBody().getEnd()+1 - blockBegin;
+						for (ExprElm e : elms) {
+							replaceExpression(document, e, parser, textChange);
+						}
 					}
-					// eat indentation
-					while (blockBegin-1 >= func.getHeader().getEnd() && superflousBetweenFuncHeaderAndBody(document.getChar(blockBegin-1))) {
-						blockBegin--;
-						blockLength++;
-					}
-					textChange.addEdit(new ReplaceEdit(blockBegin, blockLength, blockString));
-					// convert old style function to new style function
-					String newHeader = func.getHeaderString(false);
-					textChange.addEdit(new ReplaceEdit(func.getHeader().getStart(), func.getHeader().getLength(), newHeader));
+				} catch (BadLocationException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				} catch (CloneNotSupportedException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
 				}
-				else {
-					for (ExprElm e : elms) {
-						replaceExpression(document, e, parser, textChange);
-					}
-				}
-			} catch (BadLocationException e1) {
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
-			} catch (CloneNotSupportedException e1) {
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
 			}
+			try {
+				textChange.perform(new NullProgressMonitor());
+			} catch (CoreException e) {
+				e.printStackTrace();
+			}
+			if (ext4 != null)
+				ext4.stopRewriteSession(session);
 		}
-		try {
-			textChange.perform(new NullProgressMonitor());
-		} catch (CoreException e) {
-			e.printStackTrace();
-		}
-		if (ext4 != null)
-			ext4.stopRewriteSession(session);
 	}
 
 	private static boolean superflousBetweenFuncHeaderAndBody(char c) {

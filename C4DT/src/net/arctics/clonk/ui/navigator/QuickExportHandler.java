@@ -21,7 +21,7 @@ import org.eclipse.jface.viewers.TreeSelection;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.handlers.HandlerUtil;
 
-public class QuickExportAction extends ClonkResourceAction implements IHandler {
+public class QuickExportHandler extends ClonkResourceHandler implements IHandler {
 
 	public Object execute(final ExecutionEvent event) throws ExecutionException {
 		Display.getDefault().asyncExec(new Runnable() {
