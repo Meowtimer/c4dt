@@ -26,6 +26,7 @@ import net.arctics.clonk.parser.c4script.C4ScriptExprTree.CallFunc;
 import net.arctics.clonk.parser.c4script.C4ScriptExprTree.ExprElm;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.ui.editors.ClonkCompletionProposal;
+import net.arctics.clonk.ui.editors.ExternalScriptsDocumentProvider;
 import net.arctics.clonk.ui.editors.IClonkCommandIds;
 import net.arctics.clonk.ui.editors.ClonkTextEditor;
 import net.arctics.clonk.ui.editors.ColorManager;
@@ -51,6 +52,9 @@ import org.eclipse.jface.text.source.ISourceViewer;
 import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.ui.IEditorInput;
+import org.eclipse.ui.IEditorSite;
+import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.texteditor.ITextEditor;
 import org.eclipse.ui.texteditor.SourceViewerDecorationSupport;
@@ -235,6 +239,20 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		colorManager = new ColorManager();
 		setSourceViewerConfiguration(new C4ScriptSourceViewerConfiguration(getPreferenceStore(), colorManager,this));
 		//setDocumentProvider(new ClonkDocumentProvider(this));
+	}
+
+	@Override
+	protected void setDocumentProvider(IEditorInput input) {
+		if (input instanceof ScriptWithStorageEditorInput) {
+			setDocumentProvider(new ExternalScriptsDocumentProvider(this));
+		} else {
+			super.setDocumentProvider(input);
+		}
+	}
+	
+	@Override
+	public void init(IEditorSite site, IEditorInput input) throws PartInitException {
+		super.init(site, input);
 	}
 	
 	@Override

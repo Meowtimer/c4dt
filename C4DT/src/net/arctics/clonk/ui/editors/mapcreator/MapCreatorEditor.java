@@ -11,7 +11,6 @@ import org.eclipse.swt.widgets.Composite;
 import net.arctics.clonk.parser.mapcreator.C4MapCreator;
 import net.arctics.clonk.parser.mapcreator.MapCreatorLexer;
 import net.arctics.clonk.parser.mapcreator.MapCreatorParser;
-import net.arctics.clonk.ui.editors.ClonkDocumentProvider;
 import net.arctics.clonk.ui.editors.ClonkTextEditor;
 import net.arctics.clonk.ui.editors.ColorManager;
 import net.arctics.clonk.ui.editors.c4script.ClonkContentOutlinePage;
@@ -27,7 +26,6 @@ public class MapCreatorEditor extends ClonkTextEditor {
 		super();
 		ColorManager colorManager = new ColorManager();
 		setSourceViewerConfiguration(new MapCreatorSourceViewerConfiguration(getPreferenceStore(), colorManager,this));
-		setDocumentProvider(new ClonkDocumentProvider(this));
 	}
 
 	private void reparse() {
