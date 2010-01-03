@@ -30,9 +30,8 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
-import org.eclipse.jface.viewers.ISelectionChangedListener;
+import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
-import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.browser.Browser;
 import org.eclipse.swt.events.PaintEvent;
@@ -49,9 +48,10 @@ import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Sash;
 import org.eclipse.swt.widgets.Text;
+import org.eclipse.ui.ISelectionListener;
 import org.eclipse.ui.IViewSite;
+import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.PartInitException;
-import org.eclipse.ui.navigator.CommonNavigator;
 import org.eclipse.ui.part.*;
 
 
@@ -60,7 +60,7 @@ import org.eclipse.ui.part.*;
  * @author madeen
  *
  */
-public class ClonkPreviewView extends ViewPart implements ISelectionChangedListener {
+public class ClonkPreviewView extends ViewPart implements ISelectionListener {
 
 	public static final String ID = ClonkCore.id("views.ClonkPreviewView"); //$NON-NLS-1$
 	
@@ -151,21 +151,14 @@ public class ClonkPreviewView extends ViewPart implements ISelectionChangedListe
 		));
 		
 		parent.layout();
-		refresh();
 	}
 	
 	@Override
 	public void init(IViewSite site) throws PartInitException {
 		super.init(site);
-		CommonNavigator nav = Utilities.getProjectExplorer();
-		nav.getCommonViewer().addSelectionChangedListener(this);
+		site.getWorkbenchWindow().getSelectionService().addSelectionListener(this);
 	}
 	
-	private void refresh() {
-		CommonNavigator nav = Utilities.getProjectExplorer();
-		selectionChanged(new SelectionChangedEvent(nav.getCommonViewer(), nav.getCommonViewer().getSelection()));
-	}
-
 	@Override
 	public void setFocus() {
 	}
@@ -186,24 +179,13 @@ public class ClonkPreviewView extends ViewPart implements ISelectionChangedListe
 		return result;
 	}
 
-	@Override
-	public void selectionChanged(final SelectionChangedEvent event) {
-		new Job("ClonkPreview Updater") {
-			@Override
-			protected IStatus run(IProgressMonitor monitor) {
-				synchronizedSelectionChanged(event);
-				return Status.OK_STATUS;
-			}
-		}.schedule();
-	}
-
-	private synchronized void synchronizedSelectionChanged(SelectionChangedEvent event) {
+	private synchronized void synchronizedSelectionChanged(ISelection selection) {
 		Image newImage = null;
 		String newHtml = ""; //$NON-NLS-1$
 		String newDefText = "";
 		boolean newDoNotDispose = false;
-		if (event.getSelection() instanceof IStructuredSelection) try {
-			IStructuredSelection structSel = (IStructuredSelection) event.getSelection();
+		if (selection instanceof IStructuredSelection) try {
+			IStructuredSelection structSel = (IStructuredSelection) selection;
 			Object sel = structSel.getFirstElement();
 			if (sel instanceof IFile && (C4Structure.pinned((IFile)sel, false, false) != null || Utilities.getScriptForFile((IFile) sel) != null))
 				sel = ((IFile)sel).getParent();
@@ -360,10 +342,19 @@ public class ClonkPreviewView extends ViewPart implements ISelectionChangedListe
 				image.dispose();
 			image = null;
 		}
-		CommonNavigator nav = Utilities.getProjectExplorer();
-		if (nav != null)
-			nav.getCommonViewer().removeSelectionChangedListener(this);
+		getSite().getWorkbenchWindow().getSelectionService().removeSelectionListener(this);
 		super.dispose();
+	}
+
+	@Override
+	public void selectionChanged(IWorkbenchPart part, final ISelection selection) {
+		new Job("ClonkPreview Updater") {
+			@Override
+			protected IStatus run(IProgressMonitor monitor) {
+				synchronizedSelectionChanged(selection);
+				return Status.OK_STATUS;
+			}
+		}.schedule();
 	}
 
 }
