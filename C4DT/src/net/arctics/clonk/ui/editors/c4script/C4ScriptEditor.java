@@ -92,13 +92,13 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		
 		private Timer reparseTimer = new Timer("ReparseTimer"); //$NON-NLS-1$
 		private TimerTask reparseTask;
-		private int clients;
+		private List<C4ScriptEditor> clients = new LinkedList<C4ScriptEditor>();
 		private C4ScriptBase script;
 		private IDocument document;
 		
 		private static Map<IDocument, TextChangeListener> listeners = new HashMap<IDocument, TextChangeListener>();
 
-		public static TextChangeListener addTo(IDocument document, C4ScriptBase script) {
+		public static TextChangeListener addTo(IDocument document, C4ScriptBase script, C4ScriptEditor client) {
 			TextChangeListener result = listeners.get(document);
 			if (result == null) {
 				result = new TextChangeListener();
@@ -107,7 +107,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 				document.addDocumentListener(result);
 				listeners.put(document, result);
 			}
-			result.clients++;
+			result.clients.add(client);
 			return result;
 		}
 		
@@ -194,7 +194,15 @@ public class C4ScriptEditor extends ClonkTextEditor {
 				public void run() {
 					try {
 						try {
-							reparseWithDocumentContents(null, true, document, script, null);
+							reparseWithDocumentContents(null, true, document, script, new Runnable() {
+								@Override
+								public void run() {
+									for (C4ScriptEditor ed : clients) {
+										ed.refreshOutline();
+										ed.handleCursorPositionChanged();
+									}
+								}
+							});
 						} finally {
 							cancel();
 						}
@@ -205,8 +213,9 @@ public class C4ScriptEditor extends ClonkTextEditor {
 			}, 2000);
 		}
 
-		public void dispose() {
-			if (--clients == 0) {
+		public void removeClient(C4ScriptEditor client) {
+			clients.remove(client);
+			if (clients.size() == 0) {
 				cancel();
 				listeners.remove(document);
 				document.removeDocumentListener(this);
@@ -252,12 +261,12 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		super.createPartControl(parent);
 		C4ScriptBase script = scriptBeingEdited();
 		if (script != null && script.isEditable())
-			textChangeListener = TextChangeListener.addTo(getDocumentProvider().getDocument(getEditorInput()), script);
+			textChangeListener = TextChangeListener.addTo(getDocumentProvider().getDocument(getEditorInput()), script, this);
 	}
 
 	public void dispose() {
 		if (textChangeListener != null) {
-			textChangeListener.dispose();
+			textChangeListener.removeClient(this);
 		}
 		colorManager.dispose();
 		super.dispose();
