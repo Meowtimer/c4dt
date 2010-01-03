@@ -320,9 +320,15 @@
 		
 		<command categoryId="org.eclipse.ui.category.edit"
 			description="%ConvertOldCodeToNewCode_Desc"
-			id="net.arctics.clonk.ui.editors.actions.ConvertOldCodeInBulk"
+			id="net.arctics.clonk.ui.navigator.actions.ConvertOldCodeInBulk"
 			defaultHandler="net.arctics.clonk.ui.navigator.ConvertOldCodeInBulkAction"
 			name="%ConvertOldCodeToNewCode_Desc" />
+		
+		<command categoryId="org.eclipse.ui.category.edit"
+			description="%ImportExternalLib_Desc"
+			id="net.arctics.clonk.ui.navigator.actions.ImportExternalLib"
+			defaultHandler="net.arctics.clonk.ui.navigator.ImportExternalLibHandler"
+			name="%ImportExternalLib_Name" />
 
 		<command categoryId="org.eclipse.ui.category.edit"
 			description="%OpenDeclaration_Desc"
@@ -384,10 +390,18 @@
 					</iterate>
 				</visibleWhen>
 			</command>
-			<command commandId="net.arctics.clonk.ui.editors.actions.ConvertOldCodeInBulk" label="%ConvertOldCodeToNewCode_Name">
+			<command commandId="net.arctics.clonk.ui.navigator.actions.ConvertOldCodeInBulk" label="%ConvertOldCodeToNewCode_Name">
 				<visibleWhen checkEnabled="false">
 					<iterate ifEmpty="false">
 						<adapt type="org.eclipse.core.resources.IResource">
+						</adapt>
+					</iterate>
+				</visibleWhen>
+			</command>
+			<command commandId="net.arctics.clonk.ui.navigator.actions.ImportExternalLib" label="%ImportExternalLib_Name">
+				<visibleWhen checkEnabled="false">
+					<iterate ifEmpty="false">
+						<adapt type="net.arctics.clonk.resource.ExternalLib">
 						</adapt>
 					</iterate>
 				</visibleWhen>
