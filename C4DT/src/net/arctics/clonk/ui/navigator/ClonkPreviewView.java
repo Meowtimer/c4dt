@@ -48,7 +48,9 @@ import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Sash;
 import org.eclipse.swt.widgets.Text;
+import org.eclipse.ui.IPageLayout;
 import org.eclipse.ui.ISelectionListener;
+import org.eclipse.ui.ISelectionService;
 import org.eclipse.ui.IViewSite;
 import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.PartInitException;
@@ -151,12 +153,14 @@ public class ClonkPreviewView extends ViewPart implements ISelectionListener {
 		));
 		
 		parent.layout();
+		synchronizedSelectionChanged(getSite().getWorkbenchWindow().getSelectionService().getSelection(IPageLayout.ID_PROJECT_EXPLORER));
 	}
 	
 	@Override
 	public void init(IViewSite site) throws PartInitException {
 		super.init(site);
-		site.getWorkbenchWindow().getSelectionService().addSelectionListener(this);
+		ISelectionService selService = site.getWorkbenchWindow().getSelectionService();
+		selService.addSelectionListener(IPageLayout.ID_PROJECT_EXPLORER, this);
 	}
 	
 	@Override
@@ -269,32 +273,34 @@ public class ClonkPreviewView extends ViewPart implements ISelectionListener {
 					newDoNotDispose = true;
 				} else {
 					C4Group group = C4GroupEntryStorage.selectGroup(obj, "Graphics.png", "DefCore.txt");
-					try {
-						InputStream graphics = new C4GroupEntryStorage(group, "Graphics.png").getContents();
+					if (group != null) {
 						try {
-							Image fullGraphics = new Image(canvas.getDisplay(), graphics);
+							InputStream graphics = new C4GroupEntryStorage(group, "Graphics.png").getContents();
 							try {
-								InputStream defCoreStream = new C4GroupEntryStorage(group, "DefCore.txt").getContents();
+								Image fullGraphics = new Image(canvas.getDisplay(), graphics);
 								try {
-									DefCoreUnit defCore = new DefCoreUnit(defCoreStream);
-									defCore.parse(false);
-									newImage = getPicture(defCore, fullGraphics);
+									InputStream defCoreStream = new C4GroupEntryStorage(group, "DefCore.txt").getContents();
+									try {
+										DefCoreUnit defCore = new DefCoreUnit(defCoreStream);
+										defCore.parse(false);
+										newImage = getPicture(defCore, fullGraphics);
+									} finally {
+										defCoreStream.close();
+									}
 								} finally {
-									defCoreStream.close();
+									if (newImage == null)
+										newImage = fullGraphics;
+									else
+										fullGraphics.dispose();
+									obj.setCachedPicture(newImage);
+									newDoNotDispose = true;
 								}
 							} finally {
-								if (newImage == null)
-									newImage = fullGraphics;
-								else
-									fullGraphics.dispose();
-								obj.setCachedPicture(newImage);
-								newDoNotDispose = true;
+								graphics.close();
 							}
 						} finally {
-							graphics.close();
+							group.getMasterGroup().close();
 						}
-					} finally {
-						group.getMasterGroup().close();
 					}
 				}
 				newHtml = obj.getInfoText();
@@ -342,7 +348,7 @@ public class ClonkPreviewView extends ViewPart implements ISelectionListener {
 				image.dispose();
 			image = null;
 		}
-		getSite().getWorkbenchWindow().getSelectionService().removeSelectionListener(this);
+		getSite().getWorkbenchWindow().getSelectionService().removeSelectionListener(IPageLayout.ID_PROJECT_EXPLORER, this);
 		super.dispose();
 	}
 
