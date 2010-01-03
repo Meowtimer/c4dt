@@ -76,7 +76,7 @@ public class ConvertOldCodeInBulkHandler extends AbstractHandler {
 			if (selectedContainers.size() > 0) {
 				ProgressMonitorDialog progressDialog = new ProgressMonitorDialog(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell());
 				try {
-					progressDialog.run(true, true, new IRunnableWithProgress() {
+					progressDialog.run(false, true, new IRunnableWithProgress() {
 						@Override
 						public void run(final IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
 							// first count how much to do
