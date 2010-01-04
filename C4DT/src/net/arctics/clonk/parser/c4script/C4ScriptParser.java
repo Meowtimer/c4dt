@@ -2348,11 +2348,15 @@ public class C4ScriptParser {
 		}
 		// merge gathered type information with current list
 		storedTypeInformationListStack.push(merger.finish(storedTypeInformationListStack.pop()));
-		Object condEv = C4Type.BOOL.convert(condition.evaluateAtParseTime(getContainer()));
-		if (condEv != null && condEv != ExprElm.EVALUATION_COMPLEX) {
-			warningWithCode(condEv.equals(true) ? ParserErrorCode.ConditionAlwaysTrue : ParserErrorCode.ConditionAlwaysFalse,
-					condition, condition.toString());
+		
+		if (!(condition instanceof AccessVar && ((AccessVar)condition).constCondition())) {
+			Object condEv = C4Type.BOOL.convert(condition.evaluateAtParseTime(getContainer()));
+			if (condEv != null && condEv != ExprElm.EVALUATION_COMPLEX) {
+				warningWithCode(condEv.equals(true) ? ParserErrorCode.ConditionAlwaysTrue : ParserErrorCode.ConditionAlwaysFalse,
+						condition, condition.toString());
+			}
 		}
+		
 		result = new IfStatement(condition, ifStatement, elseStatement);
 		return result;
 	}

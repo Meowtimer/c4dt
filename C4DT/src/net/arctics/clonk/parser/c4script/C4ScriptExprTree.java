@@ -843,6 +843,10 @@ public abstract class C4ScriptExprTree {
 				return super.evaluateAtParseTime(context);
 		}
 
+		public boolean constCondition() {
+			return declaration instanceof C4Variable && ((C4Variable)declaration).getScope() == C4VariableScope.VAR_CONST;
+		}
+
 	}
 
 	public static class CallFunc extends AccessDeclaration {
