@@ -84,5 +84,21 @@ public class ExternIndex extends ClonkIndex {
 	public String toString() {
 		return "Extern Index"; //$NON-NLS-1$
 	}
+	
+	private void removeObjects(ITreeNode container) {
+		for (INode node : container.getChildCollection()) {
+			if (node instanceof ITreeNode) {
+				removeObjects((ITreeNode) node);
+			}
+			if (node instanceof C4ScriptBase) {
+				removeScript((C4ScriptBase) node);
+			}
+		}
+	}
+	
+	public void removeExternalLib(ExternalLib lib) {
+		removeObjects(lib);
+		libs.remove(lib);
+	}
 
 }

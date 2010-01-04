@@ -1,8 +1,6 @@
 package net.arctics.clonk.ui;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import net.arctics.clonk.ClonkCore;
@@ -13,7 +11,6 @@ import net.arctics.clonk.index.ProjectIndex;
 import net.arctics.clonk.preferences.ExternalLibsEditor;
 
 import org.eclipse.core.resources.IProject;
-import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.core.runtime.NullProgressMonitor;
@@ -22,8 +19,6 @@ import org.eclipse.jface.preference.FieldEditorPreferencePage;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.preference.PreferenceStore;
 import org.eclipse.ui.IWorkbenchPropertyPage;
-import org.eclipse.ui.PlatformUI;
-import org.eclipse.ui.actions.RefreshAction;
 
 public class ClonkProjectProperties extends FieldEditorPreferencePage implements IWorkbenchPropertyPage {
 
@@ -72,20 +67,7 @@ public class ClonkProjectProperties extends FieldEditorPreferencePage implements
 					e.printStackTrace();
 				}
 			}
-			(new RefreshAction(PlatformUI.getWorkbench().getActiveWorkbenchWindow()) {
-				@SuppressWarnings("rawtypes")
-				@Override
-				protected List getSelectedResources() {
-					List<IResource> result = new ArrayList<IResource>(1);
-					result.add(getProject());
-					return result;
-				}
-			}).run();
-			try {
-				getProject().refreshLocal(IResource.DEPTH_ONE, null);
-			} catch (CoreException e) {
-				e.printStackTrace();
-			}
+			Utilities.getProjectExplorer().getCommonViewer().refresh(getProject());
 		}
 		
 		public AdapterStore() throws CoreException {

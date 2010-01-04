@@ -9,6 +9,7 @@ import java.util.Map;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.resource.ExternalLib;
 import net.arctics.clonk.ui.wizards.C4GroupImporter;
+import net.arctics.clonk.util.Utilities;
 
 import org.eclipse.core.commands.AbstractHandler;
 import org.eclipse.core.commands.ExecutionEvent;
@@ -35,7 +36,7 @@ public class ImportExternalLibHandler extends AbstractHandler {
 					if (files == null)
 						libFiles.put(proj, files = new ArrayList<File>(3));
 					files.add(((ExternalLib) obj).getFile());
-					ClonkProjectNature.get(proj).getIndex().getExternalDependencies().remove(obj);
+					ClonkProjectNature.get(proj).getIndex().removeExternalLib((ExternalLib) obj);
 				}
 			}
 			for (IProject proj : libFiles.keySet()) {
@@ -48,8 +49,9 @@ public class ImportExternalLibHandler extends AbstractHandler {
 					e.printStackTrace();
 					continue;
 				}
+				ClonkProjectNature.get(proj).getIndex().refreshCache();
+				Utilities.getProjectExplorer().getCommonViewer().refresh(proj);
 			}
-			//C4GroupImporter importer = new C4GroupImporter(resourcesToImport, destination)
 		}
 		return null;
 	}

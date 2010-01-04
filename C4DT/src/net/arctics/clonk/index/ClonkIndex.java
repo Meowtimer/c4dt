@@ -238,8 +238,8 @@ public class ClonkIndex implements Serializable, Iterable<C4Object> {
 		if (script instanceof C4Object) {
 			removeObject((C4Object)script);
 		} else {
-			indexedScripts.remove(script);
-			scriptRemoved(script);
+			if (indexedScripts.remove(script))
+				scriptRemoved(script);
 		}
 	}
 
@@ -258,17 +258,19 @@ public class ClonkIndex implements Serializable, Iterable<C4Object> {
 			return;
 		List<C4Object> alreadyDefinedObjects = indexedObjects.get(obj.getId());
 		if (alreadyDefinedObjects != null) {
-			alreadyDefinedObjects.remove(obj);
-			if (alreadyDefinedObjects.size() == 0) { // if there are no more objects with this C4ID
-				indexedObjects.remove(obj.getId());
+			if (alreadyDefinedObjects.remove(obj)) {
+				if (alreadyDefinedObjects.size() == 0) { // if there are no more objects with this C4ID
+					indexedObjects.remove(obj.getId());
+				}
+				scriptRemoved(obj);
 			}
-			scriptRemoved(obj);
 		}
 	}
 
 	public void removeScenario(C4Scenario scenario) {
-		this.indexedScenarios.remove(scenario);
-		scriptRemoved(scenario);
+		if (indexedScenarios.remove(scenario)) {
+			scriptRemoved(scenario);
+		}
 	}
 	
 	private void scriptRemoved(C4ScriptBase script) {
