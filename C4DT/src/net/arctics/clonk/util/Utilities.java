@@ -446,14 +446,18 @@ public abstract class Utilities {
 	public static CommonNavigator getProjectExplorer() {
 		IWorkbench workbench = PlatformUI.getWorkbench();
 		if (workbench != null) {
-			IWorkbenchWindow window = workbench.getActiveWorkbenchWindow();
-			if (window != null) {
-				IWorkbenchPage page = window.getActivePage();
-				if (page != null) {
-					IViewPart viewPart = page.findView(IPageLayout.ID_PROJECT_EXPLORER);
-					if (viewPart instanceof CommonNavigator) {
-						return (CommonNavigator) viewPart;
-					}
+			getProjectExplorer(workbench.getActiveWorkbenchWindow());
+		}
+		return null;
+	}
+
+	public static CommonNavigator getProjectExplorer(IWorkbenchWindow window) {
+		if (window != null) {
+			IWorkbenchPage page = window.getActivePage();
+			if (page != null) {
+				IViewPart viewPart = page.findView(IPageLayout.ID_PROJECT_EXPLORER);
+				if (viewPart instanceof CommonNavigator) {
+					return (CommonNavigator) viewPart;
 				}
 			}
 		}

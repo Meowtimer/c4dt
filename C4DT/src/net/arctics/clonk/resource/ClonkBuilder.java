@@ -4,6 +4,8 @@ import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -41,7 +43,9 @@ import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IEditorReference;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPage;
+import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.navigator.CommonNavigator;
 
 /**
  * An incremental builder for all project data.<br>
@@ -53,15 +57,30 @@ import org.eclipse.ui.PlatformUI;
 public class ClonkBuilder extends IncrementalProjectBuilder implements IResourceDeltaVisitor, IResourceVisitor {
 
 	private static final class UIRefresher implements Runnable {
+		
+		private List<IResource> listOfResourcesToBeRefreshed;
+		
+		public UIRefresher(List<IResource> listOfResourcesToBeRefreshed) {
+			super();
+			this.listOfResourcesToBeRefreshed = listOfResourcesToBeRefreshed;
+		}
+
 		public void run() {
 			IWorkbench w = PlatformUI.getWorkbench();
-			if (w == null || w.getActiveWorkbenchWindow() == null || w.getActiveWorkbenchWindow().getActivePage() == null)
-				return;
-			IWorkbenchPage page = w.getActiveWorkbenchWindow().getActivePage();
-			for (IEditorReference ref : page.getEditorReferences()) {
-				IEditorPart part = ref.getEditor(false);
-				if (part != null && part instanceof ClonkTextEditor) {
-					((ClonkTextEditor)part).refreshOutline();
+			for (IWorkbenchWindow window : w.getWorkbenchWindows()) {
+				for (IWorkbenchPage page : window.getPages()) {
+					for (IEditorReference ref : page.getEditorReferences()) {
+						IEditorPart part = ref.getEditor(false);
+						if (part != null && part instanceof ClonkTextEditor) {
+							((ClonkTextEditor)part).refreshOutline();
+						}
+					}
+				}
+				CommonNavigator projectExplorer = Utilities.getProjectExplorer(window);
+				if (projectExplorer != null) {
+					for (IResource r : listOfResourcesToBeRefreshed) {
+						projectExplorer.getCommonViewer().refresh(r);
+					}
 				}
 			}
 		}
@@ -134,6 +153,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 	protected IProject[] build(int kind, Map args, IProgressMonitor monitor) throws CoreException {
 		
 		parserMap.clear();
+		List<IResource> listOfResourcesToBeRefreshed = new LinkedList<IResource>();
 		
 		synchronized (this) {
 			clearUIOfReferencesBeforeBuild();
@@ -166,6 +186,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 						// parse declarations
 						buildPhase = 0;
 						delta.accept(this);
+						listOfResourcesToBeRefreshed.add(delta.getResource());
 						// refresh global func and static var cache
 						ClonkProjectNature.get(proj).getIndex().refreshCache();
 						
@@ -251,6 +272,8 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 						proj.accept(this);
 						
 						applyLatentMarkers();
+						
+						listOfResourcesToBeRefreshed.add(proj);
 
 						// fire update event
 						//proj.touch(monitor);
@@ -269,13 +292,13 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 
 				monitor.done();
 
-				refreshUIAfterBuild();
+				refreshUIAfterBuild(listOfResourcesToBeRefreshed);
 
 				// validate files related to the scripts that have been parsed
 				for (C4ScriptBase script : parserMap.keySet()) {
 					validateRelatedFiles(script);
 				}
-				parserMap.clear();
+				
 				return new IProject[] { proj };
 			} catch (Exception e) {
 				e.printStackTrace();
@@ -362,9 +385,9 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 		});
 	}
 	
-	private void refreshUIAfterBuild() {
+	private void refreshUIAfterBuild(List<IResource> listOfResourcesToBeRefreshed) {
 		// refresh outlines
-		Display.getDefault().asyncExec(new UIRefresher());
+		Display.getDefault().asyncExec(new UIRefresher(listOfResourcesToBeRefreshed));
 	}
 
 	private String[] getExternalLibNames() {
