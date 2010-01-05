@@ -17,8 +17,10 @@ import java.io.IOException;
 
 @members {
 C4MapCreator mapCreator;
-C4MapOverlay current;
-C4MapOverlay lastOverlay;
+C4MapOverlayBase current;
+C4MapOverlayBase lastOverlay;
+
+Token valueLo, valueHi;
 
 public MapCreatorParser(C4MapCreator mapCreator, TokenStream input) {
 	this(input);
@@ -56,32 +58,32 @@ private static int endPos(Token t) {
 	return endPos(t, null);
 }
 
-private void setCurrentOverlay(C4MapOverlay overlay, Token typeToken, Token nameToken) {
+private void setCurrentOverlay(C4MapOverlayBase overlay, Token typeToken, Token nameToken) {
 	current = overlay;
 	current.setLocation(new SourceLocation(startPos(typeToken), endPos(nameToken, typeToken)));
 }
 
 private void createMapObject(Token typeToken, Token nameToken) {
 	try {
-		if (current == null)
-			return;	
-		C4MapOverlay newOverlay = current.createOverlay(typeToken.getText(), nameToken!=null?nameToken.getText():null);
-		if (newOverlay == null)
-			errorWithCode(ParserErrorCode.UndeclaredIdentifier, startPos(typeToken), endPos(typeToken), typeToken.getText());
-		else
-			setCurrentOverlay(newOverlay, typeToken, nameToken);
+		if (current instanceof C4MapOverlay) {
+			C4MapOverlayBase newOverlay = ((C4MapOverlay) current).createOverlay(typeToken.getText(), nameToken!=null?nameToken.getText():null);
+			if (newOverlay == null)
+				errorWithCode(ParserErrorCode.UndeclaredIdentifier, startPos(typeToken), endPos(typeToken), typeToken.getText());
+			else
+				setCurrentOverlay(newOverlay, typeToken, nameToken);
+		}
 	} catch (Exception e) {
 		e.printStackTrace();
 	}
 }
 
-private void setVal(Token nameToken, Token valueToken) {
+private void setVal(Token nameToken, Token valueTokenLo, Token valueTokenHi) {
 	try {
-		current.setAttribute(nameToken.getText(), valueToken.getText());
+		current.setAttribute(nameToken.getText(), valueTokenLo.getText());
 	} catch (NoSuchFieldException e) {
 		errorWithCode(ParserErrorCode.UndeclaredIdentifier, startPos(nameToken), endPos(nameToken), nameToken.getText());
 	} catch (Exception e) {
-		errorWithCode(ParserErrorCode.InvalidExpression, startPos(valueToken), endPos(valueToken), nameToken.getText());
+		errorWithCode(ParserErrorCode.InvalidExpression, startPos(valueTokenLo), endPos(valueTokenLo), nameToken.getText());
 	}
 }
 
@@ -93,7 +95,8 @@ private void moveLevelUp() {
 
 private void assignOperator(String t) {
 	C4MapOverlay.Operator op = C4MapOverlay.Operator.valueOf(t.charAt(0));
-	lastOverlay.setOperator(op);
+	if (lastOverlay instanceof C4MapOverlay)
+	((C4MapOverlay)lastOverlay).setOperator(op);
 }
 
 private IMarker createMarker(int start, int end, String message, int severity) {
@@ -176,6 +179,7 @@ composition
 subobject
 	:	type=MAP name=NAME? {createMapObject(type, name);} optionalblock
 	|	type=OVERLAY name=NAME? {createMapObject(type, name);} optionalblock
+	|	type=POINT name=NAME? {createMapObject(type, name);} optionalblock
 	|	template=NAME name=NAME? {createMapObject(template, name);} optionalblock;
 
 optionalblock
@@ -188,22 +192,24 @@ statementorattrib
 	:	attribute|statement;
 
 attribute
-	:	attr=NAME ASSIGN attrValue=NAME STATEMENTEND {setVal(attr, attrValue);}
-	|	attr=NAME ASSIGN attrValue=NUMBER STATEMENTEND {setVal(attr, attrValue);}
-	|	attr=NAME ASSIGN attrValue=MATCOMBO STATEMENTEND {setVal(attr, attrValue);};
+	:	{valueLo=valueHi=null;} attr=NAME ASSIGN value STATEMENTEND {setVal(attr, valueLo, valueHi);};
+
+value	:	valName=NAME {valueLo=valName;} | (valLo=NUMBER {valueLo=valLo;} (MINUS valHi=NUMBER  {valueHi=valHi;})?)  | valMat=MATCOMBO {valueLo=valMat;};
 
 MAP		:	'map';
 OVERLAY		:	'overlay';
+POINT		:	'point';
 
 fragment LETTER	:	'a'..'z'|'A'..'Z'|'_';
 fragment UNIT	:	('px'|'%');
 fragment DIGIT	:	'0'..'9';
-fragment INT		:	('+'|'-')? DIGIT+UNIT?;
 fragment WORD	:	LETTER (LETTER|DIGIT)*;
 
-NUMBER		:	INT;
+MATCOMBO	:	WORD MINUS WORD;
+MINUS		:	'-';
+PLUS		:	'+';
+NUMBER		:	(PLUS|MINUS)? DIGIT+UNIT?;
 NAME		:	WORD;
-MATCOMBO	:	WORD '-' WORD;
 WS		:	(' '|'\t'|'\n'|'\r')+ {skip();};
 SLCOMMENT	:	'//' .* '\n' {skip();};
 MLCOMMENT	:	'/*' .* '*/' {skip();};

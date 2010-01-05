@@ -1,4 +1,4 @@
-// $ANTLR 3.1.2 C:\\Users\\Madeen\\Projects\\Clonk\\C4DT\\Clonk\\src\\net\\arctics\\clonk\\parser\\mapcreator\\MapCreator.g 2009-08-26 16:30:36
+// $ANTLR 3.2 Sep 23, 2009 12:02:23 /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g 2010-01-05 15:41:14
 
 package net.arctics.clonk.parser.mapcreator;
 
@@ -16,27 +16,29 @@ import org.antlr.runtime.*;
 
 public class MapCreatorParser extends Parser {
     public static final String[] tokenNames = new String[] {
-        "<invalid>", "<EOR>", "<DOWN>", "<UP>", "STATEMENTEND", "OPERATOR", "MAP", "NAME", "OVERLAY", "BLOCKOPEN", "BLOCKCLOSE", "ASSIGN", "NUMBER", "MATCOMBO", "LETTER", "UNIT", "DIGIT", "INT", "WORD", "WS", "SLCOMMENT", "MLCOMMENT" //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$ //$NON-NLS-6$ //$NON-NLS-7$ //$NON-NLS-8$ //$NON-NLS-9$ //$NON-NLS-10$ //$NON-NLS-11$ //$NON-NLS-12$ //$NON-NLS-13$ //$NON-NLS-14$ //$NON-NLS-15$ //$NON-NLS-16$ //$NON-NLS-17$ //$NON-NLS-18$ //$NON-NLS-19$ //$NON-NLS-20$ //$NON-NLS-21$ //$NON-NLS-22$
+        "<invalid>", "<EOR>", "<DOWN>", "<UP>", "STATEMENTEND", "OPERATOR", "MAP", "NAME", "OVERLAY", "POINT", "BLOCKOPEN", "BLOCKCLOSE", "ASSIGN", "NUMBER", "MINUS", "MATCOMBO", "LETTER", "UNIT", "DIGIT", "WORD", "PLUS", "WS", "SLCOMMENT", "MLCOMMENT"
     };
     public static final int OVERLAY=8;
+    public static final int POINT=9;
     public static final int STATEMENTEND=4;
-    public static final int LETTER=14;
+    public static final int LETTER=16;
     public static final int OPERATOR=5;
-    public static final int NUMBER=12;
-    public static final int SLCOMMENT=20;
-    public static final int INT=17;
+    public static final int NUMBER=13;
+    public static final int SLCOMMENT=22;
+    public static final int MINUS=14;
     public static final int EOF=-1;
-    public static final int WORD=18;
-    public static final int BLOCKOPEN=9;
+    public static final int WORD=19;
+    public static final int BLOCKOPEN=10;
     public static final int NAME=7;
-    public static final int UNIT=15;
-    public static final int WS=19;
-    public static final int BLOCKCLOSE=10;
+    public static final int UNIT=17;
+    public static final int WS=21;
+    public static final int BLOCKCLOSE=11;
     public static final int MAP=6;
-    public static final int ASSIGN=11;
-    public static final int DIGIT=16;
-    public static final int MLCOMMENT=21;
-    public static final int MATCOMBO=13;
+    public static final int ASSIGN=12;
+    public static final int PLUS=20;
+    public static final int DIGIT=18;
+    public static final int MLCOMMENT=23;
+    public static final int MATCOMBO=15;
 
     // delegates
     // delegators
@@ -52,12 +54,14 @@ public class MapCreatorParser extends Parser {
         
 
     public String[] getTokenNames() { return MapCreatorParser.tokenNames; }
-    public String getGrammarFileName() { return "C:\\Users\\Madeen\\Projects\\Clonk\\C4DT\\Clonk\\src\\net\\arctics\\clonk\\parser\\mapcreator\\MapCreator.g"; } //$NON-NLS-1$
+    public String getGrammarFileName() { return "/Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g"; }
 
 
     C4MapCreator mapCreator;
-    C4MapOverlay current;
-    C4MapOverlay lastOverlay;
+    C4MapOverlayBase current;
+    C4MapOverlayBase lastOverlay;
+
+    Token valueLo, valueHi;
 
     public MapCreatorParser(C4MapCreator mapCreator, TokenStream input) {
     	this(input);
@@ -95,32 +99,32 @@ public class MapCreatorParser extends Parser {
     	return endPos(t, null);
     }
 
-    private void setCurrentOverlay(C4MapOverlay overlay, Token typeToken, Token nameToken) {
+    private void setCurrentOverlay(C4MapOverlayBase overlay, Token typeToken, Token nameToken) {
     	current = overlay;
     	current.setLocation(new SourceLocation(startPos(typeToken), endPos(nameToken, typeToken)));
     }
 
     private void createMapObject(Token typeToken, Token nameToken) {
     	try {
-    		if (current == null)
-    			return;	
-    		C4MapOverlay newOverlay = current.createOverlay(typeToken.getText(), nameToken!=null?nameToken.getText():null);
-    		if (newOverlay == null)
-    			errorWithCode(ParserErrorCode.UndeclaredIdentifier, startPos(typeToken), endPos(typeToken), typeToken.getText());
-    		else
-    			setCurrentOverlay(newOverlay, typeToken, nameToken);
+    		if (current instanceof C4MapOverlay) {
+    			C4MapOverlayBase newOverlay = ((C4MapOverlay) current).createOverlay(typeToken.getText(), nameToken!=null?nameToken.getText():null);
+    			if (newOverlay == null)
+    				errorWithCode(ParserErrorCode.UndeclaredIdentifier, startPos(typeToken), endPos(typeToken), typeToken.getText());
+    			else
+    				setCurrentOverlay(newOverlay, typeToken, nameToken);
+    		}
     	} catch (Exception e) {
     		e.printStackTrace();
     	}
     }
 
-    private void setVal(Token nameToken, Token valueToken) {
+    private void setVal(Token nameToken, Token valueTokenLo, Token valueTokenHi) {
     	try {
-    		current.setAttribute(nameToken.getText(), valueToken.getText());
+    		current.setAttribute(nameToken.getText(), valueTokenLo.getText());
     	} catch (NoSuchFieldException e) {
     		errorWithCode(ParserErrorCode.UndeclaredIdentifier, startPos(nameToken), endPos(nameToken), nameToken.getText());
     	} catch (Exception e) {
-    		errorWithCode(ParserErrorCode.InvalidExpression, startPos(valueToken), endPos(valueToken), nameToken.getText());
+    		errorWithCode(ParserErrorCode.InvalidExpression, startPos(valueTokenLo), endPos(valueTokenLo), nameToken.getText());
     	}
     }
 
@@ -132,7 +136,8 @@ public class MapCreatorParser extends Parser {
 
     private void assignOperator(String t) {
     	C4MapOverlay.Operator op = C4MapOverlay.Operator.valueOf(t.charAt(0));
-    	lastOverlay.setOperator(op);
+    	if (lastOverlay instanceof C4MapOverlay)
+    	((C4MapOverlay)lastOverlay).setOperator(op);
     }
 
     private IMarker createMarker(int start, int end, String message, int severity) {
@@ -205,27 +210,27 @@ public class MapCreatorParser extends Parser {
 
 
     // $ANTLR start "start"
-    // C:\\Users\\Madeen\\Projects\\Clonk\\C4DT\\Clonk\\src\\net\\arctics\\clonk\\parser\\mapcreator\\MapCreator.g:167:1: start : ( statement )* ;
+    // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:170:1: start : ( statement )* ;
     public final void start() throws RecognitionException {
         try {
-            // C:\\Users\\Madeen\\Projects\\Clonk\\C4DT\\Clonk\\src\\net\\arctics\\clonk\\parser\\mapcreator\\MapCreator.g:167:7: ( ( statement )* )
-            // C:\\Users\\Madeen\\Projects\\Clonk\\C4DT\\Clonk\\src\\net\\arctics\\clonk\\parser\\mapcreator\\MapCreator.g:167:9: ( statement )*
+            // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:170:7: ( ( statement )* )
+            // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:170:9: ( statement )*
             {
             deleteMarkers();
-            // C:\\Users\\Madeen\\Projects\\Clonk\\C4DT\\Clonk\\src\\net\\arctics\\clonk\\parser\\mapcreator\\MapCreator.g:167:28: ( statement )*
+            // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:170:28: ( statement )*
             loop1:
             do {
                 int alt1=2;
                 int LA1_0 = input.LA(1);
 
-                if ( ((LA1_0>=MAP && LA1_0<=OVERLAY)) ) {
+                if ( ((LA1_0>=MAP && LA1_0<=POINT)) ) {
                     alt1=1;
                 }
 
 
                 switch (alt1) {
             	case 1 :
-            	    // C:\\Users\\Madeen\\Projects\\Clonk\\C4DT\\Clonk\\src\\net\\arctics\\clonk\\parser\\mapcreator\\MapCreator.g:167:28: statement
+            	    // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:170:28: statement
             	    {
             	    pushFollow(FOLLOW_statement_in_start33);
             	    statement();
@@ -257,11 +262,11 @@ public class MapCreatorParser extends Parser {
 
 
     // $ANTLR start "statement"
-    // C:\\Users\\Madeen\\Projects\\Clonk\\C4DT\\Clonk\\src\\net\\arctics\\clonk\\parser\\mapcreator\\MapCreator.g:169:1: statement : composition STATEMENTEND ;
+    // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:172:1: statement : composition STATEMENTEND ;
     public final void statement() throws RecognitionException {
         try {
-            // C:\\Users\\Madeen\\Projects\\Clonk\\C4DT\\Clonk\\src\\net\\arctics\\clonk\\parser\\mapcreator\\MapCreator.g:170:2: ( composition STATEMENTEND )
-            // C:\\Users\\Madeen\\Projects\\Clonk\\C4DT\\Clonk\\src\\net\\arctics\\clonk\\parser\\mapcreator\\MapCreator.g:170:4: composition STATEMENTEND
+            // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:173:2: ( composition STATEMENTEND )
+            // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:173:4: composition STATEMENTEND
             {
             lastOverlay = null;
             pushFollow(FOLLOW_composition_in_statement45);
@@ -286,20 +291,20 @@ public class MapCreatorParser extends Parser {
 
 
     // $ANTLR start "composition"
-    // C:\\Users\\Madeen\\Projects\\Clonk\\C4DT\\Clonk\\src\\net\\arctics\\clonk\\parser\\mapcreator\\MapCreator.g:172:1: composition : subobject (op= OPERATOR composition )? ;
+    // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:176:1: composition : subobject (op= OPERATOR composition )? ;
     public final void composition() throws RecognitionException {
         Token op=null;
 
         try {
-            // C:\\Users\\Madeen\\Projects\\Clonk\\C4DT\\Clonk\\src\\net\\arctics\\clonk\\parser\\mapcreator\\MapCreator.g:173:2: ( subobject (op= OPERATOR composition )? )
-            // C:\\Users\\Madeen\\Projects\\Clonk\\C4DT\\Clonk\\src\\net\\arctics\\clonk\\parser\\mapcreator\\MapCreator.g:173:4: subobject (op= OPERATOR composition )?
+            // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:177:2: ( subobject (op= OPERATOR composition )? )
+            // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:177:4: subobject (op= OPERATOR composition )?
             {
-            pushFollow(FOLLOW_subobject_in_composition56);
+            pushFollow(FOLLOW_subobject_in_composition57);
             subobject();
 
             state._fsp--;
 
-            // C:\\Users\\Madeen\\Projects\\Clonk\\C4DT\\Clonk\\src\\net\\arctics\\clonk\\parser\\mapcreator\\MapCreator.g:173:14: (op= OPERATOR composition )?
+            // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:177:14: (op= OPERATOR composition )?
             int alt2=2;
             int LA2_0 = input.LA(1);
 
@@ -308,11 +313,11 @@ public class MapCreatorParser extends Parser {
             }
             switch (alt2) {
                 case 1 :
-                    // C:\\Users\\Madeen\\Projects\\Clonk\\C4DT\\Clonk\\src\\net\\arctics\\clonk\\parser\\mapcreator\\MapCreator.g:173:15: op= OPERATOR composition
+                    // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:177:15: op= OPERATOR composition
                     {
-                    op=(Token)match(input,OPERATOR,FOLLOW_OPERATOR_in_composition61); 
+                    op=(Token)match(input,OPERATOR,FOLLOW_OPERATOR_in_composition62); 
                     assignOperator((op!=null?op.getText():null));
-                    pushFollow(FOLLOW_composition_in_composition65);
+                    pushFollow(FOLLOW_composition_in_composition66);
                     composition();
 
                     state._fsp--;
@@ -339,44 +344,49 @@ public class MapCreatorParser extends Parser {
 
 
     // $ANTLR start "subobject"
-    // C:\\Users\\Madeen\\Projects\\Clonk\\C4DT\\Clonk\\src\\net\\arctics\\clonk\\parser\\mapcreator\\MapCreator.g:175:1: subobject : (type= MAP (name= NAME )? optionalblock | type= OVERLAY (name= NAME )? optionalblock | template= NAME (name= NAME )? optionalblock );
+    // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:179:1: subobject : (type= MAP (name= NAME )? optionalblock | type= OVERLAY (name= NAME )? optionalblock | type= POINT (name= NAME )? optionalblock | template= NAME (name= NAME )? optionalblock );
     public final void subobject() throws RecognitionException {
         Token type=null;
         Token name=null;
         Token template=null;
 
         try {
-            // C:\\Users\\Madeen\\Projects\\Clonk\\C4DT\\Clonk\\src\\net\\arctics\\clonk\\parser\\mapcreator\\MapCreator.g:176:2: (type= MAP (name= NAME )? optionalblock | type= OVERLAY (name= NAME )? optionalblock | template= NAME (name= NAME )? optionalblock )
-            int alt6=3;
+            // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:180:2: (type= MAP (name= NAME )? optionalblock | type= OVERLAY (name= NAME )? optionalblock | type= POINT (name= NAME )? optionalblock | template= NAME (name= NAME )? optionalblock )
+            int alt7=4;
             switch ( input.LA(1) ) {
             case MAP:
                 {
-                alt6=1;
+                alt7=1;
                 }
                 break;
             case OVERLAY:
                 {
-                alt6=2;
+                alt7=2;
+                }
+                break;
+            case POINT:
+                {
+                alt7=3;
                 }
                 break;
             case NAME:
                 {
-                alt6=3;
+                alt7=4;
                 }
                 break;
             default:
                 NoViableAltException nvae =
-                    new NoViableAltException("", 6, 0, input); //$NON-NLS-1$
+                    new NoViableAltException("", 7, 0, input);
 
                 throw nvae;
             }
 
-            switch (alt6) {
+            switch (alt7) {
                 case 1 :
-                    // C:\\Users\\Madeen\\Projects\\Clonk\\C4DT\\Clonk\\src\\net\\arctics\\clonk\\parser\\mapcreator\\MapCreator.g:176:4: type= MAP (name= NAME )? optionalblock
+                    // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:180:4: type= MAP (name= NAME )? optionalblock
                     {
-                    type=(Token)match(input,MAP,FOLLOW_MAP_in_subobject78); 
-                    // C:\\Users\\Madeen\\Projects\\Clonk\\C4DT\\Clonk\\src\\net\\arctics\\clonk\\parser\\mapcreator\\MapCreator.g:176:17: (name= NAME )?
+                    type=(Token)match(input,MAP,FOLLOW_MAP_in_subobject79); 
+                    // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:180:17: (name= NAME )?
                     int alt3=2;
                     int LA3_0 = input.LA(1);
 
@@ -385,9 +395,9 @@ public class MapCreatorParser extends Parser {
                     }
                     switch (alt3) {
                         case 1 :
-                            // C:\\Users\\Madeen\\Projects\\Clonk\\C4DT\\Clonk\\src\\net\\arctics\\clonk\\parser\\mapcreator\\MapCreator.g:176:17: name= NAME
+                            // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:180:17: name= NAME
                             {
-                            name=(Token)match(input,NAME,FOLLOW_NAME_in_subobject82); 
+                            name=(Token)match(input,NAME,FOLLOW_NAME_in_subobject83); 
 
                             }
                             break;
@@ -395,7 +405,7 @@ public class MapCreatorParser extends Parser {
                     }
 
                     createMapObject(type, name);
-                    pushFollow(FOLLOW_optionalblock_in_subobject87);
+                    pushFollow(FOLLOW_optionalblock_in_subobject88);
                     optionalblock();
 
                     state._fsp--;
@@ -404,10 +414,10 @@ public class MapCreatorParser extends Parser {
                     }
                     break;
                 case 2 :
-                    // C:\\Users\\Madeen\\Projects\\Clonk\\C4DT\\Clonk\\src\\net\\arctics\\clonk\\parser\\mapcreator\\MapCreator.g:177:4: type= OVERLAY (name= NAME )? optionalblock
+                    // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:181:4: type= OVERLAY (name= NAME )? optionalblock
                     {
-                    type=(Token)match(input,OVERLAY,FOLLOW_OVERLAY_in_subobject94); 
-                    // C:\\Users\\Madeen\\Projects\\Clonk\\C4DT\\Clonk\\src\\net\\arctics\\clonk\\parser\\mapcreator\\MapCreator.g:177:21: (name= NAME )?
+                    type=(Token)match(input,OVERLAY,FOLLOW_OVERLAY_in_subobject95); 
+                    // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:181:21: (name= NAME )?
                     int alt4=2;
                     int LA4_0 = input.LA(1);
 
@@ -416,9 +426,9 @@ public class MapCreatorParser extends Parser {
                     }
                     switch (alt4) {
                         case 1 :
-                            // C:\\Users\\Madeen\\Projects\\Clonk\\C4DT\\Clonk\\src\\net\\arctics\\clonk\\parser\\mapcreator\\MapCreator.g:177:21: name= NAME
+                            // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:181:21: name= NAME
                             {
-                            name=(Token)match(input,NAME,FOLLOW_NAME_in_subobject98); 
+                            name=(Token)match(input,NAME,FOLLOW_NAME_in_subobject99); 
 
                             }
                             break;
@@ -426,7 +436,7 @@ public class MapCreatorParser extends Parser {
                     }
 
                     createMapObject(type, name);
-                    pushFollow(FOLLOW_optionalblock_in_subobject103);
+                    pushFollow(FOLLOW_optionalblock_in_subobject104);
                     optionalblock();
 
                     state._fsp--;
@@ -435,10 +445,10 @@ public class MapCreatorParser extends Parser {
                     }
                     break;
                 case 3 :
-                    // C:\\Users\\Madeen\\Projects\\Clonk\\C4DT\\Clonk\\src\\net\\arctics\\clonk\\parser\\mapcreator\\MapCreator.g:178:4: template= NAME (name= NAME )? optionalblock
+                    // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:182:4: type= POINT (name= NAME )? optionalblock
                     {
-                    template=(Token)match(input,NAME,FOLLOW_NAME_in_subobject110); 
-                    // C:\\Users\\Madeen\\Projects\\Clonk\\C4DT\\Clonk\\src\\net\\arctics\\clonk\\parser\\mapcreator\\MapCreator.g:178:22: (name= NAME )?
+                    type=(Token)match(input,POINT,FOLLOW_POINT_in_subobject111); 
+                    // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:182:19: (name= NAME )?
                     int alt5=2;
                     int LA5_0 = input.LA(1);
 
@@ -447,9 +457,40 @@ public class MapCreatorParser extends Parser {
                     }
                     switch (alt5) {
                         case 1 :
-                            // C:\\Users\\Madeen\\Projects\\Clonk\\C4DT\\Clonk\\src\\net\\arctics\\clonk\\parser\\mapcreator\\MapCreator.g:178:22: name= NAME
+                            // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:182:19: name= NAME
                             {
-                            name=(Token)match(input,NAME,FOLLOW_NAME_in_subobject114); 
+                            name=(Token)match(input,NAME,FOLLOW_NAME_in_subobject115); 
+
+                            }
+                            break;
+
+                    }
+
+                    createMapObject(type, name);
+                    pushFollow(FOLLOW_optionalblock_in_subobject120);
+                    optionalblock();
+
+                    state._fsp--;
+
+
+                    }
+                    break;
+                case 4 :
+                    // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:183:4: template= NAME (name= NAME )? optionalblock
+                    {
+                    template=(Token)match(input,NAME,FOLLOW_NAME_in_subobject127); 
+                    // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:183:22: (name= NAME )?
+                    int alt6=2;
+                    int LA6_0 = input.LA(1);
+
+                    if ( (LA6_0==NAME) ) {
+                        alt6=1;
+                    }
+                    switch (alt6) {
+                        case 1 :
+                            // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:183:22: name= NAME
+                            {
+                            name=(Token)match(input,NAME,FOLLOW_NAME_in_subobject131); 
 
                             }
                             break;
@@ -457,7 +498,7 @@ public class MapCreatorParser extends Parser {
                     }
 
                     createMapObject(template, name);
-                    pushFollow(FOLLOW_optionalblock_in_subobject119);
+                    pushFollow(FOLLOW_optionalblock_in_subobject136);
                     optionalblock();
 
                     state._fsp--;
@@ -480,24 +521,24 @@ public class MapCreatorParser extends Parser {
 
 
     // $ANTLR start "optionalblock"
-    // C:\\Users\\Madeen\\Projects\\Clonk\\C4DT\\Clonk\\src\\net\\arctics\\clonk\\parser\\mapcreator\\MapCreator.g:180:1: optionalblock : ( block )? ;
+    // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:185:1: optionalblock : ( block )? ;
     public final void optionalblock() throws RecognitionException {
         try {
-            // C:\\Users\\Madeen\\Projects\\Clonk\\C4DT\\Clonk\\src\\net\\arctics\\clonk\\parser\\mapcreator\\MapCreator.g:181:2: ( ( block )? )
-            // C:\\Users\\Madeen\\Projects\\Clonk\\C4DT\\Clonk\\src\\net\\arctics\\clonk\\parser\\mapcreator\\MapCreator.g:181:4: ( block )?
+            // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:186:2: ( ( block )? )
+            // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:186:4: ( block )?
             {
-            // C:\\Users\\Madeen\\Projects\\Clonk\\C4DT\\Clonk\\src\\net\\arctics\\clonk\\parser\\mapcreator\\MapCreator.g:181:4: ( block )?
-            int alt7=2;
-            int LA7_0 = input.LA(1);
+            // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:186:4: ( block )?
+            int alt8=2;
+            int LA8_0 = input.LA(1);
 
-            if ( (LA7_0==BLOCKOPEN) ) {
-                alt7=1;
+            if ( (LA8_0==BLOCKOPEN) ) {
+                alt8=1;
             }
-            switch (alt7) {
+            switch (alt8) {
                 case 1 :
-                    // C:\\Users\\Madeen\\Projects\\Clonk\\C4DT\\Clonk\\src\\net\\arctics\\clonk\\parser\\mapcreator\\MapCreator.g:181:4: block
+                    // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:186:4: block
                     {
-                    pushFollow(FOLLOW_block_in_optionalblock128);
+                    pushFollow(FOLLOW_block_in_optionalblock145);
                     block();
 
                     state._fsp--;
@@ -525,32 +566,32 @@ public class MapCreatorParser extends Parser {
 
 
     // $ANTLR start "block"
-    // C:\\Users\\Madeen\\Projects\\Clonk\\C4DT\\Clonk\\src\\net\\arctics\\clonk\\parser\\mapcreator\\MapCreator.g:183:1: block : open= BLOCKOPEN ( statementorattrib )* close= BLOCKCLOSE ;
+    // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:189:1: block : open= BLOCKOPEN ( statementorattrib )* close= BLOCKCLOSE ;
     public final void block() throws RecognitionException {
         Token open=null;
         Token close=null;
 
         try {
-            // C:\\Users\\Madeen\\Projects\\Clonk\\C4DT\\Clonk\\src\\net\\arctics\\clonk\\parser\\mapcreator\\MapCreator.g:183:7: (open= BLOCKOPEN ( statementorattrib )* close= BLOCKCLOSE )
-            // C:\\Users\\Madeen\\Projects\\Clonk\\C4DT\\Clonk\\src\\net\\arctics\\clonk\\parser\\mapcreator\\MapCreator.g:183:9: open= BLOCKOPEN ( statementorattrib )* close= BLOCKCLOSE
+            // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:189:7: (open= BLOCKOPEN ( statementorattrib )* close= BLOCKCLOSE )
+            // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:189:9: open= BLOCKOPEN ( statementorattrib )* close= BLOCKCLOSE
             {
-            open=(Token)match(input,BLOCKOPEN,FOLLOW_BLOCKOPEN_in_block142); 
-            // C:\\Users\\Madeen\\Projects\\Clonk\\C4DT\\Clonk\\src\\net\\arctics\\clonk\\parser\\mapcreator\\MapCreator.g:183:24: ( statementorattrib )*
-            loop8:
+            open=(Token)match(input,BLOCKOPEN,FOLLOW_BLOCKOPEN_in_block161); 
+            // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:189:24: ( statementorattrib )*
+            loop9:
             do {
-                int alt8=2;
-                int LA8_0 = input.LA(1);
+                int alt9=2;
+                int LA9_0 = input.LA(1);
 
-                if ( ((LA8_0>=MAP && LA8_0<=OVERLAY)) ) {
-                    alt8=1;
+                if ( ((LA9_0>=MAP && LA9_0<=POINT)) ) {
+                    alt9=1;
                 }
 
 
-                switch (alt8) {
+                switch (alt9) {
             	case 1 :
-            	    // C:\\Users\\Madeen\\Projects\\Clonk\\C4DT\\Clonk\\src\\net\\arctics\\clonk\\parser\\mapcreator\\MapCreator.g:183:24: statementorattrib
+            	    // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:189:24: statementorattrib
             	    {
-            	    pushFollow(FOLLOW_statementorattrib_in_block144);
+            	    pushFollow(FOLLOW_statementorattrib_in_block163);
             	    statementorattrib();
 
             	    state._fsp--;
@@ -560,11 +601,11 @@ public class MapCreatorParser extends Parser {
             	    break;
 
             	default :
-            	    break loop8;
+            	    break loop9;
                 }
             } while (true);
 
-            close=(Token)match(input,BLOCKCLOSE,FOLLOW_BLOCKCLOSE_in_block149); 
+            close=(Token)match(input,BLOCKCLOSE,FOLLOW_BLOCKCLOSE_in_block168); 
             setBody(open, close);
 
             }
@@ -582,43 +623,43 @@ public class MapCreatorParser extends Parser {
 
 
     // $ANTLR start "statementorattrib"
-    // C:\\Users\\Madeen\\Projects\\Clonk\\C4DT\\Clonk\\src\\net\\arctics\\clonk\\parser\\mapcreator\\MapCreator.g:185:1: statementorattrib : ( attribute | statement );
+    // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:191:1: statementorattrib : ( attribute | statement );
     public final void statementorattrib() throws RecognitionException {
         try {
-            // C:\\Users\\Madeen\\Projects\\Clonk\\C4DT\\Clonk\\src\\net\\arctics\\clonk\\parser\\mapcreator\\MapCreator.g:186:2: ( attribute | statement )
-            int alt9=2;
-            int LA9_0 = input.LA(1);
+            // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:192:2: ( attribute | statement )
+            int alt10=2;
+            int LA10_0 = input.LA(1);
 
-            if ( (LA9_0==NAME) ) {
-                int LA9_1 = input.LA(2);
+            if ( (LA10_0==NAME) ) {
+                int LA10_1 = input.LA(2);
 
-                if ( (LA9_1==ASSIGN) ) {
-                    alt9=1;
+                if ( (LA10_1==ASSIGN) ) {
+                    alt10=1;
                 }
-                else if ( ((LA9_1>=STATEMENTEND && LA9_1<=OPERATOR)||LA9_1==NAME||LA9_1==BLOCKOPEN) ) {
-                    alt9=2;
+                else if ( ((LA10_1>=STATEMENTEND && LA10_1<=OPERATOR)||LA10_1==NAME||LA10_1==BLOCKOPEN) ) {
+                    alt10=2;
                 }
                 else {
                     NoViableAltException nvae =
-                        new NoViableAltException("", 9, 1, input); //$NON-NLS-1$
+                        new NoViableAltException("", 10, 1, input);
 
                     throw nvae;
                 }
             }
-            else if ( (LA9_0==MAP||LA9_0==OVERLAY) ) {
-                alt9=2;
+            else if ( (LA10_0==MAP||(LA10_0>=OVERLAY && LA10_0<=POINT)) ) {
+                alt10=2;
             }
             else {
                 NoViableAltException nvae =
-                    new NoViableAltException("", 9, 0, input); //$NON-NLS-1$
+                    new NoViableAltException("", 10, 0, input);
 
                 throw nvae;
             }
-            switch (alt9) {
+            switch (alt10) {
                 case 1 :
-                    // C:\\Users\\Madeen\\Projects\\Clonk\\C4DT\\Clonk\\src\\net\\arctics\\clonk\\parser\\mapcreator\\MapCreator.g:186:4: attribute
+                    // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:192:4: attribute
                     {
-                    pushFollow(FOLLOW_attribute_in_statementorattrib160);
+                    pushFollow(FOLLOW_attribute_in_statementorattrib179);
                     attribute();
 
                     state._fsp--;
@@ -627,9 +668,9 @@ public class MapCreatorParser extends Parser {
                     }
                     break;
                 case 2 :
-                    // C:\\Users\\Madeen\\Projects\\Clonk\\C4DT\\Clonk\\src\\net\\arctics\\clonk\\parser\\mapcreator\\MapCreator.g:186:14: statement
+                    // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:192:14: statement
                     {
-                    pushFollow(FOLLOW_statement_in_statementorattrib162);
+                    pushFollow(FOLLOW_statement_in_statementorattrib181);
                     statement();
 
                     state._fsp--;
@@ -652,88 +693,121 @@ public class MapCreatorParser extends Parser {
 
 
     // $ANTLR start "attribute"
-    // C:\\Users\\Madeen\\Projects\\Clonk\\C4DT\\Clonk\\src\\net\\arctics\\clonk\\parser\\mapcreator\\MapCreator.g:188:1: attribute : (attr= NAME ASSIGN attrValue= NAME STATEMENTEND | attr= NAME ASSIGN attrValue= NUMBER STATEMENTEND | attr= NAME ASSIGN attrValue= MATCOMBO STATEMENTEND );
+    // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:194:1: attribute : attr= NAME ASSIGN value STATEMENTEND ;
     public final void attribute() throws RecognitionException {
         Token attr=null;
-        Token attrValue=null;
 
         try {
-            // C:\\Users\\Madeen\\Projects\\Clonk\\C4DT\\Clonk\\src\\net\\arctics\\clonk\\parser\\mapcreator\\MapCreator.g:189:2: (attr= NAME ASSIGN attrValue= NAME STATEMENTEND | attr= NAME ASSIGN attrValue= NUMBER STATEMENTEND | attr= NAME ASSIGN attrValue= MATCOMBO STATEMENTEND )
-            int alt10=3;
-            int LA10_0 = input.LA(1);
+            // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:195:2: (attr= NAME ASSIGN value STATEMENTEND )
+            // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:195:4: attr= NAME ASSIGN value STATEMENTEND
+            {
+            valueLo=valueHi=null;
+            attr=(Token)match(input,NAME,FOLLOW_NAME_in_attribute194); 
+            match(input,ASSIGN,FOLLOW_ASSIGN_in_attribute196); 
+            pushFollow(FOLLOW_value_in_attribute198);
+            value();
 
-            if ( (LA10_0==NAME) ) {
-                int LA10_1 = input.LA(2);
+            state._fsp--;
 
-                if ( (LA10_1==ASSIGN) ) {
-                    switch ( input.LA(3) ) {
-                    case NAME:
-                        {
-                        alt10=1;
-                        }
-                        break;
-                    case NUMBER:
-                        {
-                        alt10=2;
-                        }
-                        break;
-                    case MATCOMBO:
-                        {
-                        alt10=3;
-                        }
-                        break;
-                    default:
-                        NoViableAltException nvae =
-                            new NoViableAltException("", 10, 2, input); //$NON-NLS-1$
+            match(input,STATEMENTEND,FOLLOW_STATEMENTEND_in_attribute200); 
+            setVal(attr, valueLo, valueHi);
 
-                        throw nvae;
-                    }
-
-                }
-                else {
-                    NoViableAltException nvae =
-                        new NoViableAltException("", 10, 1, input); //$NON-NLS-1$
-
-                    throw nvae;
-                }
             }
-            else {
+
+        }
+        catch (RecognitionException re) {
+            reportError(re);
+            recover(input,re);
+        }
+        finally {
+        }
+        return ;
+    }
+    // $ANTLR end "attribute"
+
+
+    // $ANTLR start "value"
+    // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:197:1: value : (valName= NAME | (valLo= NUMBER ( MINUS valHi= NUMBER )? ) | valMat= MATCOMBO );
+    public final void value() throws RecognitionException {
+        Token valName=null;
+        Token valLo=null;
+        Token valHi=null;
+        Token valMat=null;
+
+        try {
+            // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:197:7: (valName= NAME | (valLo= NUMBER ( MINUS valHi= NUMBER )? ) | valMat= MATCOMBO )
+            int alt12=3;
+            switch ( input.LA(1) ) {
+            case NAME:
+                {
+                alt12=1;
+                }
+                break;
+            case NUMBER:
+                {
+                alt12=2;
+                }
+                break;
+            case MATCOMBO:
+                {
+                alt12=3;
+                }
+                break;
+            default:
                 NoViableAltException nvae =
-                    new NoViableAltException("", 10, 0, input); //$NON-NLS-1$
+                    new NoViableAltException("", 12, 0, input);
 
                 throw nvae;
             }
-            switch (alt10) {
+
+            switch (alt12) {
                 case 1 :
-                    // C:\\Users\\Madeen\\Projects\\Clonk\\C4DT\\Clonk\\src\\net\\arctics\\clonk\\parser\\mapcreator\\MapCreator.g:189:4: attr= NAME ASSIGN attrValue= NAME STATEMENTEND
+                    // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:197:9: valName= NAME
                     {
-                    attr=(Token)match(input,NAME,FOLLOW_NAME_in_attribute173); 
-                    match(input,ASSIGN,FOLLOW_ASSIGN_in_attribute175); 
-                    attrValue=(Token)match(input,NAME,FOLLOW_NAME_in_attribute179); 
-                    match(input,STATEMENTEND,FOLLOW_STATEMENTEND_in_attribute181); 
-                    setVal(attr, attrValue);
+                    valName=(Token)match(input,NAME,FOLLOW_NAME_in_value212); 
+                    valueLo=valName;
 
                     }
                     break;
                 case 2 :
-                    // C:\\Users\\Madeen\\Projects\\Clonk\\C4DT\\Clonk\\src\\net\\arctics\\clonk\\parser\\mapcreator\\MapCreator.g:190:4: attr= NAME ASSIGN attrValue= NUMBER STATEMENTEND
+                    // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:197:43: (valLo= NUMBER ( MINUS valHi= NUMBER )? )
                     {
-                    attr=(Token)match(input,NAME,FOLLOW_NAME_in_attribute190); 
-                    match(input,ASSIGN,FOLLOW_ASSIGN_in_attribute192); 
-                    attrValue=(Token)match(input,NUMBER,FOLLOW_NUMBER_in_attribute196); 
-                    match(input,STATEMENTEND,FOLLOW_STATEMENTEND_in_attribute198); 
-                    setVal(attr, attrValue);
+                    // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:197:43: (valLo= NUMBER ( MINUS valHi= NUMBER )? )
+                    // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:197:44: valLo= NUMBER ( MINUS valHi= NUMBER )?
+                    {
+                    valLo=(Token)match(input,NUMBER,FOLLOW_NUMBER_in_value221); 
+                    valueLo=valLo;
+                    // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:197:74: ( MINUS valHi= NUMBER )?
+                    int alt11=2;
+                    int LA11_0 = input.LA(1);
+
+                    if ( (LA11_0==MINUS) ) {
+                        alt11=1;
+                    }
+                    switch (alt11) {
+                        case 1 :
+                            // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:197:75: MINUS valHi= NUMBER
+                            {
+                            match(input,MINUS,FOLLOW_MINUS_in_value226); 
+                            valHi=(Token)match(input,NUMBER,FOLLOW_NUMBER_in_value230); 
+                            valueHi=valHi;
+
+                            }
+                            break;
+
+                    }
+
+
+                    }
+
 
                     }
                     break;
                 case 3 :
-                    // C:\\Users\\Madeen\\Projects\\Clonk\\C4DT\\Clonk\\src\\net\\arctics\\clonk\\parser\\mapcreator\\MapCreator.g:191:4: attr= NAME ASSIGN attrValue= MATCOMBO STATEMENTEND
+                    // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:197:118: valMat= MATCOMBO
                     {
-                    attr=(Token)match(input,NAME,FOLLOW_NAME_in_attribute207); 
-                    match(input,ASSIGN,FOLLOW_ASSIGN_in_attribute209); 
-                    attrValue=(Token)match(input,MATCOMBO,FOLLOW_MATCOMBO_in_attribute213); 
-                    match(input,STATEMENTEND,FOLLOW_STATEMENTEND_in_attribute215); 
-                    setVal(attr, attrValue);
+                    valMat=(Token)match(input,MATCOMBO,FOLLOW_MATCOMBO_in_value243); 
+                    valueLo=valMat;
 
                     }
                     break;
@@ -748,45 +822,45 @@ public class MapCreatorParser extends Parser {
         }
         return ;
     }
-    // $ANTLR end "attribute"
+    // $ANTLR end "value"
 
     // Delegated rules
 
 
  
 
-    public static final BitSet FOLLOW_statement_in_start33 = new BitSet(new long[]{0x00000000000001C2L});
+    public static final BitSet FOLLOW_statement_in_start33 = new BitSet(new long[]{0x00000000000003C2L});
     public static final BitSet FOLLOW_composition_in_statement45 = new BitSet(new long[]{0x0000000000000010L});
     public static final BitSet FOLLOW_STATEMENTEND_in_statement47 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_subobject_in_composition56 = new BitSet(new long[]{0x0000000000000022L});
-    public static final BitSet FOLLOW_OPERATOR_in_composition61 = new BitSet(new long[]{0x00000000000001C0L});
-    public static final BitSet FOLLOW_composition_in_composition65 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_MAP_in_subobject78 = new BitSet(new long[]{0x0000000000000280L});
-    public static final BitSet FOLLOW_NAME_in_subobject82 = new BitSet(new long[]{0x0000000000000200L});
-    public static final BitSet FOLLOW_optionalblock_in_subobject87 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_OVERLAY_in_subobject94 = new BitSet(new long[]{0x0000000000000280L});
-    public static final BitSet FOLLOW_NAME_in_subobject98 = new BitSet(new long[]{0x0000000000000200L});
-    public static final BitSet FOLLOW_optionalblock_in_subobject103 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_NAME_in_subobject110 = new BitSet(new long[]{0x0000000000000280L});
-    public static final BitSet FOLLOW_NAME_in_subobject114 = new BitSet(new long[]{0x0000000000000200L});
-    public static final BitSet FOLLOW_optionalblock_in_subobject119 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_block_in_optionalblock128 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_BLOCKOPEN_in_block142 = new BitSet(new long[]{0x00000000000005C0L});
-    public static final BitSet FOLLOW_statementorattrib_in_block144 = new BitSet(new long[]{0x00000000000005C0L});
-    public static final BitSet FOLLOW_BLOCKCLOSE_in_block149 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_attribute_in_statementorattrib160 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_statement_in_statementorattrib162 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_NAME_in_attribute173 = new BitSet(new long[]{0x0000000000000800L});
-    public static final BitSet FOLLOW_ASSIGN_in_attribute175 = new BitSet(new long[]{0x0000000000000080L});
-    public static final BitSet FOLLOW_NAME_in_attribute179 = new BitSet(new long[]{0x0000000000000010L});
-    public static final BitSet FOLLOW_STATEMENTEND_in_attribute181 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_NAME_in_attribute190 = new BitSet(new long[]{0x0000000000000800L});
-    public static final BitSet FOLLOW_ASSIGN_in_attribute192 = new BitSet(new long[]{0x0000000000001000L});
-    public static final BitSet FOLLOW_NUMBER_in_attribute196 = new BitSet(new long[]{0x0000000000000010L});
-    public static final BitSet FOLLOW_STATEMENTEND_in_attribute198 = new BitSet(new long[]{0x0000000000000002L});
-    public static final BitSet FOLLOW_NAME_in_attribute207 = new BitSet(new long[]{0x0000000000000800L});
-    public static final BitSet FOLLOW_ASSIGN_in_attribute209 = new BitSet(new long[]{0x0000000000002000L});
-    public static final BitSet FOLLOW_MATCOMBO_in_attribute213 = new BitSet(new long[]{0x0000000000000010L});
-    public static final BitSet FOLLOW_STATEMENTEND_in_attribute215 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_subobject_in_composition57 = new BitSet(new long[]{0x0000000000000022L});
+    public static final BitSet FOLLOW_OPERATOR_in_composition62 = new BitSet(new long[]{0x00000000000003C0L});
+    public static final BitSet FOLLOW_composition_in_composition66 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_MAP_in_subobject79 = new BitSet(new long[]{0x0000000000000480L});
+    public static final BitSet FOLLOW_NAME_in_subobject83 = new BitSet(new long[]{0x0000000000000400L});
+    public static final BitSet FOLLOW_optionalblock_in_subobject88 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_OVERLAY_in_subobject95 = new BitSet(new long[]{0x0000000000000480L});
+    public static final BitSet FOLLOW_NAME_in_subobject99 = new BitSet(new long[]{0x0000000000000400L});
+    public static final BitSet FOLLOW_optionalblock_in_subobject104 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_POINT_in_subobject111 = new BitSet(new long[]{0x0000000000000480L});
+    public static final BitSet FOLLOW_NAME_in_subobject115 = new BitSet(new long[]{0x0000000000000400L});
+    public static final BitSet FOLLOW_optionalblock_in_subobject120 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_NAME_in_subobject127 = new BitSet(new long[]{0x0000000000000480L});
+    public static final BitSet FOLLOW_NAME_in_subobject131 = new BitSet(new long[]{0x0000000000000400L});
+    public static final BitSet FOLLOW_optionalblock_in_subobject136 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_block_in_optionalblock145 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_BLOCKOPEN_in_block161 = new BitSet(new long[]{0x0000000000000BC0L});
+    public static final BitSet FOLLOW_statementorattrib_in_block163 = new BitSet(new long[]{0x0000000000000BC0L});
+    public static final BitSet FOLLOW_BLOCKCLOSE_in_block168 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_attribute_in_statementorattrib179 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_statement_in_statementorattrib181 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_NAME_in_attribute194 = new BitSet(new long[]{0x0000000000001000L});
+    public static final BitSet FOLLOW_ASSIGN_in_attribute196 = new BitSet(new long[]{0x000000000000A080L});
+    public static final BitSet FOLLOW_value_in_attribute198 = new BitSet(new long[]{0x0000000000000010L});
+    public static final BitSet FOLLOW_STATEMENTEND_in_attribute200 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_NAME_in_value212 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_NUMBER_in_value221 = new BitSet(new long[]{0x0000000000004002L});
+    public static final BitSet FOLLOW_MINUS_in_value226 = new BitSet(new long[]{0x0000000000002000L});
+    public static final BitSet FOLLOW_NUMBER_in_value230 = new BitSet(new long[]{0x0000000000000002L});
+    public static final BitSet FOLLOW_MATCOMBO_in_value243 = new BitSet(new long[]{0x0000000000000002L});
 
 }

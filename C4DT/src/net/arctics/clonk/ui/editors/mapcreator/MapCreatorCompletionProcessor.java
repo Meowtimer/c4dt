@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import net.arctics.clonk.parser.mapcreator.C4MapOverlay;
+import net.arctics.clonk.parser.mapcreator.C4MapOverlayBase;
 import net.arctics.clonk.ui.editors.ClonkCompletionProcessor;
 import net.arctics.clonk.util.Utilities;
 
@@ -61,7 +61,7 @@ public class MapCreatorCompletionProcessor extends ClonkCompletionProcessor<MapC
 		
 		List<ICompletionProposal> proposals = new LinkedList<ICompletionProposal>();
 		Matcher m;
-		C4MapOverlay overlay = getEditor().getMapCreator().overlayAt(offset);
+		C4MapOverlayBase overlay = getEditor().getMapCreator().overlayAt(offset);
 		if (overlay == getEditor().getMapCreator())
 			overlay = null;
 		if ((m = startedOverlay.matcher(line)).matches() || (m = startedMap.matcher(line)).matches()) {

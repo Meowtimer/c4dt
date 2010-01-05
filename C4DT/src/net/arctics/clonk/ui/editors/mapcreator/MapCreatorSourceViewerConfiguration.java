@@ -19,6 +19,7 @@ import org.eclipse.jface.text.rules.Token;
 import org.eclipse.jface.text.source.ISourceViewer;
 
 import net.arctics.clonk.parser.mapcreator.C4MapOverlay;
+import net.arctics.clonk.parser.mapcreator.C4MapOverlayBase;
 import net.arctics.clonk.ui.editors.ClonkHyperlink;
 import net.arctics.clonk.ui.editors.ClonkPartitionScanner;
 import net.arctics.clonk.ui.editors.ClonkSourceViewerConfiguration;
@@ -33,10 +34,10 @@ public class MapCreatorSourceViewerConfiguration extends ClonkSourceViewerConfig
 
 		public IHyperlink[] detectHyperlinks(ITextViewer textViewer,
 				IRegion region, boolean canShowMultipleHyperlinks) {
-			C4MapOverlay overlay = getEditor().getMapCreator().overlayAt(region.getOffset());
+			C4MapOverlayBase overlay = getEditor().getMapCreator().overlayAt(region.getOffset());
 			// link to template (linking other things does not seem to make much sense)
-			if (overlay != null && overlay.getTemplate() != null && region.getOffset()-overlay.getLocation().getStart() < overlay.getTemplate().getName().length())
-				return new IHyperlink[] {new ClonkHyperlink(new Region(overlay.getLocation().getOffset(), overlay.getTemplate().getName().length()), overlay.getTemplate())};
+			if (overlay instanceof C4MapOverlay && ((C4MapOverlay)overlay).getTemplate() != null && region.getOffset()-overlay.getLocation().getStart() < ((C4MapOverlay) overlay).getTemplate().getName().length())
+				return new IHyperlink[] {new ClonkHyperlink(new Region(overlay.getLocation().getOffset(), ((C4MapOverlay) overlay).getTemplate().getName().length()), ((C4MapOverlay) overlay).getTemplate())};
 			return null;
 		}
 
