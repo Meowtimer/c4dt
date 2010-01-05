@@ -24,6 +24,23 @@ public class QuickImportHandler extends ClonkResourceHandler {
 
 	@Override
 	public void addHandlerListener(IHandlerListener handlerListener) {}
+	
+	public static File[] selectFiles(String title, IContainer container, boolean noMulti) {
+		final FileDialog fileDialog = new FileDialog(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(), SWT.OPEN+(noMulti?0:SWT.MULTI));
+		fileDialog.setFilterPath(ClonkPreferences.getPreference(ClonkPreferences.GAME_PATH));
+		fileDialog.setText(String.format(title, container.getName()));
+		fileDialog.setFilterExtensions(new String[] {UI.FILEDIALOG_CLONK_FILTER, "*.*"}); //$NON-NLS-1$
+		if (fileDialog.open() != null) {
+			return Utilities.map(fileDialog.getFileNames(), File.class, new IConverter<String, File>() { 
+				@Override
+				public File convert(String fileName) {
+					return new File(fileDialog.getFilterPath()+"/"+fileName); //$NON-NLS-1$
+				}
+			});
+		} else {
+			return null;
+		}
+	}
 
 	@Override
 	public Object execute(final ExecutionEvent event) throws ExecutionException {
@@ -38,19 +55,8 @@ public class QuickImportHandler extends ClonkResourceHandler {
 					return;
 				IContainer container = (IContainer) ssel.getFirstElement();
 				
-				String gamePath = ClonkPreferences.getPreference(ClonkPreferences.GAME_PATH);
-				
-				final FileDialog fileDialog = new FileDialog(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(), SWT.OPEN+SWT.MULTI);
-				fileDialog.setFilterPath(gamePath);
-				fileDialog.setText(String.format(Messages.QuickImportAction_SelectFiles, container.getName()));
-				fileDialog.setFilterExtensions(new String[] {UI.FILEDIALOG_CLONK_FILTER, "*.*"}); //$NON-NLS-1$
-				if (fileDialog.open() != null) {
-					File[] files = Utilities.map(fileDialog.getFileNames(), File.class, new IConverter<String, File>() { 
-						@Override
-						public File convert(String fileName) {
-							return new File(fileDialog.getFilterPath()+"/"+fileName); //$NON-NLS-1$
-						}
-					});
+				File[] files = selectFiles(Messages.QuickImportAction_SelectFiles, container, false);
+				if (files != null) {
 					C4GroupImporter importer = new C4GroupImporter(files, container);
 					final ProgressMonitorDialog progressDialog = new ProgressMonitorDialog(HandlerUtil.getActiveWorkbenchWindow(event).getShell());
 					try {

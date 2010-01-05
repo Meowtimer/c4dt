@@ -1,7 +1,10 @@
 package net.arctics.clonk.ui.wizards;
 
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -34,7 +37,7 @@ public class C4GroupImporter extends WorkspaceModifyOperation {
 		resources = resourcesToImport;
 		this.destination = destination;
 	}
-
+	
 	@Override
 	protected void execute(final IProgressMonitor monitor) throws CoreException,
 	InvocationTargetException, InterruptedException {
@@ -63,20 +66,34 @@ public class C4GroupImporter extends WorkspaceModifyOperation {
 								/*if (group.getParentGroup() == null)
 									monitor.subTask(String.format(Messages.C4GroupImporter_ImportTask, group.getName()));*/
 								IFolder newFolder = currentContainer.getFolder(new Path(group.getName()));
-								newFolder.create(IResource.NONE, true, monitor);
+								if (!newFolder.exists())
+									newFolder.create(IResource.NONE, true, monitor);
 								currentContainer = newFolder;
 								currentGroup = group;
 							}
 							else {
 								C4GroupEntry entry = (C4GroupEntry)item;
 								IFile newFile = currentContainer.getFile(new Path(entry.getName()));
+								InputStream newContents = entry.getContents();
 								try {
-									newFile.create(entry.getContents(), IResource.NONE, monitor);
-								} catch (CoreException e) {
-									errorsWhileImporting.add(e.getLocalizedMessage());
-									e.printStackTrace();
+									try {
+										if (newFile.exists()) {
+											newFile.setContents(newContents, 0, monitor);
+										} else {
+											newFile.create(entry.getContents(), IResource.NONE, monitor);
+										}
+									} catch (CoreException e) {
+										errorsWhileImporting.add(e.getLocalizedMessage());
+										e.printStackTrace();
+									}
+								} finally {
+									try {
+										newContents.close();
+									} catch (IOException e) {
+										e.printStackTrace();
+									}
+									entry.releaseData(); // release data to prevent heap overflow :S
 								}
-								entry.releaseData(); // release data to prevent heap overflow :S
 							}
 						}
 					});
