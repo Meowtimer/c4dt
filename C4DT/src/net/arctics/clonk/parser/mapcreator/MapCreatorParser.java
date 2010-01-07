@@ -1,4 +1,4 @@
-// $ANTLR 3.2 Sep 23, 2009 12:02:23 /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g 2010-01-05 15:41:14
+// $ANTLR 3.2 Sep 23, 2009 12:02:23 /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g 2010-01-07 16:48:17
 
 package net.arctics.clonk.parser.mapcreator;
 
@@ -13,10 +13,13 @@ import java.io.IOException;
 
 
 import org.antlr.runtime.*;
+import java.util.Stack;
+import java.util.List;
+import java.util.ArrayList;
 
 public class MapCreatorParser extends Parser {
     public static final String[] tokenNames = new String[] {
-        "<invalid>", "<EOR>", "<DOWN>", "<UP>", "STATEMENTEND", "OPERATOR", "MAP", "NAME", "OVERLAY", "POINT", "BLOCKOPEN", "BLOCKCLOSE", "ASSIGN", "NUMBER", "MINUS", "MATCOMBO", "LETTER", "UNIT", "DIGIT", "WORD", "PLUS", "WS", "SLCOMMENT", "MLCOMMENT" //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$ //$NON-NLS-6$ //$NON-NLS-7$ //$NON-NLS-8$ //$NON-NLS-9$ //$NON-NLS-10$ //$NON-NLS-11$ //$NON-NLS-12$ //$NON-NLS-13$ //$NON-NLS-14$ //$NON-NLS-15$ //$NON-NLS-16$ //$NON-NLS-17$ //$NON-NLS-18$ //$NON-NLS-19$ //$NON-NLS-20$ //$NON-NLS-21$ //$NON-NLS-22$ //$NON-NLS-23$ //$NON-NLS-24$
+        "<invalid>", "<EOR>", "<DOWN>", "<UP>", "STATEMENTEND", "OPERATOR", "MAP", "NAME", "OVERLAY", "POINT", "BLOCKOPEN", "BLOCKCLOSE", "ASSIGN", "NUMBER", "MINUS", "MATCOMBO", "LETTER", "UNIT", "DIGIT", "WORD", "PLUS", "WS", "SLCOMMENT", "MLCOMMENT"
     };
     public static final int OVERLAY=8;
     public static final int POINT=9;
@@ -54,7 +57,7 @@ public class MapCreatorParser extends Parser {
         
 
     public String[] getTokenNames() { return MapCreatorParser.tokenNames; }
-    public String getGrammarFileName() { return "/Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g"; } //$NON-NLS-1$
+    public String getGrammarFileName() { return "/Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g"; }
 
 
     C4MapCreator mapCreator;
@@ -120,7 +123,7 @@ public class MapCreatorParser extends Parser {
 
     private void setVal(Token nameToken, Token valueTokenLo, Token valueTokenHi) {
     	try {
-    		current.setAttribute(nameToken.getText(), valueTokenLo.getText());
+    		current.setAttribute(nameToken.getText(), valueTokenLo.getText(), valueTokenHi != null ? valueTokenHi.getText() : null);
     	} catch (NoSuchFieldException e) {
     		errorWithCode(ParserErrorCode.UndeclaredIdentifier, startPos(nameToken), endPos(nameToken), nameToken.getText());
     	} catch (Exception e) {
@@ -376,7 +379,7 @@ public class MapCreatorParser extends Parser {
                 break;
             default:
                 NoViableAltException nvae =
-                    new NoViableAltException("", 7, 0, input); //$NON-NLS-1$
+                    new NoViableAltException("", 7, 0, input);
 
                 throw nvae;
             }
@@ -641,7 +644,7 @@ public class MapCreatorParser extends Parser {
                 }
                 else {
                     NoViableAltException nvae =
-                        new NoViableAltException("", 10, 1, input); //$NON-NLS-1$
+                        new NoViableAltException("", 10, 1, input);
 
                     throw nvae;
                 }
@@ -651,7 +654,7 @@ public class MapCreatorParser extends Parser {
             }
             else {
                 NoViableAltException nvae =
-                    new NoViableAltException("", 10, 0, input); //$NON-NLS-1$
+                    new NoViableAltException("", 10, 0, input);
 
                 throw nvae;
             }
@@ -755,7 +758,7 @@ public class MapCreatorParser extends Parser {
                 break;
             default:
                 NoViableAltException nvae =
-                    new NoViableAltException("", 12, 0, input); //$NON-NLS-1$
+                    new NoViableAltException("", 12, 0, input);
 
                 throw nvae;
             }

@@ -79,7 +79,7 @@ private void createMapObject(Token typeToken, Token nameToken) {
 
 private void setVal(Token nameToken, Token valueTokenLo, Token valueTokenHi) {
 	try {
-		current.setAttribute(nameToken.getText(), valueTokenLo.getText());
+		current.setAttribute(nameToken.getText(), valueTokenLo.getText(), valueTokenHi != null ? valueTokenHi.getText() : null);
 	} catch (NoSuchFieldException e) {
 		errorWithCode(ParserErrorCode.UndeclaredIdentifier, startPos(nameToken), endPos(nameToken), nameToken.getText());
 	} catch (Exception e) {

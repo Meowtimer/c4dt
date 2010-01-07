@@ -52,22 +52,22 @@ public class C4MapOverlay extends C4MapOverlayBase {
 	public String mat;
 	public String tex;
 	public Algorithm algo;
-	public UnitInteger x;
-	public UnitInteger y;
-	public UnitInteger wdt;
-	public UnitInteger hgt;
-	public UnitInteger zoomX, zoomY;
-	public UnitInteger ox, oy;
-	public UnitInteger a, b;
-	public UnitInteger turbulence;
-	public UnitInteger rotate;
-	public boolean invert;
-	public UnitInteger seed;
-	public boolean loosebounds;
-	public boolean mask;
-	public boolean grp;
-	public boolean sub;
-	public UnitInteger lambda;
+	public Range x;
+	public Range y;
+	public Range wdt;
+	public Range hgt;
+	public Range zoomX, zoomY;
+	public Range ox, oy;
+	public Range a, b;
+	public Range turbulence;
+	public Range rotate;
+	public Boolean invert;
+	public Range seed;
+	public Boolean loosebounds;
+	public Boolean mask;
+	public Boolean grp;
+	public Boolean sub;
+	public Range lambda;
 	
 	private C4MapOverlay template;
 	private Operator operator;
@@ -106,16 +106,7 @@ public class C4MapOverlay extends C4MapOverlayBase {
 	}
 	
 	public static Class<? extends C4MapOverlayBase> getDefaultClass(String type) {
-		if (type.equals("map")) { //$NON-NLS-1$
-			return C4Map.class;
-		}
-		else if (type.equals("overlay")) { //$NON-NLS-1$
-			return C4MapOverlay.class;
-		}
-		else if (type.equals("point")) {
-			return C4MapPoint.class;
-		}
-		return null;
+		return DEFAULT_CLASS.get(type);
 	}
 	
 	public C4MapOverlay getTemplate(String type) {
@@ -127,7 +118,8 @@ public class C4MapOverlay extends C4MapOverlayBase {
 		return null;
 	}
 	
-	public C4MapOverlay getTemplate() {
+	@Override
+	public C4MapOverlayBase getTemplate() {
 		return template;
 	}
 	
@@ -175,7 +167,7 @@ public class C4MapOverlay extends C4MapOverlayBase {
 		for (C4MapOverlayBase o : this.subOverlays)
 			if (o.getName() != null)
 				result.add(o);
-		return result.toArray(new C4MapOverlay[result.size()]);
+		return result.toArray(new C4MapOverlayBase[result.size()]);
 	}
 	
 	@Override
@@ -184,12 +176,18 @@ public class C4MapOverlay extends C4MapOverlayBase {
 	}
 	
 	@Override
-	public String toString() {
-		C4MapOverlay t;
-		for (t = template; t != null && t.template != null; t = t.template);
+	public String getTypeName() {
+		C4MapOverlayBase t;
+		for (t = template; t != null && t.getTemplate() != null; t = t.getTemplate());
 		if (t != null)
-			return t.name + " " + (name!=null?name:""); //$NON-NLS-1$ //$NON-NLS-2$
-		return (this.getClass()==C4Map.class?"map":"overlay") + " " + (name!=null?name:""); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
+			return t.getNodeName();
+		else
+			return super.getTypeName();
+	}
+	
+	@Override
+	public String toString() {
+		return getTypeName() + (name!=null?(" "+name):""); //$NON-NLS-1$ //$NON-NLS-2$
 	}
 	
 	public void clear() {
@@ -224,10 +222,6 @@ public class C4MapOverlay extends C4MapOverlayBase {
 
 	public Collection<? extends C4MapOverlayBase> getChildCollection() {
 		return this.subOverlays;
-	}
-
-	public String getNodeName() {
-		return "Landscape.txt";  //$NON-NLS-1$
 	}
 
 }

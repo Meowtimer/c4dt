@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import net.arctics.clonk.parser.BuiltInDefinitions;
+import net.arctics.clonk.parser.mapcreator.C4MapOverlay;
+import net.arctics.clonk.parser.mapcreator.C4MapOverlayBase;
 import net.arctics.clonk.ui.editors.ClonkRuleBasedScanner;
 import net.arctics.clonk.ui.editors.ColorManager;
 import net.arctics.clonk.ui.editors.ClonkColorConstants;
@@ -102,8 +104,8 @@ public class MapCreatorCodeScanner extends ClonkRuleBasedScanner {
 
 		// Add word rule for keywords, types, and constants.
 		CombinedWordRule.WordMatcher wordRule= new CombinedWordRule.WordMatcher();
-		for (String c4keyword : BuiltInDefinitions.MAPGENKEYWORDS)
-			wordRule.addWord(c4keyword, keyword);
+		for (String mapGenKeyword : C4MapOverlayBase.DEFAULT_CLASS.keySet())
+			wordRule.addWord(mapGenKeyword, keyword);
 
 		combinedWordRule.addWordMatcher(wordRule);
 		rules.add(combinedWordRule);

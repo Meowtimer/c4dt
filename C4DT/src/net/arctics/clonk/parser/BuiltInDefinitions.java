@@ -134,11 +134,6 @@ public class BuiltInDefinitions {
 		Keywords.VarNamed
 	};
 	
-	public static final String[] MAPGENKEYWORDS = new String[] {
-		"map", //$NON-NLS-1$
-		"overlay" //$NON-NLS-1$
-	};
-	
 	public static final String[] DIRECTIVES = C4Directive.arrayOfDirectiveStrings();
 	public static final String[] SCRIPTOPERATORS = C4ScriptOperator.arrayOfOperatorNames(); 
 }

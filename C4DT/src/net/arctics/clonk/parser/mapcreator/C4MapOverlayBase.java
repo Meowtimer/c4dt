@@ -2,16 +2,33 @@ package net.arctics.clonk.parser.mapcreator;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Modifier;
 import java.util.Collection;
+import java.util.Map;
 
 import org.eclipse.core.runtime.IPath;
 
 import net.arctics.clonk.parser.C4Declaration;
 import net.arctics.clonk.parser.C4Structure;
 import net.arctics.clonk.parser.SourceLocation;
+import net.arctics.clonk.parser.c4script.C4ScriptExprTree;
+import net.arctics.clonk.util.IPrintable;
 import net.arctics.clonk.util.ITreeNode;
+import net.arctics.clonk.util.Utilities;
 
-public class C4MapOverlayBase extends C4Structure implements Cloneable, ITreeNode {
+public class C4MapOverlayBase extends C4Structure implements Cloneable, ITreeNode, IPrintable {
+
+	public static class Keywords {
+		public static final String Point = "point";
+		public static final String Overlay = "overlay";
+		public static final String Map = "map";
+	}
+	
+	public static final Map<String, Class<? extends C4MapOverlayBase>> DEFAULT_CLASS = Utilities.map(
+		Keywords.Point   , C4MapPoint.class, //$NON-NLS-1$
+		Keywords.Overlay , C4MapOverlay.class, //$NON-NLS-1$
+		Keywords.Map     , C4Map.class //$NON-NLS-1$
+	);
 
 	private static final long serialVersionUID = 1L;
 
@@ -39,7 +56,7 @@ public class C4MapOverlayBase extends C4Structure implements Cloneable, ITreeNod
 		}
 	}
 	
-	public static class UnitInteger {
+	public static class NumVal {
 		private Unit unit;
 		private int value;
 		public Unit getUnit() {
@@ -54,23 +71,55 @@ public class C4MapOverlayBase extends C4Structure implements Cloneable, ITreeNod
 		public void setValue(int value) {
         	this.value = value;
         }
-		public UnitInteger(Unit unit, int value) {
+		public NumVal(Unit unit, int value) {
 	        super();
 	        this.unit = unit;
 	        this.value = value;
         }
-		public static UnitInteger parse(String value) {
+		public static NumVal parse(String value) {
+			if (value == null)
+				return null;
 			int i;
 			for (i = value.length()-1; i >= 0 && !Character.isDigit(value.charAt(i)); i--);
 			String unit = value.substring(i+1);
 			String number = value.substring(0, i+1);
 			if (number.length() > 0 && number.charAt(0) == '+')
 				number = number.substring(1); // Integer.parseInt coughs on '+': a lesson in ridiculousness
-			return new UnitInteger(Unit.parse(unit), Integer.parseInt(number));
+			return new NumVal(Unit.parse(unit), Integer.parseInt(number));
         }
 		@Override
 		public String toString() {
 		    return value+unit.toString();
+		}
+	}
+	
+	public static class Range {
+		private NumVal lo, hi;
+
+		public Range(NumVal lo, NumVal hi) {
+			super();
+			this.lo = lo;
+			this.hi = hi;
+		}
+
+		public NumVal getLo() {
+			return lo;
+		}
+
+		public NumVal getHi() {
+			return hi;
+		}
+		
+		@Override
+		public String toString() {
+			if (lo != null && hi != null) {
+				return lo.toString() + " - " + hi.toString();
+			}
+			else if (lo != null) {
+				return lo.toString();
+			}
+			else
+				return "<Empty Range>";
 		}
 	}
 	
@@ -108,20 +157,23 @@ public class C4MapOverlayBase extends C4Structure implements Cloneable, ITreeNod
 	public void addChild(ITreeNode node) {
 	}
 	
-	public boolean setAttribute(String attr, String value) throws SecurityException, NoSuchFieldException, NoSuchMethodException, IllegalArgumentException, IllegalAccessException, InvocationTargetException {
+	public boolean setAttribute(String attr, String valueLo, String valueHi) throws SecurityException, NoSuchFieldException, NoSuchMethodException, IllegalArgumentException, IllegalAccessException, InvocationTargetException {
 		Field f = getClass().getField(attr);
 		if (f != null) {
 			if (f.getType().getSuperclass() == Enum.class) {
-				f.set(this, f.getType().getMethod("valueOf", String.class).invoke(f.getClass(), value)); //$NON-NLS-1$
+				f.set(this, f.getType().getMethod("valueOf", String.class).invoke(f.getClass(), valueLo)); //$NON-NLS-1$
 			}
-			else if (f.getType() == UnitInteger.class) {
-				f.set(this, UnitInteger.parse(value));
+			else if (f.getType() == NumVal.class) {
+				f.set(this, NumVal.parse(valueLo));
+			}
+			else if (f.getType() == Range.class) {
+				f.set(this, new Range(NumVal.parse(valueLo), NumVal.parse(valueHi)));
 			}
 			else if (f.getType() == String.class) {
-				f.set(this, value);
+				f.set(this, valueLo);
 			}
 			else if (f.getType() == Boolean.TYPE) {
-				f.set(this, Integer.parseInt(value) == 1);
+				f.set(this, Integer.parseInt(valueLo) == 1);
 			}
 			else
 				return false;
@@ -139,5 +191,69 @@ public class C4MapOverlayBase extends C4Structure implements Cloneable, ITreeNod
 	public void setBody(SourceLocation body) {
 		this.body = body;		
 	}
+
+	public C4MapOverlayBase getTemplate() {
+		return null;
+	}
+	
+	public String getTypeName() {
+		for (String key : DEFAULT_CLASS.keySet()) {
+			if (DEFAULT_CLASS.get(key).equals(this.getClass())) {
+				return key;
+			}
+		}
+		return null;
+	}
+	
+	@Override
+	public void print(StringBuilder builder, int depth) {
+		try {
+			String type = getTypeName();
+			if (type != null) {
+				builder.append(type);
+				if (getNodeName() != null) {
+					builder.append(" ");
+					builder.append(getNodeName());
+				}
+				builder.append(" {\n"); //$NON-NLS-1$
+			}
+			for (Field f : this.getClass().getFields()) {
+				if (Modifier.isPublic(f.getModifiers()) && !Modifier.isStatic(f.getModifiers())) {
+					Object val = f.get(this);
+					// flatly cloned attributes of template -> don't print
+					// FIXME: doesn't work for enums of course -.-
+					if (val != null && (getTemplate() == null || (val != f.get(getTemplate())))) {
+						C4ScriptExprTree.printIndent(builder, depth);
+						builder.append(f.getName());
+						builder.append(" = "); //$NON-NLS-1$
+						builder.append(val.toString());
+						builder.append(";"); //$NON-NLS-1$
+						builder.append("\n"); //$NON-NLS-1$
+					}
+				}
+			}
+			Collection<? extends C4MapOverlayBase> children = this.getChildCollection();
+			if (children != null) {
+				for (C4MapOverlayBase child : children) {
+					C4ScriptExprTree.printIndent(builder, depth);
+					child.print(builder, depth+1);
+					builder.append("\n"); //$NON-NLS-1$
+				}
+			}
+			if (type != null) {
+				C4ScriptExprTree.printIndent(builder, depth-1);
+				builder.append("};"); //$NON-NLS-1$
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
+	public String toString(int depth) {
+		StringBuilder builder = new StringBuilder();
+		this.print(builder, depth);
+		return builder.toString();
+	}
+	
 
 }
