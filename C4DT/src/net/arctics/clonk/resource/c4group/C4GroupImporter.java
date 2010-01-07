@@ -1,4 +1,4 @@
-package net.arctics.clonk.ui.wizards;
+package net.arctics.clonk.resource.c4group;
 
 import java.io.File;
 import java.io.IOException;
@@ -7,10 +7,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.LinkedList;
 import java.util.List;
 
-import net.arctics.clonk.resource.c4group.C4EntryHeader;
-import net.arctics.clonk.resource.c4group.C4Group;
-import net.arctics.clonk.resource.c4group.C4GroupEntry;
-import net.arctics.clonk.resource.c4group.C4GroupItem;
+import net.arctics.clonk.ui.wizards.Messages;
 import net.arctics.clonk.util.Utilities;
 
 import org.eclipse.core.resources.IContainer;

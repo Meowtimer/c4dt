@@ -3,6 +3,8 @@ package net.arctics.clonk.ui.wizards;
 import java.io.File;
 import java.lang.reflect.InvocationTargetException;
 
+import net.arctics.clonk.resource.c4group.C4GroupImporter;
+
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.IPath;

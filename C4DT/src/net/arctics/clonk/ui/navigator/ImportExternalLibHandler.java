@@ -8,7 +8,7 @@ import java.util.Map;
 
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.resource.ExternalLib;
-import net.arctics.clonk.ui.wizards.C4GroupImporter;
+import net.arctics.clonk.resource.c4group.C4GroupImporter;
 import net.arctics.clonk.util.Utilities;
 
 import org.eclipse.core.commands.AbstractHandler;

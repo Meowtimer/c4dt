@@ -2,7 +2,7 @@ package net.arctics.clonk.ui.navigator;
 
 import java.io.File;
 import net.arctics.clonk.preferences.ClonkPreferences;
-import net.arctics.clonk.ui.wizards.C4GroupImporter;
+import net.arctics.clonk.resource.c4group.C4GroupImporter;
 import net.arctics.clonk.util.IConverter;
 import net.arctics.clonk.util.UI;
 import net.arctics.clonk.util.Utilities;
