@@ -186,7 +186,7 @@ public class ClonkPreviewView extends ViewPart implements ISelectionListener {
 	private synchronized void synchronizedSelectionChanged(ISelection selection) {
 		Image newImage = null;
 		String newHtml = ""; //$NON-NLS-1$
-		String newDefText = "";
+		String newDefText = ""; //$NON-NLS-1$
 		boolean newDoNotDispose = false;
 		if (selection instanceof IStructuredSelection) try {
 			IStructuredSelection structSel = (IStructuredSelection) selection;
@@ -272,14 +272,14 @@ public class ClonkPreviewView extends ViewPart implements ISelectionListener {
 					newImage = obj.getCachedPicture();
 					newDoNotDispose = true;
 				} else {
-					C4Group group = C4GroupEntryStorage.selectGroup(obj, "Graphics.png", "DefCore.txt");
+					C4Group group = C4GroupEntryStorage.selectGroup(obj, "Graphics.png", "DefCore.txt"); //$NON-NLS-1$ //$NON-NLS-2$
 					if (group != null) {
 						try {
-							InputStream graphics = new C4GroupEntryStorage(group, "Graphics.png").getContents();
+							InputStream graphics = new C4GroupEntryStorage(group, "Graphics.png").getContents(); //$NON-NLS-1$
 							try {
 								Image fullGraphics = new Image(canvas.getDisplay(), graphics);
 								try {
-									InputStream defCoreStream = new C4GroupEntryStorage(group, "DefCore.txt").getContents();
+									InputStream defCoreStream = new C4GroupEntryStorage(group, "DefCore.txt").getContents(); //$NON-NLS-1$
 									try {
 										DefCoreUnit defCore = new DefCoreUnit(defCoreStream);
 										defCore.parse(false);
@@ -354,7 +354,7 @@ public class ClonkPreviewView extends ViewPart implements ISelectionListener {
 
 	@Override
 	public void selectionChanged(IWorkbenchPart part, final ISelection selection) {
-		new Job("ClonkPreview Updater") {
+		new Job(Messages.ClonkPreviewView_Updater) {
 			@Override
 			protected IStatus run(IProgressMonitor monitor) {
 				synchronizedSelectionChanged(selection);

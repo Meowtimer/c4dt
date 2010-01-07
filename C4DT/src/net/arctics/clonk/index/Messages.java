@@ -4,6 +4,7 @@ import org.eclipse.osgi.util.NLS;
 
 public class Messages extends NLS {
 	private static final String BUNDLE_NAME = "net.arctics.clonk.index.messages"; //$NON-NLS-1$
+	public static String C4Object_IDWithName;
 	public static String C4Object_InfoTextTemplate;
 	static {
 		// initialize resource bundle

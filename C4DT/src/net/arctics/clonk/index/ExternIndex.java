@@ -68,7 +68,7 @@ public class ExternIndex extends ClonkIndex {
 	
 	public String libsEncodedAsString() {
 		if (libs == null)
-			return "";
+			return ""; //$NON-NLS-1$
 		StringBuilder builder = new StringBuilder();
 		int i = 0;
 		for (ExternalLib lib : libs) {

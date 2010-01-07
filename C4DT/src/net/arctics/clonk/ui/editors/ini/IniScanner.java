@@ -105,12 +105,12 @@ public class IniScanner extends RuleBasedScanner {
 	
 	public IniScanner(ColorManager manager) {
 		
-		IToken defaultToken = new Token(new TextAttribute(manager.getColor(ClonkColorConstants.getColor("DEFAULT"))));
+		IToken defaultToken = new Token(new TextAttribute(manager.getColor(ClonkColorConstants.getColor("DEFAULT")))); //$NON-NLS-1$
 		
-		IToken operator = new Token(new TextAttribute(manager.getColor(ClonkColorConstants.getColor("OPERATOR"))));
-		IToken section = new Token(new TextAttribute(manager.getColor(ClonkColorConstants.getColor("KEYWORD"))));
-		IToken number = new Token(new TextAttribute(manager.getColor(ClonkColorConstants.getColor("NUMBER"))));
-		IToken constant = new Token(new TextAttribute(manager.getColor(ClonkColorConstants.getColor("ENGINE_FUNCTION"))));
+		IToken operator = new Token(new TextAttribute(manager.getColor(ClonkColorConstants.getColor("OPERATOR")))); //$NON-NLS-1$
+		IToken section = new Token(new TextAttribute(manager.getColor(ClonkColorConstants.getColor("KEYWORD")))); //$NON-NLS-1$
+		IToken number = new Token(new TextAttribute(manager.getColor(ClonkColorConstants.getColor("NUMBER")))); //$NON-NLS-1$
+		IToken constant = new Token(new TextAttribute(manager.getColor(ClonkColorConstants.getColor("ENGINE_FUNCTION")))); //$NON-NLS-1$
 		
 		List<IRule> rules = new ArrayList<IRule>();
 		

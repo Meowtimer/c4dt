@@ -184,7 +184,7 @@ public class ClonkLaunchConfigurationDelegate implements
 		// add stuff from the project so Clonk does not fail to find them
 		for (IResource res : scenario.getProject().members(0)) {
 			if (res instanceof IContainer)
-				if (!res.getName().startsWith("."))
+				if (!res.getName().startsWith(".")) //$NON-NLS-1$
 					if (C4Group.getGroupType(res.getName()) != C4GroupType.ScenarioGroup)
 						if (!Utilities.resourceInside(scenario, (IContainer) res))
 							args.add(res.getRawLocation().toOSString());
@@ -216,7 +216,7 @@ public class ClonkLaunchConfigurationDelegate implements
 		String custom = configuration.getAttribute(ATTR_CUSTOMARGS, (String)null);
 		if (custom != null) {
 			// FIXME: doesn't take into account '\ ' and such..
-			String[] split = custom.split(" ");
+			String[] split = custom.split(" "); //$NON-NLS-1$
 			for (String s : split)
 				args.add(s);
 		}

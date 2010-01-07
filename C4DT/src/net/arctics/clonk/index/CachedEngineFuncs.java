@@ -45,7 +45,7 @@ public class CachedEngineFuncs {
 					f.set(this, this.f(f.getName()));
 				}
 			}
-			This = this.f("this");
+			This = this.f("this"); //$NON-NLS-1$
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

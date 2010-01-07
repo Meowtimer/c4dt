@@ -30,7 +30,7 @@ public class CompoundIterable<T> implements Iterable<T>, Iterator<T> {
 	public T next() {
 		T next = curIterator.next();
 		if (next == null)
-			System.out.println("CompoundIterator complains about its underling " + curIterator + ", it returns null");
+			System.out.println("CompoundIterator complains about its underling " + curIterator + ", it returns null"); //$NON-NLS-1$ //$NON-NLS-2$
 		return next;
 	}
 

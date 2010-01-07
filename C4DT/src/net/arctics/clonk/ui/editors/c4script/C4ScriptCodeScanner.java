@@ -88,18 +88,18 @@ public class C4ScriptCodeScanner extends ClonkRuleBasedScanner {
 	
 	public void commitRules(ColorManager manager) {
 		
-		IToken defaultToken = createToken(manager, "DEFAULT");
+		IToken defaultToken = createToken(manager, "DEFAULT"); //$NON-NLS-1$
 		
-		IToken operator = createToken(manager, "OPERATOR");
-		IToken keyword = createToken(manager, "KEYWORD");
-		IToken type = createToken(manager, "TYPE");
-		IToken engineFunction = createToken(manager, "ENGINE_FUNCTION");
-		IToken objCallbackFunction = createToken(manager, "OBJ_CALLBACK");
-		IToken string = createToken(manager, "STRING");
+		IToken operator = createToken(manager, "OPERATOR"); //$NON-NLS-1$
+		IToken keyword = createToken(manager, "KEYWORD"); //$NON-NLS-1$
+		IToken type = createToken(manager, "TYPE"); //$NON-NLS-1$
+		IToken engineFunction = createToken(manager, "ENGINE_FUNCTION"); //$NON-NLS-1$
+		IToken objCallbackFunction = createToken(manager, "OBJ_CALLBACK"); //$NON-NLS-1$
+		IToken string = createToken(manager, "STRING"); //$NON-NLS-1$
 //		IToken number = new Token(new TextAttribute(manager.getColor(IClonkColorConstants.getColor("NUMBER"))));
-		IToken bracket = createToken(manager, "BRACKET");
-		IToken returnToken = createToken(manager, "RETURN");
-		IToken pragma = createToken(manager, "PRAGMA");
+		IToken bracket = createToken(manager, "BRACKET"); //$NON-NLS-1$
+		IToken returnToken = createToken(manager, "RETURN"); //$NON-NLS-1$
+		IToken pragma = createToken(manager, "PRAGMA"); //$NON-NLS-1$
 		
 		List<IRule> rules = new ArrayList<IRule>();
 		

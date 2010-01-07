@@ -54,7 +54,7 @@ public abstract class C4Object extends C4ScriptBase {
 	}
 	
 	public String idWithName() {
-		return getId() != null ? String.format("%s (%s)", getName(), getId().toString()) : getName();
+		return getId() != null ? String.format(Messages.C4Object_IDWithName, getName(), getId().toString()) : getName();
 	}
 	
 	/**

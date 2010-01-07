@@ -207,7 +207,7 @@ public class Command {
 				value = ((Long)value).intValue();
 			}
 			else if (value instanceof String && f.getType().getSuperclass() == Enum.class) {
-				value = f.getType().getMethod("valueOf", String.class).invoke(f.getClass(), value);
+				value = f.getType().getMethod("valueOf", String.class).invoke(f.getClass(), value); //$NON-NLS-1$
 			}
 			f.set(obj, value);
 		} catch (Exception e) {
@@ -318,15 +318,15 @@ public class Command {
 				e.printStackTrace();
 				return;
 			}
-			System.out.println("===Objects===");
+			System.out.println("===Objects==="); //$NON-NLS-1$
 			for (C4Object obj : index) {
 				System.out.println(obj.toString());
 			}
-			System.out.println("===Scripts===");
+			System.out.println("===Scripts==="); //$NON-NLS-1$
 			for (C4ScriptBase script : index.getIndexedScripts()) {
 				System.out.println(script.toString());
 			}
-			System.out.println("===Scenarios===");
+			System.out.println("===Scenarios==="); //$NON-NLS-1$
 			for (C4Scenario scen : index.getIndexedScenarios()) {
 				System.out.println(scen.toString());
 			}

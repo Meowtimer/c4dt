@@ -90,7 +90,7 @@ public class ProjectIndex extends ExternIndex {
 	
 	@Override
 	public String toString() {
-		return project != null ? "Index for " + project.toString() : "Orphan Project Index";
+		return project != null ? "Index for " + project.toString() : "Orphan Project Index"; //$NON-NLS-1$ //$NON-NLS-2$
 	}
 	
 	@Override

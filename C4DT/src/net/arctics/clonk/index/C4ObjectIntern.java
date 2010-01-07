@@ -186,7 +186,7 @@ public class C4ObjectIntern extends C4Object implements Serializable {
 	    if (file.getName().equalsIgnoreCase("Names.txt")) { //$NON-NLS-1$
 	    	readNames(Utilities.stringFromFile(file));
 	    }
-	    else if (file.getName().equalsIgnoreCase("Graphics.png") || file.getName().equalsIgnoreCase("Graphics.bmp")) {
+	    else if (file.getName().equalsIgnoreCase("Graphics.png") || file.getName().equalsIgnoreCase("Graphics.bmp")) { //$NON-NLS-1$ //$NON-NLS-2$
 	    	setCachedPicture(null); // obsolete
 	    }
     }

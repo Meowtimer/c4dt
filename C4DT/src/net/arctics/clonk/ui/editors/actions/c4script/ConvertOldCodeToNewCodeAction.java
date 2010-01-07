@@ -113,7 +113,7 @@ public class ConvertOldCodeToNewCodeAction extends TextEditorAction {
 			final int selLength = selection.getLength() == document.getLength() ? 0 : selection.getLength();
 			IDocumentExtension4 ext4 = null; // (document instanceof IDocumentExtension4) ? (IDocumentExtension4)document : null;
 			DocumentRewriteSession session = ext4 != null ? ext4.startRewriteSession(DocumentRewriteSessionType.UNRESTRICTED) : null;
-			TextChange textChange = new DocumentChange("Tidy Up Code", document);
+			TextChange textChange = new DocumentChange(Messages.ConvertOldCodeToNewCodeAction_TidyUpCode, document);
 			textChange.setEdit(new MultiTextEdit());
 			for (FunctionStatements pair : statements) {
 				try {

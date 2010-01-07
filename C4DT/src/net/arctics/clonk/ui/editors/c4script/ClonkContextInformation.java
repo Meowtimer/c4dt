@@ -14,7 +14,7 @@ public class ClonkContextInformation implements IContextInformation, IContextInf
 	
 	@Override
 	public String toString() {
-		return String.format("%d %d", parmsStart, parmsEnd);
+		return String.format("%d %d", parmsStart, parmsEnd); //$NON-NLS-1$
 	}
 	
 	@Override

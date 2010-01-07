@@ -22,6 +22,7 @@ public class Messages extends NLS {
 	public static String EngineExecutable;
 	public static String OpenClonkRepo;
 	public static String PreferredLangID;
+	public static String Project_ShowDependencies;
 	public static String German;
 	public static String USEnglish;
 	public static String DocURLTemplateDefault;

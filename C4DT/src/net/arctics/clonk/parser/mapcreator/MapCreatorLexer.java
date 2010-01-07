@@ -37,7 +37,7 @@ public class MapCreatorLexer extends Lexer {
         super(input,state);
 
     }
-    public String getGrammarFileName() { return "/Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g"; }
+    public String getGrammarFileName() { return "/Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g"; } //$NON-NLS-1$
 
     // $ANTLR start "MAP"
     public final void mMAP() throws RecognitionException {
@@ -47,7 +47,7 @@ public class MapCreatorLexer extends Lexer {
             // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:199:6: ( 'map' )
             // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:199:8: 'map'
             {
-            match("map"); 
+            match("map");  //$NON-NLS-1$
 
 
             }
@@ -68,7 +68,7 @@ public class MapCreatorLexer extends Lexer {
             // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:200:10: ( 'overlay' )
             // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:200:12: 'overlay'
             {
-            match("overlay"); 
+            match("overlay");  //$NON-NLS-1$
 
 
             }
@@ -89,7 +89,7 @@ public class MapCreatorLexer extends Lexer {
             // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:201:8: ( 'point' )
             // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:201:10: 'point'
             {
-            match("point"); 
+            match("point");  //$NON-NLS-1$
 
 
             }
@@ -144,7 +144,7 @@ public class MapCreatorLexer extends Lexer {
             }
             else {
                 NoViableAltException nvae =
-                    new NoViableAltException("", 1, 0, input);
+                    new NoViableAltException("", 1, 0, input); //$NON-NLS-1$
 
                 throw nvae;
             }
@@ -152,7 +152,7 @@ public class MapCreatorLexer extends Lexer {
                 case 1 :
                     // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:204:18: 'px'
                     {
-                    match("px"); 
+                    match("px");  //$NON-NLS-1$
 
 
                     }
@@ -482,7 +482,7 @@ public class MapCreatorLexer extends Lexer {
             // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:214:11: ( '//' ( . )* '\\n' )
             // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:214:13: '//' ( . )* '\\n'
             {
-            match("//"); 
+            match("//");  //$NON-NLS-1$
 
             // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:214:18: ( . )*
             loop7:
@@ -533,7 +533,7 @@ public class MapCreatorLexer extends Lexer {
             // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:215:11: ( '/*' ( . )* '*/' )
             // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:215:13: '/*' ( . )* '*/'
             {
-            match("/*"); 
+            match("/*");  //$NON-NLS-1$
 
             // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g:215:18: ( . )*
             loop8:
@@ -572,7 +572,7 @@ public class MapCreatorLexer extends Lexer {
                 }
             } while (true);
 
-            match("*/"); 
+            match("*/");  //$NON-NLS-1$
 
             skip();
 
@@ -819,75 +819,75 @@ public class MapCreatorLexer extends Lexer {
 
     protected DFA9 dfa9 = new DFA9(this);
     static final String DFA9_eotS =
-        "\1\uffff\4\20\1\25\1\26\10\uffff\1\20\1\uffff\1\20\1\uffff\2\20"+
-        "\4\uffff\1\34\2\20\1\uffff\3\20\1\42\1\20\1\uffff\1\44\1\uffff";
+        "\1\uffff\4\20\1\25\1\26\10\uffff\1\20\1\uffff\1\20\1\uffff\2\20"+ //$NON-NLS-1$
+        "\4\uffff\1\34\2\20\1\uffff\3\20\1\42\1\20\1\uffff\1\44\1\uffff"; //$NON-NLS-1$
     static final String DFA9_eofS =
-        "\45\uffff";
+        "\45\uffff"; //$NON-NLS-1$
     static final String DFA9_minS =
-        "\1\11\4\55\2\60\2\uffff\1\52\5\uffff\1\55\1\uffff\1\55\1\uffff\2"+
-        "\55\4\uffff\3\55\1\uffff\5\55\1\uffff\1\55\1\uffff";
+        "\1\11\4\55\2\60\2\uffff\1\52\5\uffff\1\55\1\uffff\1\55\1\uffff\2"+ //$NON-NLS-1$
+        "\55\4\uffff\3\55\1\uffff\5\55\1\uffff\1\55\1\uffff"; //$NON-NLS-1$
     static final String DFA9_maxS =
-        "\1\175\4\172\2\71\2\uffff\1\57\5\uffff\1\172\1\uffff\1\172\1\uffff"+
-        "\2\172\4\uffff\3\172\1\uffff\5\172\1\uffff\1\172\1\uffff";
+        "\1\175\4\172\2\71\2\uffff\1\57\5\uffff\1\172\1\uffff\1\172\1\uffff"+ //$NON-NLS-1$
+        "\2\172\4\uffff\3\172\1\uffff\5\172\1\uffff\1\172\1\uffff"; //$NON-NLS-1$
     static final String DFA9_acceptS =
-        "\7\uffff\1\7\1\11\1\uffff\1\14\1\15\1\16\1\17\1\20\1\uffff\1\10"+
-        "\1\uffff\1\4\2\uffff\1\5\1\6\1\12\1\13\3\uffff\1\1\5\uffff\1\3\1"+
-        "\uffff\1\2";
+        "\7\uffff\1\7\1\11\1\uffff\1\14\1\15\1\16\1\17\1\20\1\uffff\1\10"+ //$NON-NLS-1$
+        "\1\uffff\1\4\2\uffff\1\5\1\6\1\12\1\13\3\uffff\1\1\5\uffff\1\3\1"+ //$NON-NLS-1$
+        "\uffff\1\2"; //$NON-NLS-1$
     static final String DFA9_specialS =
-        "\45\uffff}>";
+        "\45\uffff}>"; //$NON-NLS-1$
     static final String[] DFA9_transitionS = {
-            "\2\10\2\uffff\1\10\22\uffff\1\10\5\uffff\1\16\4\uffff\1\6\1"+
-            "\uffff\1\5\1\uffff\1\11\12\7\1\uffff\1\15\1\uffff\1\12\3\uffff"+
-            "\32\4\3\uffff\1\16\1\4\1\uffff\14\4\1\1\1\4\1\2\1\3\12\4\1\13"+
-            "\1\16\1\14",
-            "\1\22\2\uffff\12\21\7\uffff\32\21\4\uffff\1\21\1\uffff\1\17"+
-            "\31\21",
-            "\1\22\2\uffff\12\21\7\uffff\32\21\4\uffff\1\21\1\uffff\25\21"+
-            "\1\23\4\21",
-            "\1\22\2\uffff\12\21\7\uffff\32\21\4\uffff\1\21\1\uffff\16\21"+
-            "\1\24\13\21",
-            "\1\22\2\uffff\12\21\7\uffff\32\21\4\uffff\1\21\1\uffff\32\21",
-            "\12\7",
-            "\12\7",
-            "",
-            "",
-            "\1\30\4\uffff\1\27",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "\1\22\2\uffff\12\21\7\uffff\32\21\4\uffff\1\21\1\uffff\17\21"+
-            "\1\31\12\21",
-            "",
-            "\1\22\2\uffff\12\21\7\uffff\32\21\4\uffff\1\21\1\uffff\32\21",
-            "",
-            "\1\22\2\uffff\12\21\7\uffff\32\21\4\uffff\1\21\1\uffff\4\21"+
-            "\1\32\25\21",
-            "\1\22\2\uffff\12\21\7\uffff\32\21\4\uffff\1\21\1\uffff\10\21"+
-            "\1\33\21\21",
-            "",
-            "",
-            "",
-            "",
-            "\1\22\2\uffff\12\21\7\uffff\32\21\4\uffff\1\21\1\uffff\32\21",
-            "\1\22\2\uffff\12\21\7\uffff\32\21\4\uffff\1\21\1\uffff\21\21"+
-            "\1\35\10\21",
-            "\1\22\2\uffff\12\21\7\uffff\32\21\4\uffff\1\21\1\uffff\15\21"+
-            "\1\36\14\21",
-            "",
-            "\1\22\2\uffff\12\21\7\uffff\32\21\4\uffff\1\21\1\uffff\13\21"+
-            "\1\37\16\21",
-            "\1\22\2\uffff\12\21\7\uffff\32\21\4\uffff\1\21\1\uffff\23\21"+
-            "\1\40\6\21",
-            "\1\22\2\uffff\12\21\7\uffff\32\21\4\uffff\1\21\1\uffff\1\41"+
-            "\31\21",
-            "\1\22\2\uffff\12\21\7\uffff\32\21\4\uffff\1\21\1\uffff\32\21",
-            "\1\22\2\uffff\12\21\7\uffff\32\21\4\uffff\1\21\1\uffff\30\21"+
-            "\1\43\1\21",
-            "",
-            "\1\22\2\uffff\12\21\7\uffff\32\21\4\uffff\1\21\1\uffff\32\21",
-            ""
+            "\2\10\2\uffff\1\10\22\uffff\1\10\5\uffff\1\16\4\uffff\1\6\1"+ //$NON-NLS-1$
+            "\uffff\1\5\1\uffff\1\11\12\7\1\uffff\1\15\1\uffff\1\12\3\uffff"+ //$NON-NLS-1$
+            "\32\4\3\uffff\1\16\1\4\1\uffff\14\4\1\1\1\4\1\2\1\3\12\4\1\13"+ //$NON-NLS-1$
+            "\1\16\1\14", //$NON-NLS-1$
+            "\1\22\2\uffff\12\21\7\uffff\32\21\4\uffff\1\21\1\uffff\1\17"+ //$NON-NLS-1$
+            "\31\21", //$NON-NLS-1$
+            "\1\22\2\uffff\12\21\7\uffff\32\21\4\uffff\1\21\1\uffff\25\21"+ //$NON-NLS-1$
+            "\1\23\4\21", //$NON-NLS-1$
+            "\1\22\2\uffff\12\21\7\uffff\32\21\4\uffff\1\21\1\uffff\16\21"+ //$NON-NLS-1$
+            "\1\24\13\21", //$NON-NLS-1$
+            "\1\22\2\uffff\12\21\7\uffff\32\21\4\uffff\1\21\1\uffff\32\21", //$NON-NLS-1$
+            "\12\7", //$NON-NLS-1$
+            "\12\7", //$NON-NLS-1$
+            "", //$NON-NLS-1$
+            "", //$NON-NLS-1$
+            "\1\30\4\uffff\1\27", //$NON-NLS-1$
+            "", //$NON-NLS-1$
+            "", //$NON-NLS-1$
+            "", //$NON-NLS-1$
+            "", //$NON-NLS-1$
+            "", //$NON-NLS-1$
+            "\1\22\2\uffff\12\21\7\uffff\32\21\4\uffff\1\21\1\uffff\17\21"+ //$NON-NLS-1$
+            "\1\31\12\21", //$NON-NLS-1$
+            "", //$NON-NLS-1$
+            "\1\22\2\uffff\12\21\7\uffff\32\21\4\uffff\1\21\1\uffff\32\21", //$NON-NLS-1$
+            "", //$NON-NLS-1$
+            "\1\22\2\uffff\12\21\7\uffff\32\21\4\uffff\1\21\1\uffff\4\21"+ //$NON-NLS-1$
+            "\1\32\25\21", //$NON-NLS-1$
+            "\1\22\2\uffff\12\21\7\uffff\32\21\4\uffff\1\21\1\uffff\10\21"+ //$NON-NLS-1$
+            "\1\33\21\21", //$NON-NLS-1$
+            "", //$NON-NLS-1$
+            "", //$NON-NLS-1$
+            "", //$NON-NLS-1$
+            "", //$NON-NLS-1$
+            "\1\22\2\uffff\12\21\7\uffff\32\21\4\uffff\1\21\1\uffff\32\21", //$NON-NLS-1$
+            "\1\22\2\uffff\12\21\7\uffff\32\21\4\uffff\1\21\1\uffff\21\21"+ //$NON-NLS-1$
+            "\1\35\10\21", //$NON-NLS-1$
+            "\1\22\2\uffff\12\21\7\uffff\32\21\4\uffff\1\21\1\uffff\15\21"+ //$NON-NLS-1$
+            "\1\36\14\21", //$NON-NLS-1$
+            "", //$NON-NLS-1$
+            "\1\22\2\uffff\12\21\7\uffff\32\21\4\uffff\1\21\1\uffff\13\21"+ //$NON-NLS-1$
+            "\1\37\16\21", //$NON-NLS-1$
+            "\1\22\2\uffff\12\21\7\uffff\32\21\4\uffff\1\21\1\uffff\23\21"+ //$NON-NLS-1$
+            "\1\40\6\21", //$NON-NLS-1$
+            "\1\22\2\uffff\12\21\7\uffff\32\21\4\uffff\1\21\1\uffff\1\41"+ //$NON-NLS-1$
+            "\31\21", //$NON-NLS-1$
+            "\1\22\2\uffff\12\21\7\uffff\32\21\4\uffff\1\21\1\uffff\32\21", //$NON-NLS-1$
+            "\1\22\2\uffff\12\21\7\uffff\32\21\4\uffff\1\21\1\uffff\30\21"+ //$NON-NLS-1$
+            "\1\43\1\21", //$NON-NLS-1$
+            "", //$NON-NLS-1$
+            "\1\22\2\uffff\12\21\7\uffff\32\21\4\uffff\1\21\1\uffff\32\21", //$NON-NLS-1$
+            "" //$NON-NLS-1$
     };
 
     static final short[] DFA9_eot = DFA.unpackEncodedString(DFA9_eotS);
@@ -920,7 +920,7 @@ public class MapCreatorLexer extends Lexer {
             this.transition = DFA9_transition;
         }
         public String getDescription() {
-            return "1:1: Tokens : ( MAP | OVERLAY | POINT | MATCOMBO | MINUS | PLUS | NUMBER | NAME | WS | SLCOMMENT | MLCOMMENT | ASSIGN | BLOCKOPEN | BLOCKCLOSE | STATEMENTEND | OPERATOR );";
+            return "1:1: Tokens : ( MAP | OVERLAY | POINT | MATCOMBO | MINUS | PLUS | NUMBER | NAME | WS | SLCOMMENT | MLCOMMENT | ASSIGN | BLOCKOPEN | BLOCKCLOSE | STATEMENTEND | OPERATOR );"; //$NON-NLS-1$
         }
     }
  

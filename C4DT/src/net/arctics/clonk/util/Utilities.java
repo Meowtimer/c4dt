@@ -430,7 +430,7 @@ public abstract class Utilities {
 	}
 	
 	public static String stringFromInputStream(InputStream stream) throws IOException {
-		return stringFromInputStream(stream, "UTF-8");
+		return stringFromInputStream(stream, "UTF-8"); //$NON-NLS-1$
 	}
 
 	public static String stringFromFile(IFile file) throws IOException, CoreException {

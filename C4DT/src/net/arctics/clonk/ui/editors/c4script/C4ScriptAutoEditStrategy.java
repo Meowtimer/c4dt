@@ -72,7 +72,7 @@ public class C4ScriptAutoEditStrategy extends DefaultIndentLineAutoEditStrategy 
 		
 	}*/
 	
-	private static final String[] AUTOPAIR_STRINGS = {"(", ")", "\"", "\"", "[", "]"};
+	private static final String[] AUTOPAIR_STRINGS = {"(", ")", "\"", "\"", "[", "]"}; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$ //$NON-NLS-6$
 	
 	private C4ScriptSourceViewerConfiguration configuration;
 	private List<MutableRegion> overrideRegions = new ArrayList<MutableRegion>(3);
@@ -91,12 +91,12 @@ public class C4ScriptAutoEditStrategy extends DefaultIndentLineAutoEditStrategy 
 	@Override
 	public void customizeDocumentCommand(IDocument d, DocumentCommand c) {
 
-		if (c.text.equals("\t")) {
+		if (c.text.equals("\t")) { //$NON-NLS-1$
 			for (int i = overrideRegions.size()-1; i >= 0; i--) {
 				MutableRegion r = overrideRegions.get(i);
 				if (r.getOffset() == c.offset) {
 					overrideRegions.remove(i);
-					c.text = "";
+					c.text = ""; //$NON-NLS-1$
 					c.shiftsCaret = false;
 					c.caretOffset = r.getOffset()+r.getLength();
 					return;
@@ -105,7 +105,7 @@ public class C4ScriptAutoEditStrategy extends DefaultIndentLineAutoEditStrategy 
 		}
 		
 		try {
-			if (c.text.endsWith("\n") && c.offset > 0 && d.getChar(c.offset-1) == '{') {
+			if (c.text.endsWith("\n") && c.offset > 0 && d.getChar(c.offset-1) == '{') { //$NON-NLS-1$
 				C4Function f = ((C4ScriptEditor)getConfiguration().getEditor()).getFuncAtCursor();
 				if (f != null && unbalanced(d, f.getBody())) {
 					IRegion r = d.getLineInformationOfOffset(c.offset);
@@ -116,7 +116,7 @@ public class C4ScriptAutoEditStrategy extends DefaultIndentLineAutoEditStrategy 
 					}
 					c.caretOffset = c.offset + c.text.length();
 					c.shiftsCaret = false;
-					c.text += "\n" + d.get(start, end-start) + "}";
+					c.text += "\n" + d.get(start, end-start) + "}"; //$NON-NLS-1$ //$NON-NLS-2$
 				}
 			}
 		} catch (BadLocationException e1) {
@@ -136,7 +136,7 @@ public class C4ScriptAutoEditStrategy extends DefaultIndentLineAutoEditStrategy 
 				MutableRegion r = overrideRegions.get(i);
 				try {
 					if (r.getOffset() == c.offset && c.text.length() == 1 && d.getChar(r.getOffset()) == c.text.charAt(0)) {
-						c.text = "";
+						c.text = ""; //$NON-NLS-1$
 						c.shiftsCaret = false;
 						c.caretOffset = c.offset+1;
 						r.incOffset(1);
@@ -207,7 +207,7 @@ public class C4ScriptAutoEditStrategy extends DefaultIndentLineAutoEditStrategy 
 
 	public void completionProposalApplied(ClonkCompletionProposal proposal) {
 		MutableRegion newOne = null;
-		if (proposal.getReplacementString().endsWith(")")) {
+		if (proposal.getReplacementString().endsWith(")")) { //$NON-NLS-1$
 			overrideRegions.add(newOne = new MutableRegion(proposal.getReplacementOffset()+proposal.getReplacementString().length()-1, 1));
 		}
 		if (proposal.getReplacementLength() > 0)

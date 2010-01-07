@@ -56,7 +56,7 @@ public class MapCreatorSourceViewerConfiguration extends ClonkSourceViewerConfig
 			scanner.setDefaultReturnToken(
 				new Token(
 					new TextAttribute(
-						getColorManager().getColor(ClonkColorConstants.getColor("DEFAULT")))));
+						getColorManager().getColor(ClonkColorConstants.getColor("DEFAULT"))))); //$NON-NLS-1$
 		}
 		return scanner;
 	}
@@ -67,7 +67,7 @@ public class MapCreatorSourceViewerConfiguration extends ClonkSourceViewerConfig
 			commentScanner.setDefaultReturnToken(
 				new Token(
 					new TextAttribute(
-						getColorManager().getColor(ClonkColorConstants.getColor("COMMENT")))));
+						getColorManager().getColor(ClonkColorConstants.getColor("COMMENT"))))); //$NON-NLS-1$
 		}
 		return commentScanner;
 	}

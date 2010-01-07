@@ -22,6 +22,7 @@ import net.arctics.clonk.parser.c4script.C4Variable.C4VariableScope;
 import net.arctics.clonk.parser.stringtbl.StringTbl;
 import net.arctics.clonk.ui.editors.c4script.ExpressionLocator;
 import net.arctics.clonk.util.IConverter;
+import net.arctics.clonk.util.IPrintable;
 import net.arctics.clonk.util.Pair;
 import net.arctics.clonk.util.Utilities;
 import net.arctics.clonk.parser.ParsingException;
@@ -46,7 +47,7 @@ public abstract class C4ScriptExprTree {
 	// options
 	public static boolean AlwaysConvertObjectCalls = false;
 	public static BraceStyleType BraceStyle = BraceStyleType.NewLine;
-	public static String IndentString = "\t";
+	public static String IndentString = "\t"; //$NON-NLS-1$
 
 	public enum TraversalContinuation {
 		Continue,
@@ -68,6 +69,11 @@ public abstract class C4ScriptExprTree {
 		BreakLoop,
 		Return,
 		Continue
+	}
+	
+	public static void printIndent(StringBuilder builder, int indentDepth) {
+		for (int i = 0; i < indentDepth; i++)
+			builder.append(IndentString); // FIXME: should be done according to user's preferences //$NON-NLS-1$
 	}
 
 	public final static class DeclarationRegion {
@@ -119,7 +125,7 @@ public abstract class C4ScriptExprTree {
 	 * @author madeen
 	 * base class for making expression trees
 	 */
-	public static class ExprElm implements IRegion, Cloneable {
+	public static class ExprElm implements IRegion, Cloneable, IPrintable {
 
 		public static final ExprElm NULL_EXPR = new ExprElm();
 		public static final ExprElm[] EMPTY_EXPR_ARRAY = new ExprElm[0];
@@ -396,7 +402,7 @@ public abstract class C4ScriptExprTree {
 		
 		public Comment commentedOut() {
 			String str = this.toString();
-			return new Comment(str, str.contains("\n"));
+			return new Comment(str, str.contains("\n")); //$NON-NLS-1$
 		}
 
 		public void expectedToBeOfType(C4Type type, C4ScriptParser context) {
@@ -445,11 +451,6 @@ public abstract class C4ScriptExprTree {
 
 		public IStoredTypeInformation createStoredTypeInformation(C4ScriptParser parser) {
 			return null;
-		}
-
-		protected void printIndent(StringBuilder builder, int indentDepth) {
-			for (int i = 0; i < indentDepth; i++)
-				builder.append(IndentString); // FIXME: should be done according to user's preferences //$NON-NLS-1$
 		}
 
 		/**
@@ -1861,7 +1862,7 @@ public abstract class C4ScriptExprTree {
 
 	public static final class StringLiteral extends Literal<String> {
 		public StringLiteral(String literal) {
-			super(literal != null ? literal : "");
+			super(literal != null ? literal : ""); //$NON-NLS-1$
 		}
 
 		public String stringValue() {
@@ -1905,7 +1906,7 @@ public abstract class C4ScriptExprTree {
 					}
 				}
 				
-				else if (myIndex == 0 && parentFunc.getDeclarationName().equals("Schedule")) {
+				else if (myIndex == 0 && parentFunc.getDeclarationName().equals("Schedule")) { //$NON-NLS-1$
 					// parse first parm of Schedule as expression and see what goes
 					ExpressionLocator locator = new ExpressionLocator(offset-1); // make up for '//' or /*'
 					try {
@@ -1944,7 +1945,7 @@ public abstract class C4ScriptExprTree {
 				}
 
 				// ProtectedCall/PrivateCall/ObjectCall, a bit more complicated than Call
-				else if (myIndex == 1 && (Utilities.isAnyOf(parentFunc.getDeclaration(), getCachedFuncs(parser).ObjectCallFunctions) || parentFunc.getDeclarationName().equals("ScheduleCall"))) {
+				else if (myIndex == 1 && (Utilities.isAnyOf(parentFunc.getDeclaration(), getCachedFuncs(parser).ObjectCallFunctions) || parentFunc.getDeclarationName().equals("ScheduleCall"))) { //$NON-NLS-1$
 					C4Object typeToLookIn = parentFunc.getParams()[0].guessObjectType(parser);
 					if (typeToLookIn == null && parentFunc.getPredecessorInSequence() != null)
 						typeToLookIn = parentFunc.getPredecessorInSequence().guessObjectType(parser);
@@ -2041,7 +2042,7 @@ public abstract class C4ScriptExprTree {
 											if (listOfLangFilesItsMissingIn == null)
 												listOfLangFilesItsMissingIn = new StringBuilder(10);
 											if (listOfLangFilesItsMissingIn.length() > 0)
-												listOfLangFilesItsMissingIn.append(", ");
+												listOfLangFilesItsMissingIn.append(", "); //$NON-NLS-1$
 											listOfLangFilesItsMissingIn.append(lang);
 										}
 									}

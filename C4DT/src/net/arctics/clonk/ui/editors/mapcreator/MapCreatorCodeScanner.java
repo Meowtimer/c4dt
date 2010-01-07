@@ -76,12 +76,12 @@ public class MapCreatorCodeScanner extends ClonkRuleBasedScanner {
 
 	public MapCreatorCodeScanner(ColorManager manager) {
 
-		IToken defaultToken = new Token(new TextAttribute(manager.getColor(ClonkColorConstants.getColor("DEFAULT"))));
+		IToken defaultToken = new Token(new TextAttribute(manager.getColor(ClonkColorConstants.getColor("DEFAULT")))); //$NON-NLS-1$
 
-		IToken operator = createToken(manager, "OPERATOR");
-		IToken keyword = createToken(manager, "KEYWORD");
+		IToken operator = createToken(manager, "OPERATOR"); //$NON-NLS-1$
+		IToken keyword = createToken(manager, "KEYWORD"); //$NON-NLS-1$
 		//			IToken number = new Token(new TextAttribute(manager.getColor(IClonkColorConstants.getColor("NUMBER"))));
-		IToken bracket = createToken(manager, "BRACKET");
+		IToken bracket = createToken(manager, "BRACKET"); //$NON-NLS-1$
 
 		//			fTokenMap.put(ClonkScriptPartitionScanner.C4S_STRING, string);
 

@@ -342,7 +342,7 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 
 	public void exportEngineToXMLInWorkspace(String engineName) {
 		try {
-			IPath engineXML = getWorkspaceStorageLocationForEngine(engineName).addFileExtension("xml");
+			IPath engineXML = getWorkspaceStorageLocationForEngine(engineName).addFileExtension("xml"); //$NON-NLS-1$
 
 			File engineXMLFile = engineXML.toFile();
 			if (engineXMLFile.exists())

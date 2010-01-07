@@ -9,6 +9,7 @@ import net.arctics.clonk.util.Utilities;
 import net.arctics.clonk.index.ExternalLibsLoader;
 import net.arctics.clonk.index.ProjectIndex;
 import net.arctics.clonk.preferences.ExternalLibsEditor;
+import net.arctics.clonk.preferences.Messages;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
@@ -56,7 +57,7 @@ public class ClonkProjectProperties extends FieldEditorPreferencePage implements
 			if (n.equals(DEPENDENCIES_PROPERTY)) {
 				ProjectIndex projIndex = ClonkProjectNature.get(getProject()).getIndex();
 				try {
-					ExternalLibsLoader.readExternalLibs(projIndex, new NullProgressMonitor(), !v.equals("") ? v.split("<>") : new String[0]);
+					ExternalLibsLoader.readExternalLibs(projIndex, new NullProgressMonitor(), !v.equals("") ? v.split("<>") : new String[0]); //$NON-NLS-1$ //$NON-NLS-2$
 				} catch (Exception e) {
 					e.printStackTrace();
 				}

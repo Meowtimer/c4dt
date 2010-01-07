@@ -194,7 +194,7 @@ public class IniSourceViewerConfiguration extends ClonkSourceViewerConfiguration
 			scanner.setDefaultReturnToken(
 				new Token(
 					new TextAttribute(
-						getColorManager().getColor(ClonkColorConstants.getColor("DEFAULT")))));
+						getColorManager().getColor(ClonkColorConstants.getColor("DEFAULT"))))); //$NON-NLS-1$
 		}
 		return scanner;
 	}

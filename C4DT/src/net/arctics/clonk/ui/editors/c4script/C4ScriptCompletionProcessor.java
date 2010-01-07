@@ -11,9 +11,11 @@ import net.arctics.clonk.index.C4Scenario;
 import net.arctics.clonk.index.ClonkIndex;
 import net.arctics.clonk.parser.c4script.C4Function;
 import net.arctics.clonk.parser.c4script.C4ScriptBase;
+import net.arctics.clonk.parser.c4script.C4ScriptExprTree;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.C4Variable;
 import net.arctics.clonk.parser.c4script.IStoredTypeInformation;
+import net.arctics.clonk.parser.c4script.Keywords;
 import net.arctics.clonk.parser.BufferedScanner;
 import net.arctics.clonk.parser.BuiltInDefinitions;
 import net.arctics.clonk.parser.C4Declaration;
@@ -314,6 +316,24 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 		}
 	}
 	
+	private String getFunctionScaffold(String functionName) {
+		StringBuilder builder = new StringBuilder();
+		builder.append(Keywords.Func);
+		builder.append(" "); //$NON-NLS-1$
+		builder.append(functionName);
+		builder.append("()"); //$NON-NLS-1$
+		switch (C4ScriptExprTree.BraceStyle) {
+		case NewLine:
+			builder.append("\n"); //$NON-NLS-1$
+			break;
+		case SameLine:
+			builder.append(" "); //$NON-NLS-1$
+			break;
+		}
+		builder.append("{\n\n}"); //$NON-NLS-1$
+		return builder.toString();
+	}
+	
 	private void callbackProposal(String prefix, String callback, boolean funcSupplied, List<ICompletionProposal> proposals, int offset) {
 		ImageRegistry reg = ClonkCore.getDefault().getImageRegistry();
 		if (reg.get("callback") == null) { //$NON-NLS-1$
@@ -323,7 +343,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 		if (prefix != null)
 			replacementLength = prefix.length();
 		// FIXME: copy signature of overloaded func and respect brace style
-		String repString = funcSupplied ? (callback!=null?callback:"") : ("func " + callback + "() {\n}"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+		String repString = funcSupplied ? (callback!=null?callback:"") : getFunctionScaffold(callback); //$NON-NLS-1$ //$NON-NLS-2$
 		ClonkCompletionProposal prop = new ClonkCompletionProposal(
 				repString, offset, replacementLength, 
 				repString.length(), reg.get("callback") , callback, null,null,Messages.C4ScriptCompletionProcessor_Callback, getEditor()); //$NON-NLS-1$

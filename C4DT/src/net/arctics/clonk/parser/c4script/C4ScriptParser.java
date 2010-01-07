@@ -2536,7 +2536,7 @@ public class C4ScriptParser {
 	public static C4ScriptParser reportExpressionsAndStatements(IDocument doc, final int statementStart, int statementEnd, C4ScriptBase context, C4Function func, IExpressionListener listener)  {
 		String statements;
 		try {
-			statements = doc.get(statementStart, Math.min(statementEnd-statementStart, doc.getLength()-statementStart)) + ")";
+			statements = doc.get(statementStart, Math.min(statementEnd-statementStart, doc.getLength()-statementStart)) + ")"; //$NON-NLS-1$
 		} catch (BadLocationException e) {
 			statements = ""; // well... //$NON-NLS-1$
 		}

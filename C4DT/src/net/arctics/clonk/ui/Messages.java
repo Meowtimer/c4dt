@@ -32,6 +32,7 @@ public class Messages extends NLS {
 	public static String Engine_EditFunction;
 	public static String Engine_ReturnTypeTitle;
 	public static String Engine_DescriptionTitle;
+	public static String EngineDeclarationsView_ExportToXML;
 	public static String SpecifyEngineName;
 	public static String SpecifyEngineNameDesc;
 	public static String OpenObjectDialog_Empty;

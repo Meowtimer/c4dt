@@ -543,8 +543,8 @@ public class EngineDeclarationsView extends ViewPart implements IPropertyChangeL
 				}
 			}
 		};
-		exportXMLAction.setToolTipText("Export to XML");
-		exportXMLAction.setText("Export to XML");
+		exportXMLAction.setToolTipText(Messages.EngineDeclarationsView_ExportToXML);
+		exportXMLAction.setText(Messages.EngineDeclarationsView_ExportToXML);
 		
 	}
 

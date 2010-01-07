@@ -232,15 +232,15 @@ public class C4Variable extends C4Declaration implements Serializable, ITypedDec
 	@Override
 	public String getInfoText() {
 		StringBuilder builder = new StringBuilder();
-		builder.append("<b>");
+		builder.append("<b>"); //$NON-NLS-1$
 		builder.append((getType() == C4Type.UNKNOWN ? C4Type.ANY : getType()).toString());
 		builder.append(" "); //$NON-NLS-1$
 		builder.append(getName());
 		if (constValue != null) {
-			builder.append(" = ");
+			builder.append(" = "); //$NON-NLS-1$
 			builder.append(constValue.toString());
 		}
-		builder.append("</b>");
+		builder.append("</b>"); //$NON-NLS-1$
 		if (getUserDescription() != null && getUserDescription().length() > 0) {
 			builder.append("<br>"); //$NON-NLS-1$
 			builder.append(getUserDescription());
