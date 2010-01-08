@@ -13,9 +13,6 @@ import java.io.IOException;
 
 
 import org.antlr.runtime.*;
-import java.util.Stack;
-import java.util.List;
-import java.util.ArrayList;
 
 public class MapCreatorParser extends Parser {
     public static final String[] tokenNames = new String[] {

@@ -18,6 +18,8 @@ import net.arctics.clonk.util.Utilities;
 
 public class C4MapOverlayBase extends C4Structure implements Cloneable, ITreeNode, IPrintable {
 
+	private static final long serialVersionUID = 1L;
+	
 	public static class Keywords {
 		public static final String Point = "point";
 		public static final String Overlay = "overlay";
@@ -30,8 +32,31 @@ public class C4MapOverlayBase extends C4Structure implements Cloneable, ITreeNod
 		Keywords.Map     , C4Map.class //$NON-NLS-1$
 	);
 
-	private static final long serialVersionUID = 1L;
-
+	public enum Operator {
+		Or('|'),
+		And('&'),
+		XOr('^');
+		
+		private char c;
+		
+		Operator(char c) {
+			this.c = c;
+		}
+		
+		@Override
+		public String toString() {
+			return String.valueOf(c);
+		}
+		
+		public static Operator valueOf(char c) {
+			for (Operator o : values()) {
+				if (o.c == c)
+					return o;
+			}
+			return null;
+		}
+	}
+	
 	public enum Unit {
 		Percent,
 		Pixels;
@@ -196,6 +221,10 @@ public class C4MapOverlayBase extends C4Structure implements Cloneable, ITreeNod
 		return null;
 	}
 	
+	public Operator getOperator() {
+		return null;
+	}
+	
 	public String getTypeName() {
 		for (String key : DEFAULT_CLASS.keySet()) {
 			if (DEFAULT_CLASS.get(key).equals(this.getClass())) {
@@ -234,15 +263,27 @@ public class C4MapOverlayBase extends C4Structure implements Cloneable, ITreeNod
 			}
 			Collection<? extends C4MapOverlayBase> children = this.getChildCollection();
 			if (children != null) {
+				Operator lastOp = null;
 				for (C4MapOverlayBase child : children) {
-					C4ScriptExprTree.printIndent(builder, depth);
+					if (lastOp == null) {
+						C4ScriptExprTree.printIndent(builder, depth);
+					}
 					child.print(builder, depth+1);
-					builder.append("\n"); //$NON-NLS-1$
+					Operator op = child.getOperator();
+					if (op != null) {
+						builder.append(" ");
+						builder.append(op.toString());
+						builder.append(" ");
+					}
+					else {
+						builder.append("\n"); //$NON-NLS-1$
+					}
+					lastOp = op;
 				}
 			}
 			if (type != null) {
 				C4ScriptExprTree.printIndent(builder, depth-1);
-				builder.append("};"); //$NON-NLS-1$
+				builder.append("}"); //$NON-NLS-1$
 			}
 		} catch (Exception e) {
 			e.printStackTrace();

@@ -24,31 +24,6 @@ public class C4MapOverlay extends C4MapOverlayBase {
 		poly
 	}
 	
-	public enum Operator {
-		Or('|'),
-		And('&'),
-		XOr('^');
-		
-		private char c;
-		
-		Operator(char c) {
-			this.c = c;
-		}
-		
-		@Override
-		public String toString() {
-			return String.valueOf(c);
-		}
-		
-		public static Operator valueOf(char c) {
-			for (Operator o : values()) {
-				if (o.c == c)
-					return o;
-			}
-			return null;
-		}
-	}
-	
 	public String mat;
 	public String tex;
 	public Algorithm algo;
@@ -76,6 +51,7 @@ public class C4MapOverlay extends C4MapOverlayBase {
 	
 	protected List<C4MapOverlayBase> subOverlays = new LinkedList<C4MapOverlayBase>();
 
+	@Override
 	public Operator getOperator() {
 		return operator;
 	}

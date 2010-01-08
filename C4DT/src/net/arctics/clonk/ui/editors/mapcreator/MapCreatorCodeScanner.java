@@ -3,8 +3,6 @@ package net.arctics.clonk.ui.editors.mapcreator;
 import java.util.ArrayList;
 import java.util.List;
 
-import net.arctics.clonk.parser.BuiltInDefinitions;
-import net.arctics.clonk.parser.mapcreator.C4MapOverlay;
 import net.arctics.clonk.parser.mapcreator.C4MapOverlayBase;
 import net.arctics.clonk.ui.editors.ClonkRuleBasedScanner;
 import net.arctics.clonk.ui.editors.ColorManager;
