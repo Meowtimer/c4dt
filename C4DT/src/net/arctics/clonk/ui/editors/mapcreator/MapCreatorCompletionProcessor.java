@@ -1,6 +1,7 @@
 package net.arctics.clonk.ui.editors.mapcreator;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -90,14 +91,15 @@ public class MapCreatorCompletionProcessor extends ClonkCompletionProcessor<MapC
 			if (overlay != null) {
 				Field[] fields = overlay.getClass().getFields();
 				for (Field f : fields) {
-					if (f.getName().toLowerCase().startsWith(prefix)) {
-						proposals.add(new CompletionProposal(f.getName(), lineStart+m.start(1), prefix.length(), f.getName().length()));
+					if (Modifier.isPublic(f.getModifiers()) && !Modifier.isStatic(f.getModifiers())) {
+						if (f.getName().toLowerCase().startsWith(prefix)) {
+							proposals.add(new CompletionProposal(f.getName(), lineStart+m.start(1), prefix.length(), f.getName().length()));
+						}
 					}
 				}
 			}
 			
-			String[] keywords = new String[] {"map", "overlay"}; //$NON-NLS-1$ //$NON-NLS-2$
-			for (String keyword : keywords) {
+			for (String keyword : C4MapOverlayBase.DEFAULT_CLASS.keySet()) {
 				if (keyword.toLowerCase().startsWith(prefix))
 					proposals.add(new CompletionProposal(keyword, lineStart+m.start(1), prefix.length(), keyword.length()));
 			}

@@ -276,7 +276,7 @@ public class C4MapOverlayBase extends C4Structure implements Cloneable, ITreeNod
 						builder.append(" ");
 					}
 					else {
-						builder.append("\n"); //$NON-NLS-1$
+						builder.append(";\n"); //$NON-NLS-1$
 					}
 					lastOp = op;
 				}
