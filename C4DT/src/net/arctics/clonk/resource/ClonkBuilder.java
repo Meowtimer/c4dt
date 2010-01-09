@@ -422,9 +422,13 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 						ClonkProjectNature.get(delta.getResource()).getIndex().addScript(script);
 					}
 					// object script
-					else if ((objParser = C4ObjectParser.create(folder)) != null) {
+					else if (delta.getResource().getName().equals("Script.c") && (objParser = C4ObjectParser.create(folder)) != null) {
 						script = objParser.createObject();
 						objParser.parseScript(getParserFor(script));
+					}
+					// some other file but a script is still needed so get the object for the folder
+					else {
+						script = C4ObjectIntern.objectCorrespondingTo(folder);
 					}
 				}
 				if (script != null && delta.getResource().equals(script.getScriptFile())) {
