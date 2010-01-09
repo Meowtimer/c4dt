@@ -34,7 +34,8 @@ public class C4ScriptExtern extends C4ScriptBase implements IExternalScript {
 	
 	@Override
 	public ClonkIndex getIndex() {
-		return ClonkCore.getDefault().getExternIndex();
+		ExternalLib lib = getExternalLib();
+		return lib != null ? getExternalLib().getIndex() : null;
 	}
 
 	@Override
