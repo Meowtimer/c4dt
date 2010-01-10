@@ -95,3 +95,12 @@ are then taken into account in various places
 1.5.2.2:
 -Fixes
 -Add Syntax Coloring preference page
+1.5.2.3:
+-Stuff
+1.5.2.4:
+-Fixes
+-Fix Landscape.txt parser so it accepts ranges and points
+-Refresh virtual nodes in project explorer
+-Make plugin compatible to Saros
+-Multiple editors for the same file update instantly
+-Some encoding issues fixed

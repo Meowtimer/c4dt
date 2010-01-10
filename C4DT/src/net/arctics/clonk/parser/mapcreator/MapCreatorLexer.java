@@ -2,9 +2,6 @@
 package net.arctics.clonk.parser.mapcreator;
 
 import org.antlr.runtime.*;
-import java.util.Stack;
-import java.util.List;
-import java.util.ArrayList;
 
 public class MapCreatorLexer extends Lexer {
     public static final int POINT=9;
