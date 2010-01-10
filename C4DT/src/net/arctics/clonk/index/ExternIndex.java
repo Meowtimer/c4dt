@@ -46,6 +46,7 @@ public class ExternIndex extends ClonkIndex {
 			libs.clear();
 	}
 
+	@Override
 	public C4ScriptBase findScriptByPath(String path) {
 		IPath p = new Path(path);
 		if (p.segmentCount() >= 2) {

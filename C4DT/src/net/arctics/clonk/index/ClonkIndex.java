@@ -667,5 +667,14 @@ public class ClonkIndex implements Serializable, Iterable<C4Object> {
 			return null;
 		}
 	}
+	
+	/**
+	 * Finds a script by its path. This may be a path to an actual file or in the case of ExternIndex objects a path of an external object
+	 * @param path the path
+	 * @return the script or null if not found
+	 */
+	public C4ScriptBase findScriptByPath(String path) {
+		return null;
+	}
 
 }

@@ -7,8 +7,12 @@ import net.arctics.clonk.parser.c4script.C4ScriptBase;
 import net.arctics.clonk.parser.c4script.C4ScriptIntern;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.resource.ExternalLib;
+import net.arctics.clonk.util.Utilities;
+
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.Path;
 
 public class ProjectIndex extends ExternIndex {
 
@@ -101,6 +105,28 @@ public class ProjectIndex extends ExternIndex {
 	@Override
 	public boolean isDirty() {
 		return isDirty;
+	}
+	
+	@Override
+	public C4ScriptBase findScriptByPath(String path) {
+		IResource res = getProject().findMember(new Path(path));
+		if (res != null) {
+			C4ScriptBase result;
+			try {
+				result = Utilities.getScriptForResource(res);
+				if (result != null)
+					return result;
+			} catch (CoreException e) {
+				e.printStackTrace();
+				return null;
+			}
+		}
+		return super.findScriptByPath(path);
+	}
+	
+	public static ProjectIndex get(IProject project) {
+		ClonkProjectNature nature = ClonkProjectNature.get(project);
+		return nature != null ? nature.getIndex() : null;
 	}
 
 }
