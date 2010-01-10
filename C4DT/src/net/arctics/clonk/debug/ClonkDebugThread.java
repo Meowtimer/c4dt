@@ -90,31 +90,27 @@ public class ClonkDebugThread extends ClonkDebugElement implements IThread {
 
 	@Override
 	public int getPriority() throws DebugException {
-		// TODO Auto-generated method stub
-		return 0;
+		return 1;
 	}
 
 	@Override
 	public IStackFrame[] getStackFrames() throws DebugException {
-		return stackFrames;
+		return hasStackFrames() ? stackFrames : new IStackFrame[0];
 	}
 
 	@Override
 	public IStackFrame getTopStackFrame() throws DebugException {
-		// TODO Auto-generated method stub
-		return null;
+		return hasStackFrames() ? stackFrames[0] : null;
 	}
 
 	@Override
 	public boolean hasStackFrames() throws DebugException {
-		// TODO Auto-generated method stub
-		return false;
+		return stackFrames != null && stackFrames.length > 0 && isSuspended();
 	}
 
 	@SuppressWarnings("rawtypes")
 	@Override
 	public Object getAdapter(Class adapter) {
-		// TODO Auto-generated method stub
 		return null;
 	}
 
