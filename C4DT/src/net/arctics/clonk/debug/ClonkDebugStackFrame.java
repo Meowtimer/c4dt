@@ -177,5 +177,14 @@ public class ClonkDebugStackFrame extends ClonkDebugElement implements IStackFra
 		}
 		return null;
 	}
+	
+	@Override
+	public boolean equals(Object obj) {
+		if (obj instanceof ClonkDebugStackFrame) {
+			ClonkDebugStackFrame other = (ClonkDebugStackFrame) obj;
+			return other.function.equals(function) && other.line == line;
+		}
+		return false;
+	}
 
 }

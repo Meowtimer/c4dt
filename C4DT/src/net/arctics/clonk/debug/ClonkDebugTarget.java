@@ -6,6 +6,8 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.util.ArrayList;
+import java.util.List;
 
 import net.arctics.clonk.ui.debug.ClonkDebugModelPresentation;
 
@@ -46,12 +48,21 @@ public class ClonkDebugTarget extends ClonkDebugElement implements IDebugTarget 
 		return socketReader;
 	}
 	
+	public enum EventDispatchState {
+		Normal,
+		GatheringStackTrace
+	}
+	
 	private class EventDispatchJob extends Job {
-
+		
+		private EventDispatchState state = EventDispatchState.Normal;
+		
 		public EventDispatchJob(String name) {
 			super(name);
 		}
-
+		
+		private List<String> stackTrace = new ArrayList<String>(10);
+		
 		@Override
 		protected IStatus run(IProgressMonitor monitor) {
 			String event = ""; //$NON-NLS-1$
@@ -62,11 +73,22 @@ public class ClonkDebugTarget extends ClonkDebugElement implements IDebugTarget 
 						System.out.println("Got line from Clonk: " + event); //$NON-NLS-1$
 						if (event.startsWith("POS")) { //$NON-NLS-1$
 							String sourcePath = event.substring(4, event.length() - (event.charAt(event.length()-1)==0?1:0)); // cut off weird 0 at end
-							stoppedAtPath(sourcePath);
+							switch (state) {
+							case Normal:
+								stackTrace.clear();
+								send(Commands.STACKTRACE);
+								state = EventDispatchState.GatheringStackTrace;
+								break;
+							case GatheringStackTrace:
+								stackTrace.add(sourcePath);
+								break;
+							}
+						}
+						else if (event.startsWith("ENDSTACKFRAME")) {
+							stoppedWithStackTrace(stackTrace);
 							if (!suspended) {
 								suspended = true;
 								thread.fireSuspendEvent(DebugEvent.CLIENT_REQUEST);
-								//fireSuspendEvent(DebugEvent.CLIENT_REQUEST);
 							}
 						}
 					}
@@ -138,9 +160,9 @@ public class ClonkDebugTarget extends ClonkDebugElement implements IDebugTarget 
 		new EventDispatchJob("Clonk Debugger Event Dispatch").schedule(); //$NON-NLS-1$
 	}
 	
-	private void stoppedAtPath(String sourcePath) {
+	private void stoppedWithStackTrace(List<String> stackTrace) {
 		try {
-			thread.setSourcePath(sourcePath);
+			thread.setStackTrace(stackTrace);
 		} catch (CoreException e) {
 			e.printStackTrace();
 			return;
@@ -266,6 +288,10 @@ public class ClonkDebugTarget extends ClonkDebugElement implements IDebugTarget 
 	public static class Commands {
 		public static final String RESUME = "GO"; //$NON-NLS-1$
 		public static final String SUSPEND = "STP"; //$NON-NLS-1$
+		public static final String STEPOVER = "STO";
+		public static final String STEPRETURN = "STR";
+		public static final String QUITSESSION = "BYE";
+		public static final String STACKTRACE = "STA";
 	}
 	
 	public synchronized void send(String command) {

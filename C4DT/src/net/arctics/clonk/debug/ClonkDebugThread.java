@@ -1,6 +1,7 @@
 package net.arctics.clonk.debug;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import net.arctics.clonk.debug.ClonkDebugTarget.Commands;
@@ -20,12 +21,9 @@ public class ClonkDebugThread extends ClonkDebugElement implements IThread {
 	
 	private static final IStackFrame[] NO_STACKFRAMES = new IStackFrame[0];
 	
-	private String sourcePath;
 	private IStackFrame[] stackFrames;
-	private C4ScriptBase script;
 	
 	private void nullOut() {
-		script = null;
 		stackFrames = NO_STACKFRAMES;
 	}
 	
@@ -48,29 +46,31 @@ public class ClonkDebugThread extends ClonkDebugElement implements IThread {
 		}
 		return null;
 	}
-	
-	public void setSourcePath(String sourcePath) throws CoreException {
-		if (sourcePath == null) {
+
+	public void setStackTrace(List<String> stackTrace) throws CoreException {
+		ProjectIndex index = ProjectIndex.get(getTarget().getScenario().getProject());
+		if (index == null) {
 			nullOut();
 			return;
 		}
-		String fullSourcePath = sourcePath;
-		int delim = sourcePath.lastIndexOf(':');
-		String linePart = sourcePath.substring(delim+1);
-		int line = Integer.parseInt(linePart);
-		sourcePath = sourcePath.substring(0, delim);
-		if (this.sourcePath == null || this.sourcePath.equals(sourcePath)) {
-			this.sourcePath = sourcePath;
-			ProjectIndex index = ProjectIndex.get(getTarget().getScenario().getProject());
-			if (index != null)
-				script = findScript(sourcePath, index, new HashSet<ClonkIndex>());
+		IStackFrame[] newStackFrames = new IStackFrame[stackTrace.size()];
+		for (int i = 0; i < stackTrace.size(); i++) {
+			String sourcePath = stackTrace.get(i);
+			
+			if (sourcePath == null) {
+				nullOut();
+				return;
+			}
+			String fullSourcePath = sourcePath;
+			int delim = sourcePath.lastIndexOf(':');
+			String linePart = sourcePath.substring(delim+1);
+			int line = Integer.parseInt(linePart);
+			sourcePath = sourcePath.substring(0, delim);
+			C4ScriptBase script = findScript(sourcePath, index, new HashSet<ClonkIndex>());
+			C4Function f = script != null ? script.funcAtLine(line) : null;
+			newStackFrames[i] = new ClonkDebugStackFrame(this, f != null ? f : fullSourcePath, line);
 		}
-		if (script != null) {
-			C4Function f = script.funcAtLine(line);
-			stackFrames = new IStackFrame[] {
-				new ClonkDebugStackFrame(this, f != null ? f : fullSourcePath, line)
-			};
-		}
+		this.stackFrames = newStackFrames;
 	}
 	
 	public ClonkDebugThread(ClonkDebugTarget target) {
@@ -95,7 +95,7 @@ public class ClonkDebugThread extends ClonkDebugElement implements IThread {
 
 	@Override
 	public IStackFrame[] getStackFrames() throws DebugException {
-		return hasStackFrames() ? stackFrames : new IStackFrame[0];
+		return hasStackFrames() ? stackFrames : NO_STACKFRAMES;
 	}
 
 	@Override
