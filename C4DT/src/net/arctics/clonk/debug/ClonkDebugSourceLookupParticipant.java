@@ -9,7 +9,7 @@ public class ClonkDebugSourceLookupParticipant extends AbstractSourceLookupParti
 	public String getSourceName(Object object) throws CoreException {
 		if (object instanceof ClonkDebugStackFrame) {
 			ClonkDebugStackFrame stackFrame = (ClonkDebugStackFrame) object;
-			return stackFrame.getName();
+			return stackFrame.getSourcePath();
 		}
 		else
 			return null;

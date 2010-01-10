@@ -2,6 +2,8 @@ package net.arctics.clonk.debug;
 
 import net.arctics.clonk.parser.c4script.C4Function;
 
+import org.eclipse.core.resources.IContainer;
+import org.eclipse.core.resources.IResource;
 import org.eclipse.debug.core.DebugException;
 import org.eclipse.debug.core.model.IRegisterGroup;
 import org.eclipse.debug.core.model.IStackFrame;
@@ -10,6 +12,8 @@ import org.eclipse.debug.core.model.IVariable;
 
 public class ClonkDebugStackFrame extends ClonkDebugElement implements IStackFrame {
 
+	private static final String NAME_FORMAT = "%s::%s line: %d";
+	
 	private int line;
 	private Object function;
 	private ClonkDebugThread thread;
@@ -55,7 +59,7 @@ public class ClonkDebugStackFrame extends ClonkDebugElement implements IStackFra
 	@Override
 	public String getName() throws DebugException {
 		if (function instanceof C4Function)
-			return ((C4Function)function).getLongParameterString(true);
+			return String.format(NAME_FORMAT, ((C4Function)function).getScript().toString(), ((C4Function) function).getLongParameterString(true), line);
 		else if (function != null)
 			return function.toString();
 		else
@@ -109,47 +113,42 @@ public class ClonkDebugStackFrame extends ClonkDebugElement implements IStackFra
 
 	@Override
 	public void stepInto() throws DebugException {
-		// TODO Auto-generated method stub
-
+		thread.stepInto();
 	}
 
 	@Override
 	public void stepOver() throws DebugException {
-		// TODO Auto-generated method stub
-
+		thread.stepOver();
 	}
 
 	@Override
 	public void stepReturn() throws DebugException {
-		// TODO Auto-generated method stub
-
+		thread.stepReturn();
 	}
 
 	@Override
 	public boolean canResume() {
-		// TODO Auto-generated method stub
-		return false;
-	}
-
-	@Override
-	public boolean canSuspend() {
-		// TODO Auto-generated method stub
-		return false;
-	}
-
-	@Override
-	public boolean isSuspended() {
 		return true;
 	}
 
 	@Override
+	public boolean canSuspend() {
+		return !isSuspended();
+	}
+
+	@Override
+	public boolean isSuspended() {
+		return thread.isSuspended();
+	}
+
+	@Override
 	public void resume() throws DebugException {
-		getTarget().resume();
+		thread.resume();
 	}
 
 	@Override
 	public void suspend() throws DebugException {
-		getTarget().suspend();
+		thread.suspend();
 	}
 
 	@Override
@@ -159,12 +158,24 @@ public class ClonkDebugStackFrame extends ClonkDebugElement implements IStackFra
 
 	@Override
 	public boolean isTerminated() {
-		return getTarget().isTerminated();
+		return thread.isTerminated();
 	}
 
 	@Override
 	public void terminate() throws DebugException {
-		getTarget().terminate();
+		thread.terminate();
+	}
+	
+	public String getSourcePath() {
+		if (function instanceof C4Function) {
+			C4Function f = (C4Function) function;
+			IResource r = f.getScript().getResource();
+			if (r instanceof IContainer)
+				return r.getProjectRelativePath().append("Script.c").toOSString();
+			else if (r != null)
+				return r.getProjectRelativePath().toOSString();
+		}
+		return null;
 	}
 
 }

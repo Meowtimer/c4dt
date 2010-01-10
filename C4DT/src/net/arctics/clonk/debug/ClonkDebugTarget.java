@@ -7,7 +7,7 @@ import java.io.PrintWriter;
 import java.net.Socket;
 import java.net.UnknownHostException;
 
-import net.arctics.clonk.ClonkCore;
+import net.arctics.clonk.ui.debug.ClonkDebugModelPresentation;
 
 import org.eclipse.core.resources.IMarkerDelta;
 import org.eclipse.core.resources.IResource;
@@ -63,6 +63,11 @@ public class ClonkDebugTarget extends ClonkDebugElement implements IDebugTarget 
 						if (event.startsWith("POS")) { //$NON-NLS-1$
 							String sourcePath = event.substring(4, event.length() - (event.charAt(event.length()-1)==0?1:0)); // cut off weird 0 at end
 							stoppedAtPath(sourcePath);
+							if (!suspended) {
+								suspended = true;
+								thread.fireSuspendEvent(DebugEvent.CLIENT_REQUEST);
+								//fireSuspendEvent(DebugEvent.CLIENT_REQUEST);
+							}
 						}
 					}
 				} catch (IOException e) {
@@ -209,7 +214,7 @@ public class ClonkDebugTarget extends ClonkDebugElement implements IDebugTarget 
 
 	@Override
 	public String getModelIdentifier() {
-		return ClonkCore.PLUGIN_ID;
+		return ClonkDebugModelPresentation.ID;
 	}
 
 	@SuppressWarnings("rawtypes")
@@ -278,8 +283,6 @@ public class ClonkDebugTarget extends ClonkDebugElement implements IDebugTarget 
 	@Override
 	public void suspend() throws DebugException {
 		send(Commands.SUSPEND);
-		suspended = true;
-		fireSuspendEvent(DebugEvent.CLIENT_REQUEST);
 	}
 
 	@Override

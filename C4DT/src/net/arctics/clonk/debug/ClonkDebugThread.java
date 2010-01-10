@@ -1,15 +1,15 @@
 package net.arctics.clonk.debug;
 
-import net.arctics.clonk.ClonkCore;
+import java.util.HashSet;
+import java.util.Set;
+
 import net.arctics.clonk.debug.ClonkDebugTarget.Commands;
+import net.arctics.clonk.index.ClonkIndex;
+import net.arctics.clonk.index.ProjectIndex;
 import net.arctics.clonk.parser.c4script.C4Function;
 import net.arctics.clonk.parser.c4script.C4ScriptBase;
-import net.arctics.clonk.resource.ClonkProjectNature;
-import net.arctics.clonk.util.Utilities;
-
-import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.Path;
 import org.eclipse.debug.core.DebugEvent;
 import org.eclipse.debug.core.DebugException;
 import org.eclipse.debug.core.model.IBreakpoint;
@@ -29,6 +29,26 @@ public class ClonkDebugThread extends ClonkDebugElement implements IThread {
 		stackFrames = NO_STACKFRAMES;
 	}
 	
+	public C4ScriptBase findScript(String path, ClonkIndex index, Set<ClonkIndex> alreadySearched) throws CoreException {
+		if (alreadySearched.contains(index))
+			return null;
+		C4ScriptBase script = index.findScriptByPath(path);
+		if (script != null)
+			return script;
+		alreadySearched.add(index);
+		if (index instanceof ProjectIndex) {
+			for (IProject proj : ((ProjectIndex) index).getProject().getReferencedProjects()) {
+				ProjectIndex projIndex = ProjectIndex.get(proj);
+				if (projIndex != null) {
+					C4ScriptBase _result = findScript(path, projIndex, alreadySearched);
+					if (_result != null)
+						return _result;
+				}
+			}
+		}
+		return null;
+	}
+	
 	public void setSourcePath(String sourcePath) throws CoreException {
 		if (sourcePath == null) {
 			nullOut();
@@ -41,16 +61,9 @@ public class ClonkDebugThread extends ClonkDebugElement implements IThread {
 		sourcePath = sourcePath.substring(0, delim);
 		if (this.sourcePath == null || this.sourcePath.equals(sourcePath)) {
 			this.sourcePath = sourcePath;
-			ClonkProjectNature nature = ClonkProjectNature.get(getTarget().getScenario().getProject());
-			if (nature != null) {
-				IResource resInProject = nature.getProject().findMember(new Path(sourcePath));
-				if (resInProject != null && (script = Utilities.getScriptForResource(resInProject)) != null) {
-					// yuppei, local script found
-				}
-				else if ((script = ClonkCore.getDefault().getExternIndex().findScriptByPath(sourcePath)) != null) {
-					// an external is just fine too
-				}
-			}
+			ProjectIndex index = ProjectIndex.get(getTarget().getScenario().getProject());
+			if (index != null)
+				script = findScript(sourcePath, index, new HashSet<ClonkIndex>());
 		}
 		if (script != null) {
 			C4Function f = script.funcAtLine(line);
@@ -129,7 +142,7 @@ public class ClonkDebugThread extends ClonkDebugElement implements IThread {
 	@Override
 	public void suspend() throws DebugException {
 		getTarget().suspend();
-		fireSuspendEvent(DebugEvent.CLIENT_REQUEST);
+		//fireSuspendEvent(DebugEvent.CLIENT_REQUEST);
 	}
 
 	@Override

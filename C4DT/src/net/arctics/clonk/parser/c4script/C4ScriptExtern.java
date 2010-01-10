@@ -4,7 +4,6 @@ import java.io.InputStream;
 
 import org.eclipse.core.resources.IStorage;
 
-import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.index.C4GroupEntryStorage;
 import net.arctics.clonk.index.ClonkIndex;
 import net.arctics.clonk.index.IContainedInExternalLib;

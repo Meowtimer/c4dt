@@ -458,6 +458,13 @@
 	          name="Clonk Debug Source Locator">
 	    </sourceLocator>
 	</extension>
+	
+	<extension point="org.eclipse.debug.ui.debugModelPresentations">
+		<debugModelPresentation
+        	class="net.arctics.clonk.ui.debug.ClonkDebugModelPresentation"
+        	id="net.arctics.clonk.ui.debug.ClonkDebugModelPresentation">
+		</debugModelPresentation>
+	</extension>
 
 	<extension point="org.eclipse.debug.core.launchConfigurationTypes">
 		<launchConfigurationType id="net.arctics.clonk.debug.ClonkLaunch"
