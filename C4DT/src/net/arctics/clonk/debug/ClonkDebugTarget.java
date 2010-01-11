@@ -76,19 +76,30 @@ public class ClonkDebugTarget extends ClonkDebugElement implements IDebugTarget 
 							switch (state) {
 							case Normal:
 								stackTrace.clear();
-								send(Commands.STACKTRACE);
-								state = EventDispatchState.GatheringStackTrace;
+								stackTrace.add(sourcePath);
+								stoppedWithStackTrace(stackTrace);
+								if (!suspended) {
+									suspended = true;
+									thread.fireSuspendEvent(DebugEvent.CLIENT_REQUEST);
+								}
 								break;
+								/*send(Commands.STACKTRACE);
+								state = EventDispatchState.GatheringStackTrace;
+								break;*/
 							case GatheringStackTrace:
 								stackTrace.add(sourcePath);
 								break;
 							}
 						}
 						else if (event.startsWith("ENDSTACKFRAME")) {
-							stoppedWithStackTrace(stackTrace);
-							if (!suspended) {
-								suspended = true;
-								thread.fireSuspendEvent(DebugEvent.CLIENT_REQUEST);
+							switch (state) {
+							case GatheringStackTrace:
+								stoppedWithStackTrace(stackTrace);
+								if (!suspended) {
+									suspended = true;
+									thread.fireSuspendEvent(DebugEvent.CLIENT_REQUEST);
+								}
+								break;
 							}
 						}
 					}
@@ -248,7 +259,7 @@ public class ClonkDebugTarget extends ClonkDebugElement implements IDebugTarget 
 
 	@Override
 	public boolean canTerminate() {
-		return true;
+		return !isTerminated();
 	}
 
 	@Override
@@ -272,12 +283,12 @@ public class ClonkDebugTarget extends ClonkDebugElement implements IDebugTarget 
 
 	@Override
 	public boolean canResume() {
-		return true;
+		return !isTerminated() && isSuspended();
 	}
 
 	@Override
 	public boolean canSuspend() {
-		return true;
+		return !isTerminated() && !isSuspended();
 	}
 
 	@Override
@@ -331,7 +342,7 @@ public class ClonkDebugTarget extends ClonkDebugElement implements IDebugTarget 
 
 	@Override
 	public boolean canDisconnect() {
-		return true;
+		return !isDisconnected();
 	}
 
 	@Override

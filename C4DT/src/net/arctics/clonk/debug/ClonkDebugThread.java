@@ -116,12 +116,12 @@ public class ClonkDebugThread extends ClonkDebugElement implements IThread {
 
 	@Override
 	public boolean canResume() {
-		return true;
+		return getTarget().canResume();
 	}
 
 	@Override
 	public boolean canSuspend() {
-		return true;
+		return getTarget().canSuspend();
 	}
 
 	@Override
@@ -132,7 +132,6 @@ public class ClonkDebugThread extends ClonkDebugElement implements IThread {
 	@Override
 	public void resume() throws DebugException {
 		getTarget().resume();
-		fireResumeEvent(DebugEvent.CLIENT_REQUEST);
 	}
 
 	@Override
@@ -143,17 +142,17 @@ public class ClonkDebugThread extends ClonkDebugElement implements IThread {
 
 	@Override
 	public boolean canStepInto() {
-		return true;
+		return isSuspended();
 	}
 
 	@Override
 	public boolean canStepOver() {
-		return true;
+		return isSuspended();
 	}
 
 	@Override
 	public boolean canStepReturn() {
-		return true;
+		return isSuspended();
 	}
 
 	@Override
@@ -168,14 +167,12 @@ public class ClonkDebugThread extends ClonkDebugElement implements IThread {
 
 	@Override
 	public void stepOver() throws DebugException {
-		// TODO Auto-generated method stub
-
+		getTarget().send(Commands.STEPOVER);
 	}
 
 	@Override
 	public void stepReturn() throws DebugException {
-		// TODO Auto-generated method stub
-
+		getTarget().send(Commands.STEPRETURN);
 	}
 
 	@Override
