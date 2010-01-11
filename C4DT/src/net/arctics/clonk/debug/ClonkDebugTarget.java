@@ -178,7 +178,7 @@ public class ClonkDebugTarget extends ClonkDebugElement implements IDebugTarget 
 			e.printStackTrace();
 			return;
 		}
-		fireEvent(new DebugEvent(this, DebugEvent.STEP_INTO));
+		thread.fireSuspendEvent(DebugEvent.STEP_INTO);
 	}
 
 	public ClonkDebugTarget(ILaunch launch, IProcess process, int port, IResource scenario) throws Exception {
