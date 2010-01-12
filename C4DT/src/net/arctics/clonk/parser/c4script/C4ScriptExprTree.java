@@ -45,9 +45,9 @@ public abstract class C4ScriptExprTree {
 	}
 	
 	// options
-	public static boolean AlwaysConvertObjectCalls = false;
-	public static BraceStyleType BraceStyle = BraceStyleType.NewLine;
-	public static String IndentString = "\t"; //$NON-NLS-1$
+	public static boolean alwaysConvertObjectCalls = false;
+	public static BraceStyleType braceStyle = BraceStyleType.NewLine;
+	public static String indentString = "\t"; //$NON-NLS-1$
 
 	public enum TraversalContinuation {
 		Continue,
@@ -73,7 +73,7 @@ public abstract class C4ScriptExprTree {
 	
 	public static void printIndent(StringBuilder builder, int indentDepth) {
 		for (int i = 0; i < indentDepth; i++)
-			builder.append(IndentString); // FIXME: should be done according to user's preferences //$NON-NLS-1$
+			builder.append(indentString); // FIXME: should be done according to user's preferences //$NON-NLS-1$
 	}
 
 	public final static class DeclarationRegion {
@@ -1134,13 +1134,13 @@ public abstract class C4ScriptExprTree {
 			}
 
 			// ObjectCall(ugh, "UghUgh", 5) -> ugh->UghUgh(5)
-			if (params.length >= 2 && declaration == getCachedFuncs(parser).ObjectCall && params[1] instanceof StringLiteral && (AlwaysConvertObjectCalls || !this.containedInLoopHeaderOrNotStandaloneExpression()) && !params[0].hasSideEffects()) {
+			if (params.length >= 2 && declaration == getCachedFuncs(parser).ObjectCall && params[1] instanceof StringLiteral && (alwaysConvertObjectCalls || !this.containedInLoopHeaderOrNotStandaloneExpression()) && !params[0].hasSideEffects()) {
 				ExprElm[] parmsWithoutObject = new ExprElm[params.length-2];
 				for (int i = 0; i < parmsWithoutObject.length; i++)
 					parmsWithoutObject[i] = params[i+2].newStyleReplacement(parser);
 				String lit = ((StringLiteral)params[1]).stringValue();
 				if (lit.length() > 0 && lit.charAt(0) != '~') {
-					return AlwaysConvertObjectCalls && this.containedInLoopHeaderOrNotStandaloneExpression()
+					return alwaysConvertObjectCalls && this.containedInLoopHeaderOrNotStandaloneExpression()
 					? new Sequence(new ExprElm[] {
 							params[0].newStyleReplacement(parser),
 							new MemberOperator(false, true, null, 0),
@@ -1797,7 +1797,7 @@ public abstract class C4ScriptExprTree {
 		private boolean hex;
 
 		public NumberLiteral(long value, boolean hex) {
-			super(new Long(value));
+			super(Long.valueOf(value));
 			this.hex = hex;
 		}
 
@@ -2109,7 +2109,7 @@ public abstract class C4ScriptExprTree {
 			return getLiteral().booleanValue();
 		}
 		public BoolLiteral(boolean value) {
-			super(new Boolean(value));
+			super(Boolean.valueOf(value));
 		}
 		public C4Type getType(C4ScriptParser context) {
 			return C4Type.BOOL;
@@ -2595,10 +2595,10 @@ public abstract class C4ScriptExprTree {
 		protected void printBody(ExprElm body, StringBuilder builder, int depth) {
 			int depthAdd = 0;
 			if (!(body instanceof EmptyStatement)) {
-				if (BraceStyle == BraceStyleType.NewLine)
+				if (braceStyle == BraceStyleType.NewLine)
 					builder.append("\n"); //$NON-NLS-1$
 				boolean isBlock = body instanceof Block;
-				switch (BraceStyle) {
+				switch (braceStyle) {
 				case NewLine:
 					printIndent(builder, depth - (isBlock ? 1 : 0));
 					break;
@@ -2796,7 +2796,7 @@ public abstract class C4ScriptExprTree {
 				builder.append(" "); //$NON-NLS-1$
 				boolean isBlock = elseExpr instanceof Block;
 				if (!(elseExpr instanceof IfStatement)) {
-					switch (BraceStyle) {
+					switch (braceStyle) {
 					case NewLine:
 						builder.append("\n"); //$NON-NLS-1$
 						printIndent(builder, depth - (isBlock?1:0));

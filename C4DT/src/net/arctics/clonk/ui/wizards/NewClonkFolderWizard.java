@@ -13,6 +13,7 @@ import java.net.URL;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.viewers.ISelection;
@@ -145,21 +146,24 @@ public class NewClonkFolderWizard extends Wizard implements INewWizard {
 		InputStream result = template.openStream();
 		if (fileName.endsWith(".txt") || fileName.endsWith(".c")) { //$NON-NLS-1$ //$NON-NLS-2$
 			Reader reader = new InputStreamReader(result);
-			StringBuilder builder = new StringBuilder();
-			char[] buffer = new char[1024];
-			int read;
-			while ((read = reader.read(buffer)) > 0) {
-				builder.append(buffer, 0, read);
+			try {
+				StringBuilder builder = new StringBuilder();
+				char[] buffer = new char[1024];
+				int read;
+				while ((read = reader.read(buffer)) > 0) {
+					builder.append(buffer, 0, read);
+				}
+				String readString = builder.toString();
+				Map<String, String> replacements = getTemplateReplacements();
+				for (Entry<String, String> entry : replacements.entrySet()) {
+					readString = readString.replace(entry.getKey(), entry.getValue());
+				}
+				return new ByteArrayInputStream(readString.getBytes());
+			} finally {
+				reader.close();
 			}
-			String readString = builder.toString();
-			Map<String, String> replacements = getTemplateReplacements();
-			for (String key : replacements.keySet()) {
-				String repl = replacements.get(key);
-				readString = readString.replace(key, repl);
-			}
-			return new ByteArrayInputStream(readString.getBytes());
 		}
-		return template.openStream();
+		return result;
 	}
 	
 	protected void throwCoreException(String message) throws CoreException {

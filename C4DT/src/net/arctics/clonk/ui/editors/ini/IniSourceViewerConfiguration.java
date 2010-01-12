@@ -51,7 +51,7 @@ public class IniSourceViewerConfiguration extends ClonkSourceViewerConfiguration
 	
 	private IniScanner scanner;
 	
-	private class IniSourceHyperlinkPresenter extends DefaultHyperlinkPresenter {
+	private static class IniSourceHyperlinkPresenter extends DefaultHyperlinkPresenter {
 
 		public IniSourceHyperlinkPresenter(IPreferenceStore store) {
 			super(store);

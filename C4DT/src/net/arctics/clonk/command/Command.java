@@ -37,10 +37,10 @@ public class Command {
 	
 	public static class C4CommandScript extends C4ScriptBase {
 		
-		private class C4CommandFunction extends C4Function {
+		private static class C4CommandFunction extends C4Function {
             private static final long serialVersionUID = 1L;
             
-			private Statement[] statements;
+			private transient Statement[] statements;
 			
 			@Override
 			public Object invoke(Object... args) {
@@ -176,7 +176,7 @@ public class Command {
 
         private static final long serialVersionUID = 1L;
         
-        private final Method method;
+        private final transient Method method;
         
         @Override
         public Object invoke(Object... args) {

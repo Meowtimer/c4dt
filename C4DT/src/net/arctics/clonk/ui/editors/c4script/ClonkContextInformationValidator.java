@@ -252,7 +252,7 @@ public class ClonkContextInformationValidator implements
 			char ch= code.charAt(pos);
 			switch (ch) {
 	            case ',':
-		            positions.add(new Integer(pos));
+		            positions.add(Integer.valueOf(pos));
 		            break;
 	            case '<':
 	            	pos= code.indexOf('>', pos);
@@ -266,7 +266,7 @@ public class ClonkContextInformationValidator implements
 			if (pos != -1)
 				pos++;
 		}
-		positions.add(new Integer(length));
+		positions.add(Integer.valueOf(length));
 		
 		int[] fields= new int[positions.size()];
 		for (int i= 0; i < fields.length; i++)

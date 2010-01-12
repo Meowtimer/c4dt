@@ -32,7 +32,6 @@ import org.eclipse.ui.texteditor.ITextEditor;
  */
 public class DeclarationLocator extends ExpressionLocator {
 	private ITextEditor editor;
-	private String line;
 	private C4Declaration declaration;
 	private List<C4Declaration> proposedDeclarations;
 	
@@ -157,13 +156,6 @@ public class DeclarationLocator extends ExpressionLocator {
 		for (end = localOffset; end < line.length() && Character.isJavaIdentifierPart(line.charAt(end)); end++);
 		exprRegion = new Region(lineInfo.getOffset()+start,end-start);
 		declaration = script.findDeclaration(doc.get(exprRegion.getOffset(), exprRegion.getLength()), new FindDeclarationInfo(script.getIndex(), func));
-	}
-	
-	/**
-	 * @return the line
-	 */
-	public String getLine() {
-		return line;
 	}
 
 	/**

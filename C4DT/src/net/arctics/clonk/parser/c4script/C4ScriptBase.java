@@ -773,7 +773,8 @@ public abstract class C4ScriptBase extends C4Structure implements IHasRelatedRes
 		}
 		// also import from fn list in C4Script.cpp
 		readMissingFuncsFromSource(repository);
-		monitor.done();
+		if (monitor != null)
+			monitor.done();
 	}
 	
 	private void readMissingFuncsFromSource(String repository) throws FileNotFoundException, IOException {
@@ -822,6 +823,7 @@ public abstract class C4ScriptBase extends C4Structure implements IHasRelatedRes
 								this.addDeclaration(fun);
 							}
 						}
+						break;
 					case SECTION_C4ScriptConstMap:
 						if (constMapMatcher.reset(line).matches()) {
 							int i = 1;

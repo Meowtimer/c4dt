@@ -86,7 +86,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 		}
 	}
 
-	private class ResourceCounterAndCleaner extends ResourceCounter {
+	private static class ResourceCounterAndCleaner extends ResourceCounter {
 		public ResourceCounterAndCleaner(int countFlags) {
 			super(countFlags);
 		}
@@ -207,17 +207,12 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 
 					// calculate build duration
 					int[] operations = new int[5];
-					if (proj != null) {
-						// count num of resources to build and also clean...
-						ResourceCounterAndCleaner counter = new ResourceCounterAndCleaner(ResourceCounter.COUNT_CONTAINER);
-						proj.accept(counter);
-						operations[0] = counter.getCount() * 2;
-						operations[1] = counter.getCount();
-					}
-					else {
-						operations[0] = 0;
-						operations[1] = 0;
-					}
+
+					// count num of resources to build and also clean...
+					ResourceCounterAndCleaner counter = new ResourceCounterAndCleaner(ResourceCounter.COUNT_CONTAINER);
+					proj.accept(counter);
+					operations[0] = counter.getCount() * 2;
+					operations[1] = counter.getCount();
 
 					operations[2] = 0;
 					operations[3] = 0;
@@ -242,7 +237,6 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 					// initialize progress monitor
 					monitor.beginTask(String.format(Messages.BuildProject, proj.getName()), workSum);
 
-
 					// build external lib if needed
 					if (libBuilder.isBuildNeeded()) {
 						monitor.subTask(Messages.ParsingLibraries);
@@ -251,33 +245,31 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 						monitor.subTask(Messages.SavingLibraries);
 						ClonkCore.getDefault().saveExternIndex(new SubProgressMonitor(monitor,operations[3]));
 					}
-					
+
 					if (externalLibs != null)
 						ExternalLibsLoader.readExternalLibs(projIndex, new SubProgressMonitor(monitor, operations[4]), externalLibs);
 
 					// build project
-					if (proj != null) {
-						monitor.subTask(String.format(Messages.IndexProject, proj.getName()));
-						// parse declarations
-						buildPhase = 0;
-						proj.accept(this);
-						ClonkProjectNature.get(proj).getIndex().refreshCache();
-						if (monitor.isCanceled()) {
-							monitor.done();
-							return null;
-						}
-						monitor.subTask(String.format(Messages.ParseProject, proj.getName()));
-						// parse function code
-						buildPhase = 1;
-						proj.accept(this);
-						
-						applyLatentMarkers();
-						
-						listOfResourcesToBeRefreshed.add(proj);
-
-						// fire update event
-						//proj.touch(monitor);
+					monitor.subTask(String.format(Messages.IndexProject, proj.getName()));
+					// parse declarations
+					buildPhase = 0;
+					proj.accept(this);
+					ClonkProjectNature.get(proj).getIndex().refreshCache();
+					if (monitor.isCanceled()) {
+						monitor.done();
+						return null;
 					}
+					monitor.subTask(String.format(Messages.ParseProject, proj.getName()));
+					// parse function code
+					buildPhase = 1;
+					proj.accept(this);
+
+					applyLatentMarkers();
+
+					listOfResourcesToBeRefreshed.add(proj);
+
+					// fire update event
+					//proj.touch(monitor);
 
 				}
 

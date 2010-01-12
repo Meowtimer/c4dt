@@ -26,7 +26,7 @@ public class OpenObjectDialog extends FilteredItemsSelectionDialog {
 	
 	public static final String DIALOG_SETTINGS = "OpenObjectDialogSettings"; //$NON-NLS-1$
 	
-	private class OpenObjectLabelProvider extends LabelProvider implements IStyledLabelProvider {
+	private static class OpenObjectLabelProvider extends LabelProvider implements IStyledLabelProvider {
 
 		public StyledString getStyledText(Object element) {
 			if (element == null)

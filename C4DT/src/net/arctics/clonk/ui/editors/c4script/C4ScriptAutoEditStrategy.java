@@ -112,7 +112,7 @@ public class C4ScriptAutoEditStrategy extends DefaultIndentLineAutoEditStrategy 
 					int start = r.getOffset();
 					int end = findEndOfWhiteSpace(d, start, c.offset);
 					if (end > start) {
-						c.text += d.get(start, end-start) + C4ScriptExprTree.IndentString;
+						c.text += d.get(start, end-start) + C4ScriptExprTree.indentString;
 					}
 					c.caretOffset = c.offset + c.text.length();
 					c.shiftsCaret = false;

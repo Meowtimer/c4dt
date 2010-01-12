@@ -15,10 +15,7 @@ import net.arctics.clonk.util.Pair;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.jface.text.BadLocationException;
-import org.eclipse.jface.text.DocumentRewriteSession;
-import org.eclipse.jface.text.DocumentRewriteSessionType;
 import org.eclipse.jface.text.IDocument;
-import org.eclipse.jface.text.IDocumentExtension4;
 import org.eclipse.jface.text.ITextSelection;
 import org.eclipse.ltk.core.refactoring.DocumentChange;
 import org.eclipse.ltk.core.refactoring.TextChange;
@@ -111,8 +108,6 @@ public class ConvertOldCodeToNewCodeAction extends TextEditorAction {
 	) {
 		synchronized (document) {
 			final int selLength = selection.getLength() == document.getLength() ? 0 : selection.getLength();
-			IDocumentExtension4 ext4 = null; // (document instanceof IDocumentExtension4) ? (IDocumentExtension4)document : null;
-			DocumentRewriteSession session = ext4 != null ? ext4.startRewriteSession(DocumentRewriteSessionType.UNRESTRICTED) : null;
 			TextChange textChange = new DocumentChange(Messages.ConvertOldCodeToNewCodeAction_TidyUpCode, document);
 			textChange.setEdit(new MultiTextEdit());
 			for (FunctionStatements pair : statements) {
@@ -129,7 +124,7 @@ public class ConvertOldCodeToNewCodeAction extends TextEditorAction {
 						}
 						Block b = new Block(statementsInRightOrder);
 						StringBuilder blockStringBuilder = new StringBuilder(func.getBody().getLength());
-						switch (C4ScriptExprTree.BraceStyle) {
+						switch (C4ScriptExprTree.braceStyle) {
 						case NewLine:
 							blockStringBuilder.append('\n');
 							break;
@@ -178,8 +173,6 @@ public class ConvertOldCodeToNewCodeAction extends TextEditorAction {
 			} catch (CoreException e) {
 				e.printStackTrace();
 			}
-			if (ext4 != null)
-				ext4.stopRewriteSession(session);
 		}
 	}
 

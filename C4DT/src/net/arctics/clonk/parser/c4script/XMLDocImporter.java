@@ -117,7 +117,6 @@ public class XMLDocImporter {
 			C4Declaration result;
 			String name = titleNode.getTextContent();
 			if (parmNodes != null && (parmNodes.getLength() > 0 || !C4Declaration.looksLikeConstName(name))) {
-				result = new C4Function();
 				C4Function function;
 				result = function = new C4Function();
 				for (int i = 0; i < parmNodes.getLength(); i++) {

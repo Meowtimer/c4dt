@@ -62,7 +62,7 @@ import org.eclipse.ui.texteditor.SourceViewerDecorationSupport;
 public class C4ScriptEditor extends ClonkTextEditor {
 
 	private static final class ScratchScript extends C4ScriptBase implements IHasEditorRefWhichEnablesStreamlinedOpeningOfDeclarations {
-		private final C4ScriptEditor me;
+		private transient final C4ScriptEditor me;
 		private static final long serialVersionUID = 1L;
 
 		private ScratchScript(C4ScriptEditor me) {

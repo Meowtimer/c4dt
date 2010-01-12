@@ -26,7 +26,7 @@ public class StringTbl extends C4Structure implements ITreeNode, ITableEntryInfo
 	private static final long serialVersionUID = 1L;
 	
 	private Map<String, NameValueAssignment> map = new HashMap<String, NameValueAssignment>();
-	private IFile file;
+	private transient IFile file;
 
 	public IFile getFile() {
 		return file;

@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -156,15 +157,15 @@ public final class ExternalLibsLoader implements IC4GroupVisitor {
 						for (String descLang : descEntries.keySet()) {
 							obj.addDesc(descLang, descEntries.get(descLang).getContentsAsString()); //$NON-NLS-1$ //$NON-NLS-2$
 						}
-						for (String stringTblLang : tbls.keySet()) {
+						for (Entry<String, C4GroupEntry> mapEntry : tbls.entrySet()) {
 							StringTbl tbl = new StringTbl();
 							try {
-								C4GroupEntry entry = tbls.get(stringTblLang);
+								C4GroupEntry entry = mapEntry.getValue();
 								tbl.read(entry.getContents());
 							} catch (CoreException e) {
 								e.printStackTrace();
 							}
-							obj.addStringTbl(stringTblLang, tbl);
+							obj.addStringTbl(mapEntry.getKey(), tbl);
 						}
 						
 						C4ScriptParser parser = new C4ScriptParser((IExternalScript)obj);

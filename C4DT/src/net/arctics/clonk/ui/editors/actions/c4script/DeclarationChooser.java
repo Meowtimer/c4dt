@@ -24,7 +24,7 @@ import org.eclipse.ui.dialogs.FilteredItemsSelectionDialog;
 
 public class DeclarationChooser extends FilteredItemsSelectionDialog {
 
-	private class LabelProvider extends org.eclipse.jface.viewers.LabelProvider implements IStyledLabelProvider {
+	private static class LabelProvider extends org.eclipse.jface.viewers.LabelProvider implements IStyledLabelProvider {
 
 		public StyledString getStyledText(Object element) {
 			StyledString result = ClonkOutlineProvider.getStyledTextForEveryone(element);

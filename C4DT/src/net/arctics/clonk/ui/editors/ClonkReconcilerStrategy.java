@@ -3,6 +3,7 @@ package net.arctics.clonk.ui.editors;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import org.eclipse.jface.text.AbstractDocument;
 import org.eclipse.jface.text.IDocumentPartitioner;
@@ -56,10 +57,8 @@ public class ClonkReconcilerStrategy extends SpellingReconcileStrategy {
 
 			//restore annotations
 			model = getAnnotationModel();
-			iter = spellingErrors.keySet().iterator();
-			while (iter.hasNext()) {
-				Annotation annotation = iter.next();
-				model.addAnnotation(annotation, spellingErrors.get(annotation));
+			for (Entry<Annotation, Position> entry : spellingErrors.entrySet()) {
+				model.addAnnotation(entry.getKey(), entry.getValue());
 			}
 			deleteUnwantedAnnotations();
 		}

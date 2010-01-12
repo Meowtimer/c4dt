@@ -23,7 +23,7 @@ public class C4ScriptMarkerResolution implements IMarkerResolution, IMarkerResol
 
 	private String label;
 	private String description;
-	private Image image;
+	//private Image image;
 	private IRegion region;
 
 	public C4ScriptMarkerResolution(IMarker marker) {
@@ -76,7 +76,7 @@ public class C4ScriptMarkerResolution implements IMarkerResolution, IMarkerResol
 	}
 
 	public Image getImage() {
-		return image;
+		return null;
 	}
 
 }

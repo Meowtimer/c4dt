@@ -255,6 +255,8 @@ public class EngineDeclarationsView extends ViewPart implements IPropertyChangeL
 			else if (scope instanceof C4FunctionScope) {
 				values = C4FunctionScope.values();
 			}
+			else
+				return null;
 			Combo combo = new Combo(parent, SWT.READ_ONLY);
 			int select = 0;
 			List<String> items = new ArrayList<String>(values.length);

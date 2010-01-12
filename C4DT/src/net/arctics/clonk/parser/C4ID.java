@@ -55,7 +55,7 @@ public class C4ID implements Serializable {
 	 */
 	@Override
 	public boolean equals(Object obj) {
-		return ((C4ID)obj).getName().equals(getName());
+		return obj instanceof C4ID && ((C4ID)obj).getName().equals(getName());
 	}
 
 	/* (non-Javadoc)

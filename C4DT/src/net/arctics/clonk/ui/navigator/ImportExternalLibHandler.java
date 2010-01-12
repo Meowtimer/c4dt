@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.resource.ExternalLib;
@@ -39,9 +40,9 @@ public class ImportExternalLibHandler extends AbstractHandler {
 					ClonkProjectNature.get(proj).getIndex().removeExternalLib((ExternalLib) obj);
 				}
 			}
-			for (IProject proj : libFiles.keySet()) {
-				List<File> files = libFiles.get(proj);
-				C4GroupImporter importer = new C4GroupImporter(files.toArray(new File[files.size()]), proj);
+			for (Entry<IProject, List<File>> entry : libFiles.entrySet()) {
+				List<File> files = entry.getValue();
+				C4GroupImporter importer = new C4GroupImporter(files.toArray(new File[files.size()]), entry.getKey());
 				final ProgressMonitorDialog progressDialog = new ProgressMonitorDialog(HandlerUtil.getActiveWorkbenchWindow(event).getShell());
 				try {
 					progressDialog.run(false, true, importer);
@@ -49,8 +50,8 @@ public class ImportExternalLibHandler extends AbstractHandler {
 					e.printStackTrace();
 					continue;
 				}
-				ClonkProjectNature.get(proj).getIndex().refreshCache();
-				Utilities.getProjectExplorer().getCommonViewer().refresh(proj);
+				ClonkProjectNature.get(entry.getKey()).getIndex().refreshCache();
+				Utilities.getProjectExplorer().getCommonViewer().refresh(entry.getKey());
 			}
 		}
 		return null;

@@ -208,7 +208,7 @@ public class C4Group implements C4GroupItem, Serializable, ITreeNode {
 			
 			@Override
 			public synchronized void mark(int readlimit) {
-				mark(readlimit);
+				stream.mark(readlimit);
 			}
 			
 			@Override

@@ -13,6 +13,10 @@ public class ClonkDebugValue extends ClonkDebugElement implements IValue {
 		this.variable = variable;
 	}
 
+	public ClonkDebugVariable getVariable() {
+    	return variable;
+    }
+
 	@Override
 	public String getReferenceTypeName() throws DebugException {
 		// TODO Auto-generated method stub

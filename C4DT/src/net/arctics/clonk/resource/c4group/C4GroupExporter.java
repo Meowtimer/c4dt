@@ -13,7 +13,6 @@ import net.arctics.clonk.util.Utilities;
 import org.eclipse.swt.SWT;
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IProject;
-import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Platform;
@@ -41,14 +40,11 @@ public class C4GroupExporter implements IRunnableWithProgress {
 		destPaths = new String[packs.length];
 		int i = -1;
 		FileDialog fileDialog = null;
-		for (IResource pack : packs) {
+		for (IContainer toExport : packs) {
 			i++;
-			if (!(pack instanceof IContainer))
-				continue;
-			IContainer toExport = (IContainer)pack;
 			String packPath;
 			boolean alwaysAskForPath = true;
-			if (alwaysAskForPath || !(pack.getParent() instanceof IProject)) {
+			if (alwaysAskForPath || !(toExport.getParent() instanceof IProject)) {
 				if (fileDialog == null)
 					fileDialog = new FileDialog(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(), SWT.SAVE);
 				fileDialog.setFileName(toExport.getName());
@@ -74,11 +70,8 @@ public class C4GroupExporter implements IRunnableWithProgress {
 		IPreferencesService service = Platform.getPreferencesService();
 		boolean showExportLog = service.getBoolean(ClonkCore.PLUGIN_ID, ClonkPreferences.SHOW_EXPORT_LOG, false, null);
 		int i = -1;
-		for(IResource pack : packs) {
+		for(IContainer toExport : packs) {
 			i++;
-			if (!(pack instanceof IContainer))
-				continue;
-			IContainer toExport = (IContainer)pack;
 			try {
 				if (monitor != null)
 					monitor.subTask(toExport.getName());

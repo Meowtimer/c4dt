@@ -14,6 +14,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.index.C4ObjectIntern;
@@ -362,9 +363,11 @@ public abstract class Utilities {
 		for (IProject p : projects) {
 			if (ClonkProjectNature.get(p) != null)
 				p.refreshLocal(IResource.DEPTH_INFINITE, monitor);
-			monitor.worked(work++);
+			if (monitor != null)
+				monitor.worked(work++);
 		}
-		monitor.done();
+		if (monitor != null)
+			monitor.done();
 	}
 	
 	public static <T> T itemMatching(IPredicate<T> predicate, List<T> sectionsList) {
@@ -499,8 +502,12 @@ public abstract class Utilities {
 						return index+1<items.length;
 					}
 
-					public T next() {
-						return items[++index];
+					public T next() throws NoSuchElementException {
+						try {
+							return items[++index];
+						} catch (ArrayIndexOutOfBoundsException e) {
+							throw new NoSuchElementException("Array iterator fail");
+						}
 					}
 
 					public void remove() {

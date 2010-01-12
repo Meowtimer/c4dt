@@ -1,5 +1,6 @@
 package net.arctics.clonk.parser.mapcreator;
 
+import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Modifier;
@@ -81,7 +82,7 @@ public class C4MapOverlayBase extends C4Structure implements Cloneable, ITreeNod
 		}
 	}
 	
-	public static class NumVal {
+	public static class NumVal implements Serializable {
 		private Unit unit;
 		private int value;
 		public Unit getUnit() {
@@ -118,7 +119,7 @@ public class C4MapOverlayBase extends C4Structure implements Cloneable, ITreeNod
 		}
 	}
 	
-	public static class Range {
+	public static class Range implements Serializable {
 		private NumVal lo, hi;
 
 		public Range(NumVal lo, NumVal hi) {

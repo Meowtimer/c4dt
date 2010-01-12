@@ -19,6 +19,10 @@ public class ClonkDebugVariable extends ClonkDebugElement implements IVariable {
 		this.value = new ClonkDebugValue(this);
 	}
 
+	public ClonkDebugStackFrame getStackFrame() {
+    	return stackFrame;
+    }
+
 	@Override
 	public String getName() throws DebugException {
 		return variable.getName();

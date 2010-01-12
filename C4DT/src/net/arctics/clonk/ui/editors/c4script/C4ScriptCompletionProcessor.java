@@ -322,7 +322,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 		builder.append(" "); //$NON-NLS-1$
 		builder.append(functionName);
 		builder.append("()"); //$NON-NLS-1$
-		switch (C4ScriptExprTree.BraceStyle) {
+		switch (C4ScriptExprTree.braceStyle) {
 		case NewLine:
 			builder.append("\n"); //$NON-NLS-1$
 			break;

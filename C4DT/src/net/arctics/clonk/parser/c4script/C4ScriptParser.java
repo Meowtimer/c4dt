@@ -2331,7 +2331,6 @@ public class C4ScriptParser {
 		}
 		int beforeElse = scanner.getPosition();
 		eatWhitespace();
-		offset = scanner.getPosition();
 		String nextWord = scanner.readIdent();
 		Statement elseStatement;
 		if (nextWord != null && nextWord.equals(Keywords.Else)) {
