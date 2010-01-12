@@ -5,9 +5,12 @@ import org.eclipse.debug.core.DebugPlugin;
 import org.eclipse.debug.core.ILaunch;
 import org.eclipse.debug.core.model.IDebugElement;
 import org.eclipse.debug.core.model.IDebugTarget;
+import org.eclipse.debug.core.model.IVariable;
 
 public class ClonkDebugElement implements IDebugElement {
 
+	protected static final IVariable[] NO_VARIABLES = new IVariable[0];
+	
 	private ClonkDebugTarget target;
 
 	public ClonkDebugElement(ClonkDebugTarget target) {

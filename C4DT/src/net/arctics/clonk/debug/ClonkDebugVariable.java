@@ -1,89 +1,66 @@
 package net.arctics.clonk.debug;
 
+import net.arctics.clonk.parser.c4script.C4Variable;
+
 import org.eclipse.debug.core.DebugException;
-import org.eclipse.debug.core.ILaunch;
-import org.eclipse.debug.core.model.IDebugTarget;
 import org.eclipse.debug.core.model.IValue;
 import org.eclipse.debug.core.model.IVariable;
 
-public class ClonkDebugVariable implements IVariable {
+public class ClonkDebugVariable extends ClonkDebugElement implements IVariable {
+
+	private ClonkDebugStackFrame stackFrame;
+	private C4Variable variable;
+	private ClonkDebugValue value;
+	
+	public ClonkDebugVariable(ClonkDebugStackFrame stackFrame, C4Variable variable) {
+		super(stackFrame.getTarget());
+		this.stackFrame = stackFrame;
+		this.variable = variable;
+		this.value = new ClonkDebugValue(this);
+	}
 
 	@Override
 	public String getName() throws DebugException {
-		// TODO Auto-generated method stub
-		return null;
+		return variable.getName();
 	}
 
 	@Override
 	public String getReferenceTypeName() throws DebugException {
-		// TODO Auto-generated method stub
-		return null;
+		return variable.getType().toString();
 	}
 
 	@Override
 	public IValue getValue() throws DebugException {
-		// TODO Auto-generated method stub
-		return null;
+		return value;
 	}
 
 	@Override
 	public boolean hasValueChanged() throws DebugException {
-		// TODO Auto-generated method stub
 		return false;
 	}
 
 	@Override
-	public IDebugTarget getDebugTarget() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public ILaunch getLaunch() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public String getModelIdentifier() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@SuppressWarnings("rawtypes")
-	@Override
-	public Object getAdapter(Class adapter) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
 	public void setValue(String expression) throws DebugException {
-		// TODO Auto-generated method stub
-
+		// not supported as of yet
 	}
 
 	@Override
 	public void setValue(IValue value) throws DebugException {
-		// TODO Auto-generated method stub
-
+		// not supported as of yet
 	}
 
 	@Override
 	public boolean supportsValueModification() {
-		// TODO Auto-generated method stub
 		return false;
 	}
 
 	@Override
 	public boolean verifyValue(String expression) throws DebugException {
-		// TODO Auto-generated method stub
 		return false;
 	}
 
 	@Override
 	public boolean verifyValue(IValue value) throws DebugException {
-		// TODO Auto-generated method stub
 		return false;
 	}
 

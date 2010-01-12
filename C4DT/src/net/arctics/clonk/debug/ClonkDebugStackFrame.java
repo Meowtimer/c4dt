@@ -1,6 +1,7 @@
 package net.arctics.clonk.debug;
 
 import net.arctics.clonk.parser.c4script.C4Function;
+import net.arctics.clonk.parser.c4script.C4Variable;
 
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IResource;
@@ -17,12 +18,31 @@ public class ClonkDebugStackFrame extends ClonkDebugElement implements IStackFra
 	private int line;
 	private Object function;
 	private ClonkDebugThread thread;
+	private IVariable[] variables;
 	
 	public ClonkDebugStackFrame(ClonkDebugThread thread, Object function, int line) {
 		super(thread.getTarget());
 		this.thread = thread;
 		this.function = function;
 		this.line = line;
+		setVariables();
+	}
+
+	private void setVariables() {
+		if (function instanceof C4Function) {
+			C4Function f = (C4Function) function;
+			variables = new IVariable[f.getParameters().size()+f.getLocalVars().size()];
+			int i = 0;
+			for (C4Variable parm : f.getParameters()) {
+				variables[i++] = new ClonkDebugVariable(this, parm);
+			}
+			for (C4Variable local : f.getLocalVars()) {
+				variables[i++] = new ClonkDebugVariable(this, local);
+			}
+		}
+		else {
+			variables = NO_VARIABLES;
+		}
 	}
 
 	public int getLine() {
@@ -78,7 +98,7 @@ public class ClonkDebugStackFrame extends ClonkDebugElement implements IStackFra
 
 	@Override
 	public IVariable[] getVariables() throws DebugException {
-		return new IVariable[0];
+		return variables;
 	}
 
 	@Override
@@ -88,7 +108,7 @@ public class ClonkDebugStackFrame extends ClonkDebugElement implements IStackFra
 
 	@Override
 	public boolean hasVariables() throws DebugException {
-		return false;
+		return variables.length > 0;
 	}
 
 	@Override
