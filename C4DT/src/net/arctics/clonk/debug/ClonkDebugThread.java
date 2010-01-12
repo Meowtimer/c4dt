@@ -19,9 +19,9 @@ import org.eclipse.debug.core.model.IThread;
 
 public class ClonkDebugThread extends ClonkDebugElement implements IThread {
 	
-	private static final IStackFrame[] NO_STACKFRAMES = new IStackFrame[0];
+	private static final ClonkDebugStackFrame[] NO_STACKFRAMES = new ClonkDebugStackFrame[0];
 	
-	private IStackFrame[] stackFrames;
+	private ClonkDebugStackFrame[] stackFrames;
 	
 	private void nullOut() {
 		stackFrames = NO_STACKFRAMES;
@@ -53,7 +53,8 @@ public class ClonkDebugThread extends ClonkDebugElement implements IThread {
 			nullOut();
 			return;
 		}
-		IStackFrame[] newStackFrames = new IStackFrame[stackTrace.size()];
+		ClonkDebugStackFrame[] newStackFrames = new ClonkDebugStackFrame[stackTrace.size()];
+		int stillToBeReused = stackFrames != null ? stackFrames.length : 0;
 		for (int i = 0; i < stackTrace.size(); i++) {
 			String sourcePath = stackTrace.get(i);
 			
@@ -68,9 +69,17 @@ public class ClonkDebugThread extends ClonkDebugElement implements IThread {
 			sourcePath = sourcePath.substring(0, delim);
 			C4ScriptBase script = findScript(sourcePath, index, new HashSet<ClonkIndex>());
 			C4Function f = script != null ? script.funcAtLine(line) : null;
+			Object funObj = f != null ? f : fullSourcePath;
+			if (stillToBeReused > 0) {
+				if (stackFrames[stillToBeReused-1].getFunction().equals(funObj)) {
+					newStackFrames[i] = stackFrames[--stillToBeReused];
+					newStackFrames[i].setLine(line);
+					continue;
+				}
+			}
 			newStackFrames[i] = new ClonkDebugStackFrame(this, f != null ? f : fullSourcePath, line);
 		}
-		this.stackFrames = newStackFrames;
+		stackFrames = newStackFrames;
 	}
 	
 	public ClonkDebugThread(ClonkDebugTarget target) {

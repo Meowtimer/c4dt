@@ -53,8 +53,8 @@ public class ClonkDebugStackFrame extends ClonkDebugElement implements IStackFra
 		this.line = line;
 	}
 
-	public C4Function getFunction() {
-		return (C4Function) (function instanceof C4Function ? function : null);
+	public Object getFunction() {
+		return function;
 	}
 
 	public void setFunction(Object function) {
