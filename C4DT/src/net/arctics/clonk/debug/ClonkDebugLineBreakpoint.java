@@ -1,86 +1,38 @@
 package net.arctics.clonk.debug;
 
 import net.arctics.clonk.ClonkCore;
+import net.arctics.clonk.ui.debug.ClonkDebugModelPresentation;
 
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.IWorkspaceRunnable;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.debug.core.model.IBreakpoint;
+import org.eclipse.debug.core.model.LineBreakpoint;
 
-public class ClonkDebugLineBreakpoint implements IBreakpoint {
+public class ClonkDebugLineBreakpoint extends LineBreakpoint {
 
-	private IMarker marker;
+	public static final String ID = ClonkDebugLineBreakpoint.class.getName(); // who needs ids differing from class name -.-
 	
-	public ClonkDebugLineBreakpoint(IResource resource, int lineNumber) throws CoreException {
-		IMarker marker = resource.createMarker(
-				"org.eclipse.debug.examples.core.pda.lineBreakpoint.marker"); //$NON-NLS-1$
-		setMarker(marker);
-		setEnabled(true);
-		marker.setAttribute(IMarker.LINE_NUMBER, lineNumber);
-		marker.setAttribute(IBreakpoint.ID, ClonkCore.PLUGIN_ID);
+	public ClonkDebugLineBreakpoint(final IResource resource, final int lineNumber) throws CoreException {
+		IWorkspaceRunnable markerAttribs = new IWorkspaceRunnable() {
+			@Override
+			public void run(IProgressMonitor monitor) throws CoreException {
+				IMarker marker = resource.createMarker(ClonkCore.id("breakpointMarker")); //$NON-NLS-1$
+				marker.setAttribute(IMarker.LINE_NUMBER, lineNumber);
+				marker.setAttribute(IBreakpoint.ENABLED, true);
+				marker.setAttribute(IBreakpoint.ID, getModelIdentifier());
+				marker.setAttribute(IMarker.MESSAGE, "Line Breakpoint");
+				setMarker(marker);
+			}
+		};
+		run(getMarkerRule(resource), markerAttribs);
 	}
 	
-	@Override
-	public void delete() throws CoreException {
-		marker.delete();
-	}
-
-	@Override
-	public IMarker getMarker() {
-		return marker;
-	}
-
 	@Override
 	public String getModelIdentifier() {
-		return ClonkCore.PLUGIN_ID;
-	}
-
-	@Override
-	public boolean isEnabled() throws CoreException {
-		// TODO Auto-generated method stub
-		return false;
-	}
-
-	@Override
-	public boolean isPersisted() throws CoreException {
-		// TODO Auto-generated method stub
-		return false;
-	}
-
-	@Override
-	public boolean isRegistered() throws CoreException {
-		// TODO Auto-generated method stub
-		return false;
-	}
-
-	@Override
-	public void setEnabled(boolean enabled) throws CoreException {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void setMarker(IMarker marker) throws CoreException {
-		this.marker = marker;
-	}
-
-	@Override
-	public void setPersisted(boolean registered) throws CoreException {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void setRegistered(boolean registered) throws CoreException {
-		// TODO Auto-generated method stub
-
-	}
-
-	@SuppressWarnings("rawtypes")
-	@Override
-	public Object getAdapter(Class adapter) {
-		// TODO Auto-generated method stub
-		return null;
+		return ClonkDebugModelPresentation.ID;
 	}
 
 }

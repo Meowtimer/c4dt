@@ -281,6 +281,30 @@
 		<persistent value="true" />
 		<super type="org.eclipse.core.resources.problemmarker" />
 	</extension>
+	
+	<!-- Debugger Breakpoints !-->
+	
+	<extension id="net.arctics.clonk.breakpointMarker" name="Clonk Breakpoint Marker"
+		point="org.eclipse.core.resources.markers">
+		<persistent value="true" />
+		<super type="org.eclipse.debug.core.breakpointMarker" />
+	</extension>
+	
+	<extension point="org.eclipse.debug.core.breakpoints">
+    	<breakpoint
+			class="net.arctics.clonk.debug.ClonkDebugLineBreakpoint"
+			id="net.arctics.clonk.debug.ClonkDebugLineBreakpoint"
+			markerType="net.arctics.clonk.breakpointMarker"
+		/>
+	</extension>
+	
+	<extension point="org.eclipse.core.runtime.adapters">
+		<factory
+			class="net.arctics.clonk.debug.ClonkDebugBreakpointAdapterFactory"
+			adaptableType="net.arctics.clonk.ui.editors.c4script.C4ScriptEditor">
+			<adapter type="org.eclipse.debug.ui.actions.IToggleBreakpointsTarget" />
+		</factory>
+	</extension>
 
 	<extension point="org.eclipse.ui.commands">
 		<command categoryId="org.eclipse.ui.category.navigate"
