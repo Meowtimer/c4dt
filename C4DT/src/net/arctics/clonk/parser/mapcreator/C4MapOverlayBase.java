@@ -83,6 +83,9 @@ public class C4MapOverlayBase extends C4Structure implements Cloneable, ITreeNod
 	}
 	
 	public static class NumVal implements Serializable {
+
+		private static final long serialVersionUID = 1L;
+		
 		private Unit unit;
 		private int value;
 		public Unit getUnit() {
@@ -120,6 +123,9 @@ public class C4MapOverlayBase extends C4Structure implements Cloneable, ITreeNod
 	}
 	
 	public static class Range implements Serializable {
+
+		private static final long serialVersionUID = 1L;
+		
 		private NumVal lo, hi;
 
 		public Range(NumVal lo, NumVal hi) {

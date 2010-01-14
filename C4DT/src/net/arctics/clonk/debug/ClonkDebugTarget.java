@@ -30,6 +30,17 @@ import org.eclipse.debug.core.model.IThread;
 
 public class ClonkDebugTarget extends ClonkDebugElement implements IDebugTarget {
 
+	public static class Commands {
+		public static final String RESUME = "GO"; //$NON-NLS-1$
+		public static final String SUSPEND = "STP"; //$NON-NLS-1$
+		public static final String STEPOVER = "STO";
+		public static final String STEPRETURN = "STR";
+		public static final String QUITSESSION = "BYE";
+		public static final String STACKTRACE = "STA";
+	}
+	
+	public static final int CONNECTION_ATTEMPT_WAITTIME = 5000;
+	
 	private ILaunch launch;
 	private IProcess process;
 	private ClonkDebugThread thread;
@@ -131,12 +142,15 @@ public class ClonkDebugTarget extends ClonkDebugElement implements IDebugTarget 
 				Socket socket;
 				try {
 					socket = new Socket("localhost", port); //$NON-NLS-1$
-				} catch (UnknownHostException e) {
-					try {Thread.sleep(5000);} catch (InterruptedException interrupt) {}
-					continue;
-				} catch (IOException e) {
-					try {Thread.sleep(5000);} catch (InterruptedException interrupt) {}
-					continue;
+				} catch (Exception e) {
+					if (e instanceof UnknownHostException || e instanceof IOException) {
+						try {Thread.sleep(CONNECTION_ATTEMPT_WAITTIME);} catch (InterruptedException interrupt) {}
+						continue;
+					}
+					else {
+						e.printStackTrace();
+						return Status.CANCEL_STATUS;
+					}
 				}
 				PrintWriter socketWriter = null;
 				BufferedReader socketReader = null;
@@ -296,15 +310,6 @@ public class ClonkDebugTarget extends ClonkDebugElement implements IDebugTarget 
 		return suspended;
 	}
 	
-	public static class Commands {
-		public static final String RESUME = "GO"; //$NON-NLS-1$
-		public static final String SUSPEND = "STP"; //$NON-NLS-1$
-		public static final String STEPOVER = "STO";
-		public static final String STEPRETURN = "STR";
-		public static final String QUITSESSION = "BYE";
-		public static final String STACKTRACE = "STA";
-	}
-	
 	public synchronized void send(String command) {
 		socketWriter.println(command);
 		socketWriter.flush();
@@ -363,8 +368,7 @@ public class ClonkDebugTarget extends ClonkDebugElement implements IDebugTarget 
 	}
 
 	@Override
-	public IMemoryBlock getMemoryBlock(long startAddress, long length)
-			throws DebugException {
+	public IMemoryBlock getMemoryBlock(long startAddress, long length) throws DebugException {
 		return null;
 	}
 
