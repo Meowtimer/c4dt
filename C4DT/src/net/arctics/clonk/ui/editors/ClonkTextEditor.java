@@ -13,6 +13,7 @@ import net.arctics.clonk.ui.editors.c4script.ClonkContentOutlinePage;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.Separator;
@@ -24,7 +25,6 @@ import org.eclipse.jface.text.hyperlink.IHyperlinkDetector;
 import org.eclipse.ui.IEditorDescriptor;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorPart;
-import org.eclipse.ui.IEditorSite;
 import org.eclipse.ui.IFileEditorInput;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPage;
@@ -197,11 +197,11 @@ public class ClonkTextEditor extends TextEditor {
 	}
 	
 	@Override
-	public void init(IEditorSite site, IEditorInput input) throws PartInitException { 	  
-	    super.init(site, input);
-	    IResource res = (IResource) getEditorInput().getAdapter(IResource.class);
+	protected void doSetInput(IEditorInput input) throws CoreException {
+		super.doSetInput(input);
+		// set part name to reflect the folder the file is in
+		IResource res = (IResource) getEditorInput().getAdapter(IResource.class);
 		if (res != null && res.getParent() != null) {
-			// name of script file not very descriptive (Script.c)
 			setPartName(res.getParent().getName() + "/" + res.getName()); //$NON-NLS-1$
 		}
 	}

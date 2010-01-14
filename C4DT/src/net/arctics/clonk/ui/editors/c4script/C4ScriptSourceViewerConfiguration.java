@@ -11,7 +11,6 @@ import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.text.DefaultInformationControl;
 import org.eclipse.jface.text.IAutoEditStrategy;
 import org.eclipse.jface.text.IDocument;
-import org.eclipse.jface.text.IDocumentPartitioner;
 import org.eclipse.jface.text.IInformationControl;
 import org.eclipse.jface.text.IInformationControlCreator;
 import org.eclipse.jface.text.IRegion;
@@ -28,7 +27,6 @@ import org.eclipse.jface.text.presentation.PresentationReconciler;
 import org.eclipse.jface.text.quickassist.IQuickAssistAssistant;
 import org.eclipse.jface.text.quickassist.QuickAssistAssistant;
 import org.eclipse.jface.text.rules.DefaultDamagerRepairer;
-import org.eclipse.jface.text.rules.FastPartitioner;
 import org.eclipse.jface.text.rules.Token;
 import org.eclipse.jface.text.source.ISourceViewer;
 import org.eclipse.swt.widgets.Shell;
@@ -151,18 +149,6 @@ public class C4ScriptSourceViewerConfiguration extends ClonkSourceViewerConfigur
 	
 	public IPresentationReconciler getPresentationReconciler(ISourceViewer sourceViewer) {
 		PresentationReconciler reconciler = new PresentationReconciler();
-		
-		// FIXME remove it again at some time?
-		IDocument document = getEditor().getDocumentProvider().getDocument(getEditor().getEditorInput());
-		if (document.getDocumentPartitioner() == null) {
-			IDocumentPartitioner partitioner =
-				new FastPartitioner(
-					new ClonkPartitionScanner(),
-					ClonkPartitionScanner.C4S_PARTITIONS
-				);
-			partitioner.connect(document);
-			document.setDocumentPartitioner(partitioner);
-		}
 		
 		DefaultDamagerRepairer dr =
 			new DefaultDamagerRepairer(getClonkScanner());

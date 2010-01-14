@@ -26,6 +26,7 @@ import net.arctics.clonk.parser.c4script.C4ScriptExprTree.CallFunc;
 import net.arctics.clonk.parser.c4script.C4ScriptExprTree.ExprElm;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.ui.editors.ClonkCompletionProposal;
+import net.arctics.clonk.ui.editors.ClonkPartitionScanner;
 import net.arctics.clonk.ui.editors.ExternalScriptsDocumentProvider;
 import net.arctics.clonk.ui.editors.IClonkCommandIds;
 import net.arctics.clonk.ui.editors.ClonkTextEditor;
@@ -37,6 +38,7 @@ import net.arctics.clonk.ui.editors.actions.c4script.RenameDeclarationAction;
 import net.arctics.clonk.util.Utilities;
 
 import org.eclipse.core.resources.IFile;
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.preference.PreferenceConverter;
@@ -44,17 +46,17 @@ import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.DocumentEvent;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IDocumentListener;
+import org.eclipse.jface.text.IDocumentPartitioner;
 import org.eclipse.jface.text.ITextOperationTarget;
 import org.eclipse.jface.text.Region;
 import org.eclipse.jface.text.TextSelection;
+import org.eclipse.jface.text.rules.FastPartitioner;
 import org.eclipse.jface.text.source.DefaultCharacterPairMatcher;
 import org.eclipse.jface.text.source.ISourceViewer;
 import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.IEditorInput;
-import org.eclipse.ui.IEditorSite;
-import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.texteditor.ITextEditor;
 import org.eclipse.ui.texteditor.SourceViewerDecorationSupport;
@@ -251,8 +253,20 @@ public class C4ScriptEditor extends ClonkTextEditor {
 	}
 	
 	@Override
-	public void init(IEditorSite site, IEditorInput input) throws PartInitException {
-		super.init(site, input);
+	protected void doSetInput(IEditorInput input) throws CoreException {
+		super.doSetInput(input);
+		
+		// set partitioner (FIXME: remove again?)
+		IDocument document = getDocumentProvider().getDocument(input);
+		if (document.getDocumentPartitioner() == null) {
+			IDocumentPartitioner partitioner =
+				new FastPartitioner(
+					new ClonkPartitionScanner(),
+					ClonkPartitionScanner.C4S_PARTITIONS
+				);
+			partitioner.connect(document);
+			document.setDocumentPartitioner(partitioner);
+		}
 	}
 	
 	@Override
