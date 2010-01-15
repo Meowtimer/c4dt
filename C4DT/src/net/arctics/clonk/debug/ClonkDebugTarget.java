@@ -59,14 +59,7 @@ public class ClonkDebugTarget extends ClonkDebugElement implements IDebugTarget 
 		return socketReader;
 	}
 	
-	public enum EventDispatchState {
-		Normal,
-		GatheringStackTrace
-	}
-	
 	private class EventDispatchJob extends Job {
-		
-		private EventDispatchState state = EventDispatchState.Normal;
 		
 		public EventDispatchJob(String name) {
 			super(name);
@@ -74,43 +67,53 @@ public class ClonkDebugTarget extends ClonkDebugElement implements IDebugTarget 
 		
 		private List<String> stackTrace = new ArrayList<String>(10);
 		
+		private final String receive() throws IOException {
+			String r = socketReader.readLine();
+			if (r != null) {
+				if (r.charAt(r.length()-1) == 0)
+					r = r.substring(0, r.length()-1);
+				System.out.println("Got line from Clonk: " + r); //$NON-NLS-1$
+			}
+			return r;
+		}
+		
 		@Override
 		protected IStatus run(IProgressMonitor monitor) {
 			String event = ""; //$NON-NLS-1$
 			while (!isTerminated() && event != null) {
 				try {
-					event = socketReader.readLine();
+					event = receive();
 					if (event != null && event.length() > 0) {
-						System.out.println("Got line from Clonk: " + event); //$NON-NLS-1$
 						if (event.startsWith("POS")) { //$NON-NLS-1$
-							String sourcePath = event.substring(4, event.length() - (event.charAt(event.length()-1)==0?1:0)); // cut off weird 0 at end
-							switch (state) {
-							case Normal:
-								stackTrace.clear();
-								stackTrace.add(sourcePath);
-								stoppedWithStackTrace(stackTrace);
-								if (!suspended) {
-									suspended = true;
-									thread.fireSuspendEvent(DebugEvent.CLIENT_REQUEST);
+							String sourcePath = event.substring(4, event.length());
+							stackTrace.clear();
+							stackTrace.add(sourcePath);
+
+							send("SST");
+							while (!isTerminated() && event != null) {
+								event = receive();
+								if (event != null && event.length() > 0) {
+									if (event.equals("EST")) {
+										break;
+									}
+									else if (event.startsWith("AT ")) {
+										if (stackTrace.size() > 512) {
+											System.out.println("Runaway stacktrace");
+											break;
+										}
+										else {
+											stackTrace.add(event.substring("AT ".length()));
+										}
+									}
+									else
+										break;
 								}
-								break;
-								/*send(Commands.STACKTRACE);
-								state = EventDispatchState.GatheringStackTrace;
-								break;*/
-							case GatheringStackTrace:
-								stackTrace.add(sourcePath);
-								break;
 							}
-						}
-						else if (event.startsWith("ENDSTACKFRAME")) {
-							switch (state) {
-							case GatheringStackTrace:
-								stoppedWithStackTrace(stackTrace);
-								if (!suspended) {
-									suspended = true;
-									thread.fireSuspendEvent(DebugEvent.CLIENT_REQUEST);
-								}
-								break;
+
+							stoppedWithStackTrace(stackTrace);
+							if (!suspended) {
+								suspended = true;
+								thread.fireSuspendEvent(DebugEvent.CLIENT_REQUEST);
 							}
 						}
 					}
