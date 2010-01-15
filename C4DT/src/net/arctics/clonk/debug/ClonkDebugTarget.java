@@ -184,8 +184,18 @@ public class ClonkDebugTarget extends ClonkDebugElement implements IDebugTarget 
 		fireEvent(new DebugEvent(this, DebugEvent.CREATE));
 		
 		send(""); //$NON-NLS-1$
+		send("STP"); // suspend in order to set breakpoints
+		setBreakpoints();
+		send("GO"); // go!
 		
 		new EventDispatchJob("Clonk Debugger Event Dispatch").schedule(); //$NON-NLS-1$
+	}
+	
+	private void setBreakpoints() {
+		IBreakpoint[] breakpoints = DebugPlugin.getDefault().getBreakpointManager().getBreakpoints(ClonkDebugModelPresentation.ID);
+		for (IBreakpoint b : breakpoints) {
+			breakpointAdded(b);
+		}
 	}
 	
 	private void stoppedWithStackTrace(List<String> stackTrace) {
