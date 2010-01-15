@@ -1,5 +1,6 @@
 package net.arctics.clonk.debug;
 
+import net.arctics.clonk.ui.debug.ClonkDebugModelPresentation;
 import net.arctics.clonk.ui.editors.c4script.C4ScriptEditor;
 
 import org.eclipse.core.resources.IResource;
@@ -22,7 +23,7 @@ public class ClonkDebugBreakpointAdapter implements IToggleBreakpointsTarget {
 			IResource resource = (IResource) textEditor.getEditorInput().getAdapter(IResource.class);
 			ITextSelection textSelection = (ITextSelection) selection;
 			int lineNumber = textSelection.getStartLine();
-			IBreakpoint[] breakpoints = DebugPlugin.getDefault().getBreakpointManager().getBreakpoints(ClonkDebugLineBreakpoint.ID);
+			IBreakpoint[] breakpoints = DebugPlugin.getDefault().getBreakpointManager().getBreakpoints(ClonkDebugModelPresentation.ID);
 			for (int i = 0; i < breakpoints.length; i++) {
 				IBreakpoint breakpoint = breakpoints[i];
 				if (resource.equals(breakpoint.getMarker().getResource())) {

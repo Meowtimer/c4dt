@@ -329,8 +329,14 @@ public class ClonkDebugTarget extends ClonkDebugElement implements IDebugTarget 
 
 	@Override
 	public void breakpointAdded(IBreakpoint breakpoint) {
-		// TODO Auto-generated method stub
-
+		try {
+			if (breakpoint instanceof ClonkDebugLineBreakpoint) {
+				ClonkDebugLineBreakpoint bp = (ClonkDebugLineBreakpoint) breakpoint;
+				send("TBR " + bp.getMarker().getResource().getProjectRelativePath().toOSString() + ":" + bp.getLineNumber());
+			}
+		} catch (CoreException e) {
+			e.printStackTrace();
+		}
 	}
 
 	@Override
@@ -341,8 +347,7 @@ public class ClonkDebugTarget extends ClonkDebugElement implements IDebugTarget 
 
 	@Override
 	public void breakpointRemoved(IBreakpoint breakpoint, IMarkerDelta delta) {
-		// TODO Auto-generated method stub
-
+		breakpointAdded(breakpoint);
 	}
 
 	@Override

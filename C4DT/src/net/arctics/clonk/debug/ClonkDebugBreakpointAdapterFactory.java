@@ -23,7 +23,7 @@ public class ClonkDebugBreakpointAdapterFactory implements IAdapterFactory {
 	@Override
 	public Class[] getAdapterList() {
 		return new Class[] {
-			ClonkDebugBreakpointAdapter.class
+			C4ScriptEditor.class
 		};
 	}
 
