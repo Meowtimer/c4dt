@@ -1,5 +1,6 @@
 package net.arctics.clonk.ui.debug;
 
+import net.arctics.clonk.debug.ClonkDebugLineBreakpoint;
 import net.arctics.clonk.debug.ClonkDebugStackFrame;
 import net.arctics.clonk.debug.ClonkDebugTarget;
 import net.arctics.clonk.debug.ClonkDebugThread;
@@ -9,6 +10,7 @@ import net.arctics.clonk.ui.editors.c4script.ScriptWithStorageEditorInput;
 import net.arctics.clonk.util.Utilities;
 
 import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IMarker;
 import org.eclipse.debug.core.DebugException;
 import org.eclipse.debug.core.model.IValue;
 import org.eclipse.debug.ui.IDebugModelPresentation;
@@ -59,6 +61,8 @@ public class ClonkDebugModelPresentation extends LabelProvider implements IDebug
 				return ((ClonkDebugStackFrame) element).getName();
 			else if (element instanceof ClonkDebugTarget)
 				return ((ClonkDebugTarget) element).getName();
+			else if (element instanceof ClonkDebugLineBreakpoint)
+				return ((ClonkDebugLineBreakpoint)element).getMarker().getAttribute(IMarker.MESSAGE, "Breakpoint");
 			else
 				return "Empty";
 		} catch (DebugException e) {

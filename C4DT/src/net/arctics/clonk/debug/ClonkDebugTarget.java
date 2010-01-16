@@ -39,7 +39,7 @@ public class ClonkDebugTarget extends ClonkDebugElement implements IDebugTarget 
 		public static final String STACKTRACE = "STA";
 	}
 	
-	public static final int CONNECTION_ATTEMPT_WAITTIME = 5000;
+	public static final int CONNECTION_ATTEMPT_WAITTIME = 2000;
 	
 	private ILaunch launch;
 	private IProcess process;
