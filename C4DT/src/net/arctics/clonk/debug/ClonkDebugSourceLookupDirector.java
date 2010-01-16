@@ -12,7 +12,6 @@ import org.eclipse.debug.core.sourcelookup.containers.ProjectSourceContainer;
 public class ClonkDebugSourceLookupDirector extends AbstractSourceLookupDirector {
 
 	public ClonkDebugSourceLookupDirector() {
-		System.out.println("Created Source Locator"); //$NON-NLS-1$
 	}
 
 	@Override

@@ -90,7 +90,7 @@ public class DeclarationLocator extends ExpressionLocator {
 					AccessDeclaration access = (AccessDeclaration) exprAtRegion;
 					
 					// gather declarations with that name from the project index and from the external index
-					List<C4Declaration> projectDeclarations = script.getIndex() instanceof ExternIndex ? null : script.getIndex().getDeclarationMap().get(access.getDeclarationName());
+					List<C4Declaration> projectDeclarations = script.getIndex() == ClonkCore.getDefault().getExternIndex() ? null : script.getIndex().getDeclarationMap().get(access.getDeclarationName());
 					List<C4Declaration> externalDeclarations = ClonkCore.getDefault().getExternIndex().getDeclarationMap().get(access.getDeclarationName());
 					
 					// filter to make sure the declarations found are actually functions and in the case of external ones also contained in the project dependencies

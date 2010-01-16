@@ -33,6 +33,7 @@ import org.eclipse.debug.core.model.IDebugTarget;
 import org.eclipse.debug.core.model.ILaunchConfigurationDelegate;
 import org.eclipse.debug.core.model.IProcess;
 import org.eclipse.jface.preference.IPreferenceStore;
+import org.eclipse.jface.util.Util;
 
 public class ClonkLaunchConfigurationDelegate implements
 		ILaunchConfigurationDelegate {
@@ -196,7 +197,7 @@ public class ClonkLaunchConfigurationDelegate implements
 		}
 		
 		// Full screen/console
-		if(configuration.getAttribute(ATTR_FULLSCREEN, false))
+		if(configuration.getAttribute(ATTR_FULLSCREEN, false) || Util.isMac()) // no console for macs
 			args.add("/fullscreen"); //$NON-NLS-1$
 		else {
 			args.add("/console"); //$NON-NLS-1$

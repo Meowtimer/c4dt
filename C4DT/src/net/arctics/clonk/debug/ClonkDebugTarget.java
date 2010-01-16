@@ -258,8 +258,7 @@ public class ClonkDebugTarget extends ClonkDebugElement implements IDebugTarget 
 
 	@Override
 	public boolean supportsBreakpoint(IBreakpoint breakpoint) {
-		// TODO Auto-generated method stub
-		return false;
+		return breakpoint instanceof ClonkDebugLineBreakpoint;
 	}
 
 	@Override
@@ -324,6 +323,7 @@ public class ClonkDebugTarget extends ClonkDebugElement implements IDebugTarget 
 	}
 	
 	public synchronized void send(String command) {
+		System.out.println("Sending " + command + " to engine");
 		socketWriter.println(command);
 		socketWriter.flush();
 	}
