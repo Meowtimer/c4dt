@@ -232,8 +232,10 @@ public class IniUnit extends C4Structure implements Iterable<IniSection>, IHasCh
 	}
 	
 	protected boolean skipComment() {
-		int r;
-		for (r = reader.read(); r == 0; r = reader.read());
+		reader.eatWhitespace();
+		int _r;
+		for (_r = reader.read(); _r == 0; _r = reader.read());
+		char r = (char) _r;
 		if (r == ';' || r == '#') {
 			reader.readStringUntil('\n');
 			reader.eatWhitespace();
