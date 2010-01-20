@@ -7,10 +7,10 @@ import java.io.PrintWriter;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
-
+import java.util.Map;
 import net.arctics.clonk.ui.debug.ClonkDebugModelPresentation;
-
 import org.eclipse.core.resources.IMarkerDelta;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
@@ -111,6 +111,37 @@ public class ClonkDebugTarget extends ClonkDebugElement implements IDebugTarget 
 							}
 
 							stoppedWithStackTrace(stackTrace);
+							
+							try {
+								if (thread.getTopStackFrame() != null && thread.getTopStackFrame().getVariables() != null) {
+									ClonkDebugVariable[] varArray = ((ClonkDebugStackFrame)thread.getTopStackFrame()).getVariables();
+									Map<String, ClonkDebugVariable> vars = new HashMap<String, ClonkDebugVariable>(varArray.length);
+									for (ClonkDebugVariable var : varArray)
+										vars.put(var.getName(), var);
+									for (ClonkDebugVariable var : vars.values()) {
+										send("VAR " + var.getName());
+									}
+									while (!isTerminated() && event != null && !vars.isEmpty()) {
+										event = receive();
+										if (event != null && event.length() > 0) {
+											if (event.startsWith("VAR ")) {
+												event = event.substring("VAR ".length());
+												String[] parts = event.split("=");
+												if (parts != null && parts.length == 2) {
+													ClonkDebugVariable var = vars.get(parts[0]);
+													if (var != null) {
+														var.getValue().setValue(parts[1]);
+														vars.remove(parts[0]);
+													}
+												}
+											}
+										}
+									}
+								}
+							} catch (DebugException e) {
+								e.printStackTrace();
+							}
+							
 							if (!suspended) {
 								suspended = true;
 								thread.fireSuspendEvent(DebugEvent.CLIENT_REQUEST);

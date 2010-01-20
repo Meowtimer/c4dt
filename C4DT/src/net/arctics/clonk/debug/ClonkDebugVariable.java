@@ -34,7 +34,7 @@ public class ClonkDebugVariable extends ClonkDebugElement implements IVariable {
 	}
 
 	@Override
-	public IValue getValue() throws DebugException {
+	public ClonkDebugValue getValue() throws DebugException {
 		return value;
 	}
 

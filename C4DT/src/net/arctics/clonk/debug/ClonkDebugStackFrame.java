@@ -9,7 +9,6 @@ import org.eclipse.debug.core.DebugException;
 import org.eclipse.debug.core.model.IRegisterGroup;
 import org.eclipse.debug.core.model.IStackFrame;
 import org.eclipse.debug.core.model.IThread;
-import org.eclipse.debug.core.model.IVariable;
 
 public class ClonkDebugStackFrame extends ClonkDebugElement implements IStackFrame {
 
@@ -18,7 +17,7 @@ public class ClonkDebugStackFrame extends ClonkDebugElement implements IStackFra
 	private int line;
 	private Object function;
 	private ClonkDebugThread thread;
-	private IVariable[] variables;
+	private ClonkDebugVariable[] variables;
 	
 	public ClonkDebugStackFrame(ClonkDebugThread thread, Object function, int line) {
 		super(thread.getTarget());
@@ -31,7 +30,7 @@ public class ClonkDebugStackFrame extends ClonkDebugElement implements IStackFra
 	private void setVariables() {
 		if (function instanceof C4Function) {
 			C4Function f = (C4Function) function;
-			variables = new IVariable[f.getParameters().size()+f.getLocalVars().size()];
+			variables = new ClonkDebugVariable[f.getParameters().size()+f.getLocalVars().size()];
 			int i = 0;
 			for (C4Variable parm : f.getParameters()) {
 				variables[i++] = new ClonkDebugVariable(this, parm);
@@ -97,7 +96,7 @@ public class ClonkDebugStackFrame extends ClonkDebugElement implements IStackFra
 	}
 
 	@Override
-	public IVariable[] getVariables() throws DebugException {
+	public ClonkDebugVariable[] getVariables() throws DebugException {
 		return variables;
 	}
 
