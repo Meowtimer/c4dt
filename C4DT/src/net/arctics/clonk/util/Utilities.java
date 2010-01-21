@@ -15,6 +15,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.Set;
 
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.index.C4ObjectIntern;
@@ -647,6 +648,22 @@ public abstract class Utilities {
 	
 	public static Class<?>[] getParameterTypes(Object[] constructorArgs) {
 		return map(constructorArgs, Class.class, INSTANCE_TO_CLASS_CONVERTER);
+	}
+	
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	public static <T> Set<T> arrayToSet(T[] arr, Class<? extends Set> setClass) {
+		try {
+			Set<T> result = setClass.newInstance();
+			for (T elm : arr)
+				result.add(elm);
+			return result;
+		} catch (InstantiationException e) {
+			e.printStackTrace();
+			return null;
+		} catch (IllegalAccessException e) {
+			e.printStackTrace();
+			return null;
+		}	
 	}
 	
 }
