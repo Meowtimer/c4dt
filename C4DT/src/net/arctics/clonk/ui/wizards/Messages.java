@@ -41,8 +41,8 @@ public class Messages extends NLS {
 	public static String NewClonkFolderWizardPage_7;
 	public static String NewClonkFolderWizardPage_8;
 	public static String NewClonkFolderWizardPage_9;
-	public static String NewClonkProject_3;
-	public static String NewClonkProject_4;
+	public static String NewClonkProject_PageTitle;
+	public static String NewClonkProject_WindowTitle;
 	public static String NewParticle_0;
 	public static String NewParticle_1;
 	public static String NewParticle_2;
