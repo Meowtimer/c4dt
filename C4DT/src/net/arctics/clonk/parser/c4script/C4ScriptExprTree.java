@@ -122,7 +122,6 @@ public abstract class C4ScriptExprTree {
 	};
 
 	/**
-	 * @author madeen
 	 * base class for making expression trees
 	 */
 	public static class ExprElm implements IRegion, Cloneable, IPrintable {
@@ -2341,7 +2340,6 @@ public abstract class C4ScriptExprTree {
 
 	/**
 	 * Baseclass for statements.
-	 * @author madeen
 	 *
 	 */
 	public static class Statement extends ExprElm {
@@ -2383,7 +2381,6 @@ public abstract class C4ScriptExprTree {
 
 	/**
 	 * A {} block
-	 * @author madeen
 	 *
 	 */
 	public static class Block extends Statement {
@@ -2516,7 +2513,6 @@ public abstract class C4ScriptExprTree {
 
 	/**
 	 * Simple statement wrapper for an expression.
-	 * @author madeen
 	 * 
 	 */
 	public static class SimpleStatement extends Statement {
@@ -2581,7 +2577,6 @@ public abstract class C4ScriptExprTree {
 
 	/**
 	 * Baseclass for statements which begin with a keyword
-	 * @author madeen
 	 *
 	 */
 	public static abstract class KeywordStatement extends Statement {
