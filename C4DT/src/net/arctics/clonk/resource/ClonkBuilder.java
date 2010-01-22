@@ -2,6 +2,7 @@ package net.arctics.clonk.resource;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URI;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -27,6 +28,8 @@ import net.arctics.clonk.resource.c4group.C4Group.C4GroupType;
 import net.arctics.clonk.ui.editors.ClonkTextEditor;
 import net.arctics.clonk.util.Utilities;
 
+import org.eclipse.core.filesystem.EFS;
+import org.eclipse.core.filesystem.IFileStore;
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
@@ -110,6 +113,48 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 		}
 	}
 	
+	private class C4GroupStreamHandler implements IResourceDeltaVisitor, IResourceVisitor {
+		
+		public static final int OPEN = 0;
+		public static final int CLOSE = 1;
+		
+		private int operation;
+		
+		public C4GroupStreamHandler(int operation) {
+			this.operation = operation;
+		}
+		
+		@Override
+		public boolean visit(IResourceDelta delta) throws CoreException {
+			IResource res = delta.getResource();
+			return visit(res);
+		}
+
+		@Override
+		public boolean visit(IResource res) throws CoreException {
+			if (res.getParent() != null && res.getParent().equals(res.getProject()) && res instanceof IContainer) {
+				URI uri = res.getLocationURI();
+				IFileStore store = EFS.getStore(uri);
+				if (store instanceof C4Group) {
+					C4Group group = (C4Group) store;
+					try {
+						switch (operation) {
+						case OPEN:
+							group.requireStream();
+							break;
+						case CLOSE:
+							group.releaseStream();
+							break;
+						}
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
+				}
+			}
+			return res instanceof IProject;
+		}
+	}
+	
 	private int buildPhase;
 	private IProgressMonitor monitor;
 	private boolean cleanedUI;
@@ -175,101 +220,107 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 				case INCREMENTAL_BUILD:
 					IResourceDelta delta = getDelta(proj);
 					if (delta != null) {
+						delta.accept(new C4GroupStreamHandler(C4GroupStreamHandler.OPEN));
+						try {
 
-						// count num of resources to build
-						ResourceCounter counter = new ResourceCounter(ResourceCounter.COUNT_CONTAINER);
-						delta.accept(counter);
+							// count num of resources to build
+							ResourceCounter counter = new ResourceCounter(ResourceCounter.COUNT_CONTAINER);
+							delta.accept(counter);
 
-						// initialize progress monitor
-						monitor.beginTask(String.format(Messages.BuildProject, proj.getName()), counter.getCount());
-						
-						// parse declarations
-						buildPhase = 0;
-						delta.accept(this);
-						listOfResourcesToBeRefreshed.add(delta.getResource());
-						// refresh global func and static var cache
-						ClonkProjectNature.get(proj).getIndex().refreshCache();
-						
-						// parse function code
-						buildPhase = 1;
-						delta.accept(this);
-						applyLatentMarkers();
-						reparseDependentScripts(monitor);
+							// initialize progress monitor
+							monitor.beginTask(String.format(Messages.BuildProject, proj.getName()), counter.getCount());
 
-						// fire change event
-						//delta.getResource().touch(monitor);
+							// parse declarations
+							buildPhase = 0;
+							delta.accept(this);
+							listOfResourcesToBeRefreshed.add(delta.getResource());
+							// refresh global func and static var cache
+							ClonkProjectNature.get(proj).getIndex().refreshCache();
+
+							// parse function code
+							buildPhase = 1;
+							delta.accept(this);
+							applyLatentMarkers();
+							reparseDependentScripts(monitor);
+
+						} finally {
+							delta.accept(new C4GroupStreamHandler(C4GroupStreamHandler.CLOSE));
+						}
 					}
 					break;
 
 				case FULL_BUILD:
-					
-					ProjectIndex projIndex = ClonkProjectNature.get(proj).getIndex();
+					proj.accept(new C4GroupStreamHandler(C4GroupStreamHandler.OPEN));
+					try {
+						ProjectIndex projIndex = ClonkProjectNature.get(proj).getIndex();
 
-					// calculate build duration
-					int[] operations = new int[5];
+						// calculate build duration
+						int[] operations = new int[5];
 
-					// count num of resources to build and also clean...
-					ResourceCounterAndCleaner counter = new ResourceCounterAndCleaner(ResourceCounter.COUNT_CONTAINER);
-					proj.accept(counter);
-					operations[0] = counter.getCount() * 2;
-					operations[1] = counter.getCount();
+						// count num of resources to build and also clean...
+						ResourceCounterAndCleaner counter = new ResourceCounterAndCleaner(ResourceCounter.COUNT_CONTAINER);
+						proj.accept(counter);
+						operations[0] = counter.getCount() * 2;
+						operations[1] = counter.getCount();
 
-					operations[2] = 0;
-					operations[3] = 0;
-					ClonkLibBuilder libBuilder = ClonkCore.getDefault().getLibBuilder();
-					if (libBuilder.isBuildNeeded()) {
-						String[] externalLibs = getExternalLibNames();
-						for(String lib : externalLibs) {
-							File file = new File(lib);
-							if (file.exists()) {
-								operations[2] += (int) (file.length() / 7000); // approximate time
+						operations[2] = 0;
+						operations[3] = 0;
+						ClonkLibBuilder libBuilder = ClonkCore.getDefault().getLibBuilder();
+						if (libBuilder.isBuildNeeded()) {
+							String[] externalLibs = getExternalLibNames();
+							for(String lib : externalLibs) {
+								File file = new File(lib);
+								if (file.exists()) {
+									operations[2] += (int) (file.length() / 7000); // approximate time
+								}
 							}
+							operations[3] = operations[2] / 2; // approximate save time
 						}
-						operations[3] = operations[2] / 2; // approximate save time
+
+						operations[4] = externalLibs != null ? externalLibs.length : 0;
+
+						int workSum = 0;
+						for (int work : operations)
+							workSum += work;
+
+						// initialize progress monitor
+						monitor.beginTask(String.format(Messages.BuildProject, proj.getName()), workSum);
+
+						// build external lib if needed
+						if (libBuilder.isBuildNeeded()) {
+							monitor.subTask(Messages.ParsingLibraries);
+							libBuilder.build(new SubProgressMonitor(monitor,operations[2]));
+
+							monitor.subTask(Messages.SavingLibraries);
+							ClonkCore.getDefault().saveExternIndex(new SubProgressMonitor(monitor,operations[3]));
+						}
+
+						if (externalLibs != null)
+							ExternalLibsLoader.readExternalLibs(projIndex, new SubProgressMonitor(monitor, operations[4]), externalLibs);
+
+						// build project
+						monitor.subTask(String.format(Messages.IndexProject, proj.getName()));
+						// parse declarations
+						buildPhase = 0;
+						proj.accept(this);
+						ClonkProjectNature.get(proj).getIndex().refreshCache();
+						if (monitor.isCanceled()) {
+							monitor.done();
+							return null;
+						}
+						monitor.subTask(String.format(Messages.ParseProject, proj.getName()));
+						// parse function code
+						buildPhase = 1;
+						proj.accept(this);
+
+						applyLatentMarkers();
+
+						listOfResourcesToBeRefreshed.add(proj);
 					}
-					
-					operations[4] = externalLibs != null ? externalLibs.length : 0;
-
-					int workSum = 0;
-					for (int work : operations)
-						workSum += work;
-
-					// initialize progress monitor
-					monitor.beginTask(String.format(Messages.BuildProject, proj.getName()), workSum);
-
-					// build external lib if needed
-					if (libBuilder.isBuildNeeded()) {
-						monitor.subTask(Messages.ParsingLibraries);
-						libBuilder.build(new SubProgressMonitor(monitor,operations[2]));
-
-						monitor.subTask(Messages.SavingLibraries);
-						ClonkCore.getDefault().saveExternIndex(new SubProgressMonitor(monitor,operations[3]));
+					finally {
+						proj.accept(new C4GroupStreamHandler(C4GroupStreamHandler.CLOSE));
 					}
-
-					if (externalLibs != null)
-						ExternalLibsLoader.readExternalLibs(projIndex, new SubProgressMonitor(monitor, operations[4]), externalLibs);
-
-					// build project
-					monitor.subTask(String.format(Messages.IndexProject, proj.getName()));
-					// parse declarations
-					buildPhase = 0;
-					proj.accept(this);
-					ClonkProjectNature.get(proj).getIndex().refreshCache();
-					if (monitor.isCanceled()) {
-						monitor.done();
-						return null;
-					}
-					monitor.subTask(String.format(Messages.ParseProject, proj.getName()));
-					// parse function code
-					buildPhase = 1;
-					proj.accept(this);
-
-					applyLatentMarkers();
-
-					listOfResourcesToBeRefreshed.add(proj);
-
-					// fire update event
-					//proj.touch(monitor);
+					break;
 
 				}
 

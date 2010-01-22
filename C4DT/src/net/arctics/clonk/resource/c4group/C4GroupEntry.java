@@ -9,6 +9,7 @@ import java.io.Serializable;
 import java.util.LinkedList;
 
 import net.arctics.clonk.resource.c4group.C4Group.C4GroupType;
+import net.arctics.clonk.resource.c4group.C4Group.StreamReadCallback;
 
 import org.eclipse.core.filesystem.EFS;
 import org.eclipse.core.filesystem.IFileInfo;
@@ -61,7 +62,7 @@ public class C4GroupEntry extends C4GroupItem implements IStorage, Serializable 
     	return entry;
     }
     
-	public void readIntoMemory(boolean recursively, HeaderFilterBase filter) throws InvalidDataException, IOException, CoreException {
+	public void readIntoMemory(boolean recursively, HeaderFilterBase filter, InputStream stream) throws InvalidDataException, IOException, CoreException {
 		if (completed) return;
 		completed = true;
 		
@@ -70,11 +71,11 @@ public class C4GroupEntry extends C4GroupItem implements IStorage, Serializable 
 			predecessor.readIntoMemory(true, filter);
 		}*/
 
-		if ((filter.getFlags() & HeaderFilterBase.DONTREADINTOMEMORY) == 0) {
-			fetchContents(getParentGroup().getStream());
+		if ((filter.getFlags(this) & HeaderFilterBase.DONTREADINTOMEMORY) == 0) {
+			fetchContents(stream);
 		}
 		else {
-			getParentGroup().getStream().skip(getSize());
+			stream.skip(getSize());
 		}
 		
 		// process contents (contents could be null after this call)
@@ -85,10 +86,11 @@ public class C4GroupEntry extends C4GroupItem implements IStorage, Serializable 
 	private void fetchContents(InputStream stream) {
 		contents = new byte[getSize()];
 		try {
-			int readCount = stream.read(contents);
-			while (readCount != contents.length) {
-				readCount += stream.read(contents,readCount,contents.length - readCount);
-			}
+			for (
+				int readCount = 0;
+				readCount != contents.length;
+				readCount += stream.read(contents, readCount, contents.length - readCount)
+			);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -96,24 +98,16 @@ public class C4GroupEntry extends C4GroupItem implements IStorage, Serializable 
 	
 	public InputStream getContents() throws CoreException {
 		if (contents == null) {
-			InputStream s;
 			try {
-				s = getParentGroup().requireStream();
-			} catch (Exception e) {
-				e.printStackTrace();
-				return null;
-			}
-			try {
-				s.skip(getParentGroup().baseOffset() + header.getOffset());
-				fetchContents(s);
+				getParentGroup().readFromStream(getParentGroup().baseOffset() + header.getOffset(), new StreamReadCallback() {
+					@Override
+					public void readStream(InputStream stream) {
+						fetchContents(stream);
+					}
+				});
 			} catch (IOException e) {
 				e.printStackTrace();
-			} finally {
-				try {
-					getParentGroup().releaseStream();
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
+				return null;
 			}
 		}
 		return new ByteArrayInputStream(getContentsAsArray());
@@ -332,6 +326,7 @@ public class C4GroupEntry extends C4GroupItem implements IStorage, Serializable 
 		fileInfo.setExists(true);
 		fileInfo.setAttribute(EFS.ATTRIBUTE_ARCHIVE, true);
 		fileInfo.setAttribute(EFS.ATTRIBUTE_READ_ONLY, true);
+		fileInfo.setLastModified(getParentGroup().lastModified());
 		return fileInfo;
 	}
 

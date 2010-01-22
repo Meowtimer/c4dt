@@ -19,7 +19,7 @@ public abstract class HeaderFilterBase {
 		
 	}
 	
-	public int getFlags() {
+	public int getFlags(C4GroupEntry entry) {
 		return 0;
 	}
 }

@@ -3,6 +3,7 @@ package net.arctics.clonk.resource.c4group;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -42,7 +43,7 @@ public abstract class C4GroupItem extends FileStore implements INodeWithPath {
 	 * @throws IOException 
 	 * @throws CoreException 
 	 */
-	public abstract void readIntoMemory(boolean recursively, HeaderFilterBase filter) throws InvalidDataException, IOException, CoreException;
+	public abstract void readIntoMemory(boolean recursively, HeaderFilterBase filter, InputStream stream) throws InvalidDataException, IOException, CoreException;
 	
 	/**
 	 * Writes this entry and all sub items to the stream

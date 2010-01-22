@@ -7,6 +7,7 @@ import java.util.Map;
 
 import net.arctics.clonk.resource.c4group.C4EntryHeader;
 import net.arctics.clonk.resource.c4group.C4Group;
+import net.arctics.clonk.resource.c4group.C4GroupEntry;
 import net.arctics.clonk.resource.c4group.HeaderFilterBase;
 import org.eclipse.core.filesystem.IFileStore;
 import org.eclipse.core.filesystem.provider.FileSystem;
@@ -15,7 +16,7 @@ import org.eclipse.core.runtime.Path;
 public class C4GroupFileSystem extends FileSystem {
 
 	private Map<File, C4Group> rootGroups = new HashMap<File, C4Group>();
-
+	
 	@Override
 	public IFileStore getStore(URI uri) {
 		String groupFilePath = uri.getPath();
@@ -37,8 +38,11 @@ public class C4GroupFileSystem extends FileSystem {
 							}
 							
 							@Override
-							public int getFlags() {
-								return HeaderFilterBase.DONTREADINTOMEMORY;
+							public int getFlags(C4GroupEntry entry) {
+								if (!entry.getName().equals("Script.c"))
+									return HeaderFilterBase.DONTREADINTOMEMORY;
+								else
+									return 0;
 							}
 						});
 					} finally {
