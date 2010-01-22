@@ -18,12 +18,9 @@ import org.eclipse.core.runtime.Path;
 
 public abstract class C4GroupItem extends FileStore implements INodeWithPath {
 	
-	public static final IHeaderFilter ACCEPT_EVERYTHING = new IHeaderFilter() {
+	public static final HeaderFilterBase ACCEPT_EVERYTHING = new HeaderFilterBase() {
 		public boolean accepts(C4EntryHeader header, C4Group context) {
 			return true;
-		}
-		public void processData(C4GroupItem item) {
-			// no processing
 		}
 	};
 	
@@ -45,7 +42,7 @@ public abstract class C4GroupItem extends FileStore implements INodeWithPath {
 	 * @throws IOException 
 	 * @throws CoreException 
 	 */
-	public abstract void readIntoMemory(boolean recursively, IHeaderFilter filter) throws InvalidDataException, IOException, CoreException;
+	public abstract void readIntoMemory(boolean recursively, HeaderFilterBase filter) throws InvalidDataException, IOException, CoreException;
 	
 	/**
 	 * Writes this entry and all sub items to the stream

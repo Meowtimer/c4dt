@@ -8,6 +8,8 @@ import java.io.Serializable;
 
 public class C4EntryHeader implements Serializable {
 
+	public static final int STORED_SIZE = 316;
+	
 	private static final long serialVersionUID = 1L;
 	
 	private String entryName; //260
@@ -49,7 +51,7 @@ public class C4EntryHeader implements Serializable {
     }
     
     public void writeTo(OutputStream stream) throws IOException {
-    	byte[] buffer = new byte[316];
+    	byte[] buffer = new byte[STORED_SIZE];
     	arrayCopyTo(C4GroupHeader.stringToByte(entryName),buffer,0,260);
     	arrayCopyTo(C4GroupHeader.booleanToByte(packed),buffer,260,4);
     	arrayCopyTo(C4GroupHeader.booleanToByte(group),buffer,264,4);
@@ -59,16 +61,16 @@ public class C4EntryHeader implements Serializable {
     	arrayCopyTo(C4GroupHeader.int32ToByte(time),buffer,280,4);
     	arrayCopyTo(new byte[] {(byte) (hasCRC ? 0x2 : 0x0)},buffer,284);
     	arrayCopyTo(C4GroupHeader.int32ToByte(crc),buffer,285);
-    	stream.write(buffer, 0, 316);
+    	stream.write(buffer, 0, STORED_SIZE);
     }
     
     public static C4EntryHeader createFromStream(InputStream stream) throws InvalidDataException {
     	C4EntryHeader header = new C4EntryHeader();
-		byte[] buffer = new byte[316];
+		byte[] buffer = new byte[STORED_SIZE];
 		try {
-			int readCount = stream.read(buffer,0,316);
-			while (readCount != 316) {
-				readCount += stream.read(buffer,readCount,316 - readCount);
+			int readCount = stream.read(buffer,0,STORED_SIZE);
+			while (readCount != STORED_SIZE) {
+				readCount += stream.read(buffer,readCount,STORED_SIZE - readCount);
 			}
 			header.entryName = C4GroupHeader.byteToString(buffer, 0, 260).trim();
 			header.packed = C4GroupHeader.byteToInt32(buffer, 260) > 0;

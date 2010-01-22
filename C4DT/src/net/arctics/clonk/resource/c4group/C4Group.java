@@ -53,16 +53,58 @@ public class C4Group extends C4GroupItem implements Serializable, ITreeNode {
 	private static final long serialVersionUID = 1L;
 	public static final Map<String, C4GroupType> EXTENSION_TO_GROUP_TYPE_MAP = getExtensionToGroupTypeMap();
 	
-	private String entryName;
-	private List<C4GroupItem> childEntries;
 	private transient InputStream stream;
 	private transient File origin;
+	private int streamRequests;
+	
+	/**
+	 * Tells the group that its stream is required one time more
+	 * @return the stream
+	 * @throws FileNotFoundException
+	 * @throws IOException
+	 */
+	public synchronized InputStream requireStream() throws FileNotFoundException, IOException {
+		if (++streamRequests == 1) {
+			if (parentGroup != null)
+				stream = parentGroup.requireStream();
+			else
+				stream = getGroupFileStream(new FileInputStream(origin));
+		}
+		return stream;
+	}
+	
+	/**
+	 * Tells the group that its stream is needed one time less
+	 * @throws IOException
+	 */
+	public synchronized void releaseStream() throws IOException {
+		if (streamRequests == 0 || stream == null)
+			return;
+		if (--streamRequests == 0) {
+			if (parentGroup == null)
+				stream.close();
+			else
+				parentGroup.releaseStream();
+			stream = null;
+		}
+	}
+	
+	private String entryName;
+	private List<C4GroupItem> childEntries;
 	private boolean completed;
 	private boolean hasChildren;
 	private C4GroupHeader header;
 	private C4EntryHeader entryHeader;
 	private C4Group parentGroup;
-	private int sizeOfChildren;
+	private int offset;
+	
+	public int baseOffset() {
+		int result = 0;
+		if (getParentGroup() != null)
+			result += getParentGroup().baseOffset();
+		result += offset + C4GroupHeader.STORED_SIZE + C4EntryHeader.STORED_SIZE * header.getEntries();
+		return result;
+	}
 	
 	private static Map<String, C4GroupType> getExtensionToGroupTypeMap() {
 		Map<String, C4GroupType> result = new HashMap<String, C4GroupType>(C4GroupType.values().length);
@@ -177,19 +219,18 @@ public class C4Group extends C4GroupItem implements Serializable, ITreeNode {
 	 * @throws IOException 
 	 */
 	public static C4Group openFile(File file) throws InvalidDataException, IOException {
-		C4Group result = openFromCompressedStream(new FileInputStream(file), file.getName());
-		result.origin = file;
+		C4Group result = new C4Group((InputStream)null, file.getName(), file);
+		result.requireStream();
 		return result;
 	}
 	
 	public static C4Group openFile(IFile file) throws IOException, CoreException {
-		C4Group result = openFromCompressedStream(file.getContents(), file.getName());
-		result.origin = new File(file.getFullPath().toOSString());
+		C4Group result = new C4Group((InputStream)null, file.getName(), new File(file.getFullPath().toOSString()));
 		return result;
 	}
-	
-	protected static C4Group openFromCompressedStream(final InputStream stream, String name) throws IOException {
-		return new C4Group(new GZIPInputStream(new InputStream() {
+
+	private static InputStream getGroupFileStream(final InputStream stream) throws IOException {
+		return new GZIPInputStream(new InputStream() {
 			private int timesRead = 0;
 
 			@Override
@@ -244,7 +285,7 @@ public class C4Group extends C4GroupItem implements Serializable, ITreeNode {
 				return stream.available();
 			}
 			
-		}), name);
+		});
 	}
 	
     public static void MemScramble(byte[] buffer, int size)
@@ -296,7 +337,7 @@ public class C4Group extends C4GroupItem implements Serializable, ITreeNode {
      * @throws IOException 
      * @throws CoreException
      */
-	public void readIntoMemory(boolean recursively, IHeaderFilter filter) throws InvalidDataException, IOException, CoreException {
+	public void readIntoMemory(boolean recursively, HeaderFilterBase filter) throws InvalidDataException, IOException, CoreException {
 
 		// compressed
 		if (stream != null) {
@@ -316,11 +357,9 @@ public class C4Group extends C4GroupItem implements Serializable, ITreeNode {
 				List<Object> readObjects = new ArrayList<Object>(header.getEntries());
 
 				// populate readObjects with either C4GroupHeader (meaning the file this header describes is to be skipped) or C4GroupItem (meaning this item is to be added to child list of the calling group)
-				sizeOfChildren = 0;
 				for(int i = 0; i < header.getEntries(); i++) {
 					hasChildren = true;
 					C4EntryHeader entryHeader = C4EntryHeader.createFromStream(stream);
-					sizeOfChildren += entryHeader.getSize();
 					if (!(filter.accepts(entryHeader, this) || entryHeader.isGroup())) {
 						// FIXME: skipping groups will not work at this time
 						readObjects.add(entryHeader);
@@ -328,13 +367,14 @@ public class C4Group extends C4GroupItem implements Serializable, ITreeNode {
 					else {
 						C4GroupItem entry;
 						if (entryHeader.isGroup()) {
-							entry = new C4Group(this, entryHeader.getEntryName()); // a group does not need all header information
+							C4Group group = new C4Group(this, entryHeader.getEntryName()); // a group does not need all header information
+							group.offset = entryHeader.getOffset();
+							entry = group;
 						}
 						else {
 							entry = new C4GroupEntry(this, entryHeader);
 						}
-						if (filter instanceof IHeaderFilterCreationListener)
-							((IHeaderFilterCreationListener)filter).created(entryHeader, entry);
+						filter.created(entryHeader, entry);
 						readObjects.add(entry);
 					}
 				}
@@ -501,20 +541,14 @@ public class C4Group extends C4GroupItem implements Serializable, ITreeNode {
 	
 	/**
 	 * Close the stream the group is being read from
+	 * @throws IOException 
 	 */
-	public void close() {
+	public void close() throws IOException {
 		if (childEntries != null) {
 			childEntries.clear();
 			childEntries = null;
 		}
-		try {
-			// only close stream if this group owns it
-			if (parentGroup == null && stream != null)
-				stream.close();
-			stream = null; // discard stream
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+		releaseStream();
 	}
 
 	public int computeSize() {
@@ -566,10 +600,6 @@ public class C4Group extends C4GroupItem implements Serializable, ITreeNode {
 	}
 	
 	public void releaseData() {
-	}
-
-	public int getSizeOfChildren() {
-		return sizeOfChildren;
 	}
 
 	@Override

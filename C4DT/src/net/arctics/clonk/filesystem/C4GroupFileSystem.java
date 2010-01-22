@@ -4,8 +4,10 @@ import java.io.File;
 import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
-import net.arctics.clonk.resource.c4group.C4Group;
 
+import net.arctics.clonk.resource.c4group.C4EntryHeader;
+import net.arctics.clonk.resource.c4group.C4Group;
+import net.arctics.clonk.resource.c4group.HeaderFilterBase;
 import org.eclipse.core.filesystem.IFileStore;
 import org.eclipse.core.filesystem.provider.FileSystem;
 import org.eclipse.core.runtime.Path;
@@ -26,7 +28,22 @@ public class C4GroupFileSystem extends FileSystem {
 			if (group == null) {
 				try {
 					group = C4Group.openFile(groupFile);
-					group.readIntoMemory(true);
+					try {
+						group.readIntoMemory(true, new HeaderFilterBase() {
+							
+							@Override
+							public boolean accepts(C4EntryHeader header, C4Group context) {
+								return true;
+							}
+							
+							@Override
+							public int getFlags() {
+								return HeaderFilterBase.DONTREADINTOMEMORY;
+							}
+						});
+					} finally {
+						group.releaseStream();
+					}
 				}
 				catch (Exception e) {
 					e.printStackTrace();

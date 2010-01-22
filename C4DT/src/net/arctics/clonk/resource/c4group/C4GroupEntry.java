@@ -61,7 +61,7 @@ public class C4GroupEntry extends C4GroupItem implements IStorage, Serializable 
     	return entry;
     }
     
-	public void readIntoMemory(boolean recursively, IHeaderFilter filter) throws InvalidDataException, IOException, CoreException {
+	public void readIntoMemory(boolean recursively, HeaderFilterBase filter) throws InvalidDataException, IOException, CoreException {
 		if (completed) return;
 		completed = true;
 		
@@ -69,11 +69,22 @@ public class C4GroupEntry extends C4GroupItem implements IStorage, Serializable 
 			C4GroupItem predecessor = parentGroup.getChildren().get(parentGroup.getChildren().indexOf(this) - 1);
 			predecessor.readIntoMemory(true, filter);
 		}*/
+
+		if ((filter.getFlags() & HeaderFilterBase.DONTREADINTOMEMORY) == 0) {
+			fetchContents(getParentGroup().getStream());
+		}
+		else {
+			getParentGroup().getStream().skip(getSize());
+		}
+		
+		// process contents (contents could be null after this call)
+		filter.processData(this);
     	
-    	// fetch contents
-    	contents = new byte[getSize()];
-    	try {
-    		InputStream stream = parentGroup.getStream();
+	}
+
+	private void fetchContents(InputStream stream) {
+		contents = new byte[getSize()];
+		try {
 			int readCount = stream.read(contents);
 			while (readCount != contents.length) {
 				readCount += stream.read(contents,readCount,contents.length - readCount);
@@ -81,10 +92,31 @@ public class C4GroupEntry extends C4GroupItem implements IStorage, Serializable 
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		
-		// process contents (contents could be null after this call)
-		filter.processData(this);
-    	
+	}
+	
+	public InputStream getContents() throws CoreException {
+		if (contents == null) {
+			InputStream s;
+			try {
+				s = getParentGroup().requireStream();
+			} catch (Exception e) {
+				e.printStackTrace();
+				return null;
+			}
+			try {
+				s.skip(getParentGroup().baseOffset() + header.getOffset());
+				fetchContents(s);
+			} catch (IOException e) {
+				e.printStackTrace();
+			} finally {
+				try {
+					getParentGroup().releaseStream();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+		}
+		return new ByteArrayInputStream(getContentsAsArray());
 	}
 
     public String toString() {
@@ -246,10 +278,6 @@ public class C4GroupEntry extends C4GroupItem implements IStorage, Serializable 
 		} finally {
 			inStream.close();
 		}
-	}
-
-	public InputStream getContents() throws CoreException {
-		return new ByteArrayInputStream(getContentsAsArray());
 	}
 
 	public IPath getFullPath() {

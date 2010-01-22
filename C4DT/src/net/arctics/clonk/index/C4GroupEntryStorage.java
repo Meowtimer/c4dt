@@ -9,7 +9,7 @@ import net.arctics.clonk.resource.c4group.C4EntryHeader;
 import net.arctics.clonk.resource.c4group.C4Group;
 import net.arctics.clonk.resource.c4group.C4GroupEntry;
 import net.arctics.clonk.resource.c4group.C4GroupItem;
-import net.arctics.clonk.resource.c4group.IHeaderFilterCreationListener;
+import net.arctics.clonk.resource.c4group.HeaderFilterBase;
 import net.arctics.clonk.resource.c4group.InvalidDataException;
 import net.arctics.clonk.util.ITreeNode;
 
@@ -21,7 +21,7 @@ public class C4GroupEntryStorage implements IStorage, Serializable {
 
 	private static final long serialVersionUID = 1L;
 
-	private final static class HeaderFilter implements IHeaderFilterCreationListener {
+	private final static class HeaderFilter extends HeaderFilterBase {
 		
 		public IPath itemPath;
 		public int segmentIndex;

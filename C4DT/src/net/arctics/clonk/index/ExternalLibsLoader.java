@@ -20,7 +20,7 @@ import net.arctics.clonk.resource.c4group.C4Group;
 import net.arctics.clonk.resource.c4group.C4GroupEntry;
 import net.arctics.clonk.resource.c4group.C4GroupItem;
 import net.arctics.clonk.resource.c4group.IC4GroupVisitor;
-import net.arctics.clonk.resource.c4group.IHeaderFilter;
+import net.arctics.clonk.resource.c4group.HeaderFilterBase;
 import net.arctics.clonk.resource.c4group.InvalidDataException;
 import net.arctics.clonk.resource.c4group.C4Group.C4GroupType;
 import net.arctics.clonk.util.ITreeNode;
@@ -55,7 +55,7 @@ public final class ExternalLibsLoader implements IC4GroupVisitor {
 			C4Group group = libFile.isDirectory()
 				? C4Group.openDirectory(libFile)
 				: C4Group.openFile(libFile);
-			group.readIntoMemory(true, new IHeaderFilter() {
+			group.readIntoMemory(true, new HeaderFilterBase() {
 				public boolean accepts(C4EntryHeader header, C4Group context) {
 					String entryName = header.getEntryName();
 					// all we care about is groups, scripts, defcores and names
@@ -66,9 +66,6 @@ public final class ExternalLibsLoader implements IC4GroupVisitor {
 						entryName.matches(DESC_TXT_PATTERN.pattern()) ||
 						// also load string tables since they are needed for getting the correct names of OC definitions
 						entryName.matches(StringTbl.PATTERN.pattern());
-				}
-
-				public void processData(C4GroupItem item) throws CoreException {
 				}
 			});
 			try {
