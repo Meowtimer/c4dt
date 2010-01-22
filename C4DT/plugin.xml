@@ -586,7 +586,10 @@
 	</extension>
 	
 	<extension point="org.eclipse.core.filesystem.filesystems">
-    	<filesystem scheme="clonk">
+    	<filesystem scheme="c4group">
+			<run class="net.arctics.clonk.filesystem.C4GroupFileSystem" />
+		</filesystem>
+		<filesystem scheme="clonk">
 			<run class="net.arctics.clonk.filesystem.C4GroupFileSystem" />
 		</filesystem>
 	</extension>
