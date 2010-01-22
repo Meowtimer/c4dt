@@ -1,17 +1,22 @@
 package net.arctics.clonk.resource.c4group;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.net.URI;
+import java.net.URISyntaxException;
 
 import net.arctics.clonk.resource.c4group.C4Group.C4GroupType;
-import net.arctics.clonk.util.INode;
+import net.arctics.clonk.util.INodeWithPath;
 
+import org.eclipse.core.filesystem.provider.FileStore;
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.Path;
 
-public interface C4GroupItem extends INode {
+public abstract class C4GroupItem extends FileStore implements INodeWithPath {
 	
 	/**
 	 * Interface used to filter files in c4groups so they won't be loaded into memory
@@ -26,10 +31,10 @@ public interface C4GroupItem extends INode {
 				// no processing
 			}
 		};
-		public void processData(C4GroupItem item) throws CoreException;
+		public abstract void processData(C4GroupItem item) throws CoreException;
 	}
 	
-	public interface IHeaderFilterCreationListener extends IHeaderFilter {
+	public abstract interface IHeaderFilterCreationListener extends IHeaderFilter {
 		void created(C4EntryHeader header, C4GroupItem item);
 	}
 	
@@ -37,13 +42,13 @@ public interface C4GroupItem extends INode {
 	 * Does this item have children?
 	 * @return
 	 */
-	public boolean hasChildren();
+	public abstract boolean hasChildren();
 	
 	/**
 	 * Is this item completely read from disk?
 	 * @return
 	 */
-	public boolean isCompleted();
+	public abstract boolean isCompleted();
 	
 	/**
 	 * Read this item
@@ -51,57 +56,79 @@ public interface C4GroupItem extends INode {
 	 * @throws IOException 
 	 * @throws CoreException 
 	 */
-	public void readIntoMemory(boolean recursively, IHeaderFilter filter) throws InvalidDataException, IOException, CoreException;
+	public abstract void readIntoMemory(boolean recursively, IHeaderFilter filter) throws InvalidDataException, IOException, CoreException;
 	
 	/**
 	 * Writes this entry and all sub items to the stream
 	 * @throws FileNotFoundException 
 	 * @throws IOException 
 	 */
-	public void writeTo(OutputStream stream) throws FileNotFoundException, IOException;
+	public abstract void writeTo(OutputStream stream) throws FileNotFoundException, IOException;
 	
 	/**
 	 * The entry name
 	 * @return
 	 */
-	public String getName();
+	public abstract String getName();
 	
 	/**
 	 * Returns the size of the object and all sub items
 	 * @return
 	 */
-	public int computeSize();
+	public abstract int computeSize();
 	
 	/**
 	 * The parent group this item is a child of
 	 * @return
 	 */
-	public C4Group getParentGroup();
+	public abstract C4Group getParentGroup();
 	
 	/**
 	 * Returns the entry header
 	 * @return
 	 */
-	public C4EntryHeader getEntryHeader();
+	public abstract C4EntryHeader getEntryHeader();
 	
 	/**
 	 * Extracts this file to disk
 	 */
-	public void extractToFilesystem(IContainer internPath) throws CoreException;
+	public abstract void extractToFilesystem(IContainer internPath) throws CoreException;
 	
 	/**
 	 * Extracts this file to disk with the given progress monitor
 	 */
-	public void extractToFilesystem(IContainer internPath, IProgressMonitor monitor) throws CoreException;
+	public abstract void extractToFilesystem(IContainer internPath, IProgressMonitor monitor) throws CoreException;
 	
 	/**
 	 * recursively call visitor.visit for all items in this group (including the group itself)
 	 */
-	public void accept(IC4GroupVisitor visitor, C4GroupType type, IProgressMonitor monitor);
+	public abstract void accept(IC4GroupVisitor visitor, C4GroupType type, IProgressMonitor monitor);
 	
 	/**
 	 * release data stored in memory to preserve space
 	 */
-	public void releaseData();
+	public abstract void releaseData();
+	
+	@Override
+	public URI toURI() {
+		C4Group masterGroup = (this instanceof C4Group ? (C4Group)this : getParentGroup()).getMasterGroup();
+		File origin = masterGroup.getOrigin();
+		if (origin != null) {
+			try {
+				URI uri = new URI("clonk", new Path(origin.getParent()).append(getPath().toString()).toString(), null);
+				return uri;
+			} catch (URISyntaxException e) {
+				e.printStackTrace();
+				return null;
+			}
+		}
+		return null;
+	}
+	
+	@Override
+	public boolean equals(Object obj) {
+		// remove sophisticatedness
+		return obj == this;
+	}
 	
 }

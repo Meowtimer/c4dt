@@ -10,6 +10,10 @@ import java.util.LinkedList;
 
 import net.arctics.clonk.resource.c4group.C4Group.C4GroupType;
 
+import org.eclipse.core.filesystem.EFS;
+import org.eclipse.core.filesystem.IFileInfo;
+import org.eclipse.core.filesystem.IFileStore;
+import org.eclipse.core.filesystem.provider.FileInfo;
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
@@ -26,7 +30,7 @@ import org.eclipse.core.runtime.Path;
  * @author ZokRadonh
  *
  */
-public class C4GroupEntry implements C4GroupItem, IStorage, Serializable {
+public class C4GroupEntry extends C4GroupItem implements IStorage, Serializable {
 	
 	private static final long serialVersionUID = 1L;
 	public static final int STORED_SIZE = 316;
@@ -261,6 +265,11 @@ public class C4GroupEntry implements C4GroupItem, IStorage, Serializable {
 		}
 		return new Path(pathBuilder.toString());
 	}
+	
+	@Override
+	public IPath getPath() {
+		return getFullPath();
+	}
 
 	public boolean isReadOnly() {
 		return true;
@@ -280,6 +289,37 @@ public class C4GroupEntry implements C4GroupItem, IStorage, Serializable {
 	@Override
 	public String getNodeName() {
 		return getName();
+	}
+
+	private static final String[] NO_CHILDNAMES = new String[0];
+	
+	@Override
+	public String[] childNames(int options, IProgressMonitor monitor) throws CoreException {
+		return NO_CHILDNAMES;
+	}
+
+	@Override
+	public IFileInfo fetchInfo(int options, IProgressMonitor monitor) throws CoreException {
+		FileInfo fileInfo = new FileInfo(getName());
+		fileInfo.setExists(true);
+		fileInfo.setAttribute(EFS.ATTRIBUTE_ARCHIVE, true);
+		fileInfo.setAttribute(EFS.ATTRIBUTE_READ_ONLY, true);
+		return fileInfo;
+	}
+
+	@Override
+	public IFileStore getChild(String name) {
+		return null; // go away :c
+	}
+
+	@Override
+	public IFileStore getParent() {
+		return getParentGroup();
+	}
+
+	@Override
+	public InputStream openInputStream(int options, IProgressMonitor monitor) throws CoreException {
+		return getContents();
 	}
 	
 }

@@ -213,7 +213,7 @@ public final class ExternalLibsLoader implements IC4GroupVisitor {
 		if (currentExternNode == null) {
 			ExternalLib lib;
 			currentExternNode = lib = new ExternalLib(item.getName(), index);
-			lib.setFullPath(item.getOrigin());
+			lib.setFullPath(item.getOrigin().getAbsolutePath());
 			index.getLibs().add(lib);
 		}
 		else

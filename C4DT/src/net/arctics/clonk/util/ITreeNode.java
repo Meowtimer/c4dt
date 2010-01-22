@@ -5,9 +5,8 @@ import java.util.Collection;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Path;
 
-public interface ITreeNode extends INode {
+public interface ITreeNode extends INodeWithPath {
 	ITreeNode getParentNode();
-	IPath getPath();
 	Collection<? extends INode> getChildCollection();
 	boolean subNodeOf(ITreeNode node);
 	void addChild(ITreeNode node);	

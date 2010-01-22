@@ -378,6 +378,8 @@
 	</extension>
 
 	<extension point="org.eclipse.ui.menus">
+	
+		<!-- Main menu !-->
 		<menuContribution locationURI="menu:org.eclipse.ui.main.menu">
 			<menu label="Clonk">
 				<command commandId="net.arctics.clonk.ui.OpenObject" label="%OpenObject_Name" />
@@ -404,6 +406,7 @@
 			</menu>
 		</menuContribution>
 		
+		<!-- Project Explorer Menu !-->
 		<menuContribution locationURI="popup:org.eclipse.ui.navigator.ProjectExplorer#PopupMenu?after=additions">
 			<separator name="SeparatorBeforeProjectExplorerClonkContributionsThatFulfillsTheFunctionOfSeparatingTheRegularCommandsFromTheClonkOnes" visible="true" />
 			<command commandId="net.arctics.clonk.ui.QuickExport" label="%QuickExport_Name">
@@ -440,6 +443,7 @@
 				</visibleWhen>
 			</command>
 		</menuContribution>
+		
 	</extension>
 
 	<extension id="product" point="org.eclipse.core.runtime.products">
@@ -579,6 +583,12 @@
 	<extension point="org.eclipse.ui.navigator.viewer">
 		<dragAssistant class="net.arctics.clonk.ui.navigator.DragExternalDefsAssistant"
 			viewerId="org.eclipse.ui.navigator.ProjectExplorer"/>
+	</extension>
+	
+	<extension point="org.eclipse.core.filesystem.filesystems">
+    	<filesystem scheme="clonk">
+			<run class="net.arctics.clonk.filesystem.C4GroupFileSystem" />
+		</filesystem>
 	</extension>
 
 	<!--	
