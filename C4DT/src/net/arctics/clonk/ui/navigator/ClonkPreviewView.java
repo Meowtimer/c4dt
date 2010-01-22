@@ -197,7 +197,7 @@ public class ClonkPreviewView extends ViewPart implements ISelectionListener {
 				IFile file = (IFile) sel;
 				String fileName = file.getName().toLowerCase();
 				if (fileName.endsWith(".png") || fileName.endsWith(".bmp")) { //$NON-NLS-1$ //$NON-NLS-2$
-					newImage = new Image(canvas.getDisplay(), file.getLocation().toOSString());
+					newImage = new Image(canvas.getDisplay(), file.getContents());
 				}
 				else if (fileName.endsWith(".rtf")) { //$NON-NLS-1$
 					newHtml = rtfToHtml(Utilities.stringFromFile(file));
@@ -233,8 +233,8 @@ public class ClonkPreviewView extends ViewPart implements ISelectionListener {
 					// Title.png
 					if (newImage == null) {
 						IResource graphicsFile = container.findMember("Title.png"); //$NON-NLS-1$
-						if (graphicsFile != null) {
-							newImage = new Image(canvas.getDisplay(), graphicsFile.getLocation().toOSString());
+						if (graphicsFile instanceof IFile) {
+							newImage = new Image(canvas.getDisplay(), ((IFile)graphicsFile).getContents());
 						}
 					}
 
@@ -243,8 +243,8 @@ public class ClonkPreviewView extends ViewPart implements ISelectionListener {
 						IResource graphicsFile = container.findMember("Graphics.png"); //$NON-NLS-1$
 						if (graphicsFile == null)
 							graphicsFile = container.findMember("Graphics.bmp"); //$NON-NLS-1$
-						if (graphicsFile != null) {
-							Image fullGraphics = new Image(canvas.getDisplay(), graphicsFile.getLocation().toOSString());
+						if (graphicsFile instanceof IFile) {
+							Image fullGraphics = new Image(canvas.getDisplay(), ((IFile)graphicsFile).getContents());
 							try {
 								IResource defCoreFile = container.findMember("DefCore.txt"); //$NON-NLS-1$
 								if (defCoreFile instanceof IFile) {
