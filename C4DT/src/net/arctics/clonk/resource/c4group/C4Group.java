@@ -302,10 +302,10 @@ public class C4Group extends C4GroupItem implements Serializable, ITreeNode {
 		if (stream != null) {
 
 			// read all items before this one in the parent group so the stream offset is right
-			if (parentGroup != null && parentGroup.getChildren().get(0) != this) {
+			/*if (parentGroup != null && parentGroup.getChildren().get(0) != this) {
 				C4GroupItem predecessor = parentGroup.getChildren().get(parentGroup.getChildren().indexOf(this) - 1);
 				predecessor.readIntoMemory(true, filter);
-			}
+			}*/
 
 			if (!completed) {
 
@@ -400,7 +400,7 @@ public class C4Group extends C4GroupItem implements Serializable, ITreeNode {
 	 * @throws CoreException
 	 */
 	public void readIntoMemory(boolean recursively) throws InvalidDataException, IOException, CoreException {
-		readIntoMemory(recursively, IHeaderFilter.ACCEPT_EVERYTHING);
+		readIntoMemory(recursively, ACCEPT_EVERYTHING);
 	}
 
 	/**

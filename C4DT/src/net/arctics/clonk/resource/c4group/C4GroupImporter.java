@@ -47,7 +47,7 @@ public class C4GroupImporter extends WorkspaceModifyOperation {
 					groups[i] = C4Group.openFile(resources[i]);
 					monitor.subTask(String.format(Messages.C4GroupImporter_Importing, groups[i].getName()));
 					final List<String> errorsWhileImporting = new LinkedList<String>();
-					groups[i].readIntoMemory(true, new C4GroupItem.IHeaderFilter() {
+					groups[i].readIntoMemory(true, new IHeaderFilter() {
 						private IContainer currentContainer = destination;
 						private C4Group currentGroup;
 

@@ -20,9 +20,9 @@ import net.arctics.clonk.resource.c4group.C4Group;
 import net.arctics.clonk.resource.c4group.C4GroupEntry;
 import net.arctics.clonk.resource.c4group.C4GroupItem;
 import net.arctics.clonk.resource.c4group.IC4GroupVisitor;
+import net.arctics.clonk.resource.c4group.IHeaderFilter;
 import net.arctics.clonk.resource.c4group.InvalidDataException;
 import net.arctics.clonk.resource.c4group.C4Group.C4GroupType;
-import net.arctics.clonk.resource.c4group.C4GroupItem.IHeaderFilter;
 import net.arctics.clonk.util.ITreeNode;
 
 import org.eclipse.core.resources.IMarker;

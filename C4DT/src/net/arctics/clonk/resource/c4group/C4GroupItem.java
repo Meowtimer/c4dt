@@ -18,25 +18,14 @@ import org.eclipse.core.runtime.Path;
 
 public abstract class C4GroupItem extends FileStore implements INodeWithPath {
 	
-	/**
-	 * Interface used to filter files in c4groups so they won't be loaded into memory
-	 */
-	public interface IHeaderFilter {
-		public boolean accepts(C4EntryHeader header, C4Group context);
-		public static final IHeaderFilter ACCEPT_EVERYTHING = new IHeaderFilter() {
-			public boolean accepts(C4EntryHeader header, C4Group context) {
-				return true;
-			}
-			public void processData(C4GroupItem item) {
-				// no processing
-			}
-		};
-		public abstract void processData(C4GroupItem item) throws CoreException;
-	}
-	
-	public abstract interface IHeaderFilterCreationListener extends IHeaderFilter {
-		void created(C4EntryHeader header, C4GroupItem item);
-	}
+	public static final IHeaderFilter ACCEPT_EVERYTHING = new IHeaderFilter() {
+		public boolean accepts(C4EntryHeader header, C4Group context) {
+			return true;
+		}
+		public void processData(C4GroupItem item) {
+			// no processing
+		}
+	};
 	
 	/**
 	 * Does this item have children?
