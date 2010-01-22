@@ -450,7 +450,7 @@ public abstract class Utilities {
 	public static CommonNavigator getProjectExplorer() {
 		IWorkbench workbench = PlatformUI.getWorkbench();
 		if (workbench != null) {
-			getProjectExplorer(workbench.getActiveWorkbenchWindow());
+			return getProjectExplorer(workbench.getActiveWorkbenchWindow());
 		}
 		return null;
 	}
