@@ -6,11 +6,13 @@ package net.arctics.clonk.parser.mapcreator;
 import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.SourceLocation;
 
+import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 
 import java.io.IOException;
+import java.io.InputStreamReader;
 }
 
 @lexer::header {package net.arctics.clonk.parser.mapcreator;}
@@ -35,12 +37,15 @@ public MapCreatorParser(C4MapCreator mapCreator) {
 private static TokenStream getTokenStream(C4MapCreator mapCreator) {
 	CharStream charStream;
 	try {
-		charStream = new ANTLRFileStream(mapCreator.getResource().getLocation().toOSString());
+		charStream = new ANTLRReaderStream(new InputStreamReader(((IFile)mapCreator.getResource()).getContents()));
 		MapCreatorLexer lexer = new MapCreatorLexer(charStream);
 		CommonTokenStream tokenStream = new CommonTokenStream();
 		tokenStream.setTokenSource(lexer);
 		return tokenStream;
 	} catch (IOException e) {
+		e.printStackTrace();
+		return null;
+	} catch (CoreException e) {
 		e.printStackTrace();
 		return null;
 	}
@@ -79,7 +84,10 @@ private void createMapObject(Token typeToken, Token nameToken) {
 
 private void setVal(Token nameToken, Token valueTokenLo, Token valueTokenHi) {
 	try {
-		current.setAttribute(nameToken.getText(), valueTokenLo.getText(), valueTokenHi != null ? valueTokenHi.getText() : null);
+		if (valueTokenLo == null)
+			errorWithCode(ParserErrorCode.ExpressionExpected, endPos(nameToken), endPos(nameToken)+1);
+		else
+			current.setAttribute(nameToken.getText(), valueTokenLo.getText(), valueTokenHi != null ? valueTokenHi.getText() : null);
 	} catch (NoSuchFieldException e) {
 		errorWithCode(ParserErrorCode.UndeclaredIdentifier, startPos(nameToken), endPos(nameToken), nameToken.getText());
 	} catch (Exception e) {
