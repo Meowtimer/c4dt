@@ -178,7 +178,13 @@ public class C4MasterGroup extends C4Group {
 	
 	@Override
 	public void delete(int options, IProgressMonitor monitor) throws CoreException {
-		C4GroupFileSystem.delete(this);
+		C4GroupFileSystem.getInstance().delete(this);
+	}
+	
+	@Override
+	protected void finalize() throws Throwable {
+		releaseStream();
+		super.finalize();
 	}
 
 }

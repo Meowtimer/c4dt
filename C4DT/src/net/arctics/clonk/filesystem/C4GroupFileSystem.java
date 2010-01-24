@@ -1,6 +1,7 @@
 package net.arctics.clonk.filesystem;
 
 import java.io.File;
+import java.lang.ref.WeakReference;
 import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
@@ -16,9 +17,23 @@ import org.eclipse.core.runtime.Path;
 
 public class C4GroupFileSystem extends FileSystem {
 
-	private static Map<File, C4Group> rootGroups = new HashMap<File, C4Group>();
+	private Map<File, WeakReference<C4Group>> rootGroups = new HashMap<File, WeakReference<C4Group>>();
 	
-	public static void delete(C4Group group) {
+	private static C4GroupFileSystem sharedInstance;
+	
+	public C4GroupFileSystem() {
+		super();
+		synchronized (C4GroupFileSystem.class) {
+			assert (sharedInstance == null);
+			sharedInstance = this;
+		}
+	}
+	
+	public static C4GroupFileSystem getInstance() {
+		return sharedInstance;
+	}
+	
+	public void delete(C4Group group) {
 		rootGroups.remove(group.getOrigin());
 	}
 	
@@ -29,13 +44,17 @@ public class C4GroupFileSystem extends FileSystem {
 		File groupFile = file;
 		
 		C4Group group = null;
-		for (groupFile = file; groupFile != null; groupFile = groupFile.getParentFile())
-			if ((group = rootGroups.get(groupFile)) != null)
-				break;
+		for (groupFile = file; groupFile != null; groupFile = groupFile.getParentFile()) {
+			WeakReference<C4Group> ref;
+			if ((ref = rootGroups.get(groupFile)) != null)
+				if ((group = ref.get()) != null)
+					break;
+		}
 		if (group == null) {
 			for (groupFile = file; groupFile != null && !groupFile.exists(); groupFile = groupFile.getParentFile());
 			if (groupFile != null && !groupFile.isDirectory()) {
-				group = rootGroups.get(groupFile);
+				WeakReference<C4Group> ref = rootGroups.get(groupFile);
+				group = ref != null ? ref.get() : null;
 				if (group == null) {
 					try {
 						group = C4Group.openFile(groupFile);
@@ -63,13 +82,13 @@ public class C4GroupFileSystem extends FileSystem {
 						e.printStackTrace();
 						return null;
 					}
-					rootGroups.put(groupFile, group);
+					rootGroups.put(groupFile, new WeakReference<C4Group>(group));
 				}
 			}
 			else {
 				if (file.isDirectory()) {
 					group = new C4UncompressedGroup(null, file.getName(), file);
-					rootGroups.put(file, group);
+					rootGroups.put(file, new WeakReference<C4Group>(group));
 				}
 			}
 		}
