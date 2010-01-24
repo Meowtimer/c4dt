@@ -9,6 +9,37 @@ import org.eclipse.jface.text.rules.Token;
 
 public abstract class ClonkRuleBasedScanner extends RuleBasedScanner {
 	
+	protected static final class NumberRule implements IRule {
+
+		private IToken token;
+		
+		public NumberRule(IToken token) {
+			this.token = token;
+		}
+		
+		public IToken evaluate(ICharacterScanner scanner) {
+			int character = scanner.read();
+			boolean isNegative = false;
+			if (character == '-') {
+				character = scanner.read();
+				isNegative = true;
+			}
+			if (character >= 0x30 && character <= 0x39) {
+				do {
+					character = scanner.read();
+				} while (character >= 0x30 && character <= 0x39);
+				scanner.unread();
+				return token;
+			}
+			else {
+				scanner.unread();
+				if (isNegative) scanner.unread();
+				return Token.UNDEFINED;
+			}
+		}
+		
+	}
+	
 	/**
 	 * Rule to detect java brackets.
 	 *

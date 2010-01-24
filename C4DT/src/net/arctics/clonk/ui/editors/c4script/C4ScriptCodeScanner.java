@@ -1,6 +1,7 @@
 package net.arctics.clonk.ui.editors.c4script;
 
 import java.util.ArrayList;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -56,10 +57,20 @@ public class C4ScriptCodeScanner extends ClonkRuleBasedScanner {
 		 */
 		public IToken evaluate(ICharacterScanner scanner) {
 
-			int character= scanner.read();
+			char character = (char) scanner.read();
+			if (character == '/') {
+				char peek = (char) scanner.read();
+				if (peek == '*' || peek == '/') {
+				scanner.unread();
+					scanner.unread();
+					return Token.UNDEFINED;
+				}
+				else
+					scanner.unread();
+			}
 			if (isOperator((char) character)) {
 				do {
-					character= scanner.read();
+					character = (char) scanner.read();
 				} while (isOperator((char) character));
 				scanner.unread();
 				return fToken;
@@ -96,13 +107,19 @@ public class C4ScriptCodeScanner extends ClonkRuleBasedScanner {
 		IToken engineFunction = createToken(manager, "ENGINE_FUNCTION"); //$NON-NLS-1$
 		IToken objCallbackFunction = createToken(manager, "OBJ_CALLBACK"); //$NON-NLS-1$
 		IToken string = createToken(manager, "STRING"); //$NON-NLS-1$
-//		IToken number = new Token(new TextAttribute(manager.getColor(IClonkColorConstants.getColor("NUMBER"))));
+		IToken number = createToken(manager, "NUMBER"); //$NON-NLS-1$
 		IToken bracket = createToken(manager, "BRACKET"); //$NON-NLS-1$
 		IToken returnToken = createToken(manager, "RETURN"); //$NON-NLS-1$
 		IToken pragma = createToken(manager, "PRAGMA"); //$NON-NLS-1$
+		IToken comment = createToken(manager, "COMMENT");
 		
 		List<IRule> rules = new ArrayList<IRule>();
+
+		// comments
+		rules.add(new EndOfLineRule("//", comment));
+		rules.add(new MultiLineRule("/*", "*/", comment));
 		
+		// string
 		rules.add(new SingleLineRule("\"", "\"", string, '\\')); //$NON-NLS-1$ //$NON-NLS-2$
 		
 		// Add generic whitespace rule.
@@ -114,11 +131,11 @@ public class C4ScriptCodeScanner extends ClonkRuleBasedScanner {
 		// Add rule for brackets
 		rules.add(new BracketRule(bracket));
 
-		WordScanner wordDetector= new WordScanner();
-		CombinedWordRule combinedWordRule= new CombinedWordRule(wordDetector, defaultToken);
+		WordScanner wordDetector = new WordScanner();
+		CombinedWordRule combinedWordRule = new CombinedWordRule(wordDetector, defaultToken);
 		
 		// Add word rule for keyword 'return'.
-		CombinedWordRule.WordMatcher returnWordRule= new CombinedWordRule.WordMatcher();
+		CombinedWordRule.WordMatcher returnWordRule = new CombinedWordRule.WordMatcher();
 		returnWordRule.addWord(RETURN, returnToken);  
 		combinedWordRule.addWordMatcher(returnWordRule);
 
@@ -144,6 +161,8 @@ public class C4ScriptCodeScanner extends ClonkRuleBasedScanner {
 		rules.add(combinedWordRule);
 		
 		rules.add(new PragmaRule(fgDirectives,pragma));
+		
+		rules.add(new NumberRule(number));
 		
 		currentRules = (IRule[])rules.toArray(new IRule[rules.size()]);
 		setRules(currentRules);

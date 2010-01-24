@@ -6,22 +6,21 @@ import java.util.List;
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.c4script.C4Variable;
 import net.arctics.clonk.parser.c4script.C4Variable.C4VariableScope;
+import net.arctics.clonk.ui.editors.ClonkRuleBasedScanner;
 import net.arctics.clonk.ui.editors.ColorManager;
-import net.arctics.clonk.ui.editors.ClonkColorConstants;
 import net.arctics.clonk.ui.editors.WordScanner;
 import net.arctics.clonk.ui.editors.c4script.ClonkWhitespaceDetector;
 import net.arctics.clonk.ui.editors.c4script.CombinedWordRule;
 
-import org.eclipse.jface.text.TextAttribute;
+import org.eclipse.jface.text.rules.EndOfLineRule;
 import org.eclipse.jface.text.rules.ICharacterScanner;
 import org.eclipse.jface.text.rules.IRule;
 import org.eclipse.jface.text.rules.IToken;
-import org.eclipse.jface.text.rules.RuleBasedScanner;
 import org.eclipse.jface.text.rules.SingleLineRule;
 import org.eclipse.jface.text.rules.Token;
 import org.eclipse.jface.text.rules.WhitespaceRule;
 
-public class IniScanner extends RuleBasedScanner {
+public class IniScanner extends ClonkRuleBasedScanner {
 	
 	private static final class OperatorRule implements IRule {
 
@@ -72,49 +71,23 @@ public class IniScanner extends RuleBasedScanner {
 		}
 	}
 	
-	private static final class NumberRule implements IRule {
-
-		private IToken token;
-		
-		public NumberRule(IToken token) {
-			this.token = token;
-		}
-		
-		public IToken evaluate(ICharacterScanner scanner) {
-			int character = scanner.read();
-			boolean isNegative = false;
-			if (character == '-') {
-				character = scanner.read();
-				isNegative = true;
-			}
-			if (character >= 0x30 && character <= 0x39) {
-				do {
-					character = scanner.read();
-				} while (character >= 0x30 && character <= 0x39);
-				scanner.unread();
-				return token;
-			}
-			else {
-				scanner.unread();
-				if (isNegative) scanner.unread();
-				return Token.UNDEFINED;
-			}
-		}
-		
-	}
-	
 	public IniScanner(ColorManager manager) {
 		
-		IToken defaultToken = new Token(new TextAttribute(manager.getColor(ClonkColorConstants.getColor("DEFAULT")))); //$NON-NLS-1$
+		IToken defaultToken = createToken(manager, "DEFAULT"); //$NON-NLS-1$
 		
-		IToken operator = new Token(new TextAttribute(manager.getColor(ClonkColorConstants.getColor("OPERATOR")))); //$NON-NLS-1$
-		IToken section = new Token(new TextAttribute(manager.getColor(ClonkColorConstants.getColor("KEYWORD")))); //$NON-NLS-1$
-		IToken number = new Token(new TextAttribute(manager.getColor(ClonkColorConstants.getColor("NUMBER")))); //$NON-NLS-1$
-		IToken constant = new Token(new TextAttribute(manager.getColor(ClonkColorConstants.getColor("ENGINE_FUNCTION")))); //$NON-NLS-1$
+		IToken operator = createToken(manager, "OPERATOR"); //$NON-NLS-1$
+		IToken section = createToken(manager, "KEYWORD"); //$NON-NLS-1$
+		IToken number = createToken(manager, "NUMBER"); //$NON-NLS-1$
+		IToken constant = createToken(manager, "ENGINE_FUNCTION"); //$NON-NLS-1$
+		IToken comment = createToken(manager, "COMMENT");
 		
 		List<IRule> rules = new ArrayList<IRule>();
 		
 		rules.add(new SingleLineRule("[", "]", section, '\\')); //$NON-NLS-1$ //$NON-NLS-2$
+		
+		//rules.add(new EndOfLineRule(";", comment)); //$NON-NLS-1$
+		rules.add(new EndOfLineRule("#", comment)); //$NON-NLS-1$
+		rules.add(new EndOfLineRule("//", comment)); //$NON-NLS-1$
 		
 		rules.add(new OperatorRule(operator));
 		
