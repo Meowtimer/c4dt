@@ -85,11 +85,13 @@ public class ClonkPreferencePage extends FieldEditorPreferencePage implements IW
 				private void adjustExternalLibsToGamePath(IPath gamePath) {
 					String[] externalLibs = externalLibsEditor.getValues();
 					if (externalLibs.length == 0) {
+						/* better not
 						externalLibs = new String[] {
 							gamePath.append("System.c4g").toPortableString(), //$NON-NLS-1$
 							gamePath.append("Objects.c4d").toPortableString() //$NON-NLS-1$
 						};
 						externalLibsEditor.setValues(externalLibs);
+						*/
 					}
 					else {
 						String oldGamePath = previousGamePath;
