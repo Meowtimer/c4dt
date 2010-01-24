@@ -7,6 +7,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.zip.GZIPInputStream;
 
+import net.arctics.clonk.filesystem.C4GroupFileSystem;
+
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IProgressMonitor;
+
 public class C4MasterGroup extends C4Group {
 	
 	private static final long serialVersionUID = 1L;
@@ -16,6 +21,10 @@ public class C4MasterGroup extends C4Group {
 	
 	protected C4MasterGroup(String name, File file) {
 		super(null, name, file);
+	}
+	
+	protected C4MasterGroup(C4Group parent, String name, File file) {
+		super(parent, name, file);
 	}
 	
 	/**
@@ -37,55 +46,60 @@ public class C4MasterGroup extends C4Group {
 	}
 	
 	@Override
-	public synchronized void readFromStream(long pos, StreamReadCallback callback) throws IOException {
-		boolean createdStream = stream == null;
-		if (createdStream)
-			requireStream();
+	public synchronized void readFromStream(C4GroupItem whoWantsThat, long pos, StreamReadCallback callback) throws IOException {
 		try {
-			if (stream != null) {
-				if (pos > streamPos) {
-					stream.skip(pos-streamPos);
-					streamPos = pos;
-				}
-				else if (pos < streamPos) {
-					releaseStream();
-					requireStream();
-					stream.skip(streamPos = pos);
-				}
-				callback.readStream(new InputStream() {
-
-					@Override
-					public int read() throws IOException {
-						int result = stream.read();
-						if (result != -1)
-							streamPos++;
-						return result;
-					}
-
-					@Override
-					public int read(byte[] b) throws IOException {
-						int read = stream.read(b);
-						streamPos += read;
-						return read;
-					}
-
-					@Override
-					public int read(byte[] b, int off, int len) throws IOException {
-						int read = stream.read(b, off, len);
-						streamPos += read;
-						return read;
-					}
-
-				});
-			}
-			else
-				throw new IOException("C4Group.readFromStream: No stream");
-		} finally {
+			boolean createdStream = stream == null;
 			if (createdStream)
-				releaseStream();
+				requireStream();
+			try {
+				if (stream != null) {
+					if (pos > streamPos) {
+						stream.skip(pos-streamPos);
+						streamPos = pos;
+					}
+					else if (pos < streamPos) {
+						releaseStream();
+						requireStream();
+						stream.skip(streamPos = pos);
+					}
+					callback.readStream(new InputStream() {
+
+						@Override
+						public int read() throws IOException {
+							int result = stream.read();
+							if (result != -1)
+								streamPos++;
+							return result;
+						}
+
+						@Override
+						public int read(byte[] b) throws IOException {
+							int read = stream.read(b);
+							streamPos += read;
+							return read;
+						}
+
+						@Override
+						public int read(byte[] b, int off, int len) throws IOException {
+							int read = stream.read(b, off, len);
+							streamPos += read;
+							return read;
+						}
+
+					});
+				}
+				else
+					throw new IOException("C4Group.readFromStream: No stream");
+			} finally {
+				if (createdStream)
+					releaseStream();
+			}
+		} catch (Exception e) {
+			System.out.println("Look what you did, " + whoWantsThat.toString() + ")");
+			e.printStackTrace();
 		}
 	}
-	
+
 	@Override
 	public void releaseStream() throws IOException {
 		if (stream == null)
@@ -160,6 +174,11 @@ public class C4MasterGroup extends C4Group {
 	@Override
 	public InputStream getStream() {
 		return stream;
+	}
+	
+	@Override
+	public void delete(int options, IProgressMonitor monitor) throws CoreException {
+		C4GroupFileSystem.delete(this);
 	}
 
 }

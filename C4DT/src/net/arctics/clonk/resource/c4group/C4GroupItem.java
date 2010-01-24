@@ -20,9 +20,21 @@ import org.eclipse.core.runtime.Path;
 public abstract class C4GroupItem extends FileStore implements INodeWithPath {
 	
 	public static final HeaderFilterBase ACCEPT_EVERYTHING = new HeaderFilterBase() {
+		@Override
 		public boolean accepts(C4EntryHeader header, C4Group context) {
 			return true;
 		}
+	};
+	
+	public static final HeaderFilterBase ACCEPT_EVERYTHING_DONTSTORECONTENTS = new HeaderFilterBase() {
+		@Override
+		public boolean accepts(C4EntryHeader header, C4Group context) {
+			return true;
+		};
+		@Override
+		public int getFlags(C4GroupEntry entry) {
+			return DONTREADINTOMEMORY;
+		};
 	};
 	
 	/**
@@ -102,7 +114,9 @@ public abstract class C4GroupItem extends FileStore implements INodeWithPath {
 		File origin = masterGroup.getOrigin();
 		if (origin != null) {
 			try {
-				URI uri = new URI("c4group", new Path(origin.getParent()).append(getPath().toString()).toString(), null);
+				String path = new Path(origin.getParent()).append(getPath().toString()).toString();
+				path = path.replace("[", "%5B").replace("]", "%5D");
+				URI uri = new URI("c4group", path, null);
 				return uri;
 			} catch (URISyntaxException e) {
 				e.printStackTrace();
@@ -116,6 +130,11 @@ public abstract class C4GroupItem extends FileStore implements INodeWithPath {
 	public boolean equals(Object obj) {
 		// remove sophisticatedness
 		return obj == this;
+	}
+	
+	@Override
+	public INodeWithPath getParentNode() {
+		return getParentGroup();
 	}
 	
 }

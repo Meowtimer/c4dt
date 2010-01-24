@@ -6,10 +6,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.Serializable;
-import java.util.LinkedList;
-
 import net.arctics.clonk.resource.c4group.C4Group.C4GroupType;
 import net.arctics.clonk.resource.c4group.C4Group.StreamReadCallback;
+import net.arctics.clonk.util.ITreeNode;
 
 import org.eclipse.core.filesystem.EFS;
 import org.eclipse.core.filesystem.IFileInfo;
@@ -24,7 +23,6 @@ import org.eclipse.core.resources.IStorage;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.Path;
 
 /**
  * Represents one entry in a C4Group file.
@@ -99,7 +97,7 @@ public class C4GroupEntry extends C4GroupItem implements IStorage, Serializable 
 	public InputStream getContents() throws CoreException {
 		if (contents == null) {
 			try {
-				getParentGroup().readFromStream(getParentGroup().baseOffset() + header.getOffset(), new StreamReadCallback() {
+				getParentGroup().readFromStream(this, getParentGroup().baseOffset() + header.getOffset(), new StreamReadCallback() {
 					@Override
 					public void readStream(InputStream stream) {
 						fetchContents(stream);
@@ -275,17 +273,7 @@ public class C4GroupEntry extends C4GroupItem implements IStorage, Serializable 
 	}
 
 	public IPath getFullPath() {
-		LinkedList<String> pathSegments = new LinkedList<String>();
-		for (C4GroupItem item = this; item != null; item = item.getParentGroup()) {
-			pathSegments.addFirst(item.getName());
-		}
-		StringBuilder pathBuilder = new StringBuilder();
-		for (String pathSegment : pathSegments) {
-			if (pathBuilder.length() > 0)
-				pathBuilder.append('/');
-			pathBuilder.append(pathSegment);
-		}
-		return new Path(pathBuilder.toString());
+		return ITreeNode.Default.getPath(this);
 	}
 	
 	@Override
@@ -325,7 +313,7 @@ public class C4GroupEntry extends C4GroupItem implements IStorage, Serializable 
 		FileInfo fileInfo = new FileInfo(getName());
 		fileInfo.setExists(true);
 		fileInfo.setAttribute(EFS.ATTRIBUTE_ARCHIVE, true);
-		fileInfo.setAttribute(EFS.ATTRIBUTE_READ_ONLY, true);
+		//fileInfo.setAttribute(EFS.ATTRIBUTE_READ_ONLY, true);
 		fileInfo.setLastModified(getParentGroup().lastModified());
 		return fileInfo;
 	}

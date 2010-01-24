@@ -55,8 +55,8 @@ public class C4Group extends C4GroupItem implements Serializable, ITreeNode {
 	private static final long serialVersionUID = 1L;
 	public static final Map<String, C4GroupType> EXTENSION_TO_GROUP_TYPE_MAP = getExtensionToGroupTypeMap();
 
-	public synchronized void readFromStream(long pos, StreamReadCallback callback) throws IOException {
-		getParentGroup().readFromStream(pos, callback);
+	public synchronized void readFromStream(C4GroupItem whoWantsThat, long pos, StreamReadCallback callback) throws IOException {
+		getParentGroup().readFromStream(whoWantsThat, pos, callback);
 	}
 	
 	/**
@@ -242,6 +242,9 @@ public class C4Group extends C4GroupItem implements Serializable, ITreeNode {
      */
 	public void readIntoMemory(boolean recursively, HeaderFilterBase filter, InputStream stream) throws InvalidDataException, IOException, CoreException {
 
+		if (stream == null)
+			stream = getStream();
+		
 		// compressed
 		if (stream != null) {
 
@@ -300,8 +303,12 @@ public class C4Group extends C4GroupItem implements Serializable, ITreeNode {
 				}
 				else {
 					for (Object o : readObjects)
-						if (o instanceof C4GroupItem)
+						if (o instanceof C4GroupItem) {
 							childEntries.add((C4GroupItem) o);
+							// not recursive: only read files
+							if (o instanceof C4GroupEntry)
+								((C4GroupEntry)o).readIntoMemory(false, filter, stream);
+						}
 				}
 
 			}
@@ -317,12 +324,18 @@ public class C4Group extends C4GroupItem implements Serializable, ITreeNode {
 				C4EntryHeader header = new C4EntryHeader(child);
 				if (filter.accepts(header, this)) {
 					boolean isFile = !header.isGroup();
-					C4GroupItem childItem = isFile ? new C4GroupEntry(this, header) : new C4Group(this, child.getName(), child);
+					C4GroupItem childItem =
+						isFile
+							? new C4GroupEntry(this, header)
+							: child.isDirectory()
+								? new C4UncompressedGroup(this, child.getName(), child)
+								: new C4MasterGroup(this, child.getName(), child);
 					if (isFile)
 						stream = new FileInputStream(child);
 					try {
 						childEntries.add(childItem);
-						childItem.readIntoMemory(true, filter, stream);
+						if (recursively || !(childItem instanceof C4Group))
+							childItem.readIntoMemory(true, filter, stream);
 					} finally {
 						if (isFile) {
 							stream.close();
@@ -410,6 +423,30 @@ public class C4Group extends C4GroupItem implements Serializable, ITreeNode {
 	 * @return the childEntries
 	 */
 	public List<C4GroupItem> getChildren() {
+		if (childEntries == null) {
+			try {
+				if (origin != null && origin.isDirectory())
+					readIntoMemory(false, ACCEPT_EVERYTHING_DONTSTORECONTENTS, null);
+				else {
+					readFromStream(this, (getParentGroup() != null ? getParentGroup().baseOffset() : 0) + offset, new StreamReadCallback() {
+						@Override
+						public void readStream(InputStream stream) {
+							try {
+								readIntoMemory(false, ACCEPT_EVERYTHING_DONTSTORECONTENTS, stream);
+							} catch (Exception e) {
+								e.printStackTrace();
+							}
+						}
+					});
+				}
+			} catch (IOException e) {
+				e.printStackTrace();
+			} catch (InvalidDataException e) {
+				e.printStackTrace();
+			} catch (CoreException e) {
+				e.printStackTrace();
+			}
+		}
 		return childEntries;
 	}
 
@@ -547,6 +584,9 @@ public class C4Group extends C4GroupItem implements Serializable, ITreeNode {
 
 	@Override
 	public String[] childNames(int options, IProgressMonitor monitor) throws CoreException {
+		childEntries = null; // force refresh
+		completed = false;
+		List<C4GroupItem> childEntries = this.getChildren();
 		String[] result = new String[childEntries.size()];
 		for (int i = 0; i < result.length; i++) {
 			result[i] = childEntries.get(i).getName();
@@ -559,7 +599,7 @@ public class C4Group extends C4GroupItem implements Serializable, ITreeNode {
 		FileInfo fileInfo = new FileInfo(getName());
 		fileInfo.setExists(true);
 		fileInfo.setAttribute(EFS.ATTRIBUTE_ARCHIVE, true);
-		fileInfo.setAttribute(EFS.ATTRIBUTE_READ_ONLY, true);
+		//fileInfo.setAttribute(EFS.ATTRIBUTE_READ_ONLY, true);
 		fileInfo.setDirectory(true);
 		return fileInfo;
 	}

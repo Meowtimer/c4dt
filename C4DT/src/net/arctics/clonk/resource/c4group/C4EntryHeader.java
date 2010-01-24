@@ -6,6 +6,8 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.Serializable;
 
+import net.arctics.clonk.resource.c4group.C4Group.C4GroupType;
+
 public class C4EntryHeader implements Serializable {
 
 	public static final int STORED_SIZE = 316;
@@ -27,7 +29,7 @@ public class C4EntryHeader implements Serializable {
     public C4EntryHeader(File file) {
     	entryName = file.getName();
     	packed = false;
-    	group = file.isDirectory();
+    	group = C4Group.getGroupType(file.getName()) != C4GroupType.OtherGroup || file.isDirectory();
     	size = (int) file.length();
     	offset = 0;
     	time = (int) file.lastModified();
