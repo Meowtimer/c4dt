@@ -4,10 +4,6 @@ import org.eclipse.osgi.util.NLS;
 
 public class Messages extends NLS {
 	private static final String BUNDLE_NAME = "net.arctics.clonk.ui.messages"; //$NON-NLS-1$
-	public static String Project_NewDependencyDesc;
-	public static String Project_ShowDependencies;
-	public static String Project_Dependencies;
-	public static String Project_NewDependency;
 	public static String Engine_NewParameter;
 	public static String Engine_EditVariable;
 	public static String Engine_AddFunction;
