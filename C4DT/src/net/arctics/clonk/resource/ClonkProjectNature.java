@@ -67,10 +67,6 @@ public class ClonkProjectNature implements IProjectNature {
 		return ClonkCore.getDefault().getStateLocation().append(getProject().getName()+ProjectIndex.INDEXFILE_SUFFIX);
 	}
 	
-	private IPath getOldIndexFileLocation() {
-		return project.getFile("indexdata").getLocation(); //$NON-NLS-1$
-	}
-
 	/**
 	 * Saves the index to disk
 	 * @throws CoreException
@@ -101,7 +97,7 @@ public class ClonkProjectNature implements IProjectNature {
 	 * Loads the index from disk
 	 */
 	private synchronized void loadIndex() {
-		ProjectIndex loadedIndex = ClonkIndex.load(ProjectIndex.class, getIndexFileLocation().toFile(), getOldIndexFileLocation().toFile());
+		ProjectIndex loadedIndex = ClonkIndex.load(ProjectIndex.class, getIndexFileLocation().toFile(), null);
 		if (loadedIndex != null) {
 			index = loadedIndex; // necessary to avoid infinite recursion
 			loadedIndex.setProject(getProject());
