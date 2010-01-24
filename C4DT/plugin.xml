@@ -415,48 +415,51 @@
 		
 		<!-- Project Explorer Menu !-->
 		<menuContribution locationURI="popup:org.eclipse.ui.navigator.ProjectExplorer#PopupMenu?after=additions">
-			<separator name="SeparatorBeforeProjectExplorerClonkContributionsThatFulfillsTheFunctionOfSeparatingTheRegularCommandsFromTheClonkOnes" visible="true" />
-			<command commandId="net.arctics.clonk.ui.QuickExport" label="%QuickExport_Name">
-				<visibleWhen checkEnabled="false">
-					<iterate ifEmpty="false">
-						<adapt type="org.eclipse.core.resources.IContainer">
-						</adapt>
-					</iterate>
-				</visibleWhen>
-			</command>
-			<command commandId="net.arctics.clonk.ui.QuickImport" label="%QuickImport_Name">
-				<visibleWhen checkEnabled="false">
-					<iterate ifEmpty="false">
-						<adapt type="org.eclipse.core.resources.IContainer">
-						</adapt>
-					</iterate>
-				</visibleWhen>
-			</command>
-			<separator name="AfterImportExportSeparator" visible="true" />
-			<command commandId="net.arctics.clonk.ui.navigator.actions.ConvertOldCodeInBulk" label="%ConvertOldCodeToNewCode_Name">
-				<visibleWhen checkEnabled="false">
-					<iterate ifEmpty="false">
-						<adapt type="org.eclipse.core.resources.IResource">
-						</adapt>
-					</iterate>
-				</visibleWhen>
-			</command>
-			<separator name="AfterCodeConversionSeparator" visible="true" />
-			<command commandId="net.arctics.clonk.ui.navigator.actions.ImportExternalLib" label="%ImportExternalLib_Name">
-				<visibleWhen checkEnabled="false">
-					<iterate ifEmpty="false">
-						<adapt type="net.arctics.clonk.resource.ExternalLib">
-						</adapt>
-					</iterate>
-				</visibleWhen>
-			</command>
-			<command commandId="net.arctics.clonk.ui.navigator.actions.LinkC4GroupFile" label="%LinkC4GroupFile_Name">
-				<visibleWhen checkEnabled="false">
-					<iterate ifEmpty="false">
-						<adapt type="org.eclipse.core.resources.IProject" />
-					</iterate>
-				</visibleWhen>
-			</command>
+			<separator name="BeforeClonkMenu" visible="true" />
+			<menu label="Clonk">
+				<command commandId="net.arctics.clonk.ui.QuickExport" label="%QuickExport_Name">
+					<visibleWhen checkEnabled="false">
+						<iterate ifEmpty="false">
+							<adapt type="org.eclipse.core.resources.IContainer">
+							</adapt>
+						</iterate>
+					</visibleWhen>
+				</command>
+				<command commandId="net.arctics.clonk.ui.QuickImport" label="%QuickImport_Name">
+					<visibleWhen checkEnabled="false">
+						<iterate ifEmpty="false">
+							<adapt type="org.eclipse.core.resources.IContainer">
+							</adapt>
+						</iterate>
+					</visibleWhen>
+				</command>
+				<separator name="AfterImportExportSeparator" visible="true" />
+				<command commandId="net.arctics.clonk.ui.navigator.actions.ConvertOldCodeInBulk" label="%ConvertOldCodeToNewCode_Name">
+					<visibleWhen checkEnabled="false">
+						<iterate ifEmpty="false">
+							<adapt type="org.eclipse.core.resources.IResource">
+							</adapt>
+						</iterate>
+					</visibleWhen>
+				</command>
+				<separator name="AfterCodeConversionSeparator" visible="true" />
+				<command commandId="net.arctics.clonk.ui.navigator.actions.ImportExternalLib" label="%ImportExternalLib_Name">
+					<visibleWhen checkEnabled="false">
+						<iterate ifEmpty="false">
+							<adapt type="net.arctics.clonk.resource.ExternalLib">
+							</adapt>
+						</iterate>
+					</visibleWhen>
+				</command>
+				<command commandId="net.arctics.clonk.ui.navigator.actions.LinkC4GroupFile" label="%LinkC4GroupFile_Name">
+					<visibleWhen checkEnabled="false">
+						<iterate ifEmpty="false">
+							<adapt type="org.eclipse.core.resources.IProject" />
+						</iterate>
+					</visibleWhen>
+				</command>
+			</menu>
+			<separator name="AfterClonkMenu" visible="true" />
 		</menuContribution>
 		
 	</extension>
