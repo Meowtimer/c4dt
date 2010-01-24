@@ -4,4 +4,5 @@ import org.eclipse.core.runtime.IPath;
 
 public interface INodeWithPath extends INode {
 	public IPath getPath();
+	public INodeWithPath getParentNode();
 }

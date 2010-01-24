@@ -12,7 +12,7 @@ public interface ITreeNode extends INodeWithPath {
 	void addChild(ITreeNode node);	
 	
 	public static class Default {
-		public static IPath getPath(ITreeNode node) {
+		public static IPath getPath(INodeWithPath node) {
 			return node.getParentNode() != null ? node.getParentNode().getPath().append(node.getNodeName()) : new Path(node.getNodeName());
 		}
 		public static boolean subNodeOf(ITreeNode node, ITreeNode other) {
@@ -28,6 +28,9 @@ public interface ITreeNode extends INodeWithPath {
 				return new Path(item.getNodeName());
 			else
 				return pathRelativeTo(item.getParentNode(), other).append(item.getNodeName());
+		}
+		public static IPath relativePath(INodeWithPath node, INodeWithPath superNode) {
+			return node.getParentNode() != null && node.getParentNode() != superNode ? relativePath(node.getParentNode(), superNode).append(node.getNodeName()) : new Path(node.getNodeName());
 		}
 	}
 	
