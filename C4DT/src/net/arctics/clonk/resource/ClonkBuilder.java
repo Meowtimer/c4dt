@@ -133,7 +133,12 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 		@Override
 		public boolean visit(IResource res) throws CoreException {
 			if (res.getParent() != null && res.getParent().equals(res.getProject()) && res instanceof IContainer) {
-				URI uri = res.getLocationURI();
+				URI uri = null;
+				try {
+					uri = res.getLocationURI();
+				} catch (Exception e) {
+					System.out.println(res.getFullPath().toString());
+				}
 				IFileStore store = EFS.getStore(uri);
 				if (store instanceof C4Group) {
 					C4Group group = (C4Group) store;
@@ -516,6 +521,8 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 			return true;
 		}
 		else if (delta.getResource() instanceof IContainer) {
+			if (EFS.getStore(delta.getResource().getLocationURI()) instanceof C4Group)
+				return false;
 			// make sure the object has a reference to its folder (not to some obsolete deleted one)
 			C4ObjectIntern object;
 			switch (delta.getKind()) {
@@ -562,6 +569,8 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 
 	public boolean visit(IResource resource) throws CoreException {
 		if (resource instanceof IContainer) {
+			if (EFS.getStore(resource.getLocationURI()) instanceof C4Group)
+				return false;
 			switch (buildPhase) {
 			case 0:
 				// first phase: just gather declarations
