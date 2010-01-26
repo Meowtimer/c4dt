@@ -6,6 +6,9 @@ import java.util.Collection;
 import java.util.LinkedList;
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.index.C4Engine;
+import net.arctics.clonk.index.ClonkIndex;
+import net.arctics.clonk.index.ExternIndex;
+import net.arctics.clonk.index.ProjectIndex;
 import net.arctics.clonk.preferences.ClonkPreferences;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.resource.ExternalLib;
@@ -183,12 +186,19 @@ public class ClonkLaunchConfigurationDelegate implements
 		args.add(scenario.getRawLocationURI().getSchemeSpecificPart());
 		
 		// add stuff from the project so Clonk does not fail to find them
-		for (IResource res : scenario.getProject().members(0)) {
-			if (res instanceof IContainer)
-				if (!res.getName().startsWith(".")) //$NON-NLS-1$
-					if (C4Group.getGroupType(res.getName()) != C4GroupType.ScenarioGroup)
-						if (!Utilities.resourceInside(scenario, (IContainer) res))
-							args.add(res.getRawLocationURI().getSchemeSpecificPart());
+		for (ClonkIndex index : ClonkProjectNature.get(scenario).getIndex().relevantIndexes()) {
+			if (index instanceof ProjectIndex) {
+				for (IResource res : ((ProjectIndex)index).getProject().members()) {
+					if (!res.getName().startsWith(".")) //$NON-NLS-1$
+						if (C4Group.getGroupType(res.getName()) != C4GroupType.ScenarioGroup)
+							if (!Utilities.resourceInside(scenario, (IContainer) res))
+								args.add(res.getRawLocationURI().getSchemeSpecificPart());
+				}
+			}
+			if (index instanceof ExternIndex) {
+				for (ExternalLib lib : ((ExternIndex)index).getLibs())
+					args.add(lib.getFullPath());
+			}
 		}
 		
 		// also add external dependencies
