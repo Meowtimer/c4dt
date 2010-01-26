@@ -180,7 +180,7 @@ public class ClonkLaunchConfigurationDelegate implements
 		args.add(engine.getAbsolutePath());
 		
 		// Scenario
-		args.add(scenario.getRawLocation().toOSString());
+		args.add(scenario.getRawLocationURI().getSchemeSpecificPart());
 		
 		// add stuff from the project so Clonk does not fail to find them
 		for (IResource res : scenario.getProject().members(0)) {
@@ -188,7 +188,7 @@ public class ClonkLaunchConfigurationDelegate implements
 				if (!res.getName().startsWith(".")) //$NON-NLS-1$
 					if (C4Group.getGroupType(res.getName()) != C4GroupType.ScenarioGroup)
 						if (!Utilities.resourceInside(scenario, (IContainer) res))
-							args.add(res.getRawLocation().toOSString());
+							args.add(res.getRawLocationURI().getSchemeSpecificPart());
 		}
 		
 		// also add external dependencies
