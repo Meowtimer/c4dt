@@ -4,6 +4,8 @@ import java.io.File;
 import java.lang.ref.WeakReference;
 import java.net.URI;
 import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 
 import net.arctics.clonk.resource.c4group.C4EntryHeader;
@@ -37,9 +39,25 @@ public class C4GroupFileSystem extends FileSystem {
 		rootGroups.remove(group.getOrigin());
 	}
 	
+	public void purgeDeadEntries() {
+		List<File> markedForDeletion = null;
+		for (Map.Entry<File, WeakReference<C4Group>> entry : rootGroups.entrySet()) {
+			if (entry.getValue().get() == null) {
+				if (markedForDeletion == null)
+					markedForDeletion = new LinkedList<File>();
+				markedForDeletion.add(entry.getKey());
+			}
+		}
+		if (markedForDeletion != null) {
+			for (File f : markedForDeletion)
+				rootGroups.remove(f);
+		}
+	}
+	
 	@Override
 	public IFileStore getStore(URI uri) {
-		String groupFilePath = uri.getPath();
+		purgeDeadEntries();
+		String groupFilePath = uri.getSchemeSpecificPart();
 		File file = new File(groupFilePath);
 		File groupFile = file;
 		
