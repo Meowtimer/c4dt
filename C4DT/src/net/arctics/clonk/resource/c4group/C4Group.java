@@ -32,6 +32,7 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.Status;
+import org.eclipse.core.runtime.SubProgressMonitor;
 
 /**
  * C4Group support.
@@ -598,8 +599,9 @@ public class C4Group extends C4GroupItem implements Serializable, ITreeNode {
 	public IFileInfo fetchInfo(int options, IProgressMonitor monitor) throws CoreException {
 		FileInfo fileInfo = new FileInfo(getName());
 		fileInfo.setExists(true);
-		fileInfo.setAttribute(EFS.ATTRIBUTE_ARCHIVE, true);
-		//fileInfo.setAttribute(EFS.ATTRIBUTE_READ_ONLY, true);
+		fileInfo.setAttribute(EFS.ATTRIBUTE_HIDDEN, false);
+		fileInfo.setAttribute(EFS.ATTRIBUTE_READ_ONLY, false);
+		fileInfo.setAttribute(EFS.ATTRIBUTE_ARCHIVE, false);
 		fileInfo.setDirectory(true);
 		return fileInfo;
 	}
@@ -626,6 +628,54 @@ public class C4Group extends C4GroupItem implements Serializable, ITreeNode {
 			return getParentGroup().lastModified();
 		else
 			return EFS.NONE;
+	}
+	
+	@Override
+	protected void copyDirectory(IFileInfo sourceInfo, IFileStore destination, int options, IProgressMonitor monitor) throws CoreException {
+		
+		boolean needsToReleaseStream = getStream() == null;
+		try {
+			if (needsToReleaseStream)
+				requireStream();
+		} catch (IOException e) {
+			e.printStackTrace();
+			return;
+		}
+
+		try {
+
+			try {
+				IFileStore[] children = null;
+				int opWork = 1;
+				if ((options & EFS.SHALLOW) == 0) {
+					children = childStores(EFS.NONE, null);
+					opWork += children.length;
+				}
+				monitor.beginTask("", opWork); //$NON-NLS-1$
+				monitor.subTask("Copying...");
+				// create directory 
+				destination.mkdir(EFS.NONE, new SubProgressMonitor(monitor, 1));
+				// don't copy attributes since that is stupid
+				//transferAttributes(sourceInfo, destination);
+
+				if (children == null)
+					return;
+				// copy children
+				for (int i = 0; i < children.length; i++)
+					children[i].copy(destination.getChild(children[i].getName()), options, new SubProgressMonitor(monitor, 1));
+			} finally {
+				monitor.done();
+			}
+
+		} finally {
+			try {
+				if (needsToReleaseStream)
+					releaseStream();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+
 	}
 	
 }

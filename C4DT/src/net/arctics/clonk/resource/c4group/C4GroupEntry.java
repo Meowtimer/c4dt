@@ -10,7 +10,6 @@ import net.arctics.clonk.resource.c4group.C4Group.C4GroupType;
 import net.arctics.clonk.resource.c4group.C4Group.StreamReadCallback;
 import net.arctics.clonk.util.ITreeNode;
 
-import org.eclipse.core.filesystem.EFS;
 import org.eclipse.core.filesystem.IFileInfo;
 import org.eclipse.core.filesystem.IFileStore;
 import org.eclipse.core.filesystem.provider.FileInfo;
@@ -32,6 +31,8 @@ import org.eclipse.core.runtime.IProgressMonitor;
 public class C4GroupEntry extends C4GroupItem implements IStorage, Serializable {
 	
 	private static final long serialVersionUID = 1L;
+	private static final String[] NO_CHILDNAMES = new String[0];
+	
 	public static final int STORED_SIZE = 316;
 	
 	private transient C4EntryHeader header;
@@ -300,8 +301,6 @@ public class C4GroupEntry extends C4GroupItem implements IStorage, Serializable 
 	public String getNodeName() {
 		return getName();
 	}
-
-	private static final String[] NO_CHILDNAMES = new String[0];
 	
 	@Override
 	public String[] childNames(int options, IProgressMonitor monitor) throws CoreException {
@@ -312,8 +311,6 @@ public class C4GroupEntry extends C4GroupItem implements IStorage, Serializable 
 	public IFileInfo fetchInfo(int options, IProgressMonitor monitor) throws CoreException {
 		FileInfo fileInfo = new FileInfo(getName());
 		fileInfo.setExists(true);
-		fileInfo.setAttribute(EFS.ATTRIBUTE_ARCHIVE, true);
-		//fileInfo.setAttribute(EFS.ATTRIBUTE_READ_ONLY, true);
 		fileInfo.setLastModified(getParentGroup().lastModified());
 		return fileInfo;
 	}
