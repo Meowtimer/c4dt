@@ -262,6 +262,12 @@
 			id="net.arctics.clonk.views.ClonkPreviewView"
 			icon="icons/Clonk_C4.png"
 			name="%ClonkPreview_Name" />
+		
+		<view category="net.arctics.clonk" class="net.arctics.clonk.ui.navigator.ClonkFolderView"
+			id="net.arctics.clonk.views.ClonkFolderView"
+			icon="icons/Clonk_C4.png"
+			name="%ClonkFolderView_Name" />
+		
 	</extension>
 
 	<extension id="net.arctics.clonk.externliberror" name="External library error"

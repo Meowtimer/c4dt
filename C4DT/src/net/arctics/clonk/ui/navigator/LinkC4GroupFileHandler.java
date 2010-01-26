@@ -34,16 +34,22 @@ public class LinkC4GroupFileHandler extends AbstractHandler {
 				String filePath;
 				if ((filePath = fileDialog.open()) != null) {
 					File f = new File(filePath);
-					IFolder linkedFolder = proj.getFolder(f.getName());
-					try {
-						linkedFolder.createLink(new URI("c4group", filePath, null), 0, new NullProgressMonitor());
-					} catch (CoreException e) {
-						e.printStackTrace();
-					} catch (URISyntaxException e) {
-						e.printStackTrace();
-					}
+					linkC4GroupFile(proj, f);
 				}
 			}
+		}
+		return null;
+	}
+
+	public static IFolder linkC4GroupFile(IProject proj, File f) {
+		IFolder linkedFolder = proj.getFolder(f.getName());
+		try {
+			linkedFolder.createLink(new URI("c4group", f.getAbsolutePath(), null), 0, new NullProgressMonitor());
+			return linkedFolder;
+		} catch (CoreException e) {
+			e.printStackTrace();
+		} catch (URISyntaxException e) {
+			e.printStackTrace();
 		}
 		return null;
 	}
