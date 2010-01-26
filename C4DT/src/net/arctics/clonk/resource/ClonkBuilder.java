@@ -58,6 +58,8 @@ import org.eclipse.ui.navigator.CommonNavigator;
  * @author ZokRadonh
  */
 public class ClonkBuilder extends IncrementalProjectBuilder implements IResourceDeltaVisitor, IResourceVisitor {
+	
+	private static final boolean INDEX_C4GROUPS = true;
 
 	private static final class UIRefresher implements Runnable {
 		
@@ -521,8 +523,9 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 			return true;
 		}
 		else if (delta.getResource() instanceof IContainer) {
-			if (EFS.getStore(delta.getResource().getLocationURI()) instanceof C4Group)
-				return false;
+			if (!INDEX_C4GROUPS)
+				if (EFS.getStore(delta.getResource().getLocationURI()) instanceof C4Group)
+					return false;
 			// make sure the object has a reference to its folder (not to some obsolete deleted one)
 			C4ObjectIntern object;
 			switch (delta.getKind()) {
@@ -569,8 +572,9 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 
 	public boolean visit(IResource resource) throws CoreException {
 		if (resource instanceof IContainer) {
-			if (EFS.getStore(resource.getLocationURI()) instanceof C4Group)
-				return false;
+			if (!INDEX_C4GROUPS)
+				if (EFS.getStore(resource.getLocationURI()) instanceof C4Group)
+					return false;
 			switch (buildPhase) {
 			case 0:
 				// first phase: just gather declarations
