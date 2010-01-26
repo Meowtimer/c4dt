@@ -6,8 +6,8 @@ import java.util.Map;
 
 import net.arctics.clonk.ClonkCore;
 
-import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.preferences.IScopeContext;
+import org.eclipse.jface.preference.IPreferenceStore;
 
 /**
  * Constant definitions for clonk preferences
@@ -55,7 +55,11 @@ public class ClonkPreferences {
 	}
 	
 	public static String getPreference(String prefName, String def, IScopeContext[] contexts) {
-		return Platform.getPreferencesService().getString(ClonkCore.PLUGIN_ID, prefName, def, contexts);
+		IPreferenceStore prefStore = ClonkCore.getDefault().getPreferenceStore();
+		if (prefStore.isDefault(prefName))
+			return def;
+		else
+			return prefStore.getString(prefName);
 	}
 	
 	public static String getPreference(String prefName) {
