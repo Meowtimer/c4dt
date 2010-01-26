@@ -12,9 +12,11 @@ import net.arctics.clonk.ui.editors.c4script.ClonkWhitespaceDetector;
 import net.arctics.clonk.ui.editors.c4script.CombinedWordRule;
 
 import org.eclipse.jface.text.TextAttribute;
+import org.eclipse.jface.text.rules.EndOfLineRule;
 import org.eclipse.jface.text.rules.ICharacterScanner;
 import org.eclipse.jface.text.rules.IRule;
 import org.eclipse.jface.text.rules.IToken;
+import org.eclipse.jface.text.rules.MultiLineRule;
 import org.eclipse.jface.text.rules.Token;
 import org.eclipse.jface.text.rules.WhitespaceRule;
 
@@ -82,8 +84,12 @@ public class MapCreatorCodeScanner extends ClonkRuleBasedScanner {
 		IToken keyword = createToken(manager, "KEYWORD"); //$NON-NLS-1$
 		IToken number = createToken(manager, "NUMBER"); //$NON-NLS-1$
 		IToken bracket = createToken(manager, "BRACKET"); //$NON-NLS-1$
+		IToken comment = createToken(manager, "COMMENT"); //$NON-NLS-1$
 
 		List<IRule> rules = new ArrayList<IRule>();
+		
+		rules.add(new EndOfLineRule("//", comment));
+		rules.add(new MultiLineRule("/*", "*/", comment));
 
 		// Add generic whitespace rule.
 		rules.add(new WhitespaceRule(new ClonkWhitespaceDetector()));
