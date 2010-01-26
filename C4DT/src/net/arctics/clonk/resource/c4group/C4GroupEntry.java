@@ -104,6 +104,11 @@ public class C4GroupEntry extends C4GroupItem implements IStorage, Serializable 
 						fetchContents(stream);
 					}
 				});
+				try {
+					return new ByteArrayInputStream(getContentsAsArray());
+				} finally {
+					contents = null; // don't store
+				}
 			} catch (IOException e) {
 				e.printStackTrace();
 				return null;
