@@ -80,16 +80,15 @@ public class MapCreatorCodeScanner extends ClonkRuleBasedScanner {
 
 		IToken operator = createToken(manager, "OPERATOR"); //$NON-NLS-1$
 		IToken keyword = createToken(manager, "KEYWORD"); //$NON-NLS-1$
-		//			IToken number = new Token(new TextAttribute(manager.getColor(IClonkColorConstants.getColor("NUMBER"))));
+		IToken number = createToken(manager, "NUMBER"); //$NON-NLS-1$
 		IToken bracket = createToken(manager, "BRACKET"); //$NON-NLS-1$
-
-		//			fTokenMap.put(ClonkScriptPartitionScanner.C4S_STRING, string);
 
 		List<IRule> rules = new ArrayList<IRule>();
 
 		// Add generic whitespace rule.
 		rules.add(new WhitespaceRule(new ClonkWhitespaceDetector()));
 
+		rules.add(new NumberRule(number));
 
 		// Add rule for operators
 		rules.add(new OperatorRule(operator));
