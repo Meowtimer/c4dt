@@ -25,6 +25,8 @@ import net.arctics.clonk.parser.c4script.C4ScriptBase;
 import net.arctics.clonk.parser.c4script.C4ScriptIntern;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.ui.editors.c4script.C4ScriptEditor;
+import net.arctics.clonk.ui.navigator.ClonkLabelProvider;
+
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
@@ -40,6 +42,7 @@ import org.eclipse.jface.text.Region;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.ITreeSelection;
 import org.eclipse.jface.viewers.TreePath;
+import org.eclipse.jface.window.Window;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IPageLayout;
@@ -56,6 +59,7 @@ import org.eclipse.ui.console.IConsoleManager;
 import org.eclipse.ui.console.IConsoleView;
 import org.eclipse.ui.console.MessageConsole;
 import org.eclipse.ui.console.MessageConsoleStream;
+import org.eclipse.ui.dialogs.ElementListSelectionDialog;
 import org.eclipse.ui.editors.text.TextFileDocumentProvider;
 import org.eclipse.ui.navigator.CommonNavigator;
 import org.eclipse.ui.navigator.CommonViewer;
@@ -664,6 +668,25 @@ public abstract class Utilities {
 			e.printStackTrace();
 			return null;
 		}	
+	}
+
+	public static IProject clonkProjectSelectionDialog(IProject initialSelection) {
+		// Create dialog listing all Clonk projects
+		ElementListSelectionDialog dialog
+			= new ElementListSelectionDialog(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(), new ClonkLabelProvider());
+		dialog.setTitle("Choose Clonk Project");
+		dialog.setMessage("Please choose a Clonk Project");
+		dialog.setElements(Utilities.getClonkProjects());
+
+		// Set selection
+		dialog.setInitialSelections(new Object [] { initialSelection });
+
+		// Show
+		if(dialog.open() == Window.OK) {
+			return (IProject) dialog.getFirstResult();
+		}
+		else
+			return null;
 	}
 	
 }

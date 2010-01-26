@@ -296,19 +296,8 @@ public class LaunchMainTab extends AbstractLaunchConfigurationTab {
 
 	public void chooseClonkProject() {
 		
-		// Create dialog listing all Clonk projects
-		ElementListSelectionDialog dialog
-			= new ElementListSelectionDialog(getShell(), new ClonkLabelProvider());
-		dialog.setTitle(Messages.LaunchMainTab_ChooseClonkProject);
-		dialog.setMessage(Messages.LaunchMainTab_ChooseClonkProjectPretty);
-		dialog.setElements(Utilities.getClonkProjects());
-		
-		// Set selection
-		dialog.setInitialSelections(new Object [] { validateProject() });
-		
-		// Show
-		if(dialog.open() == Window.OK) {
-			IProject project = (IProject) dialog.getFirstResult();
+		IProject project = Utilities.clonkProjectSelectionDialog(validateProject());
+		if (project != null) {
 			fProjText.setText(project.getName());
 		}
 
