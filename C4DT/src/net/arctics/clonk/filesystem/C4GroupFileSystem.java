@@ -79,6 +79,14 @@ public class C4GroupFileSystem extends FileSystem {
 						try {
 							group.readIntoMemory(false, new HeaderFilterBase() {
 
+								private final String[] filesToAlwaysLoad = new String[] {
+									"Script.c",
+									"DefCore.txt",
+									"ActMap.txt",
+									"DescDE.txt",
+									"DescUS.txt"
+								};
+								
 								@Override
 								public boolean accepts(C4EntryHeader header, C4Group context) {
 									return true;
@@ -86,10 +94,10 @@ public class C4GroupFileSystem extends FileSystem {
 
 								@Override
 								public int getFlags(C4GroupEntry entry) {
-									if (!entry.getName().equals("Script.c"))
-										return HeaderFilterBase.DONTREADINTOMEMORY;
-									else
-										return 0;
+									for (String s : filesToAlwaysLoad)
+										if (entry.getName().equalsIgnoreCase(s))
+											return 0;
+									return HeaderFilterBase.DONTREADINTOMEMORY;
 								}
 							});
 						} finally {

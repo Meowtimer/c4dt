@@ -11,6 +11,7 @@ import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.lang.reflect.InvocationTargetException;
+import java.net.URI;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -21,6 +22,7 @@ import java.util.Map;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.xpath.XPathExpressionException;
 
+import net.arctics.clonk.filesystem.C4GroupFileSystem;
 import net.arctics.clonk.index.C4Engine;
 import net.arctics.clonk.index.ExternIndex;
 import net.arctics.clonk.index.ProjectIndex;
@@ -32,9 +34,12 @@ import net.arctics.clonk.preferences.ClonkPreferences;
 import net.arctics.clonk.resource.ClonkLibBuilder;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.resource.InputStreamRespectingUniqueIDs;
+import net.arctics.clonk.ui.navigator.ClonkFolderView;
 import net.arctics.clonk.util.IRunnableWithProgressAndResult;
+import net.arctics.clonk.util.Utilities;
 
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IResourceChangeEvent;
 import org.eclipse.core.resources.IResourceChangeListener;
 import org.eclipse.core.resources.ISaveContext;
@@ -43,6 +48,7 @@ import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.QualifiedName;
 import org.eclipse.jface.dialogs.ProgressMonitorDialog;
 import org.eclipse.jface.resource.ImageDescriptor;
@@ -424,8 +430,10 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 	 * (non-Javadoc)
 	 * @see org.eclipse.ui.plugin.AbstractUIPlugin#stop(org.osgi.framework.BundleContext)
 	 */
+	@SuppressWarnings("deprecation")
 	public void stop(BundleContext context) throws Exception {
 		//saveExternIndex(); clean build causes save
+		ResourcesPlugin.getWorkspace().removeSaveParticipant(this);
 		plugin = null;
 		super.stop(context);
 	}
@@ -481,7 +489,17 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 	}
 
 	public void prepareToSave(ISaveContext context) throws CoreException {
-		// i don't need any preparation!1
+		// delete linked c4group files
+		if (ClonkCore.getDefault().getPreferenceStore().getBoolean(ClonkFolderView.PREF_DELETE_LINKS_ON_SHUTDOWN)) {
+			for (IProject proj : Utilities.getClonkProjects()) {
+				for (IResource res : proj.members()) {
+					URI uri = res.getLocationURI();
+					if (uri.getScheme().equals(C4GroupFileSystem.getInstance().getScheme())) {
+						res.delete(true, new NullProgressMonitor());
+					}
+				}
+			}
+		}
 	}
 
 	public void rollback(ISaveContext context) {

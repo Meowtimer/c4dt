@@ -6,6 +6,7 @@ import java.util.Map;
 
 import net.arctics.clonk.ClonkCore;
 
+import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.preferences.IScopeContext;
 import org.eclipse.jface.preference.IPreferenceStore;
 
@@ -55,11 +56,7 @@ public class ClonkPreferences {
 	}
 	
 	public static String getPreference(String prefName, String def, IScopeContext[] contexts) {
-		IPreferenceStore prefStore = ClonkCore.getDefault().getPreferenceStore();
-		if (prefStore.isDefault(prefName))
-			return def;
-		else
-			return prefStore.getString(prefName);
+		return Platform.getPreferencesService().getString(ClonkCore.PLUGIN_ID, prefName, def, contexts);
 	}
 	
 	public static String getPreference(String prefName) {
