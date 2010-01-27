@@ -1,9 +1,8 @@
 package net.arctics.clonk.ui.navigator;
 
 import java.io.File;
+import java.lang.reflect.InvocationTargetException;
 import java.net.URI;
-import java.net.URISyntaxException;
-
 import net.arctics.clonk.preferences.ClonkPreferences;
 
 import org.eclipse.core.commands.AbstractHandler;
@@ -11,8 +10,9 @@ import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
-import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.NullProgressMonitor;
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.jface.dialogs.ProgressMonitorDialog;
+import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.swt.SWT;
@@ -41,17 +41,24 @@ public class LinkC4GroupFileHandler extends AbstractHandler {
 		return null;
 	}
 
-	public static IFolder linkC4GroupFile(IProject proj, File f) {
-		IFolder linkedFolder = proj.getFolder(f.getName());
+	public static IFolder linkC4GroupFile(IProject proj, final File f) {
+		final IFolder linkedFolder = proj.getFolder(f.getName());
+		final ProgressMonitorDialog dialog = new ProgressMonitorDialog(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell());
 		try {
-			linkedFolder.createLink(new URI("c4group", f.getAbsolutePath(), null), 0, new NullProgressMonitor());
-			return linkedFolder;
-		} catch (CoreException e) {
-			e.printStackTrace();
-		} catch (URISyntaxException e) {
+			dialog.run(false, false, new IRunnableWithProgress() {
+				@Override
+				public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
+					try {
+						linkedFolder.createLink(new URI("c4group", f.getAbsolutePath(), null), 0, dialog.getProgressMonitor());
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
+				}
+			});
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		return null;
+		return linkedFolder;
 	}
 
 }
