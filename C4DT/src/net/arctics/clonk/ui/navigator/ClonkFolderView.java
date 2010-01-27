@@ -42,10 +42,11 @@ import org.eclipse.ui.ISelectionListener;
 import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.part.ViewPart;
 
-public class ClonkFolderView extends ViewPart implements ISelectionListener, IPropertyChangeListener {
+public class ClonkFolderView extends ViewPart implements ISelectionListener, IPropertyChangeListener, IDoubleClickListener, SelectionListener {
 	
 	public static final String PREF_CREATE_LINK_IN_CURRENT_PROJECT = ClonkFolderView.class.getSimpleName() + "_CreateLinkInCurrentProj";
 	public static final String PREF_DELETE_LINKS_ON_SHUTDOWN = ClonkFolderView.class.getSimpleName() + "_DeleteLinksOnShutdown";
+	public static final String PREF_PROJECT_TO_CREATE_LINK_IN = ClonkFolderView.class.getSimpleName() + "_ProjectToCreateLinkIn";
 	
 	private static class ClonkFolderContentProvider extends LabelProvider implements ITreeContentProvider, IStyledLabelProvider {
 
@@ -116,18 +117,6 @@ public class ClonkFolderView extends ViewPart implements ISelectionListener, IPr
 		
 	}
 	
-	private class TreeListener implements IDoubleClickListener {
-		@Override
-		public void doubleClick(DoubleClickEvent event) {
-			if (event.getSource() == folderTree) {
-				File sel = (File) ((IStructuredSelection)folderTree.getSelection()).getFirstElement();
-				IProject proj = selectedProject();
-				if (proj != null)
-					LinkC4GroupFileHandler.linkC4GroupFile(proj, sel);
-			}
-		}
-	}
-	
 	private Composite optionsComposite;
 	private TreeViewer folderTree;
 	
@@ -158,28 +147,12 @@ public class ClonkFolderView extends ViewPart implements ISelectionListener, IPr
 		label.setText("Project");
 		projText = new Text(grp, SWT.SINGLE | SWT.BORDER);
 		projText.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+		projText.addSelectionListener(this);
 		projButton = new Button(grp, SWT.PUSH);
 		projButton.setText("Browse");
 		
 		// Install listener
-		SelectionListener listener = new SelectionListener() {
-			
-			@Override
-			public void widgetSelected(SelectionEvent e) {
-				if (e.getSource() == projButton) {
-					IProject project = Utilities.clonkProjectSelectionDialog(selectedProject());
-					if (project != null)
-						projText.setText(project.getName());
-				}
-			}
-			
-			@Override
-			public void widgetDefaultSelected(SelectionEvent e) {
-				// TODO Auto-generated method stub
-				
-			}
-		};
-		projButton.addSelectionListener(listener);
+		projButton.addSelectionListener(this);
 		
 	}
 	
@@ -208,22 +181,6 @@ public class ClonkFolderView extends ViewPart implements ISelectionListener, IPr
 		optionsComposite = new Composite(parent, SWT.NO_SCROLL);
 		optionsComposite.setLayout(new FormLayout());
 
-		SelectionListener optionsListener = new SelectionListener() {
-
-			@Override
-			public void widgetSelected(SelectionEvent e) {
-				if (e.getSource() == openInCurrentProject) {
-					updateProjectChooserEnablization();
-				}
-				else if (e.getSource() == removeLinkedFilesOnShutdown) {
-					ClonkCore.getDefault().getPreferenceStore().setValue(PREF_DELETE_LINKS_ON_SHUTDOWN, removeLinkedFilesOnShutdown.getSelection());
-				}
-			}
-
-			@Override
-			public void widgetDefaultSelected(SelectionEvent e) {}
-		};
-
 		openInCurrentProject = new Button(optionsComposite, SWT.CHECK);
 		openInCurrentProject.setText("Open In Current Project");
 		openInCurrentProject.setLayoutData(createFormData(
@@ -232,7 +189,7 @@ public class ClonkFolderView extends ViewPart implements ISelectionListener, IPr
 			new FormAttachment(0, 5),
 			new FormAttachment(0, 5+openInCurrentProject.computeSize(SWT.DEFAULT, SWT.DEFAULT).y)
 		));
-		openInCurrentProject.addSelectionListener(optionsListener);
+		openInCurrentProject.addSelectionListener(this);
 
 		removeLinkedFilesOnShutdown = new Button(optionsComposite, SWT.CHECK);
 		removeLinkedFilesOnShutdown.setText("Remove Linked Files On Shutdown");
@@ -242,7 +199,7 @@ public class ClonkFolderView extends ViewPart implements ISelectionListener, IPr
 			new FormAttachment(openInCurrentProject, 5),
 			new FormAttachment(openInCurrentProject, 40)
 		));
-		removeLinkedFilesOnShutdown.addSelectionListener(optionsListener);
+		removeLinkedFilesOnShutdown.addSelectionListener(this);
 		
 		createProjectEditor(optionsComposite, createFormData(
 			new FormAttachment(0, 5),
@@ -273,7 +230,7 @@ public class ClonkFolderView extends ViewPart implements ISelectionListener, IPr
 		folderTree.setContentProvider(prov);
 		folderTree.setInput(new File(ClonkPreferences.getPreferenceOrDefault(ClonkPreferences.GAME_PATH)));
 		folderTree.setLabelProvider(prov);
-		folderTree.addDoubleClickListener(new TreeListener());
+		folderTree.addDoubleClickListener(this);
 		
 		parent.layout();
 	}
@@ -310,6 +267,38 @@ public class ClonkFolderView extends ViewPart implements ISelectionListener, IPr
 	public void propertyChange(PropertyChangeEvent event) {
 		if (event.getProperty().equals(ClonkPreferences.GAME_PATH)) {
 			folderTree.setInput(new File(ClonkPreferences.getPreferenceOrDefault(ClonkPreferences.GAME_PATH)));
+		}
+	}
+
+	@Override
+	public void doubleClick(DoubleClickEvent event) {
+		if (event.getSource() == folderTree) {
+			File sel = (File) ((IStructuredSelection)folderTree.getSelection()).getFirstElement();
+			IProject proj = selectedProject();
+			if (proj != null)
+				LinkC4GroupFileHandler.linkC4GroupFile(proj, sel);
+		}
+	}
+
+	@Override
+	public void widgetSelected(SelectionEvent e) {
+		if (e.getSource() == openInCurrentProject) {
+			updateProjectChooserEnablization();
+		}
+		else if (e.getSource() == removeLinkedFilesOnShutdown) {
+			ClonkCore.getDefault().getPreferenceStore().setValue(PREF_DELETE_LINKS_ON_SHUTDOWN, removeLinkedFilesOnShutdown.getSelection());
+		}
+		else if (e.getSource() == projButton) {
+			IProject project = Utilities.clonkProjectSelectionDialog(selectedProject());
+			if (project != null)
+				projText.setText(project.getName());
+		}
+	}
+
+	@Override
+	public void widgetDefaultSelected(SelectionEvent e) {
+		if (e.getSource() == projText) {
+			ClonkCore.getDefault().getPreferenceStore().setValue(PREF_PROJECT_TO_CREATE_LINK_IN, projText.getText());
 		}
 	}
 
