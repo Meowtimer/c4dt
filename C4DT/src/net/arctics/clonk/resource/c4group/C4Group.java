@@ -678,4 +678,9 @@ public class C4Group extends C4GroupItem implements Serializable, ITreeNode {
 
 	}
 	
+	@Override
+	public File toLocalFile(int options, IProgressMonitor monitor) throws CoreException {
+		return origin;
+	}
+	
 }

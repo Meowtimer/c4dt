@@ -77,7 +77,7 @@ public class C4GroupFileSystem extends FileSystem {
 					try {
 						group = C4Group.openFile(groupFile);
 						try {
-							group.readIntoMemory(false, new HeaderFilterBase() {
+							group.readIntoMemory(true, new HeaderFilterBase() {
 
 								private final String[] filesToAlwaysLoad = new String[] {
 									"Script.c",

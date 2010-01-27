@@ -8,7 +8,6 @@ import net.arctics.clonk.ClonkCore;
 
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.preferences.IScopeContext;
-import org.eclipse.jface.preference.IPreferenceStore;
 
 /**
  * Constant definitions for clonk preferences
