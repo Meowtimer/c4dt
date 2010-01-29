@@ -2131,6 +2131,7 @@ public abstract class C4ScriptExprTree {
 		public ArrayElementAccess(ExprElm argument) {
 			super();
 			this.argument = argument;
+			assignParentToSubElements();
 		}
 
 		@Override
