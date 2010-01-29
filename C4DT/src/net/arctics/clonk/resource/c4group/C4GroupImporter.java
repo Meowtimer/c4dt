@@ -35,8 +35,7 @@ public class C4GroupImporter extends WorkspaceModifyOperation {
 	}
 	
 	@Override
-	protected void execute(final IProgressMonitor monitor) throws CoreException,
-	InvocationTargetException, InterruptedException {
+	protected void execute(final IProgressMonitor monitor) throws CoreException, InvocationTargetException, InterruptedException {
 		C4Group[] groups = new C4Group[resources.length];
 		monitor.beginTask(Messages.C4GroupImporter_ImportingFiles, groups.length);
 		try {

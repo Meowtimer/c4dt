@@ -36,6 +36,8 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Menu;
+import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.IPageLayout;
 import org.eclipse.ui.ISelectionListener;
@@ -124,6 +126,9 @@ public class ClonkFolderView extends ViewPart implements ISelectionListener, IPr
 	private Button removeLinkedFilesOnShutdown;
 	private Text projText;
 	private Button projButton;
+	private Menu treeMenu;
+	private MenuItem importMenuItem;
+	private MenuItem linkMenuItem;
 	
 	private static FormData createFormData(FormAttachment left, FormAttachment right, FormAttachment top, FormAttachment bottom) {
 		FormData result = new FormData();
@@ -232,6 +237,15 @@ public class ClonkFolderView extends ViewPart implements ISelectionListener, IPr
 		folderTree.setLabelProvider(prov);
 		folderTree.addDoubleClickListener(this);
 		
+		treeMenu = new Menu(getSite().getShell(), SWT.POP_UP);
+		linkMenuItem = new MenuItem(treeMenu, SWT.PUSH);
+		linkMenuItem.setText("Link");
+		importMenuItem = new MenuItem(treeMenu, SWT.PUSH);
+		importMenuItem.setText("Import");
+		linkMenuItem.addSelectionListener(this);
+		importMenuItem.addSelectionListener(this);
+		folderTree.getTree().setMenu(treeMenu);
+		
 		parent.layout();
 	}
 
@@ -273,10 +287,22 @@ public class ClonkFolderView extends ViewPart implements ISelectionListener, IPr
 	@Override
 	public void doubleClick(DoubleClickEvent event) {
 		if (event.getSource() == folderTree) {
-			File sel = (File) ((IStructuredSelection)folderTree.getSelection()).getFirstElement();
-			IProject proj = selectedProject();
-			if (proj != null)
-				LinkC4GroupFileHandler.linkC4GroupFile(proj, sel);
+			linkSelection();
+		}
+	}
+
+	private void linkSelection() {
+		File sel = (File) ((IStructuredSelection)folderTree.getSelection()).getFirstElement();
+		IProject proj = selectedProject();
+		if (proj != null)
+			LinkC4GroupFileHandler.linkC4GroupFile(proj, sel);
+	}
+	
+	private void importSelection() {
+		File sel = (File) ((IStructuredSelection)folderTree.getSelection()).getFirstElement();
+		IProject proj = selectedProject();
+		if (proj != null) {
+			QuickImportHandler.importFiles(getSite().getShell(), proj, sel);
 		}
 	}
 
@@ -292,6 +318,12 @@ public class ClonkFolderView extends ViewPart implements ISelectionListener, IPr
 			IProject project = Utilities.clonkProjectSelectionDialog(selectedProject());
 			if (project != null)
 				projText.setText(project.getName());
+		}
+		else if (e.getSource() == importMenuItem) {
+			importSelection();
+		}
+		else if (e.getSource() == linkMenuItem) {
+			linkSelection();
 		}
 	}
 

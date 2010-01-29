@@ -17,6 +17,7 @@ import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.FileDialog;
+import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.handlers.HandlerUtil;
 
@@ -57,17 +58,21 @@ public class QuickImportHandler extends ClonkResourceHandler {
 				
 				File[] files = selectFiles(Messages.QuickImportAction_SelectFiles, container, false);
 				if (files != null) {
-					C4GroupImporter importer = new C4GroupImporter(files, container);
-					final ProgressMonitorDialog progressDialog = new ProgressMonitorDialog(HandlerUtil.getActiveWorkbenchWindow(event).getShell());
-					try {
-						progressDialog.run(false, true, importer);
-					} catch (Exception e) {
-						e.printStackTrace();
-					}
+					importFiles(HandlerUtil.getActiveWorkbenchWindow(event).getShell(), container, files);
 				}
 			}
 		});
 		return null;
+	}
+	
+	public static void importFiles(final Shell shell, IContainer container, File... files) {
+		C4GroupImporter importer = new C4GroupImporter(files, container);
+		final ProgressMonitorDialog progressDialog = new ProgressMonitorDialog(shell);
+		try {
+			progressDialog.run(false, true, importer);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 
 	@Override
