@@ -37,8 +37,8 @@ public class NewClonkFolderWizardPage extends WizardPage {
 	
 	public NewClonkFolderWizardPage(ISelection selection) {
 		super("wizardPage"); //$NON-NLS-1$
-		setTitle(Messages.NewClonkFolderWizardPage_1);
-		setDescription(Messages.NewClonkFolderWizardPage_2);
+		setTitle(Messages.NewClonkFolderWizardPage_Title);
+		setDescription(Messages.NewClonkFolderWizardPage_Description);
 		this.selection = selection;
 	}
 	
@@ -87,10 +87,10 @@ public class NewClonkFolderWizardPage extends WizardPage {
 		layout.numColumns = 3;
 		layout.verticalSpacing = 9;
 		
-		containerText = addTextField(Messages.NewClonkFolderWizardPage_3, new IAdditionToTextField() {
+		containerText = addTextField(Messages.NewClonkFolderWizardPage_ContainerText, new IAdditionToTextField() {
 			public void fill(Composite container, Text textField) {
 				Button button = new Button(container, SWT.PUSH);
-				button.setText(Messages.NewClonkFolderWizardPage_4);
+				button.setText(Messages.NewClonkFolderWizardPage_BrowseContainer);
 				button.addSelectionListener(new SelectionAdapter() {
 					public void widgetSelected(SelectionEvent e) {
 						handleBrowse();
@@ -98,7 +98,7 @@ public class NewClonkFolderWizardPage extends WizardPage {
 				});
 			}
 		});
-		fileText = addTextField(Messages.NewClonkFolderWizardPage_5);
+		fileText = addTextField(Messages.NewClonkFolderWizardPage_FolderText);
 		
 		if (getClass() == NewClonkFolderWizardPage.class) {
 			initialize();
@@ -115,24 +115,23 @@ public class NewClonkFolderWizardPage extends WizardPage {
 		String fileName = getFileName();
 
 		if (getContainerName().length() == 0) {
-			updateStatus(Messages.NewClonkFolderWizardPage_6);
+			updateStatus(Messages.NewClonkFolderWizardPage_NoContainer);
 			return;
 		}
-		if (container == null
-				|| (container.getType() & (IResource.PROJECT | IResource.FOLDER)) == 0) {
-			updateStatus(Messages.NewClonkFolderWizardPage_7);
+		if (container == null || (container.getType() & (IResource.PROJECT | IResource.FOLDER)) == 0) {
+			updateStatus(Messages.NewClonkFolderWizardPage_ContainerDoesNotExist);
 			return;
 		}
 		if (!container.isAccessible()) {
-			updateStatus(Messages.NewClonkFolderWizardPage_8);
+			updateStatus(Messages.NewClonkFolderWizardPage_ContainerMustBeWritable);
 			return;
 		}
 		if (fileName.length() == 0) {
-			updateStatus(Messages.NewClonkFolderWizardPage_9);
+			updateStatus(Messages.NewClonkFolderWizardPage_NoFolderName);
 			return;
 		}
 		if (fileName.replace('\\', '/').indexOf('/', 1) > 0) {
-			updateStatus(Messages.NewClonkFolderWizardPage_10);
+			updateStatus(Messages.NewClonkFolderWizardPage_FolderNameInvalid);
 			return;
 		}
 		updateStatus(null);
@@ -151,7 +150,7 @@ public class NewClonkFolderWizardPage extends WizardPage {
 	protected void handleBrowse() {
 		ContainerSelectionDialog dialog = new ContainerSelectionDialog(
 				getShell(), ResourcesPlugin.getWorkspace().getRoot(), false,
-				Messages.NewClonkFolderWizardPage_11);
+				Messages.NewClonkFolderWizardPage_SelectContainerTitle);
 		if (dialog.open() == ContainerSelectionDialog.OK) {
 			Object[] result = dialog.getResult();
 			if (result.length == 1) {
@@ -180,7 +179,7 @@ public class NewClonkFolderWizardPage extends WizardPage {
 				project = ((IResource)obj).getProject();
 			}
 		}
-		fileText.setText(Messages.NewClonkFolderWizardPage_0);
+		fileText.setText(Messages.NewClonkFolderWizard_FolderFileName);
 	}
 	
 	public String getContainerName() {

@@ -136,6 +136,24 @@
 				</possibleDropTargets>
 			</dropAssistant>
 			
+			<commonWizard type="new" wizardId="net.arctics.clonk.wizards.NewC4Object">
+				<enablement>
+					<instanceof value="org.eclipse.core.resources.IContainer" />
+				</enablement>
+			</commonWizard>
+			
+			<commonWizard type="new" wizardId="net.arctics.clonk.wizards.NewParticle">
+				<enablement>
+					<instanceof value="org.eclipse.core.resources.IContainer" />
+				</enablement>
+			</commonWizard>
+			
+			<commonWizard type="new" wizardId="net.arctics.clonk.wizards.NewScenario">
+				<enablement>
+					<instanceof value="org.eclipse.core.resources.IContainer" />
+				</enablement>
+			</commonWizard>
+			
 		</navigatorContent>
 	</extension>
 

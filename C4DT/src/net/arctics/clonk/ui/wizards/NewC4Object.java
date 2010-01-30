@@ -48,6 +48,6 @@ public class NewC4Object extends NewClonkFolderWizard implements INewWizard {
 	 */
 	public void init(IWorkbench workbench, IStructuredSelection selection) {
 		super.init(workbench, selection);
-		setWindowTitle(Messages.NewC4Object_1);
+		setWindowTitle(Messages.NewC4Object_Title);
 	}
 }

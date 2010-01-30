@@ -10,8 +10,8 @@ public class NewScenarioPage extends NewClonkFolderWizardPage {
 
 	public NewScenarioPage(ISelection selection) {
 		super(selection);
-		setTitle(Messages.NewScenarioPage_0);
-		setDescription(Messages.NewScenarioPage_1);
+		setTitle(Messages.NewScenarioPage_Title);
+		setDescription(Messages.NewScenarioPage_Description);
 		setFolderExtension(".c4s"); //$NON-NLS-1$
 	}
 	
@@ -22,13 +22,13 @@ public class NewScenarioPage extends NewClonkFolderWizardPage {
 	@Override
 	protected void initialize() {
 		super.initialize();
-		fileText.setText(Messages.NewScenarioPage_3);
+		fileText.setText(Messages.NewScenarioPage_FolderName);
 	}
 
 	public void createControl(Composite parent) {
 		super.createControl(parent);
 		
-		titleText = addTextField(Messages.NewScenarioPage_4, null);
+		titleText = addTextField(Messages.NewScenarioPage_TitleText, null);
 		
 		initialize();
 		dialogChanged();

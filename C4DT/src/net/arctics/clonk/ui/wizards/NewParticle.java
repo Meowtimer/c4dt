@@ -14,14 +14,14 @@ public class NewParticle extends NewClonkFolderWizard {
 	public void addPages() {
 		page = new NewClonkFolderWizardPage(selection);
 		page.setFolderExtension(".c4d"); //$NON-NLS-1$
-		page.setTitle(Messages.NewParticle_1);
-		page.setDescription(Messages.NewParticle_2);
+		page.setTitle(Messages.NewParticle_PageTitle);
+		page.setDescription(Messages.NewParticle_Description);
 		addPage(page);
 	}
 	@Override
 	public void init(IWorkbench workbench, IStructuredSelection selection) {
 		super.init(workbench, selection);
-		setWindowTitle(Messages.NewParticle_3);
+		setWindowTitle(Messages.NewParticle_Title);
 	}
 	@Override
 	protected Map<String, String> initTemplateReplacements() {
@@ -32,8 +32,8 @@ public class NewParticle extends NewClonkFolderWizard {
 	@Override
 	public void createPageControls(Composite pageContainer) {		
 		super.createPageControls(pageContainer);
-		page.addTextField(Messages.NewParticle_5, this, Messages.NewParticle_0, null); //$NON-NLS-2$ //$NON-NLS-1$
-		page.getFileText().setText(Messages.NewParticle_7);
+		page.addTextField(Messages.NewParticle_TitleText, this, "title", null); //$NON-NLS-1$
+		page.getFileText().setText(Messages.NewParticle_FolderName);
 	}
 	
 }

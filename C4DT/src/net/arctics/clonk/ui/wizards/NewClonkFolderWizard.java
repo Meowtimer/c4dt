@@ -27,7 +27,7 @@ import org.eclipse.ui.*;
  * Base class for wizards creating all kinds of Clonk folders
  */
 
-public class NewClonkFolderWizard extends Wizard implements INewWizard {
+public abstract class NewClonkFolderWizard extends Wizard implements INewWizard {
 	protected NewClonkFolderWizardPage page;
 	protected ISelection selection;
 	private Map<String, String> templateReplacements; 
@@ -72,7 +72,7 @@ public class NewClonkFolderWizard extends Wizard implements INewWizard {
 			return false;
 		} catch (InvocationTargetException e) {
 			Throwable realException = e.getTargetException();
-			MessageDialog.openError(getShell(), Messages.NewClonkFolderWizard_1, realException.getMessage());
+			MessageDialog.openError(getShell(), Messages.NewClonkFolderWizard_Error, realException.getMessage());
 			return false;
 		}
 		return true;
@@ -90,11 +90,11 @@ public class NewClonkFolderWizard extends Wizard implements INewWizard {
 		IProgressMonitor monitor)
 		throws CoreException {
 		// create a sample file
-		monitor.beginTask(Messages.NewClonkFolderWizard_2 + fileName, 1);
+		monitor.beginTask(String.format(Messages.NewClonkFolderWizard_CreatingFolder, fileName), 1);
 		IWorkspaceRoot root = ResourcesPlugin.getWorkspace().getRoot();
 		IResource resource = root.findMember(new Path(containerName));
 		if (!resource.exists() || !(resource instanceof IContainer)) {
-			throwCoreException(String.format(Messages.NewClonkFolderWizard_3, containerName));
+			throwCoreException(String.format(Messages.NewClonkFolderWizard_FolderDoesNotExist, containerName));
 		}
 		IContainer container = (IContainer) resource;
 		final IFolder subContainer = container.getFolder(new Path(fileName));

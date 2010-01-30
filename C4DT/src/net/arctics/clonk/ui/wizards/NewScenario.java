@@ -13,7 +13,7 @@ public class NewScenario extends NewClonkFolderWizard {
 	@Override
 	public void init(IWorkbench workbench, IStructuredSelection selection) {
 		super.init(workbench, selection);
-		setWindowTitle(Messages.NewScenario_0);
+		setWindowTitle(Messages.NewScenario_Title);
 	}
 	@Override
 	public void addPages() {
