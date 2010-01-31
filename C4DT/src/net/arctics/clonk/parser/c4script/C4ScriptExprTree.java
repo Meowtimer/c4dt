@@ -1853,8 +1853,10 @@ public abstract class C4ScriptExprTree {
 			}
 			else
 				region = this;
+			/* who needs it -.-
 			if (val < Integer.MIN_VALUE || val > Integer.MAX_VALUE)
 				parser.warningWithCode(ParserErrorCode.OutOfIntRange, region, String.valueOf(val));
+			*/
 		}
 
 	}
