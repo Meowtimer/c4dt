@@ -489,17 +489,6 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 	}
 
 	public void prepareToSave(ISaveContext context) throws CoreException {
-		// delete linked c4group files
-		if (ClonkCore.getDefault().getPreferenceStore().getBoolean(ClonkFolderView.PREF_DELETE_LINKS_ON_SHUTDOWN)) {
-			for (IProject proj : Utilities.getClonkProjects()) {
-				for (IResource res : proj.members()) {
-					URI uri = res.getLocationURI();
-					if (uri.getScheme().equals(C4GroupFileSystem.getInstance().getScheme())) {
-						res.delete(true, new NullProgressMonitor());
-					}
-				}
-			}
-		}
 	}
 
 	public void rollback(ISaveContext context) {

@@ -2,7 +2,10 @@ package net.arctics.clonk.ui.navigator;
 
 import java.io.File;
 import java.io.FilenameFilter;
+import java.net.URI;
+
 import net.arctics.clonk.ClonkCore;
+import net.arctics.clonk.filesystem.C4GroupFileSystem;
 import net.arctics.clonk.preferences.ClonkPreferences;
 import net.arctics.clonk.resource.c4group.C4Group;
 import net.arctics.clonk.resource.c4group.C4Group.C4GroupType;
@@ -12,6 +15,7 @@ import net.arctics.clonk.util.Utilities;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.jface.util.IPropertyChangeListener;
 import org.eclipse.jface.util.PropertyChangeEvent;
 import org.eclipse.jface.viewers.DoubleClickEvent;
@@ -41,7 +45,10 @@ import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.IPageLayout;
 import org.eclipse.ui.ISelectionListener;
+import org.eclipse.ui.IWorkbench;
+import org.eclipse.ui.IWorkbenchListener;
 import org.eclipse.ui.IWorkbenchPart;
+import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.part.ViewPart;
 
 public class ClonkFolderView extends ViewPart implements ISelectionListener, IPropertyChangeListener, IDoubleClickListener, SelectionListener {
@@ -332,6 +339,37 @@ public class ClonkFolderView extends ViewPart implements ISelectionListener, IPr
 		if (e.getSource() == projText) {
 			ClonkCore.getDefault().getPreferenceStore().setValue(PREF_PROJECT_TO_CREATE_LINK_IN, projText.getText());
 		}
+	}
+	
+	static {
+		PlatformUI.getWorkbench().addWorkbenchListener(new IWorkbenchListener() {
+			@Override
+			public boolean preShutdown(IWorkbench workbench, boolean forced) {
+				// delete linked c4group files
+				try {
+					if (ClonkCore.getDefault().getPreferenceStore().getBoolean(PREF_DELETE_LINKS_ON_SHUTDOWN)) {
+						for (IProject proj : Utilities.getClonkProjects()) {
+							for (IResource res : proj.members()) {
+								URI uri = res.getLocationURI();
+								if (uri.getScheme().equals(C4GroupFileSystem.getInstance().getScheme())) {
+									res.delete(true, new NullProgressMonitor());
+								}
+							}
+						}
+					}
+				}
+				catch (Exception e) {
+					e.printStackTrace();
+				}
+				return true;
+			}
+
+			@Override
+			public void postShutdown(IWorkbench workbench) {
+				// TODO Auto-generated method stub
+				
+			}
+		});
 	}
 
 }
