@@ -12,6 +12,10 @@ import net.arctics.clonk.filesystem.C4GroupFileSystem;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 
+/**
+ * Represents a top-level compressed group
+ *
+ */
 public class C4MasterGroup extends C4Group {
 	
 	private static final long serialVersionUID = 1L;

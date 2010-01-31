@@ -87,6 +87,7 @@ public class C4Group extends C4GroupItem implements Serializable, ITreeNode {
 	private C4Group parentGroup;
 	private int offset;
 	
+	private long originModifiedAtLoadTime;
 	private File origin;
 	
 	public int baseOffset() {
@@ -123,6 +124,8 @@ public class C4Group extends C4GroupItem implements Serializable, ITreeNode {
 		parentGroup = parent;
 		entryName = name;
 		origin = file;
+		if (file != null)
+			originModifiedAtLoadTime = file.lastModified();
 	}
 	
 	protected C4Group(String name, C4GroupHeader header) {
@@ -426,6 +429,8 @@ public class C4Group extends C4GroupItem implements Serializable, ITreeNode {
 	public List<C4GroupItem> getChildren() {
 		if (childEntries == null) {
 			try {
+				if (origin != null)
+					originModifiedAtLoadTime = origin.lastModified();
 				if (origin != null && origin.isDirectory())
 					readIntoMemory(false, ACCEPT_EVERYTHING_DONTSTORECONTENTS, null);
 				else {
@@ -585,9 +590,10 @@ public class C4Group extends C4GroupItem implements Serializable, ITreeNode {
 
 	@Override
 	public String[] childNames(int options, IProgressMonitor monitor) throws CoreException {
-//		if (getStream() == null)
-//			childEntries = null; // force refresh
-		completed = false;
+		if (outdated()) {
+			childEntries = null; // force refresh
+			completed = false;
+		}
 		List<C4GroupItem> childEntries = this.getChildren();
 		String[] result = new String[childEntries.size()];
 		for (int i = 0; i < result.length; i++) {
@@ -677,6 +683,19 @@ public class C4Group extends C4GroupItem implements Serializable, ITreeNode {
 			}
 		}
 
+	}
+	
+	/**
+	 * Return whether the file this group was loaded from has been changed since reading its structure
+	 * @return what he says
+	 */
+	public boolean outdated() {
+		if (origin != null) {
+			return origin.lastModified() != originModifiedAtLoadTime;
+		}
+		else {
+			return parentGroup != null ? parentGroup.outdated() : false;
+		}
 	}
 	
 	@Override
