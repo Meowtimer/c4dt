@@ -1846,12 +1846,12 @@ public abstract class C4ScriptExprTree {
 		public void reportErrors(C4ScriptParser parser) throws ParsingException {
 			super.reportErrors(parser);
 			long val = longValue();
-			ExprElm region;
+			//ExprElm region;
 			if (getParent() instanceof UnaryOp && ((UnaryOp)getParent()).getOperator() == C4ScriptOperator.Subtract) {
 				val = -val;
-				region = getParent();
+				//region = getParent();
 			}
-			else
+			/*else
 				region = this;
 			/* who needs it -.-
 			if (val < Integer.MIN_VALUE || val > Integer.MAX_VALUE)
