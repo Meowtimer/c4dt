@@ -3,6 +3,8 @@ package net.arctics.clonk.ui.navigator;
 import java.io.File;
 import java.lang.reflect.InvocationTargetException;
 import java.net.URI;
+
+import net.arctics.clonk.filesystem.C4GroupFileSystem;
 import net.arctics.clonk.preferences.ClonkPreferences;
 
 import org.eclipse.core.commands.AbstractHandler;
@@ -49,7 +51,7 @@ public class LinkC4GroupFileHandler extends AbstractHandler {
 				@Override
 				public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
 					try {
-						linkedFolder.createLink(new URI("c4group", f.getAbsolutePath(), null), 0, dialog.getProgressMonitor());
+						linkedFolder.createLink(new URI("c4group", C4GroupFileSystem.replaceSpecialChars(f.getAbsolutePath()), null), 0, dialog.getProgressMonitor());
 					} catch (Exception e) {
 						e.printStackTrace();
 					}

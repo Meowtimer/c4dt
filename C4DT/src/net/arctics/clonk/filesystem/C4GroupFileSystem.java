@@ -18,6 +18,11 @@ import org.eclipse.core.filesystem.provider.FileSystem;
 import org.eclipse.core.runtime.Path;
 
 public class C4GroupFileSystem extends FileSystem {
+	
+	// there should be some function to do that somewhere -.-
+	public static String replaceSpecialChars(String path) {
+		return path.replace("[", "%5B").replace("]", "%5D");
+	}
 
 	private Map<File, WeakReference<C4Group>> rootGroups = new HashMap<File, WeakReference<C4Group>>();
 	
@@ -80,11 +85,21 @@ public class C4GroupFileSystem extends FileSystem {
 							group.readIntoMemory(true, new HeaderFilterBase() {
 
 								private final String[] filesToAlwaysLoad = new String[] {
-									"Script.c",
 									"DefCore.txt",
 									"ActMap.txt",
 									"DescDE.txt",
-									"DescUS.txt"
+									"DescUS.txt",
+									"Names.txt",
+									"Particle.txt",
+									"StringTblDE.txt",
+									"StringTblUS.txt",
+									"Landscape.txt",
+									"Teams.txt"
+								};
+								
+								private final String[] extensionsToAlwaysLoad = new String[] {
+									".c",
+									".c4m"
 								};
 								
 								@Override
@@ -94,6 +109,9 @@ public class C4GroupFileSystem extends FileSystem {
 
 								@Override
 								public int getFlags(C4GroupEntry entry) {
+									for (String s : extensionsToAlwaysLoad)
+										if (entry.getName().endsWith(s))
+											return 0;
 									for (String s : filesToAlwaysLoad)
 										if (entry.getName().equalsIgnoreCase(s))
 											return 0;

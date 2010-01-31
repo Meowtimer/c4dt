@@ -8,6 +8,7 @@ import java.io.OutputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 
+import net.arctics.clonk.filesystem.C4GroupFileSystem;
 import net.arctics.clonk.resource.c4group.C4Group.C4GroupType;
 import net.arctics.clonk.util.INodeWithPath;
 
@@ -115,7 +116,7 @@ public abstract class C4GroupItem extends FileStore implements INodeWithPath {
 		if (origin != null) {
 			try {
 				String path = new Path(origin.getParent()).append(getPath().toString()).toString();
-				path = path.replace("[", "%5B").replace("]", "%5D");
+				path = C4GroupFileSystem.replaceSpecialChars(path);
 				URI uri = new URI("c4group", path, null);
 				return uri;
 			} catch (URISyntaxException e) {

@@ -83,6 +83,7 @@ public class C4GroupEntry extends C4GroupItem implements IStorage, Serializable 
 	}
 
 	private void fetchContents(InputStream stream) {
+		System.out.println("Fetching contents of " + this);
 		contents = new byte[getSize()];
 		try {
 			for (
@@ -114,7 +115,7 @@ public class C4GroupEntry extends C4GroupItem implements IStorage, Serializable 
 				return null;
 			}
 		}
-		return new ByteArrayInputStream(getContentsAsArray());
+		return new ByteArrayInputStream(contents);
 	}
 
     public String toString() {

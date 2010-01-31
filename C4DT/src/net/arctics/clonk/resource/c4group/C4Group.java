@@ -585,7 +585,8 @@ public class C4Group extends C4GroupItem implements Serializable, ITreeNode {
 
 	@Override
 	public String[] childNames(int options, IProgressMonitor monitor) throws CoreException {
-		childEntries = null; // force refresh
+//		if (getStream() == null)
+//			childEntries = null; // force refresh
 		completed = false;
 		List<C4GroupItem> childEntries = this.getChildren();
 		String[] result = new String[childEntries.size()];
