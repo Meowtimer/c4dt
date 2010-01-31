@@ -9,6 +9,8 @@ public class Messages extends NLS {
 	public static String Utilities_12;
 	public static String Utilities_13;
 	public static String Utilities_9;
+	public static String Utilities_ChooseClonkProject;
+	public static String Utilities_ChooseClonkProjectPretty;
 	static {
 		// initialize resource bundle
 		NLS.initializeMessages(BUNDLE_NAME, Messages.class);

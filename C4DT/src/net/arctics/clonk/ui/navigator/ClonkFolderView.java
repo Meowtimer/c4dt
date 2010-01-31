@@ -46,9 +46,9 @@ import org.eclipse.ui.part.ViewPart;
 
 public class ClonkFolderView extends ViewPart implements ISelectionListener, IPropertyChangeListener, IDoubleClickListener, SelectionListener {
 	
-	public static final String PREF_CREATE_LINK_IN_CURRENT_PROJECT = ClonkFolderView.class.getSimpleName() + "_CreateLinkInCurrentProj";
-	public static final String PREF_DELETE_LINKS_ON_SHUTDOWN = ClonkFolderView.class.getSimpleName() + "_DeleteLinksOnShutdown";
-	public static final String PREF_PROJECT_TO_CREATE_LINK_IN = ClonkFolderView.class.getSimpleName() + "_ProjectToCreateLinkIn";
+	public static final String PREF_CREATE_LINK_IN_CURRENT_PROJECT = ClonkFolderView.class.getSimpleName() + "_CreateLinkInCurrentProj"; //$NON-NLS-1$
+	public static final String PREF_DELETE_LINKS_ON_SHUTDOWN = ClonkFolderView.class.getSimpleName() + "_DeleteLinksOnShutdown"; //$NON-NLS-1$
+	public static final String PREF_PROJECT_TO_CREATE_LINK_IN = ClonkFolderView.class.getSimpleName() + "_ProjectToCreateLinkIn"; //$NON-NLS-1$
 	
 	private static class ClonkFolderContentProvider extends LabelProvider implements ITreeContentProvider, IStyledLabelProvider {
 
@@ -59,7 +59,7 @@ public class ClonkFolderView extends ViewPart implements ISelectionListener, IPr
 				return folder.listFiles(new FilenameFilter() {
 					@Override
 					public boolean accept(File dir, String name) {
-						return !name.startsWith(".") && C4Group.getGroupType(name) != C4GroupType.OtherGroup || new File(dir, name).isDirectory();
+						return !name.startsWith(".") && C4Group.getGroupType(name) != C4GroupType.OtherGroup || new File(dir, name).isDirectory(); //$NON-NLS-1$
 					}
 				});
 			} catch (Exception e) {
@@ -149,12 +149,12 @@ public class ClonkFolderView extends ViewPart implements ISelectionListener, IPr
 		
 		// Text plus button
 		Label label = new Label(grp, SWT.HORIZONTAL | SWT.LEFT);
-		label.setText("Project");
+		label.setText(Messages.ClonkFolderView_Project);
 		projText = new Text(grp, SWT.SINGLE | SWT.BORDER);
 		projText.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		projText.addSelectionListener(this);
 		projButton = new Button(grp, SWT.PUSH);
-		projButton.setText("Browse");
+		projButton.setText(Messages.ClonkFolderView_Browse);
 		
 		// Install listener
 		projButton.addSelectionListener(this);
@@ -187,7 +187,7 @@ public class ClonkFolderView extends ViewPart implements ISelectionListener, IPr
 		optionsComposite.setLayout(new FormLayout());
 
 		openInCurrentProject = new Button(optionsComposite, SWT.CHECK);
-		openInCurrentProject.setText("Open In Current Project");
+		openInCurrentProject.setText(Messages.ClonkFolderView_OpenInCurrentProject);
 		openInCurrentProject.setLayoutData(createFormData(
 			new FormAttachment(0, 5),
 			new FormAttachment(100, 5),
@@ -197,7 +197,7 @@ public class ClonkFolderView extends ViewPart implements ISelectionListener, IPr
 		openInCurrentProject.addSelectionListener(this);
 
 		removeLinkedFilesOnShutdown = new Button(optionsComposite, SWT.CHECK);
-		removeLinkedFilesOnShutdown.setText("Remove Linked Files On Shutdown");
+		removeLinkedFilesOnShutdown.setText(Messages.ClonkFolderView_RemoveLinkedFilesOnShutdown);
 		removeLinkedFilesOnShutdown.setLayoutData(createFormData(
 			new FormAttachment(0, 5),
 			new FormAttachment(100, 5),
@@ -239,9 +239,9 @@ public class ClonkFolderView extends ViewPart implements ISelectionListener, IPr
 		
 		treeMenu = new Menu(getSite().getShell(), SWT.POP_UP);
 		linkMenuItem = new MenuItem(treeMenu, SWT.PUSH);
-		linkMenuItem.setText("Link");
+		linkMenuItem.setText(Messages.ClonkFolderView_Link);
 		importMenuItem = new MenuItem(treeMenu, SWT.PUSH);
-		importMenuItem.setText("Import");
+		importMenuItem.setText(Messages.ClonkFolderView_Import);
 		linkMenuItem.addSelectionListener(this);
 		importMenuItem.addSelectionListener(this);
 		folderTree.getTree().setMenu(treeMenu);

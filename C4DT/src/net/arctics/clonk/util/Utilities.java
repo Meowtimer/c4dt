@@ -511,7 +511,7 @@ public abstract class Utilities {
 						try {
 							return items[++index];
 						} catch (ArrayIndexOutOfBoundsException e) {
-							throw new NoSuchElementException("Array iterator fail");
+							throw new NoSuchElementException("Array iterator fail"); //$NON-NLS-1$
 						}
 					}
 
@@ -674,8 +674,8 @@ public abstract class Utilities {
 		// Create dialog listing all Clonk projects
 		ElementListSelectionDialog dialog
 			= new ElementListSelectionDialog(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(), new ClonkLabelProvider());
-		dialog.setTitle("Choose Clonk Project");
-		dialog.setMessage("Please choose a Clonk Project");
+		dialog.setTitle(Messages.Utilities_ChooseClonkProject);
+		dialog.setMessage(Messages.Utilities_ChooseClonkProjectPretty);
 		dialog.setElements(Utilities.getClonkProjects());
 
 		// Set selection
