@@ -83,7 +83,7 @@ public class C4GroupEntry extends C4GroupItem implements IStorage, Serializable 
 	}
 
 	private void fetchContents(InputStream stream) {
-		System.out.println("Fetching contents of " + this);
+		//System.out.println("Fetching contents of " + this);
 		contents = new byte[getSize()];
 		try {
 			for (
