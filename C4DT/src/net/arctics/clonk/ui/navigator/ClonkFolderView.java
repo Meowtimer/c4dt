@@ -51,13 +51,21 @@ import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.part.ViewPart;
 
-public class ClonkFolderView extends ViewPart implements ISelectionListener, IPropertyChangeListener, IDoubleClickListener, SelectionListener {
-	
-	public static final String PREF_CREATE_LINK_IN_CURRENT_PROJECT = ClonkFolderView.class.getSimpleName() + "_CreateLinkInCurrentProj"; //$NON-NLS-1$
-	public static final String PREF_DELETE_LINKS_ON_SHUTDOWN = ClonkFolderView.class.getSimpleName() + "_DeleteLinksOnShutdown"; //$NON-NLS-1$
-	public static final String PREF_PROJECT_TO_CREATE_LINK_IN = ClonkFolderView.class.getSimpleName() + "_ProjectToCreateLinkIn"; //$NON-NLS-1$
-	
-	private static class ClonkFolderContentProvider extends LabelProvider implements ITreeContentProvider, IStyledLabelProvider {
+public class ClonkFolderView extends ViewPart implements ISelectionListener,
+		IPropertyChangeListener, IDoubleClickListener, SelectionListener {
+
+	public static final String PREF_CREATE_LINK_IN_CURRENT_PROJECT = ClonkFolderView.class
+			.getSimpleName()
+			+ "_CreateLinkInCurrentProj"; //$NON-NLS-1$
+	public static final String PREF_DELETE_LINKS_ON_SHUTDOWN = ClonkFolderView.class
+			.getSimpleName()
+			+ "_DeleteLinksOnShutdown"; //$NON-NLS-1$
+	public static final String PREF_PROJECT_TO_CREATE_LINK_IN = ClonkFolderView.class
+			.getSimpleName()
+			+ "_ProjectToCreateLinkIn"; //$NON-NLS-1$
+
+	private static class ClonkFolderContentProvider extends LabelProvider
+			implements ITreeContentProvider, IStyledLabelProvider {
 
 		@Override
 		public Object[] getChildren(Object parentElement) {
@@ -76,12 +84,12 @@ public class ClonkFolderView extends ViewPart implements ISelectionListener, IPr
 
 		@Override
 		public Object getParent(Object element) {
-			return ((File)element).getParentFile();
+			return ((File) element).getParentFile();
 		}
 
 		@Override
 		public boolean hasChildren(Object element) {
-			return element instanceof File && ((File)element).isDirectory();
+			return element instanceof File && ((File) element).isDirectory();
 		}
 
 		@Override
@@ -92,12 +100,12 @@ public class ClonkFolderView extends ViewPart implements ISelectionListener, IPr
 		@Override
 		public void inputChanged(Viewer viewer, Object oldInput, Object newInput) {
 			// TODO Auto-generated method stub
-			
+
 		}
 
 		@Override
 		public Image getImage(Object element) {
-			switch (C4Group.getGroupType(((File)element).toString())) {
+			switch (C4Group.getGroupType(((File) element).toString())) {
 			case DefinitionGroup:
 				return UI.GENERAL_OBJECT_ICON;
 			case FolderGroup:
@@ -110,25 +118,26 @@ public class ClonkFolderView extends ViewPart implements ISelectionListener, IPr
 				return null;
 			}
 		}
-		
+
 		@Override
 		public StyledString getStyledText(Object element) {
-			if (((File)element).isFile())
-				return new StyledString(((File)element).getName(), StyledString.QUALIFIER_STYLER);
+			if (((File) element).isFile())
+				return new StyledString(((File) element).getName(),
+						StyledString.QUALIFIER_STYLER);
 			else
-				return new StyledString(((File)element).getName());
+				return new StyledString(((File) element).getName());
 		}
-		
+
 		@Override
 		public String getText(Object element) {
 			return getStyledText(element).getString();
 		}
-		
+
 	}
-	
+
 	private Composite optionsComposite;
 	private TreeViewer folderTree;
-	
+
 	private Button openInCurrentProject;
 	private Button removeLinkedFilesOnShutdown;
 	private Text projText;
@@ -136,24 +145,25 @@ public class ClonkFolderView extends ViewPart implements ISelectionListener, IPr
 	private Menu treeMenu;
 	private MenuItem importMenuItem;
 	private MenuItem linkMenuItem;
-	
-	private static FormData createFormData(FormAttachment left, FormAttachment right, FormAttachment top, FormAttachment bottom) {
+	private MenuItem refreshMenuItem;
+
+	private static FormData createFormData(FormAttachment left,
+			FormAttachment right, FormAttachment top, FormAttachment bottom) {
 		FormData result = new FormData();
-		result.left   = left;
-		result.top    = top;
-		result.right  = right;
+		result.left = left;
+		result.top = top;
+		result.right = right;
 		result.bottom = bottom;
 		return result;
 	}
-	
-	private void createProjectEditor(Composite parent, Object groupLayoutData)
-	{
-		
+
+	private void createProjectEditor(Composite parent, Object groupLayoutData) {
+
 		// Create widget group
 		Composite grp = new Composite(parent, SWT.NONE);
 		grp.setLayout(new GridLayout(3, false));
 		grp.setLayoutData(groupLayoutData);
-		
+
 		// Text plus button
 		Label label = new Label(grp, SWT.HORIZONTAL | SWT.LEFT);
 		label.setText(Messages.ClonkFolderView_Project);
@@ -162,97 +172,103 @@ public class ClonkFolderView extends ViewPart implements ISelectionListener, IPr
 		projText.addSelectionListener(this);
 		projButton = new Button(grp, SWT.PUSH);
 		projButton.setText(Messages.ClonkFolderView_Browse);
-		
+
 		// Install listener
 		projButton.addSelectionListener(this);
-		
+
 	}
-	
+
 	private IProject selectedProject() {
 		try {
-			return ResourcesPlugin.getWorkspace().getRoot().getProject(projText.getText());
+			return ResourcesPlugin.getWorkspace().getRoot().getProject(
+					projText.getText());
 		} catch (Exception e) {
 			return null;
 		}
 	}
-	
+
 	private void updateProjectChooserEnablization() {
 		projButton.setEnabled(!openInCurrentProject.getSelection());
 		projText.setEnabled(!openInCurrentProject.getSelection());
 		ClonkCore.getDefault().getPreferenceStore().setValue(PREF_CREATE_LINK_IN_CURRENT_PROJECT, openInCurrentProject.getSelection());
+		// trigger setting of project
+		selectionChanged(Utilities.getProjectExplorer(getSite().getWorkbenchWindow()), getSite().getWorkbenchWindow().getSelectionService().getSelection(IPageLayout.ID_PROJECT_EXPLORER));
 	}
-	
+
 	@Override
 	public void createPartControl(final Composite parent) {
-		
-		getSite().getWorkbenchWindow().getSelectionService().addSelectionListener(IPageLayout.ID_PROJECT_EXPLORER, this);
-		ClonkCore.getDefault().getPreferenceStore().addPropertyChangeListener(this);
-		
+
+		getSite().getWorkbenchWindow().getSelectionService()
+				.addSelectionListener(IPageLayout.ID_PROJECT_EXPLORER, this);
+		ClonkCore.getDefault().getPreferenceStore().addPropertyChangeListener(
+				this);
+
 		parent.setLayout(new FormLayout());
 
 		optionsComposite = new Composite(parent, SWT.NO_SCROLL);
 		optionsComposite.setLayout(new FormLayout());
 
 		openInCurrentProject = new Button(optionsComposite, SWT.CHECK);
-		openInCurrentProject.setText(Messages.ClonkFolderView_OpenInCurrentProject);
-		openInCurrentProject.setLayoutData(createFormData(
-			new FormAttachment(0, 5),
-			new FormAttachment(100, 5),
-			new FormAttachment(0, 5),
-			new FormAttachment(0, 5+openInCurrentProject.computeSize(SWT.DEFAULT, SWT.DEFAULT).y)
-		));
+		openInCurrentProject
+				.setText(Messages.ClonkFolderView_OpenInCurrentProject);
+		openInCurrentProject.setLayoutData(createFormData(new FormAttachment(0,
+				5), new FormAttachment(100, 5), new FormAttachment(0, 5),
+				new FormAttachment(0, 5 + openInCurrentProject.computeSize(
+						SWT.DEFAULT, SWT.DEFAULT).y)));
 		openInCurrentProject.addSelectionListener(this);
 
 		removeLinkedFilesOnShutdown = new Button(optionsComposite, SWT.CHECK);
-		removeLinkedFilesOnShutdown.setText(Messages.ClonkFolderView_RemoveLinkedFilesOnShutdown);
+		removeLinkedFilesOnShutdown
+				.setText(Messages.ClonkFolderView_RemoveLinkedFilesOnShutdown);
 		removeLinkedFilesOnShutdown.setLayoutData(createFormData(
-			new FormAttachment(0, 5),
-			new FormAttachment(100, 5),
-			new FormAttachment(openInCurrentProject, 5),
-			new FormAttachment(openInCurrentProject, 40)
-		));
+				new FormAttachment(0, 5), new FormAttachment(100, 5),
+				new FormAttachment(openInCurrentProject, 5),
+				new FormAttachment(openInCurrentProject, 40)));
 		removeLinkedFilesOnShutdown.addSelectionListener(this);
-		
+
 		createProjectEditor(optionsComposite, createFormData(
-			new FormAttachment(0, 5),
-			new FormAttachment(100, 5),
-			new FormAttachment(removeLinkedFilesOnShutdown, 5),
-			new FormAttachment(100, 5)
-		));
-		
-		optionsComposite.setLayoutData(createFormData(
-			new FormAttachment(0, 0),
-			new FormAttachment(100, 0),
-			new FormAttachment(100, -optionsComposite.computeSize(SWT.DEFAULT, SWT.DEFAULT).y),
-			new FormAttachment(100, 0)
-		));
-		
-		openInCurrentProject.setSelection(ClonkCore.getDefault().getPreferenceStore().getBoolean(PREF_CREATE_LINK_IN_CURRENT_PROJECT));
-		removeLinkedFilesOnShutdown.setSelection(ClonkCore.getDefault().getPreferenceStore().getBoolean(PREF_DELETE_LINKS_ON_SHUTDOWN));
+				new FormAttachment(0, 5), new FormAttachment(100, 5),
+				new FormAttachment(removeLinkedFilesOnShutdown, 5),
+				new FormAttachment(100, 5)));
+
+		optionsComposite.setLayoutData(createFormData(new FormAttachment(0, 0),
+				new FormAttachment(100, 0),
+				new FormAttachment(100, -optionsComposite.computeSize(
+						SWT.DEFAULT, SWT.DEFAULT).y),
+				new FormAttachment(100, 0)));
+
+		openInCurrentProject.setSelection(ClonkCore.getDefault()
+				.getPreferenceStore().getBoolean(
+						PREF_CREATE_LINK_IN_CURRENT_PROJECT));
+		removeLinkedFilesOnShutdown
+				.setSelection(ClonkCore.getDefault().getPreferenceStore()
+						.getBoolean(PREF_DELETE_LINKS_ON_SHUTDOWN));
 		updateProjectChooserEnablization();
-		
+
 		folderTree = new TreeViewer(parent, SWT.NONE);
-		folderTree.getTree().setLayoutData(createFormData(
-			new FormAttachment(0, 0),
-			new FormAttachment(100, 0),
-			new FormAttachment(0, 0),
-			new FormAttachment(optionsComposite, 0)
-		));
+		folderTree.getTree().setLayoutData(
+				createFormData(new FormAttachment(0, 0), new FormAttachment(
+						100, 0), new FormAttachment(0, 0), new FormAttachment(
+						optionsComposite, 0)));
 		ClonkFolderContentProvider prov = new ClonkFolderContentProvider();
 		folderTree.setContentProvider(prov);
-		folderTree.setInput(new File(ClonkPreferences.getPreferenceOrDefault(ClonkPreferences.GAME_PATH)));
+		refreshTree();
 		folderTree.setLabelProvider(prov);
 		folderTree.addDoubleClickListener(this);
-		
+
 		treeMenu = new Menu(getSite().getShell(), SWT.POP_UP);
 		linkMenuItem = new MenuItem(treeMenu, SWT.PUSH);
 		linkMenuItem.setText(Messages.ClonkFolderView_Link);
 		importMenuItem = new MenuItem(treeMenu, SWT.PUSH);
 		importMenuItem.setText(Messages.ClonkFolderView_Import);
-		linkMenuItem.addSelectionListener(this);
-		importMenuItem.addSelectionListener(this);
-		folderTree.getTree().setMenu(treeMenu);
+		refreshMenuItem = new MenuItem(treeMenu, SWT.PUSH);
+		refreshMenuItem.setText("Refresh");
 		
+		for (MenuItem item : new MenuItem[] {linkMenuItem, importMenuItem, refreshMenuItem}) {
+			item.addSelectionListener(this);
+		}
+		folderTree.getTree().setMenu(treeMenu);
+
 		parent.layout();
 	}
 
@@ -270,25 +286,36 @@ public class ClonkFolderView extends ViewPart implements ISelectionListener, IPr
 		if (selection instanceof IStructuredSelection) {
 			IStructuredSelection ssel = (IStructuredSelection) selection;
 			if (ssel.getFirstElement() instanceof IResource) {
-				proj = ((IResource)ssel.getFirstElement()).getProject();
+				proj = ((IResource) ssel.getFirstElement()).getProject();
 			}
 		}
 		if (proj != null)
 			projText.setText(proj.getName());
 	}
-	
+
 	@Override
 	public void dispose() {
-		getSite().getWorkbenchWindow().getSelectionService().removeSelectionListener(IPageLayout.ID_PROJECT_EXPLORER, this);
-		ClonkCore.getDefault().getPreferenceStore().removePropertyChangeListener(this);
+		getSite().getWorkbenchWindow().getSelectionService()
+				.removeSelectionListener(IPageLayout.ID_PROJECT_EXPLORER, this);
+		ClonkCore.getDefault().getPreferenceStore()
+				.removePropertyChangeListener(this);
 		super.dispose();
 	}
 
 	@Override
 	public void propertyChange(PropertyChangeEvent event) {
 		if (event.getProperty().equals(ClonkPreferences.GAME_PATH)) {
-			folderTree.setInput(new File(ClonkPreferences.getPreferenceOrDefault(ClonkPreferences.GAME_PATH)));
+			refreshTree();
 		}
+	}
+
+	private void refreshTree() {
+		String clonkPath = ClonkPreferences
+				.getPreferenceOrDefault(ClonkPreferences.GAME_PATH);
+		File clonkFolder = (clonkPath != null && !clonkPath.equals("")) ? new File(
+				clonkPath)
+				: new File("/");
+		folderTree.setInput(clonkFolder);
 	}
 
 	@Override
@@ -299,14 +326,16 @@ public class ClonkFolderView extends ViewPart implements ISelectionListener, IPr
 	}
 
 	private void linkSelection() {
-		File sel = (File) ((IStructuredSelection)folderTree.getSelection()).getFirstElement();
+		File sel = (File) ((IStructuredSelection) folderTree.getSelection())
+				.getFirstElement();
 		IProject proj = selectedProject();
 		if (proj != null)
 			LinkC4GroupFileHandler.linkC4GroupFile(proj, sel);
 	}
-	
+
 	private void importSelection() {
-		File sel = (File) ((IStructuredSelection)folderTree.getSelection()).getFirstElement();
+		File sel = (File) ((IStructuredSelection) folderTree.getSelection())
+				.getFirstElement();
 		IProject proj = selectedProject();
 		if (proj != null) {
 			QuickImportHandler.importFiles(getSite().getShell(), proj, sel);
@@ -317,59 +346,67 @@ public class ClonkFolderView extends ViewPart implements ISelectionListener, IPr
 	public void widgetSelected(SelectionEvent e) {
 		if (e.getSource() == openInCurrentProject) {
 			updateProjectChooserEnablization();
-		}
-		else if (e.getSource() == removeLinkedFilesOnShutdown) {
-			ClonkCore.getDefault().getPreferenceStore().setValue(PREF_DELETE_LINKS_ON_SHUTDOWN, removeLinkedFilesOnShutdown.getSelection());
-		}
-		else if (e.getSource() == projButton) {
-			IProject project = Utilities.clonkProjectSelectionDialog(selectedProject());
+		} else if (e.getSource() == removeLinkedFilesOnShutdown) {
+			ClonkCore.getDefault().getPreferenceStore().setValue(
+					PREF_DELETE_LINKS_ON_SHUTDOWN,
+					removeLinkedFilesOnShutdown.getSelection());
+		} else if (e.getSource() == projButton) {
+			IProject project = Utilities
+					.clonkProjectSelectionDialog(selectedProject());
 			if (project != null)
 				projText.setText(project.getName());
-		}
-		else if (e.getSource() == importMenuItem) {
+		} else if (e.getSource() == importMenuItem) {
 			importSelection();
-		}
-		else if (e.getSource() == linkMenuItem) {
+		} else if (e.getSource() == linkMenuItem) {
 			linkSelection();
+		} else if (e.getSource() == refreshMenuItem) {
+			refreshTree();
 		}
 	}
 
 	@Override
 	public void widgetDefaultSelected(SelectionEvent e) {
 		if (e.getSource() == projText) {
-			ClonkCore.getDefault().getPreferenceStore().setValue(PREF_PROJECT_TO_CREATE_LINK_IN, projText.getText());
+			ClonkCore.getDefault().getPreferenceStore().setValue(
+					PREF_PROJECT_TO_CREATE_LINK_IN, projText.getText());
 		}
 	}
-	
+
 	static {
-		PlatformUI.getWorkbench().addWorkbenchListener(new IWorkbenchListener() {
-			@Override
-			public boolean preShutdown(IWorkbench workbench, boolean forced) {
-				// delete linked c4group files
-				try {
-					if (ClonkCore.getDefault().getPreferenceStore().getBoolean(PREF_DELETE_LINKS_ON_SHUTDOWN)) {
-						for (IProject proj : Utilities.getClonkProjects()) {
-							for (IResource res : proj.members()) {
-								URI uri = res.getLocationURI();
-								if (uri.getScheme().equals(C4GroupFileSystem.getInstance().getScheme())) {
-									res.delete(true, new NullProgressMonitor());
+		PlatformUI.getWorkbench().addWorkbenchListener(
+				new IWorkbenchListener() {
+					@Override
+					public boolean preShutdown(IWorkbench workbench,
+							boolean forced) {
+						// delete linked c4group files
+						try {
+							if (ClonkCore.getDefault().getPreferenceStore()
+									.getBoolean(PREF_DELETE_LINKS_ON_SHUTDOWN)) {
+								for (IProject proj : Utilities
+										.getClonkProjects()) {
+									for (IResource res : proj.members()) {
+										URI uri = res.getLocationURI();
+										if (uri.getScheme().equals(
+												C4GroupFileSystem.getInstance()
+														.getScheme())) {
+											res.delete(true,
+													new NullProgressMonitor());
+										}
+									}
 								}
 							}
+						} catch (Exception e) {
+							e.printStackTrace();
 						}
+						return true;
 					}
-				}
-				catch (Exception e) {
-					e.printStackTrace();
-				}
-				return true;
-			}
 
-			@Override
-			public void postShutdown(IWorkbench workbench) {
-				// TODO Auto-generated method stub
-				
-			}
-		});
+					@Override
+					public void postShutdown(IWorkbench workbench) {
+						// TODO Auto-generated method stub
+
+					}
+				});
 	}
 
 }
