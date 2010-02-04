@@ -689,4 +689,11 @@ public abstract class Utilities {
 			return null;
 	}
 	
+	public static String multiply(String s, int times) {
+		StringBuilder builder = new StringBuilder(s.length()*times);
+		for (int i = 0; i < times; i++)
+			builder.append(s);
+		return s.toString();
+	}
+	
 }
