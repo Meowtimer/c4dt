@@ -2569,7 +2569,7 @@ public class C4ScriptParser {
 				}
 			
 			};
-			context = new C4Function("<temp>", C4Type.ANY); //$NON-NLS-1$
+			context = new C4Function("<temp>", null, C4FunctionScope.FUNC_GLOBAL); //$NON-NLS-1$
 			context.setScript(tempScript);
 		}
 		C4ScriptParser tempParser = new C4ScriptParser(expression, context.getScript());
