@@ -192,7 +192,7 @@ public class ClonkLaunchConfigurationDelegate implements
 		for (ClonkIndex index : ClonkProjectNature.get(scenario).getIndex().relevantIndexes()) {
 			if (index instanceof ProjectIndex) {
 				for (IResource res : ((ProjectIndex)index).getProject().members()) {
-					if (!res.getName().startsWith(".")) //$NON-NLS-1$
+					if (!res.getName().startsWith(".") && res instanceof IContainer) //$NON-NLS-1$
 						if (C4Group.getGroupType(res.getName()) != C4GroupType.ScenarioGroup)
 							if (!Utilities.resourceInside(scenario, (IContainer) res))
 								args.add(res.getRawLocationURI().getSchemeSpecificPart());
