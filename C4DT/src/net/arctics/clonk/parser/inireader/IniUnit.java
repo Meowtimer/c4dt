@@ -301,7 +301,7 @@ public class IniUnit extends C4Structure implements Iterable<IniSection>, IHasCh
 		reader.eat(new char[] {' ', '\t'});
 		String value = reader.readStringUntil(BufferedScanner.NEWLINE_CHARS);
 		int valEnd = reader.getPosition();
-		int commentStart = value.indexOf('#');
+		int commentStart = value != null ? value.indexOf('#') : -1;
 		if (commentStart != -1) {
 			valEnd -= value.length()-commentStart;
 			value = value.substring(0, commentStart);
