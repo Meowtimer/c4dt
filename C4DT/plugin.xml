@@ -136,6 +136,11 @@
 				</possibleDropTargets>
 			</dropAssistant>
 			
+			<commonWizard type="new" wizardId="net.arctics.clonk.wizards.NewClonkProject">
+				<enablement>
+				</enablement>
+			</commonWizard>
+			
 			<commonWizard type="new" wizardId="net.arctics.clonk.wizards.NewC4Object">
 				<enablement>
 					<instanceof value="org.eclipse.core.resources.IContainer" />
