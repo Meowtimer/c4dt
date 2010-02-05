@@ -72,7 +72,7 @@ public abstract class C4ScriptExprTree {
 	}
 	
 	public interface ExprWriter {
-		boolean doCustomPrinting(ExprElm elm);
+		boolean doCustomPrinting(ExprElm elm, int depth);
 		void append(String text);
 		void append(char c);
 	}
@@ -170,18 +170,17 @@ public abstract class C4ScriptExprTree {
 		}
 
 		public void doPrint(ExprWriter output, int depth) {
-			if (!output.doCustomPrinting(this))
-				this.doPrint(output, depth);
 		}
 		
 		public final void print(ExprWriter output, int depth) {
-			doPrint(output, depth);
+			if (!output.doCustomPrinting(this, depth))
+				this.doPrint(output, depth);
 		}
 		
 		public final void print(final StringBuilder builder, int depth) {
 			print(new ExprWriter() {
 				@Override
-				public boolean doCustomPrinting(ExprElm elm) {
+				public boolean doCustomPrinting(ExprElm elm, int depth) {
 					return false;
 				}
 				
@@ -927,7 +926,7 @@ public abstract class C4ScriptExprTree {
 		}
 		@Override
 		public void doPrint(ExprWriter output, int depth) {
-			super.print(output, depth);
+			super.doPrint(output, depth);
 			output.append("("); //$NON-NLS-1$
 			if (params != null) {
 				for (int i = 0; i < params.length; i++) {
@@ -1854,7 +1853,7 @@ public abstract class C4ScriptExprTree {
 				output.append(Long.toHexString(longValue()).toUpperCase());
 			}
 			else
-				super.print(output, depth);
+				super.doPrint(output, depth);
 		}
 
 		public C4Type getType(C4ScriptParser context) {
