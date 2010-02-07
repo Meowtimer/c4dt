@@ -23,7 +23,7 @@ public class C4ScriptToCPPConverter {
 	public String regString(String text) {
 		String ident = stringConstants.get(text);
 		if (ident == null) {
-			ident = "__string__" + stringConstants.size();
+			ident = "__string__" + stringConstants.size(); //$NON-NLS-1$
 			stringConstants.put(text, ident);
 		}
 		return ident;
@@ -31,7 +31,7 @@ public class C4ScriptToCPPConverter {
 	
 	public void printStringTable(Writer writer, int depth) throws IOException {
 		for (Entry<String, String> entry : stringConstants.entrySet()) {
-			writer.append("void stringTable() {");
+			writer.append("void stringTable() {"); //$NON-NLS-1$
 			//writer.append("\t)
 		}
 	}
@@ -47,7 +47,7 @@ public class C4ScriptToCPPConverter {
 				}
 				if (elm instanceof VarDeclarationStatement) {
 					VarDeclarationStatement statement = (VarDeclarationStatement) elm;
-					append("C4Value");
+					append("C4Value"); //$NON-NLS-1$
 					append(" "); //$NON-NLS-1$
 					int counter = 0;
 					for (Pair<String, ExprElm> var : statement.getVarInitializations()) {
@@ -94,7 +94,7 @@ public class C4ScriptToCPPConverter {
 		C4ScriptToCPPConverter converter = new C4ScriptToCPPConverter();
 		try {
 			StringWriter writer;
-			converter.print(C4ScriptParser.parseStandaloneStatement("var ugh = 123, bla = \"ugh\";", null, null), writer = new StringWriter(), 0);
+			converter.print(C4ScriptParser.parseStandaloneStatement("var ugh = 123, bla = \"ugh\";", null, null), writer = new StringWriter(), 0); //$NON-NLS-1$
 			System.out.println(writer.getBuffer().toString());
 		} catch (ParsingException e) {
 			// TODO Auto-generated catch block
