@@ -2975,7 +2975,7 @@ public abstract class C4ScriptExprTree {
 
 		@Override
 		public void doPrint(ExprWriter writer, int depth) {
-			StringBuilder builder = new StringBuilder(getKeyword().length()+2+1+1+Keywords.In+1+2);
+			StringBuilder builder = new StringBuilder(getKeyword().length()+2+1+1+Keywords.In.length()+1+2);
 			builder.append(getKeyword() + " ("); //$NON-NLS-1$
 			elementExpr.print(builder, depth+1);
 			// remove ';' that elementExpr (a statement) prints
