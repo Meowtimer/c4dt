@@ -111,13 +111,13 @@ public class C4ScriptCodeScanner extends ClonkRuleBasedScanner {
 		IToken bracket = createToken(manager, "BRACKET"); //$NON-NLS-1$
 		IToken returnToken = createToken(manager, "RETURN"); //$NON-NLS-1$
 		IToken pragma = createToken(manager, "PRAGMA"); //$NON-NLS-1$
-		IToken comment = createToken(manager, "COMMENT");
+		IToken comment = createToken(manager, "COMMENT"); //$NON-NLS-1$
 		
 		List<IRule> rules = new ArrayList<IRule>();
 
 		// comments
-		rules.add(new EndOfLineRule("//", comment));
-		rules.add(new MultiLineRule("/*", "*/", comment));
+		rules.add(new EndOfLineRule("//", comment)); //$NON-NLS-1$
+		rules.add(new MultiLineRule("/*", "*/", comment)); //$NON-NLS-1$ //$NON-NLS-2$
 		
 		// string
 		rules.add(new SingleLineRule("\"", "\"", string, '\\')); //$NON-NLS-1$ //$NON-NLS-2$

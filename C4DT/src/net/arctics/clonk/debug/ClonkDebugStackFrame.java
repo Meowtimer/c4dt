@@ -12,7 +12,7 @@ import org.eclipse.debug.core.model.IThread;
 
 public class ClonkDebugStackFrame extends ClonkDebugElement implements IStackFrame {
 
-	private static final String NAME_FORMAT = "%s::%s line: %d";
+	private static final String NAME_FORMAT = Messages.ClonkDebugStackFrame_StackFrameMessage;
 	
 	private int line;
 	private Object function;
@@ -190,7 +190,7 @@ public class ClonkDebugStackFrame extends ClonkDebugElement implements IStackFra
 			C4Function f = (C4Function) function;
 			IResource r = f.getScript().getResource();
 			if (r instanceof IContainer)
-				return r.getProjectRelativePath().append("Script.c").toOSString();
+				return r.getProjectRelativePath().append("Script.c").toOSString(); //$NON-NLS-1$
 			else if (r != null)
 				return r.getProjectRelativePath().toOSString();
 		}

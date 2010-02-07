@@ -11,6 +11,7 @@ public class Messages extends NLS {
 	public static String ClonkFolderView_Link;
 	public static String ClonkFolderView_OpenInCurrentProject;
 	public static String ClonkFolderView_Project;
+	public static String ClonkFolderView_Refresh0;
 	public static String ClonkFolderView_RemoveLinkedFilesOnShutdown;
 	public static String ClonkPreviewView_Updater;
 	public static String ConvertOldCodeInBulkAction_ConvertingCode;

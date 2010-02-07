@@ -262,7 +262,7 @@ public class ClonkFolderView extends ViewPart implements ISelectionListener,
 		importMenuItem = new MenuItem(treeMenu, SWT.PUSH);
 		importMenuItem.setText(Messages.ClonkFolderView_Import);
 		refreshMenuItem = new MenuItem(treeMenu, SWT.PUSH);
-		refreshMenuItem.setText("Refresh");
+		refreshMenuItem.setText(Messages.ClonkFolderView_Refresh0);
 		
 		for (MenuItem item : new MenuItem[] {linkMenuItem, importMenuItem, refreshMenuItem}) {
 			item.addSelectionListener(this);
@@ -312,9 +312,9 @@ public class ClonkFolderView extends ViewPart implements ISelectionListener,
 	private void refreshTree() {
 		String clonkPath = ClonkPreferences
 				.getPreferenceOrDefault(ClonkPreferences.GAME_PATH);
-		File clonkFolder = (clonkPath != null && !clonkPath.equals("")) ? new File(
+		File clonkFolder = (clonkPath != null && !clonkPath.equals("")) ? new File( //$NON-NLS-1$
 				clonkPath)
-				: new File("/");
+				: new File("/"); //$NON-NLS-1$
 		folderTree.setInput(clonkFolder);
 	}
 

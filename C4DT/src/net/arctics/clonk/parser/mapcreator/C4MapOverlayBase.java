@@ -22,9 +22,9 @@ public class C4MapOverlayBase extends C4Structure implements Cloneable, ITreeNod
 	private static final long serialVersionUID = 1L;
 	
 	public static class Keywords {
-		public static final String Point = "point";
-		public static final String Overlay = "overlay";
-		public static final String Map = "map";
+		public static final String Point = "point"; //$NON-NLS-1$
+		public static final String Overlay = "overlay"; //$NON-NLS-1$
+		public static final String Map = "map"; //$NON-NLS-1$
 	}
 	
 	public static final Map<String, Class<? extends C4MapOverlayBase>> DEFAULT_CLASS = Utilities.map(
@@ -145,13 +145,13 @@ public class C4MapOverlayBase extends C4Structure implements Cloneable, ITreeNod
 		@Override
 		public String toString() {
 			if (lo != null && hi != null) {
-				return lo.toString() + " - " + hi.toString();
+				return lo.toString() + " - " + hi.toString(); //$NON-NLS-1$
 			}
 			else if (lo != null) {
 				return lo.toString();
 			}
 			else
-				return "<Empty Range>";
+				return "<Empty Range>"; //$NON-NLS-1$
 		}
 	}
 	
@@ -248,7 +248,7 @@ public class C4MapOverlayBase extends C4Structure implements Cloneable, ITreeNod
 			if (type != null) {
 				builder.append(type);
 				if (getNodeName() != null) {
-					builder.append(" ");
+					builder.append(" "); //$NON-NLS-1$
 					builder.append(getNodeName());
 				}
 				builder.append(" {\n"); //$NON-NLS-1$
@@ -278,9 +278,9 @@ public class C4MapOverlayBase extends C4Structure implements Cloneable, ITreeNod
 					child.print(builder, depth+1);
 					Operator op = child.getOperator();
 					if (op != null) {
-						builder.append(" ");
+						builder.append(" "); //$NON-NLS-1$
 						builder.append(op.toString());
-						builder.append(" ");
+						builder.append(" "); //$NON-NLS-1$
 					}
 					else {
 						builder.append(";\n"); //$NON-NLS-1$

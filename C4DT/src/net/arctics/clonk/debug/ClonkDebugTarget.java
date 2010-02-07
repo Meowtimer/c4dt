@@ -33,10 +33,10 @@ public class ClonkDebugTarget extends ClonkDebugElement implements IDebugTarget 
 	public static class Commands {
 		public static final String RESUME = "GO"; //$NON-NLS-1$
 		public static final String SUSPEND = "STP"; //$NON-NLS-1$
-		public static final String STEPOVER = "STO";
-		public static final String STEPRETURN = "STR";
-		public static final String QUITSESSION = "BYE";
-		public static final String STACKTRACE = "STA";
+		public static final String STEPOVER = "STO"; //$NON-NLS-1$
+		public static final String STEPRETURN = "STR"; //$NON-NLS-1$
+		public static final String QUITSESSION = "BYE"; //$NON-NLS-1$
+		public static final String STACKTRACE = "STA"; //$NON-NLS-1$
 	}
 	
 	public static final int CONNECTION_ATTEMPT_WAITTIME = 2000;
@@ -89,20 +89,20 @@ public class ClonkDebugTarget extends ClonkDebugElement implements IDebugTarget 
 							stackTrace.clear();
 							stackTrace.add(sourcePath);
 
-							send("SST");
+							send("SST"); //$NON-NLS-1$
 							while (!isTerminated() && event != null) {
 								event = receive();
 								if (event != null && event.length() > 0) {
-									if (event.equals("EST")) {
+									if (event.equals("EST")) { //$NON-NLS-1$
 										break;
 									}
-									else if (event.startsWith("AT ")) {
+									else if (event.startsWith("AT ")) { //$NON-NLS-1$
 										if (stackTrace.size() > 512) {
-											System.out.println("Runaway stacktrace");
+											System.out.println("Runaway stacktrace"); //$NON-NLS-1$
 											break;
 										}
 										else {
-											stackTrace.add(event.substring("AT ".length()));
+											stackTrace.add(event.substring("AT ".length())); //$NON-NLS-1$
 										}
 									}
 									else
@@ -119,14 +119,14 @@ public class ClonkDebugTarget extends ClonkDebugElement implements IDebugTarget 
 									for (ClonkDebugVariable var : varArray)
 										vars.put(var.getName(), var);
 									for (ClonkDebugVariable var : vars.values()) {
-										send("VAR " + var.getName());
+										send("VAR " + var.getName()); //$NON-NLS-1$
 									}
 									while (!isTerminated() && event != null && !vars.isEmpty()) {
 										event = receive();
 										if (event != null && event.length() > 0) {
-											if (event.startsWith("VAR ")) {
-												event = event.substring("VAR ".length());
-												String[] parts = event.split("=");
+											if (event.startsWith("VAR ")) { //$NON-NLS-1$
+												event = event.substring("VAR ".length()); //$NON-NLS-1$
+												String[] parts = event.split("="); //$NON-NLS-1$
 												if (parts != null && parts.length == 2) {
 													ClonkDebugVariable var = vars.get(parts[0]);
 													if (var != null) {
@@ -215,9 +215,9 @@ public class ClonkDebugTarget extends ClonkDebugElement implements IDebugTarget 
 		fireEvent(new DebugEvent(this, DebugEvent.CREATE));
 		
 		send(""); //$NON-NLS-1$
-		send("STP"); // suspend in order to set breakpoints
+		send("STP"); // suspend in order to set breakpoints //$NON-NLS-1$
 		setBreakpoints();
-		send("GO"); // go!
+		send("GO"); // go! //$NON-NLS-1$
 		
 		new EventDispatchJob("Clonk Debugger Event Dispatch").schedule(); //$NON-NLS-1$
 	}
@@ -354,7 +354,7 @@ public class ClonkDebugTarget extends ClonkDebugElement implements IDebugTarget 
 	}
 	
 	public synchronized void send(String command) {
-		System.out.println("Sending " + command + " to engine");
+		System.out.println("Sending " + command + " to engine"); //$NON-NLS-1$ //$NON-NLS-2$
 		socketWriter.println(command);
 		socketWriter.flush();
 	}
@@ -376,7 +376,7 @@ public class ClonkDebugTarget extends ClonkDebugElement implements IDebugTarget 
 		try {
 			if (breakpoint instanceof ClonkDebugLineBreakpoint) {
 				ClonkDebugLineBreakpoint bp = (ClonkDebugLineBreakpoint) breakpoint;
-				send("TBR " + bp.getMarker().getResource().getProjectRelativePath().toOSString() + ":" + bp.getLineNumber());
+				send("TBR " + bp.getMarker().getResource().getProjectRelativePath().toOSString() + ":" + bp.getLineNumber()); //$NON-NLS-1$ //$NON-NLS-2$
 			}
 		} catch (CoreException e) {
 			e.printStackTrace();

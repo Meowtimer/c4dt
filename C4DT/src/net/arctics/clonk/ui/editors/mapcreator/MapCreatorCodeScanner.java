@@ -88,8 +88,8 @@ public class MapCreatorCodeScanner extends ClonkRuleBasedScanner {
 
 		List<IRule> rules = new ArrayList<IRule>();
 		
-		rules.add(new EndOfLineRule("//", comment));
-		rules.add(new MultiLineRule("/*", "*/", comment));
+		rules.add(new EndOfLineRule("//", comment)); //$NON-NLS-1$
+		rules.add(new MultiLineRule("/*", "*/", comment)); //$NON-NLS-1$ //$NON-NLS-2$
 
 		// Add generic whitespace rule.
 		rules.add(new WhitespaceRule(new ClonkWhitespaceDetector()));

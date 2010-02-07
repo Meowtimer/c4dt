@@ -33,7 +33,7 @@ public class ClonkDebugValue extends ClonkDebugElement implements IValue {
 
 	@Override
 	public String getValueString() throws DebugException {
-		return value != null ? value.toString() : "nil";
+		return value != null ? value.toString() : "nil"; //$NON-NLS-1$
 	}
 
 	@Override

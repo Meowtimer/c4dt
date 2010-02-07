@@ -7,6 +7,8 @@ public class Messages extends NLS {
 	public static String ProjectNotOpen;
 	public static String ScenarioNotFound;
 	public static String MainThread;
+	public static String ClonkDebugLineBreakpoint_BreakpointMessage;
+	public static String ClonkDebugStackFrame_StackFrameMessage;
 	public static String CouldNotFindEngine;
 	public static String LauncherOnlySupportsRunMode;
 	public static String LaunchConf;

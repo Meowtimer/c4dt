@@ -625,7 +625,7 @@ public class C4Group extends C4GroupItem implements Serializable, ITreeNode {
 
 	@Override
 	public InputStream openInputStream(int options, IProgressMonitor monitor) throws CoreException {
-		throw new CoreException(new Status(1, ClonkCore.PLUGIN_ID, "FileStore stream cannot be opened on C4Group"));
+		throw new CoreException(new Status(1, ClonkCore.PLUGIN_ID, "FileStore stream cannot be opened on C4Group")); //$NON-NLS-1$
 	}
 	
 	public long lastModified() {
@@ -659,7 +659,7 @@ public class C4Group extends C4GroupItem implements Serializable, ITreeNode {
 					opWork += children.length;
 				}
 				monitor.beginTask("", opWork); //$NON-NLS-1$
-				monitor.subTask("Copying...");
+				monitor.subTask(Messages.C4Group_Copying);
 				// create directory 
 				destination.mkdir(EFS.NONE, new SubProgressMonitor(monitor, 1));
 				// don't copy attributes since that is stupid

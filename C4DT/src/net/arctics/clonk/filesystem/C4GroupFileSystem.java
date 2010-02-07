@@ -21,7 +21,7 @@ public class C4GroupFileSystem extends FileSystem {
 	
 	// there should be some function to do that somewhere -.-
 	public static String replaceSpecialChars(String path) {
-		return path.replace("[", "%5B").replace("]", "%5D");
+		return path.replace("[", "%5B").replace("]", "%5D"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
 	}
 
 	private Map<File, WeakReference<C4Group>> rootGroups = new HashMap<File, WeakReference<C4Group>>();
@@ -85,21 +85,21 @@ public class C4GroupFileSystem extends FileSystem {
 							group.readIntoMemory(true, new HeaderFilterBase() {
 
 								private final String[] filesToAlwaysLoad = new String[] {
-									"DefCore.txt",
-									"ActMap.txt",
-									"DescDE.txt",
-									"DescUS.txt",
-									"Names.txt",
-									"Particle.txt",
-									"StringTblDE.txt",
-									"StringTblUS.txt",
-									"Landscape.txt",
-									"Teams.txt"
+									"DefCore.txt", //$NON-NLS-1$
+									"ActMap.txt", //$NON-NLS-1$
+									"DescDE.txt", //$NON-NLS-1$
+									"DescUS.txt", //$NON-NLS-1$
+									"Names.txt", //$NON-NLS-1$
+									"Particle.txt", //$NON-NLS-1$
+									"StringTblDE.txt", //$NON-NLS-1$
+									"StringTblUS.txt", //$NON-NLS-1$
+									"Landscape.txt", //$NON-NLS-1$
+									"Teams.txt" //$NON-NLS-1$
 								};
 								
 								private final String[] extensionsToAlwaysLoad = new String[] {
-									".c",
-									".c4m"
+									".c", //$NON-NLS-1$
+									".c4m" //$NON-NLS-1$
 								};
 								
 								@Override

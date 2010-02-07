@@ -23,7 +23,7 @@ public class ClonkDebugLineBreakpoint extends LineBreakpoint {
 				marker.setAttribute(IMarker.LINE_NUMBER, lineNumber);
 				marker.setAttribute(IBreakpoint.ENABLED, true);
 				marker.setAttribute(IBreakpoint.ID, getModelIdentifier());
-				marker.setAttribute(IMarker.MESSAGE, String.format("Clonk Breakpoint at %s:%d", resource.getProjectRelativePath(), lineNumber));
+				marker.setAttribute(IMarker.MESSAGE, String.format(Messages.ClonkDebugLineBreakpoint_BreakpointMessage, resource.getProjectRelativePath(), lineNumber));
 				setMarker(marker);
 			}
 		};

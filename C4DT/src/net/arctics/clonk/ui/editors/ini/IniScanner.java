@@ -79,7 +79,7 @@ public class IniScanner extends ClonkRuleBasedScanner {
 		IToken section = createToken(manager, "KEYWORD"); //$NON-NLS-1$
 		IToken number = createToken(manager, "NUMBER"); //$NON-NLS-1$
 		IToken constant = createToken(manager, "ENGINE_FUNCTION"); //$NON-NLS-1$
-		IToken comment = createToken(manager, "COMMENT");
+		IToken comment = createToken(manager, "COMMENT"); //$NON-NLS-1$
 		
 		List<IRule> rules = new ArrayList<IRule>();
 		

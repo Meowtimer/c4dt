@@ -116,10 +116,10 @@ public abstract class C4GroupItem extends FileStore implements INodeWithPath {
 		if (origin != null) {
 			try {
 				String path = new Path(origin.getParent()).append(getPath().toString()).toPortableString();
-				if (!path.startsWith("/"))
-					path = "/"+path;
+				if (!path.startsWith("/")) //$NON-NLS-1$
+					path = "/"+path; //$NON-NLS-1$
 				path = C4GroupFileSystem.replaceSpecialChars(path);
-				URI uri = new URI("c4group", path, null);
+				URI uri = new URI("c4group", path, null); //$NON-NLS-1$
 				return uri;
 			} catch (URISyntaxException e) {
 				e.printStackTrace();

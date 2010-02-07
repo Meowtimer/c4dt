@@ -38,7 +38,7 @@ public class ClonkDebugModelPresentation extends LabelProvider implements IDebug
 	@Override
 	public String getEditorId(IEditorInput input, Object element) {
 		if (element instanceof IFile && Utilities.getScriptForFile((IFile) element) != null)
-			return "clonk.editors.C4ScriptEditor";
+			return "clonk.editors.C4ScriptEditor"; //$NON-NLS-1$
 		else
 			return null;
 	}
@@ -62,12 +62,12 @@ public class ClonkDebugModelPresentation extends LabelProvider implements IDebug
 			else if (element instanceof ClonkDebugTarget)
 				return ((ClonkDebugTarget) element).getName();
 			else if (element instanceof ClonkDebugLineBreakpoint)
-				return ((ClonkDebugLineBreakpoint)element).getMarker().getAttribute(IMarker.MESSAGE, "Breakpoint");
+				return ((ClonkDebugLineBreakpoint)element).getMarker().getAttribute(IMarker.MESSAGE, "Breakpoint"); //$NON-NLS-1$
 			else
-				return "Empty";
+				return "Empty"; //$NON-NLS-1$
 		} catch (DebugException e) {
 			e.printStackTrace();
-			return "Fail";
+			return "Fail"; //$NON-NLS-1$
 		}
 	}
 

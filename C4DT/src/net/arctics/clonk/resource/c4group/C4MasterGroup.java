@@ -93,13 +93,13 @@ public class C4MasterGroup extends C4Group {
 					});
 				}
 				else
-					throw new IOException("C4Group.readFromStream: No stream");
+					throw new IOException("C4Group.readFromStream: No stream"); //$NON-NLS-1$
 			} finally {
 				if (createdStream)
 					releaseStream();
 			}
 		} catch (Exception e) {
-			System.out.println("Look what you did, " + whoWantsThat.toString() + ")");
+			System.out.println("Look what you did, " + whoWantsThat.toString() + ")"); //$NON-NLS-1$ //$NON-NLS-2$
 			e.printStackTrace();
 		}
 	}

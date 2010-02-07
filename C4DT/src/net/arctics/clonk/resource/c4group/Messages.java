@@ -8,6 +8,7 @@ public class Messages extends NLS {
 	public static String WhereToSave;
 	public static String Exporting;
 	public static String ExporterCommandlineTitle;
+	public static String C4Group_Copying;
 	public static String C4GroupHeaderInvalid_1;
 	public static String C4GroupHeaderInvalid_2;
 	public static String C4GroupHeaderSuspicious;
