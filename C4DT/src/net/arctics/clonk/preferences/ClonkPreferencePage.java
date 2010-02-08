@@ -140,14 +140,7 @@ public class ClonkPreferencePage extends FieldEditorPreferencePage implements IW
 				getFieldEditorParent()
 			)
 		);
-		List<String> engines = ClonkCore.getDefault().getAvailableEngines();
-		String[][] engineChoices = new String[engines.size()][2];
-		int i = 0;
-		for (String s : engines) {
-			engineChoices[i][1] = s;
-			engineChoices[i][0] = makeUserFriendlyEngineName(s);
-			i++;
-		}
+		String[][] engineChoices = engineComboValues(false);
 		addField(
 			new ComboFieldEditor(
 				ClonkPreferences.ACTIVE_ENGINE,
@@ -192,7 +185,24 @@ public class ClonkPreferencePage extends FieldEditorPreferencePage implements IW
 //			new StringFieldEditor(PreferenceConstants.P_STRING, "A &text preference:", getFieldEditorParent()));
 	}
 
-	private String makeUserFriendlyEngineName(String s) {
+	public static String[][] engineComboValues(boolean includeDefault) {
+		List<String> engines = ClonkCore.getDefault().getAvailableEngines();
+		String[][] engineChoices = new String[engines.size() + (includeDefault ? 1 : 0)][2];
+		int i = 0;
+		if (includeDefault) {
+			engineChoices[i][1] = null;
+			engineChoices[i][0] = Messages.ClonkPreferencePage_DefaultEngine;
+			++i;
+		}
+		for (String s : engines) {
+			engineChoices[i][1] = s;
+			engineChoices[i][0] = makeUserFriendlyEngineName(s);
+			i++;
+		}
+		return engineChoices;
+	}
+
+	private static String makeUserFriendlyEngineName(String s) {
 	    StringBuilder builder = new StringBuilder(s.length()*2);
 	    for (int i = 0; i < s.length(); i++) {
 	    	char c = s.charAt(i);

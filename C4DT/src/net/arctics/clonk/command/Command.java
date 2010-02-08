@@ -158,11 +158,8 @@ public class Command {
 			
 		};
 		
-		registerCommandsFromClass(Command.class);
-		registerCommandsFromClass(DebugCommands.class);
-		registerCommandsFromClass(CodeConversionCommands.class);
-		registerCommandsFromClass(EngineConfiguration.class);
-		registerCommandsFromClass(Diagnostics.class);
+		for (Class<?> c : Command.class.getDeclaredClasses())
+			registerCommandsFromClass(c);
 	}
 
 	private static void registerCommandsFromClass(Class<?> classs) {

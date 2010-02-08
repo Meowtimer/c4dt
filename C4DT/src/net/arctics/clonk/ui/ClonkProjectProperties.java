@@ -8,6 +8,7 @@ import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.util.Utilities;
 import net.arctics.clonk.index.ExternalLibsLoader;
 import net.arctics.clonk.index.ProjectIndex;
+import net.arctics.clonk.preferences.ClonkPreferencePage;
 import net.arctics.clonk.preferences.ExternalLibsEditor;
 import net.arctics.clonk.preferences.Messages;
 
@@ -16,6 +17,7 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.jface.preference.BooleanFieldEditor;
+import org.eclipse.jface.preference.ComboFieldEditor;
 import org.eclipse.jface.preference.FieldEditorPreferencePage;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.preference.PreferenceStore;
@@ -25,6 +27,7 @@ public class ClonkProjectProperties extends FieldEditorPreferencePage implements
 
 	private static final String DEPENDENCIES_PROPERTY = "dependencies"; //$NON-NLS-1$
 	private static final String SHOWSDEPENDENCIES_PROPERTY = "showsDependencies"; //$NON-NLS-1$
+	private static final String ENGINENAME_PROPERTY = "engineName";
 	
 	private final class AdapterStore extends PreferenceStore {
 		private Map<String, String> values = new HashMap<String, String>();
@@ -67,6 +70,8 @@ public class ClonkProjectProperties extends FieldEditorPreferencePage implements
 				} catch (CoreException e) {
 					e.printStackTrace();
 				}
+			} else if (n.equals(ENGINENAME_PROPERTY)) {
+				ClonkProjectNature.get(getProject()).getIndex().setEngineName(v);
 			}
 			Utilities.getProjectExplorer().getCommonViewer().refresh(getProject());
 		}
@@ -74,6 +79,7 @@ public class ClonkProjectProperties extends FieldEditorPreferencePage implements
 		public AdapterStore() throws CoreException {
 			values.put(DEPENDENCIES_PROPERTY, ClonkProjectNature.get(getProject()).getIndex().libsEncodedAsString());
 			values.put(SHOWSDEPENDENCIES_PROPERTY, String.valueOf(getProject().hasNature(ClonkCore.CLONK_DEPS_NATURE_ID)));
+			values.put(ENGINENAME_PROPERTY, ClonkProjectNature.get(getProject()).getIndex().getEngineName());
 		}
 	}
 	
@@ -93,6 +99,7 @@ public class ClonkProjectProperties extends FieldEditorPreferencePage implements
 	protected void createFieldEditors() {
 		addField(new ExternalLibsEditor(DEPENDENCIES_PROPERTY, net.arctics.clonk.preferences.Messages.ExternalObjectsAndScripts, getFieldEditorParent()));
 		addField(new BooleanFieldEditor(SHOWSDEPENDENCIES_PROPERTY, Messages.Project_ShowDependencies, getFieldEditorParent()));
+		addField(new ComboFieldEditor(ENGINENAME_PROPERTY, Messages.EngineVersion, ClonkPreferencePage.engineComboValues(true), getFieldEditorParent()));
 	}
 
 	public IAdaptable getElement() {

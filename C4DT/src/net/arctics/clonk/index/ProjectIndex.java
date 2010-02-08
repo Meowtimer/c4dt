@@ -3,6 +3,7 @@ package net.arctics.clonk.index;
 import java.util.LinkedList;
 import java.util.List;
 
+import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.c4script.C4ScriptBase;
 import net.arctics.clonk.parser.c4script.C4ScriptIntern;
 import net.arctics.clonk.resource.ClonkProjectNature;
@@ -19,16 +20,31 @@ public class ProjectIndex extends ExternIndex {
 	private static final long serialVersionUID = 1L;
 	public static final String INDEXFILE_SUFFIX = ".index"; //$NON-NLS-1$
 	
-	private transient IProject project;
 	private String engineName;
+	
+	private transient IProject project;
 	private transient boolean isDirty;
+	private transient C4Engine cachedEngine;
 	
 	public String getEngineName() {
 		return engineName;
 	}
-
+	
 	public void setEngineName(String engineName) {
 		this.engineName = engineName;
+		this.cachedEngine = null;
+		setDirty(true);
+	}
+	
+	@Override
+	public C4Engine getEngine() {
+		if (cachedEngine == null) {
+			if (engineName == null)
+				cachedEngine = ClonkCore.getDefault().getActiveEngine();
+			else
+				cachedEngine = ClonkCore.getDefault().loadEngine(engineName);
+		}
+		return cachedEngine;
 	}
 
 	public List<ExternalLib> getExternalDependencies() {

@@ -192,18 +192,16 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 			if (!ClonkCore.getDefault().getExternIndex().isEmpty()) {
 				statusMessages.add(Messages.C4ScriptCompletionProcessor_ExternalLibraries);
 			}
-			if (ClonkCore.getDefault().getActiveEngine() != null) {
+			if (getEditor().scriptBeingEdited().getIndex().getEngine() != null) {
 				statusMessages.add(Messages.C4ScriptCompletionProcessor_EngineFunctions);
 			}
 		}
 		
 		if (activeFunc == null) {
-			proposalsOutsideOfFunction(viewer, offset, wordOffset, prefix,
-					proposals, index);
+			proposalsOutsideOfFunction(viewer, offset, wordOffset, prefix, proposals, index);
 		}
 		else {
-			proposalsInsideOfFunction(offset, wordOffset, doc, prefix,
-					proposals, index, activeFunc);
+			proposalsInsideOfFunction(offset, wordOffset, doc, prefix, proposals, index, activeFunc);
 		}
 		
 		StringBuilder statusMessage = new StringBuilder(Messages.C4ScriptCompletionProcessor_ShownData);
@@ -230,11 +228,11 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 			final C4Function activeFunc) {
 		
 		if (proposalCycle == ProposalCycle.SHOW_ALL) {
-			if (ClonkCore.getDefault().getActiveEngine() != null) {
-				for (C4Function func : ClonkCore.getDefault().getActiveEngine().functions()) {
-					proposalForFunc(func, prefix, offset, proposals, ClonkCore.getDefault().getActiveEngine().getName(), true);
+			if (getEditor().scriptBeingEdited().getIndex().getEngine() != null) {
+				for (C4Function func : getEditor().scriptBeingEdited().getIndex().getEngine().functions()) {
+					proposalForFunc(func, prefix, offset, proposals, getEditor().scriptBeingEdited().getIndex().getEngine().getName(), true);
 				}
-				for (C4Variable var : ClonkCore.getDefault().getActiveEngine().variables()) {
+				for (C4Variable var : getEditor().scriptBeingEdited().getIndex().getEngine().variables()) {
 					proposalForVar(var,prefix,offset,proposals);
 				}
 			}

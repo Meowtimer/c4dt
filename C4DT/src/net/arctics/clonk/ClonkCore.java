@@ -233,7 +233,7 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 		return result;
 	}
 	
-	private C4Engine loadEngine(final String engineName) {
+	public C4Engine loadEngine(final String engineName) {
 		InputStream engineStream;
 		C4Engine result = loadedEngines.get(engineName);
 		if (result != null)

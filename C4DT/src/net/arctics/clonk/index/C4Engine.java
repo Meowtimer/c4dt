@@ -19,6 +19,7 @@ public class C4Engine extends C4ObjectExtern {
 	// public so setting them by reflection is easier -.-
 	public int strictDefaultLevel;
 	public int maxStringLen;
+	public String idPattern;
 
 	public final CachedEngineFuncs getCachedFuncs() {
 		return cachedFuncs;
@@ -43,10 +44,6 @@ public class C4Engine extends C4ObjectExtern {
     
     public void modified() {
     	cachedFuncs = new CachedEngineFuncs(this);
-//    	if (getName().equals("OpenClonk"))
-//    		setStrictDefaultLevel(2);
-//    	else
-//    		setStrictDefaultLevel(1);
     }
     
     @Override
@@ -65,6 +62,10 @@ public class C4Engine extends C4ObjectExtern {
 		//if (Util.isWindows()) {
     		return new String[] { "Clonk.c4x", "Clonk.exe" }; //$NON-NLS-1$ //$NON-NLS-2$
     	//}
+	}
+
+	public boolean acceptsId(String text) {
+		return idPattern == null || text.matches(idPattern);
 	}    
 
 }
