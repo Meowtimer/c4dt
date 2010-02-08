@@ -104,3 +104,8 @@ are then taken into account in various places
 -Make plugin compatible to Saros
 -Multiple editors for the same file update instantly
 -Some encoding issues fixed
+1.5.3:
+-Support linking of C4Group files (use the Clonk Folder View for this)
+-Set engine for each project so one can share OC and CR projects in the same workspace
+-Fixes
+-Probably more bugs

@@ -5,8 +5,6 @@ import java.io.StringWriter;
 import java.io.Writer;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Map.Entry;
-
 import net.arctics.clonk.parser.c4script.C4Function;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.C4ScriptExprTree.Block;
@@ -30,10 +28,10 @@ public class C4ScriptToCPPConverter {
 	}
 	
 	public void printStringTable(Writer writer, int depth) throws IOException {
-		for (Entry<String, String> entry : stringConstants.entrySet()) {
+		/*for (Entry<String, String> entry : stringConstants.entrySet()) {
 			writer.append("void stringTable() {"); //$NON-NLS-1$
 			//writer.append("\t)
-		}
+		}*/
 	}
 	
 	public void print(ExprElm element, final Writer output, int depth) {

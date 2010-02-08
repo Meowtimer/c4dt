@@ -31,7 +31,8 @@ public class ClonkPerspective implements IPerspectiveFactory {
 		IFolderLayout bottomLeft = layout.createFolder("bottomLeft", IPageLayout.BOTTOM, 0.50f, //$NON-NLS-1$
 			"topLeft"); //$NON-NLS-1$
 		bottomLeft.addView(IPageLayout.ID_OUTLINE);
-		bottomLeft.addView(IPageLayout.ID_PROP_SHEET);
+		bottomLeft.addView(ClonkCore.id("views.ClonkFolderView"));
+		bottomLeft.addView(ClonkCore.id("views.ClonkPreviewView"));
 
 		// Bottom right: Task List view
 		layout.addView(IPageLayout.ID_PROBLEM_VIEW, IPageLayout.BOTTOM, 0.66f, editorArea);

@@ -9,14 +9,12 @@ import net.arctics.clonk.util.Utilities;
 import net.arctics.clonk.index.ExternalLibsLoader;
 import net.arctics.clonk.index.ProjectIndex;
 import net.arctics.clonk.preferences.ClonkPreferencePage;
-import net.arctics.clonk.preferences.ExternalLibsEditor;
 import net.arctics.clonk.preferences.Messages;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.core.runtime.NullProgressMonitor;
-import org.eclipse.jface.preference.BooleanFieldEditor;
 import org.eclipse.jface.preference.ComboFieldEditor;
 import org.eclipse.jface.preference.FieldEditorPreferencePage;
 import org.eclipse.jface.preference.IPreferenceStore;
@@ -28,6 +26,10 @@ public class ClonkProjectProperties extends FieldEditorPreferencePage implements
 	private static final String DEPENDENCIES_PROPERTY = "dependencies"; //$NON-NLS-1$
 	private static final String SHOWSDEPENDENCIES_PROPERTY = "showsDependencies"; //$NON-NLS-1$
 	private static final String ENGINENAME_PROPERTY = "engineName";
+	
+	public ClonkProjectProperties() {
+		super(GRID);
+	}
 	
 	private final class AdapterStore extends PreferenceStore {
 		private Map<String, String> values = new HashMap<String, String>();
@@ -97,8 +99,9 @@ public class ClonkProjectProperties extends FieldEditorPreferencePage implements
 	
 	@Override
 	protected void createFieldEditors() {
+	/*	deprecate that - linking c4group should be enough for everybody!1
 		addField(new ExternalLibsEditor(DEPENDENCIES_PROPERTY, net.arctics.clonk.preferences.Messages.ExternalObjectsAndScripts, getFieldEditorParent()));
-		addField(new BooleanFieldEditor(SHOWSDEPENDENCIES_PROPERTY, Messages.Project_ShowDependencies, getFieldEditorParent()));
+		addField(new BooleanFieldEditor(SHOWSDEPENDENCIES_PROPERTY, Messages.Project_ShowDependencies, getFieldEditorParent())); */
 		addField(new ComboFieldEditor(ENGINENAME_PROPERTY, Messages.EngineVersion, ClonkPreferencePage.engineComboValues(true), getFieldEditorParent()));
 	}
 
