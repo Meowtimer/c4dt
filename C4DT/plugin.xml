@@ -369,13 +369,13 @@
 		<command categoryId="org.eclipse.ui.category.edit"
 			description="%TidyUpCode_Desc"
 			id="net.arctics.clonk.ui.editors.actions.TidyUpCode"
-			name="%TidyUpCode_Desc" />
+			name="%TidyUpCode_Name" />
 		
 		<command categoryId="org.eclipse.ui.category.edit"
 			description="%TidyUpCode_Desc"
 			id="net.arctics.clonk.ui.navigator.actions.TidyUpCodeInBulk"
 			defaultHandler="net.arctics.clonk.ui.navigator.TidyUpCodeInBulkHandler"
-			name="%TidyUpCode_Desc" />
+			name="%TidyUpCode_Name" />
 		
 		<command categoryId="org.eclipse.ui.category.edit"
 			description="%ImportExternalLib_Desc"
