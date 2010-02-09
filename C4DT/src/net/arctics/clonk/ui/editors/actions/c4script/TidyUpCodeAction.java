@@ -24,7 +24,7 @@ import org.eclipse.text.edits.ReplaceEdit;
 import org.eclipse.ui.texteditor.ITextEditor;
 import org.eclipse.ui.texteditor.TextEditorAction;
 
-public class ConvertOldCodeToNewCodeAction extends TextEditorAction {
+public class TidyUpCodeAction extends TextEditorAction {
 
 	public final static class FunctionStatements extends Pair<C4Function, LinkedList<Statement>> {
 		public FunctionStatements(C4Function first, LinkedList<Statement> second) {
@@ -32,7 +32,7 @@ public class ConvertOldCodeToNewCodeAction extends TextEditorAction {
 		}
 	}
 	
-	public ConvertOldCodeToNewCodeAction(ResourceBundle bundle, String prefix, ITextEditor editor) {
+	public TidyUpCodeAction(ResourceBundle bundle, String prefix, ITextEditor editor) {
 		super(bundle, prefix, editor);
 		this.setId(IClonkCommandIds.CONVERT_OLD_CODE_TO_NEW_CODE);
 	}
@@ -108,7 +108,7 @@ public class ConvertOldCodeToNewCodeAction extends TextEditorAction {
 	) {
 		synchronized (document) {
 			final int selLength = selection.getLength() == document.getLength() ? 0 : selection.getLength();
-			TextChange textChange = new DocumentChange(Messages.ConvertOldCodeToNewCodeAction_TidyUpCode, document);
+			TextChange textChange = new DocumentChange(Messages.TidyUpCodeAction_TidyUpCode, document);
 			textChange.setEdit(new MultiTextEdit());
 			for (FunctionStatements pair : statements) {
 				try {

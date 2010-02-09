@@ -32,7 +32,7 @@ import net.arctics.clonk.ui.editors.IClonkCommandIds;
 import net.arctics.clonk.ui.editors.ClonkTextEditor;
 import net.arctics.clonk.ui.editors.ColorManager;
 import net.arctics.clonk.ui.editors.IHasEditorRefWhichEnablesStreamlinedOpeningOfDeclarations;
-import net.arctics.clonk.ui.editors.actions.c4script.ConvertOldCodeToNewCodeAction;
+import net.arctics.clonk.ui.editors.actions.c4script.TidyUpCodeAction;
 import net.arctics.clonk.ui.editors.actions.c4script.FindReferencesAction;
 import net.arctics.clonk.ui.editors.actions.c4script.RenameDeclarationAction;
 import net.arctics.clonk.util.Utilities;
@@ -311,7 +311,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 
 		IAction action;
 		
-		action = new ConvertOldCodeToNewCodeAction(messagesBundle,"ConvertOldCodeToNewCode.",this); //$NON-NLS-1$
+		action = new TidyUpCodeAction(messagesBundle,"TidyUpCode.",this); //$NON-NLS-1$
 		setAction(IClonkCommandIds.CONVERT_OLD_CODE_TO_NEW_CODE, action);
 		
 		action = new FindReferencesAction(messagesBundle,"FindReferences.",this); //$NON-NLS-1$

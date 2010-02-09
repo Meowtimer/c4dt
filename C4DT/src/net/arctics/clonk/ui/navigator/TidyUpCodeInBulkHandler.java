@@ -9,8 +9,8 @@ import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.c4script.C4ScriptBase;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.ParsingException;
-import net.arctics.clonk.ui.editors.actions.c4script.ConvertOldCodeToNewCodeAction;
-import net.arctics.clonk.ui.editors.actions.c4script.ConvertOldCodeToNewCodeAction.FunctionStatements;
+import net.arctics.clonk.ui.editors.actions.c4script.TidyUpCodeAction;
+import net.arctics.clonk.ui.editors.actions.c4script.TidyUpCodeAction.FunctionStatements;
 import net.arctics.clonk.util.Utilities;
 
 import org.eclipse.core.commands.AbstractHandler;
@@ -33,7 +33,7 @@ import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.editors.text.TextFileDocumentProvider;
 
-public class ConvertOldCodeInBulkHandler extends AbstractHandler {
+public class TidyUpCodeInBulkHandler extends AbstractHandler {
 
 	@Override
 	public boolean isEnabled() {
@@ -98,7 +98,7 @@ public class ConvertOldCodeInBulkHandler extends AbstractHandler {
 									}
 								}
 							}
-							monitor.beginTask(Messages.ConvertOldCodeInBulkAction_ConvertingCode, counter);
+							monitor.beginTask(Messages.TidyUpCodeInBulkAction_ConvertingCode, counter);
 							for (IContainer container : selectedContainers) {
 								try {
 									final TextFileDocumentProvider textFileDocProvider = ClonkCore.getDefault().getTextFileDocumentProvider();
@@ -111,7 +111,7 @@ public class ConvertOldCodeInBulkHandler extends AbstractHandler {
 												if (script != null) {
 													C4ScriptParser parser = new C4ScriptParser(file, script);
 													LinkedList<FunctionStatements> statements = new LinkedList<FunctionStatements>();
-													parser.setExpressionListener(ConvertOldCodeToNewCodeAction.expressionCollector(null, statements, 0));
+													parser.setExpressionListener(TidyUpCodeAction.expressionCollector(null, statements, 0));
 													try {
 														parser.parse();
 													} catch (ParsingException e1) {
@@ -122,7 +122,7 @@ public class ConvertOldCodeInBulkHandler extends AbstractHandler {
 														IDocument document = textFileDocProvider.getDocument(file);
 
 														if (document != null)
-															ConvertOldCodeToNewCodeAction.runOnDocument(parser, new TextSelection(document, 0, 0), document, statements);
+															TidyUpCodeAction.runOnDocument(parser, new TextSelection(document, 0, 0), document, statements);
 
 														try {
 															textFileDocProvider.setEncoding(document, textFileDocProvider.getDefaultEncoding());

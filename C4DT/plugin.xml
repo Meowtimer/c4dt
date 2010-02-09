@@ -367,15 +367,15 @@
 			name="%QuickImport_Name" />
 
 		<command categoryId="org.eclipse.ui.category.edit"
-			description="%ConvertOldCodeToNewCode_Desc"
-			id="net.arctics.clonk.ui.editors.actions.ConvertOldCodeToNewCode"
-			name="%ConvertOldCodeToNewCode_Desc" />
+			description="%TidyUpCode_Desc"
+			id="net.arctics.clonk.ui.editors.actions.TidyUpCode"
+			name="%TidyUpCode_Desc" />
 		
 		<command categoryId="org.eclipse.ui.category.edit"
-			description="%ConvertOldCodeToNewCode_Desc"
-			id="net.arctics.clonk.ui.navigator.actions.ConvertOldCodeInBulk"
-			defaultHandler="net.arctics.clonk.ui.navigator.ConvertOldCodeInBulkHandler"
-			name="%ConvertOldCodeToNewCode_Desc" />
+			description="%TidyUpCode_Desc"
+			id="net.arctics.clonk.ui.navigator.actions.TidyUpCodeInBulk"
+			defaultHandler="net.arctics.clonk.ui.navigator.TidyUpCodeInBulkHandler"
+			name="%TidyUpCode_Desc" />
 		
 		<command categoryId="org.eclipse.ui.category.edit"
 			description="%ImportExternalLib_Desc"
@@ -463,7 +463,7 @@
 					</visibleWhen>
 				</command>
 				<separator name="AfterImportExportSeparator" visible="true" />
-				<command commandId="net.arctics.clonk.ui.navigator.actions.ConvertOldCodeInBulk" label="%ConvertOldCodeToNewCode_Name">
+				<command commandId="net.arctics.clonk.ui.navigator.actions.TidyUpCodeInBulk" label="%TidyUpCode_Name">
 					<visibleWhen checkEnabled="false">
 						<iterate ifEmpty="false">
 							<adapt type="org.eclipse.core.resources.IResource">
