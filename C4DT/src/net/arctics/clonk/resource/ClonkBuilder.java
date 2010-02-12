@@ -211,7 +211,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 			clearUIOfReferencesBeforeBuild();
 			while (!cleanedUI)
 				try {
-					wait();
+					wait(3000);
 				} catch (InterruptedException e) {
 					e.printStackTrace();
 				}
