@@ -15,13 +15,11 @@ public final class ExternalLibsEditor extends ListEditor {
 	
 	StringFieldEditor gamePathEditor;
 	
-	public ExternalLibsEditor(String name, String labelText,
-			Composite parent) {
+	public ExternalLibsEditor(String name, String labelText, Composite parent) {
 		super(name, labelText, parent);
 	}
 
-	@Override
-	protected String[] parseString(String stringList) {
+	public String[] parseString(String stringList) {
 		if (stringList.length() == 0) return new String[] {};
 		return stringList.split("<>"); //$NON-NLS-1$
 	}
