@@ -164,7 +164,6 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 	
 	private int buildPhase;
 	private IProgressMonitor monitor;
-	private boolean cleanedUI;
 
 	// keeps track of parsers created for specific scripts
 	private Map<C4ScriptBase, C4ScriptParser> parserMap = new HashMap<C4ScriptBase, C4ScriptParser>();
@@ -202,20 +201,12 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 	}
 
 	@SuppressWarnings({"rawtypes"})
-	protected IProject[] build(int kind, Map args, IProgressMonitor monitor) throws CoreException {
+	protected synchronized IProject[] build(int kind, Map args, IProgressMonitor monitor) throws CoreException {
 		
 		parserMap.clear();
 		List<IResource> listOfResourcesToBeRefreshed = new LinkedList<IResource>();
 		
-		synchronized (this) {
-			clearUIOfReferencesBeforeBuild();
-			while (!cleanedUI)
-				try {
-					wait(3000);
-				} catch (InterruptedException e) {
-					e.printStackTrace();
-				}
-		}
+		clearUIOfReferencesBeforeBuild();
 		
 		try {
 			try {
@@ -401,32 +392,32 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 	}
 
 	private void clearUIOfReferencesBeforeBuild() {
-		cleanedUI = false;
 		final ClonkBuilder builder = this;
 		Display.getDefault().asyncExec(new Runnable() {
 			@Override
 			public void run() {
 				try {
 					IWorkbench w = PlatformUI.getWorkbench();
-					if (w != null && w.getActiveWorkbenchWindow() != null && w.getActiveWorkbenchWindow().getActivePage() != null) {
-						IWorkbenchPage page = w.getActiveWorkbenchWindow().getActivePage();
-						for (IEditorReference ref : page.getEditorReferences()) {
-							IEditorPart part = ref.getEditor(false);
-							if (part != null && part instanceof ClonkTextEditor) {
-								ClonkTextEditor ed = (ClonkTextEditor) part;
-								// only if building the project this element is declared in
-								if (
-									ed.getTopLevelDeclaration() != null &&
-									ed.getTopLevelDeclaration().getResource() != null &&
-									builder.getProject() == ed.getTopLevelDeclaration().getResource().getProject()
-								)
-									ed.clearOutline();
+					for (IWorkbenchWindow window : w.getWorkbenchWindows()) {
+						if (window.getActivePage() != null) {
+							IWorkbenchPage page = window.getActivePage();
+							for (IEditorReference ref : page.getEditorReferences()) {
+								IEditorPart part = ref.getEditor(false);
+								if (part != null && part instanceof ClonkTextEditor) {
+									ClonkTextEditor ed = (ClonkTextEditor) part;
+									// only if building the project this element is declared in
+									if (
+										ed.getTopLevelDeclaration() != null &&
+										ed.getTopLevelDeclaration().getResource() != null &&
+										builder.getProject() == ed.getTopLevelDeclaration().getResource().getProject()
+									)
+										ed.clearOutline();
+								}
 							}
 						}
 					}
 				}
 				finally {
-					cleanedUI = true;
 					synchronized (builder) {
 						builder.notify();
 					}

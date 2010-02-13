@@ -22,7 +22,7 @@ import org.eclipse.ui.IWorkbenchPreferencePage;
  */
 public class ClonkPreferencePage extends FieldEditorPreferencePage implements IWorkbenchPreferencePage {
 
-	private ExternalLibsEditor externalLibsEditor;
+	private C4GroupListEditor externalLibsEditor;
 	private String previousGamePath;
 	private FileFieldEditor c4GroupEditor;
 	private FileFieldEditor engineExecutableEditor;
@@ -156,7 +156,7 @@ public class ClonkPreferencePage extends FieldEditorPreferencePage implements IW
 				getFieldEditorParent()
 			)
 		);
-		addField(externalLibsEditor = new ExternalLibsEditor(ClonkPreferences.STANDARD_EXT_LIBS, Messages.ExternalObjectsAndScripts, getFieldEditorParent()));
+		addField(externalLibsEditor = new C4GroupListEditor(ClonkPreferences.STANDARD_EXT_LIBS, Messages.ExternalObjectsAndScripts, getFieldEditorParent()));
 		externalLibsEditor.gamePathEditor = gamePathEditor;
 		addField(
 			new ExceptionlessEncodingFieldEditor(

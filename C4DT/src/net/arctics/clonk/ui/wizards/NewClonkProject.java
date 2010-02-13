@@ -3,7 +3,7 @@ package net.arctics.clonk.ui.wizards;
 import java.io.File;
 
 import net.arctics.clonk.ClonkCore;
-import net.arctics.clonk.preferences.ExternalLibsEditor;
+import net.arctics.clonk.preferences.C4GroupListEditor;
 import net.arctics.clonk.ui.navigator.LinkC4GroupFileHandler;
 
 import org.eclipse.core.resources.ICommand;
@@ -25,7 +25,7 @@ public class NewClonkProject extends Wizard implements INewWizard {
 	
 	private class WizardNewClonkProjectCreationPage extends WizardNewProjectCreationPage {
 
-		private ExternalLibsEditor linkGroupsEditor;
+		private C4GroupListEditor linkGroupsEditor;
 		
 		private static final String groupsToBeLinkedPref = "groupsToBeLinked"; //$NON-NLS-1$
 		
@@ -38,7 +38,7 @@ public class NewClonkProject extends Wizard implements INewWizard {
 			super.createControl(parent);
 			Composite composite = new Composite((Composite) parent.getChildren()[0], SWT.NULL);
 			composite.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-			linkGroupsEditor = new ExternalLibsEditor(groupsToBeLinkedPref, Messages.NewClonkProject_LinkedGroups, composite);
+			linkGroupsEditor = new C4GroupListEditor(groupsToBeLinkedPref, Messages.NewClonkProject_LinkedGroups, composite);
 			linkGroupsEditor.setPreferenceStore(new PreferenceStore());
 		}
 		

@@ -11,11 +11,11 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.DirectoryDialog;
 import org.eclipse.swt.widgets.FileDialog;
 
-public final class ExternalLibsEditor extends ListEditor {
+public final class C4GroupListEditor extends ListEditor {
 	
 	StringFieldEditor gamePathEditor;
 	
-	public ExternalLibsEditor(String name, String labelText, Composite parent) {
+	public C4GroupListEditor(String name, String labelText, Composite parent) {
 		super(name, labelText, parent);
 	}
 
