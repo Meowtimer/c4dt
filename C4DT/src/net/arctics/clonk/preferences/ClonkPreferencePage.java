@@ -1,19 +1,30 @@
 package net.arctics.clonk.preferences;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.index.C4Engine;
-
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.jface.preference.BooleanFieldEditor;
 import org.eclipse.jface.preference.ComboFieldEditor;
 import org.eclipse.jface.preference.DirectoryFieldEditor;
+import org.eclipse.jface.preference.FieldEditor;
 import org.eclipse.jface.preference.FieldEditorPreferencePage;
 import org.eclipse.jface.preference.FileFieldEditor;
+import org.eclipse.jface.preference.IPreferenceStore;
+import org.eclipse.jface.preference.PreferenceStore;
 import org.eclipse.jface.preference.StringFieldEditor;
+import org.eclipse.jface.util.PropertyChangeEvent;
 import org.eclipse.jface.util.Util;
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.widgets.Group;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPreferencePage;
 
@@ -26,11 +37,91 @@ public class ClonkPreferencePage extends FieldEditorPreferencePage implements IW
 	private String previousGamePath;
 	private FileFieldEditor c4GroupEditor;
 	private FileFieldEditor engineExecutableEditor;
+	private List<FieldEditor> enginePrefs = new ArrayList<FieldEditor>(10);
 	
 	public ClonkPreferencePage() {
 		super(GRID);
 		setPreferenceStore(ClonkCore.getDefault().getPreferenceStore());
 		setDescription(Messages.ClonkPreferences);
+	}
+	
+	private String currentEngine = ClonkCore.getDefault().getPreferenceStore().getString(ClonkPreferences.ACTIVE_ENGINE);
+	
+	private class EngineConfigPrefStore extends PreferenceStore {
+		
+		private Map<String, C4Engine.EngineSettings> settings = new HashMap<String, C4Engine.EngineSettings>(); 
+		
+		@Override
+		public void setValue(String name, String value) {
+			C4Engine.EngineSettings e = getSettings();
+			try {
+				e.getClass().getField(name).set(e, value);
+			} catch (Exception e1) {
+				e1.printStackTrace();
+			}
+		}
+		
+		@Override
+		public String getString(String name) {
+			C4Engine.EngineSettings e = getSettings();
+			try {
+				String result = (String) e.getClass().getField(name).get(e);
+				if (result == null)
+					result = "";
+				return result;
+			} catch (Exception e1) {
+				e1.printStackTrace();
+				return null;
+			}
+		}
+
+		public C4Engine.EngineSettings getSettings() {
+			C4Engine.EngineSettings e = settings.get(currentEngine);
+			if (e == null) {
+				C4Engine engine = ClonkCore.getDefault().loadEngine(currentEngine);
+				try {
+					e = engine.getCurrentSettings().clone();
+				} catch (CloneNotSupportedException e1) {
+					e1.printStackTrace();
+				}
+				settings.put(currentEngine, e);
+			}
+			return e;
+		}
+		
+		public void apply() {
+			for (Map.Entry<String, C4Engine.EngineSettings> entry : settings.entrySet()) {
+				ClonkCore.getDefault().loadEngine(entry.getKey()).setCurrentSettings(entry.getValue());
+			}
+		}
+		
+	};
+	
+	@Override
+	public boolean performOk() {
+		engineConfigPrefStore.apply();
+		return super.performOk();
+	}
+	
+	@Override
+	public void propertyChange(PropertyChangeEvent event) {
+		if (event.getProperty().equals(FieldEditor.VALUE) && ((FieldEditor)event.getSource()).getPreferenceName().equals(ClonkPreferences.ACTIVE_ENGINE)) {
+			currentEngine = (String) event.getNewValue();
+			for (FieldEditor ed : enginePrefs) {
+				ed.load();
+			}
+		}
+		super.propertyChange(event);
+	}
+	
+	private boolean addingEnginePrefs;
+	private EngineConfigPrefStore engineConfigPrefStore;
+	
+	@Override
+	protected void addField(FieldEditor editor) {
+		super.addField(editor);
+		if (addingEnginePrefs)
+			enginePrefs.add(editor);
 	}
 	
 	public void createFieldEditors() {
@@ -39,95 +130,131 @@ public class ClonkPreferencePage extends FieldEditorPreferencePage implements IW
 		getPreferenceStore().setDefault(ClonkPreferences.EXTERNAL_INDEX_ENCODING, ClonkPreferences.EXTERNAL_INDEX_ENCODING_DEFAULT);
 		getPreferenceStore().setDefault(ClonkPreferences.DOC_URL_TEMPLATE, ClonkPreferences.DOC_URL_TEMPLATE_DEFAULT);
 		
-		StringFieldEditor gamePathEditor;
-		
+		String[][] engineChoices = engineComboValues(false);
 		addField(
-			gamePathEditor = new DirectoryFieldEditor(
-				ClonkPreferences.GAME_PATH,
-				Messages.GamePath,
+			new ComboFieldEditor(
+				ClonkPreferences.ACTIVE_ENGINE,
+				Messages.EngineVersion,
+				engineChoices,
 				getFieldEditorParent()
-			) {
-				
-				private String c4GroupAccordingToOS() {
-					if (Util.isWindows())
-						return "c4group.exe"; //$NON-NLS-1$
-					else
-						return "c4group"; //$NON-NLS-1$
-				}
-				
-				private void setFile(IPath gamePath, String gamePathText, FileFieldEditor editor, String... values) {
-					String val = editor.getStringValue();
-					if (val.equals("")) { //$NON-NLS-1$
-						for (String s : values) {
-							File f;
-							if ((f = gamePath.append(s).toFile()).exists()) {
-								editor.setStringValue(f.getAbsolutePath());
-								break;
-							}
-						}
-					}
-					else if (val.toLowerCase().startsWith(previousGamePath)) {
-						editor.setStringValue(gamePathText + val.substring(previousGamePath.length()));
-					}
-				}
-				
-				@Override
-				protected void valueChanged() {
-					super.valueChanged();
-					String gamePathText = getTextControl().getText();
-					IPath gamePath = new Path(gamePathText);
-					adjustExternalLibsToGamePath(gamePath);
-					setFile(gamePath, gamePathText, c4GroupEditor, c4GroupAccordingToOS());
-					setFile(gamePath, gamePathText, engineExecutableEditor, C4Engine.possibleEngineNamesAccordingToOS());
-					previousGamePath = gamePathText.toLowerCase();
-				}
+			)
+		);
 
-				private void adjustExternalLibsToGamePath(IPath gamePath) {
-					String[] externalLibs = externalLibsEditor.getValues();
-					if (externalLibs.length == 0) {
-						/* better not
-						externalLibs = new String[] {
-							gamePath.append("System.c4g").toPortableString(), //$NON-NLS-1$
-							gamePath.append("Objects.c4d").toPortableString() //$NON-NLS-1$
-						};
-						externalLibsEditor.setValues(externalLibs);
-						*/
-					}
-					else {
-						String oldGamePath = previousGamePath;
-						for (int i = 0; i < externalLibs.length; i++) {
-							String s = externalLibs[i];
-							if (s.toLowerCase().startsWith(oldGamePath)) {
-								s = gamePath + s.substring(oldGamePath.length());
+		// per-engine
+		{
+			addingEnginePrefs = true;
+			Group engineConfigurationComposite = new Group(getFieldEditorParent(), SWT.DEFAULT);
+			engineConfigurationComposite.setText("Engine Configuration");
+			engineConfigurationComposite.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 3, 1));
+			
+			IPreferenceStore realStore = getPreferenceStore();
+			engineConfigPrefStore = new EngineConfigPrefStore();
+			setPreferenceStore(engineConfigPrefStore);
+			try {
+				addField(
+						new DirectoryFieldEditor(
+								"gamePath",
+								Messages.GamePath,
+								engineConfigurationComposite
+						) {
+
+							private String c4GroupAccordingToOS() {
+								if (Util.isWindows())
+									return "c4group.exe"; //$NON-NLS-1$
+								else
+									return "c4group"; //$NON-NLS-1$
 							}
-							externalLibs[i] = s;
+
+							private void setFile(IPath gamePath, String gamePathText, FileFieldEditor editor, String... values) {
+								String val = editor.getStringValue();
+								if (val.equals("")) { //$NON-NLS-1$
+									for (String s : values) {
+										File f;
+										if ((f = gamePath.append(s).toFile()).exists()) {
+											editor.setStringValue(f.getAbsolutePath());
+											break;
+										}
+									}
+								}
+								else if (val.toLowerCase().startsWith(previousGamePath)) {
+									editor.setStringValue(gamePathText + val.substring(previousGamePath.length()));
+								}
+							}
+
+							@Override
+							protected void valueChanged() {
+								super.valueChanged();
+								String gamePathText = getTextControl().getText();
+								IPath gamePath = new Path(gamePathText);
+								adjustExternalLibsToGamePath(gamePath);
+								setFile(gamePath, gamePathText, c4GroupEditor, c4GroupAccordingToOS());
+								setFile(gamePath, gamePathText, engineExecutableEditor, C4Engine.possibleEngineNamesAccordingToOS());
+								previousGamePath = gamePathText.toLowerCase();
+							}
+
+							private void adjustExternalLibsToGamePath(IPath gamePath) {
+								String[] externalLibs = externalLibsEditor.getValues();
+								if (externalLibs.length == 0) {
+									/* better not
+									externalLibs = new String[] {
+										gamePath.append("System.c4g").toPortableString(), //$NON-NLS-1$
+										gamePath.append("Objects.c4d").toPortableString() //$NON-NLS-1$
+									};
+									externalLibsEditor.setValues(externalLibs);
+									 */
+								}
+								else {
+									String oldGamePath = previousGamePath;
+									for (int i = 0; i < externalLibs.length; i++) {
+										String s = externalLibs[i];
+										if (s.toLowerCase().startsWith(oldGamePath)) {
+											s = gamePath + s.substring(oldGamePath.length());
+										}
+										externalLibs[i] = s;
+									}
+									externalLibsEditor.setValues(externalLibs);
+								}
+							};
 						}
-						externalLibsEditor.setValues(externalLibs);
-					}
-				};
+				);
+				addField(
+						c4GroupEditor = new FileFieldEditor(
+								"c4GroupPath",
+								Messages.C4GroupExecutable,
+								engineConfigurationComposite
+						)
+				);
+				addField(
+						engineExecutableEditor = new FileFieldEditor(
+								"engineExecutablePath",
+								Messages.EngineExecutable,
+								engineConfigurationComposite
+						)
+				);
+				addField(
+						new DirectoryFieldEditor(
+								"repositoryPath",
+								Messages.OpenClonkRepo,
+								engineConfigurationComposite
+						)
+				);
+				addField(
+						new StringFieldEditor(
+								"docURLTemplate",
+								Messages.DocumentURLTemplate,
+								engineConfigurationComposite
+						)
+				);
+			} finally {
+				setPreferenceStore(realStore);
 			}
-		);
-		addField(
-			c4GroupEditor = new FileFieldEditor(
-				ClonkPreferences.C4GROUP_EXECUTABLE,
-				Messages.C4GroupExecutable,
-				getFieldEditorParent()
-			)
-		);
-		addField(
-			engineExecutableEditor = new FileFieldEditor(
-				ClonkPreferences.ENGINE_EXECUTABLE,
-				Messages.EngineExecutable,
-				getFieldEditorParent()
-			)
-		);
-		addField(
-			new DirectoryFieldEditor(
-				ClonkPreferences.OPENCLONK_REPO,
-				Messages.OpenClonkRepo,
-				getFieldEditorParent()
-			)
-		);
+			
+			GridLayout gridLayout = new GridLayout();
+			gridLayout.numColumns = 3;
+			engineConfigurationComposite.setLayout(gridLayout);
+			
+			addingEnginePrefs = false;
+		}
 		addField(
 			new ComboFieldEditor(
 				ClonkPreferences.PREFERRED_LANGID,
@@ -140,22 +267,7 @@ public class ClonkPreferencePage extends FieldEditorPreferencePage implements IW
 				getFieldEditorParent()
 			)
 		);
-		String[][] engineChoices = engineComboValues(false);
-		addField(
-			new ComboFieldEditor(
-				ClonkPreferences.ACTIVE_ENGINE,
-				Messages.EngineVersion,
-				engineChoices,
-				getFieldEditorParent()
-			)
-		);
-		addField(
-			new StringFieldEditor(
-				ClonkPreferences.DOC_URL_TEMPLATE,
-				Messages.DocumentURLTemplate,
-				getFieldEditorParent()
-			)
-		);
+		/*
 		addField(externalLibsEditor = new C4GroupListEditor(ClonkPreferences.STANDARD_EXT_LIBS, Messages.ExternalObjectsAndScripts, getFieldEditorParent()));
 		externalLibsEditor.gamePathEditor = gamePathEditor;
 		addField(
@@ -165,7 +277,7 @@ public class ClonkPreferencePage extends FieldEditorPreferencePage implements IW
 				Messages.EncodingForExternalObjects,
 				getFieldEditorParent()
 			)
-		);
+		);*/
 		addField(
 			new BooleanFieldEditor(
 				ClonkPreferences.SHOW_EXPORT_LOG,
@@ -217,6 +329,10 @@ public class ClonkPreferencePage extends FieldEditorPreferencePage implements IW
 	protected void initialize() {
 		super.initialize();
 		previousGamePath = ClonkPreferences.getPreferenceOrDefault(ClonkPreferences.GAME_PATH).toLowerCase();
+		for (FieldEditor e : enginePrefs) {
+			e.setPreferenceStore(engineConfigPrefStore);
+			e.load();
+		}
 	}
 
 	public void init(IWorkbench workbench) {

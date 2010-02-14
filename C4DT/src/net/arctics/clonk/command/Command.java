@@ -13,8 +13,9 @@ import java.net.UnknownHostException;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.eclipse.core.resources.IMarker;
+import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
-
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.index.C4Object;
 import net.arctics.clonk.index.C4Scenario;
@@ -225,7 +226,7 @@ public class Command {
 	@CommandFunction
 	public static void OpenDoc(Object context, String funcName) {
 		try {
-			ClonkHyperlink.openDocumentationForFunction(funcName);
+			ClonkHyperlink.openDocumentationForFunction(funcName, ClonkCore.getDefault().getActiveEngine());
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -290,10 +291,19 @@ public class Command {
 		}
 		
 		@CommandFunction
-		public static void Testing(Object context, String value) {
-			for (int i = 0; i < value.length(); i++)
-				System.out.println((int)value.charAt(i));
-			System.out.println(Integer.parseInt(value));
+		public static void Testing(Object context) {
+			IMarker m;
+			try {
+				m = ResourcesPlugin.getWorkspace().getRoot().getProjects()[1].members()[3].createMarker("net.arctics.clonk.logerror");
+				m.setAttribute(IMarker.MESSAGE, "Yadda");
+				m.setAttribute(IMarker.TRANSIENT, false);
+				m.setAttribute(IMarker.CHAR_START, 0);
+				m.setAttribute(IMarker.CHAR_END, 3);
+				m.setAttribute(IMarker.SEVERITY, IMarker.SEVERITY_INFO);
+				m.setAttribute(IMarker.LINE_NUMBER, 0);
+			} catch (CoreException e) {
+				e.printStackTrace();
+			}
 		}
 
 	}
@@ -301,7 +311,7 @@ public class Command {
 	public static class EngineConfiguration {
 		@CommandFunction
 		public static void SetEngineProperty(Object context, String name, Object value) {
-			setFieldValue(ClonkCore.getDefault().getActiveEngine(), name, value);
+			setFieldValue(ClonkCore.getDefault().getActiveEngine().getCurrentSettings(), name, value);
 		}
 	}
 	

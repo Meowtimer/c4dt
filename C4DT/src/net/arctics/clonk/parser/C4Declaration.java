@@ -298,4 +298,8 @@ public abstract class C4Declaration implements Serializable, IHasRelatedResource
 		return getParentDeclaration() instanceof C4Engine;
 	}
 	
+	public C4Engine getEngine() {
+		return parentDeclaration != null ? parentDeclaration.getEngine() : null; 
+	}
+	
 }

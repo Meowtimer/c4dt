@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import net.arctics.clonk.ClonkCore;
+import net.arctics.clonk.index.C4Engine;
 import net.arctics.clonk.index.C4Object;
 import net.arctics.clonk.index.IExternalScript;
 import net.arctics.clonk.parser.C4Declaration;
@@ -258,10 +259,14 @@ public class C4Function extends C4Structure implements Serializable, ITypedDecla
 		return C4Variable.C4VariableScope.values().length + visibility.ordinal();
 	}
 
+	public static String getDocumentationURL(String functionName, C4Engine engine) {
+		String docURLTemplate = engine.getCurrentSettings().docURLTemplate;
+		return String.format(docURLTemplate, functionName, ClonkPreferences.getLanguagePref().toLowerCase());
+	}
+	
 	// to be called on engine functions
 	public String getDocumentationURL() {
-		String docURLTemplate = ClonkPreferences.getPreferenceOrDefault(ClonkPreferences.DOC_URL_TEMPLATE);
-		return String.format(docURLTemplate, getName(), ClonkPreferences.getLanguagePref().toLowerCase());
+		return getDocumentationURL(getName(), getScript().getIndex().getEngine());
 	}
 
 	@Override

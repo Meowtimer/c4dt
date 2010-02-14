@@ -995,5 +995,10 @@ public abstract class C4ScriptBase extends C4Structure implements IHasRelatedRes
 		if (usedProjectScripts != null)
 			usedProjectScripts.remove(script);
 	}
+	
+	@Override
+	public C4Engine getEngine() {
+		return getScript().getEngine();
+	}
 
 }

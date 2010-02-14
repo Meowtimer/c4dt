@@ -24,6 +24,7 @@ import javax.xml.xpath.XPathExpressionException;
 import net.arctics.clonk.index.C4Engine;
 import net.arctics.clonk.index.ExternIndex;
 import net.arctics.clonk.index.ProjectIndex;
+import net.arctics.clonk.index.C4Engine.EngineSettings;
 import net.arctics.clonk.parser.inireader.IniData;
 import net.arctics.clonk.parser.inireader.IniUnit;
 import net.arctics.clonk.parser.mapcreator.C4MapCreator;
@@ -247,6 +248,7 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 			}
 			ObjectInputStream objStream = new InputStreamRespectingUniqueIDs(engineStream);
 			result = (C4Engine)objStream.readObject();
+			result.setName(engineName); // for good measure
 			result.postSerialize(null);
 		} catch (Exception e) {
 			// fallback to xml
@@ -276,8 +278,14 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 	            e1.printStackTrace();
             }
 		}
-		if (result != null)
+		if (result != null) {
 			loadedEngines.put(engineName, result);
+			try {
+				engineSettings(result, true);
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
 		return result;
 	}
 
@@ -358,6 +366,37 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 		} catch (IOException e) {
 			e.printStackTrace();
 		}		
+	}
+	
+	public void engineSettings(C4Engine engine, boolean load) throws IOException {
+		IPath path = getWorkspaceStorageLocationForEngine(engine.getName());
+		String lastSegment = path.lastSegment();
+		path = path.removeLastSegments(1).append(lastSegment+".settings");
+		if (load) {
+			File f = path.toFile();
+			if (f.exists()) {
+				ObjectInputStream objStream = new ObjectInputStream(new FileInputStream(path.toFile()));
+				try {
+					engine.setCurrentSettings((EngineSettings) objStream.readObject());
+				} catch (ClassNotFoundException e) { 
+					e.printStackTrace();
+				} finally {
+					objStream.close();
+				}
+			}
+		}
+		else {
+			if (engine.hasCustomSettings()) {
+				ObjectOutputStream objStream = new ObjectOutputStream(new FileOutputStream(path.toFile()));
+				try {
+					objStream.writeObject(engine.getCurrentSettings());
+				} finally {
+					objStream.close();
+				}
+			}
+			else
+				path.toFile().delete();
+		}
 	}
 	
 	public void saveEngineInWorkspace(String engineName) {
@@ -507,6 +546,13 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 				}
 			}
 			removeOldIndexes();
+			for (C4Engine engine : loadedEngines.values()) {
+				try {
+					engineSettings(engine, false);
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
 			break;
 		}
 	}

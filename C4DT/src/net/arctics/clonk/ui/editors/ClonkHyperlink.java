@@ -3,7 +3,9 @@ package net.arctics.clonk.ui.editors;
 import java.net.MalformedURLException;
 import java.net.URL;
 
+import net.arctics.clonk.index.C4Engine;
 import net.arctics.clonk.parser.C4Declaration;
+import net.arctics.clonk.parser.c4script.C4Function;
 import net.arctics.clonk.preferences.ClonkPreferences;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.hyperlink.IHyperlink;
@@ -44,7 +46,7 @@ public class ClonkHyperlink implements IHyperlink {
 			if (ClonkTextEditor.openDeclaration(target) == null) {
 				// can't open editor so try something else like opening up a documentation page in the browser
 				if (target.isEngineDeclaration()) {
-					openDocumentationForFunction(target.getName());
+					openDocumentationForFunction(target.getName(), target.getEngine());
 				}
 			}
 		} catch (Exception e) {
@@ -52,8 +54,8 @@ public class ClonkHyperlink implements IHyperlink {
 		}
 	}
 
-	public static void openDocumentationForFunction(String functionName) throws PartInitException, MalformedURLException {
-		String docURLTemplate = ClonkPreferences.getPreferenceOrDefault(ClonkPreferences.DOC_URL_TEMPLATE);
+	public static void openDocumentationForFunction(String functionName, C4Engine engine) throws PartInitException, MalformedURLException {
+		String docURLTemplate = C4Function.getDocumentationURL(functionName, engine);
 		IWorkbenchBrowserSupport support = WorkbenchBrowserSupport.getInstance();
 		IWebBrowser browser;
 		if (support.isInternalWebBrowserAvailable()) {

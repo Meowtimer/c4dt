@@ -2045,7 +2045,7 @@ public abstract class C4ScriptExprTree {
 		public void reportErrors(C4ScriptParser parser) throws ParsingException {
 			
 			// warn about overly long strings
-			int max = parser.getContainer().getIndex().getEngine().maxStringLen;
+			int max = parser.getContainer().getIndex().getEngine().getCurrentSettings().maxStringLen;
 			if (max != 0 && getLiteral().length() > max) {
 				parser.warningWithCode(ParserErrorCode.StringTooLong, this, getLiteral().length(), max);
 			}
