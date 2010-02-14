@@ -24,6 +24,7 @@ import org.eclipse.jface.util.Util;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPreferencePage;
@@ -67,7 +68,7 @@ public class ClonkPreferencePage extends FieldEditorPreferencePage implements IW
 			try {
 				String result = (String) e.getClass().getField(name).get(e);
 				if (result == null)
-					result = "";
+					result = Messages.ClonkPreferencePage_0;
 				return result;
 			} catch (Exception e1) {
 				e1.printStackTrace();
@@ -144,7 +145,7 @@ public class ClonkPreferencePage extends FieldEditorPreferencePage implements IW
 		{
 			addingEnginePrefs = true;
 			Group engineConfigurationComposite = new Group(getFieldEditorParent(), SWT.DEFAULT);
-			engineConfigurationComposite.setText("Engine Configuration");
+			engineConfigurationComposite.setText(Messages.ClonkPreferencePage_EngineConfigurationTitle);
 			engineConfigurationComposite.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 3, 1));
 			
 			IPreferenceStore realStore = getPreferenceStore();
@@ -153,7 +154,7 @@ public class ClonkPreferencePage extends FieldEditorPreferencePage implements IW
 			try {
 				addField(
 						new DirectoryFieldEditor(
-								"gamePath",
+								"gamePath", //$NON-NLS-1$
 								Messages.GamePath,
 								engineConfigurationComposite
 						) {
@@ -219,28 +220,77 @@ public class ClonkPreferencePage extends FieldEditorPreferencePage implements IW
 				);
 				addField(
 						c4GroupEditor = new FileFieldEditor(
-								"c4GroupPath",
+								"c4GroupPath", //$NON-NLS-1$
 								Messages.C4GroupExecutable,
 								engineConfigurationComposite
 						)
 				);
 				addField(
 						engineExecutableEditor = new FileFieldEditor(
-								"engineExecutablePath",
+								"engineExecutablePath", //$NON-NLS-1$
 								Messages.EngineExecutable,
 								engineConfigurationComposite
-						)
+						) {
+							
+							// this class is not approriate for overridal :C
+							
+							private String[] extensions;
+							
+							@Override
+							protected String changePressed() {
+								File f = new File(getTextControl().getText());
+						        if (!f.exists()) {
+									f = null;
+								}
+						        File d = getFile(f);
+						        if (d == null) {
+									return null;
+								}
+						        
+						        if (Util.isMac() && d.isDirectory() && d.getName().endsWith(".app")) {
+						        	d = new File(d.getAbsolutePath()+"/Contents/MacOS/"+d.getName().substring(0, d.getName().length()-".app".length()));
+						        }
+
+						        return d.getAbsolutePath();
+							};
+							
+							@Override
+							public void setFileExtensions(String[] extensions) {
+								super.setFileExtensions(extensions);
+								this.extensions = extensions;
+							};
+							
+							private File getFile(File startingDirectory) {
+
+						        FileDialog dialog = new FileDialog(getShell(), SWT.OPEN | SWT.SHEET);
+						        if (startingDirectory != null) {
+									dialog.setFileName(startingDirectory.getPath());
+								}
+						        if (extensions != null) {
+									dialog.setFilterExtensions(extensions);
+								}
+						        String file = dialog.open();
+						        if (file != null) {
+						            file = file.trim();
+						            if (file.length() > 0) {
+										return new File(file);
+									}
+						        }
+
+						        return null;
+						    }
+						}
 				);
 				addField(
 						new DirectoryFieldEditor(
-								"repositoryPath",
+								"repositoryPath", //$NON-NLS-1$
 								Messages.OpenClonkRepo,
 								engineConfigurationComposite
 						)
 				);
 				addField(
 						new StringFieldEditor(
-								"docURLTemplate",
+								"docURLTemplate", //$NON-NLS-1$
 								Messages.DocumentURLTemplate,
 								engineConfigurationComposite
 						)
