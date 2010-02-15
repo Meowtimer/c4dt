@@ -40,8 +40,8 @@ public class NewClonkProject extends Wizard implements INewWizard {
 			super.createControl(parent);
 			parent.getChildren()[0].setLayoutData(new GridData(GridData.FILL_BOTH));
 			//Composite composite = new Composite((Composite) parent.getChildren()[0], SWT.NULL);
-			TabFolder tabFolder = new TabFolder((Composite)parent.getChildren()[0], SWT.BORDER);
-			tabFolder.setLayoutData(new GridData(GridData.FILL_BOTH));
+			TabFolder tabFolder = new TabFolder((Composite)parent.getChildren()[0], SWT.DEFAULT);
+			tabFolder.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 			TabItem linkTab = new TabItem(tabFolder, SWT.DEFAULT);
 			linkTab.setText("Linking");
 			TabItem importTab = new TabItem(tabFolder, SWT.DEFAULT);

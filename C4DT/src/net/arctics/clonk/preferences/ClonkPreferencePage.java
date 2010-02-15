@@ -100,8 +100,10 @@ public class ClonkPreferencePage extends FieldEditorPreferencePage implements IW
 	
 	@Override
 	public boolean performOk() {
-		engineConfigPrefStore.apply();
-		return super.performOk();
+		boolean result = super.performOk();
+		if (result)
+			engineConfigPrefStore.apply();
+		return result;
 	}
 	
 	@Override
