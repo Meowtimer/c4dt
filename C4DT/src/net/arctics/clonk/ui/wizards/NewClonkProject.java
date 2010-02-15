@@ -17,6 +17,8 @@ import org.eclipse.jface.wizard.Wizard;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.TabFolder;
+import org.eclipse.swt.widgets.TabItem;
 import org.eclipse.ui.INewWizard;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.dialogs.WizardNewProjectCreationPage;
@@ -36,9 +38,17 @@ public class NewClonkProject extends Wizard implements INewWizard {
 		@Override
 		public void createControl(Composite parent) {
 			super.createControl(parent);
-			Composite composite = new Composite((Composite) parent.getChildren()[0], SWT.NULL);
-			composite.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-			linkGroupsEditor = new C4GroupListEditor(groupsToBeLinkedPref, Messages.NewClonkProject_LinkedGroups, composite);
+			parent.getChildren()[0].setLayoutData(new GridData(GridData.FILL_BOTH));
+			//Composite composite = new Composite((Composite) parent.getChildren()[0], SWT.NULL);
+			TabFolder tabFolder = new TabFolder((Composite)parent.getChildren()[0], SWT.BORDER);
+			tabFolder.setLayoutData(new GridData(GridData.FILL_BOTH));
+			TabItem linkTab = new TabItem(tabFolder, SWT.DEFAULT);
+			linkTab.setText("Linking");
+			TabItem importTab = new TabItem(tabFolder, SWT.DEFAULT);
+			importTab.setText("Importing");
+			TabItem referenceTab = new TabItem(tabFolder, SWT.DEFAULT);
+			referenceTab.setText("Project References");
+			linkGroupsEditor = new C4GroupListEditor(groupsToBeLinkedPref, Messages.NewClonkProject_LinkedGroups, tabFolder);
 			linkGroupsEditor.setPreferenceStore(new PreferenceStore());
 		}
 		

@@ -22,7 +22,6 @@ import net.arctics.clonk.index.C4ObjectIntern;
 import net.arctics.clonk.index.ClonkIndex;
 import net.arctics.clonk.parser.BufferedScanner;
 import net.arctics.clonk.parser.c4script.C4ScriptBase;
-import net.arctics.clonk.parser.c4script.C4ScriptIntern;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.ui.editors.c4script.C4ScriptEditor;
 import net.arctics.clonk.ui.navigator.ClonkLabelProvider;
@@ -162,20 +161,7 @@ public abstract class Utilities {
 	}
 	
 	public static C4ScriptBase getScriptForFile(IFile scriptFile) {
-		C4ScriptBase script;
-		if (scriptFile == null)
-			return null;
-		try {
-			script = C4ScriptIntern.pinnedScript(scriptFile, false);
-		} catch (CoreException e) {
-			script = null;
-		}
-		if (script == null)
-			script = C4ObjectIntern.objectCorrespondingTo(scriptFile.getParent());
-		// there can only be one script oO (not ScriptDE or something)
-		if (script == null || script.getScriptFile() == null || !script.getScriptFile().equals(scriptFile))
-			return null;
-		return script;
+		return C4ScriptBase.get(scriptFile);
 	}
 
 	public static C4ScriptBase getScriptForEditor(IEditorPart editor) {
@@ -670,23 +656,29 @@ public abstract class Utilities {
 		}	
 	}
 
-	public static IProject clonkProjectSelectionDialog(IProject initialSelection) {
+	public static IProject[] selectClonkProjects(boolean multiSelect, IProject... initialSelection) {
 		// Create dialog listing all Clonk projects
 		ElementListSelectionDialog dialog
 			= new ElementListSelectionDialog(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(), new ClonkLabelProvider());
 		dialog.setTitle(Messages.Utilities_ChooseClonkProject);
 		dialog.setMessage(Messages.Utilities_ChooseClonkProjectPretty);
 		dialog.setElements(Utilities.getClonkProjects());
+		dialog.setMultipleSelection(multiSelect);
 
 		// Set selection
 		dialog.setInitialSelections(new Object [] { initialSelection });
 
 		// Show
 		if(dialog.open() == Window.OK) {
-			return (IProject) dialog.getFirstResult();
+			return convertArray(dialog.getResult(), IProject.class);
 		}
 		else
 			return null;
+	}
+	
+	public static IProject selectClonkProject(IProject initialSelection) {
+		IProject[] projects = selectClonkProjects(false, initialSelection);
+		return projects != null ? projects[0] : null;
 	}
 	
 	public static String multiply(String s, int times) {

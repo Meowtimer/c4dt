@@ -4,6 +4,7 @@ import java.util.Collection;
 import java.util.LinkedList;
 
 import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IStorage;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.ui.IEditorInput;
@@ -65,11 +66,11 @@ public abstract class C4Structure extends C4Declaration {
 	
 	/**
 	 * Pins this structure to a file (should be the file the structure was read from)
-	 * @param file the file
+	 * @param resource the file
 	 * @throws CoreException
 	 */
-	public void pinTo(IFile file) throws CoreException {
-		file.setSessionProperty(ClonkCore.C4STRUCTURE_PROPERTY_ID, this);
+	public void pinTo(IResource resource) throws CoreException {
+		resource.setSessionProperty(ClonkCore.C4STRUCTURE_PROPERTY_ID, this);
 	}
 	
 	/**
@@ -79,7 +80,7 @@ public abstract class C4Structure extends C4Declaration {
 	 * @return the structure
 	 * @throws CoreException
 	 */
-	public static C4Structure pinned(IFile file, boolean force, boolean duringBuild) throws CoreException {
+	public static C4Structure pinned(IResource file, boolean force, boolean duringBuild) throws CoreException {
 		C4Structure result = (C4Structure) file.getSessionProperty(ClonkCore.C4STRUCTURE_PROPERTY_ID);
 		if (result == null && force) {
 			result = createStructureForFile(file, duringBuild);
@@ -115,7 +116,7 @@ public abstract class C4Structure extends C4Declaration {
 	 *
 	 */
 	public interface IStructureFactory {
-		public C4Structure create(IFile file, boolean duringBuild);
+		public C4Structure create(IResource resource, boolean duringBuild);
 	}
 	
 	/**
@@ -136,7 +137,7 @@ public abstract class C4Structure extends C4Declaration {
 	 * @param file file
 	 * @return the newly created structure or null if no suitable factory could be found
 	 */
-	public static C4Structure createStructureForFile(IFile file, boolean duringBuild) {
+	public static C4Structure createStructureForFile(IResource file, boolean duringBuild) {
 		for (IStructureFactory factory : structureFactories) {
 			C4Structure result = factory.create(file, duringBuild);
 			if (result != null)

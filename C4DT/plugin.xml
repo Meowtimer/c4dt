@@ -292,23 +292,40 @@
 			name="%ClonkFolderView_Name" />
 		
 	</extension>
-
-	<extension id="net.arctics.clonk.externliberror" name="External library error"
-		point="org.eclipse.core.resources.markers">
-		<persistent value="true" />
-		<super type="org.eclipse.core.resources.problemmarker" />
+	
+	<extension point="org.eclipse.ui.ide.markerSupport">
+		<markerTypeCategory name="%ClonkLogErrors">
+			<markerTypeReference id="net.arctics.clonk.logerror" />
+		</markerTypeCategory>
+		
+		<markerGrouping
+			id="net.arctics.clonk.logErrorGrouping"
+			label="%ClonkLogErrors" />
+			
+		<markerGroupingEntry id="net.arctics.clonk.logErrorGroupingEntry"
+			label="%ClonkLogErrors"
+			priority="100" />
 	</extension>
 	
-	<extension id="net.arctics.clonk.c4scripterror" name="C4Script error"
+	<extension id="net.arctics.clonk.c4scripterror" name="%C4ScriptError"
 		point="org.eclipse.core.resources.markers">
 		<persistent value="true" />
 		<super type="org.eclipse.core.resources.problemmarker" />
+		<super type="org.eclipse.core.resources.textmarker" />
 	</extension>
 	
-	<extension id="net.arctics.clonk.inierror" name="Configuration file error"
+	<extension id="net.arctics.clonk.logerror" name="%ClonkLogError"
 		point="org.eclipse.core.resources.markers">
 		<persistent value="true" />
 		<super type="org.eclipse.core.resources.problemmarker" />
+		<super type="org.eclipse.core.resources.textmarker" />
+	</extension>
+	
+	<extension id="net.arctics.clonk.inierror" name="%ConfigurationFileError"
+		point="org.eclipse.core.resources.markers">
+		<persistent value="true" />
+		<super type="org.eclipse.core.resources.problemmarker" />
+		<super type="org.eclipse.core.resources.textmarker" />
 	</extension>
 	
 	<!-- Debugger Breakpoints !-->

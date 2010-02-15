@@ -31,9 +31,9 @@ public class C4MapCreator extends C4Map {
 	
 	public static void register() {
 		registerStructureFactory(new IStructureFactory() {
-			public C4Structure create(IFile file, boolean duringBuild) {
-				if (file.getName().equalsIgnoreCase("Landscape.txt")) { //$NON-NLS-1$
-					C4MapCreator mapCreator = new C4MapCreator(file);
+			public C4Structure create(IResource resource, boolean duringBuild) {
+				if (resource instanceof IFile && resource.getName().equalsIgnoreCase("Landscape.txt")) { //$NON-NLS-1$
+					C4MapCreator mapCreator = new C4MapCreator((IFile) resource);
 					MapCreatorParser parser = new MapCreatorParser(mapCreator);
 					parser.parse();
 					return mapCreator;

@@ -32,6 +32,7 @@ import javax.xml.xpath.XPathFactory;
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.index.C4Engine;
 import net.arctics.clonk.index.C4Object;
+import net.arctics.clonk.index.C4ObjectIntern;
 import net.arctics.clonk.index.ClonkIndex;
 import net.arctics.clonk.parser.BufferedScanner;
 import net.arctics.clonk.parser.C4Declaration;
@@ -998,7 +999,24 @@ public abstract class C4ScriptBase extends C4Structure implements IHasRelatedRes
 	
 	@Override
 	public C4Engine getEngine() {
-		return getScript().getEngine();
+		return getIndex().getEngine();
+	}
+	
+	public static C4ScriptBase get(IResource resource) {
+		C4ScriptBase script;
+		if (resource == null)
+			return null;
+		try {
+			script = C4ScriptIntern.pinnedScript(resource, false);
+		} catch (CoreException e) {
+			script = null;
+		}
+		if (script == null)
+			script = C4ObjectIntern.objectCorrespondingTo(resource.getParent());
+		// there can only be one script oO (not ScriptDE or something)
+		if (script == null || script.getScriptFile() == null || !script.getScriptFile().equals(resource))
+			return null;
+		return script;
 	}
 
 }

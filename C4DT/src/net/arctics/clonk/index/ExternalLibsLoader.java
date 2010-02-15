@@ -9,7 +9,6 @@ import java.util.Map.Entry;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.c4script.C4ScriptExtern;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.inireader.DefCoreUnit;
@@ -25,8 +24,6 @@ import net.arctics.clonk.resource.c4group.InvalidDataException;
 import net.arctics.clonk.resource.c4group.C4Group.C4GroupType;
 import net.arctics.clonk.util.ITreeNode;
 
-import org.eclipse.core.resources.IMarker;
-import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.NullProgressMonitor;
@@ -75,7 +72,7 @@ public final class ExternalLibsLoader implements IC4GroupVisitor {
 			}
 		}
 		else  {
-			try {
+/*			try {
 				if (!lib.equals("")) { //$NON-NLS-1$
 					IMarker marker = ResourcesPlugin.getWorkspace().getRoot().createMarker(ClonkCore.MARKER_EXTERN_LIB_ERROR);
 					marker.setAttribute(IMarker.SEVERITY, IMarker.SEVERITY_ERROR);
@@ -85,7 +82,7 @@ public final class ExternalLibsLoader implements IC4GroupVisitor {
 				}
 			} catch (CoreException e) {
 				e.printStackTrace();
-			}
+			} */
 		}
 		monitor.done();
 		index.setDirty(true);
@@ -99,11 +96,11 @@ public final class ExternalLibsLoader implements IC4GroupVisitor {
 	 */
 	public void readExternalLibs(IProgressMonitor monitor, String[] libs) throws InvalidDataException, IOException, CoreException {
 		index.clear();
-		try {
+		/*try {
 			ResourcesPlugin.getWorkspace().getRoot().deleteMarkers(ClonkCore.MARKER_EXTERN_LIB_ERROR, false, 0);	
 		} catch (CoreException e1) {
 			e1.printStackTrace();
-		}
+		}*/
 		if (monitor != null) monitor.beginTask(net.arctics.clonk.resource.Messages.ParsingLibs, libs.length);
 		for(String lib : libs) {
 			readExternalLib(lib, new SubProgressMonitor(monitor,1));

@@ -430,18 +430,18 @@ public class IniUnit extends C4Structure implements Iterable<IniSection>, IHasCh
 	}
 	
 	@Override
-	public void pinTo(IFile file) throws CoreException {
-		super.pinTo(file);
+	public void pinTo(IResource resource) throws CoreException {
+		super.pinTo(resource);
 		reader = null; // drop reader
 	}
 	
 	public static void register() {
 		C4Structure.registerStructureFactory(new IStructureFactory() {
-			public C4Structure create(IFile file, boolean duringBuild) {
-				Class<? extends IniUnit> iniUnitClass = getIniUnitClass(file);
+			public C4Structure create(IResource resource, boolean duringBuild) {
+				Class<? extends IniUnit> iniUnitClass = getIniUnitClass(resource);
 				if (iniUnitClass != null) {
 					try {
-						IniUnit reader = iniUnitClass.getConstructor(IFile.class).newInstance(file);
+						IniUnit reader = iniUnitClass.getConstructor(IFile.class).newInstance(resource);
 						reader.parse(duringBuild);
 						return reader;
 					} catch (Exception e) {
@@ -483,11 +483,11 @@ public class IniUnit extends C4Structure implements Iterable<IniSection>, IHasCh
 
 	/**
 	 * Returns the IniUnit class that is best suited to parsing the given ini file
-	 * @param file the ini file to return an IniUnit class for
+	 * @param resource the ini file to return an IniUnit class for
 	 * @return the IniUnit class or null if no suitable one could be found
 	 */
-	public static Class<? extends IniUnit> getIniUnitClass(IFile file) {
-		IContentType contentType = IDE.getContentType(file);
+	public static Class<? extends IniUnit> getIniUnitClass(IResource resource) {
+		IContentType contentType = resource instanceof IFile ? IDE.getContentType((IFile) resource) : null;
 		if (contentType == null)
 			return null;
 		return INIREADER_CLASSES.get(contentType.getId());

@@ -296,7 +296,7 @@ public class LaunchMainTab extends AbstractLaunchConfigurationTab {
 
 	public void chooseClonkProject() {
 		
-		IProject project = Utilities.clonkProjectSelectionDialog(validateProject());
+		IProject project = Utilities.selectClonkProject(validateProject());
 		if (project != null) {
 			fProjText.setText(project.getName());
 		}

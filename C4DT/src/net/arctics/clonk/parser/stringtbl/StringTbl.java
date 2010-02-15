@@ -99,8 +99,9 @@ public class StringTbl extends C4Structure implements ITreeNode, ITableEntryInfo
 	public static void register() {
 		registerStructureFactory(new IStructureFactory() {
 			private final Matcher stringTblFileMatcher = PATTERN.matcher(""); //$NON-NLS-1$ //$NON-NLS-2$
-			public C4Structure create(IFile file, boolean duringBuild) {
-				if (stringTblFileMatcher.reset(file.getName()).matches()) {
+			public C4Structure create(IResource resource, boolean duringBuild) {
+				if (resource instanceof IFile && stringTblFileMatcher.reset(resource.getName()).matches()) {
+					IFile file = (IFile) resource;
 					StringTbl tbl = new StringTbl();
 					tbl.setFile(file);
 					try {

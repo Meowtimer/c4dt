@@ -75,11 +75,6 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 	public static final String CLONK_DEPS_NATURE_ID = id("clonkdepsnature"); //$NON-NLS-1$
 
 	/**
-	 * id for error markers that denote errors occuring while importing extern libs
-	 */
-	public static final String MARKER_EXTERN_LIB_ERROR = id("externliberror"); //$NON-NLS-1$
-
-	/**
 	 * id for error markers that denote errors in a script
 	 */
 	public static final String MARKER_C4SCRIPT_ERROR = id("c4scripterror"); //$NON-NLS-1$

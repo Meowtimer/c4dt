@@ -6,10 +6,11 @@ import java.util.Collection;
 import java.util.LinkedList;
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.index.C4Engine;
+import net.arctics.clonk.index.C4Scenario;
 import net.arctics.clonk.index.ClonkIndex;
 import net.arctics.clonk.index.ExternIndex;
 import net.arctics.clonk.index.ProjectIndex;
-import net.arctics.clonk.preferences.ClonkPreferences;
+import net.arctics.clonk.parser.c4script.C4ScriptBase;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.resource.ExternalLib;
 import net.arctics.clonk.resource.c4group.C4Group;
@@ -28,7 +29,6 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Path;
-import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.debug.core.DebugPlugin;
 import org.eclipse.debug.core.ILaunch;
@@ -37,7 +37,6 @@ import org.eclipse.debug.core.ILaunchManager;
 import org.eclipse.debug.core.model.IDebugTarget;
 import org.eclipse.debug.core.model.ILaunchConfigurationDelegate;
 import org.eclipse.debug.core.model.IProcess;
-import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.util.Util;
 
 public class ClonkLaunchConfigurationDelegate implements
@@ -68,8 +67,8 @@ public class ClonkLaunchConfigurationDelegate implements
 		try {
 			
 			// Get scenario and engine
-			IResource scenario = verifyScenario(configuration);
-			File engine = verifyClonkInstall(configuration);
+			IFolder scenario = verifyScenario(configuration);
+			File engine = verifyClonkInstall(configuration, scenario);
 			String[] launchArgs = verifyLaunchArguments(configuration, scenario, engine, mode);
 			
 			// Working directory (work around a bug in early Linux engines)
@@ -113,7 +112,7 @@ public class ClonkLaunchConfigurationDelegate implements
 	/** 
 	 * Searches the scenario to launch
 	 */
-	public IResource verifyScenario(ILaunchConfiguration configuration)
+	public IFolder verifyScenario(ILaunchConfiguration configuration)
 			throws CoreException {
 		
 		// Get project and scenario name from configuration
@@ -138,17 +137,13 @@ public class ClonkLaunchConfigurationDelegate implements
 	 * Searches an appropriate Clonk installation for launching the scenario.
 	 * @return The path of the Clonk engine executable
 	 */
-	public File verifyClonkInstall(ILaunchConfiguration configuration)
-			throws CoreException {
+	public File verifyClonkInstall(ILaunchConfiguration configuration, IFolder scenario) throws CoreException {
 		
-		// TODO: Lots of guesswork, should be more configurable in the future
-		
-		// Clonk path from configuration
-		IPreferenceStore prefs = ClonkCore.getDefault().getPreferenceStore();
-		String gamePath = prefs.getString(ClonkPreferences.GAME_PATH);
+		C4ScriptBase scenarioScript = C4Scenario.scenarioCorrespondingTo(scenario);
+		String gamePath = scenarioScript != null ? scenarioScript.getEngine().getCurrentSettings().gamePath : "";
 
 		File enginePath = null;
-		String enginePref = Platform.getPreferencesService().getString(ClonkCore.PLUGIN_ID, ClonkPreferences.ENGINE_EXECUTABLE, "", null); //$NON-NLS-1$
+		String enginePref = scenarioScript != null ? scenarioScript.getEngine().getCurrentSettings().engineExecutablePath : "";
 		if (enginePref != "") { //$NON-NLS-1$
 			enginePath = new File(enginePref);
 			if (!enginePath.exists())

@@ -343,7 +343,7 @@ public class ClonkFolderView extends ViewPart implements ISelectionListener, IPr
 				removeLinkedFilesOnShutdown.getSelection()
 			);
 		} else if (e.getSource() == projButton) {
-			IProject project = Utilities.clonkProjectSelectionDialog(selectedProject());
+			IProject project = Utilities.selectClonkProject(selectedProject());
 			if (project != null)
 				projText.setText(project.getName());
 		} else if (e.getSource() == importMenuItem) {

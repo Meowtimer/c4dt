@@ -22,7 +22,7 @@ public class C4ScriptIntern extends C4ScriptBase implements Serializable {
 
 	private static final long serialVersionUID = 1L;
 	
-	private transient IFile scriptFile;
+	private transient IResource scriptFile;
 	private String scriptFilePath;
 	private transient ClonkIndex index;
 	
@@ -37,20 +37,20 @@ public class C4ScriptIntern extends C4ScriptBase implements Serializable {
 	}
 
 	@Override
-	public IFile getScriptFile() {
+	public IResource getScriptFile() {
 		return scriptFile;
 	}
 	
 	@Override
 	public String getScriptText() {
 		try {
-			return Utilities.stringFromFile(getScriptFile());
+			return scriptFile instanceof IFile ? Utilities.stringFromFile((IFile)scriptFile) : null;
 		} catch (Exception e) {
 			return null;
 		}
 	}
 	
-	public void setScriptFile(IFile f) throws CoreException {
+	public void setScriptFile(IResource f) throws CoreException {
 		if (Utilities.objectsEqual(scriptFile, f))
 			return;
 		if (scriptFile != null)
@@ -68,7 +68,7 @@ public class C4ScriptIntern extends C4ScriptBase implements Serializable {
 		return scriptFilePath;
 	}
 	
-	public static C4ScriptIntern pinnedScript(IFile resource, boolean duringBuild) throws CoreException {
+	public static C4ScriptIntern pinnedScript(IResource resource, boolean duringBuild) throws CoreException {
 		C4Structure s = pinned(resource, false, duringBuild);
 		return s instanceof C4ScriptIntern ? (C4ScriptIntern) s : null;
 	}
@@ -79,8 +79,8 @@ public class C4ScriptIntern extends C4ScriptBase implements Serializable {
 	}
 	
 	@Override
-	public void pinTo(IFile file) throws CoreException {
-		setScriptFile(file);
+	public void pinTo(IResource resource) throws CoreException {
+		setScriptFile(resource);
 	}
 
 	public boolean refreshFileReference(IProject project) throws CoreException {
