@@ -46,7 +46,7 @@ public class ClonkPreferencePage extends FieldEditorPreferencePage implements IW
 		setDescription(Messages.ClonkPreferences);
 	}
 	
-	private String currentEngine = ClonkCore.getDefault().getPreferenceStore().getString(ClonkPreferences.ACTIVE_ENGINE);
+	private String currentEngine;
 	
 	private class EngineConfigPrefStore extends PreferenceStore {
 		
@@ -130,6 +130,9 @@ public class ClonkPreferencePage extends FieldEditorPreferencePage implements IW
 		// FIXME: not the best place to set that
 		getPreferenceStore().setDefault(ClonkPreferences.EXTERNAL_INDEX_ENCODING, ClonkPreferences.EXTERNAL_INDEX_ENCODING_DEFAULT);
 		getPreferenceStore().setDefault(ClonkPreferences.DOC_URL_TEMPLATE, ClonkPreferences.DOC_URL_TEMPLATE_DEFAULT);
+		getPreferenceStore().setDefault(ClonkPreferences.ACTIVE_ENGINE, ClonkPreferences.ACTIVE_ENGINE_DEFAULT);
+		
+		currentEngine = ClonkCore.getDefault().getPreferenceStore().getString(ClonkPreferences.ACTIVE_ENGINE);
 		
 		String[][] engineChoices = engineComboValues(false);
 		addField(
