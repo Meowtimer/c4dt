@@ -2,14 +2,18 @@ package net.arctics.clonk.preferences;
 
 import java.io.File;
 
+import net.arctics.clonk.ui.navigator.FullPathConverter;
 import net.arctics.clonk.util.UI;
+import net.arctics.clonk.util.Utilities;
 
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.preference.ListEditor;
 import org.eclipse.jface.preference.StringFieldEditor;
+import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.DirectoryDialog;
 import org.eclipse.swt.widgets.FileDialog;
+import org.eclipse.swt.widgets.List;
 
 public final class C4GroupListEditor extends ListEditor {
 	
@@ -22,6 +26,15 @@ public final class C4GroupListEditor extends ListEditor {
 	public String[] parseString(String stringList) {
 		if (stringList.length() == 0) return new String[] {};
 		return stringList.split("<>"); //$NON-NLS-1$
+	}
+	
+	private void addFiles(File[] files) {
+		List list = getList();
+		int index = Math.max(list.getSelectionIndex(), 0);
+		for (int i = 0; i < files.length; i++) {
+			list.add(files[i].getAbsolutePath(), index+i);
+		}
+		selectionChanged();
 	}
 
 	@Override
@@ -43,11 +56,15 @@ public final class C4GroupListEditor extends ListEditor {
 		);
 		switch (msgDialog.open()) {
 		case 0:
-			FileDialog dialog = new FileDialog(getShell());
+			FileDialog dialog = new FileDialog(getShell(), SWT.MULTI+SWT.OPEN);
 			dialog.setText(Messages.ChooseExternalObject);
 			dialog.setFilterExtensions(new String[] { UI.FILEDIALOG_CLONK_FILTER });
 			dialog.setFilterPath(gamePath);
-			return dialog.open();
+			// add multiple files instead of returning one file to be added by the super class
+			if (dialog.open() != null) {
+				addFiles(Utilities.map(dialog.getFileNames(), File.class, new FullPathConverter(dialog)));
+			}
+			return null;
 		case 1:
 			DirectoryDialog dirDialog = new DirectoryDialog(getShell());
 			dirDialog.setText(Messages.ClonkPreferencePage_SelectExternalFolder);

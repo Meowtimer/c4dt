@@ -379,15 +379,6 @@ public abstract class Utilities {
 		return result;
 	}
 	
-	@SuppressWarnings("unchecked")
-	public static <Source, Dest> Dest[] convertArray(Source[] baseArray, Class<Dest> destClass, IConverter<Source, Dest> converter) {
-		Dest[] result = (Dest[]) Array.newInstance(destClass, baseArray.length);
-		for (int i = 0; i < baseArray.length; i++) {
-			result[i] = converter.convert(baseArray[i]);
-		}
-		return result;
-	}
-	
 	public static <E, T extends Collection<E>> T collectionFromArray(Class<T> cls, E[] array) {
 		try {
 			T result = cls.newInstance();

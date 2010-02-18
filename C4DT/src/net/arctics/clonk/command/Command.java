@@ -294,9 +294,9 @@ public class Command {
 		public static void Testing(Object context) {
 			IMarker m;
 			try {
-				m = ResourcesPlugin.getWorkspace().getRoot().getProjects()[1].members()[3].createMarker("net.arctics.clonk.logerror");
+				m = ResourcesPlugin.getWorkspace().getRoot().getProjects()[0].members()[3].createMarker("net.arctics.clonk.logerror");
 				m.setAttribute(IMarker.MESSAGE, "Yadda");
-				m.setAttribute(IMarker.TRANSIENT, false);
+				m.setAttribute(IMarker.TRANSIENT, true);
 				m.setAttribute(IMarker.CHAR_START, 0);
 				m.setAttribute(IMarker.CHAR_END, 3);
 				m.setAttribute(IMarker.SEVERITY, IMarker.SEVERITY_INFO);

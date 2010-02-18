@@ -304,6 +304,7 @@
 			
 		<markerGroupingEntry id="net.arctics.clonk.logErrorGroupingEntry"
 			label="%ClonkLogErrors"
+			markerGrouping="net.arctics.clonk.logErrorGrouping"
 			priority="100" />
 	</extension>
 	

@@ -18,28 +18,20 @@ import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jface.preference.ComboFieldEditor;
 import org.eclipse.jface.preference.PreferenceStore;
-import org.eclipse.jface.viewers.CheckboxCellEditor;
 import org.eclipse.jface.viewers.CheckboxTableViewer;
-import org.eclipse.jface.viewers.IContentProvider;
-import org.eclipse.jface.viewers.IStructuredContentProvider;
 import org.eclipse.jface.viewers.IStructuredSelection;
-import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.jface.viewers.ViewerComparator;
 import org.eclipse.jface.wizard.Wizard;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Group;
-import org.eclipse.swt.widgets.List;
 import org.eclipse.swt.widgets.TabFolder;
 import org.eclipse.swt.widgets.TabItem;
 import org.eclipse.ui.INewWizard;
 import org.eclipse.ui.IWorkbench;
-import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.dialogs.WizardNewProjectCreationPage;
 import org.eclipse.ui.model.WorkbenchContentProvider;
 import org.eclipse.ui.model.WorkbenchLabelProvider;
@@ -151,7 +143,7 @@ public class NewClonkProject extends Wizard implements INewWizard {
 			for (String group : page.getGroupsToBeLinked()) {
 				LinkC4GroupFileHandler.linkC4GroupFile(proj, new File(group));
 			}
-			QuickImportHandler.importFiles(getShell(), proj, Utilities.convertArray(page.getGroupsToBeImported(), File.class, new IConverter<String, File>() {
+			QuickImportHandler.importFiles(getShell(), proj, Utilities.map(page.getGroupsToBeImported(), File.class, new IConverter<String, File>() {
 				@Override
 				public File convert(String from) {
 					return new File(from);

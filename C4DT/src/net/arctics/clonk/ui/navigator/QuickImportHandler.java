@@ -4,7 +4,6 @@ import java.io.File;
 import net.arctics.clonk.preferences.ClonkPreferences;
 import net.arctics.clonk.resource.c4group.C4Group;
 import net.arctics.clonk.resource.c4group.C4GroupImporter;
-import net.arctics.clonk.util.IConverter;
 import net.arctics.clonk.util.UI;
 import net.arctics.clonk.util.Utilities;
 
@@ -38,12 +37,7 @@ public class QuickImportHandler extends ClonkResourceHandler {
 		fileDialog.setText(String.format(title, container.getName()));
 		fileDialog.setFilterExtensions(new String[] {UI.FILEDIALOG_CLONK_FILTER, "*.*"}); //$NON-NLS-1$
 		if (fileDialog.open() != null) {
-			return Utilities.map(fileDialog.getFileNames(), File.class, new IConverter<String, File>() { 
-				@Override
-				public File convert(String fileName) {
-					return new File(fileDialog.getFilterPath()+"/"+fileName); //$NON-NLS-1$
-				}
-			});
+			return Utilities.map(fileDialog.getFileNames(), File.class, new FullPathConverter(fileDialog));
 		} else {
 			return null;
 		}
