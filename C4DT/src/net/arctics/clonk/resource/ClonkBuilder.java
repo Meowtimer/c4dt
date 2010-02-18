@@ -201,7 +201,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 	}
 
 	@SuppressWarnings({"rawtypes"})
-	protected synchronized IProject[] build(int kind, Map args, IProgressMonitor monitor) throws CoreException {
+	protected IProject[] build(int kind, Map args, IProgressMonitor monitor) throws CoreException {
 		
 		parserMap.clear();
 		List<IResource> listOfResourcesToBeRefreshed = new LinkedList<IResource>();
