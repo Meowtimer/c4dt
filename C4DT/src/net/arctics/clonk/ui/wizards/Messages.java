@@ -39,8 +39,12 @@ public class Messages extends NLS {
 	public static String NewClonkFolderWizardPage_ContainerDoesNotExist;
 	public static String NewClonkFolderWizardPage_ContainerMustBeWritable;
 	public static String NewClonkFolderWizardPage_NoFolderName;
-	public static String NewClonkProject_LinkedGroups;
+	public static String NewClonkProject_ImportGroups;
+	public static String NewClonkProject_ImportingTabTitle;
+	public static String NewClonkProject_LinkGroups;
+	public static String NewClonkProject_LinkingTabTitle;
 	public static String NewClonkProject_PageTitle;
+	public static String NewClonkProject_ProjectRefsTabTitle;
 	public static String NewClonkProject_WindowTitle;
 	public static String NewParticle_PageTitle;
 	public static String NewParticle_Description;
