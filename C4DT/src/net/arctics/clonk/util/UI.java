@@ -11,7 +11,16 @@ import org.eclipse.core.runtime.FileLocator;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.resource.ImageRegistry;
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.ModifyListener;
+import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Group;
+import org.eclipse.swt.widgets.Text;
 
 /**
  * Stores references to some objects needed for various components of the user interface
@@ -72,9 +81,37 @@ public abstract class UI {
 			reg.put(registryKey, getIconDescriptor(iconPath));
 			img = reg.get(registryKey);
 		}
-//			if (element.findMarkers(IMarker.PROBLEM, true, IResource.DEPTH_INFINITE).length > 0) {
-//				return decorateImage(reg.getDescriptor(registryKey), element).createImage();
-//			}
 		return img;
+	}
+	
+	public static class ProjectEditorBlock {
+		public Text Text;
+		public Button AddButton;
+		public ProjectEditorBlock(Composite parent, ModifyListener textModifyListener, SelectionListener addListener, Object groupLayoutData, String groupText) {
+			// Create widget group
+			Composite container;
+			if (groupText != null) {
+				Group g = new Group(parent, SWT.NONE);
+				g.setText(groupText);
+				container = g;
+			} else {
+				container = new Composite(parent, SWT.NONE);
+			}
+			container.setLayout(new GridLayout(2, false));
+			container.setLayoutData(groupLayoutData != null ? groupLayoutData : new GridData(GridData.FILL_HORIZONTAL));
+			
+			// Text plus button
+			Text = new Text(container, SWT.SINGLE | SWT.BORDER);
+			Text.setText(net.arctics.clonk.ui.navigator.Messages.ClonkFolderView_Project);
+			Text.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+			AddButton = new Button(container, SWT.PUSH);
+			AddButton.setText("Browse");
+			
+			// Install listener
+			if (textModifyListener != null)
+				Text.addModifyListener(textModifyListener);
+			if (addListener != null)
+				AddButton.addSelectionListener(addListener);
+		}
 	}
 }

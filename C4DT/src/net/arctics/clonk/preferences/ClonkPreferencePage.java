@@ -8,6 +8,8 @@ import java.util.Map;
 
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.index.C4Engine;
+import net.arctics.clonk.ui.navigator.ClonkFolderView;
+
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.jface.preference.BooleanFieldEditor;
@@ -94,6 +96,8 @@ public class ClonkPreferencePage extends FieldEditorPreferencePage implements IW
 			for (Map.Entry<String, C4Engine.EngineSettings> entry : settings.entrySet()) {
 				ClonkCore.getDefault().loadEngine(entry.getKey()).setCurrentSettings(entry.getValue());
 			}
+			if (ClonkFolderView.instance() != null)
+				ClonkFolderView.instance().update();
 		}
 		
 	};
@@ -136,12 +140,11 @@ public class ClonkPreferencePage extends FieldEditorPreferencePage implements IW
 		
 		currentEngine = ClonkCore.getDefault().getPreferenceStore().getString(ClonkPreferences.ACTIVE_ENGINE);
 		
-		String[][] engineChoices = engineComboValues(false);
 		addField(
 			new ComboFieldEditor(
 				ClonkPreferences.ACTIVE_ENGINE,
 				Messages.EngineVersion,
-				engineChoices,
+				engineComboValues(false),
 				getFieldEditorParent()
 			)
 		);

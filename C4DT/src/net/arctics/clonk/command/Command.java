@@ -17,6 +17,7 @@ import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import net.arctics.clonk.ClonkCore;
+import net.arctics.clonk.index.C4Engine;
 import net.arctics.clonk.index.C4Object;
 import net.arctics.clonk.index.C4Scenario;
 import net.arctics.clonk.index.ClonkIndex;
@@ -312,6 +313,14 @@ public class Command {
 		@CommandFunction
 		public static void SetEngineProperty(Object context, String name, Object value) {
 			setFieldValue(ClonkCore.getDefault().getActiveEngine().getCurrentSettings(), name, value);
+		}
+		@CommandFunction
+		public static void IntrinsicizeEngineProperty(Object context, String name) throws IllegalArgumentException, SecurityException, IllegalAccessException, NoSuchFieldException {
+			C4Engine engine = ClonkCore.getDefault().getActiveEngine();
+			setFieldValue(
+				engine.getIntrinsicSettings(), name,
+				engine.getCurrentSettings().getClass().getField(name).get(engine.getCurrentSettings())
+			);
 		}
 	}
 	

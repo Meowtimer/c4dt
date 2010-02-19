@@ -63,6 +63,10 @@ public class C4Engine extends C4ObjectExtern {
 	private EngineSettings intrinsicSettings;
 	private transient EngineSettings currentSettings;
 	
+	public EngineSettings getIntrinsicSettings() {
+		return intrinsicSettings;
+	}
+
 	public void setCurrentSettings(EngineSettings currentSettings) {
 		this.currentSettings = currentSettings;
 	}

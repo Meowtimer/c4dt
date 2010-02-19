@@ -62,7 +62,7 @@ import org.xml.sax.SAXException;
  * contains global predefined functions of Clonk.
  */
 public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IResourceChangeListener {
-
+	
 	/**
 	 * The Plugin-ID
 	 */
@@ -118,6 +118,9 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 	 */
 	private ClonkLibBuilder libBuilder = null;
 
+	/**
+	 * Provider used by the plugin to provide text of documents
+	 */
 	private TextFileDocumentProvider textFileDocumentProvider;
 
 	/**
@@ -126,7 +129,7 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 	 */
 	public ClonkCore() {
 	}
-
+	
 	/*
 	 * (non-Javadoc)
 	 * @see org.eclipse.ui.plugin.AbstractUIPlugin#start(org.osgi.framework.BundleContext)
@@ -230,6 +233,8 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 	}
 	
 	public C4Engine loadEngine(final String engineName) {
+		if (engineName == null || engineName.equals(""))
+			return null;
 		InputStream engineStream;
 		C4Engine result = loadedEngines.get(engineName);
 		if (result != null)

@@ -38,8 +38,7 @@ import org.eclipse.ui.dialogs.ElementListSelectionDialog;
 public class LaunchMainTab extends AbstractLaunchConfigurationTab {
 	
 	/** Project selection widgets */
-	private Text fProjText;
-	private Button fProjButton;
+	private UI.ProjectEditorBlock projectEditor;
 	
 	/** Scenario selection widgets */
 	private Text fScenText;
@@ -62,7 +61,7 @@ public class LaunchMainTab extends AbstractLaunchConfigurationTab {
 		}
 
 		public void widgetSelected(SelectionEvent e) {
-			if(e.getSource() == fProjButton)
+			if(e.getSource() == projectEditor.AddButton)
 				chooseClonkProject();
 			else if(e.getSource() == fScenButton)
 				chooseScenario();
@@ -96,24 +95,7 @@ public class LaunchMainTab extends AbstractLaunchConfigurationTab {
 	 */
 	private void createProjectEditor(Composite parent)
 	{
-		
-		// Create widget group
-		Group grp = new Group(parent, SWT.NONE);
-		grp.setText(Messages.LaunchMainTab_ProjectTitle);
-		grp.setLayout(new GridLayout(2, false));
-		grp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-		grp.setFont(parent.getFont());
-		
-		// Text plus button
-		fProjText = new Text(grp, SWT.SINGLE | SWT.BORDER);
-		fProjText.setFont(parent.getFont());
-		fProjText.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-		fProjButton = createPushButton(grp, Messages.LaunchMainTab_Browse, null);
-		
-		// Install listener
-		fProjText.addModifyListener(fListener);
-		fProjButton.addSelectionListener(fListener);
-		
+		projectEditor = new UI.ProjectEditorBlock(parent, fListener, fListener, null, Messages.LaunchMainTab_ProjectTitle);
 	}
 	
 	
@@ -191,7 +173,7 @@ public class LaunchMainTab extends AbstractLaunchConfigurationTab {
 		try {
 
 			// Read attributes
-			fProjText.setText(conf.getAttribute(ClonkLaunchConfigurationDelegate.ATTR_PROJECT_NAME, "")); //$NON-NLS-1$
+			projectEditor.Text.setText(conf.getAttribute(ClonkLaunchConfigurationDelegate.ATTR_PROJECT_NAME, "")); //$NON-NLS-1$
 			fScenText.setText(conf.getAttribute(ClonkLaunchConfigurationDelegate.ATTR_SCENARIO_NAME, "")); //$NON-NLS-1$
 			fFullscreenButton.setSelection(conf.getAttribute(ClonkLaunchConfigurationDelegate.ATTR_FULLSCREEN, false));
 			fConsoleButton.setSelection(!fFullscreenButton.getSelection());
@@ -203,7 +185,7 @@ public class LaunchMainTab extends AbstractLaunchConfigurationTab {
 			
 			// Set defaults
 			fScenText.setText("");	 //$NON-NLS-1$
-			fProjText.setText(""); //$NON-NLS-1$
+			projectEditor.Text.setText(""); //$NON-NLS-1$
 			fFullscreenButton.setSelection(false);
 			fConsoleButton.setSelection(true);
 			fRecordButton.setSelection(false);
@@ -213,7 +195,7 @@ public class LaunchMainTab extends AbstractLaunchConfigurationTab {
 	}
 
 	public void performApply(ILaunchConfigurationWorkingCopy wc) {
-		wc.setAttribute(ClonkLaunchConfigurationDelegate.ATTR_PROJECT_NAME, fProjText.getText());
+		wc.setAttribute(ClonkLaunchConfigurationDelegate.ATTR_PROJECT_NAME, projectEditor.Text.getText());
 		wc.setAttribute(ClonkLaunchConfigurationDelegate.ATTR_SCENARIO_NAME, fScenText.getText());
 		wc.setAttribute(ClonkLaunchConfigurationDelegate.ATTR_FULLSCREEN, fFullscreenButton.getSelection());
 		wc.setAttribute(ClonkLaunchConfigurationDelegate.ATTR_RECORD, fRecordButton.getSelection());
@@ -231,7 +213,7 @@ public class LaunchMainTab extends AbstractLaunchConfigurationTab {
 	public IProject validateProject() {
 		
 		// Must be a valid path segment
-		String projectName = fProjText.getText();
+		String projectName = projectEditor.Text.getText();
 		if(!new Path("").isValidSegment(projectName)) { //$NON-NLS-1$
 			setErrorMessage(Messages.LaunchMainTab_InvalidProjectName);
 			return null;
@@ -298,7 +280,7 @@ public class LaunchMainTab extends AbstractLaunchConfigurationTab {
 		
 		IProject project = Utilities.selectClonkProject(validateProject());
 		if (project != null) {
-			fProjText.setText(project.getName());
+			projectEditor.Text.setText(project.getName());
 		}
 
 	}
@@ -339,7 +321,7 @@ public class LaunchMainTab extends AbstractLaunchConfigurationTab {
 		// Show
 		if(dialog.open() == Window.OK) {
 			IResource scen = (IResource) dialog.getFirstResult();
-			fProjText.setText(scen.getProject().getName());
+			projectEditor.Text.setText(scen.getProject().getName());
 			fScenText.setText(scen.getProjectRelativePath().toString());
 		}
 		

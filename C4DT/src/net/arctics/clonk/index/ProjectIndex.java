@@ -39,10 +39,10 @@ public class ProjectIndex extends ExternIndex {
 	@Override
 	public C4Engine getEngine() {
 		if (cachedEngine == null) {
-			if (engineName == null)
+			// engineName can be "" or null since that is handled by loadEngine
+			cachedEngine = ClonkCore.getDefault().loadEngine(engineName);
+			if (cachedEngine == null)
 				cachedEngine = ClonkCore.getDefault().getActiveEngine();
-			else
-				cachedEngine = ClonkCore.getDefault().loadEngine(engineName);
 		}
 		return cachedEngine;
 	}
