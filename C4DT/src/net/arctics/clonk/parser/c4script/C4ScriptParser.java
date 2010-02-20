@@ -29,9 +29,11 @@ import net.arctics.clonk.parser.c4script.C4Directive.C4DirectiveType;
 import net.arctics.clonk.parser.c4script.C4Function.C4FunctionScope;
 import net.arctics.clonk.parser.c4script.C4ScriptExprTree.*;
 import net.arctics.clonk.parser.c4script.C4Variable.C4VariableScope;
+import net.arctics.clonk.resource.c4group.C4GroupEntry;
 import net.arctics.clonk.util.Pair;
 import net.arctics.clonk.util.Utilities;
 
+import org.eclipse.core.filesystem.EFS;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IResource;
@@ -71,6 +73,11 @@ public class C4ScriptParser {
 	private int parseStatementRecursion;
 	
 	private boolean appendTo;
+	
+	/**
+	 * Whether to not create any error markers at all - set if script is contained in linked group
+	 */
+	private boolean allErrorsDisabled;
 
 	private LoopType currentLoop;
 	private Comment lastComment;
@@ -266,6 +273,11 @@ public class C4ScriptParser {
 		this.scriptFile = scriptFile;
 		scanner = new BufferedScanner(scriptFile);
 		container = script;
+		try {
+			allErrorsDisabled = EFS.getStore(scriptFile.getLocationURI()) instanceof C4GroupEntry;
+		} catch (CoreException e) {
+			e.printStackTrace();
+		} 
 	}
 
 	/**
@@ -1155,7 +1167,7 @@ public class C4ScriptParser {
 	}
 	
 	public boolean errorDisabled(ParserErrorCode error) {
-		return disabledErrors.contains(error);
+		return allErrorsDisabled || disabledErrors.contains(error);
 	}
 	
 	private static class LatentMarker {
