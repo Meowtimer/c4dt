@@ -115,8 +115,6 @@ public abstract class C4ScriptBase extends C4Structure implements IHasRelatedRes
 				C4Function f = this.funcAt(region);
 				if (f == null)
 					f = this.funcAt(lineEnd);
-				if (this.getName().equals("Clonk"))
-					System.out.println(line + ": " + (f != null ? f.getName() : "No Function") + " -- " + scriptText.substring(lineStart, lineEnd));
 				mappingAsList.add(f);
 				lineStart = scanner.getPosition();
 				lineEnd = lineStart;
