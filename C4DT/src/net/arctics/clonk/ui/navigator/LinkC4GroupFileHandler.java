@@ -31,7 +31,7 @@ public class LinkC4GroupFileHandler extends AbstractHandler {
 			Object obj = ((IStructuredSelection)sel).getFirstElement();
 			if (obj instanceof IProject) {
 				IProject proj = (IProject) obj;
-				FileDialog fileDialog = new FileDialog(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(), SWT.OPEN+SWT.MULTI);
+				FileDialog fileDialog = new FileDialog(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(), SWT.SHEET+SWT.OPEN+SWT.MULTI);
 				fileDialog.setFilterPath(ClonkPreferences.getPreferenceOrDefault(ClonkPreferences.GAME_PATH));
 				String filePath;
 				if ((filePath = fileDialog.open()) != null) {

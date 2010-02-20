@@ -56,7 +56,7 @@ public final class C4GroupListEditor extends ListEditor {
 		);
 		switch (msgDialog.open()) {
 		case 0:
-			FileDialog dialog = new FileDialog(getShell(), SWT.MULTI+SWT.OPEN);
+			FileDialog dialog = new FileDialog(getShell(), SWT.SHEET+SWT.MULTI+SWT.OPEN);
 			dialog.setText(Messages.ChooseExternalObject);
 			dialog.setFilterExtensions(new String[] { UI.FILEDIALOG_CLONK_FILTER });
 			dialog.setFilterPath(gamePath);

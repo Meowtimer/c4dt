@@ -14,6 +14,10 @@ import org.eclipse.debug.core.model.LineBreakpoint;
 public class ClonkDebugLineBreakpoint extends LineBreakpoint {
 
 	public static final String ID = ClonkDebugLineBreakpoint.class.getName(); // who needs ids differing from class name -.-
+
+	public ClonkDebugLineBreakpoint() {
+		super();
+	}
 	
 	public ClonkDebugLineBreakpoint(final IResource resource, final int lineNumber) throws CoreException {
 		IWorkspaceRunnable markerAttribs = new IWorkspaceRunnable() {

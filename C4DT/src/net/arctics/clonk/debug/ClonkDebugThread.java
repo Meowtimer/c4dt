@@ -1,7 +1,9 @@
 package net.arctics.clonk.debug;
 
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import net.arctics.clonk.debug.ClonkDebugTarget.Commands;
@@ -22,6 +24,8 @@ public class ClonkDebugThread extends ClonkDebugElement implements IThread {
 	private static final ClonkDebugStackFrame[] NO_STACKFRAMES = new ClonkDebugStackFrame[0];
 	
 	private ClonkDebugStackFrame[] stackFrames;
+	
+	private Map<C4ScriptBase, C4Function[]> lineToFunctionMaps = new HashMap<C4ScriptBase, C4Function[]>(); 
 	
 	private void nullOut() {
 		stackFrames = NO_STACKFRAMES;
@@ -68,7 +72,10 @@ public class ClonkDebugThread extends ClonkDebugElement implements IThread {
 			int line = Integer.parseInt(linePart);
 			sourcePath = sourcePath.substring(0, delim);
 			C4ScriptBase script = findScript(sourcePath, index, new HashSet<ClonkIndex>());
-			C4Function f = script != null ? script.funcAtLine(line) : null;
+			C4Function f = script != null ? funcAtLine(script, line) : null;
+			if (f == null) {
+				System.out.println("what??");
+			}
 			Object funObj = f != null ? f : fullSourcePath;
 			if (stillToBeReused > 0) {
 				if (stackFrames[stillToBeReused-1].getFunction().equals(funObj)) {
@@ -82,6 +89,16 @@ public class ClonkDebugThread extends ClonkDebugElement implements IThread {
 		stackFrames = newStackFrames;
 	}
 	
+	private C4Function funcAtLine(C4ScriptBase script, int line) {
+		line--;
+		C4Function[] map = lineToFunctionMaps.get(script);
+		if (map == null) {
+			map = script.calculateLineToFunctionMap();
+			lineToFunctionMaps.put(script, map);
+		}
+		return line >= 0 && line < map.length ? map[line] : null;
+	}
+
 	public ClonkDebugThread(ClonkDebugTarget target) {
 		super(target);
 		fireEvent(new DebugEvent(this, DebugEvent.CREATE));

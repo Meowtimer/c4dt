@@ -26,6 +26,7 @@ import org.eclipse.jface.util.Util;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.ui.IWorkbench;
@@ -36,10 +37,10 @@ import org.eclipse.ui.IWorkbenchPreferencePage;
  */
 public class ClonkPreferencePage extends FieldEditorPreferencePage implements IWorkbenchPreferencePage {
 
-	private C4GroupListEditor externalLibsEditor;
 	private String previousGamePath;
 	private FileFieldEditor c4GroupEditor;
 	private FileFieldEditor engineExecutableEditor;
+	private DirectoryFieldEditor gamePathEditor;
 	private List<FieldEditor> enginePrefs = new ArrayList<FieldEditor>(10);
 	
 	public ClonkPreferencePage() {
@@ -131,6 +132,19 @@ public class ClonkPreferencePage extends FieldEditorPreferencePage implements IW
 			enginePrefs.add(editor);
 	}
 	
+	private class EngineRelatedFileFieldEditor extends FileFieldEditor {
+		public EngineRelatedFileFieldEditor(String pref, String title, Composite parent) {
+			super(pref, title, parent);
+		}
+
+		@Override
+		protected String changePressed() {
+			FileDialog dialog = new FileDialog(getShell(), SWT.OPEN | SWT.SHEET);
+			dialog.setFilterPath(gamePathEditor.getStringValue());
+			return dialog.open();
+		}
+	}
+	
 	public void createFieldEditors() {
 		
 		// FIXME: not the best place to set that
@@ -161,7 +175,7 @@ public class ClonkPreferencePage extends FieldEditorPreferencePage implements IW
 			setPreferenceStore(engineConfigPrefStore);
 			try {
 				addField(
-						new DirectoryFieldEditor(
+						gamePathEditor = new DirectoryFieldEditor(
 								"gamePath", //$NON-NLS-1$
 								Messages.GamePath,
 								engineConfigurationComposite
@@ -195,46 +209,21 @@ public class ClonkPreferencePage extends FieldEditorPreferencePage implements IW
 								super.valueChanged();
 								String gamePathText = getTextControl().getText();
 								IPath gamePath = new Path(gamePathText);
-								adjustExternalLibsToGamePath(gamePath);
 								setFile(gamePath, gamePathText, c4GroupEditor, c4GroupAccordingToOS());
 								setFile(gamePath, gamePathText, engineExecutableEditor, C4Engine.possibleEngineNamesAccordingToOS());
 								previousGamePath = gamePathText.toLowerCase();
 							}
-
-							private void adjustExternalLibsToGamePath(IPath gamePath) {
-								String[] externalLibs = externalLibsEditor.getValues();
-								if (externalLibs.length == 0) {
-									/* better not
-									externalLibs = new String[] {
-										gamePath.append("System.c4g").toPortableString(), //$NON-NLS-1$
-										gamePath.append("Objects.c4d").toPortableString() //$NON-NLS-1$
-									};
-									externalLibsEditor.setValues(externalLibs);
-									 */
-								}
-								else {
-									String oldGamePath = previousGamePath;
-									for (int i = 0; i < externalLibs.length; i++) {
-										String s = externalLibs[i];
-										if (s.toLowerCase().startsWith(oldGamePath)) {
-											s = gamePath + s.substring(oldGamePath.length());
-										}
-										externalLibs[i] = s;
-									}
-									externalLibsEditor.setValues(externalLibs);
-								}
-							};
 						}
 				);
 				addField(
-						c4GroupEditor = new FileFieldEditor(
+						c4GroupEditor = new EngineRelatedFileFieldEditor(
 								"c4GroupPath", //$NON-NLS-1$
 								Messages.C4GroupExecutable,
 								engineConfigurationComposite
 						)
 				);
 				addField(
-						engineExecutableEditor = new FileFieldEditor(
+						engineExecutableEditor = new EngineRelatedFileFieldEditor(
 								"engineExecutablePath", //$NON-NLS-1$
 								Messages.EngineExecutable,
 								engineConfigurationComposite

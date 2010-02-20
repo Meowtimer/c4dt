@@ -78,8 +78,6 @@ public abstract class C4ScriptBase extends C4Structure implements IHasRelatedRes
 	protected List<C4Variable> definedVariables = new LinkedList<C4Variable>();
 	protected List<C4Directive> definedDirectives = new LinkedList<C4Directive>();
 	
-	private transient C4Function[] lineToFunctionMap;
-	
 	// set of scripts this script is using functions and/or static variables from
 	private Set<C4ScriptBase> usedProjectScripts;
 	
@@ -87,26 +85,13 @@ public abstract class C4ScriptBase extends C4Structure implements IHasRelatedRes
 		return ""; //$NON-NLS-1$
 	}
 	
-	public C4Function funcAtLine(int line) {
-		if (line < 0)
-			return null;
-		calculateLineToFunctionMap();
-		return lineToFunctionMap != null && line < lineToFunctionMap.length ? lineToFunctionMap[line] : null;
-	}
-	
-	public void forgetLineToFunctionMap() {
-		lineToFunctionMap = null;
-	}
-	
-	public void calculateLineToFunctionMap() {
-		if (lineToFunctionMap != null)
-			return;
+	public C4Function[] calculateLineToFunctionMap() {
 		String scriptText = this.getScriptText();
-		MutableRegion region = new MutableRegion(0, scriptText.length());
 		int line = 0;
 		int lineStart = 0;
 		int lineEnd = 0;
 		List<C4Function> mappingAsList = new LinkedList<C4Function>();
+		MutableRegion region = new MutableRegion(0, 0);
 		for (BufferedScanner scanner = new BufferedScanner(scriptText); !scanner.reachedEOF();) {
 			int read = scanner.read();
 			boolean newLine = false;
@@ -128,12 +113,17 @@ public abstract class C4ScriptBase extends C4Structure implements IHasRelatedRes
 				region.setOffset(lineStart);
 				region.setLength(lineEnd-lineStart);
 				C4Function f = this.funcAt(region);
+				if (f == null)
+					f = this.funcAt(lineEnd);
+				if (this.getName().equals("Clonk"))
+					System.out.println(line + ": " + (f != null ? f.getName() : "No Function") + " -- " + scriptText.substring(lineStart, lineEnd));
 				mappingAsList.add(f);
 				lineStart = scanner.getPosition();
+				lineEnd = lineStart;
 			}
 		}
 		
-		lineToFunctionMap = mappingAsList.toArray(new C4Function[mappingAsList.size()]);
+		return mappingAsList.toArray(new C4Function[mappingAsList.size()]);
 	}
 
 	/**
@@ -443,9 +433,12 @@ public abstract class C4ScriptBase extends C4Structure implements IHasRelatedRes
 	}
 
 	public C4Function funcAt(IRegion region) {
-		// from name to end of body should be enough... ?
 		for (C4Function f : definedFunctions) {
-			if (region.getOffset() >= f.getBody().getOffset() && region.getOffset()+region.getLength() <= f.getBody().getOffset()+f.getBody().getLength()+1)
+			int fStart = f.getBody().getOffset();
+			int fEnd   = f.getBody().getOffset()+f.getBody().getLength();
+			int rStart = region.getOffset();
+			int rEnd   = region.getOffset()+region.getLength();
+			if (rStart <= fStart && rEnd >= fEnd || rStart >= fStart && rStart <= fEnd || rEnd >= fEnd && rEnd <= fEnd)
 				return f;
 		}
 		return null;
@@ -453,7 +446,6 @@ public abstract class C4ScriptBase extends C4Structure implements IHasRelatedRes
 
 	// OMG, IRegion <-> ITextSelection
 	public C4Function funcAt(ITextSelection region) {
-		// from name to end of body should be enough... ?
 		for (C4Function f : definedFunctions) {
 			if (f.getLocation().getOffset() <= region.getOffset() && region.getOffset()+region.getLength() <= f.getBody().getOffset()+f.getBody().getLength())
 				return f;
