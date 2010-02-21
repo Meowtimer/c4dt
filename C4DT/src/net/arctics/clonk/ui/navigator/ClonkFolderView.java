@@ -265,7 +265,7 @@ public class ClonkFolderView extends ViewPart implements ISelectionListener, IDo
 
 	@Override
 	public void selectionChanged(IWorkbenchPart part, ISelection selection) {
-		if (!openInCurrentProject.getSelection())
+		if (!openInCurrentProject.getEnabled())
 			return;
 		IProject proj = null;
 		if (selection instanceof IStructuredSelection) {
