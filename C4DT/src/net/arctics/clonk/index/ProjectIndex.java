@@ -105,6 +105,7 @@ public class ProjectIndex extends ExternIndex {
 				this.removeScript(s);
 			}
 		}
+		getLibs().clear(); // deprecated - just remove
 		super.postSerialize();
 	}
 	
