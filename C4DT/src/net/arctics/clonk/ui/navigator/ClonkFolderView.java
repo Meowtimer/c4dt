@@ -18,6 +18,7 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.jface.preference.PreferenceStore;
+import org.eclipse.jface.util.Util;
 import org.eclipse.jface.viewers.DoubleClickEvent;
 import org.eclipse.jface.viewers.IDoubleClickListener;
 import org.eclipse.jface.viewers.ISelection;
@@ -77,7 +78,11 @@ public class ClonkFolderView extends ViewPart implements ISelectionListener, IDo
 				return folder.listFiles(new FilenameFilter() {
 					@Override
 					public boolean accept(File dir, String name) {
-						return !name.startsWith(".") && C4Group.getGroupType(name) != C4GroupType.OtherGroup || new File(dir, name).isDirectory(); //$NON-NLS-1$
+						if (name.startsWith("."))
+							return false;
+						if (Util.isMac() && name.endsWith(".app"))
+							return false;
+						return (C4Group.getGroupType(name) != C4GroupType.OtherGroup || new File(dir, name).isDirectory()); //$NON-NLS-1$
 					}
 				});
 			} catch (Exception e) {
