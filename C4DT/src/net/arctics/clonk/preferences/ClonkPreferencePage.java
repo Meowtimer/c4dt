@@ -235,47 +235,23 @@ public class ClonkPreferencePage extends FieldEditorPreferencePage implements IW
 							
 							@Override
 							protected String changePressed() {
-								File f = new File(getTextControl().getText());
-						        if (!f.exists()) {
-									f = null;
+								String selection = super.changePressed();
+								if (selection != null) {
+									File d = new File(selection);
+									if (Util.isMac() && d.isDirectory() && d.getName().endsWith(".app")) {
+							        	d = new File(d.getAbsolutePath()+"/Contents/MacOS/"+d.getName().substring(0, d.getName().length()-".app".length()));
+							        }
+									return d.getAbsolutePath();
 								}
-						        File d = getFile(f);
-						        if (d == null) {
+								else
 									return null;
-								}
-						        
-						        if (Util.isMac() && d.isDirectory() && d.getName().endsWith(".app")) {
-						        	d = new File(d.getAbsolutePath()+"/Contents/MacOS/"+d.getName().substring(0, d.getName().length()-".app".length()));
-						        }
-
-						        return d.getAbsolutePath();
 							};
 							
 							@Override
 							public void setFileExtensions(String[] extensions) {
 								super.setFileExtensions(extensions);
 								this.extensions = extensions;
-							};
-							
-							private File getFile(File startingDirectory) {
-
-						        FileDialog dialog = new FileDialog(getShell(), SWT.OPEN | SWT.SHEET);
-						        if (startingDirectory != null) {
-									dialog.setFileName(startingDirectory.getPath());
-								}
-						        if (extensions != null) {
-									dialog.setFilterExtensions(extensions);
-								}
-						        String file = dialog.open();
-						        if (file != null) {
-						            file = file.trim();
-						            if (file.length() > 0) {
-										return new File(file);
-									}
-						        }
-
-						        return null;
-						    }
+							}
 						}
 				);
 				addField(
