@@ -14,6 +14,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -34,6 +35,8 @@ import net.arctics.clonk.resource.ClonkLibBuilder;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.resource.InputStreamRespectingUniqueIDs;
 import net.arctics.clonk.util.IRunnableWithProgressAndResult;
+import net.arctics.clonk.util.ReadOnlyIterator;
+
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResourceChangeEvent;
 import org.eclipse.core.resources.IResourceChangeListener;
@@ -230,6 +233,15 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 			}
 		}
 		return result;
+	}
+	
+	public Iterable<C4Engine> loadedEngines() {
+		return new Iterable<C4Engine>() {
+			@Override
+			public Iterator<C4Engine> iterator() {
+				return new ReadOnlyIterator<C4Engine>(loadedEngines.values().iterator());
+			}
+		};
 	}
 	
 	public C4Engine loadEngine(final String engineName) {

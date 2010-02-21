@@ -92,7 +92,7 @@ public abstract class Utilities {
 	
 	public static MessageConsole getClonkConsole() {
 		if (clonkConsole == null) {
-			clonkConsole = getConsole(Messages.Utilities_0);
+			clonkConsole = getConsole(Messages.Utilities_ClonkConsole);
 		}
 		return clonkConsole;
 	}
@@ -112,7 +112,7 @@ public abstract class Utilities {
 	
 	public static MessageConsoleStream getDebugStream() {
 		if (debugConsoleStream == null) {
-			debugConsoleStream = getConsole(Messages.Utilities_1).newMessageStream();
+			debugConsoleStream = getConsole(Messages.Utilities_DebugConsole).newMessageStream();
 		}
 		return debugConsoleStream;
 	}
@@ -349,7 +349,7 @@ public abstract class Utilities {
 	public static void refreshClonkProjects(IProgressMonitor monitor) throws CoreException {
 		IProject[] projects = ResourcesPlugin.getWorkspace().getRoot().getProjects();
 		if (monitor != null)
-			monitor.beginTask(Messages.Utilities_9, projects.length);
+			monitor.beginTask(Messages.Utilities_RefreshingProjects, projects.length);
 		int work = 0;
 		for (IProject p : projects) {
 			if (ClonkProjectNature.get(p) != null)
@@ -575,9 +575,9 @@ public abstract class Utilities {
 			@Override
 			public void run() {
 				MessageDialog messageDialog = new MessageDialog(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(),
-					title == null ? Messages.Utilities_12 : title, null,
+					title == null ? Messages.Utilities_InternalError : title, null,
 					message, MessageDialog.ERROR,
-					new String[] { Messages.Utilities_13 }, 1
+					new String[] { Messages.Utilities_InternalErrorButton }, 1
 				);
 				messageDialog.open();
 			}

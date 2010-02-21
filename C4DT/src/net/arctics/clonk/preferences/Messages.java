@@ -5,7 +5,6 @@ import org.eclipse.osgi.util.NLS;
 public class Messages extends NLS {
 	private static final String BUNDLE_NAME = "net.arctics.clonk.preferences.messages"; //$NON-NLS-1$
 	public static String EngineVersion;
-	public static String ClonkPreferencePage_0;
 	public static String ClonkPreferencePage_DefaultEngine;
 	public static String ClonkPreferencePage_EngineConfigurationTitle;
 	public static String ClonkPreferencePage_GroupFileOrFolder;

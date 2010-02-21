@@ -4,11 +4,11 @@ import org.eclipse.osgi.util.NLS;
 
 public class Messages extends NLS {
 	private static final String BUNDLE_NAME = "net.arctics.clonk.util.messages"; //$NON-NLS-1$
-	public static String Utilities_0;
-	public static String Utilities_1;
-	public static String Utilities_12;
-	public static String Utilities_13;
-	public static String Utilities_9;
+	public static String Utilities_ClonkConsole;
+	public static String Utilities_DebugConsole;
+	public static String Utilities_InternalError;
+	public static String Utilities_InternalErrorButton;
+	public static String Utilities_RefreshingProjects;
 	public static String Utilities_ChooseClonkProject;
 	public static String Utilities_ChooseClonkProjectPretty;
 	static {

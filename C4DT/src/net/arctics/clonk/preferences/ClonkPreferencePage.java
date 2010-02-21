@@ -37,7 +37,7 @@ import org.eclipse.ui.IWorkbenchPreferencePage;
  */
 public class ClonkPreferencePage extends FieldEditorPreferencePage implements IWorkbenchPreferencePage {
 
-	private String previousGamePath;
+	//private String previousGamePath;
 	private FileFieldEditor c4GroupEditor;
 	private FileFieldEditor engineExecutableEditor;
 	private DirectoryFieldEditor gamePathEditor;
@@ -67,16 +67,24 @@ public class ClonkPreferencePage extends FieldEditorPreferencePage implements IW
 		
 		@Override
 		public String getString(String name) {
-			C4Engine.EngineSettings e = getSettings();
+			return getString(name, getSettings());
+		}
+
+		public String getString(String name, C4Engine.EngineSettings e) {
 			try {
 				String result = (String) e.getClass().getField(name).get(e);
 				if (result == null)
-					result = Messages.ClonkPreferencePage_0;
+					result = ""; //$NON-NLS-1$
 				return result;
 			} catch (Exception e1) {
 				e1.printStackTrace();
 				return null;
 			}
+		}
+		
+		@Override
+		public String getDefaultString(String name) {
+			return getString(name, ClonkCore.getDefault().loadEngine(currentEngine).getCurrentSettings());
 		}
 
 		public C4Engine.EngineSettings getSettings() {
@@ -100,6 +108,17 @@ public class ClonkPreferencePage extends FieldEditorPreferencePage implements IW
 			if (ClonkFolderView.instance() != null)
 				ClonkFolderView.instance().update();
 		}
+
+		public void reset() {
+			try {
+				for (C4Engine engine : ClonkCore.getDefault().loadedEngines()) {
+					if (settings.get(engine.getName()) != null)
+						settings.put(engine.getName(), engine.getCurrentSettings().clone());
+				}
+			} catch (CloneNotSupportedException e) {
+				e.printStackTrace();
+			}
+		}
 		
 	};
 	
@@ -112,8 +131,18 @@ public class ClonkPreferencePage extends FieldEditorPreferencePage implements IW
 	}
 	
 	@Override
+	protected void performDefaults() {
+		currentEngine = getPreferenceStore().getDefaultString(ClonkPreferences.ACTIVE_ENGINE);
+		engineConfigPrefStore.reset();
+		super.performDefaults();
+	}
+	
+	@Override
 	public void propertyChange(PropertyChangeEvent event) {
 		if (event.getProperty().equals(FieldEditor.VALUE) && ((FieldEditor)event.getSource()).getPreferenceName().equals(ClonkPreferences.ACTIVE_ENGINE)) {
+			for (FieldEditor ed : enginePrefs) {
+				ed.store();
+			}
 			currentEngine = (String) event.getNewValue();
 			for (FieldEditor ed : enginePrefs) {
 				ed.load();
@@ -133,16 +162,31 @@ public class ClonkPreferencePage extends FieldEditorPreferencePage implements IW
 	}
 	
 	private class EngineRelatedFileFieldEditor extends FileFieldEditor {
-		public EngineRelatedFileFieldEditor(String pref, String title, Composite parent) {
+		// redeclare since field from super class is not accessible -.-
+		private String[] extensions;
+		
+		public EngineRelatedFileFieldEditor(String pref, String title, Composite parent, String[] extensions) {
 			super(pref, title, parent);
+			this.extensions = extensions;
 		}
 
 		@Override
 		protected String changePressed() {
 			FileDialog dialog = new FileDialog(getShell(), SWT.OPEN | SWT.SHEET);
 			dialog.setFilterPath(gamePathEditor.getStringValue());
+			if (extensions != null)
+				dialog.setFilterExtensions(extensions);
 			return dialog.open();
 		}
+	}
+	
+	private static String[] appExtensions(boolean engine) {
+		if (Util.isWindows()) {
+			if (engine)
+				return new String[] { "*.exe", "*.c4x" }; //$NON-NLS-1$ //$NON-NLS-2$
+			return new String[] { "*.exe" }; //$NON-NLS-1$
+		}
+		return null;
 	}
 	
 	public void createFieldEditors() {
@@ -199,9 +243,10 @@ public class ClonkPreferencePage extends FieldEditorPreferencePage implements IW
 										}
 									}
 								}
-								else if (val.toLowerCase().startsWith(previousGamePath)) {
+								/* potential to annoy
+								 else if (val.toLowerCase().startsWith(previousGamePath)) {
 									editor.setStringValue(gamePathText + val.substring(previousGamePath.length()));
-								}
+								}*/
 							}
 
 							@Override
@@ -211,7 +256,7 @@ public class ClonkPreferencePage extends FieldEditorPreferencePage implements IW
 								IPath gamePath = new Path(gamePathText);
 								setFile(gamePath, gamePathText, c4GroupEditor, c4GroupAccordingToOS());
 								setFile(gamePath, gamePathText, engineExecutableEditor, C4Engine.possibleEngineNamesAccordingToOS());
-								previousGamePath = gamePathText.toLowerCase();
+								//previousGamePath = gamePathText.toLowerCase();
 							}
 						}
 				);
@@ -219,39 +264,31 @@ public class ClonkPreferencePage extends FieldEditorPreferencePage implements IW
 						c4GroupEditor = new EngineRelatedFileFieldEditor(
 								"c4GroupPath", //$NON-NLS-1$
 								Messages.C4GroupExecutable,
-								engineConfigurationComposite
+								engineConfigurationComposite,
+								appExtensions(false)
 						)
 				);
 				addField(
 						engineExecutableEditor = new EngineRelatedFileFieldEditor(
 								"engineExecutablePath", //$NON-NLS-1$
 								Messages.EngineExecutable,
-								engineConfigurationComposite
+								engineConfigurationComposite,
+								appExtensions(true)
 						) {
-							
-							// this class is not approriate for overridal :C
-							
-							private String[] extensions;
 							
 							@Override
 							protected String changePressed() {
 								String selection = super.changePressed();
 								if (selection != null) {
 									File d = new File(selection);
-									if (Util.isMac() && d.isDirectory() && d.getName().endsWith(".app")) {
-							        	d = new File(d.getAbsolutePath()+"/Contents/MacOS/"+d.getName().substring(0, d.getName().length()-".app".length()));
+									if (Util.isMac() && d.isDirectory() && d.getName().endsWith(".app")) { //$NON-NLS-1$
+							        	d = new File(d.getAbsolutePath()+"/Contents/MacOS/"+d.getName().substring(0, d.getName().length()-".app".length())); //$NON-NLS-1$ //$NON-NLS-2$
 							        }
 									return d.getAbsolutePath();
 								}
 								else
 									return null;
 							};
-							
-							@Override
-							public void setFileExtensions(String[] extensions) {
-								super.setFileExtensions(extensions);
-								this.extensions = extensions;
-							}
 						}
 				);
 				addField(
@@ -351,7 +388,7 @@ public class ClonkPreferencePage extends FieldEditorPreferencePage implements IW
 	@Override
 	protected void initialize() {
 		super.initialize();
-		previousGamePath = ClonkPreferences.getPreferenceOrDefault(ClonkPreferences.GAME_PATH).toLowerCase();
+		//previousGamePath = ClonkPreferences.getPreferenceOrDefault(ClonkPreferences.GAME_PATH).toLowerCase();
 		for (FieldEditor e : enginePrefs) {
 			e.setPreferenceStore(engineConfigPrefStore);
 			e.load();
