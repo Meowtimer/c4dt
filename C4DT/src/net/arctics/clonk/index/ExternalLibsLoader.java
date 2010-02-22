@@ -3,6 +3,7 @@ package net.arctics.clonk.index;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -155,7 +156,12 @@ public final class ExternalLibsLoader implements IC4GroupVisitor {
 							StringTbl tbl = new StringTbl();
 							try {
 								C4GroupEntry entry = mapEntry.getValue();
-								tbl.read(entry.getContents());
+								InputStreamReader reader = new InputStreamReader(entry.getContents());
+								try {
+									tbl.read(reader);
+								} finally {
+									reader.close();
+								}
 							} catch (CoreException e) {
 								e.printStackTrace();
 							}

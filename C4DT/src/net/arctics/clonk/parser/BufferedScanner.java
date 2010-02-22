@@ -2,6 +2,8 @@ package net.arctics.clonk.parser;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.Reader;
+
 import net.arctics.clonk.util.Utilities;
 
 import org.eclipse.core.resources.IFile;
@@ -60,6 +62,10 @@ public class BufferedScanner {
 		}
 	}
 
+	public BufferedScanner(Reader reader) throws IOException {
+		this(Utilities.stringFromReader(reader));
+	}
+	
 	/**
 	 * Create a new scanner that scans the contents of a stream
 	 * @param stream the input stream

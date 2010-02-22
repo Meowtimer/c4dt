@@ -1,6 +1,8 @@
 package net.arctics.clonk.parser.stringtbl;
 
-import java.io.InputStream;
+import java.io.IOException;
+import java.io.Reader;
+import java.io.StringReader;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -18,6 +20,7 @@ import net.arctics.clonk.parser.C4Structure;
 import net.arctics.clonk.parser.NameValueAssignment;
 import net.arctics.clonk.util.ITreeNode;
 import net.arctics.clonk.util.ReadOnlyIterator;
+import net.arctics.clonk.util.Utilities;
 
 public class StringTbl extends C4Structure implements ITreeNode, ITableEntryInformationSink {
 	
@@ -63,8 +66,14 @@ public class StringTbl extends C4Structure implements ITreeNode, ITableEntryInfo
 		return map.get(declarationName);
 	}
 	
-	public static void readStringTbl(InputStream stream, ITableEntryInformationSink sink) {
-		BufferedScanner scanner = new BufferedScanner(stream);
+	public static void readStringTbl(Reader reader, ITableEntryInformationSink sink) {
+		BufferedScanner scanner;
+		try {
+			scanner = new BufferedScanner(reader);
+		} catch (IOException e) {
+			scanner = new BufferedScanner("");
+			e.printStackTrace();
+		}
 		while (!scanner.reachedEOF()) {
 			scanner.eatWhitespace();
 			if (scanner.read() == '#')
@@ -83,8 +92,8 @@ public class StringTbl extends C4Structure implements ITreeNode, ITableEntryInfo
 		}
 	}
 	
-	public void read(InputStream stream) {
-		readStringTbl(stream, this);
+	public void read(Reader reader) {
+		readStringTbl(reader, this);
 	}
 	
 	@Override
@@ -104,17 +113,15 @@ public class StringTbl extends C4Structure implements ITreeNode, ITableEntryInfo
 					IFile file = (IFile) resource;
 					StringTbl tbl = new StringTbl();
 					tbl.setFile(file);
+					String fileContents;
 					try {
-						InputStream fileContents = file.getContents();
-						try {
-							tbl.read(fileContents);
-						} finally {
-							fileContents.close();
-						}
+						fileContents = Utilities.stringFromFile(file);
 					} catch (Exception e) {
 						e.printStackTrace();
 						return null;
 					}
+					StringReader reader = new StringReader(fileContents);
+					tbl.read(reader);
 					return tbl;
 				}
 				return null;

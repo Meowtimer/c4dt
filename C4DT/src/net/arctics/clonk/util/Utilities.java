@@ -1,10 +1,9 @@
 package net.arctics.clonk.util;
 
-import java.io.BufferedReader;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.Reader;
 import java.lang.reflect.Array;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Collection;
@@ -401,26 +400,23 @@ public abstract class Utilities {
 		return false;
 	}
 	
+	public static String stringFromReader(Reader reader) throws IOException {
+		char[] buffer = new char[1024];
+		int read;
+		StringBuilder builder = new StringBuilder(1024);
+		while ((read = reader.read(buffer)) > 0) {
+			builder.append(buffer, 0, read);
+		}
+		return builder.toString();
+	}
+	
 	public static String stringFromInputStream(InputStream stream, String encoding) throws IOException {
 		InputStreamReader inputStreamReader = new InputStreamReader(stream, encoding);
-		StringBuilder stringBuilder;
 		try {
-			BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
-			try {
-				stringBuilder = new StringBuilder();
-				char[] buffer = new char[1024];
-				int read;
-				while ((read = bufferedReader.read(buffer)) > 0) {
-					stringBuilder.append(buffer, 0, read);
-				}
-
-			} finally {
-				bufferedReader.close();
-			}
+			return stringFromReader(inputStreamReader);
 		} finally {
 			inputStreamReader.close();
 		}
-		return stringBuilder.toString();
 	}
 	
 	public static String stringFromInputStream(InputStream stream) throws IOException {
