@@ -14,6 +14,8 @@ public class Messages extends NLS {
 	public static String ClonkFolderView_Refresh0;
 	public static String ClonkFolderView_RemoveLinkedFilesOnShutdown;
 	public static String ClonkPreviewView_Updater;
+	public static String ConvertLinkedGroupsHandler_ConfirmationText;
+	public static String ConvertLinkedGroupsHandler_ConfirmationTitle;
 	public static String TidyUpCodeInBulkAction_ConvertingCode;
 	public static String OpenSpecialItemAction_Open;
 	public static String QuickImportAction_SelectFiles;

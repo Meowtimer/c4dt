@@ -383,6 +383,12 @@
 			id="net.arctics.clonk.ui.QuickImport"
 			defaultHandler="net.arctics.clonk.ui.navigator.QuickImportHandler"
 			name="%QuickImport_Name" />
+		
+		<command categoryId="org.eclipse.ui.category.navigate"
+			description="%ConvertLinkedGroups_Desc"
+			id="net.arctics.clonk.ui.ConvertLinkedGroups"
+			defaultHandler="net.arctics.clonk.ui.navigator.ConvertLinkedGroupsHandler"
+			name="%ConvertLinkedGroups_Name" />
 
 		<command categoryId="org.eclipse.ui.category.edit"
 			description="%TidyUpCode_Desc"
@@ -442,16 +448,14 @@
 				<command commandId="net.arctics.clonk.ui.QuickImport" label="%QuickImport_Name">
 					<visibleWhen checkEnabled="false">
 						<iterate ifEmpty="false">
-							<adapt type="org.eclipse.core.resources.IContainer">
-							</adapt>
+							<adapt type="org.eclipse.core.resources.IContainer" />
 						</iterate>
 					</visibleWhen>
 				</command>
 				<command commandId="net.arctics.clonk.ui.QuickExport" label="%QuickExport_Name">
 					<visibleWhen checkEnabled="false">
 						<iterate ifEmpty="false">
-							<adapt type="org.eclipse.core.resources.IContainer">
-							</adapt>
+							<adapt type="org.eclipse.core.resources.IContainer" />
 						</iterate>
 					</visibleWhen>
 				</command>
@@ -477,6 +481,13 @@
 						<iterate ifEmpty="false">
 							<adapt type="org.eclipse.core.resources.IContainer">
 							</adapt>
+						</iterate>
+					</visibleWhen>
+				</command>
+				<command commandId="net.arctics.clonk.ui.ConvertLinkedGroups" label="%ConvertLinkedGroups_Name">
+					<visibleWhen checkEnabled="false">
+						<iterate ifEmpty="false">
+							<adapt type="org.eclipse.core.resources.IContainer" />
 						</iterate>
 					</visibleWhen>
 				</command>
