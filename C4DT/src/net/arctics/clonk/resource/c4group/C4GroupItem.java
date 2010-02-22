@@ -12,8 +12,10 @@ import net.arctics.clonk.filesystem.C4GroupFileSystem;
 import net.arctics.clonk.resource.c4group.C4Group.C4GroupType;
 import net.arctics.clonk.util.INodeWithPath;
 
+import org.eclipse.core.filesystem.EFS;
 import org.eclipse.core.filesystem.provider.FileStore;
 import org.eclipse.core.resources.IContainer;
+import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.Path;
@@ -138,6 +140,15 @@ public abstract class C4GroupItem extends FileStore implements INodeWithPath {
 	@Override
 	public INodeWithPath getParentNode() {
 		return getParentGroup();
+	}
+	
+	public static boolean isLinkedResource(IResource resource) {
+		try {
+			return EFS.getStore(resource.getLocationURI()) instanceof C4GroupEntry;
+		} catch (CoreException e) {
+			e.printStackTrace();
+			return false;
+		}
 	}
 	
 }

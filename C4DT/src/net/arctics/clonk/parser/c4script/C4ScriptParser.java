@@ -29,11 +29,10 @@ import net.arctics.clonk.parser.c4script.C4Directive.C4DirectiveType;
 import net.arctics.clonk.parser.c4script.C4Function.C4FunctionScope;
 import net.arctics.clonk.parser.c4script.C4ScriptExprTree.*;
 import net.arctics.clonk.parser.c4script.C4Variable.C4VariableScope;
-import net.arctics.clonk.resource.c4group.C4GroupEntry;
+import net.arctics.clonk.resource.c4group.C4GroupItem;
 import net.arctics.clonk.util.Pair;
 import net.arctics.clonk.util.Utilities;
 
-import org.eclipse.core.filesystem.EFS;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IResource;
@@ -273,11 +272,7 @@ public class C4ScriptParser {
 		this.scriptFile = scriptFile;
 		scanner = new BufferedScanner(scriptFile);
 		container = script;
-		try {
-			allErrorsDisabled = EFS.getStore(scriptFile.getLocationURI()) instanceof C4GroupEntry;
-		} catch (CoreException e) {
-			e.printStackTrace();
-		} 
+		allErrorsDisabled = C4GroupItem.isLinkedResource(scriptFile); 
 	}
 
 	/**
@@ -1167,7 +1162,7 @@ public class C4ScriptParser {
 	}
 	
 	public boolean errorDisabled(ParserErrorCode error) {
-		return allErrorsDisabled || disabledErrors.contains(error);
+		return disabledErrors.contains(error);
 	}
 	
 	private static class LatentMarker {
@@ -1261,10 +1256,12 @@ public class C4ScriptParser {
 	}
 	
 	private IMarker markerWithCode(ParserErrorCode code, int errorStart, int errorEnd, boolean noThrow, int severity, Object... args) throws ParsingException {
+		if (errorDisabled(code))
+			return null;
 		IMarker result = null;
 		boolean silence = scriptFile == null || (activeFunc != null && activeFunc.getBody() != null && scanner.getPosition() > activeFunc.getBody().getEnd()+1);
 		String problem = code.getErrorString(args);
-		if (!silence && !errorDisabled(code)) {
+		if (!silence && !allErrorsDisabled) {
 			result = code.createMarker(scriptFile, ClonkCore.MARKER_C4SCRIPT_ERROR, errorStart, errorEnd, severity, problem);
 		}
 		if (!noThrow && severity >= IMarker.SEVERITY_ERROR)

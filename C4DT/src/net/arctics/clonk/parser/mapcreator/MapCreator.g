@@ -5,6 +5,7 @@ package net.arctics.clonk.parser.mapcreator;
 
 import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.SourceLocation;
+import net.arctics.clonk.resource.c4group.C4GroupItem;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
@@ -23,10 +24,12 @@ C4MapOverlayBase current;
 C4MapOverlayBase lastOverlay;
 
 Token valueLo, valueHi;
+private boolean createMarkers;
 
 public MapCreatorParser(C4MapCreator mapCreator, TokenStream input) {
 	this(input);
 	this.mapCreator = mapCreator;
+	createMarkers = mapCreator.getResource() == null || !C4GroupItem.isLinkedResource(mapCreator.getResource());
 	this.current = mapCreator;
 }
 
@@ -108,7 +111,7 @@ private void assignOperator(String t) {
 }
 
 private IMarker createMarker(int start, int end, String message, int severity) {
-	if (mapCreator.getResource() == null) return null;
+	if (!createMarkers || mapCreator.getResource() == null) return null;
 	try {
 		IMarker marker = mapCreator.getResource().createMarker(IMarker.PROBLEM);
 		marker.setAttribute(IMarker.SEVERITY, severity);

@@ -19,6 +19,7 @@ import net.arctics.clonk.parser.SourceLocation;
 import net.arctics.clonk.parser.inireader.IniData.IniConfiguration;
 import net.arctics.clonk.parser.inireader.IniData.IniDataEntry;
 import net.arctics.clonk.parser.inireader.IniData.IniSectionData;
+import net.arctics.clonk.resource.c4group.C4GroupItem;
 import net.arctics.clonk.util.IHasChildren;
 import net.arctics.clonk.util.IPredicate;
 import net.arctics.clonk.util.ITreeNode;
@@ -168,6 +169,8 @@ public class IniUnit extends C4Structure implements Iterable<IniSection>, IHasCh
 		if (modifyMarkers && getIniFile() != null) {
 			try {
 				getIniFile().deleteMarkers(IMarker.PROBLEM, true, IResource.DEPTH_ONE);
+				// deactivate creating markers if it's contained in a linked group
+				modifyMarkers = !C4GroupItem.isLinkedResource(getIniFile());
 			} catch (CoreException e) {
 				e.printStackTrace();
 			}
@@ -495,6 +498,9 @@ public class IniUnit extends C4Structure implements Iterable<IniSection>, IHasCh
 	
 	@Override
 	public void validate() {
+		// don't bother letting items complain if errors shouldn't be shown anyway (in linked groups)
+		if (C4GroupItem.isLinkedResource(iniFile))
+			return;
 		try {
 			iniFile.deleteMarkers(ClonkCore.MARKER_C4SCRIPT_ERROR, true, 0);
 		} catch (CoreException e1) {
