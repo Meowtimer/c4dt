@@ -1261,12 +1261,10 @@ public class C4ScriptParser {
 	}
 	
 	private IMarker markerWithCode(ParserErrorCode code, int errorStart, int errorEnd, boolean noThrow, int severity, Object... args) throws ParsingException {
-		if (errorDisabled(code))
-			return null;
 		IMarker result = null;
 		boolean silence = scriptFile == null || (activeFunc != null && activeFunc.getBody() != null && scanner.getPosition() > activeFunc.getBody().getEnd()+1);
 		String problem = code.getErrorString(args);
-		if (!silence) {
+		if (!silence && !errorDisabled(code)) {
 			result = code.createMarker(scriptFile, ClonkCore.MARKER_C4SCRIPT_ERROR, errorStart, errorEnd, severity, problem);
 		}
 		if (!noThrow && severity >= IMarker.SEVERITY_ERROR)
