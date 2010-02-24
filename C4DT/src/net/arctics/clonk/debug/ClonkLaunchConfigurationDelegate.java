@@ -39,8 +39,7 @@ import org.eclipse.debug.core.model.ILaunchConfigurationDelegate;
 import org.eclipse.debug.core.model.IProcess;
 import org.eclipse.jface.util.Util;
 
-public class ClonkLaunchConfigurationDelegate implements
-		ILaunchConfigurationDelegate {
+public class ClonkLaunchConfigurationDelegate implements ILaunchConfigurationDelegate {
 	
 	public static final String LAUNCH_TYPE = ClonkCore.id("debug.ClonkLaunch"); //$NON-NLS-1$
 	
@@ -52,8 +51,7 @@ public class ClonkLaunchConfigurationDelegate implements
 	
 	public static int DEFAULT_DEBUG_PORT = 10464;
 	
-	public void launch(ILaunchConfiguration configuration, String mode, ILaunch launch,
-			IProgressMonitor monitor) throws CoreException {
+	public void launch(ILaunchConfiguration configuration, String mode, ILaunch launch, IProgressMonitor monitor) throws CoreException {
 
 		// Run only for now
 		/*if(!mode.equals(ILaunchManager.RUN_MODE))
@@ -140,11 +138,15 @@ public class ClonkLaunchConfigurationDelegate implements
 	public File verifyClonkInstall(ILaunchConfiguration configuration, IFolder scenario) throws CoreException {
 		
 		C4ScriptBase scenarioScript = C4Scenario.scenarioCorrespondingTo(scenario);
-		String gamePath = scenarioScript != null ? scenarioScript.getEngine().getCurrentSettings().gamePath : "";
+		String gamePath = scenarioScript != null ? scenarioScript.getEngine().getCurrentSettings().gamePath : null;
+		if (gamePath == null)
+			gamePath = null;
 
 		File enginePath = null;
-		String enginePref = scenarioScript != null ? scenarioScript.getEngine().getCurrentSettings().engineExecutablePath : "";
-		if (enginePref != "") { //$NON-NLS-1$
+		String enginePref = scenarioScript != null ? scenarioScript.getEngine().getCurrentSettings().engineExecutablePath : null;
+		if (enginePref == null)
+			enginePref = "";
+		if (!enginePref.equals("")) { //$NON-NLS-1$
 			enginePath = new File(enginePref);
 			if (!enginePath.exists())
 				enginePath = null;

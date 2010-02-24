@@ -35,6 +35,8 @@ Import-Package: org.eclipse.core.filesystem,
  org.eclipse.ui.texteditor.spelling
 Export-Package: net.arctics.clonk,
  net.arctics.clonk.parser,
+ net.arctics.clonk.parser.c4script,
+ net.arctics.clonk.parser.mapcreator,
  net.arctics.clonk.preferences,
  net.arctics.clonk.resource,
  net.arctics.clonk.resource.c4group,
