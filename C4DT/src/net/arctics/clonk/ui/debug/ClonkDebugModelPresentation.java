@@ -7,8 +7,6 @@ import net.arctics.clonk.debug.ClonkDebugThread;
 import net.arctics.clonk.index.IExternalScript;
 import net.arctics.clonk.parser.c4script.C4ScriptBase;
 import net.arctics.clonk.ui.editors.c4script.ScriptWithStorageEditorInput;
-import net.arctics.clonk.util.Utilities;
-
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.debug.core.DebugException;
@@ -37,10 +35,7 @@ public class ClonkDebugModelPresentation extends LabelProvider implements IDebug
 
 	@Override
 	public String getEditorId(IEditorInput input, Object element) {
-		if (element instanceof IFile && Utilities.getScriptForFile((IFile) element) != null)
-			return "clonk.editors.C4ScriptEditor"; //$NON-NLS-1$
-		else
-			return null;
+		return "clonk.editors.C4ScriptEditor"; //$NON-NLS-1$
 	}
 
 	@Override
@@ -49,6 +44,10 @@ public class ClonkDebugModelPresentation extends LabelProvider implements IDebug
 			return new FileEditorInput((IFile) element);
 		else if (element instanceof IExternalScript)
 			return new ScriptWithStorageEditorInput((C4ScriptBase)element);
+		else if (element instanceof ClonkDebugLineBreakpoint) {
+			ClonkDebugLineBreakpoint breakpoint = (ClonkDebugLineBreakpoint) element;
+			return getEditorInput(breakpoint.getMarker().getResource());
+		}
 		return null;
 	}
 	
