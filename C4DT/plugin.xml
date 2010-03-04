@@ -402,12 +402,6 @@
 			name="%TidyUpCode_Name" />
 		
 		<command categoryId="org.eclipse.ui.category.edit"
-			description="%ImportExternalLib_Desc"
-			id="net.arctics.clonk.ui.navigator.actions.ImportExternalLib"
-			defaultHandler="net.arctics.clonk.ui.navigator.ImportExternalLibHandler"
-			name="%ImportExternalLib_Name" />
-		
-		<command categoryId="org.eclipse.ui.category.edit"
 			description="%LinkC4GroupFile_Desc"
 			id="net.arctics.clonk.ui.navigator.actions.LinkC4GroupFile"
 			defaultHandler="net.arctics.clonk.ui.navigator.LinkC4GroupFileHandler"
@@ -501,14 +495,6 @@
 					</visibleWhen>
 				</command>
 				<separator name="AfterCodeConversionSeparator" visible="true" />
-				<command commandId="net.arctics.clonk.ui.navigator.actions.ImportExternalLib" label="%ImportExternalLib_Name">
-					<visibleWhen checkEnabled="false">
-						<iterate ifEmpty="false">
-							<adapt type="net.arctics.clonk.resource.ExternalLib">
-							</adapt>
-						</iterate>
-					</visibleWhen>
-				</command>
 				<command commandId="net.arctics.clonk.ui.navigator.actions.LinkC4GroupFile" label="%LinkC4GroupFile_Name">
 					<visibleWhen checkEnabled="false">
 						<iterate ifEmpty="false">
@@ -642,12 +628,6 @@
 					value="net.arctics.clonk.ui.editors.c4script.ScriptWithStorageEditorInput" />
 			</editorInputEnablement>
 		</linkHelper>
-	</extension>
-
-	<extension point="org.eclipse.ui.elementFactories">
-		<factory
-			class="net.arctics.clonk.ui.editors.c4script.ScriptWithStorageEditorInputFactory"
-			id="net.arctics.clonk.ui.editors.scriptWithStorageEditorInputFactory" />
 	</extension>
 	
 	<extension point="org.eclipse.ui.ide.markerResolution">

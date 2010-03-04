@@ -36,6 +36,7 @@ import net.arctics.clonk.util.Utilities;
 
 public class Command {
 	public static final C4ScriptBase COMMAND_BASESCRIPT;
+	public static final ClonkIndex COMMANDS_INDEX = new ClonkIndex();
 	
 	public static class C4CommandScript extends C4ScriptBase {
 		
@@ -61,7 +62,7 @@ public class Command {
 		
 		@Override
         public ClonkIndex getIndex() {
-	        return ClonkCore.getDefault().getExternIndex();
+	        return COMMANDS_INDEX;
         }
 
 		@Override
@@ -137,7 +138,7 @@ public class Command {
             
 			@Override
 			public ClonkIndex getIndex() {
-			    return ClonkCore.getDefault().getExternIndex();
+			    return COMMANDS_INDEX;
 			}
 			@Override
 			public Object getScriptFile() {

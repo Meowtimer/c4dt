@@ -6,7 +6,7 @@ import java.lang.reflect.Field;
 import org.eclipse.jface.util.Util;
 
 import net.arctics.clonk.parser.C4Declaration;
-import net.arctics.clonk.parser.C4ID;
+import net.arctics.clonk.parser.c4script.C4ScriptBase;
 import net.arctics.clonk.util.Utilities;
 
 /**
@@ -14,7 +14,7 @@ import net.arctics.clonk.util.Utilities;
  * @author Madeen
  *
  */
-public class C4Engine extends C4ObjectExtern {
+public class C4Engine extends C4ScriptBase {
 
 	private static final long serialVersionUID = 1L;
 	
@@ -80,20 +80,8 @@ public class C4Engine extends C4ObjectExtern {
 	}
 
 	public C4Engine(String name) {
-	    super(null, name, null, null);
-    }
-    
-    @Override
-    public void setName(String name) {
-        super.setName(name);
-        // sync node name
-        nodeName = name;
-        id = C4ID.getID(name);
-    }
-    
-    @Override
-    public void setId(C4ID newId) {
-        // ignore
+		super();
+		setName(name);
     }
     
     public void modified() {
@@ -143,6 +131,16 @@ public class C4Engine extends C4ObjectExtern {
 	@Override
 	public C4Engine getEngine() {
 		return this;
+	}
+
+	@Override
+	public Object getScriptFile() {
+		return new Object();
+	}
+
+	@Override
+	public ClonkIndex getIndex() {
+		return null;
 	}
 
 }

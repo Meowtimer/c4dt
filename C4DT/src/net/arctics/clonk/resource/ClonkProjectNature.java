@@ -3,8 +3,6 @@ package net.arctics.clonk.resource;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.ObjectOutputStream;
-import java.util.List;
-
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.index.C4ObjectIntern;
 import net.arctics.clonk.index.ClonkIndex;
@@ -109,10 +107,6 @@ public class ClonkProjectNature implements IProjectNature {
 			}
 		}
 		index = loadedIndex != null ? loadedIndex : new ProjectIndex(getProject());
-	}
-
-	public List<ExternalLib> getExternalDependencies() {
-		return getIndex().getExternalDependencies();
 	}
 	
 	/**

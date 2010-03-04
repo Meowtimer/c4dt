@@ -189,9 +189,6 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 		statusMessages.add(Messages.C4ScriptCompletionProcessor_ProjectFiles);
 		
 		if (proposalCycle == ProposalCycle.SHOW_ALL || activeFunc == null) {
-			if (!ClonkCore.getDefault().getExternIndex().isEmpty()) {
-				statusMessages.add(Messages.C4ScriptCompletionProcessor_ExternalLibraries);
-			}
 			if (getEditor().scriptBeingEdited().getIndex().getEngine() != null) {
 				statusMessages.add(Messages.C4ScriptCompletionProcessor_EngineFunctions);
 			}
@@ -290,9 +287,6 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 		if (proposalCycle != ProposalCycle.SHOW_OBJECT)
 			for (ClonkIndex i : index.relevantIndexes())
 				proposalsForIndex(i, offset, wordOffset, prefix, proposals);
-		if (proposalCycle == ProposalCycle.SHOW_ALL)
-			proposalsForIndex(ClonkCore.getDefault().getExternIndex(), offset, wordOffset, prefix, proposals);
-
 
 		if (contextScript != null) {
 			proposalsFromScript(contextScript, new HashSet<C4ScriptBase>(), prefix, offset, wordOffset, proposals, contextObjChanged, index);
@@ -399,8 +393,6 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 		// propose objects for #include or something
 		for (ClonkIndex i : index.relevantIndexes())
 			proposalsForIndex(i, offset, wordOffset, prefix, proposals);
-		if (proposalCycle == ProposalCycle.SHOW_ALL)
-			proposalsForIndex(ClonkCore.getDefault().getExternIndex(), offset, wordOffset, prefix, proposals);
 	}
 
 	private String getProposalCycleMessage() {

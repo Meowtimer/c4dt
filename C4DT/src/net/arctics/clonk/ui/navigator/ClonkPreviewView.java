@@ -2,7 +2,6 @@ package net.arctics.clonk.ui.navigator;
 
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.StringReader;
 import java.io.StringWriter;
 
@@ -12,15 +11,12 @@ import javax.swing.text.html.HTMLEditorKit;
 import javax.swing.text.rtf.RTFEditorKit;
 
 import net.arctics.clonk.ClonkCore;
-import net.arctics.clonk.index.C4GroupEntryStorage;
-import net.arctics.clonk.index.C4ObjectExtern;
 import net.arctics.clonk.index.C4ObjectIntern;
 import net.arctics.clonk.parser.C4Structure;
 import net.arctics.clonk.parser.inireader.DefCoreUnit;
 import net.arctics.clonk.parser.inireader.IniEntry;
 import net.arctics.clonk.parser.inireader.IntegerArray;
 import net.arctics.clonk.preferences.ClonkPreferences;
-import net.arctics.clonk.resource.c4group.C4Group;
 import net.arctics.clonk.util.Utilities;
 
 import org.eclipse.core.resources.IContainer;
@@ -264,47 +260,6 @@ public class ClonkPreviewView extends ViewPart implements ISelectionListener {
 						}
 					}
 				}
-
-			}
-			else if (sel instanceof C4ObjectExtern) {
-				C4ObjectExtern obj = (C4ObjectExtern) sel;
-				if (obj.getCachedPicture() != null) {
-					newImage = obj.getCachedPicture();
-					newDoNotDispose = true;
-				} else {
-					C4Group group = C4GroupEntryStorage.selectGroup(obj, "Graphics.png", "DefCore.txt"); //$NON-NLS-1$ //$NON-NLS-2$
-					if (group != null) {
-						try {
-							InputStream graphics = new C4GroupEntryStorage(group, "Graphics.png").getContents(); //$NON-NLS-1$
-							try {
-								Image fullGraphics = new Image(canvas.getDisplay(), graphics);
-								try {
-									InputStream defCoreStream = new C4GroupEntryStorage(group, "DefCore.txt").getContents(); //$NON-NLS-1$
-									try {
-										DefCoreUnit defCore = new DefCoreUnit(defCoreStream);
-										defCore.parse(false);
-										newImage = getPicture(defCore, fullGraphics);
-									} finally {
-										defCoreStream.close();
-									}
-								} finally {
-									if (newImage == null)
-										newImage = fullGraphics;
-									else
-										fullGraphics.dispose();
-									obj.setCachedPicture(newImage);
-									newDoNotDispose = true;
-								}
-							} finally {
-								graphics.close();
-							}
-						} finally {
-							group.getMasterGroup().close();
-						}
-					}
-				}
-				newHtml = obj.getInfoText();
-				newDefText = obj.idWithName();
 			}
 		} catch (Exception e) {
 			e.printStackTrace();

@@ -4,10 +4,8 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.index.C4Engine;
 import net.arctics.clonk.index.C4Object;
-import net.arctics.clonk.index.IExternalScript;
 import net.arctics.clonk.parser.C4Declaration;
 import net.arctics.clonk.parser.C4Structure;
 import net.arctics.clonk.parser.SourceLocation;
@@ -336,10 +334,7 @@ public class C4Function extends C4Structure implements Serializable, ITypedDecla
 				return field;
 		}
 		
-		C4Function f = ClonkCore.getDefault().getExternIndex().findGlobalFunction(getName());
-		if (f != null)
-			return f;
-		f = getScript().getIndex().getEngine().findFunction(getName());
+		C4Function f = getScript().getIndex().getEngine().findFunction(getName());
 		if (f != null)
 			return f;
 		
@@ -471,7 +466,7 @@ public class C4Function extends C4Structure implements Serializable, ITypedDecla
 	
 	public boolean tooManyParameters(int num) {
 		return
-			!(getScript() instanceof IExternalScript) &&
+			//!(getScript() instanceof IExternalScript) && FIXME: Keep in post-externallib world?
 			(getParameters().size() == 0 || getParameters().get(getParameters().size()-1).isActualParm()) &&
 			num > getParameters().size();
 	}

@@ -4,9 +4,6 @@ import net.arctics.clonk.debug.ClonkDebugLineBreakpoint;
 import net.arctics.clonk.debug.ClonkDebugStackFrame;
 import net.arctics.clonk.debug.ClonkDebugTarget;
 import net.arctics.clonk.debug.ClonkDebugThread;
-import net.arctics.clonk.index.IExternalScript;
-import net.arctics.clonk.parser.c4script.C4ScriptBase;
-import net.arctics.clonk.ui.editors.c4script.ScriptWithStorageEditorInput;
 import net.arctics.clonk.util.Utilities;
 
 import org.eclipse.core.resources.IFile;
@@ -47,8 +44,6 @@ public class ClonkDebugModelPresentation extends LabelProvider implements IDebug
 	public IEditorInput getEditorInput(Object element) {
 		if (element instanceof IFile)
 			return new FileEditorInput((IFile) element);
-		else if (element instanceof IExternalScript)
-			return new ScriptWithStorageEditorInput((C4ScriptBase)element);
 		return null;
 	}
 	

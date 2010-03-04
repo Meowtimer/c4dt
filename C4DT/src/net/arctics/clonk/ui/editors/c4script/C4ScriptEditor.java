@@ -66,6 +66,10 @@ public class C4ScriptEditor extends ClonkTextEditor {
 	private static final class ScratchScript extends C4ScriptBase implements IHasEditorRefWhichEnablesStreamlinedOpeningOfDeclarations {
 		private transient final C4ScriptEditor me;
 		private static final long serialVersionUID = 1L;
+		
+		private static ClonkIndex scratchIndex = new ClonkIndex() {
+			private static final long serialVersionUID = 1L;
+		};
 
 		private ScratchScript(C4ScriptEditor me) {
 			this.me = me;
@@ -73,7 +77,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 
 		@Override
 		public ClonkIndex getIndex() {
-			return ClonkCore.getDefault().getExternIndex();
+			return scratchIndex;
 		}
 
 		@Override

@@ -4,8 +4,6 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import net.arctics.clonk.index.C4ObjectExtern;
-
 import org.eclipse.jface.viewers.IStructuredSelection;
 
 import org.eclipse.swt.dnd.DragSourceEvent;
@@ -33,9 +31,9 @@ public class DragExternalDefsAssistant extends CommonDragAdapterAssistant {
 				List<String> files = new ArrayList<String>();
 				for (Iterator<?> it = selection.iterator(); it.hasNext();) {
 					Object elm = it.next();
-					if (elm instanceof C4ObjectExtern) {
+					/*if (elm instanceof C4ObjectExtern) {
 						files.add(((C4ObjectExtern)elm).getFilePath());
-					}
+					}*/
 				}
 				if (!files.isEmpty()) {
 					event.data = files.toArray(new String[files.size()]);

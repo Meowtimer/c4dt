@@ -1,6 +1,5 @@
 package net.arctics.clonk.resource;
 
-import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.util.HashMap;
@@ -10,19 +9,16 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.index.C4Object;
 import net.arctics.clonk.index.C4ObjectIntern;
 import net.arctics.clonk.index.C4ObjectParser;
 import net.arctics.clonk.index.ClonkIndex;
-import net.arctics.clonk.index.ExternalLibsLoader;
 import net.arctics.clonk.index.ProjectIndex;
 import net.arctics.clonk.parser.c4script.C4ScriptBase;
 import net.arctics.clonk.parser.c4script.C4ScriptIntern;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.C4Structure;
 import net.arctics.clonk.parser.ParsingException;
-import net.arctics.clonk.preferences.ClonkPreferences;
 import net.arctics.clonk.resource.c4group.C4Group;
 import net.arctics.clonk.resource.c4group.C4Group.C4GroupType;
 import net.arctics.clonk.ui.editors.ClonkTextEditor;
@@ -40,7 +36,6 @@ import org.eclipse.core.resources.IResourceVisitor;
 import org.eclipse.core.resources.IncrementalProjectBuilder;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.SubProgressMonitor;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IEditorReference;
@@ -167,14 +162,6 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 
 	// keeps track of parsers created for specific scripts
 	private Map<C4ScriptBase, C4ScriptParser> parserMap = new HashMap<C4ScriptBase, C4ScriptParser>();
-	
-	private String[] externalLibs;
-
-	public ClonkBuilder() {
-		super();
-		// ensure lib builder object
-		ClonkCore.getDefault().getLibBuilder();
-	}
 
 	public void worked(int count) {
 		monitor.worked(count);
@@ -182,15 +169,12 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 
 	@Override
 	protected void clean(IProgressMonitor monitor) throws CoreException {
-		// clean external libs - this does not rebuild
-		ClonkCore.getDefault().getLibBuilder().clean();
 		
 		// clean up this project
 		if (monitor != null) monitor.beginTask(Messages.CleaningUp, 1);
 		IProject proj = this.getProject();
 		if (proj != null) {
 			ProjectIndex projIndex = ClonkProjectNature.get(proj).getIndex();
-			externalLibs = projIndex.getLibPaths();
 			projIndex.clear();
 			proj.accept(new ResourceCounterAndCleaner(0));
 		}
@@ -250,7 +234,6 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 				case FULL_BUILD:
 					proj.accept(new C4GroupStreamHandler(C4GroupStreamHandler.OPEN));
 					try {
-						ProjectIndex projIndex = ClonkProjectNature.get(proj).getIndex();
 
 						// calculate build duration
 						int[] operations = new int[5];
@@ -263,19 +246,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 
 						operations[2] = 0;
 						operations[3] = 0;
-						ClonkLibBuilder libBuilder = ClonkCore.getDefault().getLibBuilder();
-						if (libBuilder.isBuildNeeded()) {
-							String[] externalLibs = getExternalLibNames();
-							for(String lib : externalLibs) {
-								File file = new File(lib);
-								if (file.exists()) {
-									operations[2] += (int) (file.length() / 7000); // approximate time
-								}
-							}
-							operations[3] = operations[2] / 2; // approximate save time
-						}
-
-						operations[4] = externalLibs != null ? externalLibs.length : 0;
+						operations[4] = 0; // FIXME: externallibs times
 
 						int workSum = 0;
 						for (int work : operations)
@@ -283,18 +254,6 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 
 						// initialize progress monitor
 						monitor.beginTask(String.format(Messages.BuildProject, proj.getName()), workSum);
-
-						// build external lib if needed
-						if (libBuilder.isBuildNeeded()) {
-							monitor.subTask(Messages.ParsingLibraries);
-							libBuilder.build(new SubProgressMonitor(monitor,operations[2]));
-
-							monitor.subTask(Messages.SavingLibraries);
-							ClonkCore.getDefault().saveExternIndex(new SubProgressMonitor(monitor,operations[3]));
-						}
-
-						if (externalLibs != null)
-							ExternalLibsLoader.readExternalLibs(projIndex, new SubProgressMonitor(monitor, operations[4]), externalLibs);
 
 						// build project
 						monitor.subTask(String.format(Messages.IndexProject, proj.getName()));
@@ -429,11 +388,6 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 	private void refreshUIAfterBuild(List<IResource> listOfResourcesToBeRefreshed) {
 		// refresh outlines
 		Display.getDefault().asyncExec(new UIRefresher(listOfResourcesToBeRefreshed));
-	}
-
-	private String[] getExternalLibNames() {
-		String optionString = ClonkCore.getDefault().getPreferenceStore().getString(ClonkPreferences.STANDARD_EXT_LIBS);
-		return optionString.split("<>"); //$NON-NLS-1$
 	}
 
 	private C4ScriptParser getParserFor(C4ScriptBase script) {

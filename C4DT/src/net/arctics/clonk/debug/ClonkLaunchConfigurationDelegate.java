@@ -8,11 +8,9 @@ import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.index.C4Engine;
 import net.arctics.clonk.index.C4Scenario;
 import net.arctics.clonk.index.ClonkIndex;
-import net.arctics.clonk.index.ExternIndex;
 import net.arctics.clonk.index.ProjectIndex;
 import net.arctics.clonk.parser.c4script.C4ScriptBase;
 import net.arctics.clonk.resource.ClonkProjectNature;
-import net.arctics.clonk.resource.ExternalLib;
 import net.arctics.clonk.resource.c4group.C4Group;
 import net.arctics.clonk.resource.c4group.C4Group.C4GroupType;
 import net.arctics.clonk.util.Utilities;
@@ -195,15 +193,6 @@ public class ClonkLaunchConfigurationDelegate implements ILaunchConfigurationDel
 								args.add(res.getRawLocationURI().getSchemeSpecificPart());
 				}
 			}
-			if (index instanceof ExternIndex) {
-				for (ExternalLib lib : ((ExternIndex)index).getLibs())
-					args.add(lib.getFullPath());
-			}
-		}
-		
-		// also add external dependencies
-		for (ExternalLib lib : ClonkProjectNature.get(scenario).getExternalDependencies()) {
-			args.add(lib.getFullPath());
 		}
 		
 		// Full screen/console

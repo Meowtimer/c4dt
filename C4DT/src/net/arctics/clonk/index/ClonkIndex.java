@@ -337,16 +337,6 @@ public class ClonkIndex implements Serializable, Iterable<C4Object> {
 		return Utilities.pickNearest(resource, fromList, null);
 	}
 	
-	public C4Object getExternalObject(C4ID id) {
-		List<C4Object> obj = ClonkCore.getDefault().getExternIndex().getObjects(id);
-		if (obj != null) {
-			for (C4Object o : obj) {
-				return o;
-			}
-		}
-		return null;
-	}
-	
 	public static void addIndexesFromReferencedProjects(List<ClonkIndex> result, ClonkIndex index) {
 		if (index instanceof ProjectIndex) {
 			ProjectIndex projIndex = (ProjectIndex) index;
@@ -387,8 +377,6 @@ public class ClonkIndex implements Serializable, Iterable<C4Object> {
 			if (best != null)
 				break;
 		}
-		if (best == null && this != ClonkCore.getDefault().getExternIndex())
-			best = getExternalObject(id);
 		return best;
 	}
 	

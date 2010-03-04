@@ -23,7 +23,6 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.xpath.XPathExpressionException;
 
 import net.arctics.clonk.index.C4Engine;
-import net.arctics.clonk.index.ExternIndex;
 import net.arctics.clonk.index.ProjectIndex;
 import net.arctics.clonk.index.C4Engine.EngineSettings;
 import net.arctics.clonk.parser.inireader.IniData;
@@ -31,7 +30,6 @@ import net.arctics.clonk.parser.inireader.IniUnit;
 import net.arctics.clonk.parser.mapcreator.C4MapCreator;
 import net.arctics.clonk.parser.stringtbl.StringTbl;
 import net.arctics.clonk.preferences.ClonkPreferences;
-import net.arctics.clonk.resource.ClonkLibBuilder;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.resource.InputStreamRespectingUniqueIDs;
 import net.arctics.clonk.util.IRunnableWithProgressAndResult;
@@ -102,11 +100,6 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 	private Map<String, C4Engine> loadedEngines = new HashMap<String, C4Engine>();
 
 	/**
-	 * Index that contains objects and scripts imported from external object packs and .c4g-groups 
-	 */
-	private ExternIndex externIndex;
-
-	/**
 	 * ini configuration definitions for the various Clonk configuration files
 	 */
 	public IniData iniConfigurations;
@@ -115,11 +108,6 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 	 * Shared instance
 	 */
 	private static ClonkCore plugin;
-
-	/**
-	 * builder to import external libs
-	 */
-	private ClonkLibBuilder libBuilder = null;
 
 	/**
 	 * Provider used by the plugin to provide text of documents
@@ -145,7 +133,6 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 		loadIniConfigurations();
 
 		loadActiveEngine();
-		loadExternIndex(); 
 
 		// FIXME: this is deprecated and stuff
 		ResourcesPlugin.getWorkspace().addSaveParticipant(this, this);
@@ -349,11 +336,6 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 	    return getStateLocation().append("engines"); //$NON-NLS-1$
     }
 
-	public ClonkLibBuilder getLibBuilder() {
-		if (libBuilder == null) libBuilder = new ClonkLibBuilder();
-		return libBuilder;
-	}
-
 	public static IPath getExternLibCacheFile() {
 		IPath path = ClonkCore.getDefault().getStateLocation();
 		return path.append("externlib"); //$NON-NLS-1$
@@ -434,40 +416,6 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 	
 	public void saveActiveEngineInWorkspace() {
 		saveEngineInWorkspace(getActiveEngine().getName());
-	}
-
-	public void saveExternIndex(IProgressMonitor monitor) throws FileNotFoundException {
-		if (monitor != null) monitor.beginTask(Messages.ClonkCore_14, 1);
-		final File index = getExternLibCacheFile().toFile();
-		FileOutputStream out = new FileOutputStream(index);
-
-		try {
-			ObjectOutputStream objStream = new ObjectOutputStream(out);
-			objStream.writeObject(externIndex);
-			objStream.close();
-			if (monitor != null) monitor.worked(1);
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		if (monitor != null)
-			monitor.done();
-	}
-
-	public void loadExternIndex() {
-		final File index = getExternLibCacheFile().toFile();
-		if (!index.exists()) {
-			externIndex = new ExternIndex();
-		} else {
-			try {
-				FileInputStream in = new FileInputStream(index);
-				ObjectInputStream objStream = new InputStreamRespectingUniqueIDs(in);
-				externIndex = (ExternIndex)objStream.readObject();
-				externIndex.postSerialize();
-			} catch (Exception e) {
-				externIndex = new ExternIndex();
-			}
-		}
 	}
 
 	/*
@@ -601,20 +549,6 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 	 */
 	public C4Engine getActiveEngine() {
 		return activeEngine;
-	}
-
-	/**
-	 * @param externIndex the externIndex to set
-	 */
-	public void setExternIndex(ExternIndex externIndex) {
-		this.externIndex = externIndex;
-	}
-
-	/**
-	 * @return the externIndex
-	 */
-	public ExternIndex getExternIndex() {
-		return externIndex;
 	}
 
 	/**

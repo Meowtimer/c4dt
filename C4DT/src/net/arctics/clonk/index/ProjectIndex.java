@@ -7,7 +7,6 @@ import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.c4script.C4ScriptBase;
 import net.arctics.clonk.parser.c4script.C4ScriptIntern;
 import net.arctics.clonk.resource.ClonkProjectNature;
-import net.arctics.clonk.resource.ExternalLib;
 import net.arctics.clonk.util.Utilities;
 
 import org.eclipse.core.resources.IProject;
@@ -15,7 +14,7 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.Path;
 
-public class ProjectIndex extends ExternIndex {
+public class ProjectIndex extends ClonkIndex {
 
 	private static final long serialVersionUID = 1L;
 	public static final String INDEXFILE_SUFFIX = ".index"; //$NON-NLS-1$
@@ -45,20 +44,6 @@ public class ProjectIndex extends ExternIndex {
 				cachedEngine = ClonkCore.getDefault().getActiveEngine();
 		}
 		return cachedEngine;
-	}
-
-	public List<ExternalLib> getExternalDependencies() {
-		return this.getLibs();
-		/*List<ExternalLib> allLibs = ClonkCore.getDefault().getExternIndex().getLibs();
-		// no explicit dependencies specified; return all set in preferences
-		if (dependencyNames == null)
-			return allLibs;
-		// filter
-		return Utilities.filter(allLibs, new IPredicate<ExternalLib>() {
-			public boolean test(ExternalLib lib) {
-				return Utilities.collectionContains(dependencyNames, lib.getNodeName());
-			}
-		});*/
 	}
 	
 	public ClonkProjectNature getNature() {
@@ -105,7 +90,6 @@ public class ProjectIndex extends ExternIndex {
 				this.removeScript(s);
 			}
 		}
-		getLibs().clear(); // deprecated - just remove
 		super.postSerialize();
 	}
 	

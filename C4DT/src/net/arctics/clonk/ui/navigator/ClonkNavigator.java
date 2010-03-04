@@ -1,14 +1,8 @@
 package net.arctics.clonk.ui.navigator;
 
 import java.util.Collection;
-import java.util.List;
-
-
-import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.C4Structure;
 import net.arctics.clonk.parser.c4script.C4ScriptBase;
-import net.arctics.clonk.resource.ClonkProjectNature;
-import net.arctics.clonk.resource.ExternalLib;
 import net.arctics.clonk.util.INode;
 import net.arctics.clonk.util.ITreeNode;
 import net.arctics.clonk.util.Utilities;
@@ -16,7 +10,6 @@ import net.arctics.clonk.util.Utilities;
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
-import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jface.viewers.Viewer;
 
@@ -49,15 +42,7 @@ public class ClonkNavigator extends ClonkOutlineProvider {
 			}
 		}
 		else if (element instanceof IProject) {
-			try {
-				if (((IProject) element).hasNature(ClonkCore.CLONK_DEPS_NATURE_ID)) {
-					ClonkProjectNature clonkProj = ClonkProjectNature.get((IResource)element);
-					List<ExternalLib> deps = clonkProj != null
-						? clonkProj.getExternalDependencies()
-						: ClonkCore.getDefault().getExternIndex().getLibs();
-					return Utilities.concat(baseResources, deps.toArray(new Object[deps.size()]));
-				}
-			} catch (CoreException e) {}
+			// actually ... there is nothing to add. move along
 		}
 		else if (element instanceof ITreeNode) {
 			Collection<? extends INode> children = ((ITreeNode)element).getChildCollection();

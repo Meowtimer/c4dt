@@ -16,7 +16,6 @@ import java.util.Vector;
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.index.C4Object;
 import net.arctics.clonk.index.ClonkIndex;
-import net.arctics.clonk.index.IExternalScript;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.SilentParsingException;
 import net.arctics.clonk.parser.BufferedScanner;
@@ -287,12 +286,6 @@ public class C4ScriptParser {
 		scriptFile = null;
 		scanner = new BufferedScanner(stream);
 		container = script;
-	}
-	
-	public C4ScriptParser(IExternalScript externalScript) {
-		scriptFile = null;
-		scanner = new BufferedScanner(externalScript.getScriptText());
-		container = (C4ScriptBase) externalScript;
 	}
 	
 	/**
@@ -1053,6 +1046,30 @@ public class C4ScriptParser {
 		}
 		scanner.seek(offset);
 		return false;
+	}
+
+	private static final class TempScript extends C4ScriptBase {
+		private final String expression;
+		private static final long serialVersionUID = 1L;
+		private static final ClonkIndex tempIndex = new ClonkIndex();
+
+		private TempScript(String expression) {
+			this.expression = expression;
+		}
+
+		@Override
+		public ClonkIndex getIndex() {
+			return tempIndex;
+		}
+
+		@Override
+		public Object getScriptFile() {
+			try {
+				return new SimpleScriptStorage(expression, expression);
+			} catch (UnsupportedEncodingException e) {
+				return null;
+			}
+		}
 	}
 
 	/**
@@ -2558,24 +2575,7 @@ public class C4ScriptParser {
 	
 	public static Statement parseStandaloneStatement(final String expression, C4Function context, IExpressionListener listener) throws ParsingException {
 		if (context == null) {
-			C4ScriptBase tempScript = new C4ScriptBase() {
-				private static final long serialVersionUID = 1L;
-
-				@Override
-				public ClonkIndex getIndex() {
-					return ClonkCore.getDefault().getExternIndex();
-				}
-
-				@Override
-				public Object getScriptFile() {
-					try {
-						return new SimpleScriptStorage(expression, expression);
-					} catch (UnsupportedEncodingException e) {
-						return null;
-					}
-				}
-			
-			};
+			C4ScriptBase tempScript = new TempScript(expression);
 			context = new C4Function("<temp>", null, C4FunctionScope.FUNC_GLOBAL); //$NON-NLS-1$
 			context.setScript(tempScript);
 		}

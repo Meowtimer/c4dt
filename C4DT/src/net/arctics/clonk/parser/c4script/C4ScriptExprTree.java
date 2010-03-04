@@ -6,7 +6,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.regex.Matcher;
 
-import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.index.C4Object;
 import net.arctics.clonk.index.C4Scenario;
 import net.arctics.clonk.index.CachedEngineFuncs;
@@ -978,18 +977,14 @@ public abstract class C4ScriptExprTree {
 				// find global function
 				C4Declaration declaration = parser.getContainer().getIndex().findGlobalFunction(declarationName);
 				if (declaration == null)
-					declaration = ClonkCore.getDefault().getExternIndex().findGlobalDeclaration(declarationName);
-				if (declaration == null)
 					declaration = parser.getContainer().getIndex().getEngine().findFunction(declarationName);
 
 				// only return found declaration if it's the only choice 
 				if (declaration != null) {
 					List<C4Declaration> allFromLocalIndex = parser.getContainer().getIndex().getDeclarationMap().get(declarationName);
-					List<C4Declaration> allFromExternalIndex = ClonkCore.getDefault().getExternIndex().getDeclarationMap().get(declarationName);
-					C4Declaration decl = ClonkCore.getDefault().getActiveEngine().findLocalFunction(declarationName, false);
+					C4Declaration decl = parser.getContainer().getEngine().findLocalFunction(declarationName, false);
 					if (
 							(allFromLocalIndex != null ? allFromLocalIndex.size() : 0) +
-							(allFromExternalIndex != null ? allFromExternalIndex.size() : 0) +
 							(decl != null ? 1 : 0) == 1
 					)
 						return declaration;

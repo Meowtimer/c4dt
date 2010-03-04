@@ -2,7 +2,6 @@ package net.arctics.clonk.util;
 
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.index.C4Object;
-import net.arctics.clonk.index.C4ObjectExternGroup;
 import net.arctics.clonk.parser.c4script.C4Function;
 import net.arctics.clonk.parser.c4script.C4ScriptBase;
 import net.arctics.clonk.parser.c4script.C4Variable;
@@ -55,12 +54,6 @@ public abstract class UI {
 			return getIconForVariable((C4Variable)element);
 		if (element instanceof C4Object)
 			return UI.GENERAL_OBJECT_ICON;
-		if (element instanceof C4ObjectExternGroup) {
-			C4ObjectExternGroup group = (C4ObjectExternGroup) element;
-			if (group.getNodeName().endsWith(".c4g")) //$NON-NLS-1$
-				return UI.GROUP_ICON;
-			return UI.GENERAL_OBJECT_ICON;
-		}
 		if (element instanceof C4ScriptBase)
 			return UI.SCRIPT_ICON;
 		return null;

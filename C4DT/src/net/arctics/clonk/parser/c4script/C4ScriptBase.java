@@ -29,7 +29,6 @@ import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 
-import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.index.C4Engine;
 import net.arctics.clonk.index.C4Object;
 import net.arctics.clonk.index.C4ObjectIntern;
@@ -327,10 +326,6 @@ public abstract class C4ScriptBase extends C4Structure implements IHasRelatedRes
 					if (f != null)
 						break;
 				}
-			}
-			// function in extern lib
-			if (f == null && info.index != ClonkCore.getDefault().getExternIndex()) {
-				f = ClonkCore.getDefault().getExternIndex().findGlobalDeclaration(name, getResource());
 			}
 			// engine function
 			if (f == null)
