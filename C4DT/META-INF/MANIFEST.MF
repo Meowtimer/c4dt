@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: C4DT
 Bundle-SymbolicName: net.arctics.clonk;singleton:=true
-Bundle-Version: 1.5.3.v20100220
+Bundle-Version: 1.5.3.v20100224
 Bundle-Activator: net.arctics.clonk.ClonkCore
 Bundle-Localization: res/plugin
 Require-Bundle: org.eclipse.core.databinding;bundle-version="[1.2,2.0)",
