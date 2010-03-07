@@ -2,10 +2,14 @@ package net.arctics.clonk.resource.c4group;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.Serializable;
+import java.util.HashMap;
+import java.util.Map;
+
 import net.arctics.clonk.resource.c4group.C4Group.C4GroupType;
 import net.arctics.clonk.resource.c4group.C4Group.StreamReadCallback;
 import net.arctics.clonk.util.ITreeNode;
@@ -30,41 +34,83 @@ import org.eclipse.core.runtime.IProgressMonitor;
  */
 public class C4GroupEntry extends C4GroupItem implements IStorage, Serializable {
 	
+	private static class EntryCache {
+		
+		private static class Entry {
+			public File file;
+			public long creationTime;
+			public Entry(File file, long creationTime) {
+				super();
+				this.file = file;
+				this.creationTime = creationTime;
+			}
+			public boolean modified() {
+				return file.lastModified() != creationTime;
+			}
+		}
+		
+		private Map<C4GroupEntry, Entry> files = new HashMap<C4GroupEntry, Entry>();
+		
+		public File getCachedFile(C4GroupEntry groupEntry) throws IOException, CoreException {
+			Entry e = files.get(groupEntry);
+			if (e == null || e.modified()) {
+				File f = File.createTempFile("c4dt", "c4groupcache");
+				FileOutputStream fileStream = new FileOutputStream(f);
+				try {
+					ByteArrayInputStream contents = groupEntry.getContents();
+					byte[] buf = new byte[1024];
+					int read;
+					while ((read = contents.read(buf)) != -1) {
+						fileStream.write(buf, 0, read);
+					}
+				} finally {
+					fileStream.close();
+				}
+				f.deleteOnExit();
+				e = new Entry(f, f.lastModified());
+			}
+			return e.file;
+		}
+	}
+	
+	private static final EntryCache CACHE = new EntryCache();
+
 	private static final long serialVersionUID = 1L;
 	private static final String[] NO_CHILDNAMES = new String[0];
-	
+
 	public static final int STORED_SIZE = 316;
-	
+
 	private transient C4EntryHeader header;
-    private transient C4Group parentGroup;
-    private transient boolean completed;
+	private transient C4Group parentGroup;
+	private transient boolean completed;
 	private byte[] contents;
-	
+
 	private transient File exportFromFile;
-    
-    public C4GroupEntry(C4Group parentGroup, C4EntryHeader header)
-    {
-        this.parentGroup = parentGroup;
-        this.header = header;
-    }
-    
-    protected C4GroupEntry() {
-    	completed = true;
-    }
-    
-    public static C4GroupEntry makeEntry(C4Group parent, C4EntryHeader header, File exportFromFile) {
-    	C4GroupEntry entry = new C4GroupEntry();
-    	entry.parentGroup = parent;
-    	entry.header = header;
-    	entry.contents = null;
-    	entry.exportFromFile = exportFromFile;
-    	return entry;
-    }
-    
+
+	public C4GroupEntry(C4Group parentGroup, C4EntryHeader header)
+	{
+		this.parentGroup = parentGroup;
+		this.header = header;
+	}
+
+	protected C4GroupEntry() {
+		completed = true;
+	}
+
+	public static C4GroupEntry makeEntry(C4Group parent, C4EntryHeader header, File exportFromFile) {
+		C4GroupEntry entry = new C4GroupEntry();
+		entry.parentGroup = parent;
+		entry.header = header;
+		entry.contents = null;
+		entry.exportFromFile = exportFromFile;
+		return entry;
+	}
+
+	@Override
 	public void readIntoMemory(boolean recursively, HeaderFilterBase filter, InputStream stream) throws InvalidDataException, IOException, CoreException {
 		if (completed) return;
 		completed = true;
-		
+
 		/*if (parentGroup.getChildren().get(0) != this) {
 			C4GroupItem predecessor = parentGroup.getChildren().get(parentGroup.getChildren().indexOf(this) - 1);
 			predecessor.readIntoMemory(true, filter);
@@ -76,10 +122,10 @@ public class C4GroupEntry extends C4GroupItem implements IStorage, Serializable 
 		else {
 			stream.skip(getSize());
 		}
-		
+
 		// process contents (contents could be null after this call)
 		filter.processData(this);
-    	
+
 	}
 
 	private void fetchContents(InputStream stream) {
@@ -87,16 +133,17 @@ public class C4GroupEntry extends C4GroupItem implements IStorage, Serializable 
 		contents = new byte[getSize()];
 		try {
 			for (
-				int readCount = 0;
-				readCount != contents.length;
-				readCount += stream.read(contents, readCount, contents.length - readCount)
+					int readCount = 0;
+					readCount != contents.length;
+					readCount += stream.read(contents, readCount, contents.length - readCount)
 			);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 	}
-	
-	public InputStream getContents() throws CoreException {
+
+	@Override
+	public ByteArrayInputStream getContents() throws CoreException {
 		if (contents == null) {
 			try {
 				getParentGroup().readFromStream(this, getParentGroup().baseOffset() + header.getOffset(), new StreamReadCallback() {
@@ -118,16 +165,16 @@ public class C4GroupEntry extends C4GroupItem implements IStorage, Serializable 
 		return new ByteArrayInputStream(contents);
 	}
 
-    public String toString() {
-    	StringBuilder builder = new StringBuilder();
-    	for (C4GroupItem item = this; item != null; item = item.getParentGroup()) {
-    		builder.insert(0, item.getName());
-    		builder.insert(0, '/');
-    	}
-        return builder.toString();
-    }
-    
-    /**
+	public String toString() {
+		StringBuilder builder = new StringBuilder();
+		for (C4GroupItem item = this; item != null; item = item.getParentGroup()) {
+			builder.insert(0, item.getName());
+			builder.insert(0, '/');
+		}
+		return builder.toString();
+	}
+
+	/**
 	 * @return the entryName
 	 */
 	public String getEntryName() {
@@ -144,6 +191,7 @@ public class C4GroupEntry extends C4GroupItem implements IStorage, Serializable 
 	/**
 	 * @return the hasChildren
 	 */
+	@Override
 	public boolean hasChildren() {
 		return false;
 	}
@@ -186,6 +234,7 @@ public class C4GroupEntry extends C4GroupItem implements IStorage, Serializable 
 	/**
 	 * @return the completed
 	 */
+	@Override
 	public boolean isCompleted() {
 		return completed;
 	}
@@ -203,7 +252,7 @@ public class C4GroupEntry extends C4GroupItem implements IStorage, Serializable 
 	public byte[] getContentsAsArray() {
 		return contents;
 	}
-	
+
 	/**
 	 * Return the contents of this entry as a string
 	 * @return the contents of this entry as string
@@ -212,10 +261,12 @@ public class C4GroupEntry extends C4GroupItem implements IStorage, Serializable 
 		return new String(getContentsAsArray());
 	}
 
+	@Override
 	public String getName() {
 		return header.getEntryName();
 	}
 
+	@Override
 	public C4Group getParentGroup() {
 		return parentGroup;
 	}
@@ -226,19 +277,22 @@ public class C4GroupEntry extends C4GroupItem implements IStorage, Serializable 
 	public void setContents(byte[] contents) {
 		this.contents = contents;
 	}
-	
+
 	/**
 	 * Release the contents of this item to preserve memory
 	 */
+	@Override
 	public void releaseData() {
 		setContents(null);
 	}
 
-	public void extractToFilesystem(IContainer parent) throws CoreException {
-		extractToFilesystem(parent, null);
+	@Override
+	public void extractToFileSystem(IContainer parent) throws CoreException {
+		extractToFileSystem(parent, null);
 	}
-	
-	public void extractToFilesystem(IContainer parent, IProgressMonitor monitor) throws CoreException {
+
+	@Override
+	public void extractToFileSystem(IContainer parent, IProgressMonitor monitor) throws CoreException {
 		IFile me = null;
 		if (parent instanceof IFolder) {
 			me = ((IFolder)parent).getFile(getName());
@@ -247,21 +301,24 @@ public class C4GroupEntry extends C4GroupItem implements IStorage, Serializable 
 			me = ((IProject)parent).getFile(getName());
 		}
 		if (me != null) try {
-			me.create(new java.io.ByteArrayInputStream(contents), IResource.NONE, monitor);
+			me.create(getContents(), IResource.NONE, monitor);
 		} catch (CoreException e) {
 			e.printStackTrace();
 		}
 	}
 
+	@Override
 	public int computeSize() {
 		if (completed) return contents.length;
 		else return header.getSize();
 	}
 
+	@Override
 	public C4EntryHeader getEntryHeader() {
 		return header;
 	}
 
+	@Override
 	public void writeTo(OutputStream stream) throws IOException {
 		InputStream inStream = new java.io.FileInputStream(exportFromFile);
 		try {
@@ -279,15 +336,17 @@ public class C4GroupEntry extends C4GroupItem implements IStorage, Serializable 
 		}
 	}
 
+	@Override
 	public IPath getFullPath() {
 		return ITreeNode.Default.getPath(this);
 	}
-	
+
 	@Override
 	public IPath getPath() {
 		return getFullPath();
 	}
 
+	@Override
 	public boolean isReadOnly() {
 		return true;
 	}
@@ -299,6 +358,7 @@ public class C4GroupEntry extends C4GroupItem implements IStorage, Serializable 
 		return null;
 	}
 
+	@Override
 	public void accept(IC4GroupVisitor visitor, C4GroupType type, IProgressMonitor monitor) {
 		visitor.visit(this, type);
 	}
@@ -307,7 +367,7 @@ public class C4GroupEntry extends C4GroupItem implements IStorage, Serializable 
 	public String getNodeName() {
 		return getName();
 	}
-	
+
 	@Override
 	public String[] childNames(int options, IProgressMonitor monitor) throws CoreException {
 		return NO_CHILDNAMES;
@@ -336,4 +396,14 @@ public class C4GroupEntry extends C4GroupItem implements IStorage, Serializable 
 		return getContents();
 	}
 	
+	@Override
+	public File toLocalFile(int options, IProgressMonitor monitor) throws CoreException {
+		try {
+			return CACHE.getCachedFile(this);
+		} catch (IOException e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
+
 }

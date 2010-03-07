@@ -370,14 +370,14 @@ public class C4Group extends C4GroupItem implements Serializable, ITreeNode {
 	/**
 	 * Extracts the group to the specified location in the project 
 	 */	
-	public void extractToFilesystem(IContainer parent) throws CoreException {
-		extractToFilesystem(parent, null);
+	public void extractToFileSystem(IContainer parent) throws CoreException {
+		extractToFileSystem(parent, null);
 	}
 	
 	/**
 	 * Extracts the group to the specified location in the project using a progress monitor
 	 */	
-	public void extractToFilesystem(IContainer parent, IProgressMonitor monitor) throws CoreException {
+	public void extractToFileSystem(IContainer parent, IProgressMonitor monitor) throws CoreException {
 		IFolder me = null;
 		if (parent instanceof IFolder) {
 			me = ((IFolder)parent).getFolder(getName());
@@ -391,7 +391,7 @@ public class C4Group extends C4GroupItem implements Serializable, ITreeNode {
 		me.create(IResource.NONE, true, monitor);
 		for(C4GroupItem item : childEntries) {
 			if (monitor.isCanceled()) break;
-			item.extractToFilesystem(me, monitor);
+			item.extractToFileSystem(me, monitor);
 			monitor.worked(item.computeSize());
 		}
 	}

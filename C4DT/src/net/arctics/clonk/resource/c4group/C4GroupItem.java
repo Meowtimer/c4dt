@@ -94,12 +94,12 @@ public abstract class C4GroupItem extends FileStore implements INodeWithPath {
 	/**
 	 * Extracts this file to disk
 	 */
-	public abstract void extractToFilesystem(IContainer internPath) throws CoreException;
+	public abstract void extractToFileSystem(IContainer internPath) throws CoreException;
 	
 	/**
 	 * Extracts this file to disk with the given progress monitor
 	 */
-	public abstract void extractToFilesystem(IContainer internPath, IProgressMonitor monitor) throws CoreException;
+	public abstract void extractToFileSystem(IContainer internPath, IProgressMonitor monitor) throws CoreException;
 	
 	/**
 	 * recursively call visitor.visit for all items in this group (including the group itself)

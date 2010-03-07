@@ -58,9 +58,7 @@ import org.osgi.framework.BundleContext;
 import org.xml.sax.SAXException;
 
 /**
- * The core of the plugin. The singleton instance of this class stores various global things, including
- * the extern index that contains all objects imported from external object packs and the engine object that
- * contains global predefined functions of Clonk.
+ * The core of the plugin. The singleton instance of this class stores various global things, like engine objects and preferences.
  */
 public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IResourceChangeListener {
 	
