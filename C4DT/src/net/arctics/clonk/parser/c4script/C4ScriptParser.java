@@ -2392,14 +2392,21 @@ public class C4ScriptParser {
 	private boolean parseID(int offset) throws ParsingException {
 		parsedID = null; // reset so no old parsed ids get through
 		scanner.seek(offset);
-		String word = scanner.readIdent();
-		if (word != null && word.length() != 4) {
-			scanner.seek(offset);
-			return false;
+		String word = null;
+		if (scanner.read() == ':') {
+			word = scanner.readIdent();
 		}
-		if (!Utilities.looksLikeID(word)) {
-			scanner.seek(offset);
-			return false;
+		else {
+			scanner.unread();
+			word = scanner.readIdent();
+			if (word != null && word.length() != 4) {
+				scanner.seek(offset);
+				return false;
+			}
+			if (!Utilities.looksLikeID(word)) {
+				scanner.seek(offset);
+				return false;
+			}
 		}
 		parsedID = C4ID.getID(word);
 		return true;
