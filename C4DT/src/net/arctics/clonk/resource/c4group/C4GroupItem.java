@@ -47,12 +47,6 @@ public abstract class C4GroupItem extends FileStore implements INodeWithPath {
 	public abstract boolean hasChildren();
 	
 	/**
-	 * Is this item completely read from disk?
-	 * @return
-	 */
-	public abstract boolean isCompleted();
-	
-	/**
 	 * Read this item
 	 * @throws InvalidDataException
 	 * @throws IOException 

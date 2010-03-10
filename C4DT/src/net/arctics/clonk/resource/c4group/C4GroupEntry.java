@@ -232,14 +232,6 @@ public class C4GroupEntry extends C4GroupItem implements IStorage, Serializable 
 	}
 
 	/**
-	 * @return the completed
-	 */
-	@Override
-	public boolean isCompleted() {
-		return completed;
-	}
-
-	/**
 	 * @return the crc
 	 */
 	public int getCrc() {
@@ -309,8 +301,10 @@ public class C4GroupEntry extends C4GroupItem implements IStorage, Serializable 
 
 	@Override
 	public int computeSize() {
-		if (completed) return contents.length;
-		else return header.getSize();
+		if (completed)
+			return contents.length;
+		else
+			return header.getSize();
 	}
 
 	@Override
