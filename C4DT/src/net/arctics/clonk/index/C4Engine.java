@@ -2,6 +2,7 @@ package net.arctics.clonk.index;
 
 import java.io.Serializable;
 import java.lang.reflect.Field;
+import java.util.EnumSet;
 
 import org.eclipse.jface.util.Util;
 
@@ -18,6 +19,11 @@ public class C4Engine extends C4ScriptBase {
 
 	private static final long serialVersionUID = 1L;
 	
+	public enum EngineCapability {
+		ColonIDSyntax,
+		NonConstGlobalVarsAssignment
+	}
+	
 	public static class EngineSettings implements Cloneable, Serializable {
 		
 		private static final long serialVersionUID = 1L;
@@ -30,7 +36,8 @@ public class C4Engine extends C4ScriptBase {
 		public String gamePath;
 		public String repositoryPath;
 		public String c4GroupPath;
-
+		public EnumSet<EngineCapability> capabilities;
+		
 		@Override
 		public boolean equals(Object obj) {
 			if (obj == this)
@@ -62,6 +69,10 @@ public class C4Engine extends C4ScriptBase {
 	
 	private EngineSettings intrinsicSettings;
 	private transient EngineSettings currentSettings;
+	
+	public boolean hasCapability(EngineCapability cap) {
+		return currentSettings.capabilities != null && currentSettings.capabilities.contains(cap);
+	}
 	
 	public EngineSettings getIntrinsicSettings() {
 		return intrinsicSettings;

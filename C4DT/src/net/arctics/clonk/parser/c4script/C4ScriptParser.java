@@ -16,6 +16,7 @@ import java.util.Vector;
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.index.C4Object;
 import net.arctics.clonk.index.ClonkIndex;
+import net.arctics.clonk.index.C4Engine.EngineCapability;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.SilentParsingException;
 import net.arctics.clonk.parser.BufferedScanner;
@@ -541,7 +542,7 @@ public class C4ScriptParser {
 				int s = scanner.getPosition();
 				String varName = scanner.readIdent();
 				int e = scanner.getPosition();
-				if (constDecl) {
+				if (constDecl || getContainer().getEngine().hasCapability(EngineCapability.NonConstGlobalVarsAssignment)) {
 					eatWhitespace();
 					expect('=');
 					eatWhitespace();
@@ -1990,9 +1991,7 @@ public class C4ScriptParser {
 		}
 	}
 
-	private Statement parseVarDeclarationInStatement(
-			EnumSet<ParseStatementOption> options, C4VariableScope scope)
-			throws ParsingException {
+	private Statement parseVarDeclarationInStatement(EnumSet<ParseStatementOption> options, C4VariableScope scope) throws ParsingException {
 		int offset;
 		Statement result;
 		List<Pair<String, ExprElm>> initializations = new LinkedList<Pair<String, ExprElm>>();
@@ -2061,6 +2060,24 @@ public class C4ScriptParser {
 				return finalList;
 			return mergeTypeInformationLists(finalList, merged);
 		}
+	}
+	
+	private void expect(char expected) throws ParsingException {
+		if (scanner.read() != expected) {
+			tokenExpectedError(String.valueOf(expected));
+		}
+	}
+	
+	private void expect(String expected) throws ParsingException {
+		String r = scanner.readIdent();
+		if (r == null || !r.equals(expected)) {
+			tokenExpectedError(expected);
+		}
+	}
+	
+	private void checkForSemicolon() throws ParsingException {
+		eatWhitespace();
+		expect(';');
 	}
 
 	private Statement parseKeyword(int offset, String readWord) throws ParsingException {
@@ -2141,19 +2158,6 @@ public class C4ScriptParser {
 		expect(')');
 		//expect(';');
 		return new DoWhileStatement(cond, block);
-	}
-	
-	private void expect(char expected) throws ParsingException {
-		if (scanner.read() != expected) {
-			tokenExpectedError(String.valueOf(expected));
-		}
-	}
-	
-	private void expect(String expected) throws ParsingException {
-		String r = scanner.readIdent();
-		if (r == null || !r.equals(expected)) {
-			tokenExpectedError(expected);
-		}
 	}
 
 	private Statement parseFor() throws ParsingException {
@@ -2382,11 +2386,6 @@ public class C4ScriptParser {
 		
 		result = new IfStatement(condition, ifStatement, elseStatement);
 		return result;
-	}
-
-	private void checkForSemicolon() throws ParsingException {
-		eatWhitespace();
-		expect(';');
 	}
 	
 	private boolean parseID(int offset) throws ParsingException {
