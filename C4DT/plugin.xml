@@ -636,18 +636,13 @@
 		</markerResolutionGenerator>
 	</extension>
 	
-	<extension point="org.eclipse.ui.navigator.viewer">
-		<dragAssistant class="net.arctics.clonk.ui.navigator.DragExternalDefsAssistant"
-			viewerId="org.eclipse.ui.navigator.ProjectExplorer"/>
-	</extension>
-	
 	<extension point="org.eclipse.core.filesystem.filesystems">
     	<filesystem scheme="c4group">
 			<run class="net.arctics.clonk.filesystem.C4GroupFileSystem" />
 		</filesystem>
 	</extension>
 
-	<!--	
+	<!--
 	<extension point="org.eclipse.ui.popupMenus">
 		<viewerContribution
         	id="clonk.editors.C4ScriptEditor.popupMenuContributions"
