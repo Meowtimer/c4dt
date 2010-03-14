@@ -4,8 +4,6 @@ import net.arctics.clonk.debug.ClonkDebugLineBreakpoint;
 import net.arctics.clonk.debug.ClonkDebugStackFrame;
 import net.arctics.clonk.debug.ClonkDebugTarget;
 import net.arctics.clonk.debug.ClonkDebugThread;
-import net.arctics.clonk.util.Utilities;
-
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.debug.core.DebugException;
@@ -34,16 +32,17 @@ public class ClonkDebugModelPresentation extends LabelProvider implements IDebug
 
 	@Override
 	public String getEditorId(IEditorInput input, Object element) {
-		if (element instanceof IFile && Utilities.getScriptForFile((IFile) element) != null)
-			return "clonk.editors.C4ScriptEditor"; //$NON-NLS-1$
-		else
-			return null;
+		return "clonk.editors.C4ScriptEditor"; //$NON-NLS-1$
 	}
 
 	@Override
 	public IEditorInput getEditorInput(Object element) {
 		if (element instanceof IFile)
 			return new FileEditorInput((IFile) element);
+		else if (element instanceof ClonkDebugLineBreakpoint) {
+			ClonkDebugLineBreakpoint breakpoint = (ClonkDebugLineBreakpoint) element;
+			return getEditorInput(breakpoint.getMarker().getResource());
+		}
 		return null;
 	}
 	
