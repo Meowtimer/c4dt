@@ -19,7 +19,7 @@ public class ComplexIniEntry extends IniEntry implements IHasChildren, IHasConte
 	protected ComplexIniEntry(int pos, int endPos, String key, String value) {
 		super(pos,endPos, key,value);
 	}
-	
+
 	public ComplexIniEntry(int pos, int endPos, String key, Object value) {
 		super(pos,endPos, key,null);
 		extendedValue = value;
@@ -27,6 +27,10 @@ public class ComplexIniEntry extends IniEntry implements IHasChildren, IHasConte
 	
 	public Object getExtendedValue() {
 		return extendedValue;
+	}
+	
+	public void setEntryConfig(IniDataEntry entryConfig) {
+		this.entryConfig = entryConfig;
 	}
 	
 	public IniDataEntry getEntryConfig() {

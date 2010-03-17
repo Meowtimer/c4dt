@@ -24,7 +24,7 @@ import net.arctics.clonk.parser.inireader.IniUnit;
 import net.arctics.clonk.parser.inireader.SignedInteger;
 import net.arctics.clonk.parser.inireader.UnsignedInteger;
 import net.arctics.clonk.parser.inireader.IniData.IniDataEntry;
-import net.arctics.clonk.parser.inireader.IniData.IniSectionData;
+import net.arctics.clonk.parser.inireader.IniData.IniDataSection;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.resource.c4group.C4Group;
 import net.arctics.clonk.resource.c4group.C4Group.C4GroupType;
@@ -95,7 +95,7 @@ public class IniCompletionProcessor extends ClonkCompletionProcessor<IniTextEdit
 
 		if (!assignment) {
 			if (section != null) {
-				IniSectionData d = section.getSectionData();
+				IniDataSection d = section.getSectionData();
 				if (d != null) {
 					proposalsForSection(proposals, prefix, wordOffset, d);
 				}
@@ -184,7 +184,7 @@ public class IniCompletionProcessor extends ClonkCompletionProcessor<IniTextEdit
 	}
 
 	private void proposalsForIniUnit(Collection<ICompletionProposal> proposals, String prefix, int wordOffset, IniUnit unit) {
-		for (IniSectionData sec : unit.getConfiguration().getSections().values()) {
+		for (IniDataSection sec : unit.getConfiguration().getSections().values()) {
 			if (sec.getSectionName().toLowerCase().contains(prefix)) {
 				String secString = "["+sec.getSectionName()+"]"; //$NON-NLS-1$ //$NON-NLS-2$
 				proposals.add(new CompletionProposal(secString, wordOffset, prefix.length(), secString.length(), null, null, null, "ugh")); //$NON-NLS-1$
@@ -192,7 +192,7 @@ public class IniCompletionProcessor extends ClonkCompletionProcessor<IniTextEdit
 		}
 	}
 
-	private void proposalsForSection(Collection<ICompletionProposal> proposals, String prefix, int wordOffset, IniSectionData sectionData) {
+	private void proposalsForSection(Collection<ICompletionProposal> proposals, String prefix, int wordOffset, IniDataSection sectionData) {
 		for (IniDataEntry entry : sectionData.getEntries().values()) {
 			if (!entry.getEntryName().toLowerCase().contains(prefix))
 				continue;

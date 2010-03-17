@@ -8,7 +8,7 @@ import org.eclipse.core.runtime.IPath;
 
 import net.arctics.clonk.parser.C4Declaration;
 import net.arctics.clonk.parser.SourceLocation;
-import net.arctics.clonk.parser.inireader.IniData.IniSectionData;
+import net.arctics.clonk.parser.inireader.IniData.IniDataSection;
 import net.arctics.clonk.util.IHasChildren;
 import net.arctics.clonk.util.IHasKeyAndValue;
 import net.arctics.clonk.util.ITreeNode;
@@ -19,13 +19,13 @@ public class IniSection extends C4Declaration implements IHasKeyAndValue<String,
 	private static final long serialVersionUID = 1L;
 	
 	private Map<String, IniEntry> entries;
-	private IniSectionData sectionData;
+	private IniDataSection sectionData;
 	
-	public IniSectionData getSectionData() {
+	public IniDataSection getSectionData() {
 		return sectionData;
 	}
 
-	public void setSectionData(IniSectionData sectionData) {
+	public void setSectionData(IniDataSection sectionData) {
 		this.sectionData = sectionData;
 	}
 
@@ -114,6 +114,11 @@ public class IniSection extends C4Declaration implements IHasKeyAndValue<String,
 
 	public Iterator<IniEntry> iterator() {
 		return new ReadOnlyIterator<IniEntry>(this.entries.values().iterator());
+	}
+	
+	public void putEntry(IniEntry entry) {
+		entries.put(entry.getName(), entry);
+		entry.setParentDeclaration(this);
 	}
 	
 }

@@ -7,7 +7,7 @@ import net.arctics.clonk.util.IHasContext;
 
 import org.eclipse.core.resources.IMarker;
 
-public class IntegerArray implements IIniEntryValue, IHasChildrenWithContext {
+public class IntegerArray implements IIniEntryValue, IHasChildrenWithContext, IConvertibleToPrimitive {
 
 	private int[] integers;
 	
@@ -100,6 +100,11 @@ public class IntegerArray implements IIniEntryValue, IHasChildrenWithContext {
 			: value instanceof String
 				? Integer.valueOf((String)value)
 				: 0;
+	}
+
+	@Override
+	public Object convertToPrimitive() {
+		return integers;
 	}	
 
 }

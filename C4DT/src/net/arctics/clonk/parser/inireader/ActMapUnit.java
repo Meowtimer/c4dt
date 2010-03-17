@@ -13,7 +13,7 @@ public class ActMapUnit extends IniUnit {
 
 	public static final String ACTION_SECTION = "Action"; //$NON-NLS-1$
 	
-	private final IniConfiguration configuration = ClonkCore.getDefault().iniConfigurations.getConfigurationFor("ActMap.txt"); //$NON-NLS-1$
+	private static final IniConfiguration configuration = ClonkCore.getDefault().iniConfigurations.getConfigurationFor("ActMap.txt"); //$NON-NLS-1$
 	
 	@Override
 	public IniConfiguration getConfiguration() {

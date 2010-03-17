@@ -18,7 +18,7 @@ public class DefCoreUnit extends IniUnit {
 	
 	private static final long serialVersionUID = 1L;
 	
-	private final IniConfiguration configuration = ClonkCore.getDefault().iniConfigurations.getConfigurationFor("DefCore.txt"); //$NON-NLS-1$
+	private static final IniConfiguration configuration = ClonkCore.getDefault().iniConfigurations.getConfigurationFor("DefCore.txt"); //$NON-NLS-1$
 	
 	public DefCoreUnit(InputStream stream) {
 		super(stream);

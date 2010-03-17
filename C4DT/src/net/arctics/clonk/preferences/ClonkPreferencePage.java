@@ -91,11 +91,7 @@ public class ClonkPreferencePage extends FieldEditorPreferencePage implements IW
 			C4Engine.EngineSettings e = settings.get(currentEngine);
 			if (e == null) {
 				C4Engine engine = ClonkCore.getDefault().loadEngine(currentEngine);
-				try {
-					e = engine.getCurrentSettings().clone();
-				} catch (CloneNotSupportedException e1) {
-					e1.printStackTrace();
-				}
+				e = engine.getCurrentSettings().clone();
 				settings.put(currentEngine, e);
 			}
 			return e;
@@ -110,13 +106,9 @@ public class ClonkPreferencePage extends FieldEditorPreferencePage implements IW
 		}
 
 		public void reset() {
-			try {
-				for (C4Engine engine : ClonkCore.getDefault().loadedEngines()) {
-					if (settings.get(engine.getName()) != null)
-						settings.put(engine.getName(), engine.getCurrentSettings().clone());
-				}
-			} catch (CloneNotSupportedException e) {
-				e.printStackTrace();
+			for (C4Engine engine : ClonkCore.getDefault().loadedEngines()) {
+				if (settings.get(engine.getName()) != null)
+					settings.put(engine.getName(), engine.getCurrentSettings().clone());
 			}
 		}
 		

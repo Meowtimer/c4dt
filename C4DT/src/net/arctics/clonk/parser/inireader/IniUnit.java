@@ -1,5 +1,7 @@
 package net.arctics.clonk.parser.inireader;
 
+import java.io.BufferedWriter;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.InvalidClassException;
 import java.lang.reflect.Constructor;
@@ -18,7 +20,7 @@ import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.SourceLocation;
 import net.arctics.clonk.parser.inireader.IniData.IniConfiguration;
 import net.arctics.clonk.parser.inireader.IniData.IniDataEntry;
-import net.arctics.clonk.parser.inireader.IniData.IniSectionData;
+import net.arctics.clonk.parser.inireader.IniData.IniDataSection;
 import net.arctics.clonk.resource.c4group.C4GroupItem;
 import net.arctics.clonk.util.IHasChildren;
 import net.arctics.clonk.util.IPredicate;
@@ -94,12 +96,29 @@ public class IniUnit extends C4Structure implements Iterable<IniSection>, IHasCh
 		try {
 			defaultName = file.getParent().getName();
 			InputStream stream = file.getContents();
-			reader = new BufferedScanner(stream);
-			stream.close();
+			try {
+				reader = new BufferedScanner(stream);
+			} finally {
+				stream.close();
+			}
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 		iniFile = file;
+	}
+	
+	public void save(BufferedWriter writer) throws IOException {
+		for (IniSection section : sectionsList) {
+			writer.append('[');
+			writer.append(section.getName());
+			writer.append(']');
+			writer.append('\n');
+			
+			for (IniEntry entry : section.getEntries().values()) {
+				writer.append(entry.toString());
+				writer.append('\n');
+			}
+		}
 	}
 	
 	/**
@@ -136,7 +155,7 @@ public class IniUnit extends C4Structure implements Iterable<IniSection>, IHasCh
 		IniConfiguration configuration = getConfiguration();
 		if (configuration == null)
 			return entry;
-		IniSectionData sectionConfig = currentSection.getSectionData();
+		IniDataSection sectionConfig = currentSection.getSectionData();
 		if (sectionConfig == null)
 			return entry; // don't throw errors in unknown section
 		if (!sectionConfig.hasEntry(entry.getKey())) {
@@ -165,6 +184,19 @@ public class IniUnit extends C4Structure implements Iterable<IniSection>, IHasCh
 		}
 	}
 	
+	public IniSection requestSection(String name, IniDataSection dataSection) {
+		IniSection result = sectionsMap.get(name);
+		if (result == null) {
+			result = new IniSection(null, name);
+			result.setEntries(new HashMap<String, IniEntry>());
+			result.setParentDeclaration(this);
+			result.setSectionData(dataSection);
+			sectionsMap.put(name, result);
+			sectionsList.add(result);
+		}
+		return result;
+	}
+	
 	public void parse(boolean modifyMarkers) {
 		if (modifyMarkers && getIniFile() != null) {
 			try {
@@ -189,7 +221,7 @@ public class IniUnit extends C4Structure implements Iterable<IniSection>, IHasCh
 		sectionsMap.clear();
 	}
 
-	protected IniSectionData getSectionDataFor(IniSection section) {
+	protected IniDataSection getSectionDataFor(IniSection section) {
 		return getConfiguration() != null
 			? getConfiguration().getSections().get(section.getName())
 			: null;

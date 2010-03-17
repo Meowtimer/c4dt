@@ -683,4 +683,8 @@ public abstract class Utilities {
 		return s.toString();
 	}
 	
+	public static <T> T firstOrNull(T[] arr) {
+		return arr != null && arr.length > 0 ? arr[0] : null;
+	}
+	
 }

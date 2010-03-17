@@ -2,15 +2,14 @@ package net.arctics.clonk;
 
 import java.io.BufferedOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.lang.reflect.InvocationTargetException;
+import java.io.OutputStream;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -24,15 +23,13 @@ import javax.xml.xpath.XPathExpressionException;
 
 import net.arctics.clonk.index.C4Engine;
 import net.arctics.clonk.index.ProjectIndex;
-import net.arctics.clonk.index.C4Engine.EngineSettings;
 import net.arctics.clonk.parser.inireader.IniData;
 import net.arctics.clonk.parser.inireader.IniUnit;
 import net.arctics.clonk.parser.mapcreator.C4MapCreator;
 import net.arctics.clonk.parser.stringtbl.StringTbl;
 import net.arctics.clonk.preferences.ClonkPreferences;
 import net.arctics.clonk.resource.ClonkProjectNature;
-import net.arctics.clonk.resource.InputStreamRespectingUniqueIDs;
-import net.arctics.clonk.util.IRunnableWithProgressAndResult;
+import net.arctics.clonk.util.IStorageLocation;
 import net.arctics.clonk.util.ReadOnlyIterator;
 
 import org.eclipse.core.resources.IProject;
@@ -43,15 +40,12 @@ import org.eclipse.core.resources.ISaveParticipant;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
-import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.QualifiedName;
-import org.eclipse.jface.dialogs.ProgressMonitorDialog;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.resource.ImageRegistry;
 import org.eclipse.jface.util.IPropertyChangeListener;
 import org.eclipse.jface.util.PropertyChangeEvent;
 import org.eclipse.swt.graphics.Image;
-import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.editors.text.TextFileDocumentProvider;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.osgi.framework.BundleContext;
@@ -194,8 +188,11 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 	}
 	
 	private String engineNameFromPath(String path) {
-		path = path.substring(path.lastIndexOf('/')+1);
-		return path.endsWith(".engine") ? path.substring(0, path.lastIndexOf('.')) : null; //$NON-NLS-1$
+		if (path.endsWith("/")) {
+			return path.substring(path.lastIndexOf('/', path.length()-2)+1, path.length()-1);
+		} else {
+			return path.substring(path.lastIndexOf('/')+1);
+		}
 	}
 	
 	@SuppressWarnings("unchecked")
@@ -232,57 +229,67 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 	public C4Engine loadEngine(final String engineName) {
 		if (engineName == null || engineName.equals(""))
 			return null;
-		InputStream engineStream;
 		C4Engine result = loadedEngines.get(engineName);
 		if (result != null)
 			return result;
-		try {
-			if (getWorkspaceStorageLocationForActiveEngine().toFile().exists()) {
-				engineStream = new FileInputStream(getWorkspaceStorageLocationForActiveEngine().toFile());
+		
+		IStorageLocation workspaceProvider = new IStorageLocation() {
+			@Override
+			public String getName() {
+				return engineName;
 			}
-			else {
-				engineStream = getBundle().getEntry(String.format("res/engines/%s.engine", engineName)).openStream(); //$NON-NLS-1$
+			@Override
+			public URL getURL(String entryName, boolean create) {
+				File file = getFile(entryName);
+				try {
+					if (create) {
+						try {
+							file.createNewFile();
+						} catch (IOException e) {
+							e.printStackTrace();
+							return null;
+						}
+					}
+					return file.exists() ? file.toURI().toURL() : null;
+				} catch (MalformedURLException e) {
+					e.printStackTrace();
+					return null;
+				}
 			}
-			ObjectInputStream objStream = new InputStreamRespectingUniqueIDs(engineStream);
-			result = (C4Engine)objStream.readObject();
-			result.setName(engineName); // for good measure
-			result.postSerialize(null);
-		} catch (Exception e) {
-			// fallback to xml
-			ProgressMonitorDialog progressDialog = new ProgressMonitorDialog(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell());
-			try {
-				IRunnableWithProgressAndResult<C4Engine> xmlImportor = new IRunnableWithProgressAndResult<C4Engine>() {
-					private C4Engine engine;
-					
-					@Override
-                    public C4Engine getResult() {
-	                    return engine;
-                    }
-
-					@Override
-                    public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
-						engine = new C4Engine(engineName);
-	            		try {
-	            			engine.importFromXML(getBundle().getEntry(String.format("res/engines/%s.engine.xml", engineName)).openStream(), monitor); //$NON-NLS-1$
-	            		} catch (Exception e) {
-	            			e.printStackTrace();
-	            		}
-                    }
-				};
-	            progressDialog.run(false, false, xmlImportor);
-	            result = xmlImportor.getResult();
-            } catch (Exception e1) {
-	            e1.printStackTrace();
-            }
-		}
-		if (result != null) {
+			private File getFile(String entryName) {
+				IPath path = getWorkspaceStorageLocationForEngine(engineName);
+				File file = path.append(entryName).toFile();
+				return file;
+			}
+			@Override
+			public OutputStream getOutputStream(URL storageURL) {
+				try {
+					return new FileOutputStream(new File(storageURL.getFile()));
+				} catch (IOException e) {
+					e.printStackTrace();
+					return null;
+				}
+			}
+		};
+		
+		IStorageLocation bundleProvider = new IStorageLocation() {
+			@Override
+			public URL getURL(String entryName, boolean create) {
+				return create ? null : getBundle().getEntry(String.format("res/engines/%s/%s", engineName, entryName));
+			}
+			@Override
+			public String getName() {
+				return engineName;
+			}
+			@Override
+			public OutputStream getOutputStream(URL storageURL) {
+				return null;
+			}
+		};
+		
+		result = C4Engine.loadFromStorageLocations(workspaceProvider, bundleProvider);
+		if (result != null)
 			loadedEngines.put(engineName, result);
-			try {
-				engineSettings(result, true);
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		}
 		return result;
 	}
 
@@ -327,7 +334,7 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 		File dir = path.toFile();
 		if (!dir.exists())
 			dir.mkdir();
-		return path.append(String.format("%s.engine", engineName)); //$NON-NLS-1$
+		return path.append(String.format("%s", engineName)); //$NON-NLS-1$
 	}
 
 	private IPath getWorkspaceStorageLocationForEngines() {
@@ -358,37 +365,6 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 		} catch (IOException e) {
 			e.printStackTrace();
 		}		
-	}
-	
-	public void engineSettings(C4Engine engine, boolean load) throws IOException {
-		IPath path = getWorkspaceStorageLocationForEngine(engine.getName());
-		String lastSegment = path.lastSegment();
-		path = path.removeLastSegments(1).append(lastSegment+".settings");
-		if (load) {
-			File f = path.toFile();
-			if (f.exists()) {
-				ObjectInputStream objStream = new ObjectInputStream(new FileInputStream(path.toFile()));
-				try {
-					engine.setCurrentSettings((EngineSettings) objStream.readObject());
-				} catch (ClassNotFoundException e) { 
-					e.printStackTrace();
-				} finally {
-					objStream.close();
-				}
-			}
-		}
-		else {
-			if (engine.hasCustomSettings()) {
-				ObjectOutputStream objStream = new ObjectOutputStream(new FileOutputStream(path.toFile()));
-				try {
-					objStream.writeObject(engine.getCurrentSettings());
-				} finally {
-					objStream.close();
-				}
-			}
-			else
-				path.toFile().delete();
-		}
 	}
 	
 	public void saveEngineInWorkspace(String engineName) {
@@ -506,7 +482,7 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 			removeOldIndexes();
 			for (C4Engine engine : loadedEngines.values()) {
 				try {
-					engineSettings(engine, false);
+					engine.saveSettings();
 				} catch (IOException e) {
 					e.printStackTrace();
 				}

@@ -6,7 +6,7 @@ import org.eclipse.core.resources.IFile;
 
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.inireader.IniData.IniConfiguration;
-import net.arctics.clonk.parser.inireader.IniData.IniSectionData;
+import net.arctics.clonk.parser.inireader.IniData.IniDataSection;
 
 public class ScenarioUnit extends IniUnit {
 
@@ -32,7 +32,7 @@ public class ScenarioUnit extends IniUnit {
 	}
 	
 	@Override
-	protected IniSectionData getSectionDataFor(IniSection section) {
+	protected IniDataSection getSectionDataFor(IniSection section) {
 		if (section.getName().startsWith("Player")) //$NON-NLS-1$
 			return configuration.getSections().get("Player"); //$NON-NLS-1$
 		return super.getSectionDataFor(section);

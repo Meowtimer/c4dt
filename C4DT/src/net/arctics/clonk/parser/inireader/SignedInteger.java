@@ -5,7 +5,7 @@ import net.arctics.clonk.parser.inireader.IniData.IniDataEntry;
 
 import org.eclipse.core.resources.IMarker;
 
-public class SignedInteger implements IIniEntryValue {
+public class SignedInteger implements IIniEntryValue, IConvertibleToPrimitive {
 
 	private int x;
 	
@@ -38,6 +38,11 @@ public class SignedInteger implements IIniEntryValue {
 	@Override
 	public String toString() {
 		return String.valueOf(x);
+	}
+
+	@Override
+	public Object convertToPrimitive() {
+		return x;
 	}
 
 }
