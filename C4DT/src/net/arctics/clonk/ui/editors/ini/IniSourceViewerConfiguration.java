@@ -3,7 +3,7 @@ package net.arctics.clonk.ui.editors.ini;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import net.arctics.clonk.ClonkCore;
+import net.arctics.clonk.index.C4Engine;
 import net.arctics.clonk.index.C4ObjectIntern;
 import net.arctics.clonk.index.ClonkIndex;
 import net.arctics.clonk.parser.C4Declaration;
@@ -130,7 +130,7 @@ public class IniSourceViewerConfiguration extends ClonkSourceViewerConfiguration
 								else if (entryClass == CategoriesArray.class) {
 									IRegion idRegion = Utilities.wordRegionAt(line, relativeOffset);
 									if (idRegion.getLength() > 0) {
-										declaration = ClonkCore.getDefault().getActiveEngine().findVariable(line.substring(idRegion.getOffset(), idRegion.getOffset()+idRegion.getLength()));
+										declaration = getEditor().getIniUnit().getEngine().findVariable(line.substring(idRegion.getOffset(), idRegion.getOffset()+idRegion.getLength()));
 										linkStart = lineRegion.getOffset()+idRegion.getOffset();
 										linkLen = idRegion.getLength();
 									}
@@ -182,16 +182,16 @@ public class IniSourceViewerConfiguration extends ClonkSourceViewerConfiguration
 			ISourceViewer sourceViewer) {
 		PresentationReconciler reconciler = new PresentationReconciler();
 		
-		DefaultDamagerRepairer dr = new DefaultDamagerRepairer(getDefCoreScanner());
+		DefaultDamagerRepairer dr = new DefaultDamagerRepairer(getDefCoreScanner(getEditor().getIniUnit().getEngine()));
 		reconciler.setDamager(dr, IDocument.DEFAULT_CONTENT_TYPE);
 		reconciler.setRepairer(dr, IDocument.DEFAULT_CONTENT_TYPE);
 		
 		return reconciler;
 	}
 	
-	protected IniScanner getDefCoreScanner() {
+	protected IniScanner getDefCoreScanner(C4Engine engine) {
 		if (scanner == null) {
-			scanner = new IniScanner(getColorManager());
+			scanner = new IniScanner(getColorManager(), engine);
 			scanner.setDefaultReturnToken(
 				new Token(
 					new TextAttribute(

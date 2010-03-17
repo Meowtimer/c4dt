@@ -6,7 +6,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import net.arctics.clonk.ClonkCore;
+import net.arctics.clonk.index.C4Engine;
 import net.arctics.clonk.parser.BuiltInDefinitions;
 import net.arctics.clonk.parser.c4script.C4Function;
 import net.arctics.clonk.parser.c4script.C4Type;
@@ -93,11 +93,11 @@ public class C4ScriptCodeScanner extends ClonkRuleBasedScanner {
 	
 	private IRule[] currentRules;
 	
-	public C4ScriptCodeScanner(ColorManager manager) {
-		commitRules(manager);
+	public C4ScriptCodeScanner(ColorManager manager, C4Engine engine) {
+		commitRules(manager, engine);
 	}
 	
-	public void commitRules(ColorManager manager) {
+	public void commitRules(ColorManager manager, C4Engine engine) {
 		
 		IToken defaultToken = createToken(manager, "DEFAULT"); //$NON-NLS-1$
 		
@@ -150,7 +150,7 @@ public class C4ScriptCodeScanner extends ClonkRuleBasedScanner {
 				wordRule.addWord(c4type.name().trim().toLowerCase(), type);
 		for (int i=0; i<fgConstants.length; i++)
 			wordRule.addWord(fgConstants[i], type);
-		for (C4Function func : ClonkCore.getDefault().getActiveEngine().functions())
+		for (C4Function func : engine.functions())
 			wordRule.addWord(func.getName(), engineFunction);
 		for (int i=0; i<BuiltInDefinitions.OBJECT_CALLBACKS.length; i++)
 			wordRule.addWord(BuiltInDefinitions.OBJECT_CALLBACKS[i], objCallbackFunction);

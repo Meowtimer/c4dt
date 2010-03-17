@@ -5,7 +5,6 @@ import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.regex.Matcher;
-import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.index.C4ObjectIntern;
 import net.arctics.clonk.index.ClonkIndex;
 import net.arctics.clonk.index.ProjectIndex;
@@ -150,7 +149,7 @@ public class IniCompletionProcessor extends ClonkCompletionProcessor<IniTextEdit
 			}
 		}
 		else {
-			for (C4Variable v : ClonkCore.getDefault().getActiveEngine().variables()) {
+			for (C4Variable v : getEditor().getIniUnit().getEngine().variables()) {
 				if (v.getScope() == C4VariableScope.VAR_CONST) {
 					proposalForVar(v, prefix, wordOffset, proposals);
 				}

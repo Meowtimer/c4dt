@@ -3,7 +3,7 @@ package net.arctics.clonk.ui.editors.ini;
 import java.util.ArrayList;
 import java.util.List;
 
-import net.arctics.clonk.ClonkCore;
+import net.arctics.clonk.index.C4Engine;
 import net.arctics.clonk.parser.c4script.C4Variable;
 import net.arctics.clonk.parser.c4script.C4Variable.C4VariableScope;
 import net.arctics.clonk.ui.editors.ClonkRuleBasedScanner;
@@ -56,7 +56,6 @@ public class IniScanner extends ClonkRuleBasedScanner {
 		 * @see org.eclipse.jface.text.rules.IRule#evaluate(org.eclipse.jface.text.rules.ICharacterScanner)
 		 */
 		public IToken evaluate(ICharacterScanner scanner) {
-
 			int character= scanner.read();
 			if (isOperator((char) character)) {
 				do {
@@ -71,7 +70,7 @@ public class IniScanner extends ClonkRuleBasedScanner {
 		}
 	}
 	
-	public IniScanner(ColorManager manager) {
+	public IniScanner(ColorManager manager, C4Engine engine) {
 		
 		IToken defaultToken = createToken(manager, "DEFAULT"); //$NON-NLS-1$
 		
@@ -99,7 +98,7 @@ public class IniScanner extends ClonkRuleBasedScanner {
 		
 		CombinedWordRule.WordMatcher wordRule = new CombinedWordRule.WordMatcher();
 		
-		for(C4Variable var : ClonkCore.getDefault().getActiveEngine().variables()) {
+		for (C4Variable var : engine.variables()) {
 			if (var.getScope() == C4VariableScope.VAR_CONST)
 				wordRule.addWord(var.getName(), constant);
 		}

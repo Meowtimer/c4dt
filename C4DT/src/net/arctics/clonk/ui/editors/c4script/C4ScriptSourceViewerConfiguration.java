@@ -80,7 +80,7 @@ public class C4ScriptSourceViewerConfiguration extends ClonkSourceViewerConfigur
 
 	protected C4ScriptCodeScanner getClonkScanner() {
 		if (scanner == null) {
-			scanner = new C4ScriptCodeScanner(getColorManager());
+			scanner = new C4ScriptCodeScanner(getColorManager(), getEditor().scriptBeingEdited().getEngine());
 			scanner.setDefaultReturnToken(
 					new Token(
 							new TextAttribute(
@@ -211,7 +211,7 @@ public class C4ScriptSourceViewerConfiguration extends ClonkSourceViewerConfigur
 	
 	@Override
 	public void refreshSyntaxColoring() {
-		getClonkScanner().commitRules(getColorManager());
+		getClonkScanner().commitRules(getColorManager(), getEditor().scriptBeingEdited().getEngine());
 	}
 
 }
