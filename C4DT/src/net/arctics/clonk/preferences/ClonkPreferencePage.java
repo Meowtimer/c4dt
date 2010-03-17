@@ -340,7 +340,7 @@ public class ClonkPreferencePage extends FieldEditorPreferencePage implements IW
 		addField(
 			new BooleanFieldEditor(
 				ClonkPreferences.OPEN_EXTERNAL_BROWSER,
-				"Open External Browser",
+				Messages.ClonkPreferencePage_OpenExternalBrowser,
 				getFieldEditorParent()
 			)
 		);

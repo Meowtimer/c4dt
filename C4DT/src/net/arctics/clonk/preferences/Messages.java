@@ -9,6 +9,7 @@ public class Messages extends NLS {
 	public static String ClonkPreferencePage_EngineConfigurationTitle;
 	public static String ClonkPreferencePage_GroupFileOrFolder;
 	public static String ClonkPreferencePage_Nope;
+	public static String ClonkPreferencePage_OpenExternalBrowser;
 	public static String ClonkPreferencePage_SelectExternalFolder;
 	public static String ClonkPreferencePage_SelectRegularFolder;
 	public static String ClonkPreferencePage_YesIndeed;
