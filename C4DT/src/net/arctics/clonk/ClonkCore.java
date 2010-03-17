@@ -188,11 +188,10 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 	}
 	
 	private String engineNameFromPath(String path) {
-		if (path.endsWith("/")) {
-			return path.substring(path.lastIndexOf('/', path.length()-2)+1, path.length()-1);
-		} else {
-			return path.substring(path.lastIndexOf('/')+1);
-		}
+		String folderName = path.endsWith("/")
+			? path.substring(path.lastIndexOf('/', path.length()-2)+1, path.length()-1)
+			: path.substring(path.lastIndexOf('/')+1);
+		return folderName.startsWith(".") ? null : folderName;
 	}
 	
 	@SuppressWarnings("unchecked")
@@ -206,10 +205,13 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 			}
 		}
 		// get engine definitions from workspace
-		String[] workspaceEngines = getWorkspaceStorageLocationForEngines().toFile().list();
+		File[] workspaceEngines = getWorkspaceStorageLocationForEngines().toFile().listFiles();
 		if (workspaceEngines != null) {
-			for (String wEngine : workspaceEngines) {
-				String engineName = engineNameFromPath(wEngine);
+			for (File wEngine : workspaceEngines) {
+				// only accepting folders should be sufficient
+				if (!wEngine.isDirectory())
+					continue;
+				String engineName = engineNameFromPath(wEngine.getAbsolutePath());
 				if (engineName != null && !result.contains(engineName))
 					result.add(engineName);
 			}
@@ -244,6 +246,7 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 				try {
 					if (create) {
 						try {
+							file.getParentFile().mkdirs();
 							file.createNewFile();
 						} catch (IOException e) {
 							e.printStackTrace();
