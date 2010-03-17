@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Map;
 
 import net.arctics.clonk.ClonkCore;
+import net.arctics.clonk.index.C4Engine;
 import net.arctics.clonk.parser.BufferedScanner;
 import net.arctics.clonk.parser.C4Declaration;
 import net.arctics.clonk.parser.C4Structure;
@@ -21,6 +22,7 @@ import net.arctics.clonk.parser.SourceLocation;
 import net.arctics.clonk.parser.inireader.IniData.IniConfiguration;
 import net.arctics.clonk.parser.inireader.IniData.IniDataEntry;
 import net.arctics.clonk.parser.inireader.IniData.IniDataSection;
+import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.resource.c4group.C4GroupItem;
 import net.arctics.clonk.util.IHasChildren;
 import net.arctics.clonk.util.IPredicate;
@@ -228,7 +230,7 @@ public class IniUnit extends C4Structure implements Iterable<IniSection>, IHasCh
 	}
 	
 	protected IniSection parseSection(boolean modifyMarkers) {
-		reader.eatWhitespace();
+		while (skipComment());
 		int start = reader.getPosition();
 		// parse head
 		if (reader.read() == '[') {
@@ -547,6 +549,12 @@ public class IniUnit extends C4Structure implements Iterable<IniSection>, IHasCh
 				}
 			}
 		}
+	}
+	
+	@Override
+	public C4Engine getEngine() {
+		ClonkProjectNature nature = ClonkProjectNature.get(getResource());
+		return nature != null ? nature.getIndex().getEngine() : super.getEngine();
 	}
 
 }
