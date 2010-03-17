@@ -273,6 +273,31 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 					return null;
 				}
 			}
+			@Override
+			public Enumeration<URL> getURLs(String containerName) {
+				final File folder = getFile(containerName);
+				return new Enumeration<URL>() {
+					
+					private int index = -1;
+					private File[] files = folder.listFiles();
+
+					@Override
+					public boolean hasMoreElements() {
+						return files != null && index+1 < files.length;
+					}
+
+					@Override
+					public URL nextElement() {
+						try {
+							return files[++index].toURI().toURL();
+						} catch (MalformedURLException e) {
+							e.printStackTrace();
+							return null;
+						}
+					}
+					
+				};
+			}
 		};
 		
 		IStorageLocation bundleProvider = new IStorageLocation() {
@@ -287,6 +312,11 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 			@Override
 			public OutputStream getOutputStream(URL storageURL) {
 				return null;
+			}
+			@SuppressWarnings("unchecked")
+			@Override
+			public Enumeration<URL> getURLs(String containerName) {
+				return ClonkCore.getDefault().getBundle().findEntries(String.format("res/engines/%s/%s", engineName, containerName), "*.*", false);
 			}
 		};
 		

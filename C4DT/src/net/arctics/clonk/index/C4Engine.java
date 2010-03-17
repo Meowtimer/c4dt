@@ -11,6 +11,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
 import java.util.EnumSet;
+import java.util.Enumeration;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.dialogs.ProgressMonitorDialog;
@@ -312,6 +313,15 @@ public class C4Engine extends C4ScriptBase {
 			}
 		}
 		return result;
+	}
+	
+	public Enumeration<URL> getURLsOf(String configurationFolder) {
+		for (IStorageLocation loc : storageLocations) {
+			Enumeration<URL> result = loc.getURLs(configurationFolder);
+			if (result.hasMoreElements())
+				return result;
+		}
+		return null;
 	}
 
 }

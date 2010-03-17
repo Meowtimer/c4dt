@@ -2,6 +2,8 @@ package net.arctics.clonk.ui.wizards;
 
 
 import net.arctics.clonk.ClonkCore;
+import net.arctics.clonk.resource.ClonkProjectNature;
+
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.wizard.Wizard;
 import org.eclipse.ui.INewWizard;
@@ -133,9 +135,9 @@ public abstract class NewClonkFolderWizard extends Wizard implements INewWizard 
 //		monitor.worked(1);
 	}
 	
-	@SuppressWarnings("unchecked")
 	protected Enumeration<URL> getTemplateFiles() {
-		return ClonkCore.getDefault().getBundle().findEntries("res/wizard/"+getClass().getSimpleName(), "*.*", false); //$NON-NLS-1$ //$NON-NLS-2$
+		ClonkProjectNature nature = ClonkProjectNature.get((IResource)((IStructuredSelection) selection).getFirstElement());
+		return nature.getIndex().getEngine().getURLsOf("wizards/"+getClass().getSimpleName());
 	}
 	
 	protected Map<String, String> getTemplateReplacements() {
