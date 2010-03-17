@@ -105,16 +105,18 @@ public abstract class NewClonkFolderWizard extends Wizard implements INewWizard 
 		}
 		try {
 			Enumeration<URL> templates = getTemplateFiles();
-			while (templates.hasMoreElements()) {
-				URL template = templates.nextElement();
-				String templateFile = new Path(template.getFile()).lastSegment();
-				if (templateFile.startsWith(".")) //$NON-NLS-1$
-					continue;
-				InputStream stream = getTemplateStream(template, templateFile);
-				try {
-					subContainer.getFile(templateFile).create(stream, true, monitor);
-				} finally {
-					stream.close();
+			if (templates != null) {
+				while (templates.hasMoreElements()) {
+					URL template = templates.nextElement();
+					String templateFile = new Path(template.getFile()).lastSegment();
+					if (templateFile.startsWith(".")) //$NON-NLS-1$
+						continue;
+					InputStream stream = getTemplateStream(template, templateFile);
+					try {
+						subContainer.getFile(templateFile).create(stream, true, monitor);
+					} finally {
+						stream.close();
+					}
 				}
 			}
 		} catch (IOException e) {
@@ -136,8 +138,12 @@ public abstract class NewClonkFolderWizard extends Wizard implements INewWizard 
 	}
 	
 	protected Enumeration<URL> getTemplateFiles() {
-		ClonkProjectNature nature = ClonkProjectNature.get((IResource)((IStructuredSelection) selection).getFirstElement());
-		return nature.getIndex().getEngine().getURLsOf("wizards/"+getClass().getSimpleName());
+		try {
+			ClonkProjectNature nature = ClonkProjectNature.get((IResource)((IStructuredSelection) selection).getFirstElement());
+			return nature.getIndex().getEngine().getURLsOf("wizards/"+getClass().getSimpleName());
+		} catch (Exception e) {
+			return null;
+		}
 	}
 	
 	protected Map<String, String> getTemplateReplacements() {
