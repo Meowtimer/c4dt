@@ -110,9 +110,10 @@ public class IniSourceViewerConfiguration extends ClonkSourceViewerConfiguration
 								}
 								else if (entryClass == IDArray.class) {
 									IRegion idRegion = Utilities.wordRegionAt(line, relativeOffset);
-									if (idRegion.getLength() == 4) {
-										IResource r = Utilities.getEditingFile(getEditor());
-										ClonkIndex index = Utilities.getIndex(r);
+									IResource r = Utilities.getEditingFile(getEditor());
+									ClonkIndex index = Utilities.getIndex(r);
+									String id = line.substring(idRegion.getOffset(), idRegion.getOffset()+idRegion.getLength());
+									if (index.getEngine() != null && index.getEngine().acceptsId(id)) {
 										declaration = index.getObjectNearestTo(r, C4ID.getID(line.substring(idRegion.getOffset(), idRegion.getOffset()+idRegion.getLength())));
 										linkStart = lineRegion.getOffset()+idRegion.getOffset();
 										linkLen = idRegion.getLength();
