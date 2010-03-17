@@ -3,6 +3,7 @@ package net.arctics.clonk.ui.editors;
 import java.net.MalformedURLException;
 import java.net.URL;
 
+import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.index.C4Engine;
 import net.arctics.clonk.parser.C4Declaration;
 import net.arctics.clonk.parser.c4script.C4Function;
@@ -58,7 +59,7 @@ public class ClonkHyperlink implements IHyperlink {
 		String docURLTemplate = C4Function.getDocumentationURL(functionName, engine);
 		IWorkbenchBrowserSupport support = WorkbenchBrowserSupport.getInstance();
 		IWebBrowser browser;
-		if (support.isInternalWebBrowserAvailable()) {
+		if (!ClonkCore.getDefault().getPreferenceStore().getBoolean(ClonkPreferences.OPEN_EXTERNAL_BROWSER) && support.isInternalWebBrowserAvailable()) {
 			browser = support.createBrowser(null);
 		}
 		else {

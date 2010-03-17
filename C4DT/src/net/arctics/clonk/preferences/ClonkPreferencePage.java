@@ -337,6 +337,13 @@ public class ClonkPreferencePage extends FieldEditorPreferencePage implements IW
 				getFieldEditorParent()
 			)
 		);
+		addField(
+			new BooleanFieldEditor(
+				ClonkPreferences.OPEN_EXTERNAL_BROWSER,
+				"Open External Browser",
+				getFieldEditorParent()
+			)
+		);
 //
 //		addField(new RadioGroupFieldEditor(
 //				PreferenceConstants.P_CHOICE,
