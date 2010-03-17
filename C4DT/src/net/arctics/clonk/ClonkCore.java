@@ -40,6 +40,7 @@ import org.eclipse.core.resources.ISaveParticipant;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
+import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.QualifiedName;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.resource.ImageRegistry;
@@ -211,7 +212,7 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 				// only accepting folders should be sufficient
 				if (!wEngine.isDirectory())
 					continue;
-				String engineName = engineNameFromPath(wEngine.getAbsolutePath());
+				String engineName = engineNameFromPath(new Path(wEngine.getAbsolutePath()).toString());
 				if (engineName != null && !result.contains(engineName))
 					result.add(engineName);
 			}
