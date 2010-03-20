@@ -277,6 +277,13 @@ public class C4ScriptEditor extends ClonkTextEditor {
 	protected void editorSaved() {
 		if (textChangeListener != null)
 			textChangeListener.cancel();
+		if (scriptBeingEdited() instanceof ScratchScript) {
+			try {
+				reparseWithDocumentContents(null, false);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
 		super.editorSaved();
 	}
 

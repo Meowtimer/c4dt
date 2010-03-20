@@ -2,10 +2,13 @@ package net.arctics.clonk.command;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
+import java.io.Writer;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.net.Socket;
@@ -27,10 +30,12 @@ import net.arctics.clonk.parser.c4script.C4Function;
 import net.arctics.clonk.parser.c4script.C4ScriptBase;
 import net.arctics.clonk.parser.c4script.C4ScriptExprTree;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
+import net.arctics.clonk.parser.c4script.Keywords;
 import net.arctics.clonk.parser.c4script.C4ScriptExprTree.ExprElm;
 import net.arctics.clonk.parser.c4script.C4ScriptExprTree.IExpressionListener;
 import net.arctics.clonk.parser.c4script.C4ScriptExprTree.Statement;
 import net.arctics.clonk.parser.c4script.C4ScriptExprTree.TraversalContinuation;
+import net.arctics.clonk.parser.c4script.C4Variable;
 import net.arctics.clonk.ui.editors.ClonkHyperlink;
 import net.arctics.clonk.util.Utilities;
 
@@ -238,6 +243,24 @@ public class Command {
 		@CommandFunction
 		public static void SetCodeConversionOption(Object context, String option, Object value) {
 			setFieldValue(C4ScriptExprTree.class, option, value);
+		}
+		@CommandFunction
+		public static void WriteEngineScript(Object context, String engineName, String fileName) throws IOException {
+			C4Engine engine = ClonkCore.getDefault().loadEngine(engineName);
+			FileOutputStream stream = new FileOutputStream(fileName);
+			Writer writer = new OutputStreamWriter(stream);
+			for (C4Variable v : engine.variables()) {
+				String text = String.format("%s %s;\n", v.getScope().toKeyword(), v.getName());
+				writer.append(text);
+			}
+			writer.append("\n");
+			for (C4Function f : engine.functions()) {
+				String returnType = f.getReturnType().toString();
+				String text = String.format("%s %s %s %s;\n", f.getVisibility().toKeyword(), Keywords.Func, returnType, f.getLongParameterString(true, true));
+				writer.append(text);
+			}
+			writer.close();
+			stream.close();
 		}
 	}
 	

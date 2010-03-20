@@ -14,6 +14,7 @@ import java.util.Stack;
 import java.util.Vector;
 
 import net.arctics.clonk.ClonkCore;
+import net.arctics.clonk.index.C4Engine;
 import net.arctics.clonk.index.C4Object;
 import net.arctics.clonk.index.ClonkIndex;
 import net.arctics.clonk.index.C4Engine.EngineCapability;
@@ -71,12 +72,18 @@ public class C4ScriptParser {
 	private int parseExpressionRecursion;
 	private int parseStatementRecursion;
 	
+	/**
+	 * Whether the script contains an #appendto
+	 */
 	private boolean appendTo;
-	
 	/**
 	 * Whether to not create any error markers at all - set if script is contained in linked group
 	 */
 	private boolean allErrorsDisabled;
+	/**
+	 * Whether the script is an engine script
+	 */
+	private boolean isEngine;
 
 	private LoopType currentLoop;
 	private Comment lastComment;
@@ -298,6 +305,7 @@ public class C4ScriptParser {
 		scriptFile = null;
 		scanner = new BufferedScanner(withString);
 		container = script;
+		isEngine = container instanceof C4Engine;
 	}
 	
 	/**
@@ -352,7 +360,7 @@ public class C4ScriptParser {
 		synchronized (container) {
 			strictLevel = container.getStrictLevel();
 			if (strictLevel == -1)
-				strictLevel = container.getIndex().getEngine().getCurrentSettings().strictDefaultLevel;
+				strictLevel = container.getEngine().getCurrentSettings().strictDefaultLevel;
 			for (C4Function function : container.functions()) {
 				parseCodeOfFunction(function);
 			}
@@ -401,6 +409,8 @@ public class C4ScriptParser {
 	 * @throws ParsingException
 	 */
 	public void parseCodeOfFunction(C4Function function) throws ParsingException {
+		if (function.getBody() == null)
+			return;
 		try {
 			setActiveFunc(function);
 			beginTypeInferenceBlock();
@@ -544,19 +554,30 @@ public class C4ScriptParser {
 				int e = scanner.getPosition();
 				if (constDecl || getContainer().getEngine().hasCapability(EngineCapability.NonConstGlobalVarsAssignment)) {
 					eatWhitespace();
-					expect('=');
-					eatWhitespace();
-					offset = scanner.getPosition();
-					ExprElm constantValue = parseExpression(offset, false);
-					if (constantValue == null)
-						constantValue = ERROR_PLACEHOLDER_EXPR;
-					if (!constantValue.isConstant()) {
-						errorWithCode(ParserErrorCode.ConstantValueExpected, constantValue, true);
+					if (scanner.peek() == ';' || scanner.peek() == ',') {
+						if (constDecl && !isEngine)
+							errorWithCode(ParserErrorCode.ConstantValueExpected, scanner.getPosition()-1, scanner.getPosition(), true);
+						else {
+							C4Variable var;
+							createdVariables.add(var = createVariable(C4VariableScope.VAR_CONST, desc, s, e, varName));
+							var.forceType(C4Type.INT); // most likely
+						}
 					}
-					C4Variable var = createVariable(C4VariableScope.VAR_CONST, desc, s, e, varName);
-					var.setConstValue(constantValue.evaluateAtParseTime(getContainer()));
-					createdVariables.add(var);
-					var.inferTypeFromAssignment(constantValue, this);
+					else {
+						expect('=');
+						eatWhitespace();
+						offset = scanner.getPosition();
+						ExprElm constantValue = parseExpression(offset, false);
+						if (constantValue == null)
+							constantValue = ERROR_PLACEHOLDER_EXPR;
+						if (!constantValue.isConstant()) {
+							errorWithCode(ParserErrorCode.ConstantValueExpected, constantValue, true);
+						}
+						C4Variable var = createVariable(C4VariableScope.VAR_CONST, desc, s, e, varName);
+						var.setConstValue(constantValue.evaluateAtParseTime(getContainer()));
+						createdVariables.add(var);
+						var.inferTypeFromAssignment(constantValue, this);
+					}
 				}
 				else {
 					createdVariables.add(createVariable(C4VariableScope.VAR_STATIC, desc, s, e, varName));
@@ -609,7 +630,7 @@ public class C4ScriptParser {
 		case VAR_VAR:
 			return activeFunc.findVariable(name);
 		case VAR_CONST: case VAR_STATIC:
-			C4Declaration globalField = getContainer().getIndex().findGlobalDeclaration(name);
+			C4Declaration globalField = getContainer().getIndex() != null ? getContainer().getIndex().findGlobalDeclaration(name) : null;
 			if (globalField instanceof C4Variable)
 				return (C4Variable) globalField;
 			return null;
@@ -691,12 +712,15 @@ public class C4ScriptParser {
 		}
 	}
 
-	private C4Type parseFunctionReturnType(int offset) {
+	private C4Type parseFunctionReturnType(int offset) throws ParsingException {
 		scanner.seek(offset);
 		eatWhitespace();
-		int readByte = scanner.read();
-		if (readByte == '&') {
+		int read = scanner.read();
+		if (read == '&') {
 			return C4Type.REFERENCE;
+		}
+		else if (isEngine && scanner.unread() && parseIdentifier(scanner.getPosition())) {
+			return C4Type.makeType(parsedString);
 		}
 		scanner.seek(offset);
 		return C4Type.ANY;
@@ -746,8 +770,6 @@ public class C4ScriptParser {
 		}
 		else {
 			activeFunc.setVisibility(C4FunctionScope.FUNC_PUBLIC);
-			// well, so common it can hardly be worth a warning
-			//createWarningMarker(offset - firstWord.length(), offset, "Function declarations should define a scope. (public,protected,private,global)");
 		}
 		if (!suspectOldStyle) {
 			retType = parseFunctionReturnType(scanner.getPosition());
@@ -758,14 +780,6 @@ public class C4ScriptParser {
 				errorWithCode(ParserErrorCode.NameExpected, scanner.getPosition()-1, scanner.getPosition());
 			endName = scanner.getPosition();
 		}
-		/* not that bad
-		for(C4Function otherFunc : container.functions()) {
-			if (otherFunc.getName().equals(funcName)) {
-				warningWithCode(ParserErrorCode.FunctionRedeclared, startName, fReader.getPosition());
-				break;
-			}
-		}
-		*/
 		activeFunc.setName(funcName);
 		activeFunc.setReturnType(retType);
 		activeFunc.setOldStyle(suspectOldStyle);
@@ -801,11 +815,10 @@ public class C4ScriptParser {
 		if (lastComment != null)
 			activeFunc.setUserDescription(lastComment.getComment());
 		// parse code block
-		if (scanner.read() != '{') {
+		int token = scanner.read();
+		if (token != '{') {
 			if (suspectOldStyle) {
-				//fReader.seek(endOfHeader); // don't eat comments, they are statements
 				scanner.seek(endOfHeader);
-				//parseFunctionDescription(fReader.getPosition());
 				startBody = scanner.getPosition();
 				// body goes from here to start of next function...
 				do {
@@ -832,7 +845,15 @@ public class C4ScriptParser {
 					endBody = scanner.getPosition(); // blub
 				} while (!scanner.reachedEOF());
 			} else {
-				errorWithCode(ParserErrorCode.TokenExpected, scanner.getPosition()-1, scanner.getPosition(), "{"); //$NON-NLS-1$
+				if (isEngine) {
+					// engine functions don't need a body
+					if (token != ';')
+						errorWithCode(ParserErrorCode.TokenExpected, scanner.getPosition()-1, scanner.getPosition(), ";");
+					startBody = endBody = -1;
+				}
+				else {
+					errorWithCode(ParserErrorCode.TokenExpected, scanner.getPosition()-1, scanner.getPosition(), "{"); //$NON-NLS-1$
+				}
 			}
 		} else {
 			// body in {...}
@@ -870,7 +891,7 @@ public class C4ScriptParser {
 		}
 		// finish up
 		activeFunc.setLocation(new SourceLocation(startName,endName));
-		activeFunc.setBody(new SourceLocation(startBody,endBody));
+		activeFunc.setBody(startBody != -1 ? new SourceLocation(startBody,endBody) : null);
 		activeFunc.setHeader(new SourceLocation(startOfFirstWord, endOfHeader));
 		container.addDeclaration(activeFunc);
 		if (!activeFunc.isOldStyle())

@@ -213,7 +213,9 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 		doCycle();
 		
 		if (proposals.size() == 0) {
-			return new ICompletionProposal[] { new CompletionProposal("",offset,0,0,null,Messages.C4ScriptCompletionProcessor_NoProposalsAvailable,null,null) }; //$NON-NLS-1$
+			return new ICompletionProposal[] {
+				new CompletionProposal("",offset,0,0,null,Messages.C4ScriptCompletionProcessor_NoProposalsAvailable,null,null) //$NON-NLS-1$ 
+			};
 		}
 		
 		return sortProposals(proposals);

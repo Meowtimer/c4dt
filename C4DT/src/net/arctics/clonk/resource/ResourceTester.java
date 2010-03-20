@@ -10,37 +10,38 @@ import org.eclipse.ui.IFileEditorInput;
 public class ResourceTester extends PropertyTester {
 	
 	public boolean test(Object receiver, String property, Object[] args, Object expected) {
-		
-		// Editor? Resolve to associated resource
-		if(receiver instanceof IFileEditorInput)
-			receiver = ((IFileEditorInput) receiver).getFile();
+		try {
+			// Editor? Resolve to associated resource
+			if(receiver instanceof IFileEditorInput)
+				receiver = ((IFileEditorInput) receiver).getFile();
 
-		IResource res = (IResource) receiver;
-		if (res == null)
+			IResource res = receiver instanceof IResource ? (IResource) receiver : null;
+			if (res == null)
+				return false;
+
+			boolean result = false;		
+			// Calculate property value
+			if(property.equals("isScenario")) //$NON-NLS-1$
+				result = isScenario(res);
+			else if(property.equals("isDefinition")) //$NON-NLS-1$
+				result = isDefinition(res);
+			else if(property.equals("isFolder")) //$NON-NLS-1$
+				result = isFolder(res);
+			else if(property.equals("isResource")) //$NON-NLS-1$
+				result = isResource(res);
+			else if(property.equals("isInScenario")) //$NON-NLS-1$
+				result = isInScenario(res);
+			else
+				assert false;
+
+			// Compare to expected value, if given
+			return expected == null ? result : (expected instanceof Boolean && result == (Boolean)expected);
+		} catch (Exception e) {
+			e.printStackTrace();
 			return false;
-		boolean result = false;
-		
-		// Calculate property value
-		if(property.equals("isScenario")) //$NON-NLS-1$
-			result = isScenario(res);
-		else if(property.equals("isDefinition")) //$NON-NLS-1$
-			result = isDefinition(res);
-		else if(property.equals("isFolder")) //$NON-NLS-1$
-			result = isFolder(res);
-		else if(property.equals("isResource")) //$NON-NLS-1$
-			result = isResource(res);
-		else if(property.equals("isInScenario")) //$NON-NLS-1$
-			result = isInScenario(res);
-		else
-			assert false;
-		
-		// Compare to expected value, if given
-		if(expected == null)
-			return result;
-		else
-			return result == (Boolean) expected;
+		}
 	}
-	
+
 	/** @return Whether the given resource is a scenario */
 	public static boolean isScenario(IResource res) {
 		return C4Group.getGroupTypeExt(res.getFileExtension()) == C4Group.C4GroupType.ScenarioGroup;
@@ -63,11 +64,9 @@ public class ResourceTester extends PropertyTester {
 	
 	/** @return Whether the given resource is contained in a scenario */
 	public static boolean isInScenario(IResource res) {
-		while(res.getParent() != null) {
-			if(isScenario(res))
+		for (; res != null; res = res.getParent())
+			if (isScenario(res))
 				return true;
-			res = res.getParent();
-		}
 		return false;
 	}
 

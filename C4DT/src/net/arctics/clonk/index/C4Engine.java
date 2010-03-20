@@ -2,28 +2,22 @@ package net.arctics.clonk.index;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.ObjectInputStream;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Serializable;
 import java.io.Writer;
 import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
 import java.util.EnumSet;
 import java.util.Enumeration;
 
-import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.jface.dialogs.ProgressMonitorDialog;
 import org.eclipse.jface.util.Util;
-import org.eclipse.ui.PlatformUI;
 import net.arctics.clonk.parser.C4Declaration;
 import net.arctics.clonk.parser.c4script.C4ScriptBase;
+import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.inireader.CustomIniUnit;
 import net.arctics.clonk.parser.inireader.IniField;
 import net.arctics.clonk.parser.inireader.IniData.IniConfiguration;
-import net.arctics.clonk.resource.InputStreamRespectingUniqueIDs;
-import net.arctics.clonk.util.IRunnableWithProgressAndResult;
 import net.arctics.clonk.util.IStorageLocation;
 import net.arctics.clonk.util.Utilities;
 
@@ -256,8 +250,28 @@ public class C4Engine extends C4ScriptBase {
 
 	public static C4Engine loadFromStorageLocations(final IStorageLocation... providers) {
 		C4Engine result = null;
-		InputStream engineStream;
 		try {
+			for (IStorageLocation location : providers) {
+				URL url = location.getURL(location.getName()+".c", false);
+				if (url != null) {
+					result = new C4Engine(location.getName());
+					result.storageLocations = providers;
+					result.loadSettings();
+					InputStream stream = url.openStream();
+					try {
+						C4ScriptParser parser = new C4ScriptParser(Utilities.stringFromInputStream(stream), result);
+						parser.parse();
+						result.postSerialize(null);
+					} finally {
+						stream.close();
+					}
+					break;
+				}
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		/*try {
 			for (IStorageLocation provider : providers) {
 				URL url = provider.getURL(provider.getName()+".engine", false);
 				if (url != null) {
@@ -304,14 +318,7 @@ public class C4Engine extends C4ScriptBase {
             } catch (Exception e1) {
 	            e1.printStackTrace();
             }
-		}
-		if (result != null) {
-			try {
-				result.loadSettings();
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		}
+		}*/
 		return result;
 	}
 	

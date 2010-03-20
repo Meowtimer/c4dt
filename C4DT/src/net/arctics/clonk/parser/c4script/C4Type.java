@@ -22,7 +22,9 @@ public enum C4Type {
 	OBJECT,
 	//DWORD, 
 	REFERENCE, 
-	PROPLIST; 
+	PROPLIST;
+	
+	private String lowercaseName;
 	
 	@Override
 	public String toString() {
@@ -32,7 +34,9 @@ public enum C4Type {
 	public String toString(boolean special) {
 		if (!special && this == REFERENCE)
 			return "&"; //$NON-NLS-1$
-		return super.toString().toLowerCase();
+		if (lowercaseName == null)
+			lowercaseName = super.toString().toLowerCase();
+		return lowercaseName;
 	}
 	
 	public boolean canBeAssignedFrom(C4Type other) {

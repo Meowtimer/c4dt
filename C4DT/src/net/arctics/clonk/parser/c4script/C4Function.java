@@ -170,6 +170,10 @@ public class C4Function extends C4Structure implements Serializable, ITypedDecla
 				lowerCaseName = this.name().substring(5).toLowerCase();
 			return lowerCaseName;
 		}
+
+		public Object toKeyword() {
+			return toString();
+		}
 	}
 	
 	/**

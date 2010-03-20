@@ -5,6 +5,7 @@ import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.runtime.CoreException;
 
 public enum ParserErrorCode {
+
 	TokenExpected(Messages.TokenExpected),
 	NotAllowedHere(Messages.NotAllowedHere),
 	MissingClosingBracket(Messages.MissingClosingBracket),
@@ -50,8 +51,9 @@ public enum ParserErrorCode {
 	TooManyParameters(Messages.TooManyParameters),
 	StringTooLong(Messages.StringTooLong),
 	MissingLocalizations(Messages.MissingLocalizations),
-	IdentShadowed(Messages.IdentShadowed);
-	
+	IdentShadowed(Messages.IdentShadowed),
+	VarUsedBeforeItsDeclaration("Using variable '%s' before it was declared. I'ma let you pass but it's still weird.");
+
 	public static final String MARKER_ERRORCODE = "c4ScriptErrorCode"; //$NON-NLS-1$
 	
 	private String message;

@@ -215,6 +215,8 @@ public class C4Group extends C4GroupItem implements Serializable, ITreeNode {
 	}
 	
 	public static C4GroupType getGroupTypeExt(String ext) {
+		if (ext == null)
+			return null;
 		C4GroupType result = EXTENSION_TO_GROUP_TYPE_MAP.get(ext);
 		if (result != null)
 			return result;

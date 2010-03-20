@@ -821,6 +821,12 @@ public abstract class C4ScriptExprTree {
 					case VAR_STATIC:
 						parser.getContainer().addUsedProjectScript(var.getScript());
 						break;
+					case VAR_VAR:
+						int locationUsed = parser.getActiveFunc().getBody().getOffset()+this.getExprStart();
+						System.out.println(String.format("%s: %d %d", var.getName(), locationUsed, var.getLocation().getOffset()));
+						if (locationUsed < var.getLocation().getOffset())
+							parser.warningWithCode(ParserErrorCode.VarUsedBeforeItsDeclaration, this, var.getName());
+						break;
 				}
 			}
 		}
