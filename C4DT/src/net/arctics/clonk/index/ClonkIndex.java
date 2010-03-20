@@ -44,7 +44,11 @@ public class ClonkIndex implements Serializable, Iterable<C4Object> {
 	private static final long serialVersionUID = 1L;
 
 	// not so nice to have it as an instance variable :/
-	private transient IPredicate<C4Declaration> isGlobalPredicate;
+	private transient static final IPredicate<C4Declaration> IS_GLOBAL = new IPredicate<C4Declaration>() {
+		public boolean test(C4Declaration item) {
+			return item.isGlobal();
+		}
+	}; 
 
 	private Map<C4ID, List<C4Object>> indexedObjects = new HashMap<C4ID, List<C4Object>>();
 	private List<C4ScriptBase> indexedScripts = new LinkedList<C4ScriptBase>(); 
@@ -445,24 +449,13 @@ public class ClonkIndex implements Serializable, Iterable<C4Object> {
 			return f;
 		return findGlobalVariable(fieldName);
 	}
-
-	private IPredicate<C4Declaration> isGlobalPredicate() {
-		if (isGlobalPredicate == null) {
-			isGlobalPredicate = new IPredicate<C4Declaration>() {
-				public boolean test(C4Declaration item) {
-					return item.isGlobal();
-				}
-			};
-		}
-		return isGlobalPredicate;
-	}
 	
 	public C4Declaration findGlobalDeclaration(String declName, IResource pivot) {
 		if (pivot == null)
 			return findGlobalDeclaration(declName);
 		List<C4Declaration> declarations = declarationMap.get(declName);
 		if (declarations != null) {
-			return Utilities.pickNearest(pivot, declarations, isGlobalPredicate());
+			return Utilities.pickNearest(pivot, declarations, IS_GLOBAL);
 		}
 		return null;
 	}
