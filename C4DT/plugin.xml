@@ -598,14 +598,8 @@
 					-->
 					<count value="1" />
 					<with variable="selection">
-						<iterate>
-							<or>
-								<and>
-									<instanceof value="org.eclipse.core.resources.IResource" />
-									<test property="net.arctics.clonk.resource.isInScenario" />
-								</and>
-								<test property="net.arctics.clonk.resource.editor.isInScenario" />
-							</or>
+						<iterate ifEmpty="false" operator="or">
+							<test property="net.arctics.clonk.resource.isInScenario" />
 						</iterate>
 					</with>
 				</enablement>
