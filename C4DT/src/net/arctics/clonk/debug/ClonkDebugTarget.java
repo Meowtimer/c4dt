@@ -37,6 +37,11 @@ public class ClonkDebugTarget extends ClonkDebugElement implements IDebugTarget 
 		public static final String STEPRETURN = "STR"; //$NON-NLS-1$
 		public static final String QUITSESSION = "BYE"; //$NON-NLS-1$
 		public static final String STACKTRACE = "STA"; //$NON-NLS-1$
+		public static final String TOGGLEBREAKPOINT = "TBR"; //$NON-NLS-1$
+		public static final String VAR = "VAR"; //$NON-NLS-1$
+		public static final String SENDSTACKTRACE = "SST";
+		public static final String ENDSTACKTRACE = "EST";
+		public static final String AT = "AT";
 	}
 	
 	public static final int CONNECTION_ATTEMPT_WAITTIME = 2000;
@@ -89,14 +94,14 @@ public class ClonkDebugTarget extends ClonkDebugElement implements IDebugTarget 
 							stackTrace.clear();
 							stackTrace.add(sourcePath);
 
-							send("SST"); //$NON-NLS-1$
+							send(Commands.SENDSTACKTRACE); //$NON-NLS-1$
 							while (!isTerminated() && event != null) {
 								event = receive();
 								if (event != null && event.length() > 0) {
-									if (event.equals("EST")) { //$NON-NLS-1$
+									if (event.equals(Commands.ENDSTACKTRACE)) { //$NON-NLS-1$
 										break;
 									}
-									else if (event.startsWith("AT ")) { //$NON-NLS-1$
+									else if (event.startsWith(Commands.AT + " ")) { //$NON-NLS-1$
 										if (stackTrace.size() > 512) {
 											System.out.println("Runaway stacktrace"); //$NON-NLS-1$
 											break;
@@ -119,13 +124,13 @@ public class ClonkDebugTarget extends ClonkDebugElement implements IDebugTarget 
 									for (ClonkDebugVariable var : varArray)
 										vars.put(var.getName(), var);
 									for (ClonkDebugVariable var : vars.values()) {
-										send("VAR " + var.getName()); //$NON-NLS-1$
+										send(String.format("%s %s", Commands.VAR, var.getName())); //$NON-NLS-1$
 									}
 									while (!isTerminated() && event != null && !vars.isEmpty()) {
 										event = receive();
 										if (event != null && event.length() > 0) {
-											if (event.startsWith("VAR ")) { //$NON-NLS-1$
-												event = event.substring("VAR ".length()); //$NON-NLS-1$
+											if (event.startsWith(Commands.VAR + " ")) { //$NON-NLS-1$
+												event = event.substring(Commands.VAR.length()+1); //$NON-NLS-1$
 												String[] parts = event.split("="); //$NON-NLS-1$
 												if (parts != null && parts.length == 2) {
 													ClonkDebugVariable var = vars.get(parts[0]);
@@ -376,7 +381,7 @@ public class ClonkDebugTarget extends ClonkDebugElement implements IDebugTarget 
 		try {
 			if (breakpoint instanceof ClonkDebugLineBreakpoint) {
 				ClonkDebugLineBreakpoint bp = (ClonkDebugLineBreakpoint) breakpoint;
-				send("TBR " + bp.getMarker().getResource().getProjectRelativePath().toOSString() + ":" + bp.getLineNumber()); //$NON-NLS-1$ //$NON-NLS-2$
+				send(String.format("%s %s:%d", Commands.TOGGLEBREAKPOINT, bp.getMarker().getResource().getProjectRelativePath().toOSString(), bp.getLineNumber())); //$NON-NLS-1$ //$NON-NLS-2$
 			}
 		} catch (CoreException e) {
 			e.printStackTrace();
