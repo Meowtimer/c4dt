@@ -54,7 +54,7 @@ public abstract class ClonkCompletionProcessor<EditorType extends ClonkTextEdito
 //			String contextInfoString = obj.getName();
 //			IContextInformation contextInformation = null;// new ContextInformation(obj.getId().getName(),contextInfoString); 
 
-			ClonkCompletionProposal prop = new ClonkCompletionProposal(obj.getId().getName(), offset, replacementLength, obj.getId().getName().length(),
+			ClonkCompletionProposal prop = new ClonkCompletionProposal(obj, obj.getId().getName(), offset, replacementLength, obj.getId().getName().length(),
 				UI.getIconForObject(obj), displayString.trim(), null, obj.getInfoText(), " - " + obj.getId().getName(), getEditor()); //$NON-NLS-1$
 			proposals.add(prop);
 		} catch (Exception e) {
@@ -82,8 +82,8 @@ public abstract class ClonkCompletionProcessor<EditorType extends ClonkTextEdito
 		IContextInformation contextInformation = new ContextInformation(func.getName() + "()",contextInfoString);  //$NON-NLS-1$*/
 		
 		String replacement = func.getName() + (brackets ? "()" : ""); //$NON-NLS-1$ //$NON-NLS-2$
-		ClonkCompletionProposal prop = new ClonkCompletionProposal(replacement, offset,replacementLength,func.getName().length()+1,
-				UI.getIconForFunction(func), displayString.trim(), null/*contextInformation*/, func.getInfoText()," - " + parentName, getEditor()); //$NON-NLS-1$
+		ClonkCompletionProposal prop = new ClonkCompletionProposal(func, replacement, offset,replacementLength,func.getName().length()+1,
+				UI.getIconForFunction(func), displayString.trim(), null/*contextInformation*/, null," - " + parentName, getEditor()); //$NON-NLS-1$
 		proposals.add(prop);
 	}
 	
@@ -96,7 +96,7 @@ public abstract class ClonkCompletionProcessor<EditorType extends ClonkTextEdito
 		int replacementLength = 0;
 		if (prefix != null)
 			replacementLength = prefix.length();
-		ClonkCompletionProposal prop = new ClonkCompletionProposal(
+		ClonkCompletionProposal prop = new ClonkCompletionProposal(var,
 			var.getName(), offset, replacementLength, var.getName().length(), UI.getIconForVariable(var), displayString, 
 			null, var.getInfoText(), " - " + var.getScript().getName(), //$NON-NLS-1$
 			getEditor()

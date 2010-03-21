@@ -304,7 +304,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 				}
 				int replacementLength = 0;
 				if (prefix != null) replacementLength = prefix.length();
-				ClonkCompletionProposal prop = new ClonkCompletionProposal(keyword,offset,replacementLength,keyword.length(), reg.get("keyword") , keyword.trim(),null,null,Messages.C4ScriptCompletionProcessor_Engine, getEditor()); //$NON-NLS-1$
+				ClonkCompletionProposal prop = new ClonkCompletionProposal(null, keyword,offset,replacementLength,keyword.length(), reg.get("keyword") , keyword.trim(),null,null,Messages.C4ScriptCompletionProcessor_Engine, getEditor()); //$NON-NLS-1$
 				proposals.add(prop);
 			}
 		}
@@ -339,6 +339,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 		// FIXME: copy signature of overloaded func and respect brace style
 		String repString = funcSupplied ? (callback!=null?callback:"") : getFunctionScaffold(callback); //$NON-NLS-1$ //$NON-NLS-2$
 		ClonkCompletionProposal prop = new ClonkCompletionProposal(
+				null,
 				repString, offset, replacementLength, 
 				repString.length(), reg.get("callback") , callback, null,null,Messages.C4ScriptCompletionProcessor_Callback, getEditor()); //$NON-NLS-1$
 		proposals.add(prop);
@@ -374,7 +375,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 			}
 			int replacementLength = 0;
 			if (prefix != null) replacementLength = prefix.length();
-			ClonkCompletionProposal prop = new ClonkCompletionProposal(declarator,offset,replacementLength,declarator.length(), reg.get("declarator") , declarator.trim(),null,null,Messages.C4ScriptCompletionProcessor_Engine, getEditor()); //$NON-NLS-1$
+			ClonkCompletionProposal prop = new ClonkCompletionProposal(null, declarator,offset,replacementLength,declarator.length(), reg.get("declarator") , declarator.trim(),null,null,Messages.C4ScriptCompletionProcessor_Engine, getEditor()); //$NON-NLS-1$
 			proposals.add(prop);
 		}
 		
@@ -388,7 +389,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 			}
 			int replacementLength = 0;
 			if (prefix != null) replacementLength = prefix.length();
-			ClonkCompletionProposal prop = new ClonkCompletionProposal(directive,offset,replacementLength,directive.length(), reg.get("directive") , directive.trim(),null,null,Messages.C4ScriptCompletionProcessor_Engine, getEditor()); //$NON-NLS-1$
+			ClonkCompletionProposal prop = new ClonkCompletionProposal(null, directive,offset,replacementLength,directive.length(), reg.get("directive") , directive.trim(),null,null,Messages.C4ScriptCompletionProcessor_Engine, getEditor()); //$NON-NLS-1$
 			proposals.add(prop);
 		}
 		
