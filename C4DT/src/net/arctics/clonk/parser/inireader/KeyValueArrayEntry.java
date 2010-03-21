@@ -15,8 +15,8 @@ import net.arctics.clonk.util.KeyValuePair;
 public abstract class KeyValueArrayEntry<KeyType, ValueType> implements IIniEntryValue, IHasChildrenWithContext, ITreeNode {
 	private final List<KeyValuePair<KeyType, ValueType>> components = new ArrayList<KeyValuePair<KeyType, ValueType>>();
 	
-	public KeyValueArrayEntry(String value, IniDataEntry entryData) throws IniParserException {
-		setInput(value, entryData);
+	public KeyValueArrayEntry(String value, IniDataEntry entryData, IniUnit context) throws IniParserException {
+		setInput(value, entryData, context);
 	}
 	
 	public KeyValueArrayEntry() {
@@ -43,7 +43,8 @@ public abstract class KeyValueArrayEntry<KeyType, ValueType> implements IIniEntr
 	
 	public abstract KeyValuePair<KeyType, ValueType> singleComponentFromString(String s);
 
-	public void setInput(String input, IniDataEntry entryData) throws IniParserException {
+	@Override
+	public void setInput(String input, IniDataEntry entryData, IniUnit context) throws IniParserException {
 		// CLNK=1;STIN=10;
 		components.clear();
 		String[] parts = input.split(";|,"); //$NON-NLS-1$

@@ -16,7 +16,7 @@ public class DefinitionPack implements IIniEntryValue {
 		return value;
 	}
 	
-	public void setInput(String value, IniDataEntry entryData) throws IniParserException {
+	public void setInput(String value, IniDataEntry entryData, IniUnit context) throws IniParserException {
 		this.value = value;
 	}
 

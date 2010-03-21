@@ -10,11 +10,16 @@ import java.lang.reflect.Field;
 import java.net.URL;
 import java.util.EnumSet;
 import java.util.Enumeration;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
 
 import org.eclipse.jface.util.Util;
 import net.arctics.clonk.parser.C4Declaration;
 import net.arctics.clonk.parser.c4script.C4ScriptBase;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
+import net.arctics.clonk.parser.c4script.C4Variable;
+import net.arctics.clonk.parser.c4script.C4Variable.C4VariableScope;
 import net.arctics.clonk.parser.inireader.CustomIniUnit;
 import net.arctics.clonk.parser.inireader.IniField;
 import net.arctics.clonk.parser.inireader.IniData.IniConfiguration;
@@ -329,6 +334,16 @@ public class C4Engine extends C4ScriptBase {
 				return result;
 		}
 		return null;
+	}
+	
+	public C4Variable[] variablesWithPrefix(String prefix) {
+		List<C4Variable> result = new LinkedList<C4Variable>();
+		for (C4Variable v : variables()) {
+			if (v.getScope() == C4VariableScope.VAR_CONST && v.getName().startsWith(prefix)) {
+				result.add(v);
+			}
+		}
+		return result.toArray(new C4Variable[result.size()]);
 	}
 
 }

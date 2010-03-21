@@ -6,7 +6,8 @@ public class NamedReference implements IIniEntryValue {
 
 	private String value;
 	
-	public void setInput(String value, IniDataEntry entryData) throws IniParserException {
+	@Override
+	public void setInput(String value, IniDataEntry entryData, IniUnit context) throws IniParserException {
 		this.value = value;
 	}
 	

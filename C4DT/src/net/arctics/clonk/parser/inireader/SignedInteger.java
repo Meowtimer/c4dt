@@ -20,7 +20,8 @@ public class SignedInteger implements IIniEntryValue, IConvertibleToPrimitive {
 		return Integer.toString(x);
 	}
 
-	public void setInput(String input, IniDataEntry entryData) throws IniParserException {
+	@Override
+	public void setInput(String input, IniDataEntry entryData, IniUnit context) throws IniParserException {
 		try {
 			input = input != null ? input.trim() : ""; //$NON-NLS-1$
 			if (input.equals("")) //$NON-NLS-1$

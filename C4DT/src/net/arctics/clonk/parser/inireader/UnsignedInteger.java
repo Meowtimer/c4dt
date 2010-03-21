@@ -32,7 +32,8 @@ public class UnsignedInteger implements IIniEntryValue {
 		return Integer.toString(this.number);
 	}
 
-	public void setInput(String input, IniDataEntry entryData) throws IniParserException {
+	@Override
+	public void setInput(String input, IniDataEntry entryData, IniUnit context) throws IniParserException {
 		try {
 			input = input.trim();
 			Integer num = !input.equals("") ? Integer.decode(input) : 0; //$NON-NLS-1$

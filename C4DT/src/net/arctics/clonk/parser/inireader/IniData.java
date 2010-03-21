@@ -193,6 +193,9 @@ public class IniData {
 				if ((n = entryNode.getAttributes().getNamedItem("flags")) != null) { //$NON-NLS-1$
 					entry.extraData = n.getNodeValue().split(","); //$NON-NLS-1$
 				}
+				else if ((n = entryNode.getAttributes().getNamedItem("constantsPrefix")) != null) {
+					entry.extraData = n.getNodeValue();
+				}
 			}
 			return entry;
 		}
@@ -218,9 +221,9 @@ public class IniData {
 			entryDescription = desc;
 		}
 		
-		public String[] getFlags() {
+		public String getConstantsPrefix() {
 			try {
-				return (String[]) extraData;
+				return (String) extraData;
 			} catch (ClassCastException e) {
 				return null;
 			}

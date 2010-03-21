@@ -166,7 +166,7 @@ public class IniUnit extends C4Structure implements Iterable<IniSection>, IHasCh
 		IniDataEntry entryConfig = sectionConfig.getEntry(entry.getKey());
 		try {
 			try {
-				Object value = configuration.getFactory().create(entryConfig.getEntryClass(), entry.getValue(), entryConfig);
+				Object value = configuration.getFactory().create(entryConfig.getEntryClass(), entry.getValue(), entryConfig, this);
 				return ComplexIniEntry.adaptFrom(entry, value, entryConfig, modifyMarkers);
 			}
 			catch(IniParserException e) { // add offsets and throw through

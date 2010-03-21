@@ -7,7 +7,7 @@ import net.arctics.clonk.parser.inireader.IniData.IniDataEntry;
 
 public class GenericEntryFactory implements IEntryFactory {
 	
-	public Object create(Class<?> type, String value, IniDataEntry entryData) throws InvalidClassException, IniParserException {
+	public Object create(Class<?> type, String value, IniDataEntry entryData, IniUnit context) throws InvalidClassException, IniParserException {
 		if (value == null)
 			value = ""; //$NON-NLS-1$
 		if (type.equals(C4ID.class)) {
@@ -19,7 +19,7 @@ public class GenericEntryFactory implements IEntryFactory {
 		else if (IIniEntryValue.class.isAssignableFrom(type)) {
 			try {
 				IIniEntryValue obj = ((IIniEntryValue)type.newInstance());
-				obj.setInput(value, entryData);
+				obj.setInput(value, entryData, context);
 				return obj;
 			} catch (InstantiationException e) {
 				e.printStackTrace();

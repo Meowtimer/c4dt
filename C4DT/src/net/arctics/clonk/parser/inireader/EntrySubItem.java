@@ -27,23 +27,28 @@ public class EntrySubItem<EntryType extends IHasChildrenWithContext> implements 
 		return context;
 	}
 
+	@Override
 	public String getKey() {
 		return "["+String.valueOf(index)+"]"; //$NON-NLS-1$ //$NON-NLS-2$
 	}
 
+	@Override
 	public String getValue() {
 		return entry.getChildValue(index).toString();
 	}
 
-	public void setValue(String value) {
+	@Override
+	public void setValue(String value, Object context) {
 		entry.setChildValue(index, value);
 	}
 
+	@Override
 	public Object getChildValue(int index) {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
+	@Override
 	public IHasContext[] getChildren(Object context) {
 		// TODO Auto-generated method stub
 		return null;

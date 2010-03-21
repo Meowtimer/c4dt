@@ -14,8 +14,8 @@ public class IntegerArray implements IIniEntryValue, IHasChildrenWithContext, IC
 	public IntegerArray() {
 	}
 	
-	public IntegerArray(String value, IniDataEntry entryData) throws IniParserException {
-		setInput(value, entryData);
+	public IntegerArray(String value, IniDataEntry entryData, IniUnit context) throws IniParserException {
+		setInput(value, entryData, context);
 	}
 	
 	public String getStringRepresentation() {
@@ -43,7 +43,8 @@ public class IntegerArray implements IIniEntryValue, IHasChildrenWithContext, IC
 		this.integers = integers;
 	}
 
-	public void setInput(String input, IniDataEntry entryData) throws IniParserException {
+	@Override
+	public void setInput(String input, IniDataEntry entryData, IniUnit context) throws IniParserException {
 		try {
 			// empty input should be okay
 			if (input.equals("")) { //$NON-NLS-1$

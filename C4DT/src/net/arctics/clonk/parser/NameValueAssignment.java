@@ -43,7 +43,7 @@ public class NameValueAssignment extends C4Declaration implements IHasKeyAndValu
 		return getKey() + "=" + getValue(); //$NON-NLS-1$
 	}
 
-	public void setValue(String value) {
+	public void setValue(String value, Object context) {
 		this.value = value;
 	}
 

@@ -65,7 +65,7 @@
 			<entry name="Category"
 				class="net.arctics.clonk.parser.inireader.CategoriesArray"
 				description="Kategorie des Objekts. Siehe Objektkategorien."
-				flags="C4D_StaticBack,C4D_Structure,C4D_Vehicle,C4D_Living,C4D_Object,C4D_Goal,C4D_Environment,C4D_SelectBuilding,C4D_SelectVehicle,C4D_SelectMaterial,C4D_SelectKnowledge,C4D_SelectHomebase,C4D_SelectAnimal,C4D_SelectNest,C4D_SelectInEarth,C4D_SelectVegetation,C4D_TradeLiving,C4D_Magic,C4D_CrewMember,C4D_Rule,C4D_Background,C4D_Parallax,C4D_MouseSelect,C4D_Foreground,C4D_MouseIgnore,C4D_IgnoreFoW" />
+				constantsPrefix="C4D_" />
 			<entry name="MaxUserSelect" class="net.arctics.clonk.parser.inireader.SignedInteger"
 				description="Maximale Anzahl beim Platzieren des Objekts im Menüsystem." />
 			<entry name="TimerCall" class="net.arctics.clonk.parser.inireader.Function"
@@ -516,7 +516,7 @@
 				description="Veraltet. Spielziel: Diese Materialien müssen auf x reduziert werden." />
 			<entry name="BaseFunctionality" class="net.arctics.clonk.parser.inireader.CategoriesArray"
 				description="Bitmaske, die angibt, welche Funktionen eine Basis erfüllt. Siehe Basisfunktionalitäten. Ab CR."
-				flags="BASEFUNC_AutoSellContents,BASEFUNC_RegenerateEnergy,BASEFUNC_Buy,BASEFUNC_Sell,BASEFUNC_RejectEntrance,BASEFUNC_Extinguish,BASEFUNC_Default" />
+				constantsPrefix="BASEFUNC_"/>
 			<entry name="BaseRegenerateEnergyPrice" class="net.arctics.clonk.parser.inireader.SignedInteger"
 				description="Kosten, die aufgewendet werden, um einen Clonk in einer Basis um 100 Energiepunkte zu heilen. Standard ist 5; bei 0 ist die Heilung kostenlos. Ab CR." />
 			<entry name="EnableSurrender" class="net.arctics.clonk.parser.inireader.Boolean" />

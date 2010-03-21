@@ -12,15 +12,18 @@ public class KeyValuePair<First, Second> extends Pair<First, Second> implements 
 		super(first, second);
 	}
 
+	@Override
 	public First getKey() {
 		return getFirst();
 	}
 
+	@Override
 	public Second getValue() {
 		return  getSecond();
 	}
 
-	public void setValue(Second value) {
+	@Override
+	public void setValue(Second value, Object context) {
 		setSecond(value);
 	}
 	
@@ -29,10 +32,12 @@ public class KeyValuePair<First, Second> extends Pair<First, Second> implements 
 		return getKey().toString()+"="+getValue().toString(); //$NON-NLS-1$
 	}
 
+	@Override
 	public Object getChildValue(int index) {
 		return index == 0 ? getKey() : getValue(); 
 	}
 
+	@Override
 	public IHasContext[] getChildren(Object context) {
 		IHasContext[] result = new IHasContext[2];
 		for (int i = 0; i < 2; i++)
@@ -40,35 +45,43 @@ public class KeyValuePair<First, Second> extends Pair<First, Second> implements 
 		return result;
 	}
 
+	@Override
 	public boolean hasChildren() {
 		return true;
 	}
 
+	@Override
 	public void setChildValue(int index, Object value) {
 		
 	}
 
+	@Override
 	public void addChild(ITreeNode node) {
 		// TODO Auto-generated method stub
 		
 	}
 
+	@Override
 	public Collection<? extends ITreeNode> getChildCollection() {
 		return null;
 	}
 
+	@Override
 	public String getNodeName() {
 		return (String) getKey();
 	}
 
+	@Override
 	public ITreeNode getParentNode() {
 		return null;
 	}
 
+	@Override
 	public IPath getPath() {
 		return ITreeNode.Default.getPath(this);
 	}
 
+	@Override
 	public boolean subNodeOf(ITreeNode node) {
 		return ITreeNode.Default.subNodeOf(this, node);
 	}

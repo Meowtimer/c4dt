@@ -70,7 +70,8 @@ public class IniSection extends C4Declaration implements IHasKeyAndValue<String,
 		return !entries.isEmpty();
 	}
 
-	public void setValue(String value) {
+	@Override
+	public void setValue(String value, Object context) {
 		// FIXME?
 	}
 
