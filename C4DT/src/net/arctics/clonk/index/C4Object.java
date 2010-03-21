@@ -117,7 +117,7 @@ public abstract class C4Object extends C4ScriptBase {
 	
 	@Override
 	public boolean nameContains(String text) {
-		if (getId().getName().indexOf(text) != -1)
+		if (getId().getName().toUpperCase().indexOf(text) != -1)
 			return true;
 		if (getName().toUpperCase().contains(text))
 			return true;
