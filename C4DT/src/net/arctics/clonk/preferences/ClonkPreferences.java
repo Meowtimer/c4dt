@@ -17,7 +17,6 @@ public class ClonkPreferences {
 	public static final String STANDARD_EXT_LIBS = "standardExtLibs"; //$NON-NLS-1$
 	public static final String C4GROUP_EXECUTABLE = "c4groupExecutable"; //$NON-NLS-1$	
 	public static final String ENGINE_EXECUTABLE = "engineExecutable";	 //$NON-NLS-1$
-	public static final String OPENCLONK_REPO = "openClonkRepo"; //$NON-NLS-1$
 	public static final String DOC_URL_TEMPLATE = "docURLTemplate"; //$NON-NLS-1$
 	public static final String EXTERNAL_INDEX_ENCODING = "externalIndexEncoding"; //$NON-NLS-1$
 	public static final String ACTIVE_ENGINE = "selectedEngine"; //$NON-NLS-1$

@@ -490,7 +490,7 @@ public class EngineDeclarationsView extends ViewPart implements IPropertyChangeL
 			public void run() {
 				IProgressService ps = PlatformUI.getWorkbench().getProgressService();
 				try {
-					final String repo = ClonkCore.getDefault().getPreferenceStore().getString(ClonkPreferences.OPENCLONK_REPO);
+					final String repo = ClonkCore.getDefault().getActiveEngine().getCurrentSettings().repositoryPath;
 					if (repo == null) {
 						MessageDialog.openWarning(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(),
 							Messages.Engine_NoRepository, Messages.Engine_NoRepositoryDesc);
