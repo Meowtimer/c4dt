@@ -35,12 +35,12 @@ public class XMLDocImporter {
 			instance = new XMLDocImporter();
 		return instance;
 	}
-	
+
 	private XPath xPath = XPathFactory.newInstance().newXPath();
 	private DocumentBuilder builder;
 	private String repositoryPath;
 	private InputSource clonkDTD;
-	
+
 	private XPathExpression parmNameExpr;
 	private XPathExpression parmTypeExpr;
 	private XPathExpression parmDescExpr;
@@ -48,9 +48,9 @@ public class XMLDocImporter {
 	private XPathExpression rtypeExpr;
 	private XPathExpression parmsExpr;
 	private XPathExpression descExpr;
-	
+
 	private static Pattern TITLE_PATTERN = Pattern.compile("\\<title\\>(.*)\\<\\/title\\>"); //$NON-NLS-1$
-	
+
 	public XMLDocImporter() {
 		super();
 		try {
@@ -77,7 +77,7 @@ public class XMLDocImporter {
 			e.printStackTrace();
 		}
 	}
-	
+
 	public String getRepositoryPath() {
 		return repositoryPath;
 	}
@@ -90,9 +90,13 @@ public class XMLDocImporter {
 			e.printStackTrace();
 		}
 	}
+	
+	public static String extractDescriptionFromHTML(InputStream stream) throws IOException {
+		return "Arr";
+	}
 
 	public C4Declaration importFromXML(InputStream stream) throws IOException, XPathExpressionException {
-		
+
 		String text = Utilities.stringFromInputStream(stream);
 		// get rid of pesky meta information
 		text = text.replaceAll("\\<\\?.*\\?\\>", "").replaceAll("\\<\\!.*\\>", ""); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
@@ -106,13 +110,13 @@ public class XMLDocImporter {
 			}
 			return null;
 		}
-		
+
 		doc.getFirstChild();
 		Node titleNode = (Node) titleExpr.evaluate(doc.getFirstChild(), XPathConstants.NODE);
 		Node rTypeNode = (Node) rtypeExpr.evaluate(doc.getFirstChild(), XPathConstants.NODE);
 		NodeList parmNodes = (NodeList) parmsExpr.evaluate(doc.getFirstChild(), XPathConstants.NODESET);
 		Node descNode = (Node) descExpr.evaluate(doc.getFirstChild(), XPathConstants.NODE);
-		
+
 		if (titleNode != null && rTypeNode != null) {
 			C4Declaration result;
 			String name = titleNode.getTextContent();
@@ -142,7 +146,7 @@ public class XMLDocImporter {
 			return result;
 		}
 		return null;
-			
+
 	}
-	
+
 }

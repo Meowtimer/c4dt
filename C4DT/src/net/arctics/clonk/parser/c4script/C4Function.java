@@ -1,8 +1,14 @@
 package net.arctics.clonk.parser.c4script;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.io.Serializable;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+
+import javax.xml.xpath.XPathExpressionException;
 
 import net.arctics.clonk.index.C4Engine;
 import net.arctics.clonk.index.C4Object;
@@ -268,12 +274,48 @@ public class C4Function extends C4Structure implements Serializable, ITypedDecla
 	
 	// to be called on engine functions
 	public String getDocumentationURL() {
-		return getDocumentationURL(getName(), getScript().getIndex().getEngine());
+		return getDocumentationURL(getName(), getScript().getEngine());
 	}
 
 	@Override
 	public String getInfoText() {
+		if (description == null)
+			acquireDescriptionFromDocumentation();
 		return String.format(Messages.C4Function_InfoTextTemplate, getLongParameterString(true, false), getUserDescription() != null && !getUserDescription().equals("") ? getUserDescription() : Messages.DescriptionNotAvailable, getScript().toString()); //$NON-NLS-1$
+	}
+
+	private void acquireDescriptionFromDocumentation() {
+		try {
+			URL url = new URL(getDocumentationURL());
+			InputStream stream = url.openConnection().getInputStream();
+			try {
+				if (url.getPath().endsWith(".xml")) {
+					XMLDocImporter importer = new XMLDocImporter();
+					C4Declaration doppelganger = importer.importFromXML(stream);
+					if (doppelganger instanceof C4Function) {
+						this.description = ((C4Function)doppelganger).getUserDescription();
+					} else {
+						this.description = Messages.DescriptionNotAvailable;
+					}
+				} else {
+					this.description = XMLDocImporter.extractDescriptionFromHTML(stream);
+				}
+			} finally {
+				stream.close();
+			}
+		} catch (MalformedURLException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		} catch (XPathExpressionException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	@Override
+	public void postSerialize(C4Declaration parent) {
+		super.postSerialize(parent);
+		description = null;
 	}
 
 	@Override
