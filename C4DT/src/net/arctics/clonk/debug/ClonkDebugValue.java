@@ -43,7 +43,7 @@ public class ClonkDebugValue extends ClonkDebugElement implements IValue {
 
 	@Override
 	public boolean hasVariables() throws DebugException {
-		return true;
+		return false;
 	}
 
 	@Override
