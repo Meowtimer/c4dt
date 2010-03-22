@@ -2,12 +2,13 @@ package net.arctics.clonk.debug;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
-import net.arctics.clonk.command.Command;
-import net.arctics.clonk.command.Command.C4CommandScript;
 import net.arctics.clonk.debug.ClonkDebugTarget.Commands;
-import net.arctics.clonk.debug.ClonkDebugTarget.ILineReceiveListener;
+import net.arctics.clonk.debug.ClonkDebugTarget.ILineReceivedListener;
 import net.arctics.clonk.debug.ClonkDebugTarget.LineReceivedResult;
 import org.eclipse.debug.core.DebugException;
 import org.eclipse.debug.core.model.IDebugElement;
@@ -18,74 +19,74 @@ import org.eclipse.debug.core.model.IWatchExpressionResult;
 
 public class ClonkDebugWatchExpressionDelegate extends Object implements IWatchExpressionDelegate {
 
-	private Map<String, C4CommandScript> cachedCommandScripts = new HashMap<String, C4CommandScript>();
-	
-	private C4CommandScript getCommandScript(String text) {
-		C4CommandScript result = cachedCommandScripts.get(text);
-		if (result == null) {
-			result = new C4CommandScript("<Expression>", String.format(Command.COMMAND_SCRIPT_TEMPLATE, "return " + text));
-			cachedCommandScripts.put(text, result);
-		}
-		return result;
-	}
+	public static final class EvaluationResultListener implements ILineReceivedListener {
 
-	@Override
-	public void evaluateExpression(final String expression, final IDebugElement context, final IWatchExpressionListener listener) {
-		/*C4CommandScript script = getCommandScript(expression);
-		IVariableValueProvider variableProvider = new IVariableValueProvider() {
-			@Override
-			public Object getValueForVariable(String varName) {
-				try {
-					ClonkDebugTarget target = (ClonkDebugTarget) context.getDebugTarget();
-					ClonkDebugThread thread = (ClonkDebugThread) target.getThreads()[0];
-					ClonkDebugStackFrame stackFrame = thread.getStackFrames() != null && thread.getStackFrames().length > 0 ? (ClonkDebugStackFrame)thread.getStackFrames()[0] : null;
-					if (stackFrame != null) {
-						for (ClonkDebugVariable var : stackFrame.getVariables()) {
-							if (var.getVariable().getName().equals(varName)) {
-								return var.getValue().getValue();
-							}
-						}
-					}
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-				return null;
-			}
-		};
-		final Object obj = script.invoke(variableProvider);
-		final ClonkDebugValue value = obj != null ? new ClonkDebugValue((ClonkDebugTarget) context.getDebugTarget(), obj) : null;
-		listener.watchEvaluationFinished(new IWatchExpressionResult() {
-			
-			@Override
-			public boolean hasErrors() {
-				return false;
-			}
-			
-			@Override
-			public IValue getValue() {
-				return value;
-			}
-			
-			@Override
-			public String getExpressionText() {
-				return expression;
-			}
-			
-			@Override
-			public DebugException getException() {
-				return null;
-			}
-			
-			@Override
-			public String[] getErrorMessages() {
-				return new String[0];
-			}
-		});*/
-		((ClonkDebugTarget)context.getDebugTarget()).send(Commands.EXEC + " " + expression, new ILineReceiveListener() {
-			@Override
-			public LineReceivedResult lineReceived(String line, ClonkDebugTarget target) throws IOException {
+		private final IDebugElement context;
+		private Map<String, IWatchExpressionListener> listeners = new HashMap<String, IWatchExpressionListener>();
+
+		EvaluationResultListener(IDebugElement context) {
+			this.context = context;
+		}
+
+		@Override
+		public String toString() {
+			return "Listener for evaluation results";
+		}
+
+		@Override
+		public boolean exclusive() {
+			return false;
+		}
+
+		public void add(String expression, IWatchExpressionListener listener) {
+			listeners.put(expression, listener);
+		}
+
+		@Override
+		public LineReceivedResult lineReceived(String line, ClonkDebugTarget target) throws IOException {
+			List<String> toRemove = new LinkedList<String>();
+			boolean processed = false;
+			for (Entry<String, IWatchExpressionListener> entry : listeners.entrySet()) {
+				final String expression = entry.getKey();
+				IWatchExpressionListener listener = entry.getValue();
 				String s = Commands.EVALUATIONRESULT + " " + expression + "=";
-				if (line.startsWith(s)){
+				String errorStart = "LOG ERROR: ";
+				if (line.startsWith(errorStart)) {
+					System.out.println("error");
+					final String[] errors = new String [] {line.substring(errorStart.length())};
+					final IValue value = new ClonkDebugValue(target, null);
+					listener.watchEvaluationFinished(new IWatchExpressionResult() {
+
+						@Override
+						public boolean hasErrors() {
+							return true;
+						}
+
+						@Override
+						public IValue getValue() {
+							return value;
+						}
+
+						@Override
+						public String getExpressionText() {
+							return expression;
+						}
+
+						@Override
+						public DebugException getException() {
+							return null;
+						}
+
+						@Override
+						public String[] getErrorMessages() {
+							return errors;
+						}
+					});
+					processed = true;
+					break;
+				}
+				else if (line.startsWith(s)){
+					System.out.println("result line");
 					final ClonkDebugValue value = new ClonkDebugValue(target, line.substring(s.length()));
 					listener.watchEvaluationFinished(new IWatchExpressionResult() {
 
@@ -114,11 +115,27 @@ public class ClonkDebugWatchExpressionDelegate extends Object implements IWatchE
 							return null;
 						}
 					});
-					return LineReceivedResult.ProcessedRemove;
+					toRemove.add(expression);
+					processed = true;
+					break;
 				}
-				return LineReceivedResult.NotProcessed;
 			}
-		});		
+			for (String s : toRemove)
+				listeners.remove(s);
+			return processed ? LineReceivedResult.ProcessedDontRemove : LineReceivedResult.NotProcessedDontRemove;
+		}
+
+		@Override
+		public boolean active() {
+			return !listeners.isEmpty();
+		}
+	}
+
+	@Override
+	public void evaluateExpression(final String expression, final IDebugElement context, final IWatchExpressionListener listener) {
+		ClonkDebugTarget target = (ClonkDebugTarget) context.getDebugTarget();
+		target.getEvaluationResultsListener().add(expression, listener);
+		target.send(Commands.EXEC + " " + expression);
 	}
 
 }

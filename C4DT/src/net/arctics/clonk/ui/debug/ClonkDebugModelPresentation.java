@@ -63,8 +63,10 @@ public class ClonkDebugModelPresentation extends LabelProvider implements IDebug
 				return ((ClonkDebugTarget) element).getName();
 			else if (element instanceof ClonkDebugLineBreakpoint)
 				return ((ClonkDebugLineBreakpoint)element).getMarker().getAttribute(IMarker.MESSAGE, "Breakpoint"); //$NON-NLS-1$
-			else if (element instanceof IWatchExpression)
-				return ((IWatchExpression)element).getExpressionText();
+			else if (element instanceof IWatchExpression) {
+				IWatchExpression expr = (IWatchExpression) element;
+				return expr.getExpressionText() + " == " + (expr.getValue() != null ? expr.getValue().getValueString() : "<nil>");
+			}
 			else
 				return "Empty";
 		} catch (DebugException e) {

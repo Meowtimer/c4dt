@@ -11,7 +11,9 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Queue;
 
+import net.arctics.clonk.debug.ClonkDebugWatchExpressionDelegate.EvaluationResultListener;
 import net.arctics.clonk.parser.BufferedScanner;
 import net.arctics.clonk.parser.c4script.C4Type;
 import net.arctics.clonk.ui.debug.ClonkDebugModelPresentation;
@@ -52,12 +54,15 @@ public class ClonkDebugTarget extends ClonkDebugElement implements IDebugTarget 
 	
 	public enum LineReceivedResult {
 		ProcessedDontRemove,
-		ProcessedRemove,
-		NotProcessed
+		ProcessedRemove,	
+		NotProcessedDontRemove,
+		NotProcessedRemove
 	}
 	
-	public interface ILineReceiveListener {
+	public interface ILineReceivedListener {
 		public LineReceivedResult lineReceived(String line, ClonkDebugTarget target) throws IOException;
+		public boolean exclusive();
+		public boolean active();
 	}
 	
 	public static final int CONNECTION_ATTEMPT_WAITTIME = 2000;
@@ -72,13 +77,20 @@ public class ClonkDebugTarget extends ClonkDebugElement implements IDebugTarget 
 	private boolean suspended;
 	private IResource scenario;
 	
-	private List<ILineReceiveListener> lineReceiveListeners = new LinkedList<ILineReceiveListener>();
-	
-	public void addLineReceiveListener(ILineReceiveListener listener) {
-		lineReceiveListeners.add(listener);
+	private List<ILineReceivedListener> lineReceiveListeners = new LinkedList<ILineReceivedListener>();
+	private EvaluationResultListener evaluationResultsListener = new EvaluationResultListener(this);
+
+	public EvaluationResultListener getEvaluationResultsListener() {
+		return evaluationResultsListener;
+	}
+
+	public void addLineReceiveListener(ILineReceivedListener listener) {
+		System.out.println("Adding " + listener.toString());
+		lineReceiveListeners.add(0, listener);
 	}
 	
-	public void removeLineReceiveListener(ILineReceiveListener listener) {
+	public void removeLineReceiveListener(ILineReceivedListener listener) {
+		System.out.println("Removing " + listener.toString());
 		lineReceiveListeners.remove(listener);
 	}
 	
@@ -90,7 +102,7 @@ public class ClonkDebugTarget extends ClonkDebugElement implements IDebugTarget 
 		return socketReader;
 	}
 	
-	private class EventDispatchJob extends Job implements ILineReceiveListener {
+	private class EventDispatchJob extends Job implements ILineReceivedListener {
 		
 		public EventDispatchJob(String name) {
 			super(name);
@@ -106,20 +118,34 @@ public class ClonkDebugTarget extends ClonkDebugElement implements IDebugTarget 
 				try {
 					event = receive();
 					if (event != null && event.length() > 0) {
-						ILineReceiveListener listenerToRemove = null;
-						Outer: for (ILineReceiveListener listener : lineReceiveListeners) {
+						ILineReceivedListener listenerToRemove = null;
+						boolean processed = false;
+						Outer: for (ILineReceivedListener listener : lineReceiveListeners) {
+							if (!listener.active())
+								continue;
 							switch (listener.lineReceived(event, ClonkDebugTarget.this)) {
-							case NotProcessed:
+							case NotProcessedDontRemove:
+								if (listener.exclusive())
+									break Outer;
 								break;
 							case ProcessedDontRemove:
+								processed = true;
 								break Outer;
 							case ProcessedRemove:
+								listenerToRemove = listener;
+								processed = true;
+								break Outer;
+							case NotProcessedRemove:
 								listenerToRemove = listener;
 								break Outer;
 							}
 						}
-						if (listenerToRemove != null)
+						if (!processed)
+							lostLines.offer(event);
+						if (listenerToRemove != null) {
 							removeLineReceiveListener(listenerToRemove);
+							reshuffleLines();
+						}
 					}
 				} catch (IOException e) {
 					//e.printStackTrace();
@@ -130,7 +156,15 @@ public class ClonkDebugTarget extends ClonkDebugElement implements IDebugTarget 
 			return Status.OK_STATUS;
 		}
 
-
+		@Override
+		public boolean exclusive() {
+			return false;
+		}
+		
+		@Override
+		public boolean active() {
+			return true;
+		}
 
 		@Override
 		public LineReceivedResult lineReceived(String event, ClonkDebugTarget target) throws IOException {
@@ -205,7 +239,7 @@ public class ClonkDebugTarget extends ClonkDebugElement implements IDebugTarget 
 				}
 				return LineReceivedResult.ProcessedDontRemove;
 			}
-			return LineReceivedResult.NotProcessed;
+			return LineReceivedResult.NotProcessedDontRemove;
 		}
 		
 	}
@@ -271,6 +305,7 @@ public class ClonkDebugTarget extends ClonkDebugElement implements IDebugTarget 
 		send("GO"); // go! //$NON-NLS-1$
 		
 		new EventDispatchJob("Clonk Debugger Event Dispatch").schedule(); //$NON-NLS-1$
+		addLineReceiveListener(evaluationResultsListener);
 	}
 	
 	private void setBreakpoints() {
@@ -404,7 +439,7 @@ public class ClonkDebugTarget extends ClonkDebugElement implements IDebugTarget 
 		return suspended;
 	}
 	
-	public synchronized void send(String command, ILineReceiveListener listener) {
+	public synchronized void send(String command, ILineReceivedListener listener) {
 		if (listener != null)
 			addLineReceiveListener(listener);
 		System.out.println("Sending " + command + " to engine"); //$NON-NLS-1$ //$NON-NLS-2$
@@ -416,7 +451,20 @@ public class ClonkDebugTarget extends ClonkDebugElement implements IDebugTarget 
 		send(command, null);
 	}
 	
+	private Queue<String> lostLines = new LinkedList<String>();
+	private Queue<String> reshuffledLines;
+	
+	public void reshuffleLines() {
+		reshuffledLines = lostLines;
+		lostLines = new LinkedList<String>();
+	}
+	
 	public final String receive() throws IOException {
+		if (reshuffledLines != null) {
+			String lost = reshuffledLines.poll();
+			if (lost != null)
+				return lost;
+		}
 		String r = socketReader.readLine();
 		if (r != null) {
 			if (r.charAt(r.length()-1) == 0)
@@ -476,6 +524,7 @@ public class ClonkDebugTarget extends ClonkDebugElement implements IDebugTarget 
 			}
 			socket = null;
 		}
+		lineReceiveListeners.clear();
 	}
 
 	@Override
