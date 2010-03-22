@@ -1,5 +1,8 @@
 package net.arctics.clonk.debug;
 
+import java.util.LinkedList;
+import java.util.List;
+
 import net.arctics.clonk.parser.c4script.C4Function;
 import net.arctics.clonk.parser.c4script.C4Variable;
 
@@ -30,14 +33,16 @@ public class ClonkDebugStackFrame extends ClonkDebugElement implements IStackFra
 	private void setVariables() {
 		if (function instanceof C4Function) {
 			C4Function f = (C4Function) function;
-			variables = new ClonkDebugVariable[f.getParameters().size()+f.getLocalVars().size()];
+			List<ClonkDebugVariable> l = new LinkedList<ClonkDebugVariable>();
 			int i = 0;
 			for (C4Variable parm : f.getParameters()) {
-				variables[i++] = new ClonkDebugVariable(this, parm);
+				if (parm.isActualParm())
+					l.add(new ClonkDebugVariable(this, parm));
 			}
 			for (C4Variable local : f.getLocalVars()) {
-				variables[i++] = new ClonkDebugVariable(this, local);
+				l.add(new ClonkDebugVariable(this, local));
 			}
+			variables = l.toArray(new ClonkDebugVariable[l.size()]);
 		}
 		else {
 			variables = NO_VARIABLES;

@@ -10,6 +10,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import net.arctics.clonk.parser.BufferedScanner;
+import net.arctics.clonk.parser.c4script.C4Type;
 import net.arctics.clonk.ui.debug.ClonkDebugModelPresentation;
 import org.eclipse.core.resources.IMarkerDelta;
 import org.eclipse.core.resources.IResource;
@@ -127,16 +130,23 @@ public class ClonkDebugTarget extends ClonkDebugElement implements IDebugTarget 
 										send(String.format("%s %s", Commands.VAR, var.getName())); //$NON-NLS-1$
 									}
 									while (!isTerminated() && event != null && !vars.isEmpty()) {
+									//	System.out.println("missing " + vars.toString());
 										event = receive();
 										if (event != null && event.length() > 0) {
-											if (event.startsWith(Commands.VAR + " ")) { //$NON-NLS-1$
-												event = event.substring(Commands.VAR.length()+1); //$NON-NLS-1$
-												String[] parts = event.split("="); //$NON-NLS-1$
-												if (parts != null && parts.length == 2) {
-													ClonkDebugVariable var = vars.get(parts[0]);
+											if (event.startsWith(Commands.VAR)) { //$NON-NLS-1$
+												event = event.substring(Commands.VAR.length()); //$NON-NLS-1$
+												BufferedScanner scanner = new BufferedScanner(event);
+												scanner.read();
+												String varName = scanner.readIdent();
+												scanner.read();
+												String varType = scanner.readIdent();
+												scanner.read();
+												String varValue = event.substring(scanner.getPosition());
+												if (varName != null && varType != null && varValue != null) {
+													ClonkDebugVariable var = vars.get(varName);
 													if (var != null) {
-														var.getValue().setValue(parts[1]);
-														vars.remove(parts[0]);
+														var.getValue().setValue(varValue, C4Type.makeType(varType));
+														vars.remove(varName);
 													}
 												}
 											}
