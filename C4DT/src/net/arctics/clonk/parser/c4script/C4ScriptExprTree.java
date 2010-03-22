@@ -122,15 +122,61 @@ public abstract class C4ScriptExprTree {
 	private static final IConverter<ExprElm, Object> EVALUATE_EXPR = new IConverter<ExprElm, Object>() {
 		@Override
         public Object convert(ExprElm from) {
-            return from != null ? from.evaluate() : null;
+            try {
+				return from != null ? from.evaluate() : null;
+			} catch (ControlFlowException e) {
+				return null;
+			}
         }
 	};
+	
+	public static class ControlFlowException extends Exception {
 
+		private static final long serialVersionUID = 1L;
+
+		private ControlFlow controlFlow;
+
+		public ControlFlow getControlFlow() {
+			return controlFlow;
+		}
+
+		public ControlFlowException(ControlFlow controlFlow) {
+			super();
+			this.controlFlow = controlFlow;
+		}
+	}
+	
+	public static class ReturnException extends ControlFlowException {
+
+		private static final long serialVersionUID = 1L;
+
+		private Object result;
+
+		public Object getResult() {
+			return result;
+		}
+		
+		public ReturnException(Object result) {
+			super(ControlFlow.Return);
+			this.result = result;
+		}
+		
+	}
+
+	public interface IVariableValueProvider {
+		Object getValueForVariable(String varName);
+	}
+	
+	public interface IEvaluationContext extends IVariableValueProvider {
+		Object[] getArguments();
+		C4Function getFunction();
+	}
+	
 	/**
 	 * base class for making expression trees
 	 */
 	public static class ExprElm implements IRegion, Cloneable, IPrintable {
-
+		
 		public static final ExprElm NULL_EXPR = new ExprElm();
 		public static final ExprElm[] EMPTY_EXPR_ARRAY = new ExprElm[0];
 		public static final Object EVALUATION_COMPLEX = new Object();
@@ -493,8 +539,12 @@ public abstract class C4ScriptExprTree {
 		 * Evaluate expression. Used for the interpreter
 		 * @return the result of the evaluation
 		 */
-		public Object evaluate() {
+		public Object evaluate(IEvaluationContext context) throws ControlFlowException {
 			return null;
+		}
+		
+		public final Object evaluate() throws ControlFlowException {
+			return evaluate(null);
 		}
 		
 		public final CachedEngineFuncs getCachedFuncs(C4ScriptParser parser) {
@@ -880,6 +930,16 @@ public abstract class C4ScriptExprTree {
 
 		public boolean constCondition() {
 			return declaration instanceof C4Variable && ((C4Variable)declaration).getScope() == C4VariableScope.VAR_CONST;
+		}
+		
+		@Override
+		public Object evaluate(IEvaluationContext context) throws ControlFlowException {
+			if (context != null) {
+				return context.getValueForVariable(getDeclarationName());
+			}
+			else {
+				return super.evaluate(context);
+			}
 		}
 
 	}
@@ -1328,7 +1388,7 @@ public abstract class C4ScriptExprTree {
 		}
 		
 		@Override
-		public Object evaluate() {
+		public Object evaluate(IEvaluationContext context) {
 		    if (declaration instanceof C4Function) {
 		    	Object[] args = Utilities.map(getParams(), Object.class, EVALUATE_EXPR);
 		    	return ((C4Function)declaration).invoke(args);
@@ -1583,9 +1643,9 @@ public abstract class C4ScriptExprTree {
         }
 		
 		@Override
-		public Object evaluate() {
-		    Object left = getLeftSide().evaluate();
-		    Object right = getRightSide().evaluate();
+		public Object evaluate(IEvaluationContext context) throws ControlFlowException {
+		    Object left = getLeftSide().evaluate(context);
+		    Object right = getRightSide().evaluate(context);
 		    if (left != null && right != null)
 		    	return evaluateOn(left, right);
 		    else
@@ -1814,7 +1874,7 @@ public abstract class C4ScriptExprTree {
 		}
 		
 		@Override
-		public Object evaluate() {
+		public Object evaluate(IEvaluationContext context) {
 		    return literal;
 		}
 		
@@ -2253,7 +2313,7 @@ public abstract class C4ScriptExprTree {
 		}
 		
 		@Override
-		public Object evaluate() {
+		public Object evaluate(IEvaluationContext context) {
 			return Utilities.map(getElements(), Object.class, EVALUATE_EXPR);
 		}
 
@@ -2608,8 +2668,8 @@ public abstract class C4ScriptExprTree {
 		}
 		
 		@Override
-		public Object evaluate() {
-			return expression.evaluate();
+		public Object evaluate(IEvaluationContext context) throws ControlFlowException {
+			return expression.evaluate(context);
 		}
 
 	}
@@ -2672,6 +2732,11 @@ public abstract class C4ScriptExprTree {
 
 		private ExprElm returnExpr;
 
+		@Override
+		public Object evaluate(IEvaluationContext context) throws ControlFlowException {
+			throw new ReturnException(returnExpr.evaluate(context));
+		}
+		
 		public ReturnStatement(ExprElm returnExpr) {
 			super();
 			this.returnExpr = returnExpr;

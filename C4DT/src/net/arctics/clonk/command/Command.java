@@ -31,8 +31,12 @@ import net.arctics.clonk.parser.c4script.C4ScriptBase;
 import net.arctics.clonk.parser.c4script.C4ScriptExprTree;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.Keywords;
+import net.arctics.clonk.parser.c4script.C4ScriptExprTree.ControlFlowException;
 import net.arctics.clonk.parser.c4script.C4ScriptExprTree.ExprElm;
+import net.arctics.clonk.parser.c4script.C4ScriptExprTree.IEvaluationContext;
 import net.arctics.clonk.parser.c4script.C4ScriptExprTree.IExpressionListener;
+import net.arctics.clonk.parser.c4script.C4ScriptExprTree.IVariableValueProvider;
+import net.arctics.clonk.parser.c4script.C4ScriptExprTree.ReturnException;
 import net.arctics.clonk.parser.c4script.C4ScriptExprTree.Statement;
 import net.arctics.clonk.parser.c4script.C4ScriptExprTree.TraversalContinuation;
 import net.arctics.clonk.parser.c4script.C4Variable;
@@ -42,6 +46,7 @@ import net.arctics.clonk.util.Utilities;
 public class Command {
 	public static final C4ScriptBase COMMAND_BASESCRIPT;
 	public static final ClonkIndex COMMANDS_INDEX = new ClonkIndex();
+	public static final String COMMAND_SCRIPT_TEMPLATE = "func Main() {%s;}"; //$NON-NLS-1$
 	
 	public static class C4CommandScript extends C4ScriptBase {
 		
@@ -51,11 +56,42 @@ public class Command {
 			private transient Statement[] statements;
 			
 			@Override
-			public Object invoke(Object... args) {
+			public Object invoke(final Object... args) {
+				final IVariableValueProvider variableProvider = args.length > 0 && args[0] instanceof IVariableValueProvider ? (IVariableValueProvider)args[0] : null;
+				IEvaluationContext context = new IEvaluationContext() {
+
+					@Override
+					public Object[] getArguments() {
+						return args;
+					}
+
+					@Override
+					public C4Function getFunction() {
+						return C4CommandFunction.this;
+					}
+
+					@Override
+					public Object getValueForVariable(String varName) {
+						return variableProvider != null ? variableProvider.getValueForVariable(varName) : null;
+					}
+
+				};
 			    for (Statement s : statements) {
-			    	s.evaluate();
+			    	try {
+			    		s.evaluate(context);
+			    	} catch (ReturnException e) {
+			    		return e.getResult();
+			    	} catch (ControlFlowException e) {
+						switch (e.getControlFlow()) {
+						case BreakLoop:
+							return null;
+						case Continue:
+							break;
+						default:
+							return null;
+						}
+					}
 			    }
-			    // FIXME
 			    return null;
 			}
 		}

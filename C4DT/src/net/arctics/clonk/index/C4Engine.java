@@ -10,7 +10,6 @@ import java.lang.reflect.Field;
 import java.net.URL;
 import java.util.EnumSet;
 import java.util.Enumeration;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 

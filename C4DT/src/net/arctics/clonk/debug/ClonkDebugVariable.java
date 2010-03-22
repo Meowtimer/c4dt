@@ -10,13 +10,17 @@ public class ClonkDebugVariable extends ClonkDebugElement implements IVariable {
 
 	private ClonkDebugStackFrame stackFrame;
 	private C4Variable variable;
-	private ClonkDebugValue value;
+	private ClonkDebugVariableValue value;
 	
 	public ClonkDebugVariable(ClonkDebugStackFrame stackFrame, C4Variable variable) {
 		super(stackFrame.getTarget());
 		this.stackFrame = stackFrame;
 		this.variable = variable;
-		this.value = new ClonkDebugValue(this);
+		this.value = new ClonkDebugVariableValue(this);
+	}
+	
+	public C4Variable getVariable() {
+		return variable;
 	}
 
 	public ClonkDebugStackFrame getStackFrame() {
@@ -34,7 +38,7 @@ public class ClonkDebugVariable extends ClonkDebugElement implements IVariable {
 	}
 
 	@Override
-	public ClonkDebugValue getValue() throws DebugException {
+	public ClonkDebugVariableValue getValue() throws DebugException {
 		return value;
 	}
 
@@ -60,12 +64,12 @@ public class ClonkDebugVariable extends ClonkDebugElement implements IVariable {
 
 	@Override
 	public boolean verifyValue(String expression) throws DebugException {
-		return false;
+		return true;
 	}
 
 	@Override
 	public boolean verifyValue(IValue value) throws DebugException {
-		return false;
+		return true;
 	}
 
 }

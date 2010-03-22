@@ -331,6 +331,13 @@
 	
 	<!-- Debugger Breakpoints !-->
 	
+	<extension point="org.eclipse.debug.core.watchExpressionDelegates">
+    	<watchExpressionDelegate
+    		debugModel="net.arctics.clonk.ui.debug.ClonkDebugModelPresentation"
+			delegateClass="net.arctics.clonk.debug.ClonkDebugWatchExpressionDelegate">
+    	</watchExpressionDelegate>
+	</extension>
+	
 	<extension id="net.arctics.clonk.breakpointMarker" name="Clonk Breakpoint Marker"
 		point="org.eclipse.core.resources.markers">
 		<persistent value="true" />

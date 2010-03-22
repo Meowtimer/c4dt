@@ -8,6 +8,7 @@ import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -45,6 +46,18 @@ public class ClonkDebugTarget extends ClonkDebugElement implements IDebugTarget 
 		public static final String SENDSTACKTRACE = "SST";
 		public static final String ENDSTACKTRACE = "EST";
 		public static final String AT = "AT";
+		public static final String EXEC = "EXC";
+		public static final String EVALUATIONRESULT = "EVR";
+	}
+	
+	public enum LineReceivedResult {
+		ProcessedDontRemove,
+		ProcessedRemove,
+		NotProcessed
+	}
+	
+	public interface ILineReceiveListener {
+		public LineReceivedResult lineReceived(String line, ClonkDebugTarget target) throws IOException;
 	}
 	
 	public static final int CONNECTION_ATTEMPT_WAITTIME = 2000;
@@ -59,6 +72,16 @@ public class ClonkDebugTarget extends ClonkDebugElement implements IDebugTarget 
 	private boolean suspended;
 	private IResource scenario;
 	
+	private List<ILineReceiveListener> lineReceiveListeners = new LinkedList<ILineReceiveListener>();
+	
+	public void addLineReceiveListener(ILineReceiveListener listener) {
+		lineReceiveListeners.add(listener);
+	}
+	
+	public void removeLineReceiveListener(ILineReceiveListener listener) {
+		lineReceiveListeners.remove(listener);
+	}
+	
 	public PrintWriter getSocketWriter() {
 		return socketWriter;
 	}
@@ -67,7 +90,7 @@ public class ClonkDebugTarget extends ClonkDebugElement implements IDebugTarget 
 		return socketReader;
 	}
 	
-	private class EventDispatchJob extends Job {
+	private class EventDispatchJob extends Job implements ILineReceiveListener {
 		
 		public EventDispatchJob(String name) {
 			super(name);
@@ -75,93 +98,28 @@ public class ClonkDebugTarget extends ClonkDebugElement implements IDebugTarget 
 		
 		private List<String> stackTrace = new ArrayList<String>(10);
 		
-		private final String receive() throws IOException {
-			String r = socketReader.readLine();
-			if (r != null) {
-				if (r.charAt(r.length()-1) == 0)
-					r = r.substring(0, r.length()-1);
-				System.out.println("Got line from Clonk: " + r); //$NON-NLS-1$
-			}
-			return r;
-		}
-		
 		@Override
 		protected IStatus run(IProgressMonitor monitor) {
+			addLineReceiveListener(this);
 			String event = ""; //$NON-NLS-1$
 			while (!isTerminated() && event != null) {
 				try {
 					event = receive();
 					if (event != null && event.length() > 0) {
-						if (event.startsWith("POS")) { //$NON-NLS-1$
-							String sourcePath = event.substring(4, event.length());
-							stackTrace.clear();
-							stackTrace.add(sourcePath);
-
-							send(Commands.SENDSTACKTRACE); //$NON-NLS-1$
-							while (!isTerminated() && event != null) {
-								event = receive();
-								if (event != null && event.length() > 0) {
-									if (event.equals(Commands.ENDSTACKTRACE)) { //$NON-NLS-1$
-										break;
-									}
-									else if (event.startsWith(Commands.AT + " ")) { //$NON-NLS-1$
-										if (stackTrace.size() > 512) {
-											System.out.println("Runaway stacktrace"); //$NON-NLS-1$
-											break;
-										}
-										else {
-											stackTrace.add(event.substring("AT ".length())); //$NON-NLS-1$
-										}
-									}
-									else
-										break;
-								}
-							}
-
-							stoppedWithStackTrace(stackTrace);
-							
-							try {
-								if (thread.getTopStackFrame() != null && thread.getTopStackFrame().getVariables() != null) {
-									ClonkDebugVariable[] varArray = ((ClonkDebugStackFrame)thread.getTopStackFrame()).getVariables();
-									Map<String, ClonkDebugVariable> vars = new HashMap<String, ClonkDebugVariable>(varArray.length);
-									for (ClonkDebugVariable var : varArray)
-										vars.put(var.getName(), var);
-									for (ClonkDebugVariable var : vars.values()) {
-										send(String.format("%s %s", Commands.VAR, var.getName())); //$NON-NLS-1$
-									}
-									while (!isTerminated() && event != null && !vars.isEmpty()) {
-									//	System.out.println("missing " + vars.toString());
-										event = receive();
-										if (event != null && event.length() > 0) {
-											if (event.startsWith(Commands.VAR)) { //$NON-NLS-1$
-												event = event.substring(Commands.VAR.length()); //$NON-NLS-1$
-												BufferedScanner scanner = new BufferedScanner(event);
-												scanner.read();
-												String varName = scanner.readIdent();
-												scanner.read();
-												String varType = scanner.readIdent();
-												scanner.read();
-												String varValue = event.substring(scanner.getPosition());
-												if (varName != null && varType != null && varValue != null) {
-													ClonkDebugVariable var = vars.get(varName);
-													if (var != null) {
-														var.getValue().setValue(varValue, C4Type.makeType(varType));
-														vars.remove(varName);
-													}
-												}
-											}
-										}
-									}
-								}
-							} catch (DebugException e) {
-								e.printStackTrace();
-							}
-							
-							if (!suspended) {
-								suspended = true;
-								thread.fireSuspendEvent(DebugEvent.CLIENT_REQUEST);
+						ILineReceiveListener listenerToRemove = null;
+						Outer: for (ILineReceiveListener listener : lineReceiveListeners) {
+							switch (listener.lineReceived(event, ClonkDebugTarget.this)) {
+							case NotProcessed:
+								break;
+							case ProcessedDontRemove:
+								break Outer;
+							case ProcessedRemove:
+								listenerToRemove = listener;
+								break Outer;
 							}
 						}
+						if (listenerToRemove != null)
+							removeLineReceiveListener(listenerToRemove);
 					}
 				} catch (IOException e) {
 					//e.printStackTrace();
@@ -170,6 +128,84 @@ public class ClonkDebugTarget extends ClonkDebugElement implements IDebugTarget 
 				}
 			}
 			return Status.OK_STATUS;
+		}
+
+
+
+		@Override
+		public LineReceivedResult lineReceived(String event, ClonkDebugTarget target) throws IOException {
+			if (event.startsWith("POS")) { //$NON-NLS-1$
+				String sourcePath = event.substring(4, event.length());
+				stackTrace.clear();
+				stackTrace.add(sourcePath);
+
+				send(Commands.SENDSTACKTRACE); //$NON-NLS-1$
+				while (!isTerminated() && event != null) {
+					event = receive();
+					if (event != null && event.length() > 0) {
+						if (event.equals(Commands.ENDSTACKTRACE)) { //$NON-NLS-1$
+							break;
+						}
+						else if (event.startsWith(Commands.AT + " ")) { //$NON-NLS-1$
+							if (stackTrace.size() > 512) {
+								System.out.println("Runaway stacktrace"); //$NON-NLS-1$
+								break;
+							}
+							else {
+								stackTrace.add(event.substring("AT ".length())); //$NON-NLS-1$
+							}
+						}
+						else
+							break;
+					}
+				}
+
+				stoppedWithStackTrace(stackTrace);
+				
+				try {
+					if (thread.getTopStackFrame() != null && thread.getTopStackFrame().getVariables() != null) {
+						ClonkDebugVariable[] varArray = ((ClonkDebugStackFrame)thread.getTopStackFrame()).getVariables();
+						Map<String, ClonkDebugVariable> vars = new HashMap<String, ClonkDebugVariable>(varArray.length);
+						for (ClonkDebugVariable var : varArray)
+							vars.put(var.getName(), var);
+						for (ClonkDebugVariable var : vars.values()) {
+							send(String.format("%s %s", Commands.VAR, var.getName())); //$NON-NLS-1$
+						}
+						while (!isTerminated() && event != null && !vars.isEmpty()) {
+						//	System.out.println("missing " + vars.toString());
+							event = receive();
+							if (event != null && event.length() > 0) {
+								if (event.startsWith(Commands.VAR)) { //$NON-NLS-1$
+									event = event.substring(Commands.VAR.length()); //$NON-NLS-1$
+									BufferedScanner scanner = new BufferedScanner(event);
+									scanner.read();
+									String varName = scanner.readIdent();
+									scanner.read();
+									String varType = scanner.readIdent();
+									scanner.read();
+									String varValue = event.substring(scanner.getPosition());
+									if (varName != null && varType != null && varValue != null) {
+										ClonkDebugVariable var = vars.get(varName);
+										if (var != null) {
+											var.getValue().setValue(varValue, C4Type.makeType(varType));
+											vars.remove(varName);
+										}
+									}
+								}
+							}
+						}
+					}
+				} catch (DebugException e) {
+					e.printStackTrace();
+				}
+				
+				if (!suspended) {
+					suspended = true;
+					thread.fireSuspendEvent(DebugEvent.CLIENT_REQUEST);
+				}
+				return LineReceivedResult.ProcessedDontRemove;
+			}
+			return LineReceivedResult.NotProcessed;
 		}
 		
 	}
@@ -368,10 +404,26 @@ public class ClonkDebugTarget extends ClonkDebugElement implements IDebugTarget 
 		return suspended;
 	}
 	
-	public synchronized void send(String command) {
+	public synchronized void send(String command, ILineReceiveListener listener) {
+		if (listener != null)
+			addLineReceiveListener(listener);
 		System.out.println("Sending " + command + " to engine"); //$NON-NLS-1$ //$NON-NLS-2$
 		socketWriter.println(command);
 		socketWriter.flush();
+	}
+	
+	public final void send(String command) {
+		send(command, null);
+	}
+	
+	public final String receive() throws IOException {
+		String r = socketReader.readLine();
+		if (r != null) {
+			if (r.charAt(r.length()-1) == 0)
+				r = r.substring(0, r.length()-1);
+			System.out.println("Got line from Clonk: " + r); //$NON-NLS-1$
+		}
+		return r;
 	}
 
 	@Override

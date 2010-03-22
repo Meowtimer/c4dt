@@ -8,6 +8,7 @@ import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.debug.core.DebugException;
 import org.eclipse.debug.core.model.IValue;
+import org.eclipse.debug.core.model.IWatchExpression;
 import org.eclipse.debug.ui.IDebugModelPresentation;
 import org.eclipse.debug.ui.IValueDetailListener;
 import org.eclipse.jface.viewers.LabelProvider;
@@ -20,8 +21,13 @@ public class ClonkDebugModelPresentation extends LabelProvider implements IDebug
 
 	@Override
 	public void computeDetail(IValue value, IValueDetailListener listener) {
-		// TODO Auto-generated method stub
-		
+		try {
+			String val = value.getValueString();
+			listener.detailComputed(value, val);
+		} catch (DebugException e) {
+			e.printStackTrace();
+			listener.detailComputed(value, "Fail");
+		}
 	}
 
 	@Override
@@ -57,8 +63,10 @@ public class ClonkDebugModelPresentation extends LabelProvider implements IDebug
 				return ((ClonkDebugTarget) element).getName();
 			else if (element instanceof ClonkDebugLineBreakpoint)
 				return ((ClonkDebugLineBreakpoint)element).getMarker().getAttribute(IMarker.MESSAGE, "Breakpoint"); //$NON-NLS-1$
+			else if (element instanceof IWatchExpression)
+				return ((IWatchExpression)element).getExpressionText();
 			else
-				return "Empty"; //$NON-NLS-1$
+				return "Empty";
 		} catch (DebugException e) {
 			e.printStackTrace();
 			return "Fail"; //$NON-NLS-1$
