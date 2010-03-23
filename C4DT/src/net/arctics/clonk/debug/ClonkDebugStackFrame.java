@@ -22,6 +22,15 @@ public class ClonkDebugStackFrame extends ClonkDebugElement implements IStackFra
 	private ClonkDebugThread thread;
 	private ClonkDebugVariable[] variables;
 	
+	public int index() throws DebugException {
+		IStackFrame[] frames = thread.getStackFrames();
+		for (int i = 0; i < frames.length; i++) {
+			if (frames[i] == this)
+				return i;
+		}
+		return -1; 
+	}
+	
 	public ClonkDebugStackFrame(ClonkDebugThread thread, Object function, int line) {
 		super(thread.getTarget());
 		this.thread = thread;
@@ -34,7 +43,6 @@ public class ClonkDebugStackFrame extends ClonkDebugElement implements IStackFra
 		if (function instanceof C4Function) {
 			C4Function f = (C4Function) function;
 			List<ClonkDebugVariable> l = new LinkedList<ClonkDebugVariable>();
-			int i = 0;
 			for (C4Variable parm : f.getParameters()) {
 				if (parm.isActualParm())
 					l.add(new ClonkDebugVariable(this, parm));
@@ -47,10 +55,6 @@ public class ClonkDebugStackFrame extends ClonkDebugElement implements IStackFra
 		else {
 			variables = NO_VARIABLES;
 		}
-	}
-
-	public int getLine() {
-		return line;
 	}
 
 	public void setLine(int line) {

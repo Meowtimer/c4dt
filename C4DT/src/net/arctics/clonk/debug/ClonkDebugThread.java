@@ -73,9 +73,6 @@ public class ClonkDebugThread extends ClonkDebugElement implements IThread {
 			sourcePath = sourcePath.substring(0, delim);
 			C4ScriptBase script = findScript(sourcePath, index, new HashSet<ClonkIndex>());
 			C4Function f = script != null ? funcAtLine(script, line) : null;
-			if (f == null) {
-				System.out.println("what??");
-			}
 			Object funObj = f != null ? f : fullSourcePath;
 			if (stillToBeReused > 0) {
 				if (stackFrames[stillToBeReused-1].getFunction().equals(funObj)) {

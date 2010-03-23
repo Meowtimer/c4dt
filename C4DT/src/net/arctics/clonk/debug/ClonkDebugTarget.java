@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
+import java.lang.reflect.Constructor;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
@@ -13,10 +14,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 
-import net.arctics.clonk.debug.ClonkDebugWatchExpressionDelegate.EvaluationResultListener;
 import net.arctics.clonk.parser.BufferedScanner;
 import net.arctics.clonk.parser.c4script.C4Type;
 import net.arctics.clonk.ui.debug.ClonkDebugModelPresentation;
+import net.arctics.clonk.util.ICreate;
+import net.arctics.clonk.util.Utilities;
+
 import org.eclipse.core.resources.IMarkerDelta;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
@@ -40,6 +43,7 @@ public class ClonkDebugTarget extends ClonkDebugElement implements IDebugTarget 
 		public static final String RESUME = "GO"; //$NON-NLS-1$
 		public static final String SUSPEND = "STP"; //$NON-NLS-1$
 		public static final String STEPOVER = "STO"; //$NON-NLS-1$
+		public static final String STEP = "STP";
 		public static final String STEPRETURN = "STR"; //$NON-NLS-1$
 		public static final String QUITSESSION = "BYE"; //$NON-NLS-1$
 		public static final String STACKTRACE = "STA"; //$NON-NLS-1$
@@ -50,6 +54,8 @@ public class ClonkDebugTarget extends ClonkDebugElement implements IDebugTarget 
 		public static final String AT = "AT";
 		public static final String EXEC = "EXC";
 		public static final String EVALUATIONRESULT = "EVR";
+		public static final String GO = "GO";
+		public static final String POSITION = "POS";
 	}
 	
 	public enum LineReceivedResult {
@@ -78,10 +84,16 @@ public class ClonkDebugTarget extends ClonkDebugElement implements IDebugTarget 
 	private IResource scenario;
 	
 	private List<ILineReceivedListener> lineReceiveListeners = new LinkedList<ILineReceivedListener>();
-	private EvaluationResultListener evaluationResultsListener = new EvaluationResultListener(this);
-
-	public EvaluationResultListener getEvaluationResultsListener() {
-		return evaluationResultsListener;
+	
+	@SuppressWarnings("unchecked")
+	public <T extends ILineReceivedListener> T requestLineReceivedListener(ICreate<T> create, Object... args) {
+		Class<T> cls = create.cls();
+		for (ILineReceivedListener listener : lineReceiveListeners)
+			if (listener.getClass() == cls)
+				return (T) listener;
+		T result = create.create();
+		addLineReceiveListener(result);
+		return result;
 	}
 
 	public void addLineReceiveListener(ILineReceivedListener listener) {
@@ -168,8 +180,8 @@ public class ClonkDebugTarget extends ClonkDebugElement implements IDebugTarget 
 
 		@Override
 		public LineReceivedResult lineReceived(String event, ClonkDebugTarget target) throws IOException {
-			if (event.startsWith("POS")) { //$NON-NLS-1$
-				String sourcePath = event.substring(4, event.length());
+			if (event.startsWith(Commands.POSITION)) { //$NON-NLS-1$
+				String sourcePath = event.substring(Commands.POSITION.length()+1, event.length());
 				stackTrace.clear();
 				stackTrace.add(sourcePath);
 
@@ -186,7 +198,7 @@ public class ClonkDebugTarget extends ClonkDebugElement implements IDebugTarget 
 								break;
 							}
 							else {
-								stackTrace.add(event.substring("AT ".length())); //$NON-NLS-1$
+								stackTrace.add(event.substring(Commands.AT.length()+1)); //$NON-NLS-1$
 							}
 						}
 						else
@@ -300,18 +312,22 @@ public class ClonkDebugTarget extends ClonkDebugElement implements IDebugTarget 
 		fireEvent(new DebugEvent(this, DebugEvent.CREATE));
 		
 		send(""); //$NON-NLS-1$
-		send("STP"); // suspend in order to set breakpoints //$NON-NLS-1$
+		send(Commands.STEP); // suspend in order to set breakpoints //$NON-NLS-1$
 		setBreakpoints();
-		send("GO"); // go! //$NON-NLS-1$
+		send(Commands.GO); // go! //$NON-NLS-1$
 		
 		new EventDispatchJob("Clonk Debugger Event Dispatch").schedule(); //$NON-NLS-1$
-		addLineReceiveListener(evaluationResultsListener);
 	}
 	
 	private void setBreakpoints() {
 		IBreakpoint[] breakpoints = DebugPlugin.getDefault().getBreakpointManager().getBreakpoints(ClonkDebugModelPresentation.ID);
 		for (IBreakpoint b : breakpoints) {
-			breakpointAdded(b);
+			try {
+				if (b.isEnabled())
+					breakpointAdded(b);
+			} catch (CoreException e) {
+				e.printStackTrace();
+			}
 		}
 	}
 	
@@ -500,13 +516,19 @@ public class ClonkDebugTarget extends ClonkDebugElement implements IDebugTarget 
 
 	@Override
 	public void breakpointChanged(IBreakpoint breakpoint, IMarkerDelta delta) {
-		// TODO Auto-generated method stub
+		if (delta.getAttribute(IBreakpoint.ENABLED) != null)
+			breakpointAdded(breakpoint);
 
 	}
 
 	@Override
 	public void breakpointRemoved(IBreakpoint breakpoint, IMarkerDelta delta) {
-		breakpointAdded(breakpoint);
+		try {
+			if (breakpoint.isEnabled())
+				breakpointAdded(breakpoint);
+		} catch (CoreException e) {
+			e.printStackTrace();
+		}
 	}
 
 	@Override
