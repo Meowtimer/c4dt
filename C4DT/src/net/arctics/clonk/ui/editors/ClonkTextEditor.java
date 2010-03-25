@@ -117,11 +117,10 @@ public class ClonkTextEditor extends TextEditor {
 		return null;
 	}
 
-	private static void revealInEditor(C4Declaration target,
-			C4Structure structure, IEditorPart editor) {
+	private static void revealInEditor(C4Declaration target, C4Structure structure, IEditorPart editor) {
 		if (editor instanceof ClonkTextEditor) {
 			ClonkTextEditor clonkTextEditor = (ClonkTextEditor) editor;
-			if (target != structure) {
+			if (target != structure && target.getLocation() != null) {
 				if (structure.dirty() && clonkTextEditor instanceof C4ScriptEditor) {
 					try {
 						((C4ScriptEditor) clonkTextEditor).reparseWithDocumentContents(null, false);

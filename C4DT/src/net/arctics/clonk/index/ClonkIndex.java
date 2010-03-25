@@ -71,7 +71,7 @@ public class ClonkIndex implements Serializable, Iterable<C4Object> {
 	}
 	
 	public void postSerialize() throws CoreException {
-		refreshCache();
+		refreshIndex();
 	}
 	
 	@SuppressWarnings("unchecked")
@@ -185,7 +185,7 @@ public class ClonkIndex implements Serializable, Iterable<C4Object> {
 		}
 	}
 	
-	public synchronized void refreshCache() {
+	public synchronized void refreshIndex() {
 		// delete old cache
 		
 		if (globalFunctions == null)
@@ -464,7 +464,7 @@ public class ClonkIndex implements Serializable, Iterable<C4Object> {
 		indexedObjects.clear();
 		indexedScripts.clear();
 		indexedScenarios.clear();
-		refreshCache();
+		refreshIndex();
 	}
 	
 	private class ObjectIterator implements Iterator<C4Object> {

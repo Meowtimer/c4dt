@@ -316,8 +316,11 @@ public abstract class C4ScriptBase extends C4Structure implements IHasRelatedRes
 		if (info.recursion == 0 && !(this instanceof C4Engine)) { // .-.
 			C4Declaration f = null;
 			// definition from extern index
-			if (Utilities.looksLikeID(name)) {
+			if (getEngine().acceptsId(name)) {
 				f = info.index.getObjectNearestTo(getResource(), C4ID.getID(name));
+				if (f != null && info.declarationClass == C4Variable.class && f instanceof C4ObjectIntern) {
+					f = ((C4ObjectIntern)f).getStaticVariable();
+				}
 			}
 			// global stuff defined in project
 			if (f == null) {

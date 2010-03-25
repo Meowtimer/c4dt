@@ -872,7 +872,7 @@ public abstract class C4ScriptExprTree {
 						parser.getContainer().addUsedProjectScript(var.getScript());
 						break;
 					case VAR_VAR:
-						if (var != C4Variable.THIS) {
+						if (var.getLocation() != null) {
 							int locationUsed = parser.getActiveFunc().getBody().getOffset()+this.getExprStart();
 							if (locationUsed < var.getLocation().getOffset())
 								parser.warningWithCode(ParserErrorCode.VarUsedBeforeItsDeclaration, this, var.getName());

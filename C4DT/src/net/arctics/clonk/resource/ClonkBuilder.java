@@ -217,7 +217,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 							delta.accept(this);
 							listOfResourcesToBeRefreshed.add(delta.getResource());
 							// refresh global func and static var cache
-							ClonkProjectNature.get(proj).getIndex().refreshCache();
+							ClonkProjectNature.get(proj).getIndex().refreshIndex();
 
 							// parse function code
 							buildPhase = 1;
@@ -260,7 +260,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 						// parse declarations
 						buildPhase = 0;
 						proj.accept(this);
-						ClonkProjectNature.get(proj).getIndex().refreshCache();
+						ClonkProjectNature.get(proj).getIndex().refreshIndex();
 						if (monitor.isCanceled()) {
 							monitor.done();
 							return null;

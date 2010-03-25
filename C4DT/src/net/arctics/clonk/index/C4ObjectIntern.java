@@ -5,7 +5,10 @@ import java.io.Serializable;
 import java.security.InvalidParameterException;
 
 import net.arctics.clonk.ClonkCore;
+import net.arctics.clonk.parser.C4Declaration;
 import net.arctics.clonk.parser.C4ID;
+import net.arctics.clonk.parser.C4Structure;
+import net.arctics.clonk.parser.c4script.C4Variable;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.util.Utilities;
 
@@ -21,12 +24,40 @@ import org.eclipse.core.runtime.Path;
  * Object definition inside a project.
  */
 public class C4ObjectIntern extends C4Object implements Serializable {
-
+	
 	private static final long serialVersionUID = -7978767061460505544L;
 	
 	protected transient IContainer objectFolder;
 	protected String relativePath;
 	private transient ClonkIndex index;
+	
+	private transient C4Variable staticVariable;
+	
+	public C4Variable getStaticVariable() {
+		if (getEngine() != null && !getEngine().getCurrentSettings().definitionsHaveStaticVariables)
+			return staticVariable = null;
+		if (staticVariable == null) {
+			staticVariable = new C4Variable() {
+				private static final long serialVersionUID = 1L;
+				
+				@Override
+				public String getName() {
+					return C4ObjectIntern.this.getName();
+				}
+				
+				@Override
+				public C4Declaration getParentDeclaration() {
+					return C4ObjectIntern.this;
+				}
+				
+				@Override
+				public C4Structure getTopLevelStructure() {
+					return C4ObjectIntern.this;
+				}
+			};
+		}
+		return staticVariable;
+	}
 	
 	public C4ObjectIntern(C4ID id, String name, IContainer container) {
 		super(id, name);

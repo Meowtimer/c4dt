@@ -57,6 +57,8 @@ public class C4Engine extends C4ScriptBase {
 		public boolean colonIDSyntax;
 		@IniField
 		public boolean nonConstGlobalVarsAssignment;
+		@IniField
+		public boolean definitionsHaveStaticVariables;
 
 		public static final IniConfiguration INI_CONFIGURATION = IniConfiguration.createFromClass(EngineSettings.class);
 

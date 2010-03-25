@@ -558,7 +558,7 @@ public class C4ScriptParser {
 							errorWithCode(ParserErrorCode.ConstantValueExpected, scanner.getPosition()-1, scanner.getPosition(), true);
 						else {
 							C4Variable var;
-							createdVariables.add(var = createVariable(C4VariableScope.VAR_CONST, desc, s, e, varName));
+							createdVariables.add(var = createVariable(C4VariableScope.VAR_STATIC, desc, s, e, varName));
 							var.forceType(C4Type.INT); // most likely
 						}
 					}
