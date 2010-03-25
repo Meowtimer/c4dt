@@ -375,10 +375,35 @@ static const CSPF_NoScenarioInit;
 static const CSPF_NoEliminationCheck;
 static const CSPF_Invisible;
 
+static const GFXOV_MODE_None;
+static const GFXOV_MODE_Base;
+static const GFXOV_MODE_Action;
+static const GFXOV_MODE_Picture;
+static const GFXOV_MODE_IngamePicture;
+static const GFXOV_MODE_Object;
+static const GFXOV_MODE_ExtraGraphics;
+static const GFXOV_MODE_Rank;
+static const GFXOV_MODE_ObjectPicture;
+
+static const DMQ_Sky;
+static const DMQ_Sub;
+static const DMQ_Bridge;
+
 global func int AttachMesh(mesh, string szParentBone, string szChildBone, array Transformation);
 global func int GetAnimationLength();
 global func string GetAnimationName();
 global func int PlayAnimation(string szAnimation, int iSlot, array PositionProvider, array WeightProvider, int iSibling, int iAttachNumber);
+global func int GetAnimationPosition(int iAnimationNumber, int iAttachNumber);
+global func int GetAnimationWeight(int iAnimationNumber, int iAttachNumber);
+global func int GetPlayerControlState(int iPlr, int iControl);
+global func int GetRootAnimation(int iSlot, int iAttachNumber);
+global func bool SetAnimationPosition(int iAnimationNumber, array PositionProvider, int iAttachNumber);
+global func bool SetAnimationWeight(int iAnimationNumber, array WeightProvider, int iAttachNumber);
+global func bool SetPlayerControlEnabled(int iPlr, int ctrl, bool is_enabled);
+global func bool StopAnimation(int iAnimationNumber, int iAttachNumber);
+global func bool DetachMesh(int iAttachNumber);
+
+global func ResetCursorView(int plr);
 
 global func int Abs(int iValue);
 global func int AbsX(int iX);
