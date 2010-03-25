@@ -124,7 +124,7 @@ public abstract class C4Declaration implements Serializable, IHasRelatedResource
 	}
 	
 	public C4Scenario getScenario() {
-		Object file = getScript().getScriptFile();
+		Object file = getScript() != null ? getScript().getScriptFile() : null;
 		if (file instanceof IResource) {
 			for (IResource r = (IResource) file; r != null; r = r.getParent()) {
 				if (r instanceof IContainer) {

@@ -672,4 +672,10 @@
 				description="Liste der Definitionen, die im Spiel nicht geladen werden sollen. So lässt sich beispielsweise die Erforschung bestimmter Objekte verhindern." />
 		</section>
 	</file>
+	<file name="PlayerControls.txt" factoryclass="net.arctics.clonk.parser.inireader.GenericEntryFactory">
+		<section name="ControlDef">
+			<entry name="Identifier" class="java.lang.String" />
+			<entry name="DefaultDisabled" class="net.arctics.clonk.parser.inireader.Boolean" />
+		</section>
+	</file>
 </clonkiniconfig>

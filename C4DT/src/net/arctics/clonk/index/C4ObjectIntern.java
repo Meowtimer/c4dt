@@ -54,6 +54,11 @@ public class C4ObjectIntern extends C4Object implements Serializable {
 				public C4Structure getTopLevelStructure() {
 					return C4ObjectIntern.this;
 				}
+				
+				@Override
+				public String getInfoText() {
+					return C4ObjectIntern.this.getInfoText();
+				}
 			};
 		}
 		return staticVariable;

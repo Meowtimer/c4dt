@@ -54,10 +54,10 @@ public class ClonkIndex implements Serializable, Iterable<C4Object> {
 	private List<C4ScriptBase> indexedScripts = new LinkedList<C4ScriptBase>(); 
 	private List<C4Scenario> indexedScenarios = new LinkedList<C4Scenario>();
 	
-	private transient List<C4Function> globalFunctions = new LinkedList<C4Function>();
-	private transient List<C4Variable> staticVariables = new LinkedList<C4Variable>();
-	private transient Map<String, List<C4Declaration>> declarationMap = new HashMap<String, List<C4Declaration>>();
-	private transient Map<C4ID, List<C4ScriptBase>> appendages = new HashMap<C4ID, List<C4ScriptBase>>();
+	protected transient List<C4Function> globalFunctions = new LinkedList<C4Function>();
+	protected transient List<C4Variable> staticVariables = new LinkedList<C4Variable>();
+	protected transient Map<String, List<C4Declaration>> declarationMap = new HashMap<String, List<C4Declaration>>();
+	protected transient Map<C4ID, List<C4ScriptBase>> appendages = new HashMap<C4ID, List<C4ScriptBase>>();
 	
 	public int numUniqueIds() {
 		return indexedObjects.size();
@@ -141,7 +141,7 @@ public class ClonkIndex implements Serializable, Iterable<C4Object> {
 		return result;
 	}
 
-	private void addToFieldMap(C4Declaration field) {
+	protected void addToDeclarationMap(C4Declaration field) {
 		List<C4Declaration> list = declarationMap.get(field.getName());
 		if (list == null) {
 			list = new LinkedList<C4Declaration>();
@@ -151,17 +151,17 @@ public class ClonkIndex implements Serializable, Iterable<C4Object> {
 	}
 	
 	private void addGlobalsFrom(C4ScriptBase script) {
-		for(C4Function func : script.functions()) {
+		for (C4Function func : script.functions()) {
 			if (func.getVisibility() == C4FunctionScope.FUNC_GLOBAL) {
 				globalFunctions.add(func);
 			}
-			addToFieldMap(func);
+			addToDeclarationMap(func);
 		}
-		for(C4Variable var : script.variables()) {
+		for (C4Variable var : script.variables()) {
 			if (var.getScope() == C4VariableScope.VAR_STATIC || var.getScope() == C4VariableScope.VAR_CONST) {
 				staticVariables.add(var);
 			}
-			addToFieldMap(var);
+			addToDeclarationMap(var);
 		}
 	}
 	

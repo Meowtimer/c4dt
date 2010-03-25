@@ -57,6 +57,10 @@
 		<content-type base-type="net.arctics.clonk.inifile"
 			file-names="DefCore.txt" id="net.arctics.clonk.defcore" name="%C4Object_DefCore_Name"
 			priority="high" />
+	
+		<content-type base-type="net.arctics.clonk.inifile"
+			file-names="PlayerControls.txt" id="net.arctics.clonk.plrcontroldef" name="%PlayerControlDefinition_Name"
+			priority="high" />
 
 		<content-type base-type="net.arctics.clonk.inifile"
 			file-names="ActMap.txt" id="net.arctics.clonk.actmap" name="%C4Object_ActMap_Name"
@@ -86,7 +90,6 @@
 	<extension point="org.eclipse.ui.ide.projectNatureImages">
 		<image icon="icons/projectNatureIcon.png" natureId="net.arctics.clonk.clonknature"
 			id="net.arctics.clonk.clonkNatureIcon" />
-
 	</extension>
 
 	<extension point="org.eclipse.ui.navigator.navigatorContent">

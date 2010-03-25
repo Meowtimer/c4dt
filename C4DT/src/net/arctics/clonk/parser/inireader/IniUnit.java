@@ -22,6 +22,7 @@ import net.arctics.clonk.parser.SourceLocation;
 import net.arctics.clonk.parser.inireader.IniData.IniConfiguration;
 import net.arctics.clonk.parser.inireader.IniData.IniDataEntry;
 import net.arctics.clonk.parser.inireader.IniData.IniDataSection;
+import net.arctics.clonk.parser.playercontrols.PlayerControlsUnit;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.resource.c4group.C4GroupItem;
 import net.arctics.clonk.util.IHasChildren;
@@ -245,7 +246,7 @@ public class IniUnit extends C4Structure implements Iterable<IniSection>, IHasCh
 					if (modifyMarkers)
 						marker(ParserErrorCode.InvalidExpression, start, reader.getPosition()-1, IMarker.SEVERITY_WARNING);
 				}
-				reader.readStringUntil(BufferedScanner.NEWLINE_CHARS); // ignore rest of section line
+				reader.eat(BufferedScanner.NEWLINE_CHARS); // ignore rest of section line
 			}
 			int end = reader.getPosition();
 			IniSection section = new IniSection(new SourceLocation(start, end), name);
@@ -511,11 +512,12 @@ public class IniUnit extends C4Structure implements Iterable<IniSection>, IHasCh
 	}
 
 	private static Map<String, Class<? extends IniUnit>> INIREADER_CLASSES = Utilities.map(new Object[] {
-		ClonkCore.id("scenariocfg"), ScenarioUnit.class, //$NON-NLS-1$
-		ClonkCore.id("actmap")     , ActMapUnit.class, //$NON-NLS-1$
-		ClonkCore.id("defcore")    , DefCoreUnit.class, //$NON-NLS-1$
-		ClonkCore.id("particle")   , ParticleUnit.class, //$NON-NLS-1$
-		ClonkCore.id("material")   , MaterialUnit.class //$NON-NLS-1$
+		ClonkCore.id("scenariocfg")  , ScenarioUnit.class, //$NON-NLS-1$
+		ClonkCore.id("actmap")       , ActMapUnit.class, //$NON-NLS-1$
+		ClonkCore.id("defcore")      , DefCoreUnit.class, //$NON-NLS-1$
+		ClonkCore.id("particle")     , ParticleUnit.class, //$NON-NLS-1$
+		ClonkCore.id("material")     , MaterialUnit.class, //$NON-NLS-1$
+		ClonkCore.id("plrcontroldef"), PlayerControlsUnit.class //$NON-NLS-1$
 	});
 
 	/**

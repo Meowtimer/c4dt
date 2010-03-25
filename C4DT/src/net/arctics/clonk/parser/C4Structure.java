@@ -74,7 +74,7 @@ public abstract class C4Structure extends C4Declaration {
 	}
 	
 	/**
-	 * Returns the structure pinned to a file creating it if it does not already exist and force is true
+	 * Returns the structure pinned to a file creating it if force is true and the structure does not already exist
 	 * @param file the file to return the pinned structure of
 	 * @param force whether to create the structure if it does not yet exist
 	 * @return the structure

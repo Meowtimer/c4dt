@@ -6,11 +6,17 @@ import java.util.List;
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.c4script.C4ScriptBase;
 import net.arctics.clonk.parser.c4script.C4ScriptIntern;
+import net.arctics.clonk.parser.c4script.C4Variable;
+import net.arctics.clonk.parser.inireader.IniUnit;
+import net.arctics.clonk.parser.playercontrols.PlayerControlsUnit;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.util.Utilities;
 
+import org.eclipse.core.resources.IContainer;
+import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.IResourceVisitor;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.Path;
 
@@ -128,6 +134,34 @@ public class ProjectIndex extends ClonkIndex {
 	public static ProjectIndex get(IProject project) {
 		ClonkProjectNature nature = ClonkProjectNature.get(project);
 		return nature != null ? nature.getIndex() : null;
+	}
+	
+	@Override
+	public synchronized void refreshIndex() {
+		super.refreshIndex();
+		
+		try {
+			getProject().accept(new IResourceVisitor() {
+				@Override
+				public boolean visit(IResource resource) throws CoreException {
+					if (resource instanceof IContainer) {
+						return true;
+					} else if (resource instanceof IFile && resource.getName().equals("PlayerControls.txt")) {
+						PlayerControlsUnit unit = (PlayerControlsUnit) IniUnit.pinned(resource, true, true);
+						if (unit != null) {
+							staticVariables.addAll(unit.getControlVariables());
+							for (C4Variable v : unit.getControlVariables())
+								addToDeclarationMap(v);
+						}
+						return true;
+					}
+					else
+						return false;
+				}
+			});
+		} catch (CoreException e) {
+			e.printStackTrace();
+		}
 	}
 
 }
