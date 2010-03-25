@@ -548,17 +548,27 @@ public class C4ScriptParser {
 			}
 			do {
 				eatWhitespace();
+				C4Type t;
+				if (isEngine) {
+					t = parseFunctionReturnType(scanner.getPosition());
+					if (t == C4Type.UNKNOWN)
+						t = null;
+					else
+						eatWhitespace();
+				}
+				else
+					t = null;
 				int s = scanner.getPosition();
 				String varName = scanner.readIdent();
 				int e = scanner.getPosition();
+				C4Variable var = null;
 				if (constDecl || getContainer().getEngine().getCurrentSettings().nonConstGlobalVarsAssignment) {
 					eatWhitespace();
 					if (scanner.peek() == ';' || scanner.peek() == ',') {
 						if (constDecl && !isEngine)
 							errorWithCode(ParserErrorCode.ConstantValueExpected, scanner.getPosition()-1, scanner.getPosition(), true);
 						else {
-							C4Variable var;
-							createdVariables.add(var = createVariable(C4VariableScope.VAR_STATIC, desc, s, e, varName));
+							createdVariables.add(var = createVariable(constDecl ? C4VariableScope.VAR_CONST : C4VariableScope.VAR_STATIC, desc, s, e, varName));
 							var.forceType(C4Type.INT); // most likely
 						}
 					}
@@ -572,15 +582,17 @@ public class C4ScriptParser {
 						if (!constantValue.isConstant()) {
 							errorWithCode(ParserErrorCode.ConstantValueExpected, constantValue, true);
 						}
-						C4Variable var = createVariable(C4VariableScope.VAR_CONST, desc, s, e, varName);
+						var = createVariable(C4VariableScope.VAR_CONST, desc, s, e, varName);
 						var.setConstValue(constantValue.evaluateAtParseTime(getContainer()));
 						createdVariables.add(var);
 						var.inferTypeFromAssignment(constantValue, this);
 					}
 				}
 				else {
-					createdVariables.add(createVariable(C4VariableScope.VAR_STATIC, desc, s, e, varName));
+					createdVariables.add(var = createVariable(C4VariableScope.VAR_STATIC, desc, s, e, varName));
 				}
+				if (t != null)
+					var.forceType(t);
 				eatWhitespace();
 			} while(scanner.read() == ',');
 			scanner.unread();
