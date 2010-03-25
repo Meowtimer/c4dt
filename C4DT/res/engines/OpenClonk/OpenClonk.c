@@ -404,6 +404,7 @@ global func bool StopAnimation(int iAnimationNumber, int iAttachNumber);
 global func bool DetachMesh(int iAttachNumber);
 
 global func ResetCursorView(int plr);
+global func string Translate(string text);
 
 global func int Abs(int iValue);
 global func int AbsX(int iX);
