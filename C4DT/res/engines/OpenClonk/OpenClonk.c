@@ -276,6 +276,102 @@ static const CSPF_NoEliminationCheck;
 static const CSPF_Invisible;
 static const nil;
 
+static const ANIM_Hold;
+static const ANIM_Loop;
+static const ANIM_Remove;
+
+static const C4AVP_Const;
+static const C4AVP_Linear;
+static const C4AVP_X;
+static const C4AVP_Y;
+static const C4AVP_AbsX;
+static const C4AVP_AbsY;
+static const C4AVP_XDir;
+static const C4AVP_YDir;
+static const C4AVP_RDir;
+static const C4AVP_CosR;
+static const C4AVP_SinR;
+static const C4AVP_CosV;
+static const C4AVP_SinV;
+static const C4AVP_Action;
+
+static const C4FO_Not;
+static const C4FO_And;
+static const C4FO_Or;
+static const C4FO_Exclude;
+static const C4FO_InRect;
+static const C4FO_AtPoint;
+static const C4FO_AtRect;
+static const C4FO_OnLine;
+static const C4FO_Distance;
+static const C4FO_ID;
+static const C4FO_OCF;
+static const C4FO_Category;
+static const C4FO_Action;
+static const C4FO_ActionTarget;
+static const C4FO_Procedure;
+static const C4FO_Container;
+static const C4FO_AnyContainer;
+static const C4FO_Owner;
+static const C4FO_Controller;
+static const C4FO_Func;
+static const C4FO_Layer;
+
+static const C4SO_Reverse;
+static const C4SO_Multiple;
+static const C4SO_Distance;
+static const C4SO_Random;
+static const C4SO_Speed;
+static const C4SO_Mass;
+static const C4SO_Value;
+static const C4SO_Func;
+
+static const PHYS_Current;
+static const PHYS_Permanent;
+static const PHYS_Temporary;
+static const PHYS_StackTemporary;
+
+static const C4CMD_Base;
+static const C4CMD_SilentBase;
+static const C4CMD_Sub;
+static const C4CMD_SilentSub;
+
+static const C4CMD_MoveTo_NoPosAdjust;
+static const C4CMD_MoveTo_PushTarget;
+static const C4CMD_Enter_PushTarget;
+
+static const C4SECT_SaveLandscape;
+static const C4SECT_SaveObjects;
+static const C4SECT_KeepEffects;
+
+static const TEAMID_New;
+
+static const MSG_NoLinebreak;
+static const MSG_Bottom;
+static const MSG_Multiple;
+static const MSG_Top;
+static const MSG_Left;
+static const MSG_Right;
+static const MSG_HCenter;
+static const MSG_VCenter;
+static const MSG_DropSpeech;
+static const MSG_WidthRel;
+static const MSG_XRel;
+static const MSG_YRel;
+
+static const C4PT_User;
+static const C4PT_Script;
+
+static const CSPF_FixedAttributes;
+static const CSPF_NoScenarioInit;
+static const CSPF_NoEliminationCheck;
+static const CSPF_Invisible;
+
+global func int AttachMesh(mesh, string szParentBone, string szChildBone, array Transformation);
+global func int GetAnimationLength();
+global func string GetAnimationName();
+global func PlayAnimation(string szAnimation, int iSlot, array PositionProvider, array WeightProvider, int iSibling, int iAttachNumber);
+
 global func int Abs(int iValue);
 global func int AbsX(int iX);
 global func int AbsY(int iY);

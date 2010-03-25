@@ -714,12 +714,14 @@ public class C4ScriptParser {
 	private C4Type parseFunctionReturnType(int offset) throws ParsingException {
 		scanner.seek(offset);
 		eatWhitespace();
-		int read = scanner.read();
-		if (read == '&') {
+		if (scanner.peek() == '&') {
+			scanner.read();
 			return C4Type.REFERENCE;
 		}
-		else if (isEngine && scanner.unread() && parseIdentifier(scanner.getPosition())) {
-			return C4Type.makeType(parsedString);
+		else if (isEngine && parseIdentifier(scanner.getPosition())) {
+			C4Type t = C4Type.makeType(parsedString, isEngine);
+			if (t != C4Type.UNKNOWN)
+				return t;
 		}
 		scanner.seek(offset);
 		return C4Type.ANY;
