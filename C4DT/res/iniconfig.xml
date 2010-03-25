@@ -676,6 +676,23 @@
 		<section name="ControlDef">
 			<entry name="Identifier" class="java.lang.String" />
 			<entry name="DefaultDisabled" class="net.arctics.clonk.parser.inireader.Boolean" />
+			<entry name="GUIDesc" class="java.lang.String" />
+			<entry name="GUIName" class="java.lang.String" />
+			<entry name="Action" class="java.lang.String" />
+			<entry name="Hold" class="net.arctics.clonk.parser.inireader.UnsignedInteger" />
 		</section>
+		<section name="Assignment">
+			<entry name="Priority" class="net.arctics.clonk.parser.inireader.UnsignedInteger" />			
+			<entry name="Key" class="java.lang.String" />
+			<entry name="Control" class="java.lang.String" />
+		</section>
+		<section name="ControlSet">
+			<entry name="Name" class="java.lang.String" />
+			<entry name="Keyboard" class="net.arctics.clonk.parser.inireader.UnsignedInteger" />
+			<entry name="Mouse" class="net.arctics.clonk.parser.inireader.UnsignedInteger" />
+			<entry name="Gamepad" class="net.arctics.clonk.parser.inireader.UnsignedInteger" />
+		</section>
+		<section name="ControlSets" />
+		<section name="ControlDefs" />
 	</file>
 </clonkiniconfig>
