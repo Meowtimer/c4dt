@@ -551,9 +551,7 @@ public class C4ScriptParser {
 				C4Type t;
 				if (isEngine) {
 					t = parseFunctionReturnType(scanner.getPosition());
-					if (t == C4Type.UNKNOWN)
-						t = null;
-					else
+					if (t != null)
 						eatWhitespace();
 				}
 				else
@@ -736,7 +734,7 @@ public class C4ScriptParser {
 				return t;
 		}
 		scanner.seek(offset);
-		return C4Type.ANY;
+		return null;
 	}
 	
 	private int consumeFunctionCodeOrReturnReadChar(int offset) throws ParsingException {
@@ -786,6 +784,8 @@ public class C4ScriptParser {
 		}
 		if (!suspectOldStyle) {
 			retType = parseFunctionReturnType(scanner.getPosition());
+			if (retType == null)
+				retType = C4Type.ANY;
 			eatWhitespace();
 			startName = scanner.getPosition();
 			funcName = scanner.readIdent();
