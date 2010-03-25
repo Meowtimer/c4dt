@@ -123,18 +123,6 @@ public abstract class NewClonkFolderWizard extends Wizard implements INewWizard 
 			e.printStackTrace();
 		}
 		monitor.worked(1);
-//		monitor.setTaskName("Opening file for editing...");
-//		getShell().getDisplay().asyncExec(new Runnable() {
-//			public void run() {
-//				IWorkbenchPage page =
-//					PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
-//				try {
-//					IDE.openEditor(page, file, true);
-//				} catch (PartInitException e) {
-//				}
-//			}
-//		});
-//		monitor.worked(1);
 	}
 	
 	protected Enumeration<URL> getTemplateFiles() {

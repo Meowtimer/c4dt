@@ -6,20 +6,27 @@ import net.arctics.clonk.parser.c4script.C4Function;
 import net.arctics.clonk.parser.c4script.C4ScriptBase;
 import net.arctics.clonk.parser.c4script.C4Variable;
 
+import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.FileLocator;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.resource.ImageRegistry;
+import org.eclipse.jface.viewers.CheckboxTableViewer;
+import org.eclipse.jface.viewers.ViewerComparator;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.layout.FormAttachment;
+import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Text;
+import org.eclipse.ui.model.WorkbenchContentProvider;
+import org.eclipse.ui.model.WorkbenchLabelProvider;
 
 /**
  * Stores references to some objects needed for various components of the user interface
@@ -107,4 +114,28 @@ public abstract class UI {
 				AddButton.addSelectionListener(addListener);
 		}
 	}
+	
+	public static FormData createFormData(FormAttachment left, FormAttachment right, FormAttachment top, FormAttachment bottom) {
+		FormData result = new FormData();
+		result.left = left;
+		result.top = top;
+		result.right = right;
+		result.bottom = bottom;
+		return result;
+	}
+
+	public static CheckboxTableViewer createProjectReferencesViewer(Composite parent) {
+		CheckboxTableViewer result = CheckboxTableViewer.newCheckList(parent, SWT.TOP | SWT.BORDER);
+		result.setLabelProvider(WorkbenchLabelProvider.getDecoratingWorkbenchLabelProvider());
+		result.setContentProvider(new WorkbenchContentProvider() {
+			@Override
+			public Object[] getChildren(Object element) {
+				return Utilities.getClonkProjects();
+			}
+		});
+		result.setComparator(new ViewerComparator());
+		result.setInput(ResourcesPlugin.getWorkspace());
+		return result;
+	}
+	
 }

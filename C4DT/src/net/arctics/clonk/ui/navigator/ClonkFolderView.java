@@ -34,7 +34,6 @@ import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.FormAttachment;
-import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.layout.FormLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
@@ -153,15 +152,6 @@ public class ClonkFolderView extends ViewPart implements ISelectionListener, IDo
 	private MenuItem linkMenuItem;
 	private MenuItem refreshMenuItem;
 
-	private static FormData createFormData(FormAttachment left, FormAttachment right, FormAttachment top, FormAttachment bottom) {
-		FormData result = new FormData();
-		result.left = left;
-		result.top = top;
-		result.right = right;
-		result.bottom = bottom;
-		return result;
-	}
-
 	private void createProjectEditor(Composite parent, Object groupLayoutData) {
 		projectEditor = new UI.ProjectEditorBlock(parent, null, this, groupLayoutData, null);
 	}
@@ -194,7 +184,7 @@ public class ClonkFolderView extends ViewPart implements ISelectionListener, IDo
 
 		openInCurrentProject = new Button(optionsComposite, SWT.CHECK);
 		openInCurrentProject.setText(Messages.ClonkFolderView_OpenInCurrentProject);
-		openInCurrentProject.setLayoutData(createFormData(
+		openInCurrentProject.setLayoutData(UI.createFormData(
 			new FormAttachment(0, 5),
 			new FormAttachment(100, 5),
 			new FormAttachment(0, 5),
@@ -204,7 +194,7 @@ public class ClonkFolderView extends ViewPart implements ISelectionListener, IDo
 
 		removeLinkedFilesOnShutdown = new Button(optionsComposite, SWT.CHECK);
 		removeLinkedFilesOnShutdown.setText(Messages.ClonkFolderView_RemoveLinkedFilesOnShutdown);
-		removeLinkedFilesOnShutdown.setLayoutData(createFormData(
+		removeLinkedFilesOnShutdown.setLayoutData(UI.createFormData(
 			new FormAttachment(0, 5),
 			new FormAttachment(100, 5),
 			new FormAttachment(openInCurrentProject, 5),
@@ -215,14 +205,14 @@ public class ClonkFolderView extends ViewPart implements ISelectionListener, IDo
 		PreferenceStore dummyPrefStore = new PreferenceStore();
 		dummyPrefStore.setValue(ClonkPreferences.ACTIVE_ENGINE, ClonkCore.getDefault().getPreferenceStore().getString(ClonkPreferences.ACTIVE_ENGINE));
 
-		createProjectEditor(optionsComposite, createFormData(
+		createProjectEditor(optionsComposite, UI.createFormData(
 			new FormAttachment(0, 5),
 			new FormAttachment(100, 5),
 			new FormAttachment(removeLinkedFilesOnShutdown, 0),
 			new FormAttachment(100, 0))
 		);
 
-		optionsComposite.setLayoutData(createFormData(
+		optionsComposite.setLayoutData(UI.createFormData(
 			new FormAttachment(0, 0),
 			new FormAttachment(100, 0),
 			new FormAttachment(100, -optionsComposite.computeSize(SWT.DEFAULT, SWT.DEFAULT).y),
@@ -234,7 +224,7 @@ public class ClonkFolderView extends ViewPart implements ISelectionListener, IDo
 		updateProjectChooserEnablization();
 
 		folderTree = new TreeViewer(parent, SWT.NONE);
-		folderTree.getTree().setLayoutData(createFormData(
+		folderTree.getTree().setLayoutData(UI.createFormData(
 			new FormAttachment(0, 0),
 			new FormAttachment(100, 0),
 			new FormAttachment(0, 0),

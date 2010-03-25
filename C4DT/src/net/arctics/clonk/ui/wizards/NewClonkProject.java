@@ -10,6 +10,7 @@ import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.ui.navigator.LinkC4GroupFileHandler;
 import net.arctics.clonk.ui.navigator.QuickImportHandler;
 import net.arctics.clonk.util.IConverter;
+import net.arctics.clonk.util.UI;
 import net.arctics.clonk.util.Utilities;
 
 import org.eclipse.core.resources.ICommand;
@@ -21,7 +22,6 @@ import org.eclipse.jface.preference.ComboFieldEditor;
 import org.eclipse.jface.preference.PreferenceStore;
 import org.eclipse.jface.viewers.CheckboxTableViewer;
 import org.eclipse.jface.viewers.IStructuredSelection;
-import org.eclipse.jface.viewers.ViewerComparator;
 import org.eclipse.jface.wizard.Wizard;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.FillLayout;
@@ -34,8 +34,6 @@ import org.eclipse.swt.widgets.TabItem;
 import org.eclipse.ui.INewWizard;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.dialogs.WizardNewProjectCreationPage;
-import org.eclipse.ui.model.WorkbenchContentProvider;
-import org.eclipse.ui.model.WorkbenchLabelProvider;
 
 public class NewClonkProject extends Wizard implements INewWizard {
 	
@@ -90,16 +88,7 @@ public class NewClonkProject extends Wizard implements INewWizard {
 		
 			Composite referencesComposite = new Composite(tabFolder, SWT.NONE);
 			referencesComposite.setLayout(new FillLayout());
-			projectReferencesViewer = CheckboxTableViewer.newCheckList(referencesComposite, SWT.TOP | SWT.BORDER);
-			projectReferencesViewer.setLabelProvider(WorkbenchLabelProvider.getDecoratingWorkbenchLabelProvider());
-			projectReferencesViewer.setContentProvider(new WorkbenchContentProvider() {
-				@Override
-				public Object[] getChildren(Object element) {
-					return Utilities.getClonkProjects();
-				}
-			});
-			projectReferencesViewer.setComparator(new ViewerComparator());
-			projectReferencesViewer.setInput(ResourcesPlugin.getWorkspace());
+			projectReferencesViewer = UI.createProjectReferencesViewer(referencesComposite);
 			referenceTab.setControl(referencesComposite);
 		}
 		
