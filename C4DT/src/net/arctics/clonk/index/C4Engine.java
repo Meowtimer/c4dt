@@ -8,7 +8,6 @@ import java.io.Serializable;
 import java.io.Writer;
 import java.lang.reflect.Field;
 import java.net.URL;
-import java.util.EnumSet;
 import java.util.Enumeration;
 import java.util.LinkedList;
 import java.util.List;
@@ -34,11 +33,6 @@ public class C4Engine extends C4ScriptBase {
 
 	private static final long serialVersionUID = 1L;
 
-	public enum EngineCapability {
-		ColonIDSyntax,
-		NonConstGlobalVarsAssignment
-	}
-
 	public static class EngineSettings implements Cloneable, Serializable {
 
 		private static final long serialVersionUID = 1L;
@@ -60,7 +54,9 @@ public class C4Engine extends C4ScriptBase {
 		@IniField
 		public String c4GroupPath;
 		@IniField
-		public EnumSet<EngineCapability> capabilities;
+		public boolean colonIDSyntax;
+		@IniField
+		public boolean nonConstGlobalVarsAssignment;
 
 		public static final IniConfiguration INI_CONFIGURATION = IniConfiguration.createFromClass(EngineSettings.class);
 
@@ -130,10 +126,6 @@ public class C4Engine extends C4ScriptBase {
 	private transient EngineSettings intrinsicSettings;
 	private transient EngineSettings currentSettings;
 	private transient IStorageLocation[] storageLocations;
-
-	public boolean hasCapability(EngineCapability cap) {
-		return currentSettings.capabilities != null && currentSettings.capabilities.contains(cap);
-	}
 
 	public EngineSettings getIntrinsicSettings() {
 		return intrinsicSettings;

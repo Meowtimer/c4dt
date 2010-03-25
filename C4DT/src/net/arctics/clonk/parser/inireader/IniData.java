@@ -166,6 +166,8 @@ public class IniData {
 				entryClass = valueType;
 			else if (valueType == Integer.TYPE)
 				entryClass = SignedInteger.class;
+			else if (valueType == java.lang.Boolean.TYPE)
+				entryClass = Boolean.class;
 			else
 				entryClass = valueType;
 		}

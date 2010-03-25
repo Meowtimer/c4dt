@@ -4,7 +4,6 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
-import java.lang.reflect.Constructor;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
@@ -18,8 +17,6 @@ import net.arctics.clonk.parser.BufferedScanner;
 import net.arctics.clonk.parser.c4script.C4Type;
 import net.arctics.clonk.ui.debug.ClonkDebugModelPresentation;
 import net.arctics.clonk.util.ICreate;
-import net.arctics.clonk.util.Utilities;
-
 import org.eclipse.core.resources.IMarkerDelta;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;

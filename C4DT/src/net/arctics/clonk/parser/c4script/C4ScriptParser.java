@@ -17,7 +17,6 @@ import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.index.C4Engine;
 import net.arctics.clonk.index.C4Object;
 import net.arctics.clonk.index.ClonkIndex;
-import net.arctics.clonk.index.C4Engine.EngineCapability;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.SilentParsingException;
 import net.arctics.clonk.parser.BufferedScanner;
@@ -552,7 +551,7 @@ public class C4ScriptParser {
 				int s = scanner.getPosition();
 				String varName = scanner.readIdent();
 				int e = scanner.getPosition();
-				if (constDecl || getContainer().getEngine().hasCapability(EngineCapability.NonConstGlobalVarsAssignment)) {
+				if (constDecl || getContainer().getEngine().getCurrentSettings().nonConstGlobalVarsAssignment) {
 					eatWhitespace();
 					if (scanner.peek() == ';' || scanner.peek() == ',') {
 						if (constDecl && !isEngine)
@@ -2034,7 +2033,7 @@ public class C4ScriptParser {
 				offset = scanner.getPosition();
 				val = parseExpression(offset);
 				if (val == null)
-					errorWithCode(ParserErrorCode.ValueExpected, scanner.getPosition()-1, scanner.getPosition());
+					errorWithCode(ParserErrorCode.ValueExpected, scanner.getPosition(), scanner.getPosition()+1);
 				else {
 					storeTypeInformation(new AccessVar(var), val.getType(this), val.guessObjectType(this));
 					var.inferTypeFromAssignment(val, this);
@@ -2413,7 +2412,7 @@ public class C4ScriptParser {
 		parsedID = null; // reset so no old parsed ids get through
 		scanner.seek(offset);
 		String word = null;
-		if (scanner.read() == ':') {
+		if (scanner.read() == ':' && getContainer().getEngine().getCurrentSettings().colonIDSyntax) {
 			word = scanner.readIdent();
 		}
 		else {
