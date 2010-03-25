@@ -8,6 +8,7 @@ import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.C4Declaration;
 import net.arctics.clonk.parser.C4ID;
 import net.arctics.clonk.parser.C4Structure;
+import net.arctics.clonk.parser.c4script.C4Type;
 import net.arctics.clonk.parser.c4script.C4Variable;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.util.Utilities;
@@ -59,6 +60,17 @@ public class C4ObjectIntern extends C4Object implements Serializable {
 				public String getInfoText() {
 					return C4ObjectIntern.this.getInfoText();
 				}
+				
+				@Override
+				public C4Object getObjectType() {
+					return C4ObjectIntern.this;
+				}
+				
+				@Override
+				public C4Type getType() {
+					return C4Type.ID;
+				}
+				
 			};
 		}
 		return staticVariable;
