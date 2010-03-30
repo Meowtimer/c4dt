@@ -20,6 +20,10 @@ public class ClonkDebugValue extends ClonkDebugElement implements IValue {
 	public Object getValue() {
 		return value;
 	}
+	
+	public C4Type getType() {
+		return type;
+	}
 
 	public void setValue(Object value, C4Type type) {
 		this.value = value;

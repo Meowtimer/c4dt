@@ -50,10 +50,6 @@ public class ClonkLaunchConfigurationDelegate implements ILaunchConfigurationDel
 	public static int DEFAULT_DEBUG_PORT = 10464;
 	
 	public void launch(ILaunchConfiguration configuration, String mode, ILaunch launch, IProgressMonitor monitor) throws CoreException {
-
-		// Run only for now
-		/*if(!mode.equals(ILaunchManager.RUN_MODE))
-			abort(IStatus.ERROR, Messages.LauncherOnlySupportsRunMode);*/
 		
 		// Set up monitor
 		if(monitor == null)
