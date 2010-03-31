@@ -279,7 +279,7 @@ public class C4Function extends C4Structure implements Serializable, ITypedDecla
 
 	@Override
 	public String getInfoText() {
-		if (description == null)
+		if (description == null && isEngineDeclaration())
 			acquireDescriptionFromDocumentation();
 		return String.format(Messages.C4Function_InfoTextTemplate, getLongParameterString(true, false), getUserDescription() != null && !getUserDescription().equals("") ? getUserDescription() : Messages.DescriptionNotAvailable, getScript().toString()); //$NON-NLS-1$
 	}
@@ -310,12 +310,6 @@ public class C4Function extends C4Structure implements Serializable, ITypedDecla
 		} catch (XPathExpressionException e) {
 			e.printStackTrace();
 		}
-	}
-	
-	@Override
-	public void postSerialize(C4Declaration parent) {
-		super.postSerialize(parent);
-		description = null;
 	}
 
 	@Override
