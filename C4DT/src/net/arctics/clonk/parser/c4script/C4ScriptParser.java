@@ -486,9 +486,7 @@ public class C4ScriptParser {
 				return true;
 			}
 			else {
-				String content = scanner.readStringUntil(BufferedScanner.NEWLINE_CHARS);
-				if (content != null)
-					content = content.trim();
+				String content = parseDirectiveParms();
 				C4Directive directive = new C4Directive(type, content);
 				directive.setLocation(new SourceLocation(offset, scanner.getPosition()));
 				container.addDeclaration(directive);
@@ -520,6 +518,18 @@ public class C4ScriptParser {
 		}
 		scanner.seek(offset);
 		return false;
+	}
+
+	private String parseDirectiveParms() {
+		int startPos = scanner.getPosition();
+		StringBuffer buffer = new StringBuffer(80);
+		while (!BufferedScanner.isLineDelimiterChar((char)scanner.peek()) && !parseComment(scanner.getPosition())) {
+			buffer.append((char)scanner.read());
+		}
+		// do let the comment be eaten
+		return buffer.length() != 0
+			? buffer.toString().trim()
+			: null;
 	}
 
 	/**
