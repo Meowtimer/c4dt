@@ -927,7 +927,7 @@ public class C4ScriptParser {
     }
 
 	private String getTextOfLastComment(int declarationOffset) {
-		String desc = (lastComment != null && lastComment.precedesOffset(declarationOffset, scanner.getBuffer())) ? lastComment.getComment().trim() : ""; //$NON-NLS-1$
+		String desc = (lastComment != null && lastComment.precedesOffset(declarationOffset, scanner.getBuffer())) ? lastComment.getComment().trim() : null; //$NON-NLS-1$
 		lastComment = null;
 		return desc;
 	}
