@@ -469,8 +469,7 @@ public class C4ScriptParser {
 	}
 
 	/**
-	 * Parses the declaration at offset.
-	 * @param offset offset at which the declaration starts
+	 * Parses the declaration at the current scanner position.
 	 * @return whether parsing was successful
 	 * @throws ParsingException
 	 */
@@ -500,7 +499,7 @@ public class C4ScriptParser {
 			scanner.seek(offset);
 			String word = scanner.readIdent();
 			if (looksLikeStartOfFunction(word)) {
-				if (parseFunctionDeclaration(word, offset, scanner.getPosition()))
+				if (parseFunctionDeclaration(word, scanner.getPosition()))
 					return true;
 			}
 			else if (word.equals(Keywords.GlobalNamed) || word.equals(Keywords.LocalNamed)) {
@@ -512,7 +511,7 @@ public class C4ScriptParser {
 				eatWhitespace();
 				if (scanner.read() == ':' && scanner.read() != ':') { // no :: -.-
 					scanner.seek(offset); // just let parseFunctionDeclaration parse the name again
-					if (parseFunctionDeclaration(Keywords.Public, offset, offset)) // just assume public
+					if (parseFunctionDeclaration(Keywords.Public, offset)) // just assume public
 						return true;
 				}
 			}
@@ -523,7 +522,7 @@ public class C4ScriptParser {
 
 	private String parseDirectiveParms() {
 		StringBuffer buffer = new StringBuffer(80);
-		while (!BufferedScanner.isLineDelimiterChar((char)scanner.peek()) && !parseComment(scanner.getPosition())) {
+		while (!scanner.reachedEOF() && !BufferedScanner.isLineDelimiterChar((char)scanner.peek()) && !parseComment(scanner.getPosition())) {
 			buffer.append((char)scanner.read());
 		}
 		// do let the comment be eaten
@@ -735,7 +734,7 @@ public class C4ScriptParser {
 			scanner.read();
 			return C4Type.REFERENCE;
 		}
-		else if (isEngine && parseIdentifier(scanner.getPosition())) {
+		else if (isEngine && parseIdentifier()) {
 			C4Type t = C4Type.makeType(parsedString, isEngine);
 			if (t != C4Type.UNKNOWN)
 				return t;
@@ -757,13 +756,11 @@ public class C4ScriptParser {
 	/**
 	 * for optimization reasons
 	 * @param firstWord
-	 * @param offset
 	 * @return
 	 * @throws ParsingException 
 	 */
-	private boolean parseFunctionDeclaration(String firstWord, int startOfFirstWord, int offset) throws ParsingException {
+	private boolean parseFunctionDeclaration(String firstWord, int startOfFirstWord) throws ParsingException {
 		int endOfHeader;
-		scanner.seek(offset);
 		String desc = getTextOfLastComment(startOfFirstWord);
 		eatWhitespace();
 		activeFunc = newFunction();
@@ -814,10 +811,10 @@ public class C4ScriptParser {
 			// get parameters
 			do {
 				eatWhitespace();
-				offset = scanner.getPosition();
+				int o = scanner.getPosition();
 				if (parseParameter(activeFunc))
-					offset = scanner.getPosition(); 
-				eatWhitespace(offset);
+					o = scanner.getPosition();
+				eatWhitespace();
 				int readByte = scanner.read();
 				if (readByte == ')')
 					break; // all parameters parsed
@@ -877,8 +874,7 @@ public class C4ScriptParser {
 		} else {
 			// body in {...}
 			int blockDepth = 0;
-			offset = scanner.getPosition();
-			startBody = offset;
+			startBody = scanner.getPosition();
 			eatWhitespace();
 
 			// new two pass strategy to be able to check if functions and variables exist
@@ -997,8 +993,8 @@ public class C4ScriptParser {
 		}
 	}
 	
-	private boolean parseHexNumber(int offset) throws ParsingException {
-		scanner.seek(offset);
+	private boolean parseHexNumber() throws ParsingException {
+		int offset = scanner.getPosition();
 		boolean isHex = scanner.read() == '0' && scanner.read() == 'x';
 		if (!isHex)
 			scanner.seek(offset);
@@ -1055,8 +1051,8 @@ public class C4ScriptParser {
 		return true;
 	}
 	
-	private boolean parseEllipsis(int offset) {
-		scanner.seek(offset);
+	private boolean parseEllipsis() {
+		int offset = scanner.getPosition();
 		String e = scanner.readString(3);
 		if (e != null && e.equals("...")) //$NON-NLS-1$
 			return true;
@@ -1064,8 +1060,8 @@ public class C4ScriptParser {
 		return false;
 	}
 	
-	private boolean parseMemberOperator(int offset) {
-		scanner.seek(offset);
+	private boolean parseMemberOperator() {
+		int offset = scanner.getPosition();
 		int firstChar = scanner.read();
 		if (firstChar == '.') {
 			parsedMemberOperator = "."; //$NON-NLS-1$
@@ -1386,7 +1382,7 @@ public class C4ScriptParser {
 			}
 			
 			// hex number
-			if (elm == null && parseHexNumber(scanner.getPosition())) {
+			if (elm == null && parseHexNumber()) {
 //				if (parsedNumber < Integer.MIN_VALUE || parsedNumber > Integer.MAX_VALUE)
 //					warningWithCode(ErrorCode.OutOfIntRange, elmStart, fReader.getPosition(), String.valueOf(parsedNumber));
 				elm = new C4ScriptExprTree.NumberLiteral(parsedNumber, true);
@@ -1412,7 +1408,7 @@ public class C4ScriptParser {
 						int s = scanner.getPosition();
 						// function call
 						List<ExprElm> args = new LinkedList<ExprElm>();
-						parseRestOfTuple(scanner.getPosition(), args, reportErrors);
+						parseRestOfTuple(args, reportErrors);
 						CallFunc callFunc = new CallFunc(word, args.toArray(new ExprElm[args.size()]));
 						callFunc.setParmsRegion(s, scanner.getPosition()-1);
 						elm = callFunc;
@@ -1442,7 +1438,7 @@ public class C4ScriptParser {
 			// ->
 			if (elm == null) {
 				int fieldOperatorStart = scanner.getPosition();
-				if (parseMemberOperator(scanner.getPosition())) {
+				if (parseMemberOperator()) {
 					eatWhitespace();
 					int idOffset = scanner.getPosition()-fieldOperatorStart;
 					if (parseID()) {
@@ -1475,7 +1471,7 @@ public class C4ScriptParser {
 						// tuple (just for multiple parameters for return)
 						List<ExprElm> tupleElms = new LinkedList<ExprElm>();
 						tupleElms.add(firstExpr);
-						parseRestOfTuple(scanner.getPosition(), tupleElms, reportErrors);
+						parseRestOfTuple(tupleElms, reportErrors);
 						elm = new Tuple(tupleElms.toArray(new ExprElm[0]));
 					} else
 						errorWithCode(ParserErrorCode.TokenExpected, scanner.getPosition()-1, scanner.getPosition(), ")"); //$NON-NLS-1$
@@ -1484,7 +1480,7 @@ public class C4ScriptParser {
 				}
 			}
 			
-			if (elm == null && parsePlaceholderString(scanner.getPosition())) {
+			if (elm == null && parsePlaceholderString()) {
 				elm = new Placeholder(parsedString);
 			}
 			
@@ -1558,7 +1554,7 @@ public class C4ScriptParser {
 					break;
 				} else {
 					scanner.unread();
-					if (parseString() || parseIdentifier(scanner.getPosition())) {
+					if (parseString() || parseIdentifier()) {
 						String name = parsedString;
 						eatWhitespace();
 						int c_ = scanner.read();
@@ -1637,8 +1633,7 @@ public class C4ScriptParser {
 		return elm;
 	}
 
-	private void parseRestOfTuple(int offset, List<ExprElm> listToAddElementsTo, boolean reportErrors) throws ParsingException {
-		scanner.seek(offset);
+	private void parseRestOfTuple(List<ExprElm> listToAddElementsTo, boolean reportErrors) throws ParsingException {
 		boolean expectingComma = false;
 		while (!scanner.reachedEOF()) {
 			this.eatWhitespace();
@@ -1700,7 +1695,7 @@ public class C4ScriptParser {
 			BinaryOp lastOp = null;
 
 			// magical thingie to pass all parameters to inherited
-			if (parseEllipsis(offset)) {
+			if (parseEllipsis()) {
 				root = new Ellipsis();
 			} else {
 				scanner.seek(offset);
@@ -1835,8 +1830,7 @@ public class C4ScriptParser {
 		return true;
 	}
 	
-	private boolean parseIdentifier(int offset) throws ParsingException {
-		scanner.seek(offset);
+	private boolean parseIdentifier() throws ParsingException {
 		String word = scanner.readIdent();
 		if (word != null && word.length() > 0) {
 			parsedString = word;
@@ -1845,8 +1839,7 @@ public class C4ScriptParser {
 		return false;
 	}
 	
-	private boolean parsePlaceholderString(int offset) throws ParsingException {
-		scanner.seek(offset);
+	private boolean parsePlaceholderString() throws ParsingException {
 		int delimiter = scanner.read();
 		if (delimiter != '$') {
 			scanner.unread();
@@ -2029,7 +2022,6 @@ public class C4ScriptParser {
 	}
 
 	private Statement parseVarDeclarationInStatement(EnumSet<ParseStatementOption> options, C4VariableScope scope) throws ParsingException {
-		int offset;
 		Statement result;
 		List<Pair<String, ExprElm>> initializations = new LinkedList<Pair<String, ExprElm>>();
 		do {
@@ -2495,13 +2487,8 @@ public class C4ScriptParser {
 		return true;
 	}
 	
-	protected void eatWhitespace(int offset) {
-		scanner.seek(offset);
-		while ((scanner.eatWhitespace() > 0 || parseComment(scanner.getPosition())));
-	}
-	
 	protected void eatWhitespace() {
-		eatWhitespace(scanner.getPosition());
+		while ((scanner.eatWhitespace() > 0 || parseComment(scanner.getPosition())));
 	}
 	
 	protected Comment parseCommentObject(int offset) {
