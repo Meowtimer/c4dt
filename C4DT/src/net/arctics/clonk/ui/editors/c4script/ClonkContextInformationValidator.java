@@ -32,18 +32,19 @@ public class ClonkContextInformationValidator implements
 	}
 
 	public boolean updatePresentation(int offset, TextPresentation presentation) {
-		int currentParameter;
+		int currentParameter = 0;
+		int restrictParmsIndex = Integer.MAX_VALUE;
 		offset = fTextViewer.getSelectedRange().x;
 		if (fInformation instanceof ClonkContextInformation) {
 			ClonkContextInformation clonkInformation = (ClonkContextInformation) fInformation;
 			if (!clonkInformation.valid(offset))
 				return false;
-			currentParameter = 0; // not necessary :C clonkInformation.getParmIndex();
+			if (clonkInformation.getInformationDisplayString().endsWith("..."))
+				restrictParmsIndex = clonkInformation.getParmCount()-1;
 		}
-		else
-			currentParameter = 0;
 		try {
-	        currentParameter += getCharCount(fTextViewer.getDocument(), fOffset, offset, ",", "", true); //$NON-NLS-1$//$NON-NLS-2$
+	        currentParameter = getCharCount(fTextViewer.getDocument(), fOffset, offset, ",", "", true); //$NON-NLS-1$//$NON-NLS-2$
+	        currentParameter = Math.min(currentParameter, restrictParmsIndex);
 	        //System.out.println(String.format("%d %d %d", fOffset, offset, currentParameter));
         } catch (BadLocationException e) {
 	        e.printStackTrace();

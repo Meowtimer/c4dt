@@ -28,6 +28,7 @@ import net.arctics.clonk.parser.ParsingException;
 
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jface.text.IRegion;
@@ -1130,9 +1131,9 @@ public abstract class C4ScriptExprTree {
 					
 					// warn about too many parameters
 					// FIXME: too annoying
-					/*if (!declarationName.equals(Keywords.SafeInherited) && f.tooManyParameters(actualParmsNum())) {
+					if (f.isEngineDeclaration() && !declarationName.equals(Keywords.SafeInherited) && f.tooManyParameters(actualParmsNum())) {
 						context.addLatentMarker(ParserErrorCode.TooManyParameters, this, IMarker.SEVERITY_WARNING, f, f.getParameters().size(), actualParmsNum());
-					}*/
+					}
 					
 				}
 				else if (declaration == null && getPredecessorInSequence() == null) {

@@ -1,14 +1,8 @@
 package net.arctics.clonk.parser.c4script;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.io.Serializable;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
-
-import javax.xml.xpath.XPathExpressionException;
 
 import net.arctics.clonk.index.C4Engine;
 import net.arctics.clonk.index.C4Object;
@@ -285,6 +279,7 @@ public class C4Function extends C4Structure implements Serializable, ITypedDecla
 	}
 
 	private void acquireDescriptionFromDocumentation() {
+		/*
 		try {
 			URL url = new URL(getDocumentationURL());
 			InputStream stream = url.openConnection().getInputStream();
@@ -309,7 +304,7 @@ public class C4Function extends C4Structure implements Serializable, ITypedDecla
 			e.printStackTrace();
 		} catch (XPathExpressionException e) {
 			e.printStackTrace();
-		}
+		}*/
 	}
 
 	@Override

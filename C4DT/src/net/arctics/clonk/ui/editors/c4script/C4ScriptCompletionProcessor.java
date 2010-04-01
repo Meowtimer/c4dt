@@ -435,13 +435,13 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 	        if (funcCallInfo != null) {
 	        	C4Declaration dec = funcCallInfo.callFunc.getDeclaration();
 	        	if (dec instanceof C4Function) {
-	        		String parmString = ((C4Function)dec).getLongParameterString(false).trim();
+	        		String parmString = ((C4Function)dec).getLongParameterString(false, false).trim();
 	        		if (parmString.length() == 0)
 	        			parmString = Messages.C4ScriptCompletionProcessor_NoParameters;
 	        		info = new ClonkContextInformation(
 	        			dec.getName() + "()", null, //$NON-NLS-1$
 	        			parmString,
-	        			funcCallInfo.parmIndex, funcCallInfo.parmsStart, funcCallInfo.parmsEnd
+	        			funcCallInfo.parmIndex, funcCallInfo.parmsStart, funcCallInfo.parmsEnd, ((C4Function)dec).getParameters().size()
 	        		);
 	        	}
 	        }

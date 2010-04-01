@@ -11,6 +11,7 @@ public class ClonkContextInformation implements IContextInformation, IContextInf
 	private String informationDisplayString;
 	private int parmIndex;
 	private int parmsStart, parmsEnd;
+	private int parmCount;
 	
 	@Override
 	public String toString() {
@@ -28,7 +29,7 @@ public class ClonkContextInformation implements IContextInformation, IContextInf
 	}
 	
 	public ClonkContextInformation(String contextDisplayString, Image image,
-		String informationDisplayString, int parmIndex, int parmsStart, int parmsEnd) {
+		String informationDisplayString, int parmIndex, int parmsStart, int parmsEnd, int parmCount) {
 	    super();
 	    this.contextDisplayString = contextDisplayString;
 	    this.image = image;
@@ -36,6 +37,7 @@ public class ClonkContextInformation implements IContextInformation, IContextInf
 	    this.parmIndex = parmIndex;
 	    this.parmsStart = parmsStart;
 	    this.parmsEnd = parmsEnd;
+	    this.parmCount = parmCount;
     }
 
 	public boolean valid(int offset) {
@@ -51,6 +53,10 @@ public class ClonkContextInformation implements IContextInformation, IContextInf
 		return parmIndex;
 	}
 
+	public int getParmCount() {
+		return parmCount;
+	}
+	
 	public int getParmsStart() {
 		return parmsStart;
 	}

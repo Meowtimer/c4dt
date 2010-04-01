@@ -421,9 +421,7 @@ public class C4ScriptParser {
 				activeFunc.createParameters(numUnnamedParameters);
 			}
 			else if (numUnnamedParameters == UNKNOWN_PARAMETERNUM && (activeFunc.getParameters().size() == 0 || activeFunc.getParameters().get(activeFunc.getParameters().size()-1).isActualParm())) {
-				C4Variable v = new C4Variable("...", C4Type.ANY); //$NON-NLS-1$
-				v.setParentDeclaration(activeFunc);
-				activeFunc.getParameters().add(v);
+				addVarParmsParm(activeFunc);
 			}
 		}
 		catch (SilentParsingException e) {
@@ -439,6 +437,12 @@ public class C4ScriptParser {
 			errorWithCode(ParserErrorCode.InternalError, scanner.getPosition(), scanner.getPosition()+1, true, e.getMessage());
 			e.printStackTrace();
 		}
+	}
+
+	private void addVarParmsParm(C4Function func) {
+		C4Variable v = new C4Variable("...", C4Type.ANY); //$NON-NLS-1$
+		v.setParentDeclaration(func);
+		func.getParameters().add(v);
 	}
 
 	/**
@@ -2442,6 +2446,12 @@ public class C4ScriptParser {
 	}
 
 	private boolean parseParameter(C4Function function) throws ParsingException {
+		
+		if (isEngine && parseEllipsis()) {
+			addVarParmsParm(function);
+			return true;
+		}
+		
 		int s = scanner.getPosition();
 		String firstWord = scanner.readIdent();
 		if (firstWord.length() == 0) {
