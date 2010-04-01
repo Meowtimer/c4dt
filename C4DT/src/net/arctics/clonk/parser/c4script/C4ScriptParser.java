@@ -522,7 +522,7 @@ public class C4ScriptParser {
 
 	private String parseDirectiveParms() {
 		StringBuffer buffer = new StringBuffer(80);
-		while (!scanner.reachedEOF() && !BufferedScanner.isLineDelimiterChar((char)scanner.peek()) && !parseComment(scanner.getPosition())) {
+		while (!scanner.reachedEOF() && !BufferedScanner.isLineDelimiterChar((char)scanner.peek()) && !parseComment()) {
 			buffer.append((char)scanner.read());
 		}
 		// do let the comment be eaten
@@ -928,7 +928,7 @@ public class C4ScriptParser {
 		int pos = scanner.getPosition();
 		scanner.eat(BufferedScanner.WHITESPACE_WITHOUT_NEWLINE_CHARS);
 		if (scanner.eat(BufferedScanner.NEWLINE_CHARS) == 0) {
-			Comment c = parseCommentObject(scanner.getPosition());
+			Comment c = parseCommentObject();
 			if (c != null)
 				return c.getComment();
 		}
@@ -1892,7 +1892,7 @@ public class C4ScriptParser {
 			C4VariableScope scope;
 			
 			// comment statement oO
-			result = parseCommentObject(scanner.getPosition());
+			result = parseCommentObject();
 			
 			/*
 			if (options.contains(ParseStatementOption.ParseEmptyLines)) {
@@ -2009,7 +2009,8 @@ public class C4ScriptParser {
 		Comment c = null;
 		for (int r = scanner.read(); r != -1 && (r == '/' || BufferedScanner.isWhiteSpaceButNotLineDelimiterChar((char) r)); r = scanner.read()) {
 			if (r == '/') {
-				c = parseCommentObject(scanner.getPosition()-1);
+				scanner.unread();
+				c = parseCommentObject();
 				break;
 			}
 		}
@@ -2488,11 +2489,10 @@ public class C4ScriptParser {
 	}
 	
 	protected void eatWhitespace() {
-		while ((scanner.eatWhitespace() > 0 || parseComment(scanner.getPosition())));
+		while ((scanner.eatWhitespace() > 0 || parseComment()));
 	}
 	
-	protected Comment parseCommentObject(int offset) {
-		scanner.seek(offset);
+	protected Comment parseCommentObject() {
 		String sequence = scanner.readString(2);
 		if (sequence == null) {
 			return null;
@@ -2524,8 +2524,9 @@ public class C4ScriptParser {
 		}
 	}
 	
-	protected boolean parseComment(int offset) {
-		Comment c = parseCommentObject(offset);
+	protected boolean parseComment() {
+		int offset = scanner.getPosition();
+		Comment c = parseCommentObject();
 		if (c != null) {
 			c.setExprRegion(offset, scanner.getPosition());
 			lastComment = c;
