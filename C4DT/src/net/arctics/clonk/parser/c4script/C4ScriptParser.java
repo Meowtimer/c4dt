@@ -815,9 +815,7 @@ public class C4ScriptParser {
 			// get parameters
 			do {
 				eatWhitespace();
-				int o = scanner.getPosition();
-				if (parseParameter(activeFunc))
-					o = scanner.getPosition();
+				parseParameter(activeFunc);
 				eatWhitespace();
 				int readByte = scanner.read();
 				if (readByte == ')')

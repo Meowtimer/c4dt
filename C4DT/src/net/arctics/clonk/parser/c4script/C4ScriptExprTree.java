@@ -1130,9 +1130,9 @@ public abstract class C4ScriptExprTree {
 					}
 					
 					// warn about too many parameters
-					// FIXME: too annoying
+					// try again, but only for engine functions
 					if (f.isEngineDeclaration() && !declarationName.equals(Keywords.SafeInherited) && f.tooManyParameters(actualParmsNum())) {
-						context.addLatentMarker(ParserErrorCode.TooManyParameters, this, IMarker.SEVERITY_WARNING, f, f.getParameters().size(), actualParmsNum());
+						context.addLatentMarker(ParserErrorCode.TooManyParameters, this, IMarker.SEVERITY_WARNING, f, f.getParameters().size(), actualParmsNum(), f.getName());
 					}
 					
 				}
