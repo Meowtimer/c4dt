@@ -10,6 +10,9 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
+import net.arctics.clonk.ClonkCore;
+import net.arctics.clonk.parser.C4ID;
+
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -172,6 +175,19 @@ public class IniData {
 				entryClass = valueType;
 		}
 		
+		private static Class<?> getClass(String name) {
+			if (name.equals("C4ID"))
+				return C4ID.class;
+			if (!name.contains(".")) {
+				name = ClonkCore.id("parser.inireader."+name);
+			}
+			try {
+				return Class.forName(name);
+			} catch (ClassNotFoundException e) {
+				return null;
+			}
+		}
+		
 		public static IniDataEntry createFromXML(Node entryNode, IEntryFactory factory) throws InvalidIniConfigurationException {
 			Node n;
 			IniDataEntry entry = new IniDataEntry();
@@ -182,12 +198,11 @@ public class IniData {
 				throw new InvalidIniConfigurationException("An <entry> tag must have a 'name=\"\"' and a 'class=\"\"' attribute"); //$NON-NLS-1$
 			}
 			entry.entryName = entryNode.getAttributes().getNamedItem("name").getNodeValue(); //$NON-NLS-1$
-			try {
-				Class<?> configClass = Class.forName(entryNode.getAttributes().getNamedItem("class").getNodeValue()); //$NON-NLS-1$
-					entry.entryClass = configClass;
-			} catch (ClassNotFoundException e) {
-				e.printStackTrace();
-			}
+			String className = entryNode.getAttributes().getNamedItem("class").getNodeValue();
+			Class<?> configClass = getClass(className);
+			if (configClass == null)
+				throw new InvalidIniConfigurationException("Bad class " + entryNode.getAttributes().getNamedItem("class").getNodeValue());
+			entry.entryClass = configClass;
 			if ((n = entryNode.getAttributes().getNamedItem("description")) != null) { //$NON-NLS-1$
 				entry.entryDescription = n.getNodeValue();
 			}
