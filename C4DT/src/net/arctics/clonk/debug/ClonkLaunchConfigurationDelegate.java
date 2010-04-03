@@ -22,7 +22,6 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.NullProgressMonitor;
@@ -164,6 +163,10 @@ public class ClonkLaunchConfigurationDelegate implements ILaunchConfigurationDel
 		return enginePath;
 	}
 	
+	private static String resFilePath(IResource res) {
+		return new Path(res.getRawLocationURI().getSchemeSpecificPart()).toOSString();
+	}
+	
 	/** 
 	 * Collects arguments to pass to the engine at launch
 	 * @param mode 
@@ -176,17 +179,18 @@ public class ClonkLaunchConfigurationDelegate implements ILaunchConfigurationDel
 		args.add(engine.getAbsolutePath());
 		
 		// Scenario
-		IPath path = new Path(scenario.getRawLocationURI().getSchemeSpecificPart());
-		args.add(path.toOSString());
+		args.add(resFilePath(scenario));
 		
 		// add stuff from the project so Clonk does not fail to find them
 		for (ClonkIndex index : ClonkProjectNature.get(scenario).getIndex().relevantIndexes()) {
 			if (index instanceof ProjectIndex) {
 				for (IResource res : ((ProjectIndex)index).getProject().members()) {
-					if (!res.getName().startsWith(".") && res instanceof IContainer) //$NON-NLS-1$
-						if (C4Group.getGroupType(res.getName()) != C4GroupType.ScenarioGroup)
+					if (!res.getName().startsWith(".") && res instanceof IContainer) { //$NON-NLS-1$
+						C4GroupType gType = C4Group.getGroupType(res.getName());
+						if (gType == C4GroupType.DefinitionGroup || gType == C4GroupType.ResourceGroup)
 							if (!Utilities.resourceInside(scenario, (IContainer) res))
-								args.add(res.getRawLocationURI().getSchemeSpecificPart());
+								args.add(resFilePath(res));
+					}
 				}
 			}
 		}
