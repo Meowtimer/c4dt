@@ -503,7 +503,7 @@ public class C4ScriptParser {
 			scanner.seek(offset);
 			String word = scanner.readIdent();
 			if (looksLikeStartOfFunction(word)) {
-				if (parseFunctionDeclaration(word, scanner.getPosition()))
+				if (parseFunctionDeclaration(word, offset))
 					return true;
 			}
 			else if (word.equals(Keywords.GlobalNamed) || word.equals(Keywords.LocalNamed)) {
