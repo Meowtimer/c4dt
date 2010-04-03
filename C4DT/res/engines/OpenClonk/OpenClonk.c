@@ -402,6 +402,7 @@ global func bool SetAnimationWeight(int iAnimationNumber, array WeightProvider, 
 global func bool SetPlayerControlEnabled(int iPlr, int ctrl, bool is_enabled);
 global func bool StopAnimation(int iAnimationNumber, int iAttachNumber);
 global func bool DetachMesh(int iAttachNumber);
+global func bool SetMeshMaterial(string material, int sub_mesh);
 
 global func ResetCursorView(int plr);
 global func string Translate(string text);
@@ -642,7 +643,6 @@ global func bool LaunchEarthquake(int iX, int iY);
 global func bool LaunchLightning(int iX, int iY, int iXAdvance, int iXRange, int iYAdvance, int iYRange, bool fDoGamma);
 global func bool LaunchVolcano(int iX, int iY, int iStrength, string szMaterial);
 global func & LocalN(string szName);
-// does stuff
 global func bool Log(string szMessage, ...);
 global func bool MakeCrewMember(int iPlayer);
 global func int Material(string szMaterialName);
