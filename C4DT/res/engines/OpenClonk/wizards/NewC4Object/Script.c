@@ -1,5 +1,6 @@
 #strict 2
 
-func Initialize() {
+func Initialize()
+{
 	return 1;
 }
