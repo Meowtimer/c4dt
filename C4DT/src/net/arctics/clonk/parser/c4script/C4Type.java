@@ -40,12 +40,23 @@ public enum C4Type {
 	}
 	
 	public boolean canBeAssignedFrom(C4Type other) {
-		return
-			other == this ||
-			this == ANY || this == UNKNOWN || this == REFERENCE || this == BOOL ||
-			other == UNKNOWN || other == ANY || other == REFERENCE ||
-			(this == INT && other == BOOL) ||
-			(this == PROPLIST && other == ID);
+		if (other == this)
+			return true;
+		switch (this) {
+		case ANY: case UNKNOWN: case REFERENCE: case BOOL:
+			return true;
+		case INT:
+			return other == BOOL;
+		case PROPLIST:
+			return other == ID || other == OBJECT;
+		default:
+			switch (other) {
+			case UNKNOWN: case ANY: case REFERENCE:
+				return true;
+			default:
+				return false;
+			}
+		}
 	}
 	
 	public static C4Type makeType(String arg) {
