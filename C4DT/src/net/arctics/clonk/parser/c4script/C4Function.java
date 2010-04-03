@@ -344,13 +344,13 @@ public class C4Function extends C4Structure implements Serializable, ITypedDecla
 		List<C4Declaration> decsWithSameName = getScript().getIndex().getDeclarationMap().get(this.getName());
 		if (decsWithSameName != null) {
 			C4Function f = null;
-			int rating = 0;
+			int rating = -1;
 			for (C4Declaration d : decsWithSameName) {
 				// get latest version since getInherited() might also be called when finding links in a modified but not yet saved script
 				// in which case the calling function (on-the-fly-parsed) differs from the function in the index 
 				d = d.latestVersion();
 				if (d == this || !(d instanceof C4Function))
-					break;
+					continue;
 				int rating_ = 0;
 				if (d.getParentDeclaration() == this.getParentDeclaration())
 					rating_++;
