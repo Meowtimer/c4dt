@@ -3192,10 +3192,14 @@ public abstract class C4ScriptExprTree {
 		}
 
 		public boolean precedesOffset(int offset, CharSequence script) {
+			int count = 0;
 			if (offset > getExprEnd()) {
-				for (int i = getExprEnd()+1; i < offset; i++)
+				for (int i = getExprEnd()+1; i < offset; i++) {
 					if (!BufferedScanner.isLineDelimiterChar(script.charAt(i)))
 						return false;
+					if (script.charAt(i) == '\n' && ++count > 1)
+						return false;
+				}
 				return true;
 			}
 			return false;
