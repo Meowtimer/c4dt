@@ -95,12 +95,16 @@ public class ClonkDebugTarget extends ClonkDebugElement implements IDebugTarget 
 
 	public void addLineReceiveListener(ILineReceivedListener listener) {
 		System.out.println("Adding " + listener.toString());
-		lineReceiveListeners.add(0, listener);
+		synchronized (lineReceiveListeners) {
+			lineReceiveListeners.add(0, listener);
+		}
 	}
 	
 	public void removeLineReceiveListener(ILineReceivedListener listener) {
 		System.out.println("Removing " + listener.toString());
-		lineReceiveListeners.remove(listener);
+		synchronized (lineReceiveListeners) {
+			lineReceiveListeners.remove(listener);
+		}
 	}
 	
 	public PrintWriter getSocketWriter() {
@@ -129,24 +133,26 @@ public class ClonkDebugTarget extends ClonkDebugElement implements IDebugTarget 
 					if (event != null && event.length() > 0) {
 						ILineReceivedListener listenerToRemove = null;
 						boolean processed = false;
-						Outer: for (ILineReceivedListener listener : lineReceiveListeners) {
-							if (!listener.active())
-								continue;
-							switch (listener.lineReceived(event, ClonkDebugTarget.this)) {
-							case NotProcessedDontRemove:
-								if (listener.exclusive())
+						synchronized (lineReceiveListeners) {
+							Outer: for (ILineReceivedListener listener : lineReceiveListeners) {
+								if (!listener.active())
+									continue;
+								switch (listener.lineReceived(event, ClonkDebugTarget.this)) {
+								case NotProcessedDontRemove:
+									if (listener.exclusive())
+										break Outer;
+									break;
+								case ProcessedDontRemove:
+									processed = true;
 									break Outer;
-								break;
-							case ProcessedDontRemove:
-								processed = true;
-								break Outer;
-							case ProcessedRemove:
-								listenerToRemove = listener;
-								processed = true;
-								break Outer;
-							case NotProcessedRemove:
-								listenerToRemove = listener;
-								break Outer;
+								case ProcessedRemove:
+									listenerToRemove = listener;
+									processed = true;
+									break Outer;
+								case NotProcessedRemove:
+									listenerToRemove = listener;
+									break Outer;
+								}
 							}
 						}
 						if (!processed)
