@@ -947,7 +947,7 @@ public abstract class C4ScriptExprTree {
 
 	public static class CallFunc extends AccessDeclaration {
 		private final static class VarFunctionsTypeInformation extends StoredTypeInformation {
-			private int varIndex;
+			private Integer varIndex;
 
 			private VarFunctionsTypeInformation(int val) {
 				varIndex = val;
@@ -956,18 +956,26 @@ public abstract class C4ScriptExprTree {
 			public boolean expressionRelevant(ExprElm expr, C4ScriptParser parser) {
 				if (expr instanceof CallFunc) {
 					CallFunc callFunc = (CallFunc) expr;
+					Object ev;
 					return
-					callFunc.getDeclaration() == expr.getCachedFuncs(parser).Var &&
-					callFunc.getParams().length > 0 &&
-					callFunc.getParams()[0] instanceof NumberLiteral &&
-					((NumberLiteral)callFunc.getParams()[0]).intValue() == varIndex;
+						callFunc.getDeclaration() == expr.getCachedFuncs(parser).Var &&
+						callFunc.getParams().length > 0 &&
+						callFunc.getParams()[0].getType(parser) == C4Type.INT &&
+						((ev = callFunc.getParams()[0].evaluateAtParseTime(parser.getContainer())) != null) &&
+						ev.equals(varIndex);
 				}
 				return false;
 			}
 
 			public boolean sameExpression(IStoredTypeInformation other) {
-				return other.getClass() == VarFunctionsTypeInformation.class && ((VarFunctionsTypeInformation)other).varIndex == varIndex;
+				return other.getClass() == VarFunctionsTypeInformation.class && ((VarFunctionsTypeInformation)other).varIndex.equals(varIndex);
 			}
+			
+			@Override
+			public String toString() {
+				return String.format("Var(%d", varIndex);
+			}
+			
 		}
 
 		private ExprElm[] params;
@@ -1016,9 +1024,10 @@ public abstract class C4ScriptExprTree {
 		}
 		@Override
 		public C4Type getType(C4ScriptParser context) {
-			if (declaration instanceof C4Function)
+			if (declaration instanceof C4Function && ((C4Function)declaration).getReturnType() != C4Type.REFERENCE)
 				return ((C4Function)declaration).getReturnType();
-			return super.getType(context);
+			else
+				return super.getType(context);
 		}
 		@Override
 		public boolean isValidInSequence(ExprElm elm, C4ScriptParser context) {
@@ -1377,11 +1386,11 @@ public abstract class C4ScriptExprTree {
 		@Override
 		public IStoredTypeInformation createStoredTypeInformation(C4ScriptParser parser) {
 			if (getDeclaration() == getCachedFuncs(parser).Var) {
-				if (getParams().length > 0 && getParams()[0] instanceof NumberLiteral) {
-					NumberLiteral number = (NumberLiteral)getParams()[0];
-					if (number.intValue() >= 0) {
+				Object ev;
+				if (getParams().length > 0 && (ev = getParams()[0].evaluateAtParseTime(parser.getContainer())) != null) {
+					if (ev instanceof Number) {
 						// Var() with a sane constant number
-						return new VarFunctionsTypeInformation(number.intValue());
+						return new VarFunctionsTypeInformation(((Number)ev).intValue());
 					}
 				}
 			}
@@ -1607,8 +1616,17 @@ public abstract class C4ScriptExprTree {
 			try {
 				Object leftSide  = getOperator().getFirstArgType().convert(this.getLeftSide().evaluateAtParseTime(context));
 				Object rightSide = getOperator().getSecondArgType().convert(this.getRightSide().evaluateAtParseTime(context));
-				if (leftSide != null && leftSide != ExprElm.EVALUATION_COMPLEX && rightSide != null && rightSide != ExprElm.EVALUATION_COMPLEX) {
-					return evaluateOn(leftSide, rightSide);
+				if (leftSide != null && leftSide != ExprElm.EVALUATION_COMPLEX) {
+					switch (getOperator()) {
+					case And:
+						return leftSide;
+					case Or:
+						if (leftSide.equals(true))
+							return true;
+					}
+					if (rightSide != null && rightSide != ExprElm.EVALUATION_COMPLEX) {
+						return evaluateOn(leftSide, rightSide);
+					}
 				}
 			}
 			catch (ClassCastException e) {}
