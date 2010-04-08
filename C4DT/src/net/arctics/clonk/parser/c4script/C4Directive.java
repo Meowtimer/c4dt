@@ -105,7 +105,7 @@ public class C4Directive extends C4Declaration implements Serializable {
 				break;
 		case INCLUDE:
 			if (getContent() == null)
-				parser.errorWithCode(ParserErrorCode.MissingDirectiveArgs, getLocation(), this.toString());
+				parser.errorWithCode(ParserErrorCode.MissingDirectiveArgs, getLocation(), true, this.toString());
 			else {
 				C4ID id = contentAsID();
 				C4Object obj = parser.getContainer().getIndex().getObjectNearestTo(parser.getContainer().getResource(), id);
