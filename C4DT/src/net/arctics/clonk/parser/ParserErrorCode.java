@@ -52,7 +52,8 @@ public enum ParserErrorCode {
 	StringTooLong(Messages.StringTooLong),
 	MissingLocalizations(Messages.MissingLocalizations),
 	IdentShadowed(Messages.IdentShadowed),
-	VarUsedBeforeItsDeclaration("Using variable '%s' before it was declared. I'ma let you pass but it's still weird.");
+	VarUsedBeforeItsDeclaration("Using variable '%s' before it was declared. I'ma let you pass but it's still weird."),
+	MissingDirectiveArgs("Missing arguments for directive '%s'");
 
 	public static final String MARKER_ERRORCODE = "c4ScriptErrorCode"; //$NON-NLS-1$
 	
