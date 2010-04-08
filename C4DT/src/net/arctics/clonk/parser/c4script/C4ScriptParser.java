@@ -363,6 +363,9 @@ public class C4ScriptParser {
 			for (C4Function function : container.functions()) {
 				parseCodeOfFunction(function);
 			}
+			for (C4Directive directive : container.directives()) {
+				directive.validate(this);
+			}
 			container.setDirty(false);
 			distillAdditionalInformation();
 		}
