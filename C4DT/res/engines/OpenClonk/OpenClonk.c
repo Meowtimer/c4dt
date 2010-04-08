@@ -415,7 +415,7 @@ global func bool Activate(object obj);
 global func bool AddCommand(string szCommand, object pTarget, int iX, int iY, object pTarget2, int iInterval, Data, int iRetries, int iBaseMode);
 global func int AddEffect(string szEffectName, object pTarget, int iPrio, int iTimerIntervall, object pCmdTarget, idCmdTarget, var1, var2, var3, var4);
 global func int AddMenuItem(string szCaption, string szCommand, id idItem, int iCount, iParameter, string szInfoCaption, int iExtra, XPar1, XPar2);
-global func int AddMsgBoardCmd(string strCommand, string strScript);
+global func int AddMsgBoardCmd(string strCommand, string strScript, int restriction);
 global func int AddVertex(int iX, int iY);
 global func int Angle(int iX1, int iY1, int iX2, int iY2, int iPrec);
 global func int AnyContainer();

@@ -694,7 +694,7 @@ global func int IncinerateLandscape();
 global func int InitScenarioPlayer();
 global func int LoadScenarioSection();
 global func int LocateFunc();
-global func int ModulateColor();
+global func int ModulateColor(int color1, int color2);
 global func int OnMessageBoardAnswer();
 global func bool PathFree2(int iX1, int iY1, int iX2, int iY2);
 global func bool PauseGame(bool toggle);
