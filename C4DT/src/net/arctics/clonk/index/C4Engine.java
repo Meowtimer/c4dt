@@ -1,5 +1,6 @@
 package net.arctics.clonk.index;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -19,6 +20,7 @@ import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.C4Variable;
 import net.arctics.clonk.parser.c4script.C4Variable.C4VariableScope;
 import net.arctics.clonk.parser.inireader.CustomIniUnit;
+import net.arctics.clonk.parser.inireader.IniData;
 import net.arctics.clonk.parser.inireader.IniField;
 import net.arctics.clonk.parser.inireader.IniData.IniConfiguration;
 import net.arctics.clonk.util.IStorageLocation;
@@ -128,6 +130,7 @@ public class C4Engine extends C4ScriptBase {
 	private transient EngineSettings intrinsicSettings;
 	private transient EngineSettings currentSettings;
 	private transient IStorageLocation[] storageLocations;
+	private transient IniData iniConfigurations;
 
 	public EngineSettings getIntrinsicSettings() {
 		return intrinsicSettings;
@@ -143,6 +146,10 @@ public class C4Engine extends C4ScriptBase {
 
 	public final CachedEngineFuncs getCachedFuncs() {
 		return cachedFuncs;
+	}
+	
+	public IniData getIniConfigurations() {
+		return iniConfigurations;
 	}
 
 	public C4Engine(String name) {
@@ -227,6 +234,29 @@ public class C4Engine extends C4ScriptBase {
 		}
 	}
 	
+	private void loadIniConfigurations() {
+		try {
+			for (int i = storageLocations.length-1; i >= 0; i--) {
+				IStorageLocation loc = storageLocations[i];
+				URL confFile = loc.getURL("iniconfig.xml", false); //$NON-NLS-1$
+				if (confFile != null) {
+					InputStream input = confFile.openStream();
+					try {
+						IniData data = new IniData(input);
+						data.parse();
+						iniConfigurations = data; // set this variable when parsing completed successfully
+					} finally {
+						input.close();
+					}
+				}
+			}
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+	
 	public void saveSettings() throws IOException {
 		if (!hasCustomSettings())
 			return;
@@ -255,6 +285,7 @@ public class C4Engine extends C4ScriptBase {
 					result = new C4Engine(location.getName());
 					result.storageLocations = providers;
 					result.loadSettings();
+					result.loadIniConfigurations();
 					InputStream stream = url.openStream();
 					try {
 						C4ScriptParser parser = new C4ScriptParser(Utilities.stringFromInputStream(stream), result);
@@ -269,54 +300,6 @@ public class C4Engine extends C4ScriptBase {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		/*try {
-			for (IStorageLocation provider : providers) {
-				URL url = provider.getURL(provider.getName()+".engine", false);
-				if (url != null) {
-					engineStream = url.openStream();
-					ObjectInputStream objStream = new InputStreamRespectingUniqueIDs(engineStream);
-					result = (C4Engine)objStream.readObject();
-					result.setName(provider.getName()); // for good measure
-					result.postSerialize(null);
-					result.storageLocations = providers;
-					break;
-				}
-			}
-		} catch (Exception e) {
-			// fallback to xml
-			ProgressMonitorDialog progressDialog = new ProgressMonitorDialog(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell());
-			try {
-				IRunnableWithProgressAndResult<C4Engine> xmlImportor = new IRunnableWithProgressAndResult<C4Engine>() {
-					private C4Engine engine;
-					
-					@Override
-                    public C4Engine getResult() {
-	                    return engine;
-                    }
-
-					@Override
-					public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
-						for (IStorageLocation provider : providers) {
-							URL url = provider.getURL(provider.getName()+".engine.xml", false);
-							if (url != null) {
-								engine = new C4Engine(provider.getName());
-								try {
-									engine.importFromXML(url.openStream(), monitor); //$NON-NLS-1$
-									engine.storageLocations = providers;
-								} catch (Exception e) {
-									e.printStackTrace();
-								}
-								break;
-							}
-						}
-                    }
-				};
-	            progressDialog.run(false, false, xmlImportor);
-	            result = xmlImportor.getResult();
-            } catch (Exception e1) {
-	            e1.printStackTrace();
-            }
-		}*/
 		return result;
 	}
 	

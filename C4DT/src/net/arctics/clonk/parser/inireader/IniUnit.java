@@ -143,7 +143,8 @@ public class IniUnit extends C4Structure implements Iterable<IniSection>, IHasCh
 	 * @return <tt>true</tt> if valid
 	 */
 	protected boolean isSectionNameValid(String name) {
-		return getConfiguration() == null || getConfiguration().hasSection(name);
+		IniConfiguration conf = getConfiguration();
+		return conf == null || conf.hasSection(name);
 	}
 	
 	/**
@@ -356,8 +357,16 @@ public class IniUnit extends C4Structure implements Iterable<IniSection>, IHasCh
 		}
 	}
 	
-	public IniConfiguration getConfiguration() {
+	protected String getConfigurationName() {
 		return null;
+	}
+	
+	public IniConfiguration getConfiguration() {
+		String confName = getConfigurationName();
+		if (confName != null && getEngine() != null && getEngine().getIniConfigurations() != null)
+			return getEngine().getIniConfigurations().getConfigurationFor(confName);
+		else
+			return null;
 	}
 
 	public Iterator<IniSection> iterator() {

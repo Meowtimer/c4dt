@@ -4,18 +4,13 @@ import java.io.InputStream;
 
 import org.eclipse.core.resources.IFile;
 
-import net.arctics.clonk.ClonkCore;
-import net.arctics.clonk.parser.inireader.IniData.IniConfiguration;
-
 public class MaterialUnit extends IniUnit {
 
 	private static final long serialVersionUID = 1L;
 	
-	private static final IniConfiguration configuration = ClonkCore.getDefault().iniConfigurations.getConfigurationFor("Material.txt"); //$NON-NLS-1$
-	
 	@Override
-	public IniConfiguration getConfiguration() {
-		return configuration;
+	public String getConfigurationName() {
+		return "Material.txt"; //$NON-NLS-1$
 	}
 	
 	public MaterialUnit(IFile file) {

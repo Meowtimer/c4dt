@@ -1,12 +1,9 @@
 package net.arctics.clonk.parser.inireader;
 
 import java.io.InputStream;
-import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.index.C4Object;
 import net.arctics.clonk.parser.C4ID;
 import net.arctics.clonk.parser.c4script.C4ScriptBase;
-import net.arctics.clonk.parser.inireader.IniData.IniConfiguration;
-
 import org.eclipse.core.resources.IFile;
 
 public class DefCoreUnit extends IniUnit {
@@ -18,7 +15,10 @@ public class DefCoreUnit extends IniUnit {
 	
 	private static final long serialVersionUID = 1L;
 	
-	private static final IniConfiguration configuration = ClonkCore.getDefault().iniConfigurations.getConfigurationFor("DefCore.txt"); //$NON-NLS-1$
+	@Override
+	protected String getConfigurationName() {
+		return "DefCore.txt"; //$NON-NLS-1$
+	}
 	
 	public DefCoreUnit(InputStream stream) {
 		super(stream);
@@ -30,11 +30,6 @@ public class DefCoreUnit extends IniUnit {
 	
 	public DefCoreUnit(String text) {
 		super(text);
-	}
-	
-	@Override
-	public IniConfiguration getConfiguration() {
-		return configuration;
 	}
 
 //	/**

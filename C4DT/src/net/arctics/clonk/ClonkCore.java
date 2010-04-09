@@ -23,7 +23,6 @@ import javax.xml.xpath.XPathExpressionException;
 
 import net.arctics.clonk.index.C4Engine;
 import net.arctics.clonk.index.ProjectIndex;
-import net.arctics.clonk.parser.inireader.IniData;
 import net.arctics.clonk.parser.inireader.IniUnit;
 import net.arctics.clonk.parser.mapcreator.C4MapCreator;
 import net.arctics.clonk.parser.stringtbl.StringTbl;
@@ -93,11 +92,6 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 	private Map<String, C4Engine> loadedEngines = new HashMap<String, C4Engine>();
 
 	/**
-	 * ini configuration definitions for the various Clonk configuration files
-	 */
-	public IniData iniConfigurations;
-
-	/**
 	 * Shared instance
 	 */
 	private static ClonkCore plugin;
@@ -123,8 +117,6 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 		super.start(context);
 		plugin = this;
 
-		loadIniConfigurations();
-
 		loadActiveEngine();
 
 		// FIXME: this is deprecated and stuff
@@ -148,18 +140,6 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 		IniUnit.register();
 		StringTbl.register();
 		C4MapCreator.register();
-	}
-
-	private void loadIniConfigurations() {
-		try {
-			IniData data = new IniData(getBundle().getEntry("res/iniconfig.xml").openStream()); //$NON-NLS-1$
-			data.parse();
-			iniConfigurations = data; // set this variable when parsing completed successfully
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
 	}
 
 	//	private void loadOld(String path) throws IOException, ClassNotFoundException {

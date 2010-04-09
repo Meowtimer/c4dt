@@ -6,7 +6,6 @@ import java.util.List;
 
 import org.eclipse.core.resources.IFile;
 
-import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.C4Declaration;
 import net.arctics.clonk.parser.c4script.C4Type;
 import net.arctics.clonk.parser.c4script.C4Variable;
@@ -14,14 +13,17 @@ import net.arctics.clonk.parser.c4script.C4Variable.C4VariableScope;
 import net.arctics.clonk.parser.inireader.IniEntry;
 import net.arctics.clonk.parser.inireader.IniSection;
 import net.arctics.clonk.parser.inireader.IniUnit;
-import net.arctics.clonk.parser.inireader.IniData.IniConfiguration;
 
 public class PlayerControlsUnit extends IniUnit {
 
 	private static final long serialVersionUID = 1L;
-	private static final IniConfiguration configuration = ClonkCore.getDefault().iniConfigurations.getConfigurationFor("PlayerControls.txt");
 	
 	private List<C4Variable> controlVariables = new LinkedList<C4Variable>();
+	
+	@Override
+	protected String getConfigurationName() {
+		return "PlayerControls.txt"; //$NON-NLS-1$
+	}
 	
 	public List<C4Variable> getControlVariables() {
 		return controlVariables;
@@ -37,11 +39,6 @@ public class PlayerControlsUnit extends IniUnit {
 	
 	public PlayerControlsUnit(InputStream stream) {
 		super(stream);
-	}
-	
-	@Override
-	public IniConfiguration getConfiguration() {
-		return configuration;
 	}
 	
 	@Override

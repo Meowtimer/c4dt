@@ -4,9 +4,6 @@ import java.io.InputStream;
 
 import org.eclipse.core.resources.IFile;
 
-import net.arctics.clonk.ClonkCore;
-import net.arctics.clonk.parser.inireader.IniData.IniConfiguration;
-
 public class ParticleUnit extends IniUnit {
 
 	private static final long serialVersionUID = 1L;
@@ -23,11 +20,9 @@ public class ParticleUnit extends IniUnit {
 		super(text);
 	}
 	
-	private static final IniConfiguration configuration = ClonkCore.getDefault().iniConfigurations.getConfigurationFor("Particle.txt"); //$NON-NLS-1$
-	
 	@Override
-	public IniConfiguration getConfiguration() {
-		return configuration;
+	protected String getConfigurationName() {
+		return "Particle.txt"; //$NON-NLS-1$
 	}
 
 }
