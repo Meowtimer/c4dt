@@ -12,7 +12,7 @@
 			<entry name="Length" class="SignedInteger"
 				description="Anzahl der Animationsphasen dieser Aktivität (horizontal in Graphics.png)." />
 			<entry name="Reverse" class="Boolean"
-				desecription="0 oder 1. Bei Wert 1 werden die Animationsphasen rückwärts angezeigt." />
+				description="0 oder 1. Bei Wert 1 werden die Animationsphasen rückwärts angezeigt." />
 			<entry name="Delay" class="SignedInteger"
 				description="Wartezeit in Frames (Ticks) zwischen zwei Animationsphasen." />
 			<entry name="Attach" class="SignedInteger"
@@ -20,17 +20,17 @@
 			<entry name="Facet" class="IntegerArray"
 				description="Animationsgrafik: Zielrechteck aus Graphics.png auf Objektposition." />
 			<entry name="FacetBase" class="Boolean"
-				desecription="0 oder 1. Bei Wert 1 wird Facet mit der Standardobjektgrafik unterlegt." />
+				description="0 oder 1. Bei Wert 1 wird Facet mit der Standardobjektgrafik unterlegt." />
 			<entry name="FacetTopFace" class="Boolean"
-				desecription="0 oder 1. Bei 1 wird das TopFace (siehe " />
+				description="0 oder 1. Bei 1 wird das TopFace (siehe " />
 			<entry name="FacetTargetStretch" class="Boolean"
-				desecription="0 oder 1. Bei 1 wird die Grafik vertikal bis zur oberen Kante des ActionTarget gestretcht." />
+				description="0 oder 1. Bei 1 wird die Grafik vertikal bis zur oberen Kante des ActionTarget gestretcht." />
 			<entry name="NextAction" class="Action"
 				description="Nächste Aktivität nach Ablauf der Animationsphasen." />
 			<entry name="TurnAction" class="Action"
 				description="Aktivitität fürs Umdrehen." />
 			<entry name="NoOtherAction" class="Boolean"
-				desecription="0 oder 1. Bei 1 ist keine Aktivität nach dieser möglich (z.B. Tod, Zerstörung)." />
+				description="0 oder 1. Bei 1 ist keine Aktivität nach dieser möglich (z.B. Tod, Zerstörung)." />
 			<entry name="StartCall" class="Function"
 				description="Objektscriptfunktion, die beim Start der Aktivität aufgerufen wird." />
 			<entry name="EndCall" class="Function"
@@ -44,7 +44,7 @@
 			<entry name="Sound" class="java.lang.String"
 				description="Dauerhaftes Geräusch dieser Aktivität." />
 			<entry name="ObjectDisabled" class="Boolean"
-				desecription="0 oder 1. Eingeschränkte Fähigkeit des Objekts während dieser Aktion." />
+				description="0 oder 1. Eingeschränkte Fähigkeit des Objekts während dieser Aktion." />
 			<entry name="DigFree" class="SignedInteger"
 				description="Freigraben während dieser Aktion. Objektrechteck 1, sonst Kreisradius." />
 			<entry name="EnergyUsage" class="SignedInteger"
@@ -73,7 +73,7 @@
 			<entry name="Timer" class="SignedInteger"
 				description="Zeitabstand der TimerCalls in Frames. Ohne Angabe gilt der Vorgabewert 35." />
 			<entry name="ContactCalls" class="Boolean"
-				desecription="0 oder 1. Legt fest, ob Kontaktaufrufe im Objektscript getätigt werden." />
+				description="0 oder 1. Legt fest, ob Kontaktaufrufe im Objektscript getätigt werden." />
 			<entry name="Width" class="SignedInteger"
 				description="Breite des Objekts." />
 			<entry name="Height" class="SignedInteger"
@@ -113,7 +113,7 @@
 			<entry name="Placement" class="SignedInteger"
 				description="Platzierung: 0 Oberfläche, 1 in Flüssigkeit, 2 in der Luft." />
 			<entry name="Exclusive" class="Boolean"
-				desecription="0 oder 1. Legt fest, ob das Objekt dahinterliegende Objekte blockiert." />
+				description="0 oder 1. Legt fest, ob das Objekt dahinterliegende Objekte blockiert." />
 			<entry name="ContactIncinerate" class="SignedInteger"
 				description="Kontaktentzündlichkeit: 0 keine, 1 (hoch) bis 5 (niedrig)" />
 			<entry name="BlastIncinerate" class="SignedInteger"
@@ -121,7 +121,7 @@
 			<entry name="BurnTo" class="C4ID"
 				description="Definitionswechsel bei Entzündung." />
 			<entry name="Base" class="Boolean"
-				desecription="0 oder 1. Legt fest, ob das Objekt Heimatbasis sein kann." />
+				description="0 oder 1. Legt fest, ob das Objekt Heimatbasis sein kann." />
 			<entry name="Line"
 				class="CategoriesArray"
 				description="1 Energieleitung, 2 Zuflussrohr, 3 Abflussrohr." />
@@ -129,17 +129,17 @@
 				class="CategoriesArray"
 				description="Anschlussfähigkeit für Leitungen.\n  Siehe LineConnect." />
 			<entry name="Prey" class="Boolean"
-				desecription="0 oder 1. Legt fest, ob das Objekt ein Beutelebewesen ist." />
+				description="0 oder 1. Legt fest, ob das Objekt ein Beutelebewesen ist." />
 			<entry name="Edible" class="Boolean"
-				desecription="0 oder 1. Legt fest, ob das Objekt essbar ist (noch nicht unterstützt)." />
+				description="0 oder 1. Legt fest, ob das Objekt essbar ist (noch nicht unterstützt)." />
 			<entry name="CrewMember" class="Boolean"
-				desecription="0 oder 1. Wenn 1, wird das Objekt beim Kauf der Mannschaft hinzugefügt.\n  Mit CreateObject erzeugte CrewMember-Objekte müssen mit MakeCrewMember\n  der Mannschaft eines Spielers hinzugefügt werden." />
+				description="0 oder 1. Wenn 1, wird das Objekt beim Kauf der Mannschaft hinzugefügt.\n  Mit CreateObject erzeugte CrewMember-Objekte müssen mit MakeCrewMember\n  der Mannschaft eines Spielers hinzugefügt werden." />
 			<entry name="Growth" class="SignedInteger"
 				description="Wachstum des Objekts. Baum 1-4, Lebewesen 15." />
 			<entry name="Rebuy" class="Boolean"
-				desecription="0 oder 1. Legt fest, ob das Objekt nach Verkauf zurückgekauft werden kann." />
+				description="0 oder 1. Legt fest, ob das Objekt nach Verkauf zurückgekauft werden kann." />
 			<entry name="Construction" class="Boolean"
-				desecription="0 oder 1. Legt fest, ob das Objekt als Baustelle gebaut werden kann." />
+				description="0 oder 1. Legt fest, ob das Objekt als Baustelle gebaut werden kann." />
 			<entry name="ConstructTo" class="C4ID"
 				description="Definitionswechsel beim Bau." />
 			<entry name="Grab" class="SignedInteger"
@@ -174,11 +174,11 @@
 			<entry name="NoBurnDecay" class="Boolean"
 				description="0 oder 1. Bei Wert 1 verbrennt das Objekt nicht." />
 			<entry name="IncompleteActivity" class="Boolean"
-				desecription="0 oder 1. Wert 1 für Lebewesen, die auch im Wachstum aktiv sein können." />
+				description="0 oder 1. Wert 1 für Lebewesen, die auch im Wachstum aktiv sein können." />
 			<entry name="Oversize" class="Boolean"
 				description="0 oder 1. Das Objekt kann mit DoCon auf Übergröße vergrößert werden." />
 			<entry name="AttractLightning" class="Boolean"
-				desecription="0 oder 1. Das Objekt zieht Blitze an." />
+				description="0 oder 1. Das Objekt zieht Blitze an." />
 			<entry name="Fragile" class="Boolean"
 				description="0 oder 1. Objekt sollte nicht geworfen werden." />
 			<entry name="NoPushEnter" class="Boolean"
@@ -232,7 +232,7 @@
 			<entry name="LineIntersect" class="Boolean"
 				description="0 oder 1" />
 			<entry name="NeededGfxMode" class="Boolean"
-				desecription="0 oder 1" />
+				description="0 oder 1" />
 			<entry name="PictureFE" class="IntegerArray"
 				description="?" />
 			<entry name="RotatedSolidmasks" class="IntegerArray"
@@ -270,17 +270,17 @@
 			<entry name="Float" class="SignedInteger"
 				description="0-100. Fluggeschwindigkeit." />
 			<entry name="CanScale" class="Boolean"
-				desecription="0 oder 1. Klettern." />
+				description="0 oder 1. Klettern." />
 			<entry name="CanHangle" class="Boolean"
-				desecription="0 oder 1. Hangeln." />
+				description="0 oder 1. Hangeln." />
 			<entry name="CanDig" class="Boolean"
-				desecription="0 oder 1. Graben." />
+				description="0 oder 1. Graben." />
 			<entry name="CanConstruct" class="Boolean"
-				desecription="0 oder 1. Bauen. Bei Werten größer 1: Prozentuale Baugeschwindigkeit (100 entspricht dem Standard;\n  50 ist halbe Standardgeschwindigkeit). Erweitert" />
+				description="0 oder 1. Bauen. Bei Werten größer 1: Prozentuale Baugeschwindigkeit (100 entspricht dem Standard;\n  50 ist halbe Standardgeschwindigkeit). Erweitert" />
 			<entry name="CanChop" class="Boolean"
-				desecription="0 oder 1. Fällen." />
+				description="0 oder 1. Fällen." />
 			<entry name="CorrosionResist" class="Boolean"
-				desecription="0 oder 1. Legt fest, ob das Objekt Säure widersteht." />
+				description="0 oder 1. Legt fest, ob das Objekt Säure widersteht." />
 			<entry name="BreatheWater" class="SignedInteger"
 				description="0 Objekt atmet Luft, 1 Objekt atmet Wasser." />
 			<entry name="CanFly" class="SignedInteger"
