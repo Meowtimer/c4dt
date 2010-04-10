@@ -1,10 +1,8 @@
 package net.arctics.clonk.parser.c4script;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
@@ -18,9 +16,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -769,100 +764,6 @@ public abstract class C4ScriptBase extends C4Structure implements IHasRelatedRes
 		//readMissingFuncsFromSource(repository);
 		if (monitor != null)
 			monitor.done();
-	}
-	
-	private void readMissingFuncsFromSource(String repository) throws FileNotFoundException, IOException {
-		
-		final int SECTION_None = 0;
-		final int SECTION_InitFunctionMap = 1;
-		final int SECTION_C4ScriptConstMap = 2;
-		final int SECTION_C4ScriptFnMap = 3;
-		
-		String c4ScriptFilePath = repository + "/src/game/script/C4Script.cpp"; //$NON-NLS-1$
-		File c4ScriptFile;
-		if ((c4ScriptFile = new File(c4ScriptFilePath)).exists()) {
-			Matcher[] sectionStartMatchers = new Matcher[] {
-				Pattern.compile("void InitFunctionMap\\(C4AulScriptEngine \\*pEngine\\)").matcher(""), //$NON-NLS-1$ //$NON-NLS-2$
-				Pattern.compile("C4ScriptConstDef C4ScriptConstMap\\[\\]\\=\\{").matcher(""), //$NON-NLS-1$ //$NON-NLS-2$
-				Pattern.compile("C4ScriptFnDef C4ScriptFnMap\\[\\]\\=\\{").matcher("") //$NON-NLS-1$ //$NON-NLS-2$
-			};
-			Matcher fnMapMatcher = Pattern.compile("\\s*\\{\\s*\"(.*?)\"\\s*,\\s*(.*?)\\s*,\\s*(.*?)\\s*,\\s*\\{(.*?)\\}\\s*,\\s*(.*?)\\s*,\\s*(.*?)\\s*\\}\\s*,").matcher(""); //$NON-NLS-1$ //$NON-NLS-2$
-			Matcher constMapMatcher = Pattern.compile("\\s*\\{\\s*\"(.*?)\"\\s*,\\s*(.*?)\\s*,\\s*(.*?)\\s*\\}\\s*,\\s*(\\/\\/(.*))?").matcher(""); //$NON-NLS-1$ //$NON-NLS-2$
-			Matcher addFuncMatcher = Pattern.compile("\\s*AddFunc\\s*\\(\\s*pEngine\\s*,\\s*\"(.*?)\"\\s*,\\s*.*?\\)\\s*;").matcher(""); //$NON-NLS-1$ //$NON-NLS-2$
-			
-			BufferedReader reader = new BufferedReader(new FileReader(c4ScriptFile));
-			int section = SECTION_None;
-			try {
-				String line;
-				Outer: while ((line = reader.readLine()) != null) {
-					// determine section
-					for (int s = 0; s < sectionStartMatchers.length; s++) {
-						sectionStartMatchers[s].reset(line);
-						if (sectionStartMatchers[s].matches()) {
-							section = s+1;
-							continue Outer;
-						}
-					}
-					
-					switch (section) {
-					case SECTION_InitFunctionMap:
-						if (addFuncMatcher.reset(line).matches()) {
-							String name = addFuncMatcher.group(1);
-							C4Function fun = this.findLocalFunction(name, false);
-							if (fun == null) {
-								fun = new C4Function(name, C4Type.ANY);
-								List<C4Variable> parms = new ArrayList<C4Variable>(1);
-								parms.add(new C4Variable("...", C4Type.ANY)); //$NON-NLS-1$
-								fun.setParameter(parms);
-								this.addDeclaration(fun);
-							}
-						}
-						break;
-					case SECTION_C4ScriptConstMap:
-						if (constMapMatcher.reset(line).matches()) {
-							int i = 1;
-							String name = constMapMatcher.group(i++);
-							C4Type type = C4Type.makeType(constMapMatcher.group(i++).substring(4).toLowerCase());
-							String comment = constMapMatcher.group(5); 
-								
-							C4Variable cnst = this.findLocalVariable(name, false);
-							if (cnst == null) {
-								cnst = new C4Variable(name, type);
-								cnst.setScope(C4VariableScope.VAR_CONST);
-								cnst.setUserDescription(comment);
-								this.addDeclaration(cnst);
-							}
-						}
-						break;
-					case SECTION_C4ScriptFnMap:
-						if (fnMapMatcher.reset(line).matches()) {
-							int i = 1;
-							String name = fnMapMatcher.group(i++);
-							i++;//String public_ = fnMapMatcher.group(i++);
-							String retType = fnMapMatcher.group(i++);
-							String parms = fnMapMatcher.group(i++);
-							//String pointer = fnMapMatcher.group(i++);
-							//String oldPointer = fnMapMatcher.group(i++);
-							C4Function fun = this.findLocalFunction(name, false);
-							if (fun == null) {
-								fun = new C4Function(name, C4Type.makeType(retType.substring(4).toLowerCase(), true));
-								String[] p = parms.split(","); //$NON-NLS-1$
-								List<C4Variable> parList = new ArrayList<C4Variable>(p.length);
-								for (String pa : p) {
-									parList.add(new C4Variable("par"+(parList.size()+1), C4Type.makeType(pa.trim().substring(4).toLowerCase(), true))); //$NON-NLS-1$
-								}
-								fun.setParameter(parList);
-								this.addDeclaration(fun);
-							}
-						}
-						break;
-					}
-				}
-			}
-			finally {
-				reader.close();
-			}
-		}
 	}
 
 	public ITreeNode getParentNode() {
