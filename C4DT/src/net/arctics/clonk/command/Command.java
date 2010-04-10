@@ -1,26 +1,19 @@
 package net.arctics.clonk.command;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.ObjectInputStream;
 import java.io.OutputStreamWriter;
-import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.io.Writer;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
-import java.net.Socket;
-import java.net.UnknownHostException;
 import java.util.LinkedList;
 import java.util.List;
 
-import org.eclipse.core.resources.IMarker;
-import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.index.C4Engine;
@@ -61,7 +54,7 @@ public class Command {
 			
 			@Override
 			public Object invoke(final Object... args) {
-				final IVariableValueProvider variableProvider = args.length > 0 && args[0] instanceof IVariableValueProvider ? (IVariableValueProvider)args[0] : null;
+				final IVariableValueProvider variableProvider = args != null && args.length > 0 && args[0] instanceof IVariableValueProvider ? (IVariableValueProvider)args[0] : null;
 				IEvaluationContext context = new IEvaluationContext() {
 
 					@Override
@@ -313,93 +306,24 @@ public class Command {
 			stream.close();
 		}
 		@CommandFunction
-		public static void ImportDescriptionsFromSerializedIndex(Object context, String engineName, String indexPath) throws IOException, ClassNotFoundException {
+		public static void ImportDescriptionsFromSerializedIndex(Object context, String engineName, String indexPath, String writeToFile) throws IOException, ClassNotFoundException {
 			InputStream engineStream = new FileInputStream(indexPath);
 			try {
 				ObjectInputStream objStream = new InputStreamRespectingUniqueIDs(engineStream);
 				C4Engine result = (C4Engine)objStream.readObject();
 				result.setName(engineName); // for good measure
 				result.postSerialize(null);
-				
-				C4Engine e = ClonkCore.getDefault().loadEngine(engineName);
-				for (C4Function f : e.functions()) {
-					C4Function alterEgo = result.findFunction(f.getName());
-					if (alterEgo != null)
-						f.setUserDescription(alterEgo.getUserDescription());
+				OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(writeToFile));
+				writer.append("[Descriptions]\n");
+				for (C4Function f : result.functions()) {
+					String escaped = f.getUserDescription() != null ? f.getUserDescription().replace("\n", "|||") : "";
+					writer.append(String.format("%s=%s\n", f.getName(), escaped));
 				}
+				writer.close();
 			} finally {
 				engineStream.close();
 			}
 		}
-	}
-	
-	public static class DebugCommands {
-
-		private static Socket debugSocket;
-		private static PrintWriter debugSocketWriter;
-		private static BufferedReader debugSocketReader;
-
-		@CommandFunction
-		public static void ConnectToDebugSocket(Object context, long port) {
-			try {
-				debugSocket = new Socket("localhost", (int) port); //$NON-NLS-1$
-				debugSocketWriter = new PrintWriter(debugSocket.getOutputStream());
-				debugSocketReader = new BufferedReader(new InputStreamReader(debugSocket.getInputStream()));
-			} catch (UnknownHostException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}
-
-		@CommandFunction
-		public static void CloseDebugSocket(Object context) {
-			if (debugSocket != null)
-				try {
-					debugSocketReader.close();
-					debugSocketReader = null;
-					debugSocketWriter.close();
-					debugSocketWriter = null;
-					debugSocket.close();
-					debugSocket = null;
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-		}
-
-		@CommandFunction
-		public static void SendToDebugSocket(Object context, String command) {
-			if (debugSocketWriter != null) {
-				debugSocketWriter.println(command);
-				debugSocketWriter.flush();
-			}
-			String line;
-			try {
-				if ((line = debugSocketReader.readLine()) != null)
-					System.out.println(line);
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		}
-		
-		@CommandFunction
-		public static void Testing(Object context) {
-			IMarker m;
-			try {
-				m = ResourcesPlugin.getWorkspace().getRoot().getProjects()[0].members()[3].createMarker("net.arctics.clonk.logerror");
-				m.setAttribute(IMarker.MESSAGE, "Yadda");
-				m.setAttribute(IMarker.TRANSIENT, true);
-				m.setAttribute(IMarker.CHAR_START, 0);
-				m.setAttribute(IMarker.CHAR_END, 3);
-				m.setAttribute(IMarker.SEVERITY, IMarker.SEVERITY_INFO);
-				m.setAttribute(IMarker.LINE_NUMBER, 0);
-			} catch (CoreException e) {
-				e.printStackTrace();
-			}
-		}
-
 	}
 	
 	public static class EngineConfiguration {
