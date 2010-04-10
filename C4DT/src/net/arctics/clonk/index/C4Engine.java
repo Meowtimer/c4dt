@@ -3,6 +3,7 @@ package net.arctics.clonk.index;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InvalidClassException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Serializable;
@@ -10,19 +11,30 @@ import java.io.Writer;
 import java.lang.reflect.Field;
 import java.net.URL;
 import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 
 import org.eclipse.jface.util.Util;
 import net.arctics.clonk.parser.C4Declaration;
+import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.c4script.C4ScriptBase;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.C4Variable;
 import net.arctics.clonk.parser.c4script.C4Variable.C4VariableScope;
 import net.arctics.clonk.parser.inireader.CustomIniUnit;
+import net.arctics.clonk.parser.inireader.IEntryFactory;
 import net.arctics.clonk.parser.inireader.IniData;
+import net.arctics.clonk.parser.inireader.IniEntry;
+import net.arctics.clonk.parser.inireader.IniParserException;
+import net.arctics.clonk.parser.inireader.IniData.IniDataEntry;
+import net.arctics.clonk.parser.inireader.IniData.IniDataSection;
 import net.arctics.clonk.parser.inireader.IniField;
 import net.arctics.clonk.parser.inireader.IniData.IniConfiguration;
+import net.arctics.clonk.parser.inireader.IniSection;
+import net.arctics.clonk.parser.inireader.IniUnit;
 import net.arctics.clonk.util.IStorageLocation;
 import net.arctics.clonk.util.Utilities;
 
@@ -61,6 +73,8 @@ public class C4Engine extends C4ScriptBase {
 		public boolean nonConstGlobalVarsAssignment;
 		@IniField
 		public boolean definitionsHaveStaticVariables;
+		@IniField
+		public boolean disallowRefs;
 
 		public static final IniConfiguration INI_CONFIGURATION = IniConfiguration.createFromClass(EngineSettings.class);
 
@@ -129,8 +143,10 @@ public class C4Engine extends C4ScriptBase {
 
 	private transient EngineSettings intrinsicSettings;
 	private transient EngineSettings currentSettings;
+	
 	private transient IStorageLocation[] storageLocations;
 	private transient IniData iniConfigurations;
+	private transient Map<String, Map<String, String>> descriptions = new HashMap<String, Map<String,String>>();
 
 	public EngineSettings getIntrinsicSettings() {
 		return intrinsicSettings;
@@ -257,6 +273,99 @@ public class C4Engine extends C4ScriptBase {
 		}
 	}
 	
+	private class DescriptionsIniConfiguration extends IniConfiguration {
+		public DescriptionsIniConfiguration() {
+			super();
+			sections.put("Descriptions", new IniDataSection() {
+				private IniDataEntry entry = new IniDataEntry("", String.class);
+				@Override
+				public boolean hasEntry(String entryName) {
+					return C4Engine.this.findDeclaration(entryName) != null; 
+				}
+				@Override
+				public IniDataEntry getEntry(String key) {
+					return entry;
+				}
+			});
+			factory = new IEntryFactory() {
+				@Override
+				public Object create(Class<?> type, String value, IniDataEntry entryData, IniUnit context) throws InvalidClassException, IniParserException {
+					return value;
+				}
+			};
+		}
+	}
+	
+	public Map<String, String> loadDescriptions(String language) throws IOException {
+		Map<String, String> result = descriptions.get(language);
+		if (result != null)
+			return result;
+		else {
+			String fileName = String.format("descriptions%s.ini", language); //$NON-NLS-1$
+			for (int i = storageLocations.length-1; i >= 0; i--) {
+				IStorageLocation loc = storageLocations[i];
+				URL descs = loc.getURL(fileName, false);
+				if (descs != null) {
+					InputStream input = descs.openStream();
+					try {
+						final IniConfiguration conf = new DescriptionsIniConfiguration();
+						IniUnit unit = new IniUnit(input) {
+							private static final long serialVersionUID = 1L;
+
+							@Override
+							public IniConfiguration getConfiguration() {
+								return conf;
+							}
+						};
+						unit.parse(false);
+						IniSection section = unit.sectionForName("Descriptions");
+						if (section != null) {
+							result = new HashMap<String, String>();
+							for (Entry<String, IniEntry> entry : section.getEntries().entrySet()) {
+								result.put(entry.getKey(), entry.getValue().getValue());
+							}
+							return descriptions.put(language, result);
+						}
+					} finally {
+						input.close();
+					}
+				}
+			}
+		}
+		return null;
+	}
+	
+	public void parseEngineScript(URL url) throws IOException, ParsingException {
+		InputStream stream = url.openStream();
+		try {
+			C4ScriptParser parser = new C4ScriptParser(Utilities.stringFromInputStream(stream), this);
+			parser.parse();
+			postSerialize(null);
+		} finally {
+			stream.close();
+		}
+	}
+	
+	public static C4Engine loadFromStorageLocations(final IStorageLocation... providers) {
+		C4Engine result = null;
+		try {
+			for (IStorageLocation location : providers) {
+				URL url = location.getURL(location.getName()+".c", false);
+				if (url != null) {
+					result = new C4Engine(location.getName());
+					result.storageLocations = providers;
+					result.loadSettings();
+					result.loadIniConfigurations();
+					result.parseEngineScript(url);
+					break;
+				}
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return result;
+	}
+	
 	public void saveSettings() throws IOException {
 		if (!hasCustomSettings())
 			return;
@@ -274,33 +383,6 @@ public class C4Engine extends C4ScriptBase {
 				}
 			}
 		}
-	}
-
-	public static C4Engine loadFromStorageLocations(final IStorageLocation... providers) {
-		C4Engine result = null;
-		try {
-			for (IStorageLocation location : providers) {
-				URL url = location.getURL(location.getName()+".c", false);
-				if (url != null) {
-					result = new C4Engine(location.getName());
-					result.storageLocations = providers;
-					result.loadSettings();
-					result.loadIniConfigurations();
-					InputStream stream = url.openStream();
-					try {
-						C4ScriptParser parser = new C4ScriptParser(Utilities.stringFromInputStream(stream), result);
-						parser.parse();
-						result.postSerialize(null);
-					} finally {
-						stream.close();
-					}
-					break;
-				}
-			}
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		return result;
 	}
 	
 	public Enumeration<URL> getURLsOf(String configurationFolder) {

@@ -132,8 +132,6 @@ public class ClonkLaunchConfigurationDelegate implements ILaunchConfigurationDel
 		
 		C4ScriptBase scenarioScript = C4Scenario.scenarioCorrespondingTo(scenario);
 		String gamePath = scenarioScript != null ? scenarioScript.getEngine().getCurrentSettings().gamePath : null;
-		if (gamePath == null)
-			gamePath = null;
 
 		File enginePath = null;
 		String enginePref = scenarioScript != null ? scenarioScript.getEngine().getCurrentSettings().engineExecutablePath : null;

@@ -24,8 +24,8 @@ public class IniData {
 	
 	public static class IniConfiguration {
 		private String filename;
-		private Map<String, IniDataSection> sections = new HashMap<String, IniDataSection>();
-		private IEntryFactory factory = null;
+		protected Map<String, IniDataSection> sections = new HashMap<String, IniDataSection>();
+		protected IEntryFactory factory = null;
 		
 		protected IniConfiguration() {
 		}
@@ -106,7 +106,7 @@ public class IniData {
 		
 	}
 	
-	public static final class IniDataSection {
+	public static class IniDataSection {
 		private String sectionName;
 		private Map<String, IniDataEntry> entries = new HashMap<String, IniDataEntry>();		
 		
@@ -163,7 +163,7 @@ public class IniData {
 		protected IniDataEntry() {
 		}
 		
-		protected IniDataEntry(String name, Class<?> valueType) {
+		public IniDataEntry(String name, Class<?> valueType) {
 			entryName = name;
 			if (valueType == String.class)
 				entryClass = valueType;

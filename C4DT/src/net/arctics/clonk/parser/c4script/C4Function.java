@@ -1,8 +1,10 @@
 package net.arctics.clonk.parser.c4script;
 
+import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import net.arctics.clonk.index.C4Engine;
 import net.arctics.clonk.index.C4Object;
@@ -273,8 +275,16 @@ public class C4Function extends C4Structure implements Serializable, ITypedDecla
 
 	@Override
 	public String getInfoText() {
-		if (description == null && isEngineDeclaration())
-			acquireDescriptionFromDocumentation();
+		if (description == null && isEngineDeclaration()) {
+			try {
+				Map<String, String> descs = getEngine().loadDescriptions(ClonkPreferences.getLanguagePref());
+				description = descs != null ? descs.get(getName()) : null;
+				if (description == null)
+					description = "";
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
 		return String.format(Messages.C4Function_InfoTextTemplate, getLongParameterString(true, false), getUserDescription() != null && !getUserDescription().equals("") ? getUserDescription() : Messages.DescriptionNotAvailable, getScript().toString()); //$NON-NLS-1$
 	}
 
