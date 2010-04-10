@@ -27,7 +27,6 @@ public class C4Function extends C4Structure implements Serializable, ITypedDecla
 	private boolean isCallback;
 	private boolean isOldStyle;
 	private SourceLocation body, header;
-	//private transient C4Object expectedContent;
 
 	public C4Function(String name, C4Type returnType, C4Variable... pars) {
 		this.name = name;
@@ -126,7 +125,17 @@ public class C4Function extends C4Structure implements Serializable, ITypedDecla
 	 * @return the description
 	 */
 	public String getUserDescription() {
-		return description;
+		if (isEngineDeclaration()) {
+			Map<String, String> descs;
+			try {
+				descs = getEngine().loadDescriptions(ClonkPreferences.getLanguagePref());
+				return descs != null ? descs.get(getName()) : null;
+			} catch (IOException e) {
+				return null;
+			}
+		}
+		else
+			return description;
 	}
 
 	/**
@@ -275,46 +284,8 @@ public class C4Function extends C4Structure implements Serializable, ITypedDecla
 
 	@Override
 	public String getInfoText() {
-		if (description == null && isEngineDeclaration()) {
-			try {
-				Map<String, String> descs = getEngine().loadDescriptions(ClonkPreferences.getLanguagePref());
-				description = descs != null ? descs.get(getName()) : null;
-				if (description == null)
-					description = "";
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		}
-		return String.format(Messages.C4Function_InfoTextTemplate, getLongParameterString(true, false), getUserDescription() != null && !getUserDescription().equals("") ? getUserDescription() : Messages.DescriptionNotAvailable, getScript().toString()); //$NON-NLS-1$
-	}
-
-	private void acquireDescriptionFromDocumentation() {
-		/*
-		try {
-			URL url = new URL(getDocumentationURL());
-			InputStream stream = url.openConnection().getInputStream();
-			try {
-				if (url.getPath().endsWith(".xml")) {
-					XMLDocImporter importer = new XMLDocImporter();
-					C4Declaration doppelganger = importer.importFromXML(stream);
-					if (doppelganger instanceof C4Function) {
-						this.description = ((C4Function)doppelganger).getUserDescription();
-					} else {
-						this.description = Messages.DescriptionNotAvailable;
-					}
-				} else {
-					this.description = XMLDocImporter.extractDescriptionFromHTML(stream);
-				}
-			} finally {
-				stream.close();
-			}
-		} catch (MalformedURLException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
-		} catch (XPathExpressionException e) {
-			e.printStackTrace();
-		}*/
+		String description = getUserDescription();
+		return String.format(Messages.C4Function_InfoTextTemplate, getLongParameterString(true, false), description != null && !description.equals("") ? description : Messages.DescriptionNotAvailable, getScript().toString()); //$NON-NLS-1$
 	}
 
 	@Override
