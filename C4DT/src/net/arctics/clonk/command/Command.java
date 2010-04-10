@@ -2,9 +2,12 @@ package net.arctics.clonk.command;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.ObjectInputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
@@ -40,6 +43,7 @@ import net.arctics.clonk.parser.c4script.C4ScriptExprTree.ReturnException;
 import net.arctics.clonk.parser.c4script.C4ScriptExprTree.Statement;
 import net.arctics.clonk.parser.c4script.C4ScriptExprTree.TraversalContinuation;
 import net.arctics.clonk.parser.c4script.C4Variable;
+import net.arctics.clonk.resource.InputStreamRespectingUniqueIDs;
 import net.arctics.clonk.ui.editors.ClonkHyperlink;
 import net.arctics.clonk.util.Utilities;
 
@@ -292,11 +296,40 @@ public class Command {
 			writer.append("\n");
 			for (C4Function f : engine.functions()) {
 				String returnType = f.getReturnType().toString();
-				String text = String.format("%s %s %s %s;\n", f.getVisibility().toKeyword(), Keywords.Func, returnType, f.getLongParameterString(true, true));
+				String desc = f.getUserDescription();
+				if (desc != null) {
+					if (desc.contains("\n")) {
+						desc = String.format("/*\n%s\n*/\n", desc);
+					} else {
+						desc = String.format("//%s\n", desc);
+					}
+				} else {
+					desc = "";
+				}
+				String text = String.format("%s%s %s %s %s;\n\n", f.getVisibility().toKeyword(), Keywords.Func, returnType, f.getLongParameterString(true, true));
 				writer.append(text);
 			}
 			writer.close();
 			stream.close();
+		}
+		@CommandFunction
+		public static void ImportDescriptionsFromSerializedIndex(Object context, String engineName, String indexPath) throws IOException, ClassNotFoundException {
+			InputStream engineStream = new FileInputStream(indexPath);
+			try {
+				ObjectInputStream objStream = new InputStreamRespectingUniqueIDs(engineStream);
+				C4Engine result = (C4Engine)objStream.readObject();
+				result.setName(engineName); // for good measure
+				result.postSerialize(null);
+				
+				C4Engine e = ClonkCore.getDefault().loadEngine(engineName);
+				for (C4Function f : e.functions()) {
+					C4Function alterEgo = result.findFunction(f.getName());
+					if (alterEgo != null)
+						f.setUserDescription(alterEgo.getUserDescription());
+				}
+			} finally {
+				engineStream.close();
+			}
 		}
 	}
 	

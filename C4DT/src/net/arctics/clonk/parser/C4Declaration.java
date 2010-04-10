@@ -8,6 +8,7 @@ import net.arctics.clonk.index.C4ObjectIntern;
 import net.arctics.clonk.index.C4Scenario;
 import net.arctics.clonk.parser.c4script.C4ScriptBase;
 import net.arctics.clonk.parser.c4script.C4ScriptIntern;
+import net.arctics.clonk.parser.c4script.IHasUserDescription;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.util.IHasRelatedResource;
 import net.arctics.clonk.util.INode;
@@ -17,7 +18,7 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.jface.text.IRegion;
 
 /**
- * Baseclass for all declarations (object definitions, actmaps, functions and variables)
+ * Base class for all declarations (object definitions, actmaps, functions, variables etc)
  * @author madeen
  *
  */
@@ -300,6 +301,16 @@ public abstract class C4Declaration implements Serializable, IHasRelatedResource
 	
 	public C4Engine getEngine() {
 		return parentDeclaration != null ? parentDeclaration.getEngine() : null; 
+	}
+
+	/**
+	 * Take internal state from other declaration and make it your own. This will mess up ownership relations so discard of the absorbed one
+	 * @param declaration
+	 */
+	public void absorb(C4Declaration declaration) {
+		if (this instanceof IHasUserDescription && declaration instanceof IHasUserDescription) {
+			((IHasUserDescription)this).setUserDescription(((IHasUserDescription)declaration).getUserDescription());
+		}
 	}
 	
 }

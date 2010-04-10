@@ -515,4 +515,15 @@ public class C4Function extends C4Structure implements Serializable, ITypedDecla
 		return null;
 	}
 	
+	@Override
+	public void absorb(C4Declaration declaration) {
+		if (declaration instanceof C4Function) {
+			C4Function f = (C4Function) declaration;
+			this.parameter = f.parameter;
+			this.returnType = f.returnType;
+			f.parameter = null;
+		}
+		super.absorb(declaration);
+	}
+	
 }

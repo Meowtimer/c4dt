@@ -499,7 +499,7 @@ public class EngineDeclarationsView extends ViewPart implements IPropertyChangeL
 						public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
 							try {
 								final C4ScriptBase engine = ClonkCore.getDefault().getActiveEngine();
-								engine.clearDeclarations();
+								//engine.clearDeclarations();
 								engine.importFromRepository(repo, monitor);
 							} catch (Exception e) {
 								e.printStackTrace();

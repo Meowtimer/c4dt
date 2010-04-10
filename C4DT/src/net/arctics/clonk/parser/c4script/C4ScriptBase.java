@@ -216,8 +216,7 @@ public abstract class C4ScriptBase extends C4Structure implements IHasRelatedRes
 	}
 
 	@Override
-	public C4Declaration findDeclaration(String declarationName,
-			Class<? extends C4Declaration> declarationClass) {
+	public C4Declaration findDeclaration(String declarationName, Class<? extends C4Declaration> declarationClass) {
 		FindDeclarationInfo info = new FindDeclarationInfo(getIndex());
 		info.setDeclarationClass(declarationClass);
 		return findDeclaration(declarationName, info);
@@ -754,14 +753,20 @@ public abstract class C4ScriptBase extends C4Structure implements IHasRelatedRes
 				monitor.subTask(fileName);
 			}
 			C4Declaration declaration = importer.importFromXML(new FileInputStream(fnFolderPath + "/" + fileName)); //$NON-NLS-1$
-			if (declaration != null)
-				this.addDeclaration(declaration);
+			if (declaration != null) {
+				C4Declaration existing = this.findDeclaration(declaration.getName(), declaration.getClass());
+				if (existing != null) {
+					existing.absorb(declaration);
+				} else {
+					this.addDeclaration(declaration);
+				}
+			}
 			if (monitor != null) {
 				monitor.worked(1);
 			}
 		}
 		// also import from fn list in C4Script.cpp
-		readMissingFuncsFromSource(repository);
+		//readMissingFuncsFromSource(repository);
 		if (monitor != null)
 			monitor.done();
 	}

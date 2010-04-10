@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.Map;
 
 import net.arctics.clonk.index.C4Engine;
-import net.arctics.clonk.parser.BuiltInDefinitions;
+import net.arctics.clonk.parser.c4script.BuiltInDefinitions;
 import net.arctics.clonk.parser.c4script.C4Function;
 import net.arctics.clonk.parser.c4script.C4Type;
 import net.arctics.clonk.ui.editors.ClonkRuleBasedScanner;
