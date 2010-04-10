@@ -333,7 +333,7 @@ public class C4Engine extends C4ScriptBase {
 						if (section != null) {
 							result = new HashMap<String, String>();
 							for (Entry<String, IniEntry> entry : section.getEntries().entrySet()) {
-								result.put(entry.getKey(), entry.getValue().getValue());
+								result.put(entry.getKey(), entry.getValue().getValue().replace("|||", "\n"));
 							}
 							return descriptions.put(language, result);
 						}
