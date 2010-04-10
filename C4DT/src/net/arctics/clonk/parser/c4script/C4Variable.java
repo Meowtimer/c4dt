@@ -171,7 +171,7 @@ public class C4Variable extends C4Declaration implements Serializable, ITypedDec
 	 * @return the description
 	 */
 	public String getUserDescription() {
-		return description;
+		return isEngineDeclaration() ? getEngine().descriptionFor(this) : description;
 	}
 
 	/**

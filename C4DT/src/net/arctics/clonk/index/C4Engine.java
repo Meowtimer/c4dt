@@ -35,6 +35,7 @@ import net.arctics.clonk.parser.inireader.IniField;
 import net.arctics.clonk.parser.inireader.IniData.IniConfiguration;
 import net.arctics.clonk.parser.inireader.IniSection;
 import net.arctics.clonk.parser.inireader.IniUnit;
+import net.arctics.clonk.preferences.ClonkPreferences;
 import net.arctics.clonk.util.IStorageLocation;
 import net.arctics.clonk.util.Utilities;
 
@@ -293,6 +294,16 @@ public class C4Engine extends C4ScriptBase {
 					return value;
 				}
 			};
+		}
+	}
+
+	public String descriptionFor(C4Declaration declaration) {
+		Map<String, String> descs;
+		try {
+			descs = getEngine().loadDescriptions(ClonkPreferences.getLanguagePref());
+			return descs != null ? descs.get(declaration.getName()) : null;
+		} catch (IOException e) {
+			return null;
 		}
 	}
 	

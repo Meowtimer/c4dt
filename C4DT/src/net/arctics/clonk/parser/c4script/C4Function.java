@@ -125,17 +125,7 @@ public class C4Function extends C4Structure implements Serializable, ITypedDecla
 	 * @return the description
 	 */
 	public String getUserDescription() {
-		if (isEngineDeclaration()) {
-			Map<String, String> descs;
-			try {
-				descs = getEngine().loadDescriptions(ClonkPreferences.getLanguagePref());
-				return descs != null ? descs.get(getName()) : null;
-			} catch (IOException e) {
-				return null;
-			}
-		}
-		else
-			return description;
+		return isEngineDeclaration() ? getEngine().descriptionFor(this) : description;
 	}
 
 	/**
