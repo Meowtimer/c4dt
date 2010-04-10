@@ -441,7 +441,7 @@ global func int ClearMenuItems();
 global func bool ClearParticles(string szName);
 global func bool ClearScheduleCall(object pObj, string szFunction);
 global func bool CloseMenu();
-global func bool Collect(object pItem, object pTarget);
+global func bool Collect(object item);
 global func bool ComponentAll(id idComponents);
 global func object ComposeContents(id id);
 global func any Construction(object creator);
