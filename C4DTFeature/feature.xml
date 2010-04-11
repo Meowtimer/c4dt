@@ -2,7 +2,7 @@
 <feature
       id="net.arctics.clonk.c4dtFeature"
       label="Clonk Development Tools"
-      version="1.5.4.v20100330">
+      version="1.5.5.v20100411">
 
    <description url="http://www.example.com/description">
       Clonk Development Tools for Eclipse.
