@@ -335,7 +335,8 @@ public class C4Engine extends C4ScriptBase {
 							for (Entry<String, IniEntry> entry : section.getEntries().entrySet()) {
 								result.put(entry.getKey(), entry.getValue().getValue().replace("|||", "\n"));
 							}
-							return descriptions.put(language, result);
+							descriptions.put(language, result);
+							return result;
 						}
 					} finally {
 						input.close();
