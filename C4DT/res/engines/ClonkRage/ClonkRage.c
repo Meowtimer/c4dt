@@ -35,10 +35,21 @@ static const C4D_PowerConsumer;
 static const C4D_LiquidPump;
 static const C4D_ConnectRope;
 static const C4D_EnergyHolder;
+static const C4D_SelectHomebase;
+static const C4D_SelectVehicle;
+static const C4D_SelectKnowledge;
+static const C4D_SelectBuilding;
+static const C4D_SelectAnimal;
+static const C4D_SelectMaterial;
+static const C4D_TradeLiving;
+static const C4D_SelectInEarth;
+static const C4D_SelectVegetation;
+
 static const APS_Color;
 static const APS_Graphics;
 static const APS_Name;
 static const APS_Overlay;
+
 static const C4V_Any;
 static const C4V_Int;
 static const C4V_Bool;
@@ -46,6 +57,7 @@ static const C4V_C4ID;
 static const C4V_C4Object;
 static const C4V_String;
 static const C4V_Array;
+
 static const COMD_None;
 static const COMD_Stop;
 static const COMD_Up;
@@ -56,8 +68,10 @@ static const COMD_Down;
 static const COMD_DownLeft;
 static const COMD_Left;
 static const COMD_UpLeft;
+
 static const DIR_Left;
 static const DIR_Right;
+
 static const CON_CursorLeft;
 static const CON_CursorToggle;
 static const CON_CursorRight;
@@ -70,6 +84,7 @@ static const CON_Right;
 static const CON_Menu;
 static const CON_Special;
 static const CON_Special2;
+
 static const OCF_Construct;
 static const OCF_Grab;
 static const OCF_Collectible;
@@ -101,6 +116,7 @@ static const OCF_PowerConsumer;
 static const OCF_PowerSupply;
 static const OCF_Container;
 static const OCF_Alive;
+
 static const VIS_All;
 static const VIS_None;
 static const VIS_Owner;
@@ -110,12 +126,15 @@ static const VIS_Local;
 static const VIS_God;
 static const VIS_LayerToggle;
 static const VIS_OverlayOnly;
+
 static const C4X_Ver1;
 static const C4X_Ver2;
 static const C4X_Ver3;
 static const C4X_Ver4;
 static const C4X_VerBuild;
+
 static const SkyPar_Keep;
+
 static const C4MN_Style_Normal;
 static const C4MN_Style_Context;
 static const C4MN_Style_Info;
@@ -138,6 +157,7 @@ static const C4MN_Add_ImgColor;
 static const C4MN_Add_PassValue;
 static const C4MN_Add_ForceCount;
 static const C4MN_Add_ForceNoDesc;
+
 static const FX_OK;
 static const FX_Effect_Deny;
 static const FX_Effect_Annul;
@@ -150,19 +170,33 @@ static const FX_Call_Temp;
 static const FX_Call_TempAddForRemoval;
 static const FX_Call_RemoveClear;
 static const FX_Call_RemoveDeath;
+
 static const CSPF_Invisible;
 static const CSPF_NoEliminationCheck;
 static const CSPF_NoScenarioInit;
 static const CSPF_FixedAttributes;
 static const C4PT_Script;
 static const C4PT_User;
-static const MSG_Multiple;
-static const MSG_Bottom;
+
 static const MSG_NoLinebreak;
+static const MSG_Bottom;
+static const MSG_Multiple;
+static const MSG_Top;
+static const MSG_Left;
+static const MSG_Right;
+static const MSG_HCenter;
+static const MSG_VCenter;
+static const MSG_DropSpeech;
+static const MSG_WidthRel;
+static const MSG_XRel;
+static const MSG_YRel;
+
 static const TEAMID_New;
+
 static const C4SECT_KeepEffects;
 static const C4SECT_SaveObjects;
 static const C4SECT_SaveLandscape;
+
 static const C4CMD_Enter_PushTarget;
 static const C4CMD_MoveTo_PushTarget;
 static const C4CMD_MoveTo_NoPosAdjust;
@@ -170,10 +204,12 @@ static const C4CMD_SilentSub;
 static const C4CMD_Sub;
 static const C4CMD_SilentBase;
 static const C4CMD_Base;
+
 static const PHYS_StackTemporary;
 static const PHYS_Temporary;
 static const PHYS_Permanent;
 static const PHYS_Current;
+
 static const C4SO_Func;
 static const C4SO_Value;
 static const C4SO_Mass;
@@ -201,12 +237,15 @@ static const C4FO_Exclude;
 static const C4FO_Or;
 static const C4FO_And;
 static const C4FO_Not;
+
 static const C4MSGCMDR_Identifier;
 static const C4MSGCMDR_Plain;
 static const C4MSGCMDR_Escaped;
+
 static const C4OS_INACTIVE;
 static const C4OS_NORMAL;
 static const C4OS_DELETED;
+
 static const TEAM_TeamColors;
 static const TEAM_AutoGenerateTeams;
 static const TEAM_AllowTeamSwitch;
@@ -214,30 +253,35 @@ static const TEAM_Dist;
 static const TEAM_AllowHostilityChange;
 static const TEAM_Active;
 static const TEAM_Custom;
+
 static const SBRD_Caption;
+
 static const C4M_Background;
 static const C4M_Liquid;
 static const C4M_SemiSolid;
 static const C4M_Solid;
 static const C4M_Vehicle;
+
 static const VTX_SetPermanentUpd;
 static const VTX_SetPermanent;
 static const VTX_Friction;
 static const VTX_CNAT;
 static const VTX_Y;
 static const VTX_X;
+
 static const GFX_BLIT_Parent;
 static const GFX_BLIT_Custom;
 static const GFX_BLIT_ClrSfc_Mod2;
 static const GFX_BLIT_ClrSfc_OwnClr;
 static const GFX_BLIT_Mod2;
 static const GFX_BLIT_Additive;
+static const GFX_Overlay;
+
 static const GFXOV_UI;
 static const GFXOV_Misc;
 static const GFXOV_ProcessTarget;
 static const GFXOV_Tools;
 static const GFXOV_Clothing;
-static const GFX_Overlay;
 static const GFXOV_MODE_ExtraGraphics;
 static const GFXOV_MODE_Object;
 static const GFXOV_MODE_IngamePicture;
@@ -245,6 +289,7 @@ static const GFXOV_MODE_Picture;
 static const GFXOV_MODE_Action;
 static const GFXOV_MODE_Base;
 static const GFXOV_MODE_None;
+
 static const FX_Call_EngGetPunched;
 static const FX_Call_EngStruct;
 static const FX_Call_EngCorrosion;
@@ -259,6 +304,7 @@ static const FX_Call_DmgChop;
 static const FX_Call_DmgFire;
 static const FX_Call_DmgBlast;
 static const FX_Call_DmgScript;
+
 static const CNAT_None;
 static const CNAT_Left;
 static const CNAT_Right;
@@ -267,16 +313,8 @@ static const CNAT_Bottom;
 static const CNAT_Center;
 static const CNAT_MultiAttach;
 static const CNAT_NoCollision;
+
 static const NO_OWNER;
-static const C4D_SelectHomebase;
-static const C4D_SelectVehicle;
-static const C4D_SelectKnowledge;
-static const C4D_SelectBuilding;
-static const C4D_SelectAnimal;
-static const C4D_SelectMaterial;
-static const C4D_TradeLiving;
-static const C4D_SelectInEarth;
-static const C4D_SelectVegetation;
 
 global func bool DebugLog(string szMessage, ...);
 global func int Abs(int iValue);
@@ -667,41 +705,40 @@ global func & SetLocal(int iVarIndex, Value, object pObj);
 global func & SetVar(int iVarIndex, Value);
 global func & Var(int iIndex);
 global func & VarN(string szName);
-global func int AbortMessageBoard();
-global func int ActivateGameGoalMenu();
-global func int AddEvaluationData();
-global func int AddMessage();
-global func int AdjustWalkRotation();
-global func int AsyncRandom();
-global func int BlastFree();
-global func int BlastObject();
-global func int CallMessageBoard();
-global func int CastBackParticles();
+global func int AbortMessageBoard(object pObj, int iForPlr);
+global func int ActivateGameGoalMenu(int iPlayer);
+global func int AddEvaluationData(string pText, int idPlayer);
+global func int AddMessage(string szMessage, object pObj, ...);
+global func int AdjustWalkRotation(int iRangeX, int iRangeY, int iSpeed);
+global func int AsyncRandom(int iRange);
+global func int BlastFree(int iX, int iY, int iLevel, int iCausedBy);
+global func int BlastObject(int iX, int iY, int iLevel, object pInObj, int iCausedBy);
+global func int CallMessageBoard(object pObj, bool fUppserCase, string szQueryString, int iForPlr);
+global func int CastBackParticles(string szName, int iAmount, int iLevel, int iX, int iY, int a0, int a1, int b0, int b1, object pObj);
 global func int ClearLastPlrCom();
-global func int DrawMatChunks();
+global func int DrawMatChunks(int tx, int ty, int twdt, int thgt, int icntx, int icnty, string strMaterial, string strTexture, bool bIFT);
 global func int DrawModLandscape();
-global func int DrawVolcanoBranch();
+global func int DrawVolcanoBranch(int mat, int fx, int fy, int tx, int ty, int size);
 global func int ExecuteCommand();
 global func int FatalError(string szMessage);
 global func int FlameConsumeMaterial();
-global func int GameCallEx();
+global func int GameCallEx(string szFunction, ...);
 global func int GetIndexOf(iNeedle, array aHaystack);
 global func int GetMatAdjust();
 global func int GetObjectStatus();
-global func int GetScoreboardData();
+global func int GetScoreboardData(int iRowID, int iColID);
 global func int GetTeamConfig(int iConfigValue);
-global func int IncinerateLandscape();
-global func int InitScenarioPlayer();
-global func int LoadScenarioSection();
-global func int LocateFunc();
+global func int IncinerateLandscape(int iX, int iY);
+global func int InitScenarioPlayer(int iPlayer, id idTeam);
+global func int LoadScenarioSection(string pstrSection, int dwFlags);
+global func int LocateFunc(string funcname, object pObj, id idDef);
 global func int ModulateColor(int color1, int color2);
-global func int OnMessageBoardAnswer();
+global func int OnMessageBoardAnswer(object pObj, int iForPlr, string szAnswerString);
 global func bool PathFree2(int iX1, int iY1, int iX2, int iY2);
 global func bool PauseGame(bool toggle);
-global func int PlayVideo();
-global func int PlayerObjectCommand();
+global func int PlayVideo(string pFileName);
+global func int PlayerObjectCommand(pPars);
 global func int RemoveUnusedTexMapEntries();
-global func int Set();
 global func bool SetKiller(int iNewKiller, object pObj);
 global func bool SetMenuDecoration(id idNewDeco, object pMenuObj);
 global func bool SetMenuTextProgress(int iNewProgress, object pMenuObj);
@@ -709,11 +746,11 @@ global func bool SetObjDrawTransform2(int iA, int iB, int iC, int iD, id iE, int
 global func bool SetObjectLayer(object pNewLayer, object pObj);
 global func bool SetObjectStatus(int iNewStatus, object pObj, bool fClearPointers);
 global func bool SetPreSend(int iToVal, string pNewName);
-global func int SetTextureIndex();
-global func int SetViewCursor();
+global func int SetTextureIndex(string psMatTex, int iNewIndex, bool fInsert);
+global func int SetViewCursor(int iPlr, object pObj);
 global func int StartCallTrace();
 global func bool SurrenderPlayer(int iPlr);
-global func int TestMessageBoard();
+global func int TestMessageBoard(int iForPlr, bool fTextIfInUse);
 global func string GetLeague(int id);
 global func object GetObjectLayer(object pObj);
 global func id CastC4ID(par1);
