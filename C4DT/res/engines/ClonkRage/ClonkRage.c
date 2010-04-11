@@ -420,7 +420,7 @@ global func int Or(int fCon1, int fCon2, int fCon3, int fCon4, int fCon5);
 global func int Music(string szSongName, bool fLoop);
 global func int MusicLevel(int iLevel);
 global func int SetPlayList(string szPlayList);
-global func bool CustomMessage(string message, object obj, int plr, int offset_x, int offset_y, int color, id deco, string portrait, int flags);
+global func bool CustomMessage(string pMsg, object pObj, int iOwner, int iOffX, int iOffY, int dwClr, id idDeco, string sPortrait, int dwFlags, int iHSize);
 global func bool Log(string szMessage, ...);
 global func bool Message(string strMessage, object pObj, ...);
 global func bool PlayerMessage(int iPlr, string szMessage, object pObj, ...);
