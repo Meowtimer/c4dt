@@ -9,7 +9,6 @@ static const C4D_Rule;
 static const C4D_StaticBack;
 static const C4D_Structure;
 static const C4D_Vehicle;
-static const C4D_Environment;
 static const C4D_SelectMaterial;
 static const C4D_SelectHomebase;
 static const C4D_SelectKnowledge;
@@ -17,6 +16,31 @@ static const C4D_SelectBuilding;
 static const C4D_SelectInEarth;
 static const C4D_SelectVehicle;
 static const C4D_SelectAnimal;
+static const C4D_Environment;
+static const C4D_Magic;
+static const C4D_MouseSelect;
+static const C4D_Foreground;
+static const C4D_MouseIgnore;
+static const C4D_IgnoreFoW;
+static const C4D_GrabGet;
+static const C4D_GrabPut;
+static const C4D_LinePower;
+static const C4D_LineSource;
+static const C4D_LineDrain;
+static const C4D_LineLightning;
+static const C4D_LineVolcano;
+static const C4D_LineRope;
+static const C4D_LineColored;
+static const C4D_LineVertex;
+static const C4D_PowerInput;
+static const C4D_PowerOutput;
+static const C4D_LiquidInput;
+static const C4D_LiquidOutput;
+static const C4D_PowerGenerator;
+static const C4D_PowerConsumer;
+static const C4D_LiquidPump;
+static const C4D_EnergyHolder;
+
 static const C4V_Any;
 static const C4V_Array;
 static const C4V_Bool;
@@ -24,6 +48,8 @@ static const C4V_C4ID;
 static const C4V_C4Object;
 static const C4V_Int;
 static const C4V_String;
+static const C4V_PropList;
+
 static const COMD_Down;
 static const COMD_DownLeft;
 static const COMD_DownRight;
@@ -34,9 +60,12 @@ static const COMD_Stop;
 static const COMD_Up;
 static const COMD_UpLeft;
 static const COMD_UpRight;
+
 static const DIR_Left;
 static const DIR_Right;
+
 static const NO_OWNER;
+
 static const OCF_Alive;
 static const OCF_AttractLightning;
 static const OCF_Available;
@@ -68,6 +97,7 @@ static const OCF_PowerConsumer;
 static const OCF_PowerSupply;
 static const OCF_Prey;
 static const OCF_Rotate;
+
 static const VIS_All;
 static const VIS_Allies;
 static const VIS_Enemies;
@@ -75,31 +105,7 @@ static const VIS_God;
 static const VIS_Local;
 static const VIS_None;
 static const VIS_Owner;
-static const C4D_Environment;
-static const C4D_Magic;
-static const C4D_MouseSelect;
-static const C4D_Foreground;
-static const C4D_MouseIgnore;
-static const C4D_IgnoreFoW;
-static const C4D_GrabGet;
-static const C4D_GrabPut;
-static const C4D_LinePower;
-static const C4D_LineSource;
-static const C4D_LineDrain;
-static const C4D_LineLightning;
-static const C4D_LineVolcano;
-static const C4D_LineRope;
-static const C4D_LineColored;
-static const C4D_LineVertex;
-static const C4D_PowerInput;
-static const C4D_PowerOutput;
-static const C4D_LiquidInput;
-static const C4D_LiquidOutput;
-static const C4D_PowerGenerator;
-static const C4D_PowerConsumer;
-static const C4D_LiquidPump;
-static const C4D_EnergyHolder;
-static const C4V_PropList;
+
 static const CON_CursorLeft;
 static const CON_CursorToggle;
 static const CON_CursorRight;
@@ -112,15 +118,19 @@ static const CON_Right;
 static const CON_Menu;
 static const CON_Special;
 static const CON_Special2;
+
 static const VIS_Select;
 static const VIS_LayerToggle;
 static const VIS_OverlayOnly;
+
 static const C4X_Ver1;
 static const C4X_Ver2;
 static const C4X_Ver3;
 static const C4X_Ver4;
 static const C4X_VerBuild;
+
 static const SkyPar_Keep;
+
 static const C4MN_Style_Normal;
 static const C4MN_Style_Context;
 static const C4MN_Style_Info;
@@ -143,6 +153,7 @@ static const C4MN_Add_ImgColor;
 static const C4MN_Add_PassValue;
 static const C4MN_Add_ForceCount;
 static const C4MN_Add_ForceNoDesc;
+
 static const FX_OK;
 static const FX_Effect_Deny;
 static const FX_Effect_Annul;
@@ -169,6 +180,7 @@ static const FX_Call_EngAsphyxiation;
 static const FX_Call_EngCorrosion;
 static const FX_Call_EngStruct;
 static const FX_Call_EngGetPunched;
+
 static const GFXOV_MODE_None;
 static const GFXOV_MODE_Base;
 static const GFXOV_MODE_Action;
@@ -176,18 +188,20 @@ static const GFXOV_MODE_Picture;
 static const GFXOV_MODE_IngamePicture;
 static const GFXOV_MODE_Object;
 static const GFXOV_MODE_ExtraGraphics;
-static const GFX_Overlay;
 static const GFXOV_Clothing;
 static const GFXOV_Tools;
 static const GFXOV_ProcessTarget;
 static const GFXOV_Misc;
 static const GFXOV_UI;
+
+static const GFX_Overlay;
 static const GFX_BLIT_Additive;
 static const GFX_BLIT_Mod2;
 static const GFX_BLIT_ClrSfc_OwnClr;
 static const GFX_BLIT_ClrSfc_Mod2;
 static const GFX_BLIT_Custom;
 static const GFX_BLIT_Parent;
+
 static const CNAT_None;
 static const CNAT_Left;
 static const CNAT_Right;
@@ -196,18 +210,22 @@ static const CNAT_Bottom;
 static const CNAT_Center;
 static const CNAT_MultiAttach;
 static const CNAT_NoCollision;
+
 static const VTX_X;
 static const VTX_Y;
 static const VTX_CNAT;
 static const VTX_Friction;
 static const VTX_SetPermanent;
 static const VTX_SetPermanentUpd;
+
 static const C4M_Vehicle;
 static const C4M_Solid;
 static const C4M_SemiSolid;
 static const C4M_Liquid;
 static const C4M_Background;
+
 static const SBRD_Caption;
+
 static const TEAM_Custom;
 static const TEAM_Active;
 static const TEAM_AllowHostilityChange;
@@ -215,12 +233,15 @@ static const TEAM_Dist;
 static const TEAM_AllowTeamSwitch;
 static const TEAM_AutoGenerateTeams;
 static const TEAM_TeamColors;
+
 static const C4OS_DELETED;
 static const C4OS_NORMAL;
 static const C4OS_INACTIVE;
+
 static const C4MSGCMDR_Escaped;
 static const C4MSGCMDR_Plain;
 static const C4MSGCMDR_Identifier;
+
 static const C4FO_Not;
 static const C4FO_And;
 static const C4FO_Or;
@@ -241,6 +262,7 @@ static const C4FO_Owner;
 static const C4FO_Controller;
 static const C4FO_Func;
 static const C4FO_Layer;
+
 static const C4SO_Reverse;
 static const C4SO_Multiple;
 static const C4SO_Distance;
@@ -249,10 +271,12 @@ static const C4SO_Speed;
 static const C4SO_Mass;
 static const C4SO_Value;
 static const C4SO_Func;
+
 static const PHYS_Current;
 static const PHYS_Permanent;
 static const PHYS_Temporary;
 static const PHYS_StackTemporary;
+
 static const C4CMD_Base;
 static const C4CMD_SilentBase;
 static const C4CMD_Sub;
@@ -260,10 +284,13 @@ static const C4CMD_SilentSub;
 static const C4CMD_MoveTo_NoPosAdjust;
 static const C4CMD_MoveTo_PushTarget;
 static const C4CMD_Enter_PushTarget;
+
 static const C4SECT_SaveLandscape;
 static const C4SECT_SaveObjects;
 static const C4SECT_KeepEffects;
+
 static const TEAMID_New;
+
 static const MSG_NoLinebreak;
 static const MSG_Bottom;
 static const MSG_Multiple;
@@ -276,12 +303,15 @@ static const MSG_DropSpeech;
 static const MSG_WidthRel;
 static const MSG_XRel;
 static const MSG_YRel;
+
 static const C4PT_User;
 static const C4PT_Script;
+
 static const CSPF_FixedAttributes;
 static const CSPF_NoScenarioInit;
 static const CSPF_NoEliminationCheck;
 static const CSPF_Invisible;
+
 static const any nil;
 
 static const ANIM_Hold;
@@ -303,77 +333,12 @@ static const C4AVP_CosV;
 static const C4AVP_SinV;
 static const C4AVP_Action;
 
-static const C4FO_Not;
-static const C4FO_And;
-static const C4FO_Or;
-static const C4FO_Exclude;
-static const C4FO_InRect;
-static const C4FO_AtPoint;
-static const C4FO_AtRect;
-static const C4FO_OnLine;
-static const C4FO_Distance;
-static const C4FO_ID;
-static const C4FO_OCF;
-static const C4FO_Category;
-static const C4FO_Action;
-static const C4FO_ActionTarget;
-static const C4FO_Procedure;
-static const C4FO_Container;
-static const C4FO_AnyContainer;
-static const C4FO_Owner;
-static const C4FO_Controller;
-static const C4FO_Func;
-static const C4FO_Layer;
-
-static const C4SO_Reverse;
-static const C4SO_Multiple;
-static const C4SO_Distance;
-static const C4SO_Random;
-static const C4SO_Speed;
-static const C4SO_Mass;
-static const C4SO_Value;
-static const C4SO_Func;
-
-static const PHYS_Current;
-static const PHYS_Permanent;
-static const PHYS_Temporary;
-static const PHYS_StackTemporary;
-
-static const C4CMD_Base;
-static const C4CMD_SilentBase;
-static const C4CMD_Sub;
-static const C4CMD_SilentSub;
-
-static const C4CMD_MoveTo_NoPosAdjust;
-static const C4CMD_MoveTo_PushTarget;
-static const C4CMD_Enter_PushTarget;
-
 static const C4SECT_SaveLandscape;
 static const C4SECT_SaveObjects;
 static const C4SECT_KeepEffects;
 
-static const TEAMID_New;
-
-static const MSG_NoLinebreak;
-static const MSG_Bottom;
-static const MSG_Multiple;
-static const MSG_Top;
-static const MSG_Left;
-static const MSG_Right;
-static const MSG_HCenter;
-static const MSG_VCenter;
-static const MSG_DropSpeech;
-static const MSG_WidthRel;
-static const MSG_XRel;
-static const MSG_YRel;
-
 static const C4PT_User;
 static const C4PT_Script;
-
-static const CSPF_FixedAttributes;
-static const CSPF_NoScenarioInit;
-static const CSPF_NoEliminationCheck;
-static const CSPF_Invisible;
 
 static const GFXOV_MODE_None;
 static const GFXOV_MODE_Base;

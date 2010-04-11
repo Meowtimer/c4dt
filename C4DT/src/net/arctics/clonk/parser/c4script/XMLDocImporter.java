@@ -98,7 +98,7 @@ public class XMLDocImporter {
 
 	public C4Declaration importFromXML(InputStream stream) throws IOException, XPathExpressionException {
 
-		String text = Utilities.stringFromInputStream(stream);
+		String text = Utilities.stringFromInputStream(stream, "ISO-8859-1");
 		// get rid of pesky meta information
 		text = text.replaceAll("\\<\\?.*\\?\\>", "").replaceAll("\\<\\!.*\\>", ""); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
 		Document doc;

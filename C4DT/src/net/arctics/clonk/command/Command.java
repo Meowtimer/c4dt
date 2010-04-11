@@ -2,6 +2,7 @@ package net.arctics.clonk.command;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -313,16 +314,25 @@ public class Command {
 				C4Engine result = (C4Engine)objStream.readObject();
 				result.setName(engineName); // for good measure
 				result.postSerialize(null);
-				OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(writeToFile));
-				writer.append("[Descriptions]\n");
-				for (C4Function f : result.functions()) {
-					String escaped = f.getUserDescription() != null ? f.getUserDescription().replace("\n", "|||") : "";
-					writer.append(String.format("%s=%s\n", f.getName(), escaped));
-				}
-				writer.close();
+				_WriteDescriptionsToFile(writeToFile, result);
 			} finally {
 				engineStream.close();
 			}
+		}
+		private static void _WriteDescriptionsToFile(String writeToFile, C4Engine engine) throws FileNotFoundException, IOException {
+			OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(writeToFile));
+			writer.append("[Descriptions]\n");
+			for (C4Function f : engine.functions()) {
+				String escaped = f.getUserDescription() != null ? f.getUserDescription().replace("\n", "|||") : "";
+				writer.append(String.format("%s=%s\n", f.getName(), escaped));
+			}
+			writer.close();
+		}
+		@CommandFunction
+		public static void WriteDescriptionsToFile(Object context, String writeToFile, String engineName) throws FileNotFoundException, IOException {
+			C4Engine engine = ClonkCore.getDefault().loadEngine(engineName);
+			if (engine != null)
+				_WriteDescriptionsToFile(writeToFile, engine);
 		}
 	}
 	

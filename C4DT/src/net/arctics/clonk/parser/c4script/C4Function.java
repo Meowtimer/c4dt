@@ -1,11 +1,8 @@
 package net.arctics.clonk.parser.c4script;
 
-import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-
 import net.arctics.clonk.index.C4Engine;
 import net.arctics.clonk.index.C4Object;
 import net.arctics.clonk.parser.C4Declaration;
@@ -125,7 +122,7 @@ public class C4Function extends C4Structure implements Serializable, ITypedDecla
 	 * @return the description
 	 */
 	public String getUserDescription() {
-		return isEngineDeclaration() ? getEngine().descriptionFor(this) : description;
+		return description == null && isEngineDeclaration() ? getEngine().descriptionFor(this) : description;
 	}
 
 	/**
@@ -490,7 +487,8 @@ public class C4Function extends C4Structure implements Serializable, ITypedDecla
 	public void absorb(C4Declaration declaration) {
 		if (declaration instanceof C4Function) {
 			C4Function f = (C4Function) declaration;
-			this.parameter = f.parameter;
+			if (f.parameter.size() >= this.parameter.size())
+				this.parameter = f.parameter;
 			this.returnType = f.returnType;
 			f.parameter = null;
 		}
