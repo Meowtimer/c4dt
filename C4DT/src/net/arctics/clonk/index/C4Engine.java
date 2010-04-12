@@ -75,7 +75,9 @@ public class C4Engine extends C4ScriptBase {
 		@IniField
 		public boolean definitionsHaveStaticVariables;
 		@IniField
-		public boolean disallowRefs;
+		public boolean supportsRefs;
+		@IniField
+		public boolean supportsDebugging;
 
 		public static final IniConfiguration INI_CONFIGURATION = IniConfiguration.createFromClass(EngineSettings.class);
 

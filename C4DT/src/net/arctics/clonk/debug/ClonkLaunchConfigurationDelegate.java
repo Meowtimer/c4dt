@@ -75,6 +75,9 @@ public class ClonkLaunchConfigurationDelegate implements ILaunchConfigurationDel
 				Process process = Runtime.getRuntime().exec(launchArgs, null, workDirectory);
 				IProcess p = DebugPlugin.newProcess(launch, process, configuration.getName());
 				if (mode.equals(ILaunchManager.DEBUG_MODE)) {
+					C4Scenario scenarioObj = C4Scenario.get(scenario);
+					if (scenarioObj != null && !scenarioObj.getEngine().getCurrentSettings().supportsDebugging)
+						abort(IStatus.ERROR, String.format(Messages.EngineDoesNotSupportDebugging, scenarioObj.getEngine().getName()));
 					try {
 						IDebugTarget target = new ClonkDebugTarget(launch, p, DEFAULT_DEBUG_PORT, scenario);
 						launch.addDebugTarget(target);
@@ -103,8 +106,7 @@ public class ClonkLaunchConfigurationDelegate implements ILaunchConfigurationDel
 	/** 
 	 * Searches the scenario to launch
 	 */
-	public IFolder verifyScenario(ILaunchConfiguration configuration)
-			throws CoreException {
+	public IFolder verifyScenario(ILaunchConfiguration configuration) throws CoreException {
 		
 		// Get project and scenario name from configuration
 		String projectName = configuration.getAttribute(ATTR_PROJECT_NAME, ""); //$NON-NLS-1$
@@ -130,13 +132,13 @@ public class ClonkLaunchConfigurationDelegate implements ILaunchConfigurationDel
 	 */
 	public File verifyClonkInstall(ILaunchConfiguration configuration, IFolder scenario) throws CoreException {
 		
-		C4ScriptBase scenarioScript = C4Scenario.scenarioCorrespondingTo(scenario);
+		C4ScriptBase scenarioScript = C4Scenario.get(scenario);
 		String gamePath = scenarioScript != null ? scenarioScript.getEngine().getCurrentSettings().gamePath : null;
 
 		File enginePath = null;
 		String enginePref = scenarioScript != null ? scenarioScript.getEngine().getCurrentSettings().engineExecutablePath : null;
 		if (enginePref == null)
-			enginePref = "";
+			enginePref = ""; //$NON-NLS-1$
 		if (!enginePref.equals("")) { //$NON-NLS-1$
 			enginePath = new File(enginePref);
 			if (!enginePath.exists())

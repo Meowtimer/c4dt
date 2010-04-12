@@ -15,7 +15,9 @@ public class Messages extends NLS {
 	public static String ValueExpected;
 	public static String TuplesNotAllowed;
 	public static String EmptyParentheses;
+	public static String EngineDoesNotSupportRefs;
 	public static String ExpectedCode;
+	public static String MissingDirectiveArgs;
 	public static String MissingClosingBracket;
 	public static String MissingLocalizations;
 	public static String ConstantValueExpected;
@@ -46,6 +48,7 @@ public class Messages extends NLS {
 	public static String LocalUsedInGlobal;
 	public static String ExpressionExpected;
 	public static String UnexpectedEnd;
+	public static String VarUsedBeforeItsDeclaration;
 	public static String NameExpected;
 	public static String ReturnAsFunction;
 	public static String ExpressionNotModifiable;

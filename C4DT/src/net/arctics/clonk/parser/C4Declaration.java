@@ -129,7 +129,7 @@ public abstract class C4Declaration implements Serializable, IHasRelatedResource
 		if (file instanceof IResource) {
 			for (IResource r = (IResource) file; r != null; r = r.getParent()) {
 				if (r instanceof IContainer) {
-					C4Scenario s = C4Scenario.scenarioCorrespondingTo((IContainer) r);
+					C4Scenario s = C4Scenario.get((IContainer) r);
 					if (s != null)
 						return s;
 				}

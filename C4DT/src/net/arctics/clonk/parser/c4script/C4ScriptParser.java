@@ -738,6 +738,9 @@ public class C4ScriptParser {
 		final int offset = scanner.getPosition();
 		eatWhitespace();
 		if (scanner.peek() == '&') {
+			if (!container.getEngine().getCurrentSettings().supportsRefs) {
+				errorWithCode(ParserErrorCode.EngineDoesNotSupportRefs, scanner.getPosition(), scanner.getPosition()+1, container.getEngine().getName());
+			}
 			scanner.read();
 			return C4Type.REFERENCE;
 		}
