@@ -2237,6 +2237,12 @@ public abstract class C4ScriptExprTree {
 		public void doPrint(ExprWriter output, int depth) {
 			output.append(booleanValue() ? Keywords.True : Keywords.False);
 		}
+		@Override
+		public void reportErrors(C4ScriptParser parser) throws ParsingException {
+			if (getParent() instanceof BinaryOp) {
+				parser.warningWithCode(ParserErrorCode.BoolLiteralAsOpArg, this, this.toString());
+			}
+		}
 	}
 
 	public static final class ArrayElementAccess extends Value {
