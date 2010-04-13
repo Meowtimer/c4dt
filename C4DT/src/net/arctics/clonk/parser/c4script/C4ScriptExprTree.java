@@ -1619,8 +1619,11 @@ public abstract class C4ScriptExprTree {
 				if (leftSide != null && leftSide != ExprElm.EVALUATION_COMPLEX) {
 					switch (getOperator()) {
 					case And:
-						return leftSide;
+						// false && <anything> => false
+						if (leftSide.equals(false))
+							return false;
 					case Or:
+						// true || <anything> => true 
 						if (leftSide.equals(true))
 							return true;
 					}
