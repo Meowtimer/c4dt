@@ -2240,7 +2240,9 @@ public abstract class C4ScriptExprTree {
 		@Override
 		public void reportErrors(C4ScriptParser parser) throws ParsingException {
 			if (getParent() instanceof BinaryOp) {
-				parser.warningWithCode(ParserErrorCode.BoolLiteralAsOpArg, this, this.toString());
+				C4ScriptOperator op = ((BinaryOp) getParent()).getOperator();
+				if (op == C4ScriptOperator.And || op == C4ScriptOperator.Or)
+					parser.warningWithCode(ParserErrorCode.BoolLiteralAsOpArg, this, this.toString());
 			}
 		}
 	}
