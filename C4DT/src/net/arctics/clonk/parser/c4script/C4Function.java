@@ -309,6 +309,16 @@ public class C4Function extends C4Structure implements Serializable, ITypedDecla
 	}
 	
 	public C4Function getInherited() {
+		
+		// search in #included scripts
+		C4ScriptBase[] includes = getScript().getIncludes();
+		for (int i = includes.length-1; i >= 0; i--) {
+			C4Function fun = includes[i].findFunction(getName());
+			if (fun != null && fun != this)
+				return fun;
+		}
+		
+		// search in index
 		List<C4Declaration> decsWithSameName = getScript().getIndex().getDeclarationMap().get(this.getName());
 		if (decsWithSameName != null) {
 			C4Function f = null;
@@ -330,13 +340,8 @@ public class C4Function extends C4Structure implements Serializable, ITypedDecla
 			if (f != null)
 				return f;
 		}
-		C4ScriptBase[] includes = getScript().getIncludes();
-		for (int i = includes.length-1; i >= 0; i--) {
-			C4Function field = includes[i].findFunction(getName());
-			if (field != null && field != this)
-				return field;
-		}
 		
+		// search in engine
 		C4Function f = getScript().getIndex().getEngine().findFunction(getName());
 		if (f != null)
 			return f;
