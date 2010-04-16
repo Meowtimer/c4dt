@@ -262,6 +262,7 @@ static const C4FO_Owner;
 static const C4FO_Controller;
 static const C4FO_Func;
 static const C4FO_Layer;
+static const C4FO_Procedure;
 
 static const C4SO_Reverse;
 static const C4SO_Multiple;
