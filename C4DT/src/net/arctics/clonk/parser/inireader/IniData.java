@@ -176,10 +176,10 @@ public class IniData {
 		}
 		
 		private static Class<?> getClass(String name) {
-			if (name.equals("C4ID"))
+			if (name.equals("C4ID")) //$NON-NLS-1$
 				return C4ID.class;
-			if (!name.contains(".")) {
-				name = ClonkCore.id("parser.inireader."+name);
+			if (!name.contains(".")) { //$NON-NLS-1$
+				name = ClonkCore.id("parser.inireader."+name); //$NON-NLS-1$
 			}
 			try {
 				return Class.forName(name);
@@ -198,10 +198,10 @@ public class IniData {
 				throw new InvalidIniConfigurationException("An <entry> tag must have a 'name=\"\"' and a 'class=\"\"' attribute"); //$NON-NLS-1$
 			}
 			entry.entryName = entryNode.getAttributes().getNamedItem("name").getNodeValue(); //$NON-NLS-1$
-			String className = entryNode.getAttributes().getNamedItem("class").getNodeValue();
+			String className = entryNode.getAttributes().getNamedItem("class").getNodeValue(); //$NON-NLS-1$
 			Class<?> configClass = getClass(className);
 			if (configClass == null)
-				throw new InvalidIniConfigurationException("Bad class " + entryNode.getAttributes().getNamedItem("class").getNodeValue());
+				throw new InvalidIniConfigurationException("Bad class " + entryNode.getAttributes().getNamedItem("class").getNodeValue()); //$NON-NLS-1$ //$NON-NLS-2$
 			entry.entryClass = configClass;
 			if ((n = entryNode.getAttributes().getNamedItem("description")) != null) { //$NON-NLS-1$
 				entry.entryDescription = n.getNodeValue();
@@ -210,7 +210,7 @@ public class IniData {
 				if ((n = entryNode.getAttributes().getNamedItem("flags")) != null) { //$NON-NLS-1$
 					entry.extraData = n.getNodeValue().split(","); //$NON-NLS-1$
 				}
-				else if ((n = entryNode.getAttributes().getNamedItem("constantsPrefix")) != null) {
+				else if ((n = entryNode.getAttributes().getNamedItem("constantsPrefix")) != null) { //$NON-NLS-1$
 					entry.extraData = n.getNodeValue();
 				}
 			}

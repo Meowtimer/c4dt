@@ -169,10 +169,10 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 	}
 	
 	private String engineNameFromPath(String path) {
-		String folderName = path.endsWith("/")
+		String folderName = path.endsWith("/") //$NON-NLS-1$
 			? path.substring(path.lastIndexOf('/', path.length()-2)+1, path.length()-1)
 			: path.substring(path.lastIndexOf('/')+1);
-		return folderName.startsWith(".") ? null : folderName;
+		return folderName.startsWith(".") ? null : folderName; //$NON-NLS-1$
 	}
 	
 	@SuppressWarnings("unchecked")
@@ -210,7 +210,7 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 	}
 	
 	public C4Engine loadEngine(final String engineName) {
-		if (engineName == null || engineName.equals(""))
+		if (engineName == null || engineName.equals("")) //$NON-NLS-1$
 			return null;
 		C4Engine result = loadedEngines.get(engineName);
 		if (result != null)
@@ -284,7 +284,7 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 		IStorageLocation bundleProvider = new IStorageLocation() {
 			@Override
 			public URL getURL(String entryName, boolean create) {
-				return create ? null : getBundle().getEntry(String.format("res/engines/%s/%s", engineName, entryName));
+				return create ? null : getBundle().getEntry(String.format("res/engines/%s/%s", engineName, entryName)); //$NON-NLS-1$
 			}
 			@Override
 			public String getName() {
@@ -297,7 +297,7 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 			@SuppressWarnings("unchecked")
 			@Override
 			public Enumeration<URL> getURLs(String containerName) {
-				return ClonkCore.getDefault().getBundle().findEntries(String.format("res/engines/%s/%s", engineName, containerName), "*.*", false);
+				return ClonkCore.getDefault().getBundle().findEntries(String.format("res/engines/%s/%s", engineName, containerName), "*.*", false); //$NON-NLS-1$ //$NON-NLS-2$
 			}
 		};
 		

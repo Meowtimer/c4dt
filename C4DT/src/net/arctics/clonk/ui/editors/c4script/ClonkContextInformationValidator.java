@@ -39,7 +39,7 @@ public class ClonkContextInformationValidator implements
 			ClonkContextInformation clonkInformation = (ClonkContextInformation) fInformation;
 			if (!clonkInformation.valid(offset))
 				return false;
-			if (clonkInformation.getInformationDisplayString().endsWith("..."))
+			if (clonkInformation.getInformationDisplayString().endsWith("...")) //$NON-NLS-1$
 				restrictParmsIndex = clonkInformation.getParmCount()-1;
 		}
 		try {

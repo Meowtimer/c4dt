@@ -146,7 +146,7 @@ public class ProjectIndex extends ClonkIndex {
 				public boolean visit(IResource resource) throws CoreException {
 					if (resource instanceof IContainer) {
 						return true;
-					} else if (resource instanceof IFile && resource.getName().equals("PlayerControls.txt")) {
+					} else if (resource instanceof IFile && resource.getName().equals("PlayerControls.txt")) { //$NON-NLS-1$
 						PlayerControlsUnit unit = (PlayerControlsUnit) IniUnit.pinned(resource, true, true);
 						if (unit != null) {
 							staticVariables.addAll(unit.getControlVariables());

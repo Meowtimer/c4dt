@@ -54,7 +54,7 @@ public class C4GroupEntry extends C4GroupItem implements IStorage, Serializable 
 		public File getCachedFile(C4GroupEntry groupEntry) throws IOException, CoreException {
 			Entry e = files.get(groupEntry);
 			if (e == null || e.modified()) {
-				File f = File.createTempFile("c4dt", "c4groupcache");
+				File f = File.createTempFile("c4dt", "c4groupcache"); //$NON-NLS-1$ //$NON-NLS-2$
 				FileOutputStream fileStream = new FileOutputStream(f);
 				try {
 					ByteArrayInputStream contents = groupEntry.getContents();

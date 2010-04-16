@@ -128,7 +128,7 @@ public abstract class NewClonkFolderWizard extends Wizard implements INewWizard 
 	protected Enumeration<URL> getTemplateFiles() {
 		try {
 			ClonkProjectNature nature = ClonkProjectNature.get((IResource)((IStructuredSelection) selection).getFirstElement());
-			return nature.getIndex().getEngine().getURLsOf("wizards/"+getClass().getSimpleName());
+			return nature.getIndex().getEngine().getURLsOf("wizards/"+getClass().getSimpleName()); //$NON-NLS-1$
 		} catch (Exception e) {
 			return null;
 		}

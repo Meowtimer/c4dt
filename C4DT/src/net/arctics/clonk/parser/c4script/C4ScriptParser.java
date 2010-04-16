@@ -872,7 +872,7 @@ public class C4ScriptParser {
 				if (isEngine) {
 					// engine functions don't need a body
 					if (token != ';')
-						errorWithCode(ParserErrorCode.TokenExpected, scanner.getPosition()-1, scanner.getPosition(), ";");
+						errorWithCode(ParserErrorCode.TokenExpected, scanner.getPosition()-1, scanner.getPosition(), ";"); //$NON-NLS-1$
 					startBody = endBody = -1;
 				}
 				else {

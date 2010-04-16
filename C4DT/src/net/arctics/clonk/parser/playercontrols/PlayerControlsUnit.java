@@ -46,11 +46,11 @@ public class PlayerControlsUnit extends IniUnit {
 		controlVariables.clear();
 		super.parse(modifyMarkers);
 		for (IniSection section : getSections()) {
-			if (section.getName().equals("ControlDef")) {
-				IniEntry e = section.getEntry("Identifier");
+			if (section.getName().equals("ControlDef")) { //$NON-NLS-1$
+				IniEntry e = section.getEntry("Identifier"); //$NON-NLS-1$
 				if (e != null) {
 					String ident = e.getValue();
-					C4Variable var = new C4Variable("CON_" + ident, C4Type.INT);
+					C4Variable var = new C4Variable("CON_" + ident, C4Type.INT); //$NON-NLS-1$
 					var.setScope(C4VariableScope.VAR_CONST);
 					var.setParentDeclaration(this);
 					var.setLocation(e.getLocation());
@@ -62,7 +62,7 @@ public class PlayerControlsUnit extends IniUnit {
 	
 	@Override
 	public C4Declaration findDeclaration(String declarationName, Class<? extends C4Declaration> declarationClass) {
-		if (declarationClass == C4Variable.class && declarationName.startsWith("CON_")) {
+		if (declarationClass == C4Variable.class && declarationName.startsWith("CON_")) { //$NON-NLS-1$
 			for (C4Variable var : getControlVariables())
 				if (var.getName().equals(declarationName))
 					return var;

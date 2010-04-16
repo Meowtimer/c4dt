@@ -71,7 +71,7 @@ public class StringTbl extends C4Structure implements ITreeNode, ITableEntryInfo
 		try {
 			scanner = new BufferedScanner(reader);
 		} catch (IOException e) {
-			scanner = new BufferedScanner("");
+			scanner = new BufferedScanner(""); //$NON-NLS-1$
 			e.printStackTrace();
 		}
 		while (!scanner.reachedEOF()) {

@@ -284,23 +284,23 @@ public class Command {
 			FileOutputStream stream = new FileOutputStream(fileName);
 			Writer writer = new OutputStreamWriter(stream);
 			for (C4Variable v : engine.variables()) {
-				String text = String.format("%s %s;\n", v.getScope().toKeyword(), v.getName());
+				String text = String.format("%s %s;\n", v.getScope().toKeyword(), v.getName()); //$NON-NLS-1$
 				writer.append(text);
 			}
-			writer.append("\n");
+			writer.append("\n"); //$NON-NLS-1$
 			for (C4Function f : engine.functions()) {
 				String returnType = f.getReturnType().toString();
 				String desc = f.getUserDescription();
 				if (desc != null) {
-					if (desc.contains("\n")) {
-						desc = String.format("/*\n%s\n*/\n", desc);
+					if (desc.contains("\n")) { //$NON-NLS-1$
+						desc = String.format("/*\n%s\n*/\n", desc); //$NON-NLS-1$
 					} else {
-						desc = String.format("//%s\n", desc);
+						desc = String.format("//%s\n", desc); //$NON-NLS-1$
 					}
 				} else {
-					desc = "";
+					desc = ""; //$NON-NLS-1$
 				}
-				String text = String.format("%s%s %s %s %s;\n\n", f.getVisibility().toKeyword(), Keywords.Func, returnType, f.getLongParameterString(true, true));
+				String text = String.format("%s%s %s %s %s;\n\n", f.getVisibility().toKeyword(), Keywords.Func, returnType, f.getLongParameterString(true, true)); //$NON-NLS-1$
 				writer.append(text);
 			}
 			writer.close();
@@ -321,10 +321,10 @@ public class Command {
 		}
 		private static void _WriteDescriptionsToFile(String writeToFile, C4Engine engine) throws FileNotFoundException, IOException {
 			OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(writeToFile));
-			writer.append("[Descriptions]\n");
+			writer.append("[Descriptions]\n"); //$NON-NLS-1$
 			for (C4Function f : engine.functions()) {
-				String escaped = f.getUserDescription() != null ? f.getUserDescription().replace("\n", "|||") : "";
-				writer.append(String.format("%s=%s\n", f.getName(), escaped));
+				String escaped = f.getUserDescription() != null ? f.getUserDescription().replace("\n", "|||") : ""; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+				writer.append(String.format("%s=%s\n", f.getName(), escaped)); //$NON-NLS-1$
 			}
 			writer.close();
 		}

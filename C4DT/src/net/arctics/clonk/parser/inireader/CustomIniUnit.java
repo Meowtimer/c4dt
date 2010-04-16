@@ -26,7 +26,7 @@ public class CustomIniUnit extends IniUnit {
 	public CustomIniUnit(InputStream stream) {super(stream);}
 	
 	public CustomIniUnit(IniConfiguration configuration, Object object, Object defaults) throws IllegalArgumentException, IllegalAccessException {
-		super("");
+		super(""); //$NON-NLS-1$
 		assert(defaults == null || object.getClass() == defaults.getClass());
 		this.setConfiguration(configuration);
 		for (Field f : object.getClass().getFields()) {

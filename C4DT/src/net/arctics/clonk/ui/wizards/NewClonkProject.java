@@ -6,6 +6,7 @@ import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.preferences.C4GroupListEditor;
 import net.arctics.clonk.preferences.ClonkPreferencePage;
 import net.arctics.clonk.preferences.ClonkPreferences;
+import net.arctics.clonk.preferences.Messages;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.ui.navigator.LinkC4GroupFileHandler;
 import net.arctics.clonk.ui.navigator.QuickImportHandler;
@@ -56,10 +57,10 @@ public class NewClonkProject extends Wizard implements INewWizard {
 			Composite realParent = (Composite) parent.getChildren()[0];
 			realParent.setLayoutData(new GridData(GridData.FILL_BOTH));
 			dummyPrefStore = new PreferenceStore();
-			dummyPrefStore.setValue(ClonkPreferences.ACTIVE_ENGINE, "");
+			dummyPrefStore.setValue(ClonkPreferences.ACTIVE_ENGINE, ""); //$NON-NLS-1$
 			
 			Group engineGroup = new Group(realParent, SWT.SHADOW_IN);
-			engineGroup.setText("Engine");
+			engineGroup.setText(Messages.NewClonkProject_Engine);
 			engineGroup.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 			engineEditor = new ComboFieldEditor(ClonkPreferences.ACTIVE_ENGINE, net.arctics.clonk.preferences.Messages.EngineVersion, ClonkPreferencePage.engineComboValues(true), engineGroup);
 			engineEditor.setPreferenceStore(dummyPrefStore);

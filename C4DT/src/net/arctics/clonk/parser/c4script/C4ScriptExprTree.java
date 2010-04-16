@@ -973,7 +973,7 @@ public abstract class C4ScriptExprTree {
 			
 			@Override
 			public String toString() {
-				return String.format("Var(%d", varIndex);
+				return String.format("Var(%d", varIndex); //$NON-NLS-1$
 			}
 			
 		}

@@ -5,6 +5,7 @@ import net.arctics.clonk.index.C4Object;
 import net.arctics.clonk.parser.c4script.C4Function;
 import net.arctics.clonk.parser.c4script.C4ScriptBase;
 import net.arctics.clonk.parser.c4script.C4Variable;
+import net.arctics.clonk.ui.navigator.Messages;
 
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.FileLocator;
@@ -105,7 +106,7 @@ public abstract class UI {
 			Text.setText(net.arctics.clonk.ui.navigator.Messages.ClonkFolderView_Project);
 			Text.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 			AddButton = new Button(container, SWT.PUSH);
-			AddButton.setText("Browse");
+			AddButton.setText(Messages.Browse);
 			
 			// Install listener
 			if (textModifyListener != null)

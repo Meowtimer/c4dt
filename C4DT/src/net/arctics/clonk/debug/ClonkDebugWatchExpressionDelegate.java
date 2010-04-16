@@ -28,7 +28,7 @@ public class ClonkDebugWatchExpressionDelegate extends Object implements IWatchE
 
 		@Override
 		public String toString() {
-			return "Listener for evaluation results";
+			return "Listener for evaluation results"; //$NON-NLS-1$
 		}
 
 		@Override
@@ -47,7 +47,7 @@ public class ClonkDebugWatchExpressionDelegate extends Object implements IWatchE
 			for (Entry<String, IWatchExpressionListener> entry : listeners.entrySet()) {
 				final String expression = entry.getKey();
 				IWatchExpressionListener listener = entry.getValue();
-				String s = Commands.EVALUATIONRESULT + " " + expression + "=";
+				String s = Commands.EVALUATIONRESULT + " " + expression + "="; //$NON-NLS-1$ //$NON-NLS-2$
 				if (line.startsWith(s)){
 					final ClonkDebugValue value = new ClonkDebugValue(target, line.substring(s.length()));
 					listener.watchEvaluationFinished(new IWatchExpressionResult() {
@@ -110,7 +110,7 @@ public class ClonkDebugWatchExpressionDelegate extends Object implements IWatchE
 				return new EvaluationResultListener(context);
 			}
 		}).add(expression, listener);
-		target.send(Commands.EXEC + " " + expression);
+		target.send(Commands.EXEC + " " + expression); //$NON-NLS-1$
 	}
 
 }

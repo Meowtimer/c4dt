@@ -26,7 +26,7 @@ public class ClonkDebugModelPresentation extends LabelProvider implements IDebug
 			listener.detailComputed(value, val);
 		} catch (DebugException e) {
 			e.printStackTrace();
-			listener.detailComputed(value, "Fail");
+			listener.detailComputed(value, "Fail"); //$NON-NLS-1$
 		}
 	}
 
@@ -65,10 +65,10 @@ public class ClonkDebugModelPresentation extends LabelProvider implements IDebug
 				return ((ClonkDebugLineBreakpoint)element).getMarker().getAttribute(IMarker.MESSAGE, "Breakpoint"); //$NON-NLS-1$
 			else if (element instanceof IWatchExpression) {
 				IWatchExpression expr = (IWatchExpression) element;
-				return expr.getExpressionText() + " == " + (expr.getValue() != null ? expr.getValue().getValueString() : "<nil>");
+				return expr.getExpressionText() + " == " + (expr.getValue() != null ? expr.getValue().getValueString() : "<nil>"); //$NON-NLS-1$ //$NON-NLS-2$
 			}
 			else
-				return "Empty";
+				return "Empty"; //$NON-NLS-1$
 		} catch (DebugException e) {
 			e.printStackTrace();
 			return "Fail"; //$NON-NLS-1$

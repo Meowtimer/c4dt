@@ -40,19 +40,19 @@ public class ClonkDebugTarget extends ClonkDebugElement implements IDebugTarget 
 		public static final String RESUME = "GO"; //$NON-NLS-1$
 		public static final String SUSPEND = "STP"; //$NON-NLS-1$
 		public static final String STEPOVER = "STO"; //$NON-NLS-1$
-		public static final String STEP = "STP";
+		public static final String STEP = "STP"; //$NON-NLS-1$
 		public static final String STEPRETURN = "STR"; //$NON-NLS-1$
 		public static final String QUITSESSION = "BYE"; //$NON-NLS-1$
 		public static final String STACKTRACE = "STA"; //$NON-NLS-1$
 		public static final String TOGGLEBREAKPOINT = "TBR"; //$NON-NLS-1$
 		public static final String VAR = "VAR"; //$NON-NLS-1$
-		public static final String SENDSTACKTRACE = "SST";
-		public static final String ENDSTACKTRACE = "EST";
-		public static final String AT = "AT";
-		public static final String EXEC = "EXC";
-		public static final String EVALUATIONRESULT = "EVR";
-		public static final String GO = "GO";
-		public static final String POSITION = "POS";
+		public static final String SENDSTACKTRACE = "SST"; //$NON-NLS-1$
+		public static final String ENDSTACKTRACE = "EST"; //$NON-NLS-1$
+		public static final String AT = "AT"; //$NON-NLS-1$
+		public static final String EXEC = "EXC"; //$NON-NLS-1$
+		public static final String EVALUATIONRESULT = "EVR"; //$NON-NLS-1$
+		public static final String GO = "GO"; //$NON-NLS-1$
+		public static final String POSITION = "POS"; //$NON-NLS-1$
 	}
 	
 	public enum LineReceivedResult {
@@ -94,14 +94,14 @@ public class ClonkDebugTarget extends ClonkDebugElement implements IDebugTarget 
 	}
 
 	public void addLineReceiveListener(ILineReceivedListener listener) {
-		System.out.println("Adding " + listener.toString());
+		System.out.println("Adding " + listener.toString()); //$NON-NLS-1$
 		synchronized (lineReceiveListeners) {
 			lineReceiveListeners.add(0, listener);
 		}
 	}
 	
 	public void removeLineReceiveListener(ILineReceivedListener listener) {
-		System.out.println("Removing " + listener.toString());
+		System.out.println("Removing " + listener.toString()); //$NON-NLS-1$
 		synchronized (lineReceiveListeners) {
 			lineReceiveListeners.remove(listener);
 		}

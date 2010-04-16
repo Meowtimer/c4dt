@@ -29,6 +29,14 @@ public class Messages extends NLS {
 	public static String German;
 	public static String USEnglish;
 	public static String DocURLTemplateDefault;
+	public static String NewClonkProject_Engine;
+	public static String NewClonkProject_ImportGroups;
+	public static String NewClonkProject_ImportingTabTitle;
+	public static String NewClonkProject_LinkGroups;
+	public static String NewClonkProject_LinkingTabTitle;
+	public static String NewClonkProject_PageTitle;
+	public static String NewClonkProject_ProjectRefsTabTitle;
+	public static String NewClonkProject_WindowTitle;
 	static {
 		// initialize resource bundle
 		NLS.initializeMessages(BUNDLE_NAME, Messages.class);

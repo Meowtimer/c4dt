@@ -101,7 +101,7 @@ public class C4Directive extends C4Declaration implements Serializable {
 	public void validate(C4ScriptParser parser) throws ParsingException {
 		switch (getType()) {
 		case APPENDTO:
-			if (getContent() != null && getContent().equals("*"))
+			if (getContent() != null && getContent().equals("*")) //$NON-NLS-1$
 				break;
 		case INCLUDE:
 			if (getContent() == null)

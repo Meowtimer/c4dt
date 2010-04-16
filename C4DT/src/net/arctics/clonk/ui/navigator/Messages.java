@@ -4,6 +4,7 @@ import org.eclipse.osgi.util.NLS;
 
 public class Messages extends NLS {
 	private static final String BUNDLE_NAME = "net.arctics.clonk.ui.navigator.messages"; //$NON-NLS-1$
+	public static String Browse;
 	public static String ClonkActionProvider_QuickExport;
 	public static String ClonkActionProvider_TidyUpCode;
 	public static String ClonkFolderView_Browse;

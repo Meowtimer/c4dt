@@ -19,7 +19,7 @@ import org.eclipse.ui.IWorkbenchPropertyPage;
 
 public class ClonkProjectProperties extends FieldEditorPreferencePage implements IWorkbenchPropertyPage {
 
-	private static final String ENGINENAME_PROPERTY = "engineName";
+	private static final String ENGINENAME_PROPERTY = "engineName"; //$NON-NLS-1$
 	
 	public ClonkProjectProperties() {
 		super(GRID);

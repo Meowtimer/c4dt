@@ -77,9 +77,9 @@ public class ClonkFolderView extends ViewPart implements ISelectionListener, IDo
 				return folder.listFiles(new FilenameFilter() {
 					@Override
 					public boolean accept(File dir, String name) {
-						if (name.startsWith("."))
+						if (name.startsWith(".")) //$NON-NLS-1$
 							return false;
-						if (Util.isMac() && name.endsWith(".app"))
+						if (Util.isMac() && name.endsWith(".app")) //$NON-NLS-1$
 							return false;
 						return (C4Group.getGroupType(name) != C4GroupType.OtherGroup || new File(dir, name).isDirectory()); //$NON-NLS-1$
 					}

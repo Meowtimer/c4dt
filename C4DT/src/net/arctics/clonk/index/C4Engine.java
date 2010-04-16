@@ -200,7 +200,7 @@ public class C4Engine extends C4ScriptBase {
 			return new String[] { "Clonk.c4x", "Clonk.exe" }; //$NON-NLS-1$ //$NON-NLS-2$
 		}
 		// assume some UNIX -.-
-		return new String[] { "clonk" };
+		return new String[] { "clonk" }; //$NON-NLS-1$
 	}
 
 	public boolean acceptsId(String text) {
@@ -226,7 +226,7 @@ public class C4Engine extends C4ScriptBase {
 		return null;
 	}
 	
-	private static final String configurationIniName = "configuration.ini";
+	private static final String configurationIniName = "configuration.ini"; //$NON-NLS-1$
 	
 	public void loadSettings() throws IOException {
 		// combine settings files in reverse-order so custom config is based on default
@@ -279,8 +279,8 @@ public class C4Engine extends C4ScriptBase {
 	private class DescriptionsIniConfiguration extends IniConfiguration {
 		public DescriptionsIniConfiguration() {
 			super();
-			sections.put("Descriptions", new IniDataSection() {
-				private IniDataEntry entry = new IniDataEntry("", String.class);
+			sections.put("Descriptions", new IniDataSection() { //$NON-NLS-1$
+				private IniDataEntry entry = new IniDataEntry("", String.class); //$NON-NLS-1$
 				@Override
 				public boolean hasEntry(String entryName) {
 					return C4Engine.this.findDeclaration(entryName) != null; 
@@ -331,11 +331,11 @@ public class C4Engine extends C4ScriptBase {
 							}
 						};
 						unit.parse(false);
-						IniSection section = unit.sectionForName("Descriptions");
+						IniSection section = unit.sectionForName("Descriptions"); //$NON-NLS-1$
 						if (section != null) {
 							result = new HashMap<String, String>();
 							for (Entry<String, IniEntry> entry : section.getEntries().entrySet()) {
-								result.put(entry.getKey(), entry.getValue().getValue().replace("|||", "\n"));
+								result.put(entry.getKey(), entry.getValue().getValue().replace("|||", "\n")); //$NON-NLS-1$ //$NON-NLS-2$
 							}
 							descriptions.put(language, result);
 							return result;
@@ -364,7 +364,7 @@ public class C4Engine extends C4ScriptBase {
 		C4Engine result = null;
 		try {
 			for (IStorageLocation location : providers) {
-				URL url = location.getURL(location.getName()+".c", false);
+				URL url = location.getURL(location.getName()+".c", false); //$NON-NLS-1$
 				if (url != null) {
 					result = new C4Engine(location.getName());
 					result.storageLocations = providers;

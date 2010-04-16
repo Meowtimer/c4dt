@@ -9,7 +9,7 @@ public class ActMapUnit extends IniUnit {
 	private static final long serialVersionUID = 1L;
 
 	public static final String ACTION_SECTION = "Action"; //$NON-NLS-1$
-	public static final String FILE_NAME = "ActMap.txt";
+	public static final String FILE_NAME = "ActMap.txt"; //$NON-NLS-1$
 	
 	@Override
 	protected String getConfigurationName() {

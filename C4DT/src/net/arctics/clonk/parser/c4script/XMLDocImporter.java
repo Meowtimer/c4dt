@@ -93,12 +93,12 @@ public class XMLDocImporter {
 	}
 	
 	public static String extractDescriptionFromHTML(InputStream stream) throws IOException {
-		return "Arr";
+		return "Arr"; //$NON-NLS-1$
 	}
 
 	public C4Declaration importFromXML(InputStream stream) throws IOException, XPathExpressionException {
 
-		String text = Utilities.stringFromInputStream(stream, "ISO-8859-1");
+		String text = Utilities.stringFromInputStream(stream, "ISO-8859-1"); //$NON-NLS-1$
 		// get rid of pesky meta information
 		text = text.replaceAll("\\<\\?.*\\?\\>", "").replaceAll("\\<\\!.*\\>", ""); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
 		Document doc;
