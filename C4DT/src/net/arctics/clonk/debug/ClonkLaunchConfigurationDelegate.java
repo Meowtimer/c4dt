@@ -72,17 +72,21 @@ public class ClonkLaunchConfigurationDelegate implements ILaunchConfigurationDel
 			
 			// Run the engine
 			try {
-				Process process = Runtime.getRuntime().exec(launchArgs, null, workDirectory);
-				IProcess p = DebugPlugin.newProcess(launch, process, configuration.getName());
 				if (mode.equals(ILaunchManager.DEBUG_MODE)) {
 					C4Scenario scenarioObj = C4Scenario.get(scenario);
 					if (scenarioObj != null && !scenarioObj.getEngine().getCurrentSettings().supportsDebugging)
 						abort(IStatus.ERROR, String.format(Messages.EngineDoesNotSupportDebugging, scenarioObj.getEngine().getName()));
-					try {
-						IDebugTarget target = new ClonkDebugTarget(launch, p, DEFAULT_DEBUG_PORT, scenario);
-						launch.addDebugTarget(target);
-					} catch (Exception e) {
-						e.printStackTrace();
+				}
+				else {
+					Process process = Runtime.getRuntime().exec(launchArgs, null, workDirectory);
+					IProcess p = DebugPlugin.newProcess(launch, process, configuration.getName());
+					if (mode.equals(ILaunchManager.DEBUG_MODE)) {
+						try {
+							IDebugTarget target = new ClonkDebugTarget(launch, p, DEFAULT_DEBUG_PORT, scenario);
+							launch.addDebugTarget(target);
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
 					}
 				}
 			} catch(IOException e) {

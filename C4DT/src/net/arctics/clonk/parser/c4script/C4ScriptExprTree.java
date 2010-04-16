@@ -79,7 +79,7 @@ public abstract class C4ScriptExprTree {
 	
 	public static void printIndent(ExprWriter builder, int indentDepth) {
 		for (int i = 0; i < indentDepth; i++)
-			builder.append(indentString); // FIXME: should be done according to user's preferences //$NON-NLS-1$
+			builder.append(indentString); // FIXME: should be done according to user's preferences
 	}
 
 	public final static class DeclarationRegion {
@@ -2815,8 +2815,7 @@ public abstract class C4ScriptExprTree {
 		}
 
 		@Override
-		public ExprElm newStyleReplacement(C4ScriptParser parser)
-		throws CloneNotSupportedException {
+		public ExprElm newStyleReplacement(C4ScriptParser parser) throws CloneNotSupportedException {
 			// return (0); -> return 0;
 			if (returnExpr instanceof Parenthesized)
 				return new ReturnStatement(((Parenthesized)returnExpr).getInnerExpr().newStyleReplacement(parser));
