@@ -6,7 +6,6 @@ import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.preferences.C4GroupListEditor;
 import net.arctics.clonk.preferences.ClonkPreferencePage;
 import net.arctics.clonk.preferences.ClonkPreferences;
-import net.arctics.clonk.preferences.Messages;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.ui.navigator.LinkC4GroupFileHandler;
 import net.arctics.clonk.ui.navigator.QuickImportHandler;
