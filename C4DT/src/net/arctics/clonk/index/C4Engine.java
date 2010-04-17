@@ -17,8 +17,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import org.eclipse.core.resources.IMarker;
 import org.eclipse.jface.util.Util;
 import net.arctics.clonk.parser.C4Declaration;
+import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.c4script.C4ScriptBase;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
@@ -349,10 +351,23 @@ public class C4Engine extends C4ScriptBase {
 		return null;
 	}
 	
-	public void parseEngineScript(URL url) throws IOException, ParsingException {
+	public void parseEngineScript(final URL url) throws IOException, ParsingException {
 		InputStream stream = url.openStream();
 		try {
-			C4ScriptParser parser = new C4ScriptParser(Utilities.stringFromInputStream(stream), this);
+			C4ScriptParser parser = new C4ScriptParser(Utilities.stringFromInputStream(stream), this) {
+				private boolean firstMessage = true;
+				@Override
+				protected IMarker markerWithCode(ParserErrorCode code,
+						int errorStart, int errorEnd, boolean noThrow,
+						int severity, Object... args) throws ParsingException {
+					if (firstMessage) {
+						firstMessage = false;
+						System.out.println("Messages while parsing " + url.toString());
+					}
+					System.out.println(code.getErrorString(args));
+					return super.markerWithCode(code, errorStart, errorEnd, noThrow, severity, args);
+				}
+			};
 			parser.parse();
 			postSerialize(null);
 		} finally {
