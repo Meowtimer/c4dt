@@ -1314,7 +1314,7 @@ public class C4ScriptParser {
 		return markerWithCode(code, errorStart, errorEnd, false, IMarker.SEVERITY_ERROR, args);
 	}
 	
-	private IMarker markerWithCode(ParserErrorCode code, int errorStart, int errorEnd, boolean noThrow, int severity, Object... args) throws ParsingException {
+	protected IMarker markerWithCode(ParserErrorCode code, int errorStart, int errorEnd, boolean noThrow, int severity, Object... args) throws ParsingException {
 		if (errorDisabled(code))
 			return null;
 		IMarker result = null;
