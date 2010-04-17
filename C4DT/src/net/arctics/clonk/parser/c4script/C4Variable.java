@@ -72,6 +72,7 @@ public class C4Variable extends C4Declaration implements Serializable, ITypedDec
 	
 	private C4Variable(String name, C4Type type, String desc) {
 		this(name, type, desc, C4VariableScope.VAR_VAR);
+		typeLocked = true;
 	}
 	
 	public C4Variable(String name, C4Type type) {

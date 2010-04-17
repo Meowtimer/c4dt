@@ -884,8 +884,6 @@ public abstract class C4ScriptExprTree {
 		}
 
 		public static IStoredTypeInformation createStoredTypeInformation(C4Declaration declaration) {
-			if (declaration instanceof C4Variable && ((C4Variable)declaration).isTypeLocked())
-				return null;
 			return new VariableTypeInformation(declaration);
 		}
 

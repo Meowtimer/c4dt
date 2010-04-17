@@ -376,7 +376,7 @@ global func bool SetSkyColor(int iIndex, int iRed, int iGreen, int iBlue);
 global func bool SetSkyFade(int iFromRed, int iFromGreen, int iFromBlue, int iToRed, int iToGreen, int iToBlue);
 global func bool SetSkyParallax(int iMode, int iParX, int iParY, int iXDir, int iYDir, int iX, int iY);
 global func int SkyPar_Keep();
-global func int AddMsgBoardCmd(string strCommand, string strScript);
+global func int AddMsgBoardCmd(string strCommand, string strScript, int restriction);
 global func bool DoScoreboardShow(int iChange, int iForPlr);
 global func int ScoreboardCol(id idDef);
 global func bool SetScoreboardData(int iRowID, int iColID, string sText, int iData);
