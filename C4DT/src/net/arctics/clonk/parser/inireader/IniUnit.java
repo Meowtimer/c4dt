@@ -75,20 +75,11 @@ public class IniUnit extends C4Structure implements Iterable<IniSection>, IHasCh
 	 */
 	protected IniSection currentSection;
 	
-	/**
-	 * Creates an IniReader that reads ini information from a stream
-	 * @param stream the stream
-	 */
-	public IniUnit(InputStream stream) {
-		reader = new BufferedScanner(stream);
-	}
-	
-	/**
-	 * Creates an IniReader that reads ini information from a string
-	 * @param text the string
-	 */
-	public IniUnit(String text) {
-		reader = new BufferedScanner(text);
+	public IniUnit(Object input) {
+		if (input instanceof String)
+			reader = new BufferedScanner((String)input);
+		else if (input instanceof InputStream)
+			reader = new BufferedScanner((InputStream)input);
 	}
 	
 	/**

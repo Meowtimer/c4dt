@@ -10,11 +10,16 @@ import net.arctics.clonk.parser.C4Structure;
 import net.arctics.clonk.parser.SourceLocation;
 import net.arctics.clonk.parser.c4script.C4ScriptExprTree.ExprElm;
 import net.arctics.clonk.parser.c4script.C4Variable.C4VariableScope;
+import net.arctics.clonk.parser.inireader.IniField;
 import net.arctics.clonk.preferences.ClonkPreferences;
 import net.arctics.clonk.util.CompoundIterable;
 
 public class C4Function extends C4Structure implements Serializable, ITypedDeclaration, IHasUserDescription {
 
+	public enum Flag {
+		CriteriaSearch
+	}
+	
 	private static final long serialVersionUID = 3848213897251037684L;
 	private C4FunctionScope visibility; 
 	private List<C4Variable> localVars;
@@ -23,6 +28,8 @@ public class C4Function extends C4Structure implements Serializable, ITypedDecla
 	private String description;
 	private boolean isCallback;
 	private boolean isOldStyle;
+	@IniField
+	public boolean isCriteriaSearch; 
 	private SourceLocation body, header;
 
 	public C4Function(String name, C4Type returnType, C4Variable... pars) {

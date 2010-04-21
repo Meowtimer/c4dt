@@ -300,6 +300,13 @@ public class C4Engine extends C4ScriptBase {
 			};
 		}
 	}
+	
+	private class DeclarationsConfiguration extends IniConfiguration {
+		@Override
+		public boolean hasSection(String sectionName) {
+			return C4Engine.this.findDeclaration(sectionName) != null;
+		}
+	}
 
 	public String descriptionFor(C4Declaration declaration) {
 		Map<String, String> descs;
@@ -323,15 +330,7 @@ public class C4Engine extends C4ScriptBase {
 				if (descs != null) {
 					InputStream input = descs.openStream();
 					try {
-						final IniConfiguration conf = new DescriptionsIniConfiguration();
-						IniUnit unit = new IniUnit(input) {
-							private static final long serialVersionUID = 1L;
-
-							@Override
-							public IniConfiguration getConfiguration() {
-								return conf;
-							}
-						};
+						IniUnit unit = new CustomIniUnit(input, new DescriptionsIniConfiguration());
 						unit.parse(false);
 						IniSection section = unit.sectionForName("Descriptions"); //$NON-NLS-1$
 						if (section != null) {
@@ -349,6 +348,28 @@ public class C4Engine extends C4ScriptBase {
 			}
 		}
 		return null;
+	}
+	
+	public void loadDeclarationsConfiguration() throws NoSuchFieldException, IllegalAccessException, IOException {
+		for (int i = storageLocations.length-1; i >= 0; i--) {
+			IStorageLocation loc = storageLocations[i];
+			URL url = loc.getURL("declarations.ini", false);
+			if (url != null) {
+				InputStream stream = url.openStream();
+				try {
+					CustomIniUnit unit = new CustomIniUnit(stream, new DeclarationsConfiguration());
+					unit.parse(false);
+					for (IniSection section : unit.getSections()) {
+						C4Declaration declaration = findDeclaration(section.getName());
+						if (declaration != null) {
+							unit.commitSection(declaration, section, false);
+						}
+					}
+				} finally {
+					stream.close();
+				}
+			}
+		}
 	}
 	
 	public void parseEngineScript(final URL url) throws IOException, ParsingException {
@@ -386,6 +407,7 @@ public class C4Engine extends C4ScriptBase {
 					result.loadSettings();
 					result.loadIniConfigurations();
 					result.parseEngineScript(url);
+					result.loadDeclarationsConfiguration();
 					break;
 				}
 			}

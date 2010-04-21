@@ -22,13 +22,16 @@ public class CustomIniUnit extends IniUnit {
 		this.configuration = configuration;
 	}
 
-	public CustomIniUnit(String text) {super(text);}
-	public CustomIniUnit(InputStream stream) {super(stream);}
+	public CustomIniUnit(Object input) {super(input);}
+	
+	public CustomIniUnit(Object input, IniConfiguration configuration) {
+		super(input);
+		this.setConfiguration(configuration);
+	}
 	
 	public CustomIniUnit(IniConfiguration configuration, Object object, Object defaults) throws IllegalArgumentException, IllegalAccessException {
-		super(""); //$NON-NLS-1$
+		this("", configuration); //$NON-NLS-1$
 		assert(defaults == null || object.getClass() == defaults.getClass());
-		this.setConfiguration(configuration);
 		for (Field f : object.getClass().getFields()) {
 			IniField annot;
 			if ((annot = f.getAnnotation(IniField.class)) != null) {
@@ -70,19 +73,33 @@ public class CustomIniUnit extends IniUnit {
 
 	public void commitTo(Object object) throws SecurityException, NoSuchFieldException, IllegalArgumentException, IllegalAccessException {
 		for (IniSection section : this.getSections()) {
-			for (IniEntry entry : section.getEntries().values()) {
-				Field f = object.getClass().getField(entry.getName());
-				IniField annot;
-				if (f != null && (annot = f.getAnnotation(IniField.class)) != null && annot.category().equals(section.getName())) {
-					Object val = entry.getValueObject();
-					if (val instanceof IConvertibleToPrimitive)
-						val = ((IConvertibleToPrimitive)val).convertToPrimitive();
+			commitSection(object, section, true);
+		}
+	}
+
+	public void commitSection(Object object, IniSection section, boolean takeIntoAccounCategory) throws NoSuchFieldException, IllegalAccessException {
+		for (IniEntry entry : section.getEntries().values()) {
+			Field f = object.getClass().getField(entry.getName());
+			IniField annot;
+			if (f != null && (annot = f.getAnnotation(IniField.class)) != null && (!takeIntoAccounCategory || annot.category().equals(section.getName()))) {
+				Object val = entry.getValueObject();
+				if (val instanceof IConvertibleToPrimitive)
+					val = ((IConvertibleToPrimitive)val).convertToPrimitive();
+				if (f.getType() != String.class && val instanceof String)
+					setFromString(f, object, (String)val);
+				else
 					f.set(object, val);
-				}
 			}
 		}
 	}
 	
+	private void setFromString(Field f, Object object, String val) throws NumberFormatException, IllegalArgumentException, IllegalAccessException {	
+		if (f.getType() == Integer.TYPE)
+			f.set(object, Integer.valueOf(val));
+		else if (f.getType() == java.lang.Boolean.TYPE)
+			f.set(object, java.lang.Boolean.valueOf(val));
+	}
+
 	public void parseAndCommitTo(Object obj) throws SecurityException, IllegalArgumentException, NoSuchFieldException, IllegalAccessException {
 		parse(false);
 		commitTo(obj);

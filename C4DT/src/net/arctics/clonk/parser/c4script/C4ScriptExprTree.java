@@ -1171,7 +1171,7 @@ public abstract class C4ScriptExprTree {
 			params = elms;
 		}
 		private boolean isCriteriaSearch() {
-			return declarationName.equals("FindObjects") || declarationName.equals("FindObject2"); //$NON-NLS-1$ //$NON-NLS-2$
+			return declaration instanceof C4Function && ((C4Function)declaration).isCriteriaSearch;
 		}
 		@Override
 		public C4Object guessObjectType(C4ScriptParser parser) {
@@ -1342,8 +1342,8 @@ public abstract class C4ScriptExprTree {
 				}
 			}
 			else if (declarationName.equals("Find_ID")) { //$NON-NLS-1$
-				if (params.length > 0 && params[0] instanceof IDLiteral) {
-					result = ((IDLiteral)params[0]).guessObjectType(context);
+				if (params.length > 0) {
+					result = params[0].guessObjectType(context);
 				}
 			}
 			return result;
