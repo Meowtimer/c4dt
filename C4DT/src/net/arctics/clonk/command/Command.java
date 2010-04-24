@@ -45,14 +45,14 @@ public class Command {
 	public static final C4ScriptBase COMMAND_BASESCRIPT;
 	public static final ClonkIndex COMMANDS_INDEX = new ClonkIndex();
 	public static final String COMMAND_SCRIPT_TEMPLATE = "func Main() {%s;}"; //$NON-NLS-1$
-	
+
 	public static class C4CommandScript extends C4ScriptBase {
-		
+
 		private static class C4CommandFunction extends C4Function {
-            private static final long serialVersionUID = 1L;
-            
+			private static final long serialVersionUID = 1L;
+
 			private transient Statement[] statements;
-			
+
 			@Override
 			public Object invoke(final Object... args) {
 				final IVariableValueProvider variableProvider = args != null && args.length > 0 && args[0] instanceof IVariableValueProvider ? (IVariableValueProvider)args[0] : null;
@@ -74,12 +74,12 @@ public class Command {
 					}
 
 				};
-			    for (Statement s : statements) {
-			    	try {
-			    		s.evaluate(context);
-			    	} catch (ReturnException e) {
-			    		return e.getResult();
-			    	} catch (ControlFlowException e) {
+				for (Statement s : statements) {
+					try {
+						s.evaluate(context);
+					} catch (ReturnException e) {
+						return e.getResult();
+					} catch (ControlFlowException e) {
 						switch (e.getControlFlow()) {
 						case BreakLoop:
 							return null;
@@ -89,36 +89,36 @@ public class Command {
 							return null;
 						}
 					}
-			    }
-			    return null;
+				}
+				return null;
 			}
 		}
 
-        private static final long serialVersionUID = 1L;
-        
+		private static final long serialVersionUID = 1L;
+
 		private String script;
 		private C4CommandFunction main;
-		
+
 		@Override
-        public ClonkIndex getIndex() {
-	        return COMMANDS_INDEX;
-        }
+		public ClonkIndex getIndex() {
+			return COMMANDS_INDEX;
+		}
 
 		@Override
 		public String getScriptText() {
 			return script;
 		}
-		
+
 		@Override
-        public Object getScriptFile() {
+		public Object getScriptFile() {
 			try {
-	            return new SimpleScriptStorage(getName(), script);
-            } catch (UnsupportedEncodingException e) {
-	            e.printStackTrace();
-	            return null;
-            }
-        }
-		
+				return new SimpleScriptStorage(getName(), script);
+			} catch (UnsupportedEncodingException e) {
+				e.printStackTrace();
+				return null;
+			}
+		}
+
 		public C4CommandScript(String name, String script) {
 			super();
 			setName(name);
@@ -126,15 +126,15 @@ public class Command {
 			C4ScriptParser parser = new C4ScriptParser(script, this) {
 				@Override
 				protected C4Function newFunction() {
-				    return new C4CommandFunction();
+					return new C4CommandFunction();
 				}
 				@Override
 				public void parseCodeOfFunction(C4Function function) throws ParsingException {
-				    if (function.getName().equals("Main")) { //$NON-NLS-1$
-				    	main = (C4CommandFunction)function;
-				    }
-				    final List<Statement> statements = new LinkedList<Statement>();
-				    this.setExpressionListener(new IExpressionListener() {
+					if (function.getName().equals("Main")) { //$NON-NLS-1$
+						main = (C4CommandFunction)function;
+					}
+					final List<Statement> statements = new LinkedList<Statement>();
+					this.setExpressionListener(new IExpressionListener() {
 						@Override
 						public TraversalContinuation expressionDetected(ExprElm expression, C4ScriptParser parser) {
 							if (expression instanceof Statement)
@@ -142,64 +142,64 @@ public class Command {
 							return TraversalContinuation.Continue;
 						}
 					});
-				    super.parseCodeOfFunction(function);
-				    ((C4CommandFunction)function).statements = statements.toArray(new Statement[statements.size()]);
-				    this.setExpressionListener(null);
+					super.parseCodeOfFunction(function);
+					((C4CommandFunction)function).statements = statements.toArray(new Statement[statements.size()]);
+					this.setExpressionListener(null);
 				}
 			};
 			try {
-	            parser.parse();
-            } catch (ParsingException e) {
-	            e.printStackTrace();
-            }
+				parser.parse();
+			} catch (ParsingException e) {
+				e.printStackTrace();
+			}
 		}
-		
+
 		@Override
 		public C4ScriptBase[] getIncludes(ClonkIndex index) {
 			return new C4ScriptBase[] {
-				COMMAND_BASESCRIPT
+					COMMAND_BASESCRIPT
 			};
 		}
-		
+
 		public C4CommandFunction getMain() {
 			return main;
 		}
-		
+
 		public Object invoke(Object... args) {
 			return main.invoke(args);
 		}
-		
+
 	}
-	
+
 	static {
 		COMMAND_BASESCRIPT = new C4ScriptBase() {
-            private static final long serialVersionUID = 1L;
-            
+			private static final long serialVersionUID = 1L;
+
 			@Override
 			public ClonkIndex getIndex() {
-			    return COMMANDS_INDEX;
+				return COMMANDS_INDEX;
 			}
 			@Override
 			public Object getScriptFile() {
-			    try {
-	                return new SimpleScriptStorage("CommandBase", ""); //$NON-NLS-1$ //$NON-NLS-2$
-                } catch (UnsupportedEncodingException e) {
-	                return null;
-                }
+				try {
+					return new SimpleScriptStorage("CommandBase", ""); //$NON-NLS-1$ //$NON-NLS-2$
+				} catch (UnsupportedEncodingException e) {
+					return null;
+				}
 			}
-			
+
 			@Override
 			public String getName() {
 				return "CommandBaseScript"; //$NON-NLS-1$
 			};
-			
+
 			@Override
 			public String getNodeName() {
 				return getName();
 			};
-			
+
 		};
-		
+
 		for (Class<?> c : Command.class.getDeclaredClasses())
 			registerCommandsFromClass(c);
 	}
@@ -210,34 +210,34 @@ public class Command {
 				addCommand(m);
 		}
 	}
-	
+
 	private static class C4CommandFunction extends C4Function {
 
-        private static final long serialVersionUID = 1L;
-        
-        private final transient Method method;
-        
-        @Override
-        public Object invoke(Object... args) {
-        	try {
-	            return method.invoke(null, Utilities.concat(this, args));
-            } catch (Exception e) {
-	            e.printStackTrace();
-	            return null;
-            }
-        }
-        
-        public C4CommandFunction(C4ScriptBase parent, Method method) {
-        	super(method.getName(), parent, C4FunctionScope.FUNC_PUBLIC);
-        	this.method = method;
-        }
-		
+		private static final long serialVersionUID = 1L;
+
+		private final transient Method method;
+
+		@Override
+		public Object invoke(Object... args) {
+			try {
+				return method.invoke(null, Utilities.concat(this, args));
+			} catch (Exception e) {
+				e.printStackTrace();
+				return null;
+			}
+		}
+
+		public C4CommandFunction(C4ScriptBase parent, Method method) {
+			super(method.getName(), parent, C4FunctionScope.FUNC_PUBLIC);
+			this.method = method;
+		}
+
 	}
-	
+
 	public static void addCommand(Method method) {
 		COMMAND_BASESCRIPT.addDeclaration(new C4CommandFunction(COMMAND_BASESCRIPT, method));
 	}
-	
+
 	public static void setFieldValue(Object obj, String name, Object value) {
 		Class<?> c = obj instanceof Class<?> ? (Class<?>)obj : obj.getClass();
 		try {
@@ -253,17 +253,17 @@ public class Command {
 			e.printStackTrace();
 		}
 	}
-	
+
 	@CommandFunction
 	public static void Log(Object context, String message) {
 		System.out.println(message);
 	}
-	
+
 	@CommandFunction
 	public static String Format(Object context, String format, Object... args) {
 		return String.format(format, args);
 	}
-	
+
 	@CommandFunction
 	public static void OpenDoc(Object context, String funcName) {
 		try {
@@ -272,7 +272,7 @@ public class Command {
 			e.printStackTrace();
 		}
 	}
-	
+
 	public static class CodeConversionCommands {
 		@CommandFunction
 		public static void SetCodeConversionOption(Object context, String option, Object value) {
@@ -300,9 +300,10 @@ public class Command {
 				} else {
 					desc = ""; //$NON-NLS-1$
 				}
-				String text = String.format("%s%s %s %s %s;\n\n", f.getVisibility().toKeyword(), Keywords.Func, returnType, f.getLongParameterString(true, true)); //$NON-NLS-1$
+				String text = String.format("%s %s %s %s;\n", f.getVisibility().toKeyword(), Keywords.Func, returnType, f.getLongParameterString(true, true)); //$NON-NLS-1$
 				writer.append(text);
 			}
+			writer.flush();
 			writer.close();
 			stream.close();
 		}
@@ -335,7 +336,7 @@ public class Command {
 				_WriteDescriptionsToFile(writeToFile, engine);
 		}
 	}
-	
+
 	public static class EngineConfiguration {
 		@CommandFunction
 		public static void SetEngineProperty(Object context, String name, Object value) {
@@ -345,12 +346,12 @@ public class Command {
 		public static void IntrinsicizeEngineProperty(Object context, String name) throws IllegalArgumentException, SecurityException, IllegalAccessException, NoSuchFieldException {
 			C4Engine engine = ClonkCore.getDefault().getActiveEngine();
 			setFieldValue(
-				engine.getIntrinsicSettings(), name,
-				engine.getCurrentSettings().getClass().getField(name).get(engine.getCurrentSettings())
+					engine.getIntrinsicSettings(), name,
+					engine.getCurrentSettings().getClass().getField(name).get(engine.getCurrentSettings())
 			);
 		}
 	}
-	
+
 	public static class Diagnostics {
 		@CommandFunction
 		public static void ReadIndex(Object context, String path) {
@@ -379,5 +380,5 @@ public class Command {
 			System.gc();
 		}
 	}
-	
+
 }

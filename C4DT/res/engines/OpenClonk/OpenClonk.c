@@ -425,7 +425,7 @@ global func bool CreateScriptPlayer(string szName, int dwClr, int idTeam, int dw
 global func bool CustomMessage(string message, object obj, int plr, int offset_x, int offset_y, int color, id deco, string portrait, int flags);
 global func any DeathAnnounce();
 global func any Definition(proplist def);
-global func any DefinitionCall(id idDef, string szFunction);
+global func any DefinitionCall(id idDef, string szFunction, ...);
 global func any DigFree(int x, int y, int iRadius);
 global func any DigFreeRect(int x, int y, int iWdt, int iHgt);
 global func int Distance(int x1, int y1, int x2, int y2);
@@ -634,7 +634,7 @@ global func bool PlayerMessage(int player, string szMessage, object obj, ...);
 global func bool PlrMessage(string szMessage, int player, ...);
 global func int Pow(int iVal1, int iVal2);
 global func any PrivateCall(object obj, string szFunction);
-global func any ProtectedCall(object obj, string szFunction);
+global func any ProtectedCall(object obj, string szFunction, ...);
 global func bool Punch(object obj, int x);
 global func bool PushParticles(string szName, int iAX, int iAY);
 global func int Random(int iMaxVal);
