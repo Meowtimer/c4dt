@@ -1599,8 +1599,20 @@ public class C4ScriptParser {
 				// array access
 				ExprElm arg = parseExpression(reportErrors);
 				this.eatWhitespace();
-				expect(']');
-				elm = new ArrayElementAccess(arg);
+				int t;
+				switch (t = scanner.read()) {
+				case ':':
+					ExprElm arg2 = parseExpression(reportErrors);
+					this.eatWhitespace();
+					expect(']');
+					elm = new ArraySliceExpression(arg, arg2);
+					break;
+				case ']':
+					elm = new ArrayElementExpression(arg);
+					break;
+				default:
+					errorWithCode(ParserErrorCode.UnexpectedToken, scanner.getPosition()-1, scanner.getPosition(), new Character((char) t).toString());
+				}
 			} else {
 				// array creation
 				Vector<ExprElm> arrayElms = new Vector<ExprElm>(10);

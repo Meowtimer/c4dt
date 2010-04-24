@@ -649,7 +649,7 @@ public abstract class C4ScriptExprTree {
 
 	public static class Sequence extends Value {
 		protected ExprElm[] elements;
-		public Sequence(ExprElm[] elms) {
+		public Sequence(ExprElm... elms) {
 			elements = elms;
 			ExprElm prev = null;
 			for (ExprElm e : elements) {
@@ -2245,16 +2245,16 @@ public abstract class C4ScriptExprTree {
 		}
 	}
 
-	public static final class ArrayElementAccess extends Value {
+	public static class ArrayElementExpression extends Value {
 
-		private ExprElm argument;
+		protected ExprElm argument;
 
 		@Override
 		public C4Type getType(C4ScriptParser context) {
 			return C4Type.ANY; // FIXME: guess type of elements
 		}
 
-		public ArrayElementAccess(ExprElm argument) {
+		public ArrayElementExpression(ExprElm argument) {
 			super();
 			this.argument = argument;
 			assignParentToSubElements();
@@ -2299,9 +2299,64 @@ public abstract class C4ScriptExprTree {
 		}
 
 	}
+	
+	public static class ArraySliceExpression extends ArrayElementExpression {
+		
+		private ExprElm argument2;
+		
+		public ArraySliceExpression(ExprElm lo, ExprElm hi) {
+			super(lo);
+			this.argument2 = hi;
+		}
+		
+		public ExprElm lo() {
+			return argument;
+		}
+		
+		public ExprElm hi() {
+			return argument2;
+		}
+		
+		@Override
+		public void doPrint(ExprWriter output, int depth) {
+			output.append("["); //$NON-NLS-1$
+			argument.print(output, depth+1);
+			output.append(":"); //$NON-NLS-1$
+			argument2.print(output, depth+1);
+			output.append("]"); //$NON-NLS-1$
+		}
+		
+		@Override
+		public ExprElm[] getSubElements() {
+			return new ExprElm[] {argument, argument2};
+		}
+		@Override
+		public void setSubElements(ExprElm[] subElements) {
+			argument  = subElements[0];
+			argument2 = subElements[1];
+		}
+		
+		@Override
+		public void reportErrors(C4ScriptParser parser) throws ParsingException {
+			super.reportErrors(parser);
+			if (argument2 != null)
+				argument2.reportErrors(parser);
+		}
+		
+		@Override
+		public boolean modifiable(C4ScriptParser context) {
+			return false;
+		}
+		
+		@Override
+		public C4Type getType(C4ScriptParser context) {
+			return C4Type.ARRAY;
+		}
+		
+	}
 
 	public static class ArrayExpression extends Sequence {
-		public ArrayExpression(ExprElm[] elms) {
+		public ArrayExpression(ExprElm... elms) {
 			super(elms);
 		}
 

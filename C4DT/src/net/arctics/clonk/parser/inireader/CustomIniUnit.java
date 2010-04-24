@@ -1,7 +1,6 @@
 package net.arctics.clonk.parser.inireader;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.Writer;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
