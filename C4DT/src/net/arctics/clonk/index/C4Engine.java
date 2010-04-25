@@ -22,10 +22,12 @@ import org.eclipse.jface.util.Util;
 import net.arctics.clonk.parser.C4Declaration;
 import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.ParsingException;
+import net.arctics.clonk.parser.c4script.C4Function;
 import net.arctics.clonk.parser.c4script.C4ScriptBase;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.C4Variable;
 import net.arctics.clonk.parser.c4script.C4Variable.C4VariableScope;
+import net.arctics.clonk.parser.c4script.Keywords;
 import net.arctics.clonk.parser.inireader.CustomIniUnit;
 import net.arctics.clonk.parser.inireader.IEntryFactory;
 import net.arctics.clonk.parser.inireader.IniData;
@@ -228,13 +230,13 @@ public class C4Engine extends C4ScriptBase {
 		return null;
 	}
 	
-	private static final String configurationIniName = "configuration.ini"; //$NON-NLS-1$
+	private static final String CONFIGURATION_INI_NAME = "configuration.ini"; //$NON-NLS-1$
 	
 	public void loadSettings() throws IOException {
 		// combine settings files in reverse-order so custom config is based on default
 		for (int i = storageLocations.length-1; i >= 0; i--) {
 			IStorageLocation loc = storageLocations[i];
-			URL settingsFile = loc.getURL(configurationIniName, false);
+			URL settingsFile = loc.getURL(CONFIGURATION_INI_NAME, false);
 			if (settingsFile != null) {
 				InputStream input = settingsFile.openStream();
 				try {
@@ -416,12 +418,55 @@ public class C4Engine extends C4ScriptBase {
 		}
 		return result;
 	}
+
+	public void writeEngineScript(Writer writer) throws IOException {
+		for (C4Variable v : variables()) {
+			String text = String.format("%s %s;\n", v.getScope().toKeyword(), v.getName()); //$NON-NLS-1$
+			writer.append(text);
+		}
+		writer.append("\n"); //$NON-NLS-1$
+		for (C4Function f : functions()) {
+			String returnType = f.getReturnType().toString();
+			String desc = f.getUserDescription();
+			if (desc != null) {
+				if (desc.contains("\n")) { //$NON-NLS-1$
+					desc = String.format("/*\n%s\n*/\n", desc); //$NON-NLS-1$
+				} else {
+					desc = String.format("//%s\n", desc); //$NON-NLS-1$
+				}
+			} else {
+				desc = ""; //$NON-NLS-1$
+			}
+			String text = String.format("%s %s %s %s;\n", f.getVisibility().toKeyword(), Keywords.Func, returnType, f.getLongParameterString(true, true)); //$NON-NLS-1$
+			writer.append(text);
+		}
+	}
+	
+	public void writeEngineScript() throws IOException {
+		for (IStorageLocation loc : storageLocations) {
+			URL scriptFile = loc.getURL(loc.getName()+".c", true);
+			if (scriptFile != null) {
+				OutputStream output = loc.getOutputStream(scriptFile);
+				if (output != null) try {
+					Writer writer = new OutputStreamWriter(output);
+					try {
+						writeEngineScript(writer);
+					} finally {
+						writer.close();
+					}
+				} finally {
+					output.close();
+				}
+				break;
+			}
+		}
+	}
 	
 	public void saveSettings() throws IOException {
 		if (!hasCustomSettings())
 			return;
 		for (IStorageLocation loc : storageLocations) {
-			URL settingsFile = loc.getURL(configurationIniName, true);
+			URL settingsFile = loc.getURL(CONFIGURATION_INI_NAME, true);
 			if (settingsFile != null) {
 				OutputStream output = loc.getOutputStream(settingsFile);
 				if (output != null) {

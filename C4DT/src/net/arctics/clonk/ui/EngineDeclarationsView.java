@@ -1,5 +1,6 @@
 package net.arctics.clonk.ui;
 
+import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
@@ -466,16 +467,10 @@ public class EngineDeclarationsView extends ViewPart implements IPropertyChangeL
 		
 		saveAction = new Action() {
 			public void run() {
-				InputDialog dialog = new InputDialog(
-						PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(),
-						Messages.SpecifyEngineName, Messages.SpecifyEngineNameDesc,
-						ClonkCore.getDefault().getActiveEngine().getName(),
-						null
-				);
-				switch (dialog.open()) {				
-				case Window.OK:
-					ClonkCore.getDefault().saveEngineInWorkspace(dialog.getValue());
-					break;
+				try {
+					ClonkCore.getDefault().getActiveEngine().writeEngineScript();
+				} catch (IOException e) {
+					e.printStackTrace();
 				}
 			}
 		};

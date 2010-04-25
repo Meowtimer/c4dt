@@ -27,7 +27,6 @@ import net.arctics.clonk.parser.c4script.C4Function;
 import net.arctics.clonk.parser.c4script.C4ScriptBase;
 import net.arctics.clonk.parser.c4script.C4ScriptExprTree;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
-import net.arctics.clonk.parser.c4script.Keywords;
 import net.arctics.clonk.parser.c4script.C4ScriptExprTree.ControlFlowException;
 import net.arctics.clonk.parser.c4script.C4ScriptExprTree.ExprElm;
 import net.arctics.clonk.parser.c4script.C4ScriptExprTree.IEvaluationContext;
@@ -36,7 +35,6 @@ import net.arctics.clonk.parser.c4script.C4ScriptExprTree.IVariableValueProvider
 import net.arctics.clonk.parser.c4script.C4ScriptExprTree.ReturnException;
 import net.arctics.clonk.parser.c4script.C4ScriptExprTree.Statement;
 import net.arctics.clonk.parser.c4script.C4ScriptExprTree.TraversalContinuation;
-import net.arctics.clonk.parser.c4script.C4Variable;
 import net.arctics.clonk.resource.InputStreamRespectingUniqueIDs;
 import net.arctics.clonk.ui.editors.ClonkHyperlink;
 import net.arctics.clonk.util.Utilities;
@@ -283,26 +281,7 @@ public class Command {
 			C4Engine engine = ClonkCore.getDefault().loadEngine(engineName);
 			FileOutputStream stream = new FileOutputStream(fileName);
 			Writer writer = new OutputStreamWriter(stream);
-			for (C4Variable v : engine.variables()) {
-				String text = String.format("%s %s;\n", v.getScope().toKeyword(), v.getName()); //$NON-NLS-1$
-				writer.append(text);
-			}
-			writer.append("\n"); //$NON-NLS-1$
-			for (C4Function f : engine.functions()) {
-				String returnType = f.getReturnType().toString();
-				String desc = f.getUserDescription();
-				if (desc != null) {
-					if (desc.contains("\n")) { //$NON-NLS-1$
-						desc = String.format("/*\n%s\n*/\n", desc); //$NON-NLS-1$
-					} else {
-						desc = String.format("//%s\n", desc); //$NON-NLS-1$
-					}
-				} else {
-					desc = ""; //$NON-NLS-1$
-				}
-				String text = String.format("%s %s %s %s;\n", f.getVisibility().toKeyword(), Keywords.Func, returnType, f.getLongParameterString(true, true)); //$NON-NLS-1$
-				writer.append(text);
-			}
+			engine.writeEngineScript(writer);
 			writer.flush();
 			writer.close();
 			stream.close();
