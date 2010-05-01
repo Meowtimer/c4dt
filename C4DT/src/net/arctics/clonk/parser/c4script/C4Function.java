@@ -15,10 +15,6 @@ import net.arctics.clonk.preferences.ClonkPreferences;
 import net.arctics.clonk.util.CompoundIterable;
 
 public class C4Function extends C4Structure implements Serializable, ITypedDeclaration, IHasUserDescription {
-
-	public enum Flag {
-		CriteriaSearch
-	}
 	
 	private static final long serialVersionUID = 3848213897251037684L;
 	private C4FunctionScope visibility; 
@@ -481,7 +477,6 @@ public class C4Function extends C4Structure implements Serializable, ITypedDecla
 	
 	public boolean tooManyParameters(int num) {
 		return
-			//!(getScript() instanceof IExternalScript) && FIXME: Keep in post-externallib world?
 			(getParameters().size() == 0 || getParameters().get(getParameters().size()-1).isActualParm()) &&
 			num > getParameters().size();
 	}
