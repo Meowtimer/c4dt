@@ -2353,9 +2353,9 @@ public class C4ScriptParser {
 
 	private void loopConditionWarnings(Statement body, ExprElm condition) {
 		Object condEv = C4Type.BOOL.convert(condition == null ? true : condition.evaluateAtParseTime(getContainer()));
-		if (Boolean.valueOf(false).equals(condEv))
+		if (Boolean.FALSE.equals(condEv))
 			warningWithCode(ParserErrorCode.ConditionAlwaysFalse, condition, condition.toString());
-		else if (Boolean.valueOf(true).equals(condEv)) {
+		else if (Boolean.TRUE.equals(condEv)) {
 			EnumSet<ControlFlow> flows = body.getPossibleControlFlows();
 			if (!(flows.contains(ControlFlow.BreakLoop) || flows.contains(ControlFlow.Return)))
 				warningWithCode(ParserErrorCode.InfiniteLoop, body);
