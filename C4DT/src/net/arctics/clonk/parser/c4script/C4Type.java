@@ -1,6 +1,7 @@
 package net.arctics.clonk.parser.c4script;
 
 import java.lang.reflect.Array;
+import java.util.Iterator;
 import java.util.Map;
 
 import net.arctics.clonk.parser.C4ID;
@@ -10,7 +11,7 @@ import net.arctics.clonk.parser.C4ID;
  * @author ZokRadonh
  *
  */
-public enum C4Type {
+public enum C4Type implements ITypeSet {
 	UNKNOWN,
 	
 	ANY,
@@ -31,6 +32,7 @@ public enum C4Type {
 		return toString(false);
 	}
 	
+	@Override
 	public String toString(boolean special) {
 		if (!special && this == REFERENCE)
 			return "&"; //$NON-NLS-1$
@@ -39,26 +41,28 @@ public enum C4Type {
 		return lowercaseName;
 	}
 	
-	public boolean canBeAssignedFrom(C4Type other) {
+	@Override
+	public boolean canBeAssignedFrom(ITypeSet other) {
 		if (other == this)
 			return true;
-		switch (other) {
-		case UNKNOWN: case ANY: case REFERENCE:
-			return true;
-		default:
-			switch (this) {
-			case ANY: case UNKNOWN: case REFERENCE: case BOOL:
+		for (C4Type t : other) {
+			switch (t) {
+			case UNKNOWN: case ANY: case REFERENCE:
 				return true;
-			case INT:
-				return other == BOOL;
-			case PROPLIST:
-				return other == ID || other == OBJECT;
 			default:
-				return false;
+				switch (this) {
+				case ANY: case UNKNOWN: case REFERENCE: case BOOL:
+					return true;
+				case INT:
+					return other == BOOL;
+				case PROPLIST:
+					return other == ID || other == OBJECT;
+				}
 			}
 		}
+		return false;
 	}
-	
+
 	public static C4Type makeType(String arg) {
 		return makeType(arg, false);
 	}
@@ -122,6 +126,29 @@ public enum C4Type {
 			return value;
 		}
 		return null;
+	}
+
+	@Override
+	public Iterator<C4Type> iterator() {
+		return new Iterator<C4Type>() {
+			private boolean done = false;
+			
+			@Override
+			public boolean hasNext() {
+				return !done;
+			}
+
+			@Override
+			public C4Type next() {
+				done = true;
+				return C4Type.this;
+			}
+
+			@Override
+			public void remove() {
+				throw new UnsupportedOperationException();
+			}
+		};
 	}
 
 }

@@ -4,22 +4,26 @@ import net.arctics.clonk.index.C4Object;
 
 public abstract class StoredTypeInformation implements IStoredTypeInformation, Cloneable {
 
-	private C4Type type;
+	private ITypeSet type;
 	private C4Object objectType;
 
+	@Override
 	public C4Object getObjectType() {
 		return objectType;
 	}
 
-	public C4Type getType() {
+	@Override
+	public ITypeSet getType() {
 		return type;
 	}
 
+	@Override
 	public void storeObjectType(C4Object objectType) {
 		this.objectType = objectType;
 	}
 
-	public void storeType(C4Type type) {
+	@Override
+	public void storeType(ITypeSet type) {
 		// if value type has already been specialized don't despecialize it again -.-
 		if (this.type == null || type != C4Type.ANY)
 			this.type = type;

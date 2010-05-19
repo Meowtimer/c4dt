@@ -147,7 +147,7 @@ public class C4ScriptParser {
 	/**
 	 * Ask the parser to store type information about an expression. No guarantees whether type information will actually be stored.
 	 */
-	public void storeTypeInformation(ExprElm expression, C4Type type, C4Object objectType) {
+	public void storeTypeInformation(ExprElm expression, ITypeSet type, C4Object objectType) {
 		IStoredTypeInformation requested = requestStoredTypeInformation(expression);
 		if (requested != null) {
 			requested.storeObjectType(objectType);
@@ -210,7 +210,7 @@ public class C4ScriptParser {
 		return info != null ? info.getObjectType() : null;
 	}
 	
-	public C4Type queryTypeOfExpression(ExprElm expression, C4Type defaultType) {
+	public ITypeSet queryTypeOfExpression(ExprElm expression, C4Type defaultType) {
 		IStoredTypeInformation info = queryStoredTypeInformation(expression, true);
 		return info != null ? info.getType() : defaultType;
 	}
@@ -2287,7 +2287,7 @@ public class C4ScriptParser {
 			if (arrayExpr == null)
 				errorWithCode(ParserErrorCode.ExpressionExpected, offset, scanner.getPosition()+1);
 			else {
-				C4Type t = arrayExpr.getType(this);
+				ITypeSet t = arrayExpr.getType(this);
 				if (!t.canBeAssignedFrom(C4Type.ARRAY))
 					warningWithCode(ParserErrorCode.IncompatibleTypes, arrayExpr, t.toString(), C4Type.ARRAY.toString());
 				if (loopVariable != null)

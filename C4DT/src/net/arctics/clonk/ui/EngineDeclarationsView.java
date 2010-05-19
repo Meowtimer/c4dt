@@ -13,6 +13,7 @@ import net.arctics.clonk.parser.c4script.C4Type;
 import net.arctics.clonk.parser.c4script.C4Variable;
 import net.arctics.clonk.parser.c4script.C4Function.C4FunctionScope;
 import net.arctics.clonk.parser.c4script.C4Variable.C4VariableScope;
+import net.arctics.clonk.parser.c4script.ITypeSet;
 import net.arctics.clonk.preferences.ClonkPreferences;
 import net.arctics.clonk.ui.navigator.ClonkOutlineProvider;
 
@@ -241,7 +242,7 @@ public class EngineDeclarationsView extends ViewPart implements IPropertyChangeL
 			createParameterControls(parent, C4Type.ANY, ""); //$NON-NLS-1$
 		}
 		
-		private void createParameterControls(Composite parent, C4Type type, String parameterName) {
+		private void createParameterControls(Composite parent, ITypeSet type, String parameterName) {
 			Combo combo = createComboBoxForType(parent, type);
 			Text parNameField = new Text(parent, SWT.BORDER | SWT.SINGLE);
 			parNameField.setText(parameterName);
@@ -272,7 +273,7 @@ public class EngineDeclarationsView extends ViewPart implements IPropertyChangeL
 			return combo;
 		}
 		
-		private Combo createComboBoxForType(Composite parent, C4Type currentType) {
+		private Combo createComboBoxForType(Composite parent, ITypeSet currentType) {
 			Combo combo = new Combo(parent, SWT.READ_ONLY);
 			int select = 0;
 			List<String> items = new ArrayList<String>(C4Type.values().length);

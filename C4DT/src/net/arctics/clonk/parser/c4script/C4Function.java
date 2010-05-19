@@ -20,7 +20,7 @@ public class C4Function extends C4Structure implements Serializable, ITypedDecla
 	private C4FunctionScope visibility; 
 	private List<C4Variable> localVars;
 	private List<C4Variable> parameter;
-	private C4Type returnType;
+	private ITypeSet returnType;
 	private String description;
 	private boolean isCallback;
 	private boolean isOldStyle;
@@ -101,7 +101,7 @@ public class C4Function extends C4Structure implements Serializable, ITypedDecla
 	/**
 	 * @return the returnType
 	 */
-	public C4Type getReturnType() {
+	public ITypeSet getReturnType() {
 		if (returnType == null)
 			returnType = C4Type.UNKNOWN;
 		return returnType;
@@ -110,7 +110,7 @@ public class C4Function extends C4Structure implements Serializable, ITypedDecla
 	/**
 	 * @param returnType the returnType to set
 	 */
-	public void setReturnType(C4Type returnType) {
+	public void setReturnType(ITypeSet returnType) {
 		this.returnType = returnType;
 	}
 
@@ -414,7 +414,8 @@ public class C4Function extends C4Structure implements Serializable, ITypedDecla
 		return getHeaderString(isOldStyle());
 	}
 
-	public void expectedToBeOfType(C4Type t) {
+	@Override
+	public void expectedToBeOfType(ITypeSet t) {
 		ITypedDeclaration.Default.expectedToBeOfType(this, t);
 	}
 
@@ -422,14 +423,17 @@ public class C4Function extends C4Structure implements Serializable, ITypedDecla
 		ITypedDeclaration.Default.inferTypeFromAssignment(this, val, context);
 	}
 
-	public C4Type getType() {
+	@Override
+	public ITypeSet getType() {
 		return getReturnType();
 	}
 
-	public void forceType(C4Type type) {
+	@Override
+	public void forceType(ITypeSet type) {
 		setReturnType(type);
 	}
 
+	@Override
 	public C4Object getObjectType() {
 		return null;
 	}

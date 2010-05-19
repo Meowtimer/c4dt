@@ -33,7 +33,7 @@ public class C4Variable extends C4Declaration implements Serializable, ITypedDec
 	/**
 	 * Type of the variable.
 	 */
-	private C4Type type;
+	private ITypeSet type;
 	
 	/**
 	 * Mostly null - only set when type=object
@@ -115,7 +115,7 @@ public class C4Variable extends C4Declaration implements Serializable, ITypedDec
 	/**
 	 * @return the type
 	 */
-	public C4Type getType() {
+	public ITypeSet getType() {
 		if (type == null)
 			type = C4Type.UNKNOWN;
 		return type;
@@ -124,7 +124,7 @@ public class C4Variable extends C4Declaration implements Serializable, ITypedDec
 	/**
 	 * @param type the type to set
 	 */
-	public void forceType(C4Type type) {
+	public void forceType(ITypeSet type) {
 		// -.-;
 //		if (type == C4Type.DWORD) formerly DWORD
 //			type = C4Type.INT;
@@ -136,7 +136,7 @@ public class C4Variable extends C4Declaration implements Serializable, ITypedDec
 		this.typeLocked = typeLocked;
 	}
 	
-	public void setType(C4Type type) {
+	public void setType(ITypeSet type) {
 		if (typeLocked)
 			return;
 		forceType(type);
@@ -255,7 +255,7 @@ public class C4Variable extends C4Declaration implements Serializable, ITypedDec
 		ITypedDeclaration.Default.inferTypeFromAssignment(this, val, context);
 	}
 	
-	public void expectedToBeOfType(C4Type t) {
+	public void expectedToBeOfType(ITypeSet t) {
 		// engine objects should not be altered
 		if (!typeLocked && !(getScript() instanceof C4Engine))
 			ITypedDeclaration.Default.expectedToBeOfType(this, t);
