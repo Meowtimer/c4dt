@@ -172,13 +172,17 @@ public class C4ScriptParser {
 			storedTypeInformationListStack.peek().add(newlyCreated);
 		return newlyCreated;
 	}
-	
-	public List<IStoredTypeInformation> copyCurrentTypeInformationList() throws CloneNotSupportedException {
-		List<IStoredTypeInformation> list = new ArrayList<IStoredTypeInformation>(storedTypeInformationListStack.peek().size());
-		for (IStoredTypeInformation info : storedTypeInformationListStack.peek()) {
-			list.add((IStoredTypeInformation) info.clone());
+
+	public List<IStoredTypeInformation> copyCurrentTypeInformationList() {
+		try {
+			List<IStoredTypeInformation> list = new ArrayList<IStoredTypeInformation>(storedTypeInformationListStack.peek().size());
+			for (IStoredTypeInformation info : storedTypeInformationListStack.peek()) {
+				list.add((IStoredTypeInformation) info.clone());
+			}
+			return list;
+		} catch (CloneNotSupportedException e) {
+			return null;
 		}
-		return list;
 	}
 	
 	public void pushTypeInformationList(List<IStoredTypeInformation> list) {

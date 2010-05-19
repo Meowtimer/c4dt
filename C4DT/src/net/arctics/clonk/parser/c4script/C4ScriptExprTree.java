@@ -432,7 +432,7 @@ public abstract class C4ScriptExprTree {
 		}
 
 		public static ITypeSet combineTypes(ITypeSet first, ITypeSet second) {
-			return C4TypeSet.registerTypeSet(first, second);
+			return C4TypeSet.create(first, second);
 		}
 
 		private static final ExprElm[] exprElmsForTypes = new ExprElm[C4Type.values().length];
@@ -2388,7 +2388,7 @@ public abstract class C4ScriptExprTree {
 			for (int i = 0; i < typeSets.length; i++) {
 				typeSets[i] = elements[i].getType(context);
 			}
-			final ITypeSet combined = C4TypeSet.registerTypeSet(typeSets);
+			final ITypeSet combined = C4TypeSet.create(typeSets);
 			return combined == C4Type.UNKNOWN ? super.getExemplaryArrayElement(context) : new ExprElm() {
 				@Override
 				public ITypeSet getType(C4ScriptParser context) {

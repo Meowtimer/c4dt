@@ -10,9 +10,9 @@ public class C4TypeSet implements ITypeSet {
 
 	private static List<C4TypeSet> typeSets = new LinkedList<C4TypeSet>();
 	
-	public static final ITypeSet STRING_OR_OBJECT = registerTypeSet(C4Type.STRING, C4Type.OBJECT);
-	public static final ITypeSet ARRAY_OR_STRING = registerTypeSet(C4Type.ARRAY, C4Type.STRING);
-	public static final ITypeSet REFERENCE_OR_ANY_OR_UNKNOWN = registerTypeSet(C4Type.REFERENCE, C4Type.ANY, C4Type.UNKNOWN);
+	public static final ITypeSet STRING_OR_OBJECT = create(C4Type.STRING, C4Type.OBJECT);
+	public static final ITypeSet ARRAY_OR_STRING = create(C4Type.ARRAY, C4Type.STRING);
+	public static final ITypeSet REFERENCE_OR_ANY_OR_UNKNOWN = create(C4Type.REFERENCE, C4Type.ANY, C4Type.UNKNOWN);
 	
 	private Set<C4Type> types;
 	
@@ -20,7 +20,7 @@ public class C4TypeSet implements ITypeSet {
 		this.types = types;
 	}
 	
-	public static ITypeSet registerTypeSet(ITypeSet... ingredients) {
+	public static ITypeSet create(ITypeSet... ingredients) {
 		Set<C4Type> set = new HashSet<C4Type>();
 		for (ITypeSet s : ingredients) {
 			for (C4Type t : s) {
@@ -57,6 +57,7 @@ public class C4TypeSet implements ITypeSet {
 	@Override
 	public String toString(boolean special) {
 		StringBuilder builder = new StringBuilder(20);
+		builder.append("<");
 		boolean started = true;
 		for (C4Type t : this) {
 			if (started)
@@ -65,6 +66,7 @@ public class C4TypeSet implements ITypeSet {
 				builder.append(" or ");
 			builder.append(t.toString(special));
 		}
+		builder.append(">");
 		return builder.toString();
 	}
 	

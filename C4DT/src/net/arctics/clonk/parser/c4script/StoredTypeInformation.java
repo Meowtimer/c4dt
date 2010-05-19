@@ -35,9 +35,9 @@ public abstract class StoredTypeInformation implements IStoredTypeInformation, C
 		if (getType() == C4Type.UNKNOWN)
 			// unknown before so now it is assumed to be of this type
 			storeType(type);
-		else if (getType() != other.getType())
-			// assignments of multiple types - can be anything
-			storeType(C4Type.ANY);
+		else if (!getType().equals(other.getType()))
+			// assignments of multiple types - construct type set
+			storeType(C4TypeSet.create(getType(), other.getType()));
 	}
 	
 	@Override

@@ -230,11 +230,15 @@ public class C4Variable extends C4Declaration implements Serializable, ITypedDec
 		return scope.ordinal();
 	}
 
+	private static String htmlerize(String text) {
+		return text.replace("<", "&lt;").replace(">", "&gt;");
+	}
+	
 	@Override
 	public String getInfoText() {
 		StringBuilder builder = new StringBuilder();
 		builder.append("<b>"); //$NON-NLS-1$
-		builder.append((getType() == C4Type.UNKNOWN ? C4Type.ANY : getType()).toString());
+		builder.append(htmlerize((getType() == C4Type.UNKNOWN ? C4Type.ANY : getType()).toString()));
 		builder.append(" "); //$NON-NLS-1$
 		builder.append(getName());
 		if (constValue != null) {

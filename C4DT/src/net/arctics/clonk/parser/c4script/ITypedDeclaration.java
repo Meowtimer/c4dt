@@ -19,7 +19,7 @@ public interface ITypedDeclaration {
 				instance.forceType(type);
 			else if (!instance.getType().equals(type))
 				// assignments of multiple types - declaration now has multiple potential types
-				instance.forceType(C4TypeSet.registerTypeSet(type, instance.getType()));
+				instance.forceType(C4TypeSet.create(type, instance.getType()));
 		}
 		public static void inferTypeFromAssignment(ITypedDeclaration instance, ExprElm val, C4ScriptParser context) {
 			instance.setObjectType(val.guessObjectType(context));

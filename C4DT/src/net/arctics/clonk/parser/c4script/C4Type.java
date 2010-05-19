@@ -43,9 +43,9 @@ public enum C4Type implements ITypeSet {
 	
 	@Override
 	public boolean canBeAssignedFrom(ITypeSet other) {
-		if (other == this)
-			return true;
 		for (C4Type t : other) {
+			if (t == this)
+				return true;
 			switch (t) {
 			case UNKNOWN: case ANY: case REFERENCE:
 				return true;
