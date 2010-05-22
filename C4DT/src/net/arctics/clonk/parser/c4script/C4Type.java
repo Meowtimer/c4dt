@@ -128,6 +128,9 @@ public enum C4Type implements ITypeSet {
 		return null;
 	}
 
+	/**
+	 * Awesomely return iterator that iterates over this type
+	 */
 	@Override
 	public Iterator<C4Type> iterator() {
 		return new Iterator<C4Type>() {
@@ -149,6 +152,33 @@ public enum C4Type implements ITypeSet {
 				throw new UnsupportedOperationException();
 			}
 		};
+	}
+
+	@Override
+	public boolean subsetOf(ITypeSet typeSet) {
+		for (C4Type t : typeSet)
+			if (t == this)
+				return true;
+		return false;
+	}
+
+	@Override
+	public boolean contains(C4Type type) {
+		return type == this;
+	}
+	
+	@Override
+	public int specificness() {
+		switch (this) {
+		case UNKNOWN:
+			return 0;
+		case ANY:
+			return 1;
+		case REFERENCE:
+			return 2;
+		default:
+			return 3;
+		}
 	}
 
 }
