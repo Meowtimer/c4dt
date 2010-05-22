@@ -6,34 +6,45 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
-public class C4TypeSet implements ITypeSet {
+public class C4TypeSet implements IType {
 
 	private static final long serialVersionUID = 1L;
 
 	private static List<C4TypeSet> typeSets = new LinkedList<C4TypeSet>();
 	
-	public static final ITypeSet STRING_OR_OBJECT = create(C4Type.STRING, C4Type.OBJECT);
-	public static final ITypeSet ARRAY_OR_STRING = create(C4Type.ARRAY, C4Type.STRING);
-	public static final ITypeSet REFERENCE_OR_ANY_OR_UNKNOWN = create(C4Type.REFERENCE, C4Type.ANY, C4Type.UNKNOWN);
-	public static final ITypeSet OBJECT_OR_ID = create(C4Type.OBJECT, C4Type.ID);
+	public static final IType STRING_OR_OBJECT = create(C4Type.STRING, C4Type.OBJECT);
+	public static final IType ARRAY_OR_STRING = create(C4Type.ARRAY, C4Type.STRING);
+	public static final IType REFERENCE_OR_ANY_OR_UNKNOWN = create(C4Type.REFERENCE, C4Type.ANY, C4Type.UNKNOWN);
+	public static final IType OBJECT_OR_ID = create(C4Type.OBJECT, C4Type.ID);
 	
-	private Set<C4Type> types;
+	private Set<IType> types;
+	private boolean internalized;
 	
-	private C4TypeSet(Set<C4Type> types) {
+	private C4TypeSet(Set<IType> types) {
 		this.types = types;
 	}
 	
-	public ITypeSet internalize() {
+	public C4TypeSet(IType... types) {
+		this.types = new HashSet<IType>(types.length);
+		for (IType t : types)
+			this.types.add(t);
+	}
+
+	public IType internalize() {
 		return create(this);
 	}
 	
-	public static ITypeSet create(ITypeSet... ingredients) {
-		Set<C4Type> set = new HashSet<C4Type>();
-		for (ITypeSet s : ingredients) {
-			for (C4Type t : s) {
+	public static IType create(IType... ingredients) {
+		Set<IType> set = new HashSet<IType>();
+		boolean containsNonStatics = false;
+		for (IType s : ingredients) {
+			for (IType t : s) {
+				containsNonStatics = containsNonStatics || !t.staticType();
 				set.add(t);
 			}
 		}
+		if (containsNonStatics)
+			return ingredients.length == 1 ? ingredients[0] : new C4TypeSet(set);
 		if (set.size() == 0)
 			return C4Type.UNKNOWN;
 		if (set.size() == 1)
@@ -47,18 +58,19 @@ public class C4TypeSet implements ITypeSet {
 		C4TypeSet n = ingredients.length == 1 && ingredients[0] instanceof C4TypeSet
 			? (C4TypeSet)ingredients[0]
 			: new C4TypeSet(set);
+		n.internalized = true;
 		typeSets.add(n);
 		return n;
 	}
 	
 	@Override
-	public Iterator<C4Type> iterator() {
+	public Iterator<IType> iterator() {
 		return types.iterator();
 	}
 
 	@Override
-	public boolean canBeAssignedFrom(ITypeSet other) {
-		for (C4Type t : this) {
+	public boolean canBeAssignedFrom(IType other) {
+		for (IType t : this) {
 			if (t.canBeAssignedFrom(other))
 				return true;
 		}
@@ -66,16 +78,16 @@ public class C4TypeSet implements ITypeSet {
 	}
 
 	@Override
-	public String toString(boolean special) {
+	public String typeName(boolean special) {
 		StringBuilder builder = new StringBuilder(20);
 		builder.append("<");
 		boolean started = true;
-		for (C4Type t : this) {
+		for (IType t : this) {
 			if (started)
 				started = false;
 			else
 				builder.append(" or ");
-			builder.append(t.toString(special));
+			builder.append(t.typeName(special));
 		}
 		builder.append(">");
 		return builder.toString();
@@ -83,7 +95,7 @@ public class C4TypeSet implements ITypeSet {
 	
 	@Override
 	public String toString() {
-		return toString(false);
+		return typeName(false);
 	}
 	
 	@Override
@@ -96,17 +108,17 @@ public class C4TypeSet implements ITypeSet {
 	}
 
 	@Override
-	public boolean subsetOf(ITypeSet typeSet) {
-		for (C4Type t : this) {
-			if (!typeSet.contains(t))
+	public boolean subsetOfType(IType typeSet) {
+		for (IType t : this) {
+			if (!typeSet.containsType(t))
 				return false;
 		}
 		return true;
 	}
 
 	@Override
-	public boolean contains(C4Type type) {
-		for (C4Type t : this)
+	public boolean containsType(IType type) {
+		for (IType t : this)
 			if (t == type)
 				return true;
 		return false;
@@ -115,11 +127,16 @@ public class C4TypeSet implements ITypeSet {
 	@Override
 	public int specificness() {
 		int s = 0, c = 0;
-		for (C4Type t : this) {
+		for (IType t : this) {
 			c++;
 			s += t.specificness();
 		}
 		return c == 0 ? 0 : s/c;
+	}
+
+	@Override
+	public boolean staticType() {
+		return internalized;
 	}
 
 }

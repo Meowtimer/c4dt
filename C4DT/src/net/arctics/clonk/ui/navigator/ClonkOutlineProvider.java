@@ -75,7 +75,7 @@ public class ClonkOutlineProvider extends LabelProvider implements ITreeContentP
 			StyledString string = new StyledString(func.getLongParameterString(true, false));
 			if (func.getReturnType() != null && func.getReturnType() != C4Type.UNKNOWN && func.getReturnType() != C4Type.ANY) {
 				string.append(" : "); //$NON-NLS-1$
-				string.append(func.getReturnType().toString(true), StyledString.DECORATIONS_STYLER);
+				string.append(func.getReturnType().typeName(true), StyledString.DECORATIONS_STYLER);
 			}
 			return string;
 		}

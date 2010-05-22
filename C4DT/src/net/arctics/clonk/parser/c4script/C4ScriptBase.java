@@ -648,10 +648,10 @@ public abstract class C4ScriptBase extends C4Structure implements IHasRelatedRes
 		writer.write("<script>\n"); //$NON-NLS-1$
 		writer.write("\t<functions>\n"); //$NON-NLS-1$
 		for (C4Function f : functions()) {
-			writer.write(String.format("\t\t<function name=\"%s\" return=\"%s\">\n", f.getName(), f.getReturnType().toString(true))); //$NON-NLS-1$
+			writer.write(String.format("\t\t<function name=\"%s\" return=\"%s\">\n", f.getName(), f.getReturnType().typeName(true))); //$NON-NLS-1$
 			writer.write("\t\t\t<parameters>\n"); //$NON-NLS-1$
 			for (C4Variable p : f.getParameters()) {
-				writer.write(String.format("\t\t\t\t<parameter name=\"%s\" type=\"%s\" />\n", p.getName(), p.getType().toString(true))); //$NON-NLS-1$
+				writer.write(String.format("\t\t\t\t<parameter name=\"%s\" type=\"%s\" />\n", p.getName(), p.getType().typeName(true))); //$NON-NLS-1$
 			}
 			writer.write("\t\t\t</parameters>\n"); //$NON-NLS-1$
 			if (f.getUserDescription() != null) {
@@ -664,7 +664,7 @@ public abstract class C4ScriptBase extends C4Structure implements IHasRelatedRes
 		writer.write("\t</functions>\n"); //$NON-NLS-1$
 		writer.write("\t<variables>\n"); //$NON-NLS-1$
 		for (C4Variable v : variables()) {
-			writer.write(String.format("\t\t<variable name=\"%s\" type=\"%s\" const=\"%s\">\n", v.getName(), v.getType().toString(true), Boolean.valueOf(v.getScope() == C4VariableScope.VAR_CONST))); //$NON-NLS-1$
+			writer.write(String.format("\t\t<variable name=\"%s\" type=\"%s\" const=\"%s\">\n", v.getName(), v.getType().typeName(true), Boolean.valueOf(v.getScope() == C4VariableScope.VAR_CONST))); //$NON-NLS-1$
 			if (v.getUserDescription() != null) {
 				writer.write("\t\t\t<description>\n"); //$NON-NLS-1$
 				writer.write("\t\t\t\t"+v.getUserDescription()+"\n"); //$NON-NLS-1$ //$NON-NLS-2$

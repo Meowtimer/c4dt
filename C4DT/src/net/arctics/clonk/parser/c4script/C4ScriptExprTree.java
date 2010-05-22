@@ -258,12 +258,14 @@ public abstract class C4ScriptExprTree {
 		public boolean isValidInSequence(ExprElm predecessor, C4ScriptParser context) {
 			return predecessor == null;
 		}
-		public ITypeSet getType(C4ScriptParser context) {
+		
+		public IType getType(C4ScriptParser context) {
 			return context.queryTypeOfExpression(this, C4Type.UNKNOWN);
 		}
-
-		public C4Object guessObjectType(C4ScriptParser context) {
-			return context.queryObjectTypeOfExpression(this);
+		
+		public final C4Object guessObjectType(C4ScriptParser context) {
+			IType t = getType(context);
+			return t instanceof C4Object ? (C4Object)t : null;
 		}
 
 		public ExprElm getExemplaryArrayElement(C4ScriptParser context) {
@@ -390,12 +392,12 @@ public abstract class C4ScriptExprTree {
 		 * @param otherType the type to test convertability to
 		 * @return true if conversion is possible or false if not
 		 */
-		public boolean canBeConvertedTo(ITypeSet otherType, C4ScriptParser context) {
+		public boolean canBeConvertedTo(IType otherType, C4ScriptParser context) {
 			// 5555 is ID
 			return getType(context) == C4Type.INT && otherType.canBeAssignedFrom(C4Type.ID);
 		}
 
-		public boolean validForType(ITypeSet t, C4ScriptParser context) {
+		public boolean validForType(IType t, C4ScriptParser context) {
 			return t.canBeAssignedFrom(getType(context)) || canBeConvertedTo(t, context);
 		}
 
@@ -444,7 +446,7 @@ public abstract class C4ScriptExprTree {
 			return null;
 		}
 
-		public static ITypeSet combineTypes(ITypeSet first, ITypeSet second) {
+		public static IType combineTypes(IType first, IType second) {
 			return C4TypeSet.create(first, second);
 		}
 
@@ -459,7 +461,7 @@ public abstract class C4ScriptExprTree {
 			if (exprElmsForTypes[type.ordinal()] == null) {
 				exprElmsForTypes[type.ordinal()] = new ExprElm() {
 					@Override
-					public ITypeSet getType(C4ScriptParser context) {
+					public IType getType(C4ScriptParser context) {
 						return type;
 					}
 				};
@@ -488,7 +490,7 @@ public abstract class C4ScriptExprTree {
 			return new Comment(str, str.contains("\n")); //$NON-NLS-1$
 		}
 
-		public void expectedToBeOfType(ITypeSet type, C4ScriptParser context) {
+		public void expectedToBeOfType(IType type, C4ScriptParser context) {
 			if (type == C4Type.UNKNOWN || type == C4Type.ANY)
 				return; // expecting it to be of any or unknown type? come back when you can be more specific please
 			IStoredTypeInformation info = context.requestStoredTypeInformation(this);
@@ -497,7 +499,7 @@ public abstract class C4ScriptExprTree {
 		}
 
 		public void inferTypeFromAssignment(ExprElm rightSide, C4ScriptParser parser) {
-			parser.storeTypeInformation(this, rightSide.getType(parser), rightSide.guessObjectType(parser));
+			parser.storeTypeInformation(this, rightSide.getType(parser));
 		}
 
 		public ControlFlow getControlFlow() {
@@ -608,8 +610,8 @@ public abstract class C4ScriptExprTree {
 		@Override
 		public boolean isValidInSequence(ExprElm predecessor, C4ScriptParser context) {
 			if (predecessor != null) {
-				ITypeSet t = predecessor.getType(context);
-				if (t == null || t.subsetOf(C4TypeSet.ARRAY_OR_STRING))
+				IType t = predecessor.getType(context);
+				if (t == null || t.subsetOfType(C4TypeSet.ARRAY_OR_STRING))
 					return false;
 				return true;
 			}
@@ -617,18 +619,13 @@ public abstract class C4ScriptExprTree {
 		}
 
 		@Override
-		public ITypeSet getType(C4ScriptParser context) {
-			return null; // invalid as an expression
-		}
-
-		@Override
-		public C4Object guessObjectType(C4ScriptParser context) {
+		public IType getType(C4ScriptParser context) {
 			// explicit id
 			if (id != null) {
 				return context.getContainer().getNearestObjectWithId(id);
 			}
 			// stuff before -> decides
-			return getPredecessorInSequence() != null ? getPredecessorInSequence().guessObjectType(context) : super.guessObjectType(context);
+			return getPredecessorInSequence() != null ? getPredecessorInSequence().getType(context) : super.getType(context);
 		}
 
 		@Override
@@ -651,7 +648,7 @@ public abstract class C4ScriptExprTree {
 	public abstract static class Value extends ExprElm {
 
 		@Override
-		public ITypeSet getType(C4ScriptParser context) {
+		public IType getType(C4ScriptParser context) {
 			return context.queryTypeOfExpression(this, C4Type.ANY);
 		}
 
@@ -685,12 +682,8 @@ public abstract class C4ScriptExprTree {
 			}
 		}
 		@Override
-		public ITypeSet getType(C4ScriptParser context) {
+		public IType getType(C4ScriptParser context) {
 			return (elements == null || elements.length == 0) ? C4Type.UNKNOWN : elements[elements.length-1].getType(context);
-		}
-		@Override
-		public C4Object guessObjectType(C4ScriptParser context) {
-			return (elements == null || elements.length == 0) ? super.guessObjectType(context) : elements[elements.length-1].guessObjectType(context);
 		}
 		@Override
 		public boolean modifiable(C4ScriptParser context) {
@@ -784,7 +777,6 @@ public abstract class C4ScriptExprTree {
 				this.decl = varDeclaration;
 				if (varDeclaration instanceof C4Variable) {
 					C4Variable var = (C4Variable) varDeclaration;
-					storeObjectType(var.getObjectType());
 					storeType(var.getType());
 				}
 			}
@@ -809,8 +801,7 @@ public abstract class C4ScriptExprTree {
 				if (decl instanceof C4Variable) {
 					C4Variable var = (C4Variable) decl;
 					if (!soft || var.getScope() == C4VariableScope.VAR_VAR) {
-						var.setType(getType());					
-						var.setObjectType(getObjectType());
+						var.setType(getType());
 					}
 				}
 			}
@@ -824,18 +815,6 @@ public abstract class C4ScriptExprTree {
 				return "variable " + decl.getName() + " " +  super.toString(); //$NON-NLS-1$ //$NON-NLS-2$
 			}
 
-		}
-
-		@Override
-		public C4Object guessObjectType(C4ScriptParser context) {
-			if (declaration != null) {
-				if (declaration == C4Variable.THIS && context.getContainer() instanceof C4Object)
-					return (C4Object) context.getContainer();
-			}
-			C4Object o = super.guessObjectType(context);
-			if (o == null && declaration != null)
-				o = ((C4Variable)declaration).getObjectType();
-			return o;
 		}
 
 		@Override
@@ -901,22 +880,28 @@ public abstract class C4ScriptExprTree {
 		public IStoredTypeInformation createStoredTypeInformation(C4ScriptParser parser) {
 			return createStoredTypeInformation(getDeclaration());
 		}
-
+		
 		@Override
-		public ITypeSet getType(C4ScriptParser context) {
+		public IType getType(C4ScriptParser context) {
+			C4Declaration d = getDeclaration(context);
 			// getDeclaration(context) ensures that declaration is not null (if there is actually a variable) which is needed for queryTypeOfExpression for example
-			if (getDeclaration(context) == C4Variable.THIS)
-				return C4Type.OBJECT;
-			ITypeSet stored = context.queryTypeOfExpression(this, null);
+			if (d == C4Variable.THIS)
+				return context.getContainerObject() != null ? context.getContainerObject() : C4Type.OBJECT;
+			IType stored = context.queryTypeOfExpression(this, null);
 			if (stored != null)
 				return stored;
-			if (getDeclaration() instanceof C4Variable)
-				return ((C4Variable)getDeclaration()).getType();
+			if (d instanceof C4Variable) {
+				C4Variable v = (C4Variable) d;
+				if (v.getObjectType() != null)
+					return v.getObjectType();
+				else
+					return v.getType();
+			}
 			return C4Type.UNKNOWN;
 		}
 
 		@Override
-		public void expectedToBeOfType(ITypeSet type, C4ScriptParser context) {
+		public void expectedToBeOfType(IType type, C4ScriptParser context) {
 			if (getDeclaration() == C4Variable.THIS)
 				return;
 			super.expectedToBeOfType(type, context);
@@ -1023,7 +1008,7 @@ public abstract class C4ScriptExprTree {
 		}
 		@Override
 		public boolean modifiable(C4ScriptParser context) {
-			ITypeSet t = getType(context);
+			IType t = getType(context);
 			return t.canBeAssignedFrom(C4TypeSet.REFERENCE_OR_ANY_OR_UNKNOWN);
 		}
 		@Override
@@ -1031,7 +1016,25 @@ public abstract class C4ScriptExprTree {
 			return true;
 		}
 		@Override
-		public ITypeSet getType(C4ScriptParser context) {
+		public IType getType(C4ScriptParser context) {
+			C4Declaration d = getDeclaration(context);
+			if (params.length == 0 && (d == getCachedFuncs(context).This || d == C4Variable.THIS)) {
+				return context.getContainerObject();
+			}
+			else if (isCriteriaSearch()) {
+				return searchCriteriaAssumedResult(context);
+			}
+			else if (params != null && params.length >= 1 && d instanceof C4Function && ((C4Function)d).getReturnType() == C4Type.OBJECT && (declarationName.startsWith("Create") || declarationName.startsWith("Find"))) { //$NON-NLS-1$ //$NON-NLS-2$
+				return params[0].getType(context);
+			}
+			else if (declarationName.equals("GetID") && params.length == 0) { //$NON-NLS-1$
+				return getPredecessorInSequence() == null ? context.getContainerObject() : getPredecessorInSequence().getType(context);
+			}
+			if (declaration instanceof ITypedDeclaration) {
+				C4Object obj = ((ITypedDeclaration)declaration).getObjectType();
+				if (obj != null)
+					return obj;
+			}
 			if (declaration instanceof C4Function && ((C4Function)declaration).getReturnType() != C4Type.REFERENCE)
 				return ((C4Function)declaration).getReturnType();
 			else
@@ -1125,10 +1128,10 @@ public abstract class C4ScriptExprTree {
 								ExprElm given = params[givenParam++];
 								if (given == null)
 									continue;
-								ITypeSet parmType = givenParam >= 2 && givenParam <= 4 ? C4Type.ANY : parm.getType();
+								IType parmType = givenParam >= 2 && givenParam <= 4 ? C4Type.ANY : parm.getType();
 								if (!given.validForType(parmType, context))
 									context.warningWithCode(ParserErrorCode.IncompatibleTypes, given, parmType, given.getType(context));
-								//given.expectedToBeOfType(parmType, context);
+								given.expectedToBeOfType(parmType, context);
 							}
 							specialCaseHandled = true;
 						}
@@ -1180,28 +1183,6 @@ public abstract class C4ScriptExprTree {
 		}
 		private boolean isCriteriaSearch() {
 			return declaration instanceof C4Function && ((C4Function)declaration).isCriteriaSearch;
-		}
-		@Override
-		public C4Object guessObjectType(C4ScriptParser parser) {
-			// FIXME: could lead to problems when one of those functions does not take an id as first parameter
-			if (params.length == 0 && (getDeclaration() == getCachedFuncs(parser).This || getDeclaration() == C4Variable.THIS)) {
-				return parser.getContainerObject();
-			}
-			else if (isCriteriaSearch()) {
-				return searchCriteriaAssumedResult(parser);
-			}
-			else if (params != null && params.length >= 1 && getType(parser) == C4Type.OBJECT && (declarationName.startsWith("Create") || declarationName.startsWith("Find"))) { //$NON-NLS-1$ //$NON-NLS-2$
-				return params[0].guessObjectType(parser);
-			}
-			else if (declarationName.equals("GetID") && params.length == 0) { //$NON-NLS-1$
-				return getPredecessorInSequence() == null ? parser.getContainerObject() : getPredecessorInSequence().guessObjectType(parser);
-			}
-			if (declaration instanceof ITypedDeclaration) {
-				C4Object obj = ((ITypedDeclaration)declaration).getObjectType();
-				if (obj != null)
-					return obj;
-			}
-			return super.guessObjectType(parser);
 		}
 		protected BinaryOp applyOperatorTo(C4ScriptParser parser, ExprElm[] parms, C4ScriptOperator operator) throws CloneNotSupportedException {
 			BinaryOp op = new BinaryOp(operator);
@@ -1362,11 +1343,7 @@ public abstract class C4ScriptExprTree {
 			if (obj != null) {
 				return new ExprElm() {
 					@Override
-					public ITypeSet getType(C4ScriptParser context) {
-						return C4Type.OBJECT;
-					}
-					@Override
-					public C4Object guessObjectType(C4ScriptParser arg0) {
+					public IType getType(C4ScriptParser context) {
 						return obj;
 					}
 				};
@@ -1420,7 +1397,7 @@ public abstract class C4ScriptExprTree {
 		private final C4ScriptOperator operator;
 
 		@Override
-		public ITypeSet getType(C4ScriptParser context) {
+		public IType getType(C4ScriptParser context) {
 			return operator.getResultType();
 		}
 
@@ -1448,12 +1425,12 @@ public abstract class C4ScriptExprTree {
 	public static class BinaryOp extends Operator {
 		
 		@Override
-		public ITypeSet getType(C4ScriptParser context) {
+		public IType getType(C4ScriptParser context) {
 			switch (getOperator()) {
 			// &&/|| special: they return either the left or right side of the operator so the return type is the lowest common denominator of the argument types
 			case And: case Or:
-				ITypeSet leftSideType = getLeftSide().getType(context);
-				ITypeSet rightSideType = getRightSide().getType(context);
+				IType leftSideType = getLeftSide().getType(context);
+				IType rightSideType = getRightSide().getType(context);
 				if (leftSideType == rightSideType)
 					return leftSideType;
 				else
@@ -1611,15 +1588,15 @@ public abstract class C4ScriptExprTree {
 			if (!getRightSide().validForType(getOperator().getSecondArgType(), context))
 				context.warningWithCode(ParserErrorCode.IncompatibleTypes, getRightSide(), getOperator().getSecondArgType(), getRightSide().getType(context));
 
-			ITypeSet expectedLeft, expectedRight;
+			IType expectedLeft, expectedRight;
 			switch (getOperator()) {
 			case Assign:
 				expectedLeft = expectedRight = getRightSide().getType(context);
 				break;
 			case Equal:
 			{
-				ITypeSet l = getLeftSide().getType(context);
-				ITypeSet r = getRightSide().getType(context);
+				IType l = getLeftSide().getType(context);
+				IType r = getRightSide().getType(context);
 				if (l.specificness() > r.specificness())
 					expectedLeft = expectedRight = l;
 				else
@@ -1725,7 +1702,7 @@ public abstract class C4ScriptExprTree {
 			innerExpr.print(output, depth+1);
 			output.append(")"); //$NON-NLS-1$
 		}
-		public ITypeSet getType(C4ScriptParser context) {
+		public IType getType(C4ScriptParser context) {
 			return innerExpr.getType(context);
 		}
 		@Override
@@ -1883,7 +1860,7 @@ public abstract class C4ScriptExprTree {
 		private final T literal;
 
 		@Override
-		public void expectedToBeOfType(ITypeSet arg0, C4ScriptParser arg1) {
+		public void expectedToBeOfType(IType arg0, C4ScriptParser arg1) {
 			// constantly steadfast do i resist the pressure of expectancy lied upon me
 		}
 
@@ -1966,14 +1943,14 @@ public abstract class C4ScriptExprTree {
 				super.doPrint(output, depth);
 		}
 
-		public ITypeSet getType(C4ScriptParser context) {
+		public IType getType(C4ScriptParser context) {
 			if (longValue() == 0)
 				return C4Type.ANY; // FIXME: to prevent warnings when assigning 0 to object-variables
 			return C4Type.INT;
 		}
 
 		@Override
-		public boolean canBeConvertedTo(ITypeSet otherType, C4ScriptParser context) {
+		public boolean canBeConvertedTo(IType otherType, C4ScriptParser context) {
 			// 0 is the NULL object or NULL string
 			return (longValue() == 0 && (otherType.canBeAssignedFrom(C4TypeSet.STRING_OR_OBJECT))) || super.canBeConvertedTo(otherType, context);
 		}
@@ -2021,7 +1998,7 @@ public abstract class C4ScriptExprTree {
 		}
 
 		@Override
-		public ITypeSet getType(C4ScriptParser context) {
+		public IType getType(C4ScriptParser context) {
 			return C4Type.STRING;
 		}
 
@@ -2232,14 +2209,8 @@ public abstract class C4ScriptExprTree {
 		}
 
 		@Override
-		public ITypeSet getType(C4ScriptParser context) {
-			return C4Type.ID;
-		}
-
-		@Override
-		public C4Object guessObjectType(C4ScriptParser context) {
-			// FIXME: does not actually return an object of type idValue but the id itself :/
-			return context.getContainer().getNearestObjectWithId(idValue());
+		public IType getType(C4ScriptParser context) {
+			return new C4TypeSet(C4Type.ID, context.getContainer().getNearestObjectWithId(idValue()));
 		}
 
 		@Override
@@ -2256,7 +2227,7 @@ public abstract class C4ScriptExprTree {
 		public BoolLiteral(boolean value) {
 			super(Boolean.valueOf(value));
 		}
-		public ITypeSet getType(C4ScriptParser context) {
+		public IType getType(C4ScriptParser context) {
 			return C4Type.BOOL;
 		}
 		@Override
@@ -2278,7 +2249,7 @@ public abstract class C4ScriptExprTree {
 		protected ExprElm argument;
 
 		@Override
-		public ITypeSet getType(C4ScriptParser context) {
+		public IType getType(C4ScriptParser context) {
 			return C4Type.UNKNOWN; // FIXME: guess type of elements
 		}
 
@@ -2377,7 +2348,7 @@ public abstract class C4ScriptExprTree {
 		}
 		
 		@Override
-		public ITypeSet getType(C4ScriptParser context) {
+		public IType getType(C4ScriptParser context) {
 			return C4Type.ARRAY;
 		}
 		
@@ -2400,7 +2371,7 @@ public abstract class C4ScriptExprTree {
 		}
 
 		@Override
-		public ITypeSet getType(C4ScriptParser context) {
+		public IType getType(C4ScriptParser context) {
 			return C4Type.ARRAY;
 		}
 
@@ -2416,14 +2387,14 @@ public abstract class C4ScriptExprTree {
 
 		@Override
 		public ExprElm getExemplaryArrayElement(C4ScriptParser context) {
-			ITypeSet[] typeSets = new ITypeSet[elements.length];
+			IType[] typeSets = new IType[elements.length];
 			for (int i = 0; i < typeSets.length; i++) {
 				typeSets[i] = elements[i].getType(context);
 			}
-			final ITypeSet combined = C4TypeSet.create(typeSets);
+			final IType combined = C4TypeSet.create(typeSets);
 			return combined == C4Type.UNKNOWN ? super.getExemplaryArrayElement(context) : new ExprElm() {
 				@Override
-				public ITypeSet getType(C4ScriptParser context) {
+				public IType getType(C4ScriptParser context) {
 					return combined;
 				}
 			};
@@ -2459,7 +2430,7 @@ public abstract class C4ScriptExprTree {
 			}
 		}
 		@Override
-		public ITypeSet getType(C4ScriptParser parser) {
+		public IType getType(C4ScriptParser parser) {
 			return C4Type.PROPLIST;
 		}
 		@Override
@@ -2571,7 +2542,7 @@ public abstract class C4ScriptExprTree {
 		}
 
 		@Override
-		public ITypeSet getType(C4ScriptParser context) {
+		public IType getType(C4ScriptParser context) {
 			return null;
 		}
 

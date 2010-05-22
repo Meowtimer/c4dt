@@ -16,6 +16,7 @@ import net.arctics.clonk.parser.c4script.C4ScriptExprTree;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.C4Variable;
 import net.arctics.clonk.parser.c4script.IStoredTypeInformation;
+import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.parser.c4script.Keywords;
 import net.arctics.clonk.parser.BufferedScanner;
 import net.arctics.clonk.parser.C4Declaration;
@@ -283,9 +284,9 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 			}
 			if (contextExpression != null) {
 				if (contextExpression.containsOffset(preservedOffset-activeFunc.getBody().getOffset())) {
-					C4Object guessedType = contextExpression.guessObjectType(parser);
-					if (guessedType != null) {
-						contextScript = guessedType;
+					IType guessedType = contextExpression.getType(parser);
+					if (guessedType instanceof C4Object) {
+						contextScript = (C4ScriptBase) guessedType;
 						contextObjChanged = true;
 					}
 				}

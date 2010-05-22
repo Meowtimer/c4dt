@@ -11,7 +11,7 @@ import net.arctics.clonk.parser.C4ID;
  * @author ZokRadonh
  *
  */
-public enum C4Type implements ITypeSet {
+public enum C4Type implements IType {
 	UNKNOWN,
 	
 	ANY,
@@ -20,8 +20,7 @@ public enum C4Type implements ITypeSet {
 	ID,
 	STRING,
 	ARRAY,
-	OBJECT,
-	//DWORD, 
+	OBJECT, 
 	REFERENCE, 
 	PROPLIST;
 	
@@ -29,11 +28,11 @@ public enum C4Type implements ITypeSet {
 	
 	@Override
 	public String toString() {
-		return toString(false);
+		return typeName(false);
 	}
 	
 	@Override
-	public String toString(boolean special) {
+	public String typeName(boolean special) {
 		if (!special && this == REFERENCE)
 			return "&"; //$NON-NLS-1$
 		if (lowercaseName == null)
@@ -42,21 +41,23 @@ public enum C4Type implements ITypeSet {
 	}
 	
 	@Override
-	public boolean canBeAssignedFrom(ITypeSet other) {
-		for (C4Type t : other) {
+	public boolean canBeAssignedFrom(IType other) {
+		for (IType t : other) {
 			if (t == this)
 				return true;
-			switch (t) {
-			case UNKNOWN: case ANY: case REFERENCE:
-				return true;
-			default:
-				switch (this) {
-				case ANY: case UNKNOWN: case REFERENCE: case BOOL:
+			if (t.getClass() == C4Type.class) {
+				switch ((C4Type)t) {
+				case UNKNOWN: case ANY: case REFERENCE:
 					return true;
-				case INT:
-					return other == BOOL;
-				case PROPLIST:
-					return other == ID || other == OBJECT;
+				default:
+					switch (this) {
+					case ANY: case UNKNOWN: case REFERENCE: case BOOL:
+						return true;
+					case INT:
+						return other == BOOL;
+					case PROPLIST:
+						return other == ID || other == OBJECT;
+					}
 				}
 			}
 		}
@@ -132,8 +133,8 @@ public enum C4Type implements ITypeSet {
 	 * Awesomely return iterator that iterates over this type
 	 */
 	@Override
-	public Iterator<C4Type> iterator() {
-		return new Iterator<C4Type>() {
+	public Iterator<IType> iterator() {
+		return new Iterator<IType>() {
 			private boolean done = false;
 			
 			@Override
@@ -155,15 +156,15 @@ public enum C4Type implements ITypeSet {
 	}
 
 	@Override
-	public boolean subsetOf(ITypeSet typeSet) {
-		for (C4Type t : typeSet)
+	public boolean subsetOfType(IType typeSet) {
+		for (IType t : typeSet)
 			if (t == this)
 				return true;
 		return false;
 	}
 
 	@Override
-	public boolean contains(C4Type type) {
+	public boolean containsType(IType type) {
 		return type == this;
 	}
 	
@@ -179,6 +180,11 @@ public enum C4Type implements ITypeSet {
 		default:
 			return 3;
 		}
+	}
+
+	@Override
+	public boolean staticType() {
+		return true;
 	}
 
 }

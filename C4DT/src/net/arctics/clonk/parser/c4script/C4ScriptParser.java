@@ -148,10 +148,9 @@ public class C4ScriptParser {
 	/**
 	 * Ask the parser to store type information about an expression. No guarantees whether type information will actually be stored.
 	 */
-	public void storeTypeInformation(ExprElm expression, ITypeSet type, C4Object objectType) {
+	public void storeTypeInformation(ExprElm expression, IType type) {
 		IStoredTypeInformation requested = requestStoredTypeInformation(expression);
 		if (requested != null) {
-			requested.storeObjectType(objectType);
 			requested.storeType(type);
 		}
 	}
@@ -207,15 +206,7 @@ public class C4ScriptParser {
 		return null;
 	}
 	
-	/**
-	 * Same as queryTypeOfEexpression but for object types.
-	 */
-	public C4Object queryObjectTypeOfExpression(ExprElm expression) {
-		IStoredTypeInformation info = queryStoredTypeInformation(expression, true);
-		return info != null ? info.getObjectType() : null;
-	}
-	
-	public ITypeSet queryTypeOfExpression(ExprElm expression, C4Type defaultType) {
+	public IType queryTypeOfExpression(ExprElm expression, C4Type defaultType) {
 		IStoredTypeInformation info = queryStoredTypeInformation(expression, true);
 		return info != null ? info.getType() : defaultType;
 	}
@@ -2053,8 +2044,8 @@ public class C4ScriptParser {
 		}
 	}
 
-	private Statement parseVarDeclarationInStatement(EnumSet<ParseStatementOption> options, C4VariableScope scope) throws ParsingException {
-		Statement result;
+	private VarDeclarationStatement parseVarDeclarationInStatement(EnumSet<ParseStatementOption> options, C4VariableScope scope) throws ParsingException {
+		VarDeclarationStatement result;
 		List<Pair<String, ExprElm>> initializations = new LinkedList<Pair<String, ExprElm>>();
 		do {
 			eatWhitespace();
@@ -2075,8 +2066,7 @@ public class C4ScriptParser {
 				if (val == null)
 					errorWithCode(ParserErrorCode.ValueExpected, scanner.getPosition(), scanner.getPosition()+1);
 				else {
-					storeTypeInformation(new AccessVar(var), val.getType(this), val.guessObjectType(this));
-					var.inferTypeFromAssignment(val, this);
+					new AccessVar(var).expectedToBeOfType(val.getType(this), this);
 				}
 			}
 			else {
@@ -2298,7 +2288,7 @@ public class C4ScriptParser {
 			if (arrayExpr == null)
 				errorWithCode(ParserErrorCode.ExpressionExpected, offset, scanner.getPosition()+1);
 			else {
-				ITypeSet t = arrayExpr.getType(this);
+				IType t = arrayExpr.getType(this);
 				if (!t.canBeAssignedFrom(C4Type.ARRAY))
 					warningWithCode(ParserErrorCode.IncompatibleTypes, arrayExpr, t.toString(), C4Type.ARRAY.toString());
 				if (loopVariable != null)

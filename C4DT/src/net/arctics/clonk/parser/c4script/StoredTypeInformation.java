@@ -1,29 +1,16 @@
 package net.arctics.clonk.parser.c4script;
 
-import net.arctics.clonk.index.C4Object;
-
 public abstract class StoredTypeInformation implements IStoredTypeInformation, Cloneable {
 
-	private ITypeSet type;
-	private C4Object objectType;
+	private IType type;
 
 	@Override
-	public C4Object getObjectType() {
-		return objectType;
-	}
-
-	@Override
-	public ITypeSet getType() {
+	public IType getType() {
 		return type;
 	}
 
 	@Override
-	public void storeObjectType(C4Object objectType) {
-		this.objectType = objectType;
-	}
-
-	@Override
-	public void storeType(ITypeSet type) {
+	public void storeType(IType type) {
 		// if value type has already been specialized don't despecialize it again -.-
 		this.type = type;
 	}
@@ -46,7 +33,7 @@ public abstract class StoredTypeInformation implements IStoredTypeInformation, C
 	
 	@Override
 	public String toString() {
-		return "type: " + getType() + " objecttype: " + getObjectType(); //$NON-NLS-1$ //$NON-NLS-2$
+		return "type: " + getType(); //$NON-NLS-1$
 	}
 
 }

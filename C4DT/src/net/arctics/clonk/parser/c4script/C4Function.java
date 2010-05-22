@@ -20,7 +20,7 @@ public class C4Function extends C4Structure implements Serializable, ITypedDecla
 	private C4FunctionScope visibility; 
 	private List<C4Variable> localVars;
 	private List<C4Variable> parameter;
-	private ITypeSet returnType;
+	private IType returnType;
 	private String description;
 	private boolean isCallback;
 	private boolean isOldStyle;
@@ -101,7 +101,7 @@ public class C4Function extends C4Structure implements Serializable, ITypedDecla
 	/**
 	 * @return the returnType
 	 */
-	public ITypeSet getReturnType() {
+	public IType getReturnType() {
 		if (returnType == null)
 			returnType = C4Type.UNKNOWN;
 		return returnType;
@@ -110,7 +110,7 @@ public class C4Function extends C4Structure implements Serializable, ITypedDecla
 	/**
 	 * @param returnType the returnType to set
 	 */
-	public void setReturnType(ITypeSet returnType) {
+	public void setReturnType(IType returnType) {
 		this.returnType = returnType;
 	}
 
@@ -415,7 +415,7 @@ public class C4Function extends C4Structure implements Serializable, ITypedDecla
 	}
 
 	@Override
-	public void expectedToBeOfType(ITypeSet t) {
+	public void expectedToBeOfType(IType t) {
 		ITypedDeclaration.Default.expectedToBeOfType(this, t);
 	}
 
@@ -424,12 +424,12 @@ public class C4Function extends C4Structure implements Serializable, ITypedDecla
 	}
 
 	@Override
-	public ITypeSet getType() {
+	public IType getType() {
 		return getReturnType();
 	}
 
 	@Override
-	public void forceType(ITypeSet type) {
+	public void forceType(IType type) {
 		setReturnType(type);
 	}
 

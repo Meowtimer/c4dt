@@ -2,6 +2,7 @@ package net.arctics.clonk.index;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -11,10 +12,13 @@ import org.eclipse.swt.graphics.Image;
 
 import net.arctics.clonk.parser.C4ID;
 import net.arctics.clonk.parser.c4script.C4ScriptBase;
+import net.arctics.clonk.parser.c4script.C4Type;
 import net.arctics.clonk.parser.c4script.FindDeclarationInfo;
+import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.preferences.ClonkPreferences;
+import net.arctics.clonk.util.Utilities;
 
-public abstract class C4Object extends C4ScriptBase {
+public abstract class C4Object extends C4ScriptBase implements IType {
 
 	private static final long serialVersionUID = 1L;
 	
@@ -154,6 +158,52 @@ public abstract class C4Object extends C4ScriptBase {
 
 	public void setCachedPicture(Image cachedPicture) {
 		this.cachedPicture = cachedPicture;
+	}
+	
+	@Override
+	public boolean canBeAssignedFrom(IType other) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+	
+	@Override
+	public boolean containsType(IType type) {
+		return type == C4Type.OBJECT || type == this;
+	}
+	
+	@Override
+	public int specificness() {
+		return C4Type.OBJECT.specificness()+1;
+	}
+	
+	@Override
+	public String typeName(boolean special) {
+		return getName();
+	}
+	
+	@Override
+	public Iterator<IType> iterator() {
+		return Utilities.arrayIterable(new IType[] {C4Type.OBJECT, this}).iterator();
+	}
+	
+	@Override
+	public boolean subsetOfType(IType typeSet) {
+		for (IType t : typeSet) {
+			if (t == C4Type.OBJECT)
+				continue;
+			if (t instanceof C4Object) {
+				C4Object obj = (C4Object) t;
+				if (obj.includes(this))
+					continue;
+			}
+			return false;
+		}
+		return true;
+	}
+	
+	@Override
+	public boolean staticType() {
+		return false;
 	}
 	
 }

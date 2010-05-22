@@ -33,7 +33,7 @@ public class C4Variable extends C4Declaration implements Serializable, ITypedDec
 	/**
 	 * Type of the variable.
 	 */
-	private ITypeSet type;
+	private IType type;
 	
 	/**
 	 * Mostly null - only set when type=object
@@ -115,7 +115,7 @@ public class C4Variable extends C4Declaration implements Serializable, ITypedDec
 	/**
 	 * @return the type
 	 */
-	public ITypeSet getType() {
+	public IType getType() {
 		if (type == null)
 			type = C4Type.UNKNOWN;
 		return type;
@@ -124,7 +124,7 @@ public class C4Variable extends C4Declaration implements Serializable, ITypedDec
 	/**
 	 * @param type the type to set
 	 */
-	public void forceType(ITypeSet type) {
+	public void forceType(IType type) {
 		// -.-;
 //		if (type == C4Type.DWORD) formerly DWORD
 //			type = C4Type.INT;
@@ -136,7 +136,7 @@ public class C4Variable extends C4Declaration implements Serializable, ITypedDec
 		this.typeLocked = typeLocked;
 	}
 	
-	public void setType(ITypeSet type) {
+	public void setType(IType type) {
 		if (typeLocked)
 			return;
 		forceType(type);
@@ -238,7 +238,7 @@ public class C4Variable extends C4Declaration implements Serializable, ITypedDec
 	public String getInfoText() {
 		StringBuilder builder = new StringBuilder();
 		builder.append("<b>"); //$NON-NLS-1$
-		builder.append(htmlerize((getType() == C4Type.UNKNOWN ? C4Type.ANY : getType()).toString()));
+		builder.append(htmlerize((getType() == C4Type.UNKNOWN ? C4Type.ANY : getType()).typeName(false)));
 		builder.append(" "); //$NON-NLS-1$
 		builder.append(getName());
 		if (constValue != null) {
@@ -259,7 +259,7 @@ public class C4Variable extends C4Declaration implements Serializable, ITypedDec
 		ITypedDeclaration.Default.inferTypeFromAssignment(this, val, context);
 	}
 	
-	public void expectedToBeOfType(ITypeSet t) {
+	public void expectedToBeOfType(IType t) {
 		// engine objects should not be altered
 		if (!typeLocked && !(getScript() instanceof C4Engine))
 			ITypedDeclaration.Default.expectedToBeOfType(this, t);
