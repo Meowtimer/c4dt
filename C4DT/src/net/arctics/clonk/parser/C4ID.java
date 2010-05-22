@@ -16,7 +16,7 @@ public class C4ID implements Serializable {
 		idPool.put(id, this);
 	}
 	
-	public C4ID makeSpecial() {
+	public C4ID internalize() {
 		C4ID special = idPool.get(name);
 		if (special == null) {
 			idPool.put(name, this);
