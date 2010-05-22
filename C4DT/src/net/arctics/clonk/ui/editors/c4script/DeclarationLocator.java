@@ -12,7 +12,7 @@ import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.c4script.C4ScriptExprTree.DeclarationRegion;
 import net.arctics.clonk.parser.c4script.C4ScriptExprTree.AccessDeclaration;
 import net.arctics.clonk.parser.c4script.C4ScriptExprTree.ExprElm;
-import net.arctics.clonk.parser.c4script.C4ScriptExprTree.IExpressionListener;
+import net.arctics.clonk.parser.c4script.C4ScriptExprTree.ExpressionListener;
 import net.arctics.clonk.parser.c4script.C4ScriptExprTree.MemberOperator;
 import net.arctics.clonk.parser.c4script.C4ScriptExprTree.TraversalContinuation;
 import net.arctics.clonk.util.IPredicate;
@@ -156,7 +156,7 @@ public class DeclarationLocator extends ExpressionLocator {
 	}
 
 	public TraversalContinuation expressionDetected(ExprElm expression, C4ScriptParser parser) {
-		expression.traverse(new IExpressionListener() {
+		expression.traverse(new ExpressionListener() {
 			public TraversalContinuation expressionDetected(ExprElm expression, C4ScriptParser parser) {
 				if (exprRegion.getOffset() >= expression.getExprStart() && exprRegion.getOffset() < expression.getExprEnd()) {
 					exprAtRegion = expression;

@@ -116,7 +116,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 	}
 	
 	private ContentAssistant assistant;
-	private ExprElm contextExpression;
+	private ExprElm contextExpression, contextExpression2;
 	private List<IStoredTypeInformation> contextTypeInformation;
 	private ProposalCycle proposalCycle = ProposalCycle.SHOW_ALL;
 	private C4Function _activeFunc;
@@ -241,28 +241,47 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 		contextExpression = null;
 		if (contextScript != null) {
 			final int preservedOffset = offset;
-			C4ScriptParser parser = C4ScriptParser.reportExpressionsAndStatements(doc, activeFunc.getBody().getOffset(), offset, contextScript, activeFunc, new IExpressionListener() {
+			C4ScriptParser parser = C4ScriptParser.reportExpressionsAndStatements(doc, activeFunc.getBody().getOffset(), offset, contextScript, activeFunc, new ExpressionListener() {
 				public TraversalContinuation expressionDetected(ExprElm expression, C4ScriptParser parser) {
-					if (expression instanceof Statement) {
+					boolean isStatement = expression instanceof Statement;
+					if (isStatement) {
 						if (contextExpression != null && !contextExpression.containedIn(expression))
 							contextExpression = null;
-						return TraversalContinuation.Continue;
+						if (contextExpression != null && expression instanceof IfStatement) {
+							IfStatement ifStatement = (IfStatement) expression;
+							if (
+								ifStatement.getElse() != null &&
+								contextExpression.containedIn(ifStatement.getBody()) &&
+								ifStatement.getElse().containsOffset(preservedOffset-activeFunc.getBody().getOffset())
+							) {
+								contextExpression = null;
+								contextTypeInformation = parser.copyCurrentTypeInformationList();
+								contextExpression2 = expression;
+							}
+						}
 					}
-					if (activeFunc.getBody().getOffset() + expression.getExprStart() <= preservedOffset) {
-						contextExpression = expression;
-						try {
-			                contextTypeInformation = parser.copyCurrentTypeInformationList();
-			            } catch (CloneNotSupportedException e) {
-			                e.printStackTrace();
-			            }
+					if (
+						activeFunc.getBody().getOffset() + expression.getExprStart() <= preservedOffset &&
+						activeFunc.getBody().getOffset() + expression.getExprEnd()   <= preservedOffset
+					) {
+						if (!isStatement)
+							contextExpression = expression;
+						contextExpression2 = expression;
+						contextTypeInformation = parser.copyCurrentTypeInformationList();
 						return TraversalContinuation.Continue;
 					}
 					return TraversalContinuation.Cancel;
 				}
+				@Override
+				public void endTypeInferenceBlock(List<IStoredTypeInformation> typeInfos) {
+					
+				}
 			});
-			if (contextExpression != null) {
+			if (contextTypeInformation != null) {
 				parser.pushTypeInformationList(contextTypeInformation);
 				parser.applyStoredTypeInformationList(true);
+			}
+			if (contextExpression != null) {
 				if (contextExpression.containsOffset(preservedOffset-activeFunc.getBody().getOffset())) {
 					C4Object guessedType = contextExpression.guessObjectType(parser);
 					if (guessedType != null) {

@@ -55,9 +55,22 @@ public abstract class C4ScriptExprTree {
 		SkipSubElements,
 		Cancel
 	}
+	
+	public enum ExpressionListenerEvent {
+		ExpressionDetected,
+		TypeInformationListStackAboutToChange
+	}
 
 	public interface IExpressionListener {
 		public TraversalContinuation expressionDetected(ExprElm expression, C4ScriptParser parser);
+		public void endTypeInferenceBlock(List<IStoredTypeInformation> typeInfos);
+	}
+	
+	public static abstract class ExpressionListener implements IExpressionListener {
+		@Override
+		public void endTypeInferenceBlock(List<IStoredTypeInformation> typeInfos) {
+			// don't care
+		}
 	}
 
 	public interface ILoop {
@@ -475,9 +488,11 @@ public abstract class C4ScriptExprTree {
 			return new Comment(str, str.contains("\n")); //$NON-NLS-1$
 		}
 
-		public void expectedToBeOfType(C4Type type, C4ScriptParser context) {
+		public void expectedToBeOfType(ITypeSet type, C4ScriptParser context) {
+			if (type == C4Type.UNKNOWN || type == C4Type.ANY)
+				return; // expecting it to be of any or unknown type? come back when you can be more specific please
 			IStoredTypeInformation info = context.requestStoredTypeInformation(this);
-			if (info != null && type != C4Type.UNKNOWN)
+			if (info != null && info.getType() == C4Type.UNKNOWN)
 				info.storeType(type);
 		}
 
@@ -594,7 +609,7 @@ public abstract class C4ScriptExprTree {
 		public boolean isValidInSequence(ExprElm predecessor, C4ScriptParser context) {
 			if (predecessor != null) {
 				ITypeSet t = predecessor.getType(context);
-				if (t == null || t.canBeAssignedFrom(C4TypeSet.ARRAY_OR_STRING))
+				if (t == null || t.subsetOf(C4TypeSet.ARRAY_OR_STRING))
 					return false;
 				return true;
 			}
@@ -626,10 +641,9 @@ public abstract class C4ScriptExprTree {
 		@Override
 		public void reportErrors(C4ScriptParser parser) throws ParsingException {
 			super.reportErrors(parser);
-			// not really since -> can also be used with ids
-			//			ExprElm pred = getPredecessorInSequence();			
-			//			if (pred != null)
-			//				pred.expectedToBeOfType(C4Type.OBJECT);
+			ExprElm pred = getPredecessorInSequence();			
+			if (pred != null)
+				pred.expectedToBeOfType(C4TypeSet.OBJECT_OR_ID, parser);
 		}
 
 	}
@@ -898,11 +912,11 @@ public abstract class C4ScriptExprTree {
 				return stored;
 			if (getDeclaration() instanceof C4Variable)
 				return ((C4Variable)getDeclaration()).getType();
-			return C4Type.ANY;
+			return C4Type.UNKNOWN;
 		}
 
 		@Override
-		public void expectedToBeOfType(C4Type type, C4ScriptParser context) {
+		public void expectedToBeOfType(ITypeSet type, C4ScriptParser context) {
 			if (getDeclaration() == C4Variable.THIS)
 				return;
 			super.expectedToBeOfType(type, context);
@@ -1128,7 +1142,7 @@ public abstract class C4ScriptExprTree {
 								continue;
 							if (!given.validForType(parm.getType(), context))
 								context.warningWithCode(ParserErrorCode.IncompatibleTypes, given, parm.getType(), given.getType(context));
-							//given.expectedToBeOfType(parm.getType(), context);
+							given.expectedToBeOfType(parm.getType(), context);
 						}
 					}
 					
@@ -1597,8 +1611,28 @@ public abstract class C4ScriptExprTree {
 			if (!getRightSide().validForType(getOperator().getSecondArgType(), context))
 				context.warningWithCode(ParserErrorCode.IncompatibleTypes, getRightSide(), getOperator().getSecondArgType(), getRightSide().getType(context));
 
-			getLeftSide().expectedToBeOfType(getOperator().getFirstArgType(), context);
-			getRightSide().expectedToBeOfType(getOperator().getSecondArgType(), context);
+			ITypeSet expectedLeft, expectedRight;
+			switch (getOperator()) {
+			case Assign:
+				expectedLeft = expectedRight = getRightSide().getType(context);
+				break;
+			case Equal:
+			{
+				ITypeSet l = getLeftSide().getType(context);
+				ITypeSet r = getRightSide().getType(context);
+				if (l.specificness() > r.specificness())
+					expectedLeft = expectedRight = l;
+				else
+					expectedLeft = expectedRight = r;
+				break;
+			}
+			default:
+				expectedLeft = getOperator().getFirstArgType();
+				expectedRight = getOperator().getSecondArgType();
+			}
+			
+			getLeftSide().expectedToBeOfType(expectedLeft, context);
+			getRightSide().expectedToBeOfType(expectedRight, context);
 
 			if (getOperator() == C4ScriptOperator.Assign) {
 				getLeftSide().inferTypeFromAssignment(getRightSide(), context);
@@ -1750,9 +1784,7 @@ public abstract class C4ScriptExprTree {
 		}
 
 		private boolean needsSpace(UnaryOp other) {
-			C4ScriptOperator a = this.getOperator();
-			C4ScriptOperator b = this.getOperator();
-			return a.spaceNeededBetweenMeAnd(b);
+			return this.getOperator().spaceNeededBetweenMeAnd(other.getOperator());
 		}
 
 		public void doPrint(ExprWriter output, int depth) {
@@ -1851,8 +1883,8 @@ public abstract class C4ScriptExprTree {
 		private final T literal;
 
 		@Override
-		public void expectedToBeOfType(C4Type arg0, C4ScriptParser arg1) {
-			// don't care
+		public void expectedToBeOfType(ITypeSet arg0, C4ScriptParser arg1) {
+			// constantly steadfast do i resist the pressure of expectancy lied upon me
 		}
 
 		@Override
@@ -2247,7 +2279,7 @@ public abstract class C4ScriptExprTree {
 
 		@Override
 		public ITypeSet getType(C4ScriptParser context) {
-			return C4Type.ANY; // FIXME: guess type of elements
+			return C4Type.UNKNOWN; // FIXME: guess type of elements
 		}
 
 		public ArrayElementExpression(ExprElm argument) {
@@ -3011,6 +3043,10 @@ public abstract class C4ScriptExprTree {
 			if (elseExpr != null)
 				result.addAll(elseExpr.getPossibleControlFlows());
 			return result;
+		}
+		
+		public ExprElm getElse() {
+			return elseExpr;
 		}
 
 	}

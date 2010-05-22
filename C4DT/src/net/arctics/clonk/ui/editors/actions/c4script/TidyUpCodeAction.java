@@ -68,7 +68,7 @@ public class TidyUpCodeAction extends TextEditorAction {
 			final ITextSelection selection,
 			final LinkedList<FunctionStatements> statements,
 			final int selLength) {
-		return new IExpressionListener() {
+		return new ExpressionListener() {
 			
 			// don't immediately add comments for old-style funcs so that unrelated comments following a function don't get mangled in
 			private List<Comment> commentsOnOld = new LinkedList<Comment>();

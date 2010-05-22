@@ -16,9 +16,10 @@ import net.arctics.clonk.parser.c4script.C4ScriptExprTree.AccessDeclaration;
 import net.arctics.clonk.parser.c4script.C4ScriptExprTree.CallFunc;
 import net.arctics.clonk.parser.c4script.C4ScriptExprTree.ExprElm;
 import net.arctics.clonk.parser.c4script.C4ScriptExprTree.IDLiteral;
+import net.arctics.clonk.parser.c4script.C4ScriptExprTree.IExpressionListener;
 import net.arctics.clonk.parser.c4script.C4ScriptExprTree.MemberOperator;
 import net.arctics.clonk.parser.c4script.C4ScriptExprTree.StringLiteral;
-import net.arctics.clonk.parser.c4script.C4ScriptExprTree.IExpressionListener;
+import net.arctics.clonk.parser.c4script.C4ScriptExprTree.ExpressionListener;
 import net.arctics.clonk.parser.c4script.C4ScriptExprTree.Statement;
 import net.arctics.clonk.parser.c4script.C4ScriptExprTree.TraversalContinuation;
 import net.arctics.clonk.parser.inireader.ComplexIniEntry;
@@ -78,7 +79,7 @@ public class ClonkSearchQuery implements ISearchQuery {
 
 	public IStatus run(IProgressMonitor monitor) throws OperationCanceledException {
 		getSearchResult(); // make sure we have one
-		final IExpressionListener searchExpression = new IExpressionListener() {
+		final ExpressionListener searchExpression = new ExpressionListener() {
 			
 			private StringLiteral functionNameExpr;
 			
@@ -127,7 +128,7 @@ public class ClonkSearchQuery implements ISearchQuery {
 				return TraversalContinuation.Continue;
 			}
 		};
-		final IExpressionListener searchExpressions = new IExpressionListener() {
+		final ExpressionListener searchExpressions = new ExpressionListener() {
 			public TraversalContinuation expressionDetected(ExprElm expression, C4ScriptParser parser) {
 				if (expression instanceof Statement)
 					expression.traverse(searchExpression, parser);

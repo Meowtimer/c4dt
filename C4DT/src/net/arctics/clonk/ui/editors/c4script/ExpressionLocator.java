@@ -5,7 +5,7 @@ import org.eclipse.jface.text.Region;
 
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.C4ScriptExprTree.ExprElm;
-import net.arctics.clonk.parser.c4script.C4ScriptExprTree.IExpressionListener;
+import net.arctics.clonk.parser.c4script.C4ScriptExprTree.ExpressionListener;
 import net.arctics.clonk.parser.c4script.C4ScriptExprTree.TraversalContinuation;
 
 /**
@@ -13,7 +13,7 @@ import net.arctics.clonk.parser.c4script.C4ScriptExprTree.TraversalContinuation;
  * @author madeen
  *
  */
-public class ExpressionLocator implements IExpressionListener {
+public class ExpressionLocator extends ExpressionListener {
 	
 	protected ExprElm exprAtRegion;
 	protected ExprElm topLevelInRegion;
@@ -39,7 +39,7 @@ public class ExpressionLocator implements IExpressionListener {
 	}
 
 	public TraversalContinuation expressionDetected(ExprElm expression, C4ScriptParser parser) {
-		expression.traverse(new IExpressionListener() {
+		expression.traverse(new ExpressionListener() {
 			public TraversalContinuation expressionDetected(ExprElm expression, C4ScriptParser parser) {
 				if (exprRegion.getOffset() >= expression.getExprStart() && exprRegion.getOffset() < expression.getExprEnd()) {
 					if (topLevelInRegion == null)

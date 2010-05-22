@@ -27,7 +27,7 @@ import net.arctics.clonk.parser.c4script.C4Directive.C4DirectiveType;
 import net.arctics.clonk.parser.c4script.C4Function.C4FunctionScope;
 import net.arctics.clonk.parser.c4script.C4Variable.C4VariableScope;
 import net.arctics.clonk.resource.ClonkProjectNature;
-import net.arctics.clonk.resource.InputStreamRespectingUniqueIDs;
+import net.arctics.clonk.resource.ClonkIndexStream;
 import net.arctics.clonk.util.CompoundIterable;
 import net.arctics.clonk.util.IHasRelatedResource;
 import net.arctics.clonk.util.IPredicate;
@@ -626,7 +626,7 @@ public class ClonkIndex implements Serializable, Iterable<C4Object> {
 			InputStream in = new FileInputStream(indexFile);
 			T index;
 			try {
-				ObjectInputStream objStream = new InputStreamRespectingUniqueIDs(in);
+				ObjectInputStream objStream = new ClonkIndexStream(in);
 				try {
 					index = indexClass.cast(objStream.readObject());
 				} finally {

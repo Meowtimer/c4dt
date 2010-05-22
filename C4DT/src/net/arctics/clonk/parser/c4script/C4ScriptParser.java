@@ -25,6 +25,7 @@ import net.arctics.clonk.parser.C4ID;
 import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.SimpleScriptStorage;
 import net.arctics.clonk.parser.SourceLocation;
+import net.arctics.clonk.parser.SilentParsingException.Reason;
 import net.arctics.clonk.parser.c4script.C4Directive.C4DirectiveType;
 import net.arctics.clonk.parser.c4script.C4Function.C4FunctionScope;
 import net.arctics.clonk.parser.c4script.C4ScriptExprTree.*;
@@ -384,9 +385,10 @@ public class C4ScriptParser {
 			C4Function definitionFunc = container.findFunction(Keywords.DefinitionFunc);
 			if (definitionFunc != null && definitionFunc.getBody() != null) { // could also be engine function without body
 				scanner.seek(definitionFunc.getBody().getStart());
-				reportExpressionsAndStatements(definitionFunc, new IExpressionListener() {
+				reportExpressionsAndStatements(definitionFunc, new ExpressionListener() {
 					@Override
 					public TraversalContinuation expressionDetected(ExprElm expression, C4ScriptParser parser) {
+						// look if it's a plain SetProperty("Name", <value>)
 						if (expression instanceof CallFunc) {
 							CallFunc callFunc = (CallFunc) expression;
 							if (
@@ -1329,7 +1331,7 @@ public class C4ScriptParser {
 		}
 		if (!noThrow && severity >= IMarker.SEVERITY_ERROR)
 			throw silence
-				? new SilentParsingException(problem)
+				? new SilentParsingException(Reason.SilenceRequested, problem)
 				: new ParsingException(problem);
 		return result;
 	}
@@ -1804,8 +1806,7 @@ public class C4ScriptParser {
 		
 	}
 
-	private final void handleExpressionCreated(boolean reportErrors, ExprElm root)
-			throws ParsingException {
+	private final void handleExpressionCreated(boolean reportErrors, ExprElm root) throws ParsingException {
 		if (reportErrors)
 			root.reportErrors(this);
 		if (expressionListener != null && parseExpressionRecursion <= 1)
@@ -1895,9 +1896,15 @@ public class C4ScriptParser {
 	
 	private Statement parseStatementWithOwnTypeInferenceBlock(TypeInformationMerger merger) throws ParsingException {
 		beginTypeInferenceBlock();
-		Statement s = parseStatement();
-		merger.inject(endTypeInferenceBlock());
-		return s;
+		try {
+			Statement s = parseStatement();
+			return s;
+		} finally {
+			List<IStoredTypeInformation> block = endTypeInferenceBlock();
+			if (expressionListener != null)
+				expressionListener.endTypeInferenceBlock(block);
+			merger.inject(block);
+		}
 	}
 	
 	private Statement parseStatementAndMergeTypeInformation() throws ParsingException {
@@ -2010,7 +2017,7 @@ public class C4ScriptParser {
 					if (expressionListener != null) {
 						switch (expressionListener.expressionDetected(result, this)) {
 						case Cancel:
-							throw new SilentParsingException("Expression Listener Cancellation"); //$NON-NLS-1$
+							throw new SilentParsingException(Reason.Cancellation, "Expression Listener Cancellation"); //$NON-NLS-1$
 						}
 					}
 				}

@@ -85,7 +85,7 @@ public class C4Variable extends C4Declaration implements Serializable, ITypedDec
 		this.scope = scope;
 		objectType = null;
 		description = ""; //$NON-NLS-1$
-		type = null;
+		type = C4Type.UNKNOWN;
 	}
 	
 	public C4Variable(String name, C4Type type, String desc, C4VariableScope scope) {

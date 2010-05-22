@@ -30,12 +30,12 @@ import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.C4ScriptExprTree.ControlFlowException;
 import net.arctics.clonk.parser.c4script.C4ScriptExprTree.ExprElm;
 import net.arctics.clonk.parser.c4script.C4ScriptExprTree.IEvaluationContext;
-import net.arctics.clonk.parser.c4script.C4ScriptExprTree.IExpressionListener;
+import net.arctics.clonk.parser.c4script.C4ScriptExprTree.ExpressionListener;
 import net.arctics.clonk.parser.c4script.C4ScriptExprTree.IVariableValueProvider;
 import net.arctics.clonk.parser.c4script.C4ScriptExprTree.ReturnException;
 import net.arctics.clonk.parser.c4script.C4ScriptExprTree.Statement;
 import net.arctics.clonk.parser.c4script.C4ScriptExprTree.TraversalContinuation;
-import net.arctics.clonk.resource.InputStreamRespectingUniqueIDs;
+import net.arctics.clonk.resource.ClonkIndexStream;
 import net.arctics.clonk.ui.editors.ClonkHyperlink;
 import net.arctics.clonk.util.Utilities;
 
@@ -132,7 +132,7 @@ public class Command {
 						main = (C4CommandFunction)function;
 					}
 					final List<Statement> statements = new LinkedList<Statement>();
-					this.setExpressionListener(new IExpressionListener() {
+					this.setExpressionListener(new ExpressionListener() {
 						@Override
 						public TraversalContinuation expressionDetected(ExprElm expression, C4ScriptParser parser) {
 							if (expression instanceof Statement)
@@ -290,7 +290,7 @@ public class Command {
 		public static void ImportDescriptionsFromSerializedIndex(Object context, String engineName, String indexPath, String writeToFile) throws IOException, ClassNotFoundException {
 			InputStream engineStream = new FileInputStream(indexPath);
 			try {
-				ObjectInputStream objStream = new InputStreamRespectingUniqueIDs(engineStream);
+				ObjectInputStream objStream = new ClonkIndexStream(engineStream);
 				C4Engine result = (C4Engine)objStream.readObject();
 				result.setName(engineName); // for good measure
 				result.postSerialize(null);

@@ -25,8 +25,7 @@ public abstract class StoredTypeInformation implements IStoredTypeInformation, C
 	@Override
 	public void storeType(ITypeSet type) {
 		// if value type has already been specialized don't despecialize it again -.-
-		if (this.type == null || type != C4Type.ANY)
-			this.type = type;
+		this.type = type;
 	}
 	
 	public void apply(boolean soft) {}
