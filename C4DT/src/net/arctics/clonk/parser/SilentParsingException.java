@@ -8,8 +8,20 @@ public class SilentParsingException extends ParsingException {
 
 	private static final long serialVersionUID = 1L;
 	
-	public SilentParsingException(String msg) {
+	private Reason reason;
+	
+	public enum Reason {
+		SilenceRequested,
+		Cancellation
+	}
+	
+	public SilentParsingException(Reason reason, String msg) {
 		super(msg);
+		this.reason = reason;
+	}
+	
+	public Reason getReason() {
+		return reason;
 	}
 	
 }
