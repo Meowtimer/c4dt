@@ -480,7 +480,7 @@ public abstract class Utilities {
 		}
 	}
 
-	public static <T> Iterable<T> arrayIterable(final T[] items) {
+	public static <T> Iterable<T> arrayIterable(final T... items) {
 		return new Iterable<T>() {
 			public Iterator<T> iterator() {
 				return new Iterator<T>() {

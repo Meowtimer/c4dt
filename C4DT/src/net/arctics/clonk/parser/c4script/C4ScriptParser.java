@@ -2291,8 +2291,10 @@ public class C4ScriptParser {
 				IType t = arrayExpr.getType(this);
 				if (!t.canBeAssignedFrom(C4Type.ARRAY))
 					warningWithCode(ParserErrorCode.IncompatibleTypes, arrayExpr, t.toString(), C4Type.ARRAY.toString());
-				if (loopVariable != null)
-					loopVariable.inferTypeFromAssignment(arrayExpr.getExemplaryArrayElement(this), this);
+				if (loopVariable != null && t instanceof C4ArrayType) {
+					C4ArrayType arrayType = (C4ArrayType) t;
+					new AccessVar(loopVariable).expectedToBeOfType(arrayType.getElementType(), this);
+				}
 			}
 			condition = null;
 			increment = null;

@@ -8,8 +8,8 @@ import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.C4Declaration;
 import net.arctics.clonk.parser.C4ID;
 import net.arctics.clonk.parser.C4Structure;
-import net.arctics.clonk.parser.c4script.C4Type;
 import net.arctics.clonk.parser.c4script.C4Variable;
+import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.util.Utilities;
 
@@ -25,57 +25,57 @@ import org.eclipse.core.runtime.Path;
  * Object definition inside a project.
  */
 public class C4ObjectIntern extends C4Object implements Serializable {
-	
+
 	private static final long serialVersionUID = -7978767061460505544L;
-	
+
 	protected transient IContainer objectFolder;
 	protected String relativePath;
 	private transient ClonkIndex index;
-	
+
 	private transient C4Variable staticVariable;
-	
+
 	public C4Variable getStaticVariable() {
 		if (getEngine() != null && !getEngine().getCurrentSettings().definitionsHaveStaticVariables)
 			return staticVariable = null;
 		if (staticVariable == null) {
 			staticVariable = new C4Variable() {
 				private static final long serialVersionUID = 1L;
-				
+
 				@Override
 				public String getName() {
 					return C4ObjectIntern.this.getName();
 				}
-				
+
 				@Override
 				public C4Declaration getParentDeclaration() {
 					return C4ObjectIntern.this;
 				}
-				
+
 				@Override
 				public C4Structure getTopLevelStructure() {
 					return C4ObjectIntern.this;
 				}
-				
+
 				@Override
 				public String getInfoText() {
 					return C4ObjectIntern.this.getInfoText();
 				}
-				
+
 				@Override
 				public C4Object getObjectType() {
-					return C4ObjectIntern.this;
+					return null;
 				}
-				
+
 				@Override
-				public C4Type getType() {
-					return C4Type.ID;
+				public IType getType() {
+					return C4ObjectIntern.this.getObjectType();
 				}
-				
+
 			};
 		}
 		return staticVariable;
 	}
-	
+
 	public C4ObjectIntern(C4ID id, String name, IContainer container) {
 		super(id, name);
 		try {
@@ -84,7 +84,7 @@ public class C4ObjectIntern extends C4Object implements Serializable {
 			e1.printStackTrace();
 		}
 	}
-	
+
 	/**
 	 * Resets the name of this object
 	 * @param newName
@@ -97,7 +97,7 @@ public class C4ObjectIntern extends C4Object implements Serializable {
 			throw new InvalidParameterException("Parameter 'persistent' is not yet implemented"); //$NON-NLS-1$
 		}
 	}
-	
+
 	/**
 	 * Sets the id property of this object.
 	 * This method changes resources when <code>persistent</code> is true. (but that is not implemented yet)
@@ -107,16 +107,16 @@ public class C4ObjectIntern extends C4Object implements Serializable {
 	public void setId(C4ID newId, boolean persistent) {
 		setId(newId);
 		if (persistent) {
-//			DefCoreParser defCoreParser = new DefCoreParser(getScriptFile());
-//			IniEntry idEntry = defCoreParser.entryInSection("DefCore", "id");
-//			if (idEntry != null) {
-//				idEntry.setValue(value)
-//			}
+			//			DefCoreParser defCoreParser = new DefCoreParser(getScriptFile());
+			//			IniEntry idEntry = defCoreParser.entryInSection("DefCore", "id");
+			//			if (idEntry != null) {
+			//				idEntry.setValue(value)
+			//			}
 			// TODO edit DefCore.txt
 			throw new InvalidParameterException("Parameter 'persistent' is not yet implemented"); //$NON-NLS-1$
 		}
 	}
-	
+
 	/**
 	 * The member <tt>Script.c</tt>
 	 * @return IFile object of <tt>Script.c</tt> file or null if it does not exist
@@ -128,7 +128,7 @@ public class C4ObjectIntern extends C4Object implements Serializable {
 		if (res == null || !(res instanceof IFile)) return null;
 		else return (IFile) res;
 	}
-	
+
 	@Override
 	public String getScriptText() {
 		try {
@@ -137,13 +137,13 @@ public class C4ObjectIntern extends C4Object implements Serializable {
 			return null;
 		}
 	}
-	
+
 	public IFile getDefCoreFile() {
 		IResource res = Utilities.findMemberCaseInsensitively(this.objectFolder, "DefCore.txt"); //$NON-NLS-1$
 		if (res == null || !(res instanceof IFile)) return null;
 		else return (IFile) res;
 	}
-	
+
 	/**
 	 * The ObjectName.c4d IResource
 	 * @return the folder object
@@ -151,7 +151,7 @@ public class C4ObjectIntern extends C4Object implements Serializable {
 	public IContainer getObjectFolder() {
 		return objectFolder;
 	}
-	
+
 	/**
 	 * Removes this object from index.
 	 * The file on the harddisk is not deleted. (delete it by IResource.delete(true,null))
@@ -159,7 +159,7 @@ public class C4ObjectIntern extends C4Object implements Serializable {
 	public void delete() {
 		ClonkProjectNature.get(objectFolder.getProject()).getIndex().removeObject(this);
 	}
-	
+
 	public void setObjectFolder(IContainer folder) throws CoreException {
 		if (objectFolder == folder)
 			return;
@@ -176,12 +176,12 @@ public class C4ObjectIntern extends C4Object implements Serializable {
 			index = ClonkProjectNature.get(objectFolder).getIndex();
 		}
 	}
-	
+
 	@Override
 	public ClonkIndex getIndex() {
 		return index;
 	}
-	
+
 	@Override
 	public void setId(C4ID newId) {
 		super.setId(newId);
@@ -192,7 +192,7 @@ public class C4ObjectIntern extends C4Object implements Serializable {
 				e.printStackTrace();
 			}
 	}
-	
+
 	public static C4ObjectIntern objectCorrespondingTo(IContainer folder) {
 		C4ObjectIntern obj = (Utilities.getIndex(folder) != null) ? Utilities.getIndex(folder).getObject(folder) : null;
 		// haxxy cleanup: might have been lost by <insert unlikely event>
@@ -200,7 +200,7 @@ public class C4ObjectIntern extends C4Object implements Serializable {
 			obj.objectFolder = folder;
 		return obj;
 	}
-	
+
 	public boolean refreshFolderReference(IProject project) throws CoreException {
 		Path path = new Path(this.relativePath);
 		IPath projectPath = path.removeFirstSegments(1);
@@ -212,17 +212,17 @@ public class C4ObjectIntern extends C4Object implements Serializable {
 		else
 			return false;
 	}
-	
+
 	@Override
 	public String toString() {
 		return super.toString() + " [" + relativePath + "]"; //$NON-NLS-1$ //$NON-NLS-2$
 	}
-	
+
 	@Override
 	public IResource getResource() {
 		return getObjectFolder();
 	}
-	
+
 	@Override
 	public String getInfoText() {
 		return String.format(INFO_TEXT_TEMPLATE, getName(), super.getInfoText(), getObjectFolder().getFullPath().toOSString());
@@ -231,12 +231,12 @@ public class C4ObjectIntern extends C4Object implements Serializable {
 
 	// for processing files whose contents won't be saved in a separate c4structure thingie
 	public void processFile(IFile file) throws IOException, CoreException {
-	    if (file.getName().equalsIgnoreCase("Names.txt")) { //$NON-NLS-1$
-	    	readNames(Utilities.stringFromFile(file));
-	    }
-	    else if (file.getName().equalsIgnoreCase("Graphics.png") || file.getName().equalsIgnoreCase("Graphics.bmp")) { //$NON-NLS-1$ //$NON-NLS-2$
-	    	setCachedPicture(null); // obsolete
-	    }
-    }
+		if (file.getName().equalsIgnoreCase("Names.txt")) { //$NON-NLS-1$
+			readNames(Utilities.stringFromFile(file));
+		}
+		else if (file.getName().equalsIgnoreCase("Graphics.png") || file.getName().equalsIgnoreCase("Graphics.bmp")) { //$NON-NLS-1$ //$NON-NLS-2$
+			setCachedPicture(null); // obsolete
+		}
+	}
 
 }

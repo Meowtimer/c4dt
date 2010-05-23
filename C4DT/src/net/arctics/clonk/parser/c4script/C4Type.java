@@ -56,7 +56,7 @@ public enum C4Type implements IType {
 					case INT:
 						return other == BOOL;
 					case PROPLIST:
-						return other == ID || other == OBJECT;
+						return ID.canBeAssignedFrom(t) || OBJECT.canBeAssignedFrom(t);
 					}
 				}
 			}

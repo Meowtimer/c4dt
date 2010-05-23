@@ -265,7 +265,12 @@ public abstract class C4ScriptExprTree {
 		
 		public final C4Object guessObjectType(C4ScriptParser context) {
 			IType t = getType(context);
-			return t instanceof C4Object ? (C4Object)t : null;
+			if (t instanceof C4Object)
+				return (C4Object)t;
+			else if (t instanceof C4ObjectType)
+				return ((C4ObjectType)t).getType();
+			else
+				return null;
 		}
 
 		public ExprElm getExemplaryArrayElement(C4ScriptParser context) {
@@ -639,8 +644,8 @@ public abstract class C4ScriptExprTree {
 		public void reportErrors(C4ScriptParser parser) throws ParsingException {
 			super.reportErrors(parser);
 			ExprElm pred = getPredecessorInSequence();			
-			if (pred != null)
-				pred.expectedToBeOfType(C4TypeSet.OBJECT_OR_ID, parser);
+//			if (pred != null)
+//				pred.expectedToBeOfType(C4TypeSet.OBJECT_OR_ID, parser);
 		}
 
 	}
@@ -1021,14 +1026,25 @@ public abstract class C4ScriptExprTree {
 			if (params.length == 0 && (d == getCachedFuncs(context).This || d == C4Variable.THIS)) {
 				return context.getContainerObject();
 			}
-			else if (isCriteriaSearch()) {
-				return searchCriteriaAssumedResult(context);
+			if (isCriteriaSearch()) {
+				IType t = searchCriteriaAssumedResult(context);
+				if (t != null) {
+					C4Function f = (C4Function) d;
+					if (f.getReturnType() == C4Type.ARRAY)
+						return new C4ArrayType(t);
+					else
+						return t;
+				}
 			}
-			else if (params != null && params.length >= 1 && d instanceof C4Function && ((C4Function)d).getReturnType() == C4Type.OBJECT && (declarationName.startsWith("Create") || declarationName.startsWith("Find"))) { //$NON-NLS-1$ //$NON-NLS-2$
-				return params[0].getType(context);
+			if (params != null && params.length >= 1 && d instanceof C4Function && ((C4Function)d).getReturnType() == C4Type.OBJECT && (declarationName.startsWith("Create") || declarationName.startsWith("Find"))) { //$NON-NLS-1$ //$NON-NLS-2$
+				IType t = params[0].getType(context);
+				if (t instanceof C4ObjectType)
+					return ((C4ObjectType)t).getType();
 			}
-			else if (declarationName.equals("GetID") && params.length == 0) { //$NON-NLS-1$
-				return getPredecessorInSequence() == null ? context.getContainerObject() : getPredecessorInSequence().getType(context);
+			if (declarationName.equals("GetID") && params.length == 0) { //$NON-NLS-1$
+				IType t = getPredecessorInSequence() == null ? context.getContainerObject() : getPredecessorInSequence().getType(context);
+				if (t instanceof C4Object)
+					return ((C4Object)t).getObjectType();
 			}
 			if (declaration instanceof ITypedDeclaration) {
 				C4Object obj = ((ITypedDeclaration)declaration).getObjectType();
@@ -2210,7 +2226,8 @@ public abstract class C4ScriptExprTree {
 
 		@Override
 		public IType getType(C4ScriptParser context) {
-			return new C4TypeSet(C4Type.ID, context.getContainer().getNearestObjectWithId(idValue()));
+			C4Object obj = context.getContainer().getNearestObjectWithId(idValue());
+			return obj != null ? obj.getObjectType() : C4Type.ID;
 		}
 
 		@Override

@@ -11,6 +11,7 @@ import java.util.regex.Pattern;
 import org.eclipse.swt.graphics.Image;
 
 import net.arctics.clonk.parser.C4ID;
+import net.arctics.clonk.parser.c4script.C4ObjectType;
 import net.arctics.clonk.parser.c4script.C4ScriptBase;
 import net.arctics.clonk.parser.c4script.C4Type;
 import net.arctics.clonk.parser.c4script.FindDeclarationInfo;
@@ -21,27 +22,29 @@ import net.arctics.clonk.util.Utilities;
 public abstract class C4Object extends C4ScriptBase implements IType {
 
 	private static final long serialVersionUID = 1L;
-	
+
 	/**
 	 * Template to construct the info text of an object definition from
 	 */
 	public static final String INFO_TEXT_TEMPLATE = Messages.C4Object_InfoTextTemplate;
-	
+
 	/**
 	 * localized name of the object; key is language code like "DE" and "US"
 	 */
 	private Map<String, String> localizedNames;
-	
+
 	/**
 	 * id of the object
 	 */
 	protected C4ID id;
-	
+
 	/**
 	 * Cached picture from Graphics.png
 	 */
 	private transient Image cachedPicture;
-	
+
+	private transient C4ObjectType objectType;
+
 	/**
 	 * Creates a new C4Object
 	 * @param id C4ID (e.g. CLNK)
@@ -56,11 +59,11 @@ public abstract class C4Object extends C4ScriptBase implements IType {
 	public String toString() {
 		return getName() + (id != null ? " (" + id.toString() + ")" : ""); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 	}
-	
+
 	public String idWithName() {
 		return getId() != null ? String.format(Messages.C4Object_IDWithName, getName(), getId().toString()) : getName();
 	}
-	
+
 	/**
 	 * The id of this object. (e.g. CLNK)
 	 * @return the id
@@ -68,7 +71,7 @@ public abstract class C4Object extends C4ScriptBase implements IType {
 	public C4ID getId() {
 		return id;
 	}
-	
+
 	/**
 	 * Sets the id property of this object.
 	 * This method does not change resources.
@@ -82,7 +85,7 @@ public abstract class C4Object extends C4ScriptBase implements IType {
 		id = newId;
 		index.addObject(this);
 	}
-	
+
 
 	@Override
 	protected boolean refersToThis(String name, FindDeclarationInfo info) {
@@ -92,9 +95,9 @@ public abstract class C4Object extends C4ScriptBase implements IType {
 		}
 		return false;
 	}
-	
+
 	private static Pattern langNamePairPattern = Pattern.compile("(..):(.*)"); //$NON-NLS-1$
-	
+
 	public void readNames(String namesText) throws IOException {
 		Matcher matcher = langNamePairPattern.matcher(namesText);
 		if (localizedNames == null)
@@ -113,12 +116,12 @@ public abstract class C4Object extends C4ScriptBase implements IType {
 			if (preferredName != null)
 				setName(preferredName);
 		}
-    }
+	}
 
 	public Map<String, String> getLocalizedNames() {
 		return localizedNames;
 	}
-	
+
 	@Override
 	public boolean nameContains(String text) {
 		if (getId().getName().toUpperCase().indexOf(text) != -1)
@@ -134,7 +137,7 @@ public abstract class C4Object extends C4ScriptBase implements IType {
 		}
 		return false;
 	}
-	
+
 	@Override
 	protected void gatherIncludes(List<C4ScriptBase> list, ClonkIndex index) {
 		super.gatherIncludes(list, index);
@@ -144,7 +147,7 @@ public abstract class C4Object extends C4ScriptBase implements IType {
 				list.addAll(appendages);
 		}
 	}
-	
+
 	@Override
 	protected void finalize() throws Throwable {
 		if (cachedPicture != null)
@@ -159,33 +162,32 @@ public abstract class C4Object extends C4ScriptBase implements IType {
 	public void setCachedPicture(Image cachedPicture) {
 		this.cachedPicture = cachedPicture;
 	}
-	
+
 	@Override
 	public boolean canBeAssignedFrom(IType other) {
-		// TODO Auto-generated method stub
-		return false;
+		return C4Type.OBJECT.canBeAssignedFrom(other) || C4Type.PROPLIST.canBeAssignedFrom(other);
 	}
-	
+
 	@Override
 	public boolean containsType(IType type) {
-		return type == C4Type.OBJECT || type == this;
+		return type == C4Type.OBJECT || type == C4Type.PROPLIST || type == this;
 	}
-	
+
 	@Override
 	public int specificness() {
 		return C4Type.OBJECT.specificness()+1;
 	}
-	
+
 	@Override
 	public String typeName(boolean special) {
 		return getName();
 	}
-	
+
 	@Override
 	public Iterator<IType> iterator() {
-		return Utilities.arrayIterable(new IType[] {C4Type.OBJECT, this}).iterator();
+		return Utilities.arrayIterable(new IType[] {C4Type.OBJECT, C4Type.PROPLIST, this}).iterator();
 	}
-	
+
 	@Override
 	public boolean subsetOfType(IType typeSet) {
 		for (IType t : typeSet) {
@@ -200,10 +202,17 @@ public abstract class C4Object extends C4ScriptBase implements IType {
 		}
 		return true;
 	}
-	
+
 	@Override
 	public boolean staticType() {
 		return false;
 	}
-	
+
+	public C4ObjectType getObjectType() {
+		if (objectType == null) {
+			objectType = new C4ObjectType(this);
+		}
+		return objectType;
+	}
+
 }
