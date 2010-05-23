@@ -495,12 +495,20 @@ public abstract class C4ScriptExprTree {
 			return new Comment(str, str.contains("\n")); //$NON-NLS-1$
 		}
 
-		public void expectedToBeOfType(IType type, C4ScriptParser context) {
+		public void expectedToBeOfType(IType type, C4ScriptParser context, boolean dontGeneralize) {
 			if (type == C4Type.UNKNOWN || type == C4Type.ANY)
 				return; // expecting it to be of any or unknown type? come back when you can be more specific please
 			IStoredTypeInformation info = context.requestStoredTypeInformation(this);
-			if (info != null && info.getType() == C4Type.UNKNOWN)
-				info.storeType(type);
+			if (info != null && info.getType() == C4Type.UNKNOWN) {
+				if (dontGeneralize)
+					info.generalTypeHint(type);
+				else
+					info.storeType(type);
+			}
+		}
+		
+		public void expectedToBeOfType(IType type, C4ScriptParser context) {
+			expectedToBeOfType(type, context, false);
 		}
 
 		public void inferTypeFromAssignment(ExprElm rightSide, C4ScriptParser parser) {
@@ -643,9 +651,9 @@ public abstract class C4ScriptExprTree {
 		@Override
 		public void reportErrors(C4ScriptParser parser) throws ParsingException {
 			super.reportErrors(parser);
-			ExprElm pred = getPredecessorInSequence();			
-//			if (pred != null)
-//				pred.expectedToBeOfType(C4TypeSet.OBJECT_OR_ID, parser);
+			ExprElm pred = getPredecessorInSequence();
+			if (pred != null)
+				pred.expectedToBeOfType(C4TypeSet.OBJECT_OR_ID, parser, true);
 		}
 
 	}

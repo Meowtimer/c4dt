@@ -2,7 +2,7 @@ package net.arctics.clonk.parser.c4script;
 
 public abstract class StoredTypeInformation implements IStoredTypeInformation, Cloneable {
 
-	private IType type;
+	private IType type = C4Type.UNKNOWN;
 
 	@Override
 	public IType getType() {
@@ -11,8 +11,20 @@ public abstract class StoredTypeInformation implements IStoredTypeInformation, C
 
 	@Override
 	public void storeType(IType type) {
-		// if value type has already been specialized don't despecialize it again -.-
 		this.type = type;
+	}
+	
+	@Override
+	public void generalTypeHint(IType hint) {
+		if (type == C4Type.UNKNOWN) {
+			storeType(hint);
+		} else {
+			for (IType t : hint) {
+				if (type.containsType(t))
+					return;
+			}
+			type = C4TypeSet.create(type, hint);
+		}
 	}
 	
 	public void apply(boolean soft) {}
