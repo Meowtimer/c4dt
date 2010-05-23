@@ -1,0 +1,66 @@
+package net.arctics.clonk.parser.c4script;
+
+import java.util.Iterator;
+
+import net.arctics.clonk.index.C4Object;
+import net.arctics.clonk.util.Utilities;
+
+/**
+ * Type that does not denote a concrete object but a type
+ *
+ */
+public class C4ObjectType implements IType {
+
+	private static final long serialVersionUID = 1L;
+	
+	private C4Object type;
+
+	public C4ObjectType(C4Object type) {
+		this.type = type;
+	}
+	
+	public C4Object getType() {
+		return type;
+	}
+	
+	@Override
+	public Iterator<IType> iterator() {
+		return Utilities.arrayIterable(C4Type.ID, type).iterator();
+	}
+
+	@Override
+	public boolean canBeAssignedFrom(IType other) {
+		return C4Type.ID.canBeAssignedFrom(other);
+	}
+
+	@Override
+	public String typeName(boolean special) {
+		return String.format("Type %s", type.typeName(special));
+	}
+	
+	@Override
+	public String toString() {
+		return typeName(false);
+	}
+
+	@Override
+	public boolean subsetOfType(IType typeSet) {
+		return typeSet.containsType(C4Type.ID);
+	}
+
+	@Override
+	public boolean containsType(IType type) {
+		return type == C4Type.ID || type == this.type;
+	}
+
+	@Override
+	public int specificness() {
+		return C4Type.ID.specificness()+1;
+	}
+
+	@Override
+	public boolean staticType() {
+		return false;
+	}
+
+}
