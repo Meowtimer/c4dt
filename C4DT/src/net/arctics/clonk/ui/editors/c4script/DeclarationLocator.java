@@ -3,6 +3,7 @@ package net.arctics.clonk.ui.editors.c4script;
 import java.util.LinkedList;
 import java.util.List;
 
+import net.arctics.clonk.index.ClonkIndex;
 import net.arctics.clonk.parser.C4Declaration;
 import net.arctics.clonk.parser.c4script.C4Function;
 import net.arctics.clonk.parser.c4script.C4ScriptBase;
@@ -82,16 +83,14 @@ public class DeclarationLocator extends ExpressionLocator {
 				else if (exprAtRegion instanceof AccessDeclaration) {
 					AccessDeclaration access = (AccessDeclaration) exprAtRegion;
 					
-					// gather declarations with that name from the project index and from the external index
-					List<C4Declaration> projectDeclarations = script.getIndex().getDeclarationMap().get(access.getDeclarationName());
+					// gather declarations with that name from involved project indexes
+					List<C4Declaration> projectDeclarations = new LinkedList<C4Declaration>();
+					for (ClonkIndex i : script.getIndex().relevantIndexes()) {
+						List<C4Declaration> decs = i.getDeclarationMap().get(access.getDeclarationName());
+						if (decs != null)
+							projectDeclarations.addAll(decs);
+					}
 					
-					// filter to make sure the declarations found are actually functions and in the case of external ones also contained in the project dependencies
-					/*IPredicate<C4Declaration> isFunc = new IPredicate<C4Declaration>() {
-						@Override
-						public boolean test(C4Declaration item) {
-							return item instanceof C4Function;// && script.getIndex().acceptsFromExternalLib(((IExternalScript)item.getScript()).getExternalLib());
-						}
-					};*/
 					if (projectDeclarations != null)
 						projectDeclarations = Utilities.filter(projectDeclarations, IS_FUNC);
 					
