@@ -186,12 +186,15 @@ public class ClonkLaunchConfigurationDelegate implements ILaunchConfigurationDel
 		// add stuff from the project so Clonk does not fail to find them
 		for (ClonkIndex index : ClonkProjectNature.get(scenario).getIndex().relevantIndexes()) {
 			if (index instanceof ProjectIndex) {
-				for (IResource res : ((ProjectIndex)index).getProject().members()) {
-					if (!res.getName().startsWith(".") && res instanceof IContainer) { //$NON-NLS-1$
-						C4GroupType gType = C4Group.getGroupType(res.getName());
-						if (gType == C4GroupType.DefinitionGroup || gType == C4GroupType.ResourceGroup)
-							if (!Utilities.resourceInside(scenario, (IContainer) res))
-								args.add(resFilePath(res));
+				IContainer projectLevel = ((ProjectIndex)index).getProject();
+				for (IContainer c = scenario.getParent(); c != null && c != projectLevel.getParent(); c = c.getParent()) {
+					for (IResource res : c.members()) {
+						if (!res.getName().startsWith(".") && res instanceof IContainer) { //$NON-NLS-1$
+							C4GroupType gType = C4Group.getGroupType(res.getName());
+							if (gType == C4GroupType.DefinitionGroup || gType == C4GroupType.ResourceGroup)
+								if (!Utilities.resourceInside(scenario, (IContainer) res))
+									args.add(resFilePath(res));
+						}
 					}
 				}
 			}
