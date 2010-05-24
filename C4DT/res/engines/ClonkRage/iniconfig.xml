@@ -239,7 +239,8 @@
 				description="?" />
 			<entry name="AllowPictureStack"
 				class="CategoriesArray"
-				description="?" />
+				description="?"
+				constantsPrefix="APS_" />
 
 		</section>
 		<section name="Physical">

@@ -721,7 +721,7 @@ global func int DrawModLandscape();
 global func int DrawVolcanoBranch(int mat, int fx, int fy, int tx, int ty, int size);
 global func int ExecuteCommand();
 global func int FatalError(string szMessage);
-global func int FlameConsumeMaterial();
+global func int FlameConsumeMaterial(int x, int y);
 global func int GameCallEx(string szFunction, ...);
 global func int GetIndexOf(iNeedle, array aHaystack);
 global func int GetMatAdjust();
