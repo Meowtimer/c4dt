@@ -6,6 +6,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
+import net.arctics.clonk.index.C4Object;
+
 public class C4TypeSet implements IType {
 
 	private static final long serialVersionUID = 1L;
@@ -37,14 +39,40 @@ public class C4TypeSet implements IType {
 	public static IType create(IType... ingredients) {
 		Set<IType> set = new HashSet<IType>();
 		boolean containsNonStatics = false;
-		for (IType s : ingredients) {
+		int count = 0, firstIndex = -1;
+		for (int i = 0; i < ingredients.length; i++) {
+			IType s = ingredients[i];
+			if (s == null)
+				continue;
+			if (firstIndex == -1)
+				firstIndex = i;
+			count++;
 			for (IType t : s) {
-				containsNonStatics = containsNonStatics || !t.staticType();
+				containsNonStatics = containsNonStatics || t.staticType() != t;
 				set.add(t);
 			}
 		}
+		// let the more specific types consume the lesser ones
+		Set<IType> toRemove = null;
+		for (IType a : set) {
+			for (IType b : set) {
+				if (a.specificness() > b.specificness() && a.containsType(b)) {
+					if (toRemove == null)
+						toRemove = new HashSet<IType>();
+					toRemove.add(b);
+					count--;
+				}
+			}
+		}
+		if (toRemove != null) {
+			set.removeAll(toRemove);
+		}
 		if (containsNonStatics)
-			return ingredients.length == 1 ? ingredients[0] : new C4TypeSet(set);
+			return count == 1 ? ingredients[0] : new C4TypeSet(set);
+		return createInternal(set, firstIndex, count, ingredients);
+	}
+
+	private static IType createInternal(Set<IType> set, int count, int firstIndex, IType... ingredients) {
 		if (set.size() == 0)
 			return C4Type.UNKNOWN;
 		if (set.size() == 1)
@@ -55,7 +83,7 @@ public class C4TypeSet implements IType {
 			if (r.types.equals(set))
 				return r;
 		}
-		C4TypeSet n = ingredients.length == 1 && ingredients[0] instanceof C4TypeSet
+		C4TypeSet n = ingredients != null && count == 1 && ingredients[firstIndex] instanceof C4TypeSet
 			? (C4TypeSet)ingredients[0]
 			: new C4TypeSet(set);
 		n.internalized = true;
@@ -135,8 +163,27 @@ public class C4TypeSet implements IType {
 	}
 
 	@Override
-	public boolean staticType() {
-		return internalized;
+	public IType staticType() {
+		return internalized ? this : C4Type.ANY;
+	}
+
+	public static C4Object objectIngredient(IType type) {
+		for (IType t : type) {
+			if (t instanceof C4Object)
+				return (C4Object) t; // return the first one found
+		}
+		return null;
+	}
+
+	public static IType staticIngredients(IType type) {
+		Set<IType> s = new HashSet<IType>();
+		boolean allStatics = true;
+		for (IType t : type) {
+			IType st = t.staticType();
+			allStatics = allStatics && st == t;
+			s.add(st);
+		}
+		return createInternal(s, 1, 0, allStatics ? new IType[]{type} : (IType[])null);
 	}
 
 }

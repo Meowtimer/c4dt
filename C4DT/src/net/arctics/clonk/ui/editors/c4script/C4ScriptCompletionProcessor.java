@@ -3,6 +3,7 @@ package net.arctics.clonk.ui.editors.c4script;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 
 import net.arctics.clonk.ClonkCore;
@@ -237,12 +238,14 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 				}
 			}
 		}
-		C4ScriptBase contextScript = Utilities.getScriptForEditor(editor);
-		boolean contextObjChanged = false;
+		C4ScriptBase editorScript = Utilities.getScriptForEditor(editor);
+		List<C4ScriptBase> contextScripts = new LinkedList<C4ScriptBase>();
+		contextScripts.add(editorScript);
+		boolean contextScriptsChanged = false;
 		contextExpression = null;
-		if (contextScript != null) {
+		if (editorScript != null) {
 			final int preservedOffset = offset;
-			C4ScriptParser parser = C4ScriptParser.reportExpressionsAndStatements(doc, activeFunc.getBody().getOffset(), offset, contextScript, activeFunc, new ExpressionListener() {
+			C4ScriptParser parser = C4ScriptParser.reportExpressionsAndStatements(doc, activeFunc.getBody().getOffset(), offset, editorScript, activeFunc, new ExpressionListener() {
 				public TraversalContinuation expressionDetected(ExprElm expression, C4ScriptParser parser) {
 					boolean isStatement = expression instanceof Statement;
 					if (isStatement) {
@@ -285,9 +288,14 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 			if (contextExpression != null) {
 				if (contextExpression.containsOffset(preservedOffset-activeFunc.getBody().getOffset())) {
 					IType guessedType = contextExpression.getType(parser);
-					if (guessedType instanceof C4Object) {
-						contextScript = (C4ScriptBase) guessedType;
-						contextObjChanged = true;
+					for (IType t : guessedType) {
+						if (t instanceof C4Object) {
+							if (!contextScriptsChanged) {
+								contextScripts.clear();
+								contextScriptsChanged = true;
+							}
+							contextScripts.add((C4Object) t);
+						}
 					}
 				}
 				else
@@ -310,8 +318,8 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 			for (ClonkIndex i : index.relevantIndexes())
 				proposalsForIndex(i, offset, wordOffset, prefix, proposals);
 
-		if (contextScript != null) {
-			proposalsFromScript(contextScript, new HashSet<C4ScriptBase>(), prefix, offset, wordOffset, proposals, contextObjChanged, index);
+		for (C4ScriptBase s : contextScripts) {
+			proposalsFromScript(s, new HashSet<C4ScriptBase>(), prefix, offset, wordOffset, proposals, contextScriptsChanged, index);
 		}
 		if (proposalCycle == ProposalCycle.SHOW_ALL) {
 			ImageRegistry reg = ClonkCore.getDefault().getImageRegistry();

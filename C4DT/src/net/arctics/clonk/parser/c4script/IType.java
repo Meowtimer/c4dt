@@ -11,5 +11,5 @@ public interface IType extends Iterable<IType>, Serializable {
 	public boolean subsetOfType(IType typeSet);
 	public boolean containsType(IType type);
 	public int specificness();
-	public boolean staticType();
+	public IType staticType();
 }

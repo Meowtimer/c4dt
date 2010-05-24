@@ -204,8 +204,8 @@ public abstract class C4Object extends C4ScriptBase implements IType {
 	}
 
 	@Override
-	public boolean staticType() {
-		return false;
+	public IType staticType() {
+		return C4Type.OBJECT;
 	}
 
 	public C4ObjectType getObjectType() {

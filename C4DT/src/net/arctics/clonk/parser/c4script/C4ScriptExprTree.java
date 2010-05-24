@@ -273,10 +273,6 @@ public abstract class C4ScriptExprTree {
 				return null;
 		}
 
-		public ExprElm getExemplaryArrayElement(C4ScriptParser context) {
-			return NULL_EXPR;
-		}
-
 		public boolean modifiable(C4ScriptParser context) {
 			return true;
 		}
@@ -790,7 +786,7 @@ public abstract class C4ScriptExprTree {
 				this.decl = varDeclaration;
 				if (varDeclaration instanceof C4Variable) {
 					C4Variable var = (C4Variable) varDeclaration;
-					storeType(var.getType());
+					storeType(C4TypeSet.create(var.getType(), var.getObjectType()));
 				}
 			}
 
@@ -814,7 +810,9 @@ public abstract class C4ScriptExprTree {
 				if (decl instanceof C4Variable) {
 					C4Variable var = (C4Variable) decl;
 					if (!soft || var.getScope() == C4VariableScope.VAR_VAR) {
-						var.setType(getType());
+						// for serialization, split static and non-static types again
+						var.setType(C4TypeSet.staticIngredients(getType()));
+						var.setObjectType(C4TypeSet.objectIngredient(getType()));
 					}
 				}
 			}
@@ -1360,19 +1358,6 @@ public abstract class C4ScriptExprTree {
 				}
 			}
 			return result;
-		}
-		@Override
-		public ExprElm getExemplaryArrayElement(C4ScriptParser context) {
-			final C4Object obj = searchCriteriaAssumedResult(context);
-			if (obj != null) {
-				return new ExprElm() {
-					@Override
-					public IType getType(C4ScriptParser context) {
-						return obj;
-					}
-				};
-			}
-			return super.getExemplaryArrayElement(context);
 		}
 		public ExprElm getReturnArg() {
 			if (params.length == 1)
@@ -2408,21 +2393,6 @@ public abstract class C4ScriptExprTree {
 		@Override
 		public boolean modifiable(C4ScriptParser context) {
 			return false;
-		}
-
-		@Override
-		public ExprElm getExemplaryArrayElement(C4ScriptParser context) {
-			IType[] typeSets = new IType[elements.length];
-			for (int i = 0; i < typeSets.length; i++) {
-				typeSets[i] = elements[i].getType(context);
-			}
-			final IType combined = C4TypeSet.create(typeSets);
-			return combined == C4Type.UNKNOWN ? super.getExemplaryArrayElement(context) : new ExprElm() {
-				@Override
-				public IType getType(C4ScriptParser context) {
-					return combined;
-				}
-			};
 		}
 		
 		@Override

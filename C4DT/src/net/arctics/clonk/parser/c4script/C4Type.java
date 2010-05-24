@@ -183,8 +183,8 @@ public enum C4Type implements IType {
 	}
 
 	@Override
-	public boolean staticType() {
-		return true;
+	public IType staticType() {
+		return this;
 	}
 
 }

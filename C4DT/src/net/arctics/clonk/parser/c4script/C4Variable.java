@@ -236,9 +236,10 @@ public class C4Variable extends C4Declaration implements Serializable, ITypedDec
 	
 	@Override
 	public String getInfoText() {
+		IType t = getObjectType() != null ? getObjectType() : getType();
 		StringBuilder builder = new StringBuilder();
 		builder.append("<b>"); //$NON-NLS-1$
-		builder.append(htmlerize((getType() == C4Type.UNKNOWN ? C4Type.ANY : getType()).typeName(false)));
+		builder.append(htmlerize((t == C4Type.UNKNOWN ? C4Type.ANY : t).typeName(false)));
 		builder.append(" "); //$NON-NLS-1$
 		builder.append(getName());
 		if (constValue != null) {

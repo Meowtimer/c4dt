@@ -47,8 +47,8 @@ public class C4ArrayType implements IType {
 	}
 
 	@Override
-	public boolean staticType() {
-		return false;
+	public IType staticType() {
+		return C4Type.ARRAY;
 	}
 
 }
