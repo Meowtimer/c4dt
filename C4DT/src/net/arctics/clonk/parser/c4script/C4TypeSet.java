@@ -98,6 +98,8 @@ public class C4TypeSet implements IType {
 
 	@Override
 	public boolean canBeAssignedFrom(IType other) {
+		if (equals(other))
+			return true;
 		for (IType t : this) {
 			if (t.canBeAssignedFrom(other))
 				return true;

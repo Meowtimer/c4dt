@@ -490,21 +490,35 @@ public abstract class C4ScriptExprTree {
 			String str = this.toString();
 			return new Comment(str, str.contains("\n")); //$NON-NLS-1$
 		}
+		
+		public enum TypeExpectancyMode {
+			Expect,
+			Hint,
+			Force
+		}
 
-		public void expectedToBeOfType(IType type, C4ScriptParser context, boolean dontGeneralize) {
+		public void expectedToBeOfType(IType type, C4ScriptParser context, TypeExpectancyMode mode) {
 			if (type == C4Type.UNKNOWN || type == C4Type.ANY)
 				return; // expecting it to be of any or unknown type? come back when you can be more specific please
 			IStoredTypeInformation info = context.requestStoredTypeInformation(this);
-			if (info != null && info.getType() == C4Type.UNKNOWN) {
-				if (dontGeneralize)
-					info.generalTypeHint(type);
-				else
+			if (info != null) {
+				switch (mode) {
+				case Expect:
+					if (info.getType() == C4Type.UNKNOWN)
+						info.storeType(type);
+					break;
+				case Force:
 					info.storeType(type);
+					break;
+				case Hint:
+					info.generalTypeHint(type);
+					break;
+				}
 			}
 		}
 		
-		public void expectedToBeOfType(IType type, C4ScriptParser context) {
-			expectedToBeOfType(type, context, false);
+		public final void expectedToBeOfType(IType type, C4ScriptParser context) {
+			expectedToBeOfType(type, context, TypeExpectancyMode.Expect);
 		}
 
 		public void inferTypeFromAssignment(ExprElm rightSide, C4ScriptParser parser) {
@@ -649,7 +663,7 @@ public abstract class C4ScriptExprTree {
 			super.reportErrors(parser);
 			ExprElm pred = getPredecessorInSequence();
 			if (pred != null)
-				pred.expectedToBeOfType(C4TypeSet.OBJECT_OR_ID, parser, true);
+				pred.expectedToBeOfType(C4TypeSet.OBJECT_OR_ID, parser, TypeExpectancyMode.Hint);
 		}
 
 	}
@@ -912,10 +926,10 @@ public abstract class C4ScriptExprTree {
 		}
 
 		@Override
-		public void expectedToBeOfType(IType type, C4ScriptParser context) {
+		public void expectedToBeOfType(IType type, C4ScriptParser context, TypeExpectancyMode mode) {
 			if (getDeclaration() == C4Variable.THIS)
 				return;
-			super.expectedToBeOfType(type, context);
+			super.expectedToBeOfType(type, context, mode);
 		}
 
 		@Override
@@ -1030,7 +1044,9 @@ public abstract class C4ScriptExprTree {
 		public IType getType(C4ScriptParser context) {
 			C4Declaration d = getDeclaration(context);
 			if (params.length == 0 && (d == getCachedFuncs(context).This || d == C4Variable.THIS)) {
-				return context.getContainerObject();
+				C4Object obj = context.getContainerObject();
+				if (obj != null)
+					return obj;
 			}
 			if (isCriteriaSearch()) {
 				IType t = searchCriteriaAssumedResult(context);
@@ -1600,7 +1616,7 @@ public abstract class C4ScriptExprTree {
 			IType expectedLeft, expectedRight;
 			switch (getOperator()) {
 			case Assign:
-				expectedLeft = expectedRight = getRightSide().getType(context);
+				expectedLeft = expectedRight = null;
 				break;
 			case Equal:
 			{
@@ -1617,8 +1633,10 @@ public abstract class C4ScriptExprTree {
 				expectedRight = getOperator().getSecondArgType();
 			}
 			
-			getLeftSide().expectedToBeOfType(expectedLeft, context);
-			getRightSide().expectedToBeOfType(expectedRight, context);
+			if (expectedLeft != null)
+				getLeftSide().expectedToBeOfType(expectedLeft, context);
+			if (expectedRight != null)
+				getRightSide().expectedToBeOfType(expectedRight, context);
 
 			if (getOperator() == C4ScriptOperator.Assign) {
 				getLeftSide().inferTypeFromAssignment(getRightSide(), context);
@@ -1869,7 +1887,7 @@ public abstract class C4ScriptExprTree {
 		private final T literal;
 
 		@Override
-		public void expectedToBeOfType(IType arg0, C4ScriptParser arg1) {
+		public void expectedToBeOfType(IType type, C4ScriptParser parser, TypeExpectancyMode mode) {
 			// constantly steadfast do i resist the pressure of expectancy lied upon me
 		}
 

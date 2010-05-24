@@ -29,6 +29,7 @@ import net.arctics.clonk.parser.SilentParsingException.Reason;
 import net.arctics.clonk.parser.c4script.C4Directive.C4DirectiveType;
 import net.arctics.clonk.parser.c4script.C4Function.C4FunctionScope;
 import net.arctics.clonk.parser.c4script.C4ScriptExprTree.*;
+import net.arctics.clonk.parser.c4script.C4ScriptExprTree.ExprElm.TypeExpectancyMode;
 import net.arctics.clonk.parser.c4script.C4Variable.C4VariableScope;
 import net.arctics.clonk.resource.c4group.C4GroupItem;
 import net.arctics.clonk.util.Pair;
@@ -412,6 +413,11 @@ public class C4ScriptParser {
 			return;
 		try {
 			setActiveFunc(function);
+			// reset local vars
+			for (C4Variable v : function.getLocalVars()) {
+				v.forceType(C4Type.UNKNOWN);
+				v.setObjectType(null);
+			}
 			beginTypeInferenceBlock();
 			scanner.seek(function.getBody().getStart());
 			parseCodeBlock();
@@ -2066,7 +2072,7 @@ public class C4ScriptParser {
 				if (val == null)
 					errorWithCode(ParserErrorCode.ValueExpected, scanner.getPosition(), scanner.getPosition()+1);
 				else {
-					new AccessVar(var).expectedToBeOfType(val.getType(this), this);
+					new AccessVar(var).expectedToBeOfType(val.getType(this), this, TypeExpectancyMode.Force);
 				}
 			}
 			else {
@@ -2293,7 +2299,7 @@ public class C4ScriptParser {
 					warningWithCode(ParserErrorCode.IncompatibleTypes, arrayExpr, t.toString(), C4Type.ARRAY.toString());
 				if (loopVariable != null && t instanceof C4ArrayType) {
 					C4ArrayType arrayType = (C4ArrayType) t;
-					new AccessVar(loopVariable).expectedToBeOfType(arrayType.getElementType(), this);
+					new AccessVar(loopVariable).expectedToBeOfType(arrayType.getElementType(), this, TypeExpectancyMode.Force);
 				}
 			}
 			condition = null;
