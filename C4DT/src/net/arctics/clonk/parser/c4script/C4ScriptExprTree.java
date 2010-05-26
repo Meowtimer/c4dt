@@ -1615,19 +1615,9 @@ public abstract class C4ScriptExprTree {
 
 			IType expectedLeft, expectedRight;
 			switch (getOperator()) {
-			case Assign:
+			case Assign: case Equal:
 				expectedLeft = expectedRight = null;
 				break;
-			case Equal:
-			{
-				IType l = getLeftSide().getType(context);
-				IType r = getRightSide().getType(context);
-				if (l.specificness() > r.specificness())
-					expectedLeft = expectedRight = l;
-				else
-					expectedLeft = expectedRight = r;
-				break;
-			}
 			default:
 				expectedLeft = getOperator().getFirstArgType();
 				expectedRight = getOperator().getSecondArgType();
