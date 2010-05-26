@@ -237,6 +237,7 @@ static const C4FO_Exclude;
 static const C4FO_Or;
 static const C4FO_And;
 static const C4FO_Not;
+static const C4FO_Controller;
 
 static const C4MSGCMDR_Identifier;
 static const C4MSGCMDR_Plain;
