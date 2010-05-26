@@ -214,5 +214,10 @@ public abstract class C4Object extends C4ScriptBase implements IType {
 		}
 		return objectType;
 	}
+	
+	@Override
+	public boolean expandSubtypes() {
+		return false;
+	}
 
 }

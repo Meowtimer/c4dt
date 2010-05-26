@@ -188,4 +188,9 @@ public enum C4Type implements IType {
 		return this;
 	}
 
+	@Override
+	public boolean expandSubtypes() {
+		return false;
+	}
+
 }

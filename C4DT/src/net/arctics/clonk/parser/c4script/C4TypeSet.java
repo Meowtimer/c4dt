@@ -1,5 +1,7 @@
 package net.arctics.clonk.parser.c4script;
 
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -36,43 +38,59 @@ public class C4TypeSet implements IType {
 		return create(this);
 	}
 	
+	private static final Comparator<IType> SPECIFICNESS_COMPARATOR = new Comparator<IType>() {
+		
+		@Override
+		public int compare(IType o1, IType o2) {
+			return o2.specificness()-o1.specificness();
+		}
+	};
+	
 	public static IType create(IType... ingredients) {
+		
+		// remove null elements most tediously
+		int actualCount = 0;
+		for (IType t : ingredients)
+			if (t != null)
+				actualCount++;
+		if (actualCount != ingredients.length) {
+			IType[] nonNullIngredients = new IType[actualCount];
+			actualCount = 0;
+			for (IType t : ingredients)
+				if (t != null)
+					nonNullIngredients[actualCount++] = t;
+			ingredients = nonNullIngredients;
+		}
+		
+		// remove less specific types that are already contained in more specific ones
+		Arrays.sort(ingredients, SPECIFICNESS_COMPARATOR);
+		for (int i = 0; i < actualCount; i++) {
+			IType t = ingredients[i];
+			for (int j = actualCount-1; j > i; j--) {
+				if (t.containsType(ingredients[j]))
+					actualCount--;
+			}
+		}
+		
+		// expand left-over types into set
 		Set<IType> set = new HashSet<IType>();
 		boolean containsNonStatics = false;
-		int count = 0, firstIndex = -1;
-		for (int i = 0; i < ingredients.length; i++) {
-			IType s = ingredients[i];
-			if (s == null)
-				continue;
-			if (firstIndex == -1)
-				firstIndex = i;
-			count++;
-			for (IType t : s) {
-				containsNonStatics = containsNonStatics || t.staticType() != t;
-				set.add(t);
-			}
-		}
-		// let the more specific types consume the lesser ones
-		Set<IType> toRemove = null;
-		for (IType a : set) {
-			for (IType b : set) {
-				if (a.specificness() > b.specificness() && a.containsType(b)) {
-					if (toRemove == null)
-						toRemove = new HashSet<IType>();
-					toRemove.add(b);
-					count--;
+		for (IType s : ingredients) {
+			if (s.expandSubtypes()) {
+				for (IType t : s) {
+					containsNonStatics = containsNonStatics || t.staticType() != t;
+					set.add(t);
 				}
+			} else {
+				set.add(s);
 			}
-		}
-		if (toRemove != null) {
-			set.removeAll(toRemove);
 		}
 		if (containsNonStatics)
-			return count == 1 ? ingredients[0] : new C4TypeSet(set);
-		return createInternal(set, firstIndex, count, ingredients);
+			return actualCount == 1 ? ingredients[0] : new C4TypeSet(set);
+		return createInternal(set, actualCount, ingredients);
 	}
 
-	private static IType createInternal(Set<IType> set, int count, int firstIndex, IType... ingredients) {
+	private static IType createInternal(Set<IType> set, int actualCount, IType... ingredients) {
 		if (set.size() == 0)
 			return C4Type.UNKNOWN;
 		if (set.size() == 1)
@@ -83,7 +101,7 @@ public class C4TypeSet implements IType {
 			if (r.types.equals(set))
 				return r;
 		}
-		C4TypeSet n = ingredients != null && count == 1 && ingredients[firstIndex] instanceof C4TypeSet
+		C4TypeSet n = ingredients != null && actualCount == 1 && ingredients[0] instanceof C4TypeSet
 			? (C4TypeSet)ingredients[0]
 			: new C4TypeSet(set);
 		n.internalized = true;
@@ -185,7 +203,12 @@ public class C4TypeSet implements IType {
 			allStatics = allStatics && st == t;
 			s.add(st);
 		}
-		return createInternal(s, 1, 0, allStatics ? new IType[]{type} : (IType[])null);
+		return createInternal(s, 1, allStatics ? new IType[]{type} : (IType[])null);
+	}
+
+	@Override
+	public boolean expandSubtypes() {
+		return true;
 	}
 
 }

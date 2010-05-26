@@ -51,4 +51,9 @@ public class C4ArrayType implements IType {
 		return C4Type.ARRAY;
 	}
 
+	@Override
+	public boolean expandSubtypes() {
+		return false;
+	}
+
 }

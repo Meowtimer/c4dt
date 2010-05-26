@@ -25,7 +25,7 @@ public class C4ObjectType implements IType {
 	
 	@Override
 	public Iterator<IType> iterator() {
-		return Utilities.arrayIterable(C4Type.ID, type).iterator();
+		return Utilities.arrayIterable(C4Type.ID, C4Type.PROPLIST, type).iterator();
 	}
 
 	@Override
@@ -50,7 +50,7 @@ public class C4ObjectType implements IType {
 
 	@Override
 	public boolean containsType(IType type) {
-		return type == C4Type.ID || type == this.type;
+		return type == C4Type.ID || type == this.type || type == C4Type.PROPLIST;
 	}
 
 	@Override
@@ -61,6 +61,11 @@ public class C4ObjectType implements IType {
 	@Override
 	public IType staticType() {
 		return C4Type.ID;
+	}
+	
+	@Override
+	public boolean expandSubtypes() {
+		return false;
 	}
 
 }
