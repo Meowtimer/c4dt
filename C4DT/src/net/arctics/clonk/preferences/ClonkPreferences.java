@@ -14,11 +14,7 @@ import org.eclipse.core.runtime.preferences.IScopeContext;
  */
 public class ClonkPreferences {
 	public static final String GAME_PATH = "gamePath"; //$NON-NLS-1$
-	public static final String STANDARD_EXT_LIBS = "standardExtLibs"; //$NON-NLS-1$
-	public static final String C4GROUP_EXECUTABLE = "c4groupExecutable"; //$NON-NLS-1$	
-	public static final String ENGINE_EXECUTABLE = "engineExecutable";	 //$NON-NLS-1$
 	public static final String DOC_URL_TEMPLATE = "docURLTemplate"; //$NON-NLS-1$
-	public static final String EXTERNAL_INDEX_ENCODING = "externalIndexEncoding"; //$NON-NLS-1$
 	public static final String ACTIVE_ENGINE = "selectedEngine"; //$NON-NLS-1$
 	
 	public static final String EXTERNAL_INDEX_ENCODING_DEFAULT = "ISO-8859-1"; //$NON-NLS-1$
@@ -66,11 +62,6 @@ public class ClonkPreferences {
 	
 	public static String getLanguagePref() {
 		return getPreferenceOrDefault(PREFERRED_LANGID);
-	}
-	
-	public static String[] getExternalLibNames() {
-		String optionString = getPreference(STANDARD_EXT_LIBS);
-		return optionString.split("<>"); //$NON-NLS-1$
 	}
 	
 }

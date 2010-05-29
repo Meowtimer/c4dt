@@ -5,7 +5,6 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import net.arctics.clonk.preferences.ClonkPreferences;
 import net.arctics.clonk.resource.c4group.C4GroupExporter;
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
@@ -30,9 +29,7 @@ public class QuickExportHandler extends ClonkResourceHandler implements IHandler
 				final ISelection selection = HandlerUtil.getCurrentSelection(event);
 				if (selection != null && selection instanceof TreeSelection) {
 					try {
-						TreeSelection tree = (TreeSelection) selection;					
-						String c4groupPath = ClonkPreferences.getPreference(ClonkPreferences.C4GROUP_EXECUTABLE, "", null); //$NON-NLS-1$
-						String gamePath = ClonkPreferences.getPreference(ClonkPreferences.GAME_PATH);
+						TreeSelection tree = (TreeSelection) selection;
 						Iterator it = tree.iterator();
 						while (it.hasNext()) {
 							Object obj = it.next();
@@ -55,7 +52,7 @@ public class QuickExportHandler extends ClonkResourceHandler implements IHandler
 								selectedContainers.add((IContainer) obj);
 							}
 							if (selectedContainers != null) {
-								final C4GroupExporter exporter = new C4GroupExporter(selectedContainers.toArray(new IContainer[selectedContainers.size()]), c4groupPath, gamePath);
+								final C4GroupExporter exporter = new C4GroupExporter(selectedContainers.toArray(new IContainer[selectedContainers.size()]), null);
 								if (exporter.selectDestPaths()) {
 									final ProgressMonitorDialog progressDialog = new ProgressMonitorDialog(HandlerUtil.getActiveWorkbenchWindow(event).getShell());
 									progressDialog.run(false, true, exporter);

@@ -5,8 +5,6 @@ import java.io.InputStream;
 import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
 
-import net.arctics.clonk.preferences.ClonkPreferences;
-import net.arctics.clonk.resource.c4group.C4GroupEntry;
 import org.eclipse.core.resources.IStorage;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
@@ -19,28 +17,13 @@ public class SimpleScriptStorage implements IStorage, Serializable {
 	private String name;
 	private String contents;
 	
-	public SimpleScriptStorage(C4GroupEntry entry) {
-		name = entry.getName();
-		try {
-			contents = new String(entry.getContentsAsArray(), ClonkPreferences.getPreferenceOrDefault(ClonkPreferences.EXTERNAL_INDEX_ENCODING));
-		} catch (UnsupportedEncodingException e) {
-			e.printStackTrace();
-			contents = ""; //$NON-NLS-1$
-		}
-	}
-	
 	public SimpleScriptStorage(String name, String contents) throws UnsupportedEncodingException {
 		this.name = name;
 		this.contents = contents;
 	}
 
 	public InputStream getContents() throws CoreException {
-		try {
-			return new ByteArrayInputStream(contents.getBytes(ClonkPreferences.getPreferenceOrDefault(ClonkPreferences.EXTERNAL_INDEX_ENCODING)));
-		} catch (UnsupportedEncodingException e) {
-			e.printStackTrace();
-			return null;
-		}
+		return new ByteArrayInputStream(contents.getBytes());
 	}
 	
 	public String getContentsAsString() {

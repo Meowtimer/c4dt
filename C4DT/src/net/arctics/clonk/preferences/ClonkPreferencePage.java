@@ -184,7 +184,6 @@ public class ClonkPreferencePage extends FieldEditorPreferencePage implements IW
 	public void createFieldEditors() {
 		
 		// FIXME: not the best place to set that
-		getPreferenceStore().setDefault(ClonkPreferences.EXTERNAL_INDEX_ENCODING, ClonkPreferences.EXTERNAL_INDEX_ENCODING_DEFAULT);
 		getPreferenceStore().setDefault(ClonkPreferences.DOC_URL_TEMPLATE, ClonkPreferences.DOC_URL_TEMPLATE_DEFAULT);
 		getPreferenceStore().setDefault(ClonkPreferences.ACTIVE_ENGINE, ClonkPreferences.ACTIVE_ENGINE_DEFAULT);
 		
