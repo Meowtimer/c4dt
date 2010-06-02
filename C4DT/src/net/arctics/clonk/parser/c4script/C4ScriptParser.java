@@ -435,7 +435,7 @@ public class C4ScriptParser {
 		}
 		catch (ParsingException e) {
 			//System.out.println(String.format("ParsingException in %s (%s)", activeFunc.getName(), container.getName()));
-			e.printStackTrace();
+			//e.printStackTrace();
 			// not very exceptional
 		}
 		catch (Exception e) {
