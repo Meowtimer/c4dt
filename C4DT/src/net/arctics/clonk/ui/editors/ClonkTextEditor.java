@@ -208,12 +208,7 @@ public class ClonkTextEditor extends TextEditor {
 	@Override
 	protected void initializeEditor() {
 		super.initializeEditor();
-		//setPreferenceStore(ClonkCore.getDefault().getPreferenceStore());
 	}
-	
-//	public ClonkSourceViewerConfiguration<?> getClonkSourceViewerConfiguration() {
-//		return (ClonkSourceViewerConfiguration<?>) super.getSourceViewerConfiguration();
-//	}
 	
 	public ClonkContentAssistant getContentAssistant() {
 		return (ClonkContentAssistant) getSourceViewerConfiguration().getContentAssistant(getSourceViewer());
