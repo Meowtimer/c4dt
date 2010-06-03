@@ -22,8 +22,11 @@ import org.eclipse.swt.SWT;
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Platform;
+import org.eclipse.core.runtime.Status;
+import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.core.runtime.preferences.IPreferencesService;
 import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.swt.widgets.FileDialog;
@@ -92,61 +95,66 @@ public class C4GroupExporter implements IRunnableWithProgress {
 		if (monitor != null)
 			monitor.beginTask(Messages.Exporting, numTotal);
 		IPreferencesService service = Platform.getPreferencesService();
-		boolean showExportLog = service.getBoolean(ClonkCore.PLUGIN_ID, ClonkPreferences.SHOW_EXPORT_LOG, false, null);
+		final boolean showExportLog = service.getBoolean(ClonkCore.PLUGIN_ID, ClonkPreferences.SHOW_EXPORT_LOG, false, null);
 		for (Entry<C4Engine, List<Pair<IContainer, String>>> byEngine : packsDividedInEngines.entrySet()) {
-			String c4groupPath = byEngine.getKey().getCurrentSettings().c4GroupPath;
-			for(Pair<IContainer, String> toExport : byEngine.getValue()) {
-				try {
-					if (monitor != null)
-						monitor.subTask(toExport.getFirst().getName());
-					String packPath = toExport.getSecond();
-					File oldFile = new File(packPath);
-					// ugh, deleting files is ugly but there seems to be no java method for putting files to trash -.-
-					if (oldFile.exists())
-						oldFile.delete();
-					// copy directory to destination and pack it in-place
-					FileOperations.copyDirectory(new File(toExport.getFirst().getRawLocation().toOSString()), oldFile);
+			final String c4groupPath = byEngine.getKey().getCurrentSettings().c4GroupPath;
+			for(final Pair<IContainer, String> toExport : byEngine.getValue()) {
+				if (monitor != null)
+					monitor.subTask(toExport.getFirst().getName());
+				final String packPath = toExport.getSecond();
+				final File oldFile = new File(packPath);
+				// ugh, deleting files is ugly but there seems to be no java method for putting files to trash -.-
+				if (oldFile.exists())
+					oldFile.delete();
+				(new Job("Export C4Group") {
+					@Override
+					protected IStatus run(IProgressMonitor monitor) {
+						try {
+							// copy directory to destination and pack it in-place
+							FileOperations.copyDirectory(new File(toExport.getFirst().getRawLocation().toOSString()), oldFile);
 
-					MessageConsoleStream out = null;
-					if (showExportLog) {
-						// get console
-						MessageConsole myConsole = Utilities.getClonkConsole();
-						out = myConsole.newMessageStream();
-						Utilities.displayClonkConsole();
-					}
+							MessageConsoleStream out = null;
+							if (showExportLog) {
+								// get console
+								MessageConsole myConsole = Utilities.getClonkConsole();
+								out = myConsole.newMessageStream();
+								Utilities.displayClonkConsole();
+							}
 
-					// create c4group command line
-					String[] cmdArray = new String[] { c4groupPath, packPath, "-p" }; //$NON-NLS-1$
-					if (showExportLog) {
-						// show command line in console
-						StringBuilder cmdLine = new StringBuilder();
-						cmdLine.append(Messages.ExporterCommandlineTitle);
-						for (int _i = 0; _i < cmdArray.length; _i++) {
-							String cmdE = cmdArray[_i];
-							cmdLine.append(" " + cmdE); //$NON-NLS-1$
+							// create c4group command line
+							String[] cmdArray = new String[] { c4groupPath, packPath, "-p" }; //$NON-NLS-1$
+							if (showExportLog) {
+								// show command line in console
+								StringBuilder cmdLine = new StringBuilder();
+								cmdLine.append(Messages.ExporterCommandlineTitle);
+								for (int _i = 0; _i < cmdArray.length; _i++) {
+									String cmdE = cmdArray[_i];
+									cmdLine.append(" " + cmdE); //$NON-NLS-1$
+								}
+								out.println(cmdLine.toString());
+							}
+
+							// run c4group
+							Process c4group = Runtime.getRuntime().exec(cmdArray, null, oldFile.getParentFile());
+							if (showExportLog) {
+								// pipe output to console
+								java.io.InputStream stream = c4group.getInputStream();
+								int read = 0;
+								byte[] buffer = new byte[256];
+								c4group.waitFor();
+
+								while((read = stream.read(buffer, 0, 256)) > 0) {
+									out.write(buffer, 0, read);
+								}
+							}
+							return Status.OK_STATUS;
+						} catch (IOException e) {
+							return Status.CANCEL_STATUS;
+						} catch (InterruptedException e) {
+							return Status.CANCEL_STATUS;
 						}
-						out.println(cmdLine.toString());
 					}
-
-					// run c4group
-					Process c4group = Runtime.getRuntime().exec(cmdArray, null, oldFile.getParentFile());
-					if (showExportLog) {
-						// pipe output to console
-						java.io.InputStream stream = c4group.getInputStream();
-						int read = 0;
-						byte[] buffer = new byte[256];
-						c4group.waitFor();
-
-						while((read = stream.read(buffer, 0, 256)) > 0) {
-							out.write(buffer, 0, read);
-						}
-					}
-					oldFile = null;
-				} catch (IOException e1) {
-					e1.printStackTrace();
-				} catch (InterruptedException e1) {
-					e1.printStackTrace();
-				}
+				}).schedule();
 				if (monitor != null)
 					monitor.worked(1);
 
