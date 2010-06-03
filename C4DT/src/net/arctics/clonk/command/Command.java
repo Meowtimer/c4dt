@@ -39,6 +39,10 @@ import net.arctics.clonk.resource.ClonkIndexStream;
 import net.arctics.clonk.ui.editors.ClonkHyperlink;
 import net.arctics.clonk.util.Utilities;
 
+/**
+ * Macro execution engine based on the C4Script parser. Naturally, macros are written in C4Script.
+ *
+ */
 public class Command {
 	public static final C4ScriptBase COMMAND_BASESCRIPT;
 	public static final ClonkIndex COMMANDS_INDEX = new ClonkIndex();

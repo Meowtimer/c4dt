@@ -18,8 +18,7 @@ import org.eclipse.ui.texteditor.TextEditorAction;
 
 public class OpenDeclarationAction extends TextEditorAction {
 
-	public OpenDeclarationAction(ResourceBundle bundle, String prefix,
-			ITextEditor editor) {
+	public OpenDeclarationAction(ResourceBundle bundle, String prefix, ITextEditor editor) {
 		super(bundle, prefix, editor);
 		this.setActionDefinitionId(IClonkCommandIds.OPEN_DECLARATION);
 	}

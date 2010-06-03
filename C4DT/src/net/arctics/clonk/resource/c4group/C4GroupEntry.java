@@ -87,8 +87,7 @@ public class C4GroupEntry extends C4GroupItem implements IStorage, Serializable 
 
 	private transient File exportFromFile;
 
-	public C4GroupEntry(C4Group parentGroup, C4EntryHeader header)
-	{
+	public C4GroupEntry(C4Group parentGroup, C4EntryHeader header) {
 		this.parentGroup = parentGroup;
 		this.header = header;
 	}

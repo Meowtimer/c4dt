@@ -18,16 +18,34 @@ import org.eclipse.core.filesystem.provider.FileSystem;
 import org.eclipse.core.runtime.Path;
 
 public class C4GroupFileSystem extends FileSystem {
-	
+
+	private static final String[] EXTENSIONS_TO_ALWAYS_LOAD = new String[] {
+		".c", //$NON-NLS-1$
+		".c4m" //$NON-NLS-1$
+	};
+
+	private static final String[] FILES_TO_ALWAYS_LOAD = new String[] {
+		"DefCore.txt", //$NON-NLS-1$
+		"ActMap.txt", //$NON-NLS-1$
+		"DescDE.txt", //$NON-NLS-1$
+		"DescUS.txt", //$NON-NLS-1$
+		"Names.txt", //$NON-NLS-1$
+		"Particle.txt", //$NON-NLS-1$
+		"StringTblDE.txt", //$NON-NLS-1$
+		"StringTblUS.txt", //$NON-NLS-1$
+		"Landscape.txt", //$NON-NLS-1$
+		"Teams.txt" //$NON-NLS-1$
+	};
+
 	// there should be some function to do that somewhere -.-
 	public static String replaceSpecialChars(String path) {
 		return path.replace("[", "%5B").replace("]", "%5D"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
 	}
 
 	private Map<File, WeakReference<C4Group>> rootGroups = new HashMap<File, WeakReference<C4Group>>();
-	
+
 	private static C4GroupFileSystem sharedInstance;
-	
+
 	public C4GroupFileSystem() {
 		super();
 		synchronized (C4GroupFileSystem.class) {
@@ -35,15 +53,15 @@ public class C4GroupFileSystem extends FileSystem {
 			sharedInstance = this;
 		}
 	}
-	
+
 	public static C4GroupFileSystem getInstance() {
 		return sharedInstance;
 	}
-	
+
 	public void delete(C4Group group) {
 		rootGroups.remove(group.getOrigin());
 	}
-	
+
 	public void purgeDeadEntries() {
 		List<File> markedForDeletion = null;
 		for (Map.Entry<File, WeakReference<C4Group>> entry : rootGroups.entrySet()) {
@@ -58,14 +76,14 @@ public class C4GroupFileSystem extends FileSystem {
 				rootGroups.remove(f);
 		}
 	}
-	
+
 	@Override
 	public IFileStore getStore(URI uri) {
 		purgeDeadEntries();
 		String groupFilePath = uri.getSchemeSpecificPart();
 		File file = new File(groupFilePath);
 		File groupFile = file;
-		
+
 		C4Group group = null;
 		for (groupFile = file; groupFile != null; groupFile = groupFile.getParentFile()) {
 			WeakReference<C4Group> ref;
@@ -84,24 +102,6 @@ public class C4GroupFileSystem extends FileSystem {
 						try {
 							group.readIntoMemory(true, new HeaderFilterBase() {
 
-								private final String[] filesToAlwaysLoad = new String[] {
-									"DefCore.txt", //$NON-NLS-1$
-									"ActMap.txt", //$NON-NLS-1$
-									"DescDE.txt", //$NON-NLS-1$
-									"DescUS.txt", //$NON-NLS-1$
-									"Names.txt", //$NON-NLS-1$
-									"Particle.txt", //$NON-NLS-1$
-									"StringTblDE.txt", //$NON-NLS-1$
-									"StringTblUS.txt", //$NON-NLS-1$
-									"Landscape.txt", //$NON-NLS-1$
-									"Teams.txt" //$NON-NLS-1$
-								};
-								
-								private final String[] extensionsToAlwaysLoad = new String[] {
-									".c", //$NON-NLS-1$
-									".c4m" //$NON-NLS-1$
-								};
-								
 								@Override
 								public boolean accepts(C4EntryHeader header, C4Group context) {
 									return true;
@@ -109,10 +109,10 @@ public class C4GroupFileSystem extends FileSystem {
 
 								@Override
 								public int getFlags(C4GroupEntry entry) {
-									for (String s : extensionsToAlwaysLoad)
+									for (String s : EXTENSIONS_TO_ALWAYS_LOAD)
 										if (entry.getName().endsWith(s))
 											return 0;
-									for (String s : filesToAlwaysLoad)
+									for (String s : FILES_TO_ALWAYS_LOAD)
 										if (entry.getName().equalsIgnoreCase(s))
 											return 0;
 									return HeaderFilterBase.DONTREADINTOMEMORY;
@@ -136,7 +136,7 @@ public class C4GroupFileSystem extends FileSystem {
 				}
 			}
 		}
-		
+
 		if (file == groupFile) {
 			return group;
 		}
