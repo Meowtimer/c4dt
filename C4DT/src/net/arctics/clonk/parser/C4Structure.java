@@ -154,6 +154,10 @@ public abstract class C4Structure extends C4Declaration {
 		// placeholder
 	}
 	
+	public boolean requiresScriptReparse() {
+		return false;
+	}
+	
 	/**
 	 * Called by the builder in phase 2 to give structure files a chance to complain about things like missing functions (which ought to be created as of now)
 	 */

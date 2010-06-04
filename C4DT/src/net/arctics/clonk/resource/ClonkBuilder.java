@@ -162,6 +162,9 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 
 	// keeps track of parsers created for specific scripts
 	private Map<C4ScriptBase, C4ScriptParser> parserMap = new HashMap<C4ScriptBase, C4ScriptParser>();
+	// set of structures that have been validated during one build round - keeping track of them so when parsing dependent scripts, scripts that might lose some warnings
+	// due to structure files having been revalidated can also be reparsed (string tables and such)
+	private Set<C4Structure> structuresValidated = new HashSet<C4Structure>();
 
 	public void worked(int count) {
 		monitor.worked(count);
@@ -187,7 +190,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 	@SuppressWarnings({"rawtypes"})
 	protected IProject[] build(int kind, Map args, IProgressMonitor monitor) throws CoreException {
 		
-		parserMap.clear();
+		clearState();
 		List<IResource> listOfResourcesToBeRefreshed = new LinkedList<IResource>();
 		
 		clearUIOfReferencesBeforeBuild();
@@ -305,8 +308,13 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 				return null;
 			}
 		} finally {
-			parserMap.clear();
+			clearState();
 		}
+	}
+
+	private void clearState() {
+		parserMap.clear();
+		structuresValidated.clear();
 	}
 
 	private void reparseDependentScripts(IProgressMonitor monitor) throws CoreException {
@@ -315,6 +323,13 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 			for (C4ScriptBase dep : parser.getContainer().getIndex().dependentScripts(parser.getContainer())) {
 				if (parserMap.get(dep) == null)
 					scripts.add(dep);
+			}
+		}
+		for (C4Structure s : structuresValidated) {
+			if (s.requiresScriptReparse()) {
+				C4ScriptBase script = C4ScriptBase.get(s.getResource());
+				if (script != null)
+					scripts.add(script);
 			}
 		}
 		monitor.beginTask(Messages.ReparseDependentScripts, scripts.size());
@@ -500,6 +515,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 		}
 		else if (buildPhase == 1 && (structure = C4Structure.pinned(file, false, true)) != null) {
 			structure.validate();
+			structuresValidated.add(structure);
 			return true;
 		}
 		else if (buildPhase == 0) {
