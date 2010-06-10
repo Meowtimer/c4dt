@@ -37,6 +37,7 @@ public class StringTbl extends C4Structure implements ITreeNode, ITableEntryInfo
 
 	public void setFile(IFile file) {
 		this.file = file;
+		setName(file != null ? file.getName() : null);
 	}
 	
 	@Override
@@ -150,6 +151,11 @@ public class StringTbl extends C4Structure implements ITreeNode, ITableEntryInfo
 
 	public boolean subNodeOf(ITreeNode node) {
 		return ITreeNode.Default.subNodeOf(this, node);
+	}
+	
+	@Override
+	public boolean requiresScriptReparse() {
+		return true;
 	}
 
 }

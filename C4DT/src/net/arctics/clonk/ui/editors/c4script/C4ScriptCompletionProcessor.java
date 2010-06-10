@@ -118,6 +118,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 	}
 	
 	private ContentAssistant assistant;
+	@SuppressWarnings("unused")
 	private ExprElm contextExpression, contextExpression2;
 	private List<IStoredTypeInformation> contextTypeInformation;
 	private ProposalCycle proposalCycle = ProposalCycle.SHOW_ALL;
@@ -143,7 +144,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 				C4Scenario s2 = _activeFunc.getScenario();
 				for (C4Function func : index.getGlobalFunctions()) {
 					C4Scenario s1 = func.getScenario();
-					if (s1 != null && s1 != s2)
+					if (s1 != null && s2 != null && s1 != s2)
 						continue;
 					proposalForFunc(func, prefix, offset, proposals, func.getScript().getName(), true);
 				}

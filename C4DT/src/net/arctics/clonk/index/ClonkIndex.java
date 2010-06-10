@@ -298,10 +298,10 @@ public class ClonkIndex implements Serializable, Iterable<C4Object> {
 	
 	/**
 	 * Returns true if there are no objects in this index.
-	 * @return
+	 * @return see above
 	 */
 	public boolean isEmpty() {
-		return indexedObjects.isEmpty();
+		return indexedObjects.isEmpty() && indexedScripts.isEmpty() && indexedScenarios.isEmpty();
 	}
 	
 	public List<C4Scenario> getIndexedScenarios() {

@@ -161,10 +161,8 @@ public class TidyUpCodeAction extends TextEditorAction {
 						}
 					}
 				} catch (BadLocationException e1) {
-					// TODO Auto-generated catch block
 					e1.printStackTrace();
 				} catch (CloneNotSupportedException e1) {
-					// TODO Auto-generated catch block
 					e1.printStackTrace();
 				}
 			}
