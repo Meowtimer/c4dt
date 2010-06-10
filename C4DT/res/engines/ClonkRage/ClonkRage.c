@@ -678,7 +678,7 @@ global func int GetTeamColor(int iTeam);
 global func int GetTeamCount();
 global func string GetTeamName(int iTeam);
 global func bool Bubble(int iX, int iY);
-global func bool Smoke(int iX, int iY, int iLevel);
+global func bool Smoke(int iX, int iY, int iLevel, int dwClr);
 global func int GetClimate();
 global func int GetSeason();
 global func int GetTemperature();
@@ -738,7 +738,7 @@ global func int OnMessageBoardAnswer(object pObj, int iForPlr, string szAnswerSt
 global func bool PathFree2(int iX1, int iY1, int iX2, int iY2);
 global func bool PauseGame(bool toggle);
 global func int PlayVideo(string pFileName);
-global func int PlayerObjectCommand(pPars);
+global func int PlayerObjectCommand(pPars, ...);
 global func int RemoveUnusedTexMapEntries();
 global func bool SetKiller(int iNewKiller, object pObj);
 global func bool SetMenuDecoration(id idNewDeco, object pMenuObj);
