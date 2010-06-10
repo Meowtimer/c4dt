@@ -377,6 +377,8 @@ public class C4ScriptParser {
 			C4Function definitionFunc = container.findFunction(Keywords.DefinitionFunc);
 			if (definitionFunc != null && definitionFunc.getBody() != null) { // could also be engine function without body
 				scanner.seek(definitionFunc.getBody().getStart());
+				boolean old = allErrorsDisabled;
+				allErrorsDisabled = true;
 				reportExpressionsAndStatements(definitionFunc, new ExpressionListener() {
 					@Override
 					public TraversalContinuation expressionDetected(ExprElm expression, C4ScriptParser parser) {
@@ -399,6 +401,7 @@ public class C4ScriptParser {
 						return TraversalContinuation.Continue;
 					}
 				});
+				allErrorsDisabled = old;
 			}
 		}
 	}
@@ -435,7 +438,7 @@ public class C4ScriptParser {
 		}
 		catch (ParsingException e) {
 			//System.out.println(String.format("ParsingException in %s (%s)", activeFunc.getName(), container.getName()));
-			e.printStackTrace();
+			//e.printStackTrace();
 			// not very exceptional
 		}
 		catch (Exception e) {
@@ -1317,14 +1320,14 @@ public class C4ScriptParser {
 		return markerWithCode(code, errorStart, errorEnd, false, IMarker.SEVERITY_ERROR, args);
 	}
 	
-	protected IMarker markerWithCode(ParserErrorCode code, int errorStart, int errorEnd, boolean noThrow, int severity, Object... args) throws ParsingException {
+	protected IMarker markerWithCode(ParserErrorCode code, int markerStart, int markerEnd, boolean noThrow, int severity, Object... args) throws ParsingException {
 		if (errorDisabled(code))
 			return null;
 		IMarker result = null;
 		boolean silence = scriptFile == null || (activeFunc != null && activeFunc.getBody() != null && scanner.getPosition() > activeFunc.getBody().getEnd()+1);
 		String problem = code.getErrorString(args);
 		if (!silence && !allErrorsDisabled) {
-			result = code.createMarker(scriptFile, ClonkCore.MARKER_C4SCRIPT_ERROR, errorStart, errorEnd, severity, problem);
+			result = code.createMarker(scriptFile, ClonkCore.MARKER_C4SCRIPT_ERROR, markerStart, markerEnd, severity, problem);
 		}
 		if (!noThrow && severity >= IMarker.SEVERITY_ERROR)
 			throw silence
@@ -2608,7 +2611,7 @@ public class C4ScriptParser {
 			}
 			//endTypeInferenceBlock(); not here for type information might still be needed
 		} 
-		catch (SilentParsingException e) {
+		catch (ParsingException e) {
 			// silent...
 		}
 		catch (Exception e) {
@@ -2617,11 +2620,15 @@ public class C4ScriptParser {
 		applyStoredTypeInformationList(true);
 	}
 	
+	public interface IMarkerListener {
+		void markerEncountered(ParserErrorCode code, int markerStart, int markerEnd, boolean noThrow, int severity, Object... args);
+	}
+	
 	public static C4ScriptParser reportExpressionsAndStatements(IDocument doc, IRegion region, C4ScriptBase context, C4Function func, IExpressionListener listener)  {
 		return reportExpressionsAndStatements(doc, region.getOffset(), region.getOffset()+region.getLength(), context, func, listener);
 	}
 	
-	public static C4ScriptParser reportExpressionsAndStatements(IDocument doc, final int statementStart, int statementEnd, C4ScriptBase context, C4Function func, IExpressionListener listener)  {
+	public static C4ScriptParser reportExpressionsAndStatements(IDocument doc, final int statementStart, int statementEnd, C4ScriptBase context, C4Function func, IExpressionListener listener) { 
 		String statements;
 		try {
 			statements = doc.get(statementStart, Math.min(statementEnd-statementStart, doc.getLength()-statementStart)) + ")"; //$NON-NLS-1$
@@ -2638,17 +2645,40 @@ public class C4ScriptParser {
 		return parser;
 	}
 	
-	public static Statement parseStandaloneStatement(final String expression, C4Function context, IExpressionListener listener) throws ParsingException {
+	public static Statement parseStandaloneStatement(final String expression, C4Function context, IExpressionListener listener, final IMarkerListener markerListener) throws ParsingException {
 		if (context == null) {
 			C4ScriptBase tempScript = new TempScript(expression);
 			context = new C4Function("<temp>", null, C4FunctionScope.FUNC_GLOBAL); //$NON-NLS-1$
 			context.setScript(tempScript);
 		}
-		C4ScriptParser tempParser = new C4ScriptParser(expression, context.getScript());
+		C4ScriptParser tempParser = new C4ScriptParser(expression, context.getScript()) {
+			@Override
+			protected IMarker markerWithCode(ParserErrorCode code,
+					int markerStart, int markerEnd, boolean noThrow,
+					int severity, Object... args) throws ParsingException {
+				if (markerListener != null)
+					markerListener.markerEncountered(code, markerStart, markerEnd, noThrow, severity, args);
+				return super.markerWithCode(code, markerStart, markerEnd, noThrow, severity, args);
+			}
+		};
 		tempParser.setExpressionListener(listener);
 		tempParser.setActiveFunc(context);
 		tempParser.beginTypeInferenceBlock();
-		return tempParser.parseStatement();
+		
+		List<Statement> statements = new LinkedList<Statement>();
+		Statement statement;
+		do {
+			statement = tempParser.parseStatement();
+			if (statement != null)
+				statements.add(statement);
+			else
+				break;
+		} while (true);
+		return statements.size() == 1 ? statement : new BunchOfStatements(statements);
+	}
+	
+	public static Statement parseStandaloneStatement(final String expression, C4Function context, IExpressionListener listener) throws ParsingException {
+		return parseStandaloneStatement(expression, context, listener, null);
 	}
 
 }

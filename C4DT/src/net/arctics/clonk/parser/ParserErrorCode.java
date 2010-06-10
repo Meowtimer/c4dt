@@ -55,7 +55,8 @@ public enum ParserErrorCode {
 	VarUsedBeforeItsDeclaration(Messages.VarUsedBeforeItsDeclaration),
 	MissingDirectiveArgs(Messages.MissingDirectiveArgs),
 	EngineDoesNotSupportRefs(Messages.EngineDoesNotSupportRefs),
-	BoolLiteralAsOpArg(Messages.BoolLiteralAsOpArg);
+	BoolLiteralAsOpArg(Messages.BoolLiteralAsOpArg),
+	InheritedDisabledInStrict0(Messages.InheritedDisabledInStrict0);
 
 	public static final String MARKER_ERRORCODE = "c4ScriptErrorCode"; //$NON-NLS-1$
 	

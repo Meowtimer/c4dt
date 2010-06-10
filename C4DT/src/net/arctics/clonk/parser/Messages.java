@@ -46,6 +46,7 @@ public class Messages extends NLS {
 	public static String ConditionAlwaysFalse;
 	public static String InternalError;
 	public static String InfiniteLoop;
+	public static String InheritedDisabledInStrict0;
 	public static String LocalUsedInGlobal;
 	public static String ExpressionExpected;
 	public static String UnexpectedEnd;

@@ -1138,6 +1138,14 @@ public abstract class C4ScriptExprTree {
 					context.warningWithCode(ParserErrorCode.ReturnAsFunction, this);
 			}
 			else {
+				
+				// inherited/_inherited not allowed in non-strict mode
+				if (context.getStrictLevel() <= 0) {
+					if (declarationName.equals(Keywords.Inherited) || declarationName.equals(Keywords.SafeInherited)) {
+						context.errorWithCode(ParserErrorCode.InheritedDisabledInStrict0, this);
+					}
+				}
+				
 				// variable as function
 				if (declaration instanceof C4Variable) {
 					if (params.length == 0) {
@@ -3263,16 +3271,29 @@ public abstract class C4ScriptExprTree {
 			this.comment = comment;
 		}
 
+		private String commentAsPrintedStatement(C4Function function, int depth) {
+			try {
+				Statement s = C4ScriptParser.parseStandaloneStatement(comment, function, null);
+				if (s != null) {
+					return s.toString(depth+1);
+				} else {
+					return comment;
+				}
+			} catch (ParsingException e) {
+				return comment;
+			}
+		}
+		
 		@Override
 		public void doPrint(ExprWriter builder, int depth) {
 			if (isMultiLine()) {
 				builder.append("/*"); //$NON-NLS-1$
-				builder.append(comment);
+				builder.append(commentAsPrintedStatement(null, depth));
 				builder.append("*/"); //$NON-NLS-1$
 			}
 			else {
 				builder.append("//"); //$NON-NLS-1$
-				builder.append(comment);
+				builder.append(commentAsPrintedStatement(null, depth));
 			}
 		}
 
