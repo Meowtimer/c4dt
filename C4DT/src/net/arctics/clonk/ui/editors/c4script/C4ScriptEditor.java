@@ -13,12 +13,14 @@ import java.util.TimerTask;
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.index.ClonkIndex;
 import net.arctics.clonk.parser.C4Declaration;
+import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.SimpleScriptStorage;
 import net.arctics.clonk.parser.SourceLocation;
 import net.arctics.clonk.parser.c4script.C4Function;
 import net.arctics.clonk.parser.c4script.C4ScriptBase;
 import net.arctics.clonk.parser.c4script.C4ScriptExprTree;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
+import net.arctics.clonk.parser.c4script.C4ScriptParser.IMarkerListener;
 import net.arctics.clonk.parser.c4script.C4Variable;
 import net.arctics.clonk.parser.c4script.IStoredTypeInformation;
 import net.arctics.clonk.parser.c4script.C4ScriptExprTree.AccessVar;
@@ -37,7 +39,11 @@ import net.arctics.clonk.ui.editors.actions.c4script.FindReferencesAction;
 import net.arctics.clonk.ui.editors.actions.c4script.RenameDeclarationAction;
 import net.arctics.clonk.util.Utilities;
 
+import org.eclipse.core.internal.resources.MarkerManager;
+import org.eclipse.core.internal.resources.Workspace;
 import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IMarker;
+import org.eclipse.core.resources.IWorkspace;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.action.IMenuManager;
@@ -61,6 +67,7 @@ import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.texteditor.ITextEditor;
 import org.eclipse.ui.texteditor.SourceViewerDecorationSupport;
 
+@SuppressWarnings("restriction")
 public class C4ScriptEditor extends ClonkTextEditor {
 
 	private static final class ScratchScript extends C4ScriptBase implements IHasEditorRefWhichEnablesStreamlinedOpeningOfDeclarations {
@@ -99,6 +106,8 @@ public class C4ScriptEditor extends ClonkTextEditor {
 	// Helper class that takes care of triggering a timed reparsing when the document is changed and such
 	// it tries to only fire a reparse when necessary (ie not when editing inside of a function)
 	private final static class TextChangeListener implements IDocumentListener {
+		
+		private static final int REPARSE_DELAY = 2000;
 		
 		private Timer reparseTimer = new Timer("ReparseTimer"); //$NON-NLS-1$
 		private TimerTask reparseTask;
@@ -146,9 +155,39 @@ public class C4ScriptEditor extends ClonkTextEditor {
 
 		public void documentChanged(DocumentEvent event) {
 			script.setDirty(true);
-			C4Function f = script.funcAt(event.getOffset());
+			final C4Function f = script.funcAt(event.getOffset());
 			if (f != null && !f.isOldStyle()) {
 				adjustDeclarationLocations(event);
+				reparseTimer.schedule(new TimerTask() {
+					private void removeMarkers() {
+						if (script != null && script.getResource() != null) {
+							IWorkspace w = script.getResource().getWorkspace();
+							if (w instanceof Workspace) {
+								MarkerManager markerManager = ((Workspace)w).getMarkerManager();
+								IMarker[] markers = markerManager.findMarkers(script.getResource(), ClonkCore.MARKER_C4SCRIPT_ERROR_WHILE_TYPING, true, 3);
+								for (IMarker m : markers) {
+									try {
+										m.delete();
+									} catch (CoreException e) {
+										e.printStackTrace();
+									}
+								}
+							}
+						}
+					}
+					public void run() {
+						removeMarkers();
+						C4ScriptParser.reportExpressionsAndStatements(document, f.getBody(), script, f, null, new IMarkerListener() {
+							@Override
+							public void markerEncountered(ParserErrorCode code,
+									int markerStart, int markerEnd, boolean noThrow,
+									int severity, Object... args) {
+								if (script.getScriptFile() instanceof IFile)
+									code.createMarker((IFile) script.getScriptFile(), ClonkCore.MARKER_C4SCRIPT_ERROR_WHILE_TYPING, markerStart, markerEnd, severity, args);
+							}
+						});
+					}
+				}, REPARSE_DELAY);
 			} else {
 				// only schedule reparsing when editing outside of existing function
 				scheduleReparsing();
@@ -220,7 +259,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 						e.printStackTrace();
 					}
 				}
-			}, 2000);
+			}, REPARSE_DELAY);
 		}
 
 		public void removeClient(C4ScriptEditor client) {
@@ -356,6 +395,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 	protected void handleCursorPositionChanged() {
 		super.handleCursorPositionChanged();
 		
+		C4Function f = getFuncAtCursor();
 		// show parameter help
 		ITextOperationTarget opTarget = (ITextOperationTarget) getSourceViewer();
 		try {
@@ -369,7 +409,6 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		
 		// highlight active function
 		boolean noHighlight = true;
-		C4Function f = getFuncAtCursor();
 		if (f != null) {
 			this.setHighlightRange(f.getLocation().getOffset(), Math.min(
 				f.getBody().getOffset()-f.getLocation().getOffset() + f.getBody().getLength() + (f.isOldStyle()?0:1),
@@ -456,6 +495,8 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		C4ScriptParser parser = new C4ScriptParser(document.get(), script);
 		List<IStoredTypeInformation> storedLocalsTypeInformation = null;
 		if (onlyDeclarations) {
+			// when only parsing declarations store type information for variables declared in the script
+			// and apply that information back to the variables after having reparsed so that type information is kept like it was (resulting from a full parse)
 			storedLocalsTypeInformation = new LinkedList<IStoredTypeInformation>();
 			for (C4Variable v : script.variables()) {
 				IStoredTypeInformation info = v.getType() != null || v.getObjectType() != null ? AccessVar.createStoredTypeInformation(v) : null;
@@ -500,13 +541,13 @@ public class C4ScriptEditor extends ClonkTextEditor {
 	}
 
 	public FuncCallInfo getInnermostCallFuncExprParm(int offset) throws BadLocationException, ParsingException {
+		C4Function f = this.getFuncAt(offset);
+		if (f == null)
+			return null;
 		DeclarationLocator locator = new DeclarationLocator(this, getSourceViewer().getDocument(), new Region(offset, 0));
 		ExprElm expr;
 
 		// cursor somewhere between parm expressions... locate CallFunc and search
-		C4Function f = this.getFuncAt(offset);
-		if (f == null)
-			return null;
 		int bodyStart = f.getBody().getStart();
 		for (
 			expr = locator.getExprAtRegion();

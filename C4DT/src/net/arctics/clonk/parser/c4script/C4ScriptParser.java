@@ -28,11 +28,15 @@ import net.arctics.clonk.parser.SourceLocation;
 import net.arctics.clonk.parser.SilentParsingException.Reason;
 import net.arctics.clonk.parser.c4script.C4Directive.C4DirectiveType;
 import net.arctics.clonk.parser.c4script.C4Function.C4FunctionScope;
+import net.arctics.clonk.parser.c4script.C4ScriptExprTree.ExprElm;
+import net.arctics.clonk.parser.c4script.C4ScriptExprTree.IExpressionListener;
+import net.arctics.clonk.parser.c4script.C4ScriptExprTree.TraversalContinuation;
 import net.arctics.clonk.parser.c4script.C4ScriptExprTree.*;
 import net.arctics.clonk.parser.c4script.C4ScriptExprTree.ExprElm.TypeExpectancyMode;
 import net.arctics.clonk.parser.c4script.C4Variable.C4VariableScope;
 import net.arctics.clonk.resource.c4group.C4GroupItem;
 import net.arctics.clonk.util.Pair;
+import net.arctics.clonk.util.Sink;
 import net.arctics.clonk.util.Utilities;
 
 import org.eclipse.core.resources.IFile;
@@ -132,8 +136,10 @@ public class C4ScriptParser {
 		}
 	}
 	
-	public void beginTypeInferenceBlock() {
-		storedTypeInformationListStack.push(new LinkedList<IStoredTypeInformation>());
+	public List<IStoredTypeInformation> beginTypeInferenceBlock() {
+		List<IStoredTypeInformation> result = new LinkedList<IStoredTypeInformation>();
+		storedTypeInformationListStack.push(result);
+		return result;
 	}
 	
 	public List<IStoredTypeInformation> endTypeInferenceBlock() {
@@ -149,29 +155,38 @@ public class C4ScriptParser {
 	/**
 	 * Ask the parser to store type information about an expression. No guarantees whether type information will actually be stored.
 	 */
-	public void storeTypeInformation(ExprElm expression, IType type) {
-		IStoredTypeInformation requested = requestStoredTypeInformation(expression);
+	public void storeTypeInformation(ExprElm expression, IType type, List<IStoredTypeInformation> list) {
+		IStoredTypeInformation requested = requestStoredTypeInformation(expression, list);
 		if (requested != null) {
 			requested.storeType(type);
 		}
 	}
 	
+	public void storeTypeInformation(ExprElm expression, IType type) {
+		storeTypeInformation(expression, type, storedTypeInformationListStack.peek());
+	}
+	
 	/**
 	 * Requests type information for an expression
 	 * @param expression the expression
+	 * @param list 
 	 * @return the type information or null if none has been stored
 	 */
-	public IStoredTypeInformation requestStoredTypeInformation(ExprElm expression) {
+	public IStoredTypeInformation requestStoredTypeInformation(ExprElm expression, List<IStoredTypeInformation> list) {
 		if (storedTypeInformationListStack.isEmpty())
 			return null;
-		for (IStoredTypeInformation info : storedTypeInformationListStack.peek()) {
+		for (IStoredTypeInformation info : list) {
 			if (info.expressionRelevant(expression, this))
 				return info;
 		}
 		IStoredTypeInformation newlyCreated = expression.createStoredTypeInformation(this);
 		if (newlyCreated != null)
-			storedTypeInformationListStack.peek().add(newlyCreated);
+			list.add(newlyCreated);
 		return newlyCreated;
+	}
+	
+	public IStoredTypeInformation requestStoredTypeInformation(ExprElm expression) {
+		return requestStoredTypeInformation(expression, storedTypeInformationListStack.peek());
 	}
 
 	public List<IStoredTypeInformation> copyCurrentTypeInformationList() {
@@ -1894,13 +1909,15 @@ public class C4ScriptParser {
 		return parseStatement(ParseStatementOption.NoOptions);
 	}
 	
-	private Statement parseStatementWithOwnTypeInferenceBlock(TypeInformationMerger merger) throws ParsingException {
-		beginTypeInferenceBlock();
+	private Statement parseStatementWithOwnTypeInferenceBlock(TypeInformationMerger merger, Sink<List<IStoredTypeInformation>> blockSink) throws ParsingException {
+		List<IStoredTypeInformation> block = beginTypeInferenceBlock();
+		if (blockSink != null)
+			blockSink.receivedObject(block);
 		try {
 			Statement s = parseStatement();
 			return s;
 		} finally {
-			List<IStoredTypeInformation> block = endTypeInferenceBlock();
+			block = endTypeInferenceBlock();
 			if (expressionListener != null)
 				expressionListener.endTypeInferenceBlock(block);
 			merger.inject(block);
@@ -1909,7 +1926,7 @@ public class C4ScriptParser {
 	
 	private Statement parseStatementAndMergeTypeInformation() throws ParsingException {
 		TypeInformationMerger merger = new TypeInformationMerger();
-		Statement s = parseStatementWithOwnTypeInferenceBlock(merger);
+		Statement s = parseStatementWithOwnTypeInferenceBlock(merger, null);
 		storedTypeInformationListStack.push(merger.finish(storedTypeInformationListStack.pop()));
 		return s;
 	}
@@ -2401,6 +2418,21 @@ public class C4ScriptParser {
 		result = new WhileStatement(condition, body);
 		return result;
 	}
+	
+	/*private class ConditionTypeInformationExtractor extends ExpressionListener implements Sink<List<IStoredTypeInformation>> {
+		private ExprElm condition;
+		public ConditionTypeInformationExtractor(ExprElm condition) {
+			this.condition = condition;
+		}
+		@Override
+		public void receivedObject(List<IStoredTypeInformation> item) {
+			condition.traverse(this);
+		}
+		@Override
+		public TraversalContinuation expressionDetected(ExprElm expression, C4ScriptParser parser) {
+			if (expression )
+		}
+	}*/
 
 	private Statement parseIf() throws ParsingException {
 		final int offset = scanner.getPosition();
@@ -2415,7 +2447,12 @@ public class C4ScriptParser {
 		expect(')');
 		eatWhitespace(); // FIXME: eats comments so when transforming code the comments will be gone
 		TypeInformationMerger merger = new TypeInformationMerger();
-		Statement ifStatement = parseStatementWithOwnTypeInferenceBlock(merger);
+		Statement ifStatement = parseStatementWithOwnTypeInferenceBlock(merger, new Sink<List<IStoredTypeInformation>>() {
+			@Override
+			public void receivedObject(List<IStoredTypeInformation> item) {
+				
+			}
+		});
 		if (ifStatement == null) {
 			errorWithCode(ParserErrorCode.StatementExpected, offset, offset+Keywords.If.length());
 		}
@@ -2426,7 +2463,7 @@ public class C4ScriptParser {
 		if (nextWord != null && nextWord.equals(Keywords.Else)) {
 			eatWhitespace();
 			int o = scanner.getPosition();
-			elseStatement = parseStatementWithOwnTypeInferenceBlock(merger);
+			elseStatement = parseStatementWithOwnTypeInferenceBlock(merger, null);
 			if (elseStatement == null) {
 				errorWithCode(ParserErrorCode.StatementExpected, o, o+Keywords.Else.length());
 			}	
@@ -2591,6 +2628,10 @@ public class C4ScriptParser {
 		return 0;
 	}
 	
+	public interface IMarkerListener {
+		void markerEncountered(ParserErrorCode code, int markerStart, int markerEnd, boolean noThrow, int severity, Object... args);
+	}
+	
 	private void reportExpressionsAndStatements(C4Function func, IExpressionListener listener) {
 		activeFunc = func;
 		setExpressionListener(listener);
@@ -2620,22 +2661,34 @@ public class C4ScriptParser {
 		applyStoredTypeInformationList(true);
 	}
 	
-	public interface IMarkerListener {
-		void markerEncountered(ParserErrorCode code, int markerStart, int markerEnd, boolean noThrow, int severity, Object... args);
+	public static C4ScriptParser reportExpressionsAndStatements(IDocument doc, IRegion region, C4ScriptBase context, C4Function func, IExpressionListener listener, IMarkerListener markerListener)  {
+		return reportExpressionsAndStatements(doc, region.getOffset(), region.getOffset()+region.getLength(), context, func, listener, markerListener);
 	}
 	
-	public static C4ScriptParser reportExpressionsAndStatements(IDocument doc, IRegion region, C4ScriptBase context, C4Function func, IExpressionListener listener)  {
-		return reportExpressionsAndStatements(doc, region.getOffset(), region.getOffset()+region.getLength(), context, func, listener);
+	private static class ScriptParserWithMarkerListener extends C4ScriptParser {
+		private IMarkerListener markerListener;
+		public ScriptParserWithMarkerListener(String withString, C4ScriptBase script, IMarkerListener markerListener) {
+			super(withString, script);
+			this.markerListener = markerListener;
+		}
+		@Override
+		protected IMarker markerWithCode(ParserErrorCode code,
+				int markerStart, int markerEnd, boolean noThrow,
+				int severity, Object... args) throws ParsingException {
+			if (markerListener != null)
+				markerListener.markerEncountered(code, markerStart+offsetOfScriptFragment(), markerEnd+offsetOfScriptFragment(), noThrow, severity, args);
+			return super.markerWithCode(code, markerStart, markerEnd, noThrow, severity, args);
+		}
 	}
 	
-	public static C4ScriptParser reportExpressionsAndStatements(IDocument doc, final int statementStart, int statementEnd, C4ScriptBase context, C4Function func, IExpressionListener listener) { 
+	public static C4ScriptParser reportExpressionsAndStatements(IDocument doc, final int statementStart, int statementEnd, C4ScriptBase context, C4Function func, IExpressionListener listener, final IMarkerListener markerListener) { 
 		String statements;
 		try {
 			statements = doc.get(statementStart, Math.min(statementEnd-statementStart, doc.getLength()-statementStart)) + ")"; //$NON-NLS-1$
 		} catch (BadLocationException e) {
 			statements = ""; // well... //$NON-NLS-1$
 		}
-		C4ScriptParser parser = new C4ScriptParser(statements, context) {
+		C4ScriptParser parser = new ScriptParserWithMarkerListener(statements, context, markerListener) {
 			@Override
 			protected int offsetOfScriptFragment() {
 				return statementStart;
@@ -2651,16 +2704,7 @@ public class C4ScriptParser {
 			context = new C4Function("<temp>", null, C4FunctionScope.FUNC_GLOBAL); //$NON-NLS-1$
 			context.setScript(tempScript);
 		}
-		C4ScriptParser tempParser = new C4ScriptParser(expression, context.getScript()) {
-			@Override
-			protected IMarker markerWithCode(ParserErrorCode code,
-					int markerStart, int markerEnd, boolean noThrow,
-					int severity, Object... args) throws ParsingException {
-				if (markerListener != null)
-					markerListener.markerEncountered(code, markerStart, markerEnd, noThrow, severity, args);
-				return super.markerWithCode(code, markerStart, markerEnd, noThrow, severity, args);
-			}
-		};
+		C4ScriptParser tempParser = new ScriptParserWithMarkerListener(expression, context.getScript(), markerListener);
 		tempParser.setExpressionListener(listener);
 		tempParser.setActiveFunc(context);
 		tempParser.beginTypeInferenceBlock();

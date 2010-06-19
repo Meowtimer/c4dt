@@ -281,7 +281,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 				public void endTypeInferenceBlock(List<IStoredTypeInformation> typeInfos) {
 					
 				}
-			});
+			}, null);
 			if (contextTypeInformation != null) {
 				parser.pushTypeInformationList(contextTypeInformation);
 				parser.applyStoredTypeInformationList(true);
