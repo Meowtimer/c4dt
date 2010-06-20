@@ -2562,8 +2562,14 @@ public abstract class C4ScriptExprTree {
 			}
 			@Override
 			public void applyAttachment(Position position, ExprWriter builder, int depth) {
-				for (int i = 0; i < num; i++)
-					printIndent(builder, depth);
+				switch (position) {
+				case Pre:
+					for (int i = 0; i < num; i++) {
+						//printIndent(builder, depth);
+						builder.append("\n");
+					}
+					break;
+				}
 			}
 		}
 
@@ -2672,17 +2678,15 @@ public abstract class C4ScriptExprTree {
 			return getStatements();
 		}
 
-		protected void printStatement(ExprWriter builder, Statement statement, int depth) {
-			statement.printPrependix(builder, depth);
-			statement.print(builder, depth);
-			statement.printAppendix(builder, depth);
-		}
-
 		@Override
 		public void doPrint(ExprWriter builder, int depth) {
 			builder.append("{\n"); //$NON-NLS-1$
 			for (Statement statement : statements) {
-				printIndent(builder, depth); printStatement(builder, statement, depth+1); builder.append("\n"); //$NON-NLS-1$
+				statement.printPrependix(builder, depth);
+				printIndent(builder, depth);
+				statement.print(builder, depth+1);
+				statement.printAppendix(builder, depth);
+				builder.append("\n"); //$NON-NLS-1$
 			}
 			printIndent(builder, depth-1); builder.append("}"); //$NON-NLS-1$
 		}
@@ -2756,13 +2760,15 @@ public abstract class C4ScriptExprTree {
 		public void doPrint(ExprWriter builder, int depth) {
 			boolean first = true;
 			for (Statement statement : getStatements()) {
+				statement.printPrependix(builder, depth);
 				if (first)
 					first = false;
 				else {
 					builder.append("\n"); //$NON-NLS-1$
 					printIndent(builder, depth-1);
 				}
-				printStatement(builder, statement, depth+1);
+				statement.print(builder, depth);
+				statement.printAppendix(builder, depth);
 			}
 		}
 	}

@@ -1933,19 +1933,21 @@ public class C4ScriptParser {
 	private Statement parseStatement(EnumSet<ParseStatementOption> options) throws ParsingException {
 		parseStatementRecursion++;
 		try {
-			scanner.eatWhitespace();
+			
+			int emptyLines = 0;
+			for (int delim = scanner.read(); (delim = scanner.read()) != -1 && BufferedScanner.isLineDelimiterChar((char) delim) ? true : !scanner.unread();) {
+				char c = (char) delim;
+				if (c == '\n')
+					emptyLines++;
+			}
+			
+			//scanner.eatWhitespace();
 			int start = scanner.getPosition();
 			Statement result;
 			C4VariableScope scope;
 			
 			// comment statement oO
 			result = parseCommentObject();
-
-			int emptyLines = 0;
-			for (int delim = scanner.read(); BufferedScanner.isLineDelimiterChar((char) delim) ? true : !scanner.unread();) {
-				if (delim == '\n')
-					emptyLines++;
-			}
 
 			if (result == null) {
 				String readWord = scanner.readIdent();
