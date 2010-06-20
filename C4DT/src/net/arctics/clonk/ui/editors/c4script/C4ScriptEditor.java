@@ -64,7 +64,6 @@ import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.texteditor.ITextEditor;
 import org.eclipse.ui.texteditor.SourceViewerDecorationSupport;
 
-@SuppressWarnings("restriction")
 public class C4ScriptEditor extends ClonkTextEditor {
 
 	private static final class ScratchScript extends C4ScriptBase implements IHasEditorRefWhichEnablesStreamlinedOpeningOfDeclarations {
@@ -107,7 +106,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		private static final int REPARSE_DELAY = 700;
 		
 		private Timer reparseTimer = new Timer("ReparseTimer"); //$NON-NLS-1$
-		private TimerTask reparseTask;
+		private TimerTask reparseTask, functionReparseTask;
 		private List<C4ScriptEditor> clients = new LinkedList<C4ScriptEditor>();
 		private C4ScriptBase script;
 		private IDocument document;
@@ -154,44 +153,10 @@ public class C4ScriptEditor extends ClonkTextEditor {
 			script.setDirty(true);
 			final C4Function f = script.funcAt(event.getOffset());
 			if (f != null && !f.isOldStyle()) {
+				// editing inside new-style function: adjust locations of declarations without complete reparse
+				// only recheck the function and display problems after delay
 				adjustDeclarationLocations(event);
-				reparseTimer.schedule(new TimerTask() {
-					private void removeMarkers() {
-						if (script != null && script.getResource() != null) {
-							try {
-								// delete all "while typing" errors
-								IMarker[] markers = script.getResource().findMarkers(ClonkCore.MARKER_C4SCRIPT_ERROR_WHILE_TYPING, false, 3);
-								for (IMarker m : markers) {
-									m.delete();
-								}
-								// delete regular markers that are in the region of interest
-								markers = script.getResource().findMarkers(ClonkCore.MARKER_C4SCRIPT_ERROR, false, 3);
-								SourceLocation body = f.getBody();
-								for (IMarker m : markers) {
-									int markerStart = m.getAttribute(IMarker.CHAR_START, 0);
-									int markerEnd   = m.getAttribute(IMarker.CHAR_END, 0);
-									if (markerStart >= body.getStart() && markerEnd < body.getEnd()) {
-										m.delete();
-									}
-								}
-							} catch (CoreException e) {
-								e.printStackTrace();
-							}
-						}
-					}
-					public void run() {
-						removeMarkers();
-						C4ScriptParser.reportExpressionsAndStatements(document, f.getBody(), script, f, null, new IMarkerListener() {
-							@Override
-							public void markerEncountered(ParserErrorCode code,
-									int markerStart, int markerEnd, boolean noThrow,
-									int severity, Object... args) {
-								if (script.getScriptFile() instanceof IFile)
-									code.createMarker((IFile) script.getScriptFile(), ClonkCore.MARKER_C4SCRIPT_ERROR_WHILE_TYPING, markerStart, markerEnd, severity, args);
-							}
-						});
-					}
-				}, REPARSE_DELAY);
+				scheduleReparsingOfFunction(f);
 			} else {
 				// only schedule reparsing when editing outside of existing function
 				scheduleReparsing();
@@ -231,15 +196,15 @@ public class C4ScriptEditor extends ClonkTextEditor {
 			}
 		}
 		
-		public void cancel() {
-			if (reparseTask != null) {
-				reparseTask.cancel();
-				reparseTask = null;
+		public TimerTask cancel(TimerTask whichTask) {
+			if (whichTask != null) {
+				whichTask.cancel();
 			}
+			return null;
 		}
 
 		private void scheduleReparsing() {
-			cancel();
+			reparseTask = cancel(reparseTask);
 			if (script == null)
 				return;
 			reparseTimer.schedule(reparseTask = new TimerTask() {
@@ -265,6 +230,47 @@ public class C4ScriptEditor extends ClonkTextEditor {
 				}
 			}, REPARSE_DELAY);
 		}
+		
+		private void scheduleReparsingOfFunction(final C4Function f) {
+			functionReparseTask = cancel(functionReparseTask);
+			reparseTimer.schedule(functionReparseTask = new TimerTask() {
+				private void removeMarkers() {
+					if (script != null && script.getResource() != null) {
+						try {
+							// delete all "while typing" errors
+							IMarker[] markers = script.getResource().findMarkers(ClonkCore.MARKER_C4SCRIPT_ERROR_WHILE_TYPING, false, 3);
+							for (IMarker m : markers) {
+								m.delete();
+							}
+							// delete regular markers that are in the region of interest
+							markers = script.getResource().findMarkers(ClonkCore.MARKER_C4SCRIPT_ERROR, false, 3);
+							SourceLocation body = f.getBody();
+							for (IMarker m : markers) {
+								int markerStart = m.getAttribute(IMarker.CHAR_START, 0);
+								int markerEnd   = m.getAttribute(IMarker.CHAR_END, 0);
+								if (markerStart >= body.getStart() && markerEnd < body.getEnd()) {
+									m.delete();
+								}
+							}
+						} catch (CoreException e) {
+							e.printStackTrace();
+						}
+					}
+				}
+				public void run() {
+					removeMarkers();
+					C4ScriptParser.reportExpressionsAndStatements(document, f.getBody(), script, f, null, new IMarkerListener() {
+						@Override
+						public void markerEncountered(ParserErrorCode code,
+								int markerStart, int markerEnd, boolean noThrow,
+								int severity, Object... args) {
+							if (script.getScriptFile() instanceof IFile)
+								code.createMarker((IFile) script.getScriptFile(), ClonkCore.MARKER_C4SCRIPT_ERROR_WHILE_TYPING, markerStart, markerEnd, severity, args);
+						}
+					});
+				}
+			}, REPARSE_DELAY);
+		}
 
 		public void removeClient(C4ScriptEditor client) {
 			clients.remove(client);
@@ -273,6 +279,11 @@ public class C4ScriptEditor extends ClonkTextEditor {
 				listeners.remove(document);
 				document.removeDocumentListener(this);
 			}
+		}
+
+		public void cancel() {
+			reparseTimer.cancel();
+			reparseTask = functionReparseTask = null;
 		}
 	}
 
