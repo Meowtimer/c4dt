@@ -978,7 +978,7 @@ public class C4ScriptParser {
 	 */
 	private boolean parseCodeBlock() throws ParsingException {
 		int endOfFunc = activeFunc.getBody().getEnd();
-		EnumSet<ParseStatementOption> options = EnumSet.of(ParseStatementOption.ExpectFuncDesc, ParseStatementOption.ParseEmptyLines);
+		EnumSet<ParseStatementOption> options = EnumSet.of(ParseStatementOption.ExpectFuncDesc);
 		boolean notReached = false;
 		int oldStyleEnd = endOfFunc;
 		while(!scanner.reachedEOF() && scanner.getPosition() < endOfFunc) {
@@ -1899,8 +1899,7 @@ public class C4ScriptParser {
 	
 	public enum ParseStatementOption {
 		InitializationStatement,
-		ExpectFuncDesc,
-		ParseEmptyLines;
+		ExpectFuncDesc;
 		
 		public static final EnumSet<ParseStatementOption> NoOptions = EnumSet.noneOf(ParseStatementOption.class);
 	}
@@ -1941,17 +1940,12 @@ public class C4ScriptParser {
 			
 			// comment statement oO
 			result = parseCommentObject();
-			
-			/*
-			if (options.contains(ParseStatementOption.ParseEmptyLines)) {
-				int numLines = 0;
-				for (int delim = fReader.read(); BufferedScanner.isLineDelimiterChar((char) delim) ? true : !fReader.unread();) {
-					if (delim == '\n')
-						numLines++;
-				}
-				if (numLines > 0)
-					result = new EmptyLines(numLines);
-			}*/
+
+			int emptyLines = 0;
+			for (int delim = scanner.read(); BufferedScanner.isLineDelimiterChar((char) delim) ? true : !scanner.unread();) {
+				if (delim == '\n')
+					emptyLines++;
+			}
 
 			if (result == null) {
 				String readWord = scanner.readIdent();
@@ -2022,7 +2016,8 @@ public class C4ScriptParser {
 					result = null;
 			}
 
-			if (result != null) {
+			// got some statement
+			else {
 				result.setExprRegion(start, scanner.getPosition());
 				result.reportErrors(this);
 				if (!options.contains(ParseStatementOption.InitializationStatement)) {
@@ -2044,6 +2039,8 @@ public class C4ScriptParser {
 			Comment c = getCommentImmediatelyFollowing();
 			if (c != null)
 				result.setInlineComment(c);
+			if (emptyLines > 0)
+				result.addAttachment(new Statement.EmptyLinesAttachment(emptyLines));
 			return result;
 		} finally {
 			parseStatementRecursion--;

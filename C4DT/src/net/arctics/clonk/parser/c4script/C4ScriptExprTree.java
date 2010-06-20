@@ -16,6 +16,7 @@ import net.arctics.clonk.parser.C4ID;
 import net.arctics.clonk.parser.NameValueAssignment;
 import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.c4script.C4Function.C4FunctionScope;
+import net.arctics.clonk.parser.c4script.C4ScriptExprTree.Statement.Attachment.Position;
 import net.arctics.clonk.parser.c4script.C4ScriptExprTree.UnaryOp.Placement;
 import net.arctics.clonk.parser.c4script.C4Variable.C4VariableScope;
 import net.arctics.clonk.parser.stringtbl.StringTbl;
@@ -2535,21 +2536,67 @@ public abstract class C4ScriptExprTree {
 			return super.declarationAt(offset, parser);
 		}
 	}
-
+	
 	/**
 	 * Baseclass for statements.
 	 *
 	 */
 	public static class Statement extends ExprElm {
+		
+		public interface Attachment {
+			public enum Position {
+				Pre,
+				Post
+			}
+			void applyAttachment(Position position, ExprWriter builder, int depth);
+		}
+		
+		public static class EmptyLinesAttachment implements Attachment {
+			private int num;
+			public int getNum() {
+				return num;
+			}
+			public EmptyLinesAttachment(int num) {
+				super();
+				this.num = num;
+			}
+			@Override
+			public void applyAttachment(Position position, ExprWriter builder, int depth) {
+				for (int i = 0; i < num; i++)
+					printIndent(builder, depth);
+			}
+		}
 
-		private Comment inlineComment;
+		private List<Attachment> attachments;
+		
+		public void addAttachment(Attachment attachment) {
+			if (attachments == null)
+				attachments = new LinkedList<Attachment>();
+			attachments.add(attachment);
+		}
+		
+		@SuppressWarnings("unchecked")
+		public <T extends Attachment> T getAttachment(Class<T> cls) {
+			if (attachments != null) {
+				for (Attachment a : attachments) {
+					if (cls.isAssignableFrom(a.getClass())) {
+						return (T) a;
+					}
+				}
+			}
+			return null;
+		}
 
 		public Comment getInlineComment() {
-			return inlineComment;
+			return getAttachment(Comment.class);
 		}
 
 		public void setInlineComment(Comment inlineComment) {
-			this.inlineComment = inlineComment;
+			Comment old = getInlineComment();
+			if (old != null) {
+				attachments.remove(old);
+			}
+			addAttachment(inlineComment);
 		}
 
 		@Override
@@ -2569,12 +2616,22 @@ public abstract class C4ScriptExprTree {
 			//					elm.reportErrors(parser);
 		}
 
+		public void printPrependix(ExprWriter builder, int depth) {
+			if (attachments != null) {
+				for (Attachment a : attachments) {
+					a.applyAttachment(Position.Pre, builder, depth);
+				}
+			}	
+		}
+		
 		public void printAppendix(ExprWriter builder, int depth) {
-			if (inlineComment != null) {
-				builder.append(" "); //$NON-NLS-1$
-				inlineComment.print(builder, depth);
+			if (attachments != null) {
+				for (Attachment a : attachments) {
+					a.applyAttachment(Position.Post, builder, depth);
+				}
 			}
 		}
+
 	}
 
 	/**
@@ -2616,6 +2673,7 @@ public abstract class C4ScriptExprTree {
 		}
 
 		protected void printStatement(ExprWriter builder, Statement statement, int depth) {
+			statement.printPrependix(builder, depth);
 			statement.print(builder, depth);
 			statement.printAppendix(builder, depth);
 		}
@@ -3253,7 +3311,7 @@ public abstract class C4ScriptExprTree {
 		}
 	}
 
-	public static class Comment extends Statement {
+	public static class Comment extends Statement implements Statement.Attachment {
 		private String comment;
 		private boolean multiLine;
 
@@ -3337,30 +3395,16 @@ public abstract class C4ScriptExprTree {
 				return super.declarationAt(offset, parser);
 		}
 
-	}
-
-	// just some empty lines that should be preserved when converting code
-	public static class EmptyLines extends Statement {
-		private int numLines;
-
-		public int getNumLines() {
-			return numLines;
-		}
-
-		public void setNumLines(int numLines) {
-			this.numLines = numLines;
-		}
-
-		public EmptyLines(int numLines) {
-			super();
-			this.numLines = numLines;
-		}
-
 		@Override
-		public void doPrint(ExprWriter builder, int depth) {
-			for (int i = 0; i < numLines; i++)
-				builder.append("\n"); //$NON-NLS-1$
+		public void applyAttachment(Position position, ExprWriter builder, int depth) {
+			switch (position) {
+			case Post:
+				builder.append(" ");
+				this.print(builder, depth);
+				break;
+			}
 		}
+
 	}
 
 	public static class FunctionDescription extends Statement implements Serializable {
