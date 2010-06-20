@@ -2035,14 +2035,14 @@ public class C4ScriptParser {
 						}
 					}
 				}
+				
+				// inline comment attached to expression so code reformatting does not mess up the user's code too much
+				Comment c = getCommentImmediatelyFollowing();
+				if (c != null)
+					result.setInlineComment(c);
+				if (emptyLines > 0)
+					result.addAttachment(new Statement.EmptyLinesAttachment(emptyLines));
 			}
-			
-			// inline comment attached to expression so code reformatting does not mess up the user's code too much
-			Comment c = getCommentImmediatelyFollowing();
-			if (c != null)
-				result.setInlineComment(c);
-			if (emptyLines > 0)
-				result.addAttachment(new Statement.EmptyLinesAttachment(emptyLines));
 			return result;
 		} finally {
 			parseStatementRecursion--;
