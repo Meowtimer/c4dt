@@ -198,7 +198,11 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		
 		public TimerTask cancel(TimerTask whichTask) {
 			if (whichTask != null) {
-				whichTask.cancel();
+				try {
+					whichTask.cancel();
+				} catch (IllegalStateException e) {
+					System.out.println("happens all the time, bitches");
+				}
 			}
 			return null;
 		}
@@ -282,8 +286,8 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		}
 
 		public void cancel() {
-			reparseTimer.cancel();
-			reparseTask = functionReparseTask = null;
+			reparseTask = cancel(reparseTask);
+			functionReparseTask = cancel(functionReparseTask);
 		}
 	}
 
