@@ -107,7 +107,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 	// it tries to only fire a reparse when necessary (ie not when editing inside of a function)
 	private final static class TextChangeListener implements IDocumentListener {
 		
-		private static final int REPARSE_DELAY = 2000;
+		private static final int REPARSE_DELAY = 700;
 		
 		private Timer reparseTimer = new Timer("ReparseTimer"); //$NON-NLS-1$
 		private TimerTask reparseTask;
