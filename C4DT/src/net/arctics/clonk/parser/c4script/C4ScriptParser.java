@@ -1935,7 +1935,8 @@ public class C4ScriptParser {
 		try {
 			
 			int emptyLines = 0;
-			for (int delim = scanner.read(); (delim = scanner.read()) != -1 && BufferedScanner.isLineDelimiterChar((char) delim) ? true : !scanner.unread();) {
+			int delim;
+			for (; (delim = scanner.peek()) != -1 && BufferedScanner.isWhiteSpace((char) delim); scanner.read()) {
 				char c = (char) delim;
 				if (c == '\n')
 					emptyLines++;

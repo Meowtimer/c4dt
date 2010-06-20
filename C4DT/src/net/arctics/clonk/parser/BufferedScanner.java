@@ -372,6 +372,10 @@ public class BufferedScanner {
 	public static boolean isWhiteSpaceButNotLineDelimiterChar(char c) {
 		return c == ' '	|| c == '\t';
 	}
+	
+	public static boolean isWhiteSpace(char c) {
+		return c == '\n' || c == '\r' || isWhiteSpaceButNotLineDelimiterChar(c);
+	}
 
 	/**
 	 * Returns the line region is contained in as a string
