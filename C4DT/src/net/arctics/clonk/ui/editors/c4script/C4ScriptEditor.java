@@ -39,11 +39,8 @@ import net.arctics.clonk.ui.editors.actions.c4script.FindReferencesAction;
 import net.arctics.clonk.ui.editors.actions.c4script.RenameDeclarationAction;
 import net.arctics.clonk.util.Utilities;
 
-import org.eclipse.core.internal.resources.MarkerManager;
-import org.eclipse.core.internal.resources.Workspace;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
-import org.eclipse.core.resources.IWorkspace;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.action.IMenuManager;
@@ -161,17 +158,24 @@ public class C4ScriptEditor extends ClonkTextEditor {
 				reparseTimer.schedule(new TimerTask() {
 					private void removeMarkers() {
 						if (script != null && script.getResource() != null) {
-							IWorkspace w = script.getResource().getWorkspace();
-							if (w instanceof Workspace) {
-								MarkerManager markerManager = ((Workspace)w).getMarkerManager();
-								IMarker[] markers = markerManager.findMarkers(script.getResource(), ClonkCore.MARKER_C4SCRIPT_ERROR_WHILE_TYPING, true, 3);
+							try {
+								// delete all "while typing" errors
+								IMarker[] markers = script.getResource().findMarkers(ClonkCore.MARKER_C4SCRIPT_ERROR_WHILE_TYPING, false, 3);
 								for (IMarker m : markers) {
-									try {
+									m.delete();
+								}
+								// delete regular markers that are in the region of interest
+								markers = script.getResource().findMarkers(ClonkCore.MARKER_C4SCRIPT_ERROR, false, 3);
+								SourceLocation body = f.getBody();
+								for (IMarker m : markers) {
+									int markerStart = m.getAttribute(IMarker.CHAR_START, 0);
+									int markerEnd   = m.getAttribute(IMarker.CHAR_END, 0);
+									if (markerStart >= body.getStart() && markerEnd < body.getEnd()) {
 										m.delete();
-									} catch (CoreException e) {
-										e.printStackTrace();
 									}
 								}
+							} catch (CoreException e) {
+								e.printStackTrace();
 							}
 						}
 					}
