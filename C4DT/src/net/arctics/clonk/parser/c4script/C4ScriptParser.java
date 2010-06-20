@@ -2019,8 +2019,7 @@ public class C4ScriptParser {
 					result = null;
 			}
 
-			// got some statement
-			else {
+			if (result != null) {
 				result.setExprRegion(start, scanner.getPosition());
 				result.reportErrors(this);
 				if (!options.contains(ParseStatementOption.InitializationStatement)) {
