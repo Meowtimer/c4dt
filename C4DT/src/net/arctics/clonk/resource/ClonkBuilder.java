@@ -327,7 +327,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 		}
 		for (C4Structure s : structuresValidated) {
 			if (s.requiresScriptReparse()) {
-				C4ScriptBase script = C4ScriptBase.get(s.getResource());
+				C4ScriptBase script = C4ScriptBase.get(s.getResource(), true);
 				if (script != null)
 					scripts.add(script);
 			}
@@ -421,7 +421,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 			C4ScriptBase script;
 			switch (delta.getKind()) {
 			case IResourceDelta.CHANGED: case IResourceDelta.ADDED:
-				script = Utilities.getScriptForFile(file);
+				script = C4ScriptBase.get(file, true);
 				if (script == null && buildPhase == 0) {
 					// create if new file
 					IContainer folder = delta.getResource().getParent();
@@ -593,7 +593,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 					return true;
 				}
 			}
-			else if (processAuxiliaryFiles(file, Utilities.getScriptForFile(file)))
+			else if (processAuxiliaryFiles(file, C4ScriptBase.get(file, true)))
 				return true;
 		}
 		return false;

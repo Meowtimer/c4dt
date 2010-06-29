@@ -138,7 +138,7 @@ public class ClonkSearchQuery implements ISearchQuery {
 		final IResourceVisitor resourceVisitor = new IResourceVisitor() {
 			public boolean visit(IResource resource) throws CoreException {
 				if (resource instanceof IFile) {
-					C4ScriptBase script = Utilities.getScriptForFile((IFile) resource);
+					C4ScriptBase script = C4ScriptBase.get((IFile) resource, true);
 					if (script != null) {
 						searchScript(searchExpressions, resource, script);
 					}

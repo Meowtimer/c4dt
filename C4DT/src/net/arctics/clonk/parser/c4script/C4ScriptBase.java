@@ -896,7 +896,7 @@ public abstract class C4ScriptBase extends C4Structure implements IHasRelatedRes
 		return getIndex().getEngine();
 	}
 	
-	public static C4ScriptBase get(IResource resource) {
+	public static C4ScriptBase get(IResource resource, boolean onlyForScriptFile) {
 		C4ScriptBase script;
 		if (resource == null)
 			return null;
@@ -908,8 +908,8 @@ public abstract class C4ScriptBase extends C4Structure implements IHasRelatedRes
 		if (script == null)
 			script = C4ObjectIntern.objectCorrespondingTo(resource.getParent());
 		// there can only be one script oO (not ScriptDE or something)
-		/*if (script == null || script.getScriptFile() == null || !script.getScriptFile().equals(resource))
-			return null; */
+		if (onlyForScriptFile && (script == null || script.getScriptFile() == null || !script.getScriptFile().equals(resource)))
+			return null;
 		return script;
 	}
 

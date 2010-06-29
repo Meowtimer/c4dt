@@ -154,13 +154,9 @@ public abstract class Utilities {
 		if (resource instanceof IContainer)
 			return C4ObjectIntern.objectCorrespondingTo((IContainer) resource);
 		else if (resource instanceof IFile)
-			return getScriptForFile((IFile) resource);
+			return C4ScriptBase.get(resource, true);
 		else
 			return null;
-	}
-	
-	public static C4ScriptBase getScriptForFile(IFile scriptFile) {
-		return C4ScriptBase.get(scriptFile);
 	}
 
 	public static C4ScriptBase getScriptForEditor(IEditorPart editor) {

@@ -13,6 +13,7 @@ import javax.swing.text.rtf.RTFEditorKit;
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.index.C4ObjectIntern;
 import net.arctics.clonk.parser.C4Structure;
+import net.arctics.clonk.parser.c4script.C4ScriptBase;
 import net.arctics.clonk.parser.inireader.DefCoreUnit;
 import net.arctics.clonk.parser.inireader.IniEntry;
 import net.arctics.clonk.parser.inireader.IntegerArray;
@@ -187,7 +188,7 @@ public class ClonkPreviewView extends ViewPart implements ISelectionListener {
 		if (selection instanceof IStructuredSelection) try {
 			IStructuredSelection structSel = (IStructuredSelection) selection;
 			Object sel = structSel.getFirstElement();
-			if (sel instanceof IFile && (C4Structure.pinned((IFile)sel, false, false) != null || Utilities.getScriptForFile((IFile) sel) != null))
+			if (sel instanceof IFile && (C4Structure.pinned((IFile)sel, false, false) != null || C4ScriptBase.get((IFile) sel, true) != null))
 				sel = ((IFile)sel).getParent();
 			if (sel instanceof IFile) {
 				IFile file = (IFile) sel;

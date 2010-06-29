@@ -132,7 +132,7 @@ public class ClonkIndex implements Serializable, Iterable<C4Object> {
 	}
 	
 	public C4ScriptBase getScript(IFile file) {
-		C4ScriptBase result = Utilities.getScriptForFile(file);
+		C4ScriptBase result = C4ScriptBase.get(file, true);
 		if (result == null) {
 			for (C4ScriptBase s : this.indexedScripts)
 				if (s.getResource() != null && s.getResource().equals(file))

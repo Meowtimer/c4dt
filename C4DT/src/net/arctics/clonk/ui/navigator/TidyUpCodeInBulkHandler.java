@@ -85,7 +85,7 @@ public class TidyUpCodeInBulkHandler extends AbstractHandler {
 								IResourceVisitor countingVisitor = new IResourceVisitor() {
 									@Override
 									public boolean visit(IResource resource) throws CoreException {
-										if (resource instanceof IFile && Utilities.getScriptForFile((IFile) resource) != null)
+										if (resource instanceof IFile && C4ScriptBase.get((IFile) resource, true) != null)
 											counter++;
 										return true;
 									}
@@ -107,7 +107,7 @@ public class TidyUpCodeInBulkHandler extends AbstractHandler {
 										public boolean visit(IResource resource) throws CoreException {
 											if (resource instanceof IFile) {
 												IFile file = (IFile) resource;
-												C4ScriptBase script = Utilities.getScriptForFile(file);
+												C4ScriptBase script = C4ScriptBase.get(file, true);
 												if (script != null) {
 													C4ScriptParser parser = new C4ScriptParser(file, script);
 													LinkedList<FunctionStatements> statements = new LinkedList<FunctionStatements>();

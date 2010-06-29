@@ -28,7 +28,7 @@ public class ClonkNavigator extends ClonkOutlineProvider {
 		// add additional virtual nodes to the project
 		if (element instanceof IFile) {
 			// list contents of ini and script files
-			C4ScriptBase script = Utilities.getScriptForFile((IFile) element);
+			C4ScriptBase script = C4ScriptBase.get((IFile) element, true);
 			if (script != null)
 				return Utilities.concat(baseResources, super.getChildren(script));
 			try {
@@ -56,7 +56,7 @@ public class ClonkNavigator extends ClonkOutlineProvider {
 			return true;
 		}
 		else if (element instanceof IFile) {
-			C4ScriptBase script = Utilities.getScriptForFile((IFile) element);
+			C4ScriptBase script = C4ScriptBase.get((IFile) element, true);
 			if (script != null)
 				return super.hasChildren(script);
 			try {

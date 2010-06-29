@@ -6,8 +6,6 @@ import net.arctics.clonk.parser.c4script.C4ScriptBase;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.C4ScriptExprTree.ExprElm;
 import net.arctics.clonk.ui.editors.c4script.ExpressionLocator;
-import net.arctics.clonk.util.Utilities;
-
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.runtime.CoreException;
@@ -38,7 +36,7 @@ public class C4ScriptMarkerResolution implements IMarkerResolution, IMarkerResol
 	}
 
 	public void run(IMarker marker) {
-		C4ScriptBase script = Utilities.getScriptForFile((IFile) marker.getResource());
+		C4ScriptBase script = C4ScriptBase.get((IFile) marker.getResource(), true);
 		C4Function func = script.funcAt(region.getOffset()); 
 		ExpressionLocator locator = new ExpressionLocator(region.getOffset()-func.getBody().getOffset());
 		TextFileDocumentProvider provider = ClonkCore.getDefault().getTextFileDocumentProvider();

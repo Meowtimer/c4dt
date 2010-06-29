@@ -464,7 +464,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		}
 		IFile f;
 		if ((f = Utilities.getEditingFile(this)) != null) {
-			C4ScriptBase script = Utilities.getScriptForFile(f);
+			C4ScriptBase script = C4ScriptBase.get(f, true);
 			if (script != null)
 				return script;
 		}

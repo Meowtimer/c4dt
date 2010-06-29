@@ -73,7 +73,7 @@ public class ClonkSearchResult extends AbstractTextSearchResult implements IEdit
 
 	public Match[] computeContainedMatches(AbstractTextSearchResult result,
 			IFile file) {
-		C4ScriptBase script = Utilities.getScriptForFile(file);
+		C4ScriptBase script = C4ScriptBase.get(file, true);
 		if (script != null)
 			return result.getMatches(script);
 		return NO_MATCHES;
