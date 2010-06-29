@@ -235,13 +235,13 @@ public abstract class C4ScriptBase extends C4Structure implements IHasRelatedRes
 	}
 
 	/**
-	 * Returns whether the supplied name might refer to this script (used in findDeclaration)
+	 * Returns a declaration representing this script if the name matches the name of the script
 	 * @param name The name
 	 * @param info Additional info
-	 * @return Whether or not
+	 * @return the declaration or null if there is no match
 	 */
-	protected boolean refersToThis(String name, FindDeclarationInfo info) {
-		return false;
+	protected C4Declaration getThisDeclaration(String name, FindDeclarationInfo info) {
+		return null;
 	}
 
 	/**
@@ -278,8 +278,9 @@ public abstract class C4ScriptBase extends C4Structure implements IHasRelatedRes
 		}
 
 		// this object?
-		if ((decClass == null || decClass == C4ScriptBase.class) && refersToThis(name, info)) {
-			return this;
+		C4Declaration thisDec = getThisDeclaration(name, info);
+		if (thisDec != null) {
+			return thisDec;
 		}
 
 		// a function defined in this object

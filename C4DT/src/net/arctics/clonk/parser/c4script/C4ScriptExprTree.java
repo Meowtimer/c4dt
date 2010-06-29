@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.regex.Matcher;
 
 import net.arctics.clonk.index.C4Object;
+import net.arctics.clonk.index.C4ObjectIntern;
 import net.arctics.clonk.index.C4Scenario;
 import net.arctics.clonk.index.CachedEngineFuncs;
 import net.arctics.clonk.index.ClonkIndex;
@@ -960,6 +961,16 @@ public abstract class C4ScriptExprTree {
 			else {
 				return super.evaluate(context);
 			}
+		}
+		
+		@Override
+		public boolean isConstant() {
+			if (getDeclaration() instanceof C4Variable) {
+				C4Variable var = (C4Variable) getDeclaration();
+				if (var.getParentDeclaration() instanceof C4ObjectIntern && ((C4ObjectIntern)var.getParentDeclaration()).getStaticVariable() == var)
+					return true;
+			}
+			return false;
 		}
 
 	}

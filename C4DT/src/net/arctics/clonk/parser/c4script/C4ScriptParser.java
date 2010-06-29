@@ -609,7 +609,10 @@ public class C4ScriptParser {
 					else {
 						expect('=');
 						eatWhitespace();
-						ExprElm constantValue = parseExpression(false);
+						boolean old = allErrorsDisabled;
+						allErrorsDisabled = true;
+						ExprElm constantValue = parseExpression(true);
+						allErrorsDisabled = old;
 						if (constantValue == null)
 							constantValue = ERROR_PLACEHOLDER_EXPR;
 						if (!constantValue.isConstant()) {

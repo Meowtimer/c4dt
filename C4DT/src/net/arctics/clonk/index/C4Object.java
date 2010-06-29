@@ -10,10 +10,12 @@ import java.util.regex.Pattern;
 
 import org.eclipse.swt.graphics.Image;
 
+import net.arctics.clonk.parser.C4Declaration;
 import net.arctics.clonk.parser.C4ID;
 import net.arctics.clonk.parser.c4script.C4ObjectType;
 import net.arctics.clonk.parser.c4script.C4ScriptBase;
 import net.arctics.clonk.parser.c4script.C4Type;
+import net.arctics.clonk.parser.c4script.C4Variable;
 import net.arctics.clonk.parser.c4script.FindDeclarationInfo;
 import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.preferences.ClonkPreferences;
@@ -86,14 +88,23 @@ public abstract class C4Object extends C4ScriptBase implements IType {
 		index.addObject(this);
 	}
 
+	public C4Variable getStaticVariable() {
+		return null;
+	}
 
 	@Override
-	protected boolean refersToThis(String name, FindDeclarationInfo info) {
-		if (info.getDeclarationClass() == null || info.getDeclarationClass() == C4Object.class) {
+	protected C4Declaration getThisDeclaration(String name, FindDeclarationInfo info) {
+		Class<?> cls = info.getDeclarationClass();
+		boolean variableRequired = false;
+		if (
+				cls == null ||
+				cls == C4Object.class ||
+				(getEngine() != null && getEngine().getCurrentSettings().definitionsHaveStaticVariables && (variableRequired = C4Variable.class.isAssignableFrom(cls)))
+		) {
 			if (id != null && id.getName().equals(name))
-				return true;
+				return variableRequired ? this.getStaticVariable() : this;
 		}
-		return false;
+		return null;
 	}
 
 	private static Pattern langNamePairPattern = Pattern.compile("(..):(.*)"); //$NON-NLS-1$
