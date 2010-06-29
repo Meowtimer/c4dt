@@ -1934,7 +1934,7 @@ public class C4ScriptParser {
 		parseStatementRecursion++;
 		try {
 			
-			int emptyLines = 0;
+			int emptyLines = -1;
 			int delim;
 			for (; (delim = scanner.peek()) != -1 && BufferedScanner.isWhiteSpace((char) delim); scanner.read()) {
 				char c = (char) delim;
