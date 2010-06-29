@@ -940,13 +940,26 @@ public abstract class C4ScriptExprTree {
 				return;
 			super.inferTypeFromAssignment(expression, context);
 		}
+		
+		private static C4Object getObjectBelongingToStaticVar(C4Variable var) {
+			C4Declaration parent = var.getParentDeclaration();
+			if (parent instanceof C4Object && ((C4Object)parent).getStaticVariable() == var)
+				return (C4Object) parent;
+			else
+				return null;
+		}
 
 		@Override
 		public Object evaluateAtParseTime(C4ScriptBase context) {
-			if (declaration instanceof C4Variable && ((C4Variable)declaration).getScope() == C4VariableScope.VAR_CONST)
-				return ((C4Variable)declaration).getConstValue();
-			else
-				return super.evaluateAtParseTime(context);
+			C4Object obj;
+			if (declaration instanceof C4Variable) {
+				C4Variable var = (C4Variable) declaration;
+				if (var.getScope() == C4VariableScope.VAR_CONST)
+					return var.getConstValue();
+				else if ((obj = getObjectBelongingToStaticVar(var)) != null)
+					return obj.getId(); // just return the id
+			}
+			return super.evaluateAtParseTime(context);
 		}
 
 		public boolean constCondition() {
@@ -967,10 +980,10 @@ public abstract class C4ScriptExprTree {
 		public boolean isConstant() {
 			if (getDeclaration() instanceof C4Variable) {
 				C4Variable var = (C4Variable) getDeclaration();
-				if (var.getParentDeclaration() instanceof C4ObjectIntern && ((C4ObjectIntern)var.getParentDeclaration()).getStaticVariable() == var)
-					return true;
+				return getObjectBelongingToStaticVar(var) != null;
 			}
-			return false;
+			else
+				return false;
 		}
 
 	}
