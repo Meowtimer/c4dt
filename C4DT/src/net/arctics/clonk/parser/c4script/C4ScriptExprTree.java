@@ -7,7 +7,6 @@ import java.util.List;
 import java.util.regex.Matcher;
 
 import net.arctics.clonk.index.C4Object;
-import net.arctics.clonk.index.C4ObjectIntern;
 import net.arctics.clonk.index.C4Scenario;
 import net.arctics.clonk.index.CachedEngineFuncs;
 import net.arctics.clonk.index.ClonkIndex;

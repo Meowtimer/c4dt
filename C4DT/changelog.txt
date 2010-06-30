@@ -109,3 +109,11 @@ are then taken into account in various places
 -Set engine for each project so one can share OC and CR projects in the same workspace
 -Fixes
 -Probably more bugs
+1.5.4:
+-Profit!
+1.5.5:
+-Change type system so that variables can have multiple potential types leading to everything being more completed and probably bug-prone
+1.5.6:
+-Allow long-id constants (see Trajectory in OpenClonk)
+-Preserve empty lines when tidying up code
+-Fixes
