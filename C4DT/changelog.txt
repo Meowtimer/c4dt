@@ -112,7 +112,8 @@ are then taken into account in various places
 1.5.4:
 -Profit!
 1.5.5:
--Change type system so that variables can have multiple potential types leading to everything being more completed and probably bug-prone
+-Change type system so that variables can have multiple potential types leading to everything being more complicated and probably bug-prone
+-When determining that some variable will refer to an object of a certain type, that type will be shown in info hovers
 1.5.6:
 -Allow long-id constants (see Trajectory in OpenClonk)
 -Preserve empty lines when tidying up code

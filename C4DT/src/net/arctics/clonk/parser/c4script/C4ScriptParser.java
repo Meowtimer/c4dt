@@ -619,7 +619,12 @@ public class C4ScriptParser {
 							errorWithCode(ParserErrorCode.ConstantValueExpected, constantValue, true);
 						}
 						var = createVariable(C4VariableScope.VAR_CONST, desc, s, e, varName);
-						var.setConstValue(constantValue.evaluateAtParseTime(getContainer()));
+						try {
+							var.setConstValue(constantValue.evaluateAtParseTime(getContainer()));
+						} catch (Exception ex) {
+							ex.printStackTrace();
+							errorWithCode(ParserErrorCode.InvalidExpression, constantValue);
+						}
 						createdVariables.add(var);
 						var.inferTypeFromAssignment(constantValue, this);
 					}
