@@ -132,7 +132,7 @@ public class C4ObjectIntern extends C4Object implements Serializable {
 	@Override
 	public String getScriptText() {
 		try {
-			return Utilities.stringFromFile(getScriptFile());
+			return Utilities.stringFromFileDocument(getScriptFile());
 		} catch (Exception e) {
 			return null;
 		}
@@ -232,7 +232,7 @@ public class C4ObjectIntern extends C4Object implements Serializable {
 	// for processing files whose contents won't be saved in a separate c4structure thingie
 	public void processFile(IFile file) throws IOException, CoreException {
 		if (file.getName().equalsIgnoreCase("Names.txt")) { //$NON-NLS-1$
-			readNames(Utilities.stringFromFile(file));
+			readNames(Utilities.stringFromFileDocument(file));
 		}
 		else if (file.getName().equalsIgnoreCase("Graphics.png") || file.getName().equalsIgnoreCase("Graphics.bmp")) { //$NON-NLS-1$ //$NON-NLS-2$
 			setCachedPicture(null); // obsolete

@@ -377,7 +377,7 @@ public class C4Engine extends C4ScriptBase {
 	public void parseEngineScript(final URL url) throws IOException, ParsingException {
 		InputStream stream = url.openStream();
 		try {
-			C4ScriptParser parser = new C4ScriptParser(Utilities.stringFromInputStream(stream), this) {
+			C4ScriptParser parser = new C4ScriptParser(Utilities.stringFromInputStream(stream), this, null) {
 				private boolean firstMessage = true;
 				@Override
 				protected IMarker markerWithCode(ParserErrorCode code,

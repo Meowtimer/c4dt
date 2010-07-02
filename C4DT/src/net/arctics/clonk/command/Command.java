@@ -125,7 +125,7 @@ public class Command {
 			super();
 			setName(name);
 			this.script = script;
-			C4ScriptParser parser = new C4ScriptParser(script, this) {
+			C4ScriptParser parser = new C4ScriptParser(script, this, null) {
 				@Override
 				protected C4Function newFunction() {
 					return new C4CommandFunction();

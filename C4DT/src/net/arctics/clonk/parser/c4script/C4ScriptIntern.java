@@ -44,7 +44,7 @@ public class C4ScriptIntern extends C4ScriptBase implements Serializable {
 	@Override
 	public String getScriptText() {
 		try {
-			return scriptFile instanceof IFile ? Utilities.stringFromFile((IFile)scriptFile) : null;
+			return scriptFile instanceof IFile ? Utilities.stringFromFileDocument((IFile)scriptFile) : null;
 		} catch (Exception e) {
 			return null;
 		}

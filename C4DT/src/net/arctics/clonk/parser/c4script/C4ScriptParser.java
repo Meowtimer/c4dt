@@ -312,8 +312,8 @@ public class C4ScriptParser {
 	 * @param withString
 	 * @param script
 	 */
-	public C4ScriptParser(String withString, C4ScriptBase script) {
-		scriptFile = null;
+	public C4ScriptParser(String withString, C4ScriptBase script, IFile scriptFile) {
+		this.scriptFile = scriptFile;
 		scanner = new BufferedScanner(withString);
 		container = script;
 		isEngine = container instanceof C4Engine;
@@ -2675,7 +2675,7 @@ public class C4ScriptParser {
 	private static class ScriptParserWithMarkerListener extends C4ScriptParser {
 		private IMarkerListener markerListener;
 		public ScriptParserWithMarkerListener(String withString, C4ScriptBase script, IMarkerListener markerListener) {
-			super(withString, script);
+			super(withString, script, null);
 			this.markerListener = markerListener;
 		}
 		@Override

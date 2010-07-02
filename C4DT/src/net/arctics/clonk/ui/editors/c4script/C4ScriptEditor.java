@@ -2,6 +2,7 @@ package net.arctics.clonk.ui.editors.c4script;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.security.InvalidParameterException;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -235,34 +236,35 @@ public class C4ScriptEditor extends ClonkTextEditor {
 			}, REPARSE_DELAY);
 		}
 		
+		public static void removeMarkers(C4Function func, C4ScriptBase script) {
+			if (script != null && script.getResource() != null) {
+				try {
+					// delete all "while typing" errors
+					IMarker[] markers = script.getResource().findMarkers(ClonkCore.MARKER_C4SCRIPT_ERROR_WHILE_TYPING, false, 3);
+					for (IMarker m : markers) {
+						m.delete();
+					}
+					// delete regular markers that are in the region of interest
+					markers = script.getResource().findMarkers(ClonkCore.MARKER_C4SCRIPT_ERROR, false, 3);
+					SourceLocation body = func != null ? func.getBody() : null;
+					for (IMarker m : markers) {
+						int markerStart = m.getAttribute(IMarker.CHAR_START, 0);
+						int markerEnd   = m.getAttribute(IMarker.CHAR_END, 0);
+						if (body == null || (markerStart >= body.getStart() && markerEnd < body.getEnd())) {
+							m.delete();
+						}
+					}
+				} catch (CoreException e) {
+					e.printStackTrace();
+				}
+			}
+		}
+		
 		private void scheduleReparsingOfFunction(final C4Function f) {
 			functionReparseTask = cancel(functionReparseTask);
 			reparseTimer.schedule(functionReparseTask = new TimerTask() {
-				private void removeMarkers() {
-					if (script != null && script.getResource() != null) {
-						try {
-							// delete all "while typing" errors
-							IMarker[] markers = script.getResource().findMarkers(ClonkCore.MARKER_C4SCRIPT_ERROR_WHILE_TYPING, false, 3);
-							for (IMarker m : markers) {
-								m.delete();
-							}
-							// delete regular markers that are in the region of interest
-							markers = script.getResource().findMarkers(ClonkCore.MARKER_C4SCRIPT_ERROR, false, 3);
-							SourceLocation body = f.getBody();
-							for (IMarker m : markers) {
-								int markerStart = m.getAttribute(IMarker.CHAR_START, 0);
-								int markerEnd   = m.getAttribute(IMarker.CHAR_END, 0);
-								if (markerStart >= body.getStart() && markerEnd < body.getEnd()) {
-									m.delete();
-								}
-							}
-						} catch (CoreException e) {
-							e.printStackTrace();
-						}
-					}
-				}
 				public void run() {
-					removeMarkers();
+					removeMarkers(f, script);
 					C4ScriptParser.reportExpressionsAndStatements(document, f.getBody(), script, f, null, new IMarkerListener() {
 						@Override
 						public void markerEncountered(ParserErrorCode code,
@@ -282,6 +284,14 @@ public class C4ScriptEditor extends ClonkTextEditor {
 				cancel();
 				listeners.remove(document);
 				document.removeDocumentListener(this);
+				try {
+					if (script.getScriptFile() instanceof IFile) {
+						IFile file = (IFile)script.getScriptFile();
+						reparseWithDocumentContents(null, false, file, script, null);
+					}
+				} catch (ParsingException e) {
+					e.printStackTrace();
+				}
 			}
 		}
 
@@ -507,11 +517,18 @@ public class C4ScriptEditor extends ClonkTextEditor {
 
 	private static C4ScriptParser reparseWithDocumentContents(
 			C4ScriptExprTree.IExpressionListener exprListener,
-			boolean onlyDeclarations, IDocument document,
+			boolean onlyDeclarations, Object document,
 			C4ScriptBase script,
 			Runnable uiRefreshRunnable)
 			throws ParsingException {
-		C4ScriptParser parser = new C4ScriptParser(document.get(), script);
+		C4ScriptParser parser;
+		if (document instanceof IDocument) {
+			parser = new C4ScriptParser(((IDocument)document).get(), script, null);
+		} else if (document instanceof IFile) {
+			parser = new C4ScriptParser(Utilities.stringFromFile((IFile)document), script, (IFile)document);
+		} else {
+			throw new InvalidParameterException("document");
+		}
 		List<IStoredTypeInformation> storedLocalsTypeInformation = null;
 		if (onlyDeclarations) {
 			// when only parsing declarations store type information for variables declared in the script

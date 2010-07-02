@@ -197,10 +197,10 @@ public class ClonkPreviewView extends ViewPart implements ISelectionListener {
 					newImage = new Image(canvas.getDisplay(), file.getContents());
 				}
 				else if (fileName.endsWith(".rtf")) { //$NON-NLS-1$
-					newHtml = rtfToHtml(Utilities.stringFromFile(file));
+					newHtml = rtfToHtml(Utilities.stringFromFileDocument(file));
 				}
 				else if (fileName.endsWith(".txt")) { //$NON-NLS-1$
-					newHtml = Utilities.stringFromFile(file);
+					newHtml = Utilities.stringFromFileDocument(file);
 				}
 			}
 			else if (sel instanceof IContainer && ((IContainer)sel).getProject().isOpen()) {
@@ -212,12 +212,12 @@ public class ClonkPreviewView extends ViewPart implements ISelectionListener {
 
 				IResource descFile = Utilities.findMemberCaseInsensitively(container, "Desc"+ClonkPreferences.getLanguagePref()+".rtf"); //$NON-NLS-1$ //$NON-NLS-2$
 				if (descFile instanceof IFile) {
-					newHtml = rtfToHtml(Utilities.stringFromFile((IFile) descFile));
+					newHtml = rtfToHtml(Utilities.stringFromFileDocument((IFile) descFile));
 				}
 				else {
 					descFile = Utilities.findMemberCaseInsensitively(container, "Desc"+ClonkPreferences.getLanguagePref()+".txt"); //$NON-NLS-1$ //$NON-NLS-2$
 					if (descFile instanceof IFile) {
-						newHtml = Utilities.stringFromFile((IFile) descFile);
+						newHtml = Utilities.stringFromFileDocument((IFile) descFile);
 					}
 				}
 

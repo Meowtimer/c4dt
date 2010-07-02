@@ -53,7 +53,7 @@ public class BufferedScanner {
 	public BufferedScanner(IFile file) {
 		try {
 			offset = 0;
-			buffer = Utilities.stringFromFile(file);
+			buffer = Utilities.stringFromFileDocument(file);
 			size = buffer.length();
 		} catch (CoreException e) {
 			e.printStackTrace();

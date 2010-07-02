@@ -116,7 +116,7 @@ public class StringTbl extends C4Structure implements ITreeNode, ITableEntryInfo
 					tbl.setFile(file);
 					String fileContents;
 					try {
-						fileContents = Utilities.stringFromFile(file);
+						fileContents = Utilities.stringFromFileDocument(file);
 					} catch (Exception e) {
 						e.printStackTrace();
 						return null;

@@ -722,7 +722,7 @@ public abstract class C4ScriptBase extends C4Structure implements IHasRelatedRes
 			IResource infoFile = Utilities.findMemberCaseInsensitively(((IFile)f).getParent(), "Desc"+ClonkPreferences.getLanguagePref()+".txt"); //$NON-NLS-1$ //$NON-NLS-2$
 			if (infoFile instanceof IFile) {
 				try {
-					return Utilities.stringFromFile((IFile) infoFile);
+					return Utilities.stringFromFileDocument((IFile) infoFile);
 				} catch (Exception e) {
 					e.printStackTrace();
 					return super.getInfoText();

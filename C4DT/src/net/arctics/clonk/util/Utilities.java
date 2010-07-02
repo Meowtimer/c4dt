@@ -418,8 +418,38 @@ public abstract class Utilities {
 	public static String stringFromInputStream(InputStream stream) throws IOException {
 		return stringFromInputStream(stream, "UTF-8"); //$NON-NLS-1$
 	}
+	
+	public static String stringFromFile(IFile file) {
+		InputStream stream;
+		try {
+			stream = file.getContents();
+		} catch (CoreException e1) {
+			return null;
+		}
+		InputStreamReader reader = new InputStreamReader(stream);
+		try {
+			char[] characters = new char[1024];
+			int read;
+			try {
+				StringBuilder builder = new StringBuilder();
+				while ((read = reader.read(characters)) > 0) {
+					builder.append(characters, 0, read);
+				}
+				return builder.toString();
+			} catch (IOException e) {
+				e.printStackTrace();
+				return null;
+			}
+		} finally {
+			try {
+				reader.close();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+	}
 
-	public static String stringFromFile(IFile file) throws IOException, CoreException {
+	public static String stringFromFileDocument(IFile file) throws IOException, CoreException {
 		TextFileDocumentProvider provider = ClonkCore.getDefault().getTextFileDocumentProvider();
 		provider.connect(file);
 		try {
