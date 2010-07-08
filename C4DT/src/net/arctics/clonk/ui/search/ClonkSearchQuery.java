@@ -128,7 +128,7 @@ public class ClonkSearchQuery implements ISearchQuery {
 				return TraversalContinuation.Continue;
 			}
 		};
-		final ExpressionListener searchExpressions = new ExpressionListener() {
+		final ExpressionListener searchExpressionsListener = new ExpressionListener() {
 			public TraversalContinuation expressionDetected(ExprElm expression, C4ScriptParser parser) {
 				if (expression instanceof Statement)
 					expression.traverse(searchExpression, parser);
@@ -140,7 +140,7 @@ public class ClonkSearchQuery implements ISearchQuery {
 				if (resource instanceof IFile) {
 					C4ScriptBase script = C4ScriptBase.get((IFile) resource, true);
 					if (script != null) {
-						searchScript(searchExpressions, resource, script);
+						searchScript(searchExpressionsListener, resource, script);
 					}
 				}
 				return true;
@@ -153,13 +153,13 @@ public class ClonkSearchQuery implements ISearchQuery {
 				}
 				else if (scope instanceof C4ScriptBase) {
 					C4ScriptBase script = (C4ScriptBase) scope;
-					searchScript(searchExpressions, (IResource) script.getScriptFile(), script);
+					searchScript(searchExpressionsListener, (IResource) script.getScriptFile(), script);
 				}
 				else if (scope instanceof C4Function) {
 					C4Function func = (C4Function) scope;
 					C4ScriptBase script = func.getScript();
 					C4ScriptParser parser = new C4ScriptParser((IFile) script.getScriptFile(), script);
-					parser.setExpressionListener(searchExpressions);
+					parser.setExpressionListener(searchExpressionsListener);
 					try {
 						parser.parseCodeOfFunction(func);
 					} catch (ParsingException e) {
