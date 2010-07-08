@@ -838,7 +838,7 @@ public abstract class C4ScriptExprTree {
 
 			@Override
 			public String toString() {
-				return "variable " + decl.getName() + " " +  super.toString(); //$NON-NLS-1$ //$NON-NLS-2$
+				return "variable " + decl.getName() + " " + super.toString(); //$NON-NLS-1$ //$NON-NLS-2$
 			}
 
 		}
@@ -988,6 +988,47 @@ public abstract class C4ScriptExprTree {
 	}
 
 	public static class CallFunc extends AccessDeclaration {
+		
+		private final static class FunctionReturnTypeInformation extends StoredTypeInformation {
+			private C4Function function;
+
+			public FunctionReturnTypeInformation(C4Function function) {
+				super();
+				this.function = function;
+			}
+			
+			@Override
+			public boolean expressionRelevant(ExprElm expr, C4ScriptParser parser) {
+				if (expr instanceof CallFunc) {
+					CallFunc callFunc = (CallFunc) expr;
+					if (callFunc.getDeclaration() == this.function)
+						return true;
+				}
+				return false;
+			}
+			
+			@Override
+			public boolean sameExpression(IStoredTypeInformation other) {
+				return other instanceof FunctionReturnTypeInformation && ((FunctionReturnTypeInformation)other).function == this.function;
+			}
+			
+			@Override
+			public String toString() {
+				return "function " + function + " " + super.toString();
+			}
+			
+			@Override
+			public void apply(boolean soft) {
+				if (function == null)
+					return;
+				function = (C4Function) function.latestVersion();
+				if (!soft && !function.isEngineDeclaration()) {
+					function.forceType(getType());
+				}
+			}
+			
+		}
+		
 		private final static class VarFunctionsTypeInformation extends StoredTypeInformation {
 			private Integer varIndex;
 
@@ -1041,6 +1082,12 @@ public abstract class C4ScriptExprTree {
 			params = parms;
 			assignParentToSubElements();
 		}
+		
+		public CallFunc(C4Function function, ExprElm... parms) {
+			this(function.getName());
+			this.declaration = function;
+		}
+		
 		@Override
 		public void doPrint(ExprWriter output, int depth) {
 			super.doPrint(output, depth);
@@ -1067,11 +1114,20 @@ public abstract class C4ScriptExprTree {
 		@Override
 		public IType getType(C4ScriptParser context) {
 			C4Declaration d = getDeclaration(context);
+			
+			// look for gathered type information
+			IType stored = context.queryTypeOfExpression(this, null);
+			if (stored != null)
+				return stored;
+			
+			// calling this() as function -> return object type belonging to script
 			if (params.length == 0 && (d == getCachedFuncs(context).This || d == C4Variable.THIS)) {
 				C4Object obj = context.getContainerObject();
 				if (obj != null)
 					return obj;
 			}
+			
+			// it's a criteria search (FindObjects etc) so guess return type from arguments passed to the criteria search function
 			if (isCriteriaSearch()) {
 				IType t = searchCriteriaAssumedResult(context);
 				if (t != null) {
@@ -1082,23 +1138,34 @@ public abstract class C4ScriptExprTree {
 						return t;
 				}
 			}
+			
+			// it's either a Find* or Create* function that takes some object type specifier as first argument - return that type
+			// (FIXME: could be triggered for functions which don't actually return object matching the type passed as first argument)
 			if (params != null && params.length >= 1 && d instanceof C4Function && ((C4Function)d).getReturnType() == C4Type.OBJECT && (declarationName.startsWith("Create") || declarationName.startsWith("Find"))) { //$NON-NLS-1$ //$NON-NLS-2$
 				IType t = params[0].getType(context);
 				if (t instanceof C4ObjectType)
 					return ((C4ObjectType)t).getType();
 			}
-			if (declarationName.equals("GetID") && params.length == 0) { //$NON-NLS-1$
+			
+			// GetID() for this
+			if (params.length == 0 && d == getCachedFuncs(context).GetID) { //$NON-NLS-1$
 				IType t = getPredecessorInSequence() == null ? context.getContainerObject() : getPredecessorInSequence().getType(context);
 				if (t instanceof C4Object)
 					return ((C4Object)t).getObjectType();
 			}
-			if (declaration instanceof ITypedDeclaration) {
-				C4Object obj = ((ITypedDeclaration)declaration).getObjectType();
+			
+			// generic typed d (variable or function)
+			if (d instanceof ITypedDeclaration) {
+				C4Object obj = ((ITypedDeclaration)d).getObjectType();
 				if (obj != null)
 					return obj;
 			}
-			if (declaration instanceof C4Function && ((C4Function)declaration).getReturnType() != C4Type.REFERENCE)
-				return ((C4Function)declaration).getReturnType();
+
+			// function that does not return a reference: return type set out of object type and generic type
+			if (d instanceof C4Function && ((C4Function)d).getReturnType() != C4Type.REFERENCE) {
+				C4Function function = (C4Function) d;
+				return function.getCombinedType();
+			}
 			else
 				return super.getType(context);
 		}
@@ -1427,7 +1494,8 @@ public abstract class C4ScriptExprTree {
 		}
 		@Override
 		public IStoredTypeInformation createStoredTypeInformation(C4ScriptParser parser) {
-			if (getDeclaration() == getCachedFuncs(parser).Var) {
+			C4Declaration d = getDeclaration();
+			if (d == getCachedFuncs(parser).Var) {
 				Object ev;
 				if (getParams().length > 0 && (ev = getParams()[0].evaluateAtParseTime(parser.getContainer())) != null) {
 					if (ev instanceof Number) {
@@ -1435,6 +1503,9 @@ public abstract class C4ScriptExprTree {
 						return new VarFunctionsTypeInformation(((Number)ev).intValue());
 					}
 				}
+			}
+			else if (d instanceof C4Function) {
+				return new FunctionReturnTypeInformation((C4Function)d);
 			}
 			return super.createStoredTypeInformation(parser);
 		}
@@ -2995,7 +3066,7 @@ public abstract class C4ScriptExprTree {
 		@Override
 		public void reportErrors(C4ScriptParser parser) throws ParsingException {
 			if (returnExpr != null)
-				parser.getActiveFunc().inferTypeFromAssignment(returnExpr, parser);
+				new CallFunc(parser.getActiveFunc()).expectedToBeOfType(returnExpr.getType(parser), parser, TypeExpectancyMode.Expect);
 		}
 	}
 

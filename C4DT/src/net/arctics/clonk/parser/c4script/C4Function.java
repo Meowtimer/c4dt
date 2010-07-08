@@ -21,6 +21,7 @@ public class C4Function extends C4Structure implements Serializable, ITypedDecla
 	private List<C4Variable> localVars;
 	private List<C4Variable> parameter;
 	private IType returnType;
+	private ObjectType returnObjectType;
 	private String description;
 	private boolean isCallback;
 	private boolean isOldStyle;
@@ -105,13 +106,6 @@ public class C4Function extends C4Structure implements Serializable, ITypedDecla
 		if (returnType == null)
 			returnType = C4Type.UNKNOWN;
 		return returnType;
-	}
-
-	/**
-	 * @param returnType the returnType to set
-	 */
-	public void setReturnType(IType returnType) {
-		this.returnType = returnType;
 	}
 
 	/**
@@ -431,8 +425,31 @@ public class C4Function extends C4Structure implements Serializable, ITypedDecla
 	@Override
 	public void forceType(IType type) {
 		setReturnType(type);
+		setReturnObjectType(C4TypeSet.objectIngredient(type));
+	}
+	
+	public void setReturnType(IType returnType) {
+		this.returnType = returnType;
+	}
+	
+	public void setReturnObjectType(C4Object objType) {
+		if (objType != null) {
+			if (returnObjectType == null)
+				returnObjectType = new ObjectType();
+			returnObjectType.setObject(objType);
+		} else {
+			returnObjectType = null;
+		}
+	}
+	
+	public C4Object getReturnObjectType() {
+		return returnObjectType != null ? returnObjectType.getObject() : null;
 	}
 
+	public IType getCombinedType() {
+		return C4TypeSet.create(getReturnObjectType(), getReturnType());
+	}
+	
 	@Override
 	public C4Object getObjectType() {
 		return null;
@@ -440,6 +457,14 @@ public class C4Function extends C4Structure implements Serializable, ITypedDecla
 	
 	public void setObjectType(C4Object object) {
 		//expectedContent = object;
+	}
+	
+	@Override
+	public void postSerialize(C4Declaration parent) {
+		super.postSerialize(parent);
+		if (returnObjectType != null && parent instanceof C4ScriptBase) {
+			returnObjectType.restoreType((C4ScriptBase) parent);
+		}
 	}
 	
 	/**

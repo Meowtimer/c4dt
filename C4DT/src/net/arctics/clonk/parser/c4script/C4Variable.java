@@ -1,7 +1,6 @@
 package net.arctics.clonk.parser.c4script;
 
 import java.io.Serializable;
-import java.lang.ref.WeakReference;
 import java.security.InvalidParameterException;
 import java.util.HashSet;
 import java.util.Set;
@@ -36,14 +35,9 @@ public class C4Variable extends C4Declaration implements Serializable, ITypedDec
 	private IType type;
 	
 	/**
-	 * Mostly null - only set when type=object
+	 * Object type of the variable.
 	 */
-	private transient WeakReference<C4Object> objectType;
-	
-	/**
-	 * Instead of storing a ref to a C4Object (and retaining it) just store the id and restore the weak ref to the object.
-	 */
-	private C4ID objectID;
+	private ObjectType objectType;
 	
 	/**
 	 * Descriptive text meant for the user
@@ -146,19 +140,24 @@ public class C4Variable extends C4Declaration implements Serializable, ITypedDec
 	 * @return the expectedContent
 	 */
 	public C4Object getObjectType() {
-		return objectType != null ? objectType.get() : null;
+		return objectType != null ? objectType.getObject() : null;
 	}
 
 	/**
 	 * @param objType the object type to set
 	 */
 	public void setObjectType(C4Object objType) {
-		this.objectType = objType != null ? new WeakReference<C4Object>(objType) : null;
-		this.objectID = objType != null ? objType.getId() : null;
+		if (objType != null) {
+			if (objectType == null)
+				objectType = new ObjectType();
+			objectType.setObject(objType);
+		} else {
+			objectType = null;
+		}
 	}
 
 	public C4ID getObjectID() {
-		return objectID;
+		return objectType != null ? objectType.getId() : null;
 	}
 
 	/**
@@ -338,10 +337,8 @@ public class C4Variable extends C4Declaration implements Serializable, ITypedDec
 	public void postSerialize(C4Declaration parent) {
 		super.postSerialize(parent);
 		ensureTypeLockedIfPredefined(parent);
-		if (objectID != null && parent instanceof C4ScriptBase) {
-			C4ScriptBase script = (C4ScriptBase) parent;
-			if (script.getResource() != null && script.getIndex() != null)
-				setObjectType(script.getIndex().getObjectNearestTo(parent.getResource(), objectID));
+		if (objectType != null && parent instanceof C4ScriptBase) {
+			objectType.restoreType((C4ScriptBase) parent);
 		}
 	}
 

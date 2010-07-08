@@ -31,6 +31,7 @@ public class CachedEngineFuncs {
 	public C4Function AddCommand;
 	public C4Function AppendCommand;
 	public C4Function ObjectCall;
+	public C4Function GetID;
 	public Object     This; // this as variable name not allowed so exclude this var -.-
 	
 	public final C4Function[] ObjectCallFunctions;
