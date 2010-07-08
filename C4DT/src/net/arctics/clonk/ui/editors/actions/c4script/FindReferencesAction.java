@@ -20,9 +20,9 @@ public class FindReferencesAction extends OpenDeclarationAction {
 	@Override
 	public void run() {
 		try {
-			C4Declaration field = getDeclarationAtSelection();
-			if (field != null) {
-				ClonkProjectNature nature = ClonkProjectNature.get(field.getScript());				
+			C4Declaration declaration = getDeclarationAtSelection();
+			if (declaration != null) {
+				ClonkProjectNature nature = ClonkProjectNature.get(declaration.getScript());				
 				if (nature == null) {
 					nature = ClonkProjectNature.get(getTextEditor()); 
 				}
@@ -30,7 +30,7 @@ public class FindReferencesAction extends OpenDeclarationAction {
 					MessageDialog.openError(getTextEditor().getSite().getShell(), Messages.FindReferencesAction_Label, Messages.FindReferencesAction_OnlyWorksWithinProject);
 					return;
 				}
-				NewSearchUI.runQueryInBackground(new ClonkSearchQuery(field, nature));
+				NewSearchUI.runQueryInBackground(new ClonkSearchQuery(declaration, nature));
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
