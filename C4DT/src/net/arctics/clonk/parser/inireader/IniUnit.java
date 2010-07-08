@@ -244,7 +244,6 @@ public class IniUnit extends C4Structure implements Iterable<IniSection>, IHasCh
 			IniSection section = new IniSection(new SourceLocation(start, end), name);
 			section.setParentDeclaration(this);
 			// parse entries
-//			List<IniEntry> entries = new LinkedList<IniEntry>();
 			IniEntry entry = null;
 			Map<String, IniEntry> entries = new HashMap<String, IniEntry>();
 			currentSection = section;

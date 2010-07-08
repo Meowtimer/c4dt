@@ -292,52 +292,5 @@ public class IniData {
 		}
 	}
 	
-//	public static Class<?> entryClassFromDocumentation(String docType) {
-//		if (docType.equals("Integer"))
-//			return SignedInteger.class;
-//		if (docType.endsWith("Integer"))
-//			return IntegerArray.class;
-//		if (docType.startsWith("Zeichenfolge"))
-//			return String.class;
-//		if (docType.equals("IDListe"))
-//			return IDArray.class;
-//		if (docType.equals("DWORD"))
-//			return SignedInteger.class;
-//		if (docType.equals("Materialliste"))
-//			return MaterialArray.class;
-//		if (docType.equalsIgnoreCase("id"))
-//			return C4ID.class;
-//		return null;
-//	}
-//	
-//	public static void xmlFromText(InputStream input, PrintStream output) throws IOException {
-//		BufferedScanner scanner = new BufferedScanner(input);
-//		for (String name = scanner.readWord(); name != null && name.length() > 0; name = scanner.readWord()) {
-//			scanner.eatWhitespace();
-//			String type = scanner.readWord();
-//			scanner.eatWhitespace();
-//			if (Character.isDigit(type.charAt(0))) {
-//				type = type + " " + scanner.readWord();
-//				scanner.eatWhitespace();
-//			}
-//			String desc = scanner.readStringUntil(BufferedScanner.NEWLINE_DELIMITERS);
-//			scanner.eatWhitespace();
-//			Class<?> entryClass = entryClassFromDocumentation(type);
-//			output.println("<entry name=\""+name+"\" class=\""+entryClass.getName()+"\" description=\""+desc+"\" />");
-//		}
-//	}
-//	
-//	static {
-//		try {
-//			xmlFromText(new FileInputStream("/Users/madeen/Desktop/scenario.txt"), System.out);
-//		} catch (FileNotFoundException e) {
-//			// TODO Auto-generated catch block
-//			e.printStackTrace();
-//		} catch (IOException e) {
-//			// TODO Auto-generated catch block
-//			e.printStackTrace();
-//		}
-//	}
-	
 }
 
