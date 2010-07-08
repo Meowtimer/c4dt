@@ -53,7 +53,7 @@ public class C4Group extends C4GroupItem implements Serializable, ITreeNode {
 		public void readStream(InputStream stream);
 	}
 	
-	private static final long serialVersionUID = 1L;
+	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 	public static final Map<String, C4GroupType> EXTENSION_TO_GROUP_TYPE_MAP = getExtensionToGroupTypeMap();
 
 	public synchronized void readFromStream(C4GroupItem whoWantsThat, long pos, StreamReadCallback callback) throws IOException {

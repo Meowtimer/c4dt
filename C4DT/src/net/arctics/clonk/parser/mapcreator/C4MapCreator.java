@@ -1,5 +1,6 @@
 package net.arctics.clonk.parser.mapcreator;
 
+import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.C4Structure;
 
 import org.eclipse.core.resources.IFile;
@@ -7,7 +8,7 @@ import org.eclipse.core.resources.IResource;
 
 public class C4MapCreator extends C4Map {
 
-	private static final long serialVersionUID = 1L;
+	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 	
 	private IFile file;
 

@@ -2,6 +2,7 @@ package net.arctics.clonk.parser.c4script;
 
 import java.util.Iterator;
 
+import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.index.C4Object;
 import net.arctics.clonk.util.Utilities;
 
@@ -11,7 +12,7 @@ import net.arctics.clonk.util.Utilities;
  */
 public class C4ObjectType implements IType {
 
-	private static final long serialVersionUID = 1L;
+	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 	
 	private C4Object type;
 

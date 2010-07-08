@@ -2,6 +2,7 @@ package net.arctics.clonk.parser.c4script;
 
 import java.io.Serializable;
 
+import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.index.C4Object;
 import net.arctics.clonk.parser.C4Declaration;
 import net.arctics.clonk.parser.C4ID;
@@ -11,7 +12,7 @@ import net.arctics.clonk.parser.c4script.C4ScriptExprTree.ExprElm;
 
 public class C4Directive extends C4Declaration implements Serializable {
 
-	private static final long serialVersionUID = 1L;
+	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 
 	public enum C4DirectiveType {
 		STRICT,

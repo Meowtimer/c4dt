@@ -6,6 +6,7 @@ import java.util.Map;
 
 import org.eclipse.core.runtime.IPath;
 
+import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.C4Declaration;
 import net.arctics.clonk.parser.SourceLocation;
 import net.arctics.clonk.parser.inireader.IniData.IniDataSection;
@@ -16,7 +17,7 @@ import net.arctics.clonk.util.ReadOnlyIterator;
 
 public class IniSection extends C4Declaration implements IHasKeyAndValue<String, String>, IHasChildren, ITreeNode, Iterable<IniEntry> {
 	
-	private static final long serialVersionUID = 1L;
+	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 	
 	private Map<String, IniEntry> entries;
 	private IniDataSection sectionData;

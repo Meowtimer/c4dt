@@ -19,6 +19,8 @@ import java.util.Map.Entry;
 
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.jface.util.Util;
+
+import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.C4Declaration;
 import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.ParsingException;
@@ -50,11 +52,11 @@ import net.arctics.clonk.util.Utilities;
  */
 public class C4Engine extends C4ScriptBase {
 
-	private static final long serialVersionUID = 1L;
+	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 
 	public static class EngineSettings implements Cloneable, Serializable {
 
-		private static final long serialVersionUID = 1L;
+		private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 
 		@IniField
 		public int strictDefaultLevel;

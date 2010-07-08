@@ -43,7 +43,7 @@ import org.eclipse.ui.ide.IDE;
  */
 public class IniUnit extends C4Structure implements Iterable<IniSection>, IHasChildren, ITreeNode {
 
-	private static final long serialVersionUID = 1L;
+	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 
 	/**
 	 * Text scanner

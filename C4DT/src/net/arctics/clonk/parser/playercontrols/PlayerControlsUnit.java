@@ -6,6 +6,7 @@ import java.util.List;
 
 import org.eclipse.core.resources.IFile;
 
+import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.C4Declaration;
 import net.arctics.clonk.parser.c4script.C4Type;
 import net.arctics.clonk.parser.c4script.C4Variable;
@@ -16,7 +17,7 @@ import net.arctics.clonk.parser.inireader.IniUnit;
 
 public class PlayerControlsUnit extends IniUnit {
 
-	private static final long serialVersionUID = 1L;
+	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 	
 	private List<C4Variable> controlVariables = new LinkedList<C4Variable>();
 	

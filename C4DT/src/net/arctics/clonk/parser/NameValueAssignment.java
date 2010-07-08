@@ -6,13 +6,14 @@ import org.eclipse.core.runtime.IPath;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.Region;
 
+import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.util.IHasKeyAndValue;
 import net.arctics.clonk.util.INode;
 import net.arctics.clonk.util.ITreeNode;
 
 public class NameValueAssignment extends C4Declaration implements IHasKeyAndValue<String, String>, IRegion, ITreeNode {
 
-	private static final long serialVersionUID = 1L;
+	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 	
 	private String value;
 	

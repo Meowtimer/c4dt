@@ -3,6 +3,7 @@ package net.arctics.clonk.parser;
 import java.io.Serializable;
 
 
+import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.index.C4Engine;
 import net.arctics.clonk.index.C4ObjectIntern;
 import net.arctics.clonk.index.C4Scenario;
@@ -26,7 +27,7 @@ public abstract class C4Declaration implements Serializable, IHasRelatedResource
 	/**
 	 * 
 	 */
-	private static final long serialVersionUID = 1L;
+	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 	
 	/**
 	 * The name of this declaration

@@ -20,7 +20,7 @@ import net.arctics.clonk.ui.editors.c4script.ScriptWithStorageEditorInput;
  */
 public abstract class C4Structure extends C4Declaration {
 	
-	private static final long serialVersionUID = 1L;
+	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 
 	/**
 	 * Finds a declaration inside this structure

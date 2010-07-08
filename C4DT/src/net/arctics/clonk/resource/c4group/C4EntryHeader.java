@@ -6,13 +6,14 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.Serializable;
 
+import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.resource.c4group.C4Group.C4GroupType;
 
 public class C4EntryHeader implements Serializable {
 
 	public static final int STORED_SIZE = 316;
 	
-	private static final long serialVersionUID = 1L;
+	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 	
 	private String entryName; //260
     private boolean packed; // 4

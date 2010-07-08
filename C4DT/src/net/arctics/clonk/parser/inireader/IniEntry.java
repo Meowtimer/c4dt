@@ -1,5 +1,6 @@
 package net.arctics.clonk.parser.inireader;
 
+import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.NameValueAssignment;
 
 public class IniEntry extends NameValueAssignment {
@@ -12,6 +13,6 @@ public class IniEntry extends NameValueAssignment {
 		return getValue();
 	}
 
-	private static final long serialVersionUID = 1L;
+	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 	
 }

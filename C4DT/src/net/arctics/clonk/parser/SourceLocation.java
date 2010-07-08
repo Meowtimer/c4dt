@@ -3,6 +3,7 @@ package net.arctics.clonk.parser;
 import java.io.Serializable;
 import java.util.regex.Matcher;
 
+import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.c4script.C4Function;
 
 import org.eclipse.jface.text.BadLocationException;
@@ -11,7 +12,7 @@ import org.eclipse.jface.text.IRegion;
 
 public class SourceLocation implements IRegion, Serializable {
 
-	private static final long serialVersionUID = 1L;
+	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 	
 	private int start, end;
 	public SourceLocation(int start,int end) {

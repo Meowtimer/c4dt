@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.io.Writer;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
+
+import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.inireader.IniData.IniConfiguration;
 import net.arctics.clonk.parser.inireader.IniData.IniDataEntry;
 import net.arctics.clonk.parser.inireader.IniData.IniDataSection;
@@ -104,7 +106,7 @@ public class CustomIniUnit extends IniUnit {
 		commitTo(obj);
 	}
 
-	private static final long serialVersionUID = 1L;
+	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 
 	public void write(Writer writer) throws IOException {
 		boolean first = true;

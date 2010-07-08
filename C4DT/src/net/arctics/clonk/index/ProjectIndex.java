@@ -22,7 +22,7 @@ import org.eclipse.core.runtime.Path;
 
 public class ProjectIndex extends ClonkIndex {
 
-	private static final long serialVersionUID = 1L;
+	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 	public static final String INDEXFILE_SUFFIX = ".index"; //$NON-NLS-1$
 	
 	private String engineName;

@@ -51,7 +51,7 @@ public class Command {
 	public static class C4CommandScript extends C4ScriptBase {
 
 		private static class C4CommandFunction extends C4Function {
-			private static final long serialVersionUID = 1L;
+			private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 
 			private transient Statement[] statements;
 
@@ -96,7 +96,7 @@ public class Command {
 			}
 		}
 
-		private static final long serialVersionUID = 1L;
+		private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 
 		private String script;
 		private C4CommandFunction main;
@@ -175,7 +175,7 @@ public class Command {
 
 	static {
 		COMMAND_BASESCRIPT = new C4ScriptBase() {
-			private static final long serialVersionUID = 1L;
+			private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 
 			@Override
 			public ClonkIndex getIndex() {
@@ -215,7 +215,7 @@ public class Command {
 
 	private static class C4CommandFunction extends C4Function {
 
-		private static final long serialVersionUID = 1L;
+		private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 
 		private final transient Method method;
 

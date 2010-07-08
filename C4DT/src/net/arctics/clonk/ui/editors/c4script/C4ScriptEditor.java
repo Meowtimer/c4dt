@@ -69,10 +69,10 @@ public class C4ScriptEditor extends ClonkTextEditor {
 
 	private static final class ScratchScript extends C4ScriptBase implements IHasEditorRefWhichEnablesStreamlinedOpeningOfDeclarations {
 		private transient final C4ScriptEditor me;
-		private static final long serialVersionUID = 1L;
+		private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 		
 		private static ClonkIndex scratchIndex = new ClonkIndex() {
-			private static final long serialVersionUID = 1L;
+			private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 		};
 
 		private ScratchScript(C4ScriptEditor me) {

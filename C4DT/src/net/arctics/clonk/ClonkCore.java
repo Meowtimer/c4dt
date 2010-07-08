@@ -81,6 +81,8 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 	public static final QualifiedName FOLDER_C4ID_PROPERTY_ID = new QualifiedName(PLUGIN_ID, "c4id"); //$NON-NLS-1$
 	public static final QualifiedName C4OBJECT_PROPERTY_ID = new QualifiedName(PLUGIN_ID, "c4object"); //$NON-NLS-1$
 	public static final QualifiedName C4STRUCTURE_PROPERTY_ID = new QualifiedName(PLUGIN_ID, "structure"); //$NON-NLS-1$
+	
+	public static final long SERIAL_VERSION_UID = 1L;
 
 	/**
 	 * The engine object contains global functions and variables defined by Clonk itself

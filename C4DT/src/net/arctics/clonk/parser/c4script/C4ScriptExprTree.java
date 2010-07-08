@@ -6,6 +6,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.regex.Matcher;
 
+import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.index.C4Object;
 import net.arctics.clonk.index.C4Scenario;
 import net.arctics.clonk.index.CachedEngineFuncs;
@@ -147,7 +148,7 @@ public abstract class C4ScriptExprTree {
 	
 	public static class ControlFlowException extends Exception {
 
-		private static final long serialVersionUID = 1L;
+		private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 
 		private ControlFlow controlFlow;
 
@@ -163,7 +164,7 @@ public abstract class C4ScriptExprTree {
 	
 	public static class ReturnException extends ControlFlowException {
 
-		private static final long serialVersionUID = 1L;
+		private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 
 		private Object result;
 
@@ -3508,7 +3509,7 @@ public abstract class C4ScriptExprTree {
 	}
 
 	public static class FunctionDescription extends Statement implements Serializable {
-		private static final long serialVersionUID = 1L;
+		private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 
 		private String contents;
 		public FunctionDescription(String contents) {

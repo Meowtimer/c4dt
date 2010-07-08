@@ -6,6 +6,8 @@ import java.io.OutputStream;
 import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
 
+import net.arctics.clonk.ClonkCore;
+
 /**
  * The header of a C4Group group
  * @author ZokRadonh
@@ -13,7 +15,7 @@ import java.io.UnsupportedEncodingException;
  */
 public class C4GroupHeader implements Serializable {
 
-	private static final long serialVersionUID = 1L;
+	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 	public static final int STORED_SIZE = 204;
 	
     private String id;

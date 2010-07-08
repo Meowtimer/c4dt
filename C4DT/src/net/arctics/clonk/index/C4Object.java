@@ -10,6 +10,7 @@ import java.util.regex.Pattern;
 
 import org.eclipse.swt.graphics.Image;
 
+import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.C4Declaration;
 import net.arctics.clonk.parser.C4ID;
 import net.arctics.clonk.parser.c4script.C4ObjectType;
@@ -23,7 +24,7 @@ import net.arctics.clonk.util.Utilities;
 
 public abstract class C4Object extends C4ScriptBase implements IType {
 
-	private static final long serialVersionUID = 1L;
+	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 
 	/**
 	 * Template to construct the info text of an object definition from

@@ -14,6 +14,7 @@ import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.IPath;
 
+import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.BufferedScanner;
 import net.arctics.clonk.parser.C4Declaration;
 import net.arctics.clonk.parser.C4Structure;
@@ -26,7 +27,7 @@ public class StringTbl extends C4Structure implements ITreeNode, ITableEntryInfo
 	
 	public static final Pattern PATTERN = Pattern.compile("StringTbl(..)\\.txt", Pattern.CASE_INSENSITIVE); //$NON-NLS-1$
 
-	private static final long serialVersionUID = 1L;
+	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 	
 	private Map<String, NameValueAssignment> map = new HashMap<String, NameValueAssignment>();
 	private transient IFile file;

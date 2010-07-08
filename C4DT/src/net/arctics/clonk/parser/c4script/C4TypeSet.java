@@ -8,11 +8,12 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
+import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.index.C4Object;
 
 public class C4TypeSet implements IType {
 
-	private static final long serialVersionUID = 1L;
+	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 
 	private static List<C4TypeSet> typeSets = new LinkedList<C4TypeSet>();
 	

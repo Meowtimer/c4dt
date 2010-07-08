@@ -1,5 +1,6 @@
 package net.arctics.clonk.index;
 
+import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.C4ID;
 
 import org.eclipse.core.resources.IContainer;
@@ -19,6 +20,6 @@ public class C4Scenario extends C4ObjectIntern {
 	/**
 	 * 
 	 */
-	private static final long serialVersionUID = 1L;
+	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 
 }

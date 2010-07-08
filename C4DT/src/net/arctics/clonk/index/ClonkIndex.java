@@ -41,7 +41,7 @@ import org.eclipse.core.runtime.CoreException;
 
 public class ClonkIndex implements Serializable, Iterable<C4Object> {
 	
-	private static final long serialVersionUID = 1L;
+	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 
 	// not so nice to have it as an instance variable :/
 	private transient static final IPredicate<C4Declaration> IS_GLOBAL = new IPredicate<C4Declaration>() {

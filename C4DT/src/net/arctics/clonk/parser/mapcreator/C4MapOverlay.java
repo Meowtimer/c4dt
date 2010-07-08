@@ -4,6 +4,7 @@ import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 
+import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.C4Declaration;
 
 public class C4MapOverlay extends C4MapOverlayBase {
@@ -47,7 +48,7 @@ public class C4MapOverlay extends C4MapOverlayBase {
 	private C4MapOverlay template;
 	private Operator operator;
 	
-	private static final long serialVersionUID = 1L;
+	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 	
 	protected List<C4MapOverlayBase> subOverlays = new LinkedList<C4MapOverlayBase>();
 

@@ -10,6 +10,7 @@ import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
+import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.resource.c4group.C4Group.C4GroupType;
 import net.arctics.clonk.resource.c4group.C4Group.StreamReadCallback;
 import net.arctics.clonk.util.ITreeNode;
@@ -75,7 +76,7 @@ public class C4GroupEntry extends C4GroupItem implements IStorage, Serializable 
 	
 	private static final EntryCache CACHE = new EntryCache();
 
-	private static final long serialVersionUID = 1L;
+	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 	private static final String[] NO_CHILDNAMES = new String[0];
 
 	public static final int STORED_SIZE = 316;

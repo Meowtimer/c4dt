@@ -9,6 +9,7 @@ import java.util.Map;
 
 import org.eclipse.core.runtime.IPath;
 
+import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.C4Declaration;
 import net.arctics.clonk.parser.C4Structure;
 import net.arctics.clonk.parser.SourceLocation;
@@ -19,7 +20,7 @@ import net.arctics.clonk.util.Utilities;
 
 public class C4MapOverlayBase extends C4Structure implements Cloneable, ITreeNode, IPrintable {
 
-	private static final long serialVersionUID = 1L;
+	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 	
 	public static class Keywords {
 		public static final String Point = "point"; //$NON-NLS-1$
@@ -84,7 +85,7 @@ public class C4MapOverlayBase extends C4Structure implements Cloneable, ITreeNod
 	
 	public static class NumVal implements Serializable {
 
-		private static final long serialVersionUID = 1L;
+		private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 		
 		private Unit unit;
 		private int value;
@@ -124,7 +125,7 @@ public class C4MapOverlayBase extends C4Structure implements Cloneable, ITreeNod
 	
 	public static class Range implements Serializable {
 
-		private static final long serialVersionUID = 1L;
+		private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 		
 		private NumVal lo, hi;
 

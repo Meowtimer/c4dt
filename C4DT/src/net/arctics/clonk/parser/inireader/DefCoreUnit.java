@@ -1,6 +1,8 @@
 package net.arctics.clonk.parser.inireader;
 
 import java.io.InputStream;
+
+import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.index.C4Object;
 import net.arctics.clonk.parser.C4ID;
 import net.arctics.clonk.parser.c4script.C4ScriptBase;
@@ -13,7 +15,7 @@ public class DefCoreUnit extends IniUnit {
 //	private final List<DefCoreOption> defCoreOptions = DefCoreOption.createNewDefCoreList();
 //	private final List<DefCoreOption> physicalOptions = DefCoreOption.createNewPhysicalList();
 	
-	private static final long serialVersionUID = 1L;
+	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 	
 	@Override
 	protected String getConfigurationName() {

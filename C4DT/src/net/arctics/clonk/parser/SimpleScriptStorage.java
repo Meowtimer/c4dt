@@ -5,6 +5,8 @@ import java.io.InputStream;
 import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
 
+import net.arctics.clonk.ClonkCore;
+
 import org.eclipse.core.resources.IStorage;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
@@ -12,7 +14,7 @@ import org.eclipse.core.runtime.Path;
 
 public class SimpleScriptStorage implements IStorage, Serializable {
 	
-	private static final long serialVersionUID = 1L;
+	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 	
 	private String name;
 	private String contents;

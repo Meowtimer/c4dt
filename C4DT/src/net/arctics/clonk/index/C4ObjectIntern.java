@@ -39,7 +39,7 @@ public class C4ObjectIntern extends C4Object implements Serializable {
 			return staticVariable = null;
 		if (staticVariable == null) {
 			staticVariable = new C4Variable() {
-				private static final long serialVersionUID = 1L;
+				private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 
 				@Override
 				public String getName() {

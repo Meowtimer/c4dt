@@ -24,6 +24,7 @@ import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 
+import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.index.C4Engine;
 import net.arctics.clonk.index.C4Object;
 import net.arctics.clonk.index.C4ObjectIntern;
@@ -64,7 +65,7 @@ import org.xml.sax.SAXException;
  */
 public abstract class C4ScriptBase extends C4Structure implements IHasRelatedResource, ITreeNode {
 
-	private static final long serialVersionUID = 1L;
+	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 
 	private static final C4Object[] NO_INCLUDES = new C4Object[] {};
 

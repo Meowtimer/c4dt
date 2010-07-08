@@ -20,7 +20,7 @@ import org.eclipse.core.runtime.Path;
  */
 public class C4ScriptIntern extends C4ScriptBase implements Serializable {
 
-	private static final long serialVersionUID = 1L;
+	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 	
 	private transient IResource scriptFile;
 	private String scriptFilePath;

@@ -2,11 +2,13 @@ package net.arctics.clonk.parser.inireader;
 
 import java.io.InputStream;
 
+import net.arctics.clonk.ClonkCore;
+
 import org.eclipse.core.resources.IFile;
 
 public class MaterialUnit extends IniUnit {
 
-	private static final long serialVersionUID = 1L;
+	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 	
 	@Override
 	public String getConfigurationName() {

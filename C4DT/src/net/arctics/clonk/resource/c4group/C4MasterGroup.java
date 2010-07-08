@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.zip.GZIPInputStream;
 
+import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.filesystem.C4GroupFileSystem;
 
 import org.eclipse.core.runtime.CoreException;
@@ -18,7 +19,7 @@ import org.eclipse.core.runtime.IProgressMonitor;
  */
 public class C4MasterGroup extends C4Group {
 	
-	private static final long serialVersionUID = 1L;
+	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 
 	private transient InputStream stream;
 	private long streamPos;
