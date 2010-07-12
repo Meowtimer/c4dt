@@ -52,7 +52,7 @@ public class PlayerControlsUnit extends IniUnit {
 				if (e != null) {
 					String ident = e.getValue();
 					C4Variable var = new C4Variable("CON_" + ident, C4Type.INT); //$NON-NLS-1$
-					var.setScope(C4VariableScope.VAR_CONST);
+					var.setScope(C4VariableScope.CONST);
 					var.setParentDeclaration(this);
 					var.setLocation(e.getLocation());
 					controlVariables.add(var);

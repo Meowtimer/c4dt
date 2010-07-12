@@ -65,7 +65,7 @@ public class C4Variable extends C4Declaration implements Serializable, ITypedDec
 	public static final C4Variable THIS = new C4Variable("this", C4Type.OBJECT, Messages.This_Description); //$NON-NLS-1$
 	
 	private C4Variable(String name, C4Type type, String desc) {
-		this(name, type, desc, C4VariableScope.VAR_VAR);
+		this(name, type, desc, C4VariableScope.VAR);
 		typeLocked = true;
 	}
 	
@@ -99,7 +99,7 @@ public class C4Variable extends C4Declaration implements Serializable, ITypedDec
 
 	public C4Variable() {
 		name = ""; //$NON-NLS-1$
-		scope = C4VariableScope.VAR_VAR;
+		scope = C4VariableScope.VAR;
 	}
 	
 	public C4Variable(String name, String scope) {
@@ -194,29 +194,29 @@ public class C4Variable extends C4Declaration implements Serializable, ITypedDec
 	 *
 	 */
 	public enum C4VariableScope implements Serializable {
-		VAR_STATIC,
-		VAR_LOCAL,
-		VAR_VAR,
-		VAR_CONST;
+		STATIC,
+		LOCAL,
+		VAR,
+		CONST;
 		
 		public static C4VariableScope makeScope(String scopeString) {
-			if (scopeString.equals(Keywords.VarNamed)) return C4VariableScope.VAR_VAR;
-			if (scopeString.equals(Keywords.LocalNamed)) return C4VariableScope.VAR_LOCAL;
-			if (scopeString.equals(Keywords.GlobalNamed)) return C4VariableScope.VAR_STATIC;
-			if (scopeString.equals(Keywords.GlobalNamed + " " + Keywords.Const)) return C4VariableScope.VAR_CONST; //$NON-NLS-1$
+			if (scopeString.equals(Keywords.VarNamed)) return C4VariableScope.VAR;
+			if (scopeString.equals(Keywords.LocalNamed)) return C4VariableScope.LOCAL;
+			if (scopeString.equals(Keywords.GlobalNamed)) return C4VariableScope.STATIC;
+			if (scopeString.equals(Keywords.GlobalNamed + " " + Keywords.Const)) return C4VariableScope.CONST; //$NON-NLS-1$
 			//if (C4VariableScope.valueOf(scopeString) != null) return C4VariableScope.valueOf(scopeString);
 			else return null;
 		}
 		
 		public String toKeyword() {
 			switch (this) {
-			case VAR_CONST:
+			case CONST:
 				return Keywords.GlobalNamed + " " + Keywords.Const; //$NON-NLS-1$
-			case VAR_STATIC:
+			case STATIC:
 				return Keywords.GlobalNamed;
-			case VAR_LOCAL:
+			case LOCAL:
 				return Keywords.LocalNamed;
-			case VAR_VAR:
+			case VAR:
 				return Keywords.VarNamed;
 			default:
 				return null;
@@ -225,7 +225,7 @@ public class C4Variable extends C4Declaration implements Serializable, ITypedDec
 	}
 	
 	public int sortCategory() {
-		if (scope == null) return C4VariableScope.VAR_VAR.ordinal();
+		if (scope == null) return C4VariableScope.VAR.ordinal();
 		return scope.ordinal();
 	}
 
@@ -311,7 +311,7 @@ public class C4Variable extends C4Declaration implements Serializable, ITypedDec
 	
 	@Override
 	public boolean isGlobal() {
-		return scope == C4VariableScope.VAR_STATIC || scope == C4VariableScope.VAR_CONST;
+		return scope == C4VariableScope.STATIC || scope == C4VariableScope.CONST;
 	}
 
 	public boolean isAt(int offset) {

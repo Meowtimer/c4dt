@@ -495,7 +495,7 @@ public class C4Engine extends C4ScriptBase {
 	public C4Variable[] variablesWithPrefix(String prefix) {
 		List<C4Variable> result = new LinkedList<C4Variable>();
 		for (C4Variable v : variables()) {
-			if (v.getScope() == C4VariableScope.VAR_CONST && v.getName().startsWith(prefix)) {
+			if (v.getScope() == C4VariableScope.CONST && v.getName().startsWith(prefix)) {
 				result.add(v);
 			}
 		}

@@ -602,7 +602,7 @@ public class C4ScriptParser {
 						if (constDecl && !isEngine)
 							errorWithCode(ParserErrorCode.ConstantValueExpected, scanner.getPosition()-1, scanner.getPosition(), true);
 						else {
-							createdVariables.add(var = createVariable(constDecl ? C4VariableScope.VAR_CONST : C4VariableScope.VAR_STATIC, desc, s, e, varName));
+							createdVariables.add(var = createVariable(constDecl ? C4VariableScope.CONST : C4VariableScope.STATIC, desc, s, e, varName));
 							var.forceType(C4Type.INT); // most likely
 						}
 					}
@@ -618,7 +618,7 @@ public class C4ScriptParser {
 						if (!constantValue.isConstant()) {
 							errorWithCode(ParserErrorCode.ConstantValueExpected, constantValue, true);
 						}
-						var = createVariable(C4VariableScope.VAR_CONST, desc, s, e, varName);
+						var = createVariable(C4VariableScope.CONST, desc, s, e, varName);
 						try {
 							var.setConstValue(constantValue.evaluateAtParseTime(getContainer()));
 						} catch (Exception ex) {
@@ -630,7 +630,7 @@ public class C4ScriptParser {
 					}
 				}
 				else {
-					createdVariables.add(var = createVariable(C4VariableScope.VAR_STATIC, desc, s, e, varName));
+					createdVariables.add(var = createVariable(C4VariableScope.STATIC, desc, s, e, varName));
 				}
 				if (t != null)
 					var.forceType(t);
@@ -647,7 +647,7 @@ public class C4ScriptParser {
 				int s = scanner.getPosition();
 				String varName = scanner.readIdent();
 				int e = scanner.getPosition();
-				createdVariables.add(createVariable(C4VariableScope.VAR_LOCAL, desc, s, e, varName));
+				createdVariables.add(createVariable(C4VariableScope.LOCAL, desc, s, e, varName));
 				eatWhitespace();
 			} while (scanner.read() == ',');
 			scanner.unread();
@@ -679,14 +679,14 @@ public class C4ScriptParser {
 	
 	private C4Variable findVar(String name, C4VariableScope scope) {
 		switch (scope) {
-		case VAR_VAR:
+		case VAR:
 			return activeFunc.findVariable(name);
-		case VAR_CONST: case VAR_STATIC:
+		case CONST: case STATIC:
 			C4Declaration globalField = getContainer().getIndex() != null ? getContainer().getIndex().findGlobalDeclaration(name) : null;
 			if (globalField instanceof C4Variable)
 				return (C4Variable) globalField;
 			return null;
-		case VAR_LOCAL:
+		case LOCAL:
 			return getContainer().findLocalVariable(name, false);
 		default:
 			return null;
@@ -696,11 +696,11 @@ public class C4ScriptParser {
 	private C4Variable createVarInScope(String varName, C4VariableScope scope, SourceLocation location) {
 		C4Variable result = new C4Variable(varName, scope);
 		switch (scope) {
-		case VAR_VAR:
+		case VAR:
 			result.setParentDeclaration(activeFunc);
 			activeFunc.getLocalVars().add(result);
 			break;
-		case VAR_CONST: case VAR_STATIC: case VAR_LOCAL:
+		case CONST: case STATIC: case LOCAL:
 			result.setParentDeclaration(getContainer());
 			getContainer().addDeclaration(result);
 		}
@@ -822,7 +822,7 @@ public class C4ScriptParser {
 			}
 		}
 		else {
-			activeFunc.setVisibility(C4FunctionScope.FUNC_PUBLIC);
+			activeFunc.setVisibility(C4FunctionScope.PUBLIC);
 		}
 		if (!suspectOldStyle) {
 			retType = parseFunctionReturnType();
@@ -2089,7 +2089,7 @@ public class C4ScriptParser {
 			C4Variable var = findVar(varName, scope);
 			if (var == null) {
 				// happens when parsing only the body of a function for computing context information in an editor and such
-				var = createVariable(C4VariableScope.VAR_VAR, null, varNameStart, scanner.getPosition(), varName);
+				var = createVariable(C4VariableScope.VAR, null, varNameStart, scanner.getPosition(), varName);
 			}
 			parsedVariable = var;
 			ExprElm val;
@@ -2276,7 +2276,7 @@ public class C4ScriptParser {
 					AccessVar accessVar = new AccessVar(varName);
 					accessVar.setExprRegion(pos, pos+varName.length());
 					if (accessVar.getDeclImpl(this) == null) {
-						createVarInScope(varName, C4VariableScope.VAR_VAR, new SourceLocation(offsetOfScriptFragment()+pos, offsetOfScriptFragment()+pos+varName.length()));
+						createVarInScope(varName, C4VariableScope.VAR, new SourceLocation(offsetOfScriptFragment()+pos, offsetOfScriptFragment()+pos+varName.length()));
 					}
 					handleExpressionCreated(true, accessVar);
 					initialization = new SimpleStatement(accessVar);
@@ -2535,7 +2535,7 @@ public class C4ScriptParser {
 			}
 		}
 		int e = scanner.getPosition();
-		C4Variable var = new C4Variable(null, C4VariableScope.VAR_VAR);
+		C4Variable var = new C4Variable(null, C4VariableScope.VAR);
 		C4Type type = C4Type.makeType(firstWord);
 		var.forceType(type, type != C4Type.UNKNOWN && !isEngine);
 		if (type == C4Type.UNKNOWN) {
@@ -2708,7 +2708,7 @@ public class C4ScriptParser {
 	public static Statement parseStandaloneStatement(final String expression, C4Function context, IExpressionListener listener, final IMarkerListener markerListener) throws ParsingException {
 		if (context == null) {
 			C4ScriptBase tempScript = new TempScript(expression);
-			context = new C4Function("<temp>", null, C4FunctionScope.FUNC_GLOBAL); //$NON-NLS-1$
+			context = new C4Function("<temp>", null, C4FunctionScope.GLOBAL); //$NON-NLS-1$
 			context.setScript(tempScript);
 		}
 		C4ScriptParser tempParser = new ScriptParserWithMarkerListener(expression, context.getScript(), markerListener);

@@ -825,7 +825,7 @@ public abstract class C4ScriptExprTree {
 				decl = decl.latestVersion(); 
 				if (decl instanceof C4Variable) {
 					C4Variable var = (C4Variable) decl;
-					if (!soft || var.getScope() == C4VariableScope.VAR_VAR) {
+					if (!soft || var.getScope() == C4VariableScope.VAR) {
 						// for serialization, split static and non-static types again
 						var.setType(C4TypeSet.staticIngredients(getType()));
 						var.setObjectType(C4TypeSet.objectIngredient(getType()));
@@ -846,7 +846,7 @@ public abstract class C4ScriptExprTree {
 
 		@Override
 		public boolean modifiable(C4ScriptParser context) {
-			return declaration == null || ((C4Variable)declaration).getScope() != C4VariableScope.VAR_CONST;
+			return declaration == null || ((C4Variable)declaration).getScope() != C4VariableScope.CONST;
 		}
 
 		public AccessVar(String varName) {
@@ -880,15 +880,15 @@ public abstract class C4ScriptExprTree {
 			else if (declaration instanceof C4Variable) {
 				C4Variable var = (C4Variable) declaration;
 				switch (var.getScope()) {
-					case VAR_LOCAL:
-						if (parser.getActiveFunc().getVisibility() == C4FunctionScope.FUNC_GLOBAL) {
+					case LOCAL:
+						if (parser.getActiveFunc().getVisibility() == C4FunctionScope.GLOBAL) {
 							parser.errorWithCode(ParserErrorCode.LocalUsedInGlobal, this, true);
 						}
 						break;
-					case VAR_STATIC:
+					case STATIC:
 						parser.getContainer().addUsedProjectScript(var.getScript());
 						break;
-					case VAR_VAR:
+					case VAR:
 						if (var.getLocation() != null) {
 							int locationUsed = parser.getActiveFunc().getBody().getOffset()+this.getExprStart();
 							if (locationUsed < var.getLocation().getOffset())
@@ -954,7 +954,7 @@ public abstract class C4ScriptExprTree {
 			C4Object obj;
 			if (declaration instanceof C4Variable) {
 				C4Variable var = (C4Variable) declaration;
-				if (var.getScope() == C4VariableScope.VAR_CONST)
+				if (var.getScope() == C4VariableScope.CONST)
 					return var.getConstValue();
 				else if ((obj = getObjectBelongingToStaticVar(var)) != null)
 					return obj.getId(); // just return the id
@@ -963,7 +963,7 @@ public abstract class C4ScriptExprTree {
 		}
 
 		public boolean constCondition() {
-			return declaration instanceof C4Variable && ((C4Variable)declaration).getScope() == C4VariableScope.VAR_CONST;
+			return declaration instanceof C4Variable && ((C4Variable)declaration).getScope() == C4VariableScope.CONST;
 		}
 		
 		@Override
@@ -1250,7 +1250,7 @@ public abstract class C4ScriptExprTree {
 				}
 				else if (declaration instanceof C4Function) {
 					C4Function f = (C4Function)declaration;
-					if (f.getVisibility() == C4FunctionScope.FUNC_GLOBAL) {
+					if (f.getVisibility() == C4FunctionScope.GLOBAL) {
 						context.getContainer().addUsedProjectScript(f.getScript());
 					}
 					int givenParam = 0;

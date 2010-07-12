@@ -666,7 +666,7 @@ public abstract class C4ScriptBase extends C4Structure implements IHasRelatedRes
 		writer.write("\t</functions>\n"); //$NON-NLS-1$
 		writer.write("\t<variables>\n"); //$NON-NLS-1$
 		for (C4Variable v : variables()) {
-			writer.write(String.format("\t\t<variable name=\"%s\" type=\"%s\" const=\"%s\">\n", v.getName(), v.getType().typeName(true), Boolean.valueOf(v.getScope() == C4VariableScope.VAR_CONST))); //$NON-NLS-1$
+			writer.write(String.format("\t\t<variable name=\"%s\" type=\"%s\" const=\"%s\">\n", v.getName(), v.getType().typeName(true), Boolean.valueOf(v.getScope() == C4VariableScope.CONST))); //$NON-NLS-1$
 			if (v.getUserDescription() != null) {
 				writer.write("\t\t\t<description>\n"); //$NON-NLS-1$
 				writer.write("\t\t\t\t"+v.getUserDescription()+"\n"); //$NON-NLS-1$ //$NON-NLS-2$
@@ -706,7 +706,7 @@ public abstract class C4ScriptBase extends C4Structure implements IHasRelatedRes
 		for (int i = 0; i < variables.getLength(); i++) {
 			Node variable = variables.item(i);
 			C4Variable v = new C4Variable(variable.getAttributes().getNamedItem("name").getNodeValue(), C4Type.makeType(variable.getAttributes().getNamedItem("type").getNodeValue(), true)); //$NON-NLS-1$ //$NON-NLS-2$
-			v.setScope(variable.getAttributes().getNamedItem("const").getNodeValue().equals(Boolean.TRUE.toString()) ? C4VariableScope.VAR_CONST : C4VariableScope.VAR_STATIC); //$NON-NLS-1$
+			v.setScope(variable.getAttributes().getNamedItem("const").getNodeValue().equals(Boolean.TRUE.toString()) ? C4VariableScope.CONST : C4VariableScope.STATIC); //$NON-NLS-1$
 			Node desc = (Node) xPath.evaluate("./description[1]", variable, XPathConstants.NODE); //$NON-NLS-1$
 			if (desc != null)
 				v.setUserDescription(desc.getTextContent());
@@ -792,10 +792,10 @@ public abstract class C4ScriptBase extends C4Structure implements IHasRelatedRes
 
 	public boolean containsGlobals() {
 	    for (C4Function f : this.definedFunctions)
-	    	if (f.getVisibility() == C4FunctionScope.FUNC_GLOBAL)
+	    	if (f.getVisibility() == C4FunctionScope.GLOBAL)
 	    		return true;
 	    for (C4Variable v : this.definedVariables)
-	    	if (v.getScope() == C4VariableScope.VAR_STATIC)
+	    	if (v.getScope() == C4VariableScope.STATIC)
 	    		return true;
 	    return false;
     }

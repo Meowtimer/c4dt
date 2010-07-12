@@ -35,7 +35,7 @@ public class C4Function extends C4Structure implements Serializable, ITypedDecla
 		parameter = new ArrayList<C4Variable>(pars.length);
 		for (C4Variable var : pars)
 			parameter.add(var);
-		visibility = C4FunctionScope.FUNC_GLOBAL;
+		visibility = C4FunctionScope.GLOBAL;
 	}
 	
 	/**
@@ -53,7 +53,7 @@ public class C4Function extends C4Structure implements Serializable, ITypedDecla
 	}
 	
 	public C4Function() {
-		visibility = C4FunctionScope.FUNC_GLOBAL;
+		visibility = C4FunctionScope.GLOBAL;
 		name = ""; //$NON-NLS-1$
 		parameter = new ArrayList<C4Variable>();
 		localVars = new ArrayList<C4Variable>();
@@ -142,27 +142,27 @@ public class C4Function extends C4Structure implements Serializable, ITypedDecla
 	 *
 	 */
 	public enum C4FunctionScope {
-		FUNC_GLOBAL,
-		FUNC_PUBLIC,
-		FUNC_PROTECTED,
-		FUNC_PRIVATE;
+		GLOBAL,
+		PUBLIC,
+		PROTECTED,
+		PRIVATE;
 		
 		private String lowerCaseName;
 		
 		public static C4FunctionScope makeScope(String scopeString) {
-			if (scopeString == null) return C4FunctionScope.FUNC_PUBLIC;
-			if (scopeString.equals(Keywords.Public)) return C4FunctionScope.FUNC_PUBLIC;
-			if (scopeString.equals(Keywords.Protected)) return C4FunctionScope.FUNC_PROTECTED;
-			if (scopeString.equals(Keywords.Private)) return C4FunctionScope.FUNC_PRIVATE;
-			if (scopeString.equals(Keywords.Global)) return C4FunctionScope.FUNC_GLOBAL;
+			if (scopeString == null) return C4FunctionScope.PUBLIC;
+			if (scopeString.equals(Keywords.Public)) return C4FunctionScope.PUBLIC;
+			if (scopeString.equals(Keywords.Protected)) return C4FunctionScope.PROTECTED;
+			if (scopeString.equals(Keywords.Private)) return C4FunctionScope.PRIVATE;
+			if (scopeString.equals(Keywords.Global)) return C4FunctionScope.GLOBAL;
 			//if (C4FunctionScope.valueOf(scopeString) != null) return C4FunctionScope.valueOf(scopeString);
-			return C4FunctionScope.FUNC_PUBLIC;
+			return C4FunctionScope.PUBLIC;
 		}
 		
 		@Override
 		public String toString() {
 			if (lowerCaseName == null)
-				lowerCaseName = this.name().substring(5).toLowerCase();
+				lowerCaseName = this.name().toLowerCase();
 			return lowerCaseName;
 		}
 
@@ -365,7 +365,7 @@ public class C4Function extends C4Structure implements Serializable, ITypedDecla
 
 	public void createParameters(int num) {
 		for (int i = parameter.size(); i < num; i++) {
-			parameter.add(new C4Variable("par"+i, C4VariableScope.VAR_VAR)); //$NON-NLS-1$
+			parameter.add(new C4Variable("par"+i, C4VariableScope.VAR)); //$NON-NLS-1$
 		}
 	}
 
@@ -501,7 +501,7 @@ public class C4Function extends C4Structure implements Serializable, ITypedDecla
 	
 	@Override
 	public boolean isGlobal() {
-		return getVisibility() == C4FunctionScope.FUNC_GLOBAL;
+		return getVisibility() == C4FunctionScope.GLOBAL;
 	}
 	
 	public boolean tooManyParameters(int num) {

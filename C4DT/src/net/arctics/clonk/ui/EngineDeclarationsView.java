@@ -161,7 +161,7 @@ public class EngineDeclarationsView extends ViewPart implements IPropertyChangeL
 				
 				func.getParameters().clear();
 				for(ParameterCombination par : parameters) {
-					C4Variable var = new C4Variable(par.getName().getText(),C4VariableScope.VAR_LOCAL);
+					C4Variable var = new C4Variable(par.getName().getText(),C4VariableScope.LOCAL);
 					var.forceType(getSelectedType(par.getType()));
 					func.getParameters().add(var);
 				}

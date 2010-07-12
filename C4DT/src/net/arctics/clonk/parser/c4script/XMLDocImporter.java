@@ -138,7 +138,7 @@ public class XMLDocImporter {
 					}
 				}
 			} else {
-				result = new C4Variable(name, C4Type.INT, null, C4VariableScope.VAR_CONST);
+				result = new C4Variable(name, C4Type.INT, null, C4VariableScope.CONST);
 			}
 			result.setName(name);
 			((ITypedDeclaration)result).forceType(C4Type.makeType(rTypeNode.getTextContent()));

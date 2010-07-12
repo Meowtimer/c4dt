@@ -230,7 +230,7 @@ public class Command {
 		}
 
 		public C4CommandFunction(C4ScriptBase parent, Method method) {
-			super(method.getName(), parent, C4FunctionScope.FUNC_PUBLIC);
+			super(method.getName(), parent, C4FunctionScope.PUBLIC);
 			this.method = method;
 		}
 

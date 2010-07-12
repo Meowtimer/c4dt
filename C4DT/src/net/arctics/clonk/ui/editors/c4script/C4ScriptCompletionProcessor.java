@@ -438,12 +438,12 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 		}
 		loopCatcher.add(script);
 		for (C4Function func : script.functions()) {
-			if (func.getVisibility() != C4FunctionScope.FUNC_GLOBAL)
-				if (!noPrivateFuncs  || func.getVisibility() == C4FunctionScope.FUNC_PUBLIC)
+			if (func.getVisibility() != C4FunctionScope.GLOBAL)
+				if (!noPrivateFuncs  || func.getVisibility() == C4FunctionScope.PUBLIC)
 					proposalForFunc(func, prefix, offset, proposals, script.getName(), true);
 		}
 		for (C4Variable var : script.variables()) {
-			if (var.getScope() != C4VariableScope.VAR_STATIC && var.getScope() != C4VariableScope.VAR_CONST)
+			if (var.getScope() != C4VariableScope.STATIC && var.getScope() != C4VariableScope.CONST)
 				proposalForVar(var, prefix, wordOffset, proposals);
 		}
 		for (C4ScriptBase o : script.getIncludes(index))

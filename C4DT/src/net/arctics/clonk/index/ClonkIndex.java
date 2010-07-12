@@ -152,13 +152,13 @@ public class ClonkIndex implements Serializable, Iterable<C4Object> {
 	
 	private void addGlobalsFrom(C4ScriptBase script) {
 		for (C4Function func : script.functions()) {
-			if (func.getVisibility() == C4FunctionScope.FUNC_GLOBAL) {
+			if (func.getVisibility() == C4FunctionScope.GLOBAL) {
 				globalFunctions.add(func);
 			}
 			addToDeclarationMap(func);
 		}
 		for (C4Variable var : script.variables()) {
-			if (var.getScope() == C4VariableScope.VAR_STATIC || var.getScope() == C4VariableScope.VAR_CONST) {
+			if (var.getScope() == C4VariableScope.STATIC || var.getScope() == C4VariableScope.CONST) {
 				staticVariables.add(var);
 			}
 			addToDeclarationMap(var);
