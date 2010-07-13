@@ -118,3 +118,5 @@ are then taken into account in various places
 -Allow long-id constants (see Trajectory in OpenClonk)
 -Preserve empty lines when tidying up code
 -Fixes
+-Show errors and warnings immediately without needing to save a script
+-Return types of functions get shown in outline view
