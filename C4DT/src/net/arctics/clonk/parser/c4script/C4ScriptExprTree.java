@@ -5,6 +5,7 @@ import java.util.EnumSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.index.C4Object;
@@ -3429,12 +3430,22 @@ public abstract class C4ScriptExprTree {
 		public void setComment(String comment) {
 			this.comment = comment;
 		}
+		
+		private static final Pattern WHITE_SPACE_PATTERN = Pattern.compile("(\\s*)");
+		private static final Pattern WHITE_SPACE_AT_END_PATTERN = Pattern.compile("(\\s*)$");
 
 		private String commentAsPrintedStatement(C4Function function, int depth) {
 			try {
 				Statement s = C4ScriptParser.parseStandaloneStatement(comment, function, null);
 				if (s != null) {
-					return s.toString(depth+1);
+					String str = s.toString(depth);
+					Matcher matcher = WHITE_SPACE_PATTERN.matcher(comment);
+					if (matcher.find())
+						str = matcher.group(1) + str;
+					matcher = WHITE_SPACE_AT_END_PATTERN.matcher(comment);
+					if (matcher.find())
+						str = str + matcher.group(1);
+					return str;
 				} else {
 					return comment;
 				}

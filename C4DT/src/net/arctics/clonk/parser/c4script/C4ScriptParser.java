@@ -2710,6 +2710,7 @@ public class C4ScriptParser {
 			C4ScriptBase tempScript = new TempScript(expression);
 			context = new C4Function("<temp>", null, C4FunctionScope.GLOBAL); //$NON-NLS-1$
 			context.setScript(tempScript);
+			context.setBody(new SourceLocation(0, expression.length()));
 		}
 		C4ScriptParser tempParser = new ScriptParserWithMarkerListener(expression, context.getScript(), markerListener);
 		tempParser.setExpressionListener(listener);
@@ -2725,7 +2726,7 @@ public class C4ScriptParser {
 			else
 				break;
 		} while (true);
-		return statements.size() == 1 ? statement : new BunchOfStatements(statements);
+		return statements.size() == 1 ? statements.get(0) : new BunchOfStatements(statements);
 	}
 	
 	public static Statement parseStandaloneStatement(final String expression, C4Function context, IExpressionListener listener) throws ParsingException {
