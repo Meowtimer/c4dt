@@ -542,6 +542,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 				C4ObjectParser parser = C4ObjectParser.create((IContainer) resource);
 				if (parser != null) { // is complete c4d (with DefCore.txt Script.c and Graphics)
 					C4ObjectIntern object = parser.createObject();
+					if (object != null)
 					{
 						C4ScriptParser scriptParser = getParserFor(object);
 						if (scriptParser == null && object.getScriptFile() != null) {
