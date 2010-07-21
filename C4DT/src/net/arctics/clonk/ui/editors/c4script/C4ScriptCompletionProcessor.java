@@ -66,7 +66,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 		}
 	
 		public void assistSessionStarted(ContentAssistEvent event) {
-			proposalCycle = ProposalCycle.SHOW_ALL;
+			proposalCycle = ProposalCycle.ALL;
 			
 			// refresh to find out whether caret is inside a function and to get all the declarations
 			try {
@@ -91,17 +91,17 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 	}
 	
 	private enum ProposalCycle {
-		SHOW_ALL,
-		SHOW_LOCAL,
-		SHOW_OBJECT;
+		ALL,
+		LOCAL,
+		OBJECT;
 		
 		public String description() {
 			switch (this) {
-			case SHOW_ALL:
+			case ALL:
 				return Messages.C4ScriptCompletionProcessor_AllCompletions;
-			case SHOW_LOCAL:
+			case LOCAL:
 				return Messages.C4ScriptCompletionProcessor_LocalCompletions;
-			case SHOW_OBJECT:
+			case OBJECT:
 				return Messages.C4ScriptCompletionProcessor_ObjectCompletions;
 			default:
 				return null;
@@ -121,7 +121,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 	@SuppressWarnings("unused")
 	private ExprElm contextExpression, contextExpression2;
 	private List<IStoredTypeInformation> contextTypeInformation;
-	private ProposalCycle proposalCycle = ProposalCycle.SHOW_ALL;
+	private ProposalCycle proposalCycle = ProposalCycle.ALL;
 	private C4Function _activeFunc;
 	private String _prefix;
 	
@@ -191,7 +191,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 		
 		statusMessages.add(Messages.C4ScriptCompletionProcessor_ProjectFiles);
 		
-		if (proposalCycle == ProposalCycle.SHOW_ALL || activeFunc == null) {
+		if (proposalCycle == ProposalCycle.ALL || activeFunc == null) {
 			if (getEditor().scriptBeingEdited().getIndex().getEngine() != null) {
 				statusMessages.add(Messages.C4ScriptCompletionProcessor_EngineFunctions);
 			}
@@ -229,7 +229,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 			List<ICompletionProposal> proposals, ClonkIndex index,
 			final C4Function activeFunc) {
 		
-		if (proposalCycle == ProposalCycle.SHOW_ALL) {
+		if (proposalCycle == ProposalCycle.ALL) {
 			if (getEditor().scriptBeingEdited().getIndex().getEngine() != null) {
 				for (C4Function func : getEditor().scriptBeingEdited().getIndex().getEngine().functions()) {
 					proposalForFunc(func, prefix, offset, proposals, getEditor().scriptBeingEdited().getIndex().getEngine().getName(), true);
@@ -305,7 +305,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 			parser.endTypeInferenceBlock();
 		}
 		
-		if ((proposalCycle == ProposalCycle.SHOW_ALL || proposalCycle == ProposalCycle.SHOW_LOCAL) && activeFunc != null /*&& contextExpression == null* what was the reason for that again?*/) {
+		if ((proposalCycle == ProposalCycle.ALL || proposalCycle == ProposalCycle.LOCAL) && activeFunc != null /*&& contextExpression == null* what was the reason for that again?*/) {
 			for (C4Variable v : activeFunc.getParameters()) {
 				proposalForVar(v, prefix, wordOffset, proposals);
 			}
@@ -315,14 +315,14 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 		}
 
 
-		if (proposalCycle != ProposalCycle.SHOW_OBJECT)
+		if (proposalCycle != ProposalCycle.OBJECT)
 			for (ClonkIndex i : index.relevantIndexes())
 				proposalsForIndex(i, offset, wordOffset, prefix, proposals);
 
 		for (C4ScriptBase s : contextScripts) {
 			proposalsFromScript(s, new HashSet<C4ScriptBase>(), prefix, offset, wordOffset, proposals, contextScriptsChanged, index);
 		}
-		if (proposalCycle == ProposalCycle.SHOW_ALL) {
+		if (proposalCycle == ProposalCycle.ALL) {
 			ImageRegistry reg = ClonkCore.getDefault().getImageRegistry();
 			if (reg.get("keyword") == null) { //$NON-NLS-1$
 				reg.put("keyword", ImageDescriptor.createFromURL(FileLocator.find(ClonkCore.getDefault().getBundle(), new Path("icons/keyword.png"), null))); //$NON-NLS-1$ //$NON-NLS-2$
