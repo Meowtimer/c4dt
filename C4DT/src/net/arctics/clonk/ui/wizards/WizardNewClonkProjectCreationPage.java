@@ -36,7 +36,7 @@ public class WizardNewClonkProjectCreationPage extends WizardNewProjectCreationP
 	public void createControl(Composite parent) {
 		super.createControl(parent);
 		
-		Composite realParent = (Composite) parent.getChildren()[0];
+		Composite realParent = (Composite) getControl(); // surprise, that actually seems to work
 		realParent.setLayout(new GridLayout(1, false));
 		realParent.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
 		
