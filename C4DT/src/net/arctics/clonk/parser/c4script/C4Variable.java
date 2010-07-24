@@ -308,7 +308,6 @@ public class C4Variable extends C4Declaration implements Serializable, ITypedDec
 		return super.occurenceScope(project);
 	}
 
-	
 	@Override
 	public boolean isGlobal() {
 		return scope == C4VariableScope.STATIC || scope == C4VariableScope.CONST;

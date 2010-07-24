@@ -85,8 +85,7 @@ public enum C4Type implements IType {
 			return C4Type.REFERENCE;
 		return C4Type.UNKNOWN;
 	}
-	
-	
+
 	/**
 	 * Returns a type the java object comes nearest to being an instance of
 	 * @param value the value

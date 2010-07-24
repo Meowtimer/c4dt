@@ -2147,6 +2147,7 @@ public class C4ScriptParser {
 	
 	private void expect(char expected) throws ParsingException {
 		if (scanner.read() != expected) {
+			scanner.unread();
 			tokenExpectedError(String.valueOf(expected));
 		}
 	}
