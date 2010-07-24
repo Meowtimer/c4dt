@@ -54,12 +54,12 @@ public class WizardNewClonkProjectCreationPage extends WizardNewProjectCreationP
 		
 		TabFolder tabFolder = new TabFolder(realParent, SWT.DEFAULT);
 		tabFolder.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-		linkTab = new TabItem(tabFolder, SWT.DEFAULT);
-		linkTab.setText(Messages.NewClonkProject_LinkingTabTitle);
 		importTab = new TabItem(tabFolder, SWT.DEFAULT);
 		importTab.setText(Messages.NewClonkProject_ImportingTabTitle);
 		referenceTab = new TabItem(tabFolder, SWT.DEFAULT);
 		referenceTab.setText(Messages.NewClonkProject_ProjectRefsTabTitle);
+		linkTab = new TabItem(tabFolder, SWT.DEFAULT);
+		linkTab.setText(Messages.NewClonkProject_LinkingTabTitle);
 		
 		Composite linksComposite = new Composite(tabFolder, SWT.NONE);
 		linkGroupsEditor = new C4GroupListEditor("dummy", Messages.NewClonkProject_LinkGroups, linksComposite); //$NON-NLS-1$
