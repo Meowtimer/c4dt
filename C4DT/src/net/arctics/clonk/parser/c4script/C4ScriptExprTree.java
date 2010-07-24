@@ -20,6 +20,7 @@ import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.c4script.C4Function.C4FunctionScope;
 import net.arctics.clonk.parser.c4script.C4ScriptExprTree.Statement.Attachment.Position;
 import net.arctics.clonk.parser.c4script.C4ScriptExprTree.UnaryOp.Placement;
+import net.arctics.clonk.parser.c4script.C4ScriptParser.IMarkerListener;
 import net.arctics.clonk.parser.c4script.C4Variable.C4VariableScope;
 import net.arctics.clonk.parser.stringtbl.StringTbl;
 import net.arctics.clonk.ui.editors.c4script.ExpressionLocator;
@@ -1142,7 +1143,7 @@ public abstract class C4ScriptExprTree {
 			}
 			
 			// it's either a Find* or Create* function that takes some object type specifier as first argument - return that type
-			// (FIXME: could be triggered for functions which don't actually return object matching the type passed as first argument)
+			// (FIXME: could be triggered for functions which don't actually return objects matching the type passed as first argument)
 			if (params != null && params.length >= 1 && d instanceof C4Function && ((C4Function)d).getReturnType() == C4Type.OBJECT && (declarationName.startsWith("Create") || declarationName.startsWith("Find"))) { //$NON-NLS-1$ //$NON-NLS-2$
 				IType t = params[0].getType(context);
 				if (t instanceof C4ObjectType)
@@ -1163,7 +1164,7 @@ public abstract class C4ScriptExprTree {
 					return obj;
 			}
 
-			// function that does not return a reference: return type set out of object type and generic type
+			// function that does not return a reference: return typeset out of object type and generic type
 			if (d instanceof C4Function && ((C4Function)d).getReturnType() != C4Type.REFERENCE) {
 				C4Function function = (C4Function) d;
 				return function.getCombinedType();
@@ -1212,7 +1213,7 @@ public abstract class C4ScriptExprTree {
 			return null;
 		}
 		@Override
-		public void reportErrors(C4ScriptParser context) throws ParsingException {
+		public void reportErrors(final C4ScriptParser context) throws ParsingException {
 			super.reportErrors(context);
 			
 			// notify parser about unnamed parameter usage
@@ -1257,7 +1258,8 @@ public abstract class C4ScriptExprTree {
 					int givenParam = 0;
 					boolean specialCaseHandled = false;
 					// yay for special cases
-					if (params.length >= 3 &&  (f == getCachedFuncs(context).AddCommand || f == getCachedFuncs(context).AppendCommand || f == getCachedFuncs(context).SetCommand)) {
+					CachedEngineFuncs cachedFuncs = getCachedFuncs(context);
+					if (params.length >= 3 &&  (f == cachedFuncs.AddCommand || f == cachedFuncs.AppendCommand || f == cachedFuncs.SetCommand)) {
 						// look if command is "Call"; if so treat parms 2, 3, 4 as any
 						Object command = params[1].evaluateAtParseTime(context.getContainer());
 						if (command instanceof String && command.equals("Call")) { //$NON-NLS-1$
@@ -1275,6 +1277,31 @@ public abstract class C4ScriptExprTree {
 							specialCaseHandled = true;
 						}
 					}
+					
+					// another one: Schedule ... parse passed expression and check it's correctness
+					if (!specialCaseHandled && params.length >= 1 && f.getName().equals("Schedule")) {
+						IType objType = params.length >= 4 ? params[3].getType(context) : context.getContainerObject();
+						C4Object obj = objType != null ? C4TypeSet.objectIngredient(objType) : null;
+						Object scriptExpr = params[0].evaluateAtParseTime(obj);
+						if (scriptExpr instanceof String) {
+							C4ScriptParser.parseStandaloneStatement((String)scriptExpr, context.getActiveFunc(), null, new IMarkerListener() {
+								@Override
+								public void markerEncountered(ParserErrorCode code, int markerStart, int markerEnd, boolean noThrow, int severity, Object... args) {
+									// ignore complaining about missing ';'
+									if (code == ParserErrorCode.TokenExpected && args[0].equals(";"))
+										return;
+									try {
+										context.markerWithCode(code, params[0].getExprStart()+1+markerStart, params[0].getExprStart()+1+markerEnd, true, severity, args);
+									} catch (ParsingException e) {
+										// shouldn't happen
+										e.printStackTrace();
+									}
+								}
+							});
+						}
+					}
+					
+					// not a special case... check regular parameter types
 					if (!specialCaseHandled) {
 						for (C4Variable parm : f.getParameters()) {
 							if (givenParam >= params.length)
@@ -2232,17 +2259,28 @@ public abstract class C4ScriptExprTree {
 
 		@Override
 		public String evaluateAtParseTime(C4ScriptBase context) {
-			String value = getLiteral();
+			String value = getLiteral().replaceAll("\\\"", "\"");
 			int valueLen = value.length();
 			StringBuilder builder = new StringBuilder(valueLen*2);
 			// insert stringtbl entries
-			for (int i = 0; i < valueLen;) {
-				if (i+1 < valueLen && value.charAt(i) == '$') {
-					DeclarationRegion region = getStringTblEntryForLanguagePref(i+1, context, true);
-					if (region != null) {
-						builder.append(((NameValueAssignment)region.getDeclaration()).getValue());
-						i += region.getRegion().getLength();
-						continue;
+			Outer: for (int i = 0; i < valueLen;) {
+				if (i+1 < valueLen) {
+					switch (value.charAt(i)) {
+					case '$':
+						DeclarationRegion region = getStringTblEntryForLanguagePref(i+1, context, true);
+						if (region != null) {
+							builder.append(((NameValueAssignment)region.getDeclaration()).getValue());
+							i += region.getRegion().getLength();
+							continue Outer;
+						}
+						break;
+					case '\\':
+						switch (value.charAt(++i)) {
+						case '"': case '\\':
+							builder.append(value.charAt(i++));
+							continue Outer;
+						}
+						break;
 					}
 				}
 				builder.append(value.charAt(i++));

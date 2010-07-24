@@ -40,7 +40,6 @@ public class C4TypeSet implements IType {
 	}
 	
 	private static final Comparator<IType> SPECIFICNESS_COMPARATOR = new Comparator<IType>() {
-		
 		@Override
 		public int compare(IType o1, IType o2) {
 			return o2.specificness()-o1.specificness();
