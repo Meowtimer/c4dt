@@ -3456,14 +3456,15 @@ public abstract class C4ScriptExprTree {
 		
 		@Override
 		public void doPrint(ExprWriter builder, int depth) {
-			if (isMultiLine()) {
+			String c = commentAsPrintedStatement(null, depth);
+			if (multiLine = multiLine || c.contains("\n")) {
 				builder.append("/*"); //$NON-NLS-1$
-				builder.append(commentAsPrintedStatement(null, depth));
+				builder.append(c);
 				builder.append("*/"); //$NON-NLS-1$
 			}
 			else {
 				builder.append("//"); //$NON-NLS-1$
-				builder.append(commentAsPrintedStatement(null, depth));
+				builder.append(c);
 			}
 		}
 
