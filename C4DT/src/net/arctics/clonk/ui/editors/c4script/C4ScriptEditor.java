@@ -28,6 +28,7 @@ import net.arctics.clonk.parser.c4script.C4ScriptExprTree.AccessVar;
 import net.arctics.clonk.parser.c4script.C4ScriptExprTree.CallFunc;
 import net.arctics.clonk.parser.c4script.C4ScriptExprTree.ExprElm;
 import net.arctics.clonk.parser.ParsingException;
+import net.arctics.clonk.resource.c4group.C4GroupItem;
 import net.arctics.clonk.ui.editors.ClonkCompletionProposal;
 import net.arctics.clonk.ui.editors.ClonkPartitionScanner;
 import net.arctics.clonk.ui.editors.ExternalScriptsDocumentProvider;
@@ -42,6 +43,7 @@ import net.arctics.clonk.util.Utilities;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
+import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.action.IMenuManager;
@@ -265,15 +267,17 @@ public class C4ScriptEditor extends ClonkTextEditor {
 			reparseTimer.schedule(functionReparseTask = new TimerTask() {
 				public void run() {
 					removeMarkers(f, script);
-					C4ScriptParser.reportExpressionsAndStatements(document, f.getBody(), script, f, null, new IMarkerListener() {
-						@Override
-						public void markerEncountered(ParserErrorCode code,
-								int markerStart, int markerEnd, boolean noThrow,
-								int severity, Object... args) {
-							if (script.getScriptFile() instanceof IFile)
-								code.createMarker((IFile) script.getScriptFile(), ClonkCore.MARKER_C4SCRIPT_ERROR_WHILE_TYPING, markerStart, markerEnd, severity, args);
-						}
-					});
+					if (!C4GroupItem.isLinkedResource((IResource) script.getScriptFile())) {
+						C4ScriptParser.reportExpressionsAndStatements(document, f.getBody(), script, f, null, new IMarkerListener() {
+							@Override
+							public void markerEncountered(ParserErrorCode code,
+									int markerStart, int markerEnd, boolean noThrow,
+									int severity, Object... args) {
+								if (script.getScriptFile() instanceof IFile)
+									code.createMarker((IFile) script.getScriptFile(), ClonkCore.MARKER_C4SCRIPT_ERROR_WHILE_TYPING, markerStart, markerEnd, severity, args);
+							}
+						});
+					}
 				}
 			}, REPARSE_DELAY);
 		}
