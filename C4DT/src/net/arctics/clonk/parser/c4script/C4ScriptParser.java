@@ -682,9 +682,9 @@ public class C4ScriptParser {
 		case VAR:
 			return activeFunc.findVariable(name);
 		case CONST: case STATIC:
-			C4Declaration globalField = getContainer().getIndex() != null ? getContainer().getIndex().findGlobalDeclaration(name) : null;
-			if (globalField instanceof C4Variable)
-				return (C4Variable) globalField;
+			C4Declaration globalDeclaration = getContainer().getIndex() != null ? getContainer().getIndex().findGlobalDeclaration(name) : null;
+			if (globalDeclaration instanceof C4Variable)
+				return (C4Variable) globalDeclaration;
 			return null;
 		case LOCAL:
 			return getContainer().findLocalVariable(name, false);
