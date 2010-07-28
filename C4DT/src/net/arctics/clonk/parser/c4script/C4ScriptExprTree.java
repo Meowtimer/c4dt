@@ -355,14 +355,14 @@ public abstract class C4ScriptExprTree {
 		}
 
 		/**
-		 * Keeps applying newStyleReplacement to the expression and its modified versions until an expression and its replacement are identical e.g. there is nothing to be modified anymore
+		 * Keeps applying optimize to the expression and its modified versions until an expression and its replacement are identical e.g. there is nothing to be modified anymore
 		 * @param context
 		 * @return
 		 * @throws CloneNotSupportedException
 		 */
-		public ExprElm exhaustiveNewStyleReplacement(C4ScriptParser context) throws CloneNotSupportedException {
+		public ExprElm exhaustiveOptimize(C4ScriptParser context) throws CloneNotSupportedException {
 			ExprElm repl;
-			for (ExprElm original = this; (repl = original.newStyleReplacement(context)) != original; original = repl);
+			for (ExprElm original = this; (repl = original.optimize(context)) != original; original = repl);
 			return repl;
 		}
 
@@ -374,12 +374,12 @@ public abstract class C4ScriptExprTree {
 		 * @return a #strict/#strict 2/readability enhanced version of the original expression
 		 * @throws CloneNotSupportedException
 		 */
-		public ExprElm newStyleReplacement(C4ScriptParser context) throws CloneNotSupportedException {
+		public ExprElm optimize(C4ScriptParser context) throws CloneNotSupportedException {
 			ExprElm[] subElms = getSubElements();
 			ExprElm[] newSubElms = new ExprElm[subElms.length];
 			boolean differentSubElms = false;
 			for (int i = 0; i < subElms.length; i++) {
-				newSubElms[i] = subElms[i] != null ? subElms[i].newStyleReplacement(context) : null;
+				newSubElms[i] = subElms[i] != null ? subElms[i].optimize(context) : null;
 				if (newSubElms[i] != subElms[i])
 					differentSubElms = true;
 			}
@@ -1354,7 +1354,7 @@ public abstract class C4ScriptExprTree {
 			BinaryOp op = new BinaryOp(operator);
 			BinaryOp result = op;
 			for (int i = 0; i < parms.length; i++) {
-				ExprElm one = parms[i].newStyleReplacement(parser);
+				ExprElm one = parms[i].optimize(parser);
 				ExprElm two = i+1 < parms.length ? parms[i+1] : null;
 				if (op.getLeftSide() == null)
 					op.setLeftSide(one);
@@ -1371,15 +1371,15 @@ public abstract class C4ScriptExprTree {
 			return result;
 		}
 		@Override
-		public ExprElm newStyleReplacement(C4ScriptParser parser) throws CloneNotSupportedException {
+		public ExprElm optimize(C4ScriptParser parser) throws CloneNotSupportedException {
 
 			// And(ugh, blugh) -> ugh && blugh
 			C4ScriptOperator replOperator = C4ScriptOperator.oldStyleFunctionReplacement(declarationName);
 			if (replOperator != null && params.length == 1) {
 				// LessThan(x) -> x < 0
 				if (replOperator.getNumArgs() == 2)
-					return new BinaryOp(replOperator, params[0].newStyleReplacement(parser), NumberLiteral.ZERO);
-				ExprElm n = params[0].newStyleReplacement(parser);
+					return new BinaryOp(replOperator, params[0].optimize(parser), NumberLiteral.ZERO);
+				ExprElm n = params[0].optimize(parser);
 				if (n instanceof BinaryOp)
 					n = new Parenthesized(n);
 				return new UnaryOp(replOperator, replOperator.isPostfix() ? UnaryOp.Placement.Postfix : UnaryOp.Placement.Prefix, n);
@@ -1392,18 +1392,18 @@ public abstract class C4ScriptExprTree {
 			if (params.length >= 2 && declaration == getCachedFuncs(parser).ObjectCall && params[1] instanceof StringLiteral && (alwaysConvertObjectCalls || !this.containedInLoopHeaderOrNotStandaloneExpression()) && !params[0].hasSideEffects()) {
 				ExprElm[] parmsWithoutObject = new ExprElm[params.length-2];
 				for (int i = 0; i < parmsWithoutObject.length; i++)
-					parmsWithoutObject[i] = params[i+2].newStyleReplacement(parser);
+					parmsWithoutObject[i] = params[i+2].optimize(parser);
 				String lit = ((StringLiteral)params[1]).stringValue();
 				if (lit.length() > 0 && lit.charAt(0) != '~') {
 					return alwaysConvertObjectCalls && this.containedInLoopHeaderOrNotStandaloneExpression()
 					? new Sequence(new ExprElm[] {
-							params[0].newStyleReplacement(parser),
+							params[0].optimize(parser),
 							new MemberOperator(false, true, null, 0),
 							new CallFunc(((StringLiteral)params[1]).stringValue(), parmsWithoutObject)}
 					)
-					: new IfStatement(params[0].newStyleReplacement(parser),
+					: new IfStatement(params[0].optimize(parser),
 							new SimpleStatement(new Sequence(new ExprElm[] {
-									params[0].newStyleReplacement(parser),
+									params[0].optimize(parser),
 									new MemberOperator(false, true, null, 0),
 									new CallFunc(((StringLiteral)params[1]).stringValue(), parmsWithoutObject)}
 							)),
@@ -1428,14 +1428,14 @@ public abstract class C4ScriptExprTree {
 			
 			// SetVar(5, "ugh") -> Var(5) = "ugh"
 			if (params.length == 2 && declaration != null && (declaration == getCachedFuncs(parser).SetVar || declaration == getCachedFuncs(parser).SetLocal || declaration == getCachedFuncs(parser).AssignVar)) {
-				return new BinaryOp(C4ScriptOperator.Assign, new CallFunc(declarationName.substring(declarationName.equals("AssignVar") ? "Assign".length() : "Set".length()), params[0].newStyleReplacement(parser)), params[1].newStyleReplacement(parser)); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+				return new BinaryOp(C4ScriptOperator.Assign, new CallFunc(declarationName.substring(declarationName.equals("AssignVar") ? "Assign".length() : "Set".length()), params[0].optimize(parser)), params[1].optimize(parser)); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 			}
 
 			// DecVar(0) -> Var(0)--
 			if (params.length <= 1 && declaration != null && (declaration == getCachedFuncs(parser).DecVar || declaration == getCachedFuncs(parser).IncVar)) {
 				return new UnaryOp(declaration == getCachedFuncs(parser).DecVar ? C4ScriptOperator.Decrement : C4ScriptOperator.Increment, Placement.Prefix,
 						new CallFunc(getCachedFuncs(parser).Var.getName(), new ExprElm[] {
-							params.length == 1 ? params[0].newStyleReplacement(parser) : NumberLiteral.ZERO
+							params.length == 1 ? params[0].optimize(parser) : NumberLiteral.ZERO
 						})
 				);
 			}
@@ -1446,12 +1446,12 @@ public abstract class C4ScriptExprTree {
 				if (lit.length() > 0 && lit.charAt(0) != '~') {
 					ExprElm[] parmsWithoutName = new ExprElm[params.length-1];
 					for (int i = 0; i < parmsWithoutName.length; i++)
-						parmsWithoutName[i] = params[i+1].newStyleReplacement(parser);
+						parmsWithoutName[i] = params[i+1].optimize(parser);
 					return new CallFunc(((StringLiteral)params[0]).stringValue(), parmsWithoutName);
 				}
 			}
 
-			return super.newStyleReplacement(parser);
+			return super.optimize(parser);
 		}
 
 		private boolean containedInLoopHeaderOrNotStandaloneExpression() {
@@ -1598,7 +1598,7 @@ public abstract class C4ScriptExprTree {
 		}
 
 		@Override
-		public ExprElm newStyleReplacement(C4ScriptParser context) throws CloneNotSupportedException {
+		public ExprElm optimize(C4ScriptParser context) throws CloneNotSupportedException {
 			// #strict 2: ne -> !=, S= -> ==
 			if (context.getStrictLevel() >= 2) {
 				C4ScriptOperator op = getOperator();
@@ -1607,7 +1607,7 @@ public abstract class C4ScriptExprTree {
 				else if (op == C4ScriptOperator.ne)
 					op = C4ScriptOperator.NotEqual;
 				if (op != getOperator()) {
-					return new BinaryOp(op, getLeftSide().newStyleReplacement(context), getRightSide().newStyleReplacement(context));
+					return new BinaryOp(op, getLeftSide().optimize(context), getRightSide().optimize(context));
 				}
 			}
 
@@ -1618,7 +1618,7 @@ public abstract class C4ScriptExprTree {
 					return block;
 			}
 
-			return super.newStyleReplacement(context);
+			return super.optimize(context);
 		}
 
 		private ExprElm convertOperatorHackToBlock(C4ScriptParser context) throws CloneNotSupportedException {
@@ -1645,13 +1645,13 @@ public abstract class C4ScriptExprTree {
 				List<Statement> statements = new LinkedList<Statement>();
 				// wrap expressions in statements
 				for (ExprElm ex : leftSideArguments) {
-					statements.add(new SimpleStatement(ex.newStyleReplacement(context)));
+					statements.add(new SimpleStatement(ex.optimize(context)));
 				}
 				// convert func call to proper return statement
 				if (getRightSide().getControlFlow() == ControlFlow.Return)
-					statements.add(new ReturnStatement(((CallFunc)getRightSide()).getReturnArg().newStyleReplacement(context)));
+					statements.add(new ReturnStatement(((CallFunc)getRightSide()).getReturnArg().optimize(context)));
 				else
-					statements.add(new SimpleStatement(getRightSide().newStyleReplacement(context)));
+					statements.add(new SimpleStatement(getRightSide().optimize(context)));
 				return new Block(statements);
 			}
 			return null;
@@ -1868,11 +1868,11 @@ public abstract class C4ScriptExprTree {
 		}
 
 		@Override
-		public ExprElm newStyleReplacement(C4ScriptParser parser)
+		public ExprElm optimize(C4ScriptParser parser)
 		throws CloneNotSupportedException {
 			if (!(getParent() instanceof Operator) && !(getParent() instanceof Sequence))
-				return innerExpr.newStyleReplacement(parser);
-			return super.newStyleReplacement(parser);
+				return innerExpr.optimize(parser);
+			return super.optimize(parser);
 		}
 
 		@Override
@@ -1948,9 +1948,9 @@ public abstract class C4ScriptExprTree {
 		}
 
 		@Override
-		public ExprElm newStyleReplacement(C4ScriptParser context) throws CloneNotSupportedException {
+		public ExprElm optimize(C4ScriptParser context) throws CloneNotSupportedException {
 			// could happen when argument is transformed to binary operator
-			ExprElm arg = getArgument().newStyleReplacement(context);
+			ExprElm arg = getArgument().optimize(context);
 			if (arg instanceof BinaryOp)
 				return new UnaryOp(getOperator(), placement, new Parenthesized(arg));
 			if (getOperator() == C4ScriptOperator.Not && arg instanceof Parenthesized) {
@@ -1958,20 +1958,20 @@ public abstract class C4ScriptExprTree {
 				if (brackets.getInnerExpr() instanceof BinaryOp) {
 					BinaryOp op = (BinaryOp) brackets.getInnerExpr();
 					if (op.getOperator() == C4ScriptOperator.Equal) {
-						return new BinaryOp(C4ScriptOperator.NotEqual, op.getLeftSide().newStyleReplacement(context), op.getRightSide().newStyleReplacement(context));
+						return new BinaryOp(C4ScriptOperator.NotEqual, op.getLeftSide().optimize(context), op.getRightSide().optimize(context));
 					}
 					else if (op.getOperator() == C4ScriptOperator.NotEqual) {
-						return new BinaryOp(C4ScriptOperator.Equal, op.getLeftSide().newStyleReplacement(context), op.getRightSide().newStyleReplacement(context));
+						return new BinaryOp(C4ScriptOperator.Equal, op.getLeftSide().optimize(context), op.getRightSide().optimize(context));
 					}
 					else if (op.getOperator() == C4ScriptOperator.StringEqual) {
-						return new BinaryOp(C4ScriptOperator.ne, op.getLeftSide().newStyleReplacement(context), op.getRightSide().newStyleReplacement(context));
+						return new BinaryOp(C4ScriptOperator.ne, op.getLeftSide().optimize(context), op.getRightSide().optimize(context));
 					}
 					else if (op.getOperator() == C4ScriptOperator.ne) {
-						return new BinaryOp(C4ScriptOperator.StringEqual, op.getLeftSide().newStyleReplacement(context), op.getRightSide().newStyleReplacement(context));
+						return new BinaryOp(C4ScriptOperator.StringEqual, op.getLeftSide().optimize(context), op.getRightSide().optimize(context));
 					}
 				}
 			}
-			return super.newStyleReplacement(context);
+			return super.optimize(context);
 		}
 
 		@Override
@@ -2826,7 +2826,7 @@ public abstract class C4ScriptExprTree {
 		}
 		
 		@Override
-		public ExprElm newStyleReplacement(C4ScriptParser parser)
+		public ExprElm optimize(C4ScriptParser parser)
 		throws CloneNotSupportedException {
 			if (getParent() != null && !(getParent() instanceof KeywordStatement) && !(this instanceof BunchOfStatements)) {
 				return new BunchOfStatements(statements);
@@ -2852,7 +2852,7 @@ public abstract class C4ScriptExprTree {
 			if (commentedOutList != null)
 				return new Block(commentedOutList);
 			else
-				return super.newStyleReplacement(parser);
+				return super.optimize(parser);
 		}
 		
 		@Override
@@ -2945,8 +2945,8 @@ public abstract class C4ScriptExprTree {
 		}
 
 		@Override
-		public ExprElm newStyleReplacement(C4ScriptParser parser) throws CloneNotSupportedException {
-			ExprElm exprReplacement = expression.newStyleReplacement(parser);
+		public ExprElm optimize(C4ScriptParser parser) throws CloneNotSupportedException {
+			ExprElm exprReplacement = expression.optimize(parser);
 			if (exprReplacement instanceof Statement)
 				return exprReplacement;
 			if (exprReplacement == expression)
@@ -3082,10 +3082,10 @@ public abstract class C4ScriptExprTree {
 		}
 
 		@Override
-		public ExprElm newStyleReplacement(C4ScriptParser parser) throws CloneNotSupportedException {
+		public ExprElm optimize(C4ScriptParser parser) throws CloneNotSupportedException {
 			// return (0); -> return 0;
 			if (returnExpr instanceof Parenthesized)
-				return new ReturnStatement(((Parenthesized)returnExpr).getInnerExpr().newStyleReplacement(parser));
+				return new ReturnStatement(((Parenthesized)returnExpr).getInnerExpr().optimize(parser));
 			// return (0, Sound("Ugh")); -> { Sound("Ugh"); return 0; }
 			// FIXME: should declare temporary variable so that order of expression execution isn't changed
 			/*
@@ -3100,7 +3100,7 @@ public abstract class C4ScriptExprTree {
 				return getParent() instanceof ConditionalStatement ? new Block(statements) : new BunchOfStatements(statements);
 			}
 			 */
-			return super.newStyleReplacement(parser);
+			return super.optimize(parser);
 		}
 
 		@Override

@@ -225,8 +225,7 @@ public class C4Variable extends C4Declaration implements Serializable, ITypedDec
 	}
 	
 	public int sortCategory() {
-		if (scope == null) return C4VariableScope.VAR.ordinal();
-		return scope.ordinal();
+		return (scope != null ? scope : C4VariableScope.VAR).ordinal();
 	}
 
 	private static String htmlerize(String text) {

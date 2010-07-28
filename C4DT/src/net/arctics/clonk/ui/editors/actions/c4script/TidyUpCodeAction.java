@@ -132,7 +132,7 @@ public class TidyUpCodeAction extends TextEditorAction {
 							// noop
 							break;
 						}
-						b.exhaustiveNewStyleReplacement(parser).print(blockStringBuilder, 1);
+						b.exhaustiveOptimize(parser).print(blockStringBuilder, 1);
 						String blockString = blockStringBuilder.toString();
 						int blockBegin;
 						int blockLength;
@@ -180,7 +180,7 @@ public class TidyUpCodeAction extends TextEditorAction {
 	
 	private static void replaceExpression(IDocument document, ExprElm e, C4ScriptParser parser, TextChange textChange) throws BadLocationException, CloneNotSupportedException {
 		String oldString = document.get(e.getExprStart(), e.getExprEnd()-e.getExprStart());
-		String newString = e.exhaustiveNewStyleReplacement(parser).toString(2);
+		String newString = e.exhaustiveOptimize(parser).toString(2);
 		if (!oldString.equals(newString))
 			textChange.addEdit(new ReplaceEdit(e.getExprStart(), e.getExprEnd()-e.getExprStart(), newString));
 	}

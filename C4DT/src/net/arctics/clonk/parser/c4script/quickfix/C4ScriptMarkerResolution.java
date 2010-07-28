@@ -59,7 +59,7 @@ public class C4ScriptMarkerResolution implements IMarkerResolution, IMarkerResol
 			ExprElm expr = locator.getTopLevelInRegion();
 			if (expr != null) {
 				try {
-					doc.replace(expr.getOffset()+func.getBody().getOffset(), expr.getLength(), expr.exhaustiveNewStyleReplacement(parser).toString());
+					doc.replace(expr.getOffset()+func.getBody().getOffset(), expr.getLength(), expr.exhaustiveOptimize(parser).toString());
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
