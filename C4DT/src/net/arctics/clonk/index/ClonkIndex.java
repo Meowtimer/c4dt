@@ -43,7 +43,6 @@ public class ClonkIndex implements Serializable, Iterable<C4Object> {
 	
 	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 
-	// not so nice to have it as an instance variable :/
 	private transient static final IPredicate<C4Declaration> IS_GLOBAL = new IPredicate<C4Declaration>() {
 		public boolean test(C4Declaration item) {
 			return item.isGlobal();
@@ -236,7 +235,7 @@ public class ClonkIndex implements Serializable, Iterable<C4Object> {
 	
 	/**
 	 * Remove the script from the index
-	 * @param script script which maybe a standalone-script, a scenario or an object
+	 * @param script script which may be a standalone-script, a scenario or an object
 	 */
 	public void removeScript(C4ScriptBase script) {
 		if (script instanceof C4Object) {
