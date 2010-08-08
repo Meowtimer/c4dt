@@ -267,7 +267,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 			reparseTimer.schedule(functionReparseTask = new TimerTask() {
 				public void run() {
 					removeMarkers(f, script);
-					if (!C4GroupItem.isLinkedResource((IResource) script.getScriptFile())) {
+					if (script.getScriptFile() instanceof IResource && !C4GroupItem.isLinkedResource((IResource) script.getScriptFile())) {
 						C4ScriptParser.reportExpressionsAndStatements(document, f.getBody(), script, f, null, new IMarkerListener() {
 							@Override
 							public void markerEncountered(ParserErrorCode code,
