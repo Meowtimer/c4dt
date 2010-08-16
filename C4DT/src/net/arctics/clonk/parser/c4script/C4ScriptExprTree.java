@@ -1257,8 +1257,8 @@ public abstract class C4ScriptExprTree {
 					}
 					int givenParam = 0;
 					boolean specialCaseHandled = false;
-					// yay for special cases
-					CachedEngineFuncs cachedFuncs = getCachedFuncs(context);
+					// yay for special cases ~ blörgs, don't bother
+					/*CachedEngineFuncs cachedFuncs = getCachedFuncs(context);
 					if (params.length >= 3 &&  (f == cachedFuncs.AddCommand || f == cachedFuncs.AppendCommand || f == cachedFuncs.SetCommand)) {
 						// look if command is "Call"; if so treat parms 2, 3, 4 as any
 						Object command = params[1].evaluateAtParseTime(context.getContainer());
@@ -1276,7 +1276,7 @@ public abstract class C4ScriptExprTree {
 							}
 							specialCaseHandled = true;
 						}
-					}
+					}*/
 					
 					// another one: Schedule ... parse passed expression and check it's correctness
 					if (!specialCaseHandled && params.length >= 1 && f.getName().equals("Schedule")) {
