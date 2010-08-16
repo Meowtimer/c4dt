@@ -99,7 +99,9 @@
 			<entry name="VertexY" class="IntegerArray"
 				description="Liste der vertikalen Koordinaten der Eckpunkte des Objekts." />
 			<entry name="VertexCNAT" class="IntegerArray"
-				description="Liste der Ausrichtungsbestimmungen der Eckpunkte.\n  Siehe CNAT." />
+				description="Liste der Ausrichtungsbestimmungen der Eckpunkte.\n  Siehe CNAT."
+				constantsPrefix="CNAT_"
+			/>
 			<entry name="VertexFriction" class="IntegerArray"
 				description="Liste der Reibungswerte der Eckpunkte, jeweils 1 bis 100." />
 			<entry name="Entrance" class="IntegerArray"

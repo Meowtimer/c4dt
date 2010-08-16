@@ -14,6 +14,7 @@ import net.arctics.clonk.parser.inireader.Function;
 import net.arctics.clonk.parser.inireader.IDArray;
 import net.arctics.clonk.parser.inireader.IniEntry;
 import net.arctics.clonk.parser.inireader.IniSection;
+import net.arctics.clonk.parser.inireader.IntegerArray;
 import net.arctics.clonk.parser.inireader.IniData.IniDataEntry;
 import net.arctics.clonk.ui.editors.ClonkHyperlink;
 import net.arctics.clonk.ui.editors.ClonkSourceViewerConfiguration;
@@ -127,7 +128,7 @@ public class IniSourceViewerConfiguration extends ClonkSourceViewerConfiguration
 										}
 									});
 								}
-								else if (entryClass == CategoriesArray.class) {
+								else if (entryClass == CategoriesArray.class || entryClass == IntegerArray.class) {
 									IRegion idRegion = Utilities.wordRegionAt(line, relativeOffset);
 									if (idRegion.getLength() > 0) {
 										declaration = getEditor().getIniUnit().getEngine().findVariable(line.substring(idRegion.getOffset(), idRegion.getOffset()+idRegion.getLength()));

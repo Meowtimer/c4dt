@@ -206,7 +206,7 @@ public class IniData {
 			if ((n = entryNode.getAttributes().getNamedItem("description")) != null) { //$NON-NLS-1$
 				entry.entryDescription = n.getNodeValue();
 			}
-			if (entry.entryClass == CategoriesArray.class) {
+			if (entry.entryClass == CategoriesArray.class || entry.entryClass == IntegerArray.class) {
 				if ((n = entryNode.getAttributes().getNamedItem("flags")) != null) { //$NON-NLS-1$
 					entry.extraData = n.getNodeValue().split(","); //$NON-NLS-1$
 				}
@@ -244,6 +244,11 @@ public class IniData {
 			} catch (ClassCastException e) {
 				return null;
 			}
+		}
+		
+		@Override
+		public String toString() {
+			return String.format("%s: %s", entryName, entryClass != null ? entryClass.getSimpleName() : "?");
 		}
 		
 	}

@@ -9,7 +9,7 @@ import org.eclipse.core.resources.IMarker;
 
 public class IntegerArray implements IIniEntryValue, IHasChildrenWithContext, IConvertibleToPrimitive {
 
-	private int[] integers;
+	private CategoriesValue[] values;
 	
 	public IntegerArray() {
 	}
@@ -23,24 +23,12 @@ public class IntegerArray implements IIniEntryValue, IHasChildrenWithContext, IC
 	}
 	
 	public String toString() {
-		StringBuilder builder = new StringBuilder(integers.length * 2);
-		for(int i = 0; i < integers.length;i++) {
-			builder.append(integers[i]);
-			if (i < integers.length - 1) builder.append(","); //$NON-NLS-1$
+		StringBuilder builder = new StringBuilder(values.length * 2);
+		for(int i = 0; i < values.length;i++) {
+			builder.append(values[i]);
+			if (i < values.length - 1) builder.append(","); //$NON-NLS-1$
 		}
 		return builder.toString();
-	}
-
-	public int get(int i) {
-		return integers[i];
-	}
-	
-	public int[] getIntegers() {
-		return integers;
-	}
-
-	public void setIntegers(int[] integers) {
-		this.integers = integers;
 	}
 
 	@Override
@@ -48,22 +36,22 @@ public class IntegerArray implements IIniEntryValue, IHasChildrenWithContext, IC
 		try {
 			// empty input should be okay
 			if (input.equals("")) { //$NON-NLS-1$
-				this.integers = new int[] {};
+				this.values = new CategoriesValue[] {};
 				return;
 			}
 			String[] parts = input.split(","); //$NON-NLS-1$
 			if (parts.length > 0) {
-				int[] integers = new int[parts.length];
+				CategoriesValue[] values = new CategoriesValue[parts.length];
 				for(int i = 0; i < parts.length;i++) {
 					parts[i] = parts[i].trim();
 					if (parts[i].equals("")) //$NON-NLS-1$
-						integers[i] = 0;
+						values[i] = new CategoriesValue(0);
 					else {
 						if (parts[i].startsWith("+")) parts[i] = parts[i].substring(1); //$NON-NLS-1$
-						integers[i] = Integer.parseInt(parts[i].trim());
+						values[i] = new CategoriesValue(parts[i].trim(), context.getEngine(), entryData.getConstantsPrefix());
 					}
 				}
-				this.integers = integers;
+				this.values = values;
 			}
 			else {
 				throw new IniParserException(IMarker.SEVERITY_WARNING, Messages.ExpectedIntegerArray);
@@ -76,36 +64,35 @@ public class IntegerArray implements IIniEntryValue, IHasChildrenWithContext, IC
 		}
 	}
 
-	public void set(int index, int value) {
-		integers[index] = value;
-	}
-
 	public boolean hasChildren() {
-		return integers.length > 0;
+		return values.length > 0;
 	}
 
 	public IHasContext[] getChildren(Object context) {
-		IHasContext[] result = new IHasContext[integers.length];
+		IHasContext[] result = new IHasContext[values.length];
 		for (int i = 0; i < result.length; i++)
 			result[i] = new EntrySubItem<IntegerArray>(this, context, i);
 		return result;
 	}
 
 	public Object getChildValue(int index) {
-		return integers[index];
+		return values[index];
 	}
-
-	public void setChildValue(int index, Object value) {
-		integers[index] = value instanceof Integer
-			? (Integer)value
-			: value instanceof String
-				? Integer.valueOf((String)value)
-				: 0;
+	
+	public int get(int index) {
+		return values[index].getSummedValue();
 	}
 
 	@Override
 	public Object convertToPrimitive() {
-		return integers;
-	}	
+		return values;
+	}
+
+	@Override
+	public void setChildValue(int index, Object value) {
+		values[index] = value instanceof Integer
+			? new CategoriesValue((Integer)index)
+			: new CategoriesValue(0);
+	}
 
 }

@@ -149,6 +149,7 @@ public class C4Engine extends C4ScriptBase {
 	}
 
 	private transient CachedEngineFuncs cachedFuncs;
+	private transient Map<String, C4Variable[]> cachedPrefixedVariables;
 
 	private transient EngineSettings intrinsicSettings;
 	private transient EngineSettings currentSettings;
@@ -187,6 +188,7 @@ public class C4Engine extends C4ScriptBase {
 			intrinsicSettings = new EngineSettings();
 		}
 		cachedFuncs = new CachedEngineFuncs(this);
+		cachedPrefixedVariables = null;
 	}
 
 	@Override
@@ -493,13 +495,23 @@ public class C4Engine extends C4ScriptBase {
 	}
 	
 	public C4Variable[] variablesWithPrefix(String prefix) {
+		// FIXME: oh noes, will return array stored in map, making it possible to modify it
+		if (cachedPrefixedVariables != null) {
+			C4Variable[] inCache = cachedPrefixedVariables.get(prefix);
+			if (inCache != null)
+				return inCache;
+		}
 		List<C4Variable> result = new LinkedList<C4Variable>();
 		for (C4Variable v : variables()) {
 			if (v.getScope() == C4VariableScope.CONST && v.getName().startsWith(prefix)) {
 				result.add(v);
 			}
 		}
-		return result.toArray(new C4Variable[result.size()]);
+		C4Variable[] resultArray = result.toArray(new C4Variable[result.size()]);
+		if (cachedPrefixedVariables == null)
+			cachedPrefixedVariables = new HashMap<String, C4Variable[]>();
+		cachedPrefixedVariables.put(prefix, resultArray);
+		return resultArray;
 	}
 
 }
