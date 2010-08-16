@@ -169,6 +169,14 @@ public enum C4Type implements IType {
 	}
 	
 	@Override
+	public boolean containsAnyTypeOf(IType... types) {
+		for (IType t : types)
+			if (t == this)
+				return true;
+		return false;
+	}
+	
+	@Override
 	public int specificness() {
 		switch (this) {
 		case UNKNOWN:

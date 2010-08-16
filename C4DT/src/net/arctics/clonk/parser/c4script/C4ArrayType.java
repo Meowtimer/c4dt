@@ -58,4 +58,9 @@ public class C4ArrayType implements IType {
 		return false;
 	}
 
+	@Override
+	public boolean containsAnyTypeOf(IType... types) {
+		return IType.Default.containsAnyTypeOf(this, types);
+	}
+
 }

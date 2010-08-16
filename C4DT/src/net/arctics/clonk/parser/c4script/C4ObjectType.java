@@ -53,6 +53,11 @@ public class C4ObjectType implements IType {
 	public boolean containsType(IType type) {
 		return type == C4Type.ID || type == this.type || type == C4Type.PROPLIST;
 	}
+	
+	@Override
+	public boolean containsAnyTypeOf(IType... types) {
+		return IType.Default.containsAnyTypeOf(this, types);
+	}
 
 	@Override
 	public int specificness() {

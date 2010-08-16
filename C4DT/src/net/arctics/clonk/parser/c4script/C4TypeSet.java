@@ -173,6 +173,11 @@ public class C4TypeSet implements IType {
 	}
 	
 	@Override
+	public boolean containsAnyTypeOf(IType... types) {
+		return IType.Default.containsAnyTypeOf(this, types);
+	}
+	
+	@Override
 	public int specificness() {
 		int s = 0, c = 0;
 		for (IType t : this) {

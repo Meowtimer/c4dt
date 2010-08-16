@@ -184,6 +184,11 @@ public abstract class C4Object extends C4ScriptBase implements IType {
 	public boolean containsType(IType type) {
 		return type == C4Type.OBJECT || type == C4Type.PROPLIST || type == this;
 	}
+	
+	@Override
+	public boolean containsAnyTypeOf(IType... types) {
+		return IType.Default.containsAnyTypeOf(this, types);
+	}
 
 	@Override
 	public int specificness() {
