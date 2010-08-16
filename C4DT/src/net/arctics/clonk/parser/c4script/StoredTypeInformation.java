@@ -15,16 +15,17 @@ public abstract class StoredTypeInformation implements IStoredTypeInformation, C
 	}
 	
 	@Override
-	public void generalTypeHint(IType hint) {
+	public boolean generalTypeHint(IType hint) {
 		if (type == C4Type.UNKNOWN) {
 			storeType(hint);
-		} else {
-			for (IType t : hint) {
-				if (type.containsType(t))
-					return;
-			}
+		} else if (type == C4Type.ANY) {
 			type = C4TypeSet.create(type, hint);
+		} else {
+			// false -> wrong hint
+			// true -> type is at least contained in the hint so it is somewhat correct   
+			return type.subsetOfType(hint);
 		}
+		return true;
 	}
 	
 	public void apply(boolean soft) {}

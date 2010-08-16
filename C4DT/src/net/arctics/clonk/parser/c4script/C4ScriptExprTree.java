@@ -501,7 +501,7 @@ public abstract class C4ScriptExprTree {
 			Force
 		}
 
-		public void expectedToBeOfType(IType type, C4ScriptParser context, TypeExpectancyMode mode) {
+		public void expectedToBeOfType(IType type, C4ScriptParser context, TypeExpectancyMode mode, ParserErrorCode errorWhenFailed) {
 			if (type == C4Type.UNKNOWN || type == C4Type.ANY)
 				return; // expecting it to be of any or unknown type? come back when you can be more specific please
 			IStoredTypeInformation info = context.requestStoredTypeInformation(this);
@@ -515,14 +515,19 @@ public abstract class C4ScriptExprTree {
 					info.storeType(type);
 					break;
 				case Hint:
-					info.generalTypeHint(type);
+					if (!info.generalTypeHint(type) && errorWhenFailed != null)
+						context.warningWithCode(errorWhenFailed, this);
 					break;
 				}
 			}
 		}
 		
+		public final void expectedToBeOfType(IType type, C4ScriptParser context, TypeExpectancyMode mode) {
+			expectedToBeOfType(type, context, mode, null);
+		}
+		
 		public final void expectedToBeOfType(IType type, C4ScriptParser context) {
-			expectedToBeOfType(type, context, TypeExpectancyMode.Expect);
+			expectedToBeOfType(type, context, TypeExpectancyMode.Expect, null);
 		}
 
 		public void inferTypeFromAssignment(ExprElm rightSide, C4ScriptParser parser) {
@@ -637,9 +642,9 @@ public abstract class C4ScriptExprTree {
 		@Override
 		public boolean isValidInSequence(ExprElm predecessor, C4ScriptParser context) {
 			if (predecessor != null) {
-				IType t = predecessor.getType(context);
+				/*IType t = predecessor.getType(context);
 				if (t == null || t.subsetOfType(C4TypeSet.ARRAY_OR_STRING))
-					return false;
+					return false;*/
 				return true;
 			}
 			return false;
@@ -666,8 +671,9 @@ public abstract class C4ScriptExprTree {
 		public void reportErrors(C4ScriptParser parser) throws ParsingException {
 			super.reportErrors(parser);
 			ExprElm pred = getPredecessorInSequence();
-			if (pred != null)
-				pred.expectedToBeOfType(C4TypeSet.OBJECT_OR_ID, parser, TypeExpectancyMode.Hint);
+			if (pred != null) {
+				pred.expectedToBeOfType(C4TypeSet.OBJECT_OR_ID, parser, TypeExpectancyMode.Hint, ParserErrorCode.CallingMethodOnNonObject);
+			}
 		}
 
 	}
@@ -930,10 +936,10 @@ public abstract class C4ScriptExprTree {
 		}
 
 		@Override
-		public void expectedToBeOfType(IType type, C4ScriptParser context, TypeExpectancyMode mode) {
+		public void expectedToBeOfType(IType type, C4ScriptParser context, TypeExpectancyMode mode, ParserErrorCode errorWhenFailed) {
 			if (getDeclaration() == C4Variable.THIS)
 				return;
-			super.expectedToBeOfType(type, context, mode);
+			super.expectedToBeOfType(type, context, mode, errorWhenFailed);
 		}
 
 		@Override
@@ -2033,7 +2039,7 @@ public abstract class C4ScriptExprTree {
 		private final T literal;
 
 		@Override
-		public void expectedToBeOfType(IType type, C4ScriptParser parser, TypeExpectancyMode mode) {
+		public void expectedToBeOfType(IType type, C4ScriptParser parser, TypeExpectancyMode mode, ParserErrorCode errorWhenFailed) {
 			// constantly steadfast do i resist the pressure of expectancy lied upon me
 		}
 

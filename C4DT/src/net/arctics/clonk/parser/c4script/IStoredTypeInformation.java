@@ -5,7 +5,7 @@ import net.arctics.clonk.parser.c4script.C4ScriptExprTree.ExprElm;
 public interface IStoredTypeInformation {
 	IType getType();
 	void storeType(IType type);
-	void generalTypeHint(IType type);
+	boolean generalTypeHint(IType type);
 	
 	boolean expressionRelevant(ExprElm expr, C4ScriptParser parser);
 	boolean sameExpression(IStoredTypeInformation other);
