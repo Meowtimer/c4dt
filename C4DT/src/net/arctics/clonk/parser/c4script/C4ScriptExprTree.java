@@ -998,6 +998,17 @@ public abstract class C4ScriptExprTree {
 			public FunctionReturnTypeInformation(C4Function function) {
 				super();
 				this.function = function;
+				if (function != null)
+					type = function.getReturnType();
+			}
+			
+			@Override
+			public void storeType(IType type) {
+				// don't store if function.getReturnType() already specifies a type (including any)
+				// this is to prevent cases where for example the result of EffectVar in one instance is
+				// used as int and then as something else which leads to an erroneous type incompatibility warning
+				if (type == C4Type.UNKNOWN)
+					super.storeType(type);
 			}
 			
 			@Override
@@ -1033,9 +1044,11 @@ public abstract class C4ScriptExprTree {
 		}
 		
 		private final static class VarFunctionsTypeInformation extends StoredTypeInformation {
-			private Integer varIndex;
+			private C4Function varFunction;
+			private long varIndex;
 
-			private VarFunctionsTypeInformation(int val) {
+			private VarFunctionsTypeInformation(C4Function function, long val) {
+				varFunction = function;
 				varIndex = val;
 			}
 
@@ -1044,8 +1057,8 @@ public abstract class C4ScriptExprTree {
 					CallFunc callFunc = (CallFunc) expr;
 					Object ev;
 					return
-						callFunc.getDeclaration() == expr.getCachedFuncs(parser).Var &&
-						callFunc.getParams().length > 0 &&
+						callFunc.getDeclaration() == varFunction &&
+						callFunc.getParams().length == 1 && // don't bother with more complex cases
 						callFunc.getParams()[0].getType(parser) == C4Type.INT &&
 						((ev = callFunc.getParams()[0].evaluateAtParseTime(parser.getContainer())) != null) &&
 						ev.equals(varIndex);
@@ -1054,12 +1067,17 @@ public abstract class C4ScriptExprTree {
 			}
 
 			public boolean sameExpression(IStoredTypeInformation other) {
-				return other.getClass() == VarFunctionsTypeInformation.class && ((VarFunctionsTypeInformation)other).varIndex.equals(varIndex);
+				if (other.getClass() == VarFunctionsTypeInformation.class) {
+					VarFunctionsTypeInformation otherInfo = (VarFunctionsTypeInformation) other;
+					return otherInfo.varFunction == this.varFunction && otherInfo.varIndex == this.varIndex; 
+				}
+				else
+					return false;
 			}
 			
 			@Override
 			public String toString() {
-				return String.format("Var(%d", varIndex); //$NON-NLS-1$
+				return String.format("%s(%d)", varFunction.getName(), varIndex); //$NON-NLS-1$
 			}
 			
 		}
@@ -1272,7 +1290,8 @@ public abstract class C4ScriptExprTree {
 								IType parmType = givenParam >= 2 && givenParam <= 4 ? C4Type.ANY : parm.getType();
 								if (!given.validForType(parmType, context))
 									context.warningWithCode(ParserErrorCode.IncompatibleTypes, given, parmType, given.getType(context));
-								given.expectedToBeOfType(parmType, context);
+								else
+									given.expectedToBeOfType(parmType, context);
 							}
 							specialCaseHandled = true;
 						}
@@ -1311,7 +1330,8 @@ public abstract class C4ScriptExprTree {
 								continue;
 							if (!given.validForType(parm.getType(), context))
 								context.warningWithCode(ParserErrorCode.IncompatibleTypes, given, parm.getType(), given.getType(context));
-							given.expectedToBeOfType(parm.getType(), context);
+							else
+								given.expectedToBeOfType(parm.getType(), context);
 						}
 					}
 					
@@ -1524,17 +1544,21 @@ public abstract class C4ScriptExprTree {
 		@Override
 		public IStoredTypeInformation createStoredTypeInformation(C4ScriptParser parser) {
 			C4Declaration d = getDeclaration();
-			if (d == getCachedFuncs(parser).Var) {
+			CachedEngineFuncs cache = getCachedFuncs(parser);
+			if (Utilities.isAnyOf(d, cache.Var, cache.Local, cache.Par)) {
 				Object ev;
-				if (getParams().length > 0 && (ev = getParams()[0].evaluateAtParseTime(parser.getContainer())) != null) {
+				if (getParams().length == 1 && (ev = getParams()[0].evaluateAtParseTime(parser.getContainer())) != null) {
 					if (ev instanceof Number) {
 						// Var() with a sane constant number
-						return new VarFunctionsTypeInformation(((Number)ev).intValue());
+						return new VarFunctionsTypeInformation((C4Function) d, ((Number)ev).intValue());
 					}
 				}
 			}
 			else if (d instanceof C4Function) {
-				return new FunctionReturnTypeInformation((C4Function)d);
+				C4Function f = (C4Function) d;
+				IType retType = f.getReturnType();
+				if (retType == null || !(retType.containsAnyTypeOf(C4Type.ANY, C4Type.REFERENCE)))
+					return new FunctionReturnTypeInformation((C4Function)d);
 			}
 			return super.createStoredTypeInformation(parser);
 		}

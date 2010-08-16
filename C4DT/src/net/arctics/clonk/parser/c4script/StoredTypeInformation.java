@@ -2,7 +2,7 @@ package net.arctics.clonk.parser.c4script;
 
 public abstract class StoredTypeInformation implements IStoredTypeInformation, Cloneable {
 
-	private IType type = C4Type.UNKNOWN;
+	protected IType type = C4Type.UNKNOWN;
 
 	@Override
 	public IType getType() {

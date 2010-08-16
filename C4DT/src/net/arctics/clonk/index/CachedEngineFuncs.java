@@ -8,7 +8,7 @@ import net.arctics.clonk.parser.c4script.C4Function;
  * Contains cached engine functions that may be used frequently.
  */
 public class CachedEngineFuncs {
-	
+
 	private final C4Engine engine;
 	
 	private C4Function f(String name) {
@@ -17,6 +17,7 @@ public class CachedEngineFuncs {
 	
 	public C4Function Par;
 	public C4Function Var;
+	public C4Function Local;
 	public C4Function GameCall;
 	public C4Function LocalN;
 	public C4Function PrivateCall;
