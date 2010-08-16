@@ -440,7 +440,7 @@ global func bool SetActionTargets(object pTarget1, object pTarget2, object pObj)
 global func bool SetBridgeActionData(int iBridgeLength, bool fMoveClonk, bool fWall, int iBridgeMaterial, object pObj);
 global func int SetDir(int iDir, object pObj);
 global func bool SetPhase(int iPhase, object pObj);
-global func bool Fling(object pObj, int iXDir, int iYDir, bool fAddSpeed);
+global func bool Fling(object pObj, int iXDir, int iYDir, int iPrecision, bool fAddSpeed);
 global func int GetComDir(object pObj);
 global func int GetR(object pObj);
 global func int GetRDir(object pObj, int iPrecision);
