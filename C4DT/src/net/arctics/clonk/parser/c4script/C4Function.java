@@ -25,9 +25,10 @@ public class C4Function extends C4Structure implements Serializable, ITypedDecla
 	private String description;
 	private boolean isCallback;
 	private boolean isOldStyle;
-	@IniField
-	public boolean isCriteriaSearch; 
 	private SourceLocation body, header;
+	
+	@IniField
+	public boolean isCriteriaSearch;
 
 	public C4Function(String name, C4Type returnType, C4Variable... pars) {
 		this.name = name;
