@@ -82,10 +82,10 @@ public abstract class C4ScriptExprTree {
 	}
 
 	public enum ControlFlow {
+		Continue,
 		NextIteration,
 		BreakLoop,
 		Return,
-		Continue
 	}
 	
 	public interface ExprWriter {
@@ -3257,6 +3257,14 @@ public abstract class C4ScriptExprTree {
 		
 		public ExprElm getElse() {
 			return elseExpr;
+		}
+		
+		@Override
+		public ControlFlow getControlFlow() {
+			// return most optimistic flow (the smaller ordinal() the more "continuy" the flow is)
+			ControlFlow ifCase = body.getControlFlow();
+			ControlFlow elseCase = elseExpr != null ? elseExpr.getControlFlow() : ControlFlow.Continue;
+			return ifCase.ordinal() < elseCase.ordinal() ? ifCase : elseCase;
 		}
 
 	}
