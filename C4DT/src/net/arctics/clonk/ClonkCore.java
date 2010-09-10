@@ -115,7 +115,6 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 	 * (non-Javadoc)
 	 * @see org.eclipse.ui.plugin.AbstractUIPlugin#start(org.osgi.framework.BundleContext)
 	 */
-	@SuppressWarnings("deprecation")
 	public void start(BundleContext context) throws Exception {
 		super.start(context);
 		plugin = this;
@@ -123,7 +122,7 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 		loadActiveEngine();
 
 		// FIXME: this is deprecated and stuff
-		ResourcesPlugin.getWorkspace().addSaveParticipant(this, this);
+		ResourcesPlugin.getWorkspace().addSaveParticipant(PLUGIN_ID, this);
 		//ResourcesPlugin.getWorkspace().addResourceChangeListener(this, IResourceChangeEvent.PRE_DELETE);
 
 		registerStructureClasses();
