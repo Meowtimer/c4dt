@@ -57,7 +57,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 
 	private static final char[] CONTEXT_INFORMATION_AUTO_ACTIVATION_CHARS = new char[] {'('};
 	private static final char[] COMPLETION_INFORMATION_AUTO_ACTIVATION_CHARS = new char[] {
-		// OC maybe '.'
+		'.'
 	};
 	
 	private final class ClonkCompletionListener implements ICompletionListener, ICompletionListenerExtension {
@@ -229,16 +229,6 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 			List<ICompletionProposal> proposals, ClonkIndex index,
 			final C4Function activeFunc) {
 		
-		if (proposalCycle == ProposalCycle.ALL) {
-			if (getEditor().scriptBeingEdited().getIndex().getEngine() != null) {
-				for (C4Function func : getEditor().scriptBeingEdited().getIndex().getEngine().functions()) {
-					proposalForFunc(func, prefix, offset, proposals, getEditor().scriptBeingEdited().getIndex().getEngine().getName(), true);
-				}
-				for (C4Variable var : getEditor().scriptBeingEdited().getIndex().getEngine().variables()) {
-					proposalForVar(var,prefix,offset,proposals);
-				}
-			}
-		}
 		C4ScriptBase editorScript = Utilities.getScriptForEditor(editor);
 		List<C4ScriptBase> contextScripts = new LinkedList<C4ScriptBase>();
 		contextScripts.add(editorScript);
@@ -305,7 +295,18 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 			parser.endTypeInferenceBlock();
 		}
 		
-		if ((proposalCycle == ProposalCycle.ALL || proposalCycle == ProposalCycle.LOCAL) && activeFunc != null /*&& contextExpression == null* what was the reason for that again?*/) {
+		if (contextExpression == null && proposalCycle == ProposalCycle.ALL) {
+			if (getEditor().scriptBeingEdited().getIndex().getEngine() != null) {
+				for (C4Function func : getEditor().scriptBeingEdited().getIndex().getEngine().functions()) {
+					proposalForFunc(func, prefix, offset, proposals, getEditor().scriptBeingEdited().getIndex().getEngine().getName(), true);
+				}
+				for (C4Variable var : getEditor().scriptBeingEdited().getIndex().getEngine().variables()) {
+					proposalForVar(var,prefix,offset,proposals);
+				}
+			}
+		}
+		
+		if (contextExpression == null && (proposalCycle == ProposalCycle.ALL || proposalCycle == ProposalCycle.LOCAL) && activeFunc != null /*&& contextExpression == null* what was the reason for that again?*/) {
 			for (C4Variable v : activeFunc.getParameters()) {
 				proposalForVar(v, prefix, wordOffset, proposals);
 			}
@@ -314,15 +315,19 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 			}
 		}
 
-
-		if (proposalCycle != ProposalCycle.OBJECT)
+		if (contextExpression == null && proposalCycle != ProposalCycle.OBJECT)
 			for (ClonkIndex i : index.relevantIndexes())
 				proposalsForIndex(i, offset, wordOffset, prefix, proposals);
 
+		int whatToDisplayFromScripts = INCLUDES;
+		if (contextExpression == null || MemberOperator.endsWithDot(contextExpression))
+			whatToDisplayFromScripts |= VARIABLES;
+		if (contextExpression == null || !MemberOperator.endsWithDot(contextExpression))
+			whatToDisplayFromScripts |= FUNCTIONS;
 		for (C4ScriptBase s : contextScripts) {
-			proposalsFromScript(s, new HashSet<C4ScriptBase>(), prefix, offset, wordOffset, proposals, contextScriptsChanged, index);
+			proposalsFromScript(s, new HashSet<C4ScriptBase>(), prefix, offset, wordOffset, proposals, contextScriptsChanged, index, whatToDisplayFromScripts);
 		}
-		if (proposalCycle == ProposalCycle.ALL) {
+		if (contextExpression == null && proposalCycle == ProposalCycle.ALL) {
 			ImageRegistry reg = ClonkCore.getDefault().getImageRegistry();
 			if (reg.get("keyword") == null) { //$NON-NLS-1$
 				reg.put("keyword", ImageDescriptor.createFromURL(FileLocator.find(ClonkCore.getDefault().getBundle(), new Path("icons/keyword.png"), null))); //$NON-NLS-1$ //$NON-NLS-2$
@@ -432,22 +437,32 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 		return String.format(Messages.C4ScriptCompletionProcessor_PressToShowCycle, sequence.format(), proposalCycle.cycle().description());
 	}
 
-	private void proposalsFromScript(C4ScriptBase script, HashSet<C4ScriptBase> loopCatcher, String prefix, int offset, int wordOffset, List<ICompletionProposal> proposals, boolean noPrivateFuncs, ClonkIndex index) {
+	private static final int VARIABLES = 1;
+	private static final int FUNCTIONS = 2;
+	private static final int INCLUDES  = 4;
+	
+	private void proposalsFromScript(C4ScriptBase script, HashSet<C4ScriptBase> loopCatcher, String prefix, int offset, int wordOffset, List<ICompletionProposal> proposals, boolean noPrivateFuncs, ClonkIndex index, int mask) {
 		if (loopCatcher.contains(script)) {
 			return;
 		}
 		loopCatcher.add(script);
-		for (C4Function func : script.functions()) {
-			if (func.getVisibility() != C4FunctionScope.GLOBAL)
-				if (!noPrivateFuncs  || func.getVisibility() == C4FunctionScope.PUBLIC)
-					proposalForFunc(func, prefix, offset, proposals, script.getName(), true);
+		if ((mask & FUNCTIONS) != 0) {
+			for (C4Function func : script.functions()) {
+				if (func.getVisibility() != C4FunctionScope.GLOBAL)
+					if (!noPrivateFuncs  || func.getVisibility() == C4FunctionScope.PUBLIC)
+						proposalForFunc(func, prefix, offset, proposals, script.getName(), true);
+			}
 		}
-		for (C4Variable var : script.variables()) {
-			if (var.getScope() != C4VariableScope.STATIC && var.getScope() != C4VariableScope.CONST)
-				proposalForVar(var, prefix, wordOffset, proposals);
+		if ((mask & VARIABLES) != 0) {
+			for (C4Variable var : script.variables()) {
+				if (var.getScope() != C4VariableScope.STATIC && var.getScope() != C4VariableScope.CONST)
+					proposalForVar(var, prefix, wordOffset, proposals);
+			}
 		}
-		for (C4ScriptBase o : script.getIncludes(index))
-			proposalsFromScript(o, loopCatcher, prefix, offset, wordOffset, proposals, noPrivateFuncs, index);
+		if ((mask & INCLUDES) != 0) {
+			for (C4ScriptBase o : script.getIncludes(index))
+				proposalsFromScript(o, loopCatcher, prefix, offset, wordOffset, proposals, noPrivateFuncs, index, mask);
+		}
 	}
 
 	protected C4Function getActiveFunc(IDocument document, int offset) {
