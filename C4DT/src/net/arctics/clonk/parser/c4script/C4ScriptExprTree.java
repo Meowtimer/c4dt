@@ -604,6 +604,13 @@ public abstract class C4ScriptExprTree {
 		private boolean hasTilde;
 		private C4ID id;
 		private int idOffset;
+		
+		public static boolean endsWithDot(ExprElm expression) {
+			return
+				expression instanceof Sequence &&
+				((Sequence)expression).getLastElement() instanceof MemberOperator &&
+				((MemberOperator)((Sequence)expression).getLastElement()).dotNotation;
+		}
 
 		public MemberOperator(boolean dotNotation, boolean hasTilde, C4ID id, int idOffset) {
 			super();
@@ -672,7 +679,7 @@ public abstract class C4ScriptExprTree {
 			super.reportErrors(parser);
 			ExprElm pred = getPredecessorInSequence();
 			if (pred != null) {
-				pred.expectedToBeOfType(C4TypeSet.OBJECT_OR_ID, parser, TypeExpectancyMode.Hint, ParserErrorCode.CallingMethodOnNonObject);
+				pred.expectedToBeOfType(dotNotation ? C4Type.OBJECT : C4TypeSet.OBJECT_OR_ID, parser, TypeExpectancyMode.Hint, ParserErrorCode.CallingMethodOnNonObject);
 			}
 		}
 
@@ -868,21 +875,27 @@ public abstract class C4ScriptExprTree {
 
 		@Override
 		public boolean isValidInSequence(ExprElm predecessor, C4ScriptParser context) {
-			return predecessor == null;
+			return
+				// either null or
+				predecessor == null ||
+				// following a dot
+				(predecessor instanceof MemberOperator && ((MemberOperator)predecessor).dotNotation);
 		}
 
 		@Override
 		protected C4Declaration getDeclImpl(C4ScriptParser parser) {
 			FindDeclarationInfo info = new FindDeclarationInfo(parser.getContainer().getIndex());
 			info.setContextFunction(parser.getActiveFunc());
-			info.setSearchOrigin(parser.getContainer());
-			return parser.getContainer().findVariable(declarationName, info);
+			ExprElm p = getPredecessorInSequence();
+			C4ScriptBase lookIn = p == null ? parser.getContainer() : p.guessObjectType(parser);
+			info.setSearchOrigin(lookIn);
+			return lookIn.findVariable(declarationName, info);
 		}
 
 		@Override
 		public void reportErrors(C4ScriptParser parser) throws ParsingException {
 			super.reportErrors(parser);
-			if (declaration == null)
+			if (declaration == null && getPredecessorInSequence() == null)
 				parser.errorWithCode(ParserErrorCode.UndeclaredIdentifier, this, true, declarationName);
 			// local variable used in global function
 			else if (declaration instanceof C4Variable) {

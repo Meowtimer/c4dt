@@ -209,15 +209,14 @@ public abstract class C4Object extends C4ScriptBase implements IType {
 	public boolean subsetOfType(IType typeSet) {
 		for (IType t : typeSet) {
 			if (t == C4Type.OBJECT)
-				continue;
+				return true;
 			if (t instanceof C4Object) {
 				C4Object obj = (C4Object) t;
-				if (obj.includes(this))
-					continue;
+				if (this.includes(obj))
+					return true;
 			}
-			return false;
 		}
-		return true;
+		return false;
 	}
 
 	@Override
