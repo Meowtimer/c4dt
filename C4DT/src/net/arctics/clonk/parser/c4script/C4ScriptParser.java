@@ -1674,7 +1674,7 @@ public class C4ScriptParser {
 					}
 				}
 				if (!properlyClosed) {
-					errorWithCode(ParserErrorCode.MissingClosingBracket, scanner.getPosition()-1, scanner.getPosition(), "]"); //$NON-NLS-1$
+					errorWithCode(ParserErrorCode.MissingClosingBracket, scanner.getPosition(), scanner.getPosition()+1, "]"); //$NON-NLS-1$
 				}
 				elm = new ArrayExpression(arrayElms.toArray(new ExprElm[0]));
 				

@@ -2491,7 +2491,11 @@ public abstract class C4ScriptExprTree {
 
 		@Override
 		public boolean isValidInSequence(ExprElm predecessor, C4ScriptParser context) {
-			return predecessor != null;
+			if (predecessor != null) {
+				IType type = predecessor.getType(context);
+				return type == C4Type.ANY || type.containsType(C4Type.ARRAY);
+			}
+			return false;
 		}
 
 		@Override
