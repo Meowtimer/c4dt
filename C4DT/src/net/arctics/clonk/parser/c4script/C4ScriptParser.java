@@ -1351,6 +1351,9 @@ public class C4ScriptParser {
 		String problem = code.getErrorString(args);
 		if (!silence && !allErrorsDisabled) {
 			result = code.createMarker(scriptFile, ClonkCore.MARKER_C4SCRIPT_ERROR, markerStart, markerEnd, severity, problem);
+			if (expressionReportingErrors != null) {
+				ParserErrorCode.setExpressionLocation(result, expressionReportingErrors);
+			}
 		}
 		if (!noThrow && severity >= IMarker.SEVERITY_ERROR)
 			throw silence
@@ -1826,14 +1829,26 @@ public class C4ScriptParser {
 		} finally {
 			parseExpressionRecursion--;
 		}
-		
 	}
+	
+	private transient ExprElm expressionReportingErrors;
 
 	private final void handleExpressionCreated(boolean reportErrors, ExprElm root) throws ParsingException {
-		if (reportErrors)
-			root.reportErrors(this);
+		if (reportErrors) {
+			reportErrorsOf(root);
+		}
 		if (expressionListener != null && parseExpressionRecursion <= 1)
 			expressionListener.expressionDetected(root, this);
+	}
+
+	private void reportErrorsOf(ExprElm expression) throws ParsingException {
+		ExprElm saved = expressionReportingErrors;
+		expressionReportingErrors = expression;
+		try {
+			expression.reportErrors(this);
+		} finally {
+			expressionReportingErrors = saved;
+		}
 	}
 	
 	private static final char[] SEMICOLON_DELIMITER = new char[] { ';' };
@@ -2029,7 +2044,7 @@ public class C4ScriptParser {
 
 			if (result != null) {
 				result.setExprRegion(start, scanner.getPosition());
-				result.reportErrors(this);
+				reportErrorsOf(result);
 				if (!options.contains(ParseStatementOption.InitializationStatement)) {
 					result.warnIfNoSideEffects(this);
 					if (result instanceof SimpleStatement && ((SimpleStatement)result).getExpression() instanceof BinaryOp)
@@ -2282,7 +2297,7 @@ public class C4ScriptParser {
 					handleExpressionCreated(true, accessVar);
 					initialization = new SimpleStatement(accessVar);
 					initialization.setExprRegion(pos, pos+varName.length());
-					initialization.reportErrors(this);
+					reportErrorsOf(initialization);
 				}
 			}
 			else {

@@ -3,6 +3,7 @@ package net.arctics.clonk.parser;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.jface.text.IRegion;
 
 public enum ParserErrorCode {
 
@@ -60,6 +61,8 @@ public enum ParserErrorCode {
 	CallingMethodOnNonObject(Messages.CallingMethodOnNonObject);
 
 	public static final String MARKER_ERRORCODE = "c4ScriptErrorCode"; //$NON-NLS-1$
+	public static final String MARKER_EXPRESSIONSTART = "c4ScriptErrorExpressionStart";
+	public static final String MARKER_EXPRESSIONEND = "c4ScriptErrorExpressionEnd";
 	
 	private String message;
 	
@@ -87,6 +90,19 @@ public enum ParserErrorCode {
 		return createMarker(file, markerType, start, end, severity, getErrorString(args));
 	}
 	
+	public static IRegion getExpressionLocation(IMarker marker) {
+		return new SourceLocation(marker.getAttribute(MARKER_EXPRESSIONSTART, -1), marker.getAttribute(MARKER_EXPRESSIONEND, -1));
+	}
+	
+	public static void setExpressionLocation(IMarker marker, IRegion location) {
+		try {
+			marker.setAttribute(MARKER_EXPRESSIONSTART, location != null ? location.getOffset() : -1);
+			marker.setAttribute(MARKER_EXPRESSIONEND, location != null ? location.getOffset()+location.getLength() : -1);
+		} catch (CoreException e) {
+			e.printStackTrace();
+		}
+	}
+	
 	public IMarker createMarker(IFile file, String markerType, int start, int end, int severity, String problem) {
 		if (file == null)
 			return null;
@@ -97,6 +113,7 @@ public enum ParserErrorCode {
 			marker.setAttribute(IMarker.MESSAGE, problem);
 			marker.setAttribute(IMarker.CHAR_START, start);
 			marker.setAttribute(IMarker.CHAR_END, end);
+			
 			marker.setAttribute(MARKER_ERRORCODE, this.ordinal());
 			return marker;
 		} catch (CoreException e) {
