@@ -738,8 +738,15 @@ public class C4ScriptParser {
 				parsedVariable = var;
 				if (scanner.read() == '=') {
 					eatWhitespace();
-					try { 
-						ExprElm val = parseExpression(!declaration);
+					try {
+						boolean old_ = allErrorsDisabled;
+						allErrorsDisabled = true;
+						ExprElm val;
+						try {
+							val = parseExpression(!declaration);
+						} finally {
+							allErrorsDisabled = old_;
+						}
 						if (!declaration) {
 							if (val == null)
 								errorWithCode(ParserErrorCode.ValueExpected, scanner.getPosition()-1, scanner.getPosition(), true);
