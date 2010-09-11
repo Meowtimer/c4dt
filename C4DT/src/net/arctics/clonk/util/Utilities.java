@@ -713,4 +713,21 @@ public abstract class Utilities {
 		return arr != null && arr.length > 0 ? arr[0] : null;
 	}
 	
+	public static <T> T[] removeNullElements(T[] array, Class<T> cls) {
+		int actualCount = 0;
+		for (T t : array)
+			if (t != null)
+				actualCount++;
+		if (actualCount != array.length) {
+			@SuppressWarnings("unchecked")
+			T[] nonNullIngredients = (T[])Array.newInstance(cls, actualCount);
+			actualCount = 0;
+			for (T t : array)
+				if (t != null)
+					nonNullIngredients[actualCount++] = t;
+			array = nonNullIngredients;
+		}
+		return array;
+	}
+	
 }

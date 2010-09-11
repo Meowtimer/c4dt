@@ -10,6 +10,7 @@ import java.util.Set;
 
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.index.C4Object;
+import net.arctics.clonk.util.Utilities;
 
 public class C4TypeSet implements IType {
 
@@ -49,18 +50,8 @@ public class C4TypeSet implements IType {
 	public static IType create(IType... ingredients) {
 		
 		// remove null elements most tediously
-		int actualCount = 0;
-		for (IType t : ingredients)
-			if (t != null)
-				actualCount++;
-		if (actualCount != ingredients.length) {
-			IType[] nonNullIngredients = new IType[actualCount];
-			actualCount = 0;
-			for (IType t : ingredients)
-				if (t != null)
-					nonNullIngredients[actualCount++] = t;
-			ingredients = nonNullIngredients;
-		}
+		ingredients = Utilities.removeNullElements(ingredients, IType.class);
+		int actualCount = ingredients.length;
 		
 		// remove less specific types that are already contained in more specific ones
 		Arrays.sort(ingredients, SPECIFICNESS_COMPARATOR);
