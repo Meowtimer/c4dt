@@ -29,49 +29,6 @@ import org.eclipse.jface.text.IRegion;
  */
 public class C4ScriptAutoEditStrategy extends DefaultIndentLineAutoEditStrategy {
 	
-	/*private class MutableRegion extends net.arctics.clonk.parser.c4script.MutableRegion {
-
-		private IMarker m;
-		
-		public MutableRegion(int offset, int length) {
-			super(offset, length);
-			try {
-				m = ((IFile)configuration.getEditor().scriptBeingEdited().getScriptFile()).createMarker(ClonkCore.MARKER_C4SCRIPT_ERROR);
-			} catch (CoreException e) {
-				e.printStackTrace();
-			}
-		}
-		
-		private void updateMarker() {
-			try {
-				m.setAttribute(IMarker.CHAR_START, getOffset());
-				m.setAttribute(IMarker.CHAR_END, getOffset()+getLength());
-				m.setAttribute(IMarker.SEVERITY, IMarker.SEVERITY_INFO);
-				m.setAttribute(IMarker.TRANSIENT, true);
-				m.setAttribute(IMarker.MESSAGE, "yar");
-			} catch (Exception e) {}
-		}
-		
-		@Override
-		public void incOffset(int amount) {
-			super.incOffset(amount);
-			updateMarker();
-		}
-		
-		@Override
-		public void setOffset(int offset) {
-			super.setOffset(offset);
-			updateMarker();
-		}
-		
-		@Override
-		protected void finalize() throws Throwable {
-			m.delete();
-			super.finalize();
-		}
-		
-	}*/
-	
 	private static final String[] AUTOPAIR_STRINGS = {"(", ")", "\"", "\"", "[", "]"}; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$ //$NON-NLS-6$
 	
 	private C4ScriptSourceViewerConfiguration configuration;
