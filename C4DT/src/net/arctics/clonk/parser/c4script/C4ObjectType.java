@@ -45,7 +45,7 @@ public class C4ObjectType implements IType {
 	}
 
 	@Override
-	public boolean subsetOfType(IType typeSet) {
+	public boolean intersects(IType typeSet) {
 		return typeSet.containsType(C4Type.ID);
 	}
 

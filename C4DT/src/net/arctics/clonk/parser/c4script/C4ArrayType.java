@@ -34,8 +34,8 @@ public class C4ArrayType implements IType {
 	}
 
 	@Override
-	public boolean subsetOfType(IType typeSet) {
-		return C4Type.ARRAY.subsetOfType(typeSet);
+	public boolean intersects(IType typeSet) {
+		return C4Type.ARRAY.intersects(typeSet);
 	}
 
 	@Override

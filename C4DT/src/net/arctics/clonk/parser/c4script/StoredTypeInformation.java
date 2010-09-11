@@ -23,7 +23,7 @@ public abstract class StoredTypeInformation implements IStoredTypeInformation, C
 		} else {
 			// false -> wrong hint
 			// true -> type is at least contained in the hint so it is somewhat correct   
-			return type.subsetOfType(hint);
+			return type.intersects(hint);
 		}
 		return true;
 	}

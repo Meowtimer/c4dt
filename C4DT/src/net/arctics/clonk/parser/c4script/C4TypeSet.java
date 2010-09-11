@@ -147,12 +147,12 @@ public class C4TypeSet implements IType {
 	}
 
 	@Override
-	public boolean subsetOfType(IType typeSet) {
+	public boolean intersects(IType typeSet) {
 		for (IType t : this) {
-			if (!typeSet.containsType(t))
-				return false;
+			if (t.intersects(typeSet))
+				return true;
 		}
-		return true;
+		return false;
 	}
 
 	@Override

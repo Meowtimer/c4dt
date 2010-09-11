@@ -156,7 +156,7 @@ public enum C4Type implements IType {
 	}
 
 	@Override
-	public boolean subsetOfType(IType typeSet) {
+	public boolean intersects(IType typeSet) {
 		for (IType t : typeSet)
 			if (t == this)
 				return true;

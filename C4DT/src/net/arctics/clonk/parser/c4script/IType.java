@@ -8,7 +8,7 @@ import java.io.Serializable;
 public interface IType extends Iterable<IType>, Serializable {
 	public boolean canBeAssignedFrom(IType other);
 	public String typeName(boolean special);
-	public boolean subsetOfType(IType typeSet);
+	public boolean intersects(IType typeSet);
 	public boolean containsType(IType type);
 	public boolean containsAnyTypeOf(IType... types);
 	public int specificness();
