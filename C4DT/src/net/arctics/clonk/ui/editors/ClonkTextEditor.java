@@ -22,12 +22,15 @@ import org.eclipse.jface.text.ITextSelection;
 import org.eclipse.jface.text.Region;
 import org.eclipse.jface.text.hyperlink.IHyperlink;
 import org.eclipse.jface.text.hyperlink.IHyperlinkDetector;
+import org.eclipse.jface.text.source.ISourceViewer;
 import org.eclipse.ui.IEditorDescriptor;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorPart;
+import org.eclipse.ui.IEditorReference;
 import org.eclipse.ui.IFileEditorInput;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPage;
+import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.editors.text.TextEditor;
@@ -218,6 +221,23 @@ public class ClonkTextEditor extends TextEditor {
 	
 	public void refreshSyntaxColoring() {
 		((ClonkSourceViewerConfiguration<?>) getSourceViewerConfiguration()).refreshSyntaxColoring();
+	}
+	
+	@SuppressWarnings("unchecked")
+	public static <T extends ClonkTextEditor> T getEditorForSourceViewer(ISourceViewer sourceViewer, Class<T> cls) {
+		for (IWorkbenchWindow window : PlatformUI.getWorkbench().getWorkbenchWindows()) {
+			for (IWorkbenchPage page : window.getPages()) {
+				for (IEditorReference reference : page.getEditorReferences()) {
+					IEditorPart editor = reference.getEditor(false);
+					if (editor != null && cls.isAssignableFrom(editor.getClass())) {
+						if (((ClonkTextEditor) editor).getSourceViewer().equals(sourceViewer)) {
+							return (T) editor;
+						}
+					}
+				}
+			}
+		}
+		return null;
 	}
 	
 }
