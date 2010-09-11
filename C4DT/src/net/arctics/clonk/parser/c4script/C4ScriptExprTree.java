@@ -1,6 +1,7 @@
 package net.arctics.clonk.parser.c4script;
 
 import java.io.Serializable;
+import java.security.InvalidParameterException;
 import java.util.EnumSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -595,6 +596,24 @@ public abstract class C4ScriptExprTree {
 		
 		public final CachedEngineFuncs getCachedFuncs(C4ScriptParser parser) {
 			return parser.getContainer().getIndex().getEngine().getCachedFuncs();
+		}
+		
+		public void replaceSubElement(ExprElm element, ExprElm with) {
+			ExprElm[] subElms = getSubElements();
+			ExprElm[] newSubElms = new ExprElm[subElms.length];
+			boolean differentSubElms = false;
+			for (int i = 0; i < subElms.length; i++) {
+				newSubElms[i] = subElms[i] == element ? with : subElms[i];
+				if (newSubElms[i] != subElms[i])
+					differentSubElms = true;
+			}
+			if (differentSubElms) {
+				setSubElements(newSubElms);
+				assignParentToSubElements();
+			}
+			else {
+				throw new InvalidParameterException("element must actually be a subelement of this");
+			}
 		}
 
 	}
@@ -2222,7 +2241,7 @@ public abstract class C4ScriptExprTree {
 				
 				else if (myIndex == 0 && parentFunc.getDeclarationName().equals("Schedule")) { //$NON-NLS-1$
 					// parse first parm of Schedule as expression and see what goes
-					ExpressionLocator locator = new ExpressionLocator(offset-1); // make up for '//' or /*'
+					ExpressionLocator locator = new ExpressionLocator(offset-1); // make up for '"'
 					try {
 						C4ScriptParser.parseStandaloneStatement(getLiteral(), parser.getActiveFunc(), locator);
 					} catch (ParsingException e) {}
