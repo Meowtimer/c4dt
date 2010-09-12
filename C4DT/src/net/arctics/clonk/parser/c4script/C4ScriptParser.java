@@ -370,8 +370,6 @@ public class C4ScriptParser {
 	public void parseCodeOfFunctions() throws ParsingException {
 		synchronized (container) {
 			strictLevel = container.getStrictLevel();
-			if (strictLevel == -1)
-				strictLevel = container.getEngine().getCurrentSettings().strictDefaultLevel;
 			for (C4Function function : container.functions()) {
 				parseCodeOfFunction(function);
 			}

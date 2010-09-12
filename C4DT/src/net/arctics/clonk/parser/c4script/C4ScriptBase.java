@@ -121,10 +121,10 @@ public abstract class C4ScriptBase extends C4Structure implements IHasRelatedRes
 
 	/**
 	 * Returns the strict level of the script
-	 * @return the #strict level or -1 if there is no explicit #strict setting
+	 * @return the #strict level set for this script or the default level supplied by the engine configuration
 	 */
 	public int getStrictLevel() {
-		int level = -1;
+		int level = getEngine() != null ? getEngine().getCurrentSettings().strictDefaultLevel : -1;
 		for (C4Directive d : this.definedDirectives) {
 			if (d.getType() == C4DirectiveType.STRICT) {
 				try {
