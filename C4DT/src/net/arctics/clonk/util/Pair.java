@@ -1,8 +1,16 @@
 package net.arctics.clonk.util;
 
-public class Pair<First, Second> {
+import java.io.Serializable;
+
+import net.arctics.clonk.ClonkCore;
+
+public class Pair<First, Second> implements Serializable {
+
+	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
+
 	private First first;
 	private Second second;
+
 	public Pair(First first, Second second) {
 		super();
 		this.first = first;

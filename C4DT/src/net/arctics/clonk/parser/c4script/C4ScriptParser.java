@@ -173,8 +173,6 @@ public class C4ScriptParser {
 	 * @return the type information or null if none has been stored
 	 */
 	public IStoredTypeInformation requestStoredTypeInformation(ExprElm expression, List<IStoredTypeInformation> list) {
-		if (storedTypeInformationListStack.isEmpty())
-			return null;
 		for (IStoredTypeInformation info : list) {
 			if (info.expressionRelevant(expression, this))
 				return info;
@@ -186,6 +184,8 @@ public class C4ScriptParser {
 	}
 	
 	public IStoredTypeInformation requestStoredTypeInformation(ExprElm expression) {
+		if (storedTypeInformationListStack.isEmpty())
+			return null;
 		return requestStoredTypeInformation(expression, storedTypeInformationListStack.peek());
 	}
 
@@ -571,14 +571,16 @@ public class C4ScriptParser {
 		String desc = getTextOfLastComment(offset);
 
 		List<C4Variable> createdVariables = new LinkedList<C4Variable>();
-		if (word.equals(Keywords.GlobalNamed)) {
+		C4VariableScope scope = C4VariableScope.makeScope(word);
+		if (scope == C4VariableScope.STATIC || scope == C4VariableScope.LOCAL) {
 			eatWhitespace();
 			int pos = scanner.getPosition();
-			boolean constDecl = false; 
-			if (scanner.readIdent().equals(Keywords.Const)) {
-				constDecl = true;
-			} else {
-				scanner.seek(pos);
+			if (scope == C4VariableScope.STATIC) {
+				if (scanner.readIdent().equals(Keywords.Const)) {
+					scope = C4VariableScope.CONST;
+				} else {
+					scanner.seek(pos);
+				}
 			}
 			do {
 				eatWhitespace();
@@ -594,14 +596,16 @@ public class C4ScriptParser {
 				String varName = scanner.readIdent();
 				int e = scanner.getPosition();
 				C4Variable var = null;
-				if (constDecl || getContainer().getEngine().getCurrentSettings().nonConstGlobalVarsAssignment) {
+				if (scope == C4VariableScope.CONST || getContainer().getEngine().getCurrentSettings().nonConstGlobalVarsAssignment) {
 					eatWhitespace();
 					if (scanner.peek() == ';' || scanner.peek() == ',') {
-						if (constDecl && !isEngine)
+						if (scope == C4VariableScope.CONST && !isEngine)
 							errorWithCode(ParserErrorCode.ConstantValueExpected, scanner.getPosition()-1, scanner.getPosition(), true);
 						else {
-							createdVariables.add(var = createVariable(constDecl ? C4VariableScope.CONST : C4VariableScope.STATIC, desc, s, e, varName));
-							var.forceType(C4Type.INT); // most likely
+							createdVariables.add(var = createVariable(scope, desc, s, e, varName));
+							if (scope == C4VariableScope.STATIC) {
+								var.forceType(C4Type.INT); // most likely
+							}
 						}
 					}
 					else {
@@ -613,15 +617,22 @@ public class C4ScriptParser {
 						allErrorsDisabled = old;
 						if (constantValue == null)
 							constantValue = ERROR_PLACEHOLDER_EXPR;
-						if (!constantValue.isConstant()) {
+						boolean dontBotherEvaluatingConst = false;
+						if (scope == C4VariableScope.CONST && !constantValue.isConstant()) {
 							errorWithCode(ParserErrorCode.ConstantValueExpected, constantValue, true);
+							dontBotherEvaluatingConst = true;
 						}
 						var = createVariable(C4VariableScope.CONST, desc, s, e, varName);
-						try {
-							var.setConstValue(constantValue.evaluateAtParseTime(getContainer()));
-						} catch (Exception ex) {
-							ex.printStackTrace();
-							errorWithCode(ParserErrorCode.InvalidExpression, constantValue);
+						if (!dontBotherEvaluatingConst) {
+							try {
+								if (scope == C4VariableScope.CONST)
+									var.setConstValue(constantValue.evaluateAtParseTime(getContainer()));
+								else
+									var.setScriptScopeInitializationExpression(constantValue);
+							} catch (Exception ex) {
+								ex.printStackTrace();
+								errorWithCode(ParserErrorCode.InvalidExpression, constantValue);
+							}
 						}
 						createdVariables.add(var);
 						var.inferTypeFromAssignment(constantValue, this);
@@ -1725,6 +1736,10 @@ public class C4ScriptParser {
 	 * ERROR_PLACEHOLDER_EXPR: is always at the reader's current location
 	 */
 	private final ExprElm ERROR_PLACEHOLDER_EXPR = new ExprElm() {
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = 1L;
 		@Override
 		public int getExprStart() {
 			return scanner.getPosition();
@@ -2681,7 +2696,7 @@ public class C4ScriptParser {
 			//endTypeInferenceBlock(); not here for type information might still be needed
 		} 
 		catch (ParsingException e) {
-			// silent...
+			e.printStackTrace();
 		}
 		catch (Exception e) {
 			e.printStackTrace();

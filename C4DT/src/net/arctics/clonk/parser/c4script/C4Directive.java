@@ -75,6 +75,10 @@ public class C4Directive extends C4Declaration implements Serializable {
 
 	public ExprElm getExprElm() {
 		return new ExprElm() {
+			/**
+			 * 
+			 */
+			private static final long serialVersionUID = 1L;
 			@Override
 			public int getExprStart() {
 				return getLocation().getStart();

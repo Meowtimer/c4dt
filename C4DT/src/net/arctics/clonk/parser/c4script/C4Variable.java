@@ -55,9 +55,9 @@ public class C4Variable extends C4Declaration implements Serializable, ITypedDec
 	private transient boolean typeLocked;
 	
 	/**
-	 * Value of the constant. Only for constants quite obviously.
+	 * Initialize expression for locals; not constant so saving value is not sufficient
 	 */
-	private Object constValue;
+	private Object scriptScopeInitializationExpression;
 	
 	/**
 	 * Variable object used as the special 'this' object.
@@ -240,9 +240,9 @@ public class C4Variable extends C4Declaration implements Serializable, ITypedDec
 		builder.append(htmlerize((t == C4Type.UNKNOWN ? C4Type.ANY : t).typeName(false)));
 		builder.append(" "); //$NON-NLS-1$
 		builder.append(getName());
-		if (constValue != null) {
+		if (scriptScopeInitializationExpression != null) {
 			builder.append(" = "); //$NON-NLS-1$
-			builder.append(constValue.toString());
+			builder.append(scriptScopeInitializationExpression.toString());
 		}
 		builder.append("</b>"); //$NON-NLS-1$
 		if (getUserDescription() != null && getUserDescription().length() > 0) {
@@ -273,13 +273,21 @@ public class C4Variable extends C4Declaration implements Serializable, ITypedDec
 	}
 
 	public Object getConstValue() {
-		return constValue;
+		return scriptScopeInitializationExpression instanceof ExprElm ? null : scriptScopeInitializationExpression;
 	}
 
 	public void setConstValue(Object constValue) {
 		if (C4Type.typeFrom(constValue) == C4Type.ANY)
 			throw new InvalidParameterException("constValue must be of primitive type recognized by C4Type"); //$NON-NLS-1$
-		this.constValue = constValue;
+		this.scriptScopeInitializationExpression = constValue;
+	}
+	
+	public ExprElm getScriptScopeInitializationExpression() {
+		return scriptScopeInitializationExpression instanceof ExprElm ? (ExprElm)scriptScopeInitializationExpression : null;
+	}
+	
+	public void setScriptScopeInitializationExpression(ExprElm scriptScopeInitializationExpression) {
+		this.scriptScopeInitializationExpression = scriptScopeInitializationExpression;
 	}
 
 	@Override

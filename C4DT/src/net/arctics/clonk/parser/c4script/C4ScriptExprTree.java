@@ -3,8 +3,10 @@ package net.arctics.clonk.parser.c4script;
 import java.io.Serializable;
 import java.security.InvalidParameterException;
 import java.util.EnumSet;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -101,7 +103,7 @@ public abstract class C4ScriptExprTree {
 	}
 
 	public final static class DeclarationRegion {
-		private C4Declaration declaration;
+		private transient C4Declaration declaration;
 		private IRegion region;
 		private String text;
 		public C4Declaration getDeclaration() {
@@ -194,8 +196,10 @@ public abstract class C4ScriptExprTree {
 	/**
 	 * base class for making expression trees
 	 */
-	public static class ExprElm implements IRegion, Cloneable, IPrintable {
-		
+	public static class ExprElm implements IRegion, Cloneable, IPrintable, Serializable {
+
+		private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
+
 		public static final ExprElm NULL_EXPR = new ExprElm();
 		public static final ExprElm[] EMPTY_EXPR_ARRAY = new ExprElm[0];
 		public static final Object EVALUATION_COMPLEX = new Object();
@@ -466,6 +470,11 @@ public abstract class C4ScriptExprTree {
 		public static ExprElm getExprElmForType(final C4Type type) {
 			if (exprElmsForTypes[type.ordinal()] == null) {
 				exprElmsForTypes[type.ordinal()] = new ExprElm() {
+					/**
+					 * 
+					 */
+					private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
+
 					@Override
 					public IType getType(C4ScriptParser context) {
 						return type;
@@ -619,6 +628,10 @@ public abstract class C4ScriptExprTree {
 	}
 
 	public static class MemberOperator extends ExprElm {
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 		private boolean dotNotation;
 		private boolean hasTilde;
 		private C4ID id;
@@ -706,6 +719,11 @@ public abstract class C4ScriptExprTree {
 
 	public abstract static class Value extends ExprElm {
 
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
+
 		@Override
 		public IType getType(C4ScriptParser context) {
 			return context.queryTypeOfExpression(this, C4Type.ANY);
@@ -714,6 +732,10 @@ public abstract class C4ScriptExprTree {
 	}
 
 	public static class Sequence extends Value {
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 		protected ExprElm[] elements;
 		public Sequence(ExprElm... elms) {
 			elements = elms;
@@ -772,7 +794,11 @@ public abstract class C4ScriptExprTree {
 	}
 
 	public static abstract class AccessDeclaration extends Value {
-		protected C4Declaration declaration;
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
+		protected transient C4Declaration declaration;
 		private boolean declNotFound = false;
 		protected final String declarationName;
 
@@ -828,6 +854,11 @@ public abstract class C4ScriptExprTree {
 	}
 
 	public static class AccessVar extends AccessDeclaration {
+
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 
 		private static final class VariableTypeInformation extends StoredTypeInformation {
 			private C4Declaration decl;
@@ -906,9 +937,9 @@ public abstract class C4ScriptExprTree {
 			FindDeclarationInfo info = new FindDeclarationInfo(parser.getContainer().getIndex());
 			info.setContextFunction(parser.getActiveFunc());
 			ExprElm p = getPredecessorInSequence();
-			C4ScriptBase lookIn = p == null ? null : p.guessObjectType(parser);
+			C4ScriptBase lookIn = p == null ? parser.getContainer() : p.guessObjectType(parser);
 			if (lookIn == null)
-				lookIn = parser.getContainer(); // FIXME: not a very logical fallback?
+				return null;
 			info.setSearchOrigin(lookIn);
 			return lookIn.findVariable(declarationName, info);
 		}
@@ -1022,7 +1053,8 @@ public abstract class C4ScriptExprTree {
 		public boolean isConstant() {
 			if (getDeclaration() instanceof C4Variable) {
 				C4Variable var = (C4Variable) getDeclaration();
-				return getObjectBelongingToStaticVar(var) != null;
+				// naturally, consts are constant
+				return var.getScope() == C4VariableScope.CONST || getObjectBelongingToStaticVar(var) != null;
 			}
 			else
 				return false;
@@ -1032,6 +1064,11 @@ public abstract class C4ScriptExprTree {
 
 	public static class CallFunc extends AccessDeclaration {
 		
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
+
 		private final static class FunctionReturnTypeInformation extends StoredTypeInformation {
 			private C4Function function;
 
@@ -1615,6 +1652,10 @@ public abstract class C4ScriptExprTree {
 	}
 
 	public static class Operator extends Value {
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 		private final C4ScriptOperator operator;
 
 		@Override
@@ -1645,6 +1686,11 @@ public abstract class C4ScriptExprTree {
 
 	public static class BinaryOp extends Operator {
 		
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
+
 		@Override
 		public IType getType(C4ScriptParser context) {
 			switch (getOperator()) {
@@ -1895,6 +1941,10 @@ public abstract class C4ScriptExprTree {
 	}
 
 	public static class Parenthesized extends Value {
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 		private ExprElm innerExpr;
 
 		@Override
@@ -1947,6 +1997,11 @@ public abstract class C4ScriptExprTree {
 	}
 
 	public static class UnaryOp extends Operator {
+
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 
 		public enum Placement {
 			Prefix,
@@ -2070,6 +2125,10 @@ public abstract class C4ScriptExprTree {
 	}
 
 	public static class Literal<T> extends Value {
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 		private final T literal;
 
 		@Override
@@ -2124,6 +2183,11 @@ public abstract class C4ScriptExprTree {
 	}
 
 	public static final class NumberLiteral extends Literal<Long> {
+
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 
 		public static final NumberLiteral ZERO = new NumberLiteral(0);
 
@@ -2196,6 +2260,11 @@ public abstract class C4ScriptExprTree {
 	}
 
 	public static final class StringLiteral extends Literal<String> {
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
+
 		public StringLiteral(String literal) {
 			super(literal != null ? literal : ""); //$NON-NLS-1$
 		}
@@ -2419,6 +2488,11 @@ public abstract class C4ScriptExprTree {
 	}
 
 	public static final class IDLiteral extends Literal<C4ID> {
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
+
 		public IDLiteral(C4ID literal) {
 			super(literal);
 		}
@@ -2446,6 +2520,10 @@ public abstract class C4ScriptExprTree {
 	}
 
 	public static final class BoolLiteral extends Literal<Boolean> {
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 		public boolean booleanValue() {
 			return getLiteral().booleanValue();
 		}
@@ -2471,6 +2549,10 @@ public abstract class C4ScriptExprTree {
 
 	public static class ArrayElementExpression extends Value {
 
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 		protected ExprElm argument;
 
 		@Override
@@ -2530,6 +2612,10 @@ public abstract class C4ScriptExprTree {
 	
 	public static class ArraySliceExpression extends ArrayElementExpression {
 		
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 		private ExprElm argument2;
 		
 		public ArraySliceExpression(ExprElm lo, ExprElm hi) {
@@ -2584,6 +2670,11 @@ public abstract class C4ScriptExprTree {
 	}
 
 	public static class ArrayExpression extends Sequence {
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
+
 		public ArrayExpression(ExprElm... elms) {
 			super(elms);
 		}
@@ -2622,6 +2713,10 @@ public abstract class C4ScriptExprTree {
 	}
 
 	public static class PropListExpression extends Value {
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 		private Pair<String, ExprElm>[] components;
 		public PropListExpression(Pair<String, ExprElm>[] components) {
 			this.components = components;
@@ -2668,9 +2763,32 @@ public abstract class C4ScriptExprTree {
 				components[i].setSecond(elms[i]);
 			}
 		}
+		@Override
+		public boolean isConstant() {
+			// whoohoo, proplist expressions can be constant if all components are constant
+			for (Pair<String, ExprElm> component : components) {
+				if (!component.getSecond().isConstant())
+					return false;
+			}
+			return true;
+		}
+		
+		@Override
+		public Object evaluateAtParseTime(C4ScriptBase context) {
+			Map<String, Object> map = new HashMap<String, Object>(components.length);
+			for (Pair<String, ExprElm> component : components) {
+				map.put(component.getFirst(), component.getSecond().evaluateAtParseTime(context));
+			}
+			return map;
+		}
 	}
 
 	public static class Tuple extends Sequence {
+
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 
 		public Tuple(ExprElm[] elms) {
 			super(elms);		
@@ -2694,6 +2812,11 @@ public abstract class C4ScriptExprTree {
 
 	public static class Ellipsis extends ExprElm {
 
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
+
 		public Ellipsis() {
 			super();
 		}
@@ -2712,6 +2835,10 @@ public abstract class C4ScriptExprTree {
 	}
 
 	public static class Placeholder extends ExprElm {
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 		private String entryName;
 
 		public Placeholder(String entryName) {
@@ -2745,6 +2872,11 @@ public abstract class C4ScriptExprTree {
 	 */
 	public static class Statement extends ExprElm {
 		
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
+
 		public interface Attachment {
 			public enum Position {
 				Pre,
@@ -2848,6 +2980,10 @@ public abstract class C4ScriptExprTree {
 	 */
 	public static class Block extends Statement {
 
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 		private Statement[] statements;
 
 		public Block(List<Statement> statements) {
@@ -2950,6 +3086,11 @@ public abstract class C4ScriptExprTree {
 	}
 
 	static class BunchOfStatements extends Block {
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
+
 		public BunchOfStatements(List<Statement> statements) {
 			super(statements);
 		}
@@ -2980,6 +3121,10 @@ public abstract class C4ScriptExprTree {
 	 * 
 	 */
 	public static class SimpleStatement extends Statement {
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 		private ExprElm expression;
 
 		public SimpleStatement(ExprElm expression) {
@@ -3044,6 +3189,11 @@ public abstract class C4ScriptExprTree {
 	 *
 	 */
 	public static abstract class KeywordStatement extends Statement {
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
+
 		public abstract String getKeyword();
 		@Override
 		public void doPrint(ExprWriter builder, int depth) {
@@ -3072,6 +3222,10 @@ public abstract class C4ScriptExprTree {
 	}
 
 	public static class ContinueStatement extends KeywordStatement {
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 		@Override
 		public String getKeyword() {
 			return Keywords.Continue;
@@ -3083,6 +3237,10 @@ public abstract class C4ScriptExprTree {
 	}
 
 	public static class BreakStatement extends KeywordStatement {
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 		@Override
 		public String getKeyword() {
 			return Keywords.Break;
@@ -3095,6 +3253,10 @@ public abstract class C4ScriptExprTree {
 
 	public static class ReturnStatement extends KeywordStatement {
 
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 		private ExprElm returnExpr;
 
 		@Override
@@ -3179,6 +3341,10 @@ public abstract class C4ScriptExprTree {
 	}
 
 	public static abstract class ConditionalStatement extends KeywordStatement {
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 		protected ExprElm condition;
 		protected ExprElm body;
 
@@ -3233,6 +3399,10 @@ public abstract class C4ScriptExprTree {
 
 	public static class IfStatement extends ConditionalStatement {
 
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 		private ExprElm elseExpr;
 
 		public IfStatement(ExprElm condition, ExprElm body, ExprElm elseExpr) {
@@ -3308,6 +3478,11 @@ public abstract class C4ScriptExprTree {
 	}
 
 	public static class WhileStatement extends ConditionalStatement implements ILoop {
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
+
 		public WhileStatement(ExprElm condition, ExprElm body) {
 			super(condition, body);
 		}
@@ -3326,6 +3501,11 @@ public abstract class C4ScriptExprTree {
 	}
 
 	public static class DoWhileStatement extends WhileStatement {
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
+
 		public DoWhileStatement(ExprElm condition, ExprElm body) {
 			super(condition, body);
 		}
@@ -3343,6 +3523,10 @@ public abstract class C4ScriptExprTree {
 	}
 
 	public static class ForStatement extends ConditionalStatement implements ILoop {
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 		private ExprElm initializer, increment;
 		public ForStatement(ExprElm initializer, ExprElm condition, ExprElm increment, ExprElm body) {
 			super(condition, body);
@@ -3385,6 +3569,10 @@ public abstract class C4ScriptExprTree {
 	}
 
 	public static class IterateArrayStatement extends KeywordStatement implements ILoop {
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 		private ExprElm elementExpr, arrayExpr, body;
 
 		public IterateArrayStatement(ExprElm elementExpr, ExprElm arrayExpr, ExprElm body) {
@@ -3454,6 +3642,10 @@ public abstract class C4ScriptExprTree {
 	}
 
 	public static class VarDeclarationStatement extends KeywordStatement {
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 		private List<Pair<String, ExprElm>> varInitializations;
 		private C4VariableScope scope;
 		public VarDeclarationStatement(List<Pair<String, ExprElm>> varInitializations, C4VariableScope scope) {
@@ -3521,6 +3713,11 @@ public abstract class C4ScriptExprTree {
 	}
 
 	public static class EmptyStatement extends Statement {
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
+
 		@Override
 		public void doPrint(ExprWriter builder, int depth) {
 			builder.append(";"); //$NON-NLS-1$
@@ -3528,6 +3725,10 @@ public abstract class C4ScriptExprTree {
 	}
 
 	public static class Comment extends Statement implements Statement.Attachment {
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 		private String comment;
 		private boolean multiLine;
 
