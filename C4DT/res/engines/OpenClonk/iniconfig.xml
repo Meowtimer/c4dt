@@ -492,6 +492,7 @@
 			<entry name="MinPlayer" class="UnsignedInteger" />
 			<entry name="MaxPlayer" class="UnsignedInteger" />
 			<entry name="ForcedNoCrew" class="UnsignedInteger" />
+			<entry name="ForcedFairCrew" class="Boolean" />
 		</section>
 		<section name="Game">
 			<entry name="Rules" class="IDArray"
