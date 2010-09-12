@@ -355,7 +355,10 @@ static const DMQ_Sky;
 static const DMQ_Sub;
 static const DMQ_Bridge;
 
-global func int AttachMesh(mesh, string szParentBone, string szChildBone, array Transformation);
+static AM_None;
+static AM_DrawBefore;
+
+global func int AttachMesh(mesh, string szParentBone, string szChildBone, array Transformation, int Flags);
 global func int GetAnimationLength(string animation);
 global func string GetAnimationName(int animation_number);
 global func int PlayAnimation(string szAnimation, int iSlot, array PositionProvider, array WeightProvider, int iSibling, int iAttachNumber);
@@ -582,9 +585,9 @@ global func int GetVertexNum();
 global func bool CheckVisibility(int player, object object);
 global func int GetWealth(int iOwner);
 global func int GetWind(int x, int y, bool fGlobal);
-global func int GetX();
+global func int GetX(int precision);
 global func int GetXDir(int iPrecision);
-global func int GetY();
+global func int GetY(int precision);
 global func int GetYDir(int iPrecision);
 global func & GlobalN(string szText);
 global func any goto(int iCounter);
@@ -832,3 +835,5 @@ global func any GameCallEx(string function_name, ...);
 global func bool AddMessage(string message, ...);
 global func bool DebugLog(string msg, ...);
 global func int GetIndexOf(item, array array, ...);
+
+global func string GetConstantNameByValue(int value, string name_prefix, int idx);
