@@ -7,6 +7,8 @@ import java.util.List;
 import java.util.Map;
 
 import net.arctics.clonk.resource.c4group.C4Group;
+import net.arctics.clonk.util.UI;
+
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.core.filesystem.EFS;
@@ -14,7 +16,6 @@ import org.eclipse.core.filesystem.IFileStore;
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.NullProgressMonitor;
-import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.ui.handlers.HandlerUtil;
@@ -26,10 +27,10 @@ public class ConvertLinkedGroupsHandler extends ClonkResourceHandler {
 		try {
 			final ISelection selection = HandlerUtil.getCurrentSelection(event);
 			Map<IContainer, List<File>> filesToReimport = new HashMap<IContainer, List<File>>();
-			if (MessageDialog.openQuestion(
-					HandlerUtil.getActiveShell(event),
-					Messages.ConvertLinkedGroupsHandler_ConfirmationTitle,
-					Messages.ConvertLinkedGroupsHandler_ConfirmationText
+			if (UI.confirm(
+				HandlerUtil.getActiveShell(event),
+				Messages.ConvertLinkedGroupsHandler_ConfirmationText,
+				Messages.ConvertLinkedGroupsHandler_ConfirmationTitle
 			)) {
 				for (Object sel : ((IStructuredSelection)selection).toList()) {
 					if (sel instanceof IContainer) {

@@ -16,6 +16,7 @@ import net.arctics.clonk.parser.c4script.C4Variable.C4VariableScope;
 import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.preferences.ClonkPreferences;
 import net.arctics.clonk.ui.navigator.ClonkOutlineProvider;
+import net.arctics.clonk.util.UI;
 
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Combo;
@@ -39,7 +40,6 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.jface.action.*;
 import org.eclipse.jface.dialogs.Dialog;
-import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.dialogs.InputDialog;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.ui.*;
@@ -448,9 +448,7 @@ public class EngineDeclarationsView extends ViewPart implements IPropertyChangeL
 		
 		deleteAction = new Action() {
 			public void run() {
-				Dialog dialog = new SimpleConfirmDialog(viewer.getControl().getShell());
-				int result = dialog.open();
-				if (result == IDialogConstants.OK_ID) {
+				if (UI.confirm(viewer.getControl().getShell(), Messages.Engine_ConfirmDeletion, null)) {
 					TreeItem[] selection = viewer.getTree().getSelection();
 					for (TreeItem t : selection) {
 						Object selectedItem = t.getData();

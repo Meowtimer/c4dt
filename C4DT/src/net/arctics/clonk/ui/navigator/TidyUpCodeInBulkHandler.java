@@ -11,6 +11,7 @@ import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.ui.editors.actions.c4script.TidyUpCodeAction;
 import net.arctics.clonk.ui.editors.actions.c4script.TidyUpCodeAction.FunctionStatements;
+import net.arctics.clonk.util.UI;
 import net.arctics.clonk.util.Utilities;
 
 import org.eclipse.core.commands.AbstractHandler;
@@ -45,6 +46,10 @@ public class TidyUpCodeInBulkHandler extends AbstractHandler {
 
 	@Override
 	public Object execute(ExecutionEvent event) throws ExecutionException {
+		
+		if (!UI.confirm(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(), Messages.TidyUpCodeInBulkHandler_ReallyConvert, null))
+			return null;
+		
 		if (PlatformUI.getWorkbench() == null ||
 				PlatformUI.getWorkbench().getActiveWorkbenchWindow() == null ||
 				PlatformUI.getWorkbench().getActiveWorkbenchWindow().getSelectionService() == null ||

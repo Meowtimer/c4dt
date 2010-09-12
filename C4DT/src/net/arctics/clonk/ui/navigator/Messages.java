@@ -18,6 +18,7 @@ public class Messages extends NLS {
 	public static String ConvertLinkedGroupsHandler_ConfirmationText;
 	public static String ConvertLinkedGroupsHandler_ConfirmationTitle;
 	public static String TidyUpCodeInBulkAction_ConvertingCode;
+	public static String TidyUpCodeInBulkHandler_ReallyConvert;
 	public static String OpenSpecialItemAction_Open;
 	public static String QuickImportAction_SelectFiles;
 	static {

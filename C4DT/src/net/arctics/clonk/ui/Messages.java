@@ -33,8 +33,7 @@ public class Messages extends NLS {
 	public static String SpecifyEngineNameDesc;
 	public static String OpenObjectDialog_Empty;
 	public static String OpenObjectDialog_Searching;
-	public static String SimpleConfirmDialog_Yes;
-	public static String SimpleConfirmDialog_ConfirmMessage;
+	public static String Engine_ConfirmDeletion;
 	static {
 		// initialize resource bundle
 		NLS.initializeMessages(BUNDLE_NAME, Messages.class);

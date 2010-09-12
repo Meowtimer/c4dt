@@ -5,11 +5,11 @@ import net.arctics.clonk.index.C4Object;
 import net.arctics.clonk.parser.c4script.C4Function;
 import net.arctics.clonk.parser.c4script.C4ScriptBase;
 import net.arctics.clonk.parser.c4script.C4Variable;
-import net.arctics.clonk.ui.navigator.Messages;
 
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.FileLocator;
 import org.eclipse.core.runtime.Path;
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.resource.ImageRegistry;
 import org.eclipse.jface.viewers.CheckboxTableViewer;
@@ -25,6 +25,7 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Group;
+import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.model.WorkbenchContentProvider;
 import org.eclipse.ui.model.WorkbenchLabelProvider;
@@ -106,7 +107,7 @@ public abstract class UI {
 			Text.setText(net.arctics.clonk.ui.navigator.Messages.ClonkFolderView_Project);
 			Text.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 			AddButton = new Button(container, SWT.PUSH);
-			AddButton.setText(Messages.Browse);
+			AddButton.setText(net.arctics.clonk.ui.navigator.Messages.Browse);
 			
 			// Install listener
 			if (textModifyListener != null)
@@ -137,6 +138,14 @@ public abstract class UI {
 		result.setComparator(new ViewerComparator());
 		result.setInput(ResourcesPlugin.getWorkspace());
 		return result;
+	}
+	
+	public static boolean confirm(Shell shell, String text, String confirmTitle) {
+		return MessageDialog.openQuestion(
+			shell,
+			confirmTitle != null ? confirmTitle : Messages.UI_Confirm,
+			text
+		);
 	}
 	
 }
