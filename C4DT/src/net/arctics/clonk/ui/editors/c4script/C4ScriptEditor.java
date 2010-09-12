@@ -274,7 +274,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 									int markerStart, int markerEnd, boolean noThrow,
 									int severity, Object... args) {
 								if (script.getScriptFile() instanceof IFile)
-									code.createMarker((IFile) script.getScriptFile(), ClonkCore.MARKER_C4SCRIPT_ERROR_WHILE_TYPING, markerStart, markerEnd, severity, args);
+									code.createMarker((IFile) script.getScriptFile(), script, ClonkCore.MARKER_C4SCRIPT_ERROR_WHILE_TYPING, markerStart, markerEnd, severity, args);
 							}
 						});
 					}

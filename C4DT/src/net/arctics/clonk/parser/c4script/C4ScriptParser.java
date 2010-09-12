@@ -1357,7 +1357,7 @@ public class C4ScriptParser {
 		boolean silence = scriptFile == null || (activeFunc != null && activeFunc.getBody() != null && scanner.getPosition() > activeFunc.getBody().getEnd()+1);
 		String problem = code.getErrorString(args);
 		if (!silence && !allErrorsDisabled) {
-			result = code.createMarker(scriptFile, ClonkCore.MARKER_C4SCRIPT_ERROR, markerStart, markerEnd, severity, problem);
+			result = code.createMarker(scriptFile, getContainer(), ClonkCore.MARKER_C4SCRIPT_ERROR, markerStart, markerEnd, severity, problem);
 			if (expressionReportingErrors != null) {
 				ParserErrorCode.setExpressionLocation(result, expressionReportingErrors);
 			}

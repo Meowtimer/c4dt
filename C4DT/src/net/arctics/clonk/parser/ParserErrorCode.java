@@ -86,8 +86,8 @@ public enum ParserErrorCode {
 		}
 	}
 	
-	public IMarker createMarker(IFile file, String markerType, int start, int end, int severity, Object... args) {
-		return createMarker(file, markerType, start, end, severity, getErrorString(args));
+	public IMarker createMarker(IFile file, C4Declaration declarationAssociatedWithFile, String markerType, int start, int end, int severity, Object... args) {
+		return createMarker(file, declarationAssociatedWithFile, markerType, start, end, severity, getErrorString(args));
 	}
 	
 	public static IRegion getExpressionLocation(IMarker marker) {
@@ -103,7 +103,7 @@ public enum ParserErrorCode {
 		}
 	}
 	
-	public IMarker createMarker(IFile file, String markerType, int start, int end, int severity, String problem) {
+	public IMarker createMarker(IFile file, C4Declaration declarationAssociatedWithFile, String markerType, int start, int end, int severity, String problem) {
 		if (file == null)
 			return null;
 		try {
@@ -113,6 +113,8 @@ public enum ParserErrorCode {
 			marker.setAttribute(IMarker.MESSAGE, problem);
 			marker.setAttribute(IMarker.CHAR_START, start);
 			marker.setAttribute(IMarker.CHAR_END, end);
+			if (declarationAssociatedWithFile != null)
+				marker.setAttribute(IMarker.LOCATION, declarationAssociatedWithFile.toString());
 			
 			marker.setAttribute(MARKER_ERRORCODE, this.ordinal());
 			return marker;
