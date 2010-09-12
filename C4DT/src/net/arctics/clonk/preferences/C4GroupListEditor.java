@@ -66,7 +66,7 @@ public final class C4GroupListEditor extends ListEditor {
 			}
 			return null;
 		case 1:
-			DirectoryDialog dirDialog = new DirectoryDialog(getShell());
+			DirectoryDialog dirDialog = new DirectoryDialog(getShell(), SWT.SHEET+SWT.MULTI+SWT.OPEN);
 			dirDialog.setText(Messages.ClonkPreferencePage_SelectExternalFolder);
 			dirDialog.setFilterPath(gamePath);
 			return dirDialog.open();
