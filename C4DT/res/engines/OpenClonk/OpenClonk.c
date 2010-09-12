@@ -827,7 +827,7 @@ global func any SetNextMission(string next_mission, string next_mission_text, st
 global func any IncinerateLandscape(int x, int y);
 global func any Equal(a, b);
 global func bool PlayerObjectCommand(parameters, ...);
-global func bool PathFree2(int x1, int y1, int x2, int y2);
+global func array PathFree2(int x1, int y1, int x2, int y2);
 global func any GameCallEx(string function_name, ...);
 global func bool AddMessage(string message, ...);
 global func bool DebugLog(string msg, ...);
