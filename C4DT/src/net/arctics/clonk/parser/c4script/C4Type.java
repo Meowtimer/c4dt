@@ -165,13 +165,13 @@ public enum C4Type implements IType {
 
 	@Override
 	public boolean containsType(IType type) {
-		return type == this;
+		return type.canBeAssignedFrom(this);
 	}
 	
 	@Override
 	public boolean containsAnyTypeOf(IType... types) {
 		for (IType t : types)
-			if (t == this)
+			if (containsType(t))
 				return true;
 		return false;
 	}
