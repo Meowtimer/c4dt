@@ -270,7 +270,7 @@ public class C4Function extends C4Structure implements Serializable, ITypedDecla
 	@Override
 	public String getInfoText() {
 		String description = getUserDescription();
-		return String.format(Messages.C4Function_InfoTextTemplate, getLongParameterString(true, false), description != null && !description.equals("") ? description : Messages.DescriptionNotAvailable, getScript().toString()); //$NON-NLS-1$
+		return String.format(Messages.C4Function_InfoTextTemplate, getReturnType() != null ? getReturnType().toString() : "", getLongParameterString(true, false), description != null && !description.equals("") ? description : Messages.DescriptionNotAvailable, getScript().toString()); //$NON-NLS-1$
 	}
 
 	@Override
