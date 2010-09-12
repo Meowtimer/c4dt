@@ -4,6 +4,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.ResourceBundle;
 
+import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.c4script.C4Function;
 import net.arctics.clonk.parser.c4script.C4ScriptExprTree;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
@@ -27,6 +28,9 @@ import org.eclipse.ui.texteditor.TextEditorAction;
 public class TidyUpCodeAction extends TextEditorAction {
 
 	public final static class FunctionStatements extends Pair<C4Function, LinkedList<Statement>> {
+		
+		private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
+		
 		public FunctionStatements(C4Function first, LinkedList<Statement> second) {
 			super(first, second);
 		}

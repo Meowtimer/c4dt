@@ -1,7 +1,11 @@
 package net.arctics.clonk.util;
 
+import net.arctics.clonk.ClonkCore;
+
 public class PairWithContext<First, Second> extends Pair<First, Second> implements IHasContext {
 
+	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
+	
 	private Object context;
 	
 	public PairWithContext(First first, Second second, Object context) {
