@@ -1,29 +1,37 @@
 package net.arctics.clonk.ui.editors.ini;
 
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import net.arctics.clonk.index.C4Engine;
 import net.arctics.clonk.index.C4ObjectIntern;
 import net.arctics.clonk.index.ClonkIndex;
+import net.arctics.clonk.index.ProjectIndex;
 import net.arctics.clonk.parser.C4Declaration;
 import net.arctics.clonk.parser.C4ID;
 import net.arctics.clonk.parser.inireader.Action;
 import net.arctics.clonk.parser.inireader.CategoriesArray;
+import net.arctics.clonk.parser.inireader.DefinitionPack;
 import net.arctics.clonk.parser.inireader.Function;
 import net.arctics.clonk.parser.inireader.IDArray;
 import net.arctics.clonk.parser.inireader.IniEntry;
 import net.arctics.clonk.parser.inireader.IniSection;
 import net.arctics.clonk.parser.inireader.IntegerArray;
 import net.arctics.clonk.parser.inireader.IniData.IniDataEntry;
+import net.arctics.clonk.resource.c4group.C4Group;
+import net.arctics.clonk.resource.c4group.C4Group.C4GroupType;
 import net.arctics.clonk.ui.editors.ClonkHyperlink;
 import net.arctics.clonk.ui.editors.ClonkSourceViewerConfiguration;
 import net.arctics.clonk.ui.editors.ColorManager;
 import net.arctics.clonk.ui.editors.ClonkColorConstants;
+import net.arctics.clonk.ui.editors.HyperlinkToResource;
 import net.arctics.clonk.util.IPredicate;
 import net.arctics.clonk.util.Utilities;
 
+import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IResource;
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.DocumentEvent;
@@ -44,6 +52,7 @@ import org.eclipse.jface.text.rules.DefaultDamagerRepairer;
 import org.eclipse.jface.text.rules.Token;
 import org.eclipse.jface.text.source.ISourceViewer;
 import org.eclipse.swt.graphics.RGB;
+import org.eclipse.ui.PlatformUI;
 
 public class IniSourceViewerConfiguration extends ClonkSourceViewerConfiguration<IniTextEditor> {
 	
@@ -134,6 +143,28 @@ public class IniSourceViewerConfiguration extends ClonkSourceViewerConfiguration
 										declaration = getEditor().getIniUnit().getEngine().findVariable(line.substring(idRegion.getOffset(), idRegion.getOffset()+idRegion.getLength()));
 										linkStart = lineRegion.getOffset()+idRegion.getOffset();
 										linkLen = idRegion.getLength();
+									}
+								}
+								else if (entryClass == DefinitionPack.class) {
+									ClonkIndex projIndex = C4ObjectIntern.objectCorrespondingTo(Utilities.getEditingFile(getEditor()).getParent()).getIndex();
+									List<ClonkIndex> indexes = projIndex.relevantIndexes();
+									for (ClonkIndex index : indexes) {
+										if (index instanceof ProjectIndex) {
+											ProjectIndex pi = (ProjectIndex) index;
+											try {
+												for (IResource res : pi.getProject().members()) {
+													if (res instanceof IContainer && C4Group.getGroupType(res.getName()) == C4GroupType.DefinitionGroup) {
+														if (res.getName().equals(value)) {
+															return new IHyperlink[] {
+																new HyperlinkToResource(res, new Region(linkStart, linkLen), PlatformUI.getWorkbench().getActiveWorkbenchWindow())
+															};
+														}
+													}
+												}
+											} catch (CoreException e) {
+												e.printStackTrace();
+											}	
+										}
 									}
 								}
 								

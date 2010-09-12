@@ -1,6 +1,5 @@
 package net.arctics.clonk.ui.editors.ini;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
@@ -159,8 +158,7 @@ public class IniCompletionProcessor extends ClonkCompletionProcessor<IniTextEdit
 
 	private void proposalsForDefinitionPackEntry(Collection<ICompletionProposal> proposals, String prefix, int wordOffset) {
 		ClonkProjectNature nature = ClonkProjectNature.get(this.editor.getTopLevelDeclaration().getResource().getProject());
-		List<ClonkIndex> indexes = new ArrayList<ClonkIndex>(10);
-		indexes.addAll(nature.getIndex().relevantIndexes());
+		List<ClonkIndex> indexes = nature.getIndex().relevantIndexes();
 		for (ClonkIndex index : indexes) {
 			if (index instanceof ProjectIndex) {
 				try {
