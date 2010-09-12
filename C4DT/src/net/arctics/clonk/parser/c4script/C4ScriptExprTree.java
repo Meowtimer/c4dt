@@ -906,7 +906,9 @@ public abstract class C4ScriptExprTree {
 			FindDeclarationInfo info = new FindDeclarationInfo(parser.getContainer().getIndex());
 			info.setContextFunction(parser.getActiveFunc());
 			ExprElm p = getPredecessorInSequence();
-			C4ScriptBase lookIn = p == null ? parser.getContainer() : p.guessObjectType(parser);
+			C4ScriptBase lookIn = p == null ? null : p.guessObjectType(parser);
+			if (lookIn == null)
+				lookIn = parser.getContainer(); // FIXME: not a very logical fallback?
 			info.setSearchOrigin(lookIn);
 			return lookIn.findVariable(declarationName, info);
 		}
