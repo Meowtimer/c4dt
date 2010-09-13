@@ -799,13 +799,11 @@ public abstract class C4ScriptExprTree {
 		 */
 		private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 		protected transient C4Declaration declaration;
-		private boolean declNotFound = false;
 		protected final String declarationName;
 
 		public C4Declaration getDeclaration(C4ScriptParser parser) {
-			if (declaration == null && !declNotFound) {
+			if (declaration == null) {
 				declaration = getDeclImpl(parser);
-				declNotFound = declaration == null;
 			}
 			return declaration;
 		}
@@ -954,7 +952,11 @@ public abstract class C4ScriptExprTree {
 				C4Variable var = (C4Variable) declaration;
 				switch (var.getScope()) {
 					case LOCAL:
-						if (parser.getActiveFunc().getVisibility() == C4FunctionScope.GLOBAL) {
+						if (
+							(parser.getActiveFunc() != null && parser.getActiveFunc().getVisibility() == C4FunctionScope.GLOBAL) ||
+							// initialization a non-local variable with local values -> fail
+							(parser.getActiveScriptScopeVariable() != null && parser.getActiveScriptScopeVariable().getScope() != C4VariableScope.LOCAL)
+						) {
 							parser.errorWithCode(ParserErrorCode.LocalUsedInGlobal, this, true);
 						}
 						break;
@@ -1276,7 +1278,8 @@ public abstract class C4ScriptExprTree {
 			if (declarationName.equals(Keywords.Return))
 				return null;
 			if (declarationName.equals(Keywords.Inherited) || declarationName.equals(Keywords.SafeInherited)) {
-				return parser.getActiveFunc().getInherited();
+				C4Function activeFunc = parser.getActiveFunc();
+				return activeFunc != null ? activeFunc.getInherited() : null;
 			}
 			ExprElm p = getPredecessorInSequence();
 			C4ScriptBase lookIn = p == null ? parser.getContainer() : p.guessObjectType(parser);
@@ -1421,7 +1424,12 @@ public abstract class C4ScriptExprTree {
 				}
 				else if (declaration == null && getPredecessorInSequence() == null) {
 					if (declarationName.equals(Keywords.Inherited)) {
-						context.errorWithCode(ParserErrorCode.NoInheritedFunction, getExprStart(), getExprStart()+declarationName.length(), true, context.getActiveFunc().getName(), true);
+						C4Function activeFunc = context.getActiveFunc();
+						if (activeFunc != null) {
+							context.errorWithCode(ParserErrorCode.NoInheritedFunction, getExprStart(), getExprStart()+declarationName.length(), true, context.getActiveFunc().getName(), true);
+						} else {
+							context.errorWithCode(ParserErrorCode.NotAllowedHere, getExprStart(), getExprStart()+declarationName.length(), true, declarationName);
+						}
 					}
 					// _inherited yields no warning or error
 					else if (!declarationName.equals(Keywords.SafeInherited)) {
@@ -1519,8 +1527,11 @@ public abstract class C4ScriptExprTree {
 			// Par(5) -> nameOfParm6
 			if (params.length <= 1 && declaration != null && declaration == getCachedFuncs(parser).Par && (params.length == 0 || params[0] instanceof NumberLiteral)) {
 				NumberLiteral number = params.length > 0 ? (NumberLiteral) params[0] : NumberLiteral.ZERO;
-				if (number.intValue() >= 0 && number.intValue() < parser.getActiveFunc().getParameters().size() && parser.getActiveFunc().getParameters().get(number.intValue()).isActualParm())
-					return new AccessVar(parser.getActiveFunc().getParameters().get(number.intValue()).getName());
+				C4Function activeFunc = parser.getActiveFunc();
+				if (activeFunc != null) {
+					if (number.intValue() >= 0 && number.intValue() < activeFunc.getParameters().size() && activeFunc.getParameters().get(number.intValue()).isActualParm())
+						return new AccessVar(parser.getActiveFunc().getParameters().get(number.intValue()).getName());
+				}
 			}
 			
 			// SetVar(5, "ugh") -> Var(5) = "ugh"
@@ -3350,8 +3361,12 @@ public abstract class C4ScriptExprTree {
 
 		@Override
 		public void reportErrors(C4ScriptParser parser) throws ParsingException {
-			if (returnExpr != null)
+			C4Function activeFunc = parser.getActiveFunc();
+			if (activeFunc == null) {
+				parser.errorWithCode(ParserErrorCode.NotAllowedHere, this, true, Keywords.Return);
+			} else if (returnExpr != null) {
 				new CallFunc(parser.getActiveFunc()).expectedToBeOfType(returnExpr.getType(parser), parser, TypeExpectancyMode.Expect);
+			}
 		}
 	}
 
@@ -3715,13 +3730,16 @@ public abstract class C4ScriptExprTree {
 		}
 		@Override
 		public DeclarationRegion declarationAt(int offset, C4ScriptParser parser) {
-			int addToMakeAbsolute = parser.getActiveFunc().getBody().getStart() + this.getExprStart();
-			offset += addToMakeAbsolute;
-			for (Pair<String, ExprElm> pair : varInitializations) {
-				String varName = pair.getFirst();
-				C4Variable var = parser.getActiveFunc().findVariable(varName);
-				if (var != null && var.isAt(offset))
-					return new DeclarationRegion(var, new Region(var.getLocation().getStart()-parser.getActiveFunc().getBody().getStart(), var.getLocation().getLength()));
+			C4Function activeFunc = parser.getActiveFunc();
+			if (activeFunc != null) {				
+				int addToMakeAbsolute = activeFunc.getBody().getStart() + this.getExprStart();
+				offset += addToMakeAbsolute;
+				for (Pair<String, ExprElm> pair : varInitializations) {
+					String varName = pair.getFirst();
+					C4Variable var = activeFunc.findVariable(varName);
+					if (var != null && var.isAt(offset))
+						return new DeclarationRegion(var, new Region(var.getLocation().getStart()-activeFunc.getBody().getStart(), var.getLocation().getLength()));
+				}
 			}
 			return super.declarationAt(offset, parser);
 		}

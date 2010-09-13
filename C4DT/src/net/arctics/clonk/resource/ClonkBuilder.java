@@ -453,7 +453,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 							break;
 						case 1:
 							try {
-								parser.parseCodeOfFunctions();
+								parser.parseCodeOfFunctionsAndValidate();
 							} catch (ParsingException e) {
 								e.printStackTrace();
 							}
@@ -560,7 +560,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 				IFile scriptFile = (IFile) ((obj != null) ? obj.getScriptFile() : null);
 				if (scriptFile != null) {
 					try {
-						getParserFor(obj).parseCodeOfFunctions();
+						getParserFor(obj).parseCodeOfFunctionsAndValidate();
 					} catch (ParsingException e) {
 						e.printStackTrace();
 					}
@@ -586,7 +586,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 				case 1:
 					if (script != null) {
 						try {
-							getParserFor(script).parseCodeOfFunctions();
+							getParserFor(script).parseCodeOfFunctionsAndValidate();
 						} catch (ParsingException e) {
 							e.printStackTrace();
 						}

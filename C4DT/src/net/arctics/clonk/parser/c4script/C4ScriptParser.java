@@ -299,7 +299,7 @@ public class C4ScriptParser {
 		this.scriptFile = scriptFile;
 		scanner = new BufferedScanner(scriptFile);
 		container = script;
-		allErrorsDisabled = C4GroupItem.isLinkedResource(scriptFile); 
+		allErrorsDisabled = C4GroupItem.isLinkedResource(scriptFile);
 	}
 
 	/**
@@ -336,7 +336,7 @@ public class C4ScriptParser {
 		synchronized (container) {
 			clean();
 			parseDeclarations();
-			parseCodeOfFunctions();
+			parseCodeOfFunctionsAndValidate();
 		}
 	}
 
@@ -345,6 +345,7 @@ public class C4ScriptParser {
 	 */
 	public void parseDeclarations() {
 		synchronized (container) {
+			strictLevel = container.getStrictLevel();
 			int offset = 0;
 			scanner.seek(offset);
 			disableError(ParserErrorCode.StringNotClosed); // just one time error when parsing function code
@@ -376,15 +377,26 @@ public class C4ScriptParser {
 	 * 	-Types for variables inferred more or less accurately
 	 * @throws ParsingException
 	 */
-	public void parseCodeOfFunctions() throws ParsingException {
+	public void parseCodeOfFunctionsAndValidate() throws ParsingException {
 		synchronized (container) {
+			
 			strictLevel = container.getStrictLevel();
 			for (C4Function function : container.functions()) {
 				parseCodeOfFunction(function);
 			}
+			activeFunc = null;
+
 			for (C4Directive directive : container.directives()) {
 				directive.validate(this);
 			}
+			
+			for (C4Variable variable : container.variables()) {
+				ExprElm initialization = variable.getScriptScopeInitializationExpression();
+				if (initialization != null) {
+					initialization.reportErrors(this);
+				}
+			}
+			
 			container.setDirty(false);
 			distillAdditionalInformation();
 		}
@@ -631,7 +643,7 @@ public class C4ScriptParser {
 							boolean old = allErrorsDisabled;
 							allErrorsDisabled = true;
 							try {
-								varInitialization = parseExpression(true);
+								varInitialization = parseExpression(false);
 								if (varInitialization == null)
 									varInitialization = ERROR_PLACEHOLDER_EXPR;
 							} finally {
@@ -1388,7 +1400,7 @@ public class C4ScriptParser {
 		IMarker result = null;
 		boolean silence = scriptFile == null || (activeFunc != null && activeFunc.getBody() != null && scanner.getPosition() > activeFunc.getBody().getEnd()+1);
 		String problem = code.getErrorString(args);
-		if (!silence && !allErrorsDisabled) {
+		if (!silence && (!allErrorsDisabled || !noThrow)) {
 			result = code.createMarker(scriptFile, getContainer(), ClonkCore.MARKER_C4SCRIPT_ERROR, markerStart, markerEnd, severity, problem);
 			if (expressionReportingErrors != null) {
 				ParserErrorCode.setExpressionLocation(result, expressionReportingErrors);

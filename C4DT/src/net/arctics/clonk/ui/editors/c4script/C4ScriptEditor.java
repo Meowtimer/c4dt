@@ -548,7 +548,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		parser.clean();
 		parser.parseDeclarations();
 		if (!onlyDeclarations)
-			parser.parseCodeOfFunctions();
+			parser.parseCodeOfFunctionsAndValidate();
 		if (storedLocalsTypeInformation != null) {
 			for (IStoredTypeInformation info : storedLocalsTypeInformation) {
 				info.apply(false);

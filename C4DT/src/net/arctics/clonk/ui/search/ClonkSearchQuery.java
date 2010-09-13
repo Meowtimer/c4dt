@@ -183,7 +183,7 @@ public class ClonkSearchQuery implements ISearchQuery {
 		}
 		parser.setExpressionListener(searchExpressions);
 		try {
-			parser.parseCodeOfFunctions();
+			parser.parseCodeOfFunctionsAndValidate();
 		} catch (ParsingException e) {
 			e.printStackTrace();
 		}
