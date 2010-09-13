@@ -577,7 +577,7 @@ global func object FindObject2(array Criteria, ...);
 global func object FindObjectOwner(id idDef, int iOwner, int iX, int iY, int iWdt, int iHgt, int dwOCF, string szAction, object pActionTarget, object pFindNext);
 global func array FindObjects(array Criteria, ...);
 global func object FindOtherContents(id idType, object pObj);
-global func int NoContainer();
+global func any NoContainer(); // leads to problems when some object variable is expected to be int
 global func int ObjectCount(id idDef, int iX, int iY, int iWdt, int iHgt, int dwOCF, string szAction, object pActionTarget, pContainer, int iOwner);
 global func int ObjectCount2(array Criteria, ...);
 global func int AddVertex(int iX, int iY, object pObj);

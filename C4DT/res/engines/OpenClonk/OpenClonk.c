@@ -621,7 +621,7 @@ global func bool Message(string strMessage, ...);
 global func int Min(int iVal1, int iVal2);
 global func int Music(string szSongName, bool fLoop);
 global func int MusicLevel(int iLevel);
-global func int NoContainer();
+global func any NoContainer();
 global func object Object(int iObj);
 global func any ObjectCall(object obj, string szFunction, ...);
 global func int ObjectCount(array Criteria, ...);
