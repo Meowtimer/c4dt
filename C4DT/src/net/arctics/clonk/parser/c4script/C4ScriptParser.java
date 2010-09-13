@@ -28,9 +28,6 @@ import net.arctics.clonk.parser.SourceLocation;
 import net.arctics.clonk.parser.SilentParsingException.Reason;
 import net.arctics.clonk.parser.c4script.C4Directive.C4DirectiveType;
 import net.arctics.clonk.parser.c4script.C4Function.C4FunctionScope;
-import net.arctics.clonk.parser.c4script.C4ScriptExprTree.ExprElm;
-import net.arctics.clonk.parser.c4script.C4ScriptExprTree.IExpressionListener;
-import net.arctics.clonk.parser.c4script.C4ScriptExprTree.TraversalContinuation;
 import net.arctics.clonk.parser.c4script.C4ScriptExprTree.*;
 import net.arctics.clonk.parser.c4script.C4ScriptExprTree.ExprElm.TypeExpectancyMode;
 import net.arctics.clonk.parser.c4script.C4Variable.C4VariableScope;
@@ -909,7 +906,7 @@ public class C4ScriptParser {
 				else if (readByte == ',')
 					continue; // parse another parameter
 				else {
-					errorWithCode(ParserErrorCode.TokenExpected, scanner.getPosition()-1, scanner.getPosition(), (Object) new String[] {")", ","}); //$NON-NLS-1$ //$NON-NLS-2$
+					errorWithCode(ParserErrorCode.TokenExpected, scanner.getPosition()-1, scanner.getPosition(), String.format(Messages.C4ScriptParser_Or, ")", ",")); //$NON-NLS-2$ //$NON-NLS-3$
 				}
 			} while(!scanner.reachedEOF());
 		}
