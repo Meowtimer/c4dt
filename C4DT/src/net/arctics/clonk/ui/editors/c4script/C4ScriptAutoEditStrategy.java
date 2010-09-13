@@ -29,7 +29,30 @@ import org.eclipse.jface.text.IRegion;
  */
 public class C4ScriptAutoEditStrategy extends DefaultIndentLineAutoEditStrategy {
 	
-	private static final String[] AUTOPAIR_STRINGS = {"(", ")", "\"", "\"", "[", "]"}; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$ //$NON-NLS-6$
+	private static class Autopair {
+		public static final int FOLLOWSLETTER = 1;
+		public static final int PRECEDESWHITESPACE = 2;
+		
+		public String start, end;
+		public int flags;
+
+		public Autopair(String start, String end, int flags) {
+			super();
+			this.start = start;
+			this.end = end;
+			this.flags = flags;
+		}
+		
+		public boolean applies(String str, int situation) {
+			return (flags & situation) == flags && str.endsWith(start);
+		}
+	}
+	
+	private static final Autopair[] AUTOPAIRS = {
+		new Autopair("(", ")", Autopair.FOLLOWSLETTER|Autopair.PRECEDESWHITESPACE),
+		new Autopair("\"", "\"", 0),
+		new Autopair("[", "]", Autopair.FOLLOWSLETTER|Autopair.PRECEDESWHITESPACE)
+	};
 	
 	private C4ScriptSourceViewerConfiguration configuration;
 	private List<MutableRegion> overrideRegions = new ArrayList<MutableRegion>(3);
@@ -48,6 +71,7 @@ public class C4ScriptAutoEditStrategy extends DefaultIndentLineAutoEditStrategy 
 	@Override
 	public void customizeDocumentCommand(IDocument d, DocumentCommand c) {
 
+		// tabbing over override regions
 		if (c.text.equals("\t")) { //$NON-NLS-1$
 			for (int i = overrideRegions.size()-1; i >= 0; i--) {
 				MutableRegion r = overrideRegions.get(i);
@@ -62,6 +86,7 @@ public class C4ScriptAutoEditStrategy extends DefaultIndentLineAutoEditStrategy 
 		}
 		
 		try {
+			// auto-block
 			if (c.text.endsWith("\n") && c.offset > 0 && d.getChar(c.offset-1) == '{') { //$NON-NLS-1$
 				C4Function f = ((C4ScriptEditor)getConfiguration().getEditor()).getFuncAtCursor();
 				if (f != null && unbalanced(d, f.getBody())) {
@@ -88,6 +113,7 @@ public class C4ScriptAutoEditStrategy extends DefaultIndentLineAutoEditStrategy 
 			overrideRegions.clear();
 		}
 		else {
+			// user writes override region text himself - noop
 			boolean overrideRegionTrespassed = false;
 			for (int i = overrideRegions.size()-1; i >= 0; i--) {
 				MutableRegion r = overrideRegions.get(i);
@@ -109,18 +135,33 @@ public class C4ScriptAutoEditStrategy extends DefaultIndentLineAutoEditStrategy 
 					break;
 				}
 			}
+
+			// look out for creation of new override region
 			MutableRegion newOne = null;
+			int situation = 0;
+			try {
+				if (Character.isLetter(d.get(c.offset-1, 1).charAt(0)))
+					situation |= Autopair.FOLLOWSLETTER;
+			} catch (BadLocationException e) {}
+			try {
+				if (Character.isWhitespace(d.get(c.offset, 1).charAt(0)))
+					situation |= Autopair.PRECEDESWHITESPACE;
+			} catch (BadLocationException e) {
+				
+			}
 			if (!overrideRegionTrespassed) {
-				for (int i = 0; i < AUTOPAIR_STRINGS.length; i += 2) {
-					if (c.text.endsWith(AUTOPAIR_STRINGS[i])){
-						overrideRegions.add(0, newOne = new MutableRegion(c.offset+c.text.length(), AUTOPAIR_STRINGS[i+1].length()));
-						c.text += AUTOPAIR_STRINGS[i+1];
+				for (Autopair autopair : AUTOPAIRS) {
+					if (autopair.applies(c.text, situation)) {
+						overrideRegions.add(0, newOne = new MutableRegion(c.offset+c.text.length(), autopair.end.length()));
+						c.text += autopair.end;
 						c.shiftsCaret = false;
-						c.caretOffset = c.offset+AUTOPAIR_STRINGS[i+1].length();
+						c.caretOffset = c.offset+autopair.end.length();
 						break;
 					}
 				}
 			}
+			
+			// inc offset of existing regions
 			for (int i = newOne != null ? 1 : 0; i < overrideRegions.size(); i++) {
 				MutableRegion r = overrideRegions.get(i);
 				if (r.getOffset() >= c.offset) {
@@ -128,7 +169,6 @@ public class C4ScriptAutoEditStrategy extends DefaultIndentLineAutoEditStrategy 
 				}
 			}
 		}
-
 
 		super.customizeDocumentCommand(d, c);
 	}
