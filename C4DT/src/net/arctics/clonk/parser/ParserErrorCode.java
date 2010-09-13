@@ -64,6 +64,14 @@ public enum ParserErrorCode {
 	public static final String MARKER_EXPRESSIONSTART = "c4ScriptErrorExpressionStart";
 	public static final String MARKER_EXPRESSIONEND = "c4ScriptErrorExpressionEnd";
 	
+	public static String[] MARKER_ARGS;
+	
+	static {
+		MARKER_ARGS = new String[3];
+		for (int i = 0; i < MARKER_ARGS.length; i++)
+			MARKER_ARGS[i] = String.format("c4ScriptErrorArg%d", i);
+	}
+	
 	private String message;
 	
 	ParserErrorCode(String message) {
@@ -87,7 +95,15 @@ public enum ParserErrorCode {
 	}
 	
 	public IMarker createMarker(IFile file, C4Declaration declarationAssociatedWithFile, String markerType, int start, int end, int severity, Object... args) {
-		return createMarker(file, declarationAssociatedWithFile, markerType, start, end, severity, getErrorString(args));
+		IMarker marker = createMarker(file, declarationAssociatedWithFile, markerType, start, end, severity, getErrorString(args));
+		for (int i = 0; i < Math.min(args.length, MARKER_ARGS.length); i++) {
+			try {
+				marker.setAttribute(MARKER_ARGS[i], args[i].toString());
+			} catch (CoreException e) {
+				e.printStackTrace();
+			}
+		}
+		return marker;
 	}
 	
 	public static IRegion getExpressionLocation(IMarker marker) {
