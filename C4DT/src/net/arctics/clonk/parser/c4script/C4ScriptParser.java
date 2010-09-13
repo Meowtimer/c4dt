@@ -65,6 +65,7 @@ public class C4ScriptParser {
 	private IFile scriptFile; // for project intern files
 	private C4ScriptBase container;
 	private C4Function activeFunc;
+	private C4Variable activeScriptScopeVariable;
 	private int strictLevel;
 	
 	// parse<Blub>() functions store their results in those
@@ -252,6 +253,14 @@ public class C4ScriptParser {
 			activeFunc = func;
 			numUnnamedParameters = 0;
 		}
+	}
+	
+	public void setActiveScriptScopeVariable(C4Variable activeVariable) {
+		this.activeScriptScopeVariable = activeVariable;
+	}
+	
+	public C4Variable getActiveScriptScopeVariable() {
+		return activeScriptScopeVariable;
 	}
 	
 	/**
@@ -596,54 +605,68 @@ public class C4ScriptParser {
 				String varName = scanner.readIdent();
 				int e = scanner.getPosition();
 				C4Variable var = null;
-				if (scope == C4VariableScope.CONST || getContainer().getEngine().getCurrentSettings().nonConstGlobalVarsAssignment) {
-					eatWhitespace();
-					if (scanner.peek() == ';' || scanner.peek() == ',') {
-						if (scope == C4VariableScope.CONST && !isEngine)
-							errorWithCode(ParserErrorCode.ConstantValueExpected, scanner.getPosition()-1, scanner.getPosition(), true);
-						else {
-							createdVariables.add(var = createVariable(scope, desc, s, e, varName));
-							if (scope == C4VariableScope.STATIC) {
-								var.forceType(C4Type.INT); // most likely
+				C4Variable oldActiveVar = activeScriptScopeVariable;
+				try {
+					if (scope == C4VariableScope.CONST || getContainer().getEngine().getCurrentSettings().nonConstGlobalVarsAssignment) {
+						eatWhitespace();
+						if (scanner.peek() == ';' || scanner.peek() == ',') {
+							if (scope == C4VariableScope.CONST && !isEngine)
+								errorWithCode(ParserErrorCode.ConstantValueExpected, scanner.getPosition()-1, scanner.getPosition(), true);
+							else {
+								createdVariables.add(activeScriptScopeVariable = var = createVariable(scope, desc, s, e, varName));
+								if (scope == C4VariableScope.STATIC) {
+									var.forceType(C4Type.INT); // most likely
+								}
 							}
+						}
+						else {
+							expect('=');
+							eatWhitespace();
+							
+							ExprElm varInitialization;
+							
+							activeScriptScopeVariable = var = createVariable(C4VariableScope.CONST, desc, s, e, varName);
+							
+							// parse initialization value with all errors disabled so no false errors 
+							boolean old = allErrorsDisabled;
+							allErrorsDisabled = true;
+							try {
+								varInitialization = parseExpression(true);
+								if (varInitialization == null)
+									varInitialization = ERROR_PLACEHOLDER_EXPR;
+							} finally {
+								allErrorsDisabled = old;
+							}
+							
+							boolean dontBotherEvaluatingConst = false;
+							if (scope == C4VariableScope.CONST && !varInitialization.isConstant()) {
+								errorWithCode(ParserErrorCode.ConstantValueExpected, varInitialization, true);
+								dontBotherEvaluatingConst = true;
+							}
+							if (!dontBotherEvaluatingConst) {
+								try {
+									if (scope == C4VariableScope.CONST)
+										var.setConstValue(varInitialization.evaluateAtParseTime(getContainer()));
+									else
+										var.setScriptScopeInitializationExpression(varInitialization);
+								} catch (Exception ex) {
+									ex.printStackTrace();
+									errorWithCode(ParserErrorCode.InvalidExpression, varInitialization);
+								}
+							}
+							createdVariables.add(var);
+							var.inferTypeFromAssignment(varInitialization, this);
 						}
 					}
 					else {
-						expect('=');
-						eatWhitespace();
-						boolean old = allErrorsDisabled;
-						allErrorsDisabled = true;
-						ExprElm constantValue = parseExpression(true);
-						allErrorsDisabled = old;
-						if (constantValue == null)
-							constantValue = ERROR_PLACEHOLDER_EXPR;
-						boolean dontBotherEvaluatingConst = false;
-						if (scope == C4VariableScope.CONST && !constantValue.isConstant()) {
-							errorWithCode(ParserErrorCode.ConstantValueExpected, constantValue, true);
-							dontBotherEvaluatingConst = true;
-						}
-						var = createVariable(C4VariableScope.CONST, desc, s, e, varName);
-						if (!dontBotherEvaluatingConst) {
-							try {
-								if (scope == C4VariableScope.CONST)
-									var.setConstValue(constantValue.evaluateAtParseTime(getContainer()));
-								else
-									var.setScriptScopeInitializationExpression(constantValue);
-							} catch (Exception ex) {
-								ex.printStackTrace();
-								errorWithCode(ParserErrorCode.InvalidExpression, constantValue);
-							}
-						}
-						createdVariables.add(var);
-						var.inferTypeFromAssignment(constantValue, this);
+						createdVariables.add(var = createVariable(C4VariableScope.STATIC, desc, s, e, varName));
 					}
+					if (t != null)
+						var.forceType(t);
+					eatWhitespace();
+				} finally {
+					activeScriptScopeVariable = oldActiveVar;
 				}
-				else {
-					createdVariables.add(var = createVariable(C4VariableScope.STATIC, desc, s, e, varName));
-				}
-				if (t != null)
-					var.forceType(t);
-				eatWhitespace();
 			} while(scanner.read() == ',');
 			scanner.unread();
 			if (scanner.read() != ';') {

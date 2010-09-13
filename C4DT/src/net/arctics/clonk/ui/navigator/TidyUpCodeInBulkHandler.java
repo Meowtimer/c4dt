@@ -10,7 +10,7 @@ import net.arctics.clonk.parser.c4script.C4ScriptBase;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.ui.editors.actions.c4script.TidyUpCodeAction;
-import net.arctics.clonk.ui.editors.actions.c4script.TidyUpCodeAction.FunctionStatements;
+import net.arctics.clonk.ui.editors.actions.c4script.TidyUpCodeAction.CodeChunk;
 import net.arctics.clonk.util.UI;
 import net.arctics.clonk.util.Utilities;
 
@@ -115,8 +115,8 @@ public class TidyUpCodeInBulkHandler extends AbstractHandler {
 												C4ScriptBase script = C4ScriptBase.get(file, true);
 												if (script != null) {
 													C4ScriptParser parser = new C4ScriptParser(file, script);
-													LinkedList<FunctionStatements> statements = new LinkedList<FunctionStatements>();
-													parser.setExpressionListener(TidyUpCodeAction.expressionCollector(null, statements, 0));
+													LinkedList<CodeChunk> chunks = new LinkedList<CodeChunk>();
+													parser.setExpressionListener(TidyUpCodeAction.expressionCollector(null, chunks, 0));
 													try {
 														parser.parse();
 													} catch (ParsingException e1) {
@@ -127,7 +127,7 @@ public class TidyUpCodeInBulkHandler extends AbstractHandler {
 														IDocument document = textFileDocProvider.getDocument(file);
 
 														if (document != null)
-															TidyUpCodeAction.runOnDocument(parser, new TextSelection(document, 0, 0), document, statements);
+															TidyUpCodeAction.runOnDocument(parser, new TextSelection(document, 0, 0), document, chunks);
 
 														try {
 															textFileDocProvider.setEncoding(document, textFileDocProvider.getDefaultEncoding());

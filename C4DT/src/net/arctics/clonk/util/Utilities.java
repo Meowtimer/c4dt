@@ -6,6 +6,7 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.lang.reflect.Array;
 import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -728,6 +729,13 @@ public abstract class Utilities {
 			array = nonNullIngredients;
 		}
 		return array;
+	}
+	
+	public static <E> ArrayList<E> list(E... elements) {
+		ArrayList<E> result = new ArrayList<E>(elements.length);
+		for (E e : elements)
+			result.add(e);
+		return result;
 	}
 	
 }

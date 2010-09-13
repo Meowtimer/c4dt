@@ -4,19 +4,22 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.ResourceBundle;
 
-import net.arctics.clonk.ClonkCore;
+import net.arctics.clonk.parser.C4Declaration;
 import net.arctics.clonk.parser.c4script.C4Function;
 import net.arctics.clonk.parser.c4script.C4ScriptExprTree;
+import net.arctics.clonk.parser.c4script.C4ScriptExprTree.ExprElm;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
+import net.arctics.clonk.parser.c4script.C4Variable;
 import net.arctics.clonk.parser.c4script.C4ScriptExprTree.*;
 import net.arctics.clonk.ui.editors.IClonkCommandIds;
 import net.arctics.clonk.ui.editors.c4script.C4ScriptEditor;
-import net.arctics.clonk.util.Pair;
+import net.arctics.clonk.util.Utilities;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.IDocument;
+import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.ITextSelection;
 import org.eclipse.ltk.core.refactoring.DocumentChange;
 import org.eclipse.ltk.core.refactoring.TextChange;
@@ -27,12 +30,17 @@ import org.eclipse.ui.texteditor.TextEditorAction;
 
 public class TidyUpCodeAction extends TextEditorAction {
 
-	public final static class FunctionStatements extends Pair<C4Function, LinkedList<Statement>> {
-		
-		private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
-		
-		public FunctionStatements(C4Function first, LinkedList<Statement> second) {
-			super(first, second);
+	public final static class CodeChunk {
+		public C4Declaration relatedDeclaration;
+		public List<ExprElm> expressions;
+		public CodeChunk(C4Declaration declaration, List<ExprElm> expressions) {
+			super();
+			this.relatedDeclaration = declaration;
+			this.expressions = expressions;
+		}
+		@Override
+		public String toString() {
+			return (relatedDeclaration != null ? relatedDeclaration.toString() : "<No Declaration>") + " " + expressions.toString();
 		}
 	}
 	
@@ -49,28 +57,28 @@ public class TidyUpCodeAction extends TextEditorAction {
 		final C4ScriptEditor editor = (C4ScriptEditor)this.getTextEditor();
 		final ITextSelection selection = (ITextSelection)editor.getSelectionProvider().getSelection();
 		final IDocument document = editor.getDocumentProvider().getDocument(editor.getEditorInput());
-		final LinkedList<FunctionStatements> statements = new LinkedList<FunctionStatements>();
+		final LinkedList<CodeChunk> chunks = new LinkedList<CodeChunk>();
 		final int selLength = selection.getLength() == document.getLength() ? 0 : selection.getLength();
 		C4ScriptParser parser;
 		try {
-			parser = editor.reparseWithDocumentContents(expressionCollector(selection, statements, selLength), false);
-			// add functions that contain now statements and are therefore not collected
+			parser = editor.reparseWithDocumentContents(expressionCollector(selection, chunks, selLength), false);
+			// add functions that contain no statements (those won't get collected by the expression collector)
 			Outer: for (C4Function f : parser.getContainer().functions()) {
-				for (FunctionStatements s : statements)
-					if (s.getFirst() == f)
+				for (CodeChunk s : chunks)
+					if (s.relatedDeclaration == f)
 						continue Outer;
-				statements.add(new FunctionStatements(f, new LinkedList<Statement>()));
+				chunks.add(new CodeChunk(f, new LinkedList<ExprElm>()));
 			}
 		} catch (Exception e) {
 			parser = null;
 			e.printStackTrace();
 		}
-		runOnDocument(parser, selection, document, statements);
+		runOnDocument(parser, selection, document, chunks);
 	}
 
 	public static IExpressionListener expressionCollector(
 			final ITextSelection selection,
-			final LinkedList<FunctionStatements> statements,
+			final LinkedList<CodeChunk> chunks,
 			final int selLength) {
 		return new ExpressionListener() {
 			
@@ -78,25 +86,31 @@ public class TidyUpCodeAction extends TextEditorAction {
 			private List<Comment> commentsOnOld = new LinkedList<Comment>();
 			
 			public TraversalContinuation expressionDetected(ExprElm expression, C4ScriptParser parser) {
+				C4Function activeFunc = parser.getActiveFunc();
+				// initialization expression for variable for example... needs to be reformated as well
+				if (activeFunc == null) {
+					chunks.addFirst(new CodeChunk(parser.getActiveScriptScopeVariable(), Utilities.list(expression)));
+					return TraversalContinuation.Continue;
+				}
 				if (!(expression instanceof Statement))
 					return TraversalContinuation.Continue; // odd
-				if (statements.size() == 0 || parser.getActiveFunc() != statements.getFirst().getFirst()) {
-					statements.addFirst(new FunctionStatements(parser.getActiveFunc(), new LinkedList<Statement>()));
+				if (chunks.size() == 0 || activeFunc != chunks.getFirst().relatedDeclaration) {
+					chunks.addFirst(new CodeChunk(activeFunc, new LinkedList<ExprElm>()));
 					commentsOnOld.clear();
 				}
 				if (selLength == 0 || (expression.getExprStart() >= selection.getOffset() && expression.getExprEnd() <= selection.getOffset()+selection.getLength())) {
-					if (parser.getActiveFunc().isOldStyle()) {
+					if (activeFunc.isOldStyle()) {
 						if (expression instanceof Comment)
 							commentsOnOld.add((Comment)expression);
 						else {
 							// another statement follows comments -> add all comments to function
 							for (Comment c : commentsOnOld)
-								statements.getFirst().getSecond().addFirst(c);
+								chunks.getFirst().expressions.add(0, c);
 							commentsOnOld.clear();
-							statements.getFirst().getSecond().addFirst((Statement)expression);
+							chunks.getFirst().expressions.add(0, expression);
 						}
 					} else {
-						statements.getFirst().getSecond().addFirst((Statement)expression);
+						chunks.getFirst().expressions.add(0, expression);
 					}
 				}
 				return TraversalContinuation.Continue;
@@ -108,26 +122,28 @@ public class TidyUpCodeAction extends TextEditorAction {
 			final C4ScriptParser parser,
 			final ITextSelection selection,
 			final IDocument document,
-			final LinkedList<FunctionStatements> statements
+			final LinkedList<CodeChunk> chunks
 	) {
 		synchronized (document) {
 			final int selLength = selection.getLength() == document.getLength() ? 0 : selection.getLength();
 			TextChange textChange = new DocumentChange(Messages.TidyUpCodeAction_TidyUpCode, document);
 			textChange.setEdit(new MultiTextEdit());
-			for (FunctionStatements pair : statements) {
+			for (CodeChunk chunk : chunks) {
 				try {
-					C4Function func = pair.getFirst();
-					LinkedList<Statement> elms = pair.getSecond();
+					C4Function func = chunk.relatedDeclaration instanceof C4Function ? (C4Function)chunk.relatedDeclaration : null;
+					C4Variable var = chunk.relatedDeclaration instanceof C4Variable ? (C4Variable)chunk.relatedDeclaration : null;
+					IRegion region = func != null ? func.getBody() : var.getScriptScopeInitializationExpressionLocation();
+					List<ExprElm> elms = chunk.expressions;
 					boolean wholeFuncConversion = selLength == 0;
 					parser.setActiveFunc(func);
-					if (wholeFuncConversion) {
-						Statement[] statementsInRightOrder = new Statement[elms.size()];
-						int counter = statementsInRightOrder.length-1;
-						for (Statement s : elms) {
-							statementsInRightOrder[counter--] = s;
+					if (func != null && wholeFuncConversion) {
+						ExprElm[] expressionsInRightOrder = new ExprElm[elms.size()];
+						int counter = expressionsInRightOrder.length-1;
+						for (ExprElm s : elms) {
+							expressionsInRightOrder[counter--] = s;
 						}
-						Block b = new Block(statementsInRightOrder);
-						StringBuilder blockStringBuilder = new StringBuilder(func.getBody().getLength());
+						Block b = new Block(expressionsInRightOrder);
+						StringBuilder blockStringBuilder = new StringBuilder(region.getLength());
 						switch (C4ScriptExprTree.braceStyle) {
 						case NewLine:
 							blockStringBuilder.append('\n');
@@ -142,8 +158,8 @@ public class TidyUpCodeAction extends TextEditorAction {
 						int blockLength;
 						// eat braces if new style func
 						if (func.isOldStyle()) {
-							blockBegin = statementsInRightOrder[0].getExprStart();
-							blockLength = statementsInRightOrder[elms.size()-1].getExprEnd() - blockBegin;
+							blockBegin = expressionsInRightOrder[0].getExprStart();
+							blockLength = expressionsInRightOrder[elms.size()-1].getExprEnd() - blockBegin;
 						}
 						else {
 							blockBegin  = func.getBody().getStart()-1;

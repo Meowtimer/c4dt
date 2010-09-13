@@ -2727,14 +2727,14 @@ public abstract class C4ScriptExprTree {
 			for (int i = 0; i < components.length; i++) {
 				Pair<String, ExprElm> component = components[i];
 				output.append('\n');
-				printIndent(output, depth-2);
+				printIndent(output, depth-1);
 				output.append(component.getFirst());
 				output.append(": "); //$NON-NLS-1$
 				component.getSecond().print(output, depth+1);
 				if (i < components.length-1) {
 					output.append(',');
 				} else {
-					output.append('\n'); printIndent(output, depth-3); output.append('}');
+					output.append('\n'); printIndent(output, depth-2); output.append('}');
 				}
 			}
 		}
@@ -2985,7 +2985,7 @@ public abstract class C4ScriptExprTree {
 		 */
 		private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 		private Statement[] statements;
-
+		
 		public Block(List<Statement> statements) {
 			this(statements.toArray(new Statement[statements.size()]));
 		}
@@ -2996,6 +2996,21 @@ public abstract class C4ScriptExprTree {
 			assignParentToSubElements();
 		}
 
+		private static final Statement[] getStatementsFromExpression(ExprElm... expressions) {
+			Statement[] result = new Statement[expressions.length];
+			int i = 0;
+			for (ExprElm ex : expressions) {
+				result[i++] = ex instanceof Statement ? (Statement)ex : new SimpleStatement(ex);
+			}
+			return result;
+			
+		}
+		
+		// helper constructor that wraps expressions in statement if necessary
+		public Block(ExprElm... expressions) {
+			this(getStatementsFromExpression(expressions));
+		}
+		
 		public Statement[] getStatements() {
 			return statements;
 		}

@@ -5,6 +5,8 @@ import java.security.InvalidParameterException;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.eclipse.jface.text.IRegion;
+
 import net.arctics.clonk.index.C4Engine;
 import net.arctics.clonk.index.C4Object;
 import net.arctics.clonk.index.C4ObjectIntern;
@@ -284,6 +286,14 @@ public class C4Variable extends C4Declaration implements Serializable, ITypedDec
 	
 	public ExprElm getScriptScopeInitializationExpression() {
 		return scriptScopeInitializationExpression instanceof ExprElm ? (ExprElm)scriptScopeInitializationExpression : null;
+	}
+	
+	public IRegion getScriptScopeInitializationExpressionLocation() {
+		if (scriptScopeInitializationExpression instanceof ExprElm) {
+			return ((ExprElm)scriptScopeInitializationExpression);
+		} else {
+			return null; // const value not sufficient
+		}
 	}
 	
 	public void setScriptScopeInitializationExpression(ExprElm scriptScopeInitializationExpression) {
