@@ -153,12 +153,12 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		}
 
 		public void documentChanged(DocumentEvent event) {
-			script.setDirty(true);
+			script.setDirty(true);			
+			adjustDeclarationLocations(event);
 			final C4Function f = script.funcAt(event.getOffset());
 			if (f != null && !f.isOldStyle()) {
 				// editing inside new-style function: adjust locations of declarations without complete reparse
 				// only recheck the function and display problems after delay
-				adjustDeclarationLocations(event);
 				scheduleReparsingOfFunction(f);
 			} else {
 				// only schedule reparsing when editing outside of existing function
