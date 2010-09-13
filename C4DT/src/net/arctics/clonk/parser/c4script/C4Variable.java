@@ -231,7 +231,11 @@ public class C4Variable extends C4Declaration implements Serializable, ITypedDec
 	}
 
 	private static String htmlerize(String text) {
-		return text.replace("<", "&lt;").replace(">", "&gt;");
+		return text.
+			replace("<", "&lt;").
+			replace(">", "&gt;").
+			replace("\n", " ").
+			replace("\t", " ");
 	}
 	
 	@Override
@@ -244,7 +248,7 @@ public class C4Variable extends C4Declaration implements Serializable, ITypedDec
 		builder.append(getName());
 		if (scriptScopeInitializationExpression != null) {
 			builder.append(" = "); //$NON-NLS-1$
-			builder.append(scriptScopeInitializationExpression.toString());
+			builder.append(htmlerize(scriptScopeInitializationExpression.toString()));
 		}
 		builder.append("</b>"); //$NON-NLS-1$
 		if (getUserDescription() != null && getUserDescription().length() > 0) {

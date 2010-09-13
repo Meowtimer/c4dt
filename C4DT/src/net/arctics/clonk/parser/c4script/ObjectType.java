@@ -32,4 +32,10 @@ public class ObjectType implements Serializable {
 			setObject(context.getIndex().getObjectNearestTo(context.getResource(), id));
 		}
 	}
+	
+	@Override
+	public String toString() {
+		C4Object obj = getObject();
+		return obj != null ? obj.toString() : "<No object>";
+	}
 }

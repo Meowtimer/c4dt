@@ -202,7 +202,7 @@ public abstract class C4Object extends C4ScriptBase implements IType {
 
 	@Override
 	public Iterator<IType> iterator() {
-		return Utilities.arrayIterable(new IType[] {C4Type.OBJECT, C4Type.PROPLIST, this}).iterator();
+		return Utilities.arrayIterable(new IType[] {C4Type.OBJECT, this}).iterator();
 	}
 
 	@Override
