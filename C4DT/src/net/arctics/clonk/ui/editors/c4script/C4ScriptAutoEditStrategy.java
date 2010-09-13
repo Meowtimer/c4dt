@@ -30,7 +30,7 @@ import org.eclipse.jface.text.IRegion;
 public class C4ScriptAutoEditStrategy extends DefaultIndentLineAutoEditStrategy {
 	
 	private static class Autopair {
-		public static final int FOLLOWSLETTER = 1;
+		public static final int FOLLOWSIDENT = 1;
 		public static final int PRECEDESWHITESPACE = 2;
 		
 		public String start, end;
@@ -49,9 +49,9 @@ public class C4ScriptAutoEditStrategy extends DefaultIndentLineAutoEditStrategy 
 	}
 	
 	private static final Autopair[] AUTOPAIRS = {
-		new Autopair("(", ")", Autopair.FOLLOWSLETTER|Autopair.PRECEDESWHITESPACE),
+		new Autopair("(", ")", Autopair.FOLLOWSIDENT|Autopair.PRECEDESWHITESPACE),
 		new Autopair("\"", "\"", 0),
-		new Autopair("[", "]", Autopair.FOLLOWSLETTER|Autopair.PRECEDESWHITESPACE)
+		new Autopair("[", "]", Autopair.FOLLOWSIDENT|Autopair.PRECEDESWHITESPACE)
 	};
 	
 	private C4ScriptSourceViewerConfiguration configuration;
@@ -66,6 +66,29 @@ public class C4ScriptAutoEditStrategy extends DefaultIndentLineAutoEditStrategy 
 	}
 	
 	public C4ScriptAutoEditStrategy(ClonkProjectNature project, String partitioning) {
+	}
+	
+	private static boolean looksLikeIdent(IDocument d, int position) throws BadLocationException {
+		final int END = 0, DIGITS = 1;
+		int state = END;
+		while (position >= 0) {
+			char c = d.getChar(position);
+			switch (state) {
+			case DIGITS:
+				if (Character.isLetter(c))
+					return true;
+				else if (!Character.isDigit(c))
+					return false;
+				break;
+			case END:
+				if (Character.isDigit(c))
+					state = DIGITS;
+				else if (Character.isLetter(c))
+					return true;
+			}
+			--position;
+		}
+		return false;
 	}
 	
 	@Override
@@ -140,11 +163,11 @@ public class C4ScriptAutoEditStrategy extends DefaultIndentLineAutoEditStrategy 
 			MutableRegion newOne = null;
 			int situation = 0;
 			try {
-				if (Character.isLetter(d.get(c.offset-1, 1).charAt(0)))
-					situation |= Autopair.FOLLOWSLETTER;
+				if (looksLikeIdent(d, c.offset-1))
+					situation |= Autopair.FOLLOWSIDENT;
 			} catch (BadLocationException e) {}
 			try {
-				if (Character.isWhitespace(d.get(c.offset, 1).charAt(0)))
+				if (Character.isWhitespace(d.getChar(c.offset)))
 					situation |= Autopair.PRECEDESWHITESPACE;
 			} catch (BadLocationException e) {
 				
