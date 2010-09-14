@@ -120,3 +120,11 @@ are then taken into account in various places
 -Fixes
 -Show errors and warnings immediately without needing to save a script
 -Return types of functions get shown in outline view
+1.5.7:
+-Tweak type inference system
+-Support for initializing non-const variables in their declaration
+-Improved OpenClonk compatibility
+-Only automatically insert closing brackets when writing a function call or inserting a completion (write 'Log(', get 'Log()')
+-Support links to packets in ini files (Scenario.txt: Definition1=Objects.c4d <- Objects.c4d can be ctrl-clicked)
+-Refine completion proposal showing
+-Refined script parser error messages
