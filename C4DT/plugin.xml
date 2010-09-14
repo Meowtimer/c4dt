@@ -377,6 +377,13 @@
 	</extension>
 
 	<extension point="org.eclipse.ui.commands">
+	
+		<command categoryId="org.eclipse.ui.category.edit"
+			description="%Meta_AboutDesc"
+			id="net.arctics.clonk.ui.About"
+			defaultHandler="net.arctics.clonk.ui.actions.AboutHandler"
+			name="%Meta_About" />
+	
 		<command categoryId="org.eclipse.ui.category.navigate"
 			description="%OpenObject_Desc"
 			id="net.arctics.clonk.ui.OpenObject"
@@ -478,6 +485,8 @@
 				</command>
 				<separator name="SeparatorAfterImportCommands" visible="true"/>
 				<command commandId="net.arctics.clonk.ui.InvokeCommand" label="%InvokeCommand_Name" />
+				<separator name="SeparatorBeforeAbout" visible="true"/>
+				<command commandId="net.arctics.clonk.ui.About" label="%Meta_About" />
 			</menu>
 		</menuContribution>
 		
