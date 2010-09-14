@@ -67,12 +67,14 @@ public class C4TypeSet implements IType {
 		Set<IType> set = new HashSet<IType>();
 		boolean containsNonStatics = false;
 		for (IType s : ingredients) {
-			if (s.expandSubtypes()) {
+			if (s instanceof C4TypeSet) {
 				for (IType t : s) {
 					containsNonStatics = containsNonStatics || t.staticType() != t;
 					set.add(t);
 				}
-			} else {
+			}
+			else {
+				containsNonStatics = containsNonStatics || s.staticType() != s;
 				set.add(s);
 			}
 		}
@@ -200,11 +202,6 @@ public class C4TypeSet implements IType {
 			s.add(st);
 		}
 		return createInternal(s, 1, allStatics ? new IType[]{type} : (IType[])null);
-	}
-
-	@Override
-	public boolean expandSubtypes() {
-		return true;
 	}
 
 }

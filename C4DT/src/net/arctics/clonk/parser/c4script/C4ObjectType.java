@@ -46,7 +46,10 @@ public class C4ObjectType implements IType {
 
 	@Override
 	public boolean intersects(IType typeSet) {
-		return typeSet.containsType(C4Type.ID);
+		for (IType t : typeSet)
+			if (t.canBeAssignedFrom(C4Type.ID))
+				return true;
+		return false;
 	}
 
 	@Override
@@ -67,11 +70,6 @@ public class C4ObjectType implements IType {
 	@Override
 	public IType staticType() {
 		return C4Type.ID;
-	}
-	
-	@Override
-	public boolean expandSubtypes() {
-		return false;
 	}
 
 }

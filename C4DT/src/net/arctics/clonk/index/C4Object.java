@@ -208,7 +208,7 @@ public abstract class C4Object extends C4ScriptBase implements IType {
 	@Override
 	public boolean intersects(IType typeSet) {
 		for (IType t : typeSet) {
-			if (t == C4Type.OBJECT)
+			if (t.canBeAssignedFrom(C4Type.OBJECT))
 				return true;
 			if (t instanceof C4Object) {
 				C4Object obj = (C4Object) t;
@@ -229,11 +229,6 @@ public abstract class C4Object extends C4ScriptBase implements IType {
 			objectType = new C4ObjectType(this);
 		}
 		return objectType;
-	}
-	
-	@Override
-	public boolean expandSubtypes() {
-		return false;
 	}
 
 }

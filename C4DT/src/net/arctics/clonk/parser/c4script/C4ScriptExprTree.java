@@ -711,7 +711,10 @@ public abstract class C4ScriptExprTree {
 			super.reportErrors(parser);
 			ExprElm pred = getPredecessorInSequence();
 			if (pred != null) {
-				pred.expectedToBeOfType(dotNotation ? C4Type.OBJECT : C4TypeSet.OBJECT_OR_ID, parser, TypeExpectancyMode.Hint, ParserErrorCode.CallingMethodOnNonObject);
+				pred.expectedToBeOfType(
+					dotNotation ? C4Type.PROPLIST : C4TypeSet.OBJECT_OR_ID, parser, TypeExpectancyMode.Hint,
+					dotNotation ? ParserErrorCode.NotAProplist : ParserErrorCode.CallingMethodOnNonObject
+				);
 			}
 		}
 

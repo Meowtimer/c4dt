@@ -13,7 +13,6 @@ public interface IType extends Iterable<IType>, Serializable {
 	public boolean containsAnyTypeOf(IType... types);
 	public int specificness();
 	public IType staticType();
-	public boolean expandSubtypes();
 	
 	public abstract class Default {
 		public static boolean containsAnyTypeOf(IType instance, IType... types) {

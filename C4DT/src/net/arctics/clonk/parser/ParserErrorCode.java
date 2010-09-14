@@ -58,18 +58,19 @@ public enum ParserErrorCode {
 	EngineDoesNotSupportRefs(Messages.EngineDoesNotSupportRefs),
 	BoolLiteralAsOpArg(Messages.BoolLiteralAsOpArg),
 	InheritedDisabledInStrict0(Messages.InheritedDisabledInStrict0),
-	CallingMethodOnNonObject(Messages.CallingMethodOnNonObject);
+	CallingMethodOnNonObject(Messages.CallingMethodOnNonObject),
+	NotAProplist(Messages.NotAProplist);
 
 	public static final String MARKER_ERRORCODE = "c4ScriptErrorCode"; //$NON-NLS-1$
-	public static final String MARKER_EXPRESSIONSTART = "c4ScriptErrorExpressionStart";
-	public static final String MARKER_EXPRESSIONEND = "c4ScriptErrorExpressionEnd";
+	public static final String MARKER_EXPRESSIONSTART = "c4ScriptErrorExpressionStart"; //$NON-NLS-1$
+	public static final String MARKER_EXPRESSIONEND = "c4ScriptErrorExpressionEnd"; //$NON-NLS-1$
 	
 	public static String[] MARKER_ARGS;
 	
 	static {
 		MARKER_ARGS = new String[3];
 		for (int i = 0; i < MARKER_ARGS.length; i++)
-			MARKER_ARGS[i] = String.format("c4ScriptErrorArg%d", i);
+			MARKER_ARGS[i] = String.format("c4ScriptErrorArg%d", i); //$NON-NLS-1$
 	}
 	
 	private String message;

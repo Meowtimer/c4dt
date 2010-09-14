@@ -11,7 +11,7 @@ import net.arctics.clonk.parser.C4ID;
 import net.arctics.clonk.parser.c4script.C4TypeSet;
 
 /**
- * Enforces that some objects won't be duplicated, like ids and such
+ * Enforces that some objects won't be duplicated, like ids and typesets
  * @author madeen
  *
  */
@@ -28,8 +28,9 @@ public class ClonkIndexStream extends ObjectInputStream {
 			//System.out.println(obj.toString());
 			return ((C4ID)obj).internalize();
 		}
-		else if (obj.getClass() == C4TypeSet.class)
+		else if (obj.getClass() == C4TypeSet.class) {
 			return ((C4TypeSet)obj).internalize();
+		}
 		return super.resolveObject(obj);
 	}
 	
