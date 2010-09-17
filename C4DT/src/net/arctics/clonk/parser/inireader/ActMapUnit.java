@@ -32,9 +32,9 @@ public class ActMapUnit extends IniUnit {
 	
 	@Override
 	public String sectionToString(IniSection section) {
-		IniEntry nameEntry = section.getEntry("Name"); //$NON-NLS-1$
-		if (nameEntry != null)
-			return "["+nameEntry.getValue()+"]"; //$NON-NLS-1$ //$NON-NLS-2$
+		IniItem nameEntry = section.getSubItem("Name"); //$NON-NLS-1$
+		if (nameEntry instanceof IniEntry)
+			return "["+((IniEntry) nameEntry).getValue()+"]"; //$NON-NLS-1$ //$NON-NLS-2$
 		return super.sectionToString(section);
 	}
 

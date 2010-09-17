@@ -29,15 +29,15 @@ public class ScenarioUnit extends IniUnit {
 	}
 	
 	@Override
-	protected IniDataSection getSectionDataFor(IniSection section) {
+	protected IniDataSection getSectionDataFor(IniSection section, IniSection parentSection) {
 		if (section.getName().startsWith("Player")) //$NON-NLS-1$
 			return getConfiguration().getSections().get("Player"); //$NON-NLS-1$
-		return super.getSectionDataFor(section);
+		return super.getSectionDataFor(section, parentSection);
 	}
 	
 	@Override
-	protected boolean isSectionNameValid(String name) {
-		return name.matches("Player[1234]") || super.isSectionNameValid(name); //$NON-NLS-1$
+	protected boolean isSectionNameValid(String name, IniSection parentSection) {
+		return (parentSection == null && name.matches("Player[1234]")) || super.isSectionNameValid(name, parentSection); //$NON-NLS-1$
 	}
 
 }

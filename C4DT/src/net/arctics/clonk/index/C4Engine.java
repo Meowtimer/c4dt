@@ -34,6 +34,7 @@ import net.arctics.clonk.parser.inireader.CustomIniUnit;
 import net.arctics.clonk.parser.inireader.IEntryFactory;
 import net.arctics.clonk.parser.inireader.IniData;
 import net.arctics.clonk.parser.inireader.IniEntry;
+import net.arctics.clonk.parser.inireader.IniItem;
 import net.arctics.clonk.parser.inireader.IniParserException;
 import net.arctics.clonk.parser.inireader.IniData.IniDataEntry;
 import net.arctics.clonk.parser.inireader.IniData.IniDataSection;
@@ -122,7 +123,7 @@ public class C4Engine extends C4ScriptBase {
 				CustomIniUnit unit = new CustomIniUnit(INI_CONFIGURATION, (Object)this, defaults);
 				Writer writer = new OutputStreamWriter(stream);
 				try {
-					unit.write(writer);
+					unit.save(writer);
 				} finally {
 					writer.close();
 				}
@@ -341,8 +342,11 @@ public class C4Engine extends C4ScriptBase {
 						IniSection section = unit.sectionForName("Descriptions"); //$NON-NLS-1$
 						if (section != null) {
 							result = new HashMap<String, String>();
-							for (Entry<String, IniEntry> entry : section.getEntries().entrySet()) {
-								result.put(entry.getKey(), entry.getValue().getValue().replace("|||", "\n")); //$NON-NLS-1$ //$NON-NLS-2$
+							for (Entry<String, IniItem> item : section.getSubItems().entrySet()) {
+								if (item.getValue() instanceof IniEntry) {
+									IniEntry entry = (IniEntry) item.getValue();
+									result.put(entry.getKey(), entry.getValue().replace("|||", "\n")); //$NON-NLS-1$ //$NON-NLS-2$
+								}
 							}
 							descriptions.put(language, result);
 							return result;

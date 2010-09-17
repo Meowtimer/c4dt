@@ -59,7 +59,8 @@ public enum ParserErrorCode {
 	BoolLiteralAsOpArg(Messages.BoolLiteralAsOpArg),
 	InheritedDisabledInStrict0(Messages.InheritedDisabledInStrict0),
 	CallingMethodOnNonObject(Messages.CallingMethodOnNonObject),
-	NotAProplist(Messages.NotAProplist);
+	NotAProplist(Messages.NotAProplist),
+	UnknownSection("Unknown section %s");
 
 	public static final String MARKER_ERRORCODE = "c4ScriptErrorCode"; //$NON-NLS-1$
 	public static final String MARKER_EXPRESSIONSTART = "c4ScriptErrorExpressionStart"; //$NON-NLS-1$

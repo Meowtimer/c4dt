@@ -17,6 +17,7 @@ import net.arctics.clonk.parser.inireader.CategoriesArray;
 import net.arctics.clonk.parser.inireader.DefinitionPack;
 import net.arctics.clonk.parser.inireader.Function;
 import net.arctics.clonk.parser.inireader.IDArray;
+import net.arctics.clonk.parser.inireader.IniData.IniDataBase;
 import net.arctics.clonk.parser.inireader.IniSection;
 import net.arctics.clonk.parser.inireader.IniUnit;
 import net.arctics.clonk.parser.inireader.SignedInteger;
@@ -103,37 +104,40 @@ public class IniCompletionProcessor extends ClonkCompletionProcessor<IniTextEdit
 			}
 		}
 		else if (assignment && section != null) {
-			IniDataEntry entryDef = section.getSectionData().getEntry(entryName);
-			Class<?> entryClass = entryDef.getEntryClass();
-			if (entryClass == C4ID.class) {
-				proposalsForIndex(offset, proposals, prefix, wordOffset);
-			}
-			else if (entryClass == String.class) {
-				proposalsForStringEntry(proposals, prefix, wordOffset);
-			}
-			else if (entryClass == SignedInteger.class || entryClass == UnsignedInteger.class) {
-				proposalsForIntegerEntry(proposals, prefix, wordOffset);
-			}
-			else if (entryClass == Function.class) {
-				proposalsForFunctionEntry(proposals, prefix, wordOffset);
-			}
-			else if (entryClass == IDArray.class) {
-				int lastDelim = prefix.lastIndexOf(';');
-				prefix = prefix.substring(lastDelim+1);
-				wordOffset += lastDelim+1;
-				proposalsForIndex(offset, proposals, prefix, wordOffset);
-			}
-			else if (entryClass == Boolean.class) {
-				proposalsForBooleanEntry(proposals, prefix, wordOffset);
-			}
-			else if (entryClass == DefinitionPack.class) {
-				proposalsForDefinitionPackEntry(proposals, prefix, wordOffset);
-			}
-			else if (entryClass == CategoriesArray.class) {
-				int lastDelim = prefix.lastIndexOf('|');
-				prefix = prefix.substring(lastDelim+1);
-				wordOffset += lastDelim+1;
-				proposalsForCategoriesArray(proposals, prefix, wordOffset, entryDef);
+			IniDataBase itemData = section.getSectionData().getEntry(entryName);
+			if (itemData instanceof IniDataEntry) {
+				IniDataEntry entryDef = (IniDataEntry) itemData;
+				Class<?> entryClass = entryDef.getEntryClass();
+				if (entryClass == C4ID.class) {
+					proposalsForIndex(offset, proposals, prefix, wordOffset);
+				}
+				else if (entryClass == String.class) {
+					proposalsForStringEntry(proposals, prefix, wordOffset);
+				}
+				else if (entryClass == SignedInteger.class || entryClass == UnsignedInteger.class) {
+					proposalsForIntegerEntry(proposals, prefix, wordOffset);
+				}
+				else if (entryClass == Function.class) {
+					proposalsForFunctionEntry(proposals, prefix, wordOffset);
+				}
+				else if (entryClass == IDArray.class) {
+					int lastDelim = prefix.lastIndexOf(';');
+					prefix = prefix.substring(lastDelim+1);
+					wordOffset += lastDelim+1;
+					proposalsForIndex(offset, proposals, prefix, wordOffset);
+				}
+				else if (entryClass == Boolean.class) {
+					proposalsForBooleanEntry(proposals, prefix, wordOffset);
+				}
+				else if (entryClass == DefinitionPack.class) {
+					proposalsForDefinitionPackEntry(proposals, prefix, wordOffset);
+				}
+				else if (entryClass == CategoriesArray.class) {
+					int lastDelim = prefix.lastIndexOf('|');
+					prefix = prefix.substring(lastDelim+1);
+					wordOffset += lastDelim+1;
+					proposalsForCategoriesArray(proposals, prefix, wordOffset, entryDef);
+				}
 			}
 		}
 
@@ -184,10 +188,16 @@ public class IniCompletionProcessor extends ClonkCompletionProcessor<IniTextEdit
 	}
 
 	private void proposalsForSection(Collection<ICompletionProposal> proposals, String prefix, int wordOffset, IniDataSection sectionData) {
-		for (IniDataEntry entry : sectionData.getEntries().values()) {
-			if (!entry.getEntryName().toLowerCase().contains(prefix))
-				continue;
-			proposals.add(new CompletionProposal(entry.getEntryName(), wordOffset, prefix.length(), entry.getEntryName().length(), null, entry.getEntryName(), null, entry.getDescription()));
+		for (IniDataBase entry : sectionData.getEntries().values()) {
+			if (entry instanceof IniDataEntry) {
+				IniDataEntry e = (IniDataEntry) entry;
+				if (!e.getEntryName().toLowerCase().contains(prefix))
+					continue;
+				proposals.add(new CompletionProposal(e.getEntryName(), wordOffset, prefix.length(), e.getEntryName().length(), null, e.getEntryName(), null, e.getDescription()));
+			}
+			else if (entry instanceof IniDataSection) {
+				// FIXME
+			}
 		}
 	}
 

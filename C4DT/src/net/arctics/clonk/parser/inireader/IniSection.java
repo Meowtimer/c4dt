@@ -1,5 +1,7 @@
 package net.arctics.clonk.parser.inireader;
 
+import java.io.IOException;
+import java.io.Writer;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.Map;
@@ -15,12 +17,13 @@ import net.arctics.clonk.util.IHasKeyAndValue;
 import net.arctics.clonk.util.ITreeNode;
 import net.arctics.clonk.util.ReadOnlyIterator;
 
-public class IniSection extends C4Declaration implements IHasKeyAndValue<String, String>, IHasChildren, ITreeNode, Iterable<IniEntry> {
+public class IniSection extends C4Declaration implements IHasKeyAndValue<String, String>, IHasChildren, Iterable<IniItem>, IniItem {
 	
 	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 	
-	private Map<String, IniEntry> entries;
+	private Map<String, IniItem> items;
 	private IniDataSection sectionData;
+	private int indentation;
 	
 	public IniDataSection getSectionData() {
 		return sectionData;
@@ -43,16 +46,16 @@ public class IniSection extends C4Declaration implements IHasKeyAndValue<String,
 		return name;
 	}
 
-	public Map<String, IniEntry> getEntries() {
-		return entries;
+	public Map<String, IniItem> getSubItems() {
+		return items;
 	}
 
-	public void setEntries(Map<String, IniEntry> entries) {
-		this.entries = entries;
+	public void setSubItems(Map<String, IniItem> entries) {
+		this.items = entries;
 	}
 
-	public IniEntry getEntry(String key) {
-		return entries.get(key);
+	public IniItem getSubItem(String key) {
+		return items.get(key);
 	}
 
 	public String getKey() {
@@ -64,11 +67,11 @@ public class IniSection extends C4Declaration implements IHasKeyAndValue<String,
 	}
 
 	public Object[] getChildren() {
-		return getEntries().values().toArray();
+		return getSubItems().values().toArray();
 	}
 
 	public boolean hasChildren() {
-		return !entries.isEmpty();
+		return !items.isEmpty();
 	}
 
 	@Override
@@ -80,7 +83,7 @@ public class IniSection extends C4Declaration implements IHasKeyAndValue<String,
 	}
 
 	public Collection<? extends ITreeNode> getChildCollection() {
-		return entries.values();
+		return items.values();
 	}
 
 	public String getNodeName() {
@@ -114,13 +117,40 @@ public class IniSection extends C4Declaration implements IHasKeyAndValue<String,
 		return hasChildren();
 	}
 
-	public Iterator<IniEntry> iterator() {
-		return new ReadOnlyIterator<IniEntry>(this.entries.values().iterator());
+	public Iterator<IniItem> iterator() {
+		return new ReadOnlyIterator<IniItem>(this.items.values().iterator());
 	}
 	
 	public void putEntry(IniEntry entry) {
-		entries.put(entry.getName(), entry);
+		items.put(entry.getName(), entry);
 		entry.setParentDeclaration(this);
 	}
+
+	@Override
+	public void writeTextRepresentation(Writer writer, int indentation) throws IOException {
+		writer.append('[');
+		writer.append(getName());
+		writer.append(']');
+		writer.append('\n');
+		
+		for (IniItem entry : getSubItems().values()) {
+			entry.writeTextRepresentation(writer, indentation+1);
+			writer.append('\n');
+		}
+	}
+
+	@Override
+	public void validate() {
+		for (IniItem e : this) {
+			e.validate();
+		}
+	}
 	
+	public int getIndentation() {
+		return indentation;
+	}
+
+	public void setIndentation(int indentation) {
+		this.indentation = indentation;
+	}
 }

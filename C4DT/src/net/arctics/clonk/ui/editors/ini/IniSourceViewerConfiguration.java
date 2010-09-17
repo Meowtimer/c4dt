@@ -15,7 +15,9 @@ import net.arctics.clonk.parser.inireader.CategoriesArray;
 import net.arctics.clonk.parser.inireader.DefinitionPack;
 import net.arctics.clonk.parser.inireader.Function;
 import net.arctics.clonk.parser.inireader.IDArray;
+import net.arctics.clonk.parser.inireader.IniData.IniDataBase;
 import net.arctics.clonk.parser.inireader.IniEntry;
+import net.arctics.clonk.parser.inireader.IniItem;
 import net.arctics.clonk.parser.inireader.IniSection;
 import net.arctics.clonk.parser.inireader.IntegerArray;
 import net.arctics.clonk.parser.inireader.IniData.IniDataEntry;
@@ -102,9 +104,10 @@ public class IniSourceViewerConfiguration extends ClonkSourceViewerConfiguration
 						final String value = m.group(2);
 						if (!hoverOverAttrib) {
 							// link stuff on the value side
-							IniDataEntry entry = section.getSectionData().getEntry(attrib);
+							IniDataBase dataItem = section.getSectionData().getEntry(attrib);
 							int linkStart = lineRegion.getOffset()+m.start(2), linkLen = value.length();
-							if (entry != null) {
+							if (dataItem instanceof IniDataEntry) {
+								IniDataEntry entry = (IniDataEntry) dataItem;
 								Class<?> entryClass = entry.getEntryClass();
 								C4Declaration declaration = null;
 								if (entryClass == C4ID.class) {
@@ -132,8 +135,8 @@ public class IniSourceViewerConfiguration extends ClonkSourceViewerConfiguration
 								else if (entryClass == Action.class) {
 									declaration = getEditor().getIniUnit().sectionMatching(new IPredicate<IniSection>() {
 										public boolean test(IniSection object) {
-											IniEntry entry = object.getEntry("Name"); //$NON-NLS-1$
-											return (entry != null && entry.getValue().equals(value));
+											IniItem entry = object.getSubItem("Name"); //$NON-NLS-1$
+											return (entry instanceof IniEntry && ((IniEntry)entry).getValue().equals(value));
 										}
 									});
 								}

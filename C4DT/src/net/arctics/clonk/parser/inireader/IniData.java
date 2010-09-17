@@ -57,7 +57,7 @@ public class IniData {
 			}
 
 			NodeList sectionNodes = fileNode.getChildNodes();
-			for(int i = 0;i < sectionNodes.getLength();i++) {
+			for(int i = 0; i < sectionNodes.getLength();i++) {
 				if (sectionNodes.item(i).getNodeName() == "section") { //$NON-NLS-1$
 					IniDataSection section = IniDataSection.createFromXML(sectionNodes.item(i), conf.factory);
 					conf.getSections().put(section.getSectionName(), section);
@@ -105,10 +105,14 @@ public class IniData {
 		}
 		
 	}
-	
-	public static class IniDataSection {
+
+	public static class IniDataBase {
+		
+	}
+
+	public static class IniDataSection extends IniDataBase {
 		private String sectionName;
-		private Map<String, IniDataEntry> entries = new HashMap<String, IniDataEntry>();		
+		private Map<String, IniDataBase> entries = new HashMap<String, IniDataBase>();	
 		
 		protected IniDataSection() {
 		}
@@ -124,9 +128,15 @@ public class IniData {
 			// TODO implement 'optional' <section> attribute
 			NodeList entryNodes = sectionNode.getChildNodes();
 			for(int i = 0; i < entryNodes.getLength();i++) {
-				if (entryNodes.item(i).getNodeName() == "entry") { //$NON-NLS-1$
-					IniDataEntry entry = IniDataEntry.createFromXML(entryNodes.item(i), factory);
+				Node node = entryNodes.item(i);
+				// there was a '==' comparison all the time :D - did work by chance or what?
+				if (node.getNodeName().equals("entry")) { //$NON-NLS-1$
+					IniDataEntry entry = IniDataEntry.createFromXML(node, factory);
 					section.getEntries().put(entry.getEntryName(), entry);
+				}
+				else if (node.getNodeName().equals("section")) {
+					IniDataSection sec = IniDataSection.createFromXML(node, factory);
+					section.getEntries().put(sec.getSectionName(), sec);
 				}
 			}
 			return section;
@@ -136,7 +146,7 @@ public class IniData {
 			return sectionName;
 		}
 
-		public Map<String, IniDataEntry> getEntries() {
+		public Map<String, IniDataBase> getEntries() {
 			return entries;
 		}
 		
@@ -144,17 +154,22 @@ public class IniData {
 			return entries.containsKey(entryName);
 		}
 		
+		public boolean hasSection(String section) {
+			IniDataBase item = getEntry(section);
+			return item instanceof IniDataSection;
+		}
+		
 		public String[] getEntryNames() {
 			return entries.keySet().toArray(new String[entries.size()]);
 		}
 
-		public IniDataEntry getEntry(String key) {
+		public IniDataBase getEntry(String key) {
 			return getEntries().get(key);
 		}
 		
 	}
 	
-	public static final class IniDataEntry {
+	public static final class IniDataEntry extends IniDataBase {
 		protected String entryName;
 		protected Class<?> entryClass;
 		protected String entryDescription;

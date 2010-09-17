@@ -1,12 +1,11 @@
 package net.arctics.clonk.parser.inireader;
 
-import java.io.IOException;
-import java.io.Writer;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.inireader.IniData.IniConfiguration;
+import net.arctics.clonk.parser.inireader.IniData.IniDataBase;
 import net.arctics.clonk.parser.inireader.IniData.IniDataEntry;
 import net.arctics.clonk.parser.inireader.IniData.IniDataSection;
 import net.arctics.clonk.util.Utilities;
@@ -40,8 +39,9 @@ public class CustomIniUnit extends IniUnit {
 					continue;
 				IniDataSection dataSection = getConfiguration().getSections().get(annot.category());
 				if (dataSection != null) {
-					IniDataEntry entry = dataSection.getEntry(f.getName());
-					if (entry != null) {
+					IniDataBase dataItem = dataSection.getEntry(f.getName());
+					if (dataItem instanceof IniDataEntry) {
+						IniDataEntry entry = (IniDataEntry) dataItem;
 						Constructor<?> ctor;
 						Object value = f.getType() == entry.getEntryClass() ? f.get(object) : null;
 						if (value == null) {
@@ -79,7 +79,10 @@ public class CustomIniUnit extends IniUnit {
 	}
 
 	public void commitSection(Object object, IniSection section, boolean takeIntoAccounCategory) throws NoSuchFieldException, IllegalAccessException {
-		for (IniEntry entry : section.getEntries().values()) {
+		for (IniItem item : section.getSubItems().values()) {
+			if (!(item instanceof IniEntry))
+				continue;
+			IniEntry entry = (IniEntry) item;
 			Field f = object.getClass().getField(entry.getName());
 			IniField annot;
 			if (f != null && (annot = f.getAnnotation(IniField.class)) != null && (!takeIntoAccounCategory || annot.category().equals(section.getName()))) {
@@ -107,24 +110,4 @@ public class CustomIniUnit extends IniUnit {
 	}
 
 	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
-
-	public void write(Writer writer) throws IOException {
-		boolean first = true;
-		for (IniSection section : sectionsList) {
-			if (!first)
-				writer.write('\n');
-			first = false;
-			writer.write('[');
-			writer.write(section.getName());
-			writer.write(']');
-			writer.write('\n');
-			for (IniEntry entry : section.getEntries().values()) {
-				writer.write(entry.getName());
-				writer.write('=');
-				writer.write(entry.getValueObject().toString());
-				writer.write('\n');
-			}
-		}
-	}
-
 }

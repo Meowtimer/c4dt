@@ -285,6 +285,18 @@ public class BufferedScanner {
 	public int eatWhitespace() {
 		return eat(WHITESPACE_CHARS);
 	}
+	
+	public int getTabIndentation() {
+		int tabs = 0;
+		for (int pos = getPosition()-1; pos >= 0 && !isLineDelimiterChar(buffer.charAt(pos)); pos--) {
+			if (buffer.charAt(pos) == '\t') {
+				tabs++;
+			} else {
+				tabs = 0; // don't count tabs not at the start of the line
+			}
+		}
+		return tabs;
+	}
 
 	/**
 	 * Absolute offset manipulation

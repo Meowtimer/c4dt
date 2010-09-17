@@ -12,6 +12,7 @@ import net.arctics.clonk.parser.c4script.C4Type;
 import net.arctics.clonk.parser.c4script.C4Variable;
 import net.arctics.clonk.parser.c4script.C4Variable.C4VariableScope;
 import net.arctics.clonk.parser.inireader.IniEntry;
+import net.arctics.clonk.parser.inireader.IniItem;
 import net.arctics.clonk.parser.inireader.IniSection;
 import net.arctics.clonk.parser.inireader.IniUnit;
 
@@ -48,8 +49,9 @@ public class PlayerControlsUnit extends IniUnit {
 		super.parse(modifyMarkers);
 		for (IniSection section : getSections()) {
 			if (section.getName().equals("ControlDef")) { //$NON-NLS-1$
-				IniEntry e = section.getEntry("Identifier"); //$NON-NLS-1$
-				if (e != null) {
+				IniItem item = section.getSubItem("Identifier"); //$NON-NLS-1$
+				if (item instanceof IniEntry) {
+					IniEntry e = (IniEntry) item;
 					String ident = e.getValue();
 					C4Variable var = new C4Variable("CON_" + ident, C4Type.INT); //$NON-NLS-1$
 					var.setScope(C4VariableScope.CONST);

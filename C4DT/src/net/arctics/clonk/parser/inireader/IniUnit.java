@@ -1,9 +1,9 @@
 package net.arctics.clonk.parser.inireader;
 
-import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InvalidClassException;
+import java.io.Writer;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
@@ -20,6 +20,7 @@ import net.arctics.clonk.parser.C4Structure;
 import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.SourceLocation;
 import net.arctics.clonk.parser.inireader.IniData.IniConfiguration;
+import net.arctics.clonk.parser.inireader.IniData.IniDataBase;
 import net.arctics.clonk.parser.inireader.IniData.IniDataEntry;
 import net.arctics.clonk.parser.inireader.IniData.IniDataSection;
 import net.arctics.clonk.parser.playercontrols.PlayerControlsUnit;
@@ -82,6 +83,10 @@ public class IniUnit extends C4Structure implements Iterable<IniSection>, IHasCh
 			reader = new BufferedScanner((InputStream)input);
 	}
 	
+	public IniUnit(String input) {
+		this((Object)input);
+	}
+	
 	/**
 	 * Creates an IniReader that reads ini information from a project file
 	 * @param file the file
@@ -101,17 +106,9 @@ public class IniUnit extends C4Structure implements Iterable<IniSection>, IHasCh
 		iniFile = file;
 	}
 	
-	public void save(BufferedWriter writer) throws IOException {
+	public void save(Writer writer) throws IOException {
 		for (IniSection section : sectionsList) {
-			writer.append('[');
-			writer.append(section.getName());
-			writer.append(']');
-			writer.append('\n');
-			
-			for (IniEntry entry : section.getEntries().values()) {
-				writer.append(entry.toString());
-				writer.append('\n');
-			}
+			section.writeTextRepresentation(writer, -1);
 		}
 	}
 	
@@ -133,9 +130,14 @@ public class IniUnit extends C4Structure implements Iterable<IniSection>, IHasCh
 	 * @param name
 	 * @return <tt>true</tt> if valid
 	 */
-	protected boolean isSectionNameValid(String name) {
-		IniConfiguration conf = getConfiguration();
-		return conf == null || conf.hasSection(name);
+	protected boolean isSectionNameValid(String name, IniSection parentSection) {
+		if (parentSection != null) {
+			return parentSection.getSectionData() == null || parentSection.getSectionData().hasSection(name);
+		}
+		else {
+			IniConfiguration conf = getConfiguration();
+			return conf == null || conf.hasSection(name);
+		}
 	}
 	
 	/**
@@ -156,26 +158,32 @@ public class IniUnit extends C4Structure implements Iterable<IniSection>, IHasCh
 		if (!sectionConfig.hasEntry(entry.getKey())) {
 			throw new IniParserException(IMarker.SEVERITY_WARNING, String.format(Messages.UnknownOption, entry.getKey()), entry.getStartPos(), entry.getKey().length() + entry.getStartPos()); //$NON-NLS-2$
 		}
-		IniDataEntry entryConfig = sectionConfig.getEntry(entry.getKey());
-		try {
+		IniDataBase dataItem = sectionConfig.getEntry(entry.getKey());
+		if (dataItem instanceof IniDataEntry) {
+			IniDataEntry entryConfig = (IniDataEntry) dataItem;
 			try {
-				Object value = configuration.getFactory().create(entryConfig.getEntryClass(), entry.getValue(), entryConfig, this);
-				return ComplexIniEntry.adaptFrom(entry, value, entryConfig, modifyMarkers);
-			}
-			catch(IniParserException e) { // add offsets and throw through
-				// FIXME: whitespace before and after '=' is not taken into account
-				if (e.getOffset() == 0 || e.getEndOffset() == 0) {
-					String key = entry.getKey();
-					String value = entry.getValue();
-					if (value == null)
-						value = ""; //$NON-NLS-1$
-					e.setOffset(entry.getStartPos() + key.length() + 1);
-					e.setEndOffset(entry.getStartPos() + key.length() + 1 + value.length());
+				try {
+					Object value = configuration.getFactory().create(entryConfig.getEntryClass(), entry.getValue(), entryConfig, this);
+					return ComplexIniEntry.adaptFrom(entry, value, entryConfig, modifyMarkers);
 				}
-				throw e;
+				catch(IniParserException e) { // add offsets and throw through
+					// FIXME: whitespace before and after '=' is not taken into account
+					if (e.getOffset() == 0 || e.getEndOffset() == 0) {
+						String key = entry.getKey();
+						String value = entry.getValue();
+						if (value == null)
+							value = ""; //$NON-NLS-1$
+						e.setOffset(entry.getStartPos() + key.length() + 1);
+						e.setEndOffset(entry.getStartPos() + key.length() + 1 + value.length());
+					}
+					throw e;
+				}
+			} catch (InvalidClassException e) {
+				throw new IniParserException(IMarker.SEVERITY_WARNING, String.format(Messages.InternalIniParserBug, e.getMessage()),entry.getStartPos(),entry.getStartPos() + entry.getKey().length());
 			}
-		} catch (InvalidClassException e) {
-			throw new IniParserException(IMarker.SEVERITY_WARNING, String.format(Messages.InternalIniParserBug, e.getMessage()),entry.getStartPos(),entry.getStartPos() + entry.getKey().length());
+		}
+		else {
+			throw new IniParserException(IMarker.SEVERITY_ERROR, "Fail");
 		}
 	}
 	
@@ -183,7 +191,7 @@ public class IniUnit extends C4Structure implements Iterable<IniSection>, IHasCh
 		IniSection result = sectionsMap.get(name);
 		if (result == null) {
 			result = new IniSection(null, name);
-			result.setEntries(new HashMap<String, IniEntry>());
+			result.setSubItems(new HashMap<String, IniItem>());
 			result.setParentDeclaration(this);
 			result.setSectionData(dataSection);
 			sectionsMap.put(name, result);
@@ -205,7 +213,7 @@ public class IniUnit extends C4Structure implements Iterable<IniSection>, IHasCh
 		this.clear();
 		reader.seek(0);
 		IniSection section;
-		while ((section = parseSection(modifyMarkers)) != null) {
+		while ((section = parseSection(modifyMarkers, null)) != null) {
 			sectionsMap.put(section.getName(), section);
 			sectionsList.add(section);
 		}
@@ -216,17 +224,29 @@ public class IniUnit extends C4Structure implements Iterable<IniSection>, IHasCh
 		sectionsMap.clear();
 	}
 
-	protected IniDataSection getSectionDataFor(IniSection section) {
-		return getConfiguration() != null
+	protected IniDataSection getSectionDataFor(IniSection section, IniSection parentSection) {
+		if (parentSection != null) {
+			if (parentSection.getSectionData() != null) {
+				IniDataBase dataItem = parentSection.getSectionData().getEntry(section.getName());
+				return dataItem instanceof IniDataSection ? (IniDataSection)dataItem : null;
+			}
+			else
+				return null;
+		}
+		else {
+			return getConfiguration() != null
 			? getConfiguration().getSections().get(section.getName())
-			: null;
+					: null;
+		}
 	}
 	
-	protected IniSection parseSection(boolean modifyMarkers) {
+	protected IniSection parseSection(boolean modifyMarkers, IniSection parentSection) {
+		int targetIndentation = parentSection != null ? parentSection.getIndentation()+1 : 0;
 		while (skipComment());
 		int start = reader.getPosition();
 		// parse head
-		if (reader.read() == '[') {
+		int indentation = reader.getTabIndentation();
+		if (reader.read() == '[' && indentation == targetIndentation) {
 			String name = reader.readStringUntil(']','\n','\r');
 			if (reader.read() != ']') {
 				if (modifyMarkers)
@@ -234,24 +254,25 @@ public class IniUnit extends C4Structure implements Iterable<IniSection>, IHasCh
 				return null;
 			}
 			else {
-				if (!isSectionNameValid(name)) {
+				if (!isSectionNameValid(name, parentSection)) {
 					if (modifyMarkers)
-						marker(ParserErrorCode.InvalidExpression, start, reader.getPosition()-1, IMarker.SEVERITY_WARNING);
+						marker(ParserErrorCode.UnknownSection, start, reader.getPosition()-1, IMarker.SEVERITY_WARNING, name);
 				}
 				reader.eat(BufferedScanner.NEWLINE_CHARS); // ignore rest of section line
 			}
 			int end = reader.getPosition();
 			IniSection section = new IniSection(new SourceLocation(start, end), name);
 			section.setParentDeclaration(this);
+			section.setIndentation(indentation);
 			// parse entries
-			IniEntry entry = null;
-			Map<String, IniEntry> entries = new HashMap<String, IniEntry>();
+			IniItem item= null;
+			Map<String, IniItem> entries = new HashMap<String, IniItem>();
 			currentSection = section;
-			currentSection.setSectionData(getSectionDataFor(section));
-			while ((entry = parseEntry(section, modifyMarkers)) != null) {
-				entries.put(entry.getKey(),entry);
+			currentSection.setSectionData(getSectionDataFor(section, parentSection));
+			while ((item = parseSectionOrEntry(section, modifyMarkers, section)) != null) {
+				entries.put(item.getKey(),item);
 			}
-			section.setEntries(entries);
+			section.setSubItems(entries);
 			return section;
 		}
 		else {
@@ -310,11 +331,13 @@ public class IniUnit extends C4Structure implements Iterable<IniSection>, IHasCh
 		marker(markerType, error, entry.getLocation().getStart(), entry.getLocation().getEnd(), markerSeverity, args);
 	}
 	
-	protected IniEntry parseEntry(IniSection section, boolean modifyMarkers) {
+	protected IniEntry parseEntry(IniSection section, boolean modifyMarkers, IniSection parentSection) {
+		int targetIndentation = parentSection != null ? parentSection.getIndentation() : 0;
 		while (skipComment());
 		int start = reader.getPosition();
 		reader.eatWhitespace();
-		if (reader.read() == '[') {
+		int indentation = reader.getTabIndentation();
+		if (indentation != targetIndentation || reader.read() == '[') {
 			reader.seek(start);
 			return null;
 		}
@@ -347,6 +370,19 @@ public class IniUnit extends C4Structure implements Iterable<IniSection>, IHasCh
 		}
 	}
 	
+	protected IniItem parseSectionOrEntry(IniSection section, boolean modifyMarkers, IniSection parentSection) {
+		IniEntry entry = parseEntry(section, modifyMarkers, parentSection);
+		if (entry == null) {
+			IniSection s = parseSection(modifyMarkers, parentSection);
+			if (s != null)
+				return s;
+			else
+				return null;
+		}
+		else
+			return entry;
+	}
+	
 	protected String getConfigurationName() {
 		return null;
 	}
@@ -371,9 +407,14 @@ public class IniUnit extends C4Structure implements Iterable<IniSection>, IHasCh
 		return Utilities.itemMatching(predicate, sectionsList);
 	}
 	
-	public IniEntry entryInSection(String section, String entry) {
+	public IniItem itemInSection(String section, String entry) {
 		IniSection s = sectionsMap.get(section);
-		return s != null ? s.getEntry(entry) : null;
+		return s != null ? s.getSubItem(entry) : null;
+	}
+	
+	public IniEntry entryInSection(String section, String entry) {
+		IniItem item = itemInSection(section, entry);
+		return item instanceof IniEntry ? (IniEntry)item : null;
 	}
 
 	public IniSection[] getSections() {
@@ -527,8 +568,9 @@ public class IniUnit extends C4Structure implements Iterable<IniSection>, IHasCh
 	public static Class<? extends IniUnit> getIniUnitClass(IResource resource) {
 		IContentType contentType = resource instanceof IFile ? IDE.getContentType((IFile) resource) : null;
 		if (contentType == null)
-			return null;
-		return INIREADER_CLASSES.get(contentType.getId());
+			return IniUnit.class;
+		Class<? extends IniUnit> cls = INIREADER_CLASSES.get(contentType.getId());
+		return cls != null ? cls : IniUnit.class;
 	}
 	
 	@Override
@@ -538,17 +580,11 @@ public class IniUnit extends C4Structure implements Iterable<IniSection>, IHasCh
 			return;
 		try {
 			iniFile.deleteMarkers(ClonkCore.MARKER_C4SCRIPT_ERROR, true, 0);
-		} catch (CoreException e1) {
-			e1.printStackTrace();
+		} catch (CoreException e) {
+			e.printStackTrace();
 		}
 		for (IniSection sec : this.sectionsList) {
-			for (IniEntry e : sec) {
-				if (e instanceof ComplexIniEntry) {
-					ComplexIniEntry ce = (ComplexIniEntry) e;
-					if (ce.getExtendedValue() instanceof IComplainingIniEntryValue)
-						((IComplainingIniEntryValue)ce.getExtendedValue()).complain(ce);
-				}
-			}
+			sec.validate();
 		}
 	}
 	

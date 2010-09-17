@@ -100,4 +100,10 @@ public class ComplexIniEntry extends IniEntry implements IHasChildren, IHasConte
 		return this; // is it's own context; over-abstraction is awesome -.-
 	}
 	
+	@Override
+	public void validate() {
+		if (getExtendedValue() instanceof IComplainingIniEntryValue)
+			((IComplainingIniEntryValue)getExtendedValue()).complain(this);
+	}
+	
 }
