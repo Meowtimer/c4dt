@@ -19,6 +19,7 @@ import net.arctics.clonk.parser.C4Declaration;
 import net.arctics.clonk.parser.C4Structure;
 import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.SourceLocation;
+import net.arctics.clonk.parser.foldermap.FolderMapUnit;
 import net.arctics.clonk.parser.inireader.IniData.IniConfiguration;
 import net.arctics.clonk.parser.inireader.IniData.IniDataBase;
 import net.arctics.clonk.parser.inireader.IniData.IniDataEntry;
@@ -557,7 +558,8 @@ public class IniUnit extends C4Structure implements Iterable<IniSection>, IHasCh
 		ClonkCore.id("defcore")      , DefCoreUnit.class, //$NON-NLS-1$
 		ClonkCore.id("particle")     , ParticleUnit.class, //$NON-NLS-1$
 		ClonkCore.id("material")     , MaterialUnit.class, //$NON-NLS-1$
-		ClonkCore.id("plrcontroldef"), PlayerControlsUnit.class //$NON-NLS-1$
+		ClonkCore.id("plrcontroldef"), PlayerControlsUnit.class, //$NON-NLS-1$
+		ClonkCore.id("foldermap")    , FolderMapUnit.class
 	});
 
 	/**
