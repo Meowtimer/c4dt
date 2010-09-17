@@ -342,7 +342,7 @@ public class C4Engine extends C4ScriptBase {
 						IniSection section = unit.sectionForName("Descriptions"); //$NON-NLS-1$
 						if (section != null) {
 							result = new HashMap<String, String>();
-							for (Entry<String, IniItem> item : section.getSubItems().entrySet()) {
+							for (Entry<String, IniItem> item : section.getSubItemMap().entrySet()) {
 								if (item.getValue() instanceof IniEntry) {
 									IniEntry entry = (IniEntry) item.getValue();
 									result.put(entry.getKey(), entry.getValue().replace("|||", "\n")); //$NON-NLS-1$ //$NON-NLS-2$

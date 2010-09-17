@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.Writer;
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
 import org.eclipse.core.runtime.IPath;
@@ -21,7 +22,8 @@ public class IniSection extends C4Declaration implements IHasKeyAndValue<String,
 	
 	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 	
-	private Map<String, IniItem> items;
+	private Map<String, IniItem> itemMap;
+	private List<IniItem> itemList;
 	private IniDataSection sectionData;
 	private int indentation;
 	
@@ -46,16 +48,21 @@ public class IniSection extends C4Declaration implements IHasKeyAndValue<String,
 		return name;
 	}
 
-	public Map<String, IniItem> getSubItems() {
-		return items;
+	public Map<String, IniItem> getSubItemMap() {
+		return itemMap;
 	}
 
-	public void setSubItems(Map<String, IniItem> entries) {
-		this.items = entries;
+	public void setSubItems(Map<String, IniItem> map, List<IniItem> list) {
+		this.itemMap = map;
+		this.itemList = list;
 	}
 
 	public IniItem getSubItem(String key) {
-		return items.get(key);
+		return itemMap.get(key);
+	}
+	
+	public List<IniItem> getSubItemList() {
+		return itemList;
 	}
 
 	public String getKey() {
@@ -67,11 +74,11 @@ public class IniSection extends C4Declaration implements IHasKeyAndValue<String,
 	}
 
 	public Object[] getChildren() {
-		return getSubItems().values().toArray();
+		return getSubItemList().toArray(new Object[getSubItemList().size()]);
 	}
 
 	public boolean hasChildren() {
-		return !items.isEmpty();
+		return !itemMap.isEmpty();
 	}
 
 	@Override
@@ -83,7 +90,7 @@ public class IniSection extends C4Declaration implements IHasKeyAndValue<String,
 	}
 
 	public Collection<? extends ITreeNode> getChildCollection() {
-		return items.values();
+		return itemList;
 	}
 
 	public String getNodeName() {
@@ -118,11 +125,11 @@ public class IniSection extends C4Declaration implements IHasKeyAndValue<String,
 	}
 
 	public Iterator<IniItem> iterator() {
-		return new ReadOnlyIterator<IniItem>(this.items.values().iterator());
+		return new ReadOnlyIterator<IniItem>(this.itemMap.values().iterator());
 	}
 	
 	public void putEntry(IniEntry entry) {
-		items.put(entry.getName(), entry);
+		itemMap.put(entry.getName(), entry);
 		entry.setParentDeclaration(this);
 	}
 
@@ -133,7 +140,7 @@ public class IniSection extends C4Declaration implements IHasKeyAndValue<String,
 		writer.append(']');
 		writer.append('\n');
 		
-		for (IniItem entry : getSubItems().values()) {
+		for (IniItem entry : getSubItemMap().values()) {
 			entry.writeTextRepresentation(writer, indentation+1);
 			writer.append('\n');
 		}

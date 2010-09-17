@@ -192,7 +192,7 @@ public class IniUnit extends C4Structure implements Iterable<IniSection>, IHasCh
 		IniSection result = sectionsMap.get(name);
 		if (result == null) {
 			result = new IniSection(null, name);
-			result.setSubItems(new HashMap<String, IniItem>());
+			result.setSubItems(new HashMap<String, IniItem>(), new LinkedList<IniItem>());
 			result.setParentDeclaration(this);
 			result.setSectionData(dataSection);
 			sectionsMap.put(name, result);
@@ -267,13 +267,15 @@ public class IniUnit extends C4Structure implements Iterable<IniSection>, IHasCh
 			section.setIndentation(indentation);
 			// parse entries
 			IniItem item= null;
-			Map<String, IniItem> entries = new HashMap<String, IniItem>();
+			Map<String, IniItem> itemMap = new HashMap<String, IniItem>();
+			List<IniItem> itemList = new LinkedList<IniItem>();
 			currentSection = section;
 			currentSection.setSectionData(getSectionDataFor(section, parentSection));
 			while ((item = parseSectionOrEntry(section, modifyMarkers, section)) != null) {
-				entries.put(item.getKey(),item);
+				itemMap.put(item.getKey(),item);
+				itemList.add(item);
 			}
-			section.setSubItems(entries);
+			section.setSubItems(itemMap, itemList);
 			return section;
 		}
 		else {

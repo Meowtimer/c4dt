@@ -79,7 +79,7 @@ public class CustomIniUnit extends IniUnit {
 	}
 
 	public void commitSection(Object object, IniSection section, boolean takeIntoAccounCategory) throws NoSuchFieldException, IllegalAccessException {
-		for (IniItem item : section.getSubItems().values()) {
+		for (IniItem item : section.getSubItemMap().values()) {
 			if (!(item instanceof IniEntry))
 				continue;
 			IniEntry entry = (IniEntry) item;
