@@ -160,4 +160,9 @@ public class IniSection extends C4Declaration implements IHasKeyAndValue<String,
 	public void setIndentation(int indentation) {
 		this.indentation = indentation;
 	}
+	
+	@Override
+	public int sortCategory() {
+		return 1;
+	}
 }

@@ -88,7 +88,6 @@ public abstract class C4Declaration implements Serializable, IHasRelatedResource
 	 * @return the category value
 	 */
 	public int sortCategory() {
-		// TODO Auto-generated method stub
 		return 0;
 	}
 	

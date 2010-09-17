@@ -29,4 +29,9 @@ public class IniEntry extends NameValueAssignment implements IniItem {
 	public void validate() {
 	}
 	
+	@Override
+	public int sortCategory() {
+		return 0;
+	}
+	
 }
