@@ -535,13 +535,17 @@ public class IniUnit extends C4Structure implements Iterable<IniSection>, IHasCh
 	}
 	
 	public static IniUnit createAdequateIniUnit(IFile file) throws SecurityException, NoSuchMethodException, IllegalArgumentException, InstantiationException, IllegalAccessException, InvocationTargetException {
-		return createAdequateIniUnit(file, file);
+		return createAdequateIniUnit(file, false, file);
 	}
 
-	public static IniUnit createAdequateIniUnit(IFile file, Object arg) throws SecurityException, NoSuchMethodException, IllegalArgumentException, InstantiationException, IllegalAccessException, InvocationTargetException {
+	public static IniUnit createAdequateIniUnit(IFile file, boolean defaultToBaseClass, Object arg) throws SecurityException, NoSuchMethodException, IllegalArgumentException, InstantiationException, IllegalAccessException, InvocationTargetException {
 		Class<? extends IniUnit> cls = getIniUnitClass(file);
-		if (cls == null)
-			return null;
+		if (cls == null) {
+			if (defaultToBaseClass)
+				cls = IniUnit.class;
+			else
+				return null;
+		}
 		Class<?> neededArgType =
 			arg instanceof String
 				? String.class
@@ -572,9 +576,9 @@ public class IniUnit extends C4Structure implements Iterable<IniSection>, IHasCh
 	public static Class<? extends IniUnit> getIniUnitClass(IResource resource) {
 		IContentType contentType = resource instanceof IFile ? IDE.getContentType((IFile) resource) : null;
 		if (contentType == null)
-			return IniUnit.class;
+			return null;
 		Class<? extends IniUnit> cls = INIREADER_CLASSES.get(contentType.getId());
-		return cls != null ? cls : IniUnit.class;
+		return cls != null ? cls : null;
 	}
 	
 	@Override
