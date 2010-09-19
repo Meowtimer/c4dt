@@ -4,6 +4,7 @@ import java.lang.reflect.Array;
 import java.util.Iterator;
 import java.util.Map;
 
+import net.arctics.clonk.index.ClonkIndex;
 import net.arctics.clonk.parser.C4ID;
 
 /**
@@ -192,6 +193,11 @@ public enum C4Type implements IType {
 
 	@Override
 	public IType staticType() {
+		return this;
+	}
+	
+	@Override
+	public IType serializableVersion(ClonkIndex indexToBeSerialized) {
 		return this;
 	}
 

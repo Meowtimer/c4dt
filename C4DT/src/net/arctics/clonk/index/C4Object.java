@@ -230,5 +230,13 @@ public abstract class C4Object extends C4ScriptBase implements IType {
 		}
 		return objectType;
 	}
+	
+	@Override
+	public IType serializableVersion(ClonkIndex index) {
+		if (getIndex() == index)
+			return this;
+		else
+			return C4Type.OBJECT;
+	}
 
 }

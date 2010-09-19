@@ -2392,8 +2392,8 @@ public class C4ScriptParser {
 				IType t = arrayExpr.getType(this);
 				if (!t.canBeAssignedFrom(C4Type.ARRAY))
 					warningWithCode(ParserErrorCode.IncompatibleTypes, arrayExpr, t.toString(), C4Type.ARRAY.toString());
-				if (loopVariable != null && t instanceof C4ArrayType) {
-					C4ArrayType arrayType = (C4ArrayType) t;
+				if (loopVariable != null && t instanceof ArrayType) {
+					ArrayType arrayType = (ArrayType) t;
 					new AccessVar(loopVariable).expectedToBeOfType(arrayType.getElementType(), this, TypeExpectancyMode.Force);
 				}
 			}
@@ -2604,22 +2604,23 @@ public class C4ScriptParser {
 		}
 		int e = scanner.getPosition();
 		C4Variable var = new C4Variable(null, C4VariableScope.VAR);
-		C4Type type = C4Type.makeType(firstWord);
+		IType type = C4Type.makeType(firstWord);
 		if (type == C4Type.REFERENCE && !container.getEngine().getCurrentSettings().supportsRefs) {
 			errorWithCode(ParserErrorCode.EngineDoesNotSupportRefs, s, e, true, container.getEngine().getName());
 		}
-		var.forceType(type, type != C4Type.UNKNOWN && !isEngine);
+		boolean typeLocked = type != C4Type.UNKNOWN && !isEngine;
+		var.forceType(type, typeLocked);
 		if (type == C4Type.UNKNOWN) {
 			//var.setType(C4Type.ANY);
 			var.setName(firstWord);
 		}
 		else {
 			eatWhitespace();
-			/*if (scanner.read() == '&') {
-				var.setByRef(true);
+			if (scanner.read() == '&') {
+				var.forceType(ReferenceType.get(type), typeLocked);
 				eatWhitespace();
 			} else
-				scanner.unread(); */
+				scanner.unread();
 			int newStart = scanner.getPosition();
 			String secondWord = scanner.readIdent();
 			if (secondWord.length() > 0) {
@@ -2630,7 +2631,7 @@ public class C4ScriptParser {
 			else {
 				// type is name
 				warningWithCode(ParserErrorCode.TypeAsName, s, e, firstWord);
-				var.forceType(C4Type.ANY);
+				var.forceType(C4Type.ANY, typeLocked);
 				var.setName(firstWord);
 				scanner.seek(e);
 			}

@@ -1236,7 +1236,7 @@ public abstract class C4ScriptExprTree {
 				if (t != null) {
 					C4Function f = (C4Function) d;
 					if (f.getReturnType() == C4Type.ARRAY)
-						return new C4ArrayType(t);
+						return new ArrayType(t);
 					else
 						return t;
 				}

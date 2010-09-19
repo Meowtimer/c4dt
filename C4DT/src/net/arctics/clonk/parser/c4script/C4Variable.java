@@ -116,13 +116,15 @@ public class C4Variable extends C4Declaration implements Serializable, ITypedDec
 	 * @param type the type to set
 	 */
 	public void forceType(IType type) {
-		// -.-;
-//		if (type == C4Type.DWORD) formerly DWORD
-//			type = C4Type.INT;
+		if (type == null)
+			type = C4Type.UNKNOWN;
+		C4ScriptBase script = getScript();
+		if (script != null && script.getIndex() != null)
+			type = type.serializableVersion(script.getIndex());
 		this.type = type;
 	}
 	
-	public void forceType(C4Type type, boolean typeLocked) {
+	public void forceType(IType type, boolean typeLocked) {
 		forceType(type);
 		this.typeLocked = typeLocked;
 	}

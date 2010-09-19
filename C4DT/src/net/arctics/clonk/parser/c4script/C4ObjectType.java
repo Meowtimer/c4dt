@@ -4,6 +4,7 @@ import java.util.Iterator;
 
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.index.C4Object;
+import net.arctics.clonk.index.ClonkIndex;
 import net.arctics.clonk.util.Utilities;
 
 /**
@@ -70,6 +71,14 @@ public class C4ObjectType implements IType {
 	@Override
 	public IType staticType() {
 		return C4Type.ID;
+	}
+	
+	@Override
+	public IType serializableVersion(ClonkIndex indexToBeSerialized) {
+		if (type.serializableVersion(indexToBeSerialized) == type)
+			return this;
+		else
+			return C4Type.ID;
 	}
 
 }
