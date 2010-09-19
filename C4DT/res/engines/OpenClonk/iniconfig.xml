@@ -674,28 +674,30 @@
 		</section>
 	</file>
 	<file name="PlayerControls.txt" factoryclass="net.arctics.clonk.parser.inireader.GenericEntryFactory">
-		<section name="ControlDef">
-			<entry name="Identifier" class="java.lang.String" />
-			<entry name="DefaultDisabled" class="Boolean" />
-			<entry name="GUIDesc" class="java.lang.String" />
-			<entry name="GUIName" class="java.lang.String" />
-			<entry name="Action" class="java.lang.String" />
-			<entry name="Hold" class="UnsignedInteger" />
-			<entry name="SendCursorPos" class="UnsignedInteger" />
+		<section name="ControlDefs">
+			<section name="ControlDef">
+				<entry name="Identifier" class="java.lang.String" />
+					<entry name="DefaultDisabled" class="Boolean" />
+				<entry name="GUIDesc" class="java.lang.String" />
+				<entry name="GUIName" class="java.lang.String" />
+				<entry name="Action" class="java.lang.String" />
+				<entry name="Hold" class="UnsignedInteger" />
+				<entry name="SendCursorPos" class="UnsignedInteger" />
+			</section>
 		</section>
-		<section name="Assignment">
-			<entry name="Priority" class="UnsignedInteger" />			
-			<entry name="Key" class="java.lang.String" />
-			<entry name="Control" class="java.lang.String" />
+		<section name="ControlSets">
+			<section name="ControlSet">
+				<entry name="GUIName" class="java.lang.String" />
+				<entry name="Name" class="java.lang.String" />
+				<entry name="Keyboard" class="UnsignedInteger" />
+				<entry name="Mouse" class="UnsignedInteger" />
+				<entry name="Gamepad" class="UnsignedInteger" />
+				<section name="Assignment">
+					<entry name="Priority" class="UnsignedInteger" />			
+					<entry name="Key" class="java.lang.String" />
+					<entry name="Control" class="java.lang.String" />
+				</section>
+			</section>
 		</section>
-		<section name="ControlSet">
-			<entry name="GUIName" class="java.lang.String" />
-			<entry name="Name" class="java.lang.String" />
-			<entry name="Keyboard" class="UnsignedInteger" />
-			<entry name="Mouse" class="UnsignedInteger" />
-			<entry name="Gamepad" class="UnsignedInteger" />
-		</section>
-		<section name="ControlSets" />
-		<section name="ControlDefs" />
 	</file>
 </clonkiniconfig>

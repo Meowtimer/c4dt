@@ -402,7 +402,7 @@ public class IniUnit extends C4Structure implements Iterable<IniSection>, IHasCh
 		return sectionsList.iterator();
 	}
 	
-	public IniSection sectionForName(String name) {
+	public IniSection sectionWithName(String name) {
 		return sectionsMap.get(name);
 	}
 	
@@ -494,7 +494,7 @@ public class IniUnit extends C4Structure implements Iterable<IniSection>, IHasCh
 	
 	@Override
 	public C4Declaration findDeclaration(String declarationName) {
-		return sectionForName(declarationName);
+		return sectionWithName(declarationName);
 	}
 	
 	@Override

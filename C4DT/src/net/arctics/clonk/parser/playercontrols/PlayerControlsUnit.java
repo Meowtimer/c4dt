@@ -47,17 +47,23 @@ public class PlayerControlsUnit extends IniUnit {
 	public void parse(boolean modifyMarkers) {
 		controlVariables.clear();
 		super.parse(modifyMarkers);
-		for (IniSection section : getSections()) {
-			if (section.getName().equals("ControlDef")) { //$NON-NLS-1$
-				IniItem item = section.getSubItem("Identifier"); //$NON-NLS-1$
-				if (item instanceof IniEntry) {
-					IniEntry e = (IniEntry) item;
-					String ident = e.getValue();
-					C4Variable var = new C4Variable("CON_" + ident, C4Type.INT); //$NON-NLS-1$
-					var.setScope(C4VariableScope.CONST);
-					var.setParentDeclaration(this);
-					var.setLocation(e.getLocation());
-					controlVariables.add(var);
+		IniSection controlsDefsSection = sectionWithName("ControlDefs");
+		if (controlsDefsSection != null) {
+			for (IniItem item : controlsDefsSection.getSubItemList()) {
+				if (item instanceof IniSection) {
+					IniSection section = (IniSection) item;
+					if (section.getName().equals("ControlDef")) { //$NON-NLS-1$
+						IniItem identifierEntry = section.getSubItem("Identifier"); //$NON-NLS-1$
+						if (identifierEntry instanceof IniEntry) {
+							IniEntry e = (IniEntry) identifierEntry;
+							String ident = e.getValue();
+							C4Variable var = new C4Variable("CON_" + ident, C4Type.INT); //$NON-NLS-1$
+							var.setScope(C4VariableScope.CONST);
+							var.setParentDeclaration(this);
+							var.setLocation(e.getLocation());
+							controlVariables.add(var);
+						}
+					}
 				}
 			}
 		}

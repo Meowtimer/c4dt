@@ -451,7 +451,7 @@ global func int DrawParticleLine(string szKind, int x0, int y0, int x1, int y1, 
 global func object EditCursor();
 global func any EffectCall(object pTarget, int iNumber, string szCommand, ...);
 global func any EffectVar(int iVarIndex, object pTarget, int iNumber);
-global func any SetEffectVar(int var_index, object obj, int effect_number, any value);
+global func any SetEffectVar(int var_index, object obj, int effect_number, value);
 global func bool EliminatePlayer(int player);
 global func bool EnergyCheck(int iEnergy);
 global func bool Enter(object pTarget);
