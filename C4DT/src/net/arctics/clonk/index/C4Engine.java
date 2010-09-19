@@ -44,6 +44,7 @@ import net.arctics.clonk.parser.inireader.IniSection;
 import net.arctics.clonk.parser.inireader.IniUnit;
 import net.arctics.clonk.preferences.ClonkPreferences;
 import net.arctics.clonk.util.IStorageLocation;
+import net.arctics.clonk.util.LineNumberObtainer;
 import net.arctics.clonk.util.Utilities;
 
 /**
@@ -339,7 +340,7 @@ public class C4Engine extends C4ScriptBase {
 					try {
 						IniUnit unit = new CustomIniUnit(input, new DescriptionsIniConfiguration());
 						unit.parse(false);
-						IniSection section = unit.sectionForName("Descriptions"); //$NON-NLS-1$
+						IniSection section = unit.sectionWithName("Descriptions"); //$NON-NLS-1$
 						if (section != null) {
 							result = new HashMap<String, String>();
 							for (Entry<String, IniItem> item : section.getSubItemMap().entrySet()) {
@@ -385,7 +386,9 @@ public class C4Engine extends C4ScriptBase {
 	public void parseEngineScript(final URL url) throws IOException, ParsingException {
 		InputStream stream = url.openStream();
 		try {
-			C4ScriptParser parser = new C4ScriptParser(Utilities.stringFromInputStream(stream), this, null) {
+			String scriptFromStream = Utilities.stringFromInputStream(stream);
+			final LineNumberObtainer lno = new LineNumberObtainer(scriptFromStream);
+			C4ScriptParser parser = new C4ScriptParser(scriptFromStream, this, null) {
 				private boolean firstMessage = true;
 				@Override
 				protected IMarker markerWithCode(ParserErrorCode code,
@@ -395,7 +398,12 @@ public class C4Engine extends C4ScriptBase {
 						firstMessage = false;
 						System.out.println("Messages while parsing " + url.toString());
 					}
-					System.out.println(code.getErrorString(args));
+					System.out.println(String.format(
+						"%s @(%d, %d)",
+						code.getErrorString(args),
+						lno.obtainLineNumber(errorStart),
+						lno.obtainCharNumberInObtainedLine()
+					));
 					return super.markerWithCode(code, errorStart, errorEnd, noThrow, severity, args);
 				}
 			};
