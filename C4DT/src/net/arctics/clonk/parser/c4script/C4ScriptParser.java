@@ -816,7 +816,7 @@ public class C4ScriptParser {
 		eatWhitespace();
 		if (scanner.peek() == '&') {
 			if (!container.getEngine().getCurrentSettings().supportsRefs) {
-				errorWithCode(ParserErrorCode.EngineDoesNotSupportRefs, scanner.getPosition(), scanner.getPosition()+1, container.getEngine().getName());
+				errorWithCode(ParserErrorCode.EngineDoesNotSupportRefs, scanner.getPosition(), scanner.getPosition()+1, true, container.getEngine().getName());
 			}
 			scanner.read();
 			return C4Type.REFERENCE;
@@ -2605,6 +2605,9 @@ public class C4ScriptParser {
 		int e = scanner.getPosition();
 		C4Variable var = new C4Variable(null, C4VariableScope.VAR);
 		C4Type type = C4Type.makeType(firstWord);
+		if (type == C4Type.REFERENCE && !container.getEngine().getCurrentSettings().supportsRefs) {
+			errorWithCode(ParserErrorCode.EngineDoesNotSupportRefs, s, e, true, container.getEngine().getName());
+		}
 		var.forceType(type, type != C4Type.UNKNOWN && !isEngine);
 		if (type == C4Type.UNKNOWN) {
 			//var.setType(C4Type.ANY);
@@ -2612,11 +2615,11 @@ public class C4ScriptParser {
 		}
 		else {
 			eatWhitespace();
-			if (scanner.read() == '&') {
+			/*if (scanner.read() == '&') {
 				var.setByRef(true);
 				eatWhitespace();
 			} else
-				scanner.unread();
+				scanner.unread(); */
 			int newStart = scanner.getPosition();
 			String secondWord = scanner.readIdent();
 			if (secondWord.length() > 0) {

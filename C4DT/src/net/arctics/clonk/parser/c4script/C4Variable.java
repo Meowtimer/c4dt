@@ -47,11 +47,6 @@ public class C4Variable extends C4Declaration implements Serializable, ITypedDec
 	private String description;
 	
 	/**
-	 * It's a reference. Only parameters get this flag set when they are explicitly marked as by-ref. 
-	 */
-	private boolean byRef;
-	
-	/**
 	 * Explicit type, not to be changed by weird type inference
 	 */
 	private transient boolean typeLocked;
@@ -268,14 +263,6 @@ public class C4Variable extends C4Declaration implements Serializable, ITypedDec
 		// engine objects should not be altered
 		if (!typeLocked && !(getScript() instanceof C4Engine))
 			ITypedDeclaration.Default.expectedToBeOfType(this, t);
-	}
-
-	public boolean isByRef() {
-		return byRef;
-	}
-
-	public void setByRef(boolean byRef) {
-		this.byRef = byRef;
 	}
 
 	public Object getConstValue() {
