@@ -7,11 +7,11 @@ import java.util.HashMap;
 import java.util.Map;
 
 import net.arctics.clonk.parser.ParsingException;
-import net.arctics.clonk.parser.c4script.C4ScriptExprTree.Block;
-import net.arctics.clonk.parser.c4script.C4ScriptExprTree.ExprElm;
-import net.arctics.clonk.parser.c4script.C4ScriptExprTree.ExprWriter;
-import net.arctics.clonk.parser.c4script.C4ScriptExprTree.StringLiteral;
-import net.arctics.clonk.parser.c4script.C4ScriptExprTree.VarDeclarationStatement;
+import net.arctics.clonk.parser.c4script.ast.Block;
+import net.arctics.clonk.parser.c4script.ast.ExprElm;
+import net.arctics.clonk.parser.c4script.ast.ExprWriter;
+import net.arctics.clonk.parser.c4script.ast.StringLiteral;
+import net.arctics.clonk.parser.c4script.ast.VarDeclarationStatement;
 import net.arctics.clonk.util.Pair;
 
 public class C4ScriptToCPPConverter {

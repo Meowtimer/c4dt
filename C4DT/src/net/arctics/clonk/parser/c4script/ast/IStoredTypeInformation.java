@@ -1,6 +1,8 @@
-package net.arctics.clonk.parser.c4script;
+package net.arctics.clonk.parser.c4script.ast;
 
-import net.arctics.clonk.parser.c4script.C4ScriptExprTree.ExprElm;
+import net.arctics.clonk.parser.c4script.C4ScriptParser;
+import net.arctics.clonk.parser.c4script.IType;
+
 
 public interface IStoredTypeInformation {
 	IType getType();

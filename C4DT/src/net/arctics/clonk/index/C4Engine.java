@@ -391,7 +391,7 @@ public class C4Engine extends C4ScriptBase {
 			C4ScriptParser parser = new C4ScriptParser(scriptFromStream, this, null) {
 				private boolean firstMessage = true;
 				@Override
-				protected IMarker markerWithCode(ParserErrorCode code,
+				public IMarker markerWithCode(ParserErrorCode code,
 						int errorStart, int errorEnd, boolean noThrow,
 						int severity, Object... args) throws ParsingException {
 					if (firstMessage) {

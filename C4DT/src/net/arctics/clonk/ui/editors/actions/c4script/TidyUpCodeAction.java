@@ -6,11 +6,16 @@ import java.util.ResourceBundle;
 
 import net.arctics.clonk.parser.C4Declaration;
 import net.arctics.clonk.parser.c4script.C4Function;
-import net.arctics.clonk.parser.c4script.C4ScriptExprTree;
-import net.arctics.clonk.parser.c4script.C4ScriptExprTree.ExprElm;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.C4Variable;
-import net.arctics.clonk.parser.c4script.C4ScriptExprTree.*;
+import net.arctics.clonk.parser.c4script.ast.Block;
+import net.arctics.clonk.parser.c4script.ast.Conf;
+import net.arctics.clonk.parser.c4script.ast.Comment;
+import net.arctics.clonk.parser.c4script.ast.ExprElm;
+import net.arctics.clonk.parser.c4script.ast.ExpressionListener;
+import net.arctics.clonk.parser.c4script.ast.IExpressionListener;
+import net.arctics.clonk.parser.c4script.ast.Statement;
+import net.arctics.clonk.parser.c4script.ast.TraversalContinuation;
 import net.arctics.clonk.ui.editors.IClonkCommandIds;
 import net.arctics.clonk.ui.editors.c4script.C4ScriptEditor;
 import net.arctics.clonk.util.Utilities;
@@ -144,7 +149,7 @@ public class TidyUpCodeAction extends TextEditorAction {
 						}
 						Block b = new Block(expressionsInRightOrder);
 						StringBuilder blockStringBuilder = new StringBuilder(region.getLength());
-						switch (C4ScriptExprTree.braceStyle) {
+						switch (Conf.braceStyle) {
 						case NewLine:
 							blockStringBuilder.append('\n');
 							break;

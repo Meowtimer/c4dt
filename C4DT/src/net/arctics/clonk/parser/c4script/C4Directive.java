@@ -8,7 +8,7 @@ import net.arctics.clonk.parser.C4Declaration;
 import net.arctics.clonk.parser.C4ID;
 import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.ParsingException;
-import net.arctics.clonk.parser.c4script.C4ScriptExprTree.ExprElm;
+import net.arctics.clonk.parser.c4script.ast.ExprElm;
 
 public class C4Directive extends C4Declaration implements Serializable {
 

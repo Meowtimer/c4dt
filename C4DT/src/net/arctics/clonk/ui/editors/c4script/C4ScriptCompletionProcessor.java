@@ -13,18 +13,23 @@ import net.arctics.clonk.index.ClonkIndex;
 import net.arctics.clonk.parser.c4script.BuiltInDefinitions;
 import net.arctics.clonk.parser.c4script.C4Function;
 import net.arctics.clonk.parser.c4script.C4ScriptBase;
-import net.arctics.clonk.parser.c4script.C4ScriptExprTree;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.C4Variable;
-import net.arctics.clonk.parser.c4script.IStoredTypeInformation;
 import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.parser.c4script.Keywords;
 import net.arctics.clonk.parser.BufferedScanner;
 import net.arctics.clonk.parser.C4Declaration;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.c4script.C4Function.C4FunctionScope;
-import net.arctics.clonk.parser.c4script.C4ScriptExprTree.*;
 import net.arctics.clonk.parser.c4script.C4Variable.C4VariableScope;
+import net.arctics.clonk.parser.c4script.ast.Conf;
+import net.arctics.clonk.parser.c4script.ast.ExprElm;
+import net.arctics.clonk.parser.c4script.ast.ExpressionListener;
+import net.arctics.clonk.parser.c4script.ast.IStoredTypeInformation;
+import net.arctics.clonk.parser.c4script.ast.IfStatement;
+import net.arctics.clonk.parser.c4script.ast.MemberOperator;
+import net.arctics.clonk.parser.c4script.ast.Statement;
+import net.arctics.clonk.parser.c4script.ast.TraversalContinuation;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.ui.editors.ClonkCompletionProcessor;
 import net.arctics.clonk.ui.editors.ClonkCompletionProposal;
@@ -350,7 +355,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 		builder.append(" "); //$NON-NLS-1$
 		builder.append(functionName);
 		builder.append("()"); //$NON-NLS-1$
-		switch (C4ScriptExprTree.braceStyle) {
+		switch (Conf.braceStyle) {
 		case NewLine:
 			builder.append("\n"); //$NON-NLS-1$
 			break;

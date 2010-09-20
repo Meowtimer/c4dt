@@ -25,16 +25,16 @@ import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.SimpleScriptStorage;
 import net.arctics.clonk.parser.c4script.C4Function;
 import net.arctics.clonk.parser.c4script.C4ScriptBase;
-import net.arctics.clonk.parser.c4script.C4ScriptExprTree;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
-import net.arctics.clonk.parser.c4script.C4ScriptExprTree.ControlFlowException;
-import net.arctics.clonk.parser.c4script.C4ScriptExprTree.ExprElm;
-import net.arctics.clonk.parser.c4script.C4ScriptExprTree.IEvaluationContext;
-import net.arctics.clonk.parser.c4script.C4ScriptExprTree.ExpressionListener;
-import net.arctics.clonk.parser.c4script.C4ScriptExprTree.IVariableValueProvider;
-import net.arctics.clonk.parser.c4script.C4ScriptExprTree.ReturnException;
-import net.arctics.clonk.parser.c4script.C4ScriptExprTree.Statement;
-import net.arctics.clonk.parser.c4script.C4ScriptExprTree.TraversalContinuation;
+import net.arctics.clonk.parser.c4script.ast.Conf;
+import net.arctics.clonk.parser.c4script.ast.ControlFlowException;
+import net.arctics.clonk.parser.c4script.ast.ExprElm;
+import net.arctics.clonk.parser.c4script.ast.ExpressionListener;
+import net.arctics.clonk.parser.c4script.ast.ReturnException;
+import net.arctics.clonk.parser.c4script.ast.Statement;
+import net.arctics.clonk.parser.c4script.ast.TraversalContinuation;
+import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
+import net.arctics.clonk.parser.c4script.ast.evaluate.IVariableValueProvider;
 import net.arctics.clonk.resource.ClonkIndexStream;
 import net.arctics.clonk.ui.editors.ClonkHyperlink;
 import net.arctics.clonk.util.Utilities;
@@ -278,7 +278,7 @@ public class Command {
 	public static class CodeConversionCommands {
 		@CommandFunction
 		public static void SetCodeConversionOption(Object context, String option, Object value) {
-			setFieldValue(C4ScriptExprTree.class, option, value);
+			setFieldValue(Conf.class, option, value);
 		}
 		@CommandFunction
 		public static void WriteEngineScript(Object context, String engineName, String fileName) throws IOException {

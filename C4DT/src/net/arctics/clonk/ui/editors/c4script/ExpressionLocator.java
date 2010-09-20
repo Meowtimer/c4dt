@@ -4,9 +4,9 @@ import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.Region;
 
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
-import net.arctics.clonk.parser.c4script.C4ScriptExprTree.ExprElm;
-import net.arctics.clonk.parser.c4script.C4ScriptExprTree.ExpressionListener;
-import net.arctics.clonk.parser.c4script.C4ScriptExprTree.TraversalContinuation;
+import net.arctics.clonk.parser.c4script.ast.ExprElm;
+import net.arctics.clonk.parser.c4script.ast.ExpressionListener;
+import net.arctics.clonk.parser.c4script.ast.TraversalContinuation;
 
 /**
  * Helper class for obtaining the expression at a specified region

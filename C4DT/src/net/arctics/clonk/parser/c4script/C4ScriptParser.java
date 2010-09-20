@@ -28,9 +28,48 @@ import net.arctics.clonk.parser.SourceLocation;
 import net.arctics.clonk.parser.SilentParsingException.Reason;
 import net.arctics.clonk.parser.c4script.C4Directive.C4DirectiveType;
 import net.arctics.clonk.parser.c4script.C4Function.C4FunctionScope;
-import net.arctics.clonk.parser.c4script.C4ScriptExprTree.*;
-import net.arctics.clonk.parser.c4script.C4ScriptExprTree.ExprElm.TypeExpectancyMode;
 import net.arctics.clonk.parser.c4script.C4Variable.C4VariableScope;
+import net.arctics.clonk.parser.c4script.ast.AccessVar;
+import net.arctics.clonk.parser.c4script.ast.ArrayElementExpression;
+import net.arctics.clonk.parser.c4script.ast.ArrayExpression;
+import net.arctics.clonk.parser.c4script.ast.ArraySliceExpression;
+import net.arctics.clonk.parser.c4script.ast.BinaryOp;
+import net.arctics.clonk.parser.c4script.ast.Block;
+import net.arctics.clonk.parser.c4script.ast.BoolLiteral;
+import net.arctics.clonk.parser.c4script.ast.BreakStatement;
+import net.arctics.clonk.parser.c4script.ast.BunchOfStatements;
+import net.arctics.clonk.parser.c4script.ast.CallFunc;
+import net.arctics.clonk.parser.c4script.ast.Comment;
+import net.arctics.clonk.parser.c4script.ast.ContinueStatement;
+import net.arctics.clonk.parser.c4script.ast.ControlFlow;
+import net.arctics.clonk.parser.c4script.ast.DoWhileStatement;
+import net.arctics.clonk.parser.c4script.ast.Ellipsis;
+import net.arctics.clonk.parser.c4script.ast.EmptyStatement;
+import net.arctics.clonk.parser.c4script.ast.ExprElm;
+import net.arctics.clonk.parser.c4script.ast.ExpressionListener;
+import net.arctics.clonk.parser.c4script.ast.ForStatement;
+import net.arctics.clonk.parser.c4script.ast.FunctionDescription;
+import net.arctics.clonk.parser.c4script.ast.IDLiteral;
+import net.arctics.clonk.parser.c4script.ast.IExpressionListener;
+import net.arctics.clonk.parser.c4script.ast.IStoredTypeInformation;
+import net.arctics.clonk.parser.c4script.ast.IfStatement;
+import net.arctics.clonk.parser.c4script.ast.IterateArrayStatement;
+import net.arctics.clonk.parser.c4script.ast.MemberOperator;
+import net.arctics.clonk.parser.c4script.ast.NumberLiteral;
+import net.arctics.clonk.parser.c4script.ast.Parenthesized;
+import net.arctics.clonk.parser.c4script.ast.Placeholder;
+import net.arctics.clonk.parser.c4script.ast.PropListExpression;
+import net.arctics.clonk.parser.c4script.ast.ReturnStatement;
+import net.arctics.clonk.parser.c4script.ast.Sequence;
+import net.arctics.clonk.parser.c4script.ast.SimpleStatement;
+import net.arctics.clonk.parser.c4script.ast.Statement;
+import net.arctics.clonk.parser.c4script.ast.StringLiteral;
+import net.arctics.clonk.parser.c4script.ast.TraversalContinuation;
+import net.arctics.clonk.parser.c4script.ast.Tuple;
+import net.arctics.clonk.parser.c4script.ast.TypeExpectancyMode;
+import net.arctics.clonk.parser.c4script.ast.UnaryOp;
+import net.arctics.clonk.parser.c4script.ast.VarDeclarationStatement;
+import net.arctics.clonk.parser.c4script.ast.WhileStatement;
 import net.arctics.clonk.resource.c4group.C4GroupItem;
 import net.arctics.clonk.util.Pair;
 import net.arctics.clonk.util.Sink;
@@ -1391,7 +1430,7 @@ public class C4ScriptParser {
 		return markerWithCode(code, errorStart, errorEnd, false, IMarker.SEVERITY_ERROR, args);
 	}
 	
-	protected IMarker markerWithCode(ParserErrorCode code, int markerStart, int markerEnd, boolean noThrow, int severity, Object... args) throws ParsingException {
+	public IMarker markerWithCode(ParserErrorCode code, int markerStart, int markerEnd, boolean noThrow, int severity, Object... args) throws ParsingException {
 		if (errorDisabled(code))
 			return null;
 		IMarker result = null;
@@ -1473,12 +1512,12 @@ public class C4ScriptParser {
 			if (elm == null && parseHexNumber()) {
 //				if (parsedNumber < Integer.MIN_VALUE || parsedNumber > Integer.MAX_VALUE)
 //					warningWithCode(ErrorCode.OutOfIntRange, elmStart, fReader.getPosition(), String.valueOf(parsedNumber));
-				elm = new C4ScriptExprTree.NumberLiteral(parsedNumber, true);
+				elm = new NumberLiteral(parsedNumber, true);
 			}
 			
 			// number
 			if (elm == null && parseNumber()) {
-				elm = new C4ScriptExprTree.NumberLiteral(parsedNumber);
+				elm = new NumberLiteral(parsedNumber);
 			}
 			
 			// string
@@ -2343,7 +2382,7 @@ public class C4ScriptParser {
 					// too much manual setting of stuff
 					AccessVar accessVar = new AccessVar(varName);
 					accessVar.setExprRegion(pos, pos+varName.length());
-					if (accessVar.getDeclImpl(this) == null) {
+					if (accessVar.obtainDeclaration(this) == null) {
 						createVarInScope(varName, C4VariableScope.VAR, new SourceLocation(offsetOfScriptFragment()+pos, offsetOfScriptFragment()+pos+varName.length()));
 					}
 					handleExpressionCreated(true, accessVar);
@@ -2751,7 +2790,7 @@ public class C4ScriptParser {
 			this.markerListener = markerListener;
 		}
 		@Override
-		protected IMarker markerWithCode(ParserErrorCode code,
+		public IMarker markerWithCode(ParserErrorCode code,
 				int markerStart, int markerEnd, boolean noThrow,
 				int severity, Object... args) throws ParsingException {
 			if (markerListener != null)

@@ -13,7 +13,7 @@ import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.C4Declaration;
 import net.arctics.clonk.parser.C4Structure;
 import net.arctics.clonk.parser.SourceLocation;
-import net.arctics.clonk.parser.c4script.C4ScriptExprTree;
+import net.arctics.clonk.parser.c4script.ast.Conf;
 import net.arctics.clonk.util.IPrintable;
 import net.arctics.clonk.util.ITreeNode;
 import net.arctics.clonk.util.Utilities;
@@ -260,7 +260,7 @@ public class C4MapOverlayBase extends C4Structure implements Cloneable, ITreeNod
 					// flatly cloned attributes of template -> don't print
 					// FIXME: doesn't work for enums of course -.-
 					if (val != null && (getTemplate() == null || (val != f.get(getTemplate())))) {
-						builder.append(Utilities.multiply(C4ScriptExprTree.indentString, depth));
+						builder.append(Utilities.multiply(Conf.indentString, depth));
 						builder.append(f.getName());
 						builder.append(" = "); //$NON-NLS-1$
 						builder.append(val.toString());
@@ -274,7 +274,7 @@ public class C4MapOverlayBase extends C4Structure implements Cloneable, ITreeNod
 				Operator lastOp = null;
 				for (C4MapOverlayBase child : children) {
 					if (lastOp == null) {
-						builder.append(Utilities.multiply(C4ScriptExprTree.indentString, depth));
+						builder.append(Utilities.multiply(Conf.indentString, depth));
 					}
 					child.print(builder, depth+1);
 					Operator op = child.getOperator();
@@ -290,7 +290,7 @@ public class C4MapOverlayBase extends C4Structure implements Cloneable, ITreeNod
 				}
 			}
 			if (type != null) {
-				builder.append(Utilities.multiply(C4ScriptExprTree.indentString, depth));
+				builder.append(Utilities.multiply(Conf.indentString, depth));
 				builder.append("}"); //$NON-NLS-1$
 			}
 		} catch (Exception e) {

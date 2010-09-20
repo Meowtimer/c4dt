@@ -14,7 +14,7 @@ import net.arctics.clonk.index.ClonkIndex;
 import net.arctics.clonk.parser.C4Declaration;
 import net.arctics.clonk.parser.C4ID;
 import net.arctics.clonk.parser.C4Structure;
-import net.arctics.clonk.parser.c4script.C4ScriptExprTree.ExprElm;
+import net.arctics.clonk.parser.c4script.ast.ExprElm;
 import net.arctics.clonk.resource.ClonkProjectNature;
 
 /**

@@ -4,8 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import net.arctics.clonk.parser.c4script.C4Function;
-import net.arctics.clonk.parser.c4script.C4ScriptExprTree;
 import net.arctics.clonk.parser.c4script.MutableRegion;
+import net.arctics.clonk.parser.c4script.ast.Conf;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.ui.editors.ClonkCompletionProposal;
 
@@ -117,7 +117,7 @@ public class C4ScriptAutoEditStrategy extends DefaultIndentLineAutoEditStrategy 
 					int start = r.getOffset();
 					int end = findEndOfWhiteSpace(d, start, c.offset);
 					if (end > start) {
-						c.text += d.get(start, end-start) + C4ScriptExprTree.indentString;
+						c.text += d.get(start, end-start) + Conf.indentString;
 					}
 					c.caretOffset = c.offset + c.text.length();
 					c.shiftsCaret = false;

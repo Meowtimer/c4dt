@@ -19,14 +19,14 @@ import net.arctics.clonk.parser.SimpleScriptStorage;
 import net.arctics.clonk.parser.SourceLocation;
 import net.arctics.clonk.parser.c4script.C4Function;
 import net.arctics.clonk.parser.c4script.C4ScriptBase;
-import net.arctics.clonk.parser.c4script.C4ScriptExprTree;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.C4ScriptParser.IMarkerListener;
 import net.arctics.clonk.parser.c4script.C4Variable;
-import net.arctics.clonk.parser.c4script.IStoredTypeInformation;
-import net.arctics.clonk.parser.c4script.C4ScriptExprTree.AccessVar;
-import net.arctics.clonk.parser.c4script.C4ScriptExprTree.CallFunc;
-import net.arctics.clonk.parser.c4script.C4ScriptExprTree.ExprElm;
+import net.arctics.clonk.parser.c4script.ast.AccessVar;
+import net.arctics.clonk.parser.c4script.ast.CallFunc;
+import net.arctics.clonk.parser.c4script.ast.ExprElm;
+import net.arctics.clonk.parser.c4script.ast.IExpressionListener;
+import net.arctics.clonk.parser.c4script.ast.IStoredTypeInformation;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.resource.c4group.C4GroupItem;
 import net.arctics.clonk.ui.editors.ClonkCompletionProposal;
@@ -507,7 +507,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		return getFuncAt(cursorPos());
 	}
 
-	public C4ScriptParser reparseWithDocumentContents(C4ScriptExprTree.IExpressionListener exprListener, boolean onlyDeclarations) throws IOException, ParsingException {
+	public C4ScriptParser reparseWithDocumentContents(IExpressionListener exprListener, boolean onlyDeclarations) throws IOException, ParsingException {
 		if (scriptBeingEdited() == null)
 			return null;
 		IDocument document = getDocumentProvider().getDocument(getEditorInput());
@@ -520,7 +520,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 	}
 
 	private static C4ScriptParser reparseWithDocumentContents(
-			C4ScriptExprTree.IExpressionListener exprListener,
+			IExpressionListener exprListener,
 			boolean onlyDeclarations, Object document,
 			C4ScriptBase script,
 			Runnable uiRefreshRunnable)

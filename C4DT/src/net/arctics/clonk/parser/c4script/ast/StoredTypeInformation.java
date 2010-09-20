@@ -1,4 +1,8 @@
-package net.arctics.clonk.parser.c4script;
+package net.arctics.clonk.parser.c4script.ast;
+
+import net.arctics.clonk.parser.c4script.C4Type;
+import net.arctics.clonk.parser.c4script.C4TypeSet;
+import net.arctics.clonk.parser.c4script.IType;
 
 public abstract class StoredTypeInformation implements IStoredTypeInformation, Cloneable {
 
