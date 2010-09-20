@@ -8,6 +8,7 @@ import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.C4Type;
 import net.arctics.clonk.parser.c4script.C4TypeSet;
 import net.arctics.clonk.parser.c4script.IType;
+import net.arctics.clonk.util.Utilities;
 
 import org.eclipse.jface.text.Region;
 
@@ -100,6 +101,26 @@ public class MemberOperator extends ExprElm {
 				dotNotation ? ParserErrorCode.NotAProplist : ParserErrorCode.CallingMethodOnNonObject
 			);
 		}
+	}
+	
+	@Override
+	public boolean compare(ExprElm other, IDifferenceListener listener) {
+		if (!super.compare(other, listener))
+			return false;
+		MemberOperator otherOp = (MemberOperator) other;
+		if (dotNotation != otherOp.dotNotation) {
+			listener.differs(this, other, field("dotNotation"));
+			return false;
+		}
+		if (hasTilde != otherOp.hasTilde) {
+			listener.differs(this, other, field("hasTilde"));
+			return false;
+		}
+		if (!Utilities.objectsEqual(id, otherOp.id)) {
+			listener.differs(this, other, field("id"));
+			return false;
+		}
+		return true;
 	}
 
 }

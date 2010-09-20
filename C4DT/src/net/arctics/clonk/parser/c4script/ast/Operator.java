@@ -35,5 +35,17 @@ public class Operator extends Value {
 	public boolean modifiable(C4ScriptParser context) {
 		return getOperator().returnsRef();
 	}
+	
+	@Override
+	public boolean compare(ExprElm other, IDifferenceListener listener) {
+		if (!super.compare(other, listener))
+			return false;
+		if (operator != ((Operator)other).operator) {
+			listener.differs(this, other, field("operator"));
+			return false;
+		} else {
+			return true;
+		}
+	}
 
 }

@@ -62,5 +62,17 @@ public class Literal<T> extends Value {
 	public void doPrint(ExprWriter output, int depth) {
 		output.append(getLiteral().toString());
 	}
+	
+	@Override
+	public boolean compare(ExprElm other, IDifferenceListener listener) {
+		if (!super.compare(other, listener))
+			return false;
+		if (!literal.equals(((Literal<?>)other).literal)) {
+			listener.differs(this, other, field("literal"));
+			return false;
+		} else {
+			return true;
+		}
+	}
 
 }

@@ -64,4 +64,17 @@ public abstract class AccessDeclaration extends Value {
 	public boolean indirectAccess() {
 		return declaration == null || !declaration.getName().equals(declarationName);
 	}
+	
+	@Override
+	public boolean compare(ExprElm other, IDifferenceListener listener) {
+		if (!super.compare(other, listener))
+			return false;
+		if (!declarationName.equals(((AccessDeclaration)other).declarationName)) {
+			listener.differs(this, other, field("declarationName"));
+			return false;
+		} else {
+			return true;
+		}
+	}
+	
 }

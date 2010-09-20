@@ -1,6 +1,7 @@
 package net.arctics.clonk.parser.c4script.ast;
 
 import java.io.Serializable;
+import java.lang.reflect.Field;
 import java.security.InvalidParameterException;
 import java.util.EnumSet;
 
@@ -444,6 +445,37 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable {
 		}
 		else {
 			throw new InvalidParameterException("element must actually be a subelement of this");
+		}
+	}
+	
+	public boolean compare(ExprElm other, IDifferenceListener listener) {
+		if (other.getClass() == this.getClass()) {
+			ExprElm[] mySubElements = this.getSubElements();
+			ExprElm[] otherSubElements = other.getSubElements();
+			if (mySubElements.length != otherSubElements.length) {
+				listener.differs(this, other, IDifferenceListener.SUBELEMENTS_LENGTH);
+				return false;
+			} else {
+				for (int i = 0; i < mySubElements.length; i++) {
+					ExprElm a = mySubElements[i];
+					ExprElm b = otherSubElements[i];
+					if (!a.compare(b, listener)) {
+						return false;
+					}
+				}
+				return true;
+			}
+		}
+		else {
+			return false;
+		}
+	}
+	
+	protected Field field(String name) {
+		try {
+			return getClass().getField(name);
+		} catch (Exception e) {
+			return null;
 		}
 	}
 
