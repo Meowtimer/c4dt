@@ -39,7 +39,7 @@
 
 	<extension point="org.eclipse.core.contenttype.contentTypes">
 
-		<content-type id="net.arctics.clonk.c4files" name="%ClonkFiles_Name"
+		<content-type base-type="org.eclipse.core.runtime.text" id="net.arctics.clonk.c4files" name="%ClonkFiles_Name"
 			priority="normal" />
 
 		<content-type base-type="net.arctics.clonk.c4files"
