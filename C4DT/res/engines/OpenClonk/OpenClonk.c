@@ -838,3 +838,13 @@ global func bool DebugLog(string msg, ...);
 global func int GetIndexOf(item, array array, ...);
 
 global func string GetConstantNameByValue(int value, string name_prefix, int idx);
+
+static const PLRZOOM_Direct;
+static const PLRZOOM_Direct;
+static const PLRZOOM_NoIncrease;
+static const PLRZOOM_NoDecrease;
+static const PLRZOOM_LimitMin;
+static const PLRZOOM_LimitMax;
+
+global func SetPlayerViewLock(int plr_idx, bool is_locked);
+global func SetPlayerZoomByViewRange(int plr_idx, int range_wdt, int range_hgt, int flags);
