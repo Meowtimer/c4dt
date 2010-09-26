@@ -33,6 +33,7 @@ import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.editors.text.TextFileDocumentProvider;
+import org.eclipse.ui.handlers.HandlerUtil;
 
 public class TidyUpCodeInBulkHandler extends AbstractHandler {
 
@@ -46,17 +47,10 @@ public class TidyUpCodeInBulkHandler extends AbstractHandler {
 
 	@Override
 	public Object execute(ExecutionEvent event) throws ExecutionException {
-		
-		if (!UI.confirm(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(), Messages.TidyUpCodeInBulkHandler_ReallyConvert, null))
-			return null;
-		
-		if (PlatformUI.getWorkbench() == null ||
-				PlatformUI.getWorkbench().getActiveWorkbenchWindow() == null ||
-				PlatformUI.getWorkbench().getActiveWorkbenchWindow().getSelectionService() == null ||
-				PlatformUI.getWorkbench().getActiveWorkbenchWindow().getSelectionService().getSelection() == null)
-			return null;
-		ISelection selection = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getSelectionService().getSelection();
+		final ISelection selection = HandlerUtil.getCurrentSelection(event);		
 		if (selection != null && selection instanceof IStructuredSelection) {
+			if (!UI.confirm(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(), Messages.TidyUpCodeInBulkHandler_ReallyConvert, null))
+				return null;
 			IStructuredSelection sel = (IStructuredSelection) selection;
 			Iterator<?> it = sel.iterator();
 			final List<IContainer> selectedContainers = new LinkedList<IContainer>();

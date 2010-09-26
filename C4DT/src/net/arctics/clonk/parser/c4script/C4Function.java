@@ -21,7 +21,7 @@ public class C4Function extends C4Structure implements Serializable, ITypedDecla
 	private List<C4Variable> localVars;
 	private List<C4Variable> parameter;
 	private IType returnType;
-	private ObjectType returnObjectType;
+	private SerializableType returnObjectType;
 	private String description;
 	private boolean isCallback;
 	private boolean isOldStyle;
@@ -437,7 +437,7 @@ public class C4Function extends C4Structure implements Serializable, ITypedDecla
 	public void setReturnObjectType(C4Object objType) {
 		if (objType != null) {
 			if (returnObjectType == null)
-				returnObjectType = new ObjectType();
+				returnObjectType = new SerializableType();
 			returnObjectType.setObject(objType);
 		} else {
 			returnObjectType = null;
@@ -450,11 +450,6 @@ public class C4Function extends C4Structure implements Serializable, ITypedDecla
 
 	public IType getCombinedType() {
 		return C4TypeSet.create(getReturnObjectType(), getReturnType());
-	}
-	
-	@Override
-	public C4Object getObjectType() {
-		return null;
 	}
 	
 	public void setObjectType(C4Object object) {

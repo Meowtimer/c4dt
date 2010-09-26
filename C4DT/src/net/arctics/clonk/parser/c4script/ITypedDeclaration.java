@@ -1,6 +1,5 @@
 package net.arctics.clonk.parser.c4script;
 
-import net.arctics.clonk.index.C4Object;
 import net.arctics.clonk.parser.c4script.ast.ExprElm;
 
 public interface ITypedDeclaration {
@@ -8,8 +7,6 @@ public interface ITypedDeclaration {
 	public void expectedToBeOfType(IType t);
 	public IType getType();
 	public void forceType(IType type);
-	public C4Object getObjectType();
-	public void setObjectType(C4Object object);
 	
 	// interfaces should allow default implementations -.-
 	public abstract static class Default {
@@ -22,7 +19,6 @@ public interface ITypedDeclaration {
 				instance.forceType(C4TypeSet.create(type, instance.getType()));
 		}
 		public static void inferTypeFromAssignment(ITypedDeclaration instance, ExprElm val, C4ScriptParser context) {
-			instance.setObjectType(val.guessObjectType(context));
 			instance.expectedToBeOfType(val.getType(context));
 		}
 	}

@@ -79,8 +79,10 @@ public class C4TypeSet implements IType {
 				set.add(s);
 			}
 		}
+		if (set.size() > 1)
+			set.remove(C4Type.ANY); // pfft, ignore any if something more specific is in the house
 		if (containsNonStatics)
-			return actualCount == 1 ? ingredients[0] : new C4TypeSet(set);
+			return set.size() == 1 ? set.iterator().next() : new C4TypeSet(set);
 		return createInternal(set, actualCount, ingredients);
 	}
 
@@ -89,8 +91,8 @@ public class C4TypeSet implements IType {
 			return C4Type.UNKNOWN;
 		if (set.size() == 1)
 			return set.iterator().next();
-		if (set.contains(C4Type.ANY))
-			return C4Type.ANY;
+		/*if (set.contains(C4Type.ANY))
+			return C4Type.ANY; */
 		for (C4TypeSet r : typeSets) {
 			if (r.types.equals(set))
 				return r;

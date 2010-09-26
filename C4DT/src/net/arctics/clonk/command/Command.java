@@ -131,7 +131,7 @@ public class Command {
 					return new C4CommandFunction();
 				}
 				@Override
-				public void parseCodeOfFunction(C4Function function) throws ParsingException {
+				public void parseCodeOfFunction(C4Function function, TypeInformationMerger merger) throws ParsingException {
 					if (function.getName().equals("Main")) { //$NON-NLS-1$
 						main = (C4CommandFunction)function;
 					}
@@ -144,7 +144,7 @@ public class Command {
 							return TraversalContinuation.Continue;
 						}
 					});
-					super.parseCodeOfFunction(function);
+					super.parseCodeOfFunction(function, null);
 					((C4CommandFunction)function).statements = statements.toArray(new Statement[statements.size()]);
 					this.setExpressionListener(null);
 				}

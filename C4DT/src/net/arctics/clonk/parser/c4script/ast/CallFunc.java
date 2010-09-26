@@ -19,7 +19,6 @@ import net.arctics.clonk.parser.c4script.C4TypeSet;
 import net.arctics.clonk.parser.c4script.C4Variable;
 import net.arctics.clonk.parser.c4script.FindDeclarationInfo;
 import net.arctics.clonk.parser.c4script.IType;
-import net.arctics.clonk.parser.c4script.ITypedDeclaration;
 import net.arctics.clonk.parser.c4script.Keywords;
 import net.arctics.clonk.parser.c4script.C4Function.C4FunctionScope;
 import net.arctics.clonk.parser.c4script.C4ScriptParser.IMarkerListener;
@@ -218,13 +217,6 @@ public class CallFunc extends AccessDeclaration {
 			IType t = getPredecessorInSequence() == null ? context.getContainerObject() : getPredecessorInSequence().getType(context);
 			if (t instanceof C4Object)
 				return ((C4Object)t).getObjectType();
-		}
-		
-		// generic typed d (variable or function)
-		if (d instanceof ITypedDeclaration) {
-			C4Object obj = ((ITypedDeclaration)d).getObjectType();
-			if (obj != null)
-				return obj;
 		}
 
 		// function that does not return a reference: return typeset out of object type and generic type

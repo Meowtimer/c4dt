@@ -55,8 +55,7 @@ public class AccessVar extends AccessDeclaration {
 				C4Variable var = (C4Variable) decl;
 				if (!soft || var.getScope() == C4VariableScope.VAR) {
 					// for serialization, split static and non-static types again
-					var.setType(C4TypeSet.staticIngredients(getType()));
-					var.setObjectType(C4TypeSet.objectIngredient(getType()));
+					var.setType(getType());
 				}
 			}
 		}

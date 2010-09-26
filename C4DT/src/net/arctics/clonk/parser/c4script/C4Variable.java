@@ -37,11 +37,6 @@ public class C4Variable extends C4Declaration implements Serializable, ITypedDec
 	private IType type;
 	
 	/**
-	 * Object type of the variable.
-	 */
-	private ObjectType objectType;
-	
-	/**
 	 * Descriptive text meant for the user
 	 */
 	private String description;
@@ -68,13 +63,12 @@ public class C4Variable extends C4Declaration implements Serializable, ITypedDec
 	
 	public C4Variable(String name, C4Type type) {
 		this.name = name;
-		this.type = type;
+		forceType(type);
 	}
 	
 	public C4Variable(String name, C4VariableScope scope) {
 		this.name = name;
 		this.scope = scope;
-		objectType = null;
 		description = ""; //$NON-NLS-1$
 		type = C4Type.UNKNOWN;
 	}
@@ -84,7 +78,6 @@ public class C4Variable extends C4Declaration implements Serializable, ITypedDec
 		this.type = type;
 		this.description = desc;
 		this.scope = scope;
-		objectType = null;
 	}
 	
 	@Override
@@ -119,8 +112,9 @@ public class C4Variable extends C4Declaration implements Serializable, ITypedDec
 		if (type == null)
 			type = C4Type.UNKNOWN;
 		C4ScriptBase script = getScript();
-		if (script != null && script.getIndex() != null)
-			type = type.serializableVersion(script.getIndex());
+		if (script != null && script.getIndex() != null) {
+			type = SerializableType.serializableTypeFrom(type, script.getIndex());
+		}
 		this.type = type;
 	}
 	
@@ -139,24 +133,12 @@ public class C4Variable extends C4Declaration implements Serializable, ITypedDec
 	 * @return the expectedContent
 	 */
 	public C4Object getObjectType() {
-		return objectType != null ? objectType.getObject() : null;
-	}
-
-	/**
-	 * @param objType the object type to set
-	 */
-	public void setObjectType(C4Object objType) {
-		if (objType != null) {
-			if (objectType == null)
-				objectType = new ObjectType();
-			objectType.setObject(objType);
-		} else {
-			objectType = null;
-		}
+		return type instanceof SerializableType ? ((SerializableType)type).getObject() : null;
 	}
 
 	public C4ID getObjectID() {
-		return objectType != null ? objectType.getId() : null;
+		C4Object obj = getObjectType();
+		return obj != null ? obj.getId() : null;
 	}
 
 	/**
@@ -346,8 +328,8 @@ public class C4Variable extends C4Declaration implements Serializable, ITypedDec
 	public void postSerialize(C4Declaration parent) {
 		super.postSerialize(parent);
 		ensureTypeLockedIfPredefined(parent);
-		if (objectType != null && parent instanceof C4ScriptBase) {
-			objectType.restoreType((C4ScriptBase) parent);
+		if (type instanceof SerializableType && parent instanceof C4ScriptBase) {
+			((SerializableType)type).restoreType((C4ScriptBase) parent);
 		}
 	}
 

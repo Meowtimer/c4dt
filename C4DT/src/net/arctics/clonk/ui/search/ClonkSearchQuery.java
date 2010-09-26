@@ -161,7 +161,7 @@ public class ClonkSearchQuery implements ISearchQuery {
 					C4ScriptParser parser = new C4ScriptParser((IFile) script.getScriptFile(), script);
 					parser.setExpressionListener(searchExpressionsListener);
 					try {
-						parser.parseCodeOfFunction(func);
+						parser.parseCodeOfFunction(func, null);
 					} catch (ParsingException e) {
 						e.printStackTrace();
 					}

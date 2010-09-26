@@ -183,10 +183,16 @@ public class C4ScriptParser {
 		return storedTypeInformationListStack.pop();
 	}
 	
-	public void applyStoredTypeInformationList(boolean soft) {
-		for (IStoredTypeInformation info : storedTypeInformationListStack.peek()) {
+	private final void applyStoredTypeInformationList(List<IStoredTypeInformation> list, boolean soft) {
+		if (list == null)
+			return;
+		for (IStoredTypeInformation info : list) {
 			info.apply(soft);
 		}
+	}
+	
+	public void applyStoredTypeInformationList(boolean soft) {
+		applyStoredTypeInformationList(storedTypeInformationListStack.peek(), soft);
 	}
 	
 	/**
@@ -417,9 +423,11 @@ public class C4ScriptParser {
 		synchronized (container) {
 			
 			strictLevel = container.getStrictLevel();
+			TypeInformationMerger merger = new TypeInformationMerger();
 			for (C4Function function : container.functions()) {
-				parseCodeOfFunction(function);
+				parseCodeOfFunction(function, merger);
 			}
+			applyStoredTypeInformationList(merger.getResult(), false);
 			activeFunc = null;
 
 			for (C4Directive directive : container.directives()) {
@@ -481,7 +489,7 @@ public class C4ScriptParser {
 	 * @param function
 	 * @throws ParsingException
 	 */
-	public void parseCodeOfFunction(C4Function function) throws ParsingException {
+	public void parseCodeOfFunction(C4Function function, TypeInformationMerger merger) throws ParsingException {
 		if (function.getBody() == null)
 			return;
 		try {
@@ -489,13 +497,15 @@ public class C4ScriptParser {
 			// reset local vars
 			for (C4Variable v : function.getLocalVars()) {
 				v.forceType(C4Type.UNKNOWN);
-				v.setObjectType(null);
 			}
 			beginTypeInferenceBlock();
 			scanner.seek(function.getBody().getStart());
 			parseCodeBlock();
-			applyStoredTypeInformationList(false);
-			endTypeInferenceBlock();
+			applyStoredTypeInformationList(false); // apply short-term inference information
+			List<IStoredTypeInformation> block = endTypeInferenceBlock();
+			if (merger != null) {
+				merger.inject(block); // collect information from all functions and apply that after having parsed them all
+			}
 			if (numUnnamedParameters < UNKNOWN_PARAMETERNUM) {
 				activeFunc.createParameters(numUnnamedParameters);
 			}
@@ -2221,7 +2231,7 @@ public class C4ScriptParser {
 		return result;
 	}
 	
-	private static class TypeInformationMerger {
+	public static class TypeInformationMerger {
 		private List<IStoredTypeInformation> merged;
 		
 		private static List<IStoredTypeInformation> mergeTypeInformationLists(List<IStoredTypeInformation> first, List<IStoredTypeInformation> second) {
@@ -2248,6 +2258,10 @@ public class C4ScriptParser {
 			if (merged == null)
 				return finalList;
 			return mergeTypeInformationLists(finalList, merged);
+		}
+		
+		public List<IStoredTypeInformation> getResult() {
+			return merged;
 		}
 	}
 	
