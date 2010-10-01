@@ -362,7 +362,7 @@ global func any GetPlayerInfoCoreVal(string strEntry, string strSection, id iPla
 global func any GetPlayerVal(string strEntry, string strSection, int iPlayer, int iEntryNr);
 global func any GetScenarioVal(string strEntry, string strSection, int iEntryNr);
 global func int FrameCounter();
-global func bool GameOver();
+global func bool GameOver(int delay);
 global func int GetGravity();
 global func bool IsNetwork();
 global func bool IsNewgfx();
