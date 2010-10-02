@@ -398,7 +398,7 @@ global func object Buy(id idBuyObj, int iForPlr, int iPayPlr, object pToBase, bo
 global func id C4Id(string szID);
 global func any Call(string szFunction, ...);
 global func bool CanConcatPictureWith(object pOther);
-global func int CastObjects(id, iNumber, iLevel, iX, iY, iAngle, iAngleVariance);
+global func int CastObjects(id id, int iNumber, int iLevel, int iX, int iY, int iAngle, int iAngleVariance);
 global func bool CastParticles(string szName, int iAmount, int iLevel, int x, int y, int a0, int a1, int b0, int b1, object obj);
 global func int CastPXS(string szMaterial, int iAmount, int iLevel, int x, int y, iAngle, iAngleVariance);
 global func bool ChangeDef(id idNewDef);
@@ -632,7 +632,7 @@ global func bool OnFire();
 global func any Par(int iIndex);
 global func bool PathFree(int x1, int y1, int x2, int y2);
 global func object PlaceAnimal(id id);
-global func int PlaceObjects(id, int iAmount, string Mat, int x, int y, int iWdt, int iHgt, bool fOnSurface, bool fNoStuck);
+global func int PlaceObjects(id id, int iAmount, string Mat, int x, int y, int iWdt, int iHgt, bool fOnSurface, bool fNoStuck);
 global func object PlaceVegetation(id id, int x, int y, int iWdt, int iHgt, int iGrowth);
 global func bool PlayerMessage(int player, string szMessage, ...);
 global func bool PlrMessage(string szMessage, int player, ...);
