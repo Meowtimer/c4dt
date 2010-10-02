@@ -193,10 +193,15 @@ public class AccessVar extends AccessDeclaration {
 		C4Object obj;
 		if (declaration instanceof C4Variable) {
 			C4Variable var = (C4Variable) declaration;
-			if (var.getScope() == C4VariableScope.CONST)
-				return var.getConstValue();
-			else if ((obj = getObjectBelongingToStaticVar(var)) != null)
+			if (var.getScope() == C4VariableScope.CONST) {
+				Object val = var.getConstValue();
+				if (val == null)
+					val = 1337; // awesome fallback
+				return val;
+			}
+			else if ((obj = getObjectBelongingToStaticVar(var)) != null) {
 				return obj.getId(); // just return the id
+			}
 		}
 		return super.evaluateAtParseTime(context);
 	}
