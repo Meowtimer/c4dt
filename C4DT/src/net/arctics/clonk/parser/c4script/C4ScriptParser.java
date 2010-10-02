@@ -2604,7 +2604,7 @@ public class C4ScriptParser {
 		// merge gathered type information with current list
 		storedTypeInformationListStack.push(merger.finish(storedTypeInformationListStack.pop()));
 		
-		if (!containesConst(condition)) {
+		if (!containsConst(condition)) {
 			Object condEv = C4Type.BOOL.convert(condition.evaluateAtParseTime(getContainer()));
 			if (condEv != null && condEv != ExprElm.EVALUATION_COMPLEX) {
 				warningWithCode(condEv.equals(true) ? ParserErrorCode.ConditionAlwaysTrue : ParserErrorCode.ConditionAlwaysFalse,
@@ -2616,11 +2616,11 @@ public class C4ScriptParser {
 		return result;
 	}
 	
-	private boolean containesConst(ExprElm condition) {
+	private static boolean containsConst(ExprElm condition) {
 		if(condition instanceof AccessVar && ((AccessVar)condition).constCondition())
 			return true;
 		for (ExprElm expression : condition.getSubElements())
-			if(containesConst(expression))
+			if(containsConst(expression))
 				return true;
 		return false;
 	}
