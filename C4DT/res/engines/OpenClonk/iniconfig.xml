@@ -492,10 +492,9 @@
 			<entry name="MinPlayer" class="UnsignedInteger" />
 			<entry name="MaxPlayer" class="UnsignedInteger" />
 			<entry name="ForcedNoCrew" class="UnsignedInteger" />
-			<entry name="ForcedFairCrew" class="Boolean" /><entry
-				name="StartupPlayerCount" class="UnsignedInteger">
-</entry>
-			<entry name="RandomSeed" class="Integer"></entry>
+			<entry name="ForcedFairCrew" class="Boolean" />
+			<entry name="StartupPlayerCount" class="UnsignedInteger" />
+			<entry name="RandomSeed" class="SignedInteger" />
 		</section>
 		<section name="Game">
 			<entry name="Rules" class="IDArray"
