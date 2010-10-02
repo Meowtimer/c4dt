@@ -467,11 +467,11 @@
 				description="0 oder 1. Freigabe der Szenarioeigenschaften im Menüsystem für andere Spieler." />
 			<entry name="MaxPlayer" class="SignedInteger"
 				description="Maximale Anzahl der Spieler." />
-			<entry name="NoInitialize" class="SignedInteger"
+			<entry name="NoInitialize" class="Boolean"
 				description="0 oder 1. Bei 1 werden alle Objekte, die genau einmal erzeugt werden sollten, nicht platziert. Automatisch für Spielstände und gespeicherte Szenarien gesetzt, um eine erneute Erzeugung von Vegetation, Spielzielen und ähnlichem zu vermeiden. Es werden unter anderem die Werte Buildings, Vehicles, Material, Vegetation, InEarth und Animals ignoriert." />
 			<entry name="MissionAccess" class="java.lang.String"
 				description="Szenario kann nur gestartet werden, wenn ein Spieler zuvor dieses Zugangspasswort in einem anderen Szenario erspielt hat. Siehe Scriptfunktion GainMissionAccess()." />
-			<entry name="Replay" class="SignedInteger"
+			<entry name="Replay" class="Boolean"
 				description="Wird von der Engine automatisch gesetzt, und markiert eine Aufnahme." />
 			<entry name="Film" class="SignedInteger"
 				description="0 oder 1 und nur bei Aufnahmen. Bei 1 folgt die Sicht nur dem ersten Spieler und alle Spielerkontrollen werden ausgeblendet." />
@@ -492,7 +492,10 @@
 			<entry name="MinPlayer" class="UnsignedInteger" />
 			<entry name="MaxPlayer" class="UnsignedInteger" />
 			<entry name="ForcedNoCrew" class="UnsignedInteger" />
-			<entry name="ForcedFairCrew" class="Boolean" />
+			<entry name="ForcedFairCrew" class="Boolean" /><entry
+				name="StartupPlayerCount" class="UnsignedInteger">
+</entry>
+			<entry name="RandomSeed" class="Integer"></entry>
 		</section>
 		<section name="Game">
 			<entry name="Rules" class="IDArray"
