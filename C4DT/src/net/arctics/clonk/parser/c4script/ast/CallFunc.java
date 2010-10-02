@@ -343,20 +343,26 @@ public class CallFunc extends AccessDeclaration {
 						script = context.getContainer(); // fallback
 					Object scriptExpr = params[0].evaluateAtParseTime(script);
 					if (scriptExpr instanceof String) {
-						C4ScriptParser.parseStandaloneStatement((String)scriptExpr, context.getActiveFunc(), null, new IMarkerListener() {
-							@Override
-							public void markerEncountered(ParserErrorCode code, int markerStart, int markerEnd, boolean noThrow, int severity, Object... args) {
-								// ignore complaining about missing ';'
-								if (code == ParserErrorCode.TokenExpected && args[0].equals(";"))
-									return;
-								try {
-									context.markerWithCode(code, params[0].getExprStart()+1+markerStart, params[0].getExprStart()+1+markerEnd, true, severity, args);
-								} catch (ParsingException e) {
-									// shouldn't happen
-									e.printStackTrace();
+						try {
+							C4ScriptParser.parseStandaloneStatement((String)scriptExpr, context.getActiveFunc(), null, new IMarkerListener() {
+								@Override
+								public WhatToDo markerEncountered(ParserErrorCode code, int markerStart, int markerEnd, boolean noThrow, int severity, Object... args) {
+									// ignore complaining about missing ';'
+									if (code == ParserErrorCode.TokenExpected && args[0].equals(";"))
+										return WhatToDo.DropCharges;
+									try {
+										// pass through to the 'real' script parser
+										context.markerWithCode(code, params[0].getExprStart()+1+markerStart, params[0].getExprStart()+1+markerEnd, true, severity, args);
+									} catch (ParsingException e) {
+										// shouldn't happen
+										e.printStackTrace();
+									}
+									return WhatToDo.PassThrough;
 								}
-							}
-						});
+							});
+						} catch (ParsingException e) {
+							// that on slipped through - pretend nothing happened
+						}
 					}
 				}
 				

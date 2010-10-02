@@ -270,11 +270,12 @@ public class C4ScriptEditor extends ClonkTextEditor {
 					if (script.getScriptFile() instanceof IResource && !C4GroupItem.isLinkedResource((IResource) script.getScriptFile())) {
 						C4ScriptParser.reportExpressionsAndStatements(document, f.getBody(), script, f, null, new IMarkerListener() {
 							@Override
-							public void markerEncountered(ParserErrorCode code,
+							public WhatToDo markerEncountered(ParserErrorCode code,
 									int markerStart, int markerEnd, boolean noThrow,
 									int severity, Object... args) {
 								if (script.getScriptFile() instanceof IFile)
 									code.createMarker((IFile) script.getScriptFile(), script, ClonkCore.MARKER_C4SCRIPT_ERROR_WHILE_TYPING, markerStart, markerEnd, severity, args);
+								return WhatToDo.PassThrough;
 							}
 						});
 					}

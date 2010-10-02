@@ -122,8 +122,7 @@ public class DeclarationLocator extends ExpressionLocator {
 			simpleFindDeclaration(doc, region, script, func);
 	}
 
-	private void simpleFindDeclaration(IDocument doc, IRegion region,
-			C4ScriptBase script, C4Function func) throws BadLocationException {
+	private void simpleFindDeclaration(IDocument doc, IRegion region, C4ScriptBase script, C4Function func) throws BadLocationException {
 		IRegion lineInfo;
 		String line;
 		try {

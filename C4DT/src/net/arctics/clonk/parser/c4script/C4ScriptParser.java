@@ -28,6 +28,7 @@ import net.arctics.clonk.parser.SourceLocation;
 import net.arctics.clonk.parser.SilentParsingException.Reason;
 import net.arctics.clonk.parser.c4script.C4Directive.C4DirectiveType;
 import net.arctics.clonk.parser.c4script.C4Function.C4FunctionScope;
+import net.arctics.clonk.parser.c4script.C4ScriptParser.IMarkerListener.WhatToDo;
 import net.arctics.clonk.parser.c4script.C4Variable.C4VariableScope;
 import net.arctics.clonk.parser.c4script.ast.AccessVar;
 import net.arctics.clonk.parser.c4script.ast.ArrayElementExpression;
@@ -2761,7 +2762,11 @@ public class C4ScriptParser {
 	}
 	
 	public interface IMarkerListener {
-		void markerEncountered(ParserErrorCode code, int markerStart, int markerEnd, boolean noThrow, int severity, Object... args);
+		public enum WhatToDo {
+			DropCharges,
+			PassThrough
+		}
+		WhatToDo markerEncountered(ParserErrorCode code, int markerStart, int markerEnd, boolean noThrow, int severity, Object... args);
 	}
 	
 	private void reportExpressionsAndStatements(C4Function func, IExpressionListener listener) {
@@ -2807,8 +2812,10 @@ public class C4ScriptParser {
 		public IMarker markerWithCode(ParserErrorCode code,
 				int markerStart, int markerEnd, boolean noThrow,
 				int severity, Object... args) throws ParsingException {
-			if (markerListener != null)
-				markerListener.markerEncountered(code, markerStart+offsetOfScriptFragment(), markerEnd+offsetOfScriptFragment(), noThrow, severity, args);
+			if (markerListener != null) {
+				if (markerListener.markerEncountered(code, markerStart+offsetOfScriptFragment(), markerEnd+offsetOfScriptFragment(), noThrow, severity, args) == WhatToDo.DropCharges)
+					return null;
+			}
 			return super.markerWithCode(code, markerStart, markerEnd, noThrow, severity, args);
 		}
 	}
