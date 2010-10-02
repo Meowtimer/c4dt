@@ -129,3 +129,5 @@ are then taken into account in various places
 -Refine completion proposal showing
 -Refined script parser error messages
 -When editing inside functions in scripts, parser errors will be shown in near-realtime
+-Line endings in Clonk files can be converted using File -> Convert Line Delimiters To
+-Bugfixes
