@@ -716,7 +716,7 @@ global func int BlastFree(int iX, int iY, int iLevel, int iCausedBy);
 global func int BlastObject(int iX, int iY, int iLevel, object pInObj, int iCausedBy);
 global func int CallMessageBoard(object pObj, bool fUppserCase, string szQueryString, int iForPlr);
 global func int CastBackParticles(string szName, int iAmount, int iLevel, int iX, int iY, int a0, int a1, int b0, int b1, object pObj);
-global func int ClearLastPlrCom();
+global func int ClearLastPlrCom(int player);
 global func int DrawMatChunks(int tx, int ty, int twdt, int thgt, int icntx, int icnty, string strMaterial, string strTexture, bool bIFT);
 global func int DrawModLandscape();
 global func int DrawVolcanoBranch(int mat, int fx, int fy, int tx, int ty, int size);
