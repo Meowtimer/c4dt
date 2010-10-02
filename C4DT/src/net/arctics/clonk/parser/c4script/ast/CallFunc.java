@@ -338,8 +338,10 @@ public class CallFunc extends AccessDeclaration {
 				// another one: Schedule ... parse passed expression and check it's correctness
 				if (!specialCaseHandled && params.length >= 1 && f.getName().equals("Schedule")) {
 					IType objType = params.length >= 4 ? params[3].getType(context) : context.getContainerObject();
-					C4Object obj = objType != null ? C4TypeSet.objectIngredient(objType) : null;
-					Object scriptExpr = params[0].evaluateAtParseTime(obj);
+					C4ScriptBase script = objType != null ? C4TypeSet.objectIngredient(objType) : null;
+					if (script == null)
+						script = context.getContainer(); // fallback
+					Object scriptExpr = params[0].evaluateAtParseTime(script);
 					if (scriptExpr instanceof String) {
 						C4ScriptParser.parseStandaloneStatement((String)scriptExpr, context.getActiveFunc(), null, new IMarkerListener() {
 							@Override
