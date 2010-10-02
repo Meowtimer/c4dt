@@ -130,6 +130,7 @@ public class IniSection extends C4Declaration implements IHasKeyAndValue<String,
 	
 	public void putEntry(IniEntry entry) {
 		itemMap.put(entry.getName(), entry);
+		itemList.add(entry);
 		entry.setParentDeclaration(this);
 	}
 
