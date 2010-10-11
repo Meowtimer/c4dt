@@ -127,6 +127,10 @@ public class C4ScriptParser {
 	 * Whether the script is an engine script
 	 */
 	private boolean isEngine;
+	/**
+	 * Whether the current statement is not reached
+	 */
+	private boolean statementNotReached;
 
 	private LoopType currentLoop;
 	private Comment lastComment;
@@ -157,6 +161,10 @@ public class C4ScriptParser {
 	
 	public final boolean hasAppendTo() {
 		return appendTo;
+	}
+	
+	public boolean isStatementNotReached() {
+		return statementNotReached;
 	}
 	
 	/**
@@ -1088,16 +1096,12 @@ public class C4ScriptParser {
 		boolean notReached = false;
 		int oldStyleEnd = endOfFunc;
 		while(!scanner.reachedEOF() && scanner.getPosition() < endOfFunc) {
+			this.statementNotReached = notReached;
 			Statement statement = parseStatement(options);
 			if (statement == null)
 				break;
 			boolean statementIsComment = statement instanceof Comment;
-			if (notReached) {
-				// warn about statements after final return
-				if (!statementIsComment)
-					warningWithCode(ParserErrorCode.NeverReached, statement);
-			}
-			else {
+			if (!notReached) {
 				notReached = statement.getControlFlow() == ControlFlow.Return;
 			}
 			// after first 'real' statement don't expect function description anymore
@@ -2085,15 +2089,13 @@ public class C4ScriptParser {
 						boolean notReached = false;
 						for (scanner.eatWhitespace(); !(foundClosingBracket = scanner.read() == '}') && !scanner.reachedEOF(); scanner.eatWhitespace()) {
 							scanner.unread();
+							this.statementNotReached = notReached;
 							Statement subStatement = parseStatement();
 							if (subStatement != null) {
 								subStatements.add(subStatement);
-								if (notReached) {
-									if (!(subStatement instanceof Comment))
-										warningWithCode(ParserErrorCode.NeverReached, subStatement);
-								}
-								else
+								if (!notReached) {
 									notReached = subStatement.getControlFlow() != ControlFlow.Continue;
+								}
 							} else
 								errorWithCode(ParserErrorCode.StatementExpected, this.ERROR_PLACEHOLDER_EXPR);
 						}

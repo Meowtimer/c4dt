@@ -10,7 +10,10 @@ import net.arctics.clonk.parser.c4script.C4Function;
 import net.arctics.clonk.parser.c4script.C4ScriptBase;
 import net.arctics.clonk.parser.c4script.ast.AccessVar;
 import net.arctics.clonk.parser.c4script.ast.CallFunc;
+import net.arctics.clonk.parser.c4script.ast.Comment;
 import net.arctics.clonk.parser.c4script.ast.ExprElm;
+import net.arctics.clonk.parser.c4script.ast.SimpleStatement;
+import net.arctics.clonk.parser.c4script.ast.Statement;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.ui.editors.ClonkCompletionProposal;
 import net.arctics.clonk.ui.editors.ClonkTextEditor;
@@ -101,15 +104,23 @@ public class ClonkQuickAssistProcessor implements IQuickAssistProcessor  {
 		ExprElm topLevel = offendingExpression != null && offendingExpression.getParent() != null ? offendingExpression.getParent() : locator.getTopLevelInRegion();
 		if (offendingExpression != null && topLevel != null) {
 			ExprElm replacement = null;
+			String msg = null;
 			switch (errorCode) {
 			case VariableCalled:
 				assert(offendingExpression instanceof CallFunc);
 				topLevel.replaceSubElement(offendingExpression, replacement = new AccessVar(((CallFunc)offendingExpression).getDeclarationName()));
+				msg = Messages.ClonkQuickAssistProcessor_RemoveBrackets;
 				break;
+			case NeverReached: {
+				String s = offendingExpression.toString();
+				replacement = new SimpleStatement(new Comment(offendingExpression.toString(), s.contains("\n"))); //$NON-NLS-1$
+				msg = Messages.ClonkQuickAssistProcessor_CommentOutStatement;
+				break;
+			}
 			}
 			if (replacement != null) {
 				String replacementAsString = replacement.toString();
-				proposals.add(new ClonkCompletionProposal(null, replacementAsString, position.getOffset(), position.getLength(), replacementAsString.length(), null, Messages.ClonkQuickAssistProcessor_RemoveBrackets, null, null, null, editor));
+				proposals.add(new ClonkCompletionProposal(null, replacementAsString, position.getOffset(), position.getLength(), replacementAsString.length(), null, msg, null, null, null, editor));
 			}
 		}
 

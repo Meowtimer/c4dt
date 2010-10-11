@@ -4,6 +4,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import net.arctics.clonk.ClonkCore;
+import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.IType;
@@ -93,6 +94,8 @@ public class Statement extends ExprElm {
 	@Override
 	public void reportErrors(C4ScriptParser parser) throws ParsingException {
 		super.reportErrors(parser);
+		if (parser.isStatementNotReached())
+			parser.warningWithCode(ParserErrorCode.NeverReached, this);
 		//			for (ExprElm elm : getSubElements())
 		//				if (elm != null)
 		//					elm.reportErrors(parser);
