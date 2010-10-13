@@ -746,7 +746,7 @@ global func any ShakeFree(int x, int y, int iRadius);
 global func any ShakeObjects(int x, int y, int iRadius);
 global func bool ShiftContents(bool fShiftBack, id idTarget, bool fDoCalls);
 global func bool ShowInfo(object object);
-global func bool SimFlight(int x, int y, int xspeed, int yspeed, int min_density, int max_density, int time, int precision);
+global func array SimFlight(int x, int y, int xspeed, int yspeed, int min_density, int max_density, int time, int precision);
 global func int Sin(int iAngle, int iRadius, int iPrec);
 global func int SkyPar_Keep();
 global func bool Smoke(int x, int y, int iLevel);
