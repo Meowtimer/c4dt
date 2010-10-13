@@ -39,7 +39,6 @@ import net.arctics.clonk.parser.c4script.C4Variable.C4VariableScope;
 import net.arctics.clonk.parser.stringtbl.StringTbl;
 import net.arctics.clonk.preferences.ClonkPreferences;
 import net.arctics.clonk.util.CompoundIterable;
-import net.arctics.clonk.util.IHasRelatedResource;
 import net.arctics.clonk.util.INode;
 import net.arctics.clonk.util.ITreeNode;
 import net.arctics.clonk.util.ReadOnlyIterator;
@@ -63,7 +62,7 @@ import org.xml.sax.SAXException;
  * Base class for various objects that act as containers of stuff declared in scripts/ini files.
  * Subclasses include C4Object, C4StandaloneScript etc.
  */
-public abstract class C4ScriptBase extends C4Structure implements IHasRelatedResource, ITreeNode {
+public abstract class C4ScriptBase extends C4Structure implements ITreeNode {
 
 	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 
@@ -394,6 +393,7 @@ public abstract class C4ScriptBase extends C4Structure implements IHasRelatedRes
 		return this;
 	}
 
+	@Override
 	public IResource getResource() {
 		return null;
 	}
