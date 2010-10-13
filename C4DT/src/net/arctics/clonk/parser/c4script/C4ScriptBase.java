@@ -36,6 +36,7 @@ import net.arctics.clonk.parser.C4Structure;
 import net.arctics.clonk.parser.c4script.C4Directive.C4DirectiveType;
 import net.arctics.clonk.parser.c4script.C4Function.C4FunctionScope;
 import net.arctics.clonk.parser.c4script.C4Variable.C4VariableScope;
+import net.arctics.clonk.parser.c4script.ast.ExprElm;
 import net.arctics.clonk.parser.stringtbl.StringTbl;
 import net.arctics.clonk.preferences.ClonkPreferences;
 import net.arctics.clonk.util.CompoundIterable;
@@ -432,6 +433,16 @@ public abstract class C4ScriptBase extends C4Structure implements ITreeNode {
 			int rEnd   = region.getOffset()+region.getLength();
 			if (rStart <= fStart && rEnd >= fEnd || rStart >= fStart && rStart <= fEnd || rEnd >= fEnd && rEnd <= fEnd)
 				return f;
+		}
+		return null;
+	}
+	
+	public C4Variable variableWithInitializationAt(IRegion region) {
+		for (C4Variable v : definedVariables) {
+			ExprElm initialization = v.getScriptScopeInitializationExpression();
+			if (initialization != null && initialization.containsOffset(region.getOffset())) {
+				return v;
+			}
 		}
 		return null;
 	}
