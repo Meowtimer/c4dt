@@ -466,29 +466,39 @@ public class C4ScriptParser {
 				scanner.seek(definitionFunc.getBody().getStart());
 				boolean old = allErrorsDisabled;
 				allErrorsDisabled = true;
-				reportExpressionsAndStatements(definitionFunc, new ExpressionListener() {
-					@Override
-					public TraversalContinuation expressionDetected(ExprElm expression, C4ScriptParser parser) {
-						// look if it's a plain SetProperty("Name", <value>)
-						if (expression instanceof CallFunc) {
-							CallFunc callFunc = (CallFunc) expression;
-							if (
-								callFunc.getDeclarationName().equals("SetProperty") && //$NON-NLS-1$
-								callFunc.getParams().length >= 2 &&
-								callFunc.getParams()[0] instanceof StringLiteral &&
-								((StringLiteral)callFunc.getParams()[0]).getLiteral().equals("Name") //$NON-NLS-1$
-							) {
-								Object v = callFunc.getParams()[1].evaluateAtParseTime(getContainer());
-								if (v instanceof String) {
-									getContainer().setName((String) v);
+				try {
+					reportExpressionsAndStatements(definitionFunc, new ExpressionListener() {
+						@Override
+						public TraversalContinuation expressionDetected(ExprElm expression, C4ScriptParser parser) {
+							// look if it's a plain SetProperty("Name", <value>)
+							if (expression instanceof CallFunc) {
+								CallFunc callFunc = (CallFunc) expression;
+								if (
+										callFunc.getDeclarationName().equals("SetProperty") && //$NON-NLS-1$
+										callFunc.getParams().length >= 2 &&
+										callFunc.getParams()[0] instanceof StringLiteral &&
+										((StringLiteral)callFunc.getParams()[0]).getLiteral().equals("Name") //$NON-NLS-1$
+								) {
+									Object v = callFunc.getParams()[1].evaluateAtParseTime(container);
+									if (v instanceof String) {
+										container.setName((String) v);
+									}
+									return TraversalContinuation.Cancel;
 								}
-								return TraversalContinuation.Cancel;
 							}
+							return TraversalContinuation.Continue;
 						}
-						return TraversalContinuation.Continue;
+					});
+					C4Variable v = container.findVariable("Name");
+					if (v != null) {
+						Object ev = v.evaluateInitializationExpression(container);
+						if (ev instanceof String) {
+							container.setName((String)ev);
+						}
 					}
-				});
-				allErrorsDisabled = old;
+				} finally {
+					allErrorsDisabled = old;
+				}
 			}
 		}
 	}
@@ -2316,7 +2326,7 @@ public class C4ScriptParser {
 		else if (readWord.equals(Keywords.Return)) {
 			result = parseReturn();
 		}
-		else if (activeFunc.isOldStyle() && (looksLikeStartOfFunction(readWord) || scanner.peekAfterWhitespace() == ':')) {
+		else if (activeFunc != null && activeFunc.isOldStyle() && (looksLikeStartOfFunction(readWord) || scanner.peekAfterWhitespace() == ':')) {
 			// whoops, too far
 			return null;
 		}

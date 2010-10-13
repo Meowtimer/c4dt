@@ -271,6 +271,14 @@ public class C4Variable extends C4Declaration implements Serializable, ITypedDec
 		}
 	}
 	
+	public Object evaluateInitializationExpression(C4ScriptBase context) {
+		ExprElm e = getScriptScopeInitializationExpression();
+		if (e != null) {
+			return e.evaluateAtParseTime(context);
+		}
+		return getConstValue();
+	}
+	
 	public void setScriptScopeInitializationExpression(ExprElm scriptScopeInitializationExpression) {
 		this.scriptScopeInitializationExpression = scriptScopeInitializationExpression;
 	}
