@@ -13,7 +13,6 @@ import net.arctics.clonk.parser.c4script.ast.CallFunc;
 import net.arctics.clonk.parser.c4script.ast.Comment;
 import net.arctics.clonk.parser.c4script.ast.ExprElm;
 import net.arctics.clonk.parser.c4script.ast.SimpleStatement;
-import net.arctics.clonk.parser.c4script.ast.Statement;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.ui.editors.ClonkCompletionProposal;
 import net.arctics.clonk.ui.editors.ClonkTextEditor;
@@ -32,6 +31,7 @@ import org.eclipse.ui.texteditor.MarkerAnnotation;
 
 /**
  * Bis jetzt keine Funktion
+ * Until now!
  * @author ZokRadonh
  *
  */
