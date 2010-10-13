@@ -2791,12 +2791,16 @@ public class C4ScriptParser {
 		try {
 			EnumSet<ParseStatementOption> options = EnumSet.of(ParseStatementOption.ExpectFuncDesc);
 			beginTypeInferenceBlock();
+			boolean notReached = false;
 			while (!scanner.reachedEOF()) {
+				this.statementNotReached = notReached;
 				Statement statement = parseStatement(options);
 				if (statement == null)
 					break;
 				if (!(statement instanceof Comment))
 					options.remove(ParseStatementOption.ExpectFuncDesc);
+				if (!notReached)
+					notReached = statement.getControlFlow() == ControlFlow.Return;
 			}
 			//endTypeInferenceBlock(); not here for type information might still be needed
 		} 
