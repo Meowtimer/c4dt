@@ -6,7 +6,7 @@ import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.ui.IWorkbench;
 
-public class NewParticle extends NewClonkFolderWizard {
+public class NewParticle extends NewClonkFolderWizard<NewClonkFolderWizardPage> {
 	
 	public String title;
 	

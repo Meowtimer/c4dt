@@ -9,7 +9,7 @@ import org.eclipse.ui.IWorkbench;
  * Wizard to create a new scenario
  */
 
-public class NewScenario extends NewClonkFolderWizard {
+public class NewScenario extends NewClonkFolderWizard<NewScenarioPage> {
 	@Override
 	public void init(IWorkbench workbench, IStructuredSelection selection) {
 		super.init(workbench, selection);

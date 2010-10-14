@@ -12,6 +12,7 @@ import org.eclipse.swt.widgets.Text;
 public class NewC4ObjectPage extends NewClonkFolderWizardPage {
 
 	private Text c4idText;
+	private Text descriptionText;
 
 	/**
 	 * Constructor for SampleNewWizardPage.
@@ -32,6 +33,7 @@ public class NewC4ObjectPage extends NewClonkFolderWizardPage {
 	public void createControl(Composite parent) {
 		super.createControl(parent);
 		c4idText = addTextField(Messages.NewC4ObjectPage_ID);
+		descriptionText = addTextField(Messages.NewC4ObjectPage_DescriptionLabel);
 		initialize();
 		dialogChanged();
 	}
@@ -69,10 +71,15 @@ public class NewC4ObjectPage extends NewClonkFolderWizardPage {
 	protected void initialize() {
 		super.initialize();
 		fileText.setText(Messages.NewC4ObjectPage_File);
+		descriptionText.setText(Messages.NewC4ObjectPage_DescriptionDefault);
 	}
 	
 	public String getObjectID() {
 		return c4idText.getText();
+	}
+	
+	public String getObjectDescription() {
+		return descriptionText.getText();
 	}
 
 }

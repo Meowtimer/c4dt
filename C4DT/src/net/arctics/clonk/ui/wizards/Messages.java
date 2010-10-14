@@ -20,6 +20,8 @@ public class Messages extends NLS {
 	public static String NewC4Object_Title;
 	public static String NewC4ObjectPage_Title;
 	public static String NewC4ObjectPage_Description;
+	public static String NewC4ObjectPage_DescriptionDefault;
+	public static String NewC4ObjectPage_DescriptionLabel;
 	public static String NewC4ObjectPage_ID;
 	public static String NewC4ObjectPage_BadID;
 	public static String NewC4ObjectPage_IDAlreadyInUse;

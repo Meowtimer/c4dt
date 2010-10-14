@@ -29,10 +29,11 @@ import org.eclipse.ui.*;
  * Base class for wizards creating all kinds of Clonk folders
  */
 
-public abstract class NewClonkFolderWizard extends Wizard implements INewWizard {
-	protected NewClonkFolderWizardPage page;
+public abstract class NewClonkFolderWizard<PageClass extends NewClonkFolderWizardPage> extends Wizard implements INewWizard {
+	protected PageClass page;
 	protected ISelection selection;
-	private Map<String, String> templateReplacements; 
+	private Map<String, String> templateReplacements;
+	
 
 	/**
 	 * Constructor for NewC4Object.

@@ -17,7 +17,7 @@ import org.eclipse.ui.*;
  * be able to open it.
  */
 
-public class NewC4Object extends NewClonkFolderWizard implements INewWizard {
+public class NewC4Object extends NewClonkFolderWizard<NewC4ObjectPage> implements INewWizard {
 
 	/**
 	 * Constructor for NewC4Object.
@@ -37,7 +37,8 @@ public class NewC4Object extends NewClonkFolderWizard implements INewWizard {
 
 	protected Map<String, String> initTemplateReplacements() {
 		Map<String, String> result = super.initTemplateReplacements();
-		result.put("$ID$", ((NewC4ObjectPage)page).getObjectID()); //$NON-NLS-1$
+		result.put("$ID$", page.getObjectID()); //$NON-NLS-1$
+		result.put("$Description$", page.getObjectID()); //$NON-NLS-1$
 		return result;
 	}
 
