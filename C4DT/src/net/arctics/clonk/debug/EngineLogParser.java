@@ -69,9 +69,9 @@ public class EngineLogParser {
 				while ((readLine2 = logReader.readLine()) != null) {
 					stackTraceEntryMatcher.reset(readLine2);
 					if (stackTraceEntryMatcher.matches()) {
-						String fnName = stackTraceEntryMatcher.group(1);
+						/*String fnName = stackTraceEntryMatcher.group(1);
 						String objInfo = stackTraceEntryMatcher.group(2);
-						String objInfo2 = stackTraceEntryMatcher.group(3);
+						String objInfo2 = stackTraceEntryMatcher.group(3);*/
 						String fileLocation = stackTraceEntryMatcher.group(4);
 						int lineNumber = Integer.valueOf(stackTraceEntryMatcher.group(5));
 						stackTrace.add(new EngineErrorFileLocation(fileLocation, lineNumber));
