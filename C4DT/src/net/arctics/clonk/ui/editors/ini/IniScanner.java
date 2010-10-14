@@ -98,9 +98,11 @@ public class IniScanner extends ClonkRuleBasedScanner {
 		
 		CombinedWordRule.WordMatcher wordRule = new CombinedWordRule.WordMatcher();
 		
-		for (C4Variable var : engine.variables()) {
-			if (var.getScope() == C4VariableScope.CONST)
-				wordRule.addWord(var.getName(), constant);
+		if (engine != null) {
+			for (C4Variable var : engine.variables()) {
+				if (var.getScope() == C4VariableScope.CONST)
+					wordRule.addWord(var.getName(), constant);
+			}
 		}
 		
 		combinedWordRule.addWordMatcher(wordRule);
