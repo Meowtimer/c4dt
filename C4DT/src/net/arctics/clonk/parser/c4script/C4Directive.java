@@ -106,8 +106,7 @@ public class C4Directive extends C4Declaration implements Serializable {
 	public void validate(C4ScriptParser parser) throws ParsingException {
 		switch (getType()) {
 		case APPENDTO:
-			if (getContent() != null && getContent().equals("*")) //$NON-NLS-1$
-				break;
+			break; // don't create error marker when appending to unknown object
 		case INCLUDE:
 			if (getContent() == null)
 				parser.errorWithCode(ParserErrorCode.MissingDirectiveArgs, getLocation(), true, this.toString());
