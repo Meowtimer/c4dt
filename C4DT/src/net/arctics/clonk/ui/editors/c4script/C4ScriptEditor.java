@@ -36,6 +36,7 @@ import net.arctics.clonk.ui.editors.IClonkCommandIds;
 import net.arctics.clonk.ui.editors.ClonkTextEditor;
 import net.arctics.clonk.ui.editors.ColorManager;
 import net.arctics.clonk.ui.editors.IHasEditorRefWhichEnablesStreamlinedOpeningOfDeclarations;
+import net.arctics.clonk.ui.editors.actions.c4script.FindDuplicateAction;
 import net.arctics.clonk.ui.editors.actions.c4script.TidyUpCodeAction;
 import net.arctics.clonk.ui.editors.actions.c4script.FindReferencesAction;
 import net.arctics.clonk.ui.editors.actions.c4script.RenameDeclarationAction;
@@ -404,6 +405,9 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		action = new RenameDeclarationAction(messagesBundle, "RenameDeclaration.", this); //$NON-NLS-1$
 		setAction(IClonkCommandIds.RENAME_DECLARATION, action);
 		
+		action = new FindDuplicateAction(messagesBundle, "FindDuplicates.", this);
+		setAction(IClonkCommandIds.FIND_DUPLICATES, action);
+		
 	}
 
 	/* (non-Javadoc)
@@ -418,6 +422,10 @@ public class C4ScriptEditor extends ClonkTextEditor {
 				addAction(menu, IClonkCommandIds.RENAME_DECLARATION);
 			}
 			addAction(menu, IClonkCommandIds.FIND_REFERENCES);
+			C4Function f = getFuncAtCursor();
+			if (f != null) {
+				addAction(menu, IClonkCommandIds.FIND_DUPLICATES);
+			}
 		}
 	}
 	

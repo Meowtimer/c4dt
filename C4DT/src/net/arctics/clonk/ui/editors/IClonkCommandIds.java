@@ -10,4 +10,5 @@ public abstract interface IClonkCommandIds {
 	public static final String OPEN_DECLARATION = ClonkCore.id("ui.editors.actions.OpenDeclaration"); //$NON-NLS-1$
 	public static final String FIND_REFERENCES = ClonkCore.id("ui.editors.actions.FindReferences"); //$NON-NLS-1$
 	public static final String GROUP_CLONK = ClonkCore.id("ui.editors.actions.clonkGroup"); //$NON-NLS-1$
+	public static final String FIND_DUPLICATES = ClonkCore.id("ui.editors.actions.FindDuplicates");
 }

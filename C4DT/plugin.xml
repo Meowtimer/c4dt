@@ -436,6 +436,12 @@
 			name="%TidyUpCode_Name" />
 		
 		<command categoryId="org.eclipse.ui.category.edit"
+			description="%FindDuplicates_Desc"
+			id="net.arctics.clonk.ui.navigator.actions.FindDuplicates"
+			defaultHandler="net.arctics.clonk.ui.navigator.FindDuplicatesHandler"
+			name="%FindDuplicates_Name" />
+		
+		<command categoryId="org.eclipse.ui.category.edit"
 			description="%LinkC4GroupFile_Desc"
 			id="net.arctics.clonk.ui.navigator.actions.LinkC4GroupFile"
 			defaultHandler="net.arctics.clonk.ui.navigator.LinkC4GroupFileHandler"
