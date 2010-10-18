@@ -201,7 +201,10 @@ public class C4Engine extends C4ScriptBase {
 
 	public static String[] possibleEngineNamesAccordingToOS() {
 		if (Util.isMac()) {
-			return new String[] { "Clonk.app/Contents/MacOS/Clonk" }; //$NON-NLS-1$
+			return new String[] {
+				"clonk.app/Contents/MacOS/clonk",
+				"Clonk.app/Contents/MacOS/Clonk"
+			}; //$NON-NLS-1$
 		}
 		if (Util.isLinux()) {
 			return new String[] { "clonk" }; //$NON-NLS-1$
