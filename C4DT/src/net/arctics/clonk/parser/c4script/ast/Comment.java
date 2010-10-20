@@ -118,5 +118,10 @@ public class Comment extends Statement implements Statement.Attachment {
 			break;
 		}
 	}
+	
+	@Override
+	public void reportErrors(C4ScriptParser parser) throws ParsingException {
+		// uh oh.. no
+	}
 
 }

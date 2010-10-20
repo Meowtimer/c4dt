@@ -91,6 +91,7 @@ public class Statement extends ExprElm {
 	public boolean hasSideEffects() {
 		return true;
 	}
+	
 	@Override
 	public void reportErrors(C4ScriptParser parser) throws ParsingException {
 		super.reportErrors(parser);
