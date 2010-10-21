@@ -34,7 +34,6 @@ import org.eclipse.debug.core.ILaunchManager;
 import org.eclipse.debug.core.model.IDebugTarget;
 import org.eclipse.debug.core.model.ILaunchConfigurationDelegate;
 import org.eclipse.debug.core.model.IProcess;
-import org.eclipse.jface.util.Util;
 
 public class ClonkLaunchConfigurationDelegate implements ILaunchConfigurationDelegate {
 	
@@ -169,6 +168,10 @@ public class ClonkLaunchConfigurationDelegate implements ILaunchConfigurationDel
 		return new Path(res.getRawLocationURI().getSchemeSpecificPart()).toOSString();
 	}
 	
+	private static String cmdLineOptionString(C4Engine engine, String option) {
+		return String.format(engine.getCurrentSettings().cmdLineOptionFormat, option);
+	}
+	
 	/** 
 	 * Collects arguments to pass to the engine at launch
 	 * @param mode 
@@ -182,6 +185,15 @@ public class ClonkLaunchConfigurationDelegate implements ILaunchConfigurationDel
 		
 		// Scenario
 		args.add(resFilePath(scenario));
+		
+		C4Engine engineObj;
+		try {
+			engineObj = C4Scenario.get((IContainer) scenario).getEngine();
+		} catch (Exception e) {
+			return null;
+		}
+		if (engineObj == null)
+			return null;
 		
 		// add stuff from the project so Clonk does not fail to find them
 		for (ClonkIndex index : ClonkProjectNature.get(scenario).getIndex().relevantIndexes()) {
@@ -201,21 +213,21 @@ public class ClonkLaunchConfigurationDelegate implements ILaunchConfigurationDel
 		}
 		
 		// Full screen/console
-		if(configuration.getAttribute(ATTR_FULLSCREEN, false) || Util.isMac()) // no console for macs
-			args.add("/fullscreen"); //$NON-NLS-1$
+		if(configuration.getAttribute(ATTR_FULLSCREEN, false))
+			args.add(cmdLineOptionString(engineObj, "fullscreen")); //$NON-NLS-1$
 		else {
-			args.add("/console"); //$NON-NLS-1$
-			args.add("/noleague"); //$NON-NLS-1$
+			args.add(cmdLineOptionString(engineObj, engineObj.getCurrentSettings().editorCmdLineOption)); //$NON-NLS-1$
+			args.add(cmdLineOptionString(engineObj, "noleague")); //$NON-NLS-1$
 		}
 		
 		// Record
 		if(configuration.getAttribute(ATTR_RECORD, false))
-			args.add("/record"); //$NON-NLS-1$
+			args.add(cmdLineOptionString(engineObj, "record")); //$NON-NLS-1$
 	
 		// Debug
 		if (mode.equals(ILaunchManager.DEBUG_MODE)) {
-			args.add(String.format("/debug:%d", DEFAULT_DEBUG_PORT)); //$NON-NLS-1$
-			args.add("/debugwait"); //$NON-NLS-1$
+			args.add(String.format(cmdLineOptionString(engineObj, "debug:%d"), DEFAULT_DEBUG_PORT)); //$NON-NLS-1$
+			args.add(cmdLineOptionString(engineObj, "debugwait")); //$NON-NLS-1$
 		}
 		
 		String custom = configuration.getAttribute(ATTR_CUSTOMARGS, (String)null);

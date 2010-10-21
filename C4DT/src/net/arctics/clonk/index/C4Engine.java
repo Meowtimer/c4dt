@@ -86,6 +86,10 @@ public class C4Engine extends C4ScriptBase {
 		public boolean supportsRefs;
 		@IniField
 		public boolean supportsDebugging;
+		@IniField
+		public String editorCmdLineOption;
+		@IniField
+		public String cmdLineOptionFormat;
 
 		public static final IniConfiguration INI_CONFIGURATION = IniConfiguration.createFromClass(EngineSettings.class);
 
