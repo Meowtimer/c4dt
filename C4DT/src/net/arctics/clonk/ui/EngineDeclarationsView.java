@@ -13,6 +13,7 @@ import net.arctics.clonk.parser.c4script.C4Type;
 import net.arctics.clonk.parser.c4script.C4Variable;
 import net.arctics.clonk.parser.c4script.C4Function.C4FunctionScope;
 import net.arctics.clonk.parser.c4script.C4Variable.C4VariableScope;
+import net.arctics.clonk.parser.c4script.openclonk.OCEngineDeclarationsImporter;
 import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.preferences.ClonkPreferences;
 import net.arctics.clonk.ui.navigator.ClonkOutlineProvider;
@@ -375,7 +376,7 @@ public class EngineDeclarationsView extends ViewPart implements IPropertyChangeL
 		manager.add(deleteAction);
 		manager.add(new Separator());
 		drillDownAdapter.addNavigationActions(manager);
-		// Other plug-ins can contribute there actions here
+		// Other plug-ins can contribute their actions here
 		manager.add(new Separator(IWorkbenchActionConstants.MB_ADDITIONS));
 	}
 	
@@ -494,7 +495,8 @@ public class EngineDeclarationsView extends ViewPart implements IPropertyChangeL
 							try {
 								final C4ScriptBase engine = ClonkCore.getDefault().getActiveEngine();
 								//engine.clearDeclarations();
-								engine.importFromRepository(repo, monitor);
+								OCEngineDeclarationsImporter importer = new OCEngineDeclarationsImporter();
+								importer.importFromRepository(engine, repo, monitor);
 							} catch (Exception e) {
 								e.printStackTrace();
 							}

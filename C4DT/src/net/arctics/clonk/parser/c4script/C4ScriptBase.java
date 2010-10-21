@@ -1,9 +1,5 @@
 package net.arctics.clonk.parser.c4script;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Writer;
@@ -742,41 +738,6 @@ public abstract class C4ScriptBase extends C4Structure implements ITreeNode {
 			}
 		}
 		return super.getInfoText();
-	}
-
-	public void importFromRepository(String repository, IProgressMonitor monitor) throws XPathExpressionException, FileNotFoundException, SAXException, IOException {
-		XMLDocImporter importer = XMLDocImporter.instance();
-		importer.setRepositoryPath(repository);
-		String fnFolderPath = repository + "/docs/sdk/script/fn"; //$NON-NLS-1$
-		File fnFolder = new File(fnFolderPath);
-		String[] files = fnFolder.list(new FilenameFilter() {
-			public boolean accept(File dir, String name) {
-				return name.endsWith(".xml"); //$NON-NLS-1$
-			}
-		});
-		if (monitor != null)
-			monitor.beginTask("Importing", files.length); //$NON-NLS-1$
-		for (String fileName : files) {
-			if (monitor != null) {
-				monitor.subTask(fileName);
-			}
-			C4Declaration declaration = importer.importFromXML(new FileInputStream(fnFolderPath + "/" + fileName)); //$NON-NLS-1$
-			if (declaration != null) {
-				C4Declaration existing = this.findDeclaration(declaration.getName(), declaration.getClass());
-				if (existing != null) {
-					existing.absorb(declaration);
-				} else {
-					this.addDeclaration(declaration);
-				}
-			}
-			if (monitor != null) {
-				monitor.worked(1);
-			}
-		}
-		// also import from fn list in C4Script.cpp
-		//readMissingFuncsFromSource(repository);
-		if (monitor != null)
-			monitor.done();
 	}
 
 	public ITreeNode getParentNode() {
