@@ -467,19 +467,19 @@ public class CallFunc extends AccessDeclaration {
 			String lit = ((StringLiteral)params[1]).stringValue();
 			if (lit.length() > 0 && lit.charAt(0) != '~') {
 				return Conf.alwaysConvertObjectCalls && this.containedInLoopHeaderOrNotStandaloneExpression()
-				? new Sequence(new ExprElm[] {
-						params[0].optimize(parser),
-						new MemberOperator(false, true, null, 0),
-						new CallFunc(((StringLiteral)params[1]).stringValue(), parmsWithoutObject)}
-				)
-				: new IfStatement(params[0].optimize(parser),
-						new SimpleStatement(new Sequence(new ExprElm[] {
-								params[0].optimize(parser),
-								new MemberOperator(false, true, null, 0),
-								new CallFunc(((StringLiteral)params[1]).stringValue(), parmsWithoutObject)}
-						)),
-						null
-				);
+					? new Sequence(new ExprElm[] {
+							params[0].optimize(parser),
+							new MemberOperator(false, true, null, 0),
+							new CallFunc(((StringLiteral)params[1]).stringValue(), parmsWithoutObject)}
+					)
+					: new IfStatement(params[0].optimize(parser),
+							new SimpleStatement(new Sequence(new ExprElm[] {
+									params[0].optimize(parser),
+									new MemberOperator(false, true, null, 0),
+									new CallFunc(((StringLiteral)params[1]).stringValue(), parmsWithoutObject)}
+							)),
+							null
+					);
 			}
 		}
 
