@@ -30,12 +30,6 @@
 		</runtime>
 		<builder id="net.arctics.clonk.builder" />
 	</extension>
-	
-	<extension point="org.eclipse.core.resources.natures" id="clonkdepsnature" name="Clonk Dependencies Nature">
-		<runtime>
-			<run class="net.arctics.clonk.resource.DependenciesProjectNature" />
-		</runtime>
-	</extension>
 
 	<extension point="org.eclipse.core.contenttype.contentTypes">
 

@@ -65,7 +65,6 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 	 * id for Clonk project natures
 	 */
 	public static final String CLONK_NATURE_ID = id("clonknature"); //$NON-NLS-1$
-	public static final String CLONK_DEPS_NATURE_ID = id("clonkdepsnature"); //$NON-NLS-1$
 
 	/**
 	 * id for error markers that denote errors in a script

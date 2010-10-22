@@ -531,61 +531,6 @@ public abstract class Utilities {
 		};
 	}
 	
-	public static IProject getDependenciesProject() {
-		IViewPart projExp = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().findView(IPageLayout.ID_PROJECT_EXPLORER);
-		CommonViewer commonViewer = (CommonViewer) projExp.getAdapter(CommonViewer.class);
-		if (commonViewer != null) {
-			ISelection sel = commonViewer.getSelection();
-			if (sel instanceof ITreeSelection) {
-				ITreeSelection treeSel = (ITreeSelection) sel;
-				if (treeSel.getFirstElement() != null) {
-					TreePath[] treePaths = treeSel.getPathsFor(treeSel.getFirstElement());
-					if (treePaths.length > 0) {
-						for (int i = 0; i < treePaths[0].getSegmentCount(); i++) {
-							if (treePaths[0].getSegment(i) instanceof IProject) {
-								try {
-									if (((IProject)treePaths[0].getSegment(i)).hasNature(ClonkCore.CLONK_DEPS_NATURE_ID)) {
-										return (IProject) treePaths[0].getSegment(i);
-									}
-								} catch (CoreException e) {}
-								break;
-							}
-						}
-					}
-				}
-			}
-		}
-		for (IProject p : ResourcesPlugin.getWorkspace().getRoot().getProjects()) {
-			try {
-	            if (p.isOpen() && p.hasNature(ClonkCore.CLONK_DEPS_NATURE_ID))
-	            	return p;
-            } catch (CoreException e) {	        
-	            e.printStackTrace();
-	            return null;
-            }
-		}
-		return null;
-	}
-	
-	public static void setShowsDependencies(IProject clonkProj, boolean has) throws CoreException {
-		if (has != clonkProj.hasNature(ClonkCore.CLONK_DEPS_NATURE_ID)) {
-			String[] oldNatures = clonkProj.getDescription().getNatureIds();
-			String[] newNatures;
-			if (has)
-				newNatures = concat(oldNatures, ClonkCore.CLONK_DEPS_NATURE_ID);
-			else
-				newNatures = filter(oldNatures, new IPredicate<String>() {
-					@Override
-					public boolean test(String item) {
-						return !item.equals(ClonkCore.CLONK_DEPS_NATURE_ID);
-					}
-				});
-			IProjectDescription desc = clonkProj.getDescription();
-			desc.setNatureIds(newNatures);
-			clonkProj.setDescription(desc, null);
-		}
-	}
-	
 	public static void errorMessage(Throwable error, final String title) {
 		String message = error.getClass().getSimpleName();
 		if (error.getLocalizedMessage() != null)
