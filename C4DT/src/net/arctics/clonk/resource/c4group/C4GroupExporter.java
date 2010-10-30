@@ -65,10 +65,8 @@ public class C4GroupExporter implements IRunnableWithProgress {
 		for (Entry<C4Engine, List<Pair<IContainer, String>>> entry : packsDividedInEngines.entrySet()) {
 			List<Pair<IContainer, String>> packs = entry.getValue();
 			String destinationPath = this.destinationPath != null ? this.destinationPath : entry.getKey().getCurrentSettings().gamePath;
-			int i = -1;
 			FileDialog fileDialog = null;
 			for (Pair<IContainer, String> toExport : packs) {
-				i++;
 				String packPath;
 				boolean alwaysAskForPath = true;
 				if (alwaysAskForPath || !(toExport.getFirst().getParent() instanceof IProject)) {

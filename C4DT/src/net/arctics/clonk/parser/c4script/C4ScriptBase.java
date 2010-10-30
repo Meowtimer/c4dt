@@ -78,7 +78,6 @@ public abstract class C4ScriptBase extends C4Structure implements ITreeNode {
 	
 	public C4Function[] calculateLineToFunctionMap() {
 		String scriptText = this.getScriptText();
-		int line = 0;
 		int lineStart = 0;
 		int lineEnd = 0;
 		List<C4Function> mappingAsList = new LinkedList<C4Function>();
@@ -88,13 +87,11 @@ public abstract class C4ScriptBase extends C4Structure implements ITreeNode {
 			boolean newLine = false;
 			switch (read) {
 			case '\r':
-				line++;
 				newLine = true;
 				if (scanner.read() != '\n')
 					scanner.unread();
 				break;
 			case '\n':
-				line++;
 				newLine = true;
 				break;
 			default:

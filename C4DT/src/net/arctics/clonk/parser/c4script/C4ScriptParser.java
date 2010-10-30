@@ -488,7 +488,7 @@ public class C4ScriptParser {
 							}
 							return TraversalContinuation.Continue;
 						}
-					});
+					}, ExpressionsAndStatementsReportingFlavour.AlsoStatements);
 					C4Variable v = container.findVariable("Name");
 					if (v != null) {
 						Object ev = v.evaluateInitializationExpression(container);
@@ -2790,7 +2790,7 @@ public class C4ScriptParser {
 		WhatToDo markerEncountered(ParserErrorCode code, int markerStart, int markerEnd, boolean noThrow, int severity, Object... args);
 	}
 	
-	private void reportExpressionsAndStatements(C4Function func, IExpressionListener listener) {
+	private void reportExpressionsAndStatements(C4Function func, IExpressionListener listener, ExpressionsAndStatementsReportingFlavour flavour) {
 		activeFunc = func;
 		setExpressionListener(listener);
 		strictLevel = getContainer().getStrictLevel();
@@ -2804,18 +2804,20 @@ public class C4ScriptParser {
 			boolean notReached = false;
 			while (!scanner.reachedEOF()) {
 				this.statementNotReached = notReached;
-				Statement statement = parseStatement(options);
-				if (statement == null)
+				ExprElm expr = flavour == ExpressionsAndStatementsReportingFlavour.AlsoStatements
+						? parseStatement(options)
+						: parseExpression();
+				if (expr == null)
 					break;
-				if (!(statement instanceof Comment))
+				if (!(expr instanceof Comment))
 					options.remove(ParseStatementOption.ExpectFuncDesc);
 				if (!notReached)
-					notReached = statement.getControlFlow() == ControlFlow.Return;
+					notReached = expr.getControlFlow() == ControlFlow.Return;
 			}
 			//endTypeInferenceBlock(); not here for type information might still be needed
 		} 
 		catch (ParsingException e) {
-			// silent...
+			e.printStackTrace();
 		}
 		catch (Exception e) {
 			e.printStackTrace();
@@ -2823,8 +2825,17 @@ public class C4ScriptParser {
 		applyStoredTypeInformationList(true);
 	}
 	
+	public enum ExpressionsAndStatementsReportingFlavour {
+		OnlyExpressions,
+		AlsoStatements
+	}
+	
+	public static C4ScriptParser reportExpressionsAndStatementsWithSpecificFlavour(IDocument doc, IRegion region, C4ScriptBase context, C4Function func, IExpressionListener listener, IMarkerListener markerListener, ExpressionsAndStatementsReportingFlavour flavour)  {
+		return reportExpressionsAndStatementsWithSpecificFlavour(doc, region.getOffset(), region.getOffset()+region.getLength(), context, func, listener, markerListener, flavour);
+	}
+	
 	public static C4ScriptParser reportExpressionsAndStatements(IDocument doc, IRegion region, C4ScriptBase context, C4Function func, IExpressionListener listener, IMarkerListener markerListener)  {
-		return reportExpressionsAndStatements(doc, region.getOffset(), region.getOffset()+region.getLength(), context, func, listener, markerListener);
+		return reportExpressionsAndStatementsWithSpecificFlavour(doc, region, context, func, listener, markerListener, ExpressionsAndStatementsReportingFlavour.AlsoStatements);
 	}
 	
 	private static class ScriptParserWithMarkerListener extends C4ScriptParser {
@@ -2845,7 +2856,7 @@ public class C4ScriptParser {
 		}
 	}
 	
-	public static C4ScriptParser reportExpressionsAndStatements(IDocument doc, final int statementStart, int statementEnd, C4ScriptBase context, C4Function func, IExpressionListener listener, final IMarkerListener markerListener) { 
+	public static C4ScriptParser reportExpressionsAndStatementsWithSpecificFlavour(IDocument doc, final int statementStart, int statementEnd, C4ScriptBase context, C4Function func, IExpressionListener listener, final IMarkerListener markerListener, ExpressionsAndStatementsReportingFlavour flavour) { 
 		String statements;
 		try {
 			statements = doc.get(statementStart, Math.min(statementEnd-statementStart, doc.getLength()-statementStart)) + ")"; //$NON-NLS-1$
@@ -2858,7 +2869,7 @@ public class C4ScriptParser {
 				return statementStart;
 			}
 		};
-		parser.reportExpressionsAndStatements(func, listener);
+		parser.reportExpressionsAndStatements(func, listener, flavour);
 		return parser;
 	}
 	

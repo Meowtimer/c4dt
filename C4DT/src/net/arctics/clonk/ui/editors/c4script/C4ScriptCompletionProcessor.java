@@ -21,6 +21,7 @@ import net.arctics.clonk.parser.BufferedScanner;
 import net.arctics.clonk.parser.C4Declaration;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.c4script.C4Function.C4FunctionScope;
+import net.arctics.clonk.parser.c4script.C4ScriptParser.ExpressionsAndStatementsReportingFlavour;
 import net.arctics.clonk.parser.c4script.C4Variable.C4VariableScope;
 import net.arctics.clonk.parser.c4script.ast.Conf;
 import net.arctics.clonk.parser.c4script.ast.ExprElm;
@@ -241,7 +242,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 		contextExpression = null;
 		if (editorScript != null) {
 			final int preservedOffset = offset;
-			C4ScriptParser parser = C4ScriptParser.reportExpressionsAndStatements(doc, activeFunc.getBody().getOffset(), offset, editorScript, activeFunc, new ExpressionListener() {
+			C4ScriptParser parser = C4ScriptParser.reportExpressionsAndStatementsWithSpecificFlavour(doc, activeFunc.getBody().getOffset(), offset, editorScript, activeFunc, new ExpressionListener() {
 				public TraversalContinuation expressionDetected(ExprElm expression, C4ScriptParser parser) {
 					boolean isStatement = expression instanceof Statement;
 					if (isStatement) {
@@ -276,7 +277,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 				public void endTypeInferenceBlock(List<IStoredTypeInformation> typeInfos) {
 					
 				}
-			}, null);
+			}, null, ExpressionsAndStatementsReportingFlavour.AlsoStatements);
 			if (contextTypeInformation != null) {
 				parser.pushTypeInformationList(contextTypeInformation);
 				parser.applyStoredTypeInformationList(true);

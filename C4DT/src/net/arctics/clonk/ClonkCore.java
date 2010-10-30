@@ -177,8 +177,7 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 		return folderName.startsWith(".") ? null : folderName; //$NON-NLS-1$
 	}
 	
-	@SuppressWarnings("unchecked")
-    public List<String> getAvailableEngines() {
+	public List<String> getAvailableEngines() {
 		List<String> result = new LinkedList<String>();
 		// get built-in engine definitions
 		for (Enumeration<String> paths = getBundle().getEntryPaths("res/engines"); paths.hasMoreElements();) { //$NON-NLS-1$
@@ -296,7 +295,6 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 			public OutputStream getOutputStream(URL storageURL) {
 				return null;
 			}
-			@SuppressWarnings("unchecked")
 			@Override
 			public Enumeration<URL> getURLs(String containerName) {
 				return ClonkCore.getDefault().getBundle().findEntries(String.format("res/engines/%s/%s", engineName, containerName), "*.*", false); //$NON-NLS-1$ //$NON-NLS-2$

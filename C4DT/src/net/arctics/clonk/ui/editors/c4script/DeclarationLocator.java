@@ -12,6 +12,7 @@ import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.C4Variable;
 import net.arctics.clonk.parser.c4script.FindDeclarationInfo;
 import net.arctics.clonk.parser.ParsingException;
+import net.arctics.clonk.parser.c4script.C4ScriptParser.ExpressionsAndStatementsReportingFlavour;
 import net.arctics.clonk.parser.c4script.ast.AccessDeclaration;
 import net.arctics.clonk.parser.c4script.ast.DeclarationRegion;
 import net.arctics.clonk.parser.c4script.ast.ExprElm;
@@ -64,6 +65,7 @@ public class DeclarationLocator extends ExpressionLocator {
 		IRegion body;
 		C4Engine engine;
 		C4Function func = script.funcAt(region);
+		ExpressionsAndStatementsReportingFlavour flavour;
 		if (func == null) {
 			C4Variable var = script.variableWithInitializationAt(region);
 			if (var == null) {
@@ -74,15 +76,17 @@ public class DeclarationLocator extends ExpressionLocator {
 				body = var.getScriptScopeInitializationExpressionLocation();
 				bodyStart = body.getOffset();
 				engine = var.getEngine();
+				flavour = ExpressionsAndStatementsReportingFlavour.OnlyExpressions;
 			}
 		} else {
 			body = func.getBody();
 			bodyStart = body.getOffset();
 			engine = func.getEngine();
+			flavour = ExpressionsAndStatementsReportingFlavour.AlsoStatements;
 		}
 		if (region.getOffset() >= bodyStart) {
 			exprRegion = new Region(region.getOffset()-bodyStart,0);
-			C4ScriptParser parser = C4ScriptParser.reportExpressionsAndStatements(doc, body, script, func, this, null);
+			C4ScriptParser parser = C4ScriptParser.reportExpressionsAndStatementsWithSpecificFlavour(doc, body, script, func, this, null, flavour);
 			if (exprAtRegion != null) {
 				DeclarationRegion declRegion = exprAtRegion.declarationAt(exprRegion.getOffset()-exprAtRegion.getExprStart(), parser);
 				boolean setRegion;
