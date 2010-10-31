@@ -2817,7 +2817,7 @@ public class C4ScriptParser {
 			//endTypeInferenceBlock(); not here for type information might still be needed
 		} 
 		catch (ParsingException e) {
-			e.printStackTrace();
+			// silent...
 		}
 		catch (Exception e) {
 			e.printStackTrace();
