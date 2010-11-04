@@ -90,6 +90,8 @@ public class C4Engine extends C4ScriptBase {
 		public String editorCmdLineOption;
 		@IniField
 		public String cmdLineOptionFormat;
+		@IniField
+		public boolean supportsEmbeddedUtilities;
 
 		public static final IniConfiguration INI_CONFIGURATION = IniConfiguration.createFromClass(EngineSettings.class);
 
@@ -531,6 +533,27 @@ public class C4Engine extends C4ScriptBase {
 			cachedPrefixedVariables = new HashMap<String, C4Variable[]>();
 		cachedPrefixedVariables.put(prefix, resultArray);
 		return resultArray;
+	}
+	
+	public Process executeEmbeddedUtility(String name, String... args) {
+		if (!getCurrentSettings().supportsEmbeddedUtilities)
+			return null;
+		String path = getCurrentSettings().engineExecutablePath;
+		if (path != null) {
+			String[] completeArgs = new String[2+args.length];
+			completeArgs[0] = path;
+			completeArgs[1] = "-x"+name;
+			for (int i = 0; i < args.length; i++)
+				completeArgs[2+i] = args[i];
+			try {
+				return Runtime.getRuntime().exec(completeArgs);
+			} catch (IOException e) {
+				System.out.println("Failed to execute utility " + name);
+				return null;
+			}
+		} else {
+			return null;
+		}
 	}
 
 }
