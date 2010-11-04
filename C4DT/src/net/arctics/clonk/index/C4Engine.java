@@ -91,6 +91,8 @@ public class C4Engine extends C4ScriptBase {
 		@IniField
 		public String cmdLineOptionFormat;
 		@IniField
+		public String cmdLineOptionWithArgumentFormat;
+		@IniField
 		public boolean supportsEmbeddedUtilities;
 
 		public static final IniConfiguration INI_CONFIGURATION = IniConfiguration.createFromClass(EngineSettings.class);

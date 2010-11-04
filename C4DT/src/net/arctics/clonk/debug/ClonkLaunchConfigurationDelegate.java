@@ -164,12 +164,16 @@ public class ClonkLaunchConfigurationDelegate implements ILaunchConfigurationDel
 		return enginePath;
 	}
 	
-	private static String resFilePath(IResource res) {
+	public static String resFilePath(IResource res) {
 		return new Path(res.getRawLocationURI().getSchemeSpecificPart()).toOSString();
 	}
 	
 	private static String cmdLineOptionString(C4Engine engine, String option) {
 		return String.format(engine.getCurrentSettings().cmdLineOptionFormat, option);
+	}
+	
+	private static String cmdLineOptionString(C4Engine engine, String option, String argument) {
+		return String.format(engine.getCurrentSettings().cmdLineOptionWithArgumentFormat, option, argument);
 	}
 	
 	/** 
@@ -226,7 +230,7 @@ public class ClonkLaunchConfigurationDelegate implements ILaunchConfigurationDel
 	
 		// Debug
 		if (mode.equals(ILaunchManager.DEBUG_MODE)) {
-			args.add(String.format(cmdLineOptionString(engineObj, "debug:%d"), DEFAULT_DEBUG_PORT)); //$NON-NLS-1$
+			args.add(String.format(cmdLineOptionString(engineObj, "debug", "%d"), DEFAULT_DEBUG_PORT)); //$NON-NLS-1$
 			args.add(cmdLineOptionString(engineObj, "debugwait")); //$NON-NLS-1$
 		}
 		
