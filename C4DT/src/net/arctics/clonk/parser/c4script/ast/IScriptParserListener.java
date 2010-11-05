@@ -4,7 +4,7 @@ import java.util.List;
 
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 
-public interface IExpressionListener {
+public interface IScriptParserListener {
 	public TraversalContinuation expressionDetected(ExprElm expression, C4ScriptParser parser);
 	public void endTypeInferenceBlock(List<IStoredTypeInformation> typeInfos);
 }

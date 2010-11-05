@@ -286,16 +286,20 @@ public class BufferedScanner {
 		return eat(WHITESPACE_CHARS);
 	}
 	
-	public int getTabIndentation() {
+	public static int getTabIndentation(String s, int pos) {
 		int tabs = 0;
-		for (int pos = getPosition()-1; pos >= 0 && !isLineDelimiterChar(buffer.charAt(pos)); pos--) {
-			if (buffer.charAt(pos) == '\t') {
+		for (--pos; pos >= 0 && !isLineDelimiterChar(s.charAt(pos)); pos--) {
+			if (s.charAt(pos) == '\t') {
 				tabs++;
 			} else {
 				tabs = 0; // don't count tabs not at the start of the line
 			}
 		}
 		return tabs;
+	}
+	
+	public int getTabIndentation() {
+		return getTabIndentation(buffer, getPosition());
 	}
 
 	/**

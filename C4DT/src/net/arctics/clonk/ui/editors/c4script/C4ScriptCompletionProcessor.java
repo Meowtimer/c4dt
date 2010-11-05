@@ -25,7 +25,7 @@ import net.arctics.clonk.parser.c4script.C4ScriptParser.ExpressionsAndStatements
 import net.arctics.clonk.parser.c4script.C4Variable.C4VariableScope;
 import net.arctics.clonk.parser.c4script.ast.Conf;
 import net.arctics.clonk.parser.c4script.ast.ExprElm;
-import net.arctics.clonk.parser.c4script.ast.ExpressionListener;
+import net.arctics.clonk.parser.c4script.ast.ScriptParserListener;
 import net.arctics.clonk.parser.c4script.ast.IStoredTypeInformation;
 import net.arctics.clonk.parser.c4script.ast.IfStatement;
 import net.arctics.clonk.parser.c4script.ast.MemberOperator;
@@ -242,7 +242,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 		contextExpression = null;
 		if (editorScript != null) {
 			final int preservedOffset = offset;
-			C4ScriptParser parser = C4ScriptParser.reportExpressionsAndStatementsWithSpecificFlavour(doc, activeFunc.getBody().getOffset(), offset, editorScript, activeFunc, new ExpressionListener() {
+			C4ScriptParser parser = C4ScriptParser.reportExpressionsAndStatementsWithSpecificFlavour(doc, activeFunc.getBody().getOffset(), offset, editorScript, activeFunc, new ScriptParserListener() {
 				public TraversalContinuation expressionDetected(ExprElm expression, C4ScriptParser parser) {
 					boolean isStatement = expression instanceof Statement;
 					if (isStatement) {

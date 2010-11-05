@@ -32,7 +32,7 @@ public abstract class AccessDeclaration extends Value {
 	@Override
 	public void reportErrors(C4ScriptParser parser) throws ParsingException {
 		super.reportErrors(parser);
-		getDeclaration(parser); // find the field so subclasses can complain about missing variables/functions
+		getDeclaration(parser); // find the declaration so subclasses can complain about missing variables/functions
 	}
 
 	public AccessDeclaration(String fieldName) {

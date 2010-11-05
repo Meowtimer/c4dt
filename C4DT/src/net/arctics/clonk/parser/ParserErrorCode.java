@@ -60,11 +60,13 @@ public enum ParserErrorCode {
 	InheritedDisabledInStrict0(Messages.InheritedDisabledInStrict0),
 	CallingMethodOnNonObject(Messages.CallingMethodOnNonObject),
 	NotAProplist(Messages.NotAProplist),
-	UnknownSection("Unknown section %s");
+	UnknownSection(Messages.UnknownSection),
+	StatementNotProperlyFinished("Statement not properly finished (forgot ';')?");
 
 	public static final String MARKER_ERRORCODE = "c4ScriptErrorCode"; //$NON-NLS-1$
 	public static final String MARKER_EXPRESSIONSTART = "c4ScriptErrorExpressionStart"; //$NON-NLS-1$
 	public static final String MARKER_EXPRESSIONEND = "c4ScriptErrorExpressionEnd"; //$NON-NLS-1$
+	public static final String MARKER_ARG_FORMAT = "c4ScriptErrorArg%d";
 	
 	public static String[] MARKER_ARGS;
 	
@@ -119,6 +121,20 @@ public enum ParserErrorCode {
 		} catch (CoreException e) {
 			e.printStackTrace();
 		}
+	}
+	
+	public static void setArgs(IMarker marker, Object... args) {
+		try {
+			for (int i = 0; i < args.length; i++) {
+				marker.setAttribute(String.format(MARKER_ARG_FORMAT, i), args[i].toString());
+			}
+		} catch (CoreException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	public static String getArg(IMarker marker, int index) {
+		return marker.getAttribute(String.format(MARKER_ARG_FORMAT, index), "");
 	}
 	
 	public IMarker createMarker(IFile file, C4Declaration declarationAssociatedWithFile, String markerType, int start, int end, int severity, String problem) {

@@ -28,7 +28,6 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.dialogs.ProgressMonitorDialog;
 import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.text.IDocument;
-import org.eclipse.jface.text.TextSelection;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.ui.PlatformUI;
@@ -110,7 +109,7 @@ public class TidyUpCodeInBulkHandler extends AbstractHandler {
 												if (script != null) {
 													C4ScriptParser parser = new C4ScriptParser(file, script);
 													LinkedList<CodeChunk> chunks = new LinkedList<CodeChunk>();
-													parser.setExpressionListener(TidyUpCodeAction.expressionCollector(null, chunks, 0));
+													parser.setListener(TidyUpCodeAction.expressionCollector(null, chunks, 0));
 													try {
 														parser.parse();
 													} catch (ParsingException e1) {
@@ -121,7 +120,7 @@ public class TidyUpCodeInBulkHandler extends AbstractHandler {
 														IDocument document = textFileDocProvider.getDocument(file);
 
 														if (document != null)
-															TidyUpCodeAction.runOnDocument(parser, new TextSelection(document, 0, 0), document, chunks);
+															TidyUpCodeAction.runOnDocument(parser, true, document, chunks);
 
 														try {
 															textFileDocProvider.setEncoding(document, textFileDocProvider.getDefaultEncoding());

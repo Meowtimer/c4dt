@@ -140,6 +140,7 @@ public class BinaryOp extends Operator {
 	public void setRightSide(ExprElm rightSide) {
 		this.rightSide = rightSide;
 		rightSide.setParent(this);
+		setFinishedProperly(rightSide.isFinishedProperly());
 	}
 
 	public void doPrint(ExprWriter output, int depth) {

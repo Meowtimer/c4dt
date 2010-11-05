@@ -29,7 +29,7 @@ import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.ast.Conf;
 import net.arctics.clonk.parser.c4script.ast.ControlFlowException;
 import net.arctics.clonk.parser.c4script.ast.ExprElm;
-import net.arctics.clonk.parser.c4script.ast.ExpressionListener;
+import net.arctics.clonk.parser.c4script.ast.ScriptParserListener;
 import net.arctics.clonk.parser.c4script.ast.ReturnException;
 import net.arctics.clonk.parser.c4script.ast.Statement;
 import net.arctics.clonk.parser.c4script.ast.TraversalContinuation;
@@ -136,7 +136,7 @@ public class Command {
 						main = (C4CommandFunction)function;
 					}
 					final List<Statement> statements = new LinkedList<Statement>();
-					this.setExpressionListener(new ExpressionListener() {
+					this.setListener(new ScriptParserListener() {
 						@Override
 						public TraversalContinuation expressionDetected(ExprElm expression, C4ScriptParser parser) {
 							if (expression instanceof Statement)
@@ -146,7 +146,7 @@ public class Command {
 					});
 					super.parseCodeOfFunction(function, null);
 					((C4CommandFunction)function).statements = statements.toArray(new Statement[statements.size()]);
-					this.setExpressionListener(null);
+					this.setListener(null);
 				}
 			};
 			try {

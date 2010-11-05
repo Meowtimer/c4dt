@@ -31,6 +31,7 @@ public class Messages extends NLS {
 	public static String BlockNotClosed;
 	public static String BoolLiteralAsOpArg;
 	public static String UnknownDirective;
+	public static String UnknownSection;
 	public static String StatementExpected;
 	public static String ConditionExpected;
 	public static String OutOfIntRange;

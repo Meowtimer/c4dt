@@ -41,6 +41,15 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable {
 	
 	private int exprStart, exprEnd;
 	private transient ExprElm parent, predecessorInSequence, successorInSequence;
+	boolean finishedProperly = true;
+	
+	public boolean isFinishedProperly() {
+		return finishedProperly;
+	}
+	
+	public void setFinishedProperly(boolean finishedProperly) {
+		this.finishedProperly = finishedProperly;
+	}
 
 	protected void assignParentToSubElements() {
 		for (ExprElm e : getSubElements())
@@ -240,7 +249,7 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable {
 		return t.canBeAssignedFrom(getType(context)) || canBeConvertedTo(t, context);
 	}
 
-	public TraversalContinuation traverse(IExpressionListener listener) {
+	public TraversalContinuation traverse(IScriptParserListener listener) {
 		return traverse(listener, null);
 	}
 
@@ -250,7 +259,7 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable {
 	 * @param parser the parser as contet
 	 * @return flow control for the calling function
 	 */
-	public TraversalContinuation traverse(IExpressionListener listener, C4ScriptParser parser) {
+	public TraversalContinuation traverse(IScriptParserListener listener, C4ScriptParser parser) {
 		TraversalContinuation c = listener.expressionDetected(this, parser);
 		switch (c) {
 		case Cancel:
@@ -397,8 +406,8 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable {
 		return false;
 	}
 
-	public boolean containsOffset(int preservedOffset) {
-		return preservedOffset >= getExprStart() && preservedOffset <= getExprEnd();
+	public boolean containsOffset(int offset) {
+		return offset >= getExprStart() && offset <= getExprEnd();
 	}
 
 	public IStoredTypeInformation createStoredTypeInformation(C4ScriptParser parser) {
@@ -477,6 +486,12 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable {
 		} catch (Exception e) {
 			return null;
 		}
+	}
+	
+	public Statement containingStatement() {
+		ExprElm p;
+		for (p = getParent(); p != null && !(p instanceof Statement); p = p.getParent());
+		return (Statement)p;
 	}
 
 }

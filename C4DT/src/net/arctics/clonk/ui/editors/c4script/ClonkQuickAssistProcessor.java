@@ -5,14 +5,22 @@ import java.util.LinkedList;
 import java.util.List;
 
 import net.arctics.clonk.ClonkCore;
+import net.arctics.clonk.parser.BufferedScanner;
 import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.c4script.C4Function;
 import net.arctics.clonk.parser.c4script.C4ScriptBase;
+import net.arctics.clonk.parser.c4script.C4ScriptOperator;
+import net.arctics.clonk.parser.c4script.C4Type;
+import net.arctics.clonk.parser.c4script.C4ScriptParser.IMarkerListener;
+import net.arctics.clonk.parser.c4script.C4Variable.C4VariableScope;
 import net.arctics.clonk.parser.c4script.ast.AccessVar;
+import net.arctics.clonk.parser.c4script.ast.BinaryOp;
 import net.arctics.clonk.parser.c4script.ast.CallFunc;
 import net.arctics.clonk.parser.c4script.ast.Comment;
 import net.arctics.clonk.parser.c4script.ast.ExprElm;
 import net.arctics.clonk.parser.c4script.ast.SimpleStatement;
+import net.arctics.clonk.parser.c4script.ast.StringLiteral;
+import net.arctics.clonk.parser.c4script.ast.VarDeclarationStatement;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.ui.editors.ClonkCompletionProposal;
 import net.arctics.clonk.ui.editors.ClonkTextEditor;
@@ -35,7 +43,7 @@ import org.eclipse.ui.texteditor.MarkerAnnotation;
  * @author ZokRadonh
  *
  */
-public class ClonkQuickAssistProcessor implements IQuickAssistProcessor  {
+public class ClonkQuickAssistProcessor implements IQuickAssistProcessor, IMarkerListener  {
 	
 	private static final ICompletionProposal[] NO_SUGGESTIONS=  new ICompletionProposal[0];
 
@@ -84,6 +92,17 @@ public class ClonkQuickAssistProcessor implements IQuickAssistProcessor  {
 		return proposals.toArray(new ICompletionProposal[proposals.size()]);
 	}
 
+	private int semicolonAdd = 0;
+	
+	@Override
+	public WhatToDo markerEncountered(ParserErrorCode code, int markerStart, int markerEnd, boolean noThrow, int severity, Object... args) {
+		if (code == ParserErrorCode.TokenExpected && args[0].equals(";")) { //$NON-NLS-1$
+			semicolonAdd = 1; // replace one more char (semicolon is there, just not in the substring denoted by the expressionRegion)
+			return WhatToDo.DropCharges;
+		}
+		return WhatToDo.PassThrough;
+	}
+	
 	private void collectProposals(ISourceViewer sourceViewer, MarkerAnnotation annotation, Position position, List<ICompletionProposal> proposals) {
 		IMarker marker = annotation.getMarker();
 		ParserErrorCode errorCode = ParserErrorCode.getErrorCode(marker);
@@ -97,30 +116,65 @@ public class ClonkQuickAssistProcessor implements IQuickAssistProcessor  {
 		if (script == null)
 			return;
 		C4Function func = script.funcAt(position.getOffset());
-		
+		int tabIndentation = BufferedScanner.getTabIndentation(sourceViewer.getDocument().get(), expressionRegion.getOffset());
 		ExpressionLocator locator = new ExpressionLocator(position.getOffset()-expressionRegion.getOffset());
-		C4ScriptParser.reportExpressionsAndStatements(sourceViewer.getDocument(), expressionRegion, script, func, locator, null);
+		semicolonAdd = 0;
+		C4ScriptParser parser = C4ScriptParser.reportExpressionsAndStatements(sourceViewer.getDocument(), expressionRegion, script, func, locator, this);
 		ExprElm offendingExpression = locator.getExprAtRegion();
-		ExprElm topLevel = offendingExpression != null && offendingExpression.getParent() != null ? offendingExpression.getParent() : locator.getTopLevelInRegion();
+		ExprElm topLevel = offendingExpression != null ? offendingExpression.containingStatement() : null;
 		if (offendingExpression != null && topLevel != null) {
-			ExprElm replacement = null;
 			String msg = null;
+			boolean success = false;
 			switch (errorCode) {
 			case VariableCalled:
 				assert(offendingExpression instanceof CallFunc);
-				topLevel.replaceSubElement(offendingExpression, replacement = new AccessVar(((CallFunc)offendingExpression).getDeclarationName()));
+				topLevel.replaceSubElement(offendingExpression, new AccessVar(((CallFunc)offendingExpression).getDeclarationName()));
 				msg = Messages.ClonkQuickAssistProcessor_RemoveBrackets;
 				break;
 			case NeverReached: {
 				String s = offendingExpression.toString();
-				replacement = new SimpleStatement(new Comment(offendingExpression.toString(), s.contains("\n"))); //$NON-NLS-1$
+				topLevel = new SimpleStatement(new Comment(offendingExpression.toString(), s.contains("\n"))); //$NON-NLS-1$
+				success = true;
 				msg = Messages.ClonkQuickAssistProcessor_CommentOutStatement;
 				break;
 			}
+			case StatementNotProperlyFinished:
+				msg = Messages.ClonkQuickAssistProcessor_AddMissingSemicolon; // will be added by converting topLevel to string
+				success = true;
+				semicolonAdd = 0; // it's really missing!
+				break;
+			case UndeclaredIdentifier:
+				if (offendingExpression instanceof AccessVar && offendingExpression.getParent() instanceof BinaryOp) {
+					AccessVar var = (AccessVar) offendingExpression;
+					BinaryOp op = (BinaryOp) offendingExpression.getParent();
+					if (topLevel == op.getParent() && op.getOperator() == C4ScriptOperator.Assign && op.getLeftSide() == offendingExpression) {
+						topLevel = new VarDeclarationStatement(var.getDeclarationName(), op.getRightSide(), C4VariableScope.VAR);
+						success = true;
+						msg = Messages.ClonkQuickAssistProcessor_ConvertToVarDeclaration;
+					}
+				}
+				break;
+			case IncompatibleTypes:
+				if (C4Type.makeType(ParserErrorCode.getArg(marker, 0), true) == C4Type.STRING) {
+					msg = Messages.ClonkQuickAssistProcessor_QuoteExpression;
+					success = true;
+					offendingExpression.getParent().replaceSubElement(offendingExpression, new StringLiteral(offendingExpression.toString()));
+				}
+				break;
 			}
-			if (replacement != null) {
-				String replacementAsString = replacement.toString();
-				proposals.add(new ClonkCompletionProposal(null, replacementAsString, position.getOffset(), position.getLength(), replacementAsString.length(), null, msg, null, null, null, editor));
+			if (success) {
+				String replacementAsString;
+				try {
+					replacementAsString = topLevel.optimize(parser).toString(tabIndentation+1);
+				} catch (CloneNotSupportedException e) {
+					return;
+				}
+				proposals.add(new ClonkCompletionProposal(
+					null,
+					replacementAsString, expressionRegion.getOffset(), expressionRegion.getLength()+semicolonAdd,
+					replacementAsString.length(),
+					null, msg, null, null, null, editor
+				));
 			}
 		}
 

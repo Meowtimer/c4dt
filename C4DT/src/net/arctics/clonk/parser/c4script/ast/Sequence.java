@@ -1,5 +1,9 @@
 package net.arctics.clonk.parser.c4script.ast;
 
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
+
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
@@ -11,7 +15,9 @@ public class Sequence extends Value {
 	 * 
 	 */
 	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
+	
 	protected ExprElm[] elements;
+
 	public Sequence(ExprElm... elms) {
 		elements = elms;
 		ExprElm prev = null;
@@ -22,6 +28,9 @@ public class Sequence extends Value {
 			e.setParent(this);
 			prev = e;
 		}
+	}
+	public Sequence(List<ExprElm> elms) {
+		this(elms.toArray(new ExprElm[elms.size()]));
 	}
 	@Override
 	public ExprElm[] getSubElements() {
@@ -47,8 +56,16 @@ public class Sequence extends Value {
 	}
 	@Override
 	public void reportErrors(C4ScriptParser parser) throws ParsingException {
-		for (ExprElm e : elements) {
-			e.reportErrors(parser);
+		// stupid class hierarchy :D
+		if (this.getClass() == Sequence.class) {
+			//ExprElm p = null;
+			for (ExprElm e : elements) {
+				/*if (!e.isValidInSequence(p, parser)) {
+					parser.errorWithCode(ParserErrorCode.NotAllowedHere, e, true, parser.scriptSubstringAtRegion(e));
+				}*/
+				e.reportErrors(parser);
+				//p = e;
+			}
 		}
 	}
 	public ExprElm[] getElements() {
@@ -65,5 +82,23 @@ public class Sequence extends Value {
 			return last.createStoredTypeInformation(parser);
 		return super.createStoredTypeInformation(parser);
 	}
-
+	public Statement[] splitIntoValidSubStatements(C4ScriptParser parser) {
+		List<ExprElm> currentSequenceExpressions = new LinkedList<ExprElm>();
+		List<Statement> result = new ArrayList<Statement>(elements.length);
+		ExprElm p = null;
+		for (ExprElm e : elements) {
+			if (!e.isValidInSequence(p, parser)) {
+				result.add(SimpleStatement.statementFromExpression(new Sequence(currentSequenceExpressions)));
+				currentSequenceExpressions.clear();
+			}
+			currentSequenceExpressions.add(e);
+			p = e;
+		}
+		if (result.size() == 0) {
+			return new Statement[] {SimpleStatement.statementFromExpression(this)};
+		} else {
+			result.add(SimpleStatement.statementFromExpression(new Sequence(currentSequenceExpressions)));
+			return result.toArray(new Statement[result.size()]);
+		}
+	}
 }

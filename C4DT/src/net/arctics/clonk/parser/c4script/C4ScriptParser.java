@@ -47,11 +47,11 @@ import net.arctics.clonk.parser.c4script.ast.DoWhileStatement;
 import net.arctics.clonk.parser.c4script.ast.Ellipsis;
 import net.arctics.clonk.parser.c4script.ast.EmptyStatement;
 import net.arctics.clonk.parser.c4script.ast.ExprElm;
-import net.arctics.clonk.parser.c4script.ast.ExpressionListener;
+import net.arctics.clonk.parser.c4script.ast.ScriptParserListener;
 import net.arctics.clonk.parser.c4script.ast.ForStatement;
 import net.arctics.clonk.parser.c4script.ast.FunctionDescription;
 import net.arctics.clonk.parser.c4script.ast.IDLiteral;
-import net.arctics.clonk.parser.c4script.ast.IExpressionListener;
+import net.arctics.clonk.parser.c4script.ast.IScriptParserListener;
 import net.arctics.clonk.parser.c4script.ast.IStoredTypeInformation;
 import net.arctics.clonk.parser.c4script.ast.IfStatement;
 import net.arctics.clonk.parser.c4script.ast.IterateArrayStatement;
@@ -96,7 +96,7 @@ public class C4ScriptParser {
 	public static final int MAX_NUMVAR = 20;
 	public static final int UNKNOWN_PARAMETERNUM = MAX_PAR+1;
 	
-	private IExpressionListener expressionListener;
+	private IScriptParserListener listener;
 
 	private BufferedScanner scanner;
 	private IFile scriptFile; // for project intern files
@@ -147,16 +147,16 @@ public class C4ScriptParser {
 	 * Returns the expression listener that is notified when an expression or a statement has been parsed.
 	 * @return the expression listener
 	 */
-	public IExpressionListener getExpressionListener() {
-		return expressionListener;
+	public IScriptParserListener getListener() {
+		return listener;
 	}
 
 	/**
 	 * Sets the expression listener.
-	 * @param expressionListener the new expression listener
+	 * @param listener the new expression listener
 	 */
-	public void setExpressionListener(IExpressionListener expressionListener) {
-		this.expressionListener = expressionListener;
+	public void setListener(IScriptParserListener listener) {
+		this.listener = listener;
 	}
 	
 	public final boolean hasAppendTo() {
@@ -467,7 +467,7 @@ public class C4ScriptParser {
 				boolean old = allErrorsDisabled;
 				allErrorsDisabled = true;
 				try {
-					reportExpressionsAndStatements(definitionFunc, new ExpressionListener() {
+					reportExpressionsAndStatements(definitionFunc, new ScriptParserListener() {
 						@Override
 						public TraversalContinuation expressionDetected(ExprElm expression, C4ScriptParser parser) {
 							// look if it's a plain SetProperty("Name", <value>)
@@ -519,7 +519,29 @@ public class C4ScriptParser {
 			}
 			beginTypeInferenceBlock();
 			scanner.seek(function.getBody().getStart());
-			parseCodeBlock();
+			// parse code block
+			int endOfFunc = activeFunc.getBody().getEnd();
+			EnumSet<ParseStatementOption> options = EnumSet.of(ParseStatementOption.ExpectFuncDesc);
+			boolean notReached = false;
+			int oldStyleEnd = endOfFunc;
+			while(!scanner.reachedEOF() && scanner.getPosition() < endOfFunc) {
+				this.statementNotReached = notReached;
+				Statement statement = parseStatement(options);
+				if (statement == null)
+					break;
+				boolean statementIsComment = statement instanceof Comment;
+				if (!notReached) {
+					notReached = statement.getControlFlow() == ControlFlow.Return;
+				}
+				// after first 'real' statement don't expect function description anymore
+				if (!statementIsComment) {
+					options.remove(ParseStatementOption.ExpectFuncDesc);
+					oldStyleEnd = statement.getExprEnd();
+				}
+			}
+			if (activeFunc.isOldStyle())
+				activeFunc.getBody().setEnd(oldStyleEnd);
+			
 			applyStoredTypeInformationList(false); // apply short-term inference information
 			List<IStoredTypeInformation> block = endTypeInferenceBlock();
 			if (merger != null) {
@@ -1093,38 +1115,6 @@ public class C4ScriptParser {
 		return word.equals(Keywords.GlobalNamed) || word.equals(Keywords.LocalNamed);
 	}
 
-	/**
-	 * Parses all commands
-	 * For use in keyword() { <code>parseCodeBlock<code> }
-	 * @param offset
-	 * @return
-	 * @throws ParsingException 
-	 */
-	private boolean parseCodeBlock() throws ParsingException {
-		int endOfFunc = activeFunc.getBody().getEnd();
-		EnumSet<ParseStatementOption> options = EnumSet.of(ParseStatementOption.ExpectFuncDesc);
-		boolean notReached = false;
-		int oldStyleEnd = endOfFunc;
-		while(!scanner.reachedEOF() && scanner.getPosition() < endOfFunc) {
-			this.statementNotReached = notReached;
-			Statement statement = parseStatement(options);
-			if (statement == null)
-				break;
-			boolean statementIsComment = statement instanceof Comment;
-			if (!notReached) {
-				notReached = statement.getControlFlow() == ControlFlow.Return;
-			}
-			// after first 'real' statement don't expect function description anymore
-			if (!statementIsComment) {
-				options.remove(ParseStatementOption.ExpectFuncDesc);
-				oldStyleEnd = statement.getExprEnd();
-			}
-		}
-		if (activeFunc.isOldStyle())
-			activeFunc.getBody().setEnd(oldStyleEnd);
-		return true;
-	}
-
 	private void warnAboutTupleInReturnExpr(ExprElm expr, boolean tupleIsError) throws ParsingException {
 		if (expr == null)
 			return;
@@ -1388,6 +1378,9 @@ public class C4ScriptParser {
 				return false;
 			}
 		}
+		public void apply(C4ScriptParser parser) throws ParsingException {
+			parser.markerWithCode(code, start, end, true, severity, args);
+		}
 	}
 	
 	private Collection<LatentMarker> latentMarkers;
@@ -1419,7 +1412,7 @@ public class C4ScriptParser {
 		if (latentMarkers != null) {
 			for (LatentMarker marker : latentMarkers) {
 				if (marker.stillApplies(this)) try {
-					markerWithCode(marker.code, marker.start, marker.end, true, marker.severity, marker.args);
+					marker.apply(this);
 				} catch (ParsingException e) { /* does not happen */ }
 			}
 			latentMarkers = null;
@@ -1466,6 +1459,7 @@ public class C4ScriptParser {
 			if (expressionReportingErrors != null) {
 				ParserErrorCode.setExpressionLocation(result, expressionReportingErrors);
 			}
+			ParserErrorCode.setArgs(result, args);
 		}
 		if (!noThrow && severity >= IMarker.SEVERITY_ERROR)
 			throw silence
@@ -1509,6 +1503,7 @@ public class C4ScriptParser {
 		ExprElm prevElm = null;
 		boolean dontCheckForPostOp = false;
 		int noWhitespaceEating = sequenceStart;
+		boolean proper = true;
 		do {
 			elm = null;
 			
@@ -1640,10 +1635,17 @@ public class C4ScriptParser {
 			if (elm != null) {
 				if (!elm.isValidInSequence(prevElm, this)) {
 					elm = null; // blub blub <- first blub is var; second blub is not part of the sequence -.-
-					//fReader.seek(elmStart);
-					dontCheckForPostOp = true;
-					errorWithCode(ParserErrorCode.NotAllowedHere, elmStart, scanner.getPosition(), scanner.readStringAt(elmStart, scanner.getPosition()));
+				/*	final ExprElm old = expressionReportingErrors;
+					expressionReportingErrors = elm;
+					try {
+						errorWithCode(ParserErrorCode.NotAllowedHere, elmStart, scanner.getPosition(), true, scanner.readStringAt(elmStart, scanner.getPosition()));
+					} finally {
+						expressionReportingErrors = old;
+					} */
+					//scanner.seek(elmStart);
+					proper = false;
 				} else {
+					// add to sequence even if not valid so the quickfixer can separate them
 					elm.setExprRegion(elmStart, scanner.getPosition());
 					elements.add(elm);
 					prevElm = elm;
@@ -1661,6 +1663,7 @@ public class C4ScriptParser {
 		} else {
 			return null;
 		}
+		result.setFinishedProperly(proper);
 		
 		result.setExprRegion(sequenceStart, scanner.getPosition());
 		if (result.getType(this) == null) {
@@ -1863,12 +1866,13 @@ public class C4ScriptParser {
 			BinaryOp lastOp = null;
 
 			// magical thingie to pass all parameters to inherited
+			int exprStart = offset;
 			if (parseEllipsis()) {
 				root = new Ellipsis();
 			} else {
 				scanner.seek(offset);
 				this.eatWhitespace();
-				//int exprStart = fReader.getPosition();
+				exprStart = scanner.getPosition();
 				for (int state = START; state != DONE;) {
 					this.eatWhitespace();
 					switch (state) {
@@ -1935,7 +1939,7 @@ public class C4ScriptParser {
 				}
 			}
 			if (root != null) {
-				//root.setExprRegion(exprStart, fReader.getPosition());
+				root.setExprRegion(exprStart, scanner.getPosition());
 				// potentially throwing exceptions and stuff
 				handleExpressionCreated(reportErrors, root);
 			}
@@ -1953,8 +1957,8 @@ public class C4ScriptParser {
 		if (reportErrors) {
 			reportErrorsOf(root);
 		}
-		if (expressionListener != null && parseExpressionRecursion <= 1)
-			expressionListener.expressionDetected(root, this);
+		if (listener != null && parseExpressionRecursion <= 1)
+			listener.expressionDetected(root, this);
 	}
 
 	private void reportErrorsOf(ExprElm expression) throws ParsingException {
@@ -2056,8 +2060,8 @@ public class C4ScriptParser {
 			return s;
 		} finally {
 			block = endTypeInferenceBlock();
-			if (expressionListener != null)
-				expressionListener.endTypeInferenceBlock(block);
+			if (listener != null)
+				listener.endTypeInferenceBlock(block);
 			merger.inject(block);
 		}
 	}
@@ -2149,8 +2153,10 @@ public class C4ScriptParser {
 				ExprElm expression = parseExpression();
 				if (expression != null) {
 					result = new SimpleStatement(expression);
-					if (!options.contains(ParseStatementOption.InitializationStatement))
+					if (expression.isFinishedProperly() && !options.contains(ParseStatementOption.InitializationStatement))
 						checkForSemicolon();
+					else
+						scanner.seek(expression.getExprEnd());
 				}
 				else
 					result = null;
@@ -2165,8 +2171,8 @@ public class C4ScriptParser {
 						((BinaryOp)((SimpleStatement)result).getExpression()).checkTopLevelAssignment(this);
 				}
 				if (parseStatementRecursion == 1) {
-					if (expressionListener != null) {
-						switch (expressionListener.expressionDetected(result, this)) {
+					if (listener != null) {
+						switch (listener.expressionDetected(result, this)) {
 						case Cancel:
 							throw new SilentParsingException(Reason.Cancellation, "Expression Listener Cancellation"); //$NON-NLS-1$
 						}
@@ -2790,9 +2796,9 @@ public class C4ScriptParser {
 		WhatToDo markerEncountered(ParserErrorCode code, int markerStart, int markerEnd, boolean noThrow, int severity, Object... args);
 	}
 	
-	private void reportExpressionsAndStatements(C4Function func, IExpressionListener listener, ExpressionsAndStatementsReportingFlavour flavour) {
+	private void reportExpressionsAndStatements(C4Function func, IScriptParserListener listener, ExpressionsAndStatementsReportingFlavour flavour) {
 		activeFunc = func;
-		setExpressionListener(listener);
+		setListener(listener);
 		strictLevel = getContainer().getStrictLevel();
 		disableError(ParserErrorCode.TokenExpected);
 		disableError(ParserErrorCode.InvalidExpression);
@@ -2830,11 +2836,11 @@ public class C4ScriptParser {
 		AlsoStatements
 	}
 	
-	public static C4ScriptParser reportExpressionsAndStatementsWithSpecificFlavour(IDocument doc, IRegion region, C4ScriptBase context, C4Function func, IExpressionListener listener, IMarkerListener markerListener, ExpressionsAndStatementsReportingFlavour flavour)  {
+	public static C4ScriptParser reportExpressionsAndStatementsWithSpecificFlavour(IDocument doc, IRegion region, C4ScriptBase context, C4Function func, IScriptParserListener listener, IMarkerListener markerListener, ExpressionsAndStatementsReportingFlavour flavour)  {
 		return reportExpressionsAndStatementsWithSpecificFlavour(doc, region.getOffset(), region.getOffset()+region.getLength(), context, func, listener, markerListener, flavour);
 	}
 	
-	public static C4ScriptParser reportExpressionsAndStatements(IDocument doc, IRegion region, C4ScriptBase context, C4Function func, IExpressionListener listener, IMarkerListener markerListener)  {
+	public static C4ScriptParser reportExpressionsAndStatements(IDocument doc, IRegion region, C4ScriptBase context, C4Function func, IScriptParserListener listener, IMarkerListener markerListener)  {
 		return reportExpressionsAndStatementsWithSpecificFlavour(doc, region, context, func, listener, markerListener, ExpressionsAndStatementsReportingFlavour.AlsoStatements);
 	}
 	
@@ -2856,7 +2862,7 @@ public class C4ScriptParser {
 		}
 	}
 	
-	public static C4ScriptParser reportExpressionsAndStatementsWithSpecificFlavour(IDocument doc, final int statementStart, int statementEnd, C4ScriptBase context, C4Function func, IExpressionListener listener, final IMarkerListener markerListener, ExpressionsAndStatementsReportingFlavour flavour) { 
+	public static C4ScriptParser reportExpressionsAndStatementsWithSpecificFlavour(IDocument doc, final int statementStart, int statementEnd, C4ScriptBase context, C4Function func, IScriptParserListener listener, final IMarkerListener markerListener, ExpressionsAndStatementsReportingFlavour flavour) { 
 		String statements;
 		try {
 			statements = doc.get(statementStart, Math.min(statementEnd-statementStart, doc.getLength()-statementStart)) + ")"; //$NON-NLS-1$
@@ -2873,7 +2879,7 @@ public class C4ScriptParser {
 		return parser;
 	}
 	
-	public static Statement parseStandaloneStatement(final String expression, C4Function context, IExpressionListener listener, final IMarkerListener markerListener) throws ParsingException {
+	public static Statement parseStandaloneStatement(final String expression, C4Function context, IScriptParserListener listener, final IMarkerListener markerListener) throws ParsingException {
 		if (context == null) {
 			C4ScriptBase tempScript = new TempScript(expression);
 			context = new C4Function("<temp>", null, C4FunctionScope.GLOBAL); //$NON-NLS-1$
@@ -2881,7 +2887,7 @@ public class C4ScriptParser {
 			context.setBody(new SourceLocation(0, expression.length()));
 		}
 		C4ScriptParser tempParser = new ScriptParserWithMarkerListener(expression, context.getScript(), markerListener);
-		tempParser.setExpressionListener(listener);
+		tempParser.setListener(listener);
 		tempParser.setActiveFunc(context);
 		tempParser.beginTypeInferenceBlock();
 		
@@ -2897,8 +2903,12 @@ public class C4ScriptParser {
 		return statements.size() == 1 ? statements.get(0) : new BunchOfStatements(statements);
 	}
 	
-	public static Statement parseStandaloneStatement(final String expression, C4Function context, IExpressionListener listener) throws ParsingException {
+	public static Statement parseStandaloneStatement(final String expression, C4Function context, IScriptParserListener listener) throws ParsingException {
 		return parseStandaloneStatement(expression, context, listener, null);
 	}
 
+	public String scriptSubstringAtRegion(IRegion region) {
+		return scanner.readStringAt(region.getOffset(), region.getOffset()+region.getLength());
+	}
+	
 }

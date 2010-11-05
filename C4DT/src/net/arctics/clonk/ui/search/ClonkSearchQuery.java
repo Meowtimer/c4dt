@@ -15,9 +15,9 @@ import net.arctics.clonk.parser.c4script.ast.AccessDeclaration;
 import net.arctics.clonk.parser.c4script.ast.CallFunc;
 import net.arctics.clonk.parser.c4script.ast.DeclarationRegion;
 import net.arctics.clonk.parser.c4script.ast.ExprElm;
-import net.arctics.clonk.parser.c4script.ast.ExpressionListener;
+import net.arctics.clonk.parser.c4script.ast.ScriptParserListener;
 import net.arctics.clonk.parser.c4script.ast.IDLiteral;
-import net.arctics.clonk.parser.c4script.ast.IExpressionListener;
+import net.arctics.clonk.parser.c4script.ast.IScriptParserListener;
 import net.arctics.clonk.parser.c4script.ast.MemberOperator;
 import net.arctics.clonk.parser.c4script.ast.Statement;
 import net.arctics.clonk.parser.c4script.ast.StringLiteral;
@@ -79,7 +79,7 @@ public class ClonkSearchQuery implements ISearchQuery {
 
 	public IStatus run(IProgressMonitor monitor) throws OperationCanceledException {
 		getSearchResult(); // make sure we have one
-		final ExpressionListener searchExpression = new ExpressionListener() {
+		final ScriptParserListener searchExpression = new ScriptParserListener() {
 			
 			private StringLiteral functionNameExpr;
 			
@@ -128,7 +128,7 @@ public class ClonkSearchQuery implements ISearchQuery {
 				return TraversalContinuation.Continue;
 			}
 		};
-		final ExpressionListener searchExpressionsListener = new ExpressionListener() {
+		final ScriptParserListener searchExpressionsListener = new ScriptParserListener() {
 			public TraversalContinuation expressionDetected(ExprElm expression, C4ScriptParser parser) {
 				if (expression instanceof Statement)
 					expression.traverse(searchExpression, parser);
@@ -159,7 +159,7 @@ public class ClonkSearchQuery implements ISearchQuery {
 					C4Function func = (C4Function) scope;
 					C4ScriptBase script = func.getScript();
 					C4ScriptParser parser = new C4ScriptParser((IFile) script.getScriptFile(), script);
-					parser.setExpressionListener(searchExpressionsListener);
+					parser.setListener(searchExpressionsListener);
 					try {
 						parser.parseCodeOfFunction(func, null);
 					} catch (ParsingException e) {
@@ -174,14 +174,14 @@ public class ClonkSearchQuery implements ISearchQuery {
 		return new Status(IStatus.OK, ClonkCore.PLUGIN_ID, 0, Messages.ClonkSearchQuery_Success, null);
 	}
 	
-	private void searchScript(final IExpressionListener searchExpressions, IResource resource, C4ScriptBase script) {
+	private void searchScript(final IScriptParserListener searchExpressions, IResource resource, C4ScriptBase script) {
 		C4ScriptParser parser = new C4ScriptParser((IFile) resource, script);
 		if (declaration instanceof C4Object) {
 			C4Directive include = script.getIncludeDirectiveFor((C4Object) declaration);
 			if (include != null)
 				result.addMatch(include.getExprElm(), parser, false, false);
 		}
-		parser.setExpressionListener(searchExpressions);
+		parser.setListener(searchExpressions);
 		try {
 			parser.parseCodeOfFunctionsAndValidate();
 		} catch (ParsingException e) {

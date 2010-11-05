@@ -12,8 +12,8 @@ import net.arctics.clonk.parser.c4script.ast.Block;
 import net.arctics.clonk.parser.c4script.ast.Conf;
 import net.arctics.clonk.parser.c4script.ast.Comment;
 import net.arctics.clonk.parser.c4script.ast.ExprElm;
-import net.arctics.clonk.parser.c4script.ast.ExpressionListener;
-import net.arctics.clonk.parser.c4script.ast.IExpressionListener;
+import net.arctics.clonk.parser.c4script.ast.ScriptParserListener;
+import net.arctics.clonk.parser.c4script.ast.IScriptParserListener;
 import net.arctics.clonk.parser.c4script.ast.Statement;
 import net.arctics.clonk.parser.c4script.ast.TraversalContinuation;
 import net.arctics.clonk.ui.editors.IClonkCommandIds;
@@ -38,6 +38,8 @@ public class TidyUpCodeAction extends TextEditorAction {
 	public final static class CodeChunk {
 		public C4Declaration relatedDeclaration;
 		public List<ExprElm> expressions;
+		// encompasses all expressions of the declaration
+		public boolean complete;
 		public CodeChunk(C4Declaration declaration, List<ExprElm> expressions) {
 			super();
 			this.relatedDeclaration = declaration;
@@ -78,21 +80,21 @@ public class TidyUpCodeAction extends TextEditorAction {
 			parser = null;
 			e.printStackTrace();
 		}
-		runOnDocument(parser, selection, document, chunks);
+		runOnDocument(parser, selection.getLength() == document.getLength() || selection.getLength() == 0, document, chunks);
 	}
 
-	public static IExpressionListener expressionCollector(
+	public static IScriptParserListener expressionCollector(
 			final ITextSelection selection,
 			final LinkedList<CodeChunk> chunks,
 			final int selLength) {
-		return new ExpressionListener() {
+		return new ScriptParserListener() {
 			
 			// don't immediately add comments for old-style funcs so that unrelated comments following a function don't get mangled in
 			private List<Comment> commentsOnOld = new LinkedList<Comment>();
 			
 			public TraversalContinuation expressionDetected(ExprElm expression, C4ScriptParser parser) {
 				C4Function activeFunc = parser.getActiveFunc();
-				// initialization expression for variable for example... needs to be reformated as well
+				// initialization expression for variable for example... needs to be reformatted as well
 				if (activeFunc == null) {
 					chunks.addFirst(new CodeChunk(parser.getActiveScriptScopeVariable(), Utilities.list(expression)));
 					return TraversalContinuation.Continue;
@@ -125,12 +127,11 @@ public class TidyUpCodeAction extends TextEditorAction {
 
 	public static void runOnDocument(
 			final C4ScriptParser parser,
-			final ITextSelection selection,
+			boolean wholeFuncConversion,
 			final IDocument document,
 			final LinkedList<CodeChunk> chunks
 	) {
 		synchronized (document) {
-			final int selLength = selection.getLength() == document.getLength() ? 0 : selection.getLength();
 			TextChange textChange = new DocumentChange(Messages.TidyUpCodeAction_TidyUpCode, document);
 			textChange.setEdit(new MultiTextEdit());
 			for (CodeChunk chunk : chunks) {
@@ -139,7 +140,6 @@ public class TidyUpCodeAction extends TextEditorAction {
 					C4Variable var = chunk.relatedDeclaration instanceof C4Variable ? (C4Variable)chunk.relatedDeclaration : null;
 					IRegion region = func != null ? func.getBody() : var.getScriptScopeInitializationExpressionLocation();
 					List<ExprElm> elms = chunk.expressions;
-					boolean wholeFuncConversion = selLength == 0;
 					parser.setActiveFunc(func);
 					if (func != null && wholeFuncConversion) {
 						ExprElm[] expressionsInRightOrder = new ExprElm[elms.size()];

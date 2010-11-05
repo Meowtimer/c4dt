@@ -25,7 +25,7 @@ import net.arctics.clonk.parser.c4script.C4Variable;
 import net.arctics.clonk.parser.c4script.ast.AccessVar;
 import net.arctics.clonk.parser.c4script.ast.CallFunc;
 import net.arctics.clonk.parser.c4script.ast.ExprElm;
-import net.arctics.clonk.parser.c4script.ast.IExpressionListener;
+import net.arctics.clonk.parser.c4script.ast.IScriptParserListener;
 import net.arctics.clonk.parser.c4script.ast.IStoredTypeInformation;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.resource.c4group.C4GroupItem;
@@ -516,7 +516,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		return getFuncAt(cursorPos());
 	}
 
-	public C4ScriptParser reparseWithDocumentContents(IExpressionListener exprListener, boolean onlyDeclarations) throws IOException, ParsingException {
+	public C4ScriptParser reparseWithDocumentContents(IScriptParserListener exprListener, boolean onlyDeclarations) throws IOException, ParsingException {
 		if (scriptBeingEdited() == null)
 			return null;
 		IDocument document = getDocumentProvider().getDocument(getEditorInput());
@@ -529,7 +529,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 	}
 
 	private static C4ScriptParser reparseWithDocumentContents(
-			IExpressionListener exprListener,
+			IScriptParserListener exprListener,
 			boolean onlyDeclarations, Object document,
 			C4ScriptBase script,
 			Runnable uiRefreshRunnable)
@@ -553,7 +553,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 					storedLocalsTypeInformation.add(info);
 			}
 		}
-		parser.setExpressionListener(exprListener);
+		parser.setListener(exprListener);
 		parser.clean();
 		parser.parseDeclarations();
 		if (!onlyDeclarations)
