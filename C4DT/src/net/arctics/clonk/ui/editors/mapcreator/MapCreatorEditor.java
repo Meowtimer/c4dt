@@ -6,6 +6,8 @@ import org.antlr.runtime.CommonTokenStream;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.jface.text.DocumentEvent;
 import org.eclipse.jface.text.IDocumentListener;
+import org.eclipse.jface.viewers.ISelection;
+import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.swt.widgets.Composite;
 
 import net.arctics.clonk.parser.mapcreator.C4MapCreator;
@@ -14,6 +16,7 @@ import net.arctics.clonk.parser.mapcreator.MapCreatorParser;
 import net.arctics.clonk.ui.editors.ClonkTextEditor;
 import net.arctics.clonk.ui.editors.ColorManager;
 import net.arctics.clonk.ui.editors.c4script.ClonkContentOutlinePage;
+import net.arctics.clonk.ui.navigator.ClonkPreviewView;
 import net.arctics.clonk.util.Utilities;
 
 
@@ -39,6 +42,13 @@ public class MapCreatorEditor extends ClonkTextEditor {
 			mapCreator.clear();
 			parser.parse();
 			parsed = true;
+			ClonkPreviewView view = (ClonkPreviewView) getSite().getWorkbenchWindow().getActivePage().findView(ClonkPreviewView.ID);
+			if (view != null) {
+				ISelection sel = view.getSelectionOfInterest();
+				if (sel != null && sel.equals(new StructuredSelection(Utilities.getEditingFile(this)))) {
+					view.schedulePreviewUpdaterJob();
+				}
+			}
 		}
 	}
 	
