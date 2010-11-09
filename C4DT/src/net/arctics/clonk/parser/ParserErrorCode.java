@@ -66,7 +66,6 @@ public enum ParserErrorCode {
 	public static final String MARKER_ERRORCODE = "c4ScriptErrorCode"; //$NON-NLS-1$
 	public static final String MARKER_EXPRESSIONSTART = "c4ScriptErrorExpressionStart"; //$NON-NLS-1$
 	public static final String MARKER_EXPRESSIONEND = "c4ScriptErrorExpressionEnd"; //$NON-NLS-1$
-	public static final String MARKER_ARG_FORMAT = "c4ScriptErrorArg%d";
 	
 	public static String[] MARKER_ARGS;
 	
@@ -98,18 +97,6 @@ public enum ParserErrorCode {
 		}
 	}
 	
-	public IMarker createMarker(IFile file, C4Declaration declarationAssociatedWithFile, String markerType, int start, int end, int severity, Object... args) {
-		IMarker marker = createMarker(file, declarationAssociatedWithFile, markerType, start, end, severity, getErrorString(args));
-		for (int i = 0; i < Math.min(args.length, MARKER_ARGS.length); i++) {
-			try {
-				marker.setAttribute(MARKER_ARGS[i], args[i].toString());
-			} catch (CoreException e) {
-				e.printStackTrace();
-			}
-		}
-		return marker;
-	}
-	
 	public static IRegion getExpressionLocation(IMarker marker) {
 		return new SourceLocation(marker.getAttribute(MARKER_EXPRESSIONSTART, -1), marker.getAttribute(MARKER_EXPRESSIONEND, -1));
 	}
@@ -123,18 +110,8 @@ public enum ParserErrorCode {
 		}
 	}
 	
-	public static void setArgs(IMarker marker, Object... args) {
-		try {
-			for (int i = 0; i < args.length; i++) {
-				marker.setAttribute(String.format(MARKER_ARG_FORMAT, i), args[i].toString());
-			}
-		} catch (CoreException e) {
-			e.printStackTrace();
-		}
-	}
-	
 	public static String getArg(IMarker marker, int index) {
-		return marker.getAttribute(String.format(MARKER_ARG_FORMAT, index), "");
+		return marker.getAttribute(String.format(MARKER_ARGS[index], index), "");
 	}
 	
 	public IMarker createMarker(IFile file, C4Declaration declarationAssociatedWithFile, String markerType, int start, int end, int severity, String problem) {
@@ -156,6 +133,21 @@ public enum ParserErrorCode {
 			e.printStackTrace();
 		}
 		return null;
+	}
+	
+	public IMarker createMarker(IFile file, C4Declaration declarationAssociatedWithFile, String markerType, int start, int end, int severity, IRegion expressionRegion, Object... args) {
+		IMarker marker = createMarker(file, declarationAssociatedWithFile, markerType, start, end, severity, getErrorString(args));
+		for (int i = 0; i < Math.min(args.length, MARKER_ARGS.length); i++) {
+			try {
+				marker.setAttribute(MARKER_ARGS[i], args[i].toString());
+			} catch (CoreException e) {
+				e.printStackTrace();
+			}
+		}
+		if (expressionRegion != null) {
+			setExpressionLocation(marker, expressionRegion);
+		}
+		return marker;
 	}
 	
 }

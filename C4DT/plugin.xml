@@ -431,7 +431,7 @@
 		
 		<command categoryId="org.eclipse.ui.category.edit"
 			description="%FindDuplicates_Desc"
-			id="net.arctics.clonk.ui.navigator.actions.FindDuplicates"
+			id="net.arctics.clonk.ui.editors.actions.FindDuplicates"
 			defaultHandler="net.arctics.clonk.ui.navigator.FindDuplicatesHandler"
 			name="%FindDuplicates_Name" />
 		

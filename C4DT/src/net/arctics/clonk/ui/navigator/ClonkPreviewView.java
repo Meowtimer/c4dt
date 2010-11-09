@@ -246,12 +246,11 @@ public class ClonkPreviewView extends ViewPart implements ISelectionListener, Co
 					// render landscape.txt using utility embedded into OpenClonk
 					ClonkProjectNature nature = ClonkProjectNature.get(file);
 					C4Engine engine = nature != null ? nature.getIndex().getEngine() : null;
-					if (engine != null) {
+					if (engine != null && engine.getCurrentSettings().supportsEmbeddedUtilities) {
 						if (tempLandscapeRenderFile == null) {
 							tempLandscapeRenderFile = File.createTempFile("c4dt", "landscaperender");
 							tempLandscapeRenderFile.deleteOnExit();
 						}
-						System.out.println("executing");
 						Process drawLandscape = engine.executeEmbeddedUtility("drawlandscape",
 							"-f"+ClonkLaunchConfigurationDelegate.resFilePath(file),
 							"-o"+tempLandscapeRenderFile.getAbsolutePath(),

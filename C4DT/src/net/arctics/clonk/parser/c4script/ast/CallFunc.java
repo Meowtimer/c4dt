@@ -346,7 +346,7 @@ public class CallFunc extends AccessDeclaration {
 						try {
 							C4ScriptParser.parseStandaloneStatement((String)scriptExpr, context.getActiveFunc(), null, new IMarkerListener() {
 								@Override
-								public WhatToDo markerEncountered(ParserErrorCode code, int markerStart, int markerEnd, boolean noThrow, int severity, Object... args) {
+								public WhatToDo markerEncountered(C4ScriptParser parser, ParserErrorCode code, int markerStart, int markerEnd, boolean noThrow, int severity, Object... args) {
 									// ignore complaining about missing ';'
 									if (code == ParserErrorCode.TokenExpected && args[0].equals(";"))
 										return WhatToDo.DropCharges;

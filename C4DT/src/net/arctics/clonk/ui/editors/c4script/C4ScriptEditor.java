@@ -103,8 +103,8 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		}
 	}
 
-	// Helper class that takes care of triggering a timed reparsing when the document is changed and such
-	// it tries to only fire a reparse when necessary (ie not when editing inside of a function)
+	// Helper class that takes care of triggering a timed reparsing when the document is changed.
+	// It tries to only fire a full reparse when necessary (i.e. not when editing inside of a function)
 	private final static class TextChangeListener implements IDocumentListener {
 		
 		private static final int REPARSE_DELAY = 700;
@@ -271,11 +271,13 @@ public class C4ScriptEditor extends ClonkTextEditor {
 					if (script.getScriptFile() instanceof IResource && !C4GroupItem.isLinkedResource((IResource) script.getScriptFile())) {
 						C4ScriptParser.reportExpressionsAndStatements(document, f.getBody(), script, f, null, new IMarkerListener() {
 							@Override
-							public WhatToDo markerEncountered(ParserErrorCode code,
+							public WhatToDo markerEncountered(C4ScriptParser parser, ParserErrorCode code,
 									int markerStart, int markerEnd, boolean noThrow,
 									int severity, Object... args) {
-								if (script.getScriptFile() instanceof IFile)
-									code.createMarker((IFile) script.getScriptFile(), script, ClonkCore.MARKER_C4SCRIPT_ERROR_WHILE_TYPING, markerStart, markerEnd, severity, args);
+								if (script.getScriptFile() instanceof IFile) {
+									code.createMarker((IFile) script.getScriptFile(), script, ClonkCore.MARKER_C4SCRIPT_ERROR_WHILE_TYPING,
+										markerStart, markerEnd, severity, parser.getLocationOfExpressionReportingErrors(), args);
+								}
 								return WhatToDo.PassThrough;
 							}
 						});

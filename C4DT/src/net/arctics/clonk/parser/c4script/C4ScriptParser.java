@@ -83,6 +83,7 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IRegion;
+import org.eclipse.jface.text.Region;
 
 /**
  * A C4Script parser. Parses declarations in a script and stores it in a C4ScriptBase object (sold separately).
@@ -1449,22 +1450,27 @@ public class C4ScriptParser {
 	}
 	
 	public IMarker markerWithCode(ParserErrorCode code, int markerStart, int markerEnd, boolean noThrow, int severity, Object... args) throws ParsingException {
-		if (errorDisabled(code))
+		if (errorDisabled(code)) {
 			return null;
+		}
 		IMarker result = null;
 		boolean silence = scriptFile == null || (activeFunc != null && activeFunc.getBody() != null && scanner.getPosition() > activeFunc.getBody().getEnd()+1);
 		String problem = code.getErrorString(args);
 		if (!silence && (!allErrorsDisabled || !noThrow)) {
-			result = code.createMarker(scriptFile, getContainer(), ClonkCore.MARKER_C4SCRIPT_ERROR, markerStart, markerEnd, severity, problem);
-			if (expressionReportingErrors != null) {
-				ParserErrorCode.setExpressionLocation(result, expressionReportingErrors);
+			result = code.createMarker(scriptFile, getContainer(), ClonkCore.MARKER_C4SCRIPT_ERROR, markerStart, markerEnd, severity, expressionReportingErrors, args);
+			IRegion exprLocation = getLocationOfExpressionReportingErrors();
+			if (exprLocation != null) {
+				ParserErrorCode.setExpressionLocation(result, exprLocation);
 			}
-			ParserErrorCode.setArgs(result, args);
+			problem = result.getAttribute(IMarker.MESSAGE, "<Fail>");
+		} else {
+			problem = code.getErrorString(args);
 		}
-		if (!noThrow && severity >= IMarker.SEVERITY_ERROR)
+		if (!noThrow && severity >= IMarker.SEVERITY_ERROR) {
 			throw silence
 				? new SilentParsingException(Reason.SilenceRequested, problem)
 				: new ParsingException(problem);
+		}
 		return result;
 	}
 	
@@ -1952,6 +1958,21 @@ public class C4ScriptParser {
 	}
 	
 	private transient ExprElm expressionReportingErrors;
+	
+	public IRegion getLocationOfExpressionReportingErrors() {
+		if (expressionReportingErrors != null) {
+			if (offsetOfScriptFragment() == 0) {
+				return expressionReportingErrors;
+			} else {
+				return new Region(
+					offsetOfScriptFragment()+expressionReportingErrors.getExprStart(),
+					expressionReportingErrors.getLength()
+				);
+			}
+		} else {
+			return null;
+		}
+	}
 
 	private final void handleExpressionCreated(boolean reportErrors, ExprElm root) throws ParsingException {
 		if (reportErrors) {
@@ -2793,7 +2814,7 @@ public class C4ScriptParser {
 			DropCharges,
 			PassThrough
 		}
-		WhatToDo markerEncountered(ParserErrorCode code, int markerStart, int markerEnd, boolean noThrow, int severity, Object... args);
+		WhatToDo markerEncountered(C4ScriptParser parser, ParserErrorCode code, int markerStart, int markerEnd, boolean noThrow, int severity, Object... args);
 	}
 	
 	private void reportExpressionsAndStatements(C4Function func, IScriptParserListener listener, ExpressionsAndStatementsReportingFlavour flavour) {
@@ -2855,7 +2876,7 @@ public class C4ScriptParser {
 				int markerStart, int markerEnd, boolean noThrow,
 				int severity, Object... args) throws ParsingException {
 			if (markerListener != null) {
-				if (markerListener.markerEncountered(code, markerStart+offsetOfScriptFragment(), markerEnd+offsetOfScriptFragment(), noThrow, severity, args) == WhatToDo.DropCharges)
+				if (markerListener.markerEncountered(this, code, markerStart+offsetOfScriptFragment(), markerEnd+offsetOfScriptFragment(), noThrow, severity, args) == WhatToDo.DropCharges)
 					return null;
 			}
 			return super.markerWithCode(code, markerStart, markerEnd, noThrow, severity, args);

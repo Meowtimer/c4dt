@@ -61,7 +61,7 @@ public class ClonkQuickAssistProcessor implements IQuickAssistProcessor, IMarker
 				e.printStackTrace();
 				return false;
 			}
-			if (ty.equals(ClonkCore.MARKER_C4SCRIPT_ERROR)) {
+			if (ty.equals(ClonkCore.MARKER_C4SCRIPT_ERROR) || ty.equals(ClonkCore.MARKER_C4SCRIPT_ERROR_WHILE_TYPING)) {
 				return true;
 			}
 		}
@@ -95,7 +95,7 @@ public class ClonkQuickAssistProcessor implements IQuickAssistProcessor, IMarker
 	private int semicolonAdd = 0;
 	
 	@Override
-	public WhatToDo markerEncountered(ParserErrorCode code, int markerStart, int markerEnd, boolean noThrow, int severity, Object... args) {
+	public WhatToDo markerEncountered(C4ScriptParser parser, ParserErrorCode code, int markerStart, int markerEnd, boolean noThrow, int severity, Object... args) {
 		if (code == ParserErrorCode.TokenExpected && args[0].equals(";")) { //$NON-NLS-1$
 			semicolonAdd = 1; // replace one more char (semicolon is there, just not in the substring denoted by the expressionRegion)
 			return WhatToDo.DropCharges;

@@ -323,7 +323,7 @@ public class IniUnit extends C4Structure implements Iterable<IniSection>, IHasCh
 	}
 	
 	public void marker(String markerType, ParserErrorCode error, int start, int end, int markerSeverity, Object... args) {
-		error.createMarker(iniFile, this, markerType, start, end, markerSeverity, args);
+		error.createMarker(iniFile, this, markerType, start, end, markerSeverity, null, args);
 	}
 	
 	public void marker(ParserErrorCode error, int start, int end, int markerSeverity, Object... args) {
