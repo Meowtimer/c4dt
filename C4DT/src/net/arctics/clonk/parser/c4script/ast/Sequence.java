@@ -101,4 +101,14 @@ public class Sequence extends Value {
 			return result.toArray(new Statement[result.size()]);
 		}
 	}
+	public Sequence sequenceWithElementsRemovedFrom(ExprElm elm) {
+		List<ExprElm> list = new ArrayList<ExprElm>(elements.length);
+		for (ExprElm e : elements) {
+			if (e == elm)
+				break;
+			else
+				list.add(e);
+		}
+		return list.size() > 0 ? new Sequence(list) : null;
+	}
 }

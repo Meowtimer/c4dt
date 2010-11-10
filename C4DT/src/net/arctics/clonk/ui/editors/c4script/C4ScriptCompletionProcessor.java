@@ -37,6 +37,7 @@ import net.arctics.clonk.ui.editors.ClonkCompletionProposal;
 import net.arctics.clonk.ui.editors.c4script.C4ScriptEditor.FuncCallInfo;
 import net.arctics.clonk.util.Utilities;
 
+import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.FileLocator;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.jface.bindings.TriggerSequence;
@@ -134,9 +135,11 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 	public C4ScriptCompletionProcessor(C4ScriptEditor editor, ContentAssistant assistant) {
 		super(editor);
 		this.assistant = assistant;
-		
-		assistant.setRepeatedInvocationTrigger(getIterationBinding());
-		assistant.addCompletionListener(new ClonkCompletionListener());
+
+		if (assistant != null) {
+			assistant.setRepeatedInvocationTrigger(getIterationBinding());
+			assistant.addCompletionListener(new ClonkCompletionListener());
+		}
 		
 	}
 
@@ -205,8 +208,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 		
 		if (activeFunc == null) {
 			proposalsOutsideOfFunction(viewer, offset, wordOffset, prefix, proposals, index);
-		}
-		else {
+		} else {
 			proposalsInsideOfFunction(offset, wordOffset, doc, prefix, proposals, index, activeFunc);
 		}
 		
@@ -236,54 +238,81 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 			final C4Function activeFunc) {
 		
 		C4ScriptBase editorScript = Utilities.getScriptForEditor(editor);
+		contextExpression = null;
+		internalProposalsInsideOfFunction(offset, wordOffset, doc, prefix, proposals,
+				index, activeFunc, editorScript, null);
+	}
+	
+	@Override
+	protected IFile pivotFile() {
+		if (editor != null) {
+			return super.pivotFile();
+		} else if (_currentEditorScript != null) {
+			return (IFile) _currentEditorScript.getScriptFile();
+		} else {
+			return null;
+		}
+	}
+	
+	// this is all messed up and hacky
+	private C4ScriptBase _currentEditorScript;
+
+	private void internalProposalsInsideOfFunction(int offset, int wordOffset,
+			IDocument doc, String prefix, List<ICompletionProposal> proposals,
+			ClonkIndex index, final C4Function activeFunc,
+			C4ScriptBase editorScript,
+			C4ScriptParser parser) {
 		List<C4ScriptBase> contextScripts = new LinkedList<C4ScriptBase>();
 		contextScripts.add(editorScript);
 		boolean contextScriptsChanged = false;
-		contextExpression = null;
+		_currentEditorScript = editorScript;
+		boolean specifiedParser = parser != null;
 		if (editorScript != null) {
 			final int preservedOffset = offset;
-			C4ScriptParser parser = C4ScriptParser.reportExpressionsAndStatementsWithSpecificFlavour(doc, activeFunc.getBody().getOffset(), offset, editorScript, activeFunc, new ScriptParserListener() {
-				public TraversalContinuation expressionDetected(ExprElm expression, C4ScriptParser parser) {
-					boolean isStatement = expression instanceof Statement;
-					if (isStatement) {
-						if (contextExpression != null && !contextExpression.containedIn(expression))
-							contextExpression = null;
-						if (contextExpression != null && expression instanceof IfStatement) {
-							IfStatement ifStatement = (IfStatement) expression;
-							if (
-								ifStatement.getElse() != null &&
-								contextExpression.containedIn(ifStatement.getBody()) &&
-								ifStatement.getElse().containsOffset(preservedOffset-activeFunc.getBody().getOffset())
-							) {
+			if (contextExpression == null && !specifiedParser) {
+				parser = C4ScriptParser.reportExpressionsAndStatementsWithSpecificFlavour(doc, activeFunc.getBody().getOffset(), offset, editorScript, activeFunc, new ScriptParserListener() {
+					public TraversalContinuation expressionDetected(ExprElm expression, C4ScriptParser parser) {
+						boolean isStatement = expression instanceof Statement;
+						if (isStatement) {
+							if (contextExpression != null && !contextExpression.containedIn(expression))
 								contextExpression = null;
-								contextTypeInformation = parser.copyCurrentTypeInformationList();
-								contextExpression2 = expression;
+							if (contextExpression != null && expression instanceof IfStatement) {
+								IfStatement ifStatement = (IfStatement) expression;
+								if (
+										ifStatement.getElse() != null &&
+										contextExpression.containedIn(ifStatement.getBody()) &&
+										ifStatement.getElse().containsOffset(preservedOffset-activeFunc.getBody().getOffset())
+								) {
+									contextExpression = null;
+									contextTypeInformation = parser.copyCurrentTypeInformationList();
+									contextExpression2 = expression;
+								}
 							}
 						}
+						if (
+								activeFunc.getBody().getOffset() + expression.getExprStart() <= preservedOffset &&
+								activeFunc.getBody().getOffset() + expression.getExprEnd()   <= preservedOffset
+						) {
+							if (!isStatement)
+								contextExpression = expression;
+							contextExpression2 = expression;
+							contextTypeInformation = parser.copyCurrentTypeInformationList();
+							return TraversalContinuation.Continue;
+						}
+						return TraversalContinuation.Cancel;
 					}
-					if (
-						activeFunc.getBody().getOffset() + expression.getExprStart() <= preservedOffset &&
-						activeFunc.getBody().getOffset() + expression.getExprEnd()   <= preservedOffset
-					) {
-						if (!isStatement)
-							contextExpression = expression;
-						contextExpression2 = expression;
-						contextTypeInformation = parser.copyCurrentTypeInformationList();
-						return TraversalContinuation.Continue;
+					@Override
+					public void endTypeInferenceBlock(List<IStoredTypeInformation> typeInfos) {
+
 					}
-					return TraversalContinuation.Cancel;
+				}, null, ExpressionsAndStatementsReportingFlavour.AlsoStatements);
+				if (contextTypeInformation != null) {
+					parser.pushTypeInformationList(contextTypeInformation);
+					parser.applyStoredTypeInformationList(true);
 				}
-				@Override
-				public void endTypeInferenceBlock(List<IStoredTypeInformation> typeInfos) {
-					
-				}
-			}, null, ExpressionsAndStatementsReportingFlavour.AlsoStatements);
-			if (contextTypeInformation != null) {
-				parser.pushTypeInformationList(contextTypeInformation);
-				parser.applyStoredTypeInformationList(true);
 			}
 			if (contextExpression != null) {
-				if (contextExpression.containsOffset(preservedOffset-activeFunc.getBody().getOffset())) {
+				if (specifiedParser || contextExpression.containsOffset(preservedOffset-activeFunc.getBody().getOffset())) {
 					IType guessedType = contextExpression.getType(parser);
 					for (IType t : guessedType) {
 						if (t instanceof C4Object) {
@@ -302,11 +331,11 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 		}
 		
 		if (contextExpression == null && proposalCycle == ProposalCycle.ALL) {
-			if (getEditor().scriptBeingEdited().getIndex().getEngine() != null) {
-				for (C4Function func : getEditor().scriptBeingEdited().getIndex().getEngine().functions()) {
-					proposalForFunc(func, prefix, offset, proposals, getEditor().scriptBeingEdited().getIndex().getEngine().getName(), true);
+			if (editorScript.getIndex().getEngine() != null) {
+				for (C4Function func : editorScript.getIndex().getEngine().functions()) {
+					proposalForFunc(func, prefix, offset, proposals, editorScript.getIndex().getEngine().getName(), true);
 				}
-				for (C4Variable var : getEditor().scriptBeingEdited().getIndex().getEngine().variables()) {
+				for (C4Variable var : editorScript.getIndex().getEngine().variables()) {
 					proposalForVar(var,prefix,offset,proposals);
 				}
 			}
@@ -348,6 +377,15 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 				proposals.add(prop);
 			}
 		}
+	}
+	
+	public static List<ICompletionProposal> compuateProposalsForExpression(ExprElm expression, C4Function function, C4ScriptParser parser, IDocument document) {
+		List<ICompletionProposal> result = new LinkedList<ICompletionProposal>();
+		C4ScriptCompletionProcessor processor = new C4ScriptCompletionProcessor(null, null);
+		ClonkIndex index = function.getScript().getIndex();
+		processor.contextExpression = expression;
+		processor.internalProposalsInsideOfFunction(expression != null ? expression.getExprEnd() : 0, 0, document, "", result, index, function, function.getScript(), parser);
+		return result;
 	}
 	
 	private String getFunctionScaffold(String functionName) {

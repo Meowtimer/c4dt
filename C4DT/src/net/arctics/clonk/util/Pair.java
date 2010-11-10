@@ -32,4 +32,13 @@ public class Pair<First, Second> implements Serializable {
 	public String toString() {
 		return "("+first.toString()+", "+second.toString()+")"; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 	}
+	@Override
+	public boolean equals(Object other) {
+		if (other instanceof Pair<?, ?>) {
+			Pair<?, ?> otherPair = (Pair<?, ?>) other;
+			return first.equals(otherPair.getFirst()) && second.equals(otherPair.getSecond());
+		} else {
+			return false;
+		}
+	}
 }

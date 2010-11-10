@@ -17,7 +17,9 @@ import net.arctics.clonk.parser.c4script.C4Type;
 import net.arctics.clonk.parser.c4script.C4TypeSet;
 import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
+import net.arctics.clonk.util.IConverter;
 import net.arctics.clonk.util.IPrintable;
+import net.arctics.clonk.util.Utilities;
 
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.Region;
@@ -58,8 +60,20 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable {
 	}
 
 	@Override
-	protected Object clone() throws CloneNotSupportedException {
-		return super.clone();
+	public Object clone() throws CloneNotSupportedException {
+		ExprElm clone = (ExprElm) super.clone();
+		ExprElm[] clonedElms = Utilities.map(getSubElements(), ExprElm.class, new IConverter<ExprElm, ExprElm>() {
+			@Override
+			public ExprElm convert(ExprElm from) {
+				try {
+					return (ExprElm) from.clone();
+				} catch (CloneNotSupportedException e) {
+					return null;
+				}
+			}
+		});
+		clone.setSubElements(clonedElms);
+		return clone;
 	}
 
 	public ExprElm getParent() {
@@ -458,6 +472,13 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable {
 		return this;
 	}
 	
+	private static final IDifferenceListener NULL_DIFFERENCE_LISTENER = new IDifferenceListener() {
+		@Override
+		public void differs(ExprElm a, ExprElm b, Object what) {
+			// the humanity
+		}
+	};
+	
 	public boolean compare(ExprElm other, IDifferenceListener listener) {
 		if (other.getClass() == this.getClass()) {
 			ExprElm[] mySubElements = this.getSubElements();
@@ -479,6 +500,14 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable {
 		else {
 			return false;
 		}
+	}
+	
+	@Override
+	public boolean equals(Object other) {
+		if (other.getClass() == this.getClass())
+			return compare((ExprElm) other, NULL_DIFFERENCE_LISTENER);
+		else
+			return false;
 	}
 	
 	protected Field field(String name) {

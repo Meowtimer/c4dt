@@ -6,6 +6,7 @@ import java.util.List;
 
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.BufferedScanner;
+import net.arctics.clonk.parser.C4Declaration;
 import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.c4script.C4Function;
 import net.arctics.clonk.parser.c4script.C4ScriptBase;
@@ -13,12 +14,14 @@ import net.arctics.clonk.parser.c4script.C4ScriptOperator;
 import net.arctics.clonk.parser.c4script.C4Type;
 import net.arctics.clonk.parser.c4script.C4ScriptParser.IMarkerListener;
 import net.arctics.clonk.parser.c4script.C4Variable.C4VariableScope;
+import net.arctics.clonk.parser.c4script.ast.AccessDeclaration;
 import net.arctics.clonk.parser.c4script.ast.AccessVar;
 import net.arctics.clonk.parser.c4script.ast.BinaryOp;
 import net.arctics.clonk.parser.c4script.ast.CallFunc;
 import net.arctics.clonk.parser.c4script.ast.Comment;
 import net.arctics.clonk.parser.c4script.ast.ExprElm;
 import net.arctics.clonk.parser.c4script.ast.ReturnStatement;
+import net.arctics.clonk.parser.c4script.ast.Sequence;
 import net.arctics.clonk.parser.c4script.ast.SimpleStatement;
 import net.arctics.clonk.parser.c4script.ast.Statement;
 import net.arctics.clonk.parser.c4script.ast.StringLiteral;
@@ -27,6 +30,7 @@ import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.ui.editors.ClonkCompletionProposal;
 import net.arctics.clonk.ui.editors.ClonkTextEditor;
 import net.arctics.clonk.util.Pair;
+import net.arctics.clonk.util.Utilities;
 
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.runtime.CoreException;
@@ -106,13 +110,22 @@ public class ClonkQuickAssistProcessor implements IQuickAssistProcessor, IMarker
 		return WhatToDo.PassThrough;
 	}
 	
-	private static class ReplacementsList extends LinkedList<Pair<String, ExprElm>> {
+	private static final class ReplacementsList extends LinkedList<Pair<String, ExprElm>> {
 		private static final long serialVersionUID = 1L;
-		public void add(String replacement, ExprElm elm) {
-			if (!(elm instanceof Statement)) {
+		public void add(String replacement, ExprElm elm, boolean alwaysStatement) {
+			if (alwaysStatement && !(elm instanceof Statement)) {
 				elm = new SimpleStatement(elm);
 			}
-			this.add(new Pair<String, ExprElm>(replacement, elm));
+			Pair<String, ExprElm> newOne = new Pair<String, ExprElm>(replacement, elm);
+			// don't add duplicates
+			for (Pair<String, ExprElm> existing : this) {
+				if (existing.equals(newOne))
+					return;
+			}
+			this.add(newOne);
+		}
+		public void add(String replacement, ExprElm elm) {
+			add(replacement, elm, true);
 		}
 	}
 	
@@ -138,7 +151,6 @@ public class ClonkQuickAssistProcessor implements IQuickAssistProcessor, IMarker
 		Statement topLevel = offendingExpression != null ? offendingExpression.containingStatementOrThis() : null;
 		if (offendingExpression == topLevel)
 			semicolonAdd = 0;
-		
 		
 		if (offendingExpression != null && topLevel != null) {
 			ReplacementsList replacements = new ReplacementsList();
@@ -176,6 +188,36 @@ public class ClonkQuickAssistProcessor implements IQuickAssistProcessor, IMarker
 						);
 					}
 				}
+				if (offendingExpression instanceof AccessDeclaration) {
+					AccessDeclaration accessDec = (AccessDeclaration) offendingExpression;
+					ExprElm expr;
+					if (offendingExpression.getParent() instanceof Sequence) {
+						Sequence sequence = (Sequence) offendingExpression.getParent();
+						expr = sequence.sequenceWithElementsRemovedFrom(offendingExpression); 
+					} else {
+						expr = null;
+					}
+					List<ICompletionProposal> possible = C4ScriptCompletionProcessor.compuateProposalsForExpression(
+							expr, func, parser, sourceViewer.getDocument()
+					);
+					for (ICompletionProposal p : possible) {
+						if (p instanceof ClonkCompletionProposal) {
+							ClonkCompletionProposal clonkProposal = (ClonkCompletionProposal) p;
+							C4Declaration dec = clonkProposal.getDeclaration();
+							if (dec == null)
+								continue;
+							int similarity = Utilities.getSimilarity(dec.getName(), accessDec.getDeclarationName());
+							System.out.println(dec.getName() + ": " + similarity);
+							if (similarity > 0) {
+								// always create AccessVar and set its region such that only the identifier part of the AccessDeclaration object
+								// will be replaced -> no unnecessary tidy-up of CallFunc parameters
+								AccessDeclaration repl = new AccessVar(dec.getName());
+								repl.setExprRegion(accessDec.getExprStart(), accessDec.getExprStart()+accessDec.getIdentifierLength());
+								replacements.add("Replace with " + dec.getName(), repl, false);
+							}
+						}
+					}
+				}
 				break;
 			case IncompatibleTypes:
 				if (C4Type.makeType(ParserErrorCode.getArg(marker, 0), true) == C4Type.STRING) {
@@ -211,16 +253,25 @@ public class ClonkQuickAssistProcessor implements IQuickAssistProcessor, IMarker
 				}
 				break;
 			}
+			
 			for (Pair<String, ExprElm> replacement : replacements) {
 				String replacementAsString;
 				try {
 					replacementAsString = replacement.getSecond().optimize(parser).toString(tabIndentation+1);
 				} catch (CloneNotSupportedException e) {
-					return;
+					break;
+				}
+				int offset = expressionRegion.getOffset();
+				int length;
+				if (!(replacement.getSecond() instanceof Statement)) {
+					offset += replacement.getSecond().getExprStart();
+					length = replacement.getSecond().getLength();
+				} else {
+					length = expressionRegion.getLength()+semicolonAdd;
 				}
 				proposals.add(new ClonkCompletionProposal(
 					null,
-					replacementAsString, expressionRegion.getOffset(), expressionRegion.getLength()+semicolonAdd,
+					replacementAsString, offset, length,
 					replacementAsString.length(),
 					null, replacement.getFirst(), null, null, null, editor
 				));

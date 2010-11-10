@@ -13,7 +13,7 @@ import net.arctics.clonk.parser.c4script.IType;
  * Baseclass for statements.
  *
  */
-public class Statement extends ExprElm {
+public class Statement extends ExprElm implements Cloneable {
 	
 	/**
 	 * 

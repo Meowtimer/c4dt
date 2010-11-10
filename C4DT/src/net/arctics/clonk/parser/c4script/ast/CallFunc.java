@@ -390,7 +390,7 @@ public class CallFunc extends AccessDeclaration {
 				}
 				
 			}
-			else if (declaration == null && getPredecessorInSequence() == null) {
+			else if (declaration == null && (getPredecessorInSequence() == null || getPredecessorInSequence().getType(context).specificness() > C4Type.ID.specificness())) {
 				if (declarationName.equals(Keywords.Inherited)) {
 					C4Function activeFunc = context.getActiveFunc();
 					if (activeFunc != null) {

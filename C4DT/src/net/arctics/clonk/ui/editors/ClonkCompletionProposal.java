@@ -106,6 +106,10 @@ public class ClonkCompletionProposal implements ICompletionProposal, ICompletion
 		this.postInfo = postInfo;
 		this.setEditor(editor);
 	}
+	
+	public C4Declaration getDeclaration() {
+		return declaration;
+	}
 
 	/*
 	 * @see ICompletionProposal#apply(IDocument)

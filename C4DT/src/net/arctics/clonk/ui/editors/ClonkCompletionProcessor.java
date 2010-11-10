@@ -9,6 +9,8 @@ import net.arctics.clonk.index.ClonkIndex;
 import net.arctics.clonk.parser.c4script.C4Function;
 import net.arctics.clonk.parser.c4script.C4Variable;
 import net.arctics.clonk.util.UI;
+
+import org.eclipse.core.resources.IFile;
 import org.eclipse.jface.text.contentassist.ICompletionProposal;
 import org.eclipse.jface.text.contentassist.IContentAssistProcessor;
 import org.eclipse.ui.IFileEditorInput;
@@ -63,8 +65,12 @@ public abstract class ClonkCompletionProcessor<EditorType extends ClonkTextEdito
 		}
 	}
 	
+	protected IFile pivotFile() {
+		return ((IFileEditorInput)editor.getEditorInput()).getFile();
+	}
+	
 	protected void proposalsForIndexedObjects(ClonkIndex index, int offset, int wordOffset, String prefix, Collection<ICompletionProposal> proposals) {
-		for (C4Object obj : index.objectsIgnoringRemoteDuplicates(((IFileEditorInput)editor.getEditorInput()).getFile())) {
+		for (C4Object obj : index.objectsIgnoringRemoteDuplicates(pivotFile())) {
 			proposalForObject(obj, prefix, wordOffset, proposals);
 		}
 	}

@@ -14,7 +14,7 @@ public abstract class AccessDeclaration extends Value {
 	 */
 	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 	protected transient C4Declaration declaration;
-	protected final String declarationName;
+	protected String declarationName;
 
 	public C4Declaration getDeclaration(C4ScriptParser parser) {
 		if (declaration == null) {
@@ -54,6 +54,10 @@ public abstract class AccessDeclaration extends Value {
 
 	public String getDeclarationName() {
 		return declarationName;
+	}
+	
+	public void setDeclarationName(String declarationName) {
+		this.declarationName = declarationName;
 	}
 
 	@Override

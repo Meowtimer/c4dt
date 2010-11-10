@@ -30,7 +30,6 @@ import net.arctics.clonk.preferences.ClonkPreferences;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.util.IStorageLocation;
 import net.arctics.clonk.util.ReadOnlyIterator;
-
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResourceChangeEvent;
 import org.eclipse.core.resources.IResourceChangeListener;
@@ -180,7 +179,8 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 	public List<String> getAvailableEngines() {
 		List<String> result = new LinkedList<String>();
 		// get built-in engine definitions
-		for (Enumeration<String> paths = getBundle().getEntryPaths("res/engines"); paths.hasMoreElements();) { //$NON-NLS-1$
+		for (@SuppressWarnings("unchecked")
+		Enumeration<String> paths = getBundle().getEntryPaths("res/engines"); paths.hasMoreElements();) { //$NON-NLS-1$
 			String engineName = engineNameFromPath(paths.nextElement());
 			if (engineName != null) {
 				result.add(engineName);
@@ -295,6 +295,7 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 			public OutputStream getOutputStream(URL storageURL) {
 				return null;
 			}
+			@SuppressWarnings("unchecked")
 			@Override
 			public Enumeration<URL> getURLs(String containerName) {
 				return ClonkCore.getDefault().getBundle().findEntries(String.format("res/engines/%s/%s", engineName, containerName), "*.*", false); //$NON-NLS-1$ //$NON-NLS-2$

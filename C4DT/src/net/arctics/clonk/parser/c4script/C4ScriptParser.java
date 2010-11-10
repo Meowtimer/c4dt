@@ -2900,7 +2900,8 @@ public class C4ScriptParser {
 	public static C4ScriptParser reportExpressionsAndStatementsWithSpecificFlavour(IDocument doc, final int statementStart, int statementEnd, C4ScriptBase context, C4Function func, IScriptParserListener listener, final IMarkerListener markerListener, ExpressionsAndStatementsReportingFlavour flavour) { 
 		String statements;
 		try {
-			statements = doc.get(statementStart, Math.min(statementEnd-statementStart, doc.getLength()-statementStart)); //$NON-NLS-1$
+			// totally important to add the ")". Makes completion proposals work. DO NOT REMOVE!1
+			statements = doc.get(statementStart, Math.min(statementEnd-statementStart, doc.getLength()-statementStart)) + ")"; //$NON-NLS-1$
 		} catch (BadLocationException e) {
 			statements = ""; // well... //$NON-NLS-1$
 		}
