@@ -488,9 +488,9 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable {
 		}
 	}
 	
-	public Statement containingStatement() {
+	public Statement containingStatementOrThis() {
 		ExprElm p;
-		for (p = getParent(); p != null && !(p instanceof Statement); p = p.getParent());
+		for (p = this; p != null && !(p instanceof Statement); p = p.getParent());
 		return (Statement)p;
 	}
 

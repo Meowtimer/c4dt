@@ -60,8 +60,7 @@ public enum ParserErrorCode {
 	InheritedDisabledInStrict0(Messages.InheritedDisabledInStrict0),
 	CallingMethodOnNonObject(Messages.CallingMethodOnNonObject),
 	NotAProplist(Messages.NotAProplist),
-	UnknownSection(Messages.UnknownSection),
-	StatementNotProperlyFinished("Statement not properly finished (forgot ';')?");
+	UnknownSection(Messages.UnknownSection);
 
 	public static final String MARKER_ERRORCODE = "c4ScriptErrorCode"; //$NON-NLS-1$
 	public static final String MARKER_EXPRESSIONSTART = "c4ScriptErrorExpressionStart"; //$NON-NLS-1$

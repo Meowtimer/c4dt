@@ -97,50 +97,50 @@ public class C4ScriptParser {
 	public static final int MAX_NUMVAR = 20;
 	public static final int UNKNOWN_PARAMETERNUM = MAX_PAR+1;
 	
-	private IScriptParserListener listener;
+	protected IScriptParserListener listener;
 
-	private BufferedScanner scanner;
-	private IFile scriptFile; // for project intern files
-	private C4ScriptBase container;
-	private C4Function activeFunc;
-	private C4Variable activeScriptScopeVariable;
-	private int strictLevel;
+	protected BufferedScanner scanner;
+	protected IFile scriptFile; // for project intern files
+	protected C4ScriptBase container;
+	protected C4Function activeFunc;
+	protected C4Variable activeScriptScopeVariable;
+	protected int strictLevel;
 	
 	// parse<Blub>() functions store their results in those
-	private C4ID parsedID;
-	private C4Variable parsedVariable;
-	private long parsedNumber;
-	private String parsedMemberOperator;
-	private String parsedString;
+	protected C4ID parsedID;
+	protected C4Variable parsedVariable;
+	protected long parsedNumber;
+	protected String parsedMemberOperator;
+	protected String parsedString;
 	
-	private int parseExpressionRecursion;
-	private int parseStatementRecursion;
+	protected int parseExpressionRecursion;
+	protected int parseStatementRecursion;
 	
 	/**
 	 * Whether the script contains an #appendto
 	 */
-	private boolean appendTo;
+	protected boolean appendTo;
 	/**
 	 * Whether to not create any error markers at all - set if script is contained in linked group
 	 */
-	private boolean allErrorsDisabled;
+	protected boolean allErrorsDisabled;
 	/**
 	 * Whether the script is an engine script
 	 */
-	private boolean isEngine;
+	protected boolean isEngine;
 	/**
 	 * Whether the current statement is not reached
 	 */
-	private boolean statementNotReached;
+	protected boolean statementNotReached;
 
-	private LoopType currentLoop;
-	private Comment lastComment;
+	protected LoopType currentLoop;
+	protected Comment lastComment;
 	
 	/**
 	 * Number of unnamed parameters used in activeFunc (Par(5) -> 6 unnamed parameters).
 	 * If a complex expression is passed to Par() this variable is set to UNKNOWN_PARAMETERNUM
 	 */
-	private int numUnnamedParameters;
+	protected int numUnnamedParameters;
 	
 	private Stack<List<IStoredTypeInformation>> storedTypeInformationListStack = new Stack<List<IStoredTypeInformation>>();
 	
@@ -1488,6 +1488,7 @@ public class C4ScriptParser {
 	}
 	
 	public ExprElm parseExpressionWithoutOperators(boolean reportErrors) throws ParsingException {
+		int beforeWhitespaceStart = scanner.getPosition();
 		this.eatWhitespace();
 		int sequenceStart = scanner.getPosition();
 		C4ScriptOperator preop = parseOperator();
@@ -1507,7 +1508,6 @@ public class C4ScriptParser {
 		Vector<ExprElm> elements = new Vector<ExprElm>(5);
 		ExprElm elm;
 		ExprElm prevElm = null;
-		boolean dontCheckForPostOp = false;
 		int noWhitespaceEating = sequenceStart;
 		boolean proper = true;
 		do {
@@ -1616,6 +1616,7 @@ public class C4ScriptParser {
 						// might be disabled
 						errorWithCode(ParserErrorCode.EmptyParentheses, parenthStartPos, scanner.getPosition()+1, true);
 					}
+					eatWhitespace();
 					c = scanner.read();
 					if (c == ')')
 						elm = new Parenthesized(firstExpr);
@@ -1667,21 +1668,21 @@ public class C4ScriptParser {
 		else if (elements.size() > 1) {
 			result = new Sequence(elements.toArray(new ExprElm[0]));
 		} else {
-			return null;
+			result = null;
 		}
-		result.setFinishedProperly(proper);
-		
-		result.setExprRegion(sequenceStart, scanner.getPosition());
-		if (result.getType(this) == null) {
-			errorWithCode(ParserErrorCode.InvalidExpression, result);
-		}
-		
-		if (!dontCheckForPostOp) {
-			this.eatWhitespace();
-			int saved = scanner.getPosition();
-			C4ScriptOperator postop = parseOperator();
-			if (postop != null) {
-				if (postop.isPostfix()) {
+		if (result != null) {
+			result.setFinishedProperly(proper);
+
+			result.setExprRegion(sequenceStart, scanner.getPosition());
+			if (result.getType(this) == null) {
+				errorWithCode(ParserErrorCode.InvalidExpression, result);
+			}
+
+			if (proper) {
+				int saved = scanner.getPosition();
+				this.eatWhitespace();
+				C4ScriptOperator postop = parseOperator();
+				if (postop != null && postop.isPostfix()) {
 					UnaryOp op = new UnaryOp(postop, UnaryOp.Placement.Postfix, result);
 					op.setExprRegion(result.getExprStart(), scanner.getPosition());
 					return op;
@@ -1690,10 +1691,17 @@ public class C4ScriptParser {
 					scanner.seek(saved);
 				}
 			}
+		} else {
+			scanner.seek(beforeWhitespaceStart);
 		}
+		
 		return result;
 		
 	}
+	
+	/*public String scriptRange(int s, int e) {
+		return scanner.stringAtRegion(new Region(s, e-s));
+	}*/
 
 	@SuppressWarnings("unchecked")
 	private ExprElm parsePropListExpression(boolean reportErrors, ExprElm prevElm) throws ParsingException {
@@ -1880,29 +1888,31 @@ public class C4ScriptParser {
 				this.eatWhitespace();
 				exprStart = scanner.getPosition();
 				for (int state = START; state != DONE;) {
-					this.eatWhitespace();
 					switch (state) {
 					case START:
 						root = parseExpressionWithoutOperators(reportErrors);
-						current = root;
-						state = current != null ? OPERATOR : DONE;
+						if (root == null || root.isFinishedProperly()) {
+							current = root;
+							state = current != null ? OPERATOR : DONE;
+						} else {
+							state = DONE;
+						}
 						break;
 					case OPERATOR:
-
+						int operatorStartPos = scanner.getPosition();
+						eatWhitespace();
 						// end of expression?
 						int c = scanner.read();
 						for (int i = 0; i < delimiters.length; i++) {
 							if (delimiters[i] == c) {
 								state = DONE;
-								scanner.unread();
+								scanner.seek(operatorStartPos);
 								break;
 							}
 						}
 
 						if (state != DONE) {
-							scanner.unread();
-
-							int operatorPos = scanner.getPosition();
+							scanner.unread(); // unread c
 							C4ScriptOperator op = parseOperator();
 							if (op != null && op.isBinary()) {
 								int priorOfNewOp = op.getPriority();
@@ -1924,10 +1934,10 @@ public class C4ScriptParser {
 									current = root = lastOp = new BinaryOp(op);
 								}
 								lastOp.setLeftSide(newLeftSide);
-								lastOp.setExprRegion(operatorPos, scanner.getPosition());
+								lastOp.setExprRegion(operatorStartPos, scanner.getPosition());
 								state = SECONDOPERAND;
 							} else {
-								scanner.seek(operatorPos); // in case there was an operator but not a binary one
+								scanner.seek(operatorStartPos); // in case there was an operator but not a binary one
 								state = DONE;
 							}
 						}
@@ -2174,10 +2184,16 @@ public class C4ScriptParser {
 				ExprElm expression = parseExpression();
 				if (expression != null) {
 					result = new SimpleStatement(expression);
-					if (expression.isFinishedProperly() && !options.contains(ParseStatementOption.InitializationStatement))
-						checkForSemicolon();
-					else
+					if (expression.isFinishedProperly() && !options.contains(ParseStatementOption.InitializationStatement)) {
+						int beforeWhitespace = scanner.getPosition();
+						eatWhitespace();
+						if (scanner.read() != ';') {
+							result.setFinishedProperly(false);
+							scanner.seek(beforeWhitespace);
+						}
+					} else {
 						scanner.seek(expression.getExprEnd());
+					}
 				}
 				else
 					result = null;
@@ -2191,6 +2207,14 @@ public class C4ScriptParser {
 					if (result instanceof SimpleStatement && ((SimpleStatement)result).getExpression() instanceof BinaryOp)
 						((BinaryOp)((SimpleStatement)result).getExpression()).checkTopLevelAssignment(this);
 				}
+				
+				// inline comment attached to expression so code reformatting does not mess up the user's code too much
+				Comment c = getCommentImmediatelyFollowing();
+				if (c != null)
+					result.setInlineComment(c);
+				if (emptyLines > 0)
+					result.addAttachment(new Statement.EmptyLinesAttachment(emptyLines));
+				
 				if (parseStatementRecursion == 1) {
 					if (listener != null) {
 						switch (listener.expressionDetected(result, this)) {
@@ -2199,13 +2223,6 @@ public class C4ScriptParser {
 						}
 					}
 				}
-				
-				// inline comment attached to expression so code reformatting does not mess up the user's code too much
-				Comment c = getCommentImmediatelyFollowing();
-				if (c != null)
-					result.setInlineComment(c);
-				if (emptyLines > 0)
-					result.addAttachment(new Statement.EmptyLinesAttachment(emptyLines));
 			}
 			return result;
 		} finally {
@@ -2886,7 +2903,7 @@ public class C4ScriptParser {
 	public static C4ScriptParser reportExpressionsAndStatementsWithSpecificFlavour(IDocument doc, final int statementStart, int statementEnd, C4ScriptBase context, C4Function func, IScriptParserListener listener, final IMarkerListener markerListener, ExpressionsAndStatementsReportingFlavour flavour) { 
 		String statements;
 		try {
-			statements = doc.get(statementStart, Math.min(statementEnd-statementStart, doc.getLength()-statementStart)) + ")"; //$NON-NLS-1$
+			statements = doc.get(statementStart, Math.min(statementEnd-statementStart, doc.getLength()-statementStart)); //$NON-NLS-1$
 		} catch (BadLocationException e) {
 			statements = ""; // well... //$NON-NLS-1$
 		}
@@ -2911,6 +2928,7 @@ public class C4ScriptParser {
 		tempParser.setListener(listener);
 		tempParser.setActiveFunc(context);
 		tempParser.beginTypeInferenceBlock();
+		tempParser.disableError(ParserErrorCode.NotFinished);
 		
 		List<Statement> statements = new LinkedList<Statement>();
 		Statement statement;

@@ -18,7 +18,7 @@ import net.arctics.clonk.parser.c4script.ast.BinaryOp;
 import net.arctics.clonk.parser.c4script.ast.CallFunc;
 import net.arctics.clonk.parser.c4script.ast.Comment;
 import net.arctics.clonk.parser.c4script.ast.ExprElm;
-import net.arctics.clonk.parser.c4script.ast.SimpleStatement;
+import net.arctics.clonk.parser.c4script.ast.Statement;
 import net.arctics.clonk.parser.c4script.ast.StringLiteral;
 import net.arctics.clonk.parser.c4script.ast.VarDeclarationStatement;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
@@ -104,6 +104,7 @@ public class ClonkQuickAssistProcessor implements IQuickAssistProcessor, IMarker
 	}
 	
 	private void collectProposals(ISourceViewer sourceViewer, MarkerAnnotation annotation, Position position, List<ICompletionProposal> proposals) {
+
 		IMarker marker = annotation.getMarker();
 		ParserErrorCode errorCode = ParserErrorCode.getErrorCode(marker);
 		IRegion expressionRegion = ParserErrorCode.getExpressionLocation(marker);
@@ -121,7 +122,10 @@ public class ClonkQuickAssistProcessor implements IQuickAssistProcessor, IMarker
 		semicolonAdd = 0;
 		C4ScriptParser parser = C4ScriptParser.reportExpressionsAndStatements(sourceViewer.getDocument(), expressionRegion, script, func, locator, this);
 		ExprElm offendingExpression = locator.getExprAtRegion();
-		ExprElm topLevel = offendingExpression != null ? offendingExpression.containingStatement() : null;
+		Statement topLevel = offendingExpression != null ? offendingExpression.containingStatementOrThis() : null;
+
+		if (offendingExpression == topLevel)
+			semicolonAdd = 0;
 		if (offendingExpression != null && topLevel != null) {
 			String msg = null;
 			boolean success = false;
@@ -132,13 +136,13 @@ public class ClonkQuickAssistProcessor implements IQuickAssistProcessor, IMarker
 				msg = Messages.ClonkQuickAssistProcessor_RemoveBrackets;
 				break;
 			case NeverReached: {
-				String s = offendingExpression.toString();
-				topLevel = new SimpleStatement(new Comment(offendingExpression.toString(), s.contains("\n"))); //$NON-NLS-1$
+				String s = topLevel.toString();
+				topLevel = new Comment(topLevel.toString(), s.contains("\n")); //$NON-NLS-1$
 				success = true;
 				msg = Messages.ClonkQuickAssistProcessor_CommentOutStatement;
 				break;
 			}
-			case StatementNotProperlyFinished:
+			case NotFinished:
 				msg = Messages.ClonkQuickAssistProcessor_AddMissingSemicolon; // will be added by converting topLevel to string
 				success = true;
 				semicolonAdd = 0; // it's really missing!

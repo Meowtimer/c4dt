@@ -442,13 +442,17 @@ public class BufferedScanner {
 	}
 
 	/**
-	 * Return the next-to-be-read char without modifiying the scanner position
+	 * Return the next-to-be-read char without modifying the scanner position
 	 * @return the next char
 	 */
 	public int peek() {
 		int p = read();
 		unread();
 		return p;
+	}
+	
+	public String stringAtRegion(IRegion region) {
+		return buffer.substring(region.getOffset(), region.getOffset()+region.getLength());
 	}
 	
 }

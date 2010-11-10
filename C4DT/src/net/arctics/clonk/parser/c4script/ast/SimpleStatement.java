@@ -22,6 +22,11 @@ public class SimpleStatement extends Statement {
 		return expression.isFinishedProperly();
 	}
 	
+	@Override
+	public void setFinishedProperly(boolean finishedProperly) {
+		expression.setFinishedProperly(finishedProperly);
+	}
+	
 	public SimpleStatement(ExprElm expression) {
 		super();
 		this.expression = expression;
@@ -84,7 +89,7 @@ public class SimpleStatement extends Statement {
 	@Override
 	public void reportErrors(C4ScriptParser parser) throws ParsingException {
 		if (!isFinishedProperly()) {
-			parser.errorWithCode(ParserErrorCode.StatementNotProperlyFinished, this, true);
+			parser.errorWithCode(ParserErrorCode.NotFinished, this, true);
 		}
 		super.reportErrors(parser);
 	}

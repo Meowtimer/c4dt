@@ -352,7 +352,9 @@ public class CallFunc extends AccessDeclaration {
 										return WhatToDo.DropCharges;
 									try {
 										// pass through to the 'real' script parser
-										context.markerWithCode(code, params[0].getExprStart()+1+markerStart, params[0].getExprStart()+1+markerEnd, true, severity, args);
+										if (!parser.errorDisabled(code)) {
+											context.markerWithCode(code, params[0].getExprStart()+1+markerStart, params[0].getExprStart()+1+markerEnd, true, severity, args);
+										}
 									} catch (ParsingException e) {
 										// shouldn't happen
 										e.printStackTrace();
