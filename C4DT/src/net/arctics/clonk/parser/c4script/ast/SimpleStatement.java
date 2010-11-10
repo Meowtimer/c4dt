@@ -91,6 +91,9 @@ public class SimpleStatement extends Statement {
 		if (!isFinishedProperly()) {
 			parser.errorWithCode(ParserErrorCode.NotFinished, this, true);
 		}
+		if (expression instanceof BinaryOp) {
+			((BinaryOp) expression).checkTopLevelAssignment(parser);
+		}
 		super.reportErrors(parser);
 	}
 

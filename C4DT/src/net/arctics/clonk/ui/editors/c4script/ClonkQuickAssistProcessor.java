@@ -18,12 +18,15 @@ import net.arctics.clonk.parser.c4script.ast.BinaryOp;
 import net.arctics.clonk.parser.c4script.ast.CallFunc;
 import net.arctics.clonk.parser.c4script.ast.Comment;
 import net.arctics.clonk.parser.c4script.ast.ExprElm;
+import net.arctics.clonk.parser.c4script.ast.ReturnStatement;
+import net.arctics.clonk.parser.c4script.ast.SimpleStatement;
 import net.arctics.clonk.parser.c4script.ast.Statement;
 import net.arctics.clonk.parser.c4script.ast.StringLiteral;
 import net.arctics.clonk.parser.c4script.ast.VarDeclarationStatement;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.ui.editors.ClonkCompletionProposal;
 import net.arctics.clonk.ui.editors.ClonkTextEditor;
+import net.arctics.clonk.util.Pair;
 
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.runtime.CoreException;
@@ -103,6 +106,16 @@ public class ClonkQuickAssistProcessor implements IQuickAssistProcessor, IMarker
 		return WhatToDo.PassThrough;
 	}
 	
+	private static class ReplacementsList extends LinkedList<Pair<String, ExprElm>> {
+		private static final long serialVersionUID = 1L;
+		public void add(String replacement, ExprElm elm) {
+			if (!(elm instanceof Statement)) {
+				elm = new SimpleStatement(elm);
+			}
+			this.add(new Pair<String, ExprElm>(replacement, elm));
+		}
+	}
+	
 	private void collectProposals(ISourceViewer sourceViewer, MarkerAnnotation annotation, Position position, List<ICompletionProposal> proposals) {
 
 		IMarker marker = annotation.getMarker();
@@ -123,28 +136,33 @@ public class ClonkQuickAssistProcessor implements IQuickAssistProcessor, IMarker
 		C4ScriptParser parser = C4ScriptParser.reportExpressionsAndStatements(sourceViewer.getDocument(), expressionRegion, script, func, locator, this);
 		ExprElm offendingExpression = locator.getExprAtRegion();
 		Statement topLevel = offendingExpression != null ? offendingExpression.containingStatementOrThis() : null;
-
 		if (offendingExpression == topLevel)
 			semicolonAdd = 0;
+		
+		
 		if (offendingExpression != null && topLevel != null) {
-			String msg = null;
-			boolean success = false;
+			ReplacementsList replacements = new ReplacementsList();
 			switch (errorCode) {
 			case VariableCalled:
 				assert(offendingExpression instanceof CallFunc);
-				topLevel.replaceSubElement(offendingExpression, new AccessVar(((CallFunc)offendingExpression).getDeclarationName()));
-				msg = Messages.ClonkQuickAssistProcessor_RemoveBrackets;
+				replacements.add(
+					Messages.ClonkQuickAssistProcessor_RemoveBrackets,
+					topLevel.replaceSubElement(offendingExpression, new AccessVar(((CallFunc)offendingExpression).getDeclarationName()))
+				);
 				break;
 			case NeverReached: {
 				String s = topLevel.toString();
-				topLevel = new Comment(topLevel.toString(), s.contains("\n")); //$NON-NLS-1$
-				success = true;
-				msg = Messages.ClonkQuickAssistProcessor_CommentOutStatement;
+				replacements.add(
+					Messages.ClonkQuickAssistProcessor_CommentOutStatement,
+					new Comment(topLevel.toString(), s.contains("\n")) //$NON-NLS-1$
+				);
 				break;
 			}
 			case NotFinished:
-				msg = Messages.ClonkQuickAssistProcessor_AddMissingSemicolon; // will be added by converting topLevel to string
-				success = true;
+				replacements.add(
+					Messages.ClonkQuickAssistProcessor_AddMissingSemicolon,
+					topLevel // will be added by converting topLevel to string
+				);
 				semicolonAdd = 0; // it's really missing!
 				break;
 			case UndeclaredIdentifier:
@@ -152,24 +170,51 @@ public class ClonkQuickAssistProcessor implements IQuickAssistProcessor, IMarker
 					AccessVar var = (AccessVar) offendingExpression;
 					BinaryOp op = (BinaryOp) offendingExpression.getParent();
 					if (topLevel == op.getParent() && op.getOperator() == C4ScriptOperator.Assign && op.getLeftSide() == offendingExpression) {
-						topLevel = new VarDeclarationStatement(var.getDeclarationName(), op.getRightSide(), C4VariableScope.VAR);
-						success = true;
-						msg = Messages.ClonkQuickAssistProcessor_ConvertToVarDeclaration;
+						replacements.add(
+							Messages.ClonkQuickAssistProcessor_ConvertToVarDeclaration,
+							new VarDeclarationStatement(var.getDeclarationName(), op.getRightSide(), C4VariableScope.VAR)
+						);
 					}
 				}
 				break;
 			case IncompatibleTypes:
 				if (C4Type.makeType(ParserErrorCode.getArg(marker, 0), true) == C4Type.STRING) {
-					msg = Messages.ClonkQuickAssistProcessor_QuoteExpression;
-					success = true;
-					offendingExpression.getParent().replaceSubElement(offendingExpression, new StringLiteral(offendingExpression.toString()));
+					replacements.add(
+						Messages.ClonkQuickAssistProcessor_QuoteExpression,
+						offendingExpression.getParent().replaceSubElement(offendingExpression, new StringLiteral(offendingExpression.toString()))
+					);
+				}
+				break;
+			case NoSideEffects:
+				if (topLevel instanceof SimpleStatement) {
+					SimpleStatement statement = (SimpleStatement) topLevel;
+					replacements.add(
+						Messages.ClonkQuickAssistProcessor_ConvertToReturn,
+						new ReturnStatement((statement.getExpression()))
+					);
+				}
+				break;
+			case NoAssignment:
+				if (topLevel instanceof SimpleStatement) {
+					SimpleStatement statement = (SimpleStatement) topLevel;
+					
+					if (statement.getExpression() instanceof BinaryOp) {
+						BinaryOp binaryOp = (BinaryOp) statement.getExpression();
+						if (binaryOp.getOperator() == C4ScriptOperator.Equal && binaryOp.getLeftSide().modifiable(parser)) {
+							replacements.add(
+								Messages.ClonkQuickAssistProcessor_ConvertComparisonToAssignment,
+								// FIXME: reusing original operands so be careful when continuing to use original expression
+								new BinaryOp(C4ScriptOperator.Assign, binaryOp.getLeftSide(), binaryOp.getRightSide())
+							);
+						}
+					}
 				}
 				break;
 			}
-			if (success) {
+			for (Pair<String, ExprElm> replacement : replacements) {
 				String replacementAsString;
 				try {
-					replacementAsString = topLevel.optimize(parser).toString(tabIndentation+1);
+					replacementAsString = replacement.getSecond().optimize(parser).toString(tabIndentation+1);
 				} catch (CloneNotSupportedException e) {
 					return;
 				}
@@ -177,7 +222,7 @@ public class ClonkQuickAssistProcessor implements IQuickAssistProcessor, IMarker
 					null,
 					replacementAsString, expressionRegion.getOffset(), expressionRegion.getLength()+semicolonAdd,
 					replacementAsString.length(),
-					null, msg, null, null, null, editor
+					null, replacement.getFirst(), null, null, null, editor
 				));
 			}
 		}

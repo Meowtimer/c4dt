@@ -20,6 +20,8 @@ public class Messages extends NLS {
 	public static String C4ScriptSourceViewerConfiguration_PressTabOrClick;
 	public static String ClonkQuickAssistProcessor_AddMissingSemicolon;
 	public static String ClonkQuickAssistProcessor_CommentOutStatement;
+	public static String ClonkQuickAssistProcessor_ConvertComparisonToAssignment;
+	public static String ClonkQuickAssistProcessor_ConvertToReturn;
 	public static String ClonkQuickAssistProcessor_ConvertToVarDeclaration;
 	public static String ClonkQuickAssistProcessor_FailedToFix;
 	public static String ClonkQuickAssistProcessor_QuoteExpression;

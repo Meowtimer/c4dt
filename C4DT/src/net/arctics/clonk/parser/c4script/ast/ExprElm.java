@@ -439,7 +439,7 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable {
 		return parser.getContainer().getIndex().getEngine().getCachedFuncs();
 	}
 	
-	public void replaceSubElement(ExprElm element, ExprElm with) {
+	public ExprElm replaceSubElement(ExprElm element, ExprElm with) {
 		ExprElm[] subElms = getSubElements();
 		ExprElm[] newSubElms = new ExprElm[subElms.length];
 		boolean differentSubElms = false;
@@ -455,6 +455,7 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable {
 		else {
 			throw new InvalidParameterException("element must actually be a subelement of this");
 		}
+		return this;
 	}
 	
 	public boolean compare(ExprElm other, IDifferenceListener listener) {

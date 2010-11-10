@@ -400,7 +400,7 @@ public class C4ScriptParser {
 			strictLevel = container.getStrictLevel();
 			int offset = 0;
 			scanner.seek(offset);
-			disableError(ParserErrorCode.StringNotClosed); // just one time error when parsing function code
+			enableError(ParserErrorCode.StringNotClosed, false); // just one time error when parsing function code
 			try {
 				eatWhitespace();
 				while(!scanner.reachedEOF()) {
@@ -418,7 +418,7 @@ public class C4ScriptParser {
 			catch (ParsingException e) {
 				return;
 			}
-			enableError(ParserErrorCode.StringNotClosed);
+			enableError(ParserErrorCode.StringNotClosed, true);
 			container.setDirty(false);
 		}
 	}
@@ -1344,12 +1344,11 @@ public class C4ScriptParser {
 	
 	private Set<ParserErrorCode> disabledErrors = new HashSet<ParserErrorCode>();
 	
-	private void disableError(ParserErrorCode error) {
-		disabledErrors.add(error);
-	}
-	
-	private void enableError(ParserErrorCode error) {
-		disabledErrors.remove(error);
+	private void enableError(ParserErrorCode error, boolean doEnable) {
+		if (doEnable)
+			disabledErrors.remove(error);
+		else
+			disabledErrors.add(error);
 	}
 	
 	public boolean errorDisabled(ParserErrorCode error) {
@@ -2202,11 +2201,6 @@ public class C4ScriptParser {
 			if (result != null) {
 				result.setExprRegion(start, scanner.getPosition());
 				reportErrorsOf(result);
-				if (!options.contains(ParseStatementOption.InitializationStatement)) {
-					result.warnIfNoSideEffects(this);
-					if (result instanceof SimpleStatement && ((SimpleStatement)result).getExpression() instanceof BinaryOp)
-						((BinaryOp)((SimpleStatement)result).getExpression()).checkTopLevelAssignment(this);
-				}
 				
 				// inline comment attached to expression so code reformatting does not mess up the user's code too much
 				Comment c = getCommentImmediatelyFollowing();
@@ -2391,16 +2385,16 @@ public class C4ScriptParser {
 		}
 		else {
 			scanner.unread();
-			disableError(ParserErrorCode.TuplesNotAllowed);
+			enableError(ParserErrorCode.TuplesNotAllowed, false);
 			if (getStrictLevel() < 2)
-				disableError(ParserErrorCode.EmptyParentheses);
+				enableError(ParserErrorCode.EmptyParentheses, false);
 			returnExpr = parseExpression();
 			if (returnExpr == null) {
-				errorWithCode(ParserErrorCode.ValueExpected, scanner.getPosition() - 1, scanner.getPosition());				
+				errorWithCode(ParserErrorCode.ValueExpected, scanner.getPosition(), scanner.getPosition()+1);				
 			}
 			warnAboutTupleInReturnExpr(returnExpr, false);
-			enableError(ParserErrorCode.TuplesNotAllowed);
-			enableError(ParserErrorCode.EmptyParentheses);
+			enableError(ParserErrorCode.TuplesNotAllowed, true);
+			enableError(ParserErrorCode.EmptyParentheses, true);
 		}
 		result = new ReturnStatement(returnExpr);
 		checkForSemicolon();
@@ -2466,7 +2460,10 @@ public class C4ScriptParser {
 				scanner.seek(pos);
 			}
 			if (w == null) {
+				boolean noSideEffectsWasEnabled = errorDisabled(ParserErrorCode.NoSideEffects);
+				enableError(ParserErrorCode.NoSideEffects, false);
 				initialization = parseStatement(EnumSet.of(ParseStatementOption.InitializationStatement));
+				enableError(ParserErrorCode.NoSideEffects, noSideEffectsWasEnabled);
 				if (initialization == null) {
 					errorWithCode(ParserErrorCode.ExpectedCode, scanner.getPosition(), scanner.getPosition()+1);
 				}
@@ -2838,10 +2835,10 @@ public class C4ScriptParser {
 		activeFunc = func;
 		setListener(listener);
 		strictLevel = getContainer().getStrictLevel();
-		disableError(ParserErrorCode.TokenExpected);
-		disableError(ParserErrorCode.InvalidExpression);
-		disableError(ParserErrorCode.BlockNotClosed);
-		disableError(ParserErrorCode.NotAllowedHere);
+		enableError(ParserErrorCode.TokenExpected, false);
+		enableError(ParserErrorCode.InvalidExpression, false);
+		enableError(ParserErrorCode.BlockNotClosed, false);
+		enableError(ParserErrorCode.NotAllowedHere, false);
 		try {
 			EnumSet<ParseStatementOption> options = EnumSet.of(ParseStatementOption.ExpectFuncDesc);
 			beginTypeInferenceBlock();
@@ -2928,7 +2925,7 @@ public class C4ScriptParser {
 		tempParser.setListener(listener);
 		tempParser.setActiveFunc(context);
 		tempParser.beginTypeInferenceBlock();
-		tempParser.disableError(ParserErrorCode.NotFinished);
+		tempParser.enableError(ParserErrorCode.NotFinished, false);
 		
 		List<Statement> statements = new LinkedList<Statement>();
 		Statement statement;

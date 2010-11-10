@@ -95,6 +95,7 @@ public class Statement extends ExprElm {
 	@Override
 	public void reportErrors(C4ScriptParser parser) throws ParsingException {
 		super.reportErrors(parser);
+		warnIfNoSideEffects(parser);
 		if (parser.isStatementNotReached())
 			parser.warningWithCode(ParserErrorCode.NeverReached, this);
 		//			for (ExprElm elm : getSubElements())
