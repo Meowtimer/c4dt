@@ -2001,6 +2001,19 @@ public class C4ScriptParser {
 		}
 	}
 	
+	private void reportErrorsWithErrorDisabled(ExprElm expression, ParserErrorCode code) throws ParsingException {
+		ExprElm saved = expressionReportingErrors;
+		expressionReportingErrors = expression;
+		boolean wasDisabled = errorDisabled(code);
+		enableError(code, false);
+		try {
+			expression.reportErrors(this);
+		} finally {
+			expressionReportingErrors = saved;
+			enableError(code, !wasDisabled);
+		}
+	}
+	
 	private static final char[] SEMICOLON_DELIMITER = new char[] { ';' };
 	private static final char[] COMMA_OR_CLOSE_BRACKET = new char[] { ',', ']' };
 	private static final char[] COMMA_OR_CLOSE_BLOCK = new char[] { ',', '}' };
@@ -2453,7 +2466,7 @@ public class C4ScriptParser {
 					handleExpressionCreated(true, accessVar);
 					initialization = new SimpleStatement(accessVar);
 					initialization.setExprRegion(pos, pos+varName.length());
-					reportErrorsOf(initialization);
+					reportErrorsWithErrorDisabled(initialization, ParserErrorCode.NoSideEffects);
 				}
 			}
 			else {
