@@ -1115,23 +1115,6 @@ public class C4ScriptParser {
 	private boolean looksLikeVarDeclaration(String word) {
 		return word.equals(Keywords.GlobalNamed) || word.equals(Keywords.LocalNamed);
 	}
-
-	private void warnAboutTupleInReturnExpr(ExprElm expr, boolean tupleIsError) throws ParsingException {
-		if (expr == null)
-			return;
-		if (expr instanceof Tuple) {
-			if (tupleIsError) {
-				errorWithCode(ParserErrorCode.TuplesNotAllowed, expr);
-			} else {
-				if (getStrictLevel() >= 2)
-					errorWithCode(ParserErrorCode.ReturnAsFunction, expr, true);
-			}
-		}
-		ExprElm[] subElms = expr.getSubElements();
-		for (ExprElm e : subElms) {
-			warnAboutTupleInReturnExpr(e, true);
-		}
-	}
 	
 	private boolean parseHexNumber() throws ParsingException {
 		int offset = scanner.getPosition();
@@ -2405,7 +2388,6 @@ public class C4ScriptParser {
 			if (returnExpr == null) {
 				errorWithCode(ParserErrorCode.ValueExpected, scanner.getPosition(), scanner.getPosition()+1);				
 			}
-			warnAboutTupleInReturnExpr(returnExpr, false);
 			enableError(ParserErrorCode.TuplesNotAllowed, true);
 			enableError(ParserErrorCode.EmptyParentheses, true);
 		}

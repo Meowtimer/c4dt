@@ -24,6 +24,7 @@ public class ReturnStatement extends KeywordStatement {
 	public ReturnStatement(ExprElm returnExpr) {
 		super();
 		this.returnExpr = returnExpr;
+		assignParentToSubElements();
 	}
 
 	@Override
@@ -90,8 +91,26 @@ public class ReturnStatement extends KeywordStatement {
 		return super.optimize(parser);
 	}
 
+	private void warnAboutTupleInReturnExpr(C4ScriptParser parser, ExprElm expr, boolean tupleIsError) throws ParsingException {
+		if (expr == null)
+			return;
+		if (expr instanceof Tuple) {
+			if (tupleIsError) {
+				parser.errorWithCode(ParserErrorCode.TuplesNotAllowed, expr);
+			} else {
+				if (parser.getStrictLevel() >= 2)
+					parser.errorWithCode(ParserErrorCode.ReturnAsFunction, expr, true);
+			}
+		}
+		ExprElm[] subElms = expr.getSubElements();
+		for (ExprElm e : subElms) {
+			warnAboutTupleInReturnExpr(parser, e, true);
+		}
+	}
+	
 	@Override
 	public void reportErrors(C4ScriptParser parser) throws ParsingException {
+		warnAboutTupleInReturnExpr(parser, returnExpr, false);
 		C4Function activeFunc = parser.getActiveFunc();
 		if (activeFunc == null) {
 			parser.errorWithCode(ParserErrorCode.NotAllowedHere, this, true, Keywords.Return);
