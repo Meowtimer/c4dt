@@ -64,4 +64,9 @@ public class ClonkPreferences {
 		return getPreferenceOrDefault(PREFERRED_LANGID);
 	}
 	
+	public static String getLanguagePrefForDocumentation() {
+		String pref = getLanguagePref();
+		return pref.equals("DE") ? "de" : "en";
+	}
+	
 }

@@ -65,11 +65,12 @@ public class ClonkHyperlink implements IHyperlink {
 		else {
 			browser = support.getExternalBrowser();
 		}
-		if (browser != null)
+		if (browser != null) {
 			browser.openURL(new URL(String.format(
 				docURLTemplate,
 				functionName, ClonkPreferences.getLanguagePref().toLowerCase()
 			)));
+		}
 	}
 
 	public IRegion getRegion() {

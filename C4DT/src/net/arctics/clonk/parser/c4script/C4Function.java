@@ -260,7 +260,7 @@ public class C4Function extends C4Structure implements Serializable, ITypedDecla
 
 	public static String getDocumentationURL(String functionName, C4Engine engine) {
 		String docURLTemplate = engine.getCurrentSettings().docURLTemplate;
-		return String.format(docURLTemplate, functionName, ClonkPreferences.getLanguagePref().toLowerCase());
+		return String.format(docURLTemplate, functionName, ClonkPreferences.getLanguagePrefForDocumentation());
 	}
 	
 	// to be called on engine functions
