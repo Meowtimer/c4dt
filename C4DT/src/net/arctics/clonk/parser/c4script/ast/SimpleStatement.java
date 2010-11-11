@@ -82,7 +82,7 @@ public class SimpleStatement extends Statement {
 		return expression.evaluate(context);
 	}
 	
-	public static Statement statementFromExpression(ExprElm expr) {
+	public static Statement wrapExpression(ExprElm expr) {
 		return expr instanceof Statement ? (Statement)expr : new SimpleStatement(expr);
 	}
 	
@@ -95,6 +95,14 @@ public class SimpleStatement extends Statement {
 			((BinaryOp) expression).checkTopLevelAssignment(parser);
 		}
 		super.reportErrors(parser);
+	}
+	
+	public static Statement[] wrapExpressions(ExprElm... expressions) {
+		Statement[] result = new Statement[expressions.length];
+		for (int i = 0; i < expressions.length; i++) {
+			result[i] = wrapExpression(expressions[i]);
+		}
+		return result;
 	}
 
 }

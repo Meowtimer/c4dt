@@ -27,20 +27,10 @@ public class Block extends Statement {
 		this.statements = statements;
 		assignParentToSubElements();
 	}
-
-	private static final Statement[] getStatementsFromExpression(ExprElm... expressions) {
-		Statement[] result = new Statement[expressions.length];
-		int i = 0;
-		for (ExprElm ex : expressions) {
-			result[i++] = ex instanceof Statement ? (Statement)ex : new SimpleStatement(ex);
-		}
-		return result;
-		
-	}
 	
 	// helper constructor that wraps expressions in statement if necessary
 	public Block(ExprElm... expressions) {
-		this(getStatementsFromExpression(expressions));
+		this(SimpleStatement.wrapExpressions(expressions));
 	}
 	
 	public Statement[] getStatements() {

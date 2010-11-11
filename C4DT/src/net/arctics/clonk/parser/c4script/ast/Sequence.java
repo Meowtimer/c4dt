@@ -88,16 +88,16 @@ public class Sequence extends Value {
 		ExprElm p = null;
 		for (ExprElm e : elements) {
 			if (!e.isValidInSequence(p, parser)) {
-				result.add(SimpleStatement.statementFromExpression(new Sequence(currentSequenceExpressions)));
+				result.add(SimpleStatement.wrapExpression(new Sequence(currentSequenceExpressions)));
 				currentSequenceExpressions.clear();
 			}
 			currentSequenceExpressions.add(e);
 			p = e;
 		}
 		if (result.size() == 0) {
-			return new Statement[] {SimpleStatement.statementFromExpression(this)};
+			return new Statement[] {SimpleStatement.wrapExpression(this)};
 		} else {
-			result.add(SimpleStatement.statementFromExpression(new Sequence(currentSequenceExpressions)));
+			result.add(SimpleStatement.wrapExpression(new Sequence(currentSequenceExpressions)));
 			return result.toArray(new Statement[result.size()]);
 		}
 	}
