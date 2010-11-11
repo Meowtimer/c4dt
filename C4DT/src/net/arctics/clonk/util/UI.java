@@ -9,6 +9,8 @@ import net.arctics.clonk.parser.c4script.C4Variable;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.FileLocator;
 import org.eclipse.core.runtime.Path;
+import org.eclipse.jface.dialogs.IInputValidator;
+import org.eclipse.jface.dialogs.InputDialog;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.resource.ImageRegistry;
@@ -148,4 +150,17 @@ public abstract class UI {
 		);
 	}
 	
+	public static String input(Shell shell, String title, String prompt, String defaultValue, IInputValidator validator) {
+		InputDialog newNameDialog = new InputDialog(shell, title, prompt, defaultValue, validator);
+		switch (newNameDialog.open()) {
+		case InputDialog.CANCEL:
+			return null;
+		}
+		return newNameDialog.getValue();
+	}
+	
+	public static String input(Shell shell, String title, String prompt, String defaultValue) {
+		return input(shell, title, prompt, defaultValue, null);
+	}
+
 }

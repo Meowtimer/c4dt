@@ -8,11 +8,12 @@ import net.arctics.clonk.parser.C4Declaration;
 import net.arctics.clonk.refactoring.ClonkRenameDeclarationProcessor;
 import net.arctics.clonk.ui.editors.EditorUtil;
 import net.arctics.clonk.ui.editors.IClonkCommandIds;
+import net.arctics.clonk.util.UI;
+
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.dialogs.ErrorDialog;
-import org.eclipse.jface.dialogs.InputDialog;
 import org.eclipse.jface.dialogs.ProgressMonitorDialog;
 import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.ltk.core.refactoring.CheckConditionsOperation;
@@ -52,12 +53,9 @@ public class RenameDeclarationAction extends OpenDeclarationAction {
 		try {
 			C4Declaration fieldToRename = getDeclarationAtSelection();
 			if (fieldToRename != null) {
-				InputDialog newNameDialog = new InputDialog(getTextEditor().getSite().getWorkbenchWindow().getShell(), Messages.RenameDeclarationAction_RenameDeclaration, Messages.RenameDeclarationAction_SpecifyNewName, fieldToRename.getName(), null);
-				switch (newNameDialog.open()) {
-				case InputDialog.CANCEL:
+				String newName = UI.input(getTextEditor().getSite().getWorkbenchWindow().getShell(), Messages.RenameDeclarationAction_RenameDeclaration, Messages.RenameDeclarationAction_SpecifyNewName, fieldToRename.getName());
+				if (newName == null)
 					return;
-				}
-				String newName = newNameDialog.getValue();
 				RenameRefactoring refactoring = new RenameRefactoring(new ClonkRenameDeclarationProcessor(fieldToRename, newName));
 				CheckConditionsOperation checkConditions = new CheckConditionsOperation(refactoring, CheckConditionsOperation.ALL_CONDITIONS);
 				CreateChangeOperation createChange = new CreateChangeOperation(checkConditions, RefactoringStatus.FATAL);
