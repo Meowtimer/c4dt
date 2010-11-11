@@ -222,12 +222,11 @@ public class ClonkQuickAssistProcessor implements IQuickAssistProcessor, IMarker
 							if (dec == null)
 								continue;
 							int similarity = Utilities.getSimilarity(dec.getName(), accessDec.getDeclarationName());
-							System.out.println(dec.getName() + ": " + similarity);
 							if (similarity > 0) {
 								// always create AccessVar and set its region such that only the identifier part of the AccessDeclaration object
 								// will be replaced -> no unnecessary tidy-up of CallFunc parameters
 								ExprElm repl = identifierReplacement(accessDec, dec.getName());
-								replacements.add("Replace with " + dec.getName(), repl, false);
+								replacements.add(String.format(Messages.ClonkQuickAssistProcessor_ReplaceWith, dec.getName()), repl, false);
 							}
 						}
 					}
@@ -270,7 +269,7 @@ public class ClonkQuickAssistProcessor implements IQuickAssistProcessor, IMarker
 				if (offendingExpression instanceof CallFunc && ((CallFunc)offendingExpression).getDeclarationName().equals(Keywords.Inherited)) {
 					
 					replacements.add(
-							String.format("Use %s instead of %s", Keywords.SafeInherited, Keywords.Inherited),
+							String.format(Messages.ClonkQuickAssistProcessor_UseInsteadOf, Keywords.SafeInherited, Keywords.Inherited),
 							identifierReplacement((AccessDeclaration) offendingExpression, Keywords.SafeInherited),
 							false
 					);

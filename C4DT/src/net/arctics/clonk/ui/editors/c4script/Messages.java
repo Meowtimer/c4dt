@@ -26,6 +26,8 @@ public class Messages extends NLS {
 	public static String ClonkQuickAssistProcessor_FailedToFix;
 	public static String ClonkQuickAssistProcessor_QuoteExpression;
 	public static String ClonkQuickAssistProcessor_RemoveBrackets;
+	public static String ClonkQuickAssistProcessor_ReplaceWith;
+	public static String ClonkQuickAssistProcessor_UseInsteadOf;
 	static {
 		// initialize resource bundle
 		NLS.initializeMessages(BUNDLE_NAME, Messages.class);
