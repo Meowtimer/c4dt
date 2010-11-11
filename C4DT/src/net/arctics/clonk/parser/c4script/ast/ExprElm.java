@@ -54,9 +54,28 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable {
 	}
 
 	protected void assignParentToSubElements() {
-		for (ExprElm e : getSubElements())
-			if (e != null)
+		// cheap man's solution to the mutability-of-exprelms problem:
+		// Clone sub elements if they look like they might belong to some other parent
+		ExprElm[] subElms = getSubElements();
+		boolean modified = false;
+		for (int i = 0; i < subElms.length; i++) {
+			ExprElm e = subElms[i];
+			if (e != null) {
+				if (e.getParent() != null && e.getParent() != this) {
+					modified = true;
+					try {
+						System.out.println("Cloning " + e.toString());
+						subElms[i] = e = (ExprElm) e.clone();
+					} catch (CloneNotSupportedException cloneFail) {
+						cloneFail.printStackTrace();
+					}
+				}
 				e.setParent(this);
+			}
+		}
+		if (modified) {
+			setSubElements(subElms);
+		}
 	}
 
 	@Override
@@ -65,9 +84,13 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable {
 		ExprElm[] clonedElms = Utilities.map(getSubElements(), ExprElm.class, new IConverter<ExprElm, ExprElm>() {
 			@Override
 			public ExprElm convert(ExprElm from) {
+				if (from == null) {
+					return null;
+				}
 				try {
 					return (ExprElm) from.clone();
 				} catch (CloneNotSupportedException e) {
+					e.printStackTrace();
 					return null;
 				}
 			}
