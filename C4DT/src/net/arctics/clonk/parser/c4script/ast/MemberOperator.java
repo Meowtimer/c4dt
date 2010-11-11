@@ -122,5 +122,9 @@ public class MemberOperator extends ExprElm {
 		}
 		return true;
 	}
+	
+	public boolean hasTilde() {
+		return hasTilde;
+	}
 
 }

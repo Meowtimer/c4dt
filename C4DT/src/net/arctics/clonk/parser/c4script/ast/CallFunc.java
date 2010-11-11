@@ -268,6 +268,17 @@ public class CallFunc extends AccessDeclaration {
 		}
 		return null;
 	}
+	private boolean unknownFunctionShouldBeError(C4ScriptParser parser) {
+		ExprElm pred = getPredecessorInSequence();
+		if (pred == null)
+			return true;
+		if (pred.getType(parser).specificness() <= C4Type.ID.specificness())
+			return false;
+		if (pred instanceof MemberOperator) {
+			return !((MemberOperator)pred).hasTilde();
+		}
+		return true;
+	}
 	@Override
 	public void reportErrors(final C4ScriptParser context) throws ParsingException {
 		super.reportErrors(context);
@@ -390,7 +401,7 @@ public class CallFunc extends AccessDeclaration {
 				}
 				
 			}
-			else if (declaration == null && (getPredecessorInSequence() == null || getPredecessorInSequence().getType(context).specificness() > C4Type.ID.specificness())) {
+			else if (declaration == null && unknownFunctionShouldBeError(context)) {
 				if (declarationName.equals(Keywords.Inherited)) {
 					C4Function activeFunc = context.getActiveFunc();
 					if (activeFunc != null) {
