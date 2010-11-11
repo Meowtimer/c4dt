@@ -12,6 +12,7 @@ import net.arctics.clonk.parser.c4script.C4Function;
 import net.arctics.clonk.parser.c4script.C4ScriptBase;
 import net.arctics.clonk.parser.c4script.C4ScriptOperator;
 import net.arctics.clonk.parser.c4script.C4Type;
+import net.arctics.clonk.parser.c4script.Keywords;
 import net.arctics.clonk.parser.c4script.C4ScriptParser.IMarkerListener;
 import net.arctics.clonk.parser.c4script.C4Variable.C4VariableScope;
 import net.arctics.clonk.parser.c4script.ast.AccessDeclaration;
@@ -112,9 +113,17 @@ public class ClonkQuickAssistProcessor implements IQuickAssistProcessor, IMarker
 	
 	private static final class ReplacementsList extends LinkedList<Pair<String, ExprElm>> {
 		private static final long serialVersionUID = 1L;
+		private ExprElm offending;
+		public ReplacementsList(ExprElm offending) {
+			super();
+			this.offending = offending;
+		}
 		public void add(String replacement, ExprElm elm, boolean alwaysStatement) {
 			if (alwaysStatement && !(elm instanceof Statement)) {
 				elm = new SimpleStatement(elm);
+			}
+			if (elm.getExprEnd() == elm.getExprStart() && offending != null) {
+				elm.setExprRegion(offending.getExprStart(), offending.getExprEnd());
 			}
 			Pair<String, ExprElm> newOne = new Pair<String, ExprElm>(replacement, elm);
 			// don't add duplicates
@@ -127,6 +136,12 @@ public class ClonkQuickAssistProcessor implements IQuickAssistProcessor, IMarker
 		public void add(String replacement, ExprElm elm) {
 			add(replacement, elm, true);
 		}
+	}
+	
+	private static ExprElm identifierReplacement(AccessDeclaration original, String newName) {
+		AccessVar result = new AccessVar(newName);
+		result.setExprRegion(original.getExprStart(), original.getExprStart()+original.getIdentifierLength());
+		return result;
 	}
 	
 	private void collectProposals(ISourceViewer sourceViewer, MarkerAnnotation annotation, Position position, List<ICompletionProposal> proposals) {
@@ -153,7 +168,7 @@ public class ClonkQuickAssistProcessor implements IQuickAssistProcessor, IMarker
 			semicolonAdd = 0;
 		
 		if (offendingExpression != null && topLevel != null) {
-			ReplacementsList replacements = new ReplacementsList();
+			ReplacementsList replacements = new ReplacementsList(offendingExpression);
 			switch (errorCode) {
 			case VariableCalled:
 				assert(offendingExpression instanceof CallFunc);
@@ -211,8 +226,7 @@ public class ClonkQuickAssistProcessor implements IQuickAssistProcessor, IMarker
 							if (similarity > 0) {
 								// always create AccessVar and set its region such that only the identifier part of the AccessDeclaration object
 								// will be replaced -> no unnecessary tidy-up of CallFunc parameters
-								AccessDeclaration repl = new AccessVar(dec.getName());
-								repl.setExprRegion(accessDec.getExprStart(), accessDec.getExprStart()+accessDec.getIdentifierLength());
+								ExprElm repl = identifierReplacement(accessDec, dec.getName());
 								replacements.add("Replace with " + dec.getName(), repl, false);
 							}
 						}
@@ -250,6 +264,16 @@ public class ClonkQuickAssistProcessor implements IQuickAssistProcessor, IMarker
 							);
 						}
 					}
+				}
+				break;
+			case NoInheritedFunction:
+				if (offendingExpression instanceof CallFunc && ((CallFunc)offendingExpression).getDeclarationName().equals(Keywords.Inherited)) {
+					
+					replacements.add(
+							String.format("Use %s instead of %s", Keywords.SafeInherited, Keywords.Inherited),
+							identifierReplacement((AccessDeclaration) offendingExpression, Keywords.SafeInherited),
+							false
+					);
 				}
 				break;
 			}
