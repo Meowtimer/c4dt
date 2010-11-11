@@ -43,11 +43,13 @@ import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.Position;
 import org.eclipse.jface.text.contentassist.ICompletionProposal;
+import org.eclipse.jface.text.contentassist.IContextInformation;
 import org.eclipse.jface.text.quickassist.IQuickAssistInvocationContext;
 import org.eclipse.jface.text.quickassist.IQuickAssistProcessor;
 import org.eclipse.jface.text.source.Annotation;
 import org.eclipse.jface.text.source.IAnnotationModel;
 import org.eclipse.jface.text.source.ISourceViewer;
+import org.eclipse.swt.graphics.Image;
 import org.eclipse.ui.texteditor.MarkerAnnotation;
 
 import java.util.regex.Pattern;
@@ -128,6 +130,69 @@ public class ClonkQuickAssistProcessor implements IQuickAssistProcessor, IMarker
 		return WhatToDo.PassThrough;
 	}
 	
+	private final class ParameterizedProposal extends ClonkCompletionProposal {
+		private final ISourceViewer sourceViewer;
+		private final Replacement replacement;
+		private final int tabIndentation;
+		private final C4ScriptParser parser;
+
+		private ParameterizedProposal(C4Declaration declaration,
+				String replacementString, int replacementOffset,
+				int replacementLength, int cursorPosition, Image image,
+				String displayString, IContextInformation contextInformation,
+				String additionalProposalInfo, String postInfo,
+				ClonkTextEditor editor, ISourceViewer sourceViewer,
+				Replacement replacement, int tabIndentation,
+				C4ScriptParser parser) {
+			super(declaration, replacementString, replacementOffset,
+					replacementLength, cursorPosition, image, displayString,
+					contextInformation, additionalProposalInfo, postInfo,
+					editor);
+			this.sourceViewer = sourceViewer;
+			this.replacement = replacement;
+			this.tabIndentation = tabIndentation;
+			this.parser = parser;
+		}
+		
+		public boolean createdFrom(Replacement other) {
+			return this.replacement.equals(other); 
+		}
+
+		@Override
+		public void apply(IDocument document) {
+			for (ExprElm spec : replacement.getSpecifiable()) {
+				if (spec instanceof AccessDeclaration) {
+					AccessDeclaration accessDec = (AccessDeclaration) spec;
+					String s = UI.input(
+						sourceViewer.getTextWidget().getShell(),
+						Messages.ClonkQuickAssistProcessor_SpecifyValue,
+						String.format(Messages.ClonkQuickAssistProcessor_SpecifyFormat, accessDec.getDeclarationName()), accessDec.getDeclarationName(),
+						new IInputValidator() {
+							private final Pattern validIdentifierPattern = Pattern.compile("[a-zA-Z_]\\w*"); //$NON-NLS-1$
+							@Override
+							public String isValid(String newText) {
+								if (!validIdentifierPattern.matcher(newText).matches()) {
+									return String.format(Messages.ClonkQuickAssistProcessor_NotAValidFunctionName, newText);
+								} else {
+									return null;
+								}
+							}
+						}
+					);
+					if (s != null) {
+						accessDec.setDeclarationName(s);
+					}
+				}
+			}
+			try {
+				this.replacementString = replacement.getReplacementExpression().optimize(parser).toString(tabIndentation+1);
+			} catch (CloneNotSupportedException e) {
+				e.printStackTrace();
+			}
+			super.apply(document);
+		}
+	}
+
 	private static class Replacement {
 		private String title;
 		private ExprElm replacementExpression;
@@ -156,14 +221,20 @@ public class ClonkQuickAssistProcessor implements IQuickAssistProcessor, IMarker
 				return false;
 			}
 		}
+		@Override
+		public String toString() {
+			return String.format("%s: %s", title, replacementExpression.toString());
+		}
 	}
 	
 	private static final class ReplacementsList extends LinkedList<Replacement> {
 		private static final long serialVersionUID = 1L;
 		private ExprElm offending;
-		public ReplacementsList(ExprElm offending) {
+		private List<ICompletionProposal> existingList;
+		public ReplacementsList(ExprElm offending, List<ICompletionProposal> existingList) {
 			super();
 			this.offending = offending;
+			this.existingList = existingList;
 		}
 		public void add(String replacement, ExprElm elm, boolean alwaysStatement, ExprElm... specifiable) {
 			if (alwaysStatement && !(elm instanceof Statement)) {
@@ -177,6 +248,11 @@ public class ClonkQuickAssistProcessor implements IQuickAssistProcessor, IMarker
 			for (Replacement existing : this) {
 				if (existing.equals(newOne))
 					return;
+			}
+			for (ICompletionProposal prop : existingList) {
+				if (prop instanceof ParameterizedProposal && ((ParameterizedProposal)prop).createdFrom(newOne)) {
+					return;
+				}
 			}
 			this.add(newOne);
 		}
@@ -215,7 +291,7 @@ public class ClonkQuickAssistProcessor implements IQuickAssistProcessor, IMarker
 			semicolonAdd = 0;
 		
 		if (offendingExpression != null && topLevel != null) {
-			ReplacementsList replacements = new ReplacementsList(offendingExpression);
+			ReplacementsList replacements = new ReplacementsList(offendingExpression, proposals);
 			switch (errorCode) {
 			case VariableCalled:
 				assert(offendingExpression instanceof CallFunc);
@@ -357,11 +433,7 @@ public class ClonkQuickAssistProcessor implements IQuickAssistProcessor, IMarker
 			
 			for (final Replacement replacement : replacements) {
 				String replacementAsString;
-				try {
-					replacementAsString = "later";replacement.getReplacementExpression().optimize(parser).toString(tabIndentation+1); //$NON-NLS-1$
-				} catch (CloneNotSupportedException e) {
-					break;
-				}
+				replacementAsString = "later"; //$NON-NLS-1$
 				int offset = expressionRegion.getOffset();
 				int length;
 				if (!(replacement.getReplacementExpression() instanceof Statement)) {
@@ -370,46 +442,9 @@ public class ClonkQuickAssistProcessor implements IQuickAssistProcessor, IMarker
 				} else {
 					length = expressionRegion.getLength()+semicolonAdd;
 				}
-				proposals.add(new ClonkCompletionProposal(
-					null,
-					replacementAsString, offset, length,
-					replacementAsString.length(),
-					null, replacement.getTitle(), null, null, null, editor
-				) {
-					@Override
-					public void apply(IDocument document) {
-						for (ExprElm spec : replacement.getSpecifiable()) {
-							if (spec instanceof AccessDeclaration) {
-								AccessDeclaration accessDec = (AccessDeclaration) spec;
-								String s = UI.input(
-									sourceViewer.getTextWidget().getShell(),
-									Messages.ClonkQuickAssistProcessor_SpecifyValue,
-									String.format(Messages.ClonkQuickAssistProcessor_SpecifyFormat, accessDec.getDeclarationName()), accessDec.getDeclarationName(),
-									new IInputValidator() {
-										private final Pattern validIdentifierPattern = Pattern.compile("[a-zA-Z_]\\w*"); //$NON-NLS-1$
-										@Override
-										public String isValid(String newText) {
-											if (!validIdentifierPattern.matcher(newText).matches()) {
-												return String.format(Messages.ClonkQuickAssistProcessor_NotAValidFunctionName, newText);
-											} else {
-												return null;
-											}
-										}
-									}
-								);
-								if (s != null) {
-									accessDec.setDeclarationName(s);
-								}
-							}
-						}
-						try {
-							this.replacementString = replacement.getReplacementExpression().optimize(parser).toString(tabIndentation+1);
-						} catch (CloneNotSupportedException e) {
-							e.printStackTrace();
-						}
-						super.apply(document);
-					}
-				});
+				proposals.add(new ParameterizedProposal(null, replacementAsString, offset, length,
+						replacementAsString.length(), null, replacement.getTitle(), null, null, null, editor,
+						sourceViewer, replacement, tabIndentation, parser));
 			}
 		}
 

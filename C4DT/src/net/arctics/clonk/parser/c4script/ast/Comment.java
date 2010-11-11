@@ -1,12 +1,8 @@
 package net.arctics.clonk.parser.c4script.ast;
 
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.BufferedScanner;
 import net.arctics.clonk.parser.ParsingException;
-import net.arctics.clonk.parser.c4script.C4Function;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.ui.editors.c4script.ExpressionLocator;
 
@@ -31,11 +27,8 @@ public class Comment extends Statement implements Statement.Attachment {
 	public void setComment(String comment) {
 		this.comment = comment;
 	}
-	
-	private static final Pattern WHITE_SPACE_PATTERN = Pattern.compile("(\\s*)");
-	private static final Pattern WHITE_SPACE_AT_END_PATTERN = Pattern.compile("(\\s*)$");
 
-	private String commentAsPrintedStatement(C4Function function, int depth) {
+	/*private String commentAsPrintedStatement(C4Function function, int depth) {
 		try {
 			Statement s = C4ScriptParser.parseStandaloneStatement(comment, function, null);
 			if (s != null) {
@@ -53,7 +46,7 @@ public class Comment extends Statement implements Statement.Attachment {
 		} catch (ParsingException e) {
 			return comment;
 		}
-	}
+	}*/
 	
 	@Override
 	public void doPrint(ExprWriter builder, int depth) {
