@@ -57,7 +57,7 @@ public class Comment extends Statement implements Statement.Attachment {
 	
 	@Override
 	public void doPrint(ExprWriter builder, int depth) {
-		String c = commentAsPrintedStatement(null, depth);
+		String c = comment;
 		if (multiLine = multiLine || c.contains("\n")) {
 			builder.append("/*"); //$NON-NLS-1$
 			builder.append(c);
