@@ -11,13 +11,15 @@ import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.c4script.C4Function;
 import net.arctics.clonk.parser.c4script.C4ScriptBase;
 import net.arctics.clonk.parser.c4script.C4ScriptOperator;
-import net.arctics.clonk.parser.c4script.C4Type;
-import net.arctics.clonk.parser.c4script.Keywords;
+import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.C4ScriptParser.IMarkerListener;
+import net.arctics.clonk.parser.c4script.C4Type;
 import net.arctics.clonk.parser.c4script.C4Variable.C4VariableScope;
+import net.arctics.clonk.parser.c4script.Keywords;
 import net.arctics.clonk.parser.c4script.ast.AccessDeclaration;
 import net.arctics.clonk.parser.c4script.ast.AccessVar;
 import net.arctics.clonk.parser.c4script.ast.BinaryOp;
+import net.arctics.clonk.parser.c4script.ast.BunchOfStatements;
 import net.arctics.clonk.parser.c4script.ast.CallFunc;
 import net.arctics.clonk.parser.c4script.ast.Comment;
 import net.arctics.clonk.parser.c4script.ast.ExprElm;
@@ -26,15 +28,18 @@ import net.arctics.clonk.parser.c4script.ast.Sequence;
 import net.arctics.clonk.parser.c4script.ast.SimpleStatement;
 import net.arctics.clonk.parser.c4script.ast.Statement;
 import net.arctics.clonk.parser.c4script.ast.StringLiteral;
+import net.arctics.clonk.parser.c4script.ast.Tuple;
 import net.arctics.clonk.parser.c4script.ast.VarDeclarationStatement;
-import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.ui.editors.ClonkCompletionProposal;
 import net.arctics.clonk.ui.editors.ClonkTextEditor;
-import net.arctics.clonk.util.Pair;
+import net.arctics.clonk.util.ArrayHelpers;
+import net.arctics.clonk.util.UI;
 import net.arctics.clonk.util.Utilities;
 
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.jface.dialogs.IInputValidator;
+import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.Position;
 import org.eclipse.jface.text.contentassist.ICompletionProposal;
@@ -45,6 +50,8 @@ import org.eclipse.jface.text.source.IAnnotationModel;
 import org.eclipse.jface.text.source.ISourceViewer;
 import org.eclipse.ui.texteditor.MarkerAnnotation;
 
+import java.util.regex.Pattern;
+
 /**
  * Bis jetzt keine Funktion
  * Until now!
@@ -52,6 +59,16 @@ import org.eclipse.ui.texteditor.MarkerAnnotation;
  *
  */
 public class ClonkQuickAssistProcessor implements IQuickAssistProcessor, IMarkerListener  {
+	
+	/*private class SpecifiableCallFunc extends CallFunc {
+		@Override
+		public String getDeclarationName() {
+			if (declarationName == null) {
+				ClonkQuickAssistProcessor.this.
+				declarationName = UI.input(shell, title, prompt, defaultValue)
+			}
+		}
+	}*/
 	
 	private static final ICompletionProposal[] NO_SUGGESTIONS=  new ICompletionProposal[0];
 
@@ -111,30 +128,60 @@ public class ClonkQuickAssistProcessor implements IQuickAssistProcessor, IMarker
 		return WhatToDo.PassThrough;
 	}
 	
-	private static final class ReplacementsList extends LinkedList<Pair<String, ExprElm>> {
+	private static class Replacement {
+		private String title;
+		private ExprElm replacementExpression;
+		private ExprElm[] specifiable;
+		public Replacement(String title, ExprElm replacementExpression, ExprElm... specifiable) {
+			super();
+			this.title = title;
+			this.replacementExpression = replacementExpression;
+			this.specifiable = specifiable;
+		}
+		public String getTitle() {
+			return title;
+		}
+		public ExprElm getReplacementExpression() {
+			return replacementExpression;
+		}
+		public ExprElm[] getSpecifiable() {
+			return specifiable;
+		}
+		@Override
+		public boolean equals(Object other) {
+			if (other instanceof Replacement) {
+				Replacement otherR = (Replacement) other;
+				return otherR.title.equals(title) && otherR.replacementExpression.equals(replacementExpression);
+			} else {
+				return false;
+			}
+		}
+	}
+	
+	private static final class ReplacementsList extends LinkedList<Replacement> {
 		private static final long serialVersionUID = 1L;
 		private ExprElm offending;
 		public ReplacementsList(ExprElm offending) {
 			super();
 			this.offending = offending;
 		}
-		public void add(String replacement, ExprElm elm, boolean alwaysStatement) {
+		public void add(String replacement, ExprElm elm, boolean alwaysStatement, ExprElm... specifiable) {
 			if (alwaysStatement && !(elm instanceof Statement)) {
 				elm = new SimpleStatement(elm);
 			}
 			if (elm.getExprEnd() == elm.getExprStart() && offending != null) {
 				elm.setExprRegion(offending.getExprStart(), offending.getExprEnd());
 			}
-			Pair<String, ExprElm> newOne = new Pair<String, ExprElm>(replacement, elm);
+			Replacement newOne = new Replacement(replacement, elm, specifiable);
 			// don't add duplicates
-			for (Pair<String, ExprElm> existing : this) {
+			for (Replacement existing : this) {
 				if (existing.equals(newOne))
 					return;
 			}
 			this.add(newOne);
 		}
-		public void add(String replacement, ExprElm elm) {
-			add(replacement, elm, true);
+		public void add(String replacement, ExprElm elm, ExprElm... specifiable) {
+			add(replacement, elm, true, specifiable);
 		}
 	}
 	
@@ -144,7 +191,7 @@ public class ClonkQuickAssistProcessor implements IQuickAssistProcessor, IMarker
 		return result;
 	}
 	
-	private void collectProposals(ISourceViewer sourceViewer, MarkerAnnotation annotation, Position position, List<ICompletionProposal> proposals) {
+	private void collectProposals(final ISourceViewer sourceViewer, MarkerAnnotation annotation, Position position, List<ICompletionProposal> proposals) {
 
 		IMarker marker = annotation.getMarker();
 		ParserErrorCode errorCode = ParserErrorCode.getErrorCode(marker);
@@ -158,10 +205,10 @@ public class ClonkQuickAssistProcessor implements IQuickAssistProcessor, IMarker
 		if (script == null)
 			return;
 		C4Function func = script.funcAt(position.getOffset());
-		int tabIndentation = BufferedScanner.getTabIndentation(sourceViewer.getDocument().get(), expressionRegion.getOffset());
+		final int tabIndentation = BufferedScanner.getTabIndentation(sourceViewer.getDocument().get(), expressionRegion.getOffset());
 		ExpressionLocator locator = new ExpressionLocator(position.getOffset()-expressionRegion.getOffset());
 		semicolonAdd = 0;
-		C4ScriptParser parser = C4ScriptParser.reportExpressionsAndStatements(sourceViewer.getDocument(), expressionRegion, script, func, locator, this);
+		final C4ScriptParser parser = C4ScriptParser.reportExpressionsAndStatements(sourceViewer.getDocument(), expressionRegion, script, func, locator, this);
 		ExprElm offendingExpression = locator.getExprAtRegion();
 		Statement topLevel = offendingExpression != null ? offendingExpression.containingStatementOrThis() : null;
 		if (offendingExpression == topLevel)
@@ -236,7 +283,8 @@ public class ClonkQuickAssistProcessor implements IQuickAssistProcessor, IMarker
 				if (C4Type.makeType(ParserErrorCode.getArg(marker, 0), true) == C4Type.STRING) {
 					replacements.add(
 						Messages.ClonkQuickAssistProcessor_QuoteExpression,
-						offendingExpression.getParent().replaceSubElement(offendingExpression, new StringLiteral(offendingExpression.toString()))
+						new StringLiteral(offendingExpression.toString()),
+						false
 					);
 				}
 				break;
@@ -247,6 +295,12 @@ public class ClonkQuickAssistProcessor implements IQuickAssistProcessor, IMarker
 						Messages.ClonkQuickAssistProcessor_ConvertToReturn,
 						new ReturnStatement((statement.getExpression()))
 					);
+					replacements.add(
+						Messages.ClonkQuickAssistProcessor_Remove,
+						Statement.NULL_STATEMENT
+					);
+					CallFunc callFunc = new CallFunc(Messages.ClonkQuickAssistProcessor_FunctionToBeCalled, statement.getExpression());
+					replacements.add(Messages.ClonkQuickAssistProcessor_WrapWithFunctionCall, callFunc, callFunc);
 				}
 				break;
 			case NoAssignment:
@@ -267,7 +321,6 @@ public class ClonkQuickAssistProcessor implements IQuickAssistProcessor, IMarker
 				break;
 			case NoInheritedFunction:
 				if (offendingExpression instanceof CallFunc && ((CallFunc)offendingExpression).getDeclarationName().equals(Keywords.Inherited)) {
-					
 					replacements.add(
 							String.format(Messages.ClonkQuickAssistProcessor_UseInsteadOf, Keywords.SafeInherited, Keywords.Inherited),
 							identifierReplacement((AccessDeclaration) offendingExpression, Keywords.SafeInherited),
@@ -275,20 +328,45 @@ public class ClonkQuickAssistProcessor implements IQuickAssistProcessor, IMarker
 					);
 				}
 				break;
+			case ReturnAsFunction:
+				if (offendingExpression instanceof Tuple) {
+					Tuple tuple = (Tuple) offendingExpression;
+					ExprElm[] elms = tuple.getElements();
+					if (elms.length >= 2) {
+						ExprElm returnExpr = elms[0];
+						ExprElm[] rest = Utilities.arrayRange(elms, 1, elms.length-1, ExprElm.class);
+						replacements.add(
+							Messages.ClonkQuickAssistProcessor_RearrangeReturnStatement,
+							new BunchOfStatements(
+								ArrayHelpers.concat(SimpleStatement.wrapExpressions(rest), new ReturnStatement(returnExpr))
+							)
+						);
+					}
+				}
+				break;
 			}
 			
-			for (Pair<String, ExprElm> replacement : replacements) {
+			try {
+				replacements.add(
+					Messages.ClonkQuickAssistProcessor_TidyUp,
+					topLevel.exhaustiveOptimize(parser)
+				);
+			} catch (CloneNotSupportedException e) {
+				e.printStackTrace();
+			}
+			
+			for (final Replacement replacement : replacements) {
 				String replacementAsString;
 				try {
-					replacementAsString = replacement.getSecond().optimize(parser).toString(tabIndentation+1);
+					replacementAsString = "later";replacement.getReplacementExpression().optimize(parser).toString(tabIndentation+1); //$NON-NLS-1$
 				} catch (CloneNotSupportedException e) {
 					break;
 				}
 				int offset = expressionRegion.getOffset();
 				int length;
-				if (!(replacement.getSecond() instanceof Statement)) {
-					offset += replacement.getSecond().getExprStart();
-					length = replacement.getSecond().getLength();
+				if (!(replacement.getReplacementExpression() instanceof Statement)) {
+					offset += replacement.getReplacementExpression().getExprStart();
+					length = replacement.getReplacementExpression().getLength();
 				} else {
 					length = expressionRegion.getLength()+semicolonAdd;
 				}
@@ -296,8 +374,42 @@ public class ClonkQuickAssistProcessor implements IQuickAssistProcessor, IMarker
 					null,
 					replacementAsString, offset, length,
 					replacementAsString.length(),
-					null, replacement.getFirst(), null, null, null, editor
-				));
+					null, replacement.getTitle(), null, null, null, editor
+				) {
+					@Override
+					public void apply(IDocument document) {
+						for (ExprElm spec : replacement.getSpecifiable()) {
+							if (spec instanceof AccessDeclaration) {
+								AccessDeclaration accessDec = (AccessDeclaration) spec;
+								String s = UI.input(
+									sourceViewer.getTextWidget().getShell(),
+									Messages.ClonkQuickAssistProcessor_SpecifyValue,
+									String.format(Messages.ClonkQuickAssistProcessor_SpecifyFormat, accessDec.getDeclarationName()), accessDec.getDeclarationName(),
+									new IInputValidator() {
+										private final Pattern validIdentifierPattern = Pattern.compile("[a-zA-Z_]\\w*"); //$NON-NLS-1$
+										@Override
+										public String isValid(String newText) {
+											if (!validIdentifierPattern.matcher(newText).matches()) {
+												return String.format(Messages.ClonkQuickAssistProcessor_NotAValidFunctionName, newText);
+											} else {
+												return null;
+											}
+										}
+									}
+								);
+								if (s != null) {
+									accessDec.setDeclarationName(s);
+								}
+							}
+						}
+						try {
+							this.replacementString = replacement.getReplacementExpression().optimize(parser).toString(tabIndentation+1);
+						} catch (CloneNotSupportedException e) {
+							e.printStackTrace();
+						}
+						super.apply(document);
+					}
+				});
 			}
 		}
 

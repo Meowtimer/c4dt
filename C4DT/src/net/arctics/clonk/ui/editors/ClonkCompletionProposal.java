@@ -20,7 +20,7 @@ public class ClonkCompletionProposal implements ICompletionProposal, ICompletion
 	/** The string to be displayed after the display string. */
 	private String postInfo;
 	/** The replacement string. */
-	private String replacementString;
+	protected String replacementString;
 
 	/** The replacement offset. */
 	private int replacementOffset;

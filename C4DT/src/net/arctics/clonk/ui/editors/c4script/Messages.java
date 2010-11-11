@@ -24,10 +24,18 @@ public class Messages extends NLS {
 	public static String ClonkQuickAssistProcessor_ConvertToReturn;
 	public static String ClonkQuickAssistProcessor_ConvertToVarDeclaration;
 	public static String ClonkQuickAssistProcessor_FailedToFix;
+	public static String ClonkQuickAssistProcessor_FunctionToBeCalled;
+	public static String ClonkQuickAssistProcessor_NotAValidFunctionName;
 	public static String ClonkQuickAssistProcessor_QuoteExpression;
+	public static String ClonkQuickAssistProcessor_RearrangeReturnStatement;
+	public static String ClonkQuickAssistProcessor_Remove;
 	public static String ClonkQuickAssistProcessor_RemoveBrackets;
 	public static String ClonkQuickAssistProcessor_ReplaceWith;
+	public static String ClonkQuickAssistProcessor_SpecifyFormat;
+	public static String ClonkQuickAssistProcessor_SpecifyValue;
+	public static String ClonkQuickAssistProcessor_TidyUp;
 	public static String ClonkQuickAssistProcessor_UseInsteadOf;
+	public static String ClonkQuickAssistProcessor_WrapWithFunctionCall;
 	static {
 		// initialize resource bundle
 		NLS.initializeMessages(BUNDLE_NAME, Messages.class);
