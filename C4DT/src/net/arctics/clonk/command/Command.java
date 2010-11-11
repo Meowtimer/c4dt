@@ -37,7 +37,7 @@ import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
 import net.arctics.clonk.parser.c4script.ast.evaluate.IVariableValueProvider;
 import net.arctics.clonk.resource.ClonkIndexStream;
 import net.arctics.clonk.ui.editors.ClonkHyperlink;
-import net.arctics.clonk.util.Utilities;
+import net.arctics.clonk.util.ArrayHelpers;
 
 /**
  * Macro execution engine based on the C4Script parser. Naturally, macros are written in C4Script.
@@ -222,7 +222,7 @@ public class Command {
 		@Override
 		public Object invoke(Object... args) {
 			try {
-				return method.invoke(null, Utilities.concat(this, args));
+				return method.invoke(null, ArrayHelpers.concat(this, args));
 			} catch (Exception e) {
 				e.printStackTrace();
 				return null;

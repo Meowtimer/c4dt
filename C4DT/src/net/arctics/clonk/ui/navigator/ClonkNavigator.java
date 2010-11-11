@@ -3,6 +3,7 @@ package net.arctics.clonk.ui.navigator;
 import java.util.Collection;
 import net.arctics.clonk.parser.C4Structure;
 import net.arctics.clonk.parser.c4script.C4ScriptBase;
+import net.arctics.clonk.util.ArrayHelpers;
 import net.arctics.clonk.util.INode;
 import net.arctics.clonk.util.ITreeNode;
 import net.arctics.clonk.util.Utilities;
@@ -30,12 +31,12 @@ public class ClonkNavigator extends ClonkOutlineProvider {
 			// list contents of ini and script files
 			C4ScriptBase script = C4ScriptBase.get((IFile) element, true);
 			if (script != null)
-				return Utilities.concat(baseResources, super.getChildren(script));
+				return ArrayHelpers.concat(baseResources, super.getChildren(script));
 			try {
 				C4Structure s = C4Structure.pinned((IFile) element, false, false);
 				if (s instanceof ITreeNode) {
 					// call again for ITreeNode object (below)
-					return Utilities.concat(baseResources, this.getChildren(s));
+					return ArrayHelpers.concat(baseResources, this.getChildren(s));
 				}
 			} catch (Exception e) {
 				e.printStackTrace();
@@ -46,9 +47,9 @@ public class ClonkNavigator extends ClonkOutlineProvider {
 		}
 		else if (element instanceof ITreeNode) {
 			Collection<? extends INode> children = ((ITreeNode)element).getChildCollection();
-			return children != null ? Utilities.concat(baseResources, (Object[])children.toArray(new INode[children.size()])) : baseResources;
+			return children != null ? ArrayHelpers.concat(baseResources, (Object[])children.toArray(new INode[children.size()])) : baseResources;
 		}
-		return Utilities.concat(baseResources, super.getChildren(element));
+		return ArrayHelpers.concat(baseResources, super.getChildren(element));
 	}
 
 	public boolean hasChildren(Object element) {
