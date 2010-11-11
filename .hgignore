@@ -17,4 +17,5 @@ l10n_template/*
 copy_engine_to_res
 C4DTMapeNative/*
 C4DTMape/*
+.*savedSearch
 glob:C4DT/.settings/org.eclipse.core.resources.prefs
