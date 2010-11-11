@@ -230,5 +230,10 @@ public class AccessVar extends AccessDeclaration {
 		else
 			return false;
 	}
+	
+	@Override
+	public Class<? extends C4Declaration> declarationClass() {
+		return C4Variable.class;
+	}
 
 }

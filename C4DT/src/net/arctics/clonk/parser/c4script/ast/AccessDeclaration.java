@@ -81,4 +81,8 @@ public abstract class AccessDeclaration extends Value {
 		}
 	}
 	
+	public Class<? extends C4Declaration> declarationClass() {
+		return C4Declaration.class;
+	}
+	
 }

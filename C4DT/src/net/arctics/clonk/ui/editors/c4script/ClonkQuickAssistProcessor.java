@@ -266,7 +266,7 @@ public class ClonkQuickAssistProcessor implements IQuickAssistProcessor, IMarker
 						if (p instanceof ClonkCompletionProposal) {
 							ClonkCompletionProposal clonkProposal = (ClonkCompletionProposal) p;
 							C4Declaration dec = clonkProposal.getDeclaration();
-							if (dec == null)
+							if (dec == null || !accessDec.declarationClass().isAssignableFrom(dec.getClass()))
 								continue;
 							int similarity = Utilities.getSimilarity(dec.getName(), accessDec.getDeclarationName());
 							if (similarity > 0) {
