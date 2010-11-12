@@ -1,5 +1,6 @@
 package net.arctics.clonk.ui.editors;
 
+import java.lang.ref.WeakReference;
 import java.net.MalformedURLException;
 import java.net.URL;
 
@@ -54,16 +55,21 @@ public class ClonkHyperlink implements IHyperlink {
 			e.printStackTrace();
 		}
 	}
+	
+	private static WeakReference<IWebBrowser> internalBrowser = new WeakReference<IWebBrowser>(null);
 
 	public static void openDocumentationForFunction(String functionName, C4Engine engine) throws PartInitException, MalformedURLException {
 		String docURLTemplate = C4Function.getDocumentationURL(functionName, engine);
 		IWorkbenchBrowserSupport support = WorkbenchBrowserSupport.getInstance();
 		IWebBrowser browser;
-		if (!ClonkCore.getDefault().getPreferenceStore().getBoolean(ClonkPreferences.OPEN_EXTERNAL_BROWSER) && support.isInternalWebBrowserAvailable()) {
-			browser = support.createBrowser(null);
+		if (ClonkCore.getDefault().getPreferenceStore().getBoolean(ClonkPreferences.OPEN_EXTERNAL_BROWSER) || !support.isInternalWebBrowserAvailable()) {
+			browser = support.getExternalBrowser();
 		}
 		else {
-			browser = support.getExternalBrowser();
+			browser = internalBrowser.get();
+			if (browser == null) {
+				internalBrowser = new WeakReference<IWebBrowser>(browser = support.createBrowser(null));
+			}
 		}
 		if (browser != null) {
 			browser.openURL(new URL(String.format(
