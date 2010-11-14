@@ -1,5 +1,6 @@
 package net.arctics.clonk.ui.editors.c4script;
 
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -12,8 +13,10 @@ import net.arctics.clonk.parser.c4script.C4Function;
 import net.arctics.clonk.parser.c4script.C4ScriptBase;
 import net.arctics.clonk.parser.c4script.C4ScriptOperator;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
+import net.arctics.clonk.parser.c4script.C4Function.C4FunctionScope;
 import net.arctics.clonk.parser.c4script.C4ScriptParser.IMarkerListener;
 import net.arctics.clonk.parser.c4script.C4Type;
+import net.arctics.clonk.parser.c4script.C4Variable;
 import net.arctics.clonk.parser.c4script.C4Variable.C4VariableScope;
 import net.arctics.clonk.parser.c4script.Keywords;
 import net.arctics.clonk.parser.c4script.ast.AccessDeclaration;
@@ -39,6 +42,7 @@ import net.arctics.clonk.util.Utilities;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jface.dialogs.IInputValidator;
+import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.Position;
@@ -52,6 +56,7 @@ import org.eclipse.jface.text.source.ISourceViewer;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.ui.texteditor.MarkerAnnotation;
 
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
@@ -135,6 +140,7 @@ public class ClonkQuickAssistProcessor implements IQuickAssistProcessor, IMarker
 		private final Replacement replacement;
 		private final int tabIndentation;
 		private final C4ScriptParser parser;
+		private C4Function func;
 
 		private ParameterizedProposal(C4Declaration declaration,
 				String replacementString, int replacementOffset,
@@ -143,7 +149,7 @@ public class ClonkQuickAssistProcessor implements IQuickAssistProcessor, IMarker
 				String additionalProposalInfo, String postInfo,
 				ClonkTextEditor editor, ISourceViewer sourceViewer,
 				Replacement replacement, int tabIndentation,
-				C4ScriptParser parser) {
+				C4ScriptParser parser, C4Function func) {
 			super(declaration, replacementString, replacementOffset,
 					replacementLength, cursorPosition, image, displayString,
 					contextInformation, additionalProposalInfo, postInfo,
@@ -152,6 +158,7 @@ public class ClonkQuickAssistProcessor implements IQuickAssistProcessor, IMarker
 			this.replacement = replacement;
 			this.tabIndentation = tabIndentation;
 			this.parser = parser;
+			this.func = func;
 		}
 		
 		public boolean createdFrom(Replacement other) {
@@ -160,43 +167,74 @@ public class ClonkQuickAssistProcessor implements IQuickAssistProcessor, IMarker
 
 		@Override
 		public void apply(IDocument document) {
-			for (ExprElm spec : replacement.getSpecifiable()) {
-				if (spec instanceof AccessDeclaration) {
-					AccessDeclaration accessDec = (AccessDeclaration) spec;
-					String s = UI.input(
-						sourceViewer.getTextWidget().getShell(),
-						Messages.ClonkQuickAssistProcessor_SpecifyValue,
-						String.format(Messages.ClonkQuickAssistProcessor_SpecifyFormat, accessDec.getDeclarationName()), accessDec.getDeclarationName(),
-						new IInputValidator() {
-							private final Pattern validIdentifierPattern = Pattern.compile("[a-zA-Z_]\\w*"); //$NON-NLS-1$
-							@Override
-							public String isValid(String newText) {
-								if (!validIdentifierPattern.matcher(newText).matches()) {
-									return String.format(Messages.ClonkQuickAssistProcessor_NotAValidFunctionName, newText);
-								} else {
-									return null;
+			ExprElm replacementExpr = replacement.getReplacementExpression();
+			if (replacementExpr != ExprElm.NULL_EXPR) {
+				for (ExprElm spec : replacement.getSpecifiable()) {
+					if (spec instanceof AccessDeclaration) {
+						AccessDeclaration accessDec = (AccessDeclaration) spec;
+						String s = UI.input(
+								sourceViewer.getTextWidget().getShell(),
+								Messages.ClonkQuickAssistProcessor_SpecifyValue,
+								String.format(Messages.ClonkQuickAssistProcessor_SpecifyFormat, accessDec.getDeclarationName()), accessDec.getDeclarationName(),
+								new IInputValidator() {
+									@Override
+									public String isValid(String newText) {
+										if (!validIdentifierPattern.matcher(newText).matches()) {
+											return String.format(Messages.ClonkQuickAssistProcessor_NotAValidFunctionName, newText);
+										} else {
+											return null;
+										}
+									}
 								}
-							}
+						);
+						if (s != null) {
+							accessDec.setDeclarationName(s);
 						}
-					);
-					if (s != null) {
-						accessDec.setDeclarationName(s);
 					}
 				}
-			}
-			try {
-				this.replacementString = replacement.getReplacementExpression().optimize(parser).toString(tabIndentation+1);
-			} catch (CloneNotSupportedException e) {
-				e.printStackTrace();
+				try {
+					this.replacementString = replacement.getReplacementExpression().optimize(parser).toString(tabIndentation+1);
+				} catch (CloneNotSupportedException e) {
+					e.printStackTrace();
+				}
+			} else {
+				// don't replace expression
+				replacementString = ""; //$NON-NLS-1$
+				replacementLength = 0;
 			}
 			super.apply(document);
+			
+			for (Replacement.AdditionalDeclaration dec : replacement.getAdditionalDeclarations()) {
+				StringBuilder builder = new StringBuilder(50);
+				dec.declaration.sourceCodeRepresentation(builder, dec.code);
+				builder.append("\n"); //$NON-NLS-1$
+				builder.append("\n"); //$NON-NLS-1$
+				try {
+					document.replace(func.getHeader().getOffset(), 0, builder.toString());
+				} catch (BadLocationException e) {
+					e.printStackTrace();
+				}
+			}
 		}
 	}
 
 	private static class Replacement {
+		
+		public static class AdditionalDeclaration {
+			private C4Declaration declaration;
+			private ExprElm code;
+			public AdditionalDeclaration(C4Declaration declaration, ExprElm code) {
+				super();
+				this.declaration = declaration;
+				this.code = code;
+			}
+		}
+		
 		private String title;
 		private ExprElm replacementExpression;
 		private ExprElm[] specifiable;
+		private List<AdditionalDeclaration> additionalDeclarations = new LinkedList<AdditionalDeclaration>();
+		
 		public Replacement(String title, ExprElm replacementExpression, ExprElm... specifiable) {
 			super();
 			this.title = title;
@@ -212,6 +250,9 @@ public class ClonkQuickAssistProcessor implements IQuickAssistProcessor, IMarker
 		public ExprElm[] getSpecifiable() {
 			return specifiable;
 		}
+		public List<AdditionalDeclaration> getAdditionalDeclarations() {
+			return additionalDeclarations;
+		}
 		@Override
 		public boolean equals(Object other) {
 			if (other instanceof Replacement) {
@@ -223,7 +264,7 @@ public class ClonkQuickAssistProcessor implements IQuickAssistProcessor, IMarker
 		}
 		@Override
 		public String toString() {
-			return String.format("%s: %s", title, replacementExpression.toString());
+			return String.format("%s: %s", title, replacementExpression.toString()); //$NON-NLS-1$
 		}
 	}
 	
@@ -236,7 +277,7 @@ public class ClonkQuickAssistProcessor implements IQuickAssistProcessor, IMarker
 			this.offending = offending;
 			this.existingList = existingList;
 		}
-		public void add(String replacement, ExprElm elm, boolean alwaysStatement, ExprElm... specifiable) {
+		public Replacement add(String replacement, ExprElm elm, boolean alwaysStatement, ExprElm... specifiable) {
 			if (alwaysStatement && !(elm instanceof Statement)) {
 				elm = new SimpleStatement(elm);
 			}
@@ -247,14 +288,15 @@ public class ClonkQuickAssistProcessor implements IQuickAssistProcessor, IMarker
 			// don't add duplicates
 			for (Replacement existing : this) {
 				if (existing.equals(newOne))
-					return;
+					return null;
 			}
 			for (ICompletionProposal prop : existingList) {
 				if (prop instanceof ParameterizedProposal && ((ParameterizedProposal)prop).createdFrom(newOne)) {
-					return;
+					return null;
 				}
 			}
 			this.add(newOne);
+			return newOne;
 		}
 		public void add(String replacement, ExprElm elm, ExprElm... specifiable) {
 			add(replacement, elm, true, specifiable);
@@ -265,6 +307,18 @@ public class ClonkQuickAssistProcessor implements IQuickAssistProcessor, IMarker
 		AccessVar result = new AccessVar(newName);
 		result.setExprRegion(original.getExprStart(), original.getExprStart()+original.getIdentifierLength());
 		return result;
+	}
+	
+	private static final Pattern validIdentifierPattern = Pattern.compile("[a-zA-Z_]\\w*"); //$NON-NLS-1$
+	
+	private static String parmNameFromExpression(ExprElm expression, int index) {
+		String exprString = expression.toString();
+		Matcher m = validIdentifierPattern.matcher(exprString);
+		if (m.matches()) {
+			return m.group();
+		} else {
+			return "par"+index; //$NON-NLS-1$
+		}
 	}
 	
 	private void collectProposals(final ISourceViewer sourceViewer, MarkerAnnotation annotation, Position position, List<ICompletionProposal> proposals) {
@@ -327,7 +381,37 @@ public class ClonkQuickAssistProcessor implements IQuickAssistProcessor, IMarker
 					}
 				}
 				if (offendingExpression instanceof AccessDeclaration) {
+					
 					AccessDeclaration accessDec = (AccessDeclaration) offendingExpression;
+					
+					// create new variable or function
+					Replacement createNewDeclarationReplacement = replacements.add(
+						String.format(offendingExpression instanceof AccessVar ? Messages.ClonkQuickAssistProcessor_CreateLocalVar : Messages.ClonkQuickAssistProcessor_CreateLocalFunc, accessDec.getDeclarationName()),
+						ExprElm.NULL_EXPR,
+						false
+					);
+					List<Replacement.AdditionalDeclaration> decs = createNewDeclarationReplacement.getAdditionalDeclarations();
+					if (accessDec instanceof AccessVar) {
+						decs.add(new Replacement.AdditionalDeclaration(
+							new C4Variable(accessDec.getDeclarationName(), C4VariableScope.LOCAL),
+							ExprElm.NULL_EXPR
+						));
+					} else {
+						CallFunc callFunc = (CallFunc) accessDec;
+						C4Function function;
+						decs.add(new Replacement.AdditionalDeclaration(
+							function = new C4Function(accessDec.getDeclarationName(), C4FunctionScope.PUBLIC),
+							ExprElm.NULL_EXPR
+						));
+						List<C4Variable> parms = new ArrayList<C4Variable>(callFunc.getParams().length);
+						int p = 0;
+						for (ExprElm parm : callFunc.getParams()) {
+							parms.add(new C4Variable(parmNameFromExpression(parm, ++p), parm.getType(parser)));
+						}
+						function.setParameters(parms);
+					}
+					
+					// gather proposals through ClonkCompletionProcessor and propose those with a similar name 
 					ExprElm expr;
 					if (offendingExpression.getParent() instanceof Sequence) {
 						Sequence sequence = (Sequence) offendingExpression.getParent();
@@ -444,7 +528,7 @@ public class ClonkQuickAssistProcessor implements IQuickAssistProcessor, IMarker
 				}
 				proposals.add(new ParameterizedProposal(null, replacementAsString, offset, length,
 						replacementAsString.length(), null, replacement.getTitle(), null, null, null, editor,
-						sourceViewer, replacement, tabIndentation, parser));
+						sourceViewer, replacement, tabIndentation, parser, func));
 			}
 		}
 

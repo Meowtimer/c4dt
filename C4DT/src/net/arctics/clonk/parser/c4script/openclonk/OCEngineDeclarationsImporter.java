@@ -146,7 +146,7 @@ public class OCEngineDeclarationsImporter {
 								fun = new C4Function(name, C4Type.ANY);
 								List<C4Variable> parms = new ArrayList<C4Variable>(1);
 								parms.add(new C4Variable("...", C4Type.ANY)); //$NON-NLS-1$
-								fun.setParameter(parms);
+								fun.setParameters(parms);
 								importsContainer.addDeclaration(fun);
 							}
 						}
@@ -191,7 +191,7 @@ public class OCEngineDeclarationsImporter {
 								for (String pa : p) {
 									parList.add(new C4Variable("par"+(parList.size()+1), C4Type.makeType(pa.trim().substring(4).toLowerCase(), true))); //$NON-NLS-1$
 								}
-								fun.setParameter(parList);
+								fun.setParameters(parList);
 								importsContainer.addDeclaration(fun);
 							}
 						}
@@ -221,7 +221,7 @@ public class OCEngineDeclarationsImporter {
 									String type = parm.substring(0, x+1).trim();
 									parList.add(new C4Variable(pname, typeFromCPPType(type)));
 								}
-								fun.setParameter(parList);
+								fun.setParameters(parList);
 								importsContainer.addDeclaration(fun);
 							}
 						}

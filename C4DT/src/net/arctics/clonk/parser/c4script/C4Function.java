@@ -9,6 +9,7 @@ import net.arctics.clonk.parser.C4Declaration;
 import net.arctics.clonk.parser.C4Structure;
 import net.arctics.clonk.parser.SourceLocation;
 import net.arctics.clonk.parser.c4script.C4Variable.C4VariableScope;
+import net.arctics.clonk.parser.c4script.ast.Conf;
 import net.arctics.clonk.parser.c4script.ast.ExprElm;
 import net.arctics.clonk.parser.inireader.IniField;
 import net.arctics.clonk.preferences.ClonkPreferences;
@@ -72,6 +73,10 @@ public class C4Function extends C4Structure implements Serializable, ITypedDecla
 		this(name,parent,C4FunctionScope.makeScope(scope));
 	}
 	
+	public C4Function(String name, C4FunctionScope scope) {
+		this(name, null, scope);
+	}
+	
 	/**
 	 * @return the localVars
 	 */
@@ -96,7 +101,7 @@ public class C4Function extends C4Structure implements Serializable, ITypedDecla
 	/**
 	 * @param parameter the parameter to set
 	 */
-	public void setParameter(List<C4Variable> parameter) {
+	public void setParameters(List<C4Variable> parameter) {
 		this.parameter = parameter;
 	}
 
@@ -526,6 +531,27 @@ public class C4Function extends C4Structure implements Serializable, ITypedDecla
 			f.parameter = null;
 		}
 		super.absorb(declaration);
+	}
+	
+	@Override
+	public void sourceCodeRepresentation(StringBuilder builder, Object cookie) {
+		builder.append(getVisibility().toKeyword());
+		builder.append(" ");
+		builder.append(Keywords.Func);
+		builder.append(" ");
+		builder.append(getLongParameterString(true));
+		switch (Conf.braceStyle) {
+		case NewLine:
+			builder.append("\n{\n");
+			break;
+		case SameLine:
+			builder.append(" {\n");
+			break;
+		}
+		if (cookie instanceof ExprElm) {
+			((ExprElm)cookie).print(builder, 1);
+		}
+		builder.append("\n}");
 	}
 	
 }

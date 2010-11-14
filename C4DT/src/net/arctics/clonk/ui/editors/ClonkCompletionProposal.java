@@ -23,9 +23,9 @@ public class ClonkCompletionProposal implements ICompletionProposal, ICompletion
 	protected String replacementString;
 
 	/** The replacement offset. */
-	private int replacementOffset;
+	protected int replacementOffset;
 	/** The replacement length. */
-	private int replacementLength;
+	protected int replacementLength;
 	/** The cursor position after this proposal has been applied. */
 	private int cursorPosition;
 	/** The image to be displayed in the completion proposal popup. */
@@ -116,7 +116,8 @@ public class ClonkCompletionProposal implements ICompletionProposal, ICompletion
 	 */
 	public void apply(IDocument document) {
 		try {
-			document.replace(replacementOffset, replacementLength, replacementString);
+			if (replacementString != null)
+				document.replace(replacementOffset, replacementLength, replacementString);
 			if (editor != null)
 				editor.completionProposalApplied(this);
 		} catch (BadLocationException x) {

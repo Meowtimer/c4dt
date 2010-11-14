@@ -61,7 +61,7 @@ public class C4Variable extends C4Declaration implements Serializable, ITypedDec
 		typeLocked = true;
 	}
 	
-	public C4Variable(String name, C4Type type) {
+	public C4Variable(String name, IType type) {
 		this.name = name;
 		forceType(type);
 	}
@@ -347,6 +347,14 @@ public class C4Variable extends C4Declaration implements Serializable, ITypedDec
 	 */
 	public boolean isActualParm() {
 		return !getName().equals("..."); //$NON-NLS-1$
+	}
+	
+	@Override
+	public void sourceCodeRepresentation(StringBuilder builder, Object cookie) {
+		builder.append(getScope().toKeyword());
+		builder.append(" ");
+		builder.append(getName());
+		builder.append(";");
 	}
 	
 }

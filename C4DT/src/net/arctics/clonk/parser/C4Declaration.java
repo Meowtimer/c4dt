@@ -313,4 +313,8 @@ public abstract class C4Declaration implements Serializable, IHasRelatedResource
 		}
 	}
 	
+	public void sourceCodeRepresentation(StringBuilder builder, Object cookie) {
+		System.out.println("dunno");
+	}
+	
 }

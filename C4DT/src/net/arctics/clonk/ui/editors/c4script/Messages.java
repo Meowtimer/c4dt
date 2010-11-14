@@ -23,6 +23,8 @@ public class Messages extends NLS {
 	public static String ClonkQuickAssistProcessor_ConvertComparisonToAssignment;
 	public static String ClonkQuickAssistProcessor_ConvertToReturn;
 	public static String ClonkQuickAssistProcessor_ConvertToVarDeclaration;
+	public static String ClonkQuickAssistProcessor_CreateLocalFunc;
+	public static String ClonkQuickAssistProcessor_CreateLocalVar;
 	public static String ClonkQuickAssistProcessor_FailedToFix;
 	public static String ClonkQuickAssistProcessor_FunctionToBeCalled;
 	public static String ClonkQuickAssistProcessor_NotAValidFunctionName;
