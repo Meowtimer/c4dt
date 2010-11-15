@@ -25,6 +25,7 @@ import net.arctics.clonk.parser.inireader.IniData.IniDataBase;
 import net.arctics.clonk.parser.inireader.IniData.IniDataEntry;
 import net.arctics.clonk.parser.inireader.IniData.IniDataSection;
 import net.arctics.clonk.parser.playercontrols.PlayerControlsUnit;
+import net.arctics.clonk.parser.teamsdef.TeamsUnit;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.resource.c4group.C4GroupItem;
 import net.arctics.clonk.util.IHasChildren;
@@ -466,17 +467,20 @@ public class IniUnit extends C4Structure implements Iterable<IniSection>, IHasCh
 		return "["+section.getName()+"]"; //$NON-NLS-1$ //$NON-NLS-2$
 	}
 
-	public IniSection sectionAtOffset(int offset, int addIfOverOffset) {
+	public IniSection sectionAtOffset(IniSection parent, int offset) {
 		IniSection section = null;
-		for (IniSection sec : this.getSections()) {
+		for (IniSection sec : parent == null ? Utilities.arrayIterable(this.getSections()) : parent.getSections()) {
 			int start = sec.getLocation().getStart();
-			if (start > offset)
-				start += addIfOverOffset;
-			if (start > offset)
+			if (start > offset) {
 				break;
+			}
 			section = sec;
 		}
-		return section;
+		return section == null ? parent : sectionAtOffset(section, offset);
+	}
+	
+	public IniSection sectionAtOffset(int offset) {
+		return sectionAtOffset(null, offset);
 	}
 	
 	@Override
@@ -565,7 +569,8 @@ public class IniUnit extends C4Structure implements Iterable<IniSection>, IHasCh
 		ClonkCore.id("particle")     , ParticleUnit.class, //$NON-NLS-1$
 		ClonkCore.id("material")     , MaterialUnit.class, //$NON-NLS-1$
 		ClonkCore.id("plrcontroldef"), PlayerControlsUnit.class, //$NON-NLS-1$
-		ClonkCore.id("foldermap")    , FolderMapUnit.class
+		ClonkCore.id("foldermap")    , FolderMapUnit.class,
+		ClonkCore.id("teamsdef")     , TeamsUnit.class
 	});
 
 	/**

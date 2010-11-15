@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.Writer;
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -166,4 +167,16 @@ public class IniSection extends C4Declaration implements IHasKeyAndValue<String,
 	public int sortCategory() {
 		return 1;
 	}
+	
+	public Iterable<IniSection> getSections() {
+		// unable to make this work generically ;c
+		List<IniSection> sections = new LinkedList<IniSection>();
+		for (ITreeNode node : getChildCollection()) {
+			if (node instanceof IniSection) {
+				sections.add((IniSection)node);
+			}
+		}
+		return sections;
+	}
+
 }

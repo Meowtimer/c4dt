@@ -725,4 +725,17 @@
 			</section>
 		</section>
 	</file>
+	<file name="Teams.txt" factoryclass="net.arctics.clonk.parser.inireader.GenericEntryFactory">
+		<section name="Teams">
+			<entry name="AllowHostilityChange" class="Boolean" />
+			<entry name="AllowTeamSwitch" class="Boolean" />
+			<entry name="TeamColors" class="Boolean" />
+			<section name="Team">
+				<entry name="id" class="SignedInteger" />
+				<entry name="Name" class="java.lang.String" />
+				<entry name="IconSpec" class="IconSpec" />
+				<entry name="PlrStartIndex" class="SignedInteger" />
+			</section>
+		</section>
+	</file>
 </clonkiniconfig>

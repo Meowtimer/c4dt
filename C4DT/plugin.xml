@@ -55,6 +55,10 @@
 		<content-type base-type="net.arctics.clonk.inifile"
 			file-names="PlayerControls.txt" id="net.arctics.clonk.plrcontroldef" name="%PlayerControlDefinition_Name"
 			priority="high" />
+		
+		<content-type base-type="net.arctics.clonk.inifile"
+			file-names="Teams.txt" id="net.arctics.clonk.teamsdef" name="%TeamsDefinition_Name"
+			priority="high" />
 
 		<content-type base-type="net.arctics.clonk.inifile"
 			file-names="ActMap.txt" id="net.arctics.clonk.actmap" name="%C4Object_ActMap_Name"

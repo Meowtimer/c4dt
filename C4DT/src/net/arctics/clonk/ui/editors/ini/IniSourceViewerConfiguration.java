@@ -15,6 +15,7 @@ import net.arctics.clonk.parser.inireader.CategoriesArray;
 import net.arctics.clonk.parser.inireader.DefinitionPack;
 import net.arctics.clonk.parser.inireader.Function;
 import net.arctics.clonk.parser.inireader.IDArray;
+import net.arctics.clonk.parser.inireader.IconSpec;
 import net.arctics.clonk.parser.inireader.IniData.IniDataBase;
 import net.arctics.clonk.parser.inireader.IniEntry;
 import net.arctics.clonk.parser.inireader.IniItem;
@@ -95,7 +96,7 @@ public class IniSourceViewerConfiguration extends ClonkSourceViewerConfiguration
 				IRegion lineRegion = textViewer.getDocument().getLineInformationOfOffset(region.getOffset());
 				String line = textViewer.getDocument().get(lineRegion.getOffset(), lineRegion.getLength());
 				Matcher m;
-				IniSection section = getEditor().getIniUnit().sectionAtOffset(region.getOffset(), 0);
+				IniSection section = getEditor().getIniUnit().sectionAtOffset(region.getOffset());
 				if (section != null) {
 					int relativeOffset = region.getOffset()-lineRegion.getOffset();
 					if ((m = ASSIGN_PATTERN.matcher(line)).matches()) {
@@ -169,6 +170,12 @@ public class IniSourceViewerConfiguration extends ClonkSourceViewerConfiguration
 											}	
 										}
 									}
+								}
+								else if (entryClass == IconSpec.class) {
+									String firstPart = value.split(":")[0];
+									IResource r = Utilities.getEditingFile(getEditor());
+									ClonkIndex index = Utilities.getIndex(r);
+									declaration = index.getObjectNearestTo(r, C4ID.getID(firstPart));
 								}
 								
 								if (declaration != null) {

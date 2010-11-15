@@ -17,6 +17,7 @@ import net.arctics.clonk.parser.inireader.CategoriesArray;
 import net.arctics.clonk.parser.inireader.DefinitionPack;
 import net.arctics.clonk.parser.inireader.Function;
 import net.arctics.clonk.parser.inireader.IDArray;
+import net.arctics.clonk.parser.inireader.IconSpec;
 import net.arctics.clonk.parser.inireader.IniData.IniDataBase;
 import net.arctics.clonk.parser.inireader.IniSection;
 import net.arctics.clonk.parser.inireader.IniUnit;
@@ -66,7 +67,7 @@ public class IniCompletionProcessor extends ClonkCompletionProcessor<IniTextEdit
 		int lineStart;
 		try {
 			IRegion lineRegion = doc.getLineInformationOfOffset(offset);
-			line = doc.get(lineRegion.getOffset(), lineRegion.getLength()).trim();
+			line = doc.get(lineRegion.getOffset(), lineRegion.getLength());
 			lineStart = lineRegion.getOffset();
 		} catch (BadLocationException e) {
 			line = ""; //$NON-NLS-1$
@@ -90,7 +91,7 @@ public class IniCompletionProcessor extends ClonkCompletionProcessor<IniTextEdit
 		}
 		prefix = prefix.toLowerCase();
 
-		section = getEditor().getIniUnit().sectionAtOffset(lineStart, line.length());
+		section = getEditor().getIniUnit().sectionAtOffset(lineStart);
 
 		if (!assignment) {
 			if (section != null) {
@@ -108,7 +109,7 @@ public class IniCompletionProcessor extends ClonkCompletionProcessor<IniTextEdit
 			if (itemData instanceof IniDataEntry) {
 				IniDataEntry entryDef = (IniDataEntry) itemData;
 				Class<?> entryClass = entryDef.getEntryClass();
-				if (entryClass == C4ID.class) {
+				if (entryClass == C4ID.class || entryClass == IconSpec.class) {
 					proposalsForIndex(offset, proposals, prefix, wordOffset);
 				}
 				else if (entryClass == String.class) {
@@ -156,8 +157,11 @@ public class IniCompletionProcessor extends ClonkCompletionProcessor<IniTextEdit
 
 	private void proposalsForIndex(int offset, Collection<ICompletionProposal> proposals, String prefix, int wordOffset) {
 		ClonkIndex index = Utilities.getIndex(getEditor().getIniUnit().getIniFile());
-		if (index != null)
-			proposalsForIndexedObjects(index, offset, wordOffset, prefix, proposals);
+		if (index != null) {
+			for (ClonkIndex i : index.relevantIndexes()) {
+				proposalsForIndexedObjects(i, offset, wordOffset, prefix, proposals);
+			}
+		}
 	}
 
 	private void proposalsForDefinitionPackEntry(Collection<ICompletionProposal> proposals, String prefix, int wordOffset) {
