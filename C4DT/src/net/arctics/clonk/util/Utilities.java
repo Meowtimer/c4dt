@@ -473,12 +473,32 @@ public abstract class Utilities {
 		return false;
 	}
 	
-	public static <T> List<T> filter(Iterable<T> iterable, IPredicate<T> filter) {
+	public static <T> List<T> filter(Iterable<? extends T> iterable, IPredicate<T> filter) {
 		List<T> result = new LinkedList<T>();
 		for (T elm : iterable)
 			if (filter.test(elm))
 				result.add(elm);
 		return result;
+	}
+	
+	public static @SuppressWarnings("unchecked")
+	<T, U extends T> Iterable<U> filter(Iterable<T> iterable, IPredicate<U> filter, Class<? extends T> cls) {
+		List<U> result = new LinkedList<U>();
+		for (T elm : iterable) {
+			if (cls.isAssignableFrom(elm.getClass()) && filter.test((U)elm)) {
+				result.add((U) elm);
+			}
+		}
+		return result;
+	}
+	
+	public static <T> IPredicate<T> classMembershipPredicate(final Class<? extends T> cls) {
+		return new IPredicate<T>() {
+			@Override
+			public boolean test(T item) {
+				return cls.isAssignableFrom(item.getClass());
+			}
+		};
 	}
 	
 	@SuppressWarnings("unchecked")
