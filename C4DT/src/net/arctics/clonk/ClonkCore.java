@@ -31,6 +31,7 @@ import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.util.IStorageLocation;
 import net.arctics.clonk.util.ReadOnlyIterator;
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IResourceChangeEvent;
 import org.eclipse.core.resources.IResourceChangeListener;
 import org.eclipse.core.resources.ISaveContext;
@@ -42,11 +43,13 @@ import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.QualifiedName;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.resource.ImageRegistry;
+import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.util.IPropertyChangeListener;
 import org.eclipse.jface.util.PropertyChangeEvent;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.ui.editors.text.TextFileDocumentProvider;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
+import org.eclipse.ui.texteditor.IDocumentProvider;
 import org.osgi.framework.BundleContext;
 import org.xml.sax.SAXException;
 
@@ -548,6 +551,22 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 		if (textFileDocumentProvider == null)
 			textFileDocumentProvider = new TextFileDocumentProvider();
 		return textFileDocumentProvider;
+	}
+	
+	public interface IDocumentAction {
+		void run(IDocument document);
+	}
+	
+	public void performActionsOnFileDocument(IResource resource, IDocumentAction action) throws CoreException {
+		IDocumentProvider provider = getTextFileDocumentProvider();
+		provider.connect(resource);
+		try {
+			IDocument document = provider.getDocument(resource);
+			action.run(document);
+			provider.saveDocument(null, resource, document, true);
+		} finally {
+			provider.disconnect(resource);
+		}
 	}
 
 	@Override

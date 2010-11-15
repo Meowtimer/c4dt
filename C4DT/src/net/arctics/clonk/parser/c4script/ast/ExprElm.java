@@ -64,7 +64,6 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable {
 				if (e.getParent() != null && e.getParent() != this) {
 					modified = true;
 					try {
-						System.out.println("Cloning " + e.toString());
 						subElms[i] = e = (ExprElm) e.clone();
 					} catch (CloneNotSupportedException cloneFail) {
 						cloneFail.printStackTrace();

@@ -35,6 +35,7 @@ import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.editors.text.TextEditor;
 import org.eclipse.ui.ide.IDE;
+import org.eclipse.ui.part.FileEditorInput;
 import org.eclipse.ui.part.IShowInSource;
 import org.eclipse.ui.part.IShowInTargetList;
 import org.eclipse.ui.texteditor.AbstractTextEditor;
@@ -238,6 +239,27 @@ public class ClonkTextEditor extends TextEditor {
 			}
 		}
 		return null;
+	}
+	
+	@SuppressWarnings("unchecked")
+	public static <T extends ClonkTextEditor> T getEditorForResource(IResource resource, Class<T> cls) {
+		for (IWorkbenchWindow window : PlatformUI.getWorkbench().getWorkbenchWindows()) {
+			for (IWorkbenchPage page : window.getPages()) {
+				for (IEditorReference reference : page.getEditorReferences()) {
+					IEditorPart editor = reference.getEditor(false);
+					if (editor != null && cls.isAssignableFrom(editor.getClass())) {
+						if (editor.getEditorInput() instanceof FileEditorInput && ((FileEditorInput)editor.getEditorInput()).getFile().equals(resource)) {
+							return (T) editor;
+						}
+					}
+				}
+			}
+		}
+		return null;
+	}
+	
+	public final ISourceViewer getProtectedSourceViewer() {
+		return super.getSourceViewer();
 	}
 	
 }
