@@ -730,6 +730,9 @@
 			<entry name="AllowHostilityChange" class="Boolean" />
 			<entry name="AllowTeamSwitch" class="Boolean" />
 			<entry name="TeamColors" class="Boolean" />
+			<entry name="Active" class="Boolean" />
+			<entry name="Custom" class="Boolean" />
+			<entry name="AutoGenerateTeams" class="Boolean" />
 			<section name="Team">
 				<entry name="id" class="SignedInteger" />
 				<entry name="Name" class="java.lang.String" />
