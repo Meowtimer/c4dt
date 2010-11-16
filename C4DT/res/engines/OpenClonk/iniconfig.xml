@@ -712,6 +712,8 @@
 				<entry name="Name" class="java.lang.String" />
 				<entry name="IconSpec" class="IconSpec" />
 				<entry name="PlrStartIndex" class="SignedInteger" />
+				<entry name="Color" class="SignedInteger" />
+				<entry name="MaxPlayer" class="SignedInteger" />
 			</section>
 		</section>
 	</file>
