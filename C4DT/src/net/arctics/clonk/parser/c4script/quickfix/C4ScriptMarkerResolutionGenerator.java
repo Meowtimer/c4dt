@@ -6,6 +6,7 @@ import java.util.List;
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.c4script.C4ScriptBase;
 import net.arctics.clonk.ui.editors.c4script.ClonkQuickAssistProcessor;
+import net.arctics.clonk.ui.editors.c4script.ClonkQuickAssistProcessor.ParameterizedProposal;
 
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.runtime.CoreException;
@@ -23,8 +24,8 @@ public class C4ScriptMarkerResolutionGenerator implements IMarkerResolutionGener
 		quickAssist.collectProposals(marker, new Position(marker.getAttribute(IMarker.CHAR_START, 0), marker.getAttribute(IMarker.CHAR_END, 0)-marker.getAttribute(IMarker.CHAR_START, 0)), proposals, null, script);
 		List<IMarkerResolution> res = new ArrayList<IMarkerResolution>(10);
 		for (ICompletionProposal p : proposals) {
-			if (p instanceof IMarkerResolution)
-				res.add((IMarkerResolution) p);
+			if (p instanceof ParameterizedProposal)
+				res.add(new ClonkQuickAssistProcessor.ParameterizedProposalMarkerResolution((ParameterizedProposal) p, marker));
 		}
 		return res.toArray(new IMarkerResolution[res.size()]);
 	}

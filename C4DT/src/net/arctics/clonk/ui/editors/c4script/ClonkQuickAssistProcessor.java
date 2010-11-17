@@ -43,6 +43,7 @@ import net.arctics.clonk.util.Utilities;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.runtime.CoreException;
+
 import org.eclipse.jface.dialogs.IInputValidator;
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.IDocument;
@@ -55,9 +56,9 @@ import org.eclipse.jface.text.quickassist.IQuickAssistProcessor;
 import org.eclipse.jface.text.source.Annotation;
 import org.eclipse.jface.text.source.IAnnotationModel;
 import org.eclipse.swt.graphics.Image;
-import org.eclipse.ui.IMarkerResolution;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.texteditor.MarkerAnnotation;
+import org.eclipse.ui.views.markers.WorkbenchMarkerResolution;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -149,7 +150,57 @@ public class ClonkQuickAssistProcessor implements IQuickAssistProcessor, IMarker
 		return WhatToDo.PassThrough;
 	}
 	
-	public final class ParameterizedProposal extends ClonkCompletionProposal implements IMarkerResolution {
+	public static final class ParameterizedProposalMarkerResolution extends WorkbenchMarkerResolution {
+
+		private ParameterizedProposal proposal;
+		private IMarker originalMarker;
+		
+		public ParameterizedProposalMarkerResolution(ParameterizedProposal proposal, IMarker originalMarker) {
+			this.proposal = proposal;
+			this.originalMarker = originalMarker;
+		}
+		
+		@Override
+		public String getDescription() {
+			return proposal.getDisplayString();
+		}
+
+		@Override
+		public Image getImage() {
+			return proposal.getImage();
+		}
+
+		@Override
+		public String getLabel() {
+			return proposal.getDisplayString();
+		}
+
+		@Override
+		public void run(IMarker marker) {
+			proposal.runOnMarker(marker);
+		}
+
+		private boolean relevant(IMarker marker) {
+			if (marker.getResource().equals(originalMarker.getResource())) {
+				return false;
+			}
+			return ParserErrorCode.getErrorCode(marker) == ParserErrorCode.getErrorCode(originalMarker);
+		}
+		
+		@Override
+		public IMarker[] findOtherMarkers(IMarker[] markers) {
+			List<IMarker> result = new ArrayList<IMarker>(markers.length);
+			for (IMarker m : markers) {
+				if (relevant(m)) {
+					result.add(m);
+				}
+			}
+			return result.toArray(new IMarker[result.size()]);
+		}
+		
+	}
+	
+	public final class ParameterizedProposal extends ClonkCompletionProposal {
 		private final Replacement replacement;
 		private final int tabIndentation;
 		private final C4ScriptParser parser;
@@ -229,17 +280,12 @@ public class ClonkQuickAssistProcessor implements IQuickAssistProcessor, IMarker
 			}
 		}
 
-		@Override
-		public String getLabel() {
-			return getDisplayString();
-		}
-
-		@Override
-		public void run(IMarker marker) {
+		public void runOnMarker(IMarker marker) {
 			try {
 				ClonkCore.getDefault().performActionsOnFileDocument(marker.getResource(), new IDocumentAction() {
 					@Override
 					public void run(IDocument document) {
+						System.out.println("Applying to " + document.toString());
 						apply(document);
 					}
 				});
