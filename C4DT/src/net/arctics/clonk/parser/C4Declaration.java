@@ -218,12 +218,22 @@ public abstract class C4Declaration implements Serializable, IHasRelatedResource
 		return parentDeclaration;
 	}
 	
+	@SuppressWarnings("unchecked")
+	public final <T extends C4Declaration> T getParentDeclarationOfType(Class<T> cls) {
+		for (C4Declaration d = getParentDeclaration(); d != null; d = d.getParentDeclaration()) {
+			if (cls.isAssignableFrom(d.getClass())) {
+				return (T) d;
+			}
+		}
+		return null;
+	}
+	
 	/**
 	 * Returns an Iterable for iterating over all sub declaration of this declaration.
 	 * Might return null if there are none.
 	 * @return The Iterable for iterating over sub declarations or null.
 	 */
-	public Iterable<C4Declaration> allSubDeclarations() {
+	public Iterable<? extends C4Declaration> allSubDeclarations() {
 		return null;
 	}
 	
@@ -233,7 +243,7 @@ public abstract class C4Declaration implements Serializable, IHasRelatedResource
 	 */
 	public void postSerialize(C4Declaration parent) {
 		setParentDeclaration(parent);
-		Iterable<C4Declaration> subDecs = this.allSubDeclarations();
+		Iterable<? extends C4Declaration> subDecs = this.allSubDeclarations();
 		if (subDecs != null)
 			for (C4Declaration d : subDecs)
 				d.postSerialize(this);
@@ -244,7 +254,7 @@ public abstract class C4Declaration implements Serializable, IHasRelatedResource
 	 * @param parent the parent
 	 */
 	public void preSerialize() {
-		Iterable<C4Declaration> subDecs = this.allSubDeclarations();
+		Iterable<? extends C4Declaration> subDecs = this.allSubDeclarations();
 		if (subDecs != null)
 			for (C4Declaration d : subDecs)
 				d.preSerialize();

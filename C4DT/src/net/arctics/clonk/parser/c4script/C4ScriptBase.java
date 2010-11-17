@@ -625,6 +625,7 @@ public abstract class C4ScriptBase extends C4Structure implements ITreeNode {
 
 	private boolean dirty;
 
+	@Override
 	public void setDirty(boolean d) {
 		dirty = d;
 	}

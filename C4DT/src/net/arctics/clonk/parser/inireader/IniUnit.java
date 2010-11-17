@@ -51,7 +51,7 @@ public class IniUnit extends C4Structure implements Iterable<IniSection>, IHasCh
 	/**
 	 * Text scanner
 	 */
-	protected BufferedScanner reader;
+	protected BufferedScanner scanner;
 	
 	/**
 	 * The configuration file
@@ -79,29 +79,30 @@ public class IniUnit extends C4Structure implements Iterable<IniSection>, IHasCh
 	protected IniSection currentSection;
 	
 	public IniUnit(Object input) {
-		if (input instanceof String)
-			reader = new BufferedScanner((String)input);
-		else if (input instanceof InputStream)
-			reader = new BufferedScanner((InputStream)input);
+		scanner = new BufferedScanner(input);
 	}
 	
 	public IniUnit(String input) {
 		this((Object)input);
 	}
 	
+	public BufferedScanner getScanner() {
+		return scanner;
+	}
+	
 	/**
 	 * Creates an IniReader that reads ini information from a project file
 	 * @param file the file
 	 */
-	public IniUnit(IFile file) {
+	public IniUnit(final IFile file) {
 		try {
 			defaultName = file.getParent().getName();
-			InputStream stream = file.getContents();
-			try {
-				reader = new BufferedScanner(stream);
-			} finally {
-				stream.close();
-			}
+			scanner = new BufferedScanner(file) {
+				@Override
+				public void reset() {
+					reset(Utilities.stringFromFile(file));
+				};
+			};
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -203,6 +204,7 @@ public class IniUnit extends C4Structure implements Iterable<IniSection>, IHasCh
 	}
 	
 	public void parse(boolean modifyMarkers) {
+		scanner.reset();
 		if (modifyMarkers && getIniFile() != null) {
 			try {
 				getIniFile().deleteMarkers(IMarker.PROBLEM, true, IResource.DEPTH_ONE);
@@ -213,7 +215,7 @@ public class IniUnit extends C4Structure implements Iterable<IniSection>, IHasCh
 			}
 		}
 		this.clear();
-		reader.seek(0);
+		scanner.seek(0);
 		IniSection section;
 		while ((section = parseSection(modifyMarkers, null)) != null) {
 			sectionsMap.put(section.getName(), section);
@@ -245,26 +247,26 @@ public class IniUnit extends C4Structure implements Iterable<IniSection>, IHasCh
 	protected IniSection parseSection(boolean modifyMarkers, IniSection parentSection) {
 		int targetIndentation = parentSection != null ? parentSection.getIndentation()+1 : 0;
 		while (skipComment());
-		int start = reader.getPosition();
+		int start = scanner.getPosition();
 		// parse head
-		int indentation = reader.getTabIndentation();
-		if (reader.read() == '[' && indentation == targetIndentation) {
-			String name = reader.readStringUntil(']','\n','\r');
-			if (reader.read() != ']') {
+		int indentation = scanner.getTabIndentation();
+		if (scanner.read() == '[' && indentation == targetIndentation) {
+			String name = scanner.readStringUntil(']','\n','\r');
+			if (scanner.read() != ']') {
 				if (modifyMarkers)
-					marker(ParserErrorCode.TokenExpected, start, reader.getPosition(), IMarker.SEVERITY_ERROR, (Object)"]"); //$NON-NLS-1$
+					marker(ParserErrorCode.TokenExpected, start, scanner.getPosition(), IMarker.SEVERITY_ERROR, (Object)"]"); //$NON-NLS-1$
 				return null;
 			}
 			else {
 				if (!isSectionNameValid(name, parentSection)) {
 					if (modifyMarkers)
-						marker(ParserErrorCode.UnknownSection, start, reader.getPosition()-1, IMarker.SEVERITY_WARNING, name);
+						marker(ParserErrorCode.UnknownSection, start, scanner.getPosition()-1, IMarker.SEVERITY_WARNING, name);
 				}
-				reader.eat(BufferedScanner.NEWLINE_CHARS); // ignore rest of section line
+				scanner.eat(BufferedScanner.NEWLINE_CHARS); // ignore rest of section line
 			}
-			int end = reader.getPosition();
+			int end = scanner.getPosition();
 			IniSection section = new IniSection(new SourceLocation(start, end), name);
-			section.setParentDeclaration(this);
+			section.setParentDeclaration(parentSection != null ? parentSection : this);
 			section.setIndentation(indentation);
 			// parse entries
 			IniItem item= null;
@@ -280,45 +282,45 @@ public class IniUnit extends C4Structure implements Iterable<IniSection>, IHasCh
 			return section;
 		}
 		else {
-			reader.unread();
+			scanner.unread();
 			return null;
 		}
 	}
 	
 	protected boolean skipComment() {
-		reader.eatWhitespace();
+		scanner.eatWhitespace();
 		int _r;
-		for (_r = reader.read(); _r == 0; _r = reader.read());
+		for (_r = scanner.read(); _r == 0; _r = scanner.read());
 		char r = (char) _r;
 		if (r == ';' || r == '#') {
-			reader.readStringUntil('\n');
-			reader.eatWhitespace();
+			scanner.readStringUntil('\n');
+			scanner.eatWhitespace();
 			return true;
 		}
 		else if (r == '/') {
-			switch (reader.read()) {
+			switch (scanner.read()) {
 			case '/':
-				reader.eatUntil(BufferedScanner.NEWLINE_CHARS);
-				reader.eatWhitespace();
+				scanner.eatUntil(BufferedScanner.NEWLINE_CHARS);
+				scanner.eatWhitespace();
 				return true;
 			case '*':
-				for (; !reader.reachedEOF();) {
-					if (reader.read() == '*') {
-						if (reader.read() == '/')
+				for (; !scanner.reachedEOF();) {
+					if (scanner.read() == '*') {
+						if (scanner.read() == '/')
 							break;
 						else
-							reader.unread();
+							scanner.unread();
 					}
 				}
-				reader.eatWhitespace();
+				scanner.eatWhitespace();
 				return true;
 			default:
-				reader.unread(); reader.unread();
+				scanner.unread(); scanner.unread();
 				return false;
 			}
 		}
 		else {
-			reader.unread();
+			scanner.unread();
 			return false;
 		}
 	}
@@ -338,31 +340,31 @@ public class IniUnit extends C4Structure implements Iterable<IniSection>, IHasCh
 	protected IniEntry parseEntry(IniSection section, boolean modifyMarkers, IniSection parentSection) {
 		int targetIndentation = parentSection != null ? parentSection.getIndentation() : 0;
 		while (skipComment());
-		int start = reader.getPosition();
-		reader.eatWhitespace();
-		int indentation = reader.getTabIndentation();
-		if (indentation != targetIndentation || reader.read() == '[') {
-			reader.seek(start);
+		int start = scanner.getPosition();
+		scanner.eatWhitespace();
+		int indentation = scanner.getTabIndentation();
+		if (indentation != targetIndentation || scanner.read() == '[') {
+			scanner.seek(start);
 			return null;
 		}
-		reader.unread();
-		if (reader.reachedEOF()) return null;
-		int keyStart = reader.getPosition();
-		String key = reader.readIdent();
-		reader.eatWhitespace();
-		if (reader.read() != '=') {
+		scanner.unread();
+		if (scanner.reachedEOF()) return null;
+		int keyStart = scanner.getPosition();
+		String key = scanner.readIdent();
+		scanner.eatWhitespace();
+		if (scanner.read() != '=') {
 			if (modifyMarkers)
-				marker(ParserErrorCode.TokenExpected, keyStart+key.length(), reader.getPosition(), IMarker.SEVERITY_ERROR, (Object)"="); //$NON-NLS-1$
+				marker(ParserErrorCode.TokenExpected, keyStart+key.length(), scanner.getPosition(), IMarker.SEVERITY_ERROR, (Object)"="); //$NON-NLS-1$
 		}
-		reader.eat(new char[] {' ', '\t'});
-		String value = reader.readStringUntil(BufferedScanner.NEWLINE_CHARS);
-		int valEnd = reader.getPosition();
+		scanner.eat(new char[] {' ', '\t'});
+		String value = scanner.readStringUntil(BufferedScanner.NEWLINE_CHARS);
+		int valEnd = scanner.getPosition();
 		int commentStart = value != null ? value.indexOf('#') : -1;
 		if (commentStart != -1) {
 			valEnd -= value.length()-commentStart;
 			value = value.substring(0, commentStart);
 		}
-		reader.eat(BufferedScanner.NEWLINE_CHARS);
+		scanner.eat(BufferedScanner.NEWLINE_CHARS);
 		IniEntry entry = new IniEntry(keyStart, valEnd, key, value);
 		entry.setParentDeclaration(section);
 		try {
@@ -480,7 +482,12 @@ public class IniUnit extends C4Structure implements Iterable<IniSection>, IHasCh
 	}
 	
 	public IniSection sectionAtOffset(int offset) {
-		return sectionAtOffset(null, offset);
+		IniSection sec = sectionAtOffset(null, offset);
+		/*if (sec != null && scanner != null) {
+			int indentation = sec.getIndentation() - scanner.getTabIndentation(offset);
+			for (; indentation > 0 && sec.getParentDeclaration() instanceof IniSection; indentation--, sec = (IniSection) sec.getParentDeclaration());
+		}*/
+		return sec;
 	}
 	
 	@Override
@@ -512,12 +519,6 @@ public class IniUnit extends C4Structure implements Iterable<IniSection>, IHasCh
 			return getIniFile().getFullPath().toOSString();
 		else
 			return super.toString();
-	}
-	
-	@Override
-	public void pinTo(IResource resource) throws CoreException {
-		super.pinTo(resource);
-		reader = null; // drop reader
 	}
 	
 	public static void register() {
@@ -605,6 +606,11 @@ public class IniUnit extends C4Structure implements Iterable<IniSection>, IHasCh
 	public C4Engine getEngine() {
 		ClonkProjectNature nature = ClonkProjectNature.get(getResource());
 		return nature != null ? nature.getIndex().getEngine() : super.getEngine();
+	}
+	
+	@Override
+	public Iterable<? extends C4Declaration> allSubDeclarations() {
+		return this.sectionsList;
 	}
 
 }

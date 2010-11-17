@@ -1,6 +1,5 @@
 package net.arctics.clonk.ui.editors;
 
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -19,18 +18,21 @@ public abstract class TextChangeListenerBase<EditorType extends ClonkTextEditor,
 	protected List<EditorType> clients = new LinkedList<EditorType>();
 	protected StructureType structure;
 	protected IDocument document;
-	
-	protected static Map<IDocument, TextChangeListenerBase<?, ?>> listeners = new HashMap<IDocument, TextChangeListenerBase<?, ?>>();
+	protected Map<IDocument, TextChangeListenerBase<EditorType, StructureType>> listeners;
 	
 	@SuppressWarnings("unchecked")
-	public static <E extends ClonkTextEditor, S extends C4Structure, T extends TextChangeListenerBase<E, S>> T addTo(Class<T> listenerClass, IDocument document, S structure, E client) throws InstantiationException, IllegalAccessException {
+	public static <E extends ClonkTextEditor, S extends C4Structure, T extends TextChangeListenerBase<E, S>> T addTo(
+		Map<IDocument, TextChangeListenerBase<E, S>> listeners,
+		Class<T> listenerClass, IDocument document, S structure, E client)
+	throws InstantiationException, IllegalAccessException {
 		TextChangeListenerBase<?, ?> result = listeners.get(document);
 		T r;
 		if (result == null) {
 			r = listenerClass.newInstance();
+			r.listeners = listeners;
 			r.structure = structure;
 			r.document = document;
-			document.addDocumentListener(result);
+			document.addDocumentListener(r);
 			listeners.put(document, r);
 		} else {
 			r = (T)result;
@@ -53,6 +55,12 @@ public abstract class TextChangeListenerBase<EditorType extends ClonkTextEditor,
 	}
 	
 	public void documentAboutToBeChanged(DocumentEvent event) {
+	}
+	
+	@Override
+	public void documentChanged(DocumentEvent event) {
+		structure.setDirty(true);
+		adjustDeclarationLocations(event);
 	}
 
 	protected void addToLocation(SourceLocation location, int offset, int add) {
@@ -110,5 +118,9 @@ public abstract class TextChangeListenerBase<EditorType extends ClonkTextEditor,
 			}
 		}
 		return null;
+	}
+	
+	public StructureType getStructure() {
+		return structure;
 	}
 }

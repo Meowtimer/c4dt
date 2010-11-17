@@ -1,6 +1,5 @@
 package net.arctics.clonk.parser.stringtbl;
 
-import java.io.IOException;
 import java.io.Reader;
 import java.io.StringReader;
 import java.util.Collection;
@@ -70,12 +69,7 @@ public class StringTbl extends C4Structure implements ITreeNode, ITableEntryInfo
 	
 	public static void readStringTbl(Reader reader, ITableEntryInformationSink sink) {
 		BufferedScanner scanner;
-		try {
-			scanner = new BufferedScanner(reader);
-		} catch (IOException e) {
-			scanner = new BufferedScanner(""); //$NON-NLS-1$
-			e.printStackTrace();
-		}
+		scanner = new BufferedScanner(reader);
 		while (!scanner.reachedEOF()) {
 			scanner.eatWhitespace();
 			if (scanner.read() == '#')

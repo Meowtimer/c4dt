@@ -1,20 +1,59 @@
 package net.arctics.clonk.ui.editors.ini;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import net.arctics.clonk.parser.C4Declaration;
+import net.arctics.clonk.parser.C4Structure;
 import net.arctics.clonk.parser.inireader.IniUnit;
 import net.arctics.clonk.ui.editors.ClonkTextEditor;
 import net.arctics.clonk.ui.editors.ColorManager;
+import net.arctics.clonk.ui.editors.TextChangeListenerBase;
 import net.arctics.clonk.util.Utilities;
 
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jface.text.DocumentEvent;
-import org.eclipse.jface.text.IDocumentListener;
+import org.eclipse.jface.text.IDocument;
 import org.eclipse.swt.widgets.Composite;
 
 public class IniTextEditor extends ClonkTextEditor {
 	
-	private IniUnit unit;
-	private boolean unitParsed;
-	private int unitLocked;
+	public static final class TextChangeListener extends TextChangeListenerBase<IniTextEditor, IniUnit> {
+		
+		private static final Map<IDocument, TextChangeListenerBase<IniTextEditor, IniUnit>> listeners = new HashMap<IDocument, TextChangeListenerBase<IniTextEditor, IniUnit>>();
+
+		private boolean unitParsed;
+		public int unitLocked;
+		
+		public TextChangeListener() {
+			super();
+		}
+		
+		@Override
+		public void documentChanged(DocumentEvent event) {
+			super.documentChanged(event);
+			forgetUnitParsed();
+		}
+		public static TextChangeListener addTo(IDocument document, IniUnit unit, IniTextEditor client)  {
+			try {
+				return addTo(listeners, TextChangeListener.class, document, unit, client);
+			} catch (Exception e) {
+				e.printStackTrace();
+				return null;
+			}
+		}
+		public void forgetUnitParsed() {
+			if (unitLocked == 0)
+				unitParsed = false;
+		}
+		public boolean ensureIniUnitUpToDate() {
+			if (!unitParsed) {
+				unitParsed = true;
+				structure.parse(false);
+			}
+			return true;
+		}
+	}
 	
 	public IniTextEditor() {
 		super();
@@ -23,22 +62,9 @@ public class IniTextEditor extends ClonkTextEditor {
 	
 	@Override
 	public void refreshOutline() {
-		forgetUnitParsed();
+		textChangeListener.forgetUnitParsed();
 		if (outlinePage != null)
 			outlinePage.setInput(getIniUnit());
-	}
-	
-	public boolean ensureIniUnitUpToDate() {
-		if (!unitParsed) {
-			unitParsed = true;
-			try {
-				unit = IniUnit.createAdequateIniUnit(Utilities.getEditingFile(this), true, getDocumentProvider().getDocument(getEditorInput()).get());
-				unit.parse(false);
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-		}
-		return unit != null;
 	}
 	
 	@Override
@@ -46,37 +72,48 @@ public class IniTextEditor extends ClonkTextEditor {
 		return getIniUnit(); 
 	}
 
-	public void forgetUnitParsed() {
-		if (unitLocked == 0)
-			unitParsed = false;
-	}
-
 	public IniUnit getIniUnit() {
-		ensureIniUnitUpToDate();
-		return unit;
+		if (textChangeListener == null) {
+			IniUnit unit = null;
+			try {
+				unit = (IniUnit) C4Structure.pinned(Utilities.getEditingFile(this), true, false);
+			} catch (CoreException e) {
+				e.printStackTrace();
+			}
+			if (unit != null && unit.isEditable()) {
+				textChangeListener = TextChangeListener.addTo(getDocumentProvider().getDocument(getEditorInput()), unit, this);
+			}
+		}
+		if (textChangeListener != null) {
+			textChangeListener.ensureIniUnitUpToDate();
+			return textChangeListener.getStructure();
+		} else {
+			return null;
+		}
 	}
 	
 	public void lockUnit() {
-		unitLocked++;
+		textChangeListener.unitLocked++;
 	}
 	
 	public void unlockUnit() {
-		unitLocked--;
+		textChangeListener.unitLocked--;
 	}
+	
+	private TextChangeListener textChangeListener;
 	
 	@Override
 	public void createPartControl(Composite parent) {
 		super.createPartControl(parent);
-		getDocumentProvider().getDocument(getEditorInput()).addDocumentListener(new IDocumentListener() {
+		getIniUnit();
+	}
 
-			public void documentAboutToBeChanged(DocumentEvent event) {
-			}
+	public boolean ensureIniUnitUpToDate() {
+		return textChangeListener.ensureIniUnitUpToDate();
+	}
 
-			public void documentChanged(DocumentEvent event) {
-				forgetUnitParsed();
-			}
-			
-		});
+	public void forgetUnitParsed() {
+		textChangeListener.forgetUnitParsed();
 	}
 	
 }

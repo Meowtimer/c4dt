@@ -1,13 +1,11 @@
 package net.arctics.clonk.parser;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
 
 import net.arctics.clonk.util.Utilities;
 
 import org.eclipse.core.resources.IFile;
-import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.Region;
 
@@ -47,40 +45,6 @@ public class BufferedScanner {
 	private int offset;
 
 	/**
-	 * Create a new scanner that scans the contents of a text file
-	 * @param file the text file
-	 */
-	public BufferedScanner(IFile file) {
-		try {
-			offset = 0;
-			buffer = Utilities.stringFromFileDocument(file);
-			size = buffer.length();
-		} catch (CoreException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-	}
-
-	public BufferedScanner(Reader reader) throws IOException {
-		this(Utilities.stringFromReader(reader));
-	}
-	
-	/**
-	 * Create a new scanner that scans the contents of a stream
-	 * @param stream the input stream
-	 */
-	public BufferedScanner(InputStream stream) {
-		try {
-			offset = 0;
-			buffer = Utilities.stringFromInputStream(stream);
-			size = buffer.length();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-	}
-
-	/**
 	 * Create a new scanner that scans a string
 	 * @param withString
 	 */
@@ -88,6 +52,24 @@ public class BufferedScanner {
 		offset = 0;
 		buffer = withString;
 		size = buffer.length();
+	}
+
+	public BufferedScanner(Object source) {
+		this(stringFromSource(source));
+	}
+	
+	private static String stringFromSource(Object source) {
+		if (source instanceof IFile) {
+			return Utilities.stringFromFileDocument((IFile) source);
+		} else if (source instanceof Reader) {
+			return Utilities.stringFromReader((Reader)source);
+		} else if (source instanceof InputStream) {
+			return Utilities.stringFromInputStream((InputStream)source);
+		} else if (source instanceof String) {
+			return (String)source;
+		} else {
+			return "";
+		}
 	}
 
 	/**
@@ -287,15 +269,21 @@ public class BufferedScanner {
 	}
 	
 	public static int getTabIndentation(String s, int pos) {
+		if (pos >= s.length())
+			pos = s.length();
 		int tabs = 0;
 		for (--pos; pos >= 0 && !isLineDelimiterChar(s.charAt(pos)); pos--) {
-			if (s.charAt(pos) == '\t') {
+			if (pos < s.length() && s.charAt(pos) == '\t') {
 				tabs++;
 			} else {
 				tabs = 0; // don't count tabs not at the start of the line
 			}
 		}
 		return tabs;
+	}
+	
+	public int getTabIndentation(int offset) {
+		return getTabIndentation(buffer, offset);
 	}
 	
 	public int getTabIndentation() {
@@ -374,10 +362,7 @@ public class BufferedScanner {
 	 * @return true if it is one, false if not
 	 */
 	public static boolean isLineDelimiterChar(char c) {
-		for (int i = 0; i < NEWLINE_CHARS.length; i++)
-			if (NEWLINE_CHARS[i] == c)
-				return true;
-		return false;
+		return c == '\n' || c == '\r';
 	}
 	
 	/**
@@ -453,6 +438,16 @@ public class BufferedScanner {
 	
 	public String stringAtRegion(IRegion region) {
 		return buffer.substring(region.getOffset(), region.getOffset()+region.getLength());
+	}
+	
+	public final void reset(String text) {
+		buffer = text;
+		offset = 0;
+		size = buffer.length();
+	}
+	
+	public void reset() {
+		offset = 0;
 	}
 	
 }

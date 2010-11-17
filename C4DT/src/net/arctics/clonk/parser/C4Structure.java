@@ -163,4 +163,6 @@ public abstract class C4Structure extends C4Declaration {
 	 */
 	public void validate() {}
 	
+	public void setDirty(boolean dirty) {}
+	
 }

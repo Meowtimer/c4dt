@@ -378,12 +378,16 @@ public abstract class Utilities {
 		return false;
 	}
 	
-	public static String stringFromReader(Reader reader) throws IOException {
+	public static String stringFromReader(Reader reader) {
 		char[] buffer = new char[1024];
 		int read;
 		StringBuilder builder = new StringBuilder(1024);
-		while ((read = reader.read(buffer)) > 0) {
-			builder.append(buffer, 0, read);
+		try {
+			while ((read = reader.read(buffer)) > 0) {
+				builder.append(buffer, 0, read);
+			}
+		} catch (IOException e) {
+			return "";
 		}
 		return builder.toString();
 	}
@@ -397,8 +401,13 @@ public abstract class Utilities {
 		}
 	}
 	
-	public static String stringFromInputStream(InputStream stream) throws IOException {
-		return stringFromInputStream(stream, "UTF-8"); //$NON-NLS-1$
+	public static String stringFromInputStream(InputStream stream) {
+		try {
+			return stringFromInputStream(stream, "UTF-8"); //$NON-NLS-1$
+		} catch (IOException e) {
+			e.printStackTrace();
+			return "";
+		}
 	}
 	
 	public static String stringFromFile(IFile file) {
@@ -431,9 +440,13 @@ public abstract class Utilities {
 		}
 	}
 
-	public static String stringFromFileDocument(IFile file) throws IOException, CoreException {
+	public static String stringFromFileDocument(IFile file) {
 		TextFileDocumentProvider provider = ClonkCore.getDefault().getTextFileDocumentProvider();
-		provider.connect(file);
+		try {
+			provider.connect(file);
+		} catch (CoreException e) {
+			return "";
+		}
 		try {
 			return provider.getDocument(file).get();
 		} finally {

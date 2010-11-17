@@ -112,7 +112,8 @@ public class IniSection extends C4Declaration implements IHasKeyAndValue<String,
 	
 	@Override
 	public String toString() {
-		return ((IniUnit)getParentDeclaration()).sectionToString(this);
+		IniUnit unit = getIniUnit();
+		return unit != null ? unit.sectionToString(this) : getName();
 	}
 	
 	@Override
@@ -177,6 +178,14 @@ public class IniSection extends C4Declaration implements IHasKeyAndValue<String,
 			}
 		}
 		return sections;
+	}
+	
+	public IniSection getParentSection() {
+		return getParentDeclaration() instanceof IniSection ? (IniSection)getParentDeclaration() : null;
+	}
+	
+	public IniUnit getIniUnit() {
+		return getParentDeclarationOfType(IniUnit.class);
 	}
 
 }
