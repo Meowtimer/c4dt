@@ -36,6 +36,7 @@ import net.arctics.clonk.ui.editors.IClonkCommandIds;
 import net.arctics.clonk.ui.editors.ClonkTextEditor;
 import net.arctics.clonk.ui.editors.ColorManager;
 import net.arctics.clonk.ui.editors.IHasEditorRefWhichEnablesStreamlinedOpeningOfDeclarations;
+import net.arctics.clonk.ui.editors.TextChangeListenerBase;
 import net.arctics.clonk.ui.editors.actions.c4script.FindDuplicateAction;
 import net.arctics.clonk.ui.editors.actions.c4script.TidyUpCodeAction;
 import net.arctics.clonk.ui.editors.actions.c4script.FindReferencesAction;
@@ -52,7 +53,6 @@ import org.eclipse.jface.preference.PreferenceConverter;
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.DocumentEvent;
 import org.eclipse.jface.text.IDocument;
-import org.eclipse.jface.text.IDocumentListener;
 import org.eclipse.jface.text.IDocumentPartitioner;
 import org.eclipse.jface.text.ITextOperationTarget;
 import org.eclipse.jface.text.Region;
@@ -105,58 +105,27 @@ public class C4ScriptEditor extends ClonkTextEditor {
 
 	// Helper class that takes care of triggering a timed reparsing when the document is changed.
 	// It tries to only fire a full reparse when necessary (i.e. not when editing inside of a function)
-	private final static class TextChangeListener implements IDocumentListener {
+	public final static class TextChangeListener extends TextChangeListenerBase<C4ScriptEditor, C4ScriptBase> {
 		
 		private static final int REPARSE_DELAY = 700;
+
+		private static final Map<IDocument, TextChangeListenerBase<C4ScriptEditor, C4ScriptBase>> listeners = new HashMap<IDocument, TextChangeListenerBase<C4ScriptEditor,C4ScriptBase>>();
 		
 		private Timer reparseTimer = new Timer("ReparseTimer"); //$NON-NLS-1$
 		private TimerTask reparseTask, functionReparseTask;
-		private List<C4ScriptEditor> clients = new LinkedList<C4ScriptEditor>();
-		private C4ScriptBase script;
-		private IDocument document;
 		
-		private static Map<IDocument, TextChangeListener> listeners = new HashMap<IDocument, TextChangeListener>();
-
-		public static TextChangeListener addTo(IDocument document, C4ScriptBase script, C4ScriptEditor client) {
-			TextChangeListener result = listeners.get(document);
-			if (result == null) {
-				result = new TextChangeListener();
-				result.script = script;
-				result.document = document;
-				document.addDocumentListener(result);
-				listeners.put(document, result);
+		public static TextChangeListener addTo(IDocument document, C4ScriptBase script, C4ScriptEditor client)  {
+			try {
+				return addTo(listeners, TextChangeListener.class, document, script, client);
+			} catch (Exception e) {
+				e.printStackTrace();
+				return null;
 			}
-			result.clients.add(client);
-			return result;
 		}
 		
-		public void documentAboutToBeChanged(DocumentEvent event) {
-		}
-
-		private void addToLocation(SourceLocation location, int offset, int add) {
-			if (location != null) {
-				if (location.getStart() > offset)
-					location.setStart(location.getStart()+add);
-				if (location.getEnd() >= offset)
-					location.setEnd(location.getEnd()+add);
-			}
-		}
-
-		private void adjustDec(C4Declaration declaration, int offset, int add) {
-			addToLocation(declaration.getLocation(), offset, add);
-			if (declaration instanceof C4Function) {
-				C4Function f = (C4Function) declaration;
-				addToLocation(f.getBody(), offset, add);
-				for (C4Declaration v : f.allSubDeclarations()) {
-					addToLocation(v.getLocation(), offset, add);
-				}
-			}
-		}
-
 		public void documentChanged(DocumentEvent event) {
-			script.setDirty(true);			
-			adjustDeclarationLocations(event);
-			final C4Function f = script.funcAt(event.getOffset());
+			super.documentChanged(event);
+			final C4Function f = structure.funcAt(event.getOffset());
 			if (f != null && !f.isOldStyle()) {
 				// editing inside new-style function: adjust locations of declarations without complete reparse
 				// only recheck the function and display problems after delay
@@ -166,61 +135,29 @@ public class C4ScriptEditor extends ClonkTextEditor {
 				scheduleReparsing();
 			}
 		}
-
-		private void adjustDeclarationLocations(DocumentEvent event) {
-			if (event.getLength() == 0 && event.getText().length() > 0) {
-				// text was added
-				for (C4Declaration dec : script.allSubDeclarations()) {
-					adjustDec(dec, event.getOffset(), event.getText().length());
-				}
-			}
-			else if (event.getLength() > 0 && event.getText().length() == 0) {
-				// text was removed
-				for (C4Declaration dec : script.allSubDeclarations()) {
-					adjustDec(dec, event.getOffset(), -event.getLength());
-				}
-			}
-			else {
-				String newText = event.getText();
-				int replLength = event.getLength();
-				int offset = event.getOffset();
-				int diff = newText.length() - replLength;
-				// mixed
-				for (C4Declaration dec : script.allSubDeclarations()) {
-					if (dec.getLocation().getStart() >= offset + replLength)
-						adjustDec(dec, offset, diff);
-					else if (dec instanceof C4Function) {
-						// inside function: expand end location
-						C4Function func = (C4Function) dec;
-						if (offset >= func.getBody().getStart() && offset+replLength < func.getBody().getEnd()) {
-							func.getBody().setEnd(func.getBody().getEnd()+diff);
-						}
-					}
-				}
-			}
-		}
 		
-		public TimerTask cancel(TimerTask whichTask) {
-			if (whichTask != null) {
-				try {
-					whichTask.cancel();
-				} catch (IllegalStateException e) {
-					System.out.println("happens all the time, bitches");
+		@Override
+		protected void adjustDec(C4Declaration declaration, int offset, int add) {
+			super.adjustDec(declaration, offset, add);
+			if (declaration instanceof C4Function) {
+				C4Function f = (C4Function) declaration;
+				addToLocation(f.getBody(), offset, add);
+				for (C4Declaration v : f.allSubDeclarations()) {
+					addToLocation(v.getLocation(), offset, add);
 				}
 			}
-			return null;
 		}
 
 		private void scheduleReparsing() {
 			reparseTask = cancel(reparseTask);
-			if (script == null)
+			if (structure == null)
 				return;
 			reparseTimer.schedule(reparseTask = new TimerTask() {
 				@Override
 				public void run() {
 					try {
 						try {
-							reparseWithDocumentContents(null, true, document, script, new Runnable() {
+							reparseWithDocumentContents(null, true, document, structure, new Runnable() {
 								@Override
 								public void run() {
 									for (C4ScriptEditor ed : clients) {
@@ -267,15 +204,15 @@ public class C4ScriptEditor extends ClonkTextEditor {
 			functionReparseTask = cancel(functionReparseTask);
 			reparseTimer.schedule(functionReparseTask = new TimerTask() {
 				public void run() {
-					removeMarkers(f, script);
-					if (script.getScriptFile() instanceof IResource && !C4GroupItem.isLinkedResource((IResource) script.getScriptFile())) {
-						C4ScriptParser.reportExpressionsAndStatements(document, f.getBody(), script, f, null, new IMarkerListener() {
+					removeMarkers(f, structure);
+					if (structure.getScriptFile() instanceof IResource && !C4GroupItem.isLinkedResource((IResource) structure.getScriptFile())) {
+						C4ScriptParser.reportExpressionsAndStatements(document, f.getBody(), structure, f, null, new IMarkerListener() {
 							@Override
 							public WhatToDo markerEncountered(C4ScriptParser parser, ParserErrorCode code,
 									int markerStart, int markerEnd, boolean noThrow,
 									int severity, Object... args) {
-								if (script.getScriptFile() instanceof IFile) {
-									code.createMarker((IFile) script.getScriptFile(), script, ClonkCore.MARKER_C4SCRIPT_ERROR_WHILE_TYPING,
+								if (structure.getScriptFile() instanceof IFile) {
+									code.createMarker((IFile) structure.getScriptFile(), structure, ClonkCore.MARKER_C4SCRIPT_ERROR_WHILE_TYPING,
 										markerStart, markerEnd, severity, parser.getLocationOfExpressionReportingErrors(), args);
 								}
 								return WhatToDo.PassThrough;
@@ -286,26 +223,24 @@ public class C4ScriptEditor extends ClonkTextEditor {
 			}, REPARSE_DELAY);
 		}
 
-		public void removeClient(C4ScriptEditor client) {
-			clients.remove(client);
-			if (clients.size() == 0) {
-				cancel();
-				listeners.remove(document);
-				document.removeDocumentListener(this);
-				try {
-					if (script.getScriptFile() instanceof IFile) {
-						IFile file = (IFile)script.getScriptFile();
-						reparseWithDocumentContents(null, false, file, script, null);
-					}
-				} catch (ParsingException e) {
-					e.printStackTrace();
-				}
-			}
-		}
-
+		@Override
 		public void cancel() {
 			reparseTask = cancel(reparseTask);
 			functionReparseTask = cancel(functionReparseTask);
+			super.cancel();
+		}
+		
+		@Override
+		public void cleanupAfterRemoval() {
+			try {
+				if (structure.getScriptFile() instanceof IFile) {
+					IFile file = (IFile)structure.getScriptFile();
+					reparseWithDocumentContents(null, false, file, structure, null);
+				}
+			} catch (ParsingException e) {
+				e.printStackTrace();
+			}
+			super.cleanupAfterRemoval();
 		}
 	}
 
@@ -379,13 +314,15 @@ public class C4ScriptEditor extends ClonkTextEditor {
 	public void createPartControl(Composite parent) {
 		super.createPartControl(parent);
 		C4ScriptBase script = scriptBeingEdited();
-		if (script != null && script.isEditable())
+		if (script != null && script.isEditable()) {
 			textChangeListener = TextChangeListener.addTo(getDocumentProvider().getDocument(getEditorInput()), script, this);
+		}
 	}
 
 	public void dispose() {
 		if (textChangeListener != null) {
 			textChangeListener.removeClient(this);
+			textChangeListener = null;
 		}
 		colorManager.dispose();
 		super.dispose();
