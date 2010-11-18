@@ -8,7 +8,7 @@ import net.arctics.clonk.parser.inireader.IniData.IniDataEntry;
 import org.eclipse.core.resources.IMarker;
 
 
-public class UnsignedInteger implements IIniEntryValue, IConvertibleToPrimitive {
+public class UnsignedInteger extends IniEntryValueBase implements IConvertibleToPrimitive {
 	
 	private int number;
 	

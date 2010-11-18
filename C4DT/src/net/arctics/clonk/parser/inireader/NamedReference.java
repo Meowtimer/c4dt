@@ -2,7 +2,7 @@ package net.arctics.clonk.parser.inireader;
 
 import net.arctics.clonk.parser.inireader.IniData.IniDataEntry;
 
-public class NamedReference implements IIniEntryValue {
+public class NamedReference extends IniEntryValueBase {
 
 	private String value;
 	

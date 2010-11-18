@@ -6,7 +6,7 @@ import net.arctics.clonk.ClonkCore;
 
 import org.eclipse.core.resources.IFile;
 
-public class ActMapUnit extends IniUnit {
+public class ActMapUnit extends IniUnitWithNamedSections {
 
 	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 
@@ -28,14 +28,6 @@ public class ActMapUnit extends IniUnit {
 	
 	public ActMapUnit(String text) {
 		super(text);
-	}
-	
-	@Override
-	public String sectionToString(IniSection section) {
-		IniItem nameEntry = section.getSubItem("Name"); //$NON-NLS-1$
-		if (nameEntry instanceof IniEntry)
-			return "["+((IniEntry) nameEntry).getValue()+"]"; //$NON-NLS-1$ //$NON-NLS-2$
-		return super.sectionToString(section);
 	}
 
 }

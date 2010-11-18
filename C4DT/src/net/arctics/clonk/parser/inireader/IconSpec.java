@@ -2,7 +2,7 @@ package net.arctics.clonk.parser.inireader;
 
 import net.arctics.clonk.parser.inireader.IniData.IniDataEntry;
 
-public class IconSpec implements IIniEntryValue, IConvertibleToPrimitive {
+public class IconSpec extends IniEntryValueBase implements IConvertibleToPrimitive {
 
 	private String Definition;
 	private int Index;

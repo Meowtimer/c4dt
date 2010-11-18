@@ -12,11 +12,13 @@ import java.util.regex.Pattern;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.IPath;
+import org.eclipse.jface.text.Region;
 
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.BufferedScanner;
 import net.arctics.clonk.parser.C4Declaration;
 import net.arctics.clonk.parser.C4Structure;
+import net.arctics.clonk.parser.DeclarationRegion;
 import net.arctics.clonk.parser.NameValueAssignment;
 import net.arctics.clonk.util.ITreeNode;
 import net.arctics.clonk.util.ReadOnlyIterator;
@@ -151,6 +153,59 @@ public class StringTbl extends C4Structure implements ITreeNode, ITableEntryInfo
 	@Override
 	public boolean requiresScriptReparse() {
 		return true;
+	}
+	
+	public static DeclarationRegion getEntryRegion(String stringValue, int exprStart, int offset) {
+		int firstDollar = stringValue.lastIndexOf('$', offset-1);
+		int secondDollar = stringValue.indexOf('$', offset);
+		if (firstDollar != -1 && secondDollar != -1) {
+			String entry = stringValue.substring(firstDollar+1, secondDollar);
+			return new DeclarationRegion(null, new Region(exprStart+1+firstDollar, secondDollar-firstDollar+1), entry);
+		}
+		return null;
+	}
+	
+	public static DeclarationRegion getEntryForLanguagePref(String stringValue, int exprStart, int offset, C4Declaration container, boolean returnNullIfNotFound) {
+		DeclarationRegion result = getEntryRegion(stringValue, exprStart, offset);
+		if (result != null) {
+			StringTbl stringTbl = container.getStringTblForLanguagePref();
+			C4Declaration e = stringTbl != null ? stringTbl.getMap().get(result.getText()) : null;
+			if (e == null && returnNullIfNotFound) {
+				result = null;
+			} else {
+				result.setDeclaration(e);
+			}
+		}
+		return result;
+	}
+	
+	public static String evaluateEntries(C4Declaration context, String value, int exprStart) {
+		int valueLen = value.length();
+		StringBuilder builder = new StringBuilder(valueLen*2);
+		// insert stringtbl entries
+		Outer: for (int i = 0; i < valueLen;) {
+			if (i+1 < valueLen) {
+				switch (value.charAt(i)) {
+				case '$':
+					DeclarationRegion region = getEntryForLanguagePref(value, exprStart, i+1, context, true);
+					if (region != null) {
+						builder.append(((NameValueAssignment)region.getDeclaration()).getValue());
+						i += region.getRegion().getLength();
+						continue Outer;
+					}
+					break;
+				case '\\':
+					switch (value.charAt(++i)) {
+					case '"': case '\\':
+						builder.append(value.charAt(i++));
+						continue Outer;
+					}
+					break;
+				}
+			}
+			builder.append(value.charAt(i++));
+		}
+		return builder.toString();
 	}
 
 }

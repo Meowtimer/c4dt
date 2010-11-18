@@ -12,7 +12,7 @@ import net.arctics.clonk.util.IHasContext;
 import net.arctics.clonk.util.ITreeNode;
 import net.arctics.clonk.util.KeyValuePair;
 
-public abstract class KeyValueArrayEntry<KeyType, ValueType> implements IIniEntryValue, IHasChildrenWithContext, ITreeNode {
+public abstract class KeyValueArrayEntry<KeyType, ValueType> extends IniEntryValueBase implements IHasChildrenWithContext, ITreeNode {
 	private final List<KeyValuePair<KeyType, ValueType>> components = new ArrayList<KeyValuePair<KeyType, ValueType>>();
 	
 	public KeyValueArrayEntry(String value, IniDataEntry entryData, IniUnit context) throws IniParserException {

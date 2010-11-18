@@ -3,6 +3,7 @@ package net.arctics.clonk.parser.c4script.ast;
 import java.io.Serializable;
 
 import net.arctics.clonk.ClonkCore;
+import net.arctics.clonk.parser.DeclarationRegion;
 import net.arctics.clonk.parser.NameValueAssignment;
 import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.ParsingException;

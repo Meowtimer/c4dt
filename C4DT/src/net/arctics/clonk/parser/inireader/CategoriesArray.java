@@ -4,7 +4,7 @@ package net.arctics.clonk.parser.inireader;
 
 import net.arctics.clonk.parser.inireader.IniData.IniDataEntry;
 
-public class CategoriesArray implements IIniEntryValue {
+public class CategoriesArray extends IniEntryValueBase {
 
 	private CategoriesValue value;
 	

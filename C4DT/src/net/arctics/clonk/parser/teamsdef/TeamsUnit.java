@@ -4,9 +4,9 @@ import java.io.InputStream;
 
 import org.eclipse.core.resources.IFile;
 
-import net.arctics.clonk.parser.inireader.IniUnit;
+import net.arctics.clonk.parser.inireader.IniUnitWithNamedSections;
 
-public class TeamsUnit extends IniUnit {
+public class TeamsUnit extends IniUnitWithNamedSections {
 
 	public TeamsUnit(IFile file) {
 		super(file);

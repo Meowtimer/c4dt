@@ -7,7 +7,7 @@ import net.arctics.clonk.util.IHasContext;
 
 import org.eclipse.core.resources.IMarker;
 
-public class IntegerArray implements IIniEntryValue, IHasChildrenWithContext, IConvertibleToPrimitive {
+public class IntegerArray extends IniEntryValueBase implements IHasChildrenWithContext, IConvertibleToPrimitive {
 
 	private CategoriesValue[] values;
 	

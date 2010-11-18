@@ -1,6 +1,5 @@
-package net.arctics.clonk.parser.c4script.ast;
+package net.arctics.clonk.parser;
 
-import net.arctics.clonk.parser.C4Declaration;
 
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.Region;

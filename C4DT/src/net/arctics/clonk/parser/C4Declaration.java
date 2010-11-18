@@ -10,12 +10,17 @@ import net.arctics.clonk.index.C4Scenario;
 import net.arctics.clonk.parser.c4script.C4ScriptBase;
 import net.arctics.clonk.parser.c4script.C4ScriptIntern;
 import net.arctics.clonk.parser.c4script.IHasUserDescription;
+import net.arctics.clonk.parser.stringtbl.StringTbl;
+import net.arctics.clonk.preferences.ClonkPreferences;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.util.IHasRelatedResource;
 import net.arctics.clonk.util.INode;
+import net.arctics.clonk.util.Utilities;
 
 import org.eclipse.core.resources.IContainer;
+import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jface.text.IRegion;
 
 /**
@@ -325,6 +330,22 @@ public abstract class C4Declaration implements Serializable, IHasRelatedResource
 	
 	public void sourceCodeRepresentation(StringBuilder builder, Object cookie) {
 		System.out.println("dunno");
+	}
+	
+	public StringTbl getStringTblForLanguagePref() {
+		try {
+			IResource res = getResource();
+			if (res == null)
+				return null;
+			IContainer container = res instanceof IContainer ? (IContainer) res : res.getParent();
+			String pref = ClonkPreferences.getLanguagePref();
+			IResource tblFile = Utilities.findMemberCaseInsensitively(container, "StringTbl"+pref+".txt"); //$NON-NLS-1$ //$NON-NLS-2$
+			if (tblFile instanceof IFile)
+				return (StringTbl) C4Structure.pinned((IFile) tblFile, true, false);
+		} catch (CoreException e) {
+			e.printStackTrace();
+		}
+		return null;
 	}
 	
 }

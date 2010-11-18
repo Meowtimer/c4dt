@@ -7,7 +7,7 @@ import net.arctics.clonk.index.C4Object;
 import net.arctics.clonk.index.C4Scenario;
 import net.arctics.clonk.index.ClonkIndex;
 import net.arctics.clonk.parser.C4Declaration;
-import net.arctics.clonk.parser.NameValueAssignment;
+import net.arctics.clonk.parser.DeclarationRegion;
 import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.c4script.C4Function;
@@ -24,7 +24,6 @@ import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
-import org.eclipse.jface.text.Region;
 
 public final class StringLiteral extends Literal<String> {
 	/**
@@ -132,60 +131,19 @@ public final class StringLiteral extends Literal<String> {
 		}
 		return null;
 	}
-
+	
 	private DeclarationRegion getStringTblEntryRegion(int offset) {
-		int firstDollar = stringValue().lastIndexOf('$', offset-1);
-		int secondDollar = stringValue().indexOf('$', offset);
-		if (firstDollar != -1 && secondDollar != -1) {
-			String entry = stringValue().substring(firstDollar+1, secondDollar);
-			return new DeclarationRegion(null, new Region(getExprStart()+1+firstDollar, secondDollar-firstDollar+1), entry);
-		}
-		return null;
+		return StringTbl.getEntryRegion(stringValue(), getExprStart(), offset);
 	}
 	
-	private DeclarationRegion getStringTblEntryForLanguagePref(int offset, C4ScriptBase container, boolean returnNullIfNotFound) {
-		DeclarationRegion result = getStringTblEntryRegion(offset);
-		if (result != null) {
-			StringTbl stringTbl = container.getStringTblForLanguagePref();
-			C4Declaration e = stringTbl != null ? stringTbl.getMap().get(result.getText()) : null;
-			if (e == null && returnNullIfNotFound) {
-				result = null;
-			} else {
-				result.setDeclaration(e);
-			}
-		}
-		return result;
+	private DeclarationRegion getStringTblEntryForLanguagePref(int offset, C4Declaration container, boolean returnNullIfNotFound) {
+		return StringTbl.getEntryForLanguagePref(stringValue(), getExprStart(), offset, container, returnNullIfNotFound);	
 	}
 
 	@Override
 	public String evaluateAtParseTime(C4ScriptBase context) {
 		String value = getLiteral().replaceAll("\\\"", "\"");
-		int valueLen = value.length();
-		StringBuilder builder = new StringBuilder(valueLen*2);
-		// insert stringtbl entries
-		Outer: for (int i = 0; i < valueLen;) {
-			if (i+1 < valueLen) {
-				switch (value.charAt(i)) {
-				case '$':
-					DeclarationRegion region = getStringTblEntryForLanguagePref(i+1, context, true);
-					if (region != null) {
-						builder.append(((NameValueAssignment)region.getDeclaration()).getValue());
-						i += region.getRegion().getLength();
-						continue Outer;
-					}
-					break;
-				case '\\':
-					switch (value.charAt(++i)) {
-					case '"': case '\\':
-						builder.append(value.charAt(i++));
-						continue Outer;
-					}
-					break;
-				}
-			}
-			builder.append(value.charAt(i++));
-		}
-		return builder.toString();
+		return StringTbl.evaluateEntries(context, value, getExprStart());
 	}
 
 	@Override
