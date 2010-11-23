@@ -60,7 +60,8 @@ public enum ParserErrorCode {
 	InheritedDisabledInStrict0(Messages.InheritedDisabledInStrict0),
 	CallingMethodOnNonObject(Messages.CallingMethodOnNonObject),
 	NotAProplist(Messages.NotAProplist),
-	UnknownSection(Messages.UnknownSection);
+	UnknownSection(Messages.UnknownSection),
+	Unused(Messages.Unused);
 
 	public static final String MARKER_ERRORCODE = "c4ScriptErrorCode"; //$NON-NLS-1$
 	public static final String MARKER_EXPRESSIONSTART = "c4ScriptErrorExpressionStart"; //$NON-NLS-1$
@@ -110,7 +111,7 @@ public enum ParserErrorCode {
 	}
 	
 	public static String getArg(IMarker marker, int index) {
-		return marker.getAttribute(String.format(MARKER_ARGS[index], index), "");
+		return marker.getAttribute(String.format(MARKER_ARGS[index], index), ""); //$NON-NLS-1$
 	}
 	
 	public IMarker createMarker(IFile file, C4Declaration declarationAssociatedWithFile, String markerType, int start, int end, int severity, String problem) {

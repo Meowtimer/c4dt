@@ -109,11 +109,13 @@ public class AccessVar extends AccessDeclaration {
 	@Override
 	public void reportErrors(C4ScriptParser parser) throws ParsingException {
 		super.reportErrors(parser);
-		if (declaration == null && getPredecessorInSequence() == null)
+		if (declaration == null && getPredecessorInSequence() == null) {
 			parser.errorWithCode(ParserErrorCode.UndeclaredIdentifier, this, true, declarationName);
+		}
 		// local variable used in global function
 		else if (declaration instanceof C4Variable) {
 			C4Variable var = (C4Variable) declaration;
+			var.setUsed(true);
 			switch (var.getScope()) {
 				case LOCAL:
 					if (

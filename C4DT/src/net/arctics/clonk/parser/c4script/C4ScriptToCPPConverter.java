@@ -12,7 +12,7 @@ import net.arctics.clonk.parser.c4script.ast.ExprElm;
 import net.arctics.clonk.parser.c4script.ast.ExprWriter;
 import net.arctics.clonk.parser.c4script.ast.StringLiteral;
 import net.arctics.clonk.parser.c4script.ast.VarDeclarationStatement;
-import net.arctics.clonk.util.Pair;
+import net.arctics.clonk.parser.c4script.ast.VarDeclarationStatement.VarInitialization;
 
 public class C4ScriptToCPPConverter {
 	
@@ -48,11 +48,11 @@ public class C4ScriptToCPPConverter {
 					append("C4Value"); //$NON-NLS-1$
 					append(" "); //$NON-NLS-1$
 					int counter = 0;
-					for (Pair<String, ExprElm> var : statement.getVarInitializations()) {
-						append(var.getFirst());
-						if (var.getSecond() != null) {
+					for (VarInitialization var : statement.getVarInitializations()) {
+						append(var.name);
+						if (var.expression != null) {
 							append(" = "); //$NON-NLS-1$
-							var.getSecond().print(this, depth+1);
+							var.expression.print(this, depth+1);
 						}
 						if (++counter < statement.getVarInitializations().size())
 							append(", "); //$NON-NLS-1$

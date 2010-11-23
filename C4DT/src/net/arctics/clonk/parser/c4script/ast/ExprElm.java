@@ -4,6 +4,8 @@ import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.security.InvalidParameterException;
 import java.util.EnumSet;
+import java.util.LinkedList;
+import java.util.List;
 
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.index.C4Object;
@@ -545,6 +547,24 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable {
 		ExprElm p;
 		for (p = this; p != null && !(p instanceof Statement); p = p.getParent());
 		return (Statement)p;
+	}
+	
+	@SuppressWarnings("unchecked")
+	protected <T extends ExprElm> void collectExpressionsOfType(List<T> list, Class<T> type) {
+		for (ExprElm e : getSubElements()) {
+			if (e == null)
+				continue;
+			if (type.isAssignableFrom(e.getClass())) {
+				list.add((T) e);
+			}
+			e.collectExpressionsOfType(list, type);
+		}
+	}
+	
+	public <T extends ExprElm> Iterable<T> allSubExpressionsOfType(Class<T> cls) {
+		List<T> l = new LinkedList<T>();
+		collectExpressionsOfType(l, cls);
+		return l;
 	}
 
 }

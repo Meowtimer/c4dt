@@ -52,6 +52,11 @@ public class C4Variable extends C4Declaration implements Serializable, ITypedDec
 	private Object scriptScopeInitializationExpression;
 	
 	/**
+	 * Whether the variable was used in some expression
+	 */
+	private boolean used;
+	
+	/**
 	 * Variable object used as the special 'this' object.
 	 */
 	public static final C4Variable THIS = new C4Variable("this", C4Type.OBJECT, Messages.This_Description); //$NON-NLS-1$
@@ -169,6 +174,14 @@ public class C4Variable extends C4Declaration implements Serializable, ITypedDec
 		this.scope = scope;
 	}
 
+	public boolean isUsed() {
+		return used;
+	}
+	
+	public void setUsed(boolean used) {
+		this.used = used;
+	}
+	
 	/**
 	 * The scope of a variable
 	 * @author ZokRadonh

@@ -70,6 +70,7 @@ import net.arctics.clonk.parser.c4script.ast.Tuple;
 import net.arctics.clonk.parser.c4script.ast.TypeExpectancyMode;
 import net.arctics.clonk.parser.c4script.ast.UnaryOp;
 import net.arctics.clonk.parser.c4script.ast.VarDeclarationStatement;
+import net.arctics.clonk.parser.c4script.ast.VarDeclarationStatement.VarInitialization;
 import net.arctics.clonk.parser.c4script.ast.WhileStatement;
 import net.arctics.clonk.resource.c4group.C4GroupItem;
 import net.arctics.clonk.util.Pair;
@@ -525,11 +526,13 @@ public class C4ScriptParser {
 			EnumSet<ParseStatementOption> options = EnumSet.of(ParseStatementOption.ExpectFuncDesc);
 			boolean notReached = false;
 			int oldStyleEnd = endOfFunc;
+			List<Statement> statements = new LinkedList<Statement>();
 			while(!scanner.reachedEOF() && scanner.getPosition() < endOfFunc) {
 				this.statementNotReached = notReached;
 				Statement statement = parseStatement(options);
 				if (statement == null)
 					break;
+				statements.add(statement);
 				boolean statementIsComment = statement instanceof Comment;
 				if (!notReached) {
 					notReached = statement.getControlFlow() == ControlFlow.Return;
@@ -540,8 +543,23 @@ public class C4ScriptParser {
 					oldStyleEnd = statement.getExprEnd();
 				}
 			}
+			BunchOfStatements bunch = new BunchOfStatements(statements);
 			if (activeFunc.isOldStyle())
 				activeFunc.getBody().setEnd(oldStyleEnd);
+			for (C4Variable v : activeFunc.getLocalVars()) {
+				if (!v.isUsed()) {
+					for (VarDeclarationStatement decl : bunch.allSubExpressionsOfType(VarDeclarationStatement.class)) {
+						for (VarInitialization initialization : decl.getVarInitializations()) {
+							if (initialization.variableBeingInitialized == v) {
+								ExprElm old = expressionReportingErrors;
+								expressionReportingErrors = decl;
+								warningWithCode(ParserErrorCode.Unused, v.getLocation(), v.getName());
+								expressionReportingErrors = old;
+							}
+						}
+					}
+				}
+			}
 			
 			applyStoredTypeInformationList(false); // apply short-term inference information
 			List<IStoredTypeInformation> block = endTypeInferenceBlock();
@@ -565,8 +583,8 @@ public class C4ScriptParser {
 		}
 		catch (Exception e) {
 			// errorWithCode throws ^^;
-			errorWithCode(ParserErrorCode.InternalError, scanner.getPosition(), scanner.getPosition()+1, true, e.getMessage());
 			e.printStackTrace();
+			errorWithCode(ParserErrorCode.InternalError, scanner.getPosition(), scanner.getPosition()+1, true, e.getMessage());
 		}
 	}
 
@@ -2242,7 +2260,7 @@ public class C4ScriptParser {
 
 	private VarDeclarationStatement parseVarDeclarationInStatement(EnumSet<ParseStatementOption> options, C4VariableScope scope) throws ParsingException {
 		VarDeclarationStatement result;
-		List<Pair<String, ExprElm>> initializations = new LinkedList<Pair<String, ExprElm>>();
+		List<VarInitialization> initializations = new LinkedList<VarInitialization>();
 		do {
 			eatWhitespace();
 			int varNameStart = scanner.getPosition();
@@ -2269,7 +2287,7 @@ public class C4ScriptParser {
 				val = null;
 				scanner.unread();
 			}
-			initializations.add(new Pair<String, ExprElm>(varName, val));
+			initializations.add(new VarInitialization(varName, val, var));
 		} while(scanner.read() == ',');
 		scanner.unread();
 		result = new VarDeclarationStatement(initializations, scope);

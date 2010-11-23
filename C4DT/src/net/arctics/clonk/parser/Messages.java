@@ -53,6 +53,7 @@ public class Messages extends NLS {
 	public static String LocalUsedInGlobal;
 	public static String ExpressionExpected;
 	public static String UnexpectedEnd;
+	public static String Unused;
 	public static String VarUsedBeforeItsDeclaration;
 	public static String NameExpected;
 	public static String ReturnAsFunction;
