@@ -554,4 +554,10 @@ public class C4Function extends C4Structure implements Serializable, ITypedDecla
 		builder.append("\n}");
 	}
 	
+	public void resetUsedFlagOfVariables() {
+		for (C4Variable v : this.getLocalVars()) {
+			v.setUsed(false);
+		}
+	}
+	
 }

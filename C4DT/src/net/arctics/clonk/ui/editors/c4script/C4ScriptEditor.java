@@ -23,10 +23,14 @@ import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.C4ScriptParser.IMarkerListener;
 import net.arctics.clonk.parser.c4script.C4Variable;
 import net.arctics.clonk.parser.c4script.ast.AccessVar;
+import net.arctics.clonk.parser.c4script.ast.BunchOfStatements;
 import net.arctics.clonk.parser.c4script.ast.CallFunc;
 import net.arctics.clonk.parser.c4script.ast.ExprElm;
 import net.arctics.clonk.parser.c4script.ast.IScriptParserListener;
 import net.arctics.clonk.parser.c4script.ast.IStoredTypeInformation;
+import net.arctics.clonk.parser.c4script.ast.ScriptParserListener;
+import net.arctics.clonk.parser.c4script.ast.Statement;
+import net.arctics.clonk.parser.c4script.ast.TraversalContinuation;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.resource.c4group.C4GroupItem;
 import net.arctics.clonk.ui.editors.ClonkCompletionProposal;
@@ -200,13 +204,24 @@ public class C4ScriptEditor extends ClonkTextEditor {
 			}
 		}
 		
-		private void scheduleReparsingOfFunction(final C4Function f) {
+		private void scheduleReparsingOfFunction(final C4Function fn) {
 			functionReparseTask = cancel(functionReparseTask);
 			reparseTimer.schedule(functionReparseTask = new TimerTask() {
 				public void run() {
-					removeMarkers(f, structure);
+					removeMarkers(fn, structure);
 					if (structure.getScriptFile() instanceof IResource && !C4GroupItem.isLinkedResource((IResource) structure.getScriptFile())) {
-						C4ScriptParser.reportExpressionsAndStatements(document, f.getBody(), structure, f, null, new IMarkerListener() {
+						final C4Function f = (C4Function) fn.latestVersion();
+						f.resetUsedFlagOfVariables();
+						final List<Statement> statements = new LinkedList<Statement>();
+						C4ScriptParser.reportExpressionsAndStatements(document, f.getBody(), structure, f, new ScriptParserListener() {
+							@Override
+							public TraversalContinuation expressionDetected(ExprElm expression, C4ScriptParser parser) {
+								if (parser.getParseStatementRecursion() == 1 && expression instanceof Statement) {
+									statements.add((Statement) expression);
+								}
+								return TraversalContinuation.Continue;
+							}
+						}, new IMarkerListener() {
 							@Override
 							public WhatToDo markerEncountered(C4ScriptParser parser, ParserErrorCode code,
 									int markerStart, int markerEnd, boolean noThrow,
@@ -217,7 +232,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 								}
 								return WhatToDo.PassThrough;
 							}
-						});
+						}).warnAboutUnusedFunctionVariables(new BunchOfStatements(statements));
 					}
 				}
 			}, REPARSE_DELAY);
