@@ -2520,7 +2520,7 @@ public class C4ScriptParser extends CStyleScanner {
 		} else {
 			loopType = LoopType.For;
 			this.seek(offset); // if a word !equaling("in") was read
-
+			eatWhitespace();
 			if (this.read() == ';') {
 				// any " optional "
 				this.unread(); // is expected
