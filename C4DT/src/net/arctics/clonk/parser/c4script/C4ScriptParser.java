@@ -2258,14 +2258,15 @@ public class C4ScriptParser extends CStyleScanner {
 			eatWhitespace();
 			int varNameStart = this.getPosition();
 			String varName = this.readIdent();
+			int varNameEnd = this.getPosition();
 			// check if there is initial content
 			eatWhitespace();
 			C4Variable var = findVar(varName, scope);
 			if (var == null) {
 				// happens when parsing only the body of a function for computing context information in an editor and such
-				var = createVarInScope(varName, C4VariableScope.VAR, new SourceLocation(varNameStart, this.getPosition()), null);
+				var = createVarInScope(varName, C4VariableScope.VAR, new SourceLocation(varNameStart, varNameEnd), null);
 			} else {
-				var.setLocation(new SourceLocation(offsetOfScriptFragment()+varNameStart, offsetOfScriptFragment()+this.getPosition()));
+				var.setLocation(new SourceLocation(offsetOfScriptFragment()+varNameStart, offsetOfScriptFragment()+varNameEnd));
 			}
 			parsedVariable = var;
 			ExprElm val;
