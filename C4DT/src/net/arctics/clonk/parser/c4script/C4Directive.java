@@ -78,7 +78,7 @@ public class C4Directive extends C4Declaration implements Serializable {
 			/**
 			 * 
 			 */
-			private static final long serialVersionUID = 1L;
+			private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 			@Override
 			public int getExprStart() {
 				return getLocation().getStart();

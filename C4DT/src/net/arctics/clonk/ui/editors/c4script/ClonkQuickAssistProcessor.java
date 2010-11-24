@@ -14,6 +14,7 @@ import net.arctics.clonk.parser.c4script.C4Function;
 import net.arctics.clonk.parser.c4script.C4ScriptBase;
 import net.arctics.clonk.parser.c4script.C4ScriptOperator;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
+import net.arctics.clonk.parser.c4script.MutableRegion;
 import net.arctics.clonk.parser.c4script.C4Function.C4FunctionScope;
 import net.arctics.clonk.parser.c4script.C4ScriptParser.IMarkerListener;
 import net.arctics.clonk.parser.c4script.C4Type;
@@ -27,6 +28,7 @@ import net.arctics.clonk.parser.c4script.ast.BunchOfStatements;
 import net.arctics.clonk.parser.c4script.ast.CallFunc;
 import net.arctics.clonk.parser.c4script.ast.Comment;
 import net.arctics.clonk.parser.c4script.ast.ExprElm;
+import net.arctics.clonk.parser.c4script.ast.ExprWriter;
 import net.arctics.clonk.parser.c4script.ast.ReturnStatement;
 import net.arctics.clonk.parser.c4script.ast.Sequence;
 import net.arctics.clonk.parser.c4script.ast.SimpleStatement;
@@ -34,6 +36,7 @@ import net.arctics.clonk.parser.c4script.ast.Statement;
 import net.arctics.clonk.parser.c4script.ast.StringLiteral;
 import net.arctics.clonk.parser.c4script.ast.Tuple;
 import net.arctics.clonk.parser.c4script.ast.VarDeclarationStatement;
+import net.arctics.clonk.parser.c4script.ast.VarDeclarationStatement.VarInitialization;
 import net.arctics.clonk.ui.editors.ClonkCompletionProposal;
 import net.arctics.clonk.ui.editors.ClonkTextEditor;
 import net.arctics.clonk.util.ArrayHelpers;
@@ -265,6 +268,7 @@ public class ClonkQuickAssistProcessor implements IQuickAssistProcessor, IMarker
 				replacementString = ""; //$NON-NLS-1$
 				replacementLength = 0;
 			}
+			cursorPosition = replacementString.length();
 			super.apply(document);
 			
 			for (Replacement.AdditionalDeclaration dec : replacement.getAdditionalDeclarations()) {
@@ -277,6 +281,11 @@ public class ClonkQuickAssistProcessor implements IQuickAssistProcessor, IMarker
 				} catch (BadLocationException e) {
 					e.printStackTrace();
 				}
+			}
+			
+			C4ScriptEditor.TextChangeListener listener = C4ScriptEditor.TextChangeListener.getListenerFor(document);
+			if (listener != null) {
+				listener.scheduleReparsing(false);
 			}
 		}
 
@@ -298,8 +307,8 @@ public class ClonkQuickAssistProcessor implements IQuickAssistProcessor, IMarker
 	private static class Replacement {
 		
 		public static class AdditionalDeclaration {
-			private C4Declaration declaration;
-			private ExprElm code;
+			public C4Declaration declaration;
+			public ExprElm code;
 			public AdditionalDeclaration(C4Declaration declaration, ExprElm code) {
 				super();
 				this.declaration = declaration;
@@ -311,12 +320,14 @@ public class ClonkQuickAssistProcessor implements IQuickAssistProcessor, IMarker
 		private ExprElm replacementExpression;
 		private ExprElm[] specifiable;
 		private List<AdditionalDeclaration> additionalDeclarations = new LinkedList<AdditionalDeclaration>();
+		private boolean regionToBeReplacedSpecifiedByReplacementExpression; // yes!
 		
 		public Replacement(String title, ExprElm replacementExpression, ExprElm... specifiable) {
 			super();
 			this.title = title;
 			this.replacementExpression = replacementExpression;
 			this.specifiable = specifiable;
+			this.regionToBeReplacedSpecifiedByReplacementExpression = !(replacementExpression instanceof Statement);
 		}
 		public String getTitle() {
 			return title;
@@ -346,7 +357,7 @@ public class ClonkQuickAssistProcessor implements IQuickAssistProcessor, IMarker
 	}
 	
 	private static final class ReplacementsList extends LinkedList<Replacement> {
-		private static final long serialVersionUID = 1L;
+		private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 		private ExprElm offending;
 		private List<ICompletionProposal> existingList;
 		public ReplacementsList(ExprElm offending, List<ICompletionProposal> existingList) {
@@ -375,8 +386,8 @@ public class ClonkQuickAssistProcessor implements IQuickAssistProcessor, IMarker
 			this.add(newOne);
 			return newOne;
 		}
-		public void add(String replacement, ExprElm elm, ExprElm... specifiable) {
-			add(replacement, elm, true, specifiable);
+		public Replacement add(String replacement, ExprElm elm, ExprElm... specifiable) {
+			return add(replacement, elm, true, specifiable);
 		}
 	}
 	
@@ -468,7 +479,7 @@ public class ClonkQuickAssistProcessor implements IQuickAssistProcessor, IMarker
 						if (topLevel == op.getParent() && op.getOperator() == C4ScriptOperator.Assign && op.getLeftSide() == offendingExpression) {
 							replacements.add(
 									Messages.ClonkQuickAssistProcessor_ConvertToVarDeclaration,
-									new VarDeclarationStatement(var.getDeclarationName(), op.getRightSide(), C4VariableScope.VAR)
+									new VarDeclarationStatement(var.getDeclarationName(), op.getRightSide(), Keywords.VarNamed.length()+1, C4VariableScope.VAR)
 							);
 						}
 					}
@@ -596,23 +607,74 @@ public class ClonkQuickAssistProcessor implements IQuickAssistProcessor, IMarker
 						}
 					}
 					break;
+				case Unused:
+					String varName = ParserErrorCode.getArg(marker, 0);
+					if (offendingExpression instanceof VarDeclarationStatement) {
+						VarDeclarationStatement s = (VarDeclarationStatement) offendingExpression;
+						VarInitialization previous = null;
+						final MutableRegion regionToDelete = new MutableRegion(0, expressionRegion.getLength());
+						List<VarInitialization> initializations = s.getVarInitializations();
+						String replacementString = "";
+						for (int i = 0; i < initializations.size(); i++) {
+							VarInitialization cur = initializations.get(i);
+							VarInitialization next = i+1 < initializations.size() ? initializations.get(i+1) : null;
+							if (cur.name.equals(varName)) {
+								if (next == null) {
+									if (previous != null) {
+										// removing last initialization -> change ',' before it to ';'
+										parser.seek(previous.getEnd());
+										parser.eatWhitespace();
+										if (parser.peek() == ',') {
+											regionToDelete.setStartAndEnd(parser.getPosition(), cur.getEnd());
+										}
+										replacementString = "";
+									} else {
+										// already initialized with expressionRegion
+									}
+								} else {
+									regionToDelete.setStartAndEnd(cur.getOffset(), next.getOffset());
+								}
+								break;
+							}
+							previous = cur;
+						}
+						final String finalReplacementString = replacementString;
+						replacements.add(
+							"Remove variable declaration",
+							new Statement() {
+								private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
+								@Override
+								public void doPrint(ExprWriter output, int depth) {
+									output.append(finalReplacementString);
+								}
+								@Override
+								public int getExprStart() {
+									return regionToDelete.getOffset();
+								}
+								@Override
+								public int getExprEnd() {
+									return regionToDelete.getEnd();
+								};
+							}
+						).regionToBeReplacedSpecifiedByReplacementExpression = true;
+					}
+					break;
 				}
 
 				try {
 					replacements.add(
-							Messages.ClonkQuickAssistProcessor_TidyUp,
-							topLevel.exhaustiveOptimize(parser)
+						Messages.ClonkQuickAssistProcessor_TidyUp,
+						topLevel.exhaustiveOptimize(parser)
 					);
 				} catch (CloneNotSupportedException e) {
 					e.printStackTrace();
 				}
 
 				for (final Replacement replacement : replacements) {
-					String replacementAsString;
-					replacementAsString = "later"; //$NON-NLS-1$
+					String replacementAsString = "later"; //$NON-NLS-1$
 					int offset = expressionRegion.getOffset();
 					int length;
-					if (!(replacement.getReplacementExpression() instanceof Statement)) {
+					if (replacement.regionToBeReplacedSpecifiedByReplacementExpression) {
 						offset += replacement.getReplacementExpression().getExprStart();
 						length = replacement.getReplacementExpression().getLength();
 					} else {

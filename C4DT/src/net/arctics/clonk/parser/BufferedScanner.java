@@ -316,7 +316,7 @@ public class BufferedScanner {
 	 * If end of file reached
 	 * @return whether eof reached
 	 */
-	public boolean reachedEOF() {
+	public final boolean reachedEOF() {
 		return (offset >= size);
 	}
 
@@ -324,7 +324,7 @@ public class BufferedScanner {
 	 * Current offset
 	 * @return offset
 	 */
-	public int getPosition() {
+	public final int getPosition() {
 		return offset;
 	}
 

@@ -27,7 +27,7 @@ public class ClonkCompletionProposal implements ICompletionProposal, ICompletion
 	/** The replacement length. */
 	protected int replacementLength;
 	/** The cursor position after this proposal has been applied. */
-	private int cursorPosition;
+	protected int cursorPosition;
 	/** The image to be displayed in the completion proposal popup. */
 	private Image image;
 	/** The context information of this proposal. */

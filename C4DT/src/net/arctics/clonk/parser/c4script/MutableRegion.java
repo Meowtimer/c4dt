@@ -13,6 +13,10 @@ public class MutableRegion implements IRegion {
 		this.length = length;
 	}
 	
+	public MutableRegion(IRegion other) {
+		this(other.getOffset(), other.getLength());
+	}
+
 	@Override
 	public int getLength() {
 		return length;
@@ -37,6 +41,15 @@ public class MutableRegion implements IRegion {
 	
 	public void incLength(int amount) {
 		length += amount;
+	}
+	
+	public void setStartAndEnd(int start, int end) {
+		offset = start;
+		length = end-start;
+	}
+
+	public int getEnd() {
+		return offset+length;
 	}
 	
 }

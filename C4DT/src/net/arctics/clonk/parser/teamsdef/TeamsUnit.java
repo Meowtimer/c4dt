@@ -4,6 +4,7 @@ import java.io.InputStream;
 
 import org.eclipse.core.resources.IFile;
 
+import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.inireader.IniUnitWithNamedSections;
 
 public class TeamsUnit extends IniUnitWithNamedSections {
@@ -23,6 +24,6 @@ public class TeamsUnit extends IniUnitWithNamedSections {
 		return "Teams.txt";
 	}
 
-	private static final long serialVersionUID = 1L;
+	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 
 }

@@ -132,7 +132,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 				scheduleReparsingOfFunction(f);
 			} else {
 				// only schedule reparsing when editing outside of existing function
-				scheduleReparsing();
+				scheduleReparsing(true);
 			}
 		}
 		
@@ -148,7 +148,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 			}
 		}
 
-		private void scheduleReparsing() {
+		public void scheduleReparsing(final boolean onlyDeclarations) {
 			reparseTask = cancel(reparseTask);
 			if (structure == null)
 				return;
@@ -157,7 +157,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 				public void run() {
 					try {
 						try {
-							reparseWithDocumentContents(null, true, document, structure, new Runnable() {
+							reparseWithDocumentContents(null, onlyDeclarations, document, structure, new Runnable() {
 								@Override
 								public void run() {
 									for (C4ScriptEditor ed : clients) {
@@ -241,6 +241,10 @@ public class C4ScriptEditor extends ClonkTextEditor {
 				e.printStackTrace();
 			}
 			super.cleanupAfterRemoval();
+		}
+		
+		public static TextChangeListener getListenerFor(IDocument document) {
+			return (TextChangeListener) listeners.get(document);
 		}
 	}
 

@@ -11,19 +11,36 @@ import net.arctics.clonk.parser.c4script.C4Variable;
 import net.arctics.clonk.parser.c4script.C4Variable.C4VariableScope;
 import net.arctics.clonk.util.Utilities;
 
+import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.Region;
 
 public class VarDeclarationStatement extends KeywordStatement {
 	
-	public static class VarInitialization {
+	public static final class VarInitialization implements IRegion {
 		public String name;
 		public ExprElm expression;
-		public transient C4Variable variableBeingInitialized;
-		public VarInitialization(String name, ExprElm expression, C4Variable variableBeingInitialized) {
+		public int namePos;
+		public C4Variable variableBeingInitialized;
+		public VarInitialization(String name, ExprElm expression, int namePos) {
 			super();
 			this.name = name;
 			this.expression = expression;
-			this.variableBeingInitialized = variableBeingInitialized;
+			this.namePos = namePos;
+		}
+		public int getEnd() {
+			if (expression != null) {
+				return expression.getExprEnd();
+			} else {
+				return namePos + name.length();
+			}
+		}
+		@Override
+		public int getLength() {
+			return getEnd()-getOffset();
+		}
+		@Override
+		public int getOffset() {
+			return namePos;
 		}
 	}
 	
@@ -37,11 +54,8 @@ public class VarDeclarationStatement extends KeywordStatement {
 		this.scope = scope;
 		assignParentToSubElements();
 	}
-	public VarDeclarationStatement(String varName, ExprElm initialization, C4VariableScope scope) {
-		this(Utilities.list(new VarInitialization(varName, initialization, null)), scope);
-	}
-	public VarDeclarationStatement(String varName, ExprElm initialization, C4Variable variable) {
-		this(Utilities.list(new VarInitialization(varName, initialization, variable)), variable.getScope());
+	public VarDeclarationStatement(String varName, ExprElm initialization, int namePos, C4VariableScope scope) {
+		this(Utilities.list(new VarInitialization(varName, initialization, namePos)), scope);
 	}
 	@Override
 	public String getKeyword() {
