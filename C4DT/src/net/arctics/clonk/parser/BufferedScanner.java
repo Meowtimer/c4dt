@@ -375,7 +375,7 @@ public class BufferedScanner {
 	}
 	
 	public static boolean isWhiteSpace(char c) {
-		return c == '\n' || c == '\r' || isWhiteSpaceButNotLineDelimiterChar(c);
+		return isLineDelimiterChar(c) || isWhiteSpaceButNotLineDelimiterChar(c);
 	}
 
 	/**

@@ -110,11 +110,6 @@ public class C4GroupEntry extends C4GroupItem implements IStorage, Serializable 
 		if (completed) return;
 		completed = true;
 
-		/*if (parentGroup.getChildren().get(0) != this) {
-			C4GroupItem predecessor = parentGroup.getChildren().get(parentGroup.getChildren().indexOf(this) - 1);
-			predecessor.readIntoMemory(true, filter);
-		}*/
-
 		if ((filter.getFlags(this) & HeaderFilterBase.DONTREADINTOMEMORY) == 0) {
 			fetchContents(stream);
 		}
@@ -132,9 +127,9 @@ public class C4GroupEntry extends C4GroupItem implements IStorage, Serializable 
 		contents = new byte[getSize()];
 		try {
 			for (
-					int readCount = 0;
-					readCount != contents.length;
-					readCount += stream.read(contents, readCount, contents.length - readCount)
+				int readCount = 0;
+				readCount != contents.length;
+				readCount += stream.read(contents, readCount, contents.length - readCount)
 			);
 		} catch (IOException e) {
 			e.printStackTrace();

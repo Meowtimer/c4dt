@@ -631,6 +631,10 @@ public abstract class Utilities {
 			return null;
 		}	
 	}
+	
+	public static <T> Set<T> set(@SuppressWarnings("rawtypes") Class<? extends Set> cls, T... elements) {
+		return arrayToSet(elements, cls);
+	}
 
 	public static IProject[] selectClonkProjects(boolean multiSelect, IProject... initialSelection) {
 		// Create dialog listing all Clonk projects
