@@ -11,7 +11,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import net.arctics.clonk.ClonkCore;
-import net.arctics.clonk.resource.c4group.C4Group.C4GroupType;
 import net.arctics.clonk.resource.c4group.C4Group.StreamReadCallback;
 import net.arctics.clonk.util.ITreeNode;
 
@@ -350,11 +349,6 @@ public class C4GroupEntry extends C4GroupItem implements IStorage, Serializable 
 		if (cls == C4GroupEntry.class)
 			return this;
 		return null;
-	}
-
-	@Override
-	public void accept(IC4GroupVisitor visitor, C4GroupType type, IProgressMonitor monitor) {
-		visitor.visit(this, type);
 	}
 
 	@Override

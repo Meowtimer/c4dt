@@ -9,7 +9,6 @@ import java.net.URI;
 import java.net.URISyntaxException;
 
 import net.arctics.clonk.filesystem.C4GroupFileSystem;
-import net.arctics.clonk.resource.c4group.C4Group.C4GroupType;
 import net.arctics.clonk.util.INodeWithPath;
 
 import org.eclipse.core.filesystem.EFS;
@@ -94,11 +93,6 @@ public abstract class C4GroupItem extends FileStore implements INodeWithPath {
 	 * Extracts this file to disk with the given progress monitor
 	 */
 	public abstract void extractToFileSystem(IContainer internPath, IProgressMonitor monitor) throws CoreException;
-	
-	/**
-	 * recursively call visitor.visit for all items in this group (including the group itself)
-	 */
-	public abstract void accept(IC4GroupVisitor visitor, C4GroupType type, IProgressMonitor monitor);
 	
 	/**
 	 * release data stored in memory to preserve space

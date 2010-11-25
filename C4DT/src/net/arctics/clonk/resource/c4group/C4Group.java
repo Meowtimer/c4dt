@@ -532,25 +532,6 @@ public class C4Group extends C4GroupItem implements Serializable, ITreeNode {
 		}		
 	}
 	
-	public void accept(IC4GroupVisitor visitor) {
-		accept(visitor,getGroupType(), null);
-	}
-	
-	public void accept(IC4GroupVisitor visitor, C4GroupType type) {
-		accept(visitor,type, null);
-	}
-	
-	public void accept(IC4GroupVisitor visitor, C4GroupType type, IProgressMonitor monitor) {
-		if (visitor.visit(this, type)) {
-			for(C4GroupItem item : childEntries) {
-				if (monitor != null)
-					monitor.worked(1);
-				item.accept(visitor, type, monitor);
-			}
-			visitor.groupFinished(this);
-		}
-	}
-	
 	public void releaseData() {
 	}
 
