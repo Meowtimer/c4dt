@@ -225,7 +225,7 @@ public class ClonkPreferencePage extends FieldEditorPreferencePage implements IW
 
 							private void setFile(IPath gamePath, String gamePathText, FileFieldEditor editor, String... values) {
 								String val = editor.getStringValue();
-								if (val.equals("")) { //$NON-NLS-1$
+								if (val.equals("") || !new File(val).exists()) { //$NON-NLS-1$
 									for (String s : values) {
 										File f;
 										if ((f = gamePath.append(s).toFile()).exists()) {
