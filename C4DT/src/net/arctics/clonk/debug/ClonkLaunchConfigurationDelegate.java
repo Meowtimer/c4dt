@@ -136,14 +136,12 @@ public class ClonkLaunchConfigurationDelegate implements ILaunchConfigurationDel
 		C4ScriptBase scenarioScript = C4Scenario.get(scenario);
 		String gamePath = scenarioScript != null ? scenarioScript.getEngine().getCurrentSettings().gamePath : null;
 
-		File enginePath = null;
+		File enginePath = new File("Unspecified");
 		String enginePref = scenarioScript != null ? scenarioScript.getEngine().getCurrentSettings().engineExecutablePath : null;
 		if (enginePref == null)
 			enginePref = ""; //$NON-NLS-1$
 		if (!enginePref.equals("")) { //$NON-NLS-1$
 			enginePath = new File(enginePref);
-			if (!enginePath.exists())
-				enginePath = null;
 		}
 		else {
 			// Try some variants in an attempt to find the engine (ugh...)
@@ -156,8 +154,9 @@ public class ClonkLaunchConfigurationDelegate implements ILaunchConfigurationDel
 				}
 			}
 		}
-		if(enginePath == null)
-			abort(IStatus.ERROR, Messages.CouldNotFindEngine);
+		if(!enginePath.exists()) {
+			abort(IStatus.ERROR, String.format(Messages.CouldNotFindEngine, enginePath.getAbsolutePath()));
+		}
 
 		// TODO: Do some more verification? Check engine version?
 	
