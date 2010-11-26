@@ -264,13 +264,12 @@ public abstract class Utilities {
 	 * @return the map
 	 */
 	@SuppressWarnings("unchecked")
-	public static <KeyType, ValueType> Map<KeyType, ValueType> mapOfType(Class<? extends Map<KeyType, ValueType>> mapClass, Object... keysAndValues) {
+	public static <KeyType, ValueType> Map<KeyType, ValueType> mapOfType(Map<KeyType, ValueType> resultMap, Object... keysAndValues) {
 		try {
-			Map<KeyType, ValueType> map = mapClass.newInstance();
 			for (int i = 0; i < keysAndValues.length-1; i += 2) {
-				map.put((KeyType)keysAndValues[i], (ValueType)keysAndValues[i+1]);
+				resultMap.put((KeyType)keysAndValues[i], (ValueType)keysAndValues[i+1]);
 			}
-			return Collections.unmodifiableMap(map);
+			return Collections.unmodifiableMap(resultMap);
 		} catch (Exception e) {
 			e.printStackTrace();
 			return null;
@@ -284,9 +283,8 @@ public abstract class Utilities {
 	 * @param keysAndValues
 	 * @return
 	 */
-	@SuppressWarnings({ "unchecked" })
 	public static <KeyType, ValueType> Map<KeyType, ValueType> map(Object... keysAndValues) {
-		return mapOfType((Class<? extends Map<KeyType, ValueType>>) HashMap.class, keysAndValues);
+		return mapOfType(new HashMap<KeyType, ValueType>(), keysAndValues);
 	}
 	
 	public static boolean allInstanceOf(Object[] objects, Class<?> cls) {
