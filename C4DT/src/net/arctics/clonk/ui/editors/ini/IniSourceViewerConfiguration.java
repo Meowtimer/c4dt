@@ -10,6 +10,7 @@ import net.arctics.clonk.index.ClonkIndex;
 import net.arctics.clonk.index.ProjectIndex;
 import net.arctics.clonk.parser.C4Declaration;
 import net.arctics.clonk.parser.C4ID;
+import net.arctics.clonk.parser.DeclarationRegion;
 import net.arctics.clonk.parser.inireader.Action;
 import net.arctics.clonk.parser.inireader.CategoriesArray;
 import net.arctics.clonk.parser.inireader.DefinitionPack;
@@ -22,6 +23,7 @@ import net.arctics.clonk.parser.inireader.IniItem;
 import net.arctics.clonk.parser.inireader.IniSection;
 import net.arctics.clonk.parser.inireader.IntegerArray;
 import net.arctics.clonk.parser.inireader.IniData.IniDataEntry;
+import net.arctics.clonk.parser.stringtbl.StringTbl;
 import net.arctics.clonk.resource.c4group.C4Group;
 import net.arctics.clonk.resource.c4group.C4Group.C4GroupType;
 import net.arctics.clonk.ui.editors.ClonkHyperlink;
@@ -176,6 +178,14 @@ public class IniSourceViewerConfiguration extends ClonkSourceViewerConfiguration
 									IResource r = Utilities.getEditingFile(getEditor());
 									ClonkIndex index = Utilities.getIndex(r);
 									declaration = index.getObjectNearestTo(r, C4ID.getID(firstPart));
+								}
+								else if (entryClass == String.class) {
+									DeclarationRegion reg = StringTbl.getEntryForLanguagePref(value, 0, relativeOffset, getEditor().getIniUnit(), true);
+									if (reg != null) {
+										declaration = reg.getDeclaration();
+										linkStart += reg.getRegion().getOffset();
+										linkLen = reg.getRegion().getLength();
+									}
 								}
 								
 								if (declaration != null) {

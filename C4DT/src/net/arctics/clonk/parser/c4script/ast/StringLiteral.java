@@ -6,7 +6,6 @@ import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.index.C4Object;
 import net.arctics.clonk.index.C4Scenario;
 import net.arctics.clonk.index.ClonkIndex;
-import net.arctics.clonk.parser.C4Declaration;
 import net.arctics.clonk.parser.DeclarationRegion;
 import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.ParsingException;
@@ -54,7 +53,7 @@ public final class StringLiteral extends Literal<String> {
 	public DeclarationRegion declarationAt(int offset, C4ScriptParser parser) {
 
 		// first check if a string tbl entry is referenced
-		DeclarationRegion result = getStringTblEntryForLanguagePref(offset-1, parser.getContainer(), true);
+		DeclarationRegion result = StringTbl.getEntryForLanguagePref(stringValue(), getExprStart(), (offset-1), parser.getContainer(), true);
 		if (result != null)
 			return result;
 
@@ -132,14 +131,6 @@ public final class StringLiteral extends Literal<String> {
 		return null;
 	}
 	
-	private DeclarationRegion getStringTblEntryRegion(int offset) {
-		return StringTbl.getEntryRegion(stringValue(), getExprStart(), offset);
-	}
-	
-	private DeclarationRegion getStringTblEntryForLanguagePref(int offset, C4Declaration container, boolean returnNullIfNotFound) {
-		return StringTbl.getEntryForLanguagePref(stringValue(), getExprStart(), offset, container, returnNullIfNotFound);	
-	}
-
 	@Override
 	public String evaluateAtParseTime(C4ScriptBase context) {
 		String value = getLiteral().replaceAll("\\\"", "\"");
@@ -165,7 +156,7 @@ public final class StringLiteral extends Literal<String> {
 		// warn when using non-declared string tbl entries
 		for (int i = 0; i < valueLen;) {
 			if (i+1 < valueLen && value.charAt(i) == '$') {
-				DeclarationRegion region = getStringTblEntryRegion(i+1);
+				DeclarationRegion region = StringTbl.getEntryRegion(stringValue(), getExprStart(), (i+1));
 				if (region != null) {
 					StringBuilder listOfLangFilesItsMissingIn = null;
 					try {
