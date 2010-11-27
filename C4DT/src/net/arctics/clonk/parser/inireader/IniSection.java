@@ -27,6 +27,15 @@ public class IniSection extends C4Declaration implements IHasKeyAndValue<String,
 	private List<IniItem> itemList;
 	private IniDataSection sectionData;
 	private int indentation;
+	private int sectionEnd;
+	
+	public int getSectionEnd() {
+		return sectionEnd;
+	}
+	
+	public void setSectionEnd(int sectionEnd) {
+		this.sectionEnd = sectionEnd;
+	}
 	
 	public IniDataSection getSectionData() {
 		return sectionData;
@@ -90,7 +99,7 @@ public class IniSection extends C4Declaration implements IHasKeyAndValue<String,
 	public void addChild(ITreeNode node) {		
 	}
 
-	public Collection<? extends ITreeNode> getChildCollection() {
+	public Collection<? extends IniItem> getChildCollection() {
 		return itemList;
 	}
 

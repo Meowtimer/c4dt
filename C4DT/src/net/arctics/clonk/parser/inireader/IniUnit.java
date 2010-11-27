@@ -44,7 +44,7 @@ import org.eclipse.ui.ide.IDE;
 /**
  * Reads Windows ini style configuration files
  */
-public class IniUnit extends C4Structure implements Iterable<IniSection>, IHasChildren, ITreeNode {
+public class IniUnit extends C4Structure implements Iterable<IniSection>, IHasChildren, ITreeNode, IniItem {
 
 	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 
@@ -203,7 +203,7 @@ public class IniUnit extends C4Structure implements Iterable<IniSection>, IHasCh
 		return result;
 	}
 	
-	public void parse(boolean modifyMarkers) {
+	public synchronized void parse(boolean modifyMarkers) {
 		scanner.reset();
 		if (modifyMarkers && getIniFile() != null) {
 			try {
@@ -278,6 +278,7 @@ public class IniUnit extends C4Structure implements Iterable<IniSection>, IHasCh
 				itemMap.put(item.getKey(),item);
 				itemList.add(item);
 			}
+			section.setSectionEnd(scanner.getPosition());
 			section.setSubItems(itemMap, itemList);
 			return section;
 		}
@@ -440,7 +441,7 @@ public class IniUnit extends C4Structure implements Iterable<IniSection>, IHasCh
 		
 	}
 
-	public List<? extends ITreeNode> getChildCollection() {
+	public List<? extends IniItem> getChildCollection() {
 		return sectionsList;
 	}
 
@@ -611,6 +612,16 @@ public class IniUnit extends C4Structure implements Iterable<IniSection>, IHasCh
 	@Override
 	public Iterable<? extends C4Declaration> allSubDeclarations() {
 		return this.sectionsList;
+	}
+
+	@Override
+	public void writeTextRepresentation(Writer writer, int indentation) throws IOException {
+		this.save(writer);
+	}
+
+	@Override
+	public String getKey() {
+		return getName();
 	}
 
 }
