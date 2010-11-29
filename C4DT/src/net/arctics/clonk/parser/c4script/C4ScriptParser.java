@@ -1215,7 +1215,14 @@ public class C4ScriptParser extends CStyleScanner {
 	private static final class TempScript extends C4ScriptBase {
 		private final String expression;
 		private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
-		private static final ClonkIndex tempIndex = new ClonkIndex();
+		private static final ClonkIndex tempIndex = new ClonkIndex() {
+			private static final long serialVersionUID = 1L;
+			private final C4Engine tempEngine = new C4Engine("Temp Engine");
+			@Override
+			public C4Engine getEngine() {
+				return tempEngine;
+			};
+		};
 
 		private TempScript(String expression) {
 			this.expression = expression;
