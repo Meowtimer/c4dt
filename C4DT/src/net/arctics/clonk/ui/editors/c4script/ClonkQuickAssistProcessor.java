@@ -348,7 +348,6 @@ public class ClonkQuickAssistProcessor implements IQuickAssistProcessor, IMarker
 				ClonkCore.getDefault().performActionsOnFileDocument(marker.getResource(), new IDocumentAction() {
 					@Override
 					public void run(IDocument document) {
-						System.out.println("Applying to " + document.toString());
 						apply(document);
 					}
 				});
@@ -618,7 +617,7 @@ public class ClonkQuickAssistProcessor implements IQuickAssistProcessor, IMarker
 						);
 						replacements.add(
 								Messages.ClonkQuickAssistProcessor_Remove,
-								new ReplacementStatement(expressionRegion, "", document, expressionRegion.getOffset())
+								new ReplacementStatement(expressionRegion, "", document, expressionRegion.getOffset()) //$NON-NLS-1$
 						).regionToBeReplacedSpecifiedByReplacementExpression = true;
 						CallFunc callFunc = new CallFunc(Messages.ClonkQuickAssistProcessor_FunctionToBeCalled, statement.getExpression());
 						replacements.add(Messages.ClonkQuickAssistProcessor_WrapWithFunctionCall, callFunc, callFunc);
@@ -672,7 +671,7 @@ public class ClonkQuickAssistProcessor implements IQuickAssistProcessor, IMarker
 						VarInitialization previous = null;
 						final MutableRegion regionToDelete = new MutableRegion(0, expressionRegion.getLength());
 						List<VarInitialization> initializations = s.getVarInitializations();
-						String replacementString = "";
+						String replacementString = ""; //$NON-NLS-1$
 						for (int i = 0; i < initializations.size(); i++) {
 							VarInitialization cur = initializations.get(i);
 							VarInitialization next = i+1 < initializations.size() ? initializations.get(i+1) : null;
@@ -685,7 +684,7 @@ public class ClonkQuickAssistProcessor implements IQuickAssistProcessor, IMarker
 										if (parser.peek() == ',') {
 											regionToDelete.setStartAndEnd(parser.getPosition(), cur.getEnd());
 										}
-										replacementString = "";
+										replacementString = ""; //$NON-NLS-1$
 									} else {
 										// already initialized with expressionRegion
 									}
@@ -699,7 +698,7 @@ public class ClonkQuickAssistProcessor implements IQuickAssistProcessor, IMarker
 						final String finalReplacementString = replacementString;
 						regionToDelete.incOffset(expressionRegion.getOffset());
 						replacements.add(
-							"Remove variable declaration",
+							Messages.ClonkQuickAssistProcessor_RemoveVariableDeclaration,
 							new ReplacementStatement(regionToDelete, finalReplacementString, document, expressionRegion.getOffset())
 						).regionToBeReplacedSpecifiedByReplacementExpression = true;
 					}

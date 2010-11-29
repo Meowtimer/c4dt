@@ -32,6 +32,7 @@ public class Messages extends NLS {
 	public static String ClonkQuickAssistProcessor_RearrangeReturnStatement;
 	public static String ClonkQuickAssistProcessor_Remove;
 	public static String ClonkQuickAssistProcessor_RemoveBrackets;
+	public static String ClonkQuickAssistProcessor_RemoveVariableDeclaration;
 	public static String ClonkQuickAssistProcessor_ReplaceWith;
 	public static String ClonkQuickAssistProcessor_SpecifyFormat;
 	public static String ClonkQuickAssistProcessor_SpecifyValue;
