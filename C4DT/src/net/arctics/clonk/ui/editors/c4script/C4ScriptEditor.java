@@ -226,6 +226,8 @@ public class C4ScriptEditor extends ClonkTextEditor {
 							public WhatToDo markerEncountered(C4ScriptParser parser, ParserErrorCode code,
 									int markerStart, int markerEnd, boolean noThrow,
 									int severity, Object... args) {
+								if (parser.errorDisabled(code))
+									return WhatToDo.DropCharges;
 								if (structure.getScriptFile() instanceof IFile) {
 									code.createMarker((IFile) structure.getScriptFile(), structure, ClonkCore.MARKER_C4SCRIPT_ERROR_WHILE_TYPING,
 										markerStart, markerEnd, severity, parser.getLocationOfExpressionReportingErrors(), args);
