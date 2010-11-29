@@ -356,6 +356,10 @@ public class ClonkQuickAssistProcessor implements IQuickAssistProcessor, IMarker
 				e.printStackTrace();
 			}
 		}
+
+		public Replacement getReplacement() {
+			return replacement;
+		}
 	}
 
 	private static class Replacement {
@@ -430,11 +434,11 @@ public class ClonkQuickAssistProcessor implements IQuickAssistProcessor, IMarker
 			// don't add duplicates
 			for (Replacement existing : this) {
 				if (existing.equals(newOne))
-					return null;
+					return existing;
 			}
 			for (ICompletionProposal prop : existingList) {
 				if (prop instanceof ParameterizedProposal && ((ParameterizedProposal)prop).createdFrom(newOne)) {
-					return null;
+					return ((ParameterizedProposal)prop).getReplacement();
 				}
 			}
 			this.add(newOne);
