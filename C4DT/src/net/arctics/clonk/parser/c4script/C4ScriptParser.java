@@ -615,15 +615,6 @@ public class C4ScriptParser extends CStyleScanner {
 	public String getSubstringOfScript(IRegion region) {
 		return this.readStringAt(region.getOffset(), region.getOffset()+region.getLength()+1);
 	}
-	
-	/**
-	 * Returns a line region for a region in the script
-	 * @param region the region the line to be returned is in
-	 * @return the line region
-	 */
-	public IRegion getLineRegion(IRegion regionInLine) {
-		return this.getLineRegion(regionInLine);
-	}
 
 	/**
 	 * Parses the declaration at the current this position.
