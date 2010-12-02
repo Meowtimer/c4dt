@@ -2,7 +2,9 @@ package net.arctics.clonk.parser.c4script;
 
 import java.io.Serializable;
 import java.lang.ref.WeakReference;
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.index.C4Object;
@@ -58,7 +60,19 @@ public class SerializableType implements Serializable, IType {
 
 	@Override
 	public Iterator<IType> iterator() {
-		return completeType != null ? completeType.iterator() : null;
+		if (completeType != null) {
+			return completeType.iterator();
+		} else {
+			List<IType> types = new ArrayList<IType>(2);
+			if (staticType != null) {
+				types.add(staticType);
+			}
+			C4Object obj = getObject();
+			if (obj != null) {
+				types.add(obj);
+			}
+			return types.iterator();
+		}
 	}
 
 	@Override
