@@ -37,6 +37,7 @@ import org.eclipse.core.resources.IResourceChangeListener;
 import org.eclipse.core.resources.ISaveContext;
 import org.eclipse.core.resources.ISaveParticipant;
 import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.core.runtime.AssertionFailedException;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Path;
@@ -227,20 +228,25 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 			}
 			@Override
 			public URL getURL(String entryName, boolean create) {
-				File file = getFile(entryName);
 				try {
-					if (create) {
-						try {
-							file.getParentFile().mkdirs();
-							file.createNewFile();
-						} catch (IOException e) {
-							e.printStackTrace();
-							return null;
+					File file = getFile(entryName);
+					try {
+						if (create) {
+							try {
+								file.getParentFile().mkdirs();
+								file.createNewFile();
+							} catch (IOException e) {
+								e.printStackTrace();
+								return null;
+							}
 						}
+						return file.exists() ? file.toURI().toURL() : null;
+					} catch (MalformedURLException e) {
+						e.printStackTrace();
+						return null;
 					}
-					return file.exists() ? file.toURI().toURL() : null;
-				} catch (MalformedURLException e) {
-					e.printStackTrace();
+				} catch (AssertionFailedException assertionFail) {
+					// happens when invoking getURL without having initialized the workspace (headless utilities)
 					return null;
 				}
 			}
@@ -429,6 +435,13 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 	 */
 	public static ClonkCore getDefault() {
 		return plugin;
+	}
+	
+	public static void headlessInitialize(String engine) {
+		if (plugin == null) {
+			plugin = new ClonkCore();
+			plugin.loadEngine(engine);
+		}
 	}
 
 	/**
