@@ -12,8 +12,6 @@ import java.io.UnsupportedEncodingException;
 import java.io.Writer;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
-import java.util.LinkedList;
-import java.util.List;
 
 import org.eclipse.core.runtime.CoreException;
 import net.arctics.clonk.ClonkCore;
@@ -21,20 +19,10 @@ import net.arctics.clonk.index.C4Engine;
 import net.arctics.clonk.index.C4Object;
 import net.arctics.clonk.index.C4Scenario;
 import net.arctics.clonk.index.ClonkIndex;
-import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.SimpleScriptStorage;
 import net.arctics.clonk.parser.c4script.C4Function;
 import net.arctics.clonk.parser.c4script.C4ScriptBase;
-import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.ast.Conf;
-import net.arctics.clonk.parser.c4script.ast.ControlFlowException;
-import net.arctics.clonk.parser.c4script.ast.ExprElm;
-import net.arctics.clonk.parser.c4script.ast.ScriptParserListener;
-import net.arctics.clonk.parser.c4script.ast.ReturnException;
-import net.arctics.clonk.parser.c4script.ast.Statement;
-import net.arctics.clonk.parser.c4script.ast.TraversalContinuation;
-import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
-import net.arctics.clonk.parser.c4script.ast.evaluate.IVariableValueProvider;
 import net.arctics.clonk.resource.ClonkIndexStream;
 import net.arctics.clonk.ui.editors.ClonkHyperlink;
 import net.arctics.clonk.util.ArrayHelpers;
@@ -47,131 +35,6 @@ public class Command {
 	public static final C4ScriptBase COMMAND_BASESCRIPT;
 	public static final ClonkIndex COMMANDS_INDEX = new ClonkIndex();
 	public static final String COMMAND_SCRIPT_TEMPLATE = "func Main() {%s;}"; //$NON-NLS-1$
-
-	public static class C4CommandScript extends C4ScriptBase {
-
-		private static class C4CommandFunction extends C4Function {
-			private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
-
-			private transient Statement[] statements;
-
-			@Override
-			public Object invoke(final Object... args) {
-				final IVariableValueProvider variableProvider = args != null && args.length > 0 && args[0] instanceof IVariableValueProvider ? (IVariableValueProvider)args[0] : null;
-				IEvaluationContext context = new IEvaluationContext() {
-
-					@Override
-					public Object[] getArguments() {
-						return args;
-					}
-
-					@Override
-					public C4Function getFunction() {
-						return C4CommandFunction.this;
-					}
-
-					@Override
-					public Object getValueForVariable(String varName) {
-						return variableProvider != null ? variableProvider.getValueForVariable(varName) : null;
-					}
-
-				};
-				for (Statement s : statements) {
-					try {
-						s.evaluate(context);
-					} catch (ReturnException e) {
-						return e.getResult();
-					} catch (ControlFlowException e) {
-						switch (e.getControlFlow()) {
-						case BreakLoop:
-							return null;
-						case Continue:
-							break;
-						default:
-							return null;
-						}
-					}
-				}
-				return null;
-			}
-		}
-
-		private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
-
-		private String script;
-		private C4CommandFunction main;
-
-		@Override
-		public ClonkIndex getIndex() {
-			return COMMANDS_INDEX;
-		}
-
-		@Override
-		public String getScriptText() {
-			return script;
-		}
-
-		@Override
-		public Object getScriptFile() {
-			try {
-				return new SimpleScriptStorage(getName(), script);
-			} catch (UnsupportedEncodingException e) {
-				e.printStackTrace();
-				return null;
-			}
-		}
-
-		public C4CommandScript(String name, String script) {
-			super();
-			setName(name);
-			this.script = script;
-			C4ScriptParser parser = new C4ScriptParser(script, this, null) {
-				@Override
-				protected C4Function newFunction() {
-					return new C4CommandFunction();
-				}
-				@Override
-				public void parseCodeOfFunction(C4Function function, TypeInformationMerger merger) throws ParsingException {
-					if (function.getName().equals("Main")) { //$NON-NLS-1$
-						main = (C4CommandFunction)function;
-					}
-					final List<Statement> statements = new LinkedList<Statement>();
-					this.setListener(new ScriptParserListener() {
-						@Override
-						public TraversalContinuation expressionDetected(ExprElm expression, C4ScriptParser parser) {
-							if (expression instanceof Statement)
-								statements.add((Statement)expression);
-							return TraversalContinuation.Continue;
-						}
-					});
-					super.parseCodeOfFunction(function, null);
-					((C4CommandFunction)function).statements = statements.toArray(new Statement[statements.size()]);
-					this.setListener(null);
-				}
-			};
-			try {
-				parser.parse();
-			} catch (ParsingException e) {
-				e.printStackTrace();
-			}
-		}
-
-		@Override
-		public C4ScriptBase[] getIncludes(ClonkIndex index) {
-			return new C4ScriptBase[] {
-					COMMAND_BASESCRIPT
-			};
-		}
-
-		public C4CommandFunction getMain() {
-			return main;
-		}
-
-		public Object invoke(Object... args) {
-			return main.invoke(args);
-		}
-
-	}
 
 	static {
 		COMMAND_BASESCRIPT = new C4ScriptBase() {
@@ -213,7 +76,7 @@ public class Command {
 		}
 	}
 
-	private static class C4CommandFunction extends C4Function {
+	private static class NativeCommandFunction extends C4Function {
 
 		private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 
@@ -229,7 +92,7 @@ public class Command {
 			}
 		}
 
-		public C4CommandFunction(C4ScriptBase parent, Method method) {
+		public NativeCommandFunction(C4ScriptBase parent, Method method) {
 			super(method.getName(), parent, C4FunctionScope.PUBLIC);
 			this.method = method;
 		}
@@ -237,7 +100,7 @@ public class Command {
 	}
 
 	public static void addCommand(Method method) {
-		COMMAND_BASESCRIPT.addDeclaration(new C4CommandFunction(COMMAND_BASESCRIPT, method));
+		COMMAND_BASESCRIPT.addDeclaration(new NativeCommandFunction(COMMAND_BASESCRIPT, method));
 	}
 
 	public static void setFieldValue(Object obj, String name, Object value) {
