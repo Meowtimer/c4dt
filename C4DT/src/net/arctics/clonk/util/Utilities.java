@@ -275,6 +275,18 @@ public abstract class Utilities {
 			return null;
 		}
 	}
+	
+	public static <KeyType, ValueType> Map<ValueType, KeyType> reverseMap(Map<KeyType, ValueType> originalMap, Map<ValueType, KeyType> resultMap) {
+		try {
+			for (Map.Entry<KeyType, ValueType> entry : originalMap.entrySet()) {
+				resultMap.put(entry.getValue(), entry.getKey());
+			}
+			return resultMap;
+		} catch (Exception e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
 
 	/**
 	 * like mapOfType, but called with HashMap.class
