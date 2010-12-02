@@ -95,6 +95,18 @@ public class C4Engine extends C4ScriptBase {
 		@IniField
 		public boolean supportsEmbeddedUtilities;
 
+		public EngineSettings() {
+			try {
+				for (Field f : getClass().getFields()) {
+					if (f.getType() == String.class) {
+						f.set(this, "");
+					}
+				}
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+
 		public static final IniConfiguration INI_CONFIGURATION = IniConfiguration.createFromClass(EngineSettings.class);
 
 		@Override
@@ -191,11 +203,15 @@ public class C4Engine extends C4ScriptBase {
 	public C4Engine(String name) {
 		super();
 		setName(name);
+		modified();
 	}
 
 	public void modified() {
 		if (intrinsicSettings == null) {
 			intrinsicSettings = new EngineSettings();
+		}
+		if (currentSettings == null) {
+			currentSettings = new EngineSettings();
 		}
 		cachedFuncs = new CachedEngineFuncs(this);
 		cachedPrefixedVariables = null;
