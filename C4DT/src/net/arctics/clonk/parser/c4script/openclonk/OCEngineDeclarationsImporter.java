@@ -65,41 +65,6 @@ public class OCEngineDeclarationsImporter {
 		if (monitor != null)
 			monitor.done();
 	}
-	
-	private static final Pattern nillablePattern = Pattern.compile("Nillable\\<(.*?)\\>");
-	private static final Pattern pointerTypePattern = Pattern.compile("(.*?)\\s*?\\*");
-	
-	private static C4Type typeFromCPPType(String type) {
-		Matcher m;
-		if (type.equals("C4Value")) {
-			return C4Type.ANY;
-		} else if (type.equals("C4Void")) {
-			return C4Type.ANY;
-		} else if (type.equals("long")) {
-			return C4Type.INT;
-		} else if (type.equals("bool")) {
-			return C4Type.BOOL;
-		} else if (type.equals("C4ID")) {
-			return C4Type.ID;
-		} else if ((m = nillablePattern.matcher(type)).matches()) {
-			return typeFromCPPType(m.group(1));
-		} else if ((m = pointerTypePattern.matcher(type)).matches()) {
-			String t = m.group(1);
-			if (t.equals("C4Object")) {
-				return C4Type.OBJECT;
-			} else  if (t.equals("C4PropList")) {
-				return C4Type.PROPLIST;
-			} else if (t.equals("C4Value")) {
-				return C4Type.ANY;
-			} else if (t.equals("C4String")) {
-				return C4Type.STRING;
-			} else {
-				return C4Type.UNKNOWN;
-			}
-		} else {
-			return C4Type.UNKNOWN;
-		}
-	}
 
 	private void readMissingFuncsFromSource(C4ScriptBase importsContainer, String repository) throws FileNotFoundException, IOException {
 
@@ -211,7 +176,7 @@ public class OCEngineDeclarationsImporter {
 							String parms = fnDeclarationMatcher.group(i++);
 							C4Function fun = importsContainer.findLocalFunction(name, false);
 							if (fun == null) {
-								fun = new C4Function(name, typeFromCPPType(returnType));
+								fun = new C4Function(name, C4Type.typeFromCPPType(returnType));
 								String[] parmStrings = parms.split("\\,");
 								List<C4Variable> parList = new ArrayList<C4Variable>(parmStrings.length);
 								for (String parm : parmStrings) {
@@ -219,7 +184,7 @@ public class OCEngineDeclarationsImporter {
 									for (x = parm.length()-1; x >= 0 && BufferedScanner.isWordPart(parm.charAt(x)); x--);
 									String pname = parm.substring(x+1);
 									String type = parm.substring(0, x+1).trim();
-									parList.add(new C4Variable(pname, typeFromCPPType(type)));
+									parList.add(new C4Variable(pname, C4Type.typeFromCPPType(type)));
 								}
 								fun.setParameters(parList);
 								importsContainer.addDeclaration(fun);

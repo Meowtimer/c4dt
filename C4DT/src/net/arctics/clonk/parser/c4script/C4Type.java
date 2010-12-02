@@ -1,11 +1,15 @@
 package net.arctics.clonk.parser.c4script;
 
 import java.lang.reflect.Array;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import net.arctics.clonk.index.ClonkIndex;
 import net.arctics.clonk.parser.C4ID;
+import net.arctics.clonk.util.Utilities;
 
 /**
  * The engine predefined variable types.
@@ -36,9 +40,49 @@ public enum C4Type implements IType {
 	public String typeName(boolean special) {
 		if (!special && this == REFERENCE)
 			return "&"; //$NON-NLS-1$
-		if (lowercaseName == null)
+		if (lowercaseName == null) {
 			lowercaseName = super.toString().toLowerCase();
+		}
 		return lowercaseName;
+	}
+
+	public static final Map<String, C4Type> CPP_TO_C4SCRIPT_MAP = Utilities.map(
+		"C4Value", C4Type.ANY,
+		"C4Void", C4Type.ANY,
+		"long", C4Type.INT,
+		"bool", C4Type.BOOL,
+		"C4ID", C4Type.ID,
+		"C4Object", C4Type.OBJECT,
+		"C4PropList", C4Type.PROPLIST,
+		"C4Value", C4Type.ANY,
+		"C4String", C4Type.STRING
+	);
+	public static final Map<C4Type, String> C4SCRIPT_TO_CPP_MAP = Utilities.reverseMap(CPP_TO_C4SCRIPT_MAP, new HashMap<C4Type, String>());
+	
+	private static final Pattern nillablePattern = Pattern.compile("Nillable\\<(.*?)\\>");
+	private static final Pattern pointerTypePattern = Pattern.compile("(.*?)\\s*?\\*");
+	
+	public static C4Type typeFromCPPType(String type) {
+		Matcher m;
+		C4Type ty = C4Type.CPP_TO_C4SCRIPT_MAP.get(type);
+		if (ty != null) {
+			return ty;
+		}
+		if ((m = nillablePattern.matcher(type)).matches()) {
+			return typeFromCPPType(m.group(1));
+		} else if ((m = pointerTypePattern.matcher(type)).matches()) {
+			String t = m.group(1);
+			ty = typeFromCPPType(t);
+			if (ty != null) {
+				return ty;
+			}
+		}
+		return C4Type.UNKNOWN; 
+	}
+	
+	public static String cppTypeFromType(IType type) {
+		C4Type t = makeType(type.toString());
+		return C4SCRIPT_TO_CPP_MAP.get(t);
 	}
 	
 	@Override
