@@ -136,7 +136,10 @@ public class BufferedScanner {
 		int length = 0;
 		do {
 			int readByte = read();
-			if (isWordPart(readByte)) {
+			boolean win = offset == start+1
+				? isWordStart(readByte)
+				: isWordPart(readByte);
+			if (win) {
 				length++;
 			}
 			else {

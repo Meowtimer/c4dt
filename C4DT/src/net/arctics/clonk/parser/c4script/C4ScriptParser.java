@@ -845,7 +845,7 @@ public class C4ScriptParser extends CStyleScanner {
 		return result;
 	}
 
-	private boolean parseVariableDeclarationInFunc(boolean declaration) {
+	private boolean parseVariableDeclarationInFunc(boolean declaration) throws ParsingException {
 		final int offset = getPosition();
 		parsedVariable = null;
 
@@ -855,7 +855,10 @@ public class C4ScriptParser extends CStyleScanner {
 			do {
 				eatWhitespace();
 				int nameStart = getPosition();
-				String varName = readIdent();
+				if (!parseIdentifier()) {
+					tokenExpectedError("Identifier");
+				}
+				String varName = parsedString;
 				int nameEnd = getPosition();
 				if (declaration) {
 					// construct C4Variable object and register it
