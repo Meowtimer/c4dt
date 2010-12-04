@@ -55,7 +55,8 @@ public enum C4Type implements IType {
 		"C4Object", C4Type.OBJECT,
 		"C4PropList", C4Type.PROPLIST,
 		"C4Value", C4Type.ANY,
-		"C4String", C4Type.STRING
+		"C4String", C4Type.STRING,
+		"C4Void", C4Type.UNKNOWN
 	);
 	public static final Map<C4Type, String> C4SCRIPT_TO_CPP_MAP = Utilities.reverseMap(CPP_TO_C4SCRIPT_MAP, new HashMap<C4Type, String>());
 	

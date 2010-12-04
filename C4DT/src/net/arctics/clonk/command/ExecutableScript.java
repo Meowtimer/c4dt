@@ -23,10 +23,11 @@ public class ExecutableScript extends C4ScriptBase {
 
 	private String script;
 	private BodyPreservingFunction main;
+	private ClonkIndex index;
 
 	@Override
 	public ClonkIndex getIndex() {
-		return Command.COMMANDS_INDEX;
+		return index;
 	}
 
 	@Override
@@ -44,10 +45,11 @@ public class ExecutableScript extends C4ScriptBase {
 		}
 	}
 
-	public ExecutableScript(String name, String script) {
+	public ExecutableScript(String name, String script, ClonkIndex index) {
 		super();
 		setName(name);
 		this.script = script;
+		this.index = index;
 		C4ScriptParser parser = new C4ScriptParser(script, this, null) {
 			@Override
 			protected C4Function newFunction() {

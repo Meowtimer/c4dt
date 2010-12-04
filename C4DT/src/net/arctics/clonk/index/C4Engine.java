@@ -269,6 +269,8 @@ public class C4Engine extends C4ScriptBase {
 		// combine settings files in reverse-order so custom config is based on default
 		for (int i = storageLocations.length-1; i >= 0; i--) {
 			IStorageLocation loc = storageLocations[i];
+			if (loc == null)
+				continue;
 			URL settingsFile = loc.getURL(CONFIGURATION_INI_NAME, false);
 			if (settingsFile != null) {
 				InputStream input = settingsFile.openStream();
@@ -294,6 +296,8 @@ public class C4Engine extends C4ScriptBase {
 		try {
 			for (int i = storageLocations.length-1; i >= 0; i--) {
 				IStorageLocation loc = storageLocations[i];
+				if (loc == null)
+					continue;
 				URL confFile = loc.getURL("iniconfig.xml", false); //$NON-NLS-1$
 				if (confFile != null) {
 					InputStream input = confFile.openStream();
@@ -391,6 +395,8 @@ public class C4Engine extends C4ScriptBase {
 	public void loadDeclarationsConfiguration() throws NoSuchFieldException, IllegalAccessException, IOException {
 		for (int i = storageLocations.length-1; i >= 0; i--) {
 			IStorageLocation loc = storageLocations[i];
+			if (loc == null)
+				continue;
 			URL url = loc.getURL("declarations.ini", false);
 			if (url != null) {
 				InputStream stream = url.openStream();

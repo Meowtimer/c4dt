@@ -157,6 +157,10 @@ public class CallFunc extends AccessDeclaration {
 	@Override
 	public void doPrint(ExprWriter output, int depth) {
 		super.doPrint(output, depth);
+		printParmString(output, depth);
+	}
+
+	public void printParmString(ExprWriter output, int depth) {
 		output.append("("); //$NON-NLS-1$
 		if (params != null) {
 			for (int i = 0; i < params.length; i++) {

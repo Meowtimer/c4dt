@@ -30,7 +30,6 @@ import net.arctics.clonk.parser.c4script.ast.BunchOfStatements;
 import net.arctics.clonk.parser.c4script.ast.CallFunc;
 import net.arctics.clonk.parser.c4script.ast.Comment;
 import net.arctics.clonk.parser.c4script.ast.ExprElm;
-import net.arctics.clonk.parser.c4script.ast.ExprWriter;
 import net.arctics.clonk.parser.c4script.ast.ReturnStatement;
 import net.arctics.clonk.parser.c4script.ast.Sequence;
 import net.arctics.clonk.parser.c4script.ast.SimpleStatement;
@@ -160,53 +159,6 @@ public class ClonkQuickAssistProcessor implements IQuickAssistProcessor, IMarker
 		return WhatToDo.PassThrough;
 	}
 	
-	private final class ReplacementStatement extends Statement {
-		private final String replacementString;
-		private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
-
-		private ReplacementStatement(IRegion regionToDelete, String replacementString, IDocument document, int absoluteOffset) {
-			this.replacementString = replacementString;
-			possiblyAdvanceRegionToDeleteLine(document, regionToDelete, absoluteOffset);
-		}
-		
-		private void possiblyAdvanceRegionToDeleteLine(IDocument document, IRegion expressionRegion, int absoluteOffset) {
-			int exprStart = expressionRegion.getOffset()-absoluteOffset;
-			int additionalExprLength = 0;
-			try {
-				IRegion originalLineRegion = document.getLineInformationOfOffset(expressionRegion.getOffset());
-				String originalLine = document.get(originalLineRegion.getOffset(), originalLineRegion.getLength());
-				boolean deleteLine = true;
-				for (int i = expressionRegion.getOffset()-originalLineRegion.getOffset()-1; i >= 0; i--) {
-					if (!BufferedScanner.isWhiteSpace(originalLine.charAt(i))) {
-						deleteLine = false;
-						break;
-					}
-				}
-				for (int i = expressionRegion.getOffset()+expressionRegion.getLength()+1-originalLineRegion.getOffset(); i < originalLine.length(); i++) {
-					if (!BufferedScanner.isWhiteSpace(originalLine.charAt(i))) {
-						deleteLine = false;
-						break;
-					}
-				}
-				if (deleteLine) {
-					exprStart = originalLineRegion.getOffset()-expressionRegion.getOffset();
-					for (int abs = originalLineRegion.getOffset()-1; abs >= 0 && BufferedScanner.isWhiteSpace(document.getChar(abs)); abs--) {
-						exprStart--;
-					}
-					additionalExprLength = originalLineRegion.getOffset()+originalLine.length()-expressionRegion.getOffset()-expressionRegion.getLength();
-				}
-			} catch (BadLocationException e) {
-				e.printStackTrace();
-			}
-			setExprRegion(exprStart, (exprStart < 0 ? 0 : exprStart)+expressionRegion.getLength()+additionalExprLength);
-		}
-
-		@Override
-		public void doPrint(ExprWriter output, int depth) {
-			output.append(replacementString);
-		}
-	}
-
 	public static final class ParameterizedProposalMarkerResolution extends WorkbenchMarkerResolution {
 
 		private ParameterizedProposal proposal;
@@ -617,7 +569,7 @@ public class ClonkQuickAssistProcessor implements IQuickAssistProcessor, IMarker
 						);
 						replacements.add(
 								Messages.ClonkQuickAssistProcessor_Remove,
-								new ReplacementStatement(expressionRegion, "", document, expressionRegion.getOffset()) //$NON-NLS-1$
+								new ReplacementStatement("", expressionRegion, document, expressionRegion.getOffset(), true) //$NON-NLS-1$
 						).regionToBeReplacedSpecifiedByReplacementExpression = true;
 						CallFunc callFunc = new CallFunc(Messages.ClonkQuickAssistProcessor_FunctionToBeCalled, statement.getExpression());
 						replacements.add(Messages.ClonkQuickAssistProcessor_WrapWithFunctionCall, callFunc, callFunc);
@@ -699,7 +651,7 @@ public class ClonkQuickAssistProcessor implements IQuickAssistProcessor, IMarker
 						regionToDelete.incOffset(expressionRegion.getOffset());
 						replacements.add(
 							Messages.ClonkQuickAssistProcessor_RemoveVariableDeclaration,
-							new ReplacementStatement(regionToDelete, finalReplacementString, document, expressionRegion.getOffset())
+							new ReplacementStatement(finalReplacementString, regionToDelete, document, expressionRegion.getOffset(), true)
 						).regionToBeReplacedSpecifiedByReplacementExpression = true;
 					}
 					break;

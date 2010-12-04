@@ -220,78 +220,29 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 		C4Engine result = loadedEngines.get(engineName);
 		if (result != null)
 			return result;
-		
-		IStorageLocation workspaceProvider = new IStorageLocation() {
+		IStorageLocation[] locations = new IStorageLocation[2];
+		if (getBundle() != null) {
+			// bundle given; assume the usual storage locations (workspace and plugin bundle contents) are present
+			getIDEStorageLocations(engineName, locations);
+		} else {
+			// no bundle? seems to run headlessly
+			getHeadlessStorageLocations(engineName, locations);
+		}
+		result = C4Engine.loadFromStorageLocations(locations);
+		if (result != null)
+			loadedEngines.put(engineName, result);
+		return result;
+	}
+	
+	private void getIDEStorageLocations(final String engineName, IStorageLocation[] locations) {
+		locations[0] = new FolderStorageLocation(engineName) {
 			@Override
-			public String getName() {
-				return engineName;
-			}
-			@Override
-			public URL getURL(String entryName, boolean create) {
-				try {
-					File file = getFile(entryName);
-					try {
-						if (create) {
-							try {
-								file.getParentFile().mkdirs();
-								file.createNewFile();
-							} catch (IOException e) {
-								e.printStackTrace();
-								return null;
-							}
-						}
-						return file.exists() ? file.toURI().toURL() : null;
-					} catch (MalformedURLException e) {
-						e.printStackTrace();
-						return null;
-					}
-				} catch (AssertionFailedException assertionFail) {
-					// happens when invoking getURL without having initialized the workspace (headless utilities)
-					return null;
-				}
-			}
-			private File getFile(String entryName) {
-				IPath path = getWorkspaceStorageLocationForEngine(engineName);
-				File file = path.append(entryName).toFile();
-				return file;
-			}
-			@Override
-			public OutputStream getOutputStream(URL storageURL) {
-				try {
-					return new FileOutputStream(new File(storageURL.getFile()));
-				} catch (IOException e) {
-					e.printStackTrace();
-					return null;
-				}
-			}
-			@Override
-			public Enumeration<URL> getURLs(String containerName) {
-				final File folder = getFile(containerName);
-				return new Enumeration<URL>() {
-					
-					private int index = -1;
-					private File[] files = folder.listFiles();
-
-					@Override
-					public boolean hasMoreElements() {
-						return files != null && index+1 < files.length;
-					}
-
-					@Override
-					public URL nextElement() {
-						try {
-							return files[++index].toURI().toURL();
-						} catch (MalformedURLException e) {
-							e.printStackTrace();
-							return null;
-						}
-					}
-					
-				};
+			protected IPath getStorageLocationForEngine(String engineName) {
+				return getWorkspaceStorageLocationForEngine(engineName);
 			}
 		};
 		
-		IStorageLocation bundleProvider = new IStorageLocation() {
+		locations[1] = new IStorageLocation() {
 			@Override
 			public URL getURL(String entryName, boolean create) {
 				return create ? null : getBundle().getEntry(String.format("res/engines/%s/%s", engineName, entryName)); //$NON-NLS-1$
@@ -310,12 +261,19 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 				return ClonkCore.getDefault().getBundle().findEntries(String.format("res/engines/%s/%s", engineName, containerName), "*.*", false); //$NON-NLS-1$ //$NON-NLS-2$
 			}
 		};
-		
-		result = C4Engine.loadFromStorageLocations(workspaceProvider, bundleProvider);
-		if (result != null)
-			loadedEngines.put(engineName, result);
-		return result;
 	}
+	
+	private void getHeadlessStorageLocations(String engineName, IStorageLocation[] locations) {
+		locations[0] = new FolderStorageLocation(engineName) {
+			private IPath storageLocationPath = new Path(engineConfigurationFolder).append(this.engineName);
+			@Override
+			protected IPath getStorageLocationForEngine(String engineName) {
+				return storageLocationPath;
+			}
+		};
+	}
+
+	private String engineConfigurationFolder;
 
 	public void loadActiveEngine() throws FileNotFoundException, IOException, ClassNotFoundException, XPathExpressionException, ParserConfigurationException, SAXException {
 		setActiveEngineByName(ClonkPreferences.getPreferenceOrDefault(ClonkPreferences.ACTIVE_ENGINE));
@@ -437,10 +395,11 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 		return plugin;
 	}
 	
-	public static void headlessInitialize(String engine) {
+	public static void headlessInitialize(String engineConfigurationFolder, String engine) {
 		if (plugin == null) {
 			plugin = new ClonkCore();
-			plugin.loadEngine(engine);
+			plugin.engineConfigurationFolder = engineConfigurationFolder;
+			plugin.setActiveEngineByName(engine);
 		}
 	}
 
@@ -545,8 +504,10 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 	public void setActiveEngineByName(String engineName) {
 		C4Engine e = loadEngine(engineName);
 		// make sure names are correct
-		e.setName(engineName);
-		setActiveEngine(e);
+		if (e != null) {
+			e.setName(engineName);
+			setActiveEngine(e);
+		}
 	}
 
 	/**
@@ -566,6 +527,88 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 		return textFileDocumentProvider;
 	}
 	
+	private abstract class FolderStorageLocation implements IStorageLocation {
+		protected final String engineName;
+
+		private FolderStorageLocation(String engineName) {
+			this.engineName = engineName;
+		}
+
+		@Override
+		public String getName() {
+			return engineName;
+		}
+
+		@Override
+		public URL getURL(String entryName, boolean create) {
+			try {
+				File file = getFile(entryName);
+				try {
+					if (create) {
+						try {
+							file.getParentFile().mkdirs();
+							file.createNewFile();
+						} catch (IOException e) {
+							e.printStackTrace();
+							return null;
+						}
+					}
+					return file.exists() ? file.toURI().toURL() : null;
+				} catch (MalformedURLException e) {
+					e.printStackTrace();
+					return null;
+				}
+			} catch (AssertionFailedException assertionFail) {
+				// happens when invoking getURL without having initialized the workspace (headless utilities)
+				return null;
+			}
+		}
+
+		protected abstract IPath getStorageLocationForEngine(String engineName);
+
+		private File getFile(String entryName) {
+			IPath path = getStorageLocationForEngine(engineName);
+			File file = path.append(entryName).toFile();
+			return file;
+		}
+
+		@Override
+		public OutputStream getOutputStream(URL storageURL) {
+			try {
+				return new FileOutputStream(new File(storageURL.getFile()));
+			} catch (IOException e) {
+				e.printStackTrace();
+				return null;
+			}
+		}
+
+		@Override
+		public Enumeration<URL> getURLs(String containerName) {
+			final File folder = getFile(containerName);
+			return new Enumeration<URL>() {
+				
+				private int index = -1;
+				private File[] files = folder.listFiles();
+
+				@Override
+				public boolean hasMoreElements() {
+					return files != null && index+1 < files.length;
+				}
+
+				@Override
+				public URL nextElement() {
+					try {
+						return files[++index].toURI().toURL();
+					} catch (MalformedURLException e) {
+						e.printStackTrace();
+						return null;
+					}
+				}
+				
+			};
+		}
+	}
+
 	public interface IDocumentAction {
 		void run(IDocument document);
 	}
