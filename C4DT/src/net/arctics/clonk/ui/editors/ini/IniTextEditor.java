@@ -56,8 +56,12 @@ public class IniTextEditor extends ClonkTextEditor {
 			reparseTimer.schedule(reparseTask = new TimerTask() {
 				@Override
 				public void run() {
-					ensureIniUnitUpToDate();
+					boolean foundClient = false;
 					for (final IniTextEditor ed : clients) {
+						if (!foundClient) {
+							foundClient = true;
+							ensureIniUnitUpToDate(ed);
+						}
 						Display.getDefault().asyncExec(new Runnable() {
 							@Override
 							public void run() {
@@ -80,10 +84,12 @@ public class IniTextEditor extends ClonkTextEditor {
 			if (unitLocked == 0)
 				unitParsed = false;
 		}
-		public boolean ensureIniUnitUpToDate() {
+		public boolean ensureIniUnitUpToDate(IniTextEditor editor) {
 			if (!unitParsed) {
 				unitParsed = true;
-				structure.parse(false);
+				String newDocumentString = editor != null ? editor.getSourceViewer().getDocument().get() : document.get();
+				structure.getScanner().reset(newDocumentString);
+				structure.parse(false, false);
 			}
 			return true;
 		}
@@ -119,7 +125,7 @@ public class IniTextEditor extends ClonkTextEditor {
 			}
 		}
 		if (textChangeListener != null) {
-			textChangeListener.ensureIniUnitUpToDate();
+			textChangeListener.ensureIniUnitUpToDate(null);
 			return textChangeListener.getStructure();
 		} else {
 			return null;
@@ -186,7 +192,7 @@ public class IniTextEditor extends ClonkTextEditor {
 	}
 
 	public boolean ensureIniUnitUpToDate() {
-		return textChangeListener.ensureIniUnitUpToDate();
+		return textChangeListener.ensureIniUnitUpToDate(this);
 	}
 
 	public void forgetUnitParsed() {

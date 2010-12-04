@@ -204,7 +204,13 @@ public class IniUnit extends C4Structure implements Iterable<IniSection>, IHasCh
 	}
 	
 	public synchronized void parse(boolean modifyMarkers) {
-		scanner.reset();
+		parse(modifyMarkers, true);
+	}
+	
+	public synchronized void parse(boolean modifyMarkers, boolean resetScannerWithFileContents) {
+		if (resetScannerWithFileContents) {
+			scanner.reset();
+		}
 		if (modifyMarkers && getIniFile() != null) {
 			try {
 				getIniFile().deleteMarkers(IMarker.PROBLEM, true, IResource.DEPTH_ONE);

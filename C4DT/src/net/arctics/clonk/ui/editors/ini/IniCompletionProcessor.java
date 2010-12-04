@@ -20,6 +20,7 @@ import net.arctics.clonk.parser.inireader.IDArray;
 import net.arctics.clonk.parser.inireader.IconSpec;
 import net.arctics.clonk.parser.inireader.IniData.IniDataBase;
 import net.arctics.clonk.parser.inireader.IniSection;
+import net.arctics.clonk.parser.inireader.IniUnit;
 import net.arctics.clonk.parser.inireader.SignedInteger;
 import net.arctics.clonk.parser.inireader.UnsignedInteger;
 import net.arctics.clonk.parser.inireader.IniData.IniDataEntry;
@@ -90,6 +91,7 @@ public class IniCompletionProcessor extends ClonkCompletionProcessor<IniTextEdit
 		}
 		prefix = prefix.toLowerCase();	
 
+		getEditor().ensureIniUnitUpToDate();
 		section = getEditor().getIniUnit().sectionAtOffset(offset);
 
 		if (!assignment) {
@@ -101,6 +103,8 @@ public class IniCompletionProcessor extends ClonkCompletionProcessor<IniTextEdit
 				if (section.getParentSection() != null && section.getParentSection().getSectionData() != null) {
 					// also propose new sections
 					proposalsForIniDataEntries(proposals, prefix, wordOffset, section.getParentSection().getSectionData().getEntries().values());
+				} else if (section.getParentDeclaration() instanceof IniUnit) {
+					proposalsForIniDataEntries(proposals, prefix, wordOffset, ((IniUnit)section.getParentDeclaration()).getConfiguration().getSections().values());
 				}
 				int indentation = getEditor().getIniUnit().getScanner().getTabIndentation(offset);
 				if (indentation == section.getIndentation()+1) {
