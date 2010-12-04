@@ -211,7 +211,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 					removeMarkers(fn, structure);
 					if (structure.getScriptFile() instanceof IResource && !C4GroupItem.isLinkedResource((IResource) structure.getScriptFile())) {
 						final C4Function f = (C4Function) fn.latestVersion();
-						f.resetUsedFlagOfVariables();
+						f.clearLocalVars(); // remove local vars so some kinds of errors will be displayed immediately
 						final List<Statement> statements = new LinkedList<Statement>();
 						C4ScriptParser.reportExpressionsAndStatements(document, f.getBody(), structure, f, new ScriptParserListener() {
 							@Override
@@ -235,6 +235,11 @@ public class C4ScriptEditor extends ClonkTextEditor {
 								return WhatToDo.PassThrough;
 							}
 						}).warnAboutUnusedFunctionVariables(new BunchOfStatements(statements));
+						for (C4Variable localVar : f.getLocalVars()) {
+							SourceLocation l = localVar.getLocation();
+							l.setStart(f.getBody().getOffset()+l.getOffset());
+							l.setEnd(f.getBody().getOffset()+l.getEnd());
+						}
 					}
 				}
 			}, REPARSE_DELAY);

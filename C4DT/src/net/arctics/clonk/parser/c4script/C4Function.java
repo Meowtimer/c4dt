@@ -559,5 +559,9 @@ public class C4Function extends C4Structure implements Serializable, ITypedDecla
 			v.setUsed(false);
 		}
 	}
+
+	public void clearLocalVars() {
+		getLocalVars().clear();
+	}
 	
 }

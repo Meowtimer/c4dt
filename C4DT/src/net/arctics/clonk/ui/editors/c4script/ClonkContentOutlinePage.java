@@ -53,7 +53,11 @@ public class ClonkContentOutlinePage extends ContentOutlinePage {
 		if (event.getSelection().isEmpty()) {
 			return;
 		} else if (event.getSelection() instanceof IStructuredSelection) {
-			editor.selectAndReveal(((C4Declaration)((IStructuredSelection)event.getSelection()).getFirstElement()).getLocation());
+			C4Declaration dec = (C4Declaration)((IStructuredSelection)event.getSelection()).getFirstElement();
+			dec = dec.latestVersion();
+			if (dec != null) {
+				editor.selectAndReveal(dec.getLocation());
+			}
 		}
 	}
 
