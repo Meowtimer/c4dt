@@ -131,3 +131,9 @@ are then taken into account in various places
 -When editing inside functions in scripts, parser errors will be shown in near-realtime
 -Line endings in Clonk files can be converted using File -> Convert Line Delimiters To
 -Bugfixes
+1.5.8:
+-Bugfixes
+-Probably more new bugs introduced
+-Quick fix support (invoked via Ctrl+1)
+-IniTextEditor supports collapsing and expanding sections (amazing!)
+-Improved OpenClonk compatibility
