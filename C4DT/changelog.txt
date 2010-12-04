@@ -137,3 +137,4 @@ are then taken into account in various places
 -Quick fix support (invoked via Ctrl+1)
 -IniTextEditor supports collapsing and expanding sections (amazing!)
 -Improved OpenClonk compatibility
+-If Documentation browser  tab is left open, no new ones will be created when link-clicking other engine functions
