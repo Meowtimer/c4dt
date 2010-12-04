@@ -104,7 +104,16 @@ public class ClonkQuickAssistProcessor implements IQuickAssistProcessor, IMarker
 
 	private static final Set<ParserErrorCode> fixableParserErrorCodes = Utilities.set(
 		HashSet.class,
-		ParserErrorCode.VariableCalled, ParserErrorCode.NeverReached, ParserErrorCode.NotFinished, ParserErrorCode.UndeclaredIdentifier, ParserErrorCode.IncompatibleTypes, ParserErrorCode.NoSideEffects, ParserErrorCode.NoAssignment, ParserErrorCode.NoInheritedFunction, ParserErrorCode.ReturnAsFunction, ParserErrorCode.Unused	
+		ParserErrorCode.VariableCalled,
+		ParserErrorCode.NeverReached,
+		ParserErrorCode.NotFinished,
+		ParserErrorCode.UndeclaredIdentifier,
+		ParserErrorCode.IncompatibleTypes,
+		ParserErrorCode.NoSideEffects,
+		ParserErrorCode.NoAssignment,
+		ParserErrorCode.NoInheritedFunction,
+		ParserErrorCode.ReturnAsFunction,
+		ParserErrorCode.Unused	
 	);
  	
 	public boolean canFix(Annotation annotation) {
@@ -152,7 +161,7 @@ public class ClonkQuickAssistProcessor implements IQuickAssistProcessor, IMarker
 	
 	@Override
 	public WhatToDo markerEncountered(C4ScriptParser parser, ParserErrorCode code, int markerStart, int markerEnd, boolean noThrow, int severity, Object... args) {
-		if (code == ParserErrorCode.TokenExpected && args[0].equals(";")) { //$NON-NLS-1$
+		if (code == ParserErrorCode.NotFinished || (code == ParserErrorCode.TokenExpected && args[0].equals(";"))) { //$NON-NLS-1$
 			semicolonAdd = 1; // replace one more char (semicolon is there, just not in the substring denoted by the expressionRegion)
 			return WhatToDo.DropCharges;
 		}
