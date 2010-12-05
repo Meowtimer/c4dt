@@ -2699,7 +2699,7 @@ public class C4ScriptParser extends CStyleScanner {
 		}
 		else {
 			unread();
-			word = readIdent();
+			word = readOldStyleClonkID();
 			if (word != null && word.length() != 4) {
 				this.seek(offset);
 				return false;

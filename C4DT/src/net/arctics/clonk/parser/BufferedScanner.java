@@ -149,6 +149,22 @@ public class BufferedScanner {
 		} while(!reachedEOF());
 		return readStringAt(start, start+length);
 	}
+	
+	public String readOldStyleClonkID() {
+		int start = offset;
+		int length = 0;
+		do {
+			int readByte = read();
+			if (isWordPart(readByte)) {
+				length++;
+			}
+			else {
+				seek(start);
+				return readString(length);
+			}
+		} while(!reachedEOF());
+		return readStringAt(start, start+length);
+	}
 
 	/**
 	 * Reads a string until a char from <code>delimiters</code> occurs
