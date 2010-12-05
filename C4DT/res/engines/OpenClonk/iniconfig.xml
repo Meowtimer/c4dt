@@ -495,6 +495,7 @@
 			<entry name="ForcedFairCrew" class="Boolean" />
 			<entry name="StartupPlayerCount" class="UnsignedInteger" />
 			<entry name="RandomSeed" class="SignedInteger" />
+			<entry name="SaveGame" class="Boolean" />
 		</section>
 		<section name="Game">
 			<entry name="Rules" class="IDArray"
