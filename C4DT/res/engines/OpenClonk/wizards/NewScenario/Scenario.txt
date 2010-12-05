@@ -6,18 +6,25 @@ Title=$Title$
 EnableRemoveFlag=1
 StructNeedMaterial=1
 
+[Definitions]
+Definition1=Objects.c4d
+
 [Player1]
+Crew=Clonk=1
 
 [Player2]
+Crew=Clonk=1
 
 [Player3]
+Crew=Clonk=1
 
 [Player4]
+Crew=Clonk=1
 
 [Landscape]
-Vegetation=TRE1=1;TRE2=2;TRE3=1;
+Vegetation=Tree_Coniferous=5;
 VegetationLevel=100,0
-InEarth=Rock=1;Gold=1;Flint=1;Loam=1;
+InEarth=Rock=1;Gold=1;Dynamite=2;Loam=2
 InEarthLevel=65
 Sky=Clouds1;Default
 MapWidth=80
@@ -26,7 +33,7 @@ Amplitude=10,10
 Phase=50,50
 Period=10,10
 Random=20,20
-Liquid=Water-Smooth
+Liquid=Water-water
 LiquidLevel=20,30
 Layers=Rock=7; Rock-Ridge=7; Gold=7; Granite=4; Ore=3; Coal-Swirl=4; Water-Smooth=5; Oil-Smooth=5; Earth-Rough=50; Earth-Smooth2=50; 
 
