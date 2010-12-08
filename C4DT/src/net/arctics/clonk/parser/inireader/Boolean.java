@@ -21,4 +21,8 @@ public class Boolean extends UnsignedInteger {
 			super.setInput(input, entryData, context);
 		}
 	}
+	public Boolean() {}
+	public Boolean(boolean value) {
+		setNumber(value ? 1 : 0);
+	}
 }
