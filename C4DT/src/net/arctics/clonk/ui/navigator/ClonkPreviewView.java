@@ -225,6 +225,8 @@ public class ClonkPreviewView extends ViewPart implements ISelectionListener, Co
 	}
 	
 	private File tempLandscapeRenderFile = null;
+	
+	private static final int landscapePreviewDivider = 2;
 
 	private synchronized void synchronizedSelectionChanged(ISelection selection) {
 		Image newImage = null;
@@ -255,14 +257,27 @@ public class ClonkPreviewView extends ViewPart implements ISelectionListener, Co
 							"-f"+ClonkLaunchConfigurationDelegate.resFilePath(file),
 							"-o"+tempLandscapeRenderFile.getAbsolutePath(),
 							"-m"+engine.getCurrentSettings().gamePath+"/Material.c4g",
-							"-w"+canvasSize.x,
-							"-h"+canvasSize.y
+							"-w"+canvasSize.x/landscapePreviewDivider,
+							"-h"+canvasSize.y/landscapePreviewDivider
 						);
 						if (drawLandscape != null) {
 							drawLandscape.waitFor();
 							FileInputStream stream = new FileInputStream(tempLandscapeRenderFile);
 							try {
 								newImage = new Image(canvas.getDisplay(), stream);
+								if (landscapePreviewDivider != 1) {
+									Image biggerImage = new Image(canvas.getDisplay(), canvasSize.x, canvasSize.y);
+									GC gc = new GC(biggerImage);
+									gc.setAntialias(SWT.ON);
+									gc.setInterpolation(SWT.HIGH);
+									gc.drawImage(newImage,
+										0, 0, newImage.getBounds().width, newImage.getBounds().height,
+										0, 0, canvasSize.x, canvasSize.y
+									);
+									gc.dispose();
+									newImage.dispose();
+									newImage = biggerImage;
+								}
 							} finally {
 								stream.close();
 							}
