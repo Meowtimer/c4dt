@@ -203,9 +203,12 @@ public enum C4Type implements IType {
 
 	@Override
 	public boolean intersects(IType typeSet) {
-		for (IType t : typeSet)
-			if (t == this)
-				return true;
+		for (IType t : typeSet) {
+			for (IType t2 : this) {
+				if (t.canBeAssignedFrom(t2) || t2.canBeAssignedFrom(t))
+					return true;
+			}
+		}
 		return false;
 	}
 
