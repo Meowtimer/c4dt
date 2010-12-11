@@ -461,22 +461,28 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 			break;
 		case ISaveContext.SNAPSHOT:
 		case ISaveContext.FULL_SAVE:
-			for (IProject project : ResourcesPlugin.getWorkspace().getRoot().getProjects()) {
-				if (!project.isOpen())
-					continue;
-				clonkProj = ClonkProjectNature.get(project);
-				if (clonkProj != null) {
-					clonkProj.saveIndex();
-				}
-			}
-			removeOldIndexes();
 			for (C4Engine engine : loadedEngines.values()) {
 				try {
 					engine.saveSettings();
 				} catch (IOException e) {
+					System.out.println("Error saving settings for " + engine.getName());
 					e.printStackTrace();
 				}
 			}
+			for (IProject project : ResourcesPlugin.getWorkspace().getRoot().getProjects()) {
+				try {
+					if (!project.isOpen())
+						continue;
+					clonkProj = ClonkProjectNature.get(project);
+					if (clonkProj != null) {
+						clonkProj.saveIndex();
+					}
+				} catch (Exception e) {
+					System.out.println("Error saving index for " + project.getName());
+					e.printStackTrace();
+				}
+			}
+			removeOldIndexes();
 			break;
 		}
 	}
