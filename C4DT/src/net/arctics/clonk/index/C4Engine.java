@@ -224,17 +224,18 @@ public class C4Engine extends C4ScriptBase {
 	}
 
 	public static String[] possibleEngineNamesAccordingToOS() {
+		// reordered to save lots of cpu time
+		if (Util.isWindows()) {
+			return new String[] { "Clonk.c4x", "Clonk.exe" }; //$NON-NLS-1$ //$NON-NLS-2$
+		}
+		if (Util.isLinux()) {
+			return new String[] { "clonk" }; //$NON-NLS-1$
+		}
 		if (Util.isMac()) {
 			return new String[] {
 				"clonk.app/Contents/MacOS/clonk",
 				"Clonk.app/Contents/MacOS/Clonk"
 			}; //$NON-NLS-1$
-		}
-		if (Util.isLinux()) {
-			return new String[] { "clonk" }; //$NON-NLS-1$
-		}
-		if (Util.isWindows()) {
-			return new String[] { "Clonk.c4x", "Clonk.exe" }; //$NON-NLS-1$ //$NON-NLS-2$
 		}
 		// assume some UNIX -.-
 		return new String[] { "clonk" }; //$NON-NLS-1$
