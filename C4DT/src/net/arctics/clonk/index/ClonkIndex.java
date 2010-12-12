@@ -472,21 +472,27 @@ public class ClonkIndex implements Serializable, Iterable<C4Object> {
 		private Iterator<C4Object> listIterator;
 		
 		public ObjectIterator() {
-			valuesIterator = indexedObjects.values().iterator();
+			synchronized (ClonkIndex.this) {
+				valuesIterator = indexedObjects.values().iterator();
+			}
 		}
 		
 		public boolean hasNext() {
-			return (listIterator != null && listIterator.hasNext()) || valuesIterator.hasNext();
+			synchronized (ClonkIndex.this) {
+				return (listIterator != null && listIterator.hasNext()) || valuesIterator.hasNext();
+			}
 		}
 
 		public C4Object next() {
-			while (listIterator == null || !listIterator.hasNext()) {
-				listIterator = null;
-				if (!valuesIterator.hasNext())
-					return null;
-				listIterator = valuesIterator.next().iterator();
+			synchronized (ClonkIndex.this) {
+				while (listIterator == null || !listIterator.hasNext()) {
+					listIterator = null;
+					if (!valuesIterator.hasNext())
+						return null;
+					listIterator = valuesIterator.next().iterator();
+				}
+				return listIterator.next();
 			}
-			return listIterator.next();
 		}
 
 		public void remove() {
