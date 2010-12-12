@@ -30,6 +30,8 @@ import net.arctics.clonk.preferences.ClonkPreferences;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.util.IStorageLocation;
 import net.arctics.clonk.util.ReadOnlyIterator;
+import net.arctics.clonk.util.UI;
+
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IResourceChangeEvent;
@@ -73,7 +75,7 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 	 * id for error markers that denote errors in a script
 	 */
 	public static final String MARKER_C4SCRIPT_ERROR = id("c4scripterror"); //$NON-NLS-1$
-	public static final String MARKER_C4SCRIPT_ERROR_WHILE_TYPING = id("c4scripterrorwhiletyping");
+	public static final String MARKER_C4SCRIPT_ERROR_WHILE_TYPING = id("c4scripterrorwhiletyping"); //$NON-NLS-1$
 	
 	/**
 	 * id for error markers that denote errors in a ini file
@@ -465,8 +467,7 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 				try {
 					engine.saveSettings();
 				} catch (IOException e) {
-					System.out.println("Error saving settings for " + engine.getName());
-					e.printStackTrace();
+					UI.informAboutException(Messages.ClonkCore_ErrorWhileSavingSettings, e, engine.getName());
 				}
 			}
 			for (IProject project : ResourcesPlugin.getWorkspace().getRoot().getProjects()) {
@@ -478,8 +479,7 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 						clonkProj.saveIndex();
 					}
 				} catch (Exception e) {
-					System.out.println("Error saving index for " + project.getName());
-					e.printStackTrace();
+					UI.informAboutException(Messages.ClonkCore_ErrorWhileSavingIndex, e, project.getName());
 				}
 			}
 			removeOldIndexes();

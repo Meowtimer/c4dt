@@ -26,6 +26,7 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
@@ -161,6 +162,29 @@ public abstract class UI {
 	
 	public static String input(Shell shell, String title, String prompt, String defaultValue) {
 		return input(shell, title, prompt, defaultValue, null);
+	}
+	
+	public static void message(String message, int kind) {
+		MessageDialog.open(kind, null, ClonkCore.PLUGIN_ID, message, SWT.NONE);
+	}
+	
+	public static void message(String message) {
+		message(message, MessageDialog.INFORMATION);
+	}
+	
+	public static void informAboutException(String message, Object... additionalFormatArguments) {
+		Exception exception = additionalFormatArguments.length > 0 && additionalFormatArguments[0] instanceof Exception ? (Exception)additionalFormatArguments[0] : null;
+		if (exception != null) {
+			exception.printStackTrace();
+			additionalFormatArguments[0] = exception.getMessage();
+		}
+		final String msg = String.format(message, additionalFormatArguments);
+		Display.getDefault().asyncExec(new Runnable() {
+			@Override
+			public void run() {
+				message(msg, MessageDialog.ERROR);
+			}
+		});
 	}
 
 }
