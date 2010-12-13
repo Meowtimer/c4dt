@@ -121,7 +121,7 @@ public class C4ObjectIntern extends C4Object implements Serializable {
 	 * The member <tt>Script.c</tt>
 	 * @return IFile object of <tt>Script.c</tt> file or null if it does not exist
 	 */
-	public IFile getScriptFile() {
+	public IFile getScriptStorage() {
 		if (this.objectFolder == null)
 			return null;
 		IResource res = Utilities.findMemberCaseInsensitively(this.objectFolder, "Script.c"); //$NON-NLS-1$
@@ -132,7 +132,7 @@ public class C4ObjectIntern extends C4Object implements Serializable {
 	@Override
 	public String getScriptText() {
 		try {
-			return Utilities.stringFromFileDocument(getScriptFile());
+			return Utilities.stringFromFileDocument(getScriptStorage());
 		} catch (Exception e) {
 			return null;
 		}

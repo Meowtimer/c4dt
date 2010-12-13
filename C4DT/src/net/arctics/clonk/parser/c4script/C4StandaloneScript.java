@@ -2,6 +2,8 @@ package net.arctics.clonk.parser.c4script;
 
 import java.io.UnsupportedEncodingException;
 
+import org.eclipse.core.resources.IStorage;
+
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.index.ClonkIndex;
 import net.arctics.clonk.parser.SimpleScriptStorage;
@@ -31,7 +33,7 @@ public class C4StandaloneScript extends C4ScriptBase {
 	}
 
 	@Override
-	public Object getScriptFile() {
+	public IStorage getScriptStorage() {
 		try {
 			return new SimpleScriptStorage(getName(), scriptText);
 		} catch (UnsupportedEncodingException e) {

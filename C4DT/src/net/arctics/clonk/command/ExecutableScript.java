@@ -4,6 +4,8 @@ import java.io.UnsupportedEncodingException;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.eclipse.core.resources.IStorage;
+
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.index.ClonkIndex;
 import net.arctics.clonk.parser.ParsingException;
@@ -36,7 +38,7 @@ public class ExecutableScript extends C4ScriptBase {
 	}
 
 	@Override
-	public Object getScriptFile() {
+	public IStorage getScriptStorage() {
 		try {
 			return new SimpleScriptStorage(getName(), script);
 		} catch (UnsupportedEncodingException e) {

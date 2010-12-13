@@ -298,6 +298,8 @@ public class ClonkQuickAssistProcessor implements IQuickAssistProcessor, IMarker
 				}
 			}
 			
+			System.out.println(document.get());
+			
 			C4ScriptEditor.TextChangeListener listener = C4ScriptEditor.TextChangeListener.getListenerFor(document);
 			if (listener != null) {
 				listener.scheduleReparsing(false);
@@ -441,8 +443,8 @@ public class ClonkQuickAssistProcessor implements IQuickAssistProcessor, IMarker
 		if (document == null) {
 			if (editor != null) {
 				document = editor.getDocumentProvider().getDocument(editor.getEditorInput());
-			} else if (script != null && script.getScriptFile() instanceof IFile) {
-				needToDisconnect = script.getScriptFile();
+			} else if (script != null && script.getScriptStorage() instanceof IFile) {
+				needToDisconnect = script.getScriptStorage();
 				try {
 					ClonkCore.getDefault().getTextFileDocumentProvider().connect(needToDisconnect);
 				} catch (CoreException e) {

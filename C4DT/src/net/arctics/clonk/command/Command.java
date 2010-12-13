@@ -13,6 +13,7 @@ import java.io.Writer;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 
+import org.eclipse.core.resources.IStorage;
 import org.eclipse.core.runtime.CoreException;
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.index.C4Engine;
@@ -45,7 +46,7 @@ public class Command {
 				return COMMANDS_INDEX;
 			}
 			@Override
-			public Object getScriptFile() {
+			public IStorage getScriptStorage() {
 				try {
 					return new SimpleScriptStorage("CommandBase", ""); //$NON-NLS-1$ //$NON-NLS-2$
 				} catch (UnsupportedEncodingException e) {

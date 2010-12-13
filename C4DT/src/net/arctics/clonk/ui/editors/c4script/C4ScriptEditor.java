@@ -50,6 +50,7 @@ import net.arctics.clonk.util.Utilities;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.IStorage;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.action.IMenuManager;
@@ -92,7 +93,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		}
 
 		@Override
-		public Object getScriptFile() {
+		public IStorage getScriptStorage() {
 			IDocument document = me.getDocumentProvider().getDocument(me.getEditorInput());
 			try {
 				return new SimpleScriptStorage(me.getEditorInput().toString(), document.get());
@@ -209,7 +210,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 			reparseTimer.schedule(functionReparseTask = new TimerTask() {
 				public void run() {
 					removeMarkers(fn, structure);
-					if (structure.getScriptFile() instanceof IResource && !C4GroupItem.isLinkedResource((IResource) structure.getScriptFile())) {
+					if (structure.getScriptStorage() instanceof IResource && !C4GroupItem.isLinkedResource((IResource) structure.getScriptStorage())) {
 						final C4Function f = (C4Function) fn.latestVersion();
 						f.clearLocalVars(); // remove local vars so some kinds of errors will be displayed immediately
 						final List<Statement> statements = new LinkedList<Statement>();
@@ -228,8 +229,8 @@ public class C4ScriptEditor extends ClonkTextEditor {
 									int severity, Object... args) {
 								if (parser.errorDisabled(code))
 									return WhatToDo.DropCharges;
-								if (structure.getScriptFile() instanceof IFile) {
-									code.createMarker((IFile) structure.getScriptFile(), structure, ClonkCore.MARKER_C4SCRIPT_ERROR_WHILE_TYPING,
+								if (structure.getScriptStorage() instanceof IFile) {
+									code.createMarker((IFile) structure.getScriptStorage(), structure, ClonkCore.MARKER_C4SCRIPT_ERROR_WHILE_TYPING,
 										markerStart, markerEnd, severity, parser.getLocationOfExpressionReportingErrors(), args);
 								}
 								return WhatToDo.PassThrough;
@@ -255,8 +256,8 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		@Override
 		public void cleanupAfterRemoval() {
 			try {
-				if (structure.getScriptFile() instanceof IFile) {
-					IFile file = (IFile)structure.getScriptFile();
+				if (structure.getScriptStorage() instanceof IFile) {
+					IFile file = (IFile)structure.getScriptStorage();
 					reparseWithDocumentContents(null, false, file, structure, null);
 				}
 			} catch (ParsingException e) {
@@ -266,7 +267,13 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		}
 		
 		public static TextChangeListener getListenerFor(IDocument document) {
-			return (TextChangeListener) listeners.get(document);
+			TextChangeListener result = (TextChangeListener) listeners.get(document);
+			if (result != null) {
+				if (!document.get().equals(result.document.get())) {
+					System.out.println("Not actually the same");
+				}
+			}
+			return result;
 		}
 	}
 
@@ -501,7 +508,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 			throws ParsingException {
 		C4ScriptParser parser;
 		if (document instanceof IDocument) {
-			parser = new C4ScriptParser(((IDocument)document).get(), script, null);
+			parser = new C4ScriptParser(((IDocument)document).get(), script, script.getScriptFile());
 		} else if (document instanceof IFile) {
 			parser = new C4ScriptParser(Utilities.stringFromFile((IFile)document), script, (IFile)document);
 		} else {

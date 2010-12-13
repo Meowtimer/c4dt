@@ -48,7 +48,7 @@ public abstract class C4Structure extends C4Declaration {
 	 * @return the editor input
 	 */
 	public IEditorInput getEditorInput() {
-		Object storage = getScript() != null ? getScript().getScriptFile() : getResource();
+		Object storage = getScript() != null ? getScript().getScriptStorage() : getResource();
 		if (storage instanceof IFile)
 			return new FileEditorInput((IFile) storage);
 		if (storage instanceof IStorage && this instanceof C4ScriptBase)

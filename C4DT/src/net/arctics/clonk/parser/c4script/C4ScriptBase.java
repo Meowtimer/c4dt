@@ -42,6 +42,7 @@ import net.arctics.clonk.util.Utilities;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.IStorage;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -373,7 +374,12 @@ public abstract class C4ScriptBase extends C4Structure implements ITreeNode {
 		this.name = name;
 	}
 
-	public abstract Object getScriptFile();
+	public abstract IStorage getScriptStorage();
+	
+	public final IFile getScriptFile() {
+		IStorage storage = getScriptStorage();
+		return storage instanceof IFile ? (IFile)storage : null;
+	}
 
 	@Override
 	public C4ScriptBase getScript() {
@@ -705,7 +711,7 @@ public abstract class C4ScriptBase extends C4Structure implements ITreeNode {
 
 	@Override
 	public String getInfoText() {
-		Object f = getScriptFile();
+		Object f = getScriptStorage();
 		if (f instanceof IFile) {
 			IResource infoFile = Utilities.findMemberCaseInsensitively(((IFile)f).getParent(), "Desc"+ClonkPreferences.getLanguagePref()+".txt"); //$NON-NLS-1$ //$NON-NLS-2$
 			if (infoFile instanceof IFile) {
@@ -862,7 +868,7 @@ public abstract class C4ScriptBase extends C4Structure implements ITreeNode {
 		if (script == null)
 			script = C4ObjectIntern.objectCorrespondingTo(resource.getParent());
 		// there can only be one script oO (not ScriptDE or something)
-		if (onlyForScriptFile && (script == null || script.getScriptFile() == null || !script.getScriptFile().equals(resource)))
+		if (onlyForScriptFile && (script == null || script.getScriptStorage() == null || !script.getScriptStorage().equals(resource)))
 			return null;
 		return script;
 	}

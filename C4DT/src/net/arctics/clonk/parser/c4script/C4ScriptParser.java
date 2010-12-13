@@ -81,6 +81,7 @@ import net.arctics.clonk.util.Utilities;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.IStorage;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.IDocument;
@@ -337,7 +338,7 @@ public class C4ScriptParser extends CStyleScanner {
 	 * Creates a script parser. The script is read from the file attached to the script (queried through getScriptFile()).
 	 */
 	public C4ScriptParser(C4ScriptBase script) {
-		this((IFile) script.getScriptFile(), script);
+		this((IFile) script.getScriptStorage(), script);
 	}
 
 	/**
@@ -1237,7 +1238,7 @@ public class C4ScriptParser extends CStyleScanner {
 		}
 
 		@Override
-		public Object getScriptFile() {
+		public IStorage getScriptStorage() {
 			try {
 				return new SimpleScriptStorage(expression, expression);
 			} catch (UnsupportedEncodingException e) {

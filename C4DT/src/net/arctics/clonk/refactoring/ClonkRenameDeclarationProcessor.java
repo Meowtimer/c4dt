@@ -69,7 +69,7 @@ public class ClonkRenameDeclarationProcessor extends RenameProcessor {
 	@Override
 	public Change createChange(IProgressMonitor monitor) throws CoreException,
 			OperationCanceledException {
-		Object script = decl.getScript().getScriptFile();
+		Object script = decl.getScript().getScriptStorage();
 		if (!(script instanceof IResource))
 			return null;
 		IResource declaringFile = (IResource) script;
@@ -84,7 +84,7 @@ public class ClonkRenameDeclarationProcessor extends RenameProcessor {
 		if (decl instanceof C4Function) {
 			C4Function fieldAsFunc = (C4Function)decl;
 			for (C4Function relatedFunc : decl.getScript().getIndex().declarationsWithName(decl.getName(), C4Function.class)) {
-				if (decl != relatedFunc && fieldAsFunc.isRelatedFunction(relatedFunc) && fieldAsFunc.getScript().getScriptFile() instanceof IFile)
+				if (decl != relatedFunc && fieldAsFunc.isRelatedFunction(relatedFunc) && fieldAsFunc.getScript().getScriptStorage() instanceof IFile)
 					elements.add(relatedFunc);
 			}
 		}
@@ -94,9 +94,9 @@ public class ClonkRenameDeclarationProcessor extends RenameProcessor {
 			if (element instanceof IFile)
 				file = (IFile)element;
 			else if (element instanceof C4ScriptBase)
-				file = (IFile) ((C4ScriptBase)element).getScriptFile();
+				file = (IFile) ((C4ScriptBase)element).getScriptStorage();
 			else if (element instanceof C4Function)
-				file = (IFile) ((C4Function)element).getScript().getScriptFile();
+				file = (IFile) ((C4Function)element).getScript().getScriptStorage();
 			else if (element instanceof IniUnit)
 				file = ((IniUnit)element).getIniFile();
 			else

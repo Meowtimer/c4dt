@@ -65,7 +65,7 @@ public class ClonkSearchResult extends AbstractTextSearchResult implements IEdit
 	public boolean isShownInEditor(Match match, IEditorPart editor) {
 		if (editor instanceof ITextEditor) {
 			C4ScriptBase script = Utilities.getScriptForEditor((ITextEditor)editor);
-			if (script != null && match.getElement().equals(script.getScriptFile()))
+			if (script != null && match.getElement().equals(script.getScriptStorage()))
 				return true;
 		}
 		return false;
@@ -80,7 +80,7 @@ public class ClonkSearchResult extends AbstractTextSearchResult implements IEdit
 
 	public IFile getFile(Object element) {
 		if (element instanceof C4ScriptBase)
-			return (IFile) ((C4ScriptBase)element).getScriptFile();
+			return (IFile) ((C4ScriptBase)element).getScriptStorage();
 		if (element instanceof IFile) {
 			return (IFile)element;
 		}

@@ -22,7 +22,7 @@ public class C4ScriptIntern extends C4ScriptBase implements Serializable {
 
 	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 	
-	private transient IResource scriptFile;
+	private transient IFile scriptFile;
 	private String scriptFilePath;
 	private transient ClonkIndex index;
 	
@@ -37,7 +37,7 @@ public class C4ScriptIntern extends C4ScriptBase implements Serializable {
 	}
 
 	@Override
-	public IResource getScriptFile() {
+	public IFile getScriptStorage() {
 		return scriptFile;
 	}
 	
@@ -50,7 +50,7 @@ public class C4ScriptIntern extends C4ScriptBase implements Serializable {
 		}
 	}
 	
-	public void setScriptFile(IResource f) throws CoreException {
+	public void setScriptFile(IFile f) throws CoreException {
 		if (Utilities.objectsEqual(scriptFile, f))
 			return;
 		if (scriptFile != null)
@@ -75,12 +75,13 @@ public class C4ScriptIntern extends C4ScriptBase implements Serializable {
 	
 	@Override
 	public IResource getResource() {
-		return getScriptFile();
+		return getScriptStorage();
 	}
 	
 	@Override
 	public void pinTo(IResource resource) throws CoreException {
-		setScriptFile(resource);
+		assert(resource instanceof IFile);
+		setScriptFile((IFile) resource);
 	}
 
 	public boolean refreshFileReference(IProject project) throws CoreException {

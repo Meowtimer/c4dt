@@ -248,7 +248,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 		if (editor != null) {
 			return super.pivotFile();
 		} else if (_currentEditorScript != null) {
-			return (IFile) _currentEditorScript.getScriptFile();
+			return (IFile) _currentEditorScript.getScriptStorage();
 		} else {
 			return null;
 		}

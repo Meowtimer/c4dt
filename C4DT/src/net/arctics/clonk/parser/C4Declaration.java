@@ -130,7 +130,7 @@ public abstract class C4Declaration implements Serializable, IHasRelatedResource
 	}
 	
 	public C4Scenario getScenario() {
-		Object file = getScript() != null ? getScript().getScriptFile() : null;
+		Object file = getScript() != null ? getScript().getScriptStorage() : null;
 		if (file instanceof IResource) {
 			for (IResource r = (IResource) file; r != null; r = r.getParent()) {
 				if (r instanceof IContainer) {
@@ -203,7 +203,7 @@ public abstract class C4Declaration implements Serializable, IHasRelatedResource
 	public Object[] occurenceScope(ClonkProjectNature project) {
 		C4ScriptBase script = getScript();
 		if (script instanceof C4ObjectIntern || script instanceof C4ScriptIntern) {
-			return new Object[] {((IResource) script.getScriptFile()).getProject()};
+			return new Object[] {((IResource) script.getScriptStorage()).getProject()};
 		}
 		return (project != null) ? new Object[] {project.getProject()} : EMPTY_SCOPE;
 	}

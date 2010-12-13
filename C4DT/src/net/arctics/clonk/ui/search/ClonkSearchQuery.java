@@ -153,12 +153,12 @@ public class ClonkSearchQuery implements ISearchQuery {
 				}
 				else if (scope instanceof C4ScriptBase) {
 					C4ScriptBase script = (C4ScriptBase) scope;
-					searchScript(searchExpressionsListener, (IResource) script.getScriptFile(), script);
+					searchScript(searchExpressionsListener, (IResource) script.getScriptStorage(), script);
 				}
 				else if (scope instanceof C4Function) {
 					C4Function func = (C4Function) scope;
 					C4ScriptBase script = func.getScript();
-					C4ScriptParser parser = new C4ScriptParser((IFile) script.getScriptFile(), script);
+					C4ScriptParser parser = new C4ScriptParser((IFile) script.getScriptStorage(), script);
 					parser.setListener(searchExpressionsListener);
 					try {
 						parser.parseCodeOfFunction(func, null);
@@ -198,7 +198,7 @@ public class ClonkSearchQuery implements ISearchQuery {
 
 	private void searchScriptRelatedFiles(C4ScriptBase script) throws CoreException {
 		if (script instanceof C4ObjectIntern) {
-			IContainer objectFolder = ((C4ObjectIntern)script).getScriptFile().getParent();
+			IContainer objectFolder = ((C4ObjectIntern)script).getScriptStorage().getParent();
 			for (IResource res : objectFolder.members()) {
 				if (res instanceof IFile) {
 					IFile file = (IFile)res;

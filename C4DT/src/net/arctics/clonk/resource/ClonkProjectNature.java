@@ -155,7 +155,7 @@ public class ClonkProjectNature implements IProjectNature {
 		if (script instanceof C4ObjectIntern)
 			return get(((C4ObjectIntern)script).getObjectFolder());
 		if (script instanceof C4ScriptIntern)
-			return get(((C4ScriptIntern)script).getScriptFile());
+			return get(((C4ScriptIntern)script).getScriptStorage());
 		else
 			return null;
 	}

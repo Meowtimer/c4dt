@@ -407,7 +407,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 
 	private C4ScriptParser getParserFor(C4ScriptBase script) {
 		C4ScriptParser result = parserMap.get(script);
-		if (result == null && script != null && script.getScriptFile() instanceof IFile)
+		if (result == null && script != null && script.getScriptStorage() instanceof IFile)
 			parserMap.put(script, result = new C4ScriptParser(script));
 		return result;
 	}
@@ -441,7 +441,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 						script = C4ObjectIntern.objectCorrespondingTo(folder);
 					}
 				}
-				if (script != null && delta.getResource().equals(script.getScriptFile())) {
+				if (script != null && delta.getResource().equals(script.getScriptStorage())) {
 					if (script != null) {
 						C4ScriptParser parser = getParserFor(script);
 						// phase 0: clean and parse declarations
@@ -474,7 +474,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 			case IResourceDelta.REMOVED:
 				if (buildPhase == 0) {
 					script = C4ScriptIntern.scriptCorrespondingTo(file);
-					if (script != null && file.equals(script.getScriptFile()))
+					if (script != null && file.equals(script.getScriptStorage()))
 						script.getIndex().removeScript(script);
 				}
 			}
@@ -545,7 +545,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 					if (object != null)
 					{
 						C4ScriptParser scriptParser = getParserFor(object);
-						if (scriptParser == null && object.getScriptFile() != null) {
+						if (scriptParser == null && object.getScriptStorage() != null) {
 							parserMap.put(object, scriptParser = new C4ScriptParser(object));
 						}
 						parser.parseScript(scriptParser);
@@ -557,7 +557,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 				// check correctness of function code
 				ClonkIndex index = ClonkProjectNature.get(resource).getIndex();
 				C4Object obj = index.getObject((IContainer)resource);
-				IFile scriptFile = (IFile) ((obj != null) ? obj.getScriptFile() : null);
+				IFile scriptFile = (IFile) ((obj != null) ? obj.getScriptStorage() : null);
 				if (scriptFile != null) {
 					try {
 						getParserFor(obj).parseCodeOfFunctionsAndValidate();

@@ -40,7 +40,7 @@ public class C4ScriptSourceViewerConfiguration extends ClonkSourceViewerConfigur
 				if (
 					locator.getDeclaration() != null && (
 						locator.getDeclaration().getResource() != null ||
-						(locator.getDeclaration().getScript() != null && locator.getDeclaration().getScript().getScriptFile() != null) ||
+						(locator.getDeclaration().getScript() != null && locator.getDeclaration().getScript().getScriptStorage() != null) ||
 						locator.getDeclaration().isEngineDeclaration()
 					)
 				) {

@@ -17,6 +17,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.jface.util.Util;
 
@@ -255,8 +256,8 @@ public class C4Engine extends C4ScriptBase {
 	}
 
 	@Override
-	public Object getScriptFile() {
-		return new Object();
+	public IFile getScriptStorage() {
+		return null;
 	}
 
 	@Override
