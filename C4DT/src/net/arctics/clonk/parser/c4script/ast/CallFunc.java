@@ -277,7 +277,8 @@ public class CallFunc extends AccessDeclaration {
 		ExprElm pred = getPredecessorInSequence();
 		if (pred == null)
 			return true;
-		if (pred.getType(parser).specificness() <= C4Type.ID.specificness())
+		IType predType = pred.getType(parser);
+		if (predType == null || predType.specificness() <= C4Type.ID.specificness())
 			return false;
 		if (pred instanceof MemberOperator) {
 			return !((MemberOperator)pred).hasTilde();
