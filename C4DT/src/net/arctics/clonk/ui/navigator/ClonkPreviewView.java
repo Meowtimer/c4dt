@@ -60,7 +60,6 @@ import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.part.*;
 
-
 /**
  * View to show preview of files
  * @author madeen
@@ -69,6 +68,8 @@ import org.eclipse.ui.part.*;
 public class ClonkPreviewView extends ViewPart implements ISelectionListener, ControlListener {
 
 	public static final String ID = ClonkCore.id("views.ClonkPreviewView"); //$NON-NLS-1$
+	private static final String MATERIALS_FOLDER = "Material.c4g";
+	private static final float LANDSCAPE_PREVIEW_SCALE = 0.5f;
 	
 	private final class PreviewUpdaterJob extends Job {
 		
@@ -226,7 +227,15 @@ public class ClonkPreviewView extends ViewPart implements ISelectionListener, Co
 	
 	private File tempLandscapeRenderFile = null;
 	
-	private static final int landscapePreviewDivider = 2;
+	private static String getMaterialsFolderPath(C4Engine engine, IFile resource) {
+		for (IContainer container = resource.getParent(); container != null; container = container.getParent()) {
+			IResource matsRes = container.findMember(MATERIALS_FOLDER);
+			if (matsRes != null) {
+				return ClonkLaunchConfigurationDelegate.resFilePath(matsRes);
+			}
+		}
+		return engine.getCurrentSettings().gamePath+"/"+MATERIALS_FOLDER; 
+	}
 
 	private synchronized void synchronizedSelectionChanged(ISelection selection) {
 		Image newImage = null;
@@ -256,16 +265,16 @@ public class ClonkPreviewView extends ViewPart implements ISelectionListener, Co
 						Process drawLandscape = engine.executeEmbeddedUtility("drawlandscape",
 							"-f"+ClonkLaunchConfigurationDelegate.resFilePath(file),
 							"-o"+tempLandscapeRenderFile.getAbsolutePath(),
-							"-m"+engine.getCurrentSettings().gamePath+"/Material.c4g",
-							"-w"+canvasSize.x/landscapePreviewDivider,
-							"-h"+canvasSize.y/landscapePreviewDivider
+							"-m"+getMaterialsFolderPath(engine, file),
+							"-w"+Math.round(canvasSize.x*LANDSCAPE_PREVIEW_SCALE),
+							"-h"+Math.round(canvasSize.y*LANDSCAPE_PREVIEW_SCALE)
 						);
 						if (drawLandscape != null) {
 							drawLandscape.waitFor();
 							FileInputStream stream = new FileInputStream(tempLandscapeRenderFile);
 							try {
 								newImage = new Image(canvas.getDisplay(), stream);
-								if (landscapePreviewDivider != 1) {
+								if (LANDSCAPE_PREVIEW_SCALE != 1) {
 									Image biggerImage = new Image(canvas.getDisplay(), canvasSize.x, canvasSize.y);
 									GC gc = new GC(biggerImage);
 									gc.setAntialias(SWT.ON);
