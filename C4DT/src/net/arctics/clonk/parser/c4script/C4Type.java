@@ -88,7 +88,7 @@ public enum C4Type implements IType {
 	
 	@Override
 	public boolean canBeAssignedFrom(IType other) {
-		for (IType t : other) {
+		if (other != null) for (IType t : other) {
 			t = t.staticType();
 			if (t == this)
 				return true;

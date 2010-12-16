@@ -12,6 +12,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.Stack;
 import java.util.Vector;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.index.C4Engine;
@@ -76,8 +78,6 @@ import net.arctics.clonk.parser.c4script.ast.WhileStatement;
 import net.arctics.clonk.resource.c4group.C4GroupItem;
 import net.arctics.clonk.util.Pair;
 import net.arctics.clonk.util.Sink;
-import net.arctics.clonk.util.Utilities;
-
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IResource;
@@ -134,6 +134,10 @@ public class C4ScriptParser extends CStyleScanner {
 	 * Whether the current statement is not reached
 	 */
 	protected boolean statementNotReached;
+	/**
+	 * matcher for ids obtained from engine configuration id pattern
+	 */
+	private Matcher idMatcher;
 
 	protected LoopType currentLoop;
 	
@@ -339,6 +343,17 @@ public class C4ScriptParser extends CStyleScanner {
 	 */
 	public C4ScriptParser(C4ScriptBase script) {
 		this((IFile) script.getScriptStorage(), script);
+		getInfos();
+	}
+	
+	private static final Pattern DEFAULT_ID_PATTERN = Pattern.compile("");
+	
+	private void getInfos() {
+		if (container != null && container.getEngine() != null) {
+			idMatcher = container.getEngine().getCurrentSettings().getCompiledIdPattern().matcher(buffer);
+		} else {
+			idMatcher = DEFAULT_ID_PATTERN.matcher(buffer);
+		}
 	}
 
 	/**
@@ -353,6 +368,7 @@ public class C4ScriptParser extends CStyleScanner {
 		this.scriptFile = scriptFile;
 		container = script;
 		allErrorsDisabled = C4GroupItem.isLinkedResource(scriptFile);
+		getInfos();
 	}
 
 	/**
@@ -367,6 +383,7 @@ public class C4ScriptParser extends CStyleScanner {
 		super(stream);
 		scriptFile = null;
 		container = script;
+		getInfos();
 	}
 	
 	/**
@@ -379,6 +396,7 @@ public class C4ScriptParser extends CStyleScanner {
 		this.scriptFile = scriptFile;
 		container = script;
 		isEngine = container instanceof C4Engine;
+		getInfos();
 	}
 	
 	/**
@@ -1527,26 +1545,11 @@ public class C4ScriptParser extends CStyleScanner {
 			}
 			this.seek(elmStart); // nothing special to end the sequence; make sure we start from the beginning
 			
-			// id
-			if (parseID()) {
-				elm = new IDLiteral(parsedID);
-			}
-			
 			// hex number
 			if (elm == null && parseHexNumber()) {
 //				if (parsedNumber < Integer.MIN_VALUE || parsedNumber > Integer.MAX_VALUE)
 //					warningWithCode(ErrorCode.OutOfIntRange, elmStart, fReader.getPosition(), String.valueOf(parsedNumber));
 				elm = new NumberLiteral(parsedNumber, true);
-			}
-			
-			// number
-			if (elm == null && parseNumber()) {
-				elm = new NumberLiteral(parsedNumber);
-			}
-			
-			// string
-			if (elm == null && parseString()) {
-				elm = new StringLiteral(parsedString);
 			}
 			
 			// variable or function
@@ -1577,6 +1580,21 @@ public class C4ScriptParser extends CStyleScanner {
 				}
 			}
 			
+			// id
+			if (elm == null && parseID()) {
+				elm = new IDLiteral(parsedID);
+			}
+			
+			// number
+			if (elm == null && parseNumber()) {
+				elm = new NumberLiteral(parsedNumber);
+			}
+			
+			// string
+			if (elm == null && parseString()) {
+				elm = new StringLiteral(parsedString);
+			}
+			
 			// array
 			if (elm == null) {
 				elm = parseArrayExpression(reportErrors, prevElm);
@@ -1591,14 +1609,15 @@ public class C4ScriptParser extends CStyleScanner {
 				int fieldOperatorStart = getPosition();
 				if (parseMemberOperator()) {
 					eatWhitespace();
-					int idOffset = getPosition()-fieldOperatorStart;
-					if (parseID()) {
-						eatWhitespace();
-						if (!parseStaticFieldOperator_()) {
-							errorWithCode(ParserErrorCode.TokenExpected, getPosition(), getPosition()+2, "::"); //$NON-NLS-1$
-						}
-					} else
+					int idStart = getPosition();
+					int idOffset;
+					if (parseID() && eatWhitespace() >= 0 && parseStaticFieldOperator_()) {
+						idOffset = getPosition()-fieldOperatorStart;
+					} else {
+						parsedID = null; // reset because that call could have been successful (GetX would be recognized as id)
+						seek(idStart);
 						idOffset = 0;
+					}
 					elm = new MemberOperator(parsedMemberOperator.length() == 1, parsedMemberOperator.length() == 3, parsedID, idOffset);
 				}
 			}
@@ -2692,26 +2711,14 @@ public class C4ScriptParser extends CStyleScanner {
 	}
 	
 	private boolean parseID() throws ParsingException {
-		final int offset = getPosition();
-		parsedID = null; // reset so no old parsed ids get through
-		String word = null;
-		if (read() == ':' && getContainer().getEngine().getCurrentSettings().colonIDSyntax) {
-			word = readIdent();
+		if (idMatcher.find(offset) && idMatcher.start() == offset) {
+			parsedID = C4ID.getID(idMatcher.group());
+			offset += parsedID.length();
+			return true;
+		} else {
+			parsedID = null; // reset so no old parsed ids get through
+			return false;
 		}
-		else {
-			unread();
-			word = readOldStyleClonkID();
-			if (word != null && word.length() != 4) {
-				this.seek(offset);
-				return false;
-			}
-			if (!Utilities.looksLikeID(word)) {
-				this.seek(offset);
-				return false;
-			}
-		}
-		parsedID = C4ID.getID(word);
-		return true;
 	}
 
 	private boolean parseParameter(C4Function function) throws ParsingException {

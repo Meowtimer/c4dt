@@ -32,7 +32,7 @@ public class BufferedScanner {
 	/**
 	 * The buffer
 	 */
-	private String buffer;
+	protected String buffer;
 	
 	/**
 	 * Size of the buffer
@@ -42,7 +42,7 @@ public class BufferedScanner {
 	/**
 	 * Current offset
 	 */
-	private int offset;
+	protected int offset;
 
 	/**
 	 * Create a new scanner that scans a string

@@ -16,6 +16,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.regex.Pattern;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
@@ -167,6 +168,14 @@ public class C4Engine extends C4ScriptBase {
 			} catch (CloneNotSupportedException e) {
 				return null;
 			}
+		}
+		
+		private Pattern idPatternCompiled;
+		public Pattern getCompiledIdPattern() {
+			if (idPatternCompiled == null) {
+				idPatternCompiled = Pattern.compile(idPattern);
+			}
+			return idPatternCompiled;
 		}
 
 	}

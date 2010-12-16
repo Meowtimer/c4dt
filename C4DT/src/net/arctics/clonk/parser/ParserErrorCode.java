@@ -139,7 +139,7 @@ public enum ParserErrorCode {
 		IMarker marker = createMarker(file, declarationAssociatedWithFile, markerType, start, end, severity, getErrorString(args));
 		for (int i = 0; i < Math.min(args.length, MARKER_ARGS.length); i++) {
 			try {
-				marker.setAttribute(MARKER_ARGS[i], args[i].toString());
+				marker.setAttribute(MARKER_ARGS[i], args[i] != null ? args[i].toString() : "");
 			} catch (CoreException e) {
 				e.printStackTrace();
 			}
