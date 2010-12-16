@@ -267,5 +267,16 @@ public class BinaryOp extends Operator {
 	    else
 	    	return null;
 	}
+	
+	@Override
+	public boolean isConstant() {
+		// CNAT_Left | CNAT_Right are considered constant for example
+		switch (getOperator()) {
+		case BitOr: case BitAnd:
+			return getLeftSide().isConstant() && getRightSide().isConstant();
+		default:
+			return false;
+		}
+	}
 
 }

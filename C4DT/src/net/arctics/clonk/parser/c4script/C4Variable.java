@@ -238,11 +238,16 @@ public class C4Variable extends C4Declaration implements Serializable, ITypedDec
 		builder.append(htmlerize((t == C4Type.UNKNOWN ? C4Type.ANY : t).typeName(false)));
 		builder.append(" "); //$NON-NLS-1$
 		builder.append(getName());
+		builder.append("</b>"); //$NON-NLS-1$
 		if (scriptScopeInitializationExpression != null) {
-			builder.append(" = "); //$NON-NLS-1$
+			if (scope == C4VariableScope.CONST) {
+				builder.append(" = "); //$NON-NLS-1$
+			} else {
+				builder.append("<br><br>");
+				builder.append("Default Value:<br>");
+			}
 			builder.append(htmlerize(scriptScopeInitializationExpression.toString()));
 		}
-		builder.append("</b>"); //$NON-NLS-1$
 		if (getUserDescription() != null && getUserDescription().length() > 0) {
 			builder.append("<br>"); //$NON-NLS-1$
 			builder.append(getUserDescription());

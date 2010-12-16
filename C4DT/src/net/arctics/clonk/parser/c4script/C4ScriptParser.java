@@ -757,7 +757,7 @@ public class C4ScriptParser extends CStyleScanner {
 							
 							ExprElm varInitialization;
 							
-							activeScriptScopeVariable = var = createVarInScope(varName, C4VariableScope.CONST, new SourceLocation(s, e), desc);
+							activeScriptScopeVariable = var = createVarInScope(varName, scope, new SourceLocation(s, e), desc);
 							
 							// parse initialization value with all errors disabled so no false errors 
 							boolean old = allErrorsDisabled;
