@@ -9,10 +9,12 @@ import net.arctics.clonk.index.C4ObjectIntern;
 import net.arctics.clonk.index.C4Scenario;
 import net.arctics.clonk.parser.c4script.C4ScriptBase;
 import net.arctics.clonk.parser.c4script.C4ScriptIntern;
+import net.arctics.clonk.parser.c4script.IHasSubDeclarations;
 import net.arctics.clonk.parser.c4script.IHasUserDescription;
 import net.arctics.clonk.parser.stringtbl.StringTbl;
 import net.arctics.clonk.preferences.ClonkPreferences;
 import net.arctics.clonk.resource.ClonkProjectNature;
+import net.arctics.clonk.ui.editors.c4script.IPostSerializable;
 import net.arctics.clonk.util.IHasRelatedResource;
 import net.arctics.clonk.util.INode;
 import net.arctics.clonk.util.Utilities;
@@ -28,7 +30,7 @@ import org.eclipse.jface.text.IRegion;
  * @author madeen
  *
  */
-public abstract class C4Declaration implements Serializable, IHasRelatedResource, INode  {
+public abstract class C4Declaration implements Serializable, IHasRelatedResource, INode, IPostSerializable<C4Declaration>, IHasSubDeclarations  {
 	/**
 	 * 
 	 */
@@ -179,12 +181,14 @@ public abstract class C4Declaration implements Serializable, IHasRelatedResource
 	 * Returns the latest version of this declaration, obtaining it by searching for a declaration with its name in its parent declaration
 	 * @return The latest version of this declaration
 	 */
-	public C4Declaration latestVersion() {
+	public final C4Declaration latestVersion() {
 		if (parentDeclaration != null)
 			parentDeclaration = parentDeclaration.latestVersion();
-		if (parentDeclaration instanceof C4Structure)
-			return ((C4Structure)parentDeclaration).findLocalDeclaration(getName(), getClass());
-		return this;
+		if (parentDeclaration instanceof ILatestDeclarationVersionProvider) {
+			return ((ILatestDeclarationVersionProvider)parentDeclaration).getLatestVersion(this);
+		} else {
+			return this;
+		}
 	}
 	
 	/**
@@ -233,13 +237,15 @@ public abstract class C4Declaration implements Serializable, IHasRelatedResource
 		return null;
 	}
 	
+	private static final Iterable<C4Declaration> NO_SUB_DECLARATIONS = Utilities.arrayIterable();
+	
 	/**
 	 * Returns an Iterable for iterating over all sub declaration of this declaration.
 	 * Might return null if there are none.
 	 * @return The Iterable for iterating over sub declarations or null.
 	 */
 	public Iterable<? extends C4Declaration> allSubDeclarations() {
-		return null;
+		return NO_SUB_DECLARATIONS;
 	}
 	
 	/**

@@ -145,11 +145,10 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		protected void adjustDec(C4Declaration declaration, int offset, int add) {
 			super.adjustDec(declaration, offset, add);
 			if (declaration instanceof C4Function) {
-				C4Function f = (C4Function) declaration;
-				addToLocation(f.getBody(), offset, add);
-				for (C4Declaration v : f.allSubDeclarations()) {
-					addToLocation(v.getLocation(), offset, add);
-				}
+				addToLocation(((C4Function)declaration).getBody(), offset, add);
+			}
+			for (C4Declaration v : declaration.allSubDeclarations()) {
+				adjustDec(v, offset, add);
 			}
 		}
 

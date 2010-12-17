@@ -136,7 +136,7 @@ public class AccessVar extends AccessDeclaration {
 					if (
 						(parser.getActiveFunc() != null && parser.getActiveFunc().getVisibility() == C4FunctionScope.GLOBAL) ||
 						// initialization a non-local variable with local values -> fail
-						(parser.getActiveScriptScopeVariable() != null && parser.getActiveScriptScopeVariable().getScope() != C4VariableScope.LOCAL)
+						(parser.getActiveVariableBeingDeclared() != null && parser.getActiveVariableBeingDeclared().getScope() != C4VariableScope.LOCAL)
 					) {
 						parser.errorWithCode(ParserErrorCode.LocalUsedInGlobal, this, true);
 					}

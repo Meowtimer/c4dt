@@ -436,7 +436,7 @@ public abstract class C4ScriptBase extends C4Structure implements ITreeNode {
 	
 	public C4Variable variableWithInitializationAt(IRegion region) {
 		for (C4Variable v : definedVariables) {
-			ExprElm initialization = v.getScriptScopeInitializationExpression();
+			ExprElm initialization = v.getInitializationExpression();
 			if (initialization != null && initialization.containsOffset(region.getOffset())) {
 				return v;
 			}

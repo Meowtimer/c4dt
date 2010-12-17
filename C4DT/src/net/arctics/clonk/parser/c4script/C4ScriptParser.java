@@ -104,7 +104,7 @@ public class C4ScriptParser extends CStyleScanner {
 	protected IFile scriptFile; // for project intern files
 	protected C4ScriptBase container;
 	protected C4Function activeFunc;
-	protected C4Variable activeScriptScopeVariable;
+	protected C4Variable activeVariableBeingDeclared;
 	protected int strictLevel;
 	
 	// parse<Blub>() functions store their results in those
@@ -311,12 +311,8 @@ public class C4ScriptParser extends CStyleScanner {
 		}
 	}
 	
-	public void setActiveScriptScopeVariable(C4Variable activeVariable) {
-		this.activeScriptScopeVariable = activeVariable;
-	}
-	
-	public C4Variable getActiveScriptScopeVariable() {
-		return activeScriptScopeVariable;
+	public C4Variable getActiveVariableBeingDeclared() {
+		return activeVariableBeingDeclared;
 	}
 	
 	/**
@@ -463,7 +459,7 @@ public class C4ScriptParser extends CStyleScanner {
 			}
 			
 			for (C4Variable variable : container.variables()) {
-				ExprElm initialization = variable.getScriptScopeInitializationExpression();
+				ExprElm initialization = variable.getInitializationExpression();
 				if (initialization != null) {
 					initialization.reportErrors(this);
 				}
@@ -736,7 +732,7 @@ public class C4ScriptParser extends CStyleScanner {
 				String varName = readIdent();
 				int e = this.offset;
 				C4Variable var = null;
-				C4Variable oldActiveVar = activeScriptScopeVariable;
+				C4Variable oldActiveVar = activeVariableBeingDeclared;
 				try {
 					if (scope == C4VariableScope.CONST || getContainer().getEngine().getCurrentSettings().nonConstGlobalVarsAssignment) {
 						eatWhitespace();
@@ -744,7 +740,7 @@ public class C4ScriptParser extends CStyleScanner {
 							if (scope == C4VariableScope.CONST && !isEngine)
 								errorWithCode(ParserErrorCode.ConstantValueExpected, this.offset-1, this.offset, true);
 							else {
-								createdVariables.add(activeScriptScopeVariable = var = createVarInScope(varName, scope, new SourceLocation(s, e), desc));
+								createdVariables.add(activeVariableBeingDeclared = var = createVarInScope(varName, scope, new SourceLocation(s, e), desc));
 								if (scope == C4VariableScope.STATIC) {
 									var.forceType(C4Type.INT); // most likely
 								}
@@ -756,7 +752,7 @@ public class C4ScriptParser extends CStyleScanner {
 							
 							ExprElm varInitialization;
 							
-							activeScriptScopeVariable = var = createVarInScope(varName, scope, new SourceLocation(s, e), desc);
+							activeVariableBeingDeclared = var = createVarInScope(varName, scope, new SourceLocation(s, e), desc);
 							
 							// parse initialization value with all errors disabled so no false errors 
 							boolean old = allErrorsDisabled;
@@ -765,8 +761,6 @@ public class C4ScriptParser extends CStyleScanner {
 								varInitialization = parseExpression(false);
 								if (varInitialization == null)
 									varInitialization = ERROR_PLACEHOLDER_EXPR;
-								else
-									varInitialization.setAssociatedDeclaration(var);
 							} finally {
 								allErrorsDisabled = old;
 							}
@@ -781,7 +775,7 @@ public class C4ScriptParser extends CStyleScanner {
 									if (scope == C4VariableScope.CONST)
 										var.setConstValue(varInitialization.evaluateAtParseTime(getContainer()));
 									else
-										var.setScriptScopeInitializationExpression(varInitialization);
+										var.setInitializationExpression(varInitialization);
 								} catch (Exception ex) {
 									ex.printStackTrace();
 									errorWithCode(ParserErrorCode.InvalidExpression, varInitialization);
@@ -798,7 +792,7 @@ public class C4ScriptParser extends CStyleScanner {
 						var.forceType(typeOfNewVar);
 					eatWhitespace();
 				} finally {
-					activeScriptScopeVariable = oldActiveVar;
+					activeVariableBeingDeclared = oldActiveVar;
 				}
 			} while(read() == ',');
 			unread();
@@ -1751,14 +1745,22 @@ public class C4ScriptParser extends CStyleScanner {
 							errorWithCode(ParserErrorCode.UnexpectedToken, this.offset, this.offset+1, (char)read());
 						}
 						eatWhitespace();
-						ExprElm expr = parseExpression(COMMA_OR_CLOSE_BLOCK, reportErrors);
-						C4Variable v = new C4Variable(name, expr, this);
-						if (activeScriptScopeVariable != null) {
-							v.setParentDeclaration(activeScriptScopeVariable);
+						C4Variable v = new C4Variable(name, C4VariableScope.VAR);
+						v.setLocation(new SourceLocation(nameStart, nameEnd));
+						if (activeVariableBeingDeclared != null) {
+							v.setParentDeclaration(activeVariableBeingDeclared);
 						} else {
 							v.setScript(container);
 						}
-						v.setLocation(new SourceLocation(nameStart, nameEnd));
+						C4Variable oldActiveVar = activeVariableBeingDeclared;
+						try {
+							ExprElm expr = parseExpression(COMMA_OR_CLOSE_BLOCK, reportErrors);
+							v.setInitializationExpression(expr);
+							v.forceType(expr.getType(this));
+							v.setParentDeclaration(activeVariableBeingDeclared);
+						} finally {
+							activeVariableBeingDeclared = oldActiveVar;
+						}
 						propListElms.add(v);
 						expectingComma = true;
 					}

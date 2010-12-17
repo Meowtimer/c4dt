@@ -73,7 +73,7 @@ public class DeclarationLocator extends ExpressionLocator {
 				simpleFindDeclaration(doc, region, script, null);
 				return;
 			} else {
-				body = var.getScriptScopeInitializationExpressionLocation();
+				body = var.getInitializationExpressionLocation();
 				bodyStart = body.getOffset();
 				engine = var.getEngine();
 				flavour = ExpressionsAndStatementsReportingFlavour.OnlyExpressions;

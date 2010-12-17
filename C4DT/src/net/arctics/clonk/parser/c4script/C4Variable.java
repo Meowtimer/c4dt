@@ -7,15 +7,16 @@ import java.util.Set;
 
 import org.eclipse.jface.text.IRegion;
 
+import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.index.C4Engine;
 import net.arctics.clonk.index.C4Object;
 import net.arctics.clonk.index.C4ObjectIntern;
 import net.arctics.clonk.index.ClonkIndex;
 import net.arctics.clonk.parser.C4Declaration;
 import net.arctics.clonk.parser.C4ID;
-import net.arctics.clonk.parser.C4Structure;
 import net.arctics.clonk.parser.c4script.ast.ExprElm;
 import net.arctics.clonk.resource.ClonkProjectNature;
+import net.arctics.clonk.ui.editors.c4script.IPostSerializable;
 
 /**
  * Represents a variable.
@@ -24,7 +25,7 @@ import net.arctics.clonk.resource.ClonkProjectNature;
  */
 public class C4Variable extends C4Declaration implements Serializable, ITypedDeclaration, IHasUserDescription {
 
-	private static final long serialVersionUID = -2350345359769750230L;
+	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 	
 	/**
 	 * Scope (local, static or function-local)
@@ -49,7 +50,7 @@ public class C4Variable extends C4Declaration implements Serializable, ITypedDec
 	/**
 	 * Initialize expression for locals; not constant so saving value is not sufficient
 	 */
-	private Object scriptScopeInitializationExpression;
+	private Object initializationExpression;
 	
 	/**
 	 * Whether the variable was used in some expression
@@ -84,13 +85,6 @@ public class C4Variable extends C4Declaration implements Serializable, ITypedDec
 		this.description = desc;
 		this.scope = scope;
 	}
-	
-	@Override
-	public C4Declaration latestVersion() {
-		if (parentDeclaration instanceof C4Structure)
-			return ((C4Structure)parentDeclaration).findDeclaration(getName(), C4Variable.class);
-		return super.latestVersion();
-	}
 
 	public C4Variable() {
 		name = ""; //$NON-NLS-1$
@@ -104,7 +98,7 @@ public class C4Variable extends C4Declaration implements Serializable, ITypedDec
 	public C4Variable(String name, ExprElm expr, C4ScriptParser context) {
 		this(name, expr.getType(context));
 		scope = C4VariableScope.VAR;
-		setScriptScopeInitializationExpression(expr);
+		setInitializationExpression(expr);
 	}
 
 	/**
@@ -245,14 +239,14 @@ public class C4Variable extends C4Declaration implements Serializable, ITypedDec
 		builder.append(" "); //$NON-NLS-1$
 		builder.append(getName());
 		builder.append("</b>"); //$NON-NLS-1$
-		if (scriptScopeInitializationExpression != null) {
+		if (initializationExpression != null) {
 			if (scope == C4VariableScope.CONST) {
 				builder.append(" = "); //$NON-NLS-1$
 			} else {
 				builder.append("<br><br>");
 				builder.append("Default Value:<br>");
 			}
-			builder.append(htmlerize(scriptScopeInitializationExpression.toString()));
+			builder.append(htmlerize(initializationExpression.toString()));
 		}
 		if (getUserDescription() != null && getUserDescription().length() > 0) {
 			builder.append("<br>"); //$NON-NLS-1$
@@ -274,37 +268,40 @@ public class C4Variable extends C4Declaration implements Serializable, ITypedDec
 	}
 
 	public Object getConstValue() {
-		return scriptScopeInitializationExpression instanceof ExprElm ? null : scriptScopeInitializationExpression;
+		return initializationExpression instanceof ExprElm ? null : initializationExpression;
 	}
 
 	public void setConstValue(Object constValue) {
 		if (C4Type.typeFrom(constValue) == C4Type.ANY)
 			throw new InvalidParameterException("constValue must be of primitive type recognized by C4Type"); //$NON-NLS-1$
-		this.scriptScopeInitializationExpression = constValue;
+		this.initializationExpression = constValue;
 	}
 	
-	public ExprElm getScriptScopeInitializationExpression() {
-		return scriptScopeInitializationExpression instanceof ExprElm ? (ExprElm)scriptScopeInitializationExpression : null;
+	public ExprElm getInitializationExpression() {
+		return initializationExpression instanceof ExprElm ? (ExprElm)initializationExpression : null;
 	}
 	
-	public IRegion getScriptScopeInitializationExpressionLocation() {
-		if (scriptScopeInitializationExpression instanceof ExprElm) {
-			return ((ExprElm)scriptScopeInitializationExpression);
+	public IRegion getInitializationExpressionLocation() {
+		if (initializationExpression instanceof ExprElm) {
+			return ((ExprElm)initializationExpression);
 		} else {
 			return null; // const value not sufficient
 		}
 	}
 	
 	public Object evaluateInitializationExpression(C4ScriptBase context) {
-		ExprElm e = getScriptScopeInitializationExpression();
+		ExprElm e = getInitializationExpression();
 		if (e != null) {
 			return e.evaluateAtParseTime(context);
 		}
 		return getConstValue();
 	}
 	
-	public void setScriptScopeInitializationExpression(ExprElm scriptScopeInitializationExpression) {
-		this.scriptScopeInitializationExpression = scriptScopeInitializationExpression;
+	public void setInitializationExpression(ExprElm initializationExpression) {
+		this.initializationExpression = initializationExpression;
+		if (initializationExpression != null) {
+			initializationExpression.setAssociatedDeclaration(this);
+		}
 	}
 
 	@Override
@@ -356,12 +353,16 @@ public class C4Variable extends C4Declaration implements Serializable, ITypedDec
 		ensureTypeLockedIfPredefined(declaration);
 	}
 	
+	@SuppressWarnings("unchecked")
 	@Override
 	public void postSerialize(C4Declaration parent) {
 		super.postSerialize(parent);
 		ensureTypeLockedIfPredefined(parent);
 		if (type instanceof SerializableType && parent instanceof C4ScriptBase) {
 			((SerializableType)type).restoreType((C4ScriptBase) parent);
+		}
+		if (initializationExpression instanceof IPostSerializable) {
+			((IPostSerializable<IPostSerializable<?>>)initializationExpression).postSerialize(this);
 		}
 	}
 
@@ -379,6 +380,15 @@ public class C4Variable extends C4Declaration implements Serializable, ITypedDec
 		builder.append(" ");
 		builder.append(getName());
 		builder.append(";");
+	}
+	
+	@Override
+	public Iterable<? extends C4Declaration> allSubDeclarations() {
+		if (initializationExpression instanceof IHasSubDeclarations) {
+			return ((IHasSubDeclarations)initializationExpression).allSubDeclarations();
+		} else {
+			return super.allSubDeclarations();
+		}
 	}
 	
 }

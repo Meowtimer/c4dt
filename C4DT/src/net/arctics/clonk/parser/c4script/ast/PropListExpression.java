@@ -12,10 +12,12 @@ import net.arctics.clonk.parser.c4script.C4ScriptBase;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.C4Type;
 import net.arctics.clonk.parser.c4script.C4Variable;
+import net.arctics.clonk.parser.c4script.IHasSubDeclarations;
 import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.parser.inireader.IniData.IniConfiguration;
+import net.arctics.clonk.ui.editors.c4script.IPostSerializable;
 
-public class PropListExpression extends Value implements IType {
+public class PropListExpression extends Value implements IType, IPostSerializable<IPostSerializable<?>>, IHasSubDeclarations {
 
 	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 	
@@ -33,7 +35,7 @@ public class PropListExpression extends Value implements IType {
 			Conf.printIndent(output, depth-1);
 			output.append(component.getName());
 			output.append(": "); //$NON-NLS-1$
-			component.getScriptScopeInitializationExpression().print(output, depth+1);
+			component.getInitializationExpression().print(output, depth+1);
 			if (i < components.size()-1) {
 				output.append(',');
 			} else {
@@ -43,7 +45,7 @@ public class PropListExpression extends Value implements IType {
 	}
 	@Override
 	public IType getType(C4ScriptParser parser) {
-		return C4Type.PROPLIST;
+		return this; // :D
 	}
 	@Override
 	public boolean modifiable(C4ScriptParser parser) {
@@ -57,20 +59,20 @@ public class PropListExpression extends Value implements IType {
 	public ExprElm[] getSubElements() {
 		ExprElm[] result = new ExprElm[components.size()];
 		for (int i = 0; i < result.length; i++)
-			result[i] = components.get(i).getScriptScopeInitializationExpression();
+			result[i] = components.get(i).getInitializationExpression();
 		return result;
 	}
 	@Override
 	public void setSubElements(ExprElm[] elms) {
 		for (int i = 0; i < Math.min(elms.length, components.size()); i++) {
-			components.get(i).setScriptScopeInitializationExpression(elms[i]);
+			components.get(i).setInitializationExpression(elms[i]);
 		}
 	}
 	@Override
 	public boolean isConstant() {
 		// whoohoo, proplist expressions can be constant if all components are constant
 		for (C4Variable component : components) {
-			if (!component.getScriptScopeInitializationExpression().isConstant())
+			if (!component.getInitializationExpression().isConstant())
 				return false;
 		}
 		return true;
@@ -80,14 +82,14 @@ public class PropListExpression extends Value implements IType {
 	public Object evaluateAtParseTime(C4ScriptBase context) {
 		Map<String, Object> map = new HashMap<String, Object>(components.size());
 		for (C4Variable component : components) {
-			map.put(component.getName(), component.getScriptScopeInitializationExpression().evaluateAtParseTime(context));
+			map.put(component.getName(), component.getInitializationExpression().evaluateAtParseTime(context));
 		}
 		return map;
 	}
 	
 	public IniConfiguration guessedConfiguration(C4ScriptParser context) {
-		if (context.getActiveScriptScopeVariable() != null) {
-			return context.getContainer().getEngine().getIniConfigurations().getConfigurationFor(context.getActiveScriptScopeVariable().getName()+".txt");
+		if (context.getActiveVariableBeingDeclared() != null) {
+			return context.getContainer().getEngine().getIniConfigurations().getConfigurationFor(context.getActiveVariableBeingDeclared().getName()+".txt");
 		} else {
 			return null;
 		}
@@ -165,6 +167,16 @@ public class PropListExpression extends Value implements IType {
 		} else {
 			return C4Type.PROPLIST;
 		}
+	}
+	@Override
+	public void postSerialize(IPostSerializable<?> parent) {
+		for (C4Variable component : components) {
+			component.postSerialize(associatedDeclaration);
+		}
+	}
+	@Override
+	public Iterable<? extends C4Declaration> allSubDeclarations() {
+		return components;
 	}
 
 }

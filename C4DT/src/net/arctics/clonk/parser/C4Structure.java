@@ -18,7 +18,7 @@ import net.arctics.clonk.ui.editors.c4script.ScriptWithStorageEditorInput;
  * Declaration that contains sub declarations and describes more complex structures (like DefCores and scripts).
  * Provides support for being pinned to files in the project tree.
  */
-public abstract class C4Structure extends C4Declaration {
+public abstract class C4Structure extends C4Declaration implements ILatestDeclarationVersionProvider {
 	
 	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 
@@ -164,5 +164,10 @@ public abstract class C4Structure extends C4Declaration {
 	public void validate() {}
 	
 	public void setDirty(boolean dirty) {}
+	
+	@SuppressWarnings("unchecked")
+	public <T extends C4Declaration> T getLatestVersion(T from) {
+		return (T) findLocalDeclaration(from.getName(), from.getClass());
+	}
 	
 }

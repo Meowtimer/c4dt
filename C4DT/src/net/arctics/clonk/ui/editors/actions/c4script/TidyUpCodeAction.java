@@ -96,7 +96,7 @@ public class TidyUpCodeAction extends TextEditorAction {
 				C4Function activeFunc = parser.getActiveFunc();
 				// initialization expression for variable for example... needs to be reformatted as well
 				if (activeFunc == null) {
-					chunks.addFirst(new CodeChunk(parser.getActiveScriptScopeVariable(), Utilities.list(expression)));
+					chunks.addFirst(new CodeChunk(parser.getActiveVariableBeingDeclared(), Utilities.list(expression)));
 					return TraversalContinuation.Continue;
 				}
 				if (!(expression instanceof Statement))
@@ -138,7 +138,7 @@ public class TidyUpCodeAction extends TextEditorAction {
 				try {
 					C4Function func = chunk.relatedDeclaration instanceof C4Function ? (C4Function)chunk.relatedDeclaration : null;
 					C4Variable var = chunk.relatedDeclaration instanceof C4Variable ? (C4Variable)chunk.relatedDeclaration : null;
-					IRegion region = func != null ? func.getBody() : var.getScriptScopeInitializationExpressionLocation();
+					IRegion region = func != null ? func.getBody() : var.getInitializationExpressionLocation();
 					List<ExprElm> elms = chunk.expressions;
 					parser.setActiveFunc(func);
 					if (func != null && wholeFuncConversion) {
