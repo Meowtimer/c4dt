@@ -1745,7 +1745,7 @@ public class C4ScriptParser extends CStyleScanner {
 							errorWithCode(ParserErrorCode.UnexpectedToken, this.offset, this.offset+1, (char)read());
 						}
 						eatWhitespace();
-						C4Variable v = new C4Variable(name, C4VariableScope.VAR);
+						C4Variable v = new C4Variable(name, activeFunc != null ? C4VariableScope.VAR : C4VariableScope.LOCAL);
 						v.setLocation(new SourceLocation(nameStart, nameEnd));
 						if (activeVariableBeingDeclared != null) {
 							v.setParentDeclaration(activeVariableBeingDeclared);
