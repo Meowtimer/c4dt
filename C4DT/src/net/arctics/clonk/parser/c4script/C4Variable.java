@@ -101,6 +101,12 @@ public class C4Variable extends C4Declaration implements Serializable, ITypedDec
 		this(name,C4VariableScope.makeScope(scope));
 	}
 
+	public C4Variable(String name, ExprElm expr, C4ScriptParser context) {
+		this(name, expr.getType(context));
+		scope = C4VariableScope.VAR;
+		setScriptScopeInitializationExpression(expr);
+	}
+
 	/**
 	 * @return the type
 	 */

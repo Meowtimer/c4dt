@@ -238,5 +238,14 @@ public abstract class C4Object extends C4ScriptBase implements IType {
 		else
 			return C4Type.OBJECT;
 	}
+	
+	public static C4Object objectTypeFrom(IType type) {
+		if (type instanceof C4Object)
+			return (C4Object)type;
+		else if (type instanceof C4ObjectType)
+			return ((C4ObjectType)type).getType();
+		else
+			return null;
+	}
 
 }

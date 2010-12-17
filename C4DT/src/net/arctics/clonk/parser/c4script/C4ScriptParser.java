@@ -76,7 +76,6 @@ import net.arctics.clonk.parser.c4script.ast.VarDeclarationStatement;
 import net.arctics.clonk.parser.c4script.ast.VarDeclarationStatement.VarInitialization;
 import net.arctics.clonk.parser.c4script.ast.WhileStatement;
 import net.arctics.clonk.resource.c4group.C4GroupItem;
-import net.arctics.clonk.util.Pair;
 import net.arctics.clonk.util.Sink;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
@@ -725,14 +724,14 @@ public class C4ScriptParser extends CStyleScanner {
 			}
 			do {
 				eatWhitespace();
-				C4Type t;
+				IType typeOfNewVar;
 				if (isEngine) {
-					t = parseFunctionReturnType();
-					if (t != null)
+					typeOfNewVar = parseFunctionReturnType();
+					if (typeOfNewVar != null)
 						eatWhitespace();
 				}
 				else
-					t = null;
+					typeOfNewVar = null;
 				int s = getPosition();
 				String varName = readIdent();
 				int e = getPosition();
@@ -766,6 +765,8 @@ public class C4ScriptParser extends CStyleScanner {
 								varInitialization = parseExpression(false);
 								if (varInitialization == null)
 									varInitialization = ERROR_PLACEHOLDER_EXPR;
+								else
+									varInitialization.setAssociatedDeclaration(var);
 							} finally {
 								allErrorsDisabled = old;
 							}
@@ -787,14 +788,14 @@ public class C4ScriptParser extends CStyleScanner {
 								}
 							}
 							createdVariables.add(var);
-							var.inferTypeFromAssignment(varInitialization, this);
+							typeOfNewVar = varInitialization instanceof IType ? (IType)varInitialization : varInitialization.getType(this);
 						}
 					}
 					else {
 						createdVariables.add(var = createVarInScope( varName, C4VariableScope.STATIC, new SourceLocation( s,  e),  desc));
 					}
-					if (t != null)
-						var.forceType(t);
+					if (typeOfNewVar != null)
+						var.forceType(typeOfNewVar);
 					eatWhitespace();
 				} finally {
 					activeScriptScopeVariable = oldActiveVar;
@@ -1497,7 +1498,7 @@ public class C4ScriptParser extends CStyleScanner {
 	private boolean parseStaticFieldOperator_() {
 		final int offset = getPosition();
 		String o = this.readString(2);
-		if (o.equals("::")) //$NON-NLS-1$
+		if (o != null && o.equals("::")) //$NON-NLS-1$
 			return true;
 		this.seek(offset);
 		return false;
@@ -1720,12 +1721,11 @@ public class C4ScriptParser extends CStyleScanner {
 		return this.stringAtRegion(new Region(s, e-s));
 	}*/
 
-	@SuppressWarnings("unchecked")
 	private ExprElm parsePropListExpression(boolean reportErrors, ExprElm prevElm) throws ParsingException {
 		ExprElm elm = null;
 		int c = read();
 		if (c == '{') {
-			Vector<Pair<String, ExprElm>> propListElms = new Vector<Pair<String, ExprElm>>(10);
+			Vector<C4Variable> propListElms = new Vector<C4Variable>(10);
 			boolean properlyClosed = false;
 			boolean expectingComma = false;
 			while (!reachedEOF()) {
@@ -1740,8 +1740,10 @@ public class C4ScriptParser extends CStyleScanner {
 					break;
 				} else {
 					unread();
+					int nameStart = getPosition();
 					if (parseString() || parseIdentifier()) {
 						String name = parsedString;
+						int nameEnd = getPosition();
 						eatWhitespace();
 						int c_ = read();
 						if (c_ != ':' && c_ != '=') {
@@ -1750,7 +1752,10 @@ public class C4ScriptParser extends CStyleScanner {
 						}
 						eatWhitespace();
 						ExprElm expr = parseExpression(COMMA_OR_CLOSE_BLOCK, reportErrors);
-						propListElms.add(new Pair<String, ExprElm>(name, expr));
+						C4Variable v = new C4Variable(name, expr, this);
+						v.setScript(container);
+						v.setLocation(new SourceLocation(nameStart, nameEnd));
+						propListElms.add(v);
 						expectingComma = true;
 					}
 					else {
@@ -1762,7 +1767,7 @@ public class C4ScriptParser extends CStyleScanner {
 			if (!properlyClosed) {
 				errorWithCode(ParserErrorCode.MissingClosingBracket, getPosition()-1, getPosition(), "}"); //$NON-NLS-1$
 			}
-			elm = new PropListExpression(propListElms.toArray((Pair<String, ExprElm>[])new Pair[propListElms.size()]));
+			elm = new PropListExpression(propListElms);
 		}
 		else
 			unread();

@@ -10,10 +10,10 @@ import java.util.List;
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.index.C4Object;
 import net.arctics.clonk.index.CachedEngineFuncs;
+import net.arctics.clonk.parser.C4Declaration;
 import net.arctics.clonk.parser.DeclarationRegion;
 import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.ParsingException;
-import net.arctics.clonk.parser.c4script.C4ObjectType;
 import net.arctics.clonk.parser.c4script.C4ScriptBase;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.C4Type;
@@ -150,13 +150,7 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable {
 	}
 	
 	public final C4Object guessObjectType(C4ScriptParser context) {
-		IType t = getType(context);
-		if (t instanceof C4Object)
-			return (C4Object)t;
-		else if (t instanceof C4ObjectType)
-			return ((C4ObjectType)t).getType();
-		else
-			return null;
+		return C4Object.objectTypeFrom(getType(context));
 	}
 
 	public boolean modifiable(C4ScriptParser context) {
@@ -565,6 +559,16 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable {
 		List<T> l = new LinkedList<T>();
 		collectExpressionsOfType(l, cls);
 		return l;
+	}
+	
+	// getting/setting some associated variable so the exprelm knows from whence it came
+	
+	public C4Declaration associatedDeclaration() {
+		return null;
+	}
+	
+	public void setAssociatedDeclaration(C4Declaration declaration) {
+		// ignore
 	}
 
 }

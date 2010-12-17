@@ -18,9 +18,6 @@ import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
 
 public class AccessVar extends AccessDeclaration {
 
-	/**
-	 * 
-	 */
 	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 
 	private static final class VariableTypeInformation extends StoredTypeInformation {
@@ -73,7 +70,12 @@ public class AccessVar extends AccessDeclaration {
 
 	@Override
 	public boolean modifiable(C4ScriptParser context) {
-		return declaration == null || ((C4Variable)declaration).getScope() != C4VariableScope.CONST;
+		ExprElm pred = getPredecessorInSequence();
+		if (pred == null) {
+			return declaration == null || ((C4Variable)declaration).getScope() != C4VariableScope.CONST;
+		} else {
+			return true; // you can never be so sure 
+		}
 	}
 
 	public AccessVar(String varName) {
@@ -96,14 +98,27 @@ public class AccessVar extends AccessDeclaration {
 
 	@Override
 	public C4Declaration obtainDeclaration(C4ScriptParser parser) {
-		FindDeclarationInfo info = new FindDeclarationInfo(parser.getContainer().getIndex());
-		info.setContextFunction(parser.getActiveFunc());
 		ExprElm p = getPredecessorInSequence();
-		C4ScriptBase lookIn = p == null ? parser.getContainer() : p.guessObjectType(parser);
-		if (lookIn == null)
+		C4ScriptBase scriptToLookIn = null;
+		if (p != null) {
+			IType type = p.getType(parser);
+			if ((scriptToLookIn = C4Object.objectTypeFrom(type)) == null) {
+				// find pseudo-variable from proplist expression
+				if (type instanceof PropListExpression) {
+					return ((PropListExpression)type).findComponent(getDeclarationName());
+				}
+			}
+		} else {
+			scriptToLookIn = parser.getContainer();
+		}
+		if (scriptToLookIn != null) {
+			FindDeclarationInfo info = new FindDeclarationInfo(parser.getContainer().getIndex());
+			info.setContextFunction(parser.getActiveFunc());
+			info.setSearchOrigin(scriptToLookIn);
+			return scriptToLookIn.findVariable(declarationName, info);
+		} else {
 			return null;
-		info.setSearchOrigin(lookIn);
-		return lookIn.findVariable(declarationName, info);
+		}
 	}
 
 	@Override
