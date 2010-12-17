@@ -110,6 +110,7 @@ public class ReturnStatement extends KeywordStatement {
 	
 	@Override
 	public void reportErrors(C4ScriptParser parser) throws ParsingException {
+		super.reportErrors(parser);
 		warnAboutTupleInReturnExpr(parser, returnExpr, false);
 		C4Function activeFunc = parser.getActiveFunc();
 		if (activeFunc == null) {
