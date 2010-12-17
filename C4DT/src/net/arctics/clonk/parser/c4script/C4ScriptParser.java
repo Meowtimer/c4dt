@@ -425,9 +425,9 @@ public class C4ScriptParser extends CStyleScanner {
 					if (!parseDeclaration()) {
 						eatWhitespace();
 						if (!reachedEOF()) {
-							int start = getPosition();
+							int start = this.offset;
 							String tokenText = parseTokenAndReturnAsString();
-							errorWithCode(ParserErrorCode.UnexpectedToken, start, getPosition(), true, tokenText);
+							errorWithCode(ParserErrorCode.UnexpectedToken, start, this.offset, true, tokenText);
 						}
 					}
 					eatWhitespace();
@@ -544,7 +544,7 @@ public class C4ScriptParser extends CStyleScanner {
 			boolean notReached = false;
 			int oldStyleEnd = endOfFunc;
 			List<Statement> statements = new LinkedList<Statement>();
-			while(!reachedEOF() && getPosition() < endOfFunc) {
+			while(!reachedEOF() && this.offset < endOfFunc) {
 				this.statementNotReached = notReached;
 				Statement statement = parseStatement(options);
 				if (statement == null)
@@ -588,7 +588,7 @@ public class C4ScriptParser extends CStyleScanner {
 		catch (Exception e) {
 			// errorWithCode throws ^^;
 			e.printStackTrace();
-			errorWithCode(ParserErrorCode.InternalError, getPosition(), getPosition()+1, true, e.getMessage());
+			errorWithCode(ParserErrorCode.InternalError, this.offset, this.offset+1, true, e.getMessage());
 		}
 	}
 
@@ -640,7 +640,7 @@ public class C4ScriptParser extends CStyleScanner {
 	 * @throws ParsingException
 	 */
 	protected boolean parseDeclaration() throws ParsingException {
-		final int offset = getPosition();
+		final int offset = this.offset;
 		int readByte = read();
 		if (readByte == '#') {
 			// directive
@@ -654,7 +654,7 @@ public class C4ScriptParser extends CStyleScanner {
 			else {
 				String content = parseDirectiveParms();
 				C4Directive directive = new C4Directive(type, content);
-				directive.setLocation(new SourceLocation(offset, getPosition()));
+				directive.setLocation(new SourceLocation(offset, this.offset));
 				container.addDeclaration(directive);
 				if (type == C4DirectiveType.APPENDTO)
 					appendTo = true;
@@ -707,14 +707,14 @@ public class C4ScriptParser extends CStyleScanner {
 	}
 
 	private boolean parseVariableDeclaration(String word) throws ParsingException {
-		final int offset = getPosition();
+		final int offset = this.offset;
 		String desc = getTextOfLastComment(offset);
 
 		List<C4Variable> createdVariables = new LinkedList<C4Variable>();
 		C4VariableScope scope = C4VariableScope.makeScope(word);
 		if (scope == C4VariableScope.STATIC || scope == C4VariableScope.LOCAL) {
 			eatWhitespace();
-			int pos = getPosition();
+			int pos = this.offset;
 			if (scope == C4VariableScope.STATIC) {
 				if (readIdent().equals(Keywords.Const)) {
 					scope = C4VariableScope.CONST;
@@ -732,9 +732,9 @@ public class C4ScriptParser extends CStyleScanner {
 				}
 				else
 					typeOfNewVar = null;
-				int s = getPosition();
+				int s = this.offset;
 				String varName = readIdent();
-				int e = getPosition();
+				int e = this.offset;
 				C4Variable var = null;
 				C4Variable oldActiveVar = activeScriptScopeVariable;
 				try {
@@ -742,7 +742,7 @@ public class C4ScriptParser extends CStyleScanner {
 						eatWhitespace();
 						if (peek() == ';' || peek() == ',') {
 							if (scope == C4VariableScope.CONST && !isEngine)
-								errorWithCode(ParserErrorCode.ConstantValueExpected, getPosition()-1, getPosition(), true);
+								errorWithCode(ParserErrorCode.ConstantValueExpected, this.offset-1, this.offset, true);
 							else {
 								createdVariables.add(activeScriptScopeVariable = var = createVarInScope(varName, scope, new SourceLocation(s, e), desc));
 								if (scope == C4VariableScope.STATIC) {
@@ -803,21 +803,21 @@ public class C4ScriptParser extends CStyleScanner {
 			} while(read() == ',');
 			unread();
 			if (read() != ';') {
-				errorWithCode(ParserErrorCode.CommaOrSemicolonExpected, getPosition()-1, getPosition());
+				errorWithCode(ParserErrorCode.CommaOrSemicolonExpected, this.offset-1, this.offset);
 			}
 		}
 		else if (word.equals(Keywords.LocalNamed)) {
 			do {
 				eatWhitespace();
-				int s = getPosition();
+				int s = this.offset;
 				String varName = readIdent();
-				int e = getPosition();
+				int e = this.offset;
 				createdVariables.add(createVarInScope( varName, C4VariableScope.LOCAL, new SourceLocation( s,  e),  desc));
 				eatWhitespace();
 			} while (read() == ',');
 			unread();
 			if (read() != ';') {
-				errorWithCode(ParserErrorCode.CommaOrSemicolonExpected, getPosition()-1, getPosition());
+				errorWithCode(ParserErrorCode.CommaOrSemicolonExpected, this.offset-1, this.offset);
 			}
 		}
 		
@@ -866,7 +866,7 @@ public class C4ScriptParser extends CStyleScanner {
 	}
 
 	private boolean parseVariableDeclarationInFunc(boolean declaration) throws ParsingException {
-		final int offset = getPosition();
+		final int offset = this.offset;
 		parsedVariable = null;
 
 		String word = readIdent();
@@ -874,12 +874,12 @@ public class C4ScriptParser extends CStyleScanner {
 		if (scope != null) {
 			do {
 				eatWhitespace();
-				int nameStart = getPosition();
+				int nameStart = this.offset;
 				if (!parseIdentifier()) {
 					tokenExpectedError("Identifier");
 				}
 				String varName = parsedString;
-				int nameEnd = getPosition();
+				int nameEnd = this.offset;
 				if (declaration) {
 					// construct C4Variable object and register it
 					C4Variable previousDeclaration = findVar(varName, scope);
@@ -909,7 +909,7 @@ public class C4ScriptParser extends CStyleScanner {
 						}
 						if (!declaration) {
 							if (val == null)
-								errorWithCode(ParserErrorCode.ValueExpected, getPosition()-1, getPosition(), true);
+								errorWithCode(ParserErrorCode.ValueExpected, this.offset-1, this.offset, true);
 							else {
 								var.inferTypeFromAssignment(val, this);
 							}
@@ -931,11 +931,11 @@ public class C4ScriptParser extends CStyleScanner {
 	}
 
 	private C4Type parseFunctionReturnType() throws ParsingException {
-		final int offset = getPosition();
+		final int offset = this.offset;
 		eatWhitespace();
 		if (peek() == '&') {
 			if (!container.getEngine().getCurrentSettings().supportsRefs) {
-				errorWithCode(ParserErrorCode.EngineDoesNotSupportRefs, getPosition(), getPosition()+1, true, container.getEngine().getName());
+				errorWithCode(ParserErrorCode.EngineDoesNotSupportRefs, this.offset, this.offset+1, true, container.getEngine().getName());
 			}
 			read();
 			return C4Type.REFERENCE;
@@ -979,12 +979,12 @@ public class C4ScriptParser extends CStyleScanner {
 		
 		if (!firstWord.equals(Keywords.Func)) {
 			activeFunc.setVisibility(C4FunctionScope.makeScope(firstWord));
-			startName = getPosition();
+			startName = this.offset;
 			String shouldBeFunc = readIdent();
 			if (!shouldBeFunc.equals(Keywords.Func)) {
 				suspectOldStyle = true; // suspicious
 				funcName = shouldBeFunc;
-				endName = getPosition();
+				endName = this.offset;
 				warningWithCode(ParserErrorCode.OldStyleFunc, startName, endName);
 			}
 		}
@@ -996,11 +996,11 @@ public class C4ScriptParser extends CStyleScanner {
 			if (retType == null)
 				retType = C4Type.ANY;
 			eatWhitespace();
-			startName = getPosition();
+			startName = this.offset;
 			funcName = readIdent();
 			if (funcName == null || funcName.length() == 0)
-				errorWithCode(ParserErrorCode.NameExpected, getPosition()-1, getPosition());
-			endName = getPosition();
+				errorWithCode(ParserErrorCode.NameExpected, this.offset-1, this.offset);
+			endName = this.offset;
 		}
 		activeFunc.setName(funcName);
 		activeFunc.setReturnType(retType);
@@ -1025,11 +1025,11 @@ public class C4ScriptParser extends CStyleScanner {
 				else if (readByte == ',')
 					continue; // parse another parameter
 				else {
-					errorWithCode(ParserErrorCode.TokenExpected, getPosition()-1, getPosition(), String.format(Messages.C4ScriptParser_Or, ")", ",")); //$NON-NLS-2$ //$NON-NLS-3$
+					errorWithCode(ParserErrorCode.TokenExpected, this.offset-1, this.offset, String.format(Messages.C4ScriptParser_Or, ")", ",")); //$NON-NLS-2$ //$NON-NLS-3$
 				}
 			} while(!reachedEOF());
 		}
-		endOfHeader = getPosition();
+		endOfHeader = this.offset;
 		lastComment = null;
 		eatWhitespace();
 		if (lastComment != null)
@@ -1039,11 +1039,11 @@ public class C4ScriptParser extends CStyleScanner {
 		if (token != '{') {
 			if (suspectOldStyle) {
 				this.seek(endOfHeader);
-				startBody = getPosition();
+				startBody = this.offset;
 				// body goes from here to start of next function...
 				do {
 					eatWhitespace();
-					endBody = getPosition();
+					endBody = this.offset;
 					String word = readIdent();
 					if (word != null && word.length() > 0) {
 						if (looksLikeStartOfFunction(word) || looksLikeVarDeclaration(word)) {
@@ -1062,23 +1062,23 @@ public class C4ScriptParser extends CStyleScanner {
 					// just move on
 					consumeFunctionCodeOrReturnReadChar();
 
-					endBody = getPosition(); // blub
+					endBody = this.offset; // blub
 				} while (!reachedEOF());
 			} else {
 				if (isEngine) {
 					// engine functions don't need a body
 					if (token != ';')
-						errorWithCode(ParserErrorCode.TokenExpected, getPosition()-1, getPosition(), ";"); //$NON-NLS-1$
+						errorWithCode(ParserErrorCode.TokenExpected, this.offset-1, this.offset, ";"); //$NON-NLS-1$
 					startBody = endBody = -1;
 				}
 				else {
-					errorWithCode(ParserErrorCode.TokenExpected, getPosition()-1, getPosition(), "{"); //$NON-NLS-1$
+					errorWithCode(ParserErrorCode.TokenExpected, this.offset-1, this.offset, "{"); //$NON-NLS-1$
 				}
 			}
 		} else {
 			// body in {...}
 			int blockDepth = 0;
-			startBody = getPosition();
+			startBody = this.offset;
 			eatWhitespace();
 
 			// new two pass strategy to be able to check if functions and variables exist
@@ -1095,10 +1095,10 @@ public class C4ScriptParser extends CStyleScanner {
 			if (foundLast)
 				unread(); // go back to last '}'
 
-			endBody = getPosition();
+			endBody = this.offset;
 			eatWhitespace();
 			if (read() != '}') {
-				int pos = Math.min(getPosition(), getBufferLength()-1);
+				int pos = Math.min(this.offset, getBufferLength()-1);
 				errorWithCode(ParserErrorCode.TokenExpected, pos, pos+1, "}"); //$NON-NLS-1$
 				return false;
 			}
@@ -1129,7 +1129,7 @@ public class C4ScriptParser extends CStyleScanner {
 	}
 	
 	private String getTextOfInlineComment() {
-		int pos = getPosition();
+		int pos = this.offset;
 		this.eat(BufferedScanner.WHITESPACE_WITHOUT_NEWLINE_CHARS);
 		if (this.eat(BufferedScanner.NEWLINE_CHARS) == 0) {
 			Comment c = parseCommentObject();
@@ -1145,7 +1145,7 @@ public class C4ScriptParser extends CStyleScanner {
 	}
 	
 	private boolean parseHexNumber() throws ParsingException {
-		int offset = getPosition();
+		int offset = this.offset;
 		boolean isHex = read() == '0' && read() == 'x';
 		if (!isHex)
 			this.seek(offset);
@@ -1178,7 +1178,7 @@ public class C4ScriptParser extends CStyleScanner {
 	}
 	
 	private boolean parseNumber() throws ParsingException {
-		final int offset = getPosition();
+		final int offset = this.offset;
 		int count = 0;
 		do {
 			int readByte = read();
@@ -1203,7 +1203,7 @@ public class C4ScriptParser extends CStyleScanner {
 	}
 	
 	private boolean parseEllipsis() {
-		int offset = getPosition();
+		int offset = this.offset;
 		String e = this.readString(3);
 		if (e != null && e.equals("...")) //$NON-NLS-1$
 			return true;
@@ -1212,7 +1212,7 @@ public class C4ScriptParser extends CStyleScanner {
 	}
 	
 	private boolean parseMemberOperator() {
-		int offset = getPosition();
+		int offset = this.offset;
 		int firstChar = read();
 		if (firstChar == '.') {
 			parsedMemberOperator = "."; //$NON-NLS-1$
@@ -1220,7 +1220,7 @@ public class C4ScriptParser extends CStyleScanner {
 		}
 		else if (firstChar == '-') {
 			if (read() == '>') {
-				offset = getPosition();
+				offset = this.offset;
 				eatWhitespace();
 				if (read() == '~')
 					parsedMemberOperator = "->~"; //$NON-NLS-1$
@@ -1325,7 +1325,7 @@ public class C4ScriptParser extends CStyleScanner {
 	 * @return the operator referenced in the code at offset
 	 */
 	private C4ScriptOperator parseOperator() {
-		final int offset = getPosition();
+		final int offset = this.offset;
 		final char[] chars = new char[] { (char)read(), (char)read()  };
 		String s = new String(chars);
 		
@@ -1471,7 +1471,7 @@ public class C4ScriptParser extends CStyleScanner {
 			return null;
 		}
 		IMarker result = null;
-		boolean silence = scriptFile == null || (activeFunc != null && activeFunc.getBody() != null && getPosition() > activeFunc.getBody().getEnd()+1);
+		boolean silence = scriptFile == null || (activeFunc != null && activeFunc.getBody() != null && this.offset > activeFunc.getBody().getEnd()+1);
 		String problem = code.getErrorString(args);
 		if (!silence && (!allErrorsDisabled || !noThrow)) {
 			result = code.createMarker(scriptFile, getContainer(), ClonkCore.MARKER_C4SCRIPT_ERROR, markerStart, markerEnd, severity, expressionReportingErrors, args);
@@ -1492,11 +1492,11 @@ public class C4ScriptParser extends CStyleScanner {
 	}
 	
 	private void tokenExpectedError(String token) throws ParsingException {
-		errorWithCode(ParserErrorCode.TokenExpected, getPosition()-1, getPosition(), false, token);
+		errorWithCode(ParserErrorCode.TokenExpected, this.offset-1, this.offset, false, token);
 	}
 	
 	private boolean parseStaticFieldOperator_() {
-		final int offset = getPosition();
+		final int offset = this.offset;
 		String o = this.readString(2);
 		if (o != null && o.equals("::")) //$NON-NLS-1$
 			return true;
@@ -1505,21 +1505,21 @@ public class C4ScriptParser extends CStyleScanner {
 	}
 	
 	public ExprElm parseExpressionWithoutOperators(boolean reportErrors) throws ParsingException {
-		int beforeWhitespaceStart = getPosition();
+		int beforeWhitespaceStart = this.offset;
 		eatWhitespace();
-		int sequenceStart = getPosition();
+		int sequenceStart = this.offset;
 		C4ScriptOperator preop = parseOperator();
 		ExprElm result = null;
 		if (preop != null && preop.isPrefix()) {
 			ExprElm followingExpr = parseExpressionWithoutOperators(reportErrors);
 			if (followingExpr == null) {
-				errorWithCode(ParserErrorCode.ExpressionExpected, getPosition(), getPosition()+1);
+				errorWithCode(ParserErrorCode.ExpressionExpected, this.offset, this.offset+1);
 			}
 			result = new UnaryOp(preop, UnaryOp.Placement.Prefix, followingExpr);
 		} else
 			this.seek(sequenceStart); // don't skip operators that aren't prefixy
 		if (result != null) {
-			result.setExprRegion(sequenceStart, getPosition());
+			result.setExprRegion(sequenceStart, this.offset);
 			return result;
 		}
 		Vector<ExprElm> elements = new Vector<ExprElm>(5);
@@ -1530,9 +1530,9 @@ public class C4ScriptParser extends CStyleScanner {
 		do {
 			elm = null;
 			
-			noWhitespaceEating = getPosition();
+			noWhitespaceEating = this.offset;
 			eatWhitespace();
-			int elmStart = getPosition();
+			int elmStart = this.offset;
 
 			// operator always ends a sequence without operators
 			if (parseOperator() != null) {// || fReader.readWord().equals(Keywords.In)) {
@@ -1557,15 +1557,15 @@ public class C4ScriptParser extends CStyleScanner {
 			if (elm == null) {
 				String word = readIdent();
 				if (word != null && word.length() > 0) {
-					int beforeSpace = getPosition();
+					int beforeSpace = this.offset;
 					eatWhitespace();
 					if (read() == '(') {
-						int s = getPosition();
+						int s = this.offset;
 						// function call
 						List<ExprElm> args = new LinkedList<ExprElm>();
 						parseRestOfTuple(args, reportErrors);
 						CallFunc callFunc = new CallFunc(word, args.toArray(new ExprElm[args.size()]));
-						callFunc.setParmsRegion(s, getPosition()-1);
+						callFunc.setParmsRegion(s, this.offset-1);
 						elm = callFunc;
 					} else {
 						this.seek(beforeSpace);
@@ -1607,13 +1607,13 @@ public class C4ScriptParser extends CStyleScanner {
 		
 			// ->
 			if (elm == null) {
-				int fieldOperatorStart = getPosition();
+				int fieldOperatorStart = this.offset;
 				if (parseMemberOperator()) {
 					eatWhitespace();
-					int idStart = getPosition();
+					int idStart = this.offset;
 					int idOffset;
 					if (parseID() && eatWhitespace() >= 0 && parseStaticFieldOperator_()) {
-						idOffset = getPosition()-fieldOperatorStart;
+						idOffset = this.offset-fieldOperatorStart;
 					} else {
 						parsedID = null; // reset because that call could have been successful (GetX would be recognized as id)
 						seek(idStart);
@@ -1625,28 +1625,28 @@ public class C4ScriptParser extends CStyleScanner {
 			
 			// (<expr>)
 			if (elm == null) {
-				int parenthStartPos = getPosition();
+				int parenthStartPos = this.offset;
 				int c = read();
 				if (c == '(') {
 					ExprElm firstExpr = parseExpression(reportErrors);
 					if (firstExpr == null) {
-						firstExpr = ExprElm.nullExpr(getPosition(), 0);
+						firstExpr = ExprElm.nullExpr(this.offset, 0);
 						// might be disabled
-						errorWithCode(ParserErrorCode.EmptyParentheses, parenthStartPos, getPosition()+1, true);
+						errorWithCode(ParserErrorCode.EmptyParentheses, parenthStartPos, this.offset+1, true);
 					}
 					eatWhitespace();
 					c = read();
 					if (c == ')')
 						elm = new Parenthesized(firstExpr);
 					else if (c == ',') {
-						errorWithCode(ParserErrorCode.TuplesNotAllowed, getPosition()-1, getPosition());
+						errorWithCode(ParserErrorCode.TuplesNotAllowed, this.offset-1, this.offset);
 						// tuple (just for multiple parameters for return)
 						List<ExprElm> tupleElms = new LinkedList<ExprElm>();
 						tupleElms.add(firstExpr);
 						parseRestOfTuple(tupleElms, reportErrors);
 						elm = new Tuple(tupleElms.toArray(new ExprElm[0]));
 					} else
-						errorWithCode(ParserErrorCode.TokenExpected, getPosition()-1, getPosition(), ")"); //$NON-NLS-1$
+						errorWithCode(ParserErrorCode.TokenExpected, this.offset-1, this.offset, ")"); //$NON-NLS-1$
 				} else {
 					unread();
 				}
@@ -1671,7 +1671,7 @@ public class C4ScriptParser extends CStyleScanner {
 					proper = false;
 				} else {
 					// add to sequence even if not valid so the quickfixer can separate them
-					elm.setExprRegion(elmStart, getPosition());
+					elm.setExprRegion(elmStart, this.offset);
 					elements.add(elm);
 					prevElm = elm;
 				}
@@ -1691,18 +1691,18 @@ public class C4ScriptParser extends CStyleScanner {
 		if (result != null) {
 			result.setFinishedProperly(proper);
 
-			result.setExprRegion(sequenceStart, getPosition());
+			result.setExprRegion(sequenceStart, this.offset);
 			if (result.getType(this) == null) {
 				errorWithCode(ParserErrorCode.InvalidExpression, result);
 			}
 
 			if (proper) {
-				int saved = getPosition();
+				int saved = this.offset;
 				eatWhitespace();
 				C4ScriptOperator postop = parseOperator();
 				if (postop != null && postop.isPostfix()) {
 					UnaryOp op = new UnaryOp(postop, UnaryOp.Placement.Postfix, result);
-					op.setExprRegion(result.getExprStart(), getPosition());
+					op.setExprRegion(result.getExprStart(), this.offset);
 					return op;
 				} else {
 					// a binary operator following this sequence
@@ -1733,39 +1733,43 @@ public class C4ScriptParser extends CStyleScanner {
 				c = read();
 				if (c == ',') {
 					if (!expectingComma)
-						errorWithCode(ParserErrorCode.UnexpectedToken, getPosition()-1, getPosition(), ","); //$NON-NLS-1$
+						errorWithCode(ParserErrorCode.UnexpectedToken, this.offset-1, this.offset, ","); //$NON-NLS-1$
 					expectingComma = false;
 				} else if (c == '}') {
 					properlyClosed = true;
 					break;
 				} else {
 					unread();
-					int nameStart = getPosition();
+					int nameStart = this.offset;
 					if (parseString() || parseIdentifier()) {
 						String name = parsedString;
-						int nameEnd = getPosition();
+						int nameEnd = this.offset;
 						eatWhitespace();
 						int c_ = read();
 						if (c_ != ':' && c_ != '=') {
 							unread();
-							errorWithCode(ParserErrorCode.UnexpectedToken, getPosition(), getPosition()+1, (char)read());
+							errorWithCode(ParserErrorCode.UnexpectedToken, this.offset, this.offset+1, (char)read());
 						}
 						eatWhitespace();
 						ExprElm expr = parseExpression(COMMA_OR_CLOSE_BLOCK, reportErrors);
 						C4Variable v = new C4Variable(name, expr, this);
-						v.setScript(container);
+						if (activeScriptScopeVariable != null) {
+							v.setParentDeclaration(activeScriptScopeVariable);
+						} else {
+							v.setScript(container);
+						}
 						v.setLocation(new SourceLocation(nameStart, nameEnd));
 						propListElms.add(v);
 						expectingComma = true;
 					}
 					else {
-						errorWithCode(ParserErrorCode.TokenExpected, getPosition(), getPosition()+1, Messages.TokenStringOrIdentifier);
+						errorWithCode(ParserErrorCode.TokenExpected, this.offset, this.offset+1, Messages.TokenStringOrIdentifier);
 						break;
 					}
 				}
 			}
 			if (!properlyClosed) {
-				errorWithCode(ParserErrorCode.MissingClosingBracket, getPosition()-1, getPosition(), "}"); //$NON-NLS-1$
+				errorWithCode(ParserErrorCode.MissingClosingBracket, this.offset-1, this.offset, "}"); //$NON-NLS-1$
 			}
 			elm = new PropListExpression(propListElms);
 		}
@@ -1794,7 +1798,7 @@ public class C4ScriptParser extends CStyleScanner {
 					elm = new ArrayElementExpression(arg);
 					break;
 				default:
-					errorWithCode(ParserErrorCode.UnexpectedToken, getPosition()-1, getPosition(), new Character((char) t).toString());
+					errorWithCode(ParserErrorCode.UnexpectedToken, this.offset-1, this.offset, new Character((char) t).toString());
 				}
 			} else {
 				// array creation
@@ -1825,7 +1829,7 @@ public class C4ScriptParser extends CStyleScanner {
 					}
 				}
 				if (!properlyClosed) {
-					errorWithCode(ParserErrorCode.MissingClosingBracket, getPosition(), getPosition()+1, "]"); //$NON-NLS-1$
+					errorWithCode(ParserErrorCode.MissingClosingBracket, this.offset, this.offset+1, "]"); //$NON-NLS-1$
 				}
 				elm = new ArrayExpression(arrayElms.toArray(new ExprElm[0]));
 				
@@ -1843,22 +1847,22 @@ public class C4ScriptParser extends CStyleScanner {
 			int c = read();
 			if (c == ')') {
 				if (!expectingComma && listToAddElementsTo.size() > 0)
-					listToAddElementsTo.add(ExprElm.nullExpr(getPosition(), 0));
+					listToAddElementsTo.add(ExprElm.nullExpr(this.offset, 0));
 				break;
 			} else if (c == ',') {
 				if (!expectingComma) {
-					listToAddElementsTo.add(ExprElm.nullExpr(getPosition(), 0));
+					listToAddElementsTo.add(ExprElm.nullExpr(this.offset, 0));
 				}
 				expectingComma = false;
 			} else {
 				unread();
 				if (listToAddElementsTo.size() > 100) {
-					errorWithCode(ParserErrorCode.InternalError, getPosition(), getPosition(), Messages.InternalError_WayTooMuch);
+					errorWithCode(ParserErrorCode.InternalError, this.offset, this.offset, Messages.InternalError_WayTooMuch);
 				//	break;
 				}
 				ExprElm arg = parseExpression(reportErrors);
 				if (arg == null) {
-					errorWithCode(ParserErrorCode.ExpressionExpected, getPosition(), getPosition()+1);
+					errorWithCode(ParserErrorCode.ExpressionExpected, this.offset, this.offset+1);
 //					break;
 				} else
 					listToAddElementsTo.add(arg);
@@ -1874,17 +1878,17 @@ public class C4ScriptParser extends CStyleScanner {
 		private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 		@Override
 		public int getExprStart() {
-			return C4ScriptParser.this.getPosition();
+			return C4ScriptParser.this.offset;
 		}
 		@Override
 		public int getExprEnd() {
-			return C4ScriptParser.this.getPosition()+1;
+			return C4ScriptParser.this.offset+1;
 		}
 	};
 	
 	private ExprElm parseExpression(char[] delimiters, boolean reportErrors) throws ParsingException {
 		
-		final int offset = getPosition();
+		final int offset = this.offset;
 		
 		final int START = 0;
 		final int OPERATOR = 1;
@@ -1905,7 +1909,7 @@ public class C4ScriptParser extends CStyleScanner {
 			} else {
 				this.seek(offset);
 				eatWhitespace();
-				exprStart = getPosition();
+				exprStart = this.offset;
 				for (int state = START; state != DONE;) {
 					switch (state) {
 					case START:
@@ -1918,7 +1922,7 @@ public class C4ScriptParser extends CStyleScanner {
 						}
 						break;
 					case OPERATOR:
-						int operatorStartPos = getPosition();
+						int operatorStartPos = this.offset;
 						eatWhitespace();
 						// end of expression?
 						int c = read();
@@ -1953,7 +1957,7 @@ public class C4ScriptParser extends CStyleScanner {
 									current = root = lastOp = new BinaryOp(op);
 								}
 								lastOp.setLeftSide(newLeftSide);
-								lastOp.setExprRegion(operatorStartPos, getPosition());
+								lastOp.setExprRegion(operatorStartPos, this.offset);
 								state = SECONDOPERAND;
 							} else {
 								this.seek(operatorStartPos); // in case there was an operator but not a binary one
@@ -1974,7 +1978,7 @@ public class C4ScriptParser extends CStyleScanner {
 				}
 			}
 			if (root != null) {
-				root.setExprRegion(exprStart, getPosition());
+				root.setExprRegion(exprStart, this.offset);
 				// potentially throwing exceptions and stuff
 				handleExpressionCreated(reportErrors, root);
 			}
@@ -2065,12 +2069,12 @@ public class C4ScriptParser extends CStyleScanner {
 			if (builder.length() > 0) builder.append(this.readString(1));
 			builder.append(this.readStringUntil(QUOTES_AND_NEWLINE_CHARS));
 			if (BufferedScanner.isLineDelimiterChar((char) peek())) {
-				errorWithCode(ParserErrorCode.StringNotClosed, getPosition()-1, getPosition(), true);
+				errorWithCode(ParserErrorCode.StringNotClosed, this.offset-1, this.offset, true);
 				return true;
 			}
 		} while (builder.length() != 0 && (builder.charAt(builder.length() - 1) == '\\'));
 		if (read() != '"') {
-			errorWithCode(ParserErrorCode.StringNotClosed, getPosition()-1, getPosition());
+			errorWithCode(ParserErrorCode.StringNotClosed, this.offset-1, this.offset);
 		}
 		parsedString = builder.toString();
 		return true;
@@ -2149,7 +2153,7 @@ public class C4ScriptParser extends CStyleScanner {
 			}
 			
 			//eatWhitespace();
-			int start = getPosition();
+			int start = this.offset;
 			Statement result;
 			C4VariableScope scope;
 			
@@ -2217,7 +2221,7 @@ public class C4ScriptParser extends CStyleScanner {
 				if (expression != null) {
 					result = new SimpleStatement(expression);
 					if (expression.isFinishedProperly() && !options.contains(ParseStatementOption.InitializationStatement)) {
-						int beforeWhitespace = getPosition();
+						int beforeWhitespace = this.offset;
 						eatWhitespace();
 						if (read() != ';') {
 							result.setFinishedProperly(false);
@@ -2232,7 +2236,7 @@ public class C4ScriptParser extends CStyleScanner {
 			}
 
 			if (result != null) {
-				result.setExprRegion(start, getPosition());
+				result.setExprRegion(start, this.offset);
 				reportErrorsOf(result);
 				
 				// inline comment attached to expression so code reformatting does not mess up the user's code too much
@@ -2260,7 +2264,7 @@ public class C4ScriptParser extends CStyleScanner {
 	}
 
 	private Comment getCommentImmediatelyFollowing() {
-		int daring = getPosition();
+		int daring = this.offset;
 		Comment c = null;
 		for (int r = read(); r != -1 && (r == '/' || BufferedScanner.isWhiteSpaceButNotLineDelimiterChar((char) r)); r = read()) {
 			if (r == '/') {
@@ -2282,9 +2286,9 @@ public class C4ScriptParser extends CStyleScanner {
 		List<VarInitialization> initializations = new LinkedList<VarInitialization>();
 		do {
 			eatWhitespace();
-			int varNameStart = getPosition();
+			int varNameStart = this.offset;
 			String varName = readIdent();
-			int varNameEnd = getPosition();
+			int varNameEnd = this.offset;
 			// check if there is initial content
 			eatWhitespace();
 			C4Variable var = findVar(varName, scope);
@@ -2300,7 +2304,7 @@ public class C4ScriptParser extends CStyleScanner {
 				eatWhitespace();
 				val = parseExpression();
 				if (val == null)
-					errorWithCode(ParserErrorCode.ValueExpected, getPosition(), getPosition()+1);
+					errorWithCode(ParserErrorCode.ValueExpected, this.offset, this.offset+1);
 				else {
 					new AccessVar(var).expectedToBeOfType(val.getType(this), this, TypeExpectancyMode.Force);
 				}
@@ -2389,13 +2393,13 @@ public class C4ScriptParser extends CStyleScanner {
 		}
 		else if (readWord.equals(Keywords.Continue)) {
 			if (currentLoop == null)
-				errorWithCode(ParserErrorCode.KeywordInWrongPlace, getPosition()-readWord.length(), getPosition(), true, readWord);
+				errorWithCode(ParserErrorCode.KeywordInWrongPlace, this.offset-readWord.length(), this.offset, true, readWord);
 			checkForSemicolon();
 			result = new ContinueStatement();
 		}
 		else if (readWord.equals(Keywords.Break)) {
 			if (currentLoop == null)
-				errorWithCode(ParserErrorCode.KeywordInWrongPlace, getPosition()-readWord.length(), getPosition(), true, readWord);
+				errorWithCode(ParserErrorCode.KeywordInWrongPlace, this.offset-readWord.length(), this.offset, true, readWord);
 			checkForSemicolon();
 			result = new BreakStatement();
 		}
@@ -2428,7 +2432,7 @@ public class C4ScriptParser extends CStyleScanner {
 				enableError(ParserErrorCode.EmptyParentheses, false);
 			returnExpr = parseExpression();
 			if (returnExpr == null) {
-				errorWithCode(ParserErrorCode.ValueExpected, getPosition(), getPosition()+1);				
+				errorWithCode(ParserErrorCode.ValueExpected, this.offset, this.offset+1);				
 			}
 			enableError(ParserErrorCode.TuplesNotAllowed, true);
 			enableError(ParserErrorCode.EmptyParentheses, true);
@@ -2460,7 +2464,7 @@ public class C4ScriptParser extends CStyleScanner {
 		eatWhitespace();
 
 		// initialization
-		offset = getPosition();
+		offset = this.offset;
 		C4Variable loopVariable = null;
 		Statement initialization = null, body;
 		ExprElm arrayExpr, condition, increment;
@@ -2471,7 +2475,7 @@ public class C4ScriptParser extends CStyleScanner {
 		} else {
 			unread();
 			// special treatment for case for (e in a) -> implicit declaration of e
-			int pos = getPosition();
+			int pos = this.offset;
 			String varName = readIdent();
 			if (!varName.equals("") && !varName.equals(Keywords.VarNamed)) { //$NON-NLS-1$
 				eatWhitespace();
@@ -2502,7 +2506,7 @@ public class C4ScriptParser extends CStyleScanner {
 				initialization = parseStatement(EnumSet.of(ParseStatementOption.InitializationStatement));
 				enableError(ParserErrorCode.NoSideEffects, noSideEffectsWasEnabled);
 				if (initialization == null) {
-					errorWithCode(ParserErrorCode.ExpectedCode, getPosition(), getPosition()+1);
+					errorWithCode(ParserErrorCode.ExpectedCode, this.offset, this.offset+1);
 				}
 				loopVariable = parsedVariable; // let's just assume it's the right one
 			}
@@ -2511,10 +2515,10 @@ public class C4ScriptParser extends CStyleScanner {
 		if (w == null) {
 			// determine loop type
 			eatWhitespace();
-			offset = getPosition();
+			offset = this.offset;
 			if (initialization != null) {
 				if (read() == ';') { // initialization finished regularly with ';'
-					offset = getPosition();
+					offset = this.offset;
 					w = null; // implies there can be no 'in'
 				} else {
 					unread();
@@ -2531,7 +2535,7 @@ public class C4ScriptParser extends CStyleScanner {
 			eatWhitespace();
 			arrayExpr = parseExpression();
 			if (arrayExpr == null)
-				errorWithCode(ParserErrorCode.ExpressionExpected, offset, getPosition()+1);
+				errorWithCode(ParserErrorCode.ExpressionExpected, offset, this.offset+1);
 			else {
 				IType t = arrayExpr.getType(this);
 				if (!t.canBeAssignedFrom(C4Type.ARRAY))
@@ -2555,14 +2559,14 @@ public class C4ScriptParser extends CStyleScanner {
 				unread();
 				condition = parseExpression();
 				if (condition == null) {
-					errorWithCode(ParserErrorCode.ConditionExpected, offset, getPosition());
+					errorWithCode(ParserErrorCode.ConditionExpected, offset, this.offset);
 				}
 			}
 			eatWhitespace();
-			offset = getPosition();
+			offset = this.offset;
 			expect(';');
 			eatWhitespace();
-			offset = getPosition();
+			offset = this.offset;
 			if (read() == ')') {
 				// " optional "
 				unread(); // is expected
@@ -2571,7 +2575,7 @@ public class C4ScriptParser extends CStyleScanner {
 				unread();
 				increment = parseExpression();
 				if (increment == null) {
-					errorWithCode(ParserErrorCode.ExpressionExpected, offset, getPosition()+1);
+					errorWithCode(ParserErrorCode.ExpressionExpected, offset, this.offset+1);
 				}
 			}
 			arrayExpr = null;
@@ -2579,7 +2583,7 @@ public class C4ScriptParser extends CStyleScanner {
 		eatWhitespace();
 		expect(')');
 		eatWhitespace();
-		offset = getPosition();
+		offset = this.offset;
 		currentLoop = loopType;
 		body = parseStatementAndMergeTypeInformation();
 		if (body == null) {
@@ -2624,11 +2628,11 @@ public class C4ScriptParser extends CStyleScanner {
 		eatWhitespace();
 		ExprElm condition = parseExpression();
 		if (condition == null)
-			condition = ExprElm.nullExpr(getPosition(), 0); // while () is valid
+			condition = ExprElm.nullExpr(this.offset, 0); // while () is valid
 		eatWhitespace();
 		expect(')');
 		eatWhitespace();
-		offset = getPosition();
+		offset = this.offset;
 		Statement body = parseStatementAndMergeTypeInformation();
 		if (body == null) {
 			errorWithCode(ParserErrorCode.StatementExpected, offset, offset+4);
@@ -2654,14 +2658,14 @@ public class C4ScriptParser extends CStyleScanner {
 	}*/
 
 	private Statement parseIf() throws ParsingException {
-		final int offset = getPosition();
+		final int offset = this.offset;
 		Statement result;
 		eatWhitespace();
 		expect('(');
 		eatWhitespace();
 		ExprElm condition = parseExpression();
 		if (condition == null)
-			condition = ExprElm.nullExpr(getPosition(), 0); // if () is valid
+			condition = ExprElm.nullExpr(this.offset, 0); // if () is valid
 		eatWhitespace();
 		expect(')');
 		eatWhitespace(); // FIXME: eats comments so when transforming code the comments will be gone
@@ -2675,13 +2679,13 @@ public class C4ScriptParser extends CStyleScanner {
 		if (ifStatement == null) {
 			errorWithCode(ParserErrorCode.StatementExpected, offset, offset+Keywords.If.length());
 		}
-		int beforeElse = getPosition();
+		int beforeElse = this.offset;
 		eatWhitespace();
 		String nextWord = readIdent();
 		Statement elseStatement;
 		if (nextWord != null && nextWord.equals(Keywords.Else)) {
 			eatWhitespace();
-			int o = getPosition();
+			int o = this.offset;
 			elseStatement = parseStatementWithOwnTypeInferenceBlock(merger, null);
 			if (elseStatement == null) {
 				errorWithCode(ParserErrorCode.StatementExpected, o, o+Keywords.Else.length());
@@ -2733,7 +2737,7 @@ public class C4ScriptParser extends CStyleScanner {
 			return true;
 		}
 		
-		int s = getPosition();
+		int s = this.offset;
 		String firstWord = readIdent();
 		if (firstWord.length() == 0) {
 			if (read() == '&') {
@@ -2743,7 +2747,7 @@ public class C4ScriptParser extends CStyleScanner {
 				return false;
 			}
 		}
-		int e = getPosition();
+		int e = this.offset;
 		C4Variable var = new C4Variable(null, C4VariableScope.VAR);
 		IType type = C4Type.makeType(firstWord);
 		if (type == C4Type.REFERENCE && !container.getEngine().getCurrentSettings().supportsRefs) {
@@ -2762,12 +2766,12 @@ public class C4ScriptParser extends CStyleScanner {
 				eatWhitespace();
 			} else
 				unread();
-			int newStart = getPosition();
+			int newStart = this.offset;
 			String secondWord = readIdent();
 			if (secondWord.length() > 0) {
 				var.setName(secondWord);
 				s = newStart;
-				e = getPosition();
+				e = this.offset;
 			}
 			else {
 				// type is name
