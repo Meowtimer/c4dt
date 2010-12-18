@@ -11,6 +11,7 @@ import net.arctics.clonk.parser.C4Structure;
 import net.arctics.clonk.parser.c4script.C4Variable;
 import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.resource.ClonkProjectNature;
+import net.arctics.clonk.util.StreamUtil;
 import net.arctics.clonk.util.Utilities;
 
 import org.eclipse.core.resources.IContainer;
@@ -132,7 +133,7 @@ public class C4ObjectIntern extends C4Object implements Serializable {
 	@Override
 	public String getScriptText() {
 		try {
-			return Utilities.stringFromFileDocument(getScriptStorage());
+			return StreamUtil.stringFromFileDocument(getScriptStorage());
 		} catch (Exception e) {
 			return null;
 		}
@@ -232,7 +233,7 @@ public class C4ObjectIntern extends C4Object implements Serializable {
 	// for processing files whose contents won't be saved in a separate c4structure thingie
 	public void processFile(IFile file) throws IOException, CoreException {
 		if (file.getName().equalsIgnoreCase("Names.txt")) { //$NON-NLS-1$
-			readNames(Utilities.stringFromFileDocument(file));
+			readNames(StreamUtil.stringFromFileDocument(file));
 		}
 		else if (file.getName().equalsIgnoreCase("Graphics.png") || file.getName().equalsIgnoreCase("Graphics.bmp")) { //$NON-NLS-1$ //$NON-NLS-2$
 			setCachedPicture(null); // obsolete

@@ -29,7 +29,7 @@ import net.arctics.clonk.parser.c4script.ast.StringLiteral;
 import net.arctics.clonk.parser.c4script.ast.VarDeclarationStatement;
 import net.arctics.clonk.parser.c4script.ast.VarDeclarationStatement.VarInitialization;
 import net.arctics.clonk.ui.editors.c4script.ReplacementStatement;
-import net.arctics.clonk.util.Utilities;
+import net.arctics.clonk.util.StreamUtil;
 
 public class C4ScriptToCPPConverter {
 	
@@ -199,7 +199,7 @@ public class C4ScriptToCPPConverter {
 		}
 		ClonkCore.headlessInitialize(engineConfigurationFolder, "OpenClonk");
 		InputStreamReader reader = new InputStreamReader(new FileInputStream(scriptToConvert));
-		String script = Utilities.stringFromReader(reader);
+		String script = StreamUtil.stringFromReader(reader);
 		ClonkIndex dummyIndex = new ClonkIndex();
 		ExecutableScript scriptObj = new ExecutableScript(scriptToConvert.getName(), script, dummyIndex);
 		PrintWriter printWriter = new PrintWriter(System.out);

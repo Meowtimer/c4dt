@@ -38,6 +38,7 @@ import net.arctics.clonk.util.CompoundIterable;
 import net.arctics.clonk.util.INode;
 import net.arctics.clonk.util.ITreeNode;
 import net.arctics.clonk.util.ReadOnlyIterator;
+import net.arctics.clonk.util.StreamUtil;
 import net.arctics.clonk.util.Utilities;
 
 import org.eclipse.core.resources.IFile;
@@ -716,7 +717,7 @@ public abstract class C4ScriptBase extends C4Structure implements ITreeNode {
 			IResource infoFile = Utilities.findMemberCaseInsensitively(((IFile)f).getParent(), "Desc"+ClonkPreferences.getLanguagePref()+".txt"); //$NON-NLS-1$ //$NON-NLS-2$
 			if (infoFile instanceof IFile) {
 				try {
-					return Utilities.stringFromFileDocument((IFile) infoFile);
+					return StreamUtil.stringFromFileDocument((IFile) infoFile);
 				} catch (Exception e) {
 					e.printStackTrace();
 					return super.getInfoText();

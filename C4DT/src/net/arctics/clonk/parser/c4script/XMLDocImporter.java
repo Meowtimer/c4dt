@@ -20,8 +20,7 @@ import javax.xml.xpath.XPathFactory;
 
 import net.arctics.clonk.parser.C4Declaration;
 import net.arctics.clonk.parser.c4script.C4Variable.C4VariableScope;
-import net.arctics.clonk.util.Utilities;
-
+import net.arctics.clonk.util.StreamUtil;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -98,7 +97,7 @@ public class XMLDocImporter {
 
 	public C4Declaration importFromXML(InputStream stream) throws IOException, XPathExpressionException {
 
-		String text = Utilities.stringFromInputStream(stream, "ISO-8859-1"); //$NON-NLS-1$
+		String text = StreamUtil.stringFromInputStream(stream, "ISO-8859-1"); //$NON-NLS-1$
 		// get rid of pesky meta information
 		text = text.replaceAll("\\<\\?.*\\?\\>", "").replaceAll("\\<\\!.*\\>", ""); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
 		Document doc;

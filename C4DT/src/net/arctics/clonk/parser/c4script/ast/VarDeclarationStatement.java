@@ -9,8 +9,7 @@ import net.arctics.clonk.parser.c4script.C4Function;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.C4Variable;
 import net.arctics.clonk.parser.c4script.C4Variable.C4VariableScope;
-import net.arctics.clonk.util.Utilities;
-
+import net.arctics.clonk.util.ArrayUtil;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.Region;
 
@@ -55,7 +54,7 @@ public class VarDeclarationStatement extends KeywordStatement {
 		assignParentToSubElements();
 	}
 	public VarDeclarationStatement(String varName, ExprElm initialization, int namePos, C4VariableScope scope) {
-		this(Utilities.list(new VarInitialization(varName, initialization, namePos)), scope);
+		this(ArrayUtil.list(new VarInitialization(varName, initialization, namePos)), scope);
 	}
 	@Override
 	public String getKeyword() {

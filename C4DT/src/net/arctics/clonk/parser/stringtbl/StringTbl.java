@@ -22,7 +22,7 @@ import net.arctics.clonk.parser.DeclarationRegion;
 import net.arctics.clonk.parser.NameValueAssignment;
 import net.arctics.clonk.util.ITreeNode;
 import net.arctics.clonk.util.ReadOnlyIterator;
-import net.arctics.clonk.util.Utilities;
+import net.arctics.clonk.util.StreamUtil;
 
 public class StringTbl extends C4Structure implements ITreeNode, ITableEntryInformationSink {
 	
@@ -113,7 +113,7 @@ public class StringTbl extends C4Structure implements ITreeNode, ITableEntryInfo
 					tbl.setFile(file);
 					String fileContents;
 					try {
-						fileContents = Utilities.stringFromFileDocument(file);
+						fileContents = StreamUtil.stringFromFileDocument(file);
 					} catch (Exception e) {
 						e.printStackTrace();
 						return null;

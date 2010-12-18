@@ -40,7 +40,7 @@ import net.arctics.clonk.parser.c4script.ast.VarDeclarationStatement;
 import net.arctics.clonk.parser.c4script.ast.VarDeclarationStatement.VarInitialization;
 import net.arctics.clonk.ui.editors.ClonkCompletionProposal;
 import net.arctics.clonk.ui.editors.ClonkTextEditor;
-import net.arctics.clonk.util.ArrayHelpers;
+import net.arctics.clonk.util.ArrayUtil;
 import net.arctics.clonk.util.UI;
 import net.arctics.clonk.util.Utilities;
 
@@ -617,11 +617,11 @@ public class ClonkQuickAssistProcessor implements IQuickAssistProcessor, IMarker
 						ExprElm[] elms = tuple.getElements();
 						if (elms.length >= 2) {
 							ExprElm returnExpr = elms[0];
-							ExprElm[] rest = Utilities.arrayRange(elms, 1, elms.length-1, ExprElm.class);
+							ExprElm[] rest = ArrayUtil.arrayRange(elms, 1, elms.length-1, ExprElm.class);
 							replacements.add(
 									Messages.ClonkQuickAssistProcessor_RearrangeReturnStatement,
 									new BunchOfStatements(
-											ArrayHelpers.concat(SimpleStatement.wrapExpressions(rest), new ReturnStatement(returnExpr))
+											ArrayUtil.concat(SimpleStatement.wrapExpressions(rest), new ReturnStatement(returnExpr))
 									)
 							);
 						}

@@ -1,18 +1,7 @@
 package net.arctics.clonk.util;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.io.Reader;
 import java.lang.reflect.Array;
 import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -23,7 +12,6 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Set;
 
-import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.index.C4ObjectIntern;
 import net.arctics.clonk.index.ClonkIndex;
 import net.arctics.clonk.parser.BufferedScanner;
@@ -39,7 +27,6 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.Region;
@@ -63,7 +50,6 @@ import org.eclipse.ui.console.IConsoleView;
 import org.eclipse.ui.console.MessageConsole;
 import org.eclipse.ui.console.MessageConsoleStream;
 import org.eclipse.ui.dialogs.ElementListSelectionDialog;
-import org.eclipse.ui.editors.text.TextFileDocumentProvider;
 import org.eclipse.ui.navigator.CommonNavigator;
 import org.eclipse.ui.part.FileEditorInput;
 
@@ -168,26 +154,6 @@ public abstract class Utilities {
 			return ((C4ScriptEditor) editor).scriptBeingEdited();
 		else
 			return null;
-	}
-
-	public static boolean looksLikeID(String word) {
-		if (word == null || word.length() != 4)
-			return false;
-		int digits = 0;
-		for(int i = 0; i < 4;i++) {
-			int readChar = word.charAt(i);
-			if ('0' <= readChar && readChar <= '9')
-				digits++;
-			if (('A' <= readChar && readChar <= 'Z') ||
-			    ('0' <= readChar && readChar <= '9') ||
-			    (readChar == '_')) {
-				continue;
-			}
-			else {
-				return false;
-			}
-		}
-		return digits != 4; // rather interpret 1000 as int
 	}
 
 	/**
@@ -338,21 +304,6 @@ public abstract class Utilities {
 		else
 			return value;
 	}
-
-	public static void refreshClonkProjects(IProgressMonitor monitor) throws CoreException {
-		IProject[] projects = ResourcesPlugin.getWorkspace().getRoot().getProjects();
-		if (monitor != null)
-			monitor.beginTask(Messages.Utilities_RefreshingProjects, projects.length);
-		int work = 0;
-		for (IProject p : projects) {
-			if (ClonkProjectNature.get(p) != null)
-				p.refreshLocal(IResource.DEPTH_INFINITE, monitor);
-			if (monitor != null)
-				monitor.worked(work++);
-		}
-		if (monitor != null)
-			monitor.done();
-	}
 	
 	public static <T> T itemMatching(IPredicate<T> predicate, List<T> sectionsList) {
 		for (T item : sectionsList)
@@ -392,88 +343,6 @@ public abstract class Utilities {
 			}
 		}
 		return false;
-	}
-	
-	public static String stringFromReader(Reader reader) {
-		char[] buffer = new char[1024];
-		int read;
-		StringBuilder builder = new StringBuilder(1024);
-		try {
-			while ((read = reader.read(buffer)) > 0) {
-				builder.append(buffer, 0, read);
-			}
-		} catch (IOException e) {
-			return "";
-		}
-		return builder.toString();
-	}
-	
-	public static String stringFromInputStream(InputStream stream, String encoding) throws IOException {
-		InputStreamReader inputStreamReader = new InputStreamReader(stream, encoding);
-		try {
-			return stringFromReader(inputStreamReader);
-		} finally {
-			inputStreamReader.close();
-		}
-	}
-	
-	public static String stringFromInputStream(InputStream stream) {
-		try {
-			return stringFromInputStream(stream, "UTF-8"); //$NON-NLS-1$
-		} catch (IOException e) {
-			e.printStackTrace();
-			return "";
-		}
-	}
-	
-	public static String stringFromFile(IFile file) {
-		InputStream stream;
-		try {
-			stream = file.getContents();
-		} catch (CoreException e1) {
-			return null;
-		}
-		try {
-			return stringFromInputStream(stream);
-		} finally {
-			try {
-				stream.close();
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		}
-	}
-	
-	public static String stringFromFile(File file) {
-		InputStream stream;
-		try {
-			stream = new FileInputStream(file);
-		} catch (FileNotFoundException e) {
-			return "";
-		}
-		try {
-			return stringFromInputStream(stream);
-		} finally {
-			try {
-				stream.close();
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		}
-	}
-
-	public static String stringFromFileDocument(IFile file) {
-		TextFileDocumentProvider provider = ClonkCore.getDefault().getTextFileDocumentProvider();
-		try {
-			provider.connect(file);
-		} catch (CoreException e) {
-			return "";
-		}
-		try {
-			return provider.getDocument(file).get();
-		} finally {
-			provider.disconnect(file);
-		}
 	}
 
 	public static CommonNavigator getProjectExplorer() {
@@ -690,34 +559,6 @@ public abstract class Utilities {
 		return builder.toString();
 	}
 	
-	public static <T> T firstOrNull(T[] arr) {
-		return arr != null && arr.length > 0 ? arr[0] : null;
-	}
-	
-	public static <T> T[] removeNullElements(T[] array, Class<T> cls) {
-		int actualCount = 0;
-		for (T t : array)
-			if (t != null)
-				actualCount++;
-		if (actualCount != array.length) {
-			@SuppressWarnings("unchecked")
-			T[] nonNullIngredients = (T[])Array.newInstance(cls, actualCount);
-			actualCount = 0;
-			for (T t : array)
-				if (t != null)
-					nonNullIngredients[actualCount++] = t;
-			array = nonNullIngredients;
-		}
-		return array;
-	}
-	
-	public static <E> ArrayList<E> list(E... elements) {
-		ArrayList<E> result = new ArrayList<E>(elements.length);
-		for (E e : elements)
-			result.add(e);
-		return result;
-	}
-	
 // Copy-Pasta org.eclipse.jdt.internal.ui.text.correction.NameMatcher
 	
 	private static boolean isSimilarChar(char ch1, char ch2) {
@@ -768,31 +609,5 @@ public abstract class Utilities {
 	}
 	
 	// --------
-	
-	public static <T, B extends T> T[] arrayRange(B[] source, int start, int length, Class<T> elementClass) {
-		@SuppressWarnings("unchecked")
-		T[] result = (T[]) Array.newInstance(elementClass, length);
-		for (int i = 0; i < length; i++) {
-			result[i] = source[start+i];
-		}
-		return result;
-	}
-	
-	public interface StreamWriteRunnable {
-		void run(File file, OutputStream stream, OutputStreamWriter writer) throws IOException;
-	}
-	public static void writeToFile(File file, StreamWriteRunnable runnable) throws IOException {
-		FileOutputStream s = new FileOutputStream(file);
-		try {
-			OutputStreamWriter writer = new OutputStreamWriter(s);
-			try {
-				runnable.run(file, s, writer);
-			} finally {
-				writer.close();
-			}
-		} finally {
-			s.close();
-		}
-	}
 	
 }

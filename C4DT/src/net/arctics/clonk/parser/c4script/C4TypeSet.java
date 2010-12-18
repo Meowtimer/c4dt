@@ -11,7 +11,7 @@ import java.util.Set;
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.index.C4Object;
 import net.arctics.clonk.index.ClonkIndex;
-import net.arctics.clonk.util.Utilities;
+import net.arctics.clonk.util.ArrayUtil;
 
 public class C4TypeSet implements IType {
 
@@ -51,7 +51,7 @@ public class C4TypeSet implements IType {
 	public static IType create(IType... ingredients) {
 		
 		// remove null elements most tediously
-		ingredients = Utilities.removeNullElements(ingredients, IType.class);
+		ingredients = ArrayUtil.removeNullElements(ingredients, IType.class);
 		int actualCount = ingredients.length;
 		
 		// remove less specific types that are already contained in more specific ones

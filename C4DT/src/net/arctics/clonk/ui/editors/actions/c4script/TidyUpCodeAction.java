@@ -18,8 +18,7 @@ import net.arctics.clonk.parser.c4script.ast.Statement;
 import net.arctics.clonk.parser.c4script.ast.TraversalContinuation;
 import net.arctics.clonk.ui.editors.IClonkCommandIds;
 import net.arctics.clonk.ui.editors.c4script.C4ScriptEditor;
-import net.arctics.clonk.util.Utilities;
-
+import net.arctics.clonk.util.ArrayUtil;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.jface.text.BadLocationException;
@@ -96,7 +95,7 @@ public class TidyUpCodeAction extends TextEditorAction {
 				C4Function activeFunc = parser.getActiveFunc();
 				// initialization expression for variable for example... needs to be reformatted as well
 				if (activeFunc == null) {
-					chunks.addFirst(new CodeChunk(parser.getActiveVariableBeingDeclared(), Utilities.list(expression)));
+					chunks.addFirst(new CodeChunk(parser.getActiveVariableBeingDeclared(), ArrayUtil.list(expression)));
 					return TraversalContinuation.Continue;
 				}
 				if (!(expression instanceof Statement))

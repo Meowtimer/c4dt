@@ -3,8 +3,7 @@ package net.arctics.clonk.parser;
 import java.io.InputStream;
 import java.io.Reader;
 
-import net.arctics.clonk.util.Utilities;
-
+import net.arctics.clonk.util.StreamUtil;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.Region;
@@ -60,11 +59,11 @@ public class BufferedScanner {
 	
 	private static String stringFromSource(Object source) {
 		if (source instanceof IFile) {
-			return Utilities.stringFromFileDocument((IFile) source);
+			return StreamUtil.stringFromFileDocument((IFile) source);
 		} else if (source instanceof Reader) {
-			return Utilities.stringFromReader((Reader)source);
+			return StreamUtil.stringFromReader((Reader)source);
 		} else if (source instanceof InputStream) {
-			return Utilities.stringFromInputStream((InputStream)source);
+			return StreamUtil.stringFromInputStream((InputStream)source);
 		} else if (source instanceof String) {
 			return (String)source;
 		} else {

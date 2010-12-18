@@ -6,6 +6,7 @@ import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.index.ClonkIndex;
 import net.arctics.clonk.parser.C4Structure;
 import net.arctics.clonk.resource.ClonkProjectNature;
+import net.arctics.clonk.util.StreamUtil;
 import net.arctics.clonk.util.Utilities;
 
 import org.eclipse.core.resources.IFile;
@@ -44,7 +45,7 @@ public class C4ScriptIntern extends C4ScriptBase implements Serializable {
 	@Override
 	public String getScriptText() {
 		try {
-			return scriptFile instanceof IFile ? Utilities.stringFromFileDocument((IFile)scriptFile) : null;
+			return scriptFile instanceof IFile ? StreamUtil.stringFromFileDocument((IFile)scriptFile) : null;
 		} catch (Exception e) {
 			return null;
 		}

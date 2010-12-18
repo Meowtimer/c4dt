@@ -31,6 +31,7 @@ import net.arctics.clonk.resource.c4group.C4GroupItem;
 import net.arctics.clonk.util.IHasChildren;
 import net.arctics.clonk.util.IPredicate;
 import net.arctics.clonk.util.ITreeNode;
+import net.arctics.clonk.util.StreamUtil;
 import net.arctics.clonk.util.Utilities;
 
 import org.eclipse.core.resources.IFile;
@@ -100,7 +101,7 @@ public class IniUnit extends C4Structure implements Iterable<IniSection>, IHasCh
 			scanner = new BufferedScanner(file) {
 				@Override
 				public void reset() {
-					reset(Utilities.stringFromFile(file));
+					reset(StreamUtil.stringFromFile(file));
 				};
 			};
 		} catch (Exception e) {

@@ -22,6 +22,7 @@ import net.arctics.clonk.parser.inireader.IniEntry;
 import net.arctics.clonk.parser.inireader.IntegerArray;
 import net.arctics.clonk.preferences.ClonkPreferences;
 import net.arctics.clonk.resource.ClonkProjectNature;
+import net.arctics.clonk.util.StreamUtil;
 import net.arctics.clonk.util.Utilities;
 
 import org.eclipse.core.resources.IContainer;
@@ -294,10 +295,10 @@ public class ClonkPreviewView extends ViewPart implements ISelectionListener, Co
 					}
 				}
 				else if (fileName.endsWith(".rtf")) { //$NON-NLS-1$
-					newHtml = rtfToHtml(Utilities.stringFromFileDocument(file));
+					newHtml = rtfToHtml(StreamUtil.stringFromFileDocument(file));
 				}
 				else if (fileName.endsWith(".txt")) { //$NON-NLS-1$
-					newHtml = Utilities.stringFromFileDocument(file);
+					newHtml = StreamUtil.stringFromFileDocument(file);
 				}
 			}
 			else if (sel instanceof IContainer && ((IContainer)sel).getProject().isOpen()) {
@@ -309,12 +310,12 @@ public class ClonkPreviewView extends ViewPart implements ISelectionListener, Co
 
 				IResource descFile = Utilities.findMemberCaseInsensitively(container, "Desc"+ClonkPreferences.getLanguagePref()+".rtf"); //$NON-NLS-1$ //$NON-NLS-2$
 				if (descFile instanceof IFile) {
-					newHtml = rtfToHtml(Utilities.stringFromFileDocument((IFile) descFile));
+					newHtml = rtfToHtml(StreamUtil.stringFromFileDocument((IFile) descFile));
 				}
 				else {
 					descFile = Utilities.findMemberCaseInsensitively(container, "Desc"+ClonkPreferences.getLanguagePref()+".txt"); //$NON-NLS-1$ //$NON-NLS-2$
 					if (descFile instanceof IFile) {
-						newHtml = Utilities.stringFromFileDocument((IFile) descFile);
+						newHtml = StreamUtil.stringFromFileDocument((IFile) descFile);
 					}
 				}
 

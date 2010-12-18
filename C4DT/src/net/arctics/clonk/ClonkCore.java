@@ -31,9 +31,9 @@ import net.arctics.clonk.preferences.ClonkPreferences;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.util.IStorageLocation;
 import net.arctics.clonk.util.ReadOnlyIterator;
+import net.arctics.clonk.util.StreamUtil;
 import net.arctics.clonk.util.UI;
-import net.arctics.clonk.util.Utilities;
-import net.arctics.clonk.util.Utilities.StreamWriteRunnable;
+import net.arctics.clonk.util.StreamUtil.StreamWriteRunnable;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
@@ -129,7 +129,7 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 	public void start(BundleContext context) throws Exception {
 		super.start(context);
 		
-		versionFromLastRun = Utilities.stringFromFile(new File(getStateLocation().toFile(), VERSION_REMEMBERANCE_FILE));
+		versionFromLastRun = StreamUtil.stringFromFile(new File(getStateLocation().toFile(), VERSION_REMEMBERANCE_FILE));
 		
 		plugin = this;
 
@@ -504,7 +504,7 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 	private void rememberCurrentVersion() {
 		File currentVersionMarker = new File(getStateLocation().toFile(), VERSION_REMEMBERANCE_FILE);
 		try {
-			Utilities.writeToFile(currentVersionMarker, new StreamWriteRunnable() {
+			StreamUtil.writeToFile(currentVersionMarker, new StreamWriteRunnable() {
 				@Override
 				public void run(File file, OutputStream stream, OutputStreamWriter writer) throws IOException {
 					writer.append(versionString());

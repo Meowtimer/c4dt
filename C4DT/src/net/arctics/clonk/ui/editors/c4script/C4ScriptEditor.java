@@ -45,6 +45,7 @@ import net.arctics.clonk.ui.editors.actions.c4script.FindDuplicateAction;
 import net.arctics.clonk.ui.editors.actions.c4script.TidyUpCodeAction;
 import net.arctics.clonk.ui.editors.actions.c4script.FindReferencesAction;
 import net.arctics.clonk.ui.editors.actions.c4script.RenameDeclarationAction;
+import net.arctics.clonk.util.StreamUtil;
 import net.arctics.clonk.util.Utilities;
 
 import org.eclipse.core.resources.IFile;
@@ -509,7 +510,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		if (document instanceof IDocument) {
 			parser = new C4ScriptParser(((IDocument)document).get(), script, script.getScriptFile());
 		} else if (document instanceof IFile) {
-			parser = new C4ScriptParser(Utilities.stringFromFile((IFile)document), script, (IFile)document);
+			parser = new C4ScriptParser(StreamUtil.stringFromFile((IFile)document), script, (IFile)document);
 		} else {
 			throw new InvalidParameterException("document");
 		}

@@ -47,6 +47,7 @@ import net.arctics.clonk.parser.inireader.IniUnit;
 import net.arctics.clonk.preferences.ClonkPreferences;
 import net.arctics.clonk.util.IStorageLocation;
 import net.arctics.clonk.util.LineNumberObtainer;
+import net.arctics.clonk.util.StreamUtil;
 import net.arctics.clonk.util.Utilities;
 
 /**
@@ -430,7 +431,7 @@ public class C4Engine extends C4ScriptBase {
 	public void parseEngineScript(final URL url) throws IOException, ParsingException {
 		InputStream stream = url.openStream();
 		try {
-			String scriptFromStream = Utilities.stringFromInputStream(stream);
+			String scriptFromStream = StreamUtil.stringFromInputStream(stream);
 			final LineNumberObtainer lno = new LineNumberObtainer(scriptFromStream);
 			C4ScriptParser parser = new C4ScriptParser(scriptFromStream, this, null) {
 				private boolean firstMessage = true;
