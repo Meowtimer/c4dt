@@ -241,7 +241,7 @@ public class CallFunc extends AccessDeclaration {
 		if (declarationName.equals(Keywords.Return))
 			return null;
 		if (declarationName.equals(Keywords.Inherited) || declarationName.equals(Keywords.SafeInherited)) {
-			C4Function activeFunc = parser.getActiveFunc();
+			C4Function activeFunc = parser.getCurrentFunc();
 			return activeFunc != null ? activeFunc.getInherited() : null;
 		}
 		ExprElm p = getPredecessorInSequence();
@@ -361,7 +361,7 @@ public class CallFunc extends AccessDeclaration {
 					Object scriptExpr = params[0].evaluateAtParseTime(script);
 					if (scriptExpr instanceof String) {
 						try {
-							C4ScriptParser.parseStandaloneStatement((String)scriptExpr, context.getActiveFunc(), null, new IMarkerListener() {
+							C4ScriptParser.parseStandaloneStatement((String)scriptExpr, context.getCurrentFunc(), null, new IMarkerListener() {
 								@Override
 								public WhatToDo markerEncountered(C4ScriptParser parser, ParserErrorCode code, int markerStart, int markerEnd, boolean noThrow, int severity, Object... args) {
 									// ignore complaining about missing ';'
@@ -409,9 +409,9 @@ public class CallFunc extends AccessDeclaration {
 			}
 			else if (declaration == null && unknownFunctionShouldBeError(context)) {
 				if (declarationName.equals(Keywords.Inherited)) {
-					C4Function activeFunc = context.getActiveFunc();
+					C4Function activeFunc = context.getCurrentFunc();
 					if (activeFunc != null) {
-						context.errorWithCode(ParserErrorCode.NoInheritedFunction, getExprStart(), getExprStart()+declarationName.length(), true, context.getActiveFunc().getName(), true);
+						context.errorWithCode(ParserErrorCode.NoInheritedFunction, getExprStart(), getExprStart()+declarationName.length(), true, context.getCurrentFunc().getName(), true);
 					} else {
 						context.errorWithCode(ParserErrorCode.NotAllowedHere, getExprStart(), getExprStart()+declarationName.length(), true, declarationName);
 					}
@@ -512,10 +512,10 @@ public class CallFunc extends AccessDeclaration {
 		// Par(5) -> nameOfParm6
 		if (params.length <= 1 && declaration != null && declaration == getCachedFuncs(parser).Par && (params.length == 0 || params[0] instanceof NumberLiteral)) {
 			NumberLiteral number = params.length > 0 ? (NumberLiteral) params[0] : NumberLiteral.ZERO;
-			C4Function activeFunc = parser.getActiveFunc();
+			C4Function activeFunc = parser.getCurrentFunc();
 			if (activeFunc != null) {
 				if (number.intValue() >= 0 && number.intValue() < activeFunc.getParameters().size() && activeFunc.getParameters().get(number.intValue()).isActualParm())
-					return new AccessVar(parser.getActiveFunc().getParameters().get(number.intValue()).getName());
+					return new AccessVar(parser.getCurrentFunc().getParameters().get(number.intValue()).getName());
 			}
 		}
 		

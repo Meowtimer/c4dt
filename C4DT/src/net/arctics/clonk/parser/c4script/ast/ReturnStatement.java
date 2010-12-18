@@ -112,11 +112,11 @@ public class ReturnStatement extends KeywordStatement {
 	public void reportErrors(C4ScriptParser parser) throws ParsingException {
 		super.reportErrors(parser);
 		warnAboutTupleInReturnExpr(parser, returnExpr, false);
-		C4Function activeFunc = parser.getActiveFunc();
+		C4Function activeFunc = parser.getCurrentFunc();
 		if (activeFunc == null) {
 			parser.errorWithCode(ParserErrorCode.NotAllowedHere, this, true, Keywords.Return);
 		} else if (returnExpr != null) {
-			new CallFunc(parser.getActiveFunc()).expectedToBeOfType(returnExpr.getType(parser), parser, TypeExpectancyMode.Expect);
+			new CallFunc(parser.getCurrentFunc()).expectedToBeOfType(returnExpr.getType(parser), parser, TypeExpectancyMode.Expect);
 		}
 	}
 }

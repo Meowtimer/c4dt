@@ -391,4 +391,8 @@ public class C4Variable extends C4Declaration implements Serializable, ITypedDec
 		}
 	}
 	
+	public C4Function getFunction() {
+		return getTopLevelParentDeclarationOfType(C4Function.class);
+	}
+	
 }

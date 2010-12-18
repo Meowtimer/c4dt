@@ -88,8 +88,8 @@ public class PropListExpression extends Value implements IType, IPostSerializabl
 	}
 	
 	public IniConfiguration guessedConfiguration(C4ScriptParser context) {
-		if (context.getActiveVariableBeingDeclared() != null) {
-			return context.getContainer().getEngine().getIniConfigurations().getConfigurationFor(context.getActiveVariableBeingDeclared().getName()+".txt");
+		if (context.getCurrentVariableBeingDeclared() != null) {
+			return context.getContainer().getEngine().getIniConfigurations().getConfigurationFor(context.getCurrentVariableBeingDeclared().getName()+".txt");
 		} else {
 			return null;
 		}
@@ -123,7 +123,12 @@ public class PropListExpression extends Value implements IType, IPostSerializabl
 
 	@Override
 	public String typeName(boolean special) {
-		return "<Known proplist>";
+		String printed = toString();
+		if (printed.length() < 20) {
+			return printed;
+		} else {
+			return "proplist {...}";
+		}
 	}
 
 	@Override

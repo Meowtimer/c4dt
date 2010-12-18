@@ -562,13 +562,17 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable {
 	}
 	
 	// getting/setting some associated variable so the exprelm knows from whence it came
-	
+	;
 	public C4Declaration associatedDeclaration() {
 		return null;
 	}
 	
 	public void setAssociatedDeclaration(C4Declaration declaration) {
-		// ignore
+		for (ExprElm s : getSubElements()) {
+			if (s != null) {
+				s.setAssociatedDeclaration(declaration);
+			}
+		}
 	}
 
 }

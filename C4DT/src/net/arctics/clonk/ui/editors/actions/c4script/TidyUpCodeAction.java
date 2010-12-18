@@ -92,10 +92,10 @@ public class TidyUpCodeAction extends TextEditorAction {
 			private List<Comment> commentsOnOld = new LinkedList<Comment>();
 			
 			public TraversalContinuation expressionDetected(ExprElm expression, C4ScriptParser parser) {
-				C4Function activeFunc = parser.getActiveFunc();
+				C4Function activeFunc = parser.getCurrentFunc();
 				// initialization expression for variable for example... needs to be reformatted as well
 				if (activeFunc == null) {
-					chunks.addFirst(new CodeChunk(parser.getActiveVariableBeingDeclared(), ArrayUtil.list(expression)));
+					chunks.addFirst(new CodeChunk(parser.getCurrentVariableBeingDeclared(), ArrayUtil.list(expression)));
 					return TraversalContinuation.Continue;
 				}
 				if (!(expression instanceof Statement))
@@ -139,7 +139,7 @@ public class TidyUpCodeAction extends TextEditorAction {
 					C4Variable var = chunk.relatedDeclaration instanceof C4Variable ? (C4Variable)chunk.relatedDeclaration : null;
 					IRegion region = func != null ? func.getBody() : var.getInitializationExpressionLocation();
 					List<ExprElm> elms = chunk.expressions;
-					parser.setActiveFunc(func);
+					parser.setCurrentFunc(func);
 					if (func != null && wholeFuncConversion) {
 						ExprElm[] expressionsInRightOrder = new ExprElm[elms.size()];
 						int counter = expressionsInRightOrder.length-1;

@@ -113,7 +113,7 @@ public class AccessVar extends AccessDeclaration {
 		}
 		if (scriptToLookIn != null) {
 			FindDeclarationInfo info = new FindDeclarationInfo(parser.getContainer().getIndex());
-			info.setContextFunction(parser.getActiveFunc());
+			info.setContextFunction(parser.getCurrentFunc());
 			info.setSearchOrigin(scriptToLookIn);
 			return scriptToLookIn.findVariable(declarationName, info);
 		} else {
@@ -134,9 +134,9 @@ public class AccessVar extends AccessDeclaration {
 			switch (var.getScope()) {
 				case LOCAL:
 					if (
-						(parser.getActiveFunc() != null && parser.getActiveFunc().getVisibility() == C4FunctionScope.GLOBAL) ||
+						(parser.getCurrentFunc() != null && parser.getCurrentFunc().getVisibility() == C4FunctionScope.GLOBAL) ||
 						// initialization a non-local variable with local values -> fail
-						(parser.getActiveVariableBeingDeclared() != null && parser.getActiveVariableBeingDeclared().getScope() != C4VariableScope.LOCAL)
+						(parser.getCurrentVariableBeingDeclared() != null && parser.getCurrentVariableBeingDeclared().getScope() != C4VariableScope.LOCAL)
 					) {
 						parser.errorWithCode(ParserErrorCode.LocalUsedInGlobal, this, true);
 					}
@@ -145,8 +145,8 @@ public class AccessVar extends AccessDeclaration {
 					parser.getContainer().addUsedProjectScript(var.getScript());
 					break;
 				case VAR:
-					if (var.getLocation() != null) {
-						int locationUsed = parser.getActiveFunc().getBody().getOffset()+this.getExprStart();
+					if (var.getLocation() != null && parser.getCurrentFunc() != null && var.getFunction() == parser.getCurrentFunc()) {
+						int locationUsed = parser.getCurrentFunc().getBody().getOffset()+this.getExprStart();
 						if (locationUsed < var.getLocation().getOffset())
 							parser.warningWithCode(ParserErrorCode.VarUsedBeforeItsDeclaration, this, var.getName());
 					}

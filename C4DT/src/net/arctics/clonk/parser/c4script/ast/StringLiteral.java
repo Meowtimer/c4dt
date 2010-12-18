@@ -79,7 +79,7 @@ public final class StringLiteral extends Literal<String> {
 				// parse first parm of Schedule as expression and see what goes
 				ExpressionLocator locator = new ExpressionLocator(offset-1); // make up for '"'
 				try {
-					C4ScriptParser.parseStandaloneStatement(getLiteral(), parser.getActiveFunc(), locator);
+					C4ScriptParser.parseStandaloneStatement(getLiteral(), parser.getCurrentFunc(), locator);
 				} catch (ParsingException e) {}
 				if (locator.getExprAtRegion() != null) {
 					DeclarationRegion reg = locator.getExprAtRegion().declarationAt(offset, parser);

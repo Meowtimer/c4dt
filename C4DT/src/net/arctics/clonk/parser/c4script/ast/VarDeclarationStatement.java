@@ -102,7 +102,7 @@ public class VarDeclarationStatement extends KeywordStatement {
 	}
 	@Override
 	public DeclarationRegion declarationAt(int offset, C4ScriptParser parser) {
-		C4Function activeFunc = parser.getActiveFunc();
+		C4Function activeFunc = parser.getCurrentFunc();
 		if (activeFunc != null) {				
 			int addToMakeAbsolute = activeFunc.getBody().getStart() + this.getExprStart();
 			offset += addToMakeAbsolute;
