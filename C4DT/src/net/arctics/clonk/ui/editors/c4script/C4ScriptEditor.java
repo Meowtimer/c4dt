@@ -267,13 +267,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		}
 		
 		public static TextChangeListener getListenerFor(IDocument document) {
-			TextChangeListener result = (TextChangeListener) listeners.get(document);
-			if (result != null) {
-				if (!document.get().equals(result.document.get())) {
-					System.out.println("Not actually the same");
-				}
-			}
-			return result;
+			return (TextChangeListener) listeners.get(document);
 		}
 	}
 
