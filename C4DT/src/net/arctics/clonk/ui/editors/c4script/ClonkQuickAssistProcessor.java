@@ -483,6 +483,7 @@ public class ClonkQuickAssistProcessor implements IQuickAssistProcessor, IMarker
 							Messages.ClonkQuickAssistProcessor_CommentOutStatement,
 							new Comment(topLevel.toString(), s.contains("\n")) //$NON-NLS-1$
 					);
+					addRemoveReplacement(document, expressionRegion, replacements);
 					break;
 				}
 				case NotFinished:
@@ -578,10 +579,7 @@ public class ClonkQuickAssistProcessor implements IQuickAssistProcessor, IMarker
 								Messages.ClonkQuickAssistProcessor_ConvertToReturn,
 								new ReturnStatement((statement.getExpression()))
 						);
-						replacements.add(
-								Messages.ClonkQuickAssistProcessor_Remove,
-								new ReplacementStatement("", expressionRegion, document, expressionRegion.getOffset(), true) //$NON-NLS-1$
-						).regionToBeReplacedSpecifiedByReplacementExpression = true;
+						addRemoveReplacement(document, expressionRegion, replacements);
 						CallFunc callFunc = new CallFunc(Messages.ClonkQuickAssistProcessor_FunctionToBeCalled, statement.getExpression());
 						replacements.add(Messages.ClonkQuickAssistProcessor_WrapWithFunctionCall, callFunc, callFunc);
 					}
@@ -698,6 +696,13 @@ public class ClonkQuickAssistProcessor implements IQuickAssistProcessor, IMarker
 			}
 		}
 
+	}
+
+	private void addRemoveReplacement(IDocument document, final IRegion expressionRegion, ReplacementsList replacements) {
+		replacements.add(
+			Messages.ClonkQuickAssistProcessor_Remove,
+			new ReplacementStatement("", expressionRegion, document, expressionRegion.getOffset(), true) //$NON-NLS-1$
+		).regionToBeReplacedSpecifiedByReplacementExpression = true;
 	}
 
 	public String getErrorMessage() {
