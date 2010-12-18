@@ -13,8 +13,11 @@ import net.arctics.clonk.parser.c4script.C4ScriptIntern;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IProjectNature;
 import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.IncrementalProjectBuilder;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.ui.part.FileEditorInput;
 import org.eclipse.ui.texteditor.ITextEditor;
 
@@ -95,18 +98,29 @@ public class ClonkProjectNature implements IProjectNature {
 	 * Loads the index from disk
 	 */
 	private synchronized void loadIndex() {
-		ProjectIndex loadedIndex = ClonkIndex.load(ProjectIndex.class, getIndexFileLocation().toFile(), null);
-		if (loadedIndex != null) {
-			index = loadedIndex; // necessary to avoid infinite recursion
-			loadedIndex.setProject(getProject());
+		if (ClonkCore.getDefault().updateTookPlace()) {
+			System.out.println(String.format("Update took place: Cleaning project %s", this.project.getName()));
+			index = new ProjectIndex(getProject());
+			IProgressMonitor monitor = new NullProgressMonitor();
 			try {
-				loadedIndex.postSerialize();
+				project.build(IncrementalProjectBuilder.CLEAN_BUILD, monitor);
 			} catch (CoreException e) {
 				e.printStackTrace();
-				loadedIndex = null;
 			}
+		} else {
+			ProjectIndex loadedIndex = ClonkIndex.load(ProjectIndex.class, getIndexFileLocation().toFile(), null);
+			if (loadedIndex != null) {
+				index = loadedIndex; // necessary to avoid infinite recursion
+				loadedIndex.setProject(getProject());
+				try {
+					loadedIndex.postSerialize();
+				} catch (CoreException e) {
+					e.printStackTrace();
+					loadedIndex = null;
+				}
+			}
+			index = loadedIndex != null ? loadedIndex : new ProjectIndex(getProject());
 		}
-		index = loadedIndex != null ? loadedIndex : new ProjectIndex(getProject());
 	}
 	
 	/**

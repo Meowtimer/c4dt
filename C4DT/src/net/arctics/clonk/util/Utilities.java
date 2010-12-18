@@ -1,8 +1,14 @@
 package net.arctics.clonk.util;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 import java.io.Reader;
 import java.lang.reflect.Array;
 import java.lang.reflect.InvocationTargetException;
@@ -427,23 +433,29 @@ public abstract class Utilities {
 		} catch (CoreException e1) {
 			return null;
 		}
-		InputStreamReader reader = new InputStreamReader(stream);
 		try {
-			char[] characters = new char[1024];
-			int read;
-			try {
-				StringBuilder builder = new StringBuilder();
-				while ((read = reader.read(characters)) > 0) {
-					builder.append(characters, 0, read);
-				}
-				return builder.toString();
-			} catch (IOException e) {
-				e.printStackTrace();
-				return null;
-			}
+			return stringFromInputStream(stream);
 		} finally {
 			try {
-				reader.close();
+				stream.close();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+	}
+	
+	public static String stringFromFile(File file) {
+		InputStream stream;
+		try {
+			stream = new FileInputStream(file);
+		} catch (FileNotFoundException e) {
+			return "";
+		}
+		try {
+			return stringFromInputStream(stream);
+		} finally {
+			try {
+				stream.close();
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
@@ -764,6 +776,23 @@ public abstract class Utilities {
 			result[i] = source[start+i];
 		}
 		return result;
+	}
+	
+	public interface StreamWriteRunnable {
+		void run(File file, OutputStream stream, OutputStreamWriter writer) throws IOException;
+	}
+	public static void writeToFile(File file, StreamWriteRunnable runnable) throws IOException {
+		FileOutputStream s = new FileOutputStream(file);
+		try {
+			OutputStreamWriter writer = new OutputStreamWriter(s);
+			try {
+				runnable.run(file, s, writer);
+			} finally {
+				writer.close();
+			}
+		} finally {
+			s.close();
+		}
 	}
 	
 }

@@ -8,6 +8,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Collections;
@@ -31,6 +32,8 @@ import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.util.IStorageLocation;
 import net.arctics.clonk.util.ReadOnlyIterator;
 import net.arctics.clonk.util.UI;
+import net.arctics.clonk.util.Utilities;
+import net.arctics.clonk.util.Utilities.StreamWriteRunnable;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
@@ -115,6 +118,9 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 	public ClonkCore() {
 	}
 	
+	private static final String VERSION_REMEMBERANCE_FILE = "version.txt";
+	private String versionFromLastRun;
+	
 	/*
 	 * (non-Javadoc)
 	 * @see org.eclipse.ui.plugin.AbstractUIPlugin#start(org.osgi.framework.BundleContext)
@@ -122,6 +128,9 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 	@SuppressWarnings("deprecation")
 	public void start(BundleContext context) throws Exception {
 		super.start(context);
+		
+		versionFromLastRun = Utilities.stringFromFile(new File(getStateLocation().toFile(), VERSION_REMEMBERANCE_FILE));
+		
 		plugin = this;
 
 		loadActiveEngine();
@@ -463,6 +472,7 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 			break;
 		case ISaveContext.SNAPSHOT:
 		case ISaveContext.FULL_SAVE:
+			rememberCurrentVersion();
 			for (C4Engine engine : loadedEngines.values()) {
 				try {
 					engine.saveSettings();
@@ -484,6 +494,24 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 			}
 			removeOldIndexes();
 			break;
+		}
+	}
+
+	public String versionString() {
+		return getBundle().getVersion().toString();
+	}
+	
+	private void rememberCurrentVersion() {
+		File currentVersionMarker = new File(getStateLocation().toFile(), VERSION_REMEMBERANCE_FILE);
+		try {
+			Utilities.writeToFile(currentVersionMarker, new StreamWriteRunnable() {
+				@Override
+				public void run(File file, OutputStream stream, OutputStreamWriter writer) throws IOException {
+					writer.append(versionString());
+				}
+			});
+		} catch (IOException e) {
+			e.printStackTrace();
 		}
 	}
 
@@ -645,6 +673,10 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 		} catch (CoreException e) {
 			e.printStackTrace();
 		}
+	}
+	
+	public boolean updateTookPlace() {
+		return !versionString().equals(versionFromLastRun);
 	}
 
 }
