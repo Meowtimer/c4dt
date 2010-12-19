@@ -123,15 +123,20 @@ public class C4TypeSet implements IType {
 
 	@Override
 	public String typeName(boolean special) {
+		Set<String> typeNames = new HashSet<String>();
+		for (IType t : this) {
+			typeNames.add(t.typeName(special));
+		}
+		
 		StringBuilder builder = new StringBuilder(20);
 		builder.append("<");
 		boolean started = true;
-		for (IType t : this) {
+		for (String tn : typeNames) {
 			if (started)
 				started = false;
 			else
 				builder.append(" or ");
-			builder.append(t.typeName(special));
+			builder.append(tn);
 		}
 		builder.append(">");
 		return builder.toString();

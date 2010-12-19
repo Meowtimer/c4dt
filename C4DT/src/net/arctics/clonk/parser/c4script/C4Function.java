@@ -21,6 +21,10 @@ public class C4Function extends C4Structure implements Serializable, ITypedDecla
 	private C4FunctionScope visibility; 
 	private List<C4Variable> localVars;
 	private List<C4Variable> parameter;
+	/**
+	 * Various other declarations (like proplists) that aren't variables/parameters
+	 */
+	private List<C4Declaration> otherDeclarations;
 	private IType returnType;
 	private SerializableType returnObjectType;
 	private String description;
@@ -498,7 +502,7 @@ public class C4Function extends C4Structure implements Serializable, ITypedDecla
 	@SuppressWarnings("unchecked")
 	@Override
 	public Iterable<C4Declaration> allSubDeclarations() {
-		return new CompoundIterable<C4Declaration>(localVars, parameter); 
+		return new CompoundIterable<C4Declaration>(localVars, parameter, otherDeclarations); 
 	}
 	
 	@Override
@@ -562,6 +566,23 @@ public class C4Function extends C4Structure implements Serializable, ITypedDecla
 
 	public void clearLocalVars() {
 		getLocalVars().clear();
+	}
+	
+	public void addOtherDeclaration(C4Declaration d) {
+		if (otherDeclarations == null) {
+			otherDeclarations = new ArrayList<C4Declaration>(3);
+		}
+		otherDeclarations.add(d);
+	}
+	
+	private static final List<C4Declaration> NO_OTHER_DECLARATIONS = new ArrayList<C4Declaration>();
+	
+	public List<C4Declaration> getOtherDeclarations() {
+		if (otherDeclarations == null) {
+			return NO_OTHER_DECLARATIONS;
+		} else {
+			return otherDeclarations;
+		}
 	}
 	
 }

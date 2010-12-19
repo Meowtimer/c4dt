@@ -14,21 +14,31 @@ import net.arctics.clonk.parser.c4script.C4Type;
 import net.arctics.clonk.parser.c4script.C4Variable;
 import net.arctics.clonk.parser.c4script.IHasSubDeclarations;
 import net.arctics.clonk.parser.c4script.IType;
+import net.arctics.clonk.parser.c4script.ProplistDeclaration;
 import net.arctics.clonk.parser.inireader.IniData.IniConfiguration;
 import net.arctics.clonk.ui.editors.c4script.IPostSerializable;
 
-public class PropListExpression extends Value implements IType, IPostSerializable<IPostSerializable<?>>, IHasSubDeclarations {
+public class PropListExpression extends Value implements IType, IPostSerializable<C4Declaration>, IHasSubDeclarations {
 
 	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 	
-	private List<C4Variable> components;
+	private ProplistDeclaration definedDeclaration;
 	
-	public PropListExpression(List<C4Variable> components) {
-		this.components = components;
+	public ProplistDeclaration getDefinedDeclaration() {
+		return definedDeclaration;
+	}
+	
+	public List<C4Variable> getComponents() {
+		return definedDeclaration.getComponents();
+	}
+	
+	public PropListExpression(ProplistDeclaration declaration) {
+		this.definedDeclaration = declaration;
 	}
 	@Override
 	public void doPrint(ExprWriter output, int depth) {
 		output.append('{');
+		List<C4Variable> components = getComponents();
 		for (int i = 0; i < components.size(); i++) {
 			C4Variable component = components.get(i);
 			output.append('\n');
@@ -57,6 +67,7 @@ public class PropListExpression extends Value implements IType, IPostSerializabl
 	}
 	@Override
 	public ExprElm[] getSubElements() {
+		List<C4Variable> components = getComponents();
 		ExprElm[] result = new ExprElm[components.size()];
 		for (int i = 0; i < result.length; i++)
 			result[i] = components.get(i).getInitializationExpression();
@@ -64,6 +75,7 @@ public class PropListExpression extends Value implements IType, IPostSerializabl
 	}
 	@Override
 	public void setSubElements(ExprElm[] elms) {
+		List<C4Variable> components = getComponents();
 		for (int i = 0; i < Math.min(elms.length, components.size()); i++) {
 			components.get(i).setInitializationExpression(elms[i]);
 		}
@@ -71,7 +83,7 @@ public class PropListExpression extends Value implements IType, IPostSerializabl
 	@Override
 	public boolean isConstant() {
 		// whoohoo, proplist expressions can be constant if all components are constant
-		for (C4Variable component : components) {
+		for (C4Variable component : getComponents()) {
 			if (!component.getInitializationExpression().isConstant())
 				return false;
 		}
@@ -80,6 +92,7 @@ public class PropListExpression extends Value implements IType, IPostSerializabl
 	
 	@Override
 	public Object evaluateAtParseTime(C4ScriptBase context) {
+		List<C4Variable> components = getComponents();
 		Map<String, Object> map = new HashMap<String, Object>(components.size());
 		for (C4Variable component : components) {
 			map.put(component.getName(), component.getInitializationExpression().evaluateAtParseTime(context));
@@ -96,7 +109,7 @@ public class PropListExpression extends Value implements IType, IPostSerializabl
 	}
 	
 	public C4Variable findComponent(String declarationName) {
-		for (C4Variable v : components) {
+		for (C4Variable v : getComponents()) {
 			if (v.getName().equals(declarationName)) {
 				return v;
 			}
@@ -110,6 +123,7 @@ public class PropListExpression extends Value implements IType, IPostSerializabl
 	
 	
 	// it's also a type \o/
+	// and it would have been nice to make it also a declaration, but there is no IDeclaration.. oh well
 
 	@Override
 	public Iterator<IType> iterator() {
@@ -123,12 +137,7 @@ public class PropListExpression extends Value implements IType, IPostSerializabl
 
 	@Override
 	public String typeName(boolean special) {
-		String printed = toString();
-		if (printed.length() < 20) {
-			return printed;
-		} else {
-			return "proplist {...}";
-		}
+		return C4Type.PROPLIST.typeName(special);
 	}
 
 	@Override
@@ -174,14 +183,12 @@ public class PropListExpression extends Value implements IType, IPostSerializabl
 		}
 	}
 	@Override
-	public void postSerialize(IPostSerializable<?> parent) {
-		for (C4Variable component : components) {
-			component.postSerialize(associatedDeclaration);
-		}
+	public void postSerialize(C4Declaration parent) {
+		definedDeclaration.postSerialize(parent);
 	}
 	@Override
 	public Iterable<? extends C4Declaration> allSubDeclarations() {
-		return components;
+		return definedDeclaration.allSubDeclarations();
 	}
 
 }

@@ -5,6 +5,7 @@ import net.arctics.clonk.index.C4Object;
 import net.arctics.clonk.parser.C4Declaration;
 import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.ParsingException;
+import net.arctics.clonk.parser.c4script.C4Function;
 import net.arctics.clonk.parser.c4script.C4ScriptBase;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.C4Type;
@@ -133,12 +134,16 @@ public class AccessVar extends AccessDeclaration {
 			var.setUsed(true);
 			switch (var.getScope()) {
 				case LOCAL:
-					if (
-						(parser.getCurrentFunc() != null && parser.getCurrentFunc().getVisibility() == C4FunctionScope.GLOBAL) ||
-						// initialization a non-local variable with local values -> fail
-						(parser.getCurrentVariableBeingDeclared() != null && parser.getCurrentVariableBeingDeclared().getScope() != C4VariableScope.LOCAL)
-					) {
-						parser.errorWithCode(ParserErrorCode.LocalUsedInGlobal, this, true);
+					C4Declaration d = parser.getCurrentDeclaration();
+					if (d != null) {
+						C4Function f = d.getTopLevelParentDeclarationOfType(C4Function.class);
+						C4Variable v = d.getTopLevelParentDeclarationOfType(C4Variable.class);
+						if (
+							(f != null && f.getVisibility() == C4FunctionScope.GLOBAL) ||
+							(f == null && v != null && v.getScope() != C4VariableScope.LOCAL)
+						) {
+							parser.errorWithCode(ParserErrorCode.LocalUsedInGlobal, this, true);
+						}
 					}
 					break;
 				case STATIC:

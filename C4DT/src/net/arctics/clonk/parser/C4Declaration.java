@@ -2,7 +2,6 @@ package net.arctics.clonk.parser;
 
 import java.io.Serializable;
 
-
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.index.C4Engine;
 import net.arctics.clonk.index.C4ObjectIntern;
@@ -107,7 +106,16 @@ public abstract class C4Declaration implements Serializable, IHasRelatedResource
 	}
 	
 	@SuppressWarnings("unchecked")
-	protected final <T extends C4Declaration> T getTopLevelParentDeclarationOfType(Class<T> type) {
+	public final <T extends C4Declaration> T getFirstParentDeclarationOfType(Class<T> type) {
+		T result = null;
+		for (C4Declaration f = this; f != null; f = f.parentDeclaration)
+			if (type.isAssignableFrom(f.getClass()))
+				return (T) f;
+		return result;
+	}
+	
+	@SuppressWarnings("unchecked")
+	public final <T extends C4Declaration> T getTopLevelParentDeclarationOfType(Class<T> type) {
 		T result = null;
 		for (C4Declaration f = this; f != null; f = f.parentDeclaration)
 			if (type.isAssignableFrom(f.getClass()))
@@ -181,7 +189,7 @@ public abstract class C4Declaration implements Serializable, IHasRelatedResource
 	 * Returns the latest version of this declaration, obtaining it by searching for a declaration with its name in its parent declaration
 	 * @return The latest version of this declaration
 	 */
-	public final C4Declaration latestVersion() {
+	public C4Declaration latestVersion() {
 		if (parentDeclaration != null)
 			parentDeclaration = parentDeclaration.latestVersion();
 		if (parentDeclaration instanceof ILatestDeclarationVersionProvider) {
@@ -246,6 +254,14 @@ public abstract class C4Declaration implements Serializable, IHasRelatedResource
 	 */
 	public Iterable<? extends C4Declaration> allSubDeclarations() {
 		return NO_SUB_DECLARATIONS;
+	}
+	
+	/**
+	 * Adds a sub-declaration
+	 * @param declaration
+	 */
+	public void addSubDeclaration(C4Declaration declaration) {
+		System.out.println(String.format("Attempt to add sub declaration %s to %s", declaration, this));
 	}
 	
 	/**
