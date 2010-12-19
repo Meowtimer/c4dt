@@ -2730,8 +2730,9 @@ public class C4ScriptParser extends CStyleScanner {
 	}
 	
 	private boolean parseID() throws ParsingException {
-		if (idMatcher.find(offset) && idMatcher.start() == offset) {
-			parsedID = C4ID.getID(idMatcher.group());
+		if (idMatcher.reset(buffer.substring(offset)).lookingAt()) {
+			String idString = idMatcher.group();
+			parsedID = C4ID.getID(idString);
 			offset += parsedID.length();
 			return true;
 		} else {
