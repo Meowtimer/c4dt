@@ -9,8 +9,6 @@ import net.arctics.clonk.index.ClonkIndex;
 import net.arctics.clonk.parser.c4script.C4ScriptBase;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.util.UI;
-import net.arctics.clonk.util.Utilities;
-
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.jface.action.Action;
@@ -58,7 +56,7 @@ public class ClonkHierarchyView extends ViewPart {
 			if (parentElement instanceof C4Object) {
 				C4Object parent = (C4Object) parentElement;
 				List<C4ScriptBase> result = new LinkedList<C4ScriptBase>();
-				for (IProject p : Utilities.getClonkProjects()) {
+				for (IProject p : ClonkProjectNature.getClonkProjects()) {
 					ClonkIndex index = ClonkProjectNature.get(p).getIndex();
 					for (C4ScriptBase script : index.allScripts()) {
 						if (filter.test(parent, script))
@@ -89,7 +87,7 @@ public class ClonkHierarchyView extends ViewPart {
 
 		private C4ScriptBase[] getRootScripts(Object input, IFilter filter) {
 			List<C4ScriptBase> result = new LinkedList<C4ScriptBase>();
-			IProject[] clonkProjects = Utilities.getClonkProjects(); 
+			IProject[] clonkProjects = ClonkProjectNature.getClonkProjects(); 
 			for (IProject p : clonkProjects) {
 				ClonkIndex index = ClonkProjectNature.get(p).getIndex();
 				for (C4ScriptBase script : index.allScripts()) {

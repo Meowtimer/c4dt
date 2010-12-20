@@ -5,7 +5,10 @@ import net.arctics.clonk.index.C4Object;
 import net.arctics.clonk.parser.c4script.C4Function;
 import net.arctics.clonk.parser.c4script.C4ScriptBase;
 import net.arctics.clonk.parser.c4script.C4Variable;
+import net.arctics.clonk.resource.ClonkProjectNature;
+import net.arctics.clonk.ui.navigator.ClonkLabelProvider;
 
+import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.FileLocator;
 import org.eclipse.core.runtime.Path;
@@ -16,6 +19,7 @@ import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.resource.ImageRegistry;
 import org.eclipse.jface.viewers.CheckboxTableViewer;
 import org.eclipse.jface.viewers.ViewerComparator;
+import org.eclipse.jface.window.Window;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.SelectionListener;
@@ -30,6 +34,8 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
+import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.dialogs.ElementListSelectionDialog;
 import org.eclipse.ui.model.WorkbenchContentProvider;
 import org.eclipse.ui.model.WorkbenchLabelProvider;
 
@@ -135,7 +141,7 @@ public abstract class UI {
 		result.setContentProvider(new WorkbenchContentProvider() {
 			@Override
 			public Object[] getChildren(Object element) {
-				return Utilities.getClonkProjects();
+				return ClonkProjectNature.getClonkProjects();
 			}
 		});
 		result.setComparator(new ViewerComparator());
@@ -185,6 +191,31 @@ public abstract class UI {
 				message(msg, MessageDialog.ERROR);
 			}
 		});
+	}
+	
+	public static IProject[] selectClonkProjects(boolean multiSelect, IProject... initialSelection) {
+		// Create dialog listing all Clonk projects
+		ElementListSelectionDialog dialog
+			= new ElementListSelectionDialog(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(), new ClonkLabelProvider());
+		dialog.setTitle(Messages.Utilities_ChooseClonkProject);
+		dialog.setMessage(Messages.Utilities_ChooseClonkProjectPretty);
+		dialog.setElements(ClonkProjectNature.getClonkProjects());
+		dialog.setMultipleSelection(multiSelect);
+
+		// Set selection
+		dialog.setInitialSelections(new Object [] { initialSelection });
+
+		// Show
+		if(dialog.open() == Window.OK) {
+			return ArrayUtil.convertArray(dialog.getResult(), IProject.class);
+		}
+		else
+			return null;
+	}
+	
+	public static IProject selectClonkProject(IProject initialSelection) {
+		IProject[] projects = selectClonkProjects(false, initialSelection);
+		return projects != null ? projects[0] : null;
 	}
 
 }

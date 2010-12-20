@@ -4,11 +4,10 @@ import java.util.Collection;
 import java.util.LinkedList;
 
 import net.arctics.clonk.debug.ClonkLaunchConfigurationDelegate;
+import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.resource.c4group.C4Group;
 import net.arctics.clonk.ui.navigator.ClonkLabelProvider;
 import net.arctics.clonk.util.UI;
-import net.arctics.clonk.util.Utilities;
-
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IResourceVisitor;
@@ -278,7 +277,7 @@ public class LaunchMainTab extends AbstractLaunchConfigurationTab {
 
 	public void chooseClonkProject() {
 		
-		IProject project = Utilities.selectClonkProject(validateProject());
+		IProject project = UI.selectClonkProject(validateProject());
 		if (project != null) {
 			projectEditor.Text.setText(project.getName());
 		}
@@ -306,7 +305,7 @@ public class LaunchMainTab extends AbstractLaunchConfigurationTab {
 				return type == C4Group.C4GroupType.FolderGroup;
 			}
 		};
-		for(IProject proj : Utilities.getClonkProjects())
+		for(IProject proj : ClonkProjectNature.getClonkProjects())
 			try {
 				proj.accept(scenCollector);
 			} catch (CoreException e) {}

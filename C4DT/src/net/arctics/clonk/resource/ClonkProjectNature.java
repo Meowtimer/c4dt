@@ -6,6 +6,8 @@ import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.util.Collection;
+import java.util.LinkedList;
 
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.index.C4Engine;
@@ -21,7 +23,9 @@ import net.arctics.clonk.util.StreamUtil;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IProjectNature;
 import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.resources.IncrementalProjectBuilder;
+import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -251,6 +255,23 @@ public class ClonkProjectNature implements IProjectNature {
 	public Settings getSettings() {
 		getIndex(); // trigger loading of index, which includes loading the settings
 		return settings;
+	}
+	
+	/**
+	 * All Clonk projects in the current workspace
+	 * @return array containing the Clonk projects
+	 */
+	public static IProject[] getClonkProjects() {
+		IWorkspaceRoot root = ResourcesPlugin.getWorkspace().getRoot();
+		IProject[] projects = root.getProjects();
+		
+		// Filter out all projects with Clonk nature
+		Collection<IProject> c = new LinkedList<IProject>();
+		for(IProject proj : projects)
+			if (ClonkProjectNature.get(proj) != null)
+				c.add(proj);
+			
+		return c.toArray(new IProject [c.size()]);
 	}
 
 }

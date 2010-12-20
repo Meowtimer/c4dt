@@ -66,5 +66,12 @@ public class ArrayUtil {
 			result.add(e);
 		return result;
 	}
+	
+	@SuppressWarnings("unchecked")
+	public static <T> T[] convertArray(Object[] baseArray, Class<T> newElementClass) {
+		T[] result = (T[]) Array.newInstance(newElementClass, baseArray.length);
+		System.arraycopy(baseArray, 0, result, 0, baseArray.length);
+		return result;
+	}
 
 }

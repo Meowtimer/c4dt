@@ -7,8 +7,7 @@ import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.C4Declaration;
 import net.arctics.clonk.parser.C4Structure;
 import net.arctics.clonk.ui.navigator.ClonkOutlineProvider;
-import net.arctics.clonk.util.Utilities;
-
+import net.arctics.clonk.util.ArrayUtil;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
@@ -121,7 +120,7 @@ public class DeclarationChooser extends FilteredItemsSelectionDialog {
 	}
 
 	public C4Declaration[] getSelectedDeclarations() {
-		return Utilities.convertArray(this.getResult(), C4Declaration.class);
+		return ArrayUtil.convertArray(this.getResult(), C4Declaration.class);
 	}
 
 }

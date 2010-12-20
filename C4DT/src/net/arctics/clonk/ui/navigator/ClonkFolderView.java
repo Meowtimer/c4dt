@@ -333,7 +333,7 @@ public class ClonkFolderView extends ViewPart implements ISelectionListener, IDo
 				removeLinkedFilesOnShutdown.getSelection()
 			);
 		} else if (e.getSource() == projectEditor.AddButton) {
-			IProject project = Utilities.selectClonkProject(selectedProject());
+			IProject project = UI.selectClonkProject(selectedProject());
 			if (project != null)
 				projectEditor.Text.setText(project.getName());
 		} else if (e.getSource() == importMenuItem) {
@@ -361,7 +361,7 @@ public class ClonkFolderView extends ViewPart implements ISelectionListener, IDo
 					// delete linked c4group files
 					try {
 						if (ClonkCore.getDefault().getPreferenceStore().getBoolean(PREF_DELETE_LINKS_ON_SHUTDOWN)) {
-							for (IProject proj : Utilities.getClonkProjects()) {
+							for (IProject proj : ClonkProjectNature.getClonkProjects()) {
 								for (IResource res : proj.members()) {
 									URI uri = res.getLocationURI();
 									if (uri.getScheme().equals(C4GroupFileSystem.getInstance().getScheme())) {

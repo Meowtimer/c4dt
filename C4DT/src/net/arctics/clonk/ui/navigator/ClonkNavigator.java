@@ -3,11 +3,10 @@ package net.arctics.clonk.ui.navigator;
 import java.util.Collection;
 import net.arctics.clonk.parser.C4Structure;
 import net.arctics.clonk.parser.c4script.C4ScriptBase;
+import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.util.ArrayUtil;
 import net.arctics.clonk.util.INode;
 import net.arctics.clonk.util.ITreeNode;
-import net.arctics.clonk.util.Utilities;
-
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
@@ -77,7 +76,7 @@ public class ClonkNavigator extends ClonkOutlineProvider {
 	}
 
 	public Object[] getElements(Object inputElement) {
-		return Utilities.getClonkProjects();
+		return ClonkProjectNature.getClonkProjects();
 	}
 
 	public void dispose() {

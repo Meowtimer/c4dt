@@ -5,8 +5,7 @@ import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.index.C4Object;
 import net.arctics.clonk.index.ClonkIndex;
 import net.arctics.clonk.resource.ClonkProjectNature;
-import net.arctics.clonk.util.Utilities;
-
+import net.arctics.clonk.util.ArrayUtil;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
@@ -137,7 +136,7 @@ public class OpenObjectDialog extends FilteredItemsSelectionDialog {
 	}
 	
 	public C4Object[] getSelectedObjects() {
-		return Utilities.convertArray(getResult(), C4Object.class);
+		return ArrayUtil.convertArray(getResult(), C4Object.class);
 	}
 
 }

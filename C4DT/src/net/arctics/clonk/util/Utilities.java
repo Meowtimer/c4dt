@@ -18,20 +18,14 @@ import net.arctics.clonk.parser.BufferedScanner;
 import net.arctics.clonk.parser.c4script.C4ScriptBase;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.ui.editors.c4script.C4ScriptEditor;
-import net.arctics.clonk.ui.navigator.ClonkLabelProvider;
-
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
-import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
-import org.eclipse.core.resources.IWorkspaceRoot;
-import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.Region;
 import org.eclipse.jface.viewers.ISelection;
-import org.eclipse.jface.window.Window;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IPageLayout;
@@ -49,7 +43,6 @@ import org.eclipse.ui.console.IConsoleManager;
 import org.eclipse.ui.console.IConsoleView;
 import org.eclipse.ui.console.MessageConsole;
 import org.eclipse.ui.console.MessageConsoleStream;
-import org.eclipse.ui.dialogs.ElementListSelectionDialog;
 import org.eclipse.ui.navigator.CommonNavigator;
 import org.eclipse.ui.part.FileEditorInput;
 
@@ -61,23 +54,6 @@ public abstract class Utilities {
 	
 	private static MessageConsole clonkConsole = null;
 	private static MessageConsoleStream debugConsoleStream = null;
-	
-	/**
-	 * All Clonk projects in the current workspace
-	 * @return array containing the Clonk projects
-	 */
-	public static IProject[] getClonkProjects() {
-		IWorkspaceRoot root = ResourcesPlugin.getWorkspace().getRoot();
-		IProject[] projects = root.getProjects();
-		
-		// Filter out all projects with Clonk nature
-		Collection<IProject> c = new LinkedList<IProject>();
-		for(IProject proj : projects)
-			if (ClonkProjectNature.get(proj) != null)
-				c.add(proj);
-			
-		return c.toArray(new IProject [c.size()]);
-	}
 	
 	public static MessageConsole getClonkConsole() {
 		if (clonkConsole == null) {
@@ -316,13 +292,6 @@ public abstract class Utilities {
 		return (Enum<?>[]) enumClass.getMethod("values").invoke(null); //$NON-NLS-1$
 	}
 	
-	@SuppressWarnings("unchecked")
-	public static <T> T[] convertArray(Object[] baseArray, Class<T> newElementClass) {
-		T[] result = (T[]) Array.newInstance(newElementClass, baseArray.length);
-		System.arraycopy(baseArray, 0, result, 0, baseArray.length);
-		return result;
-	}
-	
 	public static <E, T extends Collection<E>> T collectionFromArray(Class<T> cls, E[] array) {
 		try {
 			T result = cls.newInstance();
@@ -525,31 +494,6 @@ public abstract class Utilities {
 	
 	public static <T> Set<T> set(@SuppressWarnings("rawtypes") Class<? extends Set> cls, T... elements) {
 		return arrayToSet(elements, cls);
-	}
-
-	public static IProject[] selectClonkProjects(boolean multiSelect, IProject... initialSelection) {
-		// Create dialog listing all Clonk projects
-		ElementListSelectionDialog dialog
-			= new ElementListSelectionDialog(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(), new ClonkLabelProvider());
-		dialog.setTitle(Messages.Utilities_ChooseClonkProject);
-		dialog.setMessage(Messages.Utilities_ChooseClonkProjectPretty);
-		dialog.setElements(Utilities.getClonkProjects());
-		dialog.setMultipleSelection(multiSelect);
-
-		// Set selection
-		dialog.setInitialSelections(new Object [] { initialSelection });
-
-		// Show
-		if(dialog.open() == Window.OK) {
-			return convertArray(dialog.getResult(), IProject.class);
-		}
-		else
-			return null;
-	}
-	
-	public static IProject selectClonkProject(IProject initialSelection) {
-		IProject[] projects = selectClonkProjects(false, initialSelection);
-		return projects != null ? projects[0] : null;
 	}
 	
 	public static String multiply(String s, int times) {

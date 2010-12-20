@@ -3,9 +3,8 @@ package net.arctics.clonk.ui.wizards;
 import net.arctics.clonk.preferences.C4GroupListEditor;
 import net.arctics.clonk.preferences.ClonkPreferencePage;
 import net.arctics.clonk.preferences.ClonkPreferences;
+import net.arctics.clonk.util.ArrayUtil;
 import net.arctics.clonk.util.UI;
-import net.arctics.clonk.util.Utilities;
-
 import org.eclipse.core.resources.IProject;
 import org.eclipse.jface.preference.ComboFieldEditor;
 import org.eclipse.jface.preference.PreferenceStore;
@@ -88,7 +87,7 @@ public class WizardNewClonkProjectCreationPage extends WizardNewProjectCreationP
 	}
 
 	public IProject[] getProjectsToReference() {
-		return Utilities.convertArray(projectReferencesViewer.getCheckedElements(), IProject.class);
+		return ArrayUtil.convertArray(projectReferencesViewer.getCheckedElements(), IProject.class);
 	}
 	
 	public String getEngine() {
