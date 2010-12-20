@@ -159,7 +159,8 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 	}
 
 	private void informAboutUpdate(String oldVersion, String newVersion) {
-		if (newVersion.startsWith("1.5.9")) { //$NON-NLS-1$
+		// only if there are projects at all
+		if (newVersion.startsWith("1.5.9") && ClonkProjectNature.getClonkProjects().length > 0) { //$NON-NLS-1$
 			UI.message(Messages.ClonkCore_UpdateNotes_1_5_9);
 		}
 	}
