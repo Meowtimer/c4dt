@@ -1,7 +1,11 @@
 package net.arctics.clonk.parser.inireader;
 
+import java.io.IOException;
+import java.io.Writer;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
+import java.util.HashMap;
+import java.util.Map;
 
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.inireader.IniData.IniConfiguration;
@@ -11,6 +15,8 @@ import net.arctics.clonk.parser.inireader.IniData.IniDataSection;
 import net.arctics.clonk.util.Utilities;
 
 public class CustomIniUnit extends IniUnit {
+	
+	private static final Map<Class<?>, IniConfiguration> GENERATED_CONFIGURATIONS = new HashMap<Class<?>, IniConfiguration>();
 
 	private IniConfiguration configuration;
 	
@@ -29,13 +35,34 @@ public class CustomIniUnit extends IniUnit {
 		this.setConfiguration(configuration);
 	}
 	
+	public static IniConfiguration configurationForClass(Class<?> cls) {
+		IniConfiguration result = GENERATED_CONFIGURATIONS.get(cls);
+		if (result == null) {
+			result = IniConfiguration.createFromClass(cls);
+			GENERATED_CONFIGURATIONS.put(cls, result);
+		}
+		return result;
+	}
+	
+	public static CustomIniUnit load(Object input, Object into) throws SecurityException, IllegalArgumentException, NoSuchFieldException, IllegalAccessException {
+		CustomIniUnit result = new CustomIniUnit(input);
+		result.setConfiguration(configurationForClass(into.getClass()));
+		result.parseAndCommitTo(into);
+		return result;
+	}
+	
+	public static void save(Writer writer , Object obj, Object defaults) throws IOException, IllegalArgumentException, IllegalAccessException {
+		CustomIniUnit unit = new CustomIniUnit(configurationForClass(obj.getClass()), obj, defaults);
+		unit.save(writer);
+	}
+	
 	public CustomIniUnit(IniConfiguration configuration, Object object, Object defaults) throws IllegalArgumentException, IllegalAccessException {
 		this("", configuration); //$NON-NLS-1$
 		assert(defaults == null || object.getClass() == defaults.getClass());
 		for (Field f : object.getClass().getFields()) {
 			IniField annot;
 			if ((annot = f.getAnnotation(IniField.class)) != null) {
-				if (Utilities.objectsEqual(f.get(object), f.get(defaults)))
+				if (defaults != null && Utilities.objectsEqual(f.get(object), f.get(defaults)))
 					continue;
 				IniDataSection dataSection = getConfiguration().getSections().get(annot.category());
 				if (dataSection != null) {

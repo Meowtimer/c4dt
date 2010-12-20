@@ -54,13 +54,13 @@ public class ClonkProjectProperties extends FieldEditorPreferencePage implements
 
 		public void commit(String n, String v) {
 			if (n.equals(ENGINENAME_PROPERTY)) {
-				ClonkProjectNature.get(getProject()).getIndex().setEngineName(v);
+				ClonkProjectNature.get(getProject()).getSettings().setEngineName(v);
 			}
 			Utilities.getProjectExplorer().getCommonViewer().refresh(getProject());
 		}
 		
 		public AdapterStore() throws CoreException {
-			values.put(ENGINENAME_PROPERTY, ClonkProjectNature.get(getProject()).getIndex().getEngineName());
+			values.put(ENGINENAME_PROPERTY, ClonkProjectNature.get(getProject()).getSettings().getEngineName());
 		}
 	}
 	

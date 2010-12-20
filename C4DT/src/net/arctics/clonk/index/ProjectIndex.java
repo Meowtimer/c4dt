@@ -25,31 +25,12 @@ public class ProjectIndex extends ClonkIndex {
 	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 	public static final String INDEXFILE_SUFFIX = ".index"; //$NON-NLS-1$
 	
-	private String engineName;
-	
 	private transient IProject project;
 	private transient boolean isDirty;
-	private transient C4Engine cachedEngine;
-	
-	public String getEngineName() {
-		return engineName;
-	}
-	
-	public void setEngineName(String engineName) {
-		this.engineName = engineName;
-		this.cachedEngine = null;
-		setDirty(true);
-	}
 	
 	@Override
 	public C4Engine getEngine() {
-		if (cachedEngine == null) {
-			// engineName can be "" or null since that is handled by loadEngine
-			cachedEngine = ClonkCore.getDefault().loadEngine(engineName);
-			if (cachedEngine == null)
-				cachedEngine = ClonkCore.getDefault().getActiveEngine();
-		}
-		return cachedEngine;
+		return getNature().getSettings().getEngine();
 	}
 	
 	public ClonkProjectNature getNature() {
