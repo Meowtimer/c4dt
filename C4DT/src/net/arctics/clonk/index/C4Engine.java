@@ -23,6 +23,7 @@ import org.eclipse.core.resources.IMarker;
 import org.eclipse.jface.util.Util;
 
 import net.arctics.clonk.ClonkCore;
+import net.arctics.clonk.parser.BufferedScanner;
 import net.arctics.clonk.parser.C4Declaration;
 import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.ParsingException;
@@ -174,7 +175,11 @@ public class C4Engine extends C4ScriptBase {
 		private Pattern idPatternCompiled;
 		public Pattern getCompiledIdPattern() {
 			if (idPatternCompiled == null) {
-				idPatternCompiled = Pattern.compile(idPattern);
+				if (idPattern.equals("<identifier>")) {
+					idPatternCompiled = BufferedScanner.IDENTIFIER_PATTERN;
+				} else {
+					idPatternCompiled = Pattern.compile(idPattern);
+				}
 			}
 			return idPatternCompiled;
 		}
@@ -221,9 +226,6 @@ public class C4Engine extends C4ScriptBase {
 		if (intrinsicSettings == null) {
 			intrinsicSettings = new EngineSettings();
 		}
-		if (currentSettings == null) {
-			currentSettings = new EngineSettings();
-		}
 		cachedFuncs = new CachedEngineFuncs(this);
 		cachedPrefixedVariables = null;
 	}
@@ -253,7 +255,7 @@ public class C4Engine extends C4ScriptBase {
 	}
 
 	public boolean acceptsId(String text) {
-		return currentSettings.idPattern == null || text.matches(currentSettings.idPattern);
+		return currentSettings.idPattern == null || currentSettings.getCompiledIdPattern().matcher(text).matches();
 	}
 
 	public boolean hasCustomSettings() {

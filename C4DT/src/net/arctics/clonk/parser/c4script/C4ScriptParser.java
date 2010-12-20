@@ -1551,6 +1551,16 @@ public class C4ScriptParser extends CStyleScanner {
 				elm = new NumberLiteral(parsedNumber, true);
 			}
 			
+			// number
+			if (elm == null && parseNumber()) {
+				elm = new NumberLiteral(parsedNumber);
+			}
+			
+			// id
+			if (elm == null && parseID()) {
+				elm = new IDLiteral(parsedID);
+			}
+			
 			// variable or function
 			if (elm == null) {
 				String word = readIdent();
@@ -1577,16 +1587,6 @@ public class C4ScriptParser extends CStyleScanner {
 							elm = new AccessVar(word);
 					}
 				}
-			}
-			
-			// id
-			if (elm == null && parseID()) {
-				elm = new IDLiteral(parsedID);
-			}
-			
-			// number
-			if (elm == null && parseNumber()) {
-				elm = new NumberLiteral(parsedNumber);
 			}
 			
 			// string
@@ -1844,7 +1844,6 @@ public class C4ScriptParser extends CStyleScanner {
 					errorWithCode(ParserErrorCode.MissingClosingBracket, this.offset, this.offset+1, "]"); //$NON-NLS-1$
 				}
 				elm = new ArrayExpression(arrayElms.toArray(new ExprElm[0]));
-				
 			}
 		} else { 
 			unread();
@@ -2733,10 +2732,15 @@ public class C4ScriptParser extends CStyleScanner {
 	}
 
 	private boolean parseID() throws ParsingException {
-		if (idMatcher.reset(buffer.substring(offset)).lookingAt()) {
+		if (idMatcher.pattern() != IDENTIFIER_PATTERN && idMatcher.reset(buffer.substring(offset)).lookingAt()) {
 			String idString = idMatcher.group();
+			offset += idString.length();
+			if (isWordPart(peek())) {
+				offset -= idString.length();
+				parsedID = null;
+				return false;
+			}
 			parsedID = C4ID.getID(idString);
-			offset += parsedID.length();
 			return true;
 		} else {
 			parsedID = null; // reset so no old parsed ids get through

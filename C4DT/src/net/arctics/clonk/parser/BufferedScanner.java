@@ -2,6 +2,7 @@ package net.arctics.clonk.parser;
 
 import java.io.InputStream;
 import java.io.Reader;
+import java.util.regex.Pattern;
 
 import net.arctics.clonk.util.StreamUtil;
 import org.eclipse.core.resources.IFile;
@@ -13,6 +14,8 @@ import org.eclipse.jface.text.Region;
  */
 public class BufferedScanner {
 
+	public static final Pattern IDENTIFIER_PATTERN = Pattern.compile("[A-Za-z_][A-Za-z_0-9]*");
+	
 	/**
 	 * characters that represent whitespace
 	 */
