@@ -61,7 +61,8 @@ public enum ParserErrorCode {
 	CallingMethodOnNonObject(Messages.CallingMethodOnNonObject),
 	NotAProplist(Messages.NotAProplist),
 	UnknownSection(Messages.UnknownSection),
-	Unused(Messages.Unused);
+	Unused(Messages.Unused),
+	NotAnArray(Messages.NotAnArray);
 
 	public static final String MARKER_ERRORCODE = "c4ScriptErrorCode"; //$NON-NLS-1$
 	public static final String MARKER_EXPRESSIONSTART = "c4ScriptErrorExpressionStart"; //$NON-NLS-1$
@@ -139,7 +140,7 @@ public enum ParserErrorCode {
 		IMarker marker = createMarker(file, declarationAssociatedWithFile, markerType, start, end, severity, getErrorString(args));
 		for (int i = 0; i < Math.min(args.length, MARKER_ARGS.length); i++) {
 			try {
-				marker.setAttribute(MARKER_ARGS[i], args[i] != null ? args[i].toString() : "");
+				marker.setAttribute(MARKER_ARGS[i], args[i] != null ? args[i].toString() : ""); //$NON-NLS-1$
 			} catch (CoreException e) {
 				e.printStackTrace();
 			}

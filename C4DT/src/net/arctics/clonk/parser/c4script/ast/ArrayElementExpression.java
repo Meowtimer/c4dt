@@ -1,6 +1,7 @@
 package net.arctics.clonk.parser.c4script.ast;
 
 import net.arctics.clonk.ClonkCore;
+import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.C4Type;
@@ -34,15 +35,18 @@ public class ArrayElementExpression extends Value {
 
 	@Override
 	public boolean isValidInSequence(ExprElm predecessor, C4ScriptParser context) {
-		if (predecessor != null) {
-			IType type = predecessor.getType(context);
-			return type == C4Type.UNKNOWN || type == C4Type.ANY || type.containsAnyTypeOf(C4Type.ARRAY, C4Type.PROPLIST);
-		}
-		return false;
+		return predecessor != null;
 	}
 
 	@Override
 	public void reportErrors(C4ScriptParser parser) throws ParsingException {
+		ExprElm predecessor = getPredecessorInSequence();
+		if (predecessor != null) {
+			IType type = predecessor.getType(parser);
+			if (type != C4Type.UNKNOWN && type != C4Type.ANY && !type.containsAnyTypeOf(C4Type.ARRAY, C4Type.PROPLIST)) {
+				parser.warningWithCode(ParserErrorCode.NotAnArray, predecessor);
+			}
+		}
 		ExprElm arg = getArgument();
 		if (arg != null)
 			arg.reportErrors(parser);

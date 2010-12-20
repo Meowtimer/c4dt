@@ -6,6 +6,7 @@ public class Messages extends NLS {
 	private static final String BUNDLE_NAME = "net.arctics.clonk.parser.messages"; //$NON-NLS-1$
 	public static String TokenExpected;
 	public static String NotAllowedHere;
+	public static String NotAnArray;
 	public static String NotAProplist;
 	public static String OperatorNeedsRightSide;
 	public static String NoAssignment;
