@@ -165,7 +165,7 @@ public abstract class UI {
 	}
 	
 	public static void message(String message, int kind) {
-		MessageDialog.open(kind, null, ClonkCore.PLUGIN_ID, message, SWT.NONE);
+		MessageDialog.open(kind, null, ClonkCore.HUMAN_READABLE_NAME, message, SWT.NONE);
 	}
 	
 	public static void message(String message) {

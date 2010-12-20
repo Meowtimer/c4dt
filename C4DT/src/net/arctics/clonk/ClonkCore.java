@@ -64,6 +64,8 @@ import org.xml.sax.SAXException;
  */
 public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IResourceChangeListener {
 	
+	public static final String HUMAN_READABLE_NAME = Messages.ClonkCore_HumanReadableName;
+	
 	/**
 	 * The Plugin-ID
 	 */
@@ -118,7 +120,7 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 	public ClonkCore() {
 	}
 	
-	private static final String VERSION_REMEMBERANCE_FILE = "version.txt";
+	private static final String VERSION_REMEMBERANCE_FILE = "version.txt"; //$NON-NLS-1$
 	private String versionFromLastRun;
 	
 	/*
@@ -150,6 +152,16 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 				}
 			}
 		});
+		
+		if (updateTookPlace()) {
+			informAboutUpdate(versionFromLastRun, versionString());
+		}
+	}
+
+	private void informAboutUpdate(String oldVersion, String newVersion) {
+		if (newVersion.startsWith("1.5.9")) { //$NON-NLS-1$
+			UI.message(Messages.ClonkCore_UpdateNotes_1_5_9);
+		}
 	}
 
 	private void registerStructureClasses() {
