@@ -35,6 +35,7 @@ import org.eclipse.ui.texteditor.ITextEditor;
 public class ClonkProjectNature implements IProjectNature {
 
 	public static class Settings {
+		
 		@IniField
 		public String engineName;
 		
@@ -98,8 +99,9 @@ public class ClonkProjectNature implements IProjectNature {
 	 * @return the indexedData
 	 */
 	public ProjectIndex getIndex() {
-		if (index == null)
+		if (index == null) {
 			loadIndex();
+		}
 		return index;
 	}
 
@@ -116,25 +118,27 @@ public class ClonkProjectNature implements IProjectNature {
 	 * @throws CoreException
 	 */
 	public void saveIndex() throws CoreException {
-		saveSettings();
-		if (index != null && index.isDirty()) {
-			//getIndex(); // make sure index is loaded in the first place -- does not happen
-			IPath indexLocation = getIndexFileLocation();
-			File indexFile = indexLocation.toFile();
-			try {
-				FileOutputStream out = new FileOutputStream(indexFile);
+		if (index != null) {
+			saveSettings();
+			if (index.isDirty()) {
+				//getIndex(); // make sure index is loaded in the first place -- does not happen
+				IPath indexLocation = getIndexFileLocation();
+				File indexFile = indexLocation.toFile();
 				try {
-					ObjectOutputStream objStream = new ObjectOutputStream(out);
-					getIndex().preSerialize();
-					objStream.writeObject(getIndex());
-					objStream.close();
-				} finally {
-					out.close();
+					FileOutputStream out = new FileOutputStream(indexFile);
+					try {
+						ObjectOutputStream objStream = new ObjectOutputStream(out);
+						getIndex().preSerialize();
+						objStream.writeObject(getIndex());
+						objStream.close();
+					} finally {
+						out.close();
+					}
+				} catch (Exception e) {
+					e.printStackTrace();
 				}
-			} catch (Exception e) {
-				e.printStackTrace();
+				index.setDirty(false);
 			}
-			index.setDirty(false);
 		}
 	}
 
@@ -245,6 +249,7 @@ public class ClonkProjectNature implements IProjectNature {
 	}
 
 	public Settings getSettings() {
+		getIndex(); // trigger loading of index, which includes loading the settings
 		return settings;
 	}
 
