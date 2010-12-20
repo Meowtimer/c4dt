@@ -111,8 +111,6 @@ public class C4Engine extends C4ScriptBase {
 			}
 		}
 
-		public static final IniConfiguration INI_CONFIGURATION = IniConfiguration.createFromClass(EngineSettings.class);
-
 		@Override
 		public boolean equals(Object obj) {
 			if (obj == this)
@@ -134,10 +132,8 @@ public class C4Engine extends C4ScriptBase {
 		}
 
 		public void loadFrom(InputStream stream) {
-			CustomIniUnit unit = new CustomIniUnit(stream);
-			unit.setConfiguration(INI_CONFIGURATION);
 			try {
-				unit.parseAndCommitTo(this);
+				CustomIniUnit.load(stream, this);
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
@@ -145,10 +141,9 @@ public class C4Engine extends C4ScriptBase {
 		
 		public void saveTo(OutputStream stream, EngineSettings defaults) {
 			try {
-				CustomIniUnit unit = new CustomIniUnit(INI_CONFIGURATION, (Object)this, defaults);
 				Writer writer = new OutputStreamWriter(stream);
 				try {
-					unit.save(writer);
+					CustomIniUnit.save(writer, this, defaults);
 				} finally {
 					writer.close();
 				}
