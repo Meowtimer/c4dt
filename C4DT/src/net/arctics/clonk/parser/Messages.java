@@ -28,6 +28,7 @@ public class Messages extends NLS {
 	public static String IdentShadowed;
 	public static String IncompatibleTypes;
 	public static String VariableCalled;
+	public static String VarOutsideFunction;
 	public static String TypeAsName;
 	public static String BlockNotClosed;
 	public static String BoolLiteralAsOpArg;

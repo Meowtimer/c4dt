@@ -62,7 +62,8 @@ public enum ParserErrorCode {
 	NotAProplist(Messages.NotAProplist),
 	UnknownSection(Messages.UnknownSection),
 	Unused(Messages.Unused),
-	NotAnArray(Messages.NotAnArray);
+	NotAnArray(Messages.NotAnArray),
+	VarOutsideFunction(Messages.VarOutsideFunction);
 
 	public static final String MARKER_ERRORCODE = "c4ScriptErrorCode"; //$NON-NLS-1$
 	public static final String MARKER_EXPRESSIONSTART = "c4ScriptErrorExpressionStart"; //$NON-NLS-1$

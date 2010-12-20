@@ -667,9 +667,8 @@ public class C4ScriptParser extends CStyleScanner {
 				if (parseFunctionDeclaration(word, offset))
 					return true;
 			}
-			else if (word.equals(Keywords.GlobalNamed) || word.equals(Keywords.LocalNamed)) {
-				if (parseVariableDeclaration(word))
-					return true;
+			else if (parseVariableDeclaration(word)) {
+				return true;
 			}
 			else {
 				// old-style function declaration without visibility
@@ -711,6 +710,10 @@ public class C4ScriptParser extends CStyleScanner {
 
 		List<C4Variable> createdVariables = new LinkedList<C4Variable>();
 		C4VariableScope scope = C4VariableScope.makeScope(word);
+		if (scope == C4VariableScope.VAR) {
+			errorWithCode(ParserErrorCode.VarOutsideFunction, offset-scope.toKeyword().length(), offset, true, scope.toKeyword(), Keywords.GlobalNamed, Keywords.LocalNamed);
+			scope = C4VariableScope.LOCAL;
+		}
 		if (scope == C4VariableScope.STATIC || scope == C4VariableScope.LOCAL) {
 			eatWhitespace();
 			int pos = this.offset;
