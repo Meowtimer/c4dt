@@ -1554,14 +1554,14 @@ public class C4ScriptParser extends CStyleScanner {
 				elm = new NumberLiteral(parsedNumber, true);
 			}
 			
-			// number
-			if (elm == null && parseNumber()) {
-				elm = new NumberLiteral(parsedNumber);
-			}
-			
 			// id
 			if (elm == null && parseID()) {
 				elm = new IDLiteral(parsedID);
+			}
+			
+			// number
+			if (elm == null && parseNumber()) {
+				elm = new NumberLiteral(parsedNumber);
 			}
 			
 			// variable or function
@@ -2738,7 +2738,7 @@ public class C4ScriptParser extends CStyleScanner {
 		if (idMatcher.pattern() != IDENTIFIER_PATTERN && idMatcher.reset(buffer.substring(offset)).lookingAt()) {
 			String idString = idMatcher.group();
 			offset += idString.length();
-			if (isWordPart(peek())) {
+			if (isWordPart(peek()) || NUMERAL_PATTERN.matcher(idString).matches()) {
 				offset -= idString.length();
 				parsedID = null;
 				return false;

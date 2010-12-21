@@ -15,6 +15,7 @@ import org.eclipse.jface.text.Region;
 public class BufferedScanner {
 
 	public static final Pattern IDENTIFIER_PATTERN = Pattern.compile("[A-Za-z_][A-Za-z_0-9]*");
+	public static final Pattern NUMERAL_PATTERN = Pattern.compile("[0-9]+");
 	
 	/**
 	 * characters that represent whitespace
