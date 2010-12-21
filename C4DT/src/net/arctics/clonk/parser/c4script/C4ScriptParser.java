@@ -545,7 +545,7 @@ public class C4ScriptParser extends CStyleScanner {
 			int oldStyleEnd = endOfFunc;
 			List<Statement> statements = new LinkedList<Statement>();
 			int garbageStart = -1;
-			while(!reachedEOF() && this.offset < endOfFunc) {
+			while (!reachedEOF() && this.offset < endOfFunc) {
 				this.statementNotReached = notReached;
 				int potentialGarbageEnd = offset;
 				eatWhitespace();
@@ -2212,6 +2212,7 @@ public class C4ScriptParser extends CStyleScanner {
 							} else
 								errorWithCode(ParserErrorCode.StatementExpected, this.ERROR_PLACEHOLDER_EXPR);
 						}
+						this.statementNotReached = false;
 						if (!foundClosingBracket)
 							errorWithCode(ParserErrorCode.BlockNotClosed, start, start+1);
 						result = new Block(subStatements);
