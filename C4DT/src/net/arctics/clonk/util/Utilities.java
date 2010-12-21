@@ -445,7 +445,7 @@ public abstract class Utilities {
 	        		return child;
 	        }
         } catch (CoreException e) {
-	        e.printStackTrace();
+	        //e.printStackTrace(); just return null, will just be some case of having a referenced container that does not exist anymore
         }
 		return null;
 	}
