@@ -50,6 +50,7 @@ import net.arctics.clonk.parser.c4script.ast.DoWhileStatement;
 import net.arctics.clonk.parser.c4script.ast.Ellipsis;
 import net.arctics.clonk.parser.c4script.ast.EmptyStatement;
 import net.arctics.clonk.parser.c4script.ast.ExprElm;
+import net.arctics.clonk.parser.c4script.ast.GarbageStatement;
 import net.arctics.clonk.parser.c4script.ast.ScriptParserListener;
 import net.arctics.clonk.parser.c4script.ast.ForStatement;
 import net.arctics.clonk.parser.c4script.ast.FunctionDescription;
@@ -543,11 +544,27 @@ public class C4ScriptParser extends CStyleScanner {
 			boolean notReached = false;
 			int oldStyleEnd = endOfFunc;
 			List<Statement> statements = new LinkedList<Statement>();
+			int garbageStart = -1;
 			while(!reachedEOF() && this.offset < endOfFunc) {
 				this.statementNotReached = notReached;
+				int potentialGarbageEnd = offset;
+				eatWhitespace();
 				Statement statement = parseStatement(options);
-				if (statement == null)
-					break;
+				if (statement == null) {
+					if (garbageStart == -1) {
+						garbageStart = offset;
+					}
+					offset++;
+					continue;
+				} else {
+					// garbage recognized before statement: Create a special garbage statement that will report itself
+					if (garbageStart != -1) {
+						GarbageStatement garbage = new GarbageStatement(buffer, garbageStart, potentialGarbageEnd);
+						garbageStart = -1;
+						statements.add(garbage);
+						reportErrorsOf(garbage);
+					}
+				}
 				statements.add(statement);
 				boolean statementIsComment = statement instanceof Comment;
 				if (!notReached) {
@@ -2851,8 +2868,10 @@ public class C4ScriptParser extends CStyleScanner {
 				ExprElm expr = flavour == ExpressionsAndStatementsReportingFlavour.AlsoStatements
 						? parseStatement(options)
 						: parseExpression();
-				if (expr == null)
-					break;
+				if (expr == null) {
+					offset++; // skip garbage
+					continue;
+				}
 				if (!(expr instanceof Comment))
 					options.remove(ParseStatementOption.ExpectFuncDesc);
 				if (!notReached)

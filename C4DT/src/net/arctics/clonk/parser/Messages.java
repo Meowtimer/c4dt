@@ -46,6 +46,7 @@ public class Messages extends NLS {
 	public static String StringTooLong;
 	public static String UnexpectedToken;
 	public static String NotFinished;
+	public static String Garbage;
 	public static String GenericError;
 	public static String ConditionAlwaysTrue;
 	public static String ConditionAlwaysFalse;
