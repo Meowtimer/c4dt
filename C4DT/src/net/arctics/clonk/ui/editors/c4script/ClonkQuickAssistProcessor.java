@@ -113,7 +113,8 @@ public class ClonkQuickAssistProcessor implements IQuickAssistProcessor, IMarker
 		ParserErrorCode.NoAssignment,
 		ParserErrorCode.NoInheritedFunction,
 		ParserErrorCode.ReturnAsFunction,
-		ParserErrorCode.Unused	
+		ParserErrorCode.Unused,
+		ParserErrorCode.Garbage
 	);
  	
 	public boolean canFix(Annotation annotation) {
@@ -466,7 +467,7 @@ public class ClonkQuickAssistProcessor implements IQuickAssistProcessor, IMarker
 			Statement topLevel = offendingExpression != null ? offendingExpression.containingStatementOrThis() : null;
 			if (offendingExpression == topLevel)
 				semicolonAdd = 0;
-
+			
 			if (offendingExpression != null && topLevel != null) {
 				ReplacementsList replacements = new ReplacementsList(offendingExpression, proposals);
 				switch (errorCode) {
@@ -663,6 +664,9 @@ public class ClonkQuickAssistProcessor implements IQuickAssistProcessor, IMarker
 							new ReplacementStatement(finalReplacementString, regionToDelete, document, expressionRegion.getOffset(), true)
 						).regionToBeReplacedSpecifiedByReplacementExpression = true;
 					}
+					break;
+				case Garbage:
+					addRemoveReplacement(document, expressionRegion, replacements);
 					break;
 				}
 
