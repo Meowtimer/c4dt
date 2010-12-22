@@ -2269,7 +2269,7 @@ public class C4ScriptParser extends CStyleScanner {
 					GarbageStatement garbage = new GarbageStatement(buffer, garbageStart, potentialGarbageEnd);
 					garbageStart = -1;
 					statements.add(garbage);
-					reportErrorsOf(garbage);
+					handleExpressionCreated(true, garbage);
 				}
 			}
 			statements.add(statement);
@@ -2282,6 +2282,12 @@ public class C4ScriptParser extends CStyleScanner {
 				options.remove(ParseStatementOption.ExpectFuncDesc);				
 			}
 			eatWhitespace();
+		}
+		if (garbageStart != -1) {
+			// contains only garbage ... still add
+			GarbageStatement garbage = new GarbageStatement(buffer, garbageStart, offset);
+			statements.add(garbage);
+			handleExpressionCreated(true, garbage);
 		}
 		/*for (eatWhitespace(); !(foundClosingBracket = read() == '}') && !reachedEOF(); eatWhitespace()) {
 			unread();
