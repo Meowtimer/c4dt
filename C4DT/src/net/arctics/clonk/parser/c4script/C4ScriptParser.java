@@ -541,44 +541,11 @@ public class C4ScriptParser extends CStyleScanner {
 			// parse code block
 			int endOfFunc = getCurrentFunc().getBody().getEnd();
 			EnumSet<ParseStatementOption> options = EnumSet.of(ParseStatementOption.ExpectFuncDesc);
-			boolean notReached = false;
-			int oldStyleEnd = endOfFunc;
 			List<Statement> statements = new LinkedList<Statement>();
-			int garbageStart = -1;
-			while (!reachedEOF() && this.offset < endOfFunc) {
-				this.statementNotReached = notReached;
-				int potentialGarbageEnd = offset;
-				eatWhitespace();
-				Statement statement = parseStatement(options);
-				if (statement == null) {
-					if (garbageStart == -1) {
-						garbageStart = offset;
-					}
-					offset++;
-					continue;
-				} else {
-					// garbage recognized before statement: Create a special garbage statement that will report itself
-					if (garbageStart != -1) {
-						GarbageStatement garbage = new GarbageStatement(buffer, garbageStart, potentialGarbageEnd);
-						garbageStart = -1;
-						statements.add(garbage);
-						reportErrorsOf(garbage);
-					}
-				}
-				statements.add(statement);
-				boolean statementIsComment = statement instanceof Comment;
-				if (!notReached) {
-					notReached = statement.getControlFlow() == ControlFlow.Return;
-				}
-				// after first 'real' statement don't expect function description anymore
-				if (!statementIsComment) {
-					options.remove(ParseStatementOption.ExpectFuncDesc);
-					oldStyleEnd = statement.getExprEnd();
-				}
-			}
+			parseStatementBlock(offset, endOfFunc, statements, options, ExpressionsAndStatementsReportingFlavour.AlsoStatements);
 			BunchOfStatements bunch = new BunchOfStatements(statements);
-			if (getCurrentFunc().isOldStyle())
-				getCurrentFunc().getBody().setEnd(oldStyleEnd);
+			if (getCurrentFunc().isOldStyle() && statements.size() > 0)
+				getCurrentFunc().getBody().setEnd(statements.get(statements.size()-1).getExprEnd());
 			warnAboutUnusedFunctionVariables(bunch);
 			
 			applyStoredTypeInformationList(false); // apply short-term inference information
@@ -2198,23 +2165,7 @@ public class C4ScriptParser extends CStyleScanner {
 					int read = read();
 					if (read == '{' && !options.contains(ParseStatementOption.InitializationStatement)) {
 						List<Statement> subStatements = new LinkedList<Statement>();
-						boolean foundClosingBracket;
-						boolean notReached = false;
-						for (eatWhitespace(); !(foundClosingBracket = read() == '}') && !reachedEOF(); eatWhitespace()) {
-							unread();
-							this.statementNotReached = notReached;
-							Statement subStatement = parseStatement();
-							if (subStatement != null) {
-								subStatements.add(subStatement);
-								if (!notReached) {
-									notReached = subStatement.getControlFlow() != ControlFlow.Continue;
-								}
-							} else
-								errorWithCode(ParserErrorCode.StatementExpected, this.ERROR_PLACEHOLDER_EXPR);
-						}
-						this.statementNotReached = false;
-						if (!foundClosingBracket)
-							errorWithCode(ParserErrorCode.BlockNotClosed, start, start+1);
+						parseStatementBlock(start, Integer.MAX_VALUE, subStatements, ParseStatementOption.NoOptions, ExpressionsAndStatementsReportingFlavour.AlsoStatements);
 						result = new Block(subStatements);
 					}
 					else if (read == ';') {
@@ -2294,6 +2245,63 @@ public class C4ScriptParser extends CStyleScanner {
 		}
 		
 
+	}
+
+	private void parseStatementBlock(int start, int endOfFunc, List<Statement> statements, EnumSet<ParseStatementOption> options, ExpressionsAndStatementsReportingFlavour flavour) throws ParsingException {
+		boolean foundClosingBracket;
+		boolean notReached = false;
+		int garbageStart = -1;
+		boolean oldStatementNotReached = this.statementNotReached;
+		while (!(foundClosingBracket = peek() == '}') && !reachedEOF() && this.offset < endOfFunc) {
+			this.statementNotReached = notReached;
+			int potentialGarbageEnd = offset;
+			eatWhitespace();
+			Statement statement = flavour == ExpressionsAndStatementsReportingFlavour.AlsoStatements ? parseStatement(options) : SimpleStatement.wrapExpression(parseExpression());
+			if (statement == null) {
+				if (garbageStart == -1) {
+					garbageStart = offset;
+				}
+				offset++;
+				continue;
+			} else {
+				// garbage recognized before statement: Create a special garbage statement that will report itself
+				if (garbageStart != -1) {
+					GarbageStatement garbage = new GarbageStatement(buffer, garbageStart, potentialGarbageEnd);
+					garbageStart = -1;
+					statements.add(garbage);
+					reportErrorsOf(garbage);
+				}
+			}
+			statements.add(statement);
+			boolean statementIsComment = statement instanceof Comment;
+			if (!notReached) {
+				notReached = statement.getControlFlow() != ControlFlow.Continue;
+			}
+			// after first 'real' statement don't expect function description anymore
+			if (!statementIsComment) {
+				options.remove(ParseStatementOption.ExpectFuncDesc);				
+			}
+			eatWhitespace();
+		}
+		/*for (eatWhitespace(); !(foundClosingBracket = read() == '}') && !reachedEOF(); eatWhitespace()) {
+			unread();
+			this.statementNotReached = notReached;
+			Statement subStatement = parseStatement();
+			if (subStatement != null) {
+				subStatements.add(subStatement);
+				if (!notReached) {
+					notReached = subStatement.getControlFlow() != ControlFlow.Continue;
+				}
+			} else
+				errorWithCode(ParserErrorCode.StatementExpected, this.ERROR_PLACEHOLDER_EXPR);
+		}*/
+		if (!foundClosingBracket) {
+			if (this.offset < endOfFunc)
+				errorWithCode(ParserErrorCode.BlockNotClosed, start, start+1);
+		} else {
+			read(); // should be }
+		}
+		this.statementNotReached = oldStatementNotReached;
 	}
 
 	private Comment getCommentImmediatelyFollowing() {
@@ -2863,21 +2871,7 @@ public class C4ScriptParser extends CStyleScanner {
 		try {
 			EnumSet<ParseStatementOption> options = EnumSet.of(ParseStatementOption.ExpectFuncDesc);
 			beginTypeInferenceBlock();
-			boolean notReached = false;
-			while (!reachedEOF()) {
-				this.statementNotReached = notReached;
-				ExprElm expr = flavour == ExpressionsAndStatementsReportingFlavour.AlsoStatements
-						? parseStatement(options)
-						: parseExpression();
-				if (expr == null) {
-					offset++; // skip garbage
-					continue;
-				}
-				if (!(expr instanceof Comment))
-					options.remove(ParseStatementOption.ExpectFuncDesc);
-				if (!notReached)
-					notReached = expr.getControlFlow() == ControlFlow.Return;
-			}
+			parseStatementBlock(offset, Integer.MAX_VALUE, new LinkedList<Statement>(), options, flavour);
 			//endTypeInferenceBlock(); not here for type information might still be needed
 		} 
 		catch (ParsingException e) {

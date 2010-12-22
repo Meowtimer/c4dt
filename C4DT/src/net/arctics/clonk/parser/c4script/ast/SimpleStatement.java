@@ -83,7 +83,13 @@ public class SimpleStatement extends Statement {
 	}
 	
 	public static Statement wrapExpression(ExprElm expr) {
-		return expr instanceof Statement ? (Statement)expr : new SimpleStatement(expr);
+		if (expr instanceof Statement) {
+			return (Statement)expr;
+		} else if (expr != null) {
+			return new SimpleStatement(expr);
+		} else {
+			return null;
+		}
 	}
 	
 	@Override
