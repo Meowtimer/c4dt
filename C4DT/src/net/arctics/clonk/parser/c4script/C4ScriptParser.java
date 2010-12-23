@@ -2269,10 +2269,7 @@ public class C4ScriptParser extends CStyleScanner {
 			} else {
 				// garbage recognized before statement: Create a special garbage statement that will report itself
 				if (garbageStart != -1) {
-					GarbageStatement garbage = new GarbageStatement(buffer, garbageStart, potentialGarbageEnd);
-					garbageStart = -1;
-					statements.add(garbage);
-					handleExpressionCreated(true, garbage);
+					garbageStart = maybeAddGarbageStatement(statements, garbageStart, potentialGarbageEnd);
 				}
 			}
 			statements.add(statement);
@@ -2288,9 +2285,7 @@ public class C4ScriptParser extends CStyleScanner {
 		}
 		if (garbageStart != -1) {
 			// contains only garbage ... still add
-			GarbageStatement garbage = new GarbageStatement(buffer, garbageStart, offset);
-			statements.add(garbage);
-			handleExpressionCreated(true, garbage);
+			maybeAddGarbageStatement(statements, garbageStart, offset);
 		}
 		if (!foundClosingBracket) {
 			if (this.offset < endOfFunc)
@@ -2299,6 +2294,19 @@ public class C4ScriptParser extends CStyleScanner {
 			read(); // should be }
 		}
 		this.statementNotReached = oldStatementNotReached;
+	}
+
+	private int maybeAddGarbageStatement(List<Statement> statements,
+			int garbageStart, int potentialGarbageEnd) throws ParsingException {
+		String garbageString = buffer.substring(garbageStart, potentialGarbageEnd);
+		garbageString = modifyGarbage(garbageString);
+		if (garbageString != null) {
+			GarbageStatement garbage = new GarbageStatement(garbageString, garbageStart);
+			garbageStart = -1;
+			statements.add(garbage);
+			handleExpressionCreated(true, garbage);
+		}
+		return garbageStart;
 	}
 
 	private Comment getCommentImmediatelyFollowing() {
@@ -2849,6 +2857,15 @@ public class C4ScriptParser extends CStyleScanner {
 		return 0;
 	}
 	
+	/**
+	 * Modify garbage string based on special considerations
+	 * @param garbage The expression string recognized as garbage
+	 * @return Actual garbage string to be wrapped in a GarbageStatement. Null if no GarbageStatement should be created
+	 */
+	protected String modifyGarbage(String garbage) {
+		return garbage; // normal parser accepts teh garbage
+	}
+	
 	public interface IMarkerListener {
 		public enum WhatToDo {
 			DropCharges,
@@ -2911,7 +2928,13 @@ public class C4ScriptParser extends CStyleScanner {
 		}
 	}
 	
-	public static C4ScriptParser reportExpressionsAndStatementsWithSpecificFlavour(IDocument doc, final int statementStart, int statementEnd, C4ScriptBase context, C4Function func, IScriptParserListener listener, final IMarkerListener markerListener, ExpressionsAndStatementsReportingFlavour flavour) { 
+	public static C4ScriptParser reportExpressionsAndStatementsWithSpecificFlavour(
+		IDocument doc,
+		final int statementStart, int statementEnd,
+		C4ScriptBase context, C4Function func,
+		IScriptParserListener listener, final IMarkerListener markerListener,
+		ExpressionsAndStatementsReportingFlavour flavour
+	) { 
 		String statements;
 		try {
 			// totally important to add the ")". Makes completion proposals work. DO NOT REMOVE!1
@@ -2923,6 +2946,16 @@ public class C4ScriptParser extends CStyleScanner {
 			@Override
 			protected int offsetOfScriptFragment() {
 				return statementStart;
+			}
+			@Override
+			protected String modifyGarbage(String garbage) {
+				if (garbage.equals(")")) {
+					return null;
+				} else if (garbage.endsWith(")")) {
+					return garbage.substring(0, garbage.length()-1);
+				} else {
+					return garbage;
+				}
 			}
 		};
 		parser.reportExpressionsAndStatements(func, listener, flavour);

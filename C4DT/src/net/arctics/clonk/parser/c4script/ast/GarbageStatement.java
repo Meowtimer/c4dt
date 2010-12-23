@@ -10,9 +10,9 @@ public class GarbageStatement extends Statement {
 	
 	private String garbage;
 	
-	public GarbageStatement(String script, int start, int end) {
-		garbage = script.substring(start, end);
-		setExprRegion(start, end);
+	public GarbageStatement(String garbageString, int start) {
+		garbage = garbageString;
+		setExprRegion(start, start+garbage.length());
 	}
 	
 	public String getGarbage() {
@@ -27,6 +27,10 @@ public class GarbageStatement extends Statement {
 	@Override
 	public void reportErrors(C4ScriptParser parser) throws ParsingException {
 		parser.errorWithCode(ParserErrorCode.Garbage, this, true, garbage);
+	}
+	
+	public void setGarbage(String garbage) {
+		this.garbage = garbage;
 	}
 
 }
