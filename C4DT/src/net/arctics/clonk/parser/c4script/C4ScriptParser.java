@@ -2132,13 +2132,6 @@ public class C4ScriptParser extends CStyleScanner {
 		}
 	}
 	
-	private Statement parseStatementAndMergeTypeInformation() throws ParsingException {
-		TypeInformationMerger merger = new TypeInformationMerger();
-		Statement s = parseStatementWithOwnTypeInferenceBlock(merger, null);
-		storedTypeInformationListStack.push(merger.finish(storedTypeInformationListStack.pop()));
-		return s;
-	}
-	
 	private Statement parseStatement(EnumSet<ParseStatementOption> options) throws ParsingException {
 		parseStatementRecursion++;
 		try {
@@ -2631,7 +2624,7 @@ public class C4ScriptParser extends CStyleScanner {
 		eatWhitespace();
 		offset = this.offset;
 		currentLoop = loopType;
-		body = parseStatementAndMergeTypeInformation();
+		body = parseStatement();
 		if (body == null) {
 			errorWithCode(ParserErrorCode.StatementExpected, offset, offset+4);
 		}
@@ -2679,7 +2672,7 @@ public class C4ScriptParser extends CStyleScanner {
 		expect(')');
 		eatWhitespace();
 		offset = this.offset;
-		Statement body = parseStatementAndMergeTypeInformation();
+		Statement body = parseStatement();
 		if (body == null) {
 			errorWithCode(ParserErrorCode.StatementExpected, offset, offset+4);
 		}
