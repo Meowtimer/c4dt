@@ -2248,14 +2248,17 @@ public class C4ScriptParser extends CStyleScanner {
 	}
 
 	private void parseStatementBlock(int start, int endOfFunc, List<Statement> statements, EnumSet<ParseStatementOption> options, ExpressionsAndStatementsReportingFlavour flavour) throws ParsingException {
-		boolean foundClosingBracket;
+		boolean foundClosingBracket = false;
 		boolean notReached = false;
 		int garbageStart = -1;
 		boolean oldStatementNotReached = this.statementNotReached;
-		while (!(foundClosingBracket = peek() == '}') && !reachedEOF() && this.offset < endOfFunc) {
+		while (!reachedEOF() && this.offset < endOfFunc) {
 			this.statementNotReached = notReached;
 			int potentialGarbageEnd = offset;
 			eatWhitespace();
+			foundClosingBracket = peek() == '}';
+			if (foundClosingBracket)
+				break;
 			Statement statement = flavour == ExpressionsAndStatementsReportingFlavour.AlsoStatements ? parseStatement(options) : SimpleStatement.wrapExpression(parseExpression());
 			if (statement == null) {
 				if (garbageStart == -1) {
@@ -2289,18 +2292,6 @@ public class C4ScriptParser extends CStyleScanner {
 			statements.add(garbage);
 			handleExpressionCreated(true, garbage);
 		}
-		/*for (eatWhitespace(); !(foundClosingBracket = read() == '}') && !reachedEOF(); eatWhitespace()) {
-			unread();
-			this.statementNotReached = notReached;
-			Statement subStatement = parseStatement();
-			if (subStatement != null) {
-				subStatements.add(subStatement);
-				if (!notReached) {
-					notReached = subStatement.getControlFlow() != ControlFlow.Continue;
-				}
-			} else
-				errorWithCode(ParserErrorCode.StatementExpected, this.ERROR_PLACEHOLDER_EXPR);
-		}*/
 		if (!foundClosingBracket) {
 			if (this.offset < endOfFunc)
 				errorWithCode(ParserErrorCode.BlockNotClosed, start, start+1);
