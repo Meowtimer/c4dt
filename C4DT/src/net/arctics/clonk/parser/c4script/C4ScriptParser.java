@@ -77,7 +77,6 @@ import net.arctics.clonk.parser.c4script.ast.VarDeclarationStatement;
 import net.arctics.clonk.parser.c4script.ast.VarDeclarationStatement.VarInitialization;
 import net.arctics.clonk.parser.c4script.ast.WhileStatement;
 import net.arctics.clonk.resource.c4group.C4GroupItem;
-import net.arctics.clonk.util.Sink;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IResource;
@@ -2117,10 +2116,8 @@ public class C4ScriptParser extends CStyleScanner {
 		return parseStatement(ParseStatementOption.NoOptions);
 	}
 	
-	private Statement parseStatementWithOwnTypeInferenceBlock(TypeInformationMerger merger, Sink<List<IStoredTypeInformation>> blockSink) throws ParsingException {
+	private Statement parseStatementWithOwnTypeInferenceBlock(TypeInformationMerger merger) throws ParsingException {
 		List<IStoredTypeInformation> block = beginTypeInferenceBlock();
-		if (blockSink != null)
-			blockSink.receivedObject(block);
 		try {
 			Statement s = parseStatement();
 			return s;
@@ -2709,12 +2706,7 @@ public class C4ScriptParser extends CStyleScanner {
 		expect(')');
 		eatWhitespace(); // FIXME: eats comments so when transforming code the comments will be gone
 		TypeInformationMerger merger = new TypeInformationMerger();
-		Statement ifStatement = parseStatementWithOwnTypeInferenceBlock(merger, new Sink<List<IStoredTypeInformation>>() {
-			@Override
-			public void receivedObject(List<IStoredTypeInformation> item) {
-				
-			}
-		});
+		Statement ifStatement = parseStatementWithOwnTypeInferenceBlock(merger);
 		if (ifStatement == null) {
 			errorWithCode(ParserErrorCode.StatementExpected, offset, offset+Keywords.If.length());
 		}
@@ -2725,7 +2717,7 @@ public class C4ScriptParser extends CStyleScanner {
 		if (nextWord != null && nextWord.equals(Keywords.Else)) {
 			eatWhitespace();
 			int o = this.offset;
-			elseStatement = parseStatementWithOwnTypeInferenceBlock(merger, null);
+			elseStatement = parseStatementWithOwnTypeInferenceBlock(merger);
 			if (elseStatement == null) {
 				errorWithCode(ParserErrorCode.StatementExpected, o, o+Keywords.Else.length());
 			}	
