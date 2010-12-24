@@ -110,6 +110,17 @@ public class AccessVar extends AccessDeclaration {
 			}
 		}
 	}
+	
+	private boolean allowTypeModificationOfDeclaration() {
+		if (declaration instanceof C4Variable) {
+			C4Variable v = (C4Variable) declaration;
+			if (v.getScope() == C4VariableScope.CONST)
+				return false;
+			if (v.isTypeLocked())
+				return false;
+		}
+		return true;
+	}
 
 	public static IStoredTypeInformation createStoredTypeInformation(C4Declaration declaration) {
 		if (declaration != null) {
@@ -121,7 +132,7 @@ public class AccessVar extends AccessDeclaration {
 
 	@Override
 	public IStoredTypeInformation createStoredTypeInformation(C4ScriptParser parser) {
-		if (declaration instanceof C4Variable && ((C4Variable)declaration).getScope() == C4VariableScope.CONST)
+		if (!allowTypeModificationOfDeclaration())
 			return null;
 		else
 			return super.createStoredTypeInformation(parser);

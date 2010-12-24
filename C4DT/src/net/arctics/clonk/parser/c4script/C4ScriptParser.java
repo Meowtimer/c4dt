@@ -211,15 +211,11 @@ public class C4ScriptParser extends CStyleScanner {
 	/**
 	 * Ask the parser to store type information about an expression. No guarantees whether type information will actually be stored.
 	 */
-	public void storeTypeInformation(ExprElm expression, IType type, List<IStoredTypeInformation> list) {
-		IStoredTypeInformation requested = requestStoredTypeInformation(expression, list);
+	public void storeTypeInformation(ExprElm expression, IType type) {
+		IStoredTypeInformation requested = requestStoredTypeInformation(expression);
 		if (requested != null) {
 			requested.storeType(type);
 		}
-	}
-	
-	public void storeTypeInformation(ExprElm expression, IType type) {
-		storeTypeInformation(expression, type, storedTypeInformationListStack.peek());
 	}
 	
 	/**
@@ -228,21 +224,19 @@ public class C4ScriptParser extends CStyleScanner {
 	 * @param list 
 	 * @return the type information or null if none has been stored
 	 */
-	public IStoredTypeInformation requestStoredTypeInformation(ExprElm expression, List<IStoredTypeInformation> list) {
-		for (IStoredTypeInformation info : list) {
-			if (info.expressionRelevant(expression, this))
-				return info;
-		}
-		IStoredTypeInformation newlyCreated = expression.createStoredTypeInformation(this);
-		if (newlyCreated != null)
-			list.add(newlyCreated);
-		return newlyCreated;
-	}
-	
 	public IStoredTypeInformation requestStoredTypeInformation(ExprElm expression) {
 		if (storedTypeInformationListStack.isEmpty())
 			return null;
-		return requestStoredTypeInformation(expression, storedTypeInformationListStack.peek());
+		for (int i = storedTypeInformationListStack.size()-1; i >= 0; i--) {
+			for (IStoredTypeInformation info : storedTypeInformationListStack.get(i)) {
+				if (info.expressionRelevant(expression, this))
+					return info;
+			}
+		}
+		IStoredTypeInformation newlyCreated = expression.createStoredTypeInformation(this);
+		if (newlyCreated != null)
+			storedTypeInformationListStack.peek().add(newlyCreated);
+		return newlyCreated;
 	}
 
 	public List<IStoredTypeInformation> copyCurrentTypeInformationList() {
@@ -266,10 +260,10 @@ public class C4ScriptParser extends CStyleScanner {
 	 * @param expression the expression to query the type of
 	 * @return
 	 */
-	public IStoredTypeInformation queryStoredTypeInformation(ExprElm expression, boolean wholeStack) {
+	public IStoredTypeInformation queryStoredTypeInformation(ExprElm expression) {
 		if (storedTypeInformationListStack.isEmpty())
 			return null;
-		for (int i = storedTypeInformationListStack.size()-1, levels = wholeStack ? storedTypeInformationListStack.size() : 1; levels > 0; levels--,i--) {
+		for (int i = storedTypeInformationListStack.size()-1; i >= 0; i--) {
 			for (IStoredTypeInformation info : storedTypeInformationListStack.get(i)) {
 				if (info.expressionRelevant(expression, this))
 					return info;
@@ -279,7 +273,7 @@ public class C4ScriptParser extends CStyleScanner {
 	}
 	
 	public IType queryTypeOfExpression(ExprElm expression, C4Type defaultType) {
-		IStoredTypeInformation info = queryStoredTypeInformation(expression, true);
+		IStoredTypeInformation info = queryStoredTypeInformation(expression);
 		return info != null ? info.getType() : defaultType;
 	}
 	
