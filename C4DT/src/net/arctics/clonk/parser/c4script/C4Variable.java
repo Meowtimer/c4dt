@@ -224,35 +224,30 @@ public class C4Variable extends C4Declaration implements Serializable, ITypedDec
 
 	private static String htmlerize(String text) {
 		return text.
-			replace("<", "&lt;").
-			replace(">", "&gt;").
-			replace("\n", " ").
-			replace("\t", " ");
+			replace("<", "&lt;"). //$NON-NLS-1$ //$NON-NLS-2$
+			replace(">", "&gt;"). //$NON-NLS-1$ //$NON-NLS-2$
+			replace("\n", " "). //$NON-NLS-1$ //$NON-NLS-2$
+			replace("\t", " "); //$NON-NLS-1$ //$NON-NLS-2$
 	}
 	
 	@Override
 	public String getInfoText() {
 		IType t = getObjectType() != null ? getObjectType() : getType();
-		StringBuilder builder = new StringBuilder();
-		builder.append("<b>"); //$NON-NLS-1$
-		builder.append(htmlerize((t == C4Type.UNKNOWN ? C4Type.ANY : t).typeName(false)));
-		builder.append(" "); //$NON-NLS-1$
-		builder.append(getName());
-		builder.append("</b>"); //$NON-NLS-1$
-		if (initializationExpression != null) {
-			if (scope == C4VariableScope.CONST) {
-				builder.append(" = "); //$NON-NLS-1$
-			} else {
-				builder.append("<br><br>");
-				builder.append("Default Value:<br>");
-			}
-			builder.append(htmlerize(initializationExpression.toString()));
-		}
-		if (getUserDescription() != null && getUserDescription().length() > 0) {
-			builder.append("<br>"); //$NON-NLS-1$
-			builder.append(getUserDescription());
-		}
-		return builder.toString();
+		String format = Messages.C4Variable_InfoTextFormatOverall;
+		String valueFormat = scope == C4VariableScope.CONST
+			? Messages.C4Variable_InfoTextFormatConstValue
+			: Messages.C4Variable_InfoTextFormatDefaultValue;
+		String descriptionFormat = Messages.C4Variable_InfoTextFormatUserDescription;
+		return String.format(format,
+			htmlerize((t == C4Type.UNKNOWN ? C4Type.ANY : t).typeName(false)),
+			getName(),
+			initializationExpression != null
+				? String.format(valueFormat, htmlerize(initializationExpression.toString()))
+				: "", //$NON-NLS-1$
+			getUserDescription() != null && getUserDescription().length() > 0
+				? String.format(descriptionFormat, getUserDescription())
+				: "" //$NON-NLS-1$
+		);
 	}
 
 	public void inferTypeFromAssignment(ExprElm val, C4ScriptParser context) {
@@ -377,9 +372,9 @@ public class C4Variable extends C4Declaration implements Serializable, ITypedDec
 	@Override
 	public void sourceCodeRepresentation(StringBuilder builder, Object cookie) {
 		builder.append(getScope().toKeyword());
-		builder.append(" ");
+		builder.append(" "); //$NON-NLS-1$
 		builder.append(getName());
-		builder.append(";");
+		builder.append(";"); //$NON-NLS-1$
 	}
 	
 	@Override

@@ -7,6 +7,10 @@ public class Messages extends NLS {
 	public static String DescriptionNotAvailable;
 	public static String C4Function_InfoTextTemplate;
 	public static String C4ScriptParser_Or;
+	public static String C4Variable_InfoTextFormatConstValue;
+	public static String C4Variable_InfoTextFormatDefaultValue;
+	public static String C4Variable_InfoTextFormatOverall;
+	public static String C4Variable_InfoTextFormatUserDescription;
 	public static String ImportingEngineFromXML;
 	public static String TokenStringOrIdentifier;
 	public static String InternalError_WayTooMuch;
