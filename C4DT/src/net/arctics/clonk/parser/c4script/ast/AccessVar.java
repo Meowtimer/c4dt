@@ -9,7 +9,6 @@ import net.arctics.clonk.parser.c4script.C4Function;
 import net.arctics.clonk.parser.c4script.C4ScriptBase;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.C4Type;
-import net.arctics.clonk.parser.c4script.C4TypeSet;
 import net.arctics.clonk.parser.c4script.C4Variable;
 import net.arctics.clonk.parser.c4script.FindDeclarationInfo;
 import net.arctics.clonk.parser.c4script.IType;
@@ -20,54 +19,6 @@ import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
 public class AccessVar extends AccessDeclaration {
 
 	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
-
-	private static final class VariableTypeInformation extends StoredTypeInformation {
-		private C4Declaration decl;
-
-		public VariableTypeInformation(C4Declaration varDeclaration) {
-			this.decl = varDeclaration;
-			if (varDeclaration instanceof C4Variable) {
-				C4Variable var = (C4Variable) varDeclaration;
-				storeType(C4TypeSet.create(var.getType(), var.getObjectType()));
-			}
-		}
-
-		public boolean expressionRelevant(ExprElm expr, C4ScriptParser parser) {
-			// obj-> asks for the relevance of obj
-			if (expr instanceof Sequence) {
-				Sequence seq = (Sequence) expr;
-				if (seq.getLastElement() instanceof MemberOperator && seq.getLastElement().getPredecessorInSequence() instanceof AccessVar)
-					expr = seq.getLastElement().getPredecessorInSequence();
-				else
-					return false;
-			}
-			return expr instanceof AccessVar && ((AccessVar)expr).getDeclaration() == decl;
-		}
-
-		@Override
-		public void apply(boolean soft) {
-			if (decl == null)
-				return;
-			decl = decl.latestVersion(); 
-			if (decl instanceof C4Variable) {
-				C4Variable var = (C4Variable) decl;
-				if (!soft || var.getScope() == C4VariableScope.VAR) {
-					// for serialization, split static and non-static types again
-					var.setType(getType());
-				}
-			}
-		}
-
-		public boolean sameExpression(IStoredTypeInformation other) {
-			return other.getClass() == AccessVar.VariableTypeInformation.class && ((AccessVar.VariableTypeInformation)other).decl == decl;
-		}
-
-		@Override
-		public String toString() {
-			return "variable " + decl.getName() + " " + super.toString(); //$NON-NLS-1$ //$NON-NLS-2$
-		}
-
-	}
 
 	@Override
 	public boolean modifiable(C4ScriptParser context) {
@@ -83,9 +34,9 @@ public class AccessVar extends AccessDeclaration {
 		super(varName);
 	}
 
-	public AccessVar(C4Variable v) {
-		this(v.getName());
-		this.declaration = v;
+	public AccessVar(C4Declaration declaration) {
+		this(declaration.getName());
+		this.declaration = declaration;
 	}
 
 	@Override
@@ -161,12 +112,20 @@ public class AccessVar extends AccessDeclaration {
 	}
 
 	public static IStoredTypeInformation createStoredTypeInformation(C4Declaration declaration) {
-		return new VariableTypeInformation(declaration);
+		if (declaration != null) {
+			return new GenericStoredTypeInformation(new AccessVar(declaration));
+		} else {
+			return null;
+		}
 	}
 
 	@Override
 	public IStoredTypeInformation createStoredTypeInformation(C4ScriptParser parser) {
-		return createStoredTypeInformation(getDeclaration());
+		if (declaration instanceof C4Variable && ((C4Variable)declaration).getScope() == C4VariableScope.CONST)
+			return null;
+		else
+			return super.createStoredTypeInformation(parser);
+		//return createStoredTypeInformation(getDeclaration());
 	}
 	
 	@Override

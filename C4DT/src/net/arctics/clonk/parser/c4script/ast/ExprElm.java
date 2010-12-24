@@ -19,6 +19,7 @@ import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.C4Type;
 import net.arctics.clonk.parser.c4script.C4TypeSet;
 import net.arctics.clonk.parser.c4script.IType;
+import net.arctics.clonk.parser.c4script.ITypedDeclaration;
 import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
 import net.arctics.clonk.util.IConverter;
 import net.arctics.clonk.util.IPrintable;
@@ -444,7 +445,7 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable {
 	}
 
 	public IStoredTypeInformation createStoredTypeInformation(C4ScriptParser parser) {
-		return null;
+		return new GenericStoredTypeInformation(this);
 	}
 
 	/**
@@ -496,6 +497,11 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable {
 		public void differs(ExprElm a, ExprElm b, Object what) {
 			// the humanity
 		}
+
+		@Override
+		public boolean optionEnabled(Option option) {
+			return false;
+		}
 	};
 	
 	public boolean compare(ExprElm other, IDifferenceListener listener) {
@@ -519,6 +525,65 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable {
 		else {
 			return false;
 		}
+	}
+	
+	protected static final class GenericStoredTypeInformation extends StoredTypeInformation {
+		private ExprElm referenceElm;
+		
+		public GenericStoredTypeInformation(ExprElm referenceElm) {
+			super();
+			this.referenceElm = referenceElm;
+		}
+		
+		private static final IDifferenceListener IDENTITY_DIFFERENCE_LISTENER = new IDifferenceListener() {
+			@Override
+			public void differs(ExprElm a, ExprElm b, Object what) {
+				// ok
+			}
+
+			@Override
+			public boolean optionEnabled(Option option) {
+				switch (option) {
+				case CheckForIdentity:
+					return true;
+				default:
+					return false;
+				}
+			}
+			
+		};
+
+		@Override
+		public boolean expressionRelevant(ExprElm expr, C4ScriptParser parser) {
+			return expr.compare(referenceElm, IDENTITY_DIFFERENCE_LISTENER);
+		}
+
+		@Override
+		public boolean sameExpression(IStoredTypeInformation other) {
+			if (other instanceof GenericStoredTypeInformation) {
+				return ((GenericStoredTypeInformation)other).referenceElm.equals(referenceElm);
+			} else {
+				return false;
+			}
+		}
+		
+		public ITypedDeclaration getDeclaration(C4ScriptParser parser) {
+			DeclarationRegion decRegion = referenceElm.declarationAt(referenceElm.getLength()-1, parser);
+			if (decRegion != null && decRegion.getDeclaration() instanceof ITypedDeclaration) {
+				return (ITypedDeclaration) decRegion.getDeclaration();
+			} else {
+				return null;
+			}
+		}
+		
+		@Override
+		public void apply(boolean soft, C4ScriptParser parser) {
+			ITypedDeclaration tyDec = getDeclaration(parser);
+			if (tyDec != null) {
+				tyDec.expectedToBeOfType(type);
+			}
+		}
+		
 	}
 	
 	@Override
@@ -562,7 +627,6 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable {
 	}
 	
 	// getting/setting some associated variable so the exprelm knows from whence it came
-	;
 	public C4Declaration associatedDeclaration() {
 		return null;
 	}
@@ -573,6 +637,25 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable {
 				s.setAssociatedDeclaration(declaration);
 			}
 		}
+	}
+
+	public ExprElm sequenceTilMe() {
+		Sequence fullSequence = sequence();
+		if (fullSequence != null) {
+			List<ExprElm> elms = new LinkedList<ExprElm>();
+			for (ExprElm e : fullSequence.getElements()) {
+				elms.add(e);
+				if (e == this)
+					break;
+			}
+			return elms.size() == 1 ? this : new Sequence(elms);
+		} else {
+			return this;
+		}
+	}
+
+	private Sequence sequence() {
+		return getParent() instanceof Sequence ? (Sequence)getParent() : null;
 	}
 
 }

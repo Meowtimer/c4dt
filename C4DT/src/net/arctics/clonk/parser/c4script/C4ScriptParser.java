@@ -200,7 +200,7 @@ public class C4ScriptParser extends CStyleScanner {
 		if (list == null)
 			return;
 		for (IStoredTypeInformation info : list) {
-			info.apply(soft);
+			info.apply(soft, this);
 		}
 	}
 	
@@ -2341,8 +2341,7 @@ public class C4ScriptParser extends CStyleScanner {
 				val = parseExpression();
 				if (val == null)
 					errorWithCode(ParserErrorCode.ValueExpected, this.offset, this.offset+1);
-				else {
-					new AccessVar(var).expectedToBeOfType(val.getType(this), this, TypeExpectancyMode.Force);
+				else {					new AccessVar(var).expectedToBeOfType(val.getType(this), this, TypeExpectancyMode.Force);
 				}
 			}
 			else {

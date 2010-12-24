@@ -97,7 +97,7 @@ public class MemberOperator extends ExprElm {
 		super.reportErrors(parser);
 		ExprElm pred = getPredecessorInSequence();
 		if (pred != null) {
-			pred.expectedToBeOfType(
+			pred.sequenceTilMe().expectedToBeOfType(
 				dotNotation ? C4Type.PROPLIST : C4TypeSet.OBJECT_OR_ID, parser, TypeExpectancyMode.Hint,
 				dotNotation ? ParserErrorCode.NotAProplist : ParserErrorCode.CallingMethodOnNonObject
 			);

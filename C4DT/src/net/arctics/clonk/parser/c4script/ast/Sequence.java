@@ -11,9 +11,7 @@ import net.arctics.clonk.parser.c4script.C4Type;
 import net.arctics.clonk.parser.c4script.IType;
 
 public class Sequence extends Value {
-	/**
-	 * 
-	 */
+
 	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 	
 	protected ExprElm[] elements;
@@ -76,11 +74,12 @@ public class Sequence extends Value {
 	}
 	@Override
 	public IStoredTypeInformation createStoredTypeInformation(C4ScriptParser parser) {
-		ExprElm last = getLastElement();
+		return super.createStoredTypeInformation(parser);
+		/*ExprElm last = getLastElement();
 		if (last != null)
 			// things in sequences should take into account their predecessors
 			return last.createStoredTypeInformation(parser);
-		return super.createStoredTypeInformation(parser);
+		return super.createStoredTypeInformation(parser); */
 	}
 	public Statement[] splitIntoValidSubStatements(C4ScriptParser parser) {
 		List<ExprElm> currentSequenceExpressions = new LinkedList<ExprElm>();

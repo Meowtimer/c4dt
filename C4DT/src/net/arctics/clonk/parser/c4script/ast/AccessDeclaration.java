@@ -5,6 +5,7 @@ import net.arctics.clonk.parser.C4Declaration;
 import net.arctics.clonk.parser.DeclarationRegion;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
+import net.arctics.clonk.parser.c4script.ast.IDifferenceListener.Option;
 
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.Region;
@@ -74,15 +75,22 @@ public abstract class AccessDeclaration extends Value {
 	public boolean compare(ExprElm other, IDifferenceListener listener) {
 		if (!super.compare(other, listener))
 			return false;
-		if (!declarationName.equals(((AccessDeclaration)other).declarationName)) {
-			listener.differs(this, other, field("declarationName"));
-			return false;
+		AccessDeclaration otherDec = (AccessDeclaration) other;
+		if (listener.optionEnabled(Option.CheckForIdentity)) {
+			if (!declarationName.equals(otherDec.declarationName)) {
+				listener.differs(this, other, field("declarationName"));
+				return false;
+			}
 		} else {
-			return true;
+			if (declaration != otherDec.declaration) {
+				listener.differs(this, other, field("declaration"));
+				return false;
+			}
 		}
+		return true;
 	}
-	
-	public Class<? extends C4Declaration> declarationClass() {
+
+public Class<? extends C4Declaration> declarationClass() {
 		return C4Declaration.class;
 	}
 	

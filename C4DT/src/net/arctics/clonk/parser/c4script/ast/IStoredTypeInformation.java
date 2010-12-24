@@ -11,7 +11,7 @@ public interface IStoredTypeInformation {
 	
 	boolean expressionRelevant(ExprElm expr, C4ScriptParser parser);
 	boolean sameExpression(IStoredTypeInformation other);
-	void apply(boolean soft);
+	void apply(boolean soft, C4ScriptParser parser);
 	void merge(IStoredTypeInformation other);
 	
 	Object clone() throws CloneNotSupportedException; // Cloneable does not declare the method :c

@@ -31,10 +31,7 @@ import org.eclipse.core.resources.IMarker;
 import org.eclipse.jface.text.Region;
 
 public class CallFunc extends AccessDeclaration {
-	
-	/**
-	 * 
-	 */
+
 	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 
 	public final static class FunctionReturnTypeInformation extends StoredTypeInformation {
@@ -77,7 +74,7 @@ public class CallFunc extends AccessDeclaration {
 		}
 		
 		@Override
-		public void apply(boolean soft) {
+		public void apply(boolean soft, C4ScriptParser parser) {
 			if (function == null)
 				return;
 			function = (C4Function) function.latestVersion();
@@ -630,8 +627,10 @@ public class CallFunc extends AccessDeclaration {
 		else if (d instanceof C4Function) {
 			C4Function f = (C4Function) d;
 			IType retType = f.getReturnType();
-			if (retType == null || !(retType.containsAnyTypeOf(C4Type.ANY, C4Type.REFERENCE)))
+			if (retType == null || !retType.containsAnyTypeOf(C4Type.ANY, C4Type.REFERENCE))
 				return new FunctionReturnTypeInformation((C4Function)d);
+			if (d.isEngineDeclaration())
+				return null;
 		}
 		return super.createStoredTypeInformation(parser);
 	}

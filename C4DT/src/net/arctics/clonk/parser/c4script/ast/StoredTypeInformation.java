@@ -1,5 +1,6 @@
 package net.arctics.clonk.parser.c4script.ast;
 
+import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.C4Type;
 import net.arctics.clonk.parser.c4script.C4TypeSet;
 import net.arctics.clonk.parser.c4script.IType;
@@ -32,7 +33,10 @@ public abstract class StoredTypeInformation implements IStoredTypeInformation, C
 		return true;
 	}
 	
-	public void apply(boolean soft) {}
+	@Override
+	public void apply(boolean soft, C4ScriptParser parser) {
+		
+	}
 	
 	public void merge(IStoredTypeInformation other) {
 		if (getType() == C4Type.UNKNOWN)

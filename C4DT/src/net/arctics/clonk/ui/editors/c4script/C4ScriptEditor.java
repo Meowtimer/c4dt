@@ -526,7 +526,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 			parser.parseCodeOfFunctionsAndValidate();
 		if (storedLocalsTypeInformation != null) {
 			for (IStoredTypeInformation info : storedLocalsTypeInformation) {
-				info.apply(false);
+				info.apply(false, parser);
 			}
 		}
 		// make sure it's executed on the ui thread
