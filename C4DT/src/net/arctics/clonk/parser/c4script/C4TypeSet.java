@@ -168,7 +168,7 @@ public class C4TypeSet implements IType {
 	@Override
 	public boolean containsType(IType type) {
 		for (IType t : this)
-			if (t == type)
+			if (t.containsType(type))
 				return true;
 		return false;
 	}

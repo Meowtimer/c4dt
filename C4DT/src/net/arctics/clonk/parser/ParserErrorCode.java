@@ -62,7 +62,7 @@ public enum ParserErrorCode {
 	NotAProplist(Messages.NotAProplist),
 	UnknownSection(Messages.UnknownSection),
 	Unused(Messages.Unused),
-	NotAnArray(Messages.NotAnArray),
+	NotAnArrayOrProplist(Messages.NotAnArrayOrProplist),
 	VarOutsideFunction(Messages.VarOutsideFunction),
 	Garbage(Messages.Garbage);
 

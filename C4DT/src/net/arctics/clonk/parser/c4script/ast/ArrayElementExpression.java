@@ -44,7 +44,7 @@ public class ArrayElementExpression extends Value {
 		if (predecessor != null) {
 			IType type = predecessor.getType(parser);
 			if (type != C4Type.UNKNOWN && type != C4Type.ANY && !type.containsAnyTypeOf(C4Type.ARRAY, C4Type.PROPLIST)) {
-				parser.warningWithCode(ParserErrorCode.NotAnArray, predecessor);
+				parser.warningWithCode(ParserErrorCode.NotAnArrayOrProplist, predecessor);
 			}
 		}
 		ExprElm arg = getArgument();
