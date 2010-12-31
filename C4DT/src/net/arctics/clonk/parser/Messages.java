@@ -7,6 +7,7 @@ public class Messages extends NLS {
 	public static String TokenExpected;
 	public static String NotAllowedHere;
 	public static String NotAnArrayOrProplist;
+	public static String NotANumber;
 	public static String NotAProplist;
 	public static String OperatorNeedsRightSide;
 	public static String NoAssignment;

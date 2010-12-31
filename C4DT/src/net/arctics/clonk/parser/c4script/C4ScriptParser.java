@@ -1175,7 +1175,13 @@ public class C4ScriptParser extends CStyleScanner {
 			}
 		} while(!reachedEOF());
 		this.seek(offset);
-		parsedNumber = Long.parseLong(this.readString(count));
+		String numberString = this.readString(count);
+		try {
+			parsedNumber = Long.parseLong(numberString);
+		} catch (NumberFormatException e) {
+			parsedNumber = Integer.MAX_VALUE;
+			errorWithCode(ParserErrorCode.NotANumber, offset, offset+count, true, numberString);
+		}
 		this.seek(offset+count);
 		return true;
 	}
