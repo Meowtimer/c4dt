@@ -709,6 +709,7 @@
 			<entry name="AllowHostilityChange" class="Boolean" />
 			<entry name="AllowTeamSwitch" class="Boolean" />
 			<entry name="TeamColors" class="Boolean" />
+			<entry name="LastTeamID" class="UnsignedInteger" />
 			<entry name="Active" class="Boolean" />
 			<entry name="Custom" class="Boolean" />
 			<entry name="AutoGenerateTeams" class="Boolean" />
@@ -719,6 +720,8 @@
 				<entry name="PlrStartIndex" class="SignedInteger" />
 				<entry name="Color" class="SignedInteger" />
 				<entry name="MaxPlayer" class="SignedInteger" />
+				<entry name="PlayerCount" class="UnsignedInteger" />
+				<entry name="Players" class="UnsignedInteger" />
 			</section>
 		</section>
 	</file>

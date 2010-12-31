@@ -10,9 +10,6 @@ import net.arctics.clonk.parser.c4script.IType;
 
 public final class NumberLiteral extends Literal<Long> {
 
-	/**
-	 * 
-	 */
 	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 
 	public static final NumberLiteral ZERO = new NumberLiteral(0);
