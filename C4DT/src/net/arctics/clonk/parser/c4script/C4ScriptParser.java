@@ -473,7 +473,7 @@ public class C4ScriptParser extends CStyleScanner {
 	public void distillAdditionalInformation() {
 		if (container instanceof C4Object) {
 			((C4Object)container).chooseLocalizedName();
-			C4Function definitionFunc = container.findFunction(Keywords.DefinitionFunc);
+			C4Function definitionFunc = container.findLocalFunction(Keywords.DefinitionFunc, false);
 			if (definitionFunc != null && definitionFunc.getBody() != null) { // could also be engine function without body
 				this.seek(definitionFunc.getBody().getStart());
 				boolean old = allErrorsDisabled;
@@ -486,10 +486,10 @@ public class C4ScriptParser extends CStyleScanner {
 							if (expression instanceof CallFunc) {
 								CallFunc callFunc = (CallFunc) expression;
 								if (
-										callFunc.getDeclarationName().equals("SetProperty") && //$NON-NLS-1$
-										callFunc.getParams().length >= 2 &&
-										callFunc.getParams()[0] instanceof StringLiteral &&
-										((StringLiteral)callFunc.getParams()[0]).getLiteral().equals("Name") //$NON-NLS-1$
+									callFunc.getDeclarationName().equals("SetProperty") && //$NON-NLS-1$
+									callFunc.getParams().length >= 2 &&
+									callFunc.getParams()[0] instanceof StringLiteral &&
+									((StringLiteral)callFunc.getParams()[0]).getLiteral().equals("Name") //$NON-NLS-1$
 								) {
 									Object v = callFunc.getParams()[1].evaluateAtParseTime(container);
 									if (v instanceof String) {
@@ -1354,7 +1354,7 @@ public class C4ScriptParser extends CStyleScanner {
 	}
 	
 	public boolean errorDisabled(ParserErrorCode error) {
-		return disabledErrors.contains(error);
+		return allErrorsDisabled || disabledErrors.contains(error);
 	}
 	
 	private static class LatentMarker {
@@ -1455,9 +1455,9 @@ public class C4ScriptParser extends CStyleScanner {
 			return null;
 		}
 		IMarker result = null;
-		boolean silence = scriptFile == null || (getCurrentFunc() != null && getCurrentFunc().getBody() != null && this.offset > getCurrentFunc().getBody().getEnd()+1);
+		boolean misplacedErrorOrNoFileToAttachMarkerTo = scriptFile == null || (getCurrentFunc() != null && getCurrentFunc().getBody() != null && this.offset > getCurrentFunc().getBody().getEnd()+1);
 		String problem = code.getErrorString(args);
-		if (!silence && (!allErrorsDisabled || !noThrow)) {
+		if (!misplacedErrorOrNoFileToAttachMarkerTo && !noThrow) {
 			result = code.createMarker(scriptFile, getContainer(), ClonkCore.MARKER_C4SCRIPT_ERROR, markerStart, markerEnd, severity, expressionReportingErrors, args);
 			IRegion exprLocation = getLocationOfExpressionReportingErrors();
 			if (exprLocation != null) {
@@ -1468,7 +1468,7 @@ public class C4ScriptParser extends CStyleScanner {
 			problem = code.getErrorString(args);
 		}
 		if (!noThrow && severity >= IMarker.SEVERITY_ERROR) {
-			throw silence
+			throw misplacedErrorOrNoFileToAttachMarkerTo
 				? new SilentParsingException(Reason.SilenceRequested, problem)
 				: new ParsingException(problem);
 		}
