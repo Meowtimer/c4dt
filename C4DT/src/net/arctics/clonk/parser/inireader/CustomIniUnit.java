@@ -107,19 +107,21 @@ public class CustomIniUnit extends IniUnit {
 
 	public void commitSection(Object object, IniSection section, boolean takeIntoAccountCategory) throws NoSuchFieldException, IllegalAccessException {
 		for (IniItem item : section.getSubItemMap().values()) {
-			if (!(item instanceof IniEntry))
-				continue;
-			IniEntry entry = (IniEntry) item;
-			Field f = object.getClass().getField(entry.getName());
-			IniField annot;
-			if (f != null && (annot = f.getAnnotation(IniField.class)) != null && (!takeIntoAccountCategory || annot.category().equals(section.getName()))) {
-				Object val = entry.getValueObject();
-				if (val instanceof IConvertibleToPrimitive)
-					val = ((IConvertibleToPrimitive)val).convertToPrimitive();
-				if (f.getType() != String.class && val instanceof String)
-					setFromString(f, object, (String)val);
-				else
-					f.set(object, val);
+			if (item instanceof IniSection) {
+				commitSection(object, (IniSection)item, takeIntoAccountCategory);
+			} else if (item instanceof IniEntry) {
+				IniEntry entry = (IniEntry) item;
+				Field f = object.getClass().getField(entry.getName());
+				IniField annot;
+				if (f != null && (annot = f.getAnnotation(IniField.class)) != null && (!takeIntoAccountCategory || annot.category().equals(section.getName()))) {
+					Object val = entry.getValueObject();
+					if (val instanceof IConvertibleToPrimitive)
+						val = ((IConvertibleToPrimitive)val).convertToPrimitive();
+					if (f.getType() != String.class && val instanceof String)
+						setFromString(f, object, (String)val);
+					else
+						f.set(object, val);
+				}
 			}
 		}
 	}
@@ -127,6 +129,8 @@ public class CustomIniUnit extends IniUnit {
 	private void setFromString(Field f, Object object, String val) throws NumberFormatException, IllegalArgumentException, IllegalAccessException {	
 		if (f.getType() == Integer.TYPE)
 			f.set(object, Integer.valueOf(val));
+		else if (f.getType() == Long.TYPE)
+			f.set(object, Long.valueOf(val));
 		else if (f.getType() == java.lang.Boolean.TYPE)
 			f.set(object, java.lang.Boolean.valueOf(val));
 	}

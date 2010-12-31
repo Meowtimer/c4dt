@@ -117,7 +117,7 @@ public abstract class C4ScriptBase extends C4Structure implements ITreeNode {
 	 * @return the #strict level set for this script or the default level supplied by the engine configuration
 	 */
 	public int getStrictLevel() {
-		int level = getEngine() != null ? getEngine().getCurrentSettings().strictDefaultLevel : -1;
+		long level = getEngine() != null ? getEngine().getCurrentSettings().strictDefaultLevel : -1;
 		for (C4Directive d : this.definedDirectives) {
 			if (d.getType() == C4DirectiveType.STRICT) {
 				try {
@@ -129,7 +129,7 @@ public abstract class C4ScriptBase extends C4Structure implements ITreeNode {
 				}
 			}
 		}
-		return level;
+		return (int)level;
 	}
 
 	/**

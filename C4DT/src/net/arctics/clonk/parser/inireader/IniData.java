@@ -182,7 +182,7 @@ public class IniData {
 			entryName = name;
 			if (valueType == String.class)
 				entryClass = valueType;
-			else if (valueType == Integer.TYPE)
+			else if (valueType == Integer.TYPE || valueType == Long.TYPE)
 				entryClass = SignedInteger.class;
 			else if (valueType == java.lang.Boolean.TYPE)
 				entryClass = Boolean.class;

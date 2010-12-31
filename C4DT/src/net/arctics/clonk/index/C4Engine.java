@@ -65,9 +65,9 @@ public class C4Engine extends C4ScriptBase {
 		private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 
 		@IniField
-		public int strictDefaultLevel;
+		public long strictDefaultLevel;
 		@IniField
-		public int maxStringLen;
+		public long maxStringLen;
 		@IniField
 		public String idPattern;
 		@IniField
@@ -170,7 +170,7 @@ public class C4Engine extends C4ScriptBase {
 		private Pattern idPatternCompiled;
 		public Pattern getCompiledIdPattern() {
 			if (idPatternCompiled == null) {
-				if (idPattern.equals("<identifier>")) {
+				if (idPattern.equals("<identifier>") || idPattern.equals("")) {
 					idPatternCompiled = BufferedScanner.IDENTIFIER_PATTERN;
 				} else {
 					idPatternCompiled = Pattern.compile(idPattern);
