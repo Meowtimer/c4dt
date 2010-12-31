@@ -472,7 +472,21 @@ public class C4ScriptParser extends CStyleScanner {
 	 */
 	public void distillAdditionalInformation() {
 		if (container instanceof C4Object) {
-			((C4Object)container).chooseLocalizedName();
+			
+			C4Object obj = (C4Object) container;
+			obj.chooseLocalizedName(); // ClonkRage Names.txt
+			
+			C4Variable nameLocal = container.findLocalVariable("Name", false);
+			if (nameLocal != null) {
+				ExprElm expr = nameLocal.getInitializationExpression();
+				if (expr != null) {
+					obj.setName(expr.evaluateAtParseTime(container).toString());
+				} else if (nameLocal.getDefaultValue() instanceof String) {
+					obj.setName((String)nameLocal.getDefaultValue());
+				}
+			}
+			
+			// find SetProperty call in Definition func
 			C4Function definitionFunc = container.findLocalFunction(Keywords.DefinitionFunc, false);
 			if (definitionFunc != null && definitionFunc.getBody() != null) { // could also be engine function without body
 				this.seek(definitionFunc.getBody().getStart());

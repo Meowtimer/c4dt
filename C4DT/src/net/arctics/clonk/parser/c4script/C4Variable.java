@@ -263,7 +263,7 @@ public class C4Variable extends C4Declaration implements Serializable, ITypedDec
 			ITypedDeclaration.Default.expectedToBeOfType(this, t);
 	}
 
-	public Object getConstValue() {
+	public Object getDefaultValue() {
 		return initializationExpression instanceof ExprElm ? null : initializationExpression;
 	}
 
@@ -290,7 +290,7 @@ public class C4Variable extends C4Declaration implements Serializable, ITypedDec
 		if (e != null) {
 			return e.evaluateAtParseTime(context);
 		}
-		return getConstValue();
+		return getDefaultValue();
 	}
 	
 	public void setInitializationExpression(ExprElm initializationExpression) {

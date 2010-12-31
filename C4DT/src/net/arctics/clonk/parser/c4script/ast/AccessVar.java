@@ -186,7 +186,7 @@ public class AccessVar extends AccessDeclaration {
 		if (declaration instanceof C4Variable) {
 			C4Variable var = (C4Variable) declaration;
 			if (var.getScope() == C4VariableScope.CONST) {
-				Object val = var.getConstValue();
+				Object val = var.getDefaultValue();
 				if (val == null)
 					val = 1337; // awesome fallback
 				return val;
