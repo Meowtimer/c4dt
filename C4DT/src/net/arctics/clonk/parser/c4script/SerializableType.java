@@ -92,7 +92,7 @@ public class SerializableType implements Serializable, IType {
 
 	@Override
 	public boolean containsType(IType type) {
-		return completeType != null && completeType.containsType(type);
+		return type.equals(this) || (completeType != null && completeType.containsType(type));
 	}
 
 	@Override
@@ -112,7 +112,7 @@ public class SerializableType implements Serializable, IType {
 
 	@Override
 	public IType serializableVersion(ClonkIndex indexToBeSerialized) {
-		return completeType != null ? completeType.serializableVersion(indexToBeSerialized) : C4Type.ANY;
+		return this; // -.-;
 	}
 	
 	static IType serializableTypeFrom(IType type, ClonkIndex index) {

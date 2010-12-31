@@ -9,6 +9,7 @@ import java.io.ObjectInputStream;
 
 import net.arctics.clonk.parser.C4ID;
 import net.arctics.clonk.parser.c4script.C4TypeSet;
+import net.arctics.clonk.parser.c4script.ReferenceType;
 
 /**
  * Enforces that some objects won't be duplicated, like ids and typesets
@@ -30,6 +31,9 @@ public class ClonkIndexStream extends ObjectInputStream {
 		}
 		else if (obj.getClass() == C4TypeSet.class) {
 			return ((C4TypeSet)obj).internalize();
+		}
+		else if (obj.getClass() == ReferenceType.class) {
+			return ReferenceType.get(((ReferenceType)obj).getType());
 		}
 		return super.resolveObject(obj);
 	}

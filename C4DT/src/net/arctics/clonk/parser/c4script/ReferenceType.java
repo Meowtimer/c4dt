@@ -1,8 +1,8 @@
 package net.arctics.clonk.parser.c4script;
 
+import java.util.HashMap;
 import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.Map;
 
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.index.ClonkIndex;
@@ -50,7 +50,7 @@ public class ReferenceType implements IType {
 
 	@Override
 	public boolean containsType(IType type) {
-		return type.containsType(type) || C4Type.REFERENCE.containsType(type);
+		return type.equals(this) || type.containsType(type) || C4Type.REFERENCE.containsType(type);
 	}
 
 	@Override
@@ -68,7 +68,7 @@ public class ReferenceType implements IType {
 		return C4Type.REFERENCE;
 	}
 	
-	private static List<ReferenceType> internalizedReferenceTypes = new LinkedList<ReferenceType>();
+	private static Map<IType, ReferenceType> internalizedReferenceTypes = new HashMap<IType, ReferenceType>();
 	
 	@Override
 	public boolean equals(Object obj) {
@@ -77,13 +77,11 @@ public class ReferenceType implements IType {
 	
 	public static ReferenceType get(IType type) {
 		if (type.staticType() == type) {
-			for (ReferenceType r : internalizedReferenceTypes) {
-				if (r.type.equals(type)) {
-					return r;
-				}
+			ReferenceType r = internalizedReferenceTypes.get(type);
+			if (r == null) {
+				r = new ReferenceType(type);
+				internalizedReferenceTypes.put(type, r);
 			}
-			ReferenceType r = new ReferenceType(type);
-			internalizedReferenceTypes.add(r);
 			return r;
 		} else {
 			return new ReferenceType(type);
