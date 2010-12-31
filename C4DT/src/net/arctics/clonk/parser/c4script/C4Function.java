@@ -11,6 +11,7 @@ import net.arctics.clonk.parser.SourceLocation;
 import net.arctics.clonk.parser.c4script.C4Variable.C4VariableScope;
 import net.arctics.clonk.parser.c4script.ast.Conf;
 import net.arctics.clonk.parser.c4script.ast.ExprElm;
+import net.arctics.clonk.parser.c4script.ast.TypeExpectancyMode;
 import net.arctics.clonk.parser.inireader.IniField;
 import net.arctics.clonk.preferences.ClonkPreferences;
 import net.arctics.clonk.util.CompoundIterable;
@@ -420,8 +421,10 @@ public class C4Function extends C4Structure implements Serializable, ITypedDecla
 	}
 
 	@Override
-	public void expectedToBeOfType(IType t) {
-		ITypedDeclaration.Default.expectedToBeOfType(this, t);
+	public void expectedToBeOfType(IType t, TypeExpectancyMode mode) {
+		if (mode == TypeExpectancyMode.Force) {
+			ITypedDeclaration.Default.expectedToBeOfType(this, t);
+		}
 	}
 
 	public void inferTypeFromAssignment(ExprElm val, C4ScriptParser context) {

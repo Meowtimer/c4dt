@@ -15,6 +15,7 @@ import net.arctics.clonk.index.ClonkIndex;
 import net.arctics.clonk.parser.C4Declaration;
 import net.arctics.clonk.parser.C4ID;
 import net.arctics.clonk.parser.c4script.ast.ExprElm;
+import net.arctics.clonk.parser.c4script.ast.TypeExpectancyMode;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.ui.editors.c4script.IPostSerializable;
 
@@ -256,7 +257,7 @@ public class C4Variable extends C4Declaration implements Serializable, ITypedDec
 		ITypedDeclaration.Default.inferTypeFromAssignment(this, val, context);
 	}
 	
-	public void expectedToBeOfType(IType t) {
+	public void expectedToBeOfType(IType t, TypeExpectancyMode mode) {
 		// engine objects should not be altered
 		if (!typeLocked && !(getScript() instanceof C4Engine))
 			ITypedDeclaration.Default.expectedToBeOfType(this, t);

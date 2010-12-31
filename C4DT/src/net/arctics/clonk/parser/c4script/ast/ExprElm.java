@@ -580,7 +580,7 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable {
 		public void apply(boolean soft, C4ScriptParser parser) {
 			ITypedDeclaration tyDec = getDeclaration(parser);
 			if (tyDec != null) {
-				tyDec.expectedToBeOfType(type);
+				tyDec.expectedToBeOfType(type, TypeExpectancyMode.Expect);
 			}
 		}
 		

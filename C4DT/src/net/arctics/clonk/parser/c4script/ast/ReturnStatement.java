@@ -116,7 +116,7 @@ public class ReturnStatement extends KeywordStatement {
 		if (activeFunc == null) {
 			parser.errorWithCode(ParserErrorCode.NotAllowedHere, this, true, Keywords.Return);
 		} else if (returnExpr != null) {
-			new CallFunc(parser.getCurrentFunc()).expectedToBeOfType(returnExpr.getType(parser), parser, TypeExpectancyMode.Expect);
+			new CallFunc(parser.getCurrentFunc()).expectedToBeOfType(returnExpr.getType(parser), parser, TypeExpectancyMode.Force);
 		}
 	}
 }
