@@ -1,9 +1,7 @@
 package net.arctics.clonk.index;
 
 import net.arctics.clonk.parser.C4Structure;
-import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.inireader.DefCoreUnit;
-import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.resource.c4group.C4Group;
 import net.arctics.clonk.util.Utilities;
 
@@ -69,20 +67,6 @@ public class C4ObjectParser {
 		} catch (Exception e) {
 			e.printStackTrace();
 			return null;
-		}
-	}
-	
-	public void parseScript(C4ScriptParser scriptParser) {
-		ClonkIndex index = ClonkProjectNature.get(objectFolder).getIndex();
-		IFile script = object.getScriptStorage();
-		if (script != null) {
-			if (scriptParser == null)
-				scriptParser = new C4ScriptParser(object);
-			scriptParser.clean();
-			scriptParser.parseDeclarations();
-		}
-		if (object != null) {
-			index.addScript(object);
 		}
 	}
 

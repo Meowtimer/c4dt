@@ -9,10 +9,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import net.arctics.clonk.index.C4Object;
 import net.arctics.clonk.index.C4ObjectIntern;
 import net.arctics.clonk.index.C4ObjectParser;
-import net.arctics.clonk.index.ClonkIndex;
 import net.arctics.clonk.index.ProjectIndex;
 import net.arctics.clonk.parser.c4script.C4ScriptBase;
 import net.arctics.clonk.parser.c4script.C4ScriptIntern;
@@ -33,9 +31,11 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IResourceDelta;
 import org.eclipse.core.resources.IResourceDeltaVisitor;
 import org.eclipse.core.resources.IResourceVisitor;
+import org.eclipse.core.resources.IStorage;
 import org.eclipse.core.resources.IncrementalProjectBuilder;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.SubProgressMonitor;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IEditorReference;
@@ -52,7 +52,7 @@ import org.eclipse.ui.navigator.CommonNavigator;
  * Each project has its own ClonkBuilder instance.
  * @author ZokRadonh
  */
-public class ClonkBuilder extends IncrementalProjectBuilder implements IResourceDeltaVisitor, IResourceVisitor {
+public class ClonkBuilder extends IncrementalProjectBuilder {
 	
 	private static final boolean INDEX_C4GROUPS = true;
 
@@ -157,18 +157,143 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 		}
 	}
 	
-	private int buildPhase;
+	public class ScriptGatherer implements IResourceDeltaVisitor, IResourceVisitor {
+		public boolean visit(IResourceDelta delta) throws CoreException {
+			if (delta == null) 
+				return false;
+
+			if (delta.getResource() instanceof IFile) {
+				IFile file = (IFile) delta.getResource();
+				C4ScriptBase script;
+				switch (delta.getKind()) {
+				case IResourceDelta.CHANGED: case IResourceDelta.ADDED:
+					script = C4ScriptBase.get(file, true);
+					if (script == null) {
+						// create if new file
+						IContainer folder = delta.getResource().getParent();
+						C4ObjectParser objParser;
+						// script in a resource group
+						if (delta.getResource().getName().toLowerCase().endsWith(".c") && folder.getName().toLowerCase().endsWith(".c4g")) { //$NON-NLS-1$ //$NON-NLS-2$
+							script = new C4ScriptIntern(file);
+						}
+						// object script
+						else if (delta.getResource().getName().equals("Script.c") && (objParser = C4ObjectParser.create(folder)) != null) { //$NON-NLS-1$
+							script = objParser.createObject();
+						}
+						// some other file but a script is still needed so get the object for the folder
+						else {
+							script = C4ObjectIntern.objectCorrespondingTo(folder);
+						}
+					}
+					if (script != null && delta.getResource().equals(script.getScriptStorage())) {
+						queueScript(script);
+					} else
+						processAuxiliaryFiles(file, script);
+					// packed file
+					//				else if (C4Group.getGroupType(file.getName()) != C4GroupType.OtherGroup) {
+					//					try {
+					//						C4Group g = C4Group.openFile(file);
+					//						g.explode();
+					//					} catch (IOException e) {
+					//						e.printStackTrace();
+					//					}
+					//				}
+					break;
+				case IResourceDelta.REMOVED:
+					script = C4ScriptIntern.scriptCorrespondingTo(file);
+					if (script != null && file.equals(script.getScriptStorage()))
+						script.getIndex().removeScript(script);
+				}
+				if (monitor != null)
+					monitor.worked(1);
+				return true;
+			}
+			else if (delta.getResource() instanceof IContainer) {
+				if (!INDEX_C4GROUPS)
+					if (EFS.getStore(delta.getResource().getLocationURI()) instanceof C4Group)
+						return false;
+				// make sure the object has a reference to its folder (not to some obsolete deleted one)
+				C4ObjectIntern object;
+				switch (delta.getKind()) {
+				case IResourceDelta.ADDED:
+					object = C4ObjectIntern.objectCorrespondingTo((IContainer)delta.getResource());
+					if (object != null)
+						object.setObjectFolder((IContainer) delta.getResource());
+					break;
+				case IResourceDelta.REMOVED:
+					// remove object when folder is removed
+					object = C4ObjectIntern.objectCorrespondingTo((IContainer)delta.getResource());
+					if (object != null)
+						object.getIndex().removeObject(object);
+					break;
+				}
+				return true;
+			}
+			return false;
+		}
+		public boolean visit(IResource resource) throws CoreException {
+			if (resource instanceof IContainer) {
+				if (!INDEX_C4GROUPS)
+					if (EFS.getStore(resource.getLocationURI()) instanceof C4Group)
+						return false;
+				C4ObjectParser parser = C4ObjectParser.create((IContainer) resource);
+				if (parser != null) { // is complete c4d (with DefCore.txt Script.c and Graphics)
+					C4ObjectIntern object = parser.createObject();
+					if (object != null) {
+						queueScript(object);
+					}
+				}
+				return true;
+			}
+			else if (resource instanceof IFile) {
+				IFile file = (IFile) resource;
+				if (resource.getName().toLowerCase().endsWith(".c") && C4Group.groupTypeFromFolderName(resource.getParent().getName()) == C4GroupType.ResourceGroup) { //$NON-NLS-1$ //$NON-NLS-2$
+					C4ScriptBase script = C4ScriptIntern.pinnedScript(file, true);
+					if (script == null) {
+						script = new C4ScriptIntern(file);
+					}
+					queueScript(script);
+					return true;
+				}
+				else if (processAuxiliaryFiles(file, C4ScriptBase.get(file, true))) {
+					return true;
+				}
+			}
+			return false;
+		}
+		private boolean processAuxiliaryFiles(IFile file, C4ScriptBase script) throws CoreException {
+			boolean result = true;
+			C4Structure structure;
+			if ((structure = C4Structure.createStructureForFile(file, true)) != null) {
+				structure.commitTo(script);
+				structure.pinTo(file);
+			}
+			else if ((structure = C4Structure.pinned(file, false, true)) != null) {
+				gatheredStructures.add(structure);
+			}
+			else {
+				C4ObjectIntern obj = C4ObjectIntern.objectCorrespondingTo(file.getParent());
+				if (obj != null) {
+					try {
+						obj.processFile(file);
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
+				} else {
+					result = false;
+				}
+			}
+			return result;
+		}
+	}
+
 	private IProgressMonitor monitor;
 
-	// keeps track of parsers created for specific scripts
+	// gathered list of scripts to be parsed
 	private Map<C4ScriptBase, C4ScriptParser> parserMap = new HashMap<C4ScriptBase, C4ScriptParser>();
 	// set of structures that have been validated during one build round - keeping track of them so when parsing dependent scripts, scripts that might lose some warnings
 	// due to structure files having been revalidated can also be reparsed (string tables and such)
-	private Set<C4Structure> structuresValidated = new HashSet<C4Structure>();
-
-	public void worked(int count) {
-		monitor.worked(count);
-	}
+	private Set<C4Structure> gatheredStructures = new HashSet<C4Structure>();
 
 	@Override
 	protected void clean(IProgressMonitor monitor) throws CoreException {
@@ -178,8 +303,8 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 		IProject proj = this.getProject();
 		if (proj != null) {
 			ProjectIndex projIndex = ClonkProjectNature.get(proj).getIndex();
-			projIndex.clear();
 			proj.accept(new ResourceCounterAndCleaner(0));
+			projIndex.clear();
 		}
 		if (monitor != null) {
 			monitor.worked(1);
@@ -200,100 +325,18 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 				this.monitor = monitor;
 				IProject proj = getProject();
 
-				switch(kind) {
-				case AUTO_BUILD:
-				case INCREMENTAL_BUILD:
-					IResourceDelta delta = getDelta(proj);
-					if (delta != null) {
-						delta.accept(new C4GroupStreamHandler(C4GroupStreamHandler.OPEN));
-						try {
-
-							// count num of resources to build
-							ResourceCounter counter = new ResourceCounter(ResourceCounter.COUNT_CONTAINER);
-							delta.accept(counter);
-
-							// initialize progress monitor
-							monitor.beginTask(String.format(Messages.BuildProject, proj.getName()), counter.getCount());
-
-							// parse declarations
-							buildPhase = 0;
-							delta.accept(this);
-							listOfResourcesToBeRefreshed.add(delta.getResource());
-							// refresh global func and static var cache
-							ClonkProjectNature.get(proj).getIndex().refreshIndex();
-
-							// parse function code
-							buildPhase = 1;
-							delta.accept(this);
-							applyLatentMarkers();
-							reparseDependentScripts(monitor);
-
-						} finally {
-							delta.accept(new C4GroupStreamHandler(C4GroupStreamHandler.CLOSE));
-						}
-					}
-					break;
-
-				case FULL_BUILD:
-					proj.accept(new C4GroupStreamHandler(C4GroupStreamHandler.OPEN));
-					try {
-
-						// calculate build duration
-						int[] operations = new int[5];
-
-						// count num of resources to build and also clean...
-						ResourceCounterAndCleaner counter = new ResourceCounterAndCleaner(ResourceCounter.COUNT_CONTAINER);
-						proj.accept(counter);
-						operations[0] = counter.getCount() * 2;
-						operations[1] = counter.getCount();
-
-						operations[2] = 0;
-						operations[3] = 0;
-						operations[4] = 0; // FIXME: externallibs times
-
-						int workSum = 0;
-						for (int work : operations)
-							workSum += work;
-
-						// initialize progress monitor
-						monitor.beginTask(String.format(Messages.BuildProject, proj.getName()), workSum);
-
-						// build project
-						monitor.subTask(String.format(Messages.IndexProject, proj.getName()));
-						// parse declarations
-						buildPhase = 0;
-						proj.accept(this);
-						ClonkProjectNature.get(proj).getIndex().refreshIndex();
-						if (monitor.isCanceled()) {
-							monitor.done();
-							return null;
-						}
-						monitor.subTask(String.format(Messages.ParseProject, proj.getName()));
-						// parse function code
-						buildPhase = 1;
-						proj.accept(this);
-
-						applyLatentMarkers();
-
-						listOfResourcesToBeRefreshed.add(proj);
-					}
-					finally {
-						proj.accept(new C4GroupStreamHandler(C4GroupStreamHandler.CLOSE));
-					}
-					break;
-
-				}
+				performBuildPhases(
+					monitor, listOfResourcesToBeRefreshed, proj,
+					getDelta(proj)
+				);
 
 				if (monitor.isCanceled()) {
 					monitor.done();
 					return null;
 				}
-				monitor.subTask(Messages.SavingData);
 
 				// mark index as dirty so it will be saved when eclipse is shut down
 				ClonkProjectNature.get(proj).getIndex().setDirty(true);
-
-				monitor.done();
 
 				refreshUIAfterBuild(listOfResourcesToBeRefreshed);
 
@@ -312,39 +355,99 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 		}
 	}
 
-	private void clearState() {
-		parserMap.clear();
-		structuresValidated.clear();
+	private static <T extends IResourceVisitor & IResourceDeltaVisitor> void visitDeltaOrWholeProject(IResourceDelta delta, IProject proj, T ultimateVisit0r) throws CoreException {
+		if (delta != null) {
+			delta.accept(ultimateVisit0r);
+		} else{
+			proj.accept(ultimateVisit0r);
+		}
+	}
+	
+	private void performBuildPhases(
+		IProgressMonitor monitor,
+		List<IResource> listOfResourcesToBeRefreshed,
+		IProject proj,
+		IResourceDelta delta
+	) throws CoreException {
+
+		// visit files to open C4Groups if files are contained in c4group file system
+		visitDeltaOrWholeProject(delta, proj, new C4GroupStreamHandler(C4GroupStreamHandler.OPEN));
+		try {
+
+			// count num of resources to build
+			ResourceCounter counter = new ResourceCounter(ResourceCounter.COUNT_CONTAINER);
+			visitDeltaOrWholeProject(delta, proj, counter);
+
+			// initialize progress monitor
+			monitor.beginTask(String.format(Messages.BuildProject, proj.getName()), counter.getCount());
+			
+			// populate toBeParsed list
+			parserMap.clear();
+			visitDeltaOrWholeProject(delta, proj, new ScriptGatherer());
+			
+			// parse declarations
+			for (C4ScriptBase script : parserMap.keySet()) {
+				performBuildPhaseOne(script);
+			}
+
+			if (delta != null) {
+				listOfResourcesToBeRefreshed.add(delta.getResource());
+			}
+
+			// refresh global func and static var cache
+			ClonkProjectNature.get(proj).getIndex().refreshIndex();
+			
+			// parse function code
+			while (!parserMap.isEmpty()) {
+				performBuildPhaseTwo(parserMap.keySet().iterator().next());
+			}
+
+			applyLatentMarkers();
+			reparseDependentScripts();
+			
+			monitor.done();
+
+		} finally {
+			visitDeltaOrWholeProject(delta, proj, new C4GroupStreamHandler(C4GroupStreamHandler.CLOSE));
+		}
 	}
 
-	private void reparseDependentScripts(IProgressMonitor monitor) throws CoreException {
+	private void clearState() {
+		gatheredStructures.clear();
+		parserMap.clear();
+	}
+
+	private void reparseDependentScripts() throws CoreException {
 		Set<C4ScriptBase> scripts = new HashSet<C4ScriptBase>();
-		for (C4ScriptParser parser : parserMap.values()) {
+		for (C4ScriptParser parser: parserMap.values()) {
 			for (C4ScriptBase dep : parser.getContainer().getIndex().dependentScripts(parser.getContainer())) {
-				if (parserMap.get(dep) == null)
+				if (!parserMap.containsKey(dep)) {
 					scripts.add(dep);
+				}
 			}
 		}
-		for (C4Structure s : structuresValidated) {
+		for (C4Structure s : gatheredStructures) {
+			s.validate();
 			if (s.requiresScriptReparse()) {
 				C4ScriptBase script = C4ScriptBase.get(s.getResource(), true);
 				if (script != null)
 					scripts.add(script);
 			}
 		}
-		monitor.beginTask(Messages.ReparseDependentScripts, scripts.size());
-		for (buildPhase = 0; buildPhase < 2; buildPhase++) {
+		IProgressMonitor dependentScriptsProgress = new SubProgressMonitor(this.monitor, scripts.size());
+		dependentScriptsProgress.beginTask(Messages.ReparseDependentScripts, scripts.size());
+		for (int buildPhase = 0; buildPhase < 2; buildPhase++) {
 			for (C4ScriptBase s : scripts) {
 				IResource r = s.getResource();
 				if (r != null) {
-					monitor.subTask(s.toString());
-					//System.out.println("Triggered reparsing of " + r);
-					this.visit(r);
+					dependentScriptsProgress.subTask(s.toString());
+					performBuildPhase(buildPhase, s);
 				}
-				monitor.worked(1);
+				dependentScriptsProgress.worked(1);
 			}
 		}
-    }
+		dependentScriptsProgress.done();
+	}
 
 	private void applyLatentMarkers() {
 		for (C4ScriptParser p : parserMap.values()) {
@@ -404,200 +507,51 @@ public class ClonkBuilder extends IncrementalProjectBuilder implements IResource
 		// refresh outlines
 		Display.getDefault().asyncExec(new UIRefresher(listOfResourcesToBeRefreshed));
 	}
-
-	private C4ScriptParser getParserFor(C4ScriptBase script) {
-		C4ScriptParser result = parserMap.get(script);
-		if (result == null && script != null && script.getScriptStorage() instanceof IFile)
-			parserMap.put(script, result = new C4ScriptParser(script));
-		return result;
+	
+	private void queueScript(C4ScriptBase script) {
+		if (!parserMap.containsKey(script)) {
+			IStorage storage = script.getScriptStorage();
+			parserMap.put(script, storage != null ? new C4ScriptParser(script) : null);
+		}
 	}
-
-	public boolean visit(IResourceDelta delta) throws CoreException {
-		if (delta == null) 
-			return false;
-
-		if (delta.getResource() instanceof IFile) {
-			IFile file = (IFile) delta.getResource();
-			C4ScriptBase script;
-			switch (delta.getKind()) {
-			case IResourceDelta.CHANGED: case IResourceDelta.ADDED:
-				script = C4ScriptBase.get(file, true);
-				if (script == null && buildPhase == 0) {
-					// create if new file
-					IContainer folder = delta.getResource().getParent();
-					C4ObjectParser objParser;
-					// script in a resource group
-					if (delta.getResource().getName().toLowerCase().endsWith(".c") && folder.getName().toLowerCase().endsWith(".c4g")) { //$NON-NLS-1$ //$NON-NLS-2$
-						script = new C4ScriptIntern(file);
-						ClonkProjectNature.get(delta.getResource()).getIndex().addScript(script);
-					}
-					// object script
-					else if (delta.getResource().getName().equals("Script.c") && (objParser = C4ObjectParser.create(folder)) != null) { //$NON-NLS-1$
-						script = objParser.createObject();
-						objParser.parseScript(getParserFor(script));
-					}
-					// some other file but a script is still needed so get the object for the folder
-					else {
-						script = C4ObjectIntern.objectCorrespondingTo(folder);
-					}
-				}
-				if (script != null && delta.getResource().equals(script.getScriptStorage())) {
-					if (script != null) {
-						C4ScriptParser parser = getParserFor(script);
-						// phase 0: clean and parse declarations
-						// phase 1: parse code of functions
-						switch (buildPhase) {
-						case 0:
-							parser.clean();
-							parser.parseDeclarations();
-							break;
-						case 1:
-							try {
-								parser.parseCodeOfFunctionsAndValidate();
-							} catch (ParsingException e) {
-								e.printStackTrace();
-							}
-						}
-					}
-				} else
-					processAuxiliaryFiles(file, script);
-				// packed file
-				//				else if (C4Group.getGroupType(file.getName()) != C4GroupType.OtherGroup) {
-				//					try {
-				//						C4Group g = C4Group.openFile(file);
-				//						g.explode();
-				//					} catch (IOException e) {
-				//						e.printStackTrace();
-				//					}
-				//				}
-				break;
-			case IResourceDelta.REMOVED:
-				if (buildPhase == 0) {
-					script = C4ScriptIntern.scriptCorrespondingTo(file);
-					if (script != null && file.equals(script.getScriptStorage()))
-						script.getIndex().removeScript(script);
-				}
-			}
-			if (monitor != null)
-				monitor.worked(1);
-			return true;
+	
+	private void performBuildPhaseOne(C4ScriptBase script) {
+		C4ScriptParser parser = parserMap.get(script);
+		ClonkProjectNature.get(getProject()).getIndex().addScript(script);
+		if (parser != null) {
+			parser.clean();
+			parser.parseDeclarations();
 		}
-		else if (delta.getResource() instanceof IContainer) {
-			if (!INDEX_C4GROUPS)
-				if (EFS.getStore(delta.getResource().getLocationURI()) instanceof C4Group)
-					return false;
-			// make sure the object has a reference to its folder (not to some obsolete deleted one)
-			C4ObjectIntern object;
-			switch (delta.getKind()) {
-			case IResourceDelta.ADDED:
-				object = C4ObjectIntern.objectCorrespondingTo((IContainer)delta.getResource());
-				if (object != null)
-					object.setObjectFolder((IContainer) delta.getResource());
-				break;
-			case IResourceDelta.REMOVED:
-				// remove object when folder is removed
-				object = C4ObjectIntern.objectCorrespondingTo((IContainer)delta.getResource());
-				if (object != null)
-					object.getIndex().removeObject(object);
-				break;
-			}
-			return true;
+		if (monitor != null) {
+			monitor.worked(2);
 		}
-		return false;
 	}
-
-	private boolean processAuxiliaryFiles(IFile file, C4ScriptBase script) throws CoreException {
-		C4Structure structure;
-		if (buildPhase == 0 && (structure = C4Structure.createStructureForFile(file, true)) != null) {
-			structure.commitTo(script);
-			structure.pinTo(file);
-			return true;
-		}
-		else if (buildPhase == 1 && (structure = C4Structure.pinned(file, false, true)) != null) {
-			structure.validate();
-			structuresValidated.add(structure);
-			return true;
-		}
-		else if (buildPhase == 0) {
-			C4ObjectIntern obj = C4ObjectIntern.objectCorrespondingTo(file.getParent());
-			if (obj != null)
+	
+	private void performBuildPhaseTwo(C4ScriptBase script) {
+		if (parserMap.containsKey(script)) {
+			C4ScriptParser parser = parserMap.remove(script);
+			if (parser != null) {
 				try {
-					obj.processFile(file);
-				} catch (IOException e) {
+					parser.parseCodeOfFunctionsAndValidate();
+				} catch (ParsingException e) {
 					e.printStackTrace();
 				}
-			return true;
+			}
+			if (monitor != null) {
+				monitor.worked(1);
+			}
 		}
-		return false;
 	}
-
-	public boolean visit(IResource resource) throws CoreException {
-		if (resource instanceof IContainer) {
-			if (!INDEX_C4GROUPS)
-				if (EFS.getStore(resource.getLocationURI()) instanceof C4Group)
-					return false;
-			switch (buildPhase) {
-			case 0:
-				// first phase: just gather declarations
-				C4ObjectParser parser = C4ObjectParser.create((IContainer) resource);
-				if (parser != null) { // is complete c4d (with DefCore.txt Script.c and Graphics)
-					C4ObjectIntern object = parser.createObject();
-					if (object != null)
-					{
-						C4ScriptParser scriptParser = getParserFor(object);
-						if (scriptParser == null && object.getScriptStorage() != null) {
-							parserMap.put(object, scriptParser = new C4ScriptParser(object));
-						}
-						parser.parseScript(scriptParser);
-					}
-				}
-				if (monitor != null) monitor.worked(2);
-				return true;
-			case 1:
-				// check correctness of function code
-				ClonkIndex index = ClonkProjectNature.get(resource).getIndex();
-				C4Object obj = index.getObject((IContainer)resource);
-				IFile scriptFile = (IFile) ((obj != null) ? obj.getScriptStorage() : null);
-				if (scriptFile != null) {
-					try {
-						getParserFor(obj).parseCodeOfFunctionsAndValidate();
-					} catch (ParsingException e) {
-						e.printStackTrace();
-					}
-				}
-				if (monitor != null) monitor.worked(1);
-				return true;
-			}
+	
+	private void performBuildPhase(int phase, C4ScriptBase script) {
+		switch (phase) {
+		case 0:
+			performBuildPhaseOne(script);
+			break;
+		case 1:
+			performBuildPhaseTwo(script);
+			break;
 		}
-		else if (resource instanceof IFile) {
-			IFile file = (IFile) resource;
-			if (resource.getName().toLowerCase().endsWith(".c") && C4Group.groupTypeFromFolderName(resource.getParent().getName()) == C4GroupType.ResourceGroup) { //$NON-NLS-1$ //$NON-NLS-2$
-				C4ScriptBase script = C4ScriptIntern.pinnedScript(file, true);
-				switch (buildPhase) {
-				case 0:
-					if (script == null) {
-						script = new C4ScriptIntern(file);
-					}
-					ClonkProjectNature.get(resource).getIndex().addScript(script);
-					C4ScriptParser parser = getParserFor(script);
-					parser.clean();
-					parser.parseDeclarations();
-					return true;
-				case 1:
-					if (script != null) {
-						try {
-							getParserFor(script).parseCodeOfFunctionsAndValidate();
-						} catch (ParsingException e) {
-							e.printStackTrace();
-						}
-					}
-					return true;
-				}
-			}
-			else if (processAuxiliaryFiles(file, C4ScriptBase.get(file, true)))
-				return true;
-		}
-		return false;
 	}
 
 }
