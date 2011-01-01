@@ -1,22 +1,12 @@
 package net.arctics.clonk.parser.teamsdef;
 
-import java.io.InputStream;
-
-import org.eclipse.core.resources.IFile;
-
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.inireader.IniUnitWithNamedSections;
 
 public class TeamsUnit extends IniUnitWithNamedSections {
 
-	public TeamsUnit(IFile file) {
-		super(file);
-	}
-	public TeamsUnit(String text) {
-		super(text);
-	}
-	public TeamsUnit(InputStream stream) {
-		super(stream);
+	public TeamsUnit(Object input) {
+		super(input);
 	}
 	
 	@Override

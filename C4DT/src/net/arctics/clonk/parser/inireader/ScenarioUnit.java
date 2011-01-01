@@ -2,8 +2,6 @@ package net.arctics.clonk.parser.inireader;
 
 import java.io.InputStream;
 
-import org.eclipse.core.resources.IFile;
-
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.inireader.IniData.IniDataSection;
 
@@ -16,8 +14,8 @@ public class ScenarioUnit extends IniUnit {
 		return "Scenario.txt"; //$NON-NLS-1$
 	}
 	
-	public ScenarioUnit(IFile file) {
-		super(file);
+	public ScenarioUnit(Object input) {
+		super(input);
 	}
 	
 	public ScenarioUnit(InputStream stream) {

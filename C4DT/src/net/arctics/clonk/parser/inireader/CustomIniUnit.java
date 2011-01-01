@@ -136,7 +136,7 @@ public class CustomIniUnit extends IniUnit {
 	}
 
 	public void parseAndCommitTo(Object obj) throws SecurityException, IllegalArgumentException, NoSuchFieldException, IllegalAccessException {
-		parse(false);
+		getParser().parse(false);
 		commitTo(obj);
 	}
 

@@ -379,7 +379,7 @@ public class C4Engine extends C4ScriptBase {
 					InputStream input = descs.openStream();
 					try {
 						IniUnit unit = new CustomIniUnit(input, new DescriptionsIniConfiguration());
-						unit.parse(false);
+						unit.getParser().parse(false);
 						IniSection section = unit.sectionWithName("Descriptions"); //$NON-NLS-1$
 						if (section != null) {
 							result = new HashMap<String, String>();
@@ -411,7 +411,7 @@ public class C4Engine extends C4ScriptBase {
 				InputStream stream = url.openStream();
 				try {
 					CustomIniUnit unit = new CustomIniUnit(stream, new DeclarationsConfiguration());
-					unit.parse(false);
+					unit.getParser().parse(false);
 					for (IniSection section : unit.getSections()) {
 						C4Declaration declaration = findDeclaration(section.getName());
 						if (declaration != null) {

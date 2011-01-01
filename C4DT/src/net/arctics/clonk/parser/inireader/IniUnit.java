@@ -1,7 +1,6 @@
 package net.arctics.clonk.parser.inireader;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InvalidClassException;
 import java.io.Writer;
 import java.lang.reflect.Constructor;
@@ -17,6 +16,7 @@ import net.arctics.clonk.index.C4Engine;
 import net.arctics.clonk.parser.BufferedScanner;
 import net.arctics.clonk.parser.C4Declaration;
 import net.arctics.clonk.parser.C4Structure;
+import net.arctics.clonk.parser.CStyleScanner;
 import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.SourceLocation;
 import net.arctics.clonk.parser.foldermap.FolderMapUnit;
@@ -48,11 +48,6 @@ import org.eclipse.ui.ide.IDE;
 public class IniUnit extends C4Structure implements Iterable<IniSection>, IHasChildren, ITreeNode, IniItem {
 
 	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
-
-	/**
-	 * Text scanner
-	 */
-	protected BufferedScanner scanner;
 	
 	/**
 	 * The configuration file
@@ -79,35 +74,32 @@ public class IniUnit extends C4Structure implements Iterable<IniSection>, IHasCh
 	 */
 	protected IniSection currentSection;
 	
-	public IniUnit(Object input) {
-		scanner = new BufferedScanner(input);
-	}
+	/**
+	 * Parser parsing this IniUnit
+	 */
+	private IniUnitParser parser;
 	
-	public IniUnit(String input) {
-		this((Object)input);
-	}
-	
-	public BufferedScanner getScanner() {
-		return scanner;
+	public IniUnitParser getParser() {
+		return parser;
 	}
 	
 	/**
 	 * Creates an IniReader that reads ini information from a project file
 	 * @param file the file
 	 */
-	public IniUnit(final IFile file) {
-		try {
-			defaultName = file.getParent().getName();
-			scanner = new BufferedScanner(file) {
-				@Override
-				public void reset() {
-					reset(StreamUtil.stringFromFile(file));
-				};
-			};
-		} catch (Exception e) {
-			e.printStackTrace();
+	public IniUnit(final Object input) {
+		if (input instanceof IFile) {
+			final IFile file = (IFile) input;
+			try {
+				defaultName = file.getParent().getName();
+				parser = new IniUnitParser(file);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+			iniFile = file;
+		} else {
+			parser = new IniUnitParser(input);
 		}
-		iniFile = file;
 	}
 	
 	public void save(Writer writer) throws IOException {
@@ -204,32 +196,6 @@ public class IniUnit extends C4Structure implements Iterable<IniSection>, IHasCh
 		return result;
 	}
 	
-	public synchronized void parse(boolean modifyMarkers) {
-		parse(modifyMarkers, true);
-	}
-	
-	public synchronized void parse(boolean modifyMarkers, boolean resetScannerWithFileContents) {
-		if (resetScannerWithFileContents) {
-			scanner.reset();
-		}
-		if (modifyMarkers && getIniFile() != null) {
-			try {
-				getIniFile().deleteMarkers(IMarker.PROBLEM, true, IResource.DEPTH_ONE);
-				// deactivate creating markers if it's contained in a linked group
-				modifyMarkers = !C4GroupItem.isLinkedResource(getIniFile());
-			} catch (CoreException e) {
-				e.printStackTrace();
-			}
-		}
-		this.clear();
-		scanner.seek(0);
-		IniSection section;
-		while ((section = parseSection(modifyMarkers, null)) != null) {
-			sectionsMap.put(section.getName(), section);
-			sectionsList.add(section);
-		}
-	}
-	
 	private void clear() {
 		sectionsList.clear();
 		sectionsMap.clear();
@@ -251,87 +217,194 @@ public class IniUnit extends C4Structure implements Iterable<IniSection>, IHasCh
 		}
 	}
 	
-	protected IniSection parseSection(boolean modifyMarkers, IniSection parentSection) {
-		int targetIndentation = parentSection != null ? parentSection.getIndentation()+1 : 0;
-		while (skipComment());
-		int start = scanner.getPosition();
-		// parse head
-		int indentation = scanner.getTabIndentation();
-		if (scanner.read() == '[' && indentation == targetIndentation) {
-			String name = scanner.readStringUntil(']','\n','\r');
-			if (scanner.read() != ']') {
-				if (modifyMarkers)
-					marker(ParserErrorCode.TokenExpected, start, scanner.getPosition(), IMarker.SEVERITY_ERROR, (Object)"]"); //$NON-NLS-1$
-				return null;
+	public class IniUnitParser extends CStyleScanner {
+
+		private IFile file;
+		
+		public IniUnitParser(Object source) {
+			super(source);
+			if (source instanceof IFile) {
+				file = (IFile) source;
+			}
+		}
+		
+		@Override
+		public void reset() {
+			super.reset();
+			if (file != null) {
+				this.reset(StreamUtil.stringFromFile(file));
+			}
+		}
+		
+		protected IniSection parseSection(boolean modifyMarkers, IniSection parentSection) {
+			int targetIndentation = parentSection != null ? parentSection.getIndentation()+1 : 0;
+			while (skipComment());
+			int start = getPosition();
+			// parse head
+			int indentation = getTabIndentation();
+			if (read() == '[' && indentation == targetIndentation) {
+				String name = readStringUntil(']','\n','\r');
+				if (read() != ']') {
+					if (modifyMarkers)
+						marker(ParserErrorCode.TokenExpected, start, getPosition(), IMarker.SEVERITY_ERROR, (Object)"]"); //$NON-NLS-1$
+					return null;
+				}
+				else {
+					if (!isSectionNameValid(name, parentSection)) {
+						if (modifyMarkers)
+							marker(ParserErrorCode.UnknownSection, start, getPosition()-1, IMarker.SEVERITY_WARNING, name);
+					}
+					eat(BufferedScanner.NEWLINE_CHARS); // ignore rest of section line
+				}
+				int end = getPosition();
+				IniSection section = new IniSection(new SourceLocation(start, end), name);
+				section.setParentDeclaration(parentSection != null ? parentSection : IniUnit.this);
+				section.setIndentation(indentation);
+				// parse entries
+				IniItem item= null;
+				Map<String, IniItem> itemMap = new HashMap<String, IniItem>();
+				List<IniItem> itemList = new LinkedList<IniItem>();
+				currentSection = section;
+				currentSection.setSectionData(getSectionDataFor(section, parentSection));
+				while ((item = parseSectionOrEntry(section, modifyMarkers, section)) != null) {
+					itemMap.put(item.getKey(),item);
+					itemList.add(item);
+				}
+				section.setSectionEnd(getPosition());
+				section.setSubItems(itemMap, itemList);
+				return section;
 			}
 			else {
-				if (!isSectionNameValid(name, parentSection)) {
-					if (modifyMarkers)
-						marker(ParserErrorCode.UnknownSection, start, scanner.getPosition()-1, IMarker.SEVERITY_WARNING, name);
-				}
-				scanner.eat(BufferedScanner.NEWLINE_CHARS); // ignore rest of section line
+				unread();
+				return null;
 			}
-			int end = scanner.getPosition();
-			IniSection section = new IniSection(new SourceLocation(start, end), name);
-			section.setParentDeclaration(parentSection != null ? parentSection : this);
-			section.setIndentation(indentation);
-			// parse entries
-			IniItem item= null;
-			Map<String, IniItem> itemMap = new HashMap<String, IniItem>();
-			List<IniItem> itemList = new LinkedList<IniItem>();
-			currentSection = section;
-			currentSection.setSectionData(getSectionDataFor(section, parentSection));
-			while ((item = parseSectionOrEntry(section, modifyMarkers, section)) != null) {
-				itemMap.put(item.getKey(),item);
-				itemList.add(item);
-			}
-			section.setSectionEnd(scanner.getPosition());
-			section.setSubItems(itemMap, itemList);
-			return section;
 		}
-		else {
-			scanner.unread();
-			return null;
-		}
-	}
-	
-	protected boolean skipComment() {
-		scanner.eatWhitespace();
-		int _r;
-		for (_r = scanner.read(); _r == 0; _r = scanner.read());
-		char r = (char) _r;
-		if (r == ';' || r == '#') {
-			scanner.readStringUntil('\n');
-			scanner.eatWhitespace();
-			return true;
-		}
-		else if (r == '/') {
-			switch (scanner.read()) {
-			case '/':
-				scanner.eatUntil(BufferedScanner.NEWLINE_CHARS);
-				scanner.eatWhitespace();
+		
+		protected boolean skipComment() {
+			eatWhitespace();
+			int _r;
+			for (_r = read(); _r == 0; _r = read());
+			char r = (char) _r;
+			if (r == ';' || r == '#') {
+				readStringUntil('\n');
+				eatWhitespace();
 				return true;
-			case '*':
-				for (; !scanner.reachedEOF();) {
-					if (scanner.read() == '*') {
-						if (scanner.read() == '/')
-							break;
-						else
-							scanner.unread();
+			}
+			else if (r == '/') {
+				switch (read()) {
+				case '/':
+					eatUntil(BufferedScanner.NEWLINE_CHARS);
+					eatWhitespace();
+					return true;
+				case '*':
+					for (; !reachedEOF();) {
+						if (read() == '*') {
+							if (read() == '/')
+								break;
+							else
+								unread();
+						}
 					}
+					eatWhitespace();
+					return true;
+				default:
+					unread(); unread();
+					return false;
 				}
-				scanner.eatWhitespace();
-				return true;
-			default:
-				scanner.unread(); scanner.unread();
+			}
+			else {
+				unread();
 				return false;
 			}
 		}
-		else {
-			scanner.unread();
-			return false;
+		
+		public final synchronized void parse(boolean modifyMarkers) {
+			parse(modifyMarkers, true);
 		}
+		
+		public synchronized void parse(boolean modifyMarkers, boolean resetScannerWithFileContents) {
+			startParsing();
+			try {
+				if (resetScannerWithFileContents) {
+					reset();
+				}
+				if (modifyMarkers && getIniFile() != null) {
+					try {
+						getIniFile().deleteMarkers(IMarker.PROBLEM, true, IResource.DEPTH_ONE);
+						// deactivate creating markers if it's contained in a linked group
+						modifyMarkers = !C4GroupItem.isLinkedResource(getIniFile());
+					} catch (CoreException e) {
+						e.printStackTrace();
+					}
+				}
+				IniUnit.this.clear();
+				seek(0);
+				IniSection section;
+				while ((section = parseSection(modifyMarkers, null)) != null) {
+					sectionsMap.put(section.getName(), section);
+					sectionsList.add(section);
+				}
+			} finally {
+				endParsing();
+			}
+		}
+		
+		protected IniEntry parseEntry(IniSection section, boolean modifyMarkers, IniSection parentSection) {
+			int targetIndentation = parentSection != null ? parentSection.getIndentation() : 0;
+			while (skipComment());
+			int start = getPosition();
+			eatWhitespace();
+			int indentation = getTabIndentation();
+			if (indentation != targetIndentation || read() == '[') {
+				seek(start);
+				return null;
+			}
+			unread();
+			if (reachedEOF()) return null;
+			int keyStart = getPosition();
+			String key = readIdent();
+			eatWhitespace();
+			if (read() != '=') {
+				if (modifyMarkers)
+					marker(ParserErrorCode.TokenExpected, keyStart+key.length(), getPosition(), IMarker.SEVERITY_ERROR, (Object)"="); //$NON-NLS-1$
+			}
+			eat(new char[] {' ', '\t'});
+			String value = readStringUntil(BufferedScanner.NEWLINE_CHARS);
+			int valEnd = getPosition();
+			int commentStart = value != null ? value.indexOf('#') : -1;
+			if (commentStart != -1) {
+				valEnd -= value.length()-commentStart;
+				value = value.substring(0, commentStart);
+			}
+			eat(BufferedScanner.NEWLINE_CHARS);
+			IniEntry entry = new IniEntry(keyStart, valEnd, key, value);
+			entry.setParentDeclaration(section);
+			try {
+				return validateEntry(entry, section, modifyMarkers);
+			} catch (IniParserException e) {
+				if (modifyMarkers)
+					marker(ParserErrorCode.GenericError, e.getOffset(), e.getEndOffset(), e.getSeverity(), (Object)e.getMessage());
+				return entry;
+			}
+		}
+		
+		protected IniItem parseSectionOrEntry(IniSection section, boolean modifyMarkers, IniSection parentSection) {
+			IniEntry entry = parseEntry(section, modifyMarkers, parentSection);
+			if (entry == null) {
+				IniSection s = parseSection(modifyMarkers, parentSection);
+				if (s != null)
+					return s;
+				else
+					return null;
+			}
+			else
+				return entry;
+		}
+		
 	}
+	
+	protected void startParsing() {}
+	protected void endParsing() {}
 	
 	public void marker(String markerType, ParserErrorCode error, int start, int end, int markerSeverity, Object... args) {
 		error.createMarker(iniFile, this, markerType, start, end, markerSeverity, null, args);
@@ -343,58 +416,6 @@ public class IniUnit extends C4Structure implements Iterable<IniSection>, IHasCh
 	
 	public void markerAtValue(String markerType, ParserErrorCode error, IniEntry entry, int markerSeverity, Object... args) {
 		marker(markerType, error, entry.getLocation().getStart(), entry.getLocation().getEnd(), markerSeverity, args);
-	}
-	
-	protected IniEntry parseEntry(IniSection section, boolean modifyMarkers, IniSection parentSection) {
-		int targetIndentation = parentSection != null ? parentSection.getIndentation() : 0;
-		while (skipComment());
-		int start = scanner.getPosition();
-		scanner.eatWhitespace();
-		int indentation = scanner.getTabIndentation();
-		if (indentation != targetIndentation || scanner.read() == '[') {
-			scanner.seek(start);
-			return null;
-		}
-		scanner.unread();
-		if (scanner.reachedEOF()) return null;
-		int keyStart = scanner.getPosition();
-		String key = scanner.readIdent();
-		scanner.eatWhitespace();
-		if (scanner.read() != '=') {
-			if (modifyMarkers)
-				marker(ParserErrorCode.TokenExpected, keyStart+key.length(), scanner.getPosition(), IMarker.SEVERITY_ERROR, (Object)"="); //$NON-NLS-1$
-		}
-		scanner.eat(new char[] {' ', '\t'});
-		String value = scanner.readStringUntil(BufferedScanner.NEWLINE_CHARS);
-		int valEnd = scanner.getPosition();
-		int commentStart = value != null ? value.indexOf('#') : -1;
-		if (commentStart != -1) {
-			valEnd -= value.length()-commentStart;
-			value = value.substring(0, commentStart);
-		}
-		scanner.eat(BufferedScanner.NEWLINE_CHARS);
-		IniEntry entry = new IniEntry(keyStart, valEnd, key, value);
-		entry.setParentDeclaration(section);
-		try {
-			return validateEntry(entry, section, modifyMarkers);
-		} catch (IniParserException e) {
-			if (modifyMarkers)
-				marker(ParserErrorCode.GenericError, e.getOffset(), e.getEndOffset(), e.getSeverity(), (Object)e.getMessage());
-			return entry;
-		}
-	}
-	
-	protected IniItem parseSectionOrEntry(IniSection section, boolean modifyMarkers, IniSection parentSection) {
-		IniEntry entry = parseEntry(section, modifyMarkers, parentSection);
-		if (entry == null) {
-			IniSection s = parseSection(modifyMarkers, parentSection);
-			if (s != null)
-				return s;
-			else
-				return null;
-		}
-		else
-			return entry;
 	}
 	
 	protected String getConfigurationName() {
@@ -491,10 +512,6 @@ public class IniUnit extends C4Structure implements Iterable<IniSection>, IHasCh
 	
 	public IniSection sectionAtOffset(int offset) {
 		IniSection sec = sectionAtOffset(null, offset);
-		/*if (sec != null && scanner != null) {
-			int indentation = sec.getIndentation() - scanner.getTabIndentation(offset);
-			for (; indentation > 0 && sec.getParentDeclaration() instanceof IniSection; indentation--, sec = (IniSection) sec.getParentDeclaration());
-		}*/
 		return sec;
 	}
 	
@@ -532,12 +549,13 @@ public class IniUnit extends C4Structure implements Iterable<IniSection>, IHasCh
 	public static void register() {
 		C4Structure.registerStructureFactory(new IStructureFactory() {
 			public C4Structure create(IResource resource, boolean duringBuild) {
-				Class<? extends IniUnit> iniUnitClass = getIniUnitClass(resource);
-				if (iniUnitClass != null) {
+				if (resource instanceof IFile) {
 					try {
-						IniUnit reader = iniUnitClass.getConstructor(IFile.class).newInstance(resource);
-						reader.parse(duringBuild);
-						return reader;
+						IniUnit unit = createAdequateIniUnit((IFile) resource);
+						if (unit != null) {
+							unit.getParser().parse(duringBuild);
+						}
+						return unit;
 					} catch (Exception e) {
 						e.printStackTrace();
 					}
@@ -548,26 +566,12 @@ public class IniUnit extends C4Structure implements Iterable<IniSection>, IHasCh
 	}
 	
 	public static IniUnit createAdequateIniUnit(IFile file) throws SecurityException, NoSuchMethodException, IllegalArgumentException, InstantiationException, IllegalAccessException, InvocationTargetException {
-		return createAdequateIniUnit(file, false, file);
-	}
-
-	public static IniUnit createAdequateIniUnit(IFile file, boolean defaultToBaseClass, Object arg) throws SecurityException, NoSuchMethodException, IllegalArgumentException, InstantiationException, IllegalAccessException, InvocationTargetException {
 		Class<? extends IniUnit> cls = getIniUnitClass(file);
 		if (cls == null) {
-			if (defaultToBaseClass)
-				cls = IniUnit.class;
-			else
-				return null;
+			return null;
 		}
-		Class<?> neededArgType =
-			arg instanceof String
-				? String.class
-				: arg instanceof IFile
-					? IFile.class
-					: InputStream.class;
-		Constructor<? extends IniUnit> ctor = cls.getConstructor(neededArgType);
-		IniUnit result = ctor.newInstance(arg);
-		result.setIniFile(file);
+		Constructor<? extends IniUnit> ctor = cls.getConstructor(Object.class);
+		IniUnit result = ctor.newInstance(file);
 		return result;
 	}
 

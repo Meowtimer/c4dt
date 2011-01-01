@@ -1,10 +1,7 @@
 package net.arctics.clonk.parser.playercontrols;
 
-import java.io.InputStream;
 import java.util.LinkedList;
 import java.util.List;
-
-import org.eclipse.core.resources.IFile;
 
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.C4Declaration;
@@ -31,22 +28,18 @@ public class PlayerControlsUnit extends IniUnit {
 		return controlVariables;
 	}
 
-	public PlayerControlsUnit(IFile file) {
-		super(file);
-	}
-	
-	public PlayerControlsUnit(String text) {
-		super(text);
-	}
-	
-	public PlayerControlsUnit(InputStream stream) {
-		super(stream);
+	public PlayerControlsUnit(Object input) {
+		super(input);
 	}
 	
 	@Override
-	public void parse(boolean modifyMarkers) {
+	public void startParsing() {
+		super.startParsing();
 		controlVariables.clear();
-		super.parse(modifyMarkers);
+	}
+	
+	@Override
+	protected void endParsing() {
 		IniSection controlsDefsSection = sectionWithName("ControlDefs");
 		if (controlsDefsSection != null) {
 			for (IniItem item : controlsDefsSection.getSubItemList()) {
@@ -67,6 +60,7 @@ public class PlayerControlsUnit extends IniUnit {
 				}
 			}
 		}
+		super.endParsing();
 	}
 	
 	@Override

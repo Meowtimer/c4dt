@@ -1,10 +1,6 @@
 package net.arctics.clonk.parser.inireader;
 
-import java.io.InputStream;
-
 import net.arctics.clonk.ClonkCore;
-
-import org.eclipse.core.resources.IFile;
 
 public class MaterialUnit extends IniUnit {
 
@@ -15,15 +11,7 @@ public class MaterialUnit extends IniUnit {
 		return "Material.txt"; //$NON-NLS-1$
 	}
 	
-	public MaterialUnit(IFile file) {
-		super(file);
-	}
-	
-	public MaterialUnit(InputStream stream) {
-		super(stream);
-	}
-	
-	public MaterialUnit(String text) {
-		super(text);
+	public MaterialUnit(Object input) {
+		super(input);
 	}
 }

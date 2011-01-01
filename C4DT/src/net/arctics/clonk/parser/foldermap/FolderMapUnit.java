@@ -1,25 +1,17 @@
 package net.arctics.clonk.parser.foldermap;
 
-import org.eclipse.core.resources.IFile;
-
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.inireader.IniUnit;
 
 public class FolderMapUnit extends IniUnit {
 
-	private static final String FILE_NAME = "FolderMap.txt";
-	
 	@Override
 	protected String getConfigurationName() {
-		return FILE_NAME;
+		return "FolderMap.txt";
 	}
 	
-	public FolderMapUnit(IFile file) {
-		super(file);
-	}
-	
-	public FolderMapUnit(String text) {
-		super(text);
+	public FolderMapUnit(Object input) {
+		super(input);
 	}
 
 	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;

@@ -106,7 +106,7 @@ public class IniCompletionProcessor extends ClonkCompletionProcessor<IniTextEdit
 				} else if (section.getParentDeclaration() instanceof IniUnit) {
 					proposalsForIniDataEntries(proposals, prefix, wordOffset, ((IniUnit)section.getParentDeclaration()).getConfiguration().getSections().values());
 				}
-				int indentation = getEditor().getIniUnit().getScanner().getTabIndentation(offset);
+				int indentation = getEditor().getIniUnit().getParser().getTabIndentation(offset);
 				if (indentation == section.getIndentation()+1) {
 					proposalsForIniDataEntries(proposals, prefix, wordOffset, section.getSectionData().getEntries().values());
 				}

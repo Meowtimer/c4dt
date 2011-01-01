@@ -1,19 +1,11 @@
 package net.arctics.clonk.parser.inireader;
 
-import java.io.InputStream;
-
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.index.C4Object;
 import net.arctics.clonk.parser.C4ID;
 import net.arctics.clonk.parser.c4script.C4ScriptBase;
-import org.eclipse.core.resources.IFile;
 
 public class DefCoreUnit extends IniUnit {
-	
-//	private final static String[] DEFCORE_SECTIONS = new String[] { "DefCore" , "Physical" };
-//	
-//	private final List<DefCoreOption> defCoreOptions = DefCoreOption.createNewDefCoreList();
-//	private final List<DefCoreOption> physicalOptions = DefCoreOption.createNewPhysicalList();
 	
 	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 	
@@ -21,45 +13,10 @@ public class DefCoreUnit extends IniUnit {
 	protected String getConfigurationName() {
 		return "DefCore.txt"; //$NON-NLS-1$
 	}
-	
-	public DefCoreUnit(InputStream stream) {
-		super(stream);
-	}
-	
-	public DefCoreUnit(IFile file) {
-		super(file);
-	}
-	
-	public DefCoreUnit(String text) {
-		super(text);
-	}
 
-//	/**
-//	 * Searches the option for given name
-//	 * @param name the name of the option (e.g. "BurnTo")
-//	 * @return The found option or <tt>null</tt> if not found
-//	 */
-//	public DefCoreOption getDefCoreOption(String name) {
-//		ListIterator<DefCoreOption> it = defCoreOptions.listIterator();
-//		while(it.hasNext()) {
-//			if (it.next().getName().equalsIgnoreCase(name)) return it.previous();
-//		}
-//		return null;
-//	}
-//	
-//	/**
-//	 * Searches the option for given name
-//	 * @param name the name of the option (e.g. "Throw")
-//	 * @return The found option or <tt>null</tt> if not found
-//	 */
-//	public DefCoreOption getPhysicalOption(String name) {
-//		ListIterator<DefCoreOption> it = physicalOptions.listIterator();
-//		while(it.hasNext()) {
-//			if (it.next().getName().equalsIgnoreCase(name)) return it.previous();
-//		}
-//		return null;
-//	}
-//	
+	public DefCoreUnit(Object input) {
+		super(input);
+	}
 
 	public C4ID getObjectID() {
 		IniEntry entry = entryInSection("DefCore", "id"); //$NON-NLS-1$ //$NON-NLS-2$
@@ -75,8 +32,9 @@ public class DefCoreUnit extends IniUnit {
 	
 	@Override
 	public void commitTo(C4ScriptBase script) {
-		if (script instanceof C4Object)
+		if (script instanceof C4Object) {
 			((C4Object)script).setId(this.getObjectID());
+		}
 	}
 	
 }

@@ -1,10 +1,6 @@
 package net.arctics.clonk.parser.inireader;
 
-import java.io.InputStream;
-
 import net.arctics.clonk.ClonkCore;
-
-import org.eclipse.core.resources.IFile;
 
 public class ActMapUnit extends IniUnitWithNamedSections {
 
@@ -18,16 +14,8 @@ public class ActMapUnit extends IniUnitWithNamedSections {
 		return FILE_NAME;
 	}
 	
-	public ActMapUnit(IFile file) {
-		super(file);
-	}
-	
-	public ActMapUnit(InputStream stream) {
-		super(stream);
-	}
-	
-	public ActMapUnit(String text) {
-		super(text);
+	public ActMapUnit(Object input) {
+		super(input);
 	}
 
 }
