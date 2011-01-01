@@ -1471,7 +1471,7 @@ public class C4ScriptParser extends CStyleScanner {
 		IMarker result = null;
 		boolean misplacedErrorOrNoFileToAttachMarkerTo = scriptFile == null || (getCurrentFunc() != null && getCurrentFunc().getBody() != null && this.offset > getCurrentFunc().getBody().getEnd()+1);
 		String problem = code.getErrorString(args);
-		if (!misplacedErrorOrNoFileToAttachMarkerTo && !noThrow) {
+		if (!misplacedErrorOrNoFileToAttachMarkerTo) {
 			result = code.createMarker(scriptFile, getContainer(), ClonkCore.MARKER_C4SCRIPT_ERROR, markerStart, markerEnd, severity, expressionReportingErrors, args);
 			IRegion exprLocation = getLocationOfExpressionReportingErrors();
 			if (exprLocation != null) {
