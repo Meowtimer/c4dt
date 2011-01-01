@@ -28,6 +28,7 @@ import net.arctics.clonk.parser.playercontrols.PlayerControlsUnit;
 import net.arctics.clonk.parser.teamsdef.TeamsUnit;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.resource.c4group.C4GroupItem;
+import net.arctics.clonk.util.ArrayUtil;
 import net.arctics.clonk.util.IHasChildren;
 import net.arctics.clonk.util.IPredicate;
 import net.arctics.clonk.util.ITreeNode;
@@ -500,7 +501,7 @@ public class IniUnit extends C4Structure implements Iterable<IniSection>, IHasCh
 
 	public IniSection sectionAtOffset(IniSection parent, int offset) {
 		IniSection section = null;
-		for (IniSection sec : parent == null ? Utilities.arrayIterable(this.getSections()) : parent.getSections()) {
+		for (IniSection sec : parent == null ? ArrayUtil.arrayIterable(this.getSections()) : parent.getSections()) {
 			int start = sec.getLocation().getStart();
 			if (start > offset) {
 				break;

@@ -5,7 +5,7 @@ import java.util.Iterator;
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.index.C4Object;
 import net.arctics.clonk.index.ClonkIndex;
-import net.arctics.clonk.util.Utilities;
+import net.arctics.clonk.util.ArrayUtil;
 
 /**
  * Type that does not denote a concrete object but a type
@@ -27,7 +27,7 @@ public class C4ObjectType implements IType {
 	
 	@Override
 	public Iterator<IType> iterator() {
-		return Utilities.arrayIterable(C4Type.ID, C4Type.PROPLIST, type).iterator();
+		return ArrayUtil.arrayIterable(C4Type.ID, C4Type.PROPLIST, type).iterator();
 	}
 
 	@Override

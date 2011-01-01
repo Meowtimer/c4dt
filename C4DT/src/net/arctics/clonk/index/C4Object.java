@@ -20,7 +20,7 @@ import net.arctics.clonk.parser.c4script.C4Variable;
 import net.arctics.clonk.parser.c4script.FindDeclarationInfo;
 import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.preferences.ClonkPreferences;
-import net.arctics.clonk.util.Utilities;
+import net.arctics.clonk.util.ArrayUtil;
 
 public abstract class C4Object extends C4ScriptBase implements IType {
 
@@ -202,7 +202,7 @@ public abstract class C4Object extends C4ScriptBase implements IType {
 
 	@Override
 	public Iterator<IType> iterator() {
-		return Utilities.arrayIterable(new IType[] {C4Type.OBJECT, this}).iterator();
+		return ArrayUtil.arrayIterable(new IType[] {C4Type.OBJECT, this}).iterator();
 	}
 
 	@Override

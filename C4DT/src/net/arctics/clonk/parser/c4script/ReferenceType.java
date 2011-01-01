@@ -6,7 +6,7 @@ import java.util.Map;
 
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.index.ClonkIndex;
-import net.arctics.clonk.util.Utilities;
+import net.arctics.clonk.util.ArrayUtil;
 
 public class ReferenceType implements IType {
 
@@ -25,7 +25,7 @@ public class ReferenceType implements IType {
 	
 	@Override
 	public Iterator<IType> iterator() {
-		return Utilities.arrayIterable(C4Type.REFERENCE, type).iterator();
+		return ArrayUtil.arrayIterable(C4Type.REFERENCE, type).iterator();
 	}
 
 	@Override

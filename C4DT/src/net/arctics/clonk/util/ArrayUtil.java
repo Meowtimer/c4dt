@@ -2,6 +2,9 @@ package net.arctics.clonk.util;
 
 import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.NoSuchElementException;
 
 public class ArrayUtil {
 
@@ -72,6 +75,41 @@ public class ArrayUtil {
 		T[] result = (T[]) Array.newInstance(newElementClass, baseArray.length);
 		System.arraycopy(baseArray, 0, result, 0, baseArray.length);
 		return result;
+	}
+	
+	@SuppressWarnings("unchecked")
+	public static <T> T[] filter(T[] array, IPredicate<T> filter) {
+		try {
+			List<T> list = Utilities.filter(arrayIterable(array), filter);
+			return list.toArray((T[]) Array.newInstance(array.getClass().getComponentType(), list.size()));
+		} catch (Exception e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
+
+	public static <T> Iterable<T> arrayIterable(final T... items) {
+		return new Iterable<T>() {
+			public Iterator<T> iterator() {
+				return new Iterator<T>() {
+					private int index = -1;
+					public boolean hasNext() {
+						return index+1<items.length;
+					}
+
+					public T next() {
+						try {
+							return items[++index];
+						} catch (ArrayIndexOutOfBoundsException e) {
+							throw new NoSuchElementException("Array iterator fail"); //$NON-NLS-1$
+						}
+					}
+
+					public void remove() {
+					}
+				};
+			}
+		};
 	}
 
 }

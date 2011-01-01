@@ -5,11 +5,9 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.NoSuchElementException;
 import java.util.Set;
 
 import net.arctics.clonk.index.C4ObjectIntern;
@@ -370,41 +368,6 @@ public abstract class Utilities {
 			@Override
 			public boolean test(T item) {
 				return cls.isAssignableFrom(item.getClass());
-			}
-		};
-	}
-	
-	@SuppressWarnings("unchecked")
-	public static <T> T[] filter(T[] array, IPredicate<T> filter) {
-		try {
-			List<T> list = filter(arrayIterable(array), filter);
-			return list.toArray((T[]) Array.newInstance(array.getClass().getComponentType(), list.size()));
-		} catch (Exception e) {
-			e.printStackTrace();
-			return null;
-		}
-	}
-
-	public static <T> Iterable<T> arrayIterable(final T... items) {
-		return new Iterable<T>() {
-			public Iterator<T> iterator() {
-				return new Iterator<T>() {
-					private int index = -1;
-					public boolean hasNext() {
-						return index+1<items.length;
-					}
-
-					public T next() throws NoSuchElementException {
-						try {
-							return items[++index];
-						} catch (ArrayIndexOutOfBoundsException e) {
-							throw new NoSuchElementException("Array iterator fail"); //$NON-NLS-1$
-						}
-					}
-
-					public void remove() {
-					}
-				};
 			}
 		};
 	}

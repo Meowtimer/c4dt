@@ -904,7 +904,7 @@ public class C4ScriptParser extends CStyleScanner {
 							if (val == null)
 								errorWithCode(ParserErrorCode.ValueExpected, this.offset-1, this.offset, true);
 							else {
-								var.inferTypeFromAssignment(val, this);
+								var.expectedToBeOfType(val.getType(this), TypeExpectancyMode.Force);
 							}
 						}
 					} catch (ParsingException e) {} // an exception thrown from here will halt the whole parsing process

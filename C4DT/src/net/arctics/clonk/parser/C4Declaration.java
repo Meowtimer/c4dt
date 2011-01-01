@@ -14,6 +14,7 @@ import net.arctics.clonk.parser.stringtbl.StringTbl;
 import net.arctics.clonk.preferences.ClonkPreferences;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.ui.editors.c4script.IPostSerializable;
+import net.arctics.clonk.util.ArrayUtil;
 import net.arctics.clonk.util.IHasRelatedResource;
 import net.arctics.clonk.util.INode;
 import net.arctics.clonk.util.Utilities;
@@ -245,7 +246,7 @@ public abstract class C4Declaration implements Serializable, IHasRelatedResource
 		return null;
 	}
 	
-	private static final Iterable<C4Declaration> NO_SUB_DECLARATIONS = Utilities.arrayIterable();
+	private static final Iterable<C4Declaration> NO_SUB_DECLARATIONS = ArrayUtil.arrayIterable();
 	
 	/**
 	 * Returns an Iterable for iterating over all sub declaration of this declaration.
