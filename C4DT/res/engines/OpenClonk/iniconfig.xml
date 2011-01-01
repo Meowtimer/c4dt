@@ -60,14 +60,10 @@
 				description="Id des Objekts." />
 			<entry name="Version" class="IntegerArray"
 				description="Minimale vom Objekt benötigte Engine-Version. Dieser Eintrag sollte bei jeder Änderung auf die jeweils\n  aktuelle Clonk-Version gesetzt werden, damit ersichtlich ist, zu welchem Zeitpunkt das Objekt erschienen ist." />
-			<entry name="Name" class="java.lang.String"
-				description="Name des Objekts. Bei Mehrsprachigkeit Names.txt nutzen." />
 			<entry name="Category"
 				class="CategoriesArray"
 				description="Kategorie des Objekts. Siehe Objektkategorien."
 				constantsPrefix="C4D_" />
-			<entry name="MaxUserSelect" class="SignedInteger"
-				description="Maximale Anzahl beim Platzieren des Objekts im Menüsystem." />
 			<entry name="TimerCall" class="Function"
 				description="Regelmäßig aufgerufene Funktion des Objektscripts.\n  Siehe Objektscripte." />
 			<entry name="Timer" class="SignedInteger"
