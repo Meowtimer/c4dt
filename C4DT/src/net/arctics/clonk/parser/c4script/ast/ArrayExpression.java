@@ -8,9 +8,7 @@ import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
 import net.arctics.clonk.util.Utilities;
 
 public class ArrayExpression extends Sequence {
-	/**
-	 * 
-	 */
+
 	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 
 	public ArrayExpression(ExprElm... elms) {

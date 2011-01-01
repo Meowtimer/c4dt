@@ -7,9 +7,7 @@ import net.arctics.clonk.parser.c4script.Keywords;
 
 public class IfStatement extends ConditionalStatement {
 
-	/**
-	 * 
-	 */
+
 	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 	private ExprElm elseExpr;
 

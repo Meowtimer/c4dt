@@ -4,9 +4,7 @@ import net.arctics.clonk.ClonkCore;
 
 public class Tuple extends Sequence {
 
-	/**
-	 * 
-	 */
+
 	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 
 	public Tuple(ExprElm[] elms) {

@@ -9,9 +9,7 @@ import net.arctics.clonk.parser.c4script.C4ScriptParser;
 
 public class UnaryOp extends Operator {
 
-	/**
-	 * 
-	 */
+
 	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 
 	public enum Placement {

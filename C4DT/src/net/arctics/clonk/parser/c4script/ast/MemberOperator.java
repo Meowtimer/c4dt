@@ -14,9 +14,7 @@ import net.arctics.clonk.util.Utilities;
 import org.eclipse.jface.text.Region;
 
 public class MemberOperator extends ExprElm {
-	/**
-	 * 
-	 */
+
 	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 	boolean dotNotation;
 	private boolean hasTilde;

@@ -5,9 +5,7 @@ import java.util.List;
 import net.arctics.clonk.ClonkCore;
 
 public class BunchOfStatements extends Block {
-	/**
-	 * 
-	 */
+
 	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 
 	public BunchOfStatements(List<Statement> statements) {

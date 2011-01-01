@@ -4,9 +4,7 @@ import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.c4script.Keywords;
 
 public class DoWhileStatement extends WhileStatement {
-	/**
-	 * 
-	 */
+
 	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 
 	public DoWhileStatement(ExprElm condition, ExprElm body) {

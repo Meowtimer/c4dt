@@ -15,9 +15,7 @@ import net.arctics.clonk.parser.c4script.IType;
  */
 public class Statement extends ExprElm implements Cloneable {
 	
-	/**
-	 * 
-	 */
+
 	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 
 	public interface Attachment {

@@ -7,9 +7,7 @@ import net.arctics.clonk.parser.c4script.IType;
 
 public abstract class Value extends ExprElm {
 
-	/**
-	 * 
-	 */
+
 	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 
 	@Override

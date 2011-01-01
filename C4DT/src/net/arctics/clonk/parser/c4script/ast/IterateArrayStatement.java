@@ -4,9 +4,7 @@ import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.c4script.Keywords;
 
 public class IterateArrayStatement extends KeywordStatement implements ILoop {
-	/**
-	 * 
-	 */
+
 	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 	private ExprElm elementExpr, arrayExpr, body;
 

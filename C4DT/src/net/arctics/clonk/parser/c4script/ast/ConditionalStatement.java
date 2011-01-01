@@ -3,9 +3,7 @@ package net.arctics.clonk.parser.c4script.ast;
 import net.arctics.clonk.ClonkCore;
 
 public abstract class ConditionalStatement extends KeywordStatement {
-	/**
-	 * 
-	 */
+
 	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 	protected ExprElm condition;
 	protected ExprElm body;

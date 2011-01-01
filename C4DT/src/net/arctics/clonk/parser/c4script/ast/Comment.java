@@ -8,9 +8,7 @@ import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.ui.editors.c4script.ExpressionLocator;
 
 public class Comment extends Statement implements Statement.Attachment {
-	/**
-	 * 
-	 */
+
 	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 	private String comment;
 	private boolean multiLine;

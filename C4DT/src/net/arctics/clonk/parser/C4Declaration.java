@@ -31,9 +31,7 @@ import org.eclipse.jface.text.IRegion;
  *
  */
 public abstract class C4Declaration implements Serializable, IHasRelatedResource, INode, IPostSerializable<C4Declaration>, IHasSubDeclarations  {
-	/**
-	 * 
-	 */
+
 	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 	
 	/**

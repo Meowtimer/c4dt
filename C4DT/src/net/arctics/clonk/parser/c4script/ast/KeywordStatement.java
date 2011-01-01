@@ -7,9 +7,7 @@ import net.arctics.clonk.ClonkCore;
  *
  */
 public abstract class KeywordStatement extends Statement {
-	/**
-	 * 
-	 */
+
 	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 
 	public abstract String getKeyword();

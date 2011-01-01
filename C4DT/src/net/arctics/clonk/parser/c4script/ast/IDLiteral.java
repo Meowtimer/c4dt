@@ -9,9 +9,7 @@ import net.arctics.clonk.parser.c4script.C4Type;
 import net.arctics.clonk.parser.c4script.IType;
 
 public final class IDLiteral extends Literal<C4ID> {
-	/**
-	 * 
-	 */
+
 	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 
 	public IDLiteral(C4ID literal) {

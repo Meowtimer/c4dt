@@ -17,9 +17,7 @@ public class C4Scenario extends C4ObjectIntern {
 		return obj instanceof C4Scenario ? (C4Scenario)obj : null;
 	}
 
-	/**
-	 * 
-	 */
+
 	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 
 }

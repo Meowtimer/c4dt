@@ -10,9 +10,7 @@ import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.parser.c4script.Keywords;
 
 public final class BoolLiteral extends Literal<Boolean> {
-	/**
-	 * 
-	 */
+
 	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 	public boolean booleanValue() {
 		return getLiteral().booleanValue();

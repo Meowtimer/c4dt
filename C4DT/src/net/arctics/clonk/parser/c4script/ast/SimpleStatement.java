@@ -11,9 +11,7 @@ import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
  * 
  */
 public class SimpleStatement extends Statement {
-	/**
-	 * 
-	 */
+
 	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 	private ExprElm expression;
 
