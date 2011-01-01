@@ -5,15 +5,14 @@ import net.arctics.clonk.parser.C4Declaration;
 import net.arctics.clonk.parser.DeclarationRegion;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
+import net.arctics.clonk.parser.c4script.ITypedDeclaration;
 import net.arctics.clonk.parser.c4script.ast.IDifferenceListener.Option;
 
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.Region;
 
 public abstract class AccessDeclaration extends Value {
-	/**
-	 * 
-	 */
+
 	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 	protected transient C4Declaration declaration;
 	protected String declarationName;
@@ -90,8 +89,17 @@ public abstract class AccessDeclaration extends Value {
 		return true;
 	}
 
-public Class<? extends C4Declaration> declarationClass() {
+	public Class<? extends C4Declaration> declarationClass() {
 		return C4Declaration.class;
+	}
+	
+	@Override
+	public IStoredTypeInformation createStoredTypeInformation(C4ScriptParser parser) {
+		if (declaration instanceof ITypedDeclaration && ((ITypedDeclaration)declaration).typeIsInvariant()) {
+			return null;
+		} else {
+			return super.createStoredTypeInformation(parser);
+		}
 	}
 	
 }

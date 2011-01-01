@@ -250,12 +250,6 @@ public class C4Variable extends C4Declaration implements Serializable, ITypedDec
 				: "" //$NON-NLS-1$
 		);
 	}
-
-	public void inferTypeFromAssignment(ExprElm val, C4ScriptParser context) {
-		if (typeLocked)
-			return;
-		ITypedDeclaration.Default.inferTypeFromAssignment(this, val, context);
-	}
 	
 	public void expectedToBeOfType(IType t, TypeExpectancyMode mode) {
 		// engine objects should not be altered
@@ -389,6 +383,11 @@ public class C4Variable extends C4Declaration implements Serializable, ITypedDec
 	
 	public C4Function getFunction() {
 		return getTopLevelParentDeclarationOfType(C4Function.class);
+	}
+	
+	@Override
+	public boolean typeIsInvariant() {
+		return scope == C4VariableScope.CONST || typeLocked;
 	}
 	
 }

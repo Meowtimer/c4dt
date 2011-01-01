@@ -427,10 +427,6 @@ public class C4Function extends C4Structure implements Serializable, ITypedDecla
 		}
 	}
 
-	public void inferTypeFromAssignment(ExprElm val, C4ScriptParser context) {
-		ITypedDeclaration.Default.inferTypeFromAssignment(this, val, context);
-	}
-
 	@Override
 	public IType getType() {
 		return getReturnType();
@@ -586,6 +582,11 @@ public class C4Function extends C4Structure implements Serializable, ITypedDecla
 		} else {
 			return otherDeclarations;
 		}
+	}
+	
+	@Override
+	public boolean typeIsInvariant() {
+		return isEngineDeclaration();
 	}
 	
 }

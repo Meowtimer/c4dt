@@ -71,6 +71,11 @@ public class C4ObjectIntern extends C4Object implements Serializable {
 				public IType getType() {
 					return C4ObjectIntern.this.getObjectType();
 				}
+				
+				@Override
+				public boolean typeIsInvariant() {
+					return true;
+				};
 
 			};
 		}
