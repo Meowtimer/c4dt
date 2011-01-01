@@ -473,9 +473,10 @@ public class C4ScriptParser extends CStyleScanner {
 	public void distillAdditionalInformation() {
 		if (container instanceof C4Object) {
 			
-			C4Object obj = (C4Object) container;
+			final C4Object obj = (C4Object) container;
 			obj.chooseLocalizedName(); // ClonkRage Names.txt
 			
+			// local Name = "Exploder";
 			C4Variable nameLocal = container.findLocalVariable("Name", false);
 			if (nameLocal != null) {
 				ExprElm expr = nameLocal.getInitializationExpression();
@@ -487,7 +488,7 @@ public class C4ScriptParser extends CStyleScanner {
 			}
 			
 			// find SetProperty call in Definition func
-			C4Function definitionFunc = container.findLocalFunction(Keywords.DefinitionFunc, false);
+			C4Function definitionFunc = obj.findLocalFunction(Keywords.DefinitionFunc, false);
 			if (definitionFunc != null && definitionFunc.getBody() != null) { // could also be engine function without body
 				this.seek(definitionFunc.getBody().getStart());
 				boolean old = allErrorsDisabled;
@@ -505,9 +506,9 @@ public class C4ScriptParser extends CStyleScanner {
 									callFunc.getParams()[0] instanceof StringLiteral &&
 									((StringLiteral)callFunc.getParams()[0]).getLiteral().equals("Name") //$NON-NLS-1$
 								) {
-									Object v = callFunc.getParams()[1].evaluateAtParseTime(container);
+									Object v = callFunc.getParams()[1].evaluateAtParseTime(obj);
 									if (v instanceof String) {
-										container.setName((String) v);
+										obj.setName((String) v);
 									}
 									return TraversalContinuation.Cancel;
 								}
@@ -515,11 +516,11 @@ public class C4ScriptParser extends CStyleScanner {
 							return TraversalContinuation.Continue;
 						}
 					}, ExpressionsAndStatementsReportingFlavour.AlsoStatements);
-					C4Variable v = container.findVariable("Name");
+					C4Variable v = obj.findVariable("Name");
 					if (v != null) {
-						Object ev = v.evaluateInitializationExpression(container);
+						Object ev = v.evaluateInitializationExpression(obj);
 						if (ev instanceof String) {
-							container.setName((String)ev);
+							obj.setName((String)ev);
 						}
 					}
 				} finally {
