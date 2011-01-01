@@ -18,6 +18,7 @@ import net.arctics.clonk.parser.c4script.C4ScriptBase;
 import net.arctics.clonk.parser.c4script.C4ScriptIntern;
 import net.arctics.clonk.parser.inireader.CustomIniUnit;
 import net.arctics.clonk.parser.inireader.IniField;
+import net.arctics.clonk.util.SettingsBase;
 import net.arctics.clonk.util.StreamUtil;
 
 import org.eclipse.core.resources.IProject;
@@ -38,8 +39,8 @@ import org.eclipse.ui.texteditor.ITextEditor;
  */
 public class ClonkProjectNature implements IProjectNature {
 
-	public static class Settings {
-		
+	public static class Settings extends SettingsBase {
+
 		@IniField
 		public String engineName;
 		

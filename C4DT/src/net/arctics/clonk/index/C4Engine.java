@@ -6,9 +6,7 @@ import java.io.InputStream;
 import java.io.InvalidClassException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
-import java.io.Serializable;
 import java.io.Writer;
-import java.lang.reflect.Field;
 import java.net.URL;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -48,8 +46,8 @@ import net.arctics.clonk.parser.inireader.IniUnit;
 import net.arctics.clonk.preferences.ClonkPreferences;
 import net.arctics.clonk.util.IStorageLocation;
 import net.arctics.clonk.util.LineNumberObtainer;
+import net.arctics.clonk.util.SettingsBase;
 import net.arctics.clonk.util.StreamUtil;
-import net.arctics.clonk.util.Utilities;
 
 /**
  * Container for engine functions and constants.
@@ -60,9 +58,7 @@ public class C4Engine extends C4ScriptBase {
 
 	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 
-	public static class EngineSettings implements Cloneable, Serializable {
-
-		private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
+	public static class EngineSettings extends SettingsBase {
 
 		@IniField
 		public long strictDefaultLevel;
@@ -98,74 +94,6 @@ public class C4Engine extends C4ScriptBase {
 		public String cmdLineOptionWithArgumentFormat;
 		@IniField
 		public boolean supportsEmbeddedUtilities;
-
-		public EngineSettings() {
-			try {
-				for (Field f : getClass().getFields()) {
-					if (f.getType() == String.class) {
-						f.set(this, "");
-					}
-				}
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-		}
-
-		@Override
-		public boolean equals(Object obj) {
-			if (obj == this)
-				return true;
-			if (!(obj instanceof EngineSettings))
-				return false;
-			for (Field f : getClass().getFields()) {
-				try {
-					Object fVal = f.get(this);
-					Object objVal = f.get(obj);
-					if (!Utilities.objectsEqual(fVal, objVal))
-						return false;
-				} catch (Exception e) {
-					e.printStackTrace();
-					return false;
-				}
-			}
-			return true;
-		}
-
-		public void loadFrom(InputStream stream) {
-			try {
-				CustomIniUnit.load(stream, this);
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-		}
-		
-		public void saveTo(OutputStream stream, EngineSettings defaults) {
-			try {
-				Writer writer = new OutputStreamWriter(stream);
-				try {
-					CustomIniUnit.save(writer, this, defaults);
-				} finally {
-					writer.close();
-				}
-			} catch (Exception e) {
-				e.printStackTrace(); 
-			}
-		}
-
-		public static EngineSettings createFrom(InputStream stream) {
-			EngineSettings settings = new EngineSettings();
-			settings.loadFrom(stream);
-			return settings;
-		}
-
-		@Override
-		public EngineSettings clone() {
-			try {
-				return (EngineSettings)super.clone();
-			} catch (CloneNotSupportedException e) {
-				return null;
-			}
-		}
 		
 		private Pattern idPatternCompiled;
 		public Pattern getCompiledIdPattern() {
@@ -285,8 +213,8 @@ public class C4Engine extends C4ScriptBase {
 				InputStream input = settingsFile.openStream();
 				try {
 					if (currentSettings == null) {
-						intrinsicSettings = EngineSettings.createFrom(input);
-						currentSettings = intrinsicSettings.clone();
+						intrinsicSettings = SettingsBase.createFrom(EngineSettings.class, input);
+						currentSettings = (EngineSettings) intrinsicSettings.clone();
 					} else {
 						currentSettings.loadFrom(input);
 					}
@@ -297,7 +225,7 @@ public class C4Engine extends C4ScriptBase {
 		}
 		if (intrinsicSettings == null) {
 			intrinsicSettings = new EngineSettings();
-			currentSettings = intrinsicSettings.clone();
+			currentSettings = (EngineSettings) intrinsicSettings.clone();
 		}
 	}
 	

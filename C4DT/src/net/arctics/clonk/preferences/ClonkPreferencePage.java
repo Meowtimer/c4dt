@@ -8,6 +8,7 @@ import java.util.Map;
 
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.index.C4Engine;
+import net.arctics.clonk.index.C4Engine.EngineSettings;
 import net.arctics.clonk.ui.navigator.ClonkFolderView;
 
 import org.eclipse.core.runtime.IPath;
@@ -91,7 +92,7 @@ public class ClonkPreferencePage extends FieldEditorPreferencePage implements IW
 			C4Engine.EngineSettings e = settings.get(currentEngine);
 			if (e == null) {
 				C4Engine engine = ClonkCore.getDefault().loadEngine(currentEngine);
-				e = engine.getCurrentSettings().clone();
+				e = (EngineSettings) engine.getCurrentSettings().clone();
 				settings.put(currentEngine, e);
 			}
 			return e;
@@ -108,7 +109,7 @@ public class ClonkPreferencePage extends FieldEditorPreferencePage implements IW
 		public void reset() {
 			for (C4Engine engine : ClonkCore.getDefault().loadedEngines()) {
 				if (settings.get(engine.getName()) != null)
-					settings.put(engine.getName(), engine.getCurrentSettings().clone());
+					settings.put(engine.getName(), (EngineSettings) engine.getCurrentSettings().clone());
 			}
 		}
 		
