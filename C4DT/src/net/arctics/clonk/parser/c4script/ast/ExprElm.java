@@ -146,6 +146,10 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable {
 		return predecessor == null;
 	}
 	
+	public boolean isValidAtEndOfSequence(C4ScriptParser context) {
+		return false;
+	}
+	
 	public IType getType(C4ScriptParser context) {
 		return context.queryTypeOfExpression(this, C4Type.UNKNOWN);
 	}

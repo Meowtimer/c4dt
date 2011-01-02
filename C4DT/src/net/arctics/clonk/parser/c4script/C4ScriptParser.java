@@ -1668,15 +1668,20 @@ public class C4ScriptParser extends CStyleScanner {
 
 		} while (elm != null);
 		this.seek(noWhitespaceEating);
+		ExprElm lastElm;
 		if (elements.size() == 1) {
 			// no need for sequences containing one element
 			result = elements.elementAt(elements.size()-1);
+			lastElm = result;
 		} else if (elements.size() > 1) {
 			result = new Sequence(elements.toArray(new ExprElm[0]));
+			lastElm = elements.get(elements.size()-1);
 		} else {
 			result = null;
+			lastElm = null;
 		}
 		if (result != null) {
+			proper &= lastElm == null || lastElm.isValidAtEndOfSequence(this);
 			result.setFinishedProperly(proper);
 
 			result.setExprRegion(sequenceStart, this.offset);

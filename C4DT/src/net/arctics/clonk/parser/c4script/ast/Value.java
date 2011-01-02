@@ -7,12 +7,16 @@ import net.arctics.clonk.parser.c4script.IType;
 
 public abstract class Value extends ExprElm {
 
-
 	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 
 	@Override
 	public IType getType(C4ScriptParser context) {
 		return context.queryTypeOfExpression(this, C4Type.ANY);
+	}
+	
+	@Override
+	public boolean isValidAtEndOfSequence(C4ScriptParser context) {
+		return true;
 	}
 
 }
