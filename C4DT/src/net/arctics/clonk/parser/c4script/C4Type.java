@@ -214,7 +214,29 @@ public enum C4Type implements IType {
 
 	@Override
 	public boolean containsType(IType type) {
-		return type.canBeAssignedFrom(this);
+		IType staticType = type.staticType();
+		if (staticType == this) {
+			return true;
+		}
+		if (staticType instanceof C4Type) {
+			switch ((C4Type)staticType) {
+			case ANY:
+			case UNKNOWN:
+			case ARRAY:
+			case ID:
+			case OBJECT:
+			case INT:
+			case STRING:
+				return false;
+			case PROPLIST:
+				return this == OBJECT || this == ID;
+			case BOOL:
+				return this == INT;
+			case REFERENCE:
+				return this == ANY;
+			}
+		}
+		return false;
 	}
 	
 	@Override
