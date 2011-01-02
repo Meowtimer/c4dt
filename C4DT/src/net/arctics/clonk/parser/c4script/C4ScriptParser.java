@@ -2546,7 +2546,7 @@ public class C4ScriptParser extends CStyleScanner {
 				this.seek(pos);
 			}
 			if (w == null) {
-				boolean noSideEffectsWasEnabled = errorDisabled(ParserErrorCode.NoSideEffects);
+				boolean noSideEffectsWasEnabled = !errorDisabled(ParserErrorCode.NoSideEffects);
 				enableError(ParserErrorCode.NoSideEffects, false);
 				initialization = parseStatement(EnumSet.of(ParseStatementOption.InitializationStatement));
 				enableError(ParserErrorCode.NoSideEffects, noSideEffectsWasEnabled);
