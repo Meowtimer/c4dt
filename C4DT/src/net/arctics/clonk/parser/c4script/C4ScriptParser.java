@@ -1869,7 +1869,7 @@ public class C4ScriptParser extends CStyleScanner {
 				ExprElm arg = parseExpression(reportErrors);
 				if (arg == null) {
 					errorWithCode(ParserErrorCode.ExpressionExpected, this.offset, this.offset+1);
-//					break;
+					break;
 				} else
 					listToAddElementsTo.add(arg);
 				expectingComma = true;
