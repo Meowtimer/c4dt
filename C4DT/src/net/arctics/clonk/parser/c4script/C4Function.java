@@ -588,5 +588,11 @@ public class C4Function extends C4Structure implements Serializable, ITypedDecla
 	public boolean typeIsInvariant() {
 		return isEngineDeclaration();
 	}
+
+	public void resetLocalVarTypes() {
+		for (C4Variable v : getLocalVars()) {
+			v.forceType(C4Type.UNKNOWN);
+		}
+	}
 	
 }

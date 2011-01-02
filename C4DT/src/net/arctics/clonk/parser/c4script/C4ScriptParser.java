@@ -541,9 +541,7 @@ public class C4ScriptParser extends CStyleScanner {
 		try {
 			setCurrentFunc(function);
 			// reset local vars
-			for (C4Variable v : function.getLocalVars()) {
-				v.forceType(C4Type.UNKNOWN);
-			}
+			function.resetLocalVarTypes();
 			beginTypeInferenceBlock();
 			this.seek(function.getBody().getStart());
 			// parse code block
@@ -2356,7 +2354,8 @@ public class C4ScriptParser extends CStyleScanner {
 				val = parseExpression();
 				if (val == null)
 					errorWithCode(ParserErrorCode.ValueExpected, this.offset, this.offset+1);
-				else {					new AccessVar(var).expectedToBeOfType(val.getType(this), this, TypeExpectancyMode.Force);
+				else {
+					new AccessVar(var).expectedToBeOfType(val.getType(this), this, TypeExpectancyMode.Force);
 				}
 			}
 			else {
@@ -2874,6 +2873,7 @@ public class C4ScriptParser extends CStyleScanner {
 	}
 	
 	private void reportExpressionsAndStatements(C4Function func, IScriptParserListener listener, ExpressionsAndStatementsReportingFlavour flavour) {
+		func.resetLocalVarTypes();
 		currentDeclaration = func;
 		setListener(listener);
 		strictLevel = getContainer().getStrictLevel();
