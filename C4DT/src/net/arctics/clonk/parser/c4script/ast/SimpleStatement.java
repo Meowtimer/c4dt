@@ -89,12 +89,21 @@ public class SimpleStatement extends Statement {
 			return null;
 		}
 	}
+
+	private void notFinishedError(C4ScriptParser parser, ExprElm e) throws ParsingException {
+		for (ExprElm expr : e.getSubElements()) {
+			if (expr != null) {
+				if (!expr.isFinishedProperly()) {
+					parser.errorWithCode(ParserErrorCode.NotFinished, expr, true);
+				}
+				notFinishedError(parser, expr);
+			}
+		}
+	}
 	
 	@Override
 	public void reportErrors(C4ScriptParser parser) throws ParsingException {
-		if (!isFinishedProperly()) {
-			parser.errorWithCode(ParserErrorCode.NotFinished, this, true);
-		}
+		notFinishedError(parser, this);
 		if (expression instanceof BinaryOp) {
 			((BinaryOp) expression).checkTopLevelAssignment(parser);
 		}

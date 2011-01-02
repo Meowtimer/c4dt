@@ -1657,14 +1657,6 @@ public class C4ScriptParser extends CStyleScanner {
 			if (elm != null) {
 				if (!elm.isValidInSequence(prevElm, this)) {
 					elm = null; // blub blub <- first blub is var; second blub is not part of the sequence -.-
-				/*	final ExprElm old = expressionReportingErrors;
-					expressionReportingErrors = elm;
-					try {
-						errorWithCode(ParserErrorCode.NotAllowedHere, elmStart, getPosition(), true, this.readStringAt(elmStart, getPosition()));
-					} finally {
-						expressionReportingErrors = old;
-					} */
-					//this.seek(elmStart);
 					proper = false;
 				} else {
 					// add to sequence even if not valid so the quickfixer can separate them
@@ -1679,8 +1671,7 @@ public class C4ScriptParser extends CStyleScanner {
 		if (elements.size() == 1) {
 			// no need for sequences containing one element
 			result = elements.elementAt(elements.size()-1);
-		}
-		else if (elements.size() > 1) {
+		} else if (elements.size() > 1) {
 			result = new Sequence(elements.toArray(new ExprElm[0]));
 		} else {
 			result = null;

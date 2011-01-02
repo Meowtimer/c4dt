@@ -65,6 +65,7 @@ public class Sequence extends Value {
 				//p = e;
 			}
 		}
+		super.reportErrors(parser);
 	}
 	public ExprElm[] getElements() {
 		return elements;

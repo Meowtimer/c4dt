@@ -299,8 +299,6 @@ public class ClonkQuickAssistProcessor implements IQuickAssistProcessor, IMarker
 				}
 			}
 			
-			System.out.println(document.get());
-			
 			C4ScriptEditor.TextChangeListener listener = C4ScriptEditor.TextChangeListener.getListenerFor(document);
 			if (listener != null) {
 				listener.scheduleReparsing(false);
@@ -488,11 +486,13 @@ public class ClonkQuickAssistProcessor implements IQuickAssistProcessor, IMarker
 					break;
 				}
 				case NotFinished:
-					replacements.add(
-							Messages.ClonkQuickAssistProcessor_AddMissingSemicolon,
-							topLevel // will be added by converting topLevel to string
-					);
-					semicolonAdd = 0; // it's really missing!
+					if (topLevel instanceof SimpleStatement && offendingExpression == ((SimpleStatement)topLevel).getExpression()) {
+						replacements.add(
+								Messages.ClonkQuickAssistProcessor_AddMissingSemicolon,
+								topLevel // will be added by converting topLevel to string
+						);
+						semicolonAdd = 0; // it's really missing!
+					}
 					break;
 				case UndeclaredIdentifier:
 					if (offendingExpression instanceof AccessVar && offendingExpression.getParent() instanceof BinaryOp) {
