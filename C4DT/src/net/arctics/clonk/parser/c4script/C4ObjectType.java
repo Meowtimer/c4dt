@@ -37,7 +37,7 @@ public class C4ObjectType implements IType {
 
 	@Override
 	public String typeName(boolean special) {
-		return String.format("Type %s", type.typeName(special));
+		return String.format("<%s Definition>", type.typeName(special));
 	}
 	
 	@Override

@@ -233,7 +233,7 @@ public class C4Variable extends C4Declaration implements Serializable, ITypedDec
 	
 	@Override
 	public String getInfoText() {
-		IType t = getObjectType() != null ? getObjectType() : getType();
+		IType t = getType(); //getObjectType() != null ? getObjectType() : getType();
 		String format = Messages.C4Variable_InfoTextFormatOverall;
 		String valueFormat = scope == C4VariableScope.CONST
 			? Messages.C4Variable_InfoTextFormatConstValue

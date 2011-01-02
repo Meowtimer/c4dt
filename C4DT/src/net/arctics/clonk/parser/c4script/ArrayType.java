@@ -31,7 +31,7 @@ public class ArrayType implements IType {
 
 	@Override
 	public String typeName(boolean special) {
-		return elementType == null ? C4Type.ARRAY.typeName(special) : String.format("%s of %s", C4Type.ARRAY.typeName(special), elementType.typeName(special));
+		return elementType == null ? C4Type.ARRAY.typeName(special) : String.format("<%s of %s>", C4Type.ARRAY.typeName(special), elementType.typeName(special));
 	}
 
 	@Override
