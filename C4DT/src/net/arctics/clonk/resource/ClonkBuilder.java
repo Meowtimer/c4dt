@@ -204,8 +204,6 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 					if (script != null && file.equals(script.getScriptStorage()))
 						script.getIndex().removeScript(script);
 				}
-				if (monitor != null)
-					monitor.worked(1);
 				return true;
 			}
 			else if (delta.getResource() instanceof IContainer) {
@@ -288,6 +286,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 	}
 
 	private IProgressMonitor monitor;
+	private IProgressMonitor currentSubProgressMonitor;
 
 	// gathered list of scripts to be parsed
 	private Map<C4ScriptBase, C4ScriptParser> parserMap = new HashMap<C4ScriptBase, C4ScriptParser>();
@@ -379,16 +378,19 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 			visitDeltaOrWholeProject(delta, proj, counter);
 
 			// initialize progress monitor
-			monitor.beginTask(String.format(Messages.BuildProject, proj.getName()), counter.getCount());
+			monitor.beginTask(String.format(Messages.BuildProject, proj.getName()), counter.getCount()*2);
 			
 			// populate toBeParsed list
 			parserMap.clear();
 			visitDeltaOrWholeProject(delta, proj, new ScriptGatherer());
 			
 			// parse declarations
+			currentSubProgressMonitor = new SubProgressMonitor(monitor, parserMap.size());
+			currentSubProgressMonitor.beginTask("Parse declarations", parserMap.size());
 			for (C4ScriptBase script : parserMap.keySet()) {
 				performBuildPhaseOne(script);
 			}
+			currentSubProgressMonitor.done();
 
 			if (delta != null) {
 				listOfResourcesToBeRefreshed.add(delta.getResource());
@@ -398,9 +400,12 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 			ClonkProjectNature.get(proj).getIndex().refreshIndex();
 			
 			// parse function code
+			currentSubProgressMonitor = new SubProgressMonitor(monitor, parserMap.size());
+			currentSubProgressMonitor.beginTask("Parse code", parserMap.size());
 			while (!parserMap.isEmpty()) {
 				performBuildPhaseTwo(parserMap.keySet().iterator().next());
 			}
+			currentSubProgressMonitor.done();
 
 			applyLatentMarkers();
 			reparseDependentScripts();
@@ -522,8 +527,8 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 			parser.clean();
 			parser.parseDeclarations();
 		}
-		if (monitor != null) {
-			monitor.worked(2);
+		if (currentSubProgressMonitor != null) {
+			currentSubProgressMonitor.worked(1);
 		}
 	}
 	
@@ -537,8 +542,8 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 					e.printStackTrace();
 				}
 			}
-			if (monitor != null) {
-				monitor.worked(1);
+			if (currentSubProgressMonitor != null) {
+				currentSubProgressMonitor.worked(1);
 			}
 		}
 	}
