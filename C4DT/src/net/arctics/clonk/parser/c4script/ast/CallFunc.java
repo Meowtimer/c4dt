@@ -1,17 +1,15 @@
 package net.arctics.clonk.parser.c4script.ast;
 
 import java.util.List;
-
 import net.arctics.clonk.ClonkCore;
+import net.arctics.clonk.index.C4Engine;
 import net.arctics.clonk.index.C4Object;
 import net.arctics.clonk.index.CachedEngineFuncs;
 import net.arctics.clonk.parser.C4Declaration;
 import net.arctics.clonk.parser.DeclarationRegion;
 import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.ParsingException;
-import net.arctics.clonk.parser.c4script.ArrayType;
 import net.arctics.clonk.parser.c4script.C4Function;
-import net.arctics.clonk.parser.c4script.C4ObjectType;
 import net.arctics.clonk.parser.c4script.C4ScriptBase;
 import net.arctics.clonk.parser.c4script.C4ScriptOperator;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
@@ -23,6 +21,7 @@ import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.parser.c4script.Keywords;
 import net.arctics.clonk.parser.c4script.C4Function.C4FunctionScope;
 import net.arctics.clonk.parser.c4script.C4ScriptParser.IMarkerListener;
+import net.arctics.clonk.parser.c4script.SpecialScriptRules.SpecialFuncRule;
 import net.arctics.clonk.parser.c4script.ast.UnaryOp.Placement;
 import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
 import net.arctics.clonk.util.Utilities;
@@ -178,6 +177,14 @@ public class CallFunc extends AccessDeclaration {
 	public boolean hasSideEffects() {
 		return true;
 	}
+	public SpecialFuncRule getSpecialRule(C4ScriptParser context) {
+		C4Engine engine = context.getContainer().getEngine();
+		if (engine != null && engine.getSpecialScriptRules() != null) {
+			return engine.getSpecialScriptRules().getFuncRuleFor(declarationName);
+		} else {
+			return null;
+		}
+	}
 	@Override
 	public IType getType(C4ScriptParser context) {
 		C4Declaration d = getDeclaration(context);
@@ -193,41 +200,21 @@ public class CallFunc extends AccessDeclaration {
 			if (obj != null)
 				return obj;
 		}
-		
-		// it's a criteria search (FindObjects etc) so guess return type from arguments passed to the criteria search function
-		if (isCriteriaSearch()) {
-			IType t = searchCriteriaAssumedResult(context);
-			if (t != null) {
-				C4Function f = (C4Function) d;
-				if (f.getReturnType() == C4Type.ARRAY)
-					return new ArrayType(t);
-				else
-					return t;
+
+		// Some special rule applies and the return type is set accordingly
+		SpecialFuncRule rule = getSpecialRule(context);
+		if (rule != null) {
+			IType returnType = rule.returnType(context, this);
+			if (returnType != null) {
+				return returnType;
 			}
 		}
 		
-		// it's either a Find* or Create* function that takes some object type specifier as first argument - return that type
-		// (FIXME: could be triggered for functions which don't actually return objects matching the type passed as first argument)
-		if (params != null && params.length >= 1 && d instanceof C4Function && ((C4Function)d).getReturnType() == C4Type.OBJECT && (declarationName.startsWith("Create") || declarationName.startsWith("Find"))) { //$NON-NLS-1$ //$NON-NLS-2$
-			IType t = params[0].getType(context);
-			if (t instanceof C4ObjectType)
-				return ((C4ObjectType)t).getType();
-		}
-		
-		// GetID() for this
-		if (params.length == 0 && d == getCachedFuncs(context).GetID) { //$NON-NLS-1$
-			IType t = getPredecessorInSequence() == null ? context.getContainerObject() : getPredecessorInSequence().getType(context);
-			if (t instanceof C4Object)
-				return ((C4Object)t).getObjectType();
+		if (d instanceof C4Function) {
+			return ((C4Function)d).getReturnType();
 		}
 
-		// function that does not return a reference: return typeset out of object type and generic type
-		if (d instanceof C4Function && ((C4Function)d).getReturnType() != C4Type.REFERENCE) {
-			C4Function function = (C4Function) d;
-			return function.getCombinedType();
-		}
-		else
-			return super.getType(context);
+		return super.getType(context);
 	}
 	@Override
 	public boolean isValidInSequence(ExprElm elm, C4ScriptParser context) {
@@ -434,9 +421,6 @@ public class CallFunc extends AccessDeclaration {
 	public void setSubElements(ExprElm[] elms) {
 		params = elms;
 	}
-	private boolean isCriteriaSearch() {
-		return declaration instanceof C4Function && ((C4Function)declaration).isCriteriaSearch;
-	}
 	protected BinaryOp applyOperatorTo(C4ScriptParser parser, ExprElm[] parms, C4ScriptOperator operator) throws CloneNotSupportedException {
 		BinaryOp op = new BinaryOp(operator);
 		BinaryOp result = op;
@@ -565,33 +549,6 @@ public class CallFunc extends AccessDeclaration {
 	@Override
 	public DeclarationRegion declarationAt(int offset, C4ScriptParser parser) {
 		return new DeclarationRegion(getDeclaration(parser), new Region(getExprStart(), declarationName.length()));
-	}
-
-	public C4Object searchCriteriaAssumedResult(C4ScriptParser context) {
-		C4Object result = null;
-		// parameters to FindObjects itself are also &&-ed together
-		if (declarationName.equals("Find_And") || isCriteriaSearch()) { //$NON-NLS-1$
-			for (ExprElm parm : params) {
-				if (parm instanceof CallFunc) {
-					CallFunc call = (CallFunc)parm;
-					C4Object t = call.searchCriteriaAssumedResult(context);
-					if (t != null) {
-						if (result == null)
-							result = t;
-						else {
-							if (t.includes(result))
-								result = t;
-						}
-					}
-				}
-			}
-		}
-		else if (declarationName.equals("Find_ID")) { //$NON-NLS-1$
-			if (params.length > 0) {
-				result = params[0].guessObjectType(context);
-			}
-		}
-		return result;
 	}
 	public ExprElm getReturnArg() {
 		if (params.length == 1)

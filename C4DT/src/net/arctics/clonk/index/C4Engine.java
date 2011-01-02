@@ -29,6 +29,7 @@ import net.arctics.clonk.parser.c4script.C4Function;
 import net.arctics.clonk.parser.c4script.C4ScriptBase;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.C4Variable;
+import net.arctics.clonk.parser.c4script.SpecialScriptRules;
 import net.arctics.clonk.parser.c4script.C4Variable.C4VariableScope;
 import net.arctics.clonk.parser.c4script.Keywords;
 import net.arctics.clonk.parser.inireader.CustomIniUnit;
@@ -118,6 +119,12 @@ public class C4Engine extends C4ScriptBase {
 	private transient IStorageLocation[] storageLocations;
 	private transient IniData iniConfigurations;
 	private transient Map<String, Map<String, String>> descriptions = new HashMap<String, Map<String,String>>();
+	
+	private transient SpecialScriptRules specialScriptRules;
+	
+	public SpecialScriptRules getSpecialScriptRules() {
+		return specialScriptRules;
+	}
 
 	public EngineSettings getIntrinsicSettings() {
 		return intrinsicSettings;
@@ -384,6 +391,20 @@ public class C4Engine extends C4ScriptBase {
 		}
 	}
 	
+	private void createSpecialRules() {
+		try {
+			@SuppressWarnings("unchecked")
+			Class<? extends SpecialScriptRules> rulesClass = (Class<? extends SpecialScriptRules>) C4Engine.class.getClassLoader().loadClass(
+				String.format("%s.parser.c4script.specialscriptrules.SpecialScriptRules_%s", ClonkCore.PLUGIN_ID, getName()));
+			specialScriptRules = rulesClass.newInstance();
+		} catch (ClassNotFoundException e) {
+			// ignore
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
 	public static C4Engine loadFromStorageLocations(final IStorageLocation... providers) {
 		C4Engine result = null;
 		try {
@@ -394,6 +415,7 @@ public class C4Engine extends C4ScriptBase {
 					result.storageLocations = providers;
 					result.loadSettings();
 					result.loadIniConfigurations();
+					result.createSpecialRules();
 					result.parseEngineScript(url);
 					result.loadDeclarationsConfiguration();
 					break;
