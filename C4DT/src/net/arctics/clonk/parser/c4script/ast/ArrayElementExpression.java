@@ -3,6 +3,7 @@ package net.arctics.clonk.parser.c4script.ast;
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.ParsingException;
+import net.arctics.clonk.parser.c4script.ArrayType;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.C4Type;
 import net.arctics.clonk.parser.c4script.IType;
@@ -15,7 +16,17 @@ public class ArrayElementExpression extends Value {
 
 	@Override
 	public IType getType(C4ScriptParser context) {
-		return C4Type.UNKNOWN; // FIXME: guess type of elements
+		IType t = super.getType(context);
+		if (t != C4Type.UNKNOWN && t != C4Type.ANY) {
+			return t;
+		}
+		if (getPredecessorInSequence() != null) {
+			t = getPredecessorInSequence().getType(context);
+			if (t instanceof ArrayType) {
+				return ((ArrayType)t).getElementType();
+			}
+		}
+		return C4Type.UNKNOWN;
 	}
 
 	public ArrayElementExpression(ExprElm argument) {
