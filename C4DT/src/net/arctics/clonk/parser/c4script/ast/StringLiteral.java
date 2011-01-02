@@ -3,22 +3,15 @@ package net.arctics.clonk.parser.c4script.ast;
 import java.util.regex.Matcher;
 
 import net.arctics.clonk.ClonkCore;
-import net.arctics.clonk.index.C4Object;
-import net.arctics.clonk.index.C4Scenario;
-import net.arctics.clonk.index.ClonkIndex;
 import net.arctics.clonk.parser.DeclarationRegion;
 import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.ParsingException;
-import net.arctics.clonk.parser.c4script.C4Function;
 import net.arctics.clonk.parser.c4script.C4ScriptBase;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.C4Type;
-import net.arctics.clonk.parser.c4script.C4Variable;
 import net.arctics.clonk.parser.c4script.IType;
+import net.arctics.clonk.parser.c4script.SpecialScriptRules.SpecialFuncRule;
 import net.arctics.clonk.parser.stringtbl.StringTbl;
-import net.arctics.clonk.ui.editors.c4script.ExpressionLocator;
-import net.arctics.clonk.util.Utilities;
-
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
@@ -61,72 +54,17 @@ public final class StringLiteral extends Literal<String> {
 			int myIndex = parentFunc.indexOfParm(this);
 
 			//  link to functions that are called indirectly
-
-			// GameCall: look for nearest scenario and find function in its script
-			if (myIndex == 0 && parentFunc.getDeclaration() == getCachedFuncs(parser).GameCall) {
-				ClonkIndex index = parser.getContainer().getIndex();
-				C4Scenario scenario = ClonkIndex.pickNearest(parser.getContainer().getResource(), index.getIndexedScenarios());
-				if (scenario != null) {
-					C4Function scenFunc = scenario.findFunction(stringValue());
-					if (scenFunc != null)
-						return new DeclarationRegion(scenFunc, identifierRegion());
-				}
-			}
 			
-			else if (myIndex == 0 && parentFunc.getDeclarationName().equals("Schedule")) { //$NON-NLS-1$
-				// parse first parm of Schedule as expression and see what goes
-				ExpressionLocator locator = new ExpressionLocator(offset-1); // make up for '"'
-				try {
-					C4ScriptParser.parseStandaloneStatement(getLiteral(), parser.getCurrentFunc(), locator);
-				} catch (ParsingException e) {}
-				if (locator.getExprAtRegion() != null) {
-					DeclarationRegion reg = locator.getExprAtRegion().declarationAt(offset, parser);
-					if (reg != null)
-						return reg.addOffsetInplace(getExprStart()+1);
-					else
-						return null;
+			SpecialFuncRule funcRule = parentFunc.getSpecialRule(parser);
+			if (funcRule != null) {
+				DeclarationRegion region = funcRule.locateDeclarationInParameter(parentFunc, parser, myIndex, offset, this);
+				if (region != null) {
+					return region;
 				}
-				else
-					return super.declarationAt(offset, parser);	
-			}
-
-			// LocalN: look for local var in object
-			else if (myIndex == 0 && parentFunc.getDeclaration() == getCachedFuncs(parser).LocalN) {
-				C4Object typeToLookIn = parentFunc.getParams().length > 1 ? parentFunc.getParams()[1].guessObjectType(parser) : null;
-				if (typeToLookIn == null && parentFunc.getPredecessorInSequence() != null)
-					typeToLookIn = parentFunc.getPredecessorInSequence().guessObjectType(parser);
-				if (typeToLookIn == null)
-					typeToLookIn = parser.getContainerObject();
-				if (typeToLookIn != null) {
-					C4Variable var = typeToLookIn.findVariable(stringValue());
-					if (var != null)
-						return new DeclarationRegion(var, identifierRegion());
-				}
-			}
-
-			// look for function called by Call("...")
-			else if (myIndex == 0 && parentFunc.getDeclaration() == getCachedFuncs(parser).Call) {
-				C4Function f = parser.getContainer().findFunction(stringValue());
-				if (f != null)
-					return new DeclarationRegion(f, identifierRegion());
-			}
-
-			// ProtectedCall/PrivateCall/ObjectCall, a bit more complicated than Call
-			else if (myIndex == 1 && (Utilities.isAnyOf(parentFunc.getDeclaration(), getCachedFuncs(parser).ObjectCallFunctions) || parentFunc.getDeclarationName().equals("ScheduleCall"))) { //$NON-NLS-1$
-				C4Object typeToLookIn = parentFunc.getParams()[0].guessObjectType(parser);
-				if (typeToLookIn == null && parentFunc.getPredecessorInSequence() != null)
-					typeToLookIn = parentFunc.getPredecessorInSequence().guessObjectType(parser);
-				if (typeToLookIn == null)
-					typeToLookIn = parser.getContainerObject();
-				if (typeToLookIn != null) {
-					C4Function f = typeToLookIn.findFunction(stringValue());
-					if (f != null)
-						return new DeclarationRegion(f, identifierRegion());
-				} 
 			}
 
 		}
-		return null;
+		return super.declarationAt(offset, parser);
 	}
 	
 	@Override

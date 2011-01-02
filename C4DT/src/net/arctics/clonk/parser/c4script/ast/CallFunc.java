@@ -20,7 +20,6 @@ import net.arctics.clonk.parser.c4script.FindDeclarationInfo;
 import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.parser.c4script.Keywords;
 import net.arctics.clonk.parser.c4script.C4Function.C4FunctionScope;
-import net.arctics.clonk.parser.c4script.C4ScriptParser.IMarkerListener;
 import net.arctics.clonk.parser.c4script.SpecialScriptRules.SpecialFuncRule;
 import net.arctics.clonk.parser.c4script.ast.UnaryOp.Placement;
 import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
@@ -312,65 +311,16 @@ public class CallFunc extends AccessDeclaration {
 				if (f.getVisibility() == C4FunctionScope.GLOBAL) {
 					context.getContainer().addUsedProjectScript(f.getScript());
 				}
-				int givenParam = 0;
 				boolean specialCaseHandled = false;
-				// yay for special cases ~ blörgs, don't bother
-				/*CachedEngineFuncs cachedFuncs = getCachedFuncs(context);
-				if (params.length >= 3 &&  (f == cachedFuncs.AddCommand || f == cachedFuncs.AppendCommand || f == cachedFuncs.SetCommand)) {
-					// look if command is "Call"; if so treat parms 2, 3, 4 as any
-					Object command = params[1].evaluateAtParseTime(context.getContainer());
-					if (command instanceof String && command.equals("Call")) { //$NON-NLS-1$
-						for (C4Variable parm : f.getParameters()) {
-							if (givenParam >= params.length)
-								break;
-							ExprElm given = params[givenParam++];
-							if (given == null)
-								continue;
-							IType parmType = givenParam >= 2 && givenParam <= 4 ? C4Type.ANY : parm.getType();
-							if (!given.validForType(parmType, context))
-								context.warningWithCode(ParserErrorCode.IncompatibleTypes, given, parmType, given.getType(context));
-							else
-								given.expectedToBeOfType(parmType, context);
-						}
-						specialCaseHandled = true;
-					}
-				}*/
 				
-				// another one: Schedule ... parse passed expression and check it's correctness
-				if (!specialCaseHandled && params.length >= 1 && f.getName().equals("Schedule")) {
-					IType objType = params.length >= 4 ? params[3].getType(context) : context.getContainerObject();
-					C4ScriptBase script = objType != null ? C4TypeSet.objectIngredient(objType) : null;
-					if (script == null)
-						script = context.getContainer(); // fallback
-					Object scriptExpr = params[0].evaluateAtParseTime(script);
-					if (scriptExpr instanceof String) {
-						try {
-							C4ScriptParser.parseStandaloneStatement((String)scriptExpr, context.getCurrentFunc(), null, new IMarkerListener() {
-								@Override
-								public WhatToDo markerEncountered(C4ScriptParser parser, ParserErrorCode code, int markerStart, int markerEnd, boolean noThrow, int severity, Object... args) {
-									// ignore complaining about missing ';'
-									if (code == ParserErrorCode.TokenExpected && args[0].equals(";"))
-										return WhatToDo.DropCharges;
-									try {
-										// pass through to the 'real' script parser
-										if (!parser.errorDisabled(code)) {
-											context.markerWithCode(code, params[0].getExprStart()+1+markerStart, params[0].getExprStart()+1+markerEnd, true, severity, args);
-										}
-									} catch (ParsingException e) {
-										// shouldn't happen
-										e.printStackTrace();
-									}
-									return WhatToDo.PassThrough;
-								}
-							});
-						} catch (ParsingException e) {
-							// that on slipped through - pretend nothing happened
-						}
-					}
+				SpecialFuncRule rule = this.getSpecialRule(context);
+				if (rule != null) {
+					specialCaseHandled = rule.validateArguments(this, params, context);
 				}
 				
 				// not a special case... check regular parameter types
 				if (!specialCaseHandled) {
+					int givenParam = 0;
 					for (C4Variable parm : f.getParameters()) {
 						if (givenParam >= params.length)
 							break;
@@ -583,6 +533,9 @@ public class CallFunc extends AccessDeclaration {
 		}
 		else if (d instanceof C4Function) {
 			C4Function f = (C4Function) d;
+			if (f.typeIsInvariant()) {
+				return null;
+			}
 			IType retType = f.getReturnType();
 			if (retType == null || !retType.containsAnyTypeOf(C4Type.ANY, C4Type.REFERENCE))
 				return new FunctionReturnTypeInformation((C4Function)d);

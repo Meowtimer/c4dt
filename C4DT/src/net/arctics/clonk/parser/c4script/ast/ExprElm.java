@@ -449,7 +449,11 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable {
 	}
 
 	public IStoredTypeInformation createStoredTypeInformation(C4ScriptParser parser) {
-		return new GenericStoredTypeInformation(this);
+		ITypedDeclaration d = GenericStoredTypeInformation.getDeclaration(this, parser);
+		if (d != null && !d.typeIsInvariant()) {
+			return new GenericStoredTypeInformation(this);
+		}
+		return null;
 	}
 
 	/**
@@ -571,7 +575,7 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable {
 			}
 		}
 		
-		public ITypedDeclaration getDeclaration(C4ScriptParser parser) {
+		public static ITypedDeclaration getDeclaration(ExprElm referenceElm, C4ScriptParser parser) {
 			DeclarationRegion decRegion = referenceElm.declarationAt(referenceElm.getLength()-1, parser);
 			if (decRegion != null && decRegion.getDeclaration() instanceof ITypedDeclaration) {
 				return (ITypedDeclaration) decRegion.getDeclaration();
@@ -582,7 +586,7 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable {
 		
 		@Override
 		public void apply(boolean soft, C4ScriptParser parser) {
-			ITypedDeclaration tyDec = getDeclaration(parser);
+			ITypedDeclaration tyDec = getDeclaration(referenceElm, parser);
 			if (tyDec != null) {
 				tyDec.expectedToBeOfType(type, TypeExpectancyMode.Expect);
 			}

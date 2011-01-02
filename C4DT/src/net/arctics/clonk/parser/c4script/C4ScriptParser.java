@@ -1998,6 +1998,10 @@ public class C4ScriptParser extends CStyleScanner {
 	
 	private transient ExprElm expressionReportingErrors;
 	
+	public ExprElm getExpressionReportingErrors() {
+		return expressionReportingErrors;
+	}
+	
 	public IRegion getLocationOfExpressionReportingErrors() {
 		if (expressionReportingErrors != null) {
 			if (offsetOfScriptFragment() == 0) {

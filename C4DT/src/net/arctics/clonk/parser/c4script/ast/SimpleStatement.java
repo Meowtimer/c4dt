@@ -94,7 +94,7 @@ public class SimpleStatement extends Statement {
 		for (ExprElm expr : e.getSubElements()) {
 			if (expr != null) {
 				if (!expr.isFinishedProperly()) {
-					parser.errorWithCode(ParserErrorCode.NotFinished, expr, true);
+					parser.errorWithCode(ParserErrorCode.NotFinished, expr, true, expr);
 				}
 				notFinishedError(parser, expr);
 			}
