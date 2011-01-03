@@ -19,6 +19,9 @@ import net.arctics.clonk.parser.c4script.ast.TraversalContinuation;
 import net.arctics.clonk.ui.editors.IClonkCommandIds;
 import net.arctics.clonk.ui.editors.c4script.C4ScriptEditor;
 import net.arctics.clonk.util.ArrayUtil;
+import net.arctics.clonk.util.IPredicate;
+import net.arctics.clonk.util.Utilities;
+
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.jface.text.BadLocationException;
@@ -49,6 +52,18 @@ public class TidyUpCodeAction extends TextEditorAction {
 			return (relatedDeclaration != null ? relatedDeclaration.toString() : "<No Declaration>") + " " + expressions.toString();
 		}
 	}
+
+	private static final IPredicate<CodeChunk> VAR_AND_EXPRESSION_LINKED = new IPredicate<TidyUpCodeAction.CodeChunk>() {
+		@Override
+		public boolean test(CodeChunk item) {
+			if (item.relatedDeclaration instanceof C4Variable) {
+				C4Variable var = (C4Variable) item.relatedDeclaration;
+				return item.expressions.size() == 1 && var.getInitializationExpression() == item.expressions.get(0);
+			} else {
+				return true;
+			}
+		}
+	};
 	
 	public TidyUpCodeAction(ResourceBundle bundle, String prefix, ITextEditor editor) {
 		super(bundle, prefix, editor);
@@ -128,11 +143,12 @@ public class TidyUpCodeAction extends TextEditorAction {
 			final C4ScriptParser parser,
 			boolean wholeFuncConversion,
 			final IDocument document,
-			final LinkedList<CodeChunk> chunks
+			Iterable<CodeChunk> chunks
 	) {
 		synchronized (document) {
 			TextChange textChange = new DocumentChange(Messages.TidyUpCodeAction_TidyUpCode, document);
 			textChange.setEdit(new MultiTextEdit());
+			chunks = Utilities.filter(chunks, VAR_AND_EXPRESSION_LINKED);
 			for (CodeChunk chunk : chunks) {
 				try {
 					C4Function func = chunk.relatedDeclaration instanceof C4Function ? (C4Function)chunk.relatedDeclaration : null;

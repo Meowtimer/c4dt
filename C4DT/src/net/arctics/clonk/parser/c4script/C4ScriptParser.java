@@ -475,7 +475,13 @@ public class C4ScriptParser extends CStyleScanner {
 			for (C4Variable variable : container.variables()) {
 				ExprElm initialization = variable.getInitializationExpression();
 				if (initialization != null) {
+					ExprElm old = expressionReportingErrors;
+					expressionReportingErrors = initialization;
+					if (variable.getScope() == C4VariableScope.CONST && !initialization.isConstant()) {
+						errorWithCode(ParserErrorCode.ConstantValueExpected, initialization, true);
+					}
 					initialization.reportErrors(this);
+					expressionReportingErrors = old;
 				}
 			}
 			
@@ -723,11 +729,16 @@ public class C4ScriptParser extends CStyleScanner {
 			eatWhitespace();
 			switch (scope) {
 			case STATIC:
+				int scopeSpecifierStart = offset-scope.toKeyword().length();
 				int pos = this.offset;
 				if (readIdent().equals(Keywords.Const)) {
 					scope = C4VariableScope.CONST;
 				} else {
 					this.seek(pos);
+				}
+				if (currentFunc != null) {
+					errorWithCode(ParserErrorCode.StaticInsideFunction, scopeSpecifierStart, this.offset, true, scope.toKeyword());
+					scope = C4VariableScope.VAR;
 				}
 				break;
 			case VAR:
@@ -749,19 +760,15 @@ public class C4ScriptParser extends CStyleScanner {
 				int s = this.offset;
 				String varName = readIdent();
 				int e = this.offset;
-				C4Variable var = null;
 				C4Declaration outerDec = currentDeclaration;
 				try {
-					var = createVarInScope(varName, scope, new SourceLocation(s, e), desc);
 					VarInitialization varInitialization = new VarInitialization(varName, null, s);
-					varInitialization.variableBeingInitialized = var;
+					currentDeclaration = varInitialization.variableBeingInitialized = createVarInScope(varName, scope, new SourceLocation(s, e), desc);
 					if (scope == C4VariableScope.CONST || currentFunc != null || getContainer().getEngine().getCurrentSettings().nonConstGlobalVarsAssignment) {
 						eatWhitespace();
 						if (peek() == '=') {
 							read();
 							eatWhitespace();
-							
-							currentDeclaration = var = createVarInScope(varName, scope, new SourceLocation(s, e), desc);
 							
 							// parse initialization value with all errors disabled so no false errors 
 							boolean old = allErrorsDisabled;
@@ -772,35 +779,34 @@ public class C4ScriptParser extends CStyleScanner {
 								allErrorsDisabled = old;
 							}
 
-							if (scope == C4VariableScope.CONST && !varInitialization.expression.isConstant()) {
-								errorWithCode(ParserErrorCode.ConstantValueExpected, varInitialization.expression, true);
-							} else {
-								try {
-									if (currentFunc == null) {
-										// only set initialization expression outside function so TidyUpCode won't have overlapping edits when trying
-										// to tidy up both the function code and the initialization expression separately
-										switch (scope) {
-										case CONST:
-											var.setConstValue(varInitialization.expression.evaluateAtParseTime(getContainer()));
-											break;
-										case LOCAL:
-											var.setInitializationExpression(varInitialization.expression);
+							try {
+								if (currentFunc == null) {
+									// only set initialization expression outside function so TidyUpCode won't have overlapping edits when trying
+									// to tidy up both the function code and the initialization expression separately
+									switch (scope) {
+									case CONST:
+										if (varInitialization.expression.isConstant()) {
+											varInitialization.variableBeingInitialized.setConstValue(varInitialization.expression.evaluateAtParseTime(getContainer()));
 											break;
 										}
+										// fallthrough
+									case LOCAL: case STATIC:
+										varInitialization.variableBeingInitialized.setInitializationExpression(varInitialization.expression);
+										break;
 									}
-								} catch (Exception ex) {
-									ex.printStackTrace();
-									errorWithCode(ParserErrorCode.InvalidExpression, varInitialization.expression);
 								}
+							} catch (Exception ex) {
+								ex.printStackTrace();
+								errorWithCode(ParserErrorCode.InvalidExpression, varInitialization.expression);
 							}
+
 							typeOfNewVar = varInitialization.expression instanceof IType ? (IType)varInitialization.expression : varInitialization.expression.getType(this);
 						} else {
 							if (scope == C4VariableScope.CONST && !isEngine)
 								errorWithCode(ParserErrorCode.ConstantValueExpected, this.offset-1, this.offset, true);
 							else {
-								currentDeclaration = var;
 								if (scope == C4VariableScope.STATIC) {
-									var.forceType(C4Type.INT); // most likely
+									varInitialization.variableBeingInitialized.forceType(C4Type.INT); // most likely
 								}
 							}
 						}
@@ -809,10 +815,10 @@ public class C4ScriptParser extends CStyleScanner {
 					if (typeOfNewVar != null) {
 						switch (scope) {
 						case VAR:
-							new AccessVar(var).expectedToBeOfType(typeOfNewVar, this, TypeExpectancyMode.Force);
+							new AccessVar(varInitialization.variableBeingInitialized).expectedToBeOfType(typeOfNewVar, this, TypeExpectancyMode.Force);
 							break;
 						default:
-							var.forceType(typeOfNewVar);
+							varInitialization.variableBeingInitialized.forceType(typeOfNewVar);
 							break;
 						}
 					}
@@ -2784,7 +2790,9 @@ public class C4ScriptParser extends CStyleScanner {
 	}
 	
 	private void reportExpressionsAndStatements(C4Function func, IScriptParserListener listener, ExpressionsAndStatementsReportingFlavour flavour) {
-		func.resetLocalVarTypes();
+		if (func != null) {
+			func.resetLocalVarTypes();
+		}
 		currentDeclaration = func;
 		setListener(listener);
 		strictLevel = getContainer().getStrictLevel();

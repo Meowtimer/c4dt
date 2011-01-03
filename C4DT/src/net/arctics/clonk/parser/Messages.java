@@ -36,6 +36,7 @@ public class Messages extends NLS {
 	public static String UnknownDirective;
 	public static String UnknownSection;
 	public static String StatementExpected;
+	public static String StaticInsideFunction;
 	public static String ConditionExpected;
 	public static String OutOfIntRange;
 	public static String InvalidExpression;
