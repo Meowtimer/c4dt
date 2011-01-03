@@ -14,6 +14,10 @@ public class Placeholder extends ExprElm {
 	public Placeholder(String entryName) {
 		this.entryName = entryName;
 	}
+	@Override
+	public boolean isValidAtEndOfSequence(C4ScriptParser context) {
+		return true;
+	}
 
 	public String getEntryName() {
 		return entryName;
@@ -34,4 +38,5 @@ public class Placeholder extends ExprElm {
 		}
 		return super.declarationAt(offset, parser);
 	}
+	
 }

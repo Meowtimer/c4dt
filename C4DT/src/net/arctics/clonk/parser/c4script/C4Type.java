@@ -227,13 +227,13 @@ public enum C4Type implements IType {
 			case OBJECT:
 			case INT:
 			case STRING:
-				return false;
+				return this == ANY || this == REFERENCE;
 			case PROPLIST:
 				return this == OBJECT || this == ID;
 			case BOOL:
 				return this == INT;
 			case REFERENCE:
-				return this == ANY;
+				return this == ANY || this == REFERENCE;
 			}
 		}
 		return false;
