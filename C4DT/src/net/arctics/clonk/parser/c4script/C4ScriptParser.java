@@ -4,6 +4,7 @@ import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -19,6 +20,7 @@ import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.index.C4Engine;
 import net.arctics.clonk.index.C4Object;
 import net.arctics.clonk.index.ClonkIndex;
+import net.arctics.clonk.index.ProjectIndex;
 import net.arctics.clonk.parser.CStyleScanner;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.SilentParsingException;
@@ -76,6 +78,7 @@ import net.arctics.clonk.parser.c4script.ast.UnaryOp;
 import net.arctics.clonk.parser.c4script.ast.VarDeclarationStatement;
 import net.arctics.clonk.parser.c4script.ast.VarDeclarationStatement.VarInitialization;
 import net.arctics.clonk.parser.c4script.ast.WhileStatement;
+import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.resource.c4group.C4GroupItem;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
@@ -98,6 +101,8 @@ public class C4ScriptParser extends CStyleScanner {
 	public static final int MAX_PAR = 10;
 	public static final int MAX_NUMVAR = 20;
 	public static final int UNKNOWN_PARAMETERNUM = MAX_PAR+1;
+	
+	private static final Set<ParserErrorCode> NO_DISABLED_ERRORS = Collections.unmodifiableSet(new HashSet<ParserErrorCode>());
 	
 	protected IScriptParserListener listener;
 
@@ -136,6 +141,10 @@ public class C4ScriptParser extends CStyleScanner {
 	 * matcher for ids obtained from engine configuration id pattern
 	 */
 	private Matcher idMatcher;
+	/**
+	 * Cached set of errors disabled by project settings
+	 */
+	private Set<ParserErrorCode> errorsDisabledByProjectSettings = NO_DISABLED_ERRORS;
 
 	protected LoopType currentLoop;
 	
@@ -345,6 +354,14 @@ public class C4ScriptParser extends CStyleScanner {
 			idMatcher = container.getEngine().getCurrentSettings().getCompiledIdPattern().matcher(buffer);
 		} else {
 			idMatcher = DEFAULT_ID_PATTERN.matcher(buffer);
+		}
+
+		if (container != null && container.getIndex() instanceof ProjectIndex) {
+			ProjectIndex projIndex = (ProjectIndex) container.getIndex();
+			ClonkProjectNature nature = projIndex.getNature();
+			if (nature != null) {
+				errorsDisabledByProjectSettings = nature.getSettings().getDisabledErrorsSet();
+			}
 		}
 	}
 
@@ -1307,7 +1324,7 @@ public class C4ScriptParser extends CStyleScanner {
 	}
 	
 	private Set<ParserErrorCode> disabledErrors = new HashSet<ParserErrorCode>();
-	
+
 	private void enableError(ParserErrorCode error, boolean doEnable) {
 		if (doEnable)
 			disabledErrors.remove(error);
@@ -1316,7 +1333,7 @@ public class C4ScriptParser extends CStyleScanner {
 	}
 	
 	public boolean errorDisabled(ParserErrorCode error) {
-		return allErrorsDisabled || disabledErrors.contains(error);
+		return allErrorsDisabled || disabledErrors.contains(error) || errorsDisabledByProjectSettings.contains(error);
 	}
 	
 	private static class LatentMarker {

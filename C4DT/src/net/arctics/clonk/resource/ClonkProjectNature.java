@@ -7,13 +7,16 @@ import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.LinkedList;
+import java.util.Set;
 
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.index.C4Engine;
 import net.arctics.clonk.index.C4ObjectIntern;
 import net.arctics.clonk.index.ClonkIndex;
 import net.arctics.clonk.index.ProjectIndex;
+import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.c4script.C4ScriptBase;
 import net.arctics.clonk.parser.c4script.C4ScriptIntern;
 import net.arctics.clonk.parser.inireader.CustomIniUnit;
@@ -43,8 +46,11 @@ public class ClonkProjectNature implements IProjectNature {
 
 		@IniField
 		public String engineName;
+		@IniField
+		public String disabledErrors;
 		
 		private C4Engine cachedEngine;
+		private Set<ParserErrorCode> disabledErrorsSet;
 		
 		public C4Engine getEngine() {
 			if (cachedEngine == null) {
@@ -54,6 +60,21 @@ public class ClonkProjectNature implements IProjectNature {
 					cachedEngine = ClonkCore.getDefault().getActiveEngine();
 			}
 			return cachedEngine;
+		}
+		
+		public Set<ParserErrorCode> getDisabledErrorsSet() {
+			if (disabledErrorsSet == null) {
+				disabledErrorsSet = new HashSet<ParserErrorCode>();
+				String ds[] = disabledErrors.split(",");
+				for (String d : ds) {
+					try {
+						disabledErrorsSet.add(ParserErrorCode.valueOf(d));
+					} catch (IllegalArgumentException e) {
+						System.out.println("Unknown parser error: " + d);
+					}
+				}
+			}
+			return disabledErrorsSet;
 		}
 
 		public String getEngineName() {
