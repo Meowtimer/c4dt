@@ -11,6 +11,7 @@ import java.util.Set;
 
 import net.arctics.clonk.index.C4ObjectIntern;
 import net.arctics.clonk.index.C4ObjectParser;
+import net.arctics.clonk.index.ClonkIndex;
 import net.arctics.clonk.index.ProjectIndex;
 import net.arctics.clonk.parser.c4script.C4ScriptBase;
 import net.arctics.clonk.parser.c4script.C4ScriptIntern;
@@ -287,16 +288,20 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 
 	private IProgressMonitor monitor;
 	private IProgressMonitor currentSubProgressMonitor;
+	private ClonkProjectNature nature;
 
-	// gathered list of scripts to be parsed
+	/**
+	 *  Gathered list of scripts to be parsed
+	 */
 	private Map<C4ScriptBase, C4ScriptParser> parserMap = new HashMap<C4ScriptBase, C4ScriptParser>();
-	// set of structures that have been validated during one build round - keeping track of them so when parsing dependent scripts, scripts that might lose some warnings
-	// due to structure files having been revalidated can also be reparsed (string tables and such)
+	/**
+	 * Set of structures that have been validated during one build round - keeping track of them so when parsing dependent scripts, scripts that might lose some warnings
+	 * due to structure files having been revalidated can also be reparsed (string tables and such)
+	 */
 	private Set<C4Structure> gatheredStructures = new HashSet<C4Structure>();
 
 	@Override
 	protected void clean(IProgressMonitor monitor) throws CoreException {
-		
 		// clean up this project
 		if (monitor != null) monitor.beginTask(Messages.CleaningUp, 1);
 		IProject proj = this.getProject();
@@ -369,6 +374,9 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 		IResourceDelta delta
 	) throws CoreException {
 
+		nature = ClonkProjectNature.get(proj); 
+		ClonkIndex index = nature.getIndex();
+		
 		// visit files to open C4Groups if files are contained in c4group file system
 		visitDeltaOrWholeProject(delta, proj, new C4GroupStreamHandler(C4GroupStreamHandler.OPEN));
 		try {
@@ -384,6 +392,12 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 			parserMap.clear();
 			visitDeltaOrWholeProject(delta, proj, new ScriptGatherer());
 			
+			// delete old declarations
+			for (C4ScriptBase script : parserMap.keySet()) {
+				script.clearDeclarations();
+			}
+			index.refreshIndex();
+			
 			// parse declarations
 			currentSubProgressMonitor = new SubProgressMonitor(monitor, parserMap.size());
 			currentSubProgressMonitor.beginTask("Parse declarations", parserMap.size());
@@ -397,7 +411,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 			}
 
 			// refresh global func and static var cache
-			ClonkProjectNature.get(proj).getIndex().refreshIndex();
+			index.refreshIndex();
 			
 			// parse function code
 			currentSubProgressMonitor = new SubProgressMonitor(monitor, parserMap.size());
@@ -522,7 +536,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 	
 	private void performBuildPhaseOne(C4ScriptBase script) {
 		C4ScriptParser parser = parserMap.get(script);
-		ClonkProjectNature.get(getProject()).getIndex().addScript(script);
+		nature.getIndex().addScript(script);
 		if (parser != null) {
 			parser.clean();
 			parser.parseDeclarations();
