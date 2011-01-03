@@ -110,6 +110,9 @@ public class C4GroupExporter implements IRunnableWithProgress {
 						try {
 							// copy directory to destination and pack it in-place
 							FileOperations.copyDirectory(new File(toExport.getFirst().getRawLocation().toOSString()), oldFile);
+							
+							// create c4group command line
+							String[] cmdArray = new String[] { c4groupPath, packPath, "-p" }; //$NON-NLS-1$
 
 							MessageConsoleStream out = null;
 							if (showExportLog) {
@@ -117,11 +120,6 @@ public class C4GroupExporter implements IRunnableWithProgress {
 								MessageConsole myConsole = Utilities.getClonkConsole();
 								out = myConsole.newMessageStream();
 								Utilities.displayClonkConsole();
-							}
-
-							// create c4group command line
-							String[] cmdArray = new String[] { c4groupPath, packPath, "-p" }; //$NON-NLS-1$
-							if (showExportLog) {
 								// show command line in console
 								StringBuilder cmdLine = new StringBuilder();
 								cmdLine.append(Messages.ExporterCommandlineTitle);
