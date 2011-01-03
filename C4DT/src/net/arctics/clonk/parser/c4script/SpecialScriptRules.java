@@ -84,6 +84,9 @@ public class SpecialScriptRules {
 		@Override
 		public IType returnType(C4ScriptParser parser, CallFunc callFunc) {
 			IType t = searchCriteriaAssumedResult(parser, callFunc, true);
+			if (t == null) {
+				t = C4Type.OBJECT;
+			}
 			if (t != null) {
 				C4Function f = (C4Function) callFunc.getDeclaration();
 				if (f.getReturnType() == C4Type.ARRAY)
