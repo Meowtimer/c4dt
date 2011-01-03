@@ -5,6 +5,7 @@ import java.io.InputStream;
 import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -37,7 +38,6 @@ import net.arctics.clonk.preferences.ClonkPreferences;
 import net.arctics.clonk.util.CompoundIterable;
 import net.arctics.clonk.util.INode;
 import net.arctics.clonk.util.ITreeNode;
-import net.arctics.clonk.util.ReadOnlyIterator;
 import net.arctics.clonk.util.StreamUtil;
 import net.arctics.clonk.util.Utilities;
 
@@ -537,33 +537,21 @@ public abstract class C4ScriptBase extends C4Structure implements ITreeNode {
 	 * Returns an iterator to iterate over all functions defined in this script
 	 */
 	public Iterable<C4Function> functions() {
-		return new Iterable<C4Function>() {
-			public Iterator<C4Function> iterator() {
-				return new ReadOnlyIterator<C4Function>(definedFunctions.iterator());
-			}
-		};
+		return Collections.unmodifiableList(definedFunctions);
 	}
 
 	/**
 	 * Returns an iterator to iterate over all variables defined in this script
 	 */
 	public Iterable<C4Variable> variables() {
-		return new Iterable<C4Variable>() {
-			public Iterator<C4Variable> iterator() {
-				return new ReadOnlyIterator<C4Variable>(definedVariables.iterator());
-			}	
-		};
+		return Collections.unmodifiableList(definedVariables);
 	}
 
 	/**
 	 * Returns an iterator to iterate over all directives defined in this script
 	 */
 	public Iterable<C4Directive> directives() {
-		return new Iterable<C4Directive>() {
-			public Iterator<C4Directive> iterator() {
-				return new ReadOnlyIterator<C4Directive>(definedDirectives.iterator());
-			}	
-		};
+		return Collections.unmodifiableList(definedDirectives);
 	}
 
 	public int numVariables() {
