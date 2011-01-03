@@ -85,6 +85,15 @@ public class ClonkProjectNature implements IProjectNature {
 			this.engineName = engineName;
 			cachedEngine = null;
 		}
+		
+		public void setDisabledErrors(String disabledErrors) {
+			this.disabledErrors = disabledErrors;
+			disabledErrorsSet = null;
+		}
+
+		public String getDisabledErrors() {
+			return disabledErrors;
+		}
 	}
 	
 	/**

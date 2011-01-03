@@ -16,6 +16,7 @@ public class Messages extends NLS {
 	public static String ClonkPreferences;
 	public static String GamePath;
 	public static String Finnish;
+	public static String DisabledErrors;
 	public static String DocumentURLTemplate;
 	public static String ExternalObjectsAndScripts;
 	public static String ChooseExternalObject;
