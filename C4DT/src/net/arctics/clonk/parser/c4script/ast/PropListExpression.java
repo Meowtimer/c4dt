@@ -49,9 +49,10 @@ public class PropListExpression extends Value implements IType, IPostSerializabl
 			if (i < components.size()-1) {
 				output.append(',');
 			} else {
-				output.append('\n'); Conf.printIndent(output, depth-2); output.append('}');
+				output.append('\n'); Conf.printIndent(output, depth-2);
 			}
 		}
+		output.append('}');
 	}
 	@Override
 	public IType getType(C4ScriptParser parser) {
