@@ -57,6 +57,7 @@ import org.eclipse.ui.editors.text.TextFileDocumentProvider;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.eclipse.ui.texteditor.IDocumentProvider;
 import org.osgi.framework.BundleContext;
+import org.osgi.framework.Version;
 import org.xml.sax.SAXException;
 
 /**
@@ -121,7 +122,11 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 	}
 	
 	private static final String VERSION_REMEMBERANCE_FILE = "version.txt"; //$NON-NLS-1$
-	private String versionFromLastRun;
+	private Version versionFromLastRun;
+	
+	public Version getVersionFromLastRun() {
+		return versionFromLastRun;
+	}
 	
 	/*
 	 * (non-Javadoc)
@@ -131,7 +136,11 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 	public void start(BundleContext context) throws Exception {
 		super.start(context);
 		
-		versionFromLastRun = StreamUtil.stringFromFile(new File(getStateLocation().toFile(), VERSION_REMEMBERANCE_FILE));
+		try {
+			versionFromLastRun = new Version(StreamUtil.stringFromFile(new File(getStateLocation().toFile(), VERSION_REMEMBERANCE_FILE)));
+		} catch (Exception e) {
+			versionFromLastRun = new Version(0, 5, 0); // oold
+		}
 		
 		plugin = this;
 
@@ -154,13 +163,13 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 		});
 		
 		if (updateTookPlace()) {
-			informAboutUpdate(versionFromLastRun, versionString());
+			informAboutUpdate(versionFromLastRun, getBundle().getVersion());
 		}
 	}
-
-	private void informAboutUpdate(String oldVersion, String newVersion) {
+	
+	private void informAboutUpdate(Version oldVersion, Version newVersion) {
 		// only if there are projects at all
-		if (newVersion.startsWith("1.5.9") && ClonkProjectNature.getClonkProjects().length > 0) { //$NON-NLS-1$
+		if (newVersion.toString().startsWith("1.5.9") && ClonkProjectNature.getClonkProjects().length > 0) { //$NON-NLS-1$
 			UI.message(Messages.ClonkCore_UpdateNotes_1_5_9);
 		}
 	}
@@ -509,10 +518,6 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 			break;
 		}
 	}
-
-	public String versionString() {
-		return getBundle().getVersion().toString();
-	}
 	
 	private void rememberCurrentVersion() {
 		File currentVersionMarker = new File(getStateLocation().toFile(), VERSION_REMEMBERANCE_FILE);
@@ -520,7 +525,7 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 			StreamUtil.writeToFile(currentVersionMarker, new StreamWriteRunnable() {
 				@Override
 				public void run(File file, OutputStream stream, OutputStreamWriter writer) throws IOException {
-					writer.append(versionString());
+					writer.append(getBundle().getVersion().toString());
 				}
 			});
 		} catch (IOException e) {
@@ -689,7 +694,7 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 	}
 	
 	public boolean updateTookPlace() {
-		return !versionString().equals(versionFromLastRun);
+		return !getBundle().getVersion().equals(versionFromLastRun);
 	}
 
 }

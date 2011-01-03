@@ -6,12 +6,18 @@ import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import net.arctics.clonk.ClonkCore;
+import net.arctics.clonk.Milestones;
 import net.arctics.clonk.index.C4Engine;
 import net.arctics.clonk.index.C4ObjectIntern;
 import net.arctics.clonk.index.ClonkIndex;
@@ -93,6 +99,37 @@ public class ClonkProjectNature implements IProjectNature {
 
 		public String getDisabledErrors() {
 			return disabledErrors;
+		}
+
+		public void guessValues(ClonkProjectNature nature) {
+			guessEngine(nature);
+		}
+
+		private void guessEngine(ClonkProjectNature nature) {
+			List<IProject> referencingProjects = nature.getReferencingClonkProjects();
+			Map<String, Integer> score = new HashMap<String, Integer>();
+			for (String engine : ClonkCore.getDefault().getAvailableEngines()) {
+				score.put(engine, 0);
+			}
+			for (IProject proj : referencingProjects) {
+				String projName = proj.getName();
+				String engine;
+				if (projName.equalsIgnoreCase("OPENCLONK") || projName.equalsIgnoreCase("OC")) {
+					engine = "OpenClonk";
+				} else if (projName.equalsIgnoreCase("ClonkRage") || projName.equalsIgnoreCase("CR")) {
+					engine = "ClonkRage";
+				} else {
+					continue;
+				}
+				score.put(engine, score.get(engine)+1);
+			}
+			Entry<String, Integer> best = null;
+			for (Entry<String, Integer> entry : score.entrySet()) {
+				if (best == null || entry.getValue() > best.getValue()) {
+					best = entry;
+				}
+			}
+			setEngineName(best.getKey());
 		}
 	}
 	
@@ -216,6 +253,9 @@ public class ClonkProjectNature implements IProjectNature {
 			} catch (CoreException e) {
 				e.printStackTrace();
 			}
+			if (ClonkCore.getDefault().getVersionFromLastRun().compareTo(Milestones.VERSION_THAT_INTRODUCED_PROJECT_SETTINGS) < 0) {
+				getSettings().guessValues(this);
+			}
 		} else {
 			ProjectIndex loadedIndex = ClonkIndex.load(ProjectIndex.class, getIndexFileLocation().toFile(), null);
 			if (loadedIndex != null) {
@@ -303,6 +343,31 @@ public class ClonkProjectNature implements IProjectNature {
 				c.add(proj);
 			
 		return c.toArray(new IProject [c.size()]);
+	}
+
+	private static void addProjectsFromReferencedProjects(List<IProject> result, IProject proj) {
+		try {
+			List<IProject> newOnes = new LinkedList<IProject>();
+			for (IProject p : proj.getReferencedProjects()) {
+				ClonkProjectNature n = ClonkProjectNature.get(p);
+				if (n != null && !newOnes.contains(p)) {
+					newOnes.add(p);
+				}
+			}
+			result.addAll(newOnes);
+			for (IProject i : newOnes) {
+				addProjectsFromReferencedProjects(result, i);
+			}
+		} catch (CoreException e) {
+			e.printStackTrace();
+		}
+	}
+
+	public List<IProject> getReferencingClonkProjects() {
+		List<IProject> result = new ArrayList<IProject>(10);
+		result.add(getProject());
+		addProjectsFromReferencedProjects(result, getProject());
+		return result;
 	}
 
 }
