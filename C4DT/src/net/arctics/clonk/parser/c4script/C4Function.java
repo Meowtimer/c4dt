@@ -9,10 +9,10 @@ import net.arctics.clonk.parser.C4Declaration;
 import net.arctics.clonk.parser.C4Structure;
 import net.arctics.clonk.parser.SourceLocation;
 import net.arctics.clonk.parser.c4script.C4Variable.C4VariableScope;
+import net.arctics.clonk.parser.c4script.ast.Block;
 import net.arctics.clonk.parser.c4script.ast.Conf;
 import net.arctics.clonk.parser.c4script.ast.ExprElm;
 import net.arctics.clonk.parser.c4script.ast.TypeExpectancyMode;
-import net.arctics.clonk.parser.inireader.IniField;
 import net.arctics.clonk.preferences.ClonkPreferences;
 import net.arctics.clonk.util.CompoundIterable;
 
@@ -33,8 +33,15 @@ public class C4Function extends C4Structure implements Serializable, ITypedDecla
 	private boolean isOldStyle;
 	private SourceLocation body, header;
 	
-	@IniField
-	public boolean isCriteriaSearch;
+	/**
+	 * Code block kept in memory for speed optimization
+	 */
+	private transient Block codeBlock;
+	
+	/**
+	 * Hash code of the string the block was parsed from.
+	 */
+	private transient int blockSoureHashCode;
 
 	public C4Function(String name, C4Type returnType, C4Variable... pars) {
 		this.name = name;
@@ -592,6 +599,19 @@ public class C4Function extends C4Structure implements Serializable, ITypedDecla
 	public void resetLocalVarTypes() {
 		for (C4Variable v : getLocalVars()) {
 			v.forceType(C4Type.UNKNOWN);
+		}
+	}
+	
+	public void storeBlock(Block block, int hash) {
+		codeBlock = block;
+		blockSoureHashCode = hash;
+	}
+	
+	public Block getCodeBlock(int hash) {
+		if (hash == blockSoureHashCode) {
+			return codeBlock;
+		} else{
+			return codeBlock = null;
 		}
 	}
 	

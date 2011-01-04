@@ -39,15 +39,24 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable {
 	public static final ExprElm[] EMPTY_EXPR_ARRAY = new ExprElm[0];
 	public static final Object EVALUATION_COMPLEX = new Object();
 
-	public static final ExprElm nullExpr(int start, int length) {
+	public static final ExprElm nullExpr(int start, int length, C4ScriptParser parser) {
 		ExprElm result = new ExprElm();
-		result.setExprRegion(start, start+length);
+		parser.setExprRegionRelativeToFuncBody(result, start, start+length);
 		return result;
 	}
 	
 	private int exprStart, exprEnd;
 	private transient ExprElm parent, predecessorInSequence, successorInSequence;
-	boolean finishedProperly = true;
+	private boolean finishedProperly = true;
+	private int expressionRecursion;
+	
+	public int getExpressionRecursion() {
+		return expressionRecursion;
+	}
+	
+	public void setExpressionRecursion(int expressionRecursion) {
+		this.expressionRecursion = expressionRecursion;
+	}
 	
 	public boolean isFinishedProperly() {
 		return finishedProperly;

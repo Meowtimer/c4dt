@@ -214,7 +214,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 						final C4Function f = (C4Function) fn.latestVersion();
 						f.clearLocalVars(); // remove local vars so some kinds of errors will be displayed immediately
 						final List<Statement> statements = new LinkedList<Statement>();
-						C4ScriptParser.reportExpressionsAndStatements(document, f.getBody(), structure, f, new ScriptParserListener() {
+						C4ScriptParser.reportExpressionsAndStatements(document, structure, f, new ScriptParserListener() {
 							@Override
 							public TraversalContinuation expressionDetected(ExprElm expression, C4ScriptParser parser) {
 								if (parser.getParseStatementRecursion() == 1 && expression instanceof Statement) {
@@ -569,14 +569,14 @@ public class C4ScriptEditor extends ClonkTextEditor {
 			expr != null;
 			expr = expr.getParent()
 		) {
-			 if (expr instanceof CallFunc && offset-f.getBody().getOffset() >= ((CallFunc)expr).getParmsStart())
+			 if (expr instanceof CallFunc && offset-bodyStart >= ((CallFunc)expr).getParmsStart())
 				 break;
 		}
 		if (expr != null) {
 			CallFunc callFunc = (CallFunc) expr;
 			ExprElm prev = null;
 			for (ExprElm parm : callFunc.getParams()) {
-				if (bodyStart+parm.getExprEnd() > offset) {
+				if (parm.getExprEnd() > offset) {
 					if (prev == null)
 						break;
 					String docText = getSourceViewer().getDocument().get(bodyStart+prev.getExprEnd(), parm.getExprStart()-prev.getExprEnd());

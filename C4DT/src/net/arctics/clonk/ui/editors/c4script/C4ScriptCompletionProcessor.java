@@ -270,7 +270,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 		if (editorScript != null) {
 			final int preservedOffset = offset;
 			if (contextExpression == null && !specifiedParser) {
-				parser = C4ScriptParser.reportExpressionsAndStatementsWithSpecificFlavour(doc, activeFunc.getBody().getOffset(), offset, editorScript, activeFunc, new ScriptParserListener() {
+				parser = C4ScriptParser.reportExpressionsAndStatementsWithSpecificFlavour(doc, editorScript, activeFunc, new ScriptParserListener() {
 					public TraversalContinuation expressionDetected(ExprElm expression, C4ScriptParser parser) {
 						boolean isStatement = expression instanceof Statement;
 						if (isStatement) {
@@ -300,10 +300,6 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 							return TraversalContinuation.Continue;
 						}
 						return TraversalContinuation.Cancel;
-					}
-					@Override
-					public void endTypeInferenceBlock(List<IStoredTypeInformation> typeInfos) {
-
 					}
 				}, null, ExpressionsAndStatementsReportingFlavour.AlsoStatements);
 				if (contextTypeInformation != null) {

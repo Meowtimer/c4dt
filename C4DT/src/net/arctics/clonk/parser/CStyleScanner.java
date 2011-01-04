@@ -1,6 +1,7 @@
 package net.arctics.clonk.parser;
 
 import net.arctics.clonk.parser.c4script.ast.Comment;
+import net.arctics.clonk.parser.c4script.ast.ExprElm;
 
 /**
  * Scanner that ignores C-style comments
@@ -47,11 +48,20 @@ public class CStyleScanner extends BufferedScanner {
 		}
 	}
 	
+	public final void setExprRegionRelativeToFuncBody(ExprElm expr, int start, int end) {
+		int bodyOffset = bodyOffset();
+		expr.setExprRegion(start-bodyOffset, end-bodyOffset);
+	}
+	
+	protected int bodyOffset() {
+		return 0;
+	}
+	
 	protected boolean parseComment() {
 		int offset = this.getPosition();
 		Comment c = parseCommentObject();
 		if (c != null) {
-			c.setExprRegion(offset, this.getPosition());
+			setExprRegionRelativeToFuncBody(c, offset, this.getPosition());
 			lastComment = c;
 			return true;
 		}

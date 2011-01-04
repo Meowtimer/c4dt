@@ -458,9 +458,9 @@ public class ClonkQuickAssistProcessor implements IQuickAssistProcessor, IMarker
 				return;
 			C4Function func = script.funcAt(position.getOffset());
 			final int tabIndentation = BufferedScanner.getTabIndentation(document.get(), expressionRegion.getOffset());
-			ExpressionLocator locator = new ExpressionLocator(position.getOffset()-expressionRegion.getOffset());
+			ExpressionLocator locator = new ExpressionLocator(position.getOffset()-func.getBody().getStart());
 			semicolonAdd = 0;
-			final C4ScriptParser parser = C4ScriptParser.reportExpressionsAndStatements(document, expressionRegion, script, func, locator, this);
+			final C4ScriptParser parser = C4ScriptParser.reportExpressionsAndStatements(document, script, func, locator, this);
 			ExprElm offendingExpression = locator.getExprAtRegion();
 			Statement topLevel = offendingExpression != null ? offendingExpression.containingStatementOrThis() : null;
 			if (offendingExpression == topLevel)
