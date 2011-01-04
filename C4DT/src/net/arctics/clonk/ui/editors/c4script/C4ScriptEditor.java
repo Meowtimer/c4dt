@@ -76,6 +76,11 @@ import org.eclipse.ui.texteditor.SourceViewerDecorationSupport;
 
 public class C4ScriptEditor extends ClonkTextEditor {
 
+	/**
+	 * Temporary script that is created when no other script can be found for this editor
+	 * @author madeen
+	 *
+	 */
 	private static final class ScratchScript extends C4ScriptBase implements IHasEditorRefWhichEnablesStreamlinedOpeningOfDeclarations {
 		private transient final C4ScriptEditor me;
 		private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
@@ -109,8 +114,12 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		}
 	}
 
-	// Helper class that takes care of triggering a timed reparsing when the document is changed.
-	// It tries to only fire a full reparse when necessary (i.e. not when editing inside of a function)
+	/**
+	 * Helper class that takes care of triggering a timed reparsing when the document is changed.
+	 * It tries to only fire a full reparse when necessary (i.e. not when editing inside of a function)
+	 * @author madeen
+	 *
+	 */
 	public final static class TextChangeListener extends TextChangeListenerBase<C4ScriptEditor, C4ScriptBase> {
 		
 		private static final int REPARSE_DELAY = 700;
@@ -208,6 +217,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		private void scheduleReparsingOfFunction(final C4Function fn) {
 			functionReparseTask = cancel(functionReparseTask);
 			reparseTimer.schedule(functionReparseTask = new TimerTask() {
+				@Override
 				public void run() {
 					removeMarkers(fn, structure);
 					if (structure.getScriptStorage() instanceof IResource && !C4GroupItem.isLinkedResource((IResource) structure.getScriptStorage())) {
@@ -443,8 +453,10 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		super.completionProposalApplied(proposal);
 	}
 
-	// created if there is no suitable script to get from somewhere else
-	// can be considered a hack to make viewing (svn) revisions of a file work
+	/**
+	 *  Created if there is no suitable script to get from somewhere else
+	 *  can be considered a hack to make viewing (svn) revisions of a file work
+	 */
 	private C4ScriptBase scratchScript;
 	
 	public C4ScriptBase scriptBeingEdited() {
