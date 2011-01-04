@@ -215,7 +215,7 @@ public class C4Function extends C4Structure implements Serializable, ITypedDecla
 					continue;
 				if (staticType != C4Type.UNKNOWN && staticType != null) {
 					if (!engineCompatible || (staticType instanceof C4Type && staticType != C4Type.ANY)) {
-						output.append(par.getType().toString());
+						output.append(staticType.typeName(false));
 						output.append(' ');
 					}
 					output.append(par.getName());
