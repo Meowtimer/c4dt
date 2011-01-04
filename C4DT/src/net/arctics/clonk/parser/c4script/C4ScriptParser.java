@@ -574,7 +574,7 @@ public class C4ScriptParser extends CStyleScanner {
 			parseStatementBlock(offset, endOfFunc, statements, options, ExpressionsAndStatementsReportingFlavour.AlsoStatements);
 			BunchOfStatements bunch = new BunchOfStatements(statements);
 			if (getCurrentFunc().isOldStyle() && statements.size() > 0)
-				getCurrentFunc().getBody().setEnd(statements.get(statements.size()-1).getExprEnd());
+				getCurrentFunc().getBody().setEnd(statements.get(statements.size()-1).getExprEnd()+bodyOffset());
 			warnAboutUnusedFunctionVariables(bunch);
 			function.storeBlock(bunch, functionSourceHashCode(function));
 			
@@ -1679,7 +1679,7 @@ public class C4ScriptParser extends CStyleScanner {
 				C4ScriptOperator postop = parseOperator();
 				if (postop != null && postop.isPostfix()) {
 					UnaryOp op = new UnaryOp(postop, UnaryOp.Placement.Postfix, result);
-					setExprRegionRelativeToFuncBody(op, result.getExprStart(), this.offset);
+					setExprRegionRelativeToFuncBody(op, result.getExprStart()+bodyOffset(), this.offset);
 					return op;
 				} else {
 					// a binary operator following this sequence
@@ -2179,6 +2179,7 @@ public class C4ScriptParser extends CStyleScanner {
 			if (result == null) {
 				this.seek(start);
 				ExprElm expression = parseExpression();
+				int afterExpression = this.offset;
 				if (expression != null) {
 					result = new SimpleStatement(expression);
 					if (expression.isFinishedProperly() && !options.contains(ParseStatementOption.InitializationStatement)) {
@@ -2189,7 +2190,7 @@ public class C4ScriptParser extends CStyleScanner {
 							this.seek(beforeWhitespace);
 						}
 					} else {
-						this.seek(expression.getExprEnd());
+						this.seek(afterExpression);
 					}
 				}
 				else
@@ -2437,14 +2438,15 @@ public class C4ScriptParser extends CStyleScanner {
 	}
 
 	private Statement parseFor() throws ParsingException {
-		int offset;
+		int savedOffset;
 		Statement result;
+		
 		eatWhitespace();
 		expect('(');
 		eatWhitespace();
 
 		// initialization
-		offset = this.offset;
+		savedOffset = this.offset;
 		C4Variable loopVariable = null;
 		Statement initialization = null, body;
 		ExprElm arrayExpr, condition, increment;
@@ -2457,14 +2459,10 @@ public class C4ScriptParser extends CStyleScanner {
 			// special treatment for case for (e in a) -> implicit declaration of e
 			int pos = this.offset;
 			String varName = readIdent();
-			if (!varName.equals("") && !varName.equals(Keywords.VarNamed)) { //$NON-NLS-1$
+			if (!(varName.equals("") || varName.equals(Keywords.VarNamed))) { //$NON-NLS-1$
 				eatWhitespace();
 				w = readIdent();
-				if (!w.equals(Keywords.In)) {
-					w = null;
-					this.seek(pos);
-				}
-				else {
+				if (w.equals(Keywords.In)) {
 					// too much manual setting of stuff
 					AccessVar accessVar = new AccessVar(varName);
 					setExprRegionRelativeToFuncBody(accessVar, pos, pos+varName.length());
@@ -2473,12 +2471,13 @@ public class C4ScriptParser extends CStyleScanner {
 					initialization = new SimpleStatement(accessVar);
 					setExprRegionRelativeToFuncBody(initialization, pos, pos+varName.length());
 					reportErrorsWithErrorDisabled(initialization, ParserErrorCode.NoSideEffects);
+				} else {
+					w = null;
 				}
 			}
-			else {
-				this.seek(pos);
-			}
 			if (w == null) {
+				// regularly parse initialization statement
+				seek(pos);
 				boolean noSideEffectsWasEnabled = !errorDisabled(ParserErrorCode.NoSideEffects);
 				enableError(ParserErrorCode.NoSideEffects, false);
 				initialization = parseStatement(EnumSet.of(ParseStatementOption.InitializationStatement));
@@ -2495,18 +2494,16 @@ public class C4ScriptParser extends CStyleScanner {
 		if (w == null) {
 			// determine loop type
 			eatWhitespace();
-			offset = this.offset;
+			savedOffset = this.offset;
 			if (initialization != null) {
-				if (read() == ';') { // initialization finished regularly with ';'
-					offset = this.offset;
-					w = null; // implies there can be no 'in'
+				if (read() == ';') {
+					// initialization finished regularly with ';', so no for (... in ...) loop
+					savedOffset = this.offset;
 				} else {
 					unread();
 					w = readIdent();
 				}
 			}
-			else
-				w = null; // if there is no initialization statement at all there can also be no 'in'
 		}
 		LoopType loopType;
 		if (w != null && w.equals(Keywords.In)) {
@@ -2515,7 +2512,7 @@ public class C4ScriptParser extends CStyleScanner {
 			eatWhitespace();
 			arrayExpr = parseExpression();
 			if (arrayExpr == null)
-				errorWithCode(ParserErrorCode.ExpressionExpected, offset, this.offset+1);
+				errorWithCode(ParserErrorCode.ExpressionExpected, savedOffset, this.offset+1);
 			else {
 				IType t = arrayExpr.getType(this);
 				if (!t.canBeAssignedFrom(C4Type.ARRAY))
@@ -2529,7 +2526,7 @@ public class C4ScriptParser extends CStyleScanner {
 			increment = null;
 		} else {
 			loopType = LoopType.For;
-			this.seek(offset); // if a word !equaling("in") was read
+			this.seek(savedOffset); // if a word !equaling("in") was read
 			eatWhitespace();
 			if (read() == ';') {
 				// any " optional "
@@ -2539,14 +2536,14 @@ public class C4ScriptParser extends CStyleScanner {
 				unread();
 				condition = parseExpression();
 				if (condition == null) {
-					errorWithCode(ParserErrorCode.ConditionExpected, offset, this.offset);
+					errorWithCode(ParserErrorCode.ConditionExpected, savedOffset, this.offset);
 				}
 			}
 			eatWhitespace();
-			offset = this.offset;
+			savedOffset = this.offset;
 			expect(';');
 			eatWhitespace();
-			offset = this.offset;
+			savedOffset = this.offset;
 			if (read() == ')') {
 				// " optional "
 				unread(); // is expected
@@ -2555,7 +2552,7 @@ public class C4ScriptParser extends CStyleScanner {
 				unread();
 				increment = parseExpression();
 				if (increment == null) {
-					errorWithCode(ParserErrorCode.ExpressionExpected, offset, this.offset+1);
+					errorWithCode(ParserErrorCode.ExpressionExpected, savedOffset, this.offset+1);
 				}
 			}
 			arrayExpr = null;
@@ -2563,11 +2560,11 @@ public class C4ScriptParser extends CStyleScanner {
 		eatWhitespace();
 		expect(')');
 		eatWhitespace();
-		offset = this.offset;
+		savedOffset = this.offset;
 		currentLoop = loopType;
 		body = parseStatement();
 		if (body == null) {
-			errorWithCode(ParserErrorCode.StatementExpected, offset, offset+4);
+			errorWithCode(ParserErrorCode.StatementExpected, savedOffset, savedOffset+4);
 		}
 		switch (loopType) {
 		case For:
