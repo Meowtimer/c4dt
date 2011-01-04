@@ -21,3 +21,4 @@ glob:*.savedSearch
 glob:*.orig
 glob:C4DT/.settings/org.eclipse.core.resources.prefs
 glob:net.arctics.clonk
+C4DT/doc/*
