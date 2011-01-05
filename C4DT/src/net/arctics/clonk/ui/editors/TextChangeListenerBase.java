@@ -20,6 +20,8 @@ public abstract class TextChangeListenerBase<EditorType extends ClonkTextEditor,
 	protected IDocument document;
 	protected Map<IDocument, TextChangeListenerBase<EditorType, StructureType>> listeners;
 	
+	protected void added() {}
+	
 	@SuppressWarnings("unchecked")
 	public static <E extends ClonkTextEditor, S extends C4Structure, T extends TextChangeListenerBase<E, S>> T addTo(
 		Map<IDocument, TextChangeListenerBase<E, S>> listeners,
@@ -32,6 +34,7 @@ public abstract class TextChangeListenerBase<EditorType extends ClonkTextEditor,
 			r.listeners = listeners;
 			r.structure = structure;
 			r.document = document;
+			r.added();
 			document.addDocumentListener(r);
 			listeners.put(document, r);
 		} else {

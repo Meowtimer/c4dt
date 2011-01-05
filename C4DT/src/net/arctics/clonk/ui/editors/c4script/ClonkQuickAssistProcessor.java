@@ -18,9 +18,9 @@ import net.arctics.clonk.parser.c4script.C4ScriptOperator;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.MutableRegion;
 import net.arctics.clonk.parser.c4script.C4Function.C4FunctionScope;
-import net.arctics.clonk.parser.c4script.C4ScriptParser.IMarkerListener;
 import net.arctics.clonk.parser.c4script.C4Type;
 import net.arctics.clonk.parser.c4script.C4Variable;
+import net.arctics.clonk.parser.c4script.C4ScriptParser.ExpressionsAndStatementsReportingFlavour;
 import net.arctics.clonk.parser.c4script.C4Variable.C4VariableScope;
 import net.arctics.clonk.parser.c4script.Keywords;
 import net.arctics.clonk.parser.c4script.ast.AccessDeclaration;
@@ -68,24 +68,13 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * Bis jetzt keine Funktion
- * Until now!
+ * Offers various quick assists/fixes for C4Script source files
  * @author ZokRadonh
  *
  */
-public class ClonkQuickAssistProcessor implements IQuickAssistProcessor, IMarkerListener  {
+public class ClonkQuickAssistProcessor implements IQuickAssistProcessor {
 	
-	/*private class SpecifiableCallFunc extends CallFunc {
-		@Override
-		public String getDeclarationName() {
-			if (declarationName == null) {
-				ClonkQuickAssistProcessor.this.
-				declarationName = UI.input(shell, title, prompt, defaultValue)
-			}
-		}
-	}*/
-	
-	private static final ICompletionProposal[] NO_SUGGESTIONS=  new ICompletionProposal[0];
+	private static final ICompletionProposal[] NO_SUGGESTIONS = new ICompletionProposal[0];
 	private static ClonkQuickAssistProcessor singleton;
 	
 	public static ClonkQuickAssistProcessor getSingleton() {
@@ -156,17 +145,6 @@ public class ClonkQuickAssistProcessor implements IQuickAssistProcessor, IMarker
 			}
 		}
 		return proposals.toArray(new ICompletionProposal[proposals.size()]);
-	}
-
-	private int semicolonAdd = 0;
-	
-	@Override
-	public WhatToDo markerEncountered(C4ScriptParser parser, ParserErrorCode code, int markerStart, int markerEnd, boolean noThrow, int severity, Object... args) {
-		if (code == ParserErrorCode.NotFinished || (code == ParserErrorCode.TokenExpected && args[0].equals(";"))) { //$NON-NLS-1$
-			semicolonAdd = 1; // replace one more char (semicolon is there, just not in the substring denoted by the expressionRegion)
-			return WhatToDo.DropCharges;
-		}
-		return WhatToDo.PassThrough;
 	}
 	
 	public static final class ParameterizedProposalMarkerResolution extends WorkbenchMarkerResolution {
@@ -459,12 +437,9 @@ public class ClonkQuickAssistProcessor implements IQuickAssistProcessor, IMarker
 			C4Function func = script.funcAt(position.getOffset());
 			final int tabIndentation = BufferedScanner.getTabIndentation(document.get(), expressionRegion.getOffset());
 			ExpressionLocator locator = new ExpressionLocator(position.getOffset()-func.getBody().getStart());
-			semicolonAdd = 0;
-			final C4ScriptParser parser = C4ScriptParser.reportExpressionsAndStatements(document, script, func, locator, this);
+			final C4ScriptParser parser = C4ScriptParser.reportExpressionsAndStatementsWithSpecificFlavour(document, script, func, locator, null, ExpressionsAndStatementsReportingFlavour.AlsoStatements, true);
 			ExprElm offendingExpression = locator.getExprAtRegion();
 			Statement topLevel = offendingExpression != null ? offendingExpression.containingStatementOrThis() : null;
-			if (offendingExpression == topLevel)
-				semicolonAdd = 0;
 			
 			if (offendingExpression != null && topLevel != null) {
 				ReplacementsList replacements = new ReplacementsList(offendingExpression, proposals);
@@ -491,7 +466,6 @@ public class ClonkQuickAssistProcessor implements IQuickAssistProcessor, IMarker
 								Messages.ClonkQuickAssistProcessor_AddMissingSemicolon,
 								topLevel // will be added by converting topLevel to string
 						);
-						semicolonAdd = 0; // it's really missing!
 					}
 					break;
 				case UndeclaredIdentifier:
@@ -544,7 +518,7 @@ public class ClonkQuickAssistProcessor implements IQuickAssistProcessor, IMarker
 						} else {
 							expr = null;
 						}
-						List<ICompletionProposal> possible = C4ScriptCompletionProcessor.compuateProposalsForExpression(
+						List<ICompletionProposal> possible = C4ScriptCompletionProcessor.computeProposalsForExpression(
 								expr, func, parser, document
 						);
 						for (ICompletionProposal p : possible) {
@@ -681,13 +655,19 @@ public class ClonkQuickAssistProcessor implements IQuickAssistProcessor, IMarker
 
 				for (final Replacement replacement : replacements) {
 					String replacementAsString = "later"; //$NON-NLS-1$
-					int offset = expressionRegion.getOffset();
+					int offset = func.getBody().getOffset();
 					int length;
 					if (replacement.regionToBeReplacedSpecifiedByReplacementExpression) {
 						offset += replacement.getReplacementExpression().getExprStart();
 						length = replacement.getReplacementExpression().getLength();
 					} else {
-						length = expressionRegion.getLength()+semicolonAdd;
+						offset += expressionRegion.getOffset();
+						if (replacement.getReplacementExpression() instanceof Statement) {
+							// if the replacement expression is a statement, replace the whole statement the erroneous expression resided in
+							length = topLevel.getLength();
+						} else {
+							length = expressionRegion.getLength();
+						}
 					}
 					proposals.add(new ParameterizedProposal(null, replacementAsString, offset, length,
 							replacementAsString.length(), null, replacement.getTitle(), null, null, null, null,

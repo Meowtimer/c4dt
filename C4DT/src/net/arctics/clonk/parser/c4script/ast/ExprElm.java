@@ -48,14 +48,23 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable {
 	private int exprStart, exprEnd;
 	private transient ExprElm parent, predecessorInSequence, successorInSequence;
 	private boolean finishedProperly = true;
-	private int expressionRecursion;
 	
-	public int getExpressionRecursion() {
-		return expressionRecursion;
+	/**
+	 * Recursion level of the method that parsed this expression/statement which
+	 * could have been parseStatement or parseExpression
+	 */
+	private int parsingRecursion;
+	
+	/**
+	 * 
+	 * @return
+	 */
+	public int getParsingRecursion() {
+		return parsingRecursion;
 	}
 	
-	public void setExpressionRecursion(int expressionRecursion) {
-		this.expressionRecursion = expressionRecursion;
+	public void setParsingRecursion(int expressionRecursion) {
+		this.parsingRecursion = expressionRecursion;
 	}
 	
 	public boolean isFinishedProperly() {
@@ -113,6 +122,13 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable {
 
 	public ExprElm getParent() {
 		return parent;
+	}
+	
+	@SuppressWarnings("unchecked")
+	public <T extends ExprElm> T getParent(Class<T> cls) {
+		ExprElm e;
+		for (e = this; e != null && !cls.isAssignableFrom(e.getClass()); e = e.getParent());
+		return (T) e;
 	}
 
 	public void warnIfNoSideEffects(C4ScriptParser parser) {

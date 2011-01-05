@@ -3,6 +3,9 @@ package net.arctics.clonk.parser.c4script;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+
+import org.eclipse.jface.text.IRegion;
+
 import net.arctics.clonk.index.C4Engine;
 import net.arctics.clonk.index.C4Object;
 import net.arctics.clonk.parser.C4Declaration;
@@ -16,7 +19,7 @@ import net.arctics.clonk.parser.c4script.ast.TypeExpectancyMode;
 import net.arctics.clonk.preferences.ClonkPreferences;
 import net.arctics.clonk.util.CompoundIterable;
 
-public class C4Function extends C4Structure implements Serializable, ITypedDeclaration, IHasUserDescription {
+public class C4Function extends C4Structure implements Serializable, ITypedDeclaration, IHasUserDescription, IRegion {
 	
 	private static final long serialVersionUID = 3848213897251037684L;
 	private C4FunctionScope visibility; 
@@ -41,7 +44,7 @@ public class C4Function extends C4Structure implements Serializable, ITypedDecla
 	/**
 	 * Hash code of the string the block was parsed from.
 	 */
-	private transient int blockSoureHashCode;
+	private transient String blockSource;
 
 	public C4Function(String name, C4Type returnType, C4Variable... pars) {
 		this.name = name;
@@ -602,17 +605,31 @@ public class C4Function extends C4Structure implements Serializable, ITypedDecla
 		}
 	}
 	
-	public void storeBlock(Block block, int hash) {
+	public void storeBlock(Block block, String source) {
 		codeBlock = block;
-		blockSoureHashCode = hash;
+		blockSource = source;
 	}
 	
-	public Block getCodeBlock(int hash) {
-		if (hash == blockSoureHashCode) {
+	public Block getCodeBlock(String source) {
+		if (blockSource != null && blockSource.hashCode() == source.hashCode()) {
 			return codeBlock;
 		} else{
 			return codeBlock = null;
 		}
+	}
+	
+	public Block getCodeBlock() {
+		return codeBlock;
+	}
+
+	@Override
+	public int getLength() {
+		return getBody().getLength();
+	}
+
+	@Override
+	public int getOffset() {
+		return getBody().getOffset();
 	}
 	
 }

@@ -7,6 +7,7 @@ import net.arctics.clonk.parser.c4script.C4Function;
 import net.arctics.clonk.parser.c4script.C4ScriptBase;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.util.Utilities;
+import net.arctics.clonk.parser.c4script.C4ScriptParser.ExpressionsAndStatementsReportingFlavour;
 import net.arctics.clonk.parser.c4script.ast.ExprElm;
 import net.arctics.clonk.parser.c4script.ast.StringLiteral;
 
@@ -28,7 +29,7 @@ public class C4ScriptDoubleClickStrategy extends DefaultTextDoubleClickStrategy 
 		C4Function func = script.funcAt(pos);
 		if (func != null) {
 			ExpressionLocator locator = new ExpressionLocator(pos-func.getBody().getOffset());
-			C4ScriptParser.reportExpressionsAndStatements(viewer.getDocument(), script, func, locator, null);
+			C4ScriptParser.reportExpressionsAndStatementsWithSpecificFlavour(viewer.getDocument(), script, func, locator, null, ExpressionsAndStatementsReportingFlavour.AlsoStatements, false);
 			ExprElm expr = locator.getExprAtRegion();
 			if (expr instanceof StringLiteral) {
 				viewer.setSelectedRange(func.getBody().getOffset()+expr.getExprStart()+1, expr.getLength()-2);

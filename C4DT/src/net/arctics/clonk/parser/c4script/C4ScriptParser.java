@@ -538,7 +538,7 @@ public class C4ScriptParser extends CStyleScanner {
 							}
 							return TraversalContinuation.Continue;
 						}
-					}, ExpressionsAndStatementsReportingFlavour.AlsoStatements);
+					}, ExpressionsAndStatementsReportingFlavour.AlsoStatements, false);
 					C4Variable v = obj.findVariable("Name");
 					if (v != null) {
 						Object ev = v.evaluateInitializationExpression(obj);
@@ -568,15 +568,15 @@ public class C4ScriptParser extends CStyleScanner {
 			beginTypeInferenceBlock();
 			this.seek(function.getBody().getStart());
 			// parse code block
-			int endOfFunc = getCurrentFunc().getBody().getEnd();
+			int endOfFunc = function.getBody().getEnd();
 			EnumSet<ParseStatementOption> options = EnumSet.of(ParseStatementOption.ExpectFuncDesc);
 			List<Statement> statements = new LinkedList<Statement>();
 			parseStatementBlock(offset, endOfFunc, statements, options, ExpressionsAndStatementsReportingFlavour.AlsoStatements);
 			BunchOfStatements bunch = new BunchOfStatements(statements);
-			if (getCurrentFunc().isOldStyle() && statements.size() > 0)
-				getCurrentFunc().getBody().setEnd(statements.get(statements.size()-1).getExprEnd()+bodyOffset());
-			warnAboutUnusedFunctionVariables(bunch);
-			function.storeBlock(bunch, functionSourceHashCode(function));
+			if (function.isOldStyle() && statements.size() > 0)
+				function.getBody().setEnd(statements.get(statements.size()-1).getExprEnd()+bodyOffset());
+			warnAboutUnusedFunctionVariables(function, bunch);
+			function.storeBlock(bunch, functionSource(function));
 			
 			applyStoredTypeInformationList(false); // apply short-term inference information
 			List<IStoredTypeInformation> block = endTypeInferenceBlock();
@@ -584,10 +584,10 @@ public class C4ScriptParser extends CStyleScanner {
 				merger.inject(block); // collect information from all functions and apply that after having parsed them all
 			}
 			if (numUnnamedParameters < UNKNOWN_PARAMETERNUM) {
-				getCurrentFunc().createParameters(numUnnamedParameters);
+				function.createParameters(numUnnamedParameters);
 			}
-			else if (numUnnamedParameters == UNKNOWN_PARAMETERNUM && (getCurrentFunc().getParameters().size() == 0 || getCurrentFunc().getParameters().get(getCurrentFunc().getParameters().size()-1).isActualParm())) {
-				addVarParmsParm(getCurrentFunc());
+			else if (numUnnamedParameters == UNKNOWN_PARAMETERNUM && (function.getParameters().size() == 0 || function.getParameters().get(function.getParameters().size()-1).isActualParm())) {
+				addVarParmsParm(function);
 			}
 		}
 		catch (SilentParsingException e) {
@@ -605,10 +605,12 @@ public class C4ScriptParser extends CStyleScanner {
 		}
 	}
 
-	public void warnAboutUnusedFunctionVariables(BunchOfStatements bunch) {
-		for (C4Variable v : getCurrentFunc().getLocalVars()) {
+	public void warnAboutUnusedFunctionVariables(C4Function func, Block block) {
+		if (func == null)
+			return;
+		for (C4Variable v : func.getLocalVars()) {
 			if (!v.isUsed()) {
-				for (VarDeclarationStatement decl : bunch.allSubExpressionsOfType(VarDeclarationStatement.class)) {
+				for (VarDeclarationStatement decl : block.allSubExpressionsOfType(VarDeclarationStatement.class)) {
 					for (VarInitialization initialization : decl.getVarInitializations()) {
 						if (initialization.variableBeingInitialized == v) {
 							ExprElm old = expressionReportingErrors;
@@ -763,7 +765,7 @@ public class C4ScriptParser extends CStyleScanner {
 				int e = this.offset;
 				C4Declaration outerDec = currentDeclaration;
 				try {
-					VarInitialization varInitialization = new VarInitialization(varName, null, s);
+					VarInitialization varInitialization = new VarInitialization(varName, null, s-bodyOffset());
 					currentDeclaration = varInitialization.variableBeingInitialized = createVarInScope(varName, scope, s, e, desc);
 					if (scope == C4VariableScope.CONST || currentFunc != null || getContainer().getEngine().getCurrentSettings().nonConstGlobalVarsAssignment) {
 						eatWhitespace();
@@ -801,7 +803,11 @@ public class C4ScriptParser extends CStyleScanner {
 								errorWithCode(ParserErrorCode.InvalidExpression, varInitialization.expression);
 							}
 
-							typeOfNewVar = varInitialization.expression instanceof IType ? (IType)varInitialization.expression : varInitialization.expression.getType(this);
+							typeOfNewVar = varInitialization.expression instanceof IType
+								? (IType)varInitialization.expression
+								: varInitialization.expression != null
+									? varInitialization.expression.getType(this)
+									: C4Type.UNKNOWN;
 						} else {
 							if (scope == C4VariableScope.CONST && !isEngine)
 								errorWithCode(ParserErrorCode.ConstantValueExpected, this.offset-1, this.offset, true);
@@ -815,11 +821,14 @@ public class C4ScriptParser extends CStyleScanner {
 					createdVariables.add(varInitialization);
 					if (typeOfNewVar != null) {
 						switch (scope) {
+						case LOCAL: case CONST: case STATIC:
+							if (currentFunc == null) {
+								varInitialization.variableBeingInitialized.forceType(typeOfNewVar);
+								break;
+							}
+							// fallthrough
 						case VAR:
-							new AccessVar(varInitialization.variableBeingInitialized).expectedToBeOfType(typeOfNewVar, this, TypeExpectancyMode.Force);
-							break;
-						default:
-							varInitialization.variableBeingInitialized.forceType(typeOfNewVar);
+							//new AccessVar(varInitialization.variableBeingInitialized).expectedToBeOfType(typeOfNewVar, this, TypeExpectancyMode.Force);
 							break;
 						}
 					}
@@ -1456,7 +1465,7 @@ public class C4ScriptParser extends CStyleScanner {
 		String problem = code.getErrorString(args);
 		if (!misplacedErrorOrNoFileToAttachMarkerTo) {
 			result = code.createMarker(scriptFile, getContainer(), ClonkCore.MARKER_C4SCRIPT_ERROR, markerStart, markerEnd, severity, expressionReportingErrors, args);
-			IRegion exprLocation = getLocationOfExpressionReportingErrors();
+			IRegion exprLocation = expressionReportingErrors;
 			if (exprLocation != null) {
 				ParserErrorCode.setExpressionLocation(result, exprLocation);
 			}
@@ -1590,10 +1599,9 @@ public class C4ScriptParser extends CStyleScanner {
 			if (elm == null) {
 				int fieldOperatorStart = this.offset;
 				if (parseMemberOperator()) {
-					eatWhitespace();
 					int idStart = this.offset;
 					int idOffset;
-					if (parseID() && eatWhitespace() >= 0 && parseStaticFieldOperator_()) {
+					if (eatWhitespace() >= 0 && parseID() && eatWhitespace() >= 0 && parseStaticFieldOperator_()) {
 						idOffset = this.offset-fieldOperatorStart;
 					} else {
 						parsedID = null; // reset because that call could have been successful (GetX would be recognized as id)
@@ -1971,18 +1979,12 @@ public class C4ScriptParser extends CStyleScanner {
 		return expressionReportingErrors;
 	}
 	
-	public IRegion getLocationOfExpressionReportingErrors() {
-		if (expressionReportingErrors != null) {
-			if (bodyOffset() == 0) {
-				return expressionReportingErrors;
-			} else {
-				return new Region(
-					bodyOffset()+expressionReportingErrors.getExprStart(),
-					expressionReportingErrors.getLength()
-				);
-			}
+	public IRegion convertRelativeRegionToAbsolute(IRegion region) {
+		int offset = bodyOffset();
+		if (offset == 0) {
+			return region;
 		} else {
-			return null;
+			return new Region(offset+region.getOffset(), region.getLength());
 		}
 	}
 
@@ -1991,7 +1993,7 @@ public class C4ScriptParser extends CStyleScanner {
 		if (reportErrors) {
 			reportErrorsOf(root);
 		}
-		root.setExpressionRecursion(parseExpressionRecursion);
+		root.setParsingRecursion(parseExpressionRecursion);
 		if (listener != null && parseExpressionRecursion <= 1) {
 			listener.expressionDetected(root, this);
 		}
@@ -2209,10 +2211,12 @@ public class C4ScriptParser extends CStyleScanner {
 					result.addAttachment(new Statement.EmptyLinesAttachment(emptyLines));
 				
 				if (parseStatementRecursion == 1) {
+					result.setParsingRecursion(parseStatementRecursion);
 					if (listener != null) {
 						switch (listener.expressionDetected(result, this)) {
 						case Cancel:
-							throw new SilentParsingException(Reason.Cancellation, "Expression Listener Cancellation"); //$NON-NLS-1$
+							listener = null; // listener doesn't want to hear from me anymore? fine!
+							//throw new SilentParsingException(Reason.Cancellation, "Expression Listener Cancellation"); //$NON-NLS-1$
 						}
 					}
 				}
@@ -2785,8 +2789,12 @@ public class C4ScriptParser extends CStyleScanner {
 	 * @param function the function to return the source hash code of
 	 * @return source hash code
 	 */
-	protected int functionSourceHashCode(C4Function function) {
-		return buffer.substring(function.getBody().getStart(), function.getBody().getEnd()).hashCode();
+	protected String functionSource(C4Function function) {
+		if (function == null) {
+			return null;
+		} else {
+			return buffer.substring(function.getBody().getStart(), function.getBody().getEnd());
+		}
 	}
 	
 	/**
@@ -2798,24 +2806,53 @@ public class C4ScriptParser extends CStyleScanner {
 		return garbage; // normal parser accepts teh garbage
 	}
 	
+	/**
+	 * A listener that will be notified if a marker is about to be created.
+	 * @author madeen
+	 *
+	 */
 	public interface IMarkerListener {
+		/**
+		 * Result enum for markerEncountered
+		 * @author madeen
+		 *
+		 */
 		public enum WhatToDo {
 			DropCharges,
 			PassThrough
 		}
+		/**
+		 * Called when a marker is about to created. The listener gets a chance to do its own processing and possibly order the calling parser to forego creating the actual marker regularly.
+		 * @param parser The parser the listener is attached to
+		 * @param code the parser error code
+		 * @param markerStart start of the marker region
+		 * @param markerEnd end of the marker region
+		 * @param noThrow true if the marker wouldn't cause an exception in the parsing process
+		 * @param severity IMarker severity value
+		 * @param args Arguments used to construct the marker message
+		 * @return Returning WhatToDo.DropCharges causes the parser to not create the marker.
+		 */
 		WhatToDo markerEncountered(C4ScriptParser parser, ParserErrorCode code, int markerStart, int markerEnd, boolean noThrow, int severity, Object... args);
 	}
 	
-	private void reportExpressionsAndStatements(C4Function func, final IScriptParserListener listener, ExpressionsAndStatementsReportingFlavour flavour) {
-		if (func != null) {
-			func.resetLocalVarTypes();
-		}
+	/**
+	 * Report expressions at the offset the parser is currently at.
+	 * This method will try to avoid reparsing the script if the function passed has a cached block that is still valid.
+	 * Validity of the cached block is determined by comparing the hash of the original function block source to the hash of the current source fragment specified by the function's body location.
+	 * @param funcOrRegion the function to report the code block of. If null, no attempt to avoid reparsing takes place.
+	 * @param listener Listener to get informed about reported expressions
+	 * @param flavour Whether to only parse statements, or also expressions
+	 */
+	private void reportExpressionsAndStatements(IRegion funcOrRegion, final IScriptParserListener listener, ExpressionsAndStatementsReportingFlavour flavour, boolean reportErrors) {
+		C4Function func = funcOrRegion instanceof C4Function ? (C4Function)funcOrRegion : null;
 		currentDeclaration = func;
 		setListener(listener);
 		try {
-			int newHash = functionSourceHashCode(func);
-			Block cachedBlock = func != null ? func.getCodeBlock(newHash) : null;
+			String functionSource = functionSource(func);
+			final Block cachedBlock = func != null ? func.getCodeBlock(functionSource) : null;
 			if (cachedBlock == null) {
+				System.out.println("Reparsing necessary...");
+				func.clearLocalVars();
 				strictLevel = getContainer().getStrictLevel();
 				enableErrors(EnumSet.of(
 					ParserErrorCode.TokenExpected,
@@ -2828,11 +2865,15 @@ public class C4ScriptParser extends CStyleScanner {
 				LinkedList<Statement> statements = new LinkedList<Statement>();
 				parseStatementBlock(offset, Integer.MAX_VALUE, statements, options, flavour);
 				if (func != null) {
-					func.storeBlock(new BunchOfStatements(statements), newHash);
+					Block block = new BunchOfStatements(statements);
+					warnAboutUnusedFunctionVariables(func, block);
+					func.storeBlock(block, functionSource);
 				}
 				applyStoredTypeInformationList(true);
 			} else {
-				if (listener != null) {
+				if (reportErrors) {
+					func.resetLocalVarTypes();
+					beginTypeInferenceBlock();
 					// traverse with new listener that re-reports errors in addition to forwarding notifications to the actual listener
 					// so clients expecting report... to cause marker creation won't be disappoint
 					cachedBlock.traverse(new IScriptParserListener() {
@@ -2841,37 +2882,53 @@ public class C4ScriptParser extends CStyleScanner {
 							try {
 								parser.reportErrorsOf(expression);
 							} catch (ParsingException e) {}
-							if (expression.getExpressionRecursion() <= 1) {
-								return listener.expressionDetected(expression, parser);
+							if (expression == cachedBlock) {
+								return TraversalContinuation.Continue;
+							}
+							else if (expression.getParsingRecursion() <= 1) {
+								return listener != null ? listener.expressionDetected(expression, parser) : TraversalContinuation.Continue;
 							} else {
 								return TraversalContinuation.SkipSubElements;
 							}
 						}
-						
+
 						@Override
 						public void endTypeInferenceBlock(List<IStoredTypeInformation> typeInfos) {
-							listener.endTypeInferenceBlock(typeInfos);
+							if (listener != null) {
+								listener.endTypeInferenceBlock(typeInfos);
+							}
 						}
 					}, this);
+					warnAboutUnusedFunctionVariables(func, cachedBlock);
+					applyStoredTypeInformationList(true);
+				} else {
+					// just traverse... this should be faster than reparsing -.-
+					cachedBlock.traverse(listener);
 				}
 			}
-			//endTypeInferenceBlock(); not here for type information might still be needed
 		} 
 		catch (ParsingException e) {
-			// silent...
+			e.printStackTrace();
 		}
 		catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
 	
+	/**
+	 * Enum to specify kind of expression reporting
+	 * @author madeen
+	 *
+	 */
 	public enum ExpressionsAndStatementsReportingFlavour {
+		/**
+		 * Report only expressions (call parseExpression)
+		 */
 		OnlyExpressions,
+		/**
+		 * Report statements as well (call parseStatement)
+		 */
 		AlsoStatements
-	}
-	
-	public static C4ScriptParser reportExpressionsAndStatements(IDocument doc, C4ScriptBase context, C4Function func, IScriptParserListener listener, IMarkerListener markerListener)  {
-		return reportExpressionsAndStatementsWithSpecificFlavour(doc, context, func, listener, markerListener, ExpressionsAndStatementsReportingFlavour.AlsoStatements);
 	}
 	
 	private static class ScriptParserWithMarkerListener extends C4ScriptParser {
@@ -2894,13 +2951,14 @@ public class C4ScriptParser extends CStyleScanner {
 	
 	public static C4ScriptParser reportExpressionsAndStatementsWithSpecificFlavour(
 		IDocument doc,
-		C4ScriptBase context, C4Function func,
+		C4ScriptBase context, IRegion funcOrRegion,
 		IScriptParserListener listener, final IMarkerListener markerListener,
-		ExpressionsAndStatementsReportingFlavour flavour
+		ExpressionsAndStatementsReportingFlavour flavour,
+		boolean reportErrors
 	) { 
 		String statements_;
-		final int statementStart = func.getBody().getStart();
-		final int statementEnd = func.getBody().getEnd();
+		final int statementStart = funcOrRegion.getOffset();
+		final int statementEnd = funcOrRegion.getOffset()+funcOrRegion.getLength();
 		try {
 			// totally important to add the ")". Makes completion proposals work. DO NOT REMOVE!1
 			statements_ = doc.get(statementStart, Math.min(statementEnd-statementStart, doc.getLength()-statementStart)) + ")"; //$NON-NLS-1$
@@ -2928,42 +2986,43 @@ public class C4ScriptParser extends CStyleScanner {
 				}
 			}
 			@Override
-			protected int functionSourceHashCode(C4Function function) {
+			protected String functionSource(C4Function function) {
 				// don't calculate the ')' in!1
-				return statements.substring(0, statements.length()-1).hashCode();
+				return statements.substring(0, statements.length()-1);
 			}
 		};
-		parser.reportExpressionsAndStatements(func, listener, flavour);
+		parser.reportExpressionsAndStatements(funcOrRegion, listener, flavour, reportErrors);
 		return parser;
 	}
 	
-	public static Statement parseStandaloneStatement(final String expression, C4Function context, IScriptParserListener listener, final IMarkerListener markerListener) throws ParsingException {
+	public static Statement parseStandaloneStatement(final String statementText, C4Function context, IScriptParserListener listener, final IMarkerListener markerListener) throws ParsingException {
 		if (context == null) {
-			C4ScriptBase tempScript = new TempScript(expression);
+			C4ScriptBase tempScript = new TempScript(statementText);
 			context = new C4Function("<temp>", null, C4FunctionScope.GLOBAL); //$NON-NLS-1$
 			context.setScript(tempScript);
-			context.setBody(new SourceLocation(0, expression.length()));
+			context.setBody(new SourceLocation(0, statementText.length()));
 		}
-		C4ScriptParser tempParser = new ScriptParserWithMarkerListener(expression, context.getScript(), markerListener);
-		tempParser.setListener(listener);
-		tempParser.setCurrentFunc(context);
-		tempParser.beginTypeInferenceBlock();
-		tempParser.enableError(ParserErrorCode.NotFinished, false);
+		C4ScriptParser tempParser = new ScriptParserWithMarkerListener(statementText, context.getScript(), markerListener);
+		return tempParser.parseStandaloneStatement(statementText, context, listener);
+	}
+	
+	public Statement parseStandaloneStatement(final String statementText, C4Function context, IScriptParserListener listener) throws ParsingException {
+		init(statementText);
+		setListener(listener);
+		setCurrentFunc(context);
+		beginTypeInferenceBlock();
+		enableError(ParserErrorCode.NotFinished, false);
 		
 		List<Statement> statements = new LinkedList<Statement>();
 		Statement statement;
 		do {
-			statement = tempParser.parseStatement();
+			statement = parseStatement();
 			if (statement != null)
 				statements.add(statement);
 			else
 				break;
 		} while (true);
 		return statements.size() == 1 ? statements.get(0) : new BunchOfStatements(statements);
-	}
-	
-	public static Statement parseStandaloneStatement(final String expression, C4Function context, IScriptParserListener listener) throws ParsingException {
-		return parseStandaloneStatement(expression, context, listener, null);
 	}
 
 	public String scriptSubstringAtRegion(IRegion region) {

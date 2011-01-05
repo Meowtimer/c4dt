@@ -71,12 +71,14 @@ public class ClonkProjectNature implements IProjectNature {
 		public Set<ParserErrorCode> getDisabledErrorsSet() {
 			if (disabledErrorsSet == null) {
 				disabledErrorsSet = new HashSet<ParserErrorCode>();
-				String ds[] = disabledErrors.split(",");
-				for (String d : ds) {
-					try {
-						disabledErrorsSet.add(ParserErrorCode.valueOf(d));
-					} catch (IllegalArgumentException e) {
-						System.out.println("Unknown parser error: " + d);
+				if (!disabledErrors.equals("")) {
+					String ds[] = disabledErrors.split(",");
+					for (String d : ds) {
+						try {
+							disabledErrorsSet.add(ParserErrorCode.valueOf(d));
+						} catch (IllegalArgumentException e) {
+							System.out.println("Unknown parser error: " + d);
+						}
 					}
 				}
 			}

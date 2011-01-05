@@ -5,6 +5,7 @@ import java.util.List;
 
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.DeclarationRegion;
+import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.c4script.C4Function;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.C4Variable;
@@ -35,7 +36,7 @@ public class VarDeclarationStatement extends KeywordStatement {
 		}
 		@Override
 		public int getLength() {
-			return getEnd()-getOffset();
+			return getEnd()-namePos;
 		}
 		@Override
 		public int getOffset() {
@@ -114,5 +115,14 @@ public class VarDeclarationStatement extends KeywordStatement {
 			}
 		}
 		return super.declarationAt(offset, parser);
+	}
+	@Override
+	public void reportErrors(C4ScriptParser parser) throws ParsingException {
+		super.reportErrors(parser);
+		for (VarInitialization initialization : varInitializations) {
+			if (initialization.variableBeingInitialized != null && initialization.expression != null) {
+				new AccessVar(initialization.variableBeingInitialized).expectedToBeOfType(initialization.expression.getType(parser), parser, TypeExpectancyMode.Force);
+			}
+		}
 	}
 }

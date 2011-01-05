@@ -20,10 +20,11 @@ import net.arctics.clonk.parser.SourceLocation;
 import net.arctics.clonk.parser.c4script.C4Function;
 import net.arctics.clonk.parser.c4script.C4ScriptBase;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
+import net.arctics.clonk.parser.c4script.C4ScriptParser.ExpressionsAndStatementsReportingFlavour;
 import net.arctics.clonk.parser.c4script.C4ScriptParser.IMarkerListener;
 import net.arctics.clonk.parser.c4script.C4Variable;
 import net.arctics.clonk.parser.c4script.ast.AccessVar;
-import net.arctics.clonk.parser.c4script.ast.BunchOfStatements;
+import net.arctics.clonk.parser.c4script.ast.Block;
 import net.arctics.clonk.parser.c4script.ast.CallFunc;
 import net.arctics.clonk.parser.c4script.ast.ExprElm;
 import net.arctics.clonk.parser.c4script.ast.IScriptParserListener;
@@ -122,12 +123,40 @@ public class C4ScriptEditor extends ClonkTextEditor {
 	 */
 	public final static class TextChangeListener extends TextChangeListenerBase<C4ScriptEditor, C4ScriptBase> {
 		
+		private static class LocationAdjuster extends ScriptParserListener {
+			public int threshold;
+			public int diff;
+			@Override
+			public TraversalContinuation expressionDetected(ExprElm expression, C4ScriptParser parser) {
+				if (expression.getExprStart() > threshold) {
+					expression.setExprRegion(expression.getExprStart()+diff, expression.getExprStart()+expression.getLength()+diff);
+				}
+				return TraversalContinuation.Continue;
+			}
+		}
+		
+		private static class PatchParser extends C4ScriptParser {
+			public PatchParser(C4ScriptBase script) {
+				super(script);
+			}
+			public int statementStart;
+			@Override
+			protected int bodyOffset() {
+				return -statementStart; // add original statement start so warnings like VarUsedBeforeItsDeclaration won't fire
+			};
+			@Override
+			public boolean errorDisabled(ParserErrorCode error) {
+				return true;
+			}
+		}
+		
 		private static final int REPARSE_DELAY = 700;
 
 		private static final Map<IDocument, TextChangeListenerBase<C4ScriptEditor, C4ScriptBase>> listeners = new HashMap<IDocument, TextChangeListenerBase<C4ScriptEditor,C4ScriptBase>>();
 		
 		private Timer reparseTimer = new Timer("ReparseTimer"); //$NON-NLS-1$
 		private TimerTask reparseTask, functionReparseTask;
+		private PatchParser patchParser;
 		
 		public static TextChangeListener addTo(IDocument document, C4ScriptBase script, C4ScriptEditor client)  {
 			try {
@@ -135,6 +164,55 @@ public class C4ScriptEditor extends ClonkTextEditor {
 			} catch (Exception e) {
 				e.printStackTrace();
 				return null;
+			}
+		}
+		
+		@Override
+		protected void added() {
+			super.added();
+			patchParser = new PatchParser(structure);
+		}
+
+		@Override
+		public void documentAboutToBeChanged(DocumentEvent event) {
+			try {
+				patchFuncBlockAccordingToDocumentChange(event);
+			} catch (Exception e) {
+				// pfft, have fun reparsing, comput0r
+			}
+		}
+		
+		private void patchFuncBlockAccordingToDocumentChange(DocumentEvent event) throws BadLocationException, ParsingException {
+			C4Function f = structure.funcAt(event.getOffset());
+			if (f != null) {
+				Block originalBlock = f.getCodeBlock();
+				if (originalBlock != null) {
+					ExpressionLocator locator = new ExpressionLocator(new Region(event.getOffset()-f.getBody().getStart(), event.getLength()));
+					originalBlock.traverse(locator);
+					ExprElm foundExpression = locator.getExprAtRegion();
+					if (foundExpression != null) {
+						final Statement originalStatement = foundExpression.getParent(Statement.class);
+						int absoluteOffsetToStatement = f.getBody().getOffset()+originalStatement.getExprStart();
+						String originalStatementString = event.getDocument().get(absoluteOffsetToStatement, originalStatement.getLength());
+						StringBuilder patchStatementTextBuilder = new StringBuilder(originalStatementString);
+						patchStatementTextBuilder.delete(event.getOffset()-absoluteOffsetToStatement, event.getOffset()-absoluteOffsetToStatement+event.getLength());
+						patchStatementTextBuilder.insert(event.getOffset()-absoluteOffsetToStatement, event.getText());
+						String patchStatementText = patchStatementTextBuilder.toString();
+						patchParser.statementStart = originalStatement.getExprStart();
+						Statement patchStatement = patchParser.parseStandaloneStatement(patchStatementText, f, null);
+						if (patchStatement != null) {
+							LocationAdjuster adjuster = new LocationAdjuster();
+							adjuster.threshold = originalStatement.getExprStart();
+							adjuster.diff = patchStatementText.length() - originalStatementString.length();
+							originalBlock.traverse(adjuster);
+							System.out.println(String.format("Replacing %s with %s", originalStatement.toString(), patchStatement.toString()));
+							originalStatement.getParent().replaceSubElement(originalStatement, patchStatement);
+						}
+						StringBuilder wholeFuncBodyBuilder = new StringBuilder(event.getDocument().get(f.getBody().getStart(), f.getBody().getLength()));
+						wholeFuncBodyBuilder.replace(originalStatement.getExprStart(), originalStatement.getExprEnd(), patchStatementText);
+						f.storeBlock(originalBlock, wholeFuncBodyBuilder.toString());
+					}
+				}
 			}
 		}
 		
@@ -222,17 +300,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 					removeMarkers(fn, structure);
 					if (structure.getScriptStorage() instanceof IResource && !C4GroupItem.isLinkedResource((IResource) structure.getScriptStorage())) {
 						final C4Function f = (C4Function) fn.latestVersion();
-						f.clearLocalVars(); // remove local vars so some kinds of errors will be displayed immediately
-						final List<Statement> statements = new LinkedList<Statement>();
-						C4ScriptParser.reportExpressionsAndStatements(document, structure, f, new ScriptParserListener() {
-							@Override
-							public TraversalContinuation expressionDetected(ExprElm expression, C4ScriptParser parser) {
-								if (parser.getParseStatementRecursion() == 1 && expression instanceof Statement) {
-									statements.add((Statement) expression);
-								}
-								return TraversalContinuation.Continue;
-							}
-						}, new IMarkerListener() {
+						C4ScriptParser.reportExpressionsAndStatementsWithSpecificFlavour(document, structure, f, null, new IMarkerListener() {
 							@Override
 							public WhatToDo markerEncountered(C4ScriptParser parser, ParserErrorCode code,
 									int markerStart, int markerEnd, boolean noThrow,
@@ -241,11 +309,11 @@ public class C4ScriptEditor extends ClonkTextEditor {
 									return WhatToDo.DropCharges;
 								if (structure.getScriptStorage() instanceof IFile) {
 									code.createMarker((IFile) structure.getScriptStorage(), structure, ClonkCore.MARKER_C4SCRIPT_ERROR_WHILE_TYPING,
-										markerStart, markerEnd, severity, parser.getLocationOfExpressionReportingErrors(), args);
+										markerStart, markerEnd, severity, parser.convertRelativeRegionToAbsolute(parser.getExpressionReportingErrors()), args);
 								}
 								return WhatToDo.PassThrough;
 							}
-						}).warnAboutUnusedFunctionVariables(new BunchOfStatements(statements));
+						}, ExpressionsAndStatementsReportingFlavour.AlsoStatements, true);
 						for (C4Variable localVar : f.getLocalVars()) {
 							SourceLocation l = localVar.getLocation();
 							l.setStart(f.getBody().getOffset()+l.getOffset());

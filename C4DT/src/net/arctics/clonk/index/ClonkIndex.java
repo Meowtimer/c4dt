@@ -85,9 +85,9 @@ public class ClonkIndex implements Serializable, Iterable<C4Object> {
 	}
 	
 	/**
-	 * You should use IContainer.getSessionProperty(ClonkCore.C4OBJECT_PROPERTY_ID) instead of this
-	 * @param folder
-	 * @return
+	 * Return the object linked to the passed folder.
+	 * @param folder The folder to get the object for
+	 * @return The object or null if the folder is not linked to any object
 	 */
 	public C4ObjectIntern getObject(IContainer folder) {
 		try {
@@ -185,8 +185,8 @@ public class ClonkIndex implements Serializable, Iterable<C4Object> {
 	}
 	
 	public synchronized void refreshIndex() {
-		// delete old cache
 		
+		// delete old cache
 		if (globalFunctions == null)
 			globalFunctions = new LinkedList<C4Function>();
 		if (staticVariables == null)

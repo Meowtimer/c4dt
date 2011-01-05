@@ -175,7 +175,7 @@ public class SpecialScriptRules {
 				StringLiteral lit = (StringLiteral) parmExpression;
 				ExpressionLocator locator = new ExpressionLocator(offsetInExpression-1); // make up for '"'
 				try {
-					C4ScriptParser.parseStandaloneStatement(lit.getLiteral(), parser.getCurrentFunc(), locator);
+					C4ScriptParser.parseStandaloneStatement(lit.getLiteral(), parser.getCurrentFunc(), locator, null);
 				} catch (ParsingException e) {}
 				if (locator.getExprAtRegion() != null) {
 					DeclarationRegion reg = locator.getExprAtRegion().declarationAt(offsetInExpression, parser);
