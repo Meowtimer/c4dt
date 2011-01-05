@@ -70,10 +70,15 @@ public class SpecialScriptRules {
 	protected final SpecialFuncRule getIDRule = new SpecialFuncRule() {
 		@Override
 		public IType returnType(C4ScriptParser parser, CallFunc callFunc) {
-			IType t = callFunc.getPredecessorInSequence() == null ? parser.getContainerObject() : callFunc.getPredecessorInSequence().getType(parser);
+			IType t;
+			if (callFunc.getParams().length > 0) {
+				t = callFunc.getParams()[0].getType(parser);
+			} else {
+				t = callFunc.getPredecessorInSequence() == null ? parser.getContainerObject() : callFunc.getPredecessorInSequence().getType(parser);
+			}
 			if (t instanceof C4Object)
 				return ((C4Object)t).getObjectType();
-			return null;
+			return C4Type.ID;
 		}
 	};
 	
