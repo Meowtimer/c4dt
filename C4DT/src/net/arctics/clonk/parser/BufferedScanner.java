@@ -52,6 +52,10 @@ public class BufferedScanner {
 	 * @param withString
 	 */
 	public BufferedScanner(String withString) {
+		init(withString);
+	}
+	
+	protected void init(String withString) {
 		offset = 0;
 		buffer = withString;
 		size = buffer.length();
