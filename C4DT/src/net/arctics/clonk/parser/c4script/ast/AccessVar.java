@@ -102,7 +102,7 @@ public class AccessVar extends AccessDeclaration {
 					break;
 				case VAR:
 					if (var.getLocation() != null && parser.getCurrentFunc() != null && var.getFunction() == parser.getCurrentFunc()) {
-						int locationUsed = parser.getCurrentFunc().getBody().getOffset()+this.getExprStart();
+						int locationUsed = parser.bodyOffset()+this.getExprStart();
 						if (locationUsed < var.getLocation().getOffset())
 							parser.warningWithCode(ParserErrorCode.VarUsedBeforeItsDeclaration, this, var.getName());
 					}

@@ -437,7 +437,7 @@ public class ClonkQuickAssistProcessor implements IQuickAssistProcessor {
 			C4Function func = script.funcAt(position.getOffset());
 			final int tabIndentation = BufferedScanner.getTabIndentation(document.get(), expressionRegion.getOffset());
 			ExpressionLocator locator = new ExpressionLocator(position.getOffset()-func.getBody().getStart());
-			final C4ScriptParser parser = C4ScriptParser.reportExpressionsAndStatementsWithSpecificFlavour(document, script, func, locator, null, ExpressionsAndStatementsReportingFlavour.AlsoStatements, true);
+			final C4ScriptParser parser = C4ScriptParser.reportExpressionsAndStatements(document, script, func, locator, null, ExpressionsAndStatementsReportingFlavour.AlsoStatements, true);
 			ExprElm offendingExpression = locator.getExprAtRegion();
 			Statement topLevel = offendingExpression != null ? offendingExpression.containingStatementOrThis() : null;
 			
@@ -615,10 +615,10 @@ public class ClonkQuickAssistProcessor implements IQuickAssistProcessor {
 								if (next == null) {
 									if (previous != null) {
 										// removing last initialization -> change ',' before it to ';'
-										parser.seek(previous.getEnd());
+										parser.seek(previous.getExprEnd());
 										parser.eatWhitespace();
 										if (parser.peek() == ',') {
-											regionToDelete.setStartAndEnd(parser.getPosition(), cur.getEnd());
+											regionToDelete.setStartAndEnd(parser.getPosition(), cur.getExprEnd());
 										}
 										replacementString = ""; //$NON-NLS-1$
 									} else {

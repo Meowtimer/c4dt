@@ -127,9 +127,13 @@ public class C4ScriptEditor extends ClonkTextEditor {
 			}
 			public int statementStart;
 			@Override
-			protected int bodyOffset() {
+			public int bodyOffset() {
 				return -statementStart; // add original statement start so warnings like VarUsedBeforeItsDeclaration won't fire
 			};
+			@Override
+			public int offsetOfScriptFragment() {
+				return statementStart;
+			}
 			@Override
 			public boolean errorDisabled(ParserErrorCode error) {
 				return true;
@@ -281,7 +285,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 					removeMarkers(fn, structure);
 					if (structure.getScriptStorage() instanceof IResource && !C4GroupItem.isLinkedResource((IResource) structure.getScriptStorage())) {
 						final C4Function f = (C4Function) fn.latestVersion();
-						C4ScriptParser.reportExpressionsAndStatementsWithSpecificFlavour(document, structure, f, null, new IMarkerListener() {
+						C4ScriptParser.reportExpressionsAndStatements(document, structure, f, null, new IMarkerListener() {
 							@Override
 							public WhatToDo markerEncountered(C4ScriptParser parser, ParserErrorCode code,
 									int markerStart, int markerEnd, boolean noThrow,

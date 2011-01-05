@@ -86,7 +86,7 @@ public class DeclarationLocator extends ExpressionLocator {
 		}
 		if (region.getOffset() >= bodyStart) {
 			exprRegion = new Region(region.getOffset()-bodyStart,0);
-			C4ScriptParser parser = C4ScriptParser.reportExpressionsAndStatementsWithSpecificFlavour(doc, script, func != null ? func : body, this, null, flavour, false);
+			C4ScriptParser parser = C4ScriptParser.reportExpressionsAndStatements(doc, script, func != null ? func : body, this, null, flavour, false);
 			if (exprAtRegion != null) {
 				DeclarationRegion declRegion = exprAtRegion.declarationAt(exprRegion.getOffset()-exprAtRegion.getExprStart(), parser);
 				boolean setRegion;

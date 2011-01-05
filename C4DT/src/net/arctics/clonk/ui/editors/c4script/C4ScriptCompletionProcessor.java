@@ -267,7 +267,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 		if (editorScript != null) {
 			final int preservedOffset = offset - (activeFunc != null?activeFunc.getBody().getStart():0);
 			if (contextExpression == null && !specifiedParser) {
-				parser = C4ScriptParser.reportExpressionsAndStatementsWithSpecificFlavour(doc, editorScript, activeFunc, new ScriptParserListener() {
+				parser = C4ScriptParser.reportExpressionsAndStatements(doc, editorScript, activeFunc, new ScriptParserListener() {
 					public TraversalContinuation expressionDetected(ExprElm expression, C4ScriptParser parser) {
 						if (expression instanceof SimpleStatement) {
 							SimpleStatement s = (SimpleStatement) expression;

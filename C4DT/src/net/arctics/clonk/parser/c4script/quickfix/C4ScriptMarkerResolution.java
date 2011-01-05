@@ -52,7 +52,7 @@ public class C4ScriptMarkerResolution implements IMarkerResolution, IMarkerResol
 			doc = provider.getDocument(marker.getResource());
 			C4ScriptParser parser;
 			try {
-				parser = C4ScriptParser.reportExpressionsAndStatementsWithSpecificFlavour(doc, script, func, locator, null, ExpressionsAndStatementsReportingFlavour.AlsoStatements, true);
+				parser = C4ScriptParser.reportExpressionsAndStatements(doc, script, func, locator, null, ExpressionsAndStatementsReportingFlavour.AlsoStatements, true);
 			} catch (Exception e) {
 				e.printStackTrace();
 				return;

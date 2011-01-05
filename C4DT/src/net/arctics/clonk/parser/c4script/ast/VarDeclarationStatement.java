@@ -1,6 +1,6 @@
 package net.arctics.clonk.parser.c4script.ast;
 
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 
 import net.arctics.clonk.ClonkCore;
@@ -11,52 +11,44 @@ import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.C4Variable;
 import net.arctics.clonk.parser.c4script.C4Variable.C4VariableScope;
 import net.arctics.clonk.util.ArrayUtil;
-import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.Region;
 
 public class VarDeclarationStatement extends KeywordStatement {
 	
-	public static final class VarInitialization implements IRegion {
+	public static final class VarInitialization extends ExprElm {
+
+		private static final long serialVersionUID = 1L;
+
 		public String name;
 		public ExprElm expression;
-		public int namePos;
 		public C4Variable variableBeingInitialized;
 		public VarInitialization(String name, ExprElm expression, int namePos) {
 			super();
 			this.name = name;
 			this.expression = expression;
-			this.namePos = namePos;
+			setExprRegion(namePos, expression != null ? expression.getExprEnd() : namePos + name.length());
 		}
-		public int getEnd() {
+		@Override
+		public ExprElm[] getSubElements() {
+			return new ExprElm[] {expression};
+		}
+		@Override
+		public void setSubElements(ExprElm[] elms) {
+			expression = elms[0];
+		}
+		@Override
+		public void doPrint(ExprWriter output, int depth) {
+			output.append(name);
 			if (expression != null) {
-				return expression.getExprEnd();
-			} else {
-				return namePos + name.length();
+				output.append(" = ");
+				expression.print(output, depth+1);
 			}
-		}
-		@Override
-		public int getLength() {
-			return getEnd()-namePos;
-		}
-		@Override
-		public int getOffset() {
-			return namePos;
 		}
 	}
 	
 	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 	private List<VarInitialization> varInitializations;
 	private C4VariableScope scope;
-	
-	@Override
-	protected void offsetExprRegion(int amount, boolean start, boolean end) {
-		super.offsetExprRegion(amount, start, end);
-		if (start) {
-			for (VarInitialization i : varInitializations) {
-				i.namePos += amount;
-			}
-		}
-	}
 
 	public VarDeclarationStatement(List<VarInitialization> varInitializations, C4VariableScope scope) {
 		super();
@@ -73,26 +65,19 @@ public class VarDeclarationStatement extends KeywordStatement {
 	}
 	@Override
 	public ExprElm[] getSubElements() {
-		List<ExprElm> result = new LinkedList<ExprElm>();
-		for (VarInitialization initialization : varInitializations) {
-			if (initialization.expression != null)
-				result.add(initialization.expression);
-		}
-		return result.toArray(new ExprElm[0]);
+		return varInitializations.toArray(new ExprElm[varInitializations.size()]);
 	}
 	@Override
 	public void setSubElements(ExprElm[] elms) {
-		int j = 0;
-		for (VarInitialization pair : varInitializations) {
-			if (pair.expression != null)
-				pair.expression = elms[j++];
+		ArrayList<VarInitialization> newList = new ArrayList<VarInitialization>(elms.length);
+		for (ExprElm e : elms) {
+			assert(e instanceof VarInitialization);
+			newList.add((VarInitialization) e);
 		}
+		varInitializations = newList;
 	}
 	public List<VarInitialization> getVarInitializations() {
 		return varInitializations;
-	}
-	public void setVarInitializations(List<VarInitialization> varInitializations) {
-		this.varInitializations = varInitializations;
 	}
 	@Override
 	public void doPrint(ExprWriter builder, int depth) {
@@ -100,11 +85,7 @@ public class VarDeclarationStatement extends KeywordStatement {
 		builder.append(" "); //$NON-NLS-1$
 		int counter = 0;
 		for (VarInitialization var : varInitializations) {
-			builder.append(var.name);
-			if (var.expression != null) {
-				builder.append(" = "); //$NON-NLS-1$
-				var.expression.print(builder, depth+1);
-			}
+			var.print(builder, depth+1);
 			if (++counter < varInitializations.size())
 				builder.append(", "); //$NON-NLS-1$
 			else
