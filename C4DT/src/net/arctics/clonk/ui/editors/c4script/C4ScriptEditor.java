@@ -65,6 +65,10 @@ import org.eclipse.jface.text.TextSelection;
 import org.eclipse.jface.text.rules.FastPartitioner;
 import org.eclipse.jface.text.source.DefaultCharacterPairMatcher;
 import org.eclipse.jface.text.source.ISourceViewer;
+import org.eclipse.swt.events.KeyEvent;
+import org.eclipse.swt.events.KeyListener;
+import org.eclipse.swt.events.MouseEvent;
+import org.eclipse.swt.events.MouseListener;
 import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
@@ -399,6 +403,40 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		getPreferenceStore().setValue(ENABLE_BRACKET_HIGHLIGHT, true);
 		PreferenceConverter.setValue(getPreferenceStore(), BRACKET_HIGHLIGHT_COLOR, new RGB(0x33,0x33,0xAA));
 	}
+
+	private interface ICursorListener_Again extends KeyListener, MouseListener {}
+	private final ICursorListener_Again showContentAssistAtKeyUpListener = new ICursorListener_Again() {
+
+		@Override
+		public void keyPressed(KeyEvent e) {}
+		@Override
+		public void mouseDoubleClick(MouseEvent e) {}
+		@Override
+		public void mouseDown(MouseEvent e) {}
+
+		private void showContentAssistance() {
+			// show parameter help
+			ITextOperationTarget opTarget = (ITextOperationTarget) getSourceViewer();
+			try {
+				if (PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().getActivePart() == C4ScriptEditor.this)
+					if (!getContentAssistant().isProposalPopupActive())
+						if (opTarget.canDoOperation(ISourceViewer.CONTENTASSIST_CONTEXT_INFORMATION))
+							opTarget.doOperation(ISourceViewer.CONTENTASSIST_CONTEXT_INFORMATION);
+			} catch (NullPointerException nullP) {
+				// might just be not that much of an issue
+			}
+		}
+
+		@Override
+		public void keyReleased(KeyEvent e) {
+			showContentAssistance();
+		}
+
+		@Override
+		public void mouseUp(MouseEvent e) {
+			showContentAssistance();
+		}
+	};
 	
 	@Override
 	public void createPartControl(Composite parent) {
@@ -407,6 +445,8 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		if (script != null && script.isEditable()) {
 			textChangeListener = TextChangeListener.addTo(getDocumentProvider().getDocument(getEditorInput()), script, this);
 		}
+		getSourceViewer().getTextWidget().addMouseListener(showContentAssistAtKeyUpListener);
+		getSourceViewer().getTextWidget().addKeyListener(showContentAssistAtKeyUpListener);
 	}
 
 	public void dispose() {
@@ -461,24 +501,13 @@ public class C4ScriptEditor extends ClonkTextEditor {
 	private int cursorPos() {
 		return ((TextSelection)getSelectionProvider().getSelection()).getOffset();
 	}
-
+	
 	@Override
 	protected void handleCursorPositionChanged() {
 		super.handleCursorPositionChanged();
 		
-		C4Function f = getFuncAtCursor();
-		// show parameter help
-		ITextOperationTarget opTarget = (ITextOperationTarget) getSourceViewer();
-		try {
-			if (PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().getActivePart() == this)
-				if (!getContentAssistant().isProposalPopupActive())
-					if (opTarget.canDoOperation(ISourceViewer.CONTENTASSIST_CONTEXT_INFORMATION))
-						opTarget.doOperation(ISourceViewer.CONTENTASSIST_CONTEXT_INFORMATION);
-		} catch (NullPointerException nullP) {
-			// might just be not that much of an issue
-		}
-		
 		// highlight active function
+		C4Function f = getFuncAtCursor();
 		boolean noHighlight = true;
 		if (f != null) {
 			this.setHighlightRange(f.getLocation().getOffset(), Math.min(
