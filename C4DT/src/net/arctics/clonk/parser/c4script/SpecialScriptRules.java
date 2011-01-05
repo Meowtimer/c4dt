@@ -94,7 +94,7 @@ public class SpecialScriptRules {
 			}
 			if (t != null) {
 				C4Function f = (C4Function) callFunc.getDeclaration();
-				if (f.getReturnType() == C4Type.ARRAY)
+				if (f != null && f.getReturnType() == C4Type.ARRAY)
 					return new ArrayType(t);
 			}
 			return t;
