@@ -53,6 +53,7 @@ import net.arctics.clonk.parser.c4script.ast.Ellipsis;
 import net.arctics.clonk.parser.c4script.ast.EmptyStatement;
 import net.arctics.clonk.parser.c4script.ast.ExprElm;
 import net.arctics.clonk.parser.c4script.ast.GarbageStatement;
+import net.arctics.clonk.parser.c4script.ast.KeywordStatement;
 import net.arctics.clonk.parser.c4script.ast.ScriptParserListener;
 import net.arctics.clonk.parser.c4script.ast.ForStatement;
 import net.arctics.clonk.parser.c4script.ast.FunctionDescription;
@@ -2291,6 +2292,10 @@ public class C4ScriptParser extends CStyleScanner {
 		return garbageStart;
 	}
 
+	/**
+	 * Parse a comment following some expression. Will return null if there is a line break in between the expression and the comment.
+	 * @return The parsed comment.
+	 */
 	private Comment getCommentImmediatelyFollowing() {
 		int daring = this.offset;
 		Comment c = null;
@@ -2309,7 +2314,16 @@ public class C4ScriptParser extends CStyleScanner {
 		}
 	}
 
+	/**
+	 * Helper class to manage merging type information lists.
+	 * @author madeen
+	 *
+	 */
 	public static class TypeInformationMerger {
+		
+		/**
+		 * The result of the merger.
+		 */
 		private List<IStoredTypeInformation> merged;
 		
 		private static List<IStoredTypeInformation> mergeTypeInformationLists(List<IStoredTypeInformation> first, List<IStoredTypeInformation> second) {
@@ -2326,23 +2340,42 @@ public class C4ScriptParser extends CStyleScanner {
 			return first;
 		}
 		
+		/**
+		 * Inject the given list of type information into the type information list managed by this object.
+		 * @param infos The type information to merge in
+		 * @return The merged type information list managed by this object.
+		 */
 		public List<IStoredTypeInformation> inject(List<IStoredTypeInformation> infos) {
 			if (merged == null)
 				return merged = infos;
 			return merged = mergeTypeInformationLists(merged, infos);
 		}
 
+		/**
+		 * Finish this merger, returning the resulting type information list.
+		 * @param finalList The last type information list to merge in. This might also be the result if no other lists have been committed to this object.
+		 * @return The resulting list of type information
+		 */
 		public List<IStoredTypeInformation> finish(List<IStoredTypeInformation> finalList) {
 			if (merged == null)
 				return finalList;
 			return mergeTypeInformationLists(finalList, merged);
 		}
 		
+		/**
+		 * Get the result of the merger til now.
+		 * @return The merger result
+		 */
 		public List<IStoredTypeInformation> getResult() {
 			return merged;
 		}
 	}
 	
+	/**
+	 * Expect a certain character.
+	 * @param expected The character expected
+	 * @throws ParsingException
+	 */
 	private void expect(char expected) throws ParsingException {
 		if (read() != expected) {
 			unread();
@@ -2350,6 +2383,11 @@ public class C4ScriptParser extends CStyleScanner {
 		}
 	}
 	
+	/**
+	 * Expect a certain identifier at the current offset.
+	 * @param expected The identifier expected
+	 * @throws ParsingException
+	 */
 	private void expect(String expected) throws ParsingException {
 		String r = readIdent();
 		if (r == null || !r.equals(expected)) {
@@ -2357,41 +2395,52 @@ public class C4ScriptParser extends CStyleScanner {
 		}
 	}
 	
+	/**
+	 * Check for semicolon at the current offset.
+	 * @throws ParsingException
+	 */
 	private void checkForSemicolon() throws ParsingException {
 		eatWhitespace();
 		expect(';');
 	}
 
-	private Statement parseKeyword(String readWord) throws ParsingException {
-		Statement result = null;
-		if (readWord.equals(Keywords.If)) {
+	/**
+	 * Parse a statement that is initiated with a keyword. This includes for/while/do while loops,
+	 * loop control flow statements (break/continue) and return.
+	 * @param keyWord The keyword that has already been parsed and decides on the kind of statement to parse.
+	 * @return The parsed KeywordStatement or null if the keyword was not recognized
+	 * @throws ParsingException
+	 */
+	private KeywordStatement parseKeyword(String keyWord) throws ParsingException {
+		KeywordStatement result = null;
+		if (keyWord.equals(Keywords.If)) {
 			result = parseIf();
 		}
-		else if (readWord.equals(Keywords.While)) {
+		else if (keyWord.equals(Keywords.While)) {
 			result = parseWhile();
 		}
-		else if (readWord.equals(Keywords.Do)) {
+		else if (keyWord.equals(Keywords.Do)) {
 			result = parseDoWhile();
 		}
-		else if (readWord.equals(Keywords.For)) {
+		else if (keyWord.equals(Keywords.For)) {
 			result = parseFor();
 		}
-		else if (readWord.equals(Keywords.Continue)) {
+		else if (keyWord.equals(Keywords.Continue)) {
 			if (currentLoop == null)
-				errorWithCode(ParserErrorCode.KeywordInWrongPlace, this.offset-readWord.length(), this.offset, true, readWord);
+				errorWithCode(ParserErrorCode.KeywordInWrongPlace, this.offset-keyWord.length(), this.offset, true, keyWord);
 			checkForSemicolon();
 			result = new ContinueStatement();
 		}
-		else if (readWord.equals(Keywords.Break)) {
+		else if (keyWord.equals(Keywords.Break)) {
 			if (currentLoop == null)
-				errorWithCode(ParserErrorCode.KeywordInWrongPlace, this.offset-readWord.length(), this.offset, true, readWord);
+				errorWithCode(ParserErrorCode.KeywordInWrongPlace, this.offset-keyWord.length(), this.offset, true, keyWord);
 			checkForSemicolon();
 			result = new BreakStatement();
 		}
-		else if (readWord.equals(Keywords.Return)) {
+		else if (keyWord.equals(Keywords.Return)) {
 			result = parseReturn();
 		}
-		else if (getCurrentFunc() != null && getCurrentFunc().isOldStyle() && (looksLikeStartOfFunction(readWord) || peekAfterWhitespace() == ':')) {
+		else if (getCurrentFunc() != null && getCurrentFunc().isOldStyle() && (looksLikeStartOfFunction(keyWord) || peekAfterWhitespace() == ':')) {
 			// whoops, too far
 			return null;
 		}
@@ -2401,8 +2450,13 @@ public class C4ScriptParser extends CStyleScanner {
 		return result;
 	}
 
-	private Statement parseReturn() throws ParsingException {
-		Statement result;
+	/**
+	 * Parse a return statement.
+	 * @return The parsed return statement
+	 * @throws ParsingException
+	 */
+	private ReturnStatement parseReturn() throws ParsingException {
+		ReturnStatement result;
 		eatWhitespace();
 		int next = read();
 		ExprElm returnExpr;
@@ -2427,7 +2481,12 @@ public class C4ScriptParser extends CStyleScanner {
 		return result;
 	}
 
-	private Statement parseDoWhile() throws ParsingException {
+	/**
+	 * Parse a do {...} while statement.
+	 * @return The parsed DoWhileStatement
+	 * @throws ParsingException
+	 */
+	private DoWhileStatement parseDoWhile() throws ParsingException {
 		Statement block = parseStatement();
 		eatWhitespace();
 		expect(Keywords.While);
@@ -2441,9 +2500,14 @@ public class C4ScriptParser extends CStyleScanner {
 		return new DoWhileStatement(cond, block);
 	}
 
-	private Statement parseFor() throws ParsingException {
+	/**
+	 * Parse a for statement. The result could be either a ForStatement or an IterateArrayStatement.
+	 * @return The parsed for loop.
+	 * @throws ParsingException
+	 */
+	private KeywordStatement parseFor() throws ParsingException {
 		int savedOffset;
-		Statement result;
+		KeywordStatement result;
 		
 		eatWhitespace();
 		expect('(');
@@ -2584,6 +2648,11 @@ public class C4ScriptParser extends CStyleScanner {
 		return result;
 	}
 
+	/**
+	 * Emit warnings about loop conditions that could result in loops never executing or never ending.
+	 * @param body The loop body. If the condition looks like it will always be true, checks are performed whether the body contains loop control flow statements.
+	 * @param condition The loop condition to check
+	 */
 	private void loopConditionWarnings(Statement body, ExprElm condition) {
 		Object condEv = C4Type.BOOL.convert(condition == null ? true : condition.evaluateAtParseTime(getContainer()));
 		if (Boolean.FALSE.equals(condEv))
@@ -2595,9 +2664,14 @@ public class C4ScriptParser extends CStyleScanner {
 		}
 	}
 
-	private Statement parseWhile() throws ParsingException {
+	/**
+	 * Parse a WhileStatement.
+	 * @return The parsed WhileStatement
+	 * @throws ParsingException
+	 */
+	private WhileStatement parseWhile() throws ParsingException {
 		int offset;
-		Statement result;
+		WhileStatement result;
 		currentLoop = LoopType.While;
 		//			if (!readWord.equals(readWord.toLowerCase())) {
 		//				String problem = "Syntax error: you should only use lower case letters in keywords. ('" + readWord.toLowerCase() + "' instead of '" + readWord + "')"; 
@@ -2623,9 +2697,14 @@ public class C4ScriptParser extends CStyleScanner {
 		return result;
 	}
 
-	private Statement parseIf() throws ParsingException {
+	/**
+	 * Parse an IfStatement.
+	 * @return The IfStatement
+	 * @throws ParsingException
+	 */
+	private IfStatement parseIf() throws ParsingException {
 		final int offset = this.offset;
-		Statement result;
+		IfStatement result;
 		eatWhitespace();
 		expect('(');
 		eatWhitespace();
@@ -2671,6 +2750,11 @@ public class C4ScriptParser extends CStyleScanner {
 		return result;
 	}
 	
+	/**
+	 * Check whether the given expression contains a reference to a constant.
+	 * @param condition The expression to check
+	 * @return Whether the expression contains a constant.
+	 */
 	private static boolean containsConst(ExprElm condition) {
 		if(condition instanceof AccessVar && ((AccessVar)condition).constCondition())
 			return true;
@@ -2680,6 +2764,11 @@ public class C4ScriptParser extends CStyleScanner {
 		return false;
 	}
 
+	/**
+	 * Parse an id. On successful parsing, the parsed will be stored in the parsedID field.
+	 * @return Whether parsing the id was successful. If false, one can be assured that parsedID will be null.
+	 * @throws ParsingException
+	 */
 	private boolean parseID() throws ParsingException {
 		if (idMatcher.pattern() != IDENTIFIER_PATTERN && idMatcher.reset(buffer.substring(offset)).lookingAt()) {
 			String idString = idMatcher.group();
@@ -2697,6 +2786,12 @@ public class C4ScriptParser extends CStyleScanner {
 		}
 	}
 
+	/**
+	 * Parse a parameter at the current offset.
+	 * @param function The function to create the parameter in
+	 * @return Whether parsing the parameter was successful
+	 * @throws ParsingException
+	 */
 	private boolean parseParameter(C4Function function) throws ParsingException {
 		
 		if (isEngine && parseEllipsis()) {
@@ -2754,6 +2849,9 @@ public class C4ScriptParser extends CStyleScanner {
 		return true;
 	}
 
+	/**
+	 * Delete declarations inside the script container assigned to the parser and remove markers.
+	 */
 	public void clean() {
 		synchronized (container) {
 			try {
@@ -2771,11 +2869,14 @@ public class C4ScriptParser extends CStyleScanner {
 	 * Used for setting the right location for variables that are created while parsing the body of a function
 	 * @return Offset of the script fragment this parser processes in the complete script
 	 */
-	protected int offsetOfScriptFragment() {
+	public int offsetOfScriptFragment() {
 		return 0;
 	}
 	
-	protected int bodyOffset() {
+	/**
+	 * Subtracted from the location of ExprElms created so their location will be relative to the body of the function they are contained in.
+	 */
+	public int bodyOffset() {
 		C4Function f = getCurrentFunc();
 		if (f != null && f.getBody() != null) {
 			return f.getBody().getStart();
@@ -2931,12 +3032,29 @@ public class C4ScriptParser extends CStyleScanner {
 		AlsoStatements
 	}
 	
+	/**
+	 * Script parser that notifies a marker listener about markers about to be created
+	 * @author madeen
+	 *
+	 */
 	private static class ScriptParserWithMarkerListener extends C4ScriptParser {
+		/**
+		 * The associated marker listener
+		 */
 		private IMarkerListener markerListener;
+		/**
+		 * Create the parser
+		 * @param withString Script to parse
+		 * @param script Script object representing the script to be parsed
+		 * @param markerListener the marker listener
+		 */
 		public ScriptParserWithMarkerListener(String withString, C4ScriptBase script, IMarkerListener markerListener) {
 			super(withString, script, null);
 			this.markerListener = markerListener;
 		}
+		/**
+		 * Overridden to notify the marker listener and possibly cancel creating the marker if the listener says so.
+		 */
 		@Override
 		public IMarker markerWithCode(ParserErrorCode code,
 				int markerStart, int markerEnd, boolean noThrow,
@@ -2949,7 +3067,21 @@ public class C4ScriptParser extends CStyleScanner {
 		}
 	}
 	
-	public static C4ScriptParser reportExpressionsAndStatementsWithSpecificFlavour(
+	/**
+	 * Report expressions and statements of a function or some free-floating code fragment using
+	 * a newly created parser that is returned after reporting is finished.
+	 * If funcOrRegion is a C4Function, reparsing takes only place if the script the function body
+	 * was parsed from has been changed. 
+	 * @param doc The document the script stems from
+	 * @param context Script object
+	 * @param funcOrRegion Region to parse. The special case of parsing a function applies if this is a C4Function object.
+	 * @param listener
+	 * @param markerListener
+	 * @param flavour
+	 * @param reportErrors
+	 * @return The parser that did the reporting/(not necessarily parsing) work
+	 */
+	public static C4ScriptParser reportExpressionsAndStatements(
 		IDocument doc,
 		C4ScriptBase context, IRegion funcOrRegion,
 		IScriptParserListener listener, final IMarkerListener markerListener,
@@ -2968,11 +3100,11 @@ public class C4ScriptParser extends CStyleScanner {
 		final String statements = statements_;
 		C4ScriptParser parser = new ScriptParserWithMarkerListener(statements, context, markerListener) {
 			@Override
-			protected int offsetOfScriptFragment() {
+			public int offsetOfScriptFragment() {
 				return statementStart;
 			}
 			@Override
-			protected int bodyOffset() {
+			public int bodyOffset() {
 				return 0;
 			}
 			@Override
@@ -2995,6 +3127,15 @@ public class C4ScriptParser extends CStyleScanner {
 		return parser;
 	}
 	
+	/**
+	 * Parse a stand-alone statement with an optional function context.
+	 * @param statementText The statement text to parse
+	 * @param context Function context. If null, some temporary context will be created internally.
+	 * @param listener Script parser listener
+	 * @param markerListener Marker listener
+	 * @return The statement or a BunchOfStatement if more than one statement could be parsed from statementText. Possibly null, if erroneous text was passed.
+	 * @throws ParsingException
+	 */
 	public static Statement parseStandaloneStatement(final String statementText, C4Function context, IScriptParserListener listener, final IMarkerListener markerListener) throws ParsingException {
 		if (context == null) {
 			C4ScriptBase tempScript = new TempScript(statementText);
@@ -3006,6 +3147,15 @@ public class C4ScriptParser extends CStyleScanner {
 		return tempParser.parseStandaloneStatement(statementText, context, listener);
 	}
 	
+	/**
+	 * Instruct this parser to parse a standalone-statement in some newly passed string. Shouldn't be called when expecting the parser to continue keeping
+	 * track of its preceding state, since buffer and scanner offset will be reset.
+	 * @param statementText The statement text to parse
+	 * @param context Function context. If null, some temporary context will be created internally.
+	 * @param listener Script parser listener
+	 * @return The statement or a BunchOfStatement if more than one statement could be parsed from statementText. Possibly null, if erroneous text was passed.
+	 * @throws ParsingException
+	 */
 	public Statement parseStandaloneStatement(final String statementText, C4Function context, IScriptParserListener listener) throws ParsingException {
 		init(statementText);
 		setListener(listener);
@@ -3023,10 +3173,6 @@ public class C4ScriptParser extends CStyleScanner {
 				break;
 		} while (true);
 		return statements.size() == 1 ? statements.get(0) : new BunchOfStatements(statements);
-	}
-
-	public String scriptSubstringAtRegion(IRegion region) {
-		return this.readStringAt(region.getOffset(), region.getOffset()+region.getLength());
 	}
 
 	public int getParseStatementRecursion() {
