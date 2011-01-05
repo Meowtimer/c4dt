@@ -304,6 +304,20 @@ public class SpecialScriptRules {
 			return null;
 		};
 	};
+	
+	/**
+	 * Special rule to change the return type of GetPlrKnowledge if certain parameters are passed to it.
+	 */
+	protected final SpecialFuncRule getPlrKnowledgeRule = new SpecialFuncRule() {
+		@Override
+		public IType returnType(C4ScriptParser parser, CallFunc callFunc) {
+			if (callFunc.getParams().length >= 3) {
+				return C4Type.ID;
+			} else {
+				return C4Type.INT;
+			}
+		};
+	};
 
 	public SpecialScriptRules() {
 		putFuncRule(objectCreationRule, "CreateObject", "CreateContents");
@@ -315,5 +329,6 @@ public class SpecialScriptRules {
 		putFuncRule(callLinkRule, "Call");
 		putFuncRule(scopedCallLinkRule, "PrivateCall", "PublicCall", "PrivateCall");
 		putFuncRule(localNLinkRule, "LocalN");
+		putFuncRule(getPlrKnowledgeRule, "GetPlrKnowledge");
 	}
 }
