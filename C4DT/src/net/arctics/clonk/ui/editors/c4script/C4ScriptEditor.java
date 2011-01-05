@@ -193,8 +193,8 @@ public class C4ScriptEditor extends ClonkTextEditor {
 					if (foundExpression != null) {
 						final Statement originalStatement = foundExpression.getParent(Statement.class);
 						int absoluteOffsetToStatement = f.getBody().getOffset()+originalStatement.getExprStart();
-						String originalStatementString = event.getDocument().get(absoluteOffsetToStatement, originalStatement.getLength());
-						StringBuilder patchStatementTextBuilder = new StringBuilder(originalStatementString);
+						String originalStatementText = event.getDocument().get(absoluteOffsetToStatement, originalStatement.getLength());
+						StringBuilder patchStatementTextBuilder = new StringBuilder(originalStatementText);
 						patchStatementTextBuilder.delete(event.getOffset()-absoluteOffsetToStatement, event.getOffset()-absoluteOffsetToStatement+event.getLength());
 						patchStatementTextBuilder.insert(event.getOffset()-absoluteOffsetToStatement, event.getText());
 						String patchStatementText = patchStatementTextBuilder.toString();
@@ -203,9 +203,8 @@ public class C4ScriptEditor extends ClonkTextEditor {
 						if (patchStatement != null) {
 							LocationAdjuster adjuster = new LocationAdjuster();
 							adjuster.threshold = originalStatement.getExprStart();
-							adjuster.diff = patchStatementText.length() - originalStatementString.length();
+							adjuster.diff = patchStatementText.length() - originalStatementText.length();
 							originalBlock.traverse(adjuster);
-							System.out.println(String.format("Replacing %s with %s", originalStatement.toString(), patchStatement.toString()));
 							originalStatement.getParent().replaceSubElement(originalStatement, patchStatement);
 						}
 						StringBuilder wholeFuncBodyBuilder = new StringBuilder(event.getDocument().get(f.getBody().getStart(), f.getBody().getLength()));

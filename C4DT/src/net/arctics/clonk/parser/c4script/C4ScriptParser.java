@@ -2908,7 +2908,7 @@ public class C4ScriptParser extends CStyleScanner {
 			}
 		} 
 		catch (ParsingException e) {
-			e.printStackTrace();
+			//e.printStackTrace();
 		}
 		catch (Exception e) {
 			e.printStackTrace();
