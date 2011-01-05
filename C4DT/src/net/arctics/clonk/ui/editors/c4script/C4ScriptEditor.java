@@ -125,6 +125,13 @@ public class C4ScriptEditor extends ClonkTextEditor {
 	 */
 	public final static class TextChangeListener extends TextChangeListenerBase<C4ScriptEditor, C4ScriptBase> {
 		
+		/**
+		 * Parser responsible for parsing the edited statement that will then be inserted into
+		 * the existing cached function code block. Avoiding reparsing the whole function code
+		 * every time the function code is changed should help performance with large scripts.
+		 * @author madeen
+		 *
+		 */
 		private static class PatchParser extends C4ScriptParser {
 			public PatchParser(C4ScriptBase script) {
 				super(script);
@@ -164,7 +171,11 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		@Override
 		protected void added() {
 			super.added();
-			patchParser = new PatchParser(structure);
+			try {
+				patchParser = new PatchParser(structure);
+			} catch (Exception e) {
+				// ignore
+			}
 		}
 
 		@Override
@@ -177,6 +188,8 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		}
 		
 		private void patchFuncBlockAccordingToDocumentChange(DocumentEvent event) throws BadLocationException, ParsingException {
+			if (patchParser == null)
+				return;
 			C4Function f = structure.funcAt(event.getOffset());
 			if (f != null) {
 				Block originalBlock = f.getCodeBlock();
