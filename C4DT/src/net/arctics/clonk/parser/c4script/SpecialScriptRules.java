@@ -329,6 +329,6 @@ public class SpecialScriptRules {
 		putFuncRule(callLinkRule, "Call");
 		putFuncRule(scopedCallLinkRule, "PrivateCall", "PublicCall", "PrivateCall");
 		putFuncRule(localNLinkRule, "LocalN");
-		putFuncRule(getPlrKnowledgeRule, "GetPlrKnowledge");
+		putFuncRule(getPlrKnowledgeRule, "GetPlrKnowledge", "GetPlrMagic");
 	}
 }
