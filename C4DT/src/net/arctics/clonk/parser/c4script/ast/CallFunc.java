@@ -328,7 +328,7 @@ public class CallFunc extends AccessDeclaration {
 						if (given == null)
 							continue;
 						if (!given.validForType(parm.getType(), context))
-							context.warningWithCode(ParserErrorCode.IncompatibleTypes, given, parm.getType(), given.getType(context));
+							context.warningWithCode(ParserErrorCode.IncompatibleTypes, given, parm.getType().typeName(false), given.getType(context).typeName(false));
 						else
 							given.expectedToBeOfType(parm.getType(), context);
 					}
