@@ -21,6 +21,13 @@ public class MemberOperator extends ExprElm {
 	private C4ID id;
 	private int idOffset;
 	
+	@Override
+	protected void offsetExprRegion(int amount, boolean start, boolean end) {
+		super.offsetExprRegion(amount, start, end);
+		if (start)
+			idOffset += amount;
+	}
+	
 	public static boolean endsWithDot(ExprElm expression) {
 		return
 			expression instanceof Sequence &&

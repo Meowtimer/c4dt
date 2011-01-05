@@ -125,6 +125,15 @@ public class CallFunc extends AccessDeclaration {
 	private ExprElm[] params;
 	private int parmsStart, parmsEnd;
 
+	@Override
+	protected void offsetExprRegion(int amount, boolean start, boolean end) {
+		super.offsetExprRegion(amount, start, end);
+		if (start) {
+			parmsStart += amount;
+			parmsEnd += amount;
+		}
+	}
+	
 	public void setParmsRegion(int start, int end) {
 		parmsStart = start;
 		parmsEnd   = end;

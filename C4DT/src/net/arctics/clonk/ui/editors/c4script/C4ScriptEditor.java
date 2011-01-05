@@ -29,9 +29,7 @@ import net.arctics.clonk.parser.c4script.ast.CallFunc;
 import net.arctics.clonk.parser.c4script.ast.ExprElm;
 import net.arctics.clonk.parser.c4script.ast.IScriptParserListener;
 import net.arctics.clonk.parser.c4script.ast.IStoredTypeInformation;
-import net.arctics.clonk.parser.c4script.ast.ScriptParserListener;
 import net.arctics.clonk.parser.c4script.ast.Statement;
-import net.arctics.clonk.parser.c4script.ast.TraversalContinuation;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.resource.c4group.C4GroupItem;
 import net.arctics.clonk.ui.editors.ClonkCompletionProposal;
@@ -123,18 +121,6 @@ public class C4ScriptEditor extends ClonkTextEditor {
 	 */
 	public final static class TextChangeListener extends TextChangeListenerBase<C4ScriptEditor, C4ScriptBase> {
 		
-		private static class LocationAdjuster extends ScriptParserListener {
-			public int threshold;
-			public int diff;
-			@Override
-			public TraversalContinuation expressionDetected(ExprElm expression, C4ScriptParser parser) {
-				if (expression.getExprStart() > threshold) {
-					expression.setExprRegion(expression.getExprStart()+diff, expression.getExprStart()+expression.getLength()+diff);
-				}
-				return TraversalContinuation.Continue;
-			}
-		}
-		
 		private static class PatchParser extends C4ScriptParser {
 			public PatchParser(C4ScriptBase script) {
 				super(script);
@@ -201,15 +187,11 @@ public class C4ScriptEditor extends ClonkTextEditor {
 						patchParser.statementStart = originalStatement.getExprStart();
 						Statement patchStatement = patchParser.parseStandaloneStatement(patchStatementText, f, null);
 						if (patchStatement != null) {
-							LocationAdjuster adjuster = new LocationAdjuster();
-							adjuster.threshold = originalStatement.getExprStart();
-							adjuster.diff = patchStatementText.length() - originalStatementText.length();
-							originalBlock.traverse(adjuster);
-							originalStatement.getParent().replaceSubElement(originalStatement, patchStatement);
+							originalStatement.getParent().replaceSubElement(originalStatement, patchStatement, patchStatementText.length() - originalStatementText.length());
+							StringBuilder wholeFuncBodyBuilder = new StringBuilder(event.getDocument().get(f.getBody().getStart(), f.getBody().getLength()));
+							wholeFuncBodyBuilder.replace(originalStatement.getExprStart(), originalStatement.getExprEnd(), patchStatementText);
+							f.storeBlock(originalBlock, wholeFuncBodyBuilder.toString());
 						}
-						StringBuilder wholeFuncBodyBuilder = new StringBuilder(event.getDocument().get(f.getBody().getStart(), f.getBody().getLength()));
-						wholeFuncBodyBuilder.replace(originalStatement.getExprStart(), originalStatement.getExprEnd(), patchStatementText);
-						f.storeBlock(originalBlock, wholeFuncBodyBuilder.toString());
 					}
 				}
 			}

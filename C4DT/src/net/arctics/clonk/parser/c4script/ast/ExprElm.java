@@ -506,20 +506,71 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable {
 		return parser.getContainer().getIndex().getEngine().getCachedFuncs();
 	}
 	
-	public ExprElm replaceSubElement(ExprElm element, ExprElm with) {
+	protected void offsetExprRegion(int amount, boolean start, boolean end) {
+		if (start)
+			exprStart += amount;
+		if (end)
+			exprEnd += amount;
+		if (start || end)
+			System.out.println(String.format("Adjusting %s: start=%s end=%s", this.toString(), Boolean.valueOf(start), Boolean.valueOf(end)));
+	}
+	
+	private static void offsetExprRegionRecursively(ExprElm elm, int diff) {
+		if (elm == null)
+			return;
+		elm.offsetExprRegion(diff, true, true);
+		for (ExprElm e : elm.getSubElements()) {
+			offsetExprRegionRecursively(e, diff);
+		}
+	}
+	
+	private void offsetExprRegionRecursivelyStartingAt(ExprElm elm, int diff) {
+		boolean started = false;
+		ExprElm[] elms = getSubElements();
+		for (ExprElm e : elms) {
+			if (e == elm) {
+				started = true;
+			} else if (started) {
+				offsetExprRegionRecursively(e, diff);
+			}
+		}
+		offsetExprRegion(diff, false, true);
+		if (getParent() != null) {
+			getParent().offsetExprRegionRecursivelyStartingAt(this, diff);
+		}
+	}
+	
+	public ExprElm replaceSubElement(ExprElm element, ExprElm with, int diff) {
+		assert(element != with);
+		assert(element != null);
+		assert(with != null);
+		
+		if (diff == 0) {
+			diff = with.getLength();
+		}
+
 		ExprElm[] subElms = getSubElements();
 		ExprElm[] newSubElms = new ExprElm[subElms.length];
 		boolean differentSubElms = false;
 		for (int i = 0; i < subElms.length; i++) {
-			newSubElms[i] = subElms[i] == element ? with : subElms[i];
-			if (newSubElms[i] != subElms[i])
+			if (subElms[i] == element) {
+				newSubElms[i] = with;
 				differentSubElms = true;
+			} else {
+				newSubElms[i] = subElms[i];
+				if (differentSubElms) {
+					offsetExprRegionRecursively(subElms[i], diff);
+				}
+			}
 		}
 		if (differentSubElms) {
 			setSubElements(newSubElms);
-			assignParentToSubElements();
-		}
-		else {
+			with.setParent(this);
+			offsetExprRegion(diff, false, true);
+			if (getParent() != null) {
+				getParent().offsetExprRegionRecursivelyStartingAt(this, diff);
+			}
+		} else {
 			throw new InvalidParameterException("element must actually be a subelement of this");
 		}
 		return this;

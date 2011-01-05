@@ -448,7 +448,7 @@ public class ClonkQuickAssistProcessor implements IQuickAssistProcessor {
 					assert(offendingExpression instanceof CallFunc);
 					replacements.add(
 							Messages.ClonkQuickAssistProcessor_RemoveBrackets,
-							topLevel.replaceSubElement(offendingExpression, new AccessVar(((CallFunc)offendingExpression).getDeclarationName()))
+							topLevel.replaceSubElement(offendingExpression, new AccessVar(((CallFunc)offendingExpression).getDeclarationName()), 0)
 					);
 					break;
 				case NeverReached: {

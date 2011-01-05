@@ -47,6 +47,16 @@ public class VarDeclarationStatement extends KeywordStatement {
 	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 	private List<VarInitialization> varInitializations;
 	private C4VariableScope scope;
+	
+	@Override
+	protected void offsetExprRegion(int amount, boolean start, boolean end) {
+		super.offsetExprRegion(amount, start, end);
+		if (start) {
+			for (VarInitialization i : varInitializations) {
+				i.namePos += amount;
+			}
+		}
+	}
 
 	public VarDeclarationStatement(List<VarInitialization> varInitializations, C4VariableScope scope) {
 		super();

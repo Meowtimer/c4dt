@@ -2283,7 +2283,7 @@ public class C4ScriptParser extends CStyleScanner {
 		String garbageString = buffer.substring(garbageStart, potentialGarbageEnd);
 		garbageString = modifyGarbage(garbageString);
 		if (garbageString != null) {
-			GarbageStatement garbage = new GarbageStatement(garbageString, garbageStart);
+			GarbageStatement garbage = new GarbageStatement(garbageString, garbageStart-bodyOffset());
 			garbageStart = -1;
 			statements.add(garbage);
 			handleExpressionCreated(true, garbage);
