@@ -511,8 +511,8 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable {
 			exprStart += amount;
 		if (end)
 			exprEnd += amount;
-		if (start || end)
-			System.out.println(String.format("Adjusting %s: start=%s end=%s", this.toString(), Boolean.valueOf(start), Boolean.valueOf(end)));
+		/*if (start || end)
+			System.out.println(String.format("Adjusting %s: start=%s end=%s", this.toString(), Boolean.valueOf(start), Boolean.valueOf(end)));*/
 	}
 	
 	private static void offsetExprRegionRecursively(ExprElm elm, int diff) {
