@@ -517,4 +517,12 @@ public abstract class Utilities {
 	
 	// --------
 	
+	public static String htmlerize(String text) {
+		return text.
+			replace("<", "&lt;"). //$NON-NLS-1$ //$NON-NLS-2$
+			replace(">", "&gt;"). //$NON-NLS-1$ //$NON-NLS-2$
+			replace("\n", " "). //$NON-NLS-1$ //$NON-NLS-2$
+			replace("\t", " "); //$NON-NLS-1$ //$NON-NLS-2$
+	}
+	
 }

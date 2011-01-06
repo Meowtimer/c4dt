@@ -18,6 +18,7 @@ import net.arctics.clonk.parser.c4script.ast.ExprElm;
 import net.arctics.clonk.parser.c4script.ast.TypeExpectancyMode;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.ui.editors.c4script.IPostSerializable;
+import net.arctics.clonk.util.Utilities;
 
 /**
  * Represents a variable.
@@ -222,14 +223,6 @@ public class C4Variable extends C4Declaration implements Serializable, ITypedDec
 	public int sortCategory() {
 		return (scope != null ? scope : C4VariableScope.VAR).ordinal();
 	}
-
-	private static String htmlerize(String text) {
-		return text.
-			replace("<", "&lt;"). //$NON-NLS-1$ //$NON-NLS-2$
-			replace(">", "&gt;"). //$NON-NLS-1$ //$NON-NLS-2$
-			replace("\n", " "). //$NON-NLS-1$ //$NON-NLS-2$
-			replace("\t", " "); //$NON-NLS-1$ //$NON-NLS-2$
-	}
 	
 	@Override
 	public String getInfoText() {
@@ -240,10 +233,10 @@ public class C4Variable extends C4Declaration implements Serializable, ITypedDec
 			: Messages.C4Variable_InfoTextFormatDefaultValue;
 		String descriptionFormat = Messages.C4Variable_InfoTextFormatUserDescription;
 		return String.format(format,
-			htmlerize((t == C4Type.UNKNOWN ? C4Type.ANY : t).typeName(false)),
+			Utilities.htmlerize((t == C4Type.UNKNOWN ? C4Type.ANY : t).typeName(false)),
 			getName(),
 			initializationExpression != null
-				? String.format(valueFormat, htmlerize(initializationExpression.toString()))
+				? String.format(valueFormat, Utilities.htmlerize(initializationExpression.toString()))
 				: "", //$NON-NLS-1$
 			getUserDescription() != null && getUserDescription().length() > 0
 				? String.format(descriptionFormat, getUserDescription())

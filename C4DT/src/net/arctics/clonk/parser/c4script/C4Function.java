@@ -18,6 +18,7 @@ import net.arctics.clonk.parser.c4script.ast.ExprElm;
 import net.arctics.clonk.parser.c4script.ast.TypeExpectancyMode;
 import net.arctics.clonk.preferences.ClonkPreferences;
 import net.arctics.clonk.util.CompoundIterable;
+import net.arctics.clonk.util.Utilities;
 
 public class C4Function extends C4Structure implements Serializable, ITypedDeclaration, IHasUserDescription, IRegion {
 	
@@ -291,7 +292,7 @@ public class C4Function extends C4Structure implements Serializable, ITypedDecla
 	@Override
 	public String getInfoText() {
 		String description = getUserDescription();
-		return String.format(Messages.C4Function_InfoTextTemplate, getReturnType() != null ? getReturnType().toString() : "", getLongParameterString(true, false), description != null && !description.equals("") ? description : Messages.DescriptionNotAvailable, getScript().toString()); //$NON-NLS-1$
+		return String.format(Messages.C4Function_InfoTextTemplate, getReturnType() != null ? Utilities.htmlerize(getReturnType().typeName(true)) : "", Utilities.htmlerize(getLongParameterString(true, false)), description != null && !description.equals("") ? description : Messages.DescriptionNotAvailable, getScript().toString()); //$NON-NLS-1$
 	}
 
 	@Override
