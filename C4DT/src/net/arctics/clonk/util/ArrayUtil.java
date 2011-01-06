@@ -111,5 +111,18 @@ public class ArrayUtil {
 			}
 		};
 	}
+	
+	public static <T> T boundChecked(T[] items, int index) {
+		return index >= 0 && index < items.length ? items[index] : null;
+	}
+	
+	public static <T> int indexOf(T item, T[] items) {
+		for (int index = 0; index < items.length; index++) {
+			if (items[index] == item) {
+				return index;
+			}
+		}
+		return -1;
+	}
 
 }

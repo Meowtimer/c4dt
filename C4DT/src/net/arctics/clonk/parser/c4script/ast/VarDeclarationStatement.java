@@ -1,6 +1,5 @@
 package net.arctics.clonk.parser.c4script.ast;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import net.arctics.clonk.ClonkCore;
@@ -44,15 +43,23 @@ public class VarDeclarationStatement extends KeywordStatement {
 				expression.print(output, depth+1);
 			}
 		}
+		public VarInitialization getPreviousInitialization() {
+			VarInitialization[] brothers = getParent(VarDeclarationStatement.class).varInitializations;
+			return ArrayUtil.boundChecked(brothers, ArrayUtil.indexOf(this, brothers)-1);
+		}
+		public VarInitialization getNextInitialization() {
+			VarInitialization[] brothers = getParent(VarDeclarationStatement.class).varInitializations;
+			return ArrayUtil.boundChecked(brothers, ArrayUtil.indexOf(this, brothers)+1);
+		}
 	}
 	
 	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
-	private List<VarInitialization> varInitializations;
+	private VarInitialization[] varInitializations;
 	private C4VariableScope scope;
 
 	public VarDeclarationStatement(List<VarInitialization> varInitializations, C4VariableScope scope) {
 		super();
-		this.varInitializations = varInitializations;
+		this.varInitializations = varInitializations.toArray(new VarInitialization[varInitializations.size()]);
 		this.scope = scope;
 		assignParentToSubElements();
 	}
@@ -64,19 +71,16 @@ public class VarDeclarationStatement extends KeywordStatement {
 		return scope.toKeyword();
 	}
 	@Override
-	public ExprElm[] getSubElements() {
-		return varInitializations.toArray(new ExprElm[varInitializations.size()]);
+	public VarInitialization[] getSubElements() {
+		return varInitializations;
 	}
 	@Override
 	public void setSubElements(ExprElm[] elms) {
-		ArrayList<VarInitialization> newList = new ArrayList<VarInitialization>(elms.length);
-		for (ExprElm e : elms) {
-			assert(e instanceof VarInitialization);
-			newList.add((VarInitialization) e);
-		}
-		varInitializations = newList;
+		VarInitialization[] newElms = new VarInitialization[elms.length];
+		System.arraycopy(elms, 0, newElms, 0, elms.length);
+		varInitializations = newElms;
 	}
-	public List<VarInitialization> getVarInitializations() {
+	public final VarInitialization[] getVarInitializations() {
 		return varInitializations;
 	}
 	@Override
@@ -86,7 +90,7 @@ public class VarDeclarationStatement extends KeywordStatement {
 		int counter = 0;
 		for (VarInitialization var : varInitializations) {
 			var.print(builder, depth+1);
-			if (++counter < varInitializations.size())
+			if (++counter < varInitializations.length)
 				builder.append(", "); //$NON-NLS-1$
 			else
 				builder.append(";"); //$NON-NLS-1$

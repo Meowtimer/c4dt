@@ -80,7 +80,7 @@ public class C4ScriptToCPPConverter {
 							append(" = "); //$NON-NLS-1$
 							var.expression.print(this, depth+1);
 						}
-						if (++counter < statement.getVarInitializations().size())
+						if (++counter < statement.getVarInitializations().length)
 							append(", "); //$NON-NLS-1$
 						else
 							append(";"); //$NON-NLS-1$

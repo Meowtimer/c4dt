@@ -17,43 +17,42 @@ public class ReplacementStatement extends Statement {
 		this.replacementString = replacementString;
 	}
 	
-	public ReplacementStatement(String replacementString, IRegion regionToDelete, IDocument document, int absoluteOffset, boolean attemptToAdvanceRegion) {
+	public ReplacementStatement(String replacementString, IRegion relativeRegion, IDocument document, int relativeOffset, int offsetToAbsolute) {
 		this(replacementString);
-		if (attemptToAdvanceRegion) {
-			possiblyAdvanceRegionToDeleteLine(document, regionToDelete, absoluteOffset);
-		}
+		advanceRegionToDeleteLine(document, relativeRegion, relativeOffset, offsetToAbsolute);
 	}
 	
-	private void possiblyAdvanceRegionToDeleteLine(IDocument document, IRegion expressionRegion, int absoluteOffset) {
-		int exprStart = expressionRegion.getOffset()-absoluteOffset;
+	private void advanceRegionToDeleteLine(IDocument document, IRegion relativeExpressionRegion, int relativeOffset, int offsetToAbsolute) {
+		int exprStart = relativeExpressionRegion.getOffset();
 		int additionalExprLength = 0;
 		try {
-			IRegion originalLineRegion = document.getLineInformationOfOffset(expressionRegion.getOffset());
+			IRegion originalLineRegion = document.getLineInformationOfOffset(offsetToAbsolute+relativeExpressionRegion.getOffset());
 			String originalLine = document.get(originalLineRegion.getOffset(), originalLineRegion.getLength());
 			boolean deleteLine = true;
-			for (int i = expressionRegion.getOffset()-originalLineRegion.getOffset()-1; i >= 0; i--) {
+			for (int i = relativeExpressionRegion.getOffset()-originalLineRegion.getOffset()-1+offsetToAbsolute; i >= 0; i--) {
 				if (!BufferedScanner.isWhiteSpace(originalLine.charAt(i))) {
 					deleteLine = false;
 					break;
 				}
 			}
-			for (int i = expressionRegion.getOffset()+expressionRegion.getLength()+1-originalLineRegion.getOffset(); i < originalLine.length(); i++) {
+			for (int i = relativeExpressionRegion.getOffset()+relativeExpressionRegion.getLength()+1-originalLineRegion.getOffset()+offsetToAbsolute; i < originalLine.length(); i++) {
 				if (!BufferedScanner.isWhiteSpace(originalLine.charAt(i))) {
 					deleteLine = false;
 					break;
 				}
 			}
 			if (deleteLine) {
-				exprStart = originalLineRegion.getOffset()-expressionRegion.getOffset();
+				int newExprStart = originalLineRegion.getOffset()-offsetToAbsolute;
 				for (int abs = originalLineRegion.getOffset()-1; abs >= 0 && BufferedScanner.isWhiteSpace(document.getChar(abs)); abs--) {
-					exprStart--;
+					newExprStart--;
 				}
-				additionalExprLength = originalLineRegion.getOffset()+originalLine.length()-expressionRegion.getOffset()-expressionRegion.getLength();
+				additionalExprLength = exprStart - newExprStart;
+				exprStart = newExprStart;
 			}
 		} catch (BadLocationException e) {
 			e.printStackTrace();
 		}
-		setExprRegion(exprStart, (exprStart < 0 ? 0 : exprStart)+expressionRegion.getLength()+additionalExprLength);
+		setExprRegion(exprStart, (exprStart < 0 ? 0 : exprStart)+relativeExpressionRegion.getLength()+additionalExprLength);
 	}
 
 	@Override

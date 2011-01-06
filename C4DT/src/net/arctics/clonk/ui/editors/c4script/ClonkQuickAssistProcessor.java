@@ -457,7 +457,7 @@ public class ClonkQuickAssistProcessor implements IQuickAssistProcessor {
 							Messages.ClonkQuickAssistProcessor_CommentOutStatement,
 							new Comment(topLevel.toString(), s.contains("\n")) //$NON-NLS-1$
 					);
-					addRemoveReplacement(document, expressionRegion, replacements);
+					addRemoveReplacement(document, expressionRegion, replacements, func);
 					break;
 				}
 				case NotFinished:
@@ -554,7 +554,7 @@ public class ClonkQuickAssistProcessor implements IQuickAssistProcessor {
 								Messages.ClonkQuickAssistProcessor_ConvertToReturn,
 								new ReturnStatement((statement.getExpression()))
 						);
-						addRemoveReplacement(document, expressionRegion, replacements);
+						addRemoveReplacement(document, expressionRegion, replacements, func);
 						CallFunc callFunc = new CallFunc(Messages.ClonkQuickAssistProcessor_FunctionToBeCalled, statement.getExpression());
 						replacements.add(Messages.ClonkQuickAssistProcessor_WrapWithFunctionCall, callFunc, callFunc);
 					}
@@ -568,7 +568,6 @@ public class ClonkQuickAssistProcessor implements IQuickAssistProcessor {
 							if (binaryOp.getOperator() == C4ScriptOperator.Equal && binaryOp.getLeftSide().modifiable(parser)) {
 								replacements.add(
 										Messages.ClonkQuickAssistProcessor_ConvertComparisonToAssignment,
-										// FIXME: reusing original operands so be careful when continuing to use original expression
 										new BinaryOp(C4ScriptOperator.Assign, binaryOp.getLeftSide(), binaryOp.getRightSide())
 								);
 							}
@@ -601,46 +600,37 @@ public class ClonkQuickAssistProcessor implements IQuickAssistProcessor {
 					}
 					break;
 				case Unused:
-					String varName = ParserErrorCode.getArg(marker, 0);
-					if (offendingExpression instanceof VarDeclarationStatement) {
-						VarDeclarationStatement s = (VarDeclarationStatement) offendingExpression;
-						VarInitialization previous = null;
+					if (offendingExpression instanceof VarDeclarationStatement.VarInitialization) {
 						final MutableRegion regionToDelete = new MutableRegion(0, expressionRegion.getLength());
-						List<VarInitialization> initializations = s.getVarInitializations();
+						VarInitialization cur = (VarInitialization) offendingExpression;
+						VarInitialization next = cur.getNextInitialization();
+						VarInitialization previous = cur.getPreviousInitialization();
 						String replacementString = ""; //$NON-NLS-1$
-						for (int i = 0; i < initializations.size(); i++) {
-							VarInitialization cur = initializations.get(i);
-							VarInitialization next = i+1 < initializations.size() ? initializations.get(i+1) : null;
-							if (cur.name.equals(varName)) {
-								if (next == null) {
-									if (previous != null) {
-										// removing last initialization -> change ',' before it to ';'
-										parser.seek(previous.getExprEnd());
-										parser.eatWhitespace();
-										if (parser.peek() == ',') {
-											regionToDelete.setStartAndEnd(parser.getPosition(), cur.getExprEnd());
-										}
-										replacementString = ""; //$NON-NLS-1$
-									} else {
-										// already initialized with expressionRegion
-									}
-								} else {
-									regionToDelete.setStartAndEnd(cur.getOffset(), next.getOffset());
+						if (next == null) {
+							if (previous != null) {
+								// removing last initialization -> change ',' before it to ';'
+								parser.seek(previous.getExprEnd());
+								parser.eatWhitespace();
+								if (parser.peek() == ',') {
+									regionToDelete.setStartAndEnd(parser.getPosition(), cur.getExprEnd());
 								}
-								break;
+								replacementString = ""; //$NON-NLS-1$
+							} else {
+								// already initialized with expressionRegion
 							}
-							previous = cur;
+						} else {
+							regionToDelete.setStartAndEnd(cur.getOffset(), next.getOffset());
 						}
 						final String finalReplacementString = replacementString;
 						regionToDelete.incOffset(expressionRegion.getOffset());
 						replacements.add(
 							Messages.ClonkQuickAssistProcessor_RemoveVariableDeclaration,
-							new ReplacementStatement(finalReplacementString, regionToDelete, document, expressionRegion.getOffset(), true)
+							new ReplacementStatement(finalReplacementString, regionToDelete, document, expressionRegion.getOffset(), func.getBody().getOffset())
 						).regionToBeReplacedSpecifiedByReplacementExpression = true;
 					}
 					break;
 				case Garbage:
-					addRemoveReplacement(document, expressionRegion, replacements);
+					addRemoveReplacement(document, expressionRegion, replacements, func);
 					break;
 				}
 
@@ -682,10 +672,10 @@ public class ClonkQuickAssistProcessor implements IQuickAssistProcessor {
 
 	}
 
-	private void addRemoveReplacement(IDocument document, final IRegion expressionRegion, ReplacementsList replacements) {
+	private void addRemoveReplacement(IDocument document, final IRegion expressionRegion, ReplacementsList replacements, C4Function func) {
 		replacements.add(
 			Messages.ClonkQuickAssistProcessor_Remove,
-			new ReplacementStatement("", expressionRegion, document, expressionRegion.getOffset(), true) //$NON-NLS-1$
+			new ReplacementStatement("", expressionRegion, document, expressionRegion.getOffset(), func.getBody().getOffset()) //$NON-NLS-1$
 		).regionToBeReplacedSpecifiedByReplacementExpression = true;
 	}
 

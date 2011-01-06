@@ -2554,7 +2554,7 @@ public class C4ScriptParser extends CStyleScanner {
 					errorWithCode(ParserErrorCode.ExpectedCode, this.offset, this.offset+1);
 				} else if (initialization instanceof VarDeclarationStatement) {
 					VarDeclarationStatement decStatement = (VarDeclarationStatement) initialization;
-					loopVariable = decStatement.getVarInitializations().get(0).variableBeingInitialized;
+					loopVariable = decStatement.getVarInitializations()[0].variableBeingInitialized;
 				}
 			}
 		}
