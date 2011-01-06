@@ -59,7 +59,7 @@ public class C4TypeSet implements IType {
 		for (int i = 0; i < actualCount; i++) {
 			IType t = ingredients[i];
 			for (int j = actualCount-1; j > i; j--) {
-				if (t.containsType(ingredients[j]))
+				if (t.specificness() > ingredients[j].specificness() && t.containsType(ingredients[j]))
 					actualCount--;
 			}
 		}
@@ -67,7 +67,8 @@ public class C4TypeSet implements IType {
 		// expand left-over types into set
 		Set<IType> set = new HashSet<IType>();
 		boolean containsNonStatics = false;
-		for (IType s : ingredients) {
+		for (int i = 0; i < actualCount; i++) {
+			IType s = ingredients[i];
 			if (s instanceof C4TypeSet) {
 				for (IType t : s) {
 					containsNonStatics = containsNonStatics || t.staticType() != t;
