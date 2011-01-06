@@ -138,3 +138,7 @@ are then taken into account in various places
 -IniTextEditor supports collapsing and expanding sections (amazing!)
 -Improved OpenClonk compatibility
 -If Documentation browser  tab is left open, no new ones will be created when link-clicking other engine functions
+1.5.9:
+-Optimizing script editing for performance
+-Per-project setting to disable script parser warnings/error
+-Bugfixes and introduction of new bugs
