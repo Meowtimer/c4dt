@@ -546,11 +546,20 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 		}
 	}
 	
+	/**
+	 * Parse function code/validate variable initialization code.
+	 * An attempt is made to parse included scripts before the passed one.
+	 * @param script The script to parse
+	 */
 	private void performBuildPhaseTwo(C4ScriptBase script) {
 		if (parserMap.containsKey(script)) {
 			C4ScriptParser parser = parserMap.remove(script);
 			if (parser != null) {
 				try {
+					// parse #included scripts before this one
+					for (C4ScriptBase include : script.getIncludes(nature.getIndex())) {
+						performBuildPhaseTwo(include);
+					}
 					parser.parseCodeOfFunctionsAndValidate();
 				} catch (ParsingException e) {
 					e.printStackTrace();
