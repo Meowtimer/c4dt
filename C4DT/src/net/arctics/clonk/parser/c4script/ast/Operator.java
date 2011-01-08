@@ -11,7 +11,7 @@ public class Operator extends Value {
 	private final C4ScriptOperator operator;
 
 	@Override
-	public IType getType(C4ScriptParser context) {
+	protected IType obtainType(C4ScriptParser context) {
 		return operator.getResultType();
 	}
 

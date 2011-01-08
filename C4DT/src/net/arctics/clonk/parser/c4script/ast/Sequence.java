@@ -45,7 +45,7 @@ public class Sequence extends Value {
 		}
 	}
 	@Override
-	public IType getType(C4ScriptParser context) {
+	protected IType obtainType(C4ScriptParser context) {
 		return (elements == null || elements.length == 0) ? C4Type.UNKNOWN : elements[elements.length-1].getType(context);
 	}
 	@Override

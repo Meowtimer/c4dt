@@ -13,11 +13,12 @@ import org.eclipse.swt.graphics.Image;
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.C4Declaration;
 import net.arctics.clonk.parser.C4ID;
-import net.arctics.clonk.parser.c4script.C4ObjectType;
+import net.arctics.clonk.parser.c4script.ConstrainedType;
 import net.arctics.clonk.parser.c4script.C4ScriptBase;
 import net.arctics.clonk.parser.c4script.C4Type;
 import net.arctics.clonk.parser.c4script.C4Variable;
 import net.arctics.clonk.parser.c4script.FindDeclarationInfo;
+import net.arctics.clonk.parser.c4script.IHasConstraint;
 import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.preferences.ClonkPreferences;
 import net.arctics.clonk.util.ArrayUtil;
@@ -46,7 +47,7 @@ public abstract class C4Object extends C4ScriptBase implements IType {
 	 */
 	private transient Image cachedPicture;
 
-	private transient C4ObjectType objectType;
+	private transient ConstrainedType objectType;
 
 	/**
 	 * Creates a new C4Object
@@ -224,9 +225,9 @@ public abstract class C4Object extends C4ScriptBase implements IType {
 		return C4Type.OBJECT;
 	}
 
-	public C4ObjectType getObjectType() {
+	public ConstrainedType getObjectType() {
 		if (objectType == null) {
-			objectType = new C4ObjectType(this);
+			objectType = new ConstrainedType(this, ConstraintKind.Exact);
 		}
 		return objectType;
 	}
@@ -239,11 +240,9 @@ public abstract class C4Object extends C4ScriptBase implements IType {
 			return C4Type.OBJECT;
 	}
 	
-	public static C4Object objectTypeFrom(IType type) {
-		if (type instanceof C4Object)
-			return (C4Object)type;
-		else if (type instanceof C4ObjectType)
-			return ((C4ObjectType)type).getType();
+	public static C4ScriptBase scriptFrom(IType type) {
+		if (type instanceof IHasConstraint)
+			return ((IHasConstraint)type).constraintScript();
 		else
 			return null;
 	}

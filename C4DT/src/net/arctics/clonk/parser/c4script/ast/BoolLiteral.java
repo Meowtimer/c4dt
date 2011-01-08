@@ -18,7 +18,8 @@ public final class BoolLiteral extends Literal<Boolean> {
 	public BoolLiteral(boolean value) {
 		super(Boolean.valueOf(value));
 	}
-	public IType getType(C4ScriptParser context) {
+	@Override
+	protected IType obtainType(C4ScriptParser context) {
 		return C4Type.BOOL;
 	}
 	@Override

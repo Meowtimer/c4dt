@@ -194,7 +194,7 @@ public class CallFunc extends AccessDeclaration {
 		}
 	}
 	@Override
-	public IType getType(C4ScriptParser context) {
+	protected IType obtainType(C4ScriptParser context) {
 		C4Declaration d = getDeclaration(context);
 		
 		// look for gathered type information
@@ -222,7 +222,7 @@ public class CallFunc extends AccessDeclaration {
 			return ((C4Function)d).getReturnType();
 		}
 
-		return super.getType(context);
+		return super.obtainType(context);
 	}
 	@Override
 	public boolean isValidInSequence(ExprElm elm, C4ScriptParser context) {

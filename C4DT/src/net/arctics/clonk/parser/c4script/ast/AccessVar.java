@@ -54,7 +54,7 @@ public class AccessVar extends AccessDeclaration {
 		C4ScriptBase scriptToLookIn = null;
 		if (p != null) {
 			IType type = p.getType(parser);
-			if ((scriptToLookIn = C4Object.objectTypeFrom(type)) == null) {
+			if ((scriptToLookIn = C4Object.scriptFrom(type)) == null) {
 				// find pseudo-variable from proplist expression
 				if (type instanceof PropListExpression) {
 					return ((PropListExpression)type).findComponent(getDeclarationName());
@@ -120,7 +120,7 @@ public class AccessVar extends AccessDeclaration {
 	}
 	
 	@Override
-	public IType getType(C4ScriptParser context) {
+	protected IType obtainType(C4ScriptParser context) {
 		C4Declaration d = getDeclaration(context);
 		// getDeclaration(context) ensures that declaration is not null (if there is actually a variable) which is needed for queryTypeOfExpression for example
 		if (d == C4Variable.THIS)

@@ -81,6 +81,8 @@ import net.arctics.clonk.parser.c4script.ast.VarDeclarationStatement.VarInitiali
 import net.arctics.clonk.parser.c4script.ast.WhileStatement;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.resource.c4group.C4GroupItem;
+import net.arctics.clonk.util.ArrayUtil;
+
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IResource;
@@ -338,6 +340,29 @@ public class C4ScriptParser extends CStyleScanner {
 		if (container instanceof C4Object)
 			return (C4Object) container;
 		return null;
+	}
+	
+	/**
+	 * Return either the container script if it's an instance of C4Object or a type set consisting of the object definitions
+	 * this script is appended to. If there is only one object appended to, that object will be returned. 
+	 * @return
+	 */
+	public IType getContainerAsObjectOrObjectAppendedTo() {
+		if (container instanceof IType) {
+			// it's a type (probably C4Object)
+			return (IType) container;
+		} else {
+			C4ScriptBase[] includes = container.getIncludes();
+			if (includes.length > 1) {
+				// includes/appends to more than one other script ... create type set out of the scripts that are types
+				return C4TypeSet.create(ArrayUtil.filter(includes, IType.class));
+			} else if (includes.length == 1 && includes[0] instanceof IType) {
+				// includes/appends to one type: return that
+				return (IType)includes[0];
+			}
+		}
+		// could be #appendto * or whatever
+		return C4Type.OBJECT;
 	}
 	
 	/**

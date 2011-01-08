@@ -59,7 +59,7 @@ import org.xml.sax.SAXException;
  * Base class for various objects that act as containers of stuff declared in scripts/ini files.
  * Subclasses include C4Object, C4StandaloneScript etc.
  */
-public abstract class C4ScriptBase extends C4Structure implements ITreeNode {
+public abstract class C4ScriptBase extends C4Structure implements ITreeNode, IHasConstraint {
 
 	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 
@@ -454,11 +454,13 @@ public abstract class C4ScriptBase extends C4Structure implements ITreeNode {
 		return null;
 	}
 
-	public boolean includes(C4Object other) {
+	public boolean includes(C4ScriptBase other) {
 		return includes(other, new HashSet<C4ScriptBase>());
 	}
 
-	public boolean includes(C4Object other, Set<C4ScriptBase> dontRevisit) {
+	public boolean includes(C4ScriptBase other, Set<C4ScriptBase> dontRevisit) {
+		if (other == this)
+			return true;
 		if (dontRevisit.contains(this))
 			return false;
 		dontRevisit.add(this);
@@ -860,6 +862,16 @@ public abstract class C4ScriptBase extends C4Structure implements ITreeNode {
 		if (onlyForScriptFile && (script == null || script.getScriptStorage() == null || !script.getScriptStorage().equals(resource)))
 			return null;
 		return script;
+	}
+	
+	@Override
+	public C4ScriptBase constraintScript() {
+		return this;
+	}
+	
+	@Override
+	public ConstraintKind constraintKind() {
+		return ConstraintKind.Exact;
 	}
 
 }

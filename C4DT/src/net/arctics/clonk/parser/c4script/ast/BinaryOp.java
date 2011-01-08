@@ -19,7 +19,7 @@ public class BinaryOp extends Operator {
 	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 
 	@Override
-	public IType getType(C4ScriptParser context) {
+	protected IType obtainType(C4ScriptParser context) {
 		switch (getOperator()) {
 		// &&/|| special: they return either the left or right side of the operator so the return type is the lowest common denominator of the argument types
 		case And: case Or:
@@ -30,7 +30,7 @@ public class BinaryOp extends Operator {
 			else
 				return C4Type.ANY;
 		default:
-			return super.getType(context);
+			return super.obtainType(context);
 		}
 	}
 

@@ -15,8 +15,8 @@ public class ArrayElementExpression extends Value {
 	protected ExprElm argument;
 
 	@Override
-	public IType getType(C4ScriptParser context) {
-		IType t = super.getType(context);
+	protected IType obtainType(C4ScriptParser context) {
+		IType t = super.obtainType(context);
 		if (t != C4Type.UNKNOWN && t != C4Type.ANY) {
 			return t;
 		}

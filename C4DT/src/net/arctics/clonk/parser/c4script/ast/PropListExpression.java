@@ -55,7 +55,7 @@ public class PropListExpression extends Value implements IType, IPostSerializabl
 		output.append('}');
 	}
 	@Override
-	public IType getType(C4ScriptParser parser) {
+	protected IType obtainType(C4ScriptParser parser) {
 		return this; // :D
 	}
 	@Override

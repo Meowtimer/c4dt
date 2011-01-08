@@ -57,7 +57,7 @@ public class ArraySliceExpression extends ArrayElementExpression {
 	}
 	
 	@Override
-	public IType getType(C4ScriptParser context) {
+	protected IType obtainType(C4ScriptParser context) {
 		return C4Type.ARRAY;
 	}
 	

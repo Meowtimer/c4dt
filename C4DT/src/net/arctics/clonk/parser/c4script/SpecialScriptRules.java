@@ -10,6 +10,7 @@ import net.arctics.clonk.parser.DeclarationRegion;
 import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.c4script.C4ScriptParser.IMarkerListener;
+import net.arctics.clonk.parser.c4script.IHasConstraint.ConstraintKind;
 import net.arctics.clonk.parser.c4script.ast.CallFunc;
 import net.arctics.clonk.parser.c4script.ast.ExprElm;
 import net.arctics.clonk.parser.c4script.ast.SimpleStatement;
@@ -56,8 +57,16 @@ public class SpecialScriptRules {
 		public IType returnType(C4ScriptParser parser, CallFunc callFunc) {
 			if (callFunc.getParams().length >= 1) {
 				IType t = callFunc.getParams()[0].getType(parser);
-				if (t instanceof C4ObjectType) {
-					return ((C4ObjectType)t).getType();
+				if (t instanceof ConstrainedType) {
+					ConstrainedType ct = (ConstrainedType) t;
+					switch (ct.constraintKind()) {
+					case Exact:
+						return ct.getObjectType();
+					case CallerType:
+						return new ConstrainedObject(ct.constraintScript(), ConstraintKind.CallerType);
+					case Includes:
+						return new ConstrainedObject(ct.constraintScript(), ConstraintKind.Includes);
+					}
 				}
 			}
 			return null;
@@ -70,15 +79,25 @@ public class SpecialScriptRules {
 	protected final SpecialFuncRule getIDRule = new SpecialFuncRule() {
 		@Override
 		public IType returnType(C4ScriptParser parser, CallFunc callFunc) {
+			C4ScriptBase script = null;
+			ConstraintKind constraintKind = null;
 			IType t;
 			if (callFunc.getParams().length > 0) {
 				t = callFunc.getParams()[0].getType(parser);
+			} else if (callFunc.getPredecessorInSequence() != null) {
+				t = callFunc.getPredecessorInSequence().getType(parser);
 			} else {
-				t = callFunc.getPredecessorInSequence() == null ? parser.getContainerObject() : callFunc.getPredecessorInSequence().getType(parser);
+				constraintKind = ConstraintKind.CallerType;
+				script = parser.getContainer();
+				t = null;
 			}
-			if (t instanceof C4Object)
-				return ((C4Object)t).getObjectType();
-			return C4Type.ID;
+			if (t instanceof ConstrainedObject) {
+				ConstrainedObject cobj = (ConstrainedObject)t;
+				constraintKind = cobj.constraintKind();
+				script = cobj.constraintScript();
+			}
+			
+			return script != null ? ConstrainedType.get(script, constraintKind) : C4Type.ID;
 		}
 	};
 	

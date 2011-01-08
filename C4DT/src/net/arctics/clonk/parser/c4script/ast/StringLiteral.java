@@ -36,7 +36,7 @@ public final class StringLiteral extends Literal<String> {
 	}
 
 	@Override
-	public IType getType(C4ScriptParser context) {
+	protected IType obtainType(C4ScriptParser context) {
 		return C4Type.STRING;
 	}
 

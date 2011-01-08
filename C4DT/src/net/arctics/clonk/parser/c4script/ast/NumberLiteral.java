@@ -43,7 +43,8 @@ public final class NumberLiteral extends Literal<Long> {
 			super.doPrint(output, depth);
 	}
 
-	public IType getType(C4ScriptParser context) {
+	@Override
+	protected IType obtainType(C4ScriptParser context) {
 		if (longValue() == 0)
 			return C4Type.ANY; // FIXME: to prevent warnings when assigning 0 to object-variables
 		return C4Type.INT;

@@ -26,7 +26,7 @@ public final class IDLiteral extends Literal<C4ID> {
 	}
 
 	@Override
-	public IType getType(C4ScriptParser context) {
+	protected IType obtainType(C4ScriptParser context) {
 		C4Object obj = context.getContainer().getNearestObjectWithId(idValue());
 		return obj != null ? obj.getObjectType() : C4Type.ID;
 	}

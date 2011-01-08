@@ -18,6 +18,9 @@ import net.arctics.clonk.parser.c4script.C4ScriptBase;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.C4Type;
 import net.arctics.clonk.parser.c4script.C4TypeSet;
+import net.arctics.clonk.parser.c4script.ConstrainedObject;
+import net.arctics.clonk.parser.c4script.ConstrainedType;
+import net.arctics.clonk.parser.c4script.IHasConstraint;
 import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.parser.c4script.ITypedDeclaration;
 import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
@@ -175,12 +178,65 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable {
 		return false;
 	}
 	
-	public IType getType(C4ScriptParser context) {
+	/**
+	 * Return type of the expression, adjusting the result of obtainType under some circumstances
+	 * @param context Parser acting as the context (supplying current function, script begin parsed etc.)
+	 * @return The type of the expression
+	 */
+	public final IType getType(C4ScriptParser context) {
+		IType type = obtainType(context);
+		if (type instanceof IHasConstraint) {
+			IHasConstraint obl = (IHasConstraint) type;
+			if (obl instanceof ConstrainedObject) {
+				switch (obl.constraintKind()) {
+				case CallerType:
+					ExprElm pred = getPredecessorInSequence();
+					if (pred != null)
+						return pred.getType(context);
+					else if (obl.constraintScript() != context.getContainer())
+						// constraint only resolved outside of original script
+						return context.getContainerAsObjectOrObjectAppendedTo();
+					else
+						break;
+				case Exact:
+					return Utilities.as(obl.constraintScript(), IType.class);
+				case Includes:
+					break;
+				}
+			} else if (obl instanceof ConstrainedType) {
+				C4Object obj = null;
+				switch (obl.constraintKind()) {
+				case CallerType:
+					ExprElm pred = getPredecessorInSequence();
+					if (pred != null)
+						obj = Utilities.as(pred.getType(context), C4Object.class);
+					else if (obl.constraintScript() != context.getContainer())
+						obj = context.getContainerObject();
+					break;
+				case Exact:
+					obj = Utilities.as(obl.constraintScript(), C4Object.class);
+					break;
+				case Includes:
+					break;
+				}
+				if (obj != null)
+					return obj.getObjectType();
+			}
+		}
+		return type;
+	}
+	
+	/**
+	 * Overridable method to obtain the type of the declaration.
+	 * @param context Parser acting as the context (supplying current function, script begin parsed etc.)
+	 * @return The type of the expression
+	 */
+	protected IType obtainType(C4ScriptParser context) {
 		return context.queryTypeOfExpression(this, C4Type.UNKNOWN);
 	}
 	
 	public final C4Object guessObjectType(C4ScriptParser context) {
-		return C4Object.objectTypeFrom(getType(context));
+		return Utilities.as(C4Object.scriptFrom(getType(context)), C4Object.class);
 	}
 
 	public boolean modifiable(C4ScriptParser context) {
@@ -377,7 +433,7 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable {
 				private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 
 				@Override
-				public IType getType(C4ScriptParser context) {
+				protected IType obtainType(C4ScriptParser context) {
 					return type;
 				}
 			};

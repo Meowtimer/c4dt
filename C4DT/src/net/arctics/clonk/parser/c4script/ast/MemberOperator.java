@@ -81,13 +81,13 @@ public class MemberOperator extends ExprElm {
 	}
 
 	@Override
-	public IType getType(C4ScriptParser context) {
+	protected IType obtainType(C4ScriptParser context) {
 		// explicit id
 		if (id != null) {
 			return context.getContainer().getNearestObjectWithId(id);
 		}
 		// stuff before -> decides
-		return getPredecessorInSequence() != null ? getPredecessorInSequence().getType(context) : super.getType(context);
+		return getPredecessorInSequence() != null ? getPredecessorInSequence().getType(context) : super.obtainType(context);
 	}
 
 	@Override

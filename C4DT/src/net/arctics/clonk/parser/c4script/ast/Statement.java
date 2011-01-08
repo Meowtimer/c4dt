@@ -81,7 +81,7 @@ public class Statement extends ExprElm implements Cloneable {
 	}
 
 	@Override
-	public IType getType(C4ScriptParser context) {
+	protected IType obtainType(C4ScriptParser context) {
 		return null;
 	}
 

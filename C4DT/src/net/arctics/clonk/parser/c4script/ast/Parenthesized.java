@@ -23,12 +23,14 @@ public class Parenthesized extends Value {
 		this.innerExpr = innerExpr;
 		assignParentToSubElements();
 	}
+	@Override
 	public void doPrint(ExprWriter output, int depth) {
 		output.append("("); //$NON-NLS-1$
 		innerExpr.print(output, depth+1);
 		output.append(")"); //$NON-NLS-1$
 	}
-	public IType getType(C4ScriptParser context) {
+	@Override
+	protected IType obtainType(C4ScriptParser context) {
 		return innerExpr.getType(context);
 	}
 	@Override

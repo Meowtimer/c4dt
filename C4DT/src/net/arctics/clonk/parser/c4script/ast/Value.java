@@ -10,7 +10,7 @@ public abstract class Value extends ExprElm {
 	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 
 	@Override
-	public IType getType(C4ScriptParser context) {
+	protected IType obtainType(C4ScriptParser context) {
 		return context.queryTypeOfExpression(this, C4Type.ANY);
 	}
 	
