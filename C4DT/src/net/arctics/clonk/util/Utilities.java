@@ -515,6 +515,10 @@ public abstract class Utilities {
 		return (tolerance - (k - i)) * 256 / tolerance;
 	}
 	
+	public static <A, B> B as(A obj, Class<B> type) {
+		return type.isInstance(obj) ? type.cast(obj) : null;
+	}
+	
 	// --------
 	
 	public static String htmlerize(String text) {

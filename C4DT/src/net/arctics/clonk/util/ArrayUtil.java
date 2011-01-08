@@ -4,7 +4,6 @@ import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.NoSuchElementException;
 
 public class ArrayUtil {
 
@@ -87,6 +86,17 @@ public class ArrayUtil {
 			return null;
 		}
 	}
+	
+	@SuppressWarnings("unchecked")
+	public static <A, B> B[] filter(A[] array, Class<B> cls) {
+		List<B> items = new ArrayList<B>(array.length);
+		for (A item : array) {
+			if (cls.isAssignableFrom(item.getClass())) {
+				items.add((B)item);
+			}
+		}
+		return items.toArray((B[]) Array.newInstance(cls, items.size()));
+	}
 
 	public static <T> Iterable<T> arrayIterable(final T... items) {
 		return new Iterable<T>() {
@@ -94,15 +104,21 @@ public class ArrayUtil {
 				return new Iterator<T>() {
 					private int index = -1;
 					public boolean hasNext() {
-						return index+1<items.length;
+						for (int i = index+1; i < items.length; i++) {
+							if (items[i] != null) {
+								return true;
+							}
+						}
+						return false;
 					}
 
 					public T next() {
-						try {
-							return items[++index];
-						} catch (ArrayIndexOutOfBoundsException e) {
-							throw new NoSuchElementException("Array iterator fail"); //$NON-NLS-1$
+						for (index++; index < items.length; index++) {
+							if (items[index] != null) {
+								return items[index];
+							}
 						}
+						return null;
 					}
 
 					public void remove() {
