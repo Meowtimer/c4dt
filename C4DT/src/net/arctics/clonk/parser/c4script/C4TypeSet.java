@@ -11,7 +11,6 @@ import java.util.Set;
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.index.C4Object;
 import net.arctics.clonk.index.ClonkIndex;
-import net.arctics.clonk.util.ArrayUtil;
 
 public class C4TypeSet implements IType {
 
@@ -48,10 +47,38 @@ public class C4TypeSet implements IType {
 		}
 	};
 	
+	public final int size() {
+		return types.size();
+	}
+	
+	private static IType[] flatten(IType[] types) {
+		int newCount = types.length;
+		for (IType t : types) {
+			if (t == null)
+				newCount--;
+			else if (t instanceof C4TypeSet) {
+				newCount += ((C4TypeSet)t).size() - 1;
+			}
+		}
+		IType[] newArray = newCount == types.length ? types : new IType[newCount];
+		int i = 0;
+		for (IType t : types) {
+			if (t == null)
+				continue;
+			else if (t instanceof C4TypeSet) {
+				for (IType t2 : ((C4TypeSet)t)) {
+					newArray[i++] = t2;
+				}
+			} else
+				newArray[i++] = t;
+		}
+		return newArray;
+	}
+	
 	public static IType create(IType... ingredients) {
 		
 		// remove null elements most tediously
-		ingredients = ArrayUtil.removeNullElements(ingredients, IType.class);
+		ingredients = flatten(ingredients);
 		int actualCount = ingredients.length;
 		
 		// remove less specific types that are already contained in more specific ones
@@ -59,8 +86,11 @@ public class C4TypeSet implements IType {
 		for (int i = 0; i < actualCount; i++) {
 			IType t = ingredients[i];
 			for (int j = actualCount-1; j > i; j--) {
-				if (t.specificness() > ingredients[j].specificness() && t.containsType(ingredients[j]))
+				if (t.specificness() > ingredients[j].specificness() && t.containsType(ingredients[j])) {
+					for (int z = actualCount-1; z > j; z--)
+						ingredients[z-1] = ingredients[z];
 					actualCount--;
+				}
 			}
 		}
 		
