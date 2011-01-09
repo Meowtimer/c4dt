@@ -18,7 +18,6 @@ import net.arctics.clonk.parser.c4script.C4ScriptBase;
 import net.arctics.clonk.parser.c4script.C4Type;
 import net.arctics.clonk.parser.c4script.C4Variable;
 import net.arctics.clonk.parser.c4script.FindDeclarationInfo;
-import net.arctics.clonk.parser.c4script.IHasConstraint;
 import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.preferences.ClonkPreferences;
 import net.arctics.clonk.util.ArrayUtil;
@@ -238,13 +237,6 @@ public abstract class C4Object extends C4ScriptBase implements IType {
 			return this;
 		else
 			return C4Type.OBJECT;
-	}
-	
-	public static C4ScriptBase scriptFrom(IType type) {
-		if (type instanceof IHasConstraint)
-			return ((IHasConstraint)type).constraintScript();
-		else
-			return null;
 	}
 
 }

@@ -873,5 +873,17 @@ public abstract class C4ScriptBase extends C4Structure implements ITreeNode, IHa
 	public ConstraintKind constraintKind() {
 		return ConstraintKind.Exact;
 	}
+	
+	/**
+	 * Return script the passed type is associated with (or is literally)
+	 * @param type Type to return a script from
+	 * @return Associated script or null, if type is some primitive type or what have you
+	 */
+	public static C4ScriptBase scriptFrom(IType type) {
+		if (type instanceof IHasConstraint)
+			return ((IHasConstraint)type).constraintScript();
+		else
+			return null;
+	}
 
 }
