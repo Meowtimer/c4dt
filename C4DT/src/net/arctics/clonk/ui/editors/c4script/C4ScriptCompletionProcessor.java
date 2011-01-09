@@ -6,7 +6,6 @@ import java.util.LinkedList;
 import java.util.List;
 
 import net.arctics.clonk.ClonkCore;
-import net.arctics.clonk.index.C4Object;
 import net.arctics.clonk.index.C4Scenario;
 import net.arctics.clonk.index.ClonkIndex;
 import net.arctics.clonk.parser.c4script.BuiltInDefinitions;
@@ -23,11 +22,9 @@ import net.arctics.clonk.parser.c4script.C4ScriptParser.ExpressionsAndStatements
 import net.arctics.clonk.parser.c4script.C4Variable.C4VariableScope;
 import net.arctics.clonk.parser.c4script.ast.Conf;
 import net.arctics.clonk.parser.c4script.ast.ExprElm;
-import net.arctics.clonk.parser.c4script.ast.ScriptParserListener;
 import net.arctics.clonk.parser.c4script.ast.IStoredTypeInformation;
 import net.arctics.clonk.parser.c4script.ast.MemberOperator;
-import net.arctics.clonk.parser.c4script.ast.SimpleStatement;
-import net.arctics.clonk.parser.c4script.ast.TraversalContinuation;
+import net.arctics.clonk.parser.c4script.ast.Sequence;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.ui.editors.ClonkCompletionProcessor;
 import net.arctics.clonk.ui.editors.ClonkCompletionProposal;
@@ -267,34 +264,44 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 		if (editorScript != null) {
 			final int preservedOffset = offset - (activeFunc != null?activeFunc.getBody().getStart():0);
 			if (contextExpression == null && !specifiedParser) {
-				parser = C4ScriptParser.reportExpressionsAndStatements(doc, editorScript, activeFunc, new ScriptParserListener() {
-					public TraversalContinuation expressionDetected(ExprElm expression, C4ScriptParser parser) {
-						if (expression instanceof SimpleStatement) {
-							SimpleStatement s = (SimpleStatement) expression;
-							if (s.getExpression().getExprEnd() == preservedOffset) {
-								contextExpression = s.getExpression();
-								return TraversalContinuation.Cancel;
-							}
-						}
-						return TraversalContinuation.Continue;
-					}
-				}, null, ExpressionsAndStatementsReportingFlavour.AlsoStatements, false);
+				ExpressionLocator locator = new ExpressionLocator(preservedOffset);
+				parser = C4ScriptParser.reportExpressionsAndStatements(doc, editorScript, activeFunc, locator,
+					null, ExpressionsAndStatementsReportingFlavour.AlsoStatements, false);
+				contextExpression = locator.getExprAtRegion();
+				Sequence seq = contextExpression.getParent(Sequence.class);
+				if (seq != null) {
+					contextExpression = seq;
+				}
 				if (contextTypeInformation != null) {
 					parser.pushTypeInformationList(contextTypeInformation);
 					parser.applyStoredTypeInformationList(true);
 				}
 			}
 			if (contextExpression != null) {
-				IType guessedType = contextExpression.getType(parser);
-				for (IType t : guessedType) {
-					if (t instanceof C4Object) {
+				// cut off stuff after ->
+				if (contextExpression instanceof Sequence) {
+					Sequence seq = (Sequence) contextExpression;
+					for (int i = seq.getElements().length-1; i >= 0; i--) {
+						if (seq.getElements()[i] instanceof MemberOperator) {
+							if (i < seq.getElements().length-1)
+								contextExpression = seq.sequenceWithElementsRemovedFrom(seq.getElements()[i+1]);
+							break;
+						}
+					}
+				}
+				for (IType t : contextExpression.getType(parser)) {
+					C4ScriptBase script = C4ScriptBase.scriptFrom(t);
+					if (script != null) {
 						if (!contextScriptsChanged) {
 							contextScripts.clear();
 							contextScriptsChanged = true;
 						}
-						contextScripts.add((C4Object) t);
+						contextScripts.add(script);
 					}
 				}
+				// expression was of no use - discard and show global proposals
+				if (!contextScriptsChanged)
+					contextExpression = null;
 			}
 			parser.endTypeInferenceBlock();
 		}

@@ -368,8 +368,12 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable {
 		return t == null || t.canBeAssignedFrom(getType(context)) || canBeConvertedTo(t, context);
 	}
 
-	public TraversalContinuation traverse(IScriptParserListener listener) {
-		return traverse(listener, null);
+	public TraversalContinuation traverse(IScriptParserListener listener, int minimumParseRecursion) {
+		return traverse(listener, null, minimumParseRecursion);
+	}
+	
+	public final TraversalContinuation traverse(IScriptParserListener listener) {
+		return traverse(listener, null, 0);
 	}
 
 	/**
@@ -378,31 +382,35 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable {
 	 * @param parser the parser as contet
 	 * @return flow control for the calling function
 	 */
-	public TraversalContinuation traverse(IScriptParserListener listener, C4ScriptParser parser) {
-		TraversalContinuation c = listener.expressionDetected(this, parser);
-		switch (c) {
-		case Cancel:
-			return TraversalContinuation.Cancel;
-		case Continue:
-			break;
-		case TraverseSubElements:
-			break;
-		case SkipSubElements:
-			return TraversalContinuation.Continue;
-		}
+	public TraversalContinuation traverse(IScriptParserListener listener, C4ScriptParser parser, int minimumParseRecursion) {
+		TraversalContinuation result;
+		if (parsingRecursion >= minimumParseRecursion) {
+			result = listener.expressionDetected(this, parser);
+			switch (result) {
+			case Cancel:
+				return TraversalContinuation.Cancel;
+			case Continue: case TraverseSubElements:
+				break;
+			case SkipSubElements:
+				return TraversalContinuation.Continue;
+			}
+		} else
+			result = TraversalContinuation.Continue;
 		for (ExprElm sub : getSubElements()) {
 			if (sub == null)
 				continue;
-			switch (sub.traverse(listener, parser)) {
-			case Cancel:
-				return TraversalContinuation.Cancel;
+			switch (sub.traverse(listener, parser, minimumParseRecursion)) {
 			case Continue:
 				break;
-			case TraverseSubElements:
-				return TraversalContinuation.Cancel;
+			case TraverseSubElements: case Cancel:
+				result = TraversalContinuation.Cancel;
 			}
 		}
-		return c;
+		return result;
+	}
+	
+	public final TraversalContinuation traverse(IScriptParserListener listener, C4ScriptParser parser) {
+		return traverse(listener, parser, 0);
 	}
 
 	public IRegion region(int offset) {

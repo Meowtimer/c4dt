@@ -44,8 +44,13 @@ public class AccessVar extends AccessDeclaration {
 		return
 			// either null or
 			predecessor == null ||
-			// following a dot
-			(predecessor instanceof MemberOperator && ((MemberOperator)predecessor).dotNotation);
+			// normally, a check would be performed whether the MemberOperator uses '.' instead of '->'
+			// but in order to avoid the case where writing obj->StartOfFuncName is interpreted as
+			// two not-properly-finished statements (obj->; and StartOfFuncName;) and then having
+			// the StartOfFuncName; statement be replaced by the function call which will then have no
+			// parameter information since the function only exists in the definition of obj that is not
+			// consulted in that case, the '.' rule is enforced not here but in reportErrors (!!1)
+			predecessor instanceof MemberOperator;
 	}
 
 	@Override
@@ -76,7 +81,8 @@ public class AccessVar extends AccessDeclaration {
 	@Override
 	public void reportErrors(C4ScriptParser parser) throws ParsingException {
 		super.reportErrors(parser);
-		if (declaration == null && getPredecessorInSequence() == null) {
+		ExprElm pred = getPredecessorInSequence();
+		if (declaration == null && pred == null) {
 			parser.errorWithCode(ParserErrorCode.UndeclaredIdentifier, this, true, declarationName);
 		}
 		// local variable used in global function
@@ -108,6 +114,9 @@ public class AccessVar extends AccessDeclaration {
 					}
 					break;
 			}
+		}
+		if (pred != null && pred instanceof MemberOperator && !((MemberOperator)pred).dotNotation) {
+			parser.errorWithCode(ParserErrorCode.DotNotationInsteadOfArrow, this, true, this.getDeclarationName());
 		}
 	}
 

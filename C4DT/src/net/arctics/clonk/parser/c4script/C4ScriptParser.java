@@ -2977,7 +2977,7 @@ public class C4ScriptParser extends CStyleScanner {
 			String functionSource = functionSource(func);
 			final Block cachedBlock = func != null ? func.getCodeBlock(functionSource) : null;
 			if (cachedBlock == null) {
-				System.out.println("Reparsing necessary...");
+				// code changed - reparse
 				func.clearLocalVars();
 				strictLevel = getContainer().getStrictLevel();
 				enableErrors(EnumSet.of(
@@ -3008,14 +3008,7 @@ public class C4ScriptParser extends CStyleScanner {
 							try {
 								parser.reportErrorsOf(expression);
 							} catch (ParsingException e) {}
-							if (expression == cachedBlock) {
-								return TraversalContinuation.Continue;
-							}
-							else if (expression.getParsingRecursion() <= 1) {
-								return listener != null ? listener.expressionDetected(expression, parser) : TraversalContinuation.Continue;
-							} else {
-								return TraversalContinuation.SkipSubElements;
-							}
+							return listener != null ? listener.expressionDetected(expression, parser) : TraversalContinuation.Continue;
 						}
 
 						@Override
@@ -3024,12 +3017,12 @@ public class C4ScriptParser extends CStyleScanner {
 								listener.endTypeInferenceBlock(typeInfos);
 							}
 						}
-					}, this);
+					}, this, 1);
 					warnAboutUnusedFunctionVariables(func, cachedBlock);
 					applyStoredTypeInformationList(true);
 				} else {
 					// just traverse... this should be faster than reparsing -.-
-					cachedBlock.traverse(listener);
+					cachedBlock.traverse(listener, 1);
 				}
 			}
 		} 
