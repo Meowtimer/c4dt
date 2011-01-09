@@ -16,7 +16,7 @@ public class ConstrainedObject implements IType, IHasConstraint {
 
 	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 
-	private C4ScriptBase obligatoryInclude;
+	private C4ScriptBase constraintScript;
 	private ConstraintKind constraintKind;
 	private transient Iterable<IType> iterable;
 	
@@ -26,7 +26,7 @@ public class ConstrainedObject implements IType, IHasConstraint {
 	 */
 	@Override
 	public C4ScriptBase constraintScript() {
-		return obligatoryInclude;
+		return constraintScript;
 	}
 	
 	@Override
@@ -36,14 +36,14 @@ public class ConstrainedObject implements IType, IHasConstraint {
 	
 	public ConstrainedObject(C4ScriptBase obligatoryInclude, ConstraintKind constraintKind) {
 		super();
-		this.obligatoryInclude = obligatoryInclude;
+		this.constraintScript = obligatoryInclude;
 		this.constraintKind = constraintKind;
 	}
 
 	@Override
 	public Iterator<IType> iterator() {
 		if (iterable == null)
-			iterable = ArrayUtil.arrayIterable(C4Type.OBJECT, C4Type.PROPLIST, obligatoryInclude instanceof IType ? (IType)obligatoryInclude : null);
+			iterable = ArrayUtil.arrayIterable(C4Type.OBJECT, C4Type.PROPLIST, constraintScript instanceof IType ? (IType)constraintScript : null);
 		return iterable.iterator();
 	}
 
@@ -55,13 +55,29 @@ public class ConstrainedObject implements IType, IHasConstraint {
 		if (other instanceof C4ScriptBase)
 			script = (C4ScriptBase)other;
 		if (other instanceof ConstrainedObject)
-			script = ((ConstrainedObject)other).obligatoryInclude;
-		return script != null && script.includes(obligatoryInclude);
+			script = ((ConstrainedObject)other).constraintScript;
+		return script != null && script.includes(constraintScript);
 	}
 
 	@Override
 	public String typeName(boolean special) {
-		return String.format("<Object including '%s'>", obligatoryInclude instanceof IType ? ((IType)obligatoryInclude).typeName(false) : obligatoryInclude.toString());
+		if (constraintScript == null)
+			return IType.ERRONEOUS_TYPE;
+		String formatString;
+		switch (constraintKind) {
+		case CallerType:
+			formatString = Messages.ConstrainedObject_ObjectOfCurrentType;
+			break;
+		case Exact:
+			formatString = "'%s'"; //$NON-NLS-1$
+			break;
+		case Includes:
+			formatString = Messages.ConstrainedObject_ObjectIncluding;
+			break;
+		default:
+			return IType.ERRONEOUS_TYPE;
+		}
+		return String.format(formatString, constraintScript instanceof IType ? ((IType)constraintScript).typeName(false) : constraintScript.toString());
 	}
 	
 	@Override
@@ -91,8 +107,8 @@ public class ConstrainedObject implements IType, IHasConstraint {
 
 	@Override
 	public int specificness() {
-		if (obligatoryInclude instanceof C4Object)
-			return ((C4Object)obligatoryInclude).specificness()+1;
+		if (constraintScript instanceof C4Object)
+			return ((C4Object)constraintScript).specificness()+1;
 		else
 			return C4Type.OBJECT.specificness();
 	}
@@ -104,11 +120,20 @@ public class ConstrainedObject implements IType, IHasConstraint {
 
 	@Override
 	public IType serializableVersion(ClonkIndex indexToBeSerialized) {
-		if (obligatoryInclude.getIndex() == indexToBeSerialized) {
+		if (constraintScript.getIndex() == indexToBeSerialized) {
 			return this;
 		} else {
 			return C4Type.OBJECT;
 		}
+	}
+	
+	@Override
+	public boolean equals(Object obj) {
+		if (obj instanceof ConstrainedObject) {
+			ConstrainedObject cobj = (ConstrainedObject) obj;
+			return cobj.constraintKind == this.constraintKind && cobj.constraintScript == this.constraintScript;
+		}
+		return false;
 	}
 
 }

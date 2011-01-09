@@ -86,7 +86,8 @@ public class C4TypeSet implements IType {
 		for (int i = 0; i < actualCount; i++) {
 			IType t = ingredients[i];
 			for (int j = actualCount-1; j > i; j--) {
-				if (t.specificness() > ingredients[j].specificness() && t.containsType(ingredients[j])) {
+				IType other = ingredients[j];
+				if (other.equals(t) || (t.specificness() > other.specificness() && t.containsType(other))) {
 					for (int z = actualCount-1; z > j; z--)
 						ingredients[z-1] = ingredients[z];
 					actualCount--;
@@ -160,16 +161,16 @@ public class C4TypeSet implements IType {
 		}
 		
 		StringBuilder builder = new StringBuilder(20);
-		builder.append("<");
+		builder.append(Messages.C4TypeSet_Start);
 		boolean started = true;
 		for (String tn : typeNames) {
 			if (started)
 				started = false;
 			else
-				builder.append(" or ");
+				builder.append(Messages.C4TypeSet_Or);
 			builder.append(tn);
 		}
-		builder.append(">");
+		builder.append(Messages.C4TypeSet_End);
 		return builder.toString();
 	}
 	

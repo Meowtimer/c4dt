@@ -8,6 +8,9 @@ import net.arctics.clonk.index.ClonkIndex;
  * Classes conforming to this interface may be a specific type or a set of types
  */
 public interface IType extends Iterable<IType>, Serializable {
+	
+	static final String ERRONEOUS_TYPE = Messages.IType_ErroneousType;
+
 	boolean canBeAssignedFrom(IType other);
 	String typeName(boolean special);
 	boolean intersects(IType typeSet);

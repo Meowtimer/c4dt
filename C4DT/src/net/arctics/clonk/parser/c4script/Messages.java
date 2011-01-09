@@ -7,14 +7,23 @@ public class Messages extends NLS {
 	public static String DescriptionNotAvailable;
 	public static String C4Function_InfoTextTemplate;
 	public static String C4ScriptParser_Or;
+	public static String C4TypeSet_End;
+	public static String C4TypeSet_Or;
+	public static String C4TypeSet_Start;
 	public static String C4Variable_InfoTextFormatConstValue;
 	public static String C4Variable_InfoTextFormatDefaultValue;
 	public static String C4Variable_InfoTextFormatOverall;
 	public static String C4Variable_InfoTextFormatUserDescription;
+	public static String ConstrainedObject_ObjectIncluding;
+	public static String ConstrainedObject_ObjectOfCurrentType;
+	public static String ConstrainedType_CurrentType;
+	public static String ConstrainedType_DefinitionIncluding;
+	public static String ConstrainedType_ExactType;
 	public static String ImportingEngineFromXML;
 	public static String TokenStringOrIdentifier;
 	public static String InternalError_WayTooMuch;
 	public static String InternalParserError;
+	public static String IType_ErroneousType;
 	public static String This_Description;
 	static {
 		// initialize resource bundle

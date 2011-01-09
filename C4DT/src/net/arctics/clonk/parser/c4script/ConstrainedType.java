@@ -47,15 +47,17 @@ public class ConstrainedType implements IType, IHasConstraint, Serializable {
 
 	@Override
 	public String typeName(boolean special) {
+		if (constraintScript == null)
+			return IType.ERRONEOUS_TYPE;
 		switch (constraintKind) {
 		case Includes:
-			return String.format("<Definition including %s>", constraintScriptToString(special));
+			return String.format(Messages.ConstrainedType_DefinitionIncluding, constraintScriptToString(special));
 		case CallerType:
-			return "<Current type>";
+			return Messages.ConstrainedType_CurrentType;
 		case Exact:
-			return String.format("<Type %s>", constraintScriptToString(special));
+			return String.format(Messages.ConstrainedType_ExactType, constraintScriptToString(special));
 		default:
-			return "<Fail>";
+			return IType.ERRONEOUS_TYPE;
 		}
 	}
 
@@ -112,6 +114,15 @@ public class ConstrainedType implements IType, IHasConstraint, Serializable {
 		return (kind == ConstraintKind.Exact) && script instanceof C4Object
 			? ((C4Object)script).getObjectType()
 			: new ConstrainedType(script, kind);
+	}
+	
+	@Override
+	public boolean equals(Object obj) {
+		if (obj instanceof ConstrainedType) {
+			ConstrainedType cobj = (ConstrainedType) obj;
+			return cobj.constraintKind == this.constraintKind && cobj.constraintScript == this.constraintScript;
+		}
+		return false;
 	}
 
 }
