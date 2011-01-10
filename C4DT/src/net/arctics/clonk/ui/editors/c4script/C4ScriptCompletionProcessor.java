@@ -268,9 +268,11 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 				parser = C4ScriptParser.reportExpressionsAndStatements(doc, editorScript, activeFunc, locator,
 					null, ExpressionsAndStatementsReportingFlavour.AlsoStatements, false);
 				contextExpression = locator.getExprAtRegion();
-				Sequence seq = contextExpression.getParent(Sequence.class);
-				if (seq != null) {
-					contextExpression = seq;
+				if (contextExpression != null) {
+					Sequence seq = contextExpression.getParent(Sequence.class);
+					if (seq != null) {
+						contextExpression = seq;
+					}
 				}
 				if (contextTypeInformation != null) {
 					parser.pushTypeInformationList(contextTypeInformation);
