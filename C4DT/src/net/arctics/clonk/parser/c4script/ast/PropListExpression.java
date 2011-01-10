@@ -34,6 +34,7 @@ public class PropListExpression extends Value implements IType, IPostSerializabl
 	
 	public PropListExpression(ProplistDeclaration declaration) {
 		this.definedDeclaration = declaration;
+		assignParentToSubElements();
 	}
 	@Override
 	public void doPrint(ExprWriter output, int depth) {
