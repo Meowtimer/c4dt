@@ -7,6 +7,7 @@ import org.eclipse.core.resources.IFile;
 import org.eclipse.jface.text.DocumentEvent;
 import org.eclipse.jface.text.IDocumentListener;
 import org.eclipse.jface.viewers.ISelection;
+import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.swt.widgets.Composite;
 
@@ -44,11 +45,11 @@ public class MapCreatorEditor extends ClonkTextEditor {
 			parsed = true;
 			ClonkPreviewView view = (ClonkPreviewView) getSite().getWorkbenchWindow().getActivePage().findView(ClonkPreviewView.ID);
 			if (view != null) {
-				ISelection sel = view.getSelectionOfInterest();
+				IStructuredSelection sel = Utilities.as(view.getSelectionOfInterest(), IStructuredSelection.class);
 				IFile file = Utilities.getEditingFile(this);
 				if (
 					mapCreator != null && mapCreator.getEngine() != null && mapCreator.getEngine().getCurrentSettings().supportsEmbeddedUtilities &&
-					sel != null && sel.equals(new StructuredSelection(file))
+					sel != null && sel.getFirstElement().equals(file)
 				) {
 					view.schedulePreviewUpdaterJob();
 				}

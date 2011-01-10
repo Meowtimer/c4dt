@@ -258,7 +258,7 @@ public class ClonkPreviewView extends ViewPart implements ISelectionListener, Co
 					// render landscape.txt using utility embedded into OpenClonk
 					ClonkProjectNature nature = ClonkProjectNature.get(file);
 					C4Engine engine = nature != null ? nature.getIndex().getEngine() : null;
-					if (engine != null && engine.getCurrentSettings().supportsEmbeddedUtilities) {
+					if (engine != null && engine.getCurrentSettings().supportsEmbeddedUtilities) try {
 						if (tempLandscapeRenderFile == null) {
 							tempLandscapeRenderFile = File.createTempFile("c4dt", "landscaperender");
 							tempLandscapeRenderFile.deleteOnExit();
@@ -292,6 +292,8 @@ public class ClonkPreviewView extends ViewPart implements ISelectionListener, Co
 								stream.close();
 							}
 						}
+					} catch (Exception e) {
+						e.printStackTrace();
 					}
 				}
 				else if (fileName.endsWith(".rtf")) { //$NON-NLS-1$

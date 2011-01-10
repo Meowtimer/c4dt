@@ -1,7 +1,9 @@
 package net.arctics.clonk.parser.mapcreator;
 
 import net.arctics.clonk.ClonkCore;
+import net.arctics.clonk.index.C4Engine;
 import net.arctics.clonk.parser.C4Structure;
+import net.arctics.clonk.resource.ClonkProjectNature;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
@@ -42,6 +44,12 @@ public class C4MapCreator extends C4Map {
 				return null;
 			}
 		});
+	}
+	
+	@Override
+	public C4Engine getEngine() {
+		ClonkProjectNature nature = ClonkProjectNature.get(file);
+		return nature != null && nature.getIndex() != null ? nature.getIndex().getEngine() : super.getEngine();
 	}
 
 }
