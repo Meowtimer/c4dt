@@ -169,7 +169,7 @@ public class CallFunc extends AccessDeclaration {
 		if (params != null) {
 			for (int i = 0; i < params.length; i++) {
 				if (params[i] != null)
-					params[i].print(output, depth+1);
+					params[i].print(output, depth);
 				if (i < params.length-1)
 					output.append(", "); //$NON-NLS-1$
 			}
