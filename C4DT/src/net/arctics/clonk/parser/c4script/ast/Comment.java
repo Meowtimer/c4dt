@@ -86,9 +86,15 @@ public class Comment extends Statement implements Statement.Attachment {
 	@Override
 	public DeclarationRegion declarationAt(int offset, C4ScriptParser parser) {
 		// parse comment as expression and see what goes
-		ExpressionLocator locator = new ExpressionLocator(offset-2); // make up for '//' or /*'
+		ExpressionLocator locator = new ExpressionLocator(offset-2-parser.bodyOffset()); // make up for '//' or /*'
 		try {
-			C4ScriptParser.parseStandaloneStatement(comment, parser.getCurrentFunc(), locator, null);
+			C4ScriptParser commentParser= new C4ScriptParser(comment, parser.getContainer(), parser.getContainer().getScriptFile()) {
+				@Override
+				public int bodyOffset() {
+					return 0;
+				}
+			};
+			commentParser.parseStandaloneStatement(comment, parser.getCurrentFunc(), locator);
 		} catch (ParsingException e) {}
 		if (locator.getExprAtRegion() != null) {
 			DeclarationRegion reg = locator.getExprAtRegion().declarationAt(offset, parser);
