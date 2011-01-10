@@ -1479,6 +1479,17 @@ public class C4ScriptParser extends CStyleScanner {
 		return markerWithCode(code, errorStart, errorEnd, false, IMarker.SEVERITY_ERROR, args);
 	}
 	
+	/**
+	 * Create a code marker.
+	 * @param code The error code
+	 * @param markerStart Start of the marker (relative to function body)
+	 * @param markerEnd End of the marker (relative to function body)
+	 * @param noThrow true means that no exception will be thrown after creating the marker.
+	 * @param severity IMarker severity value
+	 * @param args Format arguments used when creating the marker message with the message from the error code as the format.
+	 * @return The created marker or null if for some reason it was decided to not create a marker.
+	 * @throws ParsingException
+	 */
 	public IMarker markerWithCode(ParserErrorCode code, int markerStart, int markerEnd, boolean noThrow, int severity, Object... args) throws ParsingException {
 		if (errorDisabled(code)) {
 			return null;
@@ -1520,7 +1531,7 @@ public class C4ScriptParser extends CStyleScanner {
 		return false;
 	}
 	
-	public ExprElm parseExpressionWithoutOperators(boolean reportErrors) throws ParsingException {
+	private ExprElm parseExpressionWithoutOperators(boolean reportErrors) throws ParsingException {
 		int beforeWhitespaceStart = this.offset;
 		eatWhitespace();
 		int sequenceStart = this.offset;
@@ -2001,10 +2012,19 @@ public class C4ScriptParser extends CStyleScanner {
 	
 	private transient ExprElm expressionReportingErrors;
 	
+	/**
+	 * The expression that is currently reporting errors.
+	 * @return The expression reporting errors
+	 */
 	public ExprElm getExpressionReportingErrors() {
 		return expressionReportingErrors;
 	}
 	
+	/**
+	 * Convert a region relative to the body offset of the current function to a script-absolute region.
+	 * @param region The region to convert
+	 * @return The relative region or the passed region, if there is no current function.
+	 */
 	public IRegion convertRelativeRegionToAbsolute(IRegion region) {
 		int offset = bodyOffset();
 		if (offset == 0) {
@@ -2025,6 +2045,12 @@ public class C4ScriptParser extends CStyleScanner {
 		}
 	}
 
+	/**
+	 * Let an expression report errors. Calling expression.reportErrors indirectly like that ensures
+	 * that error markers created will be decorated with information about the expression reporting the error.
+	 * @param expression The expression to report errors.
+	 * @throws ParsingException
+	 */
 	private void reportErrorsOf(ExprElm expression) throws ParsingException {
 		ExprElm saved = expressionReportingErrors;
 		expressionReportingErrors = expression;
@@ -2035,6 +2061,12 @@ public class C4ScriptParser extends CStyleScanner {
 		}
 	}
 	
+	/**
+	 * Let an expression report errors, but with one error disabled.
+	 * @param expression The expression to report errors.
+	 * @param code Code of the error that will be disabled.
+	 * @throws ParsingException
+	 */
 	private void reportErrorsWithErrorDisabled(ExprElm expression, ParserErrorCode code) throws ParsingException {
 		ExprElm saved = expressionReportingErrors;
 		expressionReportingErrors = expression;
@@ -2068,6 +2100,11 @@ public class C4ScriptParser extends CStyleScanner {
 	}
 	private static final char[] QUOTES_AND_NEWLINE_CHARS = getQuotesAndNewLineChars();
 	
+	/**
+	 * Parse a string literal and store it in the parsedString field.
+	 * @return Whether parsing was successful.
+	 * @throws ParsingException
+	 */
 	private boolean parseString() throws ParsingException {
 		int quotes = read();
 		if (quotes != '"') {
@@ -2090,6 +2127,11 @@ public class C4ScriptParser extends CStyleScanner {
 		return true;
 	}
 	
+	/**
+	 * Parse an identifier an store it in the parsedString field.
+	 * @return Whether parsing the identifier was successful.
+	 * @throws ParsingException
+	 */
 	private boolean parseIdentifier() throws ParsingException {
 		String word = readIdent();
 		if (word != null && word.length() > 0) {
@@ -2099,6 +2141,11 @@ public class C4ScriptParser extends CStyleScanner {
 		return false;
 	}
 	
+	/**
+	 * Parse a $...$ placeholder.
+	 * @return Whether there was a placeholder at the current offset.
+	 * @throws ParsingException
+	 */
 	private boolean parsePlaceholderString() throws ParsingException {
 		int delimiter = read();
 		if (delimiter != '$') {
@@ -2117,17 +2164,42 @@ public class C4ScriptParser extends CStyleScanner {
 		return true;
 	}
 	
+	/**
+	 * Options specifying how a statement is to be parsed.
+	 * @author madeen
+	 *
+	 */
 	public enum ParseStatementOption {
+		/**
+		 * The statement is expected to be an initialization statement
+		 */
 		InitializationStatement,
+		/**
+		 * The statement could be a function desc. Without this option, a function description is likely to be interpreted as array expression.
+		 */
 		ExpectFuncDesc;
 		
+		/**
+		 * Empty ParseStatementOption set.
+		 */
 		public static final EnumSet<ParseStatementOption> NoOptions = EnumSet.noneOf(ParseStatementOption.class);
 	}
 	
+	/**
+	 * Parse a statement without specifying options.
+	 * @return The parsed statement or null if parsing was unsuccessful.
+	 * @throws ParsingException
+	 */
 	private Statement parseStatement() throws ParsingException {
 		return parseStatement(ParseStatementOption.NoOptions);
 	}
 	
+	/**
+	 * Parse a statement with its own type inference block, which will be merged into the passed merger object.
+	 * @param merger The merger helper object to merge the exclusively created type information block into.
+	 * @return The parsed statement or null if parsing was unsuccessful. 
+	 * @throws ParsingException
+	 */
 	private Statement parseStatementWithOwnTypeInferenceBlock(TypeInformationMerger merger) throws ParsingException {
 		List<IStoredTypeInformation> block = beginTypeInferenceBlock();
 		try {
@@ -2141,6 +2213,12 @@ public class C4ScriptParser extends CStyleScanner {
 		}
 	}
 	
+	/**
+	 * Parse a statement.
+	 * @param options Options on how to parse the statement
+	 * @return The parsed statement or null if parsing was unsuccessful.
+	 * @throws ParsingException
+	 */
 	private Statement parseStatement(EnumSet<ParseStatementOption> options) throws ParsingException {
 		parseStatementRecursion++;
 		try {
@@ -2255,6 +2333,15 @@ public class C4ScriptParser extends CStyleScanner {
 
 	}
 
+	/**
+	 * Parse a statement block and add parsed statements to the passed list.
+	 * @param start Start of the block. Used for error reporting if the end of the block cannot be found.
+	 * @param endOfFunc Position after which to stop the statement parsing loop, even if the regular block end hasn't been found.
+	 * @param statements List the parsed statements will be added to.
+	 * @param options Option enum set specifying how the statements are to be parsed
+	 * @param flavour Whether parsing statements or only expressions
+	 * @throws ParsingException
+	 */
 	private void parseStatementBlock(int start, int endOfFunc, List<Statement> statements, EnumSet<ParseStatementOption> options, ExpressionsAndStatementsReportingFlavour flavour) throws ParsingException {
 		boolean foundClosingBracket = false;
 		boolean notReached = false;
@@ -2948,7 +3035,7 @@ public class C4ScriptParser extends CStyleScanner {
 			PassThrough
 		}
 		/**
-		 * Called when a marker is about to created. The listener gets a chance to do its own processing and possibly order the calling parser to forego creating the actual marker regularly.
+		 * Called when a marker is about to be created. The listener gets a chance to do its own processing and possibly order the calling parser to forego creating the actual marker regularly.
 		 * @param parser The parser the listener is attached to
 		 * @param code the parser error code
 		 * @param markerStart start of the marker region
@@ -3111,7 +3198,7 @@ public class C4ScriptParser extends CStyleScanner {
 		final int statementEnd = funcOrRegion.getOffset()+funcOrRegion.getLength();
 		try {
 			// totally important to add the ")". Makes completion proposals work. DO NOT REMOVE!1
-			statements_ = doc.get(statementStart, Math.min(statementEnd-statementStart, doc.getLength()-statementStart)) + ")"; //$NON-NLS-1$
+			statements_ = doc.get(statementStart, Math.min(statementEnd-statementStart, doc.getLength()-statementStart)); //$NON-NLS-1$
 		} catch (BadLocationException e) {
 			statements_ = ""; // well... //$NON-NLS-1$
 		}
@@ -3126,19 +3213,8 @@ public class C4ScriptParser extends CStyleScanner {
 				return 0;
 			}
 			@Override
-			protected String modifyGarbage(String garbage) {
-				if (garbage.equals(")")) {
-					return null;
-				} else if (garbage.endsWith(")")) {
-					return garbage.substring(0, garbage.length()-1);
-				} else {
-					return garbage;
-				}
-			}
-			@Override
 			protected String functionSource(C4Function function) {
-				// don't calculate the ')' in!1
-				return statements.substring(0, statements.length()-1);
+				return statements;
 			}
 		};
 		parser.reportExpressionsAndStatements(funcOrRegion, listener, flavour, reportErrors);
