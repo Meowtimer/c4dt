@@ -3,6 +3,8 @@ package net.arctics.clonk.parser.c4script;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.eclipse.jface.text.Region;
+
 import net.arctics.clonk.index.C4Object;
 import net.arctics.clonk.index.C4Scenario;
 import net.arctics.clonk.index.ClonkIndex;
@@ -211,6 +213,22 @@ public class SpecialScriptRules {
 		};
 	};
 	
+	protected final SpecialFuncRule scheduleCallLinkRule = new SpecialFuncRule() {
+		@Override
+		public DeclarationRegion locateDeclarationInParameter(CallFunc callFunc, C4ScriptParser parser, int index, int offsetInExpression, ExprElm parmExpression) {
+			if (index == 1 && parmExpression instanceof StringLiteral) {
+				StringLiteral lit = (StringLiteral) parmExpression;
+				IType t = callFunc.getParams()[0].getType(parser);
+				C4ScriptBase scriptToLookIn = t instanceof C4ScriptBase ? (C4ScriptBase)t : parser.getContainer();
+				C4Function func = scriptToLookIn.findFunction(lit.getLiteral());
+				if (func != null) {
+					return new DeclarationRegion(func, new Region(lit.getExprStart()+1, lit.getLength()-2));
+				}
+			}
+			return null;
+		};
+	};
+	
 	/**
 	 * Validate parameters for Add/Append/Set Command differently according to the command parameter
 	 */
@@ -343,6 +361,7 @@ public class SpecialScriptRules {
 		putFuncRule(getIDRule, "GetID");
 		putFuncRule(criteriaSearchRule, "FindObjects");
 		putFuncRule(scheduleScriptValidationRule, "Schedule");
+		putFuncRule(scheduleCallLinkRule, "ScheduleCall");
 		putFuncRule(addCommandValidationRule, "AddCommand", "AppendCommand", "SetCommand");
 		putFuncRule(gameCallLinkRule, "GameCall");
 		putFuncRule(callLinkRule, "Call");
