@@ -11,15 +11,13 @@ import net.arctics.clonk.parser.c4script.C4Directive;
 import net.arctics.clonk.parser.c4script.C4Function;
 import net.arctics.clonk.parser.c4script.C4ScriptBase;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
-import net.arctics.clonk.parser.ParsingException;
+import net.arctics.clonk.parser.c4script.C4ScriptParser.ExpressionsAndStatementsReportingFlavour;
 import net.arctics.clonk.parser.c4script.ast.AccessDeclaration;
 import net.arctics.clonk.parser.c4script.ast.CallFunc;
 import net.arctics.clonk.parser.c4script.ast.ExprElm;
 import net.arctics.clonk.parser.c4script.ast.ScriptParserListener;
 import net.arctics.clonk.parser.c4script.ast.IDLiteral;
-import net.arctics.clonk.parser.c4script.ast.IScriptParserListener;
 import net.arctics.clonk.parser.c4script.ast.MemberOperator;
-import net.arctics.clonk.parser.c4script.ast.Statement;
 import net.arctics.clonk.parser.c4script.ast.StringLiteral;
 import net.arctics.clonk.parser.c4script.ast.TraversalContinuation;
 import net.arctics.clonk.parser.inireader.ComplexIniEntry;
@@ -76,95 +74,114 @@ public class ClonkSearchQuery implements ISearchQuery {
 		}
 		return result;
 	}
+	
+	private class UltimateListener extends ScriptParserListener implements IResourceVisitor {
+
+		private StringLiteral functionNameExpr;
+
+		private boolean potentiallyReferencedByObjectCall(ExprElm expression) {
+			if (expression instanceof CallFunc && expression.getPredecessorInSequence() instanceof MemberOperator) {
+				CallFunc callFunc = (CallFunc) expression;
+				return callFunc.getDeclarationName().equals(declaration.getName());
+			}
+			return false;
+		}
+
+		private boolean potentiallyReferencedByCallFunction(AccessDeclaration expression, C4ScriptParser parser) {
+			functionNameExpr = null;
+			if (expression instanceof CallFunc) {
+				CallFunc callFunc = (CallFunc) expression;
+				for (ExprElm e : callFunc.getParams()) {
+					// ask the string literals whether they might refer to a function
+					if (e instanceof StringLiteral) {
+						functionNameExpr = (StringLiteral) e;
+						DeclarationRegion decRegion = e.declarationAt(0, parser);
+						if (decRegion != null)
+							return decRegion.getDeclaration() == declaration;
+						break;
+					}
+				}
+			}
+			return false;
+		}
+		
+		@Override
+		public TraversalContinuation expressionDetected(ExprElm expression, C4ScriptParser parser) {
+			if (expression instanceof AccessDeclaration) {
+				AccessDeclaration accessDeclExpr = (AccessDeclaration) expression;
+				if (accessDeclExpr.getDeclaration(parser) == declaration)
+					result.addMatch(expression, parser, false, accessDeclExpr.indirectAccess());
+				else if (Utilities.isAnyOf(accessDeclExpr.getDeclaration(), expression.getCachedFuncs(parser).CallFunctions) && potentiallyReferencedByCallFunction(accessDeclExpr, parser)) {
+					result.addMatch(functionNameExpr, parser, true, true);
+				}
+				else if (potentiallyReferencedByObjectCall(expression)) {
+					C4Function otherFunc = (C4Function) accessDeclExpr.getDeclaration();
+					boolean potential = (otherFunc == null || !((C4Function)declaration).isRelatedFunction(otherFunc));
+					result.addMatch(expression, parser, potential, accessDeclExpr.indirectAccess());
+				}
+			}
+			else if (expression instanceof IDLiteral && declaration instanceof C4ScriptBase) {
+				if (expression.guessObjectType(parser) == declaration)
+					result.addMatch(expression, parser, false, false);
+			}
+			return TraversalContinuation.Continue;
+		}
+		
+		@Override
+		public int minimumParsingRecursion() {
+			return 0;
+		}
+		
+		@Override
+		public boolean visit(IResource resource) throws CoreException {
+			if (resource instanceof IFile) {
+				C4ScriptBase script = C4ScriptBase.get((IFile) resource, true);
+				if (script != null) {
+					searchScript(resource, script);
+				}
+			}
+			return true;
+		}
+		
+		public void searchScript(IResource resource, C4ScriptBase script) {
+			C4ScriptParser parser = new C4ScriptParser(script);
+			if (declaration instanceof C4Object) {
+				C4Directive include = script.getIncludeDirectiveFor((C4Object) declaration);
+				if (include != null)
+					result.addMatch(include.getExprElm(), parser, false, false);
+			}
+			for (C4Function f : script.functions()) {
+				parser.setCurrentFunc(f);
+				parser.reportExpressionsAndStatements(f, this, ExpressionsAndStatementsReportingFlavour.AlsoStatements, false);
+			}
+			
+			// also search related files (actmap, defcore etc)
+			try {
+				searchScriptRelatedFiles(script);
+			} catch (CoreException e) {
+				e.printStackTrace();
+			}
+		}
+		
+	}
 
 	public IStatus run(IProgressMonitor monitor) throws OperationCanceledException {
 		getSearchResult(); // make sure we have one
-		final ScriptParserListener searchExpression = new ScriptParserListener() {
-			
-			private StringLiteral functionNameExpr;
-			
-			private boolean potentiallyReferencedByObjectCall(ExprElm expression) {
-				if (expression instanceof CallFunc && expression.getPredecessorInSequence() instanceof MemberOperator) {
-					CallFunc callFunc = (CallFunc) expression;
-					return callFunc.getDeclarationName().equals(declaration.getName());
-				}
-				return false;
-			}
-			private boolean potentiallyReferencedByCallFunction(AccessDeclaration expression, C4ScriptParser parser) {
-				functionNameExpr = null;
-				if (expression instanceof CallFunc) {
-					CallFunc callFunc = (CallFunc) expression;
-					for (ExprElm e : callFunc.getParams()) {
-						// ask the string literals whether they might refer to a function
-						if (e instanceof StringLiteral) {
-							functionNameExpr = (StringLiteral) e;
-							DeclarationRegion decRegion = e.declarationAt(0, parser);
-							if (decRegion != null)
-								return decRegion.getDeclaration() == declaration;
-							break;
-						}
-					}
-				}
-				return false;
-			}
-			public TraversalContinuation expressionDetected(ExprElm expression, C4ScriptParser parser) {
-				if (expression instanceof AccessDeclaration) {
-					AccessDeclaration accessDeclExpr = (AccessDeclaration) expression;
-					if (accessDeclExpr.getDeclaration(parser) == declaration)
-						result.addMatch(expression, parser, false, accessDeclExpr.indirectAccess());
-					else if (Utilities.isAnyOf(accessDeclExpr.getDeclaration(), expression.getCachedFuncs(parser).CallFunctions) && potentiallyReferencedByCallFunction(accessDeclExpr, parser)) {
-						result.addMatch(functionNameExpr, parser, true, true);
-					}
-					else if (potentiallyReferencedByObjectCall(expression)) {
-						C4Function otherFunc = (C4Function) accessDeclExpr.getDeclaration();
-						boolean potential = (otherFunc == null || !((C4Function)declaration).isRelatedFunction(otherFunc));
-						result.addMatch(expression, parser, potential, accessDeclExpr.indirectAccess());
-					}
-				}
-				else if (expression instanceof IDLiteral && declaration instanceof C4ScriptBase) {
-					if (expression.guessObjectType(parser) == declaration)
-						result.addMatch(expression, parser, false, false);
-				}
-				return TraversalContinuation.Continue;
-			}
-		};
-		final ScriptParserListener searchExpressionsListener = new ScriptParserListener() {
-			public TraversalContinuation expressionDetected(ExprElm expression, C4ScriptParser parser) {
-				if (expression instanceof Statement)
-					expression.traverse(searchExpression, parser);
-				return TraversalContinuation.Continue;
-			}
-		};
-		final IResourceVisitor resourceVisitor = new IResourceVisitor() {
-			public boolean visit(IResource resource) throws CoreException {
-				if (resource instanceof IFile) {
-					C4ScriptBase script = C4ScriptBase.get((IFile) resource, true);
-					if (script != null) {
-						searchScript(searchExpressionsListener, resource, script);
-					}
-				}
-				return true;
-			}
-		}; 
+		UltimateListener listener = new UltimateListener();
 		try {
 			for (Object scope : this.scope) {
 				if (scope instanceof IContainer) {
-					((IContainer)scope).accept(resourceVisitor);
+					((IContainer)scope).accept(listener);
 				}
 				else if (scope instanceof C4ScriptBase) {
 					C4ScriptBase script = (C4ScriptBase) scope;
-					searchScript(searchExpressionsListener, (IResource) script.getScriptStorage(), script);
+					listener.searchScript((IResource) script.getScriptStorage(), script);
 				}
 				else if (scope instanceof C4Function) {
-					C4Function func = (C4Function) scope;
-					C4ScriptBase script = func.getScript();
-					C4ScriptParser parser = new C4ScriptParser((IFile) script.getScriptStorage(), script);
-					parser.setListener(searchExpressionsListener);
-					try {
-						parser.parseCodeOfFunction(func, null);
-					} catch (ParsingException e) {
-						e.printStackTrace();
-					}
+					C4Function func = (C4Function)scope;
+					C4ScriptParser parser = new C4ScriptParser(func.getScript());
+					parser.setCurrentFunc(func);
+					parser.reportExpressionsAndStatements(func, listener, ExpressionsAndStatementsReportingFlavour.AlsoStatements, false);
 				}
 			}
 		} catch (CoreException e) {
@@ -172,28 +189,6 @@ public class ClonkSearchQuery implements ISearchQuery {
 		}
 		
 		return new Status(IStatus.OK, ClonkCore.PLUGIN_ID, 0, Messages.ClonkSearchQuery_Success, null);
-	}
-	
-	private void searchScript(final IScriptParserListener searchExpressions, IResource resource, C4ScriptBase script) {
-		C4ScriptParser parser = new C4ScriptParser((IFile) resource, script);
-		if (declaration instanceof C4Object) {
-			C4Directive include = script.getIncludeDirectiveFor((C4Object) declaration);
-			if (include != null)
-				result.addMatch(include.getExprElm(), parser, false, false);
-		}
-		parser.setListener(searchExpressions);
-		try {
-			parser.parseCodeOfFunctionsAndValidate();
-		} catch (ParsingException e) {
-			e.printStackTrace();
-		}
-		
-		// also search related files (actmap, defcore etc)
-		try {
-			searchScriptRelatedFiles(script);
-		} catch (CoreException e) {
-			e.printStackTrace();
-		}
 	}
 
 	private void searchScriptRelatedFiles(C4ScriptBase script) throws CoreException {
