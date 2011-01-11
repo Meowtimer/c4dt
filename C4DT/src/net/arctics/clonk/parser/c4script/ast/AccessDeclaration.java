@@ -77,12 +77,12 @@ public abstract class AccessDeclaration extends Value {
 		AccessDeclaration otherDec = (AccessDeclaration) other;
 		if (listener.optionEnabled(Option.CheckForIdentity)) {
 			if (!declarationName.equals(otherDec.declarationName)) {
-				listener.differs(this, other, field("declarationName"));
+				listener.differs(this, other, "declarationName");
 				return false;
 			}
 		} else {
 			if (declaration != otherDec.declaration) {
-				listener.differs(this, other, field("declaration"));
+				listener.differs(this, other, "declaration");
 				return false;
 			}
 		}

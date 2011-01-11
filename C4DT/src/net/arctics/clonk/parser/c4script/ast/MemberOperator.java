@@ -115,15 +115,15 @@ public class MemberOperator extends ExprElm {
 			return false;
 		MemberOperator otherOp = (MemberOperator) other;
 		if (dotNotation != otherOp.dotNotation) {
-			listener.differs(this, other, field("dotNotation"));
+			listener.differs(this, other, "dotNotation");
 			return false;
 		}
 		if (hasTilde != otherOp.hasTilde) {
-			listener.differs(this, other, field("hasTilde"));
+			listener.differs(this, other, "hasTilde");
 			return false;
 		}
 		if (!Utilities.objectsEqual(id, otherOp.id)) {
-			listener.differs(this, other, field("id"));
+			listener.differs(this, other, "id");
 			return false;
 		}
 		return true;

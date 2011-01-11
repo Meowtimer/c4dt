@@ -1,7 +1,6 @@
 package net.arctics.clonk.parser.c4script.ast;
 
 import java.io.Serializable;
-import java.lang.reflect.Field;
 import java.security.InvalidParameterException;
 import java.util.EnumSet;
 import java.util.LinkedList;
@@ -740,14 +739,6 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable {
 			return compare((ExprElm) other, NULL_DIFFERENCE_LISTENER);
 		else
 			return false;
-	}
-	
-	protected Field field(String name) {
-		try {
-			return getClass().getField(name);
-		} catch (Exception e) {
-			return null;
-		}
 	}
 	
 	public Statement containingStatementOrThis() {

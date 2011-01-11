@@ -39,7 +39,7 @@ public class Operator extends Value {
 		if (!super.compare(other, listener))
 			return false;
 		if (operator != ((Operator)other).operator) {
-			listener.differs(this, other, field("operator"));
+			listener.differs(this, other, "operator");
 			return false;
 		} else {
 			return true;

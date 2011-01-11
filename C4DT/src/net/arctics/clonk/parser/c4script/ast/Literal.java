@@ -66,7 +66,7 @@ public class Literal<T> extends Value {
 		if (!super.compare(other, listener))
 			return false;
 		if (!literal.equals(((Literal<?>)other).literal)) {
-			listener.differs(this, other, field("literal"));
+			listener.differs(this, other, "literal");
 			return false;
 		} else {
 			return true;

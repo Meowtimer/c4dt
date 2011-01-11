@@ -106,7 +106,7 @@ public class BufferedScanner {
 	 * @return the read string
 	 */
 	public String readString(int length) {
-		if (offset+length > size) 
+		if (offset+length > size)
 			return null;
 		String result = buffer.substring(offset, offset+length);
 		offset += length;
