@@ -1364,11 +1364,13 @@ public class C4ScriptParser extends CStyleScanner {
 	
 	private Set<ParserErrorCode> disabledErrors = new HashSet<ParserErrorCode>();
 
-	private void enableError(ParserErrorCode error, boolean doEnable) {
+	private boolean enableError(ParserErrorCode error, boolean doEnable) {
+		boolean result = errorEnabled(error);
 		if (doEnable)
 			disabledErrors.remove(error);
 		else
 			disabledErrors.add(error);
+		return result;
 	}
 	
 	private void enableErrors(EnumSet<ParserErrorCode> set, boolean doEnable) {
@@ -1379,8 +1381,8 @@ public class C4ScriptParser extends CStyleScanner {
 		}
 	}
 	
-	public boolean errorDisabled(ParserErrorCode error) {
-		return allErrorsDisabled || disabledErrors.contains(error) || errorsDisabledByProjectSettings.contains(error);
+	public boolean errorEnabled(ParserErrorCode error) {
+		return !(allErrorsDisabled || disabledErrors.contains(error) || errorsDisabledByProjectSettings.contains(error));
 	}
 	
 	private static class LatentMarker {
@@ -1488,7 +1490,7 @@ public class C4ScriptParser extends CStyleScanner {
 	 * @throws ParsingException
 	 */
 	public IMarker markerWithCode(ParserErrorCode code, int markerStart, int markerEnd, boolean noThrow, int severity, Object... args) throws ParsingException {
-		if (errorDisabled(code)) {
+		if (!errorEnabled(code)) {
 			return null;
 		}
 		int offs = bodyOffset();
@@ -2059,25 +2061,6 @@ public class C4ScriptParser extends CStyleScanner {
 			expression.reportErrors(this);
 		} finally {
 			expressionReportingErrors = saved;
-		}
-	}
-	
-	/**
-	 * Let an expression report errors, but with one error disabled.
-	 * @param expression The expression to report errors.
-	 * @param code Code of the error that will be disabled.
-	 * @throws ParsingException
-	 */
-	private void reportErrorsWithErrorDisabled(ExprElm expression, ParserErrorCode code) throws ParsingException {
-		ExprElm saved = expressionReportingErrors;
-		expressionReportingErrors = expression;
-		boolean wasDisabled = errorDisabled(code);
-		enableError(code, false);
-		try {
-			expression.reportErrors(this);
-		} finally {
-			expressionReportingErrors = saved;
-			enableError(code, !wasDisabled);
 		}
 	}
 	
@@ -2656,7 +2639,9 @@ public class C4ScriptParser extends CStyleScanner {
 					handleExpressionCreated(true, accessVar);
 					initialization = new SimpleStatement(accessVar);
 					setExprRegionRelativeToFuncBody(initialization, pos, pos+varName.length());
-					reportErrorsWithErrorDisabled(initialization, ParserErrorCode.NoSideEffects);
+					boolean wasEnabled = enableError(ParserErrorCode.NoSideEffects, false);
+					handleStatementCreated(initialization);
+					enableError(ParserErrorCode.NoSideEffects, wasEnabled);
 				} else {
 					w = null;
 				}
@@ -2664,8 +2649,7 @@ public class C4ScriptParser extends CStyleScanner {
 			if (w == null) {
 				// regularly parse initialization statement
 				seek(pos);
-				boolean noSideEffectsWasEnabled = !errorDisabled(ParserErrorCode.NoSideEffects);
-				enableError(ParserErrorCode.NoSideEffects, false);
+				boolean noSideEffectsWasEnabled = enableError(ParserErrorCode.NoSideEffects, false);
 				initialization = parseStatement(EnumSet.of(ParseStatementOption.InitializationStatement));
 				enableError(ParserErrorCode.NoSideEffects, noSideEffectsWasEnabled);
 				if (initialization == null) {

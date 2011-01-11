@@ -147,8 +147,8 @@ public class C4ScriptEditor extends ClonkTextEditor {
 				return statementStart;
 			}
 			@Override
-			public boolean errorDisabled(ParserErrorCode error) {
-				return true;
+			public boolean errorEnabled(ParserErrorCode error) {
+				return false;
 			}
 		}
 		
@@ -308,7 +308,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 							public WhatToDo markerEncountered(C4ScriptParser parser, ParserErrorCode code,
 									int markerStart, int markerEnd, boolean noThrow,
 									int severity, Object... args) {
-								if (parser.errorDisabled(code))
+								if (!parser.errorEnabled(code))
 									return WhatToDo.DropCharges;
 								if (structure.getScriptStorage() instanceof IFile) {
 									code.createMarker((IFile) structure.getScriptStorage(), structure, ClonkCore.MARKER_C4SCRIPT_ERROR_WHILE_TYPING,

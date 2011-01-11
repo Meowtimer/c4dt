@@ -53,7 +53,7 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable {
 	private int exprStart, exprEnd;
 	private transient ExprElm parent, predecessorInSequence;
 	private int flags = PROPERLY_FINISHED;
-	
+
 	/**
 	 * Recursion level of the method that parsed this expression/statement which
 	 * could have been parseStatement or parseExpression

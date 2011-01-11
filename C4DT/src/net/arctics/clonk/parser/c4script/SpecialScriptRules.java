@@ -179,7 +179,7 @@ public class SpecialScriptRules {
 							}
 							try {
 								// pass through to the 'real' script parser
-								if (!parser.errorDisabled(code)) {
+								if (parser.errorEnabled(code)) {
 									parser.markerWithCode(code, arguments[0].getExprStart()+1+markerStart, arguments[0].getExprStart()+1+markerEnd, true, severity, args);
 								}
 							} catch (ParsingException e) {
