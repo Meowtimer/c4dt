@@ -286,7 +286,6 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 		}
 	}
 
-	private IProgressMonitor monitor;
 	private IProgressMonitor currentSubProgressMonitor;
 	private ClonkProjectNature nature;
 
@@ -326,7 +325,6 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 		
 		try {
 			try {
-				this.monitor = monitor;
 				IProject proj = getProject();
 
 				performBuildPhases(
@@ -401,9 +399,20 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 			// parse declarations
 			currentSubProgressMonitor = new SubProgressMonitor(monitor, parserMap.size());
 			currentSubProgressMonitor.beginTask("Parse declarations", parserMap.size());
-			for (C4ScriptBase script : parserMap.keySet()) {
-				performBuildPhaseOne(script);
+			int parserMapSize;
+			Map<C4ScriptBase, C4ScriptParser> tempParserMap = new HashMap<C4ScriptBase, C4ScriptParser>();
+			Map<C4ScriptBase, C4ScriptParser> mapFromLastIteration = new HashMap<C4ScriptBase, C4ScriptParser>();
+			tempParserMap.putAll(parserMap);
+			do {
+				parserMapSize = parserMap.size();
+				for (C4ScriptBase script : tempParserMap.keySet()) {
+					performBuildPhaseOne(script);
+				}
+				mapFromLastIteration.putAll(tempParserMap);
+				tempParserMap.clear();
+				queueDependentScripts(mapFromLastIteration, tempParserMap);
 			}
+			while (parserMapSize != parserMap.size());
 			currentSubProgressMonitor.done();
 
 			if (delta != null) {
@@ -422,7 +431,6 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 			currentSubProgressMonitor.done();
 
 			applyLatentMarkers();
-			reparseDependentScripts();
 			
 			monitor.done();
 
@@ -436,12 +444,14 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 		parserMap.clear();
 	}
 
-	private void reparseDependentScripts() throws CoreException {
-		Set<C4ScriptBase> scripts = new HashSet<C4ScriptBase>();
-		for (C4ScriptParser parser: parserMap.values()) {
+	private void queueDependentScripts(Map<C4ScriptBase, C4ScriptParser> sourceMap, Map<C4ScriptBase, C4ScriptParser> tempParserMap) {
+		for (C4ScriptParser parser: sourceMap.values()) {
+			if (parser == null)
+				continue;
 			for (C4ScriptBase dep : parser.getContainer().getIndex().dependentScripts(parser.getContainer())) {
 				if (!parserMap.containsKey(dep)) {
-					scripts.add(dep);
+					C4ScriptParser p = queueScript(dep);
+					tempParserMap.put(dep, p);
 				}
 			}
 		}
@@ -449,23 +459,12 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 			s.validate();
 			if (s.requiresScriptReparse()) {
 				C4ScriptBase script = C4ScriptBase.get(s.getResource(), true);
-				if (script != null)
-					scripts.add(script);
-			}
-		}
-		IProgressMonitor dependentScriptsProgress = new SubProgressMonitor(this.monitor, scripts.size());
-		dependentScriptsProgress.beginTask(Messages.ReparseDependentScripts, scripts.size());
-		for (int buildPhase = 0; buildPhase < 2; buildPhase++) {
-			for (C4ScriptBase s : scripts) {
-				IResource r = s.getResource();
-				if (r != null) {
-					dependentScriptsProgress.subTask(s.toString());
-					performBuildPhase(buildPhase, s);
+				if (script != null) {
+					C4ScriptParser p = queueScript(script);
+					tempParserMap.put(script, p);
 				}
-				dependentScriptsProgress.worked(1);
 			}
 		}
-		dependentScriptsProgress.done();
 	}
 
 	private void applyLatentMarkers() {
@@ -527,11 +526,14 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 		Display.getDefault().asyncExec(new UIRefresher(listOfResourcesToBeRefreshed));
 	}
 	
-	private void queueScript(C4ScriptBase script) {
+	private C4ScriptParser queueScript(C4ScriptBase script) {
+		C4ScriptParser result;
 		if (!parserMap.containsKey(script)) {
 			IStorage storage = script.getScriptStorage();
-			parserMap.put(script, storage != null ? new C4ScriptParser(script) : null);
-		}
+			parserMap.put(script, result = storage != null ? new C4ScriptParser(script) : null);
+		} else
+			result = parserMap.get(script);
+		return result;
 	}
 	
 	private void performBuildPhaseOne(C4ScriptBase script) {
@@ -568,17 +570,6 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 			if (currentSubProgressMonitor != null) {
 				currentSubProgressMonitor.worked(1);
 			}
-		}
-	}
-	
-	private void performBuildPhase(int phase, C4ScriptBase script) {
-		switch (phase) {
-		case 0:
-			performBuildPhaseOne(script);
-			break;
-		case 1:
-			performBuildPhaseTwo(script);
-			break;
 		}
 	}
 
