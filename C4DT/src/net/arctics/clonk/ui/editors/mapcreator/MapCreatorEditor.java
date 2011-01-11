@@ -6,9 +6,7 @@ import org.antlr.runtime.CommonTokenStream;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.jface.text.DocumentEvent;
 import org.eclipse.jface.text.IDocumentListener;
-import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
-import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.swt.widgets.Composite;
 
 import net.arctics.clonk.parser.mapcreator.C4MapCreator;
