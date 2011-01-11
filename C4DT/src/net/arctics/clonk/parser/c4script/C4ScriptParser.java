@@ -681,21 +681,21 @@ public class C4ScriptParser extends CStyleScanner {
 	 * @throws ParsingException
 	 */
 	protected boolean parseDeclaration() throws ParsingException {
-		final int offset = this.offset;
+		final int startOfDeclaration = this.offset;
 		int readByte = read();
 		if (readByte == '#') {
 			// directive
 			String directiveName = this.readStringUntil(BufferedScanner.WHITESPACE_CHARS);
 			C4DirectiveType type = C4DirectiveType.makeType(directiveName);
 			if (type == null) {
-				warningWithCode(ParserErrorCode.UnknownDirective, offset, offset + directiveName.length());
+				warningWithCode(ParserErrorCode.UnknownDirective, startOfDeclaration, startOfDeclaration + directiveName.length());
 				this.moveUntil(BufferedScanner.NEWLINE_CHARS);
 				return true;
 			}
 			else {
 				String content = parseDirectiveParms();
 				C4Directive directive = new C4Directive(type, content);
-				directive.setLocation(new SourceLocation(offset, this.offset));
+				directive.setLocation(new SourceLocation(startOfDeclaration, this.offset));
 				container.addDeclaration(directive);
 				if (type == C4DirectiveType.APPENDTO)
 					appendTo = true;
@@ -703,26 +703,26 @@ public class C4ScriptParser extends CStyleScanner {
 			}
 		}
 		else {
-			this.seek(offset);
+			this.seek(startOfDeclaration);
 			String word = readIdent();
 			if (looksLikeStartOfFunction(word)) {
-				if (parseFunctionDeclaration(word, offset))
+				if (parseFunctionDeclaration(word, startOfDeclaration))
 					return true;
 			}
-			else if (parseVariableDeclaration(false, true, C4VariableScope.makeScope(word)) != null) {
+			else if (parseVariableDeclaration(false, true, C4VariableScope.makeScope(word), getTextOfLastComment(startOfDeclaration)) != null) {
 				return true;
 			}
 			else {
 				// old-style function declaration without visibility
 				eatWhitespace();
 				if (read() == ':' && read() != ':') { // no :: -.-
-					this.seek(offset); // just let parseFunctionDeclaration parse the name again
-					if (parseFunctionDeclaration(Keywords.Public, offset)) // just assume public
+					this.seek(startOfDeclaration); // just let parseFunctionDeclaration parse the name again
+					if (parseFunctionDeclaration(Keywords.Public, startOfDeclaration)) // just assume public
 						return true;
 				}
 			}
 		}
-		this.seek(offset);
+		this.seek(startOfDeclaration);
 		return false;
 	}
 
@@ -746,11 +746,10 @@ public class C4ScriptParser extends CStyleScanner {
 		return word.equals(Keywords.Public) || word.equals(Keywords.Protected) || word.equals(Keywords.Private) || word.equals(Keywords.Global) || word.equals(Keywords.Func);
 	}
 
-	private List<VarInitialization> parseVariableDeclaration(boolean reportErrors, boolean checkForFinalSemicolon, C4VariableScope scope) throws ParsingException {
+	private List<VarInitialization> parseVariableDeclaration(boolean reportErrors, boolean checkForFinalSemicolon, C4VariableScope scope, String comment) throws ParsingException {
 		if (scope != null) {
 			
 			final int offset = this.offset;
-			String desc = getTextOfLastComment(offset);
 
 			List<VarInitialization> createdVariables = new LinkedList<VarInitialization>();
 			C4Function currentFunc = getCurrentFunc();
@@ -792,7 +791,7 @@ public class C4ScriptParser extends CStyleScanner {
 				C4Declaration outerDec = currentDeclaration;
 				try {
 					VarInitialization varInitialization = new VarInitialization(varName, null, s-bodyOffset());
-					currentDeclaration = varInitialization.variableBeingInitialized = createVarInScope(varName, scope, s, e, desc);
+					currentDeclaration = varInitialization.variableBeingInitialized = createVarInScope(varName, scope, s, e, comment);
 					if (scope == C4VariableScope.CONST || currentFunc != null || getContainer().getEngine().getCurrentSettings().nonConstGlobalVarsAssignment) {
 						eatWhitespace();
 						if (peek() == '=') {
@@ -944,14 +943,13 @@ public class C4ScriptParser extends CStyleScanner {
 	
 	private int consumeFunctionCodeOrReturnReadChar() throws ParsingException {
 		eatWhitespace();
-		//if (parseVariableDeclarationInFunc(true))
-			//return 0;
+		int startOfDeclaration = offset;
 		Token t = parseToken();
 		switch (t) {
 		case Symbol:
 			return parsedString != null ? parsedString.charAt(0) : 0;
 		case Word:
-			if (parseVariableDeclaration(false, false, C4VariableScope.makeScope(parsedString)) != null)
+			if (parseVariableDeclaration(false, false, C4VariableScope.makeScope(parsedString), getTextOfLastComment(startOfDeclaration)) != null)
 				return 0;
 			break;
 		}
@@ -1121,8 +1119,8 @@ public class C4ScriptParser extends CStyleScanner {
 	    return new C4Function();
     }
 
-	private String getTextOfLastComment(int declarationOffset) {
-		String desc = (lastComment != null && lastComment.precedesOffset(declarationOffset, getBuffer())) ? lastComment.getComment().trim() : null; //$NON-NLS-1$
+	private String getTextOfLastComment(int absoluteOffset) {
+		String desc = (lastComment != null && lastComment.precedesOffset(absoluteOffset, getBuffer())) ? lastComment.getComment().trim() : null; //$NON-NLS-1$
 		lastComment = null;
 		return desc;
 	}
@@ -2273,7 +2271,7 @@ public class C4ScriptParser extends CStyleScanner {
 					}
 				}
 				else if ((scope = C4VariableScope.makeScope(readWord)) != null) {
-					List<VarInitialization> initializations = parseVariableDeclaration(true, !options.contains(ParseStatementOption.InitializationStatement), scope);
+					List<VarInitialization> initializations = parseVariableDeclaration(true, !options.contains(ParseStatementOption.InitializationStatement), scope, null);
 					if (initializations != null) {
 						result = new VarDeclarationStatement(initializations, initializations.get(0).variableBeingInitialized.getScope());
 					}

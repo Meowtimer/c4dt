@@ -12,6 +12,7 @@ public class Comment extends Statement implements Statement.Attachment {
 	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 	private String comment;
 	private boolean multiLine;
+	private int absoluteOffset;
 
 	public Comment(String comment, boolean multiLine) {
 		super();
@@ -71,8 +72,8 @@ public class Comment extends Statement implements Statement.Attachment {
 
 	public boolean precedesOffset(int offset, CharSequence script) {
 		int count = 0;
-		if (offset > getExprEnd()) {
-			for (int i = getExprEnd()+1; i < offset; i++) {
+		if (offset > absoluteOffset+getLength()) {
+			for (int i = absoluteOffset+getLength()+1; i < offset; i++) {
 				if (!BufferedScanner.isLineDelimiterChar(script.charAt(i)))
 					return false;
 				if (script.charAt(i) == '\n' && ++count > 1)
@@ -120,6 +121,10 @@ public class Comment extends Statement implements Statement.Attachment {
 	@Override
 	public void reportErrors(C4ScriptParser parser) throws ParsingException {
 		// uh oh.. no
+	}
+
+	public void setAbsoluteOffset(int offset) {
+		absoluteOffset = offset;
 	}
 
 }

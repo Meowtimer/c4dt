@@ -62,6 +62,7 @@ public class CStyleScanner extends BufferedScanner {
 		Comment c = parseCommentObject();
 		if (c != null) {
 			setExprRegionRelativeToFuncBody(c, offset, this.getPosition());
+			c.setAbsoluteOffset(offset);
 			lastComment = c;
 			return true;
 		}
