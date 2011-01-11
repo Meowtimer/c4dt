@@ -31,8 +31,11 @@ public class ProplistDeclaration extends C4Structure {
 	}
 	
 	@Override
-	public Iterable<? extends C4Declaration> allSubDeclarations() {
-		return components;
+	public Iterable<? extends C4Declaration> allSubDeclarations(int mask) {
+		if ((mask & VARIABLES) != 0)
+			return components;
+		else
+			return NO_SUB_DECLARATIONS;
 	}
 
 }

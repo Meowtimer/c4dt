@@ -244,14 +244,14 @@ public abstract class C4Declaration implements Serializable, IHasRelatedResource
 		return null;
 	}
 	
-	private static final Iterable<C4Declaration> NO_SUB_DECLARATIONS = ArrayUtil.arrayIterable();
+	protected static final Iterable<C4Declaration> NO_SUB_DECLARATIONS = ArrayUtil.arrayIterable();
 	
 	/**
 	 * Returns an Iterable for iterating over all sub declaration of this declaration.
 	 * Might return null if there are none.
 	 * @return The Iterable for iterating over sub declarations or null.
 	 */
-	public Iterable<? extends C4Declaration> allSubDeclarations() {
+	public Iterable<? extends C4Declaration> allSubDeclarations(int mask) {
 		return NO_SUB_DECLARATIONS;
 	}
 	
@@ -269,7 +269,7 @@ public abstract class C4Declaration implements Serializable, IHasRelatedResource
 	 */
 	public void postSerialize(C4Declaration parent) {
 		setParentDeclaration(parent);
-		Iterable<? extends C4Declaration> subDecs = this.allSubDeclarations();
+		Iterable<? extends C4Declaration> subDecs = this.allSubDeclarations(ALL_SUBDECLARATIONS);
 		if (subDecs != null)
 			for (C4Declaration d : subDecs)
 				d.postSerialize(this);
@@ -280,7 +280,7 @@ public abstract class C4Declaration implements Serializable, IHasRelatedResource
 	 * @param parent the parent
 	 */
 	public void preSerialize() {
-		Iterable<? extends C4Declaration> subDecs = this.allSubDeclarations();
+		Iterable<? extends C4Declaration> subDecs = this.allSubDeclarations(ALL_SUBDECLARATIONS);
 		if (subDecs != null)
 			for (C4Declaration d : subDecs)
 				d.preSerialize();

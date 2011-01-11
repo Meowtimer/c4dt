@@ -17,6 +17,7 @@ import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.parser.c4script.ProplistDeclaration;
 import net.arctics.clonk.parser.inireader.IniData.IniConfiguration;
 import net.arctics.clonk.ui.editors.c4script.IPostSerializable;
+import net.arctics.clonk.util.ArrayUtil;
 
 public class PropListExpression extends Value implements IType, IPostSerializable<C4Declaration>, IHasSubDeclarations {
 
@@ -129,7 +130,7 @@ public class PropListExpression extends Value implements IType, IPostSerializabl
 
 	@Override
 	public Iterator<IType> iterator() {
-		return C4Type.PROPLIST.iterator();
+		return ArrayUtil.arrayIterable(C4Type.PROPLIST, this).iterator();
 	}
 
 	@Override
@@ -189,8 +190,13 @@ public class PropListExpression extends Value implements IType, IPostSerializabl
 		definedDeclaration.postSerialize(parent);
 	}
 	@Override
-	public Iterable<? extends C4Declaration> allSubDeclarations() {
-		return definedDeclaration.allSubDeclarations();
+	public Iterable<? extends C4Declaration> allSubDeclarations(int mask) {
+		return definedDeclaration.allSubDeclarations(mask);
+	}
+	
+	@Override
+	public String getName() {
+		return "Proplist Expression 0009247331";
 	}
 
 }

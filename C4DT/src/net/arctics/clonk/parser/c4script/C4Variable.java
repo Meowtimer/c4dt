@@ -366,11 +366,11 @@ public class C4Variable extends C4Declaration implements Serializable, ITypedDec
 	}
 	
 	@Override
-	public Iterable<? extends C4Declaration> allSubDeclarations() {
+	public Iterable<? extends C4Declaration> allSubDeclarations(int mask) {
 		if (initializationExpression instanceof IHasSubDeclarations) {
-			return ((IHasSubDeclarations)initializationExpression).allSubDeclarations();
+			return ((IHasSubDeclarations)initializationExpression).allSubDeclarations(mask);
 		} else {
-			return super.allSubDeclarations();
+			return super.allSubDeclarations(mask);
 		}
 	}
 	

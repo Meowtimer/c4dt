@@ -20,6 +20,7 @@ import net.arctics.clonk.parser.SourceLocation;
 import net.arctics.clonk.parser.c4script.C4Function;
 import net.arctics.clonk.parser.c4script.C4ScriptBase;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
+import net.arctics.clonk.parser.c4script.IHasSubDeclarations;
 import net.arctics.clonk.parser.c4script.C4ScriptParser.ExpressionsAndStatementsReportingFlavour;
 import net.arctics.clonk.parser.c4script.C4ScriptParser.IMarkerListener;
 import net.arctics.clonk.parser.c4script.C4Variable;
@@ -237,7 +238,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 			if (declaration instanceof C4Function) {
 				addToLocation(((C4Function)declaration).getBody(), offset, add);
 			}
-			for (C4Declaration v : declaration.allSubDeclarations()) {
+			for (C4Declaration v : declaration.allSubDeclarations(IHasSubDeclarations.ALL_SUBDECLARATIONS)) {
 				adjustDec(v, offset, add);
 			}
 		}

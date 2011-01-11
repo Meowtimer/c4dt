@@ -2,6 +2,7 @@ package net.arctics.clonk.parser.c4script;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 import org.eclipse.jface.text.IRegion;
@@ -331,7 +332,8 @@ public class C4Function extends C4Structure implements Serializable, ITypedDecla
 	public C4Function getInherited() {
 		
 		// search in #included scripts
-		C4ScriptBase[] includes = getScript().getIncludes();
+		Collection<C4ScriptBase> includesCollection = getScript().getIncludes();
+		C4ScriptBase[] includes = includesCollection.toArray(new C4ScriptBase[includesCollection.size()]);
 		for (int i = includes.length-1; i >= 0; i--) {
 			C4Function fun = includes[i].findFunction(getName());
 			if (fun != null && fun != this)
@@ -511,8 +513,11 @@ public class C4Function extends C4Structure implements Serializable, ITypedDecla
 	
 	@SuppressWarnings("unchecked")
 	@Override
-	public Iterable<C4Declaration> allSubDeclarations() {
-		return new CompoundIterable<C4Declaration>(localVars, parameter, otherDeclarations); 
+	public Iterable<C4Declaration> allSubDeclarations(int mask) {
+		if ((mask & VARIABLES) != 0)
+			return new CompoundIterable<C4Declaration>(localVars, parameter, otherDeclarations);
+		else
+			return otherDeclarations != null ? otherDeclarations : NO_SUB_DECLARATIONS;
 	}
 	
 	@Override

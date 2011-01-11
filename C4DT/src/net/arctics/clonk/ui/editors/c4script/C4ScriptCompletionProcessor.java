@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.index.C4Scenario;
@@ -13,6 +14,7 @@ import net.arctics.clonk.parser.c4script.C4Function;
 import net.arctics.clonk.parser.c4script.C4ScriptBase;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.C4Variable;
+import net.arctics.clonk.parser.c4script.IHasSubDeclarations;
 import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.parser.c4script.Keywords;
 import net.arctics.clonk.parser.BufferedScanner;
@@ -256,9 +258,9 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 			ClonkIndex index, final C4Function activeFunc,
 			C4ScriptBase editorScript,
 			C4ScriptParser parser) {
-		List<C4ScriptBase> contextScripts = new LinkedList<C4ScriptBase>();
-		contextScripts.add(editorScript);
-		boolean contextScriptsChanged = false;
+		List<IHasSubDeclarations> contextStructures = new LinkedList<IHasSubDeclarations>();
+		contextStructures.add(editorScript);
+		boolean contextStructuresChanged = false;
 		_currentEditorScript = editorScript;
 		boolean specifiedParser = parser != null;
 		if (editorScript != null) {
@@ -292,17 +294,22 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 					}
 				}
 				for (IType t : contextExpression.getType(parser)) {
-					C4ScriptBase script = C4ScriptBase.scriptFrom(t);
-					if (script != null) {
-						if (!contextScriptsChanged) {
-							contextScripts.clear();
-							contextScriptsChanged = true;
+					IHasSubDeclarations structure;
+					if (t instanceof IHasSubDeclarations) {
+						structure = (IHasSubDeclarations) t;
+					} else {
+						structure = C4ScriptBase.scriptFrom(t);
+					}
+					if (structure != null) {
+						if (!contextStructuresChanged) {
+							contextStructures.clear();
+							contextStructuresChanged = true;
 						}
-						contextScripts.add(script);
+						contextStructures.add(structure);
 					}
 				}
 				// expression was of no use - discard and show global proposals
-				if (!contextScriptsChanged)
+				if (!contextStructuresChanged)
 					contextExpression = null;
 			}
 			parser.endTypeInferenceBlock();
@@ -332,13 +339,13 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 			for (ClonkIndex i : index.relevantIndexes())
 				proposalsForIndex(i, offset, wordOffset, prefix, proposals);
 
-		int whatToDisplayFromScripts = INCLUDES;
+		int whatToDisplayFromScripts = IHasSubDeclarations.INCLUDES;
 		if (contextExpression == null || MemberOperator.endsWithDot(contextExpression))
-			whatToDisplayFromScripts |= VARIABLES;
+			whatToDisplayFromScripts |= IHasSubDeclarations.VARIABLES;
 		if (contextExpression == null || !MemberOperator.endsWithDot(contextExpression))
-			whatToDisplayFromScripts |= FUNCTIONS;
-		for (C4ScriptBase s : contextScripts) {
-			proposalsFromScript(s, new HashSet<C4ScriptBase>(), prefix, offset, wordOffset, proposals, contextScriptsChanged, index, whatToDisplayFromScripts);
+			whatToDisplayFromScripts |= IHasSubDeclarations.FUNCTIONS;
+		for (IHasSubDeclarations s : contextStructures) {
+			proposalsFromStructure(s, new HashSet<IHasSubDeclarations>(), prefix, offset, wordOffset, proposals, contextStructuresChanged, index, whatToDisplayFromScripts);
 		}
 		if (contextExpression == null && proposalCycle == ProposalCycle.ALL) {
 			ImageRegistry reg = ClonkCore.getDefault().getImageRegistry();
@@ -458,32 +465,28 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 		TriggerSequence sequence = getIterationBinding();
 		return String.format(Messages.C4ScriptCompletionProcessor_PressToShowCycle, sequence.format(), proposalCycle.cycle().description());
 	}
-
-	private static final int VARIABLES = 1;
-	private static final int FUNCTIONS = 2;
-	private static final int INCLUDES  = 4;
 	
-	private void proposalsFromScript(C4ScriptBase script, HashSet<C4ScriptBase> loopCatcher, String prefix, int offset, int wordOffset, List<ICompletionProposal> proposals, boolean noPrivateFuncs, ClonkIndex index, int mask) {
-		if (loopCatcher.contains(script)) {
+	private void proposalsFromStructure(IHasSubDeclarations structure, Set<IHasSubDeclarations> loopCatcher, String prefix, int offset, int wordOffset, List<ICompletionProposal> proposals, boolean noPrivateFuncs, ClonkIndex index, int mask) {
+		if (loopCatcher.contains(structure)) {
 			return;
 		}
-		loopCatcher.add(script);
-		if ((mask & FUNCTIONS) != 0) {
-			for (C4Function func : script.functions()) {
+		loopCatcher.add(structure);
+		for (C4Declaration dec : structure.allSubDeclarations(mask)) {
+			C4Function func;
+			C4Variable var;
+			C4ScriptBase include;
+			if ((func = Utilities.as(dec, C4Function.class)) != null) {
 				if (func.getVisibility() != C4FunctionScope.GLOBAL)
 					if (!noPrivateFuncs  || func.getVisibility() == C4FunctionScope.PUBLIC)
-						proposalForFunc(func, prefix, offset, proposals, script.getName(), true);
+						proposalForFunc(func, prefix, offset, proposals, structure.getName(), true);
 			}
-		}
-		if ((mask & VARIABLES) != 0) {
-			for (C4Variable var : script.variables()) {
+			else if ((var = Utilities.as(dec, C4Variable.class)) != null) {
 				if (var.getScope() != C4VariableScope.STATIC && var.getScope() != C4VariableScope.CONST)
 					proposalForVar(var, prefix, wordOffset, proposals);
 			}
-		}
-		if ((mask & INCLUDES) != 0) {
-			for (C4ScriptBase o : script.getIncludes(index))
-				proposalsFromScript(o, loopCatcher, prefix, offset, wordOffset, proposals, noPrivateFuncs, index, mask);
+			else if ((include = Utilities.as(dec, C4ScriptBase.class)) != null) {
+				proposalsFromStructure(include, loopCatcher, prefix, offset, wordOffset, proposals, noPrivateFuncs, index, mask);
+			}
 		}
 	}
 

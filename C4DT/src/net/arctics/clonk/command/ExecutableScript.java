@@ -1,6 +1,8 @@
 package net.arctics.clonk.command;
 
 import java.io.UnsupportedEncodingException;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -84,10 +86,8 @@ public class ExecutableScript extends C4ScriptBase {
 	}
 
 	@Override
-	public C4ScriptBase[] getIncludes(ClonkIndex index) {
-		return new C4ScriptBase[] {
-				Command.COMMAND_BASESCRIPT
-		};
+	public Collection<C4ScriptBase> getIncludes(ClonkIndex index) {
+		return Arrays.asList(Command.COMMAND_BASESCRIPT);
 	}
 
 	public BodyPreservingFunction getMain() {

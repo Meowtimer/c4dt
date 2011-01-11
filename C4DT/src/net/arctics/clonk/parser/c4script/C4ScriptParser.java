@@ -82,7 +82,6 @@ import net.arctics.clonk.parser.c4script.ast.WhileStatement;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.resource.c4group.C4GroupItem;
 import net.arctics.clonk.util.ArrayUtil;
-
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IResource;
@@ -352,10 +351,10 @@ public class C4ScriptParser extends CStyleScanner {
 			// it's a type (probably C4Object)
 			return (IType) container;
 		} else {
-			C4ScriptBase[] includes = container.getIncludes();
+			IType[] includes = ArrayUtil.filter(container.getIncludes(), IType.class);
 			if (includes.length > 1) {
 				// includes/appends to more than one other script ... create type set out of the scripts that are types
-				return C4TypeSet.create(ArrayUtil.filter(includes, IType.class));
+				return C4TypeSet.create(includes);
 			} else if (includes.length == 1 && includes[0] instanceof IType) {
 				// includes/appends to one type: return that
 				return (IType)includes[0];
@@ -3070,7 +3069,8 @@ public class C4ScriptParser extends CStyleScanner {
 			Block cachedBlock = func != null ? func.getCodeBlock(functionSource) : null;
 			// if block is non-existant or outdated, parse function code and store block
 			if (cachedBlock == null) {
-				func.clearLocalVars();
+				if (func != null)
+					func.clearLocalVars();
 				strictLevel = getContainer().getStrictLevel();
 				enableErrors(EnumSet.of(
 					ParserErrorCode.TokenExpected,
@@ -3082,8 +3082,8 @@ public class C4ScriptParser extends CStyleScanner {
 				beginTypeInferenceBlock();
 				LinkedList<Statement> statements = new LinkedList<Statement>();
 				parseStatementBlock(offset, Integer.MAX_VALUE, statements, options, flavour);
+				cachedBlock = new BunchOfStatements(statements);
 				if (func != null) {
-					cachedBlock = new BunchOfStatements(statements);
 					warnAboutUnusedFunctionVariables(func, cachedBlock);
 					func.storeBlock(cachedBlock, functionSource);
 				}

@@ -622,8 +622,11 @@ public class IniUnit extends C4Structure implements Iterable<IniSection>, IHasCh
 	}
 	
 	@Override
-	public Iterable<? extends C4Declaration> allSubDeclarations() {
-		return this.sectionsList;
+	public Iterable<? extends C4Declaration> allSubDeclarations(int mask) {
+		if ((mask & OTHER) != 0)
+			return this.sectionsList;
+		else
+			return NO_SUB_DECLARATIONS;
 	}
 
 	@Override

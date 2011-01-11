@@ -9,6 +9,7 @@ import net.arctics.clonk.parser.C4Declaration;
 import net.arctics.clonk.parser.C4Structure;
 import net.arctics.clonk.parser.SourceLocation;
 import net.arctics.clonk.parser.c4script.C4Function;
+import net.arctics.clonk.parser.c4script.IHasSubDeclarations;
 
 import org.eclipse.jface.text.DocumentEvent;
 import org.eclipse.jface.text.IDocument;
@@ -82,13 +83,13 @@ public abstract class TextChangeListenerBase<EditorType extends ClonkTextEditor,
 	protected void adjustDeclarationLocations(DocumentEvent event) {
 		if (event.getLength() == 0 && event.getText().length() > 0) {
 			// text was added
-			for (C4Declaration dec : structure.allSubDeclarations()) {
+			for (C4Declaration dec : structure.allSubDeclarations(IHasSubDeclarations.ALL_SUBDECLARATIONS)) {
 				adjustDec(dec, event.getOffset(), event.getText().length());
 			}
 		}
 		else if (event.getLength() > 0 && event.getText().length() == 0) {
 			// text was removed
-			for (C4Declaration dec : structure.allSubDeclarations()) {
+			for (C4Declaration dec : structure.allSubDeclarations(IHasSubDeclarations.ALL_SUBDECLARATIONS)) {
 				adjustDec(dec, event.getOffset(), -event.getLength());
 			}
 		}
@@ -98,7 +99,7 @@ public abstract class TextChangeListenerBase<EditorType extends ClonkTextEditor,
 			int offset = event.getOffset();
 			int diff = newText.length() - replLength;
 			// mixed
-			for (C4Declaration dec : structure.allSubDeclarations()) {
+			for (C4Declaration dec : structure.allSubDeclarations(IHasSubDeclarations.ALL_SUBDECLARATIONS)) {
 				if (dec.getLocation().getStart() >= offset + replLength)
 					adjustDec(dec, offset, diff);
 				else if (dec instanceof C4Function) {

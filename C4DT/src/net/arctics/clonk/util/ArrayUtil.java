@@ -3,6 +3,7 @@ package net.arctics.clonk.util;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 
 public class ArrayUtil {
@@ -85,6 +86,17 @@ public class ArrayUtil {
 			e.printStackTrace();
 			return null;
 		}
+	}
+	
+	@SuppressWarnings("unchecked")
+	public static <T, C> C[] filter(Iterable<T> iterable, Class<C> cls) {
+		LinkedList<C> result = new LinkedList<C>();
+		for (T item : iterable) {
+			if (cls.isAssignableFrom(item.getClass())) {
+				result.add((C) item);
+			}
+		}
+		return result.toArray((C[]) Array.newInstance(cls, result.size()));
 	}
 	
 	@SuppressWarnings("unchecked")

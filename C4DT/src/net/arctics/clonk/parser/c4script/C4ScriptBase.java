@@ -63,7 +63,7 @@ public abstract class C4ScriptBase extends C4Structure implements ITreeNode, IHa
 
 	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 
-	private static final C4Object[] NO_INCLUDES = new C4Object[] {};
+	private static final Collection<C4ScriptBase> NO_INCLUDES = new ArrayList<C4ScriptBase>(0);
 
 	protected List<C4Function> definedFunctions = new LinkedList<C4Function>();
 	protected List<C4Variable> definedVariables = new LinkedList<C4Variable>();
@@ -166,17 +166,17 @@ public abstract class C4ScriptBase extends C4Structure implements ITreeNode, IHa
 	 * @param index The index to be passed to gatherIncludes
 	 * @return The includes
 	 */
-	public C4ScriptBase[] getIncludes(ClonkIndex index) {
+	public Collection<C4ScriptBase> getIncludes(ClonkIndex index) {
 		List<C4ScriptBase> result = new ArrayList<C4ScriptBase>();
 		gatherIncludes(result, index);
-		return result.toArray(new C4ScriptBase[result.size()]);
+		return result;
 	}
 
 	/**
 	 * Does the same as gatherIncludes except that the user does not have to create their own list and does not even have to supply an index (defaulting to getIndex()) 
 	 * @return The includes
 	 */
-	public final C4ScriptBase[] getIncludes() {
+	public final Collection<C4ScriptBase> getIncludes() {
 		ClonkIndex index = getIndex();
 		if (index == null)
 			return NO_INCLUDES;
@@ -243,7 +243,15 @@ public abstract class C4ScriptBase extends C4Structure implements ITreeNode, IHa
 	 */
 	@SuppressWarnings("unchecked")
 	@Override
-	public Iterable<C4Declaration> allSubDeclarations() {
+	public Iterable<C4Declaration> allSubDeclarations(int mask) {
+		Iterable<?>[] its = new Iterable<?>[3];
+		int fill = 0;
+		if ((mask & FUNCTIONS) != 0)
+			its[fill++] = definedFunctions;
+		if ((mask & VARIABLES) != 0)
+			its[fill++] = definedVariables;
+		if ((mask & INCLUDES) != 0)
+			its[fill++] = getIncludes();
 		return new CompoundIterable<C4Declaration>(definedFunctions, definedVariables, definedDirectives);
 	}
 
@@ -464,7 +472,7 @@ public abstract class C4ScriptBase extends C4Structure implements ITreeNode, IHa
 		if (dontRevisit.contains(this))
 			return false;
 		dontRevisit.add(this);
-		C4ScriptBase[] incs = this.getIncludes();
+		Iterable<C4ScriptBase> incs = this.getIncludes();
 		for (C4ScriptBase o : incs) {
 			if (o == other)
 				return true;

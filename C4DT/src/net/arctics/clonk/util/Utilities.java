@@ -353,7 +353,7 @@ public abstract class Utilities {
 	}
 	
 	public static @SuppressWarnings("unchecked")
-	<T, U extends T> Iterable<U> filter(Iterable<T> iterable, IPredicate<U> filter, Class<? extends T> cls) {
+	<T, U> Iterable<U> filter(Iterable<T> iterable, IPredicate<U> filter, Class<T> cls) {
 		List<U> result = new LinkedList<U>();
 		for (T elm : iterable) {
 			if (cls.isAssignableFrom(elm.getClass()) && filter.test((U)elm)) {
@@ -361,15 +361,6 @@ public abstract class Utilities {
 			}
 		}
 		return result;
-	}
-	
-	public static <T> IPredicate<T> classMembershipPredicate(final Class<? extends T> cls) {
-		return new IPredicate<T>() {
-			@Override
-			public boolean test(T item) {
-				return cls.isAssignableFrom(item.getClass());
-			}
-		};
 	}
 	
 	public static void errorMessage(Throwable error, final String title) {

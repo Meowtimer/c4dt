@@ -231,7 +231,10 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable {
 	 * @return The type of the expression
 	 */
 	protected IType obtainType(C4ScriptParser context) {
-		return context.queryTypeOfExpression(this, C4Type.UNKNOWN);
+		IType t = context.queryTypeOfExpression(this, C4Type.UNKNOWN);
+		if (t == null)
+			t = C4Type.UNKNOWN;
+		return t;
 	}
 	
 	public final C4Object guessObjectType(C4ScriptParser context) {
