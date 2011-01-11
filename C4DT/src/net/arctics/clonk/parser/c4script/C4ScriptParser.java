@@ -2394,7 +2394,7 @@ public class C4ScriptParser extends CStyleScanner {
 
 	private int maybeAddGarbageStatement(List<Statement> statements,
 			int garbageStart, int potentialGarbageEnd) throws ParsingException {
-		String garbageString = buffer.substring(garbageStart, potentialGarbageEnd);
+		String garbageString = buffer.substring(garbageStart, Math.min(potentialGarbageEnd, buffer.length()));
 		garbageString = modifyGarbage(garbageString);
 		if (garbageString != null) {
 			GarbageStatement garbage = new GarbageStatement(garbageString, garbageStart-bodyOffset());
