@@ -8,4 +8,8 @@ public abstract class ScriptParserListener implements IScriptParserListener {
 	public void endTypeInferenceBlock(List<IStoredTypeInformation> typeInfos) {
 		// don't care
 	}
+	@Override
+	public int minimumParsingRecursion() {
+		return 1;
+	}
 }

@@ -2351,12 +2351,12 @@ public class C4ScriptParser extends CStyleScanner {
 		while (!reachedEOF() && this.offset < endOfFunc) {
 			this.statementNotReached = notReached;
 			int potentialGarbageEnd = offset;
-			eatWhitespace();
-			foundClosingBracket = peek() == '}';
-			if (foundClosingBracket)
-				break;
+			//eatWhitespace();
 			Statement statement = flavour == ExpressionsAndStatementsReportingFlavour.AlsoStatements ? parseStatement(options) : SimpleStatement.wrapExpression(parseExpression());
 			if (statement == null) {
+				foundClosingBracket = peek() == '}';
+				if (foundClosingBracket)
+					break;
 				if (garbageStart == -1) {
 					garbageStart = offset;
 				}
@@ -2377,7 +2377,7 @@ public class C4ScriptParser extends CStyleScanner {
 			if (!statementIsComment) {
 				options.remove(ParseStatementOption.ExpectFuncDesc);				
 			}
-			eatWhitespace();
+			//eatWhitespace();
 		}
 		if (garbageStart != -1) {
 			// contains only garbage ... still add
@@ -3057,15 +3057,19 @@ public class C4ScriptParser extends CStyleScanner {
 	 * @param listener Listener to get informed about reported expressions
 	 * @param flavour Whether to only parse statements, or also expressions
 	 */
-	private void reportExpressionsAndStatements(IRegion funcOrRegion, final IScriptParserListener listener, ExpressionsAndStatementsReportingFlavour flavour, boolean reportErrors) {
+	public void reportExpressionsAndStatements(
+		IRegion funcOrRegion,
+		final IScriptParserListener listener,
+		ExpressionsAndStatementsReportingFlavour flavour,
+		boolean reportErrors
+	) {
 		C4Function func = funcOrRegion instanceof C4Function ? (C4Function)funcOrRegion : null;
 		currentDeclaration = func;
-		setListener(listener);
 		try {
 			String functionSource = functionSource(func);
-			final Block cachedBlock = func != null ? func.getCodeBlock(functionSource) : null;
+			Block cachedBlock = func != null ? func.getCodeBlock(functionSource) : null;
+			// if block is non-existant or outdated, parse function code and store block
 			if (cachedBlock == null) {
-				// code changed - reparse
 				func.clearLocalVars();
 				strictLevel = getContainer().getStrictLevel();
 				enableErrors(EnumSet.of(
@@ -3079,12 +3083,14 @@ public class C4ScriptParser extends CStyleScanner {
 				LinkedList<Statement> statements = new LinkedList<Statement>();
 				parseStatementBlock(offset, Integer.MAX_VALUE, statements, options, flavour);
 				if (func != null) {
-					Block block = new BunchOfStatements(statements);
-					warnAboutUnusedFunctionVariables(func, block);
-					func.storeBlock(block, functionSource);
+					cachedBlock = new BunchOfStatements(statements);
+					warnAboutUnusedFunctionVariables(func, cachedBlock);
+					func.storeBlock(cachedBlock, functionSource);
 				}
 				applyStoredTypeInformationList(true);
-			} else {
+			}
+			// traverse block using the listener
+			if (cachedBlock != null) {
 				if (reportErrors) {
 					func.resetLocalVarTypes();
 					beginTypeInferenceBlock();
@@ -3105,12 +3111,17 @@ public class C4ScriptParser extends CStyleScanner {
 								listener.endTypeInferenceBlock(typeInfos);
 							}
 						}
-					}, this, 1);
+						
+						@Override
+						public int minimumParsingRecursion() {
+							return listener.minimumParsingRecursion();
+						}
+					}, this, listener != null ? listener.minimumParsingRecursion() : 1);
 					warnAboutUnusedFunctionVariables(func, cachedBlock);
 					applyStoredTypeInformationList(true);
 				} else {
 					// just traverse... this should be faster than reparsing -.-
-					cachedBlock.traverse(listener, 1);
+					cachedBlock.traverse(listener, this, listener.minimumParsingRecursion());
 				}
 			}
 		} 
