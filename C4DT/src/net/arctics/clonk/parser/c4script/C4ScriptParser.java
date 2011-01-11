@@ -1987,8 +1987,11 @@ public class C4ScriptParser extends CStyleScanner {
 						break;
 					case SECONDOPERAND:
 						ExprElm rightSide = parseExpressionWithoutOperators(reportErrors);
-						if (rightSide == null)
+						if (rightSide == null) {
 							errorWithCode(ParserErrorCode.OperatorNeedsRightSide, lastOp);
+							rightSide = new ExprElm();
+							setExprRegionRelativeToFuncBody(rightSide, offset, offset+1);
+						}
 						((BinaryOp)current).setRightSide(rightSide);
 						lastOp = (BinaryOp)current;
 						current = rightSide;
