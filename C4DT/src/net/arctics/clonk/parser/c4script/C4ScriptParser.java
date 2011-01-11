@@ -138,7 +138,7 @@ public class C4ScriptParser extends CStyleScanner {
 	/**
 	 * Whether the current statement is not reached
 	 */
-	protected boolean statementNotReached;
+	protected boolean statementReached;
 	/**
 	 * matcher for ids obtained from engine configuration id pattern
 	 */
@@ -176,10 +176,6 @@ public class C4ScriptParser extends CStyleScanner {
 	
 	public final boolean hasAppendTo() {
 		return appendTo;
-	}
-	
-	public boolean isStatementNotReached() {
-		return statementNotReached;
 	}
 	
 	/**
@@ -2040,6 +2036,7 @@ public class C4ScriptParser extends CStyleScanner {
 
 	private final void handleExpressionCreated(boolean reportErrors, ExprElm root) throws ParsingException {
 		root.setAssociatedDeclaration(currentDeclaration);
+		root.setFlagsEnabled(ExprElm.STATEMENT_REACHED, statementReached);
 		if (reportErrors) {
 			reportErrorsOf(root);
 		}
@@ -2308,8 +2305,6 @@ public class C4ScriptParser extends CStyleScanner {
 			}
 
 			if (result != null) {
-				setExprRegionRelativeToFuncBody(result, start, this.offset);
-				reportErrorsOf(result);
 				
 				// inline comment attached to expression so code reformatting does not mess up the user's code too much
 				Comment c = getCommentImmediatelyFollowing();
@@ -2318,16 +2313,8 @@ public class C4ScriptParser extends CStyleScanner {
 				if (emptyLines > 0)
 					result.addAttachment(new Statement.EmptyLinesAttachment(emptyLines));
 				
-				if (parseStatementRecursion == 1) {
-					result.setParsingRecursion(parseStatementRecursion);
-					if (listener != null) {
-						switch (listener.expressionDetected(result, this)) {
-						case Cancel:
-							listener = null; // listener doesn't want to hear from me anymore? fine!
-							//throw new SilentParsingException(Reason.Cancellation, "Expression Listener Cancellation"); //$NON-NLS-1$
-						}
-					}
-				}
+				setExprRegionRelativeToFuncBody(result, start, this.offset);
+				handleStatementCreated(result);
 			}
 			return result;
 		} finally {
@@ -2335,6 +2322,21 @@ public class C4ScriptParser extends CStyleScanner {
 		}
 		
 
+	}
+
+	private void handleStatementCreated(Statement statement) throws ParsingException {
+		statement.setParsingRecursion(parseStatementRecursion);
+		statement.setFlagsEnabled(ExprElm.STATEMENT_REACHED, statementReached);
+		reportErrorsOf(statement);
+		if (parseStatementRecursion == 1) {
+			if (listener != null) {
+				switch (listener.expressionDetected(statement, this)) {
+				case Cancel:
+					listener = null; // listener doesn't want to hear from me anymore? fine!
+					//throw new SilentParsingException(Reason.Cancellation, "Expression Listener Cancellation"); //$NON-NLS-1$
+				}
+			}
+		}
 	}
 
 	/**
@@ -2348,11 +2350,11 @@ public class C4ScriptParser extends CStyleScanner {
 	 */
 	private void parseStatementBlock(int start, int endOfFunc, List<Statement> statements, EnumSet<ParseStatementOption> options, ExpressionsAndStatementsReportingFlavour flavour) throws ParsingException {
 		boolean foundClosingBracket = false;
-		boolean notReached = false;
+		boolean reached = true;
 		int garbageStart = -1;
-		boolean oldStatementNotReached = this.statementNotReached;
+		boolean oldStatementReached = this.statementReached;
 		while (!reachedEOF() && this.offset < endOfFunc) {
-			this.statementNotReached = notReached;
+			this.statementReached = reached;
 			int potentialGarbageEnd = offset;
 			//eatWhitespace();
 			Statement statement = flavour == ExpressionsAndStatementsReportingFlavour.AlsoStatements ? parseStatement(options) : SimpleStatement.wrapExpression(parseExpression());
@@ -2373,8 +2375,8 @@ public class C4ScriptParser extends CStyleScanner {
 			}
 			statements.add(statement);
 			boolean statementIsComment = statement instanceof Comment;
-			if (!notReached) {
-				notReached = statement.getControlFlow() != ControlFlow.Continue;
+			if (reached) {
+				reached = statement.getControlFlow() == ControlFlow.Continue;
 			}
 			// after first 'real' statement don't expect function description anymore
 			if (!statementIsComment) {
@@ -2392,7 +2394,7 @@ public class C4ScriptParser extends CStyleScanner {
 		} else {
 			read(); // should be }
 		}
-		this.statementNotReached = oldStatementNotReached;
+		this.statementReached = oldStatementReached;
 	}
 
 	private int maybeAddGarbageStatement(List<Statement> statements,
@@ -3066,6 +3068,7 @@ public class C4ScriptParser extends CStyleScanner {
 		ExpressionsAndStatementsReportingFlavour flavour,
 		boolean reportErrors
 	) {
+		allErrorsDisabled = !reportErrors;
 		C4Function func = funcOrRegion instanceof C4Function ? (C4Function)funcOrRegion : null;
 		currentDeclaration = func;
 		try {

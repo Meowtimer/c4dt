@@ -40,6 +40,9 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable {
 	public static final ExprElm NULL_EXPR = new ExprElm();
 	public static final ExprElm[] EMPTY_EXPR_ARRAY = new ExprElm[0];
 	public static final Object EVALUATION_COMPLEX = new Object();
+	
+	public static final int PROPERLY_FINISHED = 1;
+	public static final int STATEMENT_REACHED = 2;
 
 	public static final ExprElm nullExpr(int start, int length, C4ScriptParser parser) {
 		ExprElm result = new ExprElm();
@@ -49,7 +52,7 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable {
 	
 	private int exprStart, exprEnd;
 	private transient ExprElm parent, predecessorInSequence, successorInSequence;
-	private boolean finishedProperly = true;
+	private int flags = PROPERLY_FINISHED;
 	
 	/**
 	 * Recursion level of the method that parsed this expression/statement which
@@ -69,13 +72,19 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable {
 		this.parsingRecursion = expressionRecursion;
 	}
 	
-	public boolean isFinishedProperly() {
-		return finishedProperly;
+	public final boolean flagsEnabled(int flags) {
+		return (this.flags & flags) != 0;
 	}
 	
-	public void setFinishedProperly(boolean finishedProperly) {
-		this.finishedProperly = finishedProperly;
+	public final void setFlagsEnabled(int flags, boolean enabled) {
+		if (enabled)
+			this.flags |= flags;
+		else
+			this.flags &= ~flags;
 	}
+	
+	public boolean isFinishedProperly() {return flagsEnabled(PROPERLY_FINISHED);}
+	public void setFinishedProperly(boolean finished) {setFlagsEnabled(PROPERLY_FINISHED, finished);}
 
 	protected void assignParentToSubElements() {
 		// cheap man's solution to the mutability-of-exprelms problem:

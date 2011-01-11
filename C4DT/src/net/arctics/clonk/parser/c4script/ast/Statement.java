@@ -99,7 +99,7 @@ public class Statement extends ExprElm implements Cloneable {
 	public void reportErrors(C4ScriptParser parser) throws ParsingException {
 		super.reportErrors(parser);
 		warnIfNoSideEffects(parser);
-		if (parser.isStatementNotReached())
+		if (!flagsEnabled(STATEMENT_REACHED))
 			parser.warningWithCode(ParserErrorCode.NeverReached, this);
 		//			for (ExprElm elm : getSubElements())
 		//				if (elm != null)
