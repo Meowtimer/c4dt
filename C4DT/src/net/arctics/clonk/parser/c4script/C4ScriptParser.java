@@ -388,6 +388,10 @@ public class C4ScriptParser extends CStyleScanner {
 				errorsDisabledByProjectSettings = nature.getSettings().getDisabledErrorsSet();
 			}
 		}
+		
+		if (container != null) {
+			strictLevel = container.getStrictLevel();
+		}
 	}
 
 	/**
