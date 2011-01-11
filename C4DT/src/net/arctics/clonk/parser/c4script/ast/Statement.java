@@ -1,5 +1,6 @@
 package net.arctics.clonk.parser.c4script.ast;
 
+import java.io.Serializable;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -19,7 +20,7 @@ public class Statement extends ExprElm implements Cloneable {
 
 	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 
-	public interface Attachment {
+	public interface Attachment extends Serializable {
 		public enum Position {
 			Pre,
 			Post
@@ -28,6 +29,9 @@ public class Statement extends ExprElm implements Cloneable {
 	}
 	
 	public static class EmptyLinesAttachment implements Attachment {
+
+		private static final long serialVersionUID = 1L;
+
 		private int num;
 		public int getNum() {
 			return num;
