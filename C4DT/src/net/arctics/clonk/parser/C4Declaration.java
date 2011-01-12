@@ -66,7 +66,7 @@ public abstract class C4Declaration implements Serializable, IHasRelatedResource
 	 * @param name the new name
 	 */
 	public void setName(String name) {
-		this.name = name;
+		this.name = name != null ? name.intern() : null;
 	}
 	
 	/**
@@ -268,6 +268,8 @@ public abstract class C4Declaration implements Serializable, IHasRelatedResource
 	 * @param parent the parent
 	 */
 	public void postSerialize(C4Declaration parent) {
+		if (name != null)
+			name = name.intern();
 		setParentDeclaration(parent);
 		Iterable<? extends C4Declaration> subDecs = this.allSubDeclarations(ALL_SUBDECLARATIONS);
 		if (subDecs != null)
