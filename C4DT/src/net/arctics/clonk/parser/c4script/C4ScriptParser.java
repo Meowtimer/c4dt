@@ -1540,6 +1540,7 @@ public class C4ScriptParser extends CStyleScanner {
 			ExprElm followingExpr = parseExpressionWithoutOperators(reportErrors);
 			if (followingExpr == null) {
 				errorWithCode(ParserErrorCode.ExpressionExpected, this.offset, this.offset+1);
+				followingExpr = placeholderExpression(offset);
 			}
 			result = new UnaryOp(preop, UnaryOp.Placement.Prefix, followingExpr);
 		} else
@@ -1988,8 +1989,7 @@ public class C4ScriptParser extends CStyleScanner {
 						ExprElm rightSide = parseExpressionWithoutOperators(reportErrors);
 						if (rightSide == null) {
 							errorWithCode(ParserErrorCode.OperatorNeedsRightSide, lastOp);
-							rightSide = new ExprElm();
-							setExprRegionRelativeToFuncBody(rightSide, offset, offset+1);
+							rightSide = placeholderExpression(offset);
 						}
 						((BinaryOp)current).setRightSide(rightSide);
 						lastOp = (BinaryOp)current;
@@ -2010,6 +2010,12 @@ public class C4ScriptParser extends CStyleScanner {
 		} finally {
 			parseExpressionRecursion--;
 		}
+	}
+
+	private ExprElm placeholderExpression(final int offset) {
+		ExprElm result = new ExprElm();
+		setExprRegionRelativeToFuncBody(result, offset, offset+1);
+		return result;
 	}
 	
 	private transient ExprElm expressionReportingErrors;
