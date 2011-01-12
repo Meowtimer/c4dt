@@ -258,11 +258,14 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 			ClonkIndex index, final C4Function activeFunc,
 			C4ScriptBase editorScript,
 			C4ScriptParser parser) {
+
 		List<IHasSubDeclarations> contextStructures = new LinkedList<IHasSubDeclarations>();
 		contextStructures.add(editorScript);
 		boolean contextStructuresChanged = false;
 		_currentEditorScript = editorScript;
 		boolean specifiedParser = parser != null;
+		Sequence contextSequence = null;
+		
 		if (editorScript != null) {
 			final int preservedOffset = offset - (activeFunc != null?activeFunc.getBody().getStart():0);
 			if (contextExpression == null && !specifiedParser) {
@@ -270,30 +273,28 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 				parser = C4ScriptParser.reportExpressionsAndStatements(doc, editorScript, activeFunc, locator,
 					null, ExpressionsAndStatementsReportingFlavour.AlsoStatements, false);
 				contextExpression = locator.getExprAtRegion();
-				if (contextExpression != null) {
-					Sequence seq = contextExpression.getParent(Sequence.class);
-					if (seq != null) {
-						contextExpression = seq;
-					}
-				}
 				if (contextTypeInformation != null) {
 					parser.pushTypeInformationList(contextTypeInformation);
 					parser.applyStoredTypeInformationList(true);
 				}
 			}
 			if (contextExpression != null) {
+				// we only care about sequences
+				contextSequence = contextExpression.getParent(Sequence.class);
+				if (contextSequence == null) {
+					contextExpression = null;
+				}
+			}
+			if (contextSequence != null) {
 				// cut off stuff after ->
-				if (contextExpression instanceof Sequence) {
-					Sequence seq = (Sequence) contextExpression;
-					for (int i = seq.getElements().length-1; i >= 0; i--) {
-						if (seq.getElements()[i] instanceof MemberOperator) {
-							if (i < seq.getElements().length-1)
-								contextExpression = seq.sequenceWithElementsRemovedFrom(seq.getElements()[i+1]);
-							break;
-						}
+				for (int i = contextSequence.getElements().length-1; i >= 0; i--) {
+					if (contextSequence.getElements()[i] instanceof MemberOperator) {
+						if (i < contextSequence.getElements().length-1)
+							contextSequence = contextSequence.sequenceWithElementsRemovedFrom(contextSequence.getElements()[i+1]);
+						break;
 					}
 				}
-				for (IType t : contextExpression.getType(parser)) {
+				for (IType t : contextSequence.getType(parser)) {
 					IHasSubDeclarations structure;
 					if (t instanceof IHasSubDeclarations) {
 						structure = (IHasSubDeclarations) t;
@@ -310,12 +311,12 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 				}
 				// expression was of no use - discard and show global proposals
 				if (!contextStructuresChanged)
-					contextExpression = null;
+					contextSequence = null;
 			}
 			parser.endTypeInferenceBlock();
 		}
 		
-		if (contextExpression == null && proposalCycle == ProposalCycle.ALL) {
+		if (contextSequence == null && proposalCycle == ProposalCycle.ALL) {
 			if (editorScript.getIndex().getEngine() != null) {
 				for (C4Function func : editorScript.getIndex().getEngine().functions()) {
 					proposalForFunc(func, prefix, offset, proposals, editorScript.getIndex().getEngine().getName(), true);
@@ -326,7 +327,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 			}
 		}
 		
-		if (contextExpression == null && (proposalCycle == ProposalCycle.ALL || proposalCycle == ProposalCycle.LOCAL) && activeFunc != null /*&& contextExpression == null* what was the reason for that again?*/) {
+		if (contextSequence == null && (proposalCycle == ProposalCycle.ALL || proposalCycle == ProposalCycle.LOCAL) && activeFunc != null /*&& contextSequence == null* what was the reason for that again?*/) {
 			for (C4Variable v : activeFunc.getParameters()) {
 				proposalForVar(v, prefix, wordOffset, proposals);
 			}
@@ -335,19 +336,19 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 			}
 		}
 
-		if (contextExpression == null && proposalCycle != ProposalCycle.OBJECT)
+		if (contextSequence == null && proposalCycle != ProposalCycle.OBJECT)
 			for (ClonkIndex i : index.relevantIndexes())
 				proposalsForIndex(i, offset, wordOffset, prefix, proposals);
 
 		int whatToDisplayFromScripts = IHasSubDeclarations.INCLUDES;
-		if (contextExpression == null || MemberOperator.endsWithDot(contextExpression))
+		if (contextSequence == null || MemberOperator.endsWithDot(contextSequence))
 			whatToDisplayFromScripts |= IHasSubDeclarations.VARIABLES;
-		if (contextExpression == null || !MemberOperator.endsWithDot(contextExpression))
+		if (contextSequence == null || !MemberOperator.endsWithDot(contextSequence))
 			whatToDisplayFromScripts |= IHasSubDeclarations.FUNCTIONS;
 		for (IHasSubDeclarations s : contextStructures) {
-			proposalsFromStructure(s, new HashSet<IHasSubDeclarations>(), prefix, offset, wordOffset, proposals, contextStructuresChanged, index, whatToDisplayFromScripts);
+			proposalsForStructure(s, new HashSet<IHasSubDeclarations>(), prefix, offset, wordOffset, proposals, contextStructuresChanged, index, whatToDisplayFromScripts);
 		}
-		if (contextExpression == null && proposalCycle == ProposalCycle.ALL) {
+		if (contextSequence == null && proposalCycle == ProposalCycle.ALL) {
 			ImageRegistry reg = ClonkCore.getDefault().getImageRegistry();
 			if (reg.get("keyword") == null) { //$NON-NLS-1$
 				reg.put("keyword", ImageDescriptor.createFromURL(FileLocator.find(ClonkCore.getDefault().getBundle(), new Path("icons/keyword.png"), null))); //$NON-NLS-1$ //$NON-NLS-2$
@@ -466,7 +467,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 		return String.format(Messages.C4ScriptCompletionProcessor_PressToShowCycle, sequence.format(), proposalCycle.cycle().description());
 	}
 	
-	private void proposalsFromStructure(IHasSubDeclarations structure, Set<IHasSubDeclarations> loopCatcher, String prefix, int offset, int wordOffset, List<ICompletionProposal> proposals, boolean noPrivateFuncs, ClonkIndex index, int mask) {
+	private void proposalsForStructure(IHasSubDeclarations structure, Set<IHasSubDeclarations> loopCatcher, String prefix, int offset, int wordOffset, List<ICompletionProposal> proposals, boolean noPrivateFuncs, ClonkIndex index, int mask) {
 		if (loopCatcher.contains(structure)) {
 			return;
 		}
@@ -485,7 +486,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 					proposalForVar(var, prefix, wordOffset, proposals);
 			}
 			else if ((include = Utilities.as(dec, C4ScriptBase.class)) != null) {
-				proposalsFromStructure(include, loopCatcher, prefix, offset, wordOffset, proposals, noPrivateFuncs, index, mask);
+				proposalsForStructure(include, loopCatcher, prefix, offset, wordOffset, proposals, noPrivateFuncs, index, mask);
 			}
 		}
 	}
