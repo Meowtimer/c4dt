@@ -18,6 +18,7 @@ import net.arctics.clonk.parser.c4script.ast.Conf;
 import net.arctics.clonk.parser.c4script.ast.ExprElm;
 import net.arctics.clonk.parser.c4script.ast.TypeExpectancyMode;
 import net.arctics.clonk.preferences.ClonkPreferences;
+import net.arctics.clonk.util.ArrayUtil;
 import net.arctics.clonk.util.CompoundIterable;
 import net.arctics.clonk.util.Utilities;
 
@@ -385,7 +386,7 @@ public class C4Function extends C4Structure implements Serializable, ITypedDecla
 
 	@Override
 	public Object[] getSubDeclarationsForOutline() {
-		return getLocalVars().toArray();
+		return ArrayUtil.concat(getLocalVars().toArray(), otherDeclarations != null ? otherDeclarations.toArray() : null);
 	}
 
 	public void createParameters(int num) {
@@ -586,11 +587,18 @@ public class C4Function extends C4Structure implements Serializable, ITypedDecla
 		}
 	}
 	
-	public void addOtherDeclaration(C4Declaration d) {
+	public C4Declaration addOtherDeclaration(C4Declaration d) {
 		if (otherDeclarations == null) {
 			otherDeclarations = new ArrayList<C4Declaration>(3);
+		} else {
+			for (C4Declaration existing : otherDeclarations) {
+				if (existing.getLocation().equals(d.getLocation())) {
+					return existing;
+				}
+			}
 		}
 		otherDeclarations.add(d);
+		return d;
 	}
 	
 	private static final List<C4Declaration> NO_OTHER_DECLARATIONS = new ArrayList<C4Declaration>();
@@ -640,5 +648,19 @@ public class C4Function extends C4Structure implements Serializable, ITypedDecla
 	public int getOffset() {
 		return getBody().getOffset();
 	}
+	
+	@SuppressWarnings("unchecked")
+	@Override
+	public <T extends C4Declaration> T getLatestVersion(T from) {
+		if (from instanceof C4Variable) {
+			return super.getLatestVersion(from);
+		} else {
+			for (C4Declaration other : otherDeclarations) {
+				if (other.getClass() == from.getClass() && other.getLocation() == from.getLocation())
+					return (T) other;
+			}
+		}
+		return null;
+	};
 	
 }
