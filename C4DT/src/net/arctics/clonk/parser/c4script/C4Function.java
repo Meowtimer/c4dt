@@ -581,6 +581,9 @@ public class C4Function extends C4Structure implements Serializable, ITypedDecla
 
 	public void clearLocalVars() {
 		getLocalVars().clear();
+		if (otherDeclarations != null) {
+			otherDeclarations.clear();
+		}
 	}
 	
 	public void addOtherDeclaration(C4Declaration d) {

@@ -428,7 +428,7 @@ public class C4ScriptParser extends CStyleScanner {
 	/**
 	 * Initialize some state fields. Needs to be called before actual parsing takes place.
 	 */
-	private void initialize() {
+	protected void initialize() {
 		if (container != null) {
 			if (container.getEngine() != null) {
 				idMatcher = container.getEngine().getCurrentSettings().getCompiledIdPattern().matcher(buffer);
@@ -753,7 +753,7 @@ public class C4ScriptParser extends CStyleScanner {
 			else {
 				String content = parseDirectiveParms();
 				C4Directive directive = new C4Directive(type, content);
-				directive.setLocation(new SourceLocation(startOfDeclaration, this.offset));
+				directive.setLocation(absoluteSourceLocation(startOfDeclaration, this.offset));
 				container.addDeclaration(directive);
 				if (type == C4DirectiveType.APPENDTO)
 					appendTo = true;
@@ -975,7 +975,7 @@ public class C4ScriptParser extends CStyleScanner {
 			result.setParentDeclaration(getContainer());
 			getContainer().addDeclaration(result);
 		}
-		result.setLocation(new SourceLocation(start+offsetOfScriptFragment(), end+offsetOfScriptFragment()));
+		result.setLocation(absoluteSourceLocation(start, end));
 		result.setUserDescription(description);
 		return result;
 	}
@@ -1164,9 +1164,9 @@ public class C4ScriptParser extends CStyleScanner {
 				getCurrentFunc().setUserDescription(c.getComment());
 		}
 		// finish up
-		getCurrentFunc().setLocation(new SourceLocation(startName,endName));
-		getCurrentFunc().setBody(startBody != -1 ? new SourceLocation(startBody,endBody) : null);
-		getCurrentFunc().setHeader(new SourceLocation(startOfFirstWord, endOfHeader));
+		getCurrentFunc().setLocation(absoluteSourceLocation(startName,endName));
+		getCurrentFunc().setBody(startBody != -1 ? absoluteSourceLocation(startBody,endBody) : null);
+		getCurrentFunc().setHeader(absoluteSourceLocation(startOfFirstWord, endOfHeader));
 		container.addDeclaration(getCurrentFunc());
 		if (!getCurrentFunc().isOldStyle())
 			currentDeclaration = null; // to not suppress errors in-between functions
@@ -1834,7 +1834,7 @@ public class C4ScriptParser extends CStyleScanner {
 							}
 							eatWhitespace();
 							C4Variable v = new C4Variable(name, getCurrentFunc() != null ? C4VariableScope.VAR : C4VariableScope.LOCAL);
-							v.setLocation(new SourceLocation(nameStart, nameEnd));
+							v.setLocation(absoluteSourceLocation(nameStart, nameEnd));
 							//System.out.println("var " + v.getName() + " parent: " + currentDeclaration().toString() + " - " + getContainer().toString());
 							C4Declaration outerDec = currentDeclaration;
 							currentDeclaration = v;
@@ -1862,7 +1862,7 @@ public class C4ScriptParser extends CStyleScanner {
 					errorWithCode(ParserErrorCode.MissingClosingBracket, this.offset-1, this.offset, "}"); //$NON-NLS-1$
 				}
 				elm = new PropListExpression(proplistDeclaration);
-				proplistDeclaration.setLocation(new SourceLocation(propListStart+offsetOfScriptFragment(), offset+offsetOfScriptFragment()));
+				proplistDeclaration.setLocation(absoluteSourceLocation(propListStart, offset));
 			} finally {
 				currentDeclaration = oldDec;
 			}
@@ -1873,6 +1873,10 @@ public class C4ScriptParser extends CStyleScanner {
 		else
 			unread();
 		return elm;
+	}
+
+	private SourceLocation absoluteSourceLocation(int start, int end) {
+		return new SourceLocation(start+offsetOfScriptFragment, end+offsetOfScriptFragment);
 	}
 
 	private ExprElm parseArrayExpression(boolean reportErrors, ExprElm prevElm) throws ParsingException {
@@ -3034,13 +3038,11 @@ public class C4ScriptParser extends CStyleScanner {
 	}
 	
 	/** 
-	 * Overridden by internal helper class that operates on just a substring of the whole script.
+	 * Set by derived parsers that operate on just a substring of the whole script.
 	 * Used for setting the right location for variables that are created while parsing the body of a function
 	 * @return Offset of the script fragment this parser processes in the complete script
 	 */
-	public int offsetOfScriptFragment() {
-		return 0;
-	}
+	protected int offsetOfScriptFragment;
 	
 	/**
 	 * Subtracted from the location of ExprElms created so their location will be relative to the body of the function they are contained in.
@@ -3235,7 +3237,7 @@ public class C4ScriptParser extends CStyleScanner {
 				int markerStart, int markerEnd, boolean noThrow,
 				int severity, Object... args) throws ParsingException {
 			if (markerListener != null) {
-				if (markerListener.markerEncountered(this, code, markerStart+offsetOfScriptFragment(), markerEnd+offsetOfScriptFragment(), noThrow, severity, args) == WhatToDo.DropCharges)
+				if (markerListener.markerEncountered(this, code, markerStart+offsetOfScriptFragment, markerEnd+offsetOfScriptFragment, noThrow, severity, args) == WhatToDo.DropCharges)
 					return null;
 			}
 			return super.markerWithCode(code, markerStart, markerEnd, noThrow, severity, args);
@@ -3275,8 +3277,9 @@ public class C4ScriptParser extends CStyleScanner {
 		final String statements = statements_;
 		C4ScriptParser parser = new ScriptParserWithMarkerListener(statements, context, markerListener) {
 			@Override
-			public int offsetOfScriptFragment() {
-				return statementStart;
+			protected void initialize() {
+				super.initialize();
+				offsetOfScriptFragment = statementStart;
 			}
 			@Override
 			public int bodyOffset() {
@@ -3321,7 +3324,7 @@ public class C4ScriptParser extends CStyleScanner {
 	 * @throws ParsingException
 	 */
 	public Statement parseStandaloneStatement(final String statementText, C4Function context, IScriptParserListener listener) throws ParsingException {
-		init(statementText);
+		initScanner(statementText);
 		setListener(listener);
 		setCurrentFunc(context);
 		beginTypeInferenceBlock();

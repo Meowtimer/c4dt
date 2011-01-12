@@ -137,18 +137,16 @@ public class C4ScriptEditor extends ClonkTextEditor {
 			public PatchParser(C4ScriptBase script) {
 				super(script);
 			}
-			public int statementStart;
 			@Override
 			public int bodyOffset() {
-				return -statementStart; // add original statement start so warnings like VarUsedBeforeItsDeclaration won't fire
+				return -offsetOfScriptFragment; // add original statement start so warnings like VarUsedBeforeItsDeclaration won't fire
 			};
-			@Override
-			public int offsetOfScriptFragment() {
-				return statementStart;
-			}
 			@Override
 			public boolean errorEnabled(ParserErrorCode error) {
 				return false;
+			}
+			public void setStatementStart(int start) {
+				offsetOfScriptFragment = start;
 			}
 		}
 		
@@ -206,7 +204,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 						patchStatementTextBuilder.delete(event.getOffset()-absoluteOffsetToStatement, event.getOffset()-absoluteOffsetToStatement+event.getLength());
 						patchStatementTextBuilder.insert(event.getOffset()-absoluteOffsetToStatement, event.getText());
 						String patchStatementText = patchStatementTextBuilder.toString();
-						patchParser.statementStart = originalStatement.getExprStart();
+						patchParser.setStatementStart(originalStatement.getExprStart());
 						Statement patchStatement = patchParser.parseStandaloneStatement(patchStatementText, f, null);
 						if (patchStatement != null) {
 							originalStatement.getParent().replaceSubElement(originalStatement, patchStatement, patchStatementText.length() - originalStatementText.length());
