@@ -148,6 +148,9 @@ public class C4ScriptParser extends CStyleScanner {
 	 */
 	private Set<ParserErrorCode> errorsDisabledByProjectSettings = NO_DISABLED_ERRORS;
 
+	/**
+	 * Stores the current loop the parser is parsing.
+	 */
 	protected LoopType currentLoop;
 	
 	/**
@@ -156,6 +159,9 @@ public class C4ScriptParser extends CStyleScanner {
 	 */
 	protected int numUnnamedParameters;
 	
+	/**
+	 * Stack of type information lists.
+	 */
 	private Stack<List<IStoredTypeInformation>> storedTypeInformationListStack = new Stack<List<IStoredTypeInformation>>();
 	
 	/**
@@ -174,6 +180,10 @@ public class C4ScriptParser extends CStyleScanner {
 		this.listener = listener;
 	}
 	
+	/**
+	 * Return whether the script being parsed has #appendtos. Stored in field for performance.
+	 * @return Whether or not.
+	 */
 	public final boolean hasAppendTo() {
 		return appendTo;
 	}
@@ -193,16 +203,30 @@ public class C4ScriptParser extends CStyleScanner {
 		}
 	}
 	
+	/**
+	 * Push a new type information list onto the stack.
+	 * @return The newly created and pushed type information list.
+	 */
 	public List<IStoredTypeInformation> beginTypeInferenceBlock() {
 		List<IStoredTypeInformation> result = new LinkedList<IStoredTypeInformation>();
 		storedTypeInformationListStack.push(result);
 		return result;
 	}
 	
+	/**
+	 * Pop the current type information list from the sack.
+	 * @return The popped list.
+	 */
 	public List<IStoredTypeInformation> endTypeInferenceBlock() {
 		return !storedTypeInformationListStack.isEmpty() ? storedTypeInformationListStack.pop() : null;
 	}
 	
+	/**
+	 * Store given type information in the associated C4Declaration objects so this information
+	 * will be permanent. 
+	 * @param list The type information list to apply.
+	 * @param soft Whether to only store the types in function-local variables.
+	 */
 	private final void applyStoredTypeInformationList(List<IStoredTypeInformation> list, boolean soft) {
 		if (list == null)
 			return;
@@ -211,6 +235,11 @@ public class C4ScriptParser extends CStyleScanner {
 		}
 	}
 	
+	/**
+	 * Store current type information in the associated C4Declaration objects so this information
+	 * will be permanent. 
+	 * @param soft Whether to only store the types in function-local variables.
+	 */
 	public void applyStoredTypeInformationList(boolean soft) {
 		applyStoredTypeInformationList(storedTypeInformationListStack.peek(), soft);
 	}
@@ -246,6 +275,10 @@ public class C4ScriptParser extends CStyleScanner {
 		return newlyCreated;
 	}
 
+	/**
+	 * Return a copy of the current type information list.
+	 * @return The copied list
+	 */
 	public List<IStoredTypeInformation> copyCurrentTypeInformationList() {
 		try {
 			List<IStoredTypeInformation> list = new ArrayList<IStoredTypeInformation>(storedTypeInformationListStack.peek().size());
@@ -258,6 +291,10 @@ public class C4ScriptParser extends CStyleScanner {
 		}
 	}
 	
+	/**
+	 * Push a new type information list on the type information list stack.
+	 * @param list
+	 */
 	public void pushTypeInformationList(List<IStoredTypeInformation> list) {
 		storedTypeInformationListStack.push(list);
 	}
@@ -279,7 +316,14 @@ public class C4ScriptParser extends CStyleScanner {
 		return null;
 	}
 	
-	public IType queryTypeOfExpression(ExprElm expression, C4Type defaultType) {
+	/**
+	 * Look up stored type information for the passed expression, defaulting to the specified type if no
+	 * information could be found.
+	 * @param expression The expression to query the type for
+	 * @param defaultType Default type to return if no type was found.
+	 * @return Expression type as deduced by usage of the expression or the default type.
+	 */
+	public IType queryTypeOfExpression(ExprElm expression, IType defaultType) {
 		IStoredTypeInformation info = queryStoredTypeInformation(expression);
 		return info != null ? info.getType() : defaultType;
 	}
@@ -311,10 +355,18 @@ public class C4ScriptParser extends CStyleScanner {
 		}
 	}
 	
-	public C4Variable getCurrentVariableBeingDeclared() {
+	/**
+	 * Returns the first variable in the parent chain of currentDeclaration
+	 * @return
+	 */
+	public C4Variable getCurrentVariable() {
 		return currentDeclaration != null ? currentDeclaration.getFirstParentDeclarationOfType(C4Variable.class) : null;
 	}
 	
+	/**
+	 * Returns the declaration that is currently being parsed.
+	 * @return
+	 */
 	public C4Declaration getCurrentDeclaration() {
 		return currentDeclaration;
 	}
@@ -365,29 +417,36 @@ public class C4ScriptParser extends CStyleScanner {
 	 */
 	public C4ScriptParser(C4ScriptBase script) {
 		this((IFile) script.getScriptStorage(), script);
-		getInfos();
+		initialize();
 	}
 	
+	/**
+	 * Dummy pattern used to match ids if no engine-specific pattern configuration is available.
+	 */
 	private static final Pattern DEFAULT_ID_PATTERN = Pattern.compile("");
 	
-	private void getInfos() {
-		if (container != null && container.getEngine() != null) {
-			idMatcher = container.getEngine().getCurrentSettings().getCompiledIdPattern().matcher(buffer);
-		} else {
-			idMatcher = DEFAULT_ID_PATTERN.matcher(buffer);
-		}
-
-		if (container != null && container.getIndex() instanceof ProjectIndex) {
-			ProjectIndex projIndex = (ProjectIndex) container.getIndex();
-			ClonkProjectNature nature = projIndex.getNature();
-			if (nature != null) {
-				errorsDisabledByProjectSettings = nature.getSettings().getDisabledErrorsSet();
-			}
-		}
-		
+	/**
+	 * Initialize some state fields. Needs to be called before actual parsing takes place.
+	 */
+	private void initialize() {
 		if (container != null) {
+			if (container.getEngine() != null) {
+				idMatcher = container.getEngine().getCurrentSettings().getCompiledIdPattern().matcher(buffer);
+			} else {
+				idMatcher = DEFAULT_ID_PATTERN.matcher(buffer);
+			}
+
+			if (container.getIndex() instanceof ProjectIndex) {
+				ProjectIndex projIndex = (ProjectIndex) container.getIndex();
+				ClonkProjectNature nature = projIndex.getNature();
+				if (nature != null) {
+					errorsDisabledByProjectSettings = nature.getSettings().getDisabledErrorsSet();
+				}
+			}
+
 			strictLevel = container.getStrictLevel();
 		}
+		statementReached = true;
 	}
 
 	/**
@@ -402,7 +461,7 @@ public class C4ScriptParser extends CStyleScanner {
 		this.scriptFile = scriptFile;
 		container = script;
 		allErrorsDisabled = C4GroupItem.isLinkedResource(scriptFile);
-		getInfos();
+		initialize();
 	}
 
 	/**
@@ -417,7 +476,7 @@ public class C4ScriptParser extends CStyleScanner {
 		super(stream);
 		scriptFile = null;
 		container = script;
-		getInfos();
+		initialize();
 	}
 	
 	/**
@@ -430,7 +489,7 @@ public class C4ScriptParser extends CStyleScanner {
 		this.scriptFile = scriptFile;
 		container = script;
 		isEngine = container instanceof C4Engine;
-		getInfos();
+		initialize();
 	}
 	
 	/**

@@ -110,7 +110,7 @@ public class TidyUpCodeAction extends TextEditorAction {
 				C4Function activeFunc = parser.getCurrentFunc();
 				// initialization expression for variable for example... needs to be reformatted as well
 				if (activeFunc == null) {
-					chunks.addFirst(new CodeChunk(parser.getCurrentVariableBeingDeclared(), ArrayUtil.list(expression)));
+					chunks.addFirst(new CodeChunk(parser.getCurrentVariable(), ArrayUtil.list(expression)));
 					return TraversalContinuation.Continue;
 				}
 				if (!(expression instanceof Statement))
