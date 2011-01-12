@@ -21,8 +21,6 @@ public class Sequence extends Value {
 		ExprElm prev = null;
 		for (ExprElm e : elements) {
 			e.setPredecessorInSequence(prev);
-			if (prev != null)
-				prev.setSuccessorInSequence(e);
 			e.setParent(this);
 			prev = e;
 		}

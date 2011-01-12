@@ -51,7 +51,7 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable {
 	}
 	
 	private int exprStart, exprEnd;
-	private transient ExprElm parent, predecessorInSequence, successorInSequence;
+	private transient ExprElm parent, predecessorInSequence;
 	private int flags = PROPERLY_FINISHED;
 	
 	/**
@@ -308,14 +308,6 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable {
 
 	public ExprElm getPredecessorInSequence() {
 		return predecessorInSequence;
-	}
-
-	public ExprElm getSuccessorInSequence() {
-		return successorInSequence;
-	}
-
-	public void setSuccessorInSequence(ExprElm e) {
-		successorInSequence = e;
 	}
 
 	public ExprElm[] getSubElements() {
