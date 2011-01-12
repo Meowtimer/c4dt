@@ -18,6 +18,7 @@ public class ProplistDeclaration extends C4Structure {
 	public ProplistDeclaration(List<C4Variable> components) {
 		super();
 		this.components = components;
+		setName("proplist {...}");
 	}
 
 	@Override

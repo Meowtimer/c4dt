@@ -1800,6 +1800,7 @@ public class C4ScriptParser extends CStyleScanner {
 
 	private ExprElm parsePropListExpression(boolean reportErrors, ExprElm prevElm) throws ParsingException {
 		ExprElm elm = null;
+		int propListStart = offset;
 		int c = read();
 		if (c == '{') {
 			ProplistDeclaration proplistDeclaration = new ProplistDeclaration(new ArrayList<C4Variable>(10));
@@ -1861,6 +1862,7 @@ public class C4ScriptParser extends CStyleScanner {
 					errorWithCode(ParserErrorCode.MissingClosingBracket, this.offset-1, this.offset, "}"); //$NON-NLS-1$
 				}
 				elm = new PropListExpression(proplistDeclaration);
+				proplistDeclaration.setLocation(new SourceLocation(propListStart+offsetOfScriptFragment(), offset+offsetOfScriptFragment()));
 			} finally {
 				currentDeclaration = oldDec;
 			}
