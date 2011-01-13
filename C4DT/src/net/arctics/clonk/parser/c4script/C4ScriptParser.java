@@ -2782,7 +2782,9 @@ public class C4ScriptParser extends CStyleScanner {
 					initialization = new SimpleStatement(accessVar);
 					setExprRegionRelativeToFuncBody(initialization, pos, pos+varName.length());
 					boolean wasEnabled = enableError(ParserErrorCode.NoSideEffects, false);
+					parseStatementRecursion++;
 					handleStatementCreated(initialization);
+					parseStatementRecursion--;
 					enableError(ParserErrorCode.NoSideEffects, wasEnabled);
 				} else {
 					w = null;
@@ -2898,6 +2900,8 @@ public class C4ScriptParser extends CStyleScanner {
 	 * @param condition The loop condition to check
 	 */
 	private void loopConditionWarnings(Statement body, ExprElm condition) {
+		if (body == null || condition == null)
+			return;
 		Object condEv = C4Type.BOOL.convert(condition == null ? true : condition.evaluateAtParseTime(getContainer()));
 		if (Boolean.FALSE.equals(condEv))
 			warningWithCode(ParserErrorCode.ConditionAlwaysFalse, condition, condition.toString());
