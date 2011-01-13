@@ -162,15 +162,15 @@ public class AccessVar extends AccessDeclaration {
 		IType predType = getPredecessorInSequence() != null ? getPredecessorInSequence().getType(context) : null;
 		if (predType instanceof ProplistDeclaration) {
 			ProplistDeclaration proplDec = (ProplistDeclaration) predType;
-			if (proplDec.isAdHoc()) {
-				C4Variable adhocVar = new C4Variable(getDeclarationName(), C4VariableScope.VAR);
-				adhocVar.setLocation(context.absoluteSourceLocationFromExpr(this));
-				adhocVar.forceType(expression.getType(context));
-				adhocVar.setInitializationExpression(expression);
-				adhocVar.setParentDeclaration(proplDec);
-				declaration = adhocVar;
-				proplDec.addComponent(adhocVar);
-			}
+			
+			// FIXME: always ok to add to existing proplist declaration?
+			C4Variable adhocVar = new C4Variable(getDeclarationName(), C4VariableScope.VAR);
+			adhocVar.setLocation(context.absoluteSourceLocationFromExpr(this));
+			adhocVar.forceType(expression.getType(context));
+			adhocVar.setInitializationExpression(expression);
+			adhocVar.setParentDeclaration(proplDec);
+			declaration = adhocVar;
+			proplDec.addComponent(adhocVar, true);
 		}
 		super.inferTypeFromAssignment(expression, context);
 	}

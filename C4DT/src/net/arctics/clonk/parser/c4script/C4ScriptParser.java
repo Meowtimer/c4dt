@@ -1915,7 +1915,7 @@ public class C4ScriptParser extends CStyleScanner {
 							} finally {
 								currentDeclaration = outerDec;
 							}
-							proplistDeclaration.addComponent(v);
+							proplistDeclaration.addComponent(v, false);
 							expectingComma = true;
 						}
 						else {
