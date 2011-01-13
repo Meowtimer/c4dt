@@ -293,6 +293,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 	 *  Gathered list of scripts to be parsed
 	 */
 	private Map<C4ScriptBase, C4ScriptParser> parserMap = new HashMap<C4ScriptBase, C4ScriptParser>();
+
 	/**
 	 * Set of structures that have been validated during one build round - keeping track of them so when parsing dependent scripts, scripts that might lose some warnings
 	 * due to structure files having been revalidated can also be reparsed (string tables and such)
@@ -530,7 +531,12 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 		C4ScriptParser result;
 		if (!parserMap.containsKey(script)) {
 			IStorage storage = script.getScriptStorage();
-			parserMap.put(script, result = storage != null ? new C4ScriptParser(script) : null);
+			if (storage != null) {
+				result = new C4ScriptParser(script);
+				result.setBuilder(this);
+			} else
+				result = null;
+			parserMap.put(script, result);
 		} else
 			result = parserMap.get(script);
 		return result;

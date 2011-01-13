@@ -663,4 +663,17 @@ public class C4Function extends C4Structure implements Serializable, ITypedDecla
 		return null;
 	};
 	
+	public void assignParameterTypes(IType... types) {
+		for (int i = 0; i < types.length; i++) {
+			if (i >= getParameters().size())
+				break;
+			getParameters().get(i).forceType(types[i], true);
+		}
+	}
+	
+	@Override
+	public int hashCode() {
+		return name != null ? name.hashCode() : super.hashCode();
+	}
+	
 }

@@ -182,7 +182,11 @@ public abstract class C4Object extends C4ScriptBase implements IType {
 
 	@Override
 	public boolean containsType(IType type) {
-		return type == C4Type.OBJECT || type == C4Type.PROPLIST || type == this;
+		return
+			type == C4Type.OBJECT ||
+			type == C4Type.PROPLIST ||
+			type == this ||
+			type == C4Type.ID; // gets rid of type sets <id or Clonk>
 	}
 	
 	@Override

@@ -14,6 +14,7 @@ import net.arctics.clonk.parser.c4script.FindDeclarationInfo;
 import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.parser.c4script.C4Function.C4FunctionScope;
 import net.arctics.clonk.parser.c4script.C4Variable.C4VariableScope;
+import net.arctics.clonk.parser.c4script.ProplistDeclaration;
 import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
 
 public class AccessVar extends AccessDeclaration {
@@ -61,8 +62,8 @@ public class AccessVar extends AccessDeclaration {
 			IType type = p.getType(parser);
 			if ((scriptToLookIn = C4Object.scriptFrom(type)) == null) {
 				// find pseudo-variable from proplist expression
-				if (type instanceof PropListExpression) {
-					return ((PropListExpression)type).findComponent(getDeclarationName());
+				if (type instanceof ProplistDeclaration) {
+					return ((ProplistDeclaration)type).findComponent(getDeclarationName());
 				}
 			}
 		} else {
@@ -158,6 +159,19 @@ public class AccessVar extends AccessDeclaration {
 	public void inferTypeFromAssignment(ExprElm expression, C4ScriptParser context) {
 		if (getDeclaration() == C4Variable.THIS)
 			return;
+		IType predType = getPredecessorInSequence() != null ? getPredecessorInSequence().getType(context) : null;
+		if (predType instanceof ProplistDeclaration) {
+			ProplistDeclaration proplDec = (ProplistDeclaration) predType;
+			if (proplDec.isAdHoc()) {
+				C4Variable adhocVar = new C4Variable(getDeclarationName(), C4VariableScope.VAR);
+				adhocVar.setLocation(context.absoluteSourceLocationFromExpr(this));
+				adhocVar.forceType(expression.getType(context));
+				adhocVar.setInitializationExpression(expression);
+				adhocVar.setParentDeclaration(proplDec);
+				declaration = adhocVar;
+				proplDec.addComponent(adhocVar);
+			}
+		}
 		super.inferTypeFromAssignment(expression, context);
 	}
 	

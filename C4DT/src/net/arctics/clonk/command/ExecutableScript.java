@@ -56,11 +56,11 @@ public class ExecutableScript extends C4ScriptBase {
 		this.index = index;
 		C4ScriptParser parser = new C4ScriptParser(script, this, null) {
 			@Override
-			protected C4Function newFunction() {
+			protected C4Function newFunction(String nameWillBe) {
 				return new BodyPreservingFunction();
 			}
 			@Override
-			public void parseCodeOfFunction(C4Function function, TypeInformationMerger merger) throws ParsingException {
+			public void parseCodeOfFunction(C4Function function) throws ParsingException {
 				if (function.getName().equals("Main")) { //$NON-NLS-1$
 					main = (BodyPreservingFunction)function;
 				}
@@ -73,7 +73,7 @@ public class ExecutableScript extends C4ScriptBase {
 						return TraversalContinuation.Continue;
 					}
 				});
-				super.parseCodeOfFunction(function, null);
+				super.parseCodeOfFunction(function);
 				((BodyPreservingFunction)function).setBodyBlock(new Block(statements));
 				this.setListener(null);
 			}

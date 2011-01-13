@@ -80,6 +80,7 @@ import net.arctics.clonk.parser.c4script.ast.UnaryOp;
 import net.arctics.clonk.parser.c4script.ast.VarDeclarationStatement;
 import net.arctics.clonk.parser.c4script.ast.VarDeclarationStatement.VarInitialization;
 import net.arctics.clonk.parser.c4script.ast.WhileStatement;
+import net.arctics.clonk.resource.ClonkBuilder;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.resource.c4group.C4GroupItem;
 import net.arctics.clonk.util.ArrayUtil;
@@ -164,6 +165,26 @@ public class C4ScriptParser extends CStyleScanner {
 	 * Stack of type information lists.
 	 */
 	private Stack<List<IStoredTypeInformation>> storedTypeInformationListStack = new Stack<List<IStoredTypeInformation>>();
+	
+	/**
+	 * Builder if parsing takes place during build
+	 */
+	private ClonkBuilder builder;
+	
+	/**
+	 * Set of functions already parsed. Won't be parsed again.
+	 */
+	private Set<C4Function> parsedFunctions;
+	
+	private TypeInformationMerger scriptLevelTypeInformationMerger;
+	
+	/**
+	 * Sets the builder.
+	 * @param builder
+	 */
+	public void setBuilder(ClonkBuilder builder) {
+		this.builder = builder;
+	}
 	
 	/**
 	 * Returns the expression listener that is notified when an expression or a statement has been parsed.
@@ -546,11 +567,13 @@ public class C4ScriptParser extends CStyleScanner {
 		synchronized (container) {
 			
 			strictLevel = container.getStrictLevel();
-			TypeInformationMerger merger = new TypeInformationMerger();
+			scriptLevelTypeInformationMerger = new TypeInformationMerger();
+			parsedFunctions = new HashSet<C4Function>();
 			for (C4Function function : container.functions()) {
-				parseCodeOfFunction(function, merger);
+				parseCodeOfFunction(function);
 			}
-			applyStoredTypeInformationList(merger.getResult(), false);
+			applyStoredTypeInformationList(scriptLevelTypeInformationMerger.getResult(), false);
+			scriptLevelTypeInformationMerger = null;
 			currentDeclaration = null;
 
 			for (C4Directive directive : container.directives()) {
@@ -643,9 +666,17 @@ public class C4ScriptParser extends CStyleScanner {
 	 * @param function
 	 * @throws ParsingException
 	 */
-	public void parseCodeOfFunction(C4Function function, TypeInformationMerger merger) throws ParsingException {
-		if (function.getBody() == null)
+	public void parseCodeOfFunction(C4Function function) throws ParsingException {
+		if (function.getBody() == null || function.getScript() != container)
 			return;
+		if (parsedFunctions != null) {
+			if (parsedFunctions.contains(function))
+				return;
+			else
+				parsedFunctions.add(function);
+		}
+		int oldOffset = this.offset;
+		C4Declaration oldDec = currentDeclaration;
 		try {
 			setCurrentFunc(function);
 			assignDefaultParmTypesToFunction(function);
@@ -666,8 +697,8 @@ public class C4ScriptParser extends CStyleScanner {
 			
 			applyStoredTypeInformationList(false); // apply short-term inference information
 			List<IStoredTypeInformation> block = endTypeInferenceBlock();
-			if (merger != null) {
-				merger.inject(block); // collect information from all functions and apply that after having parsed them all
+			if (scriptLevelTypeInformationMerger != null) {
+				scriptLevelTypeInformationMerger.inject(block); // collect information from all functions and apply that after having parsed them all
 			}
 			if (numUnnamedParameters < UNKNOWN_PARAMETERNUM) {
 				function.createParameters(numUnnamedParameters);
@@ -689,13 +720,18 @@ public class C4ScriptParser extends CStyleScanner {
 			e.printStackTrace();
 			errorWithCode(ParserErrorCode.InternalError, this.offset, this.offset+1, true, e.getMessage());
 		}
+		finally {
+			currentDeclaration = oldDec;
+			seek(oldOffset);
+		}
+		
 	}
 
 	private void assignDefaultParmTypesToFunction(C4Function function) {
 		SpecialScriptRules rules = container.getEngine().getSpecialScriptRules();
 		if (rules != null) {
 			for (SpecialFuncRule funcRule : rules.defaultParmTypeAssignerRules()) {
-				if (funcRule.assignDefaultParmTypes(function))
+				if (funcRule.assignDefaultParmTypes(this, function))
 					break;
 			}
 		}
@@ -1036,16 +1072,14 @@ public class C4ScriptParser extends CStyleScanner {
 		int endOfHeader;
 		String desc = getTextOfLastComment(startOfFirstWord);
 		eatWhitespace();
-		currentDeclaration = newFunction();
-		getCurrentFunc().setScript(container);
-		getCurrentFunc().setUserDescription(desc);
 		int startName = 0, endName = 0, startBody = 0, endBody = 0;
 		boolean suspectOldStyle = false;
 		String funcName = null;
 		C4Type retType = C4Type.ANY;
+		C4FunctionScope scope;
 		
 		if (!firstWord.equals(Keywords.Func)) {
-			getCurrentFunc().setVisibility(C4FunctionScope.makeScope(firstWord));
+			scope = C4FunctionScope.makeScope(firstWord);
 			startName = this.offset;
 			String shouldBeFunc = readIdent();
 			if (!shouldBeFunc.equals(Keywords.Func)) {
@@ -1056,7 +1090,7 @@ public class C4ScriptParser extends CStyleScanner {
 			}
 		}
 		else {
-			getCurrentFunc().setVisibility(C4FunctionScope.PUBLIC);
+			scope = C4FunctionScope.PUBLIC;
 		}
 		if (!suspectOldStyle) {
 			retType = parseFunctionReturnType();
@@ -1069,9 +1103,14 @@ public class C4ScriptParser extends CStyleScanner {
 				errorWithCode(ParserErrorCode.NameExpected, this.offset-1, this.offset);
 			endName = this.offset;
 		}
-		getCurrentFunc().setName(funcName);
-		getCurrentFunc().setReturnType(retType);
-		getCurrentFunc().setOldStyle(suspectOldStyle);
+		C4Function currentFunc;
+		currentDeclaration = currentFunc = newFunction(funcName);
+		currentFunc.setUserDescription(desc);
+		currentFunc.setScript(container);
+		currentFunc.setName(funcName);
+		currentFunc.setReturnType(retType);
+		currentFunc.setOldStyle(suspectOldStyle);
+		currentFunc.setVisibility(scope);
 		eatWhitespace();
 		int shouldBeBracket = read();
 		if (shouldBeBracket != '(') {
@@ -1084,7 +1123,7 @@ public class C4ScriptParser extends CStyleScanner {
 			// get parameters
 			do {
 				eatWhitespace();
-				parseParameter(getCurrentFunc());
+				parseParameter(currentFunc);
 				eatWhitespace();
 				int readByte = read();
 				if (readByte == ')')
@@ -1100,7 +1139,7 @@ public class C4ScriptParser extends CStyleScanner {
 		lastComment = null;
 		eatWhitespace();
 		if (lastComment != null)
-			getCurrentFunc().setUserDescription(lastComment.getComment());
+			currentFunc.setUserDescription(lastComment.getComment());
 		// parse code block
 		int token = read();
 		if (token != '{') {
@@ -1173,19 +1212,32 @@ public class C4ScriptParser extends CStyleScanner {
 			// hopefully there won't be multi-line functions with such a comment attached at the end
 			Comment c = getCommentImmediatelyFollowing();
 			if (c != null)
-				getCurrentFunc().setUserDescription(c.getComment());
+				currentFunc.setUserDescription(c.getComment());
 		}
 		// finish up
-		getCurrentFunc().setLocation(absoluteSourceLocation(startName,endName));
-		getCurrentFunc().setBody(startBody != -1 ? absoluteSourceLocation(startBody,endBody) : null);
-		getCurrentFunc().setHeader(absoluteSourceLocation(startOfFirstWord, endOfHeader));
-		container.addDeclaration(getCurrentFunc());
-		if (!getCurrentFunc().isOldStyle())
+		currentFunc.setLocation(absoluteSourceLocation(startName,endName));
+		currentFunc.setBody(startBody != -1 ? absoluteSourceLocation(startBody,endBody) : null);
+		currentFunc.setHeader(absoluteSourceLocation(startOfFirstWord, endOfHeader));
+		container.addDeclaration(currentFunc);
+		if (!currentFunc.isOldStyle())
 			currentDeclaration = null; // to not suppress errors in-between functions
 		return true;
 	}
 
-	protected C4Function newFunction() {
+	/**
+	 * Create a new function.
+	 * @param nameWillBe What the name of the function will be.
+	 * @return The newly created function. Might be of some special class.
+	 */
+	protected C4Function newFunction(String nameWillBe) {
+	    SpecialScriptRules rule = getContainer().getEngine().getSpecialScriptRules();
+	    if (rule != null) {
+	    	for (SpecialFuncRule funcRule : rule.defaultParmTypeAssignerRules()) {
+	    		C4Function f = funcRule.newFunction(nameWillBe);
+	    		if (f != null)
+	    			return f;
+	    	}
+	    }
 	    return new C4Function();
     }
 
@@ -1816,7 +1868,7 @@ public class C4ScriptParser extends CStyleScanner {
 		int c = read();
 		if (c == '{') {
 			ProplistDeclaration proplistDeclaration = new ProplistDeclaration(new ArrayList<C4Variable>(10));
-			proplistDeclaration.setParentDeclaration(currentDeclaration);
+			proplistDeclaration.setParentDeclaration(currentDeclaration != null ? currentDeclaration : container);
 			C4Declaration oldDec = currentDeclaration;
 			currentDeclaration = proplistDeclaration;
 			try {
@@ -1847,21 +1899,22 @@ public class C4ScriptParser extends CStyleScanner {
 							eatWhitespace();
 							C4Variable v = new C4Variable(name, getCurrentFunc() != null ? C4VariableScope.VAR : C4VariableScope.LOCAL);
 							v.setLocation(absoluteSourceLocation(nameStart, nameEnd));
-							//System.out.println("var " + v.getName() + " parent: " + currentDeclaration().toString() + " - " + getContainer().toString());
 							C4Declaration outerDec = currentDeclaration;
 							currentDeclaration = v;
+							ExprElm value = null;
 							try {
 								v.setParentDeclaration(outerDec);
-								ExprElm expr = parseExpression(COMMA_OR_CLOSE_BLOCK, reportErrors);
-								if (expr == null) {
+								value = parseExpression(COMMA_OR_CLOSE_BLOCK, reportErrors);
+								if (value == null) {
 									errorWithCode(ParserErrorCode.ValueExpected, offset-1, offset);
+									value = placeholderExpression(offset);
 								}
-								v.setInitializationExpression(expr);
-								v.forceType(expr.getType(this));
+								v.setInitializationExpression(value);
+								v.forceType(value.getType(this));
 							} finally {
 								currentDeclaration = outerDec;
 							}
-							proplistDeclaration.getComponents().add(v);
+							proplistDeclaration.addComponent(v);
 							expectingComma = true;
 						}
 						else {
@@ -1887,8 +1940,13 @@ public class C4ScriptParser extends CStyleScanner {
 		return elm;
 	}
 
-	private SourceLocation absoluteSourceLocation(int start, int end) {
+	public final SourceLocation absoluteSourceLocation(int start, int end) {
 		return new SourceLocation(start+offsetOfScriptFragment, end+offsetOfScriptFragment);
+	}
+	
+	public SourceLocation absoluteSourceLocationFromExpr(ExprElm expression) {
+		int bodyOffset = bodyOffset();
+		return absoluteSourceLocation(expression.getExprStart()+bodyOffset, expression.getExprEnd()+bodyOffset);
 	}
 
 	private ExprElm parseArrayExpression(boolean reportErrors, ExprElm prevElm) throws ParsingException {

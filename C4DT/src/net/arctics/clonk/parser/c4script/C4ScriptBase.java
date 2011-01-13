@@ -213,13 +213,13 @@ public abstract class C4ScriptBase extends C4Structure implements ITreeNode, IHa
 
 	@Override
 	public C4Declaration findLocalDeclaration(String declarationName, Class<? extends C4Declaration> declarationClass) {
-		if (declarationClass.isAssignableFrom(C4Variable.class)) {
+		if (C4Variable.class.isAssignableFrom(declarationClass)) {
 			for (C4Variable v : definedVariables) {
 				if (v.getName().equals(declarationName))
 					return v;
 			}
 		}
-		if (declarationClass.isAssignableFrom(C4Function.class)) {
+		if (C4Function.class.isAssignableFrom(declarationClass)) {
 			for (C4Function f : definedFunctions) {
 				if (f.getName().equals(declarationName))
 					return f;

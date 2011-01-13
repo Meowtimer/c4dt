@@ -1,25 +1,19 @@
 package net.arctics.clonk.parser.c4script.ast;
 
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
 import net.arctics.clonk.ClonkCore;
-import net.arctics.clonk.index.ClonkIndex;
 import net.arctics.clonk.parser.C4Declaration;
 import net.arctics.clonk.parser.c4script.C4ScriptBase;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
-import net.arctics.clonk.parser.c4script.C4Type;
 import net.arctics.clonk.parser.c4script.C4Variable;
-import net.arctics.clonk.parser.c4script.IHasSubDeclarations;
 import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.parser.c4script.ProplistDeclaration;
 import net.arctics.clonk.parser.inireader.IniData.IniConfiguration;
-import net.arctics.clonk.ui.editors.c4script.IPostSerializable;
-import net.arctics.clonk.util.ArrayUtil;
 
-public class PropListExpression extends Value implements IType, IPostSerializable<C4Declaration>, IHasSubDeclarations {
+public class PropListExpression extends Value {
 
 	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 	
@@ -58,7 +52,7 @@ public class PropListExpression extends Value implements IType, IPostSerializabl
 	}
 	@Override
 	protected IType obtainType(C4ScriptParser parser) {
-		return this; // :D
+		return definedDeclaration;
 	}
 	@Override
 	public boolean modifiable(C4ScriptParser parser) {
@@ -111,63 +105,6 @@ public class PropListExpression extends Value implements IType, IPostSerializabl
 		}
 	}
 	
-	public C4Variable findComponent(String declarationName) {
-		for (C4Variable v : getComponents()) {
-			if (v.getName().equals(declarationName)) {
-				return v;
-			}
-		}
-		return null;
-	}
-	
-	// awkward silence...
-	
-	
-	
-	
-	// it's also a type \o/
-	// and it would have been nice to make it also a declaration, but there is no IDeclaration.. oh well
-
-	@Override
-	public Iterator<IType> iterator() {
-		return ArrayUtil.arrayIterable(C4Type.PROPLIST, this).iterator();
-	}
-
-	@Override
-	public boolean canBeAssignedFrom(IType other) {
-		return C4Type.PROPLIST.canBeAssignedFrom(other);
-	}
-
-	@Override
-	public String typeName(boolean special) {
-		return C4Type.PROPLIST.typeName(special);
-	}
-
-	@Override
-	public boolean intersects(IType typeSet) {
-		return C4Type.PROPLIST.intersects(typeSet);
-	}
-
-	@Override
-	public boolean containsType(IType type) {
-		return C4Type.PROPLIST.containsType(type);
-	}
-
-	@Override
-	public boolean containsAnyTypeOf(IType... types) {
-		return C4Type.PROPLIST.containsAnyTypeOf(types);
-	}
-
-	@Override
-	public int specificness() {
-		return C4Type.PROPLIST.specificness()+1;
-	}
-
-	@Override
-	public IType staticType() {
-		return C4Type.PROPLIST;
-	}
-	
 	private C4Declaration associatedDeclaration;
 	public C4Declaration getAssociatedDeclaration() {
 		return associatedDeclaration;
@@ -176,27 +113,4 @@ public class PropListExpression extends Value implements IType, IPostSerializabl
 	public void setAssociatedDeclaration(C4Declaration declaration) {
 		associatedDeclaration = declaration;
 	}
-
-	@Override
-	public IType serializableVersion(ClonkIndex indexToBeSerialized) {
-		if (associatedDeclaration != null && associatedDeclaration.getScript().getIndex() == indexToBeSerialized) {
-			return this;
-		} else {
-			return C4Type.PROPLIST;
-		}
-	}
-	@Override
-	public void postSerialize(C4Declaration parent) {
-		definedDeclaration.postSerialize(parent);
-	}
-	@Override
-	public Iterable<? extends C4Declaration> allSubDeclarations(int mask) {
-		return definedDeclaration.allSubDeclarations(mask);
-	}
-	
-	@Override
-	public String getName() {
-		return "Proplist Expression 0009247331";
-	}
-
 }
