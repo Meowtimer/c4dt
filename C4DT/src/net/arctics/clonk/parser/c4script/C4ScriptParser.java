@@ -35,6 +35,7 @@ import net.arctics.clonk.parser.c4script.C4Directive.C4DirectiveType;
 import net.arctics.clonk.parser.c4script.C4Function.C4FunctionScope;
 import net.arctics.clonk.parser.c4script.C4ScriptParser.IMarkerListener.WhatToDo;
 import net.arctics.clonk.parser.c4script.C4Variable.C4VariableScope;
+import net.arctics.clonk.parser.c4script.SpecialScriptRules.SpecialFuncRule;
 import net.arctics.clonk.parser.c4script.ast.AccessVar;
 import net.arctics.clonk.parser.c4script.ast.ArrayElementExpression;
 import net.arctics.clonk.parser.c4script.ast.ArrayExpression;
@@ -647,6 +648,7 @@ public class C4ScriptParser extends CStyleScanner {
 			return;
 		try {
 			setCurrentFunc(function);
+			assignDefaultParmTypesToFunction(function);
 			// reset local vars
 			function.resetLocalVarTypes();
 			beginTypeInferenceBlock();
@@ -686,6 +688,16 @@ public class C4ScriptParser extends CStyleScanner {
 			// errorWithCode throws ^^;
 			e.printStackTrace();
 			errorWithCode(ParserErrorCode.InternalError, this.offset, this.offset+1, true, e.getMessage());
+		}
+	}
+
+	private void assignDefaultParmTypesToFunction(C4Function function) {
+		SpecialScriptRules rules = container.getEngine().getSpecialScriptRules();
+		if (rules != null) {
+			for (SpecialFuncRule funcRule : rules.defaultParmTypeAssignerRules()) {
+				if (funcRule.assignDefaultParmTypes(function))
+					break;
+			}
 		}
 	}
 

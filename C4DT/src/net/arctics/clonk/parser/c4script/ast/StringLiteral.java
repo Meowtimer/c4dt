@@ -10,6 +10,7 @@ import net.arctics.clonk.parser.c4script.C4ScriptBase;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.C4Type;
 import net.arctics.clonk.parser.c4script.IType;
+import net.arctics.clonk.parser.c4script.SpecialScriptRules;
 import net.arctics.clonk.parser.c4script.SpecialScriptRules.SpecialFuncRule;
 import net.arctics.clonk.parser.stringtbl.StringTbl;
 import org.eclipse.core.resources.IContainer;
@@ -55,7 +56,7 @@ public final class StringLiteral extends Literal<String> {
 
 			//  link to functions that are called indirectly
 			
-			SpecialFuncRule funcRule = parentFunc.getSpecialRule(parser);
+			SpecialFuncRule funcRule = parentFunc.getSpecialRule(parser, SpecialScriptRules.DECLARATION_LOCATOR);
 			if (funcRule != null) {
 				DeclarationRegion region = funcRule.locateDeclarationInParameter(parentFunc, parser, myIndex, offset, this);
 				if (region != null) {

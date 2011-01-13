@@ -1,6 +1,13 @@
 package net.arctics.clonk.parser.c4script;
 
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+import java.lang.reflect.Method;
 import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 
 import org.eclipse.jface.text.Region;
@@ -27,28 +34,116 @@ import net.arctics.clonk.ui.editors.c4script.ExpressionLocator;
  */
 public class SpecialScriptRules {
 	
-	public abstract class SpecialFuncRule {
+	/**
+	 * Role for SpecialFuncRule: Validate arguments of a function in a special way.
+	 */
+	public static final int ARGUMENT_VALIDATOR = 1;
+	
+	/**
+	 * Role for SpecialFuncRule: Modify the return type of a function call.
+	 */
+	public static final int RETURNTYPE_MODIFIER = 2;
+	
+	/**
+	 * Role for SpecialFuncRule: Locate declarations inside a parameter of a function call for link-clicking.
+	 */
+	public static final int DECLARATION_LOCATOR = 4;
+	
+	/**
+	 * Role for SpecialFuncRule: Assign default types to functions 
+	 */
+	public static final int DEFAULT_PARMTYPE_ASSIGNER = 8;
+	
+	@Retention(RetentionPolicy.RUNTIME)
+	@Target(ElementType.METHOD)
+	private @interface SignifiesRole {
+		public int role();
+	}
+	
+	public abstract class SpecialRule {
+		public final int getRoleMask() {
+			int result = 0;
+			Outer: for (Method m : getClass().getDeclaredMethods()) {
+				try {
+					Method baseMethod = m;
+					for (Class<?> cls = getClass(); cls != null; cls = cls.getSuperclass()) {
+						if (baseMethod == null) {
+							try {
+								baseMethod = cls.getMethod(m.getName(), m.getParameterTypes());
+							} catch (Exception e) {
+								baseMethod = null;
+							}
+						}
+						if (baseMethod != null) {
+							SignifiesRole annot = baseMethod.getAnnotation(SignifiesRole.class);
+							if (annot != null) {
+								result |= annot.role();
+								continue Outer;
+							}
+						}
+						baseMethod = null;
+					}
+				} catch (Exception e) {
+					continue;
+				}
+			}
+			return result;
+		}
+	}
+	
+	public abstract class SpecialFuncRule extends SpecialRule {
+		@SignifiesRole(role=ARGUMENT_VALIDATOR)
 		public boolean validateArguments(CallFunc callFunc, ExprElm[] arguments, C4ScriptParser parser) {
 			return false;
 		}
+		@SignifiesRole(role=RETURNTYPE_MODIFIER)
 		public IType returnType(C4ScriptParser parser, CallFunc callFunc) {
 			return null;
 		}
+		@SignifiesRole(role=DECLARATION_LOCATOR)
 		public DeclarationRegion locateDeclarationInParameter(CallFunc callFunc, C4ScriptParser parser, int index, int offsetInExpression, ExprElm parmExpression) {
 			return null;
 		}
-	}
-	
-	private Map<String, SpecialFuncRule> funcRules = new HashMap<String, SpecialFuncRule>();
-	
-	protected void putFuncRule(SpecialFuncRule rule, String... forFunctions) {
-		for (String func : forFunctions) {
-			funcRules.put(func, rule);
+		@SignifiesRole(role=DEFAULT_PARMTYPE_ASSIGNER)
+		public boolean assignDefaultParmTypes(C4Function function) {
+			return false;
 		}
 	}
 	
-	public SpecialFuncRule getFuncRuleFor(String function) {
-		return funcRules.get(function);
+	private Map<String, SpecialFuncRule> argumentValidators = new HashMap<String, SpecialFuncRule>();
+	private Map<String, SpecialFuncRule> returnTypeModifiers = new HashMap<String, SpecialFuncRule>();
+	private Map<String, SpecialFuncRule> declarationLocators = new HashMap<String, SpecialFuncRule>();
+	private List<SpecialFuncRule> defaultParmTypeAssigners = new LinkedList<SpecialFuncRule>();
+	
+	public Iterable<SpecialFuncRule> defaultParmTypeAssignerRules() {
+		return defaultParmTypeAssigners;
+	}
+	
+	protected void putFuncRule(SpecialFuncRule rule, String... forFunctions) {
+		int mask = rule.getRoleMask();
+		if ((mask & ARGUMENT_VALIDATOR) != 0) for (String func : forFunctions) {
+			argumentValidators.put(func, rule);
+		}
+		if ((mask & DECLARATION_LOCATOR) != 0) for (String func : forFunctions) {
+			declarationLocators.put(func, rule);
+		}
+		if ((mask & RETURNTYPE_MODIFIER) != 0) for (String func : forFunctions) {
+			returnTypeModifiers.put(func, rule);
+		}
+		if ((mask & DEFAULT_PARMTYPE_ASSIGNER) != 0) {
+			defaultParmTypeAssigners.add(rule);
+		}
+	}
+	
+	public SpecialFuncRule getFuncRuleFor(String function, int role) {
+		if (role == ARGUMENT_VALIDATOR)
+			return argumentValidators.get(function);
+		else if (role == DECLARATION_LOCATOR)
+			return declarationLocators.get(function);
+		else if (role == RETURNTYPE_MODIFIER)
+			return returnTypeModifiers.get(function);
+		else
+			return null;
 	}
 	
 	/**

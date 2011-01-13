@@ -19,6 +19,7 @@ import net.arctics.clonk.parser.c4script.C4Variable;
 import net.arctics.clonk.parser.c4script.FindDeclarationInfo;
 import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.parser.c4script.Keywords;
+import net.arctics.clonk.parser.c4script.SpecialScriptRules;
 import net.arctics.clonk.parser.c4script.C4Function.C4FunctionScope;
 import net.arctics.clonk.parser.c4script.SpecialScriptRules.SpecialFuncRule;
 import net.arctics.clonk.parser.c4script.ast.UnaryOp.Placement;
@@ -185,10 +186,10 @@ public class CallFunc extends AccessDeclaration {
 	public boolean hasSideEffects() {
 		return true;
 	}
-	public SpecialFuncRule getSpecialRule(C4ScriptParser context) {
+	public SpecialFuncRule getSpecialRule(C4ScriptParser context, int role) {
 		C4Engine engine = context.getContainer().getEngine();
 		if (engine != null && engine.getSpecialScriptRules() != null) {
-			return engine.getSpecialScriptRules().getFuncRuleFor(declarationName);
+			return engine.getSpecialScriptRules().getFuncRuleFor(declarationName, role);
 		} else {
 			return null;
 		}
@@ -210,7 +211,7 @@ public class CallFunc extends AccessDeclaration {
 		}
 
 		// Some special rule applies and the return type is set accordingly
-		SpecialFuncRule rule = getSpecialRule(context);
+		SpecialFuncRule rule = getSpecialRule(context, SpecialScriptRules.RETURNTYPE_MODIFIER);
 		if (rule != null) {
 			IType returnType = rule.returnType(context, this);
 			if (returnType != null) {
@@ -322,7 +323,7 @@ public class CallFunc extends AccessDeclaration {
 				}
 				boolean specialCaseHandled = false;
 				
-				SpecialFuncRule rule = this.getSpecialRule(context);
+				SpecialFuncRule rule = this.getSpecialRule(context, SpecialScriptRules.ARGUMENT_VALIDATOR);
 				if (rule != null) {
 					specialCaseHandled = rule.validateArguments(this, params, context);
 				}
