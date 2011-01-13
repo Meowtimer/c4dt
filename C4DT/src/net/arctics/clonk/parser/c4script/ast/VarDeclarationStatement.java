@@ -89,7 +89,7 @@ public class VarDeclarationStatement extends KeywordStatement {
 		builder.append(" "); //$NON-NLS-1$
 		int counter = 0;
 		for (VarInitialization var : varInitializations) {
-			var.print(builder, depth+1);
+			var.print(builder, depth);
 			if (++counter < varInitializations.length)
 				builder.append(", "); //$NON-NLS-1$
 			else
