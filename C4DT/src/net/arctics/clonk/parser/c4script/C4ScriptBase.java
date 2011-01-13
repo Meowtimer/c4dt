@@ -359,9 +359,13 @@ public abstract class C4ScriptBase extends C4Structure implements ITreeNode, IHa
 	public void removeDeclaration(C4Declaration declaration) {
 		if (declaration.getScript() != this) declaration.setScript(this);
 		if (declaration instanceof C4Function) {
+//			if (declaration.isGlobal())
+//				getIndex().getGlobalFunctions().remove(declaration);
 			definedFunctions.remove((C4Function)declaration);
 		}
 		else if (declaration instanceof C4Variable) {
+//			if (declaration.isGlobal())
+//				getIndex().getStaticVariables().remove(declaration);
 			definedVariables.remove((C4Variable)declaration);
 		}
 	}

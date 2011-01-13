@@ -995,12 +995,13 @@ public class C4ScriptParser extends CStyleScanner {
 		switch (scope) {
 		case VAR:
 			return getCurrentFunc().findVariable(name);
-		case CONST: case STATIC:
+		case CONST: case STATIC: case LOCAL:
+			/*
 			C4Declaration globalDeclaration = getContainer().getIndex() != null ? getContainer().getIndex().findGlobalDeclaration(name) : null;
 			if (globalDeclaration instanceof C4Variable)
 				return (C4Variable) globalDeclaration;
 			// not yet in index - search locally
-		case LOCAL:
+		case LOCAL: */
 			return getContainer().findLocalVariable(name, false);
 		default:
 			return null;
