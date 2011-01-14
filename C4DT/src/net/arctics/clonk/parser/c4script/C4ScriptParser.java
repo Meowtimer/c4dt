@@ -469,6 +469,8 @@ public class C4ScriptParser extends CStyleScanner {
 			strictLevel = container.getStrictLevel();
 		}
 		statementReached = true;
+		if (scriptFile != null)
+			allErrorsDisabled = C4GroupItem.isLinkedResource(scriptFile);
 	}
 
 	/**
@@ -482,7 +484,6 @@ public class C4ScriptParser extends CStyleScanner {
 		super(scriptFile);
 		this.scriptFile = scriptFile;
 		container = script;
-		allErrorsDisabled = C4GroupItem.isLinkedResource(scriptFile);
 		initialize();
 	}
 
@@ -3018,7 +3019,7 @@ public class C4ScriptParser extends CStyleScanner {
 	 * @throws ParsingException
 	 */
 	private boolean parseID() throws ParsingException {
-		if (idMatcher.pattern() != IDENTIFIER_PATTERN && idMatcher.reset(buffer.substring(offset)).lookingAt()) {
+		if (offset < size && idMatcher.pattern() != IDENTIFIER_PATTERN && idMatcher.reset(buffer.substring(offset)).lookingAt()) {
 			String idString = idMatcher.group();
 			offset += idString.length();
 			if (isWordPart(peek()) || NUMERAL_PATTERN.matcher(idString).matches()) {
