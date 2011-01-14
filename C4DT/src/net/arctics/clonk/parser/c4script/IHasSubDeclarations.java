@@ -1,6 +1,6 @@
 package net.arctics.clonk.parser.c4script;
 
-import net.arctics.clonk.parser.C4Declaration;
+import net.arctics.clonk.parser.Declaration;
 
 public interface IHasSubDeclarations {
 	static final int VARIABLES = 1;
@@ -9,6 +9,6 @@ public interface IHasSubDeclarations {
 	static final int OTHER = 8;
 	static final int ALL_SUBDECLARATIONS = VARIABLES|FUNCTIONS|INCLUDES|OTHER;
 	
-	public Iterable<? extends C4Declaration> allSubDeclarations(int mask);
+	public Iterable<? extends Declaration> allSubDeclarations(int mask);
 	String getName();
 }

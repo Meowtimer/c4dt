@@ -5,7 +5,7 @@ import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.CachedEngineFuncs;
-import net.arctics.clonk.parser.C4Declaration;
+import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.DeclarationRegion;
 import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.ParsingException;
@@ -196,7 +196,7 @@ public class CallFunc extends AccessDeclaration {
 	}
 	@Override
 	protected IType obtainType(C4ScriptParser context) {
-		C4Declaration d = getDeclaration(context);
+		Declaration d = getDeclaration(context);
 		
 		// look for gathered type information
 		IType stored = context.queryTypeOfExpression(this, null);
@@ -230,7 +230,7 @@ public class CallFunc extends AccessDeclaration {
 		return super.isValidInSequence(elm, context) || elm instanceof MemberOperator;	
 	}
 	@Override
-	public C4Declaration obtainDeclaration(C4ScriptParser parser) {
+	public Declaration obtainDeclaration(C4ScriptParser parser) {
 		if (declarationName.equals(Keywords.Return))
 			return null;
 		if (declarationName.equals(Keywords.Inherited) || declarationName.equals(Keywords.SafeInherited)) {
@@ -242,21 +242,21 @@ public class CallFunc extends AccessDeclaration {
 		if (lookIn != null) {
 			FindDeclarationInfo info = new FindDeclarationInfo(parser.getContainer().getIndex());
 			info.setSearchOrigin(parser.getContainer());
-			C4Declaration field = lookIn.findFunction(declarationName, info);
+			Declaration field = lookIn.findFunction(declarationName, info);
 			// might be a variable called as a function (not after '->')
 			if (field == null && p == null)
 				field = lookIn.findVariable(declarationName, info);
 			return field;
 		} else if (p != null) {
 			// find global function
-			C4Declaration declaration = parser.getContainer().getIndex().findGlobalFunction(declarationName);
+			Declaration declaration = parser.getContainer().getIndex().findGlobalFunction(declarationName);
 			if (declaration == null)
 				declaration = parser.getContainer().getIndex().getEngine().findFunction(declarationName);
 
 			// only return found declaration if it's the only choice 
 			if (declaration != null) {
-				List<C4Declaration> allFromLocalIndex = parser.getContainer().getIndex().getDeclarationMap().get(declarationName);
-				C4Declaration decl = parser.getContainer().getEngine().findLocalFunction(declarationName, false);
+				List<Declaration> allFromLocalIndex = parser.getContainer().getIndex().getDeclarationMap().get(declarationName);
+				Declaration decl = parser.getContainer().getEngine().findLocalFunction(declarationName, false);
 				if (
 						(allFromLocalIndex != null ? allFromLocalIndex.size() : 0) +
 						(decl != null ? 1 : 0) == 1
@@ -530,7 +530,7 @@ public class CallFunc extends AccessDeclaration {
 	}
 	@Override
 	public IStoredTypeInformation createStoredTypeInformation(C4ScriptParser parser) {
-		C4Declaration d = getDeclaration();
+		Declaration d = getDeclaration();
 		CachedEngineFuncs cache = getCachedFuncs(parser);
 		if (Utilities.isAnyOf(d, cache.Var, cache.Local, cache.Par)) {
 			Object ev;
@@ -566,7 +566,7 @@ public class CallFunc extends AccessDeclaration {
 	}
 	
 	@Override
-	public Class<? extends C4Declaration> declarationClass() {
+	public Class<? extends Declaration> declarationClass() {
 		return Function.class;
 	}
 }

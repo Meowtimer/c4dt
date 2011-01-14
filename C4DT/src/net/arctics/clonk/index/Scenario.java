@@ -1,14 +1,14 @@
 package net.arctics.clonk.index;
 
 import net.arctics.clonk.ClonkCore;
-import net.arctics.clonk.parser.C4ID;
+import net.arctics.clonk.parser.ID;
 
 import org.eclipse.core.resources.IContainer;
 
 // kind of a hack; but scenarios also have scripts...
 public class Scenario extends ProjectDefinition {
 
-	public Scenario(C4ID id, String name, IContainer container) {
+	public Scenario(ID id, String name, IContainer container) {
 		super(id, name, container);
 	}
 	

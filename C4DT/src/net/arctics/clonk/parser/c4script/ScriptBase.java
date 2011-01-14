@@ -27,8 +27,8 @@ import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.ProjectDefinition;
 import net.arctics.clonk.index.ClonkIndex;
 import net.arctics.clonk.parser.BufferedScanner;
-import net.arctics.clonk.parser.C4Declaration;
-import net.arctics.clonk.parser.C4ID;
+import net.arctics.clonk.parser.Declaration;
+import net.arctics.clonk.parser.ID;
 import net.arctics.clonk.parser.Structure;
 import net.arctics.clonk.parser.c4script.Directive.C4DirectiveType;
 import net.arctics.clonk.parser.c4script.Function.C4FunctionScope;
@@ -200,19 +200,19 @@ public abstract class ScriptBase extends Structure implements ITreeNode, IHasCon
 	 * Finds a declaration in this script or an included one
 	 * @return The declaration or null if not found
 	 */
-	public C4Declaration findDeclaration(String name) {
+	public Declaration findDeclaration(String name) {
 		return findDeclaration(name, new FindDeclarationInfo(getIndex()));
 	}
 
 	@Override
-	public C4Declaration findDeclaration(String declarationName, Class<? extends C4Declaration> declarationClass) {
+	public Declaration findDeclaration(String declarationName, Class<? extends Declaration> declarationClass) {
 		FindDeclarationInfo info = new FindDeclarationInfo(getIndex());
 		info.setDeclarationClass(declarationClass);
 		return findDeclaration(declarationName, info);
 	}
 
 	@Override
-	public C4Declaration findLocalDeclaration(String declarationName, Class<? extends C4Declaration> declarationClass) {
+	public Declaration findLocalDeclaration(String declarationName, Class<? extends Declaration> declarationClass) {
 		if (Variable.class.isAssignableFrom(declarationClass)) {
 			for (Variable v : definedVariables) {
 				if (v.getName().equals(declarationName))
@@ -234,7 +234,7 @@ public abstract class ScriptBase extends Structure implements ITreeNode, IHasCon
 	 * @param info Additional info
 	 * @return the declaration or null if there is no match
 	 */
-	protected C4Declaration getThisDeclaration(String name, FindDeclarationInfo info) {
+	protected Declaration getThisDeclaration(String name, FindDeclarationInfo info) {
 		return null;
 	}
 
@@ -243,7 +243,7 @@ public abstract class ScriptBase extends Structure implements ITreeNode, IHasCon
 	 */
 	@SuppressWarnings("unchecked")
 	@Override
-	public Iterable<C4Declaration> allSubDeclarations(int mask) {
+	public Iterable<Declaration> allSubDeclarations(int mask) {
 		Iterable<?>[] its = new Iterable<?>[3];
 		int fill = 0;
 		if ((mask & FUNCTIONS) != 0)
@@ -252,7 +252,7 @@ public abstract class ScriptBase extends Structure implements ITreeNode, IHasCon
 			its[fill++] = definedVariables;
 		if ((mask & INCLUDES) != 0)
 			its[fill++] = getIncludes();
-		return new CompoundIterable<C4Declaration>(definedFunctions, definedVariables, definedDirectives);
+		return new CompoundIterable<Declaration>(definedFunctions, definedVariables, definedDirectives);
 	}
 
 	/**
@@ -261,26 +261,26 @@ public abstract class ScriptBase extends Structure implements ITreeNode, IHasCon
 	 * @param info Additional info
 	 * @return the declaration or <tt>null</tt> if not found
 	 */
-	public C4Declaration findDeclaration(String name, FindDeclarationInfo info) {
+	public Declaration findDeclaration(String name, FindDeclarationInfo info) {
 
 		// prevent infinite recursion
 		if (info.getAlreadySearched().contains(this))
 			return null;
 		info.getAlreadySearched().add(this);
 		
-		Class<? extends C4Declaration> decClass = info.getDeclarationClass();
+		Class<? extends Declaration> decClass = info.getDeclarationClass();
 
 		// local variable?
 		if (info.recursion == 0) {
 			if (info.getContextFunction() != null && (decClass == null || decClass == Variable.class)) {
-				C4Declaration v = info.getContextFunction().findVariable(name);
+				Declaration v = info.getContextFunction().findVariable(name);
 				if (v != null)
 					return v;
 			}
 		}
 
 		// this object?
-		C4Declaration thisDec = getThisDeclaration(name, info);
+		Declaration thisDec = getThisDeclaration(name, info);
 		if (thisDec != null) {
 			return thisDec;
 		}
@@ -303,7 +303,7 @@ public abstract class ScriptBase extends Structure implements ITreeNode, IHasCon
 		// search in included definitions
 		info.recursion++;
 		for (ScriptBase o : getIncludes(info.index)) {
-			C4Declaration result = o.findDeclaration(name, info);
+			Declaration result = o.findDeclaration(name, info);
 			if (result != null)
 				return result;
 		}
@@ -311,10 +311,10 @@ public abstract class ScriptBase extends Structure implements ITreeNode, IHasCon
 
 		// finally look if it's something global
 		if (info.recursion == 0 && !(this instanceof Engine)) { // .-.
-			C4Declaration f = null;
+			Declaration f = null;
 			// definition from extern index
 			if (getEngine().acceptsId(name)) {
-				f = info.index.getObjectNearestTo(getResource(), C4ID.getID(name));
+				f = info.index.getObjectNearestTo(getResource(), ID.getID(name));
 				if (f != null && info.declarationClass == Variable.class && f instanceof ProjectDefinition) {
 					f = ((ProjectDefinition)f).getStaticVariable();
 				}
@@ -337,7 +337,7 @@ public abstract class ScriptBase extends Structure implements ITreeNode, IHasCon
 		return null;
 	}
 
-	public void addDeclaration(C4Declaration field) {
+	public void addDeclaration(Declaration field) {
 		field.setScript(this);
 		if (field instanceof Function) {
 			definedFunctions.add((Function)field);
@@ -356,7 +356,7 @@ public abstract class ScriptBase extends Structure implements ITreeNode, IHasCon
 		}
 	}
 
-	public void removeDeclaration(C4Declaration declaration) {
+	public void removeDeclaration(Declaration declaration) {
 		if (declaration.getScript() != this) declaration.setScript(this);
 		if (declaration instanceof Function) {
 //			if (declaration.isGlobal())
@@ -576,7 +576,7 @@ public abstract class ScriptBase extends Structure implements ITreeNode, IHasCon
 		return definedFunctions.size();
 	}
 
-	public Definition getNearestObjectWithId(C4ID id) {
+	public Definition getNearestObjectWithId(ID id) {
 		ClonkIndex index = getIndex();
 		if (index != null)
 			return index.getObjectNearestTo(getResource(), id);
@@ -747,8 +747,8 @@ public abstract class ScriptBase extends Structure implements ITreeNode, IHasCon
 	}
 
 	public void addChild(ITreeNode node) {
-		if (node instanceof C4Declaration)
-			addDeclaration((C4Declaration)node);
+		if (node instanceof Declaration)
+			addDeclaration((Declaration)node);
 	}
 
 	public boolean containsGlobals() {

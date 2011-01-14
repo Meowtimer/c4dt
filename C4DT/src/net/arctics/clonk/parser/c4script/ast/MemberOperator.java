@@ -1,7 +1,7 @@
 package net.arctics.clonk.parser.c4script.ast;
 
 import net.arctics.clonk.ClonkCore;
-import net.arctics.clonk.parser.C4ID;
+import net.arctics.clonk.parser.ID;
 import net.arctics.clonk.parser.DeclarationRegion;
 import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.ParsingException;
@@ -18,7 +18,7 @@ public class MemberOperator extends ExprElm {
 	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 	boolean dotNotation;
 	private boolean hasTilde;
-	private C4ID id;
+	private ID id;
 	private int idOffset;
 	
 	@Override
@@ -35,7 +35,7 @@ public class MemberOperator extends ExprElm {
 			((MemberOperator)((Sequence)expression).getLastElement()).dotNotation;
 	}
 
-	public MemberOperator(boolean dotNotation, boolean hasTilde, C4ID id, int idOffset) {
+	public MemberOperator(boolean dotNotation, boolean hasTilde, ID id, int idOffset) {
 		super();
 		this.dotNotation = dotNotation;
 		this.hasTilde = hasTilde;
@@ -61,11 +61,11 @@ public class MemberOperator extends ExprElm {
 		}
 	}
 
-	public C4ID getId() {
+	public ID getId() {
 		return id;
 	}
 
-	public void setId(C4ID id) {
+	public void setId(ID id) {
 		this.id = id;
 	}
 

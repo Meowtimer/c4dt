@@ -11,8 +11,8 @@ import java.util.regex.Pattern;
 import org.eclipse.swt.graphics.Image;
 
 import net.arctics.clonk.ClonkCore;
-import net.arctics.clonk.parser.C4Declaration;
-import net.arctics.clonk.parser.C4ID;
+import net.arctics.clonk.parser.Declaration;
+import net.arctics.clonk.parser.ID;
 import net.arctics.clonk.parser.c4script.ConstrainedType;
 import net.arctics.clonk.parser.c4script.ScriptBase;
 import net.arctics.clonk.parser.c4script.PrimitiveType;
@@ -22,6 +22,11 @@ import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.preferences.ClonkPreferences;
 import net.arctics.clonk.util.ArrayUtil;
 
+/**
+ * A Clonk object definition.
+ * @author madeen
+ *
+ */
 public abstract class Definition extends ScriptBase implements IType {
 
 	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
@@ -39,7 +44,7 @@ public abstract class Definition extends ScriptBase implements IType {
 	/**
 	 * id of the object
 	 */
-	protected C4ID id;
+	protected ID id;
 
 	/**
 	 * Cached picture from Graphics.png
@@ -53,7 +58,7 @@ public abstract class Definition extends ScriptBase implements IType {
 	 * @param id C4ID (e.g. CLNK)
 	 * @param name human-readable name
 	 */
-	protected Definition(C4ID id, String name) {
+	protected Definition(ID id, String name) {
 		this.id = id;
 		this.name = name;
 	}
@@ -71,7 +76,7 @@ public abstract class Definition extends ScriptBase implements IType {
 	 * The id of this object. (e.g. CLNK)
 	 * @return the id
 	 */
-	public C4ID getId() {
+	public ID getId() {
 		return id;
 	}
 
@@ -80,7 +85,7 @@ public abstract class Definition extends ScriptBase implements IType {
 	 * This method does not change resources.
 	 * @param newId
 	 */
-	public void setId(C4ID newId) {
+	public void setId(ID newId) {
 		if (id.equals(newId))
 			return;
 		ClonkIndex index = this.getIndex();
@@ -94,7 +99,7 @@ public abstract class Definition extends ScriptBase implements IType {
 	}
 
 	@Override
-	protected C4Declaration getThisDeclaration(String name, FindDeclarationInfo info) {
+	protected Declaration getThisDeclaration(String name, FindDeclarationInfo info) {
 		Class<?> cls = info.getDeclarationClass();
 		boolean variableRequired = false;
 		if (

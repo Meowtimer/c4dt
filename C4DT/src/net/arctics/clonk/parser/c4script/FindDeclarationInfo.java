@@ -6,12 +6,12 @@ import java.util.List;
 import java.util.Set;
 
 import net.arctics.clonk.index.ClonkIndex;
-import net.arctics.clonk.parser.C4Declaration;
+import net.arctics.clonk.parser.Declaration;
 
 public class FindDeclarationInfo {
 	public ClonkIndex index;
 	public int recursion;
-	public Class<? extends C4Declaration> declarationClass;
+	public Class<? extends Declaration> declarationClass;
 	private Function contextFunction;
 	private Set<ScriptBase> alreadySearched;
 	private ScriptBase searchOrigin;
@@ -26,10 +26,10 @@ public class FindDeclarationInfo {
 		this(clonkIndex);
 		setContextFunction(ctx);
 	}
-	public Class<? extends C4Declaration> getDeclarationClass() {
+	public Class<? extends Declaration> getDeclarationClass() {
 		return declarationClass;
 	}
-	public void setDeclarationClass(Class<?extends C4Declaration> declarationClass) {
+	public void setDeclarationClass(Class<?extends Declaration> declarationClass) {
 		this.declarationClass = declarationClass;
 	}
 	public void setContextFunction(Function ctx) {

@@ -1,6 +1,6 @@
 package net.arctics.clonk.ui.editors;
 
-import net.arctics.clonk.parser.C4Declaration;
+import net.arctics.clonk.parser.Declaration;
 import org.eclipse.jface.internal.text.html.HTMLTextPresenter;
 import org.eclipse.jface.text.DefaultInformationControl;
 import org.eclipse.jface.text.IInformationControl;
@@ -27,7 +27,7 @@ public class ClonkTextHover<EditorType extends ClonkTextEditor> implements IText
 		public String getHoverInfo(ITextViewer viewer, IRegion region) {
 			if (hyperlink instanceof ClonkHyperlink) {
 				ClonkHyperlink clonkHyperlink = (ClonkHyperlink) hyperlink;
-				C4Declaration dec = clonkHyperlink.getTarget();
+				Declaration dec = clonkHyperlink.getTarget();
 				hyperlink = null;
 				return dec.getInfoText();
 			}

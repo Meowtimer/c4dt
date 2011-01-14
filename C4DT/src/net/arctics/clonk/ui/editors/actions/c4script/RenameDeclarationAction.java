@@ -4,7 +4,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.ResourceBundle;
 
 import net.arctics.clonk.ClonkCore;
-import net.arctics.clonk.parser.C4Declaration;
+import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.refactoring.RenameDeclarationProcessor;
 import net.arctics.clonk.ui.editors.EditorUtil;
 import net.arctics.clonk.ui.editors.IClonkCommandIds;
@@ -51,7 +51,7 @@ public class RenameDeclarationAction extends OpenDeclarationAction {
 		saveModifiedFiles();
 		
 		try {
-			C4Declaration fieldToRename = getDeclarationAtSelection();
+			Declaration fieldToRename = getDeclarationAtSelection();
 			if (fieldToRename != null) {
 				String newName = UI.input(getTextEditor().getSite().getWorkbenchWindow().getShell(), Messages.RenameDeclarationAction_RenameDeclaration, Messages.RenameDeclarationAction_SpecifyNewName, fieldToRename.getName());
 				if (newName == null)

@@ -3,7 +3,7 @@ package net.arctics.clonk.ui.wizards;
 import java.util.List;
 
 import net.arctics.clonk.index.Definition;
-import net.arctics.clonk.parser.C4ID;
+import net.arctics.clonk.parser.ID;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.swt.widgets.Composite;
@@ -58,7 +58,7 @@ public class NewC4ObjectPage extends NewClonkFolderWizardPage {
 				updateStatus(Messages.NewC4ObjectPage_BadID);
 				return;
 			}
-			List<Definition> objects = nature.getIndex().getObjects(C4ID.getID(c4idText.getText()));
+			List<Definition> objects = nature.getIndex().getObjects(ID.getID(c4idText.getText()));
 			if (objects != null && !objects.isEmpty()) {
 				updateStatus(Messages.NewC4ObjectPage_IDAlreadyInUse);
 				return;

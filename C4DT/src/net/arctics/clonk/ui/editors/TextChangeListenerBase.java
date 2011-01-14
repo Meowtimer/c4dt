@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.TimerTask;
 
-import net.arctics.clonk.parser.C4Declaration;
+import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.Structure;
 import net.arctics.clonk.parser.SourceLocation;
 import net.arctics.clonk.parser.c4script.Function;
@@ -76,20 +76,20 @@ public abstract class TextChangeListenerBase<EditorType extends ClonkTextEditor,
 		}
 	}
 
-	protected void adjustDec(C4Declaration declaration, int offset, int add) {
+	protected void adjustDec(Declaration declaration, int offset, int add) {
 		addToLocation(declaration.getLocation(), offset, add);
 	}
 
 	protected void adjustDeclarationLocations(DocumentEvent event) {
 		if (event.getLength() == 0 && event.getText().length() > 0) {
 			// text was added
-			for (C4Declaration dec : structure.allSubDeclarations(IHasSubDeclarations.ALL_SUBDECLARATIONS)) {
+			for (Declaration dec : structure.allSubDeclarations(IHasSubDeclarations.ALL_SUBDECLARATIONS)) {
 				adjustDec(dec, event.getOffset(), event.getText().length());
 			}
 		}
 		else if (event.getLength() > 0 && event.getText().length() == 0) {
 			// text was removed
-			for (C4Declaration dec : structure.allSubDeclarations(IHasSubDeclarations.ALL_SUBDECLARATIONS)) {
+			for (Declaration dec : structure.allSubDeclarations(IHasSubDeclarations.ALL_SUBDECLARATIONS)) {
 				adjustDec(dec, event.getOffset(), -event.getLength());
 			}
 		}
@@ -99,7 +99,7 @@ public abstract class TextChangeListenerBase<EditorType extends ClonkTextEditor,
 			int offset = event.getOffset();
 			int diff = newText.length() - replLength;
 			// mixed
-			for (C4Declaration dec : structure.allSubDeclarations(IHasSubDeclarations.ALL_SUBDECLARATIONS)) {
+			for (Declaration dec : structure.allSubDeclarations(IHasSubDeclarations.ALL_SUBDECLARATIONS)) {
 				if (dec.getLocation().getStart() >= offset + replLength)
 					adjustDec(dec, offset, diff);
 				else if (dec instanceof Function) {

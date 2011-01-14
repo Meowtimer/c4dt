@@ -1,6 +1,6 @@
 package net.arctics.clonk.ui.navigator;
 
-import net.arctics.clonk.parser.C4Declaration;
+import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.ui.editors.ClonkTextEditor;
 import net.arctics.clonk.ui.editors.c4script.ScriptWithStorageEditorInput;
 import net.arctics.clonk.util.ITreeNode;
@@ -17,8 +17,8 @@ public class LinkHelper implements ILinkHelper {
 
 	public void activateEditor(IWorkbenchPage page, IStructuredSelection selection) {
 		try {
-			if (selection.getFirstElement() instanceof C4Declaration) {
-				C4Declaration dec = (C4Declaration) selection.getFirstElement();
+			if (selection.getFirstElement() instanceof Declaration) {
+				Declaration dec = (Declaration) selection.getFirstElement();
 				IWorkbenchPage wpage = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
 				IEditorInput input = dec.getTopLevelStructure() != null ? dec.getTopLevelStructure().getEditorInput() : null;
 				if (input != null && wpage.findEditor(input) != null)

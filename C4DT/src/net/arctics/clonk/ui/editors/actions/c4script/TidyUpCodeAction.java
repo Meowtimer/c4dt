@@ -4,7 +4,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.ResourceBundle;
 
-import net.arctics.clonk.parser.C4Declaration;
+import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.Variable;
@@ -38,11 +38,11 @@ import org.eclipse.ui.texteditor.TextEditorAction;
 public class TidyUpCodeAction extends TextEditorAction {
 
 	public final static class CodeChunk {
-		public C4Declaration relatedDeclaration;
+		public Declaration relatedDeclaration;
 		public List<ExprElm> expressions;
 		// encompasses all expressions of the declaration
 		public boolean complete;
-		public CodeChunk(C4Declaration declaration, List<ExprElm> expressions) {
+		public CodeChunk(Declaration declaration, List<ExprElm> expressions) {
 			super();
 			this.relatedDeclaration = declaration;
 			this.expressions = expressions;

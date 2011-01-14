@@ -8,8 +8,8 @@ import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.index.ProjectDefinition;
 import net.arctics.clonk.index.ClonkIndex;
 import net.arctics.clonk.index.ProjectIndex;
-import net.arctics.clonk.parser.C4Declaration;
-import net.arctics.clonk.parser.C4ID;
+import net.arctics.clonk.parser.Declaration;
+import net.arctics.clonk.parser.ID;
 import net.arctics.clonk.parser.DeclarationRegion;
 import net.arctics.clonk.parser.inireader.Action;
 import net.arctics.clonk.parser.inireader.CategoriesArray;
@@ -112,11 +112,11 @@ public class IniSourceViewerConfiguration extends ClonkSourceViewerConfiguration
 							if (dataItem instanceof IniDataEntry) {
 								IniDataEntry entry = (IniDataEntry) dataItem;
 								Class<?> entryClass = entry.getEntryClass();
-								C4Declaration declaration = null;
-								if (entryClass == C4ID.class) {
+								Declaration declaration = null;
+								if (entryClass == ID.class) {
 									IResource r = Utilities.getEditingFile(getEditor());
 									ClonkIndex index = Utilities.getIndex(r);
-									declaration = index.getObjectNearestTo(r, C4ID.getID(value));
+									declaration = index.getObjectNearestTo(r, ID.getID(value));
 								}
 								else if (entryClass == FuncRefEntry.class) {
 									ProjectDefinition obj = ProjectDefinition.objectCorrespondingTo(Utilities.getEditingFile(getEditor()).getParent());
@@ -130,7 +130,7 @@ public class IniSourceViewerConfiguration extends ClonkSourceViewerConfiguration
 									ClonkIndex index = Utilities.getIndex(r);
 									String id = line.substring(idRegion.getOffset(), idRegion.getOffset()+idRegion.getLength());
 									if (index.getEngine() != null && index.getEngine().acceptsId(id)) {
-										declaration = index.getObjectNearestTo(r, C4ID.getID(line.substring(idRegion.getOffset(), idRegion.getOffset()+idRegion.getLength())));
+										declaration = index.getObjectNearestTo(r, ID.getID(line.substring(idRegion.getOffset(), idRegion.getOffset()+idRegion.getLength())));
 										linkStart = lineRegion.getOffset()+idRegion.getOffset();
 										linkLen = idRegion.getLength();
 									}
@@ -177,7 +177,7 @@ public class IniSourceViewerConfiguration extends ClonkSourceViewerConfiguration
 									String firstPart = value.split(":")[0];
 									IResource r = Utilities.getEditingFile(getEditor());
 									ClonkIndex index = Utilities.getIndex(r);
-									declaration = index.getObjectNearestTo(r, C4ID.getID(firstPart));
+									declaration = index.getObjectNearestTo(r, ID.getID(firstPart));
 								}
 								else if (entryClass == String.class) {
 									DeclarationRegion reg = StringTbl.getEntryForLanguagePref(value, 0, relativeOffset, getEditor().getIniUnit(), true);

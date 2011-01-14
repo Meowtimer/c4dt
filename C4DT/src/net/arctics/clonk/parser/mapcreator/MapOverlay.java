@@ -5,9 +5,9 @@ import java.util.LinkedList;
 import java.util.List;
 
 import net.arctics.clonk.ClonkCore;
-import net.arctics.clonk.parser.C4Declaration;
+import net.arctics.clonk.parser.Declaration;
 
-public class C4MapOverlay extends C4MapOverlayBase {
+public class MapOverlay extends MapOverlayBase {
 	
 	public enum Algorithm {
 		solid,
@@ -45,12 +45,12 @@ public class C4MapOverlay extends C4MapOverlayBase {
 	public Boolean sub;
 	public Range lambda;
 	
-	private C4MapOverlay template;
+	private MapOverlay template;
 	private Operator operator;
 	
 	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 	
-	protected List<C4MapOverlayBase> subOverlays = new LinkedList<C4MapOverlayBase>();
+	protected List<MapOverlayBase> subOverlays = new LinkedList<MapOverlayBase>();
 
 	@Override
 	public Operator getOperator() {
@@ -62,15 +62,15 @@ public class C4MapOverlay extends C4MapOverlayBase {
 	}
 
 	@Override
-	public C4MapOverlayBase findDeclaration(String declarationName, Class<? extends C4Declaration> declarationClass) {
+	public MapOverlayBase findDeclaration(String declarationName, Class<? extends Declaration> declarationClass) {
 		return findLocalDeclaration(declarationName, declarationClass);
 	}
 	
 	@Override
-	public C4MapOverlayBase findLocalDeclaration(String declarationName,
-			Class<? extends C4Declaration> declarationClass) {
-		if (C4MapOverlay.class.isAssignableFrom(declarationClass)) {
-			for (C4MapOverlayBase o : subOverlays)
+	public MapOverlayBase findLocalDeclaration(String declarationName,
+			Class<? extends Declaration> declarationClass) {
+		if (MapOverlay.class.isAssignableFrom(declarationClass)) {
+			for (MapOverlayBase o : subOverlays)
 				if (o.getName() != null && o.getName().equals(declarationName) && declarationClass.isAssignableFrom(o.getClass()))
 					return o;
 		}
@@ -78,39 +78,39 @@ public class C4MapOverlay extends C4MapOverlayBase {
 	}
 	
 	@Override
-	public C4MapOverlayBase findDeclaration(String declarationName) {
-		return findDeclaration(declarationName, C4MapOverlay.class);
+	public MapOverlayBase findDeclaration(String declarationName) {
+		return findDeclaration(declarationName, MapOverlay.class);
 	}
 	
-	public static Class<? extends C4MapOverlayBase> getDefaultClass(String type) {
+	public static Class<? extends MapOverlayBase> getDefaultClass(String type) {
 		return DEFAULT_CLASS.get(type);
 	}
 	
-	public C4MapOverlay getTemplate(String type) {
-		for (C4MapOverlay level = this; level != null; level = (C4MapOverlay) level.getParentDeclaration()) {
-			C4MapOverlayBase o = level.findDeclaration(type, C4MapOverlay.class);
-			if (o instanceof C4MapOverlay)
-				return (C4MapOverlay) o;
+	public MapOverlay getTemplate(String type) {
+		for (MapOverlay level = this; level != null; level = (MapOverlay) level.getParentDeclaration()) {
+			MapOverlayBase o = level.findDeclaration(type, MapOverlay.class);
+			if (o instanceof MapOverlay)
+				return (MapOverlay) o;
 		}
 		return null;
 	}
 	
 	@Override
-	public C4MapOverlayBase getTemplate() {
+	public MapOverlayBase getTemplate() {
 		return template;
 	}
 	
-	public C4MapOverlayBase createOverlay(String type, String name) throws InstantiationException, IllegalAccessException, CloneNotSupportedException {
-		Class<? extends C4MapOverlayBase> cls = getDefaultClass(type);
-		C4MapOverlayBase result;
+	public MapOverlayBase createOverlay(String type, String name) throws InstantiationException, IllegalAccessException, CloneNotSupportedException {
+		Class<? extends MapOverlayBase> cls = getDefaultClass(type);
+		MapOverlayBase result;
 		if (cls != null) {
 			result = cls.newInstance();
 		}
 		else {
-			C4MapOverlay template = getTemplate(type);
+			MapOverlay template = getTemplate(type);
 			if (template != null) {
-				result = (C4MapOverlay) template.clone();
-				((C4MapOverlay)result).template = template;
+				result = (MapOverlay) template.clone();
+				((MapOverlay)result).template = template;
 			}
 			else
 				result = null;
@@ -123,8 +123,8 @@ public class C4MapOverlay extends C4MapOverlayBase {
 		return result;
 	}
 	
-	public C4MapOverlay createOverlay(Class<? extends C4MapOverlay> cls, String name) throws InstantiationException, IllegalAccessException {
-		C4MapOverlay result = cls.newInstance();
+	public MapOverlay createOverlay(Class<? extends MapOverlay> cls, String name) throws InstantiationException, IllegalAccessException {
+		MapOverlay result = cls.newInstance();
 		result.name = name;
 		result.setParentDeclaration(this);
 		this.subOverlays.add(result);
@@ -132,7 +132,7 @@ public class C4MapOverlay extends C4MapOverlayBase {
 	}
 	
 	private boolean hasAnyNamedSubOverlays() {
-		for (C4MapOverlayBase o : this.subOverlays)
+		for (MapOverlayBase o : this.subOverlays)
 			if (o.getName() != null)
 				return true;
 		return false;
@@ -140,11 +140,11 @@ public class C4MapOverlay extends C4MapOverlayBase {
 	
 	@Override
 	public Object[] getSubDeclarationsForOutline() {
-		LinkedList<C4MapOverlayBase> result = new LinkedList<C4MapOverlayBase>();
-		for (C4MapOverlayBase o : this.subOverlays)
+		LinkedList<MapOverlayBase> result = new LinkedList<MapOverlayBase>();
+		for (MapOverlayBase o : this.subOverlays)
 			if (o.getName() != null)
 				result.add(o);
-		return result.toArray(new C4MapOverlayBase[result.size()]);
+		return result.toArray(new MapOverlayBase[result.size()]);
 	}
 	
 	@Override
@@ -154,7 +154,7 @@ public class C4MapOverlay extends C4MapOverlayBase {
 	
 	@Override
 	public String getTypeName() {
-		C4MapOverlayBase t;
+		MapOverlayBase t;
 		for (t = template; t != null && t.getTemplate() != null; t = t.getTemplate());
 		if (t != null)
 			return t.getNodeName();
@@ -173,20 +173,20 @@ public class C4MapOverlay extends C4MapOverlayBase {
 	
 	@Override
 	protected Object clone() throws CloneNotSupportedException {
-		C4MapOverlay clone = (C4MapOverlay) super.clone();
+		MapOverlay clone = (MapOverlay) super.clone();
 		clone.beAutonomousClone(); // don't copy nested overlays
 		return clone;
 	}
 
 	private void beAutonomousClone() {
-		this.subOverlays = new LinkedList<C4MapOverlayBase>();
+		this.subOverlays = new LinkedList<MapOverlayBase>();
 		this.body = null;
 	}
 	
-	public C4MapOverlayBase overlayAt(int offset) {
-		C4MapOverlayBase ov;
+	public MapOverlayBase overlayAt(int offset) {
+		MapOverlayBase ov;
 		Outer: for (ov = this; ov != null && ov.getChildCollection() != null && ov.getChildCollection().size() != 0;) {
-			for (C4MapOverlayBase o : ov.getChildCollection()) {
+			for (MapOverlayBase o : ov.getChildCollection()) {
 				if (offset >= o.getLocation().getStart() && offset < (o.body!=null?o.body:o.getLocation()).getEnd()) {
 					ov = o;
 					continue Outer;
@@ -197,7 +197,7 @@ public class C4MapOverlay extends C4MapOverlayBase {
 		return ov;
 	}
 
-	public Collection<? extends C4MapOverlayBase> getChildCollection() {
+	public Collection<? extends MapOverlayBase> getChildCollection() {
 		return this.subOverlays;
 	}
 

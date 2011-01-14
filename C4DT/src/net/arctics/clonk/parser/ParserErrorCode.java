@@ -120,7 +120,7 @@ public enum ParserErrorCode {
 		return marker.getAttribute(String.format(MARKER_ARGS[index], index), ""); //$NON-NLS-1$
 	}
 	
-	public IMarker createMarker(IFile file, C4Declaration declarationAssociatedWithFile, String markerType, int start, int end, int severity, String problem) {
+	public IMarker createMarker(IFile file, Declaration declarationAssociatedWithFile, String markerType, int start, int end, int severity, String problem) {
 		if (file == null)
 			return null;
 		try {
@@ -141,7 +141,7 @@ public enum ParserErrorCode {
 		return null;
 	}
 	
-	public IMarker createMarker(IFile file, C4Declaration declarationAssociatedWithFile, String markerType, int start, int end, int severity, IRegion expressionRegion, Object... args) {
+	public IMarker createMarker(IFile file, Declaration declarationAssociatedWithFile, String markerType, int start, int end, int severity, IRegion expressionRegion, Object... args) {
 		IMarker marker = createMarker(file, declarationAssociatedWithFile, markerType, start, end, severity, getErrorString(args));
 		for (int i = 0; i < Math.min(args.length, MARKER_ARGS.length); i++) {
 			try {

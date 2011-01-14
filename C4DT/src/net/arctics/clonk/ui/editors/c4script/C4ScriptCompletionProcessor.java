@@ -18,7 +18,7 @@ import net.arctics.clonk.parser.c4script.IHasSubDeclarations;
 import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.parser.c4script.Keywords;
 import net.arctics.clonk.parser.BufferedScanner;
-import net.arctics.clonk.parser.C4Declaration;
+import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.c4script.Function.C4FunctionScope;
 import net.arctics.clonk.parser.c4script.C4ScriptParser.ExpressionsAndStatementsReportingFlavour;
 import net.arctics.clonk.parser.c4script.Variable.C4VariableScope;
@@ -472,7 +472,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 			return;
 		}
 		loopCatcher.add(structure);
-		for (C4Declaration dec : structure.allSubDeclarations(mask)) {
+		for (Declaration dec : structure.allSubDeclarations(mask)) {
 			Function func;
 			Variable var;
 			ScriptBase include;
@@ -503,7 +503,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 		try {
 	        FuncCallInfo funcCallInfo = editor.getInnermostCallFuncExprParm(offset);
 	        if (funcCallInfo != null) {
-	        	C4Declaration dec = funcCallInfo.callFunc.getDeclaration();
+	        	Declaration dec = funcCallInfo.callFunc.getDeclaration();
 	        	if (dec instanceof Function) {
 	        		String parmString = ((Function)dec).getLongParameterString(false, false).trim();
 	        		if (parmString.length() == 0)

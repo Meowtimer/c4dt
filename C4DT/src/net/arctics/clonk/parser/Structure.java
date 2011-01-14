@@ -18,7 +18,7 @@ import net.arctics.clonk.ui.editors.c4script.ScriptWithStorageEditorInput;
  * Declaration that contains sub declarations and describes more complex structures (like DefCores and scripts).
  * Provides support for being pinned to files in the project tree.
  */
-public abstract class Structure extends C4Declaration implements ILatestDeclarationVersionProvider {
+public abstract class Structure extends Declaration implements ILatestDeclarationVersionProvider {
 	
 	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 
@@ -28,7 +28,7 @@ public abstract class Structure extends C4Declaration implements ILatestDeclarat
 	 * @param declarationClass the class of the declaration
 	 * @return the declaration or null if it couldn't be found
 	 */
-	public C4Declaration findDeclaration(String declarationName, Class<? extends C4Declaration> declarationClass) {
+	public Declaration findDeclaration(String declarationName, Class<? extends Declaration> declarationClass) {
 		return findLocalDeclaration(declarationName, declarationClass);
 	}
 	
@@ -37,11 +37,11 @@ public abstract class Structure extends C4Declaration implements ILatestDeclarat
 	 * @param declarationName the name of the declaration
 	 * @return the declaration or null if it couldn't be found
 	 */
-	public C4Declaration findDeclaration(String declarationName) {
-		return findDeclaration(declarationName, C4Declaration.class);
+	public Declaration findDeclaration(String declarationName) {
+		return findDeclaration(declarationName, Declaration.class);
 	}
 	
-	public abstract C4Declaration findLocalDeclaration(String declarationName, Class<? extends C4Declaration> declarationClass);
+	public abstract Declaration findLocalDeclaration(String declarationName, Class<? extends Declaration> declarationClass);
 	
 	/**
 	 * Returns an editor input for this structure
@@ -166,7 +166,7 @@ public abstract class Structure extends C4Declaration implements ILatestDeclarat
 	public void setDirty(boolean dirty) {}
 	
 	@SuppressWarnings("unchecked")
-	public <T extends C4Declaration> T getLatestVersion(T from) {
+	public <T extends Declaration> T getLatestVersion(T from) {
 		return (T) findLocalDeclaration(from.getName(), from.getClass());
 	}
 	

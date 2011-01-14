@@ -7,7 +7,7 @@ import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
 
-import net.arctics.clonk.parser.C4Declaration;
+import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.Structure;
 import net.arctics.clonk.parser.inireader.IniItem;
 import net.arctics.clonk.parser.inireader.IniSection;
@@ -108,7 +108,7 @@ public class IniTextEditor extends ClonkTextEditor {
 	}
 	
 	@Override
-	public C4Declaration getTopLevelDeclaration() {
+	public Declaration getTopLevelDeclaration() {
 		return getIniUnit(); 
 	}
 

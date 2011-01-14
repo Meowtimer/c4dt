@@ -22,7 +22,7 @@ import org.eclipse.jface.util.Util;
 
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.BufferedScanner;
-import net.arctics.clonk.parser.C4Declaration;
+import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.c4script.Function;
@@ -161,7 +161,7 @@ public class Engine extends ScriptBase {
 	}
 
 	@Override
-	public void postSerialize(C4Declaration parent) {
+	public void postSerialize(Declaration parent) {
 		super.postSerialize(parent);
 		modified();
 	}
@@ -291,7 +291,7 @@ public class Engine extends ScriptBase {
 		}
 	}
 
-	public String descriptionFor(C4Declaration declaration) {
+	public String descriptionFor(Declaration declaration) {
 		Map<String, String> descs;
 		try {
 			descs = getEngine().loadDescriptions(ClonkPreferences.getLanguagePref());
@@ -348,7 +348,7 @@ public class Engine extends ScriptBase {
 					CustomIniUnit unit = new CustomIniUnit(stream, new DeclarationsConfiguration());
 					unit.getParser().parse(false);
 					for (IniSection section : unit.getSections()) {
-						C4Declaration declaration = findDeclaration(section.getName());
+						Declaration declaration = findDeclaration(section.getName());
 						if (declaration != null) {
 							unit.commitSection(declaration, section, false);
 						}

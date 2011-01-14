@@ -13,7 +13,7 @@ import java.util.TimerTask;
 
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.index.ClonkIndex;
-import net.arctics.clonk.parser.C4Declaration;
+import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.SimpleScriptStorage;
 import net.arctics.clonk.parser.SourceLocation;
@@ -231,12 +231,12 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		}
 		
 		@Override
-		protected void adjustDec(C4Declaration declaration, int offset, int add) {
+		protected void adjustDec(Declaration declaration, int offset, int add) {
 			super.adjustDec(declaration, offset, add);
 			if (declaration instanceof Function) {
 				addToLocation(((Function)declaration).getBody(), offset, add);
 			}
-			for (C4Declaration v : declaration.allSubDeclarations(IHasSubDeclarations.ALL_SUBDECLARATIONS)) {
+			for (Declaration v : declaration.allSubDeclarations(IHasSubDeclarations.ALL_SUBDECLARATIONS)) {
 				adjustDec(v, offset, add);
 			}
 		}

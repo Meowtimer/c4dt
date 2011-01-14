@@ -9,7 +9,7 @@ import org.eclipse.jface.text.IDocumentListener;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.swt.widgets.Composite;
 
-import net.arctics.clonk.parser.mapcreator.C4MapCreator;
+import net.arctics.clonk.parser.mapcreator.MapCreator;
 import net.arctics.clonk.parser.mapcreator.MapCreatorLexer;
 import net.arctics.clonk.parser.mapcreator.MapCreatorParser;
 import net.arctics.clonk.ui.editors.ClonkTextEditor;
@@ -21,7 +21,7 @@ import net.arctics.clonk.util.Utilities;
 
 public class MapCreatorEditor extends ClonkTextEditor {
 	
-	private C4MapCreator mapCreator;
+	private MapCreator mapCreator;
 	private boolean parsed;
 	
 	public MapCreatorEditor() {
@@ -55,16 +55,16 @@ public class MapCreatorEditor extends ClonkTextEditor {
 		}
 	}
 	
-	public C4MapCreator getMapCreator() {
+	public MapCreator getMapCreator() {
 		if (mapCreator == null)
-			mapCreator = new C4MapCreator(Utilities.getEditingFile(this));
+			mapCreator = new MapCreator(Utilities.getEditingFile(this));
 		return mapCreator;
 		
 	}
 	
 	@Override
-	public C4MapCreator getTopLevelDeclaration() {
-		C4MapCreator result = getMapCreator();
+	public MapCreator getTopLevelDeclaration() {
+		MapCreator result = getMapCreator();
 		reparse();
 		return result;
 	}

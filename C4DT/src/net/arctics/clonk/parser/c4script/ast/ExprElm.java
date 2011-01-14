@@ -9,7 +9,7 @@ import java.util.List;
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.CachedEngineFuncs;
-import net.arctics.clonk.parser.C4Declaration;
+import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.DeclarationRegion;
 import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.ParsingException;
@@ -773,11 +773,11 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable {
 	}
 	
 	// getting/setting some associated variable so the exprelm knows from whence it came
-	public C4Declaration associatedDeclaration() {
+	public Declaration associatedDeclaration() {
 		return null;
 	}
 	
-	public void setAssociatedDeclaration(C4Declaration declaration) {
+	public void setAssociatedDeclaration(Declaration declaration) {
 		for (ExprElm s : getSubElements()) {
 			if (s != null) {
 				s.setAssociatedDeclaration(declaration);

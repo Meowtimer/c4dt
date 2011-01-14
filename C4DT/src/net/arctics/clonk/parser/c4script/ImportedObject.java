@@ -6,14 +6,14 @@ import java.util.Iterator;
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.ClonkIndex;
-import net.arctics.clonk.parser.C4ID;
+import net.arctics.clonk.parser.ID;
 import net.arctics.clonk.resource.ClonkProjectNature;
 
 public class ImportedObject implements Serializable, IType {
 
 	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 	
-	private C4ID id;
+	private ID id;
 	private transient WeakReference<Definition> object;
 	private String referencedProject;
 	
@@ -37,7 +37,7 @@ public class ImportedObject implements Serializable, IType {
 		}
 	}
 	
-	public C4ID getId() {
+	public ID getId() {
 		return id;
 	}
 	

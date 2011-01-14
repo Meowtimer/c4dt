@@ -6,7 +6,7 @@ import java.util.Set;
 
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.index.ProjectIndex;
-import net.arctics.clonk.parser.C4Declaration;
+import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.ScriptBase;
 import net.arctics.clonk.parser.c4script.FindDeclarationInfo;
@@ -35,10 +35,10 @@ import org.eclipse.text.edits.ReplaceEdit;
 
 public class RenameDeclarationProcessor extends RenameProcessor {
 	
-	private C4Declaration decl;
+	private Declaration decl;
 	private String newName;
 
-	public RenameDeclarationProcessor(C4Declaration field, String newName) {
+	public RenameDeclarationProcessor(Declaration field, String newName) {
 		this.newName = newName;
 		this.decl = field;
 	}
@@ -46,11 +46,11 @@ public class RenameDeclarationProcessor extends RenameProcessor {
 	@Override
 	public RefactoringStatus checkInitialConditions(IProgressMonitor monitor) throws CoreException, OperationCanceledException {
 		// renaming fields that originate from outside the project is not allowed
-		C4Declaration baseDecl = decl instanceof Function ? ((Function)decl).baseFunction() : decl;
+		Declaration baseDecl = decl instanceof Function ? ((Function)decl).baseFunction() : decl;
 		if (!(baseDecl.getScript().getIndex() instanceof ProjectIndex))
 			return RefactoringStatus.createFatalErrorStatus(decl.getName() + Messages.OutsideProject);
 		
-		C4Declaration existingDec;
+		Declaration existingDec;
 		if (baseDecl.getParentDeclaration() instanceof Function) {
 			existingDec = ((Function)baseDecl.getParentDeclaration()).findVariable(newName);
 		}
@@ -159,7 +159,7 @@ public class RenameDeclarationProcessor extends RenameProcessor {
 		return null;
 	}
 
-	public C4Declaration getField() {
+	public Declaration getField() {
 		return decl;
 	}
 	

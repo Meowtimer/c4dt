@@ -10,7 +10,7 @@ import java.util.Set;
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.ClonkCore.IDocumentAction;
 import net.arctics.clonk.parser.BufferedScanner;
-import net.arctics.clonk.parser.C4Declaration;
+import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.ScriptBase;
@@ -203,7 +203,7 @@ public class ClonkQuickAssistProcessor implements IQuickAssistProcessor {
 		private final C4ScriptParser parser;
 		private Function func;
 
-		private ParameterizedProposal(C4Declaration declaration,
+		private ParameterizedProposal(Declaration declaration,
 				String replacementString, int replacementOffset,
 				int replacementLength, int cursorPosition, Image image,
 				String displayString, IContextInformation contextInformation,
@@ -304,9 +304,9 @@ public class ClonkQuickAssistProcessor implements IQuickAssistProcessor {
 	private static class Replacement {
 		
 		public static class AdditionalDeclaration {
-			public C4Declaration declaration;
+			public Declaration declaration;
 			public ExprElm code;
-			public AdditionalDeclaration(C4Declaration declaration, ExprElm code) {
+			public AdditionalDeclaration(Declaration declaration, ExprElm code) {
 				super();
 				this.declaration = declaration;
 				this.code = code;
@@ -524,7 +524,7 @@ public class ClonkQuickAssistProcessor implements IQuickAssistProcessor {
 						for (ICompletionProposal p : possible) {
 							if (p instanceof ClonkCompletionProposal) {
 								ClonkCompletionProposal clonkProposal = (ClonkCompletionProposal) p;
-								C4Declaration dec = clonkProposal.getDeclaration();
+								Declaration dec = clonkProposal.getDeclaration();
 								if (dec == null || !accessDec.declarationClass().isAssignableFrom(dec.getClass()))
 									continue;
 								int similarity = Utilities.getSimilarity(dec.getName(), accessDec.getDeclarationName());

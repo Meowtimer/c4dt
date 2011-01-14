@@ -5,8 +5,8 @@ import java.io.Serializable;
 import java.security.InvalidParameterException;
 
 import net.arctics.clonk.ClonkCore;
-import net.arctics.clonk.parser.C4Declaration;
-import net.arctics.clonk.parser.C4ID;
+import net.arctics.clonk.parser.Declaration;
+import net.arctics.clonk.parser.ID;
 import net.arctics.clonk.parser.Structure;
 import net.arctics.clonk.parser.c4script.Variable;
 import net.arctics.clonk.parser.c4script.IType;
@@ -48,7 +48,7 @@ public class ProjectDefinition extends Definition implements Serializable {
 				}
 
 				@Override
-				public C4Declaration getParentDeclaration() {
+				public Declaration getParentDeclaration() {
 					return ProjectDefinition.this;
 				}
 
@@ -82,7 +82,7 @@ public class ProjectDefinition extends Definition implements Serializable {
 		return staticVariable;
 	}
 
-	public ProjectDefinition(C4ID id, String name, IContainer container) {
+	public ProjectDefinition(ID id, String name, IContainer container) {
 		super(id, name);
 		try {
 			setObjectFolder(container);
@@ -110,7 +110,7 @@ public class ProjectDefinition extends Definition implements Serializable {
 	 * @param newId
 	 * @param persistent not implemented yet - set it to false always
 	 */
-	public void setId(C4ID newId, boolean persistent) {
+	public void setId(ID newId, boolean persistent) {
 		setId(newId);
 		if (persistent) {
 			//			DefCoreParser defCoreParser = new DefCoreParser(getScriptFile());
@@ -189,7 +189,7 @@ public class ProjectDefinition extends Definition implements Serializable {
 	}
 
 	@Override
-	public void setId(C4ID newId) {
+	public void setId(ID newId) {
 		super.setId(newId);
 		if (objectFolder != null)
 			try {

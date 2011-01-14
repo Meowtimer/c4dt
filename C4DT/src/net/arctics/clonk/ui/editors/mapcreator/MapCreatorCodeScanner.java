@@ -3,7 +3,7 @@ package net.arctics.clonk.ui.editors.mapcreator;
 import java.util.ArrayList;
 import java.util.List;
 
-import net.arctics.clonk.parser.mapcreator.C4MapOverlayBase;
+import net.arctics.clonk.parser.mapcreator.MapOverlayBase;
 import net.arctics.clonk.ui.editors.ClonkRuleBasedScanner;
 import net.arctics.clonk.ui.editors.ColorManager;
 import net.arctics.clonk.ui.editors.ClonkColorConstants;
@@ -107,7 +107,7 @@ public class MapCreatorCodeScanner extends ClonkRuleBasedScanner {
 
 		// Add word rule for keywords, types, and constants.
 		CombinedWordRule.WordMatcher wordRule= new CombinedWordRule.WordMatcher();
-		for (String mapGenKeyword : C4MapOverlayBase.DEFAULT_CLASS.keySet())
+		for (String mapGenKeyword : MapOverlayBase.DEFAULT_CLASS.keySet())
 			wordRule.addWord(mapGenKeyword, keyword);
 
 		combinedWordRule.addWordMatcher(wordRule);

@@ -2,7 +2,7 @@ package net.arctics.clonk.ui.editors.actions.c4script;
 
 import java.util.ResourceBundle;
 
-import net.arctics.clonk.parser.C4Declaration;
+import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.ui.editors.IClonkCommandIds;
 import net.arctics.clonk.ui.editors.ClonkTextEditor;
@@ -23,7 +23,7 @@ public class OpenDeclarationAction extends TextEditorAction {
 		this.setActionDefinitionId(IClonkCommandIds.OPEN_DECLARATION);
 	}
 	
-	protected C4Declaration getDeclarationAtSelection() throws BadLocationException, ParsingException {
+	protected Declaration getDeclarationAtSelection() throws BadLocationException, ParsingException {
 		ITextSelection selection = (ITextSelection) getTextEditor().getSelectionProvider().getSelection();
 		IRegion r = new Region(selection.getOffset(), selection.getLength());
 		DeclarationLocator info = new DeclarationLocator(

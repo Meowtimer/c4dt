@@ -4,20 +4,20 @@ import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
-public final class C4ID implements Serializable {
-	private static final Map<String, C4ID> idPool = new HashMap<String, C4ID>();
+public final class ID implements Serializable {
+	private static final Map<String, ID> idPool = new HashMap<String, ID>();
 	private static final long serialVersionUID = 833007356188766488L;
-	public static final C4ID NULL = getID("NULL"); //$NON-NLS-1$
+	public static final ID NULL = getID("NULL"); //$NON-NLS-1$
 	
 	private String name;
 	
-	protected C4ID(String id) {
+	protected ID(String id) {
 		name = id;
 		idPool.put(id, this);
 	}
 	
-	public C4ID internalize() {
-		C4ID special = idPool.get(name);
+	public ID internalize() {
+		ID special = idPool.get(name);
 		if (special == null) {
 			idPool.put(name, this);
 			return this;
@@ -25,21 +25,21 @@ public final class C4ID implements Serializable {
 		return special;
 	}
 	
-	public static C4ID getSpecialID(String infoText) {
+	public static ID getSpecialID(String infoText) {
 		if (idPool.containsKey(infoText)) {
 			return idPool.get(infoText);
 		}
 		else {
-			return new C4ID(infoText);
+			return new ID(infoText);
 		}
 	}
 	
-	public static C4ID getID(String id) {
+	public static ID getID(String id) {
 		if (idPool.containsKey(id)) {
 			return idPool.get(id);
 		}
 		else {
-			return new C4ID(id);
+			return new ID(id);
 		}
 	}
 	
@@ -48,7 +48,7 @@ public final class C4ID implements Serializable {
 	 */
 	@Override
 	public boolean equals(Object obj) {
-		return obj instanceof C4ID && ((C4ID)obj).getName().equals(getName());
+		return obj instanceof ID && ((ID)obj).getName().equals(getName());
 	}
 
 	/* (non-Javadoc)

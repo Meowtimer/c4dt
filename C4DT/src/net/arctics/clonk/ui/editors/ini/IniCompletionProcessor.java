@@ -7,7 +7,7 @@ import java.util.regex.Matcher;
 import net.arctics.clonk.index.ProjectDefinition;
 import net.arctics.clonk.index.ClonkIndex;
 import net.arctics.clonk.index.ProjectIndex;
-import net.arctics.clonk.parser.C4ID;
+import net.arctics.clonk.parser.ID;
 import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.ScriptBase;
 import net.arctics.clonk.parser.c4script.Variable;
@@ -117,7 +117,7 @@ public class IniCompletionProcessor extends ClonkCompletionProcessor<IniTextEdit
 			if (itemData instanceof IniDataEntry) {
 				IniDataEntry entryDef = (IniDataEntry) itemData;
 				Class<?> entryClass = entryDef.getEntryClass();
-				if (entryClass == C4ID.class || entryClass == IconSpec.class) {
+				if (entryClass == ID.class || entryClass == IconSpec.class) {
 					proposalsForIndex(offset, proposals, prefix, wordOffset);
 				}
 				else if (entryClass == String.class) {

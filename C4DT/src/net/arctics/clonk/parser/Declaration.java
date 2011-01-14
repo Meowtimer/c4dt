@@ -30,7 +30,7 @@ import org.eclipse.jface.text.IRegion;
  * @author madeen
  *
  */
-public abstract class C4Declaration implements Serializable, IHasRelatedResource, INode, IPostSerializable<C4Declaration>, IHasSubDeclarations  {
+public abstract class Declaration implements Serializable, IHasRelatedResource, INode, IPostSerializable<Declaration>, IHasSubDeclarations  {
 
 	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 	
@@ -47,7 +47,7 @@ public abstract class C4Declaration implements Serializable, IHasRelatedResource
 	/**
 	 * The parent declaration
 	 */
-	protected transient C4Declaration parentDeclaration;
+	protected transient Declaration parentDeclaration;
 	
 	/**
 	 * result to be returned of occurenceScope if there is no scope
@@ -105,18 +105,18 @@ public abstract class C4Declaration implements Serializable, IHasRelatedResource
 	}
 	
 	@SuppressWarnings("unchecked")
-	public final <T extends C4Declaration> T getFirstParentDeclarationOfType(Class<T> type) {
+	public final <T extends Declaration> T getFirstParentDeclarationOfType(Class<T> type) {
 		T result = null;
-		for (C4Declaration f = this; f != null; f = f.parentDeclaration)
+		for (Declaration f = this; f != null; f = f.parentDeclaration)
 			if (type.isAssignableFrom(f.getClass()))
 				return (T) f;
 		return result;
 	}
 	
 	@SuppressWarnings("unchecked")
-	public final <T extends C4Declaration> T getTopLevelParentDeclarationOfType(Class<T> type) {
+	public final <T extends Declaration> T getTopLevelParentDeclarationOfType(Class<T> type) {
 		T result = null;
-		for (C4Declaration f = this; f != null; f = f.parentDeclaration)
+		for (Declaration f = this; f != null; f = f.parentDeclaration)
 			if (type.isAssignableFrom(f.getClass()))
 				result = (T) f;
 		return result;
@@ -156,7 +156,7 @@ public abstract class C4Declaration implements Serializable, IHasRelatedResource
 	 * Sets the parent declaration of this declaration.
 	 * @param field the new parent declaration
 	 */
-	public void setParentDeclaration(C4Declaration field) {
+	public void setParentDeclaration(Declaration field) {
 		this.parentDeclaration = field;
 	}
 	
@@ -188,7 +188,7 @@ public abstract class C4Declaration implements Serializable, IHasRelatedResource
 	 * Returns the latest version of this declaration, obtaining it by searching for a declaration with its name in its parent declaration
 	 * @return The latest version of this declaration
 	 */
-	public C4Declaration latestVersion() {
+	public Declaration latestVersion() {
 		if (parentDeclaration != null)
 			parentDeclaration = parentDeclaration.latestVersion();
 		if (parentDeclaration instanceof ILatestDeclarationVersionProvider) {
@@ -230,13 +230,13 @@ public abstract class C4Declaration implements Serializable, IHasRelatedResource
 	 * Returns the parent declaration this one is contained in
 	 * @return
 	 */
-	public C4Declaration getParentDeclaration() {
+	public Declaration getParentDeclaration() {
 		return parentDeclaration;
 	}
 	
 	@SuppressWarnings("unchecked")
-	public final <T extends C4Declaration> T getParentDeclarationOfType(Class<T> cls) {
-		for (C4Declaration d = getParentDeclaration(); d != null; d = d.getParentDeclaration()) {
+	public final <T extends Declaration> T getParentDeclarationOfType(Class<T> cls) {
+		for (Declaration d = getParentDeclaration(); d != null; d = d.getParentDeclaration()) {
 			if (cls.isAssignableFrom(d.getClass())) {
 				return (T) d;
 			}
@@ -244,14 +244,14 @@ public abstract class C4Declaration implements Serializable, IHasRelatedResource
 		return null;
 	}
 	
-	protected static final Iterable<C4Declaration> NO_SUB_DECLARATIONS = ArrayUtil.arrayIterable();
+	protected static final Iterable<Declaration> NO_SUB_DECLARATIONS = ArrayUtil.arrayIterable();
 	
 	/**
 	 * Returns an Iterable for iterating over all sub declaration of this declaration.
 	 * Might return null if there are none.
 	 * @return The Iterable for iterating over sub declarations or null.
 	 */
-	public Iterable<? extends C4Declaration> allSubDeclarations(int mask) {
+	public Iterable<? extends Declaration> allSubDeclarations(int mask) {
 		return NO_SUB_DECLARATIONS;
 	}
 	
@@ -259,7 +259,7 @@ public abstract class C4Declaration implements Serializable, IHasRelatedResource
 	 * Adds a sub-declaration
 	 * @param declaration
 	 */
-	public void addSubDeclaration(C4Declaration declaration) {
+	public void addSubDeclaration(Declaration declaration) {
 		System.out.println(String.format("Attempt to add sub declaration %s to %s", declaration, this));
 	}
 	
@@ -267,13 +267,13 @@ public abstract class C4Declaration implements Serializable, IHasRelatedResource
 	 * Called after deserialization to restore transient references
 	 * @param parent the parent
 	 */
-	public void postSerialize(C4Declaration parent) {
+	public void postSerialize(Declaration parent) {
 		if (name != null)
 			name = name.intern();
 		setParentDeclaration(parent);
-		Iterable<? extends C4Declaration> subDecs = this.allSubDeclarations(ALL_SUBDECLARATIONS);
+		Iterable<? extends Declaration> subDecs = this.allSubDeclarations(ALL_SUBDECLARATIONS);
 		if (subDecs != null)
-			for (C4Declaration d : subDecs)
+			for (Declaration d : subDecs)
 				d.postSerialize(this);
 	}
 	
@@ -282,9 +282,9 @@ public abstract class C4Declaration implements Serializable, IHasRelatedResource
 	 * @param parent the parent
 	 */
 	public void preSerialize() {
-		Iterable<? extends C4Declaration> subDecs = this.allSubDeclarations(ALL_SUBDECLARATIONS);
+		Iterable<? extends Declaration> subDecs = this.allSubDeclarations(ALL_SUBDECLARATIONS);
 		if (subDecs != null)
-			for (C4Declaration d : subDecs)
+			for (Declaration d : subDecs)
 				d.preSerialize();
 	}
 	
@@ -345,7 +345,7 @@ public abstract class C4Declaration implements Serializable, IHasRelatedResource
 	 * Take internal state from other declaration and make it your own. This will mess up ownership relations so discard of the absorbed one
 	 * @param declaration
 	 */
-	public void absorb(C4Declaration declaration) {
+	public void absorb(Declaration declaration) {
 		if (this instanceof IHasUserDescription && declaration instanceof IHasUserDescription) {
 			((IHasUserDescription)this).setUserDescription(((IHasUserDescription)declaration).getUserDescription());
 		}

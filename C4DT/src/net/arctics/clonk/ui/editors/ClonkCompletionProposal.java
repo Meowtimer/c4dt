@@ -1,6 +1,6 @@
 package net.arctics.clonk.ui.editors;
 
-import net.arctics.clonk.parser.C4Declaration;
+import net.arctics.clonk.parser.Declaration;
 
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.IDocument;
@@ -13,7 +13,7 @@ import org.eclipse.swt.graphics.Point;
 
 public class ClonkCompletionProposal implements ICompletionProposal, ICompletionProposalExtension6 {
 	
-	private C4Declaration declaration;
+	private Declaration declaration;
 	
 	/** The string to be displayed in the completion proposal popup. */
 	private String displayString;
@@ -62,7 +62,7 @@ public class ClonkCompletionProposal implements ICompletionProposal, ICompletion
 	 * @param replacementLength the length of the text to be replaced
 	 * @param cursorPosition the position of the cursor following the insert relative to replacementOffset
 	 */
-	public ClonkCompletionProposal(C4Declaration declaration, String replacementString, int replacementOffset, int replacementLength, int cursorPosition) {
+	public ClonkCompletionProposal(Declaration declaration, String replacementString, int replacementOffset, int replacementLength, int cursorPosition) {
 		this(declaration, replacementString, replacementOffset, replacementLength, cursorPosition, null, null, null, null, null, null);
 	}
 
@@ -80,7 +80,7 @@ public class ClonkCompletionProposal implements ICompletionProposal, ICompletion
 	 * @param postInfo information that is appended to displayString
 	 */
 	public ClonkCompletionProposal(
-			C4Declaration declaration,
+			Declaration declaration,
 			String replacementString,
 			int replacementOffset, int replacementLength, int cursorPosition,
 			Image image,
@@ -107,7 +107,7 @@ public class ClonkCompletionProposal implements ICompletionProposal, ICompletion
 		this.setEditor(editor);
 	}
 	
-	public C4Declaration getDeclaration() {
+	public Declaration getDeclaration() {
 		return declaration;
 	}
 

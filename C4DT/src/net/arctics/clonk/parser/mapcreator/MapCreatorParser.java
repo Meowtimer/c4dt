@@ -60,25 +60,25 @@ public class MapCreatorParser extends Parser {
     public String getGrammarFileName() { return "/Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/mapcreator/MapCreator.g"; }
 
 
-    C4MapCreator mapCreator;
-    C4MapOverlayBase current;
-    C4MapOverlayBase lastOverlay;
+    MapCreator mapCreator;
+    MapOverlayBase current;
+    MapOverlayBase lastOverlay;
 
     Token valueLo, valueHi;
     private boolean createMarkers;
 
-    public MapCreatorParser(C4MapCreator mapCreator, TokenStream input) {
+    public MapCreatorParser(MapCreator mapCreator, TokenStream input) {
     	this(input);
     	this.mapCreator = mapCreator;
     	createMarkers = mapCreator.getResource() == null || !C4GroupItem.isLinkedResource(mapCreator.getResource());
     	this.current = mapCreator;
     }
 
-    public MapCreatorParser(C4MapCreator mapCreator) {
+    public MapCreatorParser(MapCreator mapCreator) {
     	this (mapCreator, getTokenStream(mapCreator));
     }
 
-    private static TokenStream getTokenStream(C4MapCreator mapCreator) {
+    private static TokenStream getTokenStream(MapCreator mapCreator) {
     	CharStream charStream;
     	try {
     		charStream = new ANTLRReaderStream(new InputStreamReader(((IFile)mapCreator.getResource()).getContents()));
@@ -107,15 +107,15 @@ public class MapCreatorParser extends Parser {
     	return endPos(t, null);
     }
 
-    private void setCurrentOverlay(C4MapOverlayBase overlay, Token typeToken, Token nameToken) {
+    private void setCurrentOverlay(MapOverlayBase overlay, Token typeToken, Token nameToken) {
     	current = overlay;
     	current.setLocation(new SourceLocation(startPos(typeToken), endPos(nameToken, typeToken)));
     }
 
     private void createMapObject(Token typeToken, Token nameToken) {
     	try {
-    		if (current instanceof C4MapOverlay) {
-    			C4MapOverlayBase newOverlay = ((C4MapOverlay) current).createOverlay(typeToken.getText(), nameToken!=null?nameToken.getText():null);
+    		if (current instanceof MapOverlay) {
+    			MapOverlayBase newOverlay = ((MapOverlay) current).createOverlay(typeToken.getText(), nameToken!=null?nameToken.getText():null);
     			if (newOverlay == null)
     				errorWithCode(ParserErrorCode.UndeclaredIdentifier, startPos(typeToken), endPos(typeToken), typeToken.getText());
     			else
@@ -142,13 +142,13 @@ public class MapCreatorParser extends Parser {
     private void moveLevelUp() {
     	lastOverlay = current;
     	if (current != null)
-    		current = (C4MapOverlay) current.getParentDeclaration();
+    		current = (MapOverlay) current.getParentDeclaration();
     }
 
     private void assignOperator(String t) {
-    	C4MapOverlay.Operator op = C4MapOverlay.Operator.valueOf(t.charAt(0));
-    	if (lastOverlay instanceof C4MapOverlay)
-    	((C4MapOverlay)lastOverlay).setOperator(op);
+    	MapOverlay.Operator op = MapOverlay.Operator.valueOf(t.charAt(0));
+    	if (lastOverlay instanceof MapOverlay)
+    	((MapOverlay)lastOverlay).setOperator(op);
     }
 
     private IMarker createMarker(int start, int end, String message, int severity) {

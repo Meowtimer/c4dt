@@ -3,8 +3,8 @@ package net.arctics.clonk.ui.search;
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.ProjectDefinition;
-import net.arctics.clonk.parser.C4Declaration;
-import net.arctics.clonk.parser.C4ID;
+import net.arctics.clonk.parser.Declaration;
+import net.arctics.clonk.parser.ID;
 import net.arctics.clonk.parser.Structure;
 import net.arctics.clonk.parser.DeclarationRegion;
 import net.arctics.clonk.parser.c4script.Directive;
@@ -44,12 +44,12 @@ import org.eclipse.search.ui.ISearchResult;
 
 public class ClonkSearchQuery implements ISearchQuery {
 
-	private C4Declaration declaration;
+	private Declaration declaration;
 	private Object[] scope;
 	private ScriptBase declaringScript;
 	private ClonkSearchResult result;
 	
-	public ClonkSearchQuery(C4Declaration declaration, ClonkProjectNature project) {
+	public ClonkSearchQuery(Declaration declaration, ClonkProjectNature project) {
 		super();
 		this.declaration = declaration;
 		this.declaringScript = declaration.getScript();
@@ -209,19 +209,19 @@ public class ClonkSearchQuery implements ISearchQuery {
 										if (entryClass == FuncRefEntry.class) {
 											ProjectDefinition obj = ProjectDefinition.objectCorrespondingTo(objectFolder);
 											if (obj != null) {
-												C4Declaration declaration = obj.findFunction(complex.getValue());
+												Declaration declaration = obj.findFunction(complex.getValue());
 												if (declaration == this.declaration)
 													result.addMatch(new ClonkSearchMatch(complex.toString(), 0, iniUnit, complex.getEndPos()-complex.getValue().length(), complex.getValue().length(), false, false));
 											}
 										}
 										else if (declaration instanceof Definition) {
-											if (entryClass == C4ID.class) {
-												if (script.getIndex().getObjectFromEverywhere((C4ID) complex.getExtendedValue()) == declaration) {
+											if (entryClass == ID.class) {
+												if (script.getIndex().getObjectFromEverywhere((ID) complex.getExtendedValue()) == declaration) {
 													result.addMatch(new ClonkSearchMatch(complex.toString(), 0, iniUnit, complex.getEndPos()-complex.getValue().length(), complex.getValue().length(), false, false));
 												}
 											}
 											else if (entryClass == IDArray.class) {
-												for (KeyValuePair<C4ID, Integer> pair : ((IDArray)complex.getExtendedValue()).getComponents()) {
+												for (KeyValuePair<ID, Integer> pair : ((IDArray)complex.getExtendedValue()).getComponents()) {
 													Definition obj = script.getIndex().getObjectFromEverywhere(pair.getKey());
 													if (obj == declaration)
 														result.addMatch(new ClonkSearchMatch(pair.toString(), 0, iniUnit, complex.getEndPos()-complex.getValue().length(), complex.getValue().length(), false, false));

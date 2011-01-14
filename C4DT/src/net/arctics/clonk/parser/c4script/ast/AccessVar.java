@@ -2,7 +2,7 @@ package net.arctics.clonk.parser.c4script.ast;
 
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.index.Definition;
-import net.arctics.clonk.parser.C4Declaration;
+import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.c4script.Function;
@@ -35,7 +35,7 @@ public class AccessVar extends AccessDeclaration {
 		super(varName);
 	}
 
-	public AccessVar(C4Declaration declaration) {
+	public AccessVar(Declaration declaration) {
 		this(declaration.getName());
 		this.declaration = declaration;
 	}
@@ -55,7 +55,7 @@ public class AccessVar extends AccessDeclaration {
 	}
 
 	@Override
-	public C4Declaration obtainDeclaration(C4ScriptParser parser) {
+	public Declaration obtainDeclaration(C4ScriptParser parser) {
 		ExprElm p = getPredecessorInSequence();
 		ScriptBase scriptToLookIn = null;
 		if (p != null) {
@@ -92,7 +92,7 @@ public class AccessVar extends AccessDeclaration {
 			var.setUsed(true);
 			switch (var.getScope()) {
 				case LOCAL:
-					C4Declaration d = parser.getCurrentDeclaration();
+					Declaration d = parser.getCurrentDeclaration();
 					if (d != null) {
 						Function f = d.getTopLevelParentDeclarationOfType(Function.class);
 						Variable v = d.getTopLevelParentDeclarationOfType(Variable.class);
@@ -121,7 +121,7 @@ public class AccessVar extends AccessDeclaration {
 		}
 	}
 
-	public static IStoredTypeInformation createStoredTypeInformation(C4Declaration declaration) {
+	public static IStoredTypeInformation createStoredTypeInformation(Declaration declaration) {
 		if (declaration != null) {
 			return new GenericStoredTypeInformation(new AccessVar(declaration));
 		} else {
@@ -131,7 +131,7 @@ public class AccessVar extends AccessDeclaration {
 	
 	@Override
 	protected IType obtainType(C4ScriptParser context) {
-		C4Declaration d = getDeclaration(context);
+		Declaration d = getDeclaration(context);
 		// getDeclaration(context) ensures that declaration is not null (if there is actually a variable) which is needed for queryTypeOfExpression for example
 		if (d == Variable.THIS)
 			return context.getContainerObject() != null ? context.getContainerObject() : PrimitiveType.OBJECT;
@@ -176,7 +176,7 @@ public class AccessVar extends AccessDeclaration {
 	}
 	
 	private static Definition getObjectBelongingToStaticVar(Variable var) {
-		C4Declaration parent = var.getParentDeclaration();
+		Declaration parent = var.getParentDeclaration();
 		if (parent instanceof Definition && ((Definition)parent).getStaticVariable() == var)
 			return (Definition) parent;
 		else
@@ -227,7 +227,7 @@ public class AccessVar extends AccessDeclaration {
 	}
 	
 	@Override
-	public Class<? extends C4Declaration> declarationClass() {
+	public Class<? extends Declaration> declarationClass() {
 		return Variable.class;
 	}
 

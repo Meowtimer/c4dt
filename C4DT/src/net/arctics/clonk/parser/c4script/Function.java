@@ -9,7 +9,7 @@ import org.eclipse.jface.text.IRegion;
 
 import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.index.Definition;
-import net.arctics.clonk.parser.C4Declaration;
+import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.Structure;
 import net.arctics.clonk.parser.SourceLocation;
 import net.arctics.clonk.parser.c4script.Variable.C4VariableScope;
@@ -31,7 +31,7 @@ public class Function extends Structure implements Serializable, ITypedDeclarati
 	/**
 	 * Various other declarations (like proplists) that aren't variables/parameters
 	 */
-	private List<C4Declaration> otherDeclarations;
+	private List<Declaration> otherDeclarations;
 	private IType returnType;
 	private String description;
 	private boolean isCallback;
@@ -297,11 +297,11 @@ public class Function extends Structure implements Serializable, ITypedDeclarati
 	}
 
 	@Override
-	public Variable findDeclaration(String declarationName, Class<? extends C4Declaration> declarationClass) {
+	public Variable findDeclaration(String declarationName, Class<? extends Declaration> declarationClass) {
 		return findLocalDeclaration(declarationName, declarationClass);
 	}
 	
-	public Variable findLocalDeclaration(String declarationName, Class<? extends C4Declaration> declarationClass) {
+	public Variable findLocalDeclaration(String declarationName, Class<? extends Declaration> declarationClass) {
 		if (declarationClass.isAssignableFrom(Variable.class)) {
 			if (declarationName.equals(Variable.THIS.getName()))
 				return Variable.THIS;
@@ -341,11 +341,11 @@ public class Function extends Structure implements Serializable, ITypedDeclarati
 		}
 		
 		// search in index
-		List<C4Declaration> decsWithSameName = getScript().getIndex().getDeclarationMap().get(this.getName());
+		List<Declaration> decsWithSameName = getScript().getIndex().getDeclarationMap().get(this.getName());
 		if (decsWithSameName != null) {
 			Function f = null;
 			int rating = -1;
-			for (C4Declaration d : decsWithSameName) {
+			for (Declaration d : decsWithSameName) {
 				// get latest version since getInherited() might also be called when finding links in a modified but not yet saved script
 				// in which case the calling function (on-the-fly-parsed) differs from the function in the index 
 				d = d.latestVersion();
@@ -486,9 +486,9 @@ public class Function extends Structure implements Serializable, ITypedDeclarati
 	
 	@SuppressWarnings("unchecked")
 	@Override
-	public Iterable<C4Declaration> allSubDeclarations(int mask) {
+	public Iterable<Declaration> allSubDeclarations(int mask) {
 		if ((mask & VARIABLES) != 0)
-			return new CompoundIterable<C4Declaration>(localVars, parameter, otherDeclarations);
+			return new CompoundIterable<Declaration>(localVars, parameter, otherDeclarations);
 		else
 			return otherDeclarations != null ? otherDeclarations : NO_SUB_DECLARATIONS;
 	}
@@ -514,7 +514,7 @@ public class Function extends Structure implements Serializable, ITypedDeclarati
 	}
 	
 	@Override
-	public void absorb(C4Declaration declaration) {
+	public void absorb(Declaration declaration) {
 		if (declaration instanceof Function) {
 			Function f = (Function) declaration;
 			if (f.parameter.size() >= this.parameter.size())
@@ -559,11 +559,11 @@ public class Function extends Structure implements Serializable, ITypedDeclarati
 		}
 	}
 	
-	public C4Declaration addOtherDeclaration(C4Declaration d) {
+	public Declaration addOtherDeclaration(Declaration d) {
 		if (otherDeclarations == null) {
-			otherDeclarations = new ArrayList<C4Declaration>(3);
+			otherDeclarations = new ArrayList<Declaration>(3);
 		} else {
-			for (C4Declaration existing : otherDeclarations) {
+			for (Declaration existing : otherDeclarations) {
 				if (existing.getLocation().equals(d.getLocation())) {
 					return existing;
 				}
@@ -573,9 +573,9 @@ public class Function extends Structure implements Serializable, ITypedDeclarati
 		return d;
 	}
 	
-	private static final List<C4Declaration> NO_OTHER_DECLARATIONS = new ArrayList<C4Declaration>();
+	private static final List<Declaration> NO_OTHER_DECLARATIONS = new ArrayList<Declaration>();
 	
-	public List<C4Declaration> getOtherDeclarations() {
+	public List<Declaration> getOtherDeclarations() {
 		if (otherDeclarations == null) {
 			return NO_OTHER_DECLARATIONS;
 		} else {
@@ -623,11 +623,11 @@ public class Function extends Structure implements Serializable, ITypedDeclarati
 	
 	@SuppressWarnings("unchecked")
 	@Override
-	public <T extends C4Declaration> T getLatestVersion(T from) {
+	public <T extends Declaration> T getLatestVersion(T from) {
 		if (from instanceof Variable) {
 			return super.getLatestVersion(from);
 		} else {
-			for (C4Declaration other : otherDeclarations) {
+			for (Declaration other : otherDeclarations) {
 				if (other.getClass() == from.getClass() && other.getLocation() == from.getLocation())
 					return (T) other;
 			}

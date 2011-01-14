@@ -11,7 +11,7 @@ import net.arctics.clonk.util.IHasKeyAndValue;
 import net.arctics.clonk.util.INode;
 import net.arctics.clonk.util.ITreeNode;
 
-public class NameValueAssignment extends C4Declaration implements IHasKeyAndValue<String, String>, IRegion, ITreeNode {
+public class NameValueAssignment extends Declaration implements IHasKeyAndValue<String, String>, IRegion, ITreeNode {
 
 	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 	

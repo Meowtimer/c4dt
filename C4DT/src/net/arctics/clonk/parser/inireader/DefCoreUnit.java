@@ -2,7 +2,7 @@ package net.arctics.clonk.parser.inireader;
 
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.index.Definition;
-import net.arctics.clonk.parser.C4ID;
+import net.arctics.clonk.parser.ID;
 import net.arctics.clonk.parser.c4script.ScriptBase;
 
 public class DefCoreUnit extends IniUnit {
@@ -18,11 +18,11 @@ public class DefCoreUnit extends IniUnit {
 		super(input);
 	}
 
-	public C4ID getObjectID() {
+	public ID getObjectID() {
 		IniEntry entry = entryInSection("DefCore", "id"); //$NON-NLS-1$ //$NON-NLS-2$
 		if (entry instanceof ComplexIniEntry)
-			return (C4ID)((ComplexIniEntry)entry).getExtendedValue();
-		return C4ID.NULL;
+			return (ID)((ComplexIniEntry)entry).getExtendedValue();
+		return ID.NULL;
 	}
 	
 	public String getName() {

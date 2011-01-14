@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import net.arctics.clonk.parser.mapcreator.C4MapOverlayBase;
+import net.arctics.clonk.parser.mapcreator.MapOverlayBase;
 import net.arctics.clonk.ui.editors.ClonkCompletionProcessor;
 import net.arctics.clonk.util.Utilities;
 
@@ -62,7 +62,7 @@ public class MapCreatorCompletionProcessor extends ClonkCompletionProcessor<MapC
 		
 		List<ICompletionProposal> proposals = new LinkedList<ICompletionProposal>();
 		Matcher m;
-		C4MapOverlayBase overlay = getEditor().getMapCreator().overlayAt(offset);
+		MapOverlayBase overlay = getEditor().getMapCreator().overlayAt(offset);
 		if (overlay == getEditor().getMapCreator())
 			overlay = null;
 		if ((m = startedOverlay.matcher(line)).matches() || (m = startedMap.matcher(line)).matches()) {
@@ -99,7 +99,7 @@ public class MapCreatorCompletionProcessor extends ClonkCompletionProcessor<MapC
 				}
 			}
 			
-			for (String keyword : C4MapOverlayBase.DEFAULT_CLASS.keySet()) {
+			for (String keyword : MapOverlayBase.DEFAULT_CLASS.keySet()) {
 				if (keyword.toLowerCase().startsWith(prefix))
 					proposals.add(new CompletionProposal(keyword, lineStart+m.start(1), prefix.length(), keyword.length()));
 			}

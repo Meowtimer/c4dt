@@ -1,7 +1,7 @@
 package net.arctics.clonk.parser.c4script.ast;
 
 import net.arctics.clonk.ClonkCore;
-import net.arctics.clonk.parser.C4Declaration;
+import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.DeclarationRegion;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
@@ -14,21 +14,21 @@ import org.eclipse.jface.text.Region;
 public abstract class AccessDeclaration extends Value {
 
 	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
-	protected transient C4Declaration declaration;
+	protected transient Declaration declaration;
 	protected String declarationName;
 
-	public C4Declaration getDeclaration(C4ScriptParser parser) {
+	public Declaration getDeclaration(C4ScriptParser parser) {
 		if (declaration == null) {
 			declaration = obtainDeclaration(parser);
 		}
 		return declaration;
 	}
 
-	public C4Declaration getDeclaration() {
+	public Declaration getDeclaration() {
 		return declaration; // return without trying to obtain it (no parser context)
 	}
 
-	public abstract C4Declaration obtainDeclaration(C4ScriptParser parser);
+	public abstract Declaration obtainDeclaration(C4ScriptParser parser);
 
 	@Override
 	public void reportErrors(C4ScriptParser parser) throws ParsingException {
@@ -89,8 +89,8 @@ public abstract class AccessDeclaration extends Value {
 		return true;
 	}
 
-	public Class<? extends C4Declaration> declarationClass() {
-		return C4Declaration.class;
+	public Class<? extends Declaration> declarationClass() {
+		return Declaration.class;
 	}
 	
 	@Override

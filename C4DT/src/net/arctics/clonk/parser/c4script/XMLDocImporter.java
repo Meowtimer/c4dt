@@ -18,7 +18,7 @@ import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 
-import net.arctics.clonk.parser.C4Declaration;
+import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.c4script.Variable.C4VariableScope;
 import net.arctics.clonk.util.StreamUtil;
 import org.w3c.dom.Document;
@@ -95,7 +95,7 @@ public class XMLDocImporter {
 		return "Arr"; //$NON-NLS-1$
 	}
 
-	public C4Declaration importFromXML(InputStream stream) throws IOException, XPathExpressionException {
+	public Declaration importFromXML(InputStream stream) throws IOException, XPathExpressionException {
 
 		String text = StreamUtil.stringFromInputStream(stream, "ISO-8859-1"); //$NON-NLS-1$
 		// get rid of pesky meta information
@@ -118,9 +118,9 @@ public class XMLDocImporter {
 		Node descNode = (Node) descExpr.evaluate(doc.getFirstChild(), XPathConstants.NODE);
 
 		if (titleNode != null && rTypeNode != null) {
-			C4Declaration result;
+			Declaration result;
 			String name = titleNode.getTextContent();
-			if (parmNodes != null && (parmNodes.getLength() > 0 || !C4Declaration.looksLikeConstName(name))) {
+			if (parmNodes != null && (parmNodes.getLength() > 0 || !Declaration.looksLikeConstName(name))) {
 				Function function;
 				result = function = new Function();
 				for (int i = 0; i < parmNodes.getLength(); i++) {

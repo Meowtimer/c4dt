@@ -6,7 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import net.arctics.clonk.ClonkCore;
-import net.arctics.clonk.parser.C4Declaration;
+import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.ScriptBase;
 import net.arctics.clonk.parser.c4script.PrimitiveType;
@@ -76,7 +76,7 @@ public class EngineDeclarationsView extends ViewPart implements IPropertyChangeL
 		}
 		
 		private Button newParameter;
-		private C4Declaration declaration;
+		private Declaration declaration;
 		private Text declarationNameField;
 		private Text descriptionField;
 		private Combo returnTypeBox;
@@ -96,7 +96,7 @@ public class EngineDeclarationsView extends ViewPart implements IPropertyChangeL
 		 * @param parent
 		 * @param declaration
 		 */
-		public EditDeclarationInputDialog(Shell parent, C4Declaration declaration) {
+		public EditDeclarationInputDialog(Shell parent, Declaration declaration) {
 			super(parent);
 			this.declaration = declaration;
 		}
@@ -112,10 +112,10 @@ public class EngineDeclarationsView extends ViewPart implements IPropertyChangeL
 			composite.setLayout(new GridLayout(2,false));
 			if (declaration == null) {
 				Object activeElement = getActiveElement();
-				if (!(activeElement instanceof C4Declaration)) {
+				if (!(activeElement instanceof Declaration)) {
 					return null;
 				}
-				declaration = (C4Declaration) activeElement;
+				declaration = (Declaration) activeElement;
 			}
 			
 			if (declaration instanceof Function) {
@@ -326,7 +326,7 @@ public class EngineDeclarationsView extends ViewPart implements IPropertyChangeL
 		viewer.setLabelProvider(provider);
 		viewer.setSorter(new ViewerSorter() {
 			public int category(Object element) {
-				return ((C4Declaration)element).sortCategory();
+				return ((Declaration)element).sortCategory();
 			}
 		});
 		refresh();
@@ -453,8 +453,8 @@ public class EngineDeclarationsView extends ViewPart implements IPropertyChangeL
 					TreeItem[] selection = viewer.getTree().getSelection();
 					for (TreeItem t : selection) {
 						Object selectedItem = t.getData();
-						if (selectedItem instanceof C4Declaration) {
-							ClonkCore.getDefault().getActiveEngine().removeDeclaration((C4Declaration) selectedItem);
+						if (selectedItem instanceof Declaration) {
+							ClonkCore.getDefault().getActiveEngine().removeDeclaration((Declaration) selectedItem);
 						}
 					}
 					refresh();

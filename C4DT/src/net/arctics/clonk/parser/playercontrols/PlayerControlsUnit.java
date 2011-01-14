@@ -4,7 +4,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import net.arctics.clonk.ClonkCore;
-import net.arctics.clonk.parser.C4Declaration;
+import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.c4script.PrimitiveType;
 import net.arctics.clonk.parser.c4script.Variable;
 import net.arctics.clonk.parser.c4script.Variable.C4VariableScope;
@@ -64,7 +64,7 @@ public class PlayerControlsUnit extends IniUnit {
 	}
 	
 	@Override
-	public C4Declaration findDeclaration(String declarationName, Class<? extends C4Declaration> declarationClass) {
+	public Declaration findDeclaration(String declarationName, Class<? extends Declaration> declarationClass) {
 		if (declarationClass == Variable.class && declarationName.startsWith("CON_")) { //$NON-NLS-1$
 			for (Variable var : getControlVariables())
 				if (var.getName().equals(declarationName))

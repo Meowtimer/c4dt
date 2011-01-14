@@ -10,7 +10,7 @@ import java.util.Map;
 import org.eclipse.core.runtime.IPath;
 
 import net.arctics.clonk.ClonkCore;
-import net.arctics.clonk.parser.C4Declaration;
+import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.Structure;
 import net.arctics.clonk.parser.SourceLocation;
 import net.arctics.clonk.parser.c4script.ast.Conf;
@@ -18,7 +18,7 @@ import net.arctics.clonk.util.IPrintable;
 import net.arctics.clonk.util.ITreeNode;
 import net.arctics.clonk.util.Utilities;
 
-public class C4MapOverlayBase extends Structure implements Cloneable, ITreeNode, IPrintable {
+public class MapOverlayBase extends Structure implements Cloneable, ITreeNode, IPrintable {
 
 	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 	
@@ -28,10 +28,10 @@ public class C4MapOverlayBase extends Structure implements Cloneable, ITreeNode,
 		public static final String Map = "map"; //$NON-NLS-1$
 	}
 	
-	public static final Map<String, Class<? extends C4MapOverlayBase>> DEFAULT_CLASS = Utilities.map(
-		Keywords.Point   , C4MapPoint.class, //$NON-NLS-1$
-		Keywords.Overlay , C4MapOverlay.class, //$NON-NLS-1$
-		Keywords.Map     , C4Map.class //$NON-NLS-1$
+	public static final Map<String, Class<? extends MapOverlayBase>> DEFAULT_CLASS = Utilities.map(
+		Keywords.Point   , MapPoint.class, //$NON-NLS-1$
+		Keywords.Overlay , MapOverlay.class, //$NON-NLS-1$
+		Keywords.Map     , MapCreatorMap.class //$NON-NLS-1$
 	);
 
 	public enum Operator {
@@ -159,7 +159,7 @@ public class C4MapOverlayBase extends Structure implements Cloneable, ITreeNode,
 	protected SourceLocation body;
 
 	@Override
-	public C4Declaration findLocalDeclaration(String declarationName, Class<? extends C4Declaration> declarationClass) {
+	public Declaration findLocalDeclaration(String declarationName, Class<? extends Declaration> declarationClass) {
 		return null;
 	}
 
@@ -177,7 +177,7 @@ public class C4MapOverlayBase extends Structure implements Cloneable, ITreeNode,
 	}
 
 	@Override
-	public Collection<? extends C4MapOverlayBase> getChildCollection() {
+	public Collection<? extends MapOverlayBase> getChildCollection() {
 		return null;
 	}
 
@@ -215,7 +215,7 @@ public class C4MapOverlayBase extends Structure implements Cloneable, ITreeNode,
 		return false;
 	}
 	
-	public void copyFromTemplate(C4MapOverlayBase template) throws IllegalArgumentException, IllegalAccessException {
+	public void copyFromTemplate(MapOverlayBase template) throws IllegalArgumentException, IllegalAccessException {
 		for (Field field : getClass().getFields()) {
 			field.set(this, field.get(template));
 		}
@@ -225,7 +225,7 @@ public class C4MapOverlayBase extends Structure implements Cloneable, ITreeNode,
 		this.body = body;		
 	}
 
-	public C4MapOverlayBase getTemplate() {
+	public MapOverlayBase getTemplate() {
 		return null;
 	}
 	
@@ -269,10 +269,10 @@ public class C4MapOverlayBase extends Structure implements Cloneable, ITreeNode,
 					}
 				}
 			}
-			Collection<? extends C4MapOverlayBase> children = this.getChildCollection();
+			Collection<? extends MapOverlayBase> children = this.getChildCollection();
 			if (children != null) {
 				Operator lastOp = null;
-				for (C4MapOverlayBase child : children) {
+				for (MapOverlayBase child : children) {
 					if (lastOp == null) {
 						builder.append(Utilities.multiply(Conf.indentString, depth));
 					}

@@ -16,7 +16,7 @@ import org.eclipse.jface.text.Region;
 
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.BufferedScanner;
-import net.arctics.clonk.parser.C4Declaration;
+import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.Structure;
 import net.arctics.clonk.parser.DeclarationRegion;
 import net.arctics.clonk.parser.NameValueAssignment;
@@ -58,14 +58,14 @@ public class StringTbl extends Structure implements ITreeNode, ITableEntryInform
 	}
 
 	@Override
-	public C4Declaration findLocalDeclaration(String declarationName, Class<? extends C4Declaration> declarationClass) {
+	public Declaration findLocalDeclaration(String declarationName, Class<? extends Declaration> declarationClass) {
 		if (declarationClass == NameValueAssignment.class)
 			return map.get(declarationName);
 		return null;
 	}
 	
 	@Override
-	public C4Declaration findDeclaration(String declarationName) {
+	public Declaration findDeclaration(String declarationName) {
 		return map.get(declarationName);
 	}
 	
@@ -165,11 +165,11 @@ public class StringTbl extends Structure implements ITreeNode, ITableEntryInform
 		return null;
 	}
 	
-	public static DeclarationRegion getEntryForLanguagePref(String stringValue, int exprStart, int offset, C4Declaration container, boolean returnNullIfNotFound) {
+	public static DeclarationRegion getEntryForLanguagePref(String stringValue, int exprStart, int offset, Declaration container, boolean returnNullIfNotFound) {
 		DeclarationRegion result = getEntryRegion(stringValue, exprStart, offset);
 		if (result != null) {
 			StringTbl stringTbl = container.getStringTblForLanguagePref();
-			C4Declaration e = stringTbl != null ? stringTbl.getMap().get(result.getText()) : null;
+			Declaration e = stringTbl != null ? stringTbl.getMap().get(result.getText()) : null;
 			if (e == null && returnNullIfNotFound) {
 				result = null;
 			} else {
@@ -179,7 +179,7 @@ public class StringTbl extends Structure implements ITreeNode, ITableEntryInform
 		return result;
 	}
 	
-	public static String evaluateEntries(C4Declaration context, String value, int exprStart) {
+	public static String evaluateEntries(Declaration context, String value, int exprStart) {
 		int valueLen = value.length();
 		StringBuilder builder = new StringBuilder(valueLen*2);
 		// insert stringtbl entries

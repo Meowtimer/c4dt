@@ -25,7 +25,7 @@ import javax.xml.xpath.XPathExpressionException;
 import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.index.ProjectIndex;
 import net.arctics.clonk.parser.inireader.IniUnit;
-import net.arctics.clonk.parser.mapcreator.C4MapCreator;
+import net.arctics.clonk.parser.mapcreator.MapCreator;
 import net.arctics.clonk.parser.stringtbl.StringTbl;
 import net.arctics.clonk.preferences.ClonkPreferences;
 import net.arctics.clonk.resource.ClonkProjectNature;
@@ -177,7 +177,7 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 	private void registerStructureClasses() {
 		IniUnit.register();
 		StringTbl.register();
-		C4MapCreator.register();
+		MapCreator.register();
 	}
 
 	//	private void loadOld(String path) throws IOException, ClassNotFoundException {

@@ -25,8 +25,8 @@ import net.arctics.clonk.parser.CStyleScanner;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.SilentParsingException;
 import net.arctics.clonk.parser.BufferedScanner;
-import net.arctics.clonk.parser.C4Declaration;
-import net.arctics.clonk.parser.C4ID;
+import net.arctics.clonk.parser.Declaration;
+import net.arctics.clonk.parser.ID;
 import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.SimpleScriptStorage;
 import net.arctics.clonk.parser.SourceLocation;
@@ -112,11 +112,11 @@ public class C4ScriptParser extends CStyleScanner {
 
 	protected IFile scriptFile; // for project intern files
 	protected ScriptBase container;
-	protected C4Declaration currentDeclaration;
+	protected Declaration currentDeclaration;
 	protected int strictLevel;
 	
 	// parse<Blub>() functions store their results in those
-	protected C4ID parsedID;
+	protected ID parsedID;
 	protected Variable parsedVariable;
 	protected long parsedNumber;
 	protected String parsedMemberOperator;
@@ -389,7 +389,7 @@ public class C4ScriptParser extends CStyleScanner {
 	 * Returns the declaration that is currently being parsed.
 	 * @return
 	 */
-	public C4Declaration getCurrentDeclaration() {
+	public Declaration getCurrentDeclaration() {
 		return currentDeclaration;
 	}
 	
@@ -677,7 +677,7 @@ public class C4ScriptParser extends CStyleScanner {
 				parsedFunctions.add(function);
 		}
 		int oldOffset = this.offset;
-		C4Declaration oldDec = currentDeclaration;
+		Declaration oldDec = currentDeclaration;
 		try {
 			setCurrentFunc(function);
 			assignDefaultParmTypesToFunction(function);
@@ -895,7 +895,7 @@ public class C4ScriptParser extends CStyleScanner {
 				int s = this.offset;
 				String varName = readIdent();
 				int e = this.offset;
-				C4Declaration outerDec = currentDeclaration;
+				Declaration outerDec = currentDeclaration;
 				try {
 					VarInitialization varInitialization = new VarInitialization(varName, null, s-bodyOffset());
 					currentDeclaration = varInitialization.variableBeingInitialized = createVarInScope(varName, scope, s, e, comment);
@@ -1871,7 +1871,7 @@ public class C4ScriptParser extends CStyleScanner {
 		if (c == '{') {
 			ProplistDeclaration proplistDeclaration = new ProplistDeclaration(new ArrayList<Variable>(10));
 			proplistDeclaration.setParentDeclaration(currentDeclaration != null ? currentDeclaration : container);
-			C4Declaration oldDec = currentDeclaration;
+			Declaration oldDec = currentDeclaration;
 			currentDeclaration = proplistDeclaration;
 			try {
 				boolean properlyClosed = false;
@@ -1901,7 +1901,7 @@ public class C4ScriptParser extends CStyleScanner {
 							eatWhitespace();
 							Variable v = new Variable(name, getCurrentFunc() != null ? C4VariableScope.VAR : C4VariableScope.LOCAL);
 							v.setLocation(absoluteSourceLocation(nameStart, nameEnd));
-							C4Declaration outerDec = currentDeclaration;
+							Declaration outerDec = currentDeclaration;
 							currentDeclaration = v;
 							ExprElm value = null;
 							try {
@@ -3027,7 +3027,7 @@ public class C4ScriptParser extends CStyleScanner {
 				parsedID = null;
 				return false;
 			}
-			parsedID = C4ID.getID(idString);
+			parsedID = ID.getID(idString);
 			return true;
 		} else {
 			parsedID = null; // reset so no old parsed ids get through

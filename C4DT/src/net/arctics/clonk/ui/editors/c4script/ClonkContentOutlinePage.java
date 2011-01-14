@@ -1,6 +1,6 @@
 package net.arctics.clonk.ui.editors.c4script;
 
-import net.arctics.clonk.parser.C4Declaration;
+import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.ui.editors.ClonkTextEditor;
 import net.arctics.clonk.ui.navigator.ClonkOutlineProvider;
 import org.eclipse.jface.viewers.IStructuredSelection;
@@ -22,7 +22,7 @@ public class ClonkContentOutlinePage extends ContentOutlinePage {
 	public void createControl(Composite parent) {
 		super.createControl(parent);
 		if (editor != null) {
-			C4Declaration topLevelDeclaration = getEditor().getTopLevelDeclaration();
+			Declaration topLevelDeclaration = getEditor().getTopLevelDeclaration();
 			if (topLevelDeclaration != null) {
 				setTreeViewerInput(topLevelDeclaration);
 			}
@@ -32,11 +32,11 @@ public class ClonkContentOutlinePage extends ContentOutlinePage {
 	private static final ViewerSorter DECLARATION_SORTER = new ViewerSorter() {
 		@Override
 		public int category(Object element) {
-			return ((C4Declaration)element).sortCategory();
+			return ((Declaration)element).sortCategory();
 		}
 	};
 	
-	private void setTreeViewerInput(C4Declaration obj) {
+	private void setTreeViewerInput(Declaration obj) {
 		TreeViewer treeViewer = this.getTreeViewer();
 		if (treeViewer == null)
 			return;
@@ -53,7 +53,7 @@ public class ClonkContentOutlinePage extends ContentOutlinePage {
 		if (event.getSelection().isEmpty()) {
 			return;
 		} else if (event.getSelection() instanceof IStructuredSelection) {
-			C4Declaration dec = (C4Declaration)((IStructuredSelection)event.getSelection()).getFirstElement();
+			Declaration dec = (Declaration)((IStructuredSelection)event.getSelection()).getFirstElement();
 			dec = dec.latestVersion();
 			if (dec != null) {
 				editor.selectAndReveal(dec.getLocation());
@@ -76,14 +76,14 @@ public class ClonkContentOutlinePage extends ContentOutlinePage {
 	}
 
 	public void refresh() {
-		C4Declaration newInput = getEditor().getTopLevelDeclaration();
+		Declaration newInput = getEditor().getTopLevelDeclaration();
 		if (getTreeViewer().getInput() != newInput)
 			setTreeViewerInput(newInput);
 		else
 			getTreeViewer().refresh();
 	}
 	
-	public void select(C4Declaration field) {
+	public void select(Declaration field) {
 		TreeViewer viewer = getTreeViewer();
 		viewer.removeSelectionChangedListener(this);
 		try {

@@ -12,8 +12,8 @@ import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.ProjectDefinition;
 import net.arctics.clonk.index.ClonkIndex;
-import net.arctics.clonk.parser.C4Declaration;
-import net.arctics.clonk.parser.C4ID;
+import net.arctics.clonk.parser.Declaration;
+import net.arctics.clonk.parser.ID;
 import net.arctics.clonk.parser.c4script.ast.ExprElm;
 import net.arctics.clonk.parser.c4script.ast.TypeExpectancyMode;
 import net.arctics.clonk.resource.ClonkProjectNature;
@@ -25,7 +25,7 @@ import net.arctics.clonk.util.Utilities;
  * @author ZokRadonh
  *
  */
-public class Variable extends C4Declaration implements Serializable, ITypedDeclaration, IHasUserDescription {
+public class Variable extends Declaration implements Serializable, ITypedDeclaration, IHasUserDescription {
 
 	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 	
@@ -145,7 +145,7 @@ public class Variable extends C4Declaration implements Serializable, ITypedDecla
 		return null;
 	}
 
-	public C4ID getObjectID() {
+	public ID getObjectID() {
 		Definition obj = getObjectType();
 		return obj != null ? obj.getId() : null;
 	}
@@ -327,20 +327,20 @@ public class Variable extends C4Declaration implements Serializable, ITypedDecla
 		return typeLocked;
 	}
 	
-	private void ensureTypeLockedIfPredefined(C4Declaration declaration) {
+	private void ensureTypeLockedIfPredefined(Declaration declaration) {
 		if (!typeLocked && declaration instanceof Engine)
 			typeLocked = true;
 	}
 	
 	@Override
-	public void setParentDeclaration(C4Declaration declaration) {
+	public void setParentDeclaration(Declaration declaration) {
 		super.setParentDeclaration(declaration);
 		ensureTypeLockedIfPredefined(declaration);
 	}
 	
 	@SuppressWarnings("unchecked")
 	@Override
-	public void postSerialize(C4Declaration parent) {
+	public void postSerialize(Declaration parent) {
 		super.postSerialize(parent);
 		ensureTypeLockedIfPredefined(parent);
 		if (initializationExpression instanceof IPostSerializable) {
@@ -365,7 +365,7 @@ public class Variable extends C4Declaration implements Serializable, ITypedDecla
 	}
 	
 	@Override
-	public Iterable<? extends C4Declaration> allSubDeclarations(int mask) {
+	public Iterable<? extends Declaration> allSubDeclarations(int mask) {
 		if (initializationExpression instanceof IHasSubDeclarations) {
 			return ((IHasSubDeclarations)initializationExpression).allSubDeclarations(mask);
 		} else {

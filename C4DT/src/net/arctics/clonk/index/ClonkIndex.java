@@ -17,8 +17,8 @@ import java.util.List;
 import java.util.Map;
 
 import net.arctics.clonk.ClonkCore;
-import net.arctics.clonk.parser.C4Declaration;
-import net.arctics.clonk.parser.C4ID;
+import net.arctics.clonk.parser.Declaration;
+import net.arctics.clonk.parser.ID;
 import net.arctics.clonk.parser.c4script.Directive;
 import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.ScriptBase;
@@ -43,26 +43,26 @@ public class ClonkIndex implements Serializable, Iterable<Definition> {
 	
 	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 
-	private transient static final IPredicate<C4Declaration> IS_GLOBAL = new IPredicate<C4Declaration>() {
-		public boolean test(C4Declaration item) {
+	private transient static final IPredicate<Declaration> IS_GLOBAL = new IPredicate<Declaration>() {
+		public boolean test(Declaration item) {
 			return item.isGlobal();
 		}
 	}; 
 
-	private Map<C4ID, List<Definition>> indexedObjects = new HashMap<C4ID, List<Definition>>();
+	private Map<ID, List<Definition>> indexedObjects = new HashMap<ID, List<Definition>>();
 	private List<ScriptBase> indexedScripts = new LinkedList<ScriptBase>(); 
 	private List<Scenario> indexedScenarios = new LinkedList<Scenario>();
 	
 	protected transient List<Function> globalFunctions = new LinkedList<Function>();
 	protected transient List<Variable> staticVariables = new LinkedList<Variable>();
-	protected transient Map<String, List<C4Declaration>> declarationMap = new HashMap<String, List<C4Declaration>>();
-	protected transient Map<C4ID, List<ScriptBase>> appendages = new HashMap<C4ID, List<ScriptBase>>();
+	protected transient Map<String, List<Declaration>> declarationMap = new HashMap<String, List<Declaration>>();
+	protected transient Map<ID, List<ScriptBase>> appendages = new HashMap<ID, List<ScriptBase>>();
 	
 	public int numUniqueIds() {
 		return indexedObjects.size();
 	}
 	
-	public List<Definition> getObjects(C4ID id) {
+	public List<Definition> getObjects(ID id) {
 		if (indexedObjects == null)
 			return null;
 		List<Definition> l = indexedObjects.get(id);
@@ -97,7 +97,7 @@ public class ClonkIndex implements Serializable, Iterable<Definition> {
 			
 			// create session cache
 			if (folder.getPersistentProperty(ClonkCore.FOLDER_C4ID_PROPERTY_ID) == null) return null;
-			List<Definition> objects = getObjects(C4ID.getID(folder.getPersistentProperty(ClonkCore.FOLDER_C4ID_PROPERTY_ID)));
+			List<Definition> objects = getObjects(ID.getID(folder.getPersistentProperty(ClonkCore.FOLDER_C4ID_PROPERTY_ID)));
 			if (objects != null) {
 				for(Definition obj : objects) {
 					if ((obj instanceof ProjectDefinition)) {
@@ -140,10 +140,10 @@ public class ClonkIndex implements Serializable, Iterable<Definition> {
 		return result;
 	}
 
-	protected void addToDeclarationMap(C4Declaration field) {
-		List<C4Declaration> list = declarationMap.get(field.getName());
+	protected void addToDeclarationMap(Declaration field) {
+		List<Declaration> list = declarationMap.get(field.getName());
 		if (list == null) {
-			list = new LinkedList<C4Declaration>();
+			list = new LinkedList<Declaration>();
 			declarationMap.put(field.getName(), list);
 		}
 		list.add(field);
@@ -192,9 +192,9 @@ public class ClonkIndex implements Serializable, Iterable<Definition> {
 		if (staticVariables == null)
 			staticVariables = new LinkedList<Variable>();
 		if (declarationMap == null)
-			declarationMap = new HashMap<String, List<C4Declaration>>();
+			declarationMap = new HashMap<String, List<Declaration>>();
 		if (appendages == null)
-			appendages = new HashMap<C4ID, List<ScriptBase>>();
+			appendages = new HashMap<ID, List<ScriptBase>>();
 		globalFunctions.clear();
 		staticVariables.clear();
 		declarationMap.clear();
@@ -319,11 +319,11 @@ public class ClonkIndex implements Serializable, Iterable<Definition> {
 		return Collections.unmodifiableList(staticVariables);
 	}
 	
-	public Map<String, List<C4Declaration>> getDeclarationMap() {
+	public Map<String, List<Declaration>> getDeclarationMap() {
 		return Collections.unmodifiableMap(declarationMap);
 	}
 
-	public Definition getLastObjectWithId(C4ID id) {
+	public Definition getLastObjectWithId(ID id) {
 		List<Definition> objs = getObjects(id);
 		if (objs != null) {
 			if (objs instanceof LinkedList<?>) { // due to performance
@@ -367,7 +367,7 @@ public class ClonkIndex implements Serializable, Iterable<Definition> {
 		return result;
 	}
 
-	public Definition getObjectNearestTo(IResource resource, C4ID id) {
+	public Definition getObjectNearestTo(IResource resource, ID id) {
 		Definition best = null;
 		for (ClonkIndex index : relevantIndexes()) {
 			if (resource != null) {
@@ -388,15 +388,15 @@ public class ClonkIndex implements Serializable, Iterable<Definition> {
 	 * @param id
 	 * @return
 	 */
-	public Definition getObjectFromEverywhere(C4ID id) {
+	public Definition getObjectFromEverywhere(ID id) {
 		return getObjectNearestTo(null, id);
 	}
 
-	public <T extends C4Declaration> Iterable<T> declarationsWithName(String name, final Class<T> fieldClass) {
-		List<C4Declaration> nonFinalList = this.declarationMap.get(name);
+	public <T extends Declaration> Iterable<T> declarationsWithName(String name, final Class<T> fieldClass) {
+		List<Declaration> nonFinalList = this.declarationMap.get(name);
 		if (nonFinalList == null)
-			nonFinalList = new LinkedList<C4Declaration>();
-		final List<C4Declaration> list = nonFinalList;
+			nonFinalList = new LinkedList<Declaration>();
+		final List<Declaration> list = nonFinalList;
 		return new Iterable<T>() {
 			public Iterator<T> iterator() {
 				return new Iterator<T>() {
@@ -442,17 +442,17 @@ public class ClonkIndex implements Serializable, Iterable<Definition> {
 		return null;
 	}
 	
-	public C4Declaration findGlobalDeclaration(String fieldName) {
+	public Declaration findGlobalDeclaration(String fieldName) {
 		Function f = findGlobalFunction(fieldName);
 		if (f != null)
 			return f;
 		return findGlobalVariable(fieldName);
 	}
 	
-	public C4Declaration findGlobalDeclaration(String declName, IResource pivot) {
+	public Declaration findGlobalDeclaration(String declName, IResource pivot) {
 		if (pivot == null)
 			return findGlobalDeclaration(declName);
-		List<C4Declaration> declarations = declarationMap.get(declName);
+		List<Declaration> declarations = declarationMap.get(declName);
 		if (declarations != null) {
 			return Utilities.pickNearest(pivot, declarations, IS_GLOBAL);
 		}

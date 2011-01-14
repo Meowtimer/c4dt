@@ -14,7 +14,7 @@ import java.util.Map;
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.parser.BufferedScanner;
-import net.arctics.clonk.parser.C4Declaration;
+import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.Structure;
 import net.arctics.clonk.parser.CStyleScanner;
 import net.arctics.clonk.parser.ParserErrorCode;
@@ -522,15 +522,15 @@ public class IniUnit extends Structure implements Iterable<IniSection>, IHasChil
 	}
 	
 	@Override
-	public C4Declaration findLocalDeclaration(String declarationName,
-			Class<? extends C4Declaration> declarationClass) {
+	public Declaration findLocalDeclaration(String declarationName,
+			Class<? extends Declaration> declarationClass) {
 		if (declarationClass.isAssignableFrom(IniSection.class))
 			return findDeclaration(declarationName);
 		return null;
 	}
 	
 	@Override
-	public C4Declaration findDeclaration(String declarationName) {
+	public Declaration findDeclaration(String declarationName) {
 		return sectionWithName(declarationName);
 	}
 	
@@ -622,7 +622,7 @@ public class IniUnit extends Structure implements Iterable<IniSection>, IHasChil
 	}
 	
 	@Override
-	public Iterable<? extends C4Declaration> allSubDeclarations(int mask) {
+	public Iterable<? extends Declaration> allSubDeclarations(int mask) {
 		if ((mask & OTHER) != 0)
 			return this.sectionsList;
 		else

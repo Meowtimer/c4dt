@@ -4,7 +4,7 @@ import java.util.ResourceBundle;
 
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.index.ProjectDefinition;
-import net.arctics.clonk.parser.C4Declaration;
+import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.Structure;
 import net.arctics.clonk.ui.editors.actions.c4script.OpenDeclarationAction;
 import net.arctics.clonk.ui.editors.c4script.C4ScriptEditor;
@@ -83,7 +83,7 @@ public class ClonkTextEditor extends TextEditor {
 		return super.getAdapter(adapter);
 	}
 	
-	public static IEditorPart openDeclaration(C4Declaration target, boolean activate) {
+	public static IEditorPart openDeclaration(Declaration target, boolean activate) {
 		IWorkbench workbench = PlatformUI.getWorkbench();
 		IWorkbenchPage workbenchPage = workbench.getActiveWorkbenchWindow().getActivePage();
 		Structure structure = target.getTopLevelStructure();
@@ -121,7 +121,7 @@ public class ClonkTextEditor extends TextEditor {
 		return null;
 	}
 
-	private static void revealInEditor(C4Declaration target, Structure structure, IEditorPart editor) {
+	private static void revealInEditor(Declaration target, Structure structure, IEditorPart editor) {
 		if (editor instanceof ClonkTextEditor) {
 			ClonkTextEditor clonkTextEditor = (ClonkTextEditor) editor;
 			if (target != structure && target.getLocation() != null) {
@@ -142,7 +142,7 @@ public class ClonkTextEditor extends TextEditor {
 		}
 	}
 	
-	public static IEditorPart openDeclaration(C4Declaration target) {
+	public static IEditorPart openDeclaration(Declaration target) {
 		return openDeclaration(target, true);
 	}
 	
@@ -150,7 +150,7 @@ public class ClonkTextEditor extends TextEditor {
 	 * Return the declaration that represents the file being edited
 	 * @return the declaration
 	 */
-	public C4Declaration getTopLevelDeclaration() {
+	public Declaration getTopLevelDeclaration() {
 		return null;
 	}
 	

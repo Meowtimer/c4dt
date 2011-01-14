@@ -4,13 +4,13 @@ import java.io.Serializable;
 
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.index.Definition;
-import net.arctics.clonk.parser.C4Declaration;
-import net.arctics.clonk.parser.C4ID;
+import net.arctics.clonk.parser.Declaration;
+import net.arctics.clonk.parser.ID;
 import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.c4script.ast.ExprElm;
 
-public class Directive extends C4Declaration implements Serializable {
+public class Directive extends Declaration implements Serializable {
 
 	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 
@@ -36,7 +36,7 @@ public class Directive extends C4Declaration implements Serializable {
 
 	private C4DirectiveType type;
 	private String content;
-	private transient C4ID cachedID;
+	private transient ID cachedID;
 
 	public Directive(C4DirectiveType type, String content) {
 		this.content = content;
@@ -90,9 +90,9 @@ public class Directive extends C4Declaration implements Serializable {
 		};
 	}
 
-	public C4ID contentAsID() {
+	public ID contentAsID() {
 		if (cachedID == null)
-			cachedID = C4ID.getID(this.getContent());
+			cachedID = ID.getID(this.getContent());
 		return cachedID;
 	}
 
@@ -111,7 +111,7 @@ public class Directive extends C4Declaration implements Serializable {
 			if (getContent() == null)
 				parser.errorWithCode(ParserErrorCode.MissingDirectiveArgs, getLocation(), true, this.toString());
 			else {
-				C4ID id = contentAsID();
+				ID id = contentAsID();
 				Definition obj = parser.getContainer().getIndex().getObjectNearestTo(parser.getContainer().getResource(), id);
 				if (obj == null)
 					parser.errorWithCode(ParserErrorCode.UndeclaredIdentifier, getLocation(), true, getContent());

@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.Map;
 
 import net.arctics.clonk.ClonkCore;
-import net.arctics.clonk.parser.C4Declaration;
+import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.c4script.ScriptBase;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.Variable;
@@ -105,12 +105,12 @@ public class PropListExpression extends Value {
 		}
 	}
 	
-	private C4Declaration associatedDeclaration;
-	public C4Declaration getAssociatedDeclaration() {
+	private Declaration associatedDeclaration;
+	public Declaration getAssociatedDeclaration() {
 		return associatedDeclaration;
 	}
 	@Override
-	public void setAssociatedDeclaration(C4Declaration declaration) {
+	public void setAssociatedDeclaration(Declaration declaration) {
 		associatedDeclaration = declaration;
 	}
 }

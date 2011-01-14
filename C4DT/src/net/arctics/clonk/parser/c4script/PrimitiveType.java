@@ -7,7 +7,7 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import net.arctics.clonk.parser.C4ID;
+import net.arctics.clonk.parser.ID;
 import net.arctics.clonk.util.Utilities;
 
 /**
@@ -143,7 +143,7 @@ public enum PrimitiveType implements IType {
 			return INT;
 		if (value instanceof Boolean)
 			return BOOL;
-		if (value instanceof C4ID)
+		if (value instanceof ID)
 			return ID;
 		if (value instanceof Array)
 			return ARRAY;

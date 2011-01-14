@@ -5,7 +5,7 @@ import java.util.List;
 
 import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.index.ClonkIndex;
-import net.arctics.clonk.parser.C4Declaration;
+import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.DeclarationRegion;
 import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.ScriptBase;
@@ -34,10 +34,10 @@ import org.eclipse.ui.texteditor.ITextEditor;
  */
 public class DeclarationLocator extends ExpressionLocator {
 	private ITextEditor editor;
-	private C4Declaration declaration;
-	private List<C4Declaration> proposedDeclarations;
+	private Declaration declaration;
+	private List<Declaration> proposedDeclarations;
 	
-	public List<C4Declaration> getProposedDeclarations() {
+	public List<Declaration> getProposedDeclarations() {
 		return proposedDeclarations;
 	}
 
@@ -45,13 +45,13 @@ public class DeclarationLocator extends ExpressionLocator {
 		return editor;
 	}
 
-	private static IPredicate<C4Declaration> IS_FUNC = new IPredicate<C4Declaration>() {
-		public boolean test(C4Declaration item) {
+	private static IPredicate<Declaration> IS_FUNC = new IPredicate<Declaration>() {
+		public boolean test(Declaration item) {
 			return item instanceof Function;
 		}
 	};
-	private static IPredicate<C4Declaration> IS_GLOBAL = new IPredicate<C4Declaration>() {
-		public boolean test(C4Declaration item) {
+	private static IPredicate<Declaration> IS_GLOBAL = new IPredicate<Declaration>() {
+		public boolean test(Declaration item) {
 			return item.isGlobal();
 		};
 	};
@@ -103,9 +103,9 @@ public class DeclarationLocator extends ExpressionLocator {
 					AccessDeclaration access = (AccessDeclaration) exprAtRegion;
 					
 					// gather declarations with that name from involved project indexes
-					List<C4Declaration> projectDeclarations = new LinkedList<C4Declaration>();
+					List<Declaration> projectDeclarations = new LinkedList<Declaration>();
 					for (ClonkIndex i : script.getIndex().relevantIndexes()) {
-						List<C4Declaration> decs = i.getDeclarationMap().get(access.getDeclarationName());
+						List<Declaration> decs = i.getDeclarationMap().get(access.getDeclarationName());
 						if (decs != null)
 							projectDeclarations.addAll(decs);
 					}
@@ -115,7 +115,7 @@ public class DeclarationLocator extends ExpressionLocator {
 					
 					Function engineFunc = engine.findFunction(access.getDeclarationName());
 					if (projectDeclarations != null || engineFunc != null) {
-						proposedDeclarations = new LinkedList<C4Declaration>();
+						proposedDeclarations = new LinkedList<Declaration>();
 						if (projectDeclarations != null)
 							proposedDeclarations.addAll(projectDeclarations);
 						// only add engine func if not overloaded by any global function
@@ -168,7 +168,7 @@ public class DeclarationLocator extends ExpressionLocator {
 	/**
 	 * @return the declaration
 	 */
-	public C4Declaration getDeclaration() {
+	public Declaration getDeclaration() {
 		return declaration;
 	}
 

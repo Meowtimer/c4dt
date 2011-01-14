@@ -4,7 +4,7 @@ import java.util.Collection;
 import java.util.Comparator;
 
 import net.arctics.clonk.ClonkCore;
-import net.arctics.clonk.parser.C4Declaration;
+import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.Structure;
 import net.arctics.clonk.ui.navigator.ClonkOutlineProvider;
 import net.arctics.clonk.util.ArrayUtil;
@@ -29,7 +29,7 @@ public class DeclarationChooser extends FilteredItemsSelectionDialog {
 			StyledString result = ClonkOutlineProvider.getStyledTextForEveryone(element);
 			if (element != null) {
 				result.append(" - ", StyledString.QUALIFIER_STYLER); //$NON-NLS-1$
-				result.append(((C4Declaration)element).getTopLevelStructure().toString(), StyledString.QUALIFIER_STYLER);
+				result.append(((Declaration)element).getTopLevelStructure().toString(), StyledString.QUALIFIER_STYLER);
 			}
 			return result;
 		}
@@ -38,9 +38,9 @@ public class DeclarationChooser extends FilteredItemsSelectionDialog {
 	
 	private static final String DIALOG_SETTINGS = "DeclarationChooserDialogSettings"; //$NON-NLS-1$
 	
-	private Collection<C4Declaration> declarations;
+	private Collection<Declaration> declarations;
 
-	public DeclarationChooser(Shell shell, Collection<C4Declaration> declarations) {
+	public DeclarationChooser(Shell shell, Collection<Declaration> declarations) {
 		super(shell);
 		this.declarations = declarations;
 		setListLabelProvider(new LabelProvider());
@@ -69,8 +69,8 @@ public class DeclarationChooser extends FilteredItemsSelectionDialog {
 
 			@Override
 			public boolean matchItem(Object item) {
-				if (!(item instanceof C4Declaration)) return false;
-				final C4Declaration decl = (C4Declaration) item;
+				if (!(item instanceof Declaration)) return false;
+				final Declaration decl = (Declaration) item;
 				final String search = this.getPattern().toUpperCase();
 				final Structure structure = decl.getTopLevelStructure();
 				return decl.nameContains(search) || (structure != null && structure.nameContains(search));
@@ -83,7 +83,7 @@ public class DeclarationChooser extends FilteredItemsSelectionDialog {
 	protected void fillContentProvider(AbstractContentProvider contentProvider,
 			ItemsFilter itemsFilter, IProgressMonitor progressMonitor)
 			throws CoreException {
-		for (C4Declaration d : declarations)
+		for (Declaration d : declarations)
 			contentProvider.add(d, itemsFilter);
 	}
 
@@ -119,8 +119,8 @@ public class DeclarationChooser extends FilteredItemsSelectionDialog {
 		return Status.OK_STATUS;
 	}
 
-	public C4Declaration[] getSelectedDeclarations() {
-		return ArrayUtil.convertArray(this.getResult(), C4Declaration.class);
+	public Declaration[] getSelectedDeclarations() {
+		return ArrayUtil.convertArray(this.getResult(), Declaration.class);
 	}
 
 }

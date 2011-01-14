@@ -6,7 +6,7 @@ import java.net.URL;
 
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.index.Engine;
-import net.arctics.clonk.parser.C4Declaration;
+import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.preferences.ClonkPreferences;
 import org.eclipse.jface.text.IRegion;
@@ -23,9 +23,9 @@ import org.eclipse.ui.internal.browser.WorkbenchBrowserSupport;
 public class ClonkHyperlink implements IHyperlink {
 
 	private final IRegion region;
-	protected C4Declaration target;
+	protected Declaration target;
 
-	public ClonkHyperlink(IRegion region, C4Declaration target) {
+	public ClonkHyperlink(IRegion region, Declaration target) {
 		super();
 		this.region = region;
 		this.target = target;
@@ -83,7 +83,7 @@ public class ClonkHyperlink implements IHyperlink {
 		return region;
 	}
 
-	public C4Declaration getTarget() {
+	public Declaration getTarget() {
 		return target;
 	}
 

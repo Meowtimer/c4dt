@@ -4,7 +4,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
-import net.arctics.clonk.parser.C4Declaration;
+import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.Structure;
 import net.arctics.clonk.util.ArrayUtil;
 import net.arctics.clonk.util.CompoundIterable;
@@ -86,7 +86,7 @@ public class ProplistDeclaration extends Structure implements IType {
 	}
 
 	@Override
-	public C4Declaration findLocalDeclaration(String declarationName, Class<? extends C4Declaration> declarationClass) {
+	public Declaration findLocalDeclaration(String declarationName, Class<? extends Declaration> declarationClass) {
 		for (Variable v : getComponents()) {
 			if (v.getName().equals(declarationName)) {
 				return v;
@@ -97,16 +97,16 @@ public class ProplistDeclaration extends Structure implements IType {
 	
 	@SuppressWarnings("unchecked")
 	@Override
-	public Iterable<? extends C4Declaration> allSubDeclarations(int mask) {
+	public Iterable<? extends Declaration> allSubDeclarations(int mask) {
 		if ((mask & VARIABLES) != 0)
-			return adhocComponents != null ? new CompoundIterable<C4Declaration>(components, adhocComponents) : components;
+			return adhocComponents != null ? new CompoundIterable<Declaration>(components, adhocComponents) : components;
 		else
 			return NO_SUB_DECLARATIONS;
 	}
 	
 	@SuppressWarnings("unchecked")
 	@Override
-	public <T extends C4Declaration> T getLatestVersion(T from) {
+	public <T extends Declaration> T getLatestVersion(T from) {
 		if (Variable.class.isAssignableFrom(from.getClass())) {
 			return (T) findComponent(from.getName());
 		} else {

@@ -14,7 +14,7 @@ import java.util.regex.Pattern;
 
 import javax.xml.xpath.XPathExpressionException;
 import net.arctics.clonk.parser.BufferedScanner;
-import net.arctics.clonk.parser.C4Declaration;
+import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.ScriptBase;
 import net.arctics.clonk.parser.c4script.PrimitiveType;
@@ -42,14 +42,14 @@ public class OCEngineDeclarationsImporter {
 			if (monitor != null) {
 				monitor.subTask(fileName);
 			}
-			C4Declaration declaration;
+			Declaration declaration;
 			try {
 				declaration = importer.importFromXML(new FileInputStream(fnFolderPath + "/" + fileName)); //$NON-NLS-1$
 			} catch (Exception e) {
 				declaration = null;
 			}
 			if (declaration != null) {
-				C4Declaration existing = importsContainer.findDeclaration(declaration.getName(), declaration.getClass());
+				Declaration existing = importsContainer.findDeclaration(declaration.getName(), declaration.getClass());
 				if (existing != null) {
 					existing.absorb(declaration);
 				} else {

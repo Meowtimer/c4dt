@@ -8,7 +8,7 @@ import net.arctics.clonk.resource.ClonkProjectNature;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
 
-public class C4MapCreator extends C4Map {
+public class MapCreator extends MapCreatorMap {
 
 	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 	
@@ -22,7 +22,7 @@ public class C4MapCreator extends C4Map {
 		this.file = file;
 	}
 
-	public C4MapCreator(IFile file) {
+	public MapCreator(IFile file) {
 		super();
 		this.file = file;
 	}
@@ -36,7 +36,7 @@ public class C4MapCreator extends C4Map {
 		registerStructureFactory(new IStructureFactory() {
 			public Structure create(IResource resource, boolean duringBuild) {
 				if (resource instanceof IFile && resource.getName().equalsIgnoreCase("Landscape.txt")) { //$NON-NLS-1$
-					C4MapCreator mapCreator = new C4MapCreator((IFile) resource);
+					MapCreator mapCreator = new MapCreator((IFile) resource);
 					MapCreatorParser parser = new MapCreatorParser(mapCreator);
 					parser.parse();
 					return mapCreator;

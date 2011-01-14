@@ -5,19 +5,19 @@ import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.Region;
 
 public final class DeclarationRegion {
-	private transient C4Declaration declaration;
+	private transient Declaration declaration;
 	private IRegion region;
 	private String text;
-	public C4Declaration getDeclaration() {
+	public Declaration getDeclaration() {
 		return declaration;
 	}
-	public DeclarationRegion(C4Declaration declaration, IRegion region, String text) {
+	public DeclarationRegion(Declaration declaration, IRegion region, String text) {
 		super();
 		this.declaration = declaration;
 		this.region = region;
 		this.text = text;
 	}
-	public DeclarationRegion(C4Declaration declaration, IRegion region) {
+	public DeclarationRegion(Declaration declaration, IRegion region) {
 		this(declaration, region, null);
 	}
 	public IRegion getRegion() {
@@ -26,7 +26,7 @@ public final class DeclarationRegion {
 	public String getText() {
 		return text;
 	}
-	public void setDeclaration(C4Declaration declaration) {
+	public void setDeclaration(Declaration declaration) {
 		this.declaration = declaration;
 	}
 	public DeclarationRegion addOffsetInplace(int offset) {
