@@ -7,7 +7,6 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import net.arctics.clonk.index.ClonkIndex;
 import net.arctics.clonk.parser.C4ID;
 import net.arctics.clonk.util.Utilities;
 
@@ -263,11 +262,6 @@ public enum C4Type implements IType {
 
 	@Override
 	public IType staticType() {
-		return this;
-	}
-	
-	@Override
-	public IType serializableVersion(ClonkIndex indexToBeSerialized) {
 		return this;
 	}
 

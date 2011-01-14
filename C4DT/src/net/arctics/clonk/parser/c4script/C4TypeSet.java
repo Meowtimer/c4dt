@@ -10,7 +10,6 @@ import java.util.Set;
 
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.index.C4Object;
-import net.arctics.clonk.index.ClonkIndex;
 
 public class C4TypeSet implements IType {
 
@@ -113,6 +112,8 @@ public class C4TypeSet implements IType {
 		}
 		if (set.size() > 1)
 			set.remove(C4Type.ANY); // pfft, ignore any if something more specific is in the house
+		if (set.size() > 1)
+			set.remove(C4Type.UNKNOWN);
 		if (containsNonStatics)
 			return set.size() == 1 ? set.iterator().next() : new C4TypeSet(set);
 		return createInternal(set, actualCount, ingredients);
@@ -242,27 +243,6 @@ public class C4TypeSet implements IType {
 			s.add(st);
 		}
 		return createInternal(s, 1, allStatics ? new IType[]{type} : (IType[])null);
-	}
-	
-	@Override
-	public IType serializableVersion(ClonkIndex indexToBeSerialized) {
-		boolean serializable = true;
-		for (IType t : types) {
-			if (t.serializableVersion(indexToBeSerialized) != t) {
-				serializable = false;
-				break;
-			}
-		}
-		if (serializable)
-			return this;
-		else {
-			IType[] serializableVersions = new IType[types.size()];
-			int i = 0;
-			for (IType t : types) {
-				serializableVersions[i++] = t.serializableVersion(indexToBeSerialized);
-			}
-			return create(serializableVersions);
-		}
 	}
 
 }

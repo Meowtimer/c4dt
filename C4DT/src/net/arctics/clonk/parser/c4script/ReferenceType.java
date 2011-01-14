@@ -5,7 +5,6 @@ import java.util.Iterator;
 import java.util.Map;
 
 import net.arctics.clonk.ClonkCore;
-import net.arctics.clonk.index.ClonkIndex;
 import net.arctics.clonk.util.ArrayUtil;
 
 public class ReferenceType implements IType {
@@ -86,14 +85,6 @@ public class ReferenceType implements IType {
 		} else {
 			return new ReferenceType(type);
 		}
-	}
-	
-	@Override
-	public IType serializableVersion(ClonkIndex indexToBeSerialized) {
-		if (type.serializableVersion(indexToBeSerialized) == type)
-			return type;
-		else
-			return get(type.serializableVersion(indexToBeSerialized));
 	}
 
 }

@@ -119,9 +119,6 @@ public class C4Variable extends C4Declaration implements Serializable, ITypedDec
 		if (type == null)
 			type = C4Type.UNKNOWN;
 		C4ScriptBase script = getScript();
-		if (script != null && script.getIndex() != null) {
-			type = SerializableType.serializableTypeFrom(type, script.getIndex());
-		}
 		this.type = type;
 	}
 	
@@ -140,7 +137,12 @@ public class C4Variable extends C4Declaration implements Serializable, ITypedDec
 	 * @return the expectedContent
 	 */
 	public C4Object getObjectType() {
-		return type instanceof SerializableType ? ((SerializableType)type).getObject() : null;
+		for (IType t : type) {
+			if (t instanceof C4Object) {
+				return (C4Object)t;
+			}
+		}
+		return null;
 	}
 
 	public C4ID getObjectID() {
@@ -341,9 +343,6 @@ public class C4Variable extends C4Declaration implements Serializable, ITypedDec
 	public void postSerialize(C4Declaration parent) {
 		super.postSerialize(parent);
 		ensureTypeLockedIfPredefined(parent);
-		if (type instanceof SerializableType && parent instanceof C4ScriptBase) {
-			((SerializableType)type).restoreType((C4ScriptBase) parent);
-		}
 		if (initializationExpression instanceof IPostSerializable) {
 			((IPostSerializable<IPostSerializable<?>>)initializationExpression).postSerialize(this);
 		}

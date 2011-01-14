@@ -4,7 +4,6 @@ import java.util.Iterator;
 
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.index.C4Object;
-import net.arctics.clonk.index.ClonkIndex;
 import net.arctics.clonk.util.ArrayUtil;
 
 /**
@@ -116,15 +115,6 @@ public class ConstrainedObject implements IType, IHasConstraint {
 	@Override
 	public IType staticType() {
 		return C4Type.OBJECT;
-	}
-
-	@Override
-	public IType serializableVersion(ClonkIndex indexToBeSerialized) {
-		if (constraintScript.getIndex() == indexToBeSerialized) {
-			return this;
-		} else {
-			return C4Type.OBJECT;
-		}
 	}
 	
 	@Override

@@ -3,7 +3,6 @@ package net.arctics.clonk.parser.c4script;
 import java.util.Iterator;
 
 import net.arctics.clonk.ClonkCore;
-import net.arctics.clonk.index.ClonkIndex;
 
 public class ArrayType implements IType {
 
@@ -57,15 +56,6 @@ public class ArrayType implements IType {
 	@Override
 	public boolean containsAnyTypeOf(IType... types) {
 		return IType.Default.containsAnyTypeOf(this, types);
-	}
-
-	@Override
-	public IType serializableVersion(ClonkIndex index) {
-		if (elementType.serializableVersion(index) == elementType) {
-			return this;
-		} else {
-			return new ArrayType(elementType.serializableVersion(index));
-		}
 	}
 
 }

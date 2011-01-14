@@ -24,7 +24,7 @@ import net.arctics.clonk.parser.SimpleScriptStorage;
 import net.arctics.clonk.parser.c4script.C4Function;
 import net.arctics.clonk.parser.c4script.C4ScriptBase;
 import net.arctics.clonk.parser.c4script.ast.Conf;
-import net.arctics.clonk.resource.ClonkIndexStream;
+import net.arctics.clonk.resource.ClonkIndexInputStream;
 import net.arctics.clonk.ui.editors.ClonkHyperlink;
 import net.arctics.clonk.util.ArrayUtil;
 
@@ -158,7 +158,7 @@ public class Command {
 		public static void ImportDescriptionsFromSerializedIndex(Object context, String engineName, String indexPath, String writeToFile) throws IOException, ClassNotFoundException {
 			InputStream engineStream = new FileInputStream(indexPath);
 			try {
-				ObjectInputStream objStream = new ClonkIndexStream(engineStream);
+				ObjectInputStream objStream = new ClonkIndexInputStream(engineStream);
 				C4Engine result = (C4Engine)objStream.readObject();
 				result.setName(engineName); // for good measure
 				result.postSerialize(null);

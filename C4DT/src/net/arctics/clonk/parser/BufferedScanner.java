@@ -40,7 +40,7 @@ public class BufferedScanner {
 	/**
 	 * Size of the buffer
 	 */
-	private int size;
+	protected int size;
 	
 	/**
 	 * Current offset

@@ -3,7 +3,6 @@ package net.arctics.clonk.resource;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.util.ArrayList;
@@ -146,6 +145,11 @@ public class ClonkProjectNature implements IProjectNature {
 	private ProjectIndex index = null;
 	
 	/**
+	 * Set when loadIndex is taking place. Used for preventing infinite recursion.
+	 */
+	private boolean indexLoadingPending = false;
+	
+	/**
 	 * Settings stored in ini file
 	 */
 	private Settings settings = new Settings();
@@ -173,8 +177,10 @@ public class ClonkProjectNature implements IProjectNature {
 	 * @return the indexedData
 	 */
 	public ProjectIndex getIndex() {
-		if (index == null) {
+		if (index == null && !indexLoadingPending) {
+			indexLoadingPending = true;
 			loadIndex();
+			indexLoadingPending = false;
 		}
 		return index;
 	}
@@ -201,7 +207,7 @@ public class ClonkProjectNature implements IProjectNature {
 				try {
 					FileOutputStream out = new FileOutputStream(indexFile);
 					try {
-						ObjectOutputStream objStream = new ObjectOutputStream(out);
+						ClonkIndexOutputStream objStream = new ClonkIndexOutputStream(index, out);
 						getIndex().preSerialize();
 						objStream.writeObject(getIndex());
 						objStream.close();
@@ -323,6 +329,20 @@ public class ClonkProjectNature implements IProjectNature {
 			return get(((C4ScriptIntern)script).getScriptStorage());
 		else
 			return null;
+	}
+	
+	public static ClonkProjectNature get(String projectName) {
+		for (IProject proj : getClonkProjects()) {
+			if (proj.getName().equals(projectName)) {
+				try {
+					return (ClonkProjectNature) proj.getNature(ClonkCore.CLONK_NATURE_ID);
+				} catch (CoreException e) {
+					e.printStackTrace();
+					return null;
+				}
+			}
+		}
+		return null;
 	}
 
 	public Settings getSettings() {

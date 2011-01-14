@@ -4,7 +4,6 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
-import net.arctics.clonk.index.ClonkIndex;
 import net.arctics.clonk.parser.C4Declaration;
 import net.arctics.clonk.parser.C4Structure;
 import net.arctics.clonk.util.ArrayUtil;
@@ -153,15 +152,6 @@ public class ProplistDeclaration extends C4Structure implements IType {
 	@Override
 	public IType staticType() {
 		return C4Type.PROPLIST;
-	}
-
-	@Override
-	public IType serializableVersion(ClonkIndex indexToBeSerialized) {
-		if (getScript() != null && getScript().getIndex() == indexToBeSerialized) {
-			return this;
-		} else {
-			return C4Type.PROPLIST;
-		}
 	}
 	
 	@Override

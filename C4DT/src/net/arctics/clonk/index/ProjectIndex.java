@@ -45,6 +45,7 @@ public class ProjectIndex extends ClonkIndex {
 		project = proj;
 	}
 	
+	@Override
 	public IProject getProject() {
 		return project;
 	}
