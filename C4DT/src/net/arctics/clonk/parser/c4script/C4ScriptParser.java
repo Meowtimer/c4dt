@@ -424,7 +424,7 @@ public class C4ScriptParser extends CStyleScanner {
 			IType[] includes = ArrayUtil.filter(container.getIncludes(), IType.class);
 			if (includes.length > 1) {
 				// includes/appends to more than one other script ... create type set out of the scripts that are types
-				return C4TypeSet.create(includes);
+				return TypeSet.create(includes);
 			} else if (includes.length == 1 && includes[0] instanceof IType) {
 				// includes/appends to one type: return that
 				return (IType)includes[0];

@@ -5,7 +5,7 @@ import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.c4script.C4ScriptOperator;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.C4Type;
-import net.arctics.clonk.parser.c4script.C4TypeSet;
+import net.arctics.clonk.parser.c4script.TypeSet;
 import net.arctics.clonk.parser.c4script.IType;
 
 public final class NumberLiteral extends Literal<Long> {
@@ -53,7 +53,7 @@ public final class NumberLiteral extends Literal<Long> {
 	@Override
 	public boolean canBeConvertedTo(IType otherType, C4ScriptParser context) {
 		// 0 is the NULL object or NULL string
-		return (longValue() == 0 && (otherType.canBeAssignedFrom(C4TypeSet.STRING_OR_OBJECT))) || super.canBeConvertedTo(otherType, context);
+		return (longValue() == 0 && (otherType.canBeAssignedFrom(TypeSet.STRING_OR_OBJECT))) || super.canBeConvertedTo(otherType, context);
 	}
 
 	public boolean isHex() {

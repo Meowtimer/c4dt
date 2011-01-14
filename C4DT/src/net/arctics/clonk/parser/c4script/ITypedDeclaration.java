@@ -16,7 +16,7 @@ public interface ITypedDeclaration {
 				instance.forceType(type);
 			else if (!instance.getType().equals(type))
 				// assignments of multiple types - declaration now has multiple potential types
-				instance.forceType(C4TypeSet.create(type, instance.getType()));
+				instance.forceType(TypeSet.create(type, instance.getType()));
 		}
 	}
 }

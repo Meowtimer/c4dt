@@ -2,7 +2,7 @@ package net.arctics.clonk.parser.c4script.ast;
 
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.C4Type;
-import net.arctics.clonk.parser.c4script.C4TypeSet;
+import net.arctics.clonk.parser.c4script.TypeSet;
 import net.arctics.clonk.parser.c4script.IType;
 
 public abstract class StoredTypeInformation implements IStoredTypeInformation, Cloneable {
@@ -24,7 +24,7 @@ public abstract class StoredTypeInformation implements IStoredTypeInformation, C
 		if (type == C4Type.UNKNOWN) {
 			storeType(hint);
 		} else if (type == C4Type.ANY) {
-			type = C4TypeSet.create(type, hint);
+			type = TypeSet.create(type, hint);
 		} else {
 			// false -> wrong hint
 			// true -> type is at least contained in the hint so it is somewhat correct   
@@ -44,7 +44,7 @@ public abstract class StoredTypeInformation implements IStoredTypeInformation, C
 			storeType(type);
 		else if (!getType().equals(other.getType()))
 			// assignments of multiple types - construct type set
-			storeType(C4TypeSet.create(getType(), other.getType()));
+			storeType(TypeSet.create(getType(), other.getType()));
 	}
 	
 	@Override

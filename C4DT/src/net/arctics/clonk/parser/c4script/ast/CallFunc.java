@@ -14,7 +14,7 @@ import net.arctics.clonk.parser.c4script.C4ScriptBase;
 import net.arctics.clonk.parser.c4script.C4ScriptOperator;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.C4Type;
-import net.arctics.clonk.parser.c4script.C4TypeSet;
+import net.arctics.clonk.parser.c4script.TypeSet;
 import net.arctics.clonk.parser.c4script.C4Variable;
 import net.arctics.clonk.parser.c4script.FindDeclarationInfo;
 import net.arctics.clonk.parser.c4script.IType;
@@ -180,7 +180,7 @@ public class CallFunc extends AccessDeclaration {
 	@Override
 	public boolean modifiable(C4ScriptParser context) {
 		IType t = getType(context);
-		return t.canBeAssignedFrom(C4TypeSet.REFERENCE_OR_ANY_OR_UNKNOWN);
+		return t.canBeAssignedFrom(TypeSet.REFERENCE_OR_ANY_OR_UNKNOWN);
 	}
 	@Override
 	public boolean hasSideEffects() {

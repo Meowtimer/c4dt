@@ -16,7 +16,7 @@ import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.c4script.C4ScriptBase;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.C4Type;
-import net.arctics.clonk.parser.c4script.C4TypeSet;
+import net.arctics.clonk.parser.c4script.TypeSet;
 import net.arctics.clonk.parser.c4script.ConstrainedObject;
 import net.arctics.clonk.parser.c4script.ConstrainedType;
 import net.arctics.clonk.parser.c4script.IHasConstraint;
@@ -428,7 +428,7 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable {
 	}
 
 	public static IType combineTypes(IType first, IType second) {
-		return C4TypeSet.create(first, second);
+		return TypeSet.create(first, second);
 	}
 
 	private static final ExprElm[] exprElmsForTypes = new ExprElm[C4Type.values().length];

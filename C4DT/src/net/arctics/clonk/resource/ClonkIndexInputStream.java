@@ -8,7 +8,7 @@ import java.io.InputStream;
 import java.io.ObjectInputStream;
 
 import net.arctics.clonk.parser.C4ID;
-import net.arctics.clonk.parser.c4script.C4TypeSet;
+import net.arctics.clonk.parser.c4script.TypeSet;
 import net.arctics.clonk.parser.c4script.ImportedObject;
 
 /**
@@ -30,8 +30,8 @@ public class ClonkIndexInputStream extends ObjectInputStream {
 			//System.out.println(obj.toString());
 			return ((C4ID)obj).internalize();
 		}
-		else if (cls == C4TypeSet.class) {
-			return ((C4TypeSet)obj).internalize();
+		else if (cls == TypeSet.class) {
+			return ((TypeSet)obj).internalize();
 		}
 		else if (cls == ImportedObject.class) {
 			return ((ImportedObject)obj).resolve();

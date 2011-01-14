@@ -11,11 +11,11 @@ import java.util.Set;
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.index.C4Object;
 
-public class C4TypeSet implements IType {
+public class TypeSet implements IType {
 
 	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 
-	private static List<C4TypeSet> typeSets = new LinkedList<C4TypeSet>();
+	private static List<TypeSet> typeSets = new LinkedList<TypeSet>();
 	
 	public static final IType STRING_OR_OBJECT = create(C4Type.STRING, C4Type.OBJECT);
 	public static final IType ARRAY_OR_STRING = create(C4Type.ARRAY, C4Type.STRING);
@@ -25,11 +25,11 @@ public class C4TypeSet implements IType {
 	private Set<IType> types;
 	private boolean internalized;
 	
-	private C4TypeSet(Set<IType> types) {
+	private TypeSet(Set<IType> types) {
 		this.types = types;
 	}
 	
-	public C4TypeSet(IType... types) {
+	public TypeSet(IType... types) {
 		this.types = new HashSet<IType>(types.length);
 		for (IType t : types)
 			this.types.add(t);
@@ -55,8 +55,8 @@ public class C4TypeSet implements IType {
 		for (IType t : types) {
 			if (t == null)
 				newCount--;
-			else if (t instanceof C4TypeSet) {
-				newCount += ((C4TypeSet)t).size() - 1;
+			else if (t instanceof TypeSet) {
+				newCount += ((TypeSet)t).size() - 1;
 			}
 		}
 		IType[] newArray = newCount == types.length ? types : new IType[newCount];
@@ -64,8 +64,8 @@ public class C4TypeSet implements IType {
 		for (IType t : types) {
 			if (t == null)
 				continue;
-			else if (t instanceof C4TypeSet) {
-				for (IType t2 : ((C4TypeSet)t)) {
+			else if (t instanceof TypeSet) {
+				for (IType t2 : ((TypeSet)t)) {
 					newArray[i++] = t2;
 				}
 			} else
@@ -99,7 +99,7 @@ public class C4TypeSet implements IType {
 		boolean containsNonStatics = false;
 		for (int i = 0; i < actualCount; i++) {
 			IType s = ingredients[i];
-			if (s instanceof C4TypeSet) {
+			if (s instanceof TypeSet) {
 				for (IType t : s) {
 					containsNonStatics = containsNonStatics || t.staticType() != t;
 					set.add(t);
@@ -115,7 +115,7 @@ public class C4TypeSet implements IType {
 		if (set.size() > 1)
 			set.remove(C4Type.UNKNOWN);
 		if (containsNonStatics)
-			return set.size() == 1 ? set.iterator().next() : new C4TypeSet(set);
+			return set.size() == 1 ? set.iterator().next() : new TypeSet(set);
 		return createInternal(set, actualCount, ingredients);
 	}
 
@@ -126,13 +126,13 @@ public class C4TypeSet implements IType {
 			return set.iterator().next();
 		/*if (set.contains(C4Type.ANY))
 			return C4Type.ANY; */
-		for (C4TypeSet r : typeSets) {
+		for (TypeSet r : typeSets) {
 			if (r.types.equals(set))
 				return r;
 		}
-		C4TypeSet n = ingredients != null && actualCount == 1 && ingredients[0] instanceof C4TypeSet
-			? (C4TypeSet)ingredients[0]
-			: new C4TypeSet(set);
+		TypeSet n = ingredients != null && actualCount == 1 && ingredients[0] instanceof TypeSet
+			? (TypeSet)ingredients[0]
+			: new TypeSet(set);
 		n.internalized = true;
 		typeSets.add(n);
 		return n;
@@ -182,8 +182,8 @@ public class C4TypeSet implements IType {
 	
 	@Override
 	public boolean equals(Object obj) {
-		if (obj instanceof C4TypeSet) {
-			return types.equals(((C4TypeSet)obj).types);
+		if (obj instanceof TypeSet) {
+			return types.equals(((TypeSet)obj).types);
 		}
 		else
 			return false;
@@ -232,17 +232,6 @@ public class C4TypeSet implements IType {
 				return (C4Object) t; // return the first one found
 		}
 		return null;
-	}
-
-	public static IType staticIngredients(IType type) {
-		Set<IType> s = new HashSet<IType>();
-		boolean allStatics = true;
-		for (IType t : type) {
-			IType st = t.staticType();
-			allStatics = allStatics && st == t;
-			s.add(st);
-		}
-		return createInternal(s, 1, allStatics ? new IType[]{type} : (IType[])null);
 	}
 
 }

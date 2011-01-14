@@ -258,7 +258,7 @@ public class SpecialScriptRules {
 			if (arguments.length < 1)
 				return false; // no script expression supplied
 			IType objType = arguments.length >= 4 ? arguments[3].getType(parser) : parser.getContainerObject();
-			C4ScriptBase script = objType != null ? C4TypeSet.objectIngredient(objType) : null;
+			C4ScriptBase script = objType != null ? TypeSet.objectIngredient(objType) : null;
 			if (script == null)
 				script = parser.getContainer(); // fallback
 			Object scriptExpr = arguments[0].evaluateAtParseTime(script);
