@@ -25,12 +25,12 @@ import net.arctics.clonk.parser.BufferedScanner;
 import net.arctics.clonk.parser.C4Declaration;
 import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.ParsingException;
-import net.arctics.clonk.parser.c4script.C4Function;
-import net.arctics.clonk.parser.c4script.C4ScriptBase;
+import net.arctics.clonk.parser.c4script.Function;
+import net.arctics.clonk.parser.c4script.ScriptBase;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
-import net.arctics.clonk.parser.c4script.C4Variable;
+import net.arctics.clonk.parser.c4script.Variable;
 import net.arctics.clonk.parser.c4script.SpecialScriptRules;
-import net.arctics.clonk.parser.c4script.C4Variable.C4VariableScope;
+import net.arctics.clonk.parser.c4script.Variable.C4VariableScope;
 import net.arctics.clonk.parser.c4script.Keywords;
 import net.arctics.clonk.parser.inireader.CustomIniUnit;
 import net.arctics.clonk.parser.inireader.IEntryFactory;
@@ -55,7 +55,7 @@ import net.arctics.clonk.util.StreamUtil;
  * @author Madeen
  *
  */
-public class C4Engine extends C4ScriptBase {
+public class Engine extends ScriptBase {
 
 	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 
@@ -111,7 +111,7 @@ public class C4Engine extends C4ScriptBase {
 	}
 
 	private transient CachedEngineFuncs cachedFuncs;
-	private transient Map<String, C4Variable[]> cachedPrefixedVariables;
+	private transient Map<String, Variable[]> cachedPrefixedVariables;
 
 	private transient EngineSettings intrinsicSettings;
 	private transient EngineSettings currentSettings;
@@ -146,7 +146,7 @@ public class C4Engine extends C4ScriptBase {
 		return iniConfigurations;
 	}
 
-	public C4Engine(String name) {
+	public Engine(String name) {
 		super();
 		setName(name);
 		modified();
@@ -193,7 +193,7 @@ public class C4Engine extends C4ScriptBase {
 	}
 
 	@Override
-	public C4Engine getEngine() {
+	public Engine getEngine() {
 		return this;
 	}
 
@@ -268,7 +268,7 @@ public class C4Engine extends C4ScriptBase {
 				private IniDataEntry entry = new IniDataEntry("", String.class); //$NON-NLS-1$
 				@Override
 				public boolean hasEntry(String entryName) {
-					return C4Engine.this.findDeclaration(entryName) != null; 
+					return Engine.this.findDeclaration(entryName) != null; 
 				}
 				@Override
 				public IniDataEntry getEntry(String key) {
@@ -287,7 +287,7 @@ public class C4Engine extends C4ScriptBase {
 	private class DeclarationsConfiguration extends IniConfiguration {
 		@Override
 		public boolean hasSection(String sectionName) {
-			return C4Engine.this.findDeclaration(sectionName) != null;
+			return Engine.this.findDeclaration(sectionName) != null;
 		}
 	}
 
@@ -394,7 +394,7 @@ public class C4Engine extends C4ScriptBase {
 	private void createSpecialRules() {
 		try {
 			@SuppressWarnings("unchecked")
-			Class<? extends SpecialScriptRules> rulesClass = (Class<? extends SpecialScriptRules>) C4Engine.class.getClassLoader().loadClass(
+			Class<? extends SpecialScriptRules> rulesClass = (Class<? extends SpecialScriptRules>) Engine.class.getClassLoader().loadClass(
 				String.format("%s.parser.c4script.specialscriptrules.SpecialScriptRules_%s", ClonkCore.PLUGIN_ID, getName()));
 			specialScriptRules = rulesClass.newInstance();
 		} catch (ClassNotFoundException e) {
@@ -405,13 +405,13 @@ public class C4Engine extends C4ScriptBase {
 		}
 	}
 	
-	public static C4Engine loadFromStorageLocations(final IStorageLocation... providers) {
-		C4Engine result = null;
+	public static Engine loadFromStorageLocations(final IStorageLocation... providers) {
+		Engine result = null;
 		try {
 			for (IStorageLocation location : providers) {
 				URL url = location.getURL(location.getName()+".c", false); //$NON-NLS-1$
 				if (url != null) {
-					result = new C4Engine(location.getName());
+					result = new Engine(location.getName());
 					result.storageLocations = providers;
 					result.loadSettings();
 					result.loadIniConfigurations();
@@ -428,12 +428,12 @@ public class C4Engine extends C4ScriptBase {
 	}
 
 	public void writeEngineScript(Writer writer) throws IOException {
-		for (C4Variable v : variables()) {
+		for (Variable v : variables()) {
 			String text = String.format("%s %s;\n", v.getScope().toKeyword(), v.getName()); //$NON-NLS-1$
 			writer.append(text);
 		}
 		writer.append("\n"); //$NON-NLS-1$
-		for (C4Function f : functions()) {
+		for (Function f : functions()) {
 			String returnType = f.getReturnType().toString();
 			String desc = f.getUserDescription();
 			if (desc != null) {
@@ -498,22 +498,22 @@ public class C4Engine extends C4ScriptBase {
 		return null;
 	}
 	
-	public C4Variable[] variablesWithPrefix(String prefix) {
+	public Variable[] variablesWithPrefix(String prefix) {
 		// FIXME: oh noes, will return array stored in map, making it possible to modify it
 		if (cachedPrefixedVariables != null) {
-			C4Variable[] inCache = cachedPrefixedVariables.get(prefix);
+			Variable[] inCache = cachedPrefixedVariables.get(prefix);
 			if (inCache != null)
 				return inCache;
 		}
-		List<C4Variable> result = new LinkedList<C4Variable>();
-		for (C4Variable v : variables()) {
+		List<Variable> result = new LinkedList<Variable>();
+		for (Variable v : variables()) {
 			if (v.getScope() == C4VariableScope.CONST && v.getName().startsWith(prefix)) {
 				result.add(v);
 			}
 		}
-		C4Variable[] resultArray = result.toArray(new C4Variable[result.size()]);
+		Variable[] resultArray = result.toArray(new Variable[result.size()]);
 		if (cachedPrefixedVariables == null)
-			cachedPrefixedVariables = new HashMap<String, C4Variable[]>();
+			cachedPrefixedVariables = new HashMap<String, Variable[]>();
 		cachedPrefixedVariables.put(prefix, resultArray);
 		return resultArray;
 	}

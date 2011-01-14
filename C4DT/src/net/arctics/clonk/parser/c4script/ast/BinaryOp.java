@@ -6,14 +6,14 @@ import java.util.List;
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.ParsingException;
-import net.arctics.clonk.parser.c4script.C4ScriptBase;
-import net.arctics.clonk.parser.c4script.C4ScriptOperator;
+import net.arctics.clonk.parser.c4script.ScriptBase;
+import net.arctics.clonk.parser.c4script.Operator;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
-import net.arctics.clonk.parser.c4script.C4Type;
+import net.arctics.clonk.parser.c4script.PrimitiveType;
 import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
 
-public class BinaryOp extends Operator {
+public class BinaryOp extends OperatorExpression {
 	
 
 	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
@@ -28,7 +28,7 @@ public class BinaryOp extends Operator {
 			if (leftSideType == rightSideType)
 				return leftSideType;
 			else
-				return C4Type.ANY;
+				return PrimitiveType.ANY;
 		default:
 			return super.obtainType(context);
 		}
@@ -38,18 +38,18 @@ public class BinaryOp extends Operator {
 	public ExprElm optimize(C4ScriptParser context) throws CloneNotSupportedException {
 		// #strict 2: ne -> !=, S= -> ==
 		if (context.getStrictLevel() >= 2) {
-			C4ScriptOperator op = getOperator();
-			if (op == C4ScriptOperator.StringEqual || op == C4ScriptOperator.eq)
-				op = C4ScriptOperator.Equal;
-			else if (op == C4ScriptOperator.ne)
-				op = C4ScriptOperator.NotEqual;
+			Operator op = getOperator();
+			if (op == Operator.StringEqual || op == Operator.eq)
+				op = Operator.Equal;
+			else if (op == Operator.ne)
+				op = Operator.NotEqual;
 			if (op != getOperator()) {
 				return new BinaryOp(op, getLeftSide().optimize(context), getRightSide().optimize(context));
 			}
 		}
 
 		// blub() && blab() && return(1); -> {blub(); blab(); return(1);}
-		if ((getOperator() == C4ScriptOperator.And || getOperator() == C4ScriptOperator.Or) && (getParent() instanceof SimpleStatement)) {// && getRightSide().isReturn()) {
+		if ((getOperator() == Operator.And || getOperator() == Operator.Or) && (getParent() instanceof SimpleStatement)) {// && getRightSide().isReturn()) {
 			ExprElm block = convertOperatorHackToBlock(context);
 			if (block != null)
 				return block;
@@ -62,7 +62,7 @@ public class BinaryOp extends Operator {
 		LinkedList<ExprElm> leftSideArguments = new LinkedList<ExprElm>();
 		ExprElm r;
 		boolean works = true;
-		C4ScriptOperator hackOp = this.getOperator();
+		Operator hackOp = this.getOperator();
 		// gather left sides (must not be operators)
 		for (r = getLeftSide(); r instanceof BinaryOp; r = ((BinaryOp)r).getLeftSide()) {
 			BinaryOp op = (BinaryOp)r;
@@ -107,7 +107,7 @@ public class BinaryOp extends Operator {
 		rightSide = elements[1];
 	}
 
-	public BinaryOp(C4ScriptOperator operator, ExprElm leftSide, ExprElm rightSide) {
+	public BinaryOp(Operator operator, ExprElm leftSide, ExprElm rightSide) {
 		super(operator);
 		setLeftSide(leftSide);
 		setRightSide(rightSide);
@@ -118,7 +118,7 @@ public class BinaryOp extends Operator {
 			parser.warningWithCode(ParserErrorCode.NoAssignment, this);
 	}
 
-	public BinaryOp(C4ScriptOperator op) {
+	public BinaryOp(Operator op) {
 		super(op);
 	}
 
@@ -174,7 +174,7 @@ public class BinaryOp extends Operator {
 			context.errorWithCode(ParserErrorCode.ExpressionNotModifiable, getLeftSide(), true);
 		}
 		// obsolete operators in #strict 2
-		if ((getOperator() == C4ScriptOperator.StringEqual || getOperator() == C4ScriptOperator.ne) && (context.getStrictLevel() >= 2)) {
+		if ((getOperator() == Operator.StringEqual || getOperator() == Operator.ne) && (context.getStrictLevel() >= 2)) {
 			context.warningWithCode(ParserErrorCode.ObsoleteOperator, this, getOperator().getOperatorName());
 		}
 		// wrong parameter types
@@ -198,13 +198,13 @@ public class BinaryOp extends Operator {
 		if (expectedRight != null)
 			getRightSide().expectedToBeOfType(expectedRight, context);
 
-		if (getOperator() == C4ScriptOperator.Assign) {
+		if (getOperator() == Operator.Assign) {
 			getLeftSide().inferTypeFromAssignment(getRightSide(), context);
 		}
 	}
 
 	@Override
-	public Object evaluateAtParseTime(C4ScriptBase context) {
+	public Object evaluateAtParseTime(ScriptBase context) {
 		try {
 			Object leftSide  = getOperator().getFirstArgType().convert(this.getLeftSide().evaluateAtParseTime(context));
 			Object rightSide = getOperator().getSecondArgType().convert(this.getRightSide().evaluateAtParseTime(context));

@@ -4,7 +4,7 @@ import java.io.Serializable;
 import java.lang.ref.WeakReference;
 import java.util.Iterator;
 import net.arctics.clonk.ClonkCore;
-import net.arctics.clonk.index.C4Object;
+import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.ClonkIndex;
 import net.arctics.clonk.parser.C4ID;
 import net.arctics.clonk.resource.ClonkProjectNature;
@@ -14,20 +14,20 @@ public class ImportedObject implements Serializable, IType {
 	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 	
 	private C4ID id;
-	private transient WeakReference<C4Object> object;
+	private transient WeakReference<Definition> object;
 	private String referencedProject;
 	
-	private ImportedObject(C4Object obj) {
+	private ImportedObject(Definition obj) {
 		setObject(obj);
 	}
 	
 	public IType getStaticType() {
-		return C4Type.OBJECT;
+		return PrimitiveType.OBJECT;
 	}
 
-	public void setObject(C4Object object) {
+	public void setObject(Definition object) {
 		if (object != null) {
-			this.object = new WeakReference<C4Object>(object);
+			this.object = new WeakReference<Definition>(object);
 			this.id = object.getId();
 			this.referencedProject = object.getIndex().getProject().getName();
 		} else {
@@ -41,7 +41,7 @@ public class ImportedObject implements Serializable, IType {
 		return id;
 	}
 	
-	public C4Object getObject() {
+	public Definition getObject() {
 		return object != null ? object.get() : null;
 	}
 
@@ -55,7 +55,7 @@ public class ImportedObject implements Serializable, IType {
 		if (getObject() != null) {
 			return getObject().iterator();
 		} else {
-			return C4Type.OBJECT.iterator();
+			return PrimitiveType.OBJECT.iterator();
 		}
 	}
 
@@ -66,7 +66,7 @@ public class ImportedObject implements Serializable, IType {
 
 	@Override
 	public String typeName(boolean special) {
-		return (getObject() != null ? getObject() : C4Type.OBJECT).typeName(special);
+		return (getObject() != null ? getObject() : PrimitiveType.OBJECT).typeName(special);
 	}
 
 	@Override
@@ -104,10 +104,10 @@ public class ImportedObject implements Serializable, IType {
 			else
 				System.out.println(String.format("Warning: Failed to obtain index for %s when resolving %s", referencedProject, id.toString()));
 		}
-		return result != null ? result : C4Type.OBJECT;
+		return result != null ? result : PrimitiveType.OBJECT;
 	}
 	
-	public static IType getSerializableType(ClonkIndex indexBeingSerialized, C4Object obj) {
+	public static IType getSerializableType(ClonkIndex indexBeingSerialized, Definition obj) {
 		if (obj.getIndex() != indexBeingSerialized) {
 			return new ImportedObject(obj);
 		} else {

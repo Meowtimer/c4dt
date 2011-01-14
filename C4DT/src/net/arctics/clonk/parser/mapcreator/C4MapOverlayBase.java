@@ -11,14 +11,14 @@ import org.eclipse.core.runtime.IPath;
 
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.C4Declaration;
-import net.arctics.clonk.parser.C4Structure;
+import net.arctics.clonk.parser.Structure;
 import net.arctics.clonk.parser.SourceLocation;
 import net.arctics.clonk.parser.c4script.ast.Conf;
 import net.arctics.clonk.util.IPrintable;
 import net.arctics.clonk.util.ITreeNode;
 import net.arctics.clonk.util.Utilities;
 
-public class C4MapOverlayBase extends C4Structure implements Cloneable, ITreeNode, IPrintable {
+public class C4MapOverlayBase extends Structure implements Cloneable, ITreeNode, IPrintable {
 
 	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 	

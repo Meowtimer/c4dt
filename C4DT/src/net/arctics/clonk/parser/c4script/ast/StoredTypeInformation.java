@@ -1,13 +1,13 @@
 package net.arctics.clonk.parser.c4script.ast;
 
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
-import net.arctics.clonk.parser.c4script.C4Type;
+import net.arctics.clonk.parser.c4script.PrimitiveType;
 import net.arctics.clonk.parser.c4script.TypeSet;
 import net.arctics.clonk.parser.c4script.IType;
 
 public abstract class StoredTypeInformation implements IStoredTypeInformation, Cloneable {
 
-	protected IType type = C4Type.UNKNOWN;
+	protected IType type = PrimitiveType.UNKNOWN;
 
 	@Override
 	public IType getType() {
@@ -21,9 +21,9 @@ public abstract class StoredTypeInformation implements IStoredTypeInformation, C
 	
 	@Override
 	public boolean generalTypeHint(IType hint) {
-		if (type == C4Type.UNKNOWN) {
+		if (type == PrimitiveType.UNKNOWN) {
 			storeType(hint);
-		} else if (type == C4Type.ANY) {
+		} else if (type == PrimitiveType.ANY) {
 			type = TypeSet.create(type, hint);
 		} else {
 			// false -> wrong hint
@@ -39,7 +39,7 @@ public abstract class StoredTypeInformation implements IStoredTypeInformation, C
 	}
 	
 	public void merge(IStoredTypeInformation other) {
-		if (getType() == C4Type.UNKNOWN)
+		if (getType() == PrimitiveType.UNKNOWN)
 			// unknown before so now it is assumed to be of this type
 			storeType(type);
 		else if (!getType().equals(other.getType()))

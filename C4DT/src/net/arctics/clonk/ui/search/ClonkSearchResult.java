@@ -1,6 +1,6 @@
 package net.arctics.clonk.ui.search;
 
-import net.arctics.clonk.parser.c4script.C4ScriptBase;
+import net.arctics.clonk.parser.c4script.ScriptBase;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.ast.ExprElm;
 import net.arctics.clonk.util.Utilities;
@@ -55,7 +55,7 @@ public class ClonkSearchResult extends AbstractTextSearchResult implements IEdit
 	public Match[] computeContainedMatches(AbstractTextSearchResult result,
 			IEditorPart editor) {
 		if (editor instanceof ITextEditor) {
-			C4ScriptBase script = Utilities.getScriptForEditor((ITextEditor) editor);
+			ScriptBase script = Utilities.getScriptForEditor((ITextEditor) editor);
 			if (script != null)
 				return result.getMatches(script);
 		}
@@ -64,7 +64,7 @@ public class ClonkSearchResult extends AbstractTextSearchResult implements IEdit
 
 	public boolean isShownInEditor(Match match, IEditorPart editor) {
 		if (editor instanceof ITextEditor) {
-			C4ScriptBase script = Utilities.getScriptForEditor((ITextEditor)editor);
+			ScriptBase script = Utilities.getScriptForEditor((ITextEditor)editor);
 			if (script != null && match.getElement().equals(script.getScriptStorage()))
 				return true;
 		}
@@ -72,15 +72,15 @@ public class ClonkSearchResult extends AbstractTextSearchResult implements IEdit
 	}
 
 	public Match[] computeContainedMatches(AbstractTextSearchResult result, IFile file) {
-		C4ScriptBase script = C4ScriptBase.get(file, true);
+		ScriptBase script = ScriptBase.get(file, true);
 		if (script != null)
 			return result.getMatches(script);
 		return NO_MATCHES;
 	}
 
 	public IFile getFile(Object element) {
-		if (element instanceof C4ScriptBase)
-			return (IFile) ((C4ScriptBase)element).getScriptStorage();
+		if (element instanceof ScriptBase)
+			return (IFile) ((ScriptBase)element).getScriptStorage();
 		if (element instanceof IFile) {
 			return (IFile)element;
 		}

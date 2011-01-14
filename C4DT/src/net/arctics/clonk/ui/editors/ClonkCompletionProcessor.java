@@ -3,11 +3,11 @@ package net.arctics.clonk.ui.editors;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
-import net.arctics.clonk.index.C4Object;
-import net.arctics.clonk.index.C4ObjectIntern;
+import net.arctics.clonk.index.Definition;
+import net.arctics.clonk.index.ProjectDefinition;
 import net.arctics.clonk.index.ClonkIndex;
-import net.arctics.clonk.parser.c4script.C4Function;
-import net.arctics.clonk.parser.c4script.C4Variable;
+import net.arctics.clonk.parser.c4script.Function;
+import net.arctics.clonk.parser.c4script.Variable;
 import net.arctics.clonk.util.UI;
 
 import org.eclipse.core.resources.IFile;
@@ -27,7 +27,7 @@ public abstract class ClonkCompletionProcessor<EditorType extends ClonkTextEdito
 		this.editor = editor;
 	}
 	
-	protected void proposalForObject(C4Object obj,String prefix,int offset,Collection<ICompletionProposal> proposals) {
+	protected void proposalForObject(Definition obj,String prefix,int offset,Collection<ICompletionProposal> proposals) {
 		try {
 			if (obj == null || obj.getId() == null)
 				return;
@@ -45,7 +45,7 @@ public abstract class ClonkCompletionProcessor<EditorType extends ClonkTextEdito
 					obj.getName().toLowerCase().contains(prefix) ||
 					obj.getId().getName().toLowerCase().contains(prefix) ||
 					// also check if the user types in the folder name
-					(obj instanceof C4ObjectIntern && ((C4ObjectIntern)obj).getObjectFolder() != null && ((C4ObjectIntern)obj).getObjectFolder().getName().contains(prefix))
+					(obj instanceof ProjectDefinition && ((ProjectDefinition)obj).getObjectFolder() != null && ((ProjectDefinition)obj).getObjectFolder().getName().contains(prefix))
 				))
 					return;
 			}
@@ -70,12 +70,12 @@ public abstract class ClonkCompletionProcessor<EditorType extends ClonkTextEdito
 	}
 	
 	protected void proposalsForIndexedObjects(ClonkIndex index, int offset, int wordOffset, String prefix, Collection<ICompletionProposal> proposals) {
-		for (C4Object obj : index.objectsIgnoringRemoteDuplicates(pivotFile())) {
+		for (Definition obj : index.objectsIgnoringRemoteDuplicates(pivotFile())) {
 			proposalForObject(obj, prefix, wordOffset, proposals);
 		}
 	}
 	
-	protected void proposalForFunc(C4Function func,String prefix,int offset, Collection<ICompletionProposal> proposals,String parentName, boolean brackets) {
+	protected void proposalForFunc(Function func,String prefix,int offset, Collection<ICompletionProposal> proposals,String parentName, boolean brackets) {
 		if (prefix != null) {
 			if (!func.getName().toLowerCase().startsWith(prefix))
 				return;
@@ -93,7 +93,7 @@ public abstract class ClonkCompletionProcessor<EditorType extends ClonkTextEdito
 		proposals.add(prop);
 	}
 	
-	protected ClonkCompletionProposal proposalForVar(C4Variable var, String prefix, int offset, Collection<ICompletionProposal> proposals) {
+	protected ClonkCompletionProposal proposalForVar(Variable var, String prefix, int offset, Collection<ICompletionProposal> proposals) {
 		if (prefix != null && !var.getName().toLowerCase().contains(prefix))
 			return null;
 		if (var.getScript() == null)

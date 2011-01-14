@@ -12,8 +12,8 @@ import java.util.Map;
 
 import org.eclipse.jface.text.Region;
 
-import net.arctics.clonk.index.C4Object;
-import net.arctics.clonk.index.C4Scenario;
+import net.arctics.clonk.index.Definition;
+import net.arctics.clonk.index.Scenario;
 import net.arctics.clonk.index.ClonkIndex;
 import net.arctics.clonk.parser.DeclarationRegion;
 import net.arctics.clonk.parser.ParserErrorCode;
@@ -105,11 +105,11 @@ public class SpecialScriptRules {
 			return null;
 		}
 		@SignifiesRole(role=DEFAULT_PARMTYPE_ASSIGNER)
-		public boolean assignDefaultParmTypes(C4ScriptParser parser, C4Function function) {
+		public boolean assignDefaultParmTypes(C4ScriptParser parser, Function function) {
 			return false;
 		}
 		@SignifiesRole(role=DEFAULT_PARMTYPE_ASSIGNER)
-		public C4Function newFunction(String name) {
+		public Function newFunction(String name) {
 			return null;
 		}
 	}
@@ -180,7 +180,7 @@ public class SpecialScriptRules {
 	protected final SpecialFuncRule getIDRule = new SpecialFuncRule() {
 		@Override
 		public IType returnType(C4ScriptParser parser, CallFunc callFunc) {
-			C4ScriptBase script = null;
+			ScriptBase script = null;
 			ConstraintKind constraintKind = null;
 			IType t;
 			if (callFunc.getParams().length > 0) {
@@ -198,7 +198,7 @@ public class SpecialScriptRules {
 				script = cobj.constraintScript();
 			}
 			
-			return script != null ? ConstrainedType.get(script, constraintKind) : C4Type.ID;
+			return script != null ? ConstrainedType.get(script, constraintKind) : PrimitiveType.ID;
 		}
 	};
 	
@@ -210,25 +210,25 @@ public class SpecialScriptRules {
 		public IType returnType(C4ScriptParser parser, CallFunc callFunc) {
 			IType t = searchCriteriaAssumedResult(parser, callFunc, true);
 			if (t == null) {
-				t = C4Type.OBJECT;
+				t = PrimitiveType.OBJECT;
 			}
 			if (t != null) {
-				C4Function f = (C4Function) callFunc.getDeclaration();
-				if (f != null && f.getReturnType() == C4Type.ARRAY)
+				Function f = (Function) callFunc.getDeclaration();
+				if (f != null && f.getReturnType() == PrimitiveType.ARRAY)
 					return new ArrayType(t);
 			}
 			return t;
 		}
 		
-		private C4Object searchCriteriaAssumedResult(C4ScriptParser parser, CallFunc callFunc, boolean topLevel) {
-			C4Object result = null;
+		private Definition searchCriteriaAssumedResult(C4ScriptParser parser, CallFunc callFunc, boolean topLevel) {
+			Definition result = null;
 			String declarationName = callFunc.getDeclarationName();
 			// parameters to FindObjects itself are also &&-ed together
 			if (topLevel || declarationName.equals("Find_And")) {
 				for (ExprElm parm : callFunc.getParams()) {
 					if (parm instanceof CallFunc) {
 						CallFunc call = (CallFunc)parm;
-						C4Object t = searchCriteriaAssumedResult(parser, call, false);
+						Definition t = searchCriteriaAssumedResult(parser, call, false);
 						if (t != null) {
 							if (result == null)
 								result = t;
@@ -258,7 +258,7 @@ public class SpecialScriptRules {
 			if (arguments.length < 1)
 				return false; // no script expression supplied
 			IType objType = arguments.length >= 4 ? arguments[3].getType(parser) : parser.getContainerObject();
-			C4ScriptBase script = objType != null ? TypeSet.objectIngredient(objType) : null;
+			ScriptBase script = objType != null ? TypeSet.objectIngredient(objType) : null;
 			if (script == null)
 				script = parser.getContainer(); // fallback
 			Object scriptExpr = arguments[0].evaluateAtParseTime(script);
@@ -318,8 +318,8 @@ public class SpecialScriptRules {
 			if (index == 1 && parmExpression instanceof StringLiteral) {
 				StringLiteral lit = (StringLiteral) parmExpression;
 				IType t = callFunc.getParams()[0].getType(parser);
-				C4ScriptBase scriptToLookIn = t instanceof C4ScriptBase ? (C4ScriptBase)t : parser.getContainer();
-				C4Function func = scriptToLookIn.findFunction(lit.getLiteral());
+				ScriptBase scriptToLookIn = t instanceof ScriptBase ? (ScriptBase)t : parser.getContainer();
+				Function func = scriptToLookIn.findFunction(lit.getLiteral());
 				if (func != null) {
 					return new DeclarationRegion(func, new Region(lit.getExprStart()+1, lit.getLength()-2));
 				}
@@ -334,19 +334,19 @@ public class SpecialScriptRules {
 	protected final SpecialFuncRule addCommandValidationRule = new SpecialFuncRule() {
 		@Override
 		public boolean validateArguments(CallFunc callFunc, ExprElm[] arguments, C4ScriptParser parser) {
-			C4Function f = callFunc.getDeclaration() instanceof C4Function ? (C4Function)callFunc.getDeclaration() : null;
+			Function f = callFunc.getDeclaration() instanceof Function ? (Function)callFunc.getDeclaration() : null;
 			if (f != null && arguments.length >= 3) {
 				// look if command is "Call"; if so treat parms 2, 3, 4 as any
 				Object command = arguments[1].evaluateAtParseTime(parser.getContainer());
 				if (command instanceof String && command.equals("Call")) { //$NON-NLS-1$
 					int givenParam = 0;
-					for (C4Variable parm : f.getParameters()) {
+					for (Variable parm : f.getParameters()) {
 						if (givenParam >= arguments.length)
 							break;
 						ExprElm given = arguments[givenParam++];
 						if (given == null)
 							continue;
-						IType parmType = givenParam >= 2 && givenParam <= 4 ? C4Type.ANY : parm.getType();
+						IType parmType = givenParam >= 2 && givenParam <= 4 ? PrimitiveType.ANY : parm.getType();
 						if (!given.validForType(parmType, parser))
 							parser.warningWithCode(ParserErrorCode.IncompatibleTypes, given, parmType, given.getType(parser));
 						else
@@ -368,9 +368,9 @@ public class SpecialScriptRules {
 			if (parameterIndex == 0 && parmExpression instanceof StringLiteral) {
 				StringLiteral lit = (StringLiteral)parmExpression;
 				ClonkIndex index = parser.getContainer().getIndex();
-				C4Scenario scenario = ClonkIndex.pickNearest(parser.getContainer().getResource(), index.getIndexedScenarios());
+				Scenario scenario = ClonkIndex.pickNearest(parser.getContainer().getResource(), index.getIndexedScenarios());
 				if (scenario != null) {
-					C4Function scenFunc = scenario.findFunction(lit.stringValue());
+					Function scenFunc = scenario.findFunction(lit.stringValue());
 					if (scenFunc != null)
 						return new DeclarationRegion(scenFunc, lit.identifierRegion());
 				}
@@ -387,7 +387,7 @@ public class SpecialScriptRules {
 		public DeclarationRegion locateDeclarationInParameter(CallFunc callFunc, C4ScriptParser parser, int index, int offsetInExpression, ExprElm parmExpression) {
 			if (index == 0 && parmExpression instanceof StringLiteral) {
 				StringLiteral lit = (StringLiteral)parmExpression;
-				C4Function f = parser.getContainer().findFunction(lit.stringValue());
+				Function f = parser.getContainer().findFunction(lit.stringValue());
 				if (f != null)
 					return new DeclarationRegion(f, lit.identifierRegion());
 			}
@@ -403,13 +403,13 @@ public class SpecialScriptRules {
 		public DeclarationRegion locateDeclarationInParameter(CallFunc callFunc, C4ScriptParser parser, int index, int offsetInExpression, ExprElm parmExpression) {
 			if (index == 1 && parmExpression instanceof StringLiteral) {
 				StringLiteral lit = (StringLiteral)parmExpression;
-				C4Object typeToLookIn = callFunc.getParams()[0].guessObjectType(parser);
+				Definition typeToLookIn = callFunc.getParams()[0].guessObjectType(parser);
 				if (typeToLookIn == null && callFunc.getPredecessorInSequence() != null)
 					typeToLookIn = callFunc.getPredecessorInSequence().guessObjectType(parser);
 				if (typeToLookIn == null)
 					typeToLookIn = parser.getContainerObject();
 				if (typeToLookIn != null) {
-					C4Function f = typeToLookIn.findFunction(lit.stringValue());
+					Function f = typeToLookIn.findFunction(lit.stringValue());
 					if (f != null)
 						return new DeclarationRegion(f, lit.identifierRegion());
 				}
@@ -426,13 +426,13 @@ public class SpecialScriptRules {
 		public DeclarationRegion locateDeclarationInParameter(CallFunc callFunc, C4ScriptParser parser, int index, int offsetInExpression, ExprElm parmExpression) {
 			if (index == 0 && parmExpression instanceof StringLiteral) {
 				StringLiteral lit = (StringLiteral)parmExpression;
-				C4Object typeToLookIn = callFunc.getParams().length > 1 ? callFunc.getParams()[1].guessObjectType(parser) : null;
+				Definition typeToLookIn = callFunc.getParams().length > 1 ? callFunc.getParams()[1].guessObjectType(parser) : null;
 				if (typeToLookIn == null && callFunc.getPredecessorInSequence() != null)
 					typeToLookIn = callFunc.getPredecessorInSequence().guessObjectType(parser);
 				if (typeToLookIn == null)
 					typeToLookIn = parser.getContainerObject();
 				if (typeToLookIn != null) {
-					C4Variable var = typeToLookIn.findVariable(lit.stringValue());
+					Variable var = typeToLookIn.findVariable(lit.stringValue());
 					if (var != null)
 						return new DeclarationRegion(var, lit.identifierRegion());
 				}
@@ -448,9 +448,9 @@ public class SpecialScriptRules {
 		@Override
 		public IType returnType(C4ScriptParser parser, CallFunc callFunc) {
 			if (callFunc.getParams().length >= 3) {
-				return C4Type.ID;
+				return PrimitiveType.ID;
 			} else {
-				return C4Type.INT;
+				return PrimitiveType.INT;
 			}
 		};
 	};

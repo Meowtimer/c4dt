@@ -12,8 +12,8 @@ import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.index.ClonkIndex;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.SimpleScriptStorage;
-import net.arctics.clonk.parser.c4script.C4Function;
-import net.arctics.clonk.parser.c4script.C4ScriptBase;
+import net.arctics.clonk.parser.c4script.Function;
+import net.arctics.clonk.parser.c4script.ScriptBase;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.ast.Block;
 import net.arctics.clonk.parser.c4script.ast.ExprElm;
@@ -21,7 +21,7 @@ import net.arctics.clonk.parser.c4script.ast.ScriptParserListener;
 import net.arctics.clonk.parser.c4script.ast.Statement;
 import net.arctics.clonk.parser.c4script.ast.TraversalContinuation;
 
-public class ExecutableScript extends C4ScriptBase {
+public class ExecutableScript extends ScriptBase {
 
 	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 
@@ -56,11 +56,11 @@ public class ExecutableScript extends C4ScriptBase {
 		this.index = index;
 		C4ScriptParser parser = new C4ScriptParser(script, this, null) {
 			@Override
-			protected C4Function newFunction(String nameWillBe) {
+			protected Function newFunction(String nameWillBe) {
 				return new BodyPreservingFunction();
 			}
 			@Override
-			public void parseCodeOfFunction(C4Function function) throws ParsingException {
+			public void parseCodeOfFunction(Function function) throws ParsingException {
 				if (function.getName().equals("Main")) { //$NON-NLS-1$
 					main = (BodyPreservingFunction)function;
 				}
@@ -86,7 +86,7 @@ public class ExecutableScript extends C4ScriptBase {
 	}
 
 	@Override
-	public Collection<C4ScriptBase> getIncludes(ClonkIndex index) {
+	public Collection<ScriptBase> getIncludes(ClonkIndex index) {
 		return Arrays.asList(Command.COMMAND_BASESCRIPT);
 	}
 

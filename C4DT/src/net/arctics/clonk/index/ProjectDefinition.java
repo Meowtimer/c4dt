@@ -7,8 +7,8 @@ import java.security.InvalidParameterException;
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.C4Declaration;
 import net.arctics.clonk.parser.C4ID;
-import net.arctics.clonk.parser.C4Structure;
-import net.arctics.clonk.parser.c4script.C4Variable;
+import net.arctics.clonk.parser.Structure;
+import net.arctics.clonk.parser.c4script.Variable;
 import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.util.StreamUtil;
@@ -25,7 +25,7 @@ import org.eclipse.core.runtime.Path;
 /**
  * Object definition inside a project.
  */
-public class C4ObjectIntern extends C4Object implements Serializable {
+public class ProjectDefinition extends Definition implements Serializable {
 
 	private static final long serialVersionUID = -7978767061460505544L;
 
@@ -33,43 +33,43 @@ public class C4ObjectIntern extends C4Object implements Serializable {
 	protected String relativePath;
 	private transient ClonkIndex index;
 
-	private transient C4Variable staticVariable;
+	private transient Variable staticVariable;
 
-	public C4Variable getStaticVariable() {
+	public Variable getStaticVariable() {
 		if (getEngine() != null && !getEngine().getCurrentSettings().definitionsHaveStaticVariables)
 			return staticVariable = null;
 		if (staticVariable == null) {
-			staticVariable = new C4Variable() {
+			staticVariable = new Variable() {
 				private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 
 				@Override
 				public String getName() {
-					return C4ObjectIntern.this.getName();
+					return ProjectDefinition.this.getName();
 				}
 
 				@Override
 				public C4Declaration getParentDeclaration() {
-					return C4ObjectIntern.this;
+					return ProjectDefinition.this;
 				}
 
 				@Override
-				public C4Structure getTopLevelStructure() {
-					return C4ObjectIntern.this;
+				public Structure getTopLevelStructure() {
+					return ProjectDefinition.this;
 				}
 
 				@Override
 				public String getInfoText() {
-					return C4ObjectIntern.this.getInfoText();
+					return ProjectDefinition.this.getInfoText();
 				}
 
 				@Override
-				public C4Object getObjectType() {
+				public Definition getObjectType() {
 					return null;
 				}
 
 				@Override
 				public IType getType() {
-					return C4ObjectIntern.this.getObjectType();
+					return ProjectDefinition.this.getObjectType();
 				}
 				
 				@Override
@@ -82,7 +82,7 @@ public class C4ObjectIntern extends C4Object implements Serializable {
 		return staticVariable;
 	}
 
-	public C4ObjectIntern(C4ID id, String name, IContainer container) {
+	public ProjectDefinition(C4ID id, String name, IContainer container) {
 		super(id, name);
 		try {
 			setObjectFolder(container);
@@ -199,8 +199,8 @@ public class C4ObjectIntern extends C4Object implements Serializable {
 			}
 	}
 
-	public static C4ObjectIntern objectCorrespondingTo(IContainer folder) {
-		C4ObjectIntern obj = (Utilities.getIndex(folder) != null) ? Utilities.getIndex(folder).getObject(folder) : null;
+	public static ProjectDefinition objectCorrespondingTo(IContainer folder) {
+		ProjectDefinition obj = (Utilities.getIndex(folder) != null) ? Utilities.getIndex(folder).getObject(folder) : null;
 		// haxxy cleanup: might have been lost by <insert unlikely event>
 		if (obj != null)
 			obj.objectFolder = folder;

@@ -5,9 +5,9 @@ import java.util.List;
 import java.util.ResourceBundle;
 
 import net.arctics.clonk.parser.C4Declaration;
-import net.arctics.clonk.parser.c4script.C4Function;
+import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
-import net.arctics.clonk.parser.c4script.C4Variable;
+import net.arctics.clonk.parser.c4script.Variable;
 import net.arctics.clonk.parser.c4script.ast.Block;
 import net.arctics.clonk.parser.c4script.ast.Conf;
 import net.arctics.clonk.parser.c4script.ast.Comment;
@@ -56,8 +56,8 @@ public class TidyUpCodeAction extends TextEditorAction {
 	private static final IPredicate<CodeChunk> VAR_AND_EXPRESSION_LINKED = new IPredicate<TidyUpCodeAction.CodeChunk>() {
 		@Override
 		public boolean test(CodeChunk item) {
-			if (item.relatedDeclaration instanceof C4Variable) {
-				C4Variable var = (C4Variable) item.relatedDeclaration;
+			if (item.relatedDeclaration instanceof Variable) {
+				Variable var = (Variable) item.relatedDeclaration;
 				return item.expressions.size() == 1 && var.getInitializationExpression() == item.expressions.get(0);
 			} else {
 				return true;
@@ -84,7 +84,7 @@ public class TidyUpCodeAction extends TextEditorAction {
 		try {
 			parser = editor.reparseWithDocumentContents(expressionCollector(selection, chunks, selLength), false);
 			// add functions that contain no statements (those won't get collected by the expression collector)
-			Outer: for (C4Function f : parser.getContainer().functions()) {
+			Outer: for (Function f : parser.getContainer().functions()) {
 				for (CodeChunk s : chunks)
 					if (s.relatedDeclaration == f)
 						continue Outer;
@@ -107,7 +107,7 @@ public class TidyUpCodeAction extends TextEditorAction {
 			private List<Comment> commentsOnOld = new LinkedList<Comment>();
 			
 			public TraversalContinuation expressionDetected(ExprElm expression, C4ScriptParser parser) {
-				C4Function activeFunc = parser.getCurrentFunc();
+				Function activeFunc = parser.getCurrentFunc();
 				// initialization expression for variable for example... needs to be reformatted as well
 				if (activeFunc == null) {
 					chunks.addFirst(new CodeChunk(parser.getCurrentVariable(), ArrayUtil.list(expression)));
@@ -151,8 +151,8 @@ public class TidyUpCodeAction extends TextEditorAction {
 			chunks = Utilities.filter(chunks, VAR_AND_EXPRESSION_LINKED);
 			for (CodeChunk chunk : chunks) {
 				try {
-					C4Function func = chunk.relatedDeclaration instanceof C4Function ? (C4Function)chunk.relatedDeclaration : null;
-					C4Variable var = chunk.relatedDeclaration instanceof C4Variable ? (C4Variable)chunk.relatedDeclaration : null;
+					Function func = chunk.relatedDeclaration instanceof Function ? (Function)chunk.relatedDeclaration : null;
+					Variable var = chunk.relatedDeclaration instanceof Variable ? (Variable)chunk.relatedDeclaration : null;
 					IRegion region = func != null ? func.getBody() : var.getInitializationExpressionLocation();
 					List<ExprElm> elms = chunk.expressions;
 					parser.setCurrentFunc(func);

@@ -19,13 +19,13 @@ import java.util.Map;
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.C4Declaration;
 import net.arctics.clonk.parser.C4ID;
-import net.arctics.clonk.parser.c4script.C4Directive;
-import net.arctics.clonk.parser.c4script.C4Function;
-import net.arctics.clonk.parser.c4script.C4ScriptBase;
-import net.arctics.clonk.parser.c4script.C4Variable;
-import net.arctics.clonk.parser.c4script.C4Directive.C4DirectiveType;
-import net.arctics.clonk.parser.c4script.C4Function.C4FunctionScope;
-import net.arctics.clonk.parser.c4script.C4Variable.C4VariableScope;
+import net.arctics.clonk.parser.c4script.Directive;
+import net.arctics.clonk.parser.c4script.Function;
+import net.arctics.clonk.parser.c4script.ScriptBase;
+import net.arctics.clonk.parser.c4script.Variable;
+import net.arctics.clonk.parser.c4script.Directive.C4DirectiveType;
+import net.arctics.clonk.parser.c4script.Function.C4FunctionScope;
+import net.arctics.clonk.parser.c4script.Variable.C4VariableScope;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.resource.ClonkIndexInputStream;
 import net.arctics.clonk.util.CompoundIterable;
@@ -39,7 +39,7 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 
-public class ClonkIndex implements Serializable, Iterable<C4Object> {
+public class ClonkIndex implements Serializable, Iterable<Definition> {
 	
 	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 
@@ -49,23 +49,23 @@ public class ClonkIndex implements Serializable, Iterable<C4Object> {
 		}
 	}; 
 
-	private Map<C4ID, List<C4Object>> indexedObjects = new HashMap<C4ID, List<C4Object>>();
-	private List<C4ScriptBase> indexedScripts = new LinkedList<C4ScriptBase>(); 
-	private List<C4Scenario> indexedScenarios = new LinkedList<C4Scenario>();
+	private Map<C4ID, List<Definition>> indexedObjects = new HashMap<C4ID, List<Definition>>();
+	private List<ScriptBase> indexedScripts = new LinkedList<ScriptBase>(); 
+	private List<Scenario> indexedScenarios = new LinkedList<Scenario>();
 	
-	protected transient List<C4Function> globalFunctions = new LinkedList<C4Function>();
-	protected transient List<C4Variable> staticVariables = new LinkedList<C4Variable>();
+	protected transient List<Function> globalFunctions = new LinkedList<Function>();
+	protected transient List<Variable> staticVariables = new LinkedList<Variable>();
 	protected transient Map<String, List<C4Declaration>> declarationMap = new HashMap<String, List<C4Declaration>>();
-	protected transient Map<C4ID, List<C4ScriptBase>> appendages = new HashMap<C4ID, List<C4ScriptBase>>();
+	protected transient Map<C4ID, List<ScriptBase>> appendages = new HashMap<C4ID, List<ScriptBase>>();
 	
 	public int numUniqueIds() {
 		return indexedObjects.size();
 	}
 	
-	public List<C4Object> getObjects(C4ID id) {
+	public List<Definition> getObjects(C4ID id) {
 		if (indexedObjects == null)
 			return null;
-		List<C4Object> l = indexedObjects.get(id);
+		List<Definition> l = indexedObjects.get(id);
 		return l == null ? null : Collections.unmodifiableList(l);
 	}
 	
@@ -74,12 +74,12 @@ public class ClonkIndex implements Serializable, Iterable<C4Object> {
 	}
 	
 	@SuppressWarnings("unchecked")
-	public Iterable<C4ScriptBase> allScripts() {
-		return new CompoundIterable<C4ScriptBase>(this, indexedScripts, indexedScenarios);
+	public Iterable<ScriptBase> allScripts() {
+		return new CompoundIterable<ScriptBase>(this, indexedScripts, indexedScenarios);
 	}
 	
 	public void preSerialize() {
-		for (C4ScriptBase script : allScripts()) {
+		for (ScriptBase script : allScripts()) {
 			script.preSerialize();
 		}
 	}
@@ -89,21 +89,21 @@ public class ClonkIndex implements Serializable, Iterable<C4Object> {
 	 * @param folder The folder to get the object for
 	 * @return The object or null if the folder is not linked to any object
 	 */
-	public C4ObjectIntern getObject(IContainer folder) {
+	public ProjectDefinition getObject(IContainer folder) {
 		try {
 			// fetch from session cache
 			if (folder.getSessionProperty(ClonkCore.C4OBJECT_PROPERTY_ID) != null)
-				return (C4ObjectIntern) folder.getSessionProperty(ClonkCore.C4OBJECT_PROPERTY_ID);
+				return (ProjectDefinition) folder.getSessionProperty(ClonkCore.C4OBJECT_PROPERTY_ID);
 			
 			// create session cache
 			if (folder.getPersistentProperty(ClonkCore.FOLDER_C4ID_PROPERTY_ID) == null) return null;
-			List<C4Object> objects = getObjects(C4ID.getID(folder.getPersistentProperty(ClonkCore.FOLDER_C4ID_PROPERTY_ID)));
+			List<Definition> objects = getObjects(C4ID.getID(folder.getPersistentProperty(ClonkCore.FOLDER_C4ID_PROPERTY_ID)));
 			if (objects != null) {
-				for(C4Object obj : objects) {
-					if ((obj instanceof C4ObjectIntern)) {
-						if (((C4ObjectIntern)obj).relativePath.equalsIgnoreCase(folder.getProjectRelativePath().toPortableString())) {
+				for(Definition obj : objects) {
+					if ((obj instanceof ProjectDefinition)) {
+						if (((ProjectDefinition)obj).relativePath.equalsIgnoreCase(folder.getProjectRelativePath().toPortableString())) {
 							folder.setSessionProperty(ClonkCore.C4OBJECT_PROPERTY_ID, obj);
-							return (C4ObjectIntern) obj;
+							return (ProjectDefinition) obj;
 						}
 					}
 				}
@@ -111,17 +111,17 @@ public class ClonkIndex implements Serializable, Iterable<C4Object> {
 			return null;
 		} catch (CoreException e) {
 			// likely due to getSessionProperty being called on non-existent resources
-			for (List<C4Object> list : indexedObjects.values()) {
-				for (C4Object obj : list) {
-					if (obj instanceof C4ObjectIntern) {
-						C4ObjectIntern intern = (C4ObjectIntern)obj;
+			for (List<Definition> list : indexedObjects.values()) {
+				for (Definition obj : list) {
+					if (obj instanceof ProjectDefinition) {
+						ProjectDefinition intern = (ProjectDefinition)obj;
 						if (intern.getObjectFolder() != null && intern.getObjectFolder().equals(folder))
 							return intern;
 					}
 				}
 			}
 			// also try scenarios
-			for (C4Scenario s : indexedScenarios) {
+			for (Scenario s : indexedScenarios) {
 				if (s.getObjectFolder() != null && s.getObjectFolder().equals(folder))
 					return s;
 			}
@@ -130,10 +130,10 @@ public class ClonkIndex implements Serializable, Iterable<C4Object> {
 		}
 	}
 	
-	public C4ScriptBase getScript(IFile file) {
-		C4ScriptBase result = C4ScriptBase.get(file, true);
+	public ScriptBase getScript(IFile file) {
+		ScriptBase result = ScriptBase.get(file, true);
 		if (result == null) {
-			for (C4ScriptBase s : this.indexedScripts)
+			for (ScriptBase s : this.indexedScripts)
 				if (s.getResource() != null && s.getResource().equals(file))
 					return s;
 		}
@@ -149,14 +149,14 @@ public class ClonkIndex implements Serializable, Iterable<C4Object> {
 		list.add(field);
 	}
 	
-	private void addGlobalsFrom(C4ScriptBase script) {
-		for (C4Function func : script.functions()) {
+	private void addGlobalsFrom(ScriptBase script) {
+		for (Function func : script.functions()) {
 			if (func.getVisibility() == C4FunctionScope.GLOBAL) {
 				globalFunctions.add(func);
 			}
 			addToDeclarationMap(func);
 		}
-		for (C4Variable var : script.variables()) {
+		for (Variable var : script.variables()) {
 			if (var.getScope() == C4VariableScope.STATIC || var.getScope() == C4VariableScope.CONST) {
 				staticVariables.add(var);
 			}
@@ -164,19 +164,19 @@ public class ClonkIndex implements Serializable, Iterable<C4Object> {
 		}
 	}
 	
-	private void detectAppendages(C4ScriptBase script) {
-		for (C4Directive d : script.directives())
+	private void detectAppendages(ScriptBase script) {
+		for (Directive d : script.directives())
 			if (d.getType() == C4DirectiveType.APPENDTO) {
-				List<C4ScriptBase> appendtoList = appendages.get(d.contentAsID());
+				List<ScriptBase> appendtoList = appendages.get(d.contentAsID());
 				if (appendtoList == null) {
-					appendtoList = new LinkedList<C4ScriptBase>();
+					appendtoList = new LinkedList<ScriptBase>();
 					appendages.put(d.contentAsID(), appendtoList);
 				}
 				appendtoList.add(script);
 			}
 	}
 	
-	private <T extends C4ScriptBase> void addGlobalsFrom(Iterable<T> scripts) {
+	private <T extends ScriptBase> void addGlobalsFrom(Iterable<T> scripts) {
 		for (T script : scripts) {
 			script.postSerialize(null); // for good measure
 			addGlobalsFrom(script);
@@ -188,13 +188,13 @@ public class ClonkIndex implements Serializable, Iterable<C4Object> {
 		
 		// delete old cache
 		if (globalFunctions == null)
-			globalFunctions = new LinkedList<C4Function>();
+			globalFunctions = new LinkedList<Function>();
 		if (staticVariables == null)
-			staticVariables = new LinkedList<C4Variable>();
+			staticVariables = new LinkedList<Variable>();
 		if (declarationMap == null)
 			declarationMap = new HashMap<String, List<C4Declaration>>();
 		if (appendages == null)
-			appendages = new HashMap<C4ID, List<C4ScriptBase>>();
+			appendages = new HashMap<C4ID, List<ScriptBase>>();
 		globalFunctions.clear();
 		staticVariables.clear();
 		declarationMap.clear();
@@ -219,12 +219,12 @@ public class ClonkIndex implements Serializable, Iterable<C4Object> {
 	 * Take care of the global function and static variable cache. You have to call <tt>refreshCache()</tt> after modifying the index.
 	 * @param obj
 	 */
-	public void addObject(C4Object obj) {
+	public void addObject(Definition obj) {
 		if (obj.getId() == null)
 			return;
-		List<C4Object> alreadyDefinedObjects = indexedObjects.get(obj.getId());
+		List<Definition> alreadyDefinedObjects = indexedObjects.get(obj.getId());
 		if (alreadyDefinedObjects == null) {
-			alreadyDefinedObjects = new LinkedList<C4Object>();
+			alreadyDefinedObjects = new LinkedList<Definition>();
 			indexedObjects.put(obj.getId(), alreadyDefinedObjects);
 		} else {
 			if (alreadyDefinedObjects.contains(obj))
@@ -237,9 +237,9 @@ public class ClonkIndex implements Serializable, Iterable<C4Object> {
 	 * Remove the script from the index
 	 * @param script script which may be a standalone-script, a scenario or an object
 	 */
-	public void removeScript(C4ScriptBase script) {
-		if (script instanceof C4Object) {
-			removeObject((C4Object)script);
+	public void removeScript(ScriptBase script) {
+		if (script instanceof Definition) {
+			removeObject((Definition)script);
 		} else {
 			if (indexedScripts.remove(script))
 				scriptRemoved(script);
@@ -252,14 +252,14 @@ public class ClonkIndex implements Serializable, Iterable<C4Object> {
 	 * Take care of the global function and static variable cache. You have to call <tt>refreshCache()</tt> after modifying the index.
 	 * @param obj
 	 */
-	public void removeObject(C4Object obj) {
-		if (obj instanceof C4Scenario) {
-			removeScenario((C4Scenario)obj);
+	public void removeObject(Definition obj) {
+		if (obj instanceof Scenario) {
+			removeScenario((Scenario)obj);
 			return;
 		}
 		if (obj.getId() == null)
 			return;
-		List<C4Object> alreadyDefinedObjects = indexedObjects.get(obj.getId());
+		List<Definition> alreadyDefinedObjects = indexedObjects.get(obj.getId());
 		if (alreadyDefinedObjects != null) {
 			if (alreadyDefinedObjects.remove(obj)) {
 				if (alreadyDefinedObjects.size() == 0) { // if there are no more objects with this C4ID
@@ -270,24 +270,24 @@ public class ClonkIndex implements Serializable, Iterable<C4Object> {
 		}
 	}
 
-	public void removeScenario(C4Scenario scenario) {
+	public void removeScenario(Scenario scenario) {
 		if (indexedScenarios.remove(scenario)) {
 			scriptRemoved(scenario);
 		}
 	}
 	
-	private void scriptRemoved(C4ScriptBase script) {
-		for (C4ScriptBase s : allScripts())
+	private void scriptRemoved(ScriptBase script) {
+		for (ScriptBase s : allScripts())
 			s.scriptRemovedFromIndex(script);
 	}
 	
-	public void addScript(C4ScriptBase script) {
-		if (script instanceof C4Scenario) {
+	public void addScript(ScriptBase script) {
+		if (script instanceof Scenario) {
 			if (!indexedScenarios.contains(script))
-				indexedScenarios.add((C4Scenario) script);
+				indexedScenarios.add((Scenario) script);
 		}
-		else if (script instanceof C4Object) {
-			addObject((C4Object)script);
+		else if (script instanceof Definition) {
+			addObject((Definition)script);
 		}
 		else {
 			if (!indexedScripts.contains(script))
@@ -303,19 +303,19 @@ public class ClonkIndex implements Serializable, Iterable<C4Object> {
 		return indexedObjects.isEmpty() && indexedScripts.isEmpty() && indexedScenarios.isEmpty();
 	}
 	
-	public List<C4Scenario> getIndexedScenarios() {
+	public List<Scenario> getIndexedScenarios() {
 		return Collections.unmodifiableList(indexedScenarios);
 	}
 	
-	public List<C4ScriptBase> getIndexedScripts() {
+	public List<ScriptBase> getIndexedScripts() {
 		return Collections.unmodifiableList(indexedScripts);
 	}
 	
-	public List<C4Function> getGlobalFunctions() {
+	public List<Function> getGlobalFunctions() {
 		return Collections.unmodifiableList(globalFunctions);
 	}
 	
-	public List<C4Variable> getStaticVariables() {
+	public List<Variable> getStaticVariables() {
 		return Collections.unmodifiableList(staticVariables);
 	}
 	
@@ -323,11 +323,11 @@ public class ClonkIndex implements Serializable, Iterable<C4Object> {
 		return Collections.unmodifiableMap(declarationMap);
 	}
 
-	public C4Object getLastObjectWithId(C4ID id) {
-		List<C4Object> objs = getObjects(id);
+	public Definition getLastObjectWithId(C4ID id) {
+		List<Definition> objs = getObjects(id);
 		if (objs != null) {
 			if (objs instanceof LinkedList<?>) { // due to performance
-				return ((LinkedList<C4Object>)objs).getLast();
+				return ((LinkedList<Definition>)objs).getLast();
 			}
 			else {
 				return objs.get(objs.size()-1);
@@ -367,11 +367,11 @@ public class ClonkIndex implements Serializable, Iterable<C4Object> {
 		return result;
 	}
 
-	public C4Object getObjectNearestTo(IResource resource, C4ID id) {
-		C4Object best = null;
+	public Definition getObjectNearestTo(IResource resource, C4ID id) {
+		Definition best = null;
 		for (ClonkIndex index : relevantIndexes()) {
 			if (resource != null) {
-				List<C4Object> objs = index.getObjects(id);
+				List<Definition> objs = index.getObjects(id);
 				best = pickNearest(resource, objs);
 			}
 			else {
@@ -388,7 +388,7 @@ public class ClonkIndex implements Serializable, Iterable<C4Object> {
 	 * @param id
 	 * @return
 	 */
-	public C4Object getObjectFromEverywhere(C4ID id) {
+	public Definition getObjectFromEverywhere(C4ID id) {
 		return getObjectNearestTo(null, id);
 	}
 
@@ -424,18 +424,18 @@ public class ClonkIndex implements Serializable, Iterable<C4Object> {
 		};
 	}
 	
-	public C4Function findGlobalFunction(String functionName) {
-		for (C4Function func : globalFunctions) {
+	public Function findGlobalFunction(String functionName) {
+		for (Function func : globalFunctions) {
 			if (func.getName().equals(functionName))
 				return func;
 		}
 		return null;
 	}
 	
-	public C4Variable findGlobalVariable(String variableName) {
+	public Variable findGlobalVariable(String variableName) {
 		if (staticVariables == null)
 			return null;
-		for (C4Variable var : staticVariables) {
+		for (Variable var : staticVariables) {
 			if (var.getName().equals(variableName))
 				return var;
 		}
@@ -443,7 +443,7 @@ public class ClonkIndex implements Serializable, Iterable<C4Object> {
 	}
 	
 	public C4Declaration findGlobalDeclaration(String fieldName) {
-		C4Function f = findGlobalFunction(fieldName);
+		Function f = findGlobalFunction(fieldName);
 		if (f != null)
 			return f;
 		return findGlobalVariable(fieldName);
@@ -466,10 +466,10 @@ public class ClonkIndex implements Serializable, Iterable<C4Object> {
 		refreshIndex();
 	}
 	
-	private class ObjectIterator implements Iterator<C4Object> {
+	private class ObjectIterator implements Iterator<Definition> {
 
-		private Iterator<List<C4Object>> valuesIterator;
-		private Iterator<C4Object> listIterator;
+		private Iterator<List<Definition>> valuesIterator;
+		private Iterator<Definition> listIterator;
 		
 		public ObjectIterator() {
 			synchronized (ClonkIndex.this) {
@@ -483,7 +483,7 @@ public class ClonkIndex implements Serializable, Iterable<C4Object> {
 			}
 		}
 
-		public C4Object next() {
+		public Definition next() {
 			synchronized (ClonkIndex.this) {
 				while (listIterator == null || !listIterator.hasNext()) {
 					listIterator = null;
@@ -501,22 +501,22 @@ public class ClonkIndex implements Serializable, Iterable<C4Object> {
 		
 	}
 
-	public Iterator<C4Object> iterator() {
+	public Iterator<Definition> iterator() {
 		return new ObjectIterator();
 	}
 	
-	public Iterable<C4Object> objectsIgnoringRemoteDuplicates(final IResource pivot) {
-		return new Iterable<C4Object>() {
-			public Iterator<C4Object> iterator() {
-				final Iterator<List<C4Object>> listIterator = indexedObjects.values().iterator();
-				return new Iterator<C4Object>() {
+	public Iterable<Definition> objectsIgnoringRemoteDuplicates(final IResource pivot) {
+		return new Iterable<Definition>() {
+			public Iterator<Definition> iterator() {
+				final Iterator<List<Definition>> listIterator = indexedObjects.values().iterator();
+				return new Iterator<Definition>() {
 					
 					public boolean hasNext() {
 						return listIterator.hasNext();
 					}
 
-					public C4Object next() {
-						List<C4Object> nextList = listIterator.next();
+					public Definition next() {
+						List<Definition> nextList = listIterator.next();
 						return pickNearest(pivot, nextList);
 					}
 
@@ -529,29 +529,29 @@ public class ClonkIndex implements Serializable, Iterable<C4Object> {
 		};
 	}
 	
-	public List<C4ScriptBase> appendagesOf(C4Object object) {
+	public List<ScriptBase> appendagesOf(Definition object) {
 		if (appendages == null)
 			return null;
-		List<C4ScriptBase> list = appendages.get(object.getId());
+		List<ScriptBase> list = appendages.get(object.getId());
 		if (list != null) {
 			return Collections.unmodifiableList(list); 
 		}
 		return null;
 	}
 	
-	public Iterable<C4ScriptBase> dependentScripts(final C4ScriptBase base) {
-		return new Iterable<C4ScriptBase>() {
+	public Iterable<ScriptBase> dependentScripts(final ScriptBase base) {
+		return new Iterable<ScriptBase>() {
 			@Override
-            public Iterator<C4ScriptBase> iterator() {
-	            return new Iterator<C4ScriptBase>() {
-	            	private C4Object baseObject = base instanceof C4Object ? (C4Object)base : null;
+            public Iterator<ScriptBase> iterator() {
+	            return new Iterator<ScriptBase>() {
+	            	private Definition baseObject = base instanceof Definition ? (Definition)base : null;
 	            	private boolean hasGlobals = base.containsGlobals();
 	            	private int stage = 0;
-	            	private Iterator<? extends C4ScriptBase> currentIterator = getIndexedScripts().iterator();
-	            	private C4ScriptBase currentScript;
-	            	private HashSet<C4ScriptBase> alreadyReturned = new HashSet<C4ScriptBase>();
+	            	private Iterator<? extends ScriptBase> currentIterator = getIndexedScripts().iterator();
+	            	private ScriptBase currentScript;
+	            	private HashSet<ScriptBase> alreadyReturned = new HashSet<ScriptBase>();
 
-	            	private Iterator<? extends C4ScriptBase> getIterator() {
+	            	private Iterator<? extends ScriptBase> getIterator() {
 	            		while (!currentIterator.hasNext()) {
             				switch (++stage) {
             				case 1:
@@ -569,8 +569,8 @@ public class ClonkIndex implements Serializable, Iterable<C4Object> {
 	            	
 	            	@Override
 	            	public boolean hasNext() {
-	            		C4ScriptBase s = null;
-	            		Outer: for (Iterator<? extends C4ScriptBase> it = getIterator(); it != null; it = getIterator()) {
+	            		ScriptBase s = null;
+	            		Outer: for (Iterator<? extends ScriptBase> it = getIterator(); it != null; it = getIterator()) {
 	            			do {
 	            				s = it.next();
 	            				if (s == base || alreadyReturned.contains(s))
@@ -583,8 +583,8 @@ public class ClonkIndex implements Serializable, Iterable<C4Object> {
 	            					if (s.includes(baseObject))
 	            						break Outer;
 	            				}
-	            				List<C4ScriptBase> appendages;
-	            				if (s instanceof C4Object && (appendages = appendagesOf((C4Object)s)) != null && appendages.contains(base)) {
+	            				List<ScriptBase> appendages;
+	            				if (s instanceof Definition && (appendages = appendagesOf((Definition)s)) != null && appendages.contains(base)) {
 	            					break Outer;
 	            				}
 	            			} while (it.hasNext());
@@ -599,7 +599,7 @@ public class ClonkIndex implements Serializable, Iterable<C4Object> {
 	            			return false;
 	            	}
 					@Override
-                    public C4ScriptBase next() {
+                    public ScriptBase next() {
 						return currentScript;
                     }
 					@Override
@@ -609,7 +609,7 @@ public class ClonkIndex implements Serializable, Iterable<C4Object> {
 		};
 	}
 	
-	public C4Engine getEngine() {
+	public Engine getEngine() {
 		return ClonkCore.getDefault().getActiveEngine();
 	}
 	
@@ -659,7 +659,7 @@ public class ClonkIndex implements Serializable, Iterable<C4Object> {
 	 * @param path the path
 	 * @return the script or null if not found
 	 */
-	public C4ScriptBase findScriptByPath(String path) {
+	public ScriptBase findScriptByPath(String path) {
 		return null;
 	}
 	

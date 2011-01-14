@@ -3,10 +3,10 @@ package net.arctics.clonk.ui;
 import java.util.LinkedList;
 import java.util.List;
 
-import net.arctics.clonk.index.C4Object;
-import net.arctics.clonk.index.C4Scenario;
+import net.arctics.clonk.index.Definition;
+import net.arctics.clonk.index.Scenario;
 import net.arctics.clonk.index.ClonkIndex;
-import net.arctics.clonk.parser.c4script.C4ScriptBase;
+import net.arctics.clonk.parser.c4script.ScriptBase;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.util.UI;
 import org.eclipse.core.resources.IProject;
@@ -35,35 +35,35 @@ public class ClonkHierarchyView extends ViewPart {
 	private static class HierarchyTreeContentProvider extends LabelProvider implements ITreeContentProvider, IStyledLabelProvider {
 		
 		public interface IFilter {
-			public boolean test(C4Object parent, C4ScriptBase script);
-			public boolean isRootScript(C4ScriptBase script);
+			public boolean test(Definition parent, ScriptBase script);
+			public boolean isRootScript(ScriptBase script);
 		}
 		
 		private static final IFilter INCLUDES_FILTER = new IFilter() {
 			@Override
-			public boolean test(C4Object parent, C4ScriptBase script) {
+			public boolean test(Definition parent, ScriptBase script) {
 				return script.includes(parent);
 			}
 			@Override
-			public boolean isRootScript(C4ScriptBase script) {
-				return script instanceof C4Object && !(script instanceof C4Scenario) && !script.getIncludes().iterator().hasNext();
+			public boolean isRootScript(ScriptBase script) {
+				return script instanceof Definition && !(script instanceof Scenario) && !script.getIncludes().iterator().hasNext();
 			}
 		};
 		
 		private IFilter filter = INCLUDES_FILTER;
 		
-		public C4ScriptBase[] getScriptsDerivedFrom(Object parentElement, IFilter filter) {
-			if (parentElement instanceof C4Object) {
-				C4Object parent = (C4Object) parentElement;
-				List<C4ScriptBase> result = new LinkedList<C4ScriptBase>();
+		public ScriptBase[] getScriptsDerivedFrom(Object parentElement, IFilter filter) {
+			if (parentElement instanceof Definition) {
+				Definition parent = (Definition) parentElement;
+				List<ScriptBase> result = new LinkedList<ScriptBase>();
 				for (IProject p : ClonkProjectNature.getClonkProjects()) {
 					ClonkIndex index = ClonkProjectNature.get(p).getIndex();
-					for (C4ScriptBase script : index.allScripts()) {
+					for (ScriptBase script : index.allScripts()) {
 						if (filter.test(parent, script))
 							result.add(script);
 					}
 				}
-				return result.toArray(new C4ScriptBase[result.size()]);
+				return result.toArray(new ScriptBase[result.size()]);
 			}
 			else
 				return null;
@@ -85,17 +85,17 @@ public class ClonkHierarchyView extends ViewPart {
 			return true;
 		}
 
-		private C4ScriptBase[] getRootScripts(Object input, IFilter filter) {
-			List<C4ScriptBase> result = new LinkedList<C4ScriptBase>();
+		private ScriptBase[] getRootScripts(Object input, IFilter filter) {
+			List<ScriptBase> result = new LinkedList<ScriptBase>();
 			IProject[] clonkProjects = ClonkProjectNature.getClonkProjects(); 
 			for (IProject p : clonkProjects) {
 				ClonkIndex index = ClonkProjectNature.get(p).getIndex();
-				for (C4ScriptBase script : index.allScripts()) {
+				for (ScriptBase script : index.allScripts()) {
 					if (filter.isRootScript(script))
 						result.add(script);
 				}
 			}
-			return result.toArray(new C4ScriptBase[result.size()]);
+			return result.toArray(new ScriptBase[result.size()]);
 		}
 		
 		@Override
@@ -116,12 +116,12 @@ public class ClonkHierarchyView extends ViewPart {
 		
 		@Override
 		public String getText(Object element) {
-			return ((C4ScriptBase)element).getName();
+			return ((ScriptBase)element).getName();
 		}
 		
 		@Override
 		public Image getImage(Object element) {
-			if (element instanceof C4Object) {
+			if (element instanceof Definition) {
 				return UI.GENERAL_OBJECT_ICON;
 			}
 			else

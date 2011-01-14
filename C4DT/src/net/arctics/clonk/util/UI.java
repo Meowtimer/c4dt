@@ -1,10 +1,10 @@
 package net.arctics.clonk.util;
 
 import net.arctics.clonk.ClonkCore;
-import net.arctics.clonk.index.C4Object;
-import net.arctics.clonk.parser.c4script.C4Function;
-import net.arctics.clonk.parser.c4script.C4ScriptBase;
-import net.arctics.clonk.parser.c4script.C4Variable;
+import net.arctics.clonk.index.Definition;
+import net.arctics.clonk.parser.c4script.Function;
+import net.arctics.clonk.parser.c4script.ScriptBase;
+import net.arctics.clonk.parser.c4script.Variable;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.ui.navigator.ClonkLabelProvider;
 
@@ -55,29 +55,29 @@ public abstract class UI {
 	
 	public static final String FILEDIALOG_CLONK_FILTER = "*.c4g;*.c4d;*.c4f;*.c4s"; //$NON-NLS-1$
 	
-	public static Image getIconForFunction(C4Function function) {
+	public static Image getIconForFunction(Function function) {
 		String iconName = function.getVisibility().name().toLowerCase();
 		return ClonkCore.getDefault().getIconImage(iconName);
 	}
 	
-	public static Image getIconForVariable(C4Variable variable) {
+	public static Image getIconForVariable(Variable variable) {
 		String iconName = variable.getScope().toString().toLowerCase();
 		return ClonkCore.getDefault().getIconImage(iconName);
 	}
 
 	public static Image getIconForObject(Object element) {
-		if (element instanceof C4Function)
-			return getIconForFunction((C4Function)element);
-		if (element instanceof C4Variable)
-			return getIconForVariable((C4Variable)element);
-		if (element instanceof C4Object)
+		if (element instanceof Function)
+			return getIconForFunction((Function)element);
+		if (element instanceof Variable)
+			return getIconForVariable((Variable)element);
+		if (element instanceof Definition)
 			return UI.GENERAL_OBJECT_ICON;
-		if (element instanceof C4ScriptBase)
+		if (element instanceof ScriptBase)
 			return UI.SCRIPT_ICON;
 		return null;
 	}
 	
-	public static Image getIconForC4Object(C4Object element) {
+	public static Image getIconForC4Object(Definition element) {
 		return UI.GENERAL_OBJECT_ICON;
 	}
 

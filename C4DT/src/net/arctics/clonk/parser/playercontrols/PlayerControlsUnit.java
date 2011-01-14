@@ -5,9 +5,9 @@ import java.util.List;
 
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.C4Declaration;
-import net.arctics.clonk.parser.c4script.C4Type;
-import net.arctics.clonk.parser.c4script.C4Variable;
-import net.arctics.clonk.parser.c4script.C4Variable.C4VariableScope;
+import net.arctics.clonk.parser.c4script.PrimitiveType;
+import net.arctics.clonk.parser.c4script.Variable;
+import net.arctics.clonk.parser.c4script.Variable.C4VariableScope;
 import net.arctics.clonk.parser.inireader.IniEntry;
 import net.arctics.clonk.parser.inireader.IniItem;
 import net.arctics.clonk.parser.inireader.IniSection;
@@ -17,14 +17,14 @@ public class PlayerControlsUnit extends IniUnit {
 
 	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 	
-	private List<C4Variable> controlVariables = new LinkedList<C4Variable>();
+	private List<Variable> controlVariables = new LinkedList<Variable>();
 	
 	@Override
 	protected String getConfigurationName() {
 		return "PlayerControls.txt"; //$NON-NLS-1$
 	}
 	
-	public List<C4Variable> getControlVariables() {
+	public List<Variable> getControlVariables() {
 		return controlVariables;
 	}
 
@@ -50,7 +50,7 @@ public class PlayerControlsUnit extends IniUnit {
 						if (identifierEntry instanceof IniEntry) {
 							IniEntry e = (IniEntry) identifierEntry;
 							String ident = e.getValue();
-							C4Variable var = new C4Variable("CON_" + ident, C4Type.INT); //$NON-NLS-1$
+							Variable var = new Variable("CON_" + ident, PrimitiveType.INT); //$NON-NLS-1$
 							var.setScope(C4VariableScope.CONST);
 							var.setParentDeclaration(this);
 							var.setLocation(e.getLocation());
@@ -65,8 +65,8 @@ public class PlayerControlsUnit extends IniUnit {
 	
 	@Override
 	public C4Declaration findDeclaration(String declarationName, Class<? extends C4Declaration> declarationClass) {
-		if (declarationClass == C4Variable.class && declarationName.startsWith("CON_")) { //$NON-NLS-1$
-			for (C4Variable var : getControlVariables())
+		if (declarationClass == Variable.class && declarationName.startsWith("CON_")) { //$NON-NLS-1$
+			for (Variable var : getControlVariables())
 				if (var.getName().equals(declarationName))
 					return var;
 		}

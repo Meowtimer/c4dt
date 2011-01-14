@@ -3,11 +3,11 @@ package net.arctics.clonk.parser;
 import java.io.Serializable;
 
 import net.arctics.clonk.ClonkCore;
-import net.arctics.clonk.index.C4Engine;
-import net.arctics.clonk.index.C4ObjectIntern;
-import net.arctics.clonk.index.C4Scenario;
-import net.arctics.clonk.parser.c4script.C4ScriptBase;
-import net.arctics.clonk.parser.c4script.C4ScriptIntern;
+import net.arctics.clonk.index.Engine;
+import net.arctics.clonk.index.ProjectDefinition;
+import net.arctics.clonk.index.Scenario;
+import net.arctics.clonk.parser.c4script.ScriptBase;
+import net.arctics.clonk.parser.c4script.StandaloneProjectScript;
 import net.arctics.clonk.parser.c4script.IHasSubDeclarations;
 import net.arctics.clonk.parser.c4script.IHasUserDescription;
 import net.arctics.clonk.parser.stringtbl.StringTbl;
@@ -100,7 +100,7 @@ public abstract class C4Declaration implements Serializable, IHasRelatedResource
 	 * Set the script of this declaration.
 	 * @param script the object to set
 	 */
-	public void setScript(C4ScriptBase script) {
+	public void setScript(ScriptBase script) {
 		setParentDeclaration(script);
 	}
 	
@@ -126,24 +126,24 @@ public abstract class C4Declaration implements Serializable, IHasRelatedResource
 	 * Returns the toplevel C4Structure this declaration is declared in.
 	 * @return the structure
 	 */
-	public C4Structure getTopLevelStructure() {
-		return getTopLevelParentDeclarationOfType(C4Structure.class);
+	public Structure getTopLevelStructure() {
+		return getTopLevelParentDeclarationOfType(Structure.class);
 	}
 	
 	/**
 	 * Returns the script this declaration is declared in.
 	 * @return the script
 	 */
-	public C4ScriptBase getScript() {
-		return getTopLevelParentDeclarationOfType(C4ScriptBase.class);
+	public ScriptBase getScript() {
+		return getTopLevelParentDeclarationOfType(ScriptBase.class);
 	}
 	
-	public C4Scenario getScenario() {
+	public Scenario getScenario() {
 		Object file = getScript() != null ? getScript().getScriptStorage() : null;
 		if (file instanceof IResource) {
 			for (IResource r = (IResource) file; r != null; r = r.getParent()) {
 				if (r instanceof IContainer) {
-					C4Scenario s = C4Scenario.get((IContainer) r);
+					Scenario s = Scenario.get((IContainer) r);
 					if (s != null)
 						return s;
 				}
@@ -212,8 +212,8 @@ public abstract class C4Declaration implements Serializable, IHasRelatedResource
 	 * @return
 	 */
 	public Object[] occurenceScope(ClonkProjectNature project) {
-		C4ScriptBase script = getScript();
-		if (script instanceof C4ObjectIntern || script instanceof C4ScriptIntern) {
+		ScriptBase script = getScript();
+		if (script instanceof ProjectDefinition || script instanceof StandaloneProjectScript) {
 			return new Object[] {((IResource) script.getScriptStorage()).getProject()};
 		}
 		return (project != null) ? new Object[] {project.getProject()} : EMPTY_SCOPE;
@@ -334,10 +334,10 @@ public abstract class C4Declaration implements Serializable, IHasRelatedResource
 	}
 
 	public boolean isEngineDeclaration() {
-		return getParentDeclaration() instanceof C4Engine;
+		return getParentDeclaration() instanceof Engine;
 	}
 	
-	public C4Engine getEngine() {
+	public Engine getEngine() {
 		return parentDeclaration != null ? parentDeclaration.getEngine() : null; 
 	}
 
@@ -364,7 +364,7 @@ public abstract class C4Declaration implements Serializable, IHasRelatedResource
 			String pref = ClonkPreferences.getLanguagePref();
 			IResource tblFile = Utilities.findMemberCaseInsensitively(container, "StringTbl"+pref+".txt"); //$NON-NLS-1$ //$NON-NLS-2$
 			if (tblFile instanceof IFile)
-				return (StringTbl) C4Structure.pinned((IFile) tblFile, true, false);
+				return (StringTbl) Structure.pinned((IFile) tblFile, true, false);
 		} catch (CoreException e) {
 			e.printStackTrace();
 		}

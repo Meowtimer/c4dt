@@ -3,9 +3,9 @@ package net.arctics.clonk.ui.editors.ini;
 import java.util.ArrayList;
 import java.util.List;
 
-import net.arctics.clonk.index.C4Engine;
-import net.arctics.clonk.parser.c4script.C4Variable;
-import net.arctics.clonk.parser.c4script.C4Variable.C4VariableScope;
+import net.arctics.clonk.index.Engine;
+import net.arctics.clonk.parser.c4script.Variable;
+import net.arctics.clonk.parser.c4script.Variable.C4VariableScope;
 import net.arctics.clonk.ui.editors.ClonkRuleBasedScanner;
 import net.arctics.clonk.ui.editors.ColorManager;
 import net.arctics.clonk.ui.editors.WordScanner;
@@ -70,7 +70,7 @@ public class IniScanner extends ClonkRuleBasedScanner {
 		}
 	}
 	
-	public IniScanner(ColorManager manager, C4Engine engine) {
+	public IniScanner(ColorManager manager, Engine engine) {
 		
 		IToken defaultToken = createToken(manager, "DEFAULT"); //$NON-NLS-1$
 		
@@ -99,7 +99,7 @@ public class IniScanner extends ClonkRuleBasedScanner {
 		CombinedWordRule.WordMatcher wordRule = new CombinedWordRule.WordMatcher();
 		
 		if (engine != null) {
-			for (C4Variable var : engine.variables()) {
+			for (Variable var : engine.variables()) {
 				if (var.getScope() == C4VariableScope.CONST)
 					wordRule.addWord(var.getName(), constant);
 			}

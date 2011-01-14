@@ -12,7 +12,7 @@ import net.arctics.clonk.ClonkCore;
  * @author madeen
  *
  */
-public class C4EffectFunction extends C4Function {
+public class EffectFunction extends Function {
 
 	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 	public static final String FUNCTION_NAME_FORMAT = "Fx%s%s"; //$NON-NLS-0$
@@ -33,11 +33,11 @@ public class C4EffectFunction extends C4Function {
 		}
 	}
 	
-	private Map<Type, C4EffectFunction> relatedFunctions = new HashMap<Type, C4EffectFunction>();
+	private Map<Type, EffectFunction> relatedFunctions = new HashMap<Type, EffectFunction>();
 	private Type type;
 	private String effectName;
 	
-	public C4EffectFunction getRelatedEffectFunction(Type type) {
+	public EffectFunction getRelatedEffectFunction(Type type) {
 		return relatedFunctions.get(type);
 	}
 
@@ -66,12 +66,12 @@ public class C4EffectFunction extends C4Function {
 		assert(type != null);
 		
 		// get related functions
-		C4ScriptBase script = getScript();
+		ScriptBase script = getScript();
 		for (Type t : Type.values()) {
 			if (t != type) {
-				C4Function relatedFunc = script.findFunction(String.format(FUNCTION_NAME_FORMAT, effectName, t.name()));
-				if (relatedFunc instanceof C4EffectFunction) {
-					relatedFunctions.put(t, (C4EffectFunction) relatedFunc);
+				Function relatedFunc = script.findFunction(String.format(FUNCTION_NAME_FORMAT, effectName, t.name()));
+				if (relatedFunc instanceof EffectFunction) {
+					relatedFunctions.put(t, (EffectFunction) relatedFunc);
 				}
 			}
 		}

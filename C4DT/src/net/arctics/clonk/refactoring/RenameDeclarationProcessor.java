@@ -7,8 +7,8 @@ import java.util.Set;
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.index.ProjectIndex;
 import net.arctics.clonk.parser.C4Declaration;
-import net.arctics.clonk.parser.c4script.C4Function;
-import net.arctics.clonk.parser.c4script.C4ScriptBase;
+import net.arctics.clonk.parser.c4script.Function;
+import net.arctics.clonk.parser.c4script.ScriptBase;
 import net.arctics.clonk.parser.c4script.FindDeclarationInfo;
 import net.arctics.clonk.parser.inireader.IniUnit;
 import net.arctics.clonk.resource.ClonkProjectNature;
@@ -33,12 +33,12 @@ import org.eclipse.text.edits.MalformedTreeException;
 import org.eclipse.text.edits.MultiTextEdit;
 import org.eclipse.text.edits.ReplaceEdit;
 
-public class ClonkRenameDeclarationProcessor extends RenameProcessor {
+public class RenameDeclarationProcessor extends RenameProcessor {
 	
 	private C4Declaration decl;
 	private String newName;
 
-	public ClonkRenameDeclarationProcessor(C4Declaration field, String newName) {
+	public RenameDeclarationProcessor(C4Declaration field, String newName) {
 		this.newName = newName;
 		this.decl = field;
 	}
@@ -46,13 +46,13 @@ public class ClonkRenameDeclarationProcessor extends RenameProcessor {
 	@Override
 	public RefactoringStatus checkInitialConditions(IProgressMonitor monitor) throws CoreException, OperationCanceledException {
 		// renaming fields that originate from outside the project is not allowed
-		C4Declaration baseDecl = decl instanceof C4Function ? ((C4Function)decl).baseFunction() : decl;
+		C4Declaration baseDecl = decl instanceof Function ? ((Function)decl).baseFunction() : decl;
 		if (!(baseDecl.getScript().getIndex() instanceof ProjectIndex))
 			return RefactoringStatus.createFatalErrorStatus(decl.getName() + Messages.OutsideProject);
 		
 		C4Declaration existingDec;
-		if (baseDecl.getParentDeclaration() instanceof C4Function) {
-			existingDec = ((C4Function)baseDecl.getParentDeclaration()).findVariable(newName);
+		if (baseDecl.getParentDeclaration() instanceof Function) {
+			existingDec = ((Function)baseDecl.getParentDeclaration()).findVariable(newName);
 		}
 		else {
 			FindDeclarationInfo info = new FindDeclarationInfo(decl.getScript().getIndex());
@@ -81,9 +81,9 @@ public class ClonkRenameDeclarationProcessor extends RenameProcessor {
 		// declaration of the selected field
 		elements.add(decl.getScript());
 		// if decl is a function also look for functions which inherit or are inherited from decl
-		if (decl instanceof C4Function) {
-			C4Function fieldAsFunc = (C4Function)decl;
-			for (C4Function relatedFunc : decl.getScript().getIndex().declarationsWithName(decl.getName(), C4Function.class)) {
+		if (decl instanceof Function) {
+			Function fieldAsFunc = (Function)decl;
+			for (Function relatedFunc : decl.getScript().getIndex().declarationsWithName(decl.getName(), Function.class)) {
 				if (decl != relatedFunc && fieldAsFunc.isRelatedFunction(relatedFunc) && fieldAsFunc.getScript().getScriptStorage() instanceof IFile)
 					elements.add(relatedFunc);
 			}
@@ -93,10 +93,10 @@ public class ClonkRenameDeclarationProcessor extends RenameProcessor {
 			IFile file;
 			if (element instanceof IFile)
 				file = (IFile)element;
-			else if (element instanceof C4ScriptBase)
-				file = (IFile) ((C4ScriptBase)element).getScriptStorage();
-			else if (element instanceof C4Function)
-				file = (IFile) ((C4Function)element).getScript().getScriptStorage();
+			else if (element instanceof ScriptBase)
+				file = (IFile) ((ScriptBase)element).getScriptStorage();
+			else if (element instanceof Function)
+				file = (IFile) ((Function)element).getScript().getScriptStorage();
 			else if (element instanceof IniUnit)
 				file = ((IniUnit)element).getIniFile();
 			else

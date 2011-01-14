@@ -12,10 +12,10 @@ import java.util.List;
 import java.util.Map;
 
 import net.arctics.clonk.ClonkCore;
-import net.arctics.clonk.index.C4Engine;
+import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.parser.BufferedScanner;
 import net.arctics.clonk.parser.C4Declaration;
-import net.arctics.clonk.parser.C4Structure;
+import net.arctics.clonk.parser.Structure;
 import net.arctics.clonk.parser.CStyleScanner;
 import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.SourceLocation;
@@ -46,7 +46,7 @@ import org.eclipse.ui.ide.IDE;
 /**
  * Reads Windows ini style configuration files
  */
-public class IniUnit extends C4Structure implements Iterable<IniSection>, IHasChildren, ITreeNode, IniItem {
+public class IniUnit extends Structure implements Iterable<IniSection>, IHasChildren, ITreeNode, IniItem {
 
 	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 	
@@ -535,7 +535,7 @@ public class IniUnit extends C4Structure implements Iterable<IniSection>, IHasCh
 	}
 	
 	@Override
-	public C4Structure getTopLevelStructure() {
+	public Structure getTopLevelStructure() {
 		return this;
 	}
 	
@@ -548,8 +548,8 @@ public class IniUnit extends C4Structure implements Iterable<IniSection>, IHasCh
 	}
 	
 	public static void register() {
-		C4Structure.registerStructureFactory(new IStructureFactory() {
-			public C4Structure create(IResource resource, boolean duringBuild) {
+		Structure.registerStructureFactory(new IStructureFactory() {
+			public Structure create(IResource resource, boolean duringBuild) {
 				if (resource instanceof IFile) {
 					try {
 						IniUnit unit = createAdequateIniUnit((IFile) resource);
@@ -616,7 +616,7 @@ public class IniUnit extends C4Structure implements Iterable<IniSection>, IHasCh
 	}
 	
 	@Override
-	public C4Engine getEngine() {
+	public Engine getEngine() {
 		ClonkProjectNature nature = ClonkProjectNature.get(getResource());
 		return nature != null ? nature.getIndex().getEngine() : super.getEngine();
 	}

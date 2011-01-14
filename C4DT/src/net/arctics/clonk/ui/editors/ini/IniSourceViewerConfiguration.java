@@ -4,8 +4,8 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import net.arctics.clonk.index.C4Engine;
-import net.arctics.clonk.index.C4ObjectIntern;
+import net.arctics.clonk.index.Engine;
+import net.arctics.clonk.index.ProjectDefinition;
 import net.arctics.clonk.index.ClonkIndex;
 import net.arctics.clonk.index.ProjectIndex;
 import net.arctics.clonk.parser.C4Declaration;
@@ -14,7 +14,7 @@ import net.arctics.clonk.parser.DeclarationRegion;
 import net.arctics.clonk.parser.inireader.Action;
 import net.arctics.clonk.parser.inireader.CategoriesArray;
 import net.arctics.clonk.parser.inireader.DefinitionPack;
-import net.arctics.clonk.parser.inireader.Function;
+import net.arctics.clonk.parser.inireader.FuncRefEntry;
 import net.arctics.clonk.parser.inireader.IDArray;
 import net.arctics.clonk.parser.inireader.IconSpec;
 import net.arctics.clonk.parser.inireader.IniData.IniDataBase;
@@ -118,8 +118,8 @@ public class IniSourceViewerConfiguration extends ClonkSourceViewerConfiguration
 									ClonkIndex index = Utilities.getIndex(r);
 									declaration = index.getObjectNearestTo(r, C4ID.getID(value));
 								}
-								else if (entryClass == Function.class) {
-									C4ObjectIntern obj = C4ObjectIntern.objectCorrespondingTo(Utilities.getEditingFile(getEditor()).getParent());
+								else if (entryClass == FuncRefEntry.class) {
+									ProjectDefinition obj = ProjectDefinition.objectCorrespondingTo(Utilities.getEditingFile(getEditor()).getParent());
 									if (obj != null) {
 										declaration = obj.findFunction(value);
 									}
@@ -152,7 +152,7 @@ public class IniSourceViewerConfiguration extends ClonkSourceViewerConfiguration
 									}
 								}
 								else if (entryClass == DefinitionPack.class) {
-									ClonkIndex projIndex = C4ObjectIntern.objectCorrespondingTo(Utilities.getEditingFile(getEditor()).getParent()).getIndex();
+									ClonkIndex projIndex = ProjectDefinition.objectCorrespondingTo(Utilities.getEditingFile(getEditor()).getParent()).getIndex();
 									List<ClonkIndex> indexes = projIndex.relevantIndexes();
 									for (ClonkIndex index : indexes) {
 										if (index instanceof ProjectIndex) {
@@ -241,7 +241,7 @@ public class IniSourceViewerConfiguration extends ClonkSourceViewerConfiguration
 		return reconciler;
 	}
 	
-	protected IniScanner getDefCoreScanner(C4Engine engine) {
+	protected IniScanner getDefCoreScanner(Engine engine) {
 		if (scanner == null) {
 			scanner = new IniScanner(getColorManager(), engine);
 			scanner.setDefaultReturnToken(

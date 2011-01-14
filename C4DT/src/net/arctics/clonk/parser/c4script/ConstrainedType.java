@@ -4,7 +4,7 @@ import java.io.Serializable;
 import java.util.Iterator;
 
 import net.arctics.clonk.ClonkCore;
-import net.arctics.clonk.index.C4Object;
+import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.util.ArrayUtil;
 import net.arctics.clonk.util.Utilities;
 
@@ -16,16 +16,16 @@ public class ConstrainedType implements IType, IHasConstraint, Serializable {
 
 	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 	
-	private C4ScriptBase constraintScript;
+	private ScriptBase constraintScript;
 	private ConstraintKind constraintKind;
 
-	public ConstrainedType(C4ScriptBase script, ConstraintKind kind) {
+	public ConstrainedType(ScriptBase script, ConstraintKind kind) {
 		this.constraintScript = script;
 		this.constraintKind = kind;
 	}
 	
 	@Override
-	public C4ScriptBase constraintScript() {
+	public ScriptBase constraintScript() {
 		return constraintScript;
 	}
 	
@@ -36,12 +36,12 @@ public class ConstrainedType implements IType, IHasConstraint, Serializable {
 	
 	@Override
 	public Iterator<IType> iterator() {
-		return ArrayUtil.arrayIterable(C4Type.ID, C4Type.PROPLIST, constraintScript instanceof IType ? (IType)constraintScript : null).iterator();
+		return ArrayUtil.arrayIterable(PrimitiveType.ID, PrimitiveType.PROPLIST, constraintScript instanceof IType ? (IType)constraintScript : null).iterator();
 	}
 
 	@Override
 	public boolean canBeAssignedFrom(IType other) {
-		return C4Type.ID.canBeAssignedFrom(other);
+		return PrimitiveType.ID.canBeAssignedFrom(other);
 	}
 
 	@Override
@@ -72,14 +72,14 @@ public class ConstrainedType implements IType, IHasConstraint, Serializable {
 	@Override
 	public boolean intersects(IType typeSet) {
 		for (IType t : typeSet)
-			if (t.canBeAssignedFrom(C4Type.ID))
+			if (t.canBeAssignedFrom(PrimitiveType.ID))
 				return true;
 		return false;
 	}
 
 	@Override
 	public boolean containsType(IType type) {
-		return type == C4Type.ID || type == this.constraintScript || type == C4Type.PROPLIST;
+		return type == PrimitiveType.ID || type == this.constraintScript || type == PrimitiveType.PROPLIST;
 	}
 	
 	@Override
@@ -89,21 +89,21 @@ public class ConstrainedType implements IType, IHasConstraint, Serializable {
 
 	@Override
 	public int specificness() {
-		return C4Type.ID.specificness()+1;
+		return PrimitiveType.ID.specificness()+1;
 	}
 
 	@Override
 	public IType staticType() {
-		return C4Type.ID;
+		return PrimitiveType.ID;
 	}
 
-	public C4Object getObjectType() {
-		return Utilities.as(constraintScript, C4Object.class);
+	public Definition getObjectType() {
+		return Utilities.as(constraintScript, Definition.class);
 	}
 	
-	public static ConstrainedType get(C4ScriptBase script, ConstraintKind kind) {
-		return (kind == ConstraintKind.Exact) && script instanceof C4Object
-			? ((C4Object)script).getObjectType()
+	public static ConstrainedType get(ScriptBase script, ConstraintKind kind) {
+		return (kind == ConstraintKind.Exact) && script instanceof Definition
+			? ((Definition)script).getObjectType()
 			: new ConstrainedType(script, kind);
 	}
 	

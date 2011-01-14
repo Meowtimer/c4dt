@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.Set;
 
 import net.arctics.clonk.ClonkCore;
-import net.arctics.clonk.index.C4Object;
+import net.arctics.clonk.index.Definition;
 
 public class TypeSet implements IType {
 
@@ -17,10 +17,10 @@ public class TypeSet implements IType {
 
 	private static List<TypeSet> typeSets = new LinkedList<TypeSet>();
 	
-	public static final IType STRING_OR_OBJECT = create(C4Type.STRING, C4Type.OBJECT);
-	public static final IType ARRAY_OR_STRING = create(C4Type.ARRAY, C4Type.STRING);
-	public static final IType REFERENCE_OR_ANY_OR_UNKNOWN = create(C4Type.REFERENCE, C4Type.ANY, C4Type.UNKNOWN);
-	public static final IType OBJECT_OR_ID = create(C4Type.OBJECT, C4Type.ID);
+	public static final IType STRING_OR_OBJECT = create(PrimitiveType.STRING, PrimitiveType.OBJECT);
+	public static final IType ARRAY_OR_STRING = create(PrimitiveType.ARRAY, PrimitiveType.STRING);
+	public static final IType REFERENCE_OR_ANY_OR_UNKNOWN = create(PrimitiveType.REFERENCE, PrimitiveType.ANY, PrimitiveType.UNKNOWN);
+	public static final IType OBJECT_OR_ID = create(PrimitiveType.OBJECT, PrimitiveType.ID);
 	
 	private Set<IType> types;
 	private boolean internalized;
@@ -111,9 +111,9 @@ public class TypeSet implements IType {
 			}
 		}
 		if (set.size() > 1)
-			set.remove(C4Type.ANY); // pfft, ignore any if something more specific is in the house
+			set.remove(PrimitiveType.ANY); // pfft, ignore any if something more specific is in the house
 		if (set.size() > 1)
-			set.remove(C4Type.UNKNOWN);
+			set.remove(PrimitiveType.UNKNOWN);
 		if (containsNonStatics)
 			return set.size() == 1 ? set.iterator().next() : new TypeSet(set);
 		return createInternal(set, actualCount, ingredients);
@@ -121,7 +121,7 @@ public class TypeSet implements IType {
 
 	private static IType createInternal(Set<IType> set, int actualCount, IType... ingredients) {
 		if (set.size() == 0)
-			return C4Type.UNKNOWN;
+			return PrimitiveType.UNKNOWN;
 		if (set.size() == 1)
 			return set.iterator().next();
 		/*if (set.contains(C4Type.ANY))
@@ -223,13 +223,13 @@ public class TypeSet implements IType {
 
 	@Override
 	public IType staticType() {
-		return internalized ? this : C4Type.ANY;
+		return internalized ? this : PrimitiveType.ANY;
 	}
 
-	public static C4Object objectIngredient(IType type) {
+	public static Definition objectIngredient(IType type) {
 		for (IType t : type) {
-			if (t instanceof C4Object)
-				return (C4Object) t; // return the first one found
+			if (t instanceof Definition)
+				return (Definition) t; // return the first one found
 		}
 		return null;
 	}

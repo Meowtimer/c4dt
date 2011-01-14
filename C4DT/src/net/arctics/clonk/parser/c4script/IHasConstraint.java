@@ -6,6 +6,6 @@ public interface IHasConstraint {
 		Includes,
 		CallerType
 	}
-	C4ScriptBase constraintScript();
+	ScriptBase constraintScript();
 	ConstraintKind constraintKind();
 }

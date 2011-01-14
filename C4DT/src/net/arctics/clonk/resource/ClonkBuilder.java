@@ -9,14 +9,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import net.arctics.clonk.index.C4ObjectIntern;
-import net.arctics.clonk.index.C4ObjectParser;
+import net.arctics.clonk.index.ProjectDefinition;
+import net.arctics.clonk.index.DefinitionParser;
 import net.arctics.clonk.index.ClonkIndex;
 import net.arctics.clonk.index.ProjectIndex;
-import net.arctics.clonk.parser.c4script.C4ScriptBase;
-import net.arctics.clonk.parser.c4script.C4ScriptIntern;
+import net.arctics.clonk.parser.c4script.ScriptBase;
+import net.arctics.clonk.parser.c4script.StandaloneProjectScript;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
-import net.arctics.clonk.parser.C4Structure;
+import net.arctics.clonk.parser.Structure;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.resource.c4group.C4Group;
 import net.arctics.clonk.resource.c4group.C4Group.C4GroupType;
@@ -94,12 +94,12 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 		@Override
 		public boolean visit(IResource resource) throws CoreException {
 			if (resource instanceof IContainer) {
-				C4ObjectIntern obj = C4ObjectIntern.objectCorrespondingTo((IContainer) resource);
+				ProjectDefinition obj = ProjectDefinition.objectCorrespondingTo((IContainer) resource);
 				if (obj != null)
 					obj.setObjectFolder(null);
 			}
 			else if (resource instanceof IFile) {
-				C4Structure.unPinFrom((IFile) resource);
+				Structure.unPinFrom((IFile) resource);
 			}
 			return super.visit(resource);
 		}
@@ -165,25 +165,25 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 
 			if (delta.getResource() instanceof IFile) {
 				IFile file = (IFile) delta.getResource();
-				C4ScriptBase script;
+				ScriptBase script;
 				switch (delta.getKind()) {
 				case IResourceDelta.CHANGED: case IResourceDelta.ADDED:
-					script = C4ScriptBase.get(file, true);
+					script = ScriptBase.get(file, true);
 					if (script == null) {
 						// create if new file
 						IContainer folder = delta.getResource().getParent();
-						C4ObjectParser objParser;
+						DefinitionParser objParser;
 						// script in a resource group
 						if (delta.getResource().getName().toLowerCase().endsWith(".c") && folder.getName().toLowerCase().endsWith(".c4g")) { //$NON-NLS-1$ //$NON-NLS-2$
-							script = new C4ScriptIntern(file);
+							script = new StandaloneProjectScript(file);
 						}
 						// object script
-						else if (delta.getResource().getName().equals("Script.c") && (objParser = C4ObjectParser.create(folder)) != null) { //$NON-NLS-1$
+						else if (delta.getResource().getName().equals("Script.c") && (objParser = DefinitionParser.create(folder)) != null) { //$NON-NLS-1$
 							script = objParser.createObject();
 						}
 						// some other file but a script is still needed so get the object for the folder
 						else {
-							script = C4ObjectIntern.objectCorrespondingTo(folder);
+							script = ProjectDefinition.objectCorrespondingTo(folder);
 						}
 					}
 					if (script != null && delta.getResource().equals(script.getScriptStorage())) {
@@ -201,7 +201,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 					//				}
 					break;
 				case IResourceDelta.REMOVED:
-					script = C4ScriptIntern.scriptCorrespondingTo(file);
+					script = StandaloneProjectScript.scriptCorrespondingTo(file);
 					if (script != null && file.equals(script.getScriptStorage()))
 						script.getIndex().removeScript(script);
 				}
@@ -212,16 +212,16 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 					if (EFS.getStore(delta.getResource().getLocationURI()) instanceof C4Group)
 						return false;
 				// make sure the object has a reference to its folder (not to some obsolete deleted one)
-				C4ObjectIntern object;
+				ProjectDefinition object;
 				switch (delta.getKind()) {
 				case IResourceDelta.ADDED:
-					object = C4ObjectIntern.objectCorrespondingTo((IContainer)delta.getResource());
+					object = ProjectDefinition.objectCorrespondingTo((IContainer)delta.getResource());
 					if (object != null)
 						object.setObjectFolder((IContainer) delta.getResource());
 					break;
 				case IResourceDelta.REMOVED:
 					// remove object when folder is removed
-					object = C4ObjectIntern.objectCorrespondingTo((IContainer)delta.getResource());
+					object = ProjectDefinition.objectCorrespondingTo((IContainer)delta.getResource());
 					if (object != null)
 						object.getIndex().removeObject(object);
 					break;
@@ -235,9 +235,9 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 				if (!INDEX_C4GROUPS)
 					if (EFS.getStore(resource.getLocationURI()) instanceof C4Group)
 						return false;
-				C4ObjectParser parser = C4ObjectParser.create((IContainer) resource);
+				DefinitionParser parser = DefinitionParser.create((IContainer) resource);
 				if (parser != null) { // is complete c4d (with DefCore.txt Script.c and Graphics)
-					C4ObjectIntern object = parser.createObject();
+					ProjectDefinition object = parser.createObject();
 					if (object != null) {
 						queueScript(object);
 					}
@@ -247,31 +247,31 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 			else if (resource instanceof IFile) {
 				IFile file = (IFile) resource;
 				if (resource.getName().toLowerCase().endsWith(".c") && C4Group.groupTypeFromFolderName(resource.getParent().getName()) == C4GroupType.ResourceGroup) { //$NON-NLS-1$ //$NON-NLS-2$
-					C4ScriptBase script = C4ScriptIntern.pinnedScript(file, true);
+					ScriptBase script = StandaloneProjectScript.pinnedScript(file, true);
 					if (script == null) {
-						script = new C4ScriptIntern(file);
+						script = new StandaloneProjectScript(file);
 					}
 					queueScript(script);
 					return true;
 				}
-				else if (processAuxiliaryFiles(file, C4ScriptBase.get(file, true))) {
+				else if (processAuxiliaryFiles(file, ScriptBase.get(file, true))) {
 					return true;
 				}
 			}
 			return false;
 		}
-		private boolean processAuxiliaryFiles(IFile file, C4ScriptBase script) throws CoreException {
+		private boolean processAuxiliaryFiles(IFile file, ScriptBase script) throws CoreException {
 			boolean result = true;
-			C4Structure structure;
-			if ((structure = C4Structure.createStructureForFile(file, true)) != null) {
+			Structure structure;
+			if ((structure = Structure.createStructureForFile(file, true)) != null) {
 				structure.commitTo(script);
 				structure.pinTo(file);
 			}
-			else if ((structure = C4Structure.pinned(file, false, true)) != null) {
+			else if ((structure = Structure.pinned(file, false, true)) != null) {
 				gatheredStructures.add(structure);
 			}
 			else {
-				C4ObjectIntern obj = C4ObjectIntern.objectCorrespondingTo(file.getParent());
+				ProjectDefinition obj = ProjectDefinition.objectCorrespondingTo(file.getParent());
 				if (obj != null) {
 					try {
 						obj.processFile(file);
@@ -292,13 +292,13 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 	/**
 	 *  Gathered list of scripts to be parsed
 	 */
-	private Map<C4ScriptBase, C4ScriptParser> parserMap = new HashMap<C4ScriptBase, C4ScriptParser>();
+	private Map<ScriptBase, C4ScriptParser> parserMap = new HashMap<ScriptBase, C4ScriptParser>();
 
 	/**
 	 * Set of structures that have been validated during one build round - keeping track of them so when parsing dependent scripts, scripts that might lose some warnings
 	 * due to structure files having been revalidated can also be reparsed (string tables and such)
 	 */
-	private Set<C4Structure> gatheredStructures = new HashSet<C4Structure>();
+	private Set<Structure> gatheredStructures = new HashSet<Structure>();
 
 	@Override
 	protected void clean(IProgressMonitor monitor) throws CoreException {
@@ -344,7 +344,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 				refreshUIAfterBuild(listOfResourcesToBeRefreshed);
 
 				// validate files related to the scripts that have been parsed
-				for (C4ScriptBase script : parserMap.keySet()) {
+				for (ScriptBase script : parserMap.keySet()) {
 					validateRelatedFiles(script);
 				}
 				
@@ -392,7 +392,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 			visitDeltaOrWholeProject(delta, proj, new ScriptGatherer());
 			
 			// delete old declarations
-			for (C4ScriptBase script : parserMap.keySet()) {
+			for (ScriptBase script : parserMap.keySet()) {
 				script.clearDeclarations();
 			}
 			index.refreshIndex();
@@ -401,12 +401,12 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 			currentSubProgressMonitor = new SubProgressMonitor(monitor, parserMap.size());
 			currentSubProgressMonitor.beginTask("Parse declarations", parserMap.size());
 			int parserMapSize;
-			Map<C4ScriptBase, C4ScriptParser> tempParserMap = new HashMap<C4ScriptBase, C4ScriptParser>();
-			Map<C4ScriptBase, C4ScriptParser> mapFromLastIteration = new HashMap<C4ScriptBase, C4ScriptParser>();
+			Map<ScriptBase, C4ScriptParser> tempParserMap = new HashMap<ScriptBase, C4ScriptParser>();
+			Map<ScriptBase, C4ScriptParser> mapFromLastIteration = new HashMap<ScriptBase, C4ScriptParser>();
 			tempParserMap.putAll(parserMap);
 			do {
 				parserMapSize = parserMap.size();
-				for (C4ScriptBase script : tempParserMap.keySet()) {
+				for (ScriptBase script : tempParserMap.keySet()) {
 					performBuildPhaseOne(script);
 				}
 				mapFromLastIteration.putAll(tempParserMap);
@@ -445,21 +445,21 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 		parserMap.clear();
 	}
 
-	private void queueDependentScripts(Map<C4ScriptBase, C4ScriptParser> sourceMap, Map<C4ScriptBase, C4ScriptParser> tempParserMap) {
+	private void queueDependentScripts(Map<ScriptBase, C4ScriptParser> sourceMap, Map<ScriptBase, C4ScriptParser> tempParserMap) {
 		for (C4ScriptParser parser: sourceMap.values()) {
 			if (parser == null)
 				continue;
-			for (C4ScriptBase dep : parser.getContainer().getIndex().dependentScripts(parser.getContainer())) {
+			for (ScriptBase dep : parser.getContainer().getIndex().dependentScripts(parser.getContainer())) {
 				if (!parserMap.containsKey(dep)) {
 					C4ScriptParser p = queueScript(dep);
 					tempParserMap.put(dep, p);
 				}
 			}
 		}
-		for (C4Structure s : gatheredStructures) {
+		for (Structure s : gatheredStructures) {
 			s.validate();
 			if (s.requiresScriptReparse()) {
-				C4ScriptBase script = C4ScriptBase.get(s.getResource(), true);
+				ScriptBase script = ScriptBase.get(s.getResource(), true);
 				if (script != null) {
 					C4ScriptParser p = queueScript(script);
 					tempParserMap.put(script, p);
@@ -474,12 +474,12 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 		}
 	}
 
-	private void validateRelatedFiles(C4ScriptBase script) throws CoreException {
-		if (script instanceof C4ObjectIntern) {
-			C4ObjectIntern obj = (C4ObjectIntern) script;
+	private void validateRelatedFiles(ScriptBase script) throws CoreException {
+		if (script instanceof ProjectDefinition) {
+			ProjectDefinition obj = (ProjectDefinition) script;
 			for (IResource r : obj.getObjectFolder().members()) {
 				if (r instanceof IFile) {
-					C4Structure pinned = C4Structure.pinned((IFile) r, false, true);
+					Structure pinned = Structure.pinned((IFile) r, false, true);
 					if (pinned != null)
 						pinned.validate();
 				}
@@ -527,7 +527,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 		Display.getDefault().asyncExec(new UIRefresher(listOfResourcesToBeRefreshed));
 	}
 	
-	private C4ScriptParser queueScript(C4ScriptBase script) {
+	private C4ScriptParser queueScript(ScriptBase script) {
 		C4ScriptParser result;
 		if (!parserMap.containsKey(script)) {
 			IStorage storage = script.getScriptStorage();
@@ -542,7 +542,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 		return result;
 	}
 	
-	private void performBuildPhaseOne(C4ScriptBase script) {
+	private void performBuildPhaseOne(ScriptBase script) {
 		C4ScriptParser parser = parserMap.get(script);
 		nature.getIndex().addScript(script);
 		if (parser != null) {
@@ -559,13 +559,13 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 	 * An attempt is made to parse included scripts before the passed one.
 	 * @param script The script to parse
 	 */
-	private void performBuildPhaseTwo(C4ScriptBase script) {
+	private void performBuildPhaseTwo(ScriptBase script) {
 		if (parserMap.containsKey(script)) {
 			C4ScriptParser parser = parserMap.remove(script);
 			if (parser != null) {
 				try {
 					// parse #included scripts before this one
-					for (C4ScriptBase include : script.getIncludes(nature.getIndex())) {
+					for (ScriptBase include : script.getIncludes(nature.getIndex())) {
 						performBuildPhaseTwo(include);
 					}
 					parser.parseCodeOfFunctionsAndValidate();

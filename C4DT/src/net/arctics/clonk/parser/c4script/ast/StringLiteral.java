@@ -6,9 +6,9 @@ import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.DeclarationRegion;
 import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.ParsingException;
-import net.arctics.clonk.parser.c4script.C4ScriptBase;
+import net.arctics.clonk.parser.c4script.ScriptBase;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
-import net.arctics.clonk.parser.c4script.C4Type;
+import net.arctics.clonk.parser.c4script.PrimitiveType;
 import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.parser.c4script.SpecialScriptRules;
 import net.arctics.clonk.parser.c4script.SpecialScriptRules.SpecialFuncRule;
@@ -38,7 +38,7 @@ public final class StringLiteral extends Literal<String> {
 
 	@Override
 	protected IType obtainType(C4ScriptParser context) {
-		return C4Type.STRING;
+		return PrimitiveType.STRING;
 	}
 
 	@Override
@@ -69,7 +69,7 @@ public final class StringLiteral extends Literal<String> {
 	}
 	
 	@Override
-	public String evaluateAtParseTime(C4ScriptBase context) {
+	public String evaluateAtParseTime(ScriptBase context) {
 		String value = getLiteral().replaceAll("\\\"", "\"");
 		return StringTbl.evaluateEntries(context, value, getExprStart());
 	}

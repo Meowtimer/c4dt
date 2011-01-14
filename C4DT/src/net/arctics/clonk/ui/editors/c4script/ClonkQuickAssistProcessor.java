@@ -12,16 +12,16 @@ import net.arctics.clonk.ClonkCore.IDocumentAction;
 import net.arctics.clonk.parser.BufferedScanner;
 import net.arctics.clonk.parser.C4Declaration;
 import net.arctics.clonk.parser.ParserErrorCode;
-import net.arctics.clonk.parser.c4script.C4Function;
-import net.arctics.clonk.parser.c4script.C4ScriptBase;
-import net.arctics.clonk.parser.c4script.C4ScriptOperator;
+import net.arctics.clonk.parser.c4script.Function;
+import net.arctics.clonk.parser.c4script.ScriptBase;
+import net.arctics.clonk.parser.c4script.Operator;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.MutableRegion;
-import net.arctics.clonk.parser.c4script.C4Function.C4FunctionScope;
-import net.arctics.clonk.parser.c4script.C4Type;
-import net.arctics.clonk.parser.c4script.C4Variable;
+import net.arctics.clonk.parser.c4script.Function.C4FunctionScope;
+import net.arctics.clonk.parser.c4script.PrimitiveType;
+import net.arctics.clonk.parser.c4script.Variable;
 import net.arctics.clonk.parser.c4script.C4ScriptParser.ExpressionsAndStatementsReportingFlavour;
-import net.arctics.clonk.parser.c4script.C4Variable.C4VariableScope;
+import net.arctics.clonk.parser.c4script.Variable.C4VariableScope;
 import net.arctics.clonk.parser.c4script.Keywords;
 import net.arctics.clonk.parser.c4script.ast.AccessDeclaration;
 import net.arctics.clonk.parser.c4script.ast.AccessVar;
@@ -201,7 +201,7 @@ public class ClonkQuickAssistProcessor implements IQuickAssistProcessor {
 		private final Replacement replacement;
 		private final int tabIndentation;
 		private final C4ScriptParser parser;
-		private C4Function func;
+		private Function func;
 
 		private ParameterizedProposal(C4Declaration declaration,
 				String replacementString, int replacementOffset,
@@ -210,7 +210,7 @@ public class ClonkQuickAssistProcessor implements IQuickAssistProcessor {
 				String additionalProposalInfo, String postInfo,
 				ClonkTextEditor editor,
 				Replacement replacement, int tabIndentation,
-				C4ScriptParser parser, C4Function func) {
+				C4ScriptParser parser, Function func) {
 			super(declaration, replacementString, replacementOffset,
 					replacementLength, cursorPosition, image, displayString,
 					contextInformation, additionalProposalInfo, postInfo,
@@ -413,8 +413,8 @@ public class ClonkQuickAssistProcessor implements IQuickAssistProcessor {
 		if (expressionRegion.getOffset() == -1)
 			return;
 		C4ScriptEditor editor = editorOrScript instanceof C4ScriptEditor ? (C4ScriptEditor)editorOrScript : null;
-		C4ScriptBase script = editorOrScript instanceof C4ScriptBase
-			? (C4ScriptBase)editorOrScript
+		ScriptBase script = editorOrScript instanceof ScriptBase
+			? (ScriptBase)editorOrScript
 			: editor != null ? editor.scriptBeingEdited() : null;
 		Object needToDisconnect = null;
 		if (document == null) {
@@ -434,7 +434,7 @@ public class ClonkQuickAssistProcessor implements IQuickAssistProcessor {
 		try {
 			if (script == null || document == null)
 				return;
-			C4Function func = script.funcAt(position.getOffset());
+			Function func = script.funcAt(position.getOffset());
 			final int tabIndentation = BufferedScanner.getTabIndentation(document.get(), func.getBody().getOffset()+expressionRegion.getOffset());
 			ExpressionLocator locator = new ExpressionLocator(position.getOffset()-func.getBody().getStart());
 			final C4ScriptParser parser = C4ScriptParser.reportExpressionsAndStatements(document, script, func, locator, null, ExpressionsAndStatementsReportingFlavour.AlsoStatements, true);
@@ -472,7 +472,7 @@ public class ClonkQuickAssistProcessor implements IQuickAssistProcessor {
 					if (offendingExpression instanceof AccessVar && offendingExpression.getParent() instanceof BinaryOp) {
 						AccessVar var = (AccessVar) offendingExpression;
 						BinaryOp op = (BinaryOp) offendingExpression.getParent();
-						if (topLevel == op.getParent() && op.getOperator() == C4ScriptOperator.Assign && op.getLeftSide() == offendingExpression) {
+						if (topLevel == op.getParent() && op.getOperator() == Operator.Assign && op.getLeftSide() == offendingExpression) {
 							replacements.add(
 									Messages.ClonkQuickAssistProcessor_ConvertToVarDeclaration,
 									new VarDeclarationStatement(var.getDeclarationName(), op.getRightSide(), Keywords.VarNamed.length()+1, C4VariableScope.VAR)
@@ -492,20 +492,20 @@ public class ClonkQuickAssistProcessor implements IQuickAssistProcessor {
 						List<Replacement.AdditionalDeclaration> decs = createNewDeclarationReplacement.getAdditionalDeclarations();
 						if (accessDec instanceof AccessVar) {
 							decs.add(new Replacement.AdditionalDeclaration(
-									new C4Variable(accessDec.getDeclarationName(), C4VariableScope.LOCAL),
+									new Variable(accessDec.getDeclarationName(), C4VariableScope.LOCAL),
 									ExprElm.NULL_EXPR
 							));
 						} else {
 							CallFunc callFunc = (CallFunc) accessDec;
-							C4Function function;
+							Function function;
 							decs.add(new Replacement.AdditionalDeclaration(
-									function = new C4Function(accessDec.getDeclarationName(), C4FunctionScope.PUBLIC),
+									function = new Function(accessDec.getDeclarationName(), C4FunctionScope.PUBLIC),
 									ExprElm.NULL_EXPR
 							));
-							List<C4Variable> parms = new ArrayList<C4Variable>(callFunc.getParams().length);
+							List<Variable> parms = new ArrayList<Variable>(callFunc.getParams().length);
 							int p = 0;
 							for (ExprElm parm : callFunc.getParams()) {
-								parms.add(new C4Variable(parmNameFromExpression(parm, ++p), parm.getType(parser)));
+								parms.add(new Variable(parmNameFromExpression(parm, ++p), parm.getType(parser)));
 							}
 							function.setParameters(parms);
 						}
@@ -539,7 +539,7 @@ public class ClonkQuickAssistProcessor implements IQuickAssistProcessor {
 					}
 					break;
 				case IncompatibleTypes:
-					if (C4Type.makeType(ParserErrorCode.getArg(marker, 0), true) == C4Type.STRING) {
+					if (PrimitiveType.makeType(ParserErrorCode.getArg(marker, 0), true) == PrimitiveType.STRING) {
 						replacements.add(
 								Messages.ClonkQuickAssistProcessor_QuoteExpression,
 								new StringLiteral(offendingExpression.toString()),
@@ -565,10 +565,10 @@ public class ClonkQuickAssistProcessor implements IQuickAssistProcessor {
 
 						if (statement.getExpression() instanceof BinaryOp) {
 							BinaryOp binaryOp = (BinaryOp) statement.getExpression();
-							if (binaryOp.getOperator() == C4ScriptOperator.Equal && binaryOp.getLeftSide().modifiable(parser)) {
+							if (binaryOp.getOperator() == Operator.Equal && binaryOp.getLeftSide().modifiable(parser)) {
 								replacements.add(
 										Messages.ClonkQuickAssistProcessor_ConvertComparisonToAssignment,
-										new BinaryOp(C4ScriptOperator.Assign, binaryOp.getLeftSide(), binaryOp.getRightSide())
+										new BinaryOp(Operator.Assign, binaryOp.getLeftSide(), binaryOp.getRightSide())
 								);
 							}
 						}
@@ -672,7 +672,7 @@ public class ClonkQuickAssistProcessor implements IQuickAssistProcessor {
 
 	}
 
-	private void addRemoveReplacement(IDocument document, final IRegion expressionRegion, ReplacementsList replacements, C4Function func) {
+	private void addRemoveReplacement(IDocument document, final IRegion expressionRegion, ReplacementsList replacements, Function func) {
 		replacements.add(
 			Messages.ClonkQuickAssistProcessor_Remove,
 			new ReplacementStatement("", expressionRegion, document, expressionRegion.getOffset(), func.getBody().getOffset()) //$NON-NLS-1$

@@ -3,7 +3,7 @@ package net.arctics.clonk.parser.c4script;
 import java.util.Iterator;
 
 import net.arctics.clonk.ClonkCore;
-import net.arctics.clonk.index.C4Object;
+import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.util.ArrayUtil;
 
 /**
@@ -15,7 +15,7 @@ public class ConstrainedObject implements IType, IHasConstraint {
 
 	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 
-	private C4ScriptBase constraintScript;
+	private ScriptBase constraintScript;
 	private ConstraintKind constraintKind;
 	private transient Iterable<IType> iterable;
 	
@@ -24,7 +24,7 @@ public class ConstrainedObject implements IType, IHasConstraint {
 	 * @return
 	 */
 	@Override
-	public C4ScriptBase constraintScript() {
+	public ScriptBase constraintScript() {
 		return constraintScript;
 	}
 	
@@ -33,7 +33,7 @@ public class ConstrainedObject implements IType, IHasConstraint {
 		return constraintKind;
 	}
 	
-	public ConstrainedObject(C4ScriptBase obligatoryInclude, ConstraintKind constraintKind) {
+	public ConstrainedObject(ScriptBase obligatoryInclude, ConstraintKind constraintKind) {
 		super();
 		this.constraintScript = obligatoryInclude;
 		this.constraintKind = constraintKind;
@@ -42,17 +42,17 @@ public class ConstrainedObject implements IType, IHasConstraint {
 	@Override
 	public Iterator<IType> iterator() {
 		if (iterable == null)
-			iterable = ArrayUtil.arrayIterable(C4Type.OBJECT, C4Type.PROPLIST, constraintScript instanceof IType ? (IType)constraintScript : null);
+			iterable = ArrayUtil.arrayIterable(PrimitiveType.OBJECT, PrimitiveType.PROPLIST, constraintScript instanceof IType ? (IType)constraintScript : null);
 		return iterable.iterator();
 	}
 
 	@Override
 	public boolean canBeAssignedFrom(IType other) {
-		if (other == C4Type.OBJECT)
+		if (other == PrimitiveType.OBJECT)
 			return true;
-		C4ScriptBase script = null;
-		if (other instanceof C4ScriptBase)
-			script = (C4ScriptBase)other;
+		ScriptBase script = null;
+		if (other instanceof ScriptBase)
+			script = (ScriptBase)other;
 		if (other instanceof ConstrainedObject)
 			script = ((ConstrainedObject)other).constraintScript;
 		return script != null && script.includes(constraintScript);
@@ -96,7 +96,7 @@ public class ConstrainedObject implements IType, IHasConstraint {
 
 	@Override
 	public boolean containsType(IType type) {
-		return type == C4Type.PROPLIST || canBeAssignedFrom(type);
+		return type == PrimitiveType.PROPLIST || canBeAssignedFrom(type);
 	}
 
 	@Override
@@ -106,15 +106,15 @@ public class ConstrainedObject implements IType, IHasConstraint {
 
 	@Override
 	public int specificness() {
-		if (constraintScript instanceof C4Object)
-			return ((C4Object)constraintScript).specificness()+1;
+		if (constraintScript instanceof Definition)
+			return ((Definition)constraintScript).specificness()+1;
 		else
-			return C4Type.OBJECT.specificness();
+			return PrimitiveType.OBJECT.specificness();
 	}
 
 	@Override
 	public IType staticType() {
-		return C4Type.OBJECT;
+		return PrimitiveType.OBJECT;
 	}
 	
 	@Override

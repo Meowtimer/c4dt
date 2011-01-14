@@ -3,8 +3,8 @@ package net.arctics.clonk.debug;
 import java.util.LinkedList;
 import java.util.List;
 
-import net.arctics.clonk.parser.c4script.C4Function;
-import net.arctics.clonk.parser.c4script.C4Variable;
+import net.arctics.clonk.parser.c4script.Function;
+import net.arctics.clonk.parser.c4script.Variable;
 
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IResource;
@@ -40,14 +40,14 @@ public class ClonkDebugStackFrame extends ClonkDebugElement implements IStackFra
 	}
 
 	private void setVariables() {
-		if (function instanceof C4Function) {
-			C4Function f = (C4Function) function;
+		if (function instanceof Function) {
+			Function f = (Function) function;
 			List<ClonkDebugVariable> l = new LinkedList<ClonkDebugVariable>();
-			for (C4Variable parm : f.getParameters()) {
+			for (Variable parm : f.getParameters()) {
 				if (parm.isActualParm())
 					l.add(new ClonkDebugVariable(this, parm));
 			}
-			for (C4Variable local : f.getLocalVars()) {
+			for (Variable local : f.getLocalVars()) {
 				l.add(new ClonkDebugVariable(this, local));
 			}
 			variables = l.toArray(new ClonkDebugVariable[l.size()]);
@@ -86,8 +86,8 @@ public class ClonkDebugStackFrame extends ClonkDebugElement implements IStackFra
 
 	@Override
 	public String getName() throws DebugException {
-		if (function instanceof C4Function)
-			return String.format(NAME_FORMAT, ((C4Function)function).getScript().getName(), ((C4Function) function).getLongParameterString(true), line);
+		if (function instanceof Function)
+			return String.format(NAME_FORMAT, ((Function)function).getScript().getName(), ((Function) function).getLongParameterString(true), line);
 		else if (function != null)
 			return function.toString();
 		else
@@ -195,8 +195,8 @@ public class ClonkDebugStackFrame extends ClonkDebugElement implements IStackFra
 	}
 	
 	public String getSourcePath() {
-		if (function instanceof C4Function) {
-			C4Function f = (C4Function) function;
+		if (function instanceof Function) {
+			Function f = (Function) function;
 			IResource r = f.getScript().getResource();
 			if (r instanceof IContainer)
 				return r.getProjectRelativePath().append("Script.c").toOSString(); //$NON-NLS-1$

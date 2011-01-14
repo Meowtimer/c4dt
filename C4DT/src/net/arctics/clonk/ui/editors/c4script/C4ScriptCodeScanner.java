@@ -6,10 +6,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import net.arctics.clonk.index.C4Engine;
+import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.parser.c4script.BuiltInDefinitions;
-import net.arctics.clonk.parser.c4script.C4Function;
-import net.arctics.clonk.parser.c4script.C4Type;
+import net.arctics.clonk.parser.c4script.Function;
+import net.arctics.clonk.parser.c4script.PrimitiveType;
 import net.arctics.clonk.ui.editors.ClonkRuleBasedScanner;
 import net.arctics.clonk.ui.editors.ColorManager;
 import net.arctics.clonk.ui.editors.WordScanner;
@@ -93,11 +93,11 @@ public class C4ScriptCodeScanner extends ClonkRuleBasedScanner {
 	
 	private IRule[] currentRules;
 	
-	public C4ScriptCodeScanner(ColorManager manager, C4Engine engine) {
+	public C4ScriptCodeScanner(ColorManager manager, Engine engine) {
 		commitRules(manager, engine);
 	}
 	
-	public void commitRules(ColorManager manager, C4Engine engine) {
+	public void commitRules(ColorManager manager, Engine engine) {
 		
 		IToken defaultToken = createToken(manager, "DEFAULT"); //$NON-NLS-1$
 		
@@ -145,12 +145,12 @@ public class C4ScriptCodeScanner extends ClonkRuleBasedScanner {
 			wordRule.addWord(c4keyword.trim(), keyword);
 		for (String c4keyword : BuiltInDefinitions.DECLARATORS)
 			wordRule.addWord(c4keyword.trim(), keyword);
-		for (C4Type c4type : C4Type.values()) 
-			if (c4type != C4Type.UNKNOWN)
+		for (PrimitiveType c4type : PrimitiveType.values()) 
+			if (c4type != PrimitiveType.UNKNOWN)
 				wordRule.addWord(c4type.typeName(false).trim().toLowerCase(), type);
 		for (int i=0; i<fgConstants.length; i++)
 			wordRule.addWord(fgConstants[i], type);
-		for (C4Function func : engine.functions())
+		for (Function func : engine.functions())
 			wordRule.addWord(func.getName(), engineFunction);
 		for (int i=0; i<BuiltInDefinitions.OBJECT_CALLBACKS.length; i++)
 			wordRule.addWord(BuiltInDefinitions.OBJECT_CALLBACKS[i], objCallbackFunction);

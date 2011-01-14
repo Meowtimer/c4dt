@@ -2,7 +2,7 @@ package net.arctics.clonk.ui.editors.actions.c4script;
 
 import net.arctics.clonk.ClonkCore;
 
-import net.arctics.clonk.index.C4Object;
+import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.ui.OpenObjectDialog;
 import net.arctics.clonk.ui.editors.ClonkTextEditor;
 
@@ -18,7 +18,7 @@ public class OpenObjectHandler extends AbstractHandler {
 		OpenObjectDialog dialog = new OpenObjectDialog(ClonkCore.getDefault().getWorkbench().getActiveWorkbenchWindow().getShell());
 		switch (dialog.open()) {
 		case Window.OK:
-			for (C4Object o : dialog.getSelectedObjects()) {
+			for (Definition o : dialog.getSelectedObjects()) {
 				try {
 					ClonkTextEditor.openDeclaration(o);
 				} catch (Exception e) {

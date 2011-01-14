@@ -3,7 +3,7 @@ package net.arctics.clonk.ui.editors.c4script;
 import java.util.ArrayList;
 import java.util.List;
 
-import net.arctics.clonk.parser.c4script.C4Function;
+import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.MutableRegion;
 import net.arctics.clonk.parser.c4script.ast.Conf;
 import net.arctics.clonk.resource.ClonkProjectNature;
@@ -111,7 +111,7 @@ public class C4ScriptAutoEditStrategy extends DefaultIndentLineAutoEditStrategy 
 		try {
 			// auto-block
 			if (c.text.endsWith("\n") && c.offset > 0 && d.getChar(c.offset-1) == '{') { //$NON-NLS-1$
-				C4Function f = ((C4ScriptEditor)getConfiguration().getEditor()).getFuncAtCursor();
+				Function f = ((C4ScriptEditor)getConfiguration().getEditor()).getFuncAtCursor();
 				if (f != null && unbalanced(d, f.getBody())) {
 					IRegion r = d.getLineInformationOfOffset(c.offset);
 					int start = r.getOffset();

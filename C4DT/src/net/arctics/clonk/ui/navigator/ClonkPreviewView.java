@@ -15,8 +15,8 @@ import javax.swing.text.rtf.RTFEditorKit;
 
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.debug.ClonkLaunchConfigurationDelegate;
-import net.arctics.clonk.index.C4Engine;
-import net.arctics.clonk.index.C4ObjectIntern;
+import net.arctics.clonk.index.Engine;
+import net.arctics.clonk.index.ProjectDefinition;
 import net.arctics.clonk.parser.inireader.DefCoreUnit;
 import net.arctics.clonk.parser.inireader.IniEntry;
 import net.arctics.clonk.parser.inireader.IntegerArray;
@@ -228,7 +228,7 @@ public class ClonkPreviewView extends ViewPart implements ISelectionListener, Co
 	
 	private File tempLandscapeRenderFile = null;
 	
-	private static String getMaterialsFolderPath(C4Engine engine, IFile resource) {
+	private static String getMaterialsFolderPath(Engine engine, IFile resource) {
 		for (IContainer container = resource.getParent(); container != null; container = container.getParent()) {
 			IResource matsRes = container.findMember(MATERIALS_FOLDER);
 			if (matsRes != null) {
@@ -257,7 +257,7 @@ public class ClonkPreviewView extends ViewPart implements ISelectionListener, Co
 				else if (fileName.equalsIgnoreCase("Landscape.txt")) {
 					// render landscape.txt using utility embedded into OpenClonk
 					ClonkProjectNature nature = ClonkProjectNature.get(file);
-					C4Engine engine = nature != null ? nature.getIndex().getEngine() : null;
+					Engine engine = nature != null ? nature.getIndex().getEngine() : null;
 					if (engine != null && engine.getCurrentSettings().supportsEmbeddedUtilities) try {
 						if (tempLandscapeRenderFile == null) {
 							tempLandscapeRenderFile = File.createTempFile("c4dt", "landscaperender");
@@ -306,7 +306,7 @@ public class ClonkPreviewView extends ViewPart implements ISelectionListener, Co
 			else if (sel instanceof IContainer && ((IContainer)sel).getProject().isOpen()) {
 				IContainer container = (IContainer) sel;
 				
-				C4ObjectIntern obj = C4ObjectIntern.objectCorrespondingTo(container);
+				ProjectDefinition obj = ProjectDefinition.objectCorrespondingTo(container);
 				if (obj != null)
 					newDefText = obj.idWithName();
 

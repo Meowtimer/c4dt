@@ -1,7 +1,7 @@
 package net.arctics.clonk.command;
 
 import net.arctics.clonk.ClonkCore;
-import net.arctics.clonk.parser.c4script.C4Function;
+import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.ast.Block;
 import net.arctics.clonk.parser.c4script.ast.ControlFlowException;
 import net.arctics.clonk.parser.c4script.ast.ReturnException;
@@ -9,7 +9,7 @@ import net.arctics.clonk.parser.c4script.ast.Statement;
 import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
 import net.arctics.clonk.parser.c4script.ast.evaluate.IVariableValueProvider;
 
-public class BodyPreservingFunction extends C4Function {
+public class BodyPreservingFunction extends Function {
 	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 
 	private transient Block body;
@@ -33,7 +33,7 @@ public class BodyPreservingFunction extends C4Function {
 			}
 
 			@Override
-			public C4Function getFunction() {
+			public Function getFunction() {
 				return BodyPreservingFunction.this;
 			}
 

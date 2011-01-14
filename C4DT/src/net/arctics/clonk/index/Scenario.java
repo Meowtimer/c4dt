@@ -6,15 +6,15 @@ import net.arctics.clonk.parser.C4ID;
 import org.eclipse.core.resources.IContainer;
 
 // kind of a hack; but scenarios also have scripts...
-public class C4Scenario extends C4ObjectIntern {
+public class Scenario extends ProjectDefinition {
 
-	public C4Scenario(C4ID id, String name, IContainer container) {
+	public Scenario(C4ID id, String name, IContainer container) {
 		super(id, name, container);
 	}
 	
-	public static C4Scenario get(IContainer folder) {
-		C4ObjectIntern obj = objectCorrespondingTo(folder);
-		return obj instanceof C4Scenario ? (C4Scenario)obj : null;
+	public static Scenario get(IContainer folder) {
+		ProjectDefinition obj = objectCorrespondingTo(folder);
+		return obj instanceof Scenario ? (Scenario)obj : null;
 	}
 
 

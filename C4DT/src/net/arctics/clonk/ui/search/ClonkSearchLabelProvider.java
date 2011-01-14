@@ -1,8 +1,8 @@
 package net.arctics.clonk.ui.search;
 
-import net.arctics.clonk.index.C4ObjectIntern;
-import net.arctics.clonk.index.C4Scenario;
-import net.arctics.clonk.parser.c4script.C4ScriptIntern;
+import net.arctics.clonk.index.ProjectDefinition;
+import net.arctics.clonk.index.Scenario;
+import net.arctics.clonk.parser.c4script.StandaloneProjectScript;
 import net.arctics.clonk.util.UI;
 import org.eclipse.jface.viewers.LabelProvider;
 import org.eclipse.jface.viewers.StyledString;
@@ -16,13 +16,13 @@ public class ClonkSearchLabelProvider extends LabelProvider implements IStyledLa
 	}
 	@Override
 	public Image getImage(Object element) {
-		if (element instanceof C4Scenario) {
+		if (element instanceof Scenario) {
 			return UI.SCENARIO_ICON;
 		}
-		if (element instanceof C4ObjectIntern) {
+		if (element instanceof ProjectDefinition) {
 			return UI.GENERAL_OBJECT_ICON;
 		}
-		if (element instanceof C4ScriptIntern) {
+		if (element instanceof StandaloneProjectScript) {
 			return UI.SCRIPT_ICON;
 		}
 		return null;

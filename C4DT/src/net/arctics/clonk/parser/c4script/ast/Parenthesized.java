@@ -1,7 +1,7 @@
 package net.arctics.clonk.parser.c4script.ast;
 
 import net.arctics.clonk.ClonkCore;
-import net.arctics.clonk.parser.c4script.C4ScriptBase;
+import net.arctics.clonk.parser.c4script.ScriptBase;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.IType;
 
@@ -49,13 +49,13 @@ public class Parenthesized extends Value {
 	@Override
 	public ExprElm optimize(C4ScriptParser parser)
 	throws CloneNotSupportedException {
-		if (!(getParent() instanceof Operator) && !(getParent() instanceof Sequence))
+		if (!(getParent() instanceof OperatorExpression) && !(getParent() instanceof Sequence))
 			return innerExpr.optimize(parser);
 		return super.optimize(parser);
 	}
 
 	@Override
-	public Object evaluateAtParseTime(C4ScriptBase context) {
+	public Object evaluateAtParseTime(ScriptBase context) {
 		return innerExpr.evaluateAtParseTime(context);
 	}
 

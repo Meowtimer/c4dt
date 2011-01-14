@@ -1,7 +1,7 @@
 package net.arctics.clonk.ui.navigator;
 
 import net.arctics.clonk.ClonkCore;
-import net.arctics.clonk.index.C4Object;
+import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.resource.c4group.C4Group.C4GroupType;
 import net.arctics.clonk.ui.OverlayIcon;
 import net.arctics.clonk.util.INode;
@@ -97,8 +97,8 @@ public class ClonkLabelProvider extends LabelProvider implements IStyledLabelPro
 		else if (element instanceof IResource) {
 			return new StyledString(((IResource)element).getName());
 		}
-		else if (element instanceof C4Object) {
-			C4Object obj = (C4Object) element;
+		else if (element instanceof Definition) {
+			Definition obj = (Definition) element;
 			String c4id = obj.getId().toString();
 			return getIDText(obj.getNodeName(), c4id, true);
 		}

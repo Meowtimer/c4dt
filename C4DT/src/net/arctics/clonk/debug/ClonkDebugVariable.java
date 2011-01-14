@@ -1,6 +1,6 @@
 package net.arctics.clonk.debug;
 
-import net.arctics.clonk.parser.c4script.C4Variable;
+import net.arctics.clonk.parser.c4script.Variable;
 
 import org.eclipse.debug.core.DebugException;
 import org.eclipse.debug.core.model.IValue;
@@ -9,17 +9,17 @@ import org.eclipse.debug.core.model.IVariable;
 public class ClonkDebugVariable extends ClonkDebugElement implements IVariable {
 
 	private ClonkDebugStackFrame stackFrame;
-	private C4Variable variable;
+	private Variable variable;
 	private ClonkDebugVariableValue value;
 	
-	public ClonkDebugVariable(ClonkDebugStackFrame stackFrame, C4Variable variable) {
+	public ClonkDebugVariable(ClonkDebugStackFrame stackFrame, Variable variable) {
 		super(stackFrame.getTarget());
 		this.stackFrame = stackFrame;
 		this.variable = variable;
 		this.value = new ClonkDebugVariableValue(this);
 	}
 	
-	public C4Variable getVariable() {
+	public Variable getVariable() {
 		return variable;
 	}
 

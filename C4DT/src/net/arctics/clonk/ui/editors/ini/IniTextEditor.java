@@ -8,7 +8,7 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 import net.arctics.clonk.parser.C4Declaration;
-import net.arctics.clonk.parser.C4Structure;
+import net.arctics.clonk.parser.Structure;
 import net.arctics.clonk.parser.inireader.IniItem;
 import net.arctics.clonk.parser.inireader.IniSection;
 import net.arctics.clonk.parser.inireader.IniUnit;
@@ -116,7 +116,7 @@ public class IniTextEditor extends ClonkTextEditor {
 		if (textChangeListener == null) {
 			IniUnit unit = null;
 			try {
-				unit = (IniUnit) C4Structure.pinned(Utilities.getEditingFile(this), true, false);
+				unit = (IniUnit) Structure.pinned(Utilities.getEditingFile(this), true, false);
 			} catch (CoreException e) {
 				e.printStackTrace();
 			}

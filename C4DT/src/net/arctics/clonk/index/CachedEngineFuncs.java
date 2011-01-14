@@ -2,48 +2,48 @@ package net.arctics.clonk.index;
 
 import java.lang.reflect.Field;
 
-import net.arctics.clonk.parser.c4script.C4Function;
+import net.arctics.clonk.parser.c4script.Function;
 
 /**
  * Contains cached engine functions that may be used frequently.
  */
 public class CachedEngineFuncs {
 
-	private final C4Engine engine;
+	private final Engine engine;
 	
-	private C4Function f(String name) {
+	private Function f(String name) {
 		return engine.findFunction(name);
 	}
 	
-	public C4Function Par;
-	public C4Function Var;
-	public C4Function Local;
-	public C4Function GameCall;
-	public C4Function LocalN;
-	public C4Function PrivateCall;
-	public C4Function ProtectedCall;
-	public C4Function Call;
-	public C4Function DecVar;
-	public C4Function IncVar;
-	public C4Function SetVar;
-	public C4Function AssignVar;
-	public C4Function SetLocal;
-	public C4Function SetCommand;
-	public C4Function AddCommand;
-	public C4Function AppendCommand;
-	public C4Function ObjectCall;
-	public C4Function GetID;
+	public Function Par;
+	public Function Var;
+	public Function Local;
+	public Function GameCall;
+	public Function LocalN;
+	public Function PrivateCall;
+	public Function ProtectedCall;
+	public Function Call;
+	public Function DecVar;
+	public Function IncVar;
+	public Function SetVar;
+	public Function AssignVar;
+	public Function SetLocal;
+	public Function SetCommand;
+	public Function AddCommand;
+	public Function AppendCommand;
+	public Function ObjectCall;
+	public Function GetID;
 	public Object     This; // this as variable name not allowed so exclude this var -.-
 	
-	public final C4Function[] ObjectCallFunctions;
+	public final Function[] ObjectCallFunctions;
 	
-	public final C4Function[] CallFunctions;
+	public final Function[] CallFunctions;
 
-	public CachedEngineFuncs(C4Engine engine) {
+	public CachedEngineFuncs(Engine engine) {
 		this.engine = engine;
 		try {
 			for (Field f : CachedEngineFuncs.class.getFields()) {
-				if (f.getType() == C4Function.class) {
+				if (f.getType() == Function.class) {
 					f.set(this, this.f(f.getName()));
 				}
 			}
@@ -51,10 +51,10 @@ public class CachedEngineFuncs {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		CallFunctions = new C4Function[] {
+		CallFunctions = new Function[] {
 			GameCall, PrivateCall, ProtectedCall, Call
 		};
-		ObjectCallFunctions = new C4Function[] {
+		ObjectCallFunctions = new Function[] {
 			ObjectCall,
 			ProtectedCall,
 			PrivateCall

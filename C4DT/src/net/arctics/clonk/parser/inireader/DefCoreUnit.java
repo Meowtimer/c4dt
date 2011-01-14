@@ -1,9 +1,9 @@
 package net.arctics.clonk.parser.inireader;
 
 import net.arctics.clonk.ClonkCore;
-import net.arctics.clonk.index.C4Object;
+import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.parser.C4ID;
-import net.arctics.clonk.parser.c4script.C4ScriptBase;
+import net.arctics.clonk.parser.c4script.ScriptBase;
 
 public class DefCoreUnit extends IniUnit {
 	
@@ -31,9 +31,9 @@ public class DefCoreUnit extends IniUnit {
 	}
 	
 	@Override
-	public void commitTo(C4ScriptBase script) {
-		if (script instanceof C4Object) {
-			((C4Object)script).setId(this.getObjectID());
+	public void commitTo(ScriptBase script) {
+		if (script instanceof Definition) {
+			((Definition)script).setId(this.getObjectID());
 		}
 	}
 	

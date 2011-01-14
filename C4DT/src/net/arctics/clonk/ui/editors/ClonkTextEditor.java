@@ -3,9 +3,9 @@ package net.arctics.clonk.ui.editors;
 import java.util.ResourceBundle;
 
 import net.arctics.clonk.ClonkCore;
-import net.arctics.clonk.index.C4ObjectIntern;
+import net.arctics.clonk.index.ProjectDefinition;
 import net.arctics.clonk.parser.C4Declaration;
-import net.arctics.clonk.parser.C4Structure;
+import net.arctics.clonk.parser.Structure;
 import net.arctics.clonk.ui.editors.actions.c4script.OpenDeclarationAction;
 import net.arctics.clonk.ui.editors.c4script.C4ScriptEditor;
 import net.arctics.clonk.ui.editors.c4script.ClonkContentAssistant;
@@ -86,7 +86,7 @@ public class ClonkTextEditor extends TextEditor {
 	public static IEditorPart openDeclaration(C4Declaration target, boolean activate) {
 		IWorkbench workbench = PlatformUI.getWorkbench();
 		IWorkbenchPage workbenchPage = workbench.getActiveWorkbenchWindow().getActivePage();
-		C4Structure structure = target.getTopLevelStructure();
+		Structure structure = target.getTopLevelStructure();
 		if (structure instanceof IHasEditorRefWhichEnablesStreamlinedOpeningOfDeclarations) {
 			IEditorPart ed = ((IHasEditorRefWhichEnablesStreamlinedOpeningOfDeclarations) structure).getEditor();
 			revealInEditor(target, structure, ed);
@@ -106,8 +106,8 @@ public class ClonkTextEditor extends TextEditor {
 				}
 			}
 			// if a definition has no script fall back to opening to DefCore.txt
-			else if (structure instanceof C4ObjectIntern) {
-				C4ObjectIntern obj = (C4ObjectIntern) structure;
+			else if (structure instanceof ProjectDefinition) {
+				ProjectDefinition obj = (ProjectDefinition) structure;
 				IFile defCore = obj.getDefCoreFile();
 				if (defCore != null) {
 					try {
@@ -121,7 +121,7 @@ public class ClonkTextEditor extends TextEditor {
 		return null;
 	}
 
-	private static void revealInEditor(C4Declaration target, C4Structure structure, IEditorPart editor) {
+	private static void revealInEditor(C4Declaration target, Structure structure, IEditorPart editor) {
 		if (editor instanceof ClonkTextEditor) {
 			ClonkTextEditor clonkTextEditor = (ClonkTextEditor) editor;
 			if (target != structure && target.getLocation() != null) {

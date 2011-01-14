@@ -24,7 +24,7 @@ public class ReferenceType implements IType {
 	
 	@Override
 	public Iterator<IType> iterator() {
-		return ArrayUtil.arrayIterable(C4Type.REFERENCE, type).iterator();
+		return ArrayUtil.arrayIterable(PrimitiveType.REFERENCE, type).iterator();
 	}
 
 	@Override
@@ -34,7 +34,7 @@ public class ReferenceType implements IType {
 
 	@Override
 	public String typeName(boolean special) {
-		return String.format("%s %s", type.toString(), C4Type.REFERENCE.toString());
+		return String.format("%s %s", type.toString(), PrimitiveType.REFERENCE.toString());
 	}
 	
 	@Override
@@ -49,7 +49,7 @@ public class ReferenceType implements IType {
 
 	@Override
 	public boolean containsType(IType type) {
-		return type.equals(this) || type.containsType(type) || C4Type.REFERENCE.containsType(type);
+		return type.equals(this) || type.containsType(type) || PrimitiveType.REFERENCE.containsType(type);
 	}
 
 	@Override
@@ -64,7 +64,7 @@ public class ReferenceType implements IType {
 
 	@Override
 	public IType staticType() {
-		return C4Type.REFERENCE;
+		return PrimitiveType.REFERENCE;
 	}
 	
 	private static Map<IType, ReferenceType> internalizedReferenceTypes = new HashMap<IType, ReferenceType>();

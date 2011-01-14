@@ -15,7 +15,7 @@ import net.arctics.clonk.util.Utilities;
  * @author ZokRadonh
  *
  */
-public enum C4Type implements IType {
+public enum PrimitiveType implements IType {
 	UNKNOWN,
 	
 	ANY,
@@ -45,26 +45,26 @@ public enum C4Type implements IType {
 		return lowercaseName;
 	}
 
-	public static final Map<String, C4Type> CPP_TO_C4SCRIPT_MAP = Utilities.map(
-		"C4Value", C4Type.ANY,
-		"C4Void", C4Type.ANY,
-		"long", C4Type.INT,
-		"bool", C4Type.BOOL,
-		"C4ID", C4Type.ID,
-		"C4Object", C4Type.OBJECT,
-		"C4PropList", C4Type.PROPLIST,
-		"C4Value", C4Type.ANY,
-		"C4String", C4Type.STRING,
-		"C4Void", C4Type.UNKNOWN
+	public static final Map<String, PrimitiveType> CPP_TO_C4SCRIPT_MAP = Utilities.map(
+		"C4Value", PrimitiveType.ANY,
+		"C4Void", PrimitiveType.ANY,
+		"long", PrimitiveType.INT,
+		"bool", PrimitiveType.BOOL,
+		"C4ID", PrimitiveType.ID,
+		"C4Object", PrimitiveType.OBJECT,
+		"C4PropList", PrimitiveType.PROPLIST,
+		"C4Value", PrimitiveType.ANY,
+		"C4String", PrimitiveType.STRING,
+		"C4Void", PrimitiveType.UNKNOWN
 	);
-	public static final Map<C4Type, String> C4SCRIPT_TO_CPP_MAP = Utilities.reverseMap(CPP_TO_C4SCRIPT_MAP, new HashMap<C4Type, String>());
+	public static final Map<PrimitiveType, String> C4SCRIPT_TO_CPP_MAP = Utilities.reverseMap(CPP_TO_C4SCRIPT_MAP, new HashMap<PrimitiveType, String>());
 	
 	private static final Pattern nillablePattern = Pattern.compile("Nillable\\<(.*?)\\>");
 	private static final Pattern pointerTypePattern = Pattern.compile("(.*?)\\s*?\\*");
 	
-	public static C4Type typeFromCPPType(String type) {
+	public static PrimitiveType typeFromCPPType(String type) {
 		Matcher m;
-		C4Type ty = C4Type.CPP_TO_C4SCRIPT_MAP.get(type);
+		PrimitiveType ty = PrimitiveType.CPP_TO_C4SCRIPT_MAP.get(type);
 		if (ty != null) {
 			return ty;
 		}
@@ -77,11 +77,11 @@ public enum C4Type implements IType {
 				return ty;
 			}
 		}
-		return C4Type.UNKNOWN; 
+		return PrimitiveType.UNKNOWN; 
 	}
 	
 	public static String cppTypeFromType(IType type) {
-		C4Type t = makeType(type.toString());
+		PrimitiveType t = makeType(type.toString());
 		return C4SCRIPT_TO_CPP_MAP.get(t);
 	}
 	
@@ -91,8 +91,8 @@ public enum C4Type implements IType {
 			t = t.staticType();
 			if (t == this)
 				return true;
-			if (t.getClass() == C4Type.class) {
-				switch ((C4Type)t) {
+			if (t.getClass() == PrimitiveType.class) {
+				switch ((PrimitiveType)t) {
 				case UNKNOWN: case ANY: case REFERENCE:
 					return true;
 				default:
@@ -110,25 +110,25 @@ public enum C4Type implements IType {
 		return false;
 	}
 
-	public static C4Type makeType(String arg) {
+	public static PrimitiveType makeType(String arg) {
 		return makeType(arg, false);
 	}
 	
-	private static final C4Type[] officialTypes = new C4Type[] {BOOL, INT, ID, STRING, ARRAY, OBJECT, PROPLIST};
+	private static final PrimitiveType[] officialTypes = new PrimitiveType[] {BOOL, INT, ID, STRING, ARRAY, OBJECT, PROPLIST};
 	
-	public static C4Type makeType(String arg, boolean allowSpecial) {
-		for (C4Type t : officialTypes)
+	public static PrimitiveType makeType(String arg, boolean allowSpecial) {
+		for (PrimitiveType t : officialTypes)
 			if (t.toString().equals(arg))
 				return t;
 		if (allowSpecial) {
 			if (arg.equals("dword")) //$NON-NLS-1$
-				return C4Type.INT; // formerly DWORD
+				return PrimitiveType.INT; // formerly DWORD
 			if (arg.equals("any")) //$NON-NLS-1$
-				return C4Type.ANY;
+				return PrimitiveType.ANY;
 		}
 		if (arg.equals("&") || (allowSpecial && arg.equals("reference"))) //$NON-NLS-1$ //$NON-NLS-2$
-			return C4Type.REFERENCE;
-		return C4Type.UNKNOWN;
+			return PrimitiveType.REFERENCE;
+		return PrimitiveType.UNKNOWN;
 	}
 
 	/**
@@ -136,7 +136,7 @@ public enum C4Type implements IType {
 	 * @param value the value
 	 * @return the type
 	 */
-	public static C4Type typeFrom(Object value) {
+	public static PrimitiveType typeFrom(Object value) {
 		if (value instanceof String)
 			return STRING;
 		if (value instanceof Number)
@@ -158,7 +158,7 @@ public enum C4Type implements IType {
 	 * @return the converted value or null if conversion failed
 	 */
 	public Object convert(Object value) {
-		C4Type valueType = typeFrom(value);
+		PrimitiveType valueType = typeFrom(value);
 		if (valueType == this)
 			return value;
 		switch (this) {
@@ -188,9 +188,9 @@ public enum C4Type implements IType {
 			}
 
 			@Override
-			public C4Type next() {
+			public PrimitiveType next() {
 				done = true;
-				return C4Type.this;
+				return PrimitiveType.this;
 			}
 
 			@Override
@@ -217,8 +217,8 @@ public enum C4Type implements IType {
 		if (staticType == this) {
 			return true;
 		}
-		if (staticType instanceof C4Type) {
-			switch ((C4Type)staticType) {
+		if (staticType instanceof PrimitiveType) {
+			switch ((PrimitiveType)staticType) {
 			case ANY:
 			case UNKNOWN:
 			case ARRAY:

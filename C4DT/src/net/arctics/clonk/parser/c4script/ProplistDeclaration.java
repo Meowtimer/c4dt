@@ -5,23 +5,23 @@ import java.util.LinkedList;
 import java.util.List;
 
 import net.arctics.clonk.parser.C4Declaration;
-import net.arctics.clonk.parser.C4Structure;
+import net.arctics.clonk.parser.Structure;
 import net.arctics.clonk.util.ArrayUtil;
 import net.arctics.clonk.util.CompoundIterable;
 
-public class ProplistDeclaration extends C4Structure implements IType {
+public class ProplistDeclaration extends Structure implements IType {
 
 	private static final long serialVersionUID = 1L;
 	
 	/**
 	 * Each assignment in a proplist declaration is represented by a C4Variable object.
 	 */
-	private List<C4Variable> components;
+	private List<Variable> components;
 	
 	/**
 	 * Components that were added by assignment (proplist.x = 123;) as opposed to being declared inside the initialization block
 	 */
-	private List<C4Variable> adhocComponents;
+	private List<Variable> adhocComponents;
 	
 	/**
 	 * Whether the declaration was "explicit" {blub=<blub>...} or
@@ -33,7 +33,7 @@ public class ProplistDeclaration extends C4Structure implements IType {
 		return adHoc;
 	}
 	
-	public List<C4Variable> getComponents() {
+	public List<Variable> getComponents() {
 		return components;
 	}
 	
@@ -42,7 +42,7 @@ public class ProplistDeclaration extends C4Structure implements IType {
 		setName("proplist {...}");
 	}
 
-	public ProplistDeclaration(List<C4Variable> components) {
+	public ProplistDeclaration(List<Variable> components) {
 		this();
 		this.components = components;
 	}
@@ -50,19 +50,19 @@ public class ProplistDeclaration extends C4Structure implements IType {
 	public static ProplistDeclaration adHocDeclaration() {
 		ProplistDeclaration result = new ProplistDeclaration();
 		result.adHoc = true;
-		result.components = new LinkedList<C4Variable>();
+		result.components = new LinkedList<Variable>();
 		return result;
 	}
 	
-	public C4Variable addComponent(C4Variable variable, boolean adhoc) {
-		C4Variable found = findComponent(variable.getName());
+	public Variable addComponent(Variable variable, boolean adhoc) {
+		Variable found = findComponent(variable.getName());
 		if (found != null) {
 			//found.setLocation(variable.getLocation());
 			return found;
 		} else {
 			if (adhoc) {
 				if (adhocComponents == null)
-					adhocComponents = new LinkedList<C4Variable>();
+					adhocComponents = new LinkedList<Variable>();
 				adhocComponents.add(variable);
 			} else {
 				components.add(variable);
@@ -71,13 +71,13 @@ public class ProplistDeclaration extends C4Structure implements IType {
 		}
 	}
 	
-	public C4Variable findComponent(String declarationName) {
-		for (C4Variable v : components) {
+	public Variable findComponent(String declarationName) {
+		for (Variable v : components) {
 			if (v.getName().equals(declarationName)) {
 				return v;
 			}
 		}
-		if (adhocComponents != null) for (C4Variable v : adhocComponents) {
+		if (adhocComponents != null) for (Variable v : adhocComponents) {
 			if (v.getName().equals(declarationName)) {
 				return v;
 			}
@@ -87,7 +87,7 @@ public class ProplistDeclaration extends C4Structure implements IType {
 
 	@Override
 	public C4Declaration findLocalDeclaration(String declarationName, Class<? extends C4Declaration> declarationClass) {
-		for (C4Variable v : getComponents()) {
+		for (Variable v : getComponents()) {
 			if (v.getName().equals(declarationName)) {
 				return v;
 			}
@@ -107,7 +107,7 @@ public class ProplistDeclaration extends C4Structure implements IType {
 	@SuppressWarnings("unchecked")
 	@Override
 	public <T extends C4Declaration> T getLatestVersion(T from) {
-		if (C4Variable.class.isAssignableFrom(from.getClass())) {
+		if (Variable.class.isAssignableFrom(from.getClass())) {
 			return (T) findComponent(from.getName());
 		} else {
 			return super.getLatestVersion(from);
@@ -116,42 +116,42 @@ public class ProplistDeclaration extends C4Structure implements IType {
 	
 	@Override
 	public Iterator<IType> iterator() {
-		return ArrayUtil.arrayIterable(C4Type.PROPLIST, this).iterator();
+		return ArrayUtil.arrayIterable(PrimitiveType.PROPLIST, this).iterator();
 	}
 
 	@Override
 	public boolean canBeAssignedFrom(IType other) {
-		return C4Type.PROPLIST.canBeAssignedFrom(other);
+		return PrimitiveType.PROPLIST.canBeAssignedFrom(other);
 	}
 
 	@Override
 	public String typeName(boolean special) {
-		return C4Type.PROPLIST.typeName(special);
+		return PrimitiveType.PROPLIST.typeName(special);
 	}
 
 	@Override
 	public boolean intersects(IType typeSet) {
-		return C4Type.PROPLIST.intersects(typeSet);
+		return PrimitiveType.PROPLIST.intersects(typeSet);
 	}
 
 	@Override
 	public boolean containsType(IType type) {
-		return C4Type.PROPLIST.containsType(type);
+		return PrimitiveType.PROPLIST.containsType(type);
 	}
 
 	@Override
 	public boolean containsAnyTypeOf(IType... types) {
-		return C4Type.PROPLIST.containsAnyTypeOf(types);
+		return PrimitiveType.PROPLIST.containsAnyTypeOf(types);
 	}
 
 	@Override
 	public int specificness() {
-		return C4Type.PROPLIST.specificness()+1;
+		return PrimitiveType.PROPLIST.specificness()+1;
 	}
 
 	@Override
 	public IType staticType() {
-		return C4Type.PROPLIST;
+		return PrimitiveType.PROPLIST;
 	}
 	
 	@Override

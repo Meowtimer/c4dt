@@ -2,9 +2,9 @@ package net.arctics.clonk.parser.c4script.ast;
 
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.ParsingException;
-import net.arctics.clonk.parser.c4script.C4ScriptOperator;
+import net.arctics.clonk.parser.c4script.Operator;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
-import net.arctics.clonk.parser.c4script.C4Type;
+import net.arctics.clonk.parser.c4script.PrimitiveType;
 import net.arctics.clonk.parser.c4script.TypeSet;
 import net.arctics.clonk.parser.c4script.IType;
 
@@ -46,8 +46,8 @@ public final class NumberLiteral extends Literal<Long> {
 	@Override
 	protected IType obtainType(C4ScriptParser context) {
 		if (longValue() == 0)
-			return C4Type.ANY; // FIXME: to prevent warnings when assigning 0 to object-variables
-		return C4Type.INT;
+			return PrimitiveType.ANY; // FIXME: to prevent warnings when assigning 0 to object-variables
+		return PrimitiveType.INT;
 	}
 
 	@Override
@@ -69,7 +69,7 @@ public final class NumberLiteral extends Literal<Long> {
 		super.reportErrors(parser);
 		long val = longValue();
 		//ExprElm region;
-		if (getParent() instanceof UnaryOp && ((UnaryOp)getParent()).getOperator() == C4ScriptOperator.Subtract) {
+		if (getParent() instanceof UnaryOp && ((UnaryOp)getParent()).getOperator() == Operator.Subtract) {
 			val = -val;
 			//region = getParent();
 		}

@@ -17,13 +17,13 @@ import java.util.Set;
 
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.Milestones;
-import net.arctics.clonk.index.C4Engine;
-import net.arctics.clonk.index.C4ObjectIntern;
+import net.arctics.clonk.index.Engine;
+import net.arctics.clonk.index.ProjectDefinition;
 import net.arctics.clonk.index.ClonkIndex;
 import net.arctics.clonk.index.ProjectIndex;
 import net.arctics.clonk.parser.ParserErrorCode;
-import net.arctics.clonk.parser.c4script.C4ScriptBase;
-import net.arctics.clonk.parser.c4script.C4ScriptIntern;
+import net.arctics.clonk.parser.c4script.ScriptBase;
+import net.arctics.clonk.parser.c4script.StandaloneProjectScript;
 import net.arctics.clonk.parser.inireader.CustomIniUnit;
 import net.arctics.clonk.parser.inireader.IniField;
 import net.arctics.clonk.util.SettingsBase;
@@ -54,10 +54,10 @@ public class ClonkProjectNature implements IProjectNature {
 		@IniField
 		public String disabledErrors;
 		
-		private C4Engine cachedEngine;
+		private Engine cachedEngine;
 		private Set<ParserErrorCode> disabledErrorsSet;
 		
-		public C4Engine getEngine() {
+		public Engine getEngine() {
 			if (cachedEngine == null) {
 				// engineName can be "" or null since that is handled by loadEngine
 				cachedEngine = ClonkCore.getDefault().loadEngine(engineName);
@@ -320,13 +320,13 @@ public class ClonkProjectNature implements IProjectNature {
 	 * @param script the script
 	 * @return the nature
 	 */
-	public static ClonkProjectNature get(C4ScriptBase script) {
+	public static ClonkProjectNature get(ScriptBase script) {
 		if (script == null)
 			return null;
-		if (script instanceof C4ObjectIntern)
-			return get(((C4ObjectIntern)script).getObjectFolder());
-		if (script instanceof C4ScriptIntern)
-			return get(((C4ScriptIntern)script).getScriptStorage());
+		if (script instanceof ProjectDefinition)
+			return get(((ProjectDefinition)script).getObjectFolder());
+		if (script instanceof StandaloneProjectScript)
+			return get(((StandaloneProjectScript)script).getScriptStorage());
 		else
 			return null;
 	}

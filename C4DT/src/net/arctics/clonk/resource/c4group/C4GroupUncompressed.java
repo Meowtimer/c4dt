@@ -12,11 +12,11 @@ import net.arctics.clonk.util.ITreeNode;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Path;
 
-public class C4UncompressedGroup extends C4Group {
+public class C4GroupUncompressed extends C4Group {
 
 	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 
-	public C4UncompressedGroup(C4Group parent, String name, File file) {
+	public C4GroupUncompressed(C4Group parent, String name, File file) {
 		super(parent, name, file);
 	}
 	

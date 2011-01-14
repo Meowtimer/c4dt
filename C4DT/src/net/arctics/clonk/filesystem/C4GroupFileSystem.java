@@ -8,11 +8,11 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-import net.arctics.clonk.resource.c4group.C4EntryHeader;
+import net.arctics.clonk.resource.c4group.C4GroupEntryHeader;
 import net.arctics.clonk.resource.c4group.C4Group;
 import net.arctics.clonk.resource.c4group.C4GroupEntry;
-import net.arctics.clonk.resource.c4group.C4UncompressedGroup;
-import net.arctics.clonk.resource.c4group.HeaderFilterBase;
+import net.arctics.clonk.resource.c4group.C4GroupUncompressed;
+import net.arctics.clonk.resource.c4group.C4GroupHeaderFilterBase;
 import org.eclipse.core.filesystem.IFileStore;
 import org.eclipse.core.filesystem.provider.FileSystem;
 import org.eclipse.core.runtime.Path;
@@ -100,10 +100,10 @@ public class C4GroupFileSystem extends FileSystem {
 					try {
 						group = C4Group.openFile(groupFile);
 						try {
-							group.readIntoMemory(true, new HeaderFilterBase() {
+							group.readIntoMemory(true, new C4GroupHeaderFilterBase() {
 
 								@Override
-								public boolean accepts(C4EntryHeader header, C4Group context) {
+								public boolean accepts(C4GroupEntryHeader header, C4Group context) {
 									return true;
 								}
 
@@ -115,7 +115,7 @@ public class C4GroupFileSystem extends FileSystem {
 									for (String s : FILES_TO_ALWAYS_LOAD)
 										if (entry.getName().equalsIgnoreCase(s))
 											return 0;
-									return HeaderFilterBase.DONTREADINTOMEMORY;
+									return C4GroupHeaderFilterBase.DONTREADINTOMEMORY;
 								}
 							});
 						} finally {
@@ -131,7 +131,7 @@ public class C4GroupFileSystem extends FileSystem {
 			}
 			else {
 				if (file.isDirectory()) {
-					group = new C4UncompressedGroup(null, file.getName(), file);
+					group = new C4GroupUncompressed(null, file.getName(), file);
 					rootGroups.put(file, new WeakReference<C4Group>(group));
 				}
 			}

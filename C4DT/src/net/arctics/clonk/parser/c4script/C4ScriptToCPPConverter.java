@@ -16,7 +16,7 @@ import java.util.Map.Entry;
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.command.BodyPreservingFunction;
 import net.arctics.clonk.command.ExecutableScript;
-import net.arctics.clonk.index.C4Engine;
+import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.index.ClonkIndex;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.c4script.ast.Block;
@@ -34,7 +34,7 @@ import net.arctics.clonk.util.StreamUtil;
 public class C4ScriptToCPPConverter {
 	
 	private Map<String, String> stringConstants = new HashMap<String, String>();
-	private List<C4Function> globalFunctionsUsed = new LinkedList<C4Function>();
+	private List<Function> globalFunctionsUsed = new LinkedList<Function>();
 	
 	private String regString(String text) {
 		String ident = stringConstants.get(text);
@@ -89,9 +89,9 @@ public class C4ScriptToCPPConverter {
 				}
 				else if (elm instanceof CallFunc) {
 					CallFunc callFunc = (CallFunc) elm;
-					if (callFunc.getDeclaration() instanceof C4Function) {
-						C4Function f = (C4Function) callFunc.getDeclaration();
-						if (f.getParentDeclaration() instanceof C4Engine) {
+					if (callFunc.getDeclaration() instanceof Function) {
+						Function f = (Function) callFunc.getDeclaration();
+						if (f.getParentDeclaration() instanceof Engine) {
 							globalFunctionsUsed.add(f);
 							append(String.format("CallEngineFunc(engine%s, C4AulParset", f.getName()));
 							callFunc.printParmString(this, 0);
@@ -122,15 +122,15 @@ public class C4ScriptToCPPConverter {
 		}, depth);
 	}
 
-	public void printFunction(C4Function function, Block body, Writer output) throws IOException {
+	public void printFunction(Function function, Block body, Writer output) throws IOException {
 		output.append("static ");
-		output.append(C4Type.cppTypeFromType(function.getReturnType()));
+		output.append(PrimitiveType.cppTypeFromType(function.getReturnType()));
 		output.append(" ");
 		output.append(function.getName());
 		output.append("(C4AulContext *cthr");
-		for (C4Variable parm : function.getParameters()) {
+		for (Variable parm : function.getParameters()) {
 			output.append(", ");
-			output.append(C4Type.cppTypeFromType(parm.getType()));
+			output.append(PrimitiveType.cppTypeFromType(parm.getType()));
 			output.append(" ");
 			output.append(parm.getName());
 		}
@@ -139,14 +139,14 @@ public class C4ScriptToCPPConverter {
 		this.printExprElement(body, output, 1);
 	}
 	
-	public void printScript(C4ScriptBase script, Writer output) throws IOException {
+	public void printScript(ScriptBase script, Writer output) throws IOException {
 		
 		printHeader(output);
 		
 		output.append("namespace\n{\n");
 		
 		StringWriter scriptWriter = new StringWriter();
-		for (C4Function f : script.functions()) {
+		for (Function f : script.functions()) {
 			if (f instanceof BodyPreservingFunction) {
 				BodyPreservingFunction bf = (BodyPreservingFunction) f;
 				printFunction(bf, bf.getBodyBlock(), scriptWriter);
@@ -172,14 +172,14 @@ public class C4ScriptToCPPConverter {
 	}
 	
 	private void printFunctionTable(Writer output) throws IOException {
-		for (C4Function f : globalFunctionsUsed) {
+		for (Function f : globalFunctionsUsed) {
 			output.append(String.format("C4AulFunc *engine%s;\n", f.getName()));
 		}
 		output.append("bool engineFunctionsFound = false;\n");
 		output.append("void FindEngineFunctions()\n{\n");
 		output.append("\tif(engineFunctionsFound)\n\t\t\treturn;\n");
 		output.append("\tengineFunctionsFound = true;\n");
-		for (C4Function f : globalFunctionsUsed) {
+		for (Function f : globalFunctionsUsed) {
 			output.append(String.format("\tengine%1$s = ::ScriptEngine.GetFuncRecursive(\"%1$s\");\n", f.getName()));
 		}
 		output.append("}\n");

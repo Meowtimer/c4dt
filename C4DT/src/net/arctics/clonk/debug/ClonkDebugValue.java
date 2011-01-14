@@ -1,6 +1,6 @@
 package net.arctics.clonk.debug;
 
-import net.arctics.clonk.parser.c4script.C4Type;
+import net.arctics.clonk.parser.c4script.PrimitiveType;
 import net.arctics.clonk.util.Utilities;
 
 import org.eclipse.debug.core.DebugException;
@@ -10,22 +10,22 @@ import org.eclipse.debug.core.model.IVariable;
 public class ClonkDebugValue extends ClonkDebugElement implements IValue {
 	
 	private Object value;
-	private C4Type type;
+	private PrimitiveType type;
 	
 	public ClonkDebugValue(ClonkDebugTarget target, Object value) {
 		super(target);
-		setValue(value, C4Type.typeFrom(value));
+		setValue(value, PrimitiveType.typeFrom(value));
 	}
 
 	public Object getValue() {
 		return value;
 	}
 	
-	public C4Type getType() {
+	public PrimitiveType getType() {
 		return type;
 	}
 
-	public void setValue(Object value, C4Type type) {
+	public void setValue(Object value, PrimitiveType type) {
 		this.value = value;
 		this.type = type;
 	}

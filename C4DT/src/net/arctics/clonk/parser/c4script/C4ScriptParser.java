@@ -17,8 +17,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import net.arctics.clonk.ClonkCore;
-import net.arctics.clonk.index.C4Engine;
-import net.arctics.clonk.index.C4Object;
+import net.arctics.clonk.index.Engine;
+import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.ClonkIndex;
 import net.arctics.clonk.index.ProjectIndex;
 import net.arctics.clonk.parser.CStyleScanner;
@@ -31,10 +31,10 @@ import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.SimpleScriptStorage;
 import net.arctics.clonk.parser.SourceLocation;
 import net.arctics.clonk.parser.SilentParsingException.Reason;
-import net.arctics.clonk.parser.c4script.C4Directive.C4DirectiveType;
-import net.arctics.clonk.parser.c4script.C4Function.C4FunctionScope;
+import net.arctics.clonk.parser.c4script.Directive.C4DirectiveType;
+import net.arctics.clonk.parser.c4script.Function.C4FunctionScope;
 import net.arctics.clonk.parser.c4script.C4ScriptParser.IMarkerListener.WhatToDo;
-import net.arctics.clonk.parser.c4script.C4Variable.C4VariableScope;
+import net.arctics.clonk.parser.c4script.Variable.C4VariableScope;
 import net.arctics.clonk.parser.c4script.SpecialScriptRules.SpecialFuncRule;
 import net.arctics.clonk.parser.c4script.ast.AccessVar;
 import net.arctics.clonk.parser.c4script.ast.ArrayElementExpression;
@@ -111,13 +111,13 @@ public class C4ScriptParser extends CStyleScanner {
 	protected IScriptParserListener listener;
 
 	protected IFile scriptFile; // for project intern files
-	protected C4ScriptBase container;
+	protected ScriptBase container;
 	protected C4Declaration currentDeclaration;
 	protected int strictLevel;
 	
 	// parse<Blub>() functions store their results in those
 	protected C4ID parsedID;
-	protected C4Variable parsedVariable;
+	protected Variable parsedVariable;
 	protected long parsedNumber;
 	protected String parsedMemberOperator;
 	protected String parsedString;
@@ -174,7 +174,7 @@ public class C4ScriptParser extends CStyleScanner {
 	/**
 	 * Set of functions already parsed. Won't be parsed again.
 	 */
-	private Set<C4Function> parsedFunctions;
+	private Set<Function> parsedFunctions;
 	
 	private TypeInformationMerger scriptLevelTypeInformationMerger;
 	
@@ -362,15 +362,15 @@ public class C4ScriptParser extends CStyleScanner {
 	 * Returns the function that is currently being parsed or otherwise considered "current"
 	 * @return the current function
 	 */
-	public C4Function getCurrentFunc() {
-		return currentDeclaration != null ? currentDeclaration.getFirstParentDeclarationOfType(C4Function.class) : null;
+	public Function getCurrentFunc() {
+		return currentDeclaration != null ? currentDeclaration.getFirstParentDeclarationOfType(Function.class) : null;
 	}
 	
 	/**
 	 * Sets the current function. There should be a good reason to call this. 
 	 * @param func
 	 */
-	public void setCurrentFunc(C4Function func) {
+	public void setCurrentFunc(Function func) {
 		if (func != getCurrentFunc()) {
 			currentDeclaration = func;
 			numUnnamedParameters = 0;
@@ -381,8 +381,8 @@ public class C4ScriptParser extends CStyleScanner {
 	 * Returns the first variable in the parent chain of currentDeclaration
 	 * @return
 	 */
-	public C4Variable getCurrentVariable() {
-		return currentDeclaration != null ? currentDeclaration.getFirstParentDeclarationOfType(C4Variable.class) : null;
+	public Variable getCurrentVariable() {
+		return currentDeclaration != null ? currentDeclaration.getFirstParentDeclarationOfType(Variable.class) : null;
 	}
 	
 	/**
@@ -397,7 +397,7 @@ public class C4ScriptParser extends CStyleScanner {
 	 * Returns the script object that is being parsed by the parser.
 	 * @return
 	 */
-	public final C4ScriptBase getContainer() {
+	public final ScriptBase getContainer() {
 		return container;
 	}
 	
@@ -405,9 +405,9 @@ public class C4ScriptParser extends CStyleScanner {
 	 * Returns the script object as an object if it is one or null if it is not.
 	 * @return The script object as  C4Object
 	 */
-	public C4Object getContainerObject() {
-		if (container instanceof C4Object)
-			return (C4Object) container;
+	public Definition getContainerObject() {
+		if (container instanceof Definition)
+			return (Definition) container;
 		return null;
 	}
 	
@@ -431,13 +431,13 @@ public class C4ScriptParser extends CStyleScanner {
 			}
 		}
 		// could be #appendto * or whatever
-		return C4Type.OBJECT;
+		return PrimitiveType.OBJECT;
 	}
 	
 	/**
 	 * Creates a script parser. The script is read from the file attached to the script (queried through getScriptFile()).
 	 */
-	public C4ScriptParser(C4ScriptBase script) {
+	public C4ScriptParser(ScriptBase script) {
 		this((IFile) script.getScriptStorage(), script);
 		initialize();
 	}
@@ -480,7 +480,7 @@ public class C4ScriptParser extends CStyleScanner {
 	 * @param obj
 	 * @throws CompilerException
 	 */
-	public C4ScriptParser(IFile scriptFile, C4ScriptBase script) {
+	public C4ScriptParser(IFile scriptFile, ScriptBase script) {
 		super(scriptFile);
 		this.scriptFile = scriptFile;
 		container = script;
@@ -495,7 +495,7 @@ public class C4ScriptParser extends CStyleScanner {
 	 * @param object
 	 * @throws CompilerException
 	 */
-	public C4ScriptParser(InputStream stream, C4ScriptBase script) {
+	public C4ScriptParser(InputStream stream, ScriptBase script) {
 		super(stream);
 		scriptFile = null;
 		container = script;
@@ -507,11 +507,11 @@ public class C4ScriptParser extends CStyleScanner {
 	 * @param withString
 	 * @param script
 	 */
-	public C4ScriptParser(String withString, C4ScriptBase script, IFile scriptFile) {
+	public C4ScriptParser(String withString, ScriptBase script, IFile scriptFile) {
 		super(withString);
 		this.scriptFile = scriptFile;
 		container = script;
-		isEngine = container instanceof C4Engine;
+		isEngine = container instanceof Engine;
 		initialize();
 	}
 	
@@ -569,19 +569,19 @@ public class C4ScriptParser extends CStyleScanner {
 			
 			strictLevel = container.getStrictLevel();
 			scriptLevelTypeInformationMerger = new TypeInformationMerger();
-			parsedFunctions = new HashSet<C4Function>();
-			for (C4Function function : container.functions()) {
+			parsedFunctions = new HashSet<Function>();
+			for (Function function : container.functions()) {
 				parseCodeOfFunction(function);
 			}
 			applyStoredTypeInformationList(scriptLevelTypeInformationMerger.getResult(), false);
 			scriptLevelTypeInformationMerger = null;
 			currentDeclaration = null;
 
-			for (C4Directive directive : container.directives()) {
+			for (Directive directive : container.directives()) {
 				directive.validate(this);
 			}
 			
-			for (C4Variable variable : container.variables()) {
+			for (Variable variable : container.variables()) {
 				ExprElm initialization = variable.getInitializationExpression();
 				if (initialization != null) {
 					ExprElm old = expressionReportingErrors;
@@ -603,13 +603,13 @@ public class C4ScriptParser extends CStyleScanner {
 	 * OC: get information out of the script that was previously to be found in additional files (like the name of the definition)
 	 */
 	public void distillAdditionalInformation() {
-		if (container instanceof C4Object) {
+		if (container instanceof Definition) {
 			
-			final C4Object obj = (C4Object) container;
+			final Definition obj = (Definition) container;
 			obj.chooseLocalizedName(); // ClonkRage Names.txt
 			
 			// local Name = "Exploder";
-			C4Variable nameLocal = container.findLocalVariable("Name", false);
+			Variable nameLocal = container.findLocalVariable("Name", false);
 			if (nameLocal != null) {
 				ExprElm expr = nameLocal.getInitializationExpression();
 				if (expr != null) {
@@ -620,7 +620,7 @@ public class C4ScriptParser extends CStyleScanner {
 			}
 			
 			// find SetProperty call in Definition func
-			C4Function definitionFunc = obj.findLocalFunction(Keywords.DefinitionFunc, false);
+			Function definitionFunc = obj.findLocalFunction(Keywords.DefinitionFunc, false);
 			if (definitionFunc != null && definitionFunc.getBody() != null) { // could also be engine function without body
 				this.seek(definitionFunc.getBody().getStart());
 				boolean old = allErrorsDisabled;
@@ -648,7 +648,7 @@ public class C4ScriptParser extends CStyleScanner {
 							return TraversalContinuation.Continue;
 						}
 					}, ExpressionsAndStatementsReportingFlavour.AlsoStatements, false);
-					C4Variable v = obj.findVariable("Name");
+					Variable v = obj.findVariable("Name");
 					if (v != null) {
 						Object ev = v.evaluateInitializationExpression(obj);
 						if (ev instanceof String) {
@@ -667,7 +667,7 @@ public class C4ScriptParser extends CStyleScanner {
 	 * @param function
 	 * @throws ParsingException
 	 */
-	public void parseCodeOfFunction(C4Function function) throws ParsingException {
+	public void parseCodeOfFunction(Function function) throws ParsingException {
 		if (function.getBody() == null || function.getScript() != container)
 			return;
 		if (parsedFunctions != null) {
@@ -728,7 +728,7 @@ public class C4ScriptParser extends CStyleScanner {
 		
 	}
 
-	private void assignDefaultParmTypesToFunction(C4Function function) {
+	private void assignDefaultParmTypesToFunction(Function function) {
 		SpecialScriptRules rules = container.getEngine().getSpecialScriptRules();
 		if (rules != null) {
 			for (SpecialFuncRule funcRule : rules.defaultParmTypeAssignerRules()) {
@@ -738,10 +738,10 @@ public class C4ScriptParser extends CStyleScanner {
 		}
 	}
 
-	public void warnAboutUnusedFunctionVariables(C4Function func, Block block) {
+	public void warnAboutUnusedFunctionVariables(Function func, Block block) {
 		if (func == null)
 			return;
-		for (C4Variable v : func.getLocalVars()) {
+		for (Variable v : func.getLocalVars()) {
 			if (!v.isUsed()) {
 				for (VarDeclarationStatement decl : block.allSubExpressionsOfType(VarDeclarationStatement.class)) {
 					for (VarInitialization initialization : decl.getVarInitializations()) {
@@ -758,8 +758,8 @@ public class C4ScriptParser extends CStyleScanner {
 		}
 	}
 
-	private void addVarParmsParm(C4Function func) {
-		C4Variable v = new C4Variable("...", C4Type.ANY); //$NON-NLS-1$
+	private void addVarParmsParm(Function func) {
+		Variable v = new Variable("...", PrimitiveType.ANY); //$NON-NLS-1$
 		v.setParentDeclaration(func);
 		func.getParameters().add(v);
 	}
@@ -801,7 +801,7 @@ public class C4ScriptParser extends CStyleScanner {
 			}
 			else {
 				String content = parseDirectiveParms();
-				C4Directive directive = new C4Directive(type, content);
+				Directive directive = new Directive(type, content);
 				directive.setLocation(absoluteSourceLocation(startOfDeclaration, this.offset));
 				container.addDeclaration(directive);
 				if (type == C4DirectiveType.APPENDTO)
@@ -859,7 +859,7 @@ public class C4ScriptParser extends CStyleScanner {
 			final int offset = this.offset;
 
 			List<VarInitialization> createdVariables = new LinkedList<VarInitialization>();
-			C4Function currentFunc = getCurrentFunc();
+			Function currentFunc = getCurrentFunc();
 			
 			eatWhitespace();
 			switch (scope) {
@@ -939,13 +939,13 @@ public class C4ScriptParser extends CStyleScanner {
 								? (IType)varInitialization.expression
 								: varInitialization.expression != null
 									? varInitialization.expression.getType(this)
-									: C4Type.UNKNOWN;
+									: PrimitiveType.UNKNOWN;
 						} else {
 							if (scope == C4VariableScope.CONST && !isEngine)
 								errorWithCode(ParserErrorCode.ConstantValueExpected, this.offset-1, this.offset, true);
 							else {
 								if (scope == C4VariableScope.STATIC) {
-									varInitialization.variableBeingInitialized.forceType(C4Type.INT); // most likely
+									varInitialization.variableBeingInitialized.forceType(PrimitiveType.INT); // most likely
 								}
 							}
 						}
@@ -992,7 +992,7 @@ public class C4ScriptParser extends CStyleScanner {
 		}
 	}
 	
-	private C4Variable findVar(String name, C4VariableScope scope) {
+	private Variable findVar(String name, C4VariableScope scope) {
 		switch (scope) {
 		case VAR:
 			return getCurrentFunc().findVariable(name);
@@ -1009,13 +1009,13 @@ public class C4ScriptParser extends CStyleScanner {
 		}
 	}
 	
-	private C4Variable createVarInScope(String varName, C4VariableScope scope, int start, int end, String description) {
-		C4Variable result = findVar(varName, scope);
+	private Variable createVarInScope(String varName, C4VariableScope scope, int start, int end, String description) {
+		Variable result = findVar(varName, scope);
 		if (result != null) {
 			return result;
 		}
 		
-		result = new C4Variable(varName, scope);
+		result = new Variable(varName, scope);
 		switch (scope) {
 		case VAR:
 			result.setParentDeclaration(getCurrentFunc());
@@ -1030,7 +1030,7 @@ public class C4ScriptParser extends CStyleScanner {
 		return result;
 	}
 
-	private C4Type parseFunctionReturnType() throws ParsingException {
+	private PrimitiveType parseFunctionReturnType() throws ParsingException {
 		final int offset = this.offset;
 		eatWhitespace();
 		if (peek() == '&') {
@@ -1038,11 +1038,11 @@ public class C4ScriptParser extends CStyleScanner {
 				errorWithCode(ParserErrorCode.EngineDoesNotSupportRefs, this.offset, this.offset+1, true, container.getEngine().getName());
 			}
 			read();
-			return C4Type.REFERENCE;
+			return PrimitiveType.REFERENCE;
 		}
 		else if (isEngine && parseIdentifier()) {
-			C4Type t = C4Type.makeType(parsedString, isEngine);
-			if (t != C4Type.UNKNOWN)
+			PrimitiveType t = PrimitiveType.makeType(parsedString, isEngine);
+			if (t != PrimitiveType.UNKNOWN)
 				return t;
 		}
 		this.seek(offset);
@@ -1077,7 +1077,7 @@ public class C4ScriptParser extends CStyleScanner {
 		int startName = 0, endName = 0, startBody = 0, endBody = 0;
 		boolean suspectOldStyle = false;
 		String funcName = null;
-		C4Type retType = C4Type.ANY;
+		PrimitiveType retType = PrimitiveType.ANY;
 		C4FunctionScope scope;
 		
 		if (!firstWord.equals(Keywords.Func)) {
@@ -1097,7 +1097,7 @@ public class C4ScriptParser extends CStyleScanner {
 		if (!suspectOldStyle) {
 			retType = parseFunctionReturnType();
 			if (retType == null)
-				retType = C4Type.ANY;
+				retType = PrimitiveType.ANY;
 			eatWhitespace();
 			startName = this.offset;
 			funcName = readIdent();
@@ -1105,7 +1105,7 @@ public class C4ScriptParser extends CStyleScanner {
 				errorWithCode(ParserErrorCode.NameExpected, this.offset-1, this.offset);
 			endName = this.offset;
 		}
-		C4Function currentFunc;
+		Function currentFunc;
 		currentDeclaration = currentFunc = newFunction(funcName);
 		currentFunc.setUserDescription(desc);
 		currentFunc.setScript(container);
@@ -1231,16 +1231,16 @@ public class C4ScriptParser extends CStyleScanner {
 	 * @param nameWillBe What the name of the function will be.
 	 * @return The newly created function. Might be of some special class.
 	 */
-	protected C4Function newFunction(String nameWillBe) {
+	protected Function newFunction(String nameWillBe) {
 	    SpecialScriptRules rule = getContainer().getEngine().getSpecialScriptRules();
 	    if (rule != null) {
 	    	for (SpecialFuncRule funcRule : rule.defaultParmTypeAssignerRules()) {
-	    		C4Function f = funcRule.newFunction(nameWillBe);
+	    		Function f = funcRule.newFunction(nameWillBe);
 	    		if (f != null)
 	    			return f;
 	    	}
 	    }
-	    return new C4Function();
+	    return new Function();
     }
 
 	private String getTextOfLastComment(int absoluteOffset) {
@@ -1362,14 +1362,14 @@ public class C4ScriptParser extends CStyleScanner {
 		return false;
 	}
 
-	private static final class TempScript extends C4ScriptBase {
+	private static final class TempScript extends ScriptBase {
 		private final String expression;
 		private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 		private static final ClonkIndex tempIndex = new ClonkIndex() {
 			private static final long serialVersionUID = 1L;
-			private final C4Engine tempEngine = new C4Engine("Temp Engine");
+			private final Engine tempEngine = new Engine("Temp Engine");
 			@Override
-			public C4Engine getEngine() {
+			public Engine getEngine() {
 				return tempEngine;
 			};
 		};
@@ -1423,7 +1423,7 @@ public class C4ScriptParser extends CStyleScanner {
 			return Token.ID;
 		if (parseNumber())
 			return Token.Number;
-		C4ScriptOperator op;
+		Operator op;
 		if ((op = parseOperator()) != null) {
 			parsedString = op.getOperatorName();
 			return Token.Operator;
@@ -1451,7 +1451,7 @@ public class C4ScriptParser extends CStyleScanner {
 	 * @param offset
 	 * @return the operator referenced in the code at offset
 	 */
-	private C4ScriptOperator parseOperator() {
+	private Operator parseOperator() {
 		final int offset = this.offset;
 		final char[] chars = new char[] { (char)read(), (char)read()  };
 		String s = new String(chars);
@@ -1462,10 +1462,10 @@ public class C4ScriptParser extends CStyleScanner {
 			return null;
 		}
 
-		C4ScriptOperator result = C4ScriptOperator.getOperator(s);
+		Operator result = Operator.getOperator(s);
 		if (result != null) {
 			// new_variable should not be parsed as ne w_variable -.-
-			if (result == C4ScriptOperator.ne || result == C4ScriptOperator.eq) {
+			if (result == Operator.ne || result == Operator.eq) {
 				int followingChar = read();
 				if (BufferedScanner.isWordPart(followingChar)) {
 					this.seek(offset);
@@ -1477,7 +1477,7 @@ public class C4ScriptParser extends CStyleScanner {
 		}
 
 		s = s.substring(0, 1);
-		result = C4ScriptOperator.getOperator(s);
+		result = Operator.getOperator(s);
 		if (result != null) {
 			unread();
 			return result;
@@ -1528,7 +1528,7 @@ public class C4ScriptParser extends CStyleScanner {
 		public boolean stillApplies(C4ScriptParser parser) {
 			switch (code) {
 			case TooManyParameters:
-				return ((C4Function)cookie).tooManyParameters((Integer)args[1]);
+				return ((Function)cookie).tooManyParameters((Integer)args[1]);
 			default:
 				return false;
 			}
@@ -1659,7 +1659,7 @@ public class C4ScriptParser extends CStyleScanner {
 		int beforeWhitespaceStart = this.offset;
 		eatWhitespace();
 		int sequenceStart = this.offset;
-		C4ScriptOperator preop = parseOperator();
+		Operator preop = parseOperator();
 		ExprElm result = null;
 		if (preop != null && preop.isPrefix()) {
 			ExprElm followingExpr = parseExpressionWithoutOperators(reportErrors);
@@ -1846,7 +1846,7 @@ public class C4ScriptParser extends CStyleScanner {
 			if (proper) {
 				int saved = this.offset;
 				eatWhitespace();
-				C4ScriptOperator postop = parseOperator();
+				Operator postop = parseOperator();
 				if (postop != null && postop.isPostfix()) {
 					UnaryOp op = new UnaryOp(postop, UnaryOp.Placement.Postfix, result);
 					setExprRegionRelativeToFuncBody(op, result.getExprStart()+bodyOffset(), this.offset);
@@ -1869,7 +1869,7 @@ public class C4ScriptParser extends CStyleScanner {
 		int propListStart = offset;
 		int c = read();
 		if (c == '{') {
-			ProplistDeclaration proplistDeclaration = new ProplistDeclaration(new ArrayList<C4Variable>(10));
+			ProplistDeclaration proplistDeclaration = new ProplistDeclaration(new ArrayList<Variable>(10));
 			proplistDeclaration.setParentDeclaration(currentDeclaration != null ? currentDeclaration : container);
 			C4Declaration oldDec = currentDeclaration;
 			currentDeclaration = proplistDeclaration;
@@ -1899,7 +1899,7 @@ public class C4ScriptParser extends CStyleScanner {
 								errorWithCode(ParserErrorCode.UnexpectedToken, this.offset, this.offset+1, (char)read());
 							}
 							eatWhitespace();
-							C4Variable v = new C4Variable(name, getCurrentFunc() != null ? C4VariableScope.VAR : C4VariableScope.LOCAL);
+							Variable v = new Variable(name, getCurrentFunc() != null ? C4VariableScope.VAR : C4VariableScope.LOCAL);
 							v.setLocation(absoluteSourceLocation(nameStart, nameEnd));
 							C4Declaration outerDec = currentDeclaration;
 							currentDeclaration = v;
@@ -2093,7 +2093,7 @@ public class C4ScriptParser extends CStyleScanner {
 
 						if (state != DONE) {
 							unread(); // unread c
-							C4ScriptOperator op = parseOperator();
+							Operator op = parseOperator();
 							if (op != null && op.isBinary()) {
 								int priorOfNewOp = op.getPriority();
 								ExprElm newLeftSide = null;
@@ -2759,7 +2759,7 @@ public class C4ScriptParser extends CStyleScanner {
 
 		// initialization
 		savedOffset = this.offset;
-		C4Variable loopVariable = null;
+		Variable loopVariable = null;
 		Statement initialization = null, body;
 		ExprElm arrayExpr, condition, increment;
 		String w = null;
@@ -2830,8 +2830,8 @@ public class C4ScriptParser extends CStyleScanner {
 				errorWithCode(ParserErrorCode.ExpressionExpected, savedOffset, this.offset+1);
 			else {
 				IType t = arrayExpr.getType(this);
-				if (!t.canBeAssignedFrom(C4Type.ARRAY))
-					warningWithCode(ParserErrorCode.IncompatibleTypes, arrayExpr, t.toString(), C4Type.ARRAY.toString());
+				if (!t.canBeAssignedFrom(PrimitiveType.ARRAY))
+					warningWithCode(ParserErrorCode.IncompatibleTypes, arrayExpr, t.toString(), PrimitiveType.ARRAY.toString());
 				if (loopVariable != null && t instanceof ArrayType) {
 					ArrayType arrayType = (ArrayType) t;
 					new AccessVar(loopVariable).expectedToBeOfType(arrayType.getElementType(), this, TypeExpectancyMode.Force);
@@ -2903,7 +2903,7 @@ public class C4ScriptParser extends CStyleScanner {
 	private void loopConditionWarnings(Statement body, ExprElm condition) {
 		if (body == null || condition == null)
 			return;
-		Object condEv = C4Type.BOOL.convert(condition == null ? true : condition.evaluateAtParseTime(getContainer()));
+		Object condEv = PrimitiveType.BOOL.convert(condition == null ? true : condition.evaluateAtParseTime(getContainer()));
 		if (Boolean.FALSE.equals(condEv))
 			warningWithCode(ParserErrorCode.ConditionAlwaysFalse, condition, condition.toString());
 		else if (Boolean.TRUE.equals(condEv)) {
@@ -2988,7 +2988,7 @@ public class C4ScriptParser extends CStyleScanner {
 		storedTypeInformationListStack.push(merger.finish(storedTypeInformationListStack.pop()));
 		
 		if (!containsConst(condition)) {
-			Object condEv = C4Type.BOOL.convert(condition.evaluateAtParseTime(getContainer()));
+			Object condEv = PrimitiveType.BOOL.convert(condition.evaluateAtParseTime(getContainer()));
 			if (condEv != null && condEv != ExprElm.EVALUATION_COMPLEX) {
 				warningWithCode(condEv.equals(true) ? ParserErrorCode.ConditionAlwaysTrue : ParserErrorCode.ConditionAlwaysFalse,
 						condition, condition.toString());
@@ -3041,7 +3041,7 @@ public class C4ScriptParser extends CStyleScanner {
 	 * @return Whether parsing the parameter was successful
 	 * @throws ParsingException
 	 */
-	private boolean parseParameter(C4Function function) throws ParsingException {
+	private boolean parseParameter(Function function) throws ParsingException {
 		
 		if (isEngine && parseEllipsis()) {
 			addVarParmsParm(function);
@@ -3059,14 +3059,14 @@ public class C4ScriptParser extends CStyleScanner {
 			}
 		}
 		int e = this.offset;
-		C4Variable var = new C4Variable(null, C4VariableScope.VAR);
-		IType type = C4Type.makeType(firstWord);
-		if (type == C4Type.REFERENCE && !container.getEngine().getCurrentSettings().supportsRefs) {
+		Variable var = new Variable(null, C4VariableScope.VAR);
+		IType type = PrimitiveType.makeType(firstWord);
+		if (type == PrimitiveType.REFERENCE && !container.getEngine().getCurrentSettings().supportsRefs) {
 			errorWithCode(ParserErrorCode.EngineDoesNotSupportRefs, s, e, true, container.getEngine().getName());
 		}
-		boolean typeLocked = type != C4Type.UNKNOWN && !isEngine;
+		boolean typeLocked = type != PrimitiveType.UNKNOWN && !isEngine;
 		var.forceType(type, typeLocked);
-		if (type == C4Type.UNKNOWN) {
+		if (type == PrimitiveType.UNKNOWN) {
 			//var.setType(C4Type.ANY);
 			var.setName(firstWord);
 		}
@@ -3087,7 +3087,7 @@ public class C4ScriptParser extends CStyleScanner {
 			else {
 				// type is name
 				warningWithCode(ParserErrorCode.TypeAsName, s, e, firstWord);
-				var.forceType(C4Type.ANY, typeLocked);
+				var.forceType(PrimitiveType.ANY, typeLocked);
 				var.setName(firstWord);
 				this.seek(e);
 			}
@@ -3124,7 +3124,7 @@ public class C4ScriptParser extends CStyleScanner {
 	 * Subtracted from the location of ExprElms created so their location will be relative to the body of the function they are contained in.
 	 */
 	public int bodyOffset() {
-		C4Function f = getCurrentFunc();
+		Function f = getCurrentFunc();
 		if (f != null && f.getBody() != null) {
 			return f.getBody().getStart();
 		} else {
@@ -3137,7 +3137,7 @@ public class C4ScriptParser extends CStyleScanner {
 	 * @param function the function to return the source hash code of
 	 * @return source hash code
 	 */
-	protected String functionSource(C4Function function) {
+	protected String functionSource(Function function) {
 		if (function == null) {
 			return null;
 		} else {
@@ -3198,7 +3198,7 @@ public class C4ScriptParser extends CStyleScanner {
 		boolean reportErrors
 	) {
 		allErrorsDisabled = !reportErrors;
-		C4Function func = funcOrRegion instanceof C4Function ? (C4Function)funcOrRegion : null;
+		Function func = funcOrRegion instanceof Function ? (Function)funcOrRegion : null;
 		currentDeclaration = func;
 		try {
 			String functionSource = functionSource(func);
@@ -3301,7 +3301,7 @@ public class C4ScriptParser extends CStyleScanner {
 		 * @param script Script object representing the script to be parsed
 		 * @param markerListener the marker listener
 		 */
-		public ScriptParserWithMarkerListener(String withString, C4ScriptBase script, IMarkerListener markerListener) {
+		public ScriptParserWithMarkerListener(String withString, ScriptBase script, IMarkerListener markerListener) {
 			super(withString, script, null);
 			this.markerListener = markerListener;
 		}
@@ -3336,7 +3336,7 @@ public class C4ScriptParser extends CStyleScanner {
 	 */
 	public static C4ScriptParser reportExpressionsAndStatements(
 		IDocument doc,
-		C4ScriptBase context, IRegion funcOrRegion,
+		ScriptBase context, IRegion funcOrRegion,
 		IScriptParserListener listener, final IMarkerListener markerListener,
 		ExpressionsAndStatementsReportingFlavour flavour,
 		boolean reportErrors
@@ -3362,7 +3362,7 @@ public class C4ScriptParser extends CStyleScanner {
 				return 0;
 			}
 			@Override
-			protected String functionSource(C4Function function) {
+			protected String functionSource(Function function) {
 				return statements;
 			}
 		};
@@ -3379,10 +3379,10 @@ public class C4ScriptParser extends CStyleScanner {
 	 * @return The statement or a BunchOfStatement if more than one statement could be parsed from statementText. Possibly null, if erroneous text was passed.
 	 * @throws ParsingException
 	 */
-	public static Statement parseStandaloneStatement(final String statementText, C4Function context, IScriptParserListener listener, final IMarkerListener markerListener) throws ParsingException {
+	public static Statement parseStandaloneStatement(final String statementText, Function context, IScriptParserListener listener, final IMarkerListener markerListener) throws ParsingException {
 		if (context == null) {
-			C4ScriptBase tempScript = new TempScript(statementText);
-			context = new C4Function("<temp>", null, C4FunctionScope.GLOBAL); //$NON-NLS-1$
+			ScriptBase tempScript = new TempScript(statementText);
+			context = new Function("<temp>", null, C4FunctionScope.GLOBAL); //$NON-NLS-1$
 			context.setScript(tempScript);
 			context.setBody(new SourceLocation(0, statementText.length()));
 		}
@@ -3399,7 +3399,7 @@ public class C4ScriptParser extends CStyleScanner {
 	 * @return The statement or a BunchOfStatement if more than one statement could be parsed from statementText. Possibly null, if erroneous text was passed.
 	 * @throws ParsingException
 	 */
-	public Statement parseStandaloneStatement(final String statementText, C4Function context, IScriptParserListener listener) throws ParsingException {
+	public Statement parseStandaloneStatement(final String statementText, Function context, IScriptParserListener listener) throws ParsingException {
 		initScanner(statementText);
 		setListener(listener);
 		setCurrentFunc(context);

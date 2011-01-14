@@ -2,7 +2,7 @@ package net.arctics.clonk.ui;
 
 import java.util.Comparator;
 import net.arctics.clonk.ClonkCore;
-import net.arctics.clonk.index.C4Object;
+import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.ClonkIndex;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.util.ArrayUtil;
@@ -30,8 +30,8 @@ public class OpenObjectDialog extends FilteredItemsSelectionDialog {
 		public StyledString getStyledText(Object element) {
 			if (element == null)
 				return new StyledString(Messages.OpenObjectDialog_Empty);
-			if (!(element instanceof C4Object)) return new StyledString(element.toString());
-			C4Object obj = (C4Object) element;
+			if (!(element instanceof Definition)) return new StyledString(element.toString());
+			Definition obj = (Definition) element;
 			StyledString buf = new StyledString(obj.getName());
 			buf.append(" - ", StyledString.QUALIFIER_STYLER); //$NON-NLS-1$
 			buf.append(obj.getId().getName(), StyledString.QUALIFIER_STYLER);
@@ -57,8 +57,8 @@ public class OpenObjectDialog extends FilteredItemsSelectionDialog {
 		
 			@Override
 			public boolean matchItem(Object item) {
-				if (!(item instanceof C4Object)) return false;
-				final C4Object obj = (C4Object) item;
+				if (!(item instanceof Definition)) return false;
+				final Definition obj = (Definition) item;
 				final String search = this.getPattern().toUpperCase();
 				if (obj == null || obj.getId() == null || obj.getName() == null || search == null) {
 					return false;
@@ -95,7 +95,7 @@ public class OpenObjectDialog extends FilteredItemsSelectionDialog {
 			ItemsFilter itemsFilter, IProgressMonitor progressMonitor,
 			ClonkIndex index) {
 		progressMonitor.beginTask(Messages.OpenObjectDialog_Searching, index.numUniqueIds());
-		for(C4Object object : index) {
+		for(Definition object : index) {
 			contentProvider.add(object, itemsFilter);
 			progressMonitor.worked(1);
 		}
@@ -115,9 +115,9 @@ public class OpenObjectDialog extends FilteredItemsSelectionDialog {
 
 	@Override
 	public String getElementName(Object item) {
-		if (!(item instanceof C4Object))
+		if (!(item instanceof Definition))
 			return item.toString();
-		return ((C4Object)item).getId().getName();
+		return ((Definition)item).getId().getName();
 	}
 
 	@SuppressWarnings("rawtypes")
@@ -135,8 +135,8 @@ public class OpenObjectDialog extends FilteredItemsSelectionDialog {
 		return Status.OK_STATUS;
 	}
 	
-	public C4Object[] getSelectedObjects() {
-		return ArrayUtil.convertArray(getResult(), C4Object.class);
+	public Definition[] getSelectedObjects() {
+		return ArrayUtil.convertArray(getResult(), Definition.class);
 	}
 
 }

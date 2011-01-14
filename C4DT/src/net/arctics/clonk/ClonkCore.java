@@ -22,7 +22,7 @@ import java.util.Map;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.xpath.XPathExpressionException;
 
-import net.arctics.clonk.index.C4Engine;
+import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.index.ProjectIndex;
 import net.arctics.clonk.parser.inireader.IniUnit;
 import net.arctics.clonk.parser.mapcreator.C4MapCreator;
@@ -97,12 +97,12 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 	/**
 	 * The engine object contains global functions and variables defined by Clonk itself
 	 */
-	private C4Engine activeEngine;
+	private Engine activeEngine;
 	
 	/**
 	 * List of engines currently loaded
 	 */
-	private Map<String, C4Engine> loadedEngines = new HashMap<String, C4Engine>();
+	private Map<String, Engine> loadedEngines = new HashMap<String, Engine>();
 
 	/**
 	 * Shared instance
@@ -202,7 +202,7 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 	//		}
 	//	}
 	
-	public Map<String, C4Engine> getLoadedEngines() {
+	public Map<String, Engine> getLoadedEngines() {
 		return Collections.unmodifiableMap(loadedEngines);
 	}
 	
@@ -238,19 +238,19 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 		return result;
 	}
 	
-	public Iterable<C4Engine> loadedEngines() {
-		return new Iterable<C4Engine>() {
+	public Iterable<Engine> loadedEngines() {
+		return new Iterable<Engine>() {
 			@Override
-			public Iterator<C4Engine> iterator() {
-				return new ReadOnlyIterator<C4Engine>(loadedEngines.values().iterator());
+			public Iterator<Engine> iterator() {
+				return new ReadOnlyIterator<Engine>(loadedEngines.values().iterator());
 			}
 		};
 	}
 	
-	public C4Engine loadEngine(final String engineName) {
+	public Engine loadEngine(final String engineName) {
 		if (engineName == null || engineName.equals("")) //$NON-NLS-1$
 			return null;
-		C4Engine result = loadedEngines.get(engineName);
+		Engine result = loadedEngines.get(engineName);
 		if (result != null)
 			return result;
 		IStorageLocation[] locations = new IStorageLocation[2];
@@ -261,7 +261,7 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 			// no bundle? seems to run headlessly
 			getHeadlessStorageLocations(engineName, locations);
 		}
-		result = C4Engine.loadFromStorageLocations(locations);
+		result = Engine.loadFromStorageLocations(locations);
 		if (result != null)
 			loadedEngines.put(engineName, result);
 		return result;
@@ -495,7 +495,7 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 		case ISaveContext.SNAPSHOT:
 		case ISaveContext.FULL_SAVE:
 			rememberCurrentVersion();
-			for (C4Engine engine : loadedEngines.values()) {
+			for (Engine engine : loadedEngines.values()) {
 				try {
 					engine.saveSettings();
 				} catch (IOException e) {
@@ -549,12 +549,12 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 	/**
 	 * @param activeEngine the engineObject to set
 	 */
-	private void setActiveEngine(C4Engine activeEngine) {
+	private void setActiveEngine(Engine activeEngine) {
 		this.activeEngine = activeEngine;
 	}
 	
 	public void setActiveEngineByName(String engineName) {
-		C4Engine e = loadEngine(engineName);
+		Engine e = loadEngine(engineName);
 		// make sure names are correct
 		if (e != null) {
 			e.setName(engineName);
@@ -565,7 +565,7 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 	/**
 	 * @return the engineObject
 	 */
-	public C4Engine getActiveEngine() {
+	public Engine getActiveEngine() {
 		return activeEngine;
 	}
 

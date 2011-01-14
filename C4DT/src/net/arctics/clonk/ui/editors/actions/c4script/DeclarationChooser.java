@@ -5,7 +5,7 @@ import java.util.Comparator;
 
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.C4Declaration;
-import net.arctics.clonk.parser.C4Structure;
+import net.arctics.clonk.parser.Structure;
 import net.arctics.clonk.ui.navigator.ClonkOutlineProvider;
 import net.arctics.clonk.util.ArrayUtil;
 import org.eclipse.core.runtime.CoreException;
@@ -72,7 +72,7 @@ public class DeclarationChooser extends FilteredItemsSelectionDialog {
 				if (!(item instanceof C4Declaration)) return false;
 				final C4Declaration decl = (C4Declaration) item;
 				final String search = this.getPattern().toUpperCase();
-				final C4Structure structure = decl.getTopLevelStructure();
+				final Structure structure = decl.getTopLevelStructure();
 				return decl.nameContains(search) || (structure != null && structure.nameContains(search));
 			}
 			

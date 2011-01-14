@@ -2,7 +2,7 @@ package net.arctics.clonk.parser.c4script.ast;
 
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
-import net.arctics.clonk.parser.c4script.C4Type;
+import net.arctics.clonk.parser.c4script.PrimitiveType;
 import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
 import net.arctics.clonk.util.Utilities;
@@ -28,7 +28,7 @@ public class ArrayExpression extends Sequence {
 
 	@Override
 	protected IType obtainType(C4ScriptParser context) {
-		return C4Type.ARRAY;
+		return PrimitiveType.ARRAY;
 	}
 
 	@Override

@@ -7,15 +7,15 @@ import java.util.LinkedList;
 import java.util.List;
 
 import net.arctics.clonk.ClonkCore;
-import net.arctics.clonk.index.C4Object;
+import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.CachedEngineFuncs;
 import net.arctics.clonk.parser.C4Declaration;
 import net.arctics.clonk.parser.DeclarationRegion;
 import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.ParsingException;
-import net.arctics.clonk.parser.c4script.C4ScriptBase;
+import net.arctics.clonk.parser.c4script.ScriptBase;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
-import net.arctics.clonk.parser.c4script.C4Type;
+import net.arctics.clonk.parser.c4script.PrimitiveType;
 import net.arctics.clonk.parser.c4script.TypeSet;
 import net.arctics.clonk.parser.c4script.ConstrainedObject;
 import net.arctics.clonk.parser.c4script.ConstrainedType;
@@ -212,17 +212,17 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable {
 					break;
 				}
 			} else if (obl instanceof ConstrainedType) {
-				C4Object obj = null;
+				Definition obj = null;
 				switch (obl.constraintKind()) {
 				case CallerType:
 					ExprElm pred = getPredecessorInSequence();
 					if (pred != null)
-						obj = Utilities.as(pred.getType(context), C4Object.class);
+						obj = Utilities.as(pred.getType(context), Definition.class);
 					else if (obl.constraintScript() != context.getContainer())
 						obj = context.getContainerObject();
 					break;
 				case Exact:
-					obj = Utilities.as(obl.constraintScript(), C4Object.class);
+					obj = Utilities.as(obl.constraintScript(), Definition.class);
 					break;
 				case Includes:
 					break;
@@ -240,14 +240,14 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable {
 	 * @return The type of the expression
 	 */
 	protected IType obtainType(C4ScriptParser context) {
-		IType t = context.queryTypeOfExpression(this, C4Type.UNKNOWN);
+		IType t = context.queryTypeOfExpression(this, PrimitiveType.UNKNOWN);
 		if (t == null)
-			t = C4Type.UNKNOWN;
+			t = PrimitiveType.UNKNOWN;
 		return t;
 	}
 	
-	public final C4Object guessObjectType(C4ScriptParser context) {
-		return Utilities.as(C4Object.scriptFrom(getType(context)), C4Object.class);
+	public final Definition guessObjectType(C4ScriptParser context) {
+		return Utilities.as(Definition.scriptFrom(getType(context)), Definition.class);
 	}
 
 	public boolean modifiable(C4ScriptParser context) {
@@ -364,7 +364,7 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable {
 	 */
 	public boolean canBeConvertedTo(IType otherType, C4ScriptParser context) {
 		// 5555 is ID
-		return getType(context) == C4Type.INT && otherType.canBeAssignedFrom(C4Type.ID);
+		return getType(context) == PrimitiveType.INT && otherType.canBeAssignedFrom(PrimitiveType.ID);
 	}
 
 	public boolean validForType(IType t, C4ScriptParser context) {
@@ -431,14 +431,14 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable {
 		return TypeSet.create(first, second);
 	}
 
-	private static final ExprElm[] exprElmsForTypes = new ExprElm[C4Type.values().length];
+	private static final ExprElm[] exprElmsForTypes = new ExprElm[PrimitiveType.values().length];
 
 	/**
 	 * Returns a canonical ExprElm object for the given type such that its getType() returns the given type
 	 * @param type the type to return a canonical ExprElm of
 	 * @return the canonical ExprElm object
 	 */
-	public static ExprElm getExprElmForType(final C4Type type) {
+	public static ExprElm getExprElmForType(final PrimitiveType type) {
 		if (exprElmsForTypes[type.ordinal()] == null) {
 			exprElmsForTypes[type.ordinal()] = new ExprElm() {
 				/**
@@ -477,13 +477,13 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable {
 	}
 	
 	public void expectedToBeOfType(IType type, C4ScriptParser context, TypeExpectancyMode mode, ParserErrorCode errorWhenFailed) {
-		if (type == C4Type.UNKNOWN || type == C4Type.ANY)
+		if (type == PrimitiveType.UNKNOWN || type == PrimitiveType.ANY)
 			return; // expecting it to be of any or unknown type? come back when you can be more specific please
 		IStoredTypeInformation info = context.requestStoredTypeInformation(this);
 		if (info != null) {
 			switch (mode) {
 			case Expect:
-				if (info.getType() == C4Type.UNKNOWN)
+				if (info.getType() == PrimitiveType.UNKNOWN)
 					info.storeType(type);
 				break;
 			case Force:
@@ -517,9 +517,9 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable {
 		return EnumSet.of(getControlFlow()); 
 	}
 
-	public final boolean isAlways(boolean what, C4ScriptBase context) {
+	public final boolean isAlways(boolean what, ScriptBase context) {
 		Object ev = this.evaluateAtParseTime(context);
-		return ev != null && Boolean.valueOf(what).equals(C4Type.BOOL.convert(ev));
+		return ev != null && Boolean.valueOf(what).equals(PrimitiveType.BOOL.convert(ev));
 	}
 
 	public boolean containedIn(ExprElm expression) {
@@ -556,7 +556,7 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable {
 	 * @param context the context to evaluate in
 	 * @return the result
 	 */
-	public Object evaluateAtParseTime(C4ScriptBase context) {
+	public Object evaluateAtParseTime(ScriptBase context) {
 		return EVALUATION_COMPLEX;
 	}
 	

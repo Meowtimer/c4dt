@@ -19,7 +19,7 @@ import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 
 import net.arctics.clonk.parser.C4Declaration;
-import net.arctics.clonk.parser.c4script.C4Variable.C4VariableScope;
+import net.arctics.clonk.parser.c4script.Variable.C4VariableScope;
 import net.arctics.clonk.util.StreamUtil;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
@@ -121,26 +121,26 @@ public class XMLDocImporter {
 			C4Declaration result;
 			String name = titleNode.getTextContent();
 			if (parmNodes != null && (parmNodes.getLength() > 0 || !C4Declaration.looksLikeConstName(name))) {
-				C4Function function;
-				result = function = new C4Function();
+				Function function;
+				result = function = new Function();
 				for (int i = 0; i < parmNodes.getLength(); i++) {
 					Node n = parmNodes.item(i);
 					Node nameNode  = (Node) parmNameExpr.evaluate(n, XPathConstants.NODE);
 					Node typeNode  = (Node) parmTypeExpr.evaluate(n, XPathConstants.NODE);
 					Node descNode_ = (Node) parmDescExpr.evaluate(n, XPathConstants.NODE);
-					String typeStr = typeNode != null ? typeNode.getTextContent() : C4Type.ANY.toString();
+					String typeStr = typeNode != null ? typeNode.getTextContent() : PrimitiveType.ANY.toString();
 					if (nameNode != null) {
-						C4Variable parm = new C4Variable(nameNode.getTextContent(), C4Type.makeType(typeStr));
+						Variable parm = new Variable(nameNode.getTextContent(), PrimitiveType.makeType(typeStr));
 						if (descNode_ != null)
 							parm.setUserDescription(descNode_.getTextContent());
 						function.getParameters().add(parm);
 					}
 				}
 			} else {
-				result = new C4Variable(name, C4Type.INT, null, C4VariableScope.CONST);
+				result = new Variable(name, PrimitiveType.INT, null, C4VariableScope.CONST);
 			}
 			result.setName(name);
-			((ITypedDeclaration)result).forceType(C4Type.makeType(rTypeNode.getTextContent()));
+			((ITypedDeclaration)result).forceType(PrimitiveType.makeType(rTypeNode.getTextContent()));
 			if (descNode != null)
 				((IHasUserDescription)result).setUserDescription(descNode.getTextContent());
 			return result;

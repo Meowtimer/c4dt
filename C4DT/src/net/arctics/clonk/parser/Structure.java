@@ -11,14 +11,14 @@ import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.part.FileEditorInput;
 
 import net.arctics.clonk.ClonkCore;
-import net.arctics.clonk.parser.c4script.C4ScriptBase;
+import net.arctics.clonk.parser.c4script.ScriptBase;
 import net.arctics.clonk.ui.editors.c4script.ScriptWithStorageEditorInput;
 
 /**
  * Declaration that contains sub declarations and describes more complex structures (like DefCores and scripts).
  * Provides support for being pinned to files in the project tree.
  */
-public abstract class C4Structure extends C4Declaration implements ILatestDeclarationVersionProvider {
+public abstract class Structure extends C4Declaration implements ILatestDeclarationVersionProvider {
 	
 	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 
@@ -51,8 +51,8 @@ public abstract class C4Structure extends C4Declaration implements ILatestDeclar
 		Object storage = getScript() != null ? getScript().getScriptStorage() : getResource();
 		if (storage instanceof IFile)
 			return new FileEditorInput((IFile) storage);
-		if (storage instanceof IStorage && this instanceof C4ScriptBase)
-			return new ScriptWithStorageEditorInput((C4ScriptBase) this);
+		if (storage instanceof IStorage && this instanceof ScriptBase)
+			return new ScriptWithStorageEditorInput((ScriptBase) this);
 		return null;
 	}
 	
@@ -80,8 +80,8 @@ public abstract class C4Structure extends C4Declaration implements ILatestDeclar
 	 * @return the structure
 	 * @throws CoreException
 	 */
-	public static C4Structure pinned(IResource file, boolean force, boolean duringBuild) throws CoreException {
-		C4Structure result = (C4Structure) file.getSessionProperty(ClonkCore.C4STRUCTURE_PROPERTY_ID);
+	public static Structure pinned(IResource file, boolean force, boolean duringBuild) throws CoreException {
+		Structure result = (Structure) file.getSessionProperty(ClonkCore.C4STRUCTURE_PROPERTY_ID);
 		if (result == null && force) {
 			result = createStructureForFile(file, duringBuild);
 			if (result != null)
@@ -96,8 +96,8 @@ public abstract class C4Structure extends C4Declaration implements ILatestDeclar
 	 * @return the previously pinned structure or null if there was none 
 	 * @throws CoreException
 	 */
-	public static C4Structure unPinFrom(IFile file) throws CoreException {
-		C4Structure pinned = pinned(file, false, false);
+	public static Structure unPinFrom(IFile file) throws CoreException {
+		Structure pinned = pinned(file, false, false);
 		if (pinned != null)
 			file.setSessionProperty(ClonkCore.C4STRUCTURE_PROPERTY_ID, null);
 		return pinned;
@@ -116,7 +116,7 @@ public abstract class C4Structure extends C4Declaration implements ILatestDeclar
 	 *
 	 */
 	public interface IStructureFactory {
-		public C4Structure create(IResource resource, boolean duringBuild);
+		public Structure create(IResource resource, boolean duringBuild);
 	}
 	
 	/**
@@ -137,9 +137,9 @@ public abstract class C4Structure extends C4Declaration implements ILatestDeclar
 	 * @param file file
 	 * @return the newly created structure or null if no suitable factory could be found
 	 */
-	public static C4Structure createStructureForFile(IResource file, boolean duringBuild) {
+	public static Structure createStructureForFile(IResource file, boolean duringBuild) {
 		for (IStructureFactory factory : structureFactories) {
-			C4Structure result = factory.create(file, duringBuild);
+			Structure result = factory.create(file, duringBuild);
 			if (result != null)
 				return result;
 		}
@@ -150,7 +150,7 @@ public abstract class C4Structure extends C4Declaration implements ILatestDeclar
 	 * Commits data of this structure to the script. Mainly for objects.
 	 * @param script the script to commit to
 	 */
-	public void commitTo(C4ScriptBase script) {
+	public void commitTo(ScriptBase script) {
 		// placeholder
 	}
 	

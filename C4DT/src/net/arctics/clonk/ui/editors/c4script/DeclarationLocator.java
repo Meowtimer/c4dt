@@ -3,14 +3,14 @@ package net.arctics.clonk.ui.editors.c4script;
 import java.util.LinkedList;
 import java.util.List;
 
-import net.arctics.clonk.index.C4Engine;
+import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.index.ClonkIndex;
 import net.arctics.clonk.parser.C4Declaration;
 import net.arctics.clonk.parser.DeclarationRegion;
-import net.arctics.clonk.parser.c4script.C4Function;
-import net.arctics.clonk.parser.c4script.C4ScriptBase;
+import net.arctics.clonk.parser.c4script.Function;
+import net.arctics.clonk.parser.c4script.ScriptBase;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
-import net.arctics.clonk.parser.c4script.C4Variable;
+import net.arctics.clonk.parser.c4script.Variable;
 import net.arctics.clonk.parser.c4script.FindDeclarationInfo;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.c4script.C4ScriptParser.ExpressionsAndStatementsReportingFlavour;
@@ -47,7 +47,7 @@ public class DeclarationLocator extends ExpressionLocator {
 
 	private static IPredicate<C4Declaration> IS_FUNC = new IPredicate<C4Declaration>() {
 		public boolean test(C4Declaration item) {
-			return item instanceof C4Function;
+			return item instanceof Function;
 		}
 	};
 	private static IPredicate<C4Declaration> IS_GLOBAL = new IPredicate<C4Declaration>() {
@@ -58,16 +58,16 @@ public class DeclarationLocator extends ExpressionLocator {
 	
 	public DeclarationLocator(ITextEditor editor, IDocument doc, IRegion region) throws BadLocationException, ParsingException {
 		this.editor = editor;
-		final C4ScriptBase script = Utilities.getScriptForEditor(getEditor());
+		final ScriptBase script = Utilities.getScriptForEditor(getEditor());
 		if (script == null)
 			return;
 		int bodyStart;
 		IRegion body;
-		C4Engine engine;
-		C4Function func = script.funcAt(region);
+		Engine engine;
+		Function func = script.funcAt(region);
 		ExpressionsAndStatementsReportingFlavour flavour;
 		if (func == null) {
-			C4Variable var = script.variableWithInitializationAt(region);
+			Variable var = script.variableWithInitializationAt(region);
 			if (var == null) {
 				// outside function and variable initialization, fallback to old technique
 				simpleFindDeclaration(doc, region, script, null);
@@ -113,7 +113,7 @@ public class DeclarationLocator extends ExpressionLocator {
 					if (projectDeclarations != null)
 						projectDeclarations = Utilities.filter(projectDeclarations, IS_FUNC);
 					
-					C4Function engineFunc = engine.findFunction(access.getDeclarationName());
+					Function engineFunc = engine.findFunction(access.getDeclarationName());
 					if (projectDeclarations != null || engineFunc != null) {
 						proposedDeclarations = new LinkedList<C4Declaration>();
 						if (projectDeclarations != null)
@@ -141,7 +141,7 @@ public class DeclarationLocator extends ExpressionLocator {
 			simpleFindDeclaration(doc, region, script, func);
 	}
 
-	private void simpleFindDeclaration(IDocument doc, IRegion region, C4ScriptBase script, C4Function func) throws BadLocationException {
+	private void simpleFindDeclaration(IDocument doc, IRegion region, ScriptBase script, Function func) throws BadLocationException {
 		IRegion lineInfo;
 		String line;
 		try {

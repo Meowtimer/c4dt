@@ -131,6 +131,6 @@ public class BuiltInDefinitions {
 		Keywords.VarNamed
 	};
 	
-	public static final String[] DIRECTIVES = C4Directive.arrayOfDirectiveStrings();
-	public static final String[] SCRIPTOPERATORS = C4ScriptOperator.arrayOfOperatorNames(); 
+	public static final String[] DIRECTIVES = Directive.arrayOfDirectiveStrings();
+	public static final String[] SCRIPTOPERATORS = Operator.arrayOfOperatorNames(); 
 }

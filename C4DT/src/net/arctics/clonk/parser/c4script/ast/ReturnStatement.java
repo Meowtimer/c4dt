@@ -3,7 +3,7 @@ package net.arctics.clonk.parser.c4script.ast;
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.ParsingException;
-import net.arctics.clonk.parser.c4script.C4Function;
+import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.Keywords;
 import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
@@ -110,7 +110,7 @@ public class ReturnStatement extends KeywordStatement {
 	public void reportErrors(C4ScriptParser parser) throws ParsingException {
 		super.reportErrors(parser);
 		warnAboutTupleInReturnExpr(parser, returnExpr, false);
-		C4Function activeFunc = parser.getCurrentFunc();
+		Function activeFunc = parser.getCurrentFunc();
 		if (activeFunc == null) {
 			parser.errorWithCode(ParserErrorCode.NotAllowedHere, this, true, Keywords.Return);
 		} else if (returnExpr != null) {

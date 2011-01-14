@@ -1,10 +1,10 @@
 package net.arctics.clonk.parser.c4script.specialscriptrules;
 
 import net.arctics.clonk.parser.ParsingException;
-import net.arctics.clonk.parser.c4script.C4EffectFunction;
-import net.arctics.clonk.parser.c4script.C4Function;
+import net.arctics.clonk.parser.c4script.EffectFunction;
+import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
-import net.arctics.clonk.parser.c4script.C4Type;
+import net.arctics.clonk.parser.c4script.PrimitiveType;
 import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.parser.c4script.ProplistDeclaration;
 import net.arctics.clonk.parser.c4script.SpecialScriptRules;
@@ -15,13 +15,13 @@ public class SpecialScriptRules_OpenClonk extends SpecialScriptRules {
 	 */
 	protected final SpecialFuncRule effectFunctionParmTypes = new SpecialFuncRule() {
 		@Override
-		public boolean assignDefaultParmTypes(C4ScriptParser parser, C4Function function) {
-			if (function instanceof C4EffectFunction) {
-				C4EffectFunction fun = (C4EffectFunction) function;
+		public boolean assignDefaultParmTypes(C4ScriptParser parser, Function function) {
+			if (function instanceof EffectFunction) {
+				EffectFunction fun = (EffectFunction) function;
 				fun.findRelatedEffectFunctions();
-				C4EffectFunction startFunction = fun.getEffectFunctionType() == C4EffectFunction.Type.Start
+				EffectFunction startFunction = fun.getEffectFunctionType() == EffectFunction.Type.Start
 					? null
-					: fun.getRelatedEffectFunction(C4EffectFunction.Type.Start);
+					: fun.getRelatedEffectFunction(EffectFunction.Type.Start);
 				// parse *Start function first. Will define ad-hoc proplist type
 				if (startFunction != null) {
 					try {
@@ -35,12 +35,12 @@ public class SpecialScriptRules_OpenClonk extends SpecialScriptRules {
 					? startFunction.getParameters().get(1).getType()
 					: createAdHocProplistDeclaration(fun);
 //					: C4Type.PROPLIST;
-				function.assignParameterTypes(C4Type.OBJECT, effectProplistType);
+				function.assignParameterTypes(PrimitiveType.OBJECT, effectProplistType);
 				return true;
 			}
 			return false;
 		}
-		private IType createAdHocProplistDeclaration(C4EffectFunction startFunction) {
+		private IType createAdHocProplistDeclaration(EffectFunction startFunction) {
 			ProplistDeclaration result = ProplistDeclaration.adHocDeclaration();
 			result.setLocation(startFunction.getLocation());
 			result.setParentDeclaration(startFunction);
@@ -48,10 +48,10 @@ public class SpecialScriptRules_OpenClonk extends SpecialScriptRules {
 			return result;
 		}
 		@Override
-		public C4Function newFunction(String name) {
-			for (C4EffectFunction.Type t : C4EffectFunction.Type.values()) {
+		public Function newFunction(String name) {
+			for (EffectFunction.Type t : EffectFunction.Type.values()) {
 				if (t.getPattern().matcher(name).matches())
-					return new C4EffectFunction();
+					return new EffectFunction();
 			}
 			return null;
 		};

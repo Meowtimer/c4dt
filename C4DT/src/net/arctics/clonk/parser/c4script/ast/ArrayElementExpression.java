@@ -5,7 +5,7 @@ import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.c4script.ArrayType;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
-import net.arctics.clonk.parser.c4script.C4Type;
+import net.arctics.clonk.parser.c4script.PrimitiveType;
 import net.arctics.clonk.parser.c4script.IType;
 
 public class ArrayElementExpression extends Value {
@@ -17,7 +17,7 @@ public class ArrayElementExpression extends Value {
 	@Override
 	protected IType obtainType(C4ScriptParser context) {
 		IType t = super.obtainType(context);
-		if (t != C4Type.UNKNOWN && t != C4Type.ANY) {
+		if (t != PrimitiveType.UNKNOWN && t != PrimitiveType.ANY) {
 			return t;
 		}
 		if (getPredecessorInSequence() != null) {
@@ -26,7 +26,7 @@ public class ArrayElementExpression extends Value {
 				return ((ArrayType)t).getElementType();
 			}
 		}
-		return C4Type.UNKNOWN;
+		return PrimitiveType.UNKNOWN;
 	}
 
 	public ArrayElementExpression(ExprElm argument) {
@@ -52,7 +52,7 @@ public class ArrayElementExpression extends Value {
 		ExprElm predecessor = getPredecessorInSequence();
 		if (predecessor != null) {
 			IType type = predecessor.getType(parser);
-			if (type != C4Type.UNKNOWN && type != C4Type.ANY && !type.containsAnyTypeOf(C4Type.ARRAY, C4Type.PROPLIST)) {
+			if (type != PrimitiveType.UNKNOWN && type != PrimitiveType.ANY && !type.containsAnyTypeOf(PrimitiveType.ARRAY, PrimitiveType.PROPLIST)) {
 				parser.warningWithCode(ParserErrorCode.NotAnArrayOrProplist, predecessor);
 			}
 		}

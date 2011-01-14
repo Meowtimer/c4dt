@@ -11,7 +11,7 @@ public interface ITypedDeclaration {
 	// interfaces should allow default implementations -.-
 	public abstract static class Default {
 		public static void expectedToBeOfType(ITypedDeclaration instance, IType type) {
-			if (instance.getType() == C4Type.UNKNOWN)
+			if (instance.getType() == PrimitiveType.UNKNOWN)
 				// unknown before so now it is assumed to be of this type
 				instance.forceType(type);
 			else if (!instance.getType().equals(type))

@@ -5,9 +5,9 @@ import java.net.MalformedURLException;
 import java.net.URL;
 
 import net.arctics.clonk.ClonkCore;
-import net.arctics.clonk.index.C4Engine;
+import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.parser.C4Declaration;
-import net.arctics.clonk.parser.c4script.C4Function;
+import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.preferences.ClonkPreferences;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.hyperlink.IHyperlink;
@@ -58,8 +58,8 @@ public class ClonkHyperlink implements IHyperlink {
 	
 	private static WeakReference<IWebBrowser> internalBrowser = new WeakReference<IWebBrowser>(null);
 
-	public static void openDocumentationForFunction(String functionName, C4Engine engine) throws PartInitException, MalformedURLException {
-		String docURLTemplate = C4Function.getDocumentationURL(functionName, engine);
+	public static void openDocumentationForFunction(String functionName, Engine engine) throws PartInitException, MalformedURLException {
+		String docURLTemplate = Function.getDocumentationURL(functionName, engine);
 		IWorkbenchBrowserSupport support = WorkbenchBrowserSupport.getInstance();
 		IWebBrowser browser;
 		if (ClonkCore.getDefault().getPreferenceStore().getBoolean(ClonkPreferences.OPEN_EXTERNAL_BROWSER) || !support.isInternalWebBrowserAvailable()) {

@@ -15,18 +15,18 @@ import java.util.regex.Pattern;
 import javax.xml.xpath.XPathExpressionException;
 import net.arctics.clonk.parser.BufferedScanner;
 import net.arctics.clonk.parser.C4Declaration;
-import net.arctics.clonk.parser.c4script.C4Function;
-import net.arctics.clonk.parser.c4script.C4ScriptBase;
-import net.arctics.clonk.parser.c4script.C4Type;
-import net.arctics.clonk.parser.c4script.C4Variable;
-import net.arctics.clonk.parser.c4script.C4Variable.C4VariableScope;
+import net.arctics.clonk.parser.c4script.Function;
+import net.arctics.clonk.parser.c4script.ScriptBase;
+import net.arctics.clonk.parser.c4script.PrimitiveType;
+import net.arctics.clonk.parser.c4script.Variable;
+import net.arctics.clonk.parser.c4script.Variable.C4VariableScope;
 import net.arctics.clonk.parser.c4script.XMLDocImporter;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.xml.sax.SAXException;
 
 public class OCEngineDeclarationsImporter {
 
-	public void importFromRepository(C4ScriptBase importsContainer, String repository, IProgressMonitor monitor) throws XPathExpressionException, FileNotFoundException, SAXException, IOException {
+	public void importFromRepository(ScriptBase importsContainer, String repository, IProgressMonitor monitor) throws XPathExpressionException, FileNotFoundException, SAXException, IOException {
 		XMLDocImporter importer = XMLDocImporter.instance();
 		importer.setRepositoryPath(repository);
 		String fnFolderPath = repository + "/docs/sdk/script/fn"; //$NON-NLS-1$
@@ -66,7 +66,7 @@ public class OCEngineDeclarationsImporter {
 			monitor.done();
 	}
 
-	private void readMissingFuncsFromSource(C4ScriptBase importsContainer, String repository) throws FileNotFoundException, IOException {
+	private void readMissingFuncsFromSource(ScriptBase importsContainer, String repository) throws FileNotFoundException, IOException {
 
 		final int SECTION_None = 0;
 		final int SECTION_InitFunctionMap = 1;
@@ -106,11 +106,11 @@ public class OCEngineDeclarationsImporter {
 					case SECTION_InitFunctionMap:
 						if (addFuncMatcher.reset(line).matches()) {
 							String name = addFuncMatcher.group(1);
-							C4Function fun = importsContainer.findLocalFunction(name, false);
+							Function fun = importsContainer.findLocalFunction(name, false);
 							if (fun == null) {
-								fun = new C4Function(name, C4Type.ANY);
-								List<C4Variable> parms = new ArrayList<C4Variable>(1);
-								parms.add(new C4Variable("...", C4Type.ANY)); //$NON-NLS-1$
+								fun = new Function(name, PrimitiveType.ANY);
+								List<Variable> parms = new ArrayList<Variable>(1);
+								parms.add(new Variable("...", PrimitiveType.ANY)); //$NON-NLS-1$
 								fun.setParameters(parms);
 								importsContainer.addDeclaration(fun);
 							}
@@ -121,18 +121,18 @@ public class OCEngineDeclarationsImporter {
 							int i = 1;
 							String name = constMapMatcher.group(i++);
 							String typeString = constMapMatcher.group(i++);
-							C4Type type;
+							PrimitiveType type;
 							try {
-								type = C4Type.makeType(typeString.substring(4).toLowerCase());
+								type = PrimitiveType.makeType(typeString.substring(4).toLowerCase());
 							} catch (Exception e) {
 								System.out.println(typeString);
-								type = C4Type.INT;
+								type = PrimitiveType.INT;
 							}
 							String comment = constMapMatcher.group(5); 
 
-							C4Variable cnst = importsContainer.findLocalVariable(name, false);
+							Variable cnst = importsContainer.findLocalVariable(name, false);
 							if (cnst == null) {
-								cnst = new C4Variable(name, type);
+								cnst = new Variable(name, type);
 								cnst.setScope(C4VariableScope.CONST);
 								cnst.setUserDescription(comment);
 								importsContainer.addDeclaration(cnst);
@@ -148,13 +148,13 @@ public class OCEngineDeclarationsImporter {
 							String parms = fnMapMatcher.group(i++);
 							//String pointer = fnMapMatcher.group(i++);
 							//String oldPointer = fnMapMatcher.group(i++);
-							C4Function fun = importsContainer.findLocalFunction(name, false);
+							Function fun = importsContainer.findLocalFunction(name, false);
 							if (fun == null) {
-								fun = new C4Function(name, C4Type.makeType(retType.substring(4).toLowerCase(), true));
+								fun = new Function(name, PrimitiveType.makeType(retType.substring(4).toLowerCase(), true));
 								String[] p = parms.split(","); //$NON-NLS-1$
-								List<C4Variable> parList = new ArrayList<C4Variable>(p.length);
+								List<Variable> parList = new ArrayList<Variable>(p.length);
 								for (String pa : p) {
-									parList.add(new C4Variable("par"+(parList.size()+1), C4Type.makeType(pa.trim().substring(4).toLowerCase(), true))); //$NON-NLS-1$
+									parList.add(new Variable("par"+(parList.size()+1), PrimitiveType.makeType(pa.trim().substring(4).toLowerCase(), true))); //$NON-NLS-1$
 								}
 								fun.setParameters(parList);
 								importsContainer.addDeclaration(fun);
@@ -174,17 +174,17 @@ public class OCEngineDeclarationsImporter {
 							}
 							i++; // optional Object in C4AulContext
 							String parms = fnDeclarationMatcher.group(i++);
-							C4Function fun = importsContainer.findLocalFunction(name, false);
+							Function fun = importsContainer.findLocalFunction(name, false);
 							if (fun == null) {
-								fun = new C4Function(name, C4Type.typeFromCPPType(returnType));
+								fun = new Function(name, PrimitiveType.typeFromCPPType(returnType));
 								String[] parmStrings = parms.split("\\,");
-								List<C4Variable> parList = new ArrayList<C4Variable>(parmStrings.length);
+								List<Variable> parList = new ArrayList<Variable>(parmStrings.length);
 								for (String parm : parmStrings) {
 									int x;
 									for (x = parm.length()-1; x >= 0 && BufferedScanner.isWordPart(parm.charAt(x)); x--);
 									String pname = parm.substring(x+1);
 									String type = parm.substring(0, x+1).trim();
-									parList.add(new C4Variable(pname, C4Type.typeFromCPPType(type)));
+									parList.add(new Variable(pname, PrimitiveType.typeFromCPPType(type)));
 								}
 								fun.setParameters(parList);
 								importsContainer.addDeclaration(fun);

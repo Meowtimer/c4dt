@@ -7,8 +7,8 @@ import java.util.List;
 import java.util.Map;
 
 import net.arctics.clonk.ClonkCore;
-import net.arctics.clonk.index.C4Engine;
-import net.arctics.clonk.index.C4Engine.EngineSettings;
+import net.arctics.clonk.index.Engine;
+import net.arctics.clonk.index.Engine.EngineSettings;
 import net.arctics.clonk.ui.navigator.ClonkFolderView;
 
 import org.eclipse.core.runtime.IPath;
@@ -54,11 +54,11 @@ public class ClonkPreferencePage extends FieldEditorPreferencePage implements IW
 	
 	private class EngineConfigPrefStore extends PreferenceStore {
 		
-		private Map<String, C4Engine.EngineSettings> settings = new HashMap<String, C4Engine.EngineSettings>(); 
+		private Map<String, Engine.EngineSettings> settings = new HashMap<String, Engine.EngineSettings>(); 
 		
 		@Override
 		public void setValue(String name, String value) {
-			C4Engine.EngineSettings e = getSettings();
+			Engine.EngineSettings e = getSettings();
 			try {
 				e.getClass().getField(name).set(e, value);
 			} catch (Exception e1) {
@@ -71,7 +71,7 @@ public class ClonkPreferencePage extends FieldEditorPreferencePage implements IW
 			return getString(name, getSettings());
 		}
 
-		public String getString(String name, C4Engine.EngineSettings e) {
+		public String getString(String name, Engine.EngineSettings e) {
 			try {
 				String result = (String) e.getClass().getField(name).get(e);
 				if (result == null)
@@ -88,10 +88,10 @@ public class ClonkPreferencePage extends FieldEditorPreferencePage implements IW
 			return getString(name, ClonkCore.getDefault().loadEngine(currentEngine).getCurrentSettings());
 		}
 
-		public C4Engine.EngineSettings getSettings() {
-			C4Engine.EngineSettings e = settings.get(currentEngine);
+		public Engine.EngineSettings getSettings() {
+			Engine.EngineSettings e = settings.get(currentEngine);
 			if (e == null) {
-				C4Engine engine = ClonkCore.getDefault().loadEngine(currentEngine);
+				Engine engine = ClonkCore.getDefault().loadEngine(currentEngine);
 				e = (EngineSettings) engine.getCurrentSettings().clone();
 				settings.put(currentEngine, e);
 			}
@@ -99,7 +99,7 @@ public class ClonkPreferencePage extends FieldEditorPreferencePage implements IW
 		}
 		
 		public void apply() {
-			for (Map.Entry<String, C4Engine.EngineSettings> entry : settings.entrySet()) {
+			for (Map.Entry<String, Engine.EngineSettings> entry : settings.entrySet()) {
 				ClonkCore.getDefault().loadEngine(entry.getKey()).setCurrentSettings(entry.getValue());
 			}
 			if (ClonkFolderView.instance() != null)
@@ -107,7 +107,7 @@ public class ClonkPreferencePage extends FieldEditorPreferencePage implements IW
 		}
 
 		public void reset() {
-			for (C4Engine engine : ClonkCore.getDefault().loadedEngines()) {
+			for (Engine engine : ClonkCore.getDefault().loadedEngines()) {
 				if (settings.get(engine.getName()) != null)
 					settings.put(engine.getName(), (EngineSettings) engine.getCurrentSettings().clone());
 			}
@@ -247,7 +247,7 @@ public class ClonkPreferencePage extends FieldEditorPreferencePage implements IW
 								String gamePathText = getTextControl().getText();
 								IPath gamePath = new Path(gamePathText);
 								setFile(gamePath, gamePathText, c4GroupEditor, c4GroupAccordingToOS());
-								setFile(gamePath, gamePathText, engineExecutableEditor, C4Engine.possibleEngineNamesAccordingToOS());
+								setFile(gamePath, gamePathText, engineExecutableEditor, Engine.possibleEngineNamesAccordingToOS());
 								//previousGamePath = gamePathText.toLowerCase();
 							}
 						}

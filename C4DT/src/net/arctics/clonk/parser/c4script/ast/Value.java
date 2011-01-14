@@ -2,7 +2,7 @@ package net.arctics.clonk.parser.c4script.ast;
 
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
-import net.arctics.clonk.parser.c4script.C4Type;
+import net.arctics.clonk.parser.c4script.PrimitiveType;
 import net.arctics.clonk.parser.c4script.IType;
 
 public abstract class Value extends ExprElm {
@@ -11,7 +11,7 @@ public abstract class Value extends ExprElm {
 
 	@Override
 	protected IType obtainType(C4ScriptParser context) {
-		return context.queryTypeOfExpression(this, C4Type.ANY);
+		return context.queryTypeOfExpression(this, PrimitiveType.ANY);
 	}
 	
 	@Override

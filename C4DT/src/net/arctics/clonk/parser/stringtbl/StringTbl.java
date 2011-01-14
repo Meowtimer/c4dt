@@ -17,14 +17,14 @@ import org.eclipse.jface.text.Region;
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.BufferedScanner;
 import net.arctics.clonk.parser.C4Declaration;
-import net.arctics.clonk.parser.C4Structure;
+import net.arctics.clonk.parser.Structure;
 import net.arctics.clonk.parser.DeclarationRegion;
 import net.arctics.clonk.parser.NameValueAssignment;
 import net.arctics.clonk.util.ITreeNode;
 import net.arctics.clonk.util.ReadOnlyIterator;
 import net.arctics.clonk.util.StreamUtil;
 
-public class StringTbl extends C4Structure implements ITreeNode, ITableEntryInformationSink {
+public class StringTbl extends Structure implements ITreeNode, ITableEntryInformationSink {
 	
 	public static final Pattern PATTERN = Pattern.compile("StringTbl(..)\\.txt", Pattern.CASE_INSENSITIVE); //$NON-NLS-1$
 
@@ -106,7 +106,7 @@ public class StringTbl extends C4Structure implements ITreeNode, ITableEntryInfo
 	public static void register() {
 		registerStructureFactory(new IStructureFactory() {
 			private final Matcher stringTblFileMatcher = PATTERN.matcher(""); //$NON-NLS-1$ //$NON-NLS-2$
-			public C4Structure create(IResource resource, boolean duringBuild) {
+			public Structure create(IResource resource, boolean duringBuild) {
 				if (resource instanceof IFile && stringTblFileMatcher.reset(resource.getName()).matches()) {
 					IFile file = (IFile) resource;
 					StringTbl tbl = new StringTbl();

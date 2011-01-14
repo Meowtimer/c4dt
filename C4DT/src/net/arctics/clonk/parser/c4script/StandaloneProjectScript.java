@@ -4,7 +4,7 @@ import java.io.Serializable;
 
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.index.ClonkIndex;
-import net.arctics.clonk.parser.C4Structure;
+import net.arctics.clonk.parser.Structure;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.util.StreamUtil;
 import net.arctics.clonk.util.Utilities;
@@ -19,7 +19,7 @@ import org.eclipse.core.runtime.Path;
 /**
  * Standalone-script inside a project.
  */
-public class C4ScriptIntern extends C4ScriptBase implements Serializable {
+public class StandaloneProjectScript extends ScriptBase implements Serializable {
 
 	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 	
@@ -27,7 +27,7 @@ public class C4ScriptIntern extends C4ScriptBase implements Serializable {
 	private String scriptFilePath;
 	private transient ClonkIndex index;
 	
-	public C4ScriptIntern(IFile scriptFile) throws CoreException {
+	public StandaloneProjectScript(IFile scriptFile) throws CoreException {
 		this.name = scriptFile.getName();
 		setScriptFile(scriptFile);
 	}
@@ -69,9 +69,9 @@ public class C4ScriptIntern extends C4ScriptBase implements Serializable {
 		return scriptFilePath;
 	}
 	
-	public static C4ScriptIntern pinnedScript(IResource resource, boolean duringBuild) throws CoreException {
-		C4Structure s = pinned(resource, false, duringBuild);
-		return s instanceof C4ScriptIntern ? (C4ScriptIntern) s : null;
+	public static StandaloneProjectScript pinnedScript(IResource resource, boolean duringBuild) throws CoreException {
+		Structure s = pinned(resource, false, duringBuild);
+		return s instanceof StandaloneProjectScript ? (StandaloneProjectScript) s : null;
 	}
 	
 	@Override
@@ -97,9 +97,9 @@ public class C4ScriptIntern extends C4ScriptBase implements Serializable {
 			return false;
 	}
 	
-	public static C4ScriptIntern scriptCorrespondingTo(IFile file) {
-		C4ScriptBase script = Utilities.getIndex(file) != null ? Utilities.getIndex(file).getScript(file) : null;
-		return script instanceof C4ScriptIntern ? (C4ScriptIntern)script : null;
+	public static StandaloneProjectScript scriptCorrespondingTo(IFile file) {
+		ScriptBase script = Utilities.getIndex(file) != null ? Utilities.getIndex(file).getScript(file) : null;
+		return script instanceof StandaloneProjectScript ? (StandaloneProjectScript)script : null;
 	}
 
 }

@@ -20,37 +20,37 @@ public class ArrayType implements IType {
 	
 	@Override
 	public Iterator<IType> iterator() {
-		return C4Type.ARRAY.iterator();
+		return PrimitiveType.ARRAY.iterator();
 	}
 
 	@Override
 	public boolean canBeAssignedFrom(IType other) {
-		return other == C4Type.ARRAY;
+		return other == PrimitiveType.ARRAY;
 	}
 
 	@Override
 	public String typeName(boolean special) {
-		return elementType == null ? C4Type.ARRAY.typeName(special) : String.format("<%s of %s>", C4Type.ARRAY.typeName(special), elementType.typeName(special));
+		return elementType == null ? PrimitiveType.ARRAY.typeName(special) : String.format("<%s of %s>", PrimitiveType.ARRAY.typeName(special), elementType.typeName(special));
 	}
 
 	@Override
 	public boolean intersects(IType typeSet) {
-		return C4Type.ARRAY.intersects(typeSet);
+		return PrimitiveType.ARRAY.intersects(typeSet);
 	}
 
 	@Override
 	public boolean containsType(IType type) {
-		return type == C4Type.ARRAY;
+		return type == PrimitiveType.ARRAY;
 	}
 
 	@Override
 	public int specificness() {
-		return C4Type.ARRAY.specificness()+1;
+		return PrimitiveType.ARRAY.specificness()+1;
 	}
 
 	@Override
 	public IType staticType() {
-		return C4Type.ARRAY;
+		return PrimitiveType.ARRAY;
 	}
 
 	@Override

@@ -6,7 +6,7 @@ import java.net.URI;
 
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.filesystem.C4GroupFileSystem;
-import net.arctics.clonk.index.C4Engine;
+import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.preferences.ClonkPreferences;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.resource.c4group.C4Group;
@@ -284,7 +284,7 @@ public class ClonkFolderView extends ViewPart implements ISelectionListener, IDo
 
 	private void refreshTree(boolean onlyIfInputChanged) {
 		IProject p = selectedProject();
-		C4Engine engine = null;
+		Engine engine = null;
 		if (p != null && p.isOpen()) {
 			ClonkProjectNature nature = ClonkProjectNature.get(p);
 			if (nature != null)

@@ -11,7 +11,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import net.arctics.clonk.ClonkCore;
-import net.arctics.clonk.index.C4Engine;
+import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.preferences.ClonkPreferences;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.util.FileOperations;
@@ -36,7 +36,7 @@ import org.eclipse.ui.console.MessageConsoleStream;
 
 public class C4GroupExporter implements IRunnableWithProgress {
 	
-	private Map<C4Engine, List<Pair<IContainer, String>>> packsDividedInEngines = new HashMap<C4Engine, List<Pair<IContainer, String>>>();
+	private Map<Engine, List<Pair<IContainer, String>>> packsDividedInEngines = new HashMap<Engine, List<Pair<IContainer, String>>>();
 	private String destinationPath;
 	private int numTotal;
 	
@@ -45,7 +45,7 @@ public class C4GroupExporter implements IRunnableWithProgress {
 		for (IContainer c : packs) {
 			if (c == null)
 				continue;
-			C4Engine engine = ClonkProjectNature.get(c).getIndex().getEngine();
+			Engine engine = ClonkProjectNature.get(c).getIndex().getEngine();
 			List<Pair<IContainer, String>> list = packsDividedInEngines.get(engine);
 			if (list == null) {
 				list = new LinkedList<Pair<IContainer, String>>();
@@ -62,7 +62,7 @@ public class C4GroupExporter implements IRunnableWithProgress {
 	}
 
 	public synchronized boolean selectDestPaths() {
-		for (Entry<C4Engine, List<Pair<IContainer, String>>> entry : packsDividedInEngines.entrySet()) {
+		for (Entry<Engine, List<Pair<IContainer, String>>> entry : packsDividedInEngines.entrySet()) {
 			List<Pair<IContainer, String>> packs = entry.getValue();
 			String destinationPath = this.destinationPath != null ? this.destinationPath : entry.getKey().getCurrentSettings().gamePath;
 			FileDialog fileDialog = null;
@@ -94,7 +94,7 @@ public class C4GroupExporter implements IRunnableWithProgress {
 			monitor.beginTask(Messages.Exporting, numTotal);
 		IPreferencesService service = Platform.getPreferencesService();
 		final boolean showExportLog = service.getBoolean(ClonkCore.PLUGIN_ID, ClonkPreferences.SHOW_EXPORT_LOG, false, null);
-		for (Entry<C4Engine, List<Pair<IContainer, String>>> byEngine : packsDividedInEngines.entrySet()) {
+		for (Entry<Engine, List<Pair<IContainer, String>>> byEngine : packsDividedInEngines.entrySet()) {
 			final String c4groupPath = byEngine.getKey().getCurrentSettings().c4GroupPath;
 			for(final Pair<IContainer, String> toExport : byEngine.getValue()) {
 				if (monitor != null)

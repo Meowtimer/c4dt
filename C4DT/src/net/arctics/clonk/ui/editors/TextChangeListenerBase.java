@@ -6,16 +6,16 @@ import java.util.Map;
 import java.util.TimerTask;
 
 import net.arctics.clonk.parser.C4Declaration;
-import net.arctics.clonk.parser.C4Structure;
+import net.arctics.clonk.parser.Structure;
 import net.arctics.clonk.parser.SourceLocation;
-import net.arctics.clonk.parser.c4script.C4Function;
+import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.IHasSubDeclarations;
 
 import org.eclipse.jface.text.DocumentEvent;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IDocumentListener;
 
-public abstract class TextChangeListenerBase<EditorType extends ClonkTextEditor, StructureType extends C4Structure> implements IDocumentListener {
+public abstract class TextChangeListenerBase<EditorType extends ClonkTextEditor, StructureType extends Structure> implements IDocumentListener {
 	protected List<EditorType> clients = new LinkedList<EditorType>();
 	protected StructureType structure;
 	protected IDocument document;
@@ -24,7 +24,7 @@ public abstract class TextChangeListenerBase<EditorType extends ClonkTextEditor,
 	protected void added() {}
 	
 	@SuppressWarnings("unchecked")
-	public static <E extends ClonkTextEditor, S extends C4Structure, T extends TextChangeListenerBase<E, S>> T addTo(
+	public static <E extends ClonkTextEditor, S extends Structure, T extends TextChangeListenerBase<E, S>> T addTo(
 		Map<IDocument, TextChangeListenerBase<E, S>> listeners,
 		Class<T> listenerClass, IDocument document, S structure, E client)
 	throws InstantiationException, IllegalAccessException {
@@ -102,9 +102,9 @@ public abstract class TextChangeListenerBase<EditorType extends ClonkTextEditor,
 			for (C4Declaration dec : structure.allSubDeclarations(IHasSubDeclarations.ALL_SUBDECLARATIONS)) {
 				if (dec.getLocation().getStart() >= offset + replLength)
 					adjustDec(dec, offset, diff);
-				else if (dec instanceof C4Function) {
+				else if (dec instanceof Function) {
 					// inside function: expand end location
-					C4Function func = (C4Function) dec;
+					Function func = (Function) dec;
 					if (offset >= func.getBody().getStart() && offset+replLength < func.getBody().getEnd()) {
 						func.getBody().setEnd(func.getBody().getEnd()+diff);
 					}

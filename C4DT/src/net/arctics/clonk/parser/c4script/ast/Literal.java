@@ -2,7 +2,7 @@ package net.arctics.clonk.parser.c4script.ast;
 
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.ParserErrorCode;
-import net.arctics.clonk.parser.c4script.C4ScriptBase;
+import net.arctics.clonk.parser.c4script.ScriptBase;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
@@ -47,7 +47,7 @@ public class Literal<T> extends Value {
 	}
 
 	@Override
-	public T evaluateAtParseTime(C4ScriptBase context) {
+	public T evaluateAtParseTime(ScriptBase context) {
 		return literal;
 	}
 	

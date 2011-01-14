@@ -4,7 +4,7 @@ import java.io.Serializable;
 import java.util.regex.Matcher;
 
 import net.arctics.clonk.ClonkCore;
-import net.arctics.clonk.parser.c4script.C4Function;
+import net.arctics.clonk.parser.c4script.Function;
 
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.IDocument;
@@ -23,7 +23,7 @@ public class SourceLocation implements IRegion, Serializable {
 		this.setStart(matcher.start());
 		this.setEnd(matcher.end());
 	}
-	public SourceLocation(IRegion region, C4Function relative) {
+	public SourceLocation(IRegion region, Function relative) {
 		this.setStart(relative.getBody().getStart()+region.getOffset());
 		this.setEnd(relative.getBody().getStart()+region.getOffset()+region.getLength());
 	}

@@ -14,7 +14,7 @@ import java.util.Map;
 import java.util.Queue;
 
 import net.arctics.clonk.parser.BufferedScanner;
-import net.arctics.clonk.parser.c4script.C4Type;
+import net.arctics.clonk.parser.c4script.PrimitiveType;
 import net.arctics.clonk.ui.debug.ClonkDebugModelPresentation;
 import net.arctics.clonk.util.ICreate;
 import org.eclipse.core.resources.IMarkerDelta;
@@ -236,7 +236,7 @@ public class ClonkDebugTarget extends ClonkDebugElement implements IDebugTarget 
 									if (varName != null && varType != null && varValue != null) {
 										ClonkDebugVariable var = vars.get(varName);
 										if (var != null) {
-											var.getValue().setValue(varValue, C4Type.makeType(varType));
+											var.getValue().setValue(varValue, PrimitiveType.makeType(varType));
 											vars.remove(varName);
 										}
 									}

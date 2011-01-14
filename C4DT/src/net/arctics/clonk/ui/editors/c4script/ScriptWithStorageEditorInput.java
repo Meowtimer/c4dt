@@ -3,7 +3,7 @@ package net.arctics.clonk.ui.editors.c4script;
 import java.lang.ref.WeakReference;
 
 import net.arctics.clonk.ClonkCore;
-import net.arctics.clonk.parser.c4script.C4ScriptBase;
+import net.arctics.clonk.parser.c4script.ScriptBase;
 import net.arctics.clonk.util.ITreeNode;
 
 import org.eclipse.core.resources.IStorage;
@@ -21,14 +21,14 @@ public class ScriptWithStorageEditorInput extends PlatformObject implements IEdi
 
 	private static final String FACTORY_ID = ClonkCore.id("ui.editors.scriptWithStorageEditorInputFactory");   //$NON-NLS-1$
 	
-	private WeakReference<C4ScriptBase> script;
+	private WeakReference<ScriptBase> script;
 	
-	public ScriptWithStorageEditorInput(C4ScriptBase script) {
+	public ScriptWithStorageEditorInput(ScriptBase script) {
 		super();
 		
 		if (!(script.getScriptStorage() instanceof IStorage))
 			throw new IllegalArgumentException("script"); //$NON-NLS-1$
-		this.script = new WeakReference<C4ScriptBase>(script);
+		this.script = new WeakReference<ScriptBase>(script);
 	}
 
 	public boolean exists() {
@@ -76,7 +76,7 @@ public class ScriptWithStorageEditorInput extends PlatformObject implements IEdi
 		return (IStorage)getScript().getScriptStorage();
 	}
 
-	public C4ScriptBase getScript() {
+	public ScriptBase getScript() {
 		return script.get();
 	}
 

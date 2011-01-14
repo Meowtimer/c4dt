@@ -6,7 +6,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import net.arctics.clonk.ClonkCore;
-import net.arctics.clonk.parser.c4script.C4ScriptBase;
+import net.arctics.clonk.parser.c4script.ScriptBase;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.ui.editors.actions.c4script.TidyUpCodeAction;
@@ -83,7 +83,7 @@ public class TidyUpCodeInBulkHandler extends AbstractHandler {
 								IResourceVisitor countingVisitor = new IResourceVisitor() {
 									@Override
 									public boolean visit(IResource resource) throws CoreException {
-										if (resource instanceof IFile && C4ScriptBase.get((IFile) resource, true) != null)
+										if (resource instanceof IFile && ScriptBase.get((IFile) resource, true) != null)
 											counter++;
 										return true;
 									}
@@ -105,7 +105,7 @@ public class TidyUpCodeInBulkHandler extends AbstractHandler {
 										public boolean visit(IResource resource) throws CoreException {
 											if (resource instanceof IFile) {
 												IFile file = (IFile) resource;
-												C4ScriptBase script = C4ScriptBase.get(file, true);
+												ScriptBase script = ScriptBase.get(file, true);
 												if (script != null) {
 													C4ScriptParser parser = new C4ScriptParser(file, script);
 													LinkedList<CodeChunk> chunks = new LinkedList<CodeChunk>();

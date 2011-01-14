@@ -5,11 +5,11 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.LinkedList;
 import net.arctics.clonk.ClonkCore;
-import net.arctics.clonk.index.C4Engine;
-import net.arctics.clonk.index.C4Scenario;
+import net.arctics.clonk.index.Engine;
+import net.arctics.clonk.index.Scenario;
 import net.arctics.clonk.index.ClonkIndex;
 import net.arctics.clonk.index.ProjectIndex;
-import net.arctics.clonk.parser.c4script.C4ScriptBase;
+import net.arctics.clonk.parser.c4script.ScriptBase;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.resource.c4group.C4Group;
 import net.arctics.clonk.resource.c4group.C4Group.C4GroupType;
@@ -72,7 +72,7 @@ public class ClonkLaunchConfigurationDelegate implements ILaunchConfigurationDel
 			// Run the engine
 			try {
 				if (mode.equals(ILaunchManager.DEBUG_MODE)) {
-					C4Scenario scenarioObj = C4Scenario.get(scenario);
+					Scenario scenarioObj = Scenario.get(scenario);
 					if (scenarioObj != null && !scenarioObj.getEngine().getCurrentSettings().supportsDebugging)
 						abort(IStatus.ERROR, String.format(Messages.EngineDoesNotSupportDebugging, scenarioObj.getEngine().getName()));
 				}
@@ -133,7 +133,7 @@ public class ClonkLaunchConfigurationDelegate implements ILaunchConfigurationDel
 	 */
 	public File verifyClonkInstall(ILaunchConfiguration configuration, IFolder scenario) throws CoreException {
 		
-		C4ScriptBase scenarioScript = C4Scenario.get(scenario);
+		ScriptBase scenarioScript = Scenario.get(scenario);
 		String gamePath = scenarioScript != null ? scenarioScript.getEngine().getCurrentSettings().gamePath : null;
 
 		File enginePath = new File("Unspecified");
@@ -145,7 +145,7 @@ public class ClonkLaunchConfigurationDelegate implements ILaunchConfigurationDel
 		}
 		else {
 			// Try some variants in an attempt to find the engine (ugh...)
-			final String[] engineNames = C4Engine.possibleEngineNamesAccordingToOS(); //$NON-NLS-1$
+			final String[] engineNames = Engine.possibleEngineNamesAccordingToOS(); //$NON-NLS-1$
 			for(String name : engineNames) {
 				File path = new File(gamePath, name);
 				if(path.exists()) {
@@ -167,11 +167,11 @@ public class ClonkLaunchConfigurationDelegate implements ILaunchConfigurationDel
 		return new Path(res.getRawLocationURI().getSchemeSpecificPart()).toOSString();
 	}
 	
-	private static String cmdLineOptionString(C4Engine engine, String option) {
+	private static String cmdLineOptionString(Engine engine, String option) {
 		return String.format(engine.getCurrentSettings().cmdLineOptionFormat, option);
 	}
 	
-	private static String cmdLineOptionString(C4Engine engine, String option, String argument) {
+	private static String cmdLineOptionString(Engine engine, String option, String argument) {
 		return String.format(engine.getCurrentSettings().cmdLineOptionWithArgumentFormat, option, argument);
 	}
 	
@@ -189,9 +189,9 @@ public class ClonkLaunchConfigurationDelegate implements ILaunchConfigurationDel
 		// Scenario
 		args.add(resFilePath(scenario));
 		
-		C4Engine engineObj;
+		Engine engineObj;
 		try {
-			engineObj = C4Scenario.get((IContainer) scenario).getEngine();
+			engineObj = Scenario.get((IContainer) scenario).getEngine();
 		} catch (Exception e) {
 			return null;
 		}

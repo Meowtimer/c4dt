@@ -8,9 +8,9 @@ import java.util.Set;
 import org.eclipse.jface.text.IRegion;
 
 import net.arctics.clonk.ClonkCore;
-import net.arctics.clonk.index.C4Engine;
-import net.arctics.clonk.index.C4Object;
-import net.arctics.clonk.index.C4ObjectIntern;
+import net.arctics.clonk.index.Engine;
+import net.arctics.clonk.index.Definition;
+import net.arctics.clonk.index.ProjectDefinition;
 import net.arctics.clonk.index.ClonkIndex;
 import net.arctics.clonk.parser.C4Declaration;
 import net.arctics.clonk.parser.C4ID;
@@ -25,7 +25,7 @@ import net.arctics.clonk.util.Utilities;
  * @author ZokRadonh
  *
  */
-public class C4Variable extends C4Declaration implements Serializable, ITypedDeclaration, IHasUserDescription {
+public class Variable extends C4Declaration implements Serializable, ITypedDeclaration, IHasUserDescription {
 
 	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 	
@@ -62,42 +62,42 @@ public class C4Variable extends C4Declaration implements Serializable, ITypedDec
 	/**
 	 * Variable object used as the special 'this' object.
 	 */
-	public static final C4Variable THIS = new C4Variable("this", C4Type.OBJECT, Messages.This_Description); //$NON-NLS-1$
+	public static final Variable THIS = new Variable("this", PrimitiveType.OBJECT, Messages.This_Description); //$NON-NLS-1$
 	
-	private C4Variable(String name, C4Type type, String desc) {
+	private Variable(String name, PrimitiveType type, String desc) {
 		this(name, type, desc, C4VariableScope.VAR);
 		typeLocked = true;
 	}
 	
-	public C4Variable(String name, IType type) {
+	public Variable(String name, IType type) {
 		this.name = name;
 		forceType(type);
 	}
 	
-	public C4Variable(String name, C4VariableScope scope) {
+	public Variable(String name, C4VariableScope scope) {
 		this.name = name;
 		this.scope = scope;
 		description = ""; //$NON-NLS-1$
-		type = C4Type.UNKNOWN;
+		type = PrimitiveType.UNKNOWN;
 	}
 	
-	public C4Variable(String name, C4Type type, String desc, C4VariableScope scope) {
+	public Variable(String name, PrimitiveType type, String desc, C4VariableScope scope) {
 		this.name = name;
 		this.type = type;
 		this.description = desc;
 		this.scope = scope;
 	}
 
-	public C4Variable() {
+	public Variable() {
 		name = ""; //$NON-NLS-1$
 		scope = C4VariableScope.VAR;
 	}
 	
-	public C4Variable(String name, String scope) {
+	public Variable(String name, String scope) {
 		this(name,C4VariableScope.makeScope(scope));
 	}
 
-	public C4Variable(String name, ExprElm expr, C4ScriptParser context) {
+	public Variable(String name, ExprElm expr, C4ScriptParser context) {
 		this(name, expr.getType(context));
 		scope = C4VariableScope.VAR;
 		setInitializationExpression(expr);
@@ -108,7 +108,7 @@ public class C4Variable extends C4Declaration implements Serializable, ITypedDec
 	 */
 	public IType getType() {
 		if (type == null)
-			type = C4Type.UNKNOWN;
+			type = PrimitiveType.UNKNOWN;
 		return type;
 	}
 	
@@ -117,8 +117,8 @@ public class C4Variable extends C4Declaration implements Serializable, ITypedDec
 	 */
 	public void forceType(IType type) {
 		if (type == null)
-			type = C4Type.UNKNOWN;
-		C4ScriptBase script = getScript();
+			type = PrimitiveType.UNKNOWN;
+		ScriptBase script = getScript();
 		this.type = type;
 	}
 	
@@ -136,17 +136,17 @@ public class C4Variable extends C4Declaration implements Serializable, ITypedDec
 	/**
 	 * @return the expectedContent
 	 */
-	public C4Object getObjectType() {
+	public Definition getObjectType() {
 		for (IType t : type) {
-			if (t instanceof C4Object) {
-				return (C4Object)t;
+			if (t instanceof Definition) {
+				return (Definition)t;
 			}
 		}
 		return null;
 	}
 
 	public C4ID getObjectID() {
-		C4Object obj = getObjectType();
+		Definition obj = getObjectType();
 		return obj != null ? obj.getId() : null;
 	}
 
@@ -235,7 +235,7 @@ public class C4Variable extends C4Declaration implements Serializable, ITypedDec
 			: Messages.C4Variable_InfoTextFormatDefaultValue;
 		String descriptionFormat = Messages.C4Variable_InfoTextFormatUserDescription;
 		return String.format(format,
-			Utilities.htmlerize((t == C4Type.UNKNOWN ? C4Type.ANY : t).typeName(false)),
+			Utilities.htmlerize((t == PrimitiveType.UNKNOWN ? PrimitiveType.ANY : t).typeName(false)),
 			getName(),
 			initializationExpression != null
 				? String.format(valueFormat, Utilities.htmlerize(initializationExpression.toString()))
@@ -248,7 +248,7 @@ public class C4Variable extends C4Declaration implements Serializable, ITypedDec
 	
 	public void expectedToBeOfType(IType t, TypeExpectancyMode mode) {
 		// engine objects should not be altered
-		if (!typeLocked && !(getScript() instanceof C4Engine))
+		if (!typeLocked && !(getScript() instanceof Engine))
 			ITypedDeclaration.Default.expectedToBeOfType(this, t);
 	}
 
@@ -257,7 +257,7 @@ public class C4Variable extends C4Declaration implements Serializable, ITypedDec
 	}
 
 	public void setConstValue(Object constValue) {
-		if (C4Type.typeFrom(constValue) == C4Type.ANY)
+		if (PrimitiveType.typeFrom(constValue) == PrimitiveType.ANY)
 			throw new InvalidParameterException("constValue must be of primitive type recognized by C4Type"); //$NON-NLS-1$
 		this.initializationExpression = constValue;
 	}
@@ -274,7 +274,7 @@ public class C4Variable extends C4Declaration implements Serializable, ITypedDec
 		}
 	}
 	
-	public Object evaluateInitializationExpression(C4ScriptBase context) {
+	public Object evaluateInitializationExpression(ScriptBase context) {
 		ExprElm e = getInitializationExpression();
 		if (e != null) {
 			return e.evaluateAtParseTime(context);
@@ -291,19 +291,19 @@ public class C4Variable extends C4Declaration implements Serializable, ITypedDec
 
 	@Override
 	public Object[] occurenceScope(ClonkProjectNature project) {
-		if (parentDeclaration instanceof C4Function)
+		if (parentDeclaration instanceof Function)
 			return new Object[] {parentDeclaration};
-		if (!isGlobal() && parentDeclaration instanceof C4ObjectIntern) {
-			C4ObjectIntern obj = (C4ObjectIntern) parentDeclaration;
+		if (!isGlobal() && parentDeclaration instanceof ProjectDefinition) {
+			ProjectDefinition obj = (ProjectDefinition) parentDeclaration;
 			ClonkIndex index = obj.getIndex();
 			Set<Object> result = new HashSet<Object>();
 			result.add(obj);
-			for (C4Object o : index) {
+			for (Definition o : index) {
 				if (o.includes(obj)) {
 					result.add(o);
 				}
 			}
-			for (C4ScriptBase script : index.getIndexedScripts()) {
+			for (ScriptBase script : index.getIndexedScripts()) {
 				if (script.includes(obj)) {
 					result.add(script);
 				}
@@ -328,7 +328,7 @@ public class C4Variable extends C4Declaration implements Serializable, ITypedDec
 	}
 	
 	private void ensureTypeLockedIfPredefined(C4Declaration declaration) {
-		if (!typeLocked && declaration instanceof C4Engine)
+		if (!typeLocked && declaration instanceof Engine)
 			typeLocked = true;
 	}
 	
@@ -373,8 +373,8 @@ public class C4Variable extends C4Declaration implements Serializable, ITypedDec
 		}
 	}
 	
-	public C4Function getFunction() {
-		return getTopLevelParentDeclarationOfType(C4Function.class);
+	public Function getFunction() {
+		return getTopLevelParentDeclarationOfType(Function.class);
 	}
 	
 	@Override

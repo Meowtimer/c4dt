@@ -17,13 +17,13 @@ import net.arctics.clonk.parser.C4Declaration;
 import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.SimpleScriptStorage;
 import net.arctics.clonk.parser.SourceLocation;
-import net.arctics.clonk.parser.c4script.C4Function;
-import net.arctics.clonk.parser.c4script.C4ScriptBase;
+import net.arctics.clonk.parser.c4script.Function;
+import net.arctics.clonk.parser.c4script.ScriptBase;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.IHasSubDeclarations;
 import net.arctics.clonk.parser.c4script.C4ScriptParser.ExpressionsAndStatementsReportingFlavour;
 import net.arctics.clonk.parser.c4script.C4ScriptParser.IMarkerListener;
-import net.arctics.clonk.parser.c4script.C4Variable;
+import net.arctics.clonk.parser.c4script.Variable;
 import net.arctics.clonk.parser.c4script.ast.AccessVar;
 import net.arctics.clonk.parser.c4script.ast.Block;
 import net.arctics.clonk.parser.c4script.ast.CallFunc;
@@ -85,7 +85,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 	 * @author madeen
 	 *
 	 */
-	private static final class ScratchScript extends C4ScriptBase implements IHasEditorRefWhichEnablesStreamlinedOpeningOfDeclarations {
+	private static final class ScratchScript extends ScriptBase implements IHasEditorRefWhichEnablesStreamlinedOpeningOfDeclarations {
 		private transient final C4ScriptEditor me;
 		private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 		
@@ -124,7 +124,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 	 * @author madeen
 	 *
 	 */
-	public final static class TextChangeListener extends TextChangeListenerBase<C4ScriptEditor, C4ScriptBase> {
+	public final static class TextChangeListener extends TextChangeListenerBase<C4ScriptEditor, ScriptBase> {
 		
 		/**
 		 * Parser responsible for parsing the edited statement that will then be inserted into
@@ -134,7 +134,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		 *
 		 */
 		private static class PatchParser extends C4ScriptParser {
-			public PatchParser(C4ScriptBase script) {
+			public PatchParser(ScriptBase script) {
 				super(script);
 			}
 			@Override
@@ -152,13 +152,13 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		
 		private static final int REPARSE_DELAY = 700;
 
-		private static final Map<IDocument, TextChangeListenerBase<C4ScriptEditor, C4ScriptBase>> listeners = new HashMap<IDocument, TextChangeListenerBase<C4ScriptEditor,C4ScriptBase>>();
+		private static final Map<IDocument, TextChangeListenerBase<C4ScriptEditor, ScriptBase>> listeners = new HashMap<IDocument, TextChangeListenerBase<C4ScriptEditor,ScriptBase>>();
 		
 		private Timer reparseTimer = new Timer("ReparseTimer"); //$NON-NLS-1$
 		private TimerTask reparseTask, functionReparseTask;
 		private PatchParser patchParser;
 		
-		public static TextChangeListener addTo(IDocument document, C4ScriptBase script, C4ScriptEditor client)  {
+		public static TextChangeListener addTo(IDocument document, ScriptBase script, C4ScriptEditor client)  {
 			try {
 				return addTo(listeners, TextChangeListener.class, document, script, client);
 			} catch (Exception e) {
@@ -189,7 +189,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		private void patchFuncBlockAccordingToDocumentChange(DocumentEvent event) throws BadLocationException, ParsingException {
 			if (patchParser == null)
 				return;
-			C4Function f = structure.funcAt(event.getOffset());
+			Function f = structure.funcAt(event.getOffset());
 			if (f != null) {
 				Block originalBlock = f.getCodeBlock();
 				if (originalBlock != null) {
@@ -219,7 +219,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		
 		public void documentChanged(DocumentEvent event) {
 			super.documentChanged(event);
-			final C4Function f = structure.funcAt(event.getOffset());
+			final Function f = structure.funcAt(event.getOffset());
 			if (f != null && !f.isOldStyle()) {
 				// editing inside new-style function: adjust locations of declarations without complete reparse
 				// only recheck the function and display problems after delay
@@ -233,8 +233,8 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		@Override
 		protected void adjustDec(C4Declaration declaration, int offset, int add) {
 			super.adjustDec(declaration, offset, add);
-			if (declaration instanceof C4Function) {
-				addToLocation(((C4Function)declaration).getBody(), offset, add);
+			if (declaration instanceof Function) {
+				addToLocation(((Function)declaration).getBody(), offset, add);
 			}
 			for (C4Declaration v : declaration.allSubDeclarations(IHasSubDeclarations.ALL_SUBDECLARATIONS)) {
 				adjustDec(v, offset, add);
@@ -269,7 +269,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 			}, REPARSE_DELAY);
 		}
 		
-		public static void removeMarkers(C4Function func, C4ScriptBase script) {
+		public static void removeMarkers(Function func, ScriptBase script) {
 			if (script != null && script.getResource() != null) {
 				try {
 					// delete all "while typing" errors
@@ -293,14 +293,14 @@ public class C4ScriptEditor extends ClonkTextEditor {
 			}
 		}
 		
-		private void scheduleReparsingOfFunction(final C4Function fn) {
+		private void scheduleReparsingOfFunction(final Function fn) {
 			functionReparseTask = cancel(functionReparseTask);
 			reparseTimer.schedule(functionReparseTask = new TimerTask() {
 				@Override
 				public void run() {
 					removeMarkers(fn, structure);
 					if (structure.getScriptStorage() instanceof IResource && !C4GroupItem.isLinkedResource((IResource) structure.getScriptStorage())) {
-						final C4Function f = (C4Function) fn.latestVersion();
+						final Function f = (Function) fn.latestVersion();
 						C4ScriptParser.reportExpressionsAndStatements(document, structure, f, null, new IMarkerListener() {
 							@Override
 							public WhatToDo markerEncountered(C4ScriptParser parser, ParserErrorCode code,
@@ -315,7 +315,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 								return WhatToDo.PassThrough;
 							}
 						}, ExpressionsAndStatementsReportingFlavour.AlsoStatements, true);
-						for (C4Variable localVar : f.getLocalVars()) {
+						for (Variable localVar : f.getLocalVars()) {
 							SourceLocation l = localVar.getLocation();
 							l.setStart(f.getBody().getOffset()+l.getOffset());
 							l.setEnd(f.getBody().getOffset()+l.getEnd());
@@ -453,7 +453,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 	@Override
 	public void createPartControl(Composite parent) {
 		super.createPartControl(parent);
-		C4ScriptBase script = scriptBeingEdited();
+		ScriptBase script = scriptBeingEdited();
 		if (script != null && script.isEditable()) {
 			textChangeListener = TextChangeListener.addTo(getDocumentProvider().getDocument(getEditorInput()), script, this);
 		}
@@ -503,7 +503,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 				addAction(menu, IClonkCommandIds.RENAME_DECLARATION);
 			}
 			addAction(menu, IClonkCommandIds.FIND_REFERENCES);
-			C4Function f = getFuncAtCursor();
+			Function f = getFuncAtCursor();
 			if (f != null) {
 				addAction(menu, IClonkCommandIds.FIND_DUPLICATES);
 			}
@@ -519,7 +519,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		super.handleCursorPositionChanged();
 		
 		// highlight active function
-		C4Function f = getFuncAtCursor();
+		Function f = getFuncAtCursor();
 		boolean noHighlight = true;
 		if (f != null) {
 			this.setHighlightRange(f.getLocation().getOffset(), Math.min(
@@ -551,15 +551,15 @@ public class C4ScriptEditor extends ClonkTextEditor {
 	 *  Created if there is no suitable script to get from somewhere else
 	 *  can be considered a hack to make viewing (svn) revisions of a file work
 	 */
-	private C4ScriptBase scratchScript;
+	private ScriptBase scratchScript;
 	
-	public C4ScriptBase scriptBeingEdited() {
+	public ScriptBase scriptBeingEdited() {
 		if (getEditorInput() instanceof ScriptWithStorageEditorInput) {
 			return ((ScriptWithStorageEditorInput)getEditorInput()).getScript();
 		}
 		IFile f;
 		if ((f = Utilities.getEditingFile(this)) != null) {
-			C4ScriptBase script = C4ScriptBase.get(f, true);
+			ScriptBase script = ScriptBase.get(f, true);
 			if (script != null)
 				return script;
 		}
@@ -575,16 +575,16 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		return scratchScript;
 	}
 
-	public C4Function getFuncAt(int offset) {
-		C4ScriptBase script = scriptBeingEdited();
+	public Function getFuncAt(int offset) {
+		ScriptBase script = scriptBeingEdited();
 		if (script != null) {
-			C4Function f = script.funcAt(offset);
+			Function f = script.funcAt(offset);
 			return f;
 		}
 		return null;
 	}
 	
-	public C4Function getFuncAtCursor() {
+	public Function getFuncAtCursor() {
 		return getFuncAt(cursorPos());
 	}
 
@@ -603,7 +603,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 	private static C4ScriptParser reparseWithDocumentContents(
 			IScriptParserListener exprListener,
 			boolean onlyDeclarations, Object document,
-			C4ScriptBase script,
+			ScriptBase script,
 			Runnable uiRefreshRunnable)
 			throws ParsingException {
 		C4ScriptParser parser;
@@ -619,7 +619,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 			// when only parsing declarations store type information for variables declared in the script
 			// and apply that information back to the variables after having reparsed so that type information is kept like it was (resulting from a full parse)
 			storedLocalsTypeInformation = new LinkedList<IStoredTypeInformation>();
-			for (C4Variable v : script.variables()) {
+			for (Variable v : script.variables()) {
 				IStoredTypeInformation info = v.getType() != null || v.getObjectType() != null ? AccessVar.createStoredTypeInformation(v) : null;
 				if (info != null)
 					storedLocalsTypeInformation.add(info);
@@ -642,7 +642,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 	}
 	
 	@Override
-	public C4ScriptBase getTopLevelDeclaration() {
+	public ScriptBase getTopLevelDeclaration() {
 		return scriptBeingEdited();
 	}
 	
@@ -650,19 +650,19 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		public CallFunc callFunc;
 		public int parmIndex;
 		public int parmsStart, parmsEnd;
-		public FuncCallInfo(C4Function func, CallFunc callFunc, int parmIndex) {
+		public FuncCallInfo(Function func, CallFunc callFunc, int parmIndex) {
 			this.callFunc = callFunc;
 			this.parmIndex = parmIndex;
 			this.parmsStart = func.getBody().getStart()+callFunc.getParmsStart();
 			this.parmsEnd = func.getBody().getStart()+callFunc.getParmsEnd();
 		}
-		public FuncCallInfo(C4Function func, CallFunc callFunc, ExprElm parm) {
+		public FuncCallInfo(Function func, CallFunc callFunc, ExprElm parm) {
 			this(func, callFunc, parm != null ? callFunc.indexOfParm(parm) : 0);
 		}
 	}
 
 	public FuncCallInfo getInnermostCallFuncExprParm(int offset) throws BadLocationException, ParsingException {
-		C4Function f = this.getFuncAt(offset);
+		Function f = this.getFuncAt(offset);
 		if (f == null)
 			return null;
 		DeclarationLocator locator = new DeclarationLocator(this, getSourceViewer().getDocument(), new Region(offset, 0));

@@ -7,12 +7,12 @@ import java.util.List;
 
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.C4Declaration;
-import net.arctics.clonk.parser.c4script.C4Function;
-import net.arctics.clonk.parser.c4script.C4ScriptBase;
-import net.arctics.clonk.parser.c4script.C4Type;
-import net.arctics.clonk.parser.c4script.C4Variable;
-import net.arctics.clonk.parser.c4script.C4Function.C4FunctionScope;
-import net.arctics.clonk.parser.c4script.C4Variable.C4VariableScope;
+import net.arctics.clonk.parser.c4script.Function;
+import net.arctics.clonk.parser.c4script.ScriptBase;
+import net.arctics.clonk.parser.c4script.PrimitiveType;
+import net.arctics.clonk.parser.c4script.Variable;
+import net.arctics.clonk.parser.c4script.Function.C4FunctionScope;
+import net.arctics.clonk.parser.c4script.Variable.C4VariableScope;
 import net.arctics.clonk.parser.c4script.openclonk.OCEngineDeclarationsImporter;
 import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.preferences.ClonkPreferences;
@@ -118,11 +118,11 @@ public class EngineDeclarationsView extends ViewPart implements IPropertyChangeL
 				declaration = (C4Declaration) activeElement;
 			}
 			
-			if (declaration instanceof C4Function) {
-				createFunctionEditDialog(composite, (C4Function) declaration);
+			if (declaration instanceof Function) {
+				createFunctionEditDialog(composite, (Function) declaration);
 			}
-			else if (declaration instanceof C4Variable) {
-				createVariableEditDialog(composite, (C4Variable) declaration);
+			else if (declaration instanceof Variable) {
+				createVariableEditDialog(composite, (Variable) declaration);
 			}
 			
 			return composite;
@@ -153,36 +153,36 @@ public class EngineDeclarationsView extends ViewPart implements IPropertyChangeL
 		
 		@Override
 		protected void okPressed() {
-			if (declaration instanceof C4Function) {
-				C4Function func = (C4Function) declaration;
+			if (declaration instanceof Function) {
+				Function func = (Function) declaration;
 				func.setName(declarationNameField.getText());
-				func.setReturnType(C4Type.makeType(returnTypeBox.getItem(returnTypeBox.getSelectionIndex())));
+				func.setReturnType(PrimitiveType.makeType(returnTypeBox.getItem(returnTypeBox.getSelectionIndex())));
 				func.setVisibility(C4FunctionScope.makeScope(scopeBox.getItem(scopeBox.getSelectionIndex())));
 				func.setUserDescription(descriptionField.getText());
 				
 				func.getParameters().clear();
 				for(ParameterCombination par : parameters) {
-					C4Variable var = new C4Variable(par.getName().getText(),C4VariableScope.LOCAL);
+					Variable var = new Variable(par.getName().getText(),C4VariableScope.LOCAL);
 					var.forceType(getSelectedType(par.getType()));
 					func.getParameters().add(var);
 				}
 			}
-			else if (declaration instanceof C4Variable) {
-				C4Variable var = (C4Variable) declaration;
+			else if (declaration instanceof Variable) {
+				Variable var = (Variable) declaration;
 				var.setName(declarationNameField.getText());
-				var.forceType(C4Type.makeType(returnTypeBox.getItem(returnTypeBox.getSelectionIndex()), true));
+				var.forceType(PrimitiveType.makeType(returnTypeBox.getItem(returnTypeBox.getSelectionIndex()), true));
 				var.setScope(C4VariableScope.valueOf(scopeBox.getItem(scopeBox.getSelectionIndex())));
 			}
 			
 			super.okPressed();
 		}
 		
-		private C4Type getSelectedType(Combo combo) {
-			return C4Type.makeType(combo.getItem(combo.getSelectionIndex()));
+		private PrimitiveType getSelectedType(Combo combo) {
+			return PrimitiveType.makeType(combo.getItem(combo.getSelectionIndex()));
 		}
 
 		private void createVariableEditDialog(Composite parent,
-				C4Variable var) {
+				Variable var) {
 			// set title
 			parent.getShell().setText(String.format(Messages.Engine_EditVariable, var.getName()));
 			
@@ -198,7 +198,7 @@ public class EngineDeclarationsView extends ViewPart implements IPropertyChangeL
 			scopeBox = createComboBoxForScope(parent, var.getScope());
 		}
 
-		private void createFunctionEditDialog(Composite parent, C4Function func) {
+		private void createFunctionEditDialog(Composite parent, Function func) {
 			
 			// set title
 			parent.getShell().setText(String.format(Messages.Engine_EditFunction, func.getName()));
@@ -230,7 +230,7 @@ public class EngineDeclarationsView extends ViewPart implements IPropertyChangeL
 			new Label(parent, SWT.NONE).setText(" "); // placeholder //$NON-NLS-1$
 			new Label(parent, SWT.NONE).setText(" "); //$NON-NLS-1$
 			if (func.getParameters() != null) {
-				for(C4Variable par : func.getParameters()) {
+				for(Variable par : func.getParameters()) {
 					createParameterControls(parent, par.getType(), par.getName());
 				}
 			}
@@ -240,7 +240,7 @@ public class EngineDeclarationsView extends ViewPart implements IPropertyChangeL
 		}
 		
 		private void createParameterControls(Composite parent) {
-			createParameterControls(parent, C4Type.ANY, ""); //$NON-NLS-1$
+			createParameterControls(parent, PrimitiveType.ANY, ""); //$NON-NLS-1$
 		}
 		
 		private void createParameterControls(Composite parent, IType type, String parameterName) {
@@ -277,10 +277,10 @@ public class EngineDeclarationsView extends ViewPart implements IPropertyChangeL
 		private Combo createComboBoxForType(Composite parent, IType currentType) {
 			Combo combo = new Combo(parent, SWT.READ_ONLY);
 			int select = 0;
-			List<String> items = new ArrayList<String>(C4Type.values().length);
-			for(int i = 0; i < C4Type.values().length;i++) {
-				items.add(C4Type.values()[i].toString());
-				if (currentType == C4Type.values()[i])
+			List<String> items = new ArrayList<String>(PrimitiveType.values().length);
+			for(int i = 0; i < PrimitiveType.values().length;i++) {
+				items.add(PrimitiveType.values()[i].toString());
+				if (currentType == PrimitiveType.values()[i])
 					select = i;
 			}
 			combo.setItems(items.toArray(new String[items.size()]));
@@ -397,7 +397,7 @@ public class EngineDeclarationsView extends ViewPart implements IPropertyChangeL
 	private void makeActions() {
 		addFunctionAction = new Action() {
 			public void run() {
-				C4Function func = new C4Function();
+				Function func = new Function();
 				Dialog dialog = new EditDeclarationInputDialog(viewer.getControl().getShell(),func);
 				dialog.create();
 				dialog.getShell().setSize(400,600);
@@ -413,7 +413,7 @@ public class EngineDeclarationsView extends ViewPart implements IPropertyChangeL
 		
 		addVariableAction = new Action() {
 			public void run() {
-				C4Variable var = new C4Variable();
+				Variable var = new Variable();
 				Dialog dialog = new EditDeclarationInputDialog(viewer.getControl().getShell(),var);
 				dialog.create();
 				dialog.getShell().setSize(400,600);
@@ -493,7 +493,7 @@ public class EngineDeclarationsView extends ViewPart implements IPropertyChangeL
 					else ps.busyCursorWhile(new IRunnableWithProgress() {
 						public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
 							try {
-								final C4ScriptBase engine = ClonkCore.getDefault().getActiveEngine();
+								final ScriptBase engine = ClonkCore.getDefault().getActiveEngine();
 								//engine.clearDeclarations();
 								OCEngineDeclarationsImporter importer = new OCEngineDeclarationsImporter();
 								importer.importFromRepository(engine, repo, monitor);

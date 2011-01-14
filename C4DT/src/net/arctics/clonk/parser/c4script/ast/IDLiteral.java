@@ -1,11 +1,11 @@
 package net.arctics.clonk.parser.c4script.ast;
 
 import net.arctics.clonk.ClonkCore;
-import net.arctics.clonk.index.C4Object;
+import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.parser.C4ID;
 import net.arctics.clonk.parser.DeclarationRegion;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
-import net.arctics.clonk.parser.c4script.C4Type;
+import net.arctics.clonk.parser.c4script.PrimitiveType;
 import net.arctics.clonk.parser.c4script.IType;
 
 public final class IDLiteral extends Literal<C4ID> {
@@ -27,8 +27,8 @@ public final class IDLiteral extends Literal<C4ID> {
 
 	@Override
 	protected IType obtainType(C4ScriptParser context) {
-		C4Object obj = context.getContainer().getNearestObjectWithId(idValue());
-		return obj != null ? obj.getObjectType() : C4Type.ID;
+		Definition obj = context.getContainer().getNearestObjectWithId(idValue());
+		return obj != null ? obj.getObjectType() : PrimitiveType.ID;
 	}
 
 	@Override

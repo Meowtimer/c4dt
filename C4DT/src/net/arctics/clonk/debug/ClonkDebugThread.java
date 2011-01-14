@@ -9,8 +9,8 @@ import java.util.Set;
 import net.arctics.clonk.debug.ClonkDebugTarget.Commands;
 import net.arctics.clonk.index.ClonkIndex;
 import net.arctics.clonk.index.ProjectIndex;
-import net.arctics.clonk.parser.c4script.C4Function;
-import net.arctics.clonk.parser.c4script.C4ScriptBase;
+import net.arctics.clonk.parser.c4script.Function;
+import net.arctics.clonk.parser.c4script.ScriptBase;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.debug.core.DebugEvent;
@@ -25,16 +25,16 @@ public class ClonkDebugThread extends ClonkDebugElement implements IThread {
 	
 	private ClonkDebugStackFrame[] stackFrames;
 	
-	private Map<C4ScriptBase, C4Function[]> lineToFunctionMaps = new HashMap<C4ScriptBase, C4Function[]>(); 
+	private Map<ScriptBase, Function[]> lineToFunctionMaps = new HashMap<ScriptBase, Function[]>(); 
 	
 	private void nullOut() {
 		stackFrames = NO_STACKFRAMES;
 	}
 	
-	public C4ScriptBase findScript(String path, ClonkIndex index, Set<ClonkIndex> alreadySearched) throws CoreException {
+	public ScriptBase findScript(String path, ClonkIndex index, Set<ClonkIndex> alreadySearched) throws CoreException {
 		if (alreadySearched.contains(index))
 			return null;
-		C4ScriptBase script = index.findScriptByPath(path);
+		ScriptBase script = index.findScriptByPath(path);
 		if (script != null)
 			return script;
 		alreadySearched.add(index);
@@ -42,7 +42,7 @@ public class ClonkDebugThread extends ClonkDebugElement implements IThread {
 			for (IProject proj : ((ProjectIndex) index).getProject().getReferencedProjects()) {
 				ProjectIndex projIndex = ProjectIndex.get(proj);
 				if (projIndex != null) {
-					C4ScriptBase _result = findScript(path, projIndex, alreadySearched);
+					ScriptBase _result = findScript(path, projIndex, alreadySearched);
 					if (_result != null)
 						return _result;
 				}
@@ -71,8 +71,8 @@ public class ClonkDebugThread extends ClonkDebugElement implements IThread {
 			String linePart = sourcePath.substring(delim+1);
 			int line = Integer.parseInt(linePart);
 			sourcePath = sourcePath.substring(0, delim);
-			C4ScriptBase script = findScript(sourcePath, index, new HashSet<ClonkIndex>());
-			C4Function f = script != null ? funcAtLine(script, line) : null;
+			ScriptBase script = findScript(sourcePath, index, new HashSet<ClonkIndex>());
+			Function f = script != null ? funcAtLine(script, line) : null;
 			Object funObj = f != null ? f : fullSourcePath;
 			if (stillToBeReused > 0) {
 				if (stackFrames[stillToBeReused-1].getFunction().equals(funObj)) {
@@ -86,9 +86,9 @@ public class ClonkDebugThread extends ClonkDebugElement implements IThread {
 		stackFrames = newStackFrames;
 	}
 	
-	private C4Function funcAtLine(C4ScriptBase script, int line) {
+	private Function funcAtLine(ScriptBase script, int line) {
 		line--;
-		C4Function[] map = lineToFunctionMaps.get(script);
+		Function[] map = lineToFunctionMaps.get(script);
 		if (map == null) {
 			map = script.calculateLineToFunctionMap();
 			lineToFunctionMaps.put(script, map);

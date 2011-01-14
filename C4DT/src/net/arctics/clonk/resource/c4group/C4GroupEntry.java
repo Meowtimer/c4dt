@@ -36,10 +36,10 @@ public class C4GroupEntry extends C4GroupItem implements IStorage, Serializable 
 	
 	private static class EntryCache {
 		
-		private static class Entry {
+		private static class CachedEntry {
 			public File file;
 			public long creationTime;
-			public Entry(File file, long creationTime) {
+			public CachedEntry(File file, long creationTime) {
 				super();
 				this.file = file;
 				this.creationTime = creationTime;
@@ -49,10 +49,10 @@ public class C4GroupEntry extends C4GroupItem implements IStorage, Serializable 
 			}
 		}
 		
-		private Map<C4GroupEntry, Entry> files = new HashMap<C4GroupEntry, Entry>();
+		private Map<C4GroupEntry, CachedEntry> files = new HashMap<C4GroupEntry, CachedEntry>();
 		
 		public File getCachedFile(C4GroupEntry groupEntry) throws IOException, CoreException {
-			Entry e = files.get(groupEntry);
+			CachedEntry e = files.get(groupEntry);
 			if (e == null || e.modified()) {
 				File f = File.createTempFile("c4dt", "c4groupcache"); //$NON-NLS-1$ //$NON-NLS-2$
 				FileOutputStream fileStream = new FileOutputStream(f);
@@ -67,7 +67,7 @@ public class C4GroupEntry extends C4GroupItem implements IStorage, Serializable 
 					fileStream.close();
 				}
 				f.deleteOnExit();
-				e = new Entry(f, f.lastModified());
+				e = new CachedEntry(f, f.lastModified());
 			}
 			return e.file;
 		}
@@ -80,14 +80,14 @@ public class C4GroupEntry extends C4GroupItem implements IStorage, Serializable 
 
 	public static final int STORED_SIZE = 316;
 
-	private transient C4EntryHeader header;
+	private transient C4GroupEntryHeader header;
 	private transient C4Group parentGroup;
 	private transient boolean completed;
 	private byte[] contents;
 
 	private transient File exportFromFile;
 
-	public C4GroupEntry(C4Group parentGroup, C4EntryHeader header) {
+	public C4GroupEntry(C4Group parentGroup, C4GroupEntryHeader header) {
 		this.parentGroup = parentGroup;
 		this.header = header;
 	}
@@ -96,7 +96,7 @@ public class C4GroupEntry extends C4GroupItem implements IStorage, Serializable 
 		completed = true;
 	}
 
-	public static C4GroupEntry makeEntry(C4Group parent, C4EntryHeader header, File exportFromFile) {
+	public static C4GroupEntry makeEntry(C4Group parent, C4GroupEntryHeader header, File exportFromFile) {
 		C4GroupEntry entry = new C4GroupEntry();
 		entry.parentGroup = parent;
 		entry.header = header;
@@ -106,11 +106,11 @@ public class C4GroupEntry extends C4GroupItem implements IStorage, Serializable 
 	}
 
 	@Override
-	public void readIntoMemory(boolean recursively, HeaderFilterBase filter, InputStream stream) throws InvalidDataException, IOException, CoreException {
+	public void readIntoMemory(boolean recursively, C4GroupHeaderFilterBase filter, InputStream stream) throws C4GroupInvalidDataException, IOException, CoreException {
 		if (completed) return;
 		completed = true;
 
-		if ((filter.getFlags(this) & HeaderFilterBase.DONTREADINTOMEMORY) == 0) {
+		if ((filter.getFlags(this) & C4GroupHeaderFilterBase.DONTREADINTOMEMORY) == 0) {
 			fetchContents(stream);
 		}
 		else {
@@ -302,7 +302,7 @@ public class C4GroupEntry extends C4GroupItem implements IStorage, Serializable 
 	}
 
 	@Override
-	public C4EntryHeader getEntryHeader() {
+	public C4GroupEntryHeader getEntryHeader() {
 		return header;
 	}
 

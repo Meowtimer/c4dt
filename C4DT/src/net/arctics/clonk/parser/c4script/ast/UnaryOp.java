@@ -3,11 +3,11 @@ package net.arctics.clonk.parser.c4script.ast;
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.ParsingException;
-import net.arctics.clonk.parser.c4script.C4ScriptBase;
-import net.arctics.clonk.parser.c4script.C4ScriptOperator;
+import net.arctics.clonk.parser.c4script.ScriptBase;
+import net.arctics.clonk.parser.c4script.Operator;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 
-public class UnaryOp extends Operator {
+public class UnaryOp extends OperatorExpression {
 
 
 	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
@@ -20,7 +20,7 @@ public class UnaryOp extends Operator {
 	private final UnaryOp.Placement placement;
 	private ExprElm argument;
 
-	public UnaryOp(C4ScriptOperator operator, UnaryOp.Placement placement, ExprElm argument) {
+	public UnaryOp(Operator operator, UnaryOp.Placement placement, ExprElm argument) {
 		super(operator);
 		this.placement = placement;
 		this.argument = argument;
@@ -81,21 +81,21 @@ public class UnaryOp extends Operator {
 		ExprElm arg = getArgument().optimize(context);
 		if (arg instanceof BinaryOp)
 			return new UnaryOp(getOperator(), placement, new Parenthesized(arg));
-		if (getOperator() == C4ScriptOperator.Not && arg instanceof Parenthesized) {
+		if (getOperator() == Operator.Not && arg instanceof Parenthesized) {
 			Parenthesized brackets = (Parenthesized)arg;
 			if (brackets.getInnerExpr() instanceof BinaryOp) {
 				BinaryOp op = (BinaryOp) brackets.getInnerExpr();
-				if (op.getOperator() == C4ScriptOperator.Equal) {
-					return new BinaryOp(C4ScriptOperator.NotEqual, op.getLeftSide().optimize(context), op.getRightSide().optimize(context));
+				if (op.getOperator() == Operator.Equal) {
+					return new BinaryOp(Operator.NotEqual, op.getLeftSide().optimize(context), op.getRightSide().optimize(context));
 				}
-				else if (op.getOperator() == C4ScriptOperator.NotEqual) {
-					return new BinaryOp(C4ScriptOperator.Equal, op.getLeftSide().optimize(context), op.getRightSide().optimize(context));
+				else if (op.getOperator() == Operator.NotEqual) {
+					return new BinaryOp(Operator.Equal, op.getLeftSide().optimize(context), op.getRightSide().optimize(context));
 				}
-				else if (op.getOperator() == C4ScriptOperator.StringEqual) {
-					return new BinaryOp(C4ScriptOperator.ne, op.getLeftSide().optimize(context), op.getRightSide().optimize(context));
+				else if (op.getOperator() == Operator.StringEqual) {
+					return new BinaryOp(Operator.ne, op.getLeftSide().optimize(context), op.getRightSide().optimize(context));
 				}
-				else if (op.getOperator() == C4ScriptOperator.ne) {
-					return new BinaryOp(C4ScriptOperator.StringEqual, op.getLeftSide().optimize(context), op.getRightSide().optimize(context));
+				else if (op.getOperator() == Operator.ne) {
+					return new BinaryOp(Operator.StringEqual, op.getLeftSide().optimize(context), op.getRightSide().optimize(context));
 				}
 			}
 		}
@@ -113,7 +113,7 @@ public class UnaryOp extends Operator {
 	}
 
 	@Override
-	public Object evaluateAtParseTime(C4ScriptBase context) {
+	public Object evaluateAtParseTime(ScriptBase context) {
 		try {
 			Object ev = argument.evaluateAtParseTime(context);
 			Object conv = getOperator().getFirstArgType().convert(ev);

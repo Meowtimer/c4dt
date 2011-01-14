@@ -1,8 +1,8 @@
 package net.arctics.clonk.parser.mapcreator;
 
 import net.arctics.clonk.ClonkCore;
-import net.arctics.clonk.index.C4Engine;
-import net.arctics.clonk.parser.C4Structure;
+import net.arctics.clonk.index.Engine;
+import net.arctics.clonk.parser.Structure;
 import net.arctics.clonk.resource.ClonkProjectNature;
 
 import org.eclipse.core.resources.IFile;
@@ -34,7 +34,7 @@ public class C4MapCreator extends C4Map {
 	
 	public static void register() {
 		registerStructureFactory(new IStructureFactory() {
-			public C4Structure create(IResource resource, boolean duringBuild) {
+			public Structure create(IResource resource, boolean duringBuild) {
 				if (resource instanceof IFile && resource.getName().equalsIgnoreCase("Landscape.txt")) { //$NON-NLS-1$
 					C4MapCreator mapCreator = new C4MapCreator((IFile) resource);
 					MapCreatorParser parser = new MapCreatorParser(mapCreator);
@@ -47,7 +47,7 @@ public class C4MapCreator extends C4Map {
 	}
 	
 	@Override
-	public C4Engine getEngine() {
+	public Engine getEngine() {
 		ClonkProjectNature nature = ClonkProjectNature.get(file);
 		return nature != null && nature.getIndex() != null ? nature.getIndex().getEngine() : super.getEngine();
 	}

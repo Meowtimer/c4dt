@@ -1,6 +1,6 @@
 package net.arctics.clonk.ui.search;
 
-import net.arctics.clonk.parser.C4Structure;
+import net.arctics.clonk.parser.Structure;
 import net.arctics.clonk.ui.editors.ClonkTextEditor;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.OpenEvent;
@@ -54,7 +54,7 @@ public class ClonkSearchResultPage extends AbstractTextSearchViewPage implements
 				IStructuredSelection selection = (IStructuredSelection) treeViewer.getSelection();
 				Object firstElm = selection.getFirstElement();
 				if (firstElm instanceof Match) {
-					return ((C4Structure)((Match)firstElm).getElement()).getResource();
+					return ((Structure)((Match)firstElm).getElement()).getResource();
 				}
 				return selection.getFirstElement();
 			}

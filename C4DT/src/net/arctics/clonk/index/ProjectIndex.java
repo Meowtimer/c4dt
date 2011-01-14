@@ -4,9 +4,9 @@ import java.util.LinkedList;
 import java.util.List;
 
 import net.arctics.clonk.ClonkCore;
-import net.arctics.clonk.parser.c4script.C4ScriptBase;
-import net.arctics.clonk.parser.c4script.C4ScriptIntern;
-import net.arctics.clonk.parser.c4script.C4Variable;
+import net.arctics.clonk.parser.c4script.ScriptBase;
+import net.arctics.clonk.parser.c4script.StandaloneProjectScript;
+import net.arctics.clonk.parser.c4script.Variable;
 import net.arctics.clonk.parser.inireader.IniUnit;
 import net.arctics.clonk.parser.playercontrols.PlayerControlsUnit;
 import net.arctics.clonk.resource.ClonkProjectNature;
@@ -29,7 +29,7 @@ public class ProjectIndex extends ClonkIndex {
 	private transient boolean isDirty;
 	
 	@Override
-	public C4Engine getEngine() {
+	public Engine getEngine() {
 		return getNature().getSettings().getEngine();
 	}
 	
@@ -52,29 +52,29 @@ public class ProjectIndex extends ClonkIndex {
 
 	public void postSerialize() throws CoreException {
 		if (project != null) {
-			List<C4ScriptBase> stuffToBeRemoved = new LinkedList<C4ScriptBase>();
-			for (C4Object object : this) {
-				if (object instanceof C4ObjectIntern) {
-					if (!((C4ObjectIntern)object).refreshFolderReference(project)) {
+			List<ScriptBase> stuffToBeRemoved = new LinkedList<ScriptBase>();
+			for (Definition object : this) {
+				if (object instanceof ProjectDefinition) {
+					if (!((ProjectDefinition)object).refreshFolderReference(project)) {
 						stuffToBeRemoved.add(object);
 					}
 				}
 			}
-			for (C4Scenario scenario : getIndexedScenarios()) {
+			for (Scenario scenario : getIndexedScenarios()) {
 				if (!scenario.refreshFolderReference(project)) {
 					stuffToBeRemoved.add(scenario);
 				}
 			}
-			for (C4ScriptBase script : getIndexedScripts()) {
-				if (script instanceof C4ScriptIntern) {
-					C4ScriptIntern standalone = (C4ScriptIntern) script;
+			for (ScriptBase script : getIndexedScripts()) {
+				if (script instanceof StandaloneProjectScript) {
+					StandaloneProjectScript standalone = (StandaloneProjectScript) script;
 					if (!standalone.refreshFileReference(project)) {
 						stuffToBeRemoved.add(standalone);
 					}
 				}
 			}
 			// purge objects that seem to be non-existent
-			for (C4ScriptBase s : stuffToBeRemoved) {
+			for (ScriptBase s : stuffToBeRemoved) {
 				this.removeScript(s);
 			}
 		}
@@ -97,10 +97,10 @@ public class ProjectIndex extends ClonkIndex {
 	}
 	
 	@Override
-	public C4ScriptBase findScriptByPath(String path) {
+	public ScriptBase findScriptByPath(String path) {
 		IResource res = getProject().findMember(new Path(path));
 		if (res != null) {
-			C4ScriptBase result;
+			ScriptBase result;
 			try {
 				result = Utilities.getScriptForResource(res);
 				if (result != null)
@@ -132,7 +132,7 @@ public class ProjectIndex extends ClonkIndex {
 						PlayerControlsUnit unit = (PlayerControlsUnit) IniUnit.pinned(resource, true, true);
 						if (unit != null) {
 							staticVariables.addAll(unit.getControlVariables());
-							for (C4Variable v : unit.getControlVariables())
+							for (Variable v : unit.getControlVariables())
 								addToDeclarationMap(v);
 						}
 						return true;

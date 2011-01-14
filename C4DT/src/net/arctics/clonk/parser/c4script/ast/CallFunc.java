@@ -2,25 +2,25 @@ package net.arctics.clonk.parser.c4script.ast;
 
 import java.util.List;
 import net.arctics.clonk.ClonkCore;
-import net.arctics.clonk.index.C4Engine;
-import net.arctics.clonk.index.C4Object;
+import net.arctics.clonk.index.Engine;
+import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.CachedEngineFuncs;
 import net.arctics.clonk.parser.C4Declaration;
 import net.arctics.clonk.parser.DeclarationRegion;
 import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.ParsingException;
-import net.arctics.clonk.parser.c4script.C4Function;
-import net.arctics.clonk.parser.c4script.C4ScriptBase;
-import net.arctics.clonk.parser.c4script.C4ScriptOperator;
+import net.arctics.clonk.parser.c4script.Function;
+import net.arctics.clonk.parser.c4script.ScriptBase;
+import net.arctics.clonk.parser.c4script.Operator;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
-import net.arctics.clonk.parser.c4script.C4Type;
+import net.arctics.clonk.parser.c4script.PrimitiveType;
 import net.arctics.clonk.parser.c4script.TypeSet;
-import net.arctics.clonk.parser.c4script.C4Variable;
+import net.arctics.clonk.parser.c4script.Variable;
 import net.arctics.clonk.parser.c4script.FindDeclarationInfo;
 import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.parser.c4script.Keywords;
 import net.arctics.clonk.parser.c4script.SpecialScriptRules;
-import net.arctics.clonk.parser.c4script.C4Function.C4FunctionScope;
+import net.arctics.clonk.parser.c4script.Function.C4FunctionScope;
 import net.arctics.clonk.parser.c4script.SpecialScriptRules.SpecialFuncRule;
 import net.arctics.clonk.parser.c4script.ast.UnaryOp.Placement;
 import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
@@ -34,9 +34,9 @@ public class CallFunc extends AccessDeclaration {
 	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 
 	public final static class FunctionReturnTypeInformation extends StoredTypeInformation {
-		private C4Function function;
+		private Function function;
 
-		public FunctionReturnTypeInformation(C4Function function) {
+		public FunctionReturnTypeInformation(Function function) {
 			super();
 			this.function = function;
 			if (function != null)
@@ -48,7 +48,7 @@ public class CallFunc extends AccessDeclaration {
 			// don't store if function.getReturnType() already specifies a type (including any)
 			// this is to prevent cases where for example the result of EffectVar in one instance is
 			// used as int and then as something else which leads to an erroneous type incompatibility warning
-			if (type == C4Type.UNKNOWN)
+			if (type == PrimitiveType.UNKNOWN)
 				super.storeType(type);
 		}
 		
@@ -76,7 +76,7 @@ public class CallFunc extends AccessDeclaration {
 		public void apply(boolean soft, C4ScriptParser parser) {
 			if (function == null)
 				return;
-			function = (C4Function) function.latestVersion();
+			function = (Function) function.latestVersion();
 			if (!soft && !function.isEngineDeclaration()) {
 				function.forceType(getType());
 			}
@@ -85,10 +85,10 @@ public class CallFunc extends AccessDeclaration {
 	}
 	
 	private final static class VarFunctionsTypeInformation extends StoredTypeInformation {
-		private C4Function varFunction;
+		private Function varFunction;
 		private long varIndex;
 
-		private VarFunctionsTypeInformation(C4Function function, long val) {
+		private VarFunctionsTypeInformation(Function function, long val) {
 			varFunction = function;
 			varIndex = val;
 		}
@@ -100,7 +100,7 @@ public class CallFunc extends AccessDeclaration {
 				return
 					callFunc.getDeclaration() == varFunction &&
 					callFunc.getParams().length == 1 && // don't bother with more complex cases
-					callFunc.getParams()[0].getType(parser) == C4Type.INT &&
+					callFunc.getParams()[0].getType(parser) == PrimitiveType.INT &&
 					((ev = callFunc.getParams()[0].evaluateAtParseTime(parser.getContainer())) != null) &&
 					ev.equals(varIndex);
 			}
@@ -154,7 +154,7 @@ public class CallFunc extends AccessDeclaration {
 		assignParentToSubElements();
 	}
 	
-	public CallFunc(C4Function function, ExprElm... parms) {
+	public CallFunc(Function function, ExprElm... parms) {
 		this(function.getName());
 		this.declaration = function;
 	}
@@ -187,7 +187,7 @@ public class CallFunc extends AccessDeclaration {
 		return true;
 	}
 	public SpecialFuncRule getSpecialRule(C4ScriptParser context, int role) {
-		C4Engine engine = context.getContainer().getEngine();
+		Engine engine = context.getContainer().getEngine();
 		if (engine != null && engine.getSpecialScriptRules() != null) {
 			return engine.getSpecialScriptRules().getFuncRuleFor(declarationName, role);
 		} else {
@@ -204,8 +204,8 @@ public class CallFunc extends AccessDeclaration {
 			return stored;
 		
 		// calling this() as function -> return object type belonging to script
-		if (params.length == 0 && (d == getCachedFuncs(context).This || d == C4Variable.THIS)) {
-			C4Object obj = context.getContainerObject();
+		if (params.length == 0 && (d == getCachedFuncs(context).This || d == Variable.THIS)) {
+			Definition obj = context.getContainerObject();
 			if (obj != null)
 				return obj;
 		}
@@ -219,8 +219,8 @@ public class CallFunc extends AccessDeclaration {
 			}
 		}
 		
-		if (d instanceof C4Function) {
-			return ((C4Function)d).getReturnType();
+		if (d instanceof Function) {
+			return ((Function)d).getReturnType();
 		}
 
 		return super.obtainType(context);
@@ -234,11 +234,11 @@ public class CallFunc extends AccessDeclaration {
 		if (declarationName.equals(Keywords.Return))
 			return null;
 		if (declarationName.equals(Keywords.Inherited) || declarationName.equals(Keywords.SafeInherited)) {
-			C4Function activeFunc = parser.getCurrentFunc();
+			Function activeFunc = parser.getCurrentFunc();
 			return activeFunc != null ? activeFunc.getInherited() : null;
 		}
 		ExprElm p = getPredecessorInSequence();
-		C4ScriptBase lookIn = p == null ? parser.getContainer() : p.guessObjectType(parser);
+		ScriptBase lookIn = p == null ? parser.getContainer() : p.guessObjectType(parser);
 		if (lookIn != null) {
 			FindDeclarationInfo info = new FindDeclarationInfo(parser.getContainer().getIndex());
 			info.setSearchOrigin(parser.getContainer());
@@ -271,7 +271,7 @@ public class CallFunc extends AccessDeclaration {
 		if (pred == null)
 			return true;
 		IType predType = pred.getType(parser);
-		if (predType == null || predType.specificness() <= C4Type.ID.specificness())
+		if (predType == null || predType.specificness() <= PrimitiveType.ID.specificness())
 			return false;
 		if (pred instanceof MemberOperator) {
 			return !((MemberOperator)pred).hasTilde();
@@ -307,7 +307,7 @@ public class CallFunc extends AccessDeclaration {
 			}
 			
 			// variable as function
-			if (declaration instanceof C4Variable) {
+			if (declaration instanceof Variable) {
 				if (params.length == 0) {
 					// no warning when in #strict mode
 					if (context.getStrictLevel() >= 2)
@@ -316,8 +316,8 @@ public class CallFunc extends AccessDeclaration {
 					context.errorWithCode(ParserErrorCode.VariableCalled, this, true, declaration.getName());
 				}
 			}
-			else if (declaration instanceof C4Function) {
-				C4Function f = (C4Function)declaration;
+			else if (declaration instanceof Function) {
+				Function f = (Function)declaration;
 				if (f.getVisibility() == C4FunctionScope.GLOBAL) {
 					context.getContainer().addUsedProjectScript(f.getScript());
 				}
@@ -331,7 +331,7 @@ public class CallFunc extends AccessDeclaration {
 				// not a special case... check regular parameter types
 				if (!specialCaseHandled) {
 					int givenParam = 0;
-					for (C4Variable parm : f.getParameters()) {
+					for (Variable parm : f.getParameters()) {
 						if (givenParam >= params.length)
 							break;
 						ExprElm given = params[givenParam++];
@@ -353,7 +353,7 @@ public class CallFunc extends AccessDeclaration {
 			}
 			else if (declaration == null && unknownFunctionShouldBeError(context)) {
 				if (declarationName.equals(Keywords.Inherited)) {
-					C4Function activeFunc = context.getCurrentFunc();
+					Function activeFunc = context.getCurrentFunc();
 					if (activeFunc != null) {
 						context.errorWithCode(ParserErrorCode.NoInheritedFunction, getExprStart(), getExprStart()+declarationName.length(), true, context.getCurrentFunc().getName(), true);
 					} else {
@@ -381,7 +381,7 @@ public class CallFunc extends AccessDeclaration {
 	public void setSubElements(ExprElm[] elms) {
 		params = elms;
 	}
-	protected BinaryOp applyOperatorTo(C4ScriptParser parser, ExprElm[] parms, C4ScriptOperator operator) throws CloneNotSupportedException {
+	protected BinaryOp applyOperatorTo(C4ScriptParser parser, ExprElm[] parms, Operator operator) throws CloneNotSupportedException {
 		BinaryOp op = new BinaryOp(operator);
 		BinaryOp result = op;
 		for (int i = 0; i < parms.length; i++) {
@@ -405,7 +405,7 @@ public class CallFunc extends AccessDeclaration {
 	public ExprElm optimize(C4ScriptParser parser) throws CloneNotSupportedException {
 
 		// And(ugh, blugh) -> ugh && blugh
-		C4ScriptOperator replOperator = C4ScriptOperator.oldStyleFunctionReplacement(declarationName);
+		Operator replOperator = Operator.oldStyleFunctionReplacement(declarationName);
 		if (replOperator != null && params.length == 1) {
 			// LessThan(x) -> x < 0
 			if (replOperator.getNumArgs() == 2)
@@ -444,7 +444,7 @@ public class CallFunc extends AccessDeclaration {
 		}
 
 		// OCF_Awesome() -> OCF_Awesome
-		if (params.length == 0 && declaration instanceof C4Variable) {
+		if (params.length == 0 && declaration instanceof Variable) {
 			return new AccessVar(declarationName);
 		}
 
@@ -453,7 +453,7 @@ public class CallFunc extends AccessDeclaration {
 		// Par(5) -> nameOfParm6
 		if (params.length <= 1 && declaration != null && declaration == getCachedFuncs(parser).Par && (params.length == 0 || params[0] instanceof NumberLiteral)) {
 			NumberLiteral number = params.length > 0 ? (NumberLiteral) params[0] : NumberLiteral.ZERO;
-			C4Function activeFunc = parser.getCurrentFunc();
+			Function activeFunc = parser.getCurrentFunc();
 			if (activeFunc != null) {
 				if (number.intValue() >= 0 && number.intValue() < activeFunc.getParameters().size() && activeFunc.getParameters().get(number.intValue()).isActualParm())
 					return new AccessVar(parser.getCurrentFunc().getParameters().get(number.intValue()).getName());
@@ -462,12 +462,12 @@ public class CallFunc extends AccessDeclaration {
 		
 		// SetVar(5, "ugh") -> Var(5) = "ugh"
 		if (params.length == 2 && declaration != null && (declaration == getCachedFuncs(parser).SetVar || declaration == getCachedFuncs(parser).SetLocal || declaration == getCachedFuncs(parser).AssignVar)) {
-			return new BinaryOp(C4ScriptOperator.Assign, new CallFunc(declarationName.substring(declarationName.equals("AssignVar") ? "Assign".length() : "Set".length()), params[0].optimize(parser)), params[1].optimize(parser)); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+			return new BinaryOp(Operator.Assign, new CallFunc(declarationName.substring(declarationName.equals("AssignVar") ? "Assign".length() : "Set".length()), params[0].optimize(parser)), params[1].optimize(parser)); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 		}
 
 		// DecVar(0) -> Var(0)--
 		if (params.length <= 1 && declaration != null && (declaration == getCachedFuncs(parser).DecVar || declaration == getCachedFuncs(parser).IncVar)) {
-			return new UnaryOp(declaration == getCachedFuncs(parser).DecVar ? C4ScriptOperator.Decrement : C4ScriptOperator.Increment, Placement.Prefix,
+			return new UnaryOp(declaration == getCachedFuncs(parser).DecVar ? Operator.Decrement : Operator.Increment, Placement.Prefix,
 					new CallFunc(getCachedFuncs(parser).Var.getName(), new ExprElm[] {
 						params.length == 1 ? params[0].optimize(parser) : NumberLiteral.ZERO
 					})
@@ -537,18 +537,18 @@ public class CallFunc extends AccessDeclaration {
 			if (getParams().length == 1 && (ev = getParams()[0].evaluateAtParseTime(parser.getContainer())) != null) {
 				if (ev instanceof Number) {
 					// Var() with a sane constant number
-					return new VarFunctionsTypeInformation((C4Function) d, ((Number)ev).intValue());
+					return new VarFunctionsTypeInformation((Function) d, ((Number)ev).intValue());
 				}
 			}
 		}
-		else if (d instanceof C4Function) {
-			C4Function f = (C4Function) d;
+		else if (d instanceof Function) {
+			Function f = (Function) d;
 			if (f.typeIsInvariant()) {
 				return null;
 			}
 			IType retType = f.getReturnType();
-			if (retType == null || !retType.containsAnyTypeOf(C4Type.ANY, C4Type.REFERENCE))
-				return new FunctionReturnTypeInformation((C4Function)d);
+			if (retType == null || !retType.containsAnyTypeOf(PrimitiveType.ANY, PrimitiveType.REFERENCE))
+				return new FunctionReturnTypeInformation((Function)d);
 			if (d.isEngineDeclaration())
 				return null;
 		}
@@ -557,9 +557,9 @@ public class CallFunc extends AccessDeclaration {
 	
 	@Override
 	public Object evaluate(IEvaluationContext context) {
-	    if (declaration instanceof C4Function) {
+	    if (declaration instanceof Function) {
 	    	Object[] args = Utilities.map(getParams(), Object.class, Conf.EVALUATE_EXPR);
-	    	return ((C4Function)declaration).invoke(args);
+	    	return ((Function)declaration).invoke(args);
 	    }
 	    else
 	    	return null;
@@ -567,6 +567,6 @@ public class CallFunc extends AccessDeclaration {
 	
 	@Override
 	public Class<? extends C4Declaration> declarationClass() {
-		return C4Function.class;
+		return Function.class;
 	}
 }

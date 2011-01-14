@@ -1,8 +1,8 @@
 package net.arctics.clonk.ui.navigator;
 
 import java.util.Collection;
-import net.arctics.clonk.parser.C4Structure;
-import net.arctics.clonk.parser.c4script.C4ScriptBase;
+import net.arctics.clonk.parser.Structure;
+import net.arctics.clonk.parser.c4script.ScriptBase;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.util.ArrayUtil;
 import net.arctics.clonk.util.INode;
@@ -28,11 +28,11 @@ public class ClonkNavigator extends ClonkOutlineProvider {
 		// add additional virtual nodes to the project
 		if (element instanceof IFile) {
 			// list contents of ini and script files
-			C4ScriptBase script = C4ScriptBase.get((IFile) element, true);
+			ScriptBase script = ScriptBase.get((IFile) element, true);
 			if (script != null)
 				return ArrayUtil.concat(baseResources, super.getChildren(script));
 			try {
-				C4Structure s = C4Structure.pinned((IFile) element, false, false);
+				Structure s = Structure.pinned((IFile) element, false, false);
 				if (s instanceof ITreeNode) {
 					// call again for ITreeNode object (below)
 					return ArrayUtil.concat(baseResources, this.getChildren(s));
@@ -56,12 +56,12 @@ public class ClonkNavigator extends ClonkOutlineProvider {
 			return true;
 		}
 		else if (element instanceof IFile) {
-			C4ScriptBase script = C4ScriptBase.get((IFile) element, true);
+			ScriptBase script = ScriptBase.get((IFile) element, true);
 			if (script != null)
 				return super.hasChildren(script);
 			try {
-				C4Structure s;
-				if ((s = C4Structure.pinned((IFile) element, true, false)) != null)
+				Structure s;
+				if ((s = Structure.pinned((IFile) element, true, false)) != null)
 					return s instanceof ITreeNode && ((ITreeNode)s).getChildCollection().size() > 0;
 			} catch (CoreException e) {
 				return false;

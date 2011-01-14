@@ -12,17 +12,17 @@ public class FindDeclarationInfo {
 	public ClonkIndex index;
 	public int recursion;
 	public Class<? extends C4Declaration> declarationClass;
-	private C4Function contextFunction;
-	private Set<C4ScriptBase> alreadySearched;
-	private C4ScriptBase searchOrigin;
+	private Function contextFunction;
+	private Set<ScriptBase> alreadySearched;
+	private ScriptBase searchOrigin;
 	private List<ClonkIndex> relevantIndexes;
 
 	public FindDeclarationInfo(ClonkIndex clonkIndex) {
 		super();
 		index = clonkIndex;
-		alreadySearched = new HashSet<C4ScriptBase>();
+		alreadySearched = new HashSet<ScriptBase>();
 	}
-	public FindDeclarationInfo(ClonkIndex clonkIndex, C4Function ctx) {
+	public FindDeclarationInfo(ClonkIndex clonkIndex, Function ctx) {
 		this(clonkIndex);
 		setContextFunction(ctx);
 	}
@@ -32,19 +32,19 @@ public class FindDeclarationInfo {
 	public void setDeclarationClass(Class<?extends C4Declaration> declarationClass) {
 		this.declarationClass = declarationClass;
 	}
-	public void setContextFunction(C4Function ctx) {
+	public void setContextFunction(Function ctx) {
 		contextFunction = ctx;
 	}
-	public C4Function getContextFunction() {
+	public Function getContextFunction() {
 		return contextFunction;
 	}
-	public Set<C4ScriptBase> getAlreadySearched() {
+	public Set<ScriptBase> getAlreadySearched() {
 		return alreadySearched;
 	}
-	public C4ScriptBase getSearchOrigin() {
+	public ScriptBase getSearchOrigin() {
 		return searchOrigin;
 	}
-	public void setSearchOrigin(C4ScriptBase searchOrigin) {
+	public void setSearchOrigin(ScriptBase searchOrigin) {
 		this.searchOrigin = searchOrigin;
 	}
 	public void resetState() {

@@ -16,13 +16,13 @@ import java.lang.reflect.Method;
 import org.eclipse.core.resources.IStorage;
 import org.eclipse.core.runtime.CoreException;
 import net.arctics.clonk.ClonkCore;
-import net.arctics.clonk.index.C4Engine;
-import net.arctics.clonk.index.C4Object;
-import net.arctics.clonk.index.C4Scenario;
+import net.arctics.clonk.index.Engine;
+import net.arctics.clonk.index.Definition;
+import net.arctics.clonk.index.Scenario;
 import net.arctics.clonk.index.ClonkIndex;
 import net.arctics.clonk.parser.SimpleScriptStorage;
-import net.arctics.clonk.parser.c4script.C4Function;
-import net.arctics.clonk.parser.c4script.C4ScriptBase;
+import net.arctics.clonk.parser.c4script.Function;
+import net.arctics.clonk.parser.c4script.ScriptBase;
 import net.arctics.clonk.parser.c4script.ast.Conf;
 import net.arctics.clonk.resource.ClonkIndexInputStream;
 import net.arctics.clonk.ui.editors.ClonkHyperlink;
@@ -33,12 +33,12 @@ import net.arctics.clonk.util.ArrayUtil;
  *
  */
 public class Command {
-	public static final C4ScriptBase COMMAND_BASESCRIPT;
+	public static final ScriptBase COMMAND_BASESCRIPT;
 	public static final ClonkIndex COMMANDS_INDEX = new ClonkIndex();
 	public static final String COMMAND_SCRIPT_TEMPLATE = "func Main() {%s;}"; //$NON-NLS-1$
 
 	static {
-		COMMAND_BASESCRIPT = new C4ScriptBase() {
+		COMMAND_BASESCRIPT = new ScriptBase() {
 			private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 
 			@Override
@@ -77,7 +77,7 @@ public class Command {
 		}
 	}
 
-	private static class NativeCommandFunction extends C4Function {
+	private static class NativeCommandFunction extends Function {
 
 		private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 
@@ -93,7 +93,7 @@ public class Command {
 			}
 		}
 
-		public NativeCommandFunction(C4ScriptBase parent, Method method) {
+		public NativeCommandFunction(ScriptBase parent, Method method) {
 			super(method.getName(), parent, C4FunctionScope.PUBLIC);
 			this.method = method;
 		}
@@ -146,7 +146,7 @@ public class Command {
 		}
 		@CommandFunction
 		public static void WriteEngineScript(Object context, String engineName, String fileName) throws IOException {
-			C4Engine engine = ClonkCore.getDefault().loadEngine(engineName);
+			Engine engine = ClonkCore.getDefault().loadEngine(engineName);
 			FileOutputStream stream = new FileOutputStream(fileName);
 			Writer writer = new OutputStreamWriter(stream);
 			engine.writeEngineScript(writer);
@@ -159,7 +159,7 @@ public class Command {
 			InputStream engineStream = new FileInputStream(indexPath);
 			try {
 				ObjectInputStream objStream = new ClonkIndexInputStream(engineStream);
-				C4Engine result = (C4Engine)objStream.readObject();
+				Engine result = (Engine)objStream.readObject();
 				result.setName(engineName); // for good measure
 				result.postSerialize(null);
 				_WriteDescriptionsToFile(writeToFile, result);
@@ -167,10 +167,10 @@ public class Command {
 				engineStream.close();
 			}
 		}
-		private static void _WriteDescriptionsToFile(String writeToFile, C4Engine engine) throws FileNotFoundException, IOException {
+		private static void _WriteDescriptionsToFile(String writeToFile, Engine engine) throws FileNotFoundException, IOException {
 			OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(writeToFile));
 			writer.append("[Descriptions]\n"); //$NON-NLS-1$
-			for (C4Function f : engine.functions()) {
+			for (Function f : engine.functions()) {
 				String escaped = f.getUserDescription() != null ? f.getUserDescription().replace("\n", "|||") : ""; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 				writer.append(String.format("%s=%s\n", f.getName(), escaped)); //$NON-NLS-1$
 			}
@@ -178,7 +178,7 @@ public class Command {
 		}
 		@CommandFunction
 		public static void WriteDescriptionsToFile(Object context, String writeToFile, String engineName) throws FileNotFoundException, IOException {
-			C4Engine engine = ClonkCore.getDefault().loadEngine(engineName);
+			Engine engine = ClonkCore.getDefault().loadEngine(engineName);
 			if (engine != null)
 				_WriteDescriptionsToFile(writeToFile, engine);
 		}
@@ -191,7 +191,7 @@ public class Command {
 		}
 		@CommandFunction
 		public static void IntrinsicizeEngineProperty(Object context, String name) throws IllegalArgumentException, SecurityException, IllegalAccessException, NoSuchFieldException {
-			C4Engine engine = ClonkCore.getDefault().getActiveEngine();
+			Engine engine = ClonkCore.getDefault().getActiveEngine();
 			setFieldValue(
 					engine.getIntrinsicSettings(), name,
 					engine.getCurrentSettings().getClass().getField(name).get(engine.getCurrentSettings())
@@ -210,15 +210,15 @@ public class Command {
 				return;
 			}
 			System.out.println("===Objects==="); //$NON-NLS-1$
-			for (C4Object obj : index) {
+			for (Definition obj : index) {
 				System.out.println(obj.toString());
 			}
 			System.out.println("===Scripts==="); //$NON-NLS-1$
-			for (C4ScriptBase script : index.getIndexedScripts()) {
+			for (ScriptBase script : index.getIndexedScripts()) {
 				System.out.println(script.toString());
 			}
 			System.out.println("===Scenarios==="); //$NON-NLS-1$
-			for (C4Scenario scen : index.getIndexedScenarios()) {
+			for (Scenario scen : index.getIndexedScenarios()) {
 				System.out.println(scen.toString());
 			}
 		}

@@ -14,15 +14,15 @@ import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.C4Declaration;
 import net.arctics.clonk.parser.C4ID;
 import net.arctics.clonk.parser.c4script.ConstrainedType;
-import net.arctics.clonk.parser.c4script.C4ScriptBase;
-import net.arctics.clonk.parser.c4script.C4Type;
-import net.arctics.clonk.parser.c4script.C4Variable;
+import net.arctics.clonk.parser.c4script.ScriptBase;
+import net.arctics.clonk.parser.c4script.PrimitiveType;
+import net.arctics.clonk.parser.c4script.Variable;
 import net.arctics.clonk.parser.c4script.FindDeclarationInfo;
 import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.preferences.ClonkPreferences;
 import net.arctics.clonk.util.ArrayUtil;
 
-public abstract class C4Object extends C4ScriptBase implements IType {
+public abstract class Definition extends ScriptBase implements IType {
 
 	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 
@@ -53,7 +53,7 @@ public abstract class C4Object extends C4ScriptBase implements IType {
 	 * @param id C4ID (e.g. CLNK)
 	 * @param name human-readable name
 	 */
-	protected C4Object(C4ID id, String name) {
+	protected Definition(C4ID id, String name) {
 		this.id = id;
 		this.name = name;
 	}
@@ -89,7 +89,7 @@ public abstract class C4Object extends C4ScriptBase implements IType {
 		index.addObject(this);
 	}
 
-	public C4Variable getStaticVariable() {
+	public Variable getStaticVariable() {
 		return null;
 	}
 
@@ -99,8 +99,8 @@ public abstract class C4Object extends C4ScriptBase implements IType {
 		boolean variableRequired = false;
 		if (
 				cls == null ||
-				cls == C4Object.class ||
-				(getEngine() != null && getEngine().getCurrentSettings().definitionsHaveStaticVariables && (variableRequired = C4Variable.class.isAssignableFrom(cls)))
+				cls == Definition.class ||
+				(getEngine() != null && getEngine().getCurrentSettings().definitionsHaveStaticVariables && (variableRequired = Variable.class.isAssignableFrom(cls)))
 		) {
 			if (id != null && id.getName().equals(name))
 				return variableRequired ? this.getStaticVariable() : this;
@@ -151,10 +151,10 @@ public abstract class C4Object extends C4ScriptBase implements IType {
 	}
 
 	@Override
-	protected void gatherIncludes(List<C4ScriptBase> list, ClonkIndex index) {
+	protected void gatherIncludes(List<ScriptBase> list, ClonkIndex index) {
 		super.gatherIncludes(list, index);
 		if (index != null) {
-			List<C4ScriptBase> appendages = index.appendagesOf(this);
+			List<ScriptBase> appendages = index.appendagesOf(this);
 			if (appendages != null)
 				list.addAll(appendages);
 		}
@@ -177,16 +177,16 @@ public abstract class C4Object extends C4ScriptBase implements IType {
 
 	@Override
 	public boolean canBeAssignedFrom(IType other) {
-		return C4Type.OBJECT.canBeAssignedFrom(other) || C4Type.PROPLIST.canBeAssignedFrom(other);
+		return PrimitiveType.OBJECT.canBeAssignedFrom(other) || PrimitiveType.PROPLIST.canBeAssignedFrom(other);
 	}
 
 	@Override
 	public boolean containsType(IType type) {
 		return
-			type == C4Type.OBJECT ||
-			type == C4Type.PROPLIST ||
+			type == PrimitiveType.OBJECT ||
+			type == PrimitiveType.PROPLIST ||
 			type == this ||
-			type == C4Type.ID; // gets rid of type sets <id or Clonk>
+			type == PrimitiveType.ID; // gets rid of type sets <id or Clonk>
 	}
 	
 	@Override
@@ -196,7 +196,7 @@ public abstract class C4Object extends C4ScriptBase implements IType {
 
 	@Override
 	public int specificness() {
-		return C4Type.OBJECT.specificness()+1;
+		return PrimitiveType.OBJECT.specificness()+1;
 	}
 
 	@Override
@@ -206,16 +206,16 @@ public abstract class C4Object extends C4ScriptBase implements IType {
 
 	@Override
 	public Iterator<IType> iterator() {
-		return ArrayUtil.arrayIterable(new IType[] {C4Type.OBJECT, this}).iterator();
+		return ArrayUtil.arrayIterable(new IType[] {PrimitiveType.OBJECT, this}).iterator();
 	}
 
 	@Override
 	public boolean intersects(IType typeSet) {
 		for (IType t : typeSet) {
-			if (t.canBeAssignedFrom(C4Type.OBJECT))
+			if (t.canBeAssignedFrom(PrimitiveType.OBJECT))
 				return true;
-			if (t instanceof C4Object) {
-				C4Object obj = (C4Object) t;
+			if (t instanceof Definition) {
+				Definition obj = (Definition) t;
 				if (this.includes(obj))
 					return true;
 			}
@@ -225,7 +225,7 @@ public abstract class C4Object extends C4ScriptBase implements IType {
 
 	@Override
 	public IType staticType() {
-		return C4Type.OBJECT;
+		return PrimitiveType.OBJECT;
 	}
 
 	public ConstrainedType getObjectType() {

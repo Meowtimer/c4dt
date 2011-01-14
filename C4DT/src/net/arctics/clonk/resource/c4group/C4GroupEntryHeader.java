@@ -9,7 +9,7 @@ import java.io.Serializable;
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.resource.c4group.C4Group.C4GroupType;
 
-public class C4EntryHeader implements Serializable {
+public class C4GroupEntryHeader implements Serializable {
 
 	public static final int STORED_SIZE = 316;
 	
@@ -25,9 +25,9 @@ public class C4EntryHeader implements Serializable {
     private boolean hasCRC;
     private int crc; // unsigned?
     
-    protected C4EntryHeader() {}
+    protected C4GroupEntryHeader() {}
     
-    public C4EntryHeader(File file) {
+    public C4GroupEntryHeader(File file) {
     	entryName = file.getName();
     	packed = false;
     	group = C4Group.getGroupType(file.getName()) != C4GroupType.OtherGroup || file.isDirectory();
@@ -36,8 +36,8 @@ public class C4EntryHeader implements Serializable {
     	time = (int) file.lastModified();
     }
     
-    public static C4EntryHeader createHeader(String name, boolean packed, boolean group, int size, int entrySize, int offset, int time) {
-    	C4EntryHeader header = new C4EntryHeader();
+    public static C4GroupEntryHeader createHeader(String name, boolean packed, boolean group, int size, int entrySize, int offset, int time) {
+    	C4GroupEntryHeader header = new C4GroupEntryHeader();
     	header.entryName = name;
     	header.packed = packed;
     	header.group = group;
@@ -67,8 +67,8 @@ public class C4EntryHeader implements Serializable {
     	stream.write(buffer, 0, STORED_SIZE);
     }
     
-    public static C4EntryHeader createFromStream(InputStream stream) throws InvalidDataException {
-    	C4EntryHeader header = new C4EntryHeader();
+    public static C4GroupEntryHeader createFromStream(InputStream stream) throws C4GroupInvalidDataException {
+    	C4GroupEntryHeader header = new C4GroupEntryHeader();
 		byte[] buffer = new byte[STORED_SIZE];
 		try {
 			int readCount = stream.read(buffer,0,STORED_SIZE);
@@ -90,7 +90,7 @@ public class C4EntryHeader implements Serializable {
 
 		} catch (IOException e) {
 			e.printStackTrace();
-			throw new InvalidDataException("There was an IOException."); //$NON-NLS-1$
+			throw new C4GroupInvalidDataException("There was an IOException."); //$NON-NLS-1$
 		}
 		return header;
     }

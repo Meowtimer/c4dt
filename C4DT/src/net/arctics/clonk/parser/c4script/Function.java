@@ -7,12 +7,12 @@ import java.util.List;
 
 import org.eclipse.jface.text.IRegion;
 
-import net.arctics.clonk.index.C4Engine;
-import net.arctics.clonk.index.C4Object;
+import net.arctics.clonk.index.Engine;
+import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.parser.C4Declaration;
-import net.arctics.clonk.parser.C4Structure;
+import net.arctics.clonk.parser.Structure;
 import net.arctics.clonk.parser.SourceLocation;
-import net.arctics.clonk.parser.c4script.C4Variable.C4VariableScope;
+import net.arctics.clonk.parser.c4script.Variable.C4VariableScope;
 import net.arctics.clonk.parser.c4script.ast.Block;
 import net.arctics.clonk.parser.c4script.ast.Conf;
 import net.arctics.clonk.parser.c4script.ast.ExprElm;
@@ -22,12 +22,12 @@ import net.arctics.clonk.util.ArrayUtil;
 import net.arctics.clonk.util.CompoundIterable;
 import net.arctics.clonk.util.Utilities;
 
-public class C4Function extends C4Structure implements Serializable, ITypedDeclaration, IHasUserDescription, IRegion {
+public class Function extends Structure implements Serializable, ITypedDeclaration, IHasUserDescription, IRegion {
 	
 	private static final long serialVersionUID = 3848213897251037684L;
 	private C4FunctionScope visibility; 
-	private List<C4Variable> localVars;
-	private List<C4Variable> parameter;
+	private List<Variable> localVars;
+	private List<Variable> parameter;
 	/**
 	 * Various other declarations (like proplists) that aren't variables/parameters
 	 */
@@ -48,11 +48,11 @@ public class C4Function extends C4Structure implements Serializable, ITypedDecla
 	 */
 	private transient String blockSource;
 
-	public C4Function(String name, C4Type returnType, C4Variable... pars) {
+	public Function(String name, PrimitiveType returnType, Variable... pars) {
 		this.name = name;
 		this.returnType = returnType;
-		parameter = new ArrayList<C4Variable>(pars.length);
-		for (C4Variable var : pars)
+		parameter = new ArrayList<Variable>(pars.length);
+		for (Variable var : pars)
 			parameter.add(var);
 		visibility = C4FunctionScope.GLOBAL;
 	}
@@ -64,61 +64,61 @@ public class C4Function extends C4Structure implements Serializable, ITypedDecla
 	 * @param desc
 	 * @param pars
 	 */
-	public C4Function(String name, String type, String desc, C4Variable... pars) {
-		this(name, C4Type.makeType(type), pars);
+	public Function(String name, String type, String desc, Variable... pars) {
+		this(name, PrimitiveType.makeType(type), pars);
 		description = desc;
 		parentDeclaration = null; // since engine function only
 		localVars = null;
 	}
 	
-	public C4Function() {
+	public Function() {
 		visibility = C4FunctionScope.GLOBAL;
 		name = ""; //$NON-NLS-1$
-		parameter = new ArrayList<C4Variable>();
-		localVars = new ArrayList<C4Variable>();
+		parameter = new ArrayList<Variable>();
+		localVars = new ArrayList<Variable>();
 	}
 	
-	public C4Function(String name, C4ScriptBase parent, C4FunctionScope scope) {
+	public Function(String name, ScriptBase parent, C4FunctionScope scope) {
 		this.name = name;
 		visibility = scope;
-		parameter = new ArrayList<C4Variable>();
-		localVars = new ArrayList<C4Variable>();
+		parameter = new ArrayList<Variable>();
+		localVars = new ArrayList<Variable>();
 		setScript(parent);
 	}
 	
-	public C4Function(String name, C4Object parent, String scope) {
+	public Function(String name, Definition parent, String scope) {
 		this(name,parent,C4FunctionScope.makeScope(scope));
 	}
 	
-	public C4Function(String name, C4FunctionScope scope) {
+	public Function(String name, C4FunctionScope scope) {
 		this(name, null, scope);
 	}
 	
 	/**
 	 * @return the localVars
 	 */
-	public List<C4Variable> getLocalVars() {
+	public List<Variable> getLocalVars() {
 		return localVars;
 	}
 
 	/**
 	 * @param localVars the localVars to set
 	 */
-	public void setLocalVars(List<C4Variable> localVars) {
+	public void setLocalVars(List<Variable> localVars) {
 		this.localVars = localVars;
 	}
 
 	/**
 	 * @return the parameter
 	 */
-	public List<C4Variable> getParameters() {
+	public List<Variable> getParameters() {
 		return parameter;
 	}
 
 	/**
 	 * @param parameter the parameter to set
 	 */
-	public void setParameters(List<C4Variable> parameter) {
+	public void setParameters(List<Variable> parameter) {
 		this.parameter = parameter;
 	}
 
@@ -127,7 +127,7 @@ public class C4Function extends C4Structure implements Serializable, ITypedDecla
 	 */
 	public IType getReturnType() {
 		if (returnType == null)
-			returnType = C4Type.UNKNOWN;
+			returnType = PrimitiveType.UNKNOWN;
 		return returnType;
 	}
 
@@ -221,12 +221,12 @@ public class C4Function extends C4Structure implements Serializable, ITypedDecla
 
 	private void printParameterString(StringBuilder output, boolean engineCompatible) {
 		if (getParameters().size() > 0) {
-			for(C4Variable par : getParameters()) {
+			for(Variable par : getParameters()) {
 				IType staticType = engineCompatible ? par.getType().staticType() : par.getType();
 				if (engineCompatible && !par.isActualParm())
 					continue;
-				if (staticType != C4Type.UNKNOWN && staticType != null) {
-					if (!engineCompatible || (staticType instanceof C4Type && staticType != C4Type.ANY)) {
+				if (staticType != PrimitiveType.UNKNOWN && staticType != null) {
+					if (!engineCompatible || (staticType instanceof PrimitiveType && staticType != PrimitiveType.ANY)) {
 						output.append(staticType.typeName(false));
 						output.append(' ');
 					}
@@ -277,10 +277,10 @@ public class C4Function extends C4Structure implements Serializable, ITypedDecla
 	}
 	
 	public int sortCategory() {
-		return C4Variable.C4VariableScope.values().length + visibility.ordinal();
+		return Variable.C4VariableScope.values().length + visibility.ordinal();
 	}
 
-	public static String getDocumentationURL(String functionName, C4Engine engine) {
+	public static String getDocumentationURL(String functionName, Engine engine) {
 		String docURLTemplate = engine.getCurrentSettings().docURLTemplate;
 		return String.format(docURLTemplate, functionName, ClonkPreferences.getLanguagePrefForDocumentation());
 	}
@@ -297,19 +297,19 @@ public class C4Function extends C4Structure implements Serializable, ITypedDecla
 	}
 
 	@Override
-	public C4Variable findDeclaration(String declarationName, Class<? extends C4Declaration> declarationClass) {
+	public Variable findDeclaration(String declarationName, Class<? extends C4Declaration> declarationClass) {
 		return findLocalDeclaration(declarationName, declarationClass);
 	}
 	
-	public C4Variable findLocalDeclaration(String declarationName, Class<? extends C4Declaration> declarationClass) {
-		if (declarationClass.isAssignableFrom(C4Variable.class)) {
-			if (declarationName.equals(C4Variable.THIS.getName()))
-				return C4Variable.THIS;
-			for (C4Variable v : localVars) {
+	public Variable findLocalDeclaration(String declarationName, Class<? extends C4Declaration> declarationClass) {
+		if (declarationClass.isAssignableFrom(Variable.class)) {
+			if (declarationName.equals(Variable.THIS.getName()))
+				return Variable.THIS;
+			for (Variable v : localVars) {
 				if (v.getName().equals(declarationName))
 					return v;
 			}
-			for (C4Variable p : parameter) {
+			for (Variable p : parameter) {
 				if (p.getName().equals(declarationName))
 					return p;
 			}
@@ -317,8 +317,8 @@ public class C4Function extends C4Structure implements Serializable, ITypedDecla
 		return null;
 	}
 	
-	public C4Variable findVariable(String variableName) {
-		return findDeclaration(variableName, C4Variable.class);
+	public Variable findVariable(String variableName) {
+		return findDeclaration(variableName, Variable.class);
 	}
 
 	public boolean isOldStyle() {
@@ -329,13 +329,13 @@ public class C4Function extends C4Structure implements Serializable, ITypedDecla
 		this.isOldStyle = isOldStyle;
 	}
 	
-	public C4Function getInherited() {
+	public Function getInherited() {
 		
 		// search in #included scripts
-		Collection<C4ScriptBase> includesCollection = getScript().getIncludes();
-		C4ScriptBase[] includes = includesCollection.toArray(new C4ScriptBase[includesCollection.size()]);
+		Collection<ScriptBase> includesCollection = getScript().getIncludes();
+		ScriptBase[] includes = includesCollection.toArray(new ScriptBase[includesCollection.size()]);
 		for (int i = includes.length-1; i >= 0; i--) {
-			C4Function fun = includes[i].findFunction(getName());
+			Function fun = includes[i].findFunction(getName());
 			if (fun != null && fun != this)
 				return fun;
 		}
@@ -343,19 +343,19 @@ public class C4Function extends C4Structure implements Serializable, ITypedDecla
 		// search in index
 		List<C4Declaration> decsWithSameName = getScript().getIndex().getDeclarationMap().get(this.getName());
 		if (decsWithSameName != null) {
-			C4Function f = null;
+			Function f = null;
 			int rating = -1;
 			for (C4Declaration d : decsWithSameName) {
 				// get latest version since getInherited() might also be called when finding links in a modified but not yet saved script
 				// in which case the calling function (on-the-fly-parsed) differs from the function in the index 
 				d = d.latestVersion();
-				if (d == this || !(d instanceof C4Function))
+				if (d == this || !(d instanceof Function))
 					continue;
 				int rating_ = 0;
 				if (d.getParentDeclaration() == this.getParentDeclaration())
 					rating_++;
 				if (rating_ > rating) {
-					f = (C4Function) d;
+					f = (Function) d;
 					rating = rating_;
 				}
 			}
@@ -364,16 +364,16 @@ public class C4Function extends C4Structure implements Serializable, ITypedDecla
 		}
 		
 		// search in engine
-		C4Function f = getScript().getIndex().getEngine().findFunction(getName());
+		Function f = getScript().getIndex().getEngine().findFunction(getName());
 		if (f != null)
 			return f;
 		
 		return null;
 	}
 	
-	public C4Function baseFunction() {
-		C4Function result = this;
-		for (C4Function f = this; f != null; f = f.getInherited())
+	public Function baseFunction() {
+		Function result = this;
+		for (Function f = this; f != null; f = f.getInherited())
 			result = f;
 		return result;
 	}
@@ -390,7 +390,7 @@ public class C4Function extends C4Structure implements Serializable, ITypedDecla
 
 	public void createParameters(int num) {
 		for (int i = parameter.size(); i < num; i++) {
-			parameter.add(new C4Variable("par"+i, C4VariableScope.VAR)); //$NON-NLS-1$
+			parameter.add(new Variable("par"+i, C4VariableScope.VAR)); //$NON-NLS-1$
 		}
 	}
 
@@ -454,7 +454,7 @@ public class C4Function extends C4Structure implements Serializable, ITypedDecla
 		this.returnType = returnType;
 	}
 	
-	public void setObjectType(C4Object object) {
+	public void setObjectType(Definition object) {
 		//expectedContent = object;
 	}
 	
@@ -463,8 +463,8 @@ public class C4Function extends C4Structure implements Serializable, ITypedDecla
 	 * @param otherFunc
 	 * @return true if related, false if not
 	 */
-	public boolean inheritsFrom(C4Function otherFunc) {
-		for (C4Function f = this; f != null; f = f.getInherited())
+	public boolean inheritsFrom(Function otherFunc) {
+		for (Function f = this; f != null; f = f.getInherited())
 			if (otherFunc == f)
 				return true;
 		return false;
@@ -475,10 +475,10 @@ public class C4Function extends C4Structure implements Serializable, ITypedDecla
 	 * @param otherFunc
 	 * @return true if both functions are related, false if not
 	 */
-	public boolean isRelatedFunction(C4Function otherFunc) {
+	public boolean isRelatedFunction(Function otherFunc) {
 		if (this.inheritsFrom(otherFunc))
 			return true; 
-		for (C4Function f = this; f != null; f = f.getInherited())
+		for (Function f = this; f != null; f = f.getInherited())
 			if (otherFunc.inheritsFrom(f))
 				return true;
 		return false;
@@ -515,8 +515,8 @@ public class C4Function extends C4Structure implements Serializable, ITypedDecla
 	
 	@Override
 	public void absorb(C4Declaration declaration) {
-		if (declaration instanceof C4Function) {
-			C4Function f = (C4Function) declaration;
+		if (declaration instanceof Function) {
+			Function f = (Function) declaration;
 			if (f.parameter.size() >= this.parameter.size())
 				this.parameter = f.parameter;
 			this.returnType = f.returnType;
@@ -547,7 +547,7 @@ public class C4Function extends C4Structure implements Serializable, ITypedDecla
 	}
 	
 	public void resetUsedFlagOfVariables() {
-		for (C4Variable v : this.getLocalVars()) {
+		for (Variable v : this.getLocalVars()) {
 			v.setUsed(false);
 		}
 	}
@@ -589,8 +589,8 @@ public class C4Function extends C4Structure implements Serializable, ITypedDecla
 	}
 
 	public void resetLocalVarTypes() {
-		for (C4Variable v : getLocalVars()) {
-			v.forceType(C4Type.UNKNOWN);
+		for (Variable v : getLocalVars()) {
+			v.forceType(PrimitiveType.UNKNOWN);
 		}
 	}
 	
@@ -624,7 +624,7 @@ public class C4Function extends C4Structure implements Serializable, ITypedDecla
 	@SuppressWarnings("unchecked")
 	@Override
 	public <T extends C4Declaration> T getLatestVersion(T from) {
-		if (from instanceof C4Variable) {
+		if (from instanceof Variable) {
 			return super.getLatestVersion(from);
 		} else {
 			for (C4Declaration other : otherDeclarations) {

@@ -4,18 +4,18 @@ import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.regex.Matcher;
-import net.arctics.clonk.index.C4ObjectIntern;
+import net.arctics.clonk.index.ProjectDefinition;
 import net.arctics.clonk.index.ClonkIndex;
 import net.arctics.clonk.index.ProjectIndex;
 import net.arctics.clonk.parser.C4ID;
-import net.arctics.clonk.parser.c4script.C4Function;
-import net.arctics.clonk.parser.c4script.C4ScriptBase;
-import net.arctics.clonk.parser.c4script.C4Variable;
-import net.arctics.clonk.parser.c4script.C4Variable.C4VariableScope;
+import net.arctics.clonk.parser.c4script.Function;
+import net.arctics.clonk.parser.c4script.ScriptBase;
+import net.arctics.clonk.parser.c4script.Variable;
+import net.arctics.clonk.parser.c4script.Variable.C4VariableScope;
 import net.arctics.clonk.parser.inireader.Boolean;
 import net.arctics.clonk.parser.inireader.CategoriesArray;
 import net.arctics.clonk.parser.inireader.DefinitionPack;
-import net.arctics.clonk.parser.inireader.Function;
+import net.arctics.clonk.parser.inireader.FuncRefEntry;
 import net.arctics.clonk.parser.inireader.IDArray;
 import net.arctics.clonk.parser.inireader.IconSpec;
 import net.arctics.clonk.parser.inireader.IniData.IniDataBase;
@@ -126,7 +126,7 @@ public class IniCompletionProcessor extends ClonkCompletionProcessor<IniTextEdit
 				else if (entryClass == SignedInteger.class || entryClass == UnsignedInteger.class) {
 					proposalsForIntegerEntry(proposals, prefix, wordOffset);
 				}
-				else if (entryClass == Function.class) {
+				else if (entryClass == FuncRefEntry.class) {
 					proposalsForFunctionEntry(proposals, prefix, wordOffset);
 				}
 				else if (entryClass == IDArray.class) {
@@ -155,7 +155,7 @@ public class IniCompletionProcessor extends ClonkCompletionProcessor<IniTextEdit
 
 	private void proposalsForCategoriesArray(Collection<ICompletionProposal> proposals, String prefix, int wordOffset, IniDataEntry entryDef) {
 		if (prefix != null) {
-			for (C4Variable v : getEditor().getIniUnit().getEngine().variablesWithPrefix(entryDef.getConstantsPrefix())) {
+			for (Variable v : getEditor().getIniUnit().getEngine().variablesWithPrefix(entryDef.getConstantsPrefix())) {
 				if (v.getScope() == C4VariableScope.CONST) {
 					proposalForVar(v, prefix, wordOffset, proposals);
 				}
@@ -214,10 +214,10 @@ public class IniCompletionProcessor extends ClonkCompletionProcessor<IniTextEdit
 	}
 
 	private void proposalsForFunctionEntry(Collection<ICompletionProposal> proposals, String prefix, int wordOffset) {
-		C4ObjectIntern obj = C4ObjectIntern.objectCorrespondingTo(Utilities.getEditingFile(editor).getParent());
+		ProjectDefinition obj = ProjectDefinition.objectCorrespondingTo(Utilities.getEditingFile(editor).getParent());
 		if (obj != null) {
-			for (C4ScriptBase script : obj.conglomerate()) {
-				for (C4Function f : script.functions()) {
+			for (ScriptBase script : obj.conglomerate()) {
+				for (Function f : script.functions()) {
 					proposalForFunc(f, prefix, wordOffset, proposals, script.getName(), false);
 				}
 			}

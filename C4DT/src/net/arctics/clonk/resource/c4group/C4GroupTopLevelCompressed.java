@@ -17,18 +17,18 @@ import org.eclipse.core.runtime.IProgressMonitor;
  * Represents a top-level compressed group
  *
  */
-public class C4MasterGroup extends C4Group {
+public class C4GroupTopLevelCompressed extends C4Group {
 	
 	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 
 	private transient InputStream stream;
 	private long streamPos;
 	
-	protected C4MasterGroup(String name, File file) {
+	protected C4GroupTopLevelCompressed(String name, File file) {
 		super(null, name, file);
 	}
 	
-	protected C4MasterGroup(C4Group parent, String name, File file) {
+	protected C4GroupTopLevelCompressed(C4Group parent, String name, File file) {
 		super(parent, name, file);
 	}
 	
@@ -37,7 +37,7 @@ public class C4MasterGroup extends C4Group {
 	 * @param parent
 	 * @param folder
 	 */
-	protected C4MasterGroup(File folder) {
+	protected C4GroupTopLevelCompressed(File folder) {
 		this (folder.getName(), folder);
 		assert (folder.isDirectory());
 	}

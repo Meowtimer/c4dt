@@ -5,10 +5,10 @@ import java.util.List;
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.DeclarationRegion;
 import net.arctics.clonk.parser.ParsingException;
-import net.arctics.clonk.parser.c4script.C4Function;
+import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
-import net.arctics.clonk.parser.c4script.C4Variable;
-import net.arctics.clonk.parser.c4script.C4Variable.C4VariableScope;
+import net.arctics.clonk.parser.c4script.Variable;
+import net.arctics.clonk.parser.c4script.Variable.C4VariableScope;
 import net.arctics.clonk.util.ArrayUtil;
 import org.eclipse.jface.text.Region;
 
@@ -20,7 +20,7 @@ public class VarDeclarationStatement extends KeywordStatement {
 
 		public String name;
 		public ExprElm expression;
-		public C4Variable variableBeingInitialized;
+		public Variable variableBeingInitialized;
 		public VarInitialization(String name, ExprElm expression, int namePos) {
 			super();
 			this.name = name;
@@ -98,13 +98,13 @@ public class VarDeclarationStatement extends KeywordStatement {
 	}
 	@Override
 	public DeclarationRegion declarationAt(int offset, C4ScriptParser parser) {
-		C4Function activeFunc = parser.getCurrentFunc();
+		Function activeFunc = parser.getCurrentFunc();
 		if (activeFunc != null) {				
 			int addToMakeAbsolute = activeFunc.getBody().getStart() + this.getExprStart();
 			offset += addToMakeAbsolute;
 			for (VarInitialization pair : varInitializations) {
 				String varName = pair.name;
-				C4Variable var = activeFunc.findVariable(varName);
+				Variable var = activeFunc.findVariable(varName);
 				if (var != null && var.isAt(offset))
 					return new DeclarationRegion(var, new Region(var.getLocation().getStart()-activeFunc.getBody().getStart(), var.getLocation().getLength()));
 			}

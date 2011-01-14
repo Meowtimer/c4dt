@@ -21,16 +21,16 @@ import org.eclipse.core.runtime.Path;
 
 public abstract class C4GroupItem extends FileStore implements INodeWithPath {
 	
-	public static final HeaderFilterBase ACCEPT_EVERYTHING = new HeaderFilterBase() {
+	public static final C4GroupHeaderFilterBase ACCEPT_EVERYTHING = new C4GroupHeaderFilterBase() {
 		@Override
-		public boolean accepts(C4EntryHeader header, C4Group context) {
+		public boolean accepts(C4GroupEntryHeader header, C4Group context) {
 			return true;
 		}
 	};
 	
-	public static final HeaderFilterBase ACCEPT_EVERYTHING_DONTSTORECONTENTS = new HeaderFilterBase() {
+	public static final C4GroupHeaderFilterBase ACCEPT_EVERYTHING_DONTSTORECONTENTS = new C4GroupHeaderFilterBase() {
 		@Override
-		public boolean accepts(C4EntryHeader header, C4Group context) {
+		public boolean accepts(C4GroupEntryHeader header, C4Group context) {
 			return true;
 		};
 		@Override
@@ -47,11 +47,11 @@ public abstract class C4GroupItem extends FileStore implements INodeWithPath {
 	
 	/**
 	 * Read this item
-	 * @throws InvalidDataException
+	 * @throws C4GroupInvalidDataException
 	 * @throws IOException 
 	 * @throws CoreException 
 	 */
-	public abstract void readIntoMemory(boolean recursively, HeaderFilterBase filter, InputStream stream) throws InvalidDataException, IOException, CoreException;
+	public abstract void readIntoMemory(boolean recursively, C4GroupHeaderFilterBase filter, InputStream stream) throws C4GroupInvalidDataException, IOException, CoreException;
 	
 	/**
 	 * Writes this entry and all sub items to the stream
@@ -82,7 +82,7 @@ public abstract class C4GroupItem extends FileStore implements INodeWithPath {
 	 * Returns the entry header
 	 * @return
 	 */
-	public abstract C4EntryHeader getEntryHeader();
+	public abstract C4GroupEntryHeader getEntryHeader();
 	
 	/**
 	 * Extracts this file to disk

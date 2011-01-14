@@ -6,7 +6,7 @@ import net.arctics.clonk.parser.DeclarationRegion;
 import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
-import net.arctics.clonk.parser.c4script.C4Type;
+import net.arctics.clonk.parser.c4script.PrimitiveType;
 import net.arctics.clonk.parser.c4script.TypeSet;
 import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.util.Utilities;
@@ -103,7 +103,7 @@ public class MemberOperator extends ExprElm {
 		ExprElm pred = getPredecessorInSequence();
 		if (pred != null) {
 			pred.sequenceTilMe().expectedToBeOfType(
-				dotNotation ? C4Type.PROPLIST : TypeSet.OBJECT_OR_ID, parser, TypeExpectancyMode.Hint,
+				dotNotation ? PrimitiveType.PROPLIST : TypeSet.OBJECT_OR_ID, parser, TypeExpectancyMode.Hint,
 				dotNotation ? ParserErrorCode.NotAProplist : ParserErrorCode.CallingMethodOnNonObject
 			);
 		}
