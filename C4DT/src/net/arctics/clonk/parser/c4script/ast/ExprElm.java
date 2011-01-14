@@ -368,7 +368,10 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable {
 	}
 
 	public boolean validForType(IType t, C4ScriptParser context) {
-		return t == null || t.canBeAssignedFrom(getType(context)) || canBeConvertedTo(t, context);
+		if (t == null)
+			return true;
+		IType myType = getType(context);
+		return t.canBeAssignedFrom(myType) || myType.containsType(t) || canBeConvertedTo(t, context);
 	}
 
 	public TraversalContinuation traverse(IScriptParserListener listener, int minimumParseRecursion) {
