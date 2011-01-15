@@ -9,29 +9,29 @@ import net.arctics.clonk.index.ClonkIndex;
 import net.arctics.clonk.parser.ID;
 import net.arctics.clonk.resource.ClonkProjectNature;
 
-public class ImportedObject implements Serializable, IType {
+public class ImportedDefinition implements Serializable, IType {
 
 	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 	
 	private ID id;
-	private transient WeakReference<Definition> object;
+	private transient WeakReference<Definition> definition;
 	private String referencedProject;
 	
-	private ImportedObject(Definition obj) {
-		setObject(obj);
+	private ImportedDefinition(Definition obj) {
+		setDefinition(obj);
 	}
 	
 	public IType getStaticType() {
 		return PrimitiveType.OBJECT;
 	}
 
-	public void setObject(Definition object) {
-		if (object != null) {
-			this.object = new WeakReference<Definition>(object);
-			this.id = object.getId();
-			this.referencedProject = object.getIndex().getProject().getName();
+	public void setDefinition(Definition definition) {
+		if (definition != null) {
+			this.definition = new WeakReference<Definition>(definition);
+			this.id = definition.getId();
+			this.referencedProject = definition.getIndex().getProject().getName();
 		} else {
-			this.object = null;
+			this.definition = null;
 			this.id = null;
 			this.referencedProject = null;
 		}
@@ -41,19 +41,19 @@ public class ImportedObject implements Serializable, IType {
 		return id;
 	}
 	
-	public Definition getObject() {
-		return object != null ? object.get() : null;
+	public Definition getDefinition() {
+		return definition != null ? definition.get() : null;
 	}
 
 	@Override
 	public String toString() {
-		return getObject() != null ? String.format("<Import: %s>", getObject().getPath().toString()) : "<Empty>";
+		return getDefinition() != null ? String.format("<Import: %s>", getDefinition().getPath().toString()) : "<Empty>";
 	}
 
 	@Override
 	public Iterator<IType> iterator() {
-		if (getObject() != null) {
-			return getObject().iterator();
+		if (getDefinition() != null) {
+			return getDefinition().iterator();
 		} else {
 			return PrimitiveType.OBJECT.iterator();
 		}
@@ -61,37 +61,37 @@ public class ImportedObject implements Serializable, IType {
 
 	@Override
 	public boolean canBeAssignedFrom(IType other) {
-		return getObject() != null && getObject().canBeAssignedFrom(other);
+		return getDefinition() != null && getDefinition().canBeAssignedFrom(other);
 	}
 
 	@Override
 	public String typeName(boolean special) {
-		return (getObject() != null ? getObject() : PrimitiveType.OBJECT).typeName(special);
+		return (getDefinition() != null ? getDefinition() : PrimitiveType.OBJECT).typeName(special);
 	}
 
 	@Override
 	public boolean intersects(IType typeSet) {
-		return getObject() != null && getObject().intersects(typeSet);
+		return getDefinition() != null && getDefinition().intersects(typeSet);
 	}
 
 	@Override
 	public boolean containsType(IType type) {
-		return type.equals(this) || (getObject() != null && getObject().containsType(type));
+		return type.equals(this) || (getDefinition() != null && getDefinition().containsType(type));
 	}
 
 	@Override
 	public boolean containsAnyTypeOf(IType... types) {
-		return getObject() != null ? getObject().containsAnyTypeOf(types) : false;
+		return getDefinition() != null ? getDefinition().containsAnyTypeOf(types) : false;
 	}
 
 	@Override
 	public int specificness() {
-		return getObject() != null ? getObject().specificness() : -1;
+		return getDefinition() != null ? getDefinition().specificness() : -1;
 	}
 
 	@Override
 	public IType staticType() {
-		return getObject() != null ? getObject().staticType() : null;
+		return getDefinition() != null ? getDefinition().staticType() : null;
 	}
 	
 	public IType resolve() {
@@ -109,7 +109,7 @@ public class ImportedObject implements Serializable, IType {
 	
 	public static IType getSerializableType(ClonkIndex indexBeingSerialized, Definition obj) {
 		if (obj.getIndex() != indexBeingSerialized) {
-			return new ImportedObject(obj);
+			return new ImportedDefinition(obj);
 		} else {
 			return obj;
 		}

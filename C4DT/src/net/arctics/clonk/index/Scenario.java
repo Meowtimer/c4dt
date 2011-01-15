@@ -5,7 +5,11 @@ import net.arctics.clonk.parser.ID;
 
 import org.eclipse.core.resources.IContainer;
 
-// kind of a hack; but scenarios also have scripts...
+/**
+ * A scenario. 
+ * @author madeen
+ *
+ */
 public class Scenario extends ProjectDefinition {
 
 	public Scenario(ID id, String name, IContainer container) {

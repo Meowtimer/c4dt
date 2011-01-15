@@ -27,7 +27,7 @@ import org.eclipse.core.runtime.Path;
  */
 public class ProjectDefinition extends Definition implements Serializable {
 
-	private static final long serialVersionUID = -7978767061460505544L;
+	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 
 	protected transient IContainer objectFolder;
 	protected String relativePath;
@@ -35,6 +35,9 @@ public class ProjectDefinition extends Definition implements Serializable {
 
 	private transient Variable staticVariable;
 
+	/**
+	 * Helper variable used for long-id definitions.
+	 */
 	public Variable getStaticVariable() {
 		if (getEngine() != null && !getEngine().getCurrentSettings().definitionsHaveStaticVariables)
 			return staticVariable = null;

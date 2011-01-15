@@ -6,7 +6,7 @@ import java.io.OutputStream;
 
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.ClonkIndex;
-import net.arctics.clonk.parser.c4script.ImportedObject;
+import net.arctics.clonk.parser.c4script.ImportedDefinition;
 
 public class ClonkIndexOutputStream extends ObjectOutputStream {
 
@@ -21,7 +21,7 @@ public class ClonkIndexOutputStream extends ObjectOutputStream {
 	@Override
 	protected Object replaceObject(Object obj) throws IOException {
 		if (obj instanceof Definition) {
-			return ImportedObject.getSerializableType(index, (Definition)obj);
+			return ImportedDefinition.getSerializableType(index, (Definition)obj);
 		}
 		return obj;
 	}

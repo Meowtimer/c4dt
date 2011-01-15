@@ -9,7 +9,7 @@ import java.io.ObjectInputStream;
 
 import net.arctics.clonk.parser.ID;
 import net.arctics.clonk.parser.c4script.TypeSet;
-import net.arctics.clonk.parser.c4script.ImportedObject;
+import net.arctics.clonk.parser.c4script.ImportedDefinition;
 
 /**
  * Enforces that some objects won't be duplicated, like ids and typesets
@@ -33,8 +33,8 @@ public class ClonkIndexInputStream extends ObjectInputStream {
 		else if (cls == TypeSet.class) {
 			return ((TypeSet)obj).internalize();
 		}
-		else if (cls == ImportedObject.class) {
-			return ((ImportedObject)obj).resolve();
+		else if (cls == ImportedDefinition.class) {
+			return ((ImportedDefinition)obj).resolve();
 		}
 		return super.resolveObject(obj);
 	}

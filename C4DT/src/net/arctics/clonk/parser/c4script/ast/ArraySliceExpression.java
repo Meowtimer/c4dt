@@ -7,7 +7,6 @@ import net.arctics.clonk.parser.c4script.PrimitiveType;
 import net.arctics.clonk.parser.c4script.IType;
 
 public class ArraySliceExpression extends ArrayElementExpression {
-	
 
 	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 	private ExprElm argument2;

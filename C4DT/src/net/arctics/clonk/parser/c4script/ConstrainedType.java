@@ -9,7 +9,7 @@ import net.arctics.clonk.util.ArrayUtil;
 import net.arctics.clonk.util.Utilities;
 
 /**
- * Type that does not denote a concrete object but a type
+ * Type that does not denote a concrete definition but is constrained to include some script.
  *
  */
 public class ConstrainedType implements IType, IHasConstraint, Serializable {
