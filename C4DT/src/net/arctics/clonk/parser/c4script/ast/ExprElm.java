@@ -734,7 +734,13 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable {
 		public void apply(boolean soft, C4ScriptParser parser) {
 			ITypedDeclaration tyDec = getDeclaration(referenceElm, parser);
 			if (tyDec != null) {
-				tyDec.expectedToBeOfType(type, TypeExpectancyMode.Expect);
+				// only set types of declarations inside the current index so definition references of one project
+				// don't leak into a referenced base project (ClonkMars def referenced in ClonkRage or something)
+				Declaration d = (Declaration)tyDec;
+				if (d.getScript().getIndex() == parser.getContainer().getIndex())
+					tyDec.expectedToBeOfType(type, TypeExpectancyMode.Expect);
+				else
+					System.out.println("Prevented leaking: " + d.toString());
 			}
 		}
 		
