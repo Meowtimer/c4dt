@@ -193,6 +193,24 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable {
 	 */
 	public final IType getType(C4ScriptParser context) {
 		IType type = obtainType(context);
+		if (type instanceof TypeSet) {
+			TypeSet typeSet = (TypeSet) type;
+			IType[] resolvedTypes = new IType[typeSet.size()];
+			boolean didResolveSomething = false;
+			int i = 0;
+			for (IType t : typeSet) {
+				IType resolved = resolveConstraint(context, t);
+				if (resolved != t)
+					didResolveSomething = true;
+				resolvedTypes[i++] = resolved;
+			}
+			return didResolveSomething ? TypeSet.create(resolvedTypes) : typeSet;
+		} else {
+			return resolveConstraint(context, type);
+		}
+	}
+
+	private final IType resolveConstraint(C4ScriptParser context, IType type) {
 		if (type instanceof IHasConstraint) {
 			IHasConstraint obl = (IHasConstraint) type;
 			if (obl instanceof ConstrainedObject) {
