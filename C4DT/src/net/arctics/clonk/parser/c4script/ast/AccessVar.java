@@ -5,6 +5,7 @@ import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.ParsingException;
+import net.arctics.clonk.parser.c4script.ConstrainedObject;
 import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.ScriptBase;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
@@ -13,6 +14,7 @@ import net.arctics.clonk.parser.c4script.Variable;
 import net.arctics.clonk.parser.c4script.FindDeclarationInfo;
 import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.parser.c4script.Function.C4FunctionScope;
+import net.arctics.clonk.parser.c4script.IHasConstraint.ConstraintKind;
 import net.arctics.clonk.parser.c4script.Variable.C4VariableScope;
 import net.arctics.clonk.parser.c4script.ProplistDeclaration;
 import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
@@ -133,8 +135,9 @@ public class AccessVar extends AccessDeclaration {
 	protected IType obtainType(C4ScriptParser context) {
 		Declaration d = getDeclaration(context);
 		// getDeclaration(context) ensures that declaration is not null (if there is actually a variable) which is needed for queryTypeOfExpression for example
-		if (d == Variable.THIS)
-			return context.getContainerObject() != null ? context.getContainerObject() : PrimitiveType.OBJECT;
+		if (d == Variable.THIS) {
+			return new ConstrainedObject(context.getContainer(), ConstraintKind.CallerType);
+		}
 		IType stored = context.queryTypeOfExpression(this, null);
 		if (stored != null)
 			return stored;
