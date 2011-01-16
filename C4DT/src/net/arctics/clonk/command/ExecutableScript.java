@@ -60,7 +60,7 @@ public class ExecutableScript extends ScriptBase {
 				return new BodyPreservingFunction();
 			}
 			@Override
-			public void parseCodeOfFunction(Function function) throws ParsingException {
+			public void parseCodeOfFunction(Function function, boolean withNewContext) throws ParsingException {
 				if (function.getName().equals("Main")) { //$NON-NLS-1$
 					main = (BodyPreservingFunction)function;
 				}
@@ -73,7 +73,7 @@ public class ExecutableScript extends ScriptBase {
 						return TraversalContinuation.Continue;
 					}
 				});
-				super.parseCodeOfFunction(function);
+				super.parseCodeOfFunction(function, withNewContext);
 				((BodyPreservingFunction)function).setBodyBlock(new Block(statements));
 				this.setListener(null);
 			}

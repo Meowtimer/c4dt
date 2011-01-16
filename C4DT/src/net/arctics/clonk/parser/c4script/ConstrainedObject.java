@@ -107,7 +107,7 @@ public class ConstrainedObject implements IType, IHasConstraint {
 	@Override
 	public int specificness() {
 		if (constraintScript instanceof Definition)
-			return ((Definition)constraintScript).specificness()+1;
+			return ((Definition)constraintScript).specificness()-1;
 		else
 			return PrimitiveType.OBJECT.specificness();
 	}

@@ -25,7 +25,7 @@ public class SpecialScriptRules_OpenClonk extends SpecialScriptRules {
 				// parse *Start function first. Will define ad-hoc proplist type
 				if (startFunction != null) {
 					try {
-						parser.parseCodeOfFunction(startFunction);
+						parser.parseCodeOfFunction(startFunction, true);
 					} catch (ParsingException e) {
 						e.printStackTrace();
 					}

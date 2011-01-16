@@ -243,6 +243,14 @@ public class CallFunc extends AccessDeclaration {
 			FindDeclarationInfo info = new FindDeclarationInfo(parser.getContainer().getIndex());
 			info.setSearchOrigin(parser.getContainer());
 			Declaration field = lookIn.findFunction(declarationName, info);
+			// parse function before this one
+			if (field != null && parser.getCurrentFunc() != null) {
+				try {
+					parser.parseCodeOfFunction((Function) field, true);
+				} catch (ParsingException e) {
+					e.printStackTrace();
+				}
+			}
 			// might be a variable called as a function (not after '->')
 			if (field == null && p == null)
 				field = lookIn.findVariable(declarationName, info);
