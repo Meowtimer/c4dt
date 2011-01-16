@@ -143,8 +143,19 @@ public class C4ScriptParser extends CStyleScanner {
 	
 	protected IScriptParserListener listener;
 
-	protected IFile scriptFile; // for project intern files
+	/**
+	 * Reference to project file the script was read from.
+	 */
+	protected IFile scriptFile;
+	
+	/**
+	 * Script container, the parsed declarations are put into
+	 */
 	protected ScriptBase container;
+	
+	/**
+	 * Cached strict level from #strict directive.
+	 */
 	protected int strictLevel;
 
 	/**
@@ -179,6 +190,10 @@ public class C4ScriptParser extends CStyleScanner {
 	private Set<Function> parsedFunctions;
 	
 	private TypeInformationMerger scriptLevelTypeInformationMerger;
+	
+	public boolean allErrorsDisabled() {
+		return allErrorsDisabled;
+	}
 	
 	/**
 	 * Sets the builder.
@@ -928,7 +943,7 @@ public class C4ScriptParser extends CStyleScanner {
 							
 							// parse initialization value with all errors disabled so no false errors 
 							boolean old = allErrorsDisabled;
-							allErrorsDisabled = !reportErrors;
+							allErrorsDisabled |= !reportErrors;
 							try {
 								varInitialization.expression = parseExpression(reportErrors);
 							} finally {
@@ -3216,6 +3231,7 @@ public class C4ScriptParser extends CStyleScanner {
 		ExpressionsAndStatementsReportingFlavour flavour,
 		boolean reportErrors
 	) {
+		boolean oldErrorsDisabled = allErrorsDisabled;
 		allErrorsDisabled = !reportErrors;
 		Function func = funcOrRegion instanceof Function ? (Function)funcOrRegion : null;
 		currentFunctionContext.currentDeclaration = func;
@@ -3285,6 +3301,9 @@ public class C4ScriptParser extends CStyleScanner {
 		}
 		catch (Exception e) {
 			e.printStackTrace();
+		}
+		finally {
+			allErrorsDisabled = oldErrorsDisabled;
 		}
 	}
 	
