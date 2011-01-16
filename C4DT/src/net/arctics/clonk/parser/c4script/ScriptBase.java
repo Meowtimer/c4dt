@@ -856,7 +856,8 @@ public abstract class ScriptBase extends Structure implements ITreeNode, IHasCon
 	
 	@Override
 	public Engine getEngine() {
-		return getIndex().getEngine();
+		ClonkIndex index = getIndex();
+		return index != null ? index.getEngine() : null;
 	}
 	
 	public static ScriptBase get(IResource resource, boolean onlyForScriptFile) {
