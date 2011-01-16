@@ -1,5 +1,6 @@
 package net.arctics.clonk.parser.c4script.specialscriptrules;
 
+import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.c4script.EffectFunction;
 import net.arctics.clonk.parser.c4script.Function;
@@ -8,12 +9,16 @@ import net.arctics.clonk.parser.c4script.PrimitiveType;
 import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.parser.c4script.ProplistDeclaration;
 import net.arctics.clonk.parser.c4script.SpecialScriptRules;
+import net.arctics.clonk.parser.c4script.ast.CallFunc;
 
 public class SpecialScriptRules_OpenClonk extends SpecialScriptRules {
 	/**
-	 * Assign default parameters to effect functions
+	 * Assign default parameters to effect functions.
+	 * For the effect proplist parameter, an implicit ProplistDeclaration is created
+	 * so that type information and proplist value locations (first assignment) can
+	 * be stored.
 	 */
-	protected final SpecialFuncRule effectFunctionParmTypes = new SpecialFuncRule() {
+	public final SpecialFuncRule effectFunctionParmTypes = new SpecialFuncRule() {
 		@Override
 		public boolean assignDefaultParmTypes(C4ScriptParser parser, Function function) {
 			if (function instanceof EffectFunction) {
@@ -56,9 +61,33 @@ public class SpecialScriptRules_OpenClonk extends SpecialScriptRules {
 			return null;
 		};
 	};
+	/**
+	 * Result of GetEffect is appropriate ProplistDeclaration created in <code>effectFunctionParmTypes</code>
+	 */
+	public final SpecialFuncRule getEffectResultTypeRule = new SpecialFuncRule() {
+		@Override
+		public IType returnType(C4ScriptParser parser, CallFunc callFunc) {
+			Object parmEv;
+			if (callFunc.getParams().length >= 1 && (parmEv = callFunc.getParams()[0].evaluateAtParseTime(parser.getContainer())) instanceof String) {
+				String effectName = (String) parmEv;
+				for (EffectFunction.Type t : EffectFunction.Type.values()) {
+					Declaration d = CallFunc.findFunctionUsingPredecessor(
+							callFunc.getPredecessorInSequence(),
+							String.format(EffectFunction.FUNCTION_NAME_FORMAT, effectName, t.name()), 
+							parser
+					);
+					if (d instanceof EffectFunction && ((EffectFunction)d).getParameters().size() >= 2) {
+						return ((EffectFunction)d).getParameters().get(1).getType();
+					}
+				}
+			}
+			return null;
+		};
+	};
 	public SpecialScriptRules_OpenClonk() {
 		super();
 		putFuncRule(criteriaSearchRule, "FindObject");
 		putFuncRule(effectFunctionParmTypes);
+		putFuncRule(getEffectResultTypeRule, "GetEffect", "AddEffect");
 	}
 }

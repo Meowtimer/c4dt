@@ -238,11 +238,15 @@ public class CallFunc extends AccessDeclaration {
 			return activeFunc != null ? activeFunc.getInherited() : null;
 		}
 		ExprElm p = getPredecessorInSequence();
+		return findFunctionUsingPredecessor(p, declarationName, parser);
+	}
+
+	public static Declaration findFunctionUsingPredecessor(ExprElm p, String functionName, C4ScriptParser parser) {
 		ScriptBase lookIn = p == null ? parser.getContainer() : p.guessObjectType(parser);
 		if (lookIn != null) {
 			FindDeclarationInfo info = new FindDeclarationInfo(parser.getContainer().getIndex());
 			info.setSearchOrigin(parser.getContainer());
-			Declaration field = lookIn.findFunction(declarationName, info);
+			Declaration field = lookIn.findFunction(functionName, info);
 			// parse function before this one
 			if (field != null && parser.getCurrentFunc() != null) {
 				try {
@@ -253,18 +257,18 @@ public class CallFunc extends AccessDeclaration {
 			}
 			// might be a variable called as a function (not after '->')
 			if (field == null && p == null)
-				field = lookIn.findVariable(declarationName, info);
+				field = lookIn.findVariable(functionName, info);
 			return field;
 		} else if (p != null) {
 			// find global function
-			Declaration declaration = parser.getContainer().getIndex().findGlobalFunction(declarationName);
+			Declaration declaration = parser.getContainer().getIndex().findGlobalFunction(functionName);
 			if (declaration == null)
-				declaration = parser.getContainer().getIndex().getEngine().findFunction(declarationName);
+				declaration = parser.getContainer().getIndex().getEngine().findFunction(functionName);
 
 			// only return found declaration if it's the only choice 
 			if (declaration != null) {
-				List<Declaration> allFromLocalIndex = parser.getContainer().getIndex().getDeclarationMap().get(declarationName);
-				Declaration decl = parser.getContainer().getEngine().findLocalFunction(declarationName, false);
+				List<Declaration> allFromLocalIndex = parser.getContainer().getIndex().getDeclarationMap().get(functionName);
+				Declaration decl = parser.getContainer().getEngine().findLocalFunction(functionName, false);
 				if (
 						(allFromLocalIndex != null ? allFromLocalIndex.size() : 0) +
 						(decl != null ? 1 : 0) == 1
