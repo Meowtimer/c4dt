@@ -397,6 +397,7 @@ public class Engine extends ScriptBase {
 			Class<? extends SpecialScriptRules> rulesClass = (Class<? extends SpecialScriptRules>) Engine.class.getClassLoader().loadClass(
 				String.format("%s.parser.c4script.specialscriptrules.SpecialScriptRules_%s", ClonkCore.PLUGIN_ID, getName()));
 			specialScriptRules = rulesClass.newInstance();
+			specialScriptRules.initialize();
 		} catch (ClassNotFoundException e) {
 			// ignore
 		}

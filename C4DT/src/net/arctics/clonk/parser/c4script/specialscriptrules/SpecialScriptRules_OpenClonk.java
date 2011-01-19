@@ -64,6 +64,7 @@ public class SpecialScriptRules_OpenClonk extends SpecialScriptRules {
 	/**
 	 * Result of GetEffect is appropriate ProplistDeclaration created in <code>effectFunctionParmTypes</code>
 	 */
+	@AppliedTo(functions={"GetEffect", "AddEffect"})
 	public final SpecialFuncRule getEffectResultTypeRule = new SpecialFuncRule() {
 		@Override
 		public IType returnType(C4ScriptParser parser, CallFunc callFunc) {
@@ -84,10 +85,9 @@ public class SpecialScriptRules_OpenClonk extends SpecialScriptRules {
 			return null;
 		};
 	};
-	public SpecialScriptRules_OpenClonk() {
-		super();
+	@Override
+	public void initialize() {
+		super.initialize();
 		putFuncRule(criteriaSearchRule, "FindObject");
-		putFuncRule(effectFunctionParmTypes);
-		putFuncRule(getEffectResultTypeRule, "GetEffect", "AddEffect");
 	}
 }

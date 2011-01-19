@@ -4,6 +4,7 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -27,7 +28,7 @@ import net.arctics.clonk.parser.c4script.ast.StringLiteral;
 import net.arctics.clonk.ui.editors.c4script.ExpressionLocator;
 
 /**
- * This class contains some special rules that are registered with interested parties
+ * This class contains some special rules that are applied to certain objects during parsing
  * (like CallFuncians and other species dwelling in ASTs)
  * @author madeen
  *
@@ -53,14 +54,28 @@ public class SpecialScriptRules {
 	 * Role for SpecialFuncRule: Assign default types to functions 
 	 */
 	public static final int DEFAULT_PARMTYPE_ASSIGNER = 8;
-	
+
 	@Retention(RetentionPolicy.RUNTIME)
 	@Target(ElementType.METHOD)
-	private @interface SignifiesRole {
+	public @interface SignifiesRole {
 		public int role();
 	}
 	
-	public abstract class SpecialRule {
+	@Retention(RetentionPolicy.RUNTIME)
+	@Target(ElementType.FIELD)
+	public @interface AppliedTo {
+		public String[] functions();
+	}
+	
+	public static abstract class SpecialRule {
+		public static String[] getFunctionsAppliedTo(Field instanceReference) {
+			AppliedTo annot = instanceReference.getAnnotation(AppliedTo.class);
+			if (annot != null) {
+				return annot.functions();
+			} else {
+				return new String[0];
+			}
+		}
 		public final int getRoleMask() {
 			int result = 0;
 			Outer: for (Method m : getClass().getDeclaredMethods()) {
@@ -123,7 +138,7 @@ public class SpecialScriptRules {
 		return defaultParmTypeAssigners;
 	}
 	
-	protected void putFuncRule(SpecialFuncRule rule, String... forFunctions) {
+	public void putFuncRule(SpecialFuncRule rule, String... forFunctions) {
 		int mask = rule.getRoleMask();
 		if ((mask & ARGUMENT_VALIDATOR) != 0) for (String func : forFunctions) {
 			argumentValidators.put(func, rule);
@@ -153,7 +168,8 @@ public class SpecialScriptRules {
 	/**
 	 * CreateObject and similar functions that will return an object of the specified type
 	 */
-	protected final SpecialFuncRule objectCreationRule = new SpecialFuncRule() {
+	@AppliedTo(functions={"CreateObject", "CreateContents"})
+	public final SpecialFuncRule objectCreationRule = new SpecialFuncRule() {
 		@Override
 		public IType returnType(C4ScriptParser parser, CallFunc callFunc) {
 			if (callFunc.getParams().length >= 1) {
@@ -177,7 +193,8 @@ public class SpecialScriptRules {
 	/**
 	 *  GetID() returns type of calling object
 	 */
-	protected final SpecialFuncRule getIDRule = new SpecialFuncRule() {
+	@AppliedTo(functions={"GetID"})
+	public final SpecialFuncRule getIDRule = new SpecialFuncRule() {
 		@Override
 		public IType returnType(C4ScriptParser parser, CallFunc callFunc) {
 			ScriptBase script = null;
@@ -205,7 +222,8 @@ public class SpecialScriptRules {
 	/**
 	 *  It's a criteria search (FindObjects etc) so guess return type from arguments passed to the criteria search function
 	 */
-	protected final SpecialFuncRule criteriaSearchRule = new SpecialFuncRule() {
+	@AppliedTo(functions={"FindObjects"})
+	public final SpecialFuncRule criteriaSearchRule = new SpecialFuncRule() {
 		@Override
 		public IType returnType(C4ScriptParser parser, CallFunc callFunc) {
 			IType t = searchCriteriaAssumedResult(parser, callFunc, true);
@@ -252,7 +270,8 @@ public class SpecialScriptRules {
 	/**
 	 *  validate DoSomething() in Schedule("DoSomething()")
 	 */
-	private final SpecialFuncRule scheduleScriptValidationRule = new SpecialFuncRule() {
+	@AppliedTo(functions={"Schedule"})
+	public final SpecialFuncRule scheduleScriptValidationRule = new SpecialFuncRule() {
 		@Override
 		public boolean validateArguments(CallFunc callFunc, final ExprElm[] arguments, final C4ScriptParser parser) {
 			if (arguments.length < 1)
@@ -312,7 +331,8 @@ public class SpecialScriptRules {
 		};
 	};
 	
-	protected final SpecialFuncRule scheduleCallLinkRule = new SpecialFuncRule() {
+	@AppliedTo(functions={"ScheduleCall"})
+	public final SpecialFuncRule scheduleCallLinkRule = new SpecialFuncRule() {
 		@Override
 		public DeclarationRegion locateDeclarationInParameter(CallFunc callFunc, C4ScriptParser parser, int index, int offsetInExpression, ExprElm parmExpression) {
 			if (index == 1 && parmExpression instanceof StringLiteral) {
@@ -331,7 +351,8 @@ public class SpecialScriptRules {
 	/**
 	 * Validate parameters for Add/Append/Set Command differently according to the command parameter
 	 */
-	protected final SpecialFuncRule addCommandValidationRule = new SpecialFuncRule() {
+	@AppliedTo(functions={"AddCommand", "AppendCommand", "SetCommand"})
+	public final SpecialFuncRule addCommandValidationRule = new SpecialFuncRule() {
 		@Override
 		public boolean validateArguments(CallFunc callFunc, ExprElm[] arguments, C4ScriptParser parser) {
 			Function f = callFunc.getDeclaration() instanceof Function ? (Function)callFunc.getDeclaration() : null;
@@ -362,7 +383,8 @@ public class SpecialScriptRules {
 	/**
 	 * Add link to the function being indirectly called by GameCall
 	 */
-	protected final SpecialFuncRule gameCallLinkRule = new SpecialFuncRule() {
+	@AppliedTo(functions={"GameCall"})
+	public final SpecialFuncRule gameCallLinkRule = new SpecialFuncRule() {
 		@Override
 		public DeclarationRegion locateDeclarationInParameter(CallFunc callFunc, C4ScriptParser parser, int parameterIndex, int offsetInExpression, ExprElm parmExpression) {
 			if (parameterIndex == 0 && parmExpression instanceof StringLiteral) {
@@ -382,7 +404,8 @@ public class SpecialScriptRules {
 	/**
 	 * Add link to the function being indirectly called by Call
 	 */
-	protected final SpecialFuncRule callLinkRule = new SpecialFuncRule() {
+	@AppliedTo(functions={"Call"})
+	public final SpecialFuncRule callLinkRule = new SpecialFuncRule() {
 		@Override
 		public DeclarationRegion locateDeclarationInParameter(CallFunc callFunc, C4ScriptParser parser, int index, int offsetInExpression, ExprElm parmExpression) {
 			if (index == 0 && parmExpression instanceof StringLiteral) {
@@ -396,9 +419,10 @@ public class SpecialScriptRules {
 	};
 	
 	/**
-	 * Add link to the function being indirectly called by Private/Public/Protected Call
+	 * Add link to the function being indirectly called by Private/Public/public Call
 	 */
-	protected final SpecialFuncRule scopedCallLinkRule = new SpecialFuncRule() {
+	@AppliedTo(functions={"PrivateCall", "PublicCall", "PrivateCall"})
+	public final SpecialFuncRule scopedCallLinkRule = new SpecialFuncRule() {
 		@Override
 		public DeclarationRegion locateDeclarationInParameter(CallFunc callFunc, C4ScriptParser parser, int index, int offsetInExpression, ExprElm parmExpression) {
 			if (index == 1 && parmExpression instanceof StringLiteral) {
@@ -421,7 +445,8 @@ public class SpecialScriptRules {
 	/**
 	 * Link to local vars referenced by LocalN
 	 */
-	protected final SpecialFuncRule localNLinkRule = new SpecialFuncRule() {
+	@AppliedTo(functions={"LocalN"})
+	public final SpecialFuncRule localNLinkRule = new SpecialFuncRule() {
 		@Override
 		public DeclarationRegion locateDeclarationInParameter(CallFunc callFunc, C4ScriptParser parser, int index, int offsetInExpression, ExprElm parmExpression) {
 			if (index == 0 && parmExpression instanceof StringLiteral) {
@@ -444,7 +469,8 @@ public class SpecialScriptRules {
 	/**
 	 * Special rule to change the return type of GetPlrKnowledge if certain parameters are passed to it.
 	 */
-	protected final SpecialFuncRule getPlrKnowledgeRule = new SpecialFuncRule() {
+	@AppliedTo(functions={"GetPlrKnowledge", "GetPlrMagic"})
+	public final SpecialFuncRule getPlrKnowledgeRule = new SpecialFuncRule() {
 		@Override
 		public IType returnType(C4ScriptParser parser, CallFunc callFunc) {
 			if (callFunc.getParams().length >= 3) {
@@ -455,17 +481,20 @@ public class SpecialScriptRules {
 		};
 	};
 
-	public SpecialScriptRules() {
-		putFuncRule(objectCreationRule, "CreateObject", "CreateContents");
-		putFuncRule(getIDRule, "GetID");
-		putFuncRule(criteriaSearchRule, "FindObjects");
-		putFuncRule(scheduleScriptValidationRule, "Schedule");
-		putFuncRule(scheduleCallLinkRule, "ScheduleCall");
-		putFuncRule(addCommandValidationRule, "AddCommand", "AppendCommand", "SetCommand");
-		putFuncRule(gameCallLinkRule, "GameCall");
-		putFuncRule(callLinkRule, "Call");
-		putFuncRule(scopedCallLinkRule, "PrivateCall", "PublicCall", "PrivateCall");
-		putFuncRule(localNLinkRule, "LocalN");
-		putFuncRule(getPlrKnowledgeRule, "GetPlrKnowledge", "GetPlrMagic");
+	public void initialize() {
+		for (Class<?> c = getClass(); c != null; c = c.getSuperclass()) {
+			for (Field f : c.getDeclaredFields()) {
+				Object obj;
+				try {
+					obj = f.get(this);
+				} catch (Exception e) {
+					continue;
+				}
+				if (obj instanceof SpecialFuncRule) {
+					SpecialFuncRule funcRule = (SpecialFuncRule) obj;
+					putFuncRule(funcRule, SpecialRule.getFunctionsAppliedTo(f));
+				}
+			}
+		}
 	}
 }
