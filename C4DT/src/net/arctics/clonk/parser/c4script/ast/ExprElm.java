@@ -757,8 +757,6 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable {
 				Declaration d = (Declaration)tyDec;
 				if (d.getScript().getIndex() == parser.getContainer().getIndex())
 					tyDec.expectedToBeOfType(type, TypeExpectancyMode.Expect);
-				else
-					System.out.println("Prevented leaking: " + d.toString());
 			}
 		}
 		
