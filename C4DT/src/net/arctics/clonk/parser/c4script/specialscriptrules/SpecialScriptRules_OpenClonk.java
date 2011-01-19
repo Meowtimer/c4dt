@@ -9,6 +9,7 @@ import net.arctics.clonk.parser.c4script.PrimitiveType;
 import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.parser.c4script.ProplistDeclaration;
 import net.arctics.clonk.parser.c4script.SpecialScriptRules;
+import net.arctics.clonk.parser.c4script.Variable;
 import net.arctics.clonk.parser.c4script.ast.CallFunc;
 
 public class SpecialScriptRules_OpenClonk extends SpecialScriptRules {
@@ -35,19 +36,28 @@ public class SpecialScriptRules_OpenClonk extends SpecialScriptRules {
 						e.printStackTrace();
 					}
 				}
-
-				IType effectProplistType = startFunction != null && startFunction.getParameters().size() >= 2
-					? startFunction.getParameters().get(1).getType()
-					: createAdHocProplistDeclaration(fun);
-//					: C4Type.PROPLIST;
+				IType effectProplistType;
+				if (startFunction != null) {
+					// not the start function - get effect parameter type from start function
+					if (startFunction.getParameters().size() < 2)
+						effectProplistType = PrimitiveType.PROPLIST;
+					else
+						effectProplistType = startFunction.getParameters().get(1).getType();
+				} else {
+					// this is the start function - create type if parameter present
+					if (fun.getParameters().size() < 2)
+						effectProplistType = PrimitiveType.PROPLIST;
+					else
+						effectProplistType = createAdHocProplistDeclaration(fun, fun.getParameters().get(1));
+				}
 				function.assignParameterTypes(PrimitiveType.OBJECT, effectProplistType);
 				return true;
 			}
 			return false;
 		}
-		private IType createAdHocProplistDeclaration(EffectFunction startFunction) {
+		private IType createAdHocProplistDeclaration(EffectFunction startFunction, Variable effectParameter) {
 			ProplistDeclaration result = ProplistDeclaration.adHocDeclaration();
-			result.setLocation(startFunction.getLocation());
+			result.setLocation(effectParameter.getLocation());
 			result.setParentDeclaration(startFunction);
 			startFunction.addOtherDeclaration(result);
 			return result;
