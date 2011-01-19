@@ -1,5 +1,6 @@
 package net.arctics.clonk.parser.c4script;
 
+import java.io.IOException;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -8,6 +9,7 @@ import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.Structure;
 import net.arctics.clonk.util.ArrayUtil;
 import net.arctics.clonk.util.CompoundIterable;
+import net.arctics.clonk.util.Utilities;
 
 public class ProplistDeclaration extends Structure implements IType {
 
@@ -39,7 +41,7 @@ public class ProplistDeclaration extends Structure implements IType {
 	
 	public ProplistDeclaration() {
 		super();
-		setName("proplist {...}");
+		setName(String.format("%s {...}", PrimitiveType.PROPLIST.toString()));
 	}
 
 	public ProplistDeclaration(List<Variable> components) {
@@ -127,6 +129,22 @@ public class ProplistDeclaration extends Structure implements IType {
 	@Override
 	public String typeName(boolean special) {
 		return PrimitiveType.PROPLIST.typeName(special);
+	}
+	
+	@Override
+	public String toString() {
+		if (adhocComponents != null) {
+			StringBuilder builder = new StringBuilder();
+			builder.append(PrimitiveType.PROPLIST.toString());
+			try {
+				Utilities.writeBlock(builder, "{", "}", ", ", adhocComponents);
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+			return builder.toString();
+		} else {
+			return super.toString();
+		}
 	}
 
 	@Override

@@ -1,5 +1,6 @@
 package net.arctics.clonk.util;
 
+import java.io.IOException;
 import java.lang.reflect.Array;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Collection;
@@ -518,6 +519,23 @@ public abstract class Utilities {
 			replace(">", "&gt;"). //$NON-NLS-1$ //$NON-NLS-2$
 			replace("\n", " "). //$NON-NLS-1$ //$NON-NLS-2$
 			replace("\t", " "); //$NON-NLS-1$ //$NON-NLS-2$
+	}
+	
+	public static void writeBlock(
+		Appendable output,
+		CharSequence startBlock, CharSequence endBlock, CharSequence delimiter,
+		Iterable<?> enumeration
+	) throws IOException {
+		output.append(startBlock);
+		boolean started = false;
+		for (Object obj : enumeration) {
+			if (started)
+				output.append(delimiter);
+			else
+				started = true;
+			output.append(obj.toString());
+		}
+		output.append(endBlock);
 	}
 	
 }
