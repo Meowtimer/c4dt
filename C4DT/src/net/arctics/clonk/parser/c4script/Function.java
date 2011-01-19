@@ -380,7 +380,7 @@ public class Function extends Structure implements Serializable, ITypedDeclarati
 
 	@Override
 	public boolean hasSubDeclarationsInOutline() {
-		return getLocalVars() != null && getLocalVars().size() > 0;
+		return otherDeclarations != null || (getLocalVars() != null && getLocalVars().size() > 0);
 	}
 
 	@Override
