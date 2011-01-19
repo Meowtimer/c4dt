@@ -118,7 +118,6 @@ public class Variable extends Declaration implements Serializable, ITypedDeclara
 	public void forceType(IType type) {
 		if (type == null)
 			type = PrimitiveType.UNKNOWN;
-		ScriptBase script = getScript();
 		this.type = type;
 	}
 	
