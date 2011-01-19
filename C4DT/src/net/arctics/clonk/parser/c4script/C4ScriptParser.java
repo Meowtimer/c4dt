@@ -3383,8 +3383,8 @@ public class C4ScriptParser extends CStyleScanner {
 		final int statementStart = funcOrRegion.getOffset();
 		final int statementEnd = funcOrRegion.getOffset()+funcOrRegion.getLength();
 		try {
-			// totally important to add the ")". Makes completion proposals work. DO NOT REMOVE!1
-			statements_ = doc.get(statementStart, Math.min(statementEnd-statementStart, doc.getLength()-statementStart)); //$NON-NLS-1$
+			// totally important to add the ")". Makes completion proposals work. DO NOT REMOVE!1 - actually, I removed it and it's okay
+			statements_ = doc.get(statementStart, Math.min(statementEnd-statementStart, doc.getLength()-statementStart));
 		} catch (BadLocationException e) {
 			statements_ = ""; // well... //$NON-NLS-1$
 		}
