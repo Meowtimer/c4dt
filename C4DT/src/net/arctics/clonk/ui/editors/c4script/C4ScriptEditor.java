@@ -171,7 +171,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		protected void added() {
 			super.added();
 			try {
-				patchParser = new PatchParser(structure);
+				patchParser = null;// new PatchParser(structure);
 			} catch (Exception e) {
 				// ignore
 			}
