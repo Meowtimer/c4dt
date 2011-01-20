@@ -22,6 +22,7 @@ import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.c4script.Function.C4FunctionScope;
 import net.arctics.clonk.parser.c4script.C4ScriptParser.ExpressionsAndStatementsReportingFlavour;
 import net.arctics.clonk.parser.c4script.Variable.C4VariableScope;
+import net.arctics.clonk.parser.c4script.ast.AccessDeclaration;
 import net.arctics.clonk.parser.c4script.ast.Conf;
 import net.arctics.clonk.parser.c4script.ast.ExprElm;
 import net.arctics.clonk.parser.c4script.ast.IStoredTypeInformation;
@@ -278,7 +279,11 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 					parser.applyStoredTypeInformationList(true);
 				}
 			}
-			if (contextExpression != null) {
+			// only present completion proposals specific to the <expr>->... thingie if cursor inside identifier region of declaration access expression.
+			if (
+				contextExpression instanceof MemberOperator ||
+				(contextExpression instanceof AccessDeclaration && Utilities.regionContainsOffset(contextExpression.identifierRegion(), preservedOffset))
+			) {
 				// we only care about sequences
 				contextSequence = contextExpression.getParent(Sequence.class);
 				if (contextSequence == null) {

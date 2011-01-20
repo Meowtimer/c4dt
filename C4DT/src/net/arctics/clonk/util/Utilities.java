@@ -271,6 +271,10 @@ public abstract class Utilities {
 		return new Region(start, end-start+1);
 	}
 	
+	public static boolean regionContainsOffset(IRegion region, int offset) {
+		return offset >= region.getOffset() && offset < region.getOffset() + region.getLength();
+	}
+	
 	public static int clamp(int value, int min, int max) {
 		if (value < min)
 			return min;
