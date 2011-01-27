@@ -59,6 +59,10 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
    <plugin
          id="net.arctics.clonk"
+         os="*"
+         ws="*"
+         nl="en_AU,en_CA,en_GB,en_US"
+         arch="*"
          download-size="0"
          install-size="0"
          version="0.0.0"
