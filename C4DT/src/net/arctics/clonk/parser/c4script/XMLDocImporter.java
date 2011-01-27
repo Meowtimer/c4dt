@@ -90,10 +90,6 @@ public class XMLDocImporter {
 			e.printStackTrace();
 		}
 	}
-	
-	public static String extractDescriptionFromHTML(InputStream stream) throws IOException {
-		return "Arr"; //$NON-NLS-1$
-	}
 
 	public Declaration importFromXML(InputStream stream) throws IOException, XPathExpressionException {
 

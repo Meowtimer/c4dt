@@ -219,7 +219,7 @@ public class ClonkLaunchConfigurationDelegate implements ILaunchConfigurationDel
 		if(configuration.getAttribute(ATTR_FULLSCREEN, false))
 			args.add(cmdLineOptionString(engineObj, "fullscreen")); //$NON-NLS-1$
 		else {
-			args.add(cmdLineOptionString(engineObj, engineObj.getCurrentSettings().editorCmdLineOption)); //$NON-NLS-1$
+			args.add(cmdLineOptionString(engineObj, engineObj.getCurrentSettings().editorCmdLineOption));
 			args.add(cmdLineOptionString(engineObj, "noleague")); //$NON-NLS-1$
 		}
 		

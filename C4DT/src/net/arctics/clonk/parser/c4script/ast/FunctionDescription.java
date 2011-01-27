@@ -8,6 +8,7 @@ import net.arctics.clonk.parser.NameValueAssignment;
 import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
+import net.arctics.clonk.parser.c4script.Keywords;
 import net.arctics.clonk.parser.stringtbl.StringTbl;
 
 import org.eclipse.jface.text.Region;
@@ -56,7 +57,7 @@ public class FunctionDescription extends Statement implements Serializable {
 						int sep = value.indexOf(':');
 						if (sep != -1)
 							value = value.substring(0, sep);
-						if (name.equals("Condition") || name.equals("Image")) //$NON-NLS-1$ //$NON-NLS-2$
+						if (name.equals(Keywords.Condition) || name.equals(Keywords.Image))
 							return new DeclarationRegion(parser.getContainer().findDeclaration(value), new Region(getExprStart()+off+nameValue[0].length()+1, value.length()));
 					}
 				}

@@ -357,17 +357,6 @@ public abstract class Utilities {
 		return result;
 	}
 	
-	public static @SuppressWarnings("unchecked")
-	<T, U> Iterable<U> filter(Iterable<T> iterable, IPredicate<U> filter, Class<T> cls) {
-		List<U> result = new LinkedList<U>();
-		for (T elm : iterable) {
-			if (cls.isAssignableFrom(elm.getClass()) && filter.test((U)elm)) {
-				result.add((U) elm);
-			}
-		}
-		return result;
-	}
-	
 	public static void errorMessage(Throwable error, final String title) {
 		String message = error.getClass().getSimpleName();
 		if (error.getLocalizedMessage() != null)
@@ -430,10 +419,6 @@ public abstract class Utilities {
 			return from.getClass();
 		}
 	};
-	
-	public static Class<?>[] getParameterTypes(Object[] constructorArgs) {
-		return map(constructorArgs, Class.class, INSTANCE_TO_CLASS_CONVERTER);
-	}
 	
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public static <T> Set<T> arrayToSet(T[] arr, Class<? extends Set> setClass) {

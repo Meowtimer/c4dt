@@ -20,15 +20,12 @@ public interface Keywords {
 	public static final String For = "for"; //$NON-NLS-1$
 	public static final String In = "in"; //$NON-NLS-1$
 	public static final String Return = "return"; //$NON-NLS-1$
-	public static final String Par = "Par"; //$NON-NLS-1$
-	public static final String Goto = "goto"; //$NON-NLS-1$
 	public static final String Break = "break"; //$NON-NLS-1$
 	public static final String Continue = "continue"; //$NON-NLS-1$
 	public static final String Inherited = "inherited"; //$NON-NLS-1$
 	public static final String SafeInherited = "_inherited"; //$NON-NLS-1$
 
 	public static final String Image = "Image"; //$NON-NLS-1$
-	public static final String Contents = "Contents"; //$NON-NLS-1$
 	public static final String Condition = "Condition"; //$NON-NLS-1$
 
 	public static final String GlobalNamed = "static"; //$NON-NLS-1$
