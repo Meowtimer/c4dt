@@ -91,7 +91,7 @@ public class ClonkQuickAssistProcessor implements IQuickAssistProcessor {
 		return true;
 	}
 
-	private static final Set<ParserErrorCode> fixableParserErrorCodes = Utilities.set(
+	private static final Set<ParserErrorCode> fixableParserErrorCodes = ArrayUtil.set(
 		HashSet.class,
 		ParserErrorCode.VariableCalled,
 		ParserErrorCode.NeverReached,

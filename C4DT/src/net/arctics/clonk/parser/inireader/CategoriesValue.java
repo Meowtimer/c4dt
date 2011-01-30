@@ -7,6 +7,7 @@ import java.util.ListIterator;
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.parser.c4script.Variable;
+import net.arctics.clonk.util.ArrayUtil;
 import net.arctics.clonk.util.IConverter;
 import net.arctics.clonk.util.Utilities;
 
@@ -49,7 +50,7 @@ public class CategoriesValue {
 		constants = new ArrayList<String>(4);
 		if (constantsPrefix != null) {
 			Variable[] vars = engine.variablesWithPrefix(constantsPrefix);
-			String[] varNames = Utilities.map(vars, String.class, new IConverter<Variable, String>() {
+			String[] varNames = ArrayUtil.map(vars, String.class, new IConverter<Variable, String>() {
 				@Override
 				public String convert(Variable from) {
 					return from.getName();

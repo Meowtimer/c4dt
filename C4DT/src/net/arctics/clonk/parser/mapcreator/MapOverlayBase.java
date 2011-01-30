@@ -14,6 +14,7 @@ import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.Structure;
 import net.arctics.clonk.parser.SourceLocation;
 import net.arctics.clonk.parser.c4script.ast.Conf;
+import net.arctics.clonk.util.ArrayUtil;
 import net.arctics.clonk.util.IPrintable;
 import net.arctics.clonk.util.ITreeNode;
 import net.arctics.clonk.util.Utilities;
@@ -28,7 +29,7 @@ public class MapOverlayBase extends Structure implements Cloneable, ITreeNode, I
 		public static final String Map = "map"; //$NON-NLS-1$
 	}
 	
-	public static final Map<String, Class<? extends MapOverlayBase>> DEFAULT_CLASS = Utilities.map(
+	public static final Map<String, Class<? extends MapOverlayBase>> DEFAULT_CLASS = ArrayUtil.map(
 		Keywords.Point   , MapPoint.class, //$NON-NLS-1$
 		Keywords.Overlay , MapOverlay.class, //$NON-NLS-1$
 		Keywords.Map     , MapCreatorMap.class //$NON-NLS-1$

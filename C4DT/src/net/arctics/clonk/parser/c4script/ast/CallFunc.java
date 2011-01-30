@@ -24,6 +24,7 @@ import net.arctics.clonk.parser.c4script.Function.C4FunctionScope;
 import net.arctics.clonk.parser.c4script.SpecialScriptRules.SpecialFuncRule;
 import net.arctics.clonk.parser.c4script.ast.UnaryOp.Placement;
 import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
+import net.arctics.clonk.util.ArrayUtil;
 import net.arctics.clonk.util.Utilities;
 
 import org.eclipse.core.resources.IMarker;
@@ -570,7 +571,7 @@ public class CallFunc extends AccessDeclaration {
 	@Override
 	public Object evaluate(IEvaluationContext context) {
 	    if (declaration instanceof Function) {
-	    	Object[] args = Utilities.map(getParams(), Object.class, Conf.EVALUATE_EXPR);
+	    	Object[] args = ArrayUtil.map(getParams(), Object.class, Conf.EVALUATE_EXPR);
 	    	return ((Function)declaration).invoke(args);
 	    }
 	    else

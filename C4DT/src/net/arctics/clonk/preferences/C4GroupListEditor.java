@@ -3,9 +3,8 @@ package net.arctics.clonk.preferences;
 import java.io.File;
 
 import net.arctics.clonk.ui.navigator.FullPathConverter;
+import net.arctics.clonk.util.ArrayUtil;
 import net.arctics.clonk.util.UI;
-import net.arctics.clonk.util.Utilities;
-
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.preference.ListEditor;
 import org.eclipse.jface.preference.StringFieldEditor;
@@ -62,7 +61,7 @@ public final class C4GroupListEditor extends ListEditor {
 			dialog.setFilterPath(gamePath);
 			// add multiple files instead of returning one file to be added by the super class
 			if (dialog.open() != null) {
-				addFiles(Utilities.map(dialog.getFileNames(), File.class, new FullPathConverter(dialog)));
+				addFiles(ArrayUtil.map(dialog.getFileNames(), File.class, new FullPathConverter(dialog)));
 			}
 			return null;
 		case 1:

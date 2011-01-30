@@ -1,16 +1,10 @@
 package net.arctics.clonk.util;
 
 import java.io.IOException;
-import java.lang.reflect.Array;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
 import net.arctics.clonk.index.ProjectDefinition;
 import net.arctics.clonk.index.ClonkIndex;
 import net.arctics.clonk.parser.BufferedScanner;
@@ -202,50 +196,6 @@ public abstract class Utilities {
 		return -1;
 	}
 	
-	/**
-	 * Helper for creating a map with one assignment
-	 * @param <KeyType> key type for resulting map
-	 * @param <ValueType> value type for resulting map
-	 * @param mapClass class the method is to instantiate
-	 * @param keysAndValues array containing keys and values. keys are at even indices while values are at uneven ones
-	 * @return the map
-	 */
-	@SuppressWarnings("unchecked")
-	public static <KeyType, ValueType> Map<KeyType, ValueType> mapOfType(Map<KeyType, ValueType> resultMap, Object... keysAndValues) {
-		try {
-			for (int i = 0; i < keysAndValues.length-1; i += 2) {
-				resultMap.put((KeyType)keysAndValues[i], (ValueType)keysAndValues[i+1]);
-			}
-			return Collections.unmodifiableMap(resultMap);
-		} catch (Exception e) {
-			e.printStackTrace();
-			return null;
-		}
-	}
-	
-	public static <KeyType, ValueType> Map<ValueType, KeyType> reverseMap(Map<KeyType, ValueType> originalMap, Map<ValueType, KeyType> resultMap) {
-		try {
-			for (Map.Entry<KeyType, ValueType> entry : originalMap.entrySet()) {
-				resultMap.put(entry.getValue(), entry.getKey());
-			}
-			return resultMap;
-		} catch (Exception e) {
-			e.printStackTrace();
-			return null;
-		}
-	}
-
-	/**
-	 * like mapOfType, but called with HashMap.class
-	 * @param <KeyType>
-	 * @param <ValueType>
-	 * @param keysAndValues
-	 * @return
-	 */
-	public static <KeyType, ValueType> Map<KeyType, ValueType> map(Object... keysAndValues) {
-		return mapOfType(new HashMap<KeyType, ValueType>(), keysAndValues);
-	}
-	
 	public static boolean allInstanceOf(Object[] objects, Class<?> cls) {
 		for (Object item : objects)
 			if (!(cls.isAssignableFrom(item.getClass())))
@@ -378,14 +328,6 @@ public abstract class Utilities {
 		});
 	}
 	
-	@SuppressWarnings("unchecked")
-	public static <From, To> To[] map(From[] elms, Class<To> toClass, IConverter<From, To> converter) {
-		To[] result = (To[]) Array.newInstance(toClass, elms.length);
-		for (int i = 0; i < result.length; i++)
-			result[i] = converter.convert(elms[i]);
-		return result;
-	}
-	
 	public static IResource findMemberCaseInsensitively(IContainer container, String name) {
 		try {
 	        for (IResource child : container.members()) {
@@ -419,26 +361,6 @@ public abstract class Utilities {
 			return from.getClass();
 		}
 	};
-	
-	@SuppressWarnings({ "unchecked", "rawtypes" })
-	public static <T> Set<T> arrayToSet(T[] arr, Class<? extends Set> setClass) {
-		try {
-			Set<T> result = setClass.newInstance();
-			for (T elm : arr)
-				result.add(elm);
-			return result;
-		} catch (InstantiationException e) {
-			e.printStackTrace();
-			return null;
-		} catch (IllegalAccessException e) {
-			e.printStackTrace();
-			return null;
-		}	
-	}
-	
-	public static <T> Set<T> set(@SuppressWarnings("rawtypes") Class<? extends Set> cls, T... elements) {
-		return arrayToSet(elements, cls);
-	}
 	
 	public static String multiply(String s, int times) {
 		StringBuilder builder = new StringBuilder(s.length()*times);

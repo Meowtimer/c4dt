@@ -23,6 +23,7 @@ import net.arctics.clonk.parser.c4script.IHasConstraint;
 import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.parser.c4script.ITypedDeclaration;
 import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
+import net.arctics.clonk.util.ArrayUtil;
 import net.arctics.clonk.util.IConverter;
 import net.arctics.clonk.util.IPrintable;
 import net.arctics.clonk.util.Utilities;
@@ -113,7 +114,7 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable {
 	@Override
 	public Object clone() throws CloneNotSupportedException {
 		ExprElm clone = (ExprElm) super.clone();
-		ExprElm[] clonedElms = Utilities.map(getSubElements(), ExprElm.class, new IConverter<ExprElm, ExprElm>() {
+		ExprElm[] clonedElms = ArrayUtil.map(getSubElements(), ExprElm.class, new IConverter<ExprElm, ExprElm>() {
 			@Override
 			public ExprElm convert(ExprElm from) {
 				if (from == null) {

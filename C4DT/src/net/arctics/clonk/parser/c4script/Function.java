@@ -48,12 +48,14 @@ public class Function extends Structure implements Serializable, ITypedDeclarati
 	 */
 	private transient String blockSource;
 
-	public Function(String name, PrimitiveType returnType, Variable... pars) {
+	public Function(String name, IType returnType, Variable... pars) {
 		this.name = name;
 		this.returnType = returnType;
 		parameter = new ArrayList<Variable>(pars.length);
-		for (Variable var : pars)
+		for (Variable var : pars) {
 			parameter.add(var);
+			var.setParentDeclaration(this);
+		}
 		visibility = C4FunctionScope.GLOBAL;
 	}
 	

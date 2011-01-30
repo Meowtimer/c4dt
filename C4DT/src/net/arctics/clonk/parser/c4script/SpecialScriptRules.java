@@ -481,6 +481,10 @@ public class SpecialScriptRules {
 		};
 	};
 
+	/**
+	 * Add rules declared as public instance variables to various internal lists so they will be recognized.
+	 * Annotations are consulted to decide what lists the rules are added to.
+	 */
 	public void initialize() {
 		for (Class<?> c = getClass(); c != null; c = c.getSuperclass()) {
 			for (Field f : c.getDeclaredFields()) {

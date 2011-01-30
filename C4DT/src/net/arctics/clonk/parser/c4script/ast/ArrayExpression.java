@@ -5,7 +5,7 @@ import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.PrimitiveType;
 import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
-import net.arctics.clonk.util.Utilities;
+import net.arctics.clonk.util.ArrayUtil;
 
 public class ArrayExpression extends Sequence {
 
@@ -43,7 +43,7 @@ public class ArrayExpression extends Sequence {
 	
 	@Override
 	public Object evaluate(IEvaluationContext context) {
-		return Utilities.map(getElements(), Object.class, Conf.EVALUATE_EXPR);
+		return ArrayUtil.map(getElements(), Object.class, Conf.EVALUATE_EXPR);
 	}
 
 }

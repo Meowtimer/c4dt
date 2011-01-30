@@ -1,5 +1,6 @@
 package net.arctics.clonk.ui.editors.c4script;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -10,6 +11,7 @@ import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.index.Scenario;
 import net.arctics.clonk.index.ClonkIndex;
 import net.arctics.clonk.parser.c4script.BuiltInDefinitions;
+import net.arctics.clonk.parser.c4script.EffectFunction;
 import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.ScriptBase;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
@@ -32,6 +34,9 @@ import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.ui.editors.ClonkCompletionProcessor;
 import net.arctics.clonk.ui.editors.ClonkCompletionProposal;
 import net.arctics.clonk.ui.editors.c4script.C4ScriptEditor.FuncCallInfo;
+import net.arctics.clonk.util.ArrayUtil;
+import net.arctics.clonk.util.IConverter;
+import net.arctics.clonk.util.Pair;
 import net.arctics.clonk.util.Utilities;
 
 import org.eclipse.core.resources.IFile;
@@ -71,17 +76,6 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 	
 		public void assistSessionStarted(ContentAssistEvent event) {
 			proposalCycle = ProposalCycle.ALL;
-			
-			// refresh to find out whether caret is inside a function and to get all the declarations
-			/*try {
-				try {
-					((C4ScriptEditor)editor).reparseWithDocumentContents(null, true);
-				} catch (ParsingException e) {
-					e.printStackTrace();
-				}
-			} catch (IOException e) {
-				e.printStackTrace();
-			}*/
 		}
 	
 		public void assistSessionEnded(ContentAssistEvent event) {
@@ -379,12 +373,23 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 		return result;
 	}
 	
-	private String getFunctionScaffold(String functionName) {
+	private static final IConverter<Pair<String, IType>, String> PARM_PRINTER = new IConverter<Pair<String,IType>, String>() {
+		@Override
+		public String convert(Pair<String, IType> from) {
+			return String.format("%s %s", from.getFirst(), from.getSecond().typeName(false));
+		}
+	};
+	
+	private String getFunctionScaffold(String functionName, Pair<String, IType>... parmTypes) {
 		StringBuilder builder = new StringBuilder();
 		builder.append(Keywords.Func);
 		builder.append(" "); //$NON-NLS-1$
 		builder.append(functionName);
-		builder.append("()"); //$NON-NLS-1$
+		try {
+			Utilities.writeBlock(builder, "(", ")", ",", ArrayUtil.arrayIterable(ArrayUtil.map(parmTypes, String.class, PARM_PRINTER)));
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 		switch (Conf.braceStyle) {
 		case NewLine:
 			builder.append("\n"); //$NON-NLS-1$
@@ -397,7 +402,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 		return builder.toString();
 	}
 	
-	private void callbackProposal(String prefix, String callback, boolean funcSupplied, List<ICompletionProposal> proposals, int offset) {
+	private void callbackProposal(String prefix, String callback, boolean funcSupplied, List<ICompletionProposal> proposals, int offset, Pair<String, IType>... parmTypes) {
 		ImageRegistry reg = ClonkCore.getDefault().getImageRegistry();
 		if (reg.get("callback") == null) { //$NON-NLS-1$
 			reg.put("callback", ImageDescriptor.createFromURL(FileLocator.find(ClonkCore.getDefault().getBundle(), new Path("icons/callback.png"), null))); //$NON-NLS-1$ //$NON-NLS-2$
@@ -406,7 +411,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 		if (prefix != null)
 			replacementLength = prefix.length();
 		// FIXME: copy signature of overloaded func and respect brace style
-		String repString = funcSupplied ? (callback!=null?callback:"") : getFunctionScaffold(callback); //$NON-NLS-1$ //$NON-NLS-2$
+		String repString = funcSupplied ? (callback!=null?callback:"") : getFunctionScaffold(callback, parmTypes); //$NON-NLS-1$
 		ClonkCompletionProposal prop = new ClonkCompletionProposal(
 				null,
 				repString, offset, replacementLength, 
@@ -417,23 +422,28 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 	private void proposalsOutsideOfFunction(ITextViewer viewer, int offset,
 			int wordOffset, String prefix,
 			List<ICompletionProposal> proposals, ClonkIndex index) {
+
+		// check whether func keyword precedes location (whole function blocks won't be created then)
+		boolean funcSupplied;
 		try {
-			boolean funcSupplied = offset >= 5 && viewer.getDocument().get(offset - 5, 5).equalsIgnoreCase("func ");  //$NON-NLS-1$
-
-			for(String callback : BuiltInDefinitions.OBJECT_CALLBACKS) {
-				if (prefix != null) {
-					if (!callback.toLowerCase().startsWith(prefix))
-						continue;
-				}
-				callbackProposal(prefix, callback, funcSupplied, proposals, offset);
-			}
-			callbackProposal(prefix, _prefix, funcSupplied, proposals, offset);
-
+			funcSupplied = offset >= 5 && viewer.getDocument().get(offset - Keywords.Func.length()-1, Keywords.Func.length()).equalsIgnoreCase(Keywords.Func);  //$NON-NLS-1$
 		} catch (BadLocationException e) {
-			// ignore
+			funcSupplied = false;
+		}
+
+		// propose creating functions for standard callbacks
+		for(String callback : BuiltInDefinitions.OBJECT_CALLBACKS) {
+			if (prefix != null) {
+				if (!callback.toLowerCase().startsWith(prefix))
+					continue;
+			}
+			callbackProposal(prefix, callback, funcSupplied, proposals, offset);
 		}
 		
+		// propose to just create function with the name already typed
+		callbackProposal(prefix, _prefix, funcSupplied, proposals, offset);
 		
+		// propose declaration keywords (var, static, ...)
 		for(String declarator : BuiltInDefinitions.DECLARATORS) {
 			if (prefix != null) {
 				if (!declarator.toLowerCase().startsWith(prefix)) continue;
@@ -448,6 +458,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 			proposals.add(prop);
 		}
 		
+		// propose directives (#include, ...)
 		for(String directive : BuiltInDefinitions.DIRECTIVES) {
 			if (prefix != null) {
 				if (!directive.toLowerCase().contains(prefix)) continue;
