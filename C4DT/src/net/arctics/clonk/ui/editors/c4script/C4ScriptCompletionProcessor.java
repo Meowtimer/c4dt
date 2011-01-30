@@ -13,6 +13,7 @@ import net.arctics.clonk.index.ClonkIndex;
 import net.arctics.clonk.parser.c4script.BuiltInDefinitions;
 import net.arctics.clonk.parser.c4script.EffectFunction;
 import net.arctics.clonk.parser.c4script.Function;
+import net.arctics.clonk.parser.c4script.PrimitiveType;
 import net.arctics.clonk.parser.c4script.ScriptBase;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.Variable;
@@ -35,8 +36,9 @@ import net.arctics.clonk.ui.editors.ClonkCompletionProcessor;
 import net.arctics.clonk.ui.editors.ClonkCompletionProposal;
 import net.arctics.clonk.ui.editors.c4script.C4ScriptEditor.FuncCallInfo;
 import net.arctics.clonk.util.ArrayUtil;
+import net.arctics.clonk.util.Gen;
 import net.arctics.clonk.util.IConverter;
-import net.arctics.clonk.util.Pair;
+import net.arctics.clonk.util.StringUtil;
 import net.arctics.clonk.util.Utilities;
 
 import org.eclipse.core.resources.IFile;
@@ -121,7 +123,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 	private List<IStoredTypeInformation> contextTypeInformation;
 	private ProposalCycle proposalCycle = ProposalCycle.ALL;
 	private Function _activeFunc;
-	private String _prefix;
+	private String untamperedPrefix;
 	
 	public C4ScriptCompletionProcessor(C4ScriptEditor editor, ContentAssistant assistant) {
 		super(editor);
@@ -177,7 +179,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 			prefix = null;
 		}
 		
-		this._prefix = prefix;
+		this.untamperedPrefix = prefix;
 		if (prefix != null)
 			prefix = prefix.toLowerCase();
 		
@@ -373,20 +375,22 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 		return result;
 	}
 	
-	private static final IConverter<Pair<String, IType>, String> PARM_PRINTER = new IConverter<Pair<String,IType>, String>() {
+	public static class ParmInfo {public String name; public IType type;}
+	
+	private static final IConverter<ParmInfo, String> PARM_PRINTER = new IConverter<ParmInfo, String>() {
 		@Override
-		public String convert(Pair<String, IType> from) {
-			return String.format("%s %s", from.getFirst(), from.getSecond().typeName(false));
+		public String convert(ParmInfo parmInfo) {
+			return String.format("%s %s", parmInfo.type.typeName(false), parmInfo.name);
 		}
 	};
 	
-	private String getFunctionScaffold(String functionName, Pair<String, IType>... parmTypes) {
+	private String getFunctionScaffold(String functionName, ParmInfo... parmTypes) {
 		StringBuilder builder = new StringBuilder();
 		builder.append(Keywords.Func);
 		builder.append(" "); //$NON-NLS-1$
 		builder.append(functionName);
 		try {
-			Utilities.writeBlock(builder, "(", ")", ",", ArrayUtil.arrayIterable(ArrayUtil.map(parmTypes, String.class, PARM_PRINTER)));
+			Utilities.writeBlock(builder, "(", ")", ", ", ArrayUtil.arrayIterable(ArrayUtil.map(parmTypes, String.class, PARM_PRINTER))); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -402,7 +406,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 		return builder.toString();
 	}
 	
-	private void callbackProposal(String prefix, String callback, boolean funcSupplied, List<ICompletionProposal> proposals, int offset, Pair<String, IType>... parmTypes) {
+	private void callbackProposal(String prefix, String callback, boolean funcSupplied, List<ICompletionProposal> proposals, int offset, ParmInfo... parmTypes) {
 		ImageRegistry reg = ClonkCore.getDefault().getImageRegistry();
 		if (reg.get("callback") == null) { //$NON-NLS-1$
 			reg.put("callback", ImageDescriptor.createFromURL(FileLocator.find(ClonkCore.getDefault().getBundle(), new Path("icons/callback.png"), null))); //$NON-NLS-1$ //$NON-NLS-2$
@@ -419,6 +423,11 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 		proposals.add(prop);
 	}
 
+	private static final ParmInfo[] EFFECT_FUNCTION_PARM_BOILERPLATE = new ParmInfo[] {
+		Gen.object(ParmInfo.class, "obj", PrimitiveType.OBJECT),
+		Gen.object(ParmInfo.class, "effect", PrimitiveType.PROPLIST)
+	};
+	
 	private void proposalsOutsideOfFunction(ITextViewer viewer, int offset,
 			int wordOffset, String prefix,
 			List<ICompletionProposal> proposals, ClonkIndex index) {
@@ -441,7 +450,13 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 		}
 		
 		// propose to just create function with the name already typed
-		callbackProposal(prefix, _prefix, funcSupplied, proposals, offset);
+		callbackProposal(prefix, untamperedPrefix, funcSupplied, proposals, offset);
+
+		// propose creating effect functions
+		String capitalizedPrefix = StringUtil.capitalize(untamperedPrefix); 
+		for (EffectFunction.Type t : EffectFunction.Type.values()) {
+			callbackProposal(prefix, t.nameForEffect(capitalizedPrefix), funcSupplied, proposals, wordOffset, EFFECT_FUNCTION_PARM_BOILERPLATE);
+		}
 		
 		// propose declaration keywords (var, static, ...)
 		for(String declarator : BuiltInDefinitions.DECLARATORS) {

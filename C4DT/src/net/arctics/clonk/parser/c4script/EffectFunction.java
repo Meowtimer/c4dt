@@ -31,6 +31,10 @@ public class EffectFunction extends Function {
 		public Pattern getPattern() {
 			return pattern;
 		}
+		
+		public String nameForEffect(String effect) {
+			return String.format(FUNCTION_NAME_FORMAT, effect, name());
+		}
 	}
 	
 	private Map<Type, EffectFunction> relatedFunctions = new HashMap<Type, EffectFunction>();
