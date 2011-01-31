@@ -173,14 +173,28 @@ public class ClonkProjectNature implements IProjectNature {
 	}
 
 	/**
-	 * Returns the complete index of the project.
-	 * @return the indexedData
+	 * Returns the index of the project, loading it from disk if necessary.
+	 * @return the project index
 	 */
 	public ProjectIndex getIndex() {
 		if (index == null && !indexLoadingPending) {
 			indexLoadingPending = true;
 			loadIndex();
 			indexLoadingPending = false;
+		}
+		return index;
+	}
+	
+	/**
+	 * Return the currently loaded index but if no index has been loaded yet, don't load it from disk, instead creating
+	 * a new empty index.<br>
+	 * Used while cleaning a project where loading of the saved index isn't needed anyway and might even trigger some exceptions
+	 * because indexes referenced by the one to be loaded might be in a cleared state (due to "Clean all projects" or similar).
+	 * @return The current index or a newly created empty one.
+	 */
+	public ProjectIndex getIndexCreatingEmptyOneIfNotPresent() {
+		if (index == null) {
+			index = new ProjectIndex(project); 
 		}
 		return index;
 	}
@@ -248,7 +262,7 @@ public class ClonkProjectNature implements IProjectNature {
 	}
 
 	/**
-	 * Loads the index from disk
+	 * Load the index from disk. Exceptions thrown while loading cause a new empty index to be created and returned.
 	 */
 	private synchronized void loadIndex() {
 		loadSettings();

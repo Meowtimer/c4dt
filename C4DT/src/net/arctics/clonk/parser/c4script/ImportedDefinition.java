@@ -99,12 +99,23 @@ public class ImportedDefinition implements Serializable, IType {
 		ClonkProjectNature externalNature = ClonkProjectNature.get(referencedProject);
 		if (externalNature != null) {
 			ClonkIndex index = externalNature.getIndex();
-			if (index != null)
+			if (index != null) {
 				result = index.getObjectFromEverywhere(id);
+				if (result == null) {
+					System.out.println(String.format("Couldn't find object %s in index for %s", id.toString(), index.getProject().getName()));
+				}
+			}
 			else
 				System.out.println(String.format("Warning: Failed to obtain index for %s when resolving %s", referencedProject, id.toString()));
 		}
-		return result != null ? result : PrimitiveType.OBJECT;
+		// return null if nothing found instead of PrimitiveType.OBJECT so there won't be class cast exceptions
+
+		// reasons for this method unexpectedly returning null might be that "Clean all projects" is initiated before
+		// indexes for some projects have been loaded. Cleaning those projects then triggers loading the index but at that moment, the index of
+		// the project the definition has been imported from is already cleared so that index.getObjectFromEverywhere fails to
+		// find the imported definition.
+		
+		return result; 
 	}
 	
 	public static IType getSerializableType(ClonkIndex indexBeingSerialized, Definition obj) {
