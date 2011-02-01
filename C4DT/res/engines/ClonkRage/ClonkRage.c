@@ -254,6 +254,8 @@ static const TEAM_Dist;
 static const TEAM_AllowHostilityChange;
 static const TEAM_Active;
 static const TEAM_Custom;
+static const TEAM_TeamDistribution;
+static const TEAM_MaxScriptPlayers;
 
 static const SBRD_Caption;
 
