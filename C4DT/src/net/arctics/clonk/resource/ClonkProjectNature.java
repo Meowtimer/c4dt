@@ -194,6 +194,7 @@ public class ClonkProjectNature implements IProjectNature {
 	 */
 	public ProjectIndex getIndexCreatingEmptyOneIfNotPresent() {
 		if (index == null) {
+			loadSettings();
 			index = new ProjectIndex(project); 
 		}
 		return index;
