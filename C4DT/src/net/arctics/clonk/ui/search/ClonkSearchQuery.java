@@ -51,7 +51,7 @@ public class ClonkSearchQuery implements ISearchQuery {
 	
 	public ClonkSearchQuery(Declaration declaration, ClonkProjectNature project) {
 		super();
-		this.declaration = declaration;
+		this.declaration = declaration.latestVersion();
 		this.declaringScript = declaration.getScript();
 		this.scope = declaration.occurenceScope(project);
 	}
@@ -109,7 +109,8 @@ public class ClonkSearchQuery implements ISearchQuery {
 		public TraversalContinuation expressionDetected(ExprElm expression, C4ScriptParser parser) {
 			if (expression instanceof AccessDeclaration) {
 				AccessDeclaration accessDeclExpr = (AccessDeclaration) expression;
-				if (accessDeclExpr.getDeclaration(parser) == declaration)
+				Declaration dec = accessDeclExpr.getDeclaration(parser);
+				if (dec != null && dec.latestVersion() == declaration)
 					result.addMatch(expression, parser, false, accessDeclExpr.indirectAccess());
 				else if (Utilities.isAnyOf(accessDeclExpr.getDeclaration(), expression.getCachedFuncs(parser).CallFunctions) && potentiallyReferencedByCallFunction(accessDeclExpr, parser)) {
 					result.addMatch(functionNameExpr, parser, true, true);
