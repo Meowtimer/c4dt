@@ -228,5 +228,47 @@ public class ArrayUtil {
 	public static <KeyType, ValueType> Map<KeyType, ValueType> map(Object... keysAndValues) {
 		return mapOfType(new HashMap<KeyType, ValueType>(), keysAndValues);
 	}
+	
+	public static <A, B> Iterable<B> filteredIterable(final Iterable<A> base, final Class<B> cls) {
+		return new Iterable<B>() {
+			@Override
+			public Iterator<B> iterator() {
+				return new Iterator<B>() {
+					private Iterator<A> baseIterator = base.iterator();
+					private boolean calledHasNext = false;
+					private B next;
+					@SuppressWarnings("unchecked")
+					@Override
+					public boolean hasNext() {
+						if (calledHasNext)
+							return next != null;
+						else {
+							calledHasNext = true;
+							while (baseIterator.hasNext()) {
+								A n = baseIterator.next();
+								if (cls.isAssignableFrom(n.getClass())) {
+									next = (B)n;
+									return true;
+								}
+							}
+							next = null;
+							return false;
+						}
+					}
+
+					@Override
+					public B next() {
+						calledHasNext = false;
+						return next;
+					}
+
+					@Override
+					public void remove() {
+						baseIterator.remove();
+					}
+				};
+			}
+		};
+	}
 
 }
