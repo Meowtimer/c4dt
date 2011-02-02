@@ -81,7 +81,7 @@ public class Variable extends Declaration implements Serializable, ITypedDeclara
 		type = PrimitiveType.UNKNOWN;
 	}
 	
-	public Variable(String name, PrimitiveType type, String desc, C4VariableScope scope) {
+	public Variable(String name, IType type, String desc, C4VariableScope scope) {
 		this.name = name;
 		this.type = type;
 		this.description = desc;
