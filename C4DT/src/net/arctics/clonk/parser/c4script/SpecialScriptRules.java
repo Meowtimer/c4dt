@@ -67,7 +67,18 @@ public class SpecialScriptRules {
 		public String[] functions();
 	}
 	
+	/**
+	 * Base class for special rules.
+	 * @author madeen
+	 *
+	 */
 	public static abstract class SpecialRule {
+		/**
+		 * Return the list of functions an instance of SpecialRule should be applied to.
+		 * Obtained from an @AppliedTo annotation attached to the passed instance field refering to the actual rule. 
+		 * @param instanceReference The field with the attached @AppliedTo annotation 
+		 * @return Returns empty array if no AppliedTo annotation exists for the field, annotation.functions() if one exists.
+		 */
 		public static String[] getFunctionsAppliedTo(Field instanceReference) {
 			AppliedTo annot = instanceReference.getAnnotation(AppliedTo.class);
 			if (annot != null) {
@@ -76,6 +87,12 @@ public class SpecialScriptRules {
 				return new String[0];
 			}
 		}
+		/**
+		 * Construct role mask of this rule using reflection. A rule assumes a role if its class overrides a method with a SignifiesRole annotation attached to it.
+		 * So for example, if a class overrides validateArguments and validateArguments has the annotation @SignifiesRole(role=ARGUMENT_VALIDATOR), the mask will contain
+		 * ARGUMENT_VALIDATOR.
+		 * @return The role mask.
+		 */
 		public final int getRoleMask() {
 			int result = 0;
 			Outer: for (Method m : getClass().getDeclaredMethods()) {
@@ -106,23 +123,68 @@ public class SpecialScriptRules {
 		}
 	}
 	
+	/**
+	 * Base class for special rules applied to functions.<br>
+	 * This class allows
+	 * <ul>
+	 * <li>validating arguments in a special way</li>
+	 * <li>modifying the return type of a function call</li>
+	 * <li>making regions of AST expressions link-clickable</li>
+	 * <li>Handling creation of new function objects</li>
+	 * </ul>
+	 * @author madeen
+	 *
+	 */
 	public abstract class SpecialFuncRule extends SpecialRule {
+		/**
+		 * Validate arguments of a function call.
+		 * @param callFunc The CallFunc
+		 * @param arguments The arguments (also obtainable from callFunc)
+		 * @param parser The parser serving as context
+		 * @return Returns false if this rule doesn't handle validation of the passed function call. Default validation will be executed.
+		 */
 		@SignifiesRole(role=ARGUMENT_VALIDATOR)
 		public boolean validateArguments(CallFunc callFunc, ExprElm[] arguments, C4ScriptParser parser) {
 			return false;
 		}
+		/**
+		 * Modify return type of function call.
+		 * @param parser context
+		 * @param callFunc function call
+		 * @return Modified type or null, in which case the default type will be returned.
+		 */
 		@SignifiesRole(role=RETURNTYPE_MODIFIER)
 		public IType returnType(C4ScriptParser parser, CallFunc callFunc) {
 			return null;
 		}
+		/**
+		 * Provide DeclarationRegion for an AST expression at a certain offset. Used for making stuff link-clickable.
+		 * @param callFunc Function call the passed expression is a parameter of
+		 * @param parser context
+		 * @param index parameter index
+		 * @param offsetInExpression Character offset in the parameter expression
+		 * @param parmExpression Parameter expression that should be made link-clickable
+		 * @return Return null if no declaration could be found that is referred to.
+		 */
 		@SignifiesRole(role=DECLARATION_LOCATOR)
 		public DeclarationRegion locateDeclarationInParameter(CallFunc callFunc, C4ScriptParser parser, int index, int offsetInExpression, ExprElm parmExpression) {
 			return null;
 		}
+		/**
+		 * Assign default parameter types to a function.
+		 * @param parser context
+		 * @param function The function
+		 * @return Returns false if this rule doesn't handle assigning default parameters of the passed function call. No types will be assigned and regular type inference takes place.
+		 */
 		@SignifiesRole(role=DEFAULT_PARMTYPE_ASSIGNER)
 		public boolean assignDefaultParmTypes(C4ScriptParser parser, Function function) {
 			return false;
 		}
+		/**
+		 * Create new function with the given name. Called by the parser after it has parsed the function name in a function declaration.
+		 * @param name The name of the function.
+		 * @return Returns null if this rule didn't detect a special name, requiring a specialized function class. Parser will use default class (Function). 
+		 */
 		@SignifiesRole(role=DEFAULT_PARMTYPE_ASSIGNER)
 		public Function newFunction(String name) {
 			return null;
