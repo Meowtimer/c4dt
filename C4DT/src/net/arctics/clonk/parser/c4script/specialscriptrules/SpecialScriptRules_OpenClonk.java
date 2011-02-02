@@ -1,6 +1,11 @@
 package net.arctics.clonk.parser.c4script.specialscriptrules;
 
+import java.util.regex.Matcher;
+
+import org.eclipse.jface.text.Region;
+
 import net.arctics.clonk.parser.Declaration;
+import net.arctics.clonk.parser.DeclarationRegion;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.c4script.EffectFunction;
 import net.arctics.clonk.parser.c4script.Function;
@@ -11,23 +16,29 @@ import net.arctics.clonk.parser.c4script.ProplistDeclaration;
 import net.arctics.clonk.parser.c4script.SpecialScriptRules;
 import net.arctics.clonk.parser.c4script.Variable;
 import net.arctics.clonk.parser.c4script.ast.CallFunc;
+import net.arctics.clonk.parser.c4script.ast.ExprElm;
+import net.arctics.clonk.parser.c4script.ast.StringLiteral;
 
 public class SpecialScriptRules_OpenClonk extends SpecialScriptRules {
 	/**
-	 * Assign default parameters to effect functions.
+	 * Rule to handle typing of effect proplists.<br>
+	 * Assigns default parameters to effect functions.
 	 * For the effect proplist parameter, an implicit ProplistDeclaration is created
 	 * so that type information and proplist value locations (first assignment) can
-	 * be stored.
+	 * be stored.<br>
+	 * Get/Add-Effect functions will return the type of the effect to be acquired/created if the effect name can be evaluated and a corresponding effect proplist type
+	 * can be found.
 	 */
-	public final SpecialFuncRule effectFunctionParmTypes = new SpecialFuncRule() {
+	@AppliedTo(functions={"GetEffect", "AddEffect"})
+	public final SpecialFuncRule effectProplistAdhocTyping = new SpecialFuncRule() {
 		@Override
 		public boolean assignDefaultParmTypes(C4ScriptParser parser, Function function) {
 			if (function instanceof EffectFunction) {
 				EffectFunction fun = (EffectFunction) function;
-				fun.findRelatedEffectFunctions();
-				EffectFunction startFunction = fun.getEffectFunctionType() == EffectFunction.Type.Start
+				fun.findStartCallback();
+				EffectFunction startFunction = fun.getHardcodedCallbackType() == EffectFunction.HardcodedCallbackType.Start
 					? null
-					: fun.getRelatedEffectFunction(EffectFunction.Type.Start);
+					: fun.getStartFunction();
 				// parse *Start function first. Will define ad-hoc proplist type
 				if (startFunction != null) {
 					try {
@@ -64,36 +75,52 @@ public class SpecialScriptRules_OpenClonk extends SpecialScriptRules {
 		}
 		@Override
 		public Function newFunction(String name) {
-			for (EffectFunction.Type t : EffectFunction.Type.values()) {
-				if (t.getPattern().matcher(name).matches())
-					return new EffectFunction();
+			if (name.startsWith(EffectFunction.FUNCTION_NAME_PREFIX)) {
+				for (EffectFunction.HardcodedCallbackType t : EffectFunction.HardcodedCallbackType.values()) {
+					Matcher m = t.getPattern().matcher(name);
+					if (m.matches())
+						return new EffectFunction(m.group(1), t);
+				}
+				// hard to match sequence of two arbitrary, non-separate strings ;c
+				return new EffectFunction(null, null);
 			}
 			return null;
 		};
-	};
-	/**
-	 * Result of GetEffect is appropriate ProplistDeclaration created in <code>effectFunctionParmTypes</code>
-	 */
-	@AppliedTo(functions={"GetEffect", "AddEffect"})
-	public final SpecialFuncRule getEffectResultTypeRule = new SpecialFuncRule() {
 		@Override
 		public IType returnType(C4ScriptParser parser, CallFunc callFunc) {
 			Object parmEv;
 			if (callFunc.getParams().length >= 1 && (parmEv = callFunc.getParams()[0].evaluateAtParseTime(parser.getContainer())) instanceof String) {
 				String effectName = (String) parmEv;
-				for (EffectFunction.Type t : EffectFunction.Type.values()) {
+				for (EffectFunction.HardcodedCallbackType t : EffectFunction.HardcodedCallbackType.values()) {
 					Declaration d = CallFunc.findFunctionUsingPredecessor(
 							callFunc.getPredecessorInSequence(),
 							String.format(EffectFunction.FUNCTION_NAME_FORMAT, effectName, t.name()), 
 							parser
 					);
-					if (d instanceof EffectFunction && ((EffectFunction)d).getParameters().size() >= 2) {
-						return ((EffectFunction)d).getParameters().get(1).getType();
+					if (d instanceof EffectFunction) {
+						return ((EffectFunction)d).getEffectType();
 					}
 				}
 			}
 			return null;
 		};
+		@Override
+		public DeclarationRegion locateDeclarationInParameter(
+				CallFunc callFunc, C4ScriptParser parser, int index,
+				int offsetInExpression, ExprElm parmExpression) {
+			if (parmExpression instanceof StringLiteral && callFunc.getParams().length >= 1 && callFunc.getParams()[0] == parmExpression) {
+				String effectName = ((StringLiteral)parmExpression).getLiteral();
+				Declaration d = CallFunc.findFunctionUsingPredecessor(
+						callFunc.getPredecessorInSequence(),
+						String.format(EffectFunction.FUNCTION_NAME_FORMAT, effectName, EffectFunction.HardcodedCallbackType.Start.name()), 
+						parser
+				);
+				if (d instanceof EffectFunction) {
+					return new DeclarationRegion(d, new Region(parmExpression.getExprStart()+1, parmExpression.getLength()-2));
+				}
+			}
+			return super.locateDeclarationInParameter(callFunc, parser, index, offsetInExpression, parmExpression);
+		}
 	};
 	@Override
 	public void initialize() {

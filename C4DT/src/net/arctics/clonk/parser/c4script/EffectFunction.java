@@ -1,7 +1,5 @@
 package net.arctics.clonk.parser.c4script;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -15,16 +13,17 @@ import net.arctics.clonk.ClonkCore;
 public class EffectFunction extends Function {
 
 	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
-	public static final String FUNCTION_NAME_FORMAT = "Fx%s%s"; //$NON-NLS-0$
+	public static final String FUNCTION_NAME_PREFIX = "Fx"; //$NON-NLS-1$
+	public static final String FUNCTION_NAME_FORMAT = FUNCTION_NAME_PREFIX + "%s%s"; //$NON-NLS-0$
 	
-	public enum Type {
+	public enum HardcodedCallbackType {
 		Start,
 		Timer,
 		Stop;
 		
 		Pattern pattern;
 		
-		private Type() {
+		private HardcodedCallbackType() {
 			pattern = Pattern.compile(String.format(FUNCTION_NAME_FORMAT, "(.*?)", name()+"$"));
 		}
 		
@@ -36,49 +35,76 @@ public class EffectFunction extends Function {
 			return String.format(FUNCTION_NAME_FORMAT, effect, name());
 		}
 	}
-	
-	private Map<Type, EffectFunction> relatedFunctions = new HashMap<Type, EffectFunction>();
-	private Type type;
+
+	private EffectFunction startFunction;
+	private HardcodedCallbackType hardcodedCallbackType;
+	private Pattern additionalCallbacksPattern;
 	private String effectName;
 	
-	public EffectFunction getRelatedEffectFunction(Type type) {
-		return relatedFunctions.get(type);
+	public EffectFunction(String effectName, HardcodedCallbackType type) {
+		super();
+		this.hardcodedCallbackType = type;
+		this.effectName = effectName;
+		if (type == HardcodedCallbackType.Start) {
+			additionalCallbacksPattern = Pattern.compile(String.format(FUNCTION_NAME_FORMAT, effectName, "(.*?)"));
+			startFunction = this;
+		}
+	}
+	
+	public Pattern getAdditionalCallbacksPattern() {
+		return additionalCallbacksPattern;
 	}
 
-	public Type getEffectFunctionType() {
-		return type;
+	public HardcodedCallbackType getHardcodedCallbackType() {
+		return hardcodedCallbackType;
 	}
 	
 	public String getEffectName() {
 		return effectName;
 	}
 	
-	public void findRelatedEffectFunctions()	{
-		relatedFunctions.clear();
-		
-		// get own type
-		type = null;
-		for (Type t : Type.values()) {
-			Matcher matcher = t.getPattern().matcher(getName());
-			if (matcher.matches()) {
-				type = t;
-				relatedFunctions.put(t, this);
-				effectName = matcher.group(1);
-				break;
-			}
+	private void setStartFunction(EffectFunction startFunction) {
+		this.startFunction = startFunction;
+		if (startFunction != null) {
+			this.additionalCallbacksPattern = startFunction.additionalCallbacksPattern;
+			this.effectName = startFunction.effectName;
+		} else {
+			this.additionalCallbacksPattern = null;
+			this.effectName = null;
 		}
-		assert(type != null);
-		
-		// get related functions
+	}
+	
+	public EffectFunction getStartFunction() {
+		return startFunction;
+	}
+	
+	public void findStartCallback()	{
 		ScriptBase script = getScript();
-		for (Type t : Type.values()) {
-			if (t != type) {
-				Function relatedFunc = script.findFunction(String.format(FUNCTION_NAME_FORMAT, effectName, t.name()));
-				if (relatedFunc instanceof EffectFunction) {
-					relatedFunctions.put(t, (EffectFunction) relatedFunc);
+		for (EffectFunction f : script.functions(EffectFunction.class)) {
+			if (f.getHardcodedCallbackType() != HardcodedCallbackType.Start)
+				continue;
+			if (this.hardcodedCallbackType != null) {
+				// compare by known effect name
+				if (this.effectName.equals(f.effectName)) {
+					this.setStartFunction(f);
+					break;
+				}
+			}
+			else {
+				if (f.getHardcodedCallbackType() == HardcodedCallbackType.Start) {
+					// look if this name matches Fx<EffectName>(.*)
+					Matcher m = f.getAdditionalCallbacksPattern().matcher(name);
+					if (m.matches()) {
+						this.setStartFunction(f);
+						break;
+					}
 				}
 			}
 		}
+	}
+	
+	public IType getEffectType() {
+		return getParameters().size() >= 2 ? getParameters().get(1).getType() : null;
 	}
 
 }

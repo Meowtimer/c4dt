@@ -35,6 +35,7 @@ import net.arctics.clonk.parser.c4script.Function.C4FunctionScope;
 import net.arctics.clonk.parser.c4script.Variable.C4VariableScope;
 import net.arctics.clonk.parser.c4script.ast.ExprElm;
 import net.arctics.clonk.preferences.ClonkPreferences;
+import net.arctics.clonk.util.ArrayUtil;
 import net.arctics.clonk.util.CompoundIterable;
 import net.arctics.clonk.util.INode;
 import net.arctics.clonk.util.ITreeNode;
@@ -552,6 +553,10 @@ public abstract class ScriptBase extends Structure implements ITreeNode, IHasCon
 	 */
 	public Iterable<Function> functions() {
 		return Collections.unmodifiableList(definedFunctions);
+	}
+	
+	public <T extends Function> Iterable<T> functions(Class<T> cls) {
+		return ArrayUtil.filteredIterable(functions(), cls);
 	}
 
 	/**

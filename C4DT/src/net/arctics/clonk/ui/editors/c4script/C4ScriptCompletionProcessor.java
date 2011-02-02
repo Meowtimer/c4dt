@@ -454,7 +454,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 
 		// propose creating effect functions
 		String capitalizedPrefix = StringUtil.capitalize(untamperedPrefix); 
-		for (EffectFunction.Type t : EffectFunction.Type.values()) {
+		for (EffectFunction.HardcodedCallbackType t : EffectFunction.HardcodedCallbackType.values()) {
 			callbackProposal(prefix, t.nameForEffect(capitalizedPrefix), funcSupplied, proposals, wordOffset, EFFECT_FUNCTION_PARM_BOILERPLATE);
 		}
 		
