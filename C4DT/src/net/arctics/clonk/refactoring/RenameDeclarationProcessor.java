@@ -7,6 +7,7 @@ import java.util.Set;
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.index.ProjectIndex;
 import net.arctics.clonk.parser.Declaration;
+import net.arctics.clonk.parser.Structure;
 import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.ScriptBase;
 import net.arctics.clonk.parser.c4script.FindDeclarationInfo;
@@ -47,20 +48,19 @@ public class RenameDeclarationProcessor extends RenameProcessor {
 	public RefactoringStatus checkInitialConditions(IProgressMonitor monitor) throws CoreException, OperationCanceledException {
 		// renaming fields that originate from outside the project is not allowed
 		Declaration baseDecl = decl instanceof Function ? ((Function)decl).baseFunction() : decl;
-		if (!(baseDecl.getScript().getIndex() instanceof ProjectIndex))
-			return RefactoringStatus.createFatalErrorStatus(decl.getName() + Messages.OutsideProject);
+		if (!(baseDecl.getScript().getIndex() instanceof ProjectIndex)) {
+			return RefactoringStatus.createFatalErrorStatus(String.format(Messages.OutsideProject, decl.getName()));
+		}
 		
 		Declaration existingDec;
-		if (baseDecl.getParentDeclaration() instanceof Function) {
-			existingDec = ((Function)baseDecl.getParentDeclaration()).findVariable(newName);
-		}
-		else {
-			FindDeclarationInfo info = new FindDeclarationInfo(decl.getScript().getIndex());
-			info.setDeclarationClass(decl.getClass());
-			existingDec = decl.getScript().findDeclaration(newName, info);
-		}
-		if (existingDec != null) {
-			return RefactoringStatus.createFatalErrorStatus(String.format(Messages.DuplicateItem, newName, decl.getScript().toString()));
+		FindDeclarationInfo info = new FindDeclarationInfo(decl.getScript().getIndex());
+		info.setDeclarationClass(decl.getClass());
+		Structure parentStructure = decl.getParentDeclarationOfType(Structure.class);
+		if (parentStructure != null) {
+			existingDec = parentStructure.findLocalDeclaration(newName, decl.getClass());
+			if (existingDec != null) {
+				return RefactoringStatus.createFatalErrorStatus(String.format(Messages.DuplicateItem, newName, decl.getScript().toString()));
+			}
 		}
 		
 		return RefactoringStatus.createInfoStatus(Messages.Success);
@@ -78,7 +78,7 @@ public class RenameDeclarationProcessor extends RenameProcessor {
 		ClonkSearchResult searchResult = (ClonkSearchResult) query.getSearchResult();
 		// all references in code
 		Set<Object> elements = new HashSet<Object>(Arrays.asList(searchResult.getElements()));
-		// declaration of the selected field
+		// declaration of the selected declaration
 		elements.add(decl.getScript());
 		// if decl is a function also look for functions which inherit or are inherited from decl
 		if (decl instanceof Function) {
