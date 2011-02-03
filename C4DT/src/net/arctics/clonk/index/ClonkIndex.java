@@ -336,8 +336,8 @@ public class ClonkIndex implements Serializable, Iterable<Definition> {
 		return null;
 	}
 
-	public static <T extends IHasRelatedResource> T pickNearest(IResource resource, Collection<T> fromList) {
-		return Utilities.pickNearest(resource, fromList, null);
+	public static <T extends IHasRelatedResource> T pickNearest(Collection<T> fromList, IResource resource) {
+		return Utilities.pickNearest(fromList, resource, null);
 	}
 	
 	public static void addIndexesFromReferencedProjects(List<ClonkIndex> result, ClonkIndex index) {
@@ -372,7 +372,7 @@ public class ClonkIndex implements Serializable, Iterable<Definition> {
 		for (ClonkIndex index : relevantIndexes()) {
 			if (resource != null) {
 				List<Definition> objs = index.getObjects(id);
-				best = pickNearest(resource, objs);
+				best = pickNearest(objs, resource);
 			}
 			else {
 				best = index.getLastObjectWithId(id);
@@ -454,7 +454,7 @@ public class ClonkIndex implements Serializable, Iterable<Definition> {
 			return findGlobalDeclaration(declName);
 		List<Declaration> declarations = declarationMap.get(declName);
 		if (declarations != null) {
-			return Utilities.pickNearest(pivot, declarations, IS_GLOBAL);
+			return Utilities.pickNearest(declarations, pivot, IS_GLOBAL);
 		}
 		return null;
 	}
@@ -517,7 +517,7 @@ public class ClonkIndex implements Serializable, Iterable<Definition> {
 
 					public Definition next() {
 						List<Definition> nextList = listIterator.next();
-						return pickNearest(pivot, nextList);
+						return pickNearest(nextList, pivot);
 					}
 
 					public void remove() {

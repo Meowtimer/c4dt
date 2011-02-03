@@ -14,6 +14,7 @@ import java.util.Map;
 import org.eclipse.jface.text.Region;
 
 import net.arctics.clonk.index.Definition;
+import net.arctics.clonk.index.ProjectIndex;
 import net.arctics.clonk.index.Scenario;
 import net.arctics.clonk.index.ClonkIndex;
 import net.arctics.clonk.parser.DeclarationRegion;
@@ -25,6 +26,7 @@ import net.arctics.clonk.parser.c4script.ast.CallFunc;
 import net.arctics.clonk.parser.c4script.ast.ExprElm;
 import net.arctics.clonk.parser.c4script.ast.SimpleStatement;
 import net.arctics.clonk.parser.c4script.ast.StringLiteral;
+import net.arctics.clonk.parser.inireader.ParticleUnit;
 import net.arctics.clonk.ui.editors.c4script.ExpressionLocator;
 
 /**
@@ -452,7 +454,7 @@ public class SpecialScriptRules {
 			if (parameterIndex == 0 && parmExpression instanceof StringLiteral) {
 				StringLiteral lit = (StringLiteral)parmExpression;
 				ClonkIndex index = parser.getContainer().getIndex();
-				Scenario scenario = ClonkIndex.pickNearest(parser.getContainer().getResource(), index.getIndexedScenarios());
+				Scenario scenario = ClonkIndex.pickNearest(index.getIndexedScenarios(), parser.getContainer().getResource());
 				if (scenario != null) {
 					Function scenFunc = scenario.findFunction(lit.stringValue());
 					if (scenFunc != null)
@@ -540,6 +542,23 @@ public class SpecialScriptRules {
 			} else {
 				return PrimitiveType.INT;
 			}
+		};
+	};
+	
+	@AppliedTo(functions={"CreateParticle", "CastAParticles", "CastParticles", "CastBackParticles", "PushParticles"})
+	public final SpecialFuncRule linkToParticles = new SpecialFuncRule() {
+		@Override
+		public DeclarationRegion locateDeclarationInParameter(CallFunc callFunc, C4ScriptParser parser, int index, int offsetInExpression, ExprElm parmExpression) {
+			Object parmEv;
+			if (index == 0 && (parmEv = parmExpression.evaluateAtParseTime(parser.getContainer())) instanceof String) {
+				String particleName = (String)parmEv;
+				ProjectIndex projIndex = (ProjectIndex)parser.getContainer().getIndex();
+				ParticleUnit unit = projIndex.findPinnedStructure(ParticleUnit.class, particleName, parser.getContainer().getResource(), true);
+				if (unit != null) {
+					return new DeclarationRegion(unit, parmExpression);
+				}
+			}
+			return null;
 		};
 	};
 

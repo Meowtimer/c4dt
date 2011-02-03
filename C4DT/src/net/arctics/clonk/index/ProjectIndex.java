@@ -4,12 +4,14 @@ import java.util.LinkedList;
 import java.util.List;
 
 import net.arctics.clonk.ClonkCore;
+import net.arctics.clonk.parser.Structure;
 import net.arctics.clonk.parser.c4script.ScriptBase;
 import net.arctics.clonk.parser.c4script.StandaloneProjectScript;
 import net.arctics.clonk.parser.c4script.Variable;
 import net.arctics.clonk.parser.inireader.IniUnit;
 import net.arctics.clonk.parser.playercontrols.PlayerControlsUnit;
 import net.arctics.clonk.resource.ClonkProjectNature;
+import net.arctics.clonk.util.ObjectFinderVisitor;
 import net.arctics.clonk.util.Utilities;
 
 import org.eclipse.core.resources.IContainer;
@@ -144,6 +146,37 @@ public class ProjectIndex extends ClonkIndex {
 		} catch (CoreException e) {
 			e.printStackTrace();
 		}
+	}
+	
+	public <T extends Structure> T findPinnedStructure(final Class<T> cls, final String name, IResource pivot, final boolean create) {
+		ObjectFinderVisitor<T> finder = new ObjectFinderVisitor<T>() {
+			@SuppressWarnings("unchecked")
+			@Override
+			public boolean visit(IResource resource) throws CoreException {
+				Structure s = Structure.pinned(resource, create, false);
+				if (s != null && cls.isAssignableFrom(s.getClass()) && s.getName().equals(name)) {
+					result = (T) s;
+					return false;
+				}
+				return true;
+			}
+		};
+		List<T> r = new LinkedList<T>();
+		for (ClonkIndex i : relevantIndexes()) {
+			if (i instanceof ProjectIndex) {
+				finder.reset();
+				try {
+					((ProjectIndex)i).getProject().accept(finder);
+				} catch (CoreException e) {
+					e.printStackTrace();
+					continue;
+				}
+				if (finder.getResult() != null) {
+					r.add(finder.getResult());
+				}
+			}
+		}
+		return pickNearest(r, pivot);
 	}
 
 }

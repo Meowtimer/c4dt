@@ -14,5 +14,13 @@ public class ParticleUnit extends IniUnit {
 	protected String getConfigurationName() {
 		return "Particle.txt"; //$NON-NLS-1$
 	}
+	
+	@Override
+	protected IniEntry validateEntry(IniEntry entry, IniSection section, boolean modifyMarkers) throws IniParserException {
+		if (section.getName().equals("Particle") && entry.getName().equals("Name")) {
+			setName(entry.getValue());
+		}
+		return super.validateEntry(entry, section, modifyMarkers);
+	}
 
 }

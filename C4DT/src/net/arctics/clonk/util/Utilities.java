@@ -165,7 +165,7 @@ public abstract class Utilities {
 		return dist;
 	}
 	
-	public static <T extends IHasRelatedResource> T pickNearest(IResource resource, Collection<T> fromList, IPredicate<T> filter) {
+	public static <T extends IHasRelatedResource> T pickNearest(Collection<T> fromList, IResource resource, IPredicate<T> filter) {
 		int bestDist = 1000;
 		T best = null;
 		if (fromList != null) {

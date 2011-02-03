@@ -105,7 +105,7 @@ public class ClonkTextEditor extends TextEditor {
 					e.printStackTrace();
 				}
 			}
-			// if a definition has no script fall back to opening to DefCore.txt
+			// if a definition has no script fall back to opening DefCore.txt
 			else if (structure instanceof ProjectDefinition) {
 				ProjectDefinition obj = (ProjectDefinition) structure;
 				IFile defCore = obj.getDefCoreFile();
