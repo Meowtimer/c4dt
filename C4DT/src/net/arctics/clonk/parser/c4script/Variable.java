@@ -292,7 +292,7 @@ public class Variable extends Declaration implements Serializable, ITypedDeclara
 	public Object[] occurenceScope(ClonkProjectNature project) {
 		if (parentDeclaration instanceof Function)
 			return new Object[] {parentDeclaration};
-		if (!isGlobal() && parentDeclaration instanceof ProjectDefinition) {
+		if (!isGloballyAccessible() && parentDeclaration instanceof ProjectDefinition) {
 			ProjectDefinition obj = (ProjectDefinition) parentDeclaration;
 			ClonkIndex index = obj.getIndex();
 			Set<Object> result = new HashSet<Object>();
@@ -316,6 +316,14 @@ public class Variable extends Declaration implements Serializable, ITypedDeclara
 	@Override
 	public boolean isGlobal() {
 		return scope == C4VariableScope.STATIC || scope == C4VariableScope.CONST;
+	}
+	
+	/**
+	 * Returns whether references to this declaration might exist from everywhere
+	 * @return The above
+	 */
+	public boolean isGloballyAccessible() {
+		return scope == C4VariableScope.LOCAL || parentDeclaration instanceof ProplistDeclaration || isGlobal();
 	}
 
 	public boolean isAt(int offset) {
