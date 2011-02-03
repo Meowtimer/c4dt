@@ -104,7 +104,7 @@ public class EffectFunction extends Function {
 	}
 	
 	public IType getEffectType() {
-		return getParameters().size() >= 2 ? getParameters().get(1).getType() : null;
+		return getParameters().size() >= 2 ? getParameters().get(1).getType() : PrimitiveType.PROPLIST;
 	}
 
 }

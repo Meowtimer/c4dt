@@ -15,6 +15,7 @@ import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.parser.c4script.ProplistDeclaration;
 import net.arctics.clonk.parser.c4script.SpecialScriptRules;
 import net.arctics.clonk.parser.c4script.Variable;
+import net.arctics.clonk.parser.c4script.EffectFunction.HardcodedCallbackType;
 import net.arctics.clonk.parser.c4script.ast.CallFunc;
 import net.arctics.clonk.parser.c4script.ast.ExprElm;
 import net.arctics.clonk.parser.c4script.ast.StringLiteral;
@@ -50,10 +51,7 @@ public class SpecialScriptRules_OpenClonk extends SpecialScriptRules {
 				IType effectProplistType;
 				if (startFunction != null) {
 					// not the start function - get effect parameter type from start function
-					if (startFunction.getParameters().size() < 2)
-						effectProplistType = PrimitiveType.PROPLIST;
-					else
-						effectProplistType = startFunction.getParameters().get(1).getType();
+					effectProplistType = startFunction.getEffectType();
 				} else {
 					// this is the start function - create type if parameter present
 					if (fun.getParameters().size() < 2)
@@ -110,13 +108,15 @@ public class SpecialScriptRules_OpenClonk extends SpecialScriptRules {
 				int offsetInExpression, ExprElm parmExpression) {
 			if (parmExpression instanceof StringLiteral && callFunc.getParams().length >= 1 && callFunc.getParams()[0] == parmExpression) {
 				String effectName = ((StringLiteral)parmExpression).getLiteral();
-				Declaration d = CallFunc.findFunctionUsingPredecessor(
-						callFunc.getPredecessorInSequence(),
-						String.format(EffectFunction.FUNCTION_NAME_FORMAT, effectName, EffectFunction.HardcodedCallbackType.Start.name()), 
-						parser
-				);
-				if (d instanceof EffectFunction) {
-					return new DeclarationRegion(d, new Region(parmExpression.getExprStart()+1, parmExpression.getLength()-2));
+				for (HardcodedCallbackType t : HardcodedCallbackType.values()) {
+					Declaration d = CallFunc.findFunctionUsingPredecessor(
+							callFunc.getPredecessorInSequence(),
+							String.format(EffectFunction.FUNCTION_NAME_FORMAT, effectName, t.name()), 
+							parser
+					);
+					if (d instanceof EffectFunction) {
+						return new DeclarationRegion(d, new Region(parmExpression.getExprStart()+1, parmExpression.getLength()-2));
+					}
 				}
 			}
 			return super.locateDeclarationInParameter(callFunc, parser, index, offsetInExpression, parmExpression);
