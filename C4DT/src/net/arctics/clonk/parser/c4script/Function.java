@@ -41,12 +41,12 @@ public class Function extends Structure implements Serializable, ITypedDeclarati
 	/**
 	 * Code block kept in memory for speed optimization
 	 */
-	private transient Block codeBlock;
+	private Block codeBlock;
 	
 	/**
 	 * Hash code of the string the block was parsed from.
 	 */
-	private transient String blockSource;
+	private int blockSourceHash;
 
 	public Function(String name, IType returnType, Variable... pars) {
 		this.name = name;
@@ -598,11 +598,11 @@ public class Function extends Structure implements Serializable, ITypedDeclarati
 	
 	public void storeBlock(Block block, String source) {
 		codeBlock = block;
-		blockSource = source;
+		blockSourceHash = source.hashCode();
 	}
 	
 	public Block getCodeBlock(String source) {
-		if (blockSource != null && blockSource.hashCode() == source.hashCode()) {
+		if (blockSourceHash != -1 && blockSourceHash == source.hashCode()) {
 			return codeBlock;
 		} else{
 			return codeBlock = null;
