@@ -30,7 +30,7 @@ import net.arctics.clonk.parser.BufferedScanner;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.ID;
 import net.arctics.clonk.parser.Structure;
-import net.arctics.clonk.parser.c4script.Directive.C4DirectiveType;
+import net.arctics.clonk.parser.c4script.Directive.DirectiveType;
 import net.arctics.clonk.parser.c4script.Function.C4FunctionScope;
 import net.arctics.clonk.parser.c4script.Variable.C4VariableScope;
 import net.arctics.clonk.parser.c4script.ast.ExprElm;
@@ -120,7 +120,7 @@ public abstract class ScriptBase extends Structure implements ITreeNode, IHasCon
 	public int getStrictLevel() {
 		long level = getEngine() != null ? getEngine().getCurrentSettings().strictDefaultLevel : -1;
 		for (Directive d : this.definedDirectives) {
-			if (d.getType() == C4DirectiveType.STRICT) {
+			if (d.getType() == DirectiveType.STRICT) {
 				try {
 					level = Math.max(level, Integer.parseInt(d.getContent()));
 				}
@@ -140,7 +140,7 @@ public abstract class ScriptBase extends Structure implements ITreeNode, IHasCon
 	public Directive[] getIncludeDirectives() {
 		List<Directive> result = new ArrayList<Directive>();
 		for (Directive d : definedDirectives) {
-			if (d.getType() == C4DirectiveType.INCLUDE || d.getType() == C4DirectiveType.APPENDTO) {
+			if (d.getType() == DirectiveType.INCLUDE || d.getType() == DirectiveType.APPENDTO) {
 				result.add(d);
 			}
 		}
@@ -154,7 +154,7 @@ public abstract class ScriptBase extends Structure implements ITreeNode, IHasCon
 	 */
 	protected void gatherIncludes(List<ScriptBase> list, ClonkIndex index) {
 		for (Directive d : definedDirectives) {
-			if (d.getType() == C4DirectiveType.INCLUDE || d.getType() == C4DirectiveType.APPENDTO) {
+			if (d.getType() == DirectiveType.INCLUDE || d.getType() == DirectiveType.APPENDTO) {
 				Definition obj = getNearestObjectWithId(d.contentAsID());
 				if (obj != null)
 					list.add(obj);
@@ -191,7 +191,7 @@ public abstract class ScriptBase extends Structure implements ITreeNode, IHasCon
 	 */
 	public Directive getIncludeDirectiveFor(Definition obj) {
 		for (Directive d : getIncludeDirectives()) {
-			if ((d.getType() == C4DirectiveType.INCLUDE || d.getType() == C4DirectiveType.APPENDTO) && getNearestObjectWithId(d.contentAsID()) == obj)
+			if ((d.getType() == DirectiveType.INCLUDE || d.getType() == DirectiveType.APPENDTO) && getNearestObjectWithId(d.contentAsID()) == obj)
 				return d;
 		}
 		return null;

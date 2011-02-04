@@ -14,15 +14,15 @@ public class Directive extends Declaration implements Serializable {
 
 	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 
-	public enum C4DirectiveType {
+	public enum DirectiveType {
 		STRICT,
 		INCLUDE,
 		APPENDTO;
 
 		private String lowerCase = name().toLowerCase();
 
-		public static C4DirectiveType makeType(String arg) {
-			for (C4DirectiveType d : values())
+		public static DirectiveType makeType(String arg) {
+			for (DirectiveType d : values())
 				if (d.toString().equals(arg))
 					return d;
 			return null;
@@ -34,23 +34,23 @@ public class Directive extends Declaration implements Serializable {
 		}
 	}
 
-	private C4DirectiveType type;
+	private DirectiveType type;
 	private String content;
 	private transient ID cachedID;
 
-	public Directive(C4DirectiveType type, String content) {
+	public Directive(DirectiveType type, String content) {
 		this.content = content;
 		this.type = type;
 	}
 
 	public Directive(String type, String content) {
-		this(C4DirectiveType.makeType(type),content);
+		this(DirectiveType.makeType(type),content);
 	}
 
 	/**
 	 * @return the type
 	 */
-	public C4DirectiveType getType() {
+	public DirectiveType getType() {
 		return type;
 	}
 
@@ -97,8 +97,8 @@ public class Directive extends Declaration implements Serializable {
 	}
 
 	public static String[] arrayOfDirectiveStrings() {
-		String[] result = new String[C4DirectiveType.values().length];
-		for (C4DirectiveType d : C4DirectiveType.values())
+		String[] result = new String[DirectiveType.values().length];
+		for (DirectiveType d : DirectiveType.values())
 			result[d.ordinal()] = d.toString();
 		return result;
 	}

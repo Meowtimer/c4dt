@@ -11,6 +11,7 @@ import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.index.Scenario;
 import net.arctics.clonk.index.ClonkIndex;
 import net.arctics.clonk.parser.c4script.BuiltInDefinitions;
+import net.arctics.clonk.parser.c4script.Directive;
 import net.arctics.clonk.parser.c4script.EffectFunction;
 import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.PrimitiveType;
@@ -433,64 +434,77 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 			List<ICompletionProposal> proposals, ClonkIndex index) {
 
 		// check whether func keyword precedes location (whole function blocks won't be created then)
-		boolean funcSupplied;
-		try {
-			funcSupplied = offset >= 5 && viewer.getDocument().get(offset - Keywords.Func.length()-1, Keywords.Func.length()).equalsIgnoreCase(Keywords.Func);  //$NON-NLS-1$
-		} catch (BadLocationException e) {
-			funcSupplied = false;
-		}
+		boolean funcSupplied = precededBy(viewer, offset, Keywords.Func);
+		boolean directiveExpectingObject =
+			precededBy(viewer, offset, "#" + Directive.DirectiveType.INCLUDE.toString()) ||
+			precededBy(viewer, offset, "#" + Directive.DirectiveType.APPENDTO.toString());
 
-		// propose creating functions for standard callbacks
-		for(String callback : BuiltInDefinitions.OBJECT_CALLBACKS) {
-			if (prefix != null) {
-				if (!callback.toLowerCase().startsWith(prefix))
-					continue;
+		if (!directiveExpectingObject) {
+			// propose creating functions for standard callbacks
+			for(String callback : BuiltInDefinitions.OBJECT_CALLBACKS) {
+				if (prefix != null) {
+					if (!callback.toLowerCase().startsWith(prefix))
+						continue;
+				}
+				callbackProposal(prefix, callback, funcSupplied, proposals, offset);
 			}
-			callbackProposal(prefix, callback, funcSupplied, proposals, offset);
-		}
-		
-		// propose to just create function with the name already typed
-		callbackProposal(prefix, untamperedPrefix, funcSupplied, proposals, offset);
 
-		// propose creating effect functions
-		String capitalizedPrefix = StringUtil.capitalize(untamperedPrefix); 
-		for (EffectFunction.HardcodedCallbackType t : EffectFunction.HardcodedCallbackType.values()) {
-			callbackProposal(prefix, t.nameForEffect(capitalizedPrefix), funcSupplied, proposals, wordOffset, EFFECT_FUNCTION_PARM_BOILERPLATE);
-		}
-		
-		// propose declaration keywords (var, static, ...)
-		for(String declarator : BuiltInDefinitions.DECLARATORS) {
-			if (prefix != null) {
-				if (!declarator.toLowerCase().startsWith(prefix)) continue;
+			// propose to just create function with the name already typed
+			callbackProposal(prefix, untamperedPrefix, funcSupplied, proposals, offset);
+
+			// propose creating effect functions
+			String capitalizedPrefix = StringUtil.capitalize(untamperedPrefix); 
+			for (EffectFunction.HardcodedCallbackType t : EffectFunction.HardcodedCallbackType.values()) {
+				callbackProposal(prefix, t.nameForEffect(capitalizedPrefix), funcSupplied, proposals, wordOffset, EFFECT_FUNCTION_PARM_BOILERPLATE);
 			}
-			ImageRegistry reg = ClonkCore.getDefault().getImageRegistry();
-			if (reg.get("declarator") == null) { //$NON-NLS-1$
-				reg.put("declarator", ImageDescriptor.createFromURL(FileLocator.find(ClonkCore.getDefault().getBundle(), new Path("icons/declarator.png"), null))); //$NON-NLS-1$ //$NON-NLS-2$
+
+			if (!funcSupplied) {
+
+				// propose declaration keywords (var, static, ...)
+				for(String declarator : BuiltInDefinitions.DECLARATORS) {
+					if (prefix != null) {
+						if (!declarator.toLowerCase().startsWith(prefix)) continue;
+					}
+					ImageRegistry reg = ClonkCore.getDefault().getImageRegistry();
+					if (reg.get("declarator") == null) { //$NON-NLS-1$
+						reg.put("declarator", ImageDescriptor.createFromURL(FileLocator.find(ClonkCore.getDefault().getBundle(), new Path("icons/declarator.png"), null))); //$NON-NLS-1$ //$NON-NLS-2$
+					}
+					int replacementLength = 0;
+					if (prefix != null) replacementLength = prefix.length();
+					ClonkCompletionProposal prop = new ClonkCompletionProposal(null, declarator,offset,replacementLength,declarator.length(), reg.get("declarator") , declarator.trim(),null,null,Messages.C4ScriptCompletionProcessor_Engine, getEditor()); //$NON-NLS-1$
+					proposals.add(prop);
+				}
+
+				// propose directives (#include, ...)
+				for(String directive : BuiltInDefinitions.DIRECTIVES) {
+					if (prefix != null) {
+						if (!directive.toLowerCase().contains(prefix)) continue;
+					}
+					ImageRegistry reg = ClonkCore.getDefault().getImageRegistry();
+					if (reg.get("directive") == null) { //$NON-NLS-1$
+						reg.put("directive", ImageDescriptor.createFromURL(FileLocator.find(ClonkCore.getDefault().getBundle(), new Path("icons/directive.png"), null))); //$NON-NLS-1$ //$NON-NLS-2$
+					}
+					int replacementLength = 0;
+					if (prefix != null) replacementLength = prefix.length();
+					ClonkCompletionProposal prop = new ClonkCompletionProposal(null, directive,offset,replacementLength,directive.length(), reg.get("directive") , directive.trim(),null,null,Messages.C4ScriptCompletionProcessor_Engine, getEditor()); //$NON-NLS-1$
+					proposals.add(prop);
+				}
 			}
-			int replacementLength = 0;
-			if (prefix != null) replacementLength = prefix.length();
-			ClonkCompletionProposal prop = new ClonkCompletionProposal(null, declarator,offset,replacementLength,declarator.length(), reg.get("declarator") , declarator.trim(),null,null,Messages.C4ScriptCompletionProcessor_Engine, getEditor()); //$NON-NLS-1$
-			proposals.add(prop);
-		}
-		
-		// propose directives (#include, ...)
-		for(String directive : BuiltInDefinitions.DIRECTIVES) {
-			if (prefix != null) {
-				if (!directive.toLowerCase().contains(prefix)) continue;
-			}
-			ImageRegistry reg = ClonkCore.getDefault().getImageRegistry();
-			if (reg.get("directive") == null) { //$NON-NLS-1$
-				reg.put("directive", ImageDescriptor.createFromURL(FileLocator.find(ClonkCore.getDefault().getBundle(), new Path("icons/directive.png"), null))); //$NON-NLS-1$ //$NON-NLS-2$
-			}
-			int replacementLength = 0;
-			if (prefix != null) replacementLength = prefix.length();
-			ClonkCompletionProposal prop = new ClonkCompletionProposal(null, directive,offset,replacementLength,directive.length(), reg.get("directive") , directive.trim(),null,null,Messages.C4ScriptCompletionProcessor_Engine, getEditor()); //$NON-NLS-1$
-			proposals.add(prop);
 		}
 		
 		// propose objects for #include or something
-		for (ClonkIndex i : index.relevantIndexes())
-			proposalsForIndex(i, offset, wordOffset, prefix, proposals);
+		if (directiveExpectingObject) {
+			for (ClonkIndex i : index.relevantIndexes())
+				proposalsForIndex(i, offset, wordOffset, prefix, proposals);
+		}
+	}
+
+	private static boolean precededBy(ITextViewer viewer, int offset, String what) {
+		try {
+			return offset >= 5 && viewer.getDocument().get(offset - what.length() - 1, what.length()).equalsIgnoreCase(what);  //$NON-NLS-1$
+		} catch (BadLocationException e) {
+			return false;
+		}
 	}
 
 	private String getProposalCycleMessage() {

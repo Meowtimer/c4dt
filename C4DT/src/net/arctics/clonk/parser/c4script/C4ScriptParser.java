@@ -31,7 +31,7 @@ import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.SimpleScriptStorage;
 import net.arctics.clonk.parser.SourceLocation;
 import net.arctics.clonk.parser.SilentParsingException.Reason;
-import net.arctics.clonk.parser.c4script.Directive.C4DirectiveType;
+import net.arctics.clonk.parser.c4script.Directive.DirectiveType;
 import net.arctics.clonk.parser.c4script.Function.C4FunctionScope;
 import net.arctics.clonk.parser.c4script.C4ScriptParser.IMarkerListener.WhatToDo;
 import net.arctics.clonk.parser.c4script.Variable.C4VariableScope;
@@ -829,7 +829,7 @@ public class C4ScriptParser extends CStyleScanner {
 		if (readByte == '#') {
 			// directive
 			String directiveName = this.readStringUntil(BufferedScanner.WHITESPACE_CHARS);
-			C4DirectiveType type = C4DirectiveType.makeType(directiveName);
+			DirectiveType type = DirectiveType.makeType(directiveName);
 			if (type == null) {
 				warningWithCode(ParserErrorCode.UnknownDirective, startOfDeclaration, startOfDeclaration + directiveName.length());
 				this.moveUntil(BufferedScanner.NEWLINE_CHARS);
@@ -840,7 +840,7 @@ public class C4ScriptParser extends CStyleScanner {
 				Directive directive = new Directive(type, content);
 				directive.setLocation(absoluteSourceLocation(startOfDeclaration, this.offset));
 				container.addDeclaration(directive);
-				if (type == C4DirectiveType.APPENDTO)
+				if (type == DirectiveType.APPENDTO)
 					appendTo = true;
 				return true;
 			}

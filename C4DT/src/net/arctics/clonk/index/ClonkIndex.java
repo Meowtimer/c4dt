@@ -23,7 +23,7 @@ import net.arctics.clonk.parser.c4script.Directive;
 import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.ScriptBase;
 import net.arctics.clonk.parser.c4script.Variable;
-import net.arctics.clonk.parser.c4script.Directive.C4DirectiveType;
+import net.arctics.clonk.parser.c4script.Directive.DirectiveType;
 import net.arctics.clonk.parser.c4script.Function.C4FunctionScope;
 import net.arctics.clonk.parser.c4script.Variable.C4VariableScope;
 import net.arctics.clonk.resource.ClonkProjectNature;
@@ -166,7 +166,7 @@ public class ClonkIndex implements Serializable, Iterable<Definition> {
 	
 	private void detectAppendages(ScriptBase script) {
 		for (Directive d : script.directives())
-			if (d.getType() == C4DirectiveType.APPENDTO) {
+			if (d.getType() == DirectiveType.APPENDTO) {
 				List<ScriptBase> appendtoList = appendages.get(d.contentAsID());
 				if (appendtoList == null) {
 					appendtoList = new LinkedList<ScriptBase>();
