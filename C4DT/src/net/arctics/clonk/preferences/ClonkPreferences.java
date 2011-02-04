@@ -13,6 +13,8 @@ import org.eclipse.core.runtime.preferences.IScopeContext;
  * Constant definitions for clonk preferences
  */
 public class ClonkPreferences {
+	
+	// options that will be stored in engine configuration ini files
 	public static final String GAME_PATH = "gamePath"; //$NON-NLS-1$
 	public static final String DOC_URL_TEMPLATE = "docURLTemplate"; //$NON-NLS-1$
 	public static final String ACTIVE_ENGINE = "selectedEngine"; //$NON-NLS-1$
@@ -25,6 +27,7 @@ public class ClonkPreferences {
 	public static final String SHOW_EXPORT_LOG = "showExportLog"; //$NON-NLS-1$
 	public static final String PREFERRED_LANGID = "preferredLangID"; //$NON-NLS-1$
 	public static final String OPEN_EXTERNAL_BROWSER = "openExternalBrowser"; //$NON-NLS-1$
+	public static final String SHOW_ERRORS_WHILE_TYPING = "showErrorsWhileTyping";
 	
 	private static final Map<String, Field> valueFieldMapping = new HashMap<String, Field>();
 	
@@ -57,6 +60,10 @@ public class ClonkPreferences {
 	
 	public static String getPreference(String prefName) {
 		return getPreference(prefName, null, null);
+	}
+	
+	public static boolean getPreferenceToggle(String toggleName, boolean defaultValue) {
+		return Platform.getPreferencesService().getBoolean(ClonkCore.PLUGIN_ID, toggleName, defaultValue, null);
 	}
 	
 	public static String getLanguagePref() {

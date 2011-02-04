@@ -32,6 +32,7 @@ import net.arctics.clonk.parser.c4script.ast.IScriptParserListener;
 import net.arctics.clonk.parser.c4script.ast.IStoredTypeInformation;
 import net.arctics.clonk.parser.c4script.ast.Statement;
 import net.arctics.clonk.parser.ParsingException;
+import net.arctics.clonk.preferences.ClonkPreferences;
 import net.arctics.clonk.resource.c4group.C4GroupItem;
 import net.arctics.clonk.ui.editors.ClonkCompletionProposal;
 import net.arctics.clonk.ui.editors.ClonkPartitionScanner;
@@ -248,6 +249,8 @@ public class C4ScriptEditor extends ClonkTextEditor {
 			reparseTimer.schedule(reparseTask = new TimerTask() {
 				@Override
 				public void run() {
+					if (!ClonkPreferences.getPreferenceToggle(ClonkPreferences.SHOW_ERRORS_WHILE_TYPING, true))
+						return;
 					try {
 						try {
 							reparseWithDocumentContents(null, onlyDeclarations, document, structure, new Runnable() {
@@ -298,6 +301,8 @@ public class C4ScriptEditor extends ClonkTextEditor {
 			reparseTimer.schedule(functionReparseTask = new TimerTask() {
 				@Override
 				public void run() {
+					if (!ClonkPreferences.getPreferenceToggle(ClonkPreferences.SHOW_ERRORS_WHILE_TYPING, true))
+						return;
 					removeMarkers(fn, structure);
 					if (structure.getScriptStorage() instanceof IResource && !C4GroupItem.isLinkedResource((IResource) structure.getScriptStorage())) {
 						final Function f = (Function) fn.latestVersion();

@@ -187,6 +187,7 @@ public class ClonkPreferencePage extends FieldEditorPreferencePage implements IW
 		// FIXME: not the best place to set that
 		getPreferenceStore().setDefault(ClonkPreferences.DOC_URL_TEMPLATE, ClonkPreferences.DOC_URL_TEMPLATE_DEFAULT);
 		getPreferenceStore().setDefault(ClonkPreferences.ACTIVE_ENGINE, ClonkPreferences.ACTIVE_ENGINE_DEFAULT);
+		getPreferenceStore().setDefault(ClonkPreferences.SHOW_ERRORS_WHILE_TYPING, true);
 		
 		currentEngine = ClonkCore.getDefault().getPreferenceStore().getString(ClonkPreferences.ACTIVE_ENGINE);
 		
@@ -334,6 +335,13 @@ public class ClonkPreferencePage extends FieldEditorPreferencePage implements IW
 			new BooleanFieldEditor(
 				ClonkPreferences.SHOW_EXPORT_LOG,
 				Messages.ShowExportLog,
+				getFieldEditorParent()
+			)
+		);
+		addField(
+			new BooleanFieldEditor(
+				ClonkPreferences.SHOW_ERRORS_WHILE_TYPING,
+				Messages.ClonkPreferencePage_ShowErrorsWhileTyping,
 				getFieldEditorParent()
 			)
 		);
