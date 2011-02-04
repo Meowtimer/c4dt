@@ -681,6 +681,7 @@
 				<entry name="GUIName" class="java.lang.String" />
 				<entry name="Action" class="java.lang.String" />
 				<entry name="Hold" class="UnsignedInteger" />
+				<entry name="RepeatDelay" class="UnsignedInteger" />
 				<entry name="SendCursorPos" class="UnsignedInteger" />
 				<entry name="RepeatDelay" class="UnsignedInteger" />
 			</section>
