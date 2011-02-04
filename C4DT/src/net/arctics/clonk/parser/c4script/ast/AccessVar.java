@@ -6,6 +6,7 @@ import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.c4script.ConstrainedObject;
+import net.arctics.clonk.parser.c4script.DeclarationObtainmentContext;
 import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.ScriptBase;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
@@ -57,11 +58,11 @@ public class AccessVar extends AccessDeclaration {
 	}
 
 	@Override
-	public Declaration obtainDeclaration(C4ScriptParser parser) {
+	public Declaration obtainDeclaration(DeclarationObtainmentContext context) {
 		ExprElm p = getPredecessorInSequence();
 		ScriptBase scriptToLookIn = null;
 		if (p != null) {
-			IType type = p.getType(parser);
+			IType type = p.getType(context);
 			if ((scriptToLookIn = Definition.scriptFrom(type)) == null) {
 				// find pseudo-variable from proplist expression
 				if (type instanceof ProplistDeclaration) {
@@ -69,11 +70,11 @@ public class AccessVar extends AccessDeclaration {
 				}
 			}
 		} else {
-			scriptToLookIn = parser.getContainer();
+			scriptToLookIn = context.getContainer();
 		}
 		if (scriptToLookIn != null) {
-			FindDeclarationInfo info = new FindDeclarationInfo(parser.getContainer().getIndex());
-			info.setContextFunction(parser.getCurrentFunc());
+			FindDeclarationInfo info = new FindDeclarationInfo(context.getContainer().getIndex());
+			info.setContextFunction(context.getCurrentFunc());
 			info.setSearchOrigin(scriptToLookIn);
 			return scriptToLookIn.findVariable(declarationName, info);
 		} else {
@@ -132,7 +133,7 @@ public class AccessVar extends AccessDeclaration {
 	}
 	
 	@Override
-	protected IType obtainType(C4ScriptParser context) {
+	protected IType obtainType(DeclarationObtainmentContext context) {
 		Declaration d = getDeclaration(context);
 		// getDeclaration(context) ensures that declaration is not null (if there is actually a variable) which is needed for queryTypeOfExpression for example
 		if (d == Variable.THIS) {

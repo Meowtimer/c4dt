@@ -6,6 +6,7 @@ import java.util.Map;
 
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.Declaration;
+import net.arctics.clonk.parser.c4script.DeclarationObtainmentContext;
 import net.arctics.clonk.parser.c4script.ScriptBase;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.Variable;
@@ -51,7 +52,7 @@ public class PropListExpression extends Value {
 		output.append('}');
 	}
 	@Override
-	protected IType obtainType(C4ScriptParser parser) {
+	protected IType obtainType(DeclarationObtainmentContext parser) {
 		return definedDeclaration;
 	}
 	@Override

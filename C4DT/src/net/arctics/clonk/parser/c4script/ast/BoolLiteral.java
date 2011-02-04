@@ -3,6 +3,7 @@ package net.arctics.clonk.parser.c4script.ast;
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.ParsingException;
+import net.arctics.clonk.parser.c4script.DeclarationObtainmentContext;
 import net.arctics.clonk.parser.c4script.Operator;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.PrimitiveType;
@@ -19,7 +20,7 @@ public final class BoolLiteral extends Literal<Boolean> {
 		super(Boolean.valueOf(value));
 	}
 	@Override
-	protected IType obtainType(C4ScriptParser context) {
+	protected IType obtainType(DeclarationObtainmentContext context) {
 		return PrimitiveType.BOOL;
 	}
 	@Override

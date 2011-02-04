@@ -7,6 +7,7 @@ import java.util.List;
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
+import net.arctics.clonk.parser.c4script.DeclarationObtainmentContext;
 import net.arctics.clonk.parser.c4script.PrimitiveType;
 import net.arctics.clonk.parser.c4script.IType;
 
@@ -43,7 +44,7 @@ public class Sequence extends Value {
 		}
 	}
 	@Override
-	protected IType obtainType(C4ScriptParser context) {
+	protected IType obtainType(DeclarationObtainmentContext context) {
 		return (elements == null || elements.length == 0) ? PrimitiveType.UNKNOWN : elements[elements.length-1].getType(context);
 	}
 	@Override

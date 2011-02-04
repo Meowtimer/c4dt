@@ -5,6 +5,7 @@ import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.c4script.ArrayType;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
+import net.arctics.clonk.parser.c4script.DeclarationObtainmentContext;
 import net.arctics.clonk.parser.c4script.PrimitiveType;
 import net.arctics.clonk.parser.c4script.IType;
 
@@ -15,7 +16,7 @@ public class ArrayElementExpression extends Value {
 	protected ExprElm argument;
 
 	@Override
-	protected IType obtainType(C4ScriptParser context) {
+	protected IType obtainType(DeclarationObtainmentContext context) {
 		IType t = super.obtainType(context);
 		if (t != PrimitiveType.UNKNOWN && t != PrimitiveType.ANY) {
 			return t;

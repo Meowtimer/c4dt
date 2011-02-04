@@ -13,6 +13,7 @@ import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.DeclarationRegion;
 import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.ParsingException;
+import net.arctics.clonk.parser.c4script.DeclarationObtainmentContext;
 import net.arctics.clonk.parser.c4script.ScriptBase;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.PrimitiveType;
@@ -23,6 +24,7 @@ import net.arctics.clonk.parser.c4script.IHasConstraint;
 import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.parser.c4script.ITypedDeclaration;
 import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
+import net.arctics.clonk.ui.editors.c4script.IPostSerializable;
 import net.arctics.clonk.util.ArrayUtil;
 import net.arctics.clonk.util.IConverter;
 import net.arctics.clonk.util.IPrintable;
@@ -34,7 +36,7 @@ import org.eclipse.jface.text.Region;
 /**
  * base class for making expression trees
  */
-public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable {
+public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IPostSerializable<ExprElm, DeclarationObtainmentContext> {
 
 	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 
@@ -52,7 +54,7 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable {
 	}
 	
 	private int exprStart, exprEnd;
-	private transient ExprElm parent, predecessorInSequence;
+	private ExprElm parent, predecessorInSequence;
 	private int flags = PROPERLY_FINISHED;
 
 	/**
@@ -192,7 +194,7 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable {
 	 * @param context Parser acting as the context (supplying current function, script begin parsed etc.)
 	 * @return The type of the expression
 	 */
-	public final IType getType(C4ScriptParser context) {
+	public final IType getType(DeclarationObtainmentContext context) {
 		IType type = obtainType(context);
 		if (type instanceof TypeSet) {
 			TypeSet typeSet = (TypeSet) type;
@@ -211,7 +213,7 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable {
 		}
 	}
 
-	private final IType resolveConstraint(C4ScriptParser context, IType type) {
+	private final IType resolveConstraint(DeclarationObtainmentContext context, IType type) {
 		if (type instanceof IHasConstraint) {
 			IHasConstraint obl = (IHasConstraint) type;
 			if (obl instanceof ConstrainedObject) {
@@ -222,7 +224,7 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable {
 						return pred.getType(context);
 					else if (obl.constraintScript() != context.getContainer())
 						// constraint only resolved outside of original script
-						return context.getContainerAsObjectOrObjectAppendedTo();
+						return context.getContainerAsType();
 					else
 						break;
 				case Exact:
@@ -238,7 +240,7 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable {
 					if (pred != null)
 						obj = Utilities.as(pred.getType(context), Definition.class);
 					else if (obl.constraintScript() != context.getContainer())
-						obj = context.getContainerObject();
+						obj = context.getContainerAsDefinition();
 					break;
 				case Exact:
 					obj = Utilities.as(obl.constraintScript(), Definition.class);
@@ -258,14 +260,14 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable {
 	 * @param context Parser acting as the context (supplying current function, script begin parsed etc.)
 	 * @return The type of the expression
 	 */
-	protected IType obtainType(C4ScriptParser context) {
+	protected IType obtainType(DeclarationObtainmentContext context) {
 		IType t = context.queryTypeOfExpression(this, PrimitiveType.UNKNOWN);
 		if (t == null)
 			t = PrimitiveType.UNKNOWN;
 		return t;
 	}
 	
-	public final Definition guessObjectType(C4ScriptParser context) {
+	public final Definition guessObjectType(DeclarationObtainmentContext context) {
 		return Utilities.as(Definition.scriptFrom(getType(context)), Definition.class);
 	}
 
@@ -466,7 +468,7 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable {
 				private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 
 				@Override
-				protected IType obtainType(C4ScriptParser context) {
+				protected IType obtainType(DeclarationObtainmentContext context) {
 					return type;
 				}
 			};
@@ -591,8 +593,8 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable {
 		return evaluate(null);
 	}
 	
-	public final CachedEngineFuncs getCachedFuncs(C4ScriptParser parser) {
-		return parser.getContainer().getIndex().getEngine().getCachedFuncs();
+	public final CachedEngineFuncs getCachedFuncs(DeclarationObtainmentContext context) {
+		return context.getContainer().getIndex().getEngine().getCachedFuncs();
 	}
 	
 	protected void offsetExprRegion(int amount, boolean start, boolean end) {
@@ -825,6 +827,15 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable {
 
 	private Sequence sequence() {
 		return getParent() instanceof Sequence ? (Sequence)getParent() : null;
+	}
+
+	@Override
+	public void postSerialize(ExprElm parent, DeclarationObtainmentContext root) {
+		for (ExprElm e : getSubElements()) {
+			if (e != null) {
+				e.postSerialize(this, root);
+			}
+		}
 	}
 
 }

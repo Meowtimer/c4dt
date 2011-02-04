@@ -7,6 +7,7 @@ import org.eclipse.jface.text.Region;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.DeclarationRegion;
 import net.arctics.clonk.parser.ParsingException;
+import net.arctics.clonk.parser.c4script.DeclarationObtainmentContext;
 import net.arctics.clonk.parser.c4script.EffectFunction;
 import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
@@ -85,15 +86,15 @@ public class SpecialScriptRules_OpenClonk extends SpecialScriptRules {
 			return null;
 		};
 		@Override
-		public IType returnType(C4ScriptParser parser, CallFunc callFunc) {
+		public IType returnType(DeclarationObtainmentContext context, CallFunc callFunc) {
 			Object parmEv;
-			if (callFunc.getParams().length >= 1 && (parmEv = callFunc.getParams()[0].evaluateAtParseTime(parser.getContainer())) instanceof String) {
+			if (callFunc.getParams().length >= 1 && (parmEv = callFunc.getParams()[0].evaluateAtParseTime(context.getContainer())) instanceof String) {
 				String effectName = (String) parmEv;
 				for (EffectFunction.HardcodedCallbackType t : EffectFunction.HardcodedCallbackType.values()) {
 					Declaration d = CallFunc.findFunctionUsingPredecessor(
 							callFunc.getPredecessorInSequence(),
 							String.format(EffectFunction.FUNCTION_NAME_FORMAT, effectName, t.name()), 
-							parser
+							context
 					);
 					if (d instanceof EffectFunction) {
 						return ((EffectFunction)d).getEffectType();

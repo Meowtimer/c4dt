@@ -161,8 +161,8 @@ public class Engine extends ScriptBase {
 	}
 
 	@Override
-	public void postSerialize(Declaration parent) {
-		super.postSerialize(parent);
+	public void postSerialize(Declaration parent, ClonkIndex root) {
+		super.postSerialize(parent, root);
 		modified();
 	}
 
@@ -385,7 +385,7 @@ public class Engine extends ScriptBase {
 				}
 			};
 			parser.parse();
-			postSerialize(null);
+			postSerialize(null, null);
 		} finally {
 			stream.close();
 		}

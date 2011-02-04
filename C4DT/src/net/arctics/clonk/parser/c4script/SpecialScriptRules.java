@@ -151,12 +151,12 @@ public class SpecialScriptRules {
 		}
 		/**
 		 * Modify return type of function call.
-		 * @param parser context
+		 * @param context context
 		 * @param callFunc function call
 		 * @return Modified type or null, in which case the default type will be returned.
 		 */
 		@SignifiesRole(role=RETURNTYPE_MODIFIER)
-		public IType returnType(C4ScriptParser parser, CallFunc callFunc) {
+		public IType returnType(DeclarationObtainmentContext context, CallFunc callFunc) {
 			return null;
 		}
 		/**
@@ -235,9 +235,9 @@ public class SpecialScriptRules {
 	@AppliedTo(functions={"CreateObject", "CreateContents"})
 	public final SpecialFuncRule objectCreationRule = new SpecialFuncRule() {
 		@Override
-		public IType returnType(C4ScriptParser parser, CallFunc callFunc) {
+		public IType returnType(DeclarationObtainmentContext context, CallFunc callFunc) {
 			if (callFunc.getParams().length >= 1) {
-				IType t = callFunc.getParams()[0].getType(parser);
+				IType t = callFunc.getParams()[0].getType(context);
 				if (t instanceof ConstrainedType) {
 					ConstrainedType ct = (ConstrainedType) t;
 					switch (ct.constraintKind()) {
@@ -260,17 +260,17 @@ public class SpecialScriptRules {
 	@AppliedTo(functions={"GetID"})
 	public final SpecialFuncRule getIDRule = new SpecialFuncRule() {
 		@Override
-		public IType returnType(C4ScriptParser parser, CallFunc callFunc) {
+		public IType returnType(DeclarationObtainmentContext context, CallFunc callFunc) {
 			ScriptBase script = null;
 			ConstraintKind constraintKind = null;
 			IType t;
 			if (callFunc.getParams().length > 0) {
-				t = callFunc.getParams()[0].getType(parser);
+				t = callFunc.getParams()[0].getType(context);
 			} else if (callFunc.getPredecessorInSequence() != null) {
-				t = callFunc.getPredecessorInSequence().getType(parser);
+				t = callFunc.getPredecessorInSequence().getType(context);
 			} else {
 				constraintKind = ConstraintKind.CallerType;
-				script = parser.getContainer();
+				script = context.getContainer();
 				t = null;
 			}
 			if (t instanceof ConstrainedObject) {
@@ -289,8 +289,8 @@ public class SpecialScriptRules {
 	@AppliedTo(functions={"FindObjects"})
 	public final SpecialFuncRule criteriaSearchRule = new SpecialFuncRule() {
 		@Override
-		public IType returnType(C4ScriptParser parser, CallFunc callFunc) {
-			IType t = searchCriteriaAssumedResult(parser, callFunc, true);
+		public IType returnType(DeclarationObtainmentContext context, CallFunc callFunc) {
+			IType t = searchCriteriaAssumedResult(context, callFunc, true);
 			if (t == null) {
 				t = PrimitiveType.OBJECT;
 			}
@@ -302,7 +302,7 @@ public class SpecialScriptRules {
 			return t;
 		}
 		
-		private Definition searchCriteriaAssumedResult(C4ScriptParser parser, CallFunc callFunc, boolean topLevel) {
+		private Definition searchCriteriaAssumedResult(DeclarationObtainmentContext context, CallFunc callFunc, boolean topLevel) {
 			Definition result = null;
 			String declarationName = callFunc.getDeclarationName();
 			// parameters to FindObjects itself are also &&-ed together
@@ -310,7 +310,7 @@ public class SpecialScriptRules {
 				for (ExprElm parm : callFunc.getParams()) {
 					if (parm instanceof CallFunc) {
 						CallFunc call = (CallFunc)parm;
-						Definition t = searchCriteriaAssumedResult(parser, call, false);
+						Definition t = searchCriteriaAssumedResult(context, call, false);
 						if (t != null) {
 							if (result == null)
 								result = t;
@@ -324,7 +324,7 @@ public class SpecialScriptRules {
 			}
 			else if (declarationName.equals("Find_ID")) { //$NON-NLS-1$
 				if (callFunc.getParams().length > 0) {
-					result = callFunc.getParams()[0].guessObjectType(parser);
+					result = callFunc.getParams()[0].guessObjectType(context);
 				}
 			}
 			return result;
@@ -340,7 +340,7 @@ public class SpecialScriptRules {
 		public boolean validateArguments(CallFunc callFunc, final ExprElm[] arguments, final C4ScriptParser parser) {
 			if (arguments.length < 1)
 				return false; // no script expression supplied
-			IType objType = arguments.length >= 4 ? arguments[3].getType(parser) : parser.getContainerObject();
+			IType objType = arguments.length >= 4 ? arguments[3].getType(parser) : parser.getContainerAsDefinition();
 			ScriptBase script = objType != null ? TypeSet.objectIngredient(objType) : null;
 			if (script == null)
 				script = parser.getContainer(); // fallback
@@ -495,7 +495,7 @@ public class SpecialScriptRules {
 				if (typeToLookIn == null && callFunc.getPredecessorInSequence() != null)
 					typeToLookIn = callFunc.getPredecessorInSequence().guessObjectType(parser);
 				if (typeToLookIn == null)
-					typeToLookIn = parser.getContainerObject();
+					typeToLookIn = parser.getContainerAsDefinition();
 				if (typeToLookIn != null) {
 					Function f = typeToLookIn.findFunction(lit.stringValue());
 					if (f != null)
@@ -519,7 +519,7 @@ public class SpecialScriptRules {
 				if (typeToLookIn == null && callFunc.getPredecessorInSequence() != null)
 					typeToLookIn = callFunc.getPredecessorInSequence().guessObjectType(parser);
 				if (typeToLookIn == null)
-					typeToLookIn = parser.getContainerObject();
+					typeToLookIn = parser.getContainerAsDefinition();
 				if (typeToLookIn != null) {
 					Variable var = typeToLookIn.findVariable(lit.stringValue());
 					if (var != null)
@@ -536,7 +536,7 @@ public class SpecialScriptRules {
 	@AppliedTo(functions={"GetPlrKnowledge", "GetPlrMagic"})
 	public final SpecialFuncRule getPlrKnowledgeRule = new SpecialFuncRule() {
 		@Override
-		public IType returnType(C4ScriptParser parser, CallFunc callFunc) {
+		public IType returnType(DeclarationObtainmentContext context, CallFunc callFunc) {
 			if (callFunc.getParams().length >= 3) {
 				return PrimitiveType.ID;
 			} else {

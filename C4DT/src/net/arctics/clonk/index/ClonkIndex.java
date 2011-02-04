@@ -178,7 +178,6 @@ public class ClonkIndex implements Serializable, Iterable<Definition> {
 	
 	private <T extends ScriptBase> void addGlobalsFrom(Iterable<T> scripts) {
 		for (T script : scripts) {
-			script.postSerialize(null); // for good measure
 			addGlobalsFrom(script);
 			detectAppendages(script);
 		}
@@ -200,10 +199,20 @@ public class ClonkIndex implements Serializable, Iterable<Definition> {
 		declarationMap.clear();
 		appendages.clear();
 		
-		// save cachable items
-		addGlobalsFrom(this);
-		addGlobalsFrom(indexedScripts);
-		addGlobalsFrom(indexedScenarios);
+		// add globals to globals lists
+		List<Iterable<? extends ScriptBase>> scriptCollections = new ArrayList<Iterable<? extends ScriptBase>>(3);
+		scriptCollections.add(this);
+		scriptCollections.add(indexedScripts);
+		scriptCollections.add(indexedScenarios);
+		for (Iterable<? extends ScriptBase> c : scriptCollections) {
+			addGlobalsFrom(c);
+		}
+		// do some post serialization after globals are known
+		for (Iterable<? extends ScriptBase> c : scriptCollections) {
+			for (ScriptBase s : c) {
+				s.postSerialize(null, null);
+			}
+		}
 		
 //		System.out.println("Functions added to cache:");
 //		for (C4Function func : globalFunctions)

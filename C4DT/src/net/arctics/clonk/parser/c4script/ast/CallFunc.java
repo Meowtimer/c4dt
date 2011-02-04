@@ -9,6 +9,7 @@ import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.DeclarationRegion;
 import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.ParsingException;
+import net.arctics.clonk.parser.c4script.DeclarationObtainmentContext;
 import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.ScriptBase;
 import net.arctics.clonk.parser.c4script.Operator;
@@ -187,7 +188,7 @@ public class CallFunc extends AccessDeclaration {
 	public boolean hasSideEffects() {
 		return true;
 	}
-	public SpecialFuncRule getSpecialRule(C4ScriptParser context, int role) {
+	public SpecialFuncRule getSpecialRule(DeclarationObtainmentContext context, int role) {
 		Engine engine = context.getContainer().getEngine();
 		if (engine != null && engine.getSpecialScriptRules() != null) {
 			return engine.getSpecialScriptRules().getFuncRuleFor(declarationName, role);
@@ -196,7 +197,7 @@ public class CallFunc extends AccessDeclaration {
 		}
 	}
 	@Override
-	protected IType obtainType(C4ScriptParser context) {
+	protected IType obtainType(DeclarationObtainmentContext context) {
 		Declaration d = getDeclaration(context);
 		
 		// look for gathered type information
@@ -206,7 +207,7 @@ public class CallFunc extends AccessDeclaration {
 		
 		// calling this() as function -> return object type belonging to script
 		if (params.length == 0 && (d == getCachedFuncs(context).This || d == Variable.THIS)) {
-			Definition obj = context.getContainerObject();
+			Definition obj = context.getContainerAsDefinition();
 			if (obj != null)
 				return obj;
 		}
@@ -230,28 +231,29 @@ public class CallFunc extends AccessDeclaration {
 	public boolean isValidInSequence(ExprElm elm, C4ScriptParser context) {
 		return super.isValidInSequence(elm, context) || elm instanceof MemberOperator;	
 	}
+	
 	@Override
-	public Declaration obtainDeclaration(C4ScriptParser parser) {
+	public Declaration obtainDeclaration(DeclarationObtainmentContext context) {
 		if (declarationName.equals(Keywords.Return))
 			return null;
 		if (declarationName.equals(Keywords.Inherited) || declarationName.equals(Keywords.SafeInherited)) {
-			Function activeFunc = parser.getCurrentFunc();
+			Function activeFunc = context.getCurrentFunc();
 			return activeFunc != null ? activeFunc.getInherited() : null;
 		}
 		ExprElm p = getPredecessorInSequence();
-		return findFunctionUsingPredecessor(p, declarationName, parser);
+		return findFunctionUsingPredecessor(p, declarationName, context);
 	}
 
-	public static Declaration findFunctionUsingPredecessor(ExprElm p, String functionName, C4ScriptParser parser) {
-		ScriptBase lookIn = p == null ? parser.getContainer() : p.guessObjectType(parser);
+	public static Declaration findFunctionUsingPredecessor(ExprElm p, String functionName, DeclarationObtainmentContext context) {
+		ScriptBase lookIn = p == null ? context.getContainer() : p.guessObjectType(context);
 		if (lookIn != null) {
-			FindDeclarationInfo info = new FindDeclarationInfo(parser.getContainer().getIndex());
-			info.setSearchOrigin(parser.getContainer());
+			FindDeclarationInfo info = new FindDeclarationInfo(context.getContainer().getIndex());
+			info.setSearchOrigin(context.getContainer());
 			Declaration field = lookIn.findFunction(functionName, info);
 			// parse function before this one
-			if (field != null && parser.getCurrentFunc() != null) {
+			if (field != null && context.getCurrentFunc() != null) {
 				try {
-					parser.parseCodeOfFunction((Function) field, true);
+					context.parseCodeOfFunction((Function) field, true);
 				} catch (ParsingException e) {
 					e.printStackTrace();
 				}
@@ -262,14 +264,14 @@ public class CallFunc extends AccessDeclaration {
 			return field;
 		} else if (p != null) {
 			// find global function
-			Declaration declaration = parser.getContainer().getIndex().findGlobalFunction(functionName);
+			Declaration declaration = context.getContainer().getIndex().findGlobalFunction(functionName);
 			if (declaration == null)
-				declaration = parser.getContainer().getIndex().getEngine().findFunction(functionName);
+				declaration = context.getContainer().getIndex().getEngine().findFunction(functionName);
 
 			// only return found declaration if it's the only choice 
 			if (declaration != null) {
-				List<Declaration> allFromLocalIndex = parser.getContainer().getIndex().getDeclarationMap().get(functionName);
-				Declaration decl = parser.getContainer().getEngine().findLocalFunction(functionName, false);
+				List<Declaration> allFromLocalIndex = context.getContainer().getIndex().getDeclarationMap().get(functionName);
+				Declaration decl = context.getContainer().getEngine().findLocalFunction(functionName, false);
 				if (
 						(allFromLocalIndex != null ? allFromLocalIndex.size() : 0) +
 						(decl != null ? 1 : 0) == 1

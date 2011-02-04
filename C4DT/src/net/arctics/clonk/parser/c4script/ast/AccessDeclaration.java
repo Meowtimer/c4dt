@@ -5,6 +5,7 @@ import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.DeclarationRegion;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
+import net.arctics.clonk.parser.c4script.DeclarationObtainmentContext;
 import net.arctics.clonk.parser.c4script.ITypedDeclaration;
 import net.arctics.clonk.parser.c4script.ast.IDifferenceListener.Option;
 
@@ -16,10 +17,10 @@ public abstract class AccessDeclaration extends Value {
 	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 	protected transient Declaration declaration;
 	protected String declarationName;
-
-	public Declaration getDeclaration(C4ScriptParser parser) {
+	
+	public Declaration getDeclaration(DeclarationObtainmentContext context) {
 		if (declaration == null) {
-			declaration = obtainDeclaration(parser);
+			declaration = obtainDeclaration(context);
 		}
 		return declaration;
 	}
@@ -28,7 +29,7 @@ public abstract class AccessDeclaration extends Value {
 		return declaration; // return without trying to obtain it (no parser context)
 	}
 
-	public abstract Declaration obtainDeclaration(C4ScriptParser parser);
+	public abstract Declaration obtainDeclaration(DeclarationObtainmentContext context);
 
 	@Override
 	public void reportErrors(C4ScriptParser parser) throws ParsingException {
@@ -100,6 +101,12 @@ public abstract class AccessDeclaration extends Value {
 		} else {
 			return super.createStoredTypeInformation(parser);
 		}
+	}
+	
+	@Override
+	public void postSerialize(ExprElm parent, DeclarationObtainmentContext root) {
+		super.postSerialize(parent, root);
+		getDeclaration(root);
 	}
 	
 }

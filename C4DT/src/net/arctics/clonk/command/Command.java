@@ -161,7 +161,7 @@ public class Command {
 				ObjectInputStream objStream = new ClonkIndexInputStream(engineStream);
 				Engine result = (Engine)objStream.readObject();
 				result.setName(engineName); // for good measure
-				result.postSerialize(null);
+				result.postSerialize(null, null);
 				_WriteDescriptionsToFile(writeToFile, result);
 			} finally {
 				engineStream.close();

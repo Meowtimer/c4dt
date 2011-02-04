@@ -347,11 +347,11 @@ public class Variable extends Declaration implements Serializable, ITypedDeclara
 	
 	@SuppressWarnings("unchecked")
 	@Override
-	public void postSerialize(Declaration parent) {
-		super.postSerialize(parent);
+	public void postSerialize(Declaration parent, ClonkIndex root) {
+		super.postSerialize(parent, root);
 		ensureTypeLockedIfPredefined(parent);
 		if (initializationExpression instanceof IPostSerializable) {
-			((IPostSerializable<IPostSerializable<?>>)initializationExpression).postSerialize(this);
+			((IPostSerializable<ExprElm, DeclarationObtainmentContext>)initializationExpression).postSerialize(null, getDeclarationObtainmentContext());
 		}
 	}
 

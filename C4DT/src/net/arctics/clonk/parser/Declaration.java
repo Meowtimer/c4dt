@@ -3,13 +3,19 @@ package net.arctics.clonk.parser;
 import java.io.Serializable;
 
 import net.arctics.clonk.ClonkCore;
+import net.arctics.clonk.index.ClonkIndex;
+import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.index.ProjectDefinition;
 import net.arctics.clonk.index.Scenario;
+import net.arctics.clonk.parser.c4script.DeclarationObtainmentContext;
+import net.arctics.clonk.parser.c4script.Function;
+import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.parser.c4script.ScriptBase;
 import net.arctics.clonk.parser.c4script.StandaloneProjectScript;
 import net.arctics.clonk.parser.c4script.IHasSubDeclarations;
 import net.arctics.clonk.parser.c4script.IHasUserDescription;
+import net.arctics.clonk.parser.c4script.ast.ExprElm;
 import net.arctics.clonk.parser.stringtbl.StringTbl;
 import net.arctics.clonk.preferences.ClonkPreferences;
 import net.arctics.clonk.resource.ClonkProjectNature;
@@ -30,7 +36,7 @@ import org.eclipse.jface.text.IRegion;
  * @author madeen
  *
  */
-public abstract class Declaration implements Serializable, IHasRelatedResource, INode, IPostSerializable<Declaration>, IHasSubDeclarations  {
+public abstract class Declaration implements Serializable, IHasRelatedResource, INode, IPostSerializable<Declaration, ClonkIndex>, IHasSubDeclarations  {
 
 	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 	
@@ -267,14 +273,15 @@ public abstract class Declaration implements Serializable, IHasRelatedResource, 
 	 * Called after deserialization to restore transient references
 	 * @param parent the parent
 	 */
-	public void postSerialize(Declaration parent) {
+	@Override
+	public void postSerialize(Declaration parent, ClonkIndex root) {
 		if (name != null)
 			name = name.intern();
 		setParentDeclaration(parent);
 		Iterable<? extends Declaration> subDecs = this.allSubDeclarations(ALL_SUBDECLARATIONS);
 		if (subDecs != null)
 			for (Declaration d : subDecs)
-				d.postSerialize(this);
+				d.postSerialize(this, root);
 	}
 	
 	/**
@@ -369,6 +376,41 @@ public abstract class Declaration implements Serializable, IHasRelatedResource, 
 			e.printStackTrace();
 		}
 		return null;
+	}
+	
+	protected DeclarationObtainmentContext getDeclarationObtainmentContext() {
+		return new DeclarationObtainmentContext() {
+			
+			@Override
+			public IType queryTypeOfExpression(ExprElm exprElm, IType defaultType) {
+				return null;
+			}
+			
+			@Override
+			public void parseCodeOfFunction(Function field, boolean b) throws ParsingException {
+				// fail
+			}
+			
+			@Override
+			public Function getCurrentFunc() {
+				return Declaration.this instanceof Function ? (Function)Declaration.this : null;
+			}
+			
+			@Override
+			public IType getContainerAsType() {
+				return getScript().castAsType(); 
+			}
+			
+			@Override
+			public Definition getContainerAsDefinition() {
+				return getScript() instanceof Definition ? (Definition)getScript() : null;
+			}
+			
+			@Override
+			public ScriptBase getContainer() {
+				return getScript();
+			}
+		};
 	}
 	
 }

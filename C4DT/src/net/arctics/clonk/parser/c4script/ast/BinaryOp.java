@@ -6,6 +6,7 @@ import java.util.List;
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.ParsingException;
+import net.arctics.clonk.parser.c4script.DeclarationObtainmentContext;
 import net.arctics.clonk.parser.c4script.ScriptBase;
 import net.arctics.clonk.parser.c4script.Operator;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
@@ -19,7 +20,7 @@ public class BinaryOp extends OperatorExpression {
 	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 
 	@Override
-	protected IType obtainType(C4ScriptParser context) {
+	protected IType obtainType(DeclarationObtainmentContext context) {
 		switch (getOperator()) {
 		// &&/|| special: they return either the left or right side of the operator so the return type is the lowest common denominator of the argument types
 		case And: case Or:

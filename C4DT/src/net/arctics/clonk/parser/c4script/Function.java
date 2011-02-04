@@ -7,6 +7,7 @@ import java.util.List;
 
 import org.eclipse.jface.text.IRegion;
 
+import net.arctics.clonk.index.ClonkIndex;
 import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.parser.Declaration;
@@ -648,6 +649,14 @@ public class Function extends Structure implements Serializable, ITypedDeclarati
 	@Override
 	public int hashCode() {
 		return name != null ? name.hashCode() : super.hashCode();
+	}
+	
+	@Override
+	public void postSerialize(Declaration parent, ClonkIndex root) {
+		super.postSerialize(parent, root);
+		if (codeBlock != null) {
+			codeBlock.postSerialize(null, getDeclarationObtainmentContext());
+		}
 	}
 	
 }

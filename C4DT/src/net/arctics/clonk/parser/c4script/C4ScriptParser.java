@@ -83,7 +83,6 @@ import net.arctics.clonk.parser.c4script.ast.WhileStatement;
 import net.arctics.clonk.resource.ClonkBuilder;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.resource.c4group.C4GroupItem;
-import net.arctics.clonk.util.ArrayUtil;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IResource;
@@ -100,7 +99,7 @@ import org.eclipse.jface.text.Region;
  * checking correctness (aiming to detect all kinds of errors like undeclared identifiers, supplying values of wrong type to functions etc.), converting old
  * c4script code to #strict-compliant "new-style" code and forming the base of navigation operations like "Find Declaration", "Find References" etc.
  */
-public class C4ScriptParser extends CStyleScanner {
+public class C4ScriptParser extends CStyleScanner implements DeclarationObtainmentContext {
 	
 	public static class FunctionContext {
 		public Declaration currentDeclaration;
@@ -422,7 +421,7 @@ public class C4ScriptParser extends CStyleScanner {
 	 * Returns the script object as an object if it is one or null if it is not.
 	 * @return The script object as  C4Object
 	 */
-	public Definition getContainerObject() {
+	public Definition getContainerAsDefinition() {
 		if (container instanceof Definition)
 			return (Definition) container;
 		return null;
@@ -433,22 +432,8 @@ public class C4ScriptParser extends CStyleScanner {
 	 * this script is appended to. If there is only one object appended to, that object will be returned. 
 	 * @return
 	 */
-	public IType getContainerAsObjectOrObjectAppendedTo() {
-		if (container instanceof IType) {
-			// it's a type (probably C4Object)
-			return (IType) container;
-		} else {
-			IType[] includes = ArrayUtil.filter(container.getIncludes(), IType.class);
-			if (includes.length > 1) {
-				// includes/appends to more than one other script ... create type set out of the scripts that are types
-				return TypeSet.create(includes);
-			} else if (includes.length == 1 && includes[0] instanceof IType) {
-				// includes/appends to one type: return that
-				return (IType)includes[0];
-			}
-		}
-		// could be #appendto * or whatever
-		return PrimitiveType.OBJECT;
+	public IType getContainerAsType() {
+		return container.castAsType();
 	}
 	
 	/**

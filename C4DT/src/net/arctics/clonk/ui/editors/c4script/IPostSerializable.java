@@ -1,5 +1,5 @@
 package net.arctics.clonk.ui.editors.c4script;
 
-public interface IPostSerializable<T extends IPostSerializable<?>> {
-	void postSerialize(T parent);
+public interface IPostSerializable<ParentType, RootType> {
+	void postSerialize(ParentType parent, RootType root);
 }
