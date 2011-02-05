@@ -8,6 +8,7 @@ import net.arctics.clonk.ClonkCore;
 
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.preferences.IScopeContext;
+import org.eclipse.jface.preference.IPreferenceStore;
 
 /**
  * Constant definitions for clonk preferences
@@ -28,6 +29,7 @@ public class ClonkPreferences {
 	public static final String PREFERRED_LANGID = "preferredLangID"; //$NON-NLS-1$
 	public static final String OPEN_EXTERNAL_BROWSER = "openExternalBrowser"; //$NON-NLS-1$
 	public static final String SHOW_ERRORS_WHILE_TYPING = "showErrorsWhileTyping";
+	public static final String STRUCTURE_OUTLINES_IN_PROJECT_EXPLORER = "showOutlinesInProjectExplorer";
 	
 	private static final Map<String, Field> valueFieldMapping = new HashMap<String, Field>();
 	
@@ -73,6 +75,13 @@ public class ClonkPreferences {
 	public static String getLanguagePrefForDocumentation() {
 		String pref = getLanguagePref();
 		return pref.equals("DE") ? "de" : "en";
+	}
+	
+	public static void commitDefaultsToPrefStore(IPreferenceStore store) {
+		store.setDefault(DOC_URL_TEMPLATE, DOC_URL_TEMPLATE_DEFAULT);
+		store.setDefault(ACTIVE_ENGINE, ACTIVE_ENGINE_DEFAULT);
+		store.setDefault(SHOW_ERRORS_WHILE_TYPING, true);
+		store.setDefault(STRUCTURE_OUTLINES_IN_PROJECT_EXPLORER, true);
 	}
 	
 }

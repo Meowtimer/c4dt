@@ -13,6 +13,7 @@ public class Messages extends NLS {
 	public static String ClonkPreferencePage_SelectExternalFolder;
 	public static String ClonkPreferencePage_SelectRegularFolder;
 	public static String ClonkPreferencePage_ShowErrorsWhileTyping;
+	public static String ClonkPreferencePage_StructureOutlinesInProjectExplorer;
 	public static String ClonkPreferencePage_YesIndeed;
 	public static String ClonkPreferences;
 	public static String GamePath;

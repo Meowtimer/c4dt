@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.index.Engine;
@@ -185,9 +186,7 @@ public class ClonkPreferencePage extends FieldEditorPreferencePage implements IW
 	public void createFieldEditors() {
 		
 		// FIXME: not the best place to set that
-		getPreferenceStore().setDefault(ClonkPreferences.DOC_URL_TEMPLATE, ClonkPreferences.DOC_URL_TEMPLATE_DEFAULT);
-		getPreferenceStore().setDefault(ClonkPreferences.ACTIVE_ENGINE, ClonkPreferences.ACTIVE_ENGINE_DEFAULT);
-		getPreferenceStore().setDefault(ClonkPreferences.SHOW_ERRORS_WHILE_TYPING, true);
+		ClonkPreferences.commitDefaultsToPrefStore(getPreferenceStore());
 		
 		currentEngine = ClonkCore.getDefault().getPreferenceStore().getString(ClonkPreferences.ACTIVE_ENGINE);
 		
@@ -331,27 +330,14 @@ public class ClonkPreferencePage extends FieldEditorPreferencePage implements IW
 				getFieldEditorParent()
 			)
 		);*/
-		addField(
-			new BooleanFieldEditor(
-				ClonkPreferences.SHOW_EXPORT_LOG,
-				Messages.ShowExportLog,
-				getFieldEditorParent()
-			)
-		);
-		addField(
-			new BooleanFieldEditor(
-				ClonkPreferences.SHOW_ERRORS_WHILE_TYPING,
-				Messages.ClonkPreferencePage_ShowErrorsWhileTyping,
-				getFieldEditorParent()
-			)
-		);
-		addField(
-			new BooleanFieldEditor(
-				ClonkPreferences.OPEN_EXTERNAL_BROWSER,
-				Messages.ClonkPreferencePage_OpenExternalBrowser,
-				getFieldEditorParent()
-			)
-		);
+		Map<String, String> toggleHumanMap = new HashMap<String, String>();
+		toggleHumanMap.put(ClonkPreferences.SHOW_EXPORT_LOG, Messages.ShowExportLog);
+		toggleHumanMap.put(ClonkPreferences.SHOW_ERRORS_WHILE_TYPING, Messages.ClonkPreferencePage_ShowErrorsWhileTyping);
+		toggleHumanMap.put(ClonkPreferences.OPEN_EXTERNAL_BROWSER, Messages.ClonkPreferencePage_OpenExternalBrowser);
+		toggleHumanMap.put(ClonkPreferences.STRUCTURE_OUTLINES_IN_PROJECT_EXPLORER, Messages.ClonkPreferencePage_StructureOutlinesInProjectExplorer);
+		for (Entry<String, String> entry : toggleHumanMap.entrySet()) {
+			addField(new BooleanFieldEditor(entry.getKey(), entry.getValue(), getFieldEditorParent()));
+		}
 //
 //		addField(new RadioGroupFieldEditor(
 //				PreferenceConstants.P_CHOICE,
