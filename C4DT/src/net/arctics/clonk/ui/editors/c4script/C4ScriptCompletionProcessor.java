@@ -69,7 +69,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 
 	private static final char[] CONTEXT_INFORMATION_AUTO_ACTIVATION_CHARS = new char[] {'('};
 	private static final char[] COMPLETION_INFORMATION_AUTO_ACTIVATION_CHARS = new char[] {
-		'.'
+		//'.' Zapper does not want
 	};
 	
 	private final class ClonkCompletionListener implements ICompletionListener, ICompletionListenerExtension {
