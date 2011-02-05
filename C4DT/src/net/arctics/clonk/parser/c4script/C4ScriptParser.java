@@ -1802,7 +1802,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 					if (firstExpr == null) {
 						firstExpr = ExprElm.nullExpr(this.offset, 0, this);
 						// might be disabled
-						errorWithCode(ParserErrorCode.EmptyParentheses, parenthStartPos, this.offset+1, true);
+						errorWithCode(ParserErrorCode.EmptyParentheses, parenthStartPos-bodyOffset(), this.offset+1-bodyOffset(), true);
 					}
 					eatWhitespace();
 					c = read();
