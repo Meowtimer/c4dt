@@ -70,7 +70,7 @@ public class MapCreatorParser extends Parser {
     public MapCreatorParser(MapCreator mapCreator, TokenStream input) {
     	this(input);
     	this.mapCreator = mapCreator;
-    	createMarkers = mapCreator.getResource() == null || !C4GroupItem.isLinkedResource(mapCreator.getResource());
+    	createMarkers = mapCreator.getResource() == null || C4GroupItem.getGroupItemBackingResource(mapCreator.getResource()) == null;
     	this.current = mapCreator;
     }
 

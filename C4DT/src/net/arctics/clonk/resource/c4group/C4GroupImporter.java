@@ -6,7 +6,7 @@ import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.util.LinkedList;
 import java.util.List;
-
+import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.ui.wizards.Messages;
 import net.arctics.clonk.util.Utilities;
 
@@ -25,25 +25,49 @@ import org.eclipse.ui.actions.WorkspaceModifyOperation;
  */
 public class C4GroupImporter extends WorkspaceModifyOperation {
 
-	private File[] resources;
+	public static final String IMPORTING_FOLDER = "C4GroupImport";
+	
+	private File[] groupFiles;
 	private IContainer destination;
 
-	public C4GroupImporter(File[] resourcesToImport, IContainer destination) {
+	public C4GroupImporter(File[] groupsToImport, IContainer destination) {
 		super();
-		resources = resourcesToImport;
+		groupFiles = groupsToImport;
 		this.destination = destination;
+		determineWhatGroupsNeedToBeMovedAndDeleted();
 	}
 	
+	/**
+	 * When importing a group inside the project folder the group file needs to be moved to some temporary location first and after importing deleted
+	 */
+	private void determineWhatGroupsNeedToBeMovedAndDeleted() {
+		File destinationFile = new File(destination.getLocation().toOSString());
+		File importingFolder = null;
+		for (int i = 0; i < groupFiles.length; i++) {
+			File gf = groupFiles[i];
+			if (new File(destinationFile, gf.getName()).equals(gf)) {
+				if (importingFolder == null)
+					importingFolder = ClonkCore.getDefault().requestFolderInStateLocation(IMPORTING_FOLDER);
+				File fileMoveDestination = new File(importingFolder, gf.getName());
+				if (gf.renameTo(fileMoveDestination)) {
+					groupFiles[i] = fileMoveDestination;
+				} else {
+					System.out.println("Failed to move " + gf.toString() + "!");
+				}
+			}
+		}
+	}
+
 	@Override
 	protected void execute(final IProgressMonitor monitor) throws CoreException, InvocationTargetException, InterruptedException {
-		C4Group[] groups = new C4Group[resources.length];
+		C4Group[] groups = new C4Group[groupFiles.length];
 		monitor.beginTask(Messages.C4GroupImporter_ImportingFiles, groups.length);
 		try {
-			for(int i = 0; i < resources.length;i++) {
+			for(int i = 0; i < groupFiles.length;i++) {
 				if (monitor.isCanceled())
 					return;
 				try {
-					groups[i] = C4Group.openFile(resources[i]);
+					groups[i] = C4Group.openFile(groupFiles[i]);
 					monitor.subTask(String.format(Messages.C4GroupImporter_Importing, groups[i].getName()));
 					final List<String> errorsWhileImporting = new LinkedList<String>();
 					groups[i].readIntoMemory(true, new C4GroupHeaderFilterBase() {
@@ -93,7 +117,7 @@ public class C4GroupImporter extends WorkspaceModifyOperation {
 						}
 					});
 				} catch (Exception e) {
-					Utilities.errorMessage(e, String.format(Messages.C4GroupImporter_ErrorImporting, resources[i].toString()));
+					Utilities.errorMessage(e, String.format(Messages.C4GroupImporter_ErrorImporting, groupFiles[i].toString()));
 					monitor.setCanceled(true);
 					e.printStackTrace();
 				}

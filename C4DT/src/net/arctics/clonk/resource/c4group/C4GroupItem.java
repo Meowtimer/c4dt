@@ -10,8 +10,10 @@ import java.net.URISyntaxException;
 
 import net.arctics.clonk.filesystem.C4GroupFileSystem;
 import net.arctics.clonk.util.INodeWithPath;
+import net.arctics.clonk.util.Utilities;
 
 import org.eclipse.core.filesystem.EFS;
+import org.eclipse.core.filesystem.IFileStore;
 import org.eclipse.core.filesystem.provider.FileStore;
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IResource;
@@ -130,12 +132,13 @@ public abstract class C4GroupItem extends FileStore implements INodeWithPath {
 		return getParentGroup();
 	}
 	
-	public static boolean isLinkedResource(IResource resource) {
+	public static C4GroupItem getGroupItemBackingResource(IResource resource) {
+		URI uri = resource.getLocationURI();
 		try {
-			return EFS.getStore(resource.getLocationURI()) instanceof C4GroupEntry;
+			IFileStore fileStore = EFS.getStore(uri);
+			return Utilities.as(fileStore, C4GroupItem.class);
 		} catch (CoreException e) {
-			e.printStackTrace();
-			return false;
+			return null;
 		}
 	}
 	

@@ -355,6 +355,17 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 	private IPath getWorkspaceStorageLocationForEngines() {
 	    return getStateLocation().append("engines"); //$NON-NLS-1$
     }
+	
+	/**
+	 * Request that a folder with the supplied name be created in the plugin state folder.<br>
+	 * Utilization of the folder is up to the caller.
+	 * @param name The name of the folder to create
+	 * @return Reference to the folder
+	 */
+	public File requestFolderInStateLocation(String name) {
+		File result = new File(new File(getStateLocation().toOSString()), name);
+		return result.mkdirs() ? result : null;
+	}
 
 	public static IPath getExternLibCacheFile() {
 		IPath path = ClonkCore.getDefault().getStateLocation();

@@ -472,7 +472,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		}
 		currentFunctionContext.initialize();
 		if (scriptFile != null)
-			allErrorsDisabled = C4GroupItem.isLinkedResource(scriptFile);
+			allErrorsDisabled = C4GroupItem.getGroupItemBackingResource(scriptFile) != null;
 	}
 
 	/**

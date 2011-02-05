@@ -191,5 +191,11 @@ public class C4GroupTopLevelCompressed extends C4Group {
 		releaseStream();
 		super.finalize();
 	}
+	
+	@Override
+	public boolean existsOnDisk() {
+		File origin = getOrigin();
+		return origin != null && origin.exists();
+	}
 
 }

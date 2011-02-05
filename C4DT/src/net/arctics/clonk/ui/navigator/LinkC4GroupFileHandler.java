@@ -51,7 +51,7 @@ public class LinkC4GroupFileHandler extends AbstractHandler {
 				@Override
 				public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
 					try {
-						linkedFolder.createLink(new URI("c4group", C4GroupFileSystem.replaceSpecialChars(f.getAbsolutePath()), null), 0, dialog.getProgressMonitor()); //$NON-NLS-1$
+						linkedFolder.createLink(new URI(C4GroupFileSystem.SCHEME, C4GroupFileSystem.replaceSpecialChars(f.getAbsolutePath()), null), 0, dialog.getProgressMonitor());
 					} catch (Exception e) {
 						e.printStackTrace();
 					}

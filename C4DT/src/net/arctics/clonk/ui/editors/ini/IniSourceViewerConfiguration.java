@@ -230,8 +230,7 @@ public class IniSourceViewerConfiguration extends ClonkSourceViewerConfiguration
 	}
 
 	@Override
-	public IPresentationReconciler getPresentationReconciler(
-			ISourceViewer sourceViewer) {
+	public IPresentationReconciler getPresentationReconciler(ISourceViewer sourceViewer) {
 		PresentationReconciler reconciler = new PresentationReconciler();
 		
 		DefaultDamagerRepairer dr = new DefaultDamagerRepairer(getDefCoreScanner(getEditor().getIniUnit().getEngine()));

@@ -304,7 +304,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 					if (!ClonkPreferences.getPreferenceToggle(ClonkPreferences.SHOW_ERRORS_WHILE_TYPING, true))
 						return;
 					removeMarkers(fn, structure);
-					if (structure.getScriptStorage() instanceof IResource && !C4GroupItem.isLinkedResource((IResource) structure.getScriptStorage())) {
+					if (structure.getScriptStorage() instanceof IResource && C4GroupItem.getGroupItemBackingResource((IResource) structure.getScriptStorage()) == null) {
 						final Function f = (Function) fn.latestVersion();
 						C4ScriptParser.reportExpressionsAndStatements(document, structure, f, null, new IMarkerListener() {
 							@Override

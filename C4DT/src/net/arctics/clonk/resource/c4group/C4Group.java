@@ -572,6 +572,11 @@ public class C4Group extends C4GroupItem implements Serializable, ITreeNode {
 	}
 
 	@Override
+	public IFileStore[] childStores(int options, IProgressMonitor monitor) throws CoreException {
+		return childEntries.toArray(new IFileStore[childEntries.size()]);
+	}
+	
+	@Override
 	public String[] childNames(int options, IProgressMonitor monitor) throws CoreException {
 		if (outdated()) {
 			childEntries = null; // force refresh
@@ -590,7 +595,7 @@ public class C4Group extends C4GroupItem implements Serializable, ITreeNode {
 		FileInfo fileInfo = new FileInfo(getName());
 		fileInfo.setExists(true);
 		fileInfo.setAttribute(EFS.ATTRIBUTE_HIDDEN, false);
-		fileInfo.setAttribute(EFS.ATTRIBUTE_READ_ONLY, false);
+		fileInfo.setAttribute(EFS.ATTRIBUTE_READ_ONLY, true);
 		fileInfo.setAttribute(EFS.ATTRIBUTE_ARCHIVE, false);
 		fileInfo.setDirectory(true);
 		return fileInfo;
@@ -684,6 +689,15 @@ public class C4Group extends C4GroupItem implements Serializable, ITreeNode {
 	@Override
 	public File toLocalFile(int options, IProgressMonitor monitor) throws CoreException {
 		return origin;
+	}
+	
+	/**
+	 * Return whether the file this group originates from still exists in the filesystem
+	 * @return true if it exists, otherwise false
+	 */
+	public boolean existsOnDisk() {
+		// delegate to parent
+		return parentGroup == null || parentGroup.existsOnDisk();
 	}
 	
 }

@@ -17,13 +17,29 @@ import org.eclipse.core.filesystem.IFileStore;
 import org.eclipse.core.filesystem.provider.FileSystem;
 import org.eclipse.core.runtime.Path;
 
+/**
+ * File system for read-only access to c4groups.
+ * @author madeen
+ *
+ */
 public class C4GroupFileSystem extends FileSystem {
+	
+	/**
+	 * The scheme for this file system.
+	 */
+	public static final String SCHEME = "c4group"; //$NON-NLS-1$
 
+	/**
+	 * Extensions for files to always load into memory so that subsequent seeking in the group file is not necessary.
+	 */
 	private static final String[] EXTENSIONS_TO_ALWAYS_LOAD = new String[] {
 		".c", //$NON-NLS-1$
 		".c4m" //$NON-NLS-1$
 	};
 
+	/**
+	 * Names of files to always load into memory so that subsequent seeking in the group file is not necessary.
+	 */
 	private static final String[] FILES_TO_ALWAYS_LOAD = new String[] {
 		"DefCore.txt", //$NON-NLS-1$
 		"ActMap.txt", //$NON-NLS-1$
@@ -42,8 +58,15 @@ public class C4GroupFileSystem extends FileSystem {
 		return path.replace("[", "%5B").replace("]", "%5D"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
 	}
 
+	/**
+	 * Map to keep track of created C4Groups. WeakReference is so that the C4Group object can be purged if noone apart
+	 * from the file system is holding on to it. 
+	 */
 	private Map<File, WeakReference<C4Group>> rootGroups = new HashMap<File, WeakReference<C4Group>>();
 
+	/**
+	 * Global instance of the file system
+	 */
 	private static C4GroupFileSystem sharedInstance;
 
 	public C4GroupFileSystem() {
@@ -54,15 +77,24 @@ public class C4GroupFileSystem extends FileSystem {
 		}
 	}
 
+	/**
+	 * Return the singleton instance of this file system.
+	 * @return The singleton
+	 */
 	public static C4GroupFileSystem getInstance() {
 		return sharedInstance;
 	}
 
+	/**
+	 * Delete the passed group from the internal state of the file system instance.
+	 * Called when a linked resource in the workspace is about to be deleted.
+	 * @param group The group to delete
+	 */
 	public void delete(C4Group group) {
 		rootGroups.remove(group.getOrigin());
 	}
 
-	public void purgeDeadEntries() {
+	private void purgeDeadEntries() {
 		List<File> markedForDeletion = null;
 		for (Map.Entry<File, WeakReference<C4Group>> entry : rootGroups.entrySet()) {
 			if (entry.getValue().get() == null) {
@@ -124,7 +156,7 @@ public class C4GroupFileSystem extends FileSystem {
 					}
 					catch (Exception e) {
 						e.printStackTrace();
-						return null;
+						return failStore();
 					}
 					rootGroups.put(groupFile, new WeakReference<C4Group>(group));
 				}
@@ -144,8 +176,12 @@ public class C4GroupFileSystem extends FileSystem {
 			return group.findChild(new Path(file.getAbsolutePath().substring(groupFile.getAbsolutePath().length())));
 		}
 		else {
-			return null;
+			return failStore();
 		}
+	}
+
+	private IFileStore failStore() {
+		return null;
 	}
 
 }
