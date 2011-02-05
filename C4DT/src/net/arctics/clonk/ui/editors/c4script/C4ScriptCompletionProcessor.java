@@ -119,8 +119,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 	}
 	
 	private ContentAssistant assistant;
-	@SuppressWarnings("unused")
-	private ExprElm contextExpression, contextExpression2;
+	private ExprElm contextExpression;
 	private List<IStoredTypeInformation> contextTypeInformation;
 	private ProposalCycle proposalCycle = ProposalCycle.ALL;
 	private Function _activeFunc;
@@ -282,10 +281,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 				(contextExpression instanceof AccessDeclaration && Utilities.regionContainsOffset(contextExpression.identifierRegion(), preservedOffset))
 			) {
 				// we only care about sequences
-				contextSequence = contextExpression.getParent(Sequence.class);
-				if (contextSequence == null) {
-					contextExpression = null;
-				}
+				contextSequence = Utilities.as(contextExpression.getParent(), Sequence.class);
 			}
 			if (contextSequence != null) {
 				// cut off stuff after ->
