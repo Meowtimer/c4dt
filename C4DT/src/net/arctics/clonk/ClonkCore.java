@@ -167,10 +167,25 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 		}
 	}
 	
+	private static boolean versionAtLeast(Version version, int major, int minor, int micro) {
+		return
+			version.getMajor() >= major &&
+			(minor == -1 || version.getMinor() >= minor) &&
+			(micro == -1 || version.getMicro() >= micro);
+	}
+	
+	private static boolean versionGap(Version oldVersion, Version newVersion, int baselineMajor, int baselineMinor, int baselineMicro) {
+		return
+			versionAtLeast(newVersion, baselineMajor, baselineMinor, baselineMicro) &&
+			!versionAtLeast(oldVersion, baselineMajor, baselineMinor, baselineMicro);
+	}
+	
 	private void informAboutUpdate(Version oldVersion, Version newVersion) {
 		// only if there are projects at all
-		if (newVersion.toString().startsWith("1.5.9") && ClonkProjectNature.getClonkProjects().length > 0) { //$NON-NLS-1$
-			UI.message(Messages.ClonkCore_UpdateNotes_1_5_9);
+		if (ClonkProjectNature.getClonkProjects().length > 0) {
+			if (versionGap(oldVersion, newVersion, 1, 5, 9)) {
+				UI.message(Messages.ClonkCore_UpdateNotes_1_5_9);
+			}
 		}
 	}
 
