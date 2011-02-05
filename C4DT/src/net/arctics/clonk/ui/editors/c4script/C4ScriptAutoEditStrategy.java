@@ -79,12 +79,13 @@ public class C4ScriptAutoEditStrategy extends DefaultIndentLineAutoEditStrategy 
 					return true;
 				else if (!Character.isDigit(c))
 					return false;
-				break;
 			case END:
 				if (Character.isDigit(c))
 					state = DIGITS;
 				else if (Character.isLetter(c))
 					return true;
+				else if (!Character.isWhitespace(c))
+					return false;
 			}
 			--position;
 		}
@@ -108,8 +109,8 @@ public class C4ScriptAutoEditStrategy extends DefaultIndentLineAutoEditStrategy 
 			}
 		}
 		
+		// auto-block
 		try {
-			// auto-block
 			if (c.text.endsWith("\n") && c.offset > 0 && d.getChar(c.offset-1) == '{') { //$NON-NLS-1$
 				Function f = ((C4ScriptEditor)getConfiguration().getEditor()).getFuncAtCursor();
 				if (f != null && unbalanced(d, f.getBody())) {
