@@ -37,8 +37,8 @@ public class NewC4Object extends NewClonkFolderWizard<NewC4ObjectPage> implement
 
 	protected Map<String, String> initTemplateReplacements() {
 		Map<String, String> result = super.initTemplateReplacements();
-		result.put("$ID$", page.getObjectID()); //$NON-NLS-1$
-		result.put("$Description$", page.getObjectID()); //$NON-NLS-1$
+		result.put("$$ID$$", page.getObjectID()); //$NON-NLS-1$
+		result.put("$$Description$$", page.getObjectDescription()); //$NON-NLS-1$
 		return result;
 	}
 

@@ -1,6 +1,6 @@
 [Head]
 Icon=19
-Title=$Title$
+Title=$$Title$$
 
 [Game]
 EnableRemoveFlag=1

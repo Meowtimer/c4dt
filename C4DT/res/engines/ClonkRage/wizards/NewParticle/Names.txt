@@ -1,2 +1,2 @@
-DE:$Name$
-US:$Name$
+DE:$$Name$$
+US:$$Name$$

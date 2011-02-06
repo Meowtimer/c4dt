@@ -1,5 +1,5 @@
 [DefCore]
-id=$ID$
+id=$$ID$$
 Version=4,10,0,0
 Category=C4D_Object
 Width=8

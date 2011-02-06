@@ -19,10 +19,6 @@ public class ClonkPreferences {
 	public static final String GAME_PATH = "gamePath"; //$NON-NLS-1$
 	public static final String DOC_URL_TEMPLATE = "docURLTemplate"; //$NON-NLS-1$
 	public static final String ACTIVE_ENGINE = "selectedEngine"; //$NON-NLS-1$
-
-	public static final String DOC_URL_TEMPLATE_DEFAULT = Messages.DocURLTemplateDefault;
-	public static final String ACTIVE_ENGINE_DEFAULT = "ClonkRage"; //$NON-NLS-1$
-	public static final String PREFERRED_LANGID_DEFAULT = "DE"; //$NON-NLS-1$
 	
 	// options that are actually stored in the default pref store
 	public static final String SHOW_EXPORT_LOG = "showExportLog"; //$NON-NLS-1$
@@ -30,6 +26,13 @@ public class ClonkPreferences {
 	public static final String OPEN_EXTERNAL_BROWSER = "openExternalBrowser"; //$NON-NLS-1$
 	public static final String SHOW_ERRORS_WHILE_TYPING = "showErrorsWhileTyping";
 	public static final String STRUCTURE_OUTLINES_IN_PROJECT_EXPLORER = "showOutlinesInProjectExplorer";
+	public static final String AUTHOR = "author";
+	
+	// defaults
+	public static final String DOC_URL_TEMPLATE_DEFAULT = Messages.DocURLTemplateDefault;
+	public static final String ACTIVE_ENGINE_DEFAULT = "ClonkRage"; //$NON-NLS-1$
+	public static final String PREFERRED_LANGID_DEFAULT = "DE"; //$NON-NLS-1$
+	public static final String AUTHOR_DEFAULT = "<Insert Author>";
 	
 	private static final Map<String, Field> valueFieldMapping = new HashMap<String, Field>();
 	

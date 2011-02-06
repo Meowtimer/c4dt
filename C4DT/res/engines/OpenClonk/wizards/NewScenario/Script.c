@@ -1,8 +1,11 @@
-/*-- $Title$ --*/
+/**
+	$$Title$$
 
-#strict 2
+	@author $$Author$$
+*/
 
-func Initialize()
+public func Initialize()
 {
-	return 1;
+	ScriptGo(true);
+	return true;
 }

@@ -1,2 +1,2 @@
-DE:$Title$
-US:$Title$
+DE:$$Title$$
+US:$$Title$$

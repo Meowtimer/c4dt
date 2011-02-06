@@ -26,7 +26,7 @@ public class NewParticle extends NewClonkFolderWizard<NewClonkFolderWizardPage> 
 	@Override
 	protected Map<String, String> initTemplateReplacements() {
 		Map<String, String> result = super.initTemplateReplacements();
-		result.put("$Title$", title); //$NON-NLS-1$
+		result.put("$$Title$$", title); //$NON-NLS-1$
 		return result;
 	}
 	@Override

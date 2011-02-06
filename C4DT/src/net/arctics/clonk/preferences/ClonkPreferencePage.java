@@ -319,17 +319,10 @@ public class ClonkPreferencePage extends FieldEditorPreferencePage implements IW
 				getFieldEditorParent()
 			)
 		);
-		/*
-		addField(externalLibsEditor = new C4GroupListEditor(ClonkPreferences.STANDARD_EXT_LIBS, Messages.ExternalObjectsAndScripts, getFieldEditorParent()));
-		externalLibsEditor.gamePathEditor = gamePathEditor;
-		addField(
-			new ExceptionlessEncodingFieldEditor(
-				ClonkPreferences.EXTERNAL_INDEX_ENCODING,
-				"", //$NON-NLS-1$
-				Messages.EncodingForExternalObjects,
-				getFieldEditorParent()
-			)
-		);*/
+		
+		addField(new StringFieldEditor(ClonkPreferences.AUTHOR, "Author:", getFieldEditorParent()));
+		
+		// toggles
 		Map<String, String> toggleHumanMap = new HashMap<String, String>();
 		toggleHumanMap.put(ClonkPreferences.SHOW_EXPORT_LOG, Messages.ShowExportLog);
 		toggleHumanMap.put(ClonkPreferences.SHOW_ERRORS_WHILE_TYPING, Messages.ClonkPreferencePage_ShowErrorsWhileTyping);

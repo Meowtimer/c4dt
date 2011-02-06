@@ -1,5 +1,5 @@
 [Particle]
-Name=$Title$
+Name=$$Title$$
 MaxCount=150
 InitFn=StdInit
 ExecFn=StdExec

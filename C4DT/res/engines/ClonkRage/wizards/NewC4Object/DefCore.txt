@@ -1,5 +1,5 @@
 [DefCore]
-id=$ID$
+id=$$ID$$
 Name=$Name$
 Version=4,9,5
 Category=18960

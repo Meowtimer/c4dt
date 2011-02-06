@@ -2,6 +2,7 @@ package net.arctics.clonk.ui.wizards;
 
 
 import net.arctics.clonk.ClonkCore;
+import net.arctics.clonk.preferences.ClonkPreferences;
 import net.arctics.clonk.resource.ClonkProjectNature;
 
 import org.eclipse.jface.viewers.IStructuredSelection;
@@ -45,7 +46,8 @@ public abstract class NewClonkFolderWizard<PageClass extends NewClonkFolderWizar
 
 	protected Map<String, String> initTemplateReplacements() {
 		Map<String, String> result = new HashMap<String, String>();
-		result.put("$Name$", page.getFileName().substring(0, page.getFileName().lastIndexOf('.'))); //$NON-NLS-1$
+		result.put("$$Name$$", page.getFileName().substring(0, page.getFileName().lastIndexOf('.'))); //$NON-NLS-1$
+		result.put("$$Author$$", ClonkPreferences.getPreferenceOrDefault(ClonkPreferences.AUTHOR));
 		return result;
 	}
 	
