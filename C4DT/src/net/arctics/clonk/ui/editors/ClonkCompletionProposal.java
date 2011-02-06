@@ -215,4 +215,8 @@ public class ClonkCompletionProposal implements ICompletionProposal, ICompletion
 			return dispA.compareToIgnoreCase(dispB);
 	}
 	
+	public int getCursorPosition() {
+		return cursorPosition;
+	}
+	
 }

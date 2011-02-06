@@ -32,14 +32,6 @@ public abstract class ClonkCompletionProcessor<EditorType extends ClonkTextEdito
 		try {
 			if (obj == null || obj.getId() == null)
 				return;
-			
-			// skip external objects from ignored libs
-			/*
-			if (obj instanceof C4ObjectExtern) {
-				C4ScriptBase script = Utilities.getScriptForEditor(getEditor());
-				if (script != null && script.getIndex() != null && !script.getIndex().acceptsFromExternalLib(((C4ObjectExtern)obj).getExternalLib()))
-					return;
-			}*/
 
 			if (prefix != null) {
 				if (!(
@@ -51,11 +43,7 @@ public abstract class ClonkCompletionProcessor<EditorType extends ClonkTextEdito
 					return;
 			}
 			String displayString = obj.getName();
-			int replacementLength = prefix != null ? prefix.length() : 0;
-
-			// no need for context information
-//			String contextInfoString = obj.getName();
-//			IContextInformation contextInformation = null;// new ContextInformation(obj.getId().getName(),contextInfoString); 
+			int replacementLength = prefix != null ? prefix.length() : 0; 
 
 			ClonkCompletionProposal prop = new ClonkCompletionProposal(obj, obj.getId().getName(), offset, replacementLength, obj.getId().getName().length(),
 				UI.getIconForObject(obj), displayString.trim(), null, obj.getInfoText(), " - " + obj.getId().getName(), getEditor()); //$NON-NLS-1$
@@ -88,9 +76,16 @@ public abstract class ClonkCompletionProcessor<EditorType extends ClonkTextEdito
 		
 		/*String contextInfoString = func.getLongParameterString(false);
 		IContextInformation contextInformation = new ContextInformation(func.getName() + "()",contextInfoString);  //$NON-NLS-1$*/
-		
+
 		String replacement = func.getName() + (brackets ? "()" : ""); //$NON-NLS-1$ //$NON-NLS-2$
-		ClonkCompletionProposal prop = new ClonkCompletionProposal(func, replacement, offset,replacementLength,func.getName().length()+1,
+		int cursorPosition = func.getName().length();
+		if (brackets) {
+			if (func.getParameters().size() == 0)
+				cursorPosition += 2;
+			else
+				cursorPosition++;
+		}
+		ClonkCompletionProposal prop = new ClonkCompletionProposal(func, replacement, offset,replacementLength,cursorPosition,
 				UI.getIconForFunction(func), displayString.trim(), null/*contextInformation*/, null," - " + parentName, getEditor()); //$NON-NLS-1$
 		prop.setCategory(Category.Functions);
 		proposals.add(prop);
