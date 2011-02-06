@@ -450,7 +450,9 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 			}
 
 			// propose to just create function with the name already typed
-			callbackProposal(prefix, untamperedPrefix, funcSupplied, proposals, offset).setCategory(Category.NewFunction);
+			if (untamperedPrefix != null && untamperedPrefix.length() > 0) {
+				callbackProposal(prefix, untamperedPrefix, funcSupplied, proposals, offset).setCategory(Category.NewFunction);
+			}
 
 			// propose creating effect functions
 			String capitalizedPrefix = StringUtil.capitalize(untamperedPrefix); 
