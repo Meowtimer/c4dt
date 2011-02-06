@@ -342,7 +342,9 @@ public class C4ScriptEditor extends ClonkTextEditor {
 			try {
 				if (structure.getScriptStorage() instanceof IFile) {
 					IFile file = (IFile)structure.getScriptStorage();
-					reparseWithDocumentContents(null, false, file, structure, null);
+					// might have been closed due to removal of the file - don't cause exception by trying to reparse that file now
+					if (file.exists())
+						reparseWithDocumentContents(null, false, file, structure, null);
 				}
 			} catch (ParsingException e) {
 				e.printStackTrace();
