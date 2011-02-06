@@ -314,13 +314,15 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 			parser.endTypeInferenceBlock();
 		}
 		
-		if (contextSequence == null && proposalCycle == ProposalCycle.ALL) {
+		if (proposalCycle == ProposalCycle.ALL) {
 			if (editorScript.getIndex().getEngine() != null) {
 				for (Function func : editorScript.getIndex().getEngine().functions()) {
 					proposalForFunc(func, prefix, offset, proposals, editorScript.getIndex().getEngine().getName(), true);
 				}
-				for (Variable var : editorScript.getIndex().getEngine().variables()) {
-					proposalForVar(var,prefix,offset,proposals);
+				if (contextSequence == null) {
+					for (Variable var : editorScript.getIndex().getEngine().variables()) {
+						proposalForVar(var,prefix,offset,proposals);
+					}
 				}
 			}
 		}
