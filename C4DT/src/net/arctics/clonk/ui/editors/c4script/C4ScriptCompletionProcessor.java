@@ -35,6 +35,7 @@ import net.arctics.clonk.parser.c4script.ast.Sequence;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.ui.editors.ClonkCompletionProcessor;
 import net.arctics.clonk.ui.editors.ClonkCompletionProposal;
+import net.arctics.clonk.ui.editors.ClonkCompletionProposal.Category;
 import net.arctics.clonk.ui.editors.c4script.C4ScriptEditor.FuncCallInfo;
 import net.arctics.clonk.util.ArrayUtil;
 import net.arctics.clonk.util.Gen;
@@ -405,7 +406,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 		return builder.toString();
 	}
 	
-	private void callbackProposal(String prefix, String callback, boolean funcSupplied, List<ICompletionProposal> proposals, int offset, ParmInfo... parmTypes) {
+	private ClonkCompletionProposal callbackProposal(String prefix, String callback, boolean funcSupplied, List<ICompletionProposal> proposals, int offset, ParmInfo... parmTypes) {
 		ImageRegistry reg = ClonkCore.getDefault().getImageRegistry();
 		if (reg.get("callback") == null) { //$NON-NLS-1$
 			reg.put("callback", ImageDescriptor.createFromURL(FileLocator.find(ClonkCore.getDefault().getBundle(), new Path("icons/callback.png"), null))); //$NON-NLS-1$ //$NON-NLS-2$
@@ -420,6 +421,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 				repString, offset, replacementLength, 
 				repString.length(), reg.get("callback") , callback, null,null,Messages.C4ScriptCompletionProcessor_Callback, getEditor()); //$NON-NLS-1$
 		proposals.add(prop);
+		return prop;
 	}
 
 	private static final ParmInfo[] EFFECT_FUNCTION_PARM_BOILERPLATE = new ParmInfo[] {
@@ -444,16 +446,16 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 					if (!callback.toLowerCase().startsWith(prefix))
 						continue;
 				}
-				callbackProposal(prefix, callback, funcSupplied, proposals, offset);
+				callbackProposal(prefix, callback, funcSupplied, proposals, offset).setCategory(Category.Callbacks);
 			}
 
 			// propose to just create function with the name already typed
-			callbackProposal(prefix, untamperedPrefix, funcSupplied, proposals, offset);
+			callbackProposal(prefix, untamperedPrefix, funcSupplied, proposals, offset).setCategory(Category.NewFunction);
 
 			// propose creating effect functions
 			String capitalizedPrefix = StringUtil.capitalize(untamperedPrefix); 
 			for (EffectFunction.HardcodedCallbackType t : EffectFunction.HardcodedCallbackType.values()) {
-				callbackProposal(prefix, t.nameForEffect(capitalizedPrefix), funcSupplied, proposals, wordOffset, EFFECT_FUNCTION_PARM_BOILERPLATE);
+				callbackProposal(prefix, t.nameForEffect(capitalizedPrefix), funcSupplied, proposals, wordOffset, EFFECT_FUNCTION_PARM_BOILERPLATE).setCategory(Category.EffectCallbacks);
 			}
 
 			if (!funcSupplied) {
@@ -470,6 +472,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 					int replacementLength = 0;
 					if (prefix != null) replacementLength = prefix.length();
 					ClonkCompletionProposal prop = new ClonkCompletionProposal(null, declarator,offset,replacementLength,declarator.length(), reg.get("declarator") , declarator.trim(),null,null,Messages.C4ScriptCompletionProcessor_Engine, getEditor()); //$NON-NLS-1$
+					prop.setCategory(Category.Keywords);
 					proposals.add(prop);
 				}
 
@@ -485,6 +488,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 					int replacementLength = 0;
 					if (prefix != null) replacementLength = prefix.length();
 					ClonkCompletionProposal prop = new ClonkCompletionProposal(null, directive,offset,replacementLength,directive.length(), reg.get("directive") , directive.trim(),null,null,Messages.C4ScriptCompletionProcessor_Engine, getEditor()); //$NON-NLS-1$
+					prop.setCategory(Category.Directives);
 					proposals.add(prop);
 				}
 			}

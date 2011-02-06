@@ -13,6 +13,18 @@ import org.eclipse.swt.graphics.Point;
 
 public class ClonkCompletionProposal implements ICompletionProposal, ICompletionProposalExtension6 {
 	
+	public enum Category {
+		Functions,
+		Variables,
+		Definitions,
+		NewFunction,
+		Callbacks,
+		EffectCallbacks,
+		Directives,
+		Keywords
+	}
+	
+	/** Associated declaration */
 	private Declaration declaration;
 	
 	/** The string to be displayed in the completion proposal popup. */
@@ -35,7 +47,11 @@ public class ClonkCompletionProposal implements ICompletionProposal, ICompletion
 	/** The additional info of this proposal. */
 	private String additionalProposalInfo;
 	
+	/** Editor the proposal was created for */
 	private ClonkTextEditor editor;
+	
+	/** Category for sorting */
+	private Category category;
 
 	public void setEditor(ClonkTextEditor editor) {
 		this.editor = editor;
@@ -174,4 +190,29 @@ public class ClonkCompletionProposal implements ICompletionProposal, ICompletion
 		
 		return result;
 	}
+	
+	public Category getCategory() {
+		return category;
+	}
+	
+	public void setCategory(Category category) {
+		this.category = category;
+	}
+	
+	public int compareTo(ClonkCompletionProposal other) {
+		if (other.category != null && this.category != null && other.category != this.category) {
+			return this.category.ordinal() - other.category.ordinal();
+		}
+		String dispA = this.getDisplayString();
+		String dispB = other.getDisplayString();
+		boolean bracketStartA = dispA.startsWith("["); //$NON-NLS-1$
+		boolean bracketStartB = dispB.startsWith("["); //$NON-NLS-1$
+		if (bracketStartA && !bracketStartB)
+			return 1;
+		else if (bracketStartB && !bracketStartA)
+			return -1;
+		else
+			return dispA.compareToIgnoreCase(dispB);
+	}
+	
 }

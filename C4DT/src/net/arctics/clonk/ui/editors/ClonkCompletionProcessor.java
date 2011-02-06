@@ -8,6 +8,7 @@ import net.arctics.clonk.index.ProjectDefinition;
 import net.arctics.clonk.index.ClonkIndex;
 import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.Variable;
+import net.arctics.clonk.ui.editors.ClonkCompletionProposal.Category;
 import net.arctics.clonk.util.UI;
 
 import org.eclipse.core.resources.IFile;
@@ -27,7 +28,7 @@ public abstract class ClonkCompletionProcessor<EditorType extends ClonkTextEdito
 		this.editor = editor;
 	}
 	
-	protected void proposalForObject(Definition obj,String prefix,int offset,Collection<ICompletionProposal> proposals) {
+	protected void proposalForDefinition(Definition obj,String prefix,int offset,Collection<ICompletionProposal> proposals) {
 		try {
 			if (obj == null || obj.getId() == null)
 				return;
@@ -58,6 +59,7 @@ public abstract class ClonkCompletionProcessor<EditorType extends ClonkTextEdito
 
 			ClonkCompletionProposal prop = new ClonkCompletionProposal(obj, obj.getId().getName(), offset, replacementLength, obj.getId().getName().length(),
 				UI.getIconForObject(obj), displayString.trim(), null, obj.getInfoText(), " - " + obj.getId().getName(), getEditor()); //$NON-NLS-1$
+			prop.setCategory(Category.Definitions);
 			proposals.add(prop);
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -71,7 +73,7 @@ public abstract class ClonkCompletionProcessor<EditorType extends ClonkTextEdito
 	
 	protected void proposalsForIndexedObjects(ClonkIndex index, int offset, int wordOffset, String prefix, Collection<ICompletionProposal> proposals) {
 		for (Definition obj : index.objectsIgnoringRemoteDuplicates(pivotFile())) {
-			proposalForObject(obj, prefix, wordOffset, proposals);
+			proposalForDefinition(obj, prefix, wordOffset, proposals);
 		}
 	}
 	
@@ -90,6 +92,7 @@ public abstract class ClonkCompletionProcessor<EditorType extends ClonkTextEdito
 		String replacement = func.getName() + (brackets ? "()" : ""); //$NON-NLS-1$ //$NON-NLS-2$
 		ClonkCompletionProposal prop = new ClonkCompletionProposal(func, replacement, offset,replacementLength,func.getName().length()+1,
 				UI.getIconForFunction(func), displayString.trim(), null/*contextInformation*/, null," - " + parentName, getEditor()); //$NON-NLS-1$
+		prop.setCategory(Category.Functions);
 		proposals.add(prop);
 	}
 	
@@ -107,6 +110,7 @@ public abstract class ClonkCompletionProcessor<EditorType extends ClonkTextEdito
 			null, var.getInfoText(), " - " + var.getScript().getName(), //$NON-NLS-1$
 			getEditor()
 		);
+		prop.setCategory(Category.Variables);
 		proposals.add(prop);
 		return prop;
 	}
@@ -114,19 +118,11 @@ public abstract class ClonkCompletionProcessor<EditorType extends ClonkTextEdito
 	protected ICompletionProposal[] sortProposals(Collection<ICompletionProposal> proposals) {
 		ICompletionProposal[] arr = proposals.toArray(new ICompletionProposal[proposals.size()]);
 		Arrays.sort(arr, new Comparator<ICompletionProposal>() {
-			public int compare(ICompletionProposal propA, ICompletionProposal propB) {
-				String dispA = propA.getDisplayString(), dispB = propB.getDisplayString();
-				if (dispA.startsWith("[")) { //$NON-NLS-1$
-					if (!dispB.startsWith("[")) { //$NON-NLS-1$
-						return 1;
-					}
+			public int compare(ICompletionProposal a, ICompletionProposal b) {
+				if (a instanceof ClonkCompletionProposal && b instanceof ClonkCompletionProposal) {
+					return ((ClonkCompletionProposal)a).compareTo((ClonkCompletionProposal)b);
 				}
-				else if (dispB.startsWith("[")) { //$NON-NLS-1$
-					if (!dispA.startsWith("[")) { //$NON-NLS-1$
-						return -1;
-					}
-				}
-				return dispA.compareToIgnoreCase(dispB);
+				return 1;
 			}
 		});
 		return arr;
