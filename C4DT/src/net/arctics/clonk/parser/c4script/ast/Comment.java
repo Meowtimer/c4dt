@@ -73,7 +73,7 @@ public class Comment extends Statement implements Statement.Attachment {
 	public boolean precedesOffset(int offset, CharSequence script) {
 		int count = 0;
 		if (offset > absoluteOffset+getLength()) {
-			for (int i = absoluteOffset+getLength()+1; i < offset; i++) {
+			for (int i = absoluteOffset+getLength(); i < offset; i++) {
 				if (!BufferedScanner.isLineDelimiterChar(script.charAt(i)))
 					return false;
 				if (script.charAt(i) == '\n' && ++count > 1)
