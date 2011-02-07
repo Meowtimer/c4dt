@@ -4,9 +4,12 @@ package net.arctics.clonk.ui.wizards;
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.preferences.ClonkPreferences;
 import net.arctics.clonk.resource.ClonkProjectNature;
+import net.arctics.clonk.util.Utilities;
 
 import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.wizard.Wizard;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.INewWizard;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.core.runtime.*;
@@ -35,6 +38,7 @@ public abstract class NewClonkFolderWizard<PageClass extends NewClonkFolderWizar
 	protected ISelection selection;
 	private Map<String, String> templateReplacements;
 	
+	private IWorkbenchWindow workbenchWindow;
 
 	/**
 	 * Constructor for NewC4Object.
@@ -94,7 +98,8 @@ public abstract class NewClonkFolderWizard<PageClass extends NewClonkFolderWizar
 		String fileName,
 		IProgressMonitor monitor)
 		throws CoreException {
-		// create a sample file
+
+		monitor = new NullProgressMonitor(); // srsly, for creating some files...
 		monitor.beginTask(String.format(Messages.NewClonkFolderWizard_CreatingFolder, fileName), 1);
 		IWorkspaceRoot root = ResourcesPlugin.getWorkspace().getRoot();
 		IResource resource = root.findMember(new Path(containerName));
@@ -102,9 +107,9 @@ public abstract class NewClonkFolderWizard<PageClass extends NewClonkFolderWizar
 			throwCoreException(String.format(Messages.NewClonkFolderWizard_FolderDoesNotExist, containerName));
 		}
 		IContainer container = (IContainer) resource;
-		final IFolder subContainer = container.getFolder(new Path(fileName));
-		if (!subContainer.exists()) {
-			subContainer.create(IResource.NONE,true,monitor);
+		final IFolder newFolder = container.getFolder(new Path(fileName));
+		if (!newFolder.exists()) {
+			newFolder.create(IResource.NONE,true,monitor);
 		}
 		try {
 			Enumeration<URL> templates = getTemplateFiles();
@@ -116,16 +121,21 @@ public abstract class NewClonkFolderWizard<PageClass extends NewClonkFolderWizar
 						continue;
 					InputStream stream = getTemplateStream(template, templateFile);
 					try {
-						subContainer.getFile(templateFile).create(stream, true, monitor);
+						newFolder.getFile(templateFile).create(stream, true, monitor);
 					} finally {
 						stream.close();
 					}
 				}
 			}
+			Display.getDefault().asyncExec(new Runnable() {
+				@Override
+				public void run() {
+					Utilities.getProjectExplorer(workbenchWindow).selectReveal(new StructuredSelection(newFolder));
+				}
+			});
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		monitor.worked(1);
 	}
 	
 	protected Enumeration<URL> getTemplateFiles() {
@@ -178,5 +188,6 @@ public abstract class NewClonkFolderWizard<PageClass extends NewClonkFolderWizar
 	 */
 	public void init(IWorkbench workbench, IStructuredSelection selection) {
 		this.selection = selection;
+		this.workbenchWindow = workbench.getActiveWorkbenchWindow();
 	}
 }
