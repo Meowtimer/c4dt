@@ -13,6 +13,11 @@ import net.arctics.clonk.util.Utilities;
 
 import org.eclipse.core.resources.IMarker;
 
+/**
+ * A value in an integer array ini entry. Can be either a plain integer value or constant names |-ed together. 
+ * @author madeen
+ *
+ */
 public class CategoriesValue {
 	private List<String> constants = null;
 	private int summedValue;
@@ -46,16 +51,18 @@ public class CategoriesValue {
 		}
 	}
 	
+	private static final IConverter<Variable, String> NAME_MAPPER = new IConverter<Variable, String>() {
+		@Override
+		public String convert(Variable from) {
+			return from.getName();
+		}
+	};
+	
 	private void tryConstantInput(String input, String[] parts, Engine engine, String constantsPrefix) throws IniParserException {
 		constants = new ArrayList<String>(4);
 		if (constantsPrefix != null) {
 			Variable[] vars = engine.variablesWithPrefix(constantsPrefix);
-			String[] varNames = ArrayUtil.map(vars, String.class, new IConverter<Variable, String>() {
-				@Override
-				public String convert(Variable from) {
-					return from.getName();
-				}
-			});
+			String[] varNames = ArrayUtil.map(vars, String.class, NAME_MAPPER);
 			for (String part : parts) {
 				part = part.trim();
 				if (Utilities.indexOf(varNames, part) == -1)
@@ -82,7 +89,7 @@ public class CategoriesValue {
 	}
 	
 	public String toString() {
-		if (summedValue != -1)
+		if (summedValue != -1 || constants == null)
 			return String.valueOf(summedValue);
 		StringBuilder builder = new StringBuilder(constants.size() * 10); // C4D_Back|
 		ListIterator<String> it = constants.listIterator();
