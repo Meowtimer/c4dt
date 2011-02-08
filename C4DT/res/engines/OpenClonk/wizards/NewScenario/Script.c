@@ -6,6 +6,5 @@
 
 public func Initialize()
 {
-	ScriptGo(true);
 	return true;
 }
