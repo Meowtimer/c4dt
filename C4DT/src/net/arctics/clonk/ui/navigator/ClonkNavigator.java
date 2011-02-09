@@ -20,6 +20,7 @@ import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.NullProgressMonitor;
@@ -139,7 +140,10 @@ public class ClonkNavigator extends ClonkOutlineProvider {
 	}
 
 	public Object[] getElements(Object inputElement) {
-		return ClonkProjectNature.getClonkProjects();
+		if (inputElement instanceof IWorkspaceRoot)
+			return ClonkProjectNature.getClonkProjects();
+		else
+			return getChildren(inputElement);
 	}
 
 	public void dispose() {
