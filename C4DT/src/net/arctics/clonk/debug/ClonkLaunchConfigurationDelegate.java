@@ -47,7 +47,16 @@ public class ClonkLaunchConfigurationDelegate extends LaunchConfigurationDelegat
 	
 	public static int DEFAULT_DEBUG_PORT = 10464;
 	
-	public void launch(ILaunchConfiguration configuration, String mode, ILaunch launch, IProgressMonitor monitor) throws CoreException {
+	public synchronized void launch(ILaunchConfiguration configuration, String mode, ILaunch launch, IProgressMonitor monitor) throws CoreException {
+			
+		// Get scenario and engine
+		IFolder scenario = verifyScenario(configuration);
+		File engine = verifyClonkInstall(configuration, scenario);
+		String[] launchArgs = verifyLaunchArguments(configuration, scenario, engine, mode);
+		
+		// Don't launch engine multiple times
+		if (ClonkDebugTarget.existingDebugTargetForScenario(scenario) != null)
+			return;
 		
 		// Set up monitor
 		if(monitor == null)
@@ -55,11 +64,6 @@ public class ClonkLaunchConfigurationDelegate extends LaunchConfigurationDelegat
 		monitor.beginTask(String.format(Messages.LaunchConf, configuration.getName()), 2);
 		
 		try {
-			
-			// Get scenario and engine
-			IFolder scenario = verifyScenario(configuration);
-			File engine = verifyClonkInstall(configuration, scenario);
-			String[] launchArgs = verifyLaunchArguments(configuration, scenario, engine, mode);
 			
 			// Working directory (work around a bug in early Linux engines)
 			File workDirectory = engine.getParentFile();

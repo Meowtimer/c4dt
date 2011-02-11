@@ -17,10 +17,23 @@ import org.eclipse.debug.core.model.IWatchExpressionDelegate;
 import org.eclipse.debug.core.model.IWatchExpressionListener;
 import org.eclipse.debug.core.model.IWatchExpressionResult;
 
+/**
+ * Delegate handling C4Script watch expressions.
+ * @author madeen
+ *
+ */
 public class ClonkDebugWatchExpressionDelegate extends Object implements IWatchExpressionDelegate {
 
+	/**
+	 * Listener looking out for evaluation request results sent by the engine.
+	 * @author madeen
+	 *
+	 */
 	public static final class EvaluationResultListener implements ILineReceivedListener {
 
+		/**
+		 * Map mapping expression string to corresponding watch expression listener.
+		 */
 		private Map<String, IWatchExpressionListener> listeners = new HashMap<String, IWatchExpressionListener>();
 
 		EvaluationResultListener(IDebugElement context) {
@@ -36,10 +49,18 @@ public class ClonkDebugWatchExpressionDelegate extends Object implements IWatchE
 			return false;
 		}
 
+		/**
+		 * Add a new watch expression listener to this meta listener.
+		 * @param expression The expression for which to add the listener
+		 * @param listener the watch expression listener
+		 */
 		public void add(String expression, IWatchExpressionListener listener) {
 			listeners.put(expression, listener);
 		}
 
+		/**
+		 * Dispatch received line to the appropriate watch expression listener.
+		 */
 		@Override
 		public LineReceivedResult lineReceived(String line, ClonkDebugTarget target) throws IOException {
 			String toRemove = null;
@@ -91,12 +112,19 @@ public class ClonkDebugWatchExpressionDelegate extends Object implements IWatchE
 				: LineReceivedResult.NotProcessedDontRemove;
 		}
 
+		/**
+		 * This listener is only active if any watch expression listeners have been added.
+		 */
 		@Override
 		public boolean active() {
 			return !listeners.isEmpty();
 		}
 	}
 
+	/**
+	 * Send exec request to the running engine and put a watch expression listener in place informing the Debug system about the result.
+	 *  
+	 */
 	@Override
 	public void evaluateExpression(final String expression, final IDebugElement context, final IWatchExpressionListener listener) {
 		ClonkDebugTarget target = (ClonkDebugTarget) context.getDebugTarget();

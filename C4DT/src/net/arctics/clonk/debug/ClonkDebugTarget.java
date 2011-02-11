@@ -34,8 +34,18 @@ import org.eclipse.debug.core.model.IMemoryBlock;
 import org.eclipse.debug.core.model.IProcess;
 import org.eclipse.debug.core.model.IThread;
 
+/**
+ * Debug target representing a running Clonk engine.
+ * @author madeen
+ *
+ */
 public class ClonkDebugTarget extends ClonkDebugElement implements IDebugTarget {
 
+	/**
+	 * Commands to send through the debug pipe.
+	 * @author madeen
+	 *
+	 */
 	public static class Commands {
 		public static final String RESUME = "GO"; //$NON-NLS-1$
 		public static final String SUSPEND = "STP"; //$NON-NLS-1$
@@ -55,16 +65,46 @@ public class ClonkDebugTarget extends ClonkDebugElement implements IDebugTarget 
 		public static final String POSITION = "POS"; //$NON-NLS-1$
 	}
 	
+	/**
+	 * Result type for ILineReceivedListener.lineReceived.
+	 * Used to decide whether a listener processed a line and whether it should be removed from the queue or not.
+	 * @author madeen
+	 *
+	 */
 	public enum LineReceivedResult {
+		/** Has been processed but should not be removed. */
 		ProcessedDontRemove,
+		/** Has been processed and should be removed. */
 		ProcessedRemove,	
+		/** Has not been processed and should not be removed. */
 		NotProcessedDontRemove,
+		/** Not processed but to be removed anyway. */
 		NotProcessedRemove
 	}
 	
+	/**
+	 * Interface to be implemented by objects interested in lines sent by the engine.
+	 * @author madeen
+	 *
+	 */
 	public interface ILineReceivedListener {
+		/**
+		 * Notification invoked when the engine did send a line.
+		 * @param line The line as string
+		 * @param target The associated target
+		 * @return Hint for the target whether the line should further be processed or not.
+		 * @throws IOException
+		 */
 		public LineReceivedResult lineReceived(String line, ClonkDebugTarget target) throws IOException;
+		/**
+		 * Returns true if this listener gets exclusive notifications about lines received.
+		 * @return
+		 */
 		public boolean exclusive();
+		/**
+		 * Whether this listener is currently active.
+		 * @return
+		 */
 		public boolean active();
 	}
 	
@@ -82,8 +122,15 @@ public class ClonkDebugTarget extends ClonkDebugElement implements IDebugTarget 
 	
 	private List<ILineReceivedListener> lineReceiveListeners = new LinkedList<ILineReceivedListener>();
 	
+	/**
+	 * Request a line received listener of a certain type. A new one won't be created if one already exists
+	 * exactly matching the class specified by create.cls().
+	 * @param <T> The type of listener to request
+	 * @param create Object creation proxy responsible for specifying the class and if necessary creating a new listener.
+	 * @return A listener of the requested type.
+	 */
 	@SuppressWarnings("unchecked")
-	public <T extends ILineReceivedListener> T requestLineReceivedListener(ICreate<T> create, Object... args) {
+	public <T extends ILineReceivedListener> T requestLineReceivedListener(ICreate<T> create) {
 		Class<T> cls = create.cls();
 		for (ILineReceivedListener listener : lineReceiveListeners)
 			if (listener.getClass() == cls)
@@ -93,6 +140,10 @@ public class ClonkDebugTarget extends ClonkDebugElement implements IDebugTarget 
 		return result;
 	}
 
+	/**
+	 * Add a line received listener to the internal list.
+	 * @param listener The listener to add
+	 */
 	public void addLineReceiveListener(ILineReceivedListener listener) {
 		System.out.println("Adding " + listener.toString()); //$NON-NLS-1$
 		synchronized (lineReceiveListeners) {
@@ -100,6 +151,10 @@ public class ClonkDebugTarget extends ClonkDebugElement implements IDebugTarget 
 		}
 	}
 	
+	/**
+	 * Remove a line received listener fomr the internal list.
+	 * @param listener The listener to remove
+	 */
 	public void removeLineReceiveListener(ILineReceivedListener listener) {
 		System.out.println("Removing " + listener.toString()); //$NON-NLS-1$
 		synchronized (lineReceiveListeners) {
@@ -107,10 +162,18 @@ public class ClonkDebugTarget extends ClonkDebugElement implements IDebugTarget 
 		}
 	}
 	
+	/**
+	 * Return the socket writer used to communicate with the engine.
+	 * @return
+	 */
 	public PrintWriter getSocketWriter() {
 		return socketWriter;
 	}
 
+	/**
+	 * Return the socket reader used to receive commands from the engine.
+	 * @return
+	 */
 	public BufferedReader getSocketReader() {
 		return socketReader;
 	}
@@ -163,11 +226,10 @@ public class ClonkDebugTarget extends ClonkDebugElement implements IDebugTarget 
 						}
 					}
 				} catch (IOException e) {
-					//e.printStackTrace();
-					terminated();
 					break;
 				}
 			}
+			terminated();
 			return Status.OK_STATUS;
 		}
 
@@ -344,10 +406,20 @@ public class ClonkDebugTarget extends ClonkDebugElement implements IDebugTarget 
 		thread.fireSuspendEvent(DebugEvent.STEP_INTO);
 	}
 
+	private static Map<IResource, ClonkDebugTarget> existingTargets = new HashMap<IResource, ClonkDebugTarget>();
+	
+	public static ClonkDebugTarget existingDebugTargetForScenario(IResource scenario) {
+		return existingTargets.get(scenario);
+	}
+	
 	public ClonkDebugTarget(ILaunch launch, IProcess process, int port, IResource scenario) throws Exception {
-
 		super(null);
 
+		synchronized (existingTargets) {
+			assert(existingTargets.get(scenario) == null);
+			existingTargets.put(scenario, this);
+		}
+		
 		this.launch = launch;
 		this.process = process;
 		this.thread = new ClonkDebugThread(this);
@@ -429,7 +501,13 @@ public class ClonkDebugTarget extends ClonkDebugElement implements IDebugTarget 
 		return process.isTerminated();
 	}
 
+	/*+
+	 * Called when the engine terminated for whatever reason.
+	 */
 	public void terminated() {
+		synchronized (existingTargets) {
+			existingTargets.remove(scenario);
+		}
 		try {
 			terminate();
 		} catch (DebugException e) {}
