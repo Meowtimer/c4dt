@@ -284,6 +284,25 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 		return result;
 	}
 	
+	private static String chopPath(String containerPath, String path) {
+		int ndx = path.lastIndexOf(containerPath);
+		return ndx != -1
+			? path.substring(ndx+containerPath.length())
+			: null;
+	}
+	
+	private static void addURLIfNotDuplicate(String containerPathIncludingEngine, URL url, List<URL> urls) {
+		String truncatedPath = chopPath(containerPathIncludingEngine, url.getPath());
+		assert(truncatedPath != null);
+		for (URL oldURL : urls) {
+			String chopped = chopPath(containerPathIncludingEngine, oldURL.getPath());
+			if (chopped != null && chopped.equals(truncatedPath)) {
+				return;
+			}
+		}
+		urls.add(url);
+	}
+	
 	private void getIDEStorageLocations(final String engineName, IStorageLocation[] locations) {
 		locations[0] = new FolderStorageLocation(engineName) {
 			@Override
@@ -311,9 +330,16 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 			}
 			@SuppressWarnings("unchecked")
 			@Override
-			public Enumeration<URL> getURLs(String containerName, boolean recurse) {
-				return ClonkCore.getDefault().getBundle().findEntries(String.format("res/engines/%s/%s", engineName, containerName), "*.*", recurse); //$NON-NLS-1$ //$NON-NLS-2$
-			}
+			public void getURLsOfContainer(String containerPath, boolean recurse, List<URL> listToAddTo) {
+				Enumeration<URL> urls = ClonkCore.getDefault().getBundle().findEntries(String.format("res/engines/%s/%s", engineName, containerPath), "*.*", recurse); //$NON-NLS-1$ //$NON-NLS-2$
+				containerPath = getName() + "/" + containerPath;
+				if (urls != null) {
+					while (urls.hasMoreElements()) {
+						URL url = urls.nextElement();
+						addURLIfNotDuplicate(containerPath, url, listToAddTo);
+					}
+				}
+			};
 			@Override
 			public File toFolder() {
 				return null;
@@ -619,7 +645,7 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 		return textFileDocumentProvider;
 	}
 	
-	private abstract class FolderStorageLocation implements IStorageLocation {
+	private static abstract class FolderStorageLocation implements IStorageLocation {
 		protected final String engineName;
 
 		private FolderStorageLocation(String engineName) {
@@ -674,30 +700,26 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 			}
 		}
 
+		private static void addFilesFrom(File folder, String containerPath, List<URL> list, boolean recurse) {
+			for (File f : folder.listFiles()) {
+				try {
+					addURLIfNotDuplicate(containerPath, f.toURI().toURL(), list);
+				} catch (MalformedURLException e) {
+					e.printStackTrace();
+				}
+				if (recurse && f.isDirectory()) {
+					addFilesFrom(f, containerPath, list, true);
+				}
+			}
+		}
+		
 		@Override
-		public Enumeration<URL> getURLs(String containerName, boolean recurse) {
-			final File folder = getFile(containerName);
-			return new Enumeration<URL>() {
-				
-				private int index = -1;
-				private File[] files = folder.listFiles();
-
-				@Override
-				public boolean hasMoreElements() {
-					return files != null && index+1 < files.length;
-				}
-
-				@Override
-				public URL nextElement() {
-					try {
-						return files[++index].toURI().toURL();
-					} catch (MalformedURLException e) {
-						e.printStackTrace();
-						return null;
-					}
-				}
-				
-			};
+		public void getURLsOfContainer(String containerPath, boolean recurse, List<URL> listToAddTo) {
+			final File folder = getFile(containerPath);
+			containerPath = getName() + "/" + containerPath;
+			if (folder == null || !folder.exists())
+				return;
+			addFilesFrom(folder, containerPath, listToAddTo, recurse);
 		}
 	}
 

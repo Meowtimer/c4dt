@@ -16,7 +16,6 @@ import org.eclipse.core.runtime.*;
 import org.eclipse.jface.operation.*;
 import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
-import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -112,10 +111,9 @@ public abstract class NewClonkFolderWizard<PageClass extends NewClonkFolderWizar
 			newFolder.create(IResource.NONE,true,monitor);
 		}
 		try {
-			Enumeration<URL> templates = getTemplateFiles();
+			Iterable<URL> templates = getTemplateFiles();
 			if (templates != null) {
-				while (templates.hasMoreElements()) {
-					URL template = templates.nextElement();
+				for (URL template : templates) {
 					String templateFile = new Path(template.getFile()).lastSegment();
 					if (templateFile.startsWith(".")) //$NON-NLS-1$
 						continue;
@@ -138,7 +136,7 @@ public abstract class NewClonkFolderWizard<PageClass extends NewClonkFolderWizar
 		}
 	}
 	
-	protected Enumeration<URL> getTemplateFiles() {
+	protected Iterable<URL> getTemplateFiles() {
 		try {
 			ClonkProjectNature nature = ClonkProjectNature.get((IResource)((IStructuredSelection) selection).getFirstElement());
 			return nature.getIndex().getEngine().getURLsOfStorageLocationPath("wizards/"+getClass().getSimpleName(), false); //$NON-NLS-1$

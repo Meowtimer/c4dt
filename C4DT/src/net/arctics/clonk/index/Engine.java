@@ -8,7 +8,7 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.net.URL;
-import java.util.Enumeration;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -490,15 +490,14 @@ public class Engine extends ScriptBase {
 		}
 	}
 	
-	public Enumeration<URL> getURLsOfStorageLocationPath(String configurationFolder, boolean fromReadonlyStorageLocation) {
+	public Collection<URL> getURLsOfStorageLocationPath(String configurationFolder, boolean fromReadonlyStorageLocation) {
+		LinkedList<URL> result = new LinkedList<URL>();
 		for (IStorageLocation loc : storageLocations) {
 			if (fromReadonlyStorageLocation && loc.toFolder() != null)
 				continue;
-			Enumeration<URL> result = loc.getURLs(configurationFolder, true);
-			if (result != null && result.hasMoreElements())
-				return result;
+			loc.getURLsOfContainer(configurationFolder, true, result);
 		}
-		return null;
+		return result;
 	}
 	
 	public OutputStream outputStreamForStorageLocationEntry(String entryPath) {
