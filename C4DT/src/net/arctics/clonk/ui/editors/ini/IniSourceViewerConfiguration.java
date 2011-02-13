@@ -201,6 +201,9 @@ public class IniSourceViewerConfiguration extends ClonkSourceViewerConfiguration
 			} catch (BadLocationException e) {
 				//e.printStackTrace(); oh well
 				return null;
+			} catch (NullPointerException e) {
+				// ignore, due to file being at unusal location
+				return null;
 			}
 		}
 		
