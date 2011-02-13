@@ -139,6 +139,10 @@ are then taken into account in various places
 -Improved OpenClonk compatibility
 -If Documentation browser  tab is left open, no new ones will be created when link-clicking other engine functions
 1.5.9:
--Optimizing script editing for performance
 -Per-project setting to disable script parser warnings/error
 -Bugfixes and introduction of new bugs
+-Improved proplist support (links to effect vars in respective effect functions)
+-Packed c4groups inside projects are treated as regular folders except that they are read-only (but explodable)
+-OC: Templates for new objects/scenarios improved
+-Customizable templates by creating a "C4DT Customization" Project (accessible through Clonk menu)
+-Reorganize/rename some classes + add documentation
