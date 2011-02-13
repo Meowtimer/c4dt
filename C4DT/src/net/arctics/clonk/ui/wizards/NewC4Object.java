@@ -30,6 +30,7 @@ public class NewC4Object extends NewClonkFolderWizard<NewC4ObjectPage> implement
 	 * Adding the page to the wizard.
 	 */
 
+	@Override
 	public void addPages() {
 		page = new NewC4ObjectPage(selection);
 		addPage(page);
@@ -47,6 +48,7 @@ public class NewC4Object extends NewClonkFolderWizard<NewC4ObjectPage> implement
 	 * we can initialize from it.
 	 * @see IWorkbenchWizard#init(IWorkbench, IStructuredSelection)
 	 */
+	@Override
 	public void init(IWorkbench workbench, IStructuredSelection selection) {
 		super.init(workbench, selection);
 		setWindowTitle(Messages.NewC4Object_Title);

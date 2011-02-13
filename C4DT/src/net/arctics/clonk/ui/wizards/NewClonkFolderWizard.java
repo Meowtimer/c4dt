@@ -141,7 +141,7 @@ public abstract class NewClonkFolderWizard<PageClass extends NewClonkFolderWizar
 	protected Enumeration<URL> getTemplateFiles() {
 		try {
 			ClonkProjectNature nature = ClonkProjectNature.get((IResource)((IStructuredSelection) selection).getFirstElement());
-			return nature.getIndex().getEngine().getURLsOf("wizards/"+getClass().getSimpleName()); //$NON-NLS-1$
+			return nature.getIndex().getEngine().getURLsOfStorageLocationPath("wizards/"+getClass().getSimpleName(), false); //$NON-NLS-1$
 		} catch (Exception e) {
 			return null;
 		}

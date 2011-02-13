@@ -1,7 +1,5 @@
 package net.arctics.clonk.parser.inireader;
 
-import java.io.InputStream;
-
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.inireader.IniData.IniDataSection;
 
@@ -16,14 +14,6 @@ public class ScenarioUnit extends IniUnit {
 	
 	public ScenarioUnit(Object input) {
 		super(input);
-	}
-	
-	public ScenarioUnit(InputStream stream) {
-		super(stream);
-	}
-	
-	public ScenarioUnit(String text) {
-		super(text);
 	}
 	
 	@Override

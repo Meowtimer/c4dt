@@ -30,6 +30,7 @@ public class NewC4ObjectPage extends NewClonkFolderWizardPage {
 	/**
 	 * @see IDialogPage#createControl(Composite)
 	 */
+	@Override
 	public void createControl(Composite parent) {
 		super.createControl(parent);
 		c4idText = addTextField(Messages.NewC4ObjectPage_ID);

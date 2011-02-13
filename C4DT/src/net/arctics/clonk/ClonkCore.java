@@ -45,8 +45,10 @@ import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.AssertionFailedException;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
+import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.QualifiedName;
+import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.resource.ImageRegistry;
 import org.eclipse.jface.text.IDocument;
@@ -228,7 +230,7 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 		return folderName.startsWith(".") ? null : folderName; //$NON-NLS-1$
 	}
 	
-	public List<String> getAvailableEngines() {
+	public List<String> getNamesOfAvailableEngines() {
 		List<String> result = new LinkedList<String>();
 		// get built-in engine definitions
 		for (@SuppressWarnings("unchecked")
@@ -288,6 +290,10 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 			protected IPath getStorageLocationForEngine(String engineName) {
 				return getWorkspaceStorageLocationForEngine(engineName);
 			}
+			@Override
+			public File toFolder() {
+				return new File(getWorkspaceStorageLocationForActiveEngine().toOSString());
+			};
 		};
 		
 		locations[1] = new IStorageLocation() {
@@ -305,9 +311,13 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 			}
 			@SuppressWarnings("unchecked")
 			@Override
-			public Enumeration<URL> getURLs(String containerName) {
-				return ClonkCore.getDefault().getBundle().findEntries(String.format("res/engines/%s/%s", engineName, containerName), "*.*", false); //$NON-NLS-1$ //$NON-NLS-2$
+			public Enumeration<URL> getURLs(String containerName, boolean recurse) {
+				return ClonkCore.getDefault().getBundle().findEntries(String.format("res/engines/%s/%s", engineName, containerName), "*.*", recurse); //$NON-NLS-1$ //$NON-NLS-2$
 			}
+			@Override
+			public File toFolder() {
+				return null;
+			};
 		};
 	}
 	
@@ -318,6 +328,10 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 			protected IPath getStorageLocationForEngine(String engineName) {
 				return storageLocationPath;
 			}
+			@Override
+			public File toFolder() {
+				return new File(storageLocationPath.toOSString());
+			};
 		};
 	}
 
@@ -661,7 +675,7 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 		}
 
 		@Override
-		public Enumeration<URL> getURLs(String containerName) {
+		public Enumeration<URL> getURLs(String containerName, boolean recurse) {
 			final File folder = getFile(containerName);
 			return new Enumeration<URL>() {
 				
@@ -721,6 +735,11 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 	
 	public boolean updateTookPlace() {
 		return !getBundle().getVersion().equals(versionFromLastRun);
+	}
+	
+	public void reportException(Exception e) {
+		e.printStackTrace();
+		getLog().log(new Status(IStatus.ERROR, PLUGIN_ID, e.getMessage()));
 	}
 
 }

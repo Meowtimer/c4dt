@@ -7,6 +7,9 @@ public class Messages extends NLS {
 	public static String AboutHandler_BuildTimeInfoFormat;
 	public static String AboutHandler_InfoTemplate;
 	public static String AboutHandler_Title;
+	public static String CreateCustomizationProjectHandler_DefaultName;
+	public static String CreateCustomizationProjectHandler_NamePromptDesc;
+	public static String CreateCustomizationProjectHandler_ProvideName;
 	static {
 		// initialize resource bundle
 		NLS.initializeMessages(BUNDLE_NAME, Messages.class);

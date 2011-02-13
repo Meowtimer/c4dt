@@ -30,6 +30,13 @@
 		</runtime>
 		<builder id="net.arctics.clonk.builder" />
 	</extension>
+	
+	<extension point="org.eclipse.core.resources.natures" id="c4dt_customization"
+		name="C4DT Customization"> 
+		<runtime>
+			<run class="net.arctics.clonk.resource.CustomizationNature" />
+		</runtime>
+	</extension>
 
 	<extension point="org.eclipse.core.contenttype.contentTypes">
 
@@ -202,6 +209,7 @@
 
 	<extension point="org.eclipse.ui.newWizards">
 		<category id="net.arctics.clonk.clonkProjects" name="Clonk" />
+		<category id="net.arctics.clonk.c4dtCustomization" name="C4DT Customization" />
 
 		<wizard id="net.arctics.clonk.wizards.NewClonkProject" name="%ClonkProject_Name"
 			category="net.arctics.clonk.clonkProjects" icon="icons/Clonk_C4Chip.ico"
@@ -397,6 +405,12 @@
 			id="net.arctics.clonk.ui.About"
 			defaultHandler="net.arctics.clonk.ui.actions.AboutHandler"
 			name="%Meta_About" />
+		
+		<command categoryId="org.eclipse.ui.category.edit"
+			description="%Meta_CreateCustomizationProject"
+			id="net.arctics.clonk.ui.CreateCustomizationProject"
+			defaultHandler="net.arctics.clonk.ui.actions.CreateCustomizationProjectHandler"
+			name="%Meta_CreateCustomizationProject" />
 	
 		<command categoryId="org.eclipse.ui.category.navigate"
 			description="%OpenObject_Desc"
@@ -506,6 +520,7 @@
 				<separator name="SeparatorAfterImportCommands" visible="true"/>
 				<command commandId="net.arctics.clonk.ui.InvokeCommand" label="%InvokeCommand_Name" />
 				<separator name="SeparatorBeforeAbout" visible="true"/>
+				<command commandId="net.arctics.clonk.ui.CreateCustomizationProject" label="%Meta_CreateCustomizationProject" />
 				<command commandId="net.arctics.clonk.ui.About" label="%Meta_About" />
 			</menu>
 		</menuContribution>
@@ -555,7 +570,21 @@
 					</visibleWhen>
 				</command>
 			</menu>
+
+			<menu label="C4DT Customization">
+				<dynamic class="net.arctics.clonk.ui.navigator.actions.CustomizationDynamicMenuItem" id="net.arctics.clonk.ui.navigator.actions.CustomizationDynamicMenuItem">
+					<!--<visibleWhen checkEnabled="false">
+						<iterate ifEmpty="false">
+							<adapt type="org.eclipse.core.resources.IResource">
+								<test property="org.eclipse.core.resources.projectNature" value="net.arctics.clonk.clonknature"/>
+							</adapt>
+						</iterate>
+					</visibleWhen>-->
+				</dynamic>
+			</menu>
+			
 			<separator name="AfterClonkMenu" visible="true" />
+			
 		</menuContribution>
 		
 	</extension>

@@ -490,11 +490,26 @@ public class Engine extends ScriptBase {
 		}
 	}
 	
-	public Enumeration<URL> getURLsOf(String configurationFolder) {
+	public Enumeration<URL> getURLsOfStorageLocationPath(String configurationFolder, boolean fromReadonlyStorageLocation) {
 		for (IStorageLocation loc : storageLocations) {
-			Enumeration<URL> result = loc.getURLs(configurationFolder);
-			if (result.hasMoreElements())
+			if (fromReadonlyStorageLocation && loc.toFolder() != null)
+				continue;
+			Enumeration<URL> result = loc.getURLs(configurationFolder, true);
+			if (result != null && result.hasMoreElements())
 				return result;
+		}
+		return null;
+	}
+	
+	public OutputStream outputStreamForStorageLocationEntry(String entryPath) {
+		for (IStorageLocation loc : storageLocations) {
+			URL url = loc.getURL(entryPath, true);
+			if (url != null) {
+				OutputStream result = loc.getOutputStream(url);
+				if (result != null) {
+					return result;
+				}
+			}
 		}
 		return null;
 	}

@@ -344,7 +344,7 @@ public class ClonkPreferencePage extends FieldEditorPreferencePage implements IW
 	}
 
 	public static String[][] engineComboValues(boolean includeDefault) {
-		List<String> engines = ClonkCore.getDefault().getAvailableEngines();
+		List<String> engines = ClonkCore.getDefault().getNamesOfAvailableEngines();
 		String[][] engineChoices = new String[engines.size() + (includeDefault ? 1 : 0)][2];
 		int i = 0;
 		if (includeDefault) {

@@ -109,7 +109,7 @@ public class ClonkProjectNature implements IProjectNature {
 		private void guessEngine(ClonkProjectNature nature) {
 			List<IProject> referencingProjects = nature.getReferencingClonkProjects();
 			Map<String, Integer> score = new HashMap<String, Integer>();
-			for (String engine : ClonkCore.getDefault().getAvailableEngines()) {
+			for (String engine : ClonkCore.getDefault().getNamesOfAvailableEngines()) {
 				score.put(engine, 0);
 			}
 			for (IProject proj : referencingProjects) {
