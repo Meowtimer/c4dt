@@ -278,6 +278,10 @@ public abstract class Utilities {
 	public static ISelection getProjectExplorerSelection(IWorkbenchSite site) {
 		return site.getWorkbenchWindow().getSelectionService().getSelection(IPageLayout.ID_PROJECT_EXPLORER);
 	}
+	
+	public static ISelection getProjectExplorerSelection() {
+		return PlatformUI.getWorkbench().getActiveWorkbenchWindow().getSelectionService().getSelection(IPageLayout.ID_PROJECT_EXPLORER);
+	}
 
 	public static CommonNavigator getProjectExplorer(IWorkbenchWindow window) {
 		if (window != null) {

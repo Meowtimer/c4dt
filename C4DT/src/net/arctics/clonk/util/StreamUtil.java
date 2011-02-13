@@ -115,4 +115,11 @@ public class StreamUtil {
 			s.close();
 		}
 	}
+	public static void transfer(InputStream source, OutputStream dest) throws IOException {
+		byte[] buffer = new byte[1024];
+		int read;
+		while ((read = source.read(buffer)) != -1) {
+			dest.write(buffer, 0, read);
+		}
+	}
 }
