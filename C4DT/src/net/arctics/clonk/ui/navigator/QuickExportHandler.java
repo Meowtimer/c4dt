@@ -8,7 +8,6 @@ import java.util.List;
 import net.arctics.clonk.resource.c4group.C4GroupExporter;
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
-import org.eclipse.core.commands.IHandler;
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
@@ -20,7 +19,7 @@ import org.eclipse.jface.viewers.TreeSelection;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.handlers.HandlerUtil;
 
-public class QuickExportHandler extends ClonkResourceHandler implements IHandler {
+public class QuickExportHandler extends ClonkResourceHandler {
 
 	public Object execute(final ExecutionEvent event) throws ExecutionException {
 		Display.getDefault().asyncExec(new Runnable() {
