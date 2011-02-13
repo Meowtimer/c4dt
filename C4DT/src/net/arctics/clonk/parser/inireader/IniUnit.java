@@ -27,6 +27,7 @@ import net.arctics.clonk.parser.inireader.IniData.IniDataSection;
 import net.arctics.clonk.parser.playercontrols.PlayerControlsUnit;
 import net.arctics.clonk.parser.teamsdef.TeamsUnit;
 import net.arctics.clonk.resource.ClonkProjectNature;
+import net.arctics.clonk.resource.CustomizationNature;
 import net.arctics.clonk.resource.c4group.C4GroupItem;
 import net.arctics.clonk.util.ArrayUtil;
 import net.arctics.clonk.util.IHasChildren;
@@ -618,7 +619,19 @@ public class IniUnit extends Structure implements Iterable<IniSection>, IHasChil
 	@Override
 	public Engine getEngine() {
 		ClonkProjectNature nature = ClonkProjectNature.get(getResource());
-		return nature != null ? nature.getIndex().getEngine() : super.getEngine();
+		if (nature != null) {
+			return nature.getIndex().getEngine();
+		} else {
+			CustomizationNature customizationNature = CustomizationNature.get(getResource().getProject());
+			if (customizationNature != null) {
+				for (IResource r = getResource(); r != customizationNature.getProject(); r = r.getParent()) {
+					if (r.getParent() == customizationNature.getProject()) {
+						return ClonkCore.getDefault().loadEngine(r.getName());
+					}
+				}
+			}
+		}
+		return super.getEngine();
 	}
 	
 	@Override
