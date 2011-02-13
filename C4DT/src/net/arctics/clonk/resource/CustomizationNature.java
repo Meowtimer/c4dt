@@ -61,13 +61,17 @@ public class CustomizationNature implements IProjectNature {
 		try {
 			newProject.create(desc, null);
 			newProject.open(null);
-			for (String engineName : ClonkCore.getDefault().getNamesOfAvailableEngines()) {
-				IPath workspaceStoragePath = ClonkCore.getDefault().getWorkspaceStorageLocationForEngine(engineName);
-				newProject.getFolder(engineName).createLink(workspaceStoragePath, 0, null);
-			}
 		} catch (CoreException e) {
 			e.printStackTrace();
 			return null;
+		}
+		for (String engineName : ClonkCore.getDefault().getNamesOfAvailableEngines()) {
+			IPath workspaceStoragePath = ClonkCore.getDefault().getWorkspaceStorageLocationForEngine(engineName);
+			try {
+				newProject.getFolder(engineName).createLink(workspaceStoragePath, 0, null);
+			} catch (CoreException e) {
+				e.printStackTrace();
+			}
 		}
 		try {
 			return (CustomizationNature) newProject.getNature(NATURE_ID);

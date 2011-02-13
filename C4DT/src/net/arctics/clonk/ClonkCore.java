@@ -10,6 +10,7 @@ import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.net.MalformedURLException;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.Collections;
 import java.util.Enumeration;
@@ -401,10 +402,11 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 	
 	public IPath getWorkspaceStorageLocationForEngine(String engineName) {
 		IPath path = getWorkspaceStorageLocationForEngines(); //$NON-NLS-1$
+		path = path.append(String.format("%s", engineName));
 		File dir = path.toFile();
 		if (!dir.exists())
 			dir.mkdir();
-		return path.append(String.format("%s", engineName)); //$NON-NLS-1$
+		return path;
 	}
 
 	private IPath getWorkspaceStorageLocationForEngines() {
@@ -693,8 +695,11 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 		@Override
 		public OutputStream getOutputStream(URL storageURL) {
 			try {
-				return new FileOutputStream(new File(storageURL.getFile()));
+				return new FileOutputStream(new File(storageURL.toURI()));
 			} catch (IOException e) {
+				e.printStackTrace();
+				return null;
+			} catch (URISyntaxException e) {
 				e.printStackTrace();
 				return null;
 			}
