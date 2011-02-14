@@ -96,7 +96,7 @@ public class AccessVar extends AccessDeclaration {
 			switch (var.getScope()) {
 				case LOCAL:
 					Declaration d = parser.getCurrentDeclaration();
-					if (d != null) {
+					if (d != null && getPredecessorInSequence() == null) {
 						Function f = d.getTopLevelParentDeclarationOfType(Function.class);
 						Variable v = d.getTopLevelParentDeclarationOfType(Variable.class);
 						if (
