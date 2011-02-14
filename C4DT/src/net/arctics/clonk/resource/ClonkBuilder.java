@@ -489,7 +489,6 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 	}
 
 	private void clearUIOfReferencesBeforeBuild() {
-		final ClonkBuilder builder = this;
 		Display.getDefault().asyncExec(new Runnable() {
 			@Override
 			public void run() {
@@ -506,7 +505,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 									if (
 										ed.getTopLevelDeclaration() != null &&
 										ed.getTopLevelDeclaration().getResource() != null &&
-										builder.getProject() == ed.getTopLevelDeclaration().getResource().getProject()
+										ClonkBuilder.this.getProject() == ed.getTopLevelDeclaration().getResource().getProject()
 									)
 										ed.clearOutline();
 								}
@@ -515,8 +514,8 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 					}
 				}
 				finally {
-					synchronized (builder) {
-						builder.notify();
+					synchronized (ClonkBuilder.this) {
+						ClonkBuilder.this.notify();
 					}
 				}
 			}
