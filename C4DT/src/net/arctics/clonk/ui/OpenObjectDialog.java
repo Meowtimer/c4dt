@@ -6,24 +6,31 @@ import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.ClonkIndex;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.util.ArrayUtil;
+import net.arctics.clonk.util.Utilities;
+
 import org.eclipse.core.resources.IProject;
-import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.dialogs.IDialogSettings;
+import org.eclipse.jface.viewers.ISelection;
+import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.LabelProvider;
 import org.eclipse.jface.viewers.StyledString;
 import org.eclipse.jface.viewers.DelegatingStyledCellLabelProvider.IStyledLabelProvider;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Shell;
+import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.dialogs.FilteredItemsSelectionDialog;
 
 public class OpenObjectDialog extends FilteredItemsSelectionDialog {
 	
 	public static final String DIALOG_SETTINGS = "OpenObjectDialogSettings"; //$NON-NLS-1$
+	
+	private ISelection selection;
 	
 	private static class OpenObjectLabelProvider extends LabelProvider implements IStyledLabelProvider {
 
@@ -42,6 +49,7 @@ public class OpenObjectDialog extends FilteredItemsSelectionDialog {
 	
 	public OpenObjectDialog(Shell shell) {
 		super(shell, true);
+		selection = Utilities.getProjectExplorerSelection(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().getActivePart().getSite());
 		setListLabelProvider(new OpenObjectLabelProvider());
 	}
 
@@ -78,14 +86,12 @@ public class OpenObjectDialog extends FilteredItemsSelectionDialog {
 	protected void fillContentProvider(AbstractContentProvider contentProvider,
 			ItemsFilter itemsFilter, IProgressMonitor progressMonitor)
 			throws CoreException {
-		IProject[] projects = ResourcesPlugin.getWorkspace().getRoot().getProjects();
-		for(IProject project : projects) {
-			if (project.isOpen()) {
-				if (project.isNatureEnabled(ClonkCore.CLONK_NATURE_ID)) {
-					ClonkProjectNature nature = ClonkProjectNature.get(project);
-					ClonkIndex index = nature.getIndex();
-					fillWithIndexContents(contentProvider, itemsFilter,
-							progressMonitor, index);
+		if (selection instanceof IStructuredSelection && ((IStructuredSelection)selection).getFirstElement() instanceof IResource) {
+			IProject proj = ((IResource)((IStructuredSelection)selection).getFirstElement()).getProject();
+			ClonkProjectNature nat = ClonkProjectNature.get(proj);
+			if (nat != null && nat.getIndex() != null) {
+				for (ClonkIndex index : nat.getIndex().relevantIndexes()) {
+					fillWithIndexContents(contentProvider, itemsFilter, progressMonitor, index);
 				}
 			}
 		}
