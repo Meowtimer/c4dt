@@ -141,8 +141,9 @@ are then taken into account in various places
 1.5.9:
 -Per-project setting to disable script parser warnings/error
 -Bugfixes and introduction of new bugs
--Improved proplist support (links to effect vars in respective effect functions)
 -Packed c4groups inside projects are treated as regular folders except that they are read-only (but explodable)
 -OC: Templates for new objects/scenarios improved
+-OC: Improved proplist support (links to effect vars in respective effect functions)
 -Customizable templates by creating a "C4DT Customization" Project (accessible through Clonk menu)
+	-Copies of built-in template files can be created using the "C4DT Customization" submenu in the Project Explorer popup menu
 -Reorganize/rename some classes + add documentation
