@@ -7,7 +7,6 @@ import java.util.List;
 
 import org.eclipse.jface.text.IRegion;
 
-import net.arctics.clonk.index.ClonkIndex;
 import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.parser.Declaration;
@@ -23,6 +22,11 @@ import net.arctics.clonk.util.ArrayUtil;
 import net.arctics.clonk.util.CompoundIterable;
 import net.arctics.clonk.util.Utilities;
 
+/**
+ * A function in a script.
+ * @author ZokRadonh
+ *
+ */
 public class Function extends Structure implements Serializable, ITypedDeclaration, IHasUserDescription, IRegion {
 	
 	private static final long serialVersionUID = 3848213897251037684L;
@@ -48,7 +52,19 @@ public class Function extends Structure implements Serializable, ITypedDeclarati
 	 * Hash code of the string the block was parsed from.
 	 */
 	private int blockSourceHash;
+	
+	/**
+	 * false if postSerialize still needs to be called on codeBlock. postSerialize will be called when getCodeBlock is called.<br/>
+	 * Added so loading an index won't lag too much.
+	 */
+	private transient boolean codeBlockDefrosted;
 
+	/**
+	 * Create a new function.
+	 * @param name Name of the function
+	 * @param returnType Return type of the function
+	 * @param pars Parameter variables to add to the parameter list of the function
+	 */
 	public Function(String name, IType returnType, Variable... pars) {
 		this.name = name;
 		this.returnType = returnType;
@@ -288,7 +304,10 @@ public class Function extends Structure implements Serializable, ITypedDeclarati
 		return String.format(docURLTemplate, functionName, ClonkPreferences.getLanguagePrefForDocumentation());
 	}
 	
-	// to be called on engine functions
+	/**
+	 * For engine functions: Return URL string for documentation
+	 * @return The documentation URl
+	 */
 	public String getDocumentationURL() {
 		return getDocumentationURL(getName(), getScript().getEngine());
 	}
@@ -332,6 +351,10 @@ public class Function extends Structure implements Serializable, ITypedDeclarati
 		this.isOldStyle = isOldStyle;
 	}
 	
+	/**
+	 * Return the function this one inherits from
+	 * @return The inherited function
+	 */
 	public Function getInherited() {
 		
 		// search in #included scripts
@@ -374,6 +397,10 @@ public class Function extends Structure implements Serializable, ITypedDeclarati
 		return null;
 	}
 	
+	/**
+	 * Return the first function in the inherited chain.
+	 * @return The first function in the inherited chain.
+	 */
 	public Function baseFunction() {
 		Function result = this;
 		for (Function f = this; f != null; f = f.getInherited())
@@ -391,24 +418,45 @@ public class Function extends Structure implements Serializable, ITypedDeclarati
 		return ArrayUtil.concat(getLocalVars().toArray(), otherDeclarations != null ? otherDeclarations.toArray() : null);
 	}
 
+	/**
+	 * Create num generically named parameters (par1, par2, ...)
+	 * @param num Number of parameters to create
+	 */
 	public void createParameters(int num) {
 		for (int i = parameter.size(); i < num; i++) {
 			parameter.add(new Variable("par"+i, C4VariableScope.VAR)); //$NON-NLS-1$
 		}
 	}
 
+	/**
+	 * Return the location of the function header
+	 * @return
+	 */
 	public SourceLocation getHeader() {
 		return header;
 	}
 
+	/**
+	 * Set the location of the function header.
+	 * @param header
+	 */
 	public void setHeader(SourceLocation header) {
 		this.header = header;
 	}
 	
+	/**
+	 * Print the function header into the passed string builder
+	 * @param output The StringBuilder to add the header string to
+	 */
 	public void printHeader(StringBuilder output) {
 		printHeader(output, isOldStyle());
 	}
 	
+	/**
+	 * Print the function header into the passed string builder
+	 * @param output The StringBuilder to add the header string to
+	 * @param oldStyle Whether to print in old 'label-style'
+	 */
 	public void printHeader(StringBuilder output, boolean oldStyle) {
 		output.append(getVisibility().toString());
 		if (!oldStyle) {
@@ -426,12 +474,20 @@ public class Function extends Structure implements Serializable, ITypedDeclarati
 			output.append(":"); //$NON-NLS-1$
 	}
 	
+	/**
+	 * Return the header string
+	 * @param oldStyle Whether to return the header string in old 'label-style'
+	 * @return The header string
+	 */
 	public String getHeaderString(boolean oldStyle) {
 		StringBuilder builder = new StringBuilder();
 		printHeader(builder, oldStyle);
 		return builder.toString();
 	}
 	
+	/*+
+	 * Return the header string
+	 */
 	public String getHeaderString() {
 		return getHeaderString(isOldStyle());
 	}
@@ -501,6 +557,11 @@ public class Function extends Structure implements Serializable, ITypedDeclarati
 		return getVisibility() == C4FunctionScope.GLOBAL;
 	}
 	
+	/**
+	 * Return whether num parameters are more than needed for this function
+	 * @param num Number of parameters to test for
+	 * @return See above
+	 */
 	public boolean tooManyParameters(int num) {
 		return
 			(getParameters().size() == 0 || getParameters().get(getParameters().size()-1).isActualParm()) &&
@@ -548,13 +609,10 @@ public class Function extends Structure implements Serializable, ITypedDeclarati
 		}
 		builder.append("\n}");
 	}
-	
-	public void resetUsedFlagOfVariables() {
-		for (Variable v : this.getLocalVars()) {
-			v.setUsed(false);
-		}
-	}
 
+	/**
+	 * Remove local variables.
+	 */
 	public void clearLocalVars() {
 		getLocalVars().clear();
 		if (otherDeclarations != null) {
@@ -562,6 +620,11 @@ public class Function extends Structure implements Serializable, ITypedDeclarati
 		}
 	}
 	
+	/**
+	 * Add declaration that is neither parameter nor variable. Most likely an implicit proplist.
+	 * @param d The declaration to add
+	 * @return
+	 */
 	public Declaration addOtherDeclaration(Declaration d) {
 		if (otherDeclarations == null) {
 			otherDeclarations = new ArrayList<Declaration>(3);
@@ -578,6 +641,10 @@ public class Function extends Structure implements Serializable, ITypedDeclarati
 	
 	private static final List<Declaration> NO_OTHER_DECLARATIONS = new ArrayList<Declaration>();
 	
+	/**
+	 * Return 'other' declarations (neither parameters nor variables)
+	 * @return The list of other declarations. Will not be null, even if there are not other declarations.
+	 */
 	public List<Declaration> getOtherDeclarations() {
 		if (otherDeclarations == null) {
 			return NO_OTHER_DECLARATIONS;
@@ -600,16 +667,30 @@ public class Function extends Structure implements Serializable, ITypedDeclarati
 	public void storeBlock(Block block, String source) {
 		codeBlock = block;
 		blockSourceHash = source.hashCode();
+		codeBlockDefrosted = true;
 	}
 	
+	/**
+	 * Return cached code block if it was created from the given source. This is tested by hash code of the source string.
+	 * @param source The source to test against
+	 * @return The code block or null if it was created from differing source.
+	 */
 	public Block getCodeBlock(String source) {
 		if (blockSourceHash != -1 && blockSourceHash == source.hashCode()) {
+			if (!codeBlockDefrosted) {
+				codeBlockDefrosted = true;
+				codeBlock.postSerialize(null, getDeclarationObtainmentContext());
+			}
 			return codeBlock;
 		} else{
 			return codeBlock = null;
 		}
 	}
 	
+	/**
+	 * Return the cached block without performing checks.
+	 * @return The cached code block
+	 */
 	public Block getCodeBlock() {
 		return codeBlock;
 	}
@@ -638,6 +719,10 @@ public class Function extends Structure implements Serializable, ITypedDeclarati
 		return null;
 	};
 	
+	/**
+	 * Assign parameter types to existing parameters. If more types than parameters are given, no new parameters will be created.
+	 * @param types The types to assign to the parameters
+	 */
 	public void assignParameterTypes(IType... types) {
 		for (int i = 0; i < types.length; i++) {
 			if (i >= getParameters().size())
@@ -646,17 +731,12 @@ public class Function extends Structure implements Serializable, ITypedDeclarati
 		}
 	}
 	
+	/**
+	 * The hash code of a function is the hash code of its name.
+	 */
 	@Override
 	public int hashCode() {
 		return name != null ? name.hashCode() : super.hashCode();
-	}
-	
-	@Override
-	public void postSerialize(Declaration parent, ClonkIndex root) {
-		super.postSerialize(parent, root);
-		if (codeBlock != null) {
-			codeBlock.postSerialize(null, getDeclarationObtainmentContext());
-		}
 	}
 	
 }
