@@ -705,6 +705,7 @@
 			<entry name="MinResX" class="UnsignedInteger" />
 			<entry name="MinResY" class="UnsignedInteger" />
 			<entry name="ScenInfoArea" class="IntegerArray" />
+			<entry name="FullscreenBG" class="Boolean" />
 			<section name="AccessGfx">
 				<entry name="Access" class="java.lang.String" />
 				<entry name="OverlayImage" class="java.lang.String" />
@@ -731,6 +732,7 @@
 			<entry name="AllowHostilityChange" class="Boolean" />
 			<entry name="AllowTeamSwitch" class="Boolean" />
 			<entry name="TeamColors" class="Boolean" />
+			<entry name="TeamDistribution" class="UnsignedInteger" />
 			<entry name="Active" class="Boolean" />
 			<entry name="Custom" class="Boolean" />
 			<entry name="AutoGenerateTeams" class="Boolean" />

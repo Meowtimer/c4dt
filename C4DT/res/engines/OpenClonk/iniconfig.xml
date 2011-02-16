@@ -701,11 +701,39 @@
 			</section>
 		</section>
 	</file>
+	<file name="FolderMap.txt" factoryclass="net.arctics.clonk.parser.inireader.GenericEntryFactory">
+		<section name="FolderMap">
+			<entry name="MinResX" class="UnsignedInteger" />
+			<entry name="MinResY" class="UnsignedInteger" />
+			<entry name="ScenInfoArea" class="IntegerArray" />
+			<entry name="FullscreenBG" class="Boolean" />
+			<section name="AccessGfx">
+				<entry name="Access" class="java.lang.String" />
+				<entry name="OverlayImage" class="java.lang.String" />
+				<entry name="Area" class="IntegerArray" />
+			</section>
+			<section name="Scenario">
+				<entry name="File" class="java.lang.String" />
+				<entry name="BaseImage" class="java.lang.String" />
+				<entry name="OverlayImage" class="java.lang.String" />
+				<entry name="Area" class="IntegerArray" />
+				<entry name="Title" class="java.lang.String" />
+				<entry name="TitleFontSize" class="java.lang.String" />
+				<entry name="TitleColorInactive" class="UnsignedInteger" />
+				<entry name="TitleColorActive" class="UnsignedInteger" />
+				<entry name="TitleOffX" class="SignedInteger" />
+				<entry name="TitleOffY" class="SignedInteger" />
+				<entry name="TitleAlign" class="SignedInteger" />
+				<entry name="TitleUseBookFont" class="Boolean" />
+			</section>
+		</section>
+	</file>
 	<file name="Teams.txt" factoryclass="net.arctics.clonk.parser.inireader.GenericEntryFactory">
 		<section name="Teams">
 			<entry name="AllowHostilityChange" class="Boolean" />
 			<entry name="AllowTeamSwitch" class="Boolean" />
 			<entry name="TeamColors" class="Boolean" />
+			<entry name="TeamDistribution" class="UnsignedInteger" />
 			<entry name="LastTeamID" class="UnsignedInteger" />
 			<entry name="Active" class="Boolean" />
 			<entry name="Custom" class="Boolean" />
