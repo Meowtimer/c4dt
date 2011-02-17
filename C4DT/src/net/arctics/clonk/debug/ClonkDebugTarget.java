@@ -588,7 +588,7 @@ public class ClonkDebugTarget extends ClonkDebugElement implements IDebugTarget 
 		try {
 			if (breakpoint instanceof ClonkDebugLineBreakpoint) {
 				ClonkDebugLineBreakpoint bp = (ClonkDebugLineBreakpoint) breakpoint;
-				send(String.format("%s %s:%d", Commands.TOGGLEBREAKPOINT, bp.getMarker().getResource().getProjectRelativePath().toOSString(), bp.getLineNumber())); //$NON-NLS-1$ //$NON-NLS-2$
+				send(String.format("%s %s:%d", Commands.TOGGLEBREAKPOINT, bp.getMarker().getResource().getProjectRelativePath().toOSString(), bp.getLineNumber()-1)); //$NON-NLS-1$ //$NON-NLS-2$
 			}
 		} catch (CoreException e) {
 			e.printStackTrace();

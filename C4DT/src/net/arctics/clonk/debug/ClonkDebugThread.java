@@ -69,7 +69,7 @@ public class ClonkDebugThread extends ClonkDebugElement implements IThread {
 			String fullSourcePath = sourcePath;
 			int delim = sourcePath.lastIndexOf(':');
 			String linePart = sourcePath.substring(delim+1);
-			int line = Integer.parseInt(linePart);
+			int line = Integer.parseInt(linePart)+1;
 			sourcePath = sourcePath.substring(0, delim);
 			ScriptBase script = findScript(sourcePath, index, new HashSet<ClonkIndex>());
 			Function f = script != null ? funcAtLine(script, line) : null;
