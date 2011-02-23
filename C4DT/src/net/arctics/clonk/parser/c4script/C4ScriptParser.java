@@ -2986,7 +2986,10 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		expect(')');
 		TypeInformationMerger merger = new TypeInformationMerger();
 		// FIXME: eats comments between if(...) and {...} so when transforming code the comments will be gone
-		Statement ifStatement = withMissingFallback(parseStatementWithOwnTypeInferenceBlock(merger));
+		int offsetBeforeWhitespace = this.offset;
+		eatWhitespace();
+		// What Java needs is lazily evaluated expressions, obviously ;c
+		Statement ifStatement = withMissingFallback(offsetBeforeWhitespace, parseStatementWithOwnTypeInferenceBlock(merger));
 		int beforeElse = this.offset;
 		eatWhitespace();
 		String nextWord = readIdent();
@@ -3020,12 +3023,10 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		return result;
 	}
 	
-	private Statement withMissingFallback(Statement statement) throws ParsingException {
-		int offsetBeforeWhitespace = this.offset;
-		eatWhitespace();
+	private Statement withMissingFallback(int offsetWhereExpected, Statement statement) throws ParsingException {
 		return statement != null
 			? statement
-			: reportErrorsOf(new MissingStatement(offsetBeforeWhitespace-bodyOffset()));
+			: reportErrorsOf(new MissingStatement(offsetWhereExpected-bodyOffset()));
 	}
 
 	/**
