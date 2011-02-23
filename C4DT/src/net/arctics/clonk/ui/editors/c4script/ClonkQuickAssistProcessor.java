@@ -103,7 +103,8 @@ public class ClonkQuickAssistProcessor implements IQuickAssistProcessor {
 		ParserErrorCode.NoInheritedFunction,
 		ParserErrorCode.ReturnAsFunction,
 		ParserErrorCode.Unused,
-		ParserErrorCode.Garbage
+		ParserErrorCode.Garbage,
+		ParserErrorCode.MemberOperatorWithTildeNoSpace
 	);
  	
 	public boolean canFix(Annotation annotation) {
@@ -631,6 +632,10 @@ public class ClonkQuickAssistProcessor implements IQuickAssistProcessor {
 					break;
 				case Garbage:
 					addRemoveReplacement(document, expressionRegion, replacements, func);
+					break;
+				case MemberOperatorWithTildeNoSpace:
+					// just print out topLevel, space will be removed automatically
+					replacements.add(Messages.ClonkQuickAssistProcessor_RemoveSpace, topLevel);
 					break;
 				}
 

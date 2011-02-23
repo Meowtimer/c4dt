@@ -20,6 +20,7 @@ public class Messages extends NLS {
 	public static String EmptyParentheses;
 	public static String EngineDoesNotSupportRefs;
 	public static String ExpectedCode;
+	public static String MemberOperatorWithTildeNoSpace;
 	public static String MissingDirectiveArgs;
 	public static String MissingClosingBracket;
 	public static String MissingExpression;

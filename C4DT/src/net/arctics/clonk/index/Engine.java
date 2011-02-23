@@ -61,40 +61,69 @@ public class Engine extends ScriptBase {
 
 	public static class EngineSettings extends SettingsBase {
 
+		/** Default strictness level applied to scripts with no explicit #strict line. */
 		@IniField
 		public long strictDefaultLevel;
+		/** Maximum string length of string constants. */
 		@IniField
 		public long maxStringLen;
+		/** Pattern for ids. FIXME: Is actually semi-hardcoded, so option should be removed. */
 		@IniField
 		public String idPattern;
+		
+		// Settings that are actually intended to be user-configurable
+		
+		/** Template for Documentation URL. */
 		@IniField
 		public String docURLTemplate;
+		/** Path to engine executable. */
 		@IniField
 		public String engineExecutablePath;
+		/** Path to game folder. */
 		@IniField
 		public String gamePath;
+		/** Path to OC repository. To be used for automatically importing engine definitions (FIXME: needs proper implementation). */
 		@IniField
 		public String repositoryPath;
+		/** Path to c4group executable */
 		@IniField
 		public String c4GroupPath;
+		
+		/** Whether engine supports colon ID syntax (:Clonk, :Firestone). Enforcing this syntax was discussed and then dropped. */
 		@IniField
 		public boolean colonIDSyntax;
+		/**
+		 * Whether declarations of static non-const variables are allowed to include an assignment. OC added support for this.
+		 */
 		@IniField
 		public boolean nonConstGlobalVarsAssignment;
+		/**
+		 * HACK: In OC, object definition constants (Clonk, Firestone) actually are parsed as referring to a Variable object each Definition maintains as its 'static variable'.<br/>
+		 * This toggle activates/deactivates this behaviour.
+		 * */ 
 		@IniField
 		public boolean definitionsHaveStaticVariables;
+		/** Whether engine supports ref parameters (int & x). OpenClonk stopped supporting it. */
 		@IniField
 		public boolean supportsRefs;
+		/** Whether engine supports creating a debug connection and single-stepping through C4Script code */
 		@IniField
 		public boolean supportsDebugging;
+		/** Name of editor mode option (CR: console, OC: editor) */
 		@IniField
 		public String editorCmdLineOption;
+		/** Format for commandline options (ClonkRage: /%s vs OpenClonk: --%s) */
 		@IniField
 		public String cmdLineOptionFormat;
+		/** Format for commandline options that take an argument --%s=%s */
 		@IniField
 		public String cmdLineOptionWithArgumentFormat;
+		/** Whether engine supports -x <command> */
 		@IniField
 		public boolean supportsEmbeddedUtilities;
+		/** Whether engine parser allows obj-> ~DoSomething() */
+		@IniField
+		public boolean spaceAllowedBetweenArrowAndTilde;
 		
 		private Pattern idPatternCompiled;
 		public Pattern getCompiledIdPattern() {

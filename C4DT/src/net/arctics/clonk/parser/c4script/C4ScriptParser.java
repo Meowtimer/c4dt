@@ -1360,8 +1360,8 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		return false;
 	}
 	
-	private boolean parseMemberOperator() {
-		int offset = this.offset;
+	private boolean parseMemberOperator() throws ParsingException {
+		int savedOffset = this.offset;
 		int firstChar = read();
 		if (firstChar == '.') {
 			currentFunctionContext.parsedMemberOperator = "."; //$NON-NLS-1$
@@ -1369,18 +1369,19 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		}
 		else if (firstChar == '-') {
 			if (read() == '>') {
-				offset = this.offset;
+				savedOffset = this.offset;
 				eatWhitespace();
-				if (read() == '~')
+				if (read() == '~') {
 					currentFunctionContext.parsedMemberOperator = "->~"; //$NON-NLS-1$
+				}
 				else {
 					currentFunctionContext.parsedMemberOperator = "->"; //$NON-NLS-1$
-					this.seek(offset);
+					this.seek(savedOffset);
 				}
 				return true;
 			}
 		}
-		this.seek(offset);
+		this.seek(savedOffset);
 		return false;
 	}
 

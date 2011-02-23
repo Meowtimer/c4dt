@@ -69,7 +69,8 @@ public enum ParserErrorCode {
 	StaticInsideFunction(Messages.StaticInsideFunction),
 	DotNotationInsteadOfArrow(Messages.DotNotationInsteadOfArrow),
 	MissingStatement(Messages.MissingStatement),
-	MissingExpression(Messages.MissingExpression);
+	MissingExpression(Messages.MissingExpression),
+	MemberOperatorWithTildeNoSpace(Messages.MemberOperatorWithTildeNoSpace);
 
 	public static final String MARKER_ERRORCODE = "c4ScriptErrorCode"; //$NON-NLS-1$
 	public static final String MARKER_EXPRESSIONSTART = "c4ScriptErrorExpressionStart"; //$NON-NLS-1$

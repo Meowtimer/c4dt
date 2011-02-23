@@ -108,6 +108,9 @@ public class MemberOperator extends ExprElm {
 				dotNotation ? ParserErrorCode.NotAProplist : ParserErrorCode.CallingMethodOnNonObject
 			);
 		}
+		if (getLength() > 3 && !parser.getContainer().getEngine().getCurrentSettings().spaceAllowedBetweenArrowAndTilde) {
+			parser.errorWithCode(ParserErrorCode.MemberOperatorWithTildeNoSpace, this);
+		}
 	}
 	
 	@Override
