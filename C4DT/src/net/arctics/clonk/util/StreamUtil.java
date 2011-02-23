@@ -55,6 +55,7 @@ public class StreamUtil {
 		try {
 			stream = file.getContents();
 		} catch (CoreException e1) {
+			e1.printStackTrace();
 			return null;
 		}
 		try {
