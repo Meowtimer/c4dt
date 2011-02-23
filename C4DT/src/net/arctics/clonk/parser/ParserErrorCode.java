@@ -67,7 +67,9 @@ public enum ParserErrorCode {
 	Garbage(Messages.Garbage),
 	NotANumber(Messages.NotANumber),
 	StaticInsideFunction(Messages.StaticInsideFunction),
-	DotNotationInsteadOfArrow("'%s' should be accessed using '.' and not '->'");
+	DotNotationInsteadOfArrow(Messages.DotNotationInsteadOfArrow),
+	MissingStatement(Messages.MissingStatement),
+	MissingExpression(Messages.MissingExpression);
 
 	public static final String MARKER_ERRORCODE = "c4ScriptErrorCode"; //$NON-NLS-1$
 	public static final String MARKER_EXPRESSIONSTART = "c4ScriptErrorExpressionStart"; //$NON-NLS-1$

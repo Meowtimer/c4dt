@@ -55,6 +55,7 @@ import net.arctics.clonk.parser.c4script.ast.EmptyStatement;
 import net.arctics.clonk.parser.c4script.ast.ExprElm;
 import net.arctics.clonk.parser.c4script.ast.GarbageStatement;
 import net.arctics.clonk.parser.c4script.ast.KeywordStatement;
+import net.arctics.clonk.parser.c4script.ast.MissingStatement;
 import net.arctics.clonk.parser.c4script.ast.ScriptParserListener;
 import net.arctics.clonk.parser.c4script.ast.ForStatement;
 import net.arctics.clonk.parser.c4script.ast.FunctionDescription;
@@ -2215,8 +2216,9 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	 * that error markers created will be decorated with information about the expression reporting the error.
 	 * @param expression The expression to report errors.
 	 * @throws ParsingException
+	 * @return The expression parameter is returned to allow for expression chaining. 
 	 */
-	private void reportErrorsOf(ExprElm expression) throws ParsingException {
+	private <T extends ExprElm> T reportErrorsOf(T expression) throws ParsingException {
 		ExprElm saved = currentFunctionContext.expressionReportingErrors;
 		currentFunctionContext.expressionReportingErrors = expression;
 		try {
@@ -2224,6 +2226,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		} finally {
 			currentFunctionContext.expressionReportingErrors = saved;
 		}
+		return expression;
 	}
 	
 	private static final char[] SEMICOLON_DELIMITER = new char[] { ';' };
@@ -2971,7 +2974,6 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	 * @throws ParsingException
 	 */
 	private IfStatement parseIf() throws ParsingException {
-		final int offset = this.offset;
 		IfStatement result;
 		eatWhitespace();
 		expect('(');
@@ -2981,12 +2983,9 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 			condition = ExprElm.nullExpr(this.offset, 0, this); // if () is valid
 		eatWhitespace();
 		expect(')');
-		eatWhitespace(); // FIXME: eats comments so when transforming code the comments will be gone
 		TypeInformationMerger merger = new TypeInformationMerger();
-		Statement ifStatement = parseStatementWithOwnTypeInferenceBlock(merger);
-		if (ifStatement == null) {
-			errorWithCode(ParserErrorCode.StatementExpected, offset, offset+Keywords.If.length());
-		}
+		// FIXME: eats comments between if(...) and {...} so when transforming code the comments will be gone
+		Statement ifStatement = withMissingFallback(parseStatementWithOwnTypeInferenceBlock(merger));
 		int beforeElse = this.offset;
 		eatWhitespace();
 		String nextWord = readIdent();
@@ -3014,10 +3013,20 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 			}
 		}
 		
+		if (ifStatement == null)
+			ifStatement = new MissingStatement(offset);
 		result = new IfStatement(condition, ifStatement, elseStatement);
 		return result;
 	}
 	
+	private Statement withMissingFallback(Statement statement) throws ParsingException {
+		int offsetBeforeWhitespace = this.offset;
+		eatWhitespace();
+		return statement != null
+			? statement
+			: reportErrorsOf(new MissingStatement(offsetBeforeWhitespace-bodyOffset()));
+	}
+
 	/**
 	 * Check whether the given expression contains a reference to a constant.
 	 * @param condition The expression to check

@@ -22,7 +22,9 @@ public class Messages extends NLS {
 	public static String ExpectedCode;
 	public static String MissingDirectiveArgs;
 	public static String MissingClosingBracket;
+	public static String MissingExpression;
 	public static String MissingLocalizations;
+	public static String MissingStatement;
 	public static String CallingMethodOnNonObject;
 	public static String ConstantValueExpected;
 	public static String CommaOrSemicolonExpected;
@@ -52,6 +54,7 @@ public class Messages extends NLS {
 	public static String GenericError;
 	public static String ConditionAlwaysTrue;
 	public static String ConditionAlwaysFalse;
+	public static String DotNotationInsteadOfArrow;
 	public static String InternalError;
 	public static String InfiniteLoop;
 	public static String InheritedDisabledInStrict0;

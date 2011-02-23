@@ -837,5 +837,10 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 			}
 		}
 	}
+	
+	protected final void missing(C4ScriptParser parser) throws ParsingException {
+		ParserErrorCode code = this instanceof Statement ? ParserErrorCode.MissingStatement : ParserErrorCode.MissingExpression;
+		parser.errorWithCode(code, this, this);
+	}
 
 }

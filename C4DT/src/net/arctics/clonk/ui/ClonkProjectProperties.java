@@ -31,10 +31,12 @@ public class ClonkProjectProperties extends FieldEditorPreferencePage implements
 	private final class AdapterStore extends PreferenceStore {
 		private Map<String, String> values = new HashMap<String, String>();
 
+		@Override
 		public String getDefaultString(String name) {
 			return ""; //$NON-NLS-1$
 		}
 
+		@Override
 		public void setValue(String name, String value) {
 			values.put(name, value);
 			commit(name, value);
