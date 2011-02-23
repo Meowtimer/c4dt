@@ -467,6 +467,8 @@ public class BufferedScanner {
 	}
 	
 	public final void reset(String text) {
+		if (text == null)
+			text = "";
 		buffer = text;
 		offset = 0;
 		size = buffer.length();
