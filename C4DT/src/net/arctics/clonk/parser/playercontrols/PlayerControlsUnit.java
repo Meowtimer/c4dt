@@ -64,13 +64,13 @@ public class PlayerControlsUnit extends IniUnit {
 	}
 	
 	@Override
-	public Declaration findDeclaration(String declarationName, Class<? extends Declaration> declarationClass) {
+	public Declaration findLocalDeclaration(String declarationName, Class<? extends Declaration> declarationClass) {
 		if (declarationClass == Variable.class && declarationName.startsWith("CON_")) { //$NON-NLS-1$
 			for (Variable var : getControlVariables())
 				if (var.getName().equals(declarationName))
 					return var;
 		}
-		return super.findDeclaration(declarationName, declarationClass);
+		return super.findLocalDeclaration(declarationName, declarationClass);
 	}
 
 }
