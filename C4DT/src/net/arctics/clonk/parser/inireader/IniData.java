@@ -112,7 +112,7 @@ public class IniData {
 
 	public static class IniDataSection extends IniDataBase {
 		private String sectionName;
-		private Map<String, IniDataBase> entries = new HashMap<String, IniDataBase>();	
+		private Map<String, IniDataBase> entries = new HashMap<String, IniDataBase>();
 		
 		protected IniDataSection() {
 		}

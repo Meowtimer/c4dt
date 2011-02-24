@@ -11,9 +11,9 @@ import net.arctics.clonk.parser.c4script.Variable.C4VariableScope;
 import net.arctics.clonk.parser.inireader.IniEntry;
 import net.arctics.clonk.parser.inireader.IniItem;
 import net.arctics.clonk.parser.inireader.IniSection;
-import net.arctics.clonk.parser.inireader.IniUnit;
+import net.arctics.clonk.parser.inireader.IniUnitWithNamedSections;
 
-public class PlayerControlsUnit extends IniUnit {
+public class PlayerControlsUnit extends IniUnitWithNamedSections {
 
 	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 	
@@ -61,6 +61,20 @@ public class PlayerControlsUnit extends IniUnit {
 			}
 		}
 		super.endParsing();
+	}
+	
+	@Override
+	public String sectionNameEntryName(IniSection section) {
+		if (section.getParentSection() != null) {
+			IniSection psec = section.getParentSection();
+			if (psec.getName().equals("ControlDefs"))
+				return "Identifier";
+			else if (psec.getName().equals("ControlSets"))
+				return "Name";
+			else if (psec.getName().equals("ControlSet"))
+				return "Control";
+		}
+		return super.sectionNameEntryName(section);
 	}
 	
 	@Override

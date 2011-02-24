@@ -10,10 +10,14 @@ public abstract class IniUnitWithNamedSections extends IniUnit {
 	public IniUnitWithNamedSections(Object input) {
 		super(input);
 	}
+	
+	public String sectionNameEntryName(IniSection section) {
+		return "Name"; //$NON-NLS-1$
+	}
 
 	@Override
 	public String sectionToString(IniSection section) {
-		IniItem nameEntry = section.getSubItem("Name"); //$NON-NLS-1$
+		IniItem nameEntry = section.getSubItem(sectionNameEntryName(section));
 		if (nameEntry instanceof IniEntry) {
 			String val = ((IniEntry) nameEntry).getValue();
 			val = StringTbl.evaluateEntries(this, val, 0);
