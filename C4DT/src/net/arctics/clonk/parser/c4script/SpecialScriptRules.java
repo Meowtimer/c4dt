@@ -10,7 +10,6 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-
 import org.eclipse.jface.text.Region;
 
 import net.arctics.clonk.index.Definition;
@@ -553,7 +552,7 @@ public class SpecialScriptRules {
 			if (index == 0 && (parmEv = parmExpression.evaluateAtParseTime(parser.getContainer())) instanceof String) {
 				String particleName = (String)parmEv;
 				ProjectIndex projIndex = (ProjectIndex)parser.getContainer().getIndex();
-				ParticleUnit unit = projIndex.findPinnedStructure(ParticleUnit.class, particleName, parser.getContainer().getResource(), true);
+				ParticleUnit unit = projIndex.findPinnedStructure(ParticleUnit.class, particleName, parser.getContainer().getResource(), true, "Particle.txt");
 				if (unit != null) {
 					return new DeclarationRegion(unit, parmExpression);
 				}

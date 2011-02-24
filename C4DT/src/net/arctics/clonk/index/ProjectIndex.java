@@ -2,7 +2,6 @@ package net.arctics.clonk.index;
 
 import java.util.LinkedList;
 import java.util.List;
-
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.Structure;
 import net.arctics.clonk.parser.c4script.ScriptBase;
@@ -148,11 +147,13 @@ public class ProjectIndex extends ClonkIndex {
 		}
 	}
 	
-	public <T extends Structure> T findPinnedStructure(final Class<T> cls, final String name, IResource pivot, final boolean create) {
+	public <T extends Structure> T findPinnedStructure(final Class<T> cls, final String name, IResource pivot, final boolean create, final String fileName) {
 		ObjectFinderVisitor<T> finder = new ObjectFinderVisitor<T>() {
 			@SuppressWarnings("unchecked")
 			@Override
 			public boolean visit(IResource resource) throws CoreException {
+				if (!resource.getName().equals(fileName))
+					return true;
 				Structure s = Structure.pinned(resource, create, false);
 				if (s != null && cls.isAssignableFrom(s.getClass()) && s.getName().equals(name)) {
 					result = (T) s;
