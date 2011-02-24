@@ -153,15 +153,19 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 	public void setParent(ExprElm parent) {
 		this.parent = parent;
 	}
-
-	public void doPrint(ExprWriter output, int depth) {
-	}
+	
+	public void printPrependix(ExprWriter output, int depth) {}
+	public void doPrint(ExprWriter output, int depth) {}
+	public void printAppendix(ExprWriter output, int depth) {}
 	
 	public final void print(ExprWriter output, int depth) {
-		if (!output.doCustomPrinting(this, depth))
+		if (!output.doCustomPrinting(this, depth)) {
+			this.printPrependix(output, depth);
 			this.doPrint(output, depth);
+			this.printAppendix(output, depth);
+		}
 	}
-	
+
 	public final void print(final StringBuilder builder, int depth) {
 		print(new ExprWriter() {
 			@Override

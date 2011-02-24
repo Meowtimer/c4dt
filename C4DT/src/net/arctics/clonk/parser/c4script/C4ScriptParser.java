@@ -2351,9 +2351,14 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	 * @throws ParsingException
 	 */
 	private Statement parseStatementWithOwnTypeInferenceBlock(TypeInformationMerger merger) throws ParsingException {
+		// parse comments and attach them to the statement so the comments won't be removed by code reformatting
+		List<Comment> prependedComments = new ArrayList<Comment>(3);
+		eatWhitespaceReportingComments(prependedComments);
 		List<IStoredTypeInformation> block = beginTypeInferenceBlock();
 		try {
 			Statement s = parseStatement();
+			if (s != null)
+				s.addAttachments(prependedComments);
 			return s;
 		} finally {
 			block = endTypeInferenceBlock();
@@ -2987,20 +2992,17 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		TypeInformationMerger merger = new TypeInformationMerger();
 		// FIXME: eats comments between if(...) and {...} so when transforming code the comments will be gone
 		int offsetBeforeWhitespace = this.offset;
-		eatWhitespace();
-		// What Java needs is lazily evaluated expressions, obviously ;c
 		Statement ifStatement = withMissingFallback(offsetBeforeWhitespace, parseStatementWithOwnTypeInferenceBlock(merger));
 		int beforeElse = this.offset;
 		eatWhitespace();
+		int o = this.offset;
 		String nextWord = readIdent();
 		Statement elseStatement;
 		if (nextWord != null && nextWord.equals(Keywords.Else)) {
-			eatWhitespace();
-			int o = this.offset;
 			elseStatement = parseStatementWithOwnTypeInferenceBlock(merger);
 			if (elseStatement == null) {
 				errorWithCode(ParserErrorCode.StatementExpected, o, o+Keywords.Else.length());
-			}	
+			}
 		}
 		else {
 			this.seek(beforeElse); // don't eat comments and stuff after if (...) ...;
@@ -3016,9 +3018,6 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 						condition, condition.toString());
 			}
 		}
-		
-		if (ifStatement == null)
-			ifStatement = new MissingStatement(offset);
 		result = new IfStatement(condition, ifStatement, elseStatement);
 		return result;
 	}

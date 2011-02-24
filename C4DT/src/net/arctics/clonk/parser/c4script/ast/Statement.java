@@ -1,6 +1,7 @@
 package net.arctics.clonk.parser.c4script.ast;
 
 import java.io.Serializable;
+import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -62,6 +63,12 @@ public class Statement extends ExprElm implements Cloneable {
 		attachments.add(attachment);
 	}
 	
+	public void addAttachments(Collection<? extends Attachment> attachmentsToAdd) {
+		if (attachments == null)
+			attachments = new LinkedList<Attachment>();
+		attachments.addAll(attachmentsToAdd);
+	}
+	
 	@SuppressWarnings("unchecked")
 	public <T extends Attachment> T getAttachment(Class<T> cls) {
 		if (attachments != null) {
@@ -107,6 +114,7 @@ public class Statement extends ExprElm implements Cloneable {
 		//					elm.reportErrors(parser);
 	}
 
+	@Override
 	public void printPrependix(ExprWriter builder, int depth) {
 		if (attachments != null) {
 			for (Attachment a : attachments) {
@@ -115,6 +123,7 @@ public class Statement extends ExprElm implements Cloneable {
 		}	
 	}
 	
+	@Override
 	public void printAppendix(ExprWriter builder, int depth) {
 		if (attachments != null) {
 			for (Attachment a : attachments) {

@@ -12,6 +12,7 @@ public class Comment extends Statement implements Statement.Attachment {
 	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 	private String comment;
 	private boolean multiLine;
+	private boolean prependix;
 	private int absoluteOffset;
 
 	public Comment(String comment, boolean multiLine) {
@@ -116,9 +117,18 @@ public class Comment extends Statement implements Statement.Attachment {
 	@Override
 	public void applyAttachment(Position position, ExprWriter builder, int depth) {
 		switch (position) {
+		case Pre:
+			if (prependix) {
+				this.print(builder, depth);
+				builder.append("\n");
+				Conf.printIndent(builder, depth-1);
+			}
+			break;
 		case Post:
-			builder.append(" ");
-			this.print(builder, depth);
+			if (!prependix) {
+				builder.append(" ");
+				this.print(builder, depth);
+			}
 			break;
 		}
 	}
@@ -130,6 +140,22 @@ public class Comment extends Statement implements Statement.Attachment {
 
 	public void setAbsoluteOffset(int offset) {
 		absoluteOffset = offset;
+	}
+	
+	/**
+	 * Return whether the comment - as an attachment to a statement - is to be printed before or after the statement
+	 * @return What he said
+	 */
+	public boolean isPrependix() {
+		return prependix;
+	}
+	
+	/**
+	 * Sets whether the comment - as an attachment to a statement - is to be printed before the statement or following it
+	 * @param Whether to or not
+	 */
+	public void setPrependix(boolean prependix) {
+		this.prependix = prependix;
 	}
 
 }

@@ -59,10 +59,10 @@ public class Block extends Statement {
 	public static void printBlock(Statement[] statements, ExprWriter builder, int depth) {
 		builder.append("{\n"); //$NON-NLS-1$
 		for (Statement statement : statements) {
-			statement.printPrependix(builder, depth);
+			//statement.printPrependix(builder, depth);
 			Conf.printIndent(builder, depth);
 			statement.print(builder, depth+1);
-			statement.printAppendix(builder, depth);
+			//statement.printAppendix(builder, depth);
 			builder.append("\n"); //$NON-NLS-1$
 		}
 		Conf.printIndent(builder, depth-1); builder.append("}"); //$NON-NLS-1$

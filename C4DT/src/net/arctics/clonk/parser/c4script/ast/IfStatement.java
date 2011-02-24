@@ -32,19 +32,7 @@ public class IfStatement extends ConditionalStatement {
 			builder.append("\n"); //$NON-NLS-1$
 			Conf.printIndent(builder, depth-1);
 			builder.append(Keywords.Else);
-			builder.append(" "); //$NON-NLS-1$
-			boolean isBlock = elseExpr instanceof Block;
-			if (!(elseExpr instanceof IfStatement)) {
-				switch (Conf.braceStyle) {
-				case NewLine:
-					builder.append("\n"); //$NON-NLS-1$
-					Conf.printIndent(builder, depth - (isBlock?1:0));
-					break;
-				case SameLine:
-					break;
-				}
-			}
-			elseExpr.print(builder, depth);
+			printBody(elseExpr, builder, depth);
 		}
 	}
 
