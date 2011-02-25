@@ -26,7 +26,7 @@ public class GarbageStatement extends Statement {
 	
 	@Override
 	public void reportErrors(C4ScriptParser parser) throws ParsingException {
-		parser.errorWithCode(ParserErrorCode.Garbage, this, true, garbage);
+		parser.errorWithCode(ParserErrorCode.Garbage, this, C4ScriptParser.NO_THROW, garbage);
 	}
 	
 	public void setGarbage(String garbage) {

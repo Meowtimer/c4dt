@@ -309,7 +309,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 						C4ScriptParser.reportExpressionsAndStatements(document, structure, f, null, new IMarkerListener() {
 							@Override
 							public WhatToDo markerEncountered(C4ScriptParser parser, ParserErrorCode code,
-									int markerStart, int markerEnd, boolean noThrow,
+									int markerStart, int markerEnd, int flags,
 									int severity, Object... args) {
 								if (!parser.errorEnabled(code))
 									return WhatToDo.DropCharges;

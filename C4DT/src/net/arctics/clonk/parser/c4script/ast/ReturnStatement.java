@@ -97,7 +97,7 @@ public class ReturnStatement extends KeywordStatement {
 				parser.errorWithCode(ParserErrorCode.TuplesNotAllowed, expr);
 			} else {
 				if (parser.getStrictLevel() >= 2)
-					parser.errorWithCode(ParserErrorCode.ReturnAsFunction, expr, true);
+					parser.errorWithCode(ParserErrorCode.ReturnAsFunction, expr, C4ScriptParser.NO_THROW);
 			}
 		}
 		ExprElm[] subElms = expr.getSubElements();
@@ -112,7 +112,7 @@ public class ReturnStatement extends KeywordStatement {
 		warnAboutTupleInReturnExpr(parser, returnExpr, false);
 		Function activeFunc = parser.getCurrentFunc();
 		if (activeFunc == null) {
-			parser.errorWithCode(ParserErrorCode.NotAllowedHere, this, true, Keywords.Return);
+			parser.errorWithCode(ParserErrorCode.NotAllowedHere, this, C4ScriptParser.NO_THROW, Keywords.Return);
 		} else if (returnExpr != null) {
 			parser.getCurrentFunc().expectedToBeOfType(returnExpr.getType(parser), TypeExpectancyMode.Force);
 		}

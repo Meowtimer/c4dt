@@ -308,7 +308,7 @@ public class CallFunc extends AccessDeclaration {
 		// return as function
 		else if (declarationName.equals(Keywords.Return)) {
 			if (context.getStrictLevel() >= 2)
-				context.errorWithCode(ParserErrorCode.ReturnAsFunction, this, true);
+				context.errorWithCode(ParserErrorCode.ReturnAsFunction, this, C4ScriptParser.NO_THROW);
 			else
 				context.warningWithCode(ParserErrorCode.ReturnAsFunction, this);
 		}
@@ -328,7 +328,7 @@ public class CallFunc extends AccessDeclaration {
 					if (context.getStrictLevel() >= 2)
 						context.warningWithCode(ParserErrorCode.VariableCalled, this, declaration.getName());
 				} else {
-					context.errorWithCode(ParserErrorCode.VariableCalled, this, true, declaration.getName());
+					context.errorWithCode(ParserErrorCode.VariableCalled, this, C4ScriptParser.NO_THROW, declaration.getName());
 				}
 			}
 			else if (declaration instanceof Function) {
@@ -370,14 +370,14 @@ public class CallFunc extends AccessDeclaration {
 				if (declarationName.equals(Keywords.Inherited)) {
 					Function activeFunc = context.getCurrentFunc();
 					if (activeFunc != null) {
-						context.errorWithCode(ParserErrorCode.NoInheritedFunction, getExprStart(), getExprStart()+declarationName.length(), true, context.getCurrentFunc().getName(), true);
+						context.errorWithCode(ParserErrorCode.NoInheritedFunction, getExprStart(), getExprStart()+declarationName.length(), C4ScriptParser.NO_THROW, context.getCurrentFunc().getName(), true);
 					} else {
-						context.errorWithCode(ParserErrorCode.NotAllowedHere, getExprStart(), getExprStart()+declarationName.length(), true, declarationName);
+						context.errorWithCode(ParserErrorCode.NotAllowedHere, getExprStart(), getExprStart()+declarationName.length(), C4ScriptParser.NO_THROW, declarationName);
 					}
 				}
 				// _inherited yields no warning or error
 				else if (!declarationName.equals(Keywords.SafeInherited)) {
-					context.errorWithCode(ParserErrorCode.UndeclaredIdentifier, getExprStart(), getExprStart()+declarationName.length(), true, declarationName, true);
+					context.errorWithCode(ParserErrorCode.UndeclaredIdentifier, getExprStart(), getExprStart()+declarationName.length(), C4ScriptParser.NO_THROW, declarationName, true);
 				}
 			}
 		}

@@ -348,7 +348,7 @@ public class SpecialScriptRules {
 				try {
 					C4ScriptParser.parseStandaloneStatement((String)scriptExpr, parser.getCurrentFunc(), null, new IMarkerListener() {
 						@Override
-						public WhatToDo markerEncountered(C4ScriptParser nestedParser, ParserErrorCode code, int markerStart, int markerEnd, boolean noThrow, int severity, Object... args) {
+						public WhatToDo markerEncountered(C4ScriptParser nestedParser, ParserErrorCode code, int markerStart, int markerEnd, int flags, int severity, Object... args) {
 							if (code == ParserErrorCode.NotFinished) {
 								// ignore complaining about missing ';'
 								ExprElm reporter = nestedParser.getExpressionReportingErrors();
@@ -361,7 +361,7 @@ public class SpecialScriptRules {
 							try {
 								// pass through to the 'real' script parser
 								if (parser.errorEnabled(code)) {
-									parser.markerWithCode(code, arguments[0].getExprStart()+1+markerStart, arguments[0].getExprStart()+1+markerEnd, true, severity, args);
+									parser.markerWithCode(code, arguments[0].getExprStart()+1+markerStart, arguments[0].getExprStart()+1+markerEnd, flags, severity, args);
 								}
 							} catch (ParsingException e) {
 								// shouldn't happen

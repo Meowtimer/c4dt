@@ -398,7 +398,7 @@ public class Engine extends ScriptBase {
 				private boolean firstMessage = true;
 				@Override
 				public IMarker markerWithCode(ParserErrorCode code,
-						int errorStart, int errorEnd, boolean noThrow,
+						int errorStart, int errorEnd, int flags,
 						int severity, Object... args) throws ParsingException {
 					if (firstMessage) {
 						firstMessage = false;
@@ -410,7 +410,7 @@ public class Engine extends ScriptBase {
 						lno.obtainLineNumber(errorStart),
 						lno.obtainCharNumberInObtainedLine()
 					));
-					return super.markerWithCode(code, errorStart, errorEnd, noThrow, severity, args);
+					return super.markerWithCode(code, errorStart, errorEnd, flags, severity, args);
 				}
 			};
 			parser.parse();

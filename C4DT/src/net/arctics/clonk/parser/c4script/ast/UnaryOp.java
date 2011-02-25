@@ -67,7 +67,7 @@ public class UnaryOp extends OperatorExpression {
 		getArgument().reportErrors(context);
 		if (getOperator().modifiesArgument() && !getArgument().modifiable(context)) {
 			//				System.out.println(getArgument().toString() + " does not behave");
-			context.errorWithCode(ParserErrorCode.ExpressionNotModifiable, getArgument(), true);
+			context.errorWithCode(ParserErrorCode.ExpressionNotModifiable, getArgument(), C4ScriptParser.NO_THROW);
 		}
 		if (!getArgument().validForType(getOperator().getFirstArgType(), context)) {
 			context.warningWithCode(ParserErrorCode.IncompatibleTypes, getArgument(), getOperator().getFirstArgType().toString(), getArgument().getType(context).toString());

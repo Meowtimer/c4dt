@@ -87,7 +87,7 @@ public class AccessVar extends AccessDeclaration {
 		super.reportErrors(parser);
 		ExprElm pred = getPredecessorInSequence();
 		if (declaration == null && pred == null) {
-			parser.errorWithCode(ParserErrorCode.UndeclaredIdentifier, this, true, declarationName);
+			parser.errorWithCode(ParserErrorCode.UndeclaredIdentifier, this, C4ScriptParser.NO_THROW, declarationName);
 		}
 		// local variable used in global function
 		else if (declaration instanceof Variable) {
@@ -103,7 +103,7 @@ public class AccessVar extends AccessDeclaration {
 							(f != null && f.getVisibility() == C4FunctionScope.GLOBAL) ||
 							(f == null && v != null && v.getScope() != C4VariableScope.LOCAL)
 						) {
-							parser.errorWithCode(ParserErrorCode.LocalUsedInGlobal, this, true);
+							parser.errorWithCode(ParserErrorCode.LocalUsedInGlobal, this, C4ScriptParser.NO_THROW);
 						}
 					}
 					break;
@@ -120,7 +120,7 @@ public class AccessVar extends AccessDeclaration {
 			}
 		}
 		if (pred != null && pred instanceof MemberOperator && !((MemberOperator)pred).dotNotation) {
-			parser.errorWithCode(ParserErrorCode.DotNotationInsteadOfArrow, this, true, this.getDeclarationName());
+			parser.errorWithCode(ParserErrorCode.DotNotationInsteadOfArrow, this, C4ScriptParser.NO_THROW, this.getDeclarationName());
 		}
 	}
 
