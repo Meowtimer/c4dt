@@ -26,6 +26,7 @@ public class ClonkPreferences {
 	public static final String OPEN_EXTERNAL_BROWSER = "openExternalBrowser"; //$NON-NLS-1$
 	public static final String SHOW_ERRORS_WHILE_TYPING = "showErrorsWhileTyping";
 	public static final String STRUCTURE_OUTLINES_IN_PROJECT_EXPLORER = "showOutlinesInProjectExplorer";
+	public static final String NO_AUTOBRACKETPAIRS = "noAutoBracketPairs";
 	public static final String AUTHOR = "author";
 	
 	// defaults

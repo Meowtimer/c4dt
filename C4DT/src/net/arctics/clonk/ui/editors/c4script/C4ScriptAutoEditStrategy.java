@@ -1,18 +1,24 @@
 package net.arctics.clonk.ui.editors.c4script;
 
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
 
+import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.MutableRegion;
 import net.arctics.clonk.parser.c4script.ast.Conf;
-import net.arctics.clonk.resource.ClonkProjectNature;
+import net.arctics.clonk.preferences.ClonkPreferences;
 import net.arctics.clonk.ui.editors.ClonkCompletionProposal;
+import net.arctics.clonk.util.WeakListenerManager;
+
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.DefaultIndentLineAutoEditStrategy;
 import org.eclipse.jface.text.DocumentCommand;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IRegion;
+import org.eclipse.jface.util.IPropertyChangeListener;
+import org.eclipse.jface.util.PropertyChangeEvent;
 
 /**
  * Planned edit strategies:
@@ -26,7 +32,7 @@ import org.eclipse.jface.text.IRegion;
  * @author ZokRadonh
  *
  */
-public class C4ScriptAutoEditStrategy extends DefaultIndentLineAutoEditStrategy {
+public class C4ScriptAutoEditStrategy extends DefaultIndentLineAutoEditStrategy implements IPropertyChangeListener {
 	
 	private static class Autopair {
 		public static final int FOLLOWSIDENT = 1;
@@ -61,8 +67,25 @@ public class C4ScriptAutoEditStrategy extends DefaultIndentLineAutoEditStrategy 
 		}
 	}
 	
+	private static class WeakListenerManagerPCL extends WeakListenerManager<IPropertyChangeListener> implements IPropertyChangeListener	{
+		public WeakListenerManagerPCL() {
+			ClonkCore.getDefault().getPreferenceStore().addPropertyChangeListener(this);
+		}
+		@Override
+		public void propertyChange(PropertyChangeEvent event) {
+			purge();
+			for (WeakReference<? extends IPropertyChangeListener> ref : listeners) {
+				if (ref.get() != null)
+					ref.get().propertyChange(event);
+			}
+		}
+	}
+	
+	private static final WeakListenerManagerPCL weakListenerManager = new WeakListenerManagerPCL();
+	
 	private C4ScriptSourceViewerConfiguration configuration;
 	private List<AutoInsertedRegion> overrideRegions = new ArrayList<AutoInsertedRegion>(3);
+	private boolean disabled;
 	
 	public C4ScriptSourceViewerConfiguration getConfiguration() {
 		return configuration;
@@ -70,11 +93,9 @@ public class C4ScriptAutoEditStrategy extends DefaultIndentLineAutoEditStrategy 
 
 	public C4ScriptAutoEditStrategy(C4ScriptSourceViewerConfiguration configuration) {
 		this.configuration = configuration;
+		weakListenerManager.addListener(this);
 	}
-	
-	public C4ScriptAutoEditStrategy(ClonkProjectNature project, String partitioning) {
-	}
-	
+
 	private static boolean looksLikeIdent(IDocument d, int position) throws BadLocationException {
 		final int END = 0, DIGITS = 1;
 		int state = END;
@@ -102,21 +123,23 @@ public class C4ScriptAutoEditStrategy extends DefaultIndentLineAutoEditStrategy 
 	@Override
 	public void customizeDocumentCommand(IDocument d, DocumentCommand c) {
 
-		if (tabOverOverrideRegion(c))
-			return;
-		
-		// auto-block
-		tryAutoBlock(d, c);
-		
-		if (c.text.length() == 0 && c.length > 0) {
-			regionDeleted(c.offset, c.length, null, c, d);
-		}
-		else if (c.text.length() > 0 && c.length > 0) {
-			// too complex; give up o_o
-			overrideRegions.clear();
-		}
-		else {
-			textAdded(d, c);
+		if (!disabled) {
+			if (tabOverOverrideRegion(c))
+				return;
+
+			// auto-block
+			tryAutoBlock(d, c);
+
+			if (c.text.length() == 0 && c.length > 0) {
+				regionDeleted(c.offset, c.length, null, c, d);
+			}
+			else if (c.text.length() > 0 && c.length > 0) {
+				// too complex; give up o_o
+				overrideRegions.clear();
+			}
+			else {
+				textAdded(d, c);
+			}
 		}
 
 		super.customizeDocumentCommand(d, c);
@@ -299,6 +322,12 @@ public class C4ScriptAutoEditStrategy extends DefaultIndentLineAutoEditStrategy 
 			}
 		}
 		return open > close;
+	}
+
+	@Override
+	public void propertyChange(PropertyChangeEvent event) {
+		if (event.getProperty().equals(ClonkPreferences.NO_AUTOBRACKETPAIRS))
+			disabled = ClonkPreferences.getPreferenceToggle(ClonkPreferences.NO_AUTOBRACKETPAIRS, false);
 	}
 	
 }
