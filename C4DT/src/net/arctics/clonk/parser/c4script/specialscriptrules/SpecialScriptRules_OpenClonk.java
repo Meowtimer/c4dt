@@ -31,7 +31,7 @@ public class SpecialScriptRules_OpenClonk extends SpecialScriptRules {
 	 * Get/Add-Effect functions will return the type of the effect to be acquired/created if the effect name can be evaluated and a corresponding effect proplist type
 	 * can be found.
 	 */
-	@AppliedTo(functions={"GetEffect", "AddEffect"})
+	@AppliedTo(functions={"GetEffect", "AddEffect", "RemoveEffect"})
 	public final SpecialFuncRule effectProplistAdhocTyping = new SpecialFuncRule() {
 		@Override
 		public boolean assignDefaultParmTypes(C4ScriptParser parser, Function function) {
