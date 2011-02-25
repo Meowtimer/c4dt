@@ -52,4 +52,12 @@ public class MutableRegion implements IRegion {
 		return offset+length;
 	}
 	
+	public boolean maybeIncOffset(int minOffsetAffected, int amount) {
+		if (offset >= minOffsetAffected) {
+			offset += amount;
+			return true;
+		} else
+			return false;
+	}
+	
 }

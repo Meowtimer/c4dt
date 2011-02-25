@@ -8,7 +8,6 @@ import net.arctics.clonk.parser.c4script.MutableRegion;
 import net.arctics.clonk.parser.c4script.ast.Conf;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.ui.editors.ClonkCompletionProposal;
-
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.DefaultIndentLineAutoEditStrategy;
 import org.eclipse.jface.text.DocumentCommand;
@@ -42,20 +41,28 @@ public class C4ScriptAutoEditStrategy extends DefaultIndentLineAutoEditStrategy 
 			this.end = end;
 			this.flags = flags;
 		}
-		
-		public boolean applies(String str, int situation) {
-			return (flags & situation) == flags && str.endsWith(start);
+
+		public boolean applies(DocumentCommand c, IDocument d, int situation) {
+			return (flags & situation) == flags && c.text.endsWith(start);
 		}
 	}
 	
+	private static final Autopair PARM_BRACKETS_AUTOPAIR = new Autopair("(", ")", Autopair.FOLLOWSIDENT|Autopair.PRECEDESWHITESPACE);
 	private static final Autopair[] AUTOPAIRS = {
-		new Autopair("(", ")", Autopair.FOLLOWSIDENT|Autopair.PRECEDESWHITESPACE),
-		new Autopair("\"", "\"", 0),
+		PARM_BRACKETS_AUTOPAIR,
 		new Autopair("[", "]", Autopair.FOLLOWSIDENT|Autopair.PRECEDESWHITESPACE)
 	};
 	
+	private static class AutoInsertedRegion extends MutableRegion {
+		public MutableRegion cause;
+		public AutoInsertedRegion(int offset, int length, MutableRegion cause) {
+			super(offset, length);
+			this.cause = cause;
+		}
+	}
+	
 	private C4ScriptSourceViewerConfiguration configuration;
-	private List<MutableRegion> overrideRegions = new ArrayList<MutableRegion>(3);
+	private List<AutoInsertedRegion> overrideRegions = new ArrayList<AutoInsertedRegion>(3);
 	
 	public C4ScriptSourceViewerConfiguration getConfiguration() {
 		return configuration;
@@ -95,6 +102,27 @@ public class C4ScriptAutoEditStrategy extends DefaultIndentLineAutoEditStrategy 
 	@Override
 	public void customizeDocumentCommand(IDocument d, DocumentCommand c) {
 
+		if (tabOverOverrideRegion(c))
+			return;
+		
+		// auto-block
+		tryAutoBlock(d, c);
+		
+		if (c.text.length() == 0 && c.length > 0) {
+			regionDeleted(c.offset, c.length, null, c, d);
+		}
+		else if (c.text.length() > 0 && c.length > 0) {
+			// too complex; give up o_o
+			overrideRegions.clear();
+		}
+		else {
+			textAdded(d, c);
+		}
+
+		super.customizeDocumentCommand(d, c);
+	}
+
+	private boolean tabOverOverrideRegion(DocumentCommand c) {
 		// tabbing over override regions
 		if (c.text.equals("\t")) { //$NON-NLS-1$
 			for (int i = overrideRegions.size()-1; i >= 0; i--) {
@@ -104,12 +132,14 @@ public class C4ScriptAutoEditStrategy extends DefaultIndentLineAutoEditStrategy 
 					c.text = ""; //$NON-NLS-1$
 					c.shiftsCaret = false;
 					c.caretOffset = r.getOffset()+r.getLength();
-					return;
+					return true;
 				}
 			}
 		}
-		
-		// auto-block
+		return false;
+	}
+
+	private void tryAutoBlock(IDocument d, DocumentCommand c) {
 		try {
 			if (c.text.endsWith("\n") && c.offset > 0 && d.getChar(c.offset-1) == '{') { //$NON-NLS-1$
 				Function f = ((C4ScriptEditor)getConfiguration().getEditor()).getFuncAtCursor();
@@ -128,86 +158,96 @@ public class C4ScriptAutoEditStrategy extends DefaultIndentLineAutoEditStrategy 
 		} catch (BadLocationException e1) {
 			e1.printStackTrace();
 		}
-		
-		if (c.text.length() == 0 && c.length > 0) {
-			regionDeleted(c.offset, c.length, null);
-		}
-		else if (c.text.length() > 0 && c.length > 0) {
-			// too complex; give up o_o
-			overrideRegions.clear();
-		}
-		else {
-			// user writes override region text himself - noop
-			boolean overrideRegionTrespassed = false;
-			for (int i = overrideRegions.size()-1; i >= 0; i--) {
-				MutableRegion r = overrideRegions.get(i);
-				try {
-					if (r.getOffset() == c.offset && c.text.length() == 1 && d.getChar(r.getOffset()) == c.text.charAt(0)) {
-						c.text = ""; //$NON-NLS-1$
-						c.shiftsCaret = false;
-						c.caretOffset = c.offset+1;
-						r.incOffset(1);
-						r.incLength(-1);
-						if (r.getLength() == 0) {
-							overrideRegions.remove(i);
-						}
-						overrideRegionTrespassed = true;
-						break;
+	}
+
+	private void textAdded(IDocument d, DocumentCommand c) {
+		// user writes override region text himself - noop
+		boolean overrideRegionTrespassed = false;
+		for (int i = overrideRegions.size()-1; i >= 0; i--) {
+			MutableRegion r = overrideRegions.get(i);
+			try {
+				if (r.getOffset() == c.offset && c.text.length() == 1 && d.getChar(r.getOffset()) == c.text.charAt(0)) {
+					c.text = ""; //$NON-NLS-1$
+					c.shiftsCaret = false;
+					c.caretOffset = c.offset+1;
+					r.incOffset(1);
+					r.incLength(-1);
+					if (r.getLength() == 0) {
+						overrideRegions.remove(i);
 					}
-				} catch (BadLocationException e) {
-					e.printStackTrace();
+					overrideRegionTrespassed = true;
+					break;
+				}
+			} catch (BadLocationException e) {
+				e.printStackTrace();
+				break;
+			}
+		}
+
+		// look out for creation of new override region
+		int situation = 0;
+		try {
+			if (looksLikeIdent(d, c.offset-1))
+				situation |= Autopair.FOLLOWSIDENT;
+		} catch (BadLocationException e) {}
+		try {
+			if (Character.isWhitespace(d.getChar(c.offset)))
+				situation |= Autopair.PRECEDESWHITESPACE;
+		} catch (BadLocationException e) {
+			
+		}
+		AutoInsertedRegion newOne = null;
+		if (!overrideRegionTrespassed) {
+			for (Autopair autopair : AUTOPAIRS) {
+				if (autopair.applies(c, d, situation)) {
+					overrideRegions.add(0, newOne = new AutoInsertedRegion(c.offset+c.text.length(), autopair.end.length(), new MutableRegion(c.offset, c.text.length())));
+					c.text += autopair.end;
+					c.shiftsCaret = false;
+					c.caretOffset = c.offset+autopair.end.length();
 					break;
 				}
 			}
-
-			// look out for creation of new override region
-			MutableRegion newOne = null;
-			int situation = 0;
-			try {
-				if (looksLikeIdent(d, c.offset-1))
-					situation |= Autopair.FOLLOWSIDENT;
-			} catch (BadLocationException e) {}
-			try {
-				if (Character.isWhitespace(d.getChar(c.offset)))
-					situation |= Autopair.PRECEDESWHITESPACE;
-			} catch (BadLocationException e) {
-				
-			}
-			if (!overrideRegionTrespassed) {
-				for (Autopair autopair : AUTOPAIRS) {
-					if (autopair.applies(c.text, situation)) {
-						overrideRegions.add(0, newOne = new MutableRegion(c.offset+c.text.length(), autopair.end.length()));
-						c.text += autopair.end;
-						c.shiftsCaret = false;
-						c.caretOffset = c.offset+autopair.end.length();
-						break;
-					}
-				}
-			}
-			
-			// inc offset of existing regions
-			for (int i = newOne != null ? 1 : 0; i < overrideRegions.size(); i++) {
-				MutableRegion r = overrideRegions.get(i);
-				if (r.getOffset() >= c.offset) {
-					r.incOffset(c.text.length());
-				}
-			}
 		}
-
-		super.customizeDocumentCommand(d, c);
+		
+		// inc offset of existing regions
+		for (int i = newOne != null ? 1 : 0; i < overrideRegions.size(); i++) {
+			AutoInsertedRegion r = overrideRegions.get(i);
+			r.maybeIncOffset(c.offset, c.text.length());
+			r.cause.maybeIncOffset(c.offset, c.text.length());
+		}
 	}
 
-	private void regionDeleted(int offset, int length, MutableRegion exclude) {
+	private void regionDeleted(int offset, int length, MutableRegion exclude, DocumentCommand command, IDocument document) {
 		for (int i = overrideRegions.size()-1; i >= 0; i--) {
-			MutableRegion r = overrideRegions.get(i);
+			AutoInsertedRegion r = overrideRegions.get(i);
 			if (r == exclude)
 				continue;
-			if (r.getOffset() >= offset+length)
-				r.incOffset(-length);
-			else if (r.getOffset() >= offset && r.getOffset() < offset+length)
-				overrideRegions.remove(i);
-			else if (r.getOffset() < offset && r.getOffset()+r.getLength() > offset)
-				r.incLength(offset-r.getOffset()-r.getLength());
+			// look if the text that caused the auto-insertion is being deleted
+			if (!r.cause.maybeIncOffset(offset+length, -length)) {
+				if (r.cause.getOffset() >= offset && r.cause.getOffset() < offset+length) {
+					overrideRegions.remove(i);
+					if (command != null && document != null) {
+						try {
+							command.text = document.get(command.offset+command.length, r.getOffset()-command.offset-command.length);
+							command.length = r.getEnd() - command.offset;
+							command.caretOffset = command.offset;
+							command.shiftsCaret = false;
+						} catch (BadLocationException e) {
+							e.printStackTrace();
+						}
+					}
+					continue;
+				}
+			}
+			// adjust offset of auto-inserted region itself
+			if (!r.maybeIncOffset(offset+length, -length)) {
+				if (r.getOffset() >= offset && r.getOffset() < offset+length) {
+					overrideRegions.remove(i);
+					continue;
+				}
+				if (r.getOffset() < offset && r.getOffset()+r.getLength() > offset)
+					r.incLength(offset-r.getOffset()-r.getLength());
+			}
 		}
 	}
 	
@@ -227,12 +267,15 @@ public class C4ScriptAutoEditStrategy extends DefaultIndentLineAutoEditStrategy 
 	}
 
 	public void completionProposalApplied(ClonkCompletionProposal proposal) {
-		MutableRegion newOne = null;
+		AutoInsertedRegion newOne = null;
 		if (proposal.getReplacementString().endsWith(")") && proposal.getCursorPosition() < proposal.getReplacementString().length()) { //$NON-NLS-1$
-			overrideRegions.add(newOne = new MutableRegion(proposal.getReplacementOffset()+proposal.getReplacementString().length()-1, 1));
+			overrideRegions.add(newOne = new AutoInsertedRegion(
+				proposal.getReplacementOffset()+proposal.getReplacementString().length()-1, 1,
+				new MutableRegion(proposal.getReplacementOffset()+proposal.getReplacementString().length()-2, proposal.getReplacementLength())
+			));
 		}
 		if (proposal.getReplacementLength() > 0)
-			regionDeleted(proposal.getReplacementOffset(), proposal.getReplacementLength(), newOne);
+			regionDeleted(proposal.getReplacementOffset(), proposal.getReplacementLength(), newOne, null, null);
 		for (MutableRegion r : overrideRegions) {
 			if (r == newOne)
 				continue;
