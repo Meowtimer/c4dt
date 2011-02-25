@@ -10,9 +10,9 @@ import org.eclipse.jface.preference.PreferenceConverter;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPreferencePage;
 
-public class ClonkSyntaxColoringPreferencePage extends FieldEditorPreferencePage implements IWorkbenchPreferencePage {
+public class SyntaxColoringPreferencePage extends FieldEditorPreferencePage implements IWorkbenchPreferencePage {
 
-	public ClonkSyntaxColoringPreferencePage() {
+	public SyntaxColoringPreferencePage() {
 		super (GRID);
 		setPreferenceStore(ClonkCore.getDefault().getPreferenceStore());
 	}

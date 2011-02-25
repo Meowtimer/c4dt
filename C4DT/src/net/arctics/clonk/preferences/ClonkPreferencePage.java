@@ -5,8 +5,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
-
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.index.Engine.EngineSettings;
@@ -14,7 +12,6 @@ import net.arctics.clonk.ui.navigator.ClonkFolderView;
 
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Path;
-import org.eclipse.jface.preference.BooleanFieldEditor;
 import org.eclipse.jface.preference.ComboFieldEditor;
 import org.eclipse.jface.preference.DirectoryFieldEditor;
 import org.eclipse.jface.preference.FieldEditor;
@@ -183,6 +180,7 @@ public class ClonkPreferencePage extends FieldEditorPreferencePage implements IW
 		return null;
 	}
 	
+	@Override
 	public void createFieldEditors() {
 		
 		// FIXME: not the best place to set that
@@ -321,26 +319,6 @@ public class ClonkPreferencePage extends FieldEditorPreferencePage implements IW
 		);
 		
 		addField(new StringFieldEditor(ClonkPreferences.AUTHOR, "Author:", getFieldEditorParent()));
-		
-		// toggles
-		Map<String, String> toggleHumanMap = new HashMap<String, String>();
-		toggleHumanMap.put(ClonkPreferences.SHOW_EXPORT_LOG, Messages.ShowExportLog);
-		toggleHumanMap.put(ClonkPreferences.SHOW_ERRORS_WHILE_TYPING, Messages.ClonkPreferencePage_ShowErrorsWhileTyping);
-		toggleHumanMap.put(ClonkPreferences.OPEN_EXTERNAL_BROWSER, Messages.ClonkPreferencePage_OpenExternalBrowser);
-		toggleHumanMap.put(ClonkPreferences.STRUCTURE_OUTLINES_IN_PROJECT_EXPLORER, Messages.ClonkPreferencePage_StructureOutlinesInProjectExplorer);
-		for (Entry<String, String> entry : toggleHumanMap.entrySet()) {
-			addField(new BooleanFieldEditor(entry.getKey(), entry.getValue(), getFieldEditorParent()));
-		}
-//
-//		addField(new RadioGroupFieldEditor(
-//				PreferenceConstants.P_CHOICE,
-//			"An example of a multiple-choice preference",
-//			1,
-//			new String[][] { { "&Choice 1", "choice1" }, {
-//				"C&hoice 2", "choice2" }
-//		}, getFieldEditorParent()));
-//		addField(
-//			new StringFieldEditor(PreferenceConstants.P_STRING, "A &text preference:", getFieldEditorParent()));
 	}
 
 	public static String[][] engineComboValues(boolean includeDefault) {
@@ -381,6 +359,7 @@ public class ClonkPreferencePage extends FieldEditorPreferencePage implements IW
 		}
 	}
 
+	@Override
 	public void init(IWorkbench workbench) {
 	}
 	

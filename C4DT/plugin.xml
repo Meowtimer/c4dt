@@ -290,9 +290,12 @@
 	<extension point="org.eclipse.ui.preferencePages">
 		<page class="net.arctics.clonk.preferences.ClonkPreferencePage"
 			id="net.arctics.clonk.preferences.ClonkPreferencePage" name="Clonk" />
-		<page class="net.arctics.clonk.preferences.ClonkSyntaxColoringPreferencePage"
-			id="net.arctics.clonk.preferences.ClonkSyntaxColoringPreferencePage" name="%ClonkSyntaxColoring"
+		<page class="net.arctics.clonk.preferences.SyntaxColoringPreferencePage"
+			id="net.arctics.clonk.preferences.SyntaxColoringPreferencePage" name="%SyntaxColoringPrefPage"
 			category="net.arctics.clonk.preferences.ClonkPreferencePage" />
+		<page class="net.arctics.clonk.preferences.TogglesPreferencePage"
+			id="net.arctics.clonk.preferences.TogglesPreferencePage" name="%TogglesPrefPage"
+			category="net.arctics.clonk.preferences.ClonkPreferencePage" />	
 	</extension>
 
 	<extension point="org.eclipse.core.runtime.preferences">
