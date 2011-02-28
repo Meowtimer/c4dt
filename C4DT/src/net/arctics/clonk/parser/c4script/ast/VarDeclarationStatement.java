@@ -8,7 +8,7 @@ import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.Variable;
-import net.arctics.clonk.parser.c4script.Variable.C4VariableScope;
+import net.arctics.clonk.parser.c4script.Variable.Scope;
 import net.arctics.clonk.util.ArrayUtil;
 import org.eclipse.jface.text.Region;
 
@@ -55,15 +55,15 @@ public class VarDeclarationStatement extends KeywordStatement {
 	
 	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 	private VarInitialization[] varInitializations;
-	private C4VariableScope scope;
+	private Scope scope;
 
-	public VarDeclarationStatement(List<VarInitialization> varInitializations, C4VariableScope scope) {
+	public VarDeclarationStatement(List<VarInitialization> varInitializations, Scope scope) {
 		super();
 		this.varInitializations = varInitializations.toArray(new VarInitialization[varInitializations.size()]);
 		this.scope = scope;
 		assignParentToSubElements();
 	}
-	public VarDeclarationStatement(String varName, ExprElm initialization, int namePos, C4VariableScope scope) {
+	public VarDeclarationStatement(String varName, ExprElm initialization, int namePos, Scope scope) {
 		this(ArrayUtil.list(new VarInitialization(varName, initialization, namePos)), scope);
 	}
 	@Override

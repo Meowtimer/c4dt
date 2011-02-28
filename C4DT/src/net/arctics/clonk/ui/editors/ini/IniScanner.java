@@ -5,7 +5,7 @@ import java.util.List;
 
 import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.parser.c4script.Variable;
-import net.arctics.clonk.parser.c4script.Variable.C4VariableScope;
+import net.arctics.clonk.parser.c4script.Variable.Scope;
 import net.arctics.clonk.ui.editors.ClonkRuleBasedScanner;
 import net.arctics.clonk.ui.editors.ColorManager;
 import net.arctics.clonk.ui.editors.WordScanner;
@@ -100,7 +100,7 @@ public class IniScanner extends ClonkRuleBasedScanner {
 		
 		if (engine != null) {
 			for (Variable var : engine.variables()) {
-				if (var.getScope() == C4VariableScope.CONST)
+				if (var.getScope() == Scope.CONST)
 					wordRule.addWord(var.getName(), constant);
 			}
 		}

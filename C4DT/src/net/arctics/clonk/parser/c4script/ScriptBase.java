@@ -32,7 +32,7 @@ import net.arctics.clonk.parser.ID;
 import net.arctics.clonk.parser.Structure;
 import net.arctics.clonk.parser.c4script.Directive.DirectiveType;
 import net.arctics.clonk.parser.c4script.Function.C4FunctionScope;
-import net.arctics.clonk.parser.c4script.Variable.C4VariableScope;
+import net.arctics.clonk.parser.c4script.Variable.Scope;
 import net.arctics.clonk.parser.c4script.ast.ExprElm;
 import net.arctics.clonk.preferences.ClonkPreferences;
 import net.arctics.clonk.util.ArrayUtil;
@@ -487,8 +487,6 @@ public abstract class ScriptBase extends Structure implements ITreeNode, IHasCon
 		return false;
 	}
 
-	public abstract ClonkIndex getIndex();
-
 	public Variable findLocalVariable(String name, boolean includeIncludes) {
 		return findLocalVariable(name, includeIncludes, new HashSet<ScriptBase>());
 	}
@@ -667,7 +665,7 @@ public abstract class ScriptBase extends Structure implements ITreeNode, IHasCon
 		writer.write("\t</functions>\n"); //$NON-NLS-1$
 		writer.write("\t<variables>\n"); //$NON-NLS-1$
 		for (Variable v : variables()) {
-			writer.write(String.format("\t\t<variable name=\"%s\" type=\"%s\" const=\"%s\">\n", v.getName(), v.getType().typeName(true), Boolean.valueOf(v.getScope() == C4VariableScope.CONST))); //$NON-NLS-1$
+			writer.write(String.format("\t\t<variable name=\"%s\" type=\"%s\" const=\"%s\">\n", v.getName(), v.getType().typeName(true), Boolean.valueOf(v.getScope() == Scope.CONST))); //$NON-NLS-1$
 			if (v.getUserDescription() != null) {
 				writer.write("\t\t\t<description>\n"); //$NON-NLS-1$
 				writer.write("\t\t\t\t"+v.getUserDescription()+"\n"); //$NON-NLS-1$ //$NON-NLS-2$
@@ -707,7 +705,7 @@ public abstract class ScriptBase extends Structure implements ITreeNode, IHasCon
 		for (int i = 0; i < variables.getLength(); i++) {
 			Node variable = variables.item(i);
 			Variable v = new Variable(variable.getAttributes().getNamedItem("name").getNodeValue(), PrimitiveType.makeType(variable.getAttributes().getNamedItem("type").getNodeValue(), true)); //$NON-NLS-1$ //$NON-NLS-2$
-			v.setScope(variable.getAttributes().getNamedItem("const").getNodeValue().equals(Boolean.TRUE.toString()) ? C4VariableScope.CONST : C4VariableScope.STATIC); //$NON-NLS-1$
+			v.setScope(variable.getAttributes().getNamedItem("const").getNodeValue().equals(Boolean.TRUE.toString()) ? Scope.CONST : Scope.STATIC); //$NON-NLS-1$
 			Node desc = (Node) xPath.evaluate("./description[1]", variable, XPathConstants.NODE); //$NON-NLS-1$
 			if (desc != null)
 				v.setUserDescription(desc.getTextContent());
@@ -761,7 +759,7 @@ public abstract class ScriptBase extends Structure implements ITreeNode, IHasCon
 	    	if (f.getVisibility() == C4FunctionScope.GLOBAL)
 	    		return true;
 	    for (Variable v : this.definedVariables)
-	    	if (v.getScope() == C4VariableScope.STATIC)
+	    	if (v.getScope() == Scope.STATIC)
 	    		return true;
 	    return false;
     }

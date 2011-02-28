@@ -30,7 +30,7 @@ import net.arctics.clonk.parser.c4script.ScriptBase;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.Variable;
 import net.arctics.clonk.parser.c4script.SpecialScriptRules;
-import net.arctics.clonk.parser.c4script.Variable.C4VariableScope;
+import net.arctics.clonk.parser.c4script.Variable.Scope;
 import net.arctics.clonk.parser.c4script.Keywords;
 import net.arctics.clonk.parser.inireader.CustomIniUnit;
 import net.arctics.clonk.parser.inireader.IEntryFactory;
@@ -551,7 +551,7 @@ public class Engine extends ScriptBase {
 		}
 		List<Variable> result = new LinkedList<Variable>();
 		for (Variable v : variables()) {
-			if (v.getScope() == C4VariableScope.CONST && v.getName().startsWith(prefix)) {
+			if (v.getScope() == Scope.CONST && v.getName().startsWith(prefix)) {
 				result.add(v);
 			}
 		}

@@ -48,12 +48,12 @@ public class RenameDeclarationProcessor extends RenameProcessor {
 	public RefactoringStatus checkInitialConditions(IProgressMonitor monitor) throws CoreException, OperationCanceledException {
 		// renaming fields that originate from outside the project is not allowed
 		Declaration baseDecl = decl instanceof Function ? ((Function)decl).baseFunction() : decl;
-		if (!(baseDecl.getScript().getIndex() instanceof ProjectIndex)) {
+		if (!(baseDecl.getIndex() instanceof ProjectIndex)) {
 			return RefactoringStatus.createFatalErrorStatus(String.format(Messages.OutsideProject, decl.getName()));
 		}
 		
 		Declaration existingDec;
-		FindDeclarationInfo info = new FindDeclarationInfo(decl.getScript().getIndex());
+		FindDeclarationInfo info = new FindDeclarationInfo(decl.getIndex());
 		info.setDeclarationClass(decl.getClass());
 		Structure parentStructure = decl.getParentDeclarationOfType(Structure.class);
 		if (parentStructure != null) {
@@ -83,7 +83,7 @@ public class RenameDeclarationProcessor extends RenameProcessor {
 		// if decl is a function also look for functions which inherit or are inherited from decl
 		if (decl instanceof Function) {
 			Function fieldAsFunc = (Function)decl;
-			for (Function relatedFunc : decl.getScript().getIndex().declarationsWithName(decl.getName(), Function.class)) {
+			for (Function relatedFunc : decl.getIndex().declarationsWithName(decl.getName(), Function.class)) {
 				if (decl != relatedFunc && fieldAsFunc.isRelatedFunction(relatedFunc) && fieldAsFunc.getScript().getScriptStorage() instanceof IFile)
 					elements.add(relatedFunc);
 			}

@@ -16,7 +16,7 @@ import net.arctics.clonk.parser.c4script.FindDeclarationInfo;
 import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.parser.c4script.Function.C4FunctionScope;
 import net.arctics.clonk.parser.c4script.IHasConstraint.ConstraintKind;
-import net.arctics.clonk.parser.c4script.Variable.C4VariableScope;
+import net.arctics.clonk.parser.c4script.Variable.Scope;
 import net.arctics.clonk.parser.c4script.ProplistDeclaration;
 import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
 
@@ -28,7 +28,7 @@ public class AccessVar extends AccessDeclaration {
 	public boolean modifiable(C4ScriptParser context) {
 		ExprElm pred = getPredecessorInSequence();
 		if (pred == null) {
-			return declaration == null || ((Variable)declaration).getScope() != C4VariableScope.CONST;
+			return declaration == null || ((Variable)declaration).getScope() != Scope.CONST;
 		} else {
 			return true; // you can never be so sure 
 		}
@@ -101,7 +101,7 @@ public class AccessVar extends AccessDeclaration {
 						Variable v = d.getTopLevelParentDeclarationOfType(Variable.class);
 						if (
 							(f != null && f.getVisibility() == C4FunctionScope.GLOBAL) ||
-							(f == null && v != null && v.getScope() != C4VariableScope.LOCAL)
+							(f == null && v != null && v.getScope() != Scope.LOCAL)
 						) {
 							parser.errorWithCode(ParserErrorCode.LocalUsedInGlobal, this, C4ScriptParser.NO_THROW);
 						}
@@ -165,16 +165,11 @@ public class AccessVar extends AccessDeclaration {
 			return;
 		IType predType = getPredecessorInSequence() != null ? getPredecessorInSequence().getType(context) : null;
 		if (predType instanceof ProplistDeclaration) {
-			ProplistDeclaration proplDec = (ProplistDeclaration) predType;
+			//ProplistDeclaration proplDec = (ProplistDeclaration) predType;
 			
 			// FIXME: always ok to add to existing proplist declaration?
-			Variable adhocVar = new Variable(getDeclarationName(), C4VariableScope.VAR);
-			adhocVar.setLocation(context.absoluteSourceLocationFromExpr(this));
-			adhocVar.forceType(expression.getType(context));
-			adhocVar.setInitializationExpression(expression);
-			adhocVar.setParentDeclaration(proplDec);
-			declaration = adhocVar;
-			proplDec.addComponent(adhocVar, true);
+			declaration = context.getContainer().getIndex().addAdhocVariable(getDeclarationName(), context.getContainer().getScriptFile(), context.getCurrentDeclaration(), expression);
+			//proplDec.addComponent(adhocVar);
 		}
 		super.inferTypeFromAssignment(expression, context);
 	}
@@ -192,7 +187,7 @@ public class AccessVar extends AccessDeclaration {
 		Definition obj;
 		if (declaration instanceof Variable) {
 			Variable var = (Variable) declaration;
-			if (var.getScope() == C4VariableScope.CONST) {
+			if (var.getScope() == Scope.CONST) {
 				Object val = var.getDefaultValue();
 				if (val == null)
 					val = 1337; // awesome fallback
@@ -206,7 +201,7 @@ public class AccessVar extends AccessDeclaration {
 	}
 
 	public boolean constCondition() {
-		return declaration instanceof Variable && ((Variable)declaration).getScope() == C4VariableScope.CONST;
+		return declaration instanceof Variable && ((Variable)declaration).getScope() == Scope.CONST;
 	}
 	
 	@Override
@@ -224,7 +219,7 @@ public class AccessVar extends AccessDeclaration {
 		if (getDeclaration() instanceof Variable) {
 			Variable var = (Variable) getDeclaration();
 			// naturally, consts are constant
-			return var.getScope() == C4VariableScope.CONST || getObjectBelongingToStaticVar(var) != null;
+			return var.getScope() == Scope.CONST || getObjectBelongingToStaticVar(var) != null;
 		}
 		else
 			return false;

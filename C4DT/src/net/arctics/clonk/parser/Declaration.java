@@ -348,6 +348,10 @@ public abstract class Declaration implements Serializable, IHasRelatedResource, 
 		return parentDeclaration != null ? parentDeclaration.getEngine() : null; 
 	}
 
+	public ClonkIndex getIndex() {
+		return parentDeclaration != null ? parentDeclaration.getIndex() : null;
+	}
+	
 	/**
 	 * Take internal state from other declaration and make it your own. This will mess up ownership relations so discard of the absorbed one
 	 * @param declaration

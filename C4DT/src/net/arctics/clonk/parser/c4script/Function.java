@@ -12,7 +12,7 @@ import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.Structure;
 import net.arctics.clonk.parser.SourceLocation;
-import net.arctics.clonk.parser.c4script.Variable.C4VariableScope;
+import net.arctics.clonk.parser.c4script.Variable.Scope;
 import net.arctics.clonk.parser.c4script.ast.Block;
 import net.arctics.clonk.parser.c4script.ast.Conf;
 import net.arctics.clonk.parser.c4script.ast.ExprElm;
@@ -296,7 +296,7 @@ public class Function extends Structure implements Serializable, ITypedDeclarati
 	}
 	
 	public int sortCategory() {
-		return Variable.C4VariableScope.values().length + visibility.ordinal();
+		return Variable.Scope.values().length + visibility.ordinal();
 	}
 
 	public static String getDocumentationURL(String functionName, Engine engine) {
@@ -367,7 +367,7 @@ public class Function extends Structure implements Serializable, ITypedDeclarati
 		}
 		
 		// search in index
-		List<Declaration> decsWithSameName = getScript().getIndex().getDeclarationMap().get(this.getName());
+		List<Declaration> decsWithSameName = getIndex().getDeclarationMap().get(this.getName());
 		if (decsWithSameName != null) {
 			Function f = null;
 			int rating = -1;
@@ -390,7 +390,7 @@ public class Function extends Structure implements Serializable, ITypedDeclarati
 		}
 		
 		// search in engine
-		Function f = getScript().getIndex().getEngine().findFunction(getName());
+		Function f = getIndex().getEngine().findFunction(getName());
 		if (f != null)
 			return f;
 		
@@ -424,7 +424,7 @@ public class Function extends Structure implements Serializable, ITypedDeclarati
 	 */
 	public void createParameters(int num) {
 		for (int i = parameter.size(); i < num; i++) {
-			parameter.add(new Variable("par"+i, C4VariableScope.VAR)); //$NON-NLS-1$
+			parameter.add(new Variable("par"+i, Scope.VAR)); //$NON-NLS-1$
 		}
 	}
 

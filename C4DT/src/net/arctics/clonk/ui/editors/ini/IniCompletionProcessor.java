@@ -11,7 +11,7 @@ import net.arctics.clonk.parser.ID;
 import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.ScriptBase;
 import net.arctics.clonk.parser.c4script.Variable;
-import net.arctics.clonk.parser.c4script.Variable.C4VariableScope;
+import net.arctics.clonk.parser.c4script.Variable.Scope;
 import net.arctics.clonk.parser.inireader.Boolean;
 import net.arctics.clonk.parser.inireader.CategoriesArray;
 import net.arctics.clonk.parser.inireader.DefinitionPack;
@@ -156,7 +156,7 @@ public class IniCompletionProcessor extends ClonkCompletionProcessor<IniTextEdit
 	private void proposalsForCategoriesArray(Collection<ICompletionProposal> proposals, String prefix, int wordOffset, IniDataEntry entryDef) {
 		if (prefix != null) {
 			for (Variable v : getEditor().getIniUnit().getEngine().variablesWithPrefix(entryDef.getConstantsPrefix())) {
-				if (v.getScope() == C4VariableScope.CONST) {
+				if (v.getScope() == Scope.CONST) {
 					proposalForVar(v, prefix, wordOffset, proposals);
 				}
 			}

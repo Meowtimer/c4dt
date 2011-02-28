@@ -7,6 +7,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import net.arctics.clonk.ClonkCore;
+import net.arctics.clonk.index.ClonkIndex;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.CachedEngineFuncs;
 import net.arctics.clonk.parser.Declaration;
@@ -606,8 +607,6 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 			exprStart += amount;
 		if (end)
 			exprEnd += amount;
-		/*if (start || end)
-			System.out.println(String.format("Adjusting %s: start=%s end=%s", this.toString(), Boolean.valueOf(start), Boolean.valueOf(end)));*/
 	}
 	
 	private static void offsetExprRegionRecursively(ExprElm elm, int diff) {
@@ -761,8 +760,12 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 			if (tyDec != null) {
 				// only set types of declarations inside the current index so definition references of one project
 				// don't leak into a referenced base project (ClonkMars def referenced in ClonkRage or something)
-				Declaration d = (Declaration)tyDec;
-				if (d.getScript().getIndex() == parser.getContainer().getIndex())
+				ClonkIndex index = ((Declaration)tyDec).getIndex();
+				if (index == null) {
+					System.out.println("ugh");
+					return;
+				}
+				if (index == parser.getContainer().getIndex())
 					tyDec.expectedToBeOfType(type, TypeExpectancyMode.Expect);
 			}
 		}

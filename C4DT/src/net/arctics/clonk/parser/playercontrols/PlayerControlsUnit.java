@@ -7,7 +7,7 @@ import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.c4script.PrimitiveType;
 import net.arctics.clonk.parser.c4script.Variable;
-import net.arctics.clonk.parser.c4script.Variable.C4VariableScope;
+import net.arctics.clonk.parser.c4script.Variable.Scope;
 import net.arctics.clonk.parser.inireader.IniEntry;
 import net.arctics.clonk.parser.inireader.IniItem;
 import net.arctics.clonk.parser.inireader.IniSection;
@@ -51,7 +51,7 @@ public class PlayerControlsUnit extends IniUnitWithNamedSections {
 							IniEntry e = (IniEntry) identifierEntry;
 							String ident = e.getValue();
 							Variable var = new Variable("CON_" + ident, PrimitiveType.INT); //$NON-NLS-1$
-							var.setScope(C4VariableScope.CONST);
+							var.setScope(Scope.CONST);
 							var.setParentDeclaration(this);
 							var.setLocation(e.getLocation());
 							controlVariables.add(var);

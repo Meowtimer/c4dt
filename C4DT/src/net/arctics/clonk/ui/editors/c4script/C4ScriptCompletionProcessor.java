@@ -10,6 +10,7 @@ import java.util.Set;
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.index.Scenario;
 import net.arctics.clonk.index.ClonkIndex;
+import net.arctics.clonk.parser.c4script.AdhocVariable;
 import net.arctics.clonk.parser.c4script.BuiltInDefinitions;
 import net.arctics.clonk.parser.c4script.Directive;
 import net.arctics.clonk.parser.c4script.EffectFunction;
@@ -25,7 +26,7 @@ import net.arctics.clonk.parser.BufferedScanner;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.c4script.Function.C4FunctionScope;
 import net.arctics.clonk.parser.c4script.C4ScriptParser.ExpressionsAndStatementsReportingFlavour;
-import net.arctics.clonk.parser.c4script.Variable.C4VariableScope;
+import net.arctics.clonk.parser.c4script.Variable.Scope;
 import net.arctics.clonk.parser.c4script.ast.AccessDeclaration;
 import net.arctics.clonk.parser.c4script.ast.Conf;
 import net.arctics.clonk.parser.c4script.ast.ExprElm;
@@ -263,7 +264,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 		_currentEditorScript = editorScript;
 		boolean specifiedParser = parser != null;
 		Sequence contextSequence = null;
-		
+
 		if (editorScript != null) {
 			final int preservedOffset = offset - (activeFunc != null?activeFunc.getBody().getStart():0);
 			if (contextExpression == null && !specifiedParser) {
@@ -316,7 +317,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 		}
 		
 		if (proposalCycle == ProposalCycle.ALL) {
-			if (editorScript.getIndex().getEngine() != null) {
+			if (editorScript.getIndex().getEngine() != null && (contextSequence == null || !MemberOperator.endsWithDot(contextSequence))) {
 				for (Function func : editorScript.getIndex().getEngine().functions()) {
 					proposalForFunc(func, prefix, offset, proposals, editorScript.getIndex().getEngine().getName(), true);
 				}
@@ -328,7 +329,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 			}
 		}
 		
-		if (contextSequence == null && (proposalCycle == ProposalCycle.ALL || proposalCycle == ProposalCycle.LOCAL) && activeFunc != null /*&& contextSequence == null* what was the reason for that again?*/) {
+		if (contextSequence == null && (proposalCycle == ProposalCycle.ALL || proposalCycle == ProposalCycle.LOCAL) && activeFunc != null) {
 			for (Variable v : activeFunc.getParameters()) {
 				proposalForVar(v, prefix, wordOffset, proposals);
 			}
@@ -369,7 +370,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 	public static List<ICompletionProposal> computeProposalsForExpression(ExprElm expression, Function function, C4ScriptParser parser, IDocument document) {
 		List<ICompletionProposal> result = new LinkedList<ICompletionProposal>();
 		C4ScriptCompletionProcessor processor = new C4ScriptCompletionProcessor(null, null);
-		ClonkIndex index = function.getScript().getIndex();
+		ClonkIndex index = function.getIndex();
 		processor.contextExpression = expression;
 		processor.internalProposalsInsideOfFunction(expression != null ? expression.getExprEnd() : 0, 0, document, "", result, index, function, function.getScript(), parser);
 		return result;
@@ -517,10 +518,17 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 	}
 	
 	private void proposalsForStructure(IHasSubDeclarations structure, Set<IHasSubDeclarations> loopCatcher, String prefix, int offset, int wordOffset, List<ICompletionProposal> proposals, boolean noPrivateFuncs, ClonkIndex index, int mask) {
-		if (loopCatcher.contains(structure)) {
+		if (loopCatcher.contains(structure))
 			return;
+		else {
+			// always propose adhoc variables
+			if (loopCatcher.size() == 0) {
+				for (AdhocVariable var : getEditor().scriptBeingEdited().getIndex().adhocVariables()) {
+					proposalForVar(var, prefix, wordOffset, proposals);
+				}
+			}
+			loopCatcher.add(structure);
 		}
-		loopCatcher.add(structure);
 		for (Declaration dec : structure.allSubDeclarations(mask)) {
 			Function func;
 			Variable var;
@@ -531,7 +539,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 						proposalForFunc(func, prefix, offset, proposals, structure.getName(), true);
 			}
 			else if ((var = Utilities.as(dec, Variable.class)) != null) {
-				if (var.getScope() != C4VariableScope.STATIC && var.getScope() != C4VariableScope.CONST)
+				if (var.getScope() != Scope.STATIC && var.getScope() != Scope.CONST)
 					proposalForVar(var, prefix, wordOffset, proposals);
 			}
 			else if ((include = Utilities.as(dec, ScriptBase.class)) != null) {

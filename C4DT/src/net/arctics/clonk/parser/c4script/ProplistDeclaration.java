@@ -1,6 +1,5 @@
 package net.arctics.clonk.parser.c4script;
 
-import java.io.IOException;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -8,8 +7,6 @@ import java.util.List;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.Structure;
 import net.arctics.clonk.util.ArrayUtil;
-import net.arctics.clonk.util.CompoundIterable;
-import net.arctics.clonk.util.Utilities;
 
 public class ProplistDeclaration extends Structure implements IType {
 
@@ -19,11 +16,6 @@ public class ProplistDeclaration extends Structure implements IType {
 	 * Each assignment in a proplist declaration is represented by a C4Variable object.
 	 */
 	private List<Variable> components;
-	
-	/**
-	 * Components that were added by assignment (proplist.x = 123;) as opposed to being declared inside the initialization block
-	 */
-	private List<Variable> adhocComponents;
 	
 	/**
 	 * Whether the declaration was "explicit" {blub=<blub>...} or
@@ -56,30 +48,18 @@ public class ProplistDeclaration extends Structure implements IType {
 		return result;
 	}
 	
-	public Variable addComponent(Variable variable, boolean adhoc) {
+	public Variable addComponent(Variable variable) {
 		Variable found = findComponent(variable.getName());
 		if (found != null) {
-			//found.setLocation(variable.getLocation());
 			return found;
 		} else {
-			if (adhoc) {
-				if (adhocComponents == null)
-					adhocComponents = new LinkedList<Variable>();
-				adhocComponents.add(variable);
-			} else {
-				components.add(variable);
-			}
+			components.add(variable);
 			return variable;
 		}
 	}
 	
 	public Variable findComponent(String declarationName) {
 		for (Variable v : components) {
-			if (v.getName().equals(declarationName)) {
-				return v;
-			}
-		}
-		if (adhocComponents != null) for (Variable v : adhocComponents) {
 			if (v.getName().equals(declarationName)) {
 				return v;
 			}
@@ -97,15 +77,15 @@ public class ProplistDeclaration extends Structure implements IType {
 		return null;
 	}
 	
-	@SuppressWarnings("unchecked")
 	@Override
 	public Iterable<? extends Declaration> allSubDeclarations(int mask) {
-		if ((mask & VARIABLES) != 0)
-			return adhocComponents != null ? new CompoundIterable<Declaration>(components, adhocComponents) : components;
+		if ((mask & VARIABLES) != 0) {
+			return components;
+		}
 		else
 			return NO_SUB_DECLARATIONS;
 	}
-	
+
 	@SuppressWarnings("unchecked")
 	@Override
 	public <T extends Declaration> T getLatestVersion(T from) {
@@ -129,22 +109,6 @@ public class ProplistDeclaration extends Structure implements IType {
 	@Override
 	public String typeName(boolean special) {
 		return PrimitiveType.PROPLIST.typeName(special);
-	}
-	
-	@Override
-	public String toString() {
-		if (adhocComponents != null) {
-			StringBuilder builder = new StringBuilder();
-			builder.append(PrimitiveType.PROPLIST.toString());
-			try {
-				Utilities.writeBlock(builder, "{", "}", ", ", adhocComponents);
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-			return builder.toString();
-		} else {
-			return super.toString();
-		}
 	}
 
 	@Override

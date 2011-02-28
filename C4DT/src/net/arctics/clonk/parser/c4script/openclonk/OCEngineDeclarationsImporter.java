@@ -19,7 +19,7 @@ import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.ScriptBase;
 import net.arctics.clonk.parser.c4script.PrimitiveType;
 import net.arctics.clonk.parser.c4script.Variable;
-import net.arctics.clonk.parser.c4script.Variable.C4VariableScope;
+import net.arctics.clonk.parser.c4script.Variable.Scope;
 import net.arctics.clonk.parser.c4script.XMLDocImporter;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.xml.sax.SAXException;
@@ -133,7 +133,7 @@ public class OCEngineDeclarationsImporter {
 							Variable cnst = importsContainer.findLocalVariable(name, false);
 							if (cnst == null) {
 								cnst = new Variable(name, type);
-								cnst.setScope(C4VariableScope.CONST);
+								cnst.setScope(Scope.CONST);
 								cnst.setUserDescription(comment);
 								importsContainer.addDeclaration(cnst);
 							}

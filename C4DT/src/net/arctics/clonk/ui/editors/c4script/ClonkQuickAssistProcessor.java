@@ -21,7 +21,7 @@ import net.arctics.clonk.parser.c4script.Function.C4FunctionScope;
 import net.arctics.clonk.parser.c4script.PrimitiveType;
 import net.arctics.clonk.parser.c4script.Variable;
 import net.arctics.clonk.parser.c4script.C4ScriptParser.ExpressionsAndStatementsReportingFlavour;
-import net.arctics.clonk.parser.c4script.Variable.C4VariableScope;
+import net.arctics.clonk.parser.c4script.Variable.Scope;
 import net.arctics.clonk.parser.c4script.Keywords;
 import net.arctics.clonk.parser.c4script.ast.AccessDeclaration;
 import net.arctics.clonk.parser.c4script.ast.AccessVar;
@@ -476,7 +476,7 @@ public class ClonkQuickAssistProcessor implements IQuickAssistProcessor {
 						if (topLevel == op.getParent() && op.getOperator() == Operator.Assign && op.getLeftSide() == offendingExpression) {
 							replacements.add(
 									Messages.ClonkQuickAssistProcessor_ConvertToVarDeclaration,
-									new VarDeclarationStatement(var.getDeclarationName(), op.getRightSide(), Keywords.VarNamed.length()+1, C4VariableScope.VAR)
+									new VarDeclarationStatement(var.getDeclarationName(), op.getRightSide(), Keywords.VarNamed.length()+1, Scope.VAR)
 							);
 						}
 					}
@@ -493,7 +493,7 @@ public class ClonkQuickAssistProcessor implements IQuickAssistProcessor {
 						List<Replacement.AdditionalDeclaration> decs = createNewDeclarationReplacement.getAdditionalDeclarations();
 						if (accessDec instanceof AccessVar) {
 							decs.add(new Replacement.AdditionalDeclaration(
-									new Variable(accessDec.getDeclarationName(), C4VariableScope.LOCAL),
+									new Variable(accessDec.getDeclarationName(), Scope.LOCAL),
 									ExprElm.NULL_EXPR
 							));
 						} else {

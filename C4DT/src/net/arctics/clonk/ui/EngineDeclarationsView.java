@@ -12,7 +12,7 @@ import net.arctics.clonk.parser.c4script.ScriptBase;
 import net.arctics.clonk.parser.c4script.PrimitiveType;
 import net.arctics.clonk.parser.c4script.Variable;
 import net.arctics.clonk.parser.c4script.Function.C4FunctionScope;
-import net.arctics.clonk.parser.c4script.Variable.C4VariableScope;
+import net.arctics.clonk.parser.c4script.Variable.Scope;
 import net.arctics.clonk.parser.c4script.openclonk.OCEngineDeclarationsImporter;
 import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.preferences.ClonkPreferences;
@@ -162,7 +162,7 @@ public class EngineDeclarationsView extends ViewPart implements IPropertyChangeL
 				
 				func.getParameters().clear();
 				for(ParameterCombination par : parameters) {
-					Variable var = new Variable(par.getName().getText(),C4VariableScope.LOCAL);
+					Variable var = new Variable(par.getName().getText(),Scope.LOCAL);
 					var.forceType(getSelectedType(par.getType()));
 					func.getParameters().add(var);
 				}
@@ -171,7 +171,7 @@ public class EngineDeclarationsView extends ViewPart implements IPropertyChangeL
 				Variable var = (Variable) declaration;
 				var.setName(declarationNameField.getText());
 				var.forceType(PrimitiveType.makeType(returnTypeBox.getItem(returnTypeBox.getSelectionIndex()), true));
-				var.setScope(C4VariableScope.valueOf(scopeBox.getItem(scopeBox.getSelectionIndex())));
+				var.setScope(Scope.valueOf(scopeBox.getItem(scopeBox.getSelectionIndex())));
 			}
 			
 			super.okPressed();
@@ -252,8 +252,8 @@ public class EngineDeclarationsView extends ViewPart implements IPropertyChangeL
 		
 		private Combo createComboBoxForScope(Composite parent, Object scope) {
 			Object[] values = null;
-			if (scope instanceof C4VariableScope) {
-				values = C4VariableScope.values();
+			if (scope instanceof Scope) {
+				values = Scope.values();
 			}
 			else if (scope instanceof C4FunctionScope) {
 				values = C4FunctionScope.values();

@@ -256,7 +256,7 @@ public class C4ScriptAutoEditStrategy extends DefaultIndentLineAutoEditStrategy 
 							command.caretOffset = command.offset;
 							command.shiftsCaret = false;
 						} catch (BadLocationException e) {
-							e.printStackTrace();
+							//e.printStackTrace();
 						}
 					}
 					continue;

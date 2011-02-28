@@ -19,7 +19,7 @@ import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 
 import net.arctics.clonk.parser.Declaration;
-import net.arctics.clonk.parser.c4script.Variable.C4VariableScope;
+import net.arctics.clonk.parser.c4script.Variable.Scope;
 import net.arctics.clonk.util.StreamUtil;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
@@ -133,7 +133,7 @@ public class XMLDocImporter {
 					}
 				}
 			} else {
-				result = new Variable(name, PrimitiveType.INT, null, C4VariableScope.CONST);
+				result = new Variable(name, PrimitiveType.INT, null, Scope.CONST);
 			}
 			result.setName(name);
 			((ITypedDeclaration)result).forceType(PrimitiveType.makeType(rTypeNode.getTextContent()));

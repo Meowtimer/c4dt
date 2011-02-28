@@ -32,7 +32,7 @@ public class Variable extends Declaration implements Serializable, ITypedDeclara
 	/**
 	 * Scope (local, static or function-local)
 	 */
-	private C4VariableScope scope;
+	private Scope scope;
 	
 	/**
 	 * Type of the variable.
@@ -65,7 +65,7 @@ public class Variable extends Declaration implements Serializable, ITypedDeclara
 	public static final Variable THIS = new Variable("this", PrimitiveType.OBJECT, Messages.This_Description); //$NON-NLS-1$
 	
 	private Variable(String name, PrimitiveType type, String desc) {
-		this(name, type, desc, C4VariableScope.VAR);
+		this(name, type, desc, Scope.VAR);
 		typeLocked = true;
 	}
 	
@@ -74,14 +74,14 @@ public class Variable extends Declaration implements Serializable, ITypedDeclara
 		forceType(type);
 	}
 	
-	public Variable(String name, C4VariableScope scope) {
+	public Variable(String name, Scope scope) {
 		this.name = name;
 		this.scope = scope;
 		description = ""; //$NON-NLS-1$
 		type = PrimitiveType.UNKNOWN;
 	}
 	
-	public Variable(String name, IType type, String desc, C4VariableScope scope) {
+	public Variable(String name, IType type, String desc, Scope scope) {
 		this.name = name;
 		this.type = type;
 		this.description = desc;
@@ -90,16 +90,16 @@ public class Variable extends Declaration implements Serializable, ITypedDeclara
 
 	public Variable() {
 		name = ""; //$NON-NLS-1$
-		scope = C4VariableScope.VAR;
+		scope = Scope.VAR;
 	}
 	
 	public Variable(String name, String scope) {
-		this(name,C4VariableScope.makeScope(scope));
+		this(name,Scope.makeScope(scope));
 	}
 
 	public Variable(String name, ExprElm expr, C4ScriptParser context) {
 		this(name, expr.getType(context));
-		scope = C4VariableScope.VAR;
+		scope = Scope.VAR;
 		setInitializationExpression(expr);
 	}
 
@@ -152,7 +152,7 @@ public class Variable extends Declaration implements Serializable, ITypedDeclara
 	/**
 	 * @return the scope
 	 */
-	public C4VariableScope getScope() {
+	public Scope getScope() {
 		return scope;
 	}
 	
@@ -173,7 +173,7 @@ public class Variable extends Declaration implements Serializable, ITypedDeclara
 	/**
 	 * @param scope the scope to set
 	 */
-	public void setScope(C4VariableScope scope) {
+	public void setScope(Scope scope) {
 		this.scope = scope;
 	}
 
@@ -190,17 +190,17 @@ public class Variable extends Declaration implements Serializable, ITypedDeclara
 	 * @author ZokRadonh
 	 *
 	 */
-	public enum C4VariableScope implements Serializable {
+	public enum Scope implements Serializable {
 		STATIC,
 		LOCAL,
 		VAR,
 		CONST;
 		
-		public static C4VariableScope makeScope(String scopeString) {
-			if (scopeString.equals(Keywords.VarNamed)) return C4VariableScope.VAR;
-			if (scopeString.equals(Keywords.LocalNamed)) return C4VariableScope.LOCAL;
-			if (scopeString.equals(Keywords.GlobalNamed)) return C4VariableScope.STATIC;
-			if (scopeString.equals(Keywords.GlobalNamed + " " + Keywords.Const)) return C4VariableScope.CONST; //$NON-NLS-1$
+		public static Scope makeScope(String scopeString) {
+			if (scopeString.equals(Keywords.VarNamed)) return Scope.VAR;
+			if (scopeString.equals(Keywords.LocalNamed)) return Scope.LOCAL;
+			if (scopeString.equals(Keywords.GlobalNamed)) return Scope.STATIC;
+			if (scopeString.equals(Keywords.GlobalNamed + " " + Keywords.Const)) return Scope.CONST; //$NON-NLS-1$
 			//if (C4VariableScope.valueOf(scopeString) != null) return C4VariableScope.valueOf(scopeString);
 			else return null;
 		}
@@ -222,14 +222,14 @@ public class Variable extends Declaration implements Serializable, ITypedDeclara
 	}
 	
 	public int sortCategory() {
-		return (scope != null ? scope : C4VariableScope.VAR).ordinal();
+		return (scope != null ? scope : Scope.VAR).ordinal();
 	}
 	
 	@Override
 	public String getInfoText() {
 		IType t = getType(); //getObjectType() != null ? getObjectType() : getType();
 		String format = Messages.C4Variable_InfoTextFormatOverall;
-		String valueFormat = scope == C4VariableScope.CONST
+		String valueFormat = scope == Scope.CONST
 			? Messages.C4Variable_InfoTextFormatConstValue
 			: Messages.C4Variable_InfoTextFormatDefaultValue;
 		String descriptionFormat = Messages.C4Variable_InfoTextFormatUserDescription;
@@ -315,7 +315,7 @@ public class Variable extends Declaration implements Serializable, ITypedDeclara
 
 	@Override
 	public boolean isGlobal() {
-		return scope == C4VariableScope.STATIC || scope == C4VariableScope.CONST;
+		return scope == Scope.STATIC || scope == Scope.CONST;
 	}
 	
 	/**
@@ -323,7 +323,7 @@ public class Variable extends Declaration implements Serializable, ITypedDeclara
 	 * @return The above
 	 */
 	public boolean isGloballyAccessible() {
-		return scope == C4VariableScope.LOCAL || parentDeclaration instanceof ProplistDeclaration || isGlobal();
+		return scope == Scope.LOCAL || parentDeclaration instanceof ProplistDeclaration || isGlobal();
 	}
 
 	public boolean isAt(int offset) {
@@ -386,7 +386,7 @@ public class Variable extends Declaration implements Serializable, ITypedDeclara
 	
 	@Override
 	public boolean typeIsInvariant() {
-		return scope == C4VariableScope.CONST || typeLocked;
+		return scope == Scope.CONST || typeLocked;
 	}
 	
 }
