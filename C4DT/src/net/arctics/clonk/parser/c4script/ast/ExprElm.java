@@ -531,8 +531,8 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 		expectedToBeOfType(type, context, TypeExpectancyMode.Expect, null);
 	}
 
-	public void inferTypeFromAssignment(ExprElm rightSide, C4ScriptParser parser) {
-		parser.storeTypeInformation(this, rightSide.getType(parser));
+	public void inferTypeFromAssignment(ExprElm rightSide, DeclarationObtainmentContext context) {
+		context.storeTypeInformation(this, rightSide.getType(context));
 	}
 
 	public ControlFlow getControlFlow() {

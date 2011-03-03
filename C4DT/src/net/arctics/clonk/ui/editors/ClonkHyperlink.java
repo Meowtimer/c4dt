@@ -3,15 +3,21 @@ package net.arctics.clonk.ui.editors;
 import java.lang.ref.WeakReference;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.Arrays;
 
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.parser.Declaration;
+import net.arctics.clonk.parser.Declaration.DeclarationLocation;
 import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.preferences.ClonkPreferences;
+import net.arctics.clonk.ui.editors.actions.c4script.DeclarationChooser;
+
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.hyperlink.IHyperlink;
+import org.eclipse.swt.SWT;
 import org.eclipse.ui.PartInitException;
+import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.browser.IWebBrowser;
 import org.eclipse.ui.browser.IWorkbenchBrowserSupport;
 import org.eclipse.ui.internal.browser.WorkbenchBrowserSupport;
@@ -45,6 +51,19 @@ public class ClonkHyperlink implements IHyperlink {
 
 	public void open() {
 		try {
+			DeclarationLocation[] locations = target.getDeclarationLocations();
+			if (locations.length == 1) {
+				ClonkTextEditor.openDeclaration(locations[0].getDeclaration());
+			} else {
+				DeclarationChooser chooser = new DeclarationChooser(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(), Arrays.asList(locations));
+				if (chooser.open() == SWT.OK) {
+					boolean b = true;
+					for (DeclarationLocation loc : chooser.getSelectedDeclarationLocations()) {
+						ClonkTextEditor.openDeclarationLocation(loc, b);
+						b = false;
+					}
+				}
+			}
 			if (ClonkTextEditor.openDeclaration(target) == null) {
 				// can't open editor so try something else like opening up a documentation page in the browser
 				if (target.isEngineDeclaration()) {

@@ -15,6 +15,7 @@ import net.arctics.clonk.index.ClonkIndex;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.ID;
 import net.arctics.clonk.parser.c4script.ast.ExprElm;
+import net.arctics.clonk.parser.c4script.ast.PropListExpression;
 import net.arctics.clonk.parser.c4script.ast.TypeExpectancyMode;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.ui.editors.c4script.IPostSerializable;
@@ -352,6 +353,9 @@ public class Variable extends Declaration implements Serializable, ITypedDeclara
 		ensureTypeLockedIfPredefined(parent);
 		if (initializationExpression instanceof IPostSerializable) {
 			((IPostSerializable<ExprElm, DeclarationObtainmentContext>)initializationExpression).postSerialize(null, getDeclarationObtainmentContext());
+		}
+		if (initializationExpression instanceof PropListExpression) {
+			((PropListExpression)initializationExpression).getDefinedDeclaration().postSerialize(this, root);
 		}
 	}
 

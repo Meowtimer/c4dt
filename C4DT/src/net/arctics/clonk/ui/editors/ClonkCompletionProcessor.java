@@ -94,7 +94,7 @@ public abstract class ClonkCompletionProcessor<EditorType extends ClonkTextEdito
 	protected ClonkCompletionProposal proposalForVar(Variable var, String prefix, int offset, Collection<ICompletionProposal> proposals) {
 		if (prefix != null && !var.getName().toLowerCase().contains(prefix))
 			return null;
-		if (var.getScript() == null)
+		if (var.getIndex() == null)
 			return null;
 		String displayString = var.getName();
 		int replacementLength = 0;
@@ -102,7 +102,7 @@ public abstract class ClonkCompletionProcessor<EditorType extends ClonkTextEdito
 			replacementLength = prefix.length();
 		ClonkCompletionProposal prop = new ClonkCompletionProposal(var,
 			var.getName(), offset, replacementLength, var.getName().length(), UI.getIconForVariable(var), displayString, 
-			null, var.getInfoText(), " - " + var.getScript().getName(), //$NON-NLS-1$
+			null, var.getInfoText(), " - " + (var.getScript() != null ? var.getScript().getName() : "<adhoc>"), //$NON-NLS-1$
 			getEditor()
 		);
 		prop.setCategory(Category.Variables);

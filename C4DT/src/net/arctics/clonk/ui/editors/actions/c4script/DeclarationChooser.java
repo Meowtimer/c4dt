@@ -2,9 +2,12 @@ package net.arctics.clonk.ui.editors.actions.c4script;
 
 import java.util.Collection;
 import java.util.Comparator;
+import java.util.LinkedList;
+import java.util.List;
 
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.Declaration;
+import net.arctics.clonk.parser.Declaration.DeclarationLocation;
 import net.arctics.clonk.parser.Structure;
 import net.arctics.clonk.ui.navigator.ClonkOutlineProvider;
 import net.arctics.clonk.util.ArrayUtil;
@@ -26,10 +29,11 @@ public class DeclarationChooser extends FilteredItemsSelectionDialog {
 	private static class LabelProvider extends org.eclipse.jface.viewers.LabelProvider implements IStyledLabelProvider {
 
 		public StyledString getStyledText(Object element) {
-			StyledString result = ClonkOutlineProvider.getStyledTextForEveryone(element);
+			DeclarationLocation decLocation = (DeclarationLocation) element;
+			StyledString result = ClonkOutlineProvider.getStyledTextForEveryone(decLocation.getDeclaration());
 			if (element != null) {
 				result.append(" - ", StyledString.QUALIFIER_STYLER); //$NON-NLS-1$
-				result.append(((Declaration)element).getTopLevelStructure().toString(), StyledString.QUALIFIER_STYLER);
+				result.append(decLocation.getResource().getProjectRelativePath().toOSString(), StyledString.QUALIFIER_STYLER);
 			}
 			return result;
 		}
@@ -38,19 +42,37 @@ public class DeclarationChooser extends FilteredItemsSelectionDialog {
 	
 	private static final String DIALOG_SETTINGS = "DeclarationChooserDialogSettings"; //$NON-NLS-1$
 	
-	private Collection<Declaration> declarations;
+	private Collection<DeclarationLocation> declarations;
 
-	public DeclarationChooser(Shell shell, Collection<Declaration> declarations) {
+	public DeclarationChooser(Shell shell, Collection<DeclarationLocation> declarations) {
 		super(shell);
 		this.declarations = declarations;
 		setListLabelProvider(new LabelProvider());
 		setTitle(Messages.DeclarationChooser_Label);
 	}
 	
+	public DeclarationChooser(Shell shell, List<Declaration> proposedDeclarations) {
+		this(shell, getFirstDeclarationsFromDeclarationLocationsOf(proposedDeclarations));
+	}
+
+	private static Collection<DeclarationLocation> getFirstDeclarationsFromDeclarationLocationsOf(List<Declaration> proposedDeclarations) {
+		List<DeclarationLocation> l = new LinkedList<DeclarationLocation>();
+		for (Declaration d : proposedDeclarations) {
+			DeclarationLocation[] locations = d.getDeclarationLocations();
+			if (locations != null) {
+				for (DeclarationLocation dl : locations) {
+					l.add(dl);
+					break;
+				}
+			}
+		}
+		return l;
+	}
+
 	@Override
 	public void create() { 
 		super.create();
-		((Text)this.getPatternControl()).setText(declarations.iterator().next().getName());
+		((Text)this.getPatternControl()).setText(declarations.iterator().next().getDeclaration().getName());
 	}
 
 	@Override
@@ -69,6 +91,8 @@ public class DeclarationChooser extends FilteredItemsSelectionDialog {
 
 			@Override
 			public boolean matchItem(Object item) {
+				if (item instanceof DeclarationLocation)
+					item = ((DeclarationLocation)item).getDeclaration();
 				if (!(item instanceof Declaration)) return false;
 				final Declaration decl = (Declaration) item;
 				final String search = this.getPattern().toUpperCase();
@@ -83,7 +107,7 @@ public class DeclarationChooser extends FilteredItemsSelectionDialog {
 	protected void fillContentProvider(AbstractContentProvider contentProvider,
 			ItemsFilter itemsFilter, IProgressMonitor progressMonitor)
 			throws CoreException {
-		for (Declaration d : declarations)
+		for (DeclarationLocation d : declarations)
 			contentProvider.add(d, itemsFilter);
 	}
 
@@ -91,8 +115,7 @@ public class DeclarationChooser extends FilteredItemsSelectionDialog {
 	protected IDialogSettings getDialogSettings() {
 		IDialogSettings settings = ClonkCore.getDefault().getDialogSettings().getSection(DIALOG_SETTINGS);
 		if (settings == null) {
-			settings = ClonkCore.getDefault().getDialogSettings()
-			.addNewSection(DIALOG_SETTINGS);
+			settings = ClonkCore.getDefault().getDialogSettings().addNewSection(DIALOG_SETTINGS);
 		}
 		return settings;
 	}
@@ -119,8 +142,8 @@ public class DeclarationChooser extends FilteredItemsSelectionDialog {
 		return Status.OK_STATUS;
 	}
 
-	public Declaration[] getSelectedDeclarations() {
-		return ArrayUtil.convertArray(this.getResult(), Declaration.class);
+	public DeclarationLocation[] getSelectedDeclarationLocations() {
+		return ArrayUtil.convertArray(this.getResult(), DeclarationLocation.class);
 	}
 
 }

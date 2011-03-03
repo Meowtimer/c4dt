@@ -623,7 +623,7 @@ public class Function extends Structure implements Serializable, ITypedDeclarati
 	/**
 	 * Add declaration that is neither parameter nor variable. Most likely an implicit proplist.
 	 * @param d The declaration to add
-	 * @return
+	 * @return Return d or an existing other declaration at the same location
 	 */
 	public Declaration addOtherDeclaration(Declaration d) {
 		if (otherDeclarations == null) {
@@ -676,13 +676,13 @@ public class Function extends Structure implements Serializable, ITypedDeclarati
 	 * @return The code block or null if it was created from differing source.
 	 */
 	public Block getCodeBlock(String source) {
-		if (blockSourceHash != -1 && blockSourceHash == source.hashCode()) {
+		if (source == null || (blockSourceHash != -1 && blockSourceHash == source.hashCode())) {
 			if (!codeBlockDefrosted) {
 				codeBlockDefrosted = true;
 				codeBlock.postSerialize(null, getDeclarationObtainmentContext());
 			}
 			return codeBlock;
-		} else{
+		} else {
 			return codeBlock = null;
 		}
 	}
@@ -692,7 +692,7 @@ public class Function extends Structure implements Serializable, ITypedDeclarati
 	 * @return The cached code block
 	 */
 	public Block getCodeBlock() {
-		return codeBlock;
+		return getCodeBlock(null);
 	}
 
 	@Override
@@ -737,6 +737,11 @@ public class Function extends Structure implements Serializable, ITypedDeclarati
 	@Override
 	public int hashCode() {
 		return name != null ? name.hashCode() : super.hashCode();
+	}
+
+	@Override
+	public int absoluteExpressionsOffset() {
+		return getBody().getOffset();
 	}
 	
 }

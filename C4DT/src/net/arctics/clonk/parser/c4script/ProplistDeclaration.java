@@ -54,6 +54,7 @@ public class ProplistDeclaration extends Structure implements IType {
 			return found;
 		} else {
 			components.add(variable);
+			variable.setParentDeclaration(this);
 			return variable;
 		}
 	}

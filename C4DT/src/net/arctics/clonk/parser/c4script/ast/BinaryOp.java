@@ -15,7 +15,6 @@ import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
 
 public class BinaryOp extends OperatorExpression {
-	
 
 	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 
@@ -201,6 +200,14 @@ public class BinaryOp extends OperatorExpression {
 
 		if (getOperator() == Operator.Assign) {
 			getLeftSide().inferTypeFromAssignment(getRightSide(), context);
+		}
+	}
+	
+	@Override
+	public void postSerialize(ExprElm parent, DeclarationObtainmentContext root) {
+		super.postSerialize(parent, root);
+		if (getOperator() == Operator.Assign) {
+			getLeftSide().inferTypeFromAssignment(getRightSide(), root);
 		}
 	}
 

@@ -59,14 +59,15 @@ public class AccessVar extends AccessDeclaration {
 
 	@Override
 	public Declaration obtainDeclaration(DeclarationObtainmentContext context) {
-		ExprElm p = getPredecessorInSequence();
+		ExprElm sequencePredecessor = getPredecessorInSequence();
 		ScriptBase scriptToLookIn = null;
-		if (p != null) {
-			IType type = p.getType(context);
+		if (sequencePredecessor != null) {
+			IType type = sequencePredecessor.getType(context);
 			if ((scriptToLookIn = Definition.scriptFrom(type)) == null) {
 				// find pseudo-variable from proplist expression
 				if (type instanceof ProplistDeclaration) {
-					return ((ProplistDeclaration)type).findComponent(getDeclarationName());
+					Variable proplistComponent = ((ProplistDeclaration)type).findComponent(getDeclarationName());
+					return proplistComponent;
 				}
 			}
 		} else {
@@ -160,16 +161,30 @@ public class AccessVar extends AccessDeclaration {
 	}
 
 	@Override
-	public void inferTypeFromAssignment(ExprElm expression, C4ScriptParser context) {
+	public void inferTypeFromAssignment(ExprElm expression, DeclarationObtainmentContext context) {
 		if (getDeclaration() == Variable.THIS)
 			return;
-		IType predType = getPredecessorInSequence() != null ? getPredecessorInSequence().getType(context) : null;
-		if (predType instanceof ProplistDeclaration) {
-			//ProplistDeclaration proplDec = (ProplistDeclaration) predType;
-			
-			// FIXME: always ok to add to existing proplist declaration?
-			declaration = context.getContainer().getIndex().addAdhocVariable(getDeclarationName(), context.getContainer().getScriptFile(), context.getCurrentDeclaration(), expression);
-			//proplDec.addComponent(adhocVar);
+		if (getDeclaration() == null) {
+			IType predType = getPredecessorInSequence() != null ? getPredecessorInSequence().getType(context) : null;
+			if (predType != null && predType.canBeAssignedFrom(PrimitiveType.PROPLIST)) {
+				boolean fallbackToAddingToIndex = true;
+				if (predType instanceof ProplistDeclaration) {
+					ProplistDeclaration proplDecl = (ProplistDeclaration) predType;
+					if (proplDecl.isAdHoc()) {
+						Variable var = new Variable(getDeclarationName(), Variable.Scope.VAR);
+						var.expectedToBeOfType(expression.getType(context), TypeExpectancyMode.Expect);
+						var.setLocation(context.absoluteSourceLocationFromExpr(this));
+						var.forceType(expression.getType(context));
+						var.setInitializationExpression(expression);
+						proplDecl.addComponent(var);
+						fallbackToAddingToIndex = false;
+					}
+				}
+				// FIXME: always ok to add to existing proplist declaration?
+				if (fallbackToAddingToIndex) {
+					declaration = context.getContainer().getIndex().addAdhocVariable(getDeclarationName(), context.getContainer().getScriptFile(), context.getCurrentDeclaration(), expression);
+				}
+			}
 		}
 		super.inferTypeFromAssignment(expression, context);
 	}

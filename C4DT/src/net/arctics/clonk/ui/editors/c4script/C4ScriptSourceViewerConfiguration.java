@@ -37,13 +37,7 @@ public class C4ScriptSourceViewerConfiguration extends ClonkSourceViewerConfigur
 		public IHyperlink[] detectHyperlinks(ITextViewer viewer, IRegion region, boolean canShowMultipleHyperlinks) {
 			try {
 				DeclarationLocator locator = new DeclarationLocator(getEditor(), viewer.getDocument(),region);
-				if (
-					locator.getDeclaration() != null && (
-						locator.getDeclaration().getResource() != null ||
-						(locator.getDeclaration().getScript() != null && locator.getDeclaration().getScript().getScriptStorage() != null) ||
-						locator.getDeclaration().isEngineDeclaration()
-					)
-				) {
+				if (locator.getDeclaration() != null && locator.getDeclaration().getDeclarationLocations() != null) {
 					return new IHyperlink[] {
 						new ClonkHyperlink(locator.getIdentRegion(),locator.getDeclaration())
 					};
@@ -199,7 +193,6 @@ public class C4ScriptSourceViewerConfiguration extends ClonkSourceViewerConfigur
 	@Override
 	public IAutoEditStrategy[] getAutoEditStrategies(ISourceViewer sourceViewer, String contentType) {
 		return new IAutoEditStrategy[] {autoEditStrategy};
-		//return super.getAutoEditStrategies(sourceViewer, contentType);
 	}
 	
 	@Override

@@ -36,8 +36,32 @@ import org.eclipse.jface.text.IRegion;
  * @author madeen
  *
  */
-public abstract class Declaration implements Serializable, IHasRelatedResource, INode, IPostSerializable<Declaration, ClonkIndex>, IHasSubDeclarations  {
+public abstract class Declaration implements Serializable, IHasRelatedResource, INode, IPostSerializable<Declaration, ClonkIndex>, IHasSubDeclarations {
 
+	public static class DeclarationLocation implements Serializable {
+
+		private static final long serialVersionUID = 1L;
+
+		private Declaration declaration;
+		private IRegion location;
+		private transient IResource resource;
+		public IResource getResource() {
+			return resource;
+		}
+		public Declaration getDeclaration() {
+			return declaration;
+		}
+		public IRegion getLocation() {
+			return location;
+		}
+		public DeclarationLocation(Declaration declaration, IRegion location, IResource resource) {
+			super();
+			this.declaration = declaration;
+			this.location = location;
+			this.resource = resource;
+		}
+	}
+	
 	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 	
 	/**
@@ -382,7 +406,9 @@ public abstract class Declaration implements Serializable, IHasRelatedResource, 
 		return null;
 	}
 	
-	protected DeclarationObtainmentContext getDeclarationObtainmentContext() {
+	protected int absoluteExpressionsOffset() {return 0;}
+	
+	public DeclarationObtainmentContext getDeclarationObtainmentContext() {
 		return new DeclarationObtainmentContext() {
 			
 			@Override
@@ -391,7 +417,7 @@ public abstract class Declaration implements Serializable, IHasRelatedResource, 
 			}
 			
 			@Override
-			public void parseCodeOfFunction(Function field, boolean b) throws ParsingException {
+			public void parseCodeOfFunction(Function function, boolean b) throws ParsingException {
 				// fail
 			}
 			
@@ -414,6 +440,28 @@ public abstract class Declaration implements Serializable, IHasRelatedResource, 
 			public ScriptBase getContainer() {
 				return getScript();
 			}
+
+			@Override
+			public void storeTypeInformation(ExprElm exprElm, IType type) {
+				// yeah right
+			}
+
+			@Override
+			public Declaration getCurrentDeclaration() {
+				return Declaration.this;
+			}
+
+			@Override
+			public SourceLocation absoluteSourceLocationFromExpr(ExprElm expression) {
+				int bodyOffset = absoluteExpressionsOffset();
+				return new SourceLocation(expression.getExprStart()+bodyOffset, expression.getExprEnd()+bodyOffset);
+			}
+		};
+	}
+
+	public DeclarationLocation[] getDeclarationLocations() {
+		return new DeclarationLocation[] {
+			new DeclarationLocation(this, getLocation(), getResource())
 		};
 	}
 	

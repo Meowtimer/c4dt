@@ -2,6 +2,7 @@ package net.arctics.clonk.parser.c4script.ast;
 
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.ParserErrorCode;
+import net.arctics.clonk.parser.c4script.DeclarationObtainmentContext;
 import net.arctics.clonk.parser.c4script.ScriptBase;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.IType;
@@ -18,7 +19,7 @@ public class Literal<T> extends Value {
 	}
 
 	@Override
-	public void inferTypeFromAssignment(ExprElm arg0, C4ScriptParser arg1) {
+	public void inferTypeFromAssignment(ExprElm arg0, DeclarationObtainmentContext context) {
 		// don't care
 	}
 

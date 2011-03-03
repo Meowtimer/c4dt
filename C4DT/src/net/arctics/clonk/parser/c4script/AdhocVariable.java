@@ -24,19 +24,20 @@ public class AdhocVariable extends Variable {
 	 * @author madeen
 	 *
 	 */
-	public static class AssignmentLocation implements Serializable {
+	public static class AssignmentLocation extends DeclarationLocation implements Serializable {
 		private static final long serialVersionUID = 1L;
 		/** File the assignment is contained in. */
 		public String fileName;
-		/** Declaration the assignment is contained in. */
-		public Declaration declaration;
 		/** Assignment expression. */
 		public ExprElm expression;
 		public AssignmentLocation(IFile file, Declaration declaration, ExprElm expression) {
-			super();
+			super(declaration, declaration.getDeclarationObtainmentContext().absoluteSourceLocationFromExpr(expression), file);
 			this.fileName = file.getFullPath().toPortableString().intern();
-			this.declaration = declaration;
 			this.expression = expression;
+		}
+		@Override
+		public String toString() {
+			return String.format("%s@%s", fileName, getLocation().toString());
 		}
 	}
 	
@@ -49,7 +50,7 @@ public class AdhocVariable extends Variable {
 	 * @param assignmentExpression The assignment expression itself.
 	 */
 	public void addAssignmentLocation(IFile file, Declaration declaration, ExprElm assignmentExpression) {
-		assignmentLocations.add(new AssignmentLocation(file, declaration, assignmentExpression));
+		assignmentLocations.add(new AssignmentLocation(file, this, assignmentExpression));
 	}
 	
 	/**
@@ -63,5 +64,15 @@ public class AdhocVariable extends Variable {
 	public AdhocVariable(ClonkIndex index, String declarationName, Scope scope) {
 		super(declarationName, scope);
 		this.parentDeclaration = index;
+	}
+	
+	@Override
+	protected void finalize() throws Throwable {
+		super.finalize();
+	}
+	
+	@Override
+	public DeclarationLocation[] getDeclarationLocations() {
+		return assignmentLocations.toArray(new DeclarationLocation[assignmentLocations.size()]);
 	}
 }

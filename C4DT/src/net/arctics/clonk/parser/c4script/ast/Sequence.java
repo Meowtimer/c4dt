@@ -111,7 +111,7 @@ public class Sequence extends Value {
 		return list.size() > 0 ? new Sequence(list) : null;
 	}
 	@Override
-	public void inferTypeFromAssignment(ExprElm rightSide, C4ScriptParser parser) {
-		getLastElement().inferTypeFromAssignment(rightSide, parser);
+	public void inferTypeFromAssignment(ExprElm rightSide, DeclarationObtainmentContext context) {
+		getLastElement().inferTypeFromAssignment(rightSide, context);
 	}
 }

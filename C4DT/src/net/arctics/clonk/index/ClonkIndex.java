@@ -86,6 +86,8 @@ public class ClonkIndex extends Declaration implements Serializable, Iterable<De
 			for (AdhocVariable v : _serializedAdhocVariables.values()) {
 				adhocVariables.put(v.getName(), new WeakReference<AdhocVariable>(v));
 			}
+			_serializedAdhocVariables.clear();
+			_serializedAdhocVariables = null;
 		} else
 			adhocVariables = null;
 	}
@@ -240,8 +242,11 @@ public class ClonkIndex extends Declaration implements Serializable, Iterable<De
 		// do some post serialization after globals are known
 		for (Iterable<? extends ScriptBase> c : scriptCollections) {
 			for (ScriptBase s : c) {
-				s.postSerialize(null, null);
+				s.postSerialize(this, this);
 			}
+		}
+		for (AdhocVariable var : adhocVariables()) {
+			var.postSerialize(this, this);
 		}
 		
 //		System.out.println("Functions added to cache:");
@@ -502,6 +507,12 @@ public class ClonkIndex extends Declaration implements Serializable, Iterable<De
 		indexedObjects.clear();
 		indexedScripts.clear();
 		indexedScenarios.clear();
+		if (adhocVariables != null)
+			adhocVariables.clear();
+		if (_serializedAdhocVariables != null) {
+			_serializedAdhocVariables.clear();
+			_serializedAdhocVariables = null;
+		}
 		refreshIndex();
 	}
 	
@@ -764,10 +775,10 @@ public class ClonkIndex extends Declaration implements Serializable, Iterable<De
 	 * @param name The name of the variable
 	 * @param file The file the assignment took place in
 	 * @param declaration The declaration the assignment took place in
-	 * @param assignmentExpression The assignment expression
+	 * @param assignedExpression The expression assigned to the adhoc-variable 
 	 * @return Either a newly-created AdhocVariable or an existing one with the passed name.
 	 */
-	public AdhocVariable addAdhocVariable(String name, IFile file, Declaration declaration, ExprElm assignmentExpression) {
+	public AdhocVariable addAdhocVariable(String name, IFile file, Declaration declaration, ExprElm assignedExpression) {
 		if (adhocVariables == null)
 			adhocVariables = new HashMap<String, WeakReference<AdhocVariable>>();
 		WeakReference<AdhocVariable> ref = adhocVariables.get(name);
@@ -776,7 +787,7 @@ public class ClonkIndex extends Declaration implements Serializable, Iterable<De
 			var = new AdhocVariable(this, name, Scope.VAR);
 			adhocVariables.put(name, new WeakReference<AdhocVariable>(var));
 		}
-		var.addAssignmentLocation(file, declaration, assignmentExpression);
+		var.addAssignmentLocation(file, declaration, assignedExpression);
 		return var;
 	}
 

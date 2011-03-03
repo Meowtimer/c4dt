@@ -5,6 +5,7 @@ import java.util.ResourceBundle;
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.index.ProjectDefinition;
 import net.arctics.clonk.parser.Declaration;
+import net.arctics.clonk.parser.Declaration.DeclarationLocation;
 import net.arctics.clonk.parser.Structure;
 import net.arctics.clonk.ui.editors.actions.c4script.OpenDeclarationAction;
 import net.arctics.clonk.ui.editors.c4script.C4ScriptEditor;
@@ -117,6 +118,20 @@ public class ClonkTextEditor extends TextEditor {
 					}
 				}
 			}
+		}
+		return null;
+	}
+
+	public static IEditorPart openDeclarationLocation(DeclarationLocation location, boolean activate) {
+		try {
+			if (location.getResource() instanceof IFile) {
+				IEditorDescriptor descriptor = IDE.getEditorDescriptor((IFile) location.getResource());
+				ClonkTextEditor ed = (ClonkTextEditor) IDE.openEditor(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage(), (IFile) location.getResource(), descriptor.getId());
+				ed.selectAndReveal(location.getLocation());
+				return ed;
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
 		}
 		return null;
 	}
