@@ -10,9 +10,14 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+
+import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IResource;
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jface.text.Region;
 
 import net.arctics.clonk.index.Definition;
+import net.arctics.clonk.index.ProjectDefinition;
 import net.arctics.clonk.index.ProjectIndex;
 import net.arctics.clonk.index.Scenario;
 import net.arctics.clonk.index.ClonkIndex;
@@ -25,8 +30,12 @@ import net.arctics.clonk.parser.c4script.ast.CallFunc;
 import net.arctics.clonk.parser.c4script.ast.ExprElm;
 import net.arctics.clonk.parser.c4script.ast.SimpleStatement;
 import net.arctics.clonk.parser.c4script.ast.StringLiteral;
+import net.arctics.clonk.parser.inireader.ActMapUnit;
+import net.arctics.clonk.parser.inireader.IniSection;
+import net.arctics.clonk.parser.inireader.IniUnit;
 import net.arctics.clonk.parser.inireader.ParticleUnit;
 import net.arctics.clonk.ui.editors.c4script.ExpressionLocator;
+import net.arctics.clonk.util.Utilities;
 
 /**
  * This class contains some special rules that are applied to certain objects during parsing
@@ -55,6 +64,11 @@ public class SpecialScriptRules {
 	 * Role for SpecialFuncRule: Assign default types to functions 
 	 */
 	public static final int DEFAULT_PARMTYPE_ASSIGNER = 8;
+	
+	/**
+	 * Role for SpecialFuncRule: Gets notified when a function is about to be parsed.
+	 */
+	public static final int FUNCTION_EVENT_LISTENER = 16;
 
 	@Retention(RetentionPolicy.RUNTIME)
 	@Target(ElementType.METHOD)
@@ -190,15 +204,29 @@ public class SpecialScriptRules {
 		public Function newFunction(String name) {
 			return null;
 		}
+		
+		/**
+		 * Called when a function is about to be parsed.
+		 * @param function
+		 */
+		@SignifiesRole(role=FUNCTION_EVENT_LISTENER)
+		public void functionAboutToBeParsed(Function function, C4ScriptParser context) {
+			
+		}
 	}
 	
 	private Map<String, SpecialFuncRule> argumentValidators = new HashMap<String, SpecialFuncRule>();
 	private Map<String, SpecialFuncRule> returnTypeModifiers = new HashMap<String, SpecialFuncRule>();
 	private Map<String, SpecialFuncRule> declarationLocators = new HashMap<String, SpecialFuncRule>();
 	private List<SpecialFuncRule> defaultParmTypeAssigners = new LinkedList<SpecialFuncRule>();
+	private List<SpecialFuncRule> functionEventListeners = new LinkedList<SpecialFuncRule>();
 	
 	public Iterable<SpecialFuncRule> defaultParmTypeAssignerRules() {
 		return defaultParmTypeAssigners;
+	}
+	
+	public Iterable<SpecialFuncRule> functionEventListeners() {
+		return functionEventListeners;
 	}
 	
 	public void putFuncRule(SpecialFuncRule rule, String... forFunctions) {
@@ -214,6 +242,9 @@ public class SpecialScriptRules {
 		}
 		if ((mask & DEFAULT_PARMTYPE_ASSIGNER) != 0) {
 			defaultParmTypeAssigners.add(rule);
+		}
+		if ((mask & FUNCTION_EVENT_LISTENER) != 0) {
+			functionEventListeners.add(rule);
 		}
 	}
 	
@@ -555,6 +586,38 @@ public class SpecialScriptRules {
 				ParticleUnit unit = projIndex.findPinnedStructure(ParticleUnit.class, particleName, parser.getContainer().getResource(), true, "Particle.txt");
 				if (unit != null) {
 					return new DeclarationRegion(unit, parmExpression);
+				}
+			}
+			return null;
+		};
+	};
+	
+	@AppliedTo(functions={"SetAction"})
+	public final SpecialFuncRule setActionLinkRule = new SpecialFuncRule() {
+		@Override
+		public DeclarationRegion locateDeclarationInParameter(CallFunc callFunc, C4ScriptParser parser, int index, int offsetInExpression, ExprElm parmExpression) {
+			Object parmEv;
+			if (index == 0 && (parmEv = parmExpression.evaluateAtParseTime(parser.getContainer())) instanceof String) {
+				String actionName = (String)parmEv;
+				Definition def = parser.getContainerAsDefinition();
+				if (def instanceof ProjectDefinition) {
+					ProjectDefinition projDef = (ProjectDefinition)def;
+					IResource res = Utilities.findMemberCaseInsensitively(projDef.getObjectFolder(), "ActMap.txt");
+					if (res instanceof IFile) {
+						IniUnit unit;
+						try {
+							unit = (IniUnit) ActMapUnit.pinned(res, true, false);
+						} catch (CoreException e) {
+							e.printStackTrace();
+							return null;
+						}
+						if (unit != null) {
+							IniSection actionSection = (IniSection) unit.findLocalDeclaration(actionName, IniSection.class);
+							if (actionSection != null) {
+								return new DeclarationRegion(actionSection, parmExpression);
+							}
+						}
+					}
 				}
 			}
 			return null;

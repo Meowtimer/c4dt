@@ -189,6 +189,11 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	 */
 	private Set<Function> parsedFunctions;
 	
+	/**
+	 * Func rules of the respective engine.
+	 */
+	private SpecialScriptRules funcRules;
+	
 	private TypeInformationMerger scriptLevelTypeInformationMerger;
 	
 	public boolean allErrorsDisabled() {
@@ -457,8 +462,10 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		if (container != null) {
 			if (container.getEngine() != null) {
 				idMatcher = container.getEngine().getCurrentSettings().getCompiledIdPattern().matcher(buffer);
+				funcRules = container.getEngine().getSpecialScriptRules();
 			} else {
 				idMatcher = DEFAULT_ID_PATTERN.matcher(buffer);
+				funcRules = null;
 			}
 
 			if (container.getIndex() instanceof ProjectIndex) {
@@ -687,6 +694,12 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		else
 			parsedFunctions.add(function);
 		
+		if (funcRules != null) {
+			for (SpecialFuncRule eventListener : funcRules.functionEventListeners()) {
+				eventListener.functionAboutToBeParsed(function, this);
+			}
+		}
+		
 		int oldOffset = this.offset;
 		FunctionContext oldFunctionContext;
 		if (withNewContext) {
@@ -751,9 +764,8 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	}
 
 	private void assignDefaultParmTypesToFunction(Function function) {
-		SpecialScriptRules rules = container.getEngine().getSpecialScriptRules();
-		if (rules != null) {
-			for (SpecialFuncRule funcRule : rules.defaultParmTypeAssignerRules()) {
+		if (funcRules != null) {
+			for (SpecialFuncRule funcRule : funcRules.defaultParmTypeAssignerRules()) {
 				if (funcRule.assignDefaultParmTypes(this, function))
 					break;
 			}
@@ -1254,9 +1266,8 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	 * @return The newly created function. Might be of some special class.
 	 */
 	protected Function newFunction(String nameWillBe) {
-	    SpecialScriptRules rule = getContainer().getEngine().getSpecialScriptRules();
-	    if (rule != null) {
-	    	for (SpecialFuncRule funcRule : rule.defaultParmTypeAssignerRules()) {
+	    if (funcRules != null) {
+	    	for (SpecialFuncRule funcRule : funcRules.defaultParmTypeAssignerRules()) {
 	    		Function f = funcRule.newFunction(nameWillBe);
 	    		if (f != null)
 	    			return f;

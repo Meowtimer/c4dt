@@ -8,6 +8,7 @@ import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.DeclarationRegion;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.c4script.DeclarationObtainmentContext;
+import net.arctics.clonk.parser.c4script.DefinitionFunction;
 import net.arctics.clonk.parser.c4script.EffectFunction;
 import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
@@ -17,6 +18,7 @@ import net.arctics.clonk.parser.c4script.ProplistDeclaration;
 import net.arctics.clonk.parser.c4script.SpecialScriptRules;
 import net.arctics.clonk.parser.c4script.Variable;
 import net.arctics.clonk.parser.c4script.EffectFunction.HardcodedCallbackType;
+import net.arctics.clonk.parser.c4script.Variable.Scope;
 import net.arctics.clonk.parser.c4script.ast.CallFunc;
 import net.arctics.clonk.parser.c4script.ast.ExprElm;
 import net.arctics.clonk.parser.c4script.ast.StringLiteral;
@@ -122,6 +124,50 @@ public class SpecialScriptRules_OpenClonk extends SpecialScriptRules {
 			}
 			return super.locateDeclarationInParameter(callFunc, parser, index, offsetInExpression, parmExpression);
 		}
+	};
+	
+	/**
+	 * Rule applied to the 'Definition' func.<br/>
+	 * Causes local vars to be created for SetProperty-calls.
+	 */
+	@AppliedTo(functions={"SetProperty"})
+	public final SpecialFuncRule definitionFunctionSpecialHandling = new SpecialFuncRule() {
+		@Override
+		public Function newFunction(String name) {
+			if (name.equals("Definition")) {
+				return new DefinitionFunction();
+			}
+			else
+				return null;
+		};
+		@Override
+		public boolean validateArguments(CallFunc callFunc, ExprElm[] arguments, C4ScriptParser parser) {
+			if (arguments.length >= 2 && parser.getCurrentFunc() instanceof DefinitionFunction) {
+				Object nameEv = arguments[0].evaluateAtParseTime(parser.getContainer());
+				if (nameEv instanceof String) {
+					Variable var = new Variable((String) nameEv, arguments[1].getType(parser));
+					var.setLocation(parser.absoluteSourceLocationFromExpr(arguments[0]));
+					var.setScope(Scope.LOCAL);
+					var.setInitializationExpression(arguments[1]);
+					var.setParentDeclaration(parser.getCurrentFunc());
+					parser.getContainer().addDeclaration(var);
+				}
+			}
+			return false; // default validation
+		};
+		@Override
+		public void functionAboutToBeParsed(Function function, C4ScriptParser context) {
+			if (function.getName().equals("Definition"))
+				return;
+			Function definitionFunc = function.getScript().findLocalFunction("Definition", false);
+			if (definitionFunc != null) {
+				try {
+					context.parseCodeOfFunction(definitionFunc, true);
+				} catch (ParsingException e) {
+					e.printStackTrace();
+				}
+			}
+		};
 	};
 	@Override
 	public void initialize() {
