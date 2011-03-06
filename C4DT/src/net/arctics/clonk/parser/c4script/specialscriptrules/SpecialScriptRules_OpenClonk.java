@@ -169,6 +169,29 @@ public class SpecialScriptRules_OpenClonk extends SpecialScriptRules {
 			}
 		};
 	};
+	public SpecialScriptRules_OpenClonk() {
+		super();
+		// override SetAction link rule to also take into account local 'ActMap' vars
+		setActionLinkRule = new SetActionLinkeRule() {
+			@Override
+			public DeclarationRegion locateDeclarationInParameter(CallFunc callFunc, C4ScriptParser parser, int index, int offsetInExpression, ExprElm parmExpression) {
+				Object parmEv;
+				DeclarationRegion result = super.locateDeclarationInParameter(callFunc, parser, index, offsetInExpression, parmExpression);
+				if (result != null)
+					return result;
+				else if (index == 0 && (parmEv = parmExpression.evaluateAtParseTime(parser.getContainer())) instanceof String) {
+					Variable actMapLocal = parser.getContainer().findLocalVariable("ActMap", true);
+					if (actMapLocal != null && actMapLocal.getType() instanceof ProplistDeclaration) {
+						ProplistDeclaration proplDecl = (ProplistDeclaration) actMapLocal.getType();
+						Variable action = proplDecl.findComponent((String)parmEv);
+						if (action != null)
+							return new DeclarationRegion(action, parmExpression);
+					}
+				}
+				return null;
+			};
+		};
+	}
 	@Override
 	public void initialize() {
 		super.initialize();

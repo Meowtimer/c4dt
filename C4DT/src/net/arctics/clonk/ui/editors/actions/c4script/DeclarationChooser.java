@@ -129,11 +129,10 @@ public class DeclarationChooser extends FilteredItemsSelectionDialog {
 	@Override
 	protected Comparator getItemsComparator() {
 		return new Comparator() {
-
+			@Override
 			public int compare(Object a, Object b) {
 				return 1;
 			}
-			
 		};
 	}
 

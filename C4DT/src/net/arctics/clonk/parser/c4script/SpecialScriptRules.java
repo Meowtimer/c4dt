@@ -575,6 +575,9 @@ public class SpecialScriptRules {
 		};
 	};
 	
+	/**
+	 * Links to particle definitions from various particle functions.
+	 */
 	@AppliedTo(functions={"CreateParticle", "CastAParticles", "CastParticles", "CastBackParticles", "PushParticles"})
 	public final SpecialFuncRule linkToParticles = new SpecialFuncRule() {
 		@Override
@@ -592,8 +595,12 @@ public class SpecialScriptRules {
 		};
 	};
 	
-	@AppliedTo(functions={"SetAction"})
-	public final SpecialFuncRule setActionLinkRule = new SpecialFuncRule() {
+	/**
+	 * Base class for SetAction link rules.
+	 * @author madeen
+	 *
+	 */
+	protected class SetActionLinkeRule extends SpecialFuncRule {
 		@Override
 		public DeclarationRegion locateDeclarationInParameter(CallFunc callFunc, C4ScriptParser parser, int index, int offsetInExpression, ExprElm parmExpression) {
 			Object parmEv;
@@ -621,8 +628,11 @@ public class SpecialScriptRules {
 				}
 			}
 			return null;
-		};
-	};
+		}
+	}
+	
+	@AppliedTo(functions={"SetAction"})
+	public SpecialFuncRule setActionLinkRule = new SetActionLinkeRule();
 
 	/**
 	 * Add rules declared as public instance variables to various internal lists so they will be recognized.
