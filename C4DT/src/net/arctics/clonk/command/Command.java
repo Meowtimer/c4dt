@@ -25,6 +25,7 @@ import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.ScriptBase;
 import net.arctics.clonk.parser.c4script.ast.Conf;
 import net.arctics.clonk.resource.ClonkIndexInputStream;
+import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.ui.editors.ClonkHyperlink;
 import net.arctics.clonk.util.ArrayUtil;
 
@@ -225,6 +226,13 @@ public class Command {
 		@CommandFunction
 		public static void GC(Object context) {
 			System.gc();
+		}
+		@CommandFunction
+		public static void ReloadIndex(Object context, String projectName) {
+			ClonkProjectNature nature = ClonkProjectNature.get(projectName);
+			if (nature != null) {
+				nature.reloadIndex();
+			}
 		}
 	}
 

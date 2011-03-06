@@ -406,5 +406,10 @@ public class ClonkProjectNature implements IProjectNature {
 		addProjectsFromReferencedProjects(result, getProject());
 		return result;
 	}
+	
+	public void reloadIndex() {
+		index = null;
+		getIndex();
+	}
 
 }

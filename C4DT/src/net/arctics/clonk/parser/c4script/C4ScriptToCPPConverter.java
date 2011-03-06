@@ -14,7 +14,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import net.arctics.clonk.ClonkCore;
-import net.arctics.clonk.command.BodyPreservingFunction;
+import net.arctics.clonk.command.InvokableFunction;
 import net.arctics.clonk.command.ExecutableScript;
 import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.index.ClonkIndex;
@@ -147,9 +147,9 @@ public class C4ScriptToCPPConverter {
 		
 		StringWriter scriptWriter = new StringWriter();
 		for (Function f : script.functions()) {
-			if (f instanceof BodyPreservingFunction) {
-				BodyPreservingFunction bf = (BodyPreservingFunction) f;
-				printFunction(bf, bf.getBodyBlock(), scriptWriter);
+			if (f instanceof InvokableFunction) {
+				InvokableFunction invokable = (InvokableFunction) f;
+				printFunction(invokable, invokable.getCodeBlock(), scriptWriter);
 			}
 		}
 		
