@@ -28,9 +28,11 @@ public class ArraySliceExpression extends ArrayElementExpression {
 	@Override
 	public void doPrint(ExprWriter output, int depth) {
 		output.append("["); //$NON-NLS-1$
-		argument.print(output, depth+1);
+		if (argument != null)
+			argument.print(output, depth+1);
 		output.append(":"); //$NON-NLS-1$
-		argument2.print(output, depth+1);
+		if (argument2 != null)
+			argument2.print(output, depth+1);
 		output.append("]"); //$NON-NLS-1$
 	}
 	
