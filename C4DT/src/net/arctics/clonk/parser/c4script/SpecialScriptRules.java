@@ -33,6 +33,7 @@ import net.arctics.clonk.parser.c4script.ast.StringLiteral;
 import net.arctics.clonk.parser.inireader.ActMapUnit;
 import net.arctics.clonk.parser.inireader.IniSection;
 import net.arctics.clonk.parser.inireader.IniUnit;
+import net.arctics.clonk.parser.inireader.IniUnitWithNamedSections;
 import net.arctics.clonk.parser.inireader.ParticleUnit;
 import net.arctics.clonk.ui.editors.c4script.ExpressionLocator;
 import net.arctics.clonk.util.Utilities;
@@ -600,15 +601,17 @@ public class SpecialScriptRules {
 	 * @author madeen
 	 *
 	 */
-	protected class SetActionLinkeRule extends SpecialFuncRule {
+	protected class SetActionLinkRule extends SpecialFuncRule {
 		@Override
 		public DeclarationRegion locateDeclarationInParameter(CallFunc callFunc, C4ScriptParser parser, int index, int offsetInExpression, ExprElm parmExpression) {
+			return getActionLinkForDefinition(parser.getContainerAsDefinition(), parmExpression);
+		}
+		protected DeclarationRegion getActionLinkForDefinition(Definition definition, ExprElm actionNameExpression) {
 			Object parmEv;
-			if (index == 0 && (parmEv = parmExpression.evaluateAtParseTime(parser.getContainer())) instanceof String) {
-				String actionName = (String)parmEv;
-				Definition def = parser.getContainerAsDefinition();
-				if (def instanceof ProjectDefinition) {
-					ProjectDefinition projDef = (ProjectDefinition)def;
+			if (definition != null && (parmEv = actionNameExpression.evaluateAtParseTime(definition)) instanceof String) {
+				final String actionName = (String)parmEv;
+				if (definition instanceof ProjectDefinition) {
+					ProjectDefinition projDef = (ProjectDefinition)definition;
 					IResource res = Utilities.findMemberCaseInsensitively(projDef.getObjectFolder(), "ActMap.txt");
 					if (res instanceof IFile) {
 						IniUnit unit;
@@ -618,10 +621,10 @@ public class SpecialScriptRules {
 							e.printStackTrace();
 							return null;
 						}
-						if (unit != null) {
-							IniSection actionSection = (IniSection) unit.findLocalDeclaration(actionName, IniSection.class);
+						if (unit instanceof IniUnitWithNamedSections) {
+							IniSection actionSection = unit.sectionMatching(((IniUnitWithNamedSections) unit).nameMatcherPredicate(actionName));
 							if (actionSection != null) {
-								return new DeclarationRegion(actionSection, parmExpression);
+								return new DeclarationRegion(actionSection, actionNameExpression);
 							}
 						}
 					}
@@ -632,7 +635,7 @@ public class SpecialScriptRules {
 	}
 	
 	@AppliedTo(functions={"SetAction"})
-	public SpecialFuncRule setActionLinkRule = new SetActionLinkeRule();
+	public SpecialFuncRule setActionLinkRule = new SetActionLinkRule();
 
 	/**
 	 * Add rules declared as public instance variables to various internal lists so they will be recognized.

@@ -1,7 +1,9 @@
 package net.arctics.clonk.parser.inireader;
 
 import net.arctics.clonk.ClonkCore;
+import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.stringtbl.StringTbl;
+import net.arctics.clonk.util.IPredicate;
 
 public abstract class IniUnitWithNamedSections extends IniUnit {
 
@@ -25,5 +27,30 @@ public abstract class IniUnitWithNamedSections extends IniUnit {
 		}
 		return super.sectionToString(section);
 	}
+	
+	public IPredicate<IniSection> nameMatcherPredicate(final String value) {
+		return new IPredicate<IniSection>() {
+			@Override
+			public boolean test(IniSection section) {
+				IniItem entry = section.getSubItem(sectionNameEntryName(section)); //$NON-NLS-1$
+				System.out.println(entry);
+				return (entry instanceof IniEntry && ((IniEntry)entry).getValue().equals(value));
+			}
+		};
+	}
+	
+	@SuppressWarnings("unchecked")
+	@Override
+	public <T extends Declaration> T getLatestVersion(T from) {
+		if (from instanceof IniSection) {
+			IniSection section = (IniSection) from;
+			IniEntry entry = (IniEntry) section.getSubItem(sectionNameEntryName(section.getParentSection()));
+			if (entry != null)
+				return (T) sectionMatching(nameMatcherPredicate(entry.getValue()));
+			else
+				return null;
+		} else
+			return null;
+	};
 	
 }

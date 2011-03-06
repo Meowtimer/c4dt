@@ -17,9 +17,8 @@ import net.arctics.clonk.parser.inireader.DefinitionPack;
 import net.arctics.clonk.parser.inireader.FuncRefEntry;
 import net.arctics.clonk.parser.inireader.IDArray;
 import net.arctics.clonk.parser.inireader.IconSpec;
+import net.arctics.clonk.parser.inireader.IniUnitWithNamedSections;
 import net.arctics.clonk.parser.inireader.IniData.IniDataBase;
-import net.arctics.clonk.parser.inireader.IniEntry;
-import net.arctics.clonk.parser.inireader.IniItem;
 import net.arctics.clonk.parser.inireader.IniSection;
 import net.arctics.clonk.parser.inireader.IntegerArray;
 import net.arctics.clonk.parser.inireader.IniData.IniDataEntry;
@@ -31,7 +30,6 @@ import net.arctics.clonk.ui.editors.ClonkSourceViewerConfiguration;
 import net.arctics.clonk.ui.editors.ColorManager;
 import net.arctics.clonk.ui.editors.ClonkColorConstants;
 import net.arctics.clonk.ui.editors.HyperlinkToResource;
-import net.arctics.clonk.util.IPredicate;
 import net.arctics.clonk.util.Utilities;
 
 import org.eclipse.core.resources.IContainer;
@@ -136,12 +134,8 @@ public class IniSourceViewerConfiguration extends ClonkSourceViewerConfiguration
 									}
 								}
 								else if (entryClass == Action.class) {
-									declaration = getEditor().getIniUnit().sectionMatching(new IPredicate<IniSection>() {
-										public boolean test(IniSection object) {
-											IniItem entry = object.getSubItem("Name"); //$NON-NLS-1$
-											return (entry instanceof IniEntry && ((IniEntry)entry).getValue().equals(value));
-										}
-									});
+									IniUnitWithNamedSections iniUnit = (IniUnitWithNamedSections) getEditor().getIniUnit();
+									declaration = iniUnit.sectionMatching(iniUnit.nameMatcherPredicate(value));
 								}
 								else if (entryClass == CategoriesArray.class || entryClass == IntegerArray.class) {
 									IRegion idRegion = Utilities.wordRegionAt(line, relativeOffset);

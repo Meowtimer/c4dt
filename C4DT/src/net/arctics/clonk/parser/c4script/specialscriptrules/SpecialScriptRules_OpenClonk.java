@@ -4,6 +4,7 @@ import java.util.regex.Matcher;
 
 import org.eclipse.jface.text.Region;
 
+import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.DeclarationRegion;
 import net.arctics.clonk.parser.ParsingException;
@@ -172,23 +173,41 @@ public class SpecialScriptRules_OpenClonk extends SpecialScriptRules {
 	public SpecialScriptRules_OpenClonk() {
 		super();
 		// override SetAction link rule to also take into account local 'ActMap' vars
-		setActionLinkRule = new SetActionLinkeRule() {
+		setActionLinkRule = new SetActionLinkRule() {
 			@Override
-			public DeclarationRegion locateDeclarationInParameter(CallFunc callFunc, C4ScriptParser parser, int index, int offsetInExpression, ExprElm parmExpression) {
+			protected DeclarationRegion getActionLinkForDefinition(Definition definition, ExprElm parmExpression) {
+				if (definition == null)
+					return null;
 				Object parmEv;
-				DeclarationRegion result = super.locateDeclarationInParameter(callFunc, parser, index, offsetInExpression, parmExpression);
+				DeclarationRegion result = super.getActionLinkForDefinition(definition, parmExpression);
 				if (result != null)
 					return result;
-				else if (index == 0 && (parmEv = parmExpression.evaluateAtParseTime(parser.getContainer())) instanceof String) {
-					Variable actMapLocal = parser.getContainer().findLocalVariable("ActMap", true);
-					if (actMapLocal != null && actMapLocal.getType() instanceof ProplistDeclaration) {
-						ProplistDeclaration proplDecl = (ProplistDeclaration) actMapLocal.getType();
-						Variable action = proplDecl.findComponent((String)parmEv);
-						if (action != null)
-							return new DeclarationRegion(action, parmExpression);
+				else if ((parmEv = parmExpression.evaluateAtParseTime(definition)) instanceof String) {
+					Variable actMapLocal = definition.findLocalVariable("ActMap", true);
+					if (actMapLocal != null && actMapLocal.getType() != null) {
+						for (IType ty : actMapLocal.getType()) if (ty instanceof ProplistDeclaration) {
+							ProplistDeclaration proplDecl = (ProplistDeclaration) ty;
+							Variable action = proplDecl.findComponent((String)parmEv);
+							if (action != null)
+								return new DeclarationRegion(action, parmExpression);
+						}
 					}
 				}
 				return null;
+			};
+			@Override
+			public DeclarationRegion locateDeclarationInParameter(CallFunc callFunc, C4ScriptParser parser, int index, int offsetInExpression, ExprElm parmExpression) {
+				if (index != 0)
+					return null;
+				IType t = callFunc.getPredecessorInSequence() != null ? callFunc.getPredecessorInSequence().getType(parser) : null;
+				if (t != null) for (IType ty : t) {
+					if (ty instanceof Definition) {
+						DeclarationRegion result = getActionLinkForDefinition((Definition)ty, parmExpression);
+						if (result != null)
+							return result;
+					}
+				}
+				return super.locateDeclarationInParameter(callFunc, parser, index, offsetInExpression, parmExpression);
 			};
 		};
 	}
