@@ -140,7 +140,7 @@ public class SpecialScriptRules_OpenClonk extends SpecialScriptRules {
 	public final SpecialFuncRule definitionFunctionSpecialHandling = new SpecialFuncRule() {
 		@Override
 		public Function newFunction(String name) {
-			if (name.equals("Definition")) {
+			if (name.equals("Definition")) { //$NON-NLS-1$
 				return new DefinitionFunction();
 			}
 			else
@@ -163,9 +163,9 @@ public class SpecialScriptRules_OpenClonk extends SpecialScriptRules {
 		};
 		@Override
 		public void functionAboutToBeParsed(Function function, C4ScriptParser context) {
-			if (function.getName().equals("Definition"))
+			if (function.getName().equals("Definition")) //$NON-NLS-1$
 				return;
-			Function definitionFunc = function.getScript().findLocalFunction("Definition", false);
+			Function definitionFunc = function.getScript().findLocalFunction("Definition", false); //$NON-NLS-1$
 			if (definitionFunc != null) {
 				try {
 					context.parseCodeOfFunction(definitionFunc, true);
@@ -188,7 +188,7 @@ public class SpecialScriptRules_OpenClonk extends SpecialScriptRules {
 				if (result != null)
 					return result;
 				else if ((parmEv = parmExpression.evaluateAtParseTime(definition)) instanceof String) {
-					Variable actMapLocal = definition.findLocalVariable("ActMap", true);
+					Variable actMapLocal = definition.findLocalVariable("ActMap", true); //$NON-NLS-1$
 					if (actMapLocal != null && actMapLocal.getType() != null) {
 						for (IType ty : actMapLocal.getType()) if (ty instanceof ProplistDeclaration) {
 							ProplistDeclaration proplDecl = (ProplistDeclaration) ty;
@@ -222,7 +222,7 @@ public class SpecialScriptRules_OpenClonk extends SpecialScriptRules {
 				if (t != null) for (IType ty : t) {
 					if (ty instanceof Definition) {
 						Definition def = (Definition) ty;
-						Variable actMapLocal = def.findLocalVariable("ActMap", true);
+						Variable actMapLocal = def.findLocalVariable("ActMap", true); //$NON-NLS-1$
 						if (actMapLocal != null && actMapLocal.getType() != null) {
 							for (IType a : actMapLocal.getType()) {
 								if (a instanceof ProplistDeclaration) {
@@ -230,8 +230,8 @@ public class SpecialScriptRules_OpenClonk extends SpecialScriptRules {
 									for (Variable comp : proplDecl.getComponents()) {
 										if (prefix != null && !comp.getName().toLowerCase().contains(prefix))
 											continue;
-										proposals.add(new ClonkCompletionProposal(comp, "\""+comp.getName()+"\"", offset, prefix != null ? prefix.length() : 0,
-											comp.getName().length()+2, UI.getIconForVariable(comp), String.format("Action %s", comp.getName()), null, comp.getInfoText(), "", processor.getEditor()));
+										proposals.add(new ClonkCompletionProposal(comp, "\""+comp.getName()+"\"", offset, prefix != null ? prefix.length() : 0, //$NON-NLS-1$ //$NON-NLS-2$
+											comp.getName().length()+2, UI.getIconForVariable(comp), String.format(Messages.SpecialScriptRules_OpenClonk_ActionCompletionTemplate, comp.getName()), null, comp.getInfoText(), "", processor.getEditor())); //$NON-NLS-2$
 									}
 								}
 							}
@@ -244,6 +244,6 @@ public class SpecialScriptRules_OpenClonk extends SpecialScriptRules {
 	@Override
 	public void initialize() {
 		super.initialize();
-		putFuncRule(criteriaSearchRule, "FindObject");
+		putFuncRule(criteriaSearchRule, "FindObject"); //$NON-NLS-1$
 	}
 }
