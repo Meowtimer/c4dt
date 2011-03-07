@@ -159,6 +159,7 @@ public class CallFunc extends AccessDeclaration {
 	public CallFunc(Function function, ExprElm... parms) {
 		this(function.getName());
 		this.declaration = function;
+		assignParentToSubElements();
 	}
 	
 	@Override

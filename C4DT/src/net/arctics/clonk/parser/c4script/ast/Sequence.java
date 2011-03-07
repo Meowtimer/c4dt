@@ -22,9 +22,9 @@ public class Sequence extends Value {
 		ExprElm prev = null;
 		for (ExprElm e : elements) {
 			e.setPredecessorInSequence(prev);
-			e.setParent(this);
 			prev = e;
 		}
+		assignParentToSubElements();
 	}
 	public Sequence(List<ExprElm> elms) {
 		this(elms.toArray(new ExprElm[elms.size()]));
