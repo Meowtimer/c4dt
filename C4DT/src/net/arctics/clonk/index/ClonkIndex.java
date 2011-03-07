@@ -437,35 +437,10 @@ public class ClonkIndex extends Declaration implements Serializable, Iterable<De
 	}
 
 	public <T extends Declaration> Iterable<T> declarationsWithName(String name, final Class<T> fieldClass) {
-		List<Declaration> nonFinalList = this.declarationMap.get(name);
-		if (nonFinalList == null)
-			nonFinalList = new LinkedList<Declaration>();
-		final List<Declaration> list = nonFinalList;
-		return new Iterable<T>() {
-			public Iterator<T> iterator() {
-				return new Iterator<T>() {
-
-					private int index = 0;
-
-					public boolean hasNext() {
-						for (; index < list.size(); index++)
-							if (fieldClass.isAssignableFrom(list.get(index).getClass()))
-								break;
-						return index < list.size();
-					}
-
-					@SuppressWarnings("unchecked")
-					public T next() {
-						return (T) list.get(index++);
-					}
-
-					public void remove() {
-						// not supported
-					}
-
-				};
-			}
-		};
+		List<Declaration> list = this.declarationMap.get(name);
+		if (list == null)
+			list = new LinkedList<Declaration>();
+		return ArrayUtil.filteredIterable(list, fieldClass);
 	}
 	
 	public Function findGlobalFunction(String functionName) {

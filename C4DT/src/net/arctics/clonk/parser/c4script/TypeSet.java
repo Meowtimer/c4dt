@@ -1,6 +1,7 @@
 package net.arctics.clonk.parser.c4script;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -72,6 +73,10 @@ public class TypeSet implements IType {
 				newArray[i++] = t;
 		}
 		return newArray;
+	}
+	
+	public static IType create(Collection<IType> types) {
+		return create(types.toArray(new IType[types.size()]));
 	}
 	
 	public static IType create(IType... ingredients) {

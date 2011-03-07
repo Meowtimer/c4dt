@@ -246,24 +246,29 @@ public class CallFunc extends AccessDeclaration {
 	}
 
 	public static Declaration findFunctionUsingPredecessor(ExprElm p, String functionName, DeclarationObtainmentContext context) {
-		ScriptBase lookIn = p == null ? context.getContainer() : p.guessObjectType(context);
-		if (lookIn != null) {
+		IType lookIn = p == null ? context.getContainer() : p.getType(context);
+		if (lookIn != null) for (IType ty : lookIn) {
+			if (!(ty instanceof ScriptBase))
+				continue;
+			ScriptBase script = (ScriptBase)ty;
 			FindDeclarationInfo info = new FindDeclarationInfo(context.getContainer().getIndex());
 			info.setSearchOrigin(context.getContainer());
-			Declaration field = lookIn.findFunction(functionName, info);
+			Declaration dec = script.findFunction(functionName, info);
 			// parse function before this one
-			if (field != null && context.getCurrentFunc() != null) {
+			if (dec != null && context.getCurrentFunc() != null) {
 				try {
-					context.parseCodeOfFunction((Function) field, true);
+					context.parseCodeOfFunction((Function) dec, true);
 				} catch (ParsingException e) {
 					e.printStackTrace();
 				}
 			}
 			// might be a variable called as a function (not after '->')
-			if (field == null && p == null)
-				field = lookIn.findVariable(functionName, info);
-			return field;
-		} else if (p != null) {
+			if (dec == null && p == null)
+				dec = script.findVariable(functionName, info);
+			if (dec != null)
+				return dec;
+		}
+		if (p != null) {
 			// find global function
 			Declaration declaration = context.getContainer().getIndex().findGlobalFunction(functionName);
 			if (declaration == null)
@@ -274,8 +279,8 @@ public class CallFunc extends AccessDeclaration {
 				List<Declaration> allFromLocalIndex = context.getContainer().getIndex().getDeclarationMap().get(functionName);
 				Declaration decl = context.getContainer().getEngine().findLocalFunction(functionName, false);
 				if (
-						(allFromLocalIndex != null ? allFromLocalIndex.size() : 0) +
-						(decl != null ? 1 : 0) == 1
+					(allFromLocalIndex != null ? allFromLocalIndex.size() : 0) +
+					(decl != null ? 1 : 0) == 1
 				)
 					return declaration;
 			}

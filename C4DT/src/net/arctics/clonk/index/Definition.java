@@ -2,7 +2,6 @@ package net.arctics.clonk.index;
 
 import java.io.IOException;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -15,19 +14,16 @@ import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.ID;
 import net.arctics.clonk.parser.c4script.ConstrainedType;
 import net.arctics.clonk.parser.c4script.ScriptBase;
-import net.arctics.clonk.parser.c4script.PrimitiveType;
 import net.arctics.clonk.parser.c4script.Variable;
 import net.arctics.clonk.parser.c4script.FindDeclarationInfo;
-import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.preferences.ClonkPreferences;
-import net.arctics.clonk.util.ArrayUtil;
 
 /**
  * A Clonk object definition.
  * @author madeen
  *
  */
-public abstract class Definition extends ScriptBase implements IType {
+public abstract class Definition extends ScriptBase {
 
 	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 
@@ -179,60 +175,7 @@ public abstract class Definition extends ScriptBase implements IType {
 	public void setCachedPicture(Image cachedPicture) {
 		this.cachedPicture = cachedPicture;
 	}
-
-	@Override
-	public boolean canBeAssignedFrom(IType other) {
-		return PrimitiveType.OBJECT.canBeAssignedFrom(other) || PrimitiveType.PROPLIST.canBeAssignedFrom(other);
-	}
-
-	@Override
-	public boolean containsType(IType type) {
-		return
-			type == PrimitiveType.OBJECT ||
-			type == PrimitiveType.PROPLIST ||
-			type == this ||
-			type == PrimitiveType.ID; // gets rid of type sets <id or Clonk>
-	}
 	
-	@Override
-	public boolean containsAnyTypeOf(IType... types) {
-		return IType.Default.containsAnyTypeOf(this, types);
-	}
-
-	@Override
-	public int specificness() {
-		return PrimitiveType.OBJECT.specificness()+1;
-	}
-
-	@Override
-	public String typeName(boolean special) {
-		return getName();
-	}
-
-	@Override
-	public Iterator<IType> iterator() {
-		return ArrayUtil.arrayIterable(new IType[] {PrimitiveType.OBJECT, this}).iterator();
-	}
-
-	@Override
-	public boolean intersects(IType typeSet) {
-		for (IType t : typeSet) {
-			if (t.canBeAssignedFrom(PrimitiveType.OBJECT))
-				return true;
-			if (t instanceof Definition) {
-				Definition obj = (Definition) t;
-				if (this.includes(obj))
-					return true;
-			}
-		}
-		return false;
-	}
-
-	@Override
-	public IType staticType() {
-		return PrimitiveType.OBJECT;
-	}
-
 	public ConstrainedType getObjectType() {
 		if (objectType == null) {
 			objectType = new ConstrainedType(this, ConstraintKind.Exact);

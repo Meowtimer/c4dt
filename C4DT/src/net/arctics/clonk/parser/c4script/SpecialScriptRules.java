@@ -26,6 +26,7 @@ import net.arctics.clonk.parser.DeclarationRegion;
 import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.c4script.C4ScriptParser.IMarkerListener;
+import net.arctics.clonk.parser.c4script.Directive.DirectiveType;
 import net.arctics.clonk.parser.c4script.IHasConstraint.ConstraintKind;
 import net.arctics.clonk.parser.c4script.ast.CallFunc;
 import net.arctics.clonk.parser.c4script.ast.ExprElm;
@@ -349,29 +350,48 @@ public class SpecialScriptRules {
 			return t;
 		}
 		
-		private Definition searchCriteriaAssumedResult(DeclarationObtainmentContext context, CallFunc callFunc, boolean topLevel) {
-			Definition result = null;
+		private IType searchCriteriaAssumedResult(DeclarationObtainmentContext context, CallFunc callFunc, boolean topLevel) {
+			IType result = null;
 			String declarationName = callFunc.getDeclarationName();
 			// parameters to FindObjects itself are also &&-ed together
 			if (topLevel || declarationName.equals("Find_And")) {
+				List<IType> types = new LinkedList<IType>();
 				for (ExprElm parm : callFunc.getParams()) {
 					if (parm instanceof CallFunc) {
 						CallFunc call = (CallFunc)parm;
-						Definition t = searchCriteriaAssumedResult(context, call, false);
-						if (t != null) {
-							if (result == null)
-								result = t;
-							else {
-								if (t.includes(result))
-									result = t;
-							}
+						IType t = searchCriteriaAssumedResult(context, call, false);
+						if (t != null) for (IType ty : t) {
+							types.add(ty);
 						}
 					}
 				}
+				result = TypeSet.create(types);
 			}
 			else if (declarationName.equals("Find_ID")) { //$NON-NLS-1$
-				if (callFunc.getParams().length > 0) {
+				if (callFunc.getParams().length >= 1) {
 					result = callFunc.getParams()[0].guessObjectType(context);
+				}
+			}
+			else if (declarationName.equals("Find_Func") && callFunc.getParams().length >= 1) {
+				Object ev = callFunc.getParams()[0].evaluateAtParseTime(context.getContainer());
+				if (ev instanceof String) {
+					List<IType> types = new LinkedList<IType>();
+					for (ClonkIndex index : context.getContainer().getIndex().relevantIndexes()) {
+						for (Function f : index.declarationsWithName((String)ev, Function.class)) {
+							if (f.getScript() instanceof Definition) {
+								types.add((Definition)f.getScript());
+							}
+							else for (Directive directive : f.getScript().directives()) {
+								if (directive.getType() == DirectiveType.APPENDTO) {
+									Definition def = f.getScript().getIndex().getObjectNearestTo(context.getContainer().getResource(), directive.contentAsID());
+									if (def != null) {
+										types.add(def);
+									}
+								}
+							}
+						}
+					}
+					return TypeSet.create(types);
 				}
 			}
 			return result;
