@@ -560,7 +560,26 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 		}
 		return false;
 	}
+	
+	/**
+	 * Return direct sub element of this ExprElm that contains elm.
+	 * @param elm The expression that has one of the sub elements in its parent chain.
+	 * @return Sub element containing elm or null.
+	 */
+	public ExprElm getSubElementContaining(ExprElm elm) {
+		for (ExprElm subElm : getSubElements()) {
+			if (subElm != null) {
+				if (elm.containedIn(subElm))
+					return subElm;
+			}
+		}
+		return null;
+	}
 
+	/**
+	 * Returns whether this ExprElm represents a constant value.
+	 * @return Whether constant or not.
+	 */
 	public boolean isConstant() {
 		return false;
 	}

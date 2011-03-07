@@ -1,28 +1,33 @@
 package net.arctics.clonk.parser.c4script.specialscriptrules;
 
+import java.util.List;
 import java.util.regex.Matcher;
-
-import org.eclipse.jface.text.Region;
 
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.DeclarationRegion;
 import net.arctics.clonk.parser.ParsingException;
+import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.DeclarationObtainmentContext;
 import net.arctics.clonk.parser.c4script.DefinitionFunction;
 import net.arctics.clonk.parser.c4script.EffectFunction;
+import net.arctics.clonk.parser.c4script.EffectFunction.HardcodedCallbackType;
 import net.arctics.clonk.parser.c4script.Function;
-import net.arctics.clonk.parser.c4script.C4ScriptParser;
-import net.arctics.clonk.parser.c4script.PrimitiveType;
 import net.arctics.clonk.parser.c4script.IType;
+import net.arctics.clonk.parser.c4script.PrimitiveType;
 import net.arctics.clonk.parser.c4script.ProplistDeclaration;
 import net.arctics.clonk.parser.c4script.SpecialScriptRules;
 import net.arctics.clonk.parser.c4script.Variable;
-import net.arctics.clonk.parser.c4script.EffectFunction.HardcodedCallbackType;
 import net.arctics.clonk.parser.c4script.Variable.Scope;
 import net.arctics.clonk.parser.c4script.ast.CallFunc;
 import net.arctics.clonk.parser.c4script.ast.ExprElm;
 import net.arctics.clonk.parser.c4script.ast.StringLiteral;
+import net.arctics.clonk.ui.editors.ClonkCompletionProposal;
+import net.arctics.clonk.ui.editors.c4script.C4ScriptCompletionProcessor;
+import net.arctics.clonk.util.UI;
+
+import org.eclipse.jface.text.Region;
+import org.eclipse.jface.text.contentassist.ICompletionProposal;
 
 public class SpecialScriptRules_OpenClonk extends SpecialScriptRules {
 	/**
@@ -208,6 +213,31 @@ public class SpecialScriptRules_OpenClonk extends SpecialScriptRules {
 					}
 				}
 				return super.locateDeclarationInParameter(callFunc, parser, index, offsetInExpression, parmExpression);
+			};
+			@Override
+			public void contributeAdditionalProposals(CallFunc callFunc, C4ScriptParser parser, int index, ExprElm parmExpression, C4ScriptCompletionProcessor processor, String prefix, int offset, List<ICompletionProposal> proposals) {
+				if (index != 0)
+					return;
+				IType t = callFunc.getPredecessorInSequence() != null ? callFunc.getPredecessorInSequence().getType(parser) : null;
+				if (t != null) for (IType ty : t) {
+					if (ty instanceof Definition) {
+						Definition def = (Definition) ty;
+						Variable actMapLocal = def.findLocalVariable("ActMap", true);
+						if (actMapLocal != null && actMapLocal.getType() != null) {
+							for (IType a : actMapLocal.getType()) {
+								if (a instanceof ProplistDeclaration) {
+									ProplistDeclaration proplDecl = (ProplistDeclaration) a;
+									for (Variable comp : proplDecl.getComponents()) {
+										if (prefix != null && !comp.getName().toLowerCase().contains(prefix))
+											continue;
+										proposals.add(new ClonkCompletionProposal(comp, "\""+comp.getName()+"\"", offset, prefix != null ? prefix.length() : 0,
+											comp.getName().length()+2, UI.getIconForVariable(comp), String.format("Action %s", comp.getName()), null, comp.getInfoText(), "", processor.getEditor()));
+									}
+								}
+							}
+						}
+					}
+				}
 			};
 		};
 	}

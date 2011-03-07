@@ -192,9 +192,13 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	/**
 	 * Func rules of the respective engine.
 	 */
-	private SpecialScriptRules funcRules;
+	private SpecialScriptRules specialScriptRules;
 	
 	private TypeInformationMerger scriptLevelTypeInformationMerger;
+	
+	public SpecialScriptRules getSpecialScriptRules() {
+		return specialScriptRules;
+	}
 	
 	public boolean allErrorsDisabled() {
 		return allErrorsDisabled;
@@ -462,10 +466,10 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		if (container != null) {
 			if (container.getEngine() != null) {
 				idMatcher = container.getEngine().getCurrentSettings().getCompiledIdPattern().matcher(buffer);
-				funcRules = container.getEngine().getSpecialScriptRules();
+				specialScriptRules = container.getEngine().getSpecialScriptRules();
 			} else {
 				idMatcher = DEFAULT_ID_PATTERN.matcher(buffer);
-				funcRules = null;
+				specialScriptRules = null;
 			}
 
 			if (container.getIndex() instanceof ProjectIndex) {
@@ -694,8 +698,8 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		else
 			parsedFunctions.add(function);
 		
-		if (funcRules != null) {
-			for (SpecialFuncRule eventListener : funcRules.functionEventListeners()) {
+		if (specialScriptRules != null) {
+			for (SpecialFuncRule eventListener : specialScriptRules.functionEventListeners()) {
 				eventListener.functionAboutToBeParsed(function, this);
 			}
 		}
@@ -764,8 +768,8 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	}
 
 	private void assignDefaultParmTypesToFunction(Function function) {
-		if (funcRules != null) {
-			for (SpecialFuncRule funcRule : funcRules.defaultParmTypeAssignerRules()) {
+		if (specialScriptRules != null) {
+			for (SpecialFuncRule funcRule : specialScriptRules.defaultParmTypeAssignerRules()) {
 				if (funcRule.assignDefaultParmTypes(this, function))
 					break;
 			}
@@ -1266,8 +1270,8 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	 * @return The newly created function. Might be of some special class.
 	 */
 	protected Function newFunction(String nameWillBe) {
-	    if (funcRules != null) {
-	    	for (SpecialFuncRule funcRule : funcRules.defaultParmTypeAssignerRules()) {
+	    if (specialScriptRules != null) {
+	    	for (SpecialFuncRule funcRule : specialScriptRules.defaultParmTypeAssignerRules()) {
 	    		Function f = funcRule.newFunction(nameWillBe);
 	    		if (f != null)
 	    			return f;

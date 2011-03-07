@@ -15,6 +15,7 @@ import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jface.text.Region;
+import org.eclipse.jface.text.contentassist.ICompletionProposal;
 
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.ProjectDefinition;
@@ -35,6 +36,7 @@ import net.arctics.clonk.parser.inireader.IniSection;
 import net.arctics.clonk.parser.inireader.IniUnit;
 import net.arctics.clonk.parser.inireader.IniUnitWithNamedSections;
 import net.arctics.clonk.parser.inireader.ParticleUnit;
+import net.arctics.clonk.ui.editors.c4script.C4ScriptCompletionProcessor;
 import net.arctics.clonk.ui.editors.c4script.ExpressionLocator;
 import net.arctics.clonk.util.Utilities;
 
@@ -70,6 +72,13 @@ public class SpecialScriptRules {
 	 * Role for SpecialFuncRule: Gets notified when a function is about to be parsed.
 	 */
 	public static final int FUNCTION_EVENT_LISTENER = 16;
+	
+	/**
+	 * Role for SpecialFuncRule: Gets queried for additional proposals for parameters of certain functions.
+	 * @author madeen
+	 *
+	 */
+	public static final int FUNCTION_PARM_PROPOSALS_CONTRIBUTOR = 32;
 
 	@Retention(RetentionPolicy.RUNTIME)
 	@Target(ElementType.METHOD)
@@ -211,14 +220,16 @@ public class SpecialScriptRules {
 		 * @param function
 		 */
 		@SignifiesRole(role=FUNCTION_EVENT_LISTENER)
-		public void functionAboutToBeParsed(Function function, C4ScriptParser context) {
-			
-		}
+		public void functionAboutToBeParsed(Function function, C4ScriptParser context) {}
+		
+		@SignifiesRole(role=FUNCTION_PARM_PROPOSALS_CONTRIBUTOR)
+		public void contributeAdditionalProposals(CallFunc callFunc, C4ScriptParser parser, int index, ExprElm parmExpression, C4ScriptCompletionProcessor processor, String prefix, int offset, List<ICompletionProposal> proposals) {}
 	}
 	
 	private Map<String, SpecialFuncRule> argumentValidators = new HashMap<String, SpecialFuncRule>();
 	private Map<String, SpecialFuncRule> returnTypeModifiers = new HashMap<String, SpecialFuncRule>();
 	private Map<String, SpecialFuncRule> declarationLocators = new HashMap<String, SpecialFuncRule>();
+	private Map<String, SpecialFuncRule> parmProposalContributors = new HashMap<String, SpecialFuncRule>();
 	private List<SpecialFuncRule> defaultParmTypeAssigners = new LinkedList<SpecialFuncRule>();
 	private List<SpecialFuncRule> functionEventListeners = new LinkedList<SpecialFuncRule>();
 	
@@ -247,6 +258,9 @@ public class SpecialScriptRules {
 		if ((mask & FUNCTION_EVENT_LISTENER) != 0) {
 			functionEventListeners.add(rule);
 		}
+		if ((mask & FUNCTION_PARM_PROPOSALS_CONTRIBUTOR) != 0) for (String func : forFunctions) {
+			parmProposalContributors.put(func, rule);
+		}
 	}
 	
 	public SpecialFuncRule getFuncRuleFor(String function, int role) {
@@ -256,6 +270,8 @@ public class SpecialScriptRules {
 			return declarationLocators.get(function);
 		else if (role == RETURNTYPE_MODIFIER)
 			return returnTypeModifiers.get(function);
+		else if (role == FUNCTION_PARM_PROPOSALS_CONTRIBUTOR)
+			return parmProposalContributors.get(function);
 		else
 			return null;
 	}

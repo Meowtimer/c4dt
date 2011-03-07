@@ -18,6 +18,8 @@ import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.PrimitiveType;
 import net.arctics.clonk.parser.c4script.ScriptBase;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
+import net.arctics.clonk.parser.c4script.SpecialScriptRules;
+import net.arctics.clonk.parser.c4script.SpecialScriptRules.SpecialFuncRule;
 import net.arctics.clonk.parser.c4script.Variable;
 import net.arctics.clonk.parser.c4script.IHasSubDeclarations;
 import net.arctics.clonk.parser.c4script.IType;
@@ -28,6 +30,7 @@ import net.arctics.clonk.parser.c4script.Function.C4FunctionScope;
 import net.arctics.clonk.parser.c4script.C4ScriptParser.ExpressionsAndStatementsReportingFlavour;
 import net.arctics.clonk.parser.c4script.Variable.Scope;
 import net.arctics.clonk.parser.c4script.ast.AccessDeclaration;
+import net.arctics.clonk.parser.c4script.ast.CallFunc;
 import net.arctics.clonk.parser.c4script.ast.Conf;
 import net.arctics.clonk.parser.c4script.ast.ExprElm;
 import net.arctics.clonk.parser.c4script.ast.IStoredTypeInformation;
@@ -264,6 +267,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 		_currentEditorScript = editorScript;
 		boolean specifiedParser = parser != null;
 		Sequence contextSequence = null;
+		CallFunc innermostCallFunc = null;
 
 		if (editorScript != null) {
 			final int preservedOffset = offset - (activeFunc != null?activeFunc.getBody().getStart():0);
@@ -278,12 +282,15 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 				}
 			}
 			// only present completion proposals specific to the <expr>->... thingie if cursor inside identifier region of declaration access expression.
-			if (
-				contextExpression instanceof MemberOperator ||
-				(contextExpression instanceof AccessDeclaration && Utilities.regionContainsOffset(contextExpression.identifierRegion(), preservedOffset))
-			) {
-				// we only care about sequences
-				contextSequence = Utilities.as(contextExpression.getParent(), Sequence.class);
+			if (contextExpression != null) {
+				innermostCallFunc = contextExpression.getParent(CallFunc.class);
+				if (
+						contextExpression instanceof MemberOperator ||
+						(contextExpression instanceof AccessDeclaration && Utilities.regionContainsOffset(contextExpression.identifierRegion(), preservedOffset))
+				) {
+					// we only care about sequences
+					contextSequence = Utilities.as(contextExpression.getParent(), Sequence.class);
+				}
 			}
 			if (contextSequence != null) {
 				// cut off stuff after ->
@@ -349,6 +356,16 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 			whatToDisplayFromScripts |= IHasSubDeclarations.FUNCTIONS;
 		for (IHasSubDeclarations s : contextStructures) {
 			proposalsForStructure(s, new HashSet<IHasSubDeclarations>(), prefix, offset, wordOffset, proposals, contextStructuresChanged, index, whatToDisplayFromScripts);
+		}
+		if (innermostCallFunc != null) {
+			SpecialScriptRules rules = parser.getSpecialScriptRules();
+			if (rules != null) {
+				SpecialFuncRule funcRule = rules.getFuncRuleFor(innermostCallFunc.getDeclarationName(), SpecialScriptRules.FUNCTION_PARM_PROPOSALS_CONTRIBUTOR);
+				if (funcRule != null) {
+					ExprElm parmExpr = innermostCallFunc.getSubElementContaining(contextExpression);
+					funcRule.contributeAdditionalProposals(innermostCallFunc, parser, innermostCallFunc.indexOfParm(parmExpr), parmExpr, this, prefix, offset, proposals);
+				}
+			}
 		}
 		if (contextSequence == null && proposalCycle == ProposalCycle.ALL) {
 			ImageRegistry reg = ClonkCore.getDefault().getImageRegistry();
@@ -522,7 +539,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 			return;
 		else {
 			// always propose adhoc variables
-			if (loopCatcher.size() == 0) {
+			if (loopCatcher.size() == 0 && getEditor() != null) {
 				for (AdhocVariable var : getEditor().scriptBeingEdited().getIndex().adhocVariables()) {
 					proposalForVar(var, prefix, wordOffset, proposals);
 				}
