@@ -1,5 +1,6 @@
 package net.arctics.clonk.parser.c4script.ast;
 
+import java.util.LinkedList;
 import java.util.List;
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.index.Engine;
@@ -242,10 +243,10 @@ public class CallFunc extends AccessDeclaration {
 			return activeFunc != null ? activeFunc.getInherited() : null;
 		}
 		ExprElm p = getPredecessorInSequence();
-		return findFunctionUsingPredecessor(p, declarationName, context);
+		return findFunctionUsingPredecessor(p, declarationName, context, null);
 	}
 
-	public static Declaration findFunctionUsingPredecessor(ExprElm p, String functionName, DeclarationObtainmentContext context) {
+	public static Declaration findFunctionUsingPredecessor(ExprElm p, String functionName, DeclarationObtainmentContext context, List<Declaration> listToAddPotentialDeclarationsTo) {
 		IType lookIn = p == null ? context.getContainer() : p.getType(context);
 		if (lookIn != null) for (IType ty : lookIn) {
 			if (!(ty instanceof ScriptBase))
@@ -265,8 +266,12 @@ public class CallFunc extends AccessDeclaration {
 			// might be a variable called as a function (not after '->')
 			if (dec == null && p == null)
 				dec = script.findVariable(functionName, info);
-			if (dec != null)
-				return dec;
+			if (dec != null) {
+				if (listToAddPotentialDeclarationsTo == null)
+					return dec;
+				else
+					listToAddPotentialDeclarationsTo.add(dec);
+			}
 		}
 		if (p != null) {
 			// find global function
@@ -281,11 +286,15 @@ public class CallFunc extends AccessDeclaration {
 				if (
 					(allFromLocalIndex != null ? allFromLocalIndex.size() : 0) +
 					(decl != null ? 1 : 0) == 1
-				)
-					return declaration;
+				) {
+					if (listToAddPotentialDeclarationsTo == null)
+						return declaration;
+					else
+						listToAddPotentialDeclarationsTo.add(declaration);
+				}
 			}
 		}
-		return null;
+		return listToAddPotentialDeclarationsTo != null && listToAddPotentialDeclarationsTo.size() > 0 ? listToAddPotentialDeclarationsTo.get(0) : null;
 	}
 	private boolean unknownFunctionShouldBeError(C4ScriptParser parser) {
 		ExprElm pred = getPredecessorInSequence();
@@ -529,7 +538,9 @@ public class CallFunc extends AccessDeclaration {
 
 	@Override
 	public DeclarationRegion declarationAt(int offset, C4ScriptParser parser) {
-		return new DeclarationRegion(getDeclaration(parser), new Region(getExprStart(), declarationName.length()));
+		List<Declaration> list = new LinkedList<Declaration>();
+		findFunctionUsingPredecessor(getPredecessorInSequence(), getDeclarationName(), parser, list);
+		return new DeclarationRegion(list, new Region(getExprStart(), declarationName.length()));
 	}
 	public ExprElm getReturnArg() {
 		if (params.length == 1)

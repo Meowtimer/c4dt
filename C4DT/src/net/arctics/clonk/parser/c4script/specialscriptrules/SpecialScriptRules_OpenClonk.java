@@ -102,7 +102,7 @@ public class SpecialScriptRules_OpenClonk extends SpecialScriptRules {
 					Declaration d = CallFunc.findFunctionUsingPredecessor(
 							callFunc.getPredecessorInSequence(),
 							String.format(EffectFunction.FUNCTION_NAME_FORMAT, effectName, t.name()), 
-							context
+							context, null
 					);
 					if (d instanceof EffectFunction) {
 						return ((EffectFunction)d).getEffectType();
@@ -121,7 +121,8 @@ public class SpecialScriptRules_OpenClonk extends SpecialScriptRules {
 					Declaration d = CallFunc.findFunctionUsingPredecessor(
 							callFunc.getPredecessorInSequence(),
 							String.format(EffectFunction.FUNCTION_NAME_FORMAT, effectName, t.name()), 
-							parser
+							parser,
+							null
 					);
 					if (d instanceof EffectFunction) {
 						return new DeclarationRegion(d, new Region(parmExpression.getExprStart()+1, parmExpression.getLength()-2));
