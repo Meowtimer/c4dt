@@ -218,7 +218,7 @@ public class SpecialScriptRules_OpenClonk extends SpecialScriptRules {
 			public void contributeAdditionalProposals(CallFunc callFunc, C4ScriptParser parser, int index, ExprElm parmExpression, C4ScriptCompletionProcessor processor, String prefix, int offset, List<ICompletionProposal> proposals) {
 				if (index != 0)
 					return;
-				IType t = callFunc.getPredecessorInSequence() != null ? callFunc.getPredecessorInSequence().getType(parser) : null;
+				IType t = callFunc.getPredecessorInSequence() != null ? callFunc.getPredecessorInSequence().getType(parser) : parser.getContainer();
 				if (t != null) for (IType ty : t) {
 					if (ty instanceof Definition) {
 						Definition def = (Definition) ty;
