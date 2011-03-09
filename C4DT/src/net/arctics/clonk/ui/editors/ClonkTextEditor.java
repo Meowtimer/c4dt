@@ -3,6 +3,7 @@ package net.arctics.clonk.ui.editors;
 import java.util.ResourceBundle;
 
 import net.arctics.clonk.ClonkCore;
+import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.ProjectDefinition;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.Declaration.DeclarationLocation;
@@ -12,6 +13,7 @@ import net.arctics.clonk.ui.editors.c4script.C4ScriptEditor;
 import net.arctics.clonk.ui.editors.c4script.ClonkContentAssistant;
 import net.arctics.clonk.ui.editors.c4script.ClonkContentOutlinePage;
 
+import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
@@ -124,12 +126,21 @@ public class ClonkTextEditor extends TextEditor {
 
 	public static IEditorPart openDeclarationLocation(DeclarationLocation location, boolean activate) {
 		try {
+			IEditorPart ed = null;
 			if (location.getResource() instanceof IFile) {
 				IEditorDescriptor descriptor = IDE.getEditorDescriptor((IFile) location.getResource());
-				ClonkTextEditor ed = (ClonkTextEditor) IDE.openEditor(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage(), (IFile) location.getResource(), descriptor.getId());
-				ed.selectAndReveal(location.getLocation());
-				return ed;
+				ed = (ClonkTextEditor) IDE.openEditor(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage(), (IFile) location.getResource(), descriptor.getId());
 			}
+			else if (location.getResource() instanceof IContainer) {
+				Definition def = ProjectDefinition.objectCorrespondingTo((IContainer) location.getResource());
+				if (def != null) {
+					ed = openDeclaration(def);
+				}
+			}
+			if (ed instanceof ClonkTextEditor) {
+				((ClonkTextEditor) ed).selectAndReveal(location.getLocation());
+			}
+			return ed;
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

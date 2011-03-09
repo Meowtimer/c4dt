@@ -15,7 +15,7 @@ import net.arctics.clonk.ui.editors.actions.c4script.DeclarationChooser;
 
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.hyperlink.IHyperlink;
-import org.eclipse.swt.SWT;
+import org.eclipse.jface.window.Window;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.browser.IWebBrowser;
@@ -56,7 +56,7 @@ public class ClonkHyperlink implements IHyperlink {
 				ClonkTextEditor.openDeclaration(locations[0].getDeclaration());
 			} else {
 				DeclarationChooser chooser = new DeclarationChooser(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(), Arrays.asList(locations));
-				if (chooser.open() == SWT.OK) {
+				if (chooser.open() == Window.OK) {
 					boolean b = true;
 					for (DeclarationLocation loc : chooser.getSelectedDeclarationLocations()) {
 						ClonkTextEditor.openDeclarationLocation(loc, b);
