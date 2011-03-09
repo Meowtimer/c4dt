@@ -36,6 +36,7 @@ import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.editors.text.EditorsUI;
 import org.eclipse.ui.editors.text.TextEditor;
 import org.eclipse.ui.ide.IDE;
 import org.eclipse.ui.part.FileEditorInput;
@@ -234,10 +235,11 @@ public class ClonkTextEditor extends TextEditor {
 			setPartName(res.getParent().getName() + "/" + res.getName()); //$NON-NLS-1$
 		}
 	}
-	
+
 	@Override
 	protected void initializeEditor() {
 		super.initializeEditor();
+		setPreferenceStore(EditorsUI.getPreferenceStore());
 	}
 	
 	public ClonkContentAssistant getContentAssistant() {
