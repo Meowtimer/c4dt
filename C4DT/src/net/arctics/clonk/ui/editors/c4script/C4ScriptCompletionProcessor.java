@@ -432,7 +432,6 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 		int replacementLength = 0;
 		if (prefix != null)
 			replacementLength = prefix.length();
-		// FIXME: copy signature of overloaded func and respect brace style
 		String repString = funcSupplied ? (callback!=null?callback:"") : getFunctionScaffold(callback, parmTypes); //$NON-NLS-1$
 		ClonkCompletionProposal prop = new ClonkCompletionProposal(
 				null,

@@ -176,7 +176,6 @@ public class AccessVar extends AccessDeclaration {
 						fallbackToAddingToIndex = false;
 					}
 				}
-				// FIXME: always ok to add to existing proplist declaration?
 				if (fallbackToAddingToIndex) {
 					declaration = context.getContainer().getIndex().addAdhocVariable(getDeclarationName(), context.getContainer().getScriptFile(), context.getCurrentDeclaration(), expression);
 				}

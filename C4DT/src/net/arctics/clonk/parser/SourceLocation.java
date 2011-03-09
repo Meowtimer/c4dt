@@ -74,6 +74,11 @@ public class SourceLocation implements IRegion, Serializable {
 	public String toString() {
 		return "("+getStart()+", "+getEnd()+")"; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 	}
-	
-	// TODO: hashcode() implementation
+
+	// http://stackoverflow.com/questions/113511/hash-code-implementation -.-
+	@Override
+	public int hashCode() {
+		return (int)(start ^ start >>> 32) * 37 + (int)(end ^ end >>> 32) * 37;
+	}
+
 }

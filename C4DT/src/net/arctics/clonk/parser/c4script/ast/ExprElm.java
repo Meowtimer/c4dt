@@ -229,11 +229,11 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 						return pred.getType(context);
 					else if (obl.constraintScript() != context.getContainer())
 						// constraint only resolved outside of original script
-						return context.getContainerAsType();
+						return context.getContainer();
 					else
 						break;
 				case Exact:
-					return Utilities.as(obl.constraintScript(), IType.class);
+					return obl.constraintScript();
 				case Includes:
 					break;
 				}

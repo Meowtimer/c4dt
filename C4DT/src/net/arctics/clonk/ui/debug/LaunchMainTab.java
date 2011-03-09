@@ -51,14 +51,14 @@ public class LaunchMainTab extends AbstractLaunchConfigurationTab {
 	
 	/** Listener used to track changes in widgets */
 	private class WidgetListener implements ModifyListener, SelectionListener {
-
+		@Override
 		public void modifyText(ModifyEvent e) {
 			updateLaunchConfigurationDialog();
 		}
-
+		@Override
 		public void widgetDefaultSelected(SelectionEvent e) {
 		}
-
+		@Override
 		public void widgetSelected(SelectionEvent e) {
 			if(e.getSource() == projectEditor.AddButton)
 				chooseClonkProject();
@@ -73,6 +73,7 @@ public class LaunchMainTab extends AbstractLaunchConfigurationTab {
 	WidgetListener fListener = new WidgetListener();
 	
 	/** Places all needed widgets into the tab */
+	@Override
 	public void createControl(Composite parent) {
 
 		// Create top-level composite
@@ -163,10 +164,12 @@ public class LaunchMainTab extends AbstractLaunchConfigurationTab {
 	}
 	
 	/** The name of the tab */
+	@Override
 	public String getName() {
 		return Messages.LaunchMainTab_Main;
 	}
 	
+	@Override
 	public void initializeFrom(ILaunchConfiguration conf) {
 		
 		try {
@@ -193,6 +196,7 @@ public class LaunchMainTab extends AbstractLaunchConfigurationTab {
 		}
 	}
 
+	@Override
 	public void performApply(ILaunchConfigurationWorkingCopy wc) {
 		wc.setAttribute(ClonkLaunchConfigurationDelegate.ATTR_PROJECT_NAME, projectEditor.Text.getText());
 		wc.setAttribute(ClonkLaunchConfigurationDelegate.ATTR_SCENARIO_NAME, fScenText.getText());
@@ -201,6 +205,7 @@ public class LaunchMainTab extends AbstractLaunchConfigurationTab {
 		wc.setAttribute(ClonkLaunchConfigurationDelegate.ATTR_CUSTOMARGS, fCustomOptions.getText());
 	}
 
+	@Override
 	public void setDefaults(ILaunchConfigurationWorkingCopy wc) {
 		wc.setAttribute(ClonkLaunchConfigurationDelegate.ATTR_PROJECT_NAME, ""); //$NON-NLS-1$
 		wc.setAttribute(ClonkLaunchConfigurationDelegate.ATTR_SCENARIO_NAME, ""); //$NON-NLS-1$
@@ -292,6 +297,7 @@ public class LaunchMainTab extends AbstractLaunchConfigurationTab {
 		//       But it's the way Eclipse's built-in tabs work, so whatever...
 		final Collection<IResource> scenarios = new LinkedList<IResource>();
 		IResourceVisitor scenCollector = new IResourceVisitor() {
+			@Override
 			public boolean visit(IResource res) throws CoreException {
 				// Top-level
 				if(res instanceof IProject)

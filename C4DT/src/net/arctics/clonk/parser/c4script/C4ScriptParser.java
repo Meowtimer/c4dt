@@ -438,15 +438,6 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	}
 	
 	/**
-	 * Return either the container script if it's an instance of C4Object or a type set consisting of the object definitions
-	 * this script is appended to. If there is only one object appended to, that object will be returned. 
-	 * @return
-	 */
-	public IType getContainerAsType() {
-		return container.castAsType();
-	}
-	
-	/**
 	 * Creates a script parser. The script is read from the file attached to the script (queried through getScriptFile()).
 	 */
 	public C4ScriptParser(ScriptBase script) {
@@ -3013,7 +3004,6 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		eatWhitespace();
 		expect(')');
 		TypeInformationMerger merger = new TypeInformationMerger();
-		// FIXME: eats comments between if(...) and {...} so when transforming code the comments will be gone
 		int offsetBeforeWhitespace = this.offset;
 		Statement ifStatement = withMissingFallback(offsetBeforeWhitespace, parseStatementWithOwnTypeInferenceBlock(merger));
 		int beforeElse = this.offset;

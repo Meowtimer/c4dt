@@ -901,24 +901,6 @@ public abstract class ScriptBase extends Structure implements ITreeNode, IHasCon
 		else
 			return null;
 	}
-
-	public IType castAsType() {
-		if (this instanceof IType) {
-			// it's a type (probably C4Object)
-			return (IType) this;
-		} else {
-			IType[] includes = ArrayUtil.filter(this.getIncludes(), IType.class);
-			if (includes.length > 1) {
-				// includes/appends to more than one other script ... create type set out of the scripts that are types
-				return TypeSet.create(includes);
-			} else if (includes.length == 1 && includes[0] instanceof IType) {
-				// includes/appends to one type: return that
-				return (IType)includes[0];
-			}
-		}
-		// could be #appendto * or whatever
-		return PrimitiveType.OBJECT;
-	}
 	
 	@Override
 	public boolean canBeAssignedFrom(IType other) {

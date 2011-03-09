@@ -427,11 +427,6 @@ public abstract class Declaration implements Serializable, IHasRelatedResource, 
 			}
 			
 			@Override
-			public IType getContainerAsType() {
-				return getScript().castAsType(); 
-			}
-			
-			@Override
 			public Definition getContainerAsDefinition() {
 				return getScript() instanceof Definition ? (Definition)getScript() : null;
 			}
