@@ -1,7 +1,12 @@
 package net.arctics.clonk.parser.c4script.ast;
 
+import org.eclipse.jface.util.IPropertyChangeListener;
+import org.eclipse.jface.util.PropertyChangeEvent;
+import org.eclipse.ui.editors.text.EditorsUI;
+import org.eclipse.ui.texteditor.AbstractDecoratedTextEditorPreferenceConstants;
 
 import net.arctics.clonk.util.IConverter;
+import net.arctics.clonk.util.StringUtil;
 
 public abstract class Conf {
 	
@@ -25,5 +30,28 @@ public abstract class Conf {
 			}
         }
 	};
+	
+	// install property change listener so the indentString will match with the user preferences regarding spaces-to-tabs conversion
+	
+	private static void configureByEditorPreferences() {
+		boolean tabsToSpaces = EditorsUI.getPreferenceStore().getBoolean(AbstractDecoratedTextEditorPreferenceConstants.EDITOR_SPACES_FOR_TABS);
+		if (tabsToSpaces) {
+			indentString = StringUtil.repetitions(" ", EditorsUI.getPreferenceStore().getInt(AbstractDecoratedTextEditorPreferenceConstants.EDITOR_TAB_WIDTH));
+		} else {
+			indentString = "\t";
+		}
+	}
+	
+	static {
+		EditorsUI.getPreferenceStore().addPropertyChangeListener(new IPropertyChangeListener() {
+			@Override
+			public void propertyChange(PropertyChangeEvent event) {
+				if (event.getProperty().equals(AbstractDecoratedTextEditorPreferenceConstants.EDITOR_SPACES_FOR_TABS)) {
+					configureByEditorPreferences();
+				}
+			}
+		});
+		configureByEditorPreferences();
+	}
 
 }
