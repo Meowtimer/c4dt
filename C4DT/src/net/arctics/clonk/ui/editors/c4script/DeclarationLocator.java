@@ -90,7 +90,7 @@ public class DeclarationLocator extends ExpressionLocator {
 			if (exprAtRegion != null) {
 				DeclarationRegion declRegion = exprAtRegion.declarationAt(exprRegion.getOffset()-exprAtRegion.getExprStart(), parser);
 				boolean setRegion;
-				if (declRegion != null && declRegion.getPotentialDeclarations() != null) {
+				if (declRegion != null && declRegion.getPotentialDeclarations() != null && declRegion.getPotentialDeclarations().size() > 0) {
 					// region denotes multiple declarations - set proposed declarations to those
 					this.proposedDeclarations = declRegion.getPotentialDeclarations();
 					setRegion = true;
