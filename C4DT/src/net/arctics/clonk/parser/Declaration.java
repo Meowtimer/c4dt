@@ -302,7 +302,7 @@ public abstract class Declaration implements Serializable, IHasRelatedResource, 
 		if (name != null)
 			name = name.intern();
 		setParentDeclaration(parent);
-		Iterable<? extends Declaration> subDecs = this.allSubDeclarations(ALL_SUBDECLARATIONS);
+		Iterable<? extends Declaration> subDecs = this.allSubDeclarations(DIRECT_SUBDECLARATIONS);
 		if (subDecs != null)
 			for (Declaration d : subDecs)
 				d.postSerialize(this, root);
@@ -313,7 +313,7 @@ public abstract class Declaration implements Serializable, IHasRelatedResource, 
 	 * @param parent the parent
 	 */
 	public void preSerialize() {
-		Iterable<? extends Declaration> subDecs = this.allSubDeclarations(ALL_SUBDECLARATIONS);
+		Iterable<? extends Declaration> subDecs = this.allSubDeclarations(DIRECT_SUBDECLARATIONS);
 		if (subDecs != null)
 			for (Declaration d : subDecs)
 				d.preSerialize();

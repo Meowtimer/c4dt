@@ -543,13 +543,16 @@ public class Function extends Structure implements Serializable, ITypedDeclarati
 		return false;
 	}
 	
-	@SuppressWarnings("unchecked")
 	@Override
 	public Iterable<Declaration> allSubDeclarations(int mask) {
-		if ((mask & VARIABLES) != 0)
-			return new CompoundIterable<Declaration>(localVars, parameter, otherDeclarations);
-		else
-			return otherDeclarations != null ? otherDeclarations : NO_SUB_DECLARATIONS;
+		List<Iterable<? extends Declaration>> l = new ArrayList<Iterable<? extends Declaration>>(3);
+		if ((mask & VARIABLES) != 0) {
+			l.add(localVars);
+			l.add(parameter);
+		}
+		if ((mask & OTHER) != 0)
+			l.add(otherDeclarations);
+		return new CompoundIterable<Declaration>(l);
 	}
 	
 	@Override

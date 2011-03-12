@@ -1,10 +1,12 @@
 package net.arctics.clonk.util;
 
+import java.util.Arrays;
 import java.util.Iterator;
+import java.util.List;
 
 public class CompoundIterable<T> implements Iterable<T>, Iterator<T> {
 
-	private Iterable<? extends T>[] subIterables;
+	private List<Iterable<? extends T>> subIterables;
 	private Iterator<? extends T> curIterator;
 	private int iterIndex;
 	
@@ -12,11 +14,15 @@ public class CompoundIterable<T> implements Iterable<T>, Iterator<T> {
 		return this; 
 	}
 	
-	public CompoundIterable(Iterable<? extends T>... subIterables) {
+	public CompoundIterable(List<Iterable<? extends T>> subIterables) {
 		this.subIterables = subIterables;
-		for (iterIndex = 0; iterIndex < subIterables.length && subIterables[iterIndex] == null; iterIndex++);
-		if (iterIndex < subIterables.length)
-			curIterator = subIterables[iterIndex].iterator();
+		for (iterIndex = 0; iterIndex < subIterables.size() && subIterables.get(iterIndex) == null; iterIndex++);
+		if (iterIndex < subIterables.size())
+			curIterator = subIterables.get(iterIndex).iterator();
+	}
+	
+	public CompoundIterable(Iterable<? extends T>... subIterables) {
+		this(Arrays.asList(subIterables));
 	}
 
 	public boolean hasNext() {
@@ -27,9 +33,9 @@ public class CompoundIterable<T> implements Iterable<T>, Iterator<T> {
 			else
 				curIterator = null;
 			// look for next with something in store
-			for (++iterIndex; iterIndex < subIterables.length; iterIndex++) {
-				if (subIterables[iterIndex] != null) {
-					curIterator = subIterables[iterIndex].iterator();
+			for (++iterIndex; iterIndex < subIterables.size(); iterIndex++) {
+				if (subIterables.get(iterIndex) != null) {
+					curIterator = subIterables.get(iterIndex).iterator();
 					break;
 				}
 			}

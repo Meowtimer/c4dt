@@ -237,7 +237,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 			if (declaration instanceof Function) {
 				addToLocation(((Function)declaration).getBody(), offset, add);
 			}
-			for (Declaration v : declaration.allSubDeclarations(IHasSubDeclarations.ALL_SUBDECLARATIONS)) {
+			for (Declaration v : declaration.allSubDeclarations(IHasSubDeclarations.DIRECT_SUBDECLARATIONS)) {
 				adjustDec(v, offset, add);
 			}
 		}

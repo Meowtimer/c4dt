@@ -242,18 +242,18 @@ public abstract class ScriptBase extends Structure implements ITreeNode, IHasCon
 	/**
 	 * Returns all declarations of this script (functions, variables and directives)
 	 */
-	@SuppressWarnings("unchecked")
 	@Override
 	public Iterable<Declaration> allSubDeclarations(int mask) {
-		Iterable<?>[] its = new Iterable<?>[3];
-		int fill = 0;
+		List<Iterable<? extends Declaration>> its = new ArrayList<Iterable<? extends Declaration>>(4);
 		if ((mask & FUNCTIONS) != 0)
-			its[fill++] = definedFunctions;
+			its.add(definedFunctions);
 		if ((mask & VARIABLES) != 0)
-			its[fill++] = definedVariables;
+			its.add(definedVariables);
 		if ((mask & INCLUDES) != 0)
-			its[fill++] = getIncludes();
-		return new CompoundIterable<Declaration>(definedFunctions, definedVariables, definedDirectives);
+			its.add(getIncludes());
+		if ((mask & DIRECTIVES) != 0)
+			its.add(definedDirectives);
+		return new CompoundIterable<Declaration>(its);
 	}
 
 	/**
@@ -338,22 +338,22 @@ public abstract class ScriptBase extends Structure implements ITreeNode, IHasCon
 		return null;
 	}
 
-	public void addDeclaration(Declaration field) {
-		field.setScript(this);
-		if (field instanceof Function) {
-			definedFunctions.add((Function)field);
+	public void addDeclaration(Declaration declaration) {
+		declaration.setScript(this);
+		if (declaration instanceof Function) {
+			definedFunctions.add((Function)declaration);
 			//			for(IC4ObjectListener listener : changeListeners) {
 			//				listener.fieldAdded(this, field);
 			//			}
 		}
-		else if (field instanceof Variable) {
-			definedVariables.add((Variable)field);
+		else if (declaration instanceof Variable) {
+			definedVariables.add((Variable)declaration);
 			//			for(IC4ObjectListener listener : changeListeners) {
 			//				listener.fieldAdded(this, field);
 			//			}
 		}
-		else if (field instanceof Directive) {
-			definedDirectives.add((Directive)field);
+		else if (declaration instanceof Directive) {
+			definedDirectives.add((Directive)declaration);
 		}
 	}
 
