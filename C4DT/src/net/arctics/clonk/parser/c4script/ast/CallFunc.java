@@ -198,6 +198,15 @@ public class CallFunc extends AccessDeclaration {
 			return null;
 		}
 	}
+	
+	@Override
+	protected IType callerType(DeclarationObtainmentContext context) {
+		if (getPredecessorInSequence() != null)
+			return getPredecessorInSequence().getType(context);
+		else
+			return super.callerType(context);
+	}
+	
 	@Override
 	protected IType obtainType(DeclarationObtainmentContext context) {
 		Declaration d = getDeclaration(context);

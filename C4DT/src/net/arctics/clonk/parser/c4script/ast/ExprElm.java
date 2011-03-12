@@ -218,18 +218,24 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 		}
 	}
 
+	/**
+	 * Return type of object the expression is executed in
+	 * @param context Context information
+	 * @return The type
+	 */
+	protected IType callerType(DeclarationObtainmentContext context) {
+		return context.getContainer();
+	}
+	
 	private final IType resolveConstraint(DeclarationObtainmentContext context, IType type) {
 		if (type instanceof IHasConstraint) {
 			IHasConstraint obl = (IHasConstraint) type;
 			if (obl instanceof ConstrainedObject) {
 				switch (obl.constraintKind()) {
 				case CallerType:
-					ExprElm pred = getPredecessorInSequence();
-					if (pred != null)
-						return pred.getType(context);
-					else if (obl.constraintScript() != context.getContainer())
-						// constraint only resolved outside of original script
-						return context.getContainer();
+					IType callerType = callerType(context);
+					if (callerType != obl.constraintScript())
+						return callerType;
 					else
 						break;
 				case Exact:
@@ -241,11 +247,9 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 				Definition obj = null;
 				switch (obl.constraintKind()) {
 				case CallerType:
-					ExprElm pred = getPredecessorInSequence();
-					if (pred != null)
-						obj = Utilities.as(pred.getType(context), Definition.class);
-					else if (obl.constraintScript() != context.getContainer())
-						obj = context.getContainerAsDefinition();
+					IType callerType = callerType(context);
+					if (callerType != obl.constraintScript())
+						obj = Utilities.as(callerType, Definition.class);
 					break;
 				case Exact:
 					obj = Utilities.as(obl.constraintScript(), Definition.class);
