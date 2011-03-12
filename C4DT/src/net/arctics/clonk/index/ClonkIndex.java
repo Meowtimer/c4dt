@@ -5,8 +5,6 @@ import java.io.FileInputStream;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.Serializable;
-import java.lang.ref.WeakReference;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -20,7 +18,6 @@ import java.util.Map;
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.ID;
-import net.arctics.clonk.parser.c4script.AdhocVariable;
 import net.arctics.clonk.parser.c4script.Directive;
 import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.ScriptBase;
@@ -28,12 +25,10 @@ import net.arctics.clonk.parser.c4script.Variable;
 import net.arctics.clonk.parser.c4script.Directive.DirectiveType;
 import net.arctics.clonk.parser.c4script.Function.C4FunctionScope;
 import net.arctics.clonk.parser.c4script.Variable.Scope;
-import net.arctics.clonk.parser.c4script.ast.ExprElm;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.resource.ClonkIndexInputStream;
 import net.arctics.clonk.util.ArrayUtil;
 import net.arctics.clonk.util.CompoundIterable;
-import net.arctics.clonk.util.FilteredIterable;
 import net.arctics.clonk.util.IHasRelatedResource;
 import net.arctics.clonk.util.IPredicate;
 import net.arctics.clonk.util.Utilities;
@@ -76,20 +71,7 @@ public class ClonkIndex extends Declaration implements Serializable, Iterable<De
 	}
 	
 	public void postSerialize() throws CoreException {
-		restoreWeakAdhocVarRefs();
 		refreshIndex();
-	}
-
-	private void restoreWeakAdhocVarRefs() {
-		if (_serializedAdhocVariables != null) {
-			adhocVariables = new HashMap<String, WeakReference<AdhocVariable>>();
-			for (AdhocVariable v : _serializedAdhocVariables.values()) {
-				adhocVariables.put(v.getName(), new WeakReference<AdhocVariable>(v));
-			}
-			_serializedAdhocVariables.clear();
-			_serializedAdhocVariables = null;
-		} else
-			adhocVariables = null;
 	}
 	
 	@SuppressWarnings("unchecked")
@@ -103,16 +85,6 @@ public class ClonkIndex extends Declaration implements Serializable, Iterable<De
 	public void preSerialize() {
 		for (ScriptBase script : allScripts()) {
 			script.preSerialize();
-		}
-		putAdhocVarsIntoSerializableMap();
-	}
-
-	private void putAdhocVarsIntoSerializableMap() {
-		_serializedAdhocVariables = null;
-		for (AdhocVariable var : adhocVariables()) {
-			if (_serializedAdhocVariables == null)
-				_serializedAdhocVariables = new HashMap<String, AdhocVariable>();
-			_serializedAdhocVariables.put(var.getName(), var);
 		}
 	}
 	
@@ -244,9 +216,6 @@ public class ClonkIndex extends Declaration implements Serializable, Iterable<De
 			for (ScriptBase s : c) {
 				s.postSerialize(this, this);
 			}
-		}
-		for (AdhocVariable var : adhocVariables()) {
-			var.postSerialize(this, this);
 		}
 		
 //		System.out.println("Functions added to cache:");
@@ -482,12 +451,6 @@ public class ClonkIndex extends Declaration implements Serializable, Iterable<De
 		indexedObjects.clear();
 		indexedScripts.clear();
 		indexedScenarios.clear();
-		if (adhocVariables != null)
-			adhocVariables.clear();
-		if (_serializedAdhocVariables != null) {
-			_serializedAdhocVariables.clear();
-			_serializedAdhocVariables = null;
-		}
 		refreshIndex();
 	}
 	
@@ -712,58 +675,5 @@ public class ClonkIndex extends Declaration implements Serializable, Iterable<De
 	}
 	
 	public IProject getProject() {return null;}
-	
-	/**
-	 * Variables being declared by assignment.
-	 */
-	private transient HashMap<String, WeakReference<AdhocVariable>> adhocVariables;
-	
-	/**
-	 * Hack: Before serialization, put adhoc variables not churned by GC into this map.<br/>
-	 * After serialization, put back into map with weak references.
-	 */
-	private HashMap<String, AdhocVariable> _serializedAdhocVariables;
-	
-	/**
-	 * Return an Iterable that can be used to iterate over adhoc variables.
-	 * @return The Iterable
-	 */
-	public Iterable<AdhocVariable> adhocVariables() {
-		if (adhocVariables == null)
-			return ArrayUtil.arrayIterable();
-		else {
-			return new FilteredIterable<AdhocVariable, Map.Entry<String, WeakReference<AdhocVariable>>>(AdhocVariable.class, adhocVariables.entrySet(), true) {
-				@Override
-				protected boolean stillValid(Map.Entry<String, WeakReference<AdhocVariable>> item) {
-					return item.getValue().get() != null; 
-				}
-				@Override
-				protected AdhocVariable map(Map.Entry<String, WeakReference<AdhocVariable>> original) {
-					return original.getValue().get();
-				}
-			};
-		}
-	}
-	
-	/**
-	 * Add a new adhoc-variable
-	 * @param name The name of the variable
-	 * @param file The file the assignment took place in
-	 * @param declaration The declaration the assignment took place in
-	 * @param assignedExpression The expression assigned to the adhoc-variable 
-	 * @return Either a newly-created AdhocVariable or an existing one with the passed name.
-	 */
-	public AdhocVariable addAdhocVariable(String name, IFile file, Declaration declaration, ExprElm assignedExpression) {
-		if (adhocVariables == null)
-			adhocVariables = new HashMap<String, WeakReference<AdhocVariable>>();
-		WeakReference<AdhocVariable> ref = adhocVariables.get(name);
-		AdhocVariable var = ref != null ? ref.get() : null;
-		if (var == null) {
-			var = new AdhocVariable(this, name, Scope.VAR);
-			adhocVariables.put(name, new WeakReference<AdhocVariable>(var));
-		}
-		var.addAssignmentLocation(file, declaration, assignedExpression);
-		return var;
-	}
 
 }

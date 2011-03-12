@@ -177,7 +177,7 @@ public class AccessVar extends AccessDeclaration {
 					}
 				}
 				if (fallbackToAddingToIndex) {
-					declaration = context.getContainer().getIndex().addAdhocVariable(getDeclarationName(), context.getContainer().getScriptFile(), context.getCurrentDeclaration(), expression);
+					// >:o be more defined, y'all
 				}
 			}
 		}

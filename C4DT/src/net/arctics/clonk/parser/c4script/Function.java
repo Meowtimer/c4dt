@@ -679,7 +679,8 @@ public class Function extends Structure implements Serializable, ITypedDeclarati
 		if (source == null || (blockSourceHash != -1 && blockSourceHash == source.hashCode())) {
 			if (!codeBlockDefrosted) {
 				codeBlockDefrosted = true;
-				codeBlock.postSerialize(null, getDeclarationObtainmentContext());
+				if (codeBlock != null)
+					codeBlock.postSerialize(null, getDeclarationObtainmentContext());
 			}
 			return codeBlock;
 		} else {

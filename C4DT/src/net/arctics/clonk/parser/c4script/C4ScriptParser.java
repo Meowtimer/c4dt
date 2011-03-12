@@ -1904,7 +1904,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		int propListStart = offset;
 		int c = read();
 		if (c == '{') {
-			ProplistDeclaration proplistDeclaration = new ProplistDeclaration(new ArrayList<Variable>(10));
+			ProplistDeclaration proplistDeclaration = ProplistDeclaration.adHocDeclaration();// new ProplistDeclaration(new ArrayList<Variable>(10));
 			proplistDeclaration.setParentDeclaration(currentFunctionContext.currentDeclaration != null ? currentFunctionContext.currentDeclaration : container);
 			Declaration oldDec = currentFunctionContext.currentDeclaration;
 			currentFunctionContext.currentDeclaration = proplistDeclaration;

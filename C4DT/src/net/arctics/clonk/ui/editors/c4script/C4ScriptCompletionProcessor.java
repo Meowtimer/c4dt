@@ -10,7 +10,6 @@ import java.util.Set;
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.index.Scenario;
 import net.arctics.clonk.index.ClonkIndex;
-import net.arctics.clonk.parser.c4script.AdhocVariable;
 import net.arctics.clonk.parser.c4script.BuiltInDefinitions;
 import net.arctics.clonk.parser.c4script.Directive;
 import net.arctics.clonk.parser.c4script.EffectFunction;
@@ -537,12 +536,6 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 		if (loopCatcher.contains(structure))
 			return;
 		else {
-			// always propose adhoc variables
-			if (loopCatcher.size() == 0 && getEditor() != null) {
-				for (AdhocVariable var : getEditor().scriptBeingEdited().getIndex().adhocVariables()) {
-					proposalForVar(var, prefix, wordOffset, proposals);
-				}
-			}
 			loopCatcher.add(structure);
 		}
 		for (Declaration dec : structure.allSubDeclarations(mask)) {
