@@ -339,7 +339,7 @@ public class SpecialScriptRules {
 		@Override
 		public IType returnType(DeclarationObtainmentContext context, CallFunc callFunc) {
 			IType t = searchCriteriaAssumedResult(context, callFunc, true);
-			if (t == null) {
+			if (t == null || t == PrimitiveType.UNKNOWN) {
 				t = PrimitiveType.OBJECT;
 			}
 			if (t != null) {
