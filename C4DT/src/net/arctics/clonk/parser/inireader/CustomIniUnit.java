@@ -105,22 +105,34 @@ public class CustomIniUnit extends IniUnit {
 		}
 	}
 
-	public void commitSection(Object object, IniSection section, boolean takeIntoAccountCategory) throws NoSuchFieldException, IllegalAccessException {
+	public void commitSection(Object object, IniSection section, boolean takeIntoAccountCategory) {
 		for (IniItem item : section.getSubItemMap().values()) {
 			if (item instanceof IniSection) {
 				commitSection(object, (IniSection)item, takeIntoAccountCategory);
 			} else if (item instanceof IniEntry) {
 				IniEntry entry = (IniEntry) item;
-				Field f = object.getClass().getField(entry.getName());
+				Field f;
+				try {
+					f = object.getClass().getField(entry.getName());
+				} catch (Exception e) {
+					// don't panic - probably unknown field
+					//e.printStackTrace();
+					continue;
+				}
 				IniField annot;
 				if (f != null && (annot = f.getAnnotation(IniField.class)) != null && (!takeIntoAccountCategory || annot.category().equals(section.getName()))) {
 					Object val = entry.getValueObject();
 					if (val instanceof IConvertibleToPrimitive)
 						val = ((IConvertibleToPrimitive)val).convertToPrimitive();
-					if (f.getType() != String.class && val instanceof String)
-						setFromString(f, object, (String)val);
-					else
-						f.set(object, val);
+					try {
+						if (f.getType() != String.class && val instanceof String)
+							setFromString(f, object, (String)val);
+						else
+							f.set(object, val);
+					} catch (Exception e) {
+						e.printStackTrace();
+						continue;
+					}
 				}
 			}
 		}
