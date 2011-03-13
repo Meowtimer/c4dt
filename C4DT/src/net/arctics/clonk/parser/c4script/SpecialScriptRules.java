@@ -354,7 +354,7 @@ public class SpecialScriptRules {
 			IType result = null;
 			String declarationName = callFunc.getDeclarationName();
 			// parameters to FindObjects itself are also &&-ed together
-			if (topLevel || declarationName.equals("Find_And")) {
+			if (topLevel || declarationName.equals("Find_And") || declarationName.equals("Find_Or")) {
 				List<IType> types = new LinkedList<IType>();
 				for (ExprElm parm : callFunc.getParams()) {
 					if (parm instanceof CallFunc) {
