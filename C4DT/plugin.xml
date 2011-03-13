@@ -222,11 +222,11 @@
 		</wizard>
 		
 		<wizard category="net.arctics.clonk.clonkProjects" class="net.arctics.clonk.ui.wizards.NewC4Object"
-			hasPages="true" icon="icons/C4Object.png" id="net.arctics.clonk.wizards.NewC4Object"
+			hasPages="true" icon="res/engines/OpenClonk/icons/DefinitionGroup.png" id="net.arctics.clonk.wizards.NewC4Object"
 			name="%Definition_Name" project="false" />
 
 		<wizard category="net.arctics.clonk.clonkProjects" class="net.arctics.clonk.ui.wizards.NewScenario"
-			hasPages="true" icon="icons/Clonk_scenario.png" id="net.arctics.clonk.wizards.NewScenario"
+			hasPages="true" icon="res/engines/OpenClonk/icons/ScenarioGroup.png" id="net.arctics.clonk.wizards.NewScenario"
 			name="%Scenario_Name" project="false" />
 
 		<wizard category="net.arctics.clonk.clonkProjects" class="net.arctics.clonk.ui.wizards.NewParticle"
