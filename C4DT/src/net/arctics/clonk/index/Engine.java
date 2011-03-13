@@ -14,8 +14,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.regex.Pattern;
-
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.jface.resource.ImageDescriptor;
@@ -72,9 +70,6 @@ public class Engine extends ScriptBase {
 		/** Maximum string length of string constants. */
 		@IniField
 		public long maxStringLen;
-		/** Pattern for ids. FIXME: Is actually semi-hardcoded, so option should be removed. */
-		@IniField
-		public String idPattern;
 		/** Whether engine supports colon ID syntax (:Clonk, :Firestone). Enforcing this syntax was discussed and then dropped. */
 		@IniField
 		public boolean colonIDSyntax;
@@ -131,18 +126,6 @@ public class Engine extends ScriptBase {
 		/** Path to c4group executable */
 		@IniField
 		public String c4GroupPath;
-		
-		private Pattern idPatternCompiled;
-		public Pattern getCompiledIdPattern() {
-			if (idPatternCompiled == null) {
-				if (idPattern.equals("<identifier>") || idPattern.equals("")) {
-					idPatternCompiled = BufferedScanner.IDENTIFIER_PATTERN;
-				} else {
-					idPatternCompiled = Pattern.compile(idPattern);
-				}
-			}
-			return idPatternCompiled;
-		}
 		
 		private Map<String, C4Group.GroupType> fetgtm;
 		/**
@@ -240,7 +223,7 @@ public class Engine extends ScriptBase {
 	}
 
 	public boolean acceptsId(String text) {
-		return currentSettings.idPattern == null || currentSettings.getCompiledIdPattern().matcher(text).matches();
+		return getSpecialScriptRules().parseId(new BufferedScanner(text)) != null;
 	}
 
 	public boolean hasCustomSettings() {

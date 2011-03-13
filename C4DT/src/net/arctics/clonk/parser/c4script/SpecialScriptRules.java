@@ -22,7 +22,9 @@ import net.arctics.clonk.index.ProjectDefinition;
 import net.arctics.clonk.index.ProjectIndex;
 import net.arctics.clonk.index.Scenario;
 import net.arctics.clonk.index.ClonkIndex;
+import net.arctics.clonk.parser.BufferedScanner;
 import net.arctics.clonk.parser.DeclarationRegion;
+import net.arctics.clonk.parser.ID;
 import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.c4script.C4ScriptParser.IMarkerListener;
@@ -693,4 +695,14 @@ public class SpecialScriptRules {
 			}
 		}
 	}
+	
+	/**
+	 * Parse an ID. Default implementation returns null. To be overridden for specific engines.
+	 * @param scanner The scanner to parse the id from
+	 * @return The parsed id or null if parsing failed
+	 */
+	public ID parseId(BufferedScanner scanner) {
+		return null;
+	}
+	
 }

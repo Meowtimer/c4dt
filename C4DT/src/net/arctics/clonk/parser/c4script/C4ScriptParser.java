@@ -13,9 +13,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.Stack;
 import java.util.Vector;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.index.Definition;
@@ -171,10 +168,6 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	 */
 	protected boolean isEngine;
 	/**
-	 * matcher for ids obtained from engine configuration id pattern
-	 */
-	private Matcher idMatcher;
-	/**
 	 * Cached set of errors disabled by project settings
 	 */
 	private Set<ParserErrorCode> errorsDisabledByProjectSettings = NO_DISABLED_ERRORS;
@@ -188,11 +181,9 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	 * Set of functions already parsed. Won't be parsed again.
 	 */
 	private Set<Function> parsedFunctions;
-	
-	/**
-	 * Func rules of the respective engine.
-	 */
+
 	private SpecialScriptRules specialScriptRules;
+	private Engine engine;
 	
 	private TypeInformationMerger scriptLevelTypeInformationMerger;
 	
@@ -446,20 +437,14 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	}
 	
 	/**
-	 * Dummy pattern used to match ids if no engine-specific pattern configuration is available.
-	 */
-	private static final Pattern DEFAULT_ID_PATTERN = Pattern.compile("");
-	
-	/**
 	 * Initialize some state fields. Needs to be called before actual parsing takes place.
 	 */
 	protected void initialize() {
 		if (container != null) {
-			if (container.getEngine() != null) {
-				idMatcher = container.getEngine().getCurrentSettings().getCompiledIdPattern().matcher(buffer);
+			engine = container.getEngine();
+			if (engine != null) {
 				specialScriptRules = container.getEngine().getSpecialScriptRules();
 			} else {
-				idMatcher = DEFAULT_ID_PATTERN.matcher(buffer);
 				specialScriptRules = null;
 			}
 
@@ -3061,15 +3046,9 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	 * @throws ParsingException
 	 */
 	private boolean parseID() throws ParsingException {
-		if (offset < size && idMatcher.pattern() != IDENTIFIER_PATTERN && idMatcher.reset(buffer.substring(offset)).lookingAt()) {
-			String idString = idMatcher.group();
-			offset += idString.length();
-			if (isWordPart(peek()) || NUMERAL_PATTERN.matcher(idString).matches()) {
-				offset -= idString.length();
-				currentFunctionContext.parsedID = null;
-				return false;
-			}
-			currentFunctionContext.parsedID = ID.getID(idString);
+		ID id;
+		if (offset < size && (id = specialScriptRules.parseId(this)) != null) {
+			currentFunctionContext.parsedID = id;
 			return true;
 		} else {
 			currentFunctionContext.parsedID = null; // reset so no old parsed ids get through

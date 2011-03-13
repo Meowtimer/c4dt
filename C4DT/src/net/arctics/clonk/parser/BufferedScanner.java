@@ -326,6 +326,15 @@ public class BufferedScanner {
 		//if (offset >= size) offset = size - 1;
 		return offset;
 	}
+	
+	/**
+	 * Advance the current position by the given delta.
+	 * @param delta The delta to advance the current position by
+	 * @return The new position
+	 */
+	public final int advance(int delta) {
+		return offset += delta;
+	}
 
 	/**
 	 * Relative offset manipulation
@@ -443,7 +452,7 @@ public class BufferedScanner {
 	 * Return the buffer the scanner operates on
 	 * @return the buffer
 	 */
-	public CharSequence getBuffer() {
+	public String getBuffer() {
 		return buffer;
 	}
 	
