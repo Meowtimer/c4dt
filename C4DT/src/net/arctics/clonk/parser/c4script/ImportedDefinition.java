@@ -100,7 +100,7 @@ public class ImportedDefinition implements Serializable, IType {
 		if (externalNature != null) {
 			ClonkIndex index = externalNature.getIndex();
 			if (index != null) {
-				result = index.getObjectFromEverywhere(id);
+				result = index.getDefinitionFromEverywhere(id);
 				if (result == null) {
 					System.out.println(String.format("Couldn't find object %s in index for %s", id.toString(), index.getProject().getName()));
 				}

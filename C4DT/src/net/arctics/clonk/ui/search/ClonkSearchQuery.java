@@ -217,13 +217,13 @@ public class ClonkSearchQuery implements ISearchQuery {
 										}
 										else if (declaration instanceof Definition) {
 											if (entryClass == ID.class) {
-												if (script.getIndex().getObjectFromEverywhere((ID) complex.getExtendedValue()) == declaration) {
+												if (script.getIndex().getDefinitionFromEverywhere((ID) complex.getExtendedValue()) == declaration) {
 													result.addMatch(new ClonkSearchMatch(complex.toString(), 0, iniUnit, complex.getEndPos()-complex.getValue().length(), complex.getValue().length(), false, false));
 												}
 											}
 											else if (entryClass == IDArray.class) {
 												for (KeyValuePair<ID, Integer> pair : ((IDArray)complex.getExtendedValue()).getComponents()) {
-													Definition obj = script.getIndex().getObjectFromEverywhere(pair.getKey());
+													Definition obj = script.getIndex().getDefinitionFromEverywhere(pair.getKey());
 													if (obj == declaration)
 														result.addMatch(new ClonkSearchMatch(pair.toString(), 0, iniUnit, complex.getEndPos()-complex.getValue().length(), complex.getValue().length(), false, false));
 												}

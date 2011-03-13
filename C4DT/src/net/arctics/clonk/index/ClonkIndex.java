@@ -380,7 +380,13 @@ public class ClonkIndex extends Declaration implements Serializable, Iterable<De
 		return result;
 	}
 
-	public Definition getObjectNearestTo(IResource resource, ID id) {
+	/**
+	 * Of those definitions with a matching id, choose the one nearest to the specified resource.
+	 * @param resource The resource
+	 * @param id The id
+	 * @return The chosen definition.
+	 */
+	public Definition getDefinitionNearestTo(IResource resource, ID id) {
 		Definition best = null;
 		for (ClonkIndex index : relevantIndexes()) {
 			if (resource != null) {
@@ -399,19 +405,31 @@ public class ClonkIndex extends Declaration implements Serializable, Iterable<De
 	/**
 	 * Like getLastObjectWithId, but falls back to ClonkCore.getDefault().getExternIndex() if there is no object in this index
 	 * @param id
-	 * @return
+	 * @return The definition with a matching id. Undefined which one if there are more than one
 	 */
-	public Definition getObjectFromEverywhere(ID id) {
-		return getObjectNearestTo(null, id);
+	public Definition getDefinitionFromEverywhere(ID id) {
+		return getDefinitionNearestTo(null, id);
 	}
 
-	public <T extends Declaration> Iterable<T> declarationsWithName(String name, final Class<T> fieldClass) {
+	/**
+	 * Return all declarations with the specified name that are instances of the specified class.
+	 * @param <T> Genericly typed so no casting necessary
+	 * @param name The name
+	 * @param declarationClass The class of the declarations to return 
+	 * @return An Iterable to iterate over the matching declarations
+	 */
+	public <T extends Declaration> Iterable<T> declarationsWithName(String name, final Class<T> declarationClass) {
 		List<Declaration> list = this.declarationMap.get(name);
 		if (list == null)
 			list = new LinkedList<Declaration>();
-		return ArrayUtil.filteredIterable(list, fieldClass);
+		return ArrayUtil.filteredIterable(list, declarationClass);
 	}
 	
+	/**
+	 * Find a global function with the given name.
+	 * @param functionName The name
+	 * @return The function or null if no matching function could be found.
+	 */
 	public Function findGlobalFunction(String functionName) {
 		for (Function func : globalFunctions) {
 			if (func.getName().equals(functionName))
@@ -527,6 +545,11 @@ public class ClonkIndex extends Declaration implements Serializable, Iterable<De
 		return null;
 	}
 	
+	/**
+	 * Return scripts dependent on the passed one.
+	 * @param base The base script the returned ones depend on
+	 * @return An Iterable to iterate over the scripts matching the criterion.
+	 */
 	public Iterable<ScriptBase> dependentScripts(final ScriptBase base) {
 		return new Iterable<ScriptBase>() {
 			@Override
@@ -674,6 +697,10 @@ public class ClonkIndex extends Declaration implements Serializable, Iterable<De
 		return null;
 	}
 	
+	/**
+	 * Return associated project. Returns null in base implementation. See {@link ProjectIndex}.
+	 * @return The project
+	 */
 	public IProject getProject() {return null;}
 
 }

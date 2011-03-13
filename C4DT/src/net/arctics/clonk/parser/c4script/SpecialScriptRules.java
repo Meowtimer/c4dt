@@ -385,7 +385,7 @@ public class SpecialScriptRules {
 							}
 							else for (Directive directive : f.getScript().directives()) {
 								if (directive.getType() == DirectiveType.APPENDTO) {
-									Definition def = f.getScript().getIndex().getObjectNearestTo(context.getContainer().getResource(), directive.contentAsID());
+									Definition def = f.getScript().getIndex().getDefinitionNearestTo(context.getContainer().getResource(), directive.contentAsID());
 									if (def != null) {
 										types.add(def);
 									}

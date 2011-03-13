@@ -315,7 +315,7 @@ public abstract class ScriptBase extends Structure implements ITreeNode, IHasCon
 			Declaration f = null;
 			// definition from extern index
 			if (getEngine().acceptsId(name)) {
-				f = info.index.getObjectNearestTo(getResource(), ID.getID(name));
+				f = info.index.getDefinitionNearestTo(getResource(), ID.getID(name));
 				if (f != null && info.declarationClass == Variable.class && f instanceof ProjectDefinition) {
 					f = ((ProjectDefinition)f).getStaticVariable();
 				}
@@ -584,7 +584,7 @@ public abstract class ScriptBase extends Structure implements ITreeNode, IHasCon
 	public Definition getNearestObjectWithId(ID id) {
 		ClonkIndex index = getIndex();
 		if (index != null)
-			return index.getObjectNearestTo(getResource(), id);
+			return index.getDefinitionNearestTo(getResource(), id);
 		return null;
 	}
 

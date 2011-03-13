@@ -113,7 +113,7 @@ public class IniSourceViewerConfiguration extends ClonkSourceViewerConfiguration
 								if (entryClass == ID.class) {
 									IResource r = Utilities.getEditingFile(getEditor());
 									ClonkIndex index = Utilities.getIndex(r);
-									declaration = index.getObjectNearestTo(r, ID.getID(value));
+									declaration = index.getDefinitionNearestTo(r, ID.getID(value));
 								}
 								else if (entryClass == FuncRefEntry.class) {
 									ProjectDefinition obj = ProjectDefinition.objectCorrespondingTo(Utilities.getEditingFile(getEditor()).getParent());
@@ -127,7 +127,7 @@ public class IniSourceViewerConfiguration extends ClonkSourceViewerConfiguration
 									ClonkIndex index = Utilities.getIndex(r);
 									String id = line.substring(idRegion.getOffset(), idRegion.getOffset()+idRegion.getLength());
 									if (index.getEngine() != null && index.getEngine().acceptsId(id)) {
-										declaration = index.getObjectNearestTo(r, ID.getID(line.substring(idRegion.getOffset(), idRegion.getOffset()+idRegion.getLength())));
+										declaration = index.getDefinitionNearestTo(r, ID.getID(line.substring(idRegion.getOffset(), idRegion.getOffset()+idRegion.getLength())));
 										linkStart = lineRegion.getOffset()+idRegion.getOffset();
 										linkLen = idRegion.getLength();
 									}
@@ -170,7 +170,7 @@ public class IniSourceViewerConfiguration extends ClonkSourceViewerConfiguration
 									String firstPart = value.split(":")[0];
 									IResource r = Utilities.getEditingFile(getEditor());
 									ClonkIndex index = Utilities.getIndex(r);
-									declaration = index.getObjectNearestTo(r, ID.getID(firstPart));
+									declaration = index.getDefinitionNearestTo(r, ID.getID(firstPart));
 								}
 								else if (entryClass == String.class) {
 									DeclarationRegion reg = StringTbl.getEntryForLanguagePref(value, 0, relativeOffset, getEditor().getIniUnit(), true);
