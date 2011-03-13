@@ -2,12 +2,11 @@ package net.arctics.clonk.ui.navigator;
 
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.index.Definition;
-import net.arctics.clonk.resource.c4group.C4Group.C4GroupType;
+import net.arctics.clonk.resource.ClonkProjectNature;
+import net.arctics.clonk.resource.c4group.C4Group.GroupType;
 import net.arctics.clonk.ui.OverlayIcon;
 import net.arctics.clonk.util.INode;
 import net.arctics.clonk.util.UI;
-import net.arctics.clonk.resource.c4group.C4Group;
-
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IMarker;
@@ -45,18 +44,18 @@ public class ClonkLabelProvider extends LabelProvider implements IStyledLabelPro
 		}
 		else if (element instanceof IFolder) {
 			IFolder folder = (IFolder)element;
-			C4GroupType groupType = C4Group.groupTypeFromFolderName(folder.getName());
+			GroupType groupType = ClonkProjectNature.getEngine(folder).getGroupTypeForFileName(folder.getName());
 			
-			if (groupType == C4GroupType.FolderGroup) {
+			if (groupType == GroupType.FolderGroup) {
 				return UI.FOLDER_ICON;
 			}
-			else if (groupType == C4GroupType.DefinitionGroup) {
+			else if (groupType == GroupType.DefinitionGroup) {
 				return UI.GENERAL_OBJECT_ICON;
 			}
-			else if (groupType == C4GroupType.ScenarioGroup) {
+			else if (groupType == GroupType.ScenarioGroup) {
 				return UI.SCENARIO_ICON;
 			}
-			else if (groupType == C4GroupType.ResourceGroup) {
+			else if (groupType == GroupType.ResourceGroup) {
 				return UI.GROUP_ICON;
 			}
 		}
@@ -80,8 +79,8 @@ public class ClonkLabelProvider extends LabelProvider implements IStyledLabelPro
 	public StyledString getStyledText(Object element) {
 		if (element instanceof IFolder) {
 			IFolder folder = (IFolder)element;
-			C4GroupType groupType = C4Group.groupTypeFromFolderName(folder.getName());
-			if (groupType == C4GroupType.DefinitionGroup) {
+			GroupType groupType = ClonkProjectNature.getEngine(folder).getGroupTypeForFileName(folder.getName());
+			if (groupType == GroupType.DefinitionGroup) {
 				// add [C4ID] to .c4d folders
 				try {
 					String c4id = folder.getPersistentProperty(ClonkCore.FOLDER_C4ID_PROPERTY_ID);
@@ -90,7 +89,7 @@ public class ClonkLabelProvider extends LabelProvider implements IStyledLabelPro
 					e.printStackTrace();
 				}
 			}
-			if (groupType == C4GroupType.FolderGroup || groupType == C4GroupType.ScenarioGroup || groupType == C4GroupType.ResourceGroup)
+			if (groupType == GroupType.FolderGroup || groupType == GroupType.ScenarioGroup || groupType == GroupType.ResourceGroup)
 				return new StyledString(folder.getName().substring(0,folder.getName().lastIndexOf("."))); //$NON-NLS-1$
 			return new StyledString(((IFolder)element).getName());
 		}

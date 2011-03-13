@@ -2,6 +2,7 @@ package net.arctics.clonk.resource;
 
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.resource.c4group.C4Group;
+import net.arctics.clonk.resource.c4group.C4Group.GroupType;
 
 import org.eclipse.core.expressions.PropertyTester;
 import org.eclipse.core.resources.IResource;
@@ -42,24 +43,28 @@ public class ResourceTester extends PropertyTester {
 		}
 	}
 
+	private static boolean checkGroupType(IResource res, C4Group.GroupType gt) {
+		return ClonkProjectNature.getEngine(res).getGroupTypeForFileName(res.getName()) == gt;
+	}
+	
 	/** @return Whether the given resource is a scenario */
 	public static boolean isScenario(IResource res) {
-		return C4Group.getGroupTypeExt(res.getFileExtension()) == C4Group.C4GroupType.ScenarioGroup;
+		return checkGroupType(res, GroupType.ScenarioGroup);
 	}
 	
 	/** @return Whether the given resource is an object definition or object package */
 	public static boolean isDefinition(IResource res) {
-		return C4Group.getGroupTypeExt(res.getFileExtension()) == C4Group.C4GroupType.DefinitionGroup;
+		return checkGroupType(res, GroupType.DefinitionGroup);
 	}
 
 	/** @return Whether the given resource is a scenario folder */
 	public static boolean isFolder(IResource res) {
-		return C4Group.getGroupTypeExt(res.getFileExtension()) == C4Group.C4GroupType.FolderGroup;
+		return checkGroupType(res, GroupType.FolderGroup);
 	}
 
 	/** @return Whether the given resource is a resource group */
 	public static boolean isResource(IResource res) {
-		return C4Group.getGroupTypeExt(res.getFileExtension()) == C4Group.C4GroupType.ResourceGroup;
+		return checkGroupType(res, GroupType.ResourceGroup);
 	}
 	
 	/** @return Whether the given resource is contained in a scenario */

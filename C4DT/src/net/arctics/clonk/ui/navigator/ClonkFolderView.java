@@ -9,8 +9,7 @@ import net.arctics.clonk.filesystem.C4GroupFileSystem;
 import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.preferences.ClonkPreferences;
 import net.arctics.clonk.resource.ClonkProjectNature;
-import net.arctics.clonk.resource.c4group.C4Group;
-import net.arctics.clonk.resource.c4group.C4Group.C4GroupType;
+import net.arctics.clonk.resource.c4group.C4Group.GroupType;
 import net.arctics.clonk.util.UI;
 import net.arctics.clonk.util.Utilities;
 import org.eclipse.core.resources.IProject;
@@ -67,7 +66,7 @@ public class ClonkFolderView extends ViewPart implements ISelectionListener, IDo
 		instance = this;
 	}
 
-	private static class ClonkFolderContentProvider extends LabelProvider
+	private class ClonkFolderContentProvider extends LabelProvider
 			implements ITreeContentProvider, IStyledLabelProvider {
 
 		@Override
@@ -81,7 +80,7 @@ public class ClonkFolderView extends ViewPart implements ISelectionListener, IDo
 							return false;
 						if (Util.isMac() && name.endsWith(".app")) //$NON-NLS-1$
 							return false;
-						return (C4Group.getGroupType(name) != C4GroupType.OtherGroup || new File(dir, name).isDirectory()); //$NON-NLS-1$
+						return (getCurrentEngine().getGroupTypeForFileName(name) != GroupType.OtherGroup || new File(dir, name).isDirectory()); //$NON-NLS-1$
 					}
 				});
 			} catch (Exception e) {
@@ -112,7 +111,7 @@ public class ClonkFolderView extends ViewPart implements ISelectionListener, IDo
 
 		@Override
 		public Image getImage(Object element) {
-			switch (C4Group.getGroupType(((File) element).toString())) {
+			switch (getCurrentEngine().getGroupTypeForFileName((((File) element).toString()))) {
 			case DefinitionGroup:
 				return UI.GENERAL_OBJECT_ICON;
 			case FolderGroup:
@@ -283,6 +282,17 @@ public class ClonkFolderView extends ViewPart implements ISelectionListener, IDo
 	}
 
 	private void refreshTree(boolean onlyIfInputChanged) {
+		Engine engine = getCurrentEngine();
+		String clonkPath = engine != null ? engine.getCurrentSettings().gamePath : null;
+		File clonkFolder = (clonkPath != null && !clonkPath.equals("")) //$NON-NLS-1$
+			? new File( clonkPath)
+			: new File("/"); //$NON-NLS-1$
+		if (!onlyIfInputChanged || !Utilities.objectsEqual(folderTree.getInput(), clonkFolder)) {
+			folderTree.setInput(clonkFolder);
+		}
+	}
+
+	protected Engine getCurrentEngine() {
 		IProject p = selectedProject();
 		Engine engine = null;
 		if (p != null && p.isOpen()) {
@@ -292,13 +302,7 @@ public class ClonkFolderView extends ViewPart implements ISelectionListener, IDo
 		}
 		if (engine == null)
 			engine = ClonkCore.getDefault().getActiveEngine();
-		String clonkPath = engine != null ? engine.getCurrentSettings().gamePath : null;
-		File clonkFolder = (clonkPath != null && !clonkPath.equals("")) //$NON-NLS-1$
-			? new File( clonkPath)
-			: new File("/"); //$NON-NLS-1$
-		if (!onlyIfInputChanged || !Utilities.objectsEqual(folderTree.getInput(), clonkFolder)) {
-			folderTree.setInput(clonkFolder);
-		}
+		return engine;
 	}
 
 	@Override

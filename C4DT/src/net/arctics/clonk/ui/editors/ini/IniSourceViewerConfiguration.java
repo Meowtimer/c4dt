@@ -23,8 +23,7 @@ import net.arctics.clonk.parser.inireader.IniSection;
 import net.arctics.clonk.parser.inireader.IntegerArray;
 import net.arctics.clonk.parser.inireader.IniData.IniDataEntry;
 import net.arctics.clonk.parser.stringtbl.StringTbl;
-import net.arctics.clonk.resource.c4group.C4Group;
-import net.arctics.clonk.resource.c4group.C4Group.C4GroupType;
+import net.arctics.clonk.resource.c4group.C4Group.GroupType;
 import net.arctics.clonk.ui.editors.ClonkHyperlink;
 import net.arctics.clonk.ui.editors.ClonkSourceViewerConfiguration;
 import net.arctics.clonk.ui.editors.ColorManager;
@@ -153,7 +152,7 @@ public class IniSourceViewerConfiguration extends ClonkSourceViewerConfiguration
 											ProjectIndex pi = (ProjectIndex) index;
 											try {
 												for (IResource res : pi.getProject().members()) {
-													if (res instanceof IContainer && C4Group.getGroupType(res.getName()) == C4GroupType.DefinitionGroup) {
+													if (res instanceof IContainer && projIndex.getEngine().getGroupTypeForFileName(res.getName()) == GroupType.DefinitionGroup) {
 														if (res.getName().equals(value)) {
 															return new IHyperlink[] {
 																new HyperlinkToResource(res, new Region(linkStart, linkLen), PlatformUI.getWorkbench().getActiveWorkbenchWindow())

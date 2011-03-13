@@ -4,6 +4,7 @@ import java.util.Collection;
 import java.util.LinkedList;
 
 import net.arctics.clonk.debug.ClonkLaunchConfigurationDelegate;
+import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.resource.c4group.C4Group;
 import net.arctics.clonk.ui.navigator.ClonkLabelProvider;
@@ -245,7 +246,7 @@ public class LaunchMainTab extends AbstractLaunchConfigurationTab {
 		
 		// Must be a valid scenario file name
 		String scenName = fScenText.getText();
-		if(C4Group.getGroupType(scenName) != C4Group.C4GroupType.ScenarioGroup) {
+		if (getEngine().getGroupTypeForFileName(scenName) != C4Group.GroupType.ScenarioGroup) {
 			setErrorMessage(Messages.LaunchMainTab_ScenarioNameInvalid);
 			return null;
 		}
@@ -281,12 +282,15 @@ public class LaunchMainTab extends AbstractLaunchConfigurationTab {
 	}
 
 	public void chooseClonkProject() {
-		
 		IProject project = UI.selectClonkProject(validateProject());
 		if (project != null) {
 			projectEditor.Text.setText(project.getName());
 		}
-
+	}
+	
+	public Engine getEngine() {
+		ClonkProjectNature nat = ClonkProjectNature.get(validateProject());
+		return nat != null ? nat.getIndex().getEngine() : null;
 	}
 	
 	public void chooseScenario() {
@@ -303,12 +307,11 @@ public class LaunchMainTab extends AbstractLaunchConfigurationTab {
 				if(res instanceof IProject)
 					return true;
 				// Type lookup
-				C4Group.C4GroupType type = 
-					C4Group.EXTENSION_TO_GROUP_TYPE_MAP.get(res.getFileExtension());
-				if(type == C4Group.C4GroupType.ScenarioGroup)
+				C4Group.GroupType type = getEngine().getGroupTypeForExtension(res.getFileExtension());
+				if(type == C4Group.GroupType.ScenarioGroup)
 					scenarios.add(res);
 				// Only recurse into scenario folders
-				return type == C4Group.C4GroupType.FolderGroup;
+				return type == C4Group.GroupType.FolderGroup;
 			}
 		};
 		for(IProject proj : ClonkProjectNature.getClonkProjects())

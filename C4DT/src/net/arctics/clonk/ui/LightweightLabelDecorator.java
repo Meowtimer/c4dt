@@ -1,9 +1,9 @@
 package net.arctics.clonk.ui;
 
 import net.arctics.clonk.ClonkCore;
-import net.arctics.clonk.resource.c4group.C4Group.C4GroupType;
+import net.arctics.clonk.resource.ClonkProjectNature;
+import net.arctics.clonk.resource.c4group.C4Group.GroupType;
 import net.arctics.clonk.util.UI;
-import net.arctics.clonk.resource.c4group.C4Group;
 
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IMarker;
@@ -38,18 +38,18 @@ public class LightweightLabelDecorator implements ILightweightLabelDecorator {
 			IResource res = (IResource) element;
 			if (!res.getProject().isOpen()) return;
 			if (res instanceof IFolder) {
-				C4GroupType groupType = C4Group.groupTypeFromFolderName(res.getName());
+				GroupType groupType = ClonkProjectNature.getEngine(res).getGroupTypeForFileName(res.getName());
 				
-				if (groupType == C4GroupType.FolderGroup) {
+				if (groupType == GroupType.FolderGroup) {
 					decoration.addOverlay(UI.getIconDescriptor("icons/Clonk_folder.png"),IDecoration.REPLACE); //$NON-NLS-1$
 				}
-				else if (groupType == C4GroupType.DefinitionGroup) {
+				else if (groupType == GroupType.DefinitionGroup) {
 					decoration.addOverlay(UI.getIconDescriptor("icons/C4Object.png"),IDecoration.REPLACE); //$NON-NLS-1$
 				}
-				else if (groupType == C4GroupType.ScenarioGroup) {
+				else if (groupType == GroupType.ScenarioGroup) {
 					decoration.addOverlay(UI.getIconDescriptor("icons/Clonk_scenario.png"),IDecoration.REPLACE); //$NON-NLS-1$
 				}
-				else if (groupType == C4GroupType.ResourceGroup) {
+				else if (groupType == GroupType.ResourceGroup) {
 					decoration.addOverlay(UI.getIconDescriptor("icons/Clonk_datafolder.png"),IDecoration.REPLACE); //$NON-NLS-1$
 				}
 			}

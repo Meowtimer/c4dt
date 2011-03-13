@@ -11,8 +11,7 @@ import net.arctics.clonk.index.ClonkIndex;
 import net.arctics.clonk.index.ProjectIndex;
 import net.arctics.clonk.parser.c4script.ScriptBase;
 import net.arctics.clonk.resource.ClonkProjectNature;
-import net.arctics.clonk.resource.c4group.C4Group;
-import net.arctics.clonk.resource.c4group.C4Group.C4GroupType;
+import net.arctics.clonk.resource.c4group.C4Group.GroupType;
 import net.arctics.clonk.util.Utilities;
 
 import org.eclipse.core.resources.IContainer;
@@ -209,8 +208,8 @@ public class ClonkLaunchConfigurationDelegate extends LaunchConfigurationDelegat
 				for (IContainer c = scenario.getParent(); c != null && c != projectLevel.getParent(); c = c.getParent()) {
 					for (IResource res : c.members()) {
 						if (!res.getName().startsWith(".") && res instanceof IContainer) { //$NON-NLS-1$
-							C4GroupType gType = C4Group.getGroupType(res.getName());
-							if (gType == C4GroupType.DefinitionGroup || gType == C4GroupType.ResourceGroup)
+							GroupType gType = engineObj.getGroupTypeForFileName(res.getName());
+							if (gType == GroupType.DefinitionGroup || gType == GroupType.ResourceGroup)
 								if (!Utilities.resourceInside(scenario, (IContainer) res))
 									args.add(resFilePath(res));
 						}

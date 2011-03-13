@@ -26,8 +26,7 @@ import net.arctics.clonk.parser.inireader.UnsignedInteger;
 import net.arctics.clonk.parser.inireader.IniData.IniDataEntry;
 import net.arctics.clonk.parser.inireader.IniData.IniDataSection;
 import net.arctics.clonk.resource.ClonkProjectNature;
-import net.arctics.clonk.resource.c4group.C4Group;
-import net.arctics.clonk.resource.c4group.C4Group.C4GroupType;
+import net.arctics.clonk.resource.c4group.C4Group.GroupType;
 import net.arctics.clonk.ui.editors.ClonkCompletionProcessor;
 import net.arctics.clonk.util.Utilities;
 
@@ -179,7 +178,7 @@ public class IniCompletionProcessor extends ClonkCompletionProcessor<IniTextEdit
 			if (index instanceof ProjectIndex) {
 				try {
 					for (IResource res : ((ProjectIndex)index).getProject().members()) {
-						if (res instanceof IContainer && C4Group.getGroupType(res.getName()) == C4GroupType.DefinitionGroup)
+						if (res instanceof IContainer && nature.getIndex().getEngine().getGroupTypeForFileName(res.getName()) == GroupType.DefinitionGroup)
 							if (res.getName().toLowerCase().contains(prefix))
 								proposals.add(new CompletionProposal(res.getName(), wordOffset, prefix.length(), res.getName().length()));
 					}

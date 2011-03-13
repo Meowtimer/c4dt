@@ -7,7 +7,6 @@ import java.io.OutputStream;
 import java.io.Serializable;
 
 import net.arctics.clonk.ClonkCore;
-import net.arctics.clonk.resource.c4group.C4Group.C4GroupType;
 
 public class C4GroupEntryHeader implements Serializable {
 
@@ -30,7 +29,9 @@ public class C4GroupEntryHeader implements Serializable {
     public C4GroupEntryHeader(File file) {
     	entryName = file.getName();
     	packed = false;
-    	group = C4Group.getGroupType(file.getName()) != C4GroupType.OtherGroup || file.isDirectory();
+    	group = file.isDirectory();
+    	// GROUPFIXME
+    	//group = C4Group.getGroupType(file.getName()) != GroupType.OtherGroup || file.isDirectory();
     	size = (int) file.length();
     	offset = 0;
     	time = (int) file.lastModified();

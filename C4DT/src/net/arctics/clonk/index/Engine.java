@@ -45,6 +45,7 @@ import net.arctics.clonk.parser.inireader.IniData.IniConfiguration;
 import net.arctics.clonk.parser.inireader.IniSection;
 import net.arctics.clonk.parser.inireader.IniUnit;
 import net.arctics.clonk.preferences.ClonkPreferences;
+import net.arctics.clonk.resource.c4group.C4Group;
 import net.arctics.clonk.util.IStorageLocation;
 import net.arctics.clonk.util.LineNumberObtainer;
 import net.arctics.clonk.util.SettingsBase;
@@ -70,25 +71,6 @@ public class Engine extends ScriptBase {
 		/** Pattern for ids. FIXME: Is actually semi-hardcoded, so option should be removed. */
 		@IniField
 		public String idPattern;
-		
-		// Settings that are actually intended to be user-configurable
-		
-		/** Template for Documentation URL. */
-		@IniField
-		public String docURLTemplate;
-		/** Path to engine executable. */
-		@IniField
-		public String engineExecutablePath;
-		/** Path to game folder. */
-		@IniField
-		public String gamePath;
-		/** Path to OC repository. To be used for automatically importing engine definitions (FIXME: needs proper implementation). */
-		@IniField
-		public String repositoryPath;
-		/** Path to c4group executable */
-		@IniField
-		public String c4GroupPath;
-		
 		/** Whether engine supports colon ID syntax (:Clonk, :Firestone). Enforcing this syntax was discussed and then dropped. */
 		@IniField
 		public boolean colonIDSyntax;
@@ -124,6 +106,27 @@ public class Engine extends ScriptBase {
 		/** Whether engine parser allows obj-> ~DoSomething() */
 		@IniField
 		public boolean spaceAllowedBetweenArrowAndTilde;
+		/** String of the form c4d->DefinitionGroup,... specifying what file extension denote what group type. */
+		@IniField
+		public String fileExtensionToGroupTypeMapping;
+		
+		// Settings that are actually intended to be user-configurable
+		
+		/** Template for Documentation URL. */
+		@IniField
+		public String docURLTemplate;
+		/** Path to engine executable. */
+		@IniField
+		public String engineExecutablePath;
+		/** Path to game folder. */
+		@IniField
+		public String gamePath;
+		/** Path to OC repository. To be used for automatically importing engine definitions (FIXME: needs proper implementation). */
+		@IniField
+		public String repositoryPath;
+		/** Path to c4group executable */
+		@IniField
+		public String c4GroupPath;
 		
 		private Pattern idPatternCompiled;
 		public Pattern getCompiledIdPattern() {
@@ -135,6 +138,25 @@ public class Engine extends ScriptBase {
 				}
 			}
 			return idPatternCompiled;
+		}
+		
+		private Map<String, C4Group.GroupType> fetgtm;
+		/**
+		 * Return a map mapping a file name extension to a group type for this engine.
+		 * @return The map.
+		 */
+		public Map<String, C4Group.GroupType> getFileExtensionToGroupTypeMapping() {
+			if (fetgtm == null) {
+				fetgtm = new HashMap<String, C4Group.GroupType>(C4Group.GroupType.values().length);
+				for (String mapping : fileExtensionToGroupTypeMapping.split(",")) {
+					String[] elms = mapping.split("->");
+					if (elms.length >= 2) {
+						C4Group.GroupType gt = C4Group.GroupType.valueOf(elms[1]);
+						fetgtm.put(elms[0], gt);
+					}
+				}
+			}
+			return fetgtm;
 		}
 
 	}
@@ -581,6 +603,18 @@ public class Engine extends ScriptBase {
 		} else {
 			return null;
 		}
+	}
+	
+	public C4Group.GroupType getGroupTypeForExtension(String ext) {
+		C4Group.GroupType gt = currentSettings.getFileExtensionToGroupTypeMapping().get(ext);
+		if (gt != null)
+			return gt;
+		else
+			return C4Group.GroupType.OtherGroup;
+	}
+	
+	public C4Group.GroupType getGroupTypeForFileName(String fileName) {
+		return getGroupTypeForExtension(fileName.substring(fileName.lastIndexOf(".") + 1).toLowerCase()); //$NON-NLS-1$
 	}
 
 }

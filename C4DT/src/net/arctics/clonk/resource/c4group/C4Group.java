@@ -10,11 +10,8 @@ import java.io.Serializable;
 import java.security.InvalidParameterException;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.util.INode;
 import net.arctics.clonk.util.ITreeNode;
@@ -41,7 +38,7 @@ import org.eclipse.core.runtime.SubProgressMonitor;
  */
 public class C4Group extends C4GroupItem implements Serializable, ITreeNode {
 	
-	public enum C4GroupType {
+	public enum GroupType {
 		OtherGroup,
 		DefinitionGroup,
 		ResourceGroup,
@@ -54,7 +51,6 @@ public class C4Group extends C4GroupItem implements Serializable, ITreeNode {
 	}
 	
 	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
-	public static final Map<String, C4GroupType> EXTENSION_TO_GROUP_TYPE_MAP = getExtensionToGroupTypeMap();
 
 	public synchronized void readFromStream(C4GroupItem whoWantsThat, long pos, StreamReadCallback callback) throws IOException {
 		getParentGroup().readFromStream(whoWantsThat, pos, callback);
@@ -96,19 +92,6 @@ public class C4Group extends C4GroupItem implements Serializable, ITreeNode {
 			result += getParentGroup().baseOffset();
 		result += offset + C4GroupHeader.STORED_SIZE + C4GroupEntryHeader.STORED_SIZE * header.getEntries();
 		return result;
-	}
-	
-	private static Map<String, C4GroupType> getExtensionToGroupTypeMap() {
-		Map<String, C4GroupType> result = new HashMap<String, C4GroupType>(C4GroupType.values().length);
-		result.put("c4d", C4GroupType.DefinitionGroup); //$NON-NLS-1$
-		result.put("c4g", C4GroupType.ResourceGroup); //$NON-NLS-1$
-		result.put("c4s", C4GroupType.ScenarioGroup); //$NON-NLS-1$
-		result.put("c4f", C4GroupType.FolderGroup); //$NON-NLS-1$
-		return Collections.unmodifiableMap(result);
-	}
-	
-	public static String[] groupExtensions() {
-		return EXTENSION_TO_GROUP_TYPE_MAP.keySet().toArray(new String[EXTENSION_TO_GROUP_TYPE_MAP.keySet().size()]);
 	}
 	
 	public File getOrigin() {
@@ -212,30 +195,6 @@ public class C4Group extends C4GroupItem implements Serializable, ITreeNode {
 
 	public boolean hasChildren() {
 		return hasChildren;
-	}
-	
-	public static C4GroupType getGroupTypeExt(String ext) {
-		if (ext == null)
-			return null;
-		C4GroupType result = EXTENSION_TO_GROUP_TYPE_MAP.get(ext);
-		if (result != null)
-			return result;
-		return C4GroupType.OtherGroup;		
-	}
-	
-	public static C4GroupType getGroupType(String groupName) {
-		return getGroupTypeExt(groupName.substring(groupName.lastIndexOf(".") + 1).toLowerCase()); //$NON-NLS-1$
-	}
-	
-	public C4GroupType getGroupType() {
-		return getGroupType(getName());
-	}
-	
-	public static C4GroupType groupTypeFromFolderName(String name) {
-		C4GroupType result = EXTENSION_TO_GROUP_TYPE_MAP.get(name.substring(name.lastIndexOf(".")+1).toLowerCase()); //$NON-NLS-1$
-		if (result != null)
-			return result;
-		return C4GroupType.OtherGroup;
 	}
 	
     /**

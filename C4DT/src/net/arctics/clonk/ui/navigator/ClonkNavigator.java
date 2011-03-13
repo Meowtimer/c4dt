@@ -4,12 +4,13 @@ import java.net.URI;
 import java.util.Collection;
 
 import net.arctics.clonk.filesystem.C4GroupFileSystem;
+import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.parser.Structure;
 import net.arctics.clonk.parser.c4script.ScriptBase;
 import net.arctics.clonk.preferences.ClonkPreferences;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.resource.c4group.C4Group;
-import net.arctics.clonk.resource.c4group.C4Group.C4GroupType;
+import net.arctics.clonk.resource.c4group.C4Group.GroupType;
 import net.arctics.clonk.resource.c4group.C4GroupItem;
 import net.arctics.clonk.util.ArrayUtil;
 import net.arctics.clonk.util.INode;
@@ -74,11 +75,12 @@ public class ClonkNavigator extends ClonkOutlineProvider {
 		try {
 			if (element.isLinked())
 				return;
+			Engine engine = ClonkProjectNature.getEngine(element); 
 			IResource[] resources = element.members();
 			NullProgressMonitor mon = null;
 			for (IResource res : resources) {
 				C4GroupItem groupItem;
-				if (res instanceof IFile && C4Group.getGroupType(res.getName()) != C4GroupType.OtherGroup) {
+				if (res instanceof IFile && engine.getGroupTypeForFileName(res.getName()) != GroupType.OtherGroup) {
 					if (mon == null)
 						mon = new NullProgressMonitor();
 					groupItem = C4GroupItem.getGroupItemBackingResource(res);

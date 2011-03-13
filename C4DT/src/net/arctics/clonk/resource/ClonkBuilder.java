@@ -19,7 +19,7 @@ import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.Structure;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.resource.c4group.C4Group;
-import net.arctics.clonk.resource.c4group.C4Group.C4GroupType;
+import net.arctics.clonk.resource.c4group.C4Group.GroupType;
 import net.arctics.clonk.ui.editors.ClonkTextEditor;
 import net.arctics.clonk.util.Utilities;
 
@@ -246,7 +246,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 			}
 			else if (resource instanceof IFile) {
 				IFile file = (IFile) resource;
-				if (resource.getName().toLowerCase().endsWith(".c") && C4Group.groupTypeFromFolderName(resource.getParent().getName()) == C4GroupType.ResourceGroup) { //$NON-NLS-1$ //$NON-NLS-2$
+				if (resource.getName().toLowerCase().endsWith(".c") && nature.getIndex().getEngine().getGroupTypeForFileName(resource.getParent().getName()) == GroupType.ResourceGroup) { //$NON-NLS-1$ //$NON-NLS-2$
 					ScriptBase script = StandaloneProjectScript.pinnedScript(file, true);
 					if (script == null) {
 						script = new StandaloneProjectScript(file);

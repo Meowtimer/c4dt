@@ -412,4 +412,9 @@ public class ClonkProjectNature implements IProjectNature {
 		getIndex();
 	}
 
+	public static Engine getEngine(IResource res) {
+		ClonkProjectNature nat = get(res);
+		return nat != null ? nat.getIndex().getEngine() : null;
+	}
+
 }
