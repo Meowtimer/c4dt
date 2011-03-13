@@ -2,15 +2,26 @@ package net.arctics.clonk.ui.navigator;
 
 import java.text.Collator;
 
+import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.parser.Declaration;
+import net.arctics.clonk.resource.ClonkProjectNature;
+import net.arctics.clonk.resource.c4group.C4Group;
+import net.arctics.clonk.resource.c4group.C4Group.GroupType;
 
+import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.jface.viewers.ViewerSorter;
 
 public class ClonkSorter extends ViewerSorter {
 
-	final static private String[] sortPriorities = new String[] {".c4f", ".c4s", ".c4d", ".c4g" , ".c", ".txt", ".bmp", ".png" , ".wav", ".pal"};  //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$ //$NON-NLS-6$ //$NON-NLS-7$ //$NON-NLS-8$ //$NON-NLS-9$ //$NON-NLS-10$
+	private transient IProject cachedProject;
+	private transient Engine cachedEngine;
+	
+	final static private String[] sortPriorities = new String[] {".c", ".txt", ".bmp", ".png" , ".wav", ".pal"};  //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$ //$NON-NLS-6$ //$NON-NLS-7$ //$NON-NLS-8$ //$NON-NLS-9$ //$NON-NLS-10$
+	final static private C4Group.GroupType[] groupSortOrder = new C4Group.GroupType[] {
+		GroupType.FolderGroup, GroupType.ScenarioGroup, GroupType.DefinitionGroup, GroupType.ResourceGroup
+	};
 	
 	public ClonkSorter() {
 		super();
@@ -20,7 +31,18 @@ public class ClonkSorter extends ViewerSorter {
 		super(collator);
 	}
 	
-	private int getSortPriority(IResource resource) {
+	private synchronized int getSortPriority(IResource resource) {
+		if (resource.getProject() != cachedProject) {
+			cachedProject = resource.getProject();
+			cachedEngine = ClonkProjectNature.getEngine(resource);
+		}
+		GroupType gt;
+		if (cachedEngine != null && (gt = cachedEngine.getGroupTypeForFileName(resource.getName())) != GroupType.OtherGroup) {
+			for (int i = 0; i < groupSortOrder.length; i++) {
+				if (groupSortOrder[i] == gt)
+					return i - groupSortOrder.length; // sort category negative for folders so they will be always on top
+			}
+		}
 		for(int i = 0; i < sortPriorities.length;i++) {
 			if (resource.getName().toLowerCase().endsWith(sortPriorities[i]))
 				return i;
