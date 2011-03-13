@@ -75,7 +75,9 @@ public class ClonkNavigator extends ClonkOutlineProvider {
 		try {
 			if (element.isLinked())
 				return;
-			Engine engine = ClonkProjectNature.getEngine(element); 
+			Engine engine = ClonkProjectNature.getEngine(element);
+			if (engine == null)
+				return;
 			IResource[] resources = element.members();
 			NullProgressMonitor mon = null;
 			for (IResource res : resources) {
