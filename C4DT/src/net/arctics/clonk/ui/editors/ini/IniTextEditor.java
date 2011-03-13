@@ -113,23 +113,18 @@ public class IniTextEditor extends ClonkTextEditor {
 	}
 
 	public IniUnit getIniUnit() {
-		if (textChangeListener == null) {
-			IniUnit unit = null;
-			try {
-				unit = (IniUnit) Structure.pinned(Utilities.getEditingFile(this), true, false);
-			} catch (CoreException e) {
-				e.printStackTrace();
-			}
-			if (unit != null && unit.isEditable()) {
-				textChangeListener = TextChangeListener.addTo(getDocumentProvider().getDocument(getEditorInput()), unit, this);
-			}
+		IniUnit unit = null;
+		try {
+			unit = (IniUnit) Structure.pinned(Utilities.getEditingFile(this), true, false);
+		} catch (CoreException e) {
+			e.printStackTrace();
 		}
-		if (textChangeListener != null) {
-			textChangeListener.ensureIniUnitUpToDate(null);
-			return textChangeListener.getStructure();
-		} else {
-			return null;
+		if (textChangeListener == null && unit != null && unit.isEditable()) {
+			textChangeListener = TextChangeListener.addTo(getDocumentProvider().getDocument(getEditorInput()), unit, this);
 		}
+		else if (textChangeListener != null)
+			textChangeListener.ensureIniUnitUpToDate(this);
+		return unit;
 	}
 	
 	public void lockUnit() {
@@ -205,5 +200,11 @@ public class IniTextEditor extends ClonkTextEditor {
 		getSourceViewerDecorationSupport(viewer);
 		return viewer;
 	}
+	
+	@Override
+	protected TextChangeListenerBase<?, ?> getTextChangeListener() {
+		return textChangeListener;
+	}
+	
 	
 }

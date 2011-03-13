@@ -127,4 +127,13 @@ public abstract class TextChangeListenerBase<EditorType extends ClonkTextEditor,
 	public StructureType getStructure() {
 		return structure;
 	}
+	
+	/**
+	 * To be called when the old structure has become stale and a new one has been created.
+	 * @param structure The new structure that represents the same one as the old one
+	 */
+	@SuppressWarnings("unchecked")
+	public void update(Structure structure) {
+		this.structure = (StructureType) structure;
+	}
 }

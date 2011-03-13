@@ -437,11 +437,13 @@ public abstract class ScriptBase extends Structure implements ITreeNode, IHasCon
 	}
 
 	public Function funcAt(IRegion region) {
+		//System.out.println("");
 		for (Function f : definedFunctions) {
 			int fStart = f.getBody().getOffset();
 			int fEnd   = f.getBody().getOffset()+f.getBody().getLength();
 			int rStart = region.getOffset();
 			int rEnd   = region.getOffset()+region.getLength();
+			//System.out.println(String.format("Shit: %d %d", fStart, fEnd));
 			if (rStart <= fStart && rEnd >= fEnd || rStart >= fStart && rStart <= fEnd || rEnd >= fEnd && rEnd <= fEnd)
 				return f;
 		}

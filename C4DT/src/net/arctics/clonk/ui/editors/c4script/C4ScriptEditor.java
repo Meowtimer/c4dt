@@ -561,25 +561,34 @@ public class C4ScriptEditor extends ClonkTextEditor {
 	private ScriptBase scratchScript;
 	
 	public ScriptBase scriptBeingEdited() {
+		ScriptBase result = null;
+		
 		if (getEditorInput() instanceof ScriptWithStorageEditorInput) {
-			return ((ScriptWithStorageEditorInput)getEditorInput()).getScript();
-		}
-		IFile f;
-		if ((f = Utilities.getEditingFile(this)) != null) {
-			ScriptBase script = ScriptBase.get(f, true);
-			if (script != null)
-				return script;
+			result = ((ScriptWithStorageEditorInput)getEditorInput()).getScript();
 		}
 
-		if (scratchScript == null) {
-			scratchScript = new ScratchScript(this);
+		if (result == null) {
+			IFile f;
+			if ((f = Utilities.getEditingFile(this)) != null) {
+				ScriptBase script = ScriptBase.get(f, true);
+				if (script != null)
+					result = script;
+			}
+		}
+
+		if (result == null && scratchScript == null) {
+			result = scratchScript = new ScratchScript(this);
 			try {
 				reparseWithDocumentContents(null, false);
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
 		}
-		return scratchScript;
+		return result;
+	}
+	@Override
+	protected TextChangeListenerBase<?, ?> getTextChangeListener() {
+		return textChangeListener;
 	}
 
 	public Function getFuncAt(int offset) {

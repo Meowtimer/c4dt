@@ -290,4 +290,15 @@ public class ClonkTextEditor extends TextEditor {
 		return super.getSourceViewer();
 	}
 	
+	@Override
+	protected void handleCursorPositionChanged() {
+		super.handleCursorPositionChanged();
+		if (getTextChangeListener() != null && getTopLevelDeclaration() instanceof Structure)
+			getTextChangeListener().update((Structure) getTopLevelDeclaration());
+	}
+	
+	protected TextChangeListenerBase<?, ?> getTextChangeListener() {
+		return null;
+	}
+	
 }
