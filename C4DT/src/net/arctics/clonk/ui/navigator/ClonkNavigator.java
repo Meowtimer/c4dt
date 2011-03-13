@@ -35,6 +35,7 @@ public class ClonkNavigator extends ClonkOutlineProvider {
 
 	private boolean showStructureOutlines() {return ClonkPreferences.getPreferenceToggle(ClonkPreferences.STRUCTURE_OUTLINES_IN_PROJECT_EXPLORER, true);}
 	
+	@Override
 	public Object[] getChildren(Object element) {
 		boolean showStructureOutlines = showStructureOutlines();
 		Object[] baseResources = NO_CHILDREN;
@@ -118,6 +119,7 @@ public class ClonkNavigator extends ClonkOutlineProvider {
 		}
 	}
 
+	@Override
 	public boolean hasChildren(Object element) {
 		boolean s = showStructureOutlines();
 		if (element instanceof IContainer) {
@@ -143,6 +145,7 @@ public class ClonkNavigator extends ClonkOutlineProvider {
 		return s ? super.hasChildren(element) : false;
 	}
 
+	@Override
 	public Object[] getElements(Object inputElement) {
 		if (inputElement instanceof IWorkspaceRoot)
 			return ClonkProjectNature.getClonkProjects();
@@ -150,10 +153,12 @@ public class ClonkNavigator extends ClonkOutlineProvider {
 			return getChildren(inputElement);
 	}
 
+	@Override
 	public void dispose() {
 		
 	}
 
+	@Override
 	public void inputChanged(Viewer viewer, Object oldInput, Object newInput) {	
 	}
 

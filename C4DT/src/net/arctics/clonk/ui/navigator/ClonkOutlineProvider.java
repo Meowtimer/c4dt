@@ -22,6 +22,7 @@ public class ClonkOutlineProvider extends LabelProvider implements ITreeContentP
 	/* (non-Javadoc)
 	 * @see org.eclipse.jface.viewers.ITreeContentProvider#getChildren(java.lang.Object)
 	 */
+	@Override
 	public Object[] getChildren(Object obj) {
 		if (obj instanceof Declaration)
 			return ((Declaration)obj).getSubDeclarationsForOutline();
@@ -31,6 +32,7 @@ public class ClonkOutlineProvider extends LabelProvider implements ITreeContentP
 	/* (non-Javadoc)
 	 * @see org.eclipse.jface.viewers.ITreeContentProvider#getParent(java.lang.Object)
 	 */
+	@Override
 	public Object getParent(Object obj) {
 		// TODO Auto-generated method stub
 		return null;
@@ -39,6 +41,7 @@ public class ClonkOutlineProvider extends LabelProvider implements ITreeContentP
 	/* (non-Javadoc)
 	 * @see org.eclipse.jface.viewers.ITreeContentProvider#hasChildren(java.lang.Object)
 	 */
+	@Override
 	public boolean hasChildren(Object dec) {
 		return dec instanceof Declaration && ((Declaration)dec).hasSubDeclarationsInOutline();
 	}
@@ -46,6 +49,7 @@ public class ClonkOutlineProvider extends LabelProvider implements ITreeContentP
 	/* (non-Javadoc)
 	 * @see org.eclipse.jface.viewers.IStructuredContentProvider#getElements(java.lang.Object)
 	 */
+	@Override
 	public Object[] getElements(Object root) {
 		return getChildren(root);
 	}
@@ -53,18 +57,22 @@ public class ClonkOutlineProvider extends LabelProvider implements ITreeContentP
 	/* (non-Javadoc)
 	 * @see org.eclipse.jface.viewers.IContentProvider#inputChanged(org.eclipse.jface.viewers.Viewer, java.lang.Object, java.lang.Object)
 	 */
+	@Override
 	public void inputChanged(Viewer arg0, Object arg1, Object arg2) {
 		// TODO Auto-generated method stub
 	}
 
+	@Override
 	public Image getImage(Object element) {
 		return UI.getIconForObject(element);
 	}
 
+	@Override
 	public String getText(Object element) {
 		return getStyledText(element).toString();
 	}
 
+	@Override
 	public StyledString getStyledText(Object element) {
 		return getStyledTextForEveryone(element);
 	}

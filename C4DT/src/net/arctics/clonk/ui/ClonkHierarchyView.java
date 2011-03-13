@@ -122,7 +122,7 @@ public class ClonkHierarchyView extends ViewPart {
 		@Override
 		public Image getImage(Object element) {
 			if (element instanceof Definition) {
-				return UI.GENERAL_OBJECT_ICON;
+				return null;//return UI.GENERAL_OBJECT_ICON;
 			}
 			else
 				return null;

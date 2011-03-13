@@ -111,18 +111,9 @@ public class ClonkFolderView extends ViewPart implements ISelectionListener, IDo
 
 		@Override
 		public Image getImage(Object element) {
-			switch (getCurrentEngine().getGroupTypeForFileName((((File) element).toString()))) {
-			case DefinitionGroup:
-				return UI.GENERAL_OBJECT_ICON;
-			case FolderGroup:
-				return UI.FOLDER_ICON;
-			case ResourceGroup:
-				return UI.GROUP_ICON;
-			case ScenarioGroup:
-				return UI.SCENARIO_ICON;
-			default:
-				return null;
-			}
+			Engine engine = getCurrentEngine();
+			GroupType gt = engine.getGroupTypeForFileName((((File) element).toString()));
+			return engine.getGroupTypeToIconMap().get(gt);
 		}
 
 		@Override

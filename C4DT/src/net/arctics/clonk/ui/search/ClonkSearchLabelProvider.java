@@ -1,8 +1,12 @@
 package net.arctics.clonk.ui.search;
 
+import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.index.ProjectDefinition;
+
 import net.arctics.clonk.index.Scenario;
+import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.c4script.StandaloneProjectScript;
+import net.arctics.clonk.resource.c4group.C4Group.GroupType;
 import net.arctics.clonk.util.UI;
 import org.eclipse.jface.viewers.LabelProvider;
 import org.eclipse.jface.viewers.StyledString;
@@ -16,14 +20,17 @@ public class ClonkSearchLabelProvider extends LabelProvider implements IStyledLa
 	}
 	@Override
 	public Image getImage(Object element) {
-		if (element instanceof Scenario) {
-			return UI.SCENARIO_ICON;
-		}
-		if (element instanceof ProjectDefinition) {
-			return UI.GENERAL_OBJECT_ICON;
-		}
-		if (element instanceof StandaloneProjectScript) {
-			return UI.SCRIPT_ICON;
+		Engine engine = element instanceof Declaration ? ((Declaration)element).getEngine() : null;
+		if (engine != null) {
+			if (element instanceof Scenario) {
+				return engine.getGroupTypeToIconMap().get(GroupType.ScenarioGroup);
+			}
+			if (element instanceof ProjectDefinition) {
+				return engine.getGroupTypeToIconMap().get(GroupType.DefinitionGroup);
+			}
+			if (element instanceof StandaloneProjectScript) {
+				return UI.SCRIPT_ICON;
+			}
 		}
 		return null;
 	}

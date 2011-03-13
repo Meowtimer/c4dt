@@ -2,6 +2,7 @@ package net.arctics.clonk.ui.navigator;
 
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.index.Definition;
+import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.resource.c4group.C4Group.GroupType;
 import net.arctics.clonk.ui.OverlayIcon;
@@ -27,6 +28,7 @@ public class ClonkLabelProvider extends LabelProvider implements IStyledLabelPro
 	public ClonkLabelProvider() {
 	}
 	
+	@Override
 	public Image getImage(Object element) {
 		if (element instanceof IProject) {
 			return super.getImage(element);
@@ -44,24 +46,15 @@ public class ClonkLabelProvider extends LabelProvider implements IStyledLabelPro
 		}
 		else if (element instanceof IFolder) {
 			IFolder folder = (IFolder)element;
-			GroupType groupType = ClonkProjectNature.getEngine(folder).getGroupTypeForFileName(folder.getName());
-			
-			if (groupType == GroupType.FolderGroup) {
-				return UI.FOLDER_ICON;
-			}
-			else if (groupType == GroupType.DefinitionGroup) {
-				return UI.GENERAL_OBJECT_ICON;
-			}
-			else if (groupType == GroupType.ScenarioGroup) {
-				return UI.SCENARIO_ICON;
-			}
-			else if (groupType == GroupType.ResourceGroup) {
-				return UI.GROUP_ICON;
+			Engine engine = ClonkProjectNature.getEngine(folder);
+			if (engine != null) {
+				return engine.getGroupTypeToIconMap().get(engine.getGroupTypeForFileName(folder.getName()));
 			}
 		}
 		return UI.getIconForObject(element);
 	}
 
+	@Override
 	public String getText(Object element) {
 		if (element instanceof IProject) {
 			return ((IProject)element).getName();
@@ -76,6 +69,7 @@ public class ClonkLabelProvider extends LabelProvider implements IStyledLabelPro
 		return s.substring(0,s.lastIndexOf(".")); //$NON-NLS-1$
 	}
 	
+	@Override
 	public StyledString getStyledText(Object element) {
 		if (element instanceof IFolder) {
 			IFolder folder = (IFolder)element;
@@ -121,8 +115,7 @@ public class ClonkLabelProvider extends LabelProvider implements IStyledLabelPro
 		return buf;
 	}
 	
-	protected static ImageDescriptor decorateImage(ImageDescriptor input,
-			Object element) {
+	protected static ImageDescriptor decorateImage(ImageDescriptor input, Object element) {
 		return new OverlayIcon(input,computeOverlays(element),new Point(22,16));
 	}
 	
@@ -150,22 +143,8 @@ public class ClonkLabelProvider extends LabelProvider implements IStyledLabelPro
 		}
 		return result;
 	}
-//
-//
-//	protected String decorateText(String input, Object element) {
-//		if (element instanceof IProject) {
-//			return ((IProject)element).getName();
-//		}
-//		else if (element instanceof IFile) {
-//			return ((IFile)element).getName();
-//		}
-//		return super.decorateText(input, element);
-//	}
 
-	public void dispose() {
-		super.dispose();
-	}
-
+	@Override
 	public boolean isLabelProperty(Object element, String property) {
 		// TODO Auto-generated method stub
 		return true;
@@ -174,18 +153,14 @@ public class ClonkLabelProvider extends LabelProvider implements IStyledLabelPro
 	public void testRefresh() {
 		fireLabelProviderChanged(new LabelProviderChangedEvent(this));
 	}
-	
-//	public static ClonkLabelProvider instance;
-//
-//	public static ClonkLabelProvider getInstance() {
-//		return instance;
-//	}
-	
+
+	@Override
 	public void addListener(ILabelProviderListener listener) {
 		// TODO Auto-generated method stub
 		
 	}
 
+	@Override
 	public void removeListener(ILabelProviderListener listener) {
 		// TODO Auto-generated method stub
 		

@@ -18,7 +18,10 @@ import java.util.regex.Pattern;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
+import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.util.Util;
+import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.widgets.Display;
 
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.BufferedScanner;
@@ -46,6 +49,7 @@ import net.arctics.clonk.parser.inireader.IniSection;
 import net.arctics.clonk.parser.inireader.IniUnit;
 import net.arctics.clonk.preferences.ClonkPreferences;
 import net.arctics.clonk.resource.c4group.C4Group;
+import net.arctics.clonk.resource.c4group.C4Group.GroupType;
 import net.arctics.clonk.util.IStorageLocation;
 import net.arctics.clonk.util.LineNumberObtainer;
 import net.arctics.clonk.util.SettingsBase;
@@ -541,10 +545,10 @@ public class Engine extends ScriptBase {
 		}
 	}
 	
-	public Collection<URL> getURLsOfStorageLocationPath(String configurationFolder, boolean fromReadonlyStorageLocation) {
+	public Collection<URL> getURLsOfStorageLocationPath(String configurationFolder, boolean onlyFromReadonlyStorageLocation) {
 		LinkedList<URL> result = new LinkedList<URL>();
 		for (IStorageLocation loc : storageLocations) {
-			if (fromReadonlyStorageLocation && loc.toFolder() != null)
+			if (onlyFromReadonlyStorageLocation && loc.toFolder() != null)
 				continue;
 			loc.getURLsOfContainer(configurationFolder, true, result);
 		}
@@ -615,6 +619,47 @@ public class Engine extends ScriptBase {
 	
 	public C4Group.GroupType getGroupTypeForFileName(String fileName) {
 		return getGroupTypeForExtension(fileName.substring(fileName.lastIndexOf(".") + 1).toLowerCase()); //$NON-NLS-1$
+	}
+	
+	private Map<GroupType, Image> gttim;
+	private Map<GroupType, ImageDescriptor> gttidm; 
+	public Map<GroupType, Image> getGroupTypeToIconMap() {
+		if (gttim == null) {
+			gttim = new HashMap<GroupType, Image>(GroupType.values().length);
+			gttidm = new HashMap<GroupType, ImageDescriptor>(GroupType.values().length);
+			Collection<URL> urls = getURLsOfStorageLocationPath("icons", false);
+			for (GroupType gt : GroupType.values()) {
+				if (urls != null) for (URL url : urls) {
+					if (url.getFile().endsWith(gt.toString()+".png")) {
+						InputStream stream;
+						try {
+							stream = url.openStream();
+						} catch (IOException e1) {
+							e1.printStackTrace();
+							continue;
+						}
+						try {
+							Image img = new Image(Display.getDefault(), stream);
+							ClonkCore.getDefault().getImageRegistry().put(getName()+"_"+gt.toString(), img);
+							gttim.put(gt, img);
+							gttidm.put(gt, ImageDescriptor.createFromURL(url));
+						} finally {
+							try {
+								stream.close();
+							} catch (IOException e) {
+								e.printStackTrace();
+							}
+						}
+						break;
+					}
+				}
+			}
+		}
+		return gttim;
+	}
+	public Map<GroupType, ImageDescriptor> getGroupTypeToIconDescriptor() {
+		getGroupTypeToIconMap();
+		return gttidm;
 	}
 
 }

@@ -6,6 +6,7 @@ import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.ScriptBase;
 import net.arctics.clonk.parser.c4script.Variable;
 import net.arctics.clonk.resource.ClonkProjectNature;
+import net.arctics.clonk.resource.c4group.C4Group.GroupType;
 import net.arctics.clonk.ui.navigator.ClonkLabelProvider;
 
 import org.eclipse.core.resources.IProject;
@@ -43,11 +44,7 @@ import org.eclipse.ui.model.WorkbenchLabelProvider;
  * Stores references to some objects needed for various components of the user interface
  */
 public abstract class UI {
-	public final static Image GENERAL_OBJECT_ICON = getIconImage("c4object","icons/C4Object.png"); //$NON-NLS-1$ //$NON-NLS-2$
 	public final static Image SCRIPT_ICON = getIconImage("c4script","icons/c4scriptIcon.png"); //$NON-NLS-1$ //$NON-NLS-2$
-	public final static Image GROUP_ICON = getIconImage("c4datafolder","icons/Clonk_datafolder.png"); //$NON-NLS-1$ //$NON-NLS-2$
-	public final static Image FOLDER_ICON = getIconImage("c4folder","icons/Clonk_folder.png"); //$NON-NLS-1$ //$NON-NLS-2$
-	public static final Image SCENARIO_ICON = getIconImage("c4scenario","icons/Clonk_scenario.png"); //$NON-NLS-1$ //$NON-NLS-2$
 	public static final Image TEXT_ICON = getIconImage("c4txt","icons/text.png"); //$NON-NLS-1$ //$NON-NLS-2$
 	public static final Image MATERIAL_ICON = getIconImage("c4material","icons/Clonk_C4.png"); //$NON-NLS-1$ //$NON-NLS-2$
 	public static final Image DEPENDENCIES_ICON = getIconImage("c4dependencies", "icons/Dependencies.png"); //$NON-NLS-1$ //$NON-NLS-2$
@@ -70,15 +67,13 @@ public abstract class UI {
 			return getIconForFunction((Function)element);
 		if (element instanceof Variable)
 			return getIconForVariable((Variable)element);
-		if (element instanceof Definition)
-			return UI.GENERAL_OBJECT_ICON;
+		if (element instanceof Definition) {
+			Definition def = (Definition)element;
+			return def.getEngine().getGroupTypeToIconMap().get(GroupType.DefinitionGroup);
+		}
 		if (element instanceof ScriptBase)
 			return UI.SCRIPT_ICON;
 		return null;
-	}
-	
-	public static Image getIconForC4Object(Definition element) {
-		return UI.GENERAL_OBJECT_ICON;
 	}
 
 	public static ImageDescriptor getIconDescriptor(String path) {

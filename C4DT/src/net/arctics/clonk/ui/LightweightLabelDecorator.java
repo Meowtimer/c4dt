@@ -1,6 +1,7 @@
 package net.arctics.clonk.ui;
 
 import net.arctics.clonk.ClonkCore;
+import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.resource.c4group.C4Group.GroupType;
 import net.arctics.clonk.util.UI;
@@ -19,6 +20,7 @@ import org.eclipse.ui.PlatformUI;
 
 public class LightweightLabelDecorator implements ILightweightLabelDecorator {
 
+	@Override
 	public void decorate(Object element, IDecoration decoration) {
 		DecorationContext context = null;
 		if (decoration.getDecorationContext() instanceof DecorationContext) {
@@ -38,25 +40,18 @@ public class LightweightLabelDecorator implements ILightweightLabelDecorator {
 			IResource res = (IResource) element;
 			if (!res.getProject().isOpen()) return;
 			if (res instanceof IFolder) {
-				GroupType groupType = ClonkProjectNature.getEngine(res).getGroupTypeForFileName(res.getName());
-				
-				if (groupType == GroupType.FolderGroup) {
-					decoration.addOverlay(UI.getIconDescriptor("icons/Clonk_folder.png"),IDecoration.REPLACE); //$NON-NLS-1$
-				}
-				else if (groupType == GroupType.DefinitionGroup) {
-					decoration.addOverlay(UI.getIconDescriptor("icons/C4Object.png"),IDecoration.REPLACE); //$NON-NLS-1$
-				}
-				else if (groupType == GroupType.ScenarioGroup) {
-					decoration.addOverlay(UI.getIconDescriptor("icons/Clonk_scenario.png"),IDecoration.REPLACE); //$NON-NLS-1$
-				}
-				else if (groupType == GroupType.ResourceGroup) {
-					decoration.addOverlay(UI.getIconDescriptor("icons/Clonk_datafolder.png"),IDecoration.REPLACE); //$NON-NLS-1$
-				}
+				Engine engine = ClonkProjectNature.getEngine(res);
+				GroupType groupType = engine.getGroupTypeForFileName(res.getName());
+				ImageDescriptor imgDesc = engine.getGroupTypeToIconDescriptor().get(groupType);
+				if (imgDesc != null)
+					decoration.addOverlay(imgDesc, IDecoration.REPLACE);
 			}
 			try {
 				int severity = res.findMaxProblemSeverity(IMarker.PROBLEM, true, IResource.DEPTH_INFINITE);
-				if (severity == IMarker.SEVERITY_WARNING) decoration.addOverlay(getIcon("warning_co.gif"),IDecoration.BOTTOM_LEFT); //$NON-NLS-1$
-				else if (severity == IMarker.SEVERITY_ERROR) decoration.addOverlay(getIcon("error_co.gif"),IDecoration.BOTTOM_LEFT); //$NON-NLS-1$
+				if (severity == IMarker.SEVERITY_WARNING)
+					decoration.addOverlay(getIcon("warning_co.gif"),IDecoration.BOTTOM_LEFT); //$NON-NLS-1$
+				else if (severity == IMarker.SEVERITY_ERROR)
+					decoration.addOverlay(getIcon("error_co.gif"),IDecoration.BOTTOM_LEFT); //$NON-NLS-1$
 //				IMarker[] markers = res.findMarkers(IMarker.PROBLEM, true, IResource.DEPTH_INFINITE);
 //				if (markers.length > 0) {
 //					int severity = 0;
@@ -91,21 +86,25 @@ public class LightweightLabelDecorator implements ILightweightLabelDecorator {
 		return reg.getDescriptor(name);
 	}
 	
+	@Override
 	public void addListener(ILabelProviderListener listener) {
 		// TODO Auto-generated method stub
 
 	}
 
+	@Override
 	public void dispose() {
 		// TODO Auto-generated method stub
 
 	}
 
+	@Override
 	public boolean isLabelProperty(Object element, String property) {
 		// TODO Auto-generated method stub
 		return false;
 	}
 
+	@Override
 	public void removeListener(ILabelProviderListener listener) {
 		// TODO Auto-generated method stub
 
