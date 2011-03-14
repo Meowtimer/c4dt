@@ -6,6 +6,7 @@ import java.net.URI;
 
 import net.arctics.clonk.filesystem.C4GroupFileSystem;
 import net.arctics.clonk.preferences.ClonkPreferences;
+import net.arctics.clonk.resource.ClonkProjectNature;
 
 import org.eclipse.core.commands.AbstractHandler;
 import org.eclipse.core.commands.ExecutionEvent;
@@ -32,7 +33,7 @@ public class LinkC4GroupFileHandler extends AbstractHandler {
 			if (obj instanceof IProject) {
 				IProject proj = (IProject) obj;
 				FileDialog fileDialog = new FileDialog(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(), SWT.SHEET+SWT.OPEN+SWT.MULTI);
-				fileDialog.setFilterPath(ClonkPreferences.getPreferenceOrDefault(ClonkPreferences.GAME_PATH));
+				fileDialog.setFilterPath(ClonkPreferences.getPreferenceOrDefault(ClonkProjectNature.getEngine(proj).getCurrentSettings().gamePath));
 				String filePath;
 				if ((filePath = fileDialog.open()) != null) {
 					File f = new File(filePath);

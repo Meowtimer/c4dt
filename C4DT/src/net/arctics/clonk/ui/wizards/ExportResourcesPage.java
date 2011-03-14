@@ -1,14 +1,12 @@
 package net.arctics.clonk.ui.wizards;
 
-import net.arctics.clonk.ClonkCore;
-import net.arctics.clonk.preferences.ClonkPreferences;
+import net.arctics.clonk.index.Engine;
+import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.resource.ResourceContentProvider;
 
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.ResourcesPlugin;
-import org.eclipse.core.runtime.Platform;
-import org.eclipse.core.runtime.preferences.IPreferencesService;
 import org.eclipse.jface.viewers.CheckboxTreeViewer;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.TreeSelection;
@@ -89,8 +87,14 @@ public class ExportResourcesPage extends WizardPage {
 	
 	protected void createDestinationGroup(Composite parent) {
 		Label lab= new Label(parent,SWT.NONE);
-		IPreferencesService service = Platform.getPreferencesService();
-		String gamePath = service.getString(ClonkCore.PLUGIN_ID, ClonkPreferences.GAME_PATH, null, null);
+		String gamePath = null;
+		for (IResource res : getSelectedResources()) {
+			Engine engine = ClonkProjectNature.getEngine(res);
+			if (engine != null) {
+				gamePath = engine.getCurrentSettings().gamePath;
+				break;
+			}
+		}
 		if (gamePath != null) {
 			lab.setText(String.format(Messages.ExportResourcesPage_OutputDir, gamePath));
 		}

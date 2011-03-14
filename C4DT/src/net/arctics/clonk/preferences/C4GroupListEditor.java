@@ -39,7 +39,7 @@ public final class C4GroupListEditor extends ListEditor {
 
 	@Override
 	protected String getNewInputObject() {
-		String gamePath = getPreferenceStore().getString(ClonkPreferences.GAME_PATH);
+		String gamePath = engineProvider.getEngine(true).getCurrentSettings().gamePath;
 		// not yet saved -> look in field editor
 		if (gamePath == null || gamePath.length() == 0 && gamePathEditor != null) {
 			gamePath = gamePathEditor.getStringValue();

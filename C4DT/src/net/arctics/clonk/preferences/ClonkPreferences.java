@@ -16,7 +16,6 @@ import org.eclipse.jface.preference.IPreferenceStore;
 public class ClonkPreferences {
 	
 	// options that will be stored in engine configuration ini files
-	public static final String GAME_PATH = "gamePath"; //$NON-NLS-1$
 	public static final String DOC_URL_TEMPLATE = "docURLTemplate"; //$NON-NLS-1$
 	public static final String ACTIVE_ENGINE = "selectedEngine"; //$NON-NLS-1$
 	
