@@ -2416,7 +2416,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 						if (expression != null) {
 							result = new SimpleStatement(expression);
 							if (!options.contains(ParseStatementOption.InitializationStatement)) {
-								checkForSemicolon();
+								result = statementNeedingSemicolon(result);
 							}
 						}
 						else
@@ -2666,15 +2666,22 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		}
 	}
 	
-	/**
-	 * Check for semicolon at the current offset.
-	 * @throws ParsingException
-	 */
-	private void checkForSemicolon() throws ParsingException {
+	private boolean parseSemicolonOrReturnFalse() {
+		int old = offset;
 		eatWhitespace();
-		expect(';');
+		if (read() == ';')
+			return true;
+		else {
+			seek(old);
+			return false;
+		}
 	}
 
+	private <T extends Statement> T statementNeedingSemicolon(T statement) {
+		statement.setFinishedProperly(parseSemicolonOrReturnFalse());
+		return statement;
+	}
+	
 	/**
 	 * Parse a statement that is initiated with a keyword. This includes for/while/do while loops,
 	 * loop control flow statements (break/continue) and return.
@@ -2697,16 +2704,14 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 			result = parseFor();
 		}
 		else if (keyWord.equals(Keywords.Continue)) {
+			result = statementNeedingSemicolon(new ContinueStatement());
 			if (currentFunctionContext.currentLoop == null)
-				errorWithCode(ParserErrorCode.KeywordInWrongPlace, this.offset-keyWord.length(), this.offset, true, keyWord);
-			checkForSemicolon();
-			result = new ContinueStatement();
+				result.setFlagsEnabled(ExprElm.MISPLACED, true);
 		}
 		else if (keyWord.equals(Keywords.Break)) {
+			result = statementNeedingSemicolon(new BreakStatement());
 			if (currentFunctionContext.currentLoop == null)
-				errorWithCode(ParserErrorCode.KeywordInWrongPlace, this.offset-keyWord.length(), this.offset, true, keyWord);
-			checkForSemicolon();
-			result = new BreakStatement();
+				result.setFlagsEnabled(ExprElm.MISPLACED, true);
 		}
 		else if (keyWord.equals(Keywords.Return)) {
 			result = parseReturn();
@@ -2729,14 +2734,10 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	private ReturnStatement parseReturn() throws ParsingException {
 		ReturnStatement result;
 		eatWhitespace();
-		int next = read();
 		ExprElm returnExpr;
-		if (next == ';') {
-			unread();
+		if (peek() == ';')
 			returnExpr = null;
-		}
 		else {
-			unread();
 			enableError(ParserErrorCode.TuplesNotAllowed, false);
 			if (getStrictLevel() < 2)
 				enableError(ParserErrorCode.EmptyParentheses, false);
@@ -2748,7 +2749,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 			enableError(ParserErrorCode.EmptyParentheses, true);
 		}
 		result = new ReturnStatement(returnExpr);
-		checkForSemicolon();
+		result.setFinishedProperly(parseSemicolonOrReturnFalse());
 		return result;
 	}
 

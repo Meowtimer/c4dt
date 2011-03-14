@@ -113,6 +113,7 @@ public class Statement extends ExprElm implements Cloneable {
 		//			for (ExprElm elm : getSubElements())
 		//				if (elm != null)
 		//					elm.reportErrors(parser);
+		notFinishedError(parser, this);
 	}
 
 	@Override
@@ -141,5 +142,16 @@ public class Statement extends ExprElm implements Cloneable {
 			// blub
 		};
 	};
+	
+	protected void notFinishedError(C4ScriptParser parser, ExprElm e) throws ParsingException {
+		if (!e.isFinishedProperly())
+			// don't traverse children - one not-finished error is enough
+			parser.errorWithCode(ParserErrorCode.NotFinished, e, C4ScriptParser.NO_THROW, e);
+		else for (ExprElm expr : e.getSubElements()) {
+			if (expr != null) {
+				notFinishedError(parser, expr);
+			}
+		}
+	}
 
 }

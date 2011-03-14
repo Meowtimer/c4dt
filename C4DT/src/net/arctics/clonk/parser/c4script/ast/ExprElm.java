@@ -47,6 +47,7 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 	
 	public static final int PROPERLY_FINISHED = 1;
 	public static final int STATEMENT_REACHED = 2;
+	public static final int MISPLACED = 4;
 
 	public static final ExprElm nullExpr(int start, int length, C4ScriptParser parser) {
 		ExprElm result = new ExprElm();

@@ -104,7 +104,8 @@ public class ClonkQuickAssistProcessor implements IQuickAssistProcessor {
 		ParserErrorCode.ReturnAsFunction,
 		ParserErrorCode.Unused,
 		ParserErrorCode.Garbage,
-		ParserErrorCode.MemberOperatorWithTildeNoSpace
+		ParserErrorCode.MemberOperatorWithTildeNoSpace,
+		ParserErrorCode.KeywordInWrongPlace
 	);
  	
 	public boolean canFix(Annotation annotation) {
@@ -461,8 +462,11 @@ public class ClonkQuickAssistProcessor implements IQuickAssistProcessor {
 					addRemoveReplacement(document, expressionRegion, replacements, func);
 					break;
 				}
+				case KeywordInWrongPlace:
+					addRemoveReplacement(document, expressionRegion, replacements, func);
+					break;
 				case NotFinished:
-					if (topLevel instanceof SimpleStatement && offendingExpression == ((SimpleStatement)topLevel).getExpression()) {
+					if (topLevel == offendingExpression || (topLevel instanceof SimpleStatement && offendingExpression == ((SimpleStatement)topLevel).getExpression())) {
 						replacements.add(
 								Messages.ClonkQuickAssistProcessor_AddMissingSemicolon,
 								topLevel // will be added by converting topLevel to string
@@ -615,18 +619,15 @@ public class ClonkQuickAssistProcessor implements IQuickAssistProcessor {
 								if (parser.peek() == ',') {
 									regionToDelete.setStartAndEnd(parser.getPosition(), cur.getExprEnd());
 								}
-								replacementString = ""; //$NON-NLS-1$
 							} else {
 								// already initialized with expressionRegion
 							}
 						} else {
 							regionToDelete.setStartAndEnd(cur.getOffset(), next.getOffset());
 						}
-						final String finalReplacementString = replacementString;
-						regionToDelete.incOffset(expressionRegion.getOffset());
 						replacements.add(
 							Messages.ClonkQuickAssistProcessor_RemoveVariableDeclaration,
-							new ReplacementStatement(finalReplacementString, regionToDelete, document, expressionRegion.getOffset(), func.getBody().getOffset())
+							new ReplacementStatement(replacementString, regionToDelete, document, expressionRegion.getOffset(), func.getBody().getOffset())
 						).regionToBeReplacedSpecifiedByReplacementExpression = true;
 					}
 					break;

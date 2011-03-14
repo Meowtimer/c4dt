@@ -9,10 +9,19 @@ import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IRegion;
 
+/**
+ * A statement to insert some arbitrary string into an AST.
+ * @author madeen
+ *
+ */
 public class ReplacementStatement extends Statement {
 	private final String replacementString;
 	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 
+	/**
+	 * Create a new ReplacementStatement with a replacement string.
+	 * @param replacementString The replacement string
+	 */
 	public ReplacementStatement(String replacementString) {
 		this.replacementString = replacementString;
 	}
