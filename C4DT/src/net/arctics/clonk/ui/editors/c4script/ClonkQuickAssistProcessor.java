@@ -331,6 +331,9 @@ public class ClonkQuickAssistProcessor implements IQuickAssistProcessor {
 		public String getTitle() {
 			return title;
 		}
+		public void setTitle(String title) {
+			this.title = title;
+		}
 		public ExprElm getReplacementExpression() {
 			return replacementExpression;
 		}
@@ -620,7 +623,8 @@ public class ClonkQuickAssistProcessor implements IQuickAssistProcessor {
 									regionToDelete.setStartAndEnd(parser.getPosition(), cur.getExprEnd());
 								}
 							} else {
-								// already initialized with expressionRegion
+								addRemoveReplacement(document, expressionRegion, replacements, func).setTitle(Messages.ClonkQuickAssistProcessor_RemoveVariableDeclaration);
+								break;
 							}
 						} else {
 							regionToDelete.setStartAndEnd(cur.getOffset(), next.getOffset());
@@ -678,11 +682,13 @@ public class ClonkQuickAssistProcessor implements IQuickAssistProcessor {
 
 	}
 
-	private void addRemoveReplacement(IDocument document, final IRegion expressionRegion, ReplacementsList replacements, Function func) {
-		replacements.add(
+	private Replacement addRemoveReplacement(IDocument document, final IRegion expressionRegion, ReplacementsList replacements, Function func) {
+		Replacement result = replacements.add(
 			Messages.ClonkQuickAssistProcessor_Remove,
 			new ReplacementStatement("", expressionRegion, document, expressionRegion.getOffset(), func.getBody().getOffset()) //$NON-NLS-1$
-		).regionToBeReplacedSpecifiedByReplacementExpression = true;
+		);
+		result.regionToBeReplacedSpecifiedByReplacementExpression = true;
+		return result;
 	}
 
 	public String getErrorMessage() {
