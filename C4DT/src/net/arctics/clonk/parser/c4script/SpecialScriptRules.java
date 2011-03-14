@@ -32,7 +32,6 @@ import net.arctics.clonk.parser.c4script.Directive.DirectiveType;
 import net.arctics.clonk.parser.c4script.IHasConstraint.ConstraintKind;
 import net.arctics.clonk.parser.c4script.ast.CallFunc;
 import net.arctics.clonk.parser.c4script.ast.ExprElm;
-import net.arctics.clonk.parser.c4script.ast.SimpleStatement;
 import net.arctics.clonk.parser.c4script.ast.StringLiteral;
 import net.arctics.clonk.parser.inireader.ActMapUnit;
 import net.arctics.clonk.parser.inireader.IniSection;
@@ -420,13 +419,8 @@ public class SpecialScriptRules {
 						@Override
 						public WhatToDo markerEncountered(C4ScriptParser nestedParser, ParserErrorCode code, int markerStart, int markerEnd, int flags, int severity, Object... args) {
 							if (code == ParserErrorCode.NotFinished) {
-								// ignore complaining about missing ';'
-								ExprElm reporter = nestedParser.getExpressionReportingErrors();
-								if (reporter instanceof SimpleStatement && args.length > 0 && args[0] == ((SimpleStatement)reporter).getExpression()) {
-									return WhatToDo.DropCharges;
-								}
-								
-								// other cases of NotFinished shall be genuine errors
+								// ignore complaining about missing ';' - some genuine errors might slip through but who cares
+								return WhatToDo.DropCharges;
 							}
 							try {
 								// pass through to the 'real' script parser

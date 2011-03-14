@@ -3145,6 +3145,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	/**
 	 * Subtracted from the location of ExprElms created so their location will be relative to the body of the function they are contained in.
 	 */
+	@Override
 	public int bodyOffset() {
 		Function f = getCurrentFunc();
 		if (f != null && f.getBody() != null) {
@@ -3412,7 +3413,12 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 			context.setScript(tempScript);
 			context.setBody(new SourceLocation(0, statementText.length()));
 		}
-		C4ScriptParser tempParser = new ScriptParserWithMarkerListener(statementText, context.getScript(), markerListener);
+		C4ScriptParser tempParser = new ScriptParserWithMarkerListener(statementText, context.getScript(), markerListener) {
+			@Override
+			public int bodyOffset() {
+				return 0;
+			}
+		};
 		return tempParser.parseStandaloneStatement(statementText, context, listener);
 	}
 	
