@@ -48,6 +48,7 @@ import net.arctics.clonk.parser.inireader.IniUnit;
 import net.arctics.clonk.preferences.ClonkPreferences;
 import net.arctics.clonk.resource.c4group.C4Group;
 import net.arctics.clonk.resource.c4group.C4Group.GroupType;
+import net.arctics.clonk.util.ArrayUtil;
 import net.arctics.clonk.util.IStorageLocation;
 import net.arctics.clonk.util.LineNumberObtainer;
 import net.arctics.clonk.util.SettingsBase;
@@ -127,7 +128,8 @@ public class Engine extends ScriptBase {
 		@IniField
 		public String c4GroupPath;
 		
-		private Map<String, C4Group.GroupType> fetgtm;
+		private transient Map<String, C4Group.GroupType> fetgtm;
+		private transient Map<C4Group.GroupType, String> rfetgtm;
 		/**
 		 * Return a map mapping a file name extension to a group type for this engine.
 		 * @return The map.
@@ -142,8 +144,32 @@ public class Engine extends ScriptBase {
 						fetgtm.put(elms[0], gt);
 					}
 				}
+				rfetgtm = ArrayUtil.reverseMap(fetgtm, new HashMap<C4Group.GroupType, String>());
 			}
 			return fetgtm;
+		}
+		
+		public Map<C4Group.GroupType, String> getGroupTypeToFileExtensionMapping() {
+			getFileExtensionToGroupTypeMapping();
+			return rfetgtm;
+		}
+		
+		private transient String fileDialogFilterString;
+		/**
+		 * Return a filter string for c4group files to be used with file dialogs
+		 * @return The filter string
+		 */
+		public String getFileDialogFilterForGroupFiles() {
+			if (fileDialogFilterString == null) {
+				StringBuilder builder = new StringBuilder(6*getFileExtensionToGroupTypeMapping().size());
+				for (String ext : getFileExtensionToGroupTypeMapping().keySet()) {
+					builder.append("*.");
+					builder.append(ext);
+					builder.append(";");
+				}
+				fileDialogFilterString = builder.toString();
+			}
+			return fileDialogFilterString;
 		}
 
 	}
@@ -605,7 +631,7 @@ public class Engine extends ScriptBase {
 	}
 	
 	private Map<GroupType, Image> gttim;
-	private Map<GroupType, ImageDescriptor> gttidm; 
+	private Map<GroupType, ImageDescriptor> gttidm;
 	public Map<GroupType, Image> getGroupTypeToIconMap() {
 		if (gttim == null) {
 			gttim = new HashMap<GroupType, Image>(GroupType.values().length);

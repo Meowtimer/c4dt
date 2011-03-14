@@ -2,9 +2,9 @@ package net.arctics.clonk.ui.navigator;
 
 import java.io.File;
 import net.arctics.clonk.preferences.ClonkPreferences;
+import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.resource.c4group.C4GroupImporter;
 import net.arctics.clonk.util.ArrayUtil;
-import net.arctics.clonk.util.UI;
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.core.commands.IHandlerListener;
@@ -28,7 +28,7 @@ public class QuickImportHandler extends ClonkResourceHandler {
 		final FileDialog fileDialog = new FileDialog(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(), SWT.SHEET+SWT.OPEN+(noMulti?0:SWT.MULTI));
 		fileDialog.setFilterPath(ClonkPreferences.getPreference(ClonkPreferences.GAME_PATH));
 		fileDialog.setText(String.format(title, container.getName()));
-		fileDialog.setFilterExtensions(new String[] {UI.FILEDIALOG_CLONK_FILTER, "*.*"}); //$NON-NLS-1$
+		fileDialog.setFilterExtensions(new String[] {ClonkProjectNature.getEngine(container).getCurrentSettings().getFileDialogFilterForGroupFiles(), "*.*"}); //$NON-NLS-1$
 		if (fileDialog.open() != null) {
 			return ArrayUtil.map(fileDialog.getFileNames(), File.class, new FullPathConverter(fileDialog));
 		} else {

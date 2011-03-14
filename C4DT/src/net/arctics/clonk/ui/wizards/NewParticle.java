@@ -2,6 +2,9 @@ package net.arctics.clonk.ui.wizards;
 
 import java.util.Map;
 
+import net.arctics.clonk.resource.ClonkProjectNature;
+import net.arctics.clonk.resource.c4group.C4Group.GroupType;
+
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.ui.IWorkbench;
@@ -12,10 +15,15 @@ public class NewParticle extends NewClonkFolderWizard<NewClonkFolderWizardPage> 
 	
 	@Override
 	public void addPages() {
-		page = new NewClonkFolderWizardPage(selection);
-		page.setFolderExtension(".c4d"); //$NON-NLS-1$
-		page.setTitle(Messages.NewParticle_PageTitle);
-		page.setDescription(Messages.NewParticle_Description);
+		page = new NewClonkFolderWizardPage(selection) {
+			@Override
+			protected void initialize() {
+				super.initialize();
+				setFolderExtension(ClonkProjectNature.getEngine(project).getCurrentSettings().getGroupTypeToFileExtensionMapping().get(GroupType.DefinitionGroup));
+				setTitle(Messages.NewParticle_PageTitle);
+				setDescription(Messages.NewParticle_Description);
+			};
+		};
 		addPage(page);
 	}
 	@Override

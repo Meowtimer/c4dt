@@ -1,8 +1,11 @@
 package net.arctics.clonk.ui.wizards;
 
+import net.arctics.clonk.ClonkCore;
+import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.preferences.C4GroupListEditor;
 import net.arctics.clonk.preferences.ClonkPreferencePage;
 import net.arctics.clonk.preferences.ClonkPreferences;
+import net.arctics.clonk.preferences.IEngineProvider;
 import net.arctics.clonk.util.ArrayUtil;
 import net.arctics.clonk.util.UI;
 import org.eclipse.core.resources.IProject;
@@ -19,7 +22,7 @@ import org.eclipse.swt.widgets.TabFolder;
 import org.eclipse.swt.widgets.TabItem;
 import org.eclipse.ui.dialogs.WizardNewProjectCreationPage;
 
-public class WizardNewClonkProjectCreationPage extends WizardNewProjectCreationPage {
+public class WizardNewClonkProjectCreationPage extends WizardNewProjectCreationPage implements IEngineProvider {
 
 	private C4GroupListEditor linkGroupsEditor, importGroupsEditor;
 	private CheckboxTableViewer projectReferencesViewer;
@@ -61,12 +64,12 @@ public class WizardNewClonkProjectCreationPage extends WizardNewProjectCreationP
 		linkTab.setText(Messages.NewClonkProject_LinkingTabTitle);
 		
 		Composite linksComposite = new Composite(tabFolder, SWT.NONE);
-		linkGroupsEditor = new C4GroupListEditor("dummy", Messages.NewClonkProject_LinkGroups, linksComposite); //$NON-NLS-1$
+		linkGroupsEditor = new C4GroupListEditor("dummy", Messages.NewClonkProject_LinkGroups, linksComposite, this); //$NON-NLS-1$
 		linkGroupsEditor.setPreferenceStore(dummyPrefStore);
 		linkTab.setControl(linksComposite);
 		
 		Composite importsComposite = new Composite(tabFolder, SWT.NONE);
-		importGroupsEditor = new C4GroupListEditor("dummy", Messages.NewClonkProject_ImportGroups, importsComposite); //$NON-NLS-1$
+		importGroupsEditor = new C4GroupListEditor("dummy", Messages.NewClonkProject_ImportGroups, importsComposite, this); //$NON-NLS-1$
 		importGroupsEditor.setPreferenceStore(dummyPrefStore);
 		importTab.setControl(importsComposite);
 	
@@ -90,9 +93,13 @@ public class WizardNewClonkProjectCreationPage extends WizardNewProjectCreationP
 		return ArrayUtil.convertArray(projectReferencesViewer.getCheckedElements(), IProject.class);
 	}
 	
-	public String getEngine() {
+	@Override
+	public Engine getEngine(boolean fallbackToDefault) {
 		engineEditor.store();
-		return dummyPrefStore.getString(ClonkPreferences.ACTIVE_ENGINE);
+		Engine engine = ClonkCore.getDefault().loadEngine(dummyPrefStore.getString(ClonkPreferences.ACTIVE_ENGINE));
+		if (fallbackToDefault && engine == null)
+			engine = ClonkCore.getDefault().getActiveEngine();
+		return engine;
 	}
 	
 }

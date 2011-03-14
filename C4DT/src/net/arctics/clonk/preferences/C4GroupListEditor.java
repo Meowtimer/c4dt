@@ -4,7 +4,6 @@ import java.io.File;
 
 import net.arctics.clonk.ui.navigator.FullPathConverter;
 import net.arctics.clonk.util.ArrayUtil;
-import net.arctics.clonk.util.UI;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.preference.ListEditor;
 import org.eclipse.jface.preference.StringFieldEditor;
@@ -17,9 +16,11 @@ import org.eclipse.swt.widgets.List;
 public final class C4GroupListEditor extends ListEditor {
 	
 	StringFieldEditor gamePathEditor;
+	IEngineProvider engineProvider;
 	
-	public C4GroupListEditor(String name, String labelText, Composite parent) {
+	public C4GroupListEditor(String name, String labelText, Composite parent, IEngineProvider engineProvider) {
 		super(name, labelText, parent);
+		this.engineProvider = engineProvider;
 	}
 
 	public String[] parseString(String stringList) {
@@ -57,7 +58,7 @@ public final class C4GroupListEditor extends ListEditor {
 		case 0:
 			FileDialog dialog = new FileDialog(getShell(), SWT.SHEET+SWT.MULTI+SWT.OPEN);
 			dialog.setText(Messages.ChooseExternalObject);
-			dialog.setFilterExtensions(new String[] { UI.FILEDIALOG_CLONK_FILTER });
+			dialog.setFilterExtensions(new String[] { engineProvider.getEngine(true).getCurrentSettings().getFileDialogFilterForGroupFiles() });
 			dialog.setFilterPath(gamePath);
 			// add multiple files instead of returning one file to be added by the super class
 			if (dialog.open() != null) {

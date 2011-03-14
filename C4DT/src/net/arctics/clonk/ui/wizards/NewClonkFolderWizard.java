@@ -59,11 +59,13 @@ public abstract class NewClonkFolderWizard<PageClass extends NewClonkFolderWizar
 	 * the wizard. We will create an operation and run it
 	 * using wizard as execution context.
 	 */
+	@Override
 	public boolean performFinish() {
 		final String containerName = page.getContainerName();
 		final String fileName = page.getFileName();
 		templateReplacements = initTemplateReplacements();
 		IRunnableWithProgress op = new IRunnableWithProgress() {
+			@Override
 			public void run(IProgressMonitor monitor) throws InvocationTargetException {
 				try {
 					doFinish(containerName, fileName, monitor);
@@ -184,6 +186,7 @@ public abstract class NewClonkFolderWizard<PageClass extends NewClonkFolderWizar
 	 * we can initialize from it.
 	 * @see IWorkbenchWizard#init(IWorkbench, IStructuredSelection)
 	 */
+	@Override
 	public void init(IWorkbench workbench, IStructuredSelection selection) {
 		this.selection = selection;
 		this.workbenchWindow = workbench.getActiveWorkbenchWindow();

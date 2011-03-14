@@ -15,6 +15,7 @@ public class NewScenarioPage extends NewClonkFolderWizardPage {
 		setFolderExtension(".c4s"); //$NON-NLS-1$
 	}
 	
+	@Override
 	public String getTitle() {
 		return titleText.getText();
 	}
@@ -24,14 +25,11 @@ public class NewScenarioPage extends NewClonkFolderWizardPage {
 		super.initialize();
 		fileText.setText(Messages.NewScenarioPage_FolderName);
 	}
-
-	public void createControl(Composite parent) {
-		super.createControl(parent);
-		
+	
+	@Override
+	protected void actuallyCreateControl(Composite parent) {
+		super.actuallyCreateControl(parent);
 		titleText = addTextField(Messages.NewScenarioPage_TitleText, null);
-		
-		initialize();
-		dialogChanged();
 	}
 
 }

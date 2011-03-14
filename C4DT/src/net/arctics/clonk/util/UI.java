@@ -50,8 +50,6 @@ public abstract class UI {
 	public static final Image DEPENDENCIES_ICON = getIconImage("c4dependencies", "icons/Dependencies.png"); //$NON-NLS-1$ //$NON-NLS-2$
 	public static final Image CLONK_ENGINE_ICON = getIconImage("c4engine", "icons/Clonk_engine"); //$NON-NLS-1$ //$NON-NLS-2$
 	
-	public static final String FILEDIALOG_CLONK_FILTER = "*.c4g;*.c4d;*.c4f;*.c4s"; //$NON-NLS-1$
-	
 	public static Image getIconForFunction(Function function) {
 		String iconName = function.getVisibility().name().toLowerCase();
 		return ClonkCore.getDefault().getIconImage(iconName);

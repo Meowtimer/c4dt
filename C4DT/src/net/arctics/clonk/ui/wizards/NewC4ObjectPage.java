@@ -5,6 +5,8 @@ import java.util.List;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.parser.ID;
 import net.arctics.clonk.resource.ClonkProjectNature;
+import net.arctics.clonk.resource.c4group.C4Group.GroupType;
+
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Text;
@@ -24,19 +26,13 @@ public class NewC4ObjectPage extends NewClonkFolderWizardPage {
 		setTitle(Messages.NewC4ObjectPage_Title);
 		setDescription(Messages.NewC4ObjectPage_Description);
 		this.selection = selection;
-		setFolderExtension(".c4d"); //$NON-NLS-1$
 	}
-
-	/**
-	 * @see IDialogPage#createControl(Composite)
-	 */
+	
 	@Override
-	public void createControl(Composite parent) {
-		super.createControl(parent);
+	protected void actuallyCreateControl(Composite parent) {
+		super.actuallyCreateControl(parent);
 		c4idText = addTextField(Messages.NewC4ObjectPage_ID);
 		descriptionText = addTextField(Messages.NewC4ObjectPage_DescriptionLabel);
-		initialize();
-		dialogChanged();
 	}
 
 	/**
@@ -73,6 +69,7 @@ public class NewC4ObjectPage extends NewClonkFolderWizardPage {
 		super.initialize();
 		fileText.setText(Messages.NewC4ObjectPage_File);
 		descriptionText.setText(Messages.NewC4ObjectPage_DescriptionDefault);
+		setFolderExtension(ClonkProjectNature.getEngine(project).getCurrentSettings().getGroupTypeToFileExtensionMapping().get(GroupType.DefinitionGroup));
 	}
 	
 	public String getObjectID() {
