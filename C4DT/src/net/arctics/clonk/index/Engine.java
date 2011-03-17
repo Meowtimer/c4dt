@@ -66,48 +66,48 @@ public class Engine extends ScriptBase {
 	public static class EngineSettings extends SettingsBase {
 
 		/** Default strictness level applied to scripts with no explicit #strict line. */
-		@IniField
+		@IniField(category="Intrinsic")
 		public long strictDefaultLevel;
 		/** Maximum string length of string constants. */
-		@IniField
+		@IniField(category="Intrinsic")
 		public long maxStringLen;
 		/** Whether engine supports colon ID syntax (:Clonk, :Firestone). Enforcing this syntax was discussed and then dropped. */
-		@IniField
+		@IniField(category="Intrinsic")
 		public boolean colonIDSyntax;
 		/**
 		 * Whether declarations of static non-const variables are allowed to include an assignment. OC added support for this.
 		 */
-		@IniField
+		@IniField(category="Intrinsic")
 		public boolean nonConstGlobalVarsAssignment;
 		/**
 		 * HACK: In OC, object definition constants (Clonk, Firestone) actually are parsed as referring to a Variable object each Definition maintains as its 'static variable'.<br/>
 		 * This toggle activates/deactivates this behaviour.
 		 * */ 
-		@IniField
+		@IniField(category="Intrinsic")
 		public boolean definitionsHaveStaticVariables;
 		/** Whether engine supports ref parameters (int & x). OpenClonk stopped supporting it. */
-		@IniField
+		@IniField(category="Intrinsic")
 		public boolean supportsRefs;
 		/** Whether engine supports creating a debug connection and single-stepping through C4Script code */
-		@IniField
+		@IniField(category="Intrinsic")
 		public boolean supportsDebugging;
 		/** Name of editor mode option (CR: console, OC: editor) */
-		@IniField
+		@IniField(category="Intrinsic")
 		public String editorCmdLineOption;
 		/** Format for commandline options (ClonkRage: /%s vs OpenClonk: --%s) */
-		@IniField
+		@IniField(category="Intrinsic")
 		public String cmdLineOptionFormat;
 		/** Format for commandline options that take an argument --%s=%s */
-		@IniField
+		@IniField(category="Intrinsic")
 		public String cmdLineOptionWithArgumentFormat;
 		/** Whether engine supports -x <command> */
-		@IniField
+		@IniField(category="Intrinsic")
 		public boolean supportsEmbeddedUtilities;
 		/** Whether engine parser allows obj-> ~DoSomething() */
-		@IniField
+		@IniField(category="Intrinsic")
 		public boolean spaceAllowedBetweenArrowAndTilde;
 		/** String of the form c4d->DefinitionGroup,... specifying what file extension denote what group type. */
-		@IniField
+		@IniField(category="Intrinsic")
 		public String fileExtensionToGroupTypeMapping;
 		
 		// Settings that are actually intended to be user-configurable
