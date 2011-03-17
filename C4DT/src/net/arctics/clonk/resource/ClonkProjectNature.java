@@ -97,6 +97,10 @@ public class ClonkProjectNature implements IProjectNature {
 			this.disabledErrors = disabledErrors;
 			disabledErrorsSet = null;
 		}
+		
+		public void setDisabledErrorsSet(Set<ParserErrorCode> errorCodes) {
+			this.disabledErrorsSet = errorCodes;
+		}
 
 		public String getDisabledErrors() {
 			return disabledErrors;

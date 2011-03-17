@@ -1,11 +1,16 @@
 package net.arctics.clonk.ui;
 
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.resource.ClonkProjectNature.Settings;
 import net.arctics.clonk.util.Utilities;
+import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.preferences.ClonkPreferencePage;
 import net.arctics.clonk.preferences.Messages;
 
@@ -13,10 +18,18 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.jface.preference.ComboFieldEditor;
+import org.eclipse.jface.preference.FieldEditor;
 import org.eclipse.jface.preference.FieldEditorPreferencePage;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.preference.PreferenceStore;
-import org.eclipse.jface.preference.StringFieldEditor;
+import org.eclipse.jface.viewers.CheckboxTableViewer;
+import org.eclipse.jface.viewers.IStructuredContentProvider;
+import org.eclipse.jface.viewers.Viewer;
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Table;
 import org.eclipse.ui.IWorkbenchPropertyPage;
 
 public class ClonkProjectProperties extends FieldEditorPreferencePage implements IWorkbenchPropertyPage {
@@ -91,11 +104,91 @@ public class ClonkProjectProperties extends FieldEditorPreferencePage implements
 	
 	@Override
 	protected void createFieldEditors() {
-	/*	deprecate that - linking c4group should be enough for everybody!1
-		addField(new ExternalLibsEditor(DEPENDENCIES_PROPERTY, net.arctics.clonk.preferences.Messages.ExternalObjectsAndScripts, getFieldEditorParent()));
-		addField(new BooleanFieldEditor(SHOWSDEPENDENCIES_PROPERTY, Messages.Project_ShowDependencies, getFieldEditorParent())); */
 		addField(new ComboFieldEditor(ENGINENAME_PROPERTY, Messages.EngineVersion, ClonkPreferencePage.engineComboValues(true), getFieldEditorParent()));
-		addField(new StringFieldEditor(DISABLED_ERRORS_PROPERTY, Messages.DisabledErrors, getFieldEditorParent()));
+		addField(new FieldEditor(DISABLED_ERRORS_PROPERTY, Messages.DisabledErrors, getFieldEditorParent()) {
+			
+			Set<ParserErrorCode> disabledErrorCodes = new HashSet<ParserErrorCode>();
+			
+			@Override
+			public int getNumberOfControls() {
+				return 2;
+			}
+			
+			@Override
+			protected void doStore() {
+				disabledErrorCodes.clear();
+				for (Object obj : tableViewer.getCheckedElements()) {
+					if (obj instanceof ParserErrorCode)
+						disabledErrorCodes.add((ParserErrorCode) obj);
+				}
+				ClonkProjectNature.get(getProject()).getSettings().setDisabledErrorsSet(disabledErrorCodes);
+			}
+			
+			@Override
+			protected void doLoadDefault() {
+				doLoad();
+			}
+			
+			@Override
+			protected void doLoad() {
+				disabledErrorCodes = ClonkProjectNature.get(getProject()).getSettings().getDisabledErrorsSet();
+				if (tableViewer != null) {
+					tableViewer.setCheckedElements(disabledErrorCodes.toArray());
+				}
+			}
+			
+			private CheckboxTableViewer tableViewer;
+			private Table table;
+			private Table getTable(Composite parent) {
+				if (table == null) {
+					table = new Table(parent, SWT.CHECK | SWT.BORDER | SWT.MULTI | SWT.FULL_SELECTION);
+					tableViewer = new CheckboxTableViewer(table);
+					tableViewer.setContentProvider(new IStructuredContentProvider() {
+						@Override
+						public void inputChanged(Viewer viewer, Object oldInput, Object newInput) {}
+						@Override
+						public void dispose() {}
+						@Override
+						public Object[] getElements(Object inputElement) {
+							if (inputElement == ParserErrorCode.class) {
+								ParserErrorCode[] elms = ParserErrorCode.values().clone();
+								Arrays.sort(elms, new Comparator<ParserErrorCode>() {
+									@Override
+									public int compare(ParserErrorCode o1, ParserErrorCode o2) {
+										return o1.name().compareTo(o2.name());
+									}
+								});
+								return elms;
+							}
+							return null;
+						}
+					});
+					tableViewer.setInput(ParserErrorCode.class);
+				}
+				return table;
+			}
+			
+			@Override
+			protected void doFillIntoGrid(Composite parent, int numColumns) {
+				Label label = getLabelControl(parent);
+				label.setLayoutData(new GridData(SWT.LEFT, SWT.TOP, false, false));
+				Table table = getTable(parent);
+				GridData gd = new GridData();
+				gd.heightHint = 0;
+				gd.widthHint = SWT.DEFAULT;
+				gd.horizontalSpan = numColumns - 1;
+				gd.grabExcessHorizontalSpace = true;
+				gd.horizontalAlignment = SWT.FILL;
+				gd.verticalAlignment = SWT.FILL;
+				gd.grabExcessVerticalSpace = true;
+		        table.setLayoutData(gd);
+			}
+			
+			@Override
+			protected void adjustForNumColumns(int numColumns) {
+				// yup
+			}
+		});
 	}
 
 	public IAdaptable getElement() {
