@@ -9,8 +9,6 @@ import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
-import java.net.MalformedURLException;
-import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.Collections;
 import java.util.Enumeration;
@@ -30,7 +28,9 @@ import net.arctics.clonk.parser.mapcreator.MapCreator;
 import net.arctics.clonk.parser.stringtbl.StringTbl;
 import net.arctics.clonk.preferences.ClonkPreferences;
 import net.arctics.clonk.resource.ClonkProjectNature;
+import net.arctics.clonk.util.FolderStorageLocation;
 import net.arctics.clonk.util.IStorageLocation;
+import net.arctics.clonk.util.PathUtil;
 import net.arctics.clonk.util.ReadOnlyIterator;
 import net.arctics.clonk.util.StreamUtil;
 import net.arctics.clonk.util.UI;
@@ -43,7 +43,6 @@ import org.eclipse.core.resources.IResourceChangeListener;
 import org.eclipse.core.resources.ISaveContext;
 import org.eclipse.core.resources.ISaveParticipant;
 import org.eclipse.core.resources.ResourcesPlugin;
-import org.eclipse.core.runtime.AssertionFailedException;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IStatus;
@@ -285,25 +284,6 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 		return result;
 	}
 	
-	private static String chopPath(String containerPath, String path) {
-		int ndx = path.lastIndexOf(containerPath);
-		return ndx != -1
-			? path.substring(ndx+containerPath.length())
-			: null;
-	}
-	
-	private static void addURLIfNotDuplicate(String containerPathIncludingEngine, URL url, List<URL> urls) {
-		String truncatedPath = chopPath(containerPathIncludingEngine, url.getPath());
-		assert(truncatedPath != null);
-		for (URL oldURL : urls) {
-			String chopped = chopPath(containerPathIncludingEngine, oldURL.getPath());
-			if (chopped != null && chopped.equals(truncatedPath)) {
-				return;
-			}
-		}
-		urls.add(url);
-	}
-	
 	private void getIDEStorageLocations(final String engineName, IStorageLocation[] locations) {
 		locations[0] = new FolderStorageLocation(engineName) {
 			@Override
@@ -337,7 +317,7 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 				if (urls != null) {
 					while (urls.hasMoreElements()) {
 						URL url = urls.nextElement();
-						addURLIfNotDuplicate(containerPath, url, listToAddTo);
+						PathUtil.addURLIfNotDuplicate(containerPath, url, listToAddTo);
 					}
 				}
 			};
@@ -647,87 +627,6 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 		return textFileDocumentProvider;
 	}
 	
-	private static abstract class FolderStorageLocation implements IStorageLocation {
-		protected final String engineName;
-
-		private FolderStorageLocation(String engineName) {
-			this.engineName = engineName;
-		}
-
-		@Override
-		public String getName() {
-			return engineName;
-		}
-
-		@Override
-		public URL getURL(String entryName, boolean create) {
-			try {
-				File file = getFile(entryName);
-				try {
-					if (create) {
-						try {
-							file.getParentFile().mkdirs();
-							file.createNewFile();
-						} catch (IOException e) {
-							e.printStackTrace();
-							return null;
-						}
-					}
-					return file.exists() ? file.toURI().toURL() : null;
-				} catch (MalformedURLException e) {
-					e.printStackTrace();
-					return null;
-				}
-			} catch (AssertionFailedException assertionFail) {
-				// happens when invoking getURL without having initialized the workspace (headless utilities)
-				return null;
-			}
-		}
-
-		protected abstract IPath getStorageLocationForEngine(String engineName);
-
-		private File getFile(String entryName) {
-			IPath path = getStorageLocationForEngine(engineName);
-			File file = path.append(entryName).toFile();
-			return file;
-		}
-
-		@Override
-		public OutputStream getOutputStream(URL storageURL) {
-			try {
-				return new FileOutputStream(new File(storageURL.toURI()));
-			} catch (IOException e) {
-				e.printStackTrace();
-				return null;
-			} catch (URISyntaxException e) {
-				e.printStackTrace();
-				return null;
-			}
-		}
-
-		private static void addFilesFrom(File folder, String containerPath, List<URL> list, boolean recurse) {
-			for (File f : folder.listFiles()) {
-				try {
-					addURLIfNotDuplicate(containerPath, f.toURI().toURL(), list);
-				} catch (MalformedURLException e) {
-					e.printStackTrace();
-				}
-				if (recurse && f.isDirectory()) {
-					addFilesFrom(f, containerPath, list, true);
-				}
-			}
-		}
-		
-		@Override
-		public void getURLsOfContainer(String containerPath, boolean recurse, List<URL> listToAddTo) {
-			final File folder = getFile(containerPath);
-			containerPath = getName() + "/" + containerPath;
-			if (folder == null || !folder.exists())
-				return;
-			addFilesFrom(folder, containerPath, listToAddTo, recurse);
-		}
-	}
-
 	public interface IDocumentAction {
 		void run(IDocument document);
 	}
