@@ -5,6 +5,7 @@ import net.arctics.clonk.parser.c4script.DeclarationObtainmentContext;
 import net.arctics.clonk.parser.c4script.Operator;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.IType;
+import net.arctics.clonk.parser.c4script.ast.IASTComparisonDelegate.DifferenceHandling;
 
 public class OperatorExpression extends Value {
 
@@ -36,15 +37,14 @@ public class OperatorExpression extends Value {
 	}
 	
 	@Override
-	public boolean compare(ExprElm other, IDifferenceListener listener) {
-		if (!super.compare(other, listener))
-			return false;
-		if (operator != ((OperatorExpression)other).operator) {
-			listener.differs(this, other, "operator");
-			return false;
-		} else {
-			return true;
-		}
+	public DifferenceHandling compare(ExprElm other, IASTComparisonDelegate listener) {
+		DifferenceHandling handling = super.compare(other, listener);
+		if (handling != DifferenceHandling.Equal)
+			return handling;
+		if (operator != ((OperatorExpression)other).operator)
+			return listener.differs(this, other, "operator");
+		else
+			return DifferenceHandling.Equal;
 	}
 
 }

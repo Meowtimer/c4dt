@@ -24,6 +24,7 @@ import net.arctics.clonk.parser.c4script.ConstrainedType;
 import net.arctics.clonk.parser.c4script.IHasConstraint;
 import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.parser.c4script.ITypedDeclaration;
+import net.arctics.clonk.parser.c4script.ast.IASTComparisonDelegate.DifferenceHandling;
 import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
 import net.arctics.clonk.ui.editors.c4script.IPostSerializable;
 import net.arctics.clonk.util.ArrayUtil;
@@ -694,10 +695,11 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 		return this;
 	}
 	
-	private static final IDifferenceListener NULL_DIFFERENCE_LISTENER = new IDifferenceListener() {
+	private static final IASTComparisonDelegate NULL_DIFFERENCE_LISTENER = new IASTComparisonDelegate() {
 		@Override
-		public void differs(ExprElm a, ExprElm b, Object what) {
+		public DifferenceHandling differs(ExprElm a, ExprElm b, Object what) {
 			// the humanity
+			return DifferenceHandling.Differs;
 		}
 
 		@Override
@@ -706,26 +708,49 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 		}
 	};
 	
-	public boolean compare(ExprElm other, IDifferenceListener listener) {
+	/**
+	 * Compare element with other element. Return true if there are no differences, false otherwise.
+	 * @param other The other expression
+	 * @param listener Listener that gets notified when changes are found.
+	 * @return Whether elements are equal or not.
+	 */
+	public DifferenceHandling compare(ExprElm other, IASTComparisonDelegate listener) {
 		if (other.getClass() == this.getClass()) {
 			ExprElm[] mySubElements = this.getSubElements();
 			ExprElm[] otherSubElements = other.getSubElements();
 			if (mySubElements.length != otherSubElements.length) {
-				listener.differs(this, other, IDifferenceListener.SUBELEMENTS_LENGTH);
-				return false;
-			} else {
-				for (int i = 0; i < mySubElements.length; i++) {
-					ExprElm a = mySubElements[i];
-					ExprElm b = otherSubElements[i];
-					if (!a.compare(b, listener)) {
-						return false;
-					}
+				switch (listener.differs(this, other, IASTComparisonDelegate.SUBELEMENTS_LENGTH)) {
+				case IgnoreLeftSide: case IgnoreRightSide:
+					break;
+				default:
+					return DifferenceHandling.Differs;
 				}
-				return true;
 			}
+
+			int myIndex, otherIndex;
+			for (myIndex = 0, otherIndex = 0; myIndex < mySubElements.length && otherIndex < otherSubElements.length; myIndex++, otherIndex++) {
+				ExprElm a = mySubElements[myIndex];
+				ExprElm b = otherSubElements[otherIndex];
+				switch (a.compare(b, listener)) {
+				case Differs:
+					return DifferenceHandling.Differs;
+				case IgnoreLeftSide:
+					// decrement index for other so the current other element will be compared to the next my element 
+					otherIndex--;
+					break;
+				case IgnoreRightSide:
+					// vice versa
+					myIndex--;
+					break;
+				}
+			}
+			if (myIndex == mySubElements.length && otherIndex == otherSubElements.length)
+				return DifferenceHandling.Equal;
+			else
+				return DifferenceHandling.Differs;
 		}
 		else {
-			return false;
+			return listener.differs(this, other, other);
 		}
 	}
 	
@@ -737,10 +762,11 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 			this.referenceElm = referenceElm;
 		}
 		
-		private static final IDifferenceListener IDENTITY_DIFFERENCE_LISTENER = new IDifferenceListener() {
+		private static final IASTComparisonDelegate IDENTITY_DIFFERENCE_LISTENER = new IASTComparisonDelegate() {
 			@Override
-			public void differs(ExprElm a, ExprElm b, Object what) {
+			public DifferenceHandling differs(ExprElm a, ExprElm b, Object what) {
 				// ok
+				return DifferenceHandling.Differs;
 			}
 
 			@Override
@@ -757,7 +783,7 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 
 		@Override
 		public boolean expressionRelevant(ExprElm expr, C4ScriptParser parser) {
-			return expr.compare(referenceElm, IDENTITY_DIFFERENCE_LISTENER);
+			return expr.compare(referenceElm, IDENTITY_DIFFERENCE_LISTENER) == DifferenceHandling.Equal;
 		}
 
 		@Override
@@ -799,7 +825,7 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 	@Override
 	public boolean equals(Object other) {
 		if (other.getClass() == this.getClass())
-			return compare((ExprElm) other, NULL_DIFFERENCE_LISTENER);
+			return compare((ExprElm) other, NULL_DIFFERENCE_LISTENER) == DifferenceHandling.Equal;
 		else
 			return false;
 	}

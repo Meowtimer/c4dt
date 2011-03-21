@@ -44,10 +44,10 @@ import org.eclipse.search.ui.ISearchResult;
 
 public class ClonkSearchQuery implements ISearchQuery {
 
-	private Declaration declaration;
+	protected Declaration declaration;
+	protected ClonkSearchResult result;
 	private Object[] scope;
 	private ScriptBase declaringScript;
-	private ClonkSearchResult result;
 	
 	public ClonkSearchQuery(Declaration declaration, ClonkProjectNature project) {
 		super();
@@ -56,18 +56,22 @@ public class ClonkSearchQuery implements ISearchQuery {
 		this.scope = declaration.occurenceScope(project);
 	}
 
+	@Override
 	public boolean canRerun() {
 		return true;
 	}
 
+	@Override
 	public boolean canRunInBackground() {
 		return true;
 	}
 
+	@Override
 	public String getLabel() {
 		return String.format(Messages.ClonkSearchQuery_SearchFor, declaration.toString()); 
 	}
 
+	@Override
 	public ISearchResult getSearchResult() {
 		if (result == null) {
 			result = new ClonkSearchResult(this);
@@ -166,6 +170,7 @@ public class ClonkSearchQuery implements ISearchQuery {
 		
 	}
 
+	@Override
 	public IStatus run(IProgressMonitor monitor) throws OperationCanceledException {
 		getSearchResult(); // make sure we have one
 		UltimateListener listener = new UltimateListener();

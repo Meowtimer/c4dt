@@ -7,7 +7,8 @@ import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.DeclarationObtainmentContext;
 import net.arctics.clonk.parser.c4script.ITypedDeclaration;
-import net.arctics.clonk.parser.c4script.ast.IDifferenceListener.Option;
+import net.arctics.clonk.parser.c4script.ast.IASTComparisonDelegate.DifferenceHandling;
+import net.arctics.clonk.parser.c4script.ast.IASTComparisonDelegate.Option;
 
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.Region;
@@ -72,22 +73,21 @@ public abstract class AccessDeclaration extends Value {
 	}
 	
 	@Override
-	public boolean compare(ExprElm other, IDifferenceListener listener) {
-		if (!super.compare(other, listener))
-			return false;
+	public DifferenceHandling compare(ExprElm other, IASTComparisonDelegate listener) {
+		DifferenceHandling handling = super.compare(other, listener);
+		if (handling != DifferenceHandling.Equal)
+			return handling;
 		AccessDeclaration otherDec = (AccessDeclaration) other;
-		if (listener.optionEnabled(Option.CheckForIdentity)) {
+		if (!listener.optionEnabled(Option.CheckForIdentity)) {
 			if (!declarationName.equals(otherDec.declarationName)) {
-				listener.differs(this, other, "declarationName");
-				return false;
+				return listener.differs(this, other, "declarationName");
 			}
 		} else {
 			if (declaration != otherDec.declaration) {
-				listener.differs(this, other, "declaration");
-				return false;
+				return listener.differs(this, other, "declaration");
 			}
 		}
-		return true;
+		return DifferenceHandling.Equal;
 	}
 
 	public Class<? extends Declaration> declarationClass() {

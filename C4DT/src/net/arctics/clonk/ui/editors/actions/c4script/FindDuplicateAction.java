@@ -2,18 +2,38 @@ package net.arctics.clonk.ui.editors.actions.c4script;
 
 import java.util.ResourceBundle;
 
+import net.arctics.clonk.parser.Declaration;
+import net.arctics.clonk.parser.c4script.Function;
+import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.ui.editors.IClonkCommandIds;
+import net.arctics.clonk.ui.search.FindDuplicatesQuery;
 
+import org.eclipse.jface.dialogs.MessageDialog;
+import org.eclipse.search.ui.NewSearchUI;
 import org.eclipse.ui.texteditor.ITextEditor;
-import org.eclipse.ui.texteditor.TextEditorAction;
 
-public class FindDuplicateAction extends TextEditorAction {
+public class FindDuplicateAction extends OpenDeclarationAction {
 	public FindDuplicateAction(ResourceBundle bundle, String prefix, ITextEditor editor) {
 		super(bundle, prefix, editor);
 		this.setActionDefinitionId(IClonkCommandIds.FIND_DUPLICATES);
 	}
 	@Override
 	public void run() {
-		System.out.println("ugh");
+		try {
+			Declaration declaration = getDeclarationAtSelection();
+			if (declaration instanceof Function) {
+				ClonkProjectNature nature = ClonkProjectNature.get(declaration.getScript());				
+				if (nature == null) {
+					nature = ClonkProjectNature.get(getTextEditor()); 
+				}
+				if (nature == null) {
+					MessageDialog.openError(getTextEditor().getSite().getShell(), Messages.FindReferencesAction_Label, Messages.FindReferencesAction_OnlyWorksWithinProject);
+					return;
+				}
+				NewSearchUI.runQueryInBackground(new FindDuplicatesQuery((Function) declaration, nature));
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 }

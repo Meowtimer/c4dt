@@ -510,10 +510,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 				addAction(menu, IClonkCommandIds.RENAME_DECLARATION);
 			}
 			addAction(menu, IClonkCommandIds.FIND_REFERENCES);
-			Function f = getFuncAtCursor();
-			if (f != null) {
-				addAction(menu, IClonkCommandIds.FIND_DUPLICATES);
-			}
+			addAction(menu, IClonkCommandIds.FIND_DUPLICATES);
 		}
 	}
 	

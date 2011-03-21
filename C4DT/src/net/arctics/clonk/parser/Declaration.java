@@ -252,6 +252,7 @@ public abstract class Declaration implements Serializable, IHasRelatedResource, 
 	/**
 	 * Returns the resource this declaration is declared in
 	 */
+	@Override
 	public IResource getResource() {
 		return getParentDeclaration() != null ? getParentDeclaration().getResource() : null;
 	}
@@ -281,6 +282,7 @@ public abstract class Declaration implements Serializable, IHasRelatedResource, 
 	 * Might return null if there are none.
 	 * @return The Iterable for iterating over sub declarations or null.
 	 */
+	@Override
 	public Iterable<? extends Declaration> allSubDeclarations(int mask) {
 		return NO_SUB_DECLARATIONS;
 	}
@@ -336,6 +338,7 @@ public abstract class Declaration implements Serializable, IHasRelatedResource, 
 		return getName().toLowerCase().contains(part.toLowerCase());
 	}
 	
+	@Override
 	public String getNodeName() {
 		return getName();
 	}

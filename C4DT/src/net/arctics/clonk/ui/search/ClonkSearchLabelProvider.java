@@ -7,13 +7,13 @@ import net.arctics.clonk.index.Scenario;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.c4script.StandaloneProjectScript;
 import net.arctics.clonk.resource.c4group.C4Group.GroupType;
+import net.arctics.clonk.ui.navigator.ClonkLabelProvider;
 import net.arctics.clonk.util.UI;
-import org.eclipse.jface.viewers.LabelProvider;
 import org.eclipse.jface.viewers.StyledString;
 import org.eclipse.jface.viewers.DelegatingStyledCellLabelProvider.IStyledLabelProvider;
 import org.eclipse.swt.graphics.Image;
 
-public class ClonkSearchLabelProvider extends LabelProvider implements IStyledLabelProvider {
+public class ClonkSearchLabelProvider extends ClonkLabelProvider implements IStyledLabelProvider {
 	@Override
 	public String getText(Object element) {
 		return element.toString();
@@ -31,6 +31,10 @@ public class ClonkSearchLabelProvider extends LabelProvider implements IStyledLa
 			if (element instanceof StandaloneProjectScript) {
 				return UI.SCRIPT_ICON;
 			}
+			
+		}
+		if (element instanceof ClonkSearchMatch) {
+			return super.getImage(((ClonkSearchMatch)element).getCookie());
 		}
 		return null;
 	}

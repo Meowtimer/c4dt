@@ -10,6 +10,7 @@ import net.arctics.clonk.parser.c4script.DeclarationObtainmentContext;
 import net.arctics.clonk.parser.c4script.PrimitiveType;
 import net.arctics.clonk.parser.c4script.TypeSet;
 import net.arctics.clonk.parser.c4script.IType;
+import net.arctics.clonk.parser.c4script.ast.IASTComparisonDelegate.DifferenceHandling;
 import net.arctics.clonk.util.Utilities;
 
 import org.eclipse.jface.text.Region;
@@ -114,23 +115,18 @@ public class MemberOperator extends ExprElm {
 	}
 	
 	@Override
-	public boolean compare(ExprElm other, IDifferenceListener listener) {
-		if (!super.compare(other, listener))
-			return false;
+	public DifferenceHandling compare(ExprElm other, IASTComparisonDelegate listener) {
+		DifferenceHandling handling = super.compare(other, listener);
+		if (handling != DifferenceHandling.Equal)
+			return handling;
 		MemberOperator otherOp = (MemberOperator) other;
-		if (dotNotation != otherOp.dotNotation) {
-			listener.differs(this, other, "dotNotation");
-			return false;
-		}
-		if (hasTilde != otherOp.hasTilde) {
-			listener.differs(this, other, "hasTilde");
-			return false;
-		}
-		if (!Utilities.objectsEqual(id, otherOp.id)) {
-			listener.differs(this, other, "id");
-			return false;
-		}
-		return true;
+		if (dotNotation != otherOp.dotNotation)
+			return listener.differs(this, other, "dotNotation");	
+		if (hasTilde != otherOp.hasTilde)
+			return listener.differs(this, other, "hasTilde");
+		if (!Utilities.objectsEqual(id, otherOp.id))
+			return listener.differs(this, other, "id");
+		return DifferenceHandling.Equal;
 	}
 	
 	public boolean hasTilde() {

@@ -786,15 +786,6 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	public String getLineAt(IRegion region) {
 		return this.getLineAt(region);
 	}
-	
-	/**
-	 * Returns a substring of the script denoted by a region
-	 * @param region the region
-	 * @return the substring
-	 */
-	public String getSubstringOfScript(IRegion region) {
-		return this.readStringAt(region.getOffset(), region.getOffset()+region.getLength()+1);
-	}
 
 	/**
 	 * Parses the declaration at the current this position.

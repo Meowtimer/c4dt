@@ -424,6 +424,15 @@ public class BufferedScanner {
 	}
 	
 	/**
+	 * Returns a substring of the script denoted by a region
+	 * @param region the region
+	 * @return the substring
+	 */
+	public String getSubstringOfBuffer(IRegion region) {
+		return this.readStringAt(region.getOffset(), region.getOffset()+region.getLength()+1);
+	}
+	
+	/**
 	 * Returns the line region is contained in as a region
 	 * @param text the string to look for the line in
 	 * @param regionInLine the region
