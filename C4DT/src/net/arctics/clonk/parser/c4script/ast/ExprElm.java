@@ -731,7 +731,21 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 			for (myIndex = 0, otherIndex = 0; myIndex < mySubElements.length && otherIndex < otherSubElements.length; myIndex++, otherIndex++) {
 				ExprElm a = mySubElements[myIndex];
 				ExprElm b = otherSubElements[otherIndex];
-				switch (a.compare(b, listener)) {
+				
+				// compare elements, taking the possibility into account that one or both of the elements might be null
+				// if only one of both is null, the listener gets to decide what to do now based on a differs call with
+				// the what parameter being set to the index of the null element in the respective array
+				DifferenceHandling handling;
+				if (a != null && b != null)
+					handling = a.compare(b, listener);
+				else if (a == null && b != null)
+					handling = listener.differs(a, b, myIndex);
+				else if (a != null && b == null)
+					handling = listener.differs(a, b, otherIndex);
+				else // a != null && b != null
+					handling = DifferenceHandling.Equal;
+				
+				switch (handling) {
 				case Differs:
 					return DifferenceHandling.Differs;
 				case IgnoreLeftSide:
