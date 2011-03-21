@@ -40,6 +40,8 @@ public class FindDuplicatesQuery extends ClonkSearchQueryBase implements IASTCom
 						continue;
 					if (f.getName().equals(function.getName())) {
 						Block block = f.getCodeBlock();
+						if (block == null)
+							continue; // -.-
 						switch (function.getCodeBlock().compare(block, this)) {
 						case Equal: case IgnoreLeftSide: case IgnoreRightSide:
 							result.addMatch(f, f.getScript());
