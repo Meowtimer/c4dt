@@ -36,7 +36,7 @@ public class ClonkSearchLabelProvider extends ClonkLabelProvider implements ISty
 		if (element instanceof ClonkSearchMatch) {
 			return super.getImage(((ClonkSearchMatch)element).getCookie());
 		}
-		return null;
+		return super.getImage(element);
 	}
 	public StyledString getStyledText(Object element) {
 		if (element instanceof ClonkSearchMatch) {

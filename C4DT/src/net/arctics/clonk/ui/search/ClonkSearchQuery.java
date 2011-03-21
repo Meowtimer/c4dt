@@ -39,16 +39,13 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.OperationCanceledException;
 import org.eclipse.core.runtime.Status;
-import org.eclipse.search.ui.ISearchQuery;
-import org.eclipse.search.ui.ISearchResult;
 
-public class ClonkSearchQuery implements ISearchQuery {
+public class ClonkSearchQuery extends ClonkSearchQueryBase {
 
 	protected Declaration declaration;
-	protected ClonkSearchResult result;
 	private Object[] scope;
 	private ScriptBase declaringScript;
-	
+
 	public ClonkSearchQuery(Declaration declaration, ClonkProjectNature project) {
 		super();
 		this.declaration = declaration.latestVersion();
@@ -57,26 +54,8 @@ public class ClonkSearchQuery implements ISearchQuery {
 	}
 
 	@Override
-	public boolean canRerun() {
-		return true;
-	}
-
-	@Override
-	public boolean canRunInBackground() {
-		return true;
-	}
-
-	@Override
 	public String getLabel() {
 		return String.format(Messages.ClonkSearchQuery_SearchFor, declaration.toString()); 
-	}
-
-	@Override
-	public ISearchResult getSearchResult() {
-		if (result == null) {
-			result = new ClonkSearchResult(this);
-		}
-		return result;
 	}
 	
 	private class UltimateListener extends ScriptParserListener implements IResourceVisitor {

@@ -26,9 +26,9 @@ public class ClonkSearchResult extends AbstractTextSearchResult implements IEdit
 	
 	private static final Match[] NO_MATCHES = new Match[0];
 	
-	private ClonkSearchQuery query;
+	private ClonkSearchQueryBase query;
 	
-	public ClonkSearchResult(ClonkSearchQuery query) {
+	public ClonkSearchResult(ClonkSearchQueryBase query) {
 		this.query = query;
 	}
 
@@ -100,14 +100,14 @@ public class ClonkSearchResult extends AbstractTextSearchResult implements IEdit
 		return null;
 	}
 	
-	public void addMatch(final Declaration declaration) {
+	public void addMatch(final Declaration declaration, final Declaration parentNode) {
 		try {
 			ClonkCore.getDefault().performActionsOnFileDocument(declaration.getScript().getScriptFile(), new IDocumentAction() {
 				@Override
 				public void run(IDocument document) {
 					IRegion lineRegion = BufferedScanner.getLineRegion(document.get(), declaration.getLocation());
 					String line = new BufferedScanner(document.get()).getSubstringOfBuffer(lineRegion);
-					ClonkSearchMatch match = new ClonkSearchMatch(line, lineRegion.getOffset(), declaration.getScript(), declaration.getLocation().getOffset(), declaration.getLocation().getLength(), false, false);
+					ClonkSearchMatch match = new ClonkSearchMatch(line, lineRegion.getOffset(), parentNode, declaration.getLocation().getOffset(), declaration.getLocation().getLength(), false, false);
 					match.setCookie(declaration);
 					addMatch(match);
 				}

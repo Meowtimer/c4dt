@@ -22,7 +22,7 @@ public class OpenDeclarationAction extends TextEditorAction {
 		super(bundle, prefix, editor);
 		this.setActionDefinitionId(IClonkCommandIds.OPEN_DECLARATION);
 	}
-	
+
 	protected Declaration getDeclarationAtSelection() throws BadLocationException, ParsingException {
 		ITextSelection selection = (ITextSelection) getTextEditor().getSelectionProvider().getSelection();
 		IRegion r = new Region(selection.getOffset(), selection.getLength());

@@ -1,14 +1,15 @@
 package net.arctics.clonk.ui.editors.actions.c4script;
 
+import java.util.LinkedList;
+import java.util.List;
 import java.util.ResourceBundle;
 
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.c4script.Function;
-import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.ui.editors.IClonkCommandIds;
+import net.arctics.clonk.ui.editors.c4script.C4ScriptEditor;
 import net.arctics.clonk.ui.search.FindDuplicatesQuery;
 
-import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.search.ui.NewSearchUI;
 import org.eclipse.ui.texteditor.ITextEditor;
 
@@ -20,18 +21,14 @@ public class FindDuplicateAction extends OpenDeclarationAction {
 	@Override
 	public void run() {
 		try {
+			List<Function> functions = new LinkedList<Function>();
 			Declaration declaration = getDeclarationAtSelection();
-			if (declaration instanceof Function) {
-				ClonkProjectNature nature = ClonkProjectNature.get(declaration.getScript());				
-				if (nature == null) {
-					nature = ClonkProjectNature.get(getTextEditor()); 
-				}
-				if (nature == null) {
-					MessageDialog.openError(getTextEditor().getSite().getShell(), Messages.FindReferencesAction_Label, Messages.FindReferencesAction_OnlyWorksWithinProject);
-					return;
-				}
-				NewSearchUI.runQueryInBackground(new FindDuplicatesQuery((Function) declaration, nature));
-			}
+			if (declaration instanceof Function)
+				functions.add((Function) declaration);
+			else for (Function f : ((C4ScriptEditor)getTextEditor()).scriptBeingEdited().functions())
+				functions.add(f);
+			if (functions.size() > 0)
+				NewSearchUI.runQueryInBackground(new FindDuplicatesQuery(functions.toArray(new Function[functions.size()])));
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

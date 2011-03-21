@@ -1,10 +1,14 @@
 package net.arctics.clonk.ui.search;
 
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.OperationCanceledException;
 import org.eclipse.core.runtime.Status;
-
 import net.arctics.clonk.index.ClonkIndex;
 import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.ScriptBase;
@@ -12,28 +16,35 @@ import net.arctics.clonk.parser.c4script.ast.Block;
 import net.arctics.clonk.parser.c4script.ast.Comment;
 import net.arctics.clonk.parser.c4script.ast.ExprElm;
 import net.arctics.clonk.parser.c4script.ast.IASTComparisonDelegate;
-import net.arctics.clonk.resource.ClonkProjectNature;
 
-public class FindDuplicatesQuery extends ClonkSearchQuery implements IASTComparisonDelegate {
+public class FindDuplicatesQuery extends ClonkSearchQueryBase implements IASTComparisonDelegate {
 	
-	public FindDuplicatesQuery(Function function, ClonkProjectNature project) {
-		super(function, project);
+	private Map<String, Function> functionsToBeChecked = new HashMap<String, Function>();
+	
+	public FindDuplicatesQuery(Function... functions) {
+		for (Function f : functions)
+			functionsToBeChecked.put(f.getName(), f);
 	}
 	
 	@Override
 	public IStatus run(IProgressMonitor monitor) throws OperationCanceledException {
-		Function function = (Function) declaration;
-		Block functionBlock = function.getCodeBlock();
-		for (ClonkIndex index : function.getIndex().relevantIndexes()) {
+		Set<ClonkIndex> indexes = new HashSet<ClonkIndex>();
+		for (Function f : functionsToBeChecked.values())
+			for (ClonkIndex i : f.getIndex().relevantIndexes())
+				indexes.add(i);
+		for (ClonkIndex index : indexes) {
 			for (ScriptBase script : index.allScripts()) {
 				for (Function f : script.functions()) {
-					if (f == function || !f.getName().equals(function.getName()))
+					Function function = functionsToBeChecked.get(f.getName());
+					if (function == null || function == f)
 						continue;
-					Block block = f.getCodeBlock();
-					switch (functionBlock.compare(block, this)) {
-					case Equal: case IgnoreLeftSide: case IgnoreRightSide:
-						result.addMatch(f);
-						break;
+					if (f.getName().equals(function.getName())) {
+						Block block = f.getCodeBlock();
+						switch (function.getCodeBlock().compare(block, this)) {
+						case Equal: case IgnoreLeftSide: case IgnoreRightSide:
+							result.addMatch(f, f.getScript());
+							break;
+						}
 					}
 				}
 			}
@@ -61,7 +72,18 @@ public class FindDuplicatesQuery extends ClonkSearchQuery implements IASTCompari
 	
 	@Override
 	public String getLabel() {
-		return String.format(Messages.FindDuplicatesQuery_Label, declaration.getName());
+		StringBuilder builder = new StringBuilder(30);
+		int size = 3;
+		for (Function f : functionsToBeChecked.values()) {
+			if (builder.length() > 0)
+				builder.append(", ");
+			if (size-- == 0) {
+				builder.append("...");
+				break;
+			} else
+				builder.append(f.getName());
+		}
+		return String.format(Messages.FindDuplicatesQuery_Label, builder.toString());
 	}
 
 }

@@ -702,5 +702,18 @@ public class ClonkIndex extends Declaration implements Serializable, Iterable<De
 	 * @return The project
 	 */
 	public IProject getProject() {return null;}
+	
+	@Override
+	public boolean equals(Object obj) {
+		return obj == this || (obj instanceof ClonkIndex && ((ClonkIndex)obj).getProject() == this.getProject());
+	}
+	
+	@Override
+	public int hashCode() {
+		if (getProject() != null)
+			return getProject().getName().hashCode(); // project name should be unique
+		else
+			return super.hashCode();
+	}
 
 }
