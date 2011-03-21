@@ -20,6 +20,7 @@ import org.eclipse.core.filesystem.EFS;
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
+import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.runtime.CoreException;
@@ -121,6 +122,8 @@ public class ClonkNavigator extends ClonkOutlineProvider {
 
 	@Override
 	public boolean hasChildren(Object element) {
+		if (element instanceof IProject && !((IProject)element).isOpen())
+			return false;
 		boolean s = showStructureOutlines();
 		if (element instanceof IContainer) {
 			return true;
