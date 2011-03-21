@@ -27,7 +27,7 @@ public class FindDuplicatesQuery extends ClonkSearchQuery implements IASTCompari
 		for (ClonkIndex index : function.getIndex().relevantIndexes()) {
 			for (ScriptBase script : index.allScripts()) {
 				for (Function f : script.functions()) {
-					if (f == function)
+					if (f == function || !f.getName().equals(function.getName()))
 						continue;
 					Block block = f.getCodeBlock();
 					switch (functionBlock.compare(block, this)) {
