@@ -114,10 +114,8 @@ public enum PrimitiveType implements IType {
 		return makeType(arg, false);
 	}
 	
-	private static final PrimitiveType[] officialTypes = new PrimitiveType[] {BOOL, INT, ID, STRING, ARRAY, OBJECT, PROPLIST};
-	
 	public static PrimitiveType makeType(String arg, boolean allowSpecial) {
-		for (PrimitiveType t : officialTypes)
+		for (PrimitiveType t : values())
 			if (t.toString().equals(arg))
 				return t;
 		if (allowSpecial) {
