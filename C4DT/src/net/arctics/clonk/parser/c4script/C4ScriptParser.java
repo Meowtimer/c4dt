@@ -1040,7 +1040,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		eatWhitespace();
 		if (peek() == '&') {
 			if (!container.getEngine().getCurrentSettings().supportsRefs) {
-				errorWithCode(ParserErrorCode.EngineDoesNotSupportRefs, this.offset, this.offset+1, true, container.getEngine().getName());
+				errorWithCode(ParserErrorCode.EngineDoesNotSupportRefs, this.offset, this.offset+1, ABSOLUTE_MARKER_LOCATION|NO_THROW, container.getEngine().getName());
 			}
 			read();
 			return PrimitiveType.REFERENCE;
