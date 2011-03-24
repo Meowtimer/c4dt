@@ -1,6 +1,7 @@
 package net.arctics.clonk.resource;
 
 import net.arctics.clonk.ClonkCore;
+import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.resource.c4group.C4Group;
 import net.arctics.clonk.resource.c4group.C4Group.GroupType;
 
@@ -44,7 +45,8 @@ public class ResourceTester extends PropertyTester {
 	}
 
 	private static boolean checkGroupType(IResource res, C4Group.GroupType gt) {
-		return ClonkProjectNature.getEngine(res).getGroupTypeForFileName(res.getName()) == gt;
+		Engine engine = ClonkProjectNature.getEngine(res);
+		return engine != null && engine.getGroupTypeForFileName(res.getName()) == gt;
 	}
 	
 	/** @return Whether the given resource is a scenario */
