@@ -651,5 +651,18 @@ public class IniUnit extends Structure implements Iterable<IniSection>, IHasChil
 	public String getKey() {
 		return getName();
 	}
+	
+	@Override
+	public String getName() {
+		String n = super.getName();
+		if (n == null) {
+			if (iniFile != null)
+				n = iniFile.getName();
+			else
+				n = getClass().getName();
+			setName(n);
+		}
+		return n;
+	}
 
 }
