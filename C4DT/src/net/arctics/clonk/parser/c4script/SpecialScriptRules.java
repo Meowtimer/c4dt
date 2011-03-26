@@ -7,9 +7,11 @@ import java.lang.annotation.Target;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
@@ -88,10 +90,35 @@ public class SpecialScriptRules {
 		public int role();
 	}
 	
+	/**
+	 * Annotation for specifying what functions a special rule is applied to.
+	 * @author madeen
+	 *
+	 */
 	@Retention(RetentionPolicy.RUNTIME)
 	@Target(ElementType.FIELD)
 	public @interface AppliedTo {
+		/**
+		 * Function names.
+		 * @return The function names
+		 */
 		public String[] functions();
+		/**
+		 * Only applied to the specified functions in a matching role context.
+		 * @return The role mask
+		 */
+		public int role() default Integer.MAX_VALUE;
+	}
+	
+	/**
+	 * For multiple AppliedTo annotations...
+	 * @author madeen
+	 *
+	 */
+	@Retention(RetentionPolicy.RUNTIME)
+	@Target(ElementType.FIELD)
+	public @interface AppliedTos {
+		public AppliedTo[] list();
 	}
 	
 	/**
@@ -106,13 +133,25 @@ public class SpecialScriptRules {
 		 * @param instanceReference The field with the attached @AppliedTo annotation 
 		 * @return Returns empty array if no AppliedTo annotation exists for the field, annotation.functions() if one exists.
 		 */
-		public static String[] getFunctionsAppliedTo(Field instanceReference) {
+		public static String[] getFunctionsAppliedTo(Field instanceReference, int role) {
+			AppliedTo[] annots;
 			AppliedTo annot = instanceReference.getAnnotation(AppliedTo.class);
-			if (annot != null) {
-				return annot.functions();
-			} else {
-				return new String[0];
+			if (annot != null)
+				annots = new AppliedTo[] {annot};
+			else {
+				AppliedTos list = instanceReference.getAnnotation(AppliedTos.class);
+				if (list != null)
+					annots = list.list();
+				else
+					return null;
 			}
+			Set<String> funs = new HashSet<String>(5);
+			for (AppliedTo a : annots) {
+				if ((role & a.role()) != 0)
+					for (String f : a.functions())
+						funs.add(f);
+			}
+			return funs.toArray(new String[funs.size()]);
 		}
 		/**
 		 * Construct role mask of this rule using reflection. A rule assumes a role if its class overrides a method with a SignifiesRole annotation attached to it.
@@ -243,15 +282,18 @@ public class SpecialScriptRules {
 		return functionEventListeners;
 	}
 	
-	public void putFuncRule(SpecialFuncRule rule, String... forFunctions) {
+	private interface FunctionsGett0r {
+		String[] functions(int role);
+	}
+	private void putFuncRule(SpecialFuncRule rule, FunctionsGett0r functionsGetter) {
 		int mask = rule.getRoleMask();
-		if ((mask & ARGUMENT_VALIDATOR) != 0) for (String func : forFunctions) {
+		if ((mask & ARGUMENT_VALIDATOR) != 0) for (String func : functionsGetter.functions(ARGUMENT_VALIDATOR)) {
 			argumentValidators.put(func, rule);
 		}
-		if ((mask & DECLARATION_LOCATOR) != 0) for (String func : forFunctions) {
+		if ((mask & DECLARATION_LOCATOR) != 0) for (String func : functionsGetter.functions(DECLARATION_LOCATOR)) {
 			declarationLocators.put(func, rule);
 		}
-		if ((mask & RETURNTYPE_MODIFIER) != 0) for (String func : forFunctions) {
+		if ((mask & RETURNTYPE_MODIFIER) != 0) for (String func : functionsGetter.functions(RETURNTYPE_MODIFIER)) {
 			returnTypeModifiers.put(func, rule);
 		}
 		if ((mask & DEFAULT_PARMTYPE_ASSIGNER) != 0) {
@@ -260,9 +302,27 @@ public class SpecialScriptRules {
 		if ((mask & FUNCTION_EVENT_LISTENER) != 0) {
 			functionEventListeners.add(rule);
 		}
-		if ((mask & FUNCTION_PARM_PROPOSALS_CONTRIBUTOR) != 0) for (String func : forFunctions) {
+		if ((mask & FUNCTION_PARM_PROPOSALS_CONTRIBUTOR) != 0) for (String func : functionsGetter.functions(FUNCTION_PARM_PROPOSALS_CONTRIBUTOR)) {
 			parmProposalContributors.put(func, rule);
 		}
+	}
+	
+	public void putFuncRule(SpecialFuncRule rule, final Field fieldReference) {
+		putFuncRule(rule, new FunctionsGett0r() {
+			@Override
+			public String[] functions(int role) {
+				return SpecialRule.getFunctionsAppliedTo(fieldReference, role);
+			}
+		});
+	}
+	
+	public void putFuncRule(SpecialFuncRule rule, final String... functions) {
+		putFuncRule(rule, new FunctionsGett0r() {
+			@Override
+			public String[] functions(int role) {
+				return functions;
+			}
+		});
 	}
 	
 	public SpecialFuncRule getFuncRuleFor(String function, int role) {
@@ -684,7 +744,7 @@ public class SpecialScriptRules {
 				}
 				if (obj instanceof SpecialFuncRule) {
 					SpecialFuncRule funcRule = (SpecialFuncRule) obj;
-					putFuncRule(funcRule, SpecialRule.getFunctionsAppliedTo(f));
+					putFuncRule(funcRule, f);
 				}
 			}
 		}

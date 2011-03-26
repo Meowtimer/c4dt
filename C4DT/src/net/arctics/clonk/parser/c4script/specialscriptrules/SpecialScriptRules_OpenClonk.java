@@ -15,6 +15,7 @@ import net.arctics.clonk.parser.c4script.DeclarationObtainmentContext;
 import net.arctics.clonk.parser.c4script.DefinitionFunction;
 import net.arctics.clonk.parser.c4script.EffectFunction;
 import net.arctics.clonk.parser.c4script.EffectFunction.HardcodedCallbackType;
+import net.arctics.clonk.parser.c4script.EffectPropListDeclaration;
 import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.parser.c4script.PrimitiveType;
@@ -43,7 +44,10 @@ public class SpecialScriptRules_OpenClonk extends SpecialScriptRules {
 	 * Get/Add-Effect functions will return the type of the effect to be acquired/created if the effect name can be evaluated and a corresponding effect proplist type
 	 * can be found.
 	 */
-	@AppliedTo(functions={"GetEffect", "AddEffect", "RemoveEffect", "CheckEffect", "GetEffectCount"})
+	@AppliedTos(list={
+		@AppliedTo(functions={"GetEffect", "AddEffect", "RemoveEffect", "CheckEffect"}),
+		@AppliedTo(functions={"GetEffectCount"}, role=DECLARATION_LOCATOR)
+	})
 	public final SpecialFuncRule effectProplistAdhocTyping = new SpecialFuncRule() {
 		@Override
 		public boolean assignDefaultParmTypes(C4ScriptParser parser, Function function) {
@@ -78,7 +82,7 @@ public class SpecialScriptRules_OpenClonk extends SpecialScriptRules {
 			return false;
 		}
 		private IType createAdHocProplistDeclaration(EffectFunction startFunction, Variable effectParameter) {
-			ProplistDeclaration result = ProplistDeclaration.adHocDeclaration();
+			ProplistDeclaration result = new EffectPropListDeclaration(startFunction.getEffectName(), null);
 			result.setLocation(effectParameter.getLocation());
 			result.setParentDeclaration(startFunction);
 			startFunction.addOtherDeclaration(result);
@@ -109,7 +113,17 @@ public class SpecialScriptRules_OpenClonk extends SpecialScriptRules {
 							context, null
 					);
 					if (d instanceof EffectFunction) {
-						return ((EffectFunction)d).getEffectType();
+						EffectFunction effFun = (EffectFunction)d;
+						// parse Start function of effect so ad-hoc variables are known
+						if (!(context.getCurrentFunc() instanceof EffectFunction)) {
+							EffectFunction f = effFun.getStartFunction() != null ? effFun.getStartFunction() : effFun;
+							try {
+								context.parseCodeOfFunction(f, false);
+							} catch (ParsingException e) {
+								// e.printStackTrace();
+							}
+						}
+						return effFun.getEffectType();
 					}
 				}
 			}
