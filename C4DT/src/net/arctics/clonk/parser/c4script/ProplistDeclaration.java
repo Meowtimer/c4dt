@@ -15,13 +15,13 @@ public class ProplistDeclaration extends Structure implements IType {
 	/**
 	 * Each assignment in a proplist declaration is represented by a C4Variable object.
 	 */
-	private List<Variable> components;
+	protected List<Variable> components;
 	
 	/**
 	 * Whether the declaration was "explicit" {blub=<blub>...} or
 	 * by assigning values separately (effect.var1 = ...; ...)
 	 */
-	private boolean adHoc;
+	protected boolean adHoc;
 	
 	public boolean isAdHoc() {
 		return adHoc;
