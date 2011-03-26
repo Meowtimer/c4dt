@@ -551,7 +551,7 @@ public abstract class ScriptBase extends Structure implements ITreeNode, IHasCon
 	/**
 	 * Returns an iterator to iterate over all functions defined in this script
 	 */
-	public Iterable<Function> functions() {
+	public Collection<Function> functions() {
 		return Collections.unmodifiableList(definedFunctions);
 	}
 	
