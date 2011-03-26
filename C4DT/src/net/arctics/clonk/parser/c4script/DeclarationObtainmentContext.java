@@ -11,7 +11,7 @@ public interface DeclarationObtainmentContext {
 	Function getCurrentFunc();
 	IType queryTypeOfExpression(ExprElm exprElm, IType defaultType);
 	Definition getContainerAsDefinition();
-	void parseCodeOfFunction(Function field, boolean b) throws ParsingException;
+	void parseCodeOfFunction(Function function, boolean withNewContext) throws ParsingException;
 	void storeTypeInformation(ExprElm exprElm, IType type);
 	Declaration getCurrentDeclaration();
 	SourceLocation absoluteSourceLocationFromExpr(ExprElm expression);
