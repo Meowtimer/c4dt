@@ -440,7 +440,7 @@ public class BufferedScanner {
 	 */
 	public static IRegion getLineRegion(String text, IRegion regionInLine) {
 		int start, end;
-		for (start = regionInLine.getOffset(); start > 0 && !isLineDelimiterChar(text.charAt(start-1)); start--);
+		for (start = regionInLine.getOffset(); start > 0 && start < text.length() && !isLineDelimiterChar(text.charAt(start-1)); start--);
 		for (end = regionInLine.getOffset()+regionInLine.getLength(); end < text.length()-1 && !isLineDelimiterChar(text.charAt(end+1)); end++);
 		return new Region(start, end-start);
 	}
