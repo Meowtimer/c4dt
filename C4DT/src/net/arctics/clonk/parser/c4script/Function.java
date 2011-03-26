@@ -29,6 +29,8 @@ import net.arctics.clonk.util.Utilities;
  */
 public class Function extends Structure implements Serializable, ITypedDeclaration, IHasUserDescription, IRegion {
 	
+	public static final String QUALIFIED_NAME_FORMAT = "<%s>::%s";
+	
 	private static final long serialVersionUID = 3848213897251037684L;
 	private C4FunctionScope visibility; 
 	private List<Variable> localVars;
@@ -734,18 +736,18 @@ public class Function extends Structure implements Serializable, ITypedDeclarati
 			getParameters().get(i).forceType(types[i], true);
 		}
 	}
-	
-	/**
-	 * The hash code of a function is the hash code of its name.
-	 */
-	@Override
-	public int hashCode() {
-		return name != null ? name.hashCode() : super.hashCode();
-	}
 
 	@Override
 	public int absoluteExpressionsOffset() {
 		return getBody().getOffset();
+	}
+	
+	/**
+	 * Return a string describing both the script the function is contained in and the function itself.
+	 * @return The string.
+	 */
+	public String getQualifiedName() {
+		return String.format(QUALIFIED_NAME_FORMAT, getScript().getName(), getLongParameterString(true));
 	}
 	
 }
