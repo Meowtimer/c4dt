@@ -360,11 +360,14 @@ public class ClonkDebugTarget extends ClonkDebugElement implements IDebugTarget 
 				success = true;
 				break;
 			}
-			if (!success)
+			if (!success) {
 				System.out.println("Clonk Debugger: Connecting to engine failed"); //$NON-NLS-1$
-			else
+				terminated();
+				return Status.CANCEL_STATUS;
+			} else {
 				System.out.println("Clonk Debugger: Connected successfully!"); //$NON-NLS-1$
-			return Status.OK_STATUS;
+				return Status.OK_STATUS;
+			}
 		}
 		
 	}
