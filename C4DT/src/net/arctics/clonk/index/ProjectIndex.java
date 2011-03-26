@@ -42,6 +42,12 @@ public class ProjectIndex extends ClonkIndex {
 		this.project = project;
 	}
 	
+	@Override
+	public String getName() {
+		setName(project.getName());
+		return super.getName();
+	}
+	
 	public void setProject(IProject proj) {
 		project = proj;
 	}
