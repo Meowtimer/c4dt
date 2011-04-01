@@ -21,6 +21,7 @@ public class FindDuplicateAction extends OpenDeclarationAction {
 	@Override
 	public void run() {
 		try {
+			getTextEditor().doSave(null);
 			List<Function> functions = new LinkedList<Function>();
 			Declaration declaration = getDeclarationAtSelection();
 			if (declaration instanceof Function)
