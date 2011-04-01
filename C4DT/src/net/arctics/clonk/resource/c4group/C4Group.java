@@ -532,7 +532,10 @@ public class C4Group extends C4GroupItem implements Serializable, ITreeNode {
 
 	@Override
 	public IFileStore[] childStores(int options, IProgressMonitor monitor) throws CoreException {
-		return childEntries.toArray(new IFileStore[childEntries.size()]);
+		if (childEntries == null)
+			return new IFileStore[0];
+		else
+			return childEntries.toArray(new IFileStore[childEntries.size()]);
 	}
 	
 	@Override
