@@ -697,6 +697,7 @@
 					<entry name="Priority" class="UnsignedInteger" />			
 					<entry name="Key" class="java.lang.String" />
 					<entry name="Control" class="java.lang.String" />
+					<entry name="Group" class="Boolean" />
 				</section>
 			</section>
 		</section>
