@@ -305,6 +305,10 @@ public class ClonkFolderView extends ViewPart implements ISelectionListener, IDo
 
 	private void linkSelection() {
 		File sel = (File) ((IStructuredSelection) folderTree.getSelection()).getFirstElement();
+		if (sel.isDirectory()) {
+			UI.message(String.format(Messages.ClonkFolderView_JustAFolder, sel.getName()));
+			return;
+		}
 		IProject proj = selectedProject();
 		if (proj != null)
 			LinkC4GroupFileHandler.linkC4GroupFile(proj, sel);

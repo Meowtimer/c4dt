@@ -9,6 +9,7 @@ public class Messages extends NLS {
 	public static String ClonkActionProvider_TidyUpCode;
 	public static String ClonkFolderView_Browse;
 	public static String ClonkFolderView_Import;
+	public static String ClonkFolderView_JustAFolder;
 	public static String ClonkFolderView_Link;
 	public static String ClonkFolderView_OpenInCurrentProject;
 	public static String ClonkFolderView_Project;
