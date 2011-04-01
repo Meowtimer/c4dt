@@ -2,6 +2,9 @@ package net.arctics.clonk.ui.search;
 
 import net.arctics.clonk.parser.Structure;
 import net.arctics.clonk.ui.editors.ClonkTextEditor;
+
+import org.eclipse.jface.viewers.IBaseLabelProvider;
+import org.eclipse.jface.viewers.IContentProvider;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.OpenEvent;
 import org.eclipse.jface.viewers.TableViewer;
@@ -13,6 +16,7 @@ import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.part.IShowInSource;
 import org.eclipse.ui.part.IShowInTargetList;
 import org.eclipse.ui.part.ShowInContext;
+import net.arctics.clonk.ui.search.ClonkSearchContentProvider;
 
 public class ClonkSearchResultPage extends AbstractTextSearchViewPage implements IShowInSource, IShowInTargetList {
 	
@@ -21,15 +25,23 @@ public class ClonkSearchResultPage extends AbstractTextSearchViewPage implements
 		// yep
 	}
 
+	// give up typing
+	protected Object getContentAndLabelProvider(boolean flat) {
+		return new ClonkSearchContentProvider(this, flat);
+	}
+	
 	@Override
 	protected void configureTableViewer(TableViewer tableViewer) {
-		// don't care
+		Object contentAndLabelProvider = getContentAndLabelProvider(true);
+		tableViewer.setLabelProvider((IBaseLabelProvider) contentAndLabelProvider);
+		tableViewer.setContentProvider((IContentProvider) contentAndLabelProvider);
 	}
 
 	@Override
 	protected void configureTreeViewer(TreeViewer treeViewer) {
-		 treeViewer.setLabelProvider(new ClonkSearchLabelProvider());
-		 treeViewer.setContentProvider(new ClonkSearchContentProvider(this));
+		Object contentAndLabelProvider = getContentAndLabelProvider(false);
+		treeViewer.setLabelProvider((IBaseLabelProvider) contentAndLabelProvider);
+		treeViewer.setContentProvider((IContentProvider) contentAndLabelProvider);
 	}
 
 	@Override
@@ -38,20 +50,19 @@ public class ClonkSearchResultPage extends AbstractTextSearchViewPage implements
 	}
 	
 	@Override
-	protected void showMatch(Match match, int currentOffset, int currentLength,
-			boolean activate) throws PartInitException {
+	protected void showMatch(Match match, int currentOffset, int currentLength, boolean activate) throws PartInitException {
 		ClonkSearchMatch clonkMatch = (ClonkSearchMatch) match;
 		ClonkTextEditor editor;
 		editor = (ClonkTextEditor) ClonkTextEditor.openDeclaration(clonkMatch.getStructure(), activate);
 		editor.selectAndReveal(currentOffset, currentLength);
 	}
 
+	@Override
 	public ShowInContext getShowInContext() {
 		return new ShowInContext(null, null) {
 			@Override
 			public Object getInput() {
-				TreeViewer treeViewer = (TreeViewer) getViewer();
-				IStructuredSelection selection = (IStructuredSelection) treeViewer.getSelection();
+				IStructuredSelection selection = (IStructuredSelection) getViewer().getSelection();
 				Object firstElm = selection.getFirstElement();
 				if (firstElm instanceof Match) {
 					return ((Structure)((Match)firstElm).getElement()).getResource();
@@ -65,6 +76,7 @@ public class ClonkSearchResultPage extends AbstractTextSearchViewPage implements
 		IPageLayout.ID_PROJECT_EXPLORER
 	};
 	
+	@Override
 	public String[] getShowInTargetIds() {
 		return SHOW_IN_TARGETS;
 	}

@@ -463,10 +463,10 @@
 			name="%TidyUpCode_Name" />
 		
 		<command categoryId="org.eclipse.ui.category.edit"
-			description="%FindDuplicates_Desc"
-			id="net.arctics.clonk.ui.editors.actions.FindDuplicates"
-			defaultHandler="net.arctics.clonk.ui.navigator.FindDuplicatesHandler"
-			name="%FindDuplicates_Name" />
+            description="%FindDuplicates_Desc"
+            id="net.arctics.clonk.ui.navigator.actions.FindDuplicates"
+            defaultHandler="net.arctics.clonk.ui.navigator.FindDuplicatesHandler"
+            name="%FindDuplicates_Name" />
 		
 		<command categoryId="org.eclipse.ui.category.edit"
 			description="%LinkC4GroupFile_Desc"
@@ -532,7 +532,12 @@
 		<menuContribution locationURI="popup:org.eclipse.ui.navigator.ProjectExplorer#PopupMenu?after=additions">
 			<separator name="BeforeClonkMenu" visible="true" />
 			<menu label="Clonk">
-				<command commandId="net.arctics.clonk.ui.QuickExport" label="%QuickExport_Name">
+				<visibleWhen checkEnabled="false">
+					<iterate operator="and" ifEmpty="false"> 
+						<test property="org.eclipse.core.resources.projectNature"  value="net.arctics.clonk.clonknature" /> 
+					</iterate> 
+				</visibleWhen>
+                <command commandId="net.arctics.clonk.ui.QuickExport" label="%QuickExport_Name">
 					<visibleWhen checkEnabled="false">
 						<iterate ifEmpty="false">
 							<adapt type="org.eclipse.core.resources.IContainer">
@@ -564,6 +569,14 @@
 						</iterate>
 					</visibleWhen>
 				</command>
+				<command commandId="net.arctics.clonk.ui.navigator.actions.FindDuplicates" label="%FindDuplicates_Name">
+                    <visibleWhen checkEnabled="false">
+                        <iterate ifEmpty="false">
+                            <adapt type="org.eclipse.core.resources.IResource">
+                            </adapt>
+                        </iterate>
+                    </visibleWhen>
+                </command>
 				<separator name="AfterCodeConversionSeparator" visible="true" />
 				<command commandId="net.arctics.clonk.ui.navigator.actions.LinkC4GroupFile" label="%LinkC4GroupFile_Name">
 					<visibleWhen checkEnabled="false">
@@ -575,15 +588,11 @@
 			</menu>
 
 			<menu label="C4DT Customization">
-				<dynamic class="net.arctics.clonk.ui.navigator.actions.CustomizationDynamicMenuItem" id="net.arctics.clonk.ui.navigator.actions.CustomizationDynamicMenuItem">
-					<!--<visibleWhen checkEnabled="false">
-						<iterate ifEmpty="false">
-							<adapt type="org.eclipse.core.resources.IResource">
-								<test property="org.eclipse.core.resources.projectNature" value="net.arctics.clonk.clonknature"/>
-							</adapt>
-						</iterate>
-					</visibleWhen>-->
-				</dynamic>
+				<visibleWhen checkEnabled="false">
+					<iterate operator="and" ifEmpty="false"> 
+						<test property="org.eclipse.core.resources.projectNature"  value="net.arctics.clonk.c4dt_customization" /> 
+					</iterate> 
+				</visibleWhen>
 			</menu>
 			
 			<separator name="AfterClonkMenu" visible="true" />
@@ -623,6 +632,9 @@
 		<viewPage id="net.arctics.clonk.ui.ClonkSearchResultPage"
 			searchResultClass="net.arctics.clonk.ui.search.ClonkSearchResult"
 			class="net.arctics.clonk.ui.search.ClonkSearchResultPage" />
+		<viewPage id="net.arctics.clonk.ui.FindDuplicatesSearchResultPage"
+			searchResultClass="net.arctics.clonk.ui.search.FindDuplicatesSearchResult"
+			class="net.arctics.clonk.ui.search.FindDuplicatesSearchResultPage" />
 	</extension>
 	
 	<extension point="org.eclipse.debug.core.sourceLocators">

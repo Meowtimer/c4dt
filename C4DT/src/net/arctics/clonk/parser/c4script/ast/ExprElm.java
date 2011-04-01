@@ -797,7 +797,7 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 
 		@Override
 		public boolean expressionRelevant(ExprElm expr, C4ScriptParser parser) {
-			return expr.compare(referenceElm, IDENTITY_DIFFERENCE_LISTENER) == DifferenceHandling.Equal;
+			return expr.compare(referenceElm, IDENTITY_DIFFERENCE_LISTENER).isEqual();
 		}
 
 		@Override
@@ -839,7 +839,7 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 	@Override
 	public boolean equals(Object other) {
 		if (other.getClass() == this.getClass())
-			return compare((ExprElm) other, NULL_DIFFERENCE_LISTENER) == DifferenceHandling.Equal;
+			return compare((ExprElm) other, NULL_DIFFERENCE_LISTENER).isEqual();
 		else
 			return false;
 	}

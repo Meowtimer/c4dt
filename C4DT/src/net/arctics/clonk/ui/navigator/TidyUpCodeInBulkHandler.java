@@ -47,7 +47,7 @@ public class TidyUpCodeInBulkHandler extends AbstractHandler {
 	@Override
 	public Object execute(ExecutionEvent event) throws ExecutionException {
 		final ISelection selection = HandlerUtil.getCurrentSelection(event);		
-		if (selection != null && selection instanceof IStructuredSelection) {
+		if (selection instanceof IStructuredSelection) {
 			if (!UI.confirm(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(), Messages.TidyUpCodeInBulkHandler_ReallyConvert, null))
 				return null;
 			IStructuredSelection sel = (IStructuredSelection) selection;

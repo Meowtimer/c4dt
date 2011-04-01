@@ -29,7 +29,7 @@ import net.arctics.clonk.util.Utilities;
  */
 public class Function extends Structure implements Serializable, ITypedDeclaration, IHasUserDescription, IRegion {
 	
-	public static final String QUALIFIED_NAME_FORMAT = "<%s>::%s";
+	public static final String QUALIFIED_NAME_FORMAT = "%2$s (%1$s)";
 	
 	private static final long serialVersionUID = 3848213897251037684L;
 	private C4FunctionScope visibility; 
@@ -747,7 +747,7 @@ public class Function extends Structure implements Serializable, ITypedDeclarati
 	 * @return The string.
 	 */
 	public String getQualifiedName() {
-		return String.format(QUALIFIED_NAME_FORMAT, getScript().getName(), getLongParameterString(true));
+		return String.format(QUALIFIED_NAME_FORMAT, getScript().getResource().getProjectRelativePath().toString(), getLongParameterString(true));
 	}
 	
 }

@@ -31,7 +31,17 @@ public interface IASTComparisonDelegate {
 		/** Delegate tells caller to ignore the right side of the comparison. */
 		IgnoreRightSide,
 		/** Value to be returned by ExprElm.compare when no differences were found. Should not be returned by the delegate. */
-		Equal
+		Equal,
+		/** Like {@link #Equal}, but signaling the caller to cease further comparisons. Used for compare overrides (see {@link Literal}) */
+		EqualShortCircuited;
+		
+		/**
+		 * Return true if this difference handling is {@link #Equal} or {@link #EqualShortCircuited}.
+		 * @return See above.
+		 */
+		public boolean isEqual() {
+			return this == Equal || this == EqualShortCircuited;
+		}
 	}
 	
 	/**

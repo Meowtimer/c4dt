@@ -447,7 +447,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 	}
 
 	private void queueDependentScripts(Map<ScriptBase, C4ScriptParser> sourceMap, Map<ScriptBase, C4ScriptParser> tempParserMap) {
-		for (C4ScriptParser parser: sourceMap.values()) {
+		for (C4ScriptParser parser : sourceMap.values()) {
 			if (parser == null)
 				continue;
 			for (ScriptBase dep : parser.getContainer().getIndex().dependentScripts(parser.getContainer())) {

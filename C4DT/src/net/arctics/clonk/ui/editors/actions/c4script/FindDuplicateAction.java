@@ -28,7 +28,7 @@ public class FindDuplicateAction extends OpenDeclarationAction {
 			else for (Function f : ((C4ScriptEditor)getTextEditor()).scriptBeingEdited().functions())
 				functions.add(f);
 			if (functions.size() > 0)
-				NewSearchUI.runQueryInBackground(new FindDuplicatesQuery(functions.toArray(new Function[functions.size()])));
+				NewSearchUI.runQueryInBackground(FindDuplicatesQuery.queryWithFunctions(functions));
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

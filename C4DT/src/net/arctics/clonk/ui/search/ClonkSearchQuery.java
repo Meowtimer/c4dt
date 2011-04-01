@@ -39,17 +39,19 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.OperationCanceledException;
 import org.eclipse.core.runtime.Status;
+import org.eclipse.search.ui.text.AbstractTextSearchResult;
+import org.eclipse.search.ui.text.Match;
+import org.eclipse.ui.IEditorPart;
+import org.eclipse.ui.texteditor.ITextEditor;
 
 public class ClonkSearchQuery extends ClonkSearchQueryBase {
 
 	protected Declaration declaration;
 	private Object[] scope;
-	private ScriptBase declaringScript;
 
 	public ClonkSearchQuery(Declaration declaration, ClonkProjectNature project) {
 		super();
 		this.declaration = declaration.latestVersion();
-		this.declaringScript = declaration.getScript();
 		this.scope = declaration.occurenceScope(project);
 	}
 
@@ -222,9 +224,33 @@ public class ClonkSearchQuery extends ClonkSearchQueryBase {
 			}
 		}
 	}
+	
+	@Override
+	public Match[] computeContainedMatches(AbstractTextSearchResult result, IEditorPart editor) {
+		if (editor instanceof ITextEditor) {
+			ScriptBase script = Utilities.getScriptForEditor((ITextEditor) editor);
+			if (script != null)
+				return result.getMatches(script);
+		}
+		return NO_MATCHES;
+	}
 
-	public ScriptBase getDeclaringScript() {
-		return declaringScript;
+	@Override
+	public boolean isShownInEditor(Match match, IEditorPart editor) {
+		if (editor instanceof ITextEditor) {
+			ScriptBase script = Utilities.getScriptForEditor((ITextEditor)editor);
+			if (script != null && match.getElement().equals(script.getScriptStorage()))
+				return true;
+		}
+		return false;
+	}
+
+	@Override
+	public Match[] computeContainedMatches(AbstractTextSearchResult result, IFile file) {
+		ScriptBase script = ScriptBase.get(file, true);
+		if (script != null)
+			return result.getMatches(script);
+		return NO_MATCHES;
 	}
 
 }
