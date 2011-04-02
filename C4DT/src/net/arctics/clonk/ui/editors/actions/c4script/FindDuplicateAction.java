@@ -21,7 +21,12 @@ public class FindDuplicateAction extends OpenDeclarationAction {
 	@Override
 	public void run() {
 		try {
-			getTextEditor().doSave(null);
+			//getTextEditor().doSave(null);
+			C4ScriptEditor ed = (C4ScriptEditor) getTextEditor();
+			ed.reparseWithDocumentContents(null, false);
+			// force refreshing index so the functions acting as origins will be properly added to the declaration map
+			ed.scriptBeingEdited().getIndex().refreshIndex();
+			
 			List<Function> functions = new LinkedList<Function>();
 			Declaration declaration = getDeclarationAtSelection();
 			if (declaration instanceof Function)
