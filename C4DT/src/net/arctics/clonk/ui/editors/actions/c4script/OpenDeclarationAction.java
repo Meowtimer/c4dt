@@ -6,6 +6,7 @@ import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.ui.editors.IClonkCommandIds;
 import net.arctics.clonk.ui.editors.ClonkTextEditor;
+import net.arctics.clonk.ui.editors.c4script.C4ScriptEditor;
 import net.arctics.clonk.ui.editors.c4script.DeclarationLocator;
 
 import org.eclipse.jface.text.BadLocationException;
@@ -23,7 +24,7 @@ public class OpenDeclarationAction extends TextEditorAction {
 		this.setActionDefinitionId(IClonkCommandIds.OPEN_DECLARATION);
 	}
 
-	protected Declaration getDeclarationAtSelection() throws BadLocationException, ParsingException {
+	protected Declaration getDeclarationAtSelection(boolean fallbackToCurrentFunction) throws BadLocationException, ParsingException {
 		ITextSelection selection = (ITextSelection) getTextEditor().getSelectionProvider().getSelection();
 		IRegion r = new Region(selection.getOffset(), selection.getLength());
 		DeclarationLocator info = new DeclarationLocator(
@@ -31,7 +32,12 @@ public class OpenDeclarationAction extends TextEditorAction {
 			getTextEditor().getDocumentProvider().getDocument(getTextEditor().getEditorInput()),
 			r
 		);
-		return info.getDeclaration();
+		if (info.getDeclaration() != null)
+			return info.getDeclaration();
+		else if (fallbackToCurrentFunction && getTextEditor() instanceof C4ScriptEditor)
+			return ((C4ScriptEditor)getTextEditor()).getFuncAtCursor();
+		else
+			return null;
 	}
 
 	@Override

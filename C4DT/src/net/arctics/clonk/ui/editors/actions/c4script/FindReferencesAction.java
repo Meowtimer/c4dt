@@ -20,7 +20,7 @@ public class FindReferencesAction extends OpenDeclarationAction {
 	@Override
 	public void run() {
 		try {
-			Declaration declaration = getDeclarationAtSelection();
+			Declaration declaration = getDeclarationAtSelection(false);
 			if (declaration != null) {
 				ClonkProjectNature nature = ClonkProjectNature.get(declaration.getScript());				
 				if (nature == null) {

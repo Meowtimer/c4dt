@@ -51,12 +51,12 @@ public class RenameDeclarationAction extends OpenDeclarationAction {
 		saveModifiedFiles();
 		
 		try {
-			Declaration fieldToRename = getDeclarationAtSelection();
-			if (fieldToRename != null) {
-				String newName = UI.input(getTextEditor().getSite().getWorkbenchWindow().getShell(), Messages.RenameDeclarationAction_RenameDeclaration, Messages.RenameDeclarationAction_SpecifyNewName, fieldToRename.getName());
+			Declaration declarationToRename = getDeclarationAtSelection(false);
+			if (declarationToRename != null) {
+				String newName = UI.input(getTextEditor().getSite().getWorkbenchWindow().getShell(), Messages.RenameDeclarationAction_RenameDeclaration, Messages.RenameDeclarationAction_SpecifyNewName, declarationToRename.getName());
 				if (newName == null)
 					return;
-				RenameRefactoring refactoring = new RenameRefactoring(new RenameDeclarationProcessor(fieldToRename, newName));
+				RenameRefactoring refactoring = new RenameRefactoring(new RenameDeclarationProcessor(declarationToRename, newName));
 				CheckConditionsOperation checkConditions = new CheckConditionsOperation(refactoring, CheckConditionsOperation.ALL_CONDITIONS);
 				CreateChangeOperation createChange = new CreateChangeOperation(checkConditions, RefactoringStatus.FATAL);
 				PerformChangeOperation op = new PerformChangeOperation(createChange);

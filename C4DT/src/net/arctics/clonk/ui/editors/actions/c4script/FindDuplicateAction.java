@@ -28,7 +28,7 @@ public class FindDuplicateAction extends OpenDeclarationAction {
 			ed.scriptBeingEdited().getIndex().refreshIndex();
 			
 			List<Function> functions = new LinkedList<Function>();
-			Declaration declaration = getDeclarationAtSelection();
+			Declaration declaration = getDeclarationAtSelection(true);
 			if (declaration instanceof Function)
 				functions.add((Function) declaration);
 			else for (Function f : ((C4ScriptEditor)getTextEditor()).scriptBeingEdited().functions())
