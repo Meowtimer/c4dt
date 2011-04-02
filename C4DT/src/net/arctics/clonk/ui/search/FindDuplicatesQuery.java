@@ -21,11 +21,16 @@ import net.arctics.clonk.index.ClonkIndex;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.ScriptBase;
+import net.arctics.clonk.parser.c4script.Variable;
+import net.arctics.clonk.parser.c4script.ast.AccessVar;
+import net.arctics.clonk.parser.c4script.ast.BinaryOp;
 import net.arctics.clonk.parser.c4script.ast.Block;
 import net.arctics.clonk.parser.c4script.ast.Comment;
 import net.arctics.clonk.parser.c4script.ast.ExprElm;
 import net.arctics.clonk.parser.c4script.ast.IASTComparisonDelegate;
 import net.arctics.clonk.parser.c4script.ast.Parenthesized;
+import net.arctics.clonk.parser.c4script.ast.ReturnStatement;
+import net.arctics.clonk.preferences.ClonkPreferences;
 
 /**
  * Query to find potential duplicates of functions.
@@ -124,7 +129,7 @@ public class FindDuplicatesQuery extends ClonkSearchQueryBase implements IASTCom
 							Block block = otherFn.getCodeBlock();
 							if (block == null)
 								continue; // -.-
-							if (function.getCodeBlock().compare(block, this).isEqual()) {
+							if (functionCodeBlock.compare(block, this).isEqual()) {
 								List<FindDuplicatesMatch> dupes = detectedDupes.get(function);
 								if (dupes == null) {
 									dupes = new LinkedList<FindDuplicatesMatch>();
@@ -153,12 +158,55 @@ public class FindDuplicatesQuery extends ClonkSearchQueryBase implements IASTCom
 			return DifferenceHandling.IgnoreRightSide;
 		if (a instanceof Comment)
 			return DifferenceHandling.IgnoreLeftSide;
-		// treat parenthesized expressions as equivalent to non-parenthesized ones
 		if (a != null && b != null) {
+			
+			// treat parenthesized expressions as equivalent to non-parenthesized ones
 			if (a instanceof Parenthesized)
 				return ((Parenthesized)a).getInnerExpr().compare(b, this).isEqual() ? DifferenceHandling.EqualShortCircuited : DifferenceHandling.Differs;
 			if (b instanceof Parenthesized)
 				return a.compare(((Parenthesized)b).getInnerExpr(), this).isEqual() ? DifferenceHandling.EqualShortCircuited : DifferenceHandling.Differs;
+			
+			// ignore differing variable names if both variables are parameters at the same index in their respective functions
+			if (a instanceof AccessVar && b instanceof AccessVar) {
+				AccessVar varA = (AccessVar)a;
+				AccessVar varB = (AccessVar)b;
+				if (varA.getDeclaration() instanceof Variable && varB.getDeclaration() instanceof Variable) {
+					int parmA = ((Variable)varA.getDeclaration()).parameterIndex();
+					int parmB = ((Variable)varB.getDeclaration()).parameterIndex();
+					if (parmA != -1 && parmA == parmB)
+						return DifferenceHandling.Equal;
+				}
+			}
+			
+			// ignore order of operands in binary associative operator expression 
+			if (a.getParent() instanceof BinaryOp && b.getParent() instanceof BinaryOp) {
+				BinaryOp opA = (BinaryOp) a.getParent();
+				BinaryOp opB = (BinaryOp) b.getParent();
+				if (opA.getOperator() == opB.getOperator() && opA.getOperator().isAssociative()) {
+					if (
+						b == opB.getLeftSide() || b == opB.getRightSide() &&
+						a == opA.getLeftSide() || a == opA.getRightSide()
+					) {
+						final ExprElm bCounterpart = opB.getLeftSide() == b ? opB.getRightSide() : opB.getLeftSide();
+						final ExprElm aCounterpart = opA.getLeftSide() == a ? opA.getRightSide() : opA.getLeftSide();
+						IASTComparisonDelegate proxy = new IASTComparisonDelegate() {
+							@Override
+							public DifferenceHandling differs(ExprElm _a, ExprElm _b, Object what) {
+								// fuck off, recursion
+								if (_a == aCounterpart || _a == bCounterpart)
+									return DifferenceHandling.Differs;
+								return FindDuplicatesQuery.this.differs(_a, _b, what);
+							}
+							@Override
+							public boolean optionEnabled(Option option) {
+								return FindDuplicatesQuery.this.optionEnabled(option);
+							}
+						};
+						if (aCounterpart.compare(b, proxy).isEqual() && a.compare(bCounterpart, proxy).isEqual())
+							return DifferenceHandling.Equal;
+					}
+				}
+			}
 		}
 		return DifferenceHandling.Differs;
 	}
