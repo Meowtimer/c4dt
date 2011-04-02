@@ -18,6 +18,7 @@ import org.eclipse.jface.viewers.ILabelProvider;
 import org.eclipse.jface.viewers.ITreeContentProvider;
 import org.eclipse.jface.viewers.StyledString;
 import org.eclipse.jface.viewers.Viewer;
+import org.eclipse.jface.viewers.ViewerComparator;
 import org.eclipse.search.ui.text.Match;
 import org.eclipse.swt.graphics.Image;
 
@@ -126,6 +127,15 @@ public class ClonkSearchContentProvider extends ClonkLabelProvider implements IT
 			return new StyledString(lblimg.getLabel());
 		}
 		return new StyledString(element.toString());
+	}
+
+	public ViewerComparator getComparator() {
+		return new ViewerComparator() {
+			@Override
+			public int compare(Viewer viewer, Object e1, Object e2) {
+				return getText(e1).compareTo(getText(e2));
+			}
+		};
 	}
 
 }

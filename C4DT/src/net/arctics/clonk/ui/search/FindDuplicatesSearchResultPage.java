@@ -10,7 +10,7 @@ import org.eclipse.ui.PartInitException;
 
 public class FindDuplicatesSearchResultPage extends ClonkSearchResultPage {
 	@Override
-	protected Object getContentAndLabelProvider(boolean flat) {
+	protected ClonkSearchContentProvider getContentAndLabelProvider(boolean flat) {
 		return new FindDuplicatesSearchContentProvider(this, flat);
 	}
 	@Override
