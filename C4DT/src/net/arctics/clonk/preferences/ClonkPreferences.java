@@ -27,6 +27,7 @@ public class ClonkPreferences {
 	public static final String STRUCTURE_OUTLINES_IN_PROJECT_EXPLORER = "showOutlinesInProjectExplorer";
 	public static final String NO_AUTOBRACKETPAIRS = "noAutoBracketPairs";
 	public static final String AUTHOR = "author";
+	public static final String IGNORE_SIMPLE_FUNCTION_DUPES = "ignoreSimpleFunctionDupes"; //$NON-NLS-1$
 	
 	// defaults
 	public static final String DOC_URL_TEMPLATE_DEFAULT = Messages.DocURLTemplateDefault;

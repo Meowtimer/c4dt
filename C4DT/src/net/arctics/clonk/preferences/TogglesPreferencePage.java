@@ -22,6 +22,7 @@ public class TogglesPreferencePage extends FieldEditorPreferencePage implements 
 		toggleHumanMap.put(ClonkPreferences.OPEN_EXTERNAL_BROWSER, Messages.ClonkPreferencePage_OpenExternalBrowser);
 		toggleHumanMap.put(ClonkPreferences.STRUCTURE_OUTLINES_IN_PROJECT_EXPLORER, Messages.ClonkPreferencePage_StructureOutlinesInProjectExplorer);
 		toggleHumanMap.put(ClonkPreferences.NO_AUTOBRACKETPAIRS, Messages.ClonkPreferencePage_NoAutoBrackets);
+		toggleHumanMap.put(ClonkPreferences.IGNORE_SIMPLE_FUNCTION_DUPES, Messages.TogglesPreferencePage_IgnoreSimpleFunctionDupes);
 		for (Entry<String, String> entry : toggleHumanMap.entrySet()) {
 			addField(new BooleanFieldEditor(entry.getKey(), entry.getValue(), getFieldEditorParent()));
 		}

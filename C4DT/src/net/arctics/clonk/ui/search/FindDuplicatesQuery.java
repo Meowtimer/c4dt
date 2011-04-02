@@ -90,6 +90,8 @@ public class FindDuplicatesQuery extends ClonkSearchQueryBase implements IASTCom
 	
 	@Override
 	public IStatus run(IProgressMonitor monitor) throws OperationCanceledException {
+		boolean ignoreSimpleFunctions = ClonkPreferences.getPreferenceToggle(ClonkPreferences.IGNORE_SIMPLE_FUNCTION_DUPES, false);
+		
 		detectedDupes.clear();
 		Set<ClonkIndex> indexes = new HashSet<ClonkIndex>();
 		Set<Function> deemedDuplicate = new HashSet<Function>();
@@ -101,6 +103,11 @@ public class FindDuplicatesQuery extends ClonkSearchQueryBase implements IASTCom
 			for (final Function function : entry.getValue()) {
 				if (deemedDuplicate.contains(function))
 					continue;
+				Block functionCodeBlock = function.getCodeBlock();
+				// ignore simple return functions
+				if (ignoreSimpleFunctions)
+					if (functionCodeBlock == null || functionCodeBlock.getStatements().length == 1 && functionCodeBlock.getStatements()[0] instanceof ReturnStatement)
+						continue;
 				for (ClonkIndex index : indexes) {
 					List<Declaration> decs = index.getDeclarationMap().get(function.getName());
 					if (decs == null)
