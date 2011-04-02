@@ -9,6 +9,7 @@ import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.Keywords;
+import net.arctics.clonk.parser.c4script.ast.IASTComparisonDelegate.DifferenceHandling;
 import net.arctics.clonk.parser.stringtbl.StringTbl;
 
 import org.eclipse.jface.text.Region;
@@ -83,5 +84,15 @@ public class FunctionDescription extends Statement implements Serializable {
 			}
 			off += part.length()+1;
 		}
+	}
+	@Override
+	public DifferenceHandling compare(ExprElm other, IASTComparisonDelegate listener) {
+		DifferenceHandling sup = super.compare(other, listener);
+		if (sup != DifferenceHandling.Equal)
+			return sup;
+		if (!((FunctionDescription)other).contents.equals(this.contents))
+			return listener.differs(this, other, "contents");
+		else
+			return DifferenceHandling.Equal;
 	}
 }
