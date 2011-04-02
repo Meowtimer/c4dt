@@ -24,7 +24,7 @@ public class C4GroupTopLevelCompressed extends C4Group {
 	private transient InputStream stream;
 	private long streamPos;
 	
-	protected C4GroupTopLevelCompressed(String name, File file) {
+	public C4GroupTopLevelCompressed(String name, File file) {
 		super(null, name, file);
 	}
 	

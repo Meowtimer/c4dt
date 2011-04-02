@@ -11,6 +11,7 @@ import java.util.Map;
 import net.arctics.clonk.resource.c4group.C4GroupEntryHeader;
 import net.arctics.clonk.resource.c4group.C4Group;
 import net.arctics.clonk.resource.c4group.C4GroupEntry;
+import net.arctics.clonk.resource.c4group.C4GroupTopLevelCompressed;
 import net.arctics.clonk.resource.c4group.C4GroupUncompressed;
 import net.arctics.clonk.resource.c4group.C4GroupHeaderFilterBase;
 import org.eclipse.core.filesystem.IFileStore;
@@ -156,7 +157,7 @@ public class C4GroupFileSystem extends FileSystem {
 					}
 					catch (Exception e) {
 						e.printStackTrace();
-						return failStore();
+						return failStore(file);
 					}
 					rootGroups.put(groupFile, new WeakReference<C4Group>(group));
 				}
@@ -176,12 +177,14 @@ public class C4GroupFileSystem extends FileSystem {
 			return group.findChild(new Path(file.getAbsolutePath().substring(groupFile.getAbsolutePath().length())));
 		}
 		else {
-			return failStore();
+			return failStore(file);
 		}
 	}
 
-	private IFileStore failStore() {
-		return null;
+	private IFileStore failStore(File file) {
+		C4Group group = new C4GroupTopLevelCompressed(file.getName(), file);
+		rootGroups.put(file, new WeakReference<C4Group>(group));
+		return group;
 	}
 
 }
