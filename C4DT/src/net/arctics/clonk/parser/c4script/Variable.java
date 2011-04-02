@@ -384,6 +384,10 @@ public class Variable extends Declaration implements Serializable, ITypedDeclara
 		}
 	}
 	
+	/**
+	 * Return the function this variable was declared in. This also applies for variables declared inside proplist expressions inside functions.
+	 * @return The function or null if there is no function in the parent chain.
+	 */
 	public Function getFunction() {
 		return getTopLevelParentDeclarationOfType(Function.class);
 	}
@@ -391,6 +395,22 @@ public class Variable extends Declaration implements Serializable, ITypedDeclara
 	@Override
 	public boolean typeIsInvariant() {
 		return scope == Scope.CONST || typeLocked;
+	}
+	
+	/**
+	 * Return the parameter index of this variable if it is a function parameter.
+	 * @return Return the parameter index or -1 if the variable is not a function parameter.
+	 */
+	public int parameterIndex() {
+		if (parentDeclaration instanceof Function) {
+			int i = 0;
+			for (Variable v : ((Function)parentDeclaration).getParameters())
+				if (v == this)
+					return i;
+				else
+					i++;
+		}
+		return -1;
 	}
 	
 }
