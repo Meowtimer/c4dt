@@ -41,10 +41,12 @@ public class LightweightLabelDecorator implements ILightweightLabelDecorator {
 			if (!res.getProject().isOpen()) return;
 			if (res instanceof IFolder) {
 				Engine engine = ClonkProjectNature.getEngine(res);
-				GroupType groupType = engine.getGroupTypeForFileName(res.getName());
-				ImageDescriptor imgDesc = engine.getGroupTypeToIconDescriptor().get(groupType);
-				if (imgDesc != null)
-					decoration.addOverlay(imgDesc, IDecoration.REPLACE);
+				if (engine != null) {
+					GroupType groupType = engine.getGroupTypeForFileName(res.getName());
+					ImageDescriptor imgDesc = engine.getGroupTypeToIconDescriptor().get(groupType);
+					if (imgDesc != null)
+						decoration.addOverlay(imgDesc, IDecoration.REPLACE);
+				}
 			}
 			try {
 				int severity = res.findMaxProblemSeverity(IMarker.PROBLEM, true, IResource.DEPTH_INFINITE);
@@ -52,23 +54,6 @@ public class LightweightLabelDecorator implements ILightweightLabelDecorator {
 					decoration.addOverlay(getIcon("warning_co.gif"),IDecoration.BOTTOM_LEFT); //$NON-NLS-1$
 				else if (severity == IMarker.SEVERITY_ERROR)
 					decoration.addOverlay(getIcon("error_co.gif"),IDecoration.BOTTOM_LEFT); //$NON-NLS-1$
-//				IMarker[] markers = res.findMarkers(IMarker.PROBLEM, true, IResource.DEPTH_INFINITE);
-//				if (markers.length > 0) {
-//					int severity = 0;
-//					for(IMarker marker : markers) {
-//						if (marker.getAttribute(IMarker.SEVERITY, IMarker.SEVERITY_INFO) == IMarker.SEVERITY_ERROR) {
-//							severity = 2;
-////							decoration.addOverlay(getIcon("error_co.gif"),IDecoration.BOTTOM_LEFT);
-////							decoration.addOverlay(UI.getIconDescriptor("icons/error_co.gif"),IDecoration.BOTTOM_LEFT);
-//							break;
-//						}
-//						if (marker.getAttribute(IMarker.SEVERITY, IMarker.SEVERITY_INFO) == IMarker.SEVERITY_WARNING) {
-//							if (severity < 2) severity = 1;
-////							decoration.addOverlay(getIcon("warning_co.gif"),IDecoration.BOTTOM_LEFT);
-//						}
-//					}
-//					
-//				}
 			} catch (CoreException e) {
 				e.printStackTrace();
 			}
