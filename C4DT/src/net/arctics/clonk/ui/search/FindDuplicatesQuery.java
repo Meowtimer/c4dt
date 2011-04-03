@@ -27,6 +27,7 @@ import net.arctics.clonk.parser.c4script.ast.BinaryOp;
 import net.arctics.clonk.parser.c4script.ast.Block;
 import net.arctics.clonk.parser.c4script.ast.Comment;
 import net.arctics.clonk.parser.c4script.ast.ExprElm;
+import net.arctics.clonk.parser.c4script.ast.FunctionDescription;
 import net.arctics.clonk.parser.c4script.ast.IASTComparisonDelegate;
 import net.arctics.clonk.parser.c4script.ast.Parenthesized;
 import net.arctics.clonk.parser.c4script.ast.ReturnStatement;
@@ -154,9 +155,9 @@ public class FindDuplicatesQuery extends ClonkSearchQueryBase implements IASTCom
 		if (what == SUBELEMENTS_LENGTH)
 			return DifferenceHandling.IgnoreLeftSide; // either left or right.. doesn't matter
 		// ignore comments on both sides
-		if (b instanceof Comment)
+		if (b instanceof Comment || b instanceof FunctionDescription)
 			return DifferenceHandling.IgnoreRightSide;
-		if (a instanceof Comment)
+		if (a instanceof Comment || a instanceof FunctionDescription)
 			return DifferenceHandling.IgnoreLeftSide;
 		if (a != null && b != null) {
 			
@@ -174,7 +175,7 @@ public class FindDuplicatesQuery extends ClonkSearchQueryBase implements IASTCom
 					int parmA = ((Variable)varA.getDeclaration()).parameterIndex();
 					int parmB = ((Variable)varB.getDeclaration()).parameterIndex();
 					if (parmA != -1 && parmA == parmB)
-						return DifferenceHandling.Equal;
+						return DifferenceHandling.EqualShortCircuited;
 				}
 			}
 			
@@ -203,7 +204,7 @@ public class FindDuplicatesQuery extends ClonkSearchQueryBase implements IASTCom
 							}
 						};
 						if (aCounterpart.compare(b, proxy).isEqual() && a.compare(bCounterpart, proxy).isEqual())
-							return DifferenceHandling.Equal;
+							return DifferenceHandling.EqualShortCircuited;
 					}
 				}
 			}
