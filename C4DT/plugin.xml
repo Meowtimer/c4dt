@@ -635,6 +635,13 @@
 			class="net.arctics.clonk.ui.search.FindDuplicatesSearchResultPage" />
 	</extension>
 	
+	<extension point="org.eclipse.search.searchPages">
+		<page class="net.arctics.clonk.ui.search.C4ScriptSearchPage"
+    		id="net.arcitcs.clonk.ui.ClonkSearchPage"
+			label="%SearchPage_Title">
+		</page>
+	</extension>
+	
 	<extension point="org.eclipse.debug.core.sourceLocators">
 	    <sourceLocator
 	          class="net.arctics.clonk.debug.ClonkDebugSourceLookupDirector"
