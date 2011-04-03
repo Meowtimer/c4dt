@@ -31,8 +31,7 @@
 		<builder id="net.arctics.clonk.builder" />
 	</extension>
 	
-	<extension point="org.eclipse.core.resources.natures" id="c4dt_customization"
-		name="C4DT Customization"> 
+	<extension point="org.eclipse.core.resources.natures" id="c4dt_customization" name="C4DT Customization"> 
 		<runtime>
 			<run class="net.arctics.clonk.resource.CustomizationNature" />
 		</runtime>
@@ -280,8 +279,7 @@
 		</filter>
 	</extension>
 
-	<extension id="builder" name="C4 Builder"
-		point="org.eclipse.core.resources.builders">
+	<extension id="builder" name="C4 Builder" point="org.eclipse.core.resources.builders">
 		<builder hasNature="true">
 			<run class="net.arctics.clonk.resource.ClonkBuilder" />
 		</builder>
@@ -530,7 +528,6 @@
 		
 		<!-- Project Explorer Menu !-->
 		<menuContribution locationURI="popup:org.eclipse.ui.navigator.ProjectExplorer#PopupMenu?after=additions">
-			<separator name="BeforeClonkMenu" visible="true" />
 			<menu label="Clonk">
 				<visibleWhen checkEnabled="false">
 					<iterate operator="and" ifEmpty="false"> 
@@ -590,12 +587,13 @@
 			<menu label="C4DT Customization">
 				<visibleWhen checkEnabled="false">
 					<iterate operator="and" ifEmpty="false"> 
-						<test property="org.eclipse.core.resources.projectNature"  value="net.arctics.clonk.c4dt_customization" /> 
+						<test property="org.eclipse.core.resources.projectNature" value="net.arctics.clonk.c4dt_customization" /> 
 					</iterate> 
 				</visibleWhen>
+				<menu label="Customize File">
+					<dynamic class="net.arctics.clonk.ui.navigator.actions.CustomizationDynamicMenuItem" id="net.arctics.clonk.ui.navigator.actions.CustomizationDynamicMenuItem" />
+				</menu>
 			</menu>
-			
-			<separator name="AfterClonkMenu" visible="true" />
 			
 		</menuContribution>
 		

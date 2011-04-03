@@ -8,6 +8,7 @@ import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.resource.CustomizationNature;
 import net.arctics.clonk.util.StreamUtil;
+import net.arctics.clonk.util.Utilities;
 
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IResource;
@@ -17,6 +18,7 @@ import org.eclipse.core.runtime.Path;
 import org.eclipse.jface.action.ContributionItem;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
@@ -28,8 +30,8 @@ public class CustomizationDynamicMenuItem extends ContributionItem {
 
 	private final class SelListener implements SelectionListener {
 		
-		private static final String URL_PROP = "_url";
-		private static final String PATH_PROP = "_path";
+		private static final String URL_PROP = "_url"; //$NON-NLS-1$
+		private static final String PATH_PROP = "_path"; //$NON-NLS-1$
 		
 		private Engine engine;
 		private IPath resPath;
@@ -43,14 +45,22 @@ public class CustomizationDynamicMenuItem extends ContributionItem {
 				if (nat != null) {
 					Iterable<URL> urls = possibleFiles(container);
 					if (urls != null) {
-						for (URL url : urls) {
+						Outer: for (URL url : urls) {
+							IPath path = engineSpecificPathForURL(url);
+							// ignore any '.'-files
+							for (String s : path.segments())
+								if (s.startsWith(".")) //$NON-NLS-1$
+									continue Outer;
 							MenuItem menuItem = new MenuItem(menu, SWT.RADIO);
-							IPath path = engineSpecificPathForURL(url);							
 							menuItem.setText(path.toOSString());
 							menuItem.addSelectionListener(this);
 							menuItem.setData(URL_PROP, url);
 							menuItem.setData(PATH_PROP, path);
 						}
+					} else {
+						MenuItem failItem = new MenuItem(menu, SWT.RADIO);
+						failItem.setEnabled(false);
+						failItem.setText(Messages.CustomizationDynamicMenuItem_SelectTopLevelEngineFolder);
 					}
 				}
 			}
@@ -69,7 +79,8 @@ public class CustomizationDynamicMenuItem extends ContributionItem {
 		@Override
 		public void widgetSelected(SelectionEvent event) {
 			URL url = (URL)event.widget.getData(URL_PROP);
-			String fileName = ((IPath)event.widget.getData(PATH_PROP)).toOSString();
+			IPath path = (IPath) event.widget.getData(PATH_PROP);
+			String fileName = path.toOSString();
 			OutputStream outputStream = engine.outputStreamForStorageLocationEntry(resPath.append(fileName).toString());
 			if (outputStream != null) try {
 				try {
@@ -91,6 +102,7 @@ public class CustomizationDynamicMenuItem extends ContributionItem {
 			}
 			try {
 				container.refreshLocal(IResource.DEPTH_INFINITE, null);
+				Utilities.getProjectExplorer().selectReveal(new StructuredSelection(container.getFile(resPath.append(path))));
 			} catch (CoreException e) {
 				e.printStackTrace();
 			}
@@ -108,8 +120,11 @@ public class CustomizationDynamicMenuItem extends ContributionItem {
 			String engineName = resPath.segment(0);
 			resPath = resPath.removeFirstSegments(1);
 			engine = ClonkCore.getDefault().loadEngine(engineName);
-			Iterable<URL> filesToReplicate = engine.getURLsOfStorageLocationPath(resPath.toString(), true);
-			return filesToReplicate;
+			if (engine != null) {
+				Iterable<URL> filesToReplicate = engine.getURLsOfStorageLocationPath(resPath.toString(), true);
+				return filesToReplicate;
+			} else
+				return null;
 		}
 	}
 
