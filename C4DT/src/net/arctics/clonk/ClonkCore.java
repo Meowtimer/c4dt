@@ -627,17 +627,18 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 		return textFileDocumentProvider;
 	}
 	
-	public interface IDocumentAction {
-		void run(IDocument document);
+	public interface IDocumentAction<T> {
+		T run(IDocument document);
 	}
 	
-	public void performActionsOnFileDocument(IResource resource, IDocumentAction action) throws CoreException {
+	public <T> T performActionsOnFileDocument(IResource resource, IDocumentAction<T> action) throws CoreException {
 		IDocumentProvider provider = getTextFileDocumentProvider();
 		provider.connect(resource);
 		try {
 			IDocument document = provider.getDocument(resource);
-			action.run(document);
+			T result = action.run(document);
 			provider.saveDocument(null, resource, document, true);
+			return result;
 		} finally {
 			provider.disconnect(resource);
 		}

@@ -287,10 +287,11 @@ public class ClonkQuickAssistProcessor implements IQuickAssistProcessor {
 
 		public void runOnMarker(IMarker marker) {
 			try {
-				ClonkCore.getDefault().performActionsOnFileDocument(marker.getResource(), new IDocumentAction() {
+				ClonkCore.getDefault().performActionsOnFileDocument(marker.getResource(), new IDocumentAction<Object>() {
 					@Override
-					public void run(IDocument document) {
+					public Object run(IDocument document) {
 						apply(document);
+						return null;
 					}
 				});
 			} catch (CoreException e) {

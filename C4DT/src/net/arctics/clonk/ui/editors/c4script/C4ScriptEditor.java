@@ -12,6 +12,7 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 import net.arctics.clonk.ClonkCore;
+import net.arctics.clonk.ClonkCore.IDocumentAction;
 import net.arctics.clonk.index.ClonkIndex;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.ParserErrorCode;
@@ -46,7 +47,6 @@ import net.arctics.clonk.ui.editors.actions.c4script.FindDuplicateAction;
 import net.arctics.clonk.ui.editors.actions.c4script.TidyUpCodeAction;
 import net.arctics.clonk.ui.editors.actions.c4script.FindReferencesAction;
 import net.arctics.clonk.ui.editors.actions.c4script.RenameDeclarationAction;
-import net.arctics.clonk.util.StreamUtil;
 import net.arctics.clonk.util.Utilities;
 
 import org.eclipse.core.resources.IFile;
@@ -616,17 +616,26 @@ public class C4ScriptEditor extends ClonkTextEditor {
 	private static C4ScriptParser reparseWithDocumentContents(
 			IScriptParserListener exprListener,
 			boolean onlyDeclarations, Object document,
-			ScriptBase script,
+			final ScriptBase script,
 			Runnable uiRefreshRunnable)
 			throws ParsingException {
-		C4ScriptParser parser;
+		C4ScriptParser parser = null;
 		if (document instanceof IDocument) {
 			parser = new C4ScriptParser(((IDocument)document).get(), script, script.getScriptFile());
 		} else if (document instanceof IFile) {
-			parser = new C4ScriptParser(StreamUtil.stringFromFile((IFile)document), script, (IFile)document);
-		} else {
-			throw new InvalidParameterException("document");
+			try {
+				parser = ClonkCore.getDefault().performActionsOnFileDocument((IResource) document, new IDocumentAction<C4ScriptParser>() {
+					@Override
+					public C4ScriptParser run(IDocument document) {
+						return new C4ScriptParser(document.get(), script, script.getScriptFile());
+					}
+				});
+			} catch (CoreException e) {
+				e.printStackTrace();
+			}
 		}
+		if (parser == null)
+			throw new InvalidParameterException("document");
 		List<IStoredTypeInformation> storedLocalsTypeInformation = null;
 		if (onlyDeclarations) {
 			// when only parsing declarations store type information for variables declared in the script
