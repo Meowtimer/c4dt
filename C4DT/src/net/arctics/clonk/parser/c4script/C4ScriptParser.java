@@ -2287,19 +2287,16 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	 * @throws ParsingException
 	 */
 	private boolean parsePlaceholderString() throws ParsingException {
-		int delimiter = read();
-		if (delimiter != '$') {
+		if (read() != '$') {
 			unread();
 			return false;
 		}
 		StringBuilder builder = new StringBuilder();
 		do {
 			if (builder.length() > 0) builder.append(this.readString(1));
-			builder.append(this.readStringUntil((char)delimiter));
+			builder.append(this.readStringUntil('$'));
 		} while (builder.length() != 0 && (builder.charAt(builder.length() - 1) == '\\'));
-		if (read() != '$') {
-			throw new ParsingException(Messages.InternalParserError);
-		}
+		expect('$');
 		currentFunctionContext.parsedString = builder.toString();
 		return true;
 	}
@@ -3109,6 +3106,80 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		var.setParentDeclaration(function);
 		function.getParameters().add(var);
 		return true;
+	}
+	
+	private boolean testForString(String s) {
+		String t = readString(s.length());
+		return t != null && t.equals(s);
+	}
+	
+	@SuppressWarnings("unchecked")
+	private Wildcard parseWildcard() throws ParsingException {
+		int savedOffset = this.offset;
+		if (testForString(Wildcard.START)) {
+			Wildcard result = new Wildcard();
+			while (true) {
+				eatWhitespace();
+				if (!parseIdentifier())
+					break;
+				String attr = currentFunctionContext.parsedString;
+				eatWhitespace();
+				expect(':');
+				eatWhitespace();
+				if (attr.equals(Wildcard.PROP_CLASSES)) {
+					List<Class<? extends ExprElm>> classes = new LinkedList<Class<? extends ExprElm>>();
+					while (true) {
+						eatWhitespace();
+						int classNameStart = this.offset;
+						if (!parseIdentifier())
+							break;
+						Class<? extends ExprElm> c;
+						try {
+							c = (Class<? extends ExprElm>) Class.forName(ExprElm.class.getPackage().getName()+"."+currentFunctionContext.parsedString);
+						} catch (ClassNotFoundException e) {
+							e.printStackTrace();
+							c = null;
+						}
+						if (c != null)
+							classes.add(c);
+						else
+							errorWithCode(ParserErrorCode.UndeclaredIdentifier, classNameStart, this.offset, ABSOLUTE_MARKER_LOCATION|NO_THROW, currentFunctionContext.parsedString);
+						if (read() != ',') {
+							unread();
+							break;
+						}
+					}
+					eatWhitespace();
+					result.setAcceptedClasses(classes);
+				}
+				else if (attr.equals(Wildcard.PROP_TAG)) {
+					if (parseIdentifier())
+						result.setTag(currentFunctionContext.parsedString);
+					else
+						errorWithCode(ParserErrorCode.UnexpectedToken, offset, offset+1, ABSOLUTE_MARKER_LOCATION|NO_THROW, (char)peek());
+				}
+				else if (attr.equals(Wildcard.PROP_TEMPLATE)) {
+					boolean oaed = allErrorsDisabled;
+					allErrorsDisabled = true;
+					try {
+						ExprElm e = parseStatement();
+						e.setFinishedProperly(true);
+						result.setTemplate(e);
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
+					finally {
+						allErrorsDisabled = oaed;
+					}
+				}
+			}
+			int s = this.offset;
+			if (!testForString(Wildcard.END))
+				errorWithCode(ParserErrorCode.TokenExpected, s, s+2, ABSOLUTE_MARKER_LOCATION|NO_THROW, "$§");
+			return result;
+		}
+		seek(savedOffset);
+		return null;
 	}
 
 	/**
