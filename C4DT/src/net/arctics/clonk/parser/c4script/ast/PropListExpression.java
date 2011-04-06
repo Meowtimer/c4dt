@@ -7,11 +7,11 @@ import java.util.Map;
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.c4script.DeclarationObtainmentContext;
-import net.arctics.clonk.parser.c4script.ScriptBase;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.Variable;
 import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.parser.c4script.ProplistDeclaration;
+import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
 import net.arctics.clonk.parser.inireader.IniData.IniConfiguration;
 
 public class PropListExpression extends Value {
@@ -89,7 +89,7 @@ public class PropListExpression extends Value {
 	}
 	
 	@Override
-	public Object evaluateAtParseTime(ScriptBase context) {
+	public Object evaluateAtParseTime(IEvaluationContext context) {
 		List<Variable> components = getComponents();
 		Map<String, Object> map = new HashMap<String, Object>(components.size());
 		for (Variable component : components) {

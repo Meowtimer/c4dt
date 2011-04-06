@@ -2,9 +2,9 @@ package net.arctics.clonk.parser.c4script.ast;
 
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.c4script.DeclarationObtainmentContext;
-import net.arctics.clonk.parser.c4script.ScriptBase;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.IType;
+import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
 
 public class Parenthesized extends Value {
 
@@ -56,7 +56,7 @@ public class Parenthesized extends Value {
 	}
 
 	@Override
-	public Object evaluateAtParseTime(ScriptBase context) {
+	public Object evaluateAtParseTime(IEvaluationContext context) {
 		return innerExpr.evaluateAtParseTime(context);
 	}
 

@@ -25,7 +25,7 @@ public class SpecialScriptRules_ClonkRage extends SpecialScriptRules {
 					if (t != null) for (IType ty : t) {
 						if (ty instanceof Definition) {
 							Definition def = (Definition)ty;
-							DeclarationRegion result = getActionLinkForDefinition(def, parmExpression);
+							DeclarationRegion result = getActionLinkForDefinition(parser.getCurrentFunc(), def, parmExpression);
 							if (result != null)
 								return result;
 						}

@@ -399,6 +399,8 @@
 		</factory>
 	</extension>
 
+	<!-- Commands accessible by menu items !-->
+
 	<extension point="org.eclipse.ui.commands">
 	
 		<command categoryId="org.eclipse.ui.category.edit"
@@ -526,8 +528,8 @@
 			</menu>
 		</menuContribution>
 		
-		<!-- Project Explorer Menu !-->
 		<menuContribution locationURI="popup:org.eclipse.ui.navigator.ProjectExplorer#PopupMenu?after=additions">
+			<!-- Project Explorer Menu for Clonk projects !-->
 			<menu label="Clonk">
 				<visibleWhen checkEnabled="false">
 					<iterate operator="and" ifEmpty="false"> 
@@ -583,7 +585,8 @@
 					</visibleWhen>
 				</command>
 			</menu>
-
+			
+			<!-- Project Explorer menu for C4DT customization projects !-->
 			<menu label="C4DT Customization">
 				<visibleWhen checkEnabled="false">
 					<iterate operator="and" ifEmpty="false"> 
@@ -638,7 +641,8 @@
 	<extension point="org.eclipse.search.searchPages">
 		<page class="net.arctics.clonk.ui.search.C4ScriptSearchPage"
     		id="net.arcitcs.clonk.ui.ClonkSearchPage"
-			label="%SearchPage_Title">
+			label="%SearchPage_Title"
+			icon="icons/c4scriptIcon.png">
 		</page>
 	</extension>
 	

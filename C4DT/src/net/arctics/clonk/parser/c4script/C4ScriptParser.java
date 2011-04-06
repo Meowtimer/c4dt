@@ -76,6 +76,7 @@ import net.arctics.clonk.parser.c4script.ast.Tuple;
 import net.arctics.clonk.parser.c4script.ast.TypeExpectancyMode;
 import net.arctics.clonk.parser.c4script.ast.UnaryOp;
 import net.arctics.clonk.parser.c4script.ast.VarDeclarationStatement;
+import net.arctics.clonk.parser.c4script.ast.Wildcard;
 import net.arctics.clonk.parser.c4script.ast.VarDeclarationStatement.VarInitialization;
 import net.arctics.clonk.parser.c4script.ast.WhileStatement;
 import net.arctics.clonk.resource.ClonkBuilder;
@@ -233,7 +234,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	 */
 	public void unnamedParamaterUsed(ExprElm index) {
 		if (currentFunctionContext.numUnnamedParameters < UNKNOWN_PARAMETERNUM) {
-			Object ev = index.evaluateAtParseTime(getContainer());
+			Object ev = index.evaluateAtParseTime(getCurrentFunc());
 			if (ev instanceof Number) {
 				int number = ((Number)ev).intValue();
 				currentFunctionContext.numUnnamedParameters = number >= 0 && number < MAX_PAR ? number+1 : UNKNOWN_PARAMETERNUM;
@@ -604,14 +605,12 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 			if (nameLocal != null) {
 				ExprElm expr = nameLocal.getInitializationExpression();
 				if (expr != null) {
-					obj.setName(expr.evaluateAtParseTime(container).toString());
-				} else if (nameLocal.getDefaultValue() instanceof String) {
-					obj.setName((String)nameLocal.getDefaultValue());
+					obj.setName(expr.evaluateAtParseTime(obj).toString());
 				}
 			}
 			
 			// find SetProperty call in Definition func
-			Function definitionFunc = obj.findLocalFunction(Keywords.DefinitionFunc, false);
+			final Function definitionFunc = obj.findLocalFunction(Keywords.DefinitionFunc, false);
 			if (definitionFunc != null && definitionFunc.getBody() != null) { // could also be engine function without body
 				this.seek(definitionFunc.getBody().getStart());
 				boolean old = allErrorsDisabled;
@@ -629,7 +628,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 									callFunc.getParams()[0] instanceof StringLiteral &&
 									((StringLiteral)callFunc.getParams()[0]).getLiteral().equals("Name") //$NON-NLS-1$
 								) {
-									Object v = callFunc.getParams()[1].evaluateAtParseTime(obj);
+									Object v = callFunc.getParams()[1].evaluateAtParseTime(definitionFunc);
 									if (v instanceof String) {
 										obj.setName((String) v);
 									}
@@ -731,7 +730,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		catch (Exception e) {
 			// errorWithCode throws ^^;
 			e.printStackTrace();
-			errorWithCode(ParserErrorCode.InternalError, this.offset, this.offset+1, true, e.getMessage());
+			errorWithCode(ParserErrorCode.InternalError, this.offset, this.offset+1, NO_THROW, e.getMessage());
 		}
 		finally {
 			currentFunctionContext.currentDeclaration = oldDec;
@@ -925,10 +924,11 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 									// to tidy up both the function code and the initialization expression separately
 									switch (scope) {
 									case CONST:
-										if (varInitialization.expression.isConstant()) {
-											varInitialization.variableBeingInitialized.setConstValue(varInitialization.expression.evaluateAtParseTime(getContainer()));
+										// never evaluate expressions, it's nice to have them and stuff
+										/*if (varInitialization.expression.isConstant()) {
+											varInitialization.variableBeingInitialized.setConstValue(varInitialization.expression.evaluateAtParseTime(Utilities.or(getCurrentFunc(), container)));
 											break;
-										}
+										}*/
 										// fallthrough
 									case LOCAL: case STATIC:
 										varInitialization.variableBeingInitialized.setInitializationExpression(varInitialization.expression);
@@ -1703,7 +1703,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 				break;
 			}
 			// kind of a hack; stop at 'in' but only if there were other things before it
-			if (elements.size() > 0 && readIdent().equals(Keywords.In)) {
+			if (elements.size() > 0 && Keywords.In.equals(readIdent())) {
 				this.seek(elmStart);
 				break;
 			}
@@ -1817,6 +1817,10 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 			if (elm == null && parsePlaceholderString()) {
 				elm = new Placeholder(currentFunctionContext.parsedString);
 			}
+			
+			// § ... §
+			if (elm == null)
+				elm = parseWildcard();
 			
 			// check if sequence is valid (CreateObject(BLUB)->localvar is not)
 			if (elm != null) {
@@ -2919,7 +2923,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	private void loopConditionWarnings(Statement body, ExprElm condition) {
 		if (body == null || condition == null)
 			return;
-		Object condEv = PrimitiveType.BOOL.convert(condition == null ? true : condition.evaluateAtParseTime(getContainer()));
+		Object condEv = PrimitiveType.BOOL.convert(condition == null ? true : condition.evaluateAtParseTime(getCurrentFunc()));
 		if (Boolean.FALSE.equals(condEv))
 			warningWithCode(ParserErrorCode.ConditionAlwaysFalse, condition, condition.toString());
 		else if (Boolean.TRUE.equals(condEv)) {
@@ -2999,7 +3003,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		currentFunctionContext.storedTypeInformationListStack.push(merger.finish(currentFunctionContext.storedTypeInformationListStack.pop()));
 		
 		if (!containsConst(condition)) {
-			Object condEv = PrimitiveType.BOOL.convert(condition.evaluateAtParseTime(getContainer()));
+			Object condEv = PrimitiveType.BOOL.convert(condition.evaluateAtParseTime(getCurrentFunc()));
 			if (condEv != null && condEv != ExprElm.EVALUATION_COMPLEX) {
 				warningWithCode(condEv.equals(true) ? ParserErrorCode.ConditionAlwaysTrue : ParserErrorCode.ConditionAlwaysFalse,
 						condition, condition.toString());

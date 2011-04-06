@@ -2,8 +2,8 @@ package net.arctics.clonk.parser.c4script.ast;
 
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.ParserErrorCode;
+import net.arctics.clonk.parser.SourceLocation;
 import net.arctics.clonk.parser.c4script.DeclarationObtainmentContext;
-import net.arctics.clonk.parser.c4script.ScriptBase;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.parser.c4script.ast.IASTComparisonDelegate.DifferenceHandling;
@@ -49,7 +49,8 @@ public class Literal<T> extends Value {
 	}
 
 	@Override
-	public T evaluateAtParseTime(ScriptBase context) {
+	public T evaluateAtParseTime(IEvaluationContext context) {
+		context.reportOriginForExpression(this, new SourceLocation(context.getCodeFragmentOffset(), this), context.getScript().getScriptFile());
 		return literal;
 	}
 	

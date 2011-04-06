@@ -1,8 +1,13 @@
 package net.arctics.clonk.command;
 
+import org.eclipse.core.resources.IFile;
+
 import net.arctics.clonk.ClonkCore;
+import net.arctics.clonk.parser.SourceLocation;
 import net.arctics.clonk.parser.c4script.Function;
+import net.arctics.clonk.parser.c4script.ScriptBase;
 import net.arctics.clonk.parser.c4script.ast.ControlFlowException;
+import net.arctics.clonk.parser.c4script.ast.ExprElm;
 import net.arctics.clonk.parser.c4script.ast.ReturnException;
 import net.arctics.clonk.parser.c4script.ast.Statement;
 import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
@@ -29,6 +34,21 @@ public class InvokableFunction extends Function {
 			@Override
 			public Object getValueForVariable(String varName) {
 				return variableProvider != null ? variableProvider.getValueForVariable(varName) : null;
+			}
+
+			@Override
+			public void reportOriginForExpression(ExprElm expression, SourceLocation location, IFile file) {
+				
+			}
+
+			@Override
+			public ScriptBase getScript() {
+				return InvokableFunction.this.getScript();
+			}
+
+			@Override
+			public int getCodeFragmentOffset() {
+				return InvokableFunction.this.getCodeFragmentOffset();
 			}
 
 		};

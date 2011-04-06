@@ -24,12 +24,14 @@ public class Messages extends NLS {
 	public static String MissingDirectiveArgs;
 	public static String MissingClosingBracket;
 	public static String MissingExpression;
+	public static String MissingFormatArg;
 	public static String MissingLocalizations;
 	public static String MissingStatement;
 	public static String CallingMethodOnNonObject;
 	public static String ConstantValueExpected;
 	public static String CommaOrSemicolonExpected;
 	public static String IdentShadowed;
+	public static String IncompatibleFormatArgType;
 	public static String IncompatibleTypes;
 	public static String VariableCalled;
 	public static String VarOutsideFunction;

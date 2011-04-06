@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import org.eclipse.core.resources.IFile;
 import org.eclipse.jface.text.IRegion;
 
 import net.arctics.clonk.index.Engine;
@@ -17,6 +18,7 @@ import net.arctics.clonk.parser.c4script.ast.Block;
 import net.arctics.clonk.parser.c4script.ast.Conf;
 import net.arctics.clonk.parser.c4script.ast.ExprElm;
 import net.arctics.clonk.parser.c4script.ast.TypeExpectancyMode;
+import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
 import net.arctics.clonk.preferences.ClonkPreferences;
 import net.arctics.clonk.util.ArrayUtil;
 import net.arctics.clonk.util.CompoundIterable;
@@ -27,7 +29,7 @@ import net.arctics.clonk.util.Utilities;
  * @author ZokRadonh
  *
  */
-public class Function extends Structure implements Serializable, ITypedDeclaration, IHasUserDescription, IRegion {
+public class Function extends Structure implements Serializable, ITypedDeclaration, IHasUserDescription, IRegion, IEvaluationContext {
 	
 	public static final String QUALIFIED_NAME_FORMAT = "%2$s (%1$s)";
 	
@@ -748,6 +750,31 @@ public class Function extends Structure implements Serializable, ITypedDeclarati
 	 */
 	public String getQualifiedName() {
 		return String.format(QUALIFIED_NAME_FORMAT, getScript().getResource().getProjectRelativePath().toString(), getLongParameterString(true));
+	}
+
+	@Override
+	public Object getValueForVariable(String varName) {
+		return findVariable(varName); // return meta object instead of concrete value
+	}
+
+	@Override
+	public Object[] getArguments() {
+		return getParameters().toArray();
+	}
+
+	@Override
+	public Function getFunction() {
+		return this;
+	}
+
+	@Override
+	public void reportOriginForExpression(ExprElm expression, SourceLocation location, IFile file) {
+		// oh interesting
+	}
+	
+	@Override
+	public int getCodeFragmentOffset() {
+		return body != null ? body.getOffset() : 0;
 	}
 	
 }

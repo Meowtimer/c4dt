@@ -29,11 +29,13 @@ import net.arctics.clonk.index.ClonkIndex;
 import net.arctics.clonk.parser.BufferedScanner;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.ID;
+import net.arctics.clonk.parser.SourceLocation;
 import net.arctics.clonk.parser.Structure;
 import net.arctics.clonk.parser.c4script.Directive.DirectiveType;
 import net.arctics.clonk.parser.c4script.Function.C4FunctionScope;
 import net.arctics.clonk.parser.c4script.Variable.Scope;
 import net.arctics.clonk.parser.c4script.ast.ExprElm;
+import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
 import net.arctics.clonk.preferences.ClonkPreferences;
 import net.arctics.clonk.util.ArrayUtil;
 import net.arctics.clonk.util.CompoundIterable;
@@ -60,7 +62,7 @@ import org.xml.sax.SAXException;
  * Base class for various objects that act as containers of stuff declared in scripts/ini files.
  * Subclasses include C4Object, C4StandaloneScript etc.
  */
-public abstract class ScriptBase extends Structure implements ITreeNode, IHasConstraint, IType {
+public abstract class ScriptBase extends Structure implements ITreeNode, IHasConstraint, IType, IEvaluationContext {
 
 	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 
@@ -955,6 +957,31 @@ public abstract class ScriptBase extends Structure implements ITreeNode, IHasCon
 	@Override
 	public IType staticType() {
 		return PrimitiveType.OBJECT;
+	}
+	
+	@Override
+	public Function getFunction() {
+		return null;
+	}
+	
+	@Override
+	public void reportOriginForExpression(ExprElm expression, SourceLocation location, IFile file) {
+		// cool.
+	}
+	
+	@Override
+	public Object[] getArguments() {
+		return new Object[0];
+	}
+	
+	@Override
+	public Object getValueForVariable(String varName) {
+		return findLocalVariable(varName, true); // whatever
+	}
+	
+	@Override
+	public int getCodeFragmentOffset() {
+		return 0;
 	}
 
 }

@@ -378,18 +378,6 @@ public class BufferedScanner {
 		seek(p);
 		return result;
 	}
-
-	/**
-	 * Returns the first character from the current offset that is not whitespace. This method does not alter the current offset
-	 * @return
-	 */
-	public int peekAfterWhitespace() {
-		int pos = offset;
-		eatWhitespace();
-		int result = read();
-		seek(pos);
-		return result;
-	}
 	
 	/**
 	 * Returns whether c is a line delimiter char
@@ -467,7 +455,7 @@ public class BufferedScanner {
 	
 	@Override
 	public String toString() {
-		return "offset: " + getPosition() + "; next: " + (char)peek(); //$NON-NLS-1$ //$NON-NLS-2$
+		return "offset: " + getPosition() + "; next: " + peekString(10); //$NON-NLS-1$ //$NON-NLS-2$
 	}
 
 	/**
@@ -478,6 +466,25 @@ public class BufferedScanner {
 		int p = read();
 		unread();
 		return p;
+	}
+	
+	/**
+	 * Returns the first character from the current offset that is not whitespace. This method does not alter the current offset
+	 * @return
+	 */
+	public int peekAfterWhitespace() {
+		int pos = offset;
+		eatWhitespace();
+		int result = read();
+		seek(pos);
+		return result;
+	}
+	
+	public String peekString(int length) {
+		int pos = offset;
+		String result = readString(Math.min(length, size-offset));
+		seek(pos);
+		return result;
 	}
 	
 	public String stringAtRegion(IRegion region) {

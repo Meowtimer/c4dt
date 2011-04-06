@@ -1,10 +1,13 @@
 package net.arctics.clonk.parser.c4script.ast;
 
+import org.eclipse.core.resources.IFile;
+
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.ParsingException;
+import net.arctics.clonk.parser.SourceLocation;
 import net.arctics.clonk.parser.c4script.ConstrainedObject;
 import net.arctics.clonk.parser.c4script.DeclarationObtainmentContext;
 import net.arctics.clonk.parser.c4script.Function;
@@ -19,6 +22,7 @@ import net.arctics.clonk.parser.c4script.Function.C4FunctionScope;
 import net.arctics.clonk.parser.c4script.IHasConstraint.ConstraintKind;
 import net.arctics.clonk.parser.c4script.Variable.Scope;
 import net.arctics.clonk.parser.c4script.ProplistDeclaration;
+import net.arctics.clonk.parser.c4script.ast.evaluate.EvaluationContextProxy;
 import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
 
 public class AccessVar extends AccessDeclaration {
@@ -193,12 +197,21 @@ public class AccessVar extends AccessDeclaration {
 	}
 
 	@Override
-	public Object evaluateAtParseTime(ScriptBase context) {
+	public Object evaluateAtParseTime(final IEvaluationContext context) {
 		Definition obj;
 		if (declaration instanceof Variable) {
-			Variable var = (Variable) declaration;
+			final Variable var = (Variable) declaration;
 			if (var.getScope() == Scope.CONST) {
-				Object val = var.getDefaultValue();
+				// if the whole of the initialization expression of the const gets evaluated to some traceable location,
+				// report that to the original context as the origin of the AccessVar expression
+				// evaluate in the context of the var by proxy
+				Object val = var.evaluateInitializationExpression(new EvaluationContextProxy(var) {
+					@Override
+					public void reportOriginForExpression(ExprElm expression, SourceLocation location, IFile file) {
+						if (expression == var.getInitializationExpression())
+							context.reportOriginForExpression(AccessVar.this, location, file);
+					}
+				});
 				if (val == null)
 					val = 1337; // awesome fallback
 				return val;

@@ -104,7 +104,7 @@ public class SpecialScriptRules_OpenClonk extends SpecialScriptRules {
 		@Override
 		public IType returnType(DeclarationObtainmentContext context, CallFunc callFunc) {
 			Object parmEv;
-			if (callFunc.getParams().length >= 1 && (parmEv = callFunc.getParams()[0].evaluateAtParseTime(context.getContainer())) instanceof String) {
+			if (callFunc.getParams().length >= 1 && (parmEv = callFunc.getParams()[0].evaluateAtParseTime(context.getCurrentFunc())) instanceof String) {
 				String effectName = (String) parmEv;
 				for (EffectFunction.HardcodedCallbackType t : EffectFunction.HardcodedCallbackType.values()) {
 					Declaration d = CallFunc.findFunctionUsingPredecessor(
@@ -168,7 +168,7 @@ public class SpecialScriptRules_OpenClonk extends SpecialScriptRules {
 		@Override
 		public boolean validateArguments(CallFunc callFunc, ExprElm[] arguments, C4ScriptParser parser) {
 			if (arguments.length >= 2 && parser.getCurrentFunc() instanceof DefinitionFunction) {
-				Object nameEv = arguments[0].evaluateAtParseTime(parser.getContainer());
+				Object nameEv = arguments[0].evaluateAtParseTime(parser.getCurrentFunc());
 				if (nameEv instanceof String) {
 					Variable var = new Variable((String) nameEv, arguments[1].getType(parser));
 					var.setLocation(parser.absoluteSourceLocationFromExpr(arguments[0]));
@@ -199,14 +199,14 @@ public class SpecialScriptRules_OpenClonk extends SpecialScriptRules {
 		// override SetAction link rule to also take into account local 'ActMap' vars
 		setActionLinkRule = new SetActionLinkRule() {
 			@Override
-			protected DeclarationRegion getActionLinkForDefinition(Definition definition, ExprElm parmExpression) {
+			protected DeclarationRegion getActionLinkForDefinition(Function currentFunction, Definition definition, ExprElm parmExpression) {
 				if (definition == null)
 					return null;
 				Object parmEv;
-				DeclarationRegion result = super.getActionLinkForDefinition(definition, parmExpression);
+				DeclarationRegion result = super.getActionLinkForDefinition(currentFunction, definition, parmExpression);
 				if (result != null)
 					return result;
-				else if ((parmEv = parmExpression.evaluateAtParseTime(definition)) instanceof String) {
+				else if ((parmEv = parmExpression.evaluateAtParseTime(currentFunction)) instanceof String) {
 					Variable actMapLocal = definition.findLocalVariable("ActMap", true); //$NON-NLS-1$
 					if (actMapLocal != null && actMapLocal.getType() != null) {
 						for (IType ty : actMapLocal.getType()) if (ty instanceof ProplistDeclaration) {
@@ -226,7 +226,7 @@ public class SpecialScriptRules_OpenClonk extends SpecialScriptRules {
 				IType t = callFunc.getPredecessorInSequence() != null ? callFunc.getPredecessorInSequence().getType(parser) : null;
 				if (t != null) for (IType ty : t) {
 					if (ty instanceof Definition) {
-						DeclarationRegion result = getActionLinkForDefinition((Definition)ty, parmExpression);
+						DeclarationRegion result = getActionLinkForDefinition(parser.getCurrentFunc(), (Definition)ty, parmExpression);
 						if (result != null)
 							return result;
 					}

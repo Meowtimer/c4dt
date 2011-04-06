@@ -5,7 +5,6 @@ import java.util.regex.Matcher;
 
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.c4script.Function;
-
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IRegion;
@@ -16,16 +15,20 @@ public class SourceLocation implements IRegion, Serializable {
 	
 	private int start, end;
 	public SourceLocation(int start,int end) {
-		this.setStart(start);
-		this.setEnd(end);
+		this.start = start;
+		this.end = end;
 	}
 	public SourceLocation(Matcher matcher) {
-		this.setStart(matcher.start());
-		this.setEnd(matcher.end());
+		start = matcher.start();
+		end = matcher.end();
 	}
 	public SourceLocation(IRegion region, Function relative) {
-		this.setStart(relative.getBody().getStart()+region.getOffset());
-		this.setEnd(relative.getBody().getStart()+region.getOffset()+region.getLength());
+		start = relative.getBody().getStart()+region.getOffset();
+		end = relative.getBody().getStart()+region.getOffset()+region.getLength();
+	}
+	public SourceLocation(int offset, IRegion relativeLocation) {
+		start = offset+relativeLocation.getOffset();
+		end = offset+relativeLocation.getOffset()+relativeLocation.getLength();
 	}
 	
 	/**
@@ -79,6 +82,10 @@ public class SourceLocation implements IRegion, Serializable {
 	@Override
 	public int hashCode() {
 		return (int)(start ^ start >>> 32) * 37 + (int)(end ^ end >>> 32) * 37;
+	}
+	
+	public SourceLocation offset(int o) {
+		return new SourceLocation(o+start, o+end);
 	}
 
 }

@@ -426,6 +426,13 @@ public abstract class Utilities {
 		return type.isInstance(obj) ? type.cast(obj) : null;
 	}
 	
+	public static <A> A or(A a, A b) {
+		if (a != null)
+			return a;
+		else
+			return b;
+	}
+	
 	// --------
 	
 	public static String htmlerize(String text) {

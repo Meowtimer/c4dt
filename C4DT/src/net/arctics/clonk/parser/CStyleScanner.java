@@ -73,9 +73,9 @@ public class CStyleScanner extends BufferedScanner {
 	
 	@Override
 	public int eatWhitespace() {
-		int pos = getPosition();
+		int pos = offset;
 		while (super.eatWhitespace() > 0 || parseComment());
-		return getPosition()-pos;
+		return offset-pos;
 	}
 	
 	public int eatWhitespaceReportingComments(List<Comment> commentSink) {

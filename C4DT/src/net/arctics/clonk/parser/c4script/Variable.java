@@ -1,10 +1,10 @@
 package net.arctics.clonk.parser.c4script;
 
 import java.io.Serializable;
-import java.security.InvalidParameterException;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.eclipse.core.resources.IFile;
 import org.eclipse.jface.text.IRegion;
 
 import net.arctics.clonk.ClonkCore;
@@ -14,9 +14,11 @@ import net.arctics.clonk.index.ProjectDefinition;
 import net.arctics.clonk.index.ClonkIndex;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.ID;
+import net.arctics.clonk.parser.SourceLocation;
 import net.arctics.clonk.parser.c4script.ast.ExprElm;
 import net.arctics.clonk.parser.c4script.ast.PropListExpression;
 import net.arctics.clonk.parser.c4script.ast.TypeExpectancyMode;
+import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.ui.editors.c4script.IPostSerializable;
 import net.arctics.clonk.util.Utilities;
@@ -26,7 +28,7 @@ import net.arctics.clonk.util.Utilities;
  * @author ZokRadonh
  *
  */
-public class Variable extends Declaration implements Serializable, ITypedDeclaration, IHasUserDescription {
+public class Variable extends Declaration implements Serializable, ITypedDeclaration, IHasUserDescription, IEvaluationContext {
 
 	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 	
@@ -53,7 +55,7 @@ public class Variable extends Declaration implements Serializable, ITypedDeclara
 	/**
 	 * Initialize expression for locals; not constant so saving value is not sufficient
 	 */
-	private Object initializationExpression;
+	private ExprElm initializationExpression;
 	
 	/**
 	 * Whether the variable was used in some expression
@@ -251,19 +253,9 @@ public class Variable extends Declaration implements Serializable, ITypedDeclara
 		if (!typeLocked && !(getScript() instanceof Engine))
 			ITypedDeclaration.Default.expectedToBeOfType(this, t);
 	}
-
-	public Object getDefaultValue() {
-		return initializationExpression instanceof ExprElm ? null : initializationExpression;
-	}
-
-	public void setConstValue(Object constValue) {
-		if (PrimitiveType.typeFrom(constValue) == PrimitiveType.ANY)
-			throw new InvalidParameterException("constValue must be of primitive type recognized by C4Type"); //$NON-NLS-1$
-		this.initializationExpression = constValue;
-	}
 	
 	public ExprElm getInitializationExpression() {
-		return initializationExpression instanceof ExprElm ? (ExprElm)initializationExpression : null;
+		return initializationExpression;
 	}
 	
 	public IRegion getInitializationExpressionLocation() {
@@ -274,12 +266,12 @@ public class Variable extends Declaration implements Serializable, ITypedDeclara
 		}
 	}
 	
-	public Object evaluateInitializationExpression(ScriptBase context) {
+	public Object evaluateInitializationExpression(IEvaluationContext context) {
 		ExprElm e = getInitializationExpression();
-		if (e != null) {
+		if (e != null)
 			return e.evaluateAtParseTime(context);
-		}
-		return getDefaultValue();
+		else
+			return null;
 	}
 	
 	public void setInitializationExpression(ExprElm initializationExpression) {
@@ -346,7 +338,6 @@ public class Variable extends Declaration implements Serializable, ITypedDeclara
 		ensureTypeLockedIfPredefined(declaration);
 	}
 	
-	@SuppressWarnings("unchecked")
 	@Override
 	public void postSerialize(Declaration parent, ClonkIndex root) {
 		super.postSerialize(parent, root);
@@ -411,6 +402,27 @@ public class Variable extends Declaration implements Serializable, ITypedDeclara
 					i++;
 		}
 		return -1;
+	}
+
+	@Override
+	public Object getValueForVariable(String varName) {
+		return getScript().findLocalVariable(varName, true);
+	}
+
+	@Override
+	public Object[] getArguments() {
+		return new Object[0];
+	}
+
+	@Override
+	public int getCodeFragmentOffset() {
+		// for some reason, initialization expression locations are stored absolutely
+		return 0; // return initializationExpression != null ? initializationExpression.getExprStart() : 0;
+	}
+
+	@Override
+	public void reportOriginForExpression(ExprElm expression, SourceLocation location, IFile file) {
+		// wow
 	}
 	
 }

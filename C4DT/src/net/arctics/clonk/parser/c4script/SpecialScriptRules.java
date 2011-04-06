@@ -29,12 +29,14 @@ import net.arctics.clonk.parser.DeclarationRegion;
 import net.arctics.clonk.parser.ID;
 import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.ParsingException;
+import net.arctics.clonk.parser.SourceLocation;
 import net.arctics.clonk.parser.c4script.C4ScriptParser.IMarkerListener;
 import net.arctics.clonk.parser.c4script.Directive.DirectiveType;
 import net.arctics.clonk.parser.c4script.IHasConstraint.ConstraintKind;
 import net.arctics.clonk.parser.c4script.ast.CallFunc;
 import net.arctics.clonk.parser.c4script.ast.ExprElm;
 import net.arctics.clonk.parser.c4script.ast.StringLiteral;
+import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
 import net.arctics.clonk.parser.inireader.ActMapUnit;
 import net.arctics.clonk.parser.inireader.IniSection;
 import net.arctics.clonk.parser.inireader.IniUnit;
@@ -208,9 +210,10 @@ public class SpecialScriptRules {
 		 * @param arguments The arguments (also obtainable from callFunc)
 		 * @param parser The parser serving as context
 		 * @return Returns false if this rule doesn't handle validation of the passed function call. Default validation will be executed.
+		 * @throws ParsingException 
 		 */
 		@SignifiesRole(role=ARGUMENT_VALIDATOR)
-		public boolean validateArguments(CallFunc callFunc, ExprElm[] arguments, C4ScriptParser parser) {
+		public boolean validateArguments(CallFunc callFunc, ExprElm[] arguments, C4ScriptParser parser) throws ParsingException {
 			return false;
 		}
 		/**
@@ -434,7 +437,7 @@ public class SpecialScriptRules {
 				}
 			}
 			else if (declarationName.equals("Find_Func") && callFunc.getParams().length >= 1) {
-				Object ev = callFunc.getParams()[0].evaluateAtParseTime(context.getContainer());
+				Object ev = callFunc.getParams()[0].evaluateAtParseTime(context.getCurrentFunc());
 				if (ev instanceof String) {
 					List<IType> types = new LinkedList<IType>();
 					for (ClonkIndex index : context.getContainer().getIndex().relevantIndexes()) {
@@ -545,7 +548,7 @@ public class SpecialScriptRules {
 			Function f = callFunc.getDeclaration() instanceof Function ? (Function)callFunc.getDeclaration() : null;
 			if (f != null && arguments.length >= 3) {
 				// look if command is "Call"; if so treat parms 2, 3, 4 as any
-				Object command = arguments[1].evaluateAtParseTime(parser.getContainer());
+				Object command = arguments[1].evaluateAtParseTime(parser.getCurrentFunc());
 				if (command instanceof String && command.equals("Call")) { //$NON-NLS-1$
 					int givenParam = 0;
 					for (Variable parm : f.getParameters()) {
@@ -676,7 +679,7 @@ public class SpecialScriptRules {
 		@Override
 		public DeclarationRegion locateDeclarationInParameter(CallFunc callFunc, C4ScriptParser parser, int index, int offsetInExpression, ExprElm parmExpression) {
 			Object parmEv;
-			if (index == 0 && (parmEv = parmExpression.evaluateAtParseTime(parser.getContainer())) instanceof String) {
+			if (index == 0 && (parmEv = parmExpression.evaluateAtParseTime(parser.getCurrentFunc())) instanceof String) {
 				String particleName = (String)parmEv;
 				ProjectIndex projIndex = (ProjectIndex)parser.getContainer().getIndex();
 				ParticleUnit unit = projIndex.findPinnedStructure(ParticleUnit.class, particleName, parser.getContainer().getResource(), true, "Particle.txt");
@@ -696,11 +699,11 @@ public class SpecialScriptRules {
 	protected class SetActionLinkRule extends SpecialFuncRule {
 		@Override
 		public DeclarationRegion locateDeclarationInParameter(CallFunc callFunc, C4ScriptParser parser, int index, int offsetInExpression, ExprElm parmExpression) {
-			return getActionLinkForDefinition(parser.getContainerAsDefinition(), parmExpression);
+			return getActionLinkForDefinition(parser.getCurrentFunc(), parser.getContainerAsDefinition(), parmExpression);
 		}
-		protected DeclarationRegion getActionLinkForDefinition(Definition definition, ExprElm actionNameExpression) {
+		protected DeclarationRegion getActionLinkForDefinition(Function currentFunction, Definition definition, ExprElm actionNameExpression) {
 			Object parmEv;
-			if (definition != null && (parmEv = actionNameExpression.evaluateAtParseTime(definition)) instanceof String) {
+			if (definition != null && (parmEv = actionNameExpression.evaluateAtParseTime(currentFunction)) instanceof String) {
 				final String actionName = (String)parmEv;
 				if (definition instanceof ProjectDefinition) {
 					ProjectDefinition projDef = (ProjectDefinition)definition;
@@ -728,6 +731,118 @@ public class SpecialScriptRules {
 	
 	@AppliedTo(functions={"SetAction"})
 	public SpecialFuncRule setActionLinkRule = new SetActionLinkRule();
+	
+	private static class EvaluationTracer implements IEvaluationContext {
+		public ExprElm topLevelExpression;
+		public IFile tracedFile;
+		public SourceLocation tracedLocation;
+		public ScriptBase script;
+		public Function function;
+		public Object[] arguments;
+		public Object evaluation;
+		public EvaluationTracer(ExprElm topLevelExpression, Object[] arguments, Function function, ScriptBase script) {
+			this.topLevelExpression = topLevelExpression;
+			this.arguments = arguments;
+			this.function = function;
+			this.script = script;
+		}
+		@Override
+		public Object[] getArguments() {
+			return arguments;
+		}
+		@Override
+		public ScriptBase getScript() {
+			return script;
+		}
+		@Override
+		public int getCodeFragmentOffset() {
+			return function != null ? function.getCodeFragmentOffset() : 0;
+		}
+		@Override
+		public Object getValueForVariable(String varName) {
+			return function != null ? function.getValueForVariable(varName) : null;
+		}
+		@Override
+		public Function getFunction() {
+			return function;
+		}
+		@Override
+		public void reportOriginForExpression(ExprElm expression, SourceLocation location, IFile file) {
+			if (expression == topLevelExpression) {
+				tracedLocation = location;
+				tracedFile = file;
+			}
+		}
+		public static EvaluationTracer evaluate(ExprElm expression, Object[] arguments, ScriptBase script, Function function) {
+			EvaluationTracer tracer = new EvaluationTracer(expression, arguments, function, script);
+			tracer.evaluation = expression.evaluateAtParseTime(tracer);
+			return tracer;
+		}
+		public static EvaluationTracer evaluate(ExprElm expression, Function function) {
+			return evaluate(expression, null, function.getScript(), function);
+		}
+	}
+	
+	/**
+	 * Validate format strings.
+	 */
+	@AppliedTo(functions={"Log", "Message", "Format"})
+	public final SpecialFuncRule formatArgumentsValidationRule = new SpecialFuncRule() {
+		private void checkParm(CallFunc callFunc, final ExprElm[] arguments, final C4ScriptParser parser, int parmIndex, String formatString, int rangeStart, int rangeEnd, EvaluationTracer evTracer, IType expectedType) throws ParsingException {
+			ExprElm saved = parser.currentFunctionContext.expressionReportingErrors;
+			try {
+				if (parmIndex+1 >= arguments.length) {
+					if (evTracer.tracedFile == null || !evTracer.tracedFile.equals(parser.getContainer().getScriptFile()))
+						return; // give up validating if the origin of the format string is <far away>
+					parser.currentFunctionContext.expressionReportingErrors = arguments[0];
+					parser.errorWithCode(ParserErrorCode.MissingFormatArg, evTracer.tracedLocation.getStart()+rangeStart, evTracer.tracedLocation.getStart()+rangeEnd, C4ScriptParser.NO_THROW|C4ScriptParser.ABSOLUTE_MARKER_LOCATION, formatString);
+				}
+				else if (!expectedType.canBeAssignedFrom(arguments[parmIndex+1].getType(parser))) {
+					parser.currentFunctionContext.expressionReportingErrors = arguments[parmIndex+1];
+					parser.errorWithCode(ParserErrorCode.IncompatibleFormatArgType, arguments[parmIndex+1],
+						C4ScriptParser.NO_THROW, expectedType.typeName(false), arguments[parmIndex+1].getType(parser).typeName(false));
+				}
+			} finally {
+				parser.currentFunctionContext.expressionReportingErrors = saved;
+			}
+		}
+		@Override
+		public boolean validateArguments(CallFunc callFunc, ExprElm[] arguments, C4ScriptParser parser) throws ParsingException {
+			EvaluationTracer evTracer;
+			int parmIndex = 0;
+			if (arguments.length >= 1 && (evTracer = EvaluationTracer.evaluate(arguments[0], parser.getCurrentFunc())).evaluation instanceof String) {
+				final String formatString = (String)evTracer.evaluation;
+				for (int i = 0; i < formatString.length(); i++) {
+					if (formatString.charAt(i) == '%') {
+						int j;
+						for (j = i+1; j < formatString.length() && (formatString.charAt(j) == '.' || (formatString.charAt(j) >= '0' && formatString.charAt(j) <= '9')); j++);
+						if (j >= formatString.length())
+							break;
+						String format = formatString.substring(i, j+1);
+						switch (formatString.charAt(j)) {
+						case 'd': case 'x': case 'X': case 'c':
+							checkParm(callFunc, arguments, parser, parmIndex, format, i+1, j+2, evTracer, PrimitiveType.INT);
+							break;
+						case 'i':
+							checkParm(callFunc, arguments, parser, parmIndex, format, i+1, j+2, evTracer, PrimitiveType.ID);
+							break;
+						case 'v':
+							checkParm(callFunc, arguments, parser, parmIndex, format, i+1, j+2, evTracer, PrimitiveType.ANY);
+							break;
+						case 's':
+							checkParm(callFunc, arguments, parser, parmIndex, format, i+1, j+2, evTracer, PrimitiveType.STRING);
+							break;
+						case '%':
+							break;
+						}
+						i = j;
+						parmIndex++;
+					}
+				}
+			}
+			return false; // let others validate as well
+		};
+	};
 
 	/**
 	 * Add rules declared as public instance variables to various internal lists so they will be recognized.

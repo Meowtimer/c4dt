@@ -104,7 +104,7 @@ public class CallFunc extends AccessDeclaration {
 					callFunc.getDeclaration() == varFunction &&
 					callFunc.getParams().length == 1 && // don't bother with more complex cases
 					callFunc.getParams()[0].getType(parser) == PrimitiveType.INT &&
-					((ev = callFunc.getParams()[0].evaluateAtParseTime(parser.getContainer())) != null) &&
+					((ev = callFunc.getParams()[0].evaluateAtParseTime(parser.getCurrentFunc())) != null) &&
 					ev.equals(varIndex);
 			}
 			return false;
@@ -575,7 +575,7 @@ public class CallFunc extends AccessDeclaration {
 		CachedEngineFuncs cache = getCachedFuncs(parser);
 		if (Utilities.isAnyOf(d, cache.Var, cache.Local, cache.Par)) {
 			Object ev;
-			if (getParams().length == 1 && (ev = getParams()[0].evaluateAtParseTime(parser.getContainer())) != null) {
+			if (getParams().length == 1 && (ev = getParams()[0].evaluateAtParseTime(parser.getCurrentFunc())) != null) {
 				if (ev instanceof Number) {
 					// Var() with a sane constant number
 					return new VarFunctionsTypeInformation((Function) d, ((Number)ev).intValue());

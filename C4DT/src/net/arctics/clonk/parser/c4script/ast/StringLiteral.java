@@ -6,13 +6,14 @@ import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.DeclarationRegion;
 import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.ParsingException;
+import net.arctics.clonk.parser.SourceLocation;
 import net.arctics.clonk.parser.c4script.DeclarationObtainmentContext;
-import net.arctics.clonk.parser.c4script.ScriptBase;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.PrimitiveType;
 import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.parser.c4script.SpecialScriptRules;
 import net.arctics.clonk.parser.c4script.SpecialScriptRules.SpecialFuncRule;
+import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
 import net.arctics.clonk.parser.stringtbl.StringTbl;
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
@@ -70,9 +71,10 @@ public final class StringLiteral extends Literal<String> {
 	}
 	
 	@Override
-	public String evaluateAtParseTime(ScriptBase context) {
+	public String evaluateAtParseTime(IEvaluationContext context) {
+		context.reportOriginForExpression(this, new SourceLocation(context.getCodeFragmentOffset()+1, this), context.getScript().getScriptFile());
 		String value = getLiteral().replaceAll("\\\"", "\"");
-		return StringTbl.evaluateEntries(context, value, getExprStart());
+		return StringTbl.evaluateEntries(context.getScript(), value, getExprStart());
 	}
 
 	@Override

@@ -15,7 +15,6 @@ import net.arctics.clonk.parser.DeclarationRegion;
 import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.c4script.DeclarationObtainmentContext;
-import net.arctics.clonk.parser.c4script.ScriptBase;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.PrimitiveType;
 import net.arctics.clonk.parser.c4script.TypeSet;
@@ -549,7 +548,7 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 		return EnumSet.of(getControlFlow()); 
 	}
 
-	public final boolean isAlways(boolean what, ScriptBase context) {
+	public final boolean isAlways(boolean what, IEvaluationContext context) {
 		Object ev = this.evaluateAtParseTime(context);
 		return ev != null && Boolean.valueOf(what).equals(PrimitiveType.BOOL.convert(ev));
 	}
@@ -601,13 +600,13 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 		}
 		return null;
 	}
-
+	
 	/**
 	 * Rudimentary possibility for evaluating the expression. Only used for evaluating the value of the SetProperty("Name", ...) call in a Definition function (OpenClonk) right now
 	 * @param context the context to evaluate in
 	 * @return the result
 	 */
-	public Object evaluateAtParseTime(ScriptBase context) {
+	public Object evaluateAtParseTime(IEvaluationContext context) {
 		return EVALUATION_COMPLEX;
 	}
 	
