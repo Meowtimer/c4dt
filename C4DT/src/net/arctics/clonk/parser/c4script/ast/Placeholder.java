@@ -39,4 +39,9 @@ public class Placeholder extends ExprElm {
 		return super.declarationAt(offset, parser);
 	}
 	
+	@Override
+	public boolean hasSideEffects() {
+		return true; // let's just assume that
+	}
+	
 }
