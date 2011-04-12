@@ -881,6 +881,20 @@ public class SpecialScriptRules {
 			return false; // let others validate as well
 		};
 	};
+	
+	@AppliedTo(functions={"Find_Func"})
+	public final SpecialFuncRule findFuncRule = new SpecialFuncRule() {
+		@Override
+		public DeclarationRegion locateDeclarationInParameter(CallFunc callFunc, C4ScriptParser parser, int index, int offsetInExpression, ExprElm parmExpression) {
+			if (parmExpression instanceof StringLiteral) {
+				StringLiteral lit = (StringLiteral)parmExpression;
+				List<Declaration> matchingDecs = parser.getContainer().getIndex().getDeclarationMap().get(lit.getLiteral());
+				if (matchingDecs != null)
+					return new DeclarationRegion(matchingDecs, lit.identifierRegion());
+			}
+			return null;
+		};
+	};
 
 	/**
 	 * Add rules declared as public instance variables to various internal lists so they will be recognized.
