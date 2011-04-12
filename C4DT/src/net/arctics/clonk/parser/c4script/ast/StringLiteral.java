@@ -72,9 +72,13 @@ public final class StringLiteral extends Literal<String> {
 	
 	@Override
 	public String evaluateAtParseTime(IEvaluationContext context) {
-		context.reportOriginForExpression(this, new SourceLocation(context.getCodeFragmentOffset()+1, this), context.getScript().getScriptFile());
-		String value = getLiteral().replaceAll("\\\"", "\"");
-		return StringTbl.evaluateEntries(context.getScript(), value, getExprStart());
+		StringTbl.EvaluationResult r = StringTbl.evaluateEntries(context.getScript(), getLiteral(), false);
+		// getting over-the-top: trace back to entry in StringTbl file to which the literal needs to be completely evaluated to 
+		if (r.singleDeclarationRegionUsed != null && getLiteral().matches("\\$.*?\\$"))
+			context.reportOriginForExpression(this, r.singleDeclarationRegionUsed.getRegion(), (IFile) r.singleDeclarationRegionUsed.getDeclaration().getResource());
+		else if (!r.anySubstitutionsApplied)
+			context.reportOriginForExpression(this, new SourceLocation(context.getCodeFragmentOffset(), this), context.getScript().getScriptFile());
+		return r.evaluated;
 	}
 
 	@Override

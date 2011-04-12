@@ -22,7 +22,7 @@ public abstract class IniUnitWithNamedSections extends IniUnit {
 		IniItem nameEntry = section.getSubItem(sectionNameEntryName(section));
 		if (nameEntry instanceof IniEntry) {
 			String val = ((IniEntry) nameEntry).getValue();
-			val = StringTbl.evaluateEntries(this, val, 0);
+			val = StringTbl.evaluateEntries(this, val, true).evaluated;
 			return "["+val+"]"; //$NON-NLS-1$ //$NON-NLS-2$
 		}
 		return super.sectionToString(section);

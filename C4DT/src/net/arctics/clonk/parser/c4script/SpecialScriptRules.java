@@ -16,6 +16,7 @@ import java.util.Set;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.Region;
 import org.eclipse.jface.text.contentassist.ICompletionProposal;
 
@@ -29,7 +30,6 @@ import net.arctics.clonk.parser.DeclarationRegion;
 import net.arctics.clonk.parser.ID;
 import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.ParsingException;
-import net.arctics.clonk.parser.SourceLocation;
 import net.arctics.clonk.parser.c4script.C4ScriptParser.IMarkerListener;
 import net.arctics.clonk.parser.c4script.Directive.DirectiveType;
 import net.arctics.clonk.parser.c4script.IHasConstraint.ConstraintKind;
@@ -735,7 +735,7 @@ public class SpecialScriptRules {
 	private static class EvaluationTracer implements IEvaluationContext {
 		public ExprElm topLevelExpression;
 		public IFile tracedFile;
-		public SourceLocation tracedLocation;
+		public IRegion tracedLocation;
 		public ScriptBase script;
 		public Function function;
 		public Object[] arguments;
@@ -767,7 +767,7 @@ public class SpecialScriptRules {
 			return function;
 		}
 		@Override
-		public void reportOriginForExpression(ExprElm expression, SourceLocation location, IFile file) {
+		public void reportOriginForExpression(ExprElm expression, IRegion location, IFile file) {
 			if (expression == topLevelExpression) {
 				tracedLocation = location;
 				tracedFile = file;
@@ -788,23 +788,33 @@ public class SpecialScriptRules {
 	 */
 	@AppliedTo(functions={"Log", "Message", "Format"})
 	public final SpecialFuncRule formatArgumentsValidationRule = new SpecialFuncRule() {
-		private void checkParm(CallFunc callFunc, final ExprElm[] arguments, final C4ScriptParser parser, int parmIndex, String formatString, int rangeStart, int rangeEnd, EvaluationTracer evTracer, IType expectedType) throws ParsingException {
+		private boolean checkParm(CallFunc callFunc, final ExprElm[] arguments, final C4ScriptParser parser, int parmIndex, String formatString, int rangeStart, int rangeEnd, EvaluationTracer evTracer, IType expectedType) throws ParsingException {
 			ExprElm saved = parser.currentFunctionContext.expressionReportingErrors;
 			try {
 				if (parmIndex+1 >= arguments.length) {
-					if (evTracer.tracedFile == null || !evTracer.tracedFile.equals(parser.getContainer().getScriptFile()))
-						return; // give up validating if the origin of the format string is <far away>
+					if (evTracer.tracedFile == null)
+						return true;
 					parser.currentFunctionContext.expressionReportingErrors = arguments[0];
-					parser.errorWithCode(ParserErrorCode.MissingFormatArg, evTracer.tracedLocation.getStart()+rangeStart, evTracer.tracedLocation.getStart()+rangeEnd, C4ScriptParser.NO_THROW|C4ScriptParser.ABSOLUTE_MARKER_LOCATION, formatString);
+					if (evTracer.tracedFile.equals(parser.getContainer().getScriptFile())) {
+						parser.errorWithCode(ParserErrorCode.MissingFormatArg, evTracer.tracedLocation.getOffset()+rangeStart, evTracer.tracedLocation.getOffset()+rangeEnd, C4ScriptParser.NO_THROW|C4ScriptParser.ABSOLUTE_MARKER_LOCATION,
+								formatString, evTracer.evaluation, evTracer.tracedFile.getProjectRelativePath().toOSString());
+						return !arguments[0].containsOffset(evTracer.tracedLocation.getOffset());
+					} else {
+						parser.errorWithCode(ParserErrorCode.MissingFormatArg, arguments[0], C4ScriptParser.NO_THROW,
+								formatString, evTracer.evaluation, evTracer.tracedFile.getProjectRelativePath().toOSString());
+					}
 				}
 				else if (!expectedType.canBeAssignedFrom(arguments[parmIndex+1].getType(parser))) {
+					if (evTracer.tracedFile == null)
+						return true;
 					parser.currentFunctionContext.expressionReportingErrors = arguments[parmIndex+1];
 					parser.errorWithCode(ParserErrorCode.IncompatibleFormatArgType, arguments[parmIndex+1],
-						C4ScriptParser.NO_THROW, expectedType.typeName(false), arguments[parmIndex+1].getType(parser).typeName(false));
+						C4ScriptParser.NO_THROW, expectedType.typeName(false), arguments[parmIndex+1].getType(parser).typeName(false), evTracer.evaluation, evTracer.tracedFile.getProjectRelativePath().toOSString());
 				}
 			} finally {
 				parser.currentFunctionContext.expressionReportingErrors = saved;
 			}
+			return false;
 		}
 		@Override
 		public boolean validateArguments(CallFunc callFunc, ExprElm[] arguments, C4ScriptParser parser) throws ParsingException {
@@ -812,6 +822,7 @@ public class SpecialScriptRules {
 			int parmIndex = 0;
 			if (arguments.length >= 1 && (evTracer = EvaluationTracer.evaluate(arguments[0], parser.getCurrentFunc())).evaluation instanceof String) {
 				final String formatString = (String)evTracer.evaluation;
+				boolean separateIssuesMarker = false;
 				for (int i = 0; i < formatString.length(); i++) {
 					if (formatString.charAt(i) == '%') {
 						int j;
@@ -819,26 +830,32 @@ public class SpecialScriptRules {
 						if (j >= formatString.length())
 							break;
 						String format = formatString.substring(i, j+1);
+						IType requiredType = null;
 						switch (formatString.charAt(j)) {
 						case 'd': case 'x': case 'X': case 'c':
-							checkParm(callFunc, arguments, parser, parmIndex, format, i+1, j+2, evTracer, PrimitiveType.INT);
+							requiredType = PrimitiveType.INT;
 							break;
 						case 'i':
-							checkParm(callFunc, arguments, parser, parmIndex, format, i+1, j+2, evTracer, PrimitiveType.ID);
+							requiredType = PrimitiveType.ID;
 							break;
 						case 'v':
-							checkParm(callFunc, arguments, parser, parmIndex, format, i+1, j+2, evTracer, PrimitiveType.ANY);
+							requiredType = PrimitiveType.ANY;
 							break;
 						case 's':
-							checkParm(callFunc, arguments, parser, parmIndex, format, i+1, j+2, evTracer, PrimitiveType.STRING);
+							requiredType = PrimitiveType.STRING;
 							break;
 						case '%':
 							break;
+						}
+						if (requiredType != null) {
+							separateIssuesMarker |= checkParm(callFunc, arguments, parser, parmIndex, format, i+1, j+2, evTracer, requiredType); 
 						}
 						i = j;
 						parmIndex++;
 					}
 				}
+				if (separateIssuesMarker)
+					parser.errorWithCode(ParserErrorCode.DragonsHere, arguments[0], C4ScriptParser.NO_THROW);
 			}
 			return false; // let others validate as well
 		};

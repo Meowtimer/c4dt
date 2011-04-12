@@ -179,23 +179,41 @@ public class StringTbl extends Structure implements ITreeNode, ITableEntryInform
 		return result;
 	}
 	
-	public static String evaluateEntries(Declaration context, String value, int exprStart) {
+	public static class EvaluationResult {
+		public String evaluated;
+		public DeclarationRegion singleDeclarationRegionUsed;
+		public boolean anySubstitutionsApplied;
+	}
+	
+	/**
+	 * Evaluate a string containing $...$ placeholders by fetching the actual strings from respective StringTbl**.txt files.
+	 * @param context The declaration/script to be used as a hint on where to look for StringTbl files
+	 * @param value The value to be evaluated
+	 * @return The evaluated string
+	 */
+	public static EvaluationResult evaluateEntries(Declaration context, String value, boolean evaluateEscapes) {
 		int valueLen = value.length();
 		StringBuilder builder = new StringBuilder(valueLen*2);
 		// insert stringtbl entries
+		DeclarationRegion reg = null;
+		boolean moreThanOneSubstitution = false;
+		boolean substitutionsApplied = false;
 		Outer: for (int i = 0; i < valueLen;) {
 			if (i+1 < valueLen) {
 				switch (value.charAt(i)) {
 				case '$':
-					DeclarationRegion region = getEntryForLanguagePref(value, exprStart, i+1, context, true);
+					moreThanOneSubstitution = reg != null;
+					DeclarationRegion region = getEntryForLanguagePref(value, 0, i+1, context, true);
 					if (region != null) {
+						substitutionsApplied = true;
 						builder.append(((NameValueAssignment)region.getDeclaration()).getValue());
 						i += region.getRegion().getLength();
+						reg = region;
 						continue Outer;
 					}
 					break;
 				case '\\':
-					switch (value.charAt(++i)) {
+					if (evaluateEscapes) switch (value.charAt(++i)) {
 					case '"': case '\\':
 						builder.append(value.charAt(i++));
 						continue Outer;
@@ -205,7 +223,11 @@ public class StringTbl extends Structure implements ITreeNode, ITableEntryInform
 			}
 			builder.append(value.charAt(i++));
 		}
-		return builder.toString();
+		EvaluationResult r = new EvaluationResult();
+		r.evaluated = builder.toString();
+		r.singleDeclarationRegionUsed = moreThanOneSubstitution ? null : reg;
+		r.anySubstitutionsApplied = substitutionsApplied;
+		return r;
 	}
 
 }

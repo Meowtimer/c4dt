@@ -1,13 +1,13 @@
 package net.arctics.clonk.parser.c4script.ast;
 
 import org.eclipse.core.resources.IFile;
+import org.eclipse.jface.text.IRegion;
 
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.ParsingException;
-import net.arctics.clonk.parser.SourceLocation;
 import net.arctics.clonk.parser.c4script.ConstrainedObject;
 import net.arctics.clonk.parser.c4script.DeclarationObtainmentContext;
 import net.arctics.clonk.parser.c4script.Function;
@@ -207,7 +207,7 @@ public class AccessVar extends AccessDeclaration {
 				// evaluate in the context of the var by proxy
 				Object val = var.evaluateInitializationExpression(new EvaluationContextProxy(var) {
 					@Override
-					public void reportOriginForExpression(ExprElm expression, SourceLocation location, IFile file) {
+					public void reportOriginForExpression(ExprElm expression, IRegion location, IFile file) {
 						if (expression == var.getInitializationExpression())
 							context.reportOriginForExpression(AccessVar.this, location, file);
 					}

@@ -29,7 +29,6 @@ import net.arctics.clonk.index.ClonkIndex;
 import net.arctics.clonk.parser.BufferedScanner;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.ID;
-import net.arctics.clonk.parser.SourceLocation;
 import net.arctics.clonk.parser.Structure;
 import net.arctics.clonk.parser.c4script.Directive.DirectiveType;
 import net.arctics.clonk.parser.c4script.Function.C4FunctionScope;
@@ -965,7 +964,7 @@ public abstract class ScriptBase extends Structure implements ITreeNode, IHasCon
 	}
 	
 	@Override
-	public void reportOriginForExpression(ExprElm expression, SourceLocation location, IFile file) {
+	public void reportOriginForExpression(ExprElm expression, IRegion location, IFile file) {
 		// cool.
 	}
 	

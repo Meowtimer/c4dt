@@ -72,11 +72,13 @@ public enum ParserErrorCode {
 	MissingExpression(Messages.MissingExpression),
 	MemberOperatorWithTildeNoSpace(Messages.MemberOperatorWithTildeNoSpace),
 	MissingFormatArg(Messages.MissingFormatArg),
-	IncompatibleFormatArgType(Messages.IncompatibleFormatArgType);
+	IncompatibleFormatArgType(Messages.IncompatibleFormatArgType),
+	DragonsHere(Messages.DragonsHere);
 
 	public static final String MARKER_ERRORCODE = "c4ScriptErrorCode"; //$NON-NLS-1$
 	public static final String MARKER_EXPRESSIONSTART = "c4ScriptErrorExpressionStart"; //$NON-NLS-1$
 	public static final String MARKER_EXPRESSIONEND = "c4ScriptErrorExpressionEnd"; //$NON-NLS-1$
+	public static final String MARKER_DECLARATIONTAG = "c4ScriptErrorDeclarationTag"; //$NON-NLS-1$
 	
 	public static String[] MARKER_ARGS;
 	
@@ -159,6 +161,18 @@ public enum ParserErrorCode {
 			setExpressionLocation(marker, expressionRegion);
 		}
 		return marker;
+	}
+
+	public static void setDeclarationTag(IMarker marker, String declarationTag) {
+		try {
+			marker.setAttribute(MARKER_DECLARATIONTAG, declarationTag);
+		} catch (CoreException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	public static String getDeclarationTag(IMarker marker) {
+		return marker.getAttribute(MARKER_DECLARATIONTAG, ""); //$NON-NLS-1$
 	}
 	
 }

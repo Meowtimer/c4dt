@@ -1634,6 +1634,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		String problem = code.getErrorString(args);
 		if (!misplacedErrorOrNoFileToAttachMarkerTo) {
 			result = code.createMarker(scriptFile, getContainer(), ClonkCore.MARKER_C4SCRIPT_ERROR, markerStart, markerEnd, severity, currentFunctionContext.expressionReportingErrors, args);
+			ParserErrorCode.setDeclarationTag(result, getCurrentDeclaration().getNameUniqueToParent());
 			IRegion exprLocation = currentFunctionContext.expressionReportingErrors;
 			if (exprLocation != null) {
 				ParserErrorCode.setExpressionLocation(result, exprLocation);
@@ -2182,12 +2183,13 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	
 	/**
 	 * Convert a region relative to the body offset of the current function to a script-absolute region.
+	 * @param flags 
 	 * @param region The region to convert
 	 * @return The relative region or the passed region, if there is no current function.
 	 */
-	public IRegion convertRelativeRegionToAbsolute(IRegion region) {
+	public IRegion convertRelativeRegionToAbsolute(int flags, IRegion region) {
 		int offset = bodyOffset();
-		if (offset == 0) {
+		if (offset == 0 || (flags & ABSOLUTE_MARKER_LOCATION) == 0) {
 			return region;
 		} else {
 			return new Region(offset+region.getOffset(), region.getLength());
@@ -3406,7 +3408,11 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 				int markerStart, int markerEnd, int flags,
 				int severity, Object... args) throws ParsingException {
 			if (markerListener != null) {
-				if (markerListener.markerEncountered(this, code, markerStart+offsetOfScriptFragment, markerEnd+offsetOfScriptFragment, flags, severity, args) == WhatToDo.DropCharges)
+				if ((flags & ABSOLUTE_MARKER_LOCATION) == 0) {
+					markerStart += offsetOfScriptFragment;
+					markerEnd += offsetOfScriptFragment;
+				}
+				if (markerListener.markerEncountered(this, code, markerStart, markerEnd, flags, severity, args) == WhatToDo.DropCharges)
 					return null;
 			}
 			return super.markerWithCode(code, markerStart, markerEnd, flags, severity, args);

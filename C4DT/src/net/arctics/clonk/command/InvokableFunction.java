@@ -1,9 +1,9 @@
 package net.arctics.clonk.command;
 
 import org.eclipse.core.resources.IFile;
+import org.eclipse.jface.text.IRegion;
 
 import net.arctics.clonk.ClonkCore;
-import net.arctics.clonk.parser.SourceLocation;
 import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.ScriptBase;
 import net.arctics.clonk.parser.c4script.ast.ControlFlowException;
@@ -37,7 +37,7 @@ public class InvokableFunction extends Function {
 			}
 
 			@Override
-			public void reportOriginForExpression(ExprElm expression, SourceLocation location, IFile file) {
+			public void reportOriginForExpression(ExprElm expression, IRegion location, IFile file) {
 				
 			}
 

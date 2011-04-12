@@ -768,7 +768,7 @@ public class Function extends Structure implements Serializable, ITypedDeclarati
 	}
 
 	@Override
-	public void reportOriginForExpression(ExprElm expression, SourceLocation location, IFile file) {
+	public void reportOriginForExpression(ExprElm expression, IRegion location, IFile file) {
 		// oh interesting
 	}
 	

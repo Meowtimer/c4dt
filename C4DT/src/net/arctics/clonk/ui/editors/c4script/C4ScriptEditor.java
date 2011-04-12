@@ -284,10 +284,19 @@ public class C4ScriptEditor extends ClonkTextEditor {
 					markers = script.getResource().findMarkers(ClonkCore.MARKER_C4SCRIPT_ERROR, false, 3);
 					SourceLocation body = func != null ? func.getBody() : null;
 					for (IMarker m : markers) {
+						
+						// delete markers that are explicitly marked as being caused by parsing the function
+						if (func.getNameUniqueToParent().equals(ParserErrorCode.getDeclarationTag(m))) {
+							m.delete();
+							continue;
+						}
+						
+						// delete marks inside the body region
 						int markerStart = m.getAttribute(IMarker.CHAR_START, 0);
 						int markerEnd   = m.getAttribute(IMarker.CHAR_END, 0);
 						if (body == null || (markerStart >= body.getStart() && markerEnd < body.getEnd())) {
 							m.delete();
+							continue;
 						}
 					}
 				} catch (CoreException e) {
@@ -315,7 +324,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 									return WhatToDo.DropCharges;
 								if (structure.getScriptStorage() instanceof IFile) {
 									code.createMarker((IFile) structure.getScriptStorage(), structure, ClonkCore.MARKER_C4SCRIPT_ERROR_WHILE_TYPING,
-										markerStart, markerEnd, severity, parser.convertRelativeRegionToAbsolute(parser.getExpressionReportingErrors()), args);
+										markerStart, markerEnd, severity, parser.convertRelativeRegionToAbsolute(flags, parser.getExpressionReportingErrors()), args);
 								}
 								return WhatToDo.PassThrough;
 							}

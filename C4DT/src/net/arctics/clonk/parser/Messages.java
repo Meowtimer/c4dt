@@ -58,6 +58,7 @@ public class Messages extends NLS {
 	public static String ConditionAlwaysTrue;
 	public static String ConditionAlwaysFalse;
 	public static String DotNotationInsteadOfArrow;
+	public static String DragonsHere;
 	public static String InternalError;
 	public static String InfiniteLoop;
 	public static String InheritedDisabledInStrict0;

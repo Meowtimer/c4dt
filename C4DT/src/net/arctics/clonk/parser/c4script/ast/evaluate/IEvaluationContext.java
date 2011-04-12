@@ -1,7 +1,8 @@
 package net.arctics.clonk.parser.c4script.ast.evaluate;
 
 import org.eclipse.core.resources.IFile;
-import net.arctics.clonk.parser.SourceLocation;
+import org.eclipse.jface.text.IRegion;
+
 import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.ScriptBase;
 import net.arctics.clonk.parser.c4script.ast.ExprElm;
@@ -38,5 +39,5 @@ public interface IEvaluationContext extends IVariableValueProvider {
 	 * @param location The location in the resource
 	 * @param file The file
 	 */
-	void reportOriginForExpression(ExprElm expression, SourceLocation location, IFile file);
+	void reportOriginForExpression(ExprElm expression, IRegion location, IFile file);
 }

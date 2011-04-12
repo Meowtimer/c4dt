@@ -1,11 +1,11 @@
 package net.arctics.clonk.parser.c4script.ast.evaluate;
 
-import net.arctics.clonk.parser.SourceLocation;
 import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.ScriptBase;
 import net.arctics.clonk.parser.c4script.ast.ExprElm;
 
 import org.eclipse.core.resources.IFile;
+import org.eclipse.jface.text.IRegion;
 
 public class EvaluationContextProxy implements IEvaluationContext {
 
@@ -41,7 +41,7 @@ public class EvaluationContextProxy implements IEvaluationContext {
 	}
 
 	@Override
-	public void reportOriginForExpression(ExprElm expression, SourceLocation location, IFile file) {
+	public void reportOriginForExpression(ExprElm expression, IRegion location, IFile file) {
 		base.reportOriginForExpression(expression, location, file);
 	}
 

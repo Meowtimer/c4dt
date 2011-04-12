@@ -14,7 +14,6 @@ import net.arctics.clonk.index.ProjectDefinition;
 import net.arctics.clonk.index.ClonkIndex;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.ID;
-import net.arctics.clonk.parser.SourceLocation;
 import net.arctics.clonk.parser.c4script.ast.ExprElm;
 import net.arctics.clonk.parser.c4script.ast.PropListExpression;
 import net.arctics.clonk.parser.c4script.ast.TypeExpectancyMode;
@@ -421,7 +420,7 @@ public class Variable extends Declaration implements Serializable, ITypedDeclara
 	}
 
 	@Override
-	public void reportOriginForExpression(ExprElm expression, SourceLocation location, IFile file) {
+	public void reportOriginForExpression(ExprElm expression, IRegion location, IFile file) {
 		// wow
 	}
 	

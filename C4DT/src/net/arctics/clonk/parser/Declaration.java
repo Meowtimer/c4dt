@@ -463,4 +463,25 @@ public abstract class Declaration implements Serializable, IHasRelatedResource, 
 		};
 	}
 	
+	/**
+	 * Return a name that uniquely identifies the declaration in its script
+	 * @return
+	 */
+	public String getNameUniqueToParent() {
+		int othersWithSameName = 0;
+		int ownIndex = -1;
+		for (Declaration d : getParentDeclaration().allSubDeclarations(DIRECT_SUBDECLARATIONS|OTHER)) {
+			if (d == this) {
+				ownIndex = othersWithSameName++;
+				continue;
+			}
+			else if (d.getName().equals(this.getName()))
+				othersWithSameName++;
+		}
+		if (othersWithSameName == 1)
+			return getName();
+		else
+			return getName() + ownIndex;
+	}
+	
 }
