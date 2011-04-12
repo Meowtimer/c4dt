@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
@@ -26,6 +27,7 @@ import net.arctics.clonk.index.ProjectIndex;
 import net.arctics.clonk.index.Scenario;
 import net.arctics.clonk.index.ClonkIndex;
 import net.arctics.clonk.parser.BufferedScanner;
+import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.DeclarationRegion;
 import net.arctics.clonk.parser.ID;
 import net.arctics.clonk.parser.ParserErrorCode;
@@ -578,13 +580,32 @@ public class SpecialScriptRules {
 		@Override
 		public DeclarationRegion locateDeclarationInParameter(CallFunc callFunc, C4ScriptParser parser, int parameterIndex, int offsetInExpression, ExprElm parmExpression) {
 			if (parameterIndex == 0 && parmExpression instanceof StringLiteral) {
-				StringLiteral lit = (StringLiteral)parmExpression;
+				final StringLiteral lit = (StringLiteral)parmExpression;
 				ClonkIndex index = parser.getContainer().getIndex();
-				Scenario scenario = ClonkIndex.pickNearest(index.getIndexedScenarios(), parser.getContainer().getResource());
+				Scenario scenario = null;
+				for (IResource r = parser.getContainer().getResource().getParent(); scenario == null && r != null; r = r.getParent()) {
+					if (r instanceof IContainer)
+						scenario = Scenario.get((IContainer)r);
+				}
 				if (scenario != null) {
 					Function scenFunc = scenario.findFunction(lit.stringValue());
 					if (scenFunc != null)
 						return new DeclarationRegion(scenFunc, lit.identifierRegion());
+				} else {
+					final List<Declaration> decs = new LinkedList<Declaration>();
+					index.forAllRelevantIndexes(new ClonkIndex.r() {
+						@Override
+						public void run(ClonkIndex index) {
+							for (Scenario s : index.getIndexedScenarios()) {
+								Function f = s.findLocalFunction(lit.getLiteral(), true);
+								if (f != null) {
+									decs.add(f);
+								}
+							}	
+						};
+					});
+					if (decs.size() > 0)
+						return new DeclarationRegion(decs, lit.identifierRegion());
 				}
 			}
 			return null;

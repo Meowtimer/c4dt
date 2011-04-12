@@ -715,5 +715,11 @@ public class ClonkIndex extends Declaration implements Serializable, Iterable<De
 		else
 			return super.hashCode();
 	}
+	
+	public interface r {void run(ClonkIndex index);}
+	public void forAllRelevantIndexes(r lmd) {
+		for (ClonkIndex index : relevantIndexes())
+			lmd.run(index);
+	}
 
 }
