@@ -3,6 +3,7 @@ package net.arctics.clonk.parser.c4script.ast;
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.DeclarationRegion;
 import net.arctics.clonk.parser.NameValueAssignment;
+import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.stringtbl.StringTbl;
 
@@ -37,6 +38,11 @@ public class Placeholder extends ExprElm {
 				return new DeclarationRegion(entry, this);
 		}
 		return super.declarationAt(offset, parser);
+	}
+	
+	@Override
+	public void reportErrors(C4ScriptParser parser) throws ParsingException {
+		StringTbl.reportMissingStringTblEntries(parser, new DeclarationRegion(null, this, entryName));
 	}
 	
 	@Override

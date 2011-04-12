@@ -9,17 +9,21 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.jface.text.Region;
 
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.BufferedScanner;
 import net.arctics.clonk.parser.Declaration;
+import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.Structure;
 import net.arctics.clonk.parser.DeclarationRegion;
 import net.arctics.clonk.parser.NameValueAssignment;
+import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.util.ITreeNode;
 import net.arctics.clonk.util.ReadOnlyIterator;
 import net.arctics.clonk.util.StreamUtil;
@@ -228,6 +232,39 @@ public class StringTbl extends Structure implements ITreeNode, ITableEntryInform
 		r.singleDeclarationRegionUsed = moreThanOneSubstitution ? null : reg;
 		r.anySubstitutionsApplied = substitutionsApplied;
 		return r;
+	}
+	
+	/**
+	 * Create error markers in scripts for StringTbl references where the entry is missing from some of the StringTbl**.txt files
+	 * @param parser The parser
+	 * @param region The region describing the string table reference in question
+	 */
+	public static void reportMissingStringTblEntries(C4ScriptParser parser, DeclarationRegion region) {
+		StringBuilder listOfLangFilesItsMissingIn = null;
+		try {
+			for (IResource r : (parser.getContainer().getResource() instanceof IContainer ? (IContainer)parser.getContainer().getResource() : parser.getContainer().getResource().getParent()).members()) {
+				if (!(r instanceof IFile))
+					continue;
+				IFile f = (IFile) r;
+				Matcher m = StringTbl.PATTERN.matcher(r.getName());
+				if (m.matches()) {
+					String lang = m.group(1);
+					StringTbl tbl = (StringTbl)StringTbl.pinned(f, true, false);
+					if (tbl != null) {
+						if (tbl.getMap().get(region.getText()) == null) {
+							if (listOfLangFilesItsMissingIn == null)
+								listOfLangFilesItsMissingIn = new StringBuilder(10);
+							if (listOfLangFilesItsMissingIn.length() > 0)
+								listOfLangFilesItsMissingIn.append(", "); //$NON-NLS-1$
+							listOfLangFilesItsMissingIn.append(lang);
+						}
+					}
+				}
+			}
+		} catch (CoreException e) {}
+		if (listOfLangFilesItsMissingIn != null) {
+			parser.warningWithCode(ParserErrorCode.MissingLocalizations, region.getRegion(), listOfLangFilesItsMissingIn.toString());
+		}
 	}
 
 }

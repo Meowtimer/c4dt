@@ -1,7 +1,5 @@
 package net.arctics.clonk.parser.c4script.ast;
 
-import java.util.regex.Matcher;
-
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.DeclarationRegion;
 import net.arctics.clonk.parser.ParserErrorCode;
@@ -15,10 +13,7 @@ import net.arctics.clonk.parser.c4script.SpecialScriptRules;
 import net.arctics.clonk.parser.c4script.SpecialScriptRules.SpecialFuncRule;
 import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
 import net.arctics.clonk.parser.stringtbl.StringTbl;
-import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
-import org.eclipse.core.resources.IResource;
-import org.eclipse.core.runtime.CoreException;
 
 public final class StringLiteral extends Literal<String> {
 
@@ -102,31 +97,7 @@ public final class StringLiteral extends Literal<String> {
 			if (i+1 < valueLen && value.charAt(i) == '$') {
 				DeclarationRegion region = StringTbl.getEntryRegion(stringValue(), getExprStart(), (i+1));
 				if (region != null) {
-					StringBuilder listOfLangFilesItsMissingIn = null;
-					try {
-						for (IResource r : (parser.getContainer().getResource() instanceof IContainer ? (IContainer)parser.getContainer().getResource() : parser.getContainer().getResource().getParent()).members()) {
-							if (!(r instanceof IFile))
-								continue;
-							IFile f = (IFile) r;
-							Matcher m = StringTbl.PATTERN.matcher(r.getName());
-							if (m.matches()) {
-								String lang = m.group(1);
-								StringTbl tbl = (StringTbl)StringTbl.pinned(f, true, false);
-								if (tbl != null) {
-									if (tbl.getMap().get(region.getText()) == null) {
-										if (listOfLangFilesItsMissingIn == null)
-											listOfLangFilesItsMissingIn = new StringBuilder(10);
-										if (listOfLangFilesItsMissingIn.length() > 0)
-											listOfLangFilesItsMissingIn.append(", "); //$NON-NLS-1$
-										listOfLangFilesItsMissingIn.append(lang);
-									}
-								}
-							}
-						}
-					} catch (CoreException e) {}
-					if (listOfLangFilesItsMissingIn != null) {
-						parser.warningWithCode(ParserErrorCode.MissingLocalizations, region.getRegion(), listOfLangFilesItsMissingIn.toString());
-					}
+					StringTbl.reportMissingStringTblEntries(parser, region);
 					i += region.getRegion().getLength();
 					continue;
 				}
