@@ -267,7 +267,9 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 				structure.commitTo(script);
 				structure.pinTo(file);
 			}
-			else if ((structure = Structure.pinned(file, false, true)) != null) {
+			else
+				structure = Structure.pinned(file, false, true);
+			if (structure != null) {
 				gatheredStructures.add(structure);
 			}
 			else {
@@ -460,7 +462,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 		for (Structure s : gatheredStructures) {
 			s.validate();
 			if (s.requiresScriptReparse()) {
-				ScriptBase script = ScriptBase.get(s.getResource(), true);
+				ScriptBase script = ScriptBase.get(s.getResource(), false);
 				if (script != null) {
 					C4ScriptParser p = queueScript(script);
 					tempParserMap.put(script, p);
