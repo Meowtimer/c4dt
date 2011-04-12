@@ -37,4 +37,9 @@ public class DefCoreUnit extends IniUnit {
 		}
 	}
 	
+	@Override
+	public boolean requiresScriptReparse() {
+		return true; // i guess
+	}
+	
 }
