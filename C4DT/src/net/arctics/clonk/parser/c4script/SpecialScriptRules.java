@@ -411,7 +411,7 @@ public class SpecialScriptRules {
 			if (t != null) {
 				Function f = (Function) callFunc.getDeclaration();
 				if (f != null && f.getReturnType() == PrimitiveType.ARRAY)
-					return new ArrayType(t);
+					return new ArrayType(t, null);
 			}
 			return t;
 		}

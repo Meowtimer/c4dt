@@ -1,12 +1,13 @@
 package net.arctics.clonk.parser.c4script.ast;
 
 import net.arctics.clonk.ClonkCore;
+import net.arctics.clonk.parser.c4script.ArrayType;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.DeclarationObtainmentContext;
-import net.arctics.clonk.parser.c4script.PrimitiveType;
 import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
 import net.arctics.clonk.util.ArrayUtil;
+import net.arctics.clonk.util.IConverter;
 
 public class ArrayExpression extends Sequence {
 
@@ -26,10 +27,18 @@ public class ArrayExpression extends Sequence {
 		}
 		output.append("]"); //$NON-NLS-1$
 	}
-
+	
 	@Override
-	protected IType obtainType(DeclarationObtainmentContext context) {
-		return PrimitiveType.ARRAY;
+	protected IType obtainType(final DeclarationObtainmentContext context) {
+		return new ArrayType(
+			null,
+			ArrayUtil.map(elements, IType.class, new IConverter<ExprElm, IType>() {
+				@Override
+				public IType convert(ExprElm from) {
+					return from.getType(context);
+				}
+			})
+		);
 	}
 
 	@Override

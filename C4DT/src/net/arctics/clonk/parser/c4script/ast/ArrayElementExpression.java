@@ -23,9 +23,8 @@ public class ArrayElementExpression extends Value {
 		}
 		if (getPredecessorInSequence() != null) {
 			t = getPredecessorInSequence().getType(context);
-			if (t instanceof ArrayType) {
-				return ((ArrayType)t).getElementType();
-			}
+			if (t instanceof ArrayType)
+				return ((ArrayType)t).getTypeForElementWithIndex(argument.evaluateAtParseTime(context.getContainer()));
 		}
 		return PrimitiveType.UNKNOWN;
 	}

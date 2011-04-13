@@ -1,6 +1,5 @@
 package net.arctics.clonk.ui.editors.c4script;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -406,11 +405,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 		builder.append(Keywords.Func);
 		builder.append(" "); //$NON-NLS-1$
 		builder.append(functionName);
-		try {
-			Utilities.writeBlock(builder, "(", ")", ", ", ArrayUtil.arrayIterable(ArrayUtil.map(parmTypes, String.class, PARM_PRINTER))); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+		StringUtil.writeBlock(builder, "(", ")", ", ", ArrayUtil.arrayIterable(ArrayUtil.map(parmTypes, String.class, PARM_PRINTER))); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 		switch (Conf.braceStyle) {
 		case NewLine:
 			builder.append("\n"); //$NON-NLS-1$
