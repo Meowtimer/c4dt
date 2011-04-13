@@ -26,6 +26,7 @@ import net.arctics.clonk.parser.c4script.ScriptBase;
 import net.arctics.clonk.parser.c4script.StandaloneProjectScript;
 import net.arctics.clonk.parser.inireader.CustomIniUnit;
 import net.arctics.clonk.parser.inireader.IniField;
+import net.arctics.clonk.ui.editors.ClonkTextEditor;
 import net.arctics.clonk.util.SettingsBase;
 import net.arctics.clonk.util.StreamUtil;
 
@@ -39,6 +40,10 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.NullProgressMonitor;
+import org.eclipse.jface.viewers.ISelection;
+import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.ui.IEditorSite;
+import org.eclipse.ui.IWorkbenchSite;
 import org.eclipse.ui.part.FileEditorInput;
 import org.eclipse.ui.texteditor.ITextEditor;
 
@@ -360,6 +365,18 @@ public class ClonkProjectNature implements IProjectNature {
 					return null;
 				}
 			}
+		}
+		return null;
+	}
+	
+	public static ClonkProjectNature get(IWorkbenchSite site) {
+		ISelection selection = site.getSelectionProvider().getSelection();
+		if (selection instanceof IStructuredSelection && ((IStructuredSelection)selection).getFirstElement() instanceof IResource)
+			return get((IResource)((IStructuredSelection)selection).getFirstElement());
+		else if (site instanceof IEditorSite) {
+			IEditorSite editorSite = (IEditorSite) site;
+			if (editorSite.getPart() instanceof ClonkTextEditor)
+				return ClonkProjectNature.get(((ClonkTextEditor)editorSite.getPart()).getTopLevelDeclaration().getIndex().getProject());
 		}
 		return null;
 	}

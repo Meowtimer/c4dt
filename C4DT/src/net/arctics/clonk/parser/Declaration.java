@@ -54,11 +54,18 @@ public abstract class Declaration implements Serializable, IHasRelatedResource, 
 		public IRegion getLocation() {
 			return location;
 		}
+		public DeclarationLocation(Declaration declaration) {
+			this(declaration, declaration.getLocation(), declaration.getResource());
+		}
 		public DeclarationLocation(Declaration declaration, IRegion location, IResource resource) {
 			super();
 			this.declaration = declaration;
 			this.location = location;
 			this.resource = resource;
+		}
+		@Override
+		public String toString() {
+			return declaration.getName();
 		}
 	}
 	
@@ -335,7 +342,7 @@ public abstract class Declaration implements Serializable, IHasRelatedResource, 
 	 * @return whether this declaration should be filtered (false) or not (true)
 	 */
 	public boolean nameContains(String part) {
-		return getName().toLowerCase().contains(part.toLowerCase());
+		return getName() != null && getName().toLowerCase().contains(part.toLowerCase());
 	}
 	
 	@Override

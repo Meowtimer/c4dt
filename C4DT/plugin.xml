@@ -428,6 +428,12 @@
 			name="%OpenLocalResource_Name" />
 		
 		<command categoryId="org.eclipse.ui.category.navigate"
+			description="%LookupDeclaration_Desc"
+			id="net.arctics.clonk.ui.LookupDeclaration"
+			defaultHandler="net.arctics.clonk.ui.editors.actions.c4script.LookupDeclarationHandler"
+			name="%LookupDeclaration_Name" />
+		
+		<command categoryId="org.eclipse.ui.category.navigate"
 			description="%InvokeCommand_Desc"
 			id="net.arctics.clonk.ui.InvokeCommand"
 			defaultHandler="net.arctics.clonk.command.ui.actions.InvokeCommandHandler"
@@ -505,6 +511,7 @@
 			<menu label="Clonk">
 				<command commandId="net.arctics.clonk.ui.OpenObject" label="%OpenObject_Name" />
 				<command commandId="net.arctics.clonk.ui.OpenLocalResource" label="%OpenLocalResource_Name" />
+				<command commandId="net.arctics.clonk.ui.LookupDeclaration" label="%LookupDeclaration_Name" />
 				<separator name="SeparatorAfterOpenCommands" visible="true"/>
 				<command commandId="net.arctics.clonk.ui.QuickImport" label="%QuickImport_Name">
 					<visibleWhen checkEnabled="false">
@@ -522,7 +529,6 @@
 				</command>
 				<separator name="SeparatorAfterImportCommands" visible="true"/>
 				<command commandId="net.arctics.clonk.ui.InvokeCommand" label="%InvokeCommand_Name" />
-				<separator name="SeparatorBeforeAbout" visible="true"/>
 				<command commandId="net.arctics.clonk.ui.CreateCustomizationProject" label="%Meta_CreateCustomizationProject" />
 				<command commandId="net.arctics.clonk.ui.About" label="%Meta_About" />
 			</menu>

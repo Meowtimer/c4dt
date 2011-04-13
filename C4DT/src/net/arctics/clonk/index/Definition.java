@@ -137,9 +137,9 @@ public abstract class Definition extends ScriptBase {
 
 	@Override
 	public boolean nameContains(String text) {
-		if (getId().getName().toUpperCase().indexOf(text) != -1)
+		if (getId() != null && getId().getName().toUpperCase().indexOf(text) != -1)
 			return true;
-		if (getName().toUpperCase().contains(text))
+		if (getName() != null && getName().toUpperCase().contains(text))
 			return true;
 		if (localizedNames != null) {
 			for (String key : localizedNames.keySet()) {
