@@ -882,14 +882,25 @@ public class SpecialScriptRules {
 		};
 	};
 	
+	/**
+	 * Rule to make function names inside Find_Func link-clickable (will open DeclarationChooser).
+	 */
 	@AppliedTo(functions={"Find_Func"})
 	public final SpecialFuncRule findFuncRule = new SpecialFuncRule() {
 		@Override
 		public DeclarationRegion locateDeclarationInParameter(CallFunc callFunc, C4ScriptParser parser, int index, int offsetInExpression, ExprElm parmExpression) {
 			if (parmExpression instanceof StringLiteral) {
-				StringLiteral lit = (StringLiteral)parmExpression;
-				List<Declaration> matchingDecs = parser.getContainer().getIndex().getDeclarationMap().get(lit.getLiteral());
-				if (matchingDecs != null)
+				final StringLiteral lit = (StringLiteral)parmExpression;
+				final List<Declaration> matchingDecs = new LinkedList<Declaration>();
+				parser.getContainer().getIndex().forAllRelevantIndexes(new ClonkIndex.r() {
+					@Override
+					public void run(ClonkIndex index) {
+						List<Declaration> decs = index.getDeclarationMap().get(lit.getLiteral());
+						if (decs != null)
+							matchingDecs.addAll(decs);
+					}
+				});
+				if (matchingDecs.size() > 0)
 					return new DeclarationRegion(matchingDecs, lit.identifierRegion());
 			}
 			return null;
