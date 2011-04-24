@@ -185,6 +185,10 @@ public class ArrayUtil {
 		return result;
 	}
 	
+	public static <From, To> Iterable<To> map(Iterable<From> source, IConverter<From, To> converter) {
+		return new ConvertingIterable<From, To>(converter, source);
+	}
+	
 	/**
 	 * Helper for creating a map with one assignment
 	 * @param <KeyType> key type for resulting map
