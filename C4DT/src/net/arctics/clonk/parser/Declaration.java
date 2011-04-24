@@ -10,6 +10,7 @@ import net.arctics.clonk.index.ProjectDefinition;
 import net.arctics.clonk.index.Scenario;
 import net.arctics.clonk.parser.c4script.DeclarationObtainmentContext;
 import net.arctics.clonk.parser.c4script.Function;
+import net.arctics.clonk.parser.c4script.IDeclaration;
 import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.parser.c4script.ScriptBase;
 import net.arctics.clonk.parser.c4script.StandaloneProjectScript;
@@ -36,7 +37,7 @@ import org.eclipse.jface.text.IRegion;
  * @author madeen
  *
  */
-public abstract class Declaration implements Serializable, IHasRelatedResource, INode, IPostSerializable<Declaration, ClonkIndex>, IHasSubDeclarations {
+public abstract class Declaration implements Serializable, IHasRelatedResource, INode, IPostSerializable<Declaration, ClonkIndex>, IHasSubDeclarations, IDeclaration {
 
 	public static class DeclarationLocation implements Serializable {
 
@@ -382,6 +383,7 @@ public abstract class Declaration implements Serializable, IHasRelatedResource, 
 		return parentDeclaration != null ? parentDeclaration.getEngine() : null; 
 	}
 
+	@Override
 	public ClonkIndex getIndex() {
 		return parentDeclaration != null ? parentDeclaration.getIndex() : null;
 	}
@@ -460,6 +462,34 @@ public abstract class Declaration implements Serializable, IHasRelatedResource, 
 			public SourceLocation absoluteSourceLocationFromExpr(ExprElm expression) {
 				int bodyOffset = absoluteExpressionsOffset();
 				return new SourceLocation(expression.getExprStart()+bodyOffset, expression.getExprEnd()+bodyOffset);
+			}
+
+			@Override
+			public Object[] getArguments() {
+				return new Object[0];
+			}
+
+			@Override
+			public Function getFunction() {
+				return Declaration.this instanceof Function ? (Function)Declaration.this : null;
+			}
+
+			@Override
+			public ScriptBase getScript() {
+				return Declaration.this.getScript();
+			}
+
+			@Override
+			public int getCodeFragmentOffset() {
+				return 0;
+			}
+
+			@Override
+			public void reportOriginForExpression(ExprElm expression, IRegion location, IFile file) {}
+
+			@Override
+			public Object getValueForVariable(String varName) {
+				return null;
 			}
 		};
 	}

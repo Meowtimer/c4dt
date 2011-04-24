@@ -175,7 +175,7 @@ public class IniSourceViewerConfiguration extends ClonkSourceViewerConfiguration
 								else if (entryClass == String.class) {
 									DeclarationRegion reg = StringTbl.getEntryForLanguagePref(value, 0, relativeOffset, getEditor().getIniUnit(), true);
 									if (reg != null) {
-										declaration = reg.getDeclaration();
+										declaration = reg.getConcreteDeclaration();
 										linkStart += reg.getRegion().getOffset();
 										linkLen = reg.getRegion().getLength();
 									}

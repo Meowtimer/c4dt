@@ -2,7 +2,7 @@ package net.arctics.clonk.parser.c4script;
 
 import net.arctics.clonk.parser.c4script.ast.TypeExpectancyMode;
 
-public interface ITypedDeclaration {
+public interface ITypedDeclaration extends IDeclaration {
 	public void expectedToBeOfType(IType t, TypeExpectancyMode mode);
 	public IType getType();
 	public void forceType(IType type);

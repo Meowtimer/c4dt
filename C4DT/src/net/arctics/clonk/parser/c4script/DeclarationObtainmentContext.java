@@ -5,8 +5,9 @@ import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.SourceLocation;
 import net.arctics.clonk.parser.c4script.ast.ExprElm;
+import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
 
-public interface DeclarationObtainmentContext {
+public interface DeclarationObtainmentContext extends IEvaluationContext {
 	ScriptBase getContainer();
 	Function getCurrentFunc();
 	IType queryTypeOfExpression(ExprElm exprElm, IType defaultType);

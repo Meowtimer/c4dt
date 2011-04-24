@@ -82,7 +82,7 @@ public class ClonkSearchQuery extends ClonkSearchQueryBase {
 						functionNameExpr = (StringLiteral) e;
 						DeclarationRegion decRegion = e.declarationAt(0, parser);
 						if (decRegion != null)
-							return decRegion.getDeclaration() == declaration;
+							return decRegion.getConcreteDeclaration() == declaration;
 						break;
 					}
 				}

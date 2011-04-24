@@ -70,7 +70,7 @@ public final class StringLiteral extends Literal<String> {
 		StringTbl.EvaluationResult r = StringTbl.evaluateEntries(context.getScript(), getLiteral(), false);
 		// getting over-the-top: trace back to entry in StringTbl file to which the literal needs to be completely evaluated to 
 		if (r.singleDeclarationRegionUsed != null && getLiteral().matches("\\$.*?\\$"))
-			context.reportOriginForExpression(this, r.singleDeclarationRegionUsed.getRegion(), (IFile) r.singleDeclarationRegionUsed.getDeclaration().getResource());
+			context.reportOriginForExpression(this, r.singleDeclarationRegionUsed.getRegion(), (IFile) r.singleDeclarationRegionUsed.getConcreteDeclaration().getResource());
 		else if (!r.anySubstitutionsApplied)
 			context.reportOriginForExpression(this, new SourceLocation(context.getCodeFragmentOffset(), this), context.getScript().getScriptFile());
 		return r.evaluated;

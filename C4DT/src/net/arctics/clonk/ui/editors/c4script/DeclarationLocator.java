@@ -96,12 +96,12 @@ public class DeclarationLocator extends ExpressionLocator {
 					setRegion = true;
 				}
 				else if (
-					declRegion != null && declRegion.getDeclaration() != null &&
-					(!(exprAtRegion.getPredecessorInSequence() instanceof MemberOperator) || !declRegion.getDeclaration().isGlobal())
+					declRegion != null && declRegion.getConcreteDeclaration() != null &&
+					(!(exprAtRegion.getPredecessorInSequence() instanceof MemberOperator) || !declRegion.getConcreteDeclaration().isGlobal())
 				) {
 					// declaration was found; return it if this is not an object call ('->') or if the found declaration is non-global
 					// in which case the type of the calling object is probably known
-					this.declaration = declRegion.getDeclaration();
+					this.declaration = declRegion.getConcreteDeclaration();
 					setRegion = true;
 				}
 				else if (exprAtRegion instanceof AccessDeclaration) {

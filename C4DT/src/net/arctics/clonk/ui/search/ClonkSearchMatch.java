@@ -28,7 +28,11 @@ public class ClonkSearchMatch extends Match {
 	}
 
 	public Structure getStructure() {
-		return (Structure) getElement();
+		Structure s = (Structure) getElement();
+		if (s != null)
+			return (Structure) s.latestVersion();
+		else
+			return null;
 	}
 
 	public int getLineOffset() {

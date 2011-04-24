@@ -1,6 +1,7 @@
 package net.arctics.clonk.parser.c4script.ast;
 
 import net.arctics.clonk.ClonkCore;
+import net.arctics.clonk.parser.DeclarationRegion;
 import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.c4script.ArrayType;
@@ -18,15 +19,14 @@ public class ArrayElementExpression extends Value {
 	@Override
 	protected IType obtainType(DeclarationObtainmentContext context) {
 		IType t = super.obtainType(context);
-		if (t != PrimitiveType.UNKNOWN && t != PrimitiveType.ANY) {
+		if (t != PrimitiveType.UNKNOWN && t != PrimitiveType.ANY)
 			return t;
-		}
 		if (getPredecessorInSequence() != null) {
 			t = getPredecessorInSequence().getType(context);
 			if (t instanceof ArrayType)
-				return ((ArrayType)t).getTypeForElementWithIndex(argument.evaluateAtParseTime(context.getContainer()));
+				return ((ArrayType)t).getTypeForElementWithIndex(argument.evaluateAtParseTime(context));
 		}
-		return PrimitiveType.UNKNOWN;
+		return PrimitiveType.ANY;
 	}
 
 	public ArrayElementExpression(ExprElm argument) {
@@ -78,6 +78,18 @@ public class ArrayElementExpression extends Value {
 
 	public ExprElm getArgument() {
 		return argument;
+	}
+	
+	@Override
+	public DeclarationRegion declarationAt(int offset, C4ScriptParser parser) {
+		if (getPredecessorInSequence() != null) {
+			IType t = getPredecessorInSequence().getType(parser);
+			if (t instanceof ArrayType)
+				return new DeclarationRegion(
+					((ArrayType)t).getTypedDeclarationWrapperForElementWithIndex(argument.evaluateAtParseTime(parser), parser.getContainer().getIndex())
+				);
+		}
+		return super.declarationAt(offset, parser);
 	}
 
 }

@@ -906,6 +906,23 @@ public class SpecialScriptRules {
 			return null;
 		};
 	};
+	
+	/**
+	 * Modifies the return type of CreateArray to be an ArrayType
+	 */
+	@AppliedTo(functions={"CreateArray"})
+	public final SpecialFuncRule createArrayTypingRule = new SpecialFuncRule() {
+		@Override
+		public IType returnType(DeclarationObtainmentContext context, CallFunc callFunc) {
+			int arrayLength = 0;
+			if (callFunc.getParams().length >= 1) {
+				Object ev = callFunc.getParams()[0].evaluateAtParseTime(context);
+				if (ev instanceof Number)
+					arrayLength = ((Number) ev).intValue();
+			}
+			return new ArrayType(PrimitiveType.ANY, arrayLength);
+		};
+	};
 
 	/**
 	 * Add rules declared as public instance variables to various internal lists so they will be recognized.

@@ -79,6 +79,7 @@ import net.arctics.clonk.parser.c4script.ast.VarDeclarationStatement;
 import net.arctics.clonk.parser.c4script.ast.Wildcard;
 import net.arctics.clonk.parser.c4script.ast.VarDeclarationStatement.VarInitialization;
 import net.arctics.clonk.parser.c4script.ast.WhileStatement;
+import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
 import net.arctics.clonk.resource.ClonkBuilder;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.resource.c4group.C4GroupItem;
@@ -98,7 +99,7 @@ import org.eclipse.jface.text.Region;
  * checking correctness (aiming to detect all kinds of errors like undeclared identifiers, supplying values of wrong type to functions etc.), converting old
  * c4script code to #strict-compliant "new-style" code and forming the base of navigation operations like "Find Declaration", "Find References" etc.
  */
-public class C4ScriptParser extends CStyleScanner implements DeclarationObtainmentContext {
+public class C4ScriptParser extends CStyleScanner implements DeclarationObtainmentContext, IEvaluationContext {
 	
 	public static class FunctionContext {
 		public Declaration currentDeclaration;
@@ -1856,7 +1857,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 
 			setExprRegionRelativeToFuncBody(result, sequenceStart, this.offset);
 			if (result.getType(this) == null) {
-				errorWithCode(ParserErrorCode.InvalidExpression, result);
+				errorWithCode(ParserErrorCode.InvalidExpression, result, NO_THROW);
 			}
 
 			if (proper) {
@@ -2856,7 +2857,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 					warningWithCode(ParserErrorCode.IncompatibleTypes, arrayExpr, t.toString(), PrimitiveType.ARRAY.toString());
 				if (loopVariable != null && t instanceof ArrayType) {
 					ArrayType arrayType = (ArrayType) t;
-					new AccessVar(loopVariable).expectedToBeOfType(arrayType.getElementType(), this, TypeExpectancyMode.Force);
+					new AccessVar(loopVariable).expectedToBeOfType(arrayType.getGeneralElementType(), this, TypeExpectancyMode.Force);
 				}
 			}
 			condition = null;
@@ -3524,6 +3525,36 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 
 	public int getParseStatementRecursion() {
 		return currentFunctionContext.parseStatementRecursion;
+	}
+
+	@Override
+	public Object getValueForVariable(String varName) {
+		return "Yes";
+	}
+
+	@Override
+	public Object[] getArguments() {
+		return new Object[0];
+	}
+
+	@Override
+	public Function getFunction() {
+		return getCurrentFunc();
+	}
+
+	@Override
+	public ScriptBase getScript() {
+		return getContainer();
+	}
+
+	@Override
+	public int getCodeFragmentOffset() {
+		return bodyOffset();
+	}
+
+	@Override
+	public void reportOriginForExpression(ExprElm expression, IRegion location, IFile file) {
+		// yes
 	}
 	
 }

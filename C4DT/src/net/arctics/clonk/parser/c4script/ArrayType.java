@@ -1,10 +1,15 @@
 package net.arctics.clonk.parser.c4script;
 
-import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
+import java.util.Map.Entry;
 
 import net.arctics.clonk.ClonkCore;
+import net.arctics.clonk.index.ClonkIndex;
+import net.arctics.clonk.parser.c4script.ast.TypeExpectancyMode;
 import net.arctics.clonk.util.ArrayUtil;
+import net.arctics.clonk.util.IConverter;
 import net.arctics.clonk.util.StringUtil;
 
 /**
@@ -16,8 +21,9 @@ public class ArrayType implements IType {
 
 	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 
-	private IType elementType;
-	private IType[] knownTypesForSpecificElements;
+	private IType generalElementType;
+	private int presumedLength;
+	private Map<Integer, IType> elementTypeMapping;
 	
 	/**
 	 * Construct a new ArrayType.
@@ -25,25 +31,37 @@ public class ArrayType implements IType {
 	 * @param knownTypesForSpecificElements Specific types for elements. The index of the type in this array corresponds to the index in the array instances of this type.
 	 */
 	public ArrayType(IType elmType, IType[] knownTypesForSpecificElements) {
-		this.elementType = elmType;
-		this.knownTypesForSpecificElements = knownTypesForSpecificElements;
+		this(elmType, knownTypesForSpecificElements != null ? knownTypesForSpecificElements.length : 0);
+		int i = 0;
+		if (knownTypesForSpecificElements != null)
+			for (IType t : knownTypesForSpecificElements)
+				elementTypeMapping.put(i++, t);
+	}
+	
+	public ArrayType(IType generalElementType, int presumedLength) {
+		this.generalElementType = generalElementType;
+		this.presumedLength = presumedLength;
+		elementTypeMapping = new HashMap<Integer, IType>();
 	}
 
 	/**
 	 * Get the general element type. If the general element type is not set a type set consisting of the specific element types will be returned.
 	 * @return
 	 */
-	public IType getElementType() {
-		return elementType != null ? elementType : TypeSet.create(knownTypesForSpecificElements);
+	public IType getGeneralElementType() {
+		return generalElementType != null ? generalElementType : TypeSet.create(elementTypeMapping.values().toArray(new IType[elementTypeMapping.size()]));
 	}
 	
 	/**
-	 * Return the specific known element types for arrays of this type.
-	 * The index of the type in this array corresponds to the index in the array instances of this type.
-	 * @return The types
+	 * Return element index -> type map
+	 * @return
 	 */
-	public IType[] getKnownTypesForSpecificElements() {
-		return knownTypesForSpecificElements;
+	public Map<Integer, IType> getElementTypeMapping() {
+		return elementTypeMapping;
+	}
+	
+	public int getPresumedLength() {
+		return presumedLength;
 	}
 	
 	@Override
@@ -60,11 +78,18 @@ public class ArrayType implements IType {
 	 * The type name of an array type will either describe the type in terms of its general element type or the specific element types.
 	 */
 	@Override
-	public String typeName(boolean special) {
-		if (elementType != null)
-			return String.format("<%s of %s>", PrimitiveType.ARRAY.typeName(special), elementType.typeName(special));
-		else if (knownTypesForSpecificElements != null)
-			return String.format("<%s with types for first elements: %s>", PrimitiveType.ARRAY.typeName(special), StringUtil.writeBlock(null, "[", "]", ", ", ArrayUtil.arrayIterable(knownTypesForSpecificElements)));
+	public String typeName(final boolean special) {
+		if (elementTypeMapping.size() > 0)
+			return String.format("%s%s", PrimitiveType.ARRAY.typeName(special), StringUtil.writeBlock(null, "[", "]", ", ",
+					ArrayUtil.map(elementTypeMapping.entrySet(), new IConverter<Map.Entry<Integer, IType>, String>() {
+						@Override
+						public String convert(Entry<Integer, IType> from) {
+							return String.format("%d: %s", from.getKey(), from.getValue().typeName(special));
+						}
+					}))
+			);
+		else if (generalElementType != null)
+			return String.format("%s[%s, ...]", PrimitiveType.ARRAY.typeName(special), generalElementType.typeName(special));
 		else
 			return PrimitiveType.ARRAY.typeName(special);
 	}
@@ -103,28 +128,78 @@ public class ArrayType implements IType {
 	public boolean equals(Object obj) {
 		if (obj instanceof ArrayType) {
 			ArrayType otherArrType = (ArrayType) obj;
-			if (otherArrType.elementType == null && this.elementType != null)
+			if (otherArrType.generalElementType == null && this.generalElementType != null)
 				return false;
-			if (this.elementType != null && !otherArrType.elementType.equals(this.elementType))
+			if (this.generalElementType != null && !otherArrType.generalElementType.equals(this.generalElementType))
 				return false;
-			return Arrays.deepEquals(otherArrType.knownTypesForSpecificElements, this.knownTypesForSpecificElements);
+			return otherArrType.elementTypeMapping.equals(elementTypeMapping);
 		} else
 			return false;
 	}
 
 	/**
-	 * Return element type for an evaluated index expression. This will be either the general element type if the evaluation isn't a number or the index is out of range, or if no specific element types are known.
+	 * Return element type for an evaluated index expression. This will be either the general element type if the evaluation isn't a number or no type information is available for the respective element.
 	 * Otherwise the corresponding specific element type will be returned.
 	 * @param evaluateIndexExpression Evaluated index expression. Can be anything.
 	 * @return The element type
 	 */
 	public IType getTypeForElementWithIndex(Object evaluateIndexExpression) {
-		if (evaluateIndexExpression instanceof Number) {
-			int index = ((Number)evaluateIndexExpression).intValue();
-			if (knownTypesForSpecificElements != null && index >= 0 && index < knownTypesForSpecificElements.length && knownTypesForSpecificElements[index] != null)
-				return knownTypesForSpecificElements[index];
+		IType t;
+		if (evaluateIndexExpression instanceof Number)
+			t = elementTypeMapping.get(((Number)evaluateIndexExpression).intValue());
+		else
+			t = getGeneralElementType();
+		if (t == null)
+			t = PrimitiveType.ANY;
+		return t;
+	}
+	
+	protected void elementTypeHint(int elementIndex, IType type, TypeExpectancyMode mode) {
+		if (elementIndex < 0)
+			generalElementType = TypeSet.create(generalElementType, type);
+		else {
+			IType known = elementTypeMapping.get(elementIndex);
+			if (known != null)
+				elementTypeMapping.put(elementIndex, TypeSet.create(known, type));
+			else
+				elementTypeMapping.put(elementIndex, type);
 		}
-		return elementType != null ? elementType : PrimitiveType.UNKNOWN;
+	}
+
+	public ITypedDeclaration getTypedDeclarationWrapperForElementWithIndex(final Object evaluatedIndexExpression, final ClonkIndex index) {
+		final int concreteIndex = evaluatedIndexExpression instanceof Number ? ((Number)evaluatedIndexExpression).intValue() : -1;
+		return new ITypedDeclaration() {
+			@Override
+			public String getName() {
+				return String.format("Element %s of %s", evaluatedIndexExpression, ArrayType.this);
+			}
+
+			@Override
+			public void expectedToBeOfType(IType t, TypeExpectancyMode mode) {
+				elementTypeHint(concreteIndex, t, mode);
+			}
+
+			@Override
+			public IType getType() {
+				return getTypeForElementWithIndex(evaluatedIndexExpression);
+			}
+
+			@Override
+			public void forceType(IType type) {
+				elementTypeHint(concreteIndex, type, TypeExpectancyMode.Force);
+			}
+
+			@Override
+			public boolean typeIsInvariant() {
+				return false;
+			}
+			
+			@Override
+			public ClonkIndex getIndex() {
+				return index;
+			}
+			
+		};
 	}
 
 }

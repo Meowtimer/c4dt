@@ -767,6 +767,11 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 		}
 	}
 	
+	/**
+	 * Stored Type Information that applies the stored type information by determining the {@link ITypedDeclaration} being referenced by some arbitrary {@link ExprElm} and setting its type.
+	 * @author madeen
+	 *
+	 */
 	protected static final class GenericStoredTypeInformation extends StoredTypeInformation {
 		private ExprElm referenceElm;
 		
@@ -810,11 +815,10 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 		
 		public static ITypedDeclaration getDeclaration(ExprElm referenceElm, C4ScriptParser parser) {
 			DeclarationRegion decRegion = referenceElm.declarationAt(referenceElm.getLength()-1, parser);
-			if (decRegion != null && decRegion.getDeclaration() instanceof ITypedDeclaration) {
-				return (ITypedDeclaration) decRegion.getDeclaration();
-			} else {
+			if (decRegion != null && decRegion.getTypedDeclaration() != null)
+				return decRegion.getTypedDeclaration();
+			else
 				return null;
-			}
 		}
 		
 		@Override
@@ -823,11 +827,9 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 			if (tyDec != null) {
 				// only set types of declarations inside the current index so definition references of one project
 				// don't leak into a referenced base project (ClonkMars def referenced in ClonkRage or something)
-				ClonkIndex index = ((Declaration)tyDec).getIndex();
-				if (index == null) {
-					System.out.println("ugh");
+				ClonkIndex index = tyDec.getIndex();
+				if (index == null)
 					return;
-				}
 				if (index == parser.getContainer().getIndex())
 					tyDec.expectedToBeOfType(type, TypeExpectancyMode.Expect);
 			}
