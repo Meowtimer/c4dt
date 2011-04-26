@@ -17,7 +17,7 @@ public class Scenario extends ProjectDefinition {
 	}
 	
 	public static Scenario get(IContainer folder) {
-		ProjectDefinition obj = objectCorrespondingTo(folder);
+		ProjectDefinition obj = definitionCorrespondingToFolder(folder);
 		return obj instanceof Scenario ? (Scenario)obj : null;
 	}
 

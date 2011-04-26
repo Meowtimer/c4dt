@@ -194,7 +194,7 @@ public class ClonkSearchQuery extends ClonkSearchQueryBase {
 									if (complex.getEntryConfig() != null) {
 										Class<?> entryClass = complex.getEntryConfig().getEntryClass();
 										if (entryClass == FuncRefEntry.class) {
-											ProjectDefinition obj = ProjectDefinition.objectCorrespondingTo(objectFolder);
+											ProjectDefinition obj = ProjectDefinition.definitionCorrespondingToFolder(objectFolder);
 											if (obj != null) {
 												Declaration declaration = obj.findFunction(complex.getValue());
 												if (declaration == this.declaration)

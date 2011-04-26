@@ -11,12 +11,14 @@ import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.part.FileEditorInput;
 
 import net.arctics.clonk.ClonkCore;
+import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.parser.c4script.ScriptBase;
+import net.arctics.clonk.resource.ClonkBuilder;
 import net.arctics.clonk.ui.editors.c4script.ScriptWithStorageEditorInput;
 
 /**
  * Declaration that contains sub declarations and describes more complex structures (like DefCores and scripts).
- * Provides support for being pinned to files in the project tree.
+ * Provides support for being pinned to files in the project tree using {@link IResource} session properties.
  */
 public abstract class Structure extends Declaration implements ILatestDeclarationVersionProvider {
 	
@@ -112,10 +114,23 @@ public abstract class Structure extends Declaration implements ILatestDeclaratio
 	}
 	
 	/**
+	 * Mark the Structure as being out of sync with the file it's defined in.
+	 * No guarantees given as to whether the return value of {@link #dirty()} and calling this method will be consistent (a.k.a: Those methods are declared empty in Structure and only {@link ScriptBase} overrides them).m
+	 * @param dirty Dirty flag
+	 */
+	public void setDirty(boolean dirty) {}
+	
+	/**
 	 * factory for creating structures
 	 *
 	 */
 	public interface IStructureFactory {
+		/**
+		 * Create a structure for the given resource.
+		 * @param resource The resource to create a Structure for
+		 * @param duringBuild Flag to indicate whether the creation request happens during a {@link ClonkBuilder} run.
+		 * @return The created structure or null if the factory decides to not be responsible for this kind of file.
+		 */
 		public Structure create(IResource resource, boolean duringBuild);
 	}
 	
@@ -147,23 +162,25 @@ public abstract class Structure extends Declaration implements ILatestDeclaratio
 	}
 	
 	/**
-	 * Commits data of this structure to the script. Mainly for objects.
+	 * Commits data of this structure to the script. Primarily for {@link Definition}s which are defined by various files in addition to the script file.
 	 * @param script the script to commit to
 	 */
 	public void commitTo(ScriptBase script) {
 		// placeholder
 	}
 	
+	/**
+	 * Returns whether changing a structure (by editing the corresponding file) causes a reparsing of the associated script if there is one.
+	 * @return Whether a script reparse is required or not.
+	 */
 	public boolean requiresScriptReparse() {
 		return false;
 	}
 	
 	/**
-	 * Called by the builder in phase 2 to give structure files a chance to complain about things like missing functions (which ought to be created as of now)
+	 * Called by the {@link ClonkBuilder} in phase 2 to give Structure files a chance to complain about things like missing functions (which ought to have been created as of now since the {@link ClonkBuilder} is in phase 2)
 	 */
 	public void validate() {}
-	
-	public void setDirty(boolean dirty) {}
 	
 	@SuppressWarnings("unchecked")
 	public <T extends Declaration> T getLatestVersion(T from) {

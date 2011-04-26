@@ -306,7 +306,7 @@ public class ClonkPreviewView extends ViewPart implements ISelectionListener, Co
 			else if (sel instanceof IContainer && ((IContainer)sel).getProject().isOpen()) {
 				IContainer container = (IContainer) sel;
 				
-				ProjectDefinition obj = ProjectDefinition.objectCorrespondingTo(container);
+				ProjectDefinition obj = ProjectDefinition.definitionCorrespondingToFolder(container);
 				if (obj != null)
 					newDefText = obj.idWithName();
 

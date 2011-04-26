@@ -94,7 +94,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 		@Override
 		public boolean visit(IResource resource) throws CoreException {
 			if (resource instanceof IContainer) {
-				ProjectDefinition obj = ProjectDefinition.objectCorrespondingTo((IContainer) resource);
+				ProjectDefinition obj = ProjectDefinition.definitionCorrespondingToFolder((IContainer) resource);
 				if (obj != null)
 					obj.setObjectFolder(null);
 			}
@@ -183,7 +183,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 						}
 						// some other file but a script is still needed so get the object for the folder
 						else {
-							script = ProjectDefinition.objectCorrespondingTo(folder);
+							script = ProjectDefinition.definitionCorrespondingToFolder(folder);
 						}
 					}
 					if (script != null && delta.getResource().equals(script.getScriptStorage())) {
@@ -215,13 +215,13 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 				ProjectDefinition object;
 				switch (delta.getKind()) {
 				case IResourceDelta.ADDED:
-					object = ProjectDefinition.objectCorrespondingTo((IContainer)delta.getResource());
+					object = ProjectDefinition.definitionCorrespondingToFolder((IContainer)delta.getResource());
 					if (object != null)
 						object.setObjectFolder((IContainer) delta.getResource());
 					break;
 				case IResourceDelta.REMOVED:
 					// remove object when folder is removed
-					object = ProjectDefinition.objectCorrespondingTo((IContainer)delta.getResource());
+					object = ProjectDefinition.definitionCorrespondingToFolder((IContainer)delta.getResource());
 					if (object != null)
 						object.getIndex().removeObject(object);
 					break;
@@ -273,7 +273,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 				gatheredStructures.add(structure);
 			}
 			else {
-				ProjectDefinition obj = ProjectDefinition.objectCorrespondingTo(file.getParent());
+				ProjectDefinition obj = ProjectDefinition.definitionCorrespondingToFolder(file.getParent());
 				if (obj != null) {
 					try {
 						obj.processFile(file);

@@ -116,7 +116,7 @@ public class IniSourceViewerConfiguration extends ClonkSourceViewerConfiguration
 									declaration = index.getDefinitionNearestTo(r, ID.getID(value));
 								}
 								else if (entryClass == FuncRefEntry.class) {
-									ProjectDefinition obj = ProjectDefinition.objectCorrespondingTo(Utilities.getEditingFile(getEditor()).getParent());
+									ProjectDefinition obj = ProjectDefinition.definitionCorrespondingToFolder(Utilities.getEditingFile(getEditor()).getParent());
 									if (obj != null) {
 										declaration = obj.findFunction(value);
 									}
@@ -145,7 +145,7 @@ public class IniSourceViewerConfiguration extends ClonkSourceViewerConfiguration
 									}
 								}
 								else if (entryClass == DefinitionPack.class) {
-									ClonkIndex projIndex = ProjectDefinition.objectCorrespondingTo(Utilities.getEditingFile(getEditor()).getParent()).getIndex();
+									ClonkIndex projIndex = ProjectDefinition.definitionCorrespondingToFolder(Utilities.getEditingFile(getEditor()).getParent()).getIndex();
 									List<ClonkIndex> indexes = projIndex.relevantIndexes();
 									for (ClonkIndex index : indexes) {
 										if (index instanceof ProjectIndex) {

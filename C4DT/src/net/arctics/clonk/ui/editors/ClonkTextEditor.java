@@ -47,25 +47,44 @@ import org.eclipse.ui.texteditor.ContentAssistAction;
 import org.eclipse.ui.texteditor.ITextEditorActionDefinitionIds;
 import org.eclipse.ui.views.contentoutline.IContentOutlinePage;
 
+/**
+ * Base class for Clonk text editors.
+ * @author madeen
+ *
+ */
 public class ClonkTextEditor extends TextEditor {
 	
 	protected ClonkContentOutlinePage outlinePage;
 	private ShowInAdapter showInAdapter;
 	
+	/**
+	 * Select and reveal some location in the text file.
+	 * @param location
+	 */
 	public void selectAndReveal(IRegion location) {
 		this.selectAndReveal(location.getOffset(), location.getLength());
 	}
 	
+	/**
+	 * Clear the outline.
+	 */
 	public void clearOutline() {
 		if (outlinePage != null)
 			outlinePage.clear();
 	}
 	
+	/**
+	 * Refresh the outline so the new contents of the {@link #getTopLevelDeclaration()} will be shown.
+	 */
 	public void refreshOutline() {
 		if (outlinePage != null) // don't start lazy loading of outlinePage
 			outlinePage.refresh();
 	}
 	
+	/**
+	 * Return the outline page of this text editor.
+	 * @return
+	 */
 	public ClonkContentOutlinePage getOutlinePage() {
 		if (outlinePage == null) {
 			outlinePage = new ClonkContentOutlinePage();
@@ -74,6 +93,9 @@ public class ClonkTextEditor extends TextEditor {
 		return outlinePage;
 	}
 	
+	/**
+	 * Handle adaptering for {@link IContentOutlinePage} and {@link IShowInSource}
+	 */
 	@SuppressWarnings("rawtypes")
 	public Object getAdapter(Class adapter) {
 		if (IContentOutlinePage.class.equals(adapter)) {
@@ -87,6 +109,12 @@ public class ClonkTextEditor extends TextEditor {
 		return super.getAdapter(adapter);
 	}
 	
+	/**
+	 * Utility method to open some {@link Declaration} in some variant of ClonkTextEditor.
+	 * @param target The {@link Declaration} to open
+	 * @param activate Whether to activate the editor after opening it.
+	 * @return The {@link IEditorPart}. Will most likely refer to a ClonkTextEditor object or be null due to some failure.
+	 */
 	public static IEditorPart openDeclaration(Declaration target, boolean activate) {
 		IWorkbench workbench = PlatformUI.getWorkbench();
 		IWorkbenchPage workbenchPage = workbench.getActiveWorkbenchWindow().getActivePage();
@@ -124,7 +152,22 @@ public class ClonkTextEditor extends TextEditor {
 		}
 		return null;
 	}
+	
+	/**
+	 * See {@link #openDeclaration(Declaration, boolean)}. The editor will always be revealed.
+	 * @param target The {@link Declaration} to open.
+	 * @return The opened {@link IEditorPart} or null due to failure.
+	 */
+	public static IEditorPart openDeclaration(Declaration target) {
+		return openDeclaration(target, true);
+	}
 
+	/**
+	 * Open a {@link DeclarationLocation}.
+	 * @param location The location to open
+	 * @param activate Whether to activate the editor after opening the location.
+	 * @return
+	 */
 	public static IEditorPart openDeclarationLocation(DeclarationLocation location, boolean activate) {
 		try {
 			IEditorPart ed = null;
@@ -133,7 +176,7 @@ public class ClonkTextEditor extends TextEditor {
 				ed = (ClonkTextEditor) IDE.openEditor(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage(), (IFile) location.getResource(), descriptor.getId());
 			}
 			else if (location.getResource() instanceof IContainer) {
-				Definition def = ProjectDefinition.objectCorrespondingTo((IContainer) location.getResource());
+				Definition def = ProjectDefinition.definitionCorrespondingToFolder((IContainer) location.getResource());
 				if (def != null) {
 					ed = openDeclaration(def);
 				}
@@ -148,6 +191,12 @@ public class ClonkTextEditor extends TextEditor {
 		return null;
 	}
 
+	/**
+	 * Reveal a {@link Declaration} in an editor.
+	 * @param target The {@link Declaration} to reveal
+	 * @param structure The {@link Structure} the {@link Declaration} is contained in.
+	 * @param editor The editor to reveal the {@link Declaration} in. Special treatment for {@link ClonkTextEditor}, fallback for {@link AbstractTextEditor}.
+	 */
 	private static void revealInEditor(Declaration target, Structure structure, IEditorPart editor) {
 		if (editor instanceof ClonkTextEditor) {
 			ClonkTextEditor clonkTextEditor = (ClonkTextEditor) editor;
@@ -167,10 +216,6 @@ public class ClonkTextEditor extends TextEditor {
 			AbstractTextEditor ed = (AbstractTextEditor) editor;
 			ed.selectAndReveal(target.getLocation().getStart(), target.getLocation().getEnd()-target.getLocation().getStart());
 		}
-	}
-	
-	public static IEditorPart openDeclaration(Declaration target) {
-		return openDeclaration(target, true);
 	}
 	
 	/**
@@ -207,6 +252,12 @@ public class ClonkTextEditor extends TextEditor {
 		}
 	}
 	
+	/**
+	 * Create a {@link IHyperlink} at the given offset in the text document using the same mechanism that is being used to create hyperlinks when ctrl-hovering.
+	 * This hyperlink will be used for functionality like {@link OpenDeclarationAction} that will not directly operate on specific kinds of {@link Declaration}s and is thus dependent on the {@link ClonkTextEditor} class returning adequate hyperlinks. 
+	 * @param offset The offset 
+	 * @return
+	 */
 	public IHyperlink hyperlinkAtOffset(int offset) {
 		IHyperlinkDetector[] detectors = getSourceViewerConfiguration().getHyperlinkDetectors(getSourceViewer());
 		// emulate
@@ -220,7 +271,11 @@ public class ClonkTextEditor extends TextEditor {
 		return null;
 	}
 	
-	public IHyperlink getHyperlinkAtCurrentSelection() {
+	/**
+	 * Invoke {@link #hyperlinkAtOffset(int)} using the current selection offset.
+	 * @return The hyperlink returned by {@link #hyperlinkAtOffset(int)}
+	 */
+	public IHyperlink hyperlinkAtCurrentSelection() {
 	    ITextSelection selection = (ITextSelection) this.getSelectionProvider().getSelection();
 		IHyperlink hyperlink = this.hyperlinkAtOffset(selection.getOffset());
 		return hyperlink;
@@ -252,6 +307,13 @@ public class ClonkTextEditor extends TextEditor {
 		((ClonkSourceViewerConfiguration<?>) getSourceViewerConfiguration()).refreshSyntaxColoring();
 	}
 	
+	/**
+	 * Given a {@link ISourceViewer}, look for the corresponding {@link ClonkTextEditor}.
+	 * @param <T> Return type specified by the passed cls.
+	 * @param sourceViewer The {@link ISourceViewer}
+	 * @param cls The class of {@link ClonkTextEditor} to return an instance of.
+	 * @return The {@link ClonkTextEditor} corresponding to the source viewer and being of the required class or null.
+	 */
 	@SuppressWarnings("unchecked")
 	public static <T extends ClonkTextEditor> T getEditorForSourceViewer(ISourceViewer sourceViewer, Class<T> cls) {
 		for (IWorkbenchWindow window : PlatformUI.getWorkbench().getWorkbenchWindows()) {
@@ -269,6 +331,13 @@ public class ClonkTextEditor extends TextEditor {
 		return null;
 	}
 	
+	/**
+	 * Return an existing editor for the specified {@link IResource}.
+	 * @param <T> Return type specified by the passed cls.
+	 * @param resource The {@link IResource} to obtain a matching existing editor for.
+	 * @param cls The class of {@link ClonkTextEditor} to return an instance of.
+	 * @return The {@link ClonkTextEditor} being opened for the passed resource and being of the required class or null.
+	 */
 	@SuppressWarnings("unchecked")
 	public static <T extends ClonkTextEditor> T getEditorForResource(IResource resource, Class<T> cls) {
 		for (IWorkbenchWindow window : PlatformUI.getWorkbench().getWorkbenchWindows()) {
@@ -286,17 +355,25 @@ public class ClonkTextEditor extends TextEditor {
 		return null;
 	}
 	
+	/**
+	 * Relax protectedness of {@link #getSourceViewer()}
+	 * @return
+	 */
 	public final ISourceViewer getProtectedSourceViewer() {
 		return super.getSourceViewer();
 	}
-	
+
 	@Override
 	protected void handleCursorPositionChanged() {
 		super.handleCursorPositionChanged();
 		if (getTextChangeListener() != null && getTopLevelDeclaration() instanceof Structure)
-			getTextChangeListener().update((Structure) getTopLevelDeclaration());
+			getTextChangeListener().updateStructure((Structure) getTopLevelDeclaration());
 	}
 	
+	/**
+	 * Return the {@link TextChangeListenerBase} object being shared for all editors having opened the same file.
+	 * @return
+	 */
 	protected TextChangeListenerBase<?, ?> getTextChangeListener() {
 		return null;
 	}

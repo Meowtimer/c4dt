@@ -169,8 +169,13 @@ public class ProjectDefinition extends Definition implements Serializable {
 		ClonkProjectNature.get(objectFolder.getProject()).getIndex().removeObject(this);
 	}
 
+	/**
+	 * Set the object folder the Definition was read from. This will take care of setting session properties on the folder.
+	 * @param folder The folder
+	 * @throws CoreException
+	 */
 	public void setObjectFolder(IContainer folder) throws CoreException {
-		if (objectFolder == folder)
+		if (Utilities.objectsEqual(folder, objectFolder))
 			return;
 		if (objectFolder != null && objectFolder.exists())
 			objectFolder.setSessionProperty(ClonkCore.C4OBJECT_PROPERTY_ID, null);
@@ -202,7 +207,12 @@ public class ProjectDefinition extends Definition implements Serializable {
 			}
 	}
 
-	public static ProjectDefinition objectCorrespondingTo(IContainer folder) {
+	/**
+	 * Return the definition that is declared at the given folder.
+	 * @param folder The folder to return the Definition object of
+	 * @return The Definition object
+	 */
+	public static ProjectDefinition definitionCorrespondingToFolder(IContainer folder) {
 		ProjectDefinition obj = (Utilities.getIndex(folder) != null) ? Utilities.getIndex(folder).getObject(folder) : null;
 		// haxxy cleanup: might have been lost by <insert unlikely event>
 		if (obj != null)
@@ -210,6 +220,12 @@ public class ProjectDefinition extends Definition implements Serializable {
 		return obj;
 	}
 
+	/**
+	 * Give the definition a chance to refresh its folder reference after having been loaded or some such.
+	 * @param project The project passed to the method so the definition has some context from where to get the folder reference
+	 * @return Whether refreshing the folder reference was successful
+	 * @throws CoreException
+	 */
 	public boolean refreshFolderReference(IProject project) throws CoreException {
 		Path path = new Path(this.relativePath);
 		IPath projectPath = path.removeFirstSegments(1);
@@ -238,7 +254,13 @@ public class ProjectDefinition extends Definition implements Serializable {
 		//return getName() + ": " + super.getInfoText();
 	}
 
-	// for processing files whose contents won't be saved in a separate c4structure thingie
+	/**
+	 * Process a file contained in the Definition folder that won't be read into a separate {@link Structure} object.<br/>
+	 * At the moment, this effectively only applies to Names.txt.
+	 * @param file The (sufficiently simple to not be represented as a {@link Structure}) file to process to add additional information to the Definition
+	 * @throws IOException
+	 * @throws CoreException
+	 */
 	public void processFile(IFile file) throws IOException, CoreException {
 		if (file.getName().equalsIgnoreCase("Names.txt")) { //$NON-NLS-1$
 			readNames(StreamUtil.stringFromFileDocument(file));

@@ -79,6 +79,11 @@ import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.texteditor.ITextEditor;
 import org.eclipse.ui.texteditor.SourceViewerDecorationSupport;
 
+/**
+ * Text editor for C4Scripts.
+ * @author madeen
+ *
+ */
 public class C4ScriptEditor extends ClonkTextEditor {
 
 	/**
@@ -120,8 +125,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 	}
 
 	/**
-	 * Helper class that takes care of triggering a timed reparsing when the document is changed.
-	 * It tries to only fire a full reparse when necessary (i.e. not when editing inside of a function)
+	 * C4Script-specific specialisation of {@link TextChangeListenerBase} that tries to only trigger a full reparse of the script when necessary (i.e. not when editing inside of a function)
 	 * @author madeen
 	 *
 	 */
@@ -235,7 +239,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		protected void adjustDec(Declaration declaration, int offset, int add) {
 			super.adjustDec(declaration, offset, add);
 			if (declaration instanceof Function) {
-				addToLocation(((Function)declaration).getBody(), offset, add);
+				incrementLocationOffsetsExceedingThreshold(((Function)declaration).getBody(), offset, add);
 			}
 			for (Declaration v : declaration.allSubDeclarations(IHasSubDeclarations.DIRECT_SUBDECLARATIONS)) {
 				adjustDec(v, offset, add);
@@ -243,7 +247,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		}
 
 		public void scheduleReparsing(final boolean onlyDeclarations) {
-			reparseTask = cancel(reparseTask);
+			reparseTask = cancelTimerTask(reparseTask);
 			if (structure == null)
 				return;
 			reparseTimer.schedule(reparseTask = new TimerTask() {
@@ -306,7 +310,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		}
 		
 		private void scheduleReparsingOfFunction(final Function fn) {
-			functionReparseTask = cancel(functionReparseTask);
+			functionReparseTask = cancelTimerTask(functionReparseTask);
 			reparseTimer.schedule(functionReparseTask = new TimerTask() {
 				@Override
 				public void run() {
@@ -340,10 +344,10 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		}
 
 		@Override
-		public void cancel() {
-			reparseTask = cancel(reparseTask);
-			functionReparseTask = cancel(functionReparseTask);
-			super.cancel();
+		public void cancelReparsingTimer() {
+			reparseTask = cancelTimerTask(reparseTask);
+			functionReparseTask = cancelTimerTask(functionReparseTask);
+			super.cancelReparsingTimer();
 		}
 		
 		@Override
@@ -409,7 +413,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 	@Override
 	protected void editorSaved() {
 		if (textChangeListener != null)
-			textChangeListener.cancel();
+			textChangeListener.cancelReparsingTimer();
 		if (scriptBeingEdited() instanceof ScratchScript) {
 			try {
 				reparseWithDocumentContents(null, false);

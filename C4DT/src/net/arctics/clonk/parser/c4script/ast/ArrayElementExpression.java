@@ -12,7 +12,6 @@ import net.arctics.clonk.parser.c4script.IType;
 
 public class ArrayElementExpression extends Value {
 
-
 	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 	protected ExprElm argument;
 

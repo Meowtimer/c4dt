@@ -17,7 +17,7 @@ public class FuncRefEntry extends NamedReference implements IComplainingIniEntry
 		IniUnit iniUnit = context.getIniUnit();
 		IFile f = iniUnit.getIniFile();
 		if (f != null) {
-			Definition obj = ProjectDefinition.objectCorrespondingTo(f.getParent());
+			Definition obj = ProjectDefinition.definitionCorrespondingToFolder(f.getParent());
 			if (obj != null && obj.findFunction(this.toString()) == null)
 				iniUnit.markerAtValue(ClonkCore.MARKER_C4SCRIPT_ERROR, ParserErrorCode.UndeclaredIdentifier, context, IMarker.SEVERITY_ERROR, toString());
 		}

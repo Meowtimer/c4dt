@@ -876,7 +876,7 @@ public abstract class ScriptBase extends Structure implements ITreeNode, IHasCon
 			script = null;
 		}
 		if (script == null)
-			script = ProjectDefinition.objectCorrespondingTo(resource.getParent());
+			script = ProjectDefinition.definitionCorrespondingToFolder(resource.getParent());
 		// there can only be one script oO (not ScriptDE or something)
 		if (onlyForScriptFile && (script == null || script.getScriptStorage() == null || !script.getScriptStorage().equals(resource)))
 			return null;

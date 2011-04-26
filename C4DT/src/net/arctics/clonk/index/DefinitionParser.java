@@ -47,7 +47,7 @@ public class DefinitionParser {
 	
 	public ProjectDefinition createObject() {
 		try {
-			object = ProjectDefinition.objectCorrespondingTo(objectFolder);
+			object = ProjectDefinition.definitionCorrespondingToFolder(objectFolder);
 			if (defCore != null) {
 				DefCoreUnit defCoreWrapper = (DefCoreUnit) Structure.pinned(defCore, true, false);
 				if (object == null) {

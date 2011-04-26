@@ -110,7 +110,7 @@ public abstract class Utilities {
 	
 	public static ScriptBase getScriptForResource(IResource resource) throws CoreException {
 		if (resource instanceof IContainer)
-			return ProjectDefinition.objectCorrespondingTo((IContainer) resource);
+			return ProjectDefinition.definitionCorrespondingToFolder((IContainer) resource);
 		else if (resource instanceof IFile)
 			return ScriptBase.get(resource, true);
 		else

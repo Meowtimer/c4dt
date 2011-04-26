@@ -52,7 +52,7 @@ public class IniTextEditor extends ClonkTextEditor {
 		public void documentChanged(DocumentEvent event) {
 			super.documentChanged(event);
 			forgetUnitParsed();
-			reparseTask = cancel(reparseTask);
+			reparseTask = cancelTimerTask(reparseTask);
 			reparseTimer.schedule(reparseTask = new TimerTask() {
 				@Override
 				public void run() {
