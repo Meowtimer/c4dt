@@ -72,7 +72,7 @@ public abstract class Structure extends Declaration implements ILatestDeclaratio
 	 * @throws CoreException
 	 */
 	public void pinTo(IResource resource) throws CoreException {
-		resource.setSessionProperty(ClonkCore.C4STRUCTURE_PROPERTY_ID, this);
+		resource.setSessionProperty(ClonkCore.FILE_STRUCTURE_REFERENCE_ID, this);
 	}
 	
 	/**
@@ -83,7 +83,7 @@ public abstract class Structure extends Declaration implements ILatestDeclaratio
 	 * @throws CoreException
 	 */
 	public static Structure pinned(IResource file, boolean force, boolean duringBuild) throws CoreException {
-		Structure result = (Structure) file.getSessionProperty(ClonkCore.C4STRUCTURE_PROPERTY_ID);
+		Structure result = (Structure) file.getSessionProperty(ClonkCore.FILE_STRUCTURE_REFERENCE_ID);
 		if (result == null && force) {
 			result = createStructureForFile(file, duringBuild);
 			if (result != null)
@@ -101,7 +101,7 @@ public abstract class Structure extends Declaration implements ILatestDeclaratio
 	public static Structure unPinFrom(IFile file) throws CoreException {
 		Structure pinned = pinned(file, false, false);
 		if (pinned != null)
-			file.setSessionProperty(ClonkCore.C4STRUCTURE_PROPERTY_ID, null);
+			file.setSessionProperty(ClonkCore.FILE_STRUCTURE_REFERENCE_ID, null);
 		return pinned;
 	}
 	

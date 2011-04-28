@@ -227,13 +227,13 @@ public abstract class Declaration implements Serializable, IHasRelatedResource, 
 	 * @return The latest version of this declaration
 	 */
 	public Declaration latestVersion() {
-		if (parentDeclaration != null)
-			parentDeclaration = parentDeclaration.latestVersion();
-		if (parentDeclaration instanceof ILatestDeclarationVersionProvider) {
-			return ((ILatestDeclarationVersionProvider)parentDeclaration).getLatestVersion(this);
-		} else {
+		Declaration parent = parentDeclaration;
+		if (parent != null)
+			parent = parent.latestVersion();
+		if (parent instanceof ILatestDeclarationVersionProvider)
+			return ((ILatestDeclarationVersionProvider)parent).getLatestVersion(this);
+		else
 			return this;
-		}
 	}
 	
 	/**

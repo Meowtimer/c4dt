@@ -164,6 +164,14 @@ public abstract class Utilities {
 		return dist;
 	}
 	
+	/**
+	 * From some list containing {@link IHasRelatedResource} thingies, pick the one with the least amount of hops between its related {@link IResource} ({@link IHasRelatedResource#getResource()}) and the specified {@link IResource}
+	 * @param <T> The type of elements in the passed list, constrained to extend {@link IHasRelatedResource}
+	 * @param fromList The list to pick the result from
+	 * @param resource The pivot dictating the perspective of the call.
+	 * @param filter A filter to exclude some of the items contained in the list
+	 * @return The item 'nearest' to resource
+	 */
 	public static <T extends IHasRelatedResource> T pickNearest(Collection<T> fromList, IResource resource, IPredicate<T> filter) {
 		int bestDist = 1000;
 		T best = null;
@@ -182,17 +190,6 @@ public abstract class Utilities {
 			}
 		}
 		return best;
-	}
-	
-	// nowhere to be found oO
-	/**
-	 * Return the index of an item in an array
-	 */
-	public static <T> int indexOf(T[] items, T item) {
-		for (int i = 0; i < items.length; i++)
-			if (items[i].equals(item))
-				return i;
-		return -1;
 	}
 	
 	public static boolean allInstanceOf(Object[] objects, Class<?> cls) {

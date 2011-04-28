@@ -154,19 +154,11 @@ public class ProjectDefinition extends Definition implements Serializable {
 	}
 
 	/**
-	 * The ObjectName.c4d IResource
-	 * @return the folder object
-	 */
-	public IContainer getObjectFolder() {
-		return objectFolder;
-	}
-
-	/**
 	 * Removes this object from index.
 	 * The file on the harddisk is not deleted. (delete it by IResource.delete(true,null))
 	 */
 	public void delete() {
-		ClonkProjectNature.get(objectFolder.getProject()).getIndex().removeObject(this);
+		ClonkProjectNature.get(objectFolder.getProject()).getIndex().removeDefinition(this);
 	}
 
 	/**
@@ -178,10 +170,12 @@ public class ProjectDefinition extends Definition implements Serializable {
 		if (Utilities.objectsEqual(folder, objectFolder))
 			return;
 		if (objectFolder != null && objectFolder.exists())
-			objectFolder.setSessionProperty(ClonkCore.C4OBJECT_PROPERTY_ID, null);
-		objectFolder = folder;
+			objectFolder.setSessionProperty(ClonkCore.FOLDER_DEFINITION_REFERENCE_ID, null);
+		// on setObjectFolder(null): don't actually set objectFolder to null, so ILatestDeclarationVersionProvider machinery still works
+		// (see ClonkIndex.getLatestVersion)
+		objectFolder = folder != null ? folder : objectFolder;
 		if (folder != null) {
-			folder.setSessionProperty(ClonkCore.C4OBJECT_PROPERTY_ID, this);
+			folder.setSessionProperty(ClonkCore.FOLDER_DEFINITION_REFERENCE_ID, this);
 			if (getId() != null)
 				folder.setPersistentProperty(ClonkCore.FOLDER_C4ID_PROPERTY_ID, getId().getName());
 			else
@@ -189,6 +183,31 @@ public class ProjectDefinition extends Definition implements Serializable {
 			relativePath = folder.getFullPath().toPortableString();
 			index = ClonkProjectNature.get(objectFolder).getIndex();
 		}
+	}
+	
+	/**
+	 * The folder the Definition was declared in. Will return null if no folder has been assigned to this Definition yet or if this Definition object denotes a no longer recent version of the definition.
+	 * @return the folder object or null due to circumstances listed above
+	 */
+	public IContainer getObjectFolder() {
+		if (objectFolder != null) {
+			try {
+				if (objectFolder.getSessionProperty(ClonkCore.FOLDER_DEFINITION_REFERENCE_ID) != this)
+					return null;
+			} catch (CoreException e) {
+				return null;
+			}
+			return objectFolder;
+		} else
+			return null;
+	}
+	
+	/**
+	 * Return the object folder reference still stored in this Definition, ignoring the possibility that this Definition might not represent the latest version anymore.
+	 * @return The object folder if it has been assigned at all or null.
+	 */
+	public IContainer getObjectFolderIgnoringOutOfDateness() {
+		return objectFolder;
 	}
 
 	@Override

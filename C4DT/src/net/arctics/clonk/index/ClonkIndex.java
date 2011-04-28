@@ -6,7 +6,6 @@ import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -18,9 +17,12 @@ import java.util.Map;
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.ID;
+import net.arctics.clonk.parser.ILatestDeclarationVersionProvider;
+import net.arctics.clonk.parser.Structure;
 import net.arctics.clonk.parser.c4script.Directive;
 import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.ScriptBase;
+import net.arctics.clonk.parser.c4script.StandaloneProjectScript;
 import net.arctics.clonk.parser.c4script.Variable;
 import net.arctics.clonk.parser.c4script.Directive.DirectiveType;
 import net.arctics.clonk.parser.c4script.Function.C4FunctionScope;
@@ -29,7 +31,8 @@ import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.resource.ClonkIndexInputStream;
 import net.arctics.clonk.util.ArrayUtil;
 import net.arctics.clonk.util.CompoundIterable;
-import net.arctics.clonk.util.IHasRelatedResource;
+import net.arctics.clonk.util.ConvertingIterable;
+import net.arctics.clonk.util.IConverter;
 import net.arctics.clonk.util.IPredicate;
 import net.arctics.clonk.util.Utilities;
 
@@ -39,7 +42,21 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 
-public class ClonkIndex extends Declaration implements Serializable, Iterable<Definition> {
+/**
+ * <p>An index managing lists of various objects created from parsing the folder structure of a Clonk project. Managed objects are
+ * <ul>
+ * <li>{@link Definition}s</li>
+ * <li>{@link ScriptBase}s</li>
+ * <li>{@link Scenario}s</li>
+ * </ul></p> 
+ * <p>Additionally, some lookup tables are stored to make access to some datasets quicker, like string -> <list of declarations with that name> maps.
+ * The index itself can be directly used to iterate over all {@link Definition}s it manages, while iterating over other indexed {@link ScriptBase} objects requires calling {@link #allScripts()},
+ * which yields an {@link Iterable} to iterate over both {@link StandaloneProjectScript}s and {@link Scenario}s.</p>
+ * <p>For indexes specific to Eclipse projects (as pretty much all actual ClonkIndex instances are), see {@link ProjectIndex}.</p>
+ * @author madeen
+ *
+ */
+public class ClonkIndex extends Declaration implements Serializable, Iterable<Definition>, ILatestDeclarationVersionProvider {
 	
 	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 
@@ -59,11 +76,20 @@ public class ClonkIndex extends Declaration implements Serializable, Iterable<De
 	protected transient Map<String, List<Declaration>> declarationMap = new HashMap<String, List<Declaration>>();
 	protected transient Map<ID, List<ScriptBase>> appendages = new HashMap<ID, List<ScriptBase>>();
 	
+	/**
+	 * Return the number of unique ids
+	 * @return
+	 */
 	public int numUniqueIds() {
 		return indexedObjects.size();
 	}
 	
-	public List<Definition> getObjects(ID id) {
+	/**
+	 * Get a list of all {@link Definition}s with a certain id.
+	 * @param id The id
+	 * @return The list
+	 */
+	public List<Definition> getDefinitionsWithID(ID id) {
 		if (indexedObjects == null)
 			return null;
 		List<Definition> l = indexedObjects.get(id);
@@ -74,6 +100,10 @@ public class ClonkIndex extends Declaration implements Serializable, Iterable<De
 		refreshIndex();
 	}
 	
+	/**
+	 * Return an {@link Iterable} to iterate over all {@link ScriptBase} objects managed by this index.
+	 * @return The iterable.
+	 */
 	@SuppressWarnings("unchecked")
 	public Iterable<ScriptBase> allScripts() {
 		return new CompoundIterable<ScriptBase>(this, indexedScripts, indexedScenarios);
@@ -96,18 +126,19 @@ public class ClonkIndex extends Declaration implements Serializable, Iterable<De
 	public ProjectDefinition getObject(IContainer folder) {
 		try {
 			// fetch from session cache
-			if (folder.getSessionProperty(ClonkCore.C4OBJECT_PROPERTY_ID) != null)
-				return (ProjectDefinition) folder.getSessionProperty(ClonkCore.C4OBJECT_PROPERTY_ID);
+			if (folder.getSessionProperty(ClonkCore.FOLDER_DEFINITION_REFERENCE_ID) != null)
+				return (ProjectDefinition) folder.getSessionProperty(ClonkCore.FOLDER_DEFINITION_REFERENCE_ID);
 			
 			// create session cache
 			if (folder.getPersistentProperty(ClonkCore.FOLDER_C4ID_PROPERTY_ID) == null) return null;
-			List<Definition> objects = getObjects(ID.getID(folder.getPersistentProperty(ClonkCore.FOLDER_C4ID_PROPERTY_ID)));
+			List<Definition> objects = getDefinitionsWithID(ID.getID(folder.getPersistentProperty(ClonkCore.FOLDER_C4ID_PROPERTY_ID)));
 			if (objects != null) {
-				for(Definition obj : objects) {
+				for (Definition obj : objects) {
 					if ((obj instanceof ProjectDefinition)) {
-						if (((ProjectDefinition)obj).relativePath.equalsIgnoreCase(folder.getProjectRelativePath().toPortableString())) {
-							folder.setSessionProperty(ClonkCore.C4OBJECT_PROPERTY_ID, obj);
-							return (ProjectDefinition) obj;
+						ProjectDefinition projDef = (ProjectDefinition)obj;
+						if (projDef.relativePath.equalsIgnoreCase(folder.getProjectRelativePath().toPortableString())) {
+							projDef.setObjectFolder(folder);
+							return projDef;
 						}
 					}
 				}
@@ -125,10 +156,9 @@ public class ClonkIndex extends Declaration implements Serializable, Iterable<De
 				}
 			}
 			// also try scenarios
-			for (Scenario s : indexedScenarios) {
+			for (Scenario s : indexedScenarios)
 				if (s.getObjectFolder() != null && s.getObjectFolder().equals(folder))
 					return s;
-			}
 			//e.printStackTrace();
 			return null;
 		}
@@ -187,6 +217,9 @@ public class ClonkIndex extends Declaration implements Serializable, Iterable<De
 		}
 	}
 	
+	/**
+	 * Repopulate the quick-access lists ({@link #globalFunctions()}, {@link #staticVariables()}, {@link #declarationMap()}, {@link #appendagesOf(Definition)}) maintained by the index based on {@link #indexedObjects}, {@link #indexedScenarios} and {@link #indexedScripts}.
+	 */
 	public synchronized void refreshIndex() {
 		
 		// delete old cache
@@ -228,31 +261,31 @@ public class ClonkIndex extends Declaration implements Serializable, Iterable<De
 	}
 	
 	/**
-	 * Adds an C4Object to the index.<br>
-	 * Take care of the global function and static variable cache. You have to call <tt>refreshCache()</tt> after modifying the index.
-	 * @param obj
+	 * Add an {@link Definition} to the index.<br>
+	 * {@link #refreshIndex()} will need to be called manually after this.
+	 * @param definition The {@link Definition} to add. Attempts to add {@link Definition}s with no id will be ignored.
 	 */
-	public void addObject(Definition obj) {
-		if (obj.getId() == null)
+	public void addDefinition(Definition definition) {
+		if (definition.getId() == null)
 			return;
-		List<Definition> alreadyDefinedObjects = indexedObjects.get(obj.getId());
+		List<Definition> alreadyDefinedObjects = indexedObjects.get(definition.getId());
 		if (alreadyDefinedObjects == null) {
 			alreadyDefinedObjects = new LinkedList<Definition>();
-			indexedObjects.put(obj.getId(), alreadyDefinedObjects);
+			indexedObjects.put(definition.getId(), alreadyDefinedObjects);
 		} else {
-			if (alreadyDefinedObjects.contains(obj))
+			if (alreadyDefinedObjects.contains(definition))
 				return;
 		}
-		alreadyDefinedObjects.add(obj);
+		alreadyDefinedObjects.add(definition);
 	}
 	
 	/**
-	 * Remove the script from the index
-	 * @param script script which may be a standalone-script, a scenario or an object
+	 * Remove the script from the index.
+	 * @param script Some script. Can be a {@link Definition}, a {@link Scenario} or some other {@link ScriptBase} object managed by this index.
 	 */
 	public void removeScript(ScriptBase script) {
 		if (script instanceof Definition) {
-			removeObject((Definition)script);
+			removeDefinition((Definition)script);
 		} else {
 			if (indexedScripts.remove(script))
 				scriptRemoved(script);
@@ -260,29 +293,33 @@ public class ClonkIndex extends Declaration implements Serializable, Iterable<De
 	}
 
 	/**
-	 * Removes this object from the index.<br>
-	 * The object may still exist in IContainer.sessionProperty<br>
-	 * Take care of the global function and static variable cache. You have to call <tt>refreshCache()</tt> after modifying the index.
-	 * @param obj
+	 * Remove a {@link Definition} from this index.<br>
+	 * {@link #refreshIndex()} will need to be called manually after this.
+	 * No attempts are made to remove session properties from affected resources (see {@link ClonkCore#FOLDER_DEFINITION_REFERENCE_ID})
+	 * @param definition The {@link Definition} to remove from the index
 	 */
-	public void removeObject(Definition obj) {
-		if (obj instanceof Scenario) {
-			removeScenario((Scenario)obj);
+	public void removeDefinition(Definition definition) {
+		if (definition instanceof Scenario) {
+			removeScenario((Scenario)definition);
 			return;
 		}
-		if (obj.getId() == null)
+		if (definition.getId() == null)
 			return;
-		List<Definition> alreadyDefinedObjects = indexedObjects.get(obj.getId());
+		List<Definition> alreadyDefinedObjects = indexedObjects.get(definition.getId());
 		if (alreadyDefinedObjects != null) {
-			if (alreadyDefinedObjects.remove(obj)) {
+			if (alreadyDefinedObjects.remove(definition)) {
 				if (alreadyDefinedObjects.size() == 0) { // if there are no more objects with this C4ID
-					indexedObjects.remove(obj.getId());
+					indexedObjects.remove(definition.getId());
 				}
-				scriptRemoved(obj);
+				scriptRemoved(definition);
 			}
 		}
 	}
 
+	/**
+	 * Remove a {@link Scenario} from the index.
+	 * @param scenario The {@link Scenario} to remove
+	 */
 	public void removeScenario(Scenario scenario) {
 		if (indexedScenarios.remove(scenario)) {
 			scriptRemoved(scenario);
@@ -294,13 +331,17 @@ public class ClonkIndex extends Declaration implements Serializable, Iterable<De
 			s.scriptRemovedFromIndex(script);
 	}
 	
+	/**
+	 * Add some {@link ScriptBase} to the index. If the script is a {@link Definition}, {@link #addDefinition(Definition)} will be called internally.
+	 * @param script The script to add to the index
+	 */
 	public void addScript(ScriptBase script) {
 		if (script instanceof Scenario) {
 			if (!indexedScenarios.contains(script))
 				indexedScenarios.add((Scenario) script);
 		}
 		else if (script instanceof Definition) {
-			addObject((Definition)script);
+			addDefinition((Definition)script);
 		}
 		else {
 			if (!indexedScripts.contains(script))
@@ -309,35 +350,40 @@ public class ClonkIndex extends Declaration implements Serializable, Iterable<De
 	}
 	
 	/**
-	 * Returns true if there are no objects in this index.
+	 * Returns true if the index does not manage any scripts or definitions.
 	 * @return see above
 	 */
 	public boolean isEmpty() {
 		return indexedObjects.isEmpty() && indexedScripts.isEmpty() && indexedScenarios.isEmpty();
 	}
 	
-	public List<Scenario> getIndexedScenarios() {
+	public List<Scenario> indexedScenarios() {
 		return Collections.unmodifiableList(indexedScenarios);
 	}
 	
-	public List<ScriptBase> getIndexedScripts() {
+	public List<ScriptBase> indexedScripts() {
 		return Collections.unmodifiableList(indexedScripts);
 	}
 	
-	public List<Function> getGlobalFunctions() {
+	public List<Function> globalFunctions() {
 		return Collections.unmodifiableList(globalFunctions);
 	}
 	
-	public List<Variable> getStaticVariables() {
+	public List<Variable> staticVariables() {
 		return Collections.unmodifiableList(staticVariables);
 	}
 	
-	public Map<String, List<Declaration>> getDeclarationMap() {
+	public Map<String, List<Declaration>> declarationMap() {
 		return Collections.unmodifiableMap(declarationMap);
 	}
 
-	public Definition getLastObjectWithId(ID id) {
-		List<Definition> objs = getObjects(id);
+	/**
+	 * Return the last {@link Definition} with the specified {@link ID}, whereby 'last' is arbitrary, maybe loosely based on the directory and lexical structure of the project. 
+	 * @param id The id
+	 * @return The 'last' {@link Definition} with that id
+	 */
+	public Definition lastDefinitionWithId(ID id) {
+		List<Definition> objs = getDefinitionsWithID(id);
 		if (objs != null) {
 			if (objs instanceof LinkedList<?>) { // due to performance
 				return ((LinkedList<Definition>)objs).getLast();
@@ -349,10 +395,6 @@ public class ClonkIndex extends Declaration implements Serializable, Iterable<De
 		return null;
 	}
 
-	public static <T extends IHasRelatedResource> T pickNearest(Collection<T> fromList, IResource resource) {
-		return Utilities.pickNearest(fromList, resource, null);
-	}
-	
 	public static void addIndexesFromReferencedProjects(List<ClonkIndex> result, ClonkIndex index) {
 		if (index instanceof ProjectIndex) {
 			ProjectIndex projIndex = (ProjectIndex) index;
@@ -390,11 +432,11 @@ public class ClonkIndex extends Declaration implements Serializable, Iterable<De
 		Definition best = null;
 		for (ClonkIndex index : relevantIndexes()) {
 			if (resource != null) {
-				List<Definition> objs = index.getObjects(id);
-				best = pickNearest(objs, resource);
+				List<Definition> objs = index.getDefinitionsWithID(id);
+				best = Utilities.pickNearest(objs, resource, null);
 			}
 			else {
-				best = index.getLastObjectWithId(id);
+				best = index.lastDefinitionWithId(id);
 			}
 			if (best != null)
 				break;
@@ -426,45 +468,41 @@ public class ClonkIndex extends Declaration implements Serializable, Iterable<De
 	}
 	
 	/**
-	 * Find a global function with the given name.
-	 * @param functionName The name
-	 * @return The function or null if no matching function could be found.
+	 * Find a global what-have-you (either {@link Function} or {@link Variable}) with the given name.
+	 * @param whatYouWant The class of global object
+	 * @param name The name
+	 * @return The global object with a matching name or null.
 	 */
-	public Function findGlobalFunction(String functionName) {
-		for (Function func : globalFunctions) {
-			if (func.getName().equals(functionName))
-				return func;
-		}
-		return null;
-	}
-	
-	public Variable findGlobalVariable(String variableName) {
-		if (staticVariables == null)
+	@SuppressWarnings("unchecked")
+	public <T extends Declaration> T findGlobal(Class<T> whatYouWant, String name) {
+		List<Declaration> decs = declarationMap.get(name);
+		if (decs == null)
 			return null;
-		for (Variable var : staticVariables) {
-			if (var.getName().equals(variableName))
-				return var;
-		}
+		for (Declaration d : decs)
+			if (d.isGlobal() && whatYouWant.isInstance(d))
+				return (T)d;
 		return null;
 	}
 	
-	public Declaration findGlobalDeclaration(String fieldName) {
-		Function f = findGlobalFunction(fieldName);
-		if (f != null)
-			return f;
-		return findGlobalVariable(fieldName);
-	}
-	
+	/**
+	 * Find a global declaration (static var or global func) with the specified name. If there are multiple global declarations with that name, the one nearest to 'pivot' will be returned.
+	 * @param declName The declaration name
+	 * @param pivot The pivot of the call, acting as a tie breaker if there are multiple global declarations with that name. The one nearest to the pivot will be returned. Can be null, in which case the 'first' match will be returned.
+	 * @return A global {@link Declaration} with a matching name or null.
+	 */
 	public Declaration findGlobalDeclaration(String declName, IResource pivot) {
-		if (pivot == null)
-			return findGlobalDeclaration(declName);
 		List<Declaration> declarations = declarationMap.get(declName);
 		if (declarations != null) {
-			return Utilities.pickNearest(declarations, pivot, IS_GLOBAL);
+			return pivot != null
+				? Utilities.pickNearest(declarations, pivot, IS_GLOBAL)
+				: declarations.get(0);
 		}
 		return null;
 	}
 
+	/**
+	 * Clear the index so it won't manage any objects after this call.
+	 */
 	public void clear() {
 		indexedObjects.clear();
 		indexedScripts.clear();
@@ -507,38 +545,34 @@ public class ClonkIndex extends Declaration implements Serializable, Iterable<De
 		
 	}
 
+	@Override
 	public Iterator<Definition> iterator() {
 		return new ObjectIterator();
 	}
 	
+	/**
+	 * Return an {@link Iterable} to iterate over all {@link Definition}s managed by this index, but in the case of multiple {@link Definition}s with the same name yielding only the one nearest to pivot.
+	 * @param pivot The pivot dictating the perspective of the call
+	 * @return An {@link Iterable} to iterate over this presumably large subset of all the {@link Definition}s managed by the index.
+	 */
 	public Iterable<Definition> objectsIgnoringRemoteDuplicates(final IResource pivot) {
-		return new Iterable<Definition>() {
-			public Iterator<Definition> iterator() {
-				final Iterator<List<Definition>> listIterator = indexedObjects.values().iterator();
-				return new Iterator<Definition>() {
-					
-					public boolean hasNext() {
-						return listIterator.hasNext();
-					}
-
-					public Definition next() {
-						List<Definition> nextList = listIterator.next();
-						return pickNearest(nextList, pivot);
-					}
-
-					public void remove() {
-						// ...
-					}
-					
-				};
+		return new ConvertingIterable<List<Definition>, Definition>(new IConverter<List<Definition>, Definition>() {
+			@Override
+			public Definition convert(List<Definition> from) {
+				return Utilities.pickNearest(from, pivot, null);
 			}
-		};
+		}, indexedObjects.values());
 	}
 	
-	public List<ScriptBase> appendagesOf(Definition object) {
+	/**
+	 * Return all scripts that append themselves to the specified {@link Definition}
+	 * @param definition The definition to return 'appendages' of
+	 * @return The appendages
+	 */
+	public List<ScriptBase> appendagesOf(Definition definition) {
 		if (appendages == null)
 			return null;
-		List<ScriptBase> list = appendages.get(object.getId());
+		List<ScriptBase> list = appendages.get(definition.getId());
 		if (list != null) {
 			return Collections.unmodifiableList(list); 
 		}
@@ -558,7 +592,7 @@ public class ClonkIndex extends Declaration implements Serializable, Iterable<De
 	            	private Definition baseObject = base instanceof Definition ? (Definition)base : null;
 	            	private boolean hasGlobals = base.containsGlobals();
 	            	private int stage = 0;
-	            	private Iterator<? extends ScriptBase> currentIterator = getIndexedScripts().iterator();
+	            	private Iterator<? extends ScriptBase> currentIterator = indexedScripts().iterator();
 	            	private ScriptBase currentScript;
 	            	private HashSet<ScriptBase> alreadyReturned = new HashSet<ScriptBase>();
 
@@ -566,7 +600,7 @@ public class ClonkIndex extends Declaration implements Serializable, Iterable<De
 	            		while (!currentIterator.hasNext()) {
             				switch (++stage) {
             				case 1:
-            					currentIterator = getIndexedScenarios().iterator();
+            					currentIterator = indexedScenarios().iterator();
             					break;
             				case 2:
             					currentIterator = ClonkIndex.this.iterator();
@@ -689,7 +723,7 @@ public class ClonkIndex extends Declaration implements Serializable, Iterable<De
 	}
 	
 	/**
-	 * Finds a script by its path. This may be a path to an actual file or in the case of ExternIndex objects a path of an external object
+	 * Finds a script by its path. This may be a path to an actual file or some other kind of path understood by the kind of index. But since the only relevant subclass of ClonkIndex is {@link ProjectIndex}, that's moot! 
 	 * @param path the path
 	 * @return the script or null if not found
 	 */
@@ -698,7 +732,7 @@ public class ClonkIndex extends Declaration implements Serializable, Iterable<De
 	}
 	
 	/**
-	 * Return associated project. Returns null in base implementation. See {@link ProjectIndex}.
+	 * Return associated project. Returns null in base implementation. See {@link ProjectIndex#getProject()}.
 	 * @return The project
 	 */
 	public IProject getProject() {return null;}
@@ -708,6 +742,9 @@ public class ClonkIndex extends Declaration implements Serializable, Iterable<De
 		return obj == this || (obj instanceof ClonkIndex && ((ClonkIndex)obj).getProject() == this.getProject());
 	}
 	
+	/**
+	 * Implementation whose merits can rightfully be argued. Will return the hashcode of the index's project's name, if there is some associated project, or call the super implementation instead.
+	 */
 	@Override
 	public int hashCode() {
 		if (getProject() != null)
@@ -716,10 +753,34 @@ public class ClonkIndex extends Declaration implements Serializable, Iterable<De
 			return super.hashCode();
 	}
 	
+	/**
+	 * It's runnable and it takes an index as the only argument!
+	 * @author madeen
+	 *
+	 */
 	public interface r {void run(ClonkIndex index);}
+	
+	/**
+	 * Call some runnable ({@link r}) for all indexes yielded by {@link #relevantIndexes()}
+	 * @param lmd The runnable
+	 */
 	public void forAllRelevantIndexes(r lmd) {
 		for (ClonkIndex index : relevantIndexes())
 			lmd.run(index);
 	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public <T extends Declaration> T getLatestVersion(T from) {
+		try {
+			if (from instanceof ScriptBase)
+				return (T) Utilities.getScriptForResource(from.getResource());
+			else if (from instanceof Structure && from.getResource() instanceof IFile)
+				return (T) Structure.pinned(from.getResource(), false, false);
+		} catch (CoreException e) {
+			e.printStackTrace();
+		}
+		return null;
+	};
 
 }

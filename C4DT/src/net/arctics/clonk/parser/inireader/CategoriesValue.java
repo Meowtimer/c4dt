@@ -9,8 +9,6 @@ import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.parser.c4script.Variable;
 import net.arctics.clonk.util.ArrayUtil;
 import net.arctics.clonk.util.IConverter;
-import net.arctics.clonk.util.Utilities;
-
 import org.eclipse.core.resources.IMarker;
 
 /**
@@ -65,7 +63,7 @@ public class CategoriesValue {
 			String[] varNames = ArrayUtil.map(vars, String.class, NAME_MAPPER);
 			for (String part : parts) {
 				part = part.trim();
-				if (Utilities.indexOf(varNames, part) == -1)
+				if (ArrayUtil.indexOf(varNames, part) == -1)
 					throw new IniParserException(IMarker.SEVERITY_WARNING, String.format(Messages.UnknownConstant, part));
 				constants.add(part);
 			}

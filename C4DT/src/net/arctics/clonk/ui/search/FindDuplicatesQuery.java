@@ -115,7 +115,7 @@ public class FindDuplicatesQuery extends ClonkSearchQueryBase implements IASTCom
 					if (functionCodeBlock == null || functionCodeBlock.getStatements().length == 1 && functionCodeBlock.getStatements()[0] instanceof ReturnStatement)
 						continue;
 				for (ClonkIndex index : indexes) {
-					List<Declaration> decs = index.getDeclarationMap().get(function.getName());
+					List<Declaration> decs = index.declarationMap().get(function.getName());
 					if (decs == null)
 						continue;
 					if (!decs.contains(function)) // happens when a newly-parsed function is not already added to the declaration map

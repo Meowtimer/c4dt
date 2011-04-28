@@ -215,11 +215,11 @@ public class Command {
 				System.out.println(obj.toString());
 			}
 			System.out.println("===Scripts==="); //$NON-NLS-1$
-			for (ScriptBase script : index.getIndexedScripts()) {
+			for (ScriptBase script : index.indexedScripts()) {
 				System.out.println(script.toString());
 			}
 			System.out.println("===Scenarios==="); //$NON-NLS-1$
-			for (Scenario scen : index.getIndexedScenarios()) {
+			for (Scenario scen : index.indexedScenarios()) {
 				System.out.println(scen.toString());
 			}
 		}

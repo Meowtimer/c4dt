@@ -223,7 +223,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 					// remove object when folder is removed
 					object = ProjectDefinition.definitionCorrespondingToFolder((IContainer)delta.getResource());
 					if (object != null)
-						object.getIndex().removeObject(object);
+						object.getIndex().removeDefinition(object);
 					break;
 				}
 				return true;

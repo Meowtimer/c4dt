@@ -371,7 +371,7 @@ public class Function extends Structure implements Serializable, ITypedDeclarati
 		}
 		
 		// search in index
-		List<Declaration> decsWithSameName = getIndex().getDeclarationMap().get(this.getName());
+		List<Declaration> decsWithSameName = getIndex().declarationMap().get(this.getName());
 		if (decsWithSameName != null) {
 			Function f = null;
 			int rating = -1;

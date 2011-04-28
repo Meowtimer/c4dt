@@ -236,5 +236,16 @@ public class ArrayUtil {
 	public static <A, B> Iterable<B> filteredIterable(final Iterable<A> base, final Class<B> cls) {
 		return new FilteredIterable<B, A>(cls, base, false);
 	}
+	
+	// nowhere to be found oO
+	/**
+	 * Return the index of an item in an array
+	 */
+	public static <T> int indexOf(T[] items, T item) {
+		for (int i = 0; i < items.length; i++)
+			if (Utilities.objectsEqual(items[i], item))
+				return i;
+		return -1;
+	}
 
 }

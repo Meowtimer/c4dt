@@ -147,13 +147,13 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 		if (!index.isEmpty()) {
 			if (_activeFunc != null) {
 				Scenario s2 = _activeFunc.getScenario();
-				for (Function func : index.getGlobalFunctions()) {
+				for (Function func : index.globalFunctions()) {
 					Scenario s1 = func.getScenario();
 					if (s1 != null && s2 != null && s1 != s2)
 						continue;
 					proposalForFunc(func, prefix, offset, proposals, func.getScript().getName(), true);
 				}
-				for (Variable var : index.getStaticVariables()) {
+				for (Variable var : index.staticVariables()) {
 					Scenario s1 = var.getScenario();
 					if (s1 != null && s1 != s2)
 						continue;

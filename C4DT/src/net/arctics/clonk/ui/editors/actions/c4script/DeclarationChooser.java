@@ -121,7 +121,7 @@ public class DeclarationChooser extends FilteredItemsSelectionDialog {
 			index.forAllRelevantIndexes(new ClonkIndex.r() {
 				@Override
 				public void run(ClonkIndex index) {
-					for (List<Declaration> decs : index.getDeclarationMap().values())
+					for (List<Declaration> decs : index.declarationMap().values())
 						for (Declaration d : decs)
 							if (d.getScript() != null && d.getScript().getScriptFile() != null)
 								contentProvider.add(new DeclarationLocation(d, d.getLocation(), d.getScript().getScriptFile()), itemsFilter);

@@ -85,9 +85,9 @@ public abstract class Definition extends ScriptBase {
 		if (id.equals(newId))
 			return;
 		ClonkIndex index = this.getIndex();
-		index.removeObject(this);
+		index.removeDefinition(this);
 		id = newId;
-		index.addObject(this);
+		index.addDefinition(this);
 	}
 
 	public Variable getStaticVariable() {

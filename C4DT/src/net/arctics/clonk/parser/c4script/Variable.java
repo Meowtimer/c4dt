@@ -294,7 +294,7 @@ public class Variable extends Declaration implements Serializable, ITypedDeclara
 					result.add(o);
 				}
 			}
-			for (ScriptBase script : index.getIndexedScripts()) {
+			for (ScriptBase script : index.indexedScripts()) {
 				if (script.includes(obj)) {
 					result.add(script);
 				}

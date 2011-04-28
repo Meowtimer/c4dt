@@ -55,10 +55,10 @@ public class StandaloneProjectScript extends ScriptBase implements Serializable 
 		if (Utilities.objectsEqual(scriptFile, f))
 			return;
 		if (scriptFile != null)
-			scriptFile.setSessionProperty(ClonkCore.C4STRUCTURE_PROPERTY_ID, null);
+			scriptFile.setSessionProperty(ClonkCore.FILE_STRUCTURE_REFERENCE_ID, null);
 		scriptFile = f;
 		if (f != null) { 
-			f.setSessionProperty(ClonkCore.C4STRUCTURE_PROPERTY_ID, this);
+			f.setSessionProperty(ClonkCore.FILE_STRUCTURE_REFERENCE_ID, this);
 			ClonkProjectNature nature = ClonkProjectNature.get(scriptFile);
 			index = nature != null ? nature.getIndex() : null;
 		}

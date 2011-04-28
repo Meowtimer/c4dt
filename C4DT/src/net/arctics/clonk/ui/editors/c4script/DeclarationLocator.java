@@ -110,7 +110,7 @@ public class DeclarationLocator extends ExpressionLocator {
 					// gather declarations with that name from involved project indexes
 					List<Declaration> projectDeclarations = new LinkedList<Declaration>();
 					for (ClonkIndex i : script.getIndex().relevantIndexes()) {
-						List<Declaration> decs = i.getDeclarationMap().get(access.getDeclarationName());
+						List<Declaration> decs = i.declarationMap().get(access.getDeclarationName());
 						if (decs != null)
 							projectDeclarations.addAll(decs);
 					}

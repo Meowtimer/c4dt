@@ -3,6 +3,7 @@ package net.arctics.clonk.index;
 import java.util.LinkedList;
 import java.util.List;
 import net.arctics.clonk.ClonkCore;
+import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.Structure;
 import net.arctics.clonk.parser.c4script.ScriptBase;
 import net.arctics.clonk.parser.c4script.StandaloneProjectScript;
@@ -21,6 +22,10 @@ import org.eclipse.core.resources.IResourceVisitor;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.Path;
 
+/**
+ * A {@link ClonkIndex} geared towards storing information about Eclipse Clonk projects.<br\>
+ * A project index is obtained from some project file using {@link #get(IProject)}.</p>
+ */
 public class ProjectIndex extends ClonkIndex {
 
 	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
@@ -34,29 +39,48 @@ public class ProjectIndex extends ClonkIndex {
 		return getNature().getSettings().getEngine();
 	}
 	
+	/**
+	 * Return the {@link ClonkProjectNature} this index belongs to. This is a shorthand for {@link ClonkProjectNature}.get({@link #getProject()})
+	 * @return The {@link ClonkProjectNature}
+	 */
 	public ClonkProjectNature getNature() {
 		return ClonkProjectNature.get(project);
 	}
 	
+	/**
+	 * Initialize a new ProjectIndex for the given project.
+	 * @param project The project to initialize the index for
+	 */
 	public ProjectIndex(IProject project) {
 		this.project = project;
 	}
 	
+	/**
+	 * Overriding {@link Declaration#getName()} ensures that the project's name and the name of the index will be in sync.
+	 */
 	@Override
 	public String getName() {
 		setName(project.getName());
 		return super.getName();
 	}
 	
+	/**
+	 * Set the project the index belongs to.
+	 * @param proj The project
+	 */
 	public void setProject(IProject proj) {
 		project = proj;
 	}
 	
+	/**
+	 * Return the project the index belongs to.
+	 */
 	@Override
 	public IProject getProject() {
 		return project;
 	}
 
+	@Override
 	public void postSerialize() throws CoreException {
 		if (project != null) {
 			List<ScriptBase> stuffToBeRemoved = new LinkedList<ScriptBase>();
@@ -67,12 +91,12 @@ public class ProjectIndex extends ClonkIndex {
 					}
 				}
 			}
-			for (Scenario scenario : getIndexedScenarios()) {
+			for (Scenario scenario : indexedScenarios()) {
 				if (!scenario.refreshFolderReference(project)) {
 					stuffToBeRemoved.add(scenario);
 				}
 			}
-			for (ScriptBase script : getIndexedScripts()) {
+			for (ScriptBase script : indexedScripts()) {
 				if (script instanceof StandaloneProjectScript) {
 					StandaloneProjectScript standalone = (StandaloneProjectScript) script;
 					if (!standalone.refreshFileReference(project)) {
@@ -103,6 +127,9 @@ public class ProjectIndex extends ClonkIndex {
 		return isDirty;
 	}
 	
+	/**
+	 * Find a script belonging to the project resource denoted by the given path. 
+	 */
 	@Override
 	public ScriptBase findScriptByPath(String path) {
 		IResource res = getProject().findMember(new Path(path));
@@ -120,11 +147,16 @@ public class ProjectIndex extends ClonkIndex {
 		return super.findScriptByPath(path);
 	}
 	
+	/**
+	 * Return the project index for the given project.
+	 * @param project The project to return the ProjectIndex of
+	 * @return The ProjectIndex
+	 */
 	public static ProjectIndex get(IProject project) {
 		ClonkProjectNature nature = ClonkProjectNature.get(project);
 		return nature != null ? nature.getIndex() : null;
 	}
-	
+
 	@Override
 	public synchronized void refreshIndex() {
 		super.refreshIndex();
@@ -183,7 +215,7 @@ public class ProjectIndex extends ClonkIndex {
 				}
 			}
 		}
-		return pickNearest(r, pivot);
+		return Utilities.pickNearest(r, pivot, null);
 	}
 
 }

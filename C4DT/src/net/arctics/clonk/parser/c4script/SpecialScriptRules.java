@@ -596,7 +596,7 @@ public class SpecialScriptRules {
 					index.forAllRelevantIndexes(new ClonkIndex.r() {
 						@Override
 						public void run(ClonkIndex index) {
-							for (Scenario s : index.getIndexedScenarios()) {
+							for (Scenario s : index.indexedScenarios()) {
 								Function f = s.findLocalFunction(lit.getLiteral(), true);
 								if (f != null) {
 									decs.add(f);
@@ -895,7 +895,7 @@ public class SpecialScriptRules {
 				parser.getContainer().getIndex().forAllRelevantIndexes(new ClonkIndex.r() {
 					@Override
 					public void run(ClonkIndex index) {
-						List<Declaration> decs = index.getDeclarationMap().get(lit.getLiteral());
+						List<Declaration> decs = index.declarationMap().get(lit.getLiteral());
 						if (decs != null)
 							matchingDecs.addAll(decs);
 					}

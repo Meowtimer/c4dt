@@ -284,13 +284,13 @@ public class CallFunc extends AccessDeclaration {
 		}
 		if (p != null) {
 			// find global function
-			Declaration declaration = context.getContainer().getIndex().findGlobalFunction(functionName);
+			Declaration declaration = context.getContainer().getIndex().findGlobal(Function.class, functionName);
 			if (declaration == null)
 				declaration = context.getContainer().getIndex().getEngine().findFunction(functionName);
 
 			// only return found declaration if it's the only choice 
 			if (declaration != null) {
-				List<Declaration> allFromLocalIndex = context.getContainer().getIndex().getDeclarationMap().get(functionName);
+				List<Declaration> allFromLocalIndex = context.getContainer().getIndex().declarationMap().get(functionName);
 				Declaration decl = context.getContainer().getEngine().findLocalFunction(functionName, false);
 				if (
 					(allFromLocalIndex != null ? allFromLocalIndex.size() : 0) +
