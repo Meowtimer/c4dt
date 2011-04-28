@@ -148,7 +148,6 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 
 		loadActiveEngine();
 
-		// FIXME: this is deprecated and stuff
 		ResourcesPlugin.getWorkspace().addSaveParticipant(this, this);
 		//ResourcesPlugin.getWorkspace().addResourceChangeListener(this, IResourceChangeEvent.PRE_DELETE);
 

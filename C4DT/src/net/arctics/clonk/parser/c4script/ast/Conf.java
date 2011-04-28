@@ -17,7 +17,7 @@ public abstract class Conf {
 
 	public static void printIndent(ExprWriter builder, int indentDepth) {
 		for (int i = 0; i < indentDepth; i++)
-			builder.append(indentString); // FIXME: should be done according to user's preferences
+			builder.append(indentString);
 	}
 
 	static final IConverter<ExprElm, Object> EVALUATE_EXPR = new IConverter<ExprElm, Object>() {

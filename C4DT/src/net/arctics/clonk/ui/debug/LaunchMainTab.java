@@ -210,7 +210,7 @@ public class LaunchMainTab extends AbstractLaunchConfigurationTab {
 	public void setDefaults(ILaunchConfigurationWorkingCopy wc) {
 		wc.setAttribute(ClonkLaunchConfigurationDelegate.ATTR_PROJECT_NAME, ""); //$NON-NLS-1$
 		wc.setAttribute(ClonkLaunchConfigurationDelegate.ATTR_SCENARIO_NAME, ""); //$NON-NLS-1$
-		wc.setAttribute(ClonkLaunchConfigurationDelegate.ATTR_FULLSCREEN, Util.isMac()); // FIXME: Mac Clonk crashes when run with /console but has windowed mode
+		wc.setAttribute(ClonkLaunchConfigurationDelegate.ATTR_FULLSCREEN, Util.isMac()); // Clonk Rage for Mac will crash when passing /console
 		wc.setAttribute(ClonkLaunchConfigurationDelegate.ATTR_RECORD, false);
 		wc.setAttribute(ClonkLaunchConfigurationDelegate.ATTR_CUSTOMARGS, ""); //$NON-NLS-1$
 	}
@@ -252,8 +252,6 @@ public class LaunchMainTab extends AbstractLaunchConfigurationTab {
 		}
 		
 		// Must exist in project
-		// TODO: Allow plain files, too? Launch should not be a problem, at least
-		//       until we do more magic with the scenario's innards.
 		IResource scenFile = project.getFolder(scenName);
 		if(!scenFile.exists()) {
 			setErrorMessage(Messages.LaunchMainTab_ScenarioDoesNotExist);
