@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.ProjectDefinition;
 import net.arctics.clonk.index.DefinitionParser;
 import net.arctics.clonk.index.ClonkIndex;
@@ -16,11 +17,17 @@ import net.arctics.clonk.index.ProjectIndex;
 import net.arctics.clonk.parser.c4script.ScriptBase;
 import net.arctics.clonk.parser.c4script.StandaloneProjectScript;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
+import net.arctics.clonk.parser.c4script.Variable;
+import net.arctics.clonk.parser.ID;
 import net.arctics.clonk.parser.Structure;
 import net.arctics.clonk.parser.ParsingException;
+import net.arctics.clonk.refactoring.RenameDeclarationProcessor;
 import net.arctics.clonk.resource.c4group.C4Group;
 import net.arctics.clonk.resource.c4group.C4Group.GroupType;
 import net.arctics.clonk.ui.editors.ClonkTextEditor;
+import net.arctics.clonk.ui.editors.actions.c4script.RenameDeclarationAction;
+import net.arctics.clonk.util.Pair;
+import net.arctics.clonk.util.UI;
 import net.arctics.clonk.util.Utilities;
 
 import org.eclipse.core.filesystem.EFS;
@@ -174,17 +181,14 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 						IContainer folder = delta.getResource().getParent();
 						DefinitionParser objParser;
 						// script in a resource group
-						if (delta.getResource().getName().toLowerCase().endsWith(".c") && folder.getName().toLowerCase().endsWith(".c4g")) { //$NON-NLS-1$ //$NON-NLS-2$
+						if (delta.getResource().getName().toLowerCase().endsWith(".c") && folder.getName().toLowerCase().endsWith(".c4g")) //$NON-NLS-1$ //$NON-NLS-2$
 							script = new StandaloneProjectScript(file);
-						}
 						// object script
-						else if (delta.getResource().getName().equals("Script.c") && (objParser = DefinitionParser.create(folder)) != null) { //$NON-NLS-1$
+						else if (delta.getResource().getName().equals("Script.c") && (objParser = DefinitionParser.create(folder)) != null) //$NON-NLS-1$
 							script = objParser.createObject();
-						}
-						// some other file but a script is still needed so get the object for the folder
-						else {
+						// some other file but a script is still needed so get the definition for the folder
+						else
 							script = ProjectDefinition.definitionCorrespondingToFolder(folder);
-						}
 					}
 					if (script != null && delta.getResource().equals(script.getScriptStorage())) {
 						queueScript(script);
@@ -264,26 +268,24 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 			boolean result = true;
 			Structure structure;
 			if ((structure = Structure.createStructureForFile(file, true)) != null) {
-				structure.commitTo(script);
+				structure.commitTo(script, ClonkBuilder.this);
 				structure.pinTo(file);
 			}
 			else
 				structure = Structure.pinned(file, false, true);
-			if (structure != null) {
+			if (structure != null)
 				gatheredStructures.add(structure);
-			}
-			else {
-				ProjectDefinition obj = ProjectDefinition.definitionCorrespondingToFolder(file.getParent());
-				if (obj != null) {
-					try {
-						obj.processFile(file);
-					} catch (IOException e) {
-						e.printStackTrace();
-					}
-				} else {
-					result = false;
+			// not parsed as Structure - let definition process the file
+			else if (script instanceof ProjectDefinition) {
+				ProjectDefinition def = (ProjectDefinition)script;
+				try {
+					def.processFile(file);
+				} catch (IOException e) {
+					e.printStackTrace();
 				}
 			}
+			else
+				result = false;
 			return result;
 		}
 	}
@@ -301,6 +303,11 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 	 * due to structure files having been revalidated can also be reparsed (string tables and such)
 	 */
 	private Set<Structure> gatheredStructures = new HashSet<Structure>();
+	
+	/**
+	 * Set of {@link Definition}s whose ids have been changed by reparsing of their DefCore.txt files
+	 */
+	private Set<Pair<Definition, ID>> renamedDefinitions = new HashSet<Pair<Definition, ID>>();
 
 	@Override
 	protected void clean(IProgressMonitor monitor) throws CoreException {
@@ -345,6 +352,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 				ClonkProjectNature.get(proj).getIndex().setDirty(true);
 
 				refreshUIAfterBuild(listOfResourcesToBeRefreshed);
+				handleDefinitionRenaming();
 
 				// validate files related to the scripts that have been parsed
 				for (ScriptBase script : parserMap.keySet()) {
@@ -361,12 +369,35 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 		}
 	}
 
-	private static <T extends IResourceVisitor & IResourceDeltaVisitor> void visitDeltaOrWholeProject(IResourceDelta delta, IProject proj, T ultimateVisit0r) throws CoreException {
-		if (delta != null) {
-			delta.accept(ultimateVisit0r);
-		} else{
-			proj.accept(ultimateVisit0r);
+	private void handleDefinitionRenaming() {
+		for (Pair<Definition, ID> rnd : renamedDefinitions) {
+			final Definition def = rnd.getFirst();
+			final ID newID = rnd.getSecond();
+			Display.getDefault().asyncExec(new Runnable() {
+				@Override
+				public void run() {
+					ID oldID = def.id();
+					// FIXME: implement for CR?
+					Variable var = def.proxyVar();
+					if (var != null && UI.confirm(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(),
+						String.format("%s was renamed to %s. Perform a refactoring?", oldID.getName(), newID.getName()),
+						String.format("Rename Refactoring for '%s'", oldID.getName()))
+					)
+						// perform a refactoring - the RenameDeclarationProcessor will take care of renaming the proxyvar which in turn will cause the id of the definition to actually be changed
+						RenameDeclarationAction.performRenameRefactoring(var, newID.getName(), RenameDeclarationProcessor.CONSIDER_DEFCORE_ID_ALREADY_CHANGED);
+					else
+						// simply set the new id
+						def.setId(newID); 
+				}
+			});
 		}
+	}
+
+	private static <T extends IResourceVisitor & IResourceDeltaVisitor> void visitDeltaOrWholeProject(IResourceDelta delta, IProject proj, T ultimateVisit0r) throws CoreException {
+		if (delta != null)
+			delta.accept(ultimateVisit0r);
+		else
+			proj.accept(ultimateVisit0r);
 	}
 	
 	private void performBuildPhases(
@@ -446,6 +477,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 	private void clearState() {
 		gatheredStructures.clear();
 		parserMap.clear();
+		renamedDefinitions.clear();
 	}
 
 	private void queueDependentScripts(Map<ScriptBase, C4ScriptParser> sourceMap, Map<ScriptBase, C4ScriptParser> tempParserMap) {
@@ -479,8 +511,8 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 
 	private void validateRelatedFiles(ScriptBase script) throws CoreException {
 		if (script instanceof ProjectDefinition) {
-			ProjectDefinition obj = (ProjectDefinition) script;
-			for (IResource r : obj.getObjectFolder().members()) {
+			ProjectDefinition def = (ProjectDefinition) script;
+			for (IResource r : def.definitionFolder().members()) {
 				if (r instanceof IFile) {
 					Structure pinned = Structure.pinned((IFile) r, false, true);
 					if (pinned != null)
@@ -505,9 +537,9 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 									ClonkTextEditor ed = (ClonkTextEditor) part;
 									// only if building the project this element is declared in
 									if (
-										ed.getTopLevelDeclaration() != null &&
-										ed.getTopLevelDeclaration().getResource() != null &&
-										ClonkBuilder.this.getProject() == ed.getTopLevelDeclaration().getResource().getProject()
+										ed.topLevelDeclaration() != null &&
+										ed.topLevelDeclaration().getResource() != null &&
+										ClonkBuilder.this.getProject() == ed.topLevelDeclaration().getResource().getProject()
 									)
 										ed.clearOutline();
 								}
@@ -579,6 +611,15 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 				currentSubProgressMonitor.worked(1);
 			}
 		}
+	}
+
+	/**
+	 * Inform the builder about a Definition renaming caused by modifying its DefCore.txt file.
+	 * @param def The {@link Definition} whose DefCore.txt id value changed
+	 * @param ID newID The new id the builder is supposed to assign to the definition eventually
+	 */
+	public void queueDefinitionRenaming(Definition def, ID newID) {
+		renamedDefinitions.add(new Pair<Definition, ID>(def, newID));
 	}
 
 }

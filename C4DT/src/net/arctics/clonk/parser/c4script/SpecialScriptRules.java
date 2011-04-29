@@ -728,7 +728,7 @@ public class SpecialScriptRules {
 				final String actionName = (String)parmEv;
 				if (definition instanceof ProjectDefinition) {
 					ProjectDefinition projDef = (ProjectDefinition)definition;
-					IResource res = Utilities.findMemberCaseInsensitively(projDef.getObjectFolder(), "ActMap.txt");
+					IResource res = Utilities.findMemberCaseInsensitively(projDef.definitionFolder(), "ActMap.txt");
 					if (res instanceof IFile) {
 						IniUnit unit;
 						try {

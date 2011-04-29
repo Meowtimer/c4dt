@@ -108,14 +108,14 @@ public abstract class Declaration implements Serializable, IHasRelatedResource, 
 	}
 	
 	/**
-	 * @param location the location to set
+	 * @param Set the location of the declaration in its declaring file.
 	 */
 	public void setLocation(SourceLocation location) {
 		this.location = location;
 	}
 	
 	/**
-	 * @return the location
+	 * @return Return the location of the declaration in its declaring file.
 	 */
 	public SourceLocation getLocation() {
 		return location;

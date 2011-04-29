@@ -63,7 +63,7 @@ public class MapCreatorEditor extends ClonkTextEditor {
 	}
 	
 	@Override
-	public MapCreator getTopLevelDeclaration() {
+	public MapCreator topLevelDeclaration() {
 		MapCreator result = getMapCreator();
 		reparse();
 		return result;
@@ -83,7 +83,7 @@ public class MapCreatorEditor extends ClonkTextEditor {
 	@Override
 	public void refreshOutline() {
 		if (outlinePage != null) {
-			outlinePage.setInput(getTopLevelDeclaration());
+			outlinePage.setInput(topLevelDeclaration());
 			super.refreshOutline();
 		}
 	}

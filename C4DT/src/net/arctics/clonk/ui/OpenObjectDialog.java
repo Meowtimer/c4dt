@@ -41,7 +41,7 @@ public class OpenObjectDialog extends FilteredItemsSelectionDialog {
 			Definition obj = (Definition) element;
 			StyledString buf = new StyledString(obj.getName());
 			buf.append(" - ", StyledString.QUALIFIER_STYLER); //$NON-NLS-1$
-			buf.append(obj.getId().getName(), StyledString.QUALIFIER_STYLER);
+			buf.append(obj.id().getName(), StyledString.QUALIFIER_STYLER);
 			return buf;
 		}
 		
@@ -68,7 +68,7 @@ public class OpenObjectDialog extends FilteredItemsSelectionDialog {
 				if (!(item instanceof Definition)) return false;
 				final Definition obj = (Definition) item;
 				final String search = this.getPattern().toUpperCase();
-				if (obj == null || obj.getId() == null || obj.getName() == null || search == null) {
+				if (obj == null || obj.id() == null || obj.getName() == null || search == null) {
 					return false;
 				}
 				return obj.nameContains(search);
@@ -123,7 +123,7 @@ public class OpenObjectDialog extends FilteredItemsSelectionDialog {
 	public String getElementName(Object item) {
 		if (!(item instanceof Definition))
 			return item.toString();
-		return ((Definition)item).getId().getName();
+		return ((Definition)item).id().getName();
 	}
 
 	@SuppressWarnings("rawtypes")

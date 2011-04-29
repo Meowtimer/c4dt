@@ -8,8 +8,11 @@ import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.ID;
 import net.arctics.clonk.parser.Structure;
+import net.arctics.clonk.parser.c4script.ScriptBase;
 import net.arctics.clonk.parser.c4script.Variable;
 import net.arctics.clonk.parser.c4script.IType;
+import net.arctics.clonk.parser.c4script.ast.AccessVar;
+import net.arctics.clonk.parser.c4script.ast.IDLiteral;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.util.StreamUtil;
 import net.arctics.clonk.util.Utilities;
@@ -27,62 +30,87 @@ import org.eclipse.core.runtime.Path;
  */
 public class ProjectDefinition extends Definition implements Serializable {
 
+	/**
+	 * ProxyVar that is being referenced by {@link AccessVar} expressions (sort of a hack to support long definition names, while for ClonkRage, {@link IDLiteral} is still used)
+	 * @author madeen
+	 *
+	 */
+	public final class ProxyVar extends Variable {
+		private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
+
+		@Override
+		public String getName() {
+			return id().getName();
+		}
+		
+		@Override
+		public void setName(String name) {
+			setId(ID.getID(name));
+		}
+
+		@Override
+		public Declaration getParentDeclaration() {
+			return ProjectDefinition.this;
+		}
+
+		@Override
+		public Structure getTopLevelStructure() {
+			return ProjectDefinition.this;
+		}
+
+		@Override
+		public String getInfoText() {
+			return ProjectDefinition.this.getInfoText();
+		}
+
+		@Override
+		public Definition getObjectType() {
+			return null;
+		}
+
+		@Override
+		public IType getType() {
+			return ProjectDefinition.this.getObjectType();
+		}
+
+		@Override
+		public boolean typeIsInvariant() {
+			return true;
+		}
+		
+		public final ProjectDefinition definition() {
+			return ProjectDefinition.this;
+		}
+		
+		@Override
+		public ClonkIndex getIndex() {
+			return ProjectDefinition.this.getIndex();
+		}
+		
+		@Override
+		public ScriptBase getScript() {
+			return ProjectDefinition.this.getScript();
+		}
+		
+	}
+
 	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 
 	protected transient IContainer objectFolder;
 	protected String relativePath;
 	private transient ClonkIndex index;
 
-	private transient Variable staticVariable;
+	private transient ProxyVar proxyVar;
 
 	/**
 	 * Helper variable used for long-id definitions.
 	 */
-	public Variable getStaticVariable() {
+	public ProxyVar proxyVar() {
 		if (getEngine() != null && !getEngine().getCurrentSettings().definitionsHaveStaticVariables)
-			return staticVariable = null;
-		if (staticVariable == null) {
-			staticVariable = new Variable() {
-				private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
-
-				@Override
-				public String getName() {
-					return ProjectDefinition.this.getName();
-				}
-
-				@Override
-				public Declaration getParentDeclaration() {
-					return ProjectDefinition.this;
-				}
-
-				@Override
-				public Structure getTopLevelStructure() {
-					return ProjectDefinition.this;
-				}
-
-				@Override
-				public String getInfoText() {
-					return ProjectDefinition.this.getInfoText();
-				}
-
-				@Override
-				public Definition getObjectType() {
-					return null;
-				}
-
-				@Override
-				public IType getType() {
-					return ProjectDefinition.this.getObjectType();
-				}
-				
-				@Override
-				public boolean typeIsInvariant() {
-					return true;
-				};
-
-			};
-		}
-		return staticVariable;
+			return proxyVar = null;
+		if (proxyVar == null)
+			proxyVar = new ProxyVar();
+		return proxyVar;
 	}
 
 	public ProjectDefinition(ID id, String name, IContainer container) {
@@ -147,10 +175,16 @@ public class ProjectDefinition extends Definition implements Serializable {
 		}
 	}
 
-	public IFile getDefCoreFile() {
+	/**
+	 * Return DefCore.txt file of this Definition
+	 * @return The DefCore.txt file or null if it does not exist for mysterious reasons
+	 */
+	public IFile defCoreFile() {
 		IResource res = Utilities.findMemberCaseInsensitively(this.objectFolder, "DefCore.txt"); //$NON-NLS-1$
-		if (res == null || !(res instanceof IFile)) return null;
-		else return (IFile) res;
+		if (res == null || !(res instanceof IFile))
+			return null;
+		else
+			return (IFile) res;
 	}
 
 	/**
@@ -176,8 +210,8 @@ public class ProjectDefinition extends Definition implements Serializable {
 		objectFolder = folder != null ? folder : objectFolder;
 		if (folder != null) {
 			folder.setSessionProperty(ClonkCore.FOLDER_DEFINITION_REFERENCE_ID, this);
-			if (getId() != null)
-				folder.setPersistentProperty(ClonkCore.FOLDER_C4ID_PROPERTY_ID, getId().getName());
+			if (id() != null)
+				folder.setPersistentProperty(ClonkCore.FOLDER_C4ID_PROPERTY_ID, id().getName());
 			else
 				folder.setPersistentProperty(ClonkCore.FOLDER_C4ID_PROPERTY_ID, null);
 			relativePath = folder.getFullPath().toPortableString();
@@ -189,7 +223,7 @@ public class ProjectDefinition extends Definition implements Serializable {
 	 * The folder the Definition was declared in. Will return null if no folder has been assigned to this Definition yet or if this Definition object denotes a no longer recent version of the definition.
 	 * @return the folder object or null due to circumstances listed above
 	 */
-	public IContainer getObjectFolder() {
+	public IContainer definitionFolder() {
 		if (objectFolder != null) {
 			try {
 				if (objectFolder.getSessionProperty(ClonkCore.FOLDER_DEFINITION_REFERENCE_ID) != this)
@@ -220,7 +254,7 @@ public class ProjectDefinition extends Definition implements Serializable {
 		super.setId(newId);
 		if (objectFolder != null)
 			try {
-				objectFolder.setPersistentProperty(ClonkCore.FOLDER_C4ID_PROPERTY_ID, getId().getName());
+				objectFolder.setPersistentProperty(ClonkCore.FOLDER_C4ID_PROPERTY_ID, id().getName());
 			} catch (CoreException e) {
 				e.printStackTrace();
 			}
@@ -264,12 +298,12 @@ public class ProjectDefinition extends Definition implements Serializable {
 
 	@Override
 	public IResource getResource() {
-		return getObjectFolder();
+		return definitionFolder();
 	}
 
 	@Override
 	public String getInfoText() {
-		return String.format(INFO_TEXT_TEMPLATE, getName(), super.getInfoText(), getObjectFolder().getFullPath().toOSString());
+		return String.format(INFO_TEXT_TEMPLATE, getName(), super.getInfoText(), definitionFolder().getFullPath().toOSString());
 		//return getName() + ": " + super.getInfoText();
 	}
 

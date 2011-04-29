@@ -318,7 +318,7 @@ public abstract class ScriptBase extends Structure implements ITreeNode, IHasCon
 			if (getEngine().acceptsId(name)) {
 				f = info.index.getDefinitionNearestTo(getResource(), ID.getID(name));
 				if (f != null && info.declarationClass == Variable.class && f instanceof ProjectDefinition) {
-					f = ((ProjectDefinition)f).getStaticVariable();
+					f = ((ProjectDefinition)f).proxyVar();
 				}
 			}
 			// global stuff defined in project

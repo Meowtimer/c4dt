@@ -28,7 +28,7 @@ public class ImportedDefinition implements Serializable, IType {
 	public void setDefinition(Definition definition) {
 		if (definition != null) {
 			this.definition = new WeakReference<Definition>(definition);
-			this.id = definition.getId();
+			this.id = definition.id();
 			this.referencedProject = definition.getIndex().getProject().getName();
 		} else {
 			this.definition = null;

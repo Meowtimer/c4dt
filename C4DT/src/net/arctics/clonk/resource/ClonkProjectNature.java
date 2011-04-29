@@ -348,7 +348,7 @@ public class ClonkProjectNature implements IProjectNature {
 		if (script == null)
 			return null;
 		if (script instanceof ProjectDefinition)
-			return get(((ProjectDefinition)script).getObjectFolder());
+			return get(((ProjectDefinition)script).definitionFolder());
 		if (script instanceof StandaloneProjectScript)
 			return get(((StandaloneProjectScript)script).getScriptStorage());
 		else
@@ -376,7 +376,7 @@ public class ClonkProjectNature implements IProjectNature {
 		else if (site instanceof IEditorSite) {
 			IEditorSite editorSite = (IEditorSite) site;
 			if (editorSite.getPart() instanceof ClonkTextEditor)
-				return ClonkProjectNature.get(((ClonkTextEditor)editorSite.getPart()).getTopLevelDeclaration().getIndex().getProject());
+				return ClonkProjectNature.get(((ClonkTextEditor)editorSite.getPart()).topLevelDeclaration().getIndex().getProject());
 		}
 		return null;
 	}

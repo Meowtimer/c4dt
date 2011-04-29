@@ -164,8 +164,9 @@ public abstract class Structure extends Declaration implements ILatestDeclaratio
 	/**
 	 * Commits data of this structure to the script. Primarily for {@link Definition}s which are defined by various files in addition to the script file.
 	 * @param script the script to commit to
+	 * @param builder Builders gonna build
 	 */
-	public void commitTo(ScriptBase script) {
+	public void commitTo(ScriptBase script, ClonkBuilder builder) {
 		// placeholder
 	}
 	

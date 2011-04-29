@@ -108,7 +108,7 @@ public class IniTextEditor extends ClonkTextEditor {
 	}
 	
 	@Override
-	public Declaration getTopLevelDeclaration() {
+	public Declaration topLevelDeclaration() {
 		return getIniUnit(); 
 	}
 
@@ -206,5 +206,9 @@ public class IniTextEditor extends ClonkTextEditor {
 		return textChangeListener;
 	}
 	
+	@Override
+	protected void editorSaved() {
+		super.editorSaved();
+	}
 	
 }

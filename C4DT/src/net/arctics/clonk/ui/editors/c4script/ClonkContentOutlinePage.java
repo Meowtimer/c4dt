@@ -22,7 +22,7 @@ public class ClonkContentOutlinePage extends ContentOutlinePage {
 	public void createControl(Composite parent) {
 		super.createControl(parent);
 		if (editor != null) {
-			Declaration topLevelDeclaration = getEditor().getTopLevelDeclaration();
+			Declaration topLevelDeclaration = getEditor().topLevelDeclaration();
 			if (topLevelDeclaration != null) {
 				setTreeViewerInput(topLevelDeclaration);
 			}
@@ -76,7 +76,7 @@ public class ClonkContentOutlinePage extends ContentOutlinePage {
 	}
 
 	public void refresh() {
-		Declaration newInput = getEditor().getTopLevelDeclaration();
+		Declaration newInput = getEditor().topLevelDeclaration();
 		if (getTreeViewer().getInput() != newInput)
 			setTreeViewerInput(newInput);
 		else

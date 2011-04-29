@@ -677,7 +677,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 	}
 	
 	@Override
-	public ScriptBase getTopLevelDeclaration() {
+	public ScriptBase topLevelDeclaration() {
 		return scriptBeingEdited();
 	}
 	

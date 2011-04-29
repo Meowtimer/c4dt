@@ -148,7 +148,7 @@ public class Variable extends Declaration implements Serializable, ITypedDeclara
 
 	public ID getObjectID() {
 		Definition obj = getObjectType();
-		return obj != null ? obj.getId() : null;
+		return obj != null ? obj.id() : null;
 	}
 
 	/**

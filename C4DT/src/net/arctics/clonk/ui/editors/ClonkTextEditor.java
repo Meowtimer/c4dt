@@ -74,7 +74,7 @@ public class ClonkTextEditor extends TextEditor {
 	}
 	
 	/**
-	 * Refresh the outline so the new contents of the {@link #getTopLevelDeclaration()} will be shown.
+	 * Refresh the outline so the new contents of the {@link #topLevelDeclaration()} will be shown.
 	 */
 	public void refreshOutline() {
 		if (outlinePage != null) // don't start lazy loading of outlinePage
@@ -140,7 +140,7 @@ public class ClonkTextEditor extends TextEditor {
 			// if a definition has no script fall back to opening DefCore.txt
 			else if (structure instanceof ProjectDefinition) {
 				ProjectDefinition obj = (ProjectDefinition) structure;
-				IFile defCore = obj.getDefCoreFile();
+				IFile defCore = obj.defCoreFile();
 				if (defCore != null) {
 					try {
 						IDE.openEditor(workbenchPage, defCore);
@@ -222,7 +222,7 @@ public class ClonkTextEditor extends TextEditor {
 	 * Return the declaration that represents the file being edited
 	 * @return the declaration
 	 */
-	public Declaration getTopLevelDeclaration() {
+	public Declaration topLevelDeclaration() {
 		return null;
 	}
 	
@@ -246,7 +246,7 @@ public class ClonkTextEditor extends TextEditor {
 	@Override
 	protected void editorContextMenuAboutToShow(IMenuManager menu) {
 		super.editorContextMenuAboutToShow(menu);
-		if (getTopLevelDeclaration() != null) {
+		if (topLevelDeclaration() != null) {
 			menu.add(new Separator(IClonkCommandIds.GROUP_CLONK));
 			addAction(menu, IClonkCommandIds.OPEN_DECLARATION);
 		}
@@ -366,8 +366,8 @@ public class ClonkTextEditor extends TextEditor {
 	@Override
 	protected void handleCursorPositionChanged() {
 		super.handleCursorPositionChanged();
-		if (getTextChangeListener() != null && getTopLevelDeclaration() instanceof Structure)
-			getTextChangeListener().updateStructure((Structure) getTopLevelDeclaration());
+		if (getTextChangeListener() != null && topLevelDeclaration() instanceof Structure)
+			getTextChangeListener().updateStructure((Structure) topLevelDeclaration());
 	}
 	
 	/**

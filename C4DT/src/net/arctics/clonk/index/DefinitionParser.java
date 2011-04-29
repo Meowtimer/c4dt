@@ -51,10 +51,10 @@ public class DefinitionParser {
 			if (defCore != null) {
 				DefCoreUnit defCoreWrapper = (DefCoreUnit) Structure.pinned(defCore, true, false);
 				if (object == null) {
-					object = new ProjectDefinition(defCoreWrapper.getObjectID(), defCoreWrapper.getName(), objectFolder);
+					object = new ProjectDefinition(defCoreWrapper.definitionID(), defCoreWrapper.getName(), objectFolder);
 				}
 				else {
-					object.setId(defCoreWrapper.getObjectID());
+					object.setId(defCoreWrapper.definitionID());
 					object.setName(defCoreWrapper.getName(), false);
 				}
 			}

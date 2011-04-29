@@ -92,7 +92,7 @@ public class ClonkLabelProvider extends LabelProvider implements IStyledLabelPro
 		}
 		else if (element instanceof Definition) {
 			Definition obj = (Definition) element;
-			String c4id = obj.getId().toString();
+			String c4id = obj.id().toString();
 			return getIDText(obj.getNodeName(), c4id, true);
 		}
 		else if (element instanceof INode) {

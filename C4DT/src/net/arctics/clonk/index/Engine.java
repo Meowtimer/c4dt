@@ -382,7 +382,7 @@ public class Engine extends ScriptBase {
 						IniSection section = unit.sectionWithName("Descriptions"); //$NON-NLS-1$
 						if (section != null) {
 							result = new HashMap<String, String>();
-							for (Entry<String, IniItem> item : section.getSubItemMap().entrySet()) {
+							for (Entry<String, IniItem> item : section.subItemMap().entrySet()) {
 								if (item.getValue() instanceof IniEntry) {
 									IniEntry entry = (IniEntry) item.getValue();
 									result.put(entry.getKey(), entry.getValue().replace("|||", "\n")); //$NON-NLS-1$ //$NON-NLS-2$

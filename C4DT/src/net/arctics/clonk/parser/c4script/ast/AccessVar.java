@@ -5,6 +5,7 @@ import org.eclipse.jface.text.IRegion;
 
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.index.Definition;
+import net.arctics.clonk.index.ProjectDefinition;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.ParsingException;
@@ -75,17 +76,15 @@ public class AccessVar extends AccessDeclaration {
 					return proplistComponent;
 				}
 			}
-		} else {
+		} else
 			scriptToLookIn = context.getContainer();
-		}
 		if (scriptToLookIn != null) {
 			FindDeclarationInfo info = new FindDeclarationInfo(context.getContainer().getIndex());
 			info.setContextFunction(context.getCurrentFunc());
 			info.setSearchOrigin(scriptToLookIn);
 			return scriptToLookIn.findVariable(declarationName, info);
-		} else {
+		} else
 			return null;
-		}
 	}
 
 	@Override
@@ -188,10 +187,9 @@ public class AccessVar extends AccessDeclaration {
 		super.inferTypeFromAssignment(expression, context);
 	}
 	
-	private static Definition getObjectBelongingToStaticVar(Variable var) {
-		Declaration parent = var.getParentDeclaration();
-		if (parent instanceof Definition && ((Definition)parent).getStaticVariable() == var)
-			return (Definition) parent;
+	private static Definition definitionProxiedBy(Variable var) {
+		if (var instanceof ProjectDefinition.ProxyVar)
+			return ((ProjectDefinition.ProxyVar)var).definition();
 		else
 			return null;
 	}
@@ -216,8 +214,8 @@ public class AccessVar extends AccessDeclaration {
 					val = 1337; // awesome fallback
 				return val;
 			}
-			else if ((obj = getObjectBelongingToStaticVar(var)) != null) {
-				return obj.getId(); // just return the id
+			else if ((obj = definitionProxiedBy(var)) != null) {
+				return obj.id(); // just return the id
 			}
 		}
 		return super.evaluateAtParseTime(context);
@@ -242,7 +240,7 @@ public class AccessVar extends AccessDeclaration {
 		if (getDeclaration() instanceof Variable) {
 			Variable var = (Variable) getDeclaration();
 			// naturally, consts are constant
-			return var.getScope() == Scope.CONST || getObjectBelongingToStaticVar(var) != null;
+			return var.getScope() == Scope.CONST || definitionProxiedBy(var) != null;
 		}
 		else
 			return false;

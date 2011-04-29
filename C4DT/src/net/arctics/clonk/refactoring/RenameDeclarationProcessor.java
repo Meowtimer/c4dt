@@ -5,12 +5,15 @@ import java.util.HashSet;
 import java.util.Set;
 
 import net.arctics.clonk.ClonkCore;
+import net.arctics.clonk.index.ProjectDefinition;
 import net.arctics.clonk.index.ProjectIndex;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.Structure;
 import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.ScriptBase;
 import net.arctics.clonk.parser.c4script.FindDeclarationInfo;
+import net.arctics.clonk.parser.inireader.DefCoreUnit;
+import net.arctics.clonk.parser.inireader.IniEntry;
 import net.arctics.clonk.parser.inireader.IniUnit;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.ui.search.ClonkSearchMatch;
@@ -36,12 +39,28 @@ import org.eclipse.text.edits.ReplaceEdit;
 
 public class RenameDeclarationProcessor extends RenameProcessor {
 	
+	/**
+	 * Option: The processor won't attempt to change the id value inside DefCore.txt if the declaration being rename is a {@link ProjectDefinition}
+	 */
+	public static final int CONSIDER_DEFCORE_ID_ALREADY_CHANGED = 1;
+	
 	private Declaration decl;
 	private String newName;
+	private String oldName;
+	
+	private int options;
 
-	public RenameDeclarationProcessor(Declaration field, String newName) {
+	/**
+	 * Create a new RenameDeclarationProcessor.
+	 * @param declarationToRename The declaration to rename
+	 * @param newName The new name (default value shown in the renaming UI)
+	 * @param options Mask |-red together from {@link #CONSIDER_DEFCORE_ID_ALREADY_CHANGED}
+	 */
+	public RenameDeclarationProcessor(Declaration declarationToRename, String newName, int options) {
 		this.newName = newName;
-		this.decl = field;
+		this.oldName = declarationToRename.getName();
+		this.decl = declarationToRename;
+		this.options = options;
 	}
 
 	@Override
@@ -56,19 +75,18 @@ public class RenameDeclarationProcessor extends RenameProcessor {
 		FindDeclarationInfo info = new FindDeclarationInfo(decl.getIndex());
 		info.setDeclarationClass(decl.getClass());
 		Structure parentStructure = decl.getParentDeclarationOfType(Structure.class);
-		if (parentStructure != null) {
+		/*if (parentStructure != null) {
 			existingDec = parentStructure.findLocalDeclaration(newName, decl.getClass());
 			if (existingDec != null) {
 				return RefactoringStatus.createFatalErrorStatus(String.format(Messages.DuplicateItem, newName, decl.getScript().toString()));
 			}
-		}
+		}*/
 		
-		return RefactoringStatus.createInfoStatus(Messages.Success);
+		return new RefactoringStatus();
 	}
 
 	@Override
-	public Change createChange(IProgressMonitor monitor) throws CoreException,
-			OperationCanceledException {
+	public Change createChange(IProgressMonitor monitor) throws CoreException, OperationCanceledException {
 		Object script = decl.getScript().getScriptStorage();
 		if (!(script instanceof IResource))
 			return null;
@@ -76,9 +94,11 @@ public class RenameDeclarationProcessor extends RenameProcessor {
 		ClonkSearchQuery query = new ClonkSearchQuery(decl, ClonkProjectNature.get(declaringFile));
 		query.run(monitor);
 		ClonkSearchResult searchResult = (ClonkSearchResult) query.getSearchResult();
+		// now that references by the old name have been detected, rename the declaration (in case of ProjectDefinition.ProxyVar, this will change the id of the definition being proxied) 
+		decl.setName(newName);
 		// all references in code
 		Set<Object> elements = new HashSet<Object>(Arrays.asList(searchResult.getElements()));
-		// declaration of the selected declaration
+		// declaration location
 		elements.add(decl.getScript());
 		// if decl is a function also look for functions which inherit or are inherited from decl
 		if (decl instanceof Function) {
@@ -106,7 +126,23 @@ public class RenameDeclarationProcessor extends RenameProcessor {
 				fileChange.setEdit(new MultiTextEdit());
 				// change declaration
 				if (file.equals(declaringFile)) {
-					fileChange.addEdit(new ReplaceEdit(decl.getLocation().getOffset(), decl.getLocation().getLength(), newName));
+					if (decl instanceof ProjectDefinition.ProxyVar) {
+						if ((options & CONSIDER_DEFCORE_ID_ALREADY_CHANGED) == 0) {
+							ProjectDefinition def = ((ProjectDefinition.ProxyVar)decl).definition();
+							DefCoreUnit unit = (DefCoreUnit) Structure.pinned(def.defCoreFile(), true, false);
+							if (unit != null) {
+								try {
+									IniEntry entry = (IniEntry) unit.sectionWithName("DefCore").getSubItem("id");
+									TextFileChange defCoreChange = new TextFileChange(String.format("Change id in DefCore.txt of %s", decl.toString()), def.defCoreFile());
+									defCoreChange.setEdit(new ReplaceEdit(entry.getLocation().getEnd()-entry.getValue().length(), entry.getValue().length(), newName));
+									composite.add(defCoreChange);
+								} catch (Exception e) {
+									e.printStackTrace();
+								}
+							}
+						}
+					} else
+						fileChange.addEdit(new ReplaceEdit(decl.getLocation().getOffset(), decl.getLocation().getLength(), newName));
 				}
 //				else if (element instanceof C4Function) {
 //					C4Function relatedFunc = (C4Function)element;
@@ -120,7 +156,8 @@ public class RenameDeclarationProcessor extends RenameProcessor {
 						// gonna ignore that; there is one case where it's even normal this is thrown (for (e in a) ... <- e is reference and declaration)
 					}
 				}
-				composite.add(fileChange);
+				if (fileChange.getEdit().getChildrenSize() > 0)
+					composite.add(fileChange);
 			}
 		}
 		return composite;
@@ -130,7 +167,7 @@ public class RenameDeclarationProcessor extends RenameProcessor {
 	public RefactoringStatus checkFinalConditions(IProgressMonitor monitor,
 			CheckConditionsContext context) throws CoreException,
 			OperationCanceledException {
-		return RefactoringStatus.createInfoStatus(Messages.Success);
+		return new RefactoringStatus();
 	}
 
 	@Override
@@ -145,7 +182,7 @@ public class RenameDeclarationProcessor extends RenameProcessor {
 
 	@Override
 	public String getProcessorName() {
-		return Messages.RenameProcessorName;
+		return String.format(Messages.RenameProcessorName, oldName, newName);
 	}
 
 	@Override
@@ -154,13 +191,20 @@ public class RenameDeclarationProcessor extends RenameProcessor {
 	}
 
 	@Override
-	public RefactoringParticipant[] loadParticipants(RefactoringStatus status,
-			SharableParticipants sharableParticipants) throws CoreException {
+	public RefactoringParticipant[] loadParticipants(RefactoringStatus status, SharableParticipants sharableParticipants) throws CoreException {
 		return null;
 	}
 
-	public Declaration getField() {
+	public Declaration declarationBeingRenamed() {
 		return decl;
+	}
+	
+	public void setNewName(String newName) {
+		this.newName = newName;
+	}
+	
+	public String getNewName() {
+		return newName;
 	}
 	
 }

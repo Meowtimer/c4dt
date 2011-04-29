@@ -150,14 +150,14 @@ public class ClonkIndex extends Declaration implements Serializable, Iterable<De
 				for (Definition obj : list) {
 					if (obj instanceof ProjectDefinition) {
 						ProjectDefinition intern = (ProjectDefinition)obj;
-						if (intern.getObjectFolder() != null && intern.getObjectFolder().equals(folder))
+						if (intern.definitionFolder() != null && intern.definitionFolder().equals(folder))
 							return intern;
 					}
 				}
 			}
 			// also try scenarios
 			for (Scenario s : indexedScenarios)
-				if (s.getObjectFolder() != null && s.getObjectFolder().equals(folder))
+				if (s.definitionFolder() != null && s.definitionFolder().equals(folder))
 					return s;
 			//e.printStackTrace();
 			return null;
@@ -266,12 +266,12 @@ public class ClonkIndex extends Declaration implements Serializable, Iterable<De
 	 * @param definition The {@link Definition} to add. Attempts to add {@link Definition}s with no id will be ignored.
 	 */
 	public void addDefinition(Definition definition) {
-		if (definition.getId() == null)
+		if (definition.id() == null)
 			return;
-		List<Definition> alreadyDefinedObjects = indexedObjects.get(definition.getId());
+		List<Definition> alreadyDefinedObjects = indexedObjects.get(definition.id());
 		if (alreadyDefinedObjects == null) {
 			alreadyDefinedObjects = new LinkedList<Definition>();
-			indexedObjects.put(definition.getId(), alreadyDefinedObjects);
+			indexedObjects.put(definition.id(), alreadyDefinedObjects);
 		} else {
 			if (alreadyDefinedObjects.contains(definition))
 				return;
@@ -303,13 +303,13 @@ public class ClonkIndex extends Declaration implements Serializable, Iterable<De
 			removeScenario((Scenario)definition);
 			return;
 		}
-		if (definition.getId() == null)
+		if (definition.id() == null)
 			return;
-		List<Definition> alreadyDefinedObjects = indexedObjects.get(definition.getId());
+		List<Definition> alreadyDefinedObjects = indexedObjects.get(definition.id());
 		if (alreadyDefinedObjects != null) {
 			if (alreadyDefinedObjects.remove(definition)) {
 				if (alreadyDefinedObjects.size() == 0) { // if there are no more objects with this C4ID
-					indexedObjects.remove(definition.getId());
+					indexedObjects.remove(definition.id());
 				}
 				scriptRemoved(definition);
 			}
@@ -572,7 +572,7 @@ public class ClonkIndex extends Declaration implements Serializable, Iterable<De
 	public List<ScriptBase> appendagesOf(Definition definition) {
 		if (appendages == null)
 			return null;
-		List<ScriptBase> list = appendages.get(definition.getId());
+		List<ScriptBase> list = appendages.get(definition.id());
 		if (list != null) {
 			return Collections.unmodifiableList(list); 
 		}

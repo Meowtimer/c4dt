@@ -65,20 +65,20 @@ public abstract class Definition extends ScriptBase {
 	}
 
 	public String idWithName() {
-		return getId() != null ? String.format(Messages.C4Object_IDWithName, getName(), getId().toString()) : getName();
+		return id() != null ? String.format(Messages.C4Object_IDWithName, getName(), id().toString()) : getName();
 	}
 
 	/**
 	 * The id of this object. (e.g. CLNK)
 	 * @return the id
 	 */
-	public ID getId() {
+	public ID id() {
 		return id;
 	}
 
 	/**
 	 * Sets the id property of this object.
-	 * This method does not change resources.
+	 * This method does not perform necessary changes to DefCore.txt.
 	 * @param newId
 	 */
 	public void setId(ID newId) {
@@ -90,7 +90,7 @@ public abstract class Definition extends ScriptBase {
 		index.addDefinition(this);
 	}
 
-	public Variable getStaticVariable() {
+	public Variable proxyVar() {
 		return null;
 	}
 
@@ -104,7 +104,7 @@ public abstract class Definition extends ScriptBase {
 				(getEngine() != null && getEngine().getCurrentSettings().definitionsHaveStaticVariables && (variableRequired = Variable.class.isAssignableFrom(cls)))
 		) {
 			if (id != null && id.getName().equals(name))
-				return variableRequired ? this.getStaticVariable() : this;
+				return variableRequired ? this.proxyVar() : this;
 		}
 		return null;
 	}
@@ -137,7 +137,7 @@ public abstract class Definition extends ScriptBase {
 
 	@Override
 	public boolean nameContains(String text) {
-		if (getId() != null && getId().getName().toUpperCase().indexOf(text) != -1)
+		if (id() != null && id().getName().toUpperCase().indexOf(text) != -1)
 			return true;
 		if (getName() != null && getName().toUpperCase().contains(text))
 			return true;

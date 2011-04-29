@@ -106,7 +106,7 @@ public class CustomIniUnit extends IniUnit {
 	}
 
 	public void commitSection(Object object, IniSection section, boolean takeIntoAccountCategory) {
-		for (IniItem item : section.getSubItemMap().values()) {
+		for (IniItem item : section.subItemMap().values()) {
 			if (item instanceof IniSection) {
 				commitSection(object, (IniSection)item, takeIntoAccountCategory);
 			} else if (item instanceof IniEntry) {

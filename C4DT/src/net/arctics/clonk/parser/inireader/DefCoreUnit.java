@@ -4,6 +4,7 @@ import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.parser.ID;
 import net.arctics.clonk.parser.c4script.ScriptBase;
+import net.arctics.clonk.resource.ClonkBuilder;
 
 public class DefCoreUnit extends IniUnit {
 	
@@ -18,11 +19,12 @@ public class DefCoreUnit extends IniUnit {
 		super(input);
 	}
 
-	public ID getObjectID() {
+	public ID definitionID() {
 		IniEntry entry = entryInSection("DefCore", "id"); //$NON-NLS-1$ //$NON-NLS-2$
 		if (entry instanceof ComplexIniEntry)
 			return (ID)((ComplexIniEntry)entry).getExtendedValue();
-		return ID.NULL;
+		else
+			return ID.NULL;
 	}
 	
 	public String getName() {
@@ -31,9 +33,14 @@ public class DefCoreUnit extends IniUnit {
 	}
 	
 	@Override
-	public void commitTo(ScriptBase script) {
+	public void commitTo(ScriptBase script, ClonkBuilder builder) {
 		if (script instanceof Definition) {
-			((Definition)script).setId(this.getObjectID());
+			Definition def = (Definition) script;
+			ID oldID = def.id();
+			ID newID = this.definitionID();
+			//def.setId(newID);
+			if (!oldID.equals(newID))
+				builder.queueDefinitionRenaming(def, newID);
 		}
 	}
 	

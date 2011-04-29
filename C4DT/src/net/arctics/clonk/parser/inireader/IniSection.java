@@ -58,7 +58,7 @@ public class IniSection extends Declaration implements IHasKeyAndValue<String, S
 		return name;
 	}
 
-	public Map<String, IniItem> getSubItemMap() {
+	public Map<String, IniItem> subItemMap() {
 		return itemMap;
 	}
 
@@ -152,7 +152,7 @@ public class IniSection extends Declaration implements IHasKeyAndValue<String, S
 		writer.append(']');
 		writer.append('\n');
 		
-		for (IniItem entry : getSubItemMap().values()) {
+		for (IniItem entry : subItemMap().values()) {
 			entry.writeTextRepresentation(writer, indentation+1);
 			writer.append('\n');
 		}

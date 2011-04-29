@@ -30,23 +30,23 @@ public abstract class ClonkCompletionProcessor<EditorType extends ClonkTextEdito
 	
 	protected void proposalForDefinition(Definition obj,String prefix,int offset,Collection<ICompletionProposal> proposals) {
 		try {
-			if (obj == null || obj.getId() == null)
+			if (obj == null || obj.id() == null)
 				return;
 
 			if (prefix != null) {
 				if (!(
 					obj.getName().toLowerCase().contains(prefix) ||
-					obj.getId().getName().toLowerCase().contains(prefix) ||
+					obj.id().getName().toLowerCase().contains(prefix) ||
 					// also check if the user types in the folder name
-					(obj instanceof ProjectDefinition && ((ProjectDefinition)obj).getObjectFolder() != null && ((ProjectDefinition)obj).getObjectFolder().getName().contains(prefix))
+					(obj instanceof ProjectDefinition && ((ProjectDefinition)obj).definitionFolder() != null && ((ProjectDefinition)obj).definitionFolder().getName().contains(prefix))
 				))
 					return;
 			}
 			String displayString = obj.getName();
 			int replacementLength = prefix != null ? prefix.length() : 0; 
 
-			ClonkCompletionProposal prop = new ClonkCompletionProposal(obj, obj.getId().getName(), offset, replacementLength, obj.getId().getName().length(),
-				UI.getIconForObject(obj), displayString.trim(), null, obj.getInfoText(), " - " + obj.getId().getName(), getEditor()); //$NON-NLS-1$
+			ClonkCompletionProposal prop = new ClonkCompletionProposal(obj, obj.id().getName(), offset, replacementLength, obj.id().getName().length(),
+				UI.getIconForObject(obj), displayString.trim(), null, obj.getInfoText(), " - " + obj.id().getName(), getEditor()); //$NON-NLS-1$
 			prop.setCategory(Category.Definitions);
 			proposals.add(prop);
 		} catch (Exception e) {
