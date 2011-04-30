@@ -3,7 +3,9 @@ package net.arctics.clonk.parser.c4script;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.jface.text.IRegion;
@@ -407,8 +409,15 @@ public class Function extends Structure implements Serializable, ITypedDeclarati
 	 */
 	public Function baseFunction() {
 		Function result = this;
-		for (Function f = this; f != null; f = f.getInherited())
+		Set<Function> alreadyVisited = new HashSet<Function>();
+		for (Function f = this; f != null; f = f.getInherited()) {
+			if (alreadyVisited.contains(f)) {
+				System.out.println(String.format("%s causes inherited loop", f.getQualifiedName()));
+				break;
+			}
 			result = f;
+			alreadyVisited.add(f);
+		}
 		return result;
 	}
 
