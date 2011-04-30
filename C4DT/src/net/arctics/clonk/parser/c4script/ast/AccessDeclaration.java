@@ -6,7 +6,7 @@ import net.arctics.clonk.parser.DeclarationRegion;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.DeclarationObtainmentContext;
-import net.arctics.clonk.parser.c4script.ITypedDeclaration;
+import net.arctics.clonk.parser.c4script.ITypeable;
 import net.arctics.clonk.parser.c4script.ast.IASTComparisonDelegate.DifferenceHandling;
 import net.arctics.clonk.parser.c4script.ast.IASTComparisonDelegate.Option;
 
@@ -96,7 +96,7 @@ public abstract class AccessDeclaration extends Value {
 	
 	@Override
 	public IStoredTypeInformation createStoredTypeInformation(C4ScriptParser parser) {
-		if (declaration instanceof ITypedDeclaration && ((ITypedDeclaration)declaration).typeIsInvariant()) {
+		if (declaration instanceof ITypeable && ((ITypeable)declaration).typeIsInvariant()) {
 			return null;
 		} else {
 			return super.createStoredTypeInformation(parser);

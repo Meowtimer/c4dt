@@ -166,9 +166,9 @@ public class ArrayType implements IType {
 		}
 	}
 
-	public ITypedDeclaration getTypedDeclarationWrapperForElementWithIndex(final Object evaluatedIndexExpression, final ClonkIndex index) {
+	public ITypeable getIndexedElementAsTypeable(final Object evaluatedIndexExpression, final ClonkIndex index) {
 		final int concreteIndex = evaluatedIndexExpression instanceof Number ? ((Number)evaluatedIndexExpression).intValue() : -1;
-		return new ITypedDeclaration() {
+		return new ITypeable() {
 			@Override
 			public String getName() {
 				return String.format("Element %s of %s", evaluatedIndexExpression, ArrayType.this);

@@ -22,7 +22,7 @@ import net.arctics.clonk.parser.c4script.ConstrainedObject;
 import net.arctics.clonk.parser.c4script.ConstrainedType;
 import net.arctics.clonk.parser.c4script.IHasConstraint;
 import net.arctics.clonk.parser.c4script.IType;
-import net.arctics.clonk.parser.c4script.ITypedDeclaration;
+import net.arctics.clonk.parser.c4script.ITypeable;
 import net.arctics.clonk.parser.c4script.ast.IASTComparisonDelegate.DifferenceHandling;
 import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
 import net.arctics.clonk.ui.editors.c4script.IPostSerializable;
@@ -594,7 +594,7 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 	}
 
 	public IStoredTypeInformation createStoredTypeInformation(C4ScriptParser parser) {
-		ITypedDeclaration d = GenericStoredTypeInformation.getDeclaration(this, parser);
+		ITypeable d = GenericStoredTypeInformation.getDeclaration(this, parser);
 		if (d != null && !d.typeIsInvariant()) {
 			return new GenericStoredTypeInformation(this);
 		}
@@ -768,7 +768,7 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 	}
 	
 	/**
-	 * Stored Type Information that applies the stored type information by determining the {@link ITypedDeclaration} being referenced by some arbitrary {@link ExprElm} and setting its type.
+	 * Stored Type Information that applies the stored type information by determining the {@link ITypeable} being referenced by some arbitrary {@link ExprElm} and setting its type.
 	 * @author madeen
 	 *
 	 */
@@ -801,7 +801,12 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 
 		@Override
 		public boolean expressionRelevant(ExprElm expr, C4ScriptParser parser) {
-			return expr.compare(referenceElm, IDENTITY_DIFFERENCE_LISTENER).isEqual();
+			ExprElm chainA, chainB;
+			for (chainA = expr, chainB = referenceElm; chainA != null && chainB != null; chainA = chainA.getPredecessorInSequence(), chainB = chainB.getPredecessorInSequence()) {
+				if (!chainA.compare(chainB, IDENTITY_DIFFERENCE_LISTENER).isEqual())
+					return false;
+			}
+			return chainA == null || chainB == null;
 		}
 
 		@Override
@@ -813,7 +818,7 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 			}
 		}
 		
-		public static ITypedDeclaration getDeclaration(ExprElm referenceElm, C4ScriptParser parser) {
+		public static ITypeable getDeclaration(ExprElm referenceElm, C4ScriptParser parser) {
 			DeclarationRegion decRegion = referenceElm.declarationAt(referenceElm.getLength()-1, parser);
 			if (decRegion != null && decRegion.getTypedDeclaration() != null)
 				return decRegion.getTypedDeclaration();
@@ -823,7 +828,7 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 		
 		@Override
 		public void apply(boolean soft, C4ScriptParser parser) {
-			ITypedDeclaration tyDec = getDeclaration(referenceElm, parser);
+			ITypeable tyDec = getDeclaration(referenceElm, parser);
 			if (tyDec != null) {
 				// only set types of declarations inside the current index so definition references of one project
 				// don't leak into a referenced base project (ClonkMars def referenced in ClonkRage or something)

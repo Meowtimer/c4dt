@@ -12,7 +12,7 @@ import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.c4script.ConstrainedObject;
 import net.arctics.clonk.parser.c4script.DeclarationObtainmentContext;
 import net.arctics.clonk.parser.c4script.Function;
-import net.arctics.clonk.parser.c4script.ITypedDeclaration;
+import net.arctics.clonk.parser.c4script.ITypeable;
 import net.arctics.clonk.parser.c4script.ScriptBase;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.PrimitiveType;
@@ -147,8 +147,8 @@ public class AccessVar extends AccessDeclaration {
 		IType stored = context.queryTypeOfExpression(this, null);
 		if (stored != null)
 			return stored;
-		if (d instanceof ITypedDeclaration)
-			return ((ITypedDeclaration)d).getType();
+		if (d instanceof ITypeable)
+			return ((ITypeable)d).getType();
 		return PrimitiveType.UNKNOWN;
 	}
 

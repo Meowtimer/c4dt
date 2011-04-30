@@ -3,8 +3,8 @@ package net.arctics.clonk.parser;
 
 import java.util.List;
 
-import net.arctics.clonk.parser.c4script.IDeclaration;
-import net.arctics.clonk.parser.c4script.ITypedDeclaration;
+import net.arctics.clonk.parser.c4script.IEntityLocatedInIndex;
+import net.arctics.clonk.parser.c4script.ITypeable;
 
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.Region;
@@ -15,7 +15,7 @@ import org.eclipse.jface.text.Region;
  *
  */
 public final class DeclarationRegion {
-	private transient IDeclaration declaration;
+	private transient IEntityLocatedInIndex declaration;
 	private IRegion region;
 	private String text;
 	private List<Declaration> potentialDeclarations;
@@ -25,9 +25,9 @@ public final class DeclarationRegion {
 		else
 			return null;
 	}
-	public ITypedDeclaration getTypedDeclaration() {
-		if (declaration instanceof ITypedDeclaration)
-			return (ITypedDeclaration)declaration;
+	public ITypeable getTypedDeclaration() {
+		if (declaration instanceof ITypeable)
+			return (ITypeable)declaration;
 		else
 			return null;
 	}
@@ -54,7 +54,7 @@ public final class DeclarationRegion {
 			this.potentialDeclarations = potentialDeclarations;
 		this.region = region;
 	}
-	public DeclarationRegion(ITypedDeclaration typedDeclaration) {
+	public DeclarationRegion(ITypeable typedDeclaration) {
 		this.declaration = typedDeclaration;
 	}
 	/**

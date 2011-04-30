@@ -10,7 +10,7 @@ import net.arctics.clonk.index.ProjectDefinition;
 import net.arctics.clonk.index.Scenario;
 import net.arctics.clonk.parser.c4script.DeclarationObtainmentContext;
 import net.arctics.clonk.parser.c4script.Function;
-import net.arctics.clonk.parser.c4script.IDeclaration;
+import net.arctics.clonk.parser.c4script.IEntityLocatedInIndex;
 import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.parser.c4script.ScriptBase;
 import net.arctics.clonk.parser.c4script.StandaloneProjectScript;
@@ -37,7 +37,7 @@ import org.eclipse.jface.text.IRegion;
  * @author madeen
  *
  */
-public abstract class Declaration implements Serializable, IHasRelatedResource, INode, IPostSerializable<Declaration, ClonkIndex>, IHasSubDeclarations, IDeclaration {
+public abstract class Declaration implements Serializable, IHasRelatedResource, INode, IPostSerializable<Declaration, ClonkIndex>, IHasSubDeclarations, IEntityLocatedInIndex {
 
 	public static class DeclarationLocation implements Serializable {
 

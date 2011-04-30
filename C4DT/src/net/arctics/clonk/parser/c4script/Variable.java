@@ -27,7 +27,7 @@ import net.arctics.clonk.util.Utilities;
  * @author ZokRadonh
  *
  */
-public class Variable extends Declaration implements Serializable, ITypedDeclaration, IHasUserDescription, IEvaluationContext {
+public class Variable extends Declaration implements Serializable, ITypeable, IHasUserDescription, IEvaluationContext {
 
 	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 	
@@ -250,7 +250,7 @@ public class Variable extends Declaration implements Serializable, ITypedDeclara
 	public void expectedToBeOfType(IType t, TypeExpectancyMode mode) {
 		// engine objects should not be altered
 		if (!typeLocked && !(getScript() instanceof Engine))
-			ITypedDeclaration.Default.expectedToBeOfType(this, t);
+			ITypeable.Default.expectedToBeOfType(this, t);
 	}
 	
 	public ExprElm getInitializationExpression() {

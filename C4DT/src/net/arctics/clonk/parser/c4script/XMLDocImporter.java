@@ -136,7 +136,7 @@ public class XMLDocImporter {
 				result = new Variable(name, PrimitiveType.INT, null, Scope.CONST);
 			}
 			result.setName(name);
-			((ITypedDeclaration)result).forceType(PrimitiveType.makeType(rTypeNode.getTextContent()));
+			((ITypeable)result).forceType(PrimitiveType.makeType(rTypeNode.getTextContent()));
 			if (descNode != null)
 				((IHasUserDescription)result).setUserDescription(descNode.getTextContent());
 			return result;

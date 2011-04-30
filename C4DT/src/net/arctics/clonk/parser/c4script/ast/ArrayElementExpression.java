@@ -85,7 +85,7 @@ public class ArrayElementExpression extends Value {
 			IType t = getPredecessorInSequence().getType(parser);
 			if (t instanceof ArrayType)
 				return new DeclarationRegion(
-					((ArrayType)t).getTypedDeclarationWrapperForElementWithIndex(argument.evaluateAtParseTime(parser), parser.getContainer().getIndex())
+					((ArrayType)t).getIndexedElementAsTypeable(argument.evaluateAtParseTime(parser), parser.getContainer().getIndex())
 				);
 		}
 		return super.declarationAt(offset, parser);

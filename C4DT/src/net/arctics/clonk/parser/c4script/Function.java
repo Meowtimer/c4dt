@@ -31,7 +31,7 @@ import net.arctics.clonk.util.Utilities;
  * @author ZokRadonh
  *
  */
-public class Function extends Structure implements Serializable, ITypedDeclaration, IHasUserDescription, IRegion, IEvaluationContext {
+public class Function extends Structure implements Serializable, ITypeable, IHasUserDescription, IRegion, IEvaluationContext {
 	
 	public static final String QUALIFIED_NAME_FORMAT = "%2$s (%1$s)";
 	
@@ -508,7 +508,7 @@ public class Function extends Structure implements Serializable, ITypedDeclarati
 	@Override
 	public void expectedToBeOfType(IType t, TypeExpectancyMode mode) {
 		if (mode == TypeExpectancyMode.Force) {
-			ITypedDeclaration.Default.expectedToBeOfType(this, t);
+			ITypeable.Default.expectedToBeOfType(this, t);
 		}
 	}
 
