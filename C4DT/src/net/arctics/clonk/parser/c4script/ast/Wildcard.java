@@ -104,7 +104,7 @@ public class Wildcard extends ExprElm {
 		}));
 		boolean space = false;
 		for (Pair<String, Object> a : attributes)
-			space = printAttribute(space, output, a.getFirst(), a.getSecond());
+			space = printAttribute(space, output, a.first(), a.second());
 		output.append(END);
 	}
 	

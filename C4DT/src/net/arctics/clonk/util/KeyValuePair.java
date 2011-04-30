@@ -17,12 +17,12 @@ public class KeyValuePair<First, Second> extends Pair<First, Second> implements 
 
 	@Override
 	public First getKey() {
-		return getFirst();
+		return first();
 	}
 
 	@Override
 	public Second getValue() {
-		return  getSecond();
+		return  second();
 	}
 
 	@Override

@@ -14,7 +14,7 @@ public class PairWithContext<First, Second> extends Pair<First, Second> implemen
 	}
 	
 	public PairWithContext(Pair<First, Second> pair, Object context) {
-		this (pair.getFirst(), pair.getSecond(), context);
+		this (pair.first(), pair.second(), context);
 	}
 
 	public Object context() {

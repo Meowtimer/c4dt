@@ -16,13 +16,13 @@ public class Pair<First, Second> implements Serializable {
 		this.first = first;
 		this.second = second;
 	}
-	public First getFirst() {
+	public First first() {
 		return first;
 	}
 	public void setFirst(First first) {
 		this.first = first;
 	}
-	public Second getSecond() {
+	public Second second() {
 		return second;
 	}
 	public void setSecond(Second second) {
@@ -36,7 +36,7 @@ public class Pair<First, Second> implements Serializable {
 	public boolean equals(Object other) {
 		if (other instanceof Pair<?, ?>) {
 			Pair<?, ?> otherPair = (Pair<?, ?>) other;
-			return first.equals(otherPair.getFirst()) && second.equals(otherPair.getSecond());
+			return first.equals(otherPair.first()) && second.equals(otherPair.second());
 		} else {
 			return false;
 		}

@@ -69,11 +69,11 @@ public class C4GroupExporter implements IRunnableWithProgress {
 			for (Pair<IContainer, String> toExport : packs) {
 				String packPath;
 				boolean alwaysAskForPath = true;
-				if (alwaysAskForPath || !(toExport.getFirst().getParent() instanceof IProject)) {
+				if (alwaysAskForPath || !(toExport.first().getParent() instanceof IProject)) {
 					if (fileDialog == null)
 						fileDialog = new FileDialog(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(), SWT.SAVE);
-					fileDialog.setFileName(toExport.getFirst().getName());
-					fileDialog.setText(String.format(Messages.WhereToSave, toExport.getFirst().getName()));
+					fileDialog.setFileName(toExport.first().getName());
+					fileDialog.setText(String.format(Messages.WhereToSave, toExport.first().getName()));
 					fileDialog.setFilterPath(destinationPath);
 					packPath = fileDialog.open();
 					if (packPath == null) {
@@ -81,7 +81,7 @@ public class C4GroupExporter implements IRunnableWithProgress {
 					}
 				}
 				else {
-					packPath = new Path(destinationPath).append(toExport.getFirst().getName()).toOSString();
+					packPath = new Path(destinationPath).append(toExport.first().getName()).toOSString();
 				}
 				toExport.setSecond(packPath);
 			}
@@ -98,8 +98,8 @@ public class C4GroupExporter implements IRunnableWithProgress {
 			final String c4groupPath = byEngine.getKey().getCurrentSettings().c4GroupPath;
 			for(final Pair<IContainer, String> toExport : byEngine.getValue()) {
 				if (monitor != null)
-					monitor.subTask(toExport.getFirst().getName());
-				final String packPath = toExport.getSecond();
+					monitor.subTask(toExport.first().getName());
+				final String packPath = toExport.second();
 				final File oldFile = new File(packPath);
 				// ugh, deleting files is ugly but there seems to be no java method for putting files to trash -.-
 				if (oldFile.exists())
@@ -109,7 +109,7 @@ public class C4GroupExporter implements IRunnableWithProgress {
 					protected IStatus run(IProgressMonitor monitor) {
 						try {
 							// copy directory to destination and pack it in-place
-							FileOperations.copyDirectory(new File(toExport.getFirst().getRawLocation().toOSString()), oldFile);
+							FileOperations.copyDirectory(new File(toExport.first().getRawLocation().toOSString()), oldFile);
 							
 							// create c4group command line
 							String[] cmdArray = new String[] { c4groupPath, packPath, "-p" }; //$NON-NLS-1$

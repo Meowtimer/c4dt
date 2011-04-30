@@ -371,8 +371,8 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 
 	private void handleDefinitionRenaming() {
 		for (Pair<Definition, ID> rnd : renamedDefinitions) {
-			final Definition def = rnd.getFirst();
-			final ID newID = rnd.getSecond();
+			final Definition def = rnd.first();
+			final ID newID = rnd.second();
 			Display.getDefault().asyncExec(new Runnable() {
 				@Override
 				public void run() {
