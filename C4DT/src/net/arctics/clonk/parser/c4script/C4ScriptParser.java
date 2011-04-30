@@ -1635,7 +1635,8 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		String problem = code.getErrorString(args);
 		if (!misplacedErrorOrNoFileToAttachMarkerTo) {
 			result = code.createMarker(scriptFile, getContainer(), ClonkCore.MARKER_C4SCRIPT_ERROR, markerStart, markerEnd, severity, currentFunctionContext.expressionReportingErrors, args);
-			ParserErrorCode.setDeclarationTag(result, getCurrentDeclaration().getNameUniqueToParent());
+			if (getCurrentDeclaration() != null)
+				ParserErrorCode.setDeclarationTag(result, getCurrentDeclaration().getNameUniqueToParent());
 			IRegion exprLocation = currentFunctionContext.expressionReportingErrors;
 			if (exprLocation != null) {
 				ParserErrorCode.setExpressionLocation(result, exprLocation);
