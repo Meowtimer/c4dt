@@ -17,7 +17,6 @@ import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
-import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.Region;
 import org.eclipse.jface.text.contentassist.ICompletionProposal;
 
@@ -38,7 +37,6 @@ import net.arctics.clonk.parser.c4script.IHasConstraint.ConstraintKind;
 import net.arctics.clonk.parser.c4script.ast.CallFunc;
 import net.arctics.clonk.parser.c4script.ast.ExprElm;
 import net.arctics.clonk.parser.c4script.ast.StringLiteral;
-import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
 import net.arctics.clonk.parser.inireader.ActMapUnit;
 import net.arctics.clonk.parser.inireader.IniSection;
 import net.arctics.clonk.parser.inireader.IniUnit;
@@ -752,135 +750,6 @@ public class SpecialScriptRules {
 	
 	@AppliedTo(functions={"SetAction"})
 	public SpecialFuncRule setActionLinkRule = new SetActionLinkRule();
-	
-	private static class EvaluationTracer implements IEvaluationContext {
-		public ExprElm topLevelExpression;
-		public IFile tracedFile;
-		public IRegion tracedLocation;
-		public ScriptBase script;
-		public Function function;
-		public Object[] arguments;
-		public Object evaluation;
-		public EvaluationTracer(ExprElm topLevelExpression, Object[] arguments, Function function, ScriptBase script) {
-			this.topLevelExpression = topLevelExpression;
-			this.arguments = arguments;
-			this.function = function;
-			this.script = script;
-		}
-		@Override
-		public Object[] getArguments() {
-			return arguments;
-		}
-		@Override
-		public ScriptBase getScript() {
-			return script;
-		}
-		@Override
-		public int getCodeFragmentOffset() {
-			return function != null ? function.getCodeFragmentOffset() : 0;
-		}
-		@Override
-		public Object getValueForVariable(String varName) {
-			return function != null ? function.getValueForVariable(varName) : null;
-		}
-		@Override
-		public Function getFunction() {
-			return function;
-		}
-		@Override
-		public void reportOriginForExpression(ExprElm expression, IRegion location, IFile file) {
-			if (expression == topLevelExpression) {
-				tracedLocation = location;
-				tracedFile = file;
-			}
-		}
-		public static EvaluationTracer evaluate(ExprElm expression, Object[] arguments, ScriptBase script, Function function) {
-			EvaluationTracer tracer = new EvaluationTracer(expression, arguments, function, script);
-			tracer.evaluation = expression.evaluateAtParseTime(tracer);
-			return tracer;
-		}
-		public static EvaluationTracer evaluate(ExprElm expression, Function function) {
-			return evaluate(expression, null, function.getScript(), function);
-		}
-	}
-	
-	/**
-	 * Validate format strings.
-	 */
-	@AppliedTo(functions={"Log", "Message", "Format"})
-	public final SpecialFuncRule formatArgumentsValidationRule = new SpecialFuncRule() {
-		private boolean checkParm(CallFunc callFunc, final ExprElm[] arguments, final C4ScriptParser parser, int parmIndex, String formatString, int rangeStart, int rangeEnd, EvaluationTracer evTracer, IType expectedType) throws ParsingException {
-			ExprElm saved = parser.currentFunctionContext.expressionReportingErrors;
-			try {
-				if (parmIndex+1 >= arguments.length) {
-					if (evTracer.tracedFile == null)
-						return true;
-					parser.currentFunctionContext.expressionReportingErrors = arguments[0];
-					if (evTracer.tracedFile.equals(parser.getContainer().getScriptFile())) {
-						parser.errorWithCode(ParserErrorCode.MissingFormatArg, evTracer.tracedLocation.getOffset()+rangeStart, evTracer.tracedLocation.getOffset()+rangeEnd, C4ScriptParser.NO_THROW|C4ScriptParser.ABSOLUTE_MARKER_LOCATION,
-								formatString, evTracer.evaluation, evTracer.tracedFile.getProjectRelativePath().toOSString());
-						return !arguments[0].containsOffset(evTracer.tracedLocation.getOffset());
-					} else {
-						parser.errorWithCode(ParserErrorCode.MissingFormatArg, arguments[0], C4ScriptParser.NO_THROW,
-								formatString, evTracer.evaluation, evTracer.tracedFile.getProjectRelativePath().toOSString());
-					}
-				}
-				else if (!expectedType.canBeAssignedFrom(arguments[parmIndex+1].getType(parser))) {
-					if (evTracer.tracedFile == null)
-						return true;
-					parser.currentFunctionContext.expressionReportingErrors = arguments[parmIndex+1];
-					parser.errorWithCode(ParserErrorCode.IncompatibleFormatArgType, arguments[parmIndex+1],
-						C4ScriptParser.NO_THROW, expectedType.typeName(false), arguments[parmIndex+1].getType(parser).typeName(false), evTracer.evaluation, evTracer.tracedFile.getProjectRelativePath().toOSString());
-				}
-			} finally {
-				parser.currentFunctionContext.expressionReportingErrors = saved;
-			}
-			return false;
-		}
-		@Override
-		public boolean validateArguments(CallFunc callFunc, ExprElm[] arguments, C4ScriptParser parser) throws ParsingException {
-			EvaluationTracer evTracer;
-			int parmIndex = 0;
-			if (arguments.length >= 1 && (evTracer = EvaluationTracer.evaluate(arguments[0], parser.getCurrentFunc())).evaluation instanceof String) {
-				final String formatString = (String)evTracer.evaluation;
-				boolean separateIssuesMarker = false;
-				for (int i = 0; i < formatString.length(); i++) {
-					if (formatString.charAt(i) == '%') {
-						int j;
-						for (j = i+1; j < formatString.length() && (formatString.charAt(j) == '.' || (formatString.charAt(j) >= '0' && formatString.charAt(j) <= '9')); j++);
-						if (j >= formatString.length())
-							break;
-						String format = formatString.substring(i, j+1);
-						IType requiredType = null;
-						switch (formatString.charAt(j)) {
-						case 'd': case 'x': case 'X': case 'c':
-							requiredType = PrimitiveType.INT;
-							break;
-						case 'i':
-							requiredType = PrimitiveType.ID;
-							break;
-						case 'v':
-							requiredType = PrimitiveType.ANY;
-							break;
-						case 's':
-							requiredType = PrimitiveType.STRING;
-							break;
-						case '%':
-							break;
-						}
-						if (requiredType != null) {
-							separateIssuesMarker |= checkParm(callFunc, arguments, parser, parmIndex, format, i+1, j+2, evTracer, requiredType); 
-						}
-						i = j;
-						parmIndex++;
-					}
-				}
-				if (separateIssuesMarker)
-					parser.errorWithCode(ParserErrorCode.DragonsHere, arguments[0], C4ScriptParser.NO_THROW);
-			}
-			return false; // let others validate as well
-		};
-	};
 	
 	/**
 	 * Rule to make function names inside Find_Func link-clickable (will open DeclarationChooser).
