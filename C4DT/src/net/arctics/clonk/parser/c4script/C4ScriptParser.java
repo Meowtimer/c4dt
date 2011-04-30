@@ -537,7 +537,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 						if (!reachedEOF()) {
 							int start = this.offset;
 							String tokenText = parseTokenAndReturnAsString();
-							errorWithCode(ParserErrorCode.UnexpectedToken, start, this.offset, true, tokenText);
+							errorWithCode(ParserErrorCode.UnexpectedToken, start, this.offset, NO_THROW, tokenText);
 						}
 					}
 					eatWhitespace();
@@ -878,13 +878,13 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 					this.seek(pos);
 				}
 				if (currentFunc != null) {
-					errorWithCode(ParserErrorCode.StaticInsideFunction, scopeSpecifierStart, this.offset, true, scope.toKeyword());
+					errorWithCode(ParserErrorCode.StaticInsideFunction, scopeSpecifierStart, this.offset, NO_THROW, scope.toKeyword());
 					scope = Scope.VAR;
 				}
 				break;
 			case VAR:
 				if (currentFunc == null) {
-					errorWithCode(ParserErrorCode.VarOutsideFunction, offset-scope.toKeyword().length(), offset, true, scope.toKeyword(), Keywords.GlobalNamed, Keywords.LocalNamed);
+					errorWithCode(ParserErrorCode.VarOutsideFunction, offset-scope.toKeyword().length(), offset, NO_THROW, scope.toKeyword(), Keywords.GlobalNamed, Keywords.LocalNamed);
 					scope = Scope.LOCAL;
 				}
 			}
@@ -1329,7 +1329,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 			currentFunctionContext.parsedNumber = Long.parseLong(numberString);
 		} catch (NumberFormatException e) {
 			currentFunctionContext.parsedNumber = Integer.MAX_VALUE;
-			errorWithCode(ParserErrorCode.NotANumber, offset, offset+count, true, numberString);
+			errorWithCode(ParserErrorCode.NotANumber, offset, offset+count, NO_THROW, numberString);
 		}
 		this.seek(offset+count);
 		return true;
@@ -3081,7 +3081,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		Variable var = new Variable(null, Scope.VAR);
 		IType type = PrimitiveType.makeType(firstWord);
 		if (type == PrimitiveType.REFERENCE && !container.getEngine().getCurrentSettings().supportsRefs) {
-			errorWithCode(ParserErrorCode.EngineDoesNotSupportRefs, s, e, true, container.getEngine().getName());
+			errorWithCode(ParserErrorCode.EngineDoesNotSupportRefs, s, e, NO_THROW, container.getEngine().getName());
 		}
 		boolean typeLocked = type != PrimitiveType.UNKNOWN && !isEngine;
 		var.forceType(type, typeLocked);
