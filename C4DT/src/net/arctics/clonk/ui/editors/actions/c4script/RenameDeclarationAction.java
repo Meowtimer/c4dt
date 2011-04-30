@@ -3,20 +3,14 @@ package net.arctics.clonk.ui.editors.actions.c4script;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ResourceBundle;
 
-import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.refactoring.RenameDeclarationProcessor;
 import net.arctics.clonk.ui.editors.EditorUtil;
 import net.arctics.clonk.ui.editors.IClonkCommandIds;
 import net.arctics.clonk.ui.refactoring.ClonkRenameRefactoringWizard;
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.IStatus;
-import org.eclipse.core.runtime.Status;
-import org.eclipse.jface.dialogs.ErrorDialog;
 import org.eclipse.jface.dialogs.ProgressMonitorDialog;
 import org.eclipse.jface.operation.IRunnableWithProgress;
-import org.eclipse.ltk.core.refactoring.RefactoringStatus;
-import org.eclipse.ltk.core.refactoring.RefactoringStatusEntry;
 import org.eclipse.ltk.core.refactoring.participants.RenameRefactoring;
 import org.eclipse.ltk.ui.refactoring.RefactoringWizardOpenOperation;
 import org.eclipse.ui.IEditorPart;
@@ -31,17 +25,6 @@ public class RenameDeclarationAction extends OpenDeclarationAction {
 		this.setActionDefinitionId(IClonkCommandIds.RENAME_DECLARATION);
 	}
 	
-	private boolean displayRefactoringError(RefactoringStatus status) {
-		if (status == null)
-			return false;
-		RefactoringStatusEntry entry = status.getEntryWithHighestSeverity();
-		if (entry != null && entry.getSeverity() == RefactoringStatus.FATAL) {
-			ErrorDialog.openError(null, Messages.RenameDeclarationAction_Failed, Messages.RenameDeclarationAction_RenamingFailed, new Status(IStatus.ERROR, ClonkCore.PLUGIN_ID, entry.getMessage()));
-			return true;
-		}
-		return false;
-	}
-
 	@Override
 	public void run() {
 		try {
