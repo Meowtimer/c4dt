@@ -71,7 +71,18 @@ public class ArrayType implements IType {
 
 	@Override
 	public boolean canBeAssignedFrom(IType other) {
-		return other == PrimitiveType.ARRAY;
+		if (other == PrimitiveType.ARRAY)
+			return true;
+		else if (other instanceof ArrayType) {
+			ArrayType otherArrayType = (ArrayType) other;
+			for (Map.Entry<Integer, IType> elmType : elementTypeMapping.entrySet()) {
+				IType otherElmType = otherArrayType.getElementTypeMapping().get(elmType.getKey());
+				if (otherElmType != null && !elmType.getValue().canBeAssignedFrom(otherElmType))
+					return false;
+			}
+			return true;
+		} else
+			return false;
 	}
 
 	/**
