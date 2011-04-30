@@ -73,7 +73,8 @@ public enum ParserErrorCode {
 	MemberOperatorWithTildeNoSpace(Messages.MemberOperatorWithTildeNoSpace),
 	MissingFormatArg(Messages.MissingFormatArg),
 	IncompatibleFormatArgType(Messages.IncompatibleFormatArgType),
-	DragonsHere(Messages.DragonsHere);
+	DragonsHere(Messages.DragonsHere),
+	TypingJudgment("Typing judgment for '%s': %s");
 
 	public static final String MARKER_ERRORCODE = "c4ScriptErrorCode"; //$NON-NLS-1$
 	public static final String MARKER_EXPRESSIONSTART = "c4ScriptErrorExpressionStart"; //$NON-NLS-1$

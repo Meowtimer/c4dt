@@ -291,6 +291,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	public void storeTypeInformation(ExprElm expression, IType type) {
 		IStoredTypeInformation requested = requestStoredTypeInformation(expression);
 		if (requested != null) {
+			//warningWithCode(ParserErrorCode.TypingJudgment, expression, expression.toString(), type.typeName(true));
 			requested.storeType(type);
 		}
 	}
