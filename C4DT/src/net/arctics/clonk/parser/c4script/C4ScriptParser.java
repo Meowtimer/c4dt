@@ -2174,7 +2174,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		return result;
 	}
 	
-	protected FunctionContext currentFunctionContext = new FunctionContext();
+	private FunctionContext currentFunctionContext = new FunctionContext();
 
 	/**
 	 * The expression that is currently reporting errors.
@@ -3557,6 +3557,10 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	@Override
 	public void reportOriginForExpression(ExprElm expression, IRegion location, IFile file) {
 		// yes
+	}
+
+	public FunctionContext currentFunctionContext() {
+		return currentFunctionContext;
 	}
 	
 }

@@ -443,6 +443,10 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 				for (ScriptBase script : tempParserMap.keySet()) {
 					performBuildPhaseOne(script);
 				}
+				// refresh now so gathered structures will be validated with an index that has valid appendages maps and such.
+				// without refreshing the index here, error markers would be created for TimerCall=... etc. assignments in ActMaps for example
+				// if the function being referenced is defined in an appendto from this index
+				index.refreshIndex();
 				mapFromLastIteration.putAll(tempParserMap);
 				tempParserMap.clear();
 				queueDependentScripts(mapFromLastIteration, tempParserMap);
@@ -455,7 +459,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 			}
 
 			// refresh global func and static var cache
-			index.refreshIndex();
+			//index.refreshIndex();
 			
 			// parse function code
 			currentSubProgressMonitor = new SubProgressMonitor(monitor, parserMap.size());
@@ -501,6 +505,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 				}
 			}
 		}
+		gatheredStructures.clear();
 	}
 
 	private void applyLatentMarkers() {

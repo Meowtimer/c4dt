@@ -152,13 +152,16 @@ public abstract class Definition extends ScriptBase {
 	}
 
 	@Override
-	protected void gatherIncludes(List<ScriptBase> list, ClonkIndex index) {
+	protected void gatherIncludes(final List<ScriptBase> list, ClonkIndex index) {
 		super.gatherIncludes(list, index);
-		if (index != null) {
-			List<ScriptBase> appendages = index.appendagesOf(this);
-			if (appendages != null)
-				list.addAll(appendages);
-		}
+		if (index != null) index.forAllRelevantIndexes(new ClonkIndex.r() {
+			@Override
+			public void run(ClonkIndex index) {
+				List<ScriptBase> appendages = index.appendagesOf(Definition.this);
+				if (appendages != null)
+					list.addAll(appendages);
+			}
+		});
 	}
 
 	@Override
