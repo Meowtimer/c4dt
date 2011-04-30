@@ -64,28 +64,6 @@ public class RenameDeclarationProcessor extends RenameProcessor {
 	}
 
 	@Override
-	public RefactoringStatus checkInitialConditions(IProgressMonitor monitor) throws CoreException, OperationCanceledException {
-		// renaming fields that originate from outside the project is not allowed
-		Declaration baseDecl = decl instanceof Function ? ((Function)decl).baseFunction() : decl;
-		if (!(baseDecl.getIndex() instanceof ProjectIndex)) {
-			return RefactoringStatus.createFatalErrorStatus(String.format(Messages.OutsideProject, decl.getName()));
-		}
-		
-		Declaration existingDec;
-		FindDeclarationInfo info = new FindDeclarationInfo(decl.getIndex());
-		info.setDeclarationClass(decl.getClass());
-		Structure parentStructure = decl.getParentDeclarationOfType(Structure.class);
-		/*if (parentStructure != null) {
-			existingDec = parentStructure.findLocalDeclaration(newName, decl.getClass());
-			if (existingDec != null) {
-				return RefactoringStatus.createFatalErrorStatus(String.format(Messages.DuplicateItem, newName, decl.getScript().toString()));
-			}
-		}*/
-		
-		return new RefactoringStatus();
-	}
-
-	@Override
 	public Change createChange(IProgressMonitor monitor) throws CoreException, OperationCanceledException {
 		Object script = decl.getScript().getScriptStorage();
 		if (!(script instanceof IResource))
@@ -164,9 +142,31 @@ public class RenameDeclarationProcessor extends RenameProcessor {
 	}
 
 	@Override
+	public RefactoringStatus checkInitialConditions(IProgressMonitor pm) throws CoreException, OperationCanceledException {
+		return new RefactoringStatus();
+	}
+	
+	@Override
 	public RefactoringStatus checkFinalConditions(IProgressMonitor monitor,
 			CheckConditionsContext context) throws CoreException,
 			OperationCanceledException {
+		// renaming fields that originate from outside the project is not allowed
+		Declaration baseDecl = decl instanceof Function ? ((Function)decl).baseFunction() : decl;
+		if (!(baseDecl.getIndex() instanceof ProjectIndex)) {
+			return RefactoringStatus.createFatalErrorStatus(String.format(Messages.OutsideProject, decl.getName()));
+		}
+		
+		Declaration existingDec;
+		FindDeclarationInfo info = new FindDeclarationInfo(decl.getIndex());
+		info.setDeclarationClass(decl.getClass());
+		Structure parentStructure = decl.getParentDeclarationOfType(Structure.class);
+		if (parentStructure != null) {
+			existingDec = parentStructure.findLocalDeclaration(newName, decl.getClass());
+			if (existingDec != null) {
+				return RefactoringStatus.createFatalErrorStatus(String.format(Messages.DuplicateItem, newName, decl.getScript().toString()));
+			}
+		}
+		
 		return new RefactoringStatus();
 	}
 
