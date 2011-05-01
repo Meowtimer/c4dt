@@ -13,6 +13,8 @@ import net.arctics.clonk.parser.c4script.SpecialScriptRules;
 import net.arctics.clonk.parser.c4script.SpecialScriptRules.SpecialFuncRule;
 import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
 import net.arctics.clonk.parser.stringtbl.StringTbl;
+import net.arctics.clonk.util.StringUtil;
+
 import org.eclipse.core.resources.IFile;
 
 public final class StringLiteral extends Literal<String> {
@@ -67,7 +69,7 @@ public final class StringLiteral extends Literal<String> {
 	
 	@Override
 	public String evaluateAtParseTime(IEvaluationContext context) {
-		StringTbl.EvaluationResult r = StringTbl.evaluateEntries(context.getScript(), getLiteral(), false);
+		StringTbl.EvaluationResult r = StringTbl.evaluateEntries(context.getScript(), StringUtil.evaluateEscapes(getLiteral()), false);
 		// getting over-the-top: trace back to entry in StringTbl file to which the literal needs to be completely evaluated to 
 		if (r.singleDeclarationRegionUsed != null && getLiteral().matches("\\$.*?\\$"))
 			context.reportOriginForExpression(this, r.singleDeclarationRegionUsed.getRegion(), (IFile) r.singleDeclarationRegionUsed.getConcreteDeclaration().getResource());
