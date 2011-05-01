@@ -116,9 +116,8 @@ public class TypeSet implements IType {
 			}
 		}
 		if (set.size() > 1)
-			set.remove(PrimitiveType.ANY); // pfft, ignore any if something more specific is in the house
-		if (set.size() > 1)
-			set.remove(PrimitiveType.UNKNOWN);
+			if (set.remove(PrimitiveType.UNKNOWN))
+				set.add(PrimitiveType.ANY);
 		if (containsNonStatics)
 			return set.size() == 1 ? set.iterator().next() : new TypeSet(set);
 		return createInternal(set, actualCount, ingredients);
@@ -150,6 +149,8 @@ public class TypeSet implements IType {
 
 	@Override
 	public boolean canBeAssignedFrom(IType other) {
+		if (other == PrimitiveType.ANY || other == PrimitiveType.UNKNOWN)
+			return true;
 		if (equals(other))
 			return true;
 		for (IType t : this) {
@@ -162,10 +163,16 @@ public class TypeSet implements IType {
 	@Override
 	public String typeName(boolean special) {
 		Set<String> typeNames = new HashSet<String>();
+		boolean containsAny = false;
 		for (IType t : this) {
-			typeNames.add(t.typeName(special));
+			if (t == PrimitiveType.ANY)
+				containsAny = true;
+			else
+				typeNames.add(t.typeName(special));
 		}
 		
+		if (typeNames.size() == 1 && containsAny)
+			return typeNames.iterator().next() + "?";
 		StringBuilder builder = new StringBuilder(20);
 		builder.append(Messages.C4TypeSet_Start);
 		boolean started = true;
@@ -177,6 +184,8 @@ public class TypeSet implements IType {
 			builder.append(tn);
 		}
 		builder.append(Messages.C4TypeSet_End);
+		if (containsAny)
+			builder.append('?');
 		return builder.toString();
 	}
 	
