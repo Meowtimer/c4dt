@@ -86,7 +86,7 @@ public class MemberOperator extends ExprElm {
 	protected IType obtainType(DeclarationObtainmentContext context) {
 		// explicit id
 		if (id != null) {
-			return context.getContainer().getNearestObjectWithId(id);
+			return context.getContainer().nearestDefinitionWithId(id);
 		}
 		// stuff before -> decides
 		return getPredecessorInSequence() != null ? getPredecessorInSequence().getType(context) : super.obtainType(context);
@@ -95,7 +95,7 @@ public class MemberOperator extends ExprElm {
 	@Override
 	public DeclarationRegion declarationAt(int offset, C4ScriptParser parser) {
 		if (id != null && offset >= idOffset && offset < idOffset+4)
-			return new DeclarationRegion(parser.getContainer().getNearestObjectWithId(id), new Region(getExprStart()+idOffset, 4));
+			return new DeclarationRegion(parser.getContainer().nearestDefinitionWithId(id), new Region(getExprStart()+idOffset, 4));
 		return null;
 	}
 

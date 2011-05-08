@@ -156,7 +156,7 @@ public abstract class ScriptBase extends Structure implements ITreeNode, IHasCon
 	protected void gatherIncludes(List<ScriptBase> list, ClonkIndex index) {
 		for (Directive d : definedDirectives) {
 			if (d.getType() == DirectiveType.INCLUDE || d.getType() == DirectiveType.APPENDTO) {
-				Definition obj = getNearestObjectWithId(d.contentAsID());
+				Definition obj = nearestDefinitionWithId(d.contentAsID());
 				if (obj != null)
 					list.add(obj);
 			}
@@ -192,7 +192,7 @@ public abstract class ScriptBase extends Structure implements ITreeNode, IHasCon
 	 */
 	public Directive getIncludeDirectiveFor(Definition obj) {
 		for (Directive d : getIncludeDirectives()) {
-			if ((d.getType() == DirectiveType.INCLUDE || d.getType() == DirectiveType.APPENDTO) && getNearestObjectWithId(d.contentAsID()) == obj)
+			if ((d.getType() == DirectiveType.INCLUDE || d.getType() == DirectiveType.APPENDTO) && nearestDefinitionWithId(d.contentAsID()) == obj)
 				return d;
 		}
 		return null;
@@ -582,7 +582,7 @@ public abstract class ScriptBase extends Structure implements ITreeNode, IHasCon
 		return definedFunctions.size();
 	}
 
-	public Definition getNearestObjectWithId(ID id) {
+	public Definition nearestDefinitionWithId(ID id) {
 		ClonkIndex index = getIndex();
 		if (index != null)
 			return index.getDefinitionNearestTo(getResource(), id);

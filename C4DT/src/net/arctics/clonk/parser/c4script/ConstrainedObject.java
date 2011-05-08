@@ -48,7 +48,7 @@ public class ConstrainedObject implements IType, IHasConstraint {
 
 	@Override
 	public boolean canBeAssignedFrom(IType other) {
-		if (other == PrimitiveType.OBJECT)
+		if (other == PrimitiveType.OBJECT || other == PrimitiveType.ANY || other == PrimitiveType.UNKNOWN)
 			return true;
 		ScriptBase script = null;
 		if (other instanceof ScriptBase)

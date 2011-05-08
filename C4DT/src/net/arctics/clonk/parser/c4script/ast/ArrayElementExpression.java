@@ -23,7 +23,7 @@ public class ArrayElementExpression extends Value {
 		if (getPredecessorInSequence() != null) {
 			t = getPredecessorInSequence().getType(context);
 			if (t instanceof ArrayType)
-				return ((ArrayType)t).getTypeForElementWithIndex(argument.evaluateAtParseTime(context));
+				return ((ArrayType)t).typeForElementWithIndex(argument.evaluateAtParseTime(context));
 		}
 		return PrimitiveType.ANY;
 	}
@@ -85,7 +85,7 @@ public class ArrayElementExpression extends Value {
 			IType t = getPredecessorInSequence().getType(parser);
 			if (t instanceof ArrayType)
 				return new DeclarationRegion(
-					((ArrayType)t).getIndexedElementAsTypeable(argument.evaluateAtParseTime(parser), parser.getContainer().getIndex())
+					((ArrayType)t).indexedElementAsTypeable(argument.evaluateAtParseTime(parser), parser.getContainer().getIndex())
 				);
 		}
 		return super.declarationAt(offset, parser);

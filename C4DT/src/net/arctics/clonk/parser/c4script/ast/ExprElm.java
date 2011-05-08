@@ -508,8 +508,9 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 	}
 	
 	public void expectedToBeOfType(IType type, C4ScriptParser context, TypeExpectancyMode mode, ParserErrorCode errorWhenFailed) {
-		if (type == PrimitiveType.UNKNOWN || type == PrimitiveType.ANY)
+		/*if (type == PrimitiveType.UNKNOWN || type == PrimitiveType.ANY)
 			return; // expecting it to be of any or unknown type? come back when you can be more specific please
+			*/
 		IStoredTypeInformation info = context.requestStoredTypeInformation(this);
 		if (info != null) {
 			switch (mode) {
@@ -594,7 +595,7 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 	}
 
 	public IStoredTypeInformation createStoredTypeInformation(C4ScriptParser parser) {
-		ITypeable d = GenericStoredTypeInformation.getDeclaration(this, parser);
+		ITypeable d = GenericStoredTypeInformation.getTypeable(this, parser);
 		if (d != null && !d.typeIsInvariant()) {
 			return new GenericStoredTypeInformation(this);
 		}
@@ -818,7 +819,7 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 			}
 		}
 		
-		public static ITypeable getDeclaration(ExprElm referenceElm, C4ScriptParser parser) {
+		public static ITypeable getTypeable(ExprElm referenceElm, C4ScriptParser parser) {
 			DeclarationRegion decRegion = referenceElm.declarationAt(referenceElm.getLength()-1, parser);
 			if (decRegion != null && decRegion.getTypedDeclaration() != null)
 				return decRegion.getTypedDeclaration();
@@ -828,15 +829,15 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 		
 		@Override
 		public void apply(boolean soft, C4ScriptParser parser) {
-			ITypeable tyDec = getDeclaration(referenceElm, parser);
-			if (tyDec != null) {
+			ITypeable typeable = getTypeable(referenceElm, parser);
+			if (typeable != null) {
 				// only set types of declarations inside the current index so definition references of one project
 				// don't leak into a referenced base project (ClonkMars def referenced in ClonkRage or something)
-				ClonkIndex index = tyDec.getIndex();
+				ClonkIndex index = typeable.getIndex();
 				if (index == null)
 					return;
 				if (index == parser.getContainer().getIndex())
-					tyDec.expectedToBeOfType(type, TypeExpectancyMode.Expect);
+					typeable.expectedToBeOfType(type, TypeExpectancyMode.Expect);
 			}
 		}
 		

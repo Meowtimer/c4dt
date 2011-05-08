@@ -154,11 +154,11 @@ public class ArrayType implements IType {
 	 * @param evaluateIndexExpression Evaluated index expression. Can be anything.
 	 * @return The element type
 	 */
-	public IType getTypeForElementWithIndex(Object evaluateIndexExpression) {
-		IType t;
+	public IType typeForElementWithIndex(Object evaluateIndexExpression) {
+		IType t = null;
 		if (evaluateIndexExpression instanceof Number)
-			t = elementTypeMapping.get(((Number)evaluateIndexExpression).intValue());
-		else
+			t = elementTypeMapping.get(((Number)evaluateIndexExpression).intValue());;
+		if (t == null)
 			t = getGeneralElementType();
 		if (t == null)
 			t = PrimitiveType.ANY;
@@ -177,7 +177,7 @@ public class ArrayType implements IType {
 		}
 	}
 
-	public ITypeable getIndexedElementAsTypeable(final Object evaluatedIndexExpression, final ClonkIndex index) {
+	public ITypeable indexedElementAsTypeable(final Object evaluatedIndexExpression, final ClonkIndex index) {
 		final int concreteIndex = evaluatedIndexExpression instanceof Number ? ((Number)evaluatedIndexExpression).intValue() : -1;
 		return new ITypeable() {
 			@Override
@@ -192,7 +192,7 @@ public class ArrayType implements IType {
 
 			@Override
 			public IType getType() {
-				return getTypeForElementWithIndex(evaluatedIndexExpression);
+				return typeForElementWithIndex(evaluatedIndexExpression);
 			}
 
 			@Override

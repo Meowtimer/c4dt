@@ -9,6 +9,12 @@ import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.parser.c4script.ast.IASTComparisonDelegate.DifferenceHandling;
 import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
 
+/**
+ * A literal value in an expression (123, "hello", CLNK...)
+ * @author madeen
+ *
+ * @param <T> The type of value this literal represents
+ */
 public class Literal<T> extends Value {
 
 	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;

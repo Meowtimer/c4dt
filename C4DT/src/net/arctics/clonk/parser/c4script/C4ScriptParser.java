@@ -675,6 +675,8 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		else
 			parsedFunctions.add(function);
 		
+		function.forceType(PrimitiveType.UNKNOWN);
+		
 		if (specialScriptRules != null) {
 			for (SpecialFuncRule eventListener : specialScriptRules.functionEventListeners()) {
 				eventListener.functionAboutToBeParsed(function, this);

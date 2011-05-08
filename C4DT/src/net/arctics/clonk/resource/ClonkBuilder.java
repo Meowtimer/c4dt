@@ -311,7 +311,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 
 	@Override
 	protected void clean(IProgressMonitor monitor) throws CoreException {
-		System.out.println(String.format("Cleaning project %s", getProject().getName()));
+		System.out.println(String.format(Messages.ClonkBuilder_CleaningProject, getProject().getName()));
 		// clean up this project
 		if (monitor != null) monitor.beginTask(Messages.CleaningUp, 1);
 		IProject proj = this.getProject();
@@ -380,8 +380,8 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 					// FIXME: implement for CR?
 					Variable var = def.proxyVar();
 					if (var != null && UI.confirm(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(),
-						String.format("%s was renamed to %s. Perform a refactoring?", oldID.getName(), newID.getName()),
-						String.format("Rename Refactoring for '%s'", oldID.getName()))
+						String.format(Messages.ClonkBuilder_RenameRefactoringPrompt, oldID.getName(), newID.getName()),
+						String.format(Messages.ClonkBuilder_RenameRefactoringTitle, oldID.getName()))
 					)
 						// perform a refactoring - the RenameDeclarationProcessor will take care of renaming the proxyvar which in turn will cause the id of the definition to actually be changed
 						RenameDeclarationAction.performRenameRefactoring(var, newID.getName(), RenameDeclarationProcessor.CONSIDER_DEFCORE_ID_ALREADY_CHANGED);
@@ -433,7 +433,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 			
 			// parse declarations
 			currentSubProgressMonitor = new SubProgressMonitor(monitor, parserMap.size());
-			currentSubProgressMonitor.beginTask("Parse declarations", parserMap.size());
+			currentSubProgressMonitor.beginTask(Messages.ClonkBuilder_ParseDeclarationsTask, parserMap.size());
 			int parserMapSize;
 			Map<ScriptBase, C4ScriptParser> tempParserMap = new HashMap<ScriptBase, C4ScriptParser>();
 			Map<ScriptBase, C4ScriptParser> mapFromLastIteration = new HashMap<ScriptBase, C4ScriptParser>();
@@ -463,7 +463,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 			
 			// parse function code
 			currentSubProgressMonitor = new SubProgressMonitor(monitor, parserMap.size());
-			currentSubProgressMonitor.beginTask("Parse code", parserMap.size());
+			currentSubProgressMonitor.beginTask(Messages.ClonkBuilder_ParseCodeTask, parserMap.size());
 			while (!parserMap.isEmpty()) {
 				performBuildPhaseTwo(parserMap.keySet().iterator().next());
 			}
