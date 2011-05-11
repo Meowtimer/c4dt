@@ -1,9 +1,13 @@
 package net.arctics.clonk.parser.c4script.ast;
 
+import java.util.LinkedList;
+import java.util.List;
+
 import org.eclipse.core.resources.IFile;
 import org.eclipse.jface.text.IRegion;
 
 import net.arctics.clonk.ClonkCore;
+import net.arctics.clonk.index.ClonkIndex;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.ProjectDefinition;
 import net.arctics.clonk.parser.Declaration;
@@ -16,6 +20,7 @@ import net.arctics.clonk.parser.c4script.ITypeable;
 import net.arctics.clonk.parser.c4script.ScriptBase;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.PrimitiveType;
+import net.arctics.clonk.parser.c4script.TypeSet;
 import net.arctics.clonk.parser.c4script.Variable;
 import net.arctics.clonk.parser.c4script.FindDeclarationInfo;
 import net.arctics.clonk.parser.c4script.IType;
@@ -141,14 +146,26 @@ public class AccessVar extends AccessDeclaration {
 	protected IType obtainType(DeclarationObtainmentContext context) {
 		Declaration d = getDeclaration(context);
 		// getDeclaration(context) ensures that declaration is not null (if there is actually a variable) which is needed for queryTypeOfExpression for example
-		if (d == Variable.THIS) {
+		if (d == Variable.THIS)
 			return new ConstrainedObject(context.getContainer(), ConstraintKind.CallerType);
-		}
 		IType stored = context.queryTypeOfExpression(this, null);
 		if (stored != null)
 			return stored;
 		if (d instanceof ITypeable)
 			return ((ITypeable)d).getType();
+		if (context instanceof C4ScriptParser && getPredecessorInSequence() != null) {
+			final List<IType> typesWithThatVariable = new LinkedList<IType>();
+			context.getContainer().getIndex().forAllRelevantIndexes(new ClonkIndex.r() {
+				@Override
+				public void run(ClonkIndex index) {
+					for (Variable v : index.declarationsWithName(declarationName, Variable.class))
+						if (v.getParentDeclaration() instanceof IType)
+							typesWithThatVariable.add((IType) v.getParentDeclaration());
+				}
+			});
+			if (typesWithThatVariable.size() > 0)
+				getPredecessorInSequence().expectedToBeOfType(TypeSet.create(typesWithThatVariable), (C4ScriptParser) context, TypeExpectancyMode.Expect);
+		}
 		return PrimitiveType.UNKNOWN;
 	}
 

@@ -10,6 +10,7 @@ import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.index.ClonkIndex;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.CachedEngineFuncs;
+import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.DeclarationRegion;
 import net.arctics.clonk.parser.ParserErrorCode;
@@ -619,14 +620,30 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 		return null;
 	}
 	
+	/**
+	 * Evaluate the expression without a context. Same calling {@link #evaluate(IEvaluationContext)} with null.
+	 * @return The result of the evaluation
+	 * @throws ControlFlowException
+	 */
 	public final Object evaluate() throws ControlFlowException {
 		return evaluate(null);
 	}
 	
+	/**
+	 * Shortcut for obtaining {@link Engine#getCachedFuncs()}
+	 * @param context Context the {@link Engine} is lifted from
+	 * @return The {@link CachedEngineFuncs}
+	 */
 	public final CachedEngineFuncs getCachedFuncs(DeclarationObtainmentContext context) {
 		return context.getContainer().getIndex().getEngine().getCachedFuncs();
 	}
 	
+	/**
+	 * Increment the offset of this expression by some amount.
+	 * @param amount The amount
+	 * @param start Whether the start offset is to be incremented
+	 * @param end Whether the end offset is to be incremented
+	 */
 	protected void offsetExprRegion(int amount, boolean start, boolean end) {
 		if (start)
 			exprStart += amount;

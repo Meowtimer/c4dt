@@ -1,6 +1,7 @@
 package net.arctics.clonk.parser.c4script.ast;
 
 import net.arctics.clonk.ClonkCore;
+import net.arctics.clonk.index.Engine.EngineSettings;
 import net.arctics.clonk.parser.ID;
 import net.arctics.clonk.parser.DeclarationRegion;
 import net.arctics.clonk.parser.ParserErrorCode;
@@ -15,6 +16,13 @@ import net.arctics.clonk.util.Utilities;
 
 import org.eclipse.jface.text.Region;
 
+/**
+ * Either '->' or '.' operator. As a middelman, this operator delegates some of its operations to its predecssor, like
+ * type expectations ({@link #expectedToBeOfType(IType, C4ScriptParser, TypeExpectancyMode, ParserErrorCode)}) or obtainment of its own type ({@link #obtainType(DeclarationObtainmentContext)}).<br/>
+ * Different typing assumptions are made based on the notation.
+ * @author madeen
+ *
+ */
 public class MemberOperator extends ExprElm {
 
 	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
@@ -30,6 +38,11 @@ public class MemberOperator extends ExprElm {
 			idOffset += amount;
 	}
 	
+	/**
+	 * Helper method to test whether some arbitrary expression ends with a MemberOperator in dot notation.
+	 * @param expression The {@link ExprElm} to test
+	 * @return True if the expression represents something like (CreateObject(Clonk)->GetContainer().), false if not.
+	 */
 	public static boolean endsWithDot(ExprElm expression) {
 		return
 			expression instanceof Sequence &&
@@ -37,6 +50,13 @@ public class MemberOperator extends ExprElm {
 			((MemberOperator)((Sequence)expression).getLastElement()).dotNotation;
 	}
 
+	/**
+	 * Construct a new MemberOperator.
+	 * @param dotNotation If true, the operator represents a '.', otherwise '->'
+	 * @param hasTilde Whether '->' is followed by '~'
+	 * @param id {@link ID} specified after '->'. Can be null.
+	 * @param idOffset Relative offset of id, used for correct hyperlink detection (see {@link #declarationAt(int, C4ScriptParser)})
+	 */
 	public MemberOperator(boolean dotNotation, boolean hasTilde, ID id, int idOffset) {
 		super();
 		this.dotNotation = dotNotation;
@@ -63,14 +83,25 @@ public class MemberOperator extends ExprElm {
 		}
 	}
 
+	/**
+	 * Get the optionally specified id (->CLNK::) 
+	 * @return The {@link ID} or null
+	 */
 	public ID getId() {
 		return id;
 	}
 
+	/**
+	 * Set the optionally specified id.
+	 * @param id The {@link ID} to set
+	 */
 	public void setId(ID id) {
 		this.id = id;
 	}
 
+	/**
+	 * MemberOperators are never valid when not preceded by another {@link ExprElm}
+	 */
 	@Override
 	public boolean isValidInSequence(ExprElm predecessor, C4ScriptParser context) {
 		if (predecessor != null) {
@@ -82,6 +113,10 @@ public class MemberOperator extends ExprElm {
 		return false;
 	}
 
+	/**
+	 * MemberOperator delegates this call to {@link #getPredecessorInSequence()}, if there is one.
+	 * @see net.arctics.clonk.parser.c4script.ast.ExprElm#obtainType(DeclarationObtainmentContext)
+	 */
 	@Override
 	protected IType obtainType(DeclarationObtainmentContext context) {
 		// explicit id
@@ -91,6 +126,17 @@ public class MemberOperator extends ExprElm {
 		// stuff before -> decides
 		return getPredecessorInSequence() != null ? getPredecessorInSequence().getType(context) : super.obtainType(context);
 	}
+	
+	/**
+	 * MemberOperator delegates this call to {@link #getPredecessorInSequence()}, if there is one.
+	 * @see net.arctics.clonk.parser.c4script.ast.ExprElm#expectedToBeOfType(net.arctics.clonk.parser.c4script.IType, net.arctics.clonk.parser.c4script.C4ScriptParser, net.arctics.clonk.parser.c4script.ast.TypeExpectancyMode, net.arctics.clonk.parser.ParserErrorCode)
+	 */
+	@Override
+	public void expectedToBeOfType(IType type, C4ScriptParser context, TypeExpectancyMode mode, ParserErrorCode errorWhenFailed) {
+		// delegate to predecessor
+		if (getPredecessorInSequence() != null)
+			getPredecessorInSequence().expectedToBeOfType(type, context);
+	}
 
 	@Override
 	public DeclarationRegion declarationAt(int offset, C4ScriptParser parser) {
@@ -99,6 +145,11 @@ public class MemberOperator extends ExprElm {
 		return null;
 	}
 
+	/**
+	 * Based on whether this MemberOperator uses dot notation or not, the preceding {@link ExprElm} will either be expected to be of type {@link PrimitiveType#PROPLIST} or
+	 * {@link TypeSet#OBJECT_OR_ID}.<br/>
+	 * Additionally, a warning is emitted if space between the actual operator and ~ is left and this is not allowed ({@link EngineSettings#spaceAllowedBetweenArrowAndTilde})
+	 */
 	@Override
 	public void reportErrors(C4ScriptParser parser) throws ParsingException {
 		super.reportErrors(parser);
