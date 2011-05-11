@@ -35,7 +35,8 @@ public class DeclarationChooser extends FilteredItemsSelectionDialog {
 				DeclarationLocation decLocation = (DeclarationLocation) element;
 				StyledString result = ClonkOutlineProvider.getStyledTextForEveryone(decLocation.getDeclaration());
 				result.append(" - ", StyledString.QUALIFIER_STYLER); //$NON-NLS-1$
-				result.append(decLocation.getResource().getProjectRelativePath().toOSString(), StyledString.QUALIFIER_STYLER);
+				if (decLocation.getResource() != null)
+					result.append(decLocation.getResource().getProjectRelativePath().toOSString(), StyledString.QUALIFIER_STYLER);
 				return result;
 			} else
 				return new StyledString("");
