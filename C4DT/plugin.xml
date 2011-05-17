@@ -152,9 +152,7 @@
 			
 			<commonWizard type="new" wizardId="net.arctics.clonk.wizards.NewClonkProject">
 				<enablement>
-					<adapt type="org.eclipse.core.resources.IResource">
-						<test property="org.eclipse.core.resources.projectNature" value="net.arctics.clonk.clonknature"/>
-					</adapt>
+					<adapt type="org.eclipse.core.resources.IResource" />
 				</enablement>
 			</commonWizard>
 			
