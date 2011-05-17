@@ -45,6 +45,9 @@ public enum PrimitiveType implements IType {
 		return lowercaseName;
 	}
 
+	/**
+	 * Map to map type names from Clonk engine source to primitive types.
+	 */
 	public static final Map<String, PrimitiveType> CPP_TO_C4SCRIPT_MAP = ArrayUtil.map(
 		"C4Value", PrimitiveType.ANY,
 		"C4Void", PrimitiveType.ANY,
@@ -57,11 +60,20 @@ public enum PrimitiveType implements IType {
 		"C4String", PrimitiveType.STRING,
 		"C4Void", PrimitiveType.UNKNOWN
 	);
+	
+	/**
+	 * Map to map primitive types to type names from Clonk engine source.
+	 */
 	public static final Map<PrimitiveType, String> C4SCRIPT_TO_CPP_MAP = ArrayUtil.reverseMap(CPP_TO_C4SCRIPT_MAP, new HashMap<PrimitiveType, String>());
 	
 	private static final Pattern nillablePattern = Pattern.compile("Nillable\\<(.*?)\\>");
 	private static final Pattern pointerTypePattern = Pattern.compile("(.*?)\\s*?\\*");
 	
+	/**
+	 * Return a primitive type from a C++ type string
+	 * @param type The C++ type string to interpret
+	 * @return The primitive type or {@link #UNKNOWN} if no 
+	 */
 	public static PrimitiveType typeFromCPPType(String type) {
 		Matcher m;
 		PrimitiveType ty = PrimitiveType.CPP_TO_C4SCRIPT_MAP.get(type);
