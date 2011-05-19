@@ -29,6 +29,7 @@ import net.arctics.clonk.parser.inireader.IniField;
 import net.arctics.clonk.ui.editors.ClonkTextEditor;
 import net.arctics.clonk.util.SettingsBase;
 import net.arctics.clonk.util.StreamUtil;
+import net.arctics.clonk.util.StringUtil;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IProjectNature;
@@ -88,15 +89,6 @@ public class ClonkProjectNature implements IProjectNature {
 			}
 			return disabledErrorsSet;
 		}
-
-		public String getEngineName() {
-			return engineName;
-		}
-		
-		public void setEngineName(String engineName) {
-			this.engineName = engineName;
-			cachedEngine = null;
-		}
 		
 		public void setDisabledErrors(String disabledErrors) {
 			this.disabledErrors = disabledErrors;
@@ -105,10 +97,21 @@ public class ClonkProjectNature implements IProjectNature {
 		
 		public void setDisabledErrorsSet(Set<ParserErrorCode> errorCodes) {
 			this.disabledErrorsSet = errorCodes;
+			if (errorCodes != null)
+				this.disabledErrors = StringUtil.writeBlock(null, "", "", ",", errorCodes);
 		}
 
 		public String getDisabledErrors() {
 			return disabledErrors;
+		}
+
+		public String getEngineName() {
+			return engineName;
+		}
+		
+		public void setEngineName(String engineName) {
+			this.engineName = engineName;
+			cachedEngine = null;
 		}
 
 		public void guessValues(ClonkProjectNature nature) {
