@@ -18,6 +18,7 @@ import net.arctics.clonk.parser.c4script.ScriptBase;
 import net.arctics.clonk.parser.c4script.StandaloneProjectScript;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.Variable;
+import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.ID;
 import net.arctics.clonk.parser.Structure;
 import net.arctics.clonk.parser.ParsingException;
@@ -541,10 +542,11 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 								if (part != null && part instanceof ClonkTextEditor) {
 									ClonkTextEditor ed = (ClonkTextEditor) part;
 									// only if building the project this element is declared in
+									Declaration topLevelDeclaration = ed.topLevelDeclaration();
 									if (
-										ed.topLevelDeclaration() != null &&
-										ed.topLevelDeclaration().getResource() != null &&
-										ClonkBuilder.this.getProject() == ed.topLevelDeclaration().getResource().getProject()
+										topLevelDeclaration != null &&
+										topLevelDeclaration.getResource() != null &&
+										ClonkBuilder.this.getProject().equals(topLevelDeclaration.getResource().getProject())
 									)
 										ed.clearOutline();
 								}
