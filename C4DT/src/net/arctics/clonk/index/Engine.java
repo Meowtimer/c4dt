@@ -109,6 +109,9 @@ public class Engine extends ScriptBase {
 		/** String of the form c4d->DefinitionGroup,... specifying what file extension denote what group type. */
 		@IniField(category="Intrinsic")
 		public String fileExtensionToGroupTypeMapping;
+		/** Whether 0 is of type any */
+		@IniField(category="Intrinsic")
+		public boolean treatZeroAsAny;
 		
 		// Settings that are actually intended to be user-configurable
 		

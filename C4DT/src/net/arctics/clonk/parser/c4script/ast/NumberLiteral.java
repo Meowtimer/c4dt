@@ -46,9 +46,10 @@ public final class NumberLiteral extends Literal<Long> {
 
 	@Override
 	protected IType obtainType(DeclarationObtainmentContext context) {
-		if (longValue() == 0)
-			return PrimitiveType.ANY; // FIXME: to prevent warnings when assigning 0 to object-variables
-		return PrimitiveType.INT;
+		if (longValue() == 0 && context.getContainer().getEngine().getCurrentSettings().treatZeroAsAny)
+			return PrimitiveType.ANY;
+		else
+			return PrimitiveType.INT;
 	}
 
 	@Override
