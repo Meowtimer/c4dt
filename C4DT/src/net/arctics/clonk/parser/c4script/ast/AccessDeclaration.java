@@ -129,7 +129,7 @@ public abstract class AccessDeclaration extends Value {
 		if (pred == null)
 			return;
 		IType t = pred.getType(context);
-		if (t == PrimitiveType.UNKNOWN || t == PrimitiveType.ANY)
+		if (!(t == PrimitiveType.UNKNOWN || t == PrimitiveType.ANY))
 			return;
 
 		if (context instanceof C4ScriptParser && pred != null) {

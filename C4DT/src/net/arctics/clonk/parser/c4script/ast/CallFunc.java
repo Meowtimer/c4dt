@@ -243,6 +243,8 @@ public class CallFunc extends AccessDeclaration {
 		return super.isValidInSequence(elm, context) || elm instanceof MemberOperator;	
 	}
 	
+	private transient boolean multiplePotentialDeclarations;
+	
 	@Override
 	public Declaration obtainDeclaration(DeclarationObtainmentContext context) {
 		super.obtainDeclaration(context);
@@ -253,7 +255,10 @@ public class CallFunc extends AccessDeclaration {
 			return activeFunc != null ? activeFunc.getInherited() : null;
 		}
 		ExprElm p = getPredecessorInSequence();
-		return findFunctionUsingPredecessor(p, declarationName, context, null);
+		List<Declaration> decs = new LinkedList<Declaration>();
+		findFunctionUsingPredecessor(p, declarationName, context, decs);
+		multiplePotentialDeclarations = decs.size() > 1;
+		return decs.size() > 0 ? decs.get(0) : null;
 	}
 
 	public static Declaration findFunctionUsingPredecessor(ExprElm p, String functionName, DeclarationObtainmentContext context, List<Declaration> listToAddPotentialDeclarationsTo) {
@@ -345,6 +350,9 @@ public class CallFunc extends AccessDeclaration {
 					context.errorWithCode(ParserErrorCode.InheritedDisabledInStrict0, this);
 				}
 			}
+			
+			if (multiplePotentialDeclarations)
+				return; // pfft, no checking
 			
 			// variable as function
 			if (declaration instanceof Variable) {
