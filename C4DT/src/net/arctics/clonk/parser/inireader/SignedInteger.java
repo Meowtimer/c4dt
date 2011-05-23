@@ -24,10 +24,13 @@ public class SignedInteger extends IniEntryValueBase implements IConvertibleToPr
 	public void setInput(String input, IniDataEntry entryData, IniUnit context) throws IniParserException {
 		try {
 			input = input != null ? input.trim() : ""; //$NON-NLS-1$
+			int inlineCommentStart = input.indexOf(';');
+			if (inlineCommentStart != -1)
+				input = input.substring(0, inlineCommentStart).trim();
 			if (input.equals("")) //$NON-NLS-1$
 				number = 0;
 			else
-				setNumber(Long.parseLong(input.trim()));
+				setNumber(Long.parseLong(input));
 		}
 		catch(NumberFormatException e) {
 			IniParserException exp = new IniParserException(IMarker.SEVERITY_ERROR, String.format(Messages.IntegerExpected, input)); //$NON-NLS-2$
