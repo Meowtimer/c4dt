@@ -7,17 +7,17 @@ import org.eclipse.core.resources.IMarker;
 
 public class SignedInteger extends IniEntryValueBase implements IConvertibleToPrimitive {
 
-	private long x;
+	protected long number;
 	
 	public SignedInteger(int i) {
-		x = i;
+		number = i;
 	}
 	
 	public SignedInteger() {
 	}
 	
 	public String getStringRepresentation() {
-		return Long.toString(x);
+		return Long.toString(number);
 	}
 
 	@Override
@@ -25,9 +25,9 @@ public class SignedInteger extends IniEntryValueBase implements IConvertibleToPr
 		try {
 			input = input != null ? input.trim() : ""; //$NON-NLS-1$
 			if (input.equals("")) //$NON-NLS-1$
-				x = 0;
+				number = 0;
 			else
-				x = Long.parseLong(input.trim());
+				setNumber(Long.parseLong(input.trim()));
 		}
 		catch(NumberFormatException e) {
 			IniParserException exp = new IniParserException(IMarker.SEVERITY_ERROR, String.format(Messages.IntegerExpected, input)); //$NON-NLS-2$
@@ -38,12 +38,20 @@ public class SignedInteger extends IniEntryValueBase implements IConvertibleToPr
 	
 	@Override
 	public String toString() {
-		return String.valueOf(x);
+		return String.valueOf(number);
 	}
 
 	@Override
 	public Object convertToPrimitive() {
-		return x;
+		return number;
+	}
+	
+	public long getNumber() {
+		return number;
+	}
+	
+	public void setNumber(long number) throws IniParserException {
+		this.number = number;
 	}
 
 }

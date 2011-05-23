@@ -22,7 +22,7 @@ public class Boolean extends UnsignedInteger {
 		}
 	}
 	public Boolean() {}
-	public Boolean(boolean value) {
+	public Boolean(boolean value) throws IniParserException {
 		setNumber(value ? 1 : 0);
 	}
 }
