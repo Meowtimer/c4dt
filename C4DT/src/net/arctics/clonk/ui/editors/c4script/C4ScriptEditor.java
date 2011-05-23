@@ -685,14 +685,13 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		public CallFunc callFunc;
 		public int parmIndex;
 		public int parmsStart, parmsEnd;
-		public FuncCallInfo(Function func, CallFunc callFunc, int parmIndex) {
+		public DeclarationLocator locator;
+		public FuncCallInfo(Function func, CallFunc callFunc, ExprElm parm, DeclarationLocator locator) {
 			this.callFunc = callFunc;
-			this.parmIndex = parmIndex;
+			this.parmIndex = parm != null ? callFunc.indexOfParm(parm) : 0;
 			this.parmsStart = func.getBody().getStart()+callFunc.getParmsStart();
 			this.parmsEnd = func.getBody().getStart()+callFunc.getParmsEnd();
-		}
-		public FuncCallInfo(Function func, CallFunc callFunc, ExprElm parm) {
-			this(func, callFunc, parm != null ? callFunc.indexOfParm(parm) : 0);
+			this.locator = locator;
 		}
 	}
 
@@ -722,11 +721,11 @@ public class C4ScriptEditor extends ClonkTextEditor {
 						break;
 					String docText = getSourceViewer().getDocument().get(bodyStart+prev.getExprEnd(), parm.getExprStart()-prev.getExprEnd());
 					int commaIndex = docText.indexOf(',');
-					return new FuncCallInfo(f, callFunc, offset >= bodyStart+prev.getExprEnd()+commaIndex ? parm : prev);
+					return new FuncCallInfo(f, callFunc, offset >= bodyStart+prev.getExprEnd()+commaIndex ? parm : prev, locator);
 				}
 				prev = parm;
 			}
-			return new FuncCallInfo(f, callFunc, prev);
+			return new FuncCallInfo(f, callFunc, prev, locator);
 		}
 		return null;
 	}

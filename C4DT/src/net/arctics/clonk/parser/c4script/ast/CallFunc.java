@@ -245,6 +245,7 @@ public class CallFunc extends AccessDeclaration {
 	
 	@Override
 	public Declaration obtainDeclaration(DeclarationObtainmentContext context) {
+		super.obtainDeclaration(context);
 		if (declarationName.equals(Keywords.Return))
 			return null;
 		if (declarationName.equals(Keywords.Inherited) || declarationName.equals(Keywords.SafeInherited)) {

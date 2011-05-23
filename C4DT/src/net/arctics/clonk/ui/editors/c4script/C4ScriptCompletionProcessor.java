@@ -565,6 +565,8 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 	        FuncCallInfo funcCallInfo = editor.getInnermostCallFuncExprParm(offset);
 	        if (funcCallInfo != null) {
 	        	Declaration dec = funcCallInfo.callFunc.getDeclaration();
+	        	if (dec == null && funcCallInfo.locator != null)
+	        		dec = funcCallInfo.locator.getDeclaration();
 	        	if (dec instanceof Function) {
 	        		String parmString = ((Function)dec).getLongParameterString(false, false).trim();
 	        		if (parmString.length() == 0)
