@@ -674,4 +674,14 @@ public class Engine extends ScriptBase {
 		return gttidm;
 	}
 
+	/**
+	 * Construct group name based on the name without extension and a {@link GroupType}
+	 * @param name The name without extension
+	 * @param groupType The group type
+	 * @return Group name with correct extension.
+	 */
+	public String groupName(String name, GroupType groupType) {
+		return name + "." + getCurrentSettings().getGroupTypeToFileExtensionMapping().get(groupType);
+	}
+
 }

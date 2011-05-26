@@ -251,7 +251,12 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 			}
 			else if (resource instanceof IFile) {
 				IFile file = (IFile) resource;
-				if (resource.getName().toLowerCase().endsWith(".c") && nature.getIndex().getEngine().getGroupTypeForFileName(resource.getParent().getName()) == GroupType.ResourceGroup) { //$NON-NLS-1$ //$NON-NLS-2$
+				// only create standalone-scripts for *.c files residing in System groups
+				String systemName = nature.getIndex().getEngine().groupName("System", GroupType.ResourceGroup);
+				if (
+					resource.getName().toLowerCase().endsWith(".c") &&
+					systemName.equals(resource.getParent().getName())
+				) {
 					ScriptBase script = StandaloneProjectScript.pinnedScript(file, true);
 					if (script == null) {
 						script = new StandaloneProjectScript(file);
