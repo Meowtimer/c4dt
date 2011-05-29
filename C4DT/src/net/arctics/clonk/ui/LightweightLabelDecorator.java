@@ -16,7 +16,6 @@ import org.eclipse.jface.viewers.DecorationContext;
 import org.eclipse.jface.viewers.IDecoration;
 import org.eclipse.jface.viewers.ILabelProviderListener;
 import org.eclipse.jface.viewers.ILightweightLabelDecorator;
-import org.eclipse.ui.PlatformUI;
 
 public class LightweightLabelDecorator implements ILightweightLabelDecorator {
 
@@ -26,15 +25,6 @@ public class LightweightLabelDecorator implements ILightweightLabelDecorator {
 		if (decoration.getDecorationContext() instanceof DecorationContext) {
 			context = ((DecorationContext)decoration.getDecorationContext());
 			context.putProperty(IDecoration.ENABLE_REPLACE, Boolean.TRUE);
-		}
-		if (PlatformUI.getWorkbench() == null) {
-			System.out.println("no workbench"); //$NON-NLS-1$
-		}
-		else if (PlatformUI.getWorkbench().getDecoratorManager() == null) {
-			System.out.println("no decmgr"); //$NON-NLS-1$
-		}
-		else if (PlatformUI.getWorkbench().getDecoratorManager().getLabelDecorator() == null) {
-			System.out.println("no labeldec"); //$NON-NLS-1$
 		}
 		if (element instanceof IResource) {
 			IResource res = (IResource) element;
