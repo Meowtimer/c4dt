@@ -598,7 +598,7 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 	public IStoredTypeInformation createStoredTypeInformation(C4ScriptParser parser) {
 		ITypeable d = GenericStoredTypeInformation.getTypeable(this, parser);
 		if (d != null && !d.typeIsInvariant()) {
-			return new GenericStoredTypeInformation(this);
+			return new GenericStoredTypeInformation(this, parser);
 		}
 		return null;
 	}
@@ -793,9 +793,12 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 	protected static final class GenericStoredTypeInformation extends StoredTypeInformation {
 		private ExprElm referenceElm;
 		
-		public GenericStoredTypeInformation(ExprElm referenceElm) {
+		public GenericStoredTypeInformation(ExprElm referenceElm, C4ScriptParser parser) {
 			super();
 			this.referenceElm = referenceElm;
+			ITypeable typeable = getTypeable(referenceElm, parser);
+			if (typeable != null)
+				this.type = typeable.getType();
 		}
 		
 		private static final IASTComparisonDelegate IDENTITY_DIFFERENCE_LISTENER = new IASTComparisonDelegate() {
