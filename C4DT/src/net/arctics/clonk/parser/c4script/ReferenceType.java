@@ -86,5 +86,8 @@ public class ReferenceType implements IType {
 			return new ReferenceType(type);
 		}
 	}
+	
+	@Override
+	public void setTypeDescription(String description) {}
 
 }

@@ -125,5 +125,8 @@ public class ConstrainedObject implements IType, IHasConstraint {
 		}
 		return false;
 	}
+	
+	@Override
+	public void setTypeDescription(String description) {}
 
 }

@@ -212,5 +212,8 @@ public class ArrayType implements IType {
 			
 		};
 	}
+	
+	@Override
+	public void setTypeDescription(String description) {}
 
 }

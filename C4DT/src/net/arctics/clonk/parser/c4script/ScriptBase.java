@@ -982,5 +982,8 @@ public abstract class ScriptBase extends Structure implements ITreeNode, IHasCon
 	public int getCodeFragmentOffset() {
 		return 0;
 	}
+	
+	@Override
+	public void setTypeDescription(String description) {}
 
 }

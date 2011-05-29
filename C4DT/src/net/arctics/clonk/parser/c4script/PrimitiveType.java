@@ -274,5 +274,8 @@ public enum PrimitiveType implements IType {
 	public IType staticType() {
 		return this;
 	}
+	
+	@Override
+	public void setTypeDescription(String description) {}
 
 }

@@ -115,5 +115,8 @@ public class ConstrainedType implements IType, IHasConstraint, Serializable {
 		}
 		return false;
 	}
+	
+	@Override
+	public void setTypeDescription(String description) {}
 
 }

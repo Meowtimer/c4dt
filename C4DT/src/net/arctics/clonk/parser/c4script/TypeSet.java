@@ -25,6 +25,25 @@ public class TypeSet implements IType {
 	
 	private Set<IType> types;
 	private boolean internalized;
+	private String description;
+	
+	/**
+	 * Get description. See {@link #setTypeDescription(String)}
+	 * @return The description.
+	 */
+	public String getTypeDescription() {
+		return description;
+	}
+	
+	/**
+	 * Description of the type set. Will be incorporated into {@link #typeName(boolean)} if set. Internalized type sets ({@link #STRING_OR_OBJECT} or similar) will ignore attempts to set a description.
+	 * @param description The description explaining how this typeset was constructed
+	 */
+	@Override
+	public void setTypeDescription(String description) {
+		if (!internalized)
+			this.description = description;
+	}
 	
 	private TypeSet(Set<IType> types) {
 		this.types = types;
@@ -162,6 +181,11 @@ public class TypeSet implements IType {
 
 	@Override
 	public String typeName(boolean special) {
+		StringBuilder builder = new StringBuilder((description != null ? description.length() : 0) + 20);
+		if (description != null) {
+			builder.append(description);
+			builder.append(": ");
+		}
 		Set<String> typeNames = new HashSet<String>();
 		boolean containsAny = false;
 		for (IType t : this) {
@@ -171,10 +195,10 @@ public class TypeSet implements IType {
 				typeNames.add(t.typeName(special));
 		}
 		
-		if (typeNames.size() == 1 && containsAny)
-			return typeNames.iterator().next() + "?";
-		StringBuilder builder = new StringBuilder(20);
-		builder.append(Messages.C4TypeSet_Start);
+		if (typeNames.size() == 1 && containsAny) {
+			builder.append(typeNames.iterator().next() + "?");
+			return builder.toString();
+		}
 		boolean started = true;
 		for (String tn : typeNames) {
 			if (started)

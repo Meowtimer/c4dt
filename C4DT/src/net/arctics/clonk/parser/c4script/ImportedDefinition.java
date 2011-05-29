@@ -126,4 +126,7 @@ public class ImportedDefinition implements Serializable, IType {
 		}
 	}
 	
+	@Override
+	public void setTypeDescription(String description) {}
+	
 }

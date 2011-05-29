@@ -141,5 +141,8 @@ public class ProplistDeclaration extends Structure implements IType {
 	public String getName() {
 		return "Proplist Expression 0009247331";
 	}
+	
+	@Override
+	public void setTypeDescription(String description) {}
 
 }
