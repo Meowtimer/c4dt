@@ -138,7 +138,7 @@ public abstract class AccessDeclaration extends Value {
 				@Override
 				public void run(ClonkIndex index) {
 					for (Declaration d : index.declarationsWithName(declarationName, Declaration.class))
-						if (AccessDeclaration.this.declarationClass().isAssignableFrom(d.getClass()) && d.getParentDeclaration() instanceof IType)
+						if (!d.isGlobal() && AccessDeclaration.this.declarationClass().isAssignableFrom(d.getClass()) && d.getParentDeclaration() instanceof IType)
 							typesWithThatMember.add((IType) d.getParentDeclaration());
 				}
 			});
