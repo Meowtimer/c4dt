@@ -319,9 +319,11 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 	protected void clean(IProgressMonitor monitor) throws CoreException {
 		System.out.println(String.format(Messages.ClonkBuilder_CleaningProject, getProject().getName()));
 		// clean up this project
-		if (monitor != null) monitor.beginTask(Messages.CleaningUp, 1);
+		if (monitor != null)
+			monitor.beginTask(Messages.CleaningUp, 1);
 		IProject proj = this.getProject();
 		if (proj != null) {
+			proj.deleteMarkers(null, true, IResource.DEPTH_INFINITE);
 			ProjectIndex projIndex = ClonkProjectNature.get(proj).getIndexCreatingEmptyOneIfNotPresent();
 			proj.accept(new ResourceCounterAndCleaner(0));
 			projIndex.clear();
