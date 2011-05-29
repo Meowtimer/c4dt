@@ -533,12 +533,17 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	/**
 	 * Returns whether this function inherits from the calling function
 	 * @param otherFunc
+	 * @param recursionCatcher Recursion catcher!
 	 * @return true if related, false if not
 	 */
-	public boolean inheritsFrom(Function otherFunc) {
-		for (Function f = this; f != null; f = f.getInherited())
+	private boolean inheritsFrom(Function otherFunc, Set<Function> recursionCatcher) {
+		Function f = this;
+		while (f != null && !recursionCatcher.contains(f)) {
+			recursionCatcher.add(f);
 			if (otherFunc == f)
 				return true;
+			f = f.getInherited();
+		}
 		return false;
 	}
 	
@@ -548,11 +553,16 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	 * @return true if both functions are related, false if not
 	 */
 	public boolean isRelatedFunction(Function otherFunc) {
-		if (this.inheritsFrom(otherFunc))
-			return true; 
-		for (Function f = this; f != null; f = f.getInherited())
-			if (otherFunc.inheritsFrom(f))
+		Set<Function> recursionCatcher = new HashSet<Function>();
+		if (this.inheritsFrom(otherFunc, recursionCatcher))
+			return true;
+		Function f = this;
+		while (f != null && !recursionCatcher.contains(f)) {
+			recursionCatcher.add(f);
+			if (otherFunc.inheritsFrom(f, recursionCatcher))
 				return true;
+			f = f.getInherited();
+		}
 		return false;
 	}
 	
