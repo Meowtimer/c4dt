@@ -95,11 +95,11 @@ public abstract class AccessDeclaration extends Value {
 		AccessDeclaration otherDec = (AccessDeclaration) other;
 		if (!listener.optionEnabled(Option.CheckForIdentity)) {
 			if (!declarationName.equals(otherDec.declarationName)) {
-				return listener.differs(this, other, "declarationName");
+				return listener.differs(this, other, "declarationName"); //$NON-NLS-1$
 			}
 		} else {
 			if (declaration != otherDec.declaration) {
-				return listener.differs(this, other, "declaration");
+				return listener.differs(this, other, "declaration"); //$NON-NLS-1$
 			}
 		}
 		return DifferenceHandling.Equal;
@@ -142,8 +142,11 @@ public abstract class AccessDeclaration extends Value {
 							typesWithThatMember.add((IType) d.getParentDeclaration());
 				}
 			});
-			if (typesWithThatMember.size() > 0)
-				pred.expectedToBeOfType(TypeSet.create(typesWithThatMember), (C4ScriptParser) context, TypeExpectancyMode.Expect);
+			if (typesWithThatMember.size() > 0) {
+				IType ty = TypeSet.create(typesWithThatMember);
+				ty.setTypeDescription(String.format(Messages.AccessDeclaration_TypesSporting, declarationName));
+				pred.expectedToBeOfType(ty, (C4ScriptParser) context, TypeExpectancyMode.Expect);
+			}
 		}
 	}
 	
