@@ -22,12 +22,14 @@ public class C4ScriptDoubleClickStrategy extends DefaultTextDoubleClickStrategy 
 			C4ScriptSourceViewerConfiguration configuration) {
 		this.configuration = configuration;
 	}
+	
+	@Override
 	public void doubleClicked(ITextViewer viewer) {
 		int pos = viewer.getSelectedRange().x;
 
 		if (pos < 0)
 			return;
-		
+
 		ScriptBase script = Utilities.getScriptForEditor(configuration.getEditor());
 		Function func = script.funcAt(pos);
 		if (func != null) {

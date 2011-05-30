@@ -21,8 +21,9 @@ import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.jface.viewers.ViewerComparator;
 import org.eclipse.search.ui.text.Match;
 import org.eclipse.swt.graphics.Image;
+import org.eclipse.jface.viewers.DelegatingStyledCellLabelProvider;
 
-public class ClonkSearchContentProvider extends ClonkLabelProvider implements ITreeContentProvider, ILabelProvider {
+public class ClonkSearchContentProvider extends ClonkLabelProvider implements ITreeContentProvider, ILabelProvider, DelegatingStyledCellLabelProvider.IStyledLabelProvider {
 
 	private boolean flat;
 	private ClonkSearchResult searchResult;
@@ -79,11 +80,10 @@ public class ClonkSearchContentProvider extends ClonkLabelProvider implements IT
 	public String getText(Object element) {
 		if (element instanceof Function)
 			return ((Function)element).getQualifiedName();
-		else if (element instanceof IHasLabelAndImage) {
-			IHasLabelAndImage lblimg = (IHasLabelAndImage) element;
-			return lblimg.getLabel();
-		}
-		else return element.toString();
+		else if (element instanceof IHasLabelAndImage)
+			return ((IHasLabelAndImage)element).getLabel();
+		else
+			return element.toString();
 	}
 	@Override
 	public Image getImage(Object element) {

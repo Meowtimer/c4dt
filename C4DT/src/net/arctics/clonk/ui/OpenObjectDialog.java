@@ -33,7 +33,7 @@ public class OpenObjectDialog extends FilteredItemsSelectionDialog {
 	private ISelection selection;
 	
 	private static class OpenObjectLabelProvider extends LabelProvider implements IStyledLabelProvider {
-
+		@Override
 		public StyledString getStyledText(Object element) {
 			if (element == null)
 				return new StyledString(Messages.OpenObjectDialog_Empty);
@@ -44,7 +44,6 @@ public class OpenObjectDialog extends FilteredItemsSelectionDialog {
 			buf.append(obj.id().getName(), StyledString.QUALIFIER_STYLER);
 			return buf;
 		}
-		
 	}
 	
 	public OpenObjectDialog(Shell shell) {
