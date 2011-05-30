@@ -80,11 +80,11 @@ public class Engine extends ScriptBase {
 		@IniField(category="Intrinsic")
 		public boolean nonConstGlobalVarsAssignment;
 		/**
-		 * HACK: In OC, object definition constants (Clonk, Firestone) actually are parsed as referring to a Variable object each Definition maintains as its 'static variable'.<br/>
+		 * HACK: In OC, object definition constants (Clonk, Firestone) actually are parsed as referring to a Variable object each Definition maintains as its 'proxy variable'.<br/>
 		 * This toggle activates/deactivates this behaviour.
 		 * */ 
 		@IniField(category="Intrinsic")
-		public boolean definitionsHaveStaticVariables;
+		public boolean definitionsHaveProxyVariables;
 		/** Whether engine supports ref parameters (int & x). OpenClonk stopped supporting it. */
 		@IniField(category="Intrinsic")
 		public boolean supportsRefs;
@@ -112,6 +112,9 @@ public class Engine extends ScriptBase {
 		/** Whether 0 is of type any */
 		@IniField(category="Intrinsic")
 		public boolean treatZeroAsAny;
+		/** Engine supports proplists (OC) */
+		@IniField(category="Intrinsic")
+		public boolean proplistsSupported;
 		
 		// Settings that are actually intended to be user-configurable
 		

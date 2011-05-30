@@ -8,12 +8,17 @@ import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.Structure;
 import net.arctics.clonk.util.ArrayUtil;
 
+/**
+ * A proplist declaration parsed from an {key:value, ...} expression.
+ * @author madeen
+ *
+ */
 public class ProplistDeclaration extends Structure implements IType {
 
 	private static final long serialVersionUID = 1L;
 	
 	/**
-	 * Each assignment in a proplist declaration is represented by a C4Variable object.
+	 * Each assignment in a proplist declaration is represented by a {@link Variable} object.
 	 */
 	protected List<Variable> components;
 	
@@ -22,7 +27,7 @@ public class ProplistDeclaration extends Structure implements IType {
 	 * by assigning values separately (effect.var1 = ...; ...)
 	 */
 	protected boolean adHoc;
-	
+
 	public boolean isAdHoc() {
 		return adHoc;
 	}

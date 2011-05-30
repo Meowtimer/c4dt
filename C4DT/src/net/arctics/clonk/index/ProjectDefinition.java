@@ -106,7 +106,7 @@ public class ProjectDefinition extends Definition implements Serializable {
 	 * Helper variable used for long-id definitions.
 	 */
 	public ProxyVar proxyVar() {
-		if (getEngine() != null && !getEngine().getCurrentSettings().definitionsHaveStaticVariables)
+		if (getEngine() != null && !getEngine().getCurrentSettings().definitionsHaveProxyVariables)
 			return proxyVar = null;
 		if (proxyVar == null)
 			proxyVar = new ProxyVar();

@@ -6,6 +6,8 @@ import java.util.Map;
 
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.Declaration;
+import net.arctics.clonk.parser.ParserErrorCode;
+import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.c4script.DeclarationObtainmentContext;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.Variable;
@@ -100,7 +102,7 @@ public class PropListExpression extends Value {
 	
 	public IniConfiguration guessedConfiguration(C4ScriptParser context) {
 		if (context.getCurrentVariable() != null) {
-			return context.getContainer().getEngine().getIniConfigurations().getConfigurationFor(context.getCurrentVariable().getName()+".txt");
+			return context.getContainer().getEngine().getIniConfigurations().getConfigurationFor(context.getCurrentVariable().getName()+".txt"); //$NON-NLS-1$
 		} else {
 			return null;
 		}
@@ -113,5 +115,27 @@ public class PropListExpression extends Value {
 	@Override
 	public void setAssociatedDeclaration(Declaration declaration) {
 		associatedDeclaration = declaration;
+	}
+	
+	public ExprElm value(String key) {
+		Variable keyVar = definedDeclaration.findComponent(key);
+		return keyVar != null ? keyVar.getInitializationExpression() : null;
+	} 
+	
+	@SuppressWarnings("unchecked")
+	public <T> T valueEvaluated(String key, Class<T> cls) {
+		ExprElm e = value(key);
+		if (e != null) {
+			Object eval = e.evaluateAtParseTime(definedDeclaration.getParentDeclarationOfType(IEvaluationContext.class));
+			return eval != null && cls.isAssignableFrom(eval.getClass()) ? (T)eval : null;
+		} else
+			return null;
+	}
+	
+	@Override
+	public void reportErrors(C4ScriptParser parser) throws ParsingException {
+		super.reportErrors(parser);
+		if (!parser.getContainer().getEngine().getCurrentSettings().proplistsSupported)
+			parser.errorWithCode(ParserErrorCode.NotSupported, this, C4ScriptParser.NO_THROW, Messages.PropListExpression_ProplistsFeature);
 	}
 }

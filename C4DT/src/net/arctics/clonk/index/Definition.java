@@ -101,7 +101,7 @@ public abstract class Definition extends ScriptBase {
 		if (
 				cls == null ||
 				cls == Definition.class ||
-				(getEngine() != null && getEngine().getCurrentSettings().definitionsHaveStaticVariables && (variableRequired = Variable.class.isAssignableFrom(cls)))
+				(getEngine() != null && getEngine().getCurrentSettings().definitionsHaveProxyVariables && (variableRequired = Variable.class.isAssignableFrom(cls)))
 		) {
 			if (id != null && id.getName().equals(name))
 				return variableRequired ? this.proxyVar() : this;
