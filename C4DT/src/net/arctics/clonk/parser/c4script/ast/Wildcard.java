@@ -1,22 +1,26 @@
 package net.arctics.clonk.parser.c4script.ast;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import net.arctics.clonk.ClonkCore;
+import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
-import net.arctics.clonk.util.Pair;
+import net.arctics.clonk.parser.c4script.DeclarationObtainmentContext;
+import net.arctics.clonk.parser.c4script.IType;
+import net.arctics.clonk.parser.c4script.PrimitiveType;
+import net.arctics.clonk.parser.c4script.ProplistDeclaration;
+import net.arctics.clonk.util.ArrayUtil;
+import net.arctics.clonk.util.IConverter;
 
 /**
  * Special expression that acts as a placeholder 
  * @author madeen
  *
  */
-public class Wildcard extends ExprElm {
+public class Wildcard extends PropListExpression {
 	
-	// not so easy to find some character sequences that won't be misinterpreted
-	public static final String START = "§(";
-	public static final String END = ")";
+	public Wildcard(ProplistDeclaration declaration) {
+		super(declaration);
+		cacheAttributes();
+	}
 	
 	public static final String PROP_TAG = "Tag";
 	public static final String PROP_TEMPLATE = "Template";
@@ -27,7 +31,11 @@ public class Wildcard extends ExprElm {
 	/**
 	 * List of ExprElm classes this wildcard accepts as substitute.
 	 */
-	private List<Class<? extends ExprElm>> acceptedClasses;
+	private Class<? extends ExprElm>[] acceptedClasses;
+	
+	/**
+	 * Tag identifying this wildcard
+	 */
 	private String tag;
 	
 	/**
@@ -35,10 +43,24 @@ public class Wildcard extends ExprElm {
 	 */
 	private ExprElm template;
 	
-	public void setAcceptedClasses(List<Class<? extends ExprElm>> acceptedClasses) {
-		this.acceptedClasses = acceptedClasses;
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	private void cacheAttributes() {
+		tag = valueEvaluated(PROP_TAG, String.class);
+		template = value(PROP_TEMPLATE);
+		Object[] classes = valueEvaluated(PROP_CLASSES, Object[].class);
+		acceptedClasses = classes != null ? ArrayUtil.map(classes, Class.class, new IConverter<Object, Class>() {
+			@Override
+			public Class<? extends ExprElm> convert(Object from) {
+				try {
+					return (Class<? extends ExprElm>) Class.forName(Wildcard.this.getClass().getPackage().getName() + "." + from.toString());
+				} catch (ClassNotFoundException e) {
+					return null;
+				}
+			}
+		}) : null;
 	}
-	public List<Class<? extends ExprElm>> getAcceptedClasses() {
+
+	public Class<? extends ExprElm>[] getAcceptedClasses() {
 		return acceptedClasses;
 	}
 	
@@ -68,51 +90,6 @@ public class Wildcard extends ExprElm {
 		return true; // it always is
 	}
 	
-	private boolean printAttribute(boolean addSpace, ExprWriter output, String prop, Object value) {
-		if (addSpace)
-			output.append(" ");
-		String v = value != null ? value.toString() : null;
-		if (v != null) {
-			output.append(prop);
-			output.append(":");
-			output.append(v);
-			return true;
-		} else
-			return false;
-	}
-	
-	@Override
-	public void doPrint(ExprWriter output, int depth) {
-		output.append(START);
-		List<Pair<String, Object>> attributes = new ArrayList<Pair<String, Object>>(3);
-		attributes.add(new Pair<String, Object>(PROP_TAG, tag));
-		attributes.add(new Pair<String, Object>(PROP_TEMPLATE, template));
-		attributes.add(new Pair<String, Object>(PROP_CLASSES, new Object() {
-			@Override
-			public String toString() {
-				if (acceptedClasses != null) {
-					StringBuilder builder = new StringBuilder();
-					for (Class<? extends ExprElm> c : acceptedClasses) {
-						if (builder.length() > 0)
-							builder.append(", ");
-						builder.append(c.getSimpleName());
-					}
-					return builder.toString();
-				} else
-					return null;
-			}
-		}));
-		boolean space = false;
-		for (Pair<String, Object> a : attributes)
-			space = printAttribute(space, output, a.first(), a.second());
-		output.append(END);
-	}
-	
-	@Override
-	public ExprElm[] getSubElements() {
-		return new ExprElm[] {template};
-	}
-	
 	@Override
 	public boolean modifiable(C4ScriptParser context) {
 		return true; // sure it is
@@ -126,6 +103,16 @@ public class Wildcard extends ExprElm {
 	@Override
 	public boolean isValidInSequence(ExprElm predecessor, C4ScriptParser context) {
 		return true; // whatever you say
+	}
+	
+	@Override
+	protected IType obtainType(DeclarationObtainmentContext parser) {
+		return PrimitiveType.ANY;
+	}
+	
+	@Override
+	public void reportErrors(C4ScriptParser parser) throws ParsingException {
+		// no errors of course
 	}
 	
 }

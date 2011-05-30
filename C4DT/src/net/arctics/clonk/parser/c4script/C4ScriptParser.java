@@ -603,7 +603,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 			obj.chooseLocalizedName(); // ClonkRage Names.txt
 			
 			// local Name = "Exploder";
-			Variable nameLocal = container.findLocalVariable("Name", false);
+			Variable nameLocal = container.findLocalVariable("Name", false); //$NON-NLS-1$
 			if (nameLocal != null) {
 				ExprElm expr = nameLocal.getInitializationExpression();
 				if (expr != null) {
@@ -640,7 +640,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 							return TraversalContinuation.Continue;
 						}
 					}, ExpressionsAndStatementsReportingFlavour.AlsoStatements, false);
-					Variable v = obj.findVariable("Name");
+					Variable v = obj.findVariable("Name"); //$NON-NLS-1$
 					if (v != null) {
 						Object ev = v.evaluateInitializationExpression(obj);
 						if (ev instanceof String) {
@@ -1142,7 +1142,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 				else if (readByte == ',')
 					continue; // parse another parameter
 				else {
-					errorWithCode(ParserErrorCode.TokenExpected, this.offset-1, this.offset, ABSOLUTE_MARKER_LOCATION, String.format(Messages.C4ScriptParser_Or, ")", ",")); //$NON-NLS-2$ //$NON-NLS-3$
+					errorWithCode(ParserErrorCode.TokenExpected, this.offset-1, this.offset, ABSOLUTE_MARKER_LOCATION, String.format(Messages.C4ScriptParser_Or, ")", ","));  //$NON-NLS-1$//$NON-NLS-2$ //$NON-NLS-3$
 				}
 			} while(!reachedEOF());
 		}
@@ -1376,7 +1376,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 		private static final ClonkIndex tempIndex = new ClonkIndex() {
 			private static final long serialVersionUID = 1L;
-			private final Engine tempEngine = new Engine("Temp Engine");
+			private final Engine tempEngine = new Engine("Temp Engine"); //$NON-NLS-1$
 			@Override
 			public Engine getEngine() {
 				return tempEngine;
@@ -1644,7 +1644,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 			if (exprLocation != null) {
 				ParserErrorCode.setExpressionLocation(result, exprLocation);
 			}
-			problem = result.getAttribute(IMarker.MESSAGE, "<Fail>");
+			problem = result.getAttribute(IMarker.MESSAGE, "<Fail>"); //$NON-NLS-1$
 		} else {
 			problem = code.getErrorString(args);
 		}
@@ -1886,7 +1886,18 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	}
 
 	private ExprElm parsePropListExpression(boolean reportErrors, ExprElm prevElm) throws ParsingException {
-		ExprElm elm = null;
+		ProplistDeclaration proplDec = parsePropListDeclaration(reportErrors);
+		if (proplDec != null) {
+			ExprElm elm = new PropListExpression(proplDec);
+			if (getCurrentFunc() != null) {
+				getCurrentFunc().addOtherDeclaration(proplDec);
+			}
+			return elm;
+		}
+		return null;
+	}
+
+	protected ProplistDeclaration parsePropListDeclaration(boolean reportErrors) throws ParsingException {
 		int propListStart = offset;
 		int c = read();
 		if (c == '{') {
@@ -1949,18 +1960,15 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 				if (!properlyClosed) {
 					errorWithCode(ParserErrorCode.MissingClosingBracket, this.offset-1, this.offset, ABSOLUTE_MARKER_LOCATION, "}"); //$NON-NLS-1$
 				}
-				elm = new PropListExpression(proplistDeclaration);
 				proplistDeclaration.setLocation(absoluteSourceLocation(propListStart, offset));
+				return proplistDeclaration;
 			} finally {
 				currentFunctionContext.currentDeclaration = oldDec;
-			}
-			if (getCurrentFunc() != null) {
-				getCurrentFunc().addOtherDeclaration(proplistDeclaration);
 			}
 		}
 		else
 			unread();
-		return elm;
+		return null;
 	}
 
 	public final SourceLocation absoluteSourceLocation(int start, int end) {
@@ -3124,73 +3132,20 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		return t != null && t.equals(s);
 	}
 	
-	@SuppressWarnings("unchecked")
 	private Wildcard parseWildcard() throws ParsingException {
 		int savedOffset = this.offset;
-		if (testForString(Wildcard.START)) {
-			Wildcard result = new Wildcard();
-			while (true) {
-				eatWhitespace();
-				if (!parseIdentifier())
-					break;
-				String attr = currentFunctionContext.parsedString;
-				eatWhitespace();
-				expect(':');
-				eatWhitespace();
-				if (attr.equals(Wildcard.PROP_CLASSES)) {
-					List<Class<? extends ExprElm>> classes = new LinkedList<Class<? extends ExprElm>>();
-					while (true) {
-						eatWhitespace();
-						int classNameStart = this.offset;
-						if (!parseIdentifier())
-							break;
-						Class<? extends ExprElm> c;
-						try {
-							c = (Class<? extends ExprElm>) Class.forName(ExprElm.class.getPackage().getName()+"."+currentFunctionContext.parsedString);
-						} catch (ClassNotFoundException e) {
-							e.printStackTrace();
-							c = null;
-						}
-						if (c != null)
-							classes.add(c);
-						else
-							errorWithCode(ParserErrorCode.UndeclaredIdentifier, classNameStart, this.offset, ABSOLUTE_MARKER_LOCATION|NO_THROW, currentFunctionContext.parsedString);
-						if (read() != ',') {
-							unread();
-							break;
-						}
-					}
-					eatWhitespace();
-					result.setAcceptedClasses(classes);
-				}
-				else if (attr.equals(Wildcard.PROP_TAG)) {
-					if (parseIdentifier())
-						result.setTag(currentFunctionContext.parsedString);
-					else
-						errorWithCode(ParserErrorCode.UnexpectedToken, offset, offset+1, ABSOLUTE_MARKER_LOCATION|NO_THROW, (char)peek());
-				}
-				else if (attr.equals(Wildcard.PROP_TEMPLATE)) {
-					boolean oaed = allErrorsDisabled;
-					allErrorsDisabled = true;
-					try {
-						ExprElm e = parseStatement();
-						e.setFinishedProperly(true);
-						result.setTemplate(e);
-					} catch (Exception e) {
-						e.printStackTrace();
-					}
-					finally {
-						allErrorsDisabled = oaed;
-					}
-				}
+		if (testForString("§")) { //$NON-NLS-1$
+			ProplistDeclaration proplDec = parsePropListDeclaration(false);
+			if (proplDec != null)
+				return new Wildcard(proplDec);
+			else {
+				errorWithCode(ParserErrorCode.TokenExpected, offset, offset+1, ProplistDeclaration.class.getSimpleName());
+				return null;
 			}
-			int s = this.offset;
-			if (!testForString(Wildcard.END))
-				errorWithCode(ParserErrorCode.TokenExpected, s, s+2, ABSOLUTE_MARKER_LOCATION|NO_THROW, "$§");
-			return result;
+		} else {
+			this.seek(savedOffset);
+			return null;
 		}
-		seek(savedOffset);
-		return null;
 	}
 
 	/**
@@ -3533,7 +3488,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 
 	@Override
 	public Object getValueForVariable(String varName) {
-		return "Yes";
+		return "Yes"; //$NON-NLS-1$
 	}
 
 	@Override

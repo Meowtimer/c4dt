@@ -274,7 +274,7 @@ public abstract class Declaration implements Serializable, IHasRelatedResource, 
 	}
 	
 	@SuppressWarnings("unchecked")
-	public final <T extends Declaration> T getParentDeclarationOfType(Class<T> cls) {
+	public final <T> T getParentDeclarationOfType(Class<T> cls) {
 		for (Declaration d = getParentDeclaration(); d != null; d = d.getParentDeclaration()) {
 			if (cls.isAssignableFrom(d.getClass())) {
 				return (T) d;
