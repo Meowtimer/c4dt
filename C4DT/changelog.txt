@@ -147,3 +147,6 @@ are then taken into account in various places
 -Customizable templates by creating a "C4DT Customization" Project (accessible through Clonk menu)
 	-Copies of built-in template files can be created using the "C4DT Customization" submenu in the Project Explorer popup menu
 -Reorganize/rename some classes + add documentation
+1.6.0:
+-More aggressive type inference
+-Bugs fixed/New bugs introduced
