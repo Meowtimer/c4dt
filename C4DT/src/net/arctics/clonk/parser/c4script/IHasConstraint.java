@@ -8,4 +8,5 @@ public interface IHasConstraint {
 	}
 	ScriptBase constraintScript();
 	ConstraintKind constraintKind();
+	IType resolve(DeclarationObtainmentContext context, IType callerType);
 }

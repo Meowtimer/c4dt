@@ -118,5 +118,22 @@ public class ConstrainedType implements IType, IHasConstraint, Serializable {
 	
 	@Override
 	public void setTypeDescription(String description) {}
+	
+	@Override
+	public IType resolve(DeclarationObtainmentContext context, IType callerType) {
+		Definition obj = null;
+		switch (constraintKind()) {
+		case CallerType:
+			if (callerType != constraintScript())
+				obj = Utilities.as(callerType, Definition.class);
+			break;
+		case Exact:
+			obj = Utilities.as(constraintScript(), Definition.class);
+			break;
+		case Includes:
+			break;
+		}
+		return obj != null ? obj.getObjectType() : this;
+	}
 
 }

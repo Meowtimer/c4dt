@@ -128,5 +128,21 @@ public class ConstrainedObject implements IType, IHasConstraint {
 	
 	@Override
 	public void setTypeDescription(String description) {}
+	
+	@Override
+	public IType resolve(DeclarationObtainmentContext context, IType callerType) {
+		switch (constraintKind()) {
+		case CallerType:
+			if (callerType != constraintScript())
+				return callerType;
+			else
+				break;
+		case Exact:
+			return constraintScript();
+		case Includes:
+			break;
+		}
+		return this;
+	}
 
 }

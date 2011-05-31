@@ -7,23 +7,21 @@ import java.util.LinkedList;
 import java.util.List;
 
 import net.arctics.clonk.ClonkCore;
+import net.arctics.clonk.index.CachedEngineFuncs;
 import net.arctics.clonk.index.ClonkIndex;
 import net.arctics.clonk.index.Definition;
-import net.arctics.clonk.index.CachedEngineFuncs;
 import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.DeclarationRegion;
 import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.ParsingException;
-import net.arctics.clonk.parser.c4script.DeclarationObtainmentContext;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
-import net.arctics.clonk.parser.c4script.PrimitiveType;
-import net.arctics.clonk.parser.c4script.TypeSet;
-import net.arctics.clonk.parser.c4script.ConstrainedObject;
-import net.arctics.clonk.parser.c4script.ConstrainedType;
+import net.arctics.clonk.parser.c4script.DeclarationObtainmentContext;
 import net.arctics.clonk.parser.c4script.IHasConstraint;
 import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.parser.c4script.ITypeable;
+import net.arctics.clonk.parser.c4script.PrimitiveType;
+import net.arctics.clonk.parser.c4script.TypeSet;
 import net.arctics.clonk.parser.c4script.ast.IASTComparisonDelegate.DifferenceHandling;
 import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
 import net.arctics.clonk.ui.editors.c4script.IPostSerializable;
@@ -215,9 +213,8 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 				resolvedTypes[i++] = resolved;
 			}
 			return didResolveSomething ? TypeSet.create(resolvedTypes) : typeSet;
-		} else {
+		} else
 			return resolveConstraint(context, type);
-		}
 	}
 
 	/**
@@ -230,40 +227,10 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 	}
 	
 	private final IType resolveConstraint(DeclarationObtainmentContext context, IType type) {
-		if (type instanceof IHasConstraint) {
-			IHasConstraint obl = (IHasConstraint) type;
-			if (obl instanceof ConstrainedObject) {
-				switch (obl.constraintKind()) {
-				case CallerType:
-					IType callerType = callerType(context);
-					if (callerType != obl.constraintScript())
-						return callerType;
-					else
-						break;
-				case Exact:
-					return obl.constraintScript();
-				case Includes:
-					break;
-				}
-			} else if (obl instanceof ConstrainedType) {
-				Definition obj = null;
-				switch (obl.constraintKind()) {
-				case CallerType:
-					IType callerType = callerType(context);
-					if (callerType != obl.constraintScript())
-						obj = Utilities.as(callerType, Definition.class);
-					break;
-				case Exact:
-					obj = Utilities.as(obl.constraintScript(), Definition.class);
-					break;
-				case Includes:
-					break;
-				}
-				if (obj != null)
-					return obj.getObjectType();
-			}
-		}
-		return type;
+		if (type instanceof IHasConstraint)
+			return ((IHasConstraint)type).resolve(context, callerType(context));
+		else
+			return type;
 	}
 	
 	/**

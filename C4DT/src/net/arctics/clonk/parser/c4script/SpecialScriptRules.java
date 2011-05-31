@@ -443,13 +443,13 @@ public class SpecialScriptRules {
 					for (ClonkIndex index : context.getContainer().getIndex().relevantIndexes()) {
 						for (Function f : index.declarationsWithName((String)ev, Function.class)) {
 							if (f.getScript() instanceof Definition) {
-								types.add((Definition)f.getScript());
+								types.add(new ConstrainedObject((Definition)f.getScript(), ConstraintKind.Includes));
 							}
 							else for (Directive directive : f.getScript().directives()) {
 								if (directive.getType() == DirectiveType.APPENDTO) {
 									Definition def = f.getScript().getIndex().getDefinitionNearestTo(context.getContainer().getResource(), directive.contentAsID());
 									if (def != null) {
-										types.add(def);
+										types.add(new ConstrainedObject(def, ConstraintKind.Includes));
 									}
 								}
 							}
@@ -603,7 +603,7 @@ public class SpecialScriptRules {
 						};
 					});
 					if (decs.size() > 0)
-						return new DeclarationRegion(decs, lit.identifierRegion());
+						return new DeclarationRegion(new HashSet<Declaration>(decs), lit.identifierRegion());
 				}
 			}
 			return null;
@@ -770,7 +770,7 @@ public class SpecialScriptRules {
 					}
 				});
 				if (matchingDecs.size() > 0)
-					return new DeclarationRegion(matchingDecs, lit.identifierRegion());
+					return new DeclarationRegion(new HashSet<Declaration>(matchingDecs), lit.identifierRegion());
 			}
 			return null;
 		};

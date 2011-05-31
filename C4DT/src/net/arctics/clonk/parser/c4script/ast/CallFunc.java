@@ -1,7 +1,11 @@
 package net.arctics.clonk.parser.c4script.ast;
 
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
+
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.index.Definition;
@@ -12,6 +16,7 @@ import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.c4script.DeclarationObtainmentContext;
 import net.arctics.clonk.parser.c4script.Function;
+import net.arctics.clonk.parser.c4script.IHasConstraint;
 import net.arctics.clonk.parser.c4script.ScriptBase;
 import net.arctics.clonk.parser.c4script.Operator;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
@@ -261,7 +266,7 @@ public class CallFunc extends AccessDeclaration {
 		return decs.size() > 0 ? decs.get(0) : null;
 	}
 
-	public static Declaration findFunctionUsingPredecessor(ExprElm p, String functionName, DeclarationObtainmentContext context, List<Declaration> listToAddPotentialDeclarationsTo) {
+	public static Declaration findFunctionUsingPredecessor(ExprElm p, String functionName, DeclarationObtainmentContext context, Collection<Declaration> listToAddPotentialDeclarationsTo) {
 		IType lookIn = p == null ? context.getContainer() : p.getType(context);
 		if (lookIn != null) for (IType ty : lookIn) {
 			if (!(ty instanceof ScriptBase))
@@ -309,19 +314,21 @@ public class CallFunc extends AccessDeclaration {
 				}
 			}
 		}
-		return listToAddPotentialDeclarationsTo != null && listToAddPotentialDeclarationsTo.size() > 0 ? listToAddPotentialDeclarationsTo.get(0) : null;
+		return listToAddPotentialDeclarationsTo != null && listToAddPotentialDeclarationsTo.size() > 0 ? listToAddPotentialDeclarationsTo.iterator().next() : null;
 	}
 	private boolean unknownFunctionShouldBeError(C4ScriptParser parser) {
 		ExprElm pred = getPredecessorInSequence();
 		if (pred == null)
 			return true;
 		IType predType = pred.getType(parser);
-		if (predType == null || predType.specificness() <= PrimitiveType.ID.specificness())
+		if (predType == null)
 			return false;
-		if (pred instanceof MemberOperator) {
+		if (pred instanceof MemberOperator)
 			return !((MemberOperator)pred).hasTilde();
-		}
-		return true;
+		for (IType t : predType)
+			if (t instanceof IHasConstraint && ((IHasConstraint)t).resolve(parser, callerType(parser)) instanceof ScriptBase)
+				return true;
+		return false;
 	}
 	@Override
 	public void reportErrors(final C4ScriptParser context) throws ParsingException {
@@ -556,7 +563,7 @@ public class CallFunc extends AccessDeclaration {
 
 	@Override
 	public DeclarationRegion declarationAt(int offset, C4ScriptParser parser) {
-		List<Declaration> list = new LinkedList<Declaration>();
+		Set<Declaration> list = new HashSet<Declaration>();
 		findFunctionUsingPredecessor(getPredecessorInSequence(), getDeclarationName(), parser, list);
 		return new DeclarationRegion(list, new Region(getExprStart(), declarationName.length()));
 	}

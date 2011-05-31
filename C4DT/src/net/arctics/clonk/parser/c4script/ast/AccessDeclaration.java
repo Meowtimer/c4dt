@@ -9,11 +9,14 @@ import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.DeclarationRegion;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
+import net.arctics.clonk.parser.c4script.ConstrainedType;
 import net.arctics.clonk.parser.c4script.DeclarationObtainmentContext;
 import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.parser.c4script.ITypeable;
 import net.arctics.clonk.parser.c4script.PrimitiveType;
+import net.arctics.clonk.parser.c4script.ScriptBase;
 import net.arctics.clonk.parser.c4script.TypeSet;
+import net.arctics.clonk.parser.c4script.IHasConstraint.ConstraintKind;
 import net.arctics.clonk.parser.c4script.ast.IASTComparisonDelegate.DifferenceHandling;
 import net.arctics.clonk.parser.c4script.ast.IASTComparisonDelegate.Option;
 
@@ -138,8 +141,8 @@ public abstract class AccessDeclaration extends Value {
 				@Override
 				public void run(ClonkIndex index) {
 					for (Declaration d : index.declarationsWithName(declarationName, Declaration.class))
-						if (!d.isGlobal() && AccessDeclaration.this.declarationClass().isAssignableFrom(d.getClass()) && d.getParentDeclaration() instanceof IType)
-							typesWithThatMember.add((IType) d.getParentDeclaration());
+						if (!d.isGlobal() && AccessDeclaration.this.declarationClass().isAssignableFrom(d.getClass()) && d.getParentDeclaration() instanceof ScriptBase)
+							typesWithThatMember.add(new ConstrainedType((ScriptBase)d.getParentDeclaration(), ConstraintKind.Includes));
 				}
 			});
 			if (typesWithThatMember.size() > 0) {

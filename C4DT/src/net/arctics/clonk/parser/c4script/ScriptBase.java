@@ -985,5 +985,10 @@ public abstract class ScriptBase extends Structure implements ITreeNode, IHasCon
 	
 	@Override
 	public void setTypeDescription(String description) {}
+	
+	@Override
+	public IType resolve(DeclarationObtainmentContext context, IType callerType) {
+		return this;
+	}
 
 }
