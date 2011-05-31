@@ -117,7 +117,7 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 	}
 
 	@Override
-	public Object clone() throws CloneNotSupportedException {
+	public ExprElm clone() throws CloneNotSupportedException {
 		ExprElm clone = (ExprElm) super.clone();
 		ExprElm[] clonedElms = ArrayUtil.map(getSubElements(), ExprElm.class, new IConverter<ExprElm, ExprElm>() {
 			@Override
@@ -676,7 +676,15 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 		}
 	}
 	
-	public ExprElm replaceSubElement(ExprElm element, ExprElm with, int diff) {
+	/**
+	 * Replace a sub element with another one. If the replacement element's tree relationships are to be preserved, a clone should be passed instead.
+	 * @param element The element to replace
+	 * @param with The replacement
+	 * @param diff Difference between the original element's length and the replacement's length in characters
+	 * @return Return this element, modified or not.
+	 * @throws InvalidParameterException Thrown if the element is not actually a sub element of this element
+	 */
+	public ExprElm replaceSubElement(ExprElm element, ExprElm with, int diff) throws InvalidParameterException {
 		assert(element != with);
 		assert(element != null);
 		assert(with != null);
@@ -722,6 +730,10 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 		@Override
 		public boolean optionEnabled(Option option) {
 			return false;
+		}
+
+		@Override
+		public void wildcardMatched(Wildcard wildcard, ExprElm expression) {
 		}
 	};
 	
@@ -816,6 +828,10 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 				default:
 					return false;
 				}
+			}
+
+			@Override
+			public void wildcardMatched(Wildcard wildcard, ExprElm expression) {
 			}
 			
 		};

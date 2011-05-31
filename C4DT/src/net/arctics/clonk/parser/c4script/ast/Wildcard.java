@@ -1,5 +1,8 @@
 package net.arctics.clonk.parser.c4script.ast;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
@@ -7,8 +10,10 @@ import net.arctics.clonk.parser.c4script.DeclarationObtainmentContext;
 import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.parser.c4script.PrimitiveType;
 import net.arctics.clonk.parser.c4script.ProplistDeclaration;
+import net.arctics.clonk.parser.c4script.ast.IASTComparisonDelegate.DifferenceHandling;
 import net.arctics.clonk.util.ArrayUtil;
 import net.arctics.clonk.util.IConverter;
+import net.arctics.clonk.util.Sink;
 
 /**
  * Special expression that acts as a placeholder 
@@ -41,12 +46,12 @@ public class Wildcard extends PropListExpression {
 	/**
 	 * Template that defines how a possible match for this wildcard should look like
 	 */
-	private ExprElm template;
+	private ExprElm original;
 	
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	private void cacheAttributes() {
 		tag = valueEvaluated(PROP_TAG, String.class);
-		template = value(PROP_TEMPLATE);
+		original = value(PROP_TEMPLATE);
 		Object[] classes = valueEvaluated(PROP_CLASSES, Object[].class);
 		acceptedClasses = classes != null ? ArrayUtil.map(classes, Class.class, new IConverter<Object, Class>() {
 			@Override
@@ -65,11 +70,11 @@ public class Wildcard extends PropListExpression {
 	}
 	
 	public ExprElm getTemplate() {
-		return template;
+		return original;
 	}
 	
 	public void setTemplate(ExprElm template) {
-		this.template = template;
+		this.original = template;
 	}
 	
 	@Override
@@ -113,6 +118,73 @@ public class Wildcard extends PropListExpression {
 	@Override
 	public void reportErrors(C4ScriptParser parser) throws ParsingException {
 		// no errors of course
+	}
+	
+	@Override
+	public DifferenceHandling compare(ExprElm other, IASTComparisonDelegate listener) {
+		if (tag != null && (acceptedClasses == null || ArrayUtil.indexOf(other.getClass(), acceptedClasses) != -1)) {
+			listener.wildcardMatched(this, other);
+			return DifferenceHandling.EqualShortCircuited;
+		}
+		return DifferenceHandling.Differs;
+	}
+	
+	public static class WildcardMatchingSuccess {
+		public ExprElm matched;
+		public Map<String, ExprElm> wildcardMatches;
+		public WildcardMatchingSuccess(ExprElm matched) {
+			super();
+			this.matched = matched;
+			this.wildcardMatches = new HashMap<String, ExprElm>();
+		}
+	}
+	
+	public static void matchWildcards(ExprElm template, ExprElm body, Sink<WildcardMatchingSuccess> sink) {
+		final WildcardMatchingSuccess s = new WildcardMatchingSuccess(body);
+		IASTComparisonDelegate d = new IASTComparisonDelegate() {
+			@Override
+			public DifferenceHandling differs(ExprElm a, ExprElm b, Object what) {
+				return DifferenceHandling.Differs;
+			}
+
+			@Override
+			public boolean optionEnabled(Option option) {
+				return false;
+			}
+
+			@Override
+			public void wildcardMatched(Wildcard wildcard, ExprElm expression) {
+				s.wildcardMatches.put(wildcard.getTag(), expression);
+			}
+		};
+		if (body.compare(template, d).isEqual())
+			sink.receivedObject(s);
+		else {
+			for (ExprElm e : body.getSubElements()) {
+				matchWildcards(template, e, sink);
+			}
+		}
+	}
+	
+	public static ExprElm generateReplacement(ExprElm original, ExprElm topLevel, WildcardMatchingSuccess wildcardReplacements) throws CloneNotSupportedException {
+		if (topLevel == null) {
+			topLevel = original.clone();
+		}
+		if (original instanceof Wildcard) {
+			Wildcard w = (Wildcard) original;
+			if (w.getTag() != null) {
+				ExprElm e = wildcardReplacements.wildcardMatches.get(w.getTag());
+				if (e != null)
+					if (topLevel == original)
+						return e.clone();
+					else
+						original.getParent().replaceSubElement(original, e.clone(), 0);
+			}
+		}
+		for (ExprElm e : original.getSubElements()) {
+			generateReplacement(e, topLevel, wildcardReplacements);
+		}
+		return topLevel;
 	}
 	
 }

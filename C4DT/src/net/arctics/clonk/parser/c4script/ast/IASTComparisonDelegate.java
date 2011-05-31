@@ -64,4 +64,11 @@ public interface IASTComparisonDelegate {
 	 * @return Whether the option is activated or not
 	 */
 	boolean optionEnabled(Option option);
+	
+	/**
+	 * Called when some wildcard was matched.
+	 * @param wildcard The matched wildcard
+	 * @param expression The expression matching the wildcard
+	 */
+	void wildcardMatched(Wildcard wildcard, ExprElm expression);
 }

@@ -31,6 +31,7 @@ import net.arctics.clonk.parser.c4script.ast.FunctionDescription;
 import net.arctics.clonk.parser.c4script.ast.IASTComparisonDelegate;
 import net.arctics.clonk.parser.c4script.ast.Parenthesized;
 import net.arctics.clonk.parser.c4script.ast.ReturnStatement;
+import net.arctics.clonk.parser.c4script.ast.Wildcard;
 import net.arctics.clonk.preferences.ClonkPreferences;
 
 /**
@@ -202,6 +203,10 @@ public class FindDuplicatesQuery extends ClonkSearchQueryBase implements IASTCom
 							public boolean optionEnabled(Option option) {
 								return FindDuplicatesQuery.this.optionEnabled(option);
 							}
+							@Override
+							public void wildcardMatched(Wildcard wildcard, ExprElm expression) {
+								FindDuplicatesQuery.this.wildcardMatched(wildcard, expression);
+							}
 						};
 						if (aCounterpart.compare(b, proxy).isEqual() && a.compare(bCounterpart, proxy).isEqual())
 							return DifferenceHandling.EqualShortCircuited;
@@ -258,6 +263,10 @@ public class FindDuplicatesQuery extends ClonkSearchQueryBase implements IASTCom
 		if (result == null)
 			result = new FindDuplicatesSearchResult(this);
 		return result;
+	}
+
+	@Override
+	public void wildcardMatched(Wildcard wildcard, ExprElm expression) {
 	}
 
 }
