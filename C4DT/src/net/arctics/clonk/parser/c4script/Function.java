@@ -652,15 +652,12 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	 * @return Return d or an existing other declaration at the same location
 	 */
 	public Declaration addOtherDeclaration(Declaration d) {
-		if (otherDeclarations == null) {
+		if (otherDeclarations == null)
 			otherDeclarations = new ArrayList<Declaration>(3);
-		} else {
-			for (Declaration existing : otherDeclarations) {
-				if (existing.getLocation().equals(d.getLocation())) {
+		else
+			for (Declaration existing : otherDeclarations)
+				if (existing.getLocation().equals(d.getLocation()))
 					return existing;
-				}
-			}
-		}
 		otherDeclarations.add(d);
 		return d;
 	}

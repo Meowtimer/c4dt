@@ -20,10 +20,10 @@ public class ClonkIndexOutputStream extends ObjectOutputStream {
 	
 	@Override
 	protected Object replaceObject(Object obj) throws IOException {
-		if (obj instanceof Definition) {
+		if (obj instanceof Definition)
 			return ImportedDefinition.getSerializableType(index, (Definition)obj);
-		}
-		return obj;
+		else
+			return obj;
 	}
 
 }

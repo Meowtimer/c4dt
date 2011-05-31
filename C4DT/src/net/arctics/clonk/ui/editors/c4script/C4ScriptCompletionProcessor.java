@@ -530,9 +530,8 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 	private void proposalsForStructure(IHasSubDeclarations structure, Set<IHasSubDeclarations> loopCatcher, String prefix, int offset, int wordOffset, List<ICompletionProposal> proposals, boolean noPrivateFuncs, ClonkIndex index, int mask) {
 		if (loopCatcher.contains(structure))
 			return;
-		else {
+		else
 			loopCatcher.add(structure);
-		}
 		for (Declaration dec : structure.allSubDeclarations(mask)) {
 			Function func;
 			Variable var;
