@@ -17,21 +17,23 @@ public class ProplistDeclaration extends Structure implements IType {
 
 	private static final long serialVersionUID = 1L;
 	
-	/**
-	 * Each assignment in a proplist declaration is represented by a {@link Variable} object.
-	 */
 	protected List<Variable> components;
 	
+	protected boolean adHoc;
+
 	/**
 	 * Whether the declaration was "explicit" {blub=<blub>...} or
 	 * by assigning values separately (effect.var1 = ...; ...)
+	 * @return adhoc-ness
 	 */
-	protected boolean adHoc;
-
 	public boolean isAdHoc() {
 		return adHoc;
 	}
 	
+	/**
+	 * Each assignment in a proplist declaration is represented by a {@link Variable} object.
+	 * @return Return the list of component variables this proplist declaration is made up of.
+	 */
 	public List<Variable> getComponents() {
 		return components;
 	}
@@ -41,11 +43,19 @@ public class ProplistDeclaration extends Structure implements IType {
 		setName(String.format("%s {...}", PrimitiveType.PROPLIST.toString()));
 	}
 
+	/**
+	 * Create a new ProplistDeclaration, passing it component variables it takes over directly. The list won't be copied.
+	 * @param components The component variables
+	 */
 	public ProplistDeclaration(List<Variable> components) {
 		this();
 		this.components = components;
 	}
 	
+	/**
+	 * Create an adhoc proplist declaration.
+	 * @return The newly created adhoc proplist declaration.
+	 */
 	public static ProplistDeclaration adHocDeclaration() {
 		ProplistDeclaration result = new ProplistDeclaration();
 		result.adHoc = true;
@@ -53,6 +63,11 @@ public class ProplistDeclaration extends Structure implements IType {
 		return result;
 	}
 	
+	/**
+	 * Add a new component variable to this declaration.
+	 * @param variable The variable to add
+	 * @return Return either the passed variable or an already existing one with that name
+	 */
 	public Variable addComponent(Variable variable) {
 		Variable found = findComponent(variable.getName());
 		if (found != null) {
@@ -64,6 +79,11 @@ public class ProplistDeclaration extends Structure implements IType {
 		}
 	}
 	
+	/**
+	 * Find a component variable by name.
+	 * @param declarationName The name of the variable
+	 * @return The found variable or null.
+	 */
 	public Variable findComponent(String declarationName) {
 		for (Variable v : components) {
 			if (v.getName().equals(declarationName)) {
