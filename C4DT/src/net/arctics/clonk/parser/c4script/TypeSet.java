@@ -11,8 +11,9 @@ import java.util.Set;
 
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.index.Definition;
+import net.arctics.clonk.parser.IInternalizable;
 
-public class TypeSet implements IType {
+public class TypeSet implements IType, IInternalizable {
 
 	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 
@@ -55,6 +56,7 @@ public class TypeSet implements IType {
 			this.types.add(t);
 	}
 
+	@Override
 	public IType internalize() {
 		return create(this);
 	}
@@ -199,6 +201,7 @@ public class TypeSet implements IType {
 			builder.append(typeNames.iterator().next() + "?");
 			return builder.toString();
 		}
+		builder.append(Messages.C4TypeSet_Start);
 		boolean started = true;
 		for (String tn : typeNames) {
 			if (started)

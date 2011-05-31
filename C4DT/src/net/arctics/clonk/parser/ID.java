@@ -4,7 +4,7 @@ import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
-public final class ID implements Serializable {
+public final class ID implements Serializable, IInternalizable {
 	private static final Map<String, ID> idPool = new HashMap<String, ID>();
 	private static final long serialVersionUID = 833007356188766488L;
 	public static final ID NULL = getID("NULL"); //$NON-NLS-1$
@@ -16,6 +16,7 @@ public final class ID implements Serializable {
 		idPool.put(id, this);
 	}
 	
+	@Override
 	public ID internalize() {
 		ID special = idPool.get(name);
 		if (special == null) {

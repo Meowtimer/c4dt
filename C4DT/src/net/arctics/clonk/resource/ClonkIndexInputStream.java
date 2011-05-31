@@ -7,9 +7,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
 
-import net.arctics.clonk.parser.ID;
-import net.arctics.clonk.parser.c4script.TypeSet;
-import net.arctics.clonk.parser.c4script.ImportedDefinition;
+import net.arctics.clonk.parser.IInternalizable;
 
 /**
  * Enforces that some objects won't be duplicated, like ids and typesets
@@ -25,18 +23,10 @@ public class ClonkIndexInputStream extends ObjectInputStream {
 
 	@Override
 	protected Object resolveObject(Object obj) throws IOException {
-		Class<?> cls = obj.getClass();
-		if (cls == ID.class) {
-			//System.out.println(obj.toString());
-			return ((ID)obj).internalize();
-		}
-		else if (cls == TypeSet.class) {
-			return ((TypeSet)obj).internalize();
-		}
-		else if (cls == ImportedDefinition.class) {
-			return ((ImportedDefinition)obj).resolve();
-		}
-		return super.resolveObject(obj);
+		if (obj instanceof IInternalizable)
+			return ((IInternalizable)obj).internalize();
+		else
+			return super.resolveObject(obj);
 	}
 	
 }
