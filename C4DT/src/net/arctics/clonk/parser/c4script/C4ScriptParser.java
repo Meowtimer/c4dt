@@ -824,9 +824,8 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 				if (parseFunctionDeclaration(word, startOfDeclaration))
 					return true;
 			}
-			else if (parseVariableDeclaration(false, true, Scope.makeScope(word), getTextOfLastComment(startOfDeclaration)) != null) {
+			else if (parseVariableDeclaration(false, true, Scope.makeScope(word), getTextOfLastComment(startOfDeclaration)) != null)
 				return true;
-			}
 			else {
 				// old-style function declaration without visibility
 				eatWhitespace();
@@ -893,6 +892,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 			do {
 				eatWhitespace();
 				IType typeOfNewVar;
+				// when parsing an engine script from (res/engines/...), allow specifying the type directly
 				if (isEngine) {
 					typeOfNewVar = parseFunctionReturnType();
 					if (typeOfNewVar != null)
@@ -900,6 +900,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 				}
 				else
 					typeOfNewVar = null;
+				
 				int s = this.offset;
 				String varName = readIdent();
 				int e = this.offset;
@@ -967,7 +968,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 								varInitialization.variableBeingInitialized.forceType(typeOfNewVar);
 								break;
 							}
-							// fallthrough
+							break;
 						case VAR:
 							//new AccessVar(varInitialization.variableBeingInitialized).expectedToBeOfType(typeOfNewVar, this, TypeExpectancyMode.Force);
 							break;
@@ -1125,11 +1126,10 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		eatWhitespace();
 		int shouldBeBracket = read();
 		if (shouldBeBracket != '(') {
-			if (suspectOldStyle && shouldBeBracket == ':') {
-				// old style funcs have no named parameters
-			} else {
+			if (suspectOldStyle && shouldBeBracket == ':')
+				{} // old style funcs have no named parameters
+			else
 				tokenExpectedError("("); //$NON-NLS-1$
-			}
 		} else {
 			// get parameters
 			do {
