@@ -1,7 +1,9 @@
 package net.arctics.clonk.ui.editors.c4script;
 
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 
 import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.index.ClonkIndex;
@@ -35,9 +37,9 @@ import org.eclipse.ui.texteditor.ITextEditor;
 public class DeclarationLocator extends ExpressionLocator {
 	private ITextEditor editor;
 	private Declaration declaration;
-	private List<Declaration> proposedDeclarations;
+	private Set<Declaration> proposedDeclarations;
 	
-	public List<Declaration> getProposedDeclarations() {
+	public Set<Declaration> getProposedDeclarations() {
 		return proposedDeclarations;
 	}
 
@@ -56,94 +58,110 @@ public class DeclarationLocator extends ExpressionLocator {
 		};
 	};
 	
+	public static class RegionDescription {
+		public IRegion body;
+		public int bodyStart;
+		public Engine engine;
+		public ExpressionsAndStatementsReportingFlavour flavour;
+		public Function func;
+		public void initialize(IRegion body, Engine engine, ExpressionsAndStatementsReportingFlavour flavour) {
+			this.body = body;
+			this.bodyStart = body.getOffset();
+			this.engine = engine;
+			this.flavour = flavour;
+		}
+	}
+	
+	public boolean initializeRegionDescription(RegionDescription d, ScriptBase script, IRegion region) {
+		d.func = script.funcAt(region);
+		if (d.func == null) {
+			Variable var = script.variableWithInitializationAt(region);
+			if (var == null)
+				return false;
+			else
+				d.initialize(var.getInitializationExpressionLocation(), var.getEngine(), ExpressionsAndStatementsReportingFlavour.OnlyExpressions);
+		} else
+			d.initialize(d.func.getBody(), d.func.getEngine(), ExpressionsAndStatementsReportingFlavour.AlsoStatements);
+		return true;
+	}
+	
 	public DeclarationLocator(ITextEditor editor, IDocument doc, IRegion region) throws BadLocationException, ParsingException {
 		this.editor = editor;
 		final ScriptBase script = Utilities.getScriptForEditor(getEditor());
 		if (script == null)
 			return;
-		int bodyStart;
-		IRegion body;
-		Engine engine;
-		Function func = script.funcAt(region);
-		ExpressionsAndStatementsReportingFlavour flavour;
-		if (func == null) {
-			Variable var = script.variableWithInitializationAt(region);
-			if (var == null) {
-				// outside function and variable initialization, fallback to old technique
-				simpleFindDeclaration(doc, region, script, null);
-				return;
-			} else {
-				body = var.getInitializationExpressionLocation();
-				bodyStart = body.getOffset();
-				engine = var.getEngine();
-				flavour = ExpressionsAndStatementsReportingFlavour.OnlyExpressions;
-			}
-		} else {
-			body = func.getBody();
-			bodyStart = body.getOffset();
-			engine = func.getEngine();
-			flavour = ExpressionsAndStatementsReportingFlavour.AlsoStatements;
+		RegionDescription d = new RegionDescription();
+		if (!initializeRegionDescription(d, script, region)) {
+			simpleFindDeclaration(doc, region, script, null);
+			return;
 		}
-		if (region.getOffset() >= bodyStart) {
-			exprRegion = new Region(region.getOffset()-bodyStart,0);
-			C4ScriptParser parser = C4ScriptParser.reportExpressionsAndStatements(doc, script, func != null ? func : body, this, null, flavour, false);
+		if (region.getOffset() >= d.bodyStart) {
+			exprRegion = new Region(region.getOffset()-d.bodyStart,0);
+			C4ScriptParser parser = C4ScriptParser.reportExpressionsAndStatements(doc, script, d.func != null ? d.func : d.body, this, null, d.flavour, false);
 			if (exprAtRegion != null) {
 				DeclarationRegion declRegion = exprAtRegion.declarationAt(exprRegion.getOffset()-exprAtRegion.getExprStart(), parser);
-				boolean setRegion;
-				if (declRegion != null && declRegion.getPotentialDeclarations() != null && declRegion.getPotentialDeclarations().size() > 0) {
-					// region denotes multiple declarations - set proposed declarations to those
-					this.proposedDeclarations = declRegion.getPotentialDeclarations();
-					setRegion = true;
-				}
-				else if (
-					declRegion != null && declRegion.getConcreteDeclaration() != null &&
-					(!(exprAtRegion.getPredecessorInSequence() instanceof MemberOperator) || !declRegion.getConcreteDeclaration().isGlobal())
-				) {
-					// declaration was found; return it if this is not an object call ('->') or if the found declaration is non-global
-					// in which case the type of the calling object is probably known
-					this.declaration = declRegion.getConcreteDeclaration();
-					setRegion = true;
-				}
-				else if (exprAtRegion instanceof AccessDeclaration) {
-					AccessDeclaration access = (AccessDeclaration) exprAtRegion;
-					
-					// gather declarations with that name from involved project indexes
-					List<Declaration> projectDeclarations = new LinkedList<Declaration>();
-					for (ClonkIndex i : script.getIndex().relevantIndexes()) {
-						List<Declaration> decs = i.declarationMap().get(access.getDeclarationName());
-						if (decs != null)
-							projectDeclarations.addAll(decs);
-					}
-					
-					if (projectDeclarations != null)
-						projectDeclarations = Utilities.filter(projectDeclarations, IS_FUNC);
-					
-					Function engineFunc = engine.findFunction(access.getDeclarationName());
-					if (projectDeclarations != null || engineFunc != null) {
-						proposedDeclarations = new LinkedList<Declaration>();
-						if (projectDeclarations != null)
-							proposedDeclarations.addAll(projectDeclarations);
-						// only add engine func if not overloaded by any global function
-						if (engineFunc != null && !Utilities.any(proposedDeclarations, IS_GLOBAL))
-							proposedDeclarations.add(engineFunc);
-						if (proposedDeclarations.size() == 0)
-							proposedDeclarations = null;
-						else if (proposedDeclarations.size() == 1) {
-							this.declaration = proposedDeclarations.get(0);
-						}
-						setRegion = proposedDeclarations != null;
-					}
-					else
-						setRegion = false;
-				}
-				else
-					setRegion = false;
-				if (setRegion)
-					this.exprRegion = new Region(bodyStart+declRegion.getRegion().getOffset(), declRegion.getRegion().getLength());
+				initializeProposedDeclarations(script, d, declRegion, exprAtRegion);
 			}
 		}
 		else
-			simpleFindDeclaration(doc, region, script, func);
+			simpleFindDeclaration(doc, region, script, d.func);
+	}
+
+	public void initializeProposedDeclarations(final ScriptBase script, RegionDescription regionDescription, DeclarationRegion declRegion, ExprElm exprAtRegion) {
+		boolean setRegion;
+		if (declRegion != null && declRegion.getPotentialDeclarations() != null && declRegion.getPotentialDeclarations().size() > 0) {
+			// region denotes multiple declarations - set proposed declarations to those
+			this.proposedDeclarations = declRegion.getPotentialDeclarations();
+			setRegion = true;
+		}
+		else if (
+			declRegion != null && declRegion.getConcreteDeclaration() != null &&
+			(!(exprAtRegion.getPredecessorInSequence() instanceof MemberOperator) || !declRegion.getConcreteDeclaration().isGlobal())
+		) {
+			// declaration was found; return it if this is not an object call ('->') or if the found declaration is non-global
+			// in which case the type of the calling object is probably known
+			this.declaration = declRegion.getConcreteDeclaration();
+			setRegion = true;
+		}
+		else if (exprAtRegion instanceof AccessDeclaration) {
+			AccessDeclaration access = (AccessDeclaration) exprAtRegion;
+			
+			// gather declarations with that name from involved project indexes
+			List<Declaration> projectDeclarations = new LinkedList<Declaration>();
+			for (ClonkIndex i : script.getIndex().relevantIndexes()) {
+				List<Declaration> decs = i.declarationMap().get(access.getDeclarationName());
+				if (decs != null)
+					projectDeclarations.addAll(decs);
+			}
+			
+			if (projectDeclarations != null)
+				projectDeclarations = Utilities.filter(projectDeclarations, IS_FUNC);
+			
+			Function engineFunc = regionDescription.engine.findFunction(access.getDeclarationName());
+			if (projectDeclarations != null || engineFunc != null) {
+				proposedDeclarations = new HashSet<Declaration>();
+				if (projectDeclarations != null)
+					proposedDeclarations.addAll(projectDeclarations);
+				// only add engine func if not overloaded by any global function
+				if (engineFunc != null && !Utilities.any(proposedDeclarations, IS_GLOBAL))
+					proposedDeclarations.add(engineFunc);
+				if (proposedDeclarations.size() == 0)
+					proposedDeclarations = null;
+				else if (proposedDeclarations.size() == 1) {
+					for (Declaration d : proposedDeclarations) {
+						this.declaration = d;
+						break;
+					}
+				}
+				setRegion = proposedDeclarations != null;
+			}
+			else
+				setRegion = false;
+		}
+		else
+			setRegion = false;
+		if (setRegion && declRegion != null)
+			this.exprRegion = new Region(regionDescription.bodyStart+declRegion.getRegion().getOffset(), declRegion.getRegion().getLength());
 	}
 
 	private void simpleFindDeclaration(IDocument doc, IRegion region, ScriptBase script, Function func) throws BadLocationException {

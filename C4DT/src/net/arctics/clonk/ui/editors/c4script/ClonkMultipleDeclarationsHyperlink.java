@@ -1,6 +1,6 @@
 package net.arctics.clonk.ui.editors.c4script;
 
-import java.util.List;
+import java.util.Set;
 
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.Declaration;
@@ -14,10 +14,10 @@ import org.eclipse.jface.window.Window;
 
 public class ClonkMultipleDeclarationsHyperlink extends ClonkHyperlink {
 	
-	private List<Declaration> proposedDeclarations;
+	private Set<Declaration> proposedDeclarations;
 
 	public ClonkMultipleDeclarationsHyperlink(IRegion identRegion,
-			List<Declaration> proposedDeclarations) {
+			Set<Declaration> proposedDeclarations) {
 		super(identRegion, null);
 		this.proposedDeclarations = proposedDeclarations;
 	}
@@ -25,7 +25,10 @@ public class ClonkMultipleDeclarationsHyperlink extends ClonkHyperlink {
 	@Override
 	public void open() {
 		if (this.proposedDeclarations.size() == 1) {
-			target = proposedDeclarations.get(0);
+			for (Declaration d : proposedDeclarations) {
+				target = d;
+				break;
+			}
 			super.open();
 		}
 		else
@@ -33,7 +36,7 @@ public class ClonkMultipleDeclarationsHyperlink extends ClonkHyperlink {
 	}
 
 	private boolean chooseDeclarations() {
-		DeclarationChooser chooser = new DeclarationChooser(ClonkCore.getDefault().getWorkbench().getActiveWorkbenchWindow().getShell(), this.proposedDeclarations);
+		DeclarationChooser chooser = new DeclarationChooser(ClonkCore.getDefault().getWorkbench().getActiveWorkbenchWindow().getShell(), this.proposedDeclarations, true);
 		switch (chooser.open()) {
 		case Window.OK:
 			boolean b = true;

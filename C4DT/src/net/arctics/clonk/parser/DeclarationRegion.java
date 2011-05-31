@@ -1,7 +1,7 @@
 package net.arctics.clonk.parser;
 
 
-import java.util.List;
+import java.util.Set;
 
 import net.arctics.clonk.parser.c4script.IEntityLocatedInIndex;
 import net.arctics.clonk.parser.c4script.ITypeable;
@@ -18,7 +18,7 @@ public final class DeclarationRegion {
 	private transient IEntityLocatedInIndex declaration;
 	private IRegion region;
 	private String text;
-	private List<Declaration> potentialDeclarations;
+	private Set<Declaration> potentialDeclarations;
 	public Declaration getConcreteDeclaration() {
 		if (declaration instanceof Declaration)
 			return (Declaration)declaration;
@@ -46,10 +46,13 @@ public final class DeclarationRegion {
 	 * @param potentialDeclarations The list of potential declarations 
 	 * @param region The text region
 	 */
-	public DeclarationRegion(List<Declaration> potentialDeclarations, IRegion region) {
+	public DeclarationRegion(Set<Declaration> potentialDeclarations, IRegion region) {
 		super();
 		if (potentialDeclarations.size() == 1)
-			this.declaration = potentialDeclarations.get(0);
+			for (Declaration d : potentialDeclarations) {
+				this.declaration = d;
+				break;
+			}
 		else
 			this.potentialDeclarations = potentialDeclarations;
 		this.region = region;
@@ -82,7 +85,7 @@ public final class DeclarationRegion {
 	 * Return a list of declarations this region could refer to.
 	 * @return The list.
 	 */
-	public List<Declaration> getPotentialDeclarations() {
+	public Set<Declaration> getPotentialDeclarations() {
 		return potentialDeclarations;
 	}
 	@Override

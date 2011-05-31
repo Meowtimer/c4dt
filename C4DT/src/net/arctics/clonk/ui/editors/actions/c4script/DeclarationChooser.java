@@ -2,8 +2,10 @@ package net.arctics.clonk.ui.editors.actions.c4script;
 
 import java.util.Collection;
 import java.util.Comparator;
-import java.util.LinkedList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.index.ClonkIndex;
 import net.arctics.clonk.parser.Declaration;
@@ -45,27 +47,27 @@ public class DeclarationChooser extends FilteredItemsSelectionDialog {
 	
 	private static final String DIALOG_SETTINGS = "DeclarationChooserDialogSettings"; //$NON-NLS-1$
 	
-	private Collection<DeclarationLocation> declarations;
+	private Set<DeclarationLocation> declarations;
 	private ClonkIndex index;
 
-	public DeclarationChooser(Shell shell, Collection<DeclarationLocation> declarations) {
+	public DeclarationChooser(Shell shell, Set<DeclarationLocation> proposedDeclarations) {
 		super(shell);
-		this.declarations = declarations;
+		this.declarations = proposedDeclarations;
 		setListLabelProvider(new LabelProvider());
 		setTitle(Messages.DeclarationChooser_Label);
 	}
 	
 	public DeclarationChooser(Shell shell, ClonkIndex index) {
-		this(shell, (Collection<DeclarationLocation>)null);
+		this(shell, (Set<DeclarationLocation>)null);
 		this.index = index;
 	}
 	
-	public DeclarationChooser(Shell shell, List<Declaration> proposedDeclarations) {
+	public DeclarationChooser(Shell shell, Set<Declaration> proposedDeclarations, boolean doYouHateIt) {
 		this(shell, getFirstDeclarationsFromDeclarationLocationsOf(proposedDeclarations));
 	}
 
-	private static Collection<DeclarationLocation> getFirstDeclarationsFromDeclarationLocationsOf(List<Declaration> proposedDeclarations) {
-		List<DeclarationLocation> l = new LinkedList<DeclarationLocation>();
+	private static Set<DeclarationLocation> getFirstDeclarationsFromDeclarationLocationsOf(Collection<Declaration> proposedDeclarations) {
+		Set<DeclarationLocation> l = new HashSet<DeclarationLocation>();
 		for (Declaration d : proposedDeclarations) {
 			DeclarationLocation[] locations = d.getDeclarationLocations();
 			if (locations != null) {

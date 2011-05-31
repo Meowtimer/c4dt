@@ -733,11 +733,6 @@ public class C4ScriptEditor extends ClonkTextEditor {
 	@Override
 	protected void initializeEditor() {
 		super.initializeEditor();
-		try {
-			reparseWithDocumentContents(null, false);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
 	}
 
 }

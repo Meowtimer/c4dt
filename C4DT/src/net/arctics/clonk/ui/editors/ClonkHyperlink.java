@@ -4,6 +4,7 @@ import java.lang.ref.WeakReference;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Arrays;
+import java.util.HashSet;
 
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.index.Engine;
@@ -54,7 +55,7 @@ public class ClonkHyperlink implements IHyperlink {
 			if (locations.length == 1)
 				ClonkTextEditor.openDeclaration(locations[0].getDeclaration());
 			else
-				new DeclarationChooser(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(), Arrays.asList(locations)).run();
+				new DeclarationChooser(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(), new HashSet<DeclarationLocation>(Arrays.asList(locations))).run();
 			if (ClonkTextEditor.openDeclaration(target) == null) {
 				// can't open editor so try something else like opening up a documentation page in the browser
 				if (target.isEngineDeclaration()) {
