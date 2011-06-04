@@ -597,7 +597,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	}
 
 	/**
-	 * OC: get information out of the script that was previously to be found in additional files (like the name of the definition)
+	 * OC: Get information out of the script that was previously to be found in additional files (like the name of the {@link Definition}). Specifically, parse the Definition() function.
 	 */
 	public void distillAdditionalInformation() {
 		if (container instanceof Definition) {
@@ -658,8 +658,8 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	}
 
 	/**
-	 * Parse code of one single function. parseCodeOfFunctions() calls this for all functions in the script. 
-	 * @param function
+	 * Parse code of one single function. {@link #parseCodeOfFunctionsAndValidate()} calls this for all functions in the script. 
+	 * @param function The function to be parsed
 	 * @throws ParsingException
 	 */
 	public void parseCodeOfFunction(Function function, boolean withNewContext) throws ParsingException {
@@ -758,6 +758,11 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		}
 	}
 
+	/**
+	 * Warn about variables declared inside the given block that have not been referenced elsewhere ({@link Variable#isUsed() == false})
+	 * @param func The function the block belongs to.
+	 * @param block The {@link Block}
+	 */
 	public void warnAboutUnusedFunctionVariables(Function func, Block block) {
 		if (func == null)
 			return;
@@ -1236,7 +1241,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	}
 
 	/**
-	 * Create a new function.
+	 * Create a new function. Depending on what {@link SpecialScriptRules} the current {@link Engine} has, the function will be some specialized instance ({@link DefinitionFunction} or {@link EffectFunction}for example)
 	 * @param nameWillBe What the name of the function will be.
 	 * @return The newly created function. Might be of some special class.
 	 */
@@ -1403,11 +1408,20 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	}
 
 	/**
-	 * loop types
+	 * Loop types.
 	 */
 	public enum LoopType {
+		/**
+		 * for (...;...;...) ...
+		 */
 		For,
-		IterateArray, // for (x in y)
+		/**
+		 * for (... in ...) ...
+		 */
+		IterateArray,
+		/**
+		 * while (...) ...
+		 */
 		While
 	}
 
@@ -1513,6 +1527,11 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		}
 	}
 	
+	/**
+	 * Get error enabled status.
+	 * @param error The error to check the enabled status of
+	 * @return Return whether the error is enabled. 
+	 */
 	public boolean errorEnabled(ParserErrorCode error) {
 		return !(allErrorsDisabled || currentFunctionContext.disabledErrors.contains(error) || errorsDisabledByProjectSettings.contains(error));
 	}
@@ -1547,6 +1566,16 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	
 	private Collection<LatentMarker> latentMarkers;
 	
+	/**
+	 * Make a note of some potential marker that will or will not be created after having parsed declarations and function code.
+	 * Currently, this is only used for {@link ParserErrorCode#TooManyParameters}. When deciding whether to actually add the marker,
+	 * the function in question (which might have gotten its parameter list added to) is checked again.
+	 * @param code The parser error code
+	 * @param region The region
+	 * @param severity The severity
+	 * @param cookie Cookie consulted when deciding whether to create the marker after parsing function code
+	 * @param args Format arguments for the error code message
+	 */
 	public void addLatentMarker(ParserErrorCode code, IRegion region, int severity, Object cookie, Object... args) {
 		addLatentMarker(code, region.getOffset(), region.getOffset()+region.getLength(), severity, cookie, args);
 	}
@@ -1824,7 +1853,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 				elm = new Placeholder(currentFunctionContext.parsedString);
 			}
 			
-			// § ... §
+			// §{...}
 			if (elm == null)
 				elm = parseWildcard();
 			
@@ -2222,7 +2251,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	}
 
 	/**
-	 * Let an expression report errors. Calling expression.reportErrors indirectly like that ensures
+	 * Let an expression report errors. Calling {@link ExprElm#reportErrors(C4ScriptParser)} indirectly like that ensures
 	 * that error markers created will be decorated with information about the expression reporting the error.
 	 * @param expression The expression to report errors.
 	 * @throws ParsingException
@@ -2260,7 +2289,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	private static final char[] QUOTES_AND_NEWLINE_CHARS = getQuotesAndNewLineChars();
 	
 	/**
-	 * Parse a string literal and store it in the parsedString field.
+	 * Parse a string literal and store it in the {@link FunctionContext#parsedString} field.
 	 * @return Whether parsing was successful.
 	 * @throws ParsingException
 	 */
@@ -2287,7 +2316,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	}
 	
 	/**
-	 * Parse an identifier an store it in the parsedString field.
+	 * Parse an identifier and store it in the {@link FunctionContext#parsedString} field.
 	 * @return Whether parsing the identifier was successful.
 	 * @throws ParsingException
 	 */
@@ -3184,9 +3213,9 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	}
 	
 	/**
-	 * Return the hash code for the region of the script that holds the code for function
-	 * @param function the function to return the source hash code of
-	 * @return source hash code
+	 * Return the substring of the script that holds the code for function
+	 * @param function the function to return the source code of
+	 * @return source code
 	 */
 	protected String functionSource(Function function) {
 		if (function == null) {
@@ -3212,12 +3241,18 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	 */
 	public interface IMarkerListener {
 		/**
-		 * Result enum for markerEncountered
+		 * Result enum for {@link IMarkerListener#markerEncountered(C4ScriptParser, ParserErrorCode, int, int, int, int, Object...)}
 		 * @author madeen
 		 *
 		 */
 		public enum WhatToDo {
+			/**
+			 * Don't create the marker, the accused is innocent
+			 */
 			DropCharges,
+			/**
+			 * Continue creating the marker
+			 */
 			PassThrough
 		}
 		/**
@@ -3331,11 +3366,11 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	 */
 	public enum ExpressionsAndStatementsReportingFlavour {
 		/**
-		 * Report only expressions (call parseExpression)
+		 * Report only expressions (call {@link C4ScriptParser#parseExpression()})
 		 */
 		OnlyExpressions,
 		/**
-		 * Report statements as well (call parseStatement)
+		 * Report statements as well (call {@link C4ScriptParser#parseStatement()})
 		 */
 		AlsoStatements
 	}
@@ -3361,7 +3396,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 			this.markerListener = markerListener;
 		}
 		/**
-		 * Overridden to notify the marker listener and possibly cancel creating the marker if the listener says so.
+		 * Overridden to notify the {@link #markerListener} and possibly cancel creating the marker if the listener says so.
 		 */
 		@Override
 		public IMarker markerWithCode(ParserErrorCode code,
@@ -3382,7 +3417,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	/**
 	 * Report expressions and statements of a function or some free-floating code fragment using
 	 * a newly created parser that is returned after reporting is finished.
-	 * If funcOrRegion is a C4Function, reparsing takes only place if the script the function body
+	 * If funcOrRegion is a {@link Function}, reparsing takes only place if the script the function body
 	 * was parsed from has been changed. 
 	 * @param doc The document the script stems from
 	 * @param context Script object
@@ -3460,7 +3495,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	 * @param statementText The statement text to parse
 	 * @param context Function context. If null, some temporary context will be created internally.
 	 * @param listener Script parser listener
-	 * @return The statement or a BunchOfStatement if more than one statement could be parsed from statementText. Possibly null, if erroneous text was passed.
+	 * @return The {@link Statement}, or a {@link BunchOfStatements} if more than one statement could be parsed from statementText. Possibly null, if erroneous text was passed.
 	 * @throws ParsingException
 	 */
 	public Statement parseStandaloneStatement(final String statementText, Function context, IScriptParserListener listener) throws ParsingException {
@@ -3480,10 +3515,6 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 				break;
 		} while (true);
 		return statements.size() == 1 ? statements.get(0) : new BunchOfStatements(statements);
-	}
-
-	public int getParseStatementRecursion() {
-		return currentFunctionContext.parseStatementRecursion;
 	}
 
 	@Override
