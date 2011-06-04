@@ -9,7 +9,7 @@ import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.DeclarationRegion;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
-import net.arctics.clonk.parser.c4script.ConstrainedType;
+import net.arctics.clonk.parser.c4script.ConstrainedObject;
 import net.arctics.clonk.parser.c4script.DeclarationObtainmentContext;
 import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.parser.c4script.ITypeable;
@@ -132,7 +132,7 @@ public abstract class AccessDeclaration extends Value {
 		if (pred == null)
 			return;
 		IType t = pred.getType(context);
-		if (!(t == PrimitiveType.UNKNOWN || t == PrimitiveType.ANY))
+		if (t != null && t.specificness() > PrimitiveType.OBJECT.specificness())
 			return;
 
 		if (context instanceof C4ScriptParser && pred != null) {
@@ -142,13 +142,14 @@ public abstract class AccessDeclaration extends Value {
 				public void run(ClonkIndex index) {
 					for (Declaration d : index.declarationsWithName(declarationName, Declaration.class))
 						if (!d.isGlobal() && AccessDeclaration.this.declarationClass().isAssignableFrom(d.getClass()) && d.getParentDeclaration() instanceof ScriptBase)
-							typesWithThatMember.add(new ConstrainedType((ScriptBase)d.getParentDeclaration(), ConstraintKind.Includes));
+							typesWithThatMember.add(new ConstrainedObject((ScriptBase)d.getParentDeclaration(), ConstraintKind.Includes));
 				}
 			});
 			if (typesWithThatMember.size() > 0) {
+				typesWithThatMember.add(t);
 				IType ty = TypeSet.create(typesWithThatMember);
 				ty.setTypeDescription(String.format(Messages.AccessDeclaration_TypesSporting, declarationName));
-				pred.expectedToBeOfType(ty, (C4ScriptParser) context, TypeExpectancyMode.Expect);
+				pred.expectedToBeOfType(ty, (C4ScriptParser) context, TypeExpectancyMode.Force);
 			}
 		}
 	}

@@ -36,7 +36,7 @@ public class ConstrainedType implements IType, IHasConstraint, Serializable {
 	
 	@Override
 	public Iterator<IType> iterator() {
-		return ArrayUtil.arrayIterable(PrimitiveType.ID, PrimitiveType.PROPLIST, constraintScript instanceof IType ? (IType)constraintScript : null).iterator();
+		return ArrayUtil.arrayIterable(PrimitiveType.ID, PrimitiveType.PROPLIST, this).iterator();
 	}
 
 	@Override

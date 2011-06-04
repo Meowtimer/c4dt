@@ -3,7 +3,6 @@ package net.arctics.clonk.parser.c4script;
 import java.util.Iterator;
 
 import net.arctics.clonk.ClonkCore;
-import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.util.ArrayUtil;
 
 /**
@@ -42,20 +41,20 @@ public class ConstrainedObject implements IType, IHasConstraint {
 	@Override
 	public Iterator<IType> iterator() {
 		if (iterable == null)
-			iterable = ArrayUtil.arrayIterable(PrimitiveType.OBJECT, PrimitiveType.PROPLIST, constraintScript instanceof IType ? (IType)constraintScript : null);
+			iterable = ArrayUtil.arrayIterable(PrimitiveType.OBJECT, PrimitiveType.PROPLIST, this);
 		return iterable.iterator();
 	}
 
 	@Override
 	public boolean canBeAssignedFrom(IType other) {
-		if (other == PrimitiveType.OBJECT || other == PrimitiveType.ANY || other == PrimitiveType.UNKNOWN)
+		if (other == PrimitiveType.OBJECT || other == PrimitiveType.ANY || other == PrimitiveType.UNKNOWN || other == PrimitiveType.PROPLIST)
 			return true;
 		ScriptBase script = null;
 		if (other instanceof ScriptBase)
 			script = (ScriptBase)other;
 		if (other instanceof ConstrainedObject)
 			script = ((ConstrainedObject)other).constraintScript;
-		return script != null && script.includes(constraintScript);
+		return script != null && constraintScript.canBeAssignedFrom(script);
 	}
 
 	@Override
@@ -87,16 +86,17 @@ public class ConstrainedObject implements IType, IHasConstraint {
 	@Override
 	public boolean intersects(IType typeSet) {
 		for (IType t : typeSet) {
-			if (canBeAssignedFrom(t)) {
+			if (t == PrimitiveType.PROPLIST)
 				return true;
-			}
+			if (canBeAssignedFrom(t))
+				return true;
 		}
 		return false;
 	}
 
 	@Override
 	public boolean containsType(IType type) {
-		return type == PrimitiveType.PROPLIST || canBeAssignedFrom(type);
+		return type == PrimitiveType.PROPLIST || type == PrimitiveType.OBJECT || canBeAssignedFrom(type);
 	}
 
 	@Override
@@ -106,10 +106,7 @@ public class ConstrainedObject implements IType, IHasConstraint {
 
 	@Override
 	public int specificness() {
-		if (constraintScript instanceof Definition)
-			return ((Definition)constraintScript).specificness()-1;
-		else
-			return PrimitiveType.OBJECT.specificness();
+		return PrimitiveType.OBJECT.specificness()+1;
 	}
 
 	@Override

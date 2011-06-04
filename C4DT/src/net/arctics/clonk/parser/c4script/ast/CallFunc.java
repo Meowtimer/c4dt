@@ -253,17 +253,26 @@ public class CallFunc extends AccessDeclaration {
 	@Override
 	public Declaration obtainDeclaration(DeclarationObtainmentContext context) {
 		super.obtainDeclaration(context);
+		List<Declaration> decs = new LinkedList<Declaration>();
+		_obtainDeclaration(decs, context);
+		return decs.size() > 0 ? decs.get(0) : null;
+	}
+
+	protected void _obtainDeclaration(Collection<Declaration> decs, DeclarationObtainmentContext context) {
 		if (declarationName.equals(Keywords.Return))
-			return null;
+			return;
 		if (declarationName.equals(Keywords.Inherited) || declarationName.equals(Keywords.SafeInherited)) {
 			Function activeFunc = context.getCurrentFunc();
-			return activeFunc != null ? activeFunc.getInherited() : null;
+			if (activeFunc != null) {
+				Function inher = activeFunc.getInherited();
+				if (inher != null)
+					decs.add(inher);
+				return;
+			}
 		}
 		ExprElm p = getPredecessorInSequence();
-		List<Declaration> decs = new LinkedList<Declaration>();
 		findFunctionUsingPredecessor(p, declarationName, context, decs);
 		multiplePotentialDeclarations = decs.size() > 1;
-		return decs.size() > 0 ? decs.get(0) : null;
 	}
 
 	public static Declaration findFunctionUsingPredecessor(ExprElm p, String functionName, DeclarationObtainmentContext context, Collection<Declaration> listToAddPotentialDeclarationsTo) {
@@ -324,11 +333,23 @@ public class CallFunc extends AccessDeclaration {
 		if (predType == null)
 			return false;
 		if (pred instanceof MemberOperator)
-			return !((MemberOperator)pred).hasTilde();
-		for (IType t : predType)
-			if (t instanceof IHasConstraint && ((IHasConstraint)t).resolve(parser, callerType(parser)) instanceof ScriptBase)
-				return true;
-		return false;
+			if (((MemberOperator)pred).hasTilde())
+				return false;
+		boolean anythingNonPrimitive = false;
+		for (IType t : predType) {
+			if (t instanceof PrimitiveType)
+				continue;
+			if (!(t instanceof IHasConstraint))
+				return false;
+			else {
+				IHasConstraint hasConstraint = (IHasConstraint) t;
+				anythingNonPrimitive = true;
+				// something resolved to something less specific than a ScriptBase? drop
+				if (!(hasConstraint.resolve(parser, callerType(parser)) instanceof ScriptBase))
+					return false;
+			}
+		}
+		return anythingNonPrimitive;
 	}
 	@Override
 	public void reportErrors(final C4ScriptParser context) throws ParsingException {
@@ -564,7 +585,7 @@ public class CallFunc extends AccessDeclaration {
 	@Override
 	public DeclarationRegion declarationAt(int offset, C4ScriptParser parser) {
 		Set<Declaration> list = new HashSet<Declaration>();
-		findFunctionUsingPredecessor(getPredecessorInSequence(), getDeclarationName(), parser, list);
+		_obtainDeclaration(list, parser);
 		return new DeclarationRegion(list, new Region(getExprStart(), declarationName.length()));
 	}
 	public ExprElm getReturnArg() {

@@ -154,15 +154,13 @@ public class MemberOperator extends ExprElm {
 	public void reportErrors(C4ScriptParser parser) throws ParsingException {
 		super.reportErrors(parser);
 		ExprElm pred = getPredecessorInSequence();
-		if (pred != null) {
+		if (pred != null)
 			pred.sequenceTilMe().expectedToBeOfType(
 				dotNotation ? PrimitiveType.PROPLIST : TypeSet.OBJECT_OR_ID, parser, TypeExpectancyMode.Hint,
 				dotNotation ? ParserErrorCode.NotAProplist : ParserErrorCode.CallingMethodOnNonObject
 			);
-		}
-		if (getLength() > 3 && !parser.getContainer().getEngine().getCurrentSettings().spaceAllowedBetweenArrowAndTilde) {
+		if (getLength() > 3 && !parser.getContainer().getEngine().getCurrentSettings().spaceAllowedBetweenArrowAndTilde)
 			parser.errorWithCode(ParserErrorCode.MemberOperatorWithTildeNoSpace, this);
-		}
 	}
 	
 	@Override

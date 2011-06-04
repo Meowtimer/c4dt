@@ -213,7 +213,10 @@ public class TypeSet implements IType, IInternalizable {
 		builder.append(Messages.C4TypeSet_End);
 		if (containsAny)
 			builder.append('?');
-		return builder.toString();
+		if (builder.length() > 50)
+			return description != null ? description : PrimitiveType.ANY.typeName(special);
+		else
+			return builder.toString();
 	}
 	
 	@Override
@@ -232,10 +235,9 @@ public class TypeSet implements IType, IInternalizable {
 
 	@Override
 	public boolean intersects(IType typeSet) {
-		for (IType t : this) {
+		for (IType t : this)
 			if (t.intersects(typeSet))
 				return true;
-		}
 		return false;
 	}
 
@@ -254,12 +256,10 @@ public class TypeSet implements IType, IInternalizable {
 	
 	@Override
 	public int specificness() {
-		int s = 0, c = 0;
-		for (IType t : this) {
-			c++;
-			s += t.specificness();
-		}
-		return c == 0 ? 0 : s/c;
+		int r = 0;
+		for (IType t : this)
+			r = Math.max(r, t.specificness());
+		return r;
 	}
 
 	@Override

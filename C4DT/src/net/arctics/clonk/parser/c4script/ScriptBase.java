@@ -926,7 +926,7 @@ public abstract class ScriptBase extends Structure implements ITreeNode, IHasCon
 
 	@Override
 	public int specificness() {
-		return PrimitiveType.OBJECT.specificness()+1;
+		return PrimitiveType.OBJECT.specificness()+2;
 	}
 
 	@Override

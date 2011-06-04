@@ -114,7 +114,9 @@ public enum PrimitiveType implements IType {
 					case INT:
 						return other == BOOL;
 					case PROPLIST:
-						return ID.canBeAssignedFrom(t) || OBJECT.canBeAssignedFrom(t);
+						return t == ID || t == OBJECT;
+					case OBJECT:
+						return t == PROPLIST;
 					}
 				}
 			}

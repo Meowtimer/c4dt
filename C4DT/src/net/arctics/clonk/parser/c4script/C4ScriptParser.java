@@ -101,6 +101,8 @@ import org.eclipse.jface.text.Region;
  */
 public class C4ScriptParser extends CStyleScanner implements DeclarationObtainmentContext, IEvaluationContext {
 	
+	private static final boolean DEBUG = false;
+	
 	public static class FunctionContext {
 		public Declaration currentDeclaration;
 		public ID parsedID;
@@ -291,7 +293,8 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	public void storeTypeInformation(ExprElm expression, IType type) {
 		IStoredTypeInformation requested = requestStoredTypeInformation(expression);
 		if (requested != null) {
-			//warningWithCode(ParserErrorCode.TypingJudgment, expression, expression.toString(), type.typeName(true));
+			if (DEBUG)
+				warningWithCode(ParserErrorCode.TypingJudgment, expression, expression.toString(), type.typeName(true));
 			requested.storeType(type);
 		}
 	}
@@ -953,11 +956,8 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 						} else {
 							if (scope == Scope.CONST && !isEngine)
 								errorWithCode(ParserErrorCode.ConstantValueExpected, this.offset-1, this.offset, true);
-							else {
-								if (scope == Scope.STATIC) {
-									varInitialization.variableBeingInitialized.forceType(PrimitiveType.INT); // most likely
-								}
-							}
+							else if (scope == Scope.STATIC && isEngine)
+								varInitialization.variableBeingInitialized.forceType(PrimitiveType.INT); // most likely
 						}
 					}
 					createdVariables.add(varInitialization);
