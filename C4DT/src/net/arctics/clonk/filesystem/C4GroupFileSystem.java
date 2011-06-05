@@ -26,7 +26,7 @@ import org.eclipse.core.runtime.Path;
 public class C4GroupFileSystem extends FileSystem {
 	
 	/**
-	 * The scheme for this file system.
+	 * The scheme identifier of this file system.
 	 */
 	public static final String SCHEME = "c4group"; //$NON-NLS-1$
 
@@ -70,6 +70,9 @@ public class C4GroupFileSystem extends FileSystem {
 	 */
 	private static C4GroupFileSystem sharedInstance;
 
+	/**
+	 * Create a new C4GroupFileSystem. This will only work once, setting the variable backing {@link #getInstance()}. Subsequent calls will result in failed assertions.
+	 */
 	public C4GroupFileSystem() {
 		super();
 		synchronized (C4GroupFileSystem.class) {

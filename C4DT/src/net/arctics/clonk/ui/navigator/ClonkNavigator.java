@@ -30,7 +30,7 @@ import org.eclipse.core.runtime.Path;
 import org.eclipse.jface.viewers.Viewer;
 
 /**
- * content provider for adding virtual (non-file based) nodes to the project explorer
+ * content provider for adding virtual nodes to the project explorer, which include outlines of scripts and virtual {@link EFS} file nodes of packed C4Groups (see {@link C4GroupFileSystem}).
  */
 public class ClonkNavigator extends ClonkOutlineProvider {
 

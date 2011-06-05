@@ -57,7 +57,7 @@ import org.eclipse.ui.navigator.CommonNavigator;
 /**
  * An incremental builder for all project data.<br>
  * This builder launches the parser that indexes all
- * c4objects and highlights syntax errors in one project.<br>
+ * {@link Definition}s and standalone scripts and highlights syntax errors in one project.<br>
  * Each project has its own ClonkBuilder instance.
  * @author ZokRadonh
  */
