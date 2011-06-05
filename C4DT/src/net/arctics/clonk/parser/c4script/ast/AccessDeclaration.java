@@ -129,7 +129,7 @@ public abstract class AccessDeclaration extends Value {
 	
 	protected void applyTypingByMemberUsage(DeclarationObtainmentContext context) {
 		ExprElm pred = getPredecessorInSequence();
-		if (pred == null)
+		if (pred == null || (pred instanceof MemberOperator && ((MemberOperator)pred).hasTilde()))
 			return;
 		IType t = pred.getType(context);
 		if (t != null && t.specificness() > PrimitiveType.OBJECT.specificness())
@@ -146,7 +146,8 @@ public abstract class AccessDeclaration extends Value {
 				}
 			});
 			if (typesWithThatMember.size() > 0) {
-				typesWithThatMember.add(t);
+				if (t != PrimitiveType.UNKNOWN)
+					typesWithThatMember.add(t);
 				IType ty = TypeSet.create(typesWithThatMember);
 				ty.setTypeDescription(String.format(Messages.AccessDeclaration_TypesSporting, declarationName));
 				pred.expectedToBeOfType(ty, (C4ScriptParser) context, TypeExpectancyMode.Force);
