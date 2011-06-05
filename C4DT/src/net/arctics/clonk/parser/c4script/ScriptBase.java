@@ -150,15 +150,18 @@ public abstract class ScriptBase extends Structure implements ITreeNode, IHasCon
 
 	/**
 	 * Tries to gather all of the script's includes (including appendtos in the case of object scripts)
-	 * @param list The list to be filled with the includes
+	 * @param set The list to be filled with the includes
 	 * @param index The project index to search for includes in (has greater priority than EXTERN_INDEX which is always searched)
 	 */
-	protected void gatherIncludes(List<ScriptBase> list, ClonkIndex index) {
+	public void gatherIncludes(Set<ScriptBase> set, ClonkIndex index, boolean recursive) {
 		for (Directive d : definedDirectives) {
 			if (d.getType() == DirectiveType.INCLUDE || d.getType() == DirectiveType.APPENDTO) {
 				Definition obj = nearestDefinitionWithId(d.contentAsID());
-				if (obj != null)
-					list.add(obj);
+				if (obj != null) {
+					set.add(obj);
+					if (recursive)
+						obj.gatherIncludes(set, index, true);
+				}
 			}
 		}
 	}
@@ -168,9 +171,9 @@ public abstract class ScriptBase extends Structure implements ITreeNode, IHasCon
 	 * @param index The index to be passed to gatherIncludes
 	 * @return The includes
 	 */
-	public Collection<ScriptBase> getIncludes(ClonkIndex index) {
-		List<ScriptBase> result = new ArrayList<ScriptBase>();
-		gatherIncludes(result, index);
+	public Collection<ScriptBase> getIncludes(ClonkIndex index, boolean recursive) {
+		Set<ScriptBase> result = new HashSet<ScriptBase>();
+		gatherIncludes(result, index, recursive);
 		return result;
 	}
 
@@ -178,11 +181,15 @@ public abstract class ScriptBase extends Structure implements ITreeNode, IHasCon
 	 * Does the same as gatherIncludes except that the user does not have to create their own list and does not even have to supply an index (defaulting to getIndex()) 
 	 * @return The includes
 	 */
-	public final Collection<ScriptBase> getIncludes() {
+	public final Collection<ScriptBase> getIncludes(boolean recursive) {
 		ClonkIndex index = getIndex();
 		if (index == null)
 			return NO_INCLUDES;
-		return getIncludes(index);
+		return getIncludes(index, recursive);
+	}
+	
+	public final Collection<ScriptBase> getIncludes(ClonkIndex index) {
+		return getIncludes(index, true);
 	}
 
 	/**
@@ -251,7 +258,7 @@ public abstract class ScriptBase extends Structure implements ITreeNode, IHasCon
 		if ((mask & VARIABLES) != 0)
 			its.add(definedVariables);
 		if ((mask & INCLUDES) != 0)
-			its.add(getIncludes());
+			its.add(getIncludes(false));
 		if ((mask & DIRECTIVES) != 0)
 			its.add(definedDirectives);
 		return new CompoundIterable<Declaration>(its);
@@ -471,33 +478,17 @@ public abstract class ScriptBase extends Structure implements ITreeNode, IHasCon
 	}
 
 	/**
-	 * See {@link #includes(ScriptBase, Set)}. Creating the {@link Set} parameter is taken care of.
+	 * Return whether this script includes another one.
 	 * @param other The other script
 	 * @return True if this script includes the other one, false if not.
 	 */
 	public boolean includes(ScriptBase other) {
-		return includes(other, new HashSet<ScriptBase>());
-	}
-
-	/**
-	 * Return whether this script includes another one.
-	 * @param other The other script
-	 * @param dontRevisit Set to remember already-visited scripts so infinite loops won't occur.
-	 * @return True if this script includes the other one, false if not.
-	 */
-	public boolean includes(ScriptBase other, Set<ScriptBase> dontRevisit) {
 		if (other == this)
 			return true;
-		if (dontRevisit.contains(this))
-			return false;
-		dontRevisit.add(this);
-		Iterable<ScriptBase> incs = this.getIncludes();
-		for (ScriptBase o : incs) {
+		Iterable<ScriptBase> incs = this.getIncludes(true);
+		for (ScriptBase o : incs)
 			if (o == other)
 				return true;
-			if (o.includes(other, dontRevisit))
-				return true;
-		}
 		return false;
 	}
 
@@ -518,7 +509,7 @@ public abstract class ScriptBase extends Structure implements ITreeNode, IHasCon
 				return func;
 		}
 		if (includeIncludes) {
-			for (ScriptBase script : getIncludes()) {
+			for (ScriptBase script : getIncludes(false)) {
 				Function func = script.findLocalFunction(name, includeIncludes, alreadySearched);
 				if (func != null)
 					return func;
@@ -536,7 +527,7 @@ public abstract class ScriptBase extends Structure implements ITreeNode, IHasCon
 				return var;
 		}
 		if (includeIncludes) {
-			for (ScriptBase script : getIncludes()) {
+			for (ScriptBase script : getIncludes(false)) {
 				Variable var = script.findLocalVariable(name, includeIncludes, alreadySearched);
 				if (var != null)
 					return var;

@@ -46,7 +46,7 @@ public class ClonkHierarchyView extends ViewPart {
 			}
 			@Override
 			public boolean isRootScript(ScriptBase script) {
-				return script instanceof Definition && !(script instanceof Scenario) && !script.getIncludes().iterator().hasNext();
+				return script instanceof Definition && !(script instanceof Scenario) && !script.getIncludes(false).iterator().hasNext();
 			}
 		};
 		

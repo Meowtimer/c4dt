@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -154,14 +155,20 @@ public abstract class Definition extends ScriptBase {
 	}
 
 	@Override
-	protected void gatherIncludes(final List<ScriptBase> list, ClonkIndex index) {
-		super.gatherIncludes(list, index);
+	public  void gatherIncludes(final Set<ScriptBase> set, final ClonkIndex index, final boolean recursive) {
+		if (set.contains(this))
+			return;
+		super.gatherIncludes(set, index, recursive);
 		if (index != null) index.forAllRelevantIndexes(new ClonkIndex.r() {
 			@Override
-			public void run(ClonkIndex index) {
-				List<ScriptBase> appendages = index.appendagesOf(Definition.this);
+			public void run(ClonkIndex relevantIndex) {
+				List<ScriptBase> appendages = relevantIndex.appendagesOf(Definition.this);
 				if (appendages != null)
-					list.addAll(appendages);
+					for (ScriptBase s : appendages) {
+						set.add(s);
+						if (recursive)
+							s.gatherIncludes(set, index, true);
+					}
 			}
 		});
 	}

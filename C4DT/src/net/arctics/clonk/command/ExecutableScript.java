@@ -69,7 +69,7 @@ public class ExecutableScript extends ScriptBase {
 	}
 
 	@Override
-	public Collection<ScriptBase> getIncludes(ClonkIndex index) {
+	public Collection<ScriptBase> getIncludes(ClonkIndex index, boolean recursive) {
 		return Arrays.asList(Command.COMMAND_BASESCRIPT);
 	}
 
