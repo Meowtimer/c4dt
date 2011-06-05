@@ -9,7 +9,7 @@ import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.DeclarationRegion;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
-import net.arctics.clonk.parser.c4script.ConstrainedObject;
+import net.arctics.clonk.parser.c4script.ConstrainedProplist;
 import net.arctics.clonk.parser.c4script.DeclarationObtainmentContext;
 import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.parser.c4script.ITypeable;
@@ -142,7 +142,7 @@ public abstract class AccessDeclaration extends Value {
 				public void run(ClonkIndex index) {
 					for (Declaration d : index.declarationsWithName(declarationName, Declaration.class))
 						if (!d.isGlobal() && AccessDeclaration.this.declarationClass().isAssignableFrom(d.getClass()) && d.getParentDeclaration() instanceof ScriptBase)
-							typesWithThatMember.add(new ConstrainedObject((ScriptBase)d.getParentDeclaration(), ConstraintKind.Includes));
+							typesWithThatMember.add(new ConstrainedProplist((ScriptBase)d.getParentDeclaration(), ConstraintKind.Includes));
 				}
 			});
 			if (typesWithThatMember.size() > 0) {

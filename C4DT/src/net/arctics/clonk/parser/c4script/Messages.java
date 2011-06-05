@@ -14,11 +14,11 @@ public class Messages extends NLS {
 	public static String C4Variable_InfoTextFormatDefaultValue;
 	public static String C4Variable_InfoTextFormatOverall;
 	public static String C4Variable_InfoTextFormatUserDescription;
-	public static String ConstrainedObject_ObjectIncluding;
-	public static String ConstrainedObject_ObjectOfCurrentType;
-	public static String ConstrainedType_CurrentType;
+	public static String ConstrainedProplist_Including;
+	public static String ConstrainedProplist_ObjectOfCurrentType;
+	public static String ConstrainedProplist_CurrentType;
 	public static String ConstrainedType_DefinitionIncluding;
-	public static String ConstrainedType_ExactType;
+	public static String ConstrainedProplist_ExactType;
 	public static String ImportingEngineFromXML;
 	public static String TokenStringOrIdentifier;
 	public static String InternalError_WayTooMuch;

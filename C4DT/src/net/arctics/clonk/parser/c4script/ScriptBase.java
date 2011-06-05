@@ -470,10 +470,21 @@ public abstract class ScriptBase extends Structure implements ITreeNode, IHasCon
 		return null;
 	}
 
+	/**
+	 * See {@link #includes(ScriptBase, Set)}. Creating the {@link Set} parameter is taken care of.
+	 * @param other The other script
+	 * @return True if this script includes the other one, false if not.
+	 */
 	public boolean includes(ScriptBase other) {
 		return includes(other, new HashSet<ScriptBase>());
 	}
 
+	/**
+	 * Return whether this script includes another one.
+	 * @param other The other script
+	 * @param dontRevisit Set to remember already-visited scripts so infinite loops won't occur.
+	 * @return True if this script includes the other one, false if not.
+	 */
 	public boolean includes(ScriptBase other, Set<ScriptBase> dontRevisit) {
 		if (other == this)
 			return true;
@@ -916,6 +927,7 @@ public abstract class ScriptBase extends Structure implements ITreeNode, IHasCon
 			type == PrimitiveType.OBJECT ||
 			type == PrimitiveType.PROPLIST ||
 			type == this ||
+			(type instanceof ConstrainedProplist && this.includes(((ConstrainedProplist)type).constraintScript())) ||
 			type == PrimitiveType.ID; // gets rid of type sets <id or Clonk>
 	}
 	
@@ -926,7 +938,7 @@ public abstract class ScriptBase extends Structure implements ITreeNode, IHasCon
 
 	@Override
 	public int specificness() {
-		return PrimitiveType.OBJECT.specificness()+2;
+		return PrimitiveType.OBJECT.specificness()+3;
 	}
 
 	@Override

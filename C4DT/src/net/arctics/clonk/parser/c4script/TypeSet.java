@@ -213,7 +213,7 @@ public class TypeSet implements IType, IInternalizable {
 		builder.append(Messages.C4TypeSet_End);
 		if (containsAny)
 			builder.append('?');
-		if (builder.length() > 50)
+		if (builder.length() > 200)
 			return description != null ? description : PrimitiveType.ANY.typeName(special);
 		else
 			return builder.toString();

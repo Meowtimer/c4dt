@@ -350,15 +350,15 @@ public class SpecialScriptRules {
 		public IType returnType(DeclarationObtainmentContext context, CallFunc callFunc) {
 			if (callFunc.getParams().length >= 1) {
 				IType t = callFunc.getParams()[0].getType(context);
-				if (t instanceof ConstrainedType) {
-					ConstrainedType ct = (ConstrainedType) t;
+				if (t instanceof ConstrainedProplist) {
+					ConstrainedProplist ct = (ConstrainedProplist) t;
 					switch (ct.constraintKind()) {
 					case Exact:
-						return ct.getObjectType();
+						return ct.constraintDefinition();
 					case CallerType:
-						return new ConstrainedObject(ct.constraintScript(), ConstraintKind.CallerType);
+						return new ConstrainedProplist(ct.constraintScript(), ConstraintKind.CallerType);
 					case Includes:
-						return new ConstrainedObject(ct.constraintScript(), ConstraintKind.Includes);
+						return new ConstrainedProplist(ct.constraintScript(), ConstraintKind.Includes);
 					}
 				}
 			}
@@ -385,13 +385,13 @@ public class SpecialScriptRules {
 				script = context.getContainer();
 				t = null;
 			}
-			if (t instanceof ConstrainedObject) {
-				ConstrainedObject cobj = (ConstrainedObject)t;
+			if (t instanceof ConstrainedProplist) {
+				ConstrainedProplist cobj = (ConstrainedProplist)t;
 				constraintKind = cobj.constraintKind();
 				script = cobj.constraintScript();
 			}
 			
-			return script != null ? ConstrainedType.get(script, constraintKind) : PrimitiveType.ID;
+			return script != null ? ConstrainedProplist.get(script, constraintKind) : PrimitiveType.ID;
 		}
 	};
 	
@@ -443,13 +443,13 @@ public class SpecialScriptRules {
 					for (ClonkIndex index : context.getContainer().getIndex().relevantIndexes()) {
 						for (Function f : index.declarationsWithName((String)ev, Function.class)) {
 							if (f.getScript() instanceof Definition) {
-								types.add(new ConstrainedObject((Definition)f.getScript(), ConstraintKind.Includes));
+								types.add(new ConstrainedProplist((Definition)f.getScript(), ConstraintKind.Includes));
 							}
 							else for (Directive directive : f.getScript().directives()) {
 								if (directive.getType() == DirectiveType.APPENDTO) {
 									Definition def = f.getScript().getIndex().getDefinitionNearestTo(context.getContainer().getResource(), directive.contentAsID());
 									if (def != null) {
-										types.add(new ConstrainedObject(def, ConstraintKind.Includes));
+										types.add(new ConstrainedProplist(def, ConstraintKind.Includes));
 									}
 								}
 							}

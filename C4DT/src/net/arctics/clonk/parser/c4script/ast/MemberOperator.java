@@ -135,7 +135,7 @@ public class MemberOperator extends ExprElm {
 	public void expectedToBeOfType(IType type, C4ScriptParser context, TypeExpectancyMode mode, ParserErrorCode errorWhenFailed) {
 		// delegate to predecessor
 		if (getPredecessorInSequence() != null)
-			getPredecessorInSequence().expectedToBeOfType(type, context);
+			getPredecessorInSequence().expectedToBeOfType(type, context, mode, errorWhenFailed);
 	}
 
 	@Override

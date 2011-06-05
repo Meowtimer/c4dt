@@ -12,7 +12,9 @@ import org.eclipse.swt.graphics.Image;
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.ID;
-import net.arctics.clonk.parser.c4script.ConstrainedType;
+import net.arctics.clonk.parser.c4script.ConstrainedProplist;
+import net.arctics.clonk.parser.c4script.IType;
+import net.arctics.clonk.parser.c4script.PrimitiveType;
 import net.arctics.clonk.parser.c4script.ScriptBase;
 import net.arctics.clonk.parser.c4script.Variable;
 import net.arctics.clonk.parser.c4script.FindDeclarationInfo;
@@ -47,7 +49,7 @@ public abstract class Definition extends ScriptBase {
 	 */
 	private transient Image cachedPicture;
 
-	private transient ConstrainedType objectType;
+	private transient ConstrainedProplist objectType;
 
 	/**
 	 * Creates a new C4Object
@@ -179,11 +181,15 @@ public abstract class Definition extends ScriptBase {
 		this.cachedPicture = cachedPicture;
 	}
 	
-	public ConstrainedType getObjectType() {
-		if (objectType == null) {
-			objectType = new ConstrainedType(this, ConstraintKind.Exact);
-		}
+	public ConstrainedProplist getObjectType() {
+		if (objectType == null)
+			objectType = new ConstrainedProplist(this, ConstraintKind.Exact, true, false);
 		return objectType;
+	}
+	
+	@Override
+	public IType staticType() {
+		return PrimitiveType.ID;
 	}
 
 }

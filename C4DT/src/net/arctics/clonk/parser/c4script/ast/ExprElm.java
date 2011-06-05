@@ -829,6 +829,11 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 			}
 		}
 		
+		@Override
+		public String toString() {
+			return referenceElm.toString() + ": " + super.toString();
+		}
+		
 	}
 	
 	@Override

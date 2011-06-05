@@ -9,7 +9,7 @@ import net.arctics.clonk.index.ProjectDefinition;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.ParsingException;
-import net.arctics.clonk.parser.c4script.ConstrainedObject;
+import net.arctics.clonk.parser.c4script.ConstrainedProplist;
 import net.arctics.clonk.parser.c4script.DeclarationObtainmentContext;
 import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.ITypeable;
@@ -143,7 +143,7 @@ public class AccessVar extends AccessDeclaration {
 		Declaration d = getDeclaration(context);
 		// getDeclaration(context) ensures that declaration is not null (if there is actually a variable) which is needed for queryTypeOfExpression for example
 		if (d == Variable.THIS)
-			return new ConstrainedObject(context.getContainer(), ConstraintKind.CallerType);
+			return new ConstrainedProplist(context.getContainer(), ConstraintKind.CallerType);
 		IType stored = context.queryTypeOfExpression(this, null);
 		if (stored != null)
 			return stored;
