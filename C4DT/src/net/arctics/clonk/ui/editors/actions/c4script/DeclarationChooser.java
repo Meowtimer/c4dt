@@ -14,6 +14,8 @@ import net.arctics.clonk.parser.Structure;
 import net.arctics.clonk.ui.editors.ClonkTextEditor;
 import net.arctics.clonk.ui.navigator.ClonkOutlineProvider;
 import net.arctics.clonk.util.ArrayUtil;
+import net.arctics.clonk.util.IConverter;
+
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
@@ -92,10 +94,17 @@ public class DeclarationChooser extends FilteredItemsSelectionDialog {
 		return null;
 	}
 
+	private IConverter<String, String> STRING_UPPERCASER = new IConverter<String, String>() {
+		@Override
+		public String convert(String from) {
+			return from.toUpperCase();
+		}
+	};
+	
 	@Override
 	protected ItemsFilter createFilter() {
 		return new ItemsFilter() {
-
+			
 			@Override
 			public boolean isConsistentItem(Object item) {
 				return false;
@@ -103,13 +112,18 @@ public class DeclarationChooser extends FilteredItemsSelectionDialog {
 
 			@Override
 			public boolean matchItem(Object item) {
+				String[] patternStrings = ArrayUtil.map(this.getPattern().split(" "), String.class, STRING_UPPERCASER);
 				if (item instanceof DeclarationLocation)
 					item = ((DeclarationLocation)item).getDeclaration();
-				if (!(item instanceof Declaration)) return false;
+				if (!(item instanceof Declaration))
+					return false;
 				final Declaration decl = (Declaration) item;
-				final String search = this.getPattern().toUpperCase();
-				final Structure structure = decl.getTopLevelStructure();
-				return decl.nameContains(search) || (structure != null && declarations != null && structure.nameContains(search));
+				for (String p : patternStrings) {
+					final Structure structure = decl.getTopLevelStructure();
+					if (!(decl.nameContains(p) || (structure != null && structure.nameContains(p))))
+						return false;
+				}
+				return true;
 			}
 			
 		};
