@@ -86,5 +86,18 @@ public class PlayerControlsUnit extends IniUnitWithNamedSections {
 		}
 		return super.findLocalDeclaration(declarationName, declarationClass);
 	}
+	
+	@SuppressWarnings("unchecked")
+	@Override
+	public <T extends Declaration> T getLatestVersion(T from) {
+		T r = super.getLatestVersion(from);
+		if (r != null)
+			return r;
+		if (from instanceof Variable)
+			for (Variable c : controlVariables)
+				if (from.getName().equals(c.getName()))
+					return (T) c;
+		return null;
+	};
 
 }

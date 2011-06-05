@@ -208,7 +208,10 @@ public class ClonkTextEditor extends TextEditor {
 						e.printStackTrace();
 					}
 				}
+				Declaration old = target;
 				target = target.latestVersion();
+				if (target == null)
+					target = old;
 				if (target != null)
 					clonkTextEditor.selectAndReveal(target.getRegionToSelect());
 			}
