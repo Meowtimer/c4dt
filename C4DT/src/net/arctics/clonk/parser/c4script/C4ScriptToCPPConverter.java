@@ -22,9 +22,9 @@ import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.c4script.ast.Block;
 import net.arctics.clonk.parser.c4script.ast.CallFunc;
 import net.arctics.clonk.parser.c4script.ast.ExprElm;
-import net.arctics.clonk.parser.c4script.ast.ExprWriter;
 import net.arctics.clonk.parser.c4script.ast.NumberLiteral;
 import net.arctics.clonk.parser.c4script.ast.Statement;
+import net.arctics.clonk.parser.c4script.ast.AppendableBackedExprWriter;
 import net.arctics.clonk.parser.c4script.ast.StringLiteral;
 import net.arctics.clonk.parser.c4script.ast.VarDeclarationStatement;
 import net.arctics.clonk.parser.c4script.ast.VarDeclarationStatement.VarInitialization;
@@ -46,7 +46,7 @@ public class C4ScriptToCPPConverter {
 	}
 	
 	public void printExprElement(ExprElm element, final Writer output, int depth) {
-		element.print(new ExprWriter() {
+		element.print(new AppendableBackedExprWriter(output) {
 			
 			boolean prelude = true;
 			
@@ -100,24 +100,6 @@ public class C4ScriptToCPPConverter {
 					}
 				}
 				return false;
-			}
-			
-			@Override
-			public void append(char c) {
-				try {
-					output.append(c);
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-			}
-			
-			@Override
-			public void append(String text) {
-				try {
-					output.append(text);
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
 			}
 		}, depth);
 	}

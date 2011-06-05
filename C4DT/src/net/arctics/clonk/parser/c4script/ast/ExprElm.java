@@ -168,22 +168,7 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 	}
 
 	public final void print(final StringBuilder builder, int depth) {
-		print(new ExprWriter() {
-			@Override
-			public boolean doCustomPrinting(ExprElm elm, int depth) {
-				return false;
-			}
-			
-			@Override
-			public void append(char c) {
-				builder.append(c);
-			}
-			
-			@Override
-			public void append(String text) {
-				builder.append(text);
-			}
-		}, depth);
+		print(new AppendableBackedExprWriter(builder), depth);
 	}
 
 	public boolean isValidInSequence(ExprElm predecessor, C4ScriptParser context) {

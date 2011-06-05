@@ -48,7 +48,7 @@ public final class StringLiteral extends Literal<String> {
 		if (result != null)
 			return result;
 
-		// look whether this string can be considered a function name
+		// look whether some special linking rule can be applied to this literal
 		if (getParent() instanceof CallFunc) {
 			CallFunc parentFunc = (CallFunc) getParent();
 			int myIndex = parentFunc.indexOfParm(this);
