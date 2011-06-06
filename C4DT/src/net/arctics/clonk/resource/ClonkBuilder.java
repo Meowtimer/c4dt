@@ -236,6 +236,8 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 			return false;
 		}
 		public boolean visit(IResource resource) throws CoreException {
+			if (currentSubProgressMonitor != null && currentSubProgressMonitor.isCanceled())
+				return false;
 			if (resource instanceof IContainer) {
 				if (!INDEX_C4GROUPS)
 					if (EFS.getStore(resource.getLocationURI()) instanceof C4Group)
@@ -385,6 +387,8 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 				@Override
 				public void run() {
 					ID oldID = def.id();
+					if (oldID == null)
+						return;
 					// FIXME: implement for CR?
 					Variable var = def.proxyVar();
 					if (var != null && UI.confirm(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(),
@@ -449,6 +453,8 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 			do {
 				parserMapSize = parserMap.size();
 				for (ScriptBase script : tempParserMap.keySet()) {
+					if (currentSubProgressMonitor.isCanceled())
+						return;
 					performBuildPhaseOne(script);
 				}
 				// refresh now so gathered structures will be validated with an index that has valid appendages maps and such.
@@ -473,15 +479,16 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 			currentSubProgressMonitor = new SubProgressMonitor(monitor, parserMap.size());
 			currentSubProgressMonitor.beginTask(Messages.ClonkBuilder_ParseCodeTask, parserMap.size());
 			while (!parserMap.isEmpty()) {
+				if (currentSubProgressMonitor.isCanceled())
+					return;
 				performBuildPhaseTwo(parserMap.keySet().iterator().next());
 			}
 			currentSubProgressMonitor.done();
 
 			applyLatentMarkers();
-			
-			monitor.done();
 
 		} finally {
+			monitor.done();
 			visitDeltaOrWholeProject(delta, proj, new C4GroupStreamHandler(C4GroupStreamHandler.CLOSE));
 		}
 	}
