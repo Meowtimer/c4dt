@@ -22,6 +22,8 @@ import net.arctics.clonk.parser.c4script.Variable;
 import net.arctics.clonk.parser.c4script.ast.AccessVar;
 import net.arctics.clonk.parser.c4script.ast.BinaryOp;
 import net.arctics.clonk.parser.c4script.ast.Block;
+import net.arctics.clonk.parser.c4script.ast.BoolLiteral;
+import net.arctics.clonk.parser.c4script.ast.BreakStatement;
 import net.arctics.clonk.parser.c4script.ast.BunchOfStatements;
 import net.arctics.clonk.parser.c4script.ast.CallFunc;
 import net.arctics.clonk.parser.c4script.ast.ExprElm;
@@ -33,6 +35,7 @@ import net.arctics.clonk.parser.c4script.ast.StringLiteral;
 import net.arctics.clonk.parser.c4script.ast.UnaryOp;
 import net.arctics.clonk.parser.c4script.ast.VarDeclarationStatement;
 import net.arctics.clonk.parser.c4script.ast.UnaryOp.Placement;
+import net.arctics.clonk.parser.c4script.ast.WhileStatement;
 import net.arctics.clonk.parser.c4script.ast.Wildcard;
 
 import org.eclipse.core.resources.IMarker;
@@ -129,8 +132,32 @@ public class C4ScriptParserTestCase {
 	}
 	
 	@Test
-	public void testSyntaxParsing() {
-		
+	public void testASTPrinting() {
+		Block b = new Block(
+			new SimpleStatement(new BinaryOp(Operator.Assign, new AccessVar("i"), new NumberLiteral(50))),
+			new SimpleStatement(new UnaryOp(Operator.Increment, Placement.Prefix, new AccessVar("i"))),
+			new WhileStatement(
+				new BoolLiteral(true),
+				new Block(
+					new SimpleStatement(new CallFunc("Log", new StringLiteral("Test"))),
+					new BreakStatement()
+				)
+			)
+		);
+		String ref = "{\n"+
+		"\ti = 50;\n"+
+		"\t++i;\n"+
+		"\twhile (true)\n"+
+		"\t{\n"+
+		"\t\tLog(\"Test\");\n"+
+		"\t\tbreak;\n"+
+		"\t}\n"+
+		"}";
+		assertTrue(b.toString().equals(ref));
+	}
+	
+	@Test
+	public void testForLoopParsingParsing() {
 		final Block block = new BunchOfStatements(
 			new ForStatement(
 				new VarDeclarationStatement(Variable.Scope.VAR,
@@ -143,14 +170,15 @@ public class C4ScriptParserTestCase {
 				)
 			)
 		);
-		
+		assertParsingYieldsCorrectAST(block);
+	}
+	
+	private static final String TEST_FUNC_TEMPLATE = "func Test() {%s}";
+
+	protected void assertParsingYieldsCorrectAST(final Block block) {
 		Setup setup;
 		try {
-			setup = new Setup(
-				"func Test() {"+
-					"for (var i = 0; i < 100; i++) { Log(\"Hello\"); }"+
-				"}"
-			);
+			setup = new Setup(String.format(TEST_FUNC_TEMPLATE, block.toString()));
 		} catch (UnsupportedEncodingException e1) {
 			e1.printStackTrace();
 			assertFalse(true);
