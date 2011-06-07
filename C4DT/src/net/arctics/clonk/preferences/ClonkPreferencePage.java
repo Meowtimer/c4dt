@@ -318,7 +318,7 @@ public class ClonkPreferencePage extends FieldEditorPreferencePage implements IW
 			)
 		);
 		
-		addField(new StringFieldEditor(ClonkPreferences.AUTHOR, "Author:", getFieldEditorParent()));
+		addField(new StringFieldEditor(ClonkPreferences.AUTHOR, Messages.ClonkPreferencePage_Author, getFieldEditorParent()));
 	}
 
 	public static String[][] engineComboValues(boolean includeDefault) {
