@@ -31,7 +31,9 @@ Import-Package: org.eclipse.core.filesystem,
  org.eclipse.search.ui,
  org.eclipse.search.ui.text,
  org.eclipse.ui.forms.widgets,
- org.eclipse.ui.texteditor.spelling
+ org.eclipse.ui.texteditor.spelling,
+ org.junit,
+ org.hamcrest.core
 Export-Package: net.arctics.clonk,
  net.arctics.clonk.parser,
  net.arctics.clonk.parser.c4script,
