@@ -20,7 +20,7 @@ public class Block extends Statement {
 		this(statements.toArray(new Statement[statements.size()]));
 	}
 
-	public Block(Statement[] statements) {
+	public Block(Statement... statements) {
 		super();
 		this.statements = statements;
 		assignParentToSubElements();

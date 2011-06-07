@@ -1,5 +1,6 @@
 package net.arctics.clonk.parser.c4script.ast;
 
+import java.util.Arrays;
 import java.util.List;
 
 import net.arctics.clonk.ClonkCore;
@@ -12,15 +13,41 @@ import net.arctics.clonk.parser.c4script.Variable.Scope;
 import net.arctics.clonk.util.ArrayUtil;
 import org.eclipse.jface.text.Region;
 
+/**
+ * Variable declaration statement, containing multiple variable declarations which optionally include an initial assignment.
+ * @author madeen
+ *
+ */
 public class VarDeclarationStatement extends KeywordStatement {
 	
+	/**
+	 * A single var declaration/initialization. Includes name of variable being declared, optionally the initialization expression and
+	 * a reference to the actual {@link Variable} object representing the variable being declared. 
+	 * @author madeen
+	 *
+	 */
 	public static final class VarInitialization extends ExprElm {
 
 		private static final long serialVersionUID = 1L;
 
+		/**
+		 * Name of the variable being declared.
+		 */
 		public String name;
+		/**
+		 * Initialization expression. Can be null.
+		 */
 		public ExprElm expression;
+		/**
+		 * Object representing variable. Does not need to be set.
+		 */
 		public Variable variableBeingInitialized;
+		/**
+		 * Create a new {@link VarInitialization}.
+		 * @param name Name of variable
+		 * @param expression Expression. Can be null.
+		 * @param namePos Position of name. Used for setting the region of this expression ({@link #setExprRegion(int, int)}})
+		 */
 		public VarInitialization(String name, ExprElm expression, int namePos) {
 			super();
 			this.name = name;
@@ -43,10 +70,18 @@ public class VarDeclarationStatement extends KeywordStatement {
 				expression.print(output, depth+1);
 			}
 		}
+		/**
+		 * Return the {@link VarInitialization} preceding this one in the {@link VarDeclarationStatement}
+		 * @return
+		 */
 		public VarInitialization getPreviousInitialization() {
 			VarInitialization[] brothers = getParent(VarDeclarationStatement.class).varInitializations;
 			return ArrayUtil.boundChecked(brothers, ArrayUtil.indexOf(this, brothers)-1);
 		}
+		/**
+		 * Return the subsequent {@link VarInitialization} in the {@link VarDeclarationStatement}
+		 * @return
+		 */
 		public VarInitialization getNextInitialization() {
 			VarInitialization[] brothers = getParent(VarDeclarationStatement.class).varInitializations;
 			return ArrayUtil.boundChecked(brothers, ArrayUtil.indexOf(this, brothers)+1);
@@ -62,6 +97,9 @@ public class VarDeclarationStatement extends KeywordStatement {
 		this.varInitializations = varInitializations.toArray(new VarInitialization[varInitializations.size()]);
 		this.scope = scope;
 		assignParentToSubElements();
+	}
+	public VarDeclarationStatement(Scope scope, VarInitialization... varInitializations) {
+		this(Arrays.asList(varInitializations), scope);
 	}
 	public VarDeclarationStatement(String varName, ExprElm initialization, int namePos, Scope scope) {
 		this(ArrayUtil.list(new VarInitialization(varName, initialization, namePos)), scope);
