@@ -29,6 +29,7 @@ import net.arctics.clonk.index.ClonkIndex;
 import net.arctics.clonk.parser.BufferedScanner;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.ID;
+import net.arctics.clonk.parser.IHasIncludes;
 import net.arctics.clonk.parser.Structure;
 import net.arctics.clonk.parser.c4script.Directive.DirectiveType;
 import net.arctics.clonk.parser.c4script.Function.C4FunctionScope;
@@ -61,11 +62,9 @@ import org.xml.sax.SAXException;
  * Base class for various objects that act as containers of stuff declared in scripts/ini files.
  * Subclasses include C4Object, C4StandaloneScript etc.
  */
-public abstract class ScriptBase extends Structure implements ITreeNode, IHasConstraint, IType, IEvaluationContext {
+public abstract class ScriptBase extends Structure implements ITreeNode, IHasConstraint, IType, IEvaluationContext, IHasIncludes {
 
 	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
-
-	private static final Collection<ScriptBase> NO_INCLUDES = new ArrayList<ScriptBase>(0);
 
 	protected List<Function> definedFunctions = new LinkedList<Function>();
 	protected List<Variable> definedVariables = new LinkedList<Variable>();
@@ -153,11 +152,12 @@ public abstract class ScriptBase extends Structure implements ITreeNode, IHasCon
 	 * @param set The list to be filled with the includes
 	 * @param index The project index to search for includes in (has greater priority than EXTERN_INDEX which is always searched)
 	 */
-	public void gatherIncludes(Set<ScriptBase> set, ClonkIndex index, boolean recursive) {
+	@Override
+	public void gatherIncludes(Set<IHasIncludes> set, ClonkIndex index, boolean recursive) {
 		for (Directive d : definedDirectives) {
 			if (d.getType() == DirectiveType.INCLUDE || d.getType() == DirectiveType.APPENDTO) {
 				Definition obj = nearestDefinitionWithId(d.contentAsID());
-				if (obj != null) {
+				if (obj != null && !set.contains(obj)) {
 					set.add(obj);
 					if (recursive)
 						obj.gatherIncludes(set, index, true);
@@ -171,8 +171,8 @@ public abstract class ScriptBase extends Structure implements ITreeNode, IHasCon
 	 * @param index The index to be passed to gatherIncludes
 	 * @return The includes
 	 */
-	public Collection<ScriptBase> getIncludes(ClonkIndex index, boolean recursive) {
-		Set<ScriptBase> result = new HashSet<ScriptBase>();
+	public Collection<IHasIncludes> getIncludes(ClonkIndex index, boolean recursive) {
+		Set<IHasIncludes> result = new HashSet<IHasIncludes>();
 		gatherIncludes(result, index, recursive);
 		return result;
 	}
@@ -181,14 +181,14 @@ public abstract class ScriptBase extends Structure implements ITreeNode, IHasCon
 	 * Does the same as gatherIncludes except that the user does not have to create their own list and does not even have to supply an index (defaulting to getIndex()) 
 	 * @return The includes
 	 */
-	public final Collection<ScriptBase> getIncludes(boolean recursive) {
+	public final Collection<IHasIncludes> getIncludes(boolean recursive) {
 		ClonkIndex index = getIndex();
 		if (index == null)
 			return NO_INCLUDES;
 		return getIncludes(index, recursive);
 	}
 	
-	public final Collection<ScriptBase> getIncludes(ClonkIndex index) {
+	public final Collection<IHasIncludes> getIncludes(ClonkIndex index) {
 		return getIncludes(index, true);
 	}
 
@@ -258,7 +258,7 @@ public abstract class ScriptBase extends Structure implements ITreeNode, IHasCon
 		if ((mask & VARIABLES) != 0)
 			its.add(definedVariables);
 		if ((mask & INCLUDES) != 0)
-			its.add(getIncludes(false));
+			its.add(ArrayUtil.filteredIterable(getIncludes(false), Declaration.class));
 		if ((mask & DIRECTIVES) != 0)
 			its.add(definedDirectives);
 		return new CompoundIterable<Declaration>(its);
@@ -311,7 +311,7 @@ public abstract class ScriptBase extends Structure implements ITreeNode, IHasCon
 
 		// search in included definitions
 		info.recursion++;
-		for (ScriptBase o : getIncludes(info.index)) {
+		for (IHasIncludes o : getIncludes(info.index)) {
 			Declaration result = o.findDeclaration(name, info);
 			if (result != null)
 				return result;
@@ -482,11 +482,12 @@ public abstract class ScriptBase extends Structure implements ITreeNode, IHasCon
 	 * @param other The other script
 	 * @return True if this script includes the other one, false if not.
 	 */
-	public boolean includes(ScriptBase other) {
+	@Override
+	public boolean includes(IHasIncludes other) {
 		if (other == this)
 			return true;
-		Iterable<ScriptBase> incs = this.getIncludes(true);
-		for (ScriptBase o : incs)
+		Iterable<IHasIncludes> incs = this.getIncludes(true);
+		for (IHasIncludes o : incs)
 			if (o == other)
 				return true;
 		return false;
@@ -509,7 +510,7 @@ public abstract class ScriptBase extends Structure implements ITreeNode, IHasCon
 				return func;
 		}
 		if (includeIncludes) {
-			for (ScriptBase script : getIncludes(false)) {
+			for (ScriptBase script : ArrayUtil.filteredIterable(getIncludes(false), ScriptBase.class)) {
 				Function func = script.findLocalFunction(name, includeIncludes, alreadySearched);
 				if (func != null)
 					return func;
@@ -527,7 +528,7 @@ public abstract class ScriptBase extends Structure implements ITreeNode, IHasCon
 				return var;
 		}
 		if (includeIncludes) {
-			for (ScriptBase script : getIncludes(false)) {
+			for (ScriptBase script : ArrayUtil.filteredIterable(getIncludes(false), ScriptBase.class)) {
 				Variable var = script.findLocalVariable(name, includeIncludes, alreadySearched);
 				if (var != null)
 					return var;
@@ -612,7 +613,7 @@ public abstract class ScriptBase extends Structure implements ITreeNode, IHasCon
 					return;
 				duplicatesCatcher.add(script);
 				list.add(script);
-				for (ScriptBase s : script.getIncludes(index)) {
+				for (ScriptBase s : ArrayUtil.filteredIterable(script.getIncludes(index), ScriptBase.class)) {
 					gather(s, list, duplicatesCatcher);
 				}
 			}
@@ -886,7 +887,7 @@ public abstract class ScriptBase extends Structure implements ITreeNode, IHasCon
 	}
 	
 	@Override
-	public ScriptBase constraintScript() {
+	public ScriptBase constraint() {
 		return this;
 	}
 	
@@ -902,7 +903,7 @@ public abstract class ScriptBase extends Structure implements ITreeNode, IHasCon
 	 */
 	public static ScriptBase scriptFrom(IType type) {
 		if (type instanceof IHasConstraint)
-			return ((IHasConstraint)type).constraintScript();
+			return Utilities.as(((IHasConstraint)type).constraint(), ScriptBase.class);
 		else
 			return null;
 	}
@@ -918,7 +919,7 @@ public abstract class ScriptBase extends Structure implements ITreeNode, IHasCon
 			type == PrimitiveType.OBJECT ||
 			type == PrimitiveType.PROPLIST ||
 			type == this ||
-			(type instanceof ConstrainedProplist && this.includes(((ConstrainedProplist)type).constraintScript())) ||
+			(type instanceof ConstrainedProplist && this.includes(((ConstrainedProplist)type).constraint())) ||
 			type == PrimitiveType.ID; // gets rid of type sets <id or Clonk>
 	}
 	

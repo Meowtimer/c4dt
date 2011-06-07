@@ -7,6 +7,7 @@ import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.index.ClonkIndex;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.DeclarationRegion;
+import net.arctics.clonk.parser.IHasIncludes;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.ConstrainedProplist;
@@ -14,11 +15,13 @@ import net.arctics.clonk.parser.c4script.DeclarationObtainmentContext;
 import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.parser.c4script.ITypeable;
 import net.arctics.clonk.parser.c4script.PrimitiveType;
-import net.arctics.clonk.parser.c4script.ScriptBase;
+import net.arctics.clonk.parser.c4script.ProplistDeclaration;
 import net.arctics.clonk.parser.c4script.TypeSet;
 import net.arctics.clonk.parser.c4script.IHasConstraint.ConstraintKind;
+import net.arctics.clonk.parser.c4script.Variable;
 import net.arctics.clonk.parser.c4script.ast.IASTComparisonDelegate.DifferenceHandling;
 import net.arctics.clonk.parser.c4script.ast.IASTComparisonDelegate.Option;
+import net.arctics.clonk.util.ArrayUtil;
 
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.Region;
@@ -108,6 +111,10 @@ public abstract class AccessDeclaration extends Value {
 		return DifferenceHandling.Equal;
 	}
 
+	/**
+	 * Returns the class declarations referenced by this {@link AccessDeclaration} need to be instances of.
+	 * @return The {@link Declaration} class
+	 */
 	public Class<? extends Declaration> declarationClass() {
 		return Declaration.class;
 	}
@@ -127,22 +134,35 @@ public abstract class AccessDeclaration extends Value {
 		getDeclaration(root);
 	}
 	
-	protected void applyTypingByMemberUsage(DeclarationObtainmentContext context) {
+	/**
+	 * Set the type of this expression's predecessor to a set of types that define a declaration called {@link #getDeclarationName()}.
+	 * @param context
+	 * @return
+	 */
+	protected boolean applyTypingByMemberUsage(DeclarationObtainmentContext context) {
 		ExprElm pred = getPredecessorInSequence();
 		if (pred == null || (pred instanceof MemberOperator && ((MemberOperator)pred).hasTilde()))
-			return;
+			return false;
 		IType t = pred.getType(context);
 		if (t != null && t.specificness() > PrimitiveType.OBJECT.specificness())
-			return;
+			return false;
 
 		if (context instanceof C4ScriptParser && pred != null) {
 			final List<IType> typesWithThatMember = new LinkedList<IType>();
+			if (context.getCurrentFunc() != null) {
+				for (ProplistDeclaration pd : ArrayUtil.filteredIterable(context.getCurrentFunc().getOtherDeclarations(), ProplistDeclaration.class)) {
+					for (Variable v : pd.getComponents()) {
+						if (v.getName().equals(declarationName))
+							typesWithThatMember.add(new ConstrainedProplist(pd, ConstraintKind.Includes));
+					}
+				}
+			}
 			context.getContainer().getIndex().forAllRelevantIndexes(new ClonkIndex.r() {
 				@Override
 				public void run(ClonkIndex index) {
 					for (Declaration d : index.declarationsWithName(declarationName, Declaration.class))
-						if (!d.isGlobal() && AccessDeclaration.this.declarationClass().isAssignableFrom(d.getClass()) && d.getParentDeclaration() instanceof ScriptBase)
-							typesWithThatMember.add(new ConstrainedProplist((ScriptBase)d.getParentDeclaration(), ConstraintKind.Includes));
+						if (!d.isGlobal() && AccessDeclaration.this.declarationClass().isAssignableFrom(d.getClass()) && d.getParentDeclaration() instanceof IHasIncludes)
+							typesWithThatMember.add(new ConstrainedProplist((IHasIncludes)d.getParentDeclaration(), ConstraintKind.Includes));
 				}
 			});
 			if (typesWithThatMember.size() > 0) {
@@ -151,8 +171,10 @@ public abstract class AccessDeclaration extends Value {
 				IType ty = TypeSet.create(typesWithThatMember);
 				ty.setTypeDescription(String.format(Messages.AccessDeclaration_TypesSporting, declarationName));
 				pred.expectedToBeOfType(ty, (C4ScriptParser) context, TypeExpectancyMode.Force);
+				return true;
 			}
 		}
+		return false;
 	}
 	
 }

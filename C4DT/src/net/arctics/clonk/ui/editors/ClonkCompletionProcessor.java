@@ -59,7 +59,7 @@ public abstract class ClonkCompletionProcessor<EditorType extends ClonkTextEdito
 		return ((IFileEditorInput)editor.getEditorInput()).getFile();
 	}
 	
-	protected void proposalsForIndexedObjects(ClonkIndex index, int offset, int wordOffset, String prefix, Collection<ICompletionProposal> proposals) {
+	protected void proposalsForIndexedDefinitions(ClonkIndex index, int offset, int wordOffset, String prefix, Collection<ICompletionProposal> proposals) {
 		for (Definition obj : index.objectsIgnoringRemoteDuplicates(pivotFile())) {
 			proposalForDefinition(obj, prefix, wordOffset, proposals);
 		}

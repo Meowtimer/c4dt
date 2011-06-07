@@ -4,6 +4,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
@@ -13,6 +14,7 @@ import org.eclipse.jface.text.IRegion;
 import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.parser.Declaration;
+import net.arctics.clonk.parser.IHasIncludes;
 import net.arctics.clonk.parser.Structure;
 import net.arctics.clonk.parser.SourceLocation;
 import net.arctics.clonk.parser.c4script.Variable.Scope;
@@ -364,8 +366,8 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	public Function getInherited() {
 		
 		// search in #included scripts
-		Collection<ScriptBase> includesCollection = getScript().getIncludes(false);
-		ScriptBase[] includes = includesCollection.toArray(new ScriptBase[includesCollection.size()]);
+		Collection<IHasIncludes> includesCollection = getScript().getIncludes(false);
+		IHasIncludes[] includes = includesCollection.toArray(new IHasIncludes[includesCollection.size()]);
 		for (int i = includes.length-1; i >= 0; i--) {
 			Function fun = includes[i].findFunction(getName());
 			if (fun != null && fun != this)
@@ -649,15 +651,20 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	/**
 	 * Add declaration that is neither parameter nor variable. Most likely an implicit proplist.
 	 * @param d The declaration to add
-	 * @return Return d or an existing other declaration at the same location
+	 * @return Return d. Any proplist declarations already added to the other declarations list with the same location will be removed in favor of d.
 	 */
 	public Declaration addOtherDeclaration(Declaration d) {
 		if (otherDeclarations == null)
 			otherDeclarations = new ArrayList<Declaration>(3);
-		else
-			for (Declaration existing : otherDeclarations)
-				if (existing.getLocation().equals(d.getLocation()))
-					return existing;
+		else {
+			for (Iterator<Declaration> it = otherDeclarations.iterator(); it.hasNext();) {
+				Declaration existing = it.next();
+				if (existing.getLocation().equals(d.getLocation())) {
+					it.remove();
+					break;
+				}
+			}
+		}
 		otherDeclarations.add(d);
 		return d;
 	}

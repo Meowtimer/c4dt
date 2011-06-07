@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Set;
 
 import net.arctics.clonk.ClonkCore;
+import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.Scenario;
 import net.arctics.clonk.index.ClonkIndex;
 import net.arctics.clonk.parser.c4script.BuiltInDefinitions;
@@ -69,6 +70,11 @@ import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.keys.IBindingService;
 import org.eclipse.ui.texteditor.ITextEditorActionDefinitionIds;
 
+/**
+ * Handles calculating completion lists shown when invoking Content Assist in C4Script editors.
+ * @author madeen
+ *
+ */
 public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4ScriptEditor> {
 
 	private static final char[] CONTEXT_INFORMATION_AUTO_ACTIVATION_CHARS = new char[] {'('};
@@ -144,27 +150,40 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 		proposalCycle = proposalCycle.cycle();
 	}
 
-	private void proposalsForIndex(ClonkIndex index, int offset, int wordOffset, String prefix, List<ICompletionProposal> proposals) {
+	/**
+	 * Add to an existing list the proposals originating from some {@link ClonkIndex}. Those proposals are comprised of global functions, static variables and {@link Definition}s.
+	 * @param index The {@link ClonkIndex} to add proposals for
+	 * @param offset Caret offset
+	 * @param wordOffset Word offset
+	 * @param prefix String already typed
+	 * @param proposals The list to add the proposals to
+	 * @param flags Flags indicating what kind of proposals should be included. {@link IHasSubDeclarations#STATIC_VARIABLES} needs to be or-ed to flags if {@link Definition} and static variable proposals are to be shown.
+	 */
+	private void proposalsForIndex(ClonkIndex index, int offset, int wordOffset, String prefix, List<ICompletionProposal> proposals, int flags) {
 		if (!index.isEmpty()) {
 			if (_activeFunc != null) {
 				Scenario s2 = _activeFunc.getScenario();
-				for (Function func : index.globalFunctions()) {
-					Scenario s1 = func.getScenario();
-					if (s1 != null && s2 != null && s1 != s2)
-						continue;
-					proposalForFunc(func, prefix, offset, proposals, func.getScript().getName(), true);
-				}
-				for (Variable var : index.staticVariables()) {
-					Scenario s1 = var.getScenario();
-					if (s1 != null && s1 != s2)
-						continue;
-					proposalForVar(var,prefix,offset,proposals);
-				}
+				if ((flags & IHasSubDeclarations.FUNCTIONS) != 0)
+					for (Function func : index.globalFunctions()) {
+						Scenario s1 = func.getScenario();
+						if (s1 != null && s2 != null && s1 != s2)
+							continue;
+						proposalForFunc(func, prefix, offset, proposals, func.getScript().getName(), true);
+					}
+				if ((flags & IHasSubDeclarations.STATIC_VARIABLES) != 0)
+					for (Variable var : index.staticVariables()) {
+						Scenario s1 = var.getScenario();
+						if (s1 != null && s1 != s2)
+							continue;
+						proposalForVar(var,prefix,offset,proposals);
+					}
 			}
-			proposalsForIndexedObjects(index, offset, wordOffset, prefix, proposals);
+			if ((flags & IHasSubDeclarations.STATIC_VARIABLES) != 0)
+				proposalsForIndexedDefinitions(index, offset, wordOffset, prefix, proposals);
 		}
 	}
 
+	@Override
 	public ICompletionProposal[] computeCompletionProposals(ITextViewer viewer, int offset) {
 		int wordOffset = offset - 1;
 		IDocument doc = viewer.getDocument();
@@ -302,11 +321,10 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 				}
 				for (IType t : contextSequence.getType(parser)) {
 					IHasSubDeclarations structure;
-					if (t instanceof IHasSubDeclarations) {
+					if (t instanceof IHasSubDeclarations)
 						structure = (IHasSubDeclarations) t;
-					} else {
+					else
 						structure = ScriptBase.scriptFrom(t);
-					}
 					if (structure != null) {
 						if (!contextStructuresChanged) {
 							contextStructures.clear();
@@ -344,18 +362,22 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 			}
 		}
 
-		if (contextSequence == null && proposalCycle != ProposalCycle.OBJECT)
-			for (ClonkIndex i : index.relevantIndexes())
-				proposalsForIndex(i, offset, wordOffset, prefix, proposals);
-
 		int whatToDisplayFromScripts = IHasSubDeclarations.INCLUDES;
 		if (contextSequence == null || MemberOperator.endsWithDot(contextSequence))
 			whatToDisplayFromScripts |= IHasSubDeclarations.VARIABLES;
 		if (contextSequence == null || !MemberOperator.endsWithDot(contextSequence))
 			whatToDisplayFromScripts |= IHasSubDeclarations.FUNCTIONS;
-		for (IHasSubDeclarations s : contextStructures) {
+		if (contextSequence == null)
+			whatToDisplayFromScripts |= IHasSubDeclarations.STATIC_VARIABLES;
+		
+		if (proposalCycle != ProposalCycle.OBJECT)
+			for (ClonkIndex i : index.relevantIndexes())
+				proposalsForIndex(i, offset, wordOffset, prefix, proposals, whatToDisplayFromScripts);
+		
+		for (IHasSubDeclarations s : contextStructures)
 			proposalsForStructure(s, new HashSet<IHasSubDeclarations>(), prefix, offset, wordOffset, proposals, contextStructuresChanged, index, whatToDisplayFromScripts);
-		}
+		
+		
 		if (innermostCallFunc != null) {
 			SpecialScriptRules rules = parser.getSpecialScriptRules();
 			if (rules != null) {
@@ -383,6 +405,16 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 		}
 	}
 
+	/**
+	 * Generate a list of proposals for some expression.
+	 * This static standalone version internally creates a {@link C4ScriptCompletionProcessor} instance and lets it do the things it does when invoking Content Assist normally.
+	 * It is used for computing the list of similarly named declarations when invoking Quick Fix for unknown identifiers.
+	 * @param expression The expression preceding the location for which proposals should be generated
+	 * @param function The function containing the expression/function from which local variable definitions are pulled
+	 * @param parser Parser serving as context
+	 * @param document The {@link IDocument} the expression was read from
+	 * @return A list of proposals that (hopefully) represent a valid continuation of the given expression 
+	 */
 	public static List<ICompletionProposal> computeProposalsForExpression(ExprElm expression, Function function, C4ScriptParser parser, IDocument document) {
 		List<ICompletionProposal> result = new LinkedList<ICompletionProposal>();
 		C4ScriptCompletionProcessor processor = new C4ScriptCompletionProcessor(null, null);
@@ -511,7 +543,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 		// propose objects for #include or something
 		if (directiveExpectingObject) {
 			for (ClonkIndex i : index.relevantIndexes())
-				proposalsForIndex(i, offset, wordOffset, prefix, proposals);
+				proposalsForIndex(i, offset, wordOffset, prefix, proposals, IHasSubDeclarations.DIRECT_SUBDECLARATIONS);
 		}
 	}
 

@@ -76,4 +76,8 @@ public interface IType extends Iterable<IType>, Serializable {
 			return false;
 		}
 	}
+	
+	public static final String COMPLEX_TYPE_START = "<";
+	public static final String COMPLEX_TYPE_END = ">";
+	public static final String COMPLEX_TYPE_ABBREVIATED = "<...>";
 }

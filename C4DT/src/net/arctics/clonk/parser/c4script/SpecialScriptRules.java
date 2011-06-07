@@ -356,9 +356,9 @@ public class SpecialScriptRules {
 					case Exact:
 						return ct.constraintDefinition();
 					case CallerType:
-						return new ConstrainedProplist(ct.constraintScript(), ConstraintKind.CallerType);
+						return new ConstrainedProplist(ct.constraint(), ConstraintKind.CallerType);
 					case Includes:
-						return new ConstrainedProplist(ct.constraintScript(), ConstraintKind.Includes);
+						return new ConstrainedProplist(ct.constraint(), ConstraintKind.Includes);
 					}
 				}
 			}
@@ -388,7 +388,7 @@ public class SpecialScriptRules {
 			if (t instanceof ConstrainedProplist) {
 				ConstrainedProplist cobj = (ConstrainedProplist)t;
 				constraintKind = cobj.constraintKind();
-				script = cobj.constraintScript();
+				script = Utilities.as(cobj.constraint(), ScriptBase.class);
 			}
 			
 			return script != null ? ConstrainedProplist.get(script, constraintKind) : PrimitiveType.ID;

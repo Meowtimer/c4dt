@@ -55,18 +55,23 @@ public class SourceLocation implements IRegion, Serializable {
 	public int getEnd() {
 		return end;
 	}
+	@Override
 	public int getLength() {
 		return getEnd()-getStart();
 	}
+	@Override
 	public int getOffset() {
 		return getStart();
 	}
 	
+	@Override
 	public boolean equals(Object obj) {
-		if (obj == null) return false;
-		if (!(obj instanceof SourceLocation)) return false;
-		SourceLocation cmp = (SourceLocation) obj;
-		return (cmp.getStart() == start && cmp.getEnd() == end);
+		if (obj instanceof SourceLocation) {
+			SourceLocation cmp = (SourceLocation) obj;
+			return (cmp.getStart() == start && cmp.getEnd() == end);
+		}
+		else
+			return false;
 	}
 	
 	public String getString(IDocument document) throws BadLocationException {

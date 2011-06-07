@@ -9,6 +9,7 @@ import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.index.ProjectDefinition;
 import net.arctics.clonk.index.Scenario;
 import net.arctics.clonk.parser.c4script.DeclarationObtainmentContext;
+import net.arctics.clonk.parser.c4script.FindDeclarationInfo;
 import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.IEntityLocatedInIndex;
 import net.arctics.clonk.parser.c4script.IType;
@@ -293,6 +294,16 @@ public abstract class Declaration implements Serializable, IHasRelatedResource, 
 	@Override
 	public Iterable<? extends Declaration> allSubDeclarations(int mask) {
 		return NO_SUB_DECLARATIONS;
+	}
+	
+	@Override
+	public Function findFunction(String functionName) {
+		return null;
+	}
+	
+	@Override
+	public Declaration findDeclaration(String name, FindDeclarationInfo info) {
+		return null;
 	}
 	
 	/**

@@ -1,11 +1,16 @@
 package net.arctics.clonk.parser.c4script;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
 import net.arctics.clonk.ClonkCore;
+import net.arctics.clonk.index.ClonkIndex;
 import net.arctics.clonk.index.Definition;
+import net.arctics.clonk.parser.Declaration;
+import net.arctics.clonk.parser.IHasIncludes;
 import net.arctics.clonk.util.Utilities;
 
 /**
@@ -13,11 +18,11 @@ import net.arctics.clonk.util.Utilities;
  * @author madeen
  *
  */
-public class ConstrainedProplist implements IType, IHasConstraint {
+public class ConstrainedProplist implements IType, IHasConstraint, IHasSubDeclarations, IHasIncludes {
 
 	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 
-	private ScriptBase constraintScript;
+	private IHasIncludes constraint;
 	private ConstraintKind constraintKind;
 	private transient Iterable<IType> iterable;
 	
@@ -36,16 +41,16 @@ public class ConstrainedProplist implements IType, IHasConstraint {
 	 * @return
 	 */
 	@Override
-	public ScriptBase constraintScript() {
-		return constraintScript;
+	public IHasIncludes constraint() {
+		return constraint;
 	}
 	
 	/**
-	 * Return the {@link #constraintScript()} cast to {@link Definition}.
-	 * @return The cast {@link #constraintScript()} or null if the constraint is not a {@link Definition}
+	 * Return the {@link #constraint()} cast to {@link Definition}.
+	 * @return The cast {@link #constraint()} or null if the constraint is not a {@link Definition}
 	 */
 	public ScriptBase constraintDefinition() {
-		return Utilities.as(constraintScript, Definition.class);
+		return Utilities.as(constraint, Definition.class);
 	}
 	
 	/**
@@ -56,13 +61,13 @@ public class ConstrainedProplist implements IType, IHasConstraint {
 		return constraintKind;
 	}
 	
-	public ConstrainedProplist(ScriptBase obligatoryInclude, ConstraintKind constraintKind) {
+	public ConstrainedProplist(IHasIncludes obligatoryInclude, ConstraintKind constraintKind) {
 		super();
-		this.constraintScript = obligatoryInclude;
+		this.constraint = obligatoryInclude;
 		this.constraintKind = constraintKind;
 	}
 	
-	public ConstrainedProplist(ScriptBase obligatoryInclude, ConstraintKind constraintKind, boolean isType, boolean isObject) {
+	public ConstrainedProplist(IHasIncludes obligatoryInclude, ConstraintKind constraintKind, boolean isType, boolean isObject) {
 		this(obligatoryInclude, constraintKind);
 		this.isType = isType;
 		this.isObject = isObject;
@@ -90,6 +95,7 @@ public class ConstrainedProplist implements IType, IHasConstraint {
 			other == PrimitiveType.ANY ||
 			other == PrimitiveType.UNKNOWN ||
 			other == PrimitiveType.PROPLIST ||
+			other.canBeAssignedFrom(PrimitiveType.PROPLIST) ||
 			(isType && other == PrimitiveType.ID) ||
 			other instanceof ScriptBase ||
 			other instanceof ConstrainedProplist;
@@ -97,7 +103,7 @@ public class ConstrainedProplist implements IType, IHasConstraint {
 
 	@Override
 	public String typeName(boolean special) {
-		if (constraintScript == null)
+		if (constraint == null)
 			return IType.ERRONEOUS_TYPE;
 		String formatString;
 		switch (constraintKind) {
@@ -113,7 +119,7 @@ public class ConstrainedProplist implements IType, IHasConstraint {
 		default:
 			return IType.ERRONEOUS_TYPE;
 		}
-		return String.format(formatString, constraintScript instanceof IType ? ((IType)constraintScript).typeName(false) : constraintScript.toString());
+		return String.format(formatString, constraint instanceof IType ? ((IType)constraint).typeName(false) : constraint.toString());
 	}
 	
 	public static ConstrainedProplist get(ScriptBase script, ConstraintKind kind) {
@@ -147,9 +153,9 @@ public class ConstrainedProplist implements IType, IHasConstraint {
 		if (isType && type == PrimitiveType.ID)
 			return true;
 		if (type instanceof ScriptBase)
-			return ((ScriptBase)type).includes(constraintScript);
+			return ((ScriptBase)type).includes(constraint);
 		if (type instanceof ConstrainedProplist)
-			return ((ConstrainedProplist)type).constraintScript().includes(constraintScript);
+			return ((ConstrainedProplist)type).constraint().includes(constraint);
 		return false;
 	}
 
@@ -176,7 +182,7 @@ public class ConstrainedProplist implements IType, IHasConstraint {
 	public boolean equals(Object obj) {
 		if (obj instanceof ConstrainedProplist) {
 			ConstrainedProplist cobj = (ConstrainedProplist) obj;
-			return cobj.constraintKind == this.constraintKind && cobj.constraintScript == this.constraintScript;
+			return cobj.constraintKind == this.constraintKind && cobj.constraint.equals(this.constraint);
 		}
 		return false;
 	}
@@ -188,16 +194,51 @@ public class ConstrainedProplist implements IType, IHasConstraint {
 	public IType resolve(DeclarationObtainmentContext context, IType callerType) {
 		switch (constraintKind()) {
 		case CallerType:
-			if (callerType != constraintScript())
+			if (callerType != constraint())
 				return callerType;
 			else
 				break;
 		case Exact:
-			return constraintScript();
+			return constraint();
 		case Includes:
 			break;
 		}
 		return this;
+	}
+
+	@Override
+	public Iterable<? extends Declaration> allSubDeclarations(int mask) {
+		return constraint.allSubDeclarations(mask);
+	}
+
+	@Override
+	public Function findFunction(String functionName) {
+		return constraint.findFunction(functionName);
+	}
+
+	@Override
+	public Declaration findDeclaration(String name, FindDeclarationInfo info) {
+		return constraint.findDeclaration(name, info);
+	}
+
+	@Override
+	public String getName() {
+		return typeName(true);
+	}
+
+	@Override
+	public Collection<? extends IHasIncludes> getIncludes(ClonkIndex index, boolean recursive) {
+		return constraint.getIncludes(index, recursive);
+	}
+
+	@Override
+	public boolean includes(IHasIncludes other) {
+		return constraint.includes(other);
+	}
+
+	@Override
+	public void gatherIncludes(Set<IHasIncludes> set, ClonkIndex index, boolean recursive) {
+		constraint.gatherIncludes(set, index, recursive);
 	}
 
 }

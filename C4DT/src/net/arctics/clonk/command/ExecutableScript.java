@@ -7,6 +7,7 @@ import org.eclipse.core.resources.IStorage;
 
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.index.ClonkIndex;
+import net.arctics.clonk.parser.IHasIncludes;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.SimpleScriptStorage;
 import net.arctics.clonk.parser.c4script.Function;
@@ -69,8 +70,8 @@ public class ExecutableScript extends ScriptBase {
 	}
 
 	@Override
-	public Collection<ScriptBase> getIncludes(ClonkIndex index, boolean recursive) {
-		return Arrays.asList(Command.COMMAND_BASESCRIPT);
+	public Collection<IHasIncludes> getIncludes(ClonkIndex index, boolean recursive) {
+		return Arrays.asList((IHasIncludes)Command.COMMAND_BASESCRIPT);
 	}
 
 	public InvokableFunction getMain() {

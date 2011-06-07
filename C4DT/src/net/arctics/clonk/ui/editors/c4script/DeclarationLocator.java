@@ -47,11 +47,6 @@ public class DeclarationLocator extends ExpressionLocator {
 		return editor;
 	}
 
-	private static IPredicate<Declaration> IS_FUNC = new IPredicate<Declaration>() {
-		public boolean test(Declaration item) {
-			return item instanceof Function;
-		}
-	};
 	private static IPredicate<Declaration> IS_GLOBAL = new IPredicate<Declaration>() {
 		public boolean test(Declaration item) {
 			return item.isGlobal();
@@ -124,7 +119,7 @@ public class DeclarationLocator extends ExpressionLocator {
 			setRegion = true;
 		}
 		else if (exprAtRegion instanceof AccessDeclaration) {
-			AccessDeclaration access = (AccessDeclaration) exprAtRegion;
+			final AccessDeclaration access = (AccessDeclaration) exprAtRegion;
 			
 			// gather declarations with that name from involved project indexes
 			List<Declaration> projectDeclarations = new LinkedList<Declaration>();
@@ -135,7 +130,12 @@ public class DeclarationLocator extends ExpressionLocator {
 			}
 			
 			if (projectDeclarations != null)
-				projectDeclarations = Utilities.filter(projectDeclarations, IS_FUNC);
+				projectDeclarations = Utilities.filter(projectDeclarations, new IPredicate<Declaration>() {
+					@Override
+					public boolean test(Declaration item) {
+						return access.declarationClass().isInstance(item);
+					}
+				});
 			
 			Function engineFunc = regionDescription.engine.findFunction(access.getDeclarationName());
 			if (projectDeclarations != null || engineFunc != null) {
@@ -195,6 +195,7 @@ public class DeclarationLocator extends ExpressionLocator {
 		return declaration;
 	}
 
+	@Override
 	public TraversalContinuation expressionDetected(ExprElm expression, C4ScriptParser parser) {
 		expression.traverse(new ScriptParserListener() {
 			public TraversalContinuation expressionDetected(ExprElm expression, C4ScriptParser parser) {

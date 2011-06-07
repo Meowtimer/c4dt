@@ -13,6 +13,7 @@ import org.eclipse.swt.graphics.Image;
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.ID;
+import net.arctics.clonk.parser.IHasIncludes;
 import net.arctics.clonk.parser.c4script.ConstrainedProplist;
 import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.parser.c4script.PrimitiveType;
@@ -155,7 +156,7 @@ public abstract class Definition extends ScriptBase {
 	}
 
 	@Override
-	public  void gatherIncludes(final Set<ScriptBase> set, final ClonkIndex index, final boolean recursive) {
+	public  void gatherIncludes(final Set<IHasIncludes> set, final ClonkIndex index, final boolean recursive) {
 		if (set.contains(this))
 			return;
 		super.gatherIncludes(set, index, recursive);

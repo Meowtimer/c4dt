@@ -166,8 +166,7 @@ public class AccessVar extends AccessDeclaration {
 		if (getDeclaration() == null) {
 			IType predType = getPredecessorInSequence() != null ? getPredecessorInSequence().getType(context) : null;
 			if (predType != null && predType.canBeAssignedFrom(PrimitiveType.PROPLIST)) {
-				boolean fallbackToAddingToIndex = true;
-				if (predType instanceof ProplistDeclaration) {
+				if (predType instanceof ProplistDeclaration && !applyTypingByMemberUsage(context)) {
 					ProplistDeclaration proplDecl = (ProplistDeclaration) predType;
 					if (proplDecl.isAdHoc()) {
 						Variable var = new Variable(getDeclarationName(), Variable.Scope.VAR);
@@ -176,11 +175,7 @@ public class AccessVar extends AccessDeclaration {
 						var.forceType(expression.getType(context));
 						var.setInitializationExpression(expression);
 						proplDecl.addComponent(var);
-						fallbackToAddingToIndex = false;
 					}
-				}
-				if (fallbackToAddingToIndex) {
-					// >:o be more defined, y'all
 				}
 			}
 		}

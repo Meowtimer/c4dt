@@ -21,6 +21,7 @@ import net.arctics.clonk.parser.ILatestDeclarationVersionProvider;
 import net.arctics.clonk.parser.Structure;
 import net.arctics.clonk.parser.c4script.Directive;
 import net.arctics.clonk.parser.c4script.Function;
+import net.arctics.clonk.parser.c4script.ProplistDeclaration;
 import net.arctics.clonk.parser.c4script.ScriptBase;
 import net.arctics.clonk.parser.c4script.StandaloneProjectScript;
 import net.arctics.clonk.parser.c4script.Variable;
@@ -70,6 +71,7 @@ public class ClonkIndex extends Declaration implements Serializable, Iterable<De
 	private Map<ID, List<Definition>> indexedObjects = new HashMap<ID, List<Definition>>();
 	private List<ScriptBase> indexedScripts = new LinkedList<ScriptBase>(); 
 	private List<Scenario> indexedScenarios = new LinkedList<Scenario>();
+	private List<ProplistDeclaration> indexedProplistDeclarations = new LinkedList<ProplistDeclaration>(); 
 	
 	protected transient List<Function> globalFunctions = new LinkedList<Function>();
 	protected transient List<Variable> staticVariables = new LinkedList<Variable>();
@@ -188,6 +190,10 @@ public class ClonkIndex extends Declaration implements Serializable, Iterable<De
 			if (func.getVisibility() == C4FunctionScope.GLOBAL) {
 				globalFunctions.add(func);
 			}
+			for (Declaration otherDec : func.getOtherDeclarations())
+				if (otherDec instanceof ProplistDeclaration) {
+					addToProplistDeclarations((ProplistDeclaration) otherDec);
+				}
 			addToDeclarationMap(func);
 		}
 		for (Variable var : script.variables()) {
@@ -196,6 +202,12 @@ public class ClonkIndex extends Declaration implements Serializable, Iterable<De
 			}
 			addToDeclarationMap(var);
 		}
+	}
+
+	protected void addToProplistDeclarations(ProplistDeclaration proplistDeclaration) {
+		indexedProplistDeclarations.add(proplistDeclaration);
+		for (Variable v : proplistDeclaration.getComponents())
+			addToDeclarationMap(v);
 	}
 	
 	private void detectAppendages(ScriptBase script) {
@@ -365,6 +377,10 @@ public class ClonkIndex extends Declaration implements Serializable, Iterable<De
 		return Collections.unmodifiableList(indexedScripts);
 	}
 	
+	public List<ProplistDeclaration> indexedProplistDeclarations() {
+		return indexedProplistDeclarations;
+	}
+	
 	public List<Function> globalFunctions() {
 		return Collections.unmodifiableList(globalFunctions);
 	}
@@ -507,6 +523,7 @@ public class ClonkIndex extends Declaration implements Serializable, Iterable<De
 		indexedObjects.clear();
 		indexedScripts.clear();
 		indexedScenarios.clear();
+		indexedProplistDeclarations.clear();
 		refreshIndex();
 	}
 	

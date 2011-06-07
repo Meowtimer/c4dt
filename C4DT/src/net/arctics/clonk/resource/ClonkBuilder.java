@@ -20,6 +20,7 @@ import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.Variable;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.ID;
+import net.arctics.clonk.parser.IHasIncludes;
 import net.arctics.clonk.parser.Structure;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.refactoring.RenameDeclarationProcessor;
@@ -326,7 +327,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 		IProject proj = this.getProject();
 		if (proj != null) {
 			proj.deleteMarkers(null, true, IResource.DEPTH_INFINITE);
-			ProjectIndex projIndex = ClonkProjectNature.get(proj).getIndexCreatingEmptyOneIfNotPresent();
+			ProjectIndex projIndex = ClonkProjectNature.get(proj).forceIndexRecreation();
 			proj.accept(new ResourceCounterAndCleaner(0));
 			projIndex.clear();
 		}
@@ -620,8 +621,9 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 			if (parser != null) {
 				try {
 					// parse #included scripts before this one
-					for (ScriptBase include : script.getIncludes(nature.getIndex())) {
-						performBuildPhaseTwo(include);
+					for (IHasIncludes include : script.getIncludes(nature.getIndex())) {
+						if (include instanceof ScriptBase)
+							performBuildPhaseTwo((ScriptBase) include);
 					}
 					parser.parseCodeOfFunctionsAndValidate();
 				} catch (ParsingException e) {
@@ -632,6 +634,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 				currentSubProgressMonitor.worked(1);
 			}
 		}
+		nature.getIndex().refreshIndex();
 	}
 
 	/**

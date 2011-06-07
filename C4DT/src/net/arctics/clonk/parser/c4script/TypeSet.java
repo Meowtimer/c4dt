@@ -13,6 +13,11 @@ import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.parser.IInternalizable;
 
+/**
+ * Type that represents a set of multiple possible types.
+ * @author madeen
+ *
+ */
 public class TypeSet implements IType, IInternalizable {
 
 	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
@@ -184,6 +189,7 @@ public class TypeSet implements IType, IInternalizable {
 	@Override
 	public String typeName(boolean special) {
 		StringBuilder builder = new StringBuilder((description != null ? description.length() : 0) + 20);
+		builder.append(IType.COMPLEX_TYPE_START);
 		if (description != null) {
 			builder.append(description);
 			builder.append(": ");
@@ -197,11 +203,8 @@ public class TypeSet implements IType, IInternalizable {
 				typeNames.add(t.typeName(special));
 		}
 		
-		if (typeNames.size() == 1 && containsAny) {
-			builder.append(typeNames.iterator().next() + "?");
-			return builder.toString();
-		}
-		builder.append(Messages.C4TypeSet_Start);
+		if (typeNames.size() == 1 && containsAny)
+			return typeNames.iterator().next() + "?";
 		boolean started = true;
 		for (String tn : typeNames) {
 			if (started)
@@ -210,11 +213,11 @@ public class TypeSet implements IType, IInternalizable {
 				builder.append(Messages.C4TypeSet_Or);
 			builder.append(tn);
 		}
-		builder.append(Messages.C4TypeSet_End);
+		builder.append(IType.COMPLEX_TYPE_END);
 		if (containsAny)
 			builder.append('?');
 		if (builder.length() > 200)
-			return description != null ? description : PrimitiveType.ANY.typeName(special);
+			return description != null ? IType.COMPLEX_TYPE_START + description + IType.COMPLEX_TYPE_END : IType.COMPLEX_TYPE_ABBREVIATED;
 		else
 			return builder.toString();
 	}

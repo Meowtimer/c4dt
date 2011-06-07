@@ -166,7 +166,7 @@ public class IniCompletionProcessor extends ClonkCompletionProcessor<IniTextEdit
 		ClonkIndex index = Utilities.getIndex(getEditor().getIniUnit().getIniFile());
 		if (index != null) {
 			for (ClonkIndex i : index.relevantIndexes()) {
-				proposalsForIndexedObjects(i, offset, wordOffset, prefix, proposals);
+				proposalsForIndexedDefinitions(i, offset, wordOffset, prefix, proposals);
 			}
 		}
 	}
