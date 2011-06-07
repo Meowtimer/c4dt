@@ -789,7 +789,7 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 		};
 
 		@Override
-		public boolean expressionRelevant(ExprElm expr, C4ScriptParser parser) {
+		public boolean storesTypeInformationFor(ExprElm expr, C4ScriptParser parser) {
 			ExprElm chainA, chainB;
 			for (chainA = expr, chainB = referenceElm; chainA != null && chainB != null; chainA = chainA.getPredecessorInSequence(), chainB = chainB.getPredecessorInSequence()) {
 				if (!chainA.compare(chainB, IDENTITY_DIFFERENCE_LISTENER).isEqual())
@@ -799,7 +799,7 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 		}
 
 		@Override
-		public boolean sameExpression(IStoredTypeInformation other) {
+		public boolean refersToSameExpression(IStoredTypeInformation other) {
 			if (other instanceof GenericStoredTypeInformation) {
 				return ((GenericStoredTypeInformation)other).referenceElm.equals(referenceElm);
 			} else {

@@ -61,7 +61,7 @@ public class CallFunc extends AccessDeclaration {
 		}
 		
 		@Override
-		public boolean expressionRelevant(ExprElm expr, C4ScriptParser parser) {
+		public boolean storesTypeInformationFor(ExprElm expr, C4ScriptParser parser) {
 			if (expr instanceof CallFunc) {
 				CallFunc callFunc = (CallFunc) expr;
 				if (callFunc.getDeclaration() == this.function)
@@ -71,7 +71,7 @@ public class CallFunc extends AccessDeclaration {
 		}
 		
 		@Override
-		public boolean sameExpression(IStoredTypeInformation other) {
+		public boolean refersToSameExpression(IStoredTypeInformation other) {
 			return other instanceof CallFunc.FunctionReturnTypeInformation && ((CallFunc.FunctionReturnTypeInformation)other).function == this.function;
 		}
 		
@@ -101,7 +101,7 @@ public class CallFunc extends AccessDeclaration {
 			varIndex = val;
 		}
 
-		public boolean expressionRelevant(ExprElm expr, C4ScriptParser parser) {
+		public boolean storesTypeInformationFor(ExprElm expr, C4ScriptParser parser) {
 			if (expr instanceof CallFunc) {
 				CallFunc callFunc = (CallFunc) expr;
 				Object ev;
@@ -115,7 +115,7 @@ public class CallFunc extends AccessDeclaration {
 			return false;
 		}
 
-		public boolean sameExpression(IStoredTypeInformation other) {
+		public boolean refersToSameExpression(IStoredTypeInformation other) {
 			if (other.getClass() == CallFunc.VarFunctionsTypeInformation.class) {
 				CallFunc.VarFunctionsTypeInformation otherInfo = (CallFunc.VarFunctionsTypeInformation) other;
 				return otherInfo.varFunction == this.varFunction && otherInfo.varIndex == this.varIndex; 

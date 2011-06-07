@@ -308,15 +308,27 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	public IStoredTypeInformation requestStoredTypeInformation(ExprElm expression) {
 		if (currentFunctionContext.storedTypeInformationListStack.isEmpty())
 			return null;
+		boolean topMostLayer = true;
+		IStoredTypeInformation base = null;
 		for (int i = currentFunctionContext.storedTypeInformationListStack.size()-1; i >= 0; i--) {
 			for (IStoredTypeInformation info : currentFunctionContext.storedTypeInformationListStack.get(i)) {
-				if (info.expressionRelevant(expression, this))
-					return info;
+				if (info.storesTypeInformationFor(expression, this)) {
+					if (!topMostLayer) {
+						base = info;
+						break;
+					}
+					else
+						return info;
+				}
 			}
+			topMostLayer = false;
 		}
 		IStoredTypeInformation newlyCreated = expression.createStoredTypeInformation(this);
-		if (newlyCreated != null)
+		if (newlyCreated != null) {
+			if (base != null)
+				newlyCreated.merge(base);
 			currentFunctionContext.storedTypeInformationListStack.peek().add(newlyCreated);
+		}
 		return newlyCreated;
 	}
 
@@ -354,7 +366,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 			return null;
 		for (int i = currentFunctionContext.storedTypeInformationListStack.size()-1; i >= 0; i--) {
 			for (IStoredTypeInformation info : currentFunctionContext.storedTypeInformationListStack.get(i)) {
-				if (info.expressionRelevant(expression, this))
+				if (info.storesTypeInformationFor(expression, this))
 					return info;
 			}
 		}
@@ -2637,7 +2649,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 			for (IStoredTypeInformation info : first) {
 				for (Iterator<IStoredTypeInformation> it = second.iterator(); it.hasNext();) {
 					IStoredTypeInformation info2 = it.next();
-					if (info2.sameExpression(info)) {
+					if (info2.refersToSameExpression(info)) {
 						info.merge(info2);
 						it.remove();
 					}
