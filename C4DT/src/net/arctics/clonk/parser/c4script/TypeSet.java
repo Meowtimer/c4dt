@@ -77,6 +77,10 @@ public class TypeSet implements IType, IInternalizable {
 		return types.size();
 	}
 	
+	public Set<IType> types() {
+		return this.types;
+	}
+	
 	private static IType[] flatten(IType[] types) {
 		int newCount = types.length;
 		for (IType t : types) {
