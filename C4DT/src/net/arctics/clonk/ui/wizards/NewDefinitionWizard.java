@@ -17,12 +17,12 @@ import org.eclipse.ui.*;
  * be able to open it.
  */
 
-public class NewC4Object extends NewClonkFolderWizard<NewC4ObjectPage> implements INewWizard {
+public class NewDefinitionWizard extends NewClonkFolderWizard<NewC4ObjectPage> implements INewWizard {
 
 	/**
-	 * Constructor for NewC4Object.
+	 * Constructor for NewDefinitionWizard.
 	 */
-	public NewC4Object() {
+	public NewDefinitionWizard() {
 		super();
 	}
 	
