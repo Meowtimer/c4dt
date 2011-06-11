@@ -291,7 +291,13 @@
 			category="net.arctics.clonk.preferences.ClonkPreferencePage" />
 		<page class="net.arctics.clonk.preferences.TogglesPreferencePage"
 			id="net.arctics.clonk.preferences.TogglesPreferencePage" name="%TogglesPrefPage"
-			category="net.arctics.clonk.preferences.ClonkPreferencePage" />	
+			category="net.arctics.clonk.preferences.ClonkPreferencePage" />
+		<page class="net.arctics.clonk.preferences.EngineConfigurationPrefPage:OpenClonk" name="OpenClonk"
+			id="net.arctics.clonk.preferences.EngineConfPage_OpenClonk"
+			category="net.arctics.clonk.preferences.ClonkPreferencePage" />
+		<page class="net.arctics.clonk.preferences.EngineConfigurationPrefPage:ClonkRage" name="Clonk Rage"
+			id="net.arctics.clonk.preferences.EngineConfPage_ClonkRage"
+			category="net.arctics.clonk.preferences.ClonkPreferencePage" />
 	</extension>
 
 	<extension point="org.eclipse.core.runtime.preferences">

@@ -104,7 +104,7 @@ public class ClonkProjectProperties extends FieldEditorPreferencePage implements
 	
 	@Override
 	protected void createFieldEditors() {
-		addField(new ComboFieldEditor(ENGINENAME_PROPERTY, Messages.EngineVersion, ClonkPreferencePage.engineComboValues(true), getFieldEditorParent()));
+		addField(new ComboFieldEditor(ENGINENAME_PROPERTY, Messages.ClonkPreferencePage_DefaultEngine, ClonkPreferencePage.engineComboValues(true), getFieldEditorParent()));
 		addField(new FieldEditor(DISABLED_ERRORS_PROPERTY, Messages.DisabledErrors, getFieldEditorParent()) {
 			
 			Set<ParserErrorCode> disabledErrorCodes = new HashSet<ParserErrorCode>();

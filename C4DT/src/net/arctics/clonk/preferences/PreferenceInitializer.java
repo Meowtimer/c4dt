@@ -1,5 +1,7 @@
 package net.arctics.clonk.preferences;
 
+import net.arctics.clonk.ClonkCore;
+
 import org.eclipse.core.runtime.preferences.AbstractPreferenceInitializer;
 
 /**
@@ -9,7 +11,7 @@ public class PreferenceInitializer extends AbstractPreferenceInitializer {
 
 	@Override
 	public void initializeDefaultPreferences() {
-		// well..
+		ClonkPreferences.commitDefaultsToPrefStore(ClonkCore.getDefault().getPreferenceStore());
 	}
 
 }

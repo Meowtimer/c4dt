@@ -28,27 +28,6 @@ public class SyntaxColoringPreferencePage extends FieldEditorPreferencePage impl
 			e.printStackTrace();
 		}
 	}
-	
-	@Override
-	public boolean performOk() {
-		if (super.performOk()) {
-			/*
-			FIXME: refresh immediately
-			for (IWorkbenchWindow window : PlatformUI.getWorkbench().getWorkbenchWindows()) {
-				for (IWorkbenchPage page : window.getPages()) {
-					for (IEditorReference edRef : page.getEditorReferences()) {
-						IEditorPart editor = edRef.getEditor(false);
-						if (editor instanceof ClonkTextEditor) {
-							((ClonkTextEditor)editor).refreshSyntaxColoring();
-						}
-					}
-				}
-			} */
-			return true;
-		}
-		else
-			return false;
-	}
 
 	@Override
 	public void init(IWorkbench workbench) {

@@ -48,7 +48,7 @@ public class WizardNewClonkProjectCreationPage extends WizardNewProjectCreationP
 		Group engineGroup = new Group(realParent, SWT.SHADOW_IN);
 		engineGroup.setText(Messages.NewClonkProject_Engine);
 		engineGroup.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-		engineEditor = new ComboFieldEditor(ClonkPreferences.ACTIVE_ENGINE, net.arctics.clonk.preferences.Messages.EngineVersion, ClonkPreferencePage.engineComboValues(true), engineGroup);
+		engineEditor = new ComboFieldEditor(ClonkPreferences.ACTIVE_ENGINE, net.arctics.clonk.preferences.Messages.ClonkPreferencePage_DefaultEngine, ClonkPreferencePage.engineComboValues(true), engineGroup);
 		engineEditor.setPreferenceStore(dummyPrefStore);
 		engineEditor.load();
 		((GridData)engineGroup.getChildren()[1].getLayoutData()).grabExcessHorizontalSpace = true;
