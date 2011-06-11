@@ -7,7 +7,7 @@ EnableRemoveFlag=1
 StructNeedMaterial=1
 
 [Definitions]
-Definition1=Objects.c4d
+Definition1=Objects.ocd
 
 [Player1]
 Crew=Clonk=1
