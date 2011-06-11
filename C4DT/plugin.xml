@@ -156,7 +156,7 @@
 				</enablement>
 			</commonWizard>
 			
-			<commonWizard type="new" wizardId="net.arctics.clonk.wizards.NewC4Object">
+			<commonWizard type="new" wizardId="net.arctics.clonk.wizards.NewDefinition">
 				<enablement>
 					<adapt type="org.eclipse.core.resources.IResource">
 						<test property="org.eclipse.core.resources.projectNature" value="net.arctics.clonk.clonknature"/>
@@ -213,13 +213,12 @@
 			class="net.arctics.clonk.ui.wizards.NewClonkProject" project="true"
 			finalPerspective="net.arctics.clonk.clonkPerspective">
 			<description>
-				Create an empty Clonk project
+				%CreateEmptyClonkProject
 			</description>
-			<selection class="org.eclipse.core.resources.IWorkspaceRoot" />
 		</wizard>
 		
-		<wizard category="net.arctics.clonk.clonkProjects" class="net.arctics.clonk.ui.wizards.NewC4Object"
-			hasPages="true" icon="res/engines/OpenClonk/icons/DefinitionGroup.png" id="net.arctics.clonk.wizards.NewC4Object"
+		<wizard category="net.arctics.clonk.clonkProjects" class="net.arctics.clonk.ui.wizards.NewDefinitionWizard"
+			hasPages="true" icon="res/engines/OpenClonk/icons/DefinitionGroup.png" id="net.arctics.clonk.wizards.NewDefinition"
 			name="%Definition_Name" project="false" />
 
 		<wizard category="net.arctics.clonk.clonkProjects" class="net.arctics.clonk.ui.wizards.NewScenario"
