@@ -21,6 +21,7 @@ import net.arctics.clonk.parser.c4script.ScriptBase;
 import net.arctics.clonk.parser.c4script.Operator;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.PrimitiveType;
+import net.arctics.clonk.parser.c4script.SpecialScriptRules.SpecialRule;
 import net.arctics.clonk.parser.c4script.TypeSet;
 import net.arctics.clonk.parser.c4script.Variable;
 import net.arctics.clonk.parser.c4script.FindDeclarationInfo;
@@ -37,11 +38,16 @@ import net.arctics.clonk.util.Utilities;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.jface.text.Region;
 
+/**
+ * A function call.
+ * @author madeen
+ *
+ */
 public class CallFunc extends AccessDeclaration {
 
 	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 
-	public final static class FunctionReturnTypeInformation extends StoredTypeInformation {
+	private final static class FunctionReturnTypeInformation extends StoredTypeInformation {
 		private Function function;
 
 		public FunctionReturnTypeInformation(Function function) {
@@ -143,25 +149,48 @@ public class CallFunc extends AccessDeclaration {
 		}
 	}
 	
+	/**
+	 * Set the region containing the parameters.
+	 * @param start Start of the region
+	 * @param end End of the region
+	 */
 	public void setParmsRegion(int start, int end) {
 		parmsStart = start;
 		parmsEnd   = end;
 	}
 
+	/**
+	 * Return the start offset of the parameters region.
+	 * @return The start offset
+	 */
 	public int getParmsStart() {
 		return parmsStart;
 	}
 
+	/**
+	 * Return the end offset of the parameters region.
+	 * @return The end offset
+	 */
 	public int getParmsEnd() {
 		return parmsEnd;
 	}
 
+	/**
+	 * Create a CallFunc with a function name and parameter expressions.
+	 * @param funcName The function name
+	 * @param parms Parameter expressions
+	 */
 	public CallFunc(String funcName, ExprElm... parms) {
 		super(funcName);
 		params = parms;
 		assignParentToSubElements();
 	}
 	
+	/**
+	 * Create a CallFunc that directly refers to a {@link Function} object. 
+	 * @param function The {@link Function} the new CallFunc will refer to.
+	 * @param parms Parameter expressions
+	 */
 	public CallFunc(Function function, ExprElm... parms) {
 		this(function.getName());
 		this.declaration = function;
@@ -174,6 +203,11 @@ public class CallFunc extends AccessDeclaration {
 		printParmString(output, depth);
 	}
 
+	/**
+	 * Print a parameter string.
+	 * @param output Output to print to
+	 * @param depth Indentation level of parameter expressions.
+	 */
 	public void printParmString(ExprWriter output, int depth) {
 		output.append("("); //$NON-NLS-1$
 		if (params != null) {
@@ -195,6 +229,13 @@ public class CallFunc extends AccessDeclaration {
 	public boolean hasSideEffects() {
 		return true;
 	}
+	
+	/**
+	 * Return a {@link SpecialFuncRule} applying to {@link CallFunc}s with the same name as this one.
+	 * @param context Context used to obtain the {@link Engine}, which supplies the pool of {@link SpecialRule}s (see {@link Engine#getSpecialScriptRules()})
+	 * @param role Role mask passed to {@link SpecialScriptRules#getFuncRuleFor(String, int)}
+	 * @return The {@link SpecialFuncRule} applying to {@link CallFunc}s such as this one, or null.
+	 */
 	public SpecialFuncRule getSpecialRule(DeclarationObtainmentContext context, int role) {
 		Engine engine = context.getContainer().getEngine();
 		if (engine != null && engine.getSpecialScriptRules() != null) {

@@ -12,6 +12,7 @@ import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.ConstrainedProplist;
 import net.arctics.clonk.parser.c4script.DeclarationObtainmentContext;
+import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.parser.c4script.ITypeable;
 import net.arctics.clonk.parser.c4script.PrimitiveType;
@@ -26,12 +27,22 @@ import net.arctics.clonk.util.ArrayUtil;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.Region;
 
+/**
+ * An expression referring to some {@link Declaration}. Derived classes represent access to {@link Variable}s ({@link AccessVar}) and {@link Function} calls ({@link CallFunc}).
+ * @author madeen
+ *
+ */
 public abstract class AccessDeclaration extends Value {
 
 	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 	protected transient Declaration declaration;
 	protected String declarationName;
 	
+	/**
+	 * Return the {@link Declaration} this expression refers to, obtaining it if that has not happened yet (see {@link #obtainDeclaration(DeclarationObtainmentContext)}).
+	 * @param context Context passed to {@link #obtainDeclaration(DeclarationObtainmentContext)} if declaration is still null.
+	 * @return The declaration or null if a declaration could not be found.
+	 */
 	public Declaration getDeclaration(DeclarationObtainmentContext context) {
 		if (declaration == null) {
 			declaration = obtainDeclaration(context);
@@ -39,6 +50,10 @@ public abstract class AccessDeclaration extends Value {
 		return declaration;
 	}
 
+	/**
+	 * Return the {@link Declaration} if it has already been obtained or null.
+	 * @return The obtain declaration or null.
+	 */
 	public Declaration getDeclaration() {
 		return declaration; // return without trying to obtain it (no parser context)
 	}
@@ -59,9 +74,14 @@ public abstract class AccessDeclaration extends Value {
 		getDeclaration(parser); // find the declaration so subclasses can complain about missing variables/functions
 	}
 
-	public AccessDeclaration(String fieldName) {
-		this.declarationName = fieldName;
+	/**
+	 * Create AccessDeclaration object using a declaration name. 
+	 * @param declarationName
+	 */
+	public AccessDeclaration(String declarationName) {
+		this.declarationName = declarationName;
 	}
+	
 	@Override
 	public void doPrint(ExprWriter output, int depth) {
 		output.append(declarationName);
@@ -76,10 +96,18 @@ public abstract class AccessDeclaration extends Value {
 		return new DeclarationRegion(getDeclaration(parser), region(0));
 	}
 
+	/**
+	 * Return the declaration name this expression uses to refer to a {@link Declaration}.
+	 * @return The declaration name
+	 */
 	public String getDeclarationName() {
 		return declarationName;
 	}
 	
+	/**
+	 * Set the declaration name.
+	 * @param declarationName The name
+	 */
 	public void setDeclarationName(String declarationName) {
 		this.declarationName = declarationName;
 	}
@@ -89,6 +117,10 @@ public abstract class AccessDeclaration extends Value {
 		return declarationName.length();
 	}
 
+	/**
+	 * Return whether this expression only indirectly refers to a declaration (e.g. inherited/_inherited)
+	 * @return Whether or not.
+	 */
 	public boolean indirectAccess() {
 		return declaration == null || !declaration.getName().equals(declarationName);
 	}

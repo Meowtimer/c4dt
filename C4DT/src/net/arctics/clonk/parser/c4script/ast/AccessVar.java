@@ -26,6 +26,11 @@ import net.arctics.clonk.parser.c4script.ProplistDeclaration;
 import net.arctics.clonk.parser.c4script.ast.evaluate.EvaluationContextProxy;
 import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
 
+/**
+ * Variable name expression element.
+ * @author madeen
+ *
+ */
 public class AccessVar extends AccessDeclaration {
 
 	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
