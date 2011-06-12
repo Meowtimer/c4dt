@@ -16,6 +16,7 @@ import net.arctics.clonk.ui.editors.ClonkTextEditor;
 import net.arctics.clonk.ui.editors.ColorManager;
 import net.arctics.clonk.ui.editors.c4script.ClonkContentOutlinePage;
 import net.arctics.clonk.ui.navigator.ClonkPreviewView;
+import net.arctics.clonk.util.UI;
 import net.arctics.clonk.util.Utilities;
 
 
@@ -41,16 +42,20 @@ public class MapCreatorEditor extends ClonkTextEditor {
 			mapCreator.clear();
 			parser.parse();
 			parsed = true;
-			ClonkPreviewView view = (ClonkPreviewView) getSite().getWorkbenchWindow().getActivePage().findView(ClonkPreviewView.ID);
-			if (view != null) {
-				IStructuredSelection sel = Utilities.as(view.getSelectionOfInterest(), IStructuredSelection.class);
-				IFile file = Utilities.getEditingFile(this);
-				if (
-					mapCreator != null && mapCreator.getEngine() != null && mapCreator.getEngine().getCurrentSettings().supportsEmbeddedUtilities &&
-					sel != null && sel.getFirstElement().equals(file)
-				) {
-					view.schedulePreviewUpdaterJob();
+			try {
+				ClonkPreviewView view = (ClonkPreviewView) UI.findViewInActivePage(getSite(), ClonkPreviewView.ID);
+				if (view != null) {
+					IStructuredSelection sel = Utilities.as(view.getSelectionOfInterest(), IStructuredSelection.class);
+					IFile file = Utilities.getEditingFile(this);
+					if (
+							mapCreator != null && mapCreator.getEngine() != null && mapCreator.getEngine().getCurrentSettings().supportsEmbeddedUtilities &&
+							sel != null && sel.getFirstElement().equals(file)
+					) {
+						view.schedulePreviewUpdaterJob();
+					}
 				}
+			} catch (Exception e) {
+				e.printStackTrace();
 			}
 		}
 	}

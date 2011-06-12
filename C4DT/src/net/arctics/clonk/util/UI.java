@@ -5,6 +5,8 @@ import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.ScriptBase;
 import net.arctics.clonk.parser.c4script.Variable;
+import net.arctics.clonk.parser.mapcreator.MapCreatorMap;
+import net.arctics.clonk.parser.mapcreator.MapOverlay;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.resource.c4group.C4Group.GroupType;
 import net.arctics.clonk.ui.navigator.ClonkLabelProvider;
@@ -35,6 +37,8 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
+import org.eclipse.ui.IViewPart;
+import org.eclipse.ui.IWorkbenchSite;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.dialogs.ElementListSelectionDialog;
 import org.eclipse.ui.model.WorkbenchContentProvider;
@@ -45,6 +49,8 @@ import org.eclipse.ui.model.WorkbenchLabelProvider;
  */
 public abstract class UI {
 	public final static Image SCRIPT_ICON = getIconImage("c4script","icons/c4scriptIcon.png"); //$NON-NLS-1$ //$NON-NLS-2$
+	public final static Image MAP_ICON = getIconImage("mapCreatorMap", "icons/map.png");
+	public final static Image MAPOVERLAY_ICON = getIconImage("mapCreatorMapOverlay", "icons/mapoverlay.png");
 	public static final Image TEXT_ICON = getIconImage("c4txt","icons/text.png"); //$NON-NLS-1$ //$NON-NLS-2$
 	public static final Image MATERIAL_ICON = getIconImage("c4material","icons/Clonk_C4.png"); //$NON-NLS-1$ //$NON-NLS-2$
 	public static final Image DEPENDENCIES_ICON = getIconImage("c4dependencies", "icons/Dependencies.png"); //$NON-NLS-1$ //$NON-NLS-2$
@@ -70,8 +76,12 @@ public abstract class UI {
 			Definition def = (Definition)element;
 			return def.getEngine().getGroupTypeToIconMap().get(GroupType.DefinitionGroup);
 		}
-		if (element instanceof ScriptBase)
-			return UI.SCRIPT_ICON;
+		else if (element instanceof MapCreatorMap)
+			return MAP_ICON;
+		else if (element instanceof MapOverlay)
+			return MAPOVERLAY_ICON;
+		else if (element instanceof ScriptBase)
+			return SCRIPT_ICON;
 		return null;
 	}
 
@@ -210,6 +220,13 @@ public abstract class UI {
 	public static IProject selectClonkProject(IProject initialSelection) {
 		IProject[] projects = selectClonkProjects(false, initialSelection);
 		return projects != null ? projects[0] : null;
+	}
+	
+	public static IViewPart findViewInActivePage(IWorkbenchSite site, String id) {
+		if (site != null && site.getWorkbenchWindow() != null && site.getWorkbenchWindow().getActivePage() != null)
+			return site.getWorkbenchWindow().getActivePage().findView(id);
+		else
+			return null;
 	}
 
 }
