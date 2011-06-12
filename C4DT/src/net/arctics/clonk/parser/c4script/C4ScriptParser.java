@@ -1036,11 +1036,10 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		}
 	}
 	
-	private Variable createVarInScope(String varName, Scope scope, int start, int end, String description) {
+	public Variable createVarInScope(String varName, Scope scope, int start, int end, String description) {
 		Variable result = findVar(varName, scope);
-		if (result != null) {
+		if (result != null)
 			return result;
-		}
 		
 		result = new Variable(varName, scope);
 		switch (scope) {

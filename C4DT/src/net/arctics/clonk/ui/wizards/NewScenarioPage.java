@@ -23,6 +23,11 @@ public class NewScenarioPage extends NewClonkFolderWizardPage {
 	}
 	
 	@Override
+	protected GroupType groupType() {
+		return GroupType.ScenarioGroup;
+	}
+	
+	@Override
 	public String getTitle() {
 		return titleText.getText();
 	}

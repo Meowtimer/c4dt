@@ -3,7 +3,6 @@ package net.arctics.clonk.ui.wizards;
 import java.util.List;
 
 import net.arctics.clonk.index.Definition;
-import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.parser.ID;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.resource.c4group.C4Group.GroupType;
@@ -26,10 +25,12 @@ public class NewDefinitionPage extends NewClonkFolderWizardPage {
 		super(selection);
 		setTitle(Messages.NewC4ObjectPage_Title);
 		setDescription(Messages.NewC4ObjectPage_Description);
-		Engine engine = ClonkProjectNature.getEngine(selection);
-		if (engine != null)
-			setImageDescriptor(engine.imageDescriptor(GroupType.DefinitionGroup.name()+"Big"));
 		this.selection = selection;
+	}
+	
+	@Override
+	protected GroupType groupType() {
+		return GroupType.DefinitionGroup;
 	}
 	
 	@Override

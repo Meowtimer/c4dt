@@ -11,6 +11,7 @@ import net.arctics.clonk.parser.DeclarationRegion;
 import net.arctics.clonk.parser.ID;
 import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.ParsingException;
+import net.arctics.clonk.parser.SourceLocation;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.DeclarationObtainmentContext;
 import net.arctics.clonk.parser.c4script.DefinitionFunction;
@@ -25,6 +26,7 @@ import net.arctics.clonk.parser.c4script.ScriptBase;
 import net.arctics.clonk.parser.c4script.SpecialScriptRules;
 import net.arctics.clonk.parser.c4script.Variable;
 import net.arctics.clonk.parser.c4script.Variable.Scope;
+import net.arctics.clonk.parser.c4script.ast.AccessVar;
 import net.arctics.clonk.parser.c4script.ast.CallFunc;
 import net.arctics.clonk.parser.c4script.ast.ExprElm;
 import net.arctics.clonk.parser.c4script.ast.StringLiteral;
@@ -175,10 +177,13 @@ public class SpecialScriptRules_OpenClonk extends SpecialScriptRules {
 			if (arguments.length >= 2 && parser.getCurrentFunc() instanceof DefinitionFunction) {
 				Object nameEv = arguments[0].evaluateAtParseTime(parser.getCurrentFunc());
 				if (nameEv instanceof String) {
-					Variable var = new Variable((String) nameEv, arguments[1].getType(parser));
+					SourceLocation loc = parser.absoluteSourceLocationFromExpr(arguments[0]);
+					Variable var = parser.createVarInScope((String) nameEv, Scope.LOCAL, loc.getStart(), loc.getEnd(), "");
 					var.setLocation(parser.absoluteSourceLocationFromExpr(arguments[0]));
 					var.setScope(Scope.LOCAL);
 					var.setInitializationExpression(arguments[1]);
+					var.forceType(arguments[1].getType(parser));
+					new AccessVar(var).inferTypeFromAssignment(arguments[1], parser);
 					var.setParentDeclaration(parser.getCurrentFunc());
 					parser.getContainer().addDeclaration(var);
 				}

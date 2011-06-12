@@ -112,11 +112,9 @@ public abstract class UI {
 	private static Object imageThingieForURL(URL url, boolean returnDescriptor) {
 		String path = url.toExternalForm();
 		ImageRegistry reg = ClonkCore.getDefault().getImageRegistry();
-		Object result = reg.getDescriptor(path);
-		if (result == null) {
+		Object result;
+		while ((result = returnDescriptor ? reg.getDescriptor(path) : reg.get(path)) == null)
 			reg.put(path, ImageDescriptor.createFromURL(url));
-			result = returnDescriptor ? reg.getDescriptor(path) : reg.get(path);
-		}
 		return result;
 	}
 	

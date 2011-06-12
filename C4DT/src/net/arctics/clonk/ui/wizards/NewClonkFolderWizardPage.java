@@ -2,6 +2,10 @@ package net.arctics.clonk.ui.wizards;
 
 import java.lang.reflect.Field;
 
+import net.arctics.clonk.index.Engine;
+import net.arctics.clonk.resource.ClonkProjectNature;
+import net.arctics.clonk.resource.c4group.C4Group.GroupType;
+
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
@@ -35,11 +39,25 @@ public class NewClonkFolderWizardPage extends WizardPage {
 	protected ISelection selection;
 	protected IProject project;
 	
+	/**
+	 * Return group type. Used for setting a fitting icon for the page.
+	 * @return
+	 */
+	protected GroupType groupType() {
+		return null;
+	}
+	
 	public NewClonkFolderWizardPage(ISelection selection) {
 		super("wizardPage"); //$NON-NLS-1$
 		setTitle(Messages.NewClonkFolderWizardPage_Title);
 		setDescription(Messages.NewClonkFolderWizardPage_Description);
 		this.selection = selection;
+		GroupType groupType = this.groupType();
+		if (groupType != null) {
+			Engine engine = ClonkProjectNature.getEngine(selection);
+			if (engine != null)
+				setImageDescriptor(engine.imageDescriptor(groupType.name()+"Big"));
+		}
 	}
 	
 	public Text addTextField(String label) {
