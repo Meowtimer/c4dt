@@ -46,7 +46,7 @@ public abstract class ClonkCompletionProcessor<EditorType extends ClonkTextEdito
 			int replacementLength = prefix != null ? prefix.length() : 0; 
 
 			ClonkCompletionProposal prop = new ClonkCompletionProposal(obj, obj.id().getName(), offset, replacementLength, obj.id().getName().length(),
-				UI.getIconForObject(obj), displayString.trim(), null, obj.getInfoText(), " - " + obj.id().getName(), getEditor()); //$NON-NLS-1$
+				UI.iconFor(obj), displayString.trim(), null, obj.getInfoText(), " - " + obj.id().getName(), getEditor()); //$NON-NLS-1$
 			prop.setCategory(Category.Definitions);
 			proposals.add(prop);
 		} catch (Exception e) {
@@ -86,7 +86,7 @@ public abstract class ClonkCompletionProcessor<EditorType extends ClonkTextEdito
 				cursorPosition++;
 		}
 		ClonkCompletionProposal prop = new ClonkCompletionProposal(func, replacement, offset,replacementLength,cursorPosition,
-				UI.getIconForFunction(func), displayString.trim(), null/*contextInformation*/, null," - " + parentName, getEditor()); //$NON-NLS-1$
+				UI.functionIcon(func), displayString.trim(), null/*contextInformation*/, null," - " + parentName, getEditor()); //$NON-NLS-1$
 		prop.setCategory(Category.Functions);
 		proposals.add(prop);
 	}
@@ -101,7 +101,7 @@ public abstract class ClonkCompletionProcessor<EditorType extends ClonkTextEdito
 		if (prefix != null)
 			replacementLength = prefix.length();
 		ClonkCompletionProposal prop = new ClonkCompletionProposal(var,
-			var.getName(), offset, replacementLength, var.getName().length(), UI.getIconForVariable(var), displayString, 
+			var.getName(), offset, replacementLength, var.getName().length(), UI.variableIcon(var), displayString, 
 			null, var.getInfoText(), " - " + (var.getScript() != null ? var.getScript().getName() : "<adhoc>"), //$NON-NLS-1$
 			getEditor()
 		);

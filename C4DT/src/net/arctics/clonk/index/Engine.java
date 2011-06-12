@@ -19,8 +19,6 @@ import org.eclipse.core.resources.IMarker;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.util.Util;
 import org.eclipse.swt.graphics.Image;
-import org.eclipse.swt.widgets.Display;
-
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.BufferedScanner;
 import net.arctics.clonk.parser.Declaration;
@@ -53,6 +51,7 @@ import net.arctics.clonk.util.IStorageLocation;
 import net.arctics.clonk.util.LineNumberObtainer;
 import net.arctics.clonk.util.SettingsBase;
 import net.arctics.clonk.util.StreamUtil;
+import net.arctics.clonk.util.UI;
 
 /**
  * Container for engine functions and constants.
@@ -636,47 +635,20 @@ public class Engine extends ScriptBase {
 		return getGroupTypeForExtension(fileName.substring(fileName.lastIndexOf(".") + 1).toLowerCase()); //$NON-NLS-1$
 	}
 	
-	private Map<GroupType, Image> gttim;
-	private Map<GroupType, ImageDescriptor> gttidm;
-	public Map<GroupType, Image> getGroupTypeToIconMap() {
-		if (gttim == null) {
-			gttim = new HashMap<GroupType, Image>(GroupType.values().length);
-			gttidm = new HashMap<GroupType, ImageDescriptor>(GroupType.values().length);
-			Collection<URL> urls = getURLsOfStorageLocationPath("icons", false);
-			for (GroupType gt : GroupType.values()) {
-				if (urls != null) for (URL url : urls) {
-					if (url.getFile().endsWith(gt.toString()+".png")) {
-						InputStream stream;
-						try {
-							stream = url.openStream();
-						} catch (IOException e1) {
-							e1.printStackTrace();
-							continue;
-						}
-						try {
-							Image img = new Image(Display.getDefault(), stream);
-							ClonkCore.getDefault().getImageRegistry().put(getName()+"_"+gt.toString(), img);
-							gttim.put(gt, img);
-							gttidm.put(gt, ImageDescriptor.createFromURL(url));
-						} finally {
-							try {
-								stream.close();
-							} catch (IOException e) {
-								e.printStackTrace();
-							}
-						}
-						break;
-					}
-				}
-			}
-		}
-		return gttim;
+	public Object image(String name, boolean returnDescriptor) {
+		Collection<URL> urls = getURLsOfStorageLocationPath("images", false);
+		if (urls != null)
+			for (URL url : urls)
+				if (url.getFile().endsWith(name+".png"))
+					return returnDescriptor ? UI.imageDescriptorForURL(url) :  UI.imageForURL(url);
+		return null;
 	}
-	public Map<GroupType, ImageDescriptor> getGroupTypeToIconDescriptor() {
-		getGroupTypeToIconMap();
-		return gttidm;
-	}
-
+	
+	public Image image(GroupType groupType) {return (Image) image(groupType.name(), false);}
+	public ImageDescriptor imageDescriptor(GroupType groupType) {return (ImageDescriptor) image(groupType.name(), true);}
+	public Image image(String name) {return (Image) image(name, false);}
+	public ImageDescriptor imageDescriptor(String name) {return (ImageDescriptor) image(name, true);}
+	
 	/**
 	 * Construct group name based on the name without extension and a {@link GroupType}
 	 * @param name The name without extension

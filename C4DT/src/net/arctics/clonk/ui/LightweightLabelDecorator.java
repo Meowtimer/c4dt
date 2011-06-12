@@ -33,7 +33,7 @@ public class LightweightLabelDecorator implements ILightweightLabelDecorator {
 				Engine engine = ClonkProjectNature.getEngine(res);
 				if (engine != null) {
 					GroupType groupType = engine.getGroupTypeForFileName(res.getName());
-					ImageDescriptor imgDesc = engine.getGroupTypeToIconDescriptor().get(groupType);
+					ImageDescriptor imgDesc = engine.imageDescriptor(groupType);
 					if (imgDesc != null)
 						decoration.addOverlay(imgDesc, IDecoration.REPLACE);
 				}
@@ -56,7 +56,7 @@ public class LightweightLabelDecorator implements ILightweightLabelDecorator {
 	private ImageDescriptor getIcon(String name) {
 		ImageRegistry reg = ClonkCore.getDefault().getImageRegistry();
 		if (reg.get(name) == null) {
-			reg.put(name, UI.getIconDescriptor("icons/" + name)); //$NON-NLS-1$
+			reg.put(name, UI.imageDescriptorForPath("icons/" + name)); //$NON-NLS-1$
 		}
 		return reg.getDescriptor(name);
 	}

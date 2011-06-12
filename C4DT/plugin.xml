@@ -230,7 +230,7 @@
 			name="%Scenario_Name" project="false" />
 
 		<wizard category="net.arctics.clonk.clonkProjects" class="net.arctics.clonk.ui.wizards.NewParticle"
-			hasPages="true" icon="icons/Clonk_Particle.png" id="net.arctics.clonk.wizards.NewParticle"
+			hasPages="true" icon="icons/particle.png" id="net.arctics.clonk.wizards.NewParticle"
 			name="%Particle_Name" project="false" />
 
 	</extension>

@@ -1,5 +1,7 @@
 package net.arctics.clonk.util;
 
+import java.net.URL;
+
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.parser.c4script.Function;
@@ -48,34 +50,47 @@ import org.eclipse.ui.model.WorkbenchLabelProvider;
  * Stores references to some objects needed for various components of the user interface
  */
 public abstract class UI {
-	public final static Image SCRIPT_ICON = getIconImage("c4script","icons/c4scriptIcon.png"); //$NON-NLS-1$ //$NON-NLS-2$
-	public final static Image MAP_ICON = getIconImage("mapCreatorMap", "icons/map.png");
-	public final static Image MAPOVERLAY_ICON = getIconImage("mapCreatorMapOverlay", "icons/mapoverlay.png");
-	public static final Image TEXT_ICON = getIconImage("c4txt","icons/text.png"); //$NON-NLS-1$ //$NON-NLS-2$
-	public static final Image MATERIAL_ICON = getIconImage("c4material","icons/Clonk_C4.png"); //$NON-NLS-1$ //$NON-NLS-2$
-	public static final Image DEPENDENCIES_ICON = getIconImage("c4dependencies", "icons/Dependencies.png"); //$NON-NLS-1$ //$NON-NLS-2$
-	public static final Image CLONK_ENGINE_ICON = getIconImage("c4engine", "icons/Clonk_engine"); //$NON-NLS-1$ //$NON-NLS-2$
-	public static final Image DUPE_ICON = getIconImage("dupe", "icons/dupe.png");
+	public final static Image SCRIPT_ICON = imageForPath("icons/c4scriptIcon.png"); //$NON-NLS-1$ //$NON-NLS-2$
+	public final static Image MAP_ICON = imageForPath("icons/map.png");
+	public final static Image MAPOVERLAY_ICON = imageForPath("icons/mapoverlay.png");
+	public static final Image TEXT_ICON = imageForPath("icons/text.png"); //$NON-NLS-1$ //$NON-NLS-2$
+	public static final Image MATERIAL_ICON = imageForPath("icons/Clonk_C4.png"); //$NON-NLS-1$ //$NON-NLS-2$
+	public static final Image CLONK_ENGINE_ICON = imageForPath("icons/Clonk_engine.png"); //$NON-NLS-1$ //$NON-NLS-2$
+	public static final Image DUPE_ICON = imageForPath("icons/dupe.png");
 	
-	public static Image getIconForFunction(Function function) {
+	/**
+	 * Return a function icon signifying the function's protection level.
+	 * @param function The function to return an icon for
+	 * @return The function icon.
+	 */
+	public static Image functionIcon(Function function) {
 		String iconName = function.getVisibility().name().toLowerCase();
 		return ClonkCore.getDefault().getIconImage(iconName);
 	}
 	
-	public static Image getIconForVariable(Variable variable) {
+	/**
+	 * Return a variable icon. The icon reflects whether the variable is static or local.
+	 * @param variable The variable to return an icon for
+	 * @return The variable icon.
+	 */
+	public static Image variableIcon(Variable variable) {
 		String iconName = variable.getScope().toString().toLowerCase();
 		return ClonkCore.getDefault().getIconImage(iconName);
 	}
 
-	public static Image getIconForObject(Object element) {
+	/**
+	 * Return an icon for some object. Null will be returned if the object isn't of some class one of the
+	 * icon-returning functions ({@link #functionIcon(Function)}, {@link #variableIcon(Variable)} etc) could be called with. 
+	 * @param element The element to return an icon for
+	 * @return The icon or null if the object is of some exotic type.
+	 */
+	public static Image iconFor(Object element) {
 		if (element instanceof Function)
-			return getIconForFunction((Function)element);
+			return functionIcon((Function)element);
 		if (element instanceof Variable)
-			return getIconForVariable((Variable)element);
-		if (element instanceof Definition) {
-			Definition def = (Definition)element;
-			return def.getEngine().getGroupTypeToIconMap().get(GroupType.DefinitionGroup);
-		}
+			return variableIcon((Variable)element);
+		if (element instanceof Definition)
+			return definitionIcon((Definition)element);
 		else if (element instanceof MapCreatorMap)
 			return MAP_ICON;
 		else if (element instanceof MapOverlay)
@@ -85,18 +100,44 @@ public abstract class UI {
 		return null;
 	}
 
-	public static ImageDescriptor getIconDescriptor(String path) {
-		return ImageDescriptor.createFromURL(FileLocator.find(ClonkCore.getDefault().getBundle(), new Path(path), null));
+	/**
+	 * Return a {@link Definition} icon.
+	 * @param def The definition to return an icon for.
+	 * @return The icon.
+	 */
+	public static Image definitionIcon(Definition def) {
+		return def.getEngine().image(GroupType.DefinitionGroup);
+	}
+
+	private static Object imageThingieForURL(URL url, boolean returnDescriptor) {
+		String path = url.toExternalForm();
+		ImageRegistry reg = ClonkCore.getDefault().getImageRegistry();
+		Object result = reg.getDescriptor(path);
+		if (result == null) {
+			reg.put(path, ImageDescriptor.createFromURL(url));
+			result = returnDescriptor ? reg.getDescriptor(path) : reg.get(path);
+		}
+		return result;
 	}
 	
-	public static Image getIconImage(String registryKey, String iconPath) {
-		ImageRegistry reg = ClonkCore.getDefault().getImageRegistry();
-		Image img = reg.get(registryKey);
-		if (img == null) {
-			reg.put(registryKey, getIconDescriptor(iconPath));
-			img = reg.get(registryKey);
-		}
-		return img;
+	private static Object imageThingieForPath(String path, boolean returnDescriptor) {
+		return imageThingieForURL(FileLocator.find(ClonkCore.getDefault().getBundle(), new Path(path), null), returnDescriptor);
+	}
+	
+	public static ImageDescriptor imageDescriptorForPath(String path) {
+		return (ImageDescriptor) imageThingieForPath(path, true);
+	}	
+	
+	public static Image imageForPath(String iconPath) {
+		return (Image) imageThingieForPath(iconPath, false);
+	}
+	
+	public static ImageDescriptor imageDescriptorForURL(URL url) {
+		return (ImageDescriptor) imageThingieForURL(url, true);
+	}
+	
+	public static Image imageForURL(URL url) {
+		return (Image) imageThingieForURL(url, false);
 	}
 	
 	public static class ProjectEditorBlock {

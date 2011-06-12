@@ -3,6 +3,7 @@ package net.arctics.clonk.ui.wizards;
 import java.util.List;
 
 import net.arctics.clonk.index.Definition;
+import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.parser.ID;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.resource.c4group.C4Group.GroupType;
@@ -11,7 +12,7 @@ import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Text;
 
-public class NewC4ObjectPage extends NewClonkFolderWizardPage {
+public class NewDefinitionPage extends NewClonkFolderWizardPage {
 
 	private Text c4idText;
 	private Text descriptionText;
@@ -21,10 +22,13 @@ public class NewC4ObjectPage extends NewClonkFolderWizardPage {
 	 * 
 	 * @param pageName
 	 */
-	public NewC4ObjectPage(ISelection selection) {
+	public NewDefinitionPage(ISelection selection) {
 		super(selection);
 		setTitle(Messages.NewC4ObjectPage_Title);
 		setDescription(Messages.NewC4ObjectPage_Description);
+		Engine engine = ClonkProjectNature.getEngine(selection);
+		if (engine != null)
+			setImageDescriptor(engine.imageDescriptor(GroupType.DefinitionGroup.name()+"Big"));
 		this.selection = selection;
 	}
 	

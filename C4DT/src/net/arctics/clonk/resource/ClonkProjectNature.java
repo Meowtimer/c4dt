@@ -435,5 +435,12 @@ public class ClonkProjectNature implements IProjectNature {
 		ClonkProjectNature nat = get(res);
 		return nat != null ? nat.getIndex().getEngine() : null;
 	}
+	
+	public static Engine getEngine(ISelection selection) {
+		if (selection instanceof IStructuredSelection && ((IStructuredSelection)selection).getFirstElement() instanceof IResource)
+			return getEngine((IResource) ((IStructuredSelection)selection).getFirstElement());
+		else
+			return null;
+	}
 
 }

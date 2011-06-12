@@ -47,10 +47,10 @@ public class ClonkLabelProvider extends LabelProvider implements IStyledLabelPro
 			IFolder folder = (IFolder)element;
 			Engine engine = ClonkProjectNature.getEngine(folder);
 			if (engine != null) {
-				return engine.getGroupTypeToIconMap().get(engine.getGroupTypeForFileName(folder.getName()));
+				return engine.image(engine.getGroupTypeForFileName(folder.getName()));
 			}
 		}
-		return UI.getIconForObject(element);
+		return UI.iconFor(element);
 	}
 
 	@Override
@@ -127,11 +127,11 @@ public class ClonkLabelProvider extends LabelProvider implements IStyledLabelPro
 				if (markers.length > 0) {
 					for(IMarker marker : markers) {
 						if (marker.getAttribute(IMarker.SEVERITY, IMarker.SEVERITY_INFO) == IMarker.SEVERITY_ERROR) {
-							result[2][0] = UI.getIconDescriptor("icons/error_co.gif"); //$NON-NLS-1$
+							result[2][0] = UI.imageDescriptorForPath("icons/error_co.gif"); //$NON-NLS-1$
 							break;
 						}
 						if (marker.getAttribute(IMarker.SEVERITY, IMarker.SEVERITY_INFO) == IMarker.SEVERITY_WARNING) {
-							result[2][0] = UI.getIconDescriptor("icons/warning_co.gif"); //$NON-NLS-1$
+							result[2][0] = UI.imageDescriptorForPath("icons/warning_co.gif"); //$NON-NLS-1$
 						}
 					}
 				}

@@ -90,10 +90,10 @@ public class ClonkSearchContentProvider extends ClonkLabelProvider implements IT
 		Engine engine = element instanceof Declaration ? ((Declaration)element).getEngine() : null;
 		if (engine != null) {
 			if (element instanceof Scenario) {
-				return engine.getGroupTypeToIconMap().get(GroupType.ScenarioGroup);
+				return engine.image(GroupType.ScenarioGroup);
 			}
 			if (element instanceof ProjectDefinition) {
-				return engine.getGroupTypeToIconMap().get(GroupType.DefinitionGroup);
+				return engine.image(GroupType.DefinitionGroup);
 			}
 			if (element instanceof StandaloneProjectScript) {
 				return UI.SCRIPT_ICON;

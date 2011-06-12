@@ -17,7 +17,7 @@ import org.eclipse.ui.*;
  * be able to open it.
  */
 
-public class NewDefinitionWizard extends NewClonkFolderWizard<NewC4ObjectPage> implements INewWizard {
+public class NewDefinitionWizard extends NewClonkFolderWizard<NewDefinitionPage> implements INewWizard {
 
 	/**
 	 * Constructor for NewDefinitionWizard.
@@ -32,7 +32,7 @@ public class NewDefinitionWizard extends NewClonkFolderWizard<NewC4ObjectPage> i
 
 	@Override
 	public void addPages() {
-		page = new NewC4ObjectPage(selection);
+		page = new NewDefinitionPage(selection);
 		addPage(page);
 	}
 

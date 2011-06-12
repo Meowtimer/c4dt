@@ -64,7 +64,7 @@ public class ClonkOutlineProvider extends LabelProvider implements ITreeContentP
 
 	@Override
 	public Image getImage(Object element) {
-		return UI.getIconForObject(element);
+		return UI.iconFor(element);
 	}
 
 	@Override

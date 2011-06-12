@@ -113,7 +113,7 @@ public class ClonkFolderView extends ViewPart implements ISelectionListener, IDo
 		public Image getImage(Object element) {
 			Engine engine = getCurrentEngine();
 			GroupType gt = engine.getGroupTypeForFileName((((File) element).toString()));
-			return engine.getGroupTypeToIconMap().get(gt);
+			return engine.image(gt);
 		}
 
 		@Override

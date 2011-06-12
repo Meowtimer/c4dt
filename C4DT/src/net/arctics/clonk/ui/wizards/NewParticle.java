@@ -4,6 +4,7 @@ import java.util.Map;
 
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.resource.c4group.C4Group.GroupType;
+import net.arctics.clonk.util.UI;
 
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.swt.widgets.Composite;
@@ -22,6 +23,7 @@ public class NewParticle extends NewClonkFolderWizard<NewClonkFolderWizardPage> 
 				setFolderExtension(ClonkProjectNature.getEngine(project).getCurrentSettings().getGroupTypeToFileExtensionMapping().get(GroupType.DefinitionGroup));
 				setTitle(Messages.NewParticle_PageTitle);
 				setDescription(Messages.NewParticle_Description);
+				setImageDescriptor(UI.imageDescriptorForPath("icons/particlebig.png"));
 			};
 		};
 		addPage(page);
