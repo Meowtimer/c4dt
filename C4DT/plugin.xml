@@ -152,9 +152,11 @@
 			
 			<commonWizard type="new" wizardId="net.arctics.clonk.wizards.NewClonkProject">
 				<enablement>
-					<iterate ifEmpty="true">
-						<adapt type="org.eclipse.core.resources.IResource" />
-					</iterate>
+					<!--<adapt type="org.eclipse.core.expressions.IIterable">
+						<iterate ifEmpty="true">
+							<adapt type="org.eclipse.core.resources.IResource" />
+						</iterate>
+					</adapt>-->
 				</enablement>
 			</commonWizard>
 			
