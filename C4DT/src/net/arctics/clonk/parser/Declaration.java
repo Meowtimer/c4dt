@@ -231,8 +231,14 @@ public abstract class Declaration implements Serializable, IHasRelatedResource, 
 		Declaration parent = parentDeclaration;
 		if (parent != null)
 			parent = parent.latestVersion();
-		if (parent instanceof ILatestDeclarationVersionProvider)
-			return ((ILatestDeclarationVersionProvider)parent).getLatestVersion(this);
+		if (parent instanceof ILatestDeclarationVersionProvider) {
+			Declaration latest = ((ILatestDeclarationVersionProvider)parent).getLatestVersion(this);
+			if (latest != null)
+				return latest;
+			else
+				// fallback on returning this declaration if latest version providing not properly implemented
+				return this;
+		}
 		else
 			return this;
 	}
