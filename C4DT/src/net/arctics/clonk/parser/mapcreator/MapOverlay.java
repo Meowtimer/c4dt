@@ -131,25 +131,14 @@ public class MapOverlay extends MapOverlayBase {
 		return result;
 	}
 	
-	private boolean hasAnyNamedSubOverlays() {
-		for (MapOverlayBase o : this.subOverlays)
-			if (o.getName() != null)
-				return true;
-		return false;
-	}
-	
 	@Override
 	public Object[] getSubDeclarationsForOutline() {
-		LinkedList<MapOverlayBase> result = new LinkedList<MapOverlayBase>();
-		for (MapOverlayBase o : this.subOverlays)
-			if (o.getName() != null)
-				result.add(o);
-		return result.toArray(new MapOverlayBase[result.size()]);
+		return this.subOverlays.toArray();
 	}
 	
 	@Override
 	public boolean hasSubDeclarationsInOutline() {
-		return hasAnyNamedSubOverlays();
+		return this.subOverlays.size() > 0;
 	}
 	
 	@Override

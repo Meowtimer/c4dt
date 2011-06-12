@@ -305,5 +305,4 @@ public class MapOverlayBase extends Structure implements Cloneable, ITreeNode, I
 		return builder.toString();
 	}
 	
-
 }
