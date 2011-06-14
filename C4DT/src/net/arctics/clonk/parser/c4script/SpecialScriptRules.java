@@ -350,11 +350,11 @@ public class SpecialScriptRules {
 		public IType returnType(DeclarationObtainmentContext context, CallFunc callFunc) {
 			if (callFunc.getParams().length >= 1) {
 				IType t = callFunc.getParams()[0].getType(context);
-				if (t instanceof ConstrainedProplist) {
-					ConstrainedProplist ct = (ConstrainedProplist) t;
+				if (t instanceof IHasConstraint) {
+					IHasConstraint ct = (IHasConstraint) t;
 					switch (ct.constraintKind()) {
 					case Exact:
-						return ct.constraintDefinition();
+						return ct.constraint();
 					case CallerType:
 						return new ConstrainedProplist(ct.constraint(), ConstraintKind.CallerType);
 					case Includes:
