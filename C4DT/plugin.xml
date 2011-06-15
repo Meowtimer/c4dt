@@ -213,7 +213,7 @@
 		<category id="net.arctics.clonk.c4dtCustomization" name="C4DT Customization" />
 
 		<wizard id="net.arctics.clonk.wizards.NewClonkProject" name="%ClonkProject_Name"
-			category="net.arctics.clonk.clonkProjects" icon="icons/Clonk_C4Chip.ico"
+			category="net.arctics.clonk.clonkProjects" icon="icons/project.png"
 			class="net.arctics.clonk.ui.wizards.NewClonkProject" project="true"
 			finalPerspective="net.arctics.clonk.clonkPerspective">
 			<description>
@@ -239,7 +239,7 @@
 		<category id="net.arctics.clonk.clonkProjects" name="Clonk" />
 
 		<wizard id="net.arctics.clonk.importClonkData" name="Import c4d, c4f, etc to project"
-			category="net.arctics.clonk.clonkProjects" icon="icons/Clonk_C4Chip.ico"
+			category="net.arctics.clonk.clonkProjects" icon="icons/project.png"
 			class="net.arctics.clonk.ui.wizards.ImportClonkFiles">
 			<description>
 				Import scenarios or object packs into the project.
@@ -252,7 +252,7 @@
 		<category id="net.arctics.clonk.clonkProjects" name="Clonk" />
 
 		<wizard id="net.arctics.clonk.exportClonkData" name="Export project item to Clonk dir"
-			category="net.arctics.clonk.clonkProjects" icon="icons/Clonk_C4Chip.ico"
+			category="net.arctics.clonk.clonkProjects" icon="icons/project.png"
 			class="net.arctics.clonk.ui.wizards.ExportClonkFiles">
 			<description>
 				Exports the selected project item to your Clonk

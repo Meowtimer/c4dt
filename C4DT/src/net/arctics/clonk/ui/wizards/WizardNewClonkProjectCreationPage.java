@@ -32,6 +32,7 @@ public class WizardNewClonkProjectCreationPage extends WizardNewProjectCreationP
 	
 	public WizardNewClonkProjectCreationPage(String pageName) {
 		super(pageName);
+		setImageDescriptor(UI.imageDescriptorForPath("icons/project_big.png"));
 	}
 	
 	@Override
