@@ -31,7 +31,7 @@
 		<builder id="net.arctics.clonk.builder" />
 	</extension>
 	
-	<extension point="org.eclipse.core.resources.natures" id="c4dt_customization" name="C4DT Customization"> 
+	<extension point="org.eclipse.core.resources.natures" id="c4dt_customization" name="%C4DTCustomization_MenuTitle"> 
 		<runtime>
 			<run class="net.arctics.clonk.resource.CustomizationNature" />
 		</runtime>
