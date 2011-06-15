@@ -21,9 +21,8 @@ public class FindDuplicatesSearchResultPage extends ClonkSearchResultPage {
 	@Override
 	protected void handleOpen(OpenEvent event) {
 		IStructuredSelection selection = (IStructuredSelection) event.getSelection();
-		if (selection.getFirstElement() instanceof Function) {
+		if (selection.getFirstElement() instanceof Function)
 			ClonkTextEditor.openDeclaration((Function) selection.getFirstElement());
-		}
 		else
 			super.handleOpen(event);
 	}

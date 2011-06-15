@@ -108,16 +108,18 @@ public class ClonkSearchContentProvider extends ClonkLabelProvider implements IT
 	}
 	@Override
 	public StyledString getStyledText(Object element) {
-		if (element instanceof ClonkSearchMatch) {
+		if (element instanceof ClonkSearchMatch) try {
 			StyledString result = new StyledString();
 			ClonkSearchMatch match = (ClonkSearchMatch) element;
-			String firstHalf = match.getLine().substring(match.getLineOffset(), match.getLineOffset()+match.getOffset());
-			String matchStr = match.getLine().substring(match.getLineOffset()+match.getOffset(), match.getLineOffset()+match.getOffset()+match.getLength());
-			String secondHalf = match.getLine().substring(match.getLineOffset()+match.getOffset()+match.getLength(), match.getLineOffset()+match.getLine().length());
+			String firstHalf = match.getLine().substring(0, match.getOffset()-match.getLineOffset());
+			String matchStr = match.getLine().substring(match.getOffset()-match.getLineOffset(), match.getOffset()-match.getLineOffset()+match.getLength());
+			String secondHalf = match.getLine().substring(match.getOffset()-match.getLineOffset()+match.getLength(), match.getLine().length());
 			result.append(firstHalf);
 			result.append(matchStr, StyledString.DECORATIONS_STYLER);
 			result.append(secondHalf);
 			return result;
+		} catch (Exception e) {
+			return new StyledString(((ClonkSearchMatch)element).getLine());
 		}
 		else if (element instanceof Function) {
 			return new StyledString(((Function)element).getQualifiedName());

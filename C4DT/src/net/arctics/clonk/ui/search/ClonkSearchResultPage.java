@@ -3,6 +3,7 @@ package net.arctics.clonk.ui.search;
 import net.arctics.clonk.parser.Structure;
 import net.arctics.clonk.ui.editors.ClonkTextEditor;
 
+import org.eclipse.jface.viewers.DelegatingStyledCellLabelProvider;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.OpenEvent;
 import org.eclipse.jface.viewers.TableViewer;
@@ -30,7 +31,7 @@ public class ClonkSearchResultPage extends AbstractTextSearchViewPage implements
 	@Override
 	protected void configureTableViewer(TableViewer tableViewer) {
 		ClonkSearchContentProvider contentAndLabelProvider = getContentAndLabelProvider(true);
-		tableViewer.setLabelProvider(contentAndLabelProvider);
+		tableViewer.setLabelProvider(new DelegatingStyledCellLabelProvider(contentAndLabelProvider));
 		tableViewer.setContentProvider(contentAndLabelProvider);
 		tableViewer.setComparator(contentAndLabelProvider.getComparator());
 	}
@@ -38,7 +39,7 @@ public class ClonkSearchResultPage extends AbstractTextSearchViewPage implements
 	@Override
 	protected void configureTreeViewer(TreeViewer treeViewer) {
 		ClonkSearchContentProvider contentAndLabelProvider = getContentAndLabelProvider(true);
-		treeViewer.setLabelProvider(contentAndLabelProvider);
+		treeViewer.setLabelProvider(new DelegatingStyledCellLabelProvider(contentAndLabelProvider));
 		treeViewer.setContentProvider(contentAndLabelProvider);
 		treeViewer.setComparator(contentAndLabelProvider.getComparator());
 	}
