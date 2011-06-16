@@ -117,6 +117,8 @@ public class ClonkSearchContentProvider extends ClonkLabelProvider implements IT
 			result.append(firstHalf);
 			result.append(matchStr, StyledString.DECORATIONS_STYLER);
 			result.append(secondHalf);
+			result.append(" - ");
+			result.append(match.getStructure().getResource().getProjectRelativePath().toOSString(), StyledString.QUALIFIER_STYLER);
 			return result;
 		} catch (Exception e) {
 			return new StyledString(((ClonkSearchMatch)element).getLine());
