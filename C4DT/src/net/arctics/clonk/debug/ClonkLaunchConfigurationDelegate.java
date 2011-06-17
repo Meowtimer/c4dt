@@ -143,9 +143,8 @@ public class ClonkLaunchConfigurationDelegate extends LaunchConfigurationDelegat
 		String enginePref = scenarioScript != null ? scenarioScript.getEngine().getCurrentSettings().engineExecutablePath : null;
 		if (enginePref == null)
 			enginePref = ""; //$NON-NLS-1$
-		if (!enginePref.equals("")) { //$NON-NLS-1$
+		if (!enginePref.equals("")) //$NON-NLS-1$
 			enginePath = new File(enginePref);
-		}
 		else {
 			// Try some variants in an attempt to find the engine (ugh...)
 			final String[] engineNames = Engine.possibleEngineNamesAccordingToOS(); //$NON-NLS-1$
@@ -157,9 +156,8 @@ public class ClonkLaunchConfigurationDelegate extends LaunchConfigurationDelegat
 				}
 			}
 		}
-		if(!enginePath.exists()) {
+		if(!enginePath.exists())
 			abort(IStatus.ERROR, String.format(Messages.CouldNotFindEngine, enginePath.getAbsolutePath()));
-		}
 
 		// TODO: Do some more verification? Check engine version?
 	
