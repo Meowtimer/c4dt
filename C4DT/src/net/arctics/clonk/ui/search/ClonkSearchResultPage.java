@@ -38,7 +38,7 @@ public class ClonkSearchResultPage extends AbstractTextSearchViewPage implements
 
 	@Override
 	protected void configureTreeViewer(TreeViewer treeViewer) {
-		ClonkSearchContentProvider contentAndLabelProvider = getContentAndLabelProvider(true);
+		ClonkSearchContentProvider contentAndLabelProvider = getContentAndLabelProvider(false);
 		treeViewer.setLabelProvider(new DelegatingStyledCellLabelProvider(contentAndLabelProvider));
 		treeViewer.setContentProvider(contentAndLabelProvider);
 		treeViewer.setComparator(contentAndLabelProvider.getComparator());
@@ -94,6 +94,16 @@ public class ClonkSearchResultPage extends AbstractTextSearchViewPage implements
 		}
 		else
 			super.handleOpen(event);
+	}
+	
+	@Override
+	public int getDisplayedMatchCount(Object element) {
+		return element instanceof Match ? 1 : 0;
+	}
+	
+	@Override
+	public Match[] getDisplayedMatches(Object element) {
+		return element instanceof Match ? new Match[] {(Match)element} : new Match[0];
 	}
 
 }
