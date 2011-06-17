@@ -8,6 +8,7 @@ public class Messages extends NLS {
 	public static String DeclarationChooser_Label;
 	public static String FindReferencesAction_Label;
 	public static String FindReferencesAction_OnlyWorksWithinProject;
+	public static String OpenLocalResourceHandler_OpenResourceInside;
 	public static String RenameDeclarationAction_Failed;
 	public static String RenameDeclarationAction_RenamingFailed;
 	public static String RenameDeclarationAction_RenameDeclaration;
