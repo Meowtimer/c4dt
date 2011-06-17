@@ -233,35 +233,6 @@
 
 	</extension>
 
-	<extension point="org.eclipse.ui.importWizards">
-		<category id="net.arctics.clonk.clonkProjects" name="Clonk" />
-
-		<wizard id="net.arctics.clonk.importClonkData" name="Import c4d, c4f, etc to project"
-			category="net.arctics.clonk.clonkProjects" icon="icons/project.png"
-			class="net.arctics.clonk.ui.wizards.ImportClonkFiles">
-			<description>
-				Import scenarios or object packs into the project.
-			</description>
-			<selection class="org.eclipse.core.resources.IResource" />
-		</wizard>
-	</extension>
-
-	<extension point="org.eclipse.ui.exportWizards">
-		<category id="net.arctics.clonk.clonkProjects" name="Clonk" />
-
-		<wizard id="net.arctics.clonk.exportClonkData" name="Export project item to Clonk dir"
-			category="net.arctics.clonk.clonkProjects" icon="icons/project.png"
-			class="net.arctics.clonk.ui.wizards.ExportClonkFiles">
-			<description>
-				Exports the selected project item to your Clonk
-				directory. That is for
-				instance a scenario or an object of your
-				project. 
-			</description>
-			<selection class="org.eclipse.core.resources.IFolder" />
-		</wizard>
-	</extension>
-
 	<!--
 		<extension id="preferences"
 		point="org.eclipse.core.runtime.preferences" name="preferences">
