@@ -124,7 +124,7 @@ public class ConsoleOutputLineTracker implements IConsoleLineTracker {
 		boolean started = false;
 		for (int i = 0; i < lineStr.length(); i++) {
 			char c = Character.toUpperCase(lineStr.charAt(i));
-			if (c == '/' && started) {
+			if ((c == '/' || c == '\\') && started) {
 				resourceCandidatesAtCurrentFolderLevel = getSubResourcesFromResourceCollection(resourceCandidatesAtCurrentFolderLevel, lineStr.substring(folderNameStart, i));
 				if (resourceCandidatesAtCurrentFolderLevel.size() == 0) {
 					resourceCandidatesAtCurrentFolderLevel.addAll(resourcesInRelevantProjects);
