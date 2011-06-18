@@ -722,6 +722,14 @@
 			<run class="net.arctics.clonk.filesystem.C4GroupFileSystem" />
 		</filesystem>
 	</extension>
+	
+	<extension point="org.eclipse.debug.ui.consoleLineTrackers">
+		<consoleLineTracker
+			class="net.arctics.clonk.debug.ConsoleOutputLineTracker"
+			id="net.arctics.clonk.debug.ConsoleOutputLineTracker"
+			processType="clonkEngine">
+		</consoleLineTracker>
+	</extension>
 
 	<!--
 	<extension point="org.eclipse.ui.popupMenus">

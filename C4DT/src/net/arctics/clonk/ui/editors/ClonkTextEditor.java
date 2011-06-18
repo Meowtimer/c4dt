@@ -20,6 +20,8 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.Separator;
+import org.eclipse.jface.text.BadLocationException;
+import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.ITextSelection;
 import org.eclipse.jface.text.Region;
@@ -63,6 +65,16 @@ public class ClonkTextEditor extends TextEditor {
 	 */
 	public void selectAndReveal(IRegion location) {
 		this.selectAndReveal(location.getOffset(), location.getLength());
+	}
+	
+	public void selectAndRevealLine(int line) {
+		IDocument d = getSourceViewer().getDocument();
+		try {
+			IRegion r = new Region(d.getLineOffset(line), 0);
+			this.selectAndReveal(r);
+		} catch (BadLocationException e) {
+			e.printStackTrace();
+		}
 	}
 	
 	/**

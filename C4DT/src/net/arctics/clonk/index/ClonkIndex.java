@@ -779,11 +779,11 @@ public class ClonkIndex extends Declaration implements Serializable, Iterable<De
 	
 	/**
 	 * Call some runnable ({@link r}) for all indexes yielded by {@link #relevantIndexes()}
-	 * @param lmd The runnable
+	 * @param r The runnable
 	 */
-	public void forAllRelevantIndexes(r lmd) {
+	public void forAllRelevantIndexes(ClonkIndex.r r) {
 		for (ClonkIndex index : relevantIndexes())
-			lmd.run(index);
+			r.run(index);
 	}
 
 	@SuppressWarnings("unchecked")

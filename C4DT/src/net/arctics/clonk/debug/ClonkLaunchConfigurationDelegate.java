@@ -3,7 +3,10 @@ package net.arctics.clonk.debug;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.Map;
+
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.index.Scenario;
@@ -80,7 +83,10 @@ public class ClonkLaunchConfigurationDelegate extends LaunchConfigurationDelegat
 						abort(IStatus.ERROR, String.format(Messages.EngineDoesNotSupportDebugging, scenarioObj.getEngine().getName()));
 				}
 				Process process = Runtime.getRuntime().exec(launchArgs, null, workDirectory);
-				IProcess p = DebugPlugin.newProcess(launch, process, configuration.getName());
+				Map<String, Object> processAttributes = new HashMap<String, Object>();
+				processAttributes.put(IProcess.ATTR_PROCESS_TYPE, "clonkEngine");
+				processAttributes.put(IProcess.ATTR_PROCESS_LABEL, scenario.getProjectRelativePath().toOSString());
+				IProcess p = DebugPlugin.newProcess(launch, process, configuration.getName(), processAttributes);
 				if (mode.equals(ILaunchManager.DEBUG_MODE)) {
 					try {
 						IDebugTarget target = new ClonkDebugTarget(launch, p, DEFAULT_DEBUG_PORT, scenario);
@@ -180,8 +186,7 @@ public class ClonkLaunchConfigurationDelegate extends LaunchConfigurationDelegat
 	 * Collects arguments to pass to the engine at launch
 	 * @param mode 
 	 */
-	public String[] verifyLaunchArguments(ILaunchConfiguration configuration,
-			IResource scenario, File engine, String mode) throws CoreException {
+	public String[] verifyLaunchArguments(ILaunchConfiguration configuration, IResource scenario, File engine, String mode) throws CoreException {
 		Collection<String> args = new LinkedList<String>();  
 			
 		// Engine
