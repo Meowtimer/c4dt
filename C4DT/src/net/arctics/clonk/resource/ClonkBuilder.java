@@ -388,7 +388,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 				@Override
 				public void run() {
 					ID oldID = def.id();
-					if (oldID == null)
+					if (oldID == null || oldID == ID.NULL)
 						return;
 					// FIXME: implement for CR?
 					Variable var = def.proxyVar();
