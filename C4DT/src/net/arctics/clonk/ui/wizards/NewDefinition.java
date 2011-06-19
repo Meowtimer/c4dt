@@ -29,7 +29,6 @@ public class NewDefinition extends NewClonkFolderWizard<NewDefinitionPage> imple
 	/**
 	 * Adding the page to the wizard.
 	 */
-
 	@Override
 	public void addPages() {
 		page = new NewDefinitionPage(selection);
