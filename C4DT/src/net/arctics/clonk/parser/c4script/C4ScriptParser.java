@@ -823,7 +823,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 			String directiveName = this.readStringUntil(BufferedScanner.WHITESPACE_CHARS);
 			DirectiveType type = DirectiveType.makeType(directiveName);
 			if (type == null) {
-				warningWithCode(ParserErrorCode.UnknownDirective, startOfDeclaration, startOfDeclaration + directiveName != null ? directiveName.length() : 0);
+				warningWithCode(ParserErrorCode.UnknownDirective, startOfDeclaration, startOfDeclaration + 1 + (directiveName != null ? directiveName.length() : 0));
 				this.moveUntil(BufferedScanner.NEWLINE_CHARS);
 				return true;
 			}
