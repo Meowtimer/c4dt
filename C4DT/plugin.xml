@@ -219,7 +219,7 @@
 			</description>
 		</wizard>
 		
-		<wizard category="net.arctics.clonk.clonkProjects" class="net.arctics.clonk.ui.wizards.NewDefinitionWizard"
+		<wizard category="net.arctics.clonk.clonkProjects" class="net.arctics.clonk.ui.wizards.NewDefinition"
 			hasPages="true" icon="res/engines/OpenClonk/images/DefinitionGroup.png" id="net.arctics.clonk.wizards.NewDefinition"
 			name="%Definition_Name" project="false" />
 
