@@ -96,10 +96,9 @@ public class ProjectDefinition extends Definition implements Serializable {
 
 	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 
-	protected transient IContainer objectFolder;
+	protected transient IContainer definitionFolder;
 	protected String relativePath;
 	private transient ClonkIndex index;
-
 	private transient ProxyVar proxyVar;
 
 	/**
@@ -159,9 +158,9 @@ public class ProjectDefinition extends Definition implements Serializable {
 	 * @return IFile object of <tt>Script.c</tt> file or null if it does not exist
 	 */
 	public IFile getScriptStorage() {
-		if (this.objectFolder == null)
+		if (this.definitionFolder == null)
 			return null;
-		IResource res = Utilities.findMemberCaseInsensitively(this.objectFolder, "Script.c"); //$NON-NLS-1$
+		IResource res = Utilities.findMemberCaseInsensitively(this.definitionFolder, "Script.c"); //$NON-NLS-1$
 		if (res == null || !(res instanceof IFile)) return null;
 		else return (IFile) res;
 	}
@@ -180,7 +179,7 @@ public class ProjectDefinition extends Definition implements Serializable {
 	 * @return The DefCore.txt file or null if it does not exist for mysterious reasons
 	 */
 	public IFile defCoreFile() {
-		IResource res = Utilities.findMemberCaseInsensitively(this.objectFolder, "DefCore.txt"); //$NON-NLS-1$
+		IResource res = Utilities.findMemberCaseInsensitively(this.definitionFolder, "DefCore.txt"); //$NON-NLS-1$
 		if (res == null || !(res instanceof IFile))
 			return null;
 		else
@@ -192,7 +191,7 @@ public class ProjectDefinition extends Definition implements Serializable {
 	 * The file on the harddisk is not deleted. (delete it by IResource.delete(true,null))
 	 */
 	public void delete() {
-		ClonkProjectNature.get(objectFolder.getProject()).getIndex().removeDefinition(this);
+		ClonkProjectNature.get(definitionFolder.getProject()).getIndex().removeDefinition(this);
 	}
 
 	/**
@@ -201,13 +200,13 @@ public class ProjectDefinition extends Definition implements Serializable {
 	 * @throws CoreException
 	 */
 	public void setObjectFolder(IContainer folder) throws CoreException {
-		if (Utilities.objectsEqual(folder, objectFolder))
+		if (Utilities.objectsEqual(folder, definitionFolder))
 			return;
-		if (objectFolder != null && objectFolder.exists())
-			objectFolder.setSessionProperty(ClonkCore.FOLDER_DEFINITION_REFERENCE_ID, null);
+		if (definitionFolder != null && definitionFolder.exists())
+			definitionFolder.setSessionProperty(ClonkCore.FOLDER_DEFINITION_REFERENCE_ID, null);
 		// on setObjectFolder(null): don't actually set objectFolder to null, so ILatestDeclarationVersionProvider machinery still works
 		// (see ClonkIndex.getLatestVersion)
-		objectFolder = folder != null ? folder : objectFolder;
+		definitionFolder = folder != null ? folder : definitionFolder;
 		if (folder != null) {
 			folder.setSessionProperty(ClonkCore.FOLDER_DEFINITION_REFERENCE_ID, this);
 			if (id() != null)
@@ -215,7 +214,7 @@ public class ProjectDefinition extends Definition implements Serializable {
 			else
 				folder.setPersistentProperty(ClonkCore.FOLDER_C4ID_PROPERTY_ID, null);
 			relativePath = folder.getFullPath().toPortableString();
-			index = ClonkProjectNature.get(objectFolder).getIndex();
+			index = ClonkProjectNature.get(definitionFolder).getIndex();
 		}
 	}
 	
@@ -224,16 +223,7 @@ public class ProjectDefinition extends Definition implements Serializable {
 	 * @return the folder object or null due to circumstances listed above
 	 */
 	public IContainer definitionFolder() {
-		if (objectFolder != null) {
-			try {
-				if (objectFolder.getSessionProperty(ClonkCore.FOLDER_DEFINITION_REFERENCE_ID) != this)
-					return null;
-			} catch (CoreException e) {
-				return null;
-			}
-			return objectFolder;
-		} else
-			return null;
+		return definitionFolder;
 	}
 	
 	/**
@@ -241,7 +231,7 @@ public class ProjectDefinition extends Definition implements Serializable {
 	 * @return The object folder if it has been assigned at all or null.
 	 */
 	public IContainer getObjectFolderIgnoringOutOfDateness() {
-		return objectFolder;
+		return definitionFolder;
 	}
 
 	@Override
@@ -252,9 +242,9 @@ public class ProjectDefinition extends Definition implements Serializable {
 	@Override
 	public void setId(ID newId) {
 		super.setId(newId);
-		if (objectFolder != null)
+		if (definitionFolder != null)
 			try {
-				objectFolder.setPersistentProperty(ClonkCore.FOLDER_C4ID_PROPERTY_ID, id().getName());
+				definitionFolder.setPersistentProperty(ClonkCore.FOLDER_C4ID_PROPERTY_ID, id().getName());
 			} catch (CoreException e) {
 				e.printStackTrace();
 			}
@@ -269,7 +259,7 @@ public class ProjectDefinition extends Definition implements Serializable {
 		ProjectDefinition obj = (Utilities.getIndex(folder) != null) ? Utilities.getIndex(folder).getObject(folder) : null;
 		// haxxy cleanup: might have been lost by <insert unlikely event>
 		if (obj != null)
-			obj.objectFolder = folder;
+			obj.definitionFolder = folder;
 		return obj;
 	}
 
