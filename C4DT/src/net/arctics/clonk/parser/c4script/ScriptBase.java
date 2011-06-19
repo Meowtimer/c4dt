@@ -60,7 +60,7 @@ import org.xml.sax.SAXException;
 
 /**
  * Base class for various objects that act as containers of stuff declared in scripts/ini files.
- * Subclasses include C4Object, C4StandaloneScript etc.
+ * Subclasses include {@link Definition}, {@link StandaloneProjectScript} etc.
  */
 public abstract class ScriptBase extends Structure implements ITreeNode, IHasConstraint, IType, IEvaluationContext, IHasIncludes {
 
@@ -77,6 +77,10 @@ public abstract class ScriptBase extends Structure implements ITreeNode, IHasCon
 		return ""; //$NON-NLS-1$
 	}
 	
+	/**
+	 * Return an array that acts as a map line number -> function at that line. Used for fast function lookups when only the line number is known.
+	 * @return The pseudo-map for getting the function at some line.
+	 */
 	public Function[] calculateLineToFunctionMap() {
 		String scriptText = this.getScriptText();
 		int lineStart = 0;
@@ -153,17 +157,19 @@ public abstract class ScriptBase extends Structure implements ITreeNode, IHasCon
 	 * @param index The project index to search for includes in (has greater priority than EXTERN_INDEX which is always searched)
 	 */
 	@Override
-	public void gatherIncludes(Set<IHasIncludes> set, ClonkIndex index, boolean recursive) {
+	public boolean gatherIncludes(Set<IHasIncludes> set, ClonkIndex index, boolean recursive) {
+		if (set.contains(this))
+			return false;
+		else
+			set.add(this);
 		for (Directive d : definedDirectives) {
 			if (d.getType() == DirectiveType.INCLUDE || d.getType() == DirectiveType.APPENDTO) {
 				Definition obj = nearestDefinitionWithId(d.contentAsID());
-				if (obj != null && !set.contains(obj)) {
+				if (obj != null && (!recursive || obj.gatherIncludes(set, index, recursive)))
 					set.add(obj);
-					if (recursive)
-						obj.gatherIncludes(set, index, true);
-				}
 			}
 		}
+		return true;
 	}
 
 	/**
@@ -171,31 +177,25 @@ public abstract class ScriptBase extends Structure implements ITreeNode, IHasCon
 	 * @param index The index to be passed to gatherIncludes
 	 * @return The includes
 	 */
-	public Collection<IHasIncludes> getIncludes(ClonkIndex index, boolean recursive) {
-		Set<IHasIncludes> result = new HashSet<IHasIncludes>();
-		gatherIncludes(result, index, recursive);
-		return result;
+	public Collection<? extends IHasIncludes> getIncludes(ClonkIndex index, boolean recursive) {
+		return IHasIncludes.Default.getIncludes(this, index, recursive);
 	}
 
 	/**
 	 * Does the same as gatherIncludes except that the user does not have to create their own list and does not even have to supply an index (defaulting to getIndex()) 
 	 * @return The includes
 	 */
-	public final Collection<IHasIncludes> getIncludes(boolean recursive) {
+	public final Collection<? extends IHasIncludes> getIncludes(boolean recursive) {
 		ClonkIndex index = getIndex();
 		if (index == null)
 			return NO_INCLUDES;
 		return getIncludes(index, recursive);
 	}
-	
-	public final Collection<IHasIncludes> getIncludes(ClonkIndex index) {
-		return getIncludes(index, true);
-	}
 
 	/**
-	 * Returns an include directive that include a specific object's script
-	 * @param obj The object
-	 * @return The directive 
+	 * Returns an include directive that includes a specific {@link Definition}'s script
+	 * @param obj The {@link Definition} to return a corresponding {@link Directive} for
+	 * @return The {@link Directive} or null if no matching directive exists in this script.
 	 */
 	public Directive getIncludeDirectiveFor(Definition obj) {
 		for (Directive d : getIncludeDirectives()) {
@@ -311,7 +311,7 @@ public abstract class ScriptBase extends Structure implements ITreeNode, IHasCon
 
 		// search in included definitions
 		info.recursion++;
-		for (IHasIncludes o : getIncludes(info.index)) {
+		for (IHasIncludes o : getIncludes(info.index, false)) {
 			Declaration result = o.findDeclaration(name, info);
 			if (result != null)
 				return result;
@@ -486,7 +486,7 @@ public abstract class ScriptBase extends Structure implements ITreeNode, IHasCon
 	public boolean includes(IHasIncludes other) {
 		if (other == this)
 			return true;
-		Iterable<IHasIncludes> incs = this.getIncludes(true);
+		Iterable<? extends IHasIncludes> incs = this.getIncludes(true);
 		for (IHasIncludes o : incs)
 			if (o == other)
 				return true;
@@ -596,34 +596,10 @@ public abstract class ScriptBase extends Structure implements ITreeNode, IHasCon
 	 * Returns an iterator that can be used to iterate over all scripts that are included by this script plus the script itself.
 	 * @return the Iterable
 	 */
-	public Iterable<ScriptBase> conglomerate() {
-		return conglomerate(this.getIndex());
-	}
-
-	/**
-	 * Returns an iterator that can be used to iterate over all scripts that are included by this script plus the script itself.
-	 * @param index index used to look for includes
-	 * @return the Iterable
-	 */
-	public Iterable<ScriptBase> conglomerate(final ClonkIndex index) {
-		final ScriptBase thisScript = this;
-		return new Iterable<ScriptBase>() {
-			void gather(ScriptBase script, List<ScriptBase> list, Set<ScriptBase> duplicatesCatcher) {
-				if (duplicatesCatcher.contains(script))
-					return;
-				duplicatesCatcher.add(script);
-				list.add(script);
-				for (ScriptBase s : ArrayUtil.filteredIterable(script.getIncludes(index), ScriptBase.class)) {
-					gather(s, list, duplicatesCatcher);
-				}
-			}
-			public Iterator<ScriptBase> iterator() {
-				List<ScriptBase> list = new LinkedList<ScriptBase>();
-				Set<ScriptBase> catcher = new HashSet<ScriptBase>();
-				gather(thisScript, list, catcher);
-				return list.iterator();
-			}
-		};
+	public Set<IHasIncludes> conglomerate() {
+		Set<IHasIncludes> s = new HashSet<IHasIncludes>();
+		gatherIncludes(s, getIndex(), true);
+		return s;
 	}
 
 	@Override

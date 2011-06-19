@@ -200,23 +200,7 @@ public class ProplistDeclaration extends Structure implements IType, IHasInclude
 
 	@Override
 	public Collection<? extends IHasIncludes> getIncludes(ClonkIndex index, boolean recursive) {
-		Set<IHasIncludes> totalIncludes = new HashSet<IHasIncludes>();
-		if (!recursive) {
-			IHasIncludes proto = prototype();
-			if (proto != null)
-				totalIncludes.add(proto);
-		} else {
-			Set<IHasIncludes> alreadyVisited = new HashSet<IHasIncludes>();
-			Collection<? extends IHasIncludes> includes = this.getIncludes(index, false);
-			if (includes.size() > 0)
-				for (IHasIncludes i : includes) {
-					if (!alreadyVisited.contains(i)) {
-						alreadyVisited.add(i);
-						alreadyVisited.addAll(i.getIncludes(index, true));
-					}
-				}
-		}
-		return totalIncludes;
+		return IHasIncludes.Default.getIncludes(this, index, recursive);
 	}
 
 	@Override
@@ -227,14 +211,16 @@ public class ProplistDeclaration extends Structure implements IType, IHasInclude
 	}
 	
 	@Override
-	public void gatherIncludes(Set<IHasIncludes> set, ClonkIndex index, boolean recursive) {
+	public boolean gatherIncludes(Set<IHasIncludes> set, ClonkIndex index, boolean recursive) {
+		if (set.contains(this))
+			return false;
+		else
+			set.add(this);
 		IHasIncludes proto = prototype();
 		if (proto != null)
-			if (!set.contains(proto)) {
+			if (!recursive || proto.gatherIncludes(set, index, true))
 				set.add(proto);
-				if (recursive)
-					proto.gatherIncludes(set, index, true);
-			}
+		return true;
 	}
 	
 	@Override

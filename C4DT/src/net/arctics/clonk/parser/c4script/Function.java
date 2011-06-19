@@ -366,7 +366,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	public Function getInherited() {
 		
 		// search in #included scripts
-		Collection<IHasIncludes> includesCollection = getScript().getIncludes(false);
+		Collection<? extends IHasIncludes> includesCollection = getScript().getIncludes(false);
 		IHasIncludes[] includes = includesCollection.toArray(new IHasIncludes[includesCollection.size()]);
 		for (int i = includes.length-1; i >= 0; i--) {
 			Function fun = includes[i].findFunction(getName());

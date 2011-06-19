@@ -156,22 +156,18 @@ public abstract class Definition extends ScriptBase {
 	}
 
 	@Override
-	public  void gatherIncludes(final Set<IHasIncludes> set, final ClonkIndex index, final boolean recursive) {
-		if (set.contains(this))
-			return;
-		super.gatherIncludes(set, index, recursive);
-		if (index != null) index.forAllRelevantIndexes(new ClonkIndex.r() {
-			@Override
-			public void run(ClonkIndex relevantIndex) {
-				List<ScriptBase> appendages = relevantIndex.appendagesOf(Definition.this);
-				if (appendages != null)
-					for (ScriptBase s : appendages) {
+	public  boolean gatherIncludes(final Set<IHasIncludes> set, final ClonkIndex index, final boolean recursive) {
+		if (!super.gatherIncludes(set, index, recursive))
+			return false;
+		if (index != null) {
+			List<ScriptBase> appendages = index.appendagesOf(Definition.this);
+			if (appendages != null)
+				for (ScriptBase s : appendages) {
+					if (!recursive || s.gatherIncludes(set, index, true))
 						set.add(s);
-						if (recursive)
-							s.gatherIncludes(set, index, true);
-					}
-			}
-		});
+				}
+		}
+		return true;
 	}
 
 	@Override

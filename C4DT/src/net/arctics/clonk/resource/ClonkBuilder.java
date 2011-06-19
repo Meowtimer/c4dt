@@ -336,10 +336,12 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 			monitor.done();
 		}
 	}
+	
+	private int buildKind;
 
 	@SuppressWarnings({"rawtypes"})
 	protected IProject[] build(int kind, Map args, IProgressMonitor monitor) throws CoreException {
-		
+		this.buildKind = kind;
 		clearState();
 		List<IResource> listOfResourcesToBeRefreshed = new LinkedList<IResource>();
 		
@@ -448,13 +450,13 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 			currentSubProgressMonitor = new SubProgressMonitor(monitor, parserMap.size());
 			currentSubProgressMonitor.beginTask(Messages.ClonkBuilder_ParseDeclarationsTask, parserMap.size());
 			int parserMapSize;
-			Map<ScriptBase, C4ScriptParser> tempParserMap = new HashMap<ScriptBase, C4ScriptParser>();
-			Map<ScriptBase, C4ScriptParser> mapFromLastIteration = new HashMap<ScriptBase, C4ScriptParser>();
-			tempParserMap.putAll(parserMap);
+			Map<ScriptBase, C4ScriptParser> newlyEnqueuedParsers = new HashMap<ScriptBase, C4ScriptParser>();
+			Map<ScriptBase, C4ScriptParser> cumulativeParserSet = new HashMap<ScriptBase, C4ScriptParser>();
+			newlyEnqueuedParsers.putAll(parserMap);
 			do {
 				parserMapSize = parserMap.size();
-				for (ScriptBase script : tempParserMap.keySet()) {
-					if (currentSubProgressMonitor.isCanceled())
+				for (ScriptBase script : newlyEnqueuedParsers.keySet()) {
+					if (monitor.isCanceled())
 						return;
 					performBuildPhaseOne(script);
 				}
@@ -462,9 +464,12 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 				// without refreshing the index here, error markers would be created for TimerCall=... etc. assignments in ActMaps for example
 				// if the function being referenced is defined in an appendto from this index
 				index.refreshIndex();
-				mapFromLastIteration.putAll(tempParserMap);
-				tempParserMap.clear();
-				queueDependentScripts(mapFromLastIteration, tempParserMap);
+				// don't queue dependent scripts during a clean build - if everything works right all scripts will have been added anyway
+				if (buildKind == CLEAN_BUILD || buildKind == FULL_BUILD)
+					break;
+				cumulativeParserSet.putAll(newlyEnqueuedParsers);
+				newlyEnqueuedParsers.clear();
+				queueDependentScripts(cumulativeParserSet, newlyEnqueuedParsers);
 			}
 			while (parserMapSize != parserMap.size());
 			currentSubProgressMonitor.done();
@@ -500,14 +505,17 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 		renamedDefinitions.clear();
 	}
 
-	private void queueDependentScripts(Map<ScriptBase, C4ScriptParser> sourceMap, Map<ScriptBase, C4ScriptParser> tempParserMap) {
-		for (C4ScriptParser parser : sourceMap.values()) {
+	private void queueDependentScripts(Map<ScriptBase, C4ScriptParser> cumulativeParserSet, Map<ScriptBase, C4ScriptParser> newlyAddedParsers) {
+		for (C4ScriptParser parser : cumulativeParserSet.values()) {
+			if (currentSubProgressMonitor.isCanceled())
+				break;
 			if (parser == null)
 				continue;
+			//System.out.println("Queueing dependent scripts for " + parser.getContainer().toString());
 			for (ScriptBase dep : parser.getContainer().getIndex().dependentScripts(parser.getContainer())) {
 				if (!parserMap.containsKey(dep)) {
 					C4ScriptParser p = queueScript(dep);
-					tempParserMap.put(dep, p);
+					newlyAddedParsers.put(dep, p);
 				}
 			}
 		}
@@ -517,7 +525,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 				ScriptBase script = ScriptBase.get(s.getResource(), false);
 				if (script != null) {
 					C4ScriptParser p = queueScript(script);
-					tempParserMap.put(script, p);
+					newlyAddedParsers.put(script, p);
 				}
 			}
 		}
@@ -621,7 +629,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 			if (parser != null) {
 				try {
 					// parse #included scripts before this one
-					for (IHasIncludes include : script.getIncludes(nature.getIndex())) {
+					for (IHasIncludes include : script.getIncludes(nature.getIndex(), false)) {
 						if (include instanceof ScriptBase)
 							performBuildPhaseTwo((ScriptBase) include);
 					}
@@ -634,7 +642,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 				currentSubProgressMonitor.worked(1);
 			}
 		}
-		nature.getIndex().refreshIndex();
+		//nature.getIndex().refreshIndex();
 	}
 
 	/**

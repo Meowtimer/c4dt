@@ -8,6 +8,7 @@ import net.arctics.clonk.index.ProjectDefinition;
 import net.arctics.clonk.index.ClonkIndex;
 import net.arctics.clonk.index.ProjectIndex;
 import net.arctics.clonk.parser.ID;
+import net.arctics.clonk.parser.IHasIncludes;
 import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.ScriptBase;
 import net.arctics.clonk.parser.c4script.Variable;
@@ -215,7 +216,10 @@ public class IniCompletionProcessor extends ClonkCompletionProcessor<IniTextEdit
 	private void proposalsForFunctionEntry(Collection<ICompletionProposal> proposals, String prefix, int wordOffset) {
 		ProjectDefinition obj = ProjectDefinition.definitionCorrespondingToFolder(Utilities.getEditingFile(editor).getParent());
 		if (obj != null) {
-			for (ScriptBase script : obj.conglomerate()) {
+			for (IHasIncludes include : obj.conglomerate()) {
+				ScriptBase script = Utilities.as(include, ScriptBase.class);
+				if (script == null)
+					continue;
 				for (Function f : script.functions()) {
 					proposalForFunc(f, prefix, wordOffset, proposals, script.getName(), false);
 				}
