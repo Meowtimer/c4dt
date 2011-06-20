@@ -628,7 +628,6 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 		if (parserMap.containsKey(script)) {
 			C4ScriptParser parser = parserMap.remove(script);
 			if (parser != null) {
-				System.out.println("Build phase two: " + script.toString());
 				try {
 					// parse #included scripts before this one
 					for (IHasIncludes include : script.getIncludes(nature.getIndex(), false)) {

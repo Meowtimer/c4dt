@@ -1106,6 +1106,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		PrimitiveType retType = PrimitiveType.ANY;
 		C4FunctionScope scope;
 		
+		setCurrentFunc(null);
 		if (!firstWord.equals(Keywords.Func)) {
 			scope = C4FunctionScope.makeScope(firstWord);
 			startName = this.offset;
@@ -1674,7 +1675,8 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 			markerEnd += offs;
 		}
 		IMarker result = null;
-		boolean misplacedErrorOrNoFileToAttachMarkerTo = scriptFile == null || (getCurrentFunc() != null && getCurrentFunc().getBody() != null && this.offset > getCurrentFunc().getBody().getEnd()+1);
+		Function cf = getCurrentFunc();
+		boolean misplacedErrorOrNoFileToAttachMarkerTo = scriptFile == null || (cf != null && !cf.isOldStyle() && cf.getBody() != null && this.offset > cf.getBody().getEnd()+1);
 		String problem = code.getErrorString(args);
 		if (!misplacedErrorOrNoFileToAttachMarkerTo) {
 			result = code.createMarker(scriptFile, getContainer(), ClonkCore.MARKER_C4SCRIPT_ERROR, markerStart, markerEnd, severity, currentFunctionContext.expressionReportingErrors, args);
@@ -2476,6 +2478,10 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 						result = new VarDeclarationStatement(initializations, initializations.get(0).variableBeingInitialized.getScope());
 					}
 				}
+				else if (looksLikeStartOfFunction(readWord) || peekAfterWhitespace() == ':') {
+					this.seek(start);
+					return null;
+				}
 				else if (!options.contains(ParseStatementOption.InitializationStatement))
 					result = parseKeyword(readWord);
 				else
@@ -2505,7 +2511,6 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 			}
 
 			if (result != null) {
-				
 				// inline comment attached to expression so code reformatting does not mess up the user's code too much
 				Comment c = getCommentImmediatelyFollowing();
 				if (c != null)
@@ -2549,7 +2554,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	 * @throws ParsingException
 	 */
 	private void parseStatementBlock(int start, int endOfFunc, List<Statement> statements, EnumSet<ParseStatementOption> options, ExpressionsAndStatementsReportingFlavour flavour) throws ParsingException {
-		boolean foundClosingBracket = false;
+		boolean done = false;
 		boolean reached = true;
 		int garbageStart = -1;
 		boolean oldStatementReached = this.currentFunctionContext.statementReached;
@@ -2559,8 +2564,8 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 			//eatWhitespace();
 			Statement statement = flavour == ExpressionsAndStatementsReportingFlavour.AlsoStatements ? parseStatement(options) : SimpleStatement.wrapExpression(parseExpression());
 			if (statement == null) {
-				foundClosingBracket = peek() == '}';
-				if (foundClosingBracket)
+				done = getCurrentFunc().isOldStyle() || peek() == '}';
+				if (done)
 					break;
 				if (garbageStart == -1) {
 					garbageStart = offset;
@@ -2588,7 +2593,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 			// contains only garbage ... still add
 			maybeAddGarbageStatement(statements, garbageStart, offset);
 		}
-		if (!foundClosingBracket) {
+		if (!done) {
 			if (this.offset < endOfFunc)
 				errorWithCode(ParserErrorCode.BlockNotClosed, start, start+1);
 		} else {
