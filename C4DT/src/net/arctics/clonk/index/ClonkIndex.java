@@ -8,7 +8,6 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -17,6 +16,7 @@ import java.util.Map;
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.ID;
+import net.arctics.clonk.parser.IHasIncludes;
 import net.arctics.clonk.parser.ILatestDeclarationVersionProvider;
 import net.arctics.clonk.parser.Structure;
 import net.arctics.clonk.parser.c4script.Directive;
@@ -71,7 +71,7 @@ public class ClonkIndex extends Declaration implements Serializable, Iterable<De
 	private Map<ID, List<Definition>> indexedObjects = new HashMap<ID, List<Definition>>();
 	private List<ScriptBase> indexedScripts = new LinkedList<ScriptBase>(); 
 	private List<Scenario> indexedScenarios = new LinkedList<Scenario>();
-	private List<ProplistDeclaration> indexedProplistDeclarations = new LinkedList<ProplistDeclaration>(); 
+	private List<ProplistDeclaration> indexedProplistDeclarations = new LinkedList<ProplistDeclaration>();
 	
 	protected transient List<Function> globalFunctions = new LinkedList<Function>();
 	protected transient List<Variable> staticVariables = new LinkedList<Variable>();
@@ -226,6 +226,12 @@ public class ClonkIndex extends Declaration implements Serializable, Iterable<De
 		for (T script : scripts) {
 			addGlobalsFrom(script);
 			detectAppendages(script);
+			for (IHasIncludes s : script.getIncludes(this, false))
+				if (s instanceof ScriptBase)
+					((ScriptBase) s).addDependentScript(script);
+			/*if (script.usedProjectScripts() != null)
+				for (ScriptBase s : script.usedProjectScripts())
+					s.addDependentScript(script);*/
 		}
 	}
 	
@@ -253,6 +259,11 @@ public class ClonkIndex extends Declaration implements Serializable, Iterable<De
 		scriptCollections.add(this);
 		scriptCollections.add(indexedScripts);
 		scriptCollections.add(indexedScenarios);
+		
+		for (ScriptBase s : allScripts()) {
+			s.clearDependentScripts();
+		}
+		
 		for (Iterable<? extends ScriptBase> c : scriptCollections) {
 			addGlobalsFrom(c);
 		}
@@ -451,9 +462,8 @@ public class ClonkIndex extends Declaration implements Serializable, Iterable<De
 				List<Definition> objs = index.getDefinitionsWithID(id);
 				best = Utilities.pickNearest(objs, resource, null);
 			}
-			else {
+			else
 				best = index.lastDefinitionWithId(id);
-			}
 			if (best != null)
 				break;
 		}
@@ -594,81 +604,6 @@ public class ClonkIndex extends Declaration implements Serializable, Iterable<De
 			return Collections.unmodifiableList(list); 
 		}
 		return null;
-	}
-	
-	/**
-	 * Return scripts dependent on the passed one.
-	 * @param base The base script the returned ones depend on
-	 * @return An Iterable to iterate over the scripts matching the criterion.
-	 */
-	public Iterable<ScriptBase> dependentScripts(final ScriptBase base) {
-		return new Iterable<ScriptBase>() {
-			@Override
-            public Iterator<ScriptBase> iterator() {
-	            return new Iterator<ScriptBase>() {
-	            	private Definition baseObject = base instanceof Definition ? (Definition)base : null;
-	            	private boolean hasGlobals = base.containsGlobals();
-	            	private int stage = 0;
-	            	private Iterator<? extends ScriptBase> currentIterator = indexedScripts().iterator();
-	            	private ScriptBase currentScript;
-	            	private HashSet<ScriptBase> alreadyReturned = new HashSet<ScriptBase>();
-
-	            	private Iterator<? extends ScriptBase> getIterator() {
-	            		while (!currentIterator.hasNext()) {
-            				switch (++stage) {
-            				case 1:
-            					currentIterator = indexedScenarios().iterator();
-            					break;
-            				case 2:
-            					currentIterator = ClonkIndex.this.iterator();
-            					break; 
-            				default:
-            					return null;
-            				}
-            			}
-	            		return currentIterator;
-	            	}
-	            	
-	            	@Override
-	            	public boolean hasNext() {
-	            		ScriptBase s = null;
-	            		Outer: for (Iterator<? extends ScriptBase> it = getIterator(); it != null; it = getIterator()) {
-	            			do {
-	            				s = it.next();
-	            				if (s == base || alreadyReturned.contains(s))
-	            					continue;
-	            				if (hasGlobals) {
-	            					if (s.usedProjectScript(base))
-	            						break Outer;
-	            				}
-	            				if (baseObject != null) {
-	            					if (s.includes(baseObject))
-	            						break Outer;
-	            				}
-	            				List<ScriptBase> appendages;
-	            				if (s instanceof Definition && (appendages = appendagesOf((Definition)s)) != null && appendages.contains(base)) {
-	            					break Outer;
-	            				}
-	            			} while (it.hasNext());
-	            			s = null;
-	            		}
-	            		if (s != null) {
-	            			alreadyReturned.add(s);
-	            			currentScript = s;
-	            			return true;
-	            		}
-	            		else
-	            			return false;
-	            	}
-					@Override
-                    public ScriptBase next() {
-						return currentScript;
-                    }
-					@Override
-                    public void remove() {}	            	
-	            };
-            }
-		};
 	}
 	
 	@Override

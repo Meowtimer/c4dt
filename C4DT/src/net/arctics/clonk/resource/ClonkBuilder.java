@@ -451,7 +451,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 			currentSubProgressMonitor.beginTask(Messages.ClonkBuilder_ParseDeclarationsTask, parserMap.size());
 			int parserMapSize;
 			Map<ScriptBase, C4ScriptParser> newlyEnqueuedParsers = new HashMap<ScriptBase, C4ScriptParser>();
-			Map<ScriptBase, C4ScriptParser> cumulativeParserSet = new HashMap<ScriptBase, C4ScriptParser>();
+			Map<ScriptBase, C4ScriptParser> enqueuedFromLastIteration = new HashMap<ScriptBase, C4ScriptParser>();
 			newlyEnqueuedParsers.putAll(parserMap);
 			do {
 				parserMapSize = parserMap.size();
@@ -467,9 +467,10 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 				// don't queue dependent scripts during a clean build - if everything works right all scripts will have been added anyway
 				if (buildKind == CLEAN_BUILD || buildKind == FULL_BUILD)
 					break;
-				cumulativeParserSet.putAll(newlyEnqueuedParsers);
+				enqueuedFromLastIteration.clear();
+				enqueuedFromLastIteration.putAll(newlyEnqueuedParsers);
 				newlyEnqueuedParsers.clear();
-				queueDependentScripts(cumulativeParserSet, newlyEnqueuedParsers);
+				queueDependentScripts(enqueuedFromLastIteration, newlyEnqueuedParsers);
 			}
 			while (parserMapSize != parserMap.size());
 			currentSubProgressMonitor.done();
@@ -505,14 +506,14 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 		renamedDefinitions.clear();
 	}
 
-	private void queueDependentScripts(Map<ScriptBase, C4ScriptParser> cumulativeParserSet, Map<ScriptBase, C4ScriptParser> newlyAddedParsers) {
-		for (C4ScriptParser parser : cumulativeParserSet.values()) {
+	private void queueDependentScripts(Map<ScriptBase, C4ScriptParser> scriptsToQueueDependenciesFrom, Map<ScriptBase, C4ScriptParser> newlyAddedParsers) {
+		for (C4ScriptParser parser : scriptsToQueueDependenciesFrom.values()) {
 			if (currentSubProgressMonitor.isCanceled())
 				break;
 			if (parser == null)
 				continue;
 			//System.out.println("Queueing dependent scripts for " + parser.getContainer().toString());
-			for (ScriptBase dep : parser.getContainer().getIndex().dependentScripts(parser.getContainer())) {
+			for (ScriptBase dep : parser.getContainer().dependentScripts()) {
 				if (!parserMap.containsKey(dep)) {
 					C4ScriptParser p = queueScript(dep);
 					newlyAddedParsers.put(dep, p);
@@ -627,6 +628,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 		if (parserMap.containsKey(script)) {
 			C4ScriptParser parser = parserMap.remove(script);
 			if (parser != null) {
+				System.out.println("Build phase two: " + script.toString());
 				try {
 					// parse #included scripts before this one
 					for (IHasIncludes include : script.getIncludes(nature.getIndex(), false)) {

@@ -72,6 +72,8 @@ public abstract class ScriptBase extends Structure implements ITreeNode, IHasCon
 	
 	// set of scripts this script is using functions and/or static variables from
 	private Set<ScriptBase> usedProjectScripts;
+	// scripts dependent on this one inside the same index
+	private transient Set<ScriptBase> dependentScripts;
 	
 	public String getScriptText() {
 		return ""; //$NON-NLS-1$
@@ -190,6 +192,23 @@ public abstract class ScriptBase extends Structure implements ITreeNode, IHasCon
 		if (index == null)
 			return NO_INCLUDES;
 		return getIncludes(index, recursive);
+	}
+	
+	public Iterable<ScriptBase> dependentScripts() {
+		if (dependentScripts == null)
+			return ArrayUtil.arrayIterable();
+		else
+			return dependentScripts;
+	}
+	
+	public void clearDependentScripts() {
+		dependentScripts = null;
+	}
+	
+	public void addDependentScript(ScriptBase s) {
+		if (dependentScripts == null)
+			dependentScripts = new HashSet<ScriptBase>();
+		dependentScripts.add(s);
 	}
 
 	/**
@@ -366,7 +385,8 @@ public abstract class ScriptBase extends Structure implements ITreeNode, IHasCon
 	}
 
 	public void removeDeclaration(Declaration declaration) {
-		if (declaration.getScript() != this) declaration.setScript(this);
+		if (declaration.getScript() != this)
+			declaration.setScript(this);
 		if (declaration instanceof Function) {
 //			if (declaration.isGlobal())
 //				getIndex().getGlobalFunctions().remove(declaration);
@@ -380,16 +400,13 @@ public abstract class ScriptBase extends Structure implements ITreeNode, IHasCon
 	}
 
 	public void clearDeclarations() {
-		if (usedProjectScripts != null)
-			usedProjectScripts = null;
+		usedProjectScripts = null;
 		if (definedDirectives != null)
 			definedDirectives.clear();
 		if (definedFunctions != null)
-			while (definedFunctions.size() > 0)
-				removeDeclaration(definedFunctions.get(definedFunctions.size()-1));
+			definedFunctions.clear();
 		if (definedVariables != null)
-			while (definedVariables.size() > 0)
-				removeDeclaration(definedVariables.get(definedVariables.size()-1));
+			definedDirectives.clear();
 	}
 
 	public void setName(String name) {
@@ -486,7 +503,7 @@ public abstract class ScriptBase extends Structure implements ITreeNode, IHasCon
 	public boolean includes(IHasIncludes other) {
 		if (other == this)
 			return true;
-		Iterable<? extends IHasIncludes> incs = this.getIncludes(true);
+		Iterable<? extends IHasIncludes> incs = this.getIncludes(false);
 		for (IHasIncludes o : incs)
 			if (o == other)
 				return true;
@@ -752,8 +769,8 @@ public abstract class ScriptBase extends Structure implements ITreeNode, IHasCon
 		}
 	}
 	
-	public boolean usedProjectScript(ScriptBase script) {
-		return usedProjectScripts != null && usedProjectScripts.contains(script);
+	public Set<ScriptBase> usedProjectScripts() {
+		return usedProjectScripts;
 	}
 
 	//	public boolean removeDWording() {
@@ -837,6 +854,8 @@ public abstract class ScriptBase extends Structure implements ITreeNode, IHasCon
 	public void scriptRemovedFromIndex(ScriptBase script) {
 		if (usedProjectScripts != null)
 			usedProjectScripts.remove(script);
+		if (dependentScripts != null)
+			dependentScripts.remove(script);
 	}
 	
 	@Override
