@@ -651,7 +651,7 @@ public class ClonkCore extends AbstractUIPlugin implements ISaveParticipant, IRe
 				// delete old index - could be renamed i guess but renaming a project is not exactly a common activity
 				if (event.getResource() instanceof IProject && ((IProject)event.getResource()).hasNature(CLONK_NATURE_ID)) {
 					ClonkProjectNature proj = ClonkProjectNature.get(event.getResource());
-					proj.getIndexFileLocation().toFile().delete();
+					ClonkCore.getDefault().getStateLocation().append(proj.getProject().getName()+ProjectIndex.INDEXFILE_SUFFIX).toFile().delete();
 				}
 			}
 		} catch (CoreException e) {

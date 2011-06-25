@@ -5,7 +5,7 @@ import java.util.Collection;
 import java.util.Comparator;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.ProjectDefinition;
-import net.arctics.clonk.index.ClonkIndex;
+import net.arctics.clonk.index.Index;
 import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.Variable;
 import net.arctics.clonk.ui.editors.ClonkCompletionProposal.Category;
@@ -59,7 +59,7 @@ public abstract class ClonkCompletionProcessor<EditorType extends ClonkTextEdito
 		return ((IFileEditorInput)editor.getEditorInput()).getFile();
 	}
 	
-	protected void proposalsForIndexedDefinitions(ClonkIndex index, int offset, int wordOffset, String prefix, Collection<ICompletionProposal> proposals) {
+	protected void proposalsForIndexedDefinitions(Index index, int offset, int wordOffset, String prefix, Collection<ICompletionProposal> proposals) {
 		for (Definition obj : index.objectsIgnoringRemoteDuplicates(pivotFile())) {
 			proposalForDefinition(obj, prefix, wordOffset, proposals);
 		}

@@ -1,5 +1,6 @@
 package net.arctics.clonk.index;
 
+import java.io.File;
 import java.util.LinkedList;
 import java.util.List;
 import net.arctics.clonk.ClonkCore;
@@ -23,10 +24,10 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.Path;
 
 /**
- * A {@link ClonkIndex} geared towards storing information about Eclipse Clonk projects.<br\>
+ * A {@link Index} geared towards storing information about Eclipse Clonk projects.<br\>
  * A project index is obtained from some project file using {@link #get(IProject)}.</p>
  */
-public class ProjectIndex extends ClonkIndex {
+public class ProjectIndex extends Index {
 
 	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 	public static final String INDEXFILE_SUFFIX = ".index"; //$NON-NLS-1$
@@ -51,7 +52,8 @@ public class ProjectIndex extends ClonkIndex {
 	 * Initialize a new ProjectIndex for the given project.
 	 * @param project The project to initialize the index for
 	 */
-	public ProjectIndex(IProject project) {
+	public ProjectIndex(IProject project, File folder) {
+		super(folder);
 		this.project = project;
 	}
 	
@@ -81,7 +83,7 @@ public class ProjectIndex extends ClonkIndex {
 	}
 
 	@Override
-	public void postSerialize() throws CoreException {
+	public void postLoad() throws CoreException {
 		if (project != null) {
 			List<ScriptBase> stuffToBeRemoved = new LinkedList<ScriptBase>();
 			for (Definition object : this) {
@@ -109,7 +111,7 @@ public class ProjectIndex extends ClonkIndex {
 				this.removeScript(s);
 			}
 		}
-		super.postSerialize();
+		super.postLoad();
 	}
 	
 	@Override
@@ -201,7 +203,7 @@ public class ProjectIndex extends ClonkIndex {
 			}
 		};
 		List<T> r = new LinkedList<T>();
-		for (ClonkIndex i : relevantIndexes()) {
+		for (Index i : relevantIndexes()) {
 			if (i instanceof ProjectIndex) {
 				finder.reset();
 				try {

@@ -5,7 +5,7 @@ import java.util.List;
 
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.Scenario;
-import net.arctics.clonk.index.ClonkIndex;
+import net.arctics.clonk.index.Index;
 import net.arctics.clonk.parser.c4script.ScriptBase;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.util.UI;
@@ -57,7 +57,7 @@ public class ClonkHierarchyView extends ViewPart {
 				Definition parent = (Definition) parentElement;
 				List<ScriptBase> result = new LinkedList<ScriptBase>();
 				for (IProject p : ClonkProjectNature.getClonkProjects()) {
-					ClonkIndex index = ClonkProjectNature.get(p).getIndex();
+					Index index = ClonkProjectNature.get(p).getIndex();
 					for (ScriptBase script : index.allScripts()) {
 						if (filter.test(parent, script))
 							result.add(script);
@@ -89,7 +89,7 @@ public class ClonkHierarchyView extends ViewPart {
 			List<ScriptBase> result = new LinkedList<ScriptBase>();
 			IProject[] clonkProjects = ClonkProjectNature.getClonkProjects(); 
 			for (IProject p : clonkProjects) {
-				ClonkIndex index = ClonkProjectNature.get(p).getIndex();
+				Index index = ClonkProjectNature.get(p).getIndex();
 				for (ScriptBase script : index.allScripts()) {
 					if (filter.isRootScript(script))
 						result.add(script);

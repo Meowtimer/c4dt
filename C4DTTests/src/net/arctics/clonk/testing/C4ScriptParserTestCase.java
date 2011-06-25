@@ -11,7 +11,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import net.arctics.clonk.ClonkCore;
-import net.arctics.clonk.index.ClonkIndex;
+import net.arctics.clonk.index.Index;
 import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.parser.BufferedScanner;
 import net.arctics.clonk.parser.ID;
@@ -65,71 +65,70 @@ public class C4ScriptParserTestCase {
 				20);
 
 		public Setup(final String script) throws UnsupportedEncodingException {
-			this.script = new ScriptBase() {
+			this.script = new ScriptBase(new Index() {
 				private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
-				private ClonkIndex index = new ClonkIndex() {
-					private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
-					private Engine engine = new Engine("TestEngine") {
-						private final SpecialScriptRules rules = new SpecialScriptRules() {
-							private final Matcher ID_MATCHER = Pattern.compile(
-									"[A-Za-z_][A-Za-z_0-9]*").matcher("");
+				private Engine engine = new Engine("TestEngine") {
+					private final SpecialScriptRules rules = new SpecialScriptRules() {
+						private final Matcher ID_MATCHER = Pattern.compile(
+								"[A-Za-z_][A-Za-z_0-9]*").matcher("");
 
-							@Override
-							public ID parseId(BufferedScanner scanner) {
-								// HACK: Script parsers won't get IDs from this
-								// method because IDs are actually parsed as
-								// AccessVars and parsing them with
-								// a <match all identifiers> pattern would cause
-								// zillions of err0rs
-								if (scanner instanceof C4ScriptParser)
-									return null;
-								if (ID_MATCHER.reset(
-										scanner.getBuffer().substring(
-												scanner.getPosition()))
-										.lookingAt()) {
-									String idString = ID_MATCHER.group();
-									scanner.advance(idString.length());
-									if (BufferedScanner.isWordPart(scanner
-											.peek())
-											|| C4ScriptParser.NUMERAL_PATTERN
-													.matcher(idString)
-													.matches()) {
-										scanner.advance(-idString.length());
-										return null;
-									}
-									return ID.getID(idString);
-								}
+						@Override
+						public ID parseId(BufferedScanner scanner) {
+							// HACK: Script parsers won't get IDs from this
+							// method because IDs are actually parsed as
+							// AccessVars and parsing them with
+							// a <match all identifiers> pattern would cause
+							// zillions of err0rs
+							if (scanner instanceof C4ScriptParser)
 								return null;
+							if (ID_MATCHER.reset(
+									scanner.getBuffer().substring(
+											scanner.getPosition()))
+									.lookingAt()) {
+								String idString = ID_MATCHER.group();
+								scanner.advance(idString.length());
+								if (BufferedScanner.isWordPart(scanner
+										.peek())
+										|| C4ScriptParser.NUMERAL_PATTERN
+												.matcher(idString)
+												.matches()) {
+									scanner.advance(-idString.length());
+									return null;
+								}
+								return ID.getID(idString);
 							}
-						};
-						private EngineSettings settings;
-						private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
+							return null;
+						}
+					};
+					private EngineSettings settings;
+					private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 
-						@Override
-						public SpecialScriptRules getSpecialScriptRules() {
-							return rules;
-						};
-
-						@Override
-						public EngineSettings getCurrentSettings() {
-							if (settings == null) {
-								settings = new EngineSettings();
-								settings.maxStringLen = 0;
-								settings.nonConstGlobalVarsAssignment = true;
-								settings.proplistsSupported = true;
-								settings.strictDefaultLevel = 3;
-								settings.supportsRefs = false;
-								settings.treatZeroAsAny = true;
-							}
-							return settings;
-						};
+					@Override
+					public SpecialScriptRules getSpecialScriptRules() {
+						return rules;
 					};
 
 					@Override
-					public Engine getEngine() {
-						return engine;
+					public EngineSettings getCurrentSettings() {
+						if (settings == null) {
+							settings = new EngineSettings();
+							settings.maxStringLen = 0;
+							settings.nonConstGlobalVarsAssignment = true;
+							settings.proplistsSupported = true;
+							settings.strictDefaultLevel = 3;
+							settings.supportsRefs = false;
+							settings.treatZeroAsAny = true;
+						}
+						return settings;
 					};
 				};
+
+				@Override
+				public Engine getEngine() {
+					return engine;
+				};
+			}) {
+				private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 				SimpleScriptStorage storage = new SimpleScriptStorage(
 						"TestScript", script);
 
@@ -137,11 +136,6 @@ public class C4ScriptParserTestCase {
 				public IStorage getScriptStorage() {
 					return storage;
 				}
-
-				@Override
-				public ClonkIndex getIndex() {
-					return index;
-				};
 			};
 			this.parser = new C4ScriptParser(script, this.script, null) {
 				@Override

@@ -4,7 +4,10 @@ import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
-public final class ID implements Serializable, IInternalizable {
+import net.arctics.clonk.index.IResolvable;
+import net.arctics.clonk.index.Index;
+
+public final class ID implements Serializable, IResolvable {
 	private static final Map<String, ID> idPool = new HashMap<String, ID>();
 	private static final long serialVersionUID = 833007356188766488L;
 	public static final ID NULL = getID("NULL"); //$NON-NLS-1$
@@ -17,7 +20,7 @@ public final class ID implements Serializable, IInternalizable {
 	}
 	
 	@Override
-	public ID internalize() {
+	public ID resolve(Index index) {
 		ID special = idPool.get(name);
 		if (special == null) {
 			idPool.put(name, this);

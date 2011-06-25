@@ -6,7 +6,7 @@ import java.util.regex.Pattern;
 
 import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.index.ProjectDefinition;
-import net.arctics.clonk.index.ClonkIndex;
+import net.arctics.clonk.index.Index;
 import net.arctics.clonk.index.ProjectIndex;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.ID;
@@ -112,7 +112,7 @@ public class IniSourceViewerConfiguration extends ClonkSourceViewerConfiguration
 								Declaration declaration = null;
 								if (entryClass == ID.class) {
 									IResource r = Utilities.getEditingFile(getEditor());
-									ClonkIndex index = Utilities.getIndex(r);
+									Index index = Utilities.getIndex(r);
 									declaration = index.getDefinitionNearestTo(r, ID.getID(value));
 								}
 								else if (entryClass == FuncRefEntry.class) {
@@ -124,7 +124,7 @@ public class IniSourceViewerConfiguration extends ClonkSourceViewerConfiguration
 								else if (entryClass == IDArray.class) {
 									IRegion idRegion = Utilities.wordRegionAt(line, relativeOffset);
 									IResource r = Utilities.getEditingFile(getEditor());
-									ClonkIndex index = Utilities.getIndex(r);
+									Index index = Utilities.getIndex(r);
 									String id = line.substring(idRegion.getOffset(), idRegion.getOffset()+idRegion.getLength());
 									if (index.getEngine() != null && index.getEngine().acceptsId(id)) {
 										declaration = index.getDefinitionNearestTo(r, ID.getID(line.substring(idRegion.getOffset(), idRegion.getOffset()+idRegion.getLength())));
@@ -145,9 +145,9 @@ public class IniSourceViewerConfiguration extends ClonkSourceViewerConfiguration
 									}
 								}
 								else if (entryClass == DefinitionPack.class) {
-									ClonkIndex projIndex = ProjectDefinition.definitionCorrespondingToFolder(Utilities.getEditingFile(getEditor()).getParent()).getIndex();
-									List<ClonkIndex> indexes = projIndex.relevantIndexes();
-									for (ClonkIndex index : indexes) {
+									Index projIndex = ProjectDefinition.definitionCorrespondingToFolder(Utilities.getEditingFile(getEditor()).getParent()).getIndex();
+									List<Index> indexes = projIndex.relevantIndexes();
+									for (Index index : indexes) {
 										if (index instanceof ProjectIndex) {
 											ProjectIndex pi = (ProjectIndex) index;
 											try {
@@ -169,7 +169,7 @@ public class IniSourceViewerConfiguration extends ClonkSourceViewerConfiguration
 								else if (entryClass == IconSpec.class) {
 									String firstPart = value.split(":")[0];
 									IResource r = Utilities.getEditingFile(getEditor());
-									ClonkIndex index = Utilities.getIndex(r);
+									Index index = Utilities.getIndex(r);
 									declaration = index.getDefinitionNearestTo(r, ID.getID(firstPart));
 								}
 								else if (entryClass == String.class) {

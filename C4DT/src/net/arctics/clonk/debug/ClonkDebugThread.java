@@ -7,7 +7,7 @@ import java.util.Map;
 import java.util.Set;
 
 import net.arctics.clonk.debug.ClonkDebugTarget.Commands;
-import net.arctics.clonk.index.ClonkIndex;
+import net.arctics.clonk.index.Index;
 import net.arctics.clonk.index.ProjectIndex;
 import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.ScriptBase;
@@ -31,7 +31,7 @@ public class ClonkDebugThread extends ClonkDebugElement implements IThread {
 		stackFrames = NO_STACKFRAMES;
 	}
 	
-	public ScriptBase findScript(String path, ClonkIndex index, Set<ClonkIndex> alreadySearched) throws CoreException {
+	public ScriptBase findScript(String path, Index index, Set<Index> alreadySearched) throws CoreException {
 		if (alreadySearched.contains(index))
 			return null;
 		ScriptBase script = index.findScriptByPath(path);
@@ -71,7 +71,7 @@ public class ClonkDebugThread extends ClonkDebugElement implements IThread {
 			String linePart = sourcePath.substring(delim+1);
 			int line = Integer.parseInt(linePart)+1;
 			sourcePath = sourcePath.substring(0, delim);
-			ScriptBase script = findScript(sourcePath, index, new HashSet<ClonkIndex>());
+			ScriptBase script = findScript(sourcePath, index, new HashSet<Index>());
 			Function f = script != null ? funcAtLine(script, line) : null;
 			Object funObj = f != null ? f : fullSourcePath;
 			if (stillToBeReused > 0) {

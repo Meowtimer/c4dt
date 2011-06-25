@@ -1,9 +1,9 @@
 package net.arctics.clonk.parser.c4script;
 
-import net.arctics.clonk.index.ClonkIndex;
+import net.arctics.clonk.index.Index;
 
 /**
- * Some named or describable entity contained in a {@link ClonkIndex}
+ * Some named or describable entity contained in a {@link Index}
  * @author madeen
  *
  */
@@ -15,7 +15,7 @@ public interface IEntityLocatedInIndex {
 	String getName();
 	/**
 	 * Return the index the entity is contained in.
-	 * @return The {@link ClonkIndex}
+	 * @return The {@link Index}
 	 */
-	ClonkIndex getIndex();
+	Index getIndex();
 }

@@ -1,5 +1,6 @@
 package net.arctics.clonk.parser.c4script;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
@@ -16,7 +17,7 @@ import java.util.Vector;
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.index.Definition;
-import net.arctics.clonk.index.ClonkIndex;
+import net.arctics.clonk.index.Index;
 import net.arctics.clonk.index.ProjectIndex;
 import net.arctics.clonk.parser.CStyleScanner;
 import net.arctics.clonk.parser.ParsingException;
@@ -562,7 +563,6 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 				return;
 			}
 			enableError(ParserErrorCode.StringNotClosed, true);
-			container.setDirty(false);
 		}
 	}
 	
@@ -602,8 +602,11 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 					currentFunctionContext.expressionReportingErrors = old;
 				}
 			}
-			
-			container.setDirty(false);
+			try {
+				container.save();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
 			distillAdditionalInformation();
 		}
 	}
@@ -1391,22 +1394,17 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	private static final class TempScript extends ScriptBase {
 		private final String expression;
 		private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
-		private static final ClonkIndex tempIndex = new ClonkIndex() {
-			private static final long serialVersionUID = 1L;
-			private final Engine tempEngine = new Engine("Temp Engine"); //$NON-NLS-1$
-			@Override
-			public Engine getEngine() {
-				return tempEngine;
-			};
-		};
 
 		private TempScript(String expression) {
+			super(new Index() {
+				private static final long serialVersionUID = 1L;
+				private final Engine tempEngine = new Engine("Temp Engine"); //$NON-NLS-1$
+				@Override
+				public Engine getEngine() {
+					return tempEngine;
+				};
+			});
 			this.expression = expression;
-		}
-
-		@Override
-		public ClonkIndex getIndex() {
-			return tempIndex;
 		}
 
 		@Override

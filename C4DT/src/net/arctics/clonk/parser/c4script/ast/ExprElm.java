@@ -8,7 +8,7 @@ import java.util.List;
 
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.index.CachedEngineFuncs;
-import net.arctics.clonk.index.ClonkIndex;
+import net.arctics.clonk.index.Index;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.parser.Declaration;
@@ -821,7 +821,7 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 			if (typeable != null) {
 				// only set types of declarations inside the current index so definition references of one project
 				// don't leak into a referenced base project (ClonkMars def referenced in ClonkRage or something)
-				ClonkIndex index = typeable.getIndex();
+				Index index = typeable.getIndex();
 				if (index == null)
 					return;
 				if (index == parser.getContainer().getIndex())

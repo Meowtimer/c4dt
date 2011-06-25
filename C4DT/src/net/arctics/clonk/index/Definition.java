@@ -50,7 +50,6 @@ public abstract class Definition extends ScriptBase {
 	 * Cached picture from Graphics.png
 	 */
 	private transient Image cachedPicture;
-
 	private transient ConstrainedProplist objectType;
 
 	/**
@@ -58,7 +57,8 @@ public abstract class Definition extends ScriptBase {
 	 * @param id C4ID (e.g. CLNK)
 	 * @param name human-readable name
 	 */
-	protected Definition(ID id, String name) {
+	protected Definition(Index index, ID id, String name) {
+		super(index);
 		this.id = id;
 		this.name = name;
 	}
@@ -88,7 +88,7 @@ public abstract class Definition extends ScriptBase {
 	public void setId(ID newId) {
 		if (id.equals(newId))
 			return;
-		ClonkIndex index = this.getIndex();
+		Index index = this.getIndex();
 		index.removeDefinition(this);
 		id = newId;
 		index.addDefinition(this);
@@ -156,7 +156,7 @@ public abstract class Definition extends ScriptBase {
 	}
 
 	@Override
-	public  boolean gatherIncludes(final Set<IHasIncludes> set, final ClonkIndex index, final boolean recursive) {
+	public  boolean gatherIncludes(final Set<IHasIncludes> set, final Index index, final boolean recursive) {
 		if (!super.gatherIncludes(set, index, recursive))
 			return false;
 		if (index != null) {

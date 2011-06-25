@@ -213,7 +213,7 @@ public class ClonkTextEditor extends TextEditor {
 		if (editor instanceof ClonkTextEditor) {
 			ClonkTextEditor clonkTextEditor = (ClonkTextEditor) editor;
 			if (target != structure && target.getLocation() != null) {
-				if (structure.dirty() && clonkTextEditor instanceof C4ScriptEditor) {
+				if (structure.isDirty() && clonkTextEditor instanceof C4ScriptEditor) {
 					try {
 						((C4ScriptEditor) clonkTextEditor).reparseWithDocumentContents(null, false);
 					} catch (Exception e) {

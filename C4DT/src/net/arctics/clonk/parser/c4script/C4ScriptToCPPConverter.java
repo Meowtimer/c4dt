@@ -17,7 +17,7 @@ import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.command.InvokableFunction;
 import net.arctics.clonk.command.ExecutableScript;
 import net.arctics.clonk.index.Engine;
-import net.arctics.clonk.index.ClonkIndex;
+import net.arctics.clonk.index.Index;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.c4script.ast.Block;
 import net.arctics.clonk.parser.c4script.ast.CallFunc;
@@ -182,7 +182,7 @@ public class C4ScriptToCPPConverter {
 		ClonkCore.headlessInitialize(engineConfigurationFolder, "OpenClonk");
 		InputStreamReader reader = new InputStreamReader(new FileInputStream(scriptToConvert));
 		String script = StreamUtil.stringFromReader(reader);
-		ClonkIndex dummyIndex = new ClonkIndex();
+		Index dummyIndex = new Index();
 		ExecutableScript scriptObj = new ExecutableScript(scriptToConvert.getName(), script, dummyIndex);
 		PrintWriter printWriter = new PrintWriter(System.out);
 		new C4ScriptToCPPConverter().printScript(scriptObj, printWriter);

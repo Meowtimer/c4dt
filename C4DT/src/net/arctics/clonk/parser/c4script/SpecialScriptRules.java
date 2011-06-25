@@ -24,7 +24,7 @@ import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.ProjectDefinition;
 import net.arctics.clonk.index.ProjectIndex;
 import net.arctics.clonk.index.Scenario;
-import net.arctics.clonk.index.ClonkIndex;
+import net.arctics.clonk.index.Index;
 import net.arctics.clonk.parser.BufferedScanner;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.DeclarationRegion;
@@ -440,7 +440,7 @@ public class SpecialScriptRules {
 				Object ev = callFunc.getParams()[0].evaluateAtParseTime(context.getCurrentFunc());
 				if (ev instanceof String) {
 					List<IType> types = new LinkedList<IType>();
-					for (ClonkIndex index : context.getContainer().getIndex().relevantIndexes()) {
+					for (Index index : context.getContainer().getIndex().relevantIndexes()) {
 						for (Function f : index.declarationsWithName((String)ev, Function.class)) {
 							if (f.getScript() instanceof Definition) {
 								types.add(new ConstrainedProplist((Definition)f.getScript(), ConstraintKind.Includes));
@@ -579,7 +579,7 @@ public class SpecialScriptRules {
 		public DeclarationRegion locateDeclarationInParameter(CallFunc callFunc, C4ScriptParser parser, int parameterIndex, int offsetInExpression, ExprElm parmExpression) {
 			if (parameterIndex == 0 && parmExpression instanceof StringLiteral) {
 				final StringLiteral lit = (StringLiteral)parmExpression;
-				ClonkIndex index = parser.getContainer().getIndex();
+				Index index = parser.getContainer().getIndex();
 				Scenario scenario = null;
 				for (IResource r = parser.getContainer().getResource().getParent(); scenario == null && r != null; r = r.getParent()) {
 					if (r instanceof IContainer)
@@ -591,9 +591,9 @@ public class SpecialScriptRules {
 						return new DeclarationRegion(scenFunc, lit.identifierRegion());
 				} else {
 					final List<Declaration> decs = new LinkedList<Declaration>();
-					index.forAllRelevantIndexes(new ClonkIndex.r() {
+					index.forAllRelevantIndexes(new Index.r() {
 						@Override
-						public void run(ClonkIndex index) {
+						public void run(Index index) {
 							for (Scenario s : index.indexedScenarios()) {
 								Function f = s.findLocalFunction(lit.getLiteral(), true);
 								if (f != null) {
@@ -761,9 +761,9 @@ public class SpecialScriptRules {
 			if (parmExpression instanceof StringLiteral) {
 				final StringLiteral lit = (StringLiteral)parmExpression;
 				final List<Declaration> matchingDecs = new LinkedList<Declaration>();
-				parser.getContainer().getIndex().forAllRelevantIndexes(new ClonkIndex.r() {
+				parser.getContainer().getIndex().forAllRelevantIndexes(new Index.r() {
 					@Override
-					public void run(ClonkIndex index) {
+					public void run(Index index) {
 						List<Declaration> decs = index.declarationMap().get(lit.getLiteral());
 						if (decs != null)
 							matchingDecs.addAll(decs);

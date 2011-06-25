@@ -101,7 +101,7 @@ public abstract class TextChangeListenerBase<EditorType extends ClonkTextEditor,
 	
 	@Override
 	public void documentChanged(DocumentEvent event) {
-		structure.setDirty(true);
+		structure.markAsDirty();
 		adjustDeclarationLocations(event);
 	}
 

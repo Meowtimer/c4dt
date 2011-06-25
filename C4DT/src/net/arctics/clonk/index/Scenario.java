@@ -12,8 +12,8 @@ import org.eclipse.core.resources.IContainer;
  */
 public class Scenario extends ProjectDefinition {
 
-	public Scenario(ID id, String name, IContainer container) {
-		super(id, name, container);
+	public Scenario(Index index, ID id, String name, IContainer container) {
+		super(index, id, name, container);
 	}
 	
 	public static Scenario get(IContainer folder) {

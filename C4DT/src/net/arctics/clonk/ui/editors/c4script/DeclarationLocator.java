@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.Set;
 
 import net.arctics.clonk.index.Engine;
-import net.arctics.clonk.index.ClonkIndex;
+import net.arctics.clonk.index.Index;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.DeclarationRegion;
 import net.arctics.clonk.parser.c4script.Function;
@@ -123,7 +123,7 @@ public class DeclarationLocator extends ExpressionLocator {
 			
 			// gather declarations with that name from involved project indexes
 			List<Declaration> projectDeclarations = new LinkedList<Declaration>();
-			for (ClonkIndex i : script.getIndex().relevantIndexes()) {
+			for (Index i : script.getIndex().relevantIndexes()) {
 				List<Declaration> decs = i.declarationMap().get(access.getDeclarationName());
 				if (decs != null)
 					projectDeclarations.addAll(decs);

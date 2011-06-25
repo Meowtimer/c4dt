@@ -1,7 +1,6 @@
 package net.arctics.clonk.resource;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
@@ -19,7 +18,7 @@ import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.Milestones;
 import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.index.ProjectDefinition;
-import net.arctics.clonk.index.ClonkIndex;
+import net.arctics.clonk.index.Index;
 import net.arctics.clonk.index.ProjectIndex;
 import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.c4script.ScriptBase;
@@ -204,13 +203,9 @@ public class ClonkProjectNature implements IProjectNature {
 	public ProjectIndex forceIndexRecreation() {
 		index = null;
 		loadSettings();
-		return index = new ProjectIndex(project);
+		return index = new ProjectIndex(project, getIndexFolder());
 	}
 
-	public IPath getIndexFileLocation() {
-		return ClonkCore.getDefault().getStateLocation().append(getProject().getName()+ProjectIndex.INDEXFILE_SUFFIX);
-	}
-	
 	public IPath getSettingsFileLocation() {
 		return ClonkCore.getDefault().getStateLocation().append(getProject().getName()+".ini");
 	}
@@ -222,25 +217,7 @@ public class ClonkProjectNature implements IProjectNature {
 	public void saveIndex() throws CoreException {
 		if (index != null) {
 			saveSettings();
-			if (index.isDirty()) {
-				//getIndex(); // make sure index is loaded in the first place -- does not happen
-				IPath indexLocation = getIndexFileLocation();
-				File indexFile = indexLocation.toFile();
-				try {
-					FileOutputStream out = new FileOutputStream(indexFile);
-					try {
-						ClonkIndexOutputStream objStream = new ClonkIndexOutputStream(index, out);
-						getIndex().preSerialize();
-						objStream.writeObject(getIndex());
-						objStream.close();
-					} finally {
-						out.close();
-					}
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-				index.setDirty(false);
-			}
+			index.saveIfDirty();
 		}
 	}
 
@@ -276,7 +253,7 @@ public class ClonkProjectNature implements IProjectNature {
 		loadSettings();
 		if (ClonkCore.getDefault().updateTookPlace()) {
 			System.out.println(String.format("Update took place: Cleaning project %s", this.project.getName()));
-			index = new ProjectIndex(getProject());
+			index = new ProjectIndex(getProject(), getIndexFolder());
 			IProgressMonitor monitor = new NullProgressMonitor();
 			try {
 				project.build(IncrementalProjectBuilder.CLEAN_BUILD, monitor);
@@ -287,19 +264,23 @@ public class ClonkProjectNature implements IProjectNature {
 				getSettings().guessValues(this);
 			}
 		} else {
-			ProjectIndex loadedIndex = ClonkIndex.load(ProjectIndex.class, getIndexFileLocation().toFile(), null);
+			ProjectIndex loadedIndex = Index.load(ProjectIndex.class, getIndexFolder(), null);
 			if (loadedIndex != null) {
 				index = loadedIndex; // necessary to avoid infinite recursion
 				loadedIndex.setProject(getProject());
 				try {
-					loadedIndex.postSerialize();
+					loadedIndex.postLoad();
 				} catch (CoreException e) {
 					e.printStackTrace();
 					loadedIndex = null;
 				}
 			}
-			index = loadedIndex != null ? loadedIndex : new ProjectIndex(getProject());
+			index = loadedIndex != null ? loadedIndex : new ProjectIndex(getProject(), getIndexFolder());
 		}
+	}
+
+	private File getIndexFolder() {
+		return ClonkCore.getDefault().getStateLocation().append(getProject().getName()+ProjectIndex.INDEXFILE_SUFFIX).toFile();
 	}
 	
 	/**

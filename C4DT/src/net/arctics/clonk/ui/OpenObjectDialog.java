@@ -3,7 +3,7 @@ package net.arctics.clonk.ui;
 import java.util.Comparator;
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.index.Definition;
-import net.arctics.clonk.index.ClonkIndex;
+import net.arctics.clonk.index.Index;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.util.ArrayUtil;
 import net.arctics.clonk.util.Utilities;
@@ -89,7 +89,7 @@ public class OpenObjectDialog extends FilteredItemsSelectionDialog {
 			IProject proj = ((IResource)((IStructuredSelection)selection).getFirstElement()).getProject();
 			ClonkProjectNature nat = ClonkProjectNature.get(proj);
 			if (nat != null && nat.getIndex() != null) {
-				for (ClonkIndex index : nat.getIndex().relevantIndexes()) {
+				for (Index index : nat.getIndex().relevantIndexes()) {
 					fillWithIndexContents(contentProvider, itemsFilter, progressMonitor, index);
 				}
 			}
@@ -98,7 +98,7 @@ public class OpenObjectDialog extends FilteredItemsSelectionDialog {
 
 	private void fillWithIndexContents(AbstractContentProvider contentProvider,
 			ItemsFilter itemsFilter, IProgressMonitor progressMonitor,
-			ClonkIndex index) {
+			Index index) {
 		progressMonitor.beginTask(Messages.OpenObjectDialog_Searching, index.numUniqueIds());
 		for(Definition object : index) {
 			contentProvider.add(object, itemsFilter);

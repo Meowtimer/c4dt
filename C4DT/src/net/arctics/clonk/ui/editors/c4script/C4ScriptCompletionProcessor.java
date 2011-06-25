@@ -9,7 +9,7 @@ import java.util.Set;
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.Scenario;
-import net.arctics.clonk.index.ClonkIndex;
+import net.arctics.clonk.index.Index;
 import net.arctics.clonk.parser.c4script.BuiltInDefinitions;
 import net.arctics.clonk.parser.c4script.Directive;
 import net.arctics.clonk.parser.c4script.EffectFunction;
@@ -151,15 +151,15 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 	}
 
 	/**
-	 * Add to an existing list the proposals originating from some {@link ClonkIndex}. Those proposals are comprised of global functions, static variables and {@link Definition}s.
-	 * @param index The {@link ClonkIndex} to add proposals for
+	 * Add to an existing list the proposals originating from some {@link Index}. Those proposals are comprised of global functions, static variables and {@link Definition}s.
+	 * @param index The {@link Index} to add proposals for
 	 * @param offset Caret offset
 	 * @param wordOffset Word offset
 	 * @param prefix String already typed
 	 * @param proposals The list to add the proposals to
 	 * @param flags Flags indicating what kind of proposals should be included. {@link IHasSubDeclarations#STATIC_VARIABLES} needs to be or-ed to flags if {@link Definition} and static variable proposals are to be shown.
 	 */
-	private void proposalsForIndex(ClonkIndex index, int offset, int wordOffset, String prefix, List<ICompletionProposal> proposals, int flags) {
+	private void proposalsForIndex(Index index, int offset, int wordOffset, String prefix, List<ICompletionProposal> proposals, int flags) {
 		if (!index.isEmpty()) {
 			if (_activeFunc != null) {
 				Scenario s2 = _activeFunc.getScenario();
@@ -209,7 +209,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 		ClonkProjectNature nature = ClonkProjectNature.get(editor);
 		List<String> statusMessages = new ArrayList<String>(4);
 		List<ICompletionProposal> proposals = new ArrayList<ICompletionProposal>();
-		ClonkIndex index = nature.getIndex();
+		Index index = nature.getIndex();
 
 		final Function activeFunc = getActiveFunc(doc, offset);
 		this._activeFunc = activeFunc;
@@ -250,7 +250,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 
 	private void proposalsInsideOfFunction(int offset, int wordOffset,
 			IDocument doc, String prefix,
-			List<ICompletionProposal> proposals, ClonkIndex index,
+			List<ICompletionProposal> proposals, Index index,
 			final Function activeFunc) {
 
 		ScriptBase editorScript = Utilities.getScriptForEditor(editor);
@@ -275,7 +275,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 
 	private void internalProposalsInsideOfFunction(int offset, int wordOffset,
 			IDocument doc, String prefix, List<ICompletionProposal> proposals,
-			ClonkIndex index, final Function activeFunc,
+			Index index, final Function activeFunc,
 			ScriptBase editorScript,
 			C4ScriptParser parser) {
 
@@ -371,7 +371,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 			whatToDisplayFromScripts |= IHasSubDeclarations.STATIC_VARIABLES;
 		
 		if (proposalCycle != ProposalCycle.OBJECT)
-			for (ClonkIndex i : index.relevantIndexes())
+			for (Index i : index.relevantIndexes())
 				proposalsForIndex(i, offset, wordOffset, prefix, proposals, whatToDisplayFromScripts);
 		
 		for (IHasSubDeclarations s : contextStructures)
@@ -418,7 +418,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 	public static List<ICompletionProposal> computeProposalsForExpression(ExprElm expression, Function function, C4ScriptParser parser, IDocument document) {
 		List<ICompletionProposal> result = new LinkedList<ICompletionProposal>();
 		C4ScriptCompletionProcessor processor = new C4ScriptCompletionProcessor(null, null);
-		ClonkIndex index = function.getIndex();
+		Index index = function.getIndex();
 		processor.contextExpression = expression;
 		processor.internalProposalsInsideOfFunction(expression != null ? expression.getExprEnd() : 0, 0, document, "", result, index, function, function.getScript(), parser);
 		return result;
@@ -475,7 +475,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 
 	private void proposalsOutsideOfFunction(ITextViewer viewer, int offset,
 			int wordOffset, String prefix,
-			List<ICompletionProposal> proposals, ClonkIndex index) {
+			List<ICompletionProposal> proposals, Index index) {
 
 		// check whether func keyword precedes location (whole function blocks won't be created then)
 		boolean funcSupplied = precededBy(viewer, offset, Keywords.Func);
@@ -542,7 +542,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 
 		// propose objects for #include or something
 		if (directiveExpectingObject) {
-			for (ClonkIndex i : index.relevantIndexes())
+			for (Index i : index.relevantIndexes())
 				proposalsForIndex(i, offset, wordOffset, prefix, proposals, IHasSubDeclarations.DIRECT_SUBDECLARATIONS);
 		}
 	}
@@ -560,7 +560,7 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 		return String.format(Messages.C4ScriptCompletionProcessor_PressToShowCycle, sequence.format(), proposalCycle.cycle().description());
 	}
 
-	private void proposalsForStructure(IHasSubDeclarations structure, Set<IHasSubDeclarations> loopCatcher, String prefix, int offset, int wordOffset, List<ICompletionProposal> proposals, boolean noPrivateFuncs, ClonkIndex index, int mask) {
+	private void proposalsForStructure(IHasSubDeclarations structure, Set<IHasSubDeclarations> loopCatcher, String prefix, int offset, int wordOffset, List<ICompletionProposal> proposals, boolean noPrivateFuncs, Index index, int mask) {
 		if (loopCatcher.contains(structure))
 			return;
 		else
@@ -601,14 +601,15 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 					RegionDescription d = new RegionDescription();
 					if (funcCallInfo.locator.initializeRegionDescription(d, getEditor().scriptBeingEdited(), new Region(offset, 1))) {
 						funcCallInfo.locator.initializeProposedDeclarations(getEditor().scriptBeingEdited(), d, null, funcCallInfo.callFunc);
-						for (Declaration dec_ : funcCallInfo.locator.getProposedDeclarations()) {
-							if (dec == null)
-								dec = dec_;
-							else {
-								dec = null;
-								break;
+						if (funcCallInfo.locator.getProposedDeclarations() != null)
+							for (Declaration dec_ : funcCallInfo.locator.getProposedDeclarations()) {
+								if (dec == null)
+									dec = dec_;
+								else {
+									dec = null;
+									break;
+								}
 							}
-						}
 					}
 				}
 //				if (dec == null && funcCallInfo.locator != null)

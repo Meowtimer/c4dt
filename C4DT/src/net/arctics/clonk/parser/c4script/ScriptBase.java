@@ -2,6 +2,8 @@ package net.arctics.clonk.parser.c4script;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -24,8 +26,9 @@ import javax.xml.xpath.XPathFactory;
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.index.Definition;
+import net.arctics.clonk.index.IndexEntity;
 import net.arctics.clonk.index.ProjectDefinition;
-import net.arctics.clonk.index.ClonkIndex;
+import net.arctics.clonk.index.Index;
 import net.arctics.clonk.parser.BufferedScanner;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.ID;
@@ -62,18 +65,41 @@ import org.xml.sax.SAXException;
  * Base class for various objects that act as containers of stuff declared in scripts/ini files.
  * Subclasses include {@link Definition}, {@link StandaloneProjectScript} etc.
  */
-public abstract class ScriptBase extends Structure implements ITreeNode, IHasConstraint, IType, IEvaluationContext, IHasIncludes {
+public abstract class ScriptBase extends IndexEntity implements ITreeNode, IHasConstraint, IType, IEvaluationContext, IHasIncludes {
 
 	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 
-	protected List<Function> definedFunctions = new LinkedList<Function>();
-	protected List<Variable> definedVariables = new LinkedList<Variable>();
-	protected List<Directive> definedDirectives = new LinkedList<Directive>();
+	protected transient List<Function> definedFunctions = new LinkedList<Function>();
+	protected transient List<Variable> definedVariables = new LinkedList<Variable>();
+	protected transient List<Directive> definedDirectives = new LinkedList<Directive>();
 	
 	// set of scripts this script is using functions and/or static variables from
-	private Set<ScriptBase> usedProjectScripts;
+	private transient Set<ScriptBase> usedProjectScripts;
 	// scripts dependent on this one inside the same index
 	private transient Set<ScriptBase> dependentScripts;
+	
+	protected ScriptBase(Index index) {
+		super(index);
+	}
+	
+	@SuppressWarnings("unchecked")
+	@Override
+	public void load(ObjectInputStream stream) throws IOException, ClassNotFoundException {
+		super.load(stream);
+		definedFunctions = (List<Function>) stream.readObject();
+		definedVariables = (List<Variable>) stream.readObject();
+		definedDirectives = (List<Directive>) stream.readObject();
+		usedProjectScripts = (Set<ScriptBase>) stream.readObject();
+	}
+	
+	@Override
+	public void save(ObjectOutputStream stream) throws IOException {
+		super.save(stream);
+		stream.writeObject(definedFunctions);
+		stream.writeObject(definedVariables);
+		stream.writeObject(definedDirectives);
+		stream.writeObject(usedProjectScripts);
+	}
 	
 	public String getScriptText() {
 		return ""; //$NON-NLS-1$
@@ -84,6 +110,7 @@ public abstract class ScriptBase extends Structure implements ITreeNode, IHasCon
 	 * @return The pseudo-map for getting the function at some line.
 	 */
 	public Function[] calculateLineToFunctionMap() {
+		requireLoaded();
 		String scriptText = this.getScriptText();
 		int lineStart = 0;
 		int lineEnd = 0;
@@ -124,6 +151,7 @@ public abstract class ScriptBase extends Structure implements ITreeNode, IHasCon
 	 * @return the #strict level set for this script or the default level supplied by the engine configuration
 	 */
 	public int getStrictLevel() {
+		requireLoaded();
 		long level = getEngine() != null ? getEngine().getCurrentSettings().strictDefaultLevel : -1;
 		for (Directive d : this.definedDirectives) {
 			if (d.getType() == DirectiveType.STRICT) {
@@ -144,6 +172,7 @@ public abstract class ScriptBase extends Structure implements ITreeNode, IHasCon
 	 * @return The directives
 	 */
 	public Directive[] getIncludeDirectives() {
+		requireLoaded();
 		List<Directive> result = new ArrayList<Directive>();
 		for (Directive d : definedDirectives) {
 			if (d.getType() == DirectiveType.INCLUDE || d.getType() == DirectiveType.APPENDTO) {
@@ -159,7 +188,8 @@ public abstract class ScriptBase extends Structure implements ITreeNode, IHasCon
 	 * @param index The project index to search for includes in (has greater priority than EXTERN_INDEX which is always searched)
 	 */
 	@Override
-	public boolean gatherIncludes(Set<IHasIncludes> set, ClonkIndex index, boolean recursive) {
+	public boolean gatherIncludes(Set<IHasIncludes> set, Index index, boolean recursive) {
+		requireLoaded();
 		if (set.contains(this))
 			return false;
 		else
@@ -179,7 +209,8 @@ public abstract class ScriptBase extends Structure implements ITreeNode, IHasCon
 	 * @param index The index to be passed to gatherIncludes
 	 * @return The includes
 	 */
-	public Collection<? extends IHasIncludes> getIncludes(ClonkIndex index, boolean recursive) {
+	public Collection<? extends IHasIncludes> getIncludes(Index index, boolean recursive) {
+		requireLoaded();
 		return IHasIncludes.Default.getIncludes(this, index, recursive);
 	}
 
@@ -188,13 +219,14 @@ public abstract class ScriptBase extends Structure implements ITreeNode, IHasCon
 	 * @return The includes
 	 */
 	public final Collection<? extends IHasIncludes> getIncludes(boolean recursive) {
-		ClonkIndex index = getIndex();
+		Index index = getIndex();
 		if (index == null)
 			return NO_INCLUDES;
 		return getIncludes(index, recursive);
 	}
 	
 	public Iterable<ScriptBase> dependentScripts() {
+		requireLoaded();
 		if (dependentScripts == null)
 			return ArrayUtil.arrayIterable();
 		else
@@ -206,6 +238,7 @@ public abstract class ScriptBase extends Structure implements ITreeNode, IHasCon
 	}
 	
 	public void addDependentScript(ScriptBase s) {
+		requireLoaded();
 		if (dependentScripts == null)
 			dependentScripts = new HashSet<ScriptBase>();
 		dependentScripts.add(s);
@@ -217,6 +250,7 @@ public abstract class ScriptBase extends Structure implements ITreeNode, IHasCon
 	 * @return The {@link Directive} or null if no matching directive exists in this script.
 	 */
 	public Directive getIncludeDirectiveFor(Definition obj) {
+		requireLoaded();
 		for (Directive d : getIncludeDirectives()) {
 			if ((d.getType() == DirectiveType.INCLUDE || d.getType() == DirectiveType.APPENDTO) && nearestDefinitionWithId(d.contentAsID()) == obj)
 				return d;
@@ -241,6 +275,7 @@ public abstract class ScriptBase extends Structure implements ITreeNode, IHasCon
 
 	@Override
 	public Declaration findLocalDeclaration(String declarationName, Class<? extends Declaration> declarationClass) {
+		requireLoaded();
 		if (Variable.class.isAssignableFrom(declarationClass)) {
 			for (Variable v : definedVariables) {
 				if (v.getName().equals(declarationName))
@@ -271,6 +306,7 @@ public abstract class ScriptBase extends Structure implements ITreeNode, IHasCon
 	 */
 	@Override
 	public Iterable<Declaration> allSubDeclarations(int mask) {
+		requireLoaded();
 		List<Iterable<? extends Declaration>> its = new ArrayList<Iterable<? extends Declaration>>(4);
 		if ((mask & FUNCTIONS) != 0)
 			its.add(definedFunctions);
@@ -290,6 +326,7 @@ public abstract class ScriptBase extends Structure implements ITreeNode, IHasCon
 	 * @return the declaration or <tt>null</tt> if not found
 	 */
 	public Declaration findDeclaration(String name, FindDeclarationInfo info) {
+		requireLoaded();
 
 		// prevent infinite recursion
 		if (info.getAlreadySearched().contains(this))
@@ -349,7 +386,7 @@ public abstract class ScriptBase extends Structure implements ITreeNode, IHasCon
 			}
 			// global stuff defined in project
 			if (f == null) {
-				for (ClonkIndex index : info.getAllRelevantIndexes()) {
+				for (Index index : info.getAllRelevantIndexes()) {
 					f = index.findGlobalDeclaration(name, getResource());
 					if (f != null)
 						break;
@@ -366,6 +403,7 @@ public abstract class ScriptBase extends Structure implements ITreeNode, IHasCon
 	}
 
 	public void addDeclaration(Declaration declaration) {
+		requireLoaded();
 		declaration.setScript(this);
 		if (declaration instanceof Function) {
 			definedFunctions.add((Function)declaration);
@@ -385,6 +423,7 @@ public abstract class ScriptBase extends Structure implements ITreeNode, IHasCon
 	}
 
 	public void removeDeclaration(Declaration declaration) {
+		requireLoaded();
 		if (declaration.getScript() != this)
 			declaration.setScript(this);
 		if (declaration instanceof Function) {
@@ -400,6 +439,7 @@ public abstract class ScriptBase extends Structure implements ITreeNode, IHasCon
 	}
 
 	public void clearDeclarations() {
+		notFullyLoaded = false;
 		usedProjectScripts = null;
 		if (definedDirectives != null)
 			definedDirectives.clear();
@@ -463,6 +503,7 @@ public abstract class ScriptBase extends Structure implements ITreeNode, IHasCon
 
 	public Function funcAt(IRegion region) {
 		//System.out.println("");
+		requireLoaded();
 		for (Function f : definedFunctions) {
 			int fStart = f.getBody().getOffset();
 			int fEnd   = f.getBody().getOffset()+f.getBody().getLength();
@@ -476,6 +517,7 @@ public abstract class ScriptBase extends Structure implements ITreeNode, IHasCon
 	}
 	
 	public Variable variableWithInitializationAt(IRegion region) {
+		requireLoaded();
 		for (Variable v : definedVariables) {
 			ExprElm initialization = v.getInitializationExpression();
 			if (initialization != null && initialization.containsOffset(region.getOffset())) {
@@ -487,6 +529,7 @@ public abstract class ScriptBase extends Structure implements ITreeNode, IHasCon
 
 	// OMG, IRegion <-> ITextSelection
 	public Function funcAt(ITextSelection region) {
+		requireLoaded();
 		for (Function f : definedFunctions) {
 			if (f.getLocation().getOffset() <= region.getOffset() && region.getOffset()+region.getLength() <= f.getBody().getOffset()+f.getBody().getLength())
 				return f;
@@ -501,6 +544,7 @@ public abstract class ScriptBase extends Structure implements ITreeNode, IHasCon
 	 */
 	@Override
 	public boolean includes(IHasIncludes other) {
+		requireLoaded();
 		if (other == this)
 			return true;
 		Iterable<? extends IHasIncludes> incs = this.getIncludes(false);
@@ -573,10 +617,12 @@ public abstract class ScriptBase extends Structure implements ITreeNode, IHasCon
 	 * Returns an iterator to iterate over all functions defined in this script
 	 */
 	public Collection<Function> functions() {
+		requireLoaded();
 		return Collections.unmodifiableList(definedFunctions);
 	}
 	
 	public <T extends Function> Iterable<T> functions(Class<T> cls) {
+		requireLoaded();
 		return ArrayUtil.filteredIterable(functions(), cls);
 	}
 
@@ -584,6 +630,7 @@ public abstract class ScriptBase extends Structure implements ITreeNode, IHasCon
 	 * Returns an iterator to iterate over all variables defined in this script
 	 */
 	public Iterable<Variable> variables() {
+		requireLoaded();
 		return Collections.unmodifiableList(definedVariables);
 	}
 
@@ -591,19 +638,22 @@ public abstract class ScriptBase extends Structure implements ITreeNode, IHasCon
 	 * Returns an iterator to iterate over all directives defined in this script
 	 */
 	public Iterable<Directive> directives() {
+		requireLoaded();
 		return Collections.unmodifiableList(definedDirectives);
 	}
 
 	public int numVariables() {
+		requireLoaded();
 		return definedVariables.size();
 	}
 
 	public int numFunctions() {
+		requireLoaded();
 		return definedFunctions.size();
 	}
 
 	public Definition nearestDefinitionWithId(ID id) {
-		ClonkIndex index = getIndex();
+		Index index = getIndex();
 		if (index != null)
 			return index.getDefinitionNearestTo(getResource(), id);
 		return null;
@@ -614,6 +664,7 @@ public abstract class ScriptBase extends Structure implements ITreeNode, IHasCon
 	 * @return the Iterable
 	 */
 	public Set<IHasIncludes> conglomerate() {
+		requireLoaded();
 		Set<IHasIncludes> s = new HashSet<IHasIncludes>();
 		gatherIncludes(s, getIndex(), true);
 		return s;
@@ -621,6 +672,7 @@ public abstract class ScriptBase extends Structure implements ITreeNode, IHasCon
 
 	@Override
 	public INode[] getSubDeclarationsForOutline() {
+		requireLoaded();
 		List<Object> all = new LinkedList<Object>();
 		all.addAll(definedFunctions);
 		all.addAll(definedVariables);
@@ -629,22 +681,12 @@ public abstract class ScriptBase extends Structure implements ITreeNode, IHasCon
 
 	@Override
 	public boolean hasSubDeclarationsInOutline() {
+		requireLoaded();
 		return definedFunctions.size() > 0 || definedVariables.size() > 0;
 	}
 
-	private boolean dirty;
-
-	@Override
-	public void setDirty(boolean d) {
-		dirty = d;
-	}
-
-	@Override
-	public boolean dirty() {
-		return dirty;
-	}
-
 	public void exportAsXML(Writer writer) throws IOException {
+		requireLoaded();
 		writer.write("<script>\n"); //$NON-NLS-1$
 		writer.write("\t<functions>\n"); //$NON-NLS-1$
 		for (Function f : functions()) {
@@ -716,6 +758,7 @@ public abstract class ScriptBase extends Structure implements ITreeNode, IHasCon
 
 	@Override
 	public String getInfoText() {
+		requireLoaded();
 		Object f = getScriptStorage();
 		if (f instanceof IFile) {
 			IResource infoFile = Utilities.findMemberCaseInsensitively(((IFile)f).getParent(), "Desc"+ClonkPreferences.getLanguagePref()+".txt"); //$NON-NLS-1$ //$NON-NLS-2$
@@ -749,11 +792,13 @@ public abstract class ScriptBase extends Structure implements ITreeNode, IHasCon
 	}
 
 	public void addChild(ITreeNode node) {
+		requireLoaded();
 		if (node instanceof Declaration)
 			addDeclaration((Declaration)node);
 	}
 
 	public boolean containsGlobals() {
+		requireLoaded();
 	    for (Function f : this.definedFunctions)
 	    	if (f.getVisibility() == C4FunctionScope.GLOBAL)
 	    		return true;
@@ -764,16 +809,18 @@ public abstract class ScriptBase extends Structure implements ITreeNode, IHasCon
     }
 	
 	public void addUsedProjectScript(ScriptBase script) {
+		requireLoaded();
 		if (script.getIndex() == this.getIndex()) {
 			((usedProjectScripts == null) ? (usedProjectScripts = new HashSet<ScriptBase>()) : usedProjectScripts).add(script);
 		}
 	}
 	
 	public Set<ScriptBase> usedProjectScripts() {
+		requireLoaded();
 		return usedProjectScripts;
 	}
 
-	//	public boolean removeDWording() {
+	/*	public boolean removeDWording() {
 	//		boolean result = false;
 	//		for (C4Function f : functions()) {
 	//			if (f.getReturnType() == C4Type.DWORD) {
@@ -846,7 +893,7 @@ public abstract class ScriptBase extends Structure implements ITreeNode, IHasCon
 	//		addField(func);
 	//	}
 	//}
-	//}
+	*/
 	
 	/**
 	 * notification sent by the index when a script is removed
@@ -860,7 +907,7 @@ public abstract class ScriptBase extends Structure implements ITreeNode, IHasCon
 	
 	@Override
 	public Engine getEngine() {
-		ClonkIndex index = getIndex();
+		Index index = getIndex();
 		return index != null ? index.getEngine() : null;
 	}
 	

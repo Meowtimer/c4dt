@@ -11,7 +11,7 @@ import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.ProjectDefinition;
-import net.arctics.clonk.index.ClonkIndex;
+import net.arctics.clonk.index.Index;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.ID;
 import net.arctics.clonk.parser.c4script.ast.ExprElm;
@@ -286,7 +286,7 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 			return new Object[] {parentDeclaration};
 		if (!isGloballyAccessible() && parentDeclaration instanceof ProjectDefinition) {
 			ProjectDefinition obj = (ProjectDefinition) parentDeclaration;
-			ClonkIndex index = obj.getIndex();
+			Index index = obj.getIndex();
 			Set<Object> result = new HashSet<Object>();
 			result.add(obj);
 			for (Definition o : index) {
@@ -338,7 +338,7 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 	}
 	
 	@Override
-	public void postSerialize(Declaration parent, ClonkIndex root) {
+	public void postSerialize(Declaration parent, Index root) {
 		super.postSerialize(parent, root);
 		ensureTypeLockedIfPredefined(parent);
 		if (initializationExpression instanceof IPostSerializable) {

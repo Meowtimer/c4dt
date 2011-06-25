@@ -6,7 +6,7 @@ import java.util.Collection;
 import org.eclipse.core.resources.IStorage;
 
 import net.arctics.clonk.ClonkCore;
-import net.arctics.clonk.index.ClonkIndex;
+import net.arctics.clonk.index.Index;
 import net.arctics.clonk.parser.IHasIncludes;
 import net.arctics.clonk.parser.ParsingException;
 import net.arctics.clonk.parser.SimpleScriptStorage;
@@ -20,12 +20,6 @@ public class ExecutableScript extends ScriptBase {
 
 	private String script;
 	private InvokableFunction main;
-	private ClonkIndex index;
-
-	@Override
-	public ClonkIndex getIndex() {
-		return index;
-	}
 
 	@Override
 	public String getScriptText() {
@@ -42,11 +36,10 @@ public class ExecutableScript extends ScriptBase {
 		}
 	}
 
-	public ExecutableScript(String name, String script, ClonkIndex index) {
-		super();
+	public ExecutableScript(String name, String script, Index index) {
+		super(index);
 		setName(name);
 		this.script = script;
-		this.index = index;
 		C4ScriptParser parser = new C4ScriptParser(script, this, null) {
 			@Override
 			protected Function newFunction(String nameWillBe) {
@@ -70,7 +63,7 @@ public class ExecutableScript extends ScriptBase {
 	}
 
 	@Override
-	public Collection<IHasIncludes> getIncludes(ClonkIndex index, boolean recursive) {
+	public Collection<IHasIncludes> getIncludes(Index index, boolean recursive) {
 		return Arrays.asList((IHasIncludes)Command.COMMAND_BASESCRIPT);
 	}
 

@@ -6,7 +6,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import net.arctics.clonk.ClonkCore;
-import net.arctics.clonk.index.ClonkIndex;
+import net.arctics.clonk.index.Index;
 import net.arctics.clonk.parser.c4script.ast.TypeExpectancyMode;
 import net.arctics.clonk.util.ArrayUtil;
 import net.arctics.clonk.util.IConverter;
@@ -177,7 +177,7 @@ public class ArrayType implements IType {
 		}
 	}
 
-	public ITypeable indexedElementAsTypeable(final Object evaluatedIndexExpression, final ClonkIndex index) {
+	public ITypeable indexedElementAsTypeable(final Object evaluatedIndexExpression, final Index index) {
 		final int concreteIndex = evaluatedIndexExpression instanceof Number ? ((Number)evaluatedIndexExpression).intValue() : -1;
 		return new ITypeable() {
 			@Override
@@ -206,7 +206,7 @@ public class ArrayType implements IType {
 			}
 			
 			@Override
-			public ClonkIndex getIndex() {
+			public Index getIndex() {
 				return index;
 			}
 			

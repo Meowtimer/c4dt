@@ -13,7 +13,7 @@ import java.util.TimerTask;
 
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.ClonkCore.IDocumentAction;
-import net.arctics.clonk.index.ClonkIndex;
+import net.arctics.clonk.index.Index;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.SimpleScriptStorage;
@@ -92,27 +92,21 @@ public class C4ScriptEditor extends ClonkTextEditor {
 	 *
 	 */
 	private static final class ScratchScript extends ScriptBase implements IHasEditorRefWhichEnablesStreamlinedOpeningOfDeclarations {
-		private transient final C4ScriptEditor me;
+		private transient final C4ScriptEditor editor;
 		private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
-		
-		private static ClonkIndex scratchIndex = new ClonkIndex() {
-			private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
-		};
 
-		private ScratchScript(C4ScriptEditor me) {
-			this.me = me;
-		}
-
-		@Override
-		public ClonkIndex getIndex() {
-			return scratchIndex;
+		private ScratchScript(C4ScriptEditor editor) {
+			super(new Index() {
+				private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
+			});
+			this.editor = editor;
 		}
 
 		@Override
 		public IStorage getScriptStorage() {
-			IDocument document = me.getDocumentProvider().getDocument(me.getEditorInput());
+			IDocument document = editor.getDocumentProvider().getDocument(editor.getEditorInput());
 			try {
-				return new SimpleScriptStorage(me.getEditorInput().toString(), document.get());
+				return new SimpleScriptStorage(editor.getEditorInput().toString(), document.get());
 			} catch (UnsupportedEncodingException e) {
 				return null;
 			}
@@ -120,7 +114,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 
 		@Override
 		public ITextEditor getEditor() {
-			return me;
+			return editor;
 		}
 	}
 

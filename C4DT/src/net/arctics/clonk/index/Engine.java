@@ -216,7 +216,7 @@ public class Engine extends ScriptBase {
 	}
 
 	public Engine(String name) {
-		super();
+		super(null);
 		setName(name);
 		modified();
 	}
@@ -230,7 +230,7 @@ public class Engine extends ScriptBase {
 	}
 
 	@Override
-	public void postSerialize(Declaration parent, ClonkIndex root) {
+	public void postSerialize(Declaration parent, Index root) {
 		super.postSerialize(parent, root);
 		modified();
 	}
@@ -268,11 +268,6 @@ public class Engine extends ScriptBase {
 
 	@Override
 	public IFile getScriptStorage() {
-		return null;
-	}
-
-	@Override
-	public ClonkIndex getIndex() {
 		return null;
 	}
 	

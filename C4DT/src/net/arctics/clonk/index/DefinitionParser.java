@@ -14,8 +14,10 @@ public class DefinitionParser {
 	private IContainer objectFolder;
 	private IFile defCore;
 	private IFile scenario;
+	private Index index;
 	
-	private DefinitionParser(IContainer folder) {
+	private DefinitionParser(Index index, IContainer folder) {
+		this.index = index;
 		objectFolder = folder;
 		defCore = (IFile) Utilities.findMemberCaseInsensitively(folder, "DefCore.txt"); //$NON-NLS-1$
 		scenario = (IFile) Utilities.findMemberCaseInsensitively(folder, "Scenario.txt"); //$NON-NLS-1$
@@ -31,11 +33,11 @@ public class DefinitionParser {
 	 * @param folder
 	 * @return the parser object or <code>null</code>, if <code>folder</code> is not a valid/complete c4d
 	 */
-	public static DefinitionParser create(IContainer folder) {
+	public static DefinitionParser create(IContainer folder, Index index) {
 		if (Utilities.findMemberCaseInsensitively(folder, "DefCore.txt") != null || //$NON-NLS-1$
 			Utilities.findMemberCaseInsensitively(folder, "Scenario.txt") != null) //$NON-NLS-1$
 		{ 
-			DefinitionParser parser = new DefinitionParser(folder);
+			DefinitionParser parser = new DefinitionParser(index, folder);
 			return parser;
 		}
 		return null;
@@ -51,7 +53,7 @@ public class DefinitionParser {
 			if (defCore != null) {
 				DefCoreUnit defCoreWrapper = (DefCoreUnit) Structure.pinned(defCore, true, false);
 				if (object == null) {
-					object = new ProjectDefinition(defCoreWrapper.definitionID(), defCoreWrapper.getName(), objectFolder);
+					object = new ProjectDefinition(index, defCoreWrapper.definitionID(), defCoreWrapper.getName(), objectFolder);
 				}
 				else {
 					object.setId(defCoreWrapper.definitionID());
@@ -60,7 +62,7 @@ public class DefinitionParser {
 			}
 			else if (scenario != null) {
 				if (object == null) {
-					object = new Scenario(null, objectFolder.getName(), objectFolder);
+					object = new Scenario(index, null, objectFolder.getName(), objectFolder);
 				}
 			}
 			return object;

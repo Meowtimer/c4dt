@@ -11,14 +11,15 @@ import java.util.Set;
 
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.index.Definition;
-import net.arctics.clonk.parser.IInternalizable;
+import net.arctics.clonk.index.IResolvable;
+import net.arctics.clonk.index.Index;
 
 /**
  * Type that represents a set of multiple possible types.
  * @author madeen
  *
  */
-public class TypeSet implements IType, IInternalizable {
+public class TypeSet implements IType, IResolvable {
 
 	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 
@@ -62,7 +63,7 @@ public class TypeSet implements IType, IInternalizable {
 	}
 
 	@Override
-	public IType internalize() {
+	public IType resolve(Index index) {
 		return create(this);
 	}
 	

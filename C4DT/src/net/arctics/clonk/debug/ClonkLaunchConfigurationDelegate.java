@@ -10,7 +10,7 @@ import java.util.Map;
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.index.Scenario;
-import net.arctics.clonk.index.ClonkIndex;
+import net.arctics.clonk.index.Index;
 import net.arctics.clonk.index.ProjectIndex;
 import net.arctics.clonk.parser.c4script.ScriptBase;
 import net.arctics.clonk.resource.ClonkProjectNature;
@@ -205,7 +205,7 @@ public class ClonkLaunchConfigurationDelegate extends LaunchConfigurationDelegat
 			return null;
 		
 		// add stuff from the project so Clonk does not fail to find them
-		for (ClonkIndex index : ClonkProjectNature.get(scenario).getIndex().relevantIndexes()) {
+		for (Index index : ClonkProjectNature.get(scenario).getIndex().relevantIndexes()) {
 			if (index instanceof ProjectIndex) {
 				IContainer projectLevel = ((ProjectIndex)index).getProject();
 				for (IContainer c = scenario.getParent(); c != null && c != projectLevel.getParent(); c = c.getParent()) {

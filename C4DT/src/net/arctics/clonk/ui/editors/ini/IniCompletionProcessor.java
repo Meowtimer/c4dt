@@ -5,7 +5,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.regex.Matcher;
 import net.arctics.clonk.index.ProjectDefinition;
-import net.arctics.clonk.index.ClonkIndex;
+import net.arctics.clonk.index.Index;
 import net.arctics.clonk.index.ProjectIndex;
 import net.arctics.clonk.parser.ID;
 import net.arctics.clonk.parser.IHasIncludes;
@@ -164,9 +164,9 @@ public class IniCompletionProcessor extends ClonkCompletionProcessor<IniTextEdit
 	}
 
 	private void proposalsForIndex(int offset, Collection<ICompletionProposal> proposals, String prefix, int wordOffset) {
-		ClonkIndex index = Utilities.getIndex(getEditor().getIniUnit().getIniFile());
+		Index index = Utilities.getIndex(getEditor().getIniUnit().getIniFile());
 		if (index != null) {
-			for (ClonkIndex i : index.relevantIndexes()) {
+			for (Index i : index.relevantIndexes()) {
 				proposalsForIndexedDefinitions(i, offset, wordOffset, prefix, proposals);
 			}
 		}
@@ -174,8 +174,8 @@ public class IniCompletionProcessor extends ClonkCompletionProcessor<IniTextEdit
 
 	private void proposalsForDefinitionPackEntry(Collection<ICompletionProposal> proposals, String prefix, int wordOffset) {
 		ClonkProjectNature nature = ClonkProjectNature.get(this.editor.topLevelDeclaration().getResource().getProject());
-		List<ClonkIndex> indexes = nature.getIndex().relevantIndexes();
-		for (ClonkIndex index : indexes) {
+		List<Index> indexes = nature.getIndex().relevantIndexes();
+		for (Index index : indexes) {
 			if (index instanceof ProjectIndex) {
 				try {
 					for (IResource res : ((ProjectIndex)index).getProject().members()) {

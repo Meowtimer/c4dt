@@ -17,7 +17,7 @@ import org.eclipse.search.ui.text.AbstractTextSearchResult;
 import org.eclipse.search.ui.text.Match;
 import org.eclipse.ui.IEditorPart;
 
-import net.arctics.clonk.index.ClonkIndex;
+import net.arctics.clonk.index.Index;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.ScriptBase;
@@ -42,7 +42,7 @@ import net.arctics.clonk.preferences.ClonkPreferences;
 public class FindDuplicatesQuery extends ClonkSearchQueryBase implements IASTComparisonDelegate {
 	
 	private Map<String, List<Function>> functionsToBeChecked = new HashMap<String, List<Function>>();
-	private Set<ClonkIndex> indexes = new HashSet<ClonkIndex>();
+	private Set<Index> indexes = new HashSet<Index>();
 	private Map<Function, List<FindDuplicatesMatch>> detectedDupes = new HashMap<Function, List<FindDuplicatesMatch>>();
 	
 	public Map<Function, List<FindDuplicatesMatch>> getDetectedDupes() {
@@ -61,7 +61,7 @@ public class FindDuplicatesQuery extends ClonkSearchQueryBase implements IASTCom
 		result.fillFunctionMapWithFunctionList(functions);
 		for (List<Function> fnList : result.functionsToBeChecked.values())
 			for (Function f : fnList)
-				for (ClonkIndex i : f.getIndex().relevantIndexes())
+				for (Index i : f.getIndex().relevantIndexes())
 					result.indexes.add(i);
 		return result;
 	}
@@ -100,11 +100,11 @@ public class FindDuplicatesQuery extends ClonkSearchQueryBase implements IASTCom
 		boolean ignoreSimpleFunctions = ClonkPreferences.getPreferenceToggle(ClonkPreferences.IGNORE_SIMPLE_FUNCTION_DUPES, false);
 		
 		detectedDupes.clear();
-		Set<ClonkIndex> indexes = new HashSet<ClonkIndex>();
+		Set<Index> indexes = new HashSet<Index>();
 		Set<Function> deemedDuplicate = new HashSet<Function>();
 		for (List<Function> fnList : functionsToBeChecked.values())
 			for (Function f : fnList)
-				for (ClonkIndex i : f.getIndex().relevantIndexes())
+				for (Index i : f.getIndex().relevantIndexes())
 					indexes.add(i);
 		for (Map.Entry<String, List<Function>> entry : functionsToBeChecked.entrySet()) {
 			for (final Function function : entry.getValue()) {
@@ -115,7 +115,7 @@ public class FindDuplicatesQuery extends ClonkSearchQueryBase implements IASTCom
 				if (ignoreSimpleFunctions)
 					if (functionCodeBlock == null || functionCodeBlock.getStatements().length == 1 && functionCodeBlock.getStatements()[0] instanceof ReturnStatement)
 						continue;
-				for (ClonkIndex index : indexes) {
+				for (Index index : indexes) {
 					List<Declaration> decs = index.declarationMap().get(function.getName());
 					if (decs == null)
 						continue;

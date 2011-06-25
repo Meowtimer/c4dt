@@ -12,7 +12,7 @@ import java.util.Set;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.ProjectDefinition;
 import net.arctics.clonk.index.DefinitionParser;
-import net.arctics.clonk.index.ClonkIndex;
+import net.arctics.clonk.index.Index;
 import net.arctics.clonk.index.ProjectIndex;
 import net.arctics.clonk.parser.c4script.ScriptBase;
 import net.arctics.clonk.parser.c4script.StandaloneProjectScript;
@@ -184,9 +184,9 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 						DefinitionParser objParser;
 						// script in a resource group
 						if (delta.getResource().getName().toLowerCase().endsWith(".c") && folder.getName().toLowerCase().endsWith(".c4g")) //$NON-NLS-1$ //$NON-NLS-2$
-							script = new StandaloneProjectScript(file);
+							script = new StandaloneProjectScript(null, file);
 						// object script
-						else if (delta.getResource().getName().equals("Script.c") && (objParser = DefinitionParser.create(folder)) != null) //$NON-NLS-1$
+						else if (delta.getResource().getName().equals("Script.c") && (objParser = DefinitionParser.create(folder, getIndex())) != null) //$NON-NLS-1$
 							script = objParser.createObject();
 						// some other file but a script is still needed so get the definition for the folder
 						else
@@ -243,7 +243,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 				if (!INDEX_C4GROUPS)
 					if (EFS.getStore(resource.getLocationURI()) instanceof C4Group)
 						return false;
-				DefinitionParser parser = DefinitionParser.create((IContainer) resource);
+				DefinitionParser parser = DefinitionParser.create((IContainer) resource, getIndex());
 				if (parser != null) { // is complete c4d (with DefCore.txt Script.c and Graphics)
 					ProjectDefinition object = parser.createObject();
 					if (object != null) {
@@ -262,7 +262,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 				) {
 					ScriptBase script = StandaloneProjectScript.pinnedScript(file, true);
 					if (script == null) {
-						script = new StandaloneProjectScript(file);
+						script = new StandaloneProjectScript(getIndex(), file);
 					}
 					queueScript(script);
 					return true;
@@ -318,6 +318,10 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 	 */
 	private Set<Pair<Definition, ID>> renamedDefinitions = new HashSet<Pair<Definition, ID>>();
 
+	private Index getIndex() {
+		return ClonkProjectNature.get(getProject()).getIndex();
+	}
+	
 	@Override
 	protected void clean(IProgressMonitor monitor) throws CoreException {
 		System.out.println(String.format(Messages.ClonkBuilder_CleaningProject, getProject().getName()));
@@ -423,7 +427,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 	) throws CoreException {
 
 		nature = ClonkProjectNature.get(proj); 
-		ClonkIndex index = nature.getIndex();
+		Index index = nature.getIndex();
 		
 		// visit files to open C4Groups if files are contained in c4group file system
 		visitDeltaOrWholeProject(delta, proj, new C4GroupStreamHandler(C4GroupStreamHandler.OPEN));

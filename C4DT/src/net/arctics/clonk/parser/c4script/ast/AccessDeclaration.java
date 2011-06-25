@@ -4,7 +4,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import net.arctics.clonk.ClonkCore;
-import net.arctics.clonk.index.ClonkIndex;
+import net.arctics.clonk.index.Index;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.DeclarationRegion;
 import net.arctics.clonk.parser.IHasIncludes;
@@ -189,9 +189,9 @@ public abstract class AccessDeclaration extends Value {
 					}
 				}
 			}
-			context.getContainer().getIndex().forAllRelevantIndexes(new ClonkIndex.r() {
+			context.getContainer().getIndex().forAllRelevantIndexes(new Index.r() {
 				@Override
-				public void run(ClonkIndex index) {
+				public void run(Index index) {
 					for (Declaration d : index.declarationsWithName(declarationName, Declaration.class))
 						if (!d.isGlobal() && AccessDeclaration.this.declarationClass().isAssignableFrom(d.getClass()) && d.getParentDeclaration() instanceof IHasIncludes)
 							typesWithThatMember.add(new ConstrainedProplist((IHasIncludes)d.getParentDeclaration(), ConstraintKind.Includes));

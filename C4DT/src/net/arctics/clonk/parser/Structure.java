@@ -105,11 +105,7 @@ public abstract class Structure extends Declaration implements ILatestDeclaratio
 		return pinned;
 	}
 	
-	/**
-	 * Gives a hint whether this structure is in some way out of sync with the file it's defined in
-	 * @return true if out of sync, false if not
-	 */
-	public boolean dirty() {
+	public boolean isDirty() {
 		return false;
 	}
 	
@@ -118,7 +114,7 @@ public abstract class Structure extends Declaration implements ILatestDeclaratio
 	 * No guarantees given as to whether the return value of {@link #dirty()} and calling this method will be consistent (a.k.a: Those methods are declared empty in Structure and only {@link ScriptBase} overrides them).m
 	 * @param dirty Dirty flag
 	 */
-	public void setDirty(boolean dirty) {}
+	public void markAsDirty() {}
 	
 	/**
 	 * factory for creating structures

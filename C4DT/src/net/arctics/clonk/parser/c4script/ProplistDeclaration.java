@@ -7,7 +7,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
-import net.arctics.clonk.index.ClonkIndex;
+import net.arctics.clonk.index.Index;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.IHasIncludes;
 import net.arctics.clonk.parser.Structure;
@@ -112,12 +112,12 @@ public class ProplistDeclaration extends Structure implements IType, IHasInclude
 	public Iterable<? extends Declaration> allSubDeclarations(int mask) {
 		if ((mask & VARIABLES) != 0) {
 			List<Iterable<? extends Declaration>> its = new LinkedList<Iterable<? extends Declaration>>();
-			Set<IHasIncludes> includes = new HashSet<IHasIncludes>();
 			its.add(getComponents());
 			if ((mask & NO_INCLUDED_SUBDECLARATIONS) == 0) {
+				Set<IHasIncludes> includes = new HashSet<IHasIncludes>();
 				gatherIncludes(includes, getIndex(), true);
 				for (IHasIncludes i : includes)
-					its.add(i.allSubDeclarations(mask & ~NO_INCLUDED_SUBDECLARATIONS));
+					its.add(i.allSubDeclarations(mask & NO_INCLUDED_SUBDECLARATIONS));
 			}
 			return new CompoundIterable<Declaration>(its);
 		}
@@ -199,7 +199,7 @@ public class ProplistDeclaration extends Structure implements IType, IHasInclude
 	}
 
 	@Override
-	public Collection<? extends IHasIncludes> getIncludes(ClonkIndex index, boolean recursive) {
+	public Collection<? extends IHasIncludes> getIncludes(Index index, boolean recursive) {
 		return IHasIncludes.Default.getIncludes(this, index, recursive);
 	}
 
@@ -211,15 +211,17 @@ public class ProplistDeclaration extends Structure implements IType, IHasInclude
 	}
 	
 	@Override
-	public boolean gatherIncludes(Set<IHasIncludes> set, ClonkIndex index, boolean recursive) {
+	public boolean gatherIncludes(Set<IHasIncludes> set, Index index, boolean recursive) {
 		if (set.contains(this))
 			return false;
 		else
 			set.add(this);
 		IHasIncludes proto = prototype();
 		if (proto != null)
-			if (!recursive || proto.gatherIncludes(set, index, true))
+			if (!recursive)
 				set.add(proto);
+			else
+				proto.gatherIncludes(set, index, recursive);
 		return true;
 	}
 	

@@ -1,6 +1,8 @@
 package net.arctics.clonk.index;
 
 import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.security.InvalidParameterException;
 
@@ -83,7 +85,7 @@ public class ProjectDefinition extends Definition implements Serializable {
 		}
 		
 		@Override
-		public ClonkIndex getIndex() {
+		public Index getIndex() {
 			return ProjectDefinition.this.getIndex();
 		}
 		
@@ -98,8 +100,19 @@ public class ProjectDefinition extends Definition implements Serializable {
 
 	protected transient IContainer definitionFolder;
 	protected String relativePath;
-	private transient ClonkIndex index;
 	private transient ProxyVar proxyVar;
+	
+	@Override
+	public void load(ObjectInputStream stream) throws IOException, ClassNotFoundException {
+		super.load(stream);
+		relativePath = (String) stream.readObject();
+	}
+	
+	@Override
+	public void save(ObjectOutputStream stream) throws IOException {
+		super.save(stream);
+		stream.writeObject(relativePath);
+	}
 
 	/**
 	 * Helper variable used for long-id definitions.
@@ -112,8 +125,8 @@ public class ProjectDefinition extends Definition implements Serializable {
 		return proxyVar;
 	}
 
-	public ProjectDefinition(ID id, String name, IContainer container) {
-		super(id, name);
+	public ProjectDefinition(Index index, ID id, String name, IContainer container) {
+		super(index, id, name);
 		try {
 			setObjectFolder(container);
 		} catch (CoreException e1) {
@@ -232,11 +245,6 @@ public class ProjectDefinition extends Definition implements Serializable {
 	 */
 	public IContainer getObjectFolderIgnoringOutOfDateness() {
 		return definitionFolder;
-	}
-
-	@Override
-	public ClonkIndex getIndex() {
-		return index;
 	}
 
 	@Override

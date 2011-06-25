@@ -2,17 +2,21 @@ package net.arctics.clonk.index;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.ID;
@@ -29,7 +33,6 @@ import net.arctics.clonk.parser.c4script.Directive.DirectiveType;
 import net.arctics.clonk.parser.c4script.Function.C4FunctionScope;
 import net.arctics.clonk.parser.c4script.Variable.Scope;
 import net.arctics.clonk.resource.ClonkProjectNature;
-import net.arctics.clonk.resource.ClonkIndexInputStream;
 import net.arctics.clonk.util.ArrayUtil;
 import net.arctics.clonk.util.CompoundIterable;
 import net.arctics.clonk.util.ConvertingIterable;
@@ -57,7 +60,7 @@ import org.eclipse.core.runtime.CoreException;
  * @author madeen
  *
  */
-public class ClonkIndex extends Declaration implements Serializable, Iterable<Definition>, ILatestDeclarationVersionProvider {
+public class Index extends Declaration implements Serializable, Iterable<Definition>, ILatestDeclarationVersionProvider {
 	
 	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 
@@ -66,24 +69,42 @@ public class ClonkIndex extends Declaration implements Serializable, Iterable<De
 		public boolean test(Declaration item) {
 			return item.isGlobal();
 		}
-	}; 
+	};
 
-	private Map<ID, List<Definition>> indexedObjects = new HashMap<ID, List<Definition>>();
-	private List<ScriptBase> indexedScripts = new LinkedList<ScriptBase>(); 
+	private Map<Long, IndexEntity> entities = new HashMap<Long, IndexEntity>();
+	private Map<ID, List<Definition>> indexedDefinitions = new HashMap<ID, List<Definition>>();
+	private List<ScriptBase> indexedScripts = new LinkedList<ScriptBase>();
 	private List<Scenario> indexedScenarios = new LinkedList<Scenario>();
 	private List<ProplistDeclaration> indexedProplistDeclarations = new LinkedList<ProplistDeclaration>();
+	protected File folder;
 	
 	protected transient List<Function> globalFunctions = new LinkedList<Function>();
 	protected transient List<Variable> staticVariables = new LinkedList<Variable>();
 	protected transient Map<String, List<Declaration>> declarationMap = new HashMap<String, List<Declaration>>();
 	protected transient Map<ID, List<ScriptBase>> appendages = new HashMap<ID, List<ScriptBase>>();
 	
+	public Index(File folder) {
+		this.folder = folder;
+		if (folder != null)
+			folder.mkdirs();
+	}
+	
+	public Index() {}
+	
+	/**
+	 * All the entities stored in this Index.
+	 * @return A collection containing all entities.
+	 */
+	public Collection<IndexEntity> entities() {
+		return entities.values();
+	}
+	
 	/**
 	 * Return the number of unique ids
 	 * @return
 	 */
 	public int numUniqueIds() {
-		return indexedObjects.size();
+		return indexedDefinitions.size();
 	}
 	
 	/**
@@ -92,13 +113,17 @@ public class ClonkIndex extends Declaration implements Serializable, Iterable<De
 	 * @return The list
 	 */
 	public List<Definition> getDefinitionsWithID(ID id) {
-		if (indexedObjects == null)
+		if (indexedDefinitions == null)
 			return null;
-		List<Definition> l = indexedObjects.get(id);
+		List<Definition> l = indexedDefinitions.get(id);
 		return l == null ? null : Collections.unmodifiableList(l);
 	}
 	
-	public void postSerialize() throws CoreException {
+	public void postLoad() throws CoreException {
+		for (IndexEntity e : entities()) {
+			e.index = this;
+			e.notFullyLoaded = true;
+		}
 		refreshIndex();
 	}
 	
@@ -114,9 +139,10 @@ public class ClonkIndex extends Declaration implements Serializable, Iterable<De
 	/**
 	 * Called before serialization to give index a chance to prepare itself for serialization.
 	 */
-	public void preSerialize() {
+	public void preSave() {
 		for (ScriptBase script : allScripts()) {
-			script.preSerialize();
+			if (!script.notFullyLoaded)
+				script.preSave();
 		}
 	}
 	
@@ -148,7 +174,7 @@ public class ClonkIndex extends Declaration implements Serializable, Iterable<De
 			return null;
 		} catch (CoreException e) {
 			// likely due to getSessionProperty being called on non-existent resources
-			for (List<Definition> list : indexedObjects.values()) {
+			for (List<Definition> list : indexedDefinitions.values()) {
 				for (Definition obj : list) {
 					if (obj instanceof ProjectDefinition) {
 						ProjectDefinition intern = (ProjectDefinition)obj;
@@ -185,25 +211,6 @@ public class ClonkIndex extends Declaration implements Serializable, Iterable<De
 		list.add(field);
 	}
 	
-	private void addGlobalsFrom(ScriptBase script) {
-		for (Function func : script.functions()) {
-			if (func.getVisibility() == C4FunctionScope.GLOBAL) {
-				globalFunctions.add(func);
-			}
-			for (Declaration otherDec : func.getOtherDeclarations())
-				if (otherDec instanceof ProplistDeclaration) {
-					addToProplistDeclarations((ProplistDeclaration) otherDec);
-				}
-			addToDeclarationMap(func);
-		}
-		for (Variable var : script.variables()) {
-			if (var.getScope() == Scope.STATIC || var.getScope() == Scope.CONST) {
-				staticVariables.add(var);
-			}
-			addToDeclarationMap(var);
-		}
-	}
-
 	protected void addToProplistDeclarations(ProplistDeclaration proplistDeclaration) {
 		indexedProplistDeclarations.add(proplistDeclaration);
 		for (Variable v : proplistDeclaration.getComponents())
@@ -223,23 +230,38 @@ public class ClonkIndex extends Declaration implements Serializable, Iterable<De
 	}
 	
 	private <T extends ScriptBase> void addGlobalsFrom(Iterable<T> scripts) {
-		for (T script : scripts) {
-			addGlobalsFrom(script);
-			detectAppendages(script);
-			for (IHasIncludes s : script.getIncludes(this, false))
-				if (s instanceof ScriptBase)
-					((ScriptBase) s).addDependentScript(script);
-			/*if (script.usedProjectScripts() != null)
-				for (ScriptBase s : script.usedProjectScripts())
-					s.addDependentScript(script);*/
+		for (T script : scripts)
+			if (!script.notFullyLoaded)
+				addGlobalsFromScript(script);
+	}
+
+	protected <T extends ScriptBase> void addGlobalsFromScript(T script) {
+		for (Function func : script.functions()) {
+			if (func.getVisibility() == C4FunctionScope.GLOBAL) {
+				globalFunctions.add(func);
+			}
+			for (Declaration otherDec : func.getOtherDeclarations())
+				if (otherDec instanceof ProplistDeclaration) {
+					addToProplistDeclarations((ProplistDeclaration) otherDec);
+				}
+			addToDeclarationMap(func);
 		}
+		for (Variable var : script.variables()) {
+			if (var.getScope() == Scope.STATIC || var.getScope() == Scope.CONST) {
+				staticVariables.add(var);
+			}
+			addToDeclarationMap(var);
+		}
+		detectAppendages(script);
+		for (IHasIncludes s : script.getIncludes(this, false))
+			if (s instanceof ScriptBase)
+				((ScriptBase) s).addDependentScript(script);
 	}
 	
 	/**
-	 * Repopulate the quick-access lists ({@link #globalFunctions()}, {@link #staticVariables()}, {@link #declarationMap()}, {@link #appendagesOf(Definition)}) maintained by the index based on {@link #indexedObjects}, {@link #indexedScenarios} and {@link #indexedScripts}.
+	 * Repopulate the quick-access lists ({@link #globalFunctions()}, {@link #staticVariables()}, {@link #declarationMap()}, {@link #appendagesOf(Definition)}) maintained by the index based on {@link #indexedDefinitions}, {@link #indexedScenarios} and {@link #indexedScripts}.
 	 */
 	public synchronized void refreshIndex() {
-		
 		// delete old cache
 		if (globalFunctions == null)
 			globalFunctions = new LinkedList<Function>();
@@ -260,18 +282,16 @@ public class ClonkIndex extends Declaration implements Serializable, Iterable<De
 		scriptCollections.add(indexedScripts);
 		scriptCollections.add(indexedScenarios);
 		
-		for (ScriptBase s : allScripts()) {
+		for (ScriptBase s : allScripts())
 			s.clearDependentScripts();
-		}
 		
-		for (Iterable<? extends ScriptBase> c : scriptCollections) {
+		for (Iterable<? extends ScriptBase> c : scriptCollections)
 			addGlobalsFrom(c);
-		}
 		// do some post serialization after globals are known
 		for (Iterable<? extends ScriptBase> c : scriptCollections) {
-			for (ScriptBase s : c) {
-				s.postSerialize(this, this);
-			}
+			for (ScriptBase s : c)
+				if (!s.notFullyLoaded)
+					s.postSerialize(this, this);
 		}
 		
 //		System.out.println("Functions added to cache:");
@@ -291,10 +311,10 @@ public class ClonkIndex extends Declaration implements Serializable, Iterable<De
 	public void addDefinition(Definition definition) {
 		if (definition.id() == null)
 			return;
-		List<Definition> alreadyDefinedObjects = indexedObjects.get(definition.id());
+		List<Definition> alreadyDefinedObjects = indexedDefinitions.get(definition.id());
 		if (alreadyDefinedObjects == null) {
 			alreadyDefinedObjects = new LinkedList<Definition>();
-			indexedObjects.put(definition.id(), alreadyDefinedObjects);
+			indexedDefinitions.put(definition.id(), alreadyDefinedObjects);
 		} else {
 			if (alreadyDefinedObjects.contains(definition))
 				return;
@@ -307,12 +327,11 @@ public class ClonkIndex extends Declaration implements Serializable, Iterable<De
 	 * @param script Some script. Can be a {@link Definition}, a {@link Scenario} or some other {@link ScriptBase} object managed by this index.
 	 */
 	public void removeScript(ScriptBase script) {
-		if (script instanceof Definition) {
+		if (script instanceof Definition)
 			removeDefinition((Definition)script);
-		} else {
+		else
 			if (indexedScripts.remove(script))
 				scriptRemoved(script);
-		}
 	}
 
 	/**
@@ -328,11 +347,11 @@ public class ClonkIndex extends Declaration implements Serializable, Iterable<De
 		}
 		if (definition.id() == null)
 			return;
-		List<Definition> alreadyDefinedObjects = indexedObjects.get(definition.id());
+		List<Definition> alreadyDefinedObjects = indexedDefinitions.get(definition.id());
 		if (alreadyDefinedObjects != null) {
 			if (alreadyDefinedObjects.remove(definition)) {
 				if (alreadyDefinedObjects.size() == 0) { // if there are no more objects with this C4ID
-					indexedObjects.remove(definition.id());
+					indexedDefinitions.remove(definition.id());
 				}
 				scriptRemoved(definition);
 			}
@@ -351,7 +370,8 @@ public class ClonkIndex extends Declaration implements Serializable, Iterable<De
 	
 	private void scriptRemoved(ScriptBase script) {
 		for (ScriptBase s : allScripts())
-			s.scriptRemovedFromIndex(script);
+			if (!s.notFullyLoaded)
+				s.scriptRemovedFromIndex(script);
 	}
 	
 	/**
@@ -377,7 +397,7 @@ public class ClonkIndex extends Declaration implements Serializable, Iterable<De
 	 * @return see above
 	 */
 	public boolean isEmpty() {
-		return indexedObjects.isEmpty() && indexedScripts.isEmpty() && indexedScenarios.isEmpty();
+		return indexedDefinitions.isEmpty() && indexedScripts.isEmpty() && indexedScenarios.isEmpty();
 	}
 	
 	public List<Scenario> indexedScenarios() {
@@ -422,18 +442,18 @@ public class ClonkIndex extends Declaration implements Serializable, Iterable<De
 		return null;
 	}
 
-	public static void addIndexesFromReferencedProjects(List<ClonkIndex> result, ClonkIndex index) {
+	public static void addIndexesFromReferencedProjects(List<Index> result, Index index) {
 		if (index instanceof ProjectIndex) {
 			ProjectIndex projIndex = (ProjectIndex) index;
 			try {
-				List<ClonkIndex> newOnes = new LinkedList<ClonkIndex>();
+				List<Index> newOnes = new LinkedList<Index>();
 				for (IProject p : projIndex.getProject().getReferencedProjects()) {
 					ClonkProjectNature n = ClonkProjectNature.get(p);
 					if (n != null && n.getIndex() != null && !result.contains(n.getIndex()))
 						newOnes.add(n.getIndex());
 				}
 				result.addAll(newOnes);
-				for (ClonkIndex i : newOnes) {
+				for (Index i : newOnes) {
 					addIndexesFromReferencedProjects(result, i);
 				}
 			} catch (CoreException e) {
@@ -442,8 +462,8 @@ public class ClonkIndex extends Declaration implements Serializable, Iterable<De
 		}
 	}
 	
-	public List<ClonkIndex> relevantIndexes() {
-		List<ClonkIndex> result = new ArrayList<ClonkIndex>(10);
+	public List<Index> relevantIndexes() {
+		List<Index> result = new ArrayList<Index>(10);
 		result.add(this);
 		addIndexesFromReferencedProjects(result, this);
 		return result;
@@ -457,7 +477,7 @@ public class ClonkIndex extends Declaration implements Serializable, Iterable<De
 	 */
 	public Definition getDefinitionNearestTo(IResource resource, ID id) {
 		Definition best = null;
-		for (ClonkIndex index : relevantIndexes()) {
+		for (Index index : relevantIndexes()) {
 			if (resource != null) {
 				List<Definition> objs = index.getDefinitionsWithID(id);
 				best = Utilities.pickNearest(objs, resource, null);
@@ -530,10 +550,12 @@ public class ClonkIndex extends Declaration implements Serializable, Iterable<De
 	 * Clear the index so it won't manage any objects after this call.
 	 */
 	public void clear() {
-		indexedObjects.clear();
+		indexedDefinitions.clear();
 		indexedScripts.clear();
 		indexedScenarios.clear();
 		indexedProplistDeclarations.clear();
+		entities.clear();
+		entityIdCounter = 0;
 		refreshIndex();
 	}
 	
@@ -543,19 +565,19 @@ public class ClonkIndex extends Declaration implements Serializable, Iterable<De
 		private Iterator<Definition> listIterator;
 		
 		public ObjectIterator() {
-			synchronized (ClonkIndex.this) {
-				valuesIterator = indexedObjects.values().iterator();
+			synchronized (Index.this) {
+				valuesIterator = indexedDefinitions.values().iterator();
 			}
 		}
 		
 		public boolean hasNext() {
-			synchronized (ClonkIndex.this) {
+			synchronized (Index.this) {
 				return (listIterator != null && listIterator.hasNext()) || valuesIterator.hasNext();
 			}
 		}
 
 		public Definition next() {
-			synchronized (ClonkIndex.this) {
+			synchronized (Index.this) {
 				while (listIterator == null || !listIterator.hasNext()) {
 					listIterator = null;
 					if (!valuesIterator.hasNext())
@@ -588,7 +610,7 @@ public class ClonkIndex extends Declaration implements Serializable, Iterable<De
 			public Definition convert(List<Definition> from) {
 				return Utilities.pickNearest(from, pivot, null);
 			}
-		}, indexedObjects.values());
+		}, indexedDefinitions.values());
 	}
 	
 	/**
@@ -612,7 +634,7 @@ public class ClonkIndex extends Declaration implements Serializable, Iterable<De
 	}
 	
 	@Override
-	public ClonkIndex getIndex() {
+	public Index getIndex() {
 		return this;
 	}
 	
@@ -629,29 +651,21 @@ public class ClonkIndex extends Declaration implements Serializable, Iterable<De
 	public boolean isDirty() {return false;}
 	
 	/**
-	 * Load an index from a file.
+	 * Load an index from disk, instantiating all the high-level entities, but deferring loading detailed entity info until it's needed on a entity-by-entity basis. 
 	 * @param <T> ClonkIndex type requested.
 	 * @param indexClass The class to instantiate
-	 * @param indexFile File to load the index from
+	 * @param indexFolder File to load the index from
 	 * @param fallbackFileLocation Secondary file location to use if the first one does not exist
 	 * @return The loaded index or null if loading the index failed for any reason.
 	 */
-	public static <T extends ClonkIndex> T load(Class<T> indexClass, File indexFile, File fallbackFileLocation) {
-		boolean oldLocation = false;
-		if (!indexFile.exists()) {
-			// fall back to old indexdata file
-			indexFile = fallbackFileLocation;
-			if (indexFile == null || !indexFile.exists()) {
-				return null;
-			}
-			else
-				oldLocation = true;
-		}
+	public static <T extends Index> T load(Class<T> indexClass, File indexFolder, File fallbackFileLocation) {
+		if (!indexFolder.isDirectory())
+			return null;
 		try {
-			InputStream in = new FileInputStream(indexFile);
+			InputStream in = new FileInputStream(new File(indexFolder, "index"));
 			T index;
 			try {
-				ObjectInputStream objStream = new ClonkIndexInputStream(in);
+				ObjectInputStream objStream = new IndexEntityInputStream(null, in);
 				try {
 					index = indexClass.cast(objStream.readObject());
 				} finally {
@@ -660,12 +674,7 @@ public class ClonkIndex extends Declaration implements Serializable, Iterable<De
 			} finally {
 				in.close();
 			}
-			if (oldLocation) {
-				// old location: mark as dirty so it will be saved in the new location when shutting down
-				// also remove old file
-				indexFile.delete();
-				index.setDirty(true);
-			}
+			index.folder = indexFolder;
 			return index;
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -691,7 +700,7 @@ public class ClonkIndex extends Declaration implements Serializable, Iterable<De
 	
 	@Override
 	public boolean equals(Object obj) {
-		return obj == this || (obj instanceof ClonkIndex && ((ClonkIndex)obj).getProject() == this.getProject());
+		return obj == this || (obj instanceof Index && ((Index)obj).getProject() == this.getProject());
 	}
 	
 	/**
@@ -710,14 +719,14 @@ public class ClonkIndex extends Declaration implements Serializable, Iterable<De
 	 * @author madeen
 	 *
 	 */
-	public interface r {void run(ClonkIndex index);}
+	public interface r {void run(Index index);}
 	
 	/**
 	 * Call some runnable ({@link r}) for all indexes yielded by {@link #relevantIndexes()}
 	 * @param r The runnable
 	 */
-	public void forAllRelevantIndexes(ClonkIndex.r r) {
-		for (ClonkIndex index : relevantIndexes())
+	public void forAllRelevantIndexes(Index.r r) {
+		for (Index index : relevantIndexes())
 			r.run(index);
 	}
 
@@ -733,6 +742,134 @@ public class ClonkIndex extends Declaration implements Serializable, Iterable<De
 			e.printStackTrace();
 		}
 		return null;
+	}
+
+	public void loadEntity(IndexEntity entity) throws FileNotFoundException, IOException, ClassNotFoundException {
+		System.out.println("Load entity " + entity.toString());
+		entity.load(getEntityInputStream(entity));
+		entity.postSerialize(this, this);
+		if (entity instanceof ScriptBase)
+			addGlobalsFromScript((ScriptBase)entity);
 	};
+	
+	private long entityIdCounter = 0;
+	
+	/**
+	 * Add a new entity to the index, returning it's designated id.
+	 * @param entity
+	 * @return The id of the entity. Is supposed to be unique.
+	 */
+	protected long addEntityReturningId(IndexEntity entity) {
+		long id = entityIdCounter++;
+		this.entities.put(id, entity);
+		return id;
+	}
+	
+	private File entityFile(IndexEntity entity) {
+		return new File(folder, Long.toString(entity.entityId()));
+	}
+
+	public ObjectOutputStream getEntityOutputStream(IndexEntity entity) throws FileNotFoundException, IOException {
+		return new IndexEntityOutputStream(this, new FileOutputStream(entityFile(entity)));
+	}
+	
+	public ObjectInputStream getEntityInputStream(IndexEntity entity) throws FileNotFoundException, IOException {
+		return new IndexEntityInputStream(this, new FileInputStream(entityFile(entity)));
+	}
+	
+	private static class ImportedEntity implements IResolvable, Serializable {
+		private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
+		private String referencedProjectName;
+		private long foreignEntityId;
+		public ImportedEntity(IndexEntity foreignEntity) {
+			this.foreignEntityId = foreignEntity.entityId();
+			this.referencedProjectName = foreignEntity.getIndex().getProject().getName();
+		}
+		@Override
+		public IndexEntity resolve(Index index) {
+			IndexEntity result = null;
+			ClonkProjectNature externalNature = ClonkProjectNature.get(this.referencedProjectName);
+			if (externalNature != null) {
+				Index externalIndex = externalNature.getIndex();
+				if (externalIndex != null) {
+					result = externalIndex.entityWithId(foreignEntityId);
+					if (result == null)
+						System.out.println(String.format("Couldn't find entity %s in externalIndex for %s", this.foreignEntityId, externalIndex.getProject().getName()));
+				}
+				else
+					System.out.println(String.format("Warning: Failed to obtain externalIndex for %s when resolving %s", this.referencedProjectName, foreignEntityId));
+			}
+			return result;
+		}
+	}
+	
+	public static class EntityId implements Serializable, IResolvable {
+		private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
+		private long id;
+		public EntityId(long id) {
+			super();
+			this.id = id;
+		}
+		public long value() {
+			return id;
+		}
+		@Override
+		public Object resolve(Index index) {
+			return index != null ? index.entityWithId(id) : null;
+		};
+	}
+	
+	public IndexEntity entityWithId(long entityId) {
+		return entities.get(entityId);
+	}
+	
+	/**
+	 * Return an object that will be serialized instead of an entity. This will be either the id or a ImportedEntity object describing an entity in another {@link Index}
+	 * @param entity
+	 * @return
+	 */
+	public Object saveReplacementForEntity(IndexEntity entity) {
+		if (entity.getIndex() == this)
+			return new EntityId(entity.entityId());
+		else
+			return new ImportedEntity(entity);
+	}
+	
+	public void saveIfDirty() {
+		if (this.isDirty()) {
+			File indexFile = new File(folder, "index");
+			folder.mkdirs();
+			try {
+				indexFile.createNewFile();
+			} catch (IOException e1) {
+				e1.printStackTrace();
+				return;
+			}
+			try {
+				FileOutputStream out = new FileOutputStream(indexFile);
+				try {
+					IndexEntityOutputStream objStream = new IndexEntityOutputStream(this, out) {
+						@Override
+						protected Object replaceObject(Object obj) throws IOException {
+							// disable replacing entities with EntityId objects which won't resolve properly because this here is the place where entities are actually saved.
+							if (obj instanceof IndexEntity && ((IndexEntity)obj).index == Index.this)
+								return obj;
+							return super.replaceObject(obj);
+						}
+					};
+					getIndex().preSave();
+					objStream.writeObject(getIndex());
+					objStream.close();
+				} finally {
+					out.close();
+				}
+				for (IndexEntity e : entities())
+					e.saveIfDirty();
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+			this.setDirty(false);
+		}
+	}
 
 }

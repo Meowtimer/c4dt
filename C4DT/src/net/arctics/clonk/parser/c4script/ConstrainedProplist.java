@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.Set;
 
 import net.arctics.clonk.ClonkCore;
-import net.arctics.clonk.index.ClonkIndex;
+import net.arctics.clonk.index.Index;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.IHasIncludes;
@@ -227,7 +227,7 @@ public class ConstrainedProplist implements IType, IHasConstraint, IHasSubDeclar
 	}
 
 	@Override
-	public Collection<? extends IHasIncludes> getIncludes(ClonkIndex index, boolean recursive) {
+	public Collection<? extends IHasIncludes> getIncludes(Index index, boolean recursive) {
 		return constraint.getIncludes(index, recursive);
 	}
 
@@ -237,7 +237,7 @@ public class ConstrainedProplist implements IType, IHasConstraint, IHasSubDeclar
 	}
 
 	@Override
-	public boolean gatherIncludes(Set<IHasIncludes> set, ClonkIndex index, boolean recursive) {
+	public boolean gatherIncludes(Set<IHasIncludes> set, Index index, boolean recursive) {
 		return constraint.gatherIncludes(set, index, recursive);
 	}
 

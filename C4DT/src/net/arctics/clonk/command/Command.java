@@ -1,12 +1,9 @@
 package net.arctics.clonk.command;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.ObjectInputStream;
 import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
 import java.io.Writer;
@@ -19,12 +16,11 @@ import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.Scenario;
-import net.arctics.clonk.index.ClonkIndex;
+import net.arctics.clonk.index.Index;
 import net.arctics.clonk.parser.SimpleScriptStorage;
 import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.ScriptBase;
 import net.arctics.clonk.parser.c4script.ast.Conf;
-import net.arctics.clonk.resource.ClonkIndexInputStream;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.ui.editors.ClonkHyperlink;
 import net.arctics.clonk.util.ArrayUtil;
@@ -35,17 +31,12 @@ import net.arctics.clonk.util.ArrayUtil;
  */
 public class Command {
 	public static final ScriptBase COMMAND_BASESCRIPT;
-	public static final ClonkIndex COMMANDS_INDEX = new ClonkIndex();
+	public static final Index COMMANDS_INDEX = new Index();
 	public static final String COMMAND_SCRIPT_TEMPLATE = "func Main() {%s;}"; //$NON-NLS-1$
 
 	static {
-		COMMAND_BASESCRIPT = new ScriptBase() {
+		COMMAND_BASESCRIPT = new ScriptBase(COMMANDS_INDEX) {
 			private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
-
-			@Override
-			public ClonkIndex getIndex() {
-				return COMMANDS_INDEX;
-			}
 			@Override
 			public IStorage getScriptStorage() {
 				try {
@@ -54,17 +45,14 @@ public class Command {
 					return null;
 				}
 			}
-
 			@Override
 			public String getName() {
 				return "CommandBaseScript"; //$NON-NLS-1$
 			};
-
 			@Override
 			public String getNodeName() {
 				return getName();
 			};
-
 		};
 
 		for (Class<?> c : Command.class.getDeclaredClasses())
@@ -155,19 +143,6 @@ public class Command {
 			writer.close();
 			stream.close();
 		}
-		@CommandFunction
-		public static void ImportDescriptionsFromSerializedIndex(Object context, String engineName, String indexPath, String writeToFile) throws IOException, ClassNotFoundException {
-			InputStream engineStream = new FileInputStream(indexPath);
-			try {
-				ObjectInputStream objStream = new ClonkIndexInputStream(engineStream);
-				Engine result = (Engine)objStream.readObject();
-				result.setName(engineName); // for good measure
-				result.postSerialize(null, null);
-				_WriteDescriptionsToFile(writeToFile, result);
-			} finally {
-				engineStream.close();
-			}
-		}
 		private static void _WriteDescriptionsToFile(String writeToFile, Engine engine) throws FileNotFoundException, IOException {
 			OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(writeToFile));
 			writer.append("[Descriptions]\n"); //$NON-NLS-1$
@@ -203,9 +178,9 @@ public class Command {
 	public static class Diagnostics {
 		@CommandFunction
 		public static void ReadIndex(Object context, String path) {
-			ClonkIndex index = ClonkIndex.load(ClonkIndex.class, new File(path), null);
+			Index index = Index.load(Index.class, new File(path), null);
 			try {
-				index.postSerialize();
+				index.postLoad();
 			} catch (CoreException e) {
 				e.printStackTrace();
 				return;

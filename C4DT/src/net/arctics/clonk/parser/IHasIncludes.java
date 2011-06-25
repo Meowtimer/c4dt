@@ -5,7 +5,7 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
-import net.arctics.clonk.index.ClonkIndex;
+import net.arctics.clonk.index.Index;
 import net.arctics.clonk.parser.c4script.IHasSubDeclarations;
 import net.arctics.clonk.parser.c4script.IType;
 
@@ -15,7 +15,7 @@ import net.arctics.clonk.parser.c4script.IType;
  *
  */
 public interface IHasIncludes extends IHasSubDeclarations, IType {
-	Collection<? extends IHasIncludes> getIncludes(ClonkIndex index, boolean recursive);
+	Collection<? extends IHasIncludes> getIncludes(Index index, boolean recursive);
 	/**
 	 * Return whether this type includes another one.
 	 * @param other The other type
@@ -23,14 +23,14 @@ public interface IHasIncludes extends IHasSubDeclarations, IType {
 	 */
 	boolean includes(IHasIncludes other);
 	/**
-	 * Gather includes from some {@link ClonkIndex} into a set. This operation can be performed recursively or not.
+	 * Gather includes from some {@link Index} into a set. This operation can be performed recursively or not.
 	 * @param set The set which will contain the includes. For recursion catching, the type itself is also added to this set. 
 	 * @param index The index to look for includes in
 	 * @param recursive Whether includes of includes will also be added and so on.
 	 * @return False if this type is already contained in the set, true if this type wasn't contained.
 	 * gatherIncludes implementations are responsible for adding this type to the set in this case, or else infinite recursion wreaks its ugly head. 
 	 */
-	boolean gatherIncludes(Set<IHasIncludes> set, ClonkIndex index, boolean recursive);
+	boolean gatherIncludes(Set<IHasIncludes> set, Index index, boolean recursive);
 	
 	/**
 	 * Empty list representing "no includes".
@@ -44,13 +44,13 @@ public interface IHasIncludes extends IHasSubDeclarations, IType {
 	 */
 	public static class Default {
 		/**
-		 * Get includes by gathering them using {@link IHasIncludes#gatherIncludes(Set, ClonkIndex, boolean)}.
-		 * @param instance The instance to call {@link IHasIncludes#gatherIncludes(Set, ClonkIndex, boolean)} on
-		 * @param index The index to pass to {@link IHasIncludes#gatherIncludes(Set, ClonkIndex, boolean)}
-		 * @param recursive The recursive parameter to pass to {@link IHasIncludes#gatherIncludes(Set, ClonkIndex, boolean)}
+		 * Get includes by gathering them using {@link IHasIncludes#gatherIncludes(Set, Index, boolean)}.
+		 * @param instance The instance to call {@link IHasIncludes#gatherIncludes(Set, Index, boolean)} on
+		 * @param index The index to pass to {@link IHasIncludes#gatherIncludes(Set, Index, boolean)}
+		 * @param recursive The recursive parameter to pass to {@link IHasIncludes#gatherIncludes(Set, Index, boolean)}
 		 * @return Direct or recursive includes, depending on the recursive parameter. This collection does not include the instance itself.
 		 */
-		public static Collection<? extends IHasIncludes> getIncludes(IHasIncludes instance, ClonkIndex index, boolean recursive) {
+		public static Collection<? extends IHasIncludes> getIncludes(IHasIncludes instance, Index index, boolean recursive) {
 			Set<IHasIncludes> result = new HashSet<IHasIncludes>();
 			instance.gatherIncludes(result, index, recursive);
 			result.remove(instance);

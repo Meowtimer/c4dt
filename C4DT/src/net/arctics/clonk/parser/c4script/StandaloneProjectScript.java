@@ -3,7 +3,7 @@ package net.arctics.clonk.parser.c4script;
 import java.io.Serializable;
 
 import net.arctics.clonk.ClonkCore;
-import net.arctics.clonk.index.ClonkIndex;
+import net.arctics.clonk.index.Index;
 import net.arctics.clonk.parser.Structure;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.util.StreamUtil;
@@ -25,16 +25,11 @@ public class StandaloneProjectScript extends ScriptBase implements Serializable 
 	
 	private transient IFile scriptFile;
 	private String scriptFilePath;
-	private transient ClonkIndex index;
 	
-	public StandaloneProjectScript(IFile scriptFile) throws CoreException {
+	public StandaloneProjectScript(Index index, IFile scriptFile) throws CoreException {
+		super(index);
 		this.name = scriptFile.getName();
 		setScriptFile(scriptFile);
-	}
-
-	@Override
-	public ClonkIndex getIndex() {
-		return index;
 	}
 
 	@Override

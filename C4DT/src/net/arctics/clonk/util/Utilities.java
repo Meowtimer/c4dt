@@ -5,7 +5,7 @@ import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 import net.arctics.clonk.index.ProjectDefinition;
-import net.arctics.clonk.index.ClonkIndex;
+import net.arctics.clonk.index.Index;
 import net.arctics.clonk.parser.BufferedScanner;
 import net.arctics.clonk.parser.c4script.ScriptBase;
 import net.arctics.clonk.resource.ClonkProjectNature;
@@ -91,7 +91,7 @@ public abstract class Utilities {
 		});
 	}
 	
-	public static ClonkIndex getIndex(IResource res) {
+	public static Index getIndex(IResource res) {
 		if (res != null) {
 			ClonkProjectNature nature = ClonkProjectNature.get(res);
 			if (nature != null) {

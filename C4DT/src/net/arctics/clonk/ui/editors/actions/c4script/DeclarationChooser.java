@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.Set;
 
 import net.arctics.clonk.ClonkCore;
-import net.arctics.clonk.index.ClonkIndex;
+import net.arctics.clonk.index.Index;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.Declaration.DeclarationLocation;
 import net.arctics.clonk.parser.Structure;
@@ -50,7 +50,7 @@ public class DeclarationChooser extends FilteredItemsSelectionDialog {
 	private static final String DIALOG_SETTINGS = "DeclarationChooserDialogSettings"; //$NON-NLS-1$
 	
 	private Set<DeclarationLocation> declarations;
-	private ClonkIndex index;
+	private Index index;
 
 	public DeclarationChooser(Shell shell, Set<DeclarationLocation> proposedDeclarations) {
 		super(shell);
@@ -59,7 +59,7 @@ public class DeclarationChooser extends FilteredItemsSelectionDialog {
 		setTitle(Messages.DeclarationChooser_Label);
 	}
 	
-	public DeclarationChooser(Shell shell, ClonkIndex index) {
+	public DeclarationChooser(Shell shell, Index index) {
 		this(shell, (Set<DeclarationLocation>)null);
 		this.index = index;
 	}
@@ -135,9 +135,9 @@ public class DeclarationChooser extends FilteredItemsSelectionDialog {
 			for (DeclarationLocation d : declarations)
 				contentProvider.add(d, itemsFilter);
 		else if (index != null)
-			index.forAllRelevantIndexes(new ClonkIndex.r() {
+			index.forAllRelevantIndexes(new Index.r() {
 				@Override
-				public void run(ClonkIndex index) {
+				public void run(Index index) {
 					for (List<Declaration> decs : index.declarationMap().values())
 						for (Declaration d : decs)
 							if (d.getScript() != null && d.getScript().getScriptFile() != null)
