@@ -64,7 +64,7 @@ public class TypeSet implements IType, IResolvable {
 
 	@Override
 	public IType resolve(Index index) {
-		return create(this);
+		return this;
 	}
 	
 	private static final Comparator<IType> SPECIFICNESS_COMPARATOR = new Comparator<IType>() {
