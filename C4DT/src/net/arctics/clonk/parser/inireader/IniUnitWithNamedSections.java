@@ -33,7 +33,6 @@ public abstract class IniUnitWithNamedSections extends IniUnit {
 			@Override
 			public boolean test(IniSection section) {
 				IniItem entry = section.getSubItem(sectionNameEntryName(section)); //$NON-NLS-1$
-				System.out.println(entry);
 				return (entry instanceof IniEntry && ((IniEntry)entry).getValue().equals(value));
 			}
 		};
