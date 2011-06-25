@@ -377,6 +377,14 @@ public abstract class ScriptBase extends IndexEntity implements ITreeNode, IHasC
 		// finally look if it's something global
 		if (info.recursion == 0 && !(this instanceof Engine)) { // .-.
 			Declaration f = null;
+			// prefer declarations from scripts that were previously determined to be the providers of global declarations
+			// this will also probably and rightly lead to those scripts being fully loaded from their index file.
+			if (usedProjectScripts != null)
+				for (ScriptBase s : usedProjectScripts) {
+					f = s.findDeclaration(name, info);
+					if (f != null && f.isGlobal())
+						return f;
+				}
 			// definition from extern index
 			if (getEngine().acceptsId(name)) {
 				f = info.index.getDefinitionNearestTo(getResource(), ID.getID(name));
