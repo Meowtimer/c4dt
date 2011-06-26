@@ -1,8 +1,6 @@
 package net.arctics.clonk.index;
 
 import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.security.InvalidParameterException;
 
@@ -16,6 +14,7 @@ import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.parser.c4script.ast.AccessVar;
 import net.arctics.clonk.parser.c4script.ast.IDLiteral;
 import net.arctics.clonk.resource.ClonkProjectNature;
+import net.arctics.clonk.util.Pair;
 import net.arctics.clonk.util.StreamUtil;
 import net.arctics.clonk.util.Utilities;
 
@@ -103,15 +102,8 @@ public class ProjectDefinition extends Definition implements Serializable {
 	private transient ProxyVar proxyVar;
 	
 	@Override
-	public void load(ObjectInputStream stream) throws IOException, ClassNotFoundException {
-		super.load(stream);
-		relativePath = (String) stream.readObject();
-	}
-	
-	@Override
-	public void save(ObjectOutputStream stream) throws IOException {
-		super.save(stream);
-		stream.writeObject(relativePath);
+	public Object additionalEntityIdentificationToken() {
+		return new Pair<ID, String>(id(), relativePath);
 	}
 
 	/**

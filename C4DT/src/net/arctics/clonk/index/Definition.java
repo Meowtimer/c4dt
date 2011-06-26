@@ -79,6 +79,11 @@ public abstract class Definition extends ScriptBase {
 	public ID id() {
 		return id;
 	}
+	
+	@Override
+	public Object additionalEntityIdentificationToken() {
+		return id;
+	}
 
 	/**
 	 * Sets the id property of this object.

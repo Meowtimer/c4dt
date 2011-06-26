@@ -4,6 +4,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import net.arctics.clonk.ClonkCore;
+import net.arctics.clonk.index.Index;
 
 public class EffectPropListDeclaration extends ProplistDeclaration {
 	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
@@ -11,8 +12,8 @@ public class EffectPropListDeclaration extends ProplistDeclaration {
 	public String getEffectName() {
 		return effectName;
 	}
-	public EffectPropListDeclaration(String effectName, List<Variable> variables) {
-		super(variables);
+	public EffectPropListDeclaration(Index index, String effectName, List<Variable> variables) {
+		super(index, variables);
 		this.effectName = effectName;
 		this.adHoc = true;
 		this.components = new LinkedList<Variable>();

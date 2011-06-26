@@ -1,5 +1,8 @@
 package net.arctics.clonk.parser.c4script;
 
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -8,9 +11,9 @@ import java.util.List;
 import java.util.Set;
 
 import net.arctics.clonk.index.Index;
+import net.arctics.clonk.index.IndexEntity;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.IHasIncludes;
-import net.arctics.clonk.parser.Structure;
 import net.arctics.clonk.util.ArrayUtil;
 import net.arctics.clonk.util.CompoundIterable;
 
@@ -19,14 +22,26 @@ import net.arctics.clonk.util.CompoundIterable;
  * @author madeen
  *
  */
-public class ProplistDeclaration extends Structure implements IType, IHasIncludes {
+public class ProplistDeclaration extends IndexEntity implements IType, IHasIncludes {
 
 	private static final long serialVersionUID = 1L;
 	public static final String PROTOTYPE_KEY = "Prototype";
 	
-	protected List<Variable> components;
-	
+	protected transient List<Variable> components;
 	protected boolean adHoc;
+	
+	@Override
+	public synchronized void save(ObjectOutputStream stream) throws IOException {
+		super.save(stream);
+		stream.writeObject(components);
+	}
+	
+	@SuppressWarnings("unchecked")
+	@Override
+	public void load(ObjectInputStream stream) throws IOException, ClassNotFoundException {
+		super.load(stream);
+		components = (List<Variable>) stream.readObject();
+	}
 
 	/**
 	 * Whether the declaration was "explicit" {blub=<blub>...} or
@@ -45,8 +60,8 @@ public class ProplistDeclaration extends Structure implements IType, IHasInclude
 		return components;
 	}
 	
-	public ProplistDeclaration() {
-		super();
+	public ProplistDeclaration(Index index) {
+		super(index);
 		setName(String.format("%s {...}", PrimitiveType.PROPLIST.toString()));
 	}
 
@@ -54,8 +69,8 @@ public class ProplistDeclaration extends Structure implements IType, IHasInclude
 	 * Create a new ProplistDeclaration, passing it component variables it takes over directly. The list won't be copied.
 	 * @param components The component variables
 	 */
-	public ProplistDeclaration(List<Variable> components) {
-		this();
+	public ProplistDeclaration(Index index, List<Variable> components) {
+		this(index);
 		this.components = components;
 	}
 	
@@ -63,8 +78,8 @@ public class ProplistDeclaration extends Structure implements IType, IHasInclude
 	 * Create an adhoc proplist declaration.
 	 * @return The newly created adhoc proplist declaration.
 	 */
-	public static ProplistDeclaration adHocDeclaration() {
-		ProplistDeclaration result = new ProplistDeclaration();
+	public static ProplistDeclaration adHocDeclaration(Index index) {
+		ProplistDeclaration result = new ProplistDeclaration(index);
 		result.adHoc = true;
 		result.components = new LinkedList<Variable>();
 		return result;

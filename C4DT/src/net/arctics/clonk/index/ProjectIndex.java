@@ -7,7 +7,7 @@ import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.Structure;
 import net.arctics.clonk.parser.c4script.ScriptBase;
-import net.arctics.clonk.parser.c4script.StandaloneProjectScript;
+import net.arctics.clonk.parser.c4script.SystemScript;
 import net.arctics.clonk.parser.c4script.Variable;
 import net.arctics.clonk.parser.inireader.IniUnit;
 import net.arctics.clonk.parser.playercontrols.PlayerControlsUnit;
@@ -33,7 +33,6 @@ public class ProjectIndex extends Index {
 	public static final String INDEXFILE_SUFFIX = ".index"; //$NON-NLS-1$
 	
 	private transient IProject project;
-	private transient boolean isDirty;
 	
 	@Override
 	public Engine getEngine() {
@@ -99,8 +98,8 @@ public class ProjectIndex extends Index {
 				}
 			}
 			for (ScriptBase script : indexedScripts()) {
-				if (script instanceof StandaloneProjectScript) {
-					StandaloneProjectScript standalone = (StandaloneProjectScript) script;
+				if (script instanceof SystemScript) {
+					SystemScript standalone = (SystemScript) script;
 					if (!standalone.refreshFileReference(project)) {
 						stuffToBeRemoved.add(standalone);
 					}
@@ -117,16 +116,6 @@ public class ProjectIndex extends Index {
 	@Override
 	public String toString() {
 		return project != null ? "Index for " + project.toString() : "Orphan Project Index"; //$NON-NLS-1$ //$NON-NLS-2$
-	}
-	
-	@Override
-	public void setDirty(boolean dirty) {
-		isDirty = dirty;
-	}
-	
-	@Override
-	public boolean isDirty() {
-		return isDirty;
 	}
 	
 	/**

@@ -89,7 +89,7 @@ public class SpecialScriptRules_OpenClonk extends SpecialScriptRules {
 			return false;
 		}
 		private IType createAdHocProplistDeclaration(EffectFunction startFunction, Variable effectParameter) {
-			ProplistDeclaration result = new EffectPropListDeclaration(startFunction.getEffectName(), null);
+			ProplistDeclaration result = new EffectPropListDeclaration(startFunction.getIndex(), startFunction.getEffectName(), null);
 			result.setLocation(effectParameter.getLocation());
 			result.setParentDeclaration(startFunction);
 			startFunction.addOtherDeclaration(result);

@@ -178,7 +178,7 @@ public class Command {
 	public static class Diagnostics {
 		@CommandFunction
 		public static void ReadIndex(Object context, String path) {
-			Index index = Index.load(Index.class, new File(path), null);
+			Index index = Index.loadShallow(Index.class, new File(path), null);
 			try {
 				index.postLoad();
 			} catch (CoreException e) {

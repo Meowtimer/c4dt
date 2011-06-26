@@ -1698,7 +1698,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	
 	private void tokenExpectedError(String token) throws ParsingException {
 		int off = this.offset-1;
-		while (off >= 0 && buffer.charAt(off) == '\t')
+		while (off >= 0 && off < size && buffer.charAt(off) == '\t')
 			off--;
 		errorWithCode(ParserErrorCode.TokenExpected, off, off+1, ABSOLUTE_MARKER_LOCATION, token);
 	}
@@ -1941,7 +1941,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		int propListStart = offset;
 		int c = read();
 		if (c == '{') {
-			ProplistDeclaration proplistDeclaration = ProplistDeclaration.adHocDeclaration();// new ProplistDeclaration(new ArrayList<Variable>(10));
+			ProplistDeclaration proplistDeclaration = ProplistDeclaration.adHocDeclaration(getContainer().getIndex());// new ProplistDeclaration(new ArrayList<Variable>(10));
 			proplistDeclaration.setParentDeclaration(currentFunctionContext.currentDeclaration != null ? currentFunctionContext.currentDeclaration : container);
 			Declaration oldDec = currentFunctionContext.currentDeclaration;
 			currentFunctionContext.currentDeclaration = proplistDeclaration;

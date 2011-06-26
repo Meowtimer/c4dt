@@ -36,9 +36,8 @@ public class Pair<First, Second> implements Serializable {
 	public boolean equals(Object other) {
 		if (other instanceof Pair<?, ?>) {
 			Pair<?, ?> otherPair = (Pair<?, ?>) other;
-			return first.equals(otherPair.first()) && second.equals(otherPair.second());
-		} else {
+			return Utilities.objectsEqual(first, otherPair.first) && Utilities.objectsEqual(second, otherPair.second);
+		} else
 			return false;
-		}
 	}
 }

@@ -10,6 +10,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -27,7 +28,7 @@ import net.arctics.clonk.parser.c4script.Directive;
 import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.ProplistDeclaration;
 import net.arctics.clonk.parser.c4script.ScriptBase;
-import net.arctics.clonk.parser.c4script.StandaloneProjectScript;
+import net.arctics.clonk.parser.c4script.SystemScript;
 import net.arctics.clonk.parser.c4script.Variable;
 import net.arctics.clonk.parser.c4script.Directive.DirectiveType;
 import net.arctics.clonk.parser.c4script.Function.C4FunctionScope;
@@ -55,7 +56,7 @@ import org.eclipse.core.runtime.CoreException;
  * </ul></p> 
  * <p>Additionally, some lookup tables are stored to make access to some datasets quicker, like string -> <list of declarations with that name> maps.
  * The index itself can be directly used to iterate over all {@link Definition}s it manages, while iterating over other indexed {@link ScriptBase} objects requires calling {@link #allScripts()},
- * which yields an {@link Iterable} to iterate over both {@link StandaloneProjectScript}s and {@link Scenario}s.</p>
+ * which yields an {@link Iterable} to iterate over both {@link SystemScript}s and {@link Scenario}s.</p>
  * <p>For indexes specific to Eclipse projects (as pretty much all actual ClonkIndex instances are), see {@link ProjectIndex}.</p>
  * @author madeen
  *
@@ -369,6 +370,7 @@ public class Index extends Declaration implements Serializable, Iterable<Definit
 	}
 	
 	private void scriptRemoved(ScriptBase script) {
+		entities.remove(script.entityId());
 		for (ScriptBase s : allScripts())
 			if (!s.notFullyLoaded)
 				s.scriptRemovedFromIndex(script);
@@ -554,9 +556,15 @@ public class Index extends Declaration implements Serializable, Iterable<Definit
 		indexedScripts.clear();
 		indexedScenarios.clear();
 		indexedProplistDeclarations.clear();
+		clearEntityFiles();
 		entities.clear();
 		entityIdCounter = 0;
 		refreshIndex();
+	}
+	
+	private void clearEntityFiles() {
+		for (IndexEntity e : entities())
+			entityFile(e).delete();
 	}
 	
 	private class ObjectIterator implements Iterator<Definition> {
@@ -639,18 +647,6 @@ public class Index extends Declaration implements Serializable, Iterable<Definit
 	}
 	
 	/**
-	 * Mark the index as dirty. Not implemented in ClonkIndex.
-	 * @param dirty Whether it's dirty or not.
-	 */
-	public void setDirty(boolean dirty) {}
-	
-	/**
-	 * Return dirty status.
-	 * @return Dirty status.
-	 */
-	public boolean isDirty() {return false;}
-	
-	/**
 	 * Load an index from disk, instantiating all the high-level entities, but deferring loading detailed entity info until it's needed on a entity-by-entity basis. 
 	 * @param <T> ClonkIndex type requested.
 	 * @param indexClass The class to instantiate
@@ -658,7 +654,7 @@ public class Index extends Declaration implements Serializable, Iterable<Definit
 	 * @param fallbackFileLocation Secondary file location to use if the first one does not exist
 	 * @return The loaded index or null if loading the index failed for any reason.
 	 */
-	public static <T extends Index> T load(Class<T> indexClass, File indexFolder, File fallbackFileLocation) {
+	public static <T extends Index> T loadShallow(Class<T> indexClass, File indexFolder, File fallbackFileLocation) {
 		if (!indexFolder.isDirectory())
 			return null;
 		try {
@@ -777,46 +773,57 @@ public class Index extends Declaration implements Serializable, Iterable<Definit
 		return new IndexEntityInputStream(this, new FileInputStream(entityFile(entity)));
 	}
 	
-	private static class ImportedEntity implements IResolvable, Serializable {
+	public static class EntityId implements Serializable, IResolvable {
 		private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
-		private String referencedProjectName;
-		private long foreignEntityId;
-		public ImportedEntity(IndexEntity foreignEntity) {
-			this.foreignEntityId = foreignEntity.entityId();
-			this.referencedProjectName = foreignEntity.getIndex().getProject().getName();
+		protected long referencedEntityId;
+		protected Object referencedEntityToken;
+		public EntityId(IndexEntity referencedEntity) {
+			this.referencedEntityId = referencedEntity.entityId();
+			this.referencedEntityToken = referencedEntity.additionalEntityIdentificationToken();
+		}
+		@Override
+		public String toString() {
+			return String.format("(%d, %s)", referencedEntityId, referencedEntityToken != null ? referencedEntityToken.toString() : "<No Token>");
+		}
+		protected Index getIndex(Index context) {
+			return context; // ;>
 		}
 		@Override
 		public IndexEntity resolve(Index index) {
 			IndexEntity result = null;
-			ClonkProjectNature externalNature = ClonkProjectNature.get(this.referencedProjectName);
-			if (externalNature != null) {
-				Index externalIndex = externalNature.getIndex();
-				if (externalIndex != null) {
-					result = externalIndex.entityWithId(foreignEntityId);
-					if (result == null)
-						System.out.println(String.format("Couldn't find entity %s in externalIndex for %s", this.foreignEntityId, externalIndex.getProject().getName()));
+			Index externalIndex = getIndex(index);
+			if (externalIndex != null) {
+				result = externalIndex.entityWithId(referencedEntityId);
+				if (result == null || !Utilities.objectsEqual(result.additionalEntityIdentificationToken(), referencedEntityToken)) {
+					if (referencedEntityToken != null)
+						for (IndexEntity e : externalIndex.entities()) {
+							Object token = e.additionalEntityIdentificationToken();
+							if (e != null && referencedEntityToken.equals(token)) {
+								result = e;
+								break;
+							}
+						}
 				}
-				else
-					System.out.println(String.format("Warning: Failed to obtain externalIndex for %s when resolving %s", this.referencedProjectName, foreignEntityId));
+				if (result == null)
+					System.out.println(String.format("Couldn't find entity '%s' in '%s'", this.toString(), externalIndex.getProject().getName()));
 			}
+			else
+				System.out.println(String.format("Warning: Failed to obtain index when resolving '%s'", this.toString()));
 			return result;
 		}
 	}
 	
-	public static class EntityId implements Serializable, IResolvable {
+	private static class EntityReference extends EntityId {
 		private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
-		private long id;
-		public EntityId(long id) {
-			super();
-			this.id = id;
-		}
-		public long value() {
-			return id;
+		protected String referencedProjectName;
+		public EntityReference(IndexEntity referencedEntity) {
+			super(referencedEntity);
+			referencedProjectName = referencedEntity.getIndex().getName();
 		}
 		@Override
-		public Object resolve(Index index) {
-			return index != null ? index.entityWithId(id) : null;
-		};
+		public String toString() {
+			return String.format("(%s, %d, %s)", referencedProjectName, referencedEntityId, referencedEntityToken != null ? referencedEntityToken.toString() : "<No Token>");
+		}
 	}
 	
 	public IndexEntity entityWithId(long entityId) {
@@ -828,47 +835,61 @@ public class Index extends Declaration implements Serializable, Iterable<Definit
 	 * @param entity
 	 * @return
 	 */
-	public Object saveReplacementForEntity(IndexEntity entity) {
+	public Object getSaveReplacementForEntity(IndexEntity entity) {
 		if (entity.getIndex() == this)
-			return new EntityId(entity.entityId());
+			return new EntityId(entity);
 		else
-			return new ImportedEntity(entity);
+			return new EntityReference(entity);
 	}
 	
-	public void saveIfDirty() {
-		if (this.isDirty()) {
-			File indexFile = new File(folder, "index");
-			folder.mkdirs();
+	/**
+	 * Save the file storing what entities exist in this index but don't write entity-specific files.
+	 */
+	public void saveShallow() {
+		File indexFile = new File(folder, "index");
+		folder.mkdirs();
+		try {
+			indexFile.createNewFile();
+		} catch (IOException e1) {
+			e1.printStackTrace();
+			return;
+		}
+		try {
+			FileOutputStream out = new FileOutputStream(indexFile);
 			try {
-				indexFile.createNewFile();
-			} catch (IOException e1) {
-				e1.printStackTrace();
-				return;
+				IndexEntityOutputStream objStream = new IndexEntityOutputStream(this, out) {
+					@Override
+					protected Object replaceObject(Object obj) throws IOException {
+						// disable replacing entities with EntityId objects which won't resolve properly because this here is the place where entities are actually saved.
+						if (obj instanceof IndexEntity && ((IndexEntity)obj).index == Index.this)
+							return obj;
+						return super.replaceObject(obj);
+					}
+				};
+				getIndex().preSave();
+				objStream.writeObject(getIndex());
+				objStream.close();
+			} finally {
+				out.close();
 			}
-			try {
-				FileOutputStream out = new FileOutputStream(indexFile);
+			File[] files = folder.listFiles();
+			List<File> filesToBePurged = new ArrayList<File>(files.length);
+			filesToBePurged.addAll(Arrays.asList(files));
+			filesToBePurged.remove(indexFile);
+			for (IndexEntity e : entities()) {
+				filesToBePurged.remove(entityFile(e));
 				try {
-					IndexEntityOutputStream objStream = new IndexEntityOutputStream(this, out) {
-						@Override
-						protected Object replaceObject(Object obj) throws IOException {
-							// disable replacing entities with EntityId objects which won't resolve properly because this here is the place where entities are actually saved.
-							if (obj instanceof IndexEntity && ((IndexEntity)obj).index == Index.this)
-								return obj;
-							return super.replaceObject(obj);
-						}
-					};
-					getIndex().preSave();
-					objStream.writeObject(getIndex());
-					objStream.close();
-				} finally {
-					out.close();
-				}
-				for (IndexEntity e : entities())
 					e.saveIfDirty();
-			} catch (Exception e) {
-				e.printStackTrace();
+				} catch (Exception ex) {
+					ex.printStackTrace();
+				}
 			}
-			this.setDirty(false);
+			for (File f : filesToBePurged) {
+				if (!f.getName().startsWith("."))
+					f.delete();
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
 		}
 	}
 

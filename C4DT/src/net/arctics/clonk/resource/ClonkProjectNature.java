@@ -22,7 +22,7 @@ import net.arctics.clonk.index.Index;
 import net.arctics.clonk.index.ProjectIndex;
 import net.arctics.clonk.parser.ParserErrorCode;
 import net.arctics.clonk.parser.c4script.ScriptBase;
-import net.arctics.clonk.parser.c4script.StandaloneProjectScript;
+import net.arctics.clonk.parser.c4script.SystemScript;
 import net.arctics.clonk.parser.inireader.CustomIniUnit;
 import net.arctics.clonk.parser.inireader.IniField;
 import net.arctics.clonk.ui.editors.ClonkTextEditor;
@@ -217,7 +217,7 @@ public class ClonkProjectNature implements IProjectNature {
 	public void saveIndex() throws CoreException {
 		if (index != null) {
 			saveSettings();
-			index.saveIfDirty();
+			index.saveShallow();
 		}
 	}
 
@@ -264,7 +264,7 @@ public class ClonkProjectNature implements IProjectNature {
 				getSettings().guessValues(this);
 			}
 		} else {
-			ProjectIndex loadedIndex = Index.load(ProjectIndex.class, getIndexFolder(), null);
+			ProjectIndex loadedIndex = Index.loadShallow(ProjectIndex.class, getIndexFolder(), null);
 			if (loadedIndex != null) {
 				index = loadedIndex; // necessary to avoid infinite recursion
 				loadedIndex.setProject(getProject());
@@ -328,8 +328,8 @@ public class ClonkProjectNature implements IProjectNature {
 			return null;
 		if (script instanceof ProjectDefinition)
 			return get(((ProjectDefinition)script).definitionFolder());
-		if (script instanceof StandaloneProjectScript)
-			return get(((StandaloneProjectScript)script).getScriptStorage());
+		if (script instanceof SystemScript)
+			return get(((SystemScript)script).getScriptStorage());
 		else
 			return null;
 	}

@@ -14,7 +14,7 @@ import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.IEntityLocatedInIndex;
 import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.parser.c4script.ScriptBase;
-import net.arctics.clonk.parser.c4script.StandaloneProjectScript;
+import net.arctics.clonk.parser.c4script.SystemScript;
 import net.arctics.clonk.parser.c4script.IHasSubDeclarations;
 import net.arctics.clonk.parser.c4script.IHasUserDescription;
 import net.arctics.clonk.parser.c4script.ast.ExprElm;
@@ -258,7 +258,7 @@ public abstract class Declaration implements Serializable, IHasRelatedResource, 
 	 */
 	public Object[] occurenceScope(ClonkProjectNature project) {
 		ScriptBase script = getScript();
-		if (script instanceof ProjectDefinition || script instanceof StandaloneProjectScript) {
+		if (script instanceof ProjectDefinition || script instanceof SystemScript) {
 			return new Object[] {((IResource) script.getScriptStorage()).getProject()};
 		}
 		return (project != null) ? new Object[] {project.getProject()} : EMPTY_SCOPE;

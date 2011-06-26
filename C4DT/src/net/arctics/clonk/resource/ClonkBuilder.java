@@ -15,7 +15,7 @@ import net.arctics.clonk.index.DefinitionParser;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.index.ProjectIndex;
 import net.arctics.clonk.parser.c4script.ScriptBase;
-import net.arctics.clonk.parser.c4script.StandaloneProjectScript;
+import net.arctics.clonk.parser.c4script.SystemScript;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.Variable;
 import net.arctics.clonk.parser.Declaration;
@@ -184,7 +184,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 						DefinitionParser objParser;
 						// script in a resource group
 						if (delta.getResource().getName().toLowerCase().endsWith(".c") && folder.getName().toLowerCase().endsWith(".c4g")) //$NON-NLS-1$ //$NON-NLS-2$
-							script = new StandaloneProjectScript(null, file);
+							script = new SystemScript(null, file);
 						// object script
 						else if (delta.getResource().getName().equals("Script.c") && (objParser = DefinitionParser.create(folder, getIndex())) != null) //$NON-NLS-1$
 							script = objParser.createObject();
@@ -207,7 +207,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 					//				}
 					break;
 				case IResourceDelta.REMOVED:
-					script = StandaloneProjectScript.scriptCorrespondingTo(file);
+					script = SystemScript.scriptCorrespondingTo(file);
 					if (script != null && file.equals(script.getScriptStorage()))
 						script.getIndex().removeScript(script);
 				}
@@ -260,9 +260,9 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 					resource.getName().toLowerCase().endsWith(".c") &&
 					systemName.equals(resource.getParent().getName())
 				) {
-					ScriptBase script = StandaloneProjectScript.pinnedScript(file, true);
+					ScriptBase script = SystemScript.pinnedScript(file, true);
 					if (script == null) {
-						script = new StandaloneProjectScript(getIndex(), file);
+						script = new SystemScript(getIndex(), file);
 					}
 					queueScript(script);
 					return true;
@@ -365,8 +365,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 					return null;
 				}
 
-				// mark index as dirty so it will be saved when eclipse is shut down
-				ClonkProjectNature.get(proj).getIndex().setDirty(true);
+				ClonkProjectNature.get(proj).getIndex().saveShallow();
 
 				refreshUIAfterBuild(listOfResourcesToBeRefreshed);
 				handleDefinitionRenaming();

@@ -63,7 +63,7 @@ import org.xml.sax.SAXException;
 
 /**
  * Base class for various objects that act as containers of stuff declared in scripts/ini files.
- * Subclasses include {@link Definition}, {@link StandaloneProjectScript} etc.
+ * Subclasses include {@link Definition}, {@link SystemScript} etc.
  */
 public abstract class ScriptBase extends IndexEntity implements ITreeNode, IHasConstraint, IType, IEvaluationContext, IHasIncludes {
 
@@ -766,7 +766,7 @@ public abstract class ScriptBase extends IndexEntity implements ITreeNode, IHasC
 
 	@Override
 	public String getInfoText() {
-		requireLoaded();
+		//requireLoaded();
 		Object f = getScriptStorage();
 		if (f instanceof IFile) {
 			IResource infoFile = Utilities.findMemberCaseInsensitively(((IFile)f).getParent(), "Desc"+ClonkPreferences.getLanguagePref()+".txt"); //$NON-NLS-1$ //$NON-NLS-2$
@@ -924,7 +924,7 @@ public abstract class ScriptBase extends IndexEntity implements ITreeNode, IHasC
 		if (resource == null)
 			return null;
 		try {
-			script = StandaloneProjectScript.pinnedScript(resource, false);
+			script = SystemScript.pinnedScript(resource, false);
 		} catch (CoreException e) {
 			script = null;
 		}

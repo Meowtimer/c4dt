@@ -8,7 +8,7 @@ import net.arctics.clonk.index.ProjectDefinition;
 import net.arctics.clonk.index.Scenario;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.c4script.Function;
-import net.arctics.clonk.parser.c4script.StandaloneProjectScript;
+import net.arctics.clonk.parser.c4script.SystemScript;
 import net.arctics.clonk.resource.c4group.C4Group.GroupType;
 import net.arctics.clonk.ui.navigator.ClonkLabelProvider;
 import net.arctics.clonk.util.ITreeNode;
@@ -95,7 +95,7 @@ public class ClonkSearchContentProvider extends ClonkLabelProvider implements IT
 			if (element instanceof ProjectDefinition) {
 				return engine.image(GroupType.DefinitionGroup);
 			}
-			if (element instanceof StandaloneProjectScript) {
+			if (element instanceof SystemScript) {
 				return UI.SCRIPT_ICON;
 			}
 			

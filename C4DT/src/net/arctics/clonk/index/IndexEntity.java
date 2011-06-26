@@ -70,6 +70,16 @@ public abstract class IndexEntity extends Structure {
 	}
 	
 	/**
+	 * Return an additional object helping with identifying this entity uniquely.
+	 * This is to avoid cases where the {@link #entityId()} changed and identifying the entity by this id would result in erroneous results.
+	 * This token, if saved, should be saved in the index file and not the entity specific file so it's readily available.
+	 * @return The additional identification token
+	 */
+	public Object additionalEntityIdentificationToken() {
+		return null;
+	}
+	
+	/**
 	 * Save the state of this entity to the stream. This method won't automatically serialize the whole object.
 	 * Individual fields need to be written explicitly in derived classes.
 	 * Those fields handled by {@link #save(ObjectOutputStream)}/{@link #load(ObjectInputStream)} need to be declared 'transient'.
@@ -86,7 +96,7 @@ public abstract class IndexEntity extends Structure {
 	 * Save this entity by requesting a stream to write to from the index.
 	 * @throws IOException 
 	 */
-	public synchronized void save() throws IOException {
+	public final synchronized void save() throws IOException {
 		if (index != null) {
 			ObjectOutputStream s = index.getEntityOutputStream(this);
 			try {

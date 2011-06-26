@@ -19,14 +19,14 @@ import org.eclipse.core.runtime.Path;
 /**
  * Standalone-script inside a project.
  */
-public class StandaloneProjectScript extends ScriptBase implements Serializable {
+public class SystemScript extends ScriptBase implements Serializable {
 
 	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 	
 	private transient IFile scriptFile;
 	private String scriptFilePath;
 	
-	public StandaloneProjectScript(Index index, IFile scriptFile) throws CoreException {
+	public SystemScript(Index index, IFile scriptFile) throws CoreException {
 		super(index);
 		this.name = scriptFile.getName();
 		setScriptFile(scriptFile);
@@ -64,9 +64,9 @@ public class StandaloneProjectScript extends ScriptBase implements Serializable 
 		return scriptFilePath;
 	}
 	
-	public static StandaloneProjectScript pinnedScript(IResource resource, boolean duringBuild) throws CoreException {
+	public static SystemScript pinnedScript(IResource resource, boolean duringBuild) throws CoreException {
 		Structure s = pinned(resource, false, duringBuild);
-		return s instanceof StandaloneProjectScript ? (StandaloneProjectScript) s : null;
+		return s instanceof SystemScript ? (SystemScript) s : null;
 	}
 	
 	@Override
@@ -92,9 +92,14 @@ public class StandaloneProjectScript extends ScriptBase implements Serializable 
 			return false;
 	}
 	
-	public static StandaloneProjectScript scriptCorrespondingTo(IFile file) {
+	public static SystemScript scriptCorrespondingTo(IFile file) {
 		ScriptBase script = Utilities.getIndex(file) != null ? Utilities.getIndex(file).getScript(file) : null;
-		return script instanceof StandaloneProjectScript ? (StandaloneProjectScript)script : null;
+		return script instanceof SystemScript ? (SystemScript)script : null;
+	}
+	
+	@Override
+	public Object additionalEntityIdentificationToken() {
+		return scriptFilePath;
 	}
 
 }
