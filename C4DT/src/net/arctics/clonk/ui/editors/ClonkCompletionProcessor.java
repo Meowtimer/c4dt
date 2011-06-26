@@ -14,6 +14,7 @@ import net.arctics.clonk.util.UI;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.jface.text.contentassist.ICompletionProposal;
 import org.eclipse.jface.text.contentassist.IContentAssistProcessor;
+import org.eclipse.swt.graphics.Image;
 import org.eclipse.ui.IFileEditorInput;
 
 public abstract class ClonkCompletionProcessor<EditorType extends ClonkTextEditor> implements IContentAssistProcessor {
@@ -28,30 +29,30 @@ public abstract class ClonkCompletionProcessor<EditorType extends ClonkTextEdito
 		this.editor = editor;
 	}
 	
-	protected void proposalForDefinition(Definition obj,String prefix,int offset,Collection<ICompletionProposal> proposals) {
+	protected void proposalForDefinition(Definition def, String prefix, int offset, Collection<ICompletionProposal> proposals) {
 		try {
-			if (obj == null || obj.id() == null)
+			if (def == null || def.id() == null)
 				return;
 
 			if (prefix != null) {
 				if (!(
-					obj.getName().toLowerCase().contains(prefix) ||
-					obj.id().getName().toLowerCase().contains(prefix) ||
+					def.getName().toLowerCase().contains(prefix) ||
+					def.id().getName().toLowerCase().contains(prefix) ||
 					// also check if the user types in the folder name
-					(obj instanceof ProjectDefinition && ((ProjectDefinition)obj).definitionFolder() != null && ((ProjectDefinition)obj).definitionFolder().getName().contains(prefix))
+					(def instanceof ProjectDefinition && ((ProjectDefinition)def).definitionFolder() != null && ((ProjectDefinition)def).definitionFolder().getName().contains(prefix))
 				))
 					return;
 			}
-			String displayString = obj.getName();
+			String displayString = def.getName();
 			int replacementLength = prefix != null ? prefix.length() : 0; 
 
-			ClonkCompletionProposal prop = new ClonkCompletionProposal(obj, obj.id().getName(), offset, replacementLength, obj.id().getName().length(),
-				UI.iconFor(obj), displayString.trim(), null, obj.getInfoText(), " - " + obj.id().getName(), getEditor()); //$NON-NLS-1$
+			ClonkCompletionProposal prop = new ClonkCompletionProposal(def, def.id().getName(), offset, replacementLength, def.id().getName().length(),
+				UI.definitionIcon(def), displayString.trim(), null, null, " - " + def.id().getName(), getEditor()); //$NON-NLS-1$
 			prop.setCategory(Category.Definitions);
 			proposals.add(prop);
 		} catch (Exception e) {
 			e.printStackTrace();
-			System.out.println(obj.toString());
+			System.out.println(def.toString());
 		}
 	}
 	
