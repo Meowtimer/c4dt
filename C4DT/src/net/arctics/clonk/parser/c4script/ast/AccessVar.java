@@ -19,7 +19,7 @@ import net.arctics.clonk.parser.c4script.PrimitiveType;
 import net.arctics.clonk.parser.c4script.Variable;
 import net.arctics.clonk.parser.c4script.FindDeclarationInfo;
 import net.arctics.clonk.parser.c4script.IType;
-import net.arctics.clonk.parser.c4script.Function.C4FunctionScope;
+import net.arctics.clonk.parser.c4script.Function.FunctionScope;
 import net.arctics.clonk.parser.c4script.IHasConstraint.ConstraintKind;
 import net.arctics.clonk.parser.c4script.Variable.Scope;
 import net.arctics.clonk.parser.c4script.ProplistDeclaration;
@@ -111,7 +111,7 @@ public class AccessVar extends AccessDeclaration {
 						Function f = d.getTopLevelParentDeclarationOfType(Function.class);
 						Variable v = d.getTopLevelParentDeclarationOfType(Variable.class);
 						if (
-							(f != null && f.getVisibility() == C4FunctionScope.GLOBAL) ||
+							(f != null && f.getVisibility() == FunctionScope.GLOBAL) ||
 							(f == null && v != null && v.getScope() != Scope.LOCAL)
 						) {
 							parser.errorWithCode(ParserErrorCode.LocalUsedInGlobal, this, C4ScriptParser.NO_THROW);

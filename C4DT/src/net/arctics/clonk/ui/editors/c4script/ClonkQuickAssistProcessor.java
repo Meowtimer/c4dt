@@ -17,7 +17,7 @@ import net.arctics.clonk.parser.c4script.ScriptBase;
 import net.arctics.clonk.parser.c4script.Operator;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.MutableRegion;
-import net.arctics.clonk.parser.c4script.Function.C4FunctionScope;
+import net.arctics.clonk.parser.c4script.Function.FunctionScope;
 import net.arctics.clonk.parser.c4script.PrimitiveType;
 import net.arctics.clonk.parser.c4script.Variable;
 import net.arctics.clonk.parser.c4script.C4ScriptParser.ExpressionsAndStatementsReportingFlavour;
@@ -508,7 +508,7 @@ public class ClonkQuickAssistProcessor implements IQuickAssistProcessor {
 							CallFunc callFunc = (CallFunc) accessDec;
 							Function function;
 							decs.add(new Replacement.AdditionalDeclaration(
-									function = new Function(accessDec.getDeclarationName(), C4FunctionScope.PUBLIC),
+									function = new Function(accessDec.getDeclarationName(), FunctionScope.PUBLIC),
 									ExprElm.NULL_EXPR
 							));
 							List<Variable> parms = new ArrayList<Variable>(callFunc.getParams().length);

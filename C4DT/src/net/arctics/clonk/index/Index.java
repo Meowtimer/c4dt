@@ -31,7 +31,7 @@ import net.arctics.clonk.parser.c4script.ScriptBase;
 import net.arctics.clonk.parser.c4script.SystemScript;
 import net.arctics.clonk.parser.c4script.Variable;
 import net.arctics.clonk.parser.c4script.Directive.DirectiveType;
-import net.arctics.clonk.parser.c4script.Function.C4FunctionScope;
+import net.arctics.clonk.parser.c4script.Function.FunctionScope;
 import net.arctics.clonk.parser.c4script.Variable.Scope;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.util.ArrayUtil;
@@ -231,7 +231,7 @@ public class Index extends Declaration implements Serializable, Iterable<Definit
 	
 	protected <T extends ScriptBase> void addGlobalsFromScript(T script) {
 		for (Function func : script.functions()) {
-			if (func.getVisibility() == C4FunctionScope.GLOBAL) {
+			if (func.getVisibility() == FunctionScope.GLOBAL) {
 				globalFunctions.add(func);
 			}
 			for (Declaration otherDec : func.getOtherDeclarations())

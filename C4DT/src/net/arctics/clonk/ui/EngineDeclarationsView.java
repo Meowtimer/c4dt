@@ -11,7 +11,7 @@ import net.arctics.clonk.parser.c4script.Function;
 import net.arctics.clonk.parser.c4script.ScriptBase;
 import net.arctics.clonk.parser.c4script.PrimitiveType;
 import net.arctics.clonk.parser.c4script.Variable;
-import net.arctics.clonk.parser.c4script.Function.C4FunctionScope;
+import net.arctics.clonk.parser.c4script.Function.FunctionScope;
 import net.arctics.clonk.parser.c4script.Variable.Scope;
 import net.arctics.clonk.parser.c4script.openclonk.OCEngineDeclarationsImporter;
 import net.arctics.clonk.parser.c4script.IType;
@@ -157,7 +157,7 @@ public class EngineDeclarationsView extends ViewPart implements IPropertyChangeL
 				Function func = (Function) declaration;
 				func.setName(declarationNameField.getText());
 				func.setReturnType(PrimitiveType.makeType(returnTypeBox.getItem(returnTypeBox.getSelectionIndex())));
-				func.setVisibility(C4FunctionScope.makeScope(scopeBox.getItem(scopeBox.getSelectionIndex())));
+				func.setVisibility(FunctionScope.makeScope(scopeBox.getItem(scopeBox.getSelectionIndex())));
 				func.setUserDescription(descriptionField.getText());
 				
 				func.getParameters().clear();
@@ -255,8 +255,8 @@ public class EngineDeclarationsView extends ViewPart implements IPropertyChangeL
 			if (scope instanceof Scope) {
 				values = Scope.values();
 			}
-			else if (scope instanceof C4FunctionScope) {
-				values = C4FunctionScope.values();
+			else if (scope instanceof FunctionScope) {
+				values = FunctionScope.values();
 			}
 			else
 				return null;

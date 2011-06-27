@@ -30,7 +30,7 @@ import net.arctics.clonk.parser.SimpleScriptStorage;
 import net.arctics.clonk.parser.SourceLocation;
 import net.arctics.clonk.parser.SilentParsingException.Reason;
 import net.arctics.clonk.parser.c4script.Directive.DirectiveType;
-import net.arctics.clonk.parser.c4script.Function.C4FunctionScope;
+import net.arctics.clonk.parser.c4script.Function.FunctionScope;
 import net.arctics.clonk.parser.c4script.C4ScriptParser.IMarkerListener.WhatToDo;
 import net.arctics.clonk.parser.c4script.Variable.Scope;
 import net.arctics.clonk.parser.c4script.SpecialScriptRules.SpecialFuncRule;
@@ -1111,11 +1111,11 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		boolean suspectOldStyle = false;
 		String funcName = null;
 		PrimitiveType retType = PrimitiveType.ANY;
-		C4FunctionScope scope;
+		FunctionScope scope;
 		
 		setCurrentFunc(null);
 		if (!firstWord.equals(Keywords.Func)) {
-			scope = C4FunctionScope.makeScope(firstWord);
+			scope = FunctionScope.makeScope(firstWord);
 			startName = this.offset;
 			String shouldBeFunc = readIdent();
 			if (!shouldBeFunc.equals(Keywords.Func)) {
@@ -1126,7 +1126,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 			}
 		}
 		else {
-			scope = C4FunctionScope.PUBLIC;
+			scope = FunctionScope.PUBLIC;
 		}
 		if (!suspectOldStyle) {
 			retType = parseFunctionReturnType();
@@ -1147,7 +1147,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		currentFunc.setReturnType(retType);
 		currentFunc.setOldStyle(suspectOldStyle);
 		currentFunc.setVisibility(scope);
-		if (scope == C4FunctionScope.GLOBAL)
+		if (scope == FunctionScope.GLOBAL)
 			container.containsGlobals = true;
 		eatWhitespace();
 		int shouldBeBracket = read();
@@ -3496,7 +3496,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	public static Statement parseStandaloneStatement(final String statementText, Function context, IScriptParserListener listener, final IMarkerListener markerListener) throws ParsingException {
 		if (context == null) {
 			ScriptBase tempScript = new TempScript(statementText);
-			context = new Function("<temp>", null, C4FunctionScope.GLOBAL); //$NON-NLS-1$
+			context = new Function("<temp>", null, FunctionScope.GLOBAL); //$NON-NLS-1$
 			context.setScript(tempScript);
 			context.setBody(new SourceLocation(0, statementText.length()));
 		}

@@ -38,7 +38,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	public static final String QUALIFIED_NAME_FORMAT = "%2$s (%1$s)";
 	
 	private static final long serialVersionUID = 3848213897251037684L;
-	private C4FunctionScope visibility; 
+	private FunctionScope visibility; 
 	private List<Variable> localVars;
 	private List<Variable> parameter;
 	/**
@@ -81,7 +81,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 			parameter.add(var);
 			var.setParentDeclaration(this);
 		}
-		visibility = C4FunctionScope.GLOBAL;
+		visibility = FunctionScope.GLOBAL;
 	}
 	
 	/**
@@ -99,13 +99,13 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	}
 	
 	public Function() {
-		visibility = C4FunctionScope.GLOBAL;
+		visibility = FunctionScope.GLOBAL;
 		name = ""; //$NON-NLS-1$
 		parameter = new ArrayList<Variable>();
 		localVars = new ArrayList<Variable>();
 	}
 	
-	public Function(String name, ScriptBase parent, C4FunctionScope scope) {
+	public Function(String name, ScriptBase parent, FunctionScope scope) {
 		this.name = name;
 		visibility = scope;
 		parameter = new ArrayList<Variable>();
@@ -114,10 +114,10 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	}
 	
 	public Function(String name, Definition parent, String scope) {
-		this(name,parent,C4FunctionScope.makeScope(scope));
+		this(name,parent,FunctionScope.makeScope(scope));
 	}
 	
-	public Function(String name, C4FunctionScope scope) {
+	public Function(String name, FunctionScope scope) {
 		this(name, null, scope);
 	}
 	
@@ -161,7 +161,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	/**
 	 * @return the visibility
 	 */
-	public C4FunctionScope getVisibility() {
+	public FunctionScope getVisibility() {
 		return visibility;
 	}
 	
@@ -182,7 +182,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	/**
 	 * @param visibility the visibility to set
 	 */
-	public void setVisibility(C4FunctionScope visibility) {
+	public void setVisibility(FunctionScope visibility) {
 		this.visibility = visibility;
 	}
 
@@ -191,7 +191,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	 * @author ZokRadonh
 	 *
 	 */
-	public enum C4FunctionScope {
+	public enum FunctionScope {
 		GLOBAL,
 		PUBLIC,
 		PROTECTED,
@@ -199,14 +199,14 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 		
 		private String lowerCaseName;
 		
-		public static C4FunctionScope makeScope(String scopeString) {
-			if (scopeString == null) return C4FunctionScope.PUBLIC;
-			if (scopeString.equals(Keywords.Public)) return C4FunctionScope.PUBLIC;
-			if (scopeString.equals(Keywords.Protected)) return C4FunctionScope.PROTECTED;
-			if (scopeString.equals(Keywords.Private)) return C4FunctionScope.PRIVATE;
-			if (scopeString.equals(Keywords.Global)) return C4FunctionScope.GLOBAL;
+		public static FunctionScope makeScope(String scopeString) {
+			if (scopeString == null) return FunctionScope.PUBLIC;
+			if (scopeString.equals(Keywords.Public)) return FunctionScope.PUBLIC;
+			if (scopeString.equals(Keywords.Protected)) return FunctionScope.PROTECTED;
+			if (scopeString.equals(Keywords.Private)) return FunctionScope.PRIVATE;
+			if (scopeString.equals(Keywords.Global)) return FunctionScope.GLOBAL;
 			//if (C4FunctionScope.valueOf(scopeString) != null) return C4FunctionScope.valueOf(scopeString);
-			return C4FunctionScope.PUBLIC;
+			return FunctionScope.PUBLIC;
 		}
 		
 		@Override
@@ -582,7 +582,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	
 	@Override
 	public boolean isGlobal() {
-		return getVisibility() == C4FunctionScope.GLOBAL;
+		return getVisibility() == FunctionScope.GLOBAL;
 	}
 	
 	/**

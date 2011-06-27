@@ -28,7 +28,7 @@ import net.arctics.clonk.parser.c4script.FindDeclarationInfo;
 import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.parser.c4script.Keywords;
 import net.arctics.clonk.parser.c4script.SpecialScriptRules;
-import net.arctics.clonk.parser.c4script.Function.C4FunctionScope;
+import net.arctics.clonk.parser.c4script.Function.FunctionScope;
 import net.arctics.clonk.parser.c4script.SpecialScriptRules.SpecialFuncRule;
 import net.arctics.clonk.parser.c4script.ast.UnaryOp.Placement;
 import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
@@ -435,7 +435,7 @@ public class CallFunc extends AccessDeclaration {
 			}
 			else if (declaration instanceof Function) {
 				Function f = (Function)declaration;
-				if (f.getVisibility() == C4FunctionScope.GLOBAL) {
+				if (f.getVisibility() == FunctionScope.GLOBAL) {
 					context.getContainer().addUsedProjectScript(f.getScript());
 				}
 				boolean specialCaseHandled = false;

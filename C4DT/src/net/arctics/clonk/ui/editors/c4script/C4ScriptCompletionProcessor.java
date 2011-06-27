@@ -25,7 +25,7 @@ import net.arctics.clonk.parser.c4script.IType;
 import net.arctics.clonk.parser.c4script.Keywords;
 import net.arctics.clonk.parser.BufferedScanner;
 import net.arctics.clonk.parser.Declaration;
-import net.arctics.clonk.parser.c4script.Function.C4FunctionScope;
+import net.arctics.clonk.parser.c4script.Function.FunctionScope;
 import net.arctics.clonk.parser.c4script.C4ScriptParser.ExpressionsAndStatementsReportingFlavour;
 import net.arctics.clonk.parser.c4script.Variable.Scope;
 import net.arctics.clonk.parser.c4script.ast.AccessDeclaration;
@@ -570,8 +570,8 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 			Variable var;
 			ScriptBase include;
 			if ((func = Utilities.as(dec, Function.class)) != null) {
-				if (func.getVisibility() != C4FunctionScope.GLOBAL)
-					if (!noPrivateFuncs  || func.getVisibility() == C4FunctionScope.PUBLIC)
+				if (func.getVisibility() != FunctionScope.GLOBAL)
+					if (!noPrivateFuncs  || func.getVisibility() == FunctionScope.PUBLIC)
 						proposalForFunc(func, prefix, offset, proposals, structure.getName(), true);
 			}
 			else if ((var = Utilities.as(dec, Variable.class)) != null) {

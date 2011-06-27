@@ -83,7 +83,7 @@ public class Command {
 		}
 
 		public NativeCommandFunction(ScriptBase parent, Method method) {
-			super(method.getName(), parent, C4FunctionScope.PUBLIC);
+			super(method.getName(), parent, FunctionScope.PUBLIC);
 			this.method = method;
 		}
 
