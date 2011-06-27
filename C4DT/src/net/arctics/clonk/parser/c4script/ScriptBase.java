@@ -35,7 +35,6 @@ import net.arctics.clonk.parser.ID;
 import net.arctics.clonk.parser.IHasIncludes;
 import net.arctics.clonk.parser.Structure;
 import net.arctics.clonk.parser.c4script.Directive.DirectiveType;
-import net.arctics.clonk.parser.c4script.Function.C4FunctionScope;
 import net.arctics.clonk.parser.c4script.Variable.Scope;
 import net.arctics.clonk.parser.c4script.ast.ExprElm;
 import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
@@ -77,6 +76,11 @@ public abstract class ScriptBase extends IndexEntity implements ITreeNode, IHasC
 	private transient Set<ScriptBase> usedProjectScripts;
 	// scripts dependent on this one inside the same index
 	private transient Set<ScriptBase> dependentScripts;
+	
+	/**
+	 * Flag hinting that this script contains global functions/static variables. This will flag will be consulted to decide whether to fully load the script when looking for global declarations.
+	 */
+	public boolean containsGlobals;
 	
 	protected ScriptBase(Index index) {
 		super(index);
@@ -454,7 +458,7 @@ public abstract class ScriptBase extends IndexEntity implements ITreeNode, IHasC
 		if (definedFunctions != null)
 			definedFunctions.clear();
 		if (definedVariables != null)
-			definedDirectives.clear();
+			definedVariables.clear();
 	}
 
 	public void setName(String name) {
@@ -804,17 +808,6 @@ public abstract class ScriptBase extends IndexEntity implements ITreeNode, IHasC
 		if (node instanceof Declaration)
 			addDeclaration((Declaration)node);
 	}
-
-	public boolean containsGlobals() {
-		requireLoaded();
-	    for (Function f : this.definedFunctions)
-	    	if (f.getVisibility() == C4FunctionScope.GLOBAL)
-	    		return true;
-	    for (Variable v : this.definedVariables)
-	    	if (v.getScope() == Scope.STATIC)
-	    		return true;
-	    return false;
-    }
 	
 	public void addUsedProjectScript(ScriptBase script) {
 		requireLoaded();

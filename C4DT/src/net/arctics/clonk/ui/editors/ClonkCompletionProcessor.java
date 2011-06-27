@@ -14,7 +14,6 @@ import net.arctics.clonk.util.UI;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.jface.text.contentassist.ICompletionProposal;
 import org.eclipse.jface.text.contentassist.IContentAssistProcessor;
-import org.eclipse.swt.graphics.Image;
 import org.eclipse.ui.IFileEditorInput;
 
 public abstract class ClonkCompletionProcessor<EditorType extends ClonkTextEditor> implements IContentAssistProcessor {

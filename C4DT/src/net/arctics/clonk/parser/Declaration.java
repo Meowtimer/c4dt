@@ -336,17 +336,6 @@ public abstract class Declaration implements Serializable, IHasRelatedResource, 
 	}
 	
 	/**
-	 * Called before serializing this object
-	 * @param parent the parent
-	 */
-	public void preSave() {
-		Iterable<? extends Declaration> subDecs = this.allSubDeclarations(DIRECT_SUBDECLARATIONS);
-		if (subDecs != null)
-			for (Declaration d : subDecs)
-				d.preSave();
-	}
-	
-	/**
 	 * Returns whether this declaration is global (functions are global when declared as "global" while variables are global when declared as "static") 
 	 * @return true if global, false if not
 	 */

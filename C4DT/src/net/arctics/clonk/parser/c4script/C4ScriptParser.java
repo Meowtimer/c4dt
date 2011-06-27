@@ -104,6 +104,12 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	
 	private static final boolean DEBUG = false;
 	
+	/**
+	 * Context for parsing a single {@link Function}. There is only one current function context at a time for one parser but
+	 * parsing of functions may happen interleaved, for example when during parsing of one function it is decided that another one needs to be parsed before continuing. 
+	 * @author madeen
+	 *
+	 */
 	public static class FunctionContext {
 		public Declaration currentDeclaration;
 		public ID parsedID;
@@ -461,11 +467,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	protected void initialize() {
 		if (container != null) {
 			engine = container.getEngine();
-			if (engine != null) {
-				specialScriptRules = container.getEngine().getSpecialScriptRules();
-			} else {
-				specialScriptRules = null;
-			}
+			specialScriptRules = engine != null ? container.getEngine().getSpecialScriptRules() : null;
 
 			if (container.getIndex() instanceof ProjectIndex) {
 				ProjectIndex projIndex = (ProjectIndex) container.getIndex();
@@ -476,6 +478,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 			}
 
 			strictLevel = container.getStrictLevel();
+			container.containsGlobals = false;
 		}
 		currentFunctionContext.initialize();
 		if (scriptFile != null)
@@ -896,11 +899,10 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 			case STATIC:
 				int scopeSpecifierStart = offset-scope.toKeyword().length();
 				int pos = this.offset;
-				if (readIdent().equals(Keywords.Const)) {
+				if (readIdent().equals(Keywords.Const))
 					scope = Scope.CONST;
-				} else {
+				else
 					this.seek(pos);
-				}
 				if (currentFunc != null) {
 					errorWithCode(ParserErrorCode.StaticInsideFunction, scopeSpecifierStart, this.offset, NO_THROW, scope.toKeyword());
 					scope = Scope.VAR;
@@ -983,7 +985,9 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 					createdVariables.add(varInitialization);
 					if (typeOfNewVar != null) {
 						switch (scope) {
-						case LOCAL: case CONST: case STATIC:
+						case CONST: case STATIC:
+							container.containsGlobals = true;
+						case LOCAL:
 							if (currentFunc == null) {
 								varInitialization.variableBeingInitialized.forceType(typeOfNewVar);
 								break;
@@ -1143,6 +1147,8 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		currentFunc.setReturnType(retType);
 		currentFunc.setOldStyle(suspectOldStyle);
 		currentFunc.setVisibility(scope);
+		if (scope == C4FunctionScope.GLOBAL)
+			container.containsGlobals = true;
 		eatWhitespace();
 		int shouldBeBracket = read();
 		if (shouldBeBracket != '(') {

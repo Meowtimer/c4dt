@@ -77,6 +77,8 @@ public class Index extends Declaration implements Serializable, Iterable<Definit
 	private List<ScriptBase> indexedScripts = new LinkedList<ScriptBase>();
 	private List<Scenario> indexedScenarios = new LinkedList<Scenario>();
 	private List<ProplistDeclaration> indexedProplistDeclarations = new LinkedList<ProplistDeclaration>();
+	private List<Declaration> globalsContainers = new LinkedList<Declaration>();
+	
 	protected File folder;
 	
 	protected transient List<Function> globalFunctions = new LinkedList<Function>();
@@ -98,6 +100,13 @@ public class Index extends Declaration implements Serializable, Iterable<Definit
 	 */
 	public Collection<IndexEntity> entities() {
 		return entities.values();
+	}
+	
+	/**
+	 * List of {@link Declaration}s containing global sub declarations.
+	 */
+	public List<Declaration> globalsContainers() {
+		return globalsContainers;
 	}
 	
 	/**
@@ -135,16 +144,6 @@ public class Index extends Declaration implements Serializable, Iterable<Definit
 	@SuppressWarnings("unchecked")
 	public Iterable<ScriptBase> allScripts() {
 		return new CompoundIterable<ScriptBase>(this, indexedScripts, indexedScenarios);
-	}
-	
-	/**
-	 * Called before serialization to give index a chance to prepare itself for serialization.
-	 */
-	public void preSave() {
-		for (ScriptBase script : allScripts()) {
-			if (!script.notFullyLoaded)
-				script.preSave();
-		}
 	}
 	
 	/**
@@ -230,12 +229,6 @@ public class Index extends Declaration implements Serializable, Iterable<Definit
 			}
 	}
 	
-	private <T extends ScriptBase> void addGlobalsFrom(Iterable<T> scripts) {
-		for (T script : scripts)
-			if (!script.notFullyLoaded)
-				addGlobalsFromScript(script);
-	}
-
 	protected <T extends ScriptBase> void addGlobalsFromScript(T script) {
 		for (Function func : script.functions()) {
 			if (func.getVisibility() == C4FunctionScope.GLOBAL) {
@@ -277,31 +270,16 @@ public class Index extends Declaration implements Serializable, Iterable<Definit
 		declarationMap.clear();
 		appendages.clear();
 		
-		// add globals to globals lists
-		List<Iterable<? extends ScriptBase>> scriptCollections = new ArrayList<Iterable<? extends ScriptBase>>(3);
-		scriptCollections.add(this);
-		scriptCollections.add(indexedScripts);
-		scriptCollections.add(indexedScenarios);
-		
 		for (ScriptBase s : allScripts())
 			s.clearDependentScripts();
 		
-		for (Iterable<? extends ScriptBase> c : scriptCollections)
-			addGlobalsFrom(c);
-		// do some post serialization after globals are known
-		for (Iterable<? extends ScriptBase> c : scriptCollections) {
-			for (ScriptBase s : c)
-				if (!s.notFullyLoaded)
-					s.postSerialize(this, this);
-		}
+		for (ScriptBase s : allScripts())
+			if (!s.notFullyLoaded)
+				addGlobalsFromScript(s);
 		
-//		System.out.println("Functions added to cache:");
-//		for (C4Function func : globalFunctions)
-//			System.out.println("\t"+func.getName());
-//		System.out.println("Variables added to cache");
-//		for (C4Variable var : staticVariables)
-//			System.out.println("\t"+var.getName());
-		
+		for (ScriptBase s : allScripts())
+			if (!s.notFullyLoaded)
+				s.postSerialize(this, this);
 	}
 	
 	/**
@@ -773,7 +751,7 @@ public class Index extends Declaration implements Serializable, Iterable<Definit
 		return new IndexEntityInputStream(this, new FileInputStream(entityFile(entity)));
 	}
 	
-	public static class EntityId implements Serializable, IResolvable {
+	private static class EntityId implements Serializable, IResolvable {
 		private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 		protected long referencedEntityId;
 		protected Object referencedEntityToken;
@@ -866,30 +844,27 @@ public class Index extends Declaration implements Serializable, Iterable<Definit
 						return super.replaceObject(obj);
 					}
 				};
-				getIndex().preSave();
 				objStream.writeObject(getIndex());
 				objStream.close();
 			} finally {
 				out.close();
 			}
-			File[] files = folder.listFiles();
-			List<File> filesToBePurged = new ArrayList<File>(files.length);
-			filesToBePurged.addAll(Arrays.asList(files));
-			filesToBePurged.remove(indexFile);
-			for (IndexEntity e : entities()) {
-				filesToBePurged.remove(entityFile(e));
-				try {
-					e.saveIfDirty();
-				} catch (Exception ex) {
-					ex.printStackTrace();
-				}
-			}
-			for (File f : filesToBePurged) {
-				if (!f.getName().startsWith("."))
-					f.delete();
-			}
+			purgeUnusedIndexFiles(indexFile);
 		} catch (Exception e) {
 			e.printStackTrace();
+		}
+	}
+
+	protected void purgeUnusedIndexFiles(File indexFile) {
+		File[] files = folder.listFiles();
+		List<File> filesToBePurged = new ArrayList<File>(files.length);
+		filesToBePurged.addAll(Arrays.asList(files));
+		filesToBePurged.remove(indexFile);
+		for (IndexEntity e : entities())
+			filesToBePurged.remove(entityFile(e));
+		for (File f : filesToBePurged) {
+			if (!f.getName().startsWith("."))
+				f.delete();
 		}
 	}
 

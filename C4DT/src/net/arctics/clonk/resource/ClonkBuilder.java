@@ -68,11 +68,11 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 
 	private static final class UIRefresher implements Runnable {
 		
-		private List<IResource> listOfResourcesToBeRefreshed;
+		private IResource resourceToBeRefreshed;
 		
-		public UIRefresher(List<IResource> listOfResourcesToBeRefreshed) {
+		public UIRefresher(IResource resource) {
 			super();
-			this.listOfResourcesToBeRefreshed = listOfResourcesToBeRefreshed;
+			resourceToBeRefreshed = resource;
 		}
 
 		public void run() {
@@ -87,11 +87,8 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 					}
 				}
 				CommonNavigator projectExplorer = Utilities.getProjectExplorer(window);
-				if (projectExplorer != null) {
-					for (IResource r : listOfResourcesToBeRefreshed) {
-						projectExplorer.getCommonViewer().refresh(r);
-					}
-				}
+				if (projectExplorer != null)
+					projectExplorer.getCommonViewer().refresh(resourceToBeRefreshed);
 			}
 		}
 	}
@@ -592,7 +589,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 	
 	private void refreshUIAfterBuild(List<IResource> listOfResourcesToBeRefreshed) {
 		// refresh outlines
-		Display.getDefault().asyncExec(new UIRefresher(listOfResourcesToBeRefreshed));
+		//Display.getDefault().asyncExec(new UIRefresher(listOfResourcesToBeRefreshed));
 	}
 	
 	private C4ScriptParser queueScript(ScriptBase script) {
@@ -638,6 +635,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 							performBuildPhaseTwo((ScriptBase) include);
 					}
 					parser.parseCodeOfFunctionsAndValidate();
+					Display.getDefault().asyncExec(new UIRefresher(script.getResource()));
 				} catch (ParsingException e) {
 					e.printStackTrace();
 				}
