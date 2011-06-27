@@ -1,6 +1,5 @@
 package net.arctics.clonk.parser.c4script;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
@@ -605,12 +604,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 					currentFunctionContext.expressionReportingErrors = old;
 				}
 			}
-			try {
-				container.notDirty();
-				container.save();
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
+			container.notDirty();
 			distillAdditionalInformation();
 		}
 	}

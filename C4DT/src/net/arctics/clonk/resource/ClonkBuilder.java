@@ -635,6 +635,11 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 							performBuildPhaseTwo((ScriptBase) include);
 					}
 					parser.parseCodeOfFunctionsAndValidate();
+					try {
+						script.save();
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
 					Display.getDefault().asyncExec(new UIRefresher(script.getResource()));
 				} catch (ParsingException e) {
 					e.printStackTrace();
