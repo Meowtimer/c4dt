@@ -169,7 +169,8 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 			if (delta == null) 
 				return false;
 
-			if (delta.getResource() instanceof IFile) {
+			boolean success = false;
+			If: if (delta.getResource() instanceof IFile) {
 				IFile file = (IFile) delta.getResource();
 				ScriptBase script;
 				switch (delta.getKind()) {
@@ -208,12 +209,14 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 					if (script != null && file.equals(script.getScriptStorage()))
 						script.getIndex().removeScript(script);
 				}
-				return true;
+				success = true;
 			}
 			else if (delta.getResource() instanceof IContainer) {
 				if (!INDEX_C4GROUPS)
-					if (EFS.getStore(delta.getResource().getLocationURI()) instanceof C4Group)
-						return false;
+					if (EFS.getStore(delta.getResource().getLocationURI()) instanceof C4Group) {
+						success = false;
+						break If;
+					}
 				// make sure the object has a reference to its folder (not to some obsolete deleted one)
 				ProjectDefinition object;
 				switch (delta.getKind()) {
@@ -229,9 +232,11 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 						object.getIndex().removeDefinition(object);
 					break;
 				}
-				return true;
+				success = true;
 			}
-			return false;
+			if (currentSubProgressMonitor != null)
+				currentSubProgressMonitor.worked(1);
+			return success;
 		}
 		public boolean visit(IResource resource) throws CoreException {
 			if (currentSubProgressMonitor != null && currentSubProgressMonitor.isCanceled())
@@ -345,12 +350,11 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 		this.buildKind = kind;
 		clearState();
 		List<IResource> listOfResourcesToBeRefreshed = new LinkedList<IResource>();
-		
 		clearUIOfReferencesBeforeBuild();
-		
+		IProject proj = getProject();
+		ClonkProjectNature.get(proj).getIndex().beginModification();
 		try {
 			try {
-				IProject proj = getProject();
 
 				performBuildPhases(
 					monitor, listOfResourcesToBeRefreshed, proj,
@@ -378,6 +382,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 				return null;
 			}
 		} finally {
+			ClonkProjectNature.get(proj).getIndex().endModification();
 			clearState();
 		}
 	}
@@ -434,16 +439,18 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 			visitDeltaOrWholeProject(delta, proj, counter);
 
 			// initialize progress monitor
-			monitor.beginTask(String.format(Messages.BuildProject, proj.getName()), counter.getCount()*2);
+			monitor.beginTask(String.format(Messages.BuildProject, proj.getName()), 3);
 			
 			// populate toBeParsed list
 			parserMap.clear();
+			currentSubProgressMonitor = new SubProgressMonitor(monitor, 1);
+			currentSubProgressMonitor.beginTask("Determining scripts", counter.getCount());
 			visitDeltaOrWholeProject(delta, proj, new ScriptGatherer());
+			currentSubProgressMonitor.done();
 			
 			// delete old declarations
-			for (ScriptBase script : parserMap.keySet()) {
+			for (ScriptBase script : parserMap.keySet())
 				script.clearDeclarations();
-			}
 			index.refreshIndex();
 			
 			// parse declarations
@@ -475,9 +482,8 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 			while (parserMapSize != parserMap.size());
 			currentSubProgressMonitor.done();
 
-			if (delta != null) {
+			if (delta != null)
 				listOfResourcesToBeRefreshed.add(delta.getResource());
-			}
 
 			// refresh global func and static var cache
 			//index.refreshIndex();
