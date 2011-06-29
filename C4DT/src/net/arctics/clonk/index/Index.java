@@ -720,11 +720,30 @@ public class Index extends Declaration implements Serializable, Iterable<Definit
 
 	public void loadEntity(IndexEntity entity) throws FileNotFoundException, IOException, ClassNotFoundException {
 		System.out.println("Load entity " + entity.toString());
-		entity.load(getEntityInputStream(entity));
-		entity.postSerialize(this, this);
-		if (entity instanceof ScriptBase)
-			addGlobalsFromScript((ScriptBase)entity);
+		ObjectInputStream s = getEntityInputStream(entity);
+		try {
+			entity.load(getEntityInputStream(entity));
+			entity.postSerialize(this, this);
+			if (entity instanceof ScriptBase)
+				addGlobalsFromScript((ScriptBase)entity);
+		} catch (Exception e) {
+			e.printStackTrace();
+		} finally {
+			s.close();
+		}
 	};
+	
+	public void saveEntity(IndexEntity entity) throws IOException {
+		System.out.println("Save entity " + entity.toString());
+		ObjectOutputStream s = getEntityOutputStream(entity);
+		try {
+			entity.save(s);
+		} catch (Exception e) {
+			e.printStackTrace();
+		} finally {
+			s.close();
+		}
+	}
 	
 	private long entityIdCounter = 0;
 	
@@ -796,11 +815,32 @@ public class Index extends Declaration implements Serializable, Iterable<Definit
 		protected String referencedProjectName;
 		public EntityReference(IndexEntity referencedEntity) {
 			super(referencedEntity);
-			referencedProjectName = referencedEntity.getIndex().getName();
+			if (referencedEntity != null && referencedEntity.getIndex() != null)
+				referencedProjectName = referencedEntity.getIndex().getName();
+		}
+		@Override
+		protected Index getIndex(Index context) {
+			if (referencedProjectName != null) {
+				ClonkProjectNature nat = ClonkProjectNature.get(referencedProjectName);
+				return nat != null ? nat.getIndex() : null;
+			} else
+				return null;
 		}
 		@Override
 		public String toString() {
 			return String.format("(%s, %d, %s)", referencedProjectName, referencedEntityId, referencedEntityToken != null ? referencedEntityToken.toString() : "<No Token>");
+		}
+	}
+	
+	private static class EngineRef implements Serializable, IResolvable {
+		private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
+		private String engineName;
+		public EngineRef(Engine engine) {
+			this.engineName = engine.getName();
+		}
+		@Override
+		public Object resolve(Index index) {
+			return ClonkCore.getDefault().loadEngine(engineName);
 		}
 	}
 	
@@ -814,7 +854,9 @@ public class Index extends Declaration implements Serializable, Iterable<Definit
 	 * @return
 	 */
 	public Object getSaveReplacementForEntity(IndexEntity entity) {
-		if (entity.getIndex() == this)
+		if (entity instanceof Engine)
+			return new EngineRef((Engine)entity);
+		else if (entity.getIndex() == this)
 			return new EntityId(entity);
 		else
 			return new EntityReference(entity);

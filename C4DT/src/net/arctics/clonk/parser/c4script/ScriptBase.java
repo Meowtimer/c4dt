@@ -94,6 +94,15 @@ public abstract class ScriptBase extends IndexEntity implements ITreeNode, IHasC
 		definedVariables = (List<Variable>) stream.readObject();
 		definedDirectives = (List<Directive>) stream.readObject();
 		usedProjectScripts = (Set<ScriptBase>) stream.readObject();
+		// also load scripts this script uses global declarations from so they will be present when the script gets parsed
+		try {
+			if (usedProjectScripts != null)
+				for (ScriptBase s : usedProjectScripts)
+					if (s != null)
+						s.requireLoaded();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 	
 	@Override
@@ -575,6 +584,7 @@ public abstract class ScriptBase extends IndexEntity implements ITreeNode, IHasC
 	}
 
 	public Function findLocalFunction(String name, boolean includeIncludes, HashSet<ScriptBase> alreadySearched) {
+		requireLoaded();
 		if (alreadySearched.contains(this))
 			return null;
 		alreadySearched.add(this);
@@ -593,6 +603,7 @@ public abstract class ScriptBase extends IndexEntity implements ITreeNode, IHasC
 	}
 
 	public Variable findLocalVariable(String name, boolean includeIncludes, HashSet<ScriptBase> alreadySearched) {
+		requireLoaded();
 		if (alreadySearched.contains(this))
 			return null;
 		alreadySearched.add(this);
@@ -611,6 +622,7 @@ public abstract class ScriptBase extends IndexEntity implements ITreeNode, IHasC
 	}
 
 	public boolean removeDuplicateVariables() {
+		requireLoaded();
 		Map<String, Variable> variableMap = new HashMap<String, Variable>();
 		Collection<Variable> toBeRemoved = new LinkedList<Variable>();
 		for (Variable v : definedVariables) {
@@ -810,15 +822,12 @@ public abstract class ScriptBase extends IndexEntity implements ITreeNode, IHasC
 	}
 	
 	public void addUsedProjectScript(ScriptBase script) {
+		if (script == this || script instanceof Engine)
+			return;
 		requireLoaded();
-		if (script.getIndex() == this.getIndex()) {
-			((usedProjectScripts == null) ? (usedProjectScripts = new HashSet<ScriptBase>()) : usedProjectScripts).add(script);
-		}
-	}
-	
-	public Set<ScriptBase> usedProjectScripts() {
-		requireLoaded();
-		return usedProjectScripts;
+		if (usedProjectScripts == null)
+			usedProjectScripts = new HashSet<ScriptBase>();
+		usedProjectScripts.add(script);
 	}
 
 	/*	public boolean removeDWording() {

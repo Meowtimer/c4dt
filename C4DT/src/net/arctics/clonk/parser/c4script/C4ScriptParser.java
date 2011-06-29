@@ -606,6 +606,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 				}
 			}
 			try {
+				container.notDirty();
 				container.save();
 			} catch (IOException e) {
 				e.printStackTrace();

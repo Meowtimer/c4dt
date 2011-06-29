@@ -14,13 +14,28 @@ public abstract class IndexEntity extends Structure {
 
 	private static final long serialVersionUID = 1L;
 
+	/**
+	 * Flag indicating whether the entity was loaded already loaded from disk or not.
+	 */
 	protected transient boolean notFullyLoaded = false;
 	protected transient boolean dirty = false; 
 	protected transient Index index;
 	protected long entityId;
 	
-	public final void markAsDirty() {
+	/**
+	 * Mark this entity as being out of sync with the file it was read from.
+	 * @param flag Dirty or not dirty.
+	 */
+	@Override
+	public void markAsDirty() {
 		dirty = true;
+	}
+	
+	/**
+	 * Mark this entity as not dirty (@see {@link #markAsDirty()})
+	 */
+	public void notDirty() {
+		dirty = false;
 	}
 
 	@Override
@@ -39,23 +54,15 @@ public abstract class IndexEntity extends Structure {
 		return index;
 	}
 
+	/**
+	 * Require this entity to be loaded. If {@link #notFullyLoaded} is true it is set to false and {@link Index#loadEntity(IndexEntity)} is called.
+	 */
 	public final void requireLoaded() {
 		if (notFullyLoaded) {
 			notFullyLoaded = false;
 			try {
 				index.loadEntity(this);
 			} catch (Exception e) {
-				e.printStackTrace();
-			}
-		}
-	}
-	
-	public synchronized final void saveIfDirty() {
-		if (dirty) {
-			dirty = false;
-			try {
-				this.save();
-			} catch (IOException e) {
 				e.printStackTrace();
 			}
 		}
@@ -97,13 +104,10 @@ public abstract class IndexEntity extends Structure {
 	 * @throws IOException 
 	 */
 	public final synchronized void save() throws IOException {
-		if (index != null) {
-			ObjectOutputStream s = index.getEntityOutputStream(this);
-			try {
-				save(s);
-			} finally {
-				s.close();
-			}
+		if (index != null) try {
+			index.saveEntity(this);
+		} catch (Exception e) {
+			e.printStackTrace();
 		}
 	}
 	
@@ -118,12 +122,12 @@ public abstract class IndexEntity extends Structure {
 	
 	@Override
 	public int hashCode() {
-		return (int) entityId;
+		return (int) entityId + (getIndex() != null ? getIndex().hashCode() : 0);
 	}
 	
 	@Override
 	public boolean equals(Object obj) {
-		return obj.getClass() == this.getClass() && ((IndexEntity)obj).entityId == this.entityId;
+		return obj.getClass() == this.getClass() && ((IndexEntity)obj).entityId == this.entityId && ((IndexEntity)obj).index == this.index;
 	}
 	
 }

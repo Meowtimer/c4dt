@@ -105,6 +105,10 @@ public abstract class Structure extends Declaration implements ILatestDeclaratio
 		return pinned;
 	}
 	
+	/**
+	 * Return true if this {@link Structure} is out of sync with the file it was read from.
+	 * @return Dirtyness flag.
+	 */
 	public boolean isDirty() {
 		return false;
 	}
