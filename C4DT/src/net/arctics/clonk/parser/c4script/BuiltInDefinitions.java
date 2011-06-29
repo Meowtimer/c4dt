@@ -116,7 +116,8 @@ public class BuiltInDefinitions {
 		Keywords.Return,
 		Keywords.While,
 		Keywords.In,
-		Keywords.Do
+		Keywords.Do,
+		"nil"
 	};
 	
 	public static final String[] DECLARATORS = new String[] {
