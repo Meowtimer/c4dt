@@ -5,6 +5,7 @@ import java.net.URL;
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.parser.c4script.Function;
+import net.arctics.clonk.parser.c4script.ProplistDeclaration;
 import net.arctics.clonk.parser.c4script.ScriptBase;
 import net.arctics.clonk.parser.c4script.Variable;
 import net.arctics.clonk.parser.mapcreator.MapCreatorMap;
@@ -57,6 +58,7 @@ public abstract class UI {
 	public static final Image MATERIAL_ICON = imageForPath("icons/Clonk_C4.png"); //$NON-NLS-1$ //$NON-NLS-2$
 	public static final Image CLONK_ENGINE_ICON = imageForPath("icons/Clonk_engine.png"); //$NON-NLS-1$ //$NON-NLS-2$
 	public static final Image DUPE_ICON = imageForPath("icons/dupe.png");
+	public static final Image PROPLIST_ICON = imageForPath("icons/proplist.png");
 	
 	/**
 	 * Return a function icon signifying the function's protection level.
@@ -97,6 +99,8 @@ public abstract class UI {
 			return MAPOVERLAY_ICON;
 		else if (element instanceof ScriptBase)
 			return SCRIPT_ICON;
+		else if (element instanceof ProplistDeclaration)
+			return PROPLIST_ICON;
 		return null;
 	}
 
