@@ -130,4 +130,12 @@ public abstract class IndexEntity extends Structure {
 		return obj.getClass() == this.getClass() && ((IndexEntity)obj).entityId == this.entityId && ((IndexEntity)obj).index == this.index;
 	}
 	
+	/**
+	 * Return whether {@link #save()} will be called by the {@link Index}.
+	 * @return True or false.
+	 */
+	public boolean saveCalledByIndex() {
+		return false;
+	}
+	
 }

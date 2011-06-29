@@ -57,6 +57,7 @@ public class ProplistDeclaration extends IndexEntity implements IType, IHasInclu
 	 * @return Return the list of component variables this proplist declaration is made up of.
 	 */
 	public List<Variable> getComponents() {
+		requireLoaded();
 		return components;
 	}
 	
@@ -91,6 +92,7 @@ public class ProplistDeclaration extends IndexEntity implements IType, IHasInclu
 	 * @return Return either the passed variable or an already existing one with that name
 	 */
 	public Variable addComponent(Variable variable) {
+		requireLoaded();
 		Variable found = findComponent(variable.getName());
 		if (found != null) {
 			return found;
@@ -107,6 +109,7 @@ public class ProplistDeclaration extends IndexEntity implements IType, IHasInclu
 	 * @return The found variable or null.
 	 */
 	public Variable findComponent(String declarationName) {
+		requireLoaded();
 		for (Variable v : components)
 			if (v.getName().equals(declarationName))
 				return v;
@@ -125,6 +128,7 @@ public class ProplistDeclaration extends IndexEntity implements IType, IHasInclu
 	
 	@Override
 	public Iterable<? extends Declaration> allSubDeclarations(int mask) {
+		requireLoaded();
 		if ((mask & VARIABLES) != 0) {
 			List<Iterable<? extends Declaration>> its = new LinkedList<Iterable<? extends Declaration>>();
 			its.add(getComponents());
@@ -203,6 +207,7 @@ public class ProplistDeclaration extends IndexEntity implements IType, IHasInclu
 	 * @return The Prototype {@link ProplistDeclaration} or null, if either the 'Prototype' entry does not exist or the type of the Prototype expression does not denote a proplist declaration.
 	 */
 	public IHasIncludes prototype() {
+		requireLoaded();
 		for (Variable v : components)
 			if (v.getName().equals(PROTOTYPE_KEY)) {
 				IType t = v.getType();
@@ -215,11 +220,13 @@ public class ProplistDeclaration extends IndexEntity implements IType, IHasInclu
 
 	@Override
 	public Collection<? extends IHasIncludes> getIncludes(Index index, boolean recursive) {
+		requireLoaded();
 		return IHasIncludes.Default.getIncludes(this, index, recursive);
 	}
 
 	@Override
 	public boolean includes(IHasIncludes other) {
+		requireLoaded();
 		Set<IHasIncludes> includes = new HashSet<IHasIncludes>();
 		gatherIncludes(includes, getIndex(), true);
 		return includes.contains(other);
@@ -227,6 +234,7 @@ public class ProplistDeclaration extends IndexEntity implements IType, IHasInclu
 	
 	@Override
 	public boolean gatherIncludes(Set<IHasIncludes> set, Index index, boolean recursive) {
+		requireLoaded();
 		if (set.contains(this))
 			return false;
 		else
@@ -245,6 +253,11 @@ public class ProplistDeclaration extends IndexEntity implements IType, IHasInclu
 		if (other instanceof ProplistDeclaration && ((ProplistDeclaration)other).getLocation().equals(this.getLocation()))
 			return true;
 		return false;
+	}
+	
+	@Override
+	public boolean saveCalledByIndex() {
+		return true;
 	}
 
 }

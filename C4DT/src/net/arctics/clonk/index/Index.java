@@ -231,19 +231,16 @@ public class Index extends Declaration implements Serializable, Iterable<Definit
 	
 	protected <T extends ScriptBase> void addGlobalsFromScript(T script) {
 		for (Function func : script.functions()) {
-			if (func.getVisibility() == FunctionScope.GLOBAL) {
+			if (func.getVisibility() == FunctionScope.GLOBAL)
 				globalFunctions.add(func);
-			}
 			for (Declaration otherDec : func.getOtherDeclarations())
-				if (otherDec instanceof ProplistDeclaration) {
+				if (otherDec instanceof ProplistDeclaration)
 					addToProplistDeclarations((ProplistDeclaration) otherDec);
-				}
 			addToDeclarationMap(func);
 		}
 		for (Variable var : script.variables()) {
-			if (var.getScope() == Scope.STATIC || var.getScope() == Scope.CONST) {
+			if (var.getScope() == Scope.STATIC || var.getScope() == Scope.CONST)
 				staticVariables.add(var);
-			}
 			addToDeclarationMap(var);
 		}
 		detectAppendages(script);
@@ -755,6 +752,8 @@ public class Index extends Declaration implements Serializable, Iterable<Definit
 	protected long addEntityReturningId(IndexEntity entity) {
 		long id = entityIdCounter++;
 		this.entities.put(id, entity);
+		if (newEntities != null)
+			newEntities.add(entity);
 		return id;
 	}
 	
@@ -908,6 +907,24 @@ public class Index extends Declaration implements Serializable, Iterable<Definit
 			if (!f.getName().startsWith("."))
 				f.delete();
 		}
+	}
+	
+
+	private List<IndexEntity> newEntities;
+	
+	public synchronized void endModification() {
+		for (IndexEntity e : newEntities)
+			if (!e.notFullyLoaded && e.saveCalledByIndex())
+				try {
+					e.save();
+				} catch (IOException e1) {
+					e1.printStackTrace();
+				}
+		newEntities = null;
+	}
+
+	public synchronized void beginModification() {
+		newEntities = new LinkedList<IndexEntity>();
 	}
 
 }
