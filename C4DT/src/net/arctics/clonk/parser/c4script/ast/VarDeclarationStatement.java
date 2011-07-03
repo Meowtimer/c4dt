@@ -53,6 +53,18 @@ public class VarDeclarationStatement extends KeywordStatement {
 			this.name = name;
 			this.expression = expression;
 			setExprRegion(namePos, expression != null ? expression.getExprEnd() : namePos + name.length());
+			assignParentToSubElements();
+		}
+		/**
+		 * Creat a new {@link VarInitialization}. Calls {@link VarInitialization#VarInitialization(String, ExprElm, int)}, additionally assigning {@link #variableBeingInitialized} the passed var.
+		 * @param name Name of variable
+		 * @param expression Expression. Can be null.
+		 * @param namePos Position of name. Used for setting the region of this expression ({@link #setExprRegion(int, int)}})
+		 * @param var Variable to assign to {@link #variableBeingInitialized}
+		 */
+		public VarInitialization(String name, ExprElm expression, int namePos, Variable var) {
+			this(name, expression, namePos);
+			this.variableBeingInitialized = var;
 		}
 		@Override
 		public ExprElm[] getSubElements() {

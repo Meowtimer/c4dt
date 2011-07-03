@@ -27,7 +27,7 @@ import net.arctics.clonk.util.Utilities;
  * @author ZokRadonh
  *
  */
-public class Variable extends Declaration implements Serializable, ITypeable, IHasUserDescription, IEvaluationContext {
+public class Variable extends Declaration implements Serializable, ITypeable, IHasUserDescription, IEvaluationContext, Cloneable {
 
 	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 	
@@ -422,6 +422,18 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 	@Override
 	public void reportOriginForExpression(ExprElm expression, IRegion location, IFile file) {
 		// wow
+	}
+	
+	@Override
+	public Variable clone() throws CloneNotSupportedException {
+		Variable clone = new Variable();
+		clone.description = this.description;
+		clone.initializationExpression = this.initializationExpression != null ? this.initializationExpression.clone() : null;
+		clone.location = this.location.clone();
+		clone.name = this.name;
+		clone.scope = this.scope;
+		clone.type = this.type;
+		return clone;
 	}
 	
 }

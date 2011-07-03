@@ -651,9 +651,8 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 					e.printStackTrace();
 				}
 			}
-			if (currentSubProgressMonitor != null) {
+			if (currentSubProgressMonitor != null)
 				currentSubProgressMonitor.worked(1);
-			}
 		}
 		//nature.getIndex().refreshIndex();
 	}

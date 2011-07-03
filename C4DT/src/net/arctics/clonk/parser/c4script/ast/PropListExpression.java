@@ -138,4 +138,17 @@ public class PropListExpression extends Value {
 		if (!parser.getContainer().getEngine().getCurrentSettings().proplistsSupported)
 			parser.errorWithCode(ParserErrorCode.NotSupported, this, C4ScriptParser.NO_THROW, Messages.PropListExpression_ProplistsFeature);
 	}
+	
+	@Override
+	public PropListExpression clone() throws CloneNotSupportedException {
+		PropListExpression e = (PropListExpression) super.clone();
+		e.definedDeclaration = this.definedDeclaration.clone();
+		return e;
+	}
+	
+	@Override
+	public void setParent(ExprElm parent) {
+		super.setParent(parent);
+	}
+	
 }

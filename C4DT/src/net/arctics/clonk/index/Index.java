@@ -639,6 +639,8 @@ public class Index extends Declaration implements Serializable, Iterable<Definit
 				ObjectInputStream objStream = new IndexEntityInputStream(null, in);
 				try {
 					index = indexClass.cast(objStream.readObject());
+					for (IndexEntity e : index.entities())
+						e.index = index;
 				} finally {
 					objStream.close();
 				}
@@ -831,6 +833,24 @@ public class Index extends Declaration implements Serializable, Iterable<Definit
 		}
 	}
 	
+	private static class EntityDeclaration implements Serializable, IResolvable {
+		private IResolvable entityId;
+		private String path;
+		public EntityDeclaration(IResolvable entityId, Declaration declaration) {
+			this.entityId = entityId;
+			this.path = declaration.pathRelativeToIndexEntity();
+		}
+		private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
+		@Override
+		public Declaration resolve(Index index) {
+			if (entityId != null) {
+				IResolvable e = Utilities.as(entityId.resolve(index), IResolvable.class);
+				return e instanceof Structure ? ((Structure)e).findDeclarationByPath(path) : null;
+			} else
+				return null;
+		}
+	}
+	
 	private static class EngineRef implements Serializable, IResolvable {
 		private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 		private String engineName;
@@ -852,7 +872,9 @@ public class Index extends Declaration implements Serializable, Iterable<Definit
 	 * @param entity
 	 * @return
 	 */
-	public Object getSaveReplacementForEntity(IndexEntity entity) {
+	public IResolvable getSaveReplacementForEntity(IndexEntity entity) {
+		if (entity == null)
+			return null;
 		if (entity instanceof Engine)
 			return new EngineRef((Engine)entity);
 		else if (entity.getIndex() == this)
@@ -925,6 +947,13 @@ public class Index extends Declaration implements Serializable, Iterable<Definit
 
 	public synchronized void beginModification() {
 		newEntities = new LinkedList<IndexEntity>();
+	}
+
+	public Object getSaveReplacementForEntityDeclaration(Declaration obj) {
+		if (obj.getIndex() == this)
+			return obj;
+		else
+			return new EntityDeclaration(getSaveReplacementForEntity(obj.getParentDeclarationOfType(IndexEntity.class)), obj);
 	}
 
 }

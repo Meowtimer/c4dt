@@ -345,7 +345,19 @@ public class CallFunc extends AccessDeclaration {
 		}
 		if (p != null) {
 			// find global function
-			Declaration declaration = context.getContainer().getIndex().findGlobal(Function.class, functionName);
+			Declaration declaration;
+			try {
+				declaration = context.getContainer().getIndex().findGlobal(Function.class, functionName);
+			} catch (Exception e) {
+				e.printStackTrace();
+				if (context == null)
+					System.out.println("No context");
+				if (context.getContainer() == null)
+					System.out.println("No container");
+				if (context.getContainer().getIndex() == null)
+					System.out.println("No index");
+				return null;
+			}
 			if (declaration == null)
 				declaration = context.getContainer().getIndex().getEngine().findFunction(functionName);
 

@@ -1,5 +1,6 @@
 package net.arctics.clonk.index;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -63,6 +64,8 @@ public abstract class IndexEntity extends Structure {
 			try {
 				index.loadEntity(this);
 			} catch (Exception e) {
+				if (e instanceof FileNotFoundException)
+					System.out.println("Entity file for " + this.toString() + " not found");
 				e.printStackTrace();
 			}
 		}

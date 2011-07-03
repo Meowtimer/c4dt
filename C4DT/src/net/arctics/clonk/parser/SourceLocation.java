@@ -9,7 +9,7 @@ import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IRegion;
 
-public class SourceLocation implements IRegion, Serializable {
+public class SourceLocation implements IRegion, Serializable, Cloneable {
 
 	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 	
@@ -91,6 +91,11 @@ public class SourceLocation implements IRegion, Serializable {
 	
 	public SourceLocation offset(int o) {
 		return new SourceLocation(o+start, o+end);
+	}
+	
+	@Override
+	public SourceLocation clone() throws CloneNotSupportedException {
+		return new SourceLocation(start, end);
 	}
 
 }

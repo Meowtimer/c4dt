@@ -6,6 +6,7 @@ import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.Engine;
+import net.arctics.clonk.index.IndexEntity;
 import net.arctics.clonk.index.ProjectDefinition;
 import net.arctics.clonk.index.Scenario;
 import net.arctics.clonk.parser.c4script.DeclarationObtainmentContext;
@@ -525,6 +526,25 @@ public abstract class Declaration implements Serializable, IHasRelatedResource, 
 			return getName();
 		else
 			return getName() + ownIndex;
+	}
+	
+	/**
+	 * Return the {@link Declaration}'s path, which is a concatenation of its parent declaration's and its own name, separated by '.'
+	 * Concatenating the path will stop at the earliest {@link IndexEntity} in the declaration hierarchy.
+	 * @return The path
+	 */
+	public String pathRelativeToIndexEntity() {
+		StringBuilder builder = new StringBuilder();
+		for (Declaration d = this; d != null; d = d.getParentDeclaration()) {
+			if (d instanceof IndexEntity)
+				break;
+			else {
+				if (builder.length() > 0)
+					builder.insert(0, '.');
+				builder.insert(0, d.getName());
+			}
+		}
+		return builder.toString();
 	}
 	
 }

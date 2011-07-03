@@ -799,6 +799,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	private void addVarParmsParm(Function func) {
 		Variable v = new Variable("...", PrimitiveType.ANY); //$NON-NLS-1$
 		v.setParentDeclaration(func);
+		v.setScope(Variable.Scope.VAR);
 		func.getParameters().add(v);
 	}
 
@@ -926,8 +927,10 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 				int e = this.offset;
 				Declaration outerDec = currentFunctionContext.currentDeclaration;
 				try {
-					VarInitialization varInitialization = new VarInitialization(varName, null, s-bodyOffset());
-					currentFunctionContext.currentDeclaration = varInitialization.variableBeingInitialized = createVarInScope(varName, scope, s, e, comment);
+					Variable var = createVarInScope(varName, scope, s, e, comment);
+					currentFunctionContext.currentDeclaration = var;
+					VarInitialization varInitialization;
+					ExprElm initializationExpression = null;
 					if (scope == Scope.CONST || currentFunc != null || getContainer().getEngine().getCurrentSettings().nonConstGlobalVarsAssignment) {
 						eatWhitespace();
 						if (peek() == '=') {
@@ -938,7 +941,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 							boolean old = allErrorsDisabled;
 							allErrorsDisabled |= !reportErrors;
 							try {
-								varInitialization.expression = parseExpression(reportErrors);
+								initializationExpression = parseExpression(reportErrors);
 							} finally {
 								allErrorsDisabled = old;
 							}
@@ -956,27 +959,28 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 										}*/
 										// fallthrough
 									case LOCAL: case STATIC:
-										varInitialization.variableBeingInitialized.setInitializationExpression(varInitialization.expression);
+										var.setInitializationExpression(initializationExpression);
 										break;
 									}
 								}
 							} catch (Exception ex) {
 								ex.printStackTrace();
-								errorWithCode(ParserErrorCode.InvalidExpression, varInitialization.expression);
+								errorWithCode(ParserErrorCode.InvalidExpression, initializationExpression);
 							}
 
-							typeOfNewVar = varInitialization.expression instanceof IType
-								? (IType)varInitialization.expression
-								: varInitialization.expression != null
-									? varInitialization.expression.getType(this)
+							typeOfNewVar = initializationExpression instanceof IType
+								? (IType)initializationExpression
+								: initializationExpression != null
+									? initializationExpression.getType(this)
 									: PrimitiveType.UNKNOWN;
 						} else {
 							if (scope == Scope.CONST && !isEngine)
 								errorWithCode(ParserErrorCode.ConstantValueExpected, this.offset-1, this.offset, true);
 							else if (scope == Scope.STATIC && isEngine)
-								varInitialization.variableBeingInitialized.forceType(PrimitiveType.INT); // most likely
+								var.forceType(PrimitiveType.INT); // most likely
 						}
 					}
+					varInitialization = new VarInitialization(varName, initializationExpression, s-bodyOffset(), var);
 					createdVariables.add(varInitialization);
 					if (typeOfNewVar != null) {
 						switch (scope) {
@@ -1930,9 +1934,9 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		ProplistDeclaration proplDec = parsePropListDeclaration(reportErrors);
 		if (proplDec != null) {
 			ExprElm elm = new PropListExpression(proplDec);
-			if (getCurrentFunc() != null) {
+			if (getCurrentFunc() != null)
 				getCurrentFunc().addOtherDeclaration(proplDec);
-			}
+			proplDec.setName(elm.toString());
 			return elm;
 		}
 		return null;
@@ -1942,7 +1946,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 		int propListStart = offset;
 		int c = read();
 		if (c == '{') {
-			ProplistDeclaration proplistDeclaration = ProplistDeclaration.adHocDeclaration(getContainer().getIndex());// new ProplistDeclaration(new ArrayList<Variable>(10));
+			ProplistDeclaration proplistDeclaration = ProplistDeclaration.newAdHocDeclaration();
 			proplistDeclaration.setParentDeclaration(currentFunctionContext.currentDeclaration != null ? currentFunctionContext.currentDeclaration : container);
 			Declaration oldDec = currentFunctionContext.currentDeclaration;
 			currentFunctionContext.currentDeclaration = proplistDeclaration;

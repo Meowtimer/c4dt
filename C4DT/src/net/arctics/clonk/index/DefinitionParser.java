@@ -62,7 +62,7 @@ public class DefinitionParser {
 			}
 			else if (scenario != null) {
 				if (object == null) {
-					object = new Scenario(index, null, objectFolder.getName(), objectFolder);
+					object = new Scenario(index, objectFolder.getName(), objectFolder);
 				}
 			}
 			return object;

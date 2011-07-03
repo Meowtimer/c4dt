@@ -13,7 +13,7 @@ public class EffectPropListDeclaration extends ProplistDeclaration {
 		return effectName;
 	}
 	public EffectPropListDeclaration(Index index, String effectName, List<Variable> variables) {
-		super(index, variables);
+		super(variables);
 		this.effectName = effectName;
 		this.adHoc = true;
 		this.components = new LinkedList<Variable>();

@@ -1,8 +1,6 @@
 package net.arctics.clonk.parser.c4script;
 
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -11,37 +9,25 @@ import java.util.List;
 import java.util.Set;
 
 import net.arctics.clonk.index.Index;
-import net.arctics.clonk.index.IndexEntity;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.IHasIncludes;
-import net.arctics.clonk.util.ArrayUtil;
+import net.arctics.clonk.parser.Structure;
+import static net.arctics.clonk.util.ArrayUtil.*;
 import net.arctics.clonk.util.CompoundIterable;
+import net.arctics.clonk.util.StringUtil;
 
 /**
  * A proplist declaration parsed from an {key:value, ...} expression.
  * @author madeen
  *
  */
-public class ProplistDeclaration extends IndexEntity implements IType, IHasIncludes {
+public class ProplistDeclaration extends Structure implements IType, IHasIncludes, Cloneable {
 
 	private static final long serialVersionUID = 1L;
 	public static final String PROTOTYPE_KEY = "Prototype";
 	
-	protected transient List<Variable> components;
+	protected List<Variable> components;
 	protected boolean adHoc;
-	
-	@Override
-	public synchronized void save(ObjectOutputStream stream) throws IOException {
-		super.save(stream);
-		stream.writeObject(components);
-	}
-	
-	@SuppressWarnings("unchecked")
-	@Override
-	public void load(ObjectInputStream stream) throws IOException, ClassNotFoundException {
-		super.load(stream);
-		components = (List<Variable>) stream.readObject();
-	}
 
 	/**
 	 * Whether the declaration was "explicit" {blub=<blub>...} or
@@ -57,12 +43,10 @@ public class ProplistDeclaration extends IndexEntity implements IType, IHasInclu
 	 * @return Return the list of component variables this proplist declaration is made up of.
 	 */
 	public List<Variable> getComponents() {
-		requireLoaded();
 		return components;
 	}
 	
-	public ProplistDeclaration(Index index) {
-		super(index);
+	public ProplistDeclaration() {
 		setName(String.format("%s {...}", PrimitiveType.PROPLIST.toString()));
 	}
 
@@ -70,8 +54,7 @@ public class ProplistDeclaration extends IndexEntity implements IType, IHasInclu
 	 * Create a new ProplistDeclaration, passing it component variables it takes over directly. The list won't be copied.
 	 * @param components The component variables
 	 */
-	public ProplistDeclaration(Index index, List<Variable> components) {
-		this(index);
+	public ProplistDeclaration(List<Variable> components) {
 		this.components = components;
 	}
 	
@@ -79,8 +62,8 @@ public class ProplistDeclaration extends IndexEntity implements IType, IHasInclu
 	 * Create an adhoc proplist declaration.
 	 * @return The newly created adhoc proplist declaration.
 	 */
-	public static ProplistDeclaration adHocDeclaration(Index index) {
-		ProplistDeclaration result = new ProplistDeclaration(index);
+	public static ProplistDeclaration newAdHocDeclaration() {
+		ProplistDeclaration result = new ProplistDeclaration();
 		result.adHoc = true;
 		result.components = new LinkedList<Variable>();
 		return result;
@@ -92,7 +75,6 @@ public class ProplistDeclaration extends IndexEntity implements IType, IHasInclu
 	 * @return Return either the passed variable or an already existing one with that name
 	 */
 	public Variable addComponent(Variable variable) {
-		requireLoaded();
 		Variable found = findComponent(variable.getName());
 		if (found != null) {
 			return found;
@@ -109,7 +91,6 @@ public class ProplistDeclaration extends IndexEntity implements IType, IHasInclu
 	 * @return The found variable or null.
 	 */
 	public Variable findComponent(String declarationName) {
-		requireLoaded();
 		for (Variable v : components)
 			if (v.getName().equals(declarationName))
 				return v;
@@ -128,7 +109,6 @@ public class ProplistDeclaration extends IndexEntity implements IType, IHasInclu
 	
 	@Override
 	public Iterable<? extends Declaration> allSubDeclarations(int mask) {
-		requireLoaded();
 		if ((mask & VARIABLES) != 0) {
 			List<Iterable<? extends Declaration>> its = new LinkedList<Iterable<? extends Declaration>>();
 			its.add(getComponents());
@@ -156,7 +136,7 @@ public class ProplistDeclaration extends IndexEntity implements IType, IHasInclu
 	
 	@Override
 	public Iterator<IType> iterator() {
-		return ArrayUtil.arrayIterable(PrimitiveType.PROPLIST, this).iterator();
+		return arrayIterable(PrimitiveType.PROPLIST, this).iterator();
 	}
 
 	@Override
@@ -207,7 +187,6 @@ public class ProplistDeclaration extends IndexEntity implements IType, IHasInclu
 	 * @return The Prototype {@link ProplistDeclaration} or null, if either the 'Prototype' entry does not exist or the type of the Prototype expression does not denote a proplist declaration.
 	 */
 	public IHasIncludes prototype() {
-		requireLoaded();
 		for (Variable v : components)
 			if (v.getName().equals(PROTOTYPE_KEY)) {
 				IType t = v.getType();
@@ -220,13 +199,11 @@ public class ProplistDeclaration extends IndexEntity implements IType, IHasInclu
 
 	@Override
 	public Collection<? extends IHasIncludes> getIncludes(Index index, boolean recursive) {
-		requireLoaded();
 		return IHasIncludes.Default.getIncludes(this, index, recursive);
 	}
 
 	@Override
 	public boolean includes(IHasIncludes other) {
-		requireLoaded();
 		Set<IHasIncludes> includes = new HashSet<IHasIncludes>();
 		gatherIncludes(includes, getIndex(), true);
 		return includes.contains(other);
@@ -234,7 +211,6 @@ public class ProplistDeclaration extends IndexEntity implements IType, IHasInclu
 	
 	@Override
 	public boolean gatherIncludes(Set<IHasIncludes> set, Index index, boolean recursive) {
-		requireLoaded();
 		if (set.contains(this))
 			return false;
 		else
@@ -256,8 +232,19 @@ public class ProplistDeclaration extends IndexEntity implements IType, IHasInclu
 	}
 	
 	@Override
-	public boolean saveCalledByIndex() {
-		return true;
+	public ProplistDeclaration clone() throws CloneNotSupportedException {
+		List<Variable> clonedComponents = new ArrayList<Variable>(this.components.size());
+		for (Variable v : components)
+			clonedComponents.add(v.clone());
+		ProplistDeclaration clone = new ProplistDeclaration(components);
+		clone.location = this.location.clone();
+		clone.adHoc = this.adHoc;
+		return clone;
+	}
+	
+	@Override
+	public String toString() {
+		return StringUtil.writeBlock(null, "{", "}", ", ", components);		
 	}
 
 }

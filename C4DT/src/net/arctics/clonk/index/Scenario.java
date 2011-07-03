@@ -12,15 +12,14 @@ import org.eclipse.core.resources.IContainer;
  */
 public class Scenario extends ProjectDefinition {
 
-	public Scenario(Index index, ID id, String name, IContainer container) {
-		super(index, id, name, container);
+	public Scenario(Index index, String name, IContainer container) {
+		super(index, ID.NULL, name, container);
 	}
 	
 	public static Scenario get(IContainer folder) {
 		ProjectDefinition obj = definitionCorrespondingToFolder(folder);
 		return obj instanceof Scenario ? (Scenario)obj : null;
 	}
-
 
 	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 
