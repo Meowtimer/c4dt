@@ -422,7 +422,7 @@ public class SpecialScriptRules_OpenClonk extends SpecialScriptRules {
 				scanner.advance(-idString.length());
 				return null;
 			}
-			return ID.getID(idString);
+			return ID.get(idString);
 		}
 		return null;
 	}

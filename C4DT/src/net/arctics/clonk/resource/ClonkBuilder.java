@@ -400,11 +400,11 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 					// FIXME: implement for CR?
 					Variable var = def.proxyVar();
 					if (var != null && UI.confirm(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(),
-						String.format(Messages.ClonkBuilder_RenameRefactoringPrompt, oldID.getName(), newID.getName()),
-						String.format(Messages.ClonkBuilder_RenameRefactoringTitle, oldID.getName()))
+						String.format(Messages.ClonkBuilder_RenameRefactoringPrompt, oldID.stringValue(), newID.stringValue()),
+						String.format(Messages.ClonkBuilder_RenameRefactoringTitle, oldID.stringValue()))
 					)
 						// perform a refactoring - the RenameDeclarationProcessor will take care of renaming the proxyvar which in turn will cause the id of the definition to actually be changed
-						RenameDeclarationAction.performRenameRefactoring(var, newID.getName(), RenameDeclarationProcessor.CONSIDER_DEFCORE_ID_ALREADY_CHANGED);
+						RenameDeclarationAction.performRenameRefactoring(var, newID.stringValue(), RenameDeclarationProcessor.CONSIDER_DEFCORE_ID_ALREADY_CHANGED);
 					else
 						// simply set the new id
 						def.setId(newID); 

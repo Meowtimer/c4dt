@@ -7,14 +7,19 @@ import java.util.Map;
 import net.arctics.clonk.index.IResolvable;
 import net.arctics.clonk.index.Index;
 
+/**
+ * Represents a C4ID.
+ * @author madeen
+ *
+ */
 public final class ID implements Serializable, IResolvable {
 	private static final Map<String, ID> idPool = new HashMap<String, ID>();
 	private static final long serialVersionUID = 833007356188766488L;
-	public static final ID NULL = getID("NULL"); //$NON-NLS-1$
+	public static final ID NULL = get("NULL"); //$NON-NLS-1$
 	
 	private String name;
 	
-	protected ID(String id) {
+	private ID(String id) {
 		name = id;
 		idPool.put(id, this);
 	}
@@ -29,21 +34,17 @@ public final class ID implements Serializable, IResolvable {
 		return special;
 	}
 	
-	public static ID getSpecialID(String infoText) {
-		if (idPool.containsKey(infoText)) {
-			return idPool.get(infoText);
+	/**
+	 * Return an {@link ID} instance with the specified string value.
+	 * @param stringValue The string value
+	 * @return A newly created {@link ID} added to the global pool or an already existing one.
+	 */
+	public static ID get(String stringValue) {
+		if (idPool.containsKey(stringValue)) {
+			return idPool.get(stringValue);
 		}
 		else {
-			return new ID(infoText);
-		}
-	}
-	
-	public static ID getID(String id) {
-		if (idPool.containsKey(id)) {
-			return idPool.get(id);
-		}
-		else {
-			return new ID(id);
+			return new ID(stringValue);
 		}
 	}
 	
@@ -52,7 +53,7 @@ public final class ID implements Serializable, IResolvable {
 	 */
 	@Override
 	public boolean equals(Object obj) {
-		return obj instanceof ID && ((ID)obj).getName().equals(getName());
+		return obj instanceof ID && ((ID)obj).stringValue().equals(stringValue());
 	}
 
 	/* (non-Javadoc)
@@ -67,7 +68,7 @@ public final class ID implements Serializable, IResolvable {
 	 * The string representation of the id. (e.g. CLNK)
 	 * @return the name
 	 */
-	public String getName() {
+	public String stringValue() {
 		return name;
 	}
 
@@ -76,7 +77,7 @@ public final class ID implements Serializable, IResolvable {
 	 */
 	@Override
 	public String toString() {
-		return getName();
+		return stringValue();
 	}
 
 	public final int length() {

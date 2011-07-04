@@ -112,7 +112,7 @@ public abstract class Definition extends ScriptBase {
 				cls == Definition.class ||
 				(getEngine() != null && getEngine().getCurrentSettings().definitionsHaveProxyVariables && (variableRequired = Variable.class.isAssignableFrom(cls)))
 		) {
-			if (id != null && id.getName().equals(name))
+			if (id != null && id.stringValue().equals(name))
 				return variableRequired ? this.proxyVar() : this;
 		}
 		return null;
@@ -146,7 +146,7 @@ public abstract class Definition extends ScriptBase {
 
 	@Override
 	public boolean nameContains(String text) {
-		if (id() != null && id().getName().toUpperCase().indexOf(text) != -1)
+		if (id() != null && id().stringValue().toUpperCase().indexOf(text) != -1)
 			return true;
 		if (getName() != null && getName().toUpperCase().contains(text))
 			return true;

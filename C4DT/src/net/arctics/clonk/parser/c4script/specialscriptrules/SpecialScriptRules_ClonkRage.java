@@ -47,7 +47,7 @@ public class SpecialScriptRules_ClonkRage extends SpecialScriptRules {
 				scanner.advance(-idString.length());
 				return null;
 			}
-			return ID.getID(idString);
+			return ID.get(idString);
 		}
 		return null;
 	}

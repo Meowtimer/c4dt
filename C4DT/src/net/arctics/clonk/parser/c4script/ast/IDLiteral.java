@@ -23,7 +23,7 @@ public final class IDLiteral extends Literal<ID> {
 
 	@Override
 	public void doPrint(ExprWriter output, int depth) {
-		output.append(idValue().getName());
+		output.append(idValue().stringValue());
 	}
 
 	@Override

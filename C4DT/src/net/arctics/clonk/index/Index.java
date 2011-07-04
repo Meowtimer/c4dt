@@ -159,7 +159,7 @@ public class Index extends Declaration implements Serializable, Iterable<Definit
 			
 			// create session cache
 			if (folder.getPersistentProperty(ClonkCore.FOLDER_C4ID_PROPERTY_ID) == null) return null;
-			List<Definition> objects = getDefinitionsWithID(ID.getID(folder.getPersistentProperty(ClonkCore.FOLDER_C4ID_PROPERTY_ID)));
+			List<Definition> objects = getDefinitionsWithID(ID.get(folder.getPersistentProperty(ClonkCore.FOLDER_C4ID_PROPERTY_ID)));
 			if (objects != null) {
 				for (Definition obj : objects) {
 					if ((obj instanceof ProjectDefinition)) {

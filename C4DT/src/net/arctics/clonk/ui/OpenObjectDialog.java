@@ -41,7 +41,7 @@ public class OpenObjectDialog extends FilteredItemsSelectionDialog {
 			Definition obj = (Definition) element;
 			StyledString buf = new StyledString(obj.getName());
 			buf.append(" - ", StyledString.QUALIFIER_STYLER); //$NON-NLS-1$
-			buf.append(obj.id().getName(), StyledString.QUALIFIER_STYLER);
+			buf.append(obj.id().stringValue(), StyledString.QUALIFIER_STYLER);
 			return buf;
 		}
 	}
@@ -122,7 +122,7 @@ public class OpenObjectDialog extends FilteredItemsSelectionDialog {
 	public String getElementName(Object item) {
 		if (!(item instanceof Definition))
 			return item.toString();
-		return ((Definition)item).id().getName();
+		return ((Definition)item).id().stringValue();
 	}
 
 	@SuppressWarnings("rawtypes")

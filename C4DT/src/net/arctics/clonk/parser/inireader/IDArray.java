@@ -11,7 +11,7 @@ public class IDArray extends KeyValueArrayEntry<ID, Integer> {
 		if (idAndCount.length < 2)
 			return null;
 		try {
-			return new KeyValuePair<ID, Integer>(ID.getID(idAndCount[0].trim()), Integer.parseInt(idAndCount[1].trim()));
+			return new KeyValuePair<ID, Integer>(ID.get(idAndCount[0].trim()), Integer.parseInt(idAndCount[1].trim()));
 		} catch (NumberFormatException e) {
 			e.printStackTrace();
 			return null;

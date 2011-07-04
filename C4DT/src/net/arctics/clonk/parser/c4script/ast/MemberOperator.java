@@ -77,7 +77,7 @@ public class MemberOperator extends ExprElm {
 			else
 				output.append("->"); //$NON-NLS-1$
 			if (id != null) {
-				output.append(id.getName());
+				output.append(id.stringValue());
 				output.append("::"); //$NON-NLS-1$
 			}
 		}

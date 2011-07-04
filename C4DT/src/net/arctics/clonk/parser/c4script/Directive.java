@@ -92,7 +92,7 @@ public class Directive extends Declaration implements Serializable {
 
 	public ID contentAsID() {
 		if (cachedID == null)
-			cachedID = ID.getID(this.getContent());
+			cachedID = ID.get(this.getContent());
 		return cachedID;
 	}
 

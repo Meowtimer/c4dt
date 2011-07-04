@@ -1472,7 +1472,7 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 
 	public String lastTokenAsString(Token token) {
 		switch (token) {
-		case ID: return currentFunctionContext.parsedID.getName();
+		case ID: return currentFunctionContext.parsedID.stringValue();
 		case Number: return String.valueOf(currentFunctionContext.parsedNumber);
 		case String: return "\""+currentFunctionContext.parsedString+"\""; //$NON-NLS-1$ //$NON-NLS-2$
 		case Word: case Symbol: case Operator: return currentFunctionContext.parsedString;

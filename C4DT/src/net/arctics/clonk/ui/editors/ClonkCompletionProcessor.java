@@ -36,7 +36,7 @@ public abstract class ClonkCompletionProcessor<EditorType extends ClonkTextEdito
 			if (prefix != null) {
 				if (!(
 					def.getName().toLowerCase().contains(prefix) ||
-					def.id().getName().toLowerCase().contains(prefix) ||
+					def.id().stringValue().toLowerCase().contains(prefix) ||
 					// also check if the user types in the folder name
 					(def instanceof ProjectDefinition && ((ProjectDefinition)def).definitionFolder() != null && ((ProjectDefinition)def).definitionFolder().getName().contains(prefix))
 				))
@@ -45,8 +45,8 @@ public abstract class ClonkCompletionProcessor<EditorType extends ClonkTextEdito
 			String displayString = def.getName();
 			int replacementLength = prefix != null ? prefix.length() : 0; 
 
-			ClonkCompletionProposal prop = new ClonkCompletionProposal(def, def.id().getName(), offset, replacementLength, def.id().getName().length(),
-				UI.definitionIcon(def), displayString.trim(), null, null, " - " + def.id().getName(), getEditor()); //$NON-NLS-1$
+			ClonkCompletionProposal prop = new ClonkCompletionProposal(def, def.id().stringValue(), offset, replacementLength, def.id().stringValue().length(),
+				UI.definitionIcon(def), displayString.trim(), null, null, " - " + def.id().stringValue(), getEditor()); //$NON-NLS-1$
 			prop.setCategory(Category.Definitions);
 			proposals.add(prop);
 		} catch (Exception e) {

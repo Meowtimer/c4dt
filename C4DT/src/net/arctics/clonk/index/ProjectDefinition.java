@@ -41,12 +41,12 @@ public class ProjectDefinition extends Definition implements Serializable {
 
 		@Override
 		public String getName() {
-			return id().getName();
+			return id().stringValue();
 		}
 		
 		@Override
 		public void setName(String name) {
-			setId(ID.getID(name));
+			setId(ID.get(name));
 		}
 
 		@Override
@@ -215,7 +215,7 @@ public class ProjectDefinition extends Definition implements Serializable {
 		if (folder != null) {
 			folder.setSessionProperty(ClonkCore.FOLDER_DEFINITION_REFERENCE_ID, this);
 			if (id() != null)
-				folder.setPersistentProperty(ClonkCore.FOLDER_C4ID_PROPERTY_ID, id().getName());
+				folder.setPersistentProperty(ClonkCore.FOLDER_C4ID_PROPERTY_ID, id().stringValue());
 			else
 				folder.setPersistentProperty(ClonkCore.FOLDER_C4ID_PROPERTY_ID, null);
 			relativePath = folder.getFullPath().toPortableString();
@@ -244,7 +244,7 @@ public class ProjectDefinition extends Definition implements Serializable {
 		super.setId(newId);
 		if (definitionFolder != null)
 			try {
-				definitionFolder.setPersistentProperty(ClonkCore.FOLDER_C4ID_PROPERTY_ID, id().getName());
+				definitionFolder.setPersistentProperty(ClonkCore.FOLDER_C4ID_PROPERTY_ID, id().stringValue());
 			} catch (CoreException e) {
 				e.printStackTrace();
 			}

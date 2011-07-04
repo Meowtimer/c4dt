@@ -95,7 +95,7 @@ public class C4ScriptParserTestCase {
 									scanner.advance(-idString.length());
 									return null;
 								}
-								return ID.getID(idString);
+								return ID.get(idString);
 							}
 							return null;
 						}

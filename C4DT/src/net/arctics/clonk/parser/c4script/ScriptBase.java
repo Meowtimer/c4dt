@@ -400,7 +400,7 @@ public abstract class ScriptBase extends IndexEntity implements ITreeNode, IHasC
 				}
 			// definition from extern index
 			if (getEngine().acceptsId(name)) {
-				f = info.index.getDefinitionNearestTo(getResource(), ID.getID(name));
+				f = info.index.getDefinitionNearestTo(getResource(), ID.get(name));
 				if (f != null && info.declarationClass == Variable.class && f instanceof ProjectDefinition) {
 					f = ((ProjectDefinition)f).proxyVar();
 				}

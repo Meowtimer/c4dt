@@ -11,7 +11,7 @@ public class GenericEntryFactory implements IEntryFactory {
 		if (value == null)
 			value = ""; //$NON-NLS-1$
 		if (type.equals(ID.class)) {
-			return ID.getID(value);
+			return ID.get(value);
 		}
 		else if (type.equals(String.class)) {
 			return value;
