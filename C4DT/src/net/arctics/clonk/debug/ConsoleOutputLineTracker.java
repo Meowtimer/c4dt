@@ -26,6 +26,12 @@ import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.console.IHyperlink;
 import org.eclipse.ui.ide.IDE;
 
+/**
+ * Tracks console output and inserts links to file locations.
+ * This works for complete project-relative paths such as Objects.ocd/Clonk.ocd/Script.c:123
+ * @author madeen
+ *
+ */
 public class ConsoleOutputLineTracker implements IConsoleLineTracker {
 
 	private IConsole console;
@@ -115,6 +121,13 @@ public class ConsoleOutputLineTracker implements IConsoleLineTracker {
 		}
 	}
 
+	/**
+	 * Create resource links in the specified line.
+	 * @param lineStr The console output line as a string
+	 * @param resourcesInRelevantProjects List of top-level resources whose contained files are considered valid link targets. Those would include all top-level folders in relevant projects. 
+	 * @param console The {@link IConsole} links will be added to
+	 * @param lineRegion Region of the line in the console's text
+	 */
 	public static void createResourceLinksInLine(String lineStr, List<IResource> resourcesInRelevantProjects, IConsole console, IRegion lineRegion) {
 		List<IResource> resourceCandidatesAtCurrentFolderLevel = new ArrayList<IResource>(resourcesInRelevantProjects.size());
 		resourceCandidatesAtCurrentFolderLevel.addAll(resourcesInRelevantProjects);
