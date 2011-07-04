@@ -5,7 +5,6 @@ import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.resource.ClonkProjectNature;
 import net.arctics.clonk.resource.c4group.C4Group.GroupType;
-import net.arctics.clonk.ui.OverlayIcon;
 import net.arctics.clonk.util.INode;
 import net.arctics.clonk.util.UI;
 import org.eclipse.core.resources.IFile;
@@ -20,7 +19,6 @@ import org.eclipse.jface.viewers.LabelProviderChangedEvent;
 import org.eclipse.jface.viewers.StyledString;
 import org.eclipse.jface.viewers.DelegatingStyledCellLabelProvider.IStyledLabelProvider;
 import org.eclipse.swt.graphics.Image;
-import org.eclipse.swt.graphics.Point;
 
 public class ClonkLabelProvider extends LabelProvider implements IStyledLabelProvider {
 	
@@ -112,10 +110,6 @@ public class ClonkLabelProvider extends LabelProvider implements IStyledLabelPro
 			buf.append("]",StyledString.DECORATIONS_STYLER); //$NON-NLS-1$
 		}
 		return buf;
-	}
-	
-	protected static ImageDescriptor decorateImage(ImageDescriptor input, Object element) {
-		return new OverlayIcon(input,computeOverlays(element),new Point(22,16));
 	}
 	
 	protected static ImageDescriptor[][] computeOverlays(Object element) {
