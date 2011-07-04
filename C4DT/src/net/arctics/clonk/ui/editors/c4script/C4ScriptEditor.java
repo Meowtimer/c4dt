@@ -119,7 +119,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 	}
 
 	/**
-	 * C4Script-specific specialisation of {@link TextChangeListenerBase} that tries to only trigger a full reparse of the script when necessary (i.e. not when editing inside of a function)
+	 * C4Script-specific specialization of {@link TextChangeListenerBase} that tries to only trigger a full reparse of the script when necessary (i.e. not when editing inside of a function)
 	 * @author madeen
 	 *
 	 */
@@ -216,6 +216,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 			}
 		}
 		
+		@Override
 		public void documentChanged(DocumentEvent event) {
 			super.documentChanged(event);
 			final Function f = structure.funcAt(event.getOffset());

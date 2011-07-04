@@ -68,9 +68,9 @@ public abstract class ScriptBase extends IndexEntity implements ITreeNode, IHasC
 
 	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 
-	protected transient List<Function> definedFunctions = new LinkedList<Function>();
-	protected transient List<Variable> definedVariables = new LinkedList<Variable>();
-	protected transient List<Directive> definedDirectives = new LinkedList<Directive>();
+	protected transient List<Function> definedFunctions;
+	protected transient List<Variable> definedVariables;
+	protected transient List<Directive> definedDirectives;
 	
 	// set of scripts this script is using functions and/or static variables from
 	private transient Set<ScriptBase> usedProjectScripts;
@@ -166,7 +166,7 @@ public abstract class ScriptBase extends IndexEntity implements ITreeNode, IHasC
 	public int getStrictLevel() {
 		requireLoaded();
 		long level = getEngine() != null ? getEngine().getCurrentSettings().strictDefaultLevel : -1;
-		for (Directive d : this.definedDirectives) {
+		for (Directive d : this.directives()) {
 			if (d.getType() == DirectiveType.STRICT) {
 				try {
 					level = Math.max(level, Integer.parseInt(d.getContent()));
@@ -187,7 +187,7 @@ public abstract class ScriptBase extends IndexEntity implements ITreeNode, IHasC
 	public Directive[] getIncludeDirectives() {
 		requireLoaded();
 		List<Directive> result = new ArrayList<Directive>();
-		for (Directive d : definedDirectives) {
+		for (Directive d : directives()) {
 			if (d.getType() == DirectiveType.INCLUDE || d.getType() == DirectiveType.APPENDTO) {
 				result.add(d);
 			}
@@ -207,7 +207,7 @@ public abstract class ScriptBase extends IndexEntity implements ITreeNode, IHasC
 			return false;
 		else
 			set.add(this);
-		for (Directive d : definedDirectives) {
+		for (Directive d : directives()) {
 			if (d.getType() == DirectiveType.INCLUDE || d.getType() == DirectiveType.APPENDTO) {
 				Definition obj = nearestDefinitionWithId(d.contentAsID());
 				if (obj != null && (!recursive || obj.gatherIncludes(set, index, recursive)))
@@ -290,13 +290,13 @@ public abstract class ScriptBase extends IndexEntity implements ITreeNode, IHasC
 	public Declaration findLocalDeclaration(String declarationName, Class<? extends Declaration> declarationClass) {
 		requireLoaded();
 		if (Variable.class.isAssignableFrom(declarationClass)) {
-			for (Variable v : definedVariables) {
+			for (Variable v : variables()) {
 				if (v.getName().equals(declarationName))
 					return v;
 			}
 		}
 		if (Function.class.isAssignableFrom(declarationClass)) {
-			for (Function f : definedFunctions) {
+			for (Function f : functions()) {
 				if (f.getName().equals(declarationName))
 					return f;
 			}
@@ -322,13 +322,13 @@ public abstract class ScriptBase extends IndexEntity implements ITreeNode, IHasC
 		requireLoaded();
 		List<Iterable<? extends Declaration>> its = new ArrayList<Iterable<? extends Declaration>>(4);
 		if ((mask & FUNCTIONS) != 0)
-			its.add(definedFunctions);
+			its.add(functions());
 		if ((mask & VARIABLES) != 0)
-			its.add(definedVariables);
+			its.add(variables());
 		if ((mask & INCLUDES) != 0)
 			its.add(ArrayUtil.filteredIterable(getIncludes(false), Declaration.class));
 		if ((mask & DIRECTIVES) != 0)
-			its.add(definedDirectives);
+			its.add(directives());
 		return new CompoundIterable<Declaration>(its);
 	}
 
@@ -365,14 +365,14 @@ public abstract class ScriptBase extends IndexEntity implements ITreeNode, IHasC
 
 		// a function defined in this object
 		if (decClass == null || decClass == Function.class) {
-			for (Function f : definedFunctions) {
+			for (Function f : functions()) {
 				if (f.getName().equals(name))
 					return f;
 			}
 		}
 		// a variable
 		if (decClass == null || decClass == Variable.class) {
-			for (Variable v : definedVariables) {
+			for (Variable v : variables()) {
 				if (v.getName().equals(name))
 					return v;
 			}
@@ -422,23 +422,23 @@ public abstract class ScriptBase extends IndexEntity implements ITreeNode, IHasC
 		}
 		return null;
 	}
-
+	
 	public void addDeclaration(Declaration declaration) {
 		requireLoaded();
 		declaration.setScript(this);
 		if (declaration instanceof Function) {
+			if (definedFunctions == null)
+				definedFunctions = new ArrayList<Function>(5);
 			definedFunctions.add((Function)declaration);
-			//			for(IC4ObjectListener listener : changeListeners) {
-			//				listener.fieldAdded(this, field);
-			//			}
 		}
 		else if (declaration instanceof Variable) {
+			if (definedVariables == null)
+				definedVariables = new ArrayList<Variable>(5);
 			definedVariables.add((Variable)declaration);
-			//			for(IC4ObjectListener listener : changeListeners) {
-			//				listener.fieldAdded(this, field);
-			//			}
 		}
 		else if (declaration instanceof Directive) {
+			if (definedDirectives == null)
+				definedDirectives = new ArrayList<Directive>(5);
 			definedDirectives.add((Directive)declaration);
 		}
 	}
@@ -448,26 +448,21 @@ public abstract class ScriptBase extends IndexEntity implements ITreeNode, IHasC
 		if (declaration.getScript() != this)
 			declaration.setScript(this);
 		if (declaration instanceof Function) {
-//			if (declaration.isGlobal())
-//				getIndex().getGlobalFunctions().remove(declaration);
-			definedFunctions.remove((Function)declaration);
+			if (definedFunctions != null)
+				definedFunctions.remove((Function)declaration);
 		}
 		else if (declaration instanceof Variable) {
-//			if (declaration.isGlobal())
-//				getIndex().getStaticVariables().remove(declaration);
-			definedVariables.remove((Variable)declaration);
+			if (definedVariables != null)
+				definedVariables.remove((Variable)declaration);
 		}
 	}
 
 	public void clearDeclarations() {
 		notFullyLoaded = false;
 		usedProjectScripts = null;
-		if (definedDirectives != null)
-			definedDirectives.clear();
-		if (definedFunctions != null)
-			definedFunctions.clear();
-		if (definedVariables != null)
-			definedVariables.clear();
+		definedDirectives = null;
+		definedFunctions = null;
+		definedVariables = null;
 	}
 
 	public void setName(String name) {
@@ -525,7 +520,7 @@ public abstract class ScriptBase extends IndexEntity implements ITreeNode, IHasC
 	public Function funcAt(IRegion region) {
 		//System.out.println("");
 		requireLoaded();
-		for (Function f : definedFunctions) {
+		for (Function f : functions()) {
 			int fStart = f.getBody().getOffset();
 			int fEnd   = f.getBody().getOffset()+f.getBody().getLength();
 			int rStart = region.getOffset();
@@ -539,7 +534,7 @@ public abstract class ScriptBase extends IndexEntity implements ITreeNode, IHasC
 	
 	public Variable variableWithInitializationAt(IRegion region) {
 		requireLoaded();
-		for (Variable v : definedVariables) {
+		for (Variable v : variables()) {
 			ExprElm initialization = v.getInitializationExpression();
 			if (initialization != null && initialization.containsOffset(region.getOffset())) {
 				return v;
@@ -551,7 +546,7 @@ public abstract class ScriptBase extends IndexEntity implements ITreeNode, IHasC
 	// OMG, IRegion <-> ITextSelection
 	public Function funcAt(ITextSelection region) {
 		requireLoaded();
-		for (Function f : definedFunctions) {
+		for (Function f : functions()) {
 			if (f.getLocation().getOffset() <= region.getOffset() && region.getOffset()+region.getLength() <= f.getBody().getOffset()+f.getBody().getLength())
 				return f;
 		}
@@ -588,7 +583,7 @@ public abstract class ScriptBase extends IndexEntity implements ITreeNode, IHasC
 		if (alreadySearched.contains(this))
 			return null;
 		alreadySearched.add(this);
-		for (Function func: definedFunctions) {
+		for (Function func: functions()) {
 			if (func.getName().equals(name))
 				return func;
 		}
@@ -607,7 +602,7 @@ public abstract class ScriptBase extends IndexEntity implements ITreeNode, IHasC
 		if (alreadySearched.contains(this))
 			return null;
 		alreadySearched.add(this);
-		for (Variable var : definedVariables) {
+		for (Variable var : variables()) {
 			if (var.getName().equals(name))
 				return var;
 		}
@@ -625,7 +620,7 @@ public abstract class ScriptBase extends IndexEntity implements ITreeNode, IHasC
 		requireLoaded();
 		Map<String, Variable> variableMap = new HashMap<String, Variable>();
 		Collection<Variable> toBeRemoved = new LinkedList<Variable>();
-		for (Variable v : definedVariables) {
+		for (Variable v : variables()) {
 			Variable inHash = variableMap.get(v.getName());
 			if (inHash != null)
 				toBeRemoved.add(v);
@@ -636,13 +631,17 @@ public abstract class ScriptBase extends IndexEntity implements ITreeNode, IHasC
 			definedVariables.remove(v);
 		return toBeRemoved.size() > 0;
 	}
+	
+	private static final List<Directive> NO_DIRECTIVES = Collections.unmodifiableList(new ArrayList<Directive>());
+	private static final List<Function> NO_FUNCTIONS = Collections.unmodifiableList(new ArrayList<Function>());
+	private static final List<Variable> NO_VARIABLES = Collections.unmodifiableList(new ArrayList<Variable>());
 
 	/**
 	 * Returns an iterator to iterate over all functions defined in this script
 	 */
 	public Collection<Function> functions() {
 		requireLoaded();
-		return Collections.unmodifiableList(definedFunctions);
+		return definedFunctions != null ? Collections.unmodifiableList(definedFunctions) : NO_FUNCTIONS;
 	}
 	
 	public <T extends Function> Iterable<T> functions(Class<T> cls) {
@@ -653,9 +652,9 @@ public abstract class ScriptBase extends IndexEntity implements ITreeNode, IHasC
 	/**
 	 * Returns an iterator to iterate over all variables defined in this script
 	 */
-	public Iterable<Variable> variables() {
+	public Collection<Variable> variables() {
 		requireLoaded();
-		return Collections.unmodifiableList(definedVariables);
+		return definedVariables != null ? Collections.unmodifiableList(definedVariables) : NO_VARIABLES;
 	}
 
 	/**
@@ -663,17 +662,7 @@ public abstract class ScriptBase extends IndexEntity implements ITreeNode, IHasC
 	 */
 	public Iterable<Directive> directives() {
 		requireLoaded();
-		return Collections.unmodifiableList(definedDirectives);
-	}
-
-	public int numVariables() {
-		requireLoaded();
-		return definedVariables.size();
-	}
-
-	public int numFunctions() {
-		requireLoaded();
-		return definedFunctions.size();
+		return definedDirectives != null ? Collections.unmodifiableList(definedDirectives) : NO_DIRECTIVES;
 	}
 
 	public Definition nearestDefinitionWithId(ID id) {
@@ -698,15 +687,15 @@ public abstract class ScriptBase extends IndexEntity implements ITreeNode, IHasC
 	public INode[] getSubDeclarationsForOutline() {
 		requireLoaded();
 		List<Object> all = new LinkedList<Object>();
-		all.addAll(definedFunctions);
-		all.addAll(definedVariables);
+		all.addAll(functions());
+		all.addAll(variables());
 		return all.toArray(new INode[all.size()]);
 	}
 
 	@Override
 	public boolean hasSubDeclarationsInOutline() {
 		requireLoaded();
-		return definedFunctions.size() > 0 || definedVariables.size() > 0;
+		return functions().size() > 0 || variables().size() > 0;
 	}
 
 	public void exportAsXML(Writer writer) throws IOException {
@@ -829,81 +818,6 @@ public abstract class ScriptBase extends IndexEntity implements ITreeNode, IHasC
 			usedProjectScripts = new HashSet<ScriptBase>();
 		usedProjectScripts.add(script);
 	}
-
-	/*	public boolean removeDWording() {
-	//		boolean result = false;
-	//		for (C4Function f : functions()) {
-	//			if (f.getReturnType() == C4Type.DWORD) {
-	//				f.setReturnType(C4Type.INT);
-	//				result = true;
-	//			}
-	//			for (C4Variable parm : f.getParameters()) {
-	//				if (parm.getType() == C4Type.DWORD) {
-	//					parm.setType(C4Type.INT);
-	//					result = true;
-	//				}
-	//			}
-	//		}
-	//		return result;
-	//	}
-
-	//	public boolean convertFuncsToConstsIfTheyLookLikeConsts() {
-	//	boolean didSomething = false;
-	//	List<C4Function> toBeRemoved = new LinkedList<C4Function>();
-	//	for (C4Function f : definedFunctions) {
-	//		if (f.getParameters().size() == 0 && looksLikeConstName(f.getName())) {
-	//			toBeRemoved.add(f);
-	//			definedVariables.add(new C4Variable(f.getName(), f.getReturnType(), f.getUserDescription(), C4VariableScope.VAR_CONST));
-	//			didSomething = true;
-	//		}
-	//	}
-	//	for (C4Variable v : definedVariables) {
-	//		if (v.getScope() != C4VariableScope.VAR_CONST) {
-	//			v.setScope(C4VariableScope.VAR_CONST);
-	//			didSomething = true;
-	//		}
-	//		if (v.getScript() != this) {
-	//			v.setScript(this);
-	//			didSomething = true;
-	//		}
-	//	}
-	//	for (C4Function f : toBeRemoved)
-	//		definedFunctions.remove(f);
-	//	C4Variable v = findLocalVariable("_inherited", false);
-	//	if (v != null) {
-	//		definedVariables.remove(v);
-	//		definedFunctions.add(new C4Function("_inherited", this, C4FunctionScope.FUNC_PUBLIC));
-	//		didSomething = true;
-	//	}
-	//	didSomething |= removeDuplicateVariables();
-	//	return didSomething;
-	//}
-
-	//public void addFuncsFromList(String file) throws IOException {
-	//Reader r = new FileReader(file);
-	//LineNumberReader lReader = new LineNumberReader(r);
-	//String funcName, type;
-	//for (funcName = lReader.readLine(); funcName != null; funcName = type) {
-	//	C4Function func = findLocalFunction(funcName, false);
-	//	C4Type retType = null;
-	//	List<C4Variable> parms = new LinkedList<C4Variable>();
-	//	int numParms = 0;
-	//	while ((type = lReader.readLine()) != null) {
-	//		C4Type t = type.equals("any") ? C4Type.ANY : C4Type.makeType(type);
-	//		if (t == C4Type.UNKNOWN)
-	//			break;
-	//		if (retType == null) {
-	//			retType = t;
-	//			continue;
-	//		}
-	//		parms.add(new C4Variable("par"+numParms++, t));
-	//	}
-	//	if (func == null && ClonkCore.getDefault().EXTERN_INDEX.findGlobalFunction(funcName) == null) {
-	//		func = new C4Function(funcName, retType, parms.toArray(new C4Variable[numParms]));
-	//		addField(func);
-	//	}
-	//}
-	*/
 	
 	/**
 	 * notification sent by the index when a script is removed

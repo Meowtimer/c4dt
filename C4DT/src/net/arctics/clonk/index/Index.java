@@ -719,16 +719,18 @@ public class Index extends Declaration implements Serializable, Iterable<Definit
 
 	public void loadEntity(IndexEntity entity) throws FileNotFoundException, IOException, ClassNotFoundException {
 		System.out.println("Load entity " + entity.toString());
-		ObjectInputStream s = getEntityInputStream(entity);
 		try {
-			entity.load(getEntityInputStream(entity));
+			ObjectInputStream inputStream = getEntityInputStream(entity);
+			if (inputStream != null) try {
+				entity.load(inputStream);
+			} finally {
+				inputStream.close();
+			}
 			entity.postSerialize(this, this);
 			if (entity instanceof ScriptBase)
 				addGlobalsFromScript((ScriptBase)entity);
 		} catch (Exception e) {
 			e.printStackTrace();
-		} finally {
-			s.close();
 		}
 	};
 	
@@ -768,7 +770,12 @@ public class Index extends Declaration implements Serializable, Iterable<Definit
 	}
 	
 	public ObjectInputStream getEntityInputStream(IndexEntity entity) throws FileNotFoundException, IOException {
-		return new IndexEntityInputStream(this, new FileInputStream(entityFile(entity)));
+		try {
+			return new IndexEntityInputStream(this, new FileInputStream(entityFile(entity)));
+		} catch (FileNotFoundException e) {
+			// might not be necessary to have an entity file
+			return null;
+		}
 	}
 	
 	private static class EntityId implements Serializable, IResolvable {
@@ -950,7 +957,8 @@ public class Index extends Declaration implements Serializable, Iterable<Definit
 	}
 
 	public Object getSaveReplacementForEntityDeclaration(Declaration obj) {
-		if (obj.getIndex() == this)
+		Index objIndex = obj.getIndex();
+		if (objIndex == null || objIndex == this)
 			return obj;
 		else
 			return new EntityDeclaration(getSaveReplacementForEntity(obj.getParentDeclarationOfType(IndexEntity.class)), obj);
