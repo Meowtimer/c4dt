@@ -11,37 +11,26 @@ import net.arctics.clonk.parser.c4script.DeclarationObtainmentContext;
 import net.arctics.clonk.parser.c4script.PrimitiveType;
 import net.arctics.clonk.parser.c4script.IType;
 
-public class Sequence extends Value {
+public class Sequence extends ExprElmWithSubElementsArray {
 
 	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
-	
-	protected ExprElm[] elements;
 
 	public Sequence(ExprElm... elms) {
-		elements = elms;
+		super(elms);
 		ExprElm prev = null;
 		for (ExprElm e : elements) {
-			e.setPredecessorInSequence(prev);
+			if (e != null)
+				e.setPredecessorInSequence(prev);
 			prev = e;
 		}
-		assignParentToSubElements();
 	}
 	public Sequence(List<ExprElm> elms) {
 		this(elms.toArray(new ExprElm[elms.size()]));
 	}
 	@Override
-	public ExprElm[] getSubElements() {
-		return elements;
-	}
-	@Override
-	public void setSubElements(ExprElm[] elms) {
-		elements = elms;
-	}
-	@Override
 	public void doPrint(ExprWriter output, int depth) {
-		for (ExprElm e : elements) {
+		for (ExprElm e : elements)
 			e.print(output, depth+1);
-		}
 	}
 	@Override
 	protected IType obtainType(DeclarationObtainmentContext context) {
@@ -53,24 +42,9 @@ public class Sequence extends Value {
 	}
 	@Override
 	public void reportErrors(C4ScriptParser parser) throws ParsingException {
-		// stupid class hierarchy :D
-		if (this.getClass() == Sequence.class) {
-			//ExprElm p = null;
-			for (ExprElm e : elements) {
-				/*if (!e.isValidInSequence(p, parser)) {
-					parser.errorWithCode(ParserErrorCode.NotAllowedHere, e, true, parser.scriptSubstringAtRegion(e));
-				}*/
-				e.reportErrors(parser);
-				//p = e;
-			}
-		}
+		for (ExprElm e : elements)
+			e.reportErrors(parser);
 		super.reportErrors(parser);
-	}
-	public ExprElm[] getElements() {
-		return elements;
-	}
-	public ExprElm getLastElement() {
-		return elements != null && elements.length > 1 ? elements[elements.length-1] : null;
 	}
 	@Override
 	public IStoredTypeInformation createStoredTypeInformation(C4ScriptParser parser) {

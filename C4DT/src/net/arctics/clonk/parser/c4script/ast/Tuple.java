@@ -4,7 +4,7 @@ import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.util.ArrayUtil;
 import net.arctics.clonk.util.StringUtil;
 
-public class Tuple extends Sequence {
+public class Tuple extends ExprElmWithSubElementsArray {
 
 	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 

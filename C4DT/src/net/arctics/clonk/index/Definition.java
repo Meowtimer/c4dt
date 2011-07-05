@@ -167,10 +167,11 @@ public abstract class Definition extends ScriptBase {
 		if (index != null) {
 			List<ScriptBase> appendages = index.appendagesOf(Definition.this);
 			if (appendages != null)
-				for (ScriptBase s : appendages) {
-					if (!recursive || s.gatherIncludes(set, index, true))
+				for (ScriptBase s : appendages)
+					if (!recursive)
 						set.add(s);
-				}
+					else
+						s.gatherIncludes(set, index, true);
 		}
 		return true;
 	}

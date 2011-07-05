@@ -125,7 +125,7 @@ public abstract class IndexEntity extends Structure {
 	
 	@Override
 	public int hashCode() {
-		return (int) entityId + (getIndex() != null ? getIndex().hashCode() : 0);
+		return (int) entityId;
 	}
 	
 	@Override

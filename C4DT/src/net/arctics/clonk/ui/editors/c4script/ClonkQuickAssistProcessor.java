@@ -595,7 +595,7 @@ public class ClonkQuickAssistProcessor implements IQuickAssistProcessor {
 				case ReturnAsFunction:
 					if (offendingExpression instanceof Tuple) {
 						Tuple tuple = (Tuple) offendingExpression;
-						ExprElm[] elms = tuple.getElements();
+						ExprElm[] elms = tuple.getSubElements();
 						if (elms.length >= 2) {
 							ExprElm returnExpr = elms[0];
 							ExprElm[] rest = ArrayUtil.arrayRange(elms, 1, elms.length-1, ExprElm.class);

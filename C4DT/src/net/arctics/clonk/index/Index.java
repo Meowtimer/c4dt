@@ -253,6 +253,7 @@ public class Index extends Declaration implements Serializable, Iterable<Definit
 	 * Repopulate the quick-access lists ({@link #globalFunctions()}, {@link #staticVariables()}, {@link #declarationMap()}, {@link #appendagesOf(Definition)}) maintained by the index based on {@link #indexedDefinitions}, {@link #indexedScenarios} and {@link #indexedScripts}.
 	 */
 	public synchronized void refreshIndex() {
+		relevantIndexes = null;
 		// delete old cache
 		if (globalFunctions == null)
 			globalFunctions = new LinkedList<Function>();
@@ -439,11 +440,15 @@ public class Index extends Declaration implements Serializable, Iterable<Definit
 		}
 	}
 	
+	private List<Index> relevantIndexes;
+	
 	public List<Index> relevantIndexes() {
-		List<Index> result = new ArrayList<Index>(10);
-		result.add(this);
-		addIndexesFromReferencedProjects(result, this);
-		return result;
+		if (relevantIndexes == null) {
+			relevantIndexes = new ArrayList<Index>(10);
+			relevantIndexes.add(this);
+			addIndexesFromReferencedProjects(relevantIndexes, this);
+		}
+		return relevantIndexes;
 	}
 
 	/**

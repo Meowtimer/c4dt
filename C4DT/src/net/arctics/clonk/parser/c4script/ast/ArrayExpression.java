@@ -5,11 +5,12 @@ import net.arctics.clonk.parser.c4script.ArrayType;
 import net.arctics.clonk.parser.c4script.C4ScriptParser;
 import net.arctics.clonk.parser.c4script.DeclarationObtainmentContext;
 import net.arctics.clonk.parser.c4script.IType;
+import net.arctics.clonk.parser.c4script.PrimitiveType;
 import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
 import net.arctics.clonk.util.ArrayUtil;
 import net.arctics.clonk.util.IConverter;
 
-public class ArrayExpression extends Sequence {
+public class ArrayExpression extends ExprElmWithSubElementsArray {
 
 	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 
@@ -35,7 +36,7 @@ public class ArrayExpression extends Sequence {
 			ArrayUtil.map(elements, IType.class, new IConverter<ExprElm, IType>() {
 				@Override
 				public IType convert(ExprElm from) {
-					return from.getType(context);
+					return from != null ? from.getType(context) : PrimitiveType.UNKNOWN;
 				}
 			})
 		);
@@ -53,7 +54,7 @@ public class ArrayExpression extends Sequence {
 	
 	@Override
 	public Object evaluate(IEvaluationContext context) {
-		return ArrayUtil.map(getElements(), Object.class, Conf.EVALUATE_EXPR);
+		return ArrayUtil.map(elements, Object.class, Conf.EVALUATE_EXPR);
 	}
 
 }

@@ -77,6 +77,9 @@ public abstract class ScriptBase extends IndexEntity implements ITreeNode, IHasC
 	// scripts dependent on this one inside the same index
 	private transient Set<ScriptBase> dependentScripts;
 	
+	private transient Map<String, Function> cachedFunctionMap;
+	private transient Map<String, Variable> cachedVariableMap;
+	
 	/**
 	 * Flag hinting that this script contains global functions/static variables. This will flag will be consulted to decide whether to fully load the script when looking for global declarations.
 	 */
@@ -210,8 +213,11 @@ public abstract class ScriptBase extends IndexEntity implements ITreeNode, IHasC
 		for (Directive d : directives()) {
 			if (d.getType() == DirectiveType.INCLUDE || d.getType() == DirectiveType.APPENDTO) {
 				Definition obj = nearestDefinitionWithId(d.contentAsID());
-				if (obj != null && (!recursive || obj.gatherIncludes(set, index, recursive)))
-					set.add(obj);
+				if (obj != null)
+					if (!recursive)
+						set.add(obj);
+					else
+						obj.gatherIncludes(set, index, true);
 			}
 		}
 		return true;
@@ -349,43 +355,49 @@ public abstract class ScriptBase extends IndexEntity implements ITreeNode, IHasC
 		Class<? extends Declaration> decClass = info.getDeclarationClass();
 
 		// local variable?
-		if (info.recursion == 0) {
+		if (info.recursion == 0)
 			if (info.getContextFunction() != null && (decClass == null || decClass == Variable.class)) {
 				Declaration v = info.getContextFunction().findVariable(name);
 				if (v != null)
 					return v;
 			}
-		}
 
 		// this object?
 		Declaration thisDec = getThisDeclaration(name, info);
-		if (thisDec != null) {
+		if (thisDec != null)
 			return thisDec;
-		}
 
 		// a function defined in this object
-		if (decClass == null || decClass == Function.class) {
-			for (Function f : functions()) {
+		if (decClass == null || decClass == Function.class)
+			for (Function f : functions())
 				if (f.getName().equals(name))
 					return f;
-			}
-		}
 		// a variable
-		if (decClass == null || decClass == Variable.class) {
-			for (Variable v : variables()) {
+		if (decClass == null || decClass == Variable.class)
+			for (Variable v : variables())
 				if (v.getName().equals(name))
 					return v;
-			}
-		}
 
-		// search in included definitions
-		info.recursion++;
-		for (IHasIncludes o : getIncludes(info.index, false)) {
-			Declaration result = o.findDeclaration(name, info);
-			if (result != null)
-				return result;
+		if (cachedVariableMap != null || cachedFunctionMap != null) {
+			if (cachedVariableMap != null && (decClass == null || decClass == Variable.class)) {
+				Declaration d = cachedVariableMap.get(name);
+				if (d != null)
+					return d;
+			}
+			if (cachedFunctionMap != null && (decClass == null || decClass == Function.class)) {
+				Declaration d = cachedFunctionMap.get(name);
+				if (d != null)
+					return d;
+			}
+		} else {
+			info.recursion++;
+			for (IHasIncludes o : getIncludes(info.index, false)) {
+				Declaration result = o.findDeclaration(name, info);
+				if (result != null)
+					return result;
+			}
+			info.recursion--;
 		}
-		info.recursion--;
 
 		// finally look if it's something global
 		if (info.recursion == 0 && !(this instanceof Engine)) { // .-.
@@ -407,7 +419,7 @@ public abstract class ScriptBase extends IndexEntity implements ITreeNode, IHasC
 			}
 			// global stuff defined in project
 			if (f == null) {
-				for (Index index : info.getAllRelevantIndexes()) {
+				for (Index index : info.index.relevantIndexes()) {
 					f = index.findGlobalDeclaration(name, getResource());
 					if (f != null)
 						break;
@@ -463,6 +475,8 @@ public abstract class ScriptBase extends IndexEntity implements ITreeNode, IHasC
 		definedDirectives = null;
 		definedFunctions = null;
 		definedVariables = null;
+		cachedFunctionMap = null;
+		cachedVariableMap = null;
 	}
 
 	public void setName(String name) {
@@ -959,6 +973,27 @@ public abstract class ScriptBase extends IndexEntity implements ITreeNode, IHasC
 	@Override
 	public IType resolve(DeclarationObtainmentContext context, IType callerType) {
 		return this;
+	}
+	
+	private void _generateFindDeclarationCache(Set<ScriptBase> scriptsAlreadyVisited, ScriptBase script) {
+		if (scriptsAlreadyVisited.contains(script))
+			return;
+		else
+			scriptsAlreadyVisited.add(script);
+		for (IHasIncludes i : script.getIncludes(false))
+			if (i instanceof ScriptBase)
+				_generateFindDeclarationCache(scriptsAlreadyVisited, (ScriptBase)i);
+		for (Function f : script.functions())
+			cachedFunctionMap.put(f.getName(), f);
+		for (Variable v : script.variables())
+			cachedVariableMap.put(v.getName(), v);
+	}
+	
+	public void generateFindDeclarationCache() {
+		cachedFunctionMap = new HashMap<String, Function>();
+		cachedVariableMap = new HashMap<String, Variable>();
+		Set<ScriptBase> scripts = new HashSet<ScriptBase>();
+		_generateFindDeclarationCache(scripts, this);
 	}
 
 }

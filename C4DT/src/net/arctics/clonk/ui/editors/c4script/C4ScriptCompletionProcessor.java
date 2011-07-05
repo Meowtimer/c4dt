@@ -312,10 +312,10 @@ public class C4ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Scri
 			}
 			if (contextSequence != null) {
 				// cut off stuff after ->
-				for (int i = contextSequence.getElements().length-1; i >= 0; i--) {
-					if (contextSequence.getElements()[i] instanceof MemberOperator) {
-						if (i < contextSequence.getElements().length-1)
-							contextSequence = contextSequence.sequenceWithElementsRemovedFrom(contextSequence.getElements()[i+1]);
+				for (int i = contextSequence.getSubElements().length-1; i >= 0; i--) {
+					if (contextSequence.getSubElements()[i] instanceof MemberOperator) {
+						if (i < contextSequence.getSubElements().length-1)
+							contextSequence = contextSequence.sequenceWithElementsRemovedFrom(contextSequence.getSubElements()[i+1]);
 						break;
 					}
 				}

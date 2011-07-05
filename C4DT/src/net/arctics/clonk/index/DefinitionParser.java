@@ -20,7 +20,7 @@ public class DefinitionParser {
 		this.index = index;
 		objectFolder = folder;
 		defCore = (IFile) Utilities.findMemberCaseInsensitively(folder, "DefCore.txt"); //$NON-NLS-1$
-		scenario = (IFile) Utilities.findMemberCaseInsensitively(folder, "Scenario.txt"); //$NON-NLS-1$
+		scenario = defCore == null ? (IFile) Utilities.findMemberCaseInsensitively(folder, "Scenario.txt") : null; //$NON-NLS-1$
 	}
 	
 	private DefinitionParser(C4Group group) {
@@ -52,19 +52,14 @@ public class DefinitionParser {
 			object = ProjectDefinition.definitionCorrespondingToFolder(objectFolder);
 			if (defCore != null) {
 				DefCoreUnit defCoreWrapper = (DefCoreUnit) Structure.pinned(defCore, true, false);
-				if (object == null) {
+				if (object == null)
 					object = new ProjectDefinition(index, defCoreWrapper.definitionID(), defCoreWrapper.getName(), objectFolder);
-				}
 				else {
 					object.setId(defCoreWrapper.definitionID());
 					object.setName(defCoreWrapper.getName(), false);
 				}
-			}
-			else if (scenario != null) {
-				if (object == null) {
-					object = new Scenario(index, objectFolder.getName(), objectFolder);
-				}
-			}
+			} else if (scenario != null && object == null)
+				object = new Scenario(index, objectFolder.getName(), objectFolder);
 			return object;
 		} catch (Exception e) {
 			e.printStackTrace();

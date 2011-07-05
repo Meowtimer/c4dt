@@ -94,9 +94,8 @@ public abstract class Utilities {
 	public static Index getIndex(IResource res) {
 		if (res != null) {
 			ClonkProjectNature nature = ClonkProjectNature.get(res);
-			if (nature != null) {
+			if (nature != null)
 				return nature.getIndex();
-			}
 		}
 		return null;
 	}

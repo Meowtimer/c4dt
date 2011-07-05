@@ -885,7 +885,7 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 		Sequence fullSequence = sequence();
 		if (fullSequence != null) {
 			List<ExprElm> elms = new LinkedList<ExprElm>();
-			for (ExprElm e : fullSequence.getElements()) {
+			for (ExprElm e : fullSequence.getSubElements()) {
 				elms.add(e);
 				if (e == this)
 					break;

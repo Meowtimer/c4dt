@@ -33,18 +33,19 @@ public class ProjectIndex extends Index {
 	public static final String INDEXFILE_SUFFIX = ".index"; //$NON-NLS-1$
 	
 	private transient IProject project;
+	private transient ClonkProjectNature nature;
 	
 	@Override
 	public Engine getEngine() {
-		return getNature().getSettings().getEngine();
+		return nature.getSettings().getEngine();
 	}
 	
 	/**
 	 * Return the {@link ClonkProjectNature} this index belongs to. This is a shorthand for {@link ClonkProjectNature}.get({@link #getProject()})
 	 * @return The {@link ClonkProjectNature}
 	 */
-	public ClonkProjectNature getNature() {
-		return ClonkProjectNature.get(project);
+	public final ClonkProjectNature getNature() {
+		return nature;
 	}
 	
 	/**
@@ -53,7 +54,7 @@ public class ProjectIndex extends Index {
 	 */
 	public ProjectIndex(IProject project, File folder) {
 		super(folder);
-		this.project = project;
+		setProject(project);
 	}
 	
 	/**
@@ -71,6 +72,7 @@ public class ProjectIndex extends Index {
 	 */
 	public void setProject(IProject proj) {
 		project = proj;
+		nature = ClonkProjectNature.get(project);
 	}
 	
 	/**
@@ -85,30 +87,22 @@ public class ProjectIndex extends Index {
 	public void postLoad() throws CoreException {
 		if (project != null) {
 			List<ScriptBase> stuffToBeRemoved = new LinkedList<ScriptBase>();
-			for (Definition object : this) {
-				if (object instanceof ProjectDefinition) {
-					if (!((ProjectDefinition)object).refreshFolderReference(project)) {
-						stuffToBeRemoved.add(object);
-					}
-				}
-			}
-			for (Scenario scenario : indexedScenarios()) {
-				if (!scenario.refreshFolderReference(project)) {
+			for (Definition object : this)
+				if ((object instanceof ProjectDefinition) && !((ProjectDefinition)object).refreshFolderReference(project))
+					stuffToBeRemoved.add(object);
+			for (Scenario scenario : indexedScenarios())
+				if (!scenario.refreshFolderReference(project))
 					stuffToBeRemoved.add(scenario);
-				}
-			}
-			for (ScriptBase script : indexedScripts()) {
+			for (ScriptBase script : indexedScripts())
 				if (script instanceof SystemScript) {
 					SystemScript standalone = (SystemScript) script;
 					if (!standalone.refreshFileReference(project)) {
 						stuffToBeRemoved.add(standalone);
 					}
 				}
-			}
 			// purge objects that seem to be non-existent
-			for (ScriptBase s : stuffToBeRemoved) {
+			for (ScriptBase s : stuffToBeRemoved)
 				this.removeScript(s);
-			}
 		}
 		super.postLoad();
 	}

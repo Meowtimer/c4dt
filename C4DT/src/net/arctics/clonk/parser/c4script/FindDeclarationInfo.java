@@ -1,6 +1,5 @@
 package net.arctics.clonk.parser.c4script;
 
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -50,13 +49,5 @@ public class FindDeclarationInfo {
 	public void resetState() {
 		alreadySearched.clear();
 		recursion = 0;
-	}
-	public List<Index> getAllRelevantIndexes() {
-		if (relevantIndexes == null) {
-			relevantIndexes = new ArrayList<Index>(10);
-			relevantIndexes.add(index);
-			Index.addIndexesFromReferencedProjects(relevantIndexes, index);
-		}
-		return relevantIndexes;
 	}
 }

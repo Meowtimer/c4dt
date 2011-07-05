@@ -134,15 +134,10 @@ public enum ParserErrorCode {
 			return null;
 		try {
 			IMarker marker = file.createMarker(markerType);
-			marker.setAttribute(IMarker.SEVERITY, severity);
-			marker.setAttribute(IMarker.TRANSIENT, false);
-			marker.setAttribute(IMarker.MESSAGE, problem);
-			marker.setAttribute(IMarker.CHAR_START, start);
-			marker.setAttribute(IMarker.CHAR_END, end);
-			if (declarationAssociatedWithFile != null)
-				marker.setAttribute(IMarker.LOCATION, declarationAssociatedWithFile.toString());
-			
-			marker.setAttribute(MARKER_ERRORCODE, this.ordinal());
+			marker.setAttributes(
+				new String[] {IMarker.SEVERITY, IMarker.TRANSIENT, IMarker.MESSAGE, IMarker.CHAR_START, IMarker.CHAR_END, IMarker.LOCATION, MARKER_ERRORCODE},
+				new Object[] {severity, false, problem, start, end, declarationAssociatedWithFile != null ? declarationAssociatedWithFile.toString() : null, this.ordinal()}
+			);
 			return marker;
 		} catch (CoreException e) {
 			e.printStackTrace();

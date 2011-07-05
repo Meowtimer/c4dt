@@ -576,22 +576,19 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	 */
 	public void parseCodeOfFunctionsAndValidate() throws ParsingException {
 		synchronized (container) {
-			
 			strictLevel = container.getStrictLevel();
 			scriptLevelTypeInformationMerger = new TypeInformationMerger();
 			parsedFunctions = new HashSet<Function>();
-			for (Function function : container.functions()) {
+			for (Function function : container.functions())
 				parseCodeOfFunction(function, false);
-			}
 			parsedFunctions = null;
 			applyStoredTypeInformationList(scriptLevelTypeInformationMerger.getResult(), false);
 			scriptLevelTypeInformationMerger = null;
 			currentFunctionContext.currentDeclaration = null;
 
-			for (Directive directive : container.directives()) {
+			for (Directive directive : container.directives())
 				directive.validate(this);
-			}
-			
+
 			for (Variable variable : container.variables()) {
 				ExprElm initialization = variable.getInitializationExpression();
 				if (initialization != null) {
@@ -1669,9 +1666,8 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 	 * @throws ParsingException
 	 */
 	public IMarker markerWithCode(ParserErrorCode code, int markerStart, int markerEnd, int flags, int severity, Object... args) throws ParsingException {
-		if (!errorEnabled(code)) {
+		if (!errorEnabled(code))
 			return null;
-		}
 		if ((flags & ABSOLUTE_MARKER_LOCATION) == 0) {
 			int offs = bodyOffset();
 			markerStart += offs;
@@ -1686,18 +1682,15 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 			if (getCurrentDeclaration() != null)
 				ParserErrorCode.setDeclarationTag(result, getCurrentDeclaration().getNameUniqueToParent());
 			IRegion exprLocation = currentFunctionContext.expressionReportingErrors;
-			if (exprLocation != null) {
+			if (exprLocation != null)
 				ParserErrorCode.setExpressionLocation(result, exprLocation);
-			}
 			problem = result.getAttribute(IMarker.MESSAGE, "<Fail>"); //$NON-NLS-1$
-		} else {
+		} else
 			problem = code.getErrorString(args);
-		}
-		if ((flags & NO_THROW) == 0 && severity >= IMarker.SEVERITY_ERROR) {
+		if ((flags & NO_THROW) == 0 && severity >= IMarker.SEVERITY_ERROR)
 			throw misplacedErrorOrNoFileToAttachMarkerTo
 				? new SilentParsingException(Reason.SilenceRequested, problem)
 				: new ParsingException(problem);
-		}
 		return result;
 	}
 	

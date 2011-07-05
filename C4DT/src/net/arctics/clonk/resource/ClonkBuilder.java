@@ -391,12 +391,12 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 		for (Pair<Definition, ID> rnd : renamedDefinitions) {
 			final Definition def = rnd.first();
 			final ID newID = rnd.second();
+			final ID oldID = def.id();
+			if (oldID == null || oldID == ID.NULL)
+				return;
 			Display.getDefault().asyncExec(new Runnable() {
 				@Override
 				public void run() {
-					ID oldID = def.id();
-					if (oldID == null || oldID == ID.NULL)
-						return;
 					// FIXME: implement for CR?
 					Variable var = def.proxyVar();
 					if (var != null && UI.confirm(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(),
@@ -466,6 +466,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 					if (monitor.isCanceled())
 						return;
 					performBuildPhaseOne(script);
+					Display.getDefault().asyncExec(new UIRefresher(script.getResource()));
 				}
 				// refresh now so gathered structures will be validated with an index that has valid appendages maps and such.
 				// without refreshing the index here, error markers would be created for TimerCall=... etc. assignments in ActMaps for example
@@ -481,6 +482,9 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 			}
 			while (parserMapSize != parserMap.size());
 			currentSubProgressMonitor.done();
+			
+			for (ScriptBase s : parserMap.keySet())
+				s.generateFindDeclarationCache();
 
 			if (delta != null)
 				listOfResourcesToBeRefreshed.add(delta.getResource());
@@ -640,13 +644,16 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 						if (include instanceof ScriptBase)
 							performBuildPhaseTwo((ScriptBase) include);
 					}
+					//System.out.print("-");
+					//long s = System.currentTimeMillis();
 					parser.parseCodeOfFunctionsAndValidate();
+					/*System.out.print(System.currentTimeMillis()-s);
+					System.out.print("-");*/
 					try {
 						script.save();
 					} catch (IOException e) {
 						e.printStackTrace();
 					}
-					Display.getDefault().asyncExec(new UIRefresher(script.getResource()));
 				} catch (ParsingException e) {
 					e.printStackTrace();
 				}

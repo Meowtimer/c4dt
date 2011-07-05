@@ -166,47 +166,58 @@ public abstract class AccessDeclaration extends Value {
 		getDeclaration(root);
 	}
 	
+	private transient boolean applyTypingByMemberUsagePending;
 	/**
 	 * Set the type of this expression's predecessor to a set of types that define a declaration called {@link #getDeclarationName()}.
 	 * @param context
 	 * @return
 	 */
 	protected boolean applyTypingByMemberUsage(DeclarationObtainmentContext context) {
-		ExprElm pred = getPredecessorInSequence();
-		if (pred == null || (pred instanceof MemberOperator && ((MemberOperator)pred).hasTilde()))
+		if (true)
 			return false;
-		IType t = pred.getType(context);
-		if (t != null && t.specificness() > PrimitiveType.OBJECT.specificness())
+		if (applyTypingByMemberUsagePending)
 			return false;
+		else
+			applyTypingByMemberUsagePending = true;
+		try {
+			ExprElm pred = getPredecessorInSequence();
+			if (pred == null || (pred instanceof MemberOperator && ((MemberOperator)pred).hasTilde()))
+				return false;
+			IType t = pred.getType(context);
+			if (t != null && t.specificness() > PrimitiveType.OBJECT.specificness())
+				return false;
 
-		if (context instanceof C4ScriptParser && pred != null) {
-			final List<IType> typesWithThatMember = new LinkedList<IType>();
-			if (context.getCurrentFunc() != null) {
-				for (ProplistDeclaration pd : ArrayUtil.filteredIterable(context.getCurrentFunc().getOtherDeclarations(), ProplistDeclaration.class)) {
-					for (Variable v : pd.getComponents()) {
-						if (v.getName().equals(declarationName))
-							typesWithThatMember.add(new ConstrainedProplist(pd, ConstraintKind.Includes));
+			if (context instanceof C4ScriptParser && pred != null) {
+				final List<IType> typesWithThatMember = new LinkedList<IType>();
+				if (context.getCurrentFunc() != null) {
+					for (ProplistDeclaration pd : ArrayUtil.filteredIterable(context.getCurrentFunc().getOtherDeclarations(), ProplistDeclaration.class)) {
+						for (Variable v : pd.getComponents()) {
+							if (v.getName().equals(declarationName))
+								typesWithThatMember.add(new ConstrainedProplist(pd, ConstraintKind.Includes));
+						}
 					}
 				}
-			}
-			context.getContainer().getIndex().forAllRelevantIndexes(new Index.r() {
-				@Override
-				public void run(Index index) {
-					for (Declaration d : index.declarationsWithName(declarationName, Declaration.class))
-						if (!d.isGlobal() && AccessDeclaration.this.declarationClass().isAssignableFrom(d.getClass()) && d.getParentDeclaration() instanceof IHasIncludes)
-							typesWithThatMember.add(new ConstrainedProplist((IHasIncludes)d.getParentDeclaration(), ConstraintKind.Includes));
+				context.getContainer().getIndex().forAllRelevantIndexes(new Index.r() {
+					@Override
+					public void run(Index index) {
+						for (Declaration d : index.declarationsWithName(declarationName, Declaration.class))
+							if (!d.isGlobal() && AccessDeclaration.this.declarationClass().isAssignableFrom(d.getClass()) && d.getParentDeclaration() instanceof IHasIncludes)
+								typesWithThatMember.add(new ConstrainedProplist((IHasIncludes)d.getParentDeclaration(), ConstraintKind.Includes));
+					}
+				});
+				if (typesWithThatMember.size() > 0) {
+					if (t != PrimitiveType.UNKNOWN)
+						typesWithThatMember.add(t);
+					IType ty = TypeSet.create(typesWithThatMember);
+					ty.setTypeDescription(String.format(Messages.AccessDeclaration_TypesSporting, declarationName));
+					pred.expectedToBeOfType(ty, (C4ScriptParser) context, TypeExpectancyMode.Force);
+					return true;
 				}
-			});
-			if (typesWithThatMember.size() > 0) {
-				if (t != PrimitiveType.UNKNOWN)
-					typesWithThatMember.add(t);
-				IType ty = TypeSet.create(typesWithThatMember);
-				ty.setTypeDescription(String.format(Messages.AccessDeclaration_TypesSporting, declarationName));
-				pred.expectedToBeOfType(ty, (C4ScriptParser) context, TypeExpectancyMode.Force);
-				return true;
 			}
+			return false;
+		} finally {
+			applyTypingByMemberUsagePending = false;
 		}
-		return false;
 	}
 	
 }
