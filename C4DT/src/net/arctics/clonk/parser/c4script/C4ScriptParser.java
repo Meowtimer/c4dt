@@ -53,7 +53,6 @@ import net.arctics.clonk.parser.c4script.ast.ExprElm;
 import net.arctics.clonk.parser.c4script.ast.GarbageStatement;
 import net.arctics.clonk.parser.c4script.ast.KeywordStatement;
 import net.arctics.clonk.parser.c4script.ast.MissingStatement;
-import net.arctics.clonk.parser.c4script.ast.ScriptParserListener;
 import net.arctics.clonk.parser.c4script.ast.ForStatement;
 import net.arctics.clonk.parser.c4script.ast.FunctionDescription;
 import net.arctics.clonk.parser.c4script.ast.IDLiteral;
@@ -622,47 +621,6 @@ public class C4ScriptParser extends CStyleScanner implements DeclarationObtainme
 				ExprElm expr = nameLocal.getInitializationExpression();
 				if (expr != null) {
 					obj.setName(expr.evaluateAtParseTime(obj).toString());
-				}
-			}
-			
-			// find SetProperty call in Definition func
-			final Function definitionFunc = obj.findLocalFunction(Keywords.DefinitionFunc, false);
-			if (definitionFunc != null && definitionFunc.getBody() != null) { // could also be engine function without body
-				this.seek(definitionFunc.getBody().getStart());
-				boolean old = allErrorsDisabled;
-				allErrorsDisabled = true;
-				try {
-					reportExpressionsAndStatements(definitionFunc, new ScriptParserListener() {
-						@Override
-						public TraversalContinuation expressionDetected(ExprElm expression, C4ScriptParser parser) {
-							// look if it's a plain SetProperty("Name", <value>)
-							if (expression instanceof CallFunc) {
-								CallFunc callFunc = (CallFunc) expression;
-								if (
-									callFunc.getDeclarationName().equals("SetProperty") && //$NON-NLS-1$
-									callFunc.getParams().length >= 2 &&
-									callFunc.getParams()[0] instanceof StringLiteral &&
-									((StringLiteral)callFunc.getParams()[0]).getLiteral().equals("Name") //$NON-NLS-1$
-								) {
-									Object v = callFunc.getParams()[1].evaluateAtParseTime(definitionFunc);
-									if (v instanceof String) {
-										obj.setName((String) v);
-									}
-									return TraversalContinuation.Cancel;
-								}
-							}
-							return TraversalContinuation.Continue;
-						}
-					}, ExpressionsAndStatementsReportingFlavour.AlsoStatements, false);
-					Variable v = obj.findVariable("Name"); //$NON-NLS-1$
-					if (v != null) {
-						Object ev = v.evaluateInitializationExpression(obj);
-						if (ev instanceof String) {
-							obj.setName((String)ev);
-						}
-					}
-				} finally {
-					allErrorsDisabled = old;
 				}
 			}
 		}

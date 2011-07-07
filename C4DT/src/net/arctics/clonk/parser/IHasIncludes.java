@@ -15,7 +15,7 @@ import net.arctics.clonk.parser.c4script.IType;
  *
  */
 public interface IHasIncludes extends IHasSubDeclarations, IType {
-	Collection<? extends IHasIncludes> getIncludes(Index index, boolean recursive);
+	Collection<? extends IHasIncludes> getIncludes(boolean recursive);
 	/**
 	 * Return whether this type includes another one.
 	 * @param other The other type
@@ -30,7 +30,7 @@ public interface IHasIncludes extends IHasSubDeclarations, IType {
 	 * @return False if this type is already contained in the set, true if this type wasn't contained.
 	 * gatherIncludes implementations are responsible for adding this type to the set in this case, or else infinite recursion wreaks its ugly head. 
 	 */
-	boolean gatherIncludes(Set<IHasIncludes> set, Index index, boolean recursive);
+	boolean gatherIncludes(Set<IHasIncludes> set, boolean recursive);
 	
 	/**
 	 * Empty list representing "no includes".
@@ -50,9 +50,9 @@ public interface IHasIncludes extends IHasSubDeclarations, IType {
 		 * @param recursive The recursive parameter to pass to {@link IHasIncludes#gatherIncludes(Set, Index, boolean)}
 		 * @return Direct or recursive includes, depending on the recursive parameter. This collection does not include the instance itself.
 		 */
-		public static Collection<? extends IHasIncludes> getIncludes(IHasIncludes instance, Index index, boolean recursive) {
+		public static Collection<? extends IHasIncludes> getIncludes(IHasIncludes instance, boolean recursive) {
 			Set<IHasIncludes> result = new HashSet<IHasIncludes>();
-			instance.gatherIncludes(result, index, recursive);
+			instance.gatherIncludes(result, recursive);
 			result.remove(instance);
 			return result;
 		}

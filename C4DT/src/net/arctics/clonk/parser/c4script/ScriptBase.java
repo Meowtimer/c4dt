@@ -79,6 +79,7 @@ public abstract class ScriptBase extends IndexEntity implements ITreeNode, IHasC
 	
 	private transient Map<String, Function> cachedFunctionMap;
 	private transient Map<String, Variable> cachedVariableMap;
+	private transient Collection<? extends IHasIncludes> includes;
 	private Set<String> dictionary;
 	
 	public Set<String> dictionary() {
@@ -219,20 +220,24 @@ public abstract class ScriptBase extends IndexEntity implements ITreeNode, IHasC
 	 * @param index The project index to search for includes in (has greater priority than EXTERN_INDEX which is always searched)
 	 */
 	@Override
-	public boolean gatherIncludes(Set<IHasIncludes> set, Index index, boolean recursive) {
+	public boolean gatherIncludes(Set<IHasIncludes> set, boolean recursive) {
 		requireLoaded();
 		if (set.contains(this))
 			return false;
 		else
 			set.add(this);
 		for (Directive d : directives()) {
+			ID id = d.contentAsID();
 			if (d.getType() == DirectiveType.INCLUDE || d.getType() == DirectiveType.APPENDTO) {
-				Definition obj = nearestDefinitionWithId(d.contentAsID());
-				if (obj != null)
-					if (!recursive)
-						set.add(obj);
-					else
-						obj.gatherIncludes(set, index, true);
+				for (Index in : index.relevantIndexes()) {
+					List<Definition> defs = in.getDefinitionsWithID(id);
+					if (defs != null)
+						for (Definition def : defs)
+							if (!recursive)
+								set.add(def);
+							else
+								def.gatherIncludes(set, true);
+				}
 			}
 		}
 		return true;
@@ -245,7 +250,10 @@ public abstract class ScriptBase extends IndexEntity implements ITreeNode, IHasC
 	 */
 	public Collection<? extends IHasIncludes> getIncludes(Index index, boolean recursive) {
 		requireLoaded();
-		return IHasIncludes.Default.getIncludes(this, index, recursive);
+		if (includes != null && !recursive)
+			return includes;
+		else
+			return IHasIncludes.Default.getIncludes(this, recursive);
 	}
 
 	/**
@@ -565,9 +573,8 @@ public abstract class ScriptBase extends IndexEntity implements ITreeNode, IHasC
 		requireLoaded();
 		for (Variable v : variables()) {
 			ExprElm initialization = v.getInitializationExpression();
-			if (initialization != null && initialization.containsOffset(region.getOffset())) {
+			if (initialization != null && initialization.containsOffset(region.getOffset()))
 				return v;
-			}
 		}
 		return null;
 	}
@@ -708,7 +715,7 @@ public abstract class ScriptBase extends IndexEntity implements ITreeNode, IHasC
 	public Set<IHasIncludes> conglomerate() {
 		requireLoaded();
 		Set<IHasIncludes> s = new HashSet<IHasIncludes>();
-		gatherIncludes(s, getIndex(), true);
+		gatherIncludes(s, true);
 		return s;
 	}
 
@@ -1007,8 +1014,16 @@ public abstract class ScriptBase extends IndexEntity implements ITreeNode, IHasC
 	public void generateFindDeclarationCache() {
 		cachedFunctionMap = new HashMap<String, Function>();
 		cachedVariableMap = new HashMap<String, Variable>();
+		includes = null;
+		includes = getIncludes(false);
 		Set<ScriptBase> scripts = new HashSet<ScriptBase>();
 		_generateFindDeclarationCache(scripts, this);
+	}
+	
+	@Override
+	public void postLoad(Declaration parent, Index root) {
+		super.postLoad(parent, root);
+		generateFindDeclarationCache();
 	}
 
 }

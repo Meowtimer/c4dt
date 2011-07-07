@@ -256,7 +256,7 @@ public class ProjectDefinition extends Definition implements Serializable {
 	 * @return The Definition object
 	 */
 	public static ProjectDefinition definitionCorrespondingToFolder(IContainer folder) {
-		ProjectDefinition obj = (Utilities.getIndex(folder) != null) ? Utilities.getIndex(folder).getObject(folder) : null;
+		ProjectDefinition obj = (Utilities.getIndex(folder) != null) ? Utilities.getIndex(folder).getDefinition(folder) : null;
 		// haxxy cleanup: might have been lost by <insert unlikely event>
 		if (obj != null)
 			obj.definitionFolder = folder;

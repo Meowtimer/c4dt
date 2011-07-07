@@ -367,6 +367,7 @@ public class CallFunc extends AccessDeclaration {
 					System.out.println("No index");
 				return null;
 			}
+			// find engine function
 			if (declaration == null)
 				declaration = context.getContainer().getIndex().getEngine().findFunction(functionName);
 

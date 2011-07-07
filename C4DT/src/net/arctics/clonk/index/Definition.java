@@ -161,8 +161,8 @@ public abstract class Definition extends ScriptBase {
 	}
 
 	@Override
-	public  boolean gatherIncludes(final Set<IHasIncludes> set, final Index index, final boolean recursive) {
-		if (!super.gatherIncludes(set, index, recursive))
+	public  boolean gatherIncludes(final Set<IHasIncludes> set, final boolean recursive) {
+		if (!super.gatherIncludes(set, recursive))
 			return false;
 		if (index != null) {
 			List<ScriptBase> appendages = index.appendagesOf(Definition.this);
@@ -171,7 +171,7 @@ public abstract class Definition extends ScriptBase {
 					if (!recursive)
 						set.add(s);
 					else
-						s.gatherIncludes(set, index, true);
+						s.gatherIncludes(set, true);
 		}
 		return true;
 	}

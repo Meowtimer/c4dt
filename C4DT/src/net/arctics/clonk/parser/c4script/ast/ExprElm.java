@@ -8,6 +8,7 @@ import java.util.List;
 
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.index.CachedEngineFuncs;
+import net.arctics.clonk.index.IPostLoadable;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.Engine;
@@ -24,7 +25,6 @@ import net.arctics.clonk.parser.c4script.PrimitiveType;
 import net.arctics.clonk.parser.c4script.TypeSet;
 import net.arctics.clonk.parser.c4script.ast.IASTComparisonDelegate.DifferenceHandling;
 import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
-import net.arctics.clonk.ui.editors.c4script.IPostSerializable;
 import net.arctics.clonk.util.ArrayUtil;
 import net.arctics.clonk.util.IConverter;
 import net.arctics.clonk.util.IPrintable;
@@ -36,7 +36,7 @@ import org.eclipse.jface.text.Region;
 /**
  * base class for making expression trees
  */
-public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IPostSerializable<ExprElm, DeclarationObtainmentContext> {
+public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IPostLoadable<ExprElm, DeclarationObtainmentContext> {
 
 	private static final long serialVersionUID = ClonkCore.SERIAL_VERSION_UID;
 
@@ -100,11 +100,7 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 			if (e != null) {
 				if (e.getParent() != null && e.getParent() != this) {
 					modified = true;
-					try {
-						subElms[i] = e = (ExprElm) e.clone();
-					} catch (CloneNotSupportedException cloneFail) {
-						cloneFail.printStackTrace();
-					}
+					subElms[i] = e = e.clone();
 				}
 				e.setParent(this);
 			}
@@ -115,20 +111,20 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 	}
 
 	@Override
-	public ExprElm clone() throws CloneNotSupportedException {
-		ExprElm clone = (ExprElm) super.clone();
+	public ExprElm clone() {
+		ExprElm clone;
+		try {
+			clone = (ExprElm) super.clone();
+		} catch (CloneNotSupportedException e) {
+			throw new RuntimeException("Clone not supported which really shouldn't happen");
+		}
 		ExprElm[] clonedElms = ArrayUtil.map(getSubElements(), ExprElm.class, new IConverter<ExprElm, ExprElm>() {
 			@Override
 			public ExprElm convert(ExprElm from) {
 				if (from == null) {
 					return null;
 				}
-				try {
-					return (ExprElm) from.clone();
-				} catch (CloneNotSupportedException e) {
-					e.printStackTrace();
-					return null;
-				}
+				return (ExprElm) from.clone();
 			}
 		});
 		clone.setSubElements(clonedElms);
@@ -901,10 +897,10 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 	}
 
 	@Override
-	public void postSerialize(ExprElm parent, DeclarationObtainmentContext root) {
+	public void postLoad(ExprElm parent, DeclarationObtainmentContext root) {
 		for (ExprElm e : getSubElements()) {
 			if (e != null) {
-				e.postSerialize(this, root);
+				e.postLoad(this, root);
 			}
 		}
 	}
@@ -912,6 +908,18 @@ public class ExprElm implements IRegion, Cloneable, IPrintable, Serializable, IP
 	protected final void missing(C4ScriptParser parser) throws ParsingException {
 		ParserErrorCode code = this instanceof Statement ? ParserErrorCode.MissingStatement : ParserErrorCode.MissingExpression;
 		parser.errorWithCode(code, this, this);
+	}
+
+	/**
+	 * Increment {@link #getExprStart()} and {@link #getExprEnd()} by the specified amount. Also call {@link #incrementLocation(int)} recursively for {@link #getSubElements()}
+	 * @param amount Amount to increment the location by
+	 */
+	public void incrementLocation(int amount) {
+		exprStart += amount;
+		exprEnd += amount;
+		for (ExprElm e : getSubElements())
+			if (e != null)
+				e.incrementLocation(amount);
 	}
 
 }

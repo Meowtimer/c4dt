@@ -140,9 +140,13 @@ public class PropListExpression extends Value {
 	}
 	
 	@Override
-	public PropListExpression clone() throws CloneNotSupportedException {
+	public PropListExpression clone() {
 		PropListExpression e = (PropListExpression) super.clone();
-		e.definedDeclaration = this.definedDeclaration.clone();
+		try {
+			e.definedDeclaration = this.definedDeclaration.clone();
+		} catch (CloneNotSupportedException e1) {
+			e1.printStackTrace();
+		}
 		return e;
 	}
 	

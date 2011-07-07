@@ -710,7 +710,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 			if (!codeBlockDefrosted) {
 				codeBlockDefrosted = true;
 				if (codeBlock != null)
-					codeBlock.postSerialize(null, getDeclarationObtainmentContext());
+					codeBlock.postLoad(null, getDeclarationObtainmentContext());
 			}
 			return codeBlock;
 		} else {

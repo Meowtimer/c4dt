@@ -151,7 +151,7 @@ public class Index extends Declaration implements Serializable, Iterable<Definit
 	 * @param folder The folder to get the object for
 	 * @return The object or null if the folder is not linked to any object
 	 */
-	public ProjectDefinition getObject(IContainer folder) {
+	public ProjectDefinition getDefinition(IContainer folder) {
 		try {
 			// fetch from session cache
 			if (folder.getSessionProperty(ClonkCore.FOLDER_DEFINITION_REFERENCE_ID) != null)
@@ -277,7 +277,7 @@ public class Index extends Declaration implements Serializable, Iterable<Definit
 		
 		for (ScriptBase s : allScripts())
 			if (!s.notFullyLoaded)
-				s.postSerialize(this, this);
+				s.postLoad(this, this);
 	}
 	
 	/**
@@ -731,7 +731,7 @@ public class Index extends Declaration implements Serializable, Iterable<Definit
 			} finally {
 				inputStream.close();
 			}
-			entity.postSerialize(this, this);
+			entity.postLoad(this, this);
 			if (entity instanceof ScriptBase)
 				addGlobalsFromScript((ScriptBase)entity);
 		} catch (Exception e) {

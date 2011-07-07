@@ -230,8 +230,8 @@ public class Engine extends ScriptBase {
 	}
 
 	@Override
-	public void postSerialize(Declaration parent, Index root) {
-		super.postSerialize(parent, root);
+	public void postLoad(Declaration parent, Index root) {
+		super.postLoad(parent, root);
 		modified();
 	}
 
@@ -449,7 +449,7 @@ public class Engine extends ScriptBase {
 				}
 			};
 			parser.parse();
-			postSerialize(null, null);
+			postLoad(null, null);
 		} finally {
 			stream.close();
 		}

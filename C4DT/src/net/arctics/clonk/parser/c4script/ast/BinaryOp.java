@@ -203,8 +203,8 @@ public class BinaryOp extends OperatorExpression {
 	}
 	
 	@Override
-	public void postSerialize(ExprElm parent, DeclarationObtainmentContext root) {
-		super.postSerialize(parent, root);
+	public void postLoad(ExprElm parent, DeclarationObtainmentContext root) {
+		super.postLoad(parent, root);
 		if (getOperator() == Operator.Assign) {
 			getLeftSide().inferTypeFromAssignment(getRightSide(), root);
 		}

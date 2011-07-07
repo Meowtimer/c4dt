@@ -239,12 +239,11 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 				}
 				success = true;
 			}
-			if (currentSubProgressMonitor != null)
-				currentSubProgressMonitor.worked(1);
+			monitor.worked(1);
 			return success;
 		}
 		public boolean visit(IResource resource) throws CoreException {
-			if (currentSubProgressMonitor != null && currentSubProgressMonitor.isCanceled())
+			if (monitor.isCanceled())
 				return false;
 			if (resource instanceof IContainer) {
 				if (!INDEX_C4GROUPS)
@@ -306,7 +305,8 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 		}
 	}
 
-	private IProgressMonitor currentSubProgressMonitor;
+	private IProgressMonitor monitor;
+	
 	private ClonkProjectNature nature;
 
 	/**
@@ -353,6 +353,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 	@SuppressWarnings({"rawtypes"})
 	protected IProject[] build(int kind, Map args, IProgressMonitor monitor) throws CoreException {
 		this.buildKind = kind;
+		this.monitor = monitor;
 		clearState();
 		List<IResource> listOfResourcesToBeRefreshed = new LinkedList<IResource>();
 		clearUIOfReferencesBeforeBuild();
@@ -362,7 +363,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 			try {
 
 				performBuildPhases(
-					monitor, listOfResourcesToBeRefreshed, proj,
+					listOfResourcesToBeRefreshed, proj,
 					getDelta(proj)
 				);
 
@@ -432,19 +433,25 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 		}
 		@Override
 		protected IStatus run(IProgressMonitor monitor) {
-			for (ScriptBase s : scriptsToSave)
-				try {
-					s.save();
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-			ClonkProjectNature.get(project).getIndex().saveShallow();
-			return Status.OK_STATUS;
+			monitor.beginTask("Saving script index files", scriptsToSave.length+3);
+			try {
+				for (ScriptBase s : scriptsToSave)
+					try {
+						s.save();
+						monitor.worked(1);
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
+				ClonkProjectNature.get(project).getIndex().saveShallow();
+				monitor.worked(3);
+				return Status.OK_STATUS;
+			} finally {
+				monitor.done();
+			}
 		}
 	}
 	
 	private void performBuildPhases(
-		IProgressMonitor monitor,
 		List<IResource> listOfResourcesToBeRefreshed,
 		IProject proj,
 		IResourceDelta delta
@@ -462,14 +469,11 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 			visitDeltaOrWholeProject(delta, proj, counter);
 
 			// initialize progress monitor
-			monitor.beginTask(String.format(Messages.BuildProject, proj.getName()), 3);
+			monitor.beginTask(String.format(Messages.BuildProject, proj.getName()), buildKind == CLEAN_BUILD || buildKind == FULL_BUILD ? parserMap.size()*2 : IProgressMonitor.UNKNOWN);
 			
 			// populate parserMap with first batch of parsers for directly modified scripts
 			parserMap.clear();
-			currentSubProgressMonitor = new SubProgressMonitor(monitor, 1);
-			currentSubProgressMonitor.beginTask("Determining scripts", counter.getCount());
 			visitDeltaOrWholeProject(delta, proj, new ScriptGatherer());
-			currentSubProgressMonitor.done();
 			
 			// delete old declarations
 			for (ScriptBase script : parserMap.keySet())
@@ -477,8 +481,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 			index.refreshIndex();
 			
 			// parse declarations
-			currentSubProgressMonitor = new SubProgressMonitor(monitor, parserMap.size());
-			currentSubProgressMonitor.beginTask(Messages.ClonkBuilder_ParseDeclarationsTask, parserMap.size());
+			monitor.subTask("Parse declarations");
 			int parserMapSize;
 			Map<ScriptBase, C4ScriptParser> newlyEnqueuedParsers = new HashMap<ScriptBase, C4ScriptParser>();
 			Map<ScriptBase, C4ScriptParser> enqueuedFromLastIteration = new HashMap<ScriptBase, C4ScriptParser>();
@@ -489,6 +492,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 					if (monitor.isCanceled())
 						return;
 					performBuildPhaseOne(script);
+					monitor.worked(1);
 				}
 				Display.getDefault().asyncExec(new UIRefresher(newlyEnqueuedParsers.keySet()));
 				// refresh now so gathered structures will be validated with an index that has valid appendages maps and such.
@@ -504,25 +508,22 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 				queueDependentScripts(enqueuedFromLastIteration, newlyEnqueuedParsers);
 			}
 			while (parserMapSize != parserMap.size());
-			currentSubProgressMonitor.done();
 			
 			if (delta != null)
 				listOfResourcesToBeRefreshed.add(delta.getResource());
 			
 			// parse function code
-			currentSubProgressMonitor = new SubProgressMonitor(monitor, parserMap.size());
-			currentSubProgressMonitor.beginTask(Messages.ClonkBuilder_ParseCodeTask, parserMap.size());
+			monitor.subTask("Parse function code");
 			ScriptBase[] scripts = parserMap.keySet().toArray(new ScriptBase[parserMap.keySet().size()]);
 			for (ScriptBase s : scripts) {
-				if (currentSubProgressMonitor.isCanceled())
+				if (monitor.isCanceled())
 					return;
 				performBuildPhaseTwo(s);
+				monitor.worked(1);
 			}
 			Display.getDefault().asyncExec(new UIRefresher(Arrays.asList(scripts)));
 			new SaveScriptsJob(proj, scripts).schedule();
 			
-			currentSubProgressMonitor.done();
-
 			applyLatentMarkers();
 
 		} finally {
@@ -539,7 +540,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 
 	private void queueDependentScripts(Map<ScriptBase, C4ScriptParser> scriptsToQueueDependenciesFrom, Map<ScriptBase, C4ScriptParser> newlyAddedParsers) {
 		for (C4ScriptParser parser : scriptsToQueueDependenciesFrom.values()) {
-			if (currentSubProgressMonitor.isCanceled())
+			if (monitor.isCanceled())
 				break;
 			if (parser == null)
 				continue;
@@ -640,9 +641,6 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 			parser.clean();
 			parser.parseDeclarations();
 		}
-		if (currentSubProgressMonitor != null) {
-			currentSubProgressMonitor.worked(1);
-		}
 	}
 	
 	/**
@@ -669,8 +667,6 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 					e.printStackTrace();
 				}
 			}
-			if (currentSubProgressMonitor != null)
-				currentSubProgressMonitor.worked(1);
 		}
 		//nature.getIndex().refreshIndex();
 	}

@@ -181,11 +181,15 @@ public class SpecialScriptRules_OpenClonk extends SpecialScriptRules {
 					Variable var = parser.createVarInScope((String) nameEv, Scope.LOCAL, loc.getStart(), loc.getEnd(), "");
 					var.setLocation(parser.absoluteSourceLocationFromExpr(arguments[0]));
 					var.setScope(Scope.LOCAL);
-					var.setInitializationExpression(arguments[1]);
+					// clone argument since the offset of the expression inside the func body is relative while
+					// the variable initialization expression location is supposed to be absolute
+					ExprElm initializationClone = arguments[1].clone();
+					initializationClone.incrementLocation(parser.bodyOffset());
+					var.setInitializationExpression(initializationClone);
 					var.forceType(arguments[1].getType(parser));
 					new AccessVar(var).inferTypeFromAssignment(arguments[1], parser);
 					var.setParentDeclaration(parser.getCurrentFunc());
-					parser.getContainer().addDeclaration(var);
+					//parser.getContainer().addDeclaration(var);
 				}
 			}
 			return false; // default validation

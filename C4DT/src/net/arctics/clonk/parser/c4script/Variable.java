@@ -10,6 +10,7 @@ import org.eclipse.jface.text.IRegion;
 import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.index.Definition;
+import net.arctics.clonk.index.IPostLoadable;
 import net.arctics.clonk.index.ProjectDefinition;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.parser.Declaration;
@@ -19,7 +20,6 @@ import net.arctics.clonk.parser.c4script.ast.PropListExpression;
 import net.arctics.clonk.parser.c4script.ast.TypeExpectancyMode;
 import net.arctics.clonk.parser.c4script.ast.evaluate.IEvaluationContext;
 import net.arctics.clonk.resource.ClonkProjectNature;
-import net.arctics.clonk.ui.editors.c4script.IPostSerializable;
 import net.arctics.clonk.util.Utilities;
 
 /**
@@ -338,14 +338,14 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 	}
 	
 	@Override
-	public void postSerialize(Declaration parent, Index root) {
-		super.postSerialize(parent, root);
+	public void postLoad(Declaration parent, Index root) {
+		super.postLoad(parent, root);
 		ensureTypeLockedIfPredefined(parent);
-		if (initializationExpression instanceof IPostSerializable) {
-			((IPostSerializable<ExprElm, DeclarationObtainmentContext>)initializationExpression).postSerialize(null, getDeclarationObtainmentContext());
+		if (initializationExpression instanceof IPostLoadable) {
+			((IPostLoadable<ExprElm, DeclarationObtainmentContext>)initializationExpression).postLoad(null, getDeclarationObtainmentContext());
 		}
 		if (initializationExpression instanceof PropListExpression) {
-			((PropListExpression)initializationExpression).getDefinedDeclaration().postSerialize(this, root);
+			((PropListExpression)initializationExpression).getDefinedDeclaration().postLoad(this, root);
 		}
 	}
 

@@ -3,6 +3,7 @@ package net.arctics.clonk.parser;
 import java.io.Serializable;
 
 import net.arctics.clonk.ClonkCore;
+import net.arctics.clonk.index.IPostLoadable;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.Engine;
@@ -22,7 +23,6 @@ import net.arctics.clonk.parser.c4script.ast.ExprElm;
 import net.arctics.clonk.parser.stringtbl.StringTbl;
 import net.arctics.clonk.preferences.ClonkPreferences;
 import net.arctics.clonk.resource.ClonkProjectNature;
-import net.arctics.clonk.ui.editors.c4script.IPostSerializable;
 import net.arctics.clonk.util.ArrayUtil;
 import net.arctics.clonk.util.IHasRelatedResource;
 import net.arctics.clonk.util.INode;
@@ -39,7 +39,7 @@ import org.eclipse.jface.text.IRegion;
  * @author madeen
  *
  */
-public abstract class Declaration implements Serializable, IHasRelatedResource, INode, IPostSerializable<Declaration, Index>, IHasSubDeclarations, IEntityLocatedInIndex {
+public abstract class Declaration implements Serializable, IHasRelatedResource, INode, IPostLoadable<Declaration, Index>, IHasSubDeclarations, IEntityLocatedInIndex {
 
 	public static class DeclarationLocation implements Serializable {
 
@@ -326,14 +326,14 @@ public abstract class Declaration implements Serializable, IHasRelatedResource, 
 	 * @param parent the parent
 	 */
 	@Override
-	public void postSerialize(Declaration parent, Index root) {
+	public void postLoad(Declaration parent, Index root) {
 		if (name != null)
 			name = name.intern();
 		setParentDeclaration(parent);
 		Iterable<? extends Declaration> subDecs = this.allSubDeclarations(DIRECT_SUBDECLARATIONS);
 		if (subDecs != null)
 			for (Declaration d : subDecs)
-				d.postSerialize(this, root);
+				d.postLoad(this, root);
 	}
 	
 	/**

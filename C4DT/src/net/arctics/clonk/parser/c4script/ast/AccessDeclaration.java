@@ -161,8 +161,8 @@ public abstract class AccessDeclaration extends Value {
 	}
 	
 	@Override
-	public void postSerialize(ExprElm parent, DeclarationObtainmentContext root) {
-		super.postSerialize(parent, root);
+	public void postLoad(ExprElm parent, DeclarationObtainmentContext root) {
+		super.postLoad(parent, root);
 		getDeclaration(root);
 	}
 	
