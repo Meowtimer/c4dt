@@ -723,7 +723,7 @@ public class Index extends Declaration implements Serializable, Iterable<Definit
 	}
 
 	public void loadEntity(IndexEntity entity) throws FileNotFoundException, IOException, ClassNotFoundException {
-		System.out.println("Load entity " + entity.toString());
+		//System.out.println("Load entity " + entity.toString());
 		try {
 			ObjectInputStream inputStream = getEntityInputStream(entity);
 			if (inputStream != null) try {
@@ -959,6 +959,7 @@ public class Index extends Declaration implements Serializable, Iterable<Definit
 
 	public synchronized void beginModification() {
 		newEntities = new LinkedList<IndexEntity>();
+		relevantIndexes = null; // force rebuild of list
 	}
 
 	public Object getSaveReplacementForEntityDeclaration(Declaration obj) {

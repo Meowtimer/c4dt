@@ -10,6 +10,7 @@ import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.CachedEngineFuncs;
+import net.arctics.clonk.index.Index;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.DeclarationRegion;
 import net.arctics.clonk.parser.ParserErrorCode;
@@ -316,6 +317,14 @@ public class CallFunc extends AccessDeclaration {
 		multiplePotentialDeclarations = decs.size() > 1;
 	}
 
+	/**
+	 * Find a {@link Function} for some hypothetical {@link CallFunc}, using contextual information such as the {@link ExprElm#getType(DeclarationObtainmentContext)} of the {@link ExprElm} preceding this {@link CallFunc} in the {@link Sequence}.
+	 * @param p The predecessor of the hypothetical {@link CallFunc} ({@link ExprElm#getPredecessorInSequence()})
+	 * @param functionName Name of the function to look for. Would correspond to the hypothetical {@link CallFunc}'s {@link #getDeclarationName()}
+	 * @param context Context to use for searching
+	 * @param listToAddPotentialDeclarationsTo When supplying a non-null value to this parameter, potential declarations will be added to the collection. Such potential declarations would be obtained by querying the {@link Index}'s {@link Index#declarationMap()}.
+	 * @return The {@link Function} that is very likely to be the one actually intended to be referenced by the hypothetical {@link CallFunc}.
+	 */
 	public static Declaration findFunctionUsingPredecessor(ExprElm p, String functionName, DeclarationObtainmentContext context, Collection<Declaration> listToAddPotentialDeclarationsTo) {
 		IType lookIn = p == null ? context.getContainer() : p.getType(context);
 		if (lookIn != null) for (IType ty : lookIn) {
@@ -365,10 +374,12 @@ public class CallFunc extends AccessDeclaration {
 			if (declaration != null) {
 				List<Declaration> allFromLocalIndex = context.getContainer().getIndex().declarationMap().get(functionName);
 				Declaration decl = context.getContainer().getEngine().findLocalFunction(functionName, false);
-				if (
-					(allFromLocalIndex != null ? allFromLocalIndex.size() : 0) +
-					(decl != null ? 1 : 0) == 1
-				) {
+				int numCandidates = 0;
+				if (allFromLocalIndex != null)
+					numCandidates += allFromLocalIndex.size();
+				if (decl != null)
+					numCandidates++;
+				if (numCandidates == 1) {
 					if (listToAddPotentialDeclarationsTo == null)
 						return declaration;
 					else
@@ -447,8 +458,8 @@ public class CallFunc extends AccessDeclaration {
 			}
 			else if (declaration instanceof Function) {
 				Function f = (Function)declaration;
-				if (f.getVisibility() == FunctionScope.GLOBAL)
-					context.getContainer().addUsedProjectScript(f.getScript());
+				if (f.getVisibility() == FunctionScope.GLOBAL || getPredecessorInSequence() != null)
+					context.getContainer().addUsedScript(f.getScript());
 				boolean specialCaseHandled = false;
 				
 				SpecialFuncRule rule = this.getSpecialRule(context, SpecialScriptRules.ARGUMENT_VALIDATOR);
@@ -479,20 +490,20 @@ public class CallFunc extends AccessDeclaration {
 				}
 				
 			}
-			else if (declaration == null && unknownFunctionShouldBeError(context)) {
-				if (declarationName.equals(Keywords.Inherited)) {
-					Function activeFunc = context.getCurrentFunc();
-					if (activeFunc != null) {
-						context.errorWithCode(ParserErrorCode.NoInheritedFunction, getExprStart(), getExprStart()+declarationName.length(), C4ScriptParser.NO_THROW, context.getCurrentFunc().getName(), true);
-					} else {
-						context.errorWithCode(ParserErrorCode.NotAllowedHere, getExprStart(), getExprStart()+declarationName.length(), C4ScriptParser.NO_THROW, declarationName);
+			else if (declaration == null) {
+				if (unknownFunctionShouldBeError(context)) {
+					if (declarationName.equals(Keywords.Inherited)) {
+						Function activeFunc = context.getCurrentFunc();
+						if (activeFunc != null)
+							context.errorWithCode(ParserErrorCode.NoInheritedFunction, getExprStart(), getExprStart()+declarationName.length(), C4ScriptParser.NO_THROW, context.getCurrentFunc().getName(), true);
+						else
+							context.errorWithCode(ParserErrorCode.NotAllowedHere, getExprStart(), getExprStart()+declarationName.length(), C4ScriptParser.NO_THROW, declarationName);
+					}
+					// _inherited yields no warning or error
+					else if (!declarationName.equals(Keywords.SafeInherited))
+						context.errorWithCode(ParserErrorCode.UndeclaredIdentifier, getExprStart(), getExprStart()+declarationName.length(), C4ScriptParser.NO_THROW, declarationName, true);
 					}
 				}
-				// _inherited yields no warning or error
-				else if (!declarationName.equals(Keywords.SafeInherited)) {
-					context.errorWithCode(ParserErrorCode.UndeclaredIdentifier, getExprStart(), getExprStart()+declarationName.length(), C4ScriptParser.NO_THROW, declarationName, true);
-				}
-			}
 		}
 	}
 	public int actualParmsNum() {

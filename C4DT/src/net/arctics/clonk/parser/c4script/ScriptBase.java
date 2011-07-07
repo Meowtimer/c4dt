@@ -73,12 +73,17 @@ public abstract class ScriptBase extends IndexEntity implements ITreeNode, IHasC
 	protected transient List<Directive> definedDirectives;
 	
 	// set of scripts this script is using functions and/or static variables from
-	private transient Set<ScriptBase> usedProjectScripts;
+	private Set<ScriptBase> usedScripts;
 	// scripts dependent on this one inside the same index
 	private transient Set<ScriptBase> dependentScripts;
 	
 	private transient Map<String, Function> cachedFunctionMap;
 	private transient Map<String, Variable> cachedVariableMap;
+	private Set<String> dictionary;
+	
+	public Set<String> dictionary() {
+		return dictionary;
+	}
 	
 	/**
 	 * Flag hinting that this script contains global functions/static variables. This will flag will be consulted to decide whether to fully load the script when looking for global declarations.
@@ -96,11 +101,11 @@ public abstract class ScriptBase extends IndexEntity implements ITreeNode, IHasC
 		definedFunctions = (List<Function>) stream.readObject();
 		definedVariables = (List<Variable>) stream.readObject();
 		definedDirectives = (List<Directive>) stream.readObject();
-		usedProjectScripts = (Set<ScriptBase>) stream.readObject();
+		usedScripts = (Set<ScriptBase>) stream.readObject();
 		// also load scripts this script uses global declarations from so they will be present when the script gets parsed
 		try {
-			if (usedProjectScripts != null)
-				for (ScriptBase s : usedProjectScripts)
+			if (usedScripts != null)
+				for (ScriptBase s : usedScripts)
 					if (s != null)
 						s.requireLoaded();
 		} catch (Exception e) {
@@ -114,7 +119,17 @@ public abstract class ScriptBase extends IndexEntity implements ITreeNode, IHasC
 		stream.writeObject(definedFunctions);
 		stream.writeObject(definedVariables);
 		stream.writeObject(definedDirectives);
-		stream.writeObject(usedProjectScripts);
+		stream.writeObject(usedScripts);
+		populateDictionary();
+	}
+
+	protected void populateDictionary() {
+		if (dictionary != null)
+			dictionary.clear();
+		else
+			dictionary = new HashSet<String>();
+		for (Declaration d : allSubDeclarations(DIRECT_SUBDECLARATIONS))
+			dictionary.add(d.getName());
 	}
 	
 	public String getScriptText() {
@@ -404,8 +419,8 @@ public abstract class ScriptBase extends IndexEntity implements ITreeNode, IHasC
 			Declaration f = null;
 			// prefer declarations from scripts that were previously determined to be the providers of global declarations
 			// this will also probably and rightly lead to those scripts being fully loaded from their index file.
-			if (usedProjectScripts != null)
-				for (ScriptBase s : usedProjectScripts) {
+			if (usedScripts != null)
+				for (ScriptBase s : usedScripts) {
 					f = s.findDeclaration(name, info);
 					if (f != null && f.isGlobal())
 						return f;
@@ -471,7 +486,7 @@ public abstract class ScriptBase extends IndexEntity implements ITreeNode, IHasC
 
 	public void clearDeclarations() {
 		notFullyLoaded = false;
-		usedProjectScripts = null;
+		usedScripts = null;
 		definedDirectives = null;
 		definedFunctions = null;
 		definedVariables = null;
@@ -824,21 +839,21 @@ public abstract class ScriptBase extends IndexEntity implements ITreeNode, IHasC
 			addDeclaration((Declaration)node);
 	}
 	
-	public void addUsedProjectScript(ScriptBase script) {
+	public void addUsedScript(ScriptBase script) {
 		if (script == this || script instanceof Engine)
 			return;
 		requireLoaded();
-		if (usedProjectScripts == null)
-			usedProjectScripts = new HashSet<ScriptBase>();
-		usedProjectScripts.add(script);
+		if (usedScripts == null)
+			usedScripts = new HashSet<ScriptBase>();
+		usedScripts.add(script);
 	}
 	
 	/**
 	 * notification sent by the index when a script is removed
 	 */
 	public void scriptRemovedFromIndex(ScriptBase script) {
-		if (usedProjectScripts != null)
-			usedProjectScripts.remove(script);
+		if (usedScripts != null)
+			usedScripts.remove(script);
 		if (dependentScripts != null)
 			dependentScripts.remove(script);
 	}

@@ -119,7 +119,7 @@ public class AccessVar extends AccessDeclaration {
 					}
 					break;
 				case STATIC:
-					parser.getContainer().addUsedProjectScript(var.getScript());
+					parser.getContainer().addUsedScript(var.getScript());
 					break;
 				case VAR:
 					if (var.getLocation() != null && parser.getCurrentFunc() != null && var.getFunction() == parser.getCurrentFunc()) {

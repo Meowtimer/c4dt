@@ -10,6 +10,7 @@ import net.arctics.clonk.ClonkCore;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.parser.Declaration;
 import net.arctics.clonk.parser.Declaration.DeclarationLocation;
+import net.arctics.clonk.parser.c4script.ScriptBase;
 import net.arctics.clonk.parser.Structure;
 import net.arctics.clonk.ui.editors.ClonkTextEditor;
 import net.arctics.clonk.ui.navigator.ClonkOutlineProvider;
@@ -31,6 +32,36 @@ import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.dialogs.FilteredItemsSelectionDialog;
 
 public class DeclarationChooser extends FilteredItemsSelectionDialog {
+
+	private final class DeclarationsFilter extends ItemsFilter {
+		private String[] patternStrings;
+
+		public String[] getPatternStrings() {
+			if (patternStrings == null)
+				patternStrings = ArrayUtil.map(this.getPattern().split(" "), String.class, STRING_UPPERCASER);
+			return patternStrings;
+		}
+		
+		@Override
+		public boolean isConsistentItem(Object item) {
+			return false;
+		}
+
+		@Override
+		public boolean matchItem(Object item) {
+			if (item instanceof DeclarationLocation)
+				item = ((DeclarationLocation)item).getDeclaration();
+			if (!(item instanceof Declaration))
+				return false;
+			final Declaration decl = (Declaration) item;
+			for (String p : getPatternStrings()) {
+				final Structure structure = decl.getTopLevelStructure();
+				if (!(decl.nameContains(p) || (structure != null && structure.nameContains(p))))
+					return false;
+			}
+			return true;
+		}
+	}
 
 	private static class LabelProvider extends org.eclipse.jface.viewers.LabelProvider implements IStyledLabelProvider {
 		@Override
@@ -103,34 +134,26 @@ public class DeclarationChooser extends FilteredItemsSelectionDialog {
 	
 	@Override
 	protected ItemsFilter createFilter() {
-		return new ItemsFilter() {
-			
-			@Override
-			public boolean isConsistentItem(Object item) {
-				return false;
-			}
-
-			@Override
-			public boolean matchItem(Object item) {
-				String[] patternStrings = ArrayUtil.map(this.getPattern().split(" "), String.class, STRING_UPPERCASER);
-				if (item instanceof DeclarationLocation)
-					item = ((DeclarationLocation)item).getDeclaration();
-				if (!(item instanceof Declaration))
-					return false;
-				final Declaration decl = (Declaration) item;
-				for (String p : patternStrings) {
-					final Structure structure = decl.getTopLevelStructure();
-					if (!(decl.nameContains(p) || (structure != null && structure.nameContains(p))))
-						return false;
-				}
-				return true;
-			}
-			
-		};
+		return new DeclarationsFilter();
 	}
 	
 	@Override
 	protected void fillContentProvider(final AbstractContentProvider contentProvider, final ItemsFilter itemsFilter, IProgressMonitor progressMonitor) throws CoreException {
+		// load scripts that have matching declaration names in their dictionaries
+		final String[] patternStrings = ((DeclarationsFilter)itemsFilter).getPatternStrings();
+		index.forAllRelevantIndexes(new Index.r() {
+			@Override
+			public void run(Index index) {
+				MainLoop: for (ScriptBase s : index.allScripts())
+					if (s.dictionary() != null)
+						for (String str : s.dictionary())
+							for (String ps : patternStrings)
+								if (str.startsWith(ps)) {
+									s.requireLoaded();
+									continue MainLoop;
+								}
+			}
+		});
 		if (declarations != null)
 			for (DeclarationLocation d : declarations)
 				contentProvider.add(d, itemsFilter);

@@ -123,8 +123,15 @@ public class DeclarationLocator extends ExpressionLocator {
 			
 			// gather declarations with that name from involved project indexes
 			List<Declaration> projectDeclarations = new LinkedList<Declaration>();
+			String declarationName = access.getDeclarationName();
+			// load scripts that contain the declaration name in their dictionary which is available regardless of loaded state
 			for (Index i : script.getIndex().relevantIndexes()) {
-				List<Declaration> decs = i.declarationMap().get(access.getDeclarationName());
+				for (ScriptBase s : i.allScripts())
+					if (s.dictionary() != null && s.dictionary().contains(declarationName))
+						s.requireLoaded();
+			}
+			for (Index i : script.getIndex().relevantIndexes()) {
+				List<Declaration> decs = i.declarationMap().get(declarationName);
 				if (decs != null)
 					projectDeclarations.addAll(decs);
 			}
@@ -137,7 +144,7 @@ public class DeclarationLocator extends ExpressionLocator {
 					}
 				});
 			
-			Function engineFunc = regionDescription.engine.findFunction(access.getDeclarationName());
+			Function engineFunc = regionDescription.engine.findFunction(declarationName);
 			if (projectDeclarations != null || engineFunc != null) {
 				proposedDeclarations = new HashSet<Declaration>();
 				if (projectDeclarations != null)
